@@ -1,1126 +1,4156 @@
-const AWC_API='https://aviationweather.gov/api/data/metar';
-const AWC_DATA_API='https://aviationweather.gov/api/data/';
-const WIFS_API='https://aviationweather.gov/wifs/api/';
-const KNMI_OPEN_DATA_API='https://api.dataplatform.knmi.nl/open-data/v1/';
-const NWS_ALERTS='https://api.weather.gov/alerts/active';
-const DWD_WFS_PRIMARY='https://maps.dwd.de/geoserver/dwd/ows';
-const DWD_WFS_BACKUP='https://brz-maps.dwd.de/geoserver/dwd/ows';
-const DWD_CAP_FEED='https://www.dwd.de/DWD/warnungen/cap-feed/de/atom.xml';
-const METEOALARM_FEEDS='https://feeds.meteoalarm.org/feeds/';
-const METEOALARM_VIS='https://visservice.meteoalarm.org/api/v1/';
-const TWC_NEAR='https://api.weather.com/v3/location/near';
-const TWC_PWS='https://api.weather.com/v2/pws/observations/current';
-const BIGDATA_REVERSE='https://api.bigdatacloud.net/data/reverse-geocode-client';
-const OVERPASS_ENDPOINTS=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
-const NETATMO_PUBLIC='https://api.netatmo.com/api/getpublicdata';
-const SYNOPTIC_LATEST='https://api.synopticdata.com/v2/stations/latest';
-const XWEATHER_OBS='https://data.api.xweather.com/observations/closest';
-const GEOSPHERE_META='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min/metadata';
-const GEOSPHERE_CURRENT='https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min';
-const BRIGHTSKY_CURRENT='https://api.brightsky.dev/current_weather';
-const BRIGHTSKY_WEATHER='https://api.brightsky.dev/weather';
-const DWD_MOSMIX_L_INDEX='https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_L/all_stations/kml/';
-const DWD_MOSMIX_S_INDEX='https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_S/all_stations/kml/';
-const DWD_SYNOPTIC_STATIONLIST='https://opendata.dwd.de/weather/weather_reports/stationlist_synoptic_germany.csv';
-const DWD_POI_ROOT='https://opendata.dwd.de/weather/weather_reports/poi/';
-const DWD_CDC_10MIN_ROOT='https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/10_minutes/';
-const DWD_CDC_10MIN_DATASETS={
- temperature:{path:'air_temperature/now/',prefix:'10minutenwerte_TU_',catalog:'zehn_now_tu_Beschreibung_Stationen.txt'},
- urban_temperature:{base:'https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate_urban/10_minutes/',path:'air_temperature/now/',prefix:'10minutenwerte_TU_STADT_',catalog:'zehn_st_now_tu_Beschreibung_Stationen.txt',siteClass:'urban'},
- wind:{path:'wind/now/',prefix:'10minutenwerte_wind_',catalog:'zehn_now_ff_Beschreibung_Stationen.txt'},
- extreme_wind:{path:'extreme_wind/now/',prefix:'10minutenwerte_extrema_wind_',catalog:'zehn_now_fx_Beschreibung_Stationen.txt'},
- precipitation:{path:'precipitation/now/',prefix:'10minutenwerte_nieder_',catalog:'zehn_now_rr_Beschreibung_Stationen.txt'}
-};
-const SMHI_METOBS_ROOT='https://opendata-download-metobs.smhi.se/api/version/1.0/parameter/';
-const FMI_WFS='https://opendata.fmi.fi/wfs';
-const NWS_POINTS='https://api.weather.gov/points/';
-const ECCC_GEOMET='https://api.weather.gc.ca/collections/swob-realtime/items';
-const OPENSENSEMAP_BOXES='https://api.opensensemap.org/boxes';
-const DWD_KONRAD3D_ROOTS=['https://opendata.dwd.de/weather/radar/konrad3d/','https://opendatao.dwd.de/weather/radar/konrad3d/'];
-const DWD_MESOCYCLONE_ROOTS=['https://opendata.dwd.de/weather/radar/mesocyclones/','https://opendatao.dwd.de/weather/radar/mesocyclones/'];
-const EEA_AIR_QUALITY_STATION_ENDPOINTS=['https://air.discomap.eea.europa.eu/arcgis/rest/services/AirQuality/AirQualityDownloadServiceEUMonitoringStations/MapServer/0/query','https://eeha.discomap.eea.europa.eu/arcgis/rest/services/AirQuality/AirQualityDownloadServiceEUMonitoringStations/MapServer/0/query'];
-const DWD_RADOLAN_YW_ROOT='https://opendata.dwd.de/weather/radar/radolan/yw/';
-const DWD_HYMECNG_ROOTS=['https://opendata.dwd.de/weather/radar/composite/hymecng/','https://opendatao.dwd.de/weather/radar/composite/hymecng/'];
-const DWD_HYMECNG_LATEST='composite_HymecNG_LATEST_000-hd5';
-const DWD_HG_ROOTS=['https://opendata.dwd.de/weather/radar/composite/hg/','https://opendatao.dwd.de/weather/radar/composite/hg/'];
-const DWD_HG_LATEST='HG_LATEST_000.bz2';
-const DWD_RS_ROOTS=['https://opendata.dwd.de/weather/radar/composite/rs/','https://opendatao.dwd.de/weather/radar/composite/rs/'];
-const DWD_RADOLAN_HISTORY_ROOTS={rw:'https://opendata.dwd.de/weather/radar/radolan/rw/',ry:'https://opendata.dwd.de/weather/radar/radolan/ry/',sf:'https://opendata.dwd.de/weather/radar/radolan/sf/'};
-const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids_germany/return_periods/precipitation/KOSTRA/KOSTRA_DWD_2020/asc/';
-const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
-const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
-const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.22';
-const C3S_SEASONAL_POINT_SYSTEMS=[
- {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
- {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
- {centreId:'meteofrance',originatingCentre:'meteo_france',system:'9',modelKey:'meteofrance-system9',independenceKey:'meteofrance-system9',label:'MÃ©tÃ©o-France System 9'},
- {centreId:'dwd',originatingCentre:'dwd',system:'22',modelKey:'dwd-gcfs22',independenceKey:'dwd-gcfs22',label:'DWD GCFS2.2'},
- {centreId:'cmcc',originatingCentre:'cmcc',system:'4',modelKey:'cmcc-sps4',independenceKey:'cmcc-sps4',label:'CMCC SPS4'},
- {centreId:'ncep',originatingCentre:'ncep',system:'2',modelKey:'ncep-cfsv2',independenceKey:'ncep-cfsv2',label:'NCEP CFSv2'},
- {centreId:'jma',originatingCentre:'jma',system:'4',modelKey:'jma-cps4',independenceKey:'jma-cps4',label:'JMA CPS4'},
- {centreId:'eccc',originatingCentre:'eccc',system:'4',modelKey:'eccc-canesm51p1bc',independenceKey:'eccc-canesm5-lineage',label:'ECCC CanESM5.1p1bc'},
- {centreId:'eccc',originatingCentre:'eccc',system:'5',modelKey:'eccc-gem52-nemo',independenceKey:'eccc-gem52-nemo',label:'ECCC GEM5.2-NEMO'},
- {centreId:'bom',originatingCentre:'bom',system:'2',modelKey:'bom-access-s2',independenceKey:'bom-access-s2',label:'BOM ACCESS-S2'}
-];
-const CORS={'content-type':'application/json; charset=utf-8','access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'content-type','cache-control':'public, max-age=180'};
-const FEED_SLUGS={
-	AD:'andorra',AT:'austria',BE:'belgium',BA:'bosnia-herzegovina',BG:'bulgaria',HR:'croatia',CY:'cyprus',CZ:'czechia',DK:'denmark',EE:'estonia',FI:'finland',FR:'france',DE:'germany',GR:'greece',EL:'greece',HU:'hungary',IS:'iceland',IE:'ireland',IL:'israel',IT:'italy',LV:'latvia',LT:'lithuania',LU:'luxembourg',MT:'malta',MD:'moldova',ME:'montenegro',NL:'netherlands',MK:'republic-of-north-macedonia',NO:'norway',PL:'poland',PT:'portugal',RO:'romania',RS:'serbia',SK:'slovakia',SI:'slovenia',ES:'spain',SE:'sweden',CH:'switzerland',UA:'ukraine',GB:'united-kingdom',UK:'united-kingdom'
-};
-const COUNTRY_ALIASES={
- DE:'DE',GERMANY:'DE',DEUTSCHLAND:'DE',ALLEMAGNE:'DE',GERMANIA:'DE',
- AT:'AT',AUSTRIA:'AT',OESTERREICH:'AT',OSTERREICH:'AT',Ã–STERREICH:'AT',
- IT:'IT',ITALY:'IT',ITALIA:'IT',ITALIEN:'IT',ITALIE:'IT',
- US:'US',USA:'US','UNITED STATES':'US','UNITED STATES OF AMERICA':'US',VEREINIGTESTAATEN:'US',
- CA:'CA',CANADA:'CA',KANADA:'CA',
- GB:'GB',UK:'GB','UNITED KINGDOM':'GB',GROSSBRITANNIEN:'GB',
- CH:'CH',SWITZERLAND:'CH',SCHWEIZ:'CH',SUISSE:'CH',SVIZZERA:'CH',
- FR:'FR',FRANCE:'FR',FRANKREICH:'FR',
- ES:'ES',SPAIN:'ES',SPANIEN:'ES',ESPANA:'ES',ESPAÃ‘A:'ES',
- PT:'PT',PORTUGAL:'PT',NL:'NL',NETHERLANDS:'NL',NIEDERLANDE:'NL',NIEDERLANDE:'NL',
- BE:'BE',BELGIUM:'BE',BELGIEN:'BE',DK:'DK',DENMARK:'DK',DAENEMARK:'DK',DÃ„NEMARK:'DK',
- NO:'NO',NORWAY:'NO',NORWEGEN:'NO',SE:'SE',SWEDEN:'SE',SCHWEDEN:'SE',FI:'FI',FINLAND:'FI',
- IE:'IE',IRELAND:'IE',IRLAND:'IE',IS:'IS',ICELAND:'IS',ISLAND:'IS',
- PL:'PL',POLAND:'PL',POLEN:'PL',CZ:'CZ',CZECHIA:'CZ','CZECH REPUBLIC':'CZ',TSCHECHIEN:'CZ',
- SK:'SK',SLOVAKIA:'SK',SLOWAKEI:'SK',SI:'SI',SLOVENIA:'SI',SLOWENIEN:'SI',
- HR:'HR',CROATIA:'HR',KROATIEN:'HR',GR:'GR',EL:'GR',GREECE:'GR',GRIECHENLAND:'GR',
- HU:'HU',HUNGARY:'HU',UNGARN:'HU',RO:'RO',ROMANIA:'RO',RUMAENIEN:'RO',RUMÃ„NIEN:'RO',
- BG:'BG',BULGARIA:'BG',BULGARIEN:'BG',RS:'RS',SERBIA:'RS',SERBIEN:'RS',
- BA:'BA','BOSNIA AND HERZEGOVINA':'BA',BOSNIENHERZEGOWINA:'BA',ME:'ME',MONTENEGRO:'ME',
- MK:'MK','NORTH MACEDONIA':'MK',NORDMAZEDONIEN:'MK',AL:'AL',ALBANIA:'AL',ALBANIEN:'AL',
- EE:'EE',ESTONIA:'EE',ESTLAND:'EE',LV:'LV',LATVIA:'LV',LETTLAND:'LV',LT:'LT',LITHUANIA:'LT',LITAUEN:'LT',
- LU:'LU',LUXEMBOURG:'LU',LUXEMBURG:'LU',MT:'MT',MALTA:'MT',CY:'CY',CYPRUS:'CY',ZYPERN:'CY',
- UA:'UA',UKRAINE:'UA',MD:'MD',MOLDOVA:'MD',MOLDAU:'MD',IL:'IL',ISRAEL:'IL',AD:'AD',ANDORRA:'AD'
-};
-function number(v){if(v===null||v===undefined||v==='')return undefined;const n=Number(v);return Number.isFinite(n)?n:undefined}
-const FORECAST_PRECIPITATION_CODES=new Set([51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77,80,81,82,83,84,85,86,95,96,97,99]);
-const FORECAST_STRATIFORM_CODES=new Set([51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77]);
-const FORECAST_SHOWER_CODES=new Set([80,81,82,83,84,85,86,95,96,97,99]);
-function precipitationCharacter(context={},weatherCode=3){
- const rain=Math.max(0,number(context?.rain)??0),showers=Math.max(0,number(context?.showers)??0),liquid=rain+showers,directPartition=liquid>=.03,convectiveFraction=directPartition?showers/liquid:0,cape=Math.max(0,number(context?.cape)??0),liftedIndex=number(context?.liftedIndex),cin=Math.abs(number(context?.convectiveInhibition)??NaN),cover=number(context?.cloud),lowCloud=number(context?.lowCloud),humidity=number(context?.humidity),sunshine=number(context?.sunshineDuration),daylight=context?.isDay!==false;
- let convectiveScore=0,stratiformScore=0;
- // Explizite Modellkomponenten rain/showers sind die stÃ¤rkste und kohÃ¤renteste Trennung.
- if(directPartition){if(showers>=.05&&convectiveFraction>=.65)convectiveScore+=6;else if(showers>=.03&&convectiveFraction>=.4)convectiveScore+=4;else if(showers>=.01&&convectiveFraction>=.25)convectiveScore+=2;if(rain>=.05&&convectiveFraction<=.2)stratiformScore+=6;else if(rain>=.03&&convectiveFraction<=.4)stratiformScore+=4;else if(rain>=.01&&convectiveFraction<.65)stratiformScore+=2}
- if(FORECAST_SHOWER_CODES.has(weatherCode))convectiveScore+=2;if(FORECAST_STRATIFORM_CODES.has(weatherCode))stratiformScore+=2;
- // InstabilitÃ¤tsfelder sind nur stÃ¼tzende Evidenz und dÃ¼rfen ohne AuslÃ¶sesignal keine Schauer erfinden.
- if(cape>=1500)convectiveScore+=3;else if(cape>=800)convectiveScore+=2;else if(cape>=300)convectiveScore+=1;
- if(Number.isFinite(liftedIndex)){if(liftedIndex<=-4)convectiveScore+=2;else if(liftedIndex<=-1)convectiveScore+=1;else if(liftedIndex>=2)stratiformScore+=.5}
- if(Number.isFinite(cin)&&cape>=300){if(cin<=25)convectiveScore+=1;else if(cin<=75)convectiveScore+=.5;else if(cin>=200)convectiveScore-=1.5}
- const lowStratus=Number.isFinite(lowCloud)&&lowCloud>=72||Number.isFinite(cover)&&cover>=88;if(lowStratus)stratiformScore+=1.5;if(Number.isFinite(humidity)&&humidity>=90)stratiformScore+=1;if(daylight&&Number.isFinite(sunshine)&&sunshine<=600)stratiformScore+=.5;
- let character='indeterminate';if(directPartition&&rain>=.03&&showers>=.03&&convectiveFraction>=.3&&convectiveFraction<=.7)character='mixed';else if(directPartition&&showers>=.05&&convectiveFraction>=.6&&convectiveScore>=stratiformScore-1)character='convective';else if(directPartition&&rain>=.05&&convectiveFraction<=.25&&stratiformScore>=convectiveScore-1)character='stratiform';else if(convectiveScore>=5&&convectiveScore>=stratiformScore+2)character='convective';else if(stratiformScore>=5&&stratiformScore>=convectiveScore+2)character='stratiform';return{character,convectiveFraction,directPartition}
-}
-function showerEquivalentCode(code,total,snowfall){if([71,73,75,77].includes(code)||snowfall>=.05)return snowfall>=2?86:85;if([68,69].includes(code))return total>=2.5?84:83;if([95,96,97,99].includes(code))return code;return total>=10?82:total>=2.5?81:80}
-function stratiformEquivalentCode(code,total,snowfall){if([85,86].includes(code)||snowfall>=.05)return snowfall>=2?75:snowfall>=.5?73:71;if([83,84].includes(code))return total>=2.5?69:68;if([95,96,97,99].includes(code))return code;return total>=10?65:total>=2.5?63:61}
-function reconcileForecastPrecipitation(amount,probability,code,cloud,context={}){
- let precipitation=Math.max(0,number(amount)??0),rain=Math.max(0,number(context?.rain)??0),showers=Math.max(0,number(context?.showers)??0),snowfall=Math.max(0,number(context?.snowfall)??0),chance=Math.max(0,Math.min(100,number(probability)??0)),weatherCode=Math.round(number(code)??3);const wetCode=FORECAST_PRECIPITATION_CODES.has(weatherCode),wetSignal=wetCode||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01,lead=Math.max(0,number(context?.leadHours)??0),supportMinimum=lead<=24?10:lead<=72?15:20,weakAmount=Math.max(precipitation,rain,showers,snowfall)<=.35;
- const suppress=()=>{const cover=number(cloud),dryCode=[45,48].includes(weatherCode)?weatherCode:!Number.isFinite(cover)?3:cover<=15?0:cover<=45?1:cover<=80?2:3;return{precipitation:0,rain:0,showers:0,snowfall:0,probability:chance,code:dryCode,traceSuppressed:true}};
- if(wetSignal&&!context?.observed&&(chance<=5||weakAmount&&chance<supportMinimum))return suppress();if(!wetSignal)return{precipitation,rain,showers,snowfall,probability:chance,code:weatherCode,traceSuppressed:false};
- const evidence=precipitationCharacter({...context,rain,showers,cloud},weatherCode),total=Math.max(precipitation,rain+showers,snowfall);if(FORECAST_STRATIFORM_CODES.has(weatherCode)&&evidence.character==='convective'&&![56,57,66,67].includes(weatherCode)){weatherCode=showerEquivalentCode(weatherCode,total,snowfall);if(snowfall<.05&&![83,84,85,86].includes(weatherCode)){showers=Math.max(showers,precipitation);rain=0}}else if(FORECAST_SHOWER_CODES.has(weatherCode)&&evidence.character==='stratiform'&&![95,96,97,99].includes(weatherCode)){weatherCode=stratiformEquivalentCode(weatherCode,total,snowfall);if(snowfall<.05&&![68,69,71,73,75].includes(weatherCode)){rain=Math.max(rain,precipitation);showers=0}}
- return{precipitation,rain,showers,snowfall,probability:chance,code:weatherCode,traceSuppressed:false,precipitationCharacter:evidence.character}
-}
-function distance(lat1,lon1,lat2,lon2){const r=6371000,t=x=>x*Math.PI/180,dLat=t(lat2-lat1),dLon=t(lon2-lon1),a=Math.sin(dLat/2)**2+Math.cos(t(lat1))*Math.cos(t(lat2))*Math.sin(dLon/2)**2;return 2*r*Math.asin(Math.sqrt(a))}
-function bearingTowards(lat1,lon1,lat2,lon2){const toRad=value=>value*Math.PI/180,toDeg=value=>value*180/Math.PI,phi1=toRad(lat1),phi2=toRad(lat2),deltaLon=toRad(lon2-lon1),y=Math.sin(deltaLon)*Math.cos(phi2),x=Math.cos(phi1)*Math.sin(phi2)-Math.sin(phi1)*Math.cos(phi2)*Math.cos(deltaLon);return(toDeg(Math.atan2(y,x))+360)%360}
-function destinationPoint(lat,lon,bearingDeg,distanceKm){const radius=6371,angular=Math.max(0,Number(distanceKm)||0)/radius,bearing=Number(bearingDeg)*Math.PI/180,phi1=Number(lat)*Math.PI/180,lambda1=Number(lon)*Math.PI/180,phi2=Math.asin(Math.sin(phi1)*Math.cos(angular)+Math.cos(phi1)*Math.sin(angular)*Math.cos(bearing)),lambda2=lambda1+Math.atan2(Math.sin(bearing)*Math.sin(angular)*Math.cos(phi1),Math.cos(angular)-Math.sin(phi1)*Math.sin(phi2));return{latitude:phi2*180/Math.PI,longitude:((lambda2*180/Math.PI+540)%360)-180}}
-function at(v,i){return Array.isArray(v)?v[i]:undefined}
-function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{...CORS,...headers}})}
-const REGIONAL_ENSEMBLE_ADAPTERS={
- icon_d2_ruc_eps:{endpoint:'MID_DWD_RUC_EPS_POINT_ENDPOINT',token:'MID_DWD_RUC_EPS_POINT_TOKEN',label:'DWD ICON-D2-RUC-EPS'},
- knmi_harmonie_arome_cy43_eps:{endpoint:'MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT',token:'MID_KNMI_HARMONIE_EPS_POINT_TOKEN',label:'KNMI HARMONIE-AROME Cy43 EPS'},
- eccc_reps:{endpoint:'MID_ECCC_REPS_POINT_ENDPOINT',token:'MID_ECCC_REPS_POINT_TOKEN',label:'ECCC REPS'}
-};
-function dwdRucR2Configured(env){return Boolean(env?.MID_DWD_RUC_DATA&&typeof env.MID_DWD_RUC_DATA.get==='function')}
-const DWD_RUC_STATIC_DEFAULT='https://midwx.app/ruc/';
-function dwdRucStaticBaseUrl(env){const raw=String(env?.MID_DWD_RUC_STATIC_BASE_URL||DWD_RUC_STATIC_DEFAULT).trim();if(!raw||raw==='disabled')return null;try{const url=new URL(raw);if(url.protocol!=='https:'&&url.protocol!=='http:')return null;url.pathname=url.pathname.replace(/\/?$/,'/');url.search='';url.hash='';return url}catch{return null}}
-function dwdRucStaticConfigured(env){return Boolean(dwdRucStaticBaseUrl(env))}
-function dwdRucStorageConfigured(env){return dwdRucR2Configured(env)||dwdRucStaticConfigured(env)}
-let dwdRucLatestCache=null,dwdRucStaticLatestCache=null;const dwdRucLookupCache=new Map(),dwdRucStaticLookupCache=new Map(),dwdRucStaticObjectCache=new Map();
-async function dwdRucR2Json(bucket,key){const object=await bucket.get(key);if(!object)return null;try{return JSON.parse(await object.text())}catch{return null}}
-async function dwdRucR2Range(bucket,key,offset,length){const object=await bucket.get(key,{range:{offset,length}});if(!object)return null;return new Uint8Array(await object.arrayBuffer())}
-function dwdRucMetaTimestamp(meta){const raw=String(meta?.run||meta?.generatedAt||''),compact=raw.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(?:\d{2})?$/);if(compact)return Date.UTC(Number(compact[1]),Number(compact[2])-1,Number(compact[3]),Number(compact[4]));return Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)?raw:`${raw}Z`)}
-function dwdRucMetaFresh(meta){const stamp=dwdRucMetaTimestamp(meta);return Number.isFinite(stamp)&&stamp<=Date.now()+90*60000&&Date.now()-stamp<=4*3600000}
-async function dwdRucR2Latest(bucket){if(dwdRucLatestCache&&Date.now()-dwdRucLatestCache.at<45*1000&&dwdRucMetaFresh(dwdRucLatestCache.meta))return dwdRucLatestCache.meta;const meta=await dwdRucR2Json(bucket,'latest.json');if(!meta||meta.schema!=='mid.dwd.ruc.grid.v2'||!dwdRucMetaFresh(meta))return null;dwdRucLatestCache={at:Date.now(),meta};return meta}
-async function dwdRucR2Health(env){
- if(!dwdRucR2Configured(env))return{configured:false,ready:false,fresh:false,schemaValid:false,reason:'MID_DWD_RUC_DATA nicht gebunden'};
- const bucket=env.MID_DWD_RUC_DATA,meta=await dwdRucR2Json(bucket,'latest.json');if(!meta)return{configured:true,ready:false,fresh:false,schemaValid:false,reason:'latest.json fehlt oder ist ungÃ¼ltig'};
- const schemaValid=meta.schema==='mid.dwd.ruc.grid.v2',stamp=dwdRucMetaTimestamp(meta),ageHours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/3600000):null,fresh=schemaValid&&dwdRucMetaFresh(meta),pointCount=Number(meta.pointCount)||0,memberCount=Number(meta?.eps?.memberCount)||0,required={lookup:meta?.lookup?.key,deterministic:meta?.deterministic?.key,epsSummary:meta?.epsSummary?.key,epsMembers:meta?.eps?.key},keysPresent=Object.fromEntries(Object.entries(required).map(([name,key])=>[name,Boolean(key)])),objectsPresent={...keysPresent};
- if(typeof bucket.head==='function'){await Promise.all(Object.entries(required).map(async([name,key])=>{if(!key){objectsPresent[name]=false;return}try{objectsPresent[name]=Boolean(await bucket.head(key))}catch{objectsPresent[name]=false}}))}
- const objectsReady=Object.values(objectsPresent).every(Boolean),timeCount=Array.isArray(meta.times)?meta.times.length:0,ready=Boolean(schemaValid&&fresh&&pointCount>0&&timeCount>=4&&memberCount>=2&&objectsReady);
- return{configured:true,ready,fresh,schemaValid,backend:'r2',run:String(meta.run||''),generatedAt:String(meta.generatedAt||''),ageHours:ageHours==null?null:Number(ageHours.toFixed(2)),pointCount,timeCount,epsMemberCount:memberCount,nativeEpsMembers:true,objectsPresent,reason:ready?undefined:!schemaValid?'Schema ungÃ¼ltig':!fresh?'RUC-Lauf nicht frisch':!objectsReady?'Laufobjekte unvollstÃ¤ndig':'Metadaten unvollstÃ¤ndig'}
-}
-function dwdRucStaticObjectUrl(base,key){const clean=String(key||'');if(!clean||clean.startsWith('/')||clean.includes('..')||!clean.startsWith('runs/'))return null;try{const url=new URL(clean,base);if(url.origin!==base.origin||!url.pathname.startsWith(base.pathname))return null;return url}catch{return null}}
-async function dwdRucStaticJson(base,key){try{const url=key==='latest.json'?new URL('latest.json',base):dwdRucStaticObjectUrl(base,key);if(!url)return null;const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:key!=='latest.json',cacheTtl:key==='latest.json'?0:31536000}},8000);if(!response.ok)return null;return await response.json()}catch{return null}}
-async function dwdRucStaticObject(base,key){const url=dwdRucStaticObjectUrl(base,key);if(!url)return null;const cacheKey=url.toString(),cached=dwdRucStaticObjectCache.get(cacheKey);if(cached&&Date.now()-cached.at<15*60*1000)return cached.bytes;try{const response=await fetchWithDeadline(cacheKey,{headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}},12000);if(!response.ok)return null;const bytes=new Uint8Array(await response.arrayBuffer());dwdRucStaticObjectCache.set(cacheKey,{at:Date.now(),bytes});if(dwdRucStaticObjectCache.size>24)dwdRucStaticObjectCache.delete(dwdRucStaticObjectCache.keys().next().value);return bytes}catch{return null}}
-function dwdRucStaticPageInfo(spec){const pages=spec?.pages,chunkRecords=Number(pages?.chunkRecords),recordBytes=Number(pages?.recordBytes||spec?.recordBytes),chunkCount=Number(pages?.chunkCount),prefix=String(pages?.prefix||'');return chunkRecords>0&&recordBytes>0&&chunkCount>0&&prefix.startsWith('runs/')?{chunkRecords,recordBytes,chunkCount,prefix}:null}
-async function dwdRucStaticRecord(base,spec,recordIndex){const page=dwdRucStaticPageInfo(spec);if(!page||!Number.isInteger(recordIndex)||recordIndex<0)return null;const chunkIndex=Math.floor(recordIndex/page.chunkRecords);if(chunkIndex>=page.chunkCount)return null;const key=`${page.prefix}/${String(chunkIndex).padStart(4,'0')}.bin`,bytes=await dwdRucStaticObject(base,key);if(!bytes)return null;const local=recordIndex%page.chunkRecords,offset=local*page.recordBytes;if(offset+page.recordBytes>bytes.length)return null;return bytes.slice(offset,offset+page.recordBytes)}
-async function dwdRucStaticLatest(env){const base=dwdRucStaticBaseUrl(env);if(!base)return null;if(dwdRucStaticLatestCache&&dwdRucStaticLatestCache.base===base.toString()&&Date.now()-dwdRucStaticLatestCache.at<45*1000&&dwdRucMetaFresh(dwdRucStaticLatestCache.meta))return{base,meta:dwdRucStaticLatestCache.meta};const meta=await dwdRucStaticJson(base,'latest.json');if(!meta||meta.schema!=='mid.dwd.ruc.grid.v2'||meta.storageProfile!=='pages-free-v1'||!dwdRucMetaFresh(meta))return null;dwdRucStaticLatestCache={at:Date.now(),base:base.toString(),meta};return{base,meta}}
-async function dwdRucStaticHealth(env){const base=dwdRucStaticBaseUrl(env);if(!base)return{configured:false,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'statischer RUC-Datenweg deaktiviert'};const meta=await dwdRucStaticJson(base,'latest.json');if(!meta)return{configured:true,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'GitHub-Pages latest.json fehlt oder ist ungÃ¼ltig'};const schemaValid=meta.schema==='mid.dwd.ruc.grid.v2'&&meta.storageProfile==='pages-free-v1',fresh=schemaValid&&dwdRucMetaFresh(meta),stamp=dwdRucMetaTimestamp(meta),ageHours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/3600000):null,pointCount=Number(meta.pointCount)||0,timeCount=Array.isArray(meta.times)?meta.times.length:0,memberCount=Number(meta?.eps?.memberCount)||0,objectsPresent={lookup:false,deterministic:false,epsSummary:false,epsMembers:false,rapidPrecip5:false,rapidConvection15:false,rapidExtreme:false,rapidReflectivity15:false,rapidPhase15:false,rapidSevere15:false,rapidSolar15:false,specialistHourly:false};if(schemaValid){const probes=[['lookup',meta.lookup],['deterministic',meta.deterministic],['epsSummary',meta.epsSummary],['rapidPrecip5',meta?.rapid?.precip5],['rapidConvection15',meta?.rapid?.convection15],['rapidReflectivity15',meta?.rapid?.reflectivity15],['rapidPhase15',meta?.rapid?.phase15],['rapidSevere15',meta?.rapid?.severe15],['rapidSolar15',meta?.rapid?.solar15],['specialistHourly',meta?.rapid?.specialistHourly]].filter(([,spec])=>spec);await Promise.all(probes.map(async([name,spec])=>{objectsPresent[name]=Boolean(await dwdRucStaticRecord(base,spec,0))}));objectsPresent.rapidExtreme=Boolean(meta?.rapidExtreme?.key&&await dwdRucStaticJson(base,meta.rapidExtreme.key))}const objectsReady=objectsPresent.lookup&&objectsPresent.deterministic&&objectsPresent.epsSummary&&objectsPresent.rapidPrecip5&&objectsPresent.rapidConvection15&&objectsPresent.rapidExtreme,ready=Boolean(schemaValid&&fresh&&pointCount>0&&timeCount>=4&&memberCount>=2&&objectsReady);return{configured:true,ready,fresh,schemaValid,backend:'pages',storageProfile:String(meta.storageProfile||''),run:String(meta.run||''),generatedAt:String(meta.generatedAt||''),ageHours:ageHours==null?null:Number(ageHours.toFixed(2)),pointCount,timeCount,epsMemberCount:memberCount,nativeEpsMembers:false,objectsPresent,reason:ready?undefined:!schemaValid?'Schema/Pages-Profil ungÃ¼ltig':!fresh?'RUC-Lauf nicht frisch':!objectsReady?'Pages-Laufobjekte unvollstÃ¤ndig':'Metadaten unvollstÃ¤ndig'}}
-async function dwdRucRapidExtremeSnapshot(env){const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapidExtreme,key=String(spec?.key||'');if(!key)return null;const payload=await dwdRucStaticJson(base,key);if(!payload||!['mid.dwd.ruc.rapid-extreme.v1','mid.dwd.ruc.rapid-extreme.v2','mid.dwd.ruc.rapid-extreme.v3','mid.dwd.ruc.rapid-extreme.v4'].includes(payload.schema)||String(payload.run)!==String(meta.run)||!Array.isArray(payload.cells))return null;return payload}
-async function dwdRucStorageHealth(env){let r2=null;if(dwdRucR2Configured(env)){r2=await dwdRucR2Health(env);if(r2.ready)return r2}const pages=await dwdRucStaticHealth(env);if(pages.ready)return pages;return r2?.configured?{...r2,fallbackBackend:'pages',fallbackReady:Boolean(pages.ready)}:pages}
-function dwdRucLookupOffset(meta,lat,lon){const g=meta?.grid||{},latMin=Number(g.latMin),lonMin=Number(g.lonMin),dy=Number(g.dy),dx=Number(g.dx),ny=Number(g.ny),nx=Number(g.nx);if(![latMin,lonMin,dy,dx,ny,nx].every(Number.isFinite)||dx<=0||dy<=0)return null;const x=Math.round((lon-lonMin)/dx),y=Math.round((lat-latMin)/dy);if(x<0||y<0||x>=nx||y>=ny)return null;return(y*nx+x)*4}
-function dwdRucDecodeI16Record(bytes,spec,times){const axis=Array.isArray(spec?.times)&&spec.times.length?spec.times:times,fields=spec?.fields||[],view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),hourly={time:axis};for(let f=0;f<fields.length;f++){const field=fields[f],values=[];for(let t=0;t<axis.length;t++){const raw=view.getInt16((t*fields.length+f)*2,true);values.push(raw===-32768?null:raw*Number(field.scale)+Number(field.offset||0))}hourly[field.name]=values}return hourly}
-function dwdRucDecodeI16(bytes,meta){return dwdRucDecodeI16Record(bytes,meta.deterministic,meta.times||[])}
-async function dwdRucR2Context(lat,lon,env){if(!dwdRucR2Configured(env))return null;const bucket=env.MID_DWD_RUC_DATA,meta=await dwdRucR2Latest(bucket);if(!meta)return null;const offset=dwdRucLookupOffset(meta,lat,lon);if(offset===null||!meta.lookup?.key)return null;const cacheKey=`${meta.run}:${offset}`,cached=dwdRucLookupCache.get(cacheKey);if(cached&&Date.now()-cached.at<10*60*1000)return{bucket,meta,pointIndex:cached.pointIndex};const lookup=await dwdRucR2Range(bucket,meta.lookup.key,offset,4);if(!lookup||lookup.length!==4)return null;const pointIndex=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);if(pointIndex===0xffffffff||pointIndex>=Number(meta.pointCount||0))return null;dwdRucLookupCache.set(cacheKey,{at:Date.now(),pointIndex});if(dwdRucLookupCache.size>1024)dwdRucLookupCache.delete(dwdRucLookupCache.keys().next().value);return{bucket,meta,pointIndex}}
-async function dwdRucStaticContext(lat,lon,env){const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,offset=dwdRucLookupOffset(meta,lat,lon);if(offset===null)return null;const recordIndex=offset/4,cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);if(cached&&Date.now()-cached.at<10*60*1000)return{base,meta,pointIndex:cached.pointIndex};const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex);if(!lookup||lookup.length!==4)return null;const pointIndex=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);if(pointIndex===0xffffffff||pointIndex>=Number(meta.pointCount||0))return null;dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex});if(dwdRucStaticLookupCache.size>1024)dwdRucStaticLookupCache.delete(dwdRucStaticLookupCache.keys().next().value);return{base,meta,pointIndex}}
-async function dwdRucR2RapidPayload(context){const{bucket,meta,pointIndex}=context,products=meta?.rapid&&typeof meta.rapid==='object'?meta.rapid:{},rapid={};await Promise.all(Object.entries(products).map(async([id,spec])=>{const recordBytes=Number(spec?.recordBytes);if(!spec?.key||!Number.isFinite(recordBytes)||recordBytes<=0)return;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(bytes&&bytes.length===recordBytes)rapid[id]=dwdRucDecodeI16Record(bytes,spec,Array.isArray(spec?.times)?spec.times:[])}));return rapid}
-async function dwdRucR2PointPayload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,det=meta.deterministic;if(!det?.key||!Number.isFinite(Number(det.recordBytes)))return null;const bytes=await dwdRucR2Range(bucket,det.key,pointIndex*Number(det.recordBytes),Number(det.recordBytes));if(!bytes||bytes.length!==Number(det.recordBytes))return null;const rapid=await dwdRucR2RapidPayload(context);return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16(bytes,meta),rapid,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC',storage:'R2',rapidProducts:Object.keys(rapid)}}}
-async function dwdRucStaticRapidPayload(context){const{base,meta,pointIndex}=context,products=meta?.rapid&&typeof meta.rapid==='object'?meta.rapid:{},rapid={};await Promise.all(Object.entries(products).map(async([id,spec])=>{const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(bytes)rapid[id]=dwdRucDecodeI16Record(bytes,spec,Array.isArray(spec?.times)?spec.times:[])}));return rapid}
-function dwdRucRapidPhaseTimeIndex(spec,targetMs){const times=Array.isArray(spec?.times)?spec.times:[],parsed=times.map(value=>dwdRucMetaTimestamp({run:String(value)}));let best=-1,bestDelta=Infinity;for(let index=0;index<parsed.length;index++){const stamp=parsed[index],delta=Math.abs(stamp-targetMs);if(Number.isFinite(stamp)&&delta<bestDelta){best=index;bestDelta=delta}}return best>=0&&bestDelta<=20*60000?{index:best,time:String(times[best]),stamp:parsed[best],deltaMs:bestDelta}:null}
-async function dwdRucStaticPhaseGrid(lats,lons,targetMs,env){
- const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapid?.phase15,timePick=dwdRucRapidPhaseTimeIndex(spec,targetMs);if(!spec||!timePick)return null;
- const coordinates=[];for(const lat of lats)for(const lon of lons)coordinates.push({lat,lon});const pointRefs=[],pointCache=new Map();
- for(const point of coordinates){const offset=dwdRucLookupOffset(meta,point.lat,point.lon);if(offset===null){pointRefs.push(null);continue}const recordIndex=offset/4,cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);let pointIndex=cached&&Date.now()-cached.at<10*60*1000?cached.pointIndex:null;if(pointIndex===null){const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex);if(lookup&&lookup.length===4){const decoded=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);if(decoded!==0xffffffff&&decoded<Number(meta.pointCount||0)){pointIndex=decoded;dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex})}}}pointRefs.push(Number.isInteger(pointIndex)?pointIndex:null)}
- const unique=[...new Set(pointRefs.filter(Number.isInteger))],decodedByPoint=new Map();for(const pointIndex of unique){const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes)continue;const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);decodedByPoint.set(pointIndex,{rain:Number(decoded.rain?.[timePick.index]),snow:Number(decoded.snowfall_water_equivalent?.[timePick.index]),graupel:Number(decoded.graupel_water_equivalent?.[timePick.index])})}
- const rain=[],snowfallWaterEquivalent=[],graupelWaterEquivalent=[];let valid=0;for(const pointIndex of pointRefs){const row=decodedByPoint.get(pointIndex);if(row&&[row.rain,row.snow,row.graupel].some(Number.isFinite))valid++;rain.push(Number.isFinite(row?.rain)?Math.max(0,row.rain):NaN);snowfallWaterEquivalent.push(Number.isFinite(row?.snow)?Math.max(0,row.snow):NaN);graupelWaterEquivalent.push(Number.isFinite(row?.graupel)?Math.max(0,row.graupel):NaN)}
- if(valid<coordinates.length*.72)return null;return{time:new Date(timePick.stamp).toISOString(),run:String(meta.run||''),rain,snowfallWaterEquivalent,graupelWaterEquivalent,valid,total:coordinates.length,source:'DWD ICON-D2-RUC Â· native 15 min'}
-}
-async function dwdRucStaticPointPayload(lat,lon,env){const context=await dwdRucStaticContext(lat,lon,env);if(!context)return null;const{base,meta,pointIndex}=context,bytes=await dwdRucStaticRecord(base,meta.deterministic,pointIndex);if(!bytes)return null;const rapid=await dwdRucStaticRapidPayload(context);return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16(bytes,meta),rapid,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC',storage:'GitHub Pages',rapidProducts:Object.keys(rapid)}}}
-async function dwdRucEpsSummaryR2Payload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,spec=meta.epsSummary,times=Array.isArray(spec?.times)&&spec.times.length?spec.times:Array.isArray(meta.times)?meta.times:[],recordBytes=Number(spec?.recordBytes);if(!spec?.key||times.length<4||!Number.isFinite(recordBytes)||recordBytes<=0)return null;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(!bytes||bytes.length!==recordBytes)return null;return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16Record(bytes,spec,times),mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC-EPS',storage:'R2',aggregation:'preprocessed',member_count:Number(meta.eps?.memberCount)||0}}}
-async function dwdRucEpsSummaryStaticPayload(lat,lon,env){const context=await dwdRucStaticContext(lat,lon,env);if(!context)return null;const{base,meta,pointIndex}=context,spec=meta.epsSummary,times=Array.isArray(spec?.times)&&spec.times.length?spec.times:Array.isArray(meta.times)?meta.times:[],bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes||times.length<4)return null;return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly:dwdRucDecodeI16Record(bytes,spec,times),mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC-EPS',storage:'GitHub Pages',aggregation:'preprocessed',member_count:Number(meta.eps?.memberCount)||0}}}
-async function dwdRucEpsR2Payload(lat,lon,env){const context=await dwdRucR2Context(lat,lon,env);if(!context)return null;const{bucket,meta,pointIndex}=context,spec=meta.eps,memberCount=Number(spec?.memberCount)||0,timeCount=Array.isArray(meta.times)?meta.times.length:0,recordBytes=Number(spec?.recordBytes);if(!spec?.key||memberCount<2||timeCount<4||recordBytes!==timeCount*memberCount*2)return null;const bytes=await dwdRucR2Range(bucket,spec.key,pointIndex*recordBytes,recordBytes);if(!bytes||bytes.length!==recordBytes)return null;const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),scale=Number(spec.scale)||.01,hourly={time:meta.times};for(let member=0;member<memberCount;member++)hourly[`precipitation_member${member+1}`]=[];for(let t=0;t<timeCount;t++)for(let member=0;member<memberCount;member++){const raw=view.getUint16((t*memberCount+member)*2,true),value=raw===65535?null:raw*scale;hourly[`precipitation_member${member+1}`].push(value)}return{latitude:lat,longitude:lon,timezone:'GMT',utc_offset_seconds:0,hourly,mid_ruc:{run:meta.run,generatedAt:meta.generatedAt,source:'DWD ICON-D2-RUC-EPS',storage:'R2',aggregation:'native-members-event-only',member_count:memberCount}}}
-function regionalEnsembleConfigured(id,definition,env){if(id==='icon_d2_ruc_eps')return dwdRucR2Configured(env)||Boolean(adapterEndpoint(env,definition.endpoint));if(id==='knmi_harmonie_arome_cy43_eps')return knmiEpsProductionConfigured(env)||Boolean(adapterEndpoint(env,definition.endpoint));return Boolean(adapterEndpoint(env,definition.endpoint))}
-function regionalEnsembleCapabilities(env){return Object.fromEntries(Object.entries(REGIONAL_ENSEMBLE_ADAPTERS).map(([id,definition])=>[id,{label:definition.label,configured:regionalEnsembleConfigured(id,definition,env),required:id==='icon_d2_ruc_eps'?['MID_DWD_RUC_DATA or MID_DWD_RUC_EPS_POINT_ENDPOINT',`optional ${definition.token}`]:[definition.endpoint,`optional ${definition.token}`]}]))}
-async function regionalEnsembleAdapterPayload(model,lat,lon,days,variables,env){const definition=REGIONAL_ENSEMBLE_ADAPTERS[model];if(!definition)return null;if(model==='icon_d2_ruc_eps'){const r2=await dwdRucEpsR2Payload(lat,lon,env);if(r2)return{...r2,_mid_source:definition.label,_mid_adapter:true};}if(model==='knmi_harmonie_arome_cy43_eps'&&knmiEpsProductionConfigured(env))return knmiEpsProductionAdapterPayload(lat,lon,days,variables,env);const endpoint=adapterEndpoint(env,definition.endpoint);if(!endpoint){const error=new Error(`${definition.label}: numerischer Punktadapter nicht konfiguriert`);error.midStatus=503;error.midRequired=model==='icon_d2_ruc_eps'?['MID_DWD_RUC_DATA or MID_DWD_RUC_EPS_POINT_ENDPOINT',`optional ${definition.token}`]:model==='knmi_harmonie_arome_cy43_eps'?['MID_KNMI_API_KEY',definition.endpoint,`optional ${definition.token}`]:[definition.endpoint,`optional ${definition.token}`];throw error}endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_days',String(days));endpoint.searchParams.set('forecast_hours',String(Math.min(14,days*24)));endpoint.searchParams.set('variables',variables.join(','));endpoint.searchParams.set('model',model);const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.[definition.token]||'').trim();if(token)headers.Authorization=`Bearer ${token}`;const response=await fetchWithDeadline(endpoint.toString(),{headers},30000),text=await response.text();let payload;try{payload=JSON.parse(text)}catch{throw new Error(`${definition.label}: ungÃ¼ltige JSON-Antwort`)}if(!response.ok)throw new Error(String(payload?.error||payload?.detail||`${definition.label} Adapter HTTP ${response.status}`));if(!Array.isArray(payload?.hourly?.time)||payload.hourly.time.length<4)throw new Error(`${definition.label}: keine vollstÃ¤ndige Punktzeitreihe`);return{...payload,_mid_source:definition.label,_mid_adapter:true}}
-const CORE_FORECAST_CURRENT='temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,cape,sunshine_duration';
-const CORE_FORECAST_MINUTELY='precipitation_probability,precipitation,rain,showers,snowfall,weather_code,sunshine_duration';
-const CORE_FORECAST_HOURLY='temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,visibility,cape,lifted_index,convective_inhibition,total_column_integrated_water_vapour,is_day,sunshine_duration';
-const CORE_FORECAST_DAILY='weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max,sunshine_duration';
-const CORE_FORECAST_EDGE_FRESH_MS=2*60*1000,CORE_FORECAST_EDGE_STALE_MS=18*3600000;
-function coreForecastCacheRequest(lat,lon,version='v2'){return new Request(`https://mid-core-cache.invalid/${version}/${lat.toFixed(3)}/${lon.toFixed(3)}`)}
-async function readCoreForecastEdgeCache(lat,lon){try{const cache=globalThis.caches?.default;if(!cache)return null;for(const version of['v2','v1']){const response=await cache.match(coreForecastCacheRequest(lat,lon,version));if(!response)continue;const row=await response.json(),age=Date.now()-Number(row?.storedAt);if(!row?.payload||!Number.isFinite(age)||age<0||age>CORE_FORECAST_EDGE_STALE_MS||row.payload?._mid_core_proxy?.fallback===true||/MET Norway/i.test(String(row.payload?._mid_core_proxy?.provider||'')))continue;return{payload:row.payload,age}}return null}catch{return null}}
-async function writeCoreForecastEdgeCache(lat,lon,payload){try{const cache=globalThis.caches?.default;if(!cache)return;const body=JSON.stringify({storedAt:Date.now(),payload});await cache.put(coreForecastCacheRequest(lat,lon),new Response(body,{headers:{'content-type':'application/json; charset=utf-8','cache-control':`public, max-age=${Math.round(CORE_FORECAST_EDGE_STALE_MS/1000)}`}}))}catch{}}
-function validCoreForecastPayload(payload){return Boolean(payload&&typeof payload==='object'&&payload.current&&payload.hourly&&payload.daily&&Array.isArray(payload.hourly.time)&&Array.isArray(payload.daily.time))}
-function coreFallbackTimeZone(value){const candidate=String(value||'').trim();if(candidate&&candidate.length<=80)try{new Intl.DateTimeFormat('en-US',{timeZone:candidate}).format(new Date());return candidate}catch{}return'UTC'}
-function coreFallbackLocalIso(epoch,timeZone){try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)),part=type=>parts.find(row=>row.type===type)?.value;return`${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`}catch{return new Date(epoch).toISOString().slice(0,16)}}
-function coreFallbackUtcOffsetSeconds(epoch,timeZone){try{const parts=new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)),get=type=>Number(parts.find(row=>row.type===type)?.value),wall=Date.UTC(get('year'),get('month')-1,get('day'),get('hour'),get('minute'),get('second'));return Math.round((wall-epoch)/1000)}catch{return 0}}
-function metNorwayWmoCode(symbol){const value=String(symbol||'').toLowerCase();if(!value)return 3;if(value.includes('thunder'))return value.includes('snow')||value.includes('sleet')?95:95;if(value.includes('heavysnowshowers'))return 86;if(value.includes('snowshowers'))return 85;if(value.includes('heavysleetshowers'))return 84;if(value.includes('sleetshowers'))return 83;if(value.includes('heavyrainshowers'))return 82;if(value.includes('rainshowers'))return 81;if(value.includes('heavysnow'))return 75;if(value.includes('lightsnow'))return 71;if(value.includes('snow'))return 73;if(value.includes('heavysleet'))return 69;if(value.includes('lightsleet'))return 68;if(value.includes('sleet'))return 69;if(value.includes('heavyrain'))return 65;if(value.includes('lightrain'))return 61;if(value.includes('rain'))return 63;if(value.includes('fog'))return 45;if(value.includes('cloudy'))return value.includes('partly')?2:3;if(value.includes('fair'))return 1;if(value.includes('clearsky'))return 0;return 3}
-function metNorwayIsDay(symbol){const value=String(symbol||'').toLowerCase();if(value.endsWith('_night'))return 0;if(value.endsWith('_day'))return 1;return value.includes('polartwilight')?0:1}
-function metNorwayApparentTemperature(temp,rh,windMs){const t=number(temp),humidity=number(rh),wind=Math.max(0,number(windMs)||0);if(!Number.isFinite(t))return undefined;if(!Number.isFinite(humidity))return t;const vapor=humidity/100*6.105*Math.exp(17.27*t/(237.7+t));const apparent=t+.33*vapor-.70*wind-4;return Number.isFinite(apparent)?Number(apparent.toFixed(1)):t}
-function circularDirectionMean(values){const rows=values.filter(Number.isFinite);if(!rows.length)return 0;const x=rows.reduce((sum,value)=>sum+Math.cos(value*Math.PI/180),0),y=rows.reduce((sum,value)=>sum+Math.sin(value*Math.PI/180),0);return(Math.atan2(y,x)*180/Math.PI+360)%360}
-function metNorwayPeriod(row){return row?.data?.next_1_hours||row?.data?.next_6_hours||row?.data?.next_12_hours||null}
-function metNorwayPeriodHours(row){return row?.data?.next_1_hours?1:row?.data?.next_6_hours?6:row?.data?.next_12_hours?12:0}
-function metNorwayFallbackPayload(raw,lat,lon,timeZone,elevation){const series=Array.isArray(raw?.properties?.timeseries)?raw.properties.timeseries:[];if(series.length<8)return null;const now=Date.now(),normalised=series.map(row=>{const epoch=Date.parse(String(row?.time||'')),instant=row?.data?.instant?.details||{},period=metNorwayPeriod(row),periodHours=metNorwayPeriodHours(row),symbol=period?.summary?.symbol_code||'',details=period?.details||{},temperature=number(instant.air_temperature),humidity=number(instant.relative_humidity),dewPoint=number(instant.dew_point_temperature),windMs=number(instant.wind_speed),gustMs=number(instant.wind_speed_of_gust),precipitation=number(details.precipitation_amount),probability=number(details.probability_of_precipitation),cloud=number(instant.cloud_area_fraction),low=number(instant.cloud_area_fraction_low),mid=number(instant.cloud_area_fraction_medium),high=number(instant.cloud_area_fraction_high);return{epoch,time:coreFallbackLocalIso(epoch,timeZone),date:coreFallbackLocalIso(epoch,timeZone).slice(0,10),instant,period,periodHours,symbol,temperature,humidity,dewPoint,windMs,gustMs,precipitation,probability,cloud,low,mid,high,code:metNorwayWmoCode(symbol),isDay:metNorwayIsDay(symbol)}}).filter(row=>Number.isFinite(row.epoch)&&Number.isFinite(row.temperature));if(normalised.length<8)return null;const hourlyRows=normalised.filter(row=>row.periodHours===1&&row.epoch>=now-2*3600000&&row.epoch<=now+66*3600000);const hours=hourlyRows.length>=18?hourlyRows:normalised.filter(row=>row.epoch>=now-2*3600000&&row.epoch<=now+66*3600000);if(hours.length<8)return null;const closest=[...hours].sort((a,b)=>Math.abs(a.epoch-now)-Math.abs(b.epoch-now))[0],knots=1.9438444924406,arrays={time:[],temperature_2m:[],relative_humidity_2m:[],dew_point_2m:[],apparent_temperature:[],precipitation_probability:[],precipitation:[],rain:[],showers:[],snowfall:[],weather_code:[],cloud_cover:[],cloud_cover_low:[],cloud_cover_mid:[],cloud_cover_high:[],pressure_msl:[],wind_speed_10m:[],wind_direction_10m:[],wind_gusts_10m:[],uv_index:[],visibility:[],cape:[],lifted_index:[],convective_inhibition:[],total_column_integrated_water_vapour:[],is_day:[],sunshine_duration:[]};for(const row of hours){arrays.time.push(row.time);arrays.temperature_2m.push(row.temperature);arrays.relative_humidity_2m.push(row.humidity??null);arrays.dew_point_2m.push(row.dewPoint??null);arrays.apparent_temperature.push(metNorwayApparentTemperature(row.temperature,row.humidity,row.windMs)??row.temperature);arrays.precipitation_probability.push(row.probability??null);arrays.precipitation.push(row.precipitation??0);arrays.rain.push(0);arrays.showers.push(0);arrays.snowfall.push(0);arrays.weather_code.push(row.code);arrays.cloud_cover.push(row.cloud??0);arrays.cloud_cover_low.push(row.low??null);arrays.cloud_cover_mid.push(row.mid??null);arrays.cloud_cover_high.push(row.high??null);arrays.pressure_msl.push(number(row.instant.air_pressure_at_sea_level)??null);arrays.wind_speed_10m.push(Math.max(0,(row.windMs??0)*knots));arrays.wind_direction_10m.push(number(row.instant.wind_from_direction)??0);arrays.wind_gusts_10m.push(Math.max(0,(row.gustMs??row.windMs??0)*knots));arrays.uv_index.push(null);arrays.visibility.push(null);arrays.cape.push(null);arrays.lifted_index.push(null);arrays.convective_inhibition.push(null);arrays.total_column_integrated_water_vapour.push(null);arrays.is_day.push(row.isDay);arrays.sunshine_duration.push(null)}const groups=new Map();for(const row of normalised){const group=groups.get(row.date)||[];group.push(row);groups.set(row.date,group)}const daily={time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],sunrise:[],sunset:[],precipitation_sum:[],rain_sum:[],showers_sum:[],snowfall_sum:[],precipitation_hours:[],precipitation_probability_max:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],wind_direction_10m_dominant:[],uv_index_max:[],sunshine_duration:[]};for(const[date,rows]of [...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).slice(0,10)){const temps=rows.map(row=>row.temperature).filter(Number.isFinite),wind=rows.map(row=>Math.max(0,(row.windMs??0)*knots)),gust=rows.map(row=>Math.max(0,(row.gustMs??row.windMs??0)*knots)),probs=rows.map(row=>row.probability).filter(Number.isFinite),precipRows=rows.filter(row=>row.periodHours===1||row.periodHours===6&&rows.every(other=>other.periodHours!==1||Math.abs(other.epoch-row.epoch)>5.5*3600000)),precip=precipRows.reduce((sum,row)=>sum+Math.max(0,row.precipitation??0),0),representative=[...rows].sort((a,b)=>(b.probability??0)-(a.probability??0)||(b.precipitation??0)-(a.precipitation??0)||Math.abs(a.epoch-(Date.parse(`${date}T12:00:00Z`)))-Math.abs(b.epoch-(Date.parse(`${date}T12:00:00Z`))))[0]||rows[0];if(!temps.length)continue;daily.time.push(date);daily.weather_code.push(representative?.code??3);daily.temperature_2m_max.push(Math.max(...temps));daily.temperature_2m_min.push(Math.min(...temps));daily.sunrise.push(null);daily.sunset.push(null);daily.precipitation_sum.push(Number(precip.toFixed(2)));daily.rain_sum.push(0);daily.showers_sum.push(0);daily.snowfall_sum.push(0);daily.precipitation_hours.push(rows.filter(row=>row.periodHours===1&&(row.precipitation??0)>=.1).length);daily.precipitation_probability_max.push(probs.length?Math.max(...probs):null);daily.wind_speed_10m_max.push(wind.length?Math.max(...wind):0);daily.wind_gusts_10m_max.push(gust.length?Math.max(...gust):0);daily.wind_direction_10m_dominant.push(circularDirectionMean(rows.map(row=>number(row.instant.wind_from_direction))));daily.uv_index_max.push(null);daily.sunshine_duration.push(null)}if(daily.time.length<2)return null;const probabilityAvailable=normalised.some(row=>Number.isFinite(row.probability)),elevationValue=Number.isFinite(number(elevation))?Number(elevation):Number(raw?.geometry?.coordinates?.[2])||0,currentInstant=closest.instant,current={time:closest.time,interval:3600,temperature_2m:closest.temperature,relative_humidity_2m:closest.humidity??0,dew_point_2m:closest.dewPoint??closest.temperature,apparent_temperature:metNorwayApparentTemperature(closest.temperature,closest.humidity,closest.windMs)??closest.temperature,is_day:closest.isDay,precipitation:closest.precipitation??0,rain:0,showers:0,snowfall:0,weather_code:closest.code,cloud_cover:closest.cloud??0,cloud_cover_low:closest.low??0,cloud_cover_mid:closest.mid??0,cloud_cover_high:closest.high??0,pressure_msl:number(currentInstant.air_pressure_at_sea_level)??0,wind_speed_10m:Math.max(0,(closest.windMs??0)*knots),wind_direction_10m:number(currentInstant.wind_from_direction)??0,wind_gusts_10m:Math.max(0,(closest.gustMs??closest.windMs??0)*knots)};return{latitude:lat,longitude:lon,elevation:elevationValue,timezone:timeZone,timezone_abbreviation:'',utc_offset_seconds:coreFallbackUtcOffsetSeconds(now,timeZone),current,hourly:arrays,daily,_mid_core_proxy:{provider:'MET Norway Locationforecast',fallback:true,sourceUpdatedAt:String(raw?.properties?.meta?.updated_at||''),horizonDays:daily.time.length,precipitationProbabilityAvailable:probabilityAvailable}}}
-async function metNorwayCoreForecast(lat,lon,timeZone,elevation){const url=new URL(MET_NORWAY_LOCATIONFORECAST);url.searchParams.set('lat',lat.toFixed(4));url.searchParams.set('lon',lon.toFixed(4));if(Number.isFinite(number(elevation)))url.searchParams.set('altitude',String(Math.round(number(elevation))));const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION} https://midwx.app/`},cf:{cacheTtl:600,cacheEverything:true}},18000),text=await response.text();let payload;try{payload=JSON.parse(text)}catch{}if(!response.ok)throw new Error(`MET Norway Locationforecast HTTP ${response.status}`);const mapped=metNorwayFallbackPayload(payload,lat,lon,timeZone,elevation);if(!mapped)throw new Error('MET Norway Locationforecast lieferte keinen belastbaren Kernforecast.');return mapped}
-async function openMeteoCoreForecast(url){
- const rawLat=number(url.searchParams.get('lat')),rawLon=number(url.searchParams.get('lon')),refresh=url.searchParams.get('refresh')==='1';
- if(!Number.isFinite(rawLat)||!Number.isFinite(rawLon)||Math.abs(rawLat)>90||Math.abs(rawLon)>180)return json({error:'gÃ¼ltige lat/lon erforderlich',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const lat=Number(rawLat.toFixed(3)),lon=Number(rawLon.toFixed(3)),cached=await readCoreForecastEdgeCache(lat,lon),cachedMeta=cached?.payload?._mid_core_proxy&&typeof cached.payload._mid_core_proxy==='object'?cached.payload._mid_core_proxy:{};
- const cachedResponse=(extra={})=>json({...cached.payload,_mid_core_proxy:{...cachedMeta,provider:'Open-Meteo Best Match',fallback:false,version:WORKER_VERSION,cached:true,ageMs:cached.age,...extra}},200,{'cache-control':'public, max-age=60, stale-while-revalidate=600'});
- if(!refresh&&cached&&cached.age<=CORE_FORECAST_EDGE_FRESH_MS)return cachedResponse({stale:false});
- const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'14',forecast_minutely_15:'24',past_minutely_15:'4',models:'best_match',wind_speed_unit:'kn',current:CORE_FORECAST_CURRENT,minutely_15:CORE_FORECAST_MINUTELY,hourly:CORE_FORECAST_HOURLY,daily:CORE_FORECAST_DAILY});
- try{
-  const response=await fetchWithDeadline(`${OPEN_METEO_FORECAST}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:120,cacheEverything:true}},18000),body=await response.text();let payload;try{payload=JSON.parse(body)}catch{}
-  if(response.ok&&validCoreForecastPayload(payload)){const stored={...payload,_mid_core_proxy:{provider:'Open-Meteo Best Match',fallback:false,checkedAt:new Date().toISOString()}};await writeCoreForecastEdgeCache(lat,lon,stored);return json({...stored,_mid_core_proxy:{...stored._mid_core_proxy,version:WORKER_VERSION,cached:false}},200,{'cache-control':'public, max-age=120, stale-while-revalidate=600'})}
-  const reason=String(payload?.reason||payload?.error||`Open-Meteo Kernvorhersage HTTP ${response.status}`);if(cached)return cachedResponse({stale:true,upstreamStatus:response.status,upstreamReason:reason});return json({error:'Open-Meteo Best Match vorÃ¼bergehend nicht erreichbar.',upstreamStatus:response.status,upstreamReason:reason,version:WORKER_VERSION},response.status===429?429:502,{'cache-control':'no-store'})
- }catch(error){const reason=error instanceof Error?error.message:String(error);if(cached)return cachedResponse({stale:true,upstreamReason:reason});return json({error:'Open-Meteo Best Match vorÃ¼bergehend nicht erreichbar.',upstreamReason:reason,version:WORKER_VERSION},502,{'cache-control':'no-store'})}
-}
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×^¸ãÄèµ©hºÚn¶X§zÍXÛÛœİUĞ×ĞTOIÚÎ‹ËØ]šX][ÛÙX]\‹™Ûİ‹Ø\KÙ]KÛY]\‰ÎÂ˜ÛÛœİUĞ×ÑUWĞTOIÚÎ‹ËØ]šX][ÛÙX]\‹™Ûİ‹Ø\KÙ]KÉÎÂ˜ÛÛœİÒQ”×ĞTOIÚÎ‹ËØ]šX][ÛÙX]\‹™Ûİ‹İÚYœËØ\KÉÎÂ˜ÛÛœİÓ“RWÓÔS—ÑUWĞTOIÚÎ‹ËØ\K™]\]›Ü›KšÛ›ZK››ÛÜ[‹Y]KİŒKÉÎÂ˜ÛÛœİ•Ô×ĞST•ÏIÚÎ‹ËØ\KÙX]\‹™Ûİ‹Ø[\ËØXİ]™IÎÂ˜ÛÛœİÑÕÑ”×Ô’SPT–OIÚÎ‹ËÛX\Ë™Ù™KÙÙ[ÜÙ\™\‹ÙÙÛİÜÉÎÂ˜ÛÛœİÑÕÑ”×ĞPÒÕTIÚÎ‹ËØœ‹[X\Ë™Ù™KÙÙ[ÜÙ\™\‹ÙÙÛİÜÉÎÂ˜ÛÛœİÑĞĞTÑ‘QQIÚÎ‹ËİİİË™Ù™KÑÑİØ\›[™Ù[‹ØØ\Y™YYÙKØ]ÛK[	ÎÂ˜ÛÛœİQUSĞST“WÑ‘QQÏIÚÎ‹ËÙ™YYË›Y][Ø[\›K›Ü™ËÙ™YYËÉÎÂ˜ÛÛœİQUSĞST“WÕ’TÏIÚÎ‹Ëİš\ÜÙ\šXÙK›Y][Ø[\›K›Ü™ËØ\KİŒKÉÎÂ˜ÛÛœİĞ×Ó‘PTIÚÎ‹ËØ\KÙX]\‹˜ÛÛKİŒËÛØØ][Û‹Û™X\‰ÎÂ˜ÛÛœİĞ×ÔÔÏIÚÎ‹ËØ\KÙX]\‹˜ÛÛKİŒ‹ÜÜËÛØœÙ\˜][ÛœËØİ\œ™[	ÎÂ˜ÛÛœİ’QÑUWÔ‘U‘T”ÑOIÚÎ‹ËØ\K˜šYÙ]XÛİY›™]Ù]KÜ™]™\œÙKYÙ[ØÛÙKXÛY[	ÎÂ˜ÛÛœİÕ‘T”TÔ×ÑS‘ÒS•ÏVÉÚÎ‹ËÛİ™\œ\ÜËX\K™KØ\KÚ[\œ™]\‰Ë	ÚÎ‹ËÛİ™\œ\ÜËšİ[ZKœŞ\İ[\ËØ\KÚ[\œ™]\‰×NÂ˜ÛÛœİ‘UUS×ÔP“PÏIÚÎ‹ËØ\K›™]][Ë˜ÛÛKØ\KÙÙ]X›XÙ]IÎÂ˜ÛÛœİÖS“ÔP×ÓUTÕIÚÎ‹ËØ\KœŞ[›ÜXÙ]K˜ÛÛKİŒ‹Üİ][ÛœËÛ]\İ	ÎÂ˜ÛÛœİÑPUT—ÓĞ”ÏIÚÎ‹ËÙ]K˜\KÙX]\‹˜ÛÛKÛØœÙ\˜][ÛœËØÛÜÙ\İ	ÎÂ˜ÛÛœİÑSÔÔT‘WÓQUOIÚÎ‹ËÙ]\Ù]˜\KšX‹™Ù[ÜÜ\™K˜]İŒKÜİ][Û‹Øİ\œ™[İ]Ù\Ë]ŒKLLZ[‹ÛY]Y]IÎÂ˜ÛÛœİÑSÔÔT‘WĞÕT”‘S•IÚÎ‹ËÙ]\Ù]˜\KšX‹™Ù[ÜÜ\™K˜]İŒKÜİ][Û‹Øİ\œ™[İ]Ù\Ë]ŒKLLZ[‰ÎÂ˜ÛÛœİ”’QÒÒÖWĞÕT”‘S•IÚÎ‹ËØ\K˜œšYÚÚŞK™]‹Øİ\œ™[İÙX]\‰ÎÂ˜ÛÛœİ”’QÒÒÖWÕÑPUTIÚÎ‹ËØ\K˜œšYÚÚŞK™]‹İÙX]\‰ÎÂ˜ÛÛœİÑÓSÔÓRVÓÒS‘VIÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹ÛØØ[Ù›Ü™XØ\İËÛ[ÜËÓSÔÓRVÓØ[Üİ][ÛœËÚÛ[ÉÎÂ˜ÛÛœİÑÓSÔÓRVÔ×ÒS‘VIÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹ÛØØ[Ù›Ü™XØ\İËÛ[ÜËÓSÔÓRVÔËØ[Üİ][ÛœËÚÛ[ÉÎÂ˜ÛÛœİÑÔÖS“ÔP×ÔÕUSÓ“TÕIÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹İÙX]\—Ü™\ÜËÜİ][Û›\İÜŞ[›ÜX×ÙÙ\›X[K˜Üİ‰ÎÂ˜ÛÛœİÑÔÒWÔ“ÓÕIÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹İÙX]\—Ü™\ÜËÜÚKÉÎÂ˜ÛÛœİÑĞÑ×ÌLRS—Ô“ÓÕIÚÎ‹ËÛÜ[™]K™Ù™KØÛ[X]WÙ[š\›Û›Y[ĞÑËÛØœÙ\˜][Ûœ×ÙÙ\›X[KØÛ[X]KÌLÛZ[]\ËÉÎÂ˜ÛÛœİÑĞÑ×ÌLRS—ÑUTÑUÏ^Âˆ[\\˜]\™NÜ]‰ØZ\—İ[\\˜]\™KÛ›İËÉË™Yš^‰ÌLZ[][Ù\WÕWÉËØ][ÙÎ‰Ş™Z—Û›İ×İWĞ™\ØÚ™ZX[™×Ôİ][Û™[‹	ßKˆ\˜˜[—İ[\\˜]\™NØ˜\ÙN‰ÚÎ‹ËÛÜ[™]K™Ù™KØÛ[X]WÙ[š\›Û›Y[ĞÑËÛØœÙ\˜][Ûœ×ÙÙ\›X[KØÛ[X]Wİ\˜˜[‹ÌLÛZ[]\ËÉË]‰ØZ\—İ[\\˜]\™KÛ›İËÉË™Yš^‰ÌLZ[][Ù\WÕWÔÕQÉËØ][ÙÎ‰Ş™Z—ÜİÛ›İ×İWĞ™\ØÚ™ZX[™×Ôİ][Û™[‹	ËÚ]PÛ\ÜÎ‰İ\˜˜[‰ßKˆÚ[™Ü]‰İÚ[™Û›İËÉË™Yš^‰ÌLZ[][Ù\WİÚ[™ÉËØ][ÙÎ‰Ş™Z—Û›İ×Ù™—Ğ™\ØÚ™ZX[™×Ôİ][Û™[‹	ßKˆ^™[YWİÚ[™Ü]‰Ù^™[YWİÚ[™Û›İËÉË™Yš^‰ÌLZ[][Ù\WÙ^™[XWİÚ[™ÉËØ][ÙÎ‰Ş™Z—Û›İ×ÙĞ™\ØÚ™ZX[™×Ôİ][Û™[‹	ßKˆ™XÚ\]][ÛÜ]‰Ü™XÚ\]][Û‹Û›İËÉË™Yš^‰ÌLZ[][Ù\WÛšYY\—ÉËØ][ÙÎ‰Ş™Z—Û›İ×Üœ—Ğ™\ØÚ™ZX[™×Ôİ][Û™[‹	ßBŸNÂ˜ÛÛœİÓRWÓQUĞ”×Ô“ÓÕIÚÎ‹ËÛÜ[™]KYİÛ›ØY[Y]ØœËœÛZKœÙKØ\Kİ™\œÚ[Û‹ÌKŒÜ\˜[Y]\‹ÉÎÂ˜ÛÛœİ“RWÕÑ”ÏIÚÎ‹ËÛÜ[™]K™›ZK™šKİÙœÉÎÂ˜ÛÛœİ•Ô×ÔÒS•ÏIÚÎ‹ËØ\KÙX]\‹™Ûİ‹ÜÚ[ËÉÎÂ˜ÛÛœİPĞĞ×ÑÑSÓQUIÚÎ‹ËØ\KÙX]\‹™ØË˜ØKØÛÛXİ[ÛœËÜİÛØ‹\™X[[YKÚ][\ÉÎÂ˜ÛÛœİÔS”ÑS”ÑSPTĞ“ÖTÏIÚÎ‹ËØ\K›Ü[œÙ[œÙ[X\›Ü™ËØ›Ş\ÉÎÂ˜ÛÛœİÑÒÓÓ”QÑÔ“ÓÕÏVÉÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹ÚÛÛœ˜YÙÉË	ÚÎ‹ËÛÜ[™][Ë™Ù™KİÙX]\‹Ü˜Y\‹ÚÛÛœ˜YÙÉ×NÂ˜ÛÛœİÑÓQTÓĞÖPÓÓ‘WÔ“ÓÕÏVÉÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹ÛY\ÛØŞXÛÛ™\ËÉË	ÚÎ‹ËÛÜ[™][Ë™Ù™KİÙX]\‹Ü˜Y\‹ÛY\ÛØŞXÛÛ™\ËÉ×NÂ˜ÛÛœİQPWĞRT—ÔUPSUWÔÕUSÓ—ÑS‘ÒS•ÏVÉÚÎ‹ËØZ\‹™\ØÛÛX\™YXK™]\›ÜK™]KØ\˜ÙÚ\ËÜ™\İÜÙ\šXÙ\ËĞZ\”]X[]KĞZ\”]X[]QİÛ›ØYÙ\šXÙQUS[Ûš]Üš[™Ôİ][ÛœËÓX\Ù\™\‹ÌÜ]Y\IË	ÚÎ‹ËÙYZK™\ØÛÛX\™YXK™]\›ÜK™]KØ\˜ÙÚ\ËÜ™\İÜÙ\šXÙ\ËĞZ\”]X[]KĞZ\”]X[]QİÛ›ØYÙ\šXÙQUS[Ûš]Üš[™Ôİ][ÛœËÓX\Ù\™\‹ÌÜ]Y\I×NÂ˜ÛÛœİÑÔQÓS—ÖU×Ô“ÓÕIÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹Ü˜YÛ[‹Ş]ËÉÎÂ˜ÛÛœİÑÒSQPÓ‘×Ô“ÓÕÏVÉÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹ØÛÛ\ÜÚ]KÚ[YXÛ™ËÉË	ÚÎ‹ËÛÜ[™][Ë™Ù™KİÙX]\‹Ü˜Y\‹ØÛÛ\ÜÚ]KÚ[YXÛ™ËÉ×NÂ˜ÛÛœİÑÒSQPÓ‘×ÓUTÕIØÛÛ\ÜÚ]WÒ[YXÓ‘×ÓUTÕÌZIÎÂ˜ÛÛœİÑÒ×Ô“ÓÕÏVÉÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹ØÛÛ\ÜÚ]KÚËÉË	ÚÎ‹ËÛÜ[™][Ë™Ù™KİÙX]\‹Ü˜Y\‹ØÛÛ\ÜÚ]KÚËÉ×NÂ˜ÛÛœİÑÒ×ÓUTÕIÒ×ÓUTÕÌ˜Œ‰ÎÂ˜ÛÛœİÑÔ”×Ô“ÓÕÏVÉÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹ØÛÛ\ÜÚ]KÜœËÉË	ÚÎ‹ËÛÜ[™][Ë™Ù™KİÙX]\‹Ü˜Y\‹ØÛÛ\ÜÚ]KÜœËÉ×NÂ˜ÛÛœİÑÔQÓS—ÒTÕÔ–WÔ“ÓÕÏ^ÜÎ‰ÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹Ü˜YÛ[‹ÜËÉËN‰ÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹Ü˜YÛ[‹ÜKÉËÙ‰ÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹Ü˜Y\‹Ü˜YÛ[‹ÜÙ‹ÉßNÂ˜ÛÛœİÑÒÓÔÕWĞTĞ×Ô“ÓÕIÚÎ‹ËÛÜ[™]K™Ù™KØÛ[X]WÙ[š\›Û›Y[ĞÑËÙÜšY×ÙÙ\›X[KÜ™]\›—Ü\š[ÙËÜ™XÚ\]][Û‹ÒÓÔÕKÒÓÔÕWÑÑÌŒŒØ\ØËÉÎÂ˜ÛÛœİÔS—ÓQUS×Ñ“Ô‘PĞTÕIÚÎ‹ËØ\K›Ü[‹[Y][Ë˜ÛÛKİŒKÙ›Ü™XØ\İ	ÎÂ˜ÛÛœİÔS—ÓQUS×ÑS”ÑSP“OIÚÎ‹ËÙ[œÙ[X›KX\K›Ü[‹[Y][Ë˜ÛÛKİŒKÙ[œÙ[X›IÎÂ˜ÛÛœİQUÓ“Ô•ĞVWÓĞĞUSÓ‘“Ô‘PĞTÕIÚÎ‹ËØ\K›Y]››ËİÙX]\˜\KÛØØ][Û™›Ü™XØ\İÌ‹ŒØÛÛ\]IÎÂ˜ÛÛœİÓÔ’ÑT—Õ‘T”ÒSÓIÌKKŒŒÉÎÂ˜ÛÛœİÌÔ×ÔÑPTÓÓSÔÒS•ÔÖTÕSTÏVÂˆØÙ[™RY‰ÙXÛ]Ù‰ËÜšYÚ[˜][™ĞÙ[™N‰ÙXÛ]Ù‰ËŞ\İ[N‰ÍLIË[Ù[Ù^N‰ÙXÛ]Ù‹\ÙX\ÍKMLIË[™\[™[˜ÙRÙ^N‰ÙXÛ]Ù‹\ÙX\ÍKMLIËX™[‰ÑPÓUÑˆÑPTÍIßKˆØÙ[™RY‰İZÛ[ÉËÜšYÚ[˜][™ĞÙ[™N‰İZÛ[ÉËŞ\İ[N‰ÍŒL	Ë[Ù[Ù^N‰İZÛ[ËYÛÜÙXM‹YØÍLKMŒL	Ë[™\[™[˜ÙRÙ^N‰İZÛ[ËYÛÜÙXM‹YØÍLKMŒL	ËX™[‰ÕRÈY]Ù™šXÙHÛÔÙXM‹QĞÍKŒIßKˆØÙ[™RY‰ÛY][Ùœ˜[˜ÙIËÜšYÚ[˜][™ĞÙ[™N‰ÛY][×Ùœ˜[˜ÙIËŞ\İ[N‰ÎIË[Ù[Ù^N‰ÛY][Ùœ˜[˜ÙK\Ş\İ[NIË[™\[™[˜ÙRÙ^N‰ÛY][Ùœ˜[˜ÙK\Ş\İ[NIËX™[‰Ópê]0ê[ËQœ˜[˜ÙHŞ\İ[HIßKˆØÙ[™RY‰ÙÙ	ËÜšYÚ[˜][™ĞÙ[™N‰ÙÙ	ËŞ\İ[N‰ÌŒ‰Ë[Ù[Ù^N‰ÙÙYØÙœÌŒ‰Ë[™\[™[˜ÙRÙ^N‰ÙÙYØÙœÌŒ‰ËX™[‰ÑÑĞÑ”Ì‹Œ‰ßKˆØÙ[™RY‰ØÛXØÉËÜšYÚ[˜][™ĞÙ[™N‰ØÛXØÉËŞ\İ[N‰Í	Ë[Ù[Ù^N‰ØÛXØË\ÜÍ	Ë[™\[™[˜ÙRÙ^N‰ØÛXØË\ÜÍ	ËX™[‰ĞÓPĞÈÔÍ	ßKˆØÙ[™RY‰Û˜Ù\	ËÜšYÚ[˜][™ĞÙ[™N‰Û˜Ù\	ËŞ\İ[N‰Ì‰Ë[Ù[Ù^N‰Û˜Ù\XÙœİŒ‰Ë[™\[™[˜ÙRÙ^N‰Û˜Ù\XÙœİŒ‰ËX™[‰ÓÑTÑ”İŒ‰ßKˆØÙ[™RY‰Ú›XIËÜšYÚ[˜][™ĞÙ[™N‰Ú›XIËŞ\İ[N‰Í	Ë[Ù[Ù^N‰Ú›XKXÜÍ	Ë[™\[™[˜ÙRÙ^N‰Ú›XKXÜÍ	ËX™[‰Ò“PHÔÍ	ßKˆØÙ[™RY‰ÙXØØÉËÜšYÚ[˜][™ĞÙ[™N‰ÙXØØÉËŞ\İ[N‰Í	Ë[Ù[Ù^N‰ÙXØØËXØ[™\ÛML\X˜ÉË[™\[™[˜ÙRÙ^N‰ÙXØØËXØ[™\ÛMK[[™XYÙIËX™[‰ÑPĞĞÈØ[‘TÓMKŒ\X˜ÉßKˆØÙ[™RY‰ÙXØØÉËÜšYÚ[˜][™ĞÙ[™N‰ÙXØØÉËŞ\İ[N‰ÍIË[Ù[Ù^N‰ÙXØØËYÙ[ML‹[™[[ÉË[™\[™[˜ÙRÙ^N‰ÙXØØËYÙ[ML‹[™[[ÉËX™[‰ÑPĞĞÈÑSMKŒ‹S‘SSÉßKˆØÙ[™RY‰Ø›ÛIËÜšYÚ[˜][™ĞÙ[™N‰Ø›ÛIËŞ\İ[N‰Ì‰Ë[Ù[Ù^N‰Ø›ÛKXXØÙ\ÜË\Ì‰Ë[™\[™[˜ÙRÙ^N‰Ø›ÛKXXØÙ\ÜË\Ì‰ËX™[‰Ğ“ÓHPĞÑTÔËTÌ‰ßB—NÂ˜ÛÛœİÓÔ”Ï^ÉØÛÛ[]\IÎ‰Ø\XØ][Û‹ÚœÛÛÈÚ\œÙ]]]‹N	Ë	ØXØÙ\ÜËXÛÛ›ÛX[İË[ÜšYÚ[‰Î‰Ê‰Ë	ØXØÙ\ÜËXÛÛ›ÛX[İË[Y]ÙÉÎ‰ÑÑUÔÕÔSÓ”ÉË	ØXØÙ\ÜËXÛÛ›ÛX[İËZXY\œÉÎ‰ØÛÛ[]\IË	ØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOLN	ßNÂ˜ÛÛœİ‘QQÔÓQÔÏ^Â‚PQ‰Ø[™Üœ˜IËU‰Ø]\İšXIË‘N‰Ø™[Ú][IËN‰Ø›ÜÛšXKZ\™YÛİš[˜IË‘Î‰Ø[Ø\šXIË‰ØÜ›Ø]XIËÖN‰ØŞ\\ÉËÖ‰ØŞ™XÚXIËÎ‰Ù[›X\šÉËQN‰Ù\İÛšXIË’N‰Ùš[›[™	Ë”‰Ùœ˜[˜ÙIËN‰ÙÙ\›X[IËÔ‰ÙÜ™YXÙIËS‰ÙÜ™YXÙIËN‰Ú[™Ø\IËTÎ‰ÚXÙ[[™	ËQN‰Ú\™[[™	ËS‰Ú\Ü˜Y[	ËU‰Ú][IË‰Û]šXIË‰Û]X[šXIËN‰Û^[X›İ\™ÉËU‰ÛX[IËQ‰Û[Ûİ˜IËQN‰Û[Û[™YÜ›ÉË“‰Û™]\›[™ÉËRÎ‰Ü™\X›XË[Ù‹[›Ü[XXÙYÛšXIË“Î‰Û›ÜØ^IË‰ÜÛ[™	Ë‰ÜÜYØ[	Ë“Î‰Ü›ÛX[šXIË”Î‰ÜÙ\˜šXIËÒÎ‰ÜÛİ˜ZÚXIËÒN‰ÜÛİ™[šXIËTÎ‰ÜÜZ[‰ËÑN‰ÜİÙY[‰ËÒ‰ÜİÚ]™\›[™	ËPN‰İZÜ˜Z[™IËĞ‰İ[š]YZÚ[™ÙÛIËRÎ‰İ[š]YZÚ[™ÙÛIÂŸNÂ˜ÛÛœİÓÕS•–WĞSPTÑTÏ^ÂˆN‰ÑIËÑT“PS–N‰ÑIËUUĞÒS‘‰ÑIËSSPQÓ‘N‰ÑIËÑT“PS’PN‰ÑIËˆU‰ĞU	ËUTÕ’PN‰ĞU	ËÑTÕT”‘RPÒ‰ĞU	ËÔÕT”‘RPÒ‰ĞU	Ë0å”ÕT”‘RPÒ‰ĞU	ËˆU‰ÒU	ËUSN‰ÒU	ËUSPN‰ÒU	ËUSQS‰ÒU	ËUSQN‰ÒU	ËˆTÎ‰ÕTÉËTĞN‰ÕTÉË	ÕS’UQÕUTÉÎ‰ÕTÉË	ÕS’UQÕUTÈÑˆSQT’PĞIÎ‰ÕTÉË‘T‘RS’QÕTÕPUS‰ÕTÉËˆĞN‰ĞĞIËĞSQN‰ĞĞIËĞSQN‰ĞĞIËˆĞ‰ÑĞ‰ËRÎ‰ÑĞ‰Ë	ÕS’UQÒS‘ÑÓIÎ‰ÑĞ‰ËÔ“ÔÔĞ”’US“’QS‰ÑĞ‰ËˆÒ‰ĞÒ	ËÕÒU‘T“S‘‰ĞÒ	ËĞÒÑRV‰ĞÒ	ËÕRTÔÑN‰ĞÒ	ËÕ’V–‘TN‰ĞÒ	Ëˆ”‰Ñ”‰Ë”SÑN‰Ñ”‰Ë”S’Ô‘RPÒ‰Ñ”‰ËˆTÎ‰ÑTÉËÔRS‰ÑTÉËÔS’QS‰ÑTÉËTÔSN‰ÑTÉËTÔpäPN‰ÑTÉËˆ‰Ô	ËÔ•QĞS‰Ô	Ë“‰Ó“	Ë‘UT“S‘Î‰Ó“	Ë’QQT“S‘N‰Ó“	Ë’QQT“S‘N‰Ó“	Ëˆ‘N‰Ğ‘IË‘SÒUSN‰Ğ‘IË‘SÒQS‰Ğ‘IËÎ‰ÑÉËS“PT’Î‰ÑÉËQS‘SPT’Î‰ÑÉË0á‘SPT’Î‰ÑÉËˆ“Î‰Ó“ÉË“Ô•ĞVN‰Ó“ÉË“Ô•ÑQÑS‰Ó“ÉËÑN‰ÔÑIËÕÑQS‰ÔÑIËĞÒÑQS‰ÔÑIË’N‰Ñ’IË’S“S‘‰Ñ’IËˆQN‰ÒQIËT‘SS‘‰ÒQIËT“S‘‰ÒQIËTÎ‰ÒTÉËPÑSS‘‰ÒTÉËTÓS‘‰ÒTÉËˆ‰Ô	ËÓS‘‰Ô	ËÓS‰Ô	ËÖ‰ĞÖ‰ËÖ‘PÒPN‰ĞÖ‰Ë	ĞÖ‘PÒ‘TP“PÉÎ‰ĞÖ‰ËĞÒPÒQS‰ĞÖ‰ËˆÒÎ‰ÔÒÉËÓÕRÒPN‰ÔÒÉËÓÕĞRÑRN‰ÔÒÉËÒN‰ÔÒIËÓÕ‘S’PN‰ÔÒIËÓÕÑS’QS‰ÔÒIËˆ‰Ò‰ËÔ“ĞUPN‰Ò‰ËÔ“ĞUQS‰Ò‰ËÔ‰ÑÔ‰ËS‰ÑÔ‰ËÔ‘QPÑN‰ÑÔ‰ËÔ’QPÒS“S‘‰ÑÔ‰ËˆN‰ÒIËS‘ĞT–N‰ÒIËS‘ĞT“‰ÒIË“Î‰Ô“ÉË“ÓPS’PN‰Ô“ÉË•SPQS’QS‰Ô“ÉË•Spá’QS‰Ô“ÉËˆ‘Î‰Ğ‘ÉË•SĞT’PN‰Ğ‘ÉË•SĞT’QS‰Ğ‘ÉË”Î‰Ô”ÉËÑT’PN‰Ô”ÉËÑT’QS‰Ô”ÉËˆN‰ĞIË	Ğ“ÔÓ’PHS‘T–‘QÓÕ’SIÎ‰ĞIË“ÔÓ’QS’T–‘QÓÕÒSN‰ĞIËQN‰ÓQIËSÓ•S‘QÔ“Î‰ÓQIËˆRÎ‰ÓRÉË	Ó“Ô•PPÑQÓ’PIÎ‰ÓRÉË“Ô‘PV‘QÓ’QS‰ÓRÉËS‰ĞS	ËSS’PN‰ĞS	ËSS’QS‰ĞS	ËˆQN‰ÑQIËTÕÓ’PN‰ÑQIËTÕS‘‰ÑQIË‰Ó‰ËU’PN‰Ó‰ËUS‘‰Ó‰Ë‰Ó	ËUPS’PN‰Ó	ËUUQS‰Ó	ËˆN‰ÓIËVSP“ÕT‘Î‰ÓIËVSP•T‘Î‰ÓIËU‰ÓU	ËPSN‰ÓU	ËÖN‰ĞÖIËÖT•TÎ‰ĞÖIË–TT“‰ĞÖIËˆPN‰ÕPIËRÔRS‘N‰ÕPIËQ‰ÓQ	ËSÓÕN‰ÓQ	ËSÓUN‰ÓQ	ËS‰ÒS	ËTÔQS‰ÒS	ËQ‰ĞQ	ËS‘Ô”N‰ĞQ	ÂŸNÂ™[˜İ[Ûˆ[X™\ŠŠ^ÚYŠOO[[OO][™Yš[™YOOIÉÊ\™]\›ˆ[™Yš[™YØÛÛœİS[X™\ŠŠNÜ™]\›ˆ[X™\‹š\Ñš[š]JŠOÛ[™Yš[™YB˜ÛÛœİ“Ô‘PĞTÕÔ‘PÒTUUSÓ—ĞÓÑTÏ[™]ÈÙ]
+ÍLKLËMKM‹MËŒKŒËK‹ËKÌKÌËÍKÍËK‹ËK‹MKM‹MËNWJNÂ˜ÛÛœİ“Ô‘PĞTÕÔÕUQ“Ô“WĞÓÑTÏ[™]ÈÙ]
+ÍLKLËMKM‹MËŒKŒËK‹ËKÌKÌËÍKÍ×JNÂ˜ÛÛœİ“Ô‘PĞTÕÔÒÕÑT—ĞÓÑTÏ[™]ÈÙ]
+ÎK‹ËK‹MKM‹MËNWJNÂ™[˜İ[Ûˆ™XÚ\]][ÛÚ\˜Xİ\ŠÛÛ^^ßKÙX]\ÛÙOLÊ^ÂˆÛÛœİ˜Z[SX]›X^
+[X™\ŠÛÛ^Ëœ˜Z[ŠOÏÌ
+KÚİÙ\œÏSX]›X^
+[X™\ŠÛÛ^ËœÚİÙ\œÊOÏÌ
+K\]ZY\˜Z[ŠÜÚİÙ\œË\™Xİ\][Û[\]ZYKŒËÛÛ™Xİ]™Qœ˜Xİ[ÛY\™Xİ\][ÛÜÚİÙ\œËÛ\]ZYŒØ\OSX]›X^
+[X™\ŠÛÛ^Ë˜Ø\JOÏÌ
+KYY[™^[[X™\ŠÛÛ^Ë›YY[™^
+KÚ[SX]˜XœÊ[X™\ŠÛÛ^Ë˜ÛÛ™Xİ]™R[šXš][ÛŠOÏÓ˜SŠKÛİ™\[[X™\ŠÛÛ^Ë˜ÛİY
+KİĞÛİY[[X™\ŠÛÛ^Ë›İĞÛİY
+K[ZY]O[[X™\ŠÛÛ^Ëš[ZY]JKİ[œÚ[™O[[X™\ŠÛÛ^Ëœİ[œÚ[™Q\˜][ÛŠK^[YÚXÛÛ^Ëš\Ñ^HOOY˜[ÙNÂˆ]ÛÛ™Xİ]™TØÛÜ™OLİ˜]Y›Ü›TØÛÜ™OLÂˆËÈ^^š]H[Ù[ÛÛ\Û™[[ˆ˜Z[‹ÜÚİÙ\œÈÚ[™YHİ0éšÜİH[™ÛÚ0é™[\İH™[›[™Ë‚ˆYŠ\™Xİ\][ÛŠ^ÚYŠÚİÙ\œÏKŒI‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛKJXÛÛ™Xİ]™TØÛÜ™JÏMÙ[ÙHYŠÚİÙ\œÏKŒÉ‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛK
+XÛÛ™Xİ]™TØÛÜ™JÏMÙ[ÙHYŠÚİÙ\œÏKŒI‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛKŒJXÛÛ™Xİ]™TØÛÜ™JÏLÚYŠ˜Z[KŒI‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛKŒŠ\İ˜]Y›Ü›TØÛÜ™JÏMÙ[ÙHYŠ˜Z[KŒÉ‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛK
+\İ˜]Y›Ü›TØÛÜ™JÏMÙ[ÙHYŠ˜Z[KŒI‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛJ\İ˜]Y›Ü›TØÛÜ™JÏLŸBˆYŠ“Ô‘PĞTÕÔÒÕÑT—ĞÓÑTËš\ÊÙX]\ÛÙJJXÛÛ™Xİ]™TØÛÜ™JÏLÚYŠ“Ô‘PĞTÕÔÕUQ“Ô“WĞÓÑTËš\ÊÙX]\ÛÙJJ\İ˜]Y›Ü›TØÛÜ™JÏLÂˆËÈ[œİXš[]0éÙ™[\ˆÚ[™\ˆİ0ï™[™H]šY[ˆ[™0ï™™[ˆÚ™H]\Û0íœÙ\ÚYÛ˜[ÙZ[™HØÚ]Y\ˆ\™š[™[‹‚ˆYŠØ\OLML
+XÛÛ™Xİ]™TØÛÜ™JÏLÎÙ[ÙHYŠØ\ON
+XÛÛ™Xİ]™TØÛÜ™JÏLÙ[ÙHYŠØ\OLÌ
+XÛÛ™Xİ]™TØÛÜ™JÏLNÂˆYŠ[X™\‹š\Ñš[š]JYY[™^
+J^ÚYŠYY[™^KM
+XÛÛ™Xİ]™TØÛÜ™JÏLÙ[ÙHYŠYY[™^KLJXÛÛ™Xİ]™TØÛÜ™JÏLNÙ[ÙHYŠYY[™^LŠ\İ˜]Y›Ü›TØÛÜ™JÏK_BˆYŠ[X™\‹š\Ñš[š]JÚ[ŠI‰˜Ø\OLÌ
+^ÚYŠÚ[LJXÛÛ™Xİ]™TØÛÜ™JÏLNÙ[ÙHYŠÚ[MÍJXÛÛ™Xİ]™TØÛÜ™JÏKNÙ[ÙHYŠÚ[LŒ
+XÛÛ™Xİ]™TØÛÜ™KOLK_BˆÛÛœİİÔİ˜]\ÏS[X™\‹š\Ñš[š]JİĞÛİY
+I‰›İĞÛİYMÌŸ[X™\‹š\Ñš[š]JÛİ™\ŠI‰˜Ûİ™\NÚYŠİÔİ˜]\Ê\İ˜]Y›Ü›TØÛÜ™JÏLKNÚYŠ[X™\‹š\Ñš[š]J[ZY]JI‰š[ZY]ONL
+\İ˜]Y›Ü›TØÛÜ™JÏLNÚYŠ^[YÚ	‰“[X™\‹š\Ñš[š]Jİ[œÚ[™JI‰œİ[œÚ[™OMŒ
+\İ˜]Y›Ü›TØÛÜ™JÏKNÂˆ]Ú\˜Xİ\IÚ[™]\›Z[˜]IÎÚYŠ\™Xİ\][Û‰‰œ˜Z[KŒÉ‰œÚİÙ\œÏKŒÉ‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛKŒÉ‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛKÊXÚ\˜Xİ\IÛZ^Y	ÎÙ[ÙHYŠ\™Xİ\][Û‰‰œÚİÙ\œÏKŒI‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛK‰‰˜ÛÛ™Xİ]™TØÛÜ™O\İ˜]Y›Ü›TØÛÜ™KLJXÚ\˜Xİ\IØÛÛ™Xİ]™IÎÙ[ÙHYŠ\™Xİ\][Û‰‰œ˜Z[KŒI‰˜ÛÛ™Xİ]™Qœ˜Xİ[ÛKŒI‰œİ˜]Y›Ü›TØÛÜ™OXÛÛ™Xİ]™TØÛÜ™KLJXÚ\˜Xİ\IÜİ˜]Y›Ü›IÎÙ[ÙHYŠÛÛ™Xİ]™TØÛÜ™OMI‰˜ÛÛ™Xİ]™TØÛÜ™O\İ˜]Y›Ü›TØÛÜ™JÌŠXÚ\˜Xİ\IØÛÛ™Xİ]™IÎÙ[ÙHYŠİ˜]Y›Ü›TØÛÜ™OMI‰œİ˜]Y›Ü›TØÛÜ™OXÛÛ™Xİ]™TØÛÜ™JÌŠXÚ\˜Xİ\IÜİ˜]Y›Ü›IÎÜ™]\›ØÚ\˜Xİ\‹ÛÛ™Xİ]™Qœ˜Xİ[Û‹\™Xİ\][ÛŸBŸB™[˜İ[ÛˆÚİÙ\‘\]Z]˜[[ÛÙJÛÙKİ[Û›İÙ˜[
+^ÚYŠÍÌKÌËÍKÍ×Kš[˜ÛY\ÊÛÙJ_Û›İÙ˜[KŒJ\™]\›ˆÛ›İÙ˜[LÎNÚYŠÍWKš[˜ÛY\ÊÛÙJJ\™]\›ˆİ[L‹OÎÎÚYŠÎMKM‹MËNWKš[˜ÛY\ÊÛÙJJ\™]\›ˆÛÙNÜ™]\›ˆİ[LLÎİ[L‹OÎNB™[˜İ[Ûˆİ˜]Y›Ü›Q\]Z]˜[[ÛÙJÛÙKİ[Û›İÙ˜[
+^ÚYŠÎK—Kš[˜ÛY\ÊÛÙJ_Û›İÙ˜[KŒJ\™]\›ˆÛ›İÙ˜[LÍÍNœÛ›İÙ˜[KOÍÌÎÌNÚYŠÎËKš[˜ÛY\ÊÛÙJJ\™]\›ˆİ[L‹OÍNÚYŠÎMKM‹MËNWKš[˜ÛY\ÊÛÙJJ\™]\›ˆÛÙNÜ™]\›ˆİ[LLÍNİ[L‹OÍŒÎŒ_B™[˜İ[Ûˆ™XÛÛ˜Ú[Q›Ü™XØ\İ™XÚ\]][ÛŠ[[İ[›Ø˜Xš[]KÛÙKÛİYÛÛ^^ßJ^Âˆ]™XÚ\]][ÛSX]›X^
+[X™\Š[[İ[
+OÏÌ
+K˜Z[SX]›X^
+[X™\ŠÛÛ^Ëœ˜Z[ŠOÏÌ
+KÚİÙ\œÏSX]›X^
+[X™\ŠÛÛ^ËœÚİÙ\œÊOÏÌ
+KÛ›İÙ˜[SX]›X^
+[X™\ŠÛÛ^ËœÛ›İÙ˜[
+OÏÌ
+KÚ[˜ÙOSX]›X^
+X]›Z[ŠL[X™\Š›Ø˜Xš[]JOÏÌ
+JKÙX]\ÛÙOSX]œ›İ[™
+[X™\ŠÛÙJOÏÌÊNØÛÛœİÙ]ÛÙOQ“Ô‘PĞTÕÔ‘PÒTUUSÓ—ĞÓÑTËš\ÊÙX]\ÛÙJKÙ]ÚYÛ˜[]Ù]ÛÙ_™XÚ\]][ÛKŒ_˜Z[KŒ_ÚİÙ\œÏKŒ_Û›İÙ˜[KŒKXYSX]›X^
+[X™\ŠÛÛ^Ë›XYİ\œÊOÏÌ
+Kİ\ÜZ[š[][O[XYLÌL›XYMÌÌMNŒŒÙXZĞ[[İ[SX]›X^
+™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[
+OKŒÍNÂˆÛÛœİİ\™\ÜÏJ
+OOØÛÛœİÛİ™\[[X™\ŠÛİY
+KPÛÙOVÍKKš[˜ÛY\ÊÙX]\ÛÙJOİÙX]\ÛÙNˆS[X™\‹š\Ñš[š]JÛİ™\ŠOÌÎ˜Ûİ™\LMOÌ˜Ûİ™\MOÌN˜Ûİ™\NÌŒÎÜ™]\›Ü™XÚ\]][ÛŒ˜Z[ŒÚİÙ\œÎŒÛ›İÙ˜[Œ›Ø˜Xš[]N˜Ú[˜ÙKÛÙN™PÛÙK˜XÙTİ\™\ÜÙYY__NÂˆYŠÙ]ÚYÛ˜[	‰ˆXÛÛ^Ë›ØœÙ\™Y	‰ŠÚ[˜ÙOM_ÙXZĞ[[İ[	‰˜Ú[˜ÙOİ\ÜZ[š[][JJ\™]\›ˆİ\™\ÜÊ
+NÚYŠ]Ù]ÚYÛ˜[
+\™]\›Ü™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[›Ø˜Xš[]N˜Ú[˜ÙKÛÙNÙX]\ÛÙK˜XÙTİ\™\ÜÙY™˜[Ù_NÂˆÛÛœİ]šY[˜ÙO\™XÚ\]][ÛÚ\˜Xİ\ŠË‹‹˜ÛÛ^˜Z[‹ÚİÙ\œËÛİYKÙX]\ÛÙJKİ[SX]›X^
+™XÚ\]][Û‹˜Z[ŠÜÚİÙ\œËÛ›İÙ˜[
+NÚYŠ“Ô‘PĞTÕÔÕUQ“Ô“WĞÓÑTËš\ÊÙX]\ÛÙJI‰™]šY[˜ÙK˜Ú\˜Xİ\OOIØÛÛ™Xİ]™IÉ‰ˆVÍM‹MË‹×Kš[˜ÛY\ÊÙX]\ÛÙJJ^İÙX]\ÛÙO\ÚİÙ\‘\]Z]˜[[ÛÙJÙX]\ÛÙKİ[Û›İÙ˜[
+NÚYŠÛ›İÙ˜[ŒI‰ˆVÎËK—Kš[˜ÛY\ÊÙX]\ÛÙJJ^ÜÚİÙ\œÏSX]›X^
+ÚİÙ\œË™XÚ\]][ÛŠNÜ˜Z[L_Y[ÙHYŠ“Ô‘PĞTÕÔÒÕÑT—ĞÓÑTËš\ÊÙX]\ÛÙJI‰™]šY[˜ÙK˜Ú\˜Xİ\OOIÜİ˜]Y›Ü›IÉ‰ˆVÎMKM‹MËNWKš[˜ÛY\ÊÙX]\ÛÙJJ^İÙX]\ÛÙO\İ˜]Y›Ü›Q\]Z]˜[[ÛÙJÙX]\ÛÙKİ[Û›İÙ˜[
+NÚYŠÛ›İÙ˜[ŒI‰ˆVÍKÌKÌËÍWKš[˜ÛY\ÊÙX]\ÛÙJJ^Ü˜Z[SX]›X^
+˜Z[‹™XÚ\]][ÛŠNÜÚİÙ\œÏL_Bˆ™]\›Ü™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[›Ø˜Xš[]N˜Ú[˜ÙKÛÙNÙX]\ÛÙK˜XÙTİ\™\ÜÙY™˜[ÙK™XÚ\]][ÛÚ\˜Xİ\™]šY[˜ÙK˜Ú\˜Xİ\ŸBŸB™[˜İ[Ûˆ\İ[˜ÙJ]KÛŒK]‹ÛŒŠ^ØÛÛœİMŒÍÌL^O
+“X]”KÌN]]
+]‹[]JKÛ]
+ÛŒ‹[ÛŒJKOSX]œÚ[Š]ÌŠJŠŒŠÓX]˜ÛÜÊ
+]JJJ“X]˜ÛÜÊ
+]ŠJJ“X]œÚ[ŠÛ‹ÌŠJŠŒÜ™]\›ˆŠœŠ“X]˜\Ú[ŠX]œÜ\
+JJ_B™[˜İ[Ûˆ™X\š[™ÕİØ\™Ê]KÛŒK]‹ÛŒŠ^ØÛÛœİÔ˜Y]˜[YOO˜[YJ“X]”KÌNÑYÏ]˜[YOO˜[YJŒNÓX]”KLO]Ô˜Y
+]JKL]Ô˜Y
+]ŠK[SÛ]Ô˜Y
+ÛŒ‹[ÛŒJKOSX]œÚ[Š[SÛŠJ“X]˜ÛÜÊLŠKSX]˜ÛÜÊLJJ“X]œÚ[ŠLŠKSX]œÚ[ŠLJJ“X]˜ÛÜÊLŠJ“X]˜ÛÜÊ[SÛŠNÜ™]\›ŠÑYÊX]˜][ŒŠK
+JJÌÍŒ
+ILÍŒB™[˜İ[Ûˆ\İ[˜][Û”Ú[
+]Û‹™X\š[™ÑYË\İ[˜ÙRÛJ^ØÛÛœİ˜Y]\ÏMŒÍÌK[™İ[\SX]›X^
+[X™\Š\İ[˜ÙRÛJ_
+KÜ˜Y]\Ë™X\š[™ÏS[X™\Š™X\š[™ÑYÊJ“X]”KÌNLOS[X™\Š]
+J“X]”KÌN[X™LOS[X™\ŠÛŠJ“X]”KÌNLSX]˜\Ú[ŠX]œÚ[ŠLJJ“X]˜ÛÜÊ[™İ[\ŠJÓX]˜ÛÜÊLJJ“X]œÚ[Š[™İ[\ŠJ“X]˜ÛÜÊ™X\š[™ÊJK[X™L[[X™LJÓX]˜][ŒŠX]œÚ[Š™X\š[™ÊJ“X]œÚ[Š[™İ[\ŠJ“X]˜ÛÜÊLJKX]˜ÛÜÊ[™İ[\ŠKSX]œÚ[ŠLJJ“X]œÚ[ŠLŠJNÜ™]\›Û]]YNœLŠŒNÓX]”KÛ™Ú]YNŠ
+[X™LŠŒNÓX]”JÍM
+ILÍŒ
+KLN_B™[˜İ[Ûˆ]
+‹J^Ü™]\›ˆ\œ˜^Kš\Ğ\œ˜^JŠOİ–ÚWN[™Yš[™YB™[˜İ[ÛˆœÛÛŠ]Kİ]\ÏLŒXY\œÏ^ßJ^Ü™]\›ˆ™]È™\ÜÛœÙJ”ÓÓ‹œİš[™ÚYJ]JKÜİ]\ËXY\œÎË‹‹ÓÔ”Ë‹‹šXY\œß_J_B˜ÛÛœİ‘QÒSÓSÑS”ÑSP“WĞQTT”Ï^ÂˆXÛÛ—Ù—ÜX×Ù\ÎÙ[™Ú[‰ÓRQÑÑÔ•P×ÑT×ÔÒS•ÑS‘ÒS•	ËÚÙ[‰ÓRQÑÑÔ•P×ÑT×ÔÒS•ÕÒÑS‰ËX™[‰ÑÑPÓÓ‹Q‹T•PËQTÉßKˆÛ›ZWÚ\›[ÛšYWØ\›ÛYWØŞM×Ù\ÎÙ[™Ú[‰ÓRQÒÓ“RWÒT“SÓ’QWÑT×ÔÒS•ÑS‘ÒS•	ËÚÙ[‰ÓRQÒÓ“RWÒT“SÓ’QWÑT×ÔÒS•ÕÒÑS‰ËX™[‰ÒÓ“RHT“SÓ’QKPT“ÓQHŞMÈTÉßKˆXØØ×Ü™\ÎÙ[™Ú[‰ÓRQÑPĞĞ×Ô‘T×ÔÒS•ÑS‘ÒS•	ËÚÙ[‰ÓRQÑPĞĞ×Ô‘T×ÔÒS•ÕÒÑS‰ËX™[‰ÑPĞĞÈ‘TÉßBŸNÂ™[˜İ[ÛˆÙXÔŒÛÛ™šYİ\™Y
+[Š^Ü™]\›ˆ›ÛÛX[Š[Ë“RQÑÑÔ•P×ÑUI‰\[Ùˆ[‹“RQÑÑÔ•P×ÑUK™Ù]OOIÙ[˜İ[Û‰Ê_B˜ÛÛœİÑÔ•P×ÔÕUP×ÑQUSIÚÎ‹ËÛZYŞ˜\ÜXËÉÎÂ™[˜İ[ÛˆÙXÔİ]XĞ˜\ÙU\›
+[Š^ØÛÛœİ˜]ÏTİš[™Ê[Ë“RQÑÑÔ•P×ÔÕUP×ĞTÑWÕT“ÑÔ•P×ÔÕUP×ÑQUS
+Kš[J
+NÚYŠ\˜]ß˜]ÏOOIÙ\ØX›Y	Ê\™]\›ˆ[İ^ØÛÛœİ\›[™]ÈT“
+˜]ÊNÚYŠ\›œ›İØÛÛOOIÚÎ‰É‰\›œ›İØÛÛOOIÚ‰Ê\™]\›ˆ[İ\›œ]˜[YO]\›œ]˜[YKœ™\XÙJ×ÏÉË	ËÉÊNİ\›œÙX\˜ÚIÉÎİ\›š\ÚIÉÎÜ™]\›ˆ\›XØ]ÚÜ™]\›ˆ[_B™[˜İ[ÛˆÙXÔİ]XĞÛÛ™šYİ\™Y
+[Š^Ü™]\›ˆ›ÛÛX[ŠÙXÔİ]XĞ˜\ÙU\›
+[ŠJ_B™[˜İ[ÛˆÙXÔİÜ˜YÙPÛÛ™šYİ\™Y
+[Š^Ü™]\›ˆÙXÔŒÛÛ™šYİ\™Y
+[Š_ÙXÔİ]XĞÛÛ™šYİ\™Y
+[Š_B›]ÙXÓ]\İØXÚO[[ÙXÔİ]XÓ]\İØXÚO[[ØÛÛœİÙXÓÛÚİ\ØXÚO[™]ÈX\
 
-async function openMeteoEnsembleProxy(url,env){
- const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),days=Math.max(1,Math.min(15,Math.ceil(number(url.searchParams.get('forecast_days'))||14))),model=String(url.searchParams.get('model')||'').trim(),requested=String(url.searchParams.get('variables')||'temperature_2m,precipitation').split(',').map(value=>value.trim()).filter(Boolean),allowedVariables=new Set(['temperature_2m','temperature_2m_spread','precipitation','precipitation_spread','sunshine_duration','sunshine_duration_spread','wind_speed_10m','wind_gusts_10m','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high']);
- if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return json({error:'gÃ¼ltige lat/lon erforderlich'},400,{'cache-control':'no-store'});
- if(!/^[a-z0-9_]{3,80}$/i.test(model))return json({error:'ungÃ¼ltiges Ensemblemodell'},400,{'cache-control':'no-store'});
- const variables=[...new Set(requested.filter(value=>allowedVariables.has(value)))];if(!variables.length)return json({error:'keine zulÃ¤ssigen Ensemblevariablen'},400,{'cache-control':'no-store'});
- if(REGIONAL_ENSEMBLE_ADAPTERS[model]){try{return json(await regionalEnsembleAdapterPayload(model,lat,lon,days,variables,env),200,{'cache-control':'public, max-age=600'})}catch(error){return json({error:error instanceof Error?error.message:String(error),configured:regionalEnsembleConfigured(model,REGIONAL_ENSEMBLE_ADAPTERS[model],env),required:error?.midRequired||[REGIONAL_ENSEMBLE_ADAPTERS[model].endpoint],model,version:WORKER_VERSION},Number(error?.midStatus)||503,{'cache-control':'no-store'})}}
- const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:String(days),models:model,hourly:variables.join(','),wind_speed_unit:'kn'});
- const response=await fetchWithDeadline(`${OPEN_METEO_ENSEMBLE}?${query}`,{headers:{Accept:'application/json'}},18000),body=await response.text();
- if(!response.ok)return json({error:`Open-Meteo Ensemble HTTP ${response.status}`,upstream:body.slice(0,280)},response.status>=500?502:response.status,{'cache-control':'no-store'});
- try{return json(JSON.parse(body),200,{'cache-control':'public, max-age=600'})}catch{return json({error:'UngÃ¼ltige Ensemble-Antwort'},502,{'cache-control':'no-store'})}
-}
-const OPEN_METEO_META_ALIASES={ecmwf_aifs025:['ecmwf_aifs025_single','ecmwf_aifs025'],ecmwf_aifs:['ecmwf_aifs025_single','ecmwf_aifs'],ecmwf_aifs025_single:['ecmwf_aifs025_single']};
-function modelMetaFresh(payload){const raw=number(payload?.last_run_initialisation_time),initMs=Number.isFinite(raw)?(raw>10000000000?raw:raw*1000):NaN,updateSeconds=Math.max(3600,number(payload?.update_interval_seconds)||21600),maximumAgeMs=Math.max(18*3600000,Math.min(72*3600000,updateSeconds*4000+6*3600000));return Number.isFinite(initMs)&&initMs<=Date.now()+2*3600000&&Date.now()-initMs<=maximumAgeMs}
-async function openMeteoModelMeta(url){
- const requested=String(url.searchParams.get('model')||'').trim(),kind=url.searchParams.get('kind')==='forecast'?'forecast':'ensemble';if(!/^[a-z0-9_]{3,80}$/i.test(requested))return json({error:'ungÃ¼ltiges Modell'},400,{'cache-control':'no-store'});
- const host=kind==='forecast'?'https://api.open-meteo.com':'https://ensemble-api.open-meteo.com',models=OPEN_METEO_META_ALIASES[requested]||[requested],errors=[];
- for(const model of models){try{const response=await fetchWithDeadline(`${host}/data/${model}/static/meta.json?cache_buster=${Date.now()}`,{headers:{Accept:'application/json'}},9000),body=await response.text();if(!response.ok){errors.push(`${model}: HTTP ${response.status}`);continue}const payload=JSON.parse(body);if(!modelMetaFresh(payload)){errors.push(`${model}: veralteter Modellstand`);continue}return json({...payload,_mid_requested_model:requested,_mid_metadata_model:model,_mid_metadata_source:'Open-Meteo Metadata API'},200,{'cache-control':'public, max-age=300'})}catch(error){errors.push(`${model}: ${error instanceof Error?error.message:String(error)}`)}}
- return json({error:`Keine aktuellen Open-Meteo-Modellmetadaten: ${errors.join(' | ')}`},503,{'cache-control':'no-store'});
-}
+KÙXÔİ]XÓÛÚİ\ØXÚO[™]ÈX\
 
-const DWD_RAPID_META={
- 'icon-d2-ruc':{path:'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/TOT_PREC/r/',label:'DWD ICON-D2-RUC',kind:'forecast',resolutionKm:2,forecastHorizonHours:14,temporalResolutionSeconds:300},
- 'icon-d2-ruc-eps':{path:'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc-eps/p/TOT_PREC_D/r/',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',resolutionKm:2,forecastHorizonHours:14,temporalResolutionSeconds:3600,members:20}
-};
-function dwdApacheTimestamp(value){const match=String(value||'').match(/(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);if(!match)return NaN;const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11},month=months[match[2]];return Number.isFinite(month)?Date.UTC(Number(match[3]),month,Number(match[1]),Number(match[4]),Number(match[5]),Number(match[6]||0)):NaN}
-async function dwdRapidModelMeta(url){
- const requested=String(url.searchParams.get('model')||'icon-d2-ruc').trim().toLowerCase(),config=DWD_RAPID_META[requested];if(!config)return json({error:'unbekanntes DWD-Rapid-Update-Modell'},400,{'cache-control':'no-store'});
- try{
-  const response=await fetchWithDeadline(config.path,{headers:{Accept:'text/html','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}},9000);if(!response.ok)throw new Error(`DWD Open Data HTTP ${response.status}`);
-  const html=await response.text(),runs=[...html.matchAll(/href=["']?(20\d{2}-\d{2}-\d{2}T\d{2}(?::|%3A)00)\/["']?[^\n\r]*?(\d{2}-[A-Za-z]{3}-\d{4}\s+\d{2}:\d{2}(?::\d{2})?)?/gi)].map(match=>({run:match[1].replace(/%3A/ig,':'),modified:match[2]})).sort((a,b)=>a.run.localeCompare(b.run)),latest=runs.at(-1);if(!latest)throw new Error('DWD Rapid-Update-Index enthÃ¤lt keinen aktuellen Lauf.');
-  const initMs=Date.parse(`${latest.run}:00Z`),modifiedMs=dwdApacheTimestamp(latest.modified),ageHours=(Date.now()-initMs)/3600000;if(!Number.isFinite(initMs)||ageHours>6)throw new Error(`DWD ${config.label}: letzter Lauf ist zu alt.`);
-  let horizon=config.forecastHorizonHours,temporalResolution=config.temporalResolutionSeconds;
-  // Der DWD kann Lauflaenge/Zeitschritte anpassen. FÃ¼r den deterministischen RUC
-  // wird deshalb der aktuell verÃ¶ffentlichte s/-Index ausgewertet statt ein
-  // historischer +14-h-Wert dauerhaft fest verdrahtet.
-  if(requested==='icon-d2-ruc')try{
-   const stepResponse=await fetchWithDeadline(`${config.path}${latest.run}/s/`,{headers:{Accept:'text/html','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}},7000);
-   if(stepResponse.ok){const stepHtml=await stepResponse.text(),minutes=[...stepHtml.matchAll(/PT(\d{3})H(\d{2})M\.grib2/gi)].map(match=>Number(match[1])*60+Number(match[2])).filter(Number.isFinite).sort((a,b)=>a-b);if(minutes.length){horizon=Math.max(...minutes)/60;const diffs=minutes.slice(1).map((value,index)=>value-minutes[index]).filter(value=>value>0);if(diffs.length)temporalResolution=Math.min(...diffs)*60}}
-  }catch{}
-  return json({last_run_initialisation_time:initMs/1000,last_run_availability_time:Number.isFinite(modifiedMs)?modifiedMs/1000:undefined,update_interval_seconds:3600,temporal_resolution_seconds:temporalResolution,_mid_requested_model:requested,_mid_metadata_model:requested,_mid_metadata_source:'DWD Open Data',_mid_label:config.label,_mid_rapid_update:true,_mid_resolution_km:config.resolutionKm,_mid_forecast_horizon_hours:horizon,_mid_members:config.members},200,{'cache-control':'public, max-age=300, stale-while-revalidate=300'})
- }catch(error){return json({error:error instanceof Error?error.message:String(error)},503,{'cache-control':'no-store'})}
-}
+KÙXÔİ]XÓØš™XİØXÚO[™]ÈX\
 
-const FORECAST_FUSION_DAILY='weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,sunshine_duration';
-const FORECAST_FUSION_HOURLY='temperature_2m,dew_point_2m,pressure_msl,wind_speed_10m,wind_gusts_10m,wind_direction_10m,precipitation,precipitation_probability,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,relative_humidity_2m,cape,lifted_index,convective_inhibition,sunshine_duration,is_day';
-const FORECAST_FUSION_EUROPE=[-25,30,45,72];
-const FORECAST_FUSION_MODELS=[
- {id:'best_match',apiIds:['best_match'],label:'Open-Meteo Best Match',family:'best-match',independenceGroup:'anchor',provider:'Open-Meteo',tier:1,maxDays:14,anchor:true,consensusRole:'anchor'},
- // ICON-D2-RUC ist Stand 02.09.2026 kein Open-Meteo-Modell. MID bezieht den
- // stÃ¼ndlich aktualisierten RUC deshalb ausschlieÃŸlich Ã¼ber den eigenen DWDâ†’Pages/R2-
- // Punktadapter. Dadurch entstehen weder 404-Capability-Probes noch eine falsche
- // Gleichsetzung mit dem regulÃ¤ren, nur 3-stÃ¼ndlich aktualisierten Open-Meteo ICON-D2.
- {id:'icon_d2_ruc',apiIds:[],label:'DWD ICON-D2-RUC',family:'dwd-icon-ruc',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:1,maxHours:14,rapidUpdate:true,updateHours:1,resolutionKm:2,bbox:[-3.85,43.18,20.22,58.05],directOnly:true},
- {id:'icon_d2',apiIds:['icon_d2','dwd_icon_d2'],label:'DWD ICON-D2',family:'dwd-icon',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:2,updateHours:3,resolutionKm:2,countries:['DE','AT','CH'],bbox:[-6,43,26,58]},
- {id:'icon_eu',apiIds:['icon_eu','dwd_icon_eu'],label:'DWD ICON-EU',family:'dwd-icon',independenceGroup:'dwd-icon',provider:'DWD',tier:1,maxDays:5,updateHours:3,resolutionKm:7,bbox:FORECAST_FUSION_EUROPE},
- {id:'icon_global',apiIds:['icon_global','dwd_icon'],label:'DWD ICON Global',family:'dwd-icon',independenceGroup:'dwd-icon',provider:'DWD',tier:3,maxDays:7.5,updateHours:6,resolutionKm:11},
- {id:'knmi_harmonie_europe',apiIds:['knmi_harmonie_arome_europe','knmi_seamless'],label:'KNMI HARMONIE-AROME Europe',family:'knmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'KNMI',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:5.5,bbox:[-12,40,32,68]},
- {id:'knmi_harmonie',apiIds:['knmi_harmonie_arome_netherlands','knmi_seamless'],label:'KNMI HARMONIE-AROME NL',family:'knmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'KNMI',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:2,countries:['NL','BE','LU'],bbox:[-2,48,12,56]},
- {id:'meteoswiss_icon_ch1',apiIds:['meteoswiss_icon_ch1'],label:'MeteoSwiss ICON-CH1',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:1.4,updateHours:3,resolutionKm:1,countries:['CH'],bbox:[3,43,18,50]},
- {id:'meteoswiss_icon_ch2',apiIds:['meteoswiss_icon_ch2'],label:'MeteoSwiss ICON-CH2',family:'meteoswiss-icon',independenceGroup:'meteoswiss-icon',provider:'MeteoSwiss',tier:1,maxDays:5,updateHours:6,resolutionKm:2,countries:['CH'],bbox:[3,43,18,50]},
- {id:'geosphere_arome',apiIds:['geosphere_arome_austria'],label:'GeoSphere AROME Austria',family:'geosphere-arome',independenceGroup:'geosphere-arome',provider:'GeoSphere Austria',tier:1,maxDays:2.5,updateHours:3,resolutionKm:2.5,countries:['AT'],bbox:[8,45,18,50]},
- {id:'meteofrance_arome',apiIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd','meteofrance_arome_france','meteofrance_seamless'],label:'MÃ©tÃ©o-France AROME / Seamless',family:'meteofrance-arome',independenceGroup:'meteofrance',provider:'MÃ©tÃ©o-France',tier:1,maxDays:2,updateHours:3,resolutionKm:1.5,countries:['FR'],bbox:[-6,41,11,52]},
- {id:'ukmo_ukv',apiIds:['ukmo_uk_deterministic_2km','ukmo_seamless'],label:'UKMO UKV / Seamless',family:'ukmo-ukv',independenceGroup:'ukmo',provider:'UK Met Office',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:2,latencyHours:4,countries:['GB','IE'],bbox:[-12,48,4,62]},
- {id:'metno_nordic',apiIds:['metno_nordic','metno_nordic_pp'],label:'MET Nordic',family:'metno-nordic',independenceGroup:'metno',provider:'MET Norway',tier:1,maxDays:3,rapidUpdate:true,updateHours:1,resolutionKm:1,countries:['NO','SE','DK','FI'],bbox:[0,53,32,72]},
- {id:'hrrr',apiIds:['ncep_hrrr_conus'],label:'NOAA HRRR',family:'noaa-hrrr',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:1,maxDays:2,rapidUpdate:true,updateHours:1,resolutionKm:3,countries:['US','CA'],bbox:[-130,20,-60,55]},
- {id:'nam',apiIds:['ncep_nam_conus'],label:'NOAA NAM',family:'noaa-nam',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:2,maxDays:3.5,updateHours:6,resolutionKm:12,countries:['US','CA'],bbox:[-130,20,-60,55],consensusOnly:true},
- // NBM ist ein postprozessiertes Multi-Model-Produkt und deshalb keine zusÃ¤tzliche
- // unabhÃ¤ngige Stimme im Konsens. Es bleibt als lokaler Diagnose-/Reparaturpfad verfÃ¼gbar.
- {id:'nbm',apiIds:['ncep_nbm_conus'],label:'NOAA NBM',family:'noaa-nbm',independenceGroup:'noaa-postprocessing',provider:'NOAA/NCEP',tier:1,maxDays:11,rapidUpdate:true,updateHours:1,resolutionKm:2.5,countries:['US','CA'],bbox:[-130,20,-60,55],consensusRole:'postprocessing'},
- {id:'dmi_harmonie',apiIds:['dmi_harmonie_arome_europe'],label:'DMI HARMONIE Europe',family:'dmi-harmonie',independenceGroup:'uwc-west-harmonie',provider:'DMI',tier:2,maxDays:2.5,updateHours:3,resolutionKm:2,bbox:[-15,35,32,72]},
- {id:'chmi_aladin_cz',apiIds:['chmi_aladin_cz_1km'],label:'CHMI ALADIN CZ',family:'chmi-aladin-cz',independenceGroup:'chmi-aladin',provider:'CHMI',tier:1,maxDays:3,updateHours:6,resolutionKm:1,countries:['CZ'],bbox:[11,47,20,52],optionalCapability:true},
- {id:'chmi_aladin_ce',apiIds:['chmi_aladin_central_europe_2km','chmi_aladin_seamless'],label:'CHMI ALADIN Mitteleuropa',family:'chmi-aladin-ce',independenceGroup:'chmi-aladin',provider:'CHMI',tier:2,maxDays:3,updateHours:6,resolutionKm:2.3,bbox:[-12,35,35,62],optionalCapability:true},
- {id:'italiameteo_icon2i',apiIds:['italia_meteo_arpae_icon_2i'],label:'ItaliaMeteo ICON-2I',family:'italiameteo-icon2i',independenceGroup:'italiameteo-icon2i',provider:'ItaliaMeteo',tier:1,maxDays:3,updateHours:12,resolutionKm:2,countries:['IT'],bbox:[5,35,20,49]},
- {id:'jma_msm',apiIds:['jma_msm','jma_seamless'],label:'JMA MSM / Seamless',family:'jma-msm',independenceGroup:'jma',provider:'JMA',tier:1,maxDays:4,updateHours:3,resolutionKm:5,countries:['JP','KR'],bbox:[118,20,155,52],consensusOnly:true},
- {id:'gem_hrdps',apiIds:['cmc_gem_hrdps'],label:'GEM HRDPS',family:'gem-hrdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:1,maxDays:2,updateHours:6,resolutionKm:2.5,countries:['CA','US'],bbox:[-150,35,-45,72]},
- {id:'gem_rdps',apiIds:['cmc_gem_rdps'],label:'GEM RDPS',family:'gem-rdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:2,maxDays:3.5,updateHours:6,resolutionKm:10,countries:['CA','US'],bbox:[-170,20,-35,90]},
- {id:'arpege_europe',apiIds:['meteofrance_arpege_europe'],label:'MÃ©tÃ©o-France ARPEGE Europe',family:'meteofrance-arpege-eu',independenceGroup:'meteofrance',provider:'MÃ©tÃ©o-France',tier:2,maxDays:4,updateHours:6,resolutionKm:11,bbox:FORECAST_FUSION_EUROPE},
- {id:'ecmwf_ifs',apiIds:['ecmwf_ifs','ecmwf_ifs025'],label:'ECMWF IFS',family:'ecmwf-ifs',independenceGroup:'ecmwf',provider:'ECMWF',tier:2,maxDays:15,updateHours:6,resolutionKm:9},
- {id:'ecmwf_aifs',apiIds:['ecmwf_aifs025_single'],label:'ECMWF AIFS Single',family:'ecmwf-aifs',independenceGroup:'ecmwf',provider:'ECMWF',tier:2,maxDays:15,updateHours:6,resolutionKm:25,consensusOnly:true},
- {id:'gfs',apiIds:['ncep_gfs_global','ncep_gfs013'],label:'NOAA GFS',family:'noaa-gfs',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:3,maxDays:16,updateHours:6,resolutionKm:13},
- {id:'aigfs',apiIds:['ncep_aigfs025'],label:'NOAA AIGFS',family:'noaa-aigfs',independenceGroup:'noaa-nwp',provider:'NOAA/NCEP',tier:3,maxDays:16,updateHours:6,resolutionKm:25,consensusOnly:true},
- {id:'ukmo_global',apiIds:['ukmo_global_deterministic_10km'],label:'UKMO Global',family:'ukmo-global',independenceGroup:'ukmo',provider:'UK Met Office',tier:2,maxDays:7,updateHours:6,resolutionKm:10,latencyHours:4},
- {id:'gem_global',apiIds:['cmc_gem_gdps'],label:'GEM Global',family:'gem-gdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:3,maxDays:10,updateHours:12,resolutionKm:15},
- {id:'jma_gsm',apiIds:['jma_gsm'],label:'JMA GSM',family:'jma-gsm',independenceGroup:'jma',provider:'JMA',tier:4,maxDays:11,updateHours:6,resolutionKm:55,consensusOnly:true},
- {id:'bom_access_global',apiIds:['bom_access_global'],label:'BOM ACCESS Global',family:'bom-access',independenceGroup:'bom',provider:'BOM',tier:3,maxDays:10,updateHours:6,resolutionKm:15,consensusOnly:true},
- {id:'cma_grapes_global',apiIds:['cma_grapes_global'],label:'CMA GRAPES Global',family:'cma-grapes',independenceGroup:'cma',provider:'CMA',tier:3,maxDays:10,updateHours:6,resolutionKm:15,consensusOnly:true},
- {id:'arpege_world',apiIds:['meteofrance_arpege_world'],label:'MÃ©tÃ©o-France ARPEGE World',family:'meteofrance-arpege-world',independenceGroup:'meteofrance',provider:'MÃ©tÃ©o-France',tier:3,maxDays:4,updateHours:6,resolutionKm:25,consensusOnly:true}
-];
+NÂ˜\Ş[˜È[˜İ[ÛˆÙXÔŒ’œÛÛŠXÚÙ]Ù^J^ØÛÛœİØš™XİX]ØZ]XÚÙ]™Ù]
+Ù^JNÚYŠ[Øš™Xİ
+\™]\›ˆ[İ^Ü™]\›ˆ”ÓÓ‹œ\œÙJ]ØZ]Øš™Xİ^
 
-function berlinDateOffset(days=0){const date=new Date(Date.now()+days*86400000);try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(date)}catch{return date.toISOString().slice(0,10)}}
-function mosmixDateKey(epoch){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(epoch))}catch{return new Date(epoch).toISOString().slice(0,10)}}
-function dwdMosmixDirectoryTimestamp(value){const match=String(value||'').match(/(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);if(!match)return undefined;const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11},month=months[match[2]];if(month===undefined)return undefined;const stamp=Date.UTC(Number(match[3]),month,Number(match[1]),Number(match[4]),Number(match[5]),Number(match[6]));return Number.isFinite(stamp)?new Date(stamp).toISOString():undefined}
-function dwdMosmixRunMetaFromIndex(html,product='L'){const kind=product==='S'?'S':'L',rows=[],pattern=kind==='S'?/MOSMIX_S_(\d{10})_240\.kmz/:/MOSMIX_L_(\d{10})\.kmz/;for(const line of String(html||'').split(/\r?\n/)){const run=line.match(pattern);if(!run)continue;const code=run[1],year=Number(code.slice(0,4)),month=Number(code.slice(4,6))-1,day=Number(code.slice(6,8)),hour=Number(code.slice(8,10)),init=Date.UTC(year,month,day,hour);if(!Number.isFinite(init))continue;const availability=dwdMosmixDirectoryTimestamp(line);rows.push({product:`MOSMIX-${kind}`,initialisationTime:new Date(init).toISOString(),availabilityTime:availability,updateHours:kind==='S'?1:6,forecastHorizonHours:kind==='S'?24:240,metadataSource:`DWD Open Data Â· MOSMIX-${kind} Laufindex`})}return rows.sort((a,b)=>Date.parse(b.initialisationTime)-Date.parse(a.initialisationTime))[0]}
-async function fetchDwdMosmixRunIndex(url,product,refresh=false){try{const response=await fetchWithDeadline(url,{headers:{Accept:'text/html','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,...(refresh?{'Cache-Control':'no-cache'}:{})},cf:refresh?{cacheEverything:false}:{cacheTtl:600,cacheEverything:true}},7000);if(!response.ok)return undefined;return dwdMosmixRunMetaFromIndex(await response.text(),product)}catch{return undefined}}
-async function fetchDwdMosmixRunMeta(refresh=false){const[short,long]=await Promise.all([fetchDwdMosmixRunIndex(DWD_MOSMIX_S_INDEX,'S',refresh),fetchDwdMosmixRunIndex(DWD_MOSMIX_L_INDEX,'L',refresh)]);return{short,long}}
-function mosmixRunFreshness(initialisationTime,updateHours=1){const init=Date.parse(String(initialisationTime||''));if(!Number.isFinite(init))return undefined;const ageHours=Math.max(0,(Date.now()-init)/3600000),cadence=Math.max(1,Number(updateHours)||1),freshLimit=cadence<=1?2.5:cadence*1.42,staleLimit=cadence<=1?4.5:cadence*2.34;return Number(clamp(ageHours<=freshLimit?1:ageHours<=staleLimit?.72:.4,.4,1).toFixed(2))}
-function mosmixSourceQuality(source,lat,lon,elevation){const slat=number(source?.lat??source?.latitude),slon=number(source?.lon??source?.longitude),reportedDistance=number(source?.distance),distanceKm=Number.isFinite(reportedDistance)?reportedDistance/1000:Number.isFinite(slat)&&Number.isFinite(slon)?distance(lat,lon,slat,slon)/1000:999,stationElevation=number(source?.height??source?.elevation),elevationDifferenceM=Number.isFinite(elevation)&&Number.isFinite(stationElevation)?Math.abs(elevation-stationElevation):undefined,distanceScore=clamp(1-distanceKm/60,0,1),elevationScore=Number.isFinite(elevationDifferenceM)?clamp(1-elevationDifferenceM/500,0,1):.72,quality=clamp(distanceScore*.68+elevationScore*.32,0,1);return{distanceKm,stationElevation,elevationDifferenceM,quality,usable:distanceKm<=55&&(!Number.isFinite(elevationDifferenceM)||elevationDifferenceM<=450)&&quality>=.42}}
-async function fetchMosmixForecast(lat,lon,elevation,country,refresh=false){
- const considered=directCountryCode(country)==='DE'||inGermanyBounds(lat,lon);if(!considered)return{considered:false,successful:false,reason:'MOSMIX-Punktkorrektur derzeit nur innerhalb Deutschlands aktiviert.',days:[],hours:[]};
- const runMetaPromise=fetchDwdMosmixRunMeta(refresh),query=new URLSearchParams({lat:String(lat),lon:String(lon),date:berlinDateOffset(0),last_date:berlinDateOffset(9),max_dist:'55000'});
- try{
-  const response=await fetchWithDeadline(`${BRIGHTSKY_WEATHER}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,...(refresh?{'Cache-Control':'no-cache'}:{})},cf:refresh?{cacheEverything:false}:{cacheTtl:1200,cacheEverything:true}},12000),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}
-  if(!response.ok||payload?.error)return{considered:true,successful:false,reason:String(payload?.detail?.[0]?.msg||payload?.error||`Bright Sky HTTP ${response.status}`),days:[],hours:[]};
-  const sources=Array.isArray(payload?.sources)?payload.sources:[],weather=Array.isArray(payload?.weather)?payload.weather:[],sourceMap=new Map(sources.map(source=>[String(source?.id),source])),groups=new Map(),now=Date.now()-2*3600000,maxEpoch=Date.now()+241*3600000;
-  for(const row of weather){const epoch=Date.parse(String(row?.timestamp||'')),source=sourceMap.get(String(row?.source_id));if(!Number.isFinite(epoch)||epoch<now||epoch>maxEpoch||!source)continue;const forecast=/forecast/i.test(String(source?.observation_type||''))||Date.parse(String(source?.last_record||''))>Date.now()+3600000;if(!forecast)continue;const key=String(source.id),group=groups.get(key)||{source,rows:[]};group.rows.push({...row,epoch});groups.set(key,group)}
-  const candidates=[...groups.values()].map(group=>({...group,site:mosmixSourceQuality(group.source,lat,lon,elevation)})).filter(group=>group.rows.length>=18).sort((a,b)=>(b.site.usable-a.site.usable)||(b.site.quality-a.site.quality)||(b.rows.length-a.rows.length)||(a.site.distanceKm-b.site.distanceKm)),selected=candidates[0];
-  if(!selected?.site?.usable)return{considered:true,successful:false,reason:selected?`NÃ¤chster MOSMIX-Punkt zu weit oder hÃ¶henmÃ¤ÃŸig ungeeignet (${selected.site.distanceKm.toFixed(1)} km).`:'Keine aktuelle MOSMIX-Punktvorhersage gefunden.',days:[],hours:[]};
-  // MOSMIX bleibt ein korreliertes DWD-Postprocessing und zÃ¤hlt daher nicht als
-  // unabhÃ¤ngige Modellstimme. FÃ¼r Deutschland darf seine stÃ¼ndliche RR1c-nahe
-  // Niederschlagsmenge (Bright-Sky-Feld `precipitation`: vorherige 60 Minuten)
-  // aber als lokaler DWD-Konsens / PlausibilitÃ¤tsanker gegen einen nassen
-  // deterministischen ICON-D2-RUC-AusreiÃŸer wirken. Wettercode, BewÃ¶lkung und
-  // Sonnenschein bleiben weiterhin vollstÃ¤ndig im kohÃ¤renten WettermodellbÃ¼ndel.
-  const hours=selected.rows.sort((a,b)=>a.epoch-b.epoch).map(row=>{const windKmh=Math.max(0,number(row?.wind_speed)??0),gustKmh=Math.max(windKmh,number(row?.wind_gust_speed)??windKmh),precipitation=number(row?.precipitation),precipitationProbability=number(row?.precipitation_probability);return{time:new Date(row.epoch).toISOString(),epoch:row.epoch,temperature:number(row?.temperature),dewPoint:number(row?.dew_point),humidity:number(row?.relative_humidity),pressure:number(row?.pressure_msl),wind:windKmh/1.852,gust:gustKmh/1.852,direction:((number(row?.wind_direction)??0)%360+360)%360,precipitation:Number.isFinite(precipitation)?Math.max(0,precipitation):undefined,precipitationProbability:Number.isFinite(precipitationProbability)?clamp(precipitationProbability,0,100):undefined}}).filter(row=>Number.isFinite(row.temperature));
-  const buckets=new Map();for(const hour of hours){const key=mosmixDateKey(hour.epoch),bucket=buckets.get(key)||{date:key,temperatures:[],winds:[],gusts:[],precipitation:[]};bucket.temperatures.push(hour.temperature);if(Number.isFinite(hour.wind))bucket.winds.push(hour.wind);if(Number.isFinite(hour.gust))bucket.gusts.push(hour.gust);if(Number.isFinite(hour.precipitation))bucket.precipitation.push(hour.precipitation);buckets.set(key,bucket)}
-  const days=[...buckets.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,10).map(bucket=>({date:bucket.date,max:Math.max(...bucket.temperatures),min:Math.min(...bucket.temperatures),wind:bucket.winds.length?Math.max(...bucket.winds):0,gust:bucket.gusts.length?Math.max(...bucket.gusts):0,precipitation:bucket.precipitation.length?bucket.precipitation.reduce((sum,value)=>sum+Math.max(0,value),0):undefined})).filter(day=>[day.max,day.min].every(Number.isFinite));
-  const source=selected.source,stationId=String(source?.wmo_station_id||source?.dwd_station_id||source?.id||''),stationName=String(source?.station_name||source?.name||stationId||'MOSMIX-Punkt'),runMeta=await runMetaPromise,shortRun=runMeta?.short,longRun=runMeta?.long;
-  return{considered:true,successful:days.length>=2&&hours.length>=18,label:'DWD MOSMIX',family:'mosmix-postprocessing',provider:'DWD Open Data via Bright Sky',reason:days.length>=2?undefined:'MOSMIX-Lieferung unvollstÃ¤ndig.',days,hours,quality:Number(selected.site.quality.toFixed(3)),stationId,stationName,distanceKm:Number(selected.site.distanceKm.toFixed(1)),stationElevation:selected.site.stationElevation,elevationDifferenceM:Number.isFinite(selected.site.elevationDifferenceM)?Math.round(selected.site.elevationDifferenceM):undefined,initialisationTime:shortRun?.initialisationTime,availabilityTime:shortRun?.availabilityTime,updateHours:1,runMetaSource:shortRun?.metadataSource,runFreshness:mosmixRunFreshness(shortRun?.initialisationTime,1),shortInitialisationTime:shortRun?.initialisationTime,shortAvailabilityTime:shortRun?.availabilityTime,shortRunMetaSource:shortRun?.metadataSource,longInitialisationTime:longRun?.initialisationTime,longAvailabilityTime:longRun?.availabilityTime,longUpdateHours:6,longRunMetaSource:longRun?.metadataSource,coverageUntil:hours.at(-1)?.time};
- }catch(error){return{considered:true,successful:false,reason:error instanceof Error?error.message:String(error),days:[],hours:[]}}
-}
-function fusionModelApplies(model,lat,lon,country){if(model.anchor)return true;if(model.bbox){const[minLon,minLat,maxLon,maxLat]=model.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}if(model.countries?.length)return model.countries.includes(country);return true}
-function forecastFusionSelection(lat,lon,country){
- const applicable=FORECAST_FUSION_MODELS.filter(model=>fusionModelApplies(model,lat,lon,country)),chosen=[];
- const add=model=>{if(!model||chosen.some(item=>item.id===model.id))return;chosen.push(model)};
- add(applicable.find(model=>model.anchor));
- // Rapid-/Regionalmodelle werden als kurzreichweitige AutoritÃ¤t mitgefÃ¼hrt. Mehrere
- // AuflÃ¶sungen derselben Modellfamilie bleiben nur als zeitlich gestaffelte Fallbacks
- // im Request; im eigentlichen Konsens erhÃ¤lt jede UnabhÃ¤ngigkeitsgruppe genau eine Stimme.
- for(const model of applicable.filter(model=>model.rapidUpdate&&!model.anchor).sort((a,b)=>(a.latencyHours||0)-(b.latencyHours||0)||(a.resolutionKm||99)-(b.resolutionKm||99)))if(chosen.filter(item=>item.rapidUpdate).length<3)add(model);
- const locals=applicable.filter(model=>!model.anchor&&(model.countries?.length||model.bbox)).sort((a,b)=>a.tier-b.tier||(a.resolutionKm||99)-(b.resolutionKm||99)||(b.maxDays||0)-(a.maxDays||0));
- const localGroups=new Set();for(const model of locals){const group=model.independenceGroup||model.family,already=localGroups.has(group);if(!already||['dwd-icon','noaa-nwp','cmc-gem','meteofrance','meteoswiss-icon'].includes(group)){add(model);localGroups.add(group)}if(chosen.filter(item=>!item.anchor&&(item.countries?.length||item.bbox)).length>=7)break}
- // Globale Familien ergÃ¤nzen Regionalmodelle fÃ¼r die mittlere/lange Reichweite.
- // Zuerst wird genau ein Vertreter jeder bislang fehlenden UnabhÃ¤ngigkeitsgruppe
- // ergÃ¤nzt. Varianten derselben Familie (z. B. IFS/AIFS oder ICON-AuflÃ¶sungen)
- // kommen erst danach als Reichweiten-/VerfÃ¼gbarkeitsfallback hinzu und erhalten
- // im Konsens trotzdem keine zweite Stimme.
- const globalIds=['ecmwf_ifs','gfs','icon_global','ukmo_global','gem_global','jma_gsm','bom_access_global','cma_grapes_global','arpege_world','ecmwf_aifs','aigfs'],globalRows=globalIds.map(id=>applicable.find(model=>model.id===id)).filter(Boolean),seenGroups=new Set(chosen.filter(model=>!model.anchor).map(model=>model.independenceGroup||model.family));
- for(const model of globalRows){const group=model.independenceGroup||model.family;if(seenGroups.has(group))continue;add(model);seenGroups.add(group)}
- for(const model of globalRows)add(model);
- return chosen.slice(0,20);
-}
-const forecastModelCapabilityCache=new Map();
-const forecastFusionFreshnessCache=new Map();
-function forecastCapabilityBlocked(apiId){const until=forecastModelCapabilityCache.get(apiId);return Number.isFinite(until)&&until>Date.now()}
-function fusionFreshnessFactor(model,payload){const raw=number(payload?.last_run_initialisation_time),initMs=Number.isFinite(raw)?(raw>10000000000?raw:raw*1000):NaN,availableRaw=number(payload?.last_run_availability_time),availabilityMs=Number.isFinite(availableRaw)?(availableRaw>10000000000?availableRaw:availableRaw*1000):NaN,cycleHours=Math.max(.5,(number(payload?.update_interval_seconds)||Math.max(1,Number(model.updateHours)||6)*3600)/3600),ageHours=(Date.now()-initMs)/3600000;if(!Number.isFinite(ageHours)||ageHours<-.5)return .94;let factor=ageHours<=cycleHours*1.35?1:ageHours<=cycleHours*2?.88:ageHours<=cycleHours*3?.7:.52;if(Number.isFinite(availabilityMs)&&Date.now()-availabilityMs<10*60000)factor*=.97;return clamp(factor,.5,1)}
-async function forecastFusionFreshness(model){const cached=forecastFusionFreshnessCache.get(model.id);if(cached&&Date.now()-cached.at<5*60000)return cached;if(model.directOnly){const initMs=Date.parse(String(model.initialisationTime||'')),availableMs=Date.parse(String(model.availabilityTime||'')),payload={last_run_initialisation_time:Number.isFinite(initMs)?initMs/1000:undefined,last_run_availability_time:Number.isFinite(availableMs)?availableMs/1000:undefined,update_interval_seconds:Math.max(1,Number(model.updateHours)||1)*3600},value={at:Date.now(),factor:fusionFreshnessFactor(model,payload),initialisationTime:Number.isFinite(initMs)?new Date(initMs).toISOString():undefined,availabilityTime:Number.isFinite(availableMs)?new Date(availableMs).toISOString():undefined};forecastFusionFreshnessCache.set(model.id,value);return value}for(const metaId of [...new Set([...(model.apiIds||[]),model.id])]){try{const response=await fetchWithDeadline(`https://api.open-meteo.com/data/${metaId}/static/meta.json?cache_buster=${Date.now()}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},2500);if(!response.ok)continue;const payload=await response.json(),initRaw=number(payload?.last_run_initialisation_time),availableRaw=number(payload?.last_run_availability_time),value={at:Date.now(),factor:fusionFreshnessFactor(model,payload),initialisationTime:Number.isFinite(initRaw)?new Date((initRaw>10000000000?initRaw:initRaw*1000)).toISOString():undefined,availabilityTime:Number.isFinite(availableRaw)?new Date((availableRaw>10000000000?availableRaw:availableRaw*1000)).toISOString():undefined};forecastFusionFreshnessCache.set(model.id,value);return value}catch{}}const fallback={at:Date.now(),factor:.94};forecastFusionFreshnessCache.set(model.id,fallback);return fallback}
-function fusionNonNegative(value){const parsed=number(value);return Number.isFinite(parsed)?Math.max(0,parsed):NaN}
-function fusionNullableSunshine(value,cap=86400){const parsed=number(value);return Number.isFinite(parsed)?clamp(parsed,0,cap):null}
-function fusionDailyPrecipitation(rawValue,probabilityValue,codeValue,rainValue,showersValue,snowfallValue,leadHours){
- const rain=fusionNonNegative(rainValue),showers=fusionNonNegative(showersValue),snowfall=fusionNonNegative(snowfallValue),raw=fusionNonNegative(rawValue),parts=[rain,showers,snowfall].filter(Number.isFinite),precipitation=Number.isFinite(raw)?raw:parts.length?parts.reduce((sum,value)=>sum+value,0):NaN,probability=number(probabilityValue),code=number(codeValue);
- if(Number.isFinite(precipitation)&&Number.isFinite(probability)){const signal=reconcileForecastPrecipitation(precipitation,probability,codeValue,undefined,{rain:Number.isFinite(rain)?rain:0,showers:Number.isFinite(showers)?showers:0,snowfall:Number.isFinite(snowfall)?snowfall:0,leadHours});return{precipitation:signal.precipitation,rain:Number.isFinite(rain)?signal.rain:NaN,showers:Number.isFinite(showers)?signal.showers:NaN,snowfall:Number.isFinite(snowfall)?signal.snowfall:NaN,probability:signal.probability,code:signal.code}}
- return{precipitation,rain,showers,snowfall,probability:Number.isFinite(probability)?clamp(probability,0,100):NaN,code:Number.isFinite(code)?Math.round(code):NaN}
-}
-function rememberUnsupportedForecastModel(apiId,message){if(/invalid|unknown|not found|does not exist|model.*not.*available|cannot.*model/i.test(String(message||'')))forecastModelCapabilityCache.set(apiId,Date.now()+6*3600000)}
-function dwdRucRunIso(value){const raw=String(value||'').trim(),compact=raw.match(/^(20\d{2})(\d{2})(\d{2})(\d{2})$/),iso=raw.match(/^(20\d{2}-\d{2}-\d{2})T(\d{2})(?::(\d{2}))?/);if(compact)return`${compact[1]}-${compact[2]}-${compact[3]}T${compact[4]}:00:00Z`;if(iso)return`${iso[1]}T${iso[2]}:${iso[3]||'00'}:00Z`;const epoch=Date.parse(raw);return Number.isFinite(epoch)?new Date(epoch).toISOString():undefined}
-function parseDwdRucPointPayload(payload,model,apiId='dwd_icon_d2_ruc'){
- const data=payload?.data&&typeof payload.data==='object'?payload.data:payload,hourly=data?.hourly??{},times=Array.isArray(hourly.time)?hourly.time:[],offsetSeconds=number(data?.utc_offset_seconds)||0;
- const hours=times.map((time,index)=>{const epoch=Date.parse(`${time}Z`)-offsetSeconds*1000;if(!Number.isFinite(epoch))return null;const direction=number(at(hourly.wind_direction_10m,index));return{time:String(time),epoch,temperature:number(at(hourly.temperature_2m,index)),dewPoint:number(at(hourly.dew_point_2m,index)),pressure:number(at(hourly.pressure_msl,index)),wind:fusionNonNegative(at(hourly.wind_speed_10m,index)),gust:fusionNonNegative(at(hourly.wind_gusts_10m,index)),direction:Number.isFinite(direction)?((direction%360)+360)%360:NaN,precipitation:fusionNonNegative(at(hourly.precipitation,index)),rain:NaN,showers:NaN,snowfall:NaN,probability:NaN,code:NaN,cloud:number(at(hourly.cloud_cover,index)),lowCloud:number(at(hourly.cloud_cover_low,index)),humidity:number(at(hourly.relative_humidity_2m,index)),cape:fusionNonNegative(at(hourly.cape,index)),liftedIndex:NaN,convectiveInhibition:fusionNonNegative(at(hourly.convective_inhibition,index)),sunshineDuration:null,isDay:undefined}}).filter(hour=>hour&&Number.isFinite(hour.epoch)&&[hour.temperature,hour.pressure,hour.wind,hour.precipitation,hour.cloud].some(Number.isFinite));
- return{...model,apiId,successful:hours.length>=6,weatherBundleReady:false,reason:hours.length>=6?undefined:'RUC-Punktadapter ohne mindestens sechs verwertbare Stunden',timezone:String(data?.timezone||'UTC'),days:[],hours,rapid:data?.rapid&&typeof data.rapid==='object'?data.rapid:{},midRuc:data?.mid_ruc,initialisationTime:dwdRucRunIso(data?.mid_ruc?.run),availabilityTime:safeDate(data?.mid_ruc?.generatedAt)};
-}
-async function fetchDwdRucPointAdapter(model,lat,lon,elevation,env){
- const r2Payload=await dwdRucR2PointPayload(lat,lon,env);if(r2Payload){const parsed=parseDwdRucPointPayload(r2Payload,model,'dwd_icon_d2_ruc_r2');if(parsed.successful)return{...parsed,adapter:'MID_DWD_RUC_DATA',provider:'DWD ICON-D2-RUC Â· R2-Punktadapter'}}
- const staticPayload=await dwdRucStaticPointPayload(lat,lon,env);if(staticPayload){const parsed=parseDwdRucPointPayload(staticPayload,model,'dwd_icon_d2_ruc_pages');if(parsed.successful)return{...parsed,rapid:staticPayload.rapid||{},adapter:'MID_DWD_RUC_STATIC_BASE_URL',provider:'DWD ICON-D2-RUC Â· GitHub-Pages-Punktadapter'}}
- const endpoint=adapterEndpoint(env,'MID_DWD_RUC_POINT_ENDPOINT');if(!endpoint)return null;
- endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_hours',String(Math.min(14,Number(model.maxHours)||14)));if(Number.isFinite(elevation))endpoint.searchParams.set('elevation',String(clamp(elevation,-500,9000)));
- const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.MID_DWD_RUC_POINT_TOKEN||'').trim();if(token)headers.Authorization=`Bearer ${token}`;
- const response=await fetchWithDeadline(endpoint.toString(),{headers,cf:{cacheTtl:300,cacheEverything:true}},14500),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}
- if(!response.ok)throw new Error(`DWD ICON-D2-RUC Point-Adapter HTTP ${response.status}`);if(payload?.error)throw new Error(String(payload.reason||payload.error));const parsed=parseDwdRucPointPayload(payload,model);return{...parsed,adapter:'MID_DWD_RUC_POINT_ENDPOINT',provider:'DWD ICON-D2-RUC Â· Punktadapter',reason:parsed.successful?undefined:parsed.reason||'Point-Adapter ohne verwertbare Reihen'};
-}
-function rucEpsProbabilityRows(payload){const data=payload?.data&&typeof payload.data==='object'?payload.data:payload,hourly=data?.hourly??{},times=Array.isArray(hourly.time)?hourly.time:[],offsetSeconds=number(data?.utc_offset_seconds)||0,native=Array.isArray(hourly.precipitation_probability)?hourly.precipitation_probability:null,significant=Array.isArray(hourly.precipitation_probability_significant)?hourly.precipitation_probability_significant:null,q75=Array.isArray(hourly.precipitation_q75)?hourly.precipitation_q75:null,mean=Array.isArray(hourly.precipitation_mean)?hourly.precipitation_mean:null,memberKeys=Object.keys(hourly).filter(key=>/^precipitation(?:_sum)?_member\d+$/i.test(key)&&Array.isArray(hourly[key])),declaredMembers=Math.max(0,number(data?.mid_ruc?.member_count)||0);return times.map((time,index)=>{const epoch=Date.parse(`${time}Z`)-offsetSeconds*1000;if(!Number.isFinite(epoch))return null;let probability=number(native?.[index]),significantProbability=number(significant?.[index]),q75Mm=number(q75?.[index]),meanMm=number(mean?.[index]),memberCount=Number.isFinite(probability)?declaredMembers:0;if(memberKeys.length&&(!Number.isFinite(probability)||!Number.isFinite(significantProbability)||!Number.isFinite(q75Mm))){const values=memberKeys.map(key=>number(hourly[key][index])).filter(Number.isFinite).sort((a,b)=>a-b);memberCount=values.length;if(values.length){if(!Number.isFinite(probability))probability=100*values.filter(value=>value>.2).length/values.length;if(!Number.isFinite(significantProbability))significantProbability=100*values.filter(value=>value>5).length/values.length;if(!Number.isFinite(q75Mm)){const pos=.75*(values.length-1),lo=Math.floor(pos),hi=Math.ceil(pos),mix=pos-lo;q75Mm=values[lo]*(1-mix)+values[hi]*mix}if(!Number.isFinite(meanMm))meanMm=values.reduce((sum,value)=>sum+value,0)/values.length}}return Number.isFinite(probability)?{time:String(time),epoch,probability:clamp(probability,0,100),significantProbability:Number.isFinite(significantProbability)?clamp(significantProbability,0,100):undefined,q75Mm:Number.isFinite(q75Mm)?Math.max(0,q75Mm):undefined,meanMm:Number.isFinite(meanMm)?Math.max(0,meanMm):undefined,memberCount}:null}).filter(Boolean)}
-async function fetchDwdRucEpsProbabilityAdapter(lat,lon,elevation,env){
- const result=(payload,adapter,aggregation)=>{const hours=rucEpsProbabilityRows(payload),run=String(payload?.mid_ruc?.run||'');return{successful:hours.length>=4,configured:true,hours,memberCount:Number(payload?.mid_ruc?.member_count||Math.max(0,...hours.map(row=>row.memberCount||0)))||0,adapter,aggregation,run,initialisationTime:dwdRucRunIso(run),availabilityTime:safeDate(payload?.mid_ruc?.generatedAt),reason:hours.length>=4?undefined:'RUC-EPS-Punktadapter ohne verwertbare Wahrscheinlichkeitsreihen'}};
- const summary=await dwdRucEpsSummaryR2Payload(lat,lon,env);if(summary){const parsed=result(summary,'MID_DWD_RUC_DATA','preprocessed');if(parsed.successful)return parsed}
- const staticSummary=await dwdRucEpsSummaryStaticPayload(lat,lon,env);if(staticSummary){const parsed=result(staticSummary,'MID_DWD_RUC_STATIC_BASE_URL','preprocessed-pages');if(parsed.successful)return parsed}
- const r2=await dwdRucEpsR2Payload(lat,lon,env);if(r2){const parsed=result(r2,'MID_DWD_RUC_DATA','native-member-fallback');if(parsed.successful)return parsed}
- const endpoint=adapterEndpoint(env,'MID_DWD_RUC_EPS_POINT_ENDPOINT');if(!endpoint)return{successful:false,configured:dwdRucStorageConfigured(env),hours:[],reason:'RUC-EPS-Punktadapter nicht konfiguriert'};
- endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('forecast_hours','14');endpoint.searchParams.set('variables','precipitation,precipitation_probability');if(Number.isFinite(elevation))endpoint.searchParams.set('elevation',String(clamp(elevation,-500,9000)));
- const headers={Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.MID_DWD_RUC_EPS_POINT_TOKEN||'').trim();if(token)headers.Authorization=`Bearer ${token}`;
- try{const response=await fetchWithDeadline(endpoint.toString(),{headers,cf:{cacheTtl:300,cacheEverything:true}},14500),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(!response.ok||payload?.error)throw new Error(String(payload?.reason||payload?.error||`DWD ICON-D2-RUC-EPS Point-Adapter HTTP ${response.status}`));return result(payload,'MID_DWD_RUC_EPS_POINT_ENDPOINT','point-adapter')}catch(error){return{successful:false,configured:true,hours:[],reason:error instanceof Error?error.message:String(error)}}
-}
-function rucLeadTransition(leadHours,startHours,endHours,startWeight,endWeight){const span=Math.max(.001,endHours-startHours),t=clamp((leadHours-startHours)/span,0,1),smooth=t*t*(3-2*t);return startWeight+(endWeight-startWeight)*smooth}
-function rucRapidBaseWeight(leadHours){const lead=Math.max(0,number(leadHours)??0);if(lead<=2)return .7;if(lead<5)return rucLeadTransition(lead,2,5,.7,.58);if(lead<9)return rucLeadTransition(lead,5,9,.58,.43);if(lead<12)return rucLeadTransition(lead,9,12,.43,.3);if(lead<=14)return rucLeadTransition(lead,12,14,.3,0);return 0}
-function rucRapidWeight(leadHours,hour){let weight=rucRapidBaseWeight(leadHours);if(!weight)return 0;const convective=(number(hour?.cape)||0)>=400;if(convective)weight=Math.min(.82,weight+.1);return weight}
-function rucPrecipitationAgreement(reference,target){const a=Math.max(0,number(reference)??0),b=Math.max(0,number(target)??0),largest=Math.max(a,b);if(largest<.03)return 1;return clamp(1-Math.abs(a-b)/Math.max(.3,largest*.9),0,1)}
-function rucPrecipitationConsensus(leadHours,anchor,rapid,mosmix,rucEps,mosmixQuality=0){
- const anchorAmount=Math.max(0,number(anchor?.precipitation)??0),rapidAmount=Math.max(0,number(rapid?.precipitation)??anchorAmount),baseWeight=rucRapidBaseWeight(leadHours),convective=(number(rapid?.cape)||0)>=400,mosmixAmount=number(mosmix?.precipitation),epsProbability=number(rucEps?.probability),epsSignificantProbability=number(rucEps?.significantProbability),epsQ75Mm=number(rucEps?.q75Mm),safeMosmixQuality=clamp(number(mosmixQuality)??0,0,1),anchorSupport=rucPrecipitationAgreement(anchorAmount,rapidAmount),mosmixSupport=Number.isFinite(mosmixAmount)?rucPrecipitationAgreement(mosmixAmount,rapidAmount):NaN,epsOccurrenceSupport=Number.isFinite(epsProbability)?clamp((epsProbability-20)/70,0,1):.5,localReference=Number.isFinite(mosmixAmount)?Math.max(0,anchorAmount*(1-.5*safeMosmixQuality)+Math.max(0,mosmixAmount)*.5*safeMosmixQuality):anchorAmount;
- let support=1,rapidWeight=baseWeight,overshootRatio=0,epsUpperTailPenalty=1;
- // RUC-EPS bleibt eine Wahrscheinlichkeits-/Streuungsquelle und ersetzt keine
- // deterministische Stundenmenge. Q75 wird nur als obere PlausibilitÃ¤tsstÃ¼tze
- // genutzt: liegt der deterministische RUC deutlich oberhalb von Q75 und den
- // lokalen Mengenankern, sinkt sein Gewicht kontinuierlich statt hart gecappt zu werden.
- if(rapidAmount>anchorAmount+.12){const amountSupport=Number.isFinite(mosmixSupport)?anchorSupport*.35+mosmixSupport*.65:anchorSupport,overshoot=Math.max(0,rapidAmount-localReference-.12),overshootScale=Math.max(.25,localReference+.2),overshootPenalty=1/(1+(overshoot/overshootScale)*.75);overshootRatio=overshoot/overshootScale;if(Number.isFinite(epsQ75Mm)&&rapidAmount>Math.max(localReference+.18,epsQ75Mm*1.35+.08)){const epsOvershoot=rapidAmount-Math.max(localReference,epsQ75Mm),epsScale=Math.max(.3,epsQ75Mm+.25);epsUpperTailPenalty=1/(1+(epsOvershoot/epsScale)*.45)}support=clamp(amountSupport*(.84+.12*epsOccurrenceSupport+.04*clamp((number(epsSignificantProbability)??0)/60,0,1))*overshootPenalty*epsUpperTailPenalty,0,1);const floor=convective?.14+.08*epsOccurrenceSupport:.09+.04*epsOccurrenceSupport,guard=clamp(floor+(1-floor)*support,floor,1);rapidWeight=baseWeight*guard}
- let amount=Math.max(0,blendRapidValue(anchorAmount,rapidAmount,rapidWeight,4)),mosmixWeight=0;
- if(Number.isFinite(mosmixAmount)&&safeMosmixQuality>=.42){const leadStrength=leadHours<=6?.28:leadHours<=14?.20:.12,convectiveFactor=convective?.85:1;mosmixWeight=leadStrength*safeMosmixQuality*convectiveFactor;amount=Math.max(0,blendRapidValue(amount,Math.max(0,mosmixAmount),mosmixWeight,2))}
- return{amount,rapidWeight,baseWeight,support,overshootRatio,epsUpperTailPenalty,localReference,mosmixAmount:Number.isFinite(mosmixAmount)?Math.max(0,mosmixAmount):undefined,mosmixWeight,epsProbability:Number.isFinite(epsProbability)?clamp(epsProbability,0,100):undefined,epsSignificantProbability:Number.isFinite(epsSignificantProbability)?clamp(epsSignificantProbability,0,100):undefined,epsQ75Mm:Number.isFinite(epsQ75Mm)?Math.max(0,epsQ75Mm):undefined,anchorAmount,rapidAmount};
-}
-function rapidForecastWeatherCode(anchorCode,rucCode){const rapid=number(rucCode),anchor=Math.round(number(anchorCode)??0);return Number.isFinite(rapid)?Math.round(rapid):anchor}
-function blendRapidValue(base,rapid,weight,maxDelta=Infinity){const a=number(base),b=number(rapid);if(!Number.isFinite(b))return a;if(!Number.isFinite(a))return b;const target=a+(b-a)*weight;return Number.isFinite(maxDelta)?clamp(target,a-maxDelta,a+maxDelta):target}
-function rucRapidMinute15Rows(successful){const ruc=successful.find(result=>result.id==='icon_d2_ruc'&&result.successful),rapid=ruc?.rapid||{},quarter=rapid.convection15||{},times=Array.isArray(quarter.time)?quarter.time:[],five=rapid.precip5||{},fiveTimes=Array.isArray(five.time)?five.time:[],reflectivity=rapid.reflectivity15||{},severe=rapid.severe15||{},solar=rapid.solar15||{},phase=rapid.phase15||{},fiveRows=fiveTimes.map((time,index)=>({epoch:Date.parse(`${time}Z`),precipitation:Math.max(0,number(five.precipitation?.[index])||0)})).filter(row=>Number.isFinite(row.epoch));return times.map((time,index)=>{const epoch=Date.parse(`${time}Z`);if(!Number.isFinite(epoch))return null;const intervalStart=epoch-15*60000,within=fiveRows.filter(row=>row.epoch>intervalStart&&row.epoch<=epoch),precipitation=Math.max(0,number(quarter.precipitation?.[index])||0),cape=Math.max(0,number(quarter.cape?.[index])||0),convectiveInhibition=Math.max(0,number(quarter.convective_inhibition?.[index])||0),peakRateMmh=within.length?Math.max(...within.map(row=>row.precipitation*12)):precipitation*4,dbzCmax=number(reflectivity.dbz_cmax?.[index]),rain=number(phase.rain?.[index]),snowfallWaterEquivalent=number(phase.snowfall_water_equivalent?.[index]),graupelWaterEquivalent=number(phase.graupel_water_equivalent?.[index]),value=name=>number(severe?.[name]?.[index]),solarValue=name=>number(solar?.[name]?.[index]);return{time:String(time),epoch,precipitation,cape,convectiveInhibition,peakRateMmh:Number(peakRateMmh.toFixed(2)),dbzCmax:Number.isFinite(dbzCmax)?Number(dbzCmax.toFixed(1)):undefined,rain:Number.isFinite(rain)?Math.max(0,rain):undefined,snowfallWaterEquivalent:Number.isFinite(snowfallWaterEquivalent)?Math.max(0,snowfallWaterEquivalent):undefined,graupelWaterEquivalent:Number.isFinite(graupelWaterEquivalent)?Math.max(0,graupelWaterEquivalent):undefined,capeMu:value('cape_mu'),cinMu:value('cin_mu'),lpi:value('lpi'),lpiMax:value('lpi_max'),uhMax:value('uh_max'),uhMaxLow:value('uh_max_low'),uhMaxMed:value('uh_max_med'),echoTopM:value('echo_top_m'),hailGsp:value('hail_gsp'),lapseRate:value('lapse_rate'),srh:value('srh'),windShearU:value('wind_shear_u'),windShearV:value('wind_shear_v'),updraftMax:value('w_ctmax'),vorticityMax:value('vorw_ctmax'),shortwaveNet:solarValue('asob_s'),shortwaveDirect:solarValue('aswdir_s'),shortwaveDiffuse:solarValue('aswdifd_s'),source:'DWD ICON-D2-RUC',nativePrecipitationSeconds:within.length?300:900}}).filter(Boolean)}
-function applyRucSpecialistHourly(weatherHours,successful){const ruc=successful.find(result=>result.id==='icon_d2_ruc'&&result.successful),specialist=ruc?.rapid?.specialistHourly||{},times=Array.isArray(specialist.time)?specialist.time:[];if(!times.length)return weatherHours;return weatherHours.map(hour=>{let best=-1,distanceMs=Infinity;for(let index=0;index<times.length;index++){const epoch=Date.parse(`${times[index]}Z`),delta=Math.abs(epoch-hour.epoch);if(delta<distanceMs){best=index;distanceMs=delta}}if(best<0||distanceMs>35*60000)return hour;const pick=name=>number(specialist?.[name]?.[best]),midCloud=pick('cloud_cover_mid'),highCloud=pick('cloud_cover_high'),visibility=pick('visibility'),ceiling=pick('ceiling'),freezingLevel=pick('freezing_level_height'),snowline=pick('snowline_height'),surfaceTemperature=pick('surface_temperature'),snowDepth=pick('snow_depth');return{...hour,midCloud:Number.isFinite(midCloud)?clamp(midCloud,0,100):hour.midCloud,highCloud:Number.isFinite(highCloud)?clamp(highCloud,0,100):hour.highCloud,visibility:Number.isFinite(visibility)?Math.max(0,visibility):hour.visibility,rucCeilingM:Number.isFinite(ceiling)?Math.max(0,ceiling):undefined,rucFreezingLevelM:Number.isFinite(freezingLevel)?Math.max(0,freezingLevel):undefined,rucSnowlineM:Number.isFinite(snowline)?Math.max(0,snowline):undefined,rucSurfaceTemperatureC:Number.isFinite(surfaceTemperature)?surfaceTemperature:undefined,rucSnowDepthM:Number.isFinite(snowDepth)?Math.max(0,snowDepth):undefined}})}
-function applyRucRapidUpdateWeatherHours(weatherHours,successful,mosmix,rucEps){const ruc=successful.find(result=>result.id==='icon_d2_ruc'&&result.successful&&result.hours?.length);if(!ruc)return weatherHours;const now=Date.now(),mosmixQuality=clamp(number(mosmix?.quality)??0,0,1);return weatherHours.map(hour=>{const leadHours=(hour.epoch-now)/3600000;if(leadHours<-.5||leadHours>14)return hour;const rapid=forecastHourAt(ruc,hour.epoch),weight=rapid?rucRapidWeight(leadHours,rapid):0;if(!rapid||weight<=0)return hour;const mosmixHour=mosmix?.successful?forecastHourAt(mosmix,hour.epoch):undefined,rucEpsHour=rucEps?.successful?forecastHourAt(rucEps,hour.epoch):undefined,precipConsensus=rucPrecipitationConsensus(leadHours,hour,rapid,mosmixHour,rucEpsHour,mosmixQuality),precipitation=precipConsensus.amount,probability=clamp(number(hour.probability)??0,0,100),cloud=clamp(blendRapidValue(hour.cloud,rapid.cloud,weight,45),0,100),lowCloud=clamp(blendRapidValue(hour.lowCloud,rapid.lowCloud,weight,45),0,100),humidity=clamp(blendRapidValue(hour.humidity,rapid.humidity,weight,25),0,100),cape=Math.max(0,blendRapidValue(hour.cape,rapid.cape,weight,1200)),convectiveInhibition=Math.max(0,blendRapidValue(hour.convectiveInhibition,rapid.convectiveInhibition,weight,180)),temperature=blendRapidValue(hour.temperature,rapid.temperature,weight*.7,3),dewPoint=blendRapidValue(hour.dewPoint,rapid.dewPoint,weight*.65,4),pressure=blendRapidValue(hour.pressure,rapid.pressure,weight*.45,6),wind=Math.max(0,blendRapidValue(hour.wind,rapid.wind,weight*.65,8)),gust=Math.max(0,blendRapidValue(hour.gust,rapid.gust,weight*.65,12)),direction=Number.isFinite(number(rapid.direction))?rapid.direction:hour.direction,baseRain=Math.max(0,number(hour.rain)??0),baseShowers=Math.max(0,number(hour.showers)??0),baseSnowfall=Math.max(0,number(hour.snowfall)??0),componentTotal=baseRain+baseShowers+baseSnowfall,componentScale=componentTotal>.001?precipitation/componentTotal:0,rain=componentTotal>.001?baseRain*componentScale:precipitation>.001&&![80,81,82,83,84,85,86,95,96,97,99].includes(Math.round(number(hour.code)??0))&&temperature>1?precipitation:0,showers=componentTotal>.001?baseShowers*componentScale:precipitation>.001&&[80,81,82,83,84,95,96,97,99].includes(Math.round(number(hour.code)??0))?precipitation:0,snowfall=componentTotal>.001?baseSnowfall*componentScale:precipitation>.001&&(temperature<=1||[71,73,75,77,85,86].includes(Math.round(number(hour.code)??0)))?precipitation:0,signal=reconcileForecastPrecipitation(precipitation,probability,hour.code,cloud,{rain,showers,snowfall,lowCloud,humidity,cape,liftedIndex:hour.liftedIndex,convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours}),code=rapidForecastWeatherCode(signal.code,rapid.code);return{...hour,temperature,dewPoint,pressure,wind,gust,direction,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code,cloud,lowCloud,humidity,cape,convectiveInhibition,sourceId:'icon_d2_ruc',sourceLabel:'MID-Kurzfristfusion Â· DWD ICON-D2-RUC + Niederschlagskonsens',sourceFamily:'dwd-icon-ruc',sourceRole:'rapid-update',rucApplied:true,rucWeight:Number(weight.toFixed(3)),rucPrecipitationWeight:Number(precipConsensus.rapidWeight.toFixed(3)),rucPrecipitationSupport:Number(precipConsensus.support.toFixed(3)),rucPrecipitationOvershootRatio:Number(precipConsensus.overshootRatio.toFixed(3)),rucEpsUpperTailPenalty:Number(precipConsensus.epsUpperTailPenalty.toFixed(3)),localPrecipitationReferenceMm:Number(precipConsensus.localReference.toFixed(3)),basePrecipitationMm:Number(precipConsensus.anchorAmount.toFixed(3)),rucRawPrecipitationMm:Number(precipConsensus.rapidAmount.toFixed(3)),mosmixPrecipitationMm:Number.isFinite(precipConsensus.mosmixAmount)?Number(precipConsensus.mosmixAmount.toFixed(3)):undefined,mosmixPrecipitationWeight:Number(precipConsensus.mosmixWeight.toFixed(3)),rucEpsProbability:Number.isFinite(precipConsensus.epsProbability)?Number(precipConsensus.epsProbability.toFixed(1)):undefined,rucEpsSignificantProbability:Number.isFinite(precipConsensus.epsSignificantProbability)?Number(precipConsensus.epsSignificantProbability.toFixed(1)):undefined,rucEpsQ75Mm:Number.isFinite(precipConsensus.epsQ75Mm)?Number(precipConsensus.epsQ75Mm.toFixed(2)):undefined}})}
-function applyRucEpsProbabilityHours(weatherHours,rucEps){if(!rucEps?.successful||!rucEps.hours?.length)return weatherHours;const now=Date.now();return weatherHours.map(hour=>{const lead=(hour.epoch-now)/3600000;if(lead<-.5||lead>14)return hour;let best,distanceMs=Infinity;for(const row of rucEps.hours){const delta=Math.abs(row.epoch-hour.epoch);if(delta<distanceMs){best=row;distanceMs=delta}}if(!best||distanceMs>35*60000)return hour;const weight=lead<=3?.68:lead<=6?.58:lead<=10?.46:.34,probability=clamp(blendRapidValue(hour.probability,best.probability,weight,35),0,100),signal=reconcileForecastPrecipitation(hour.precipitation,probability,hour.code,hour.cloud,{rain:hour.rain,showers:hour.showers,snowfall:hour.snowfall,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:lead});return{...hour,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,sourceLabel:hour.rucApplied?'MID-Kurzfristfusion Â· DWD ICON-D2-RUC/RUC-EPS + Niederschlagskonsens':hour.sourceLabel,rucEpsApplied:true,rucEpsWeight:Number(weight.toFixed(3)),rucEpsMemberCount:best.memberCount||rucEps.memberCount||0,rucEpsSignificantProbability:Number.isFinite(number(best.significantProbability))?Number(number(best.significantProbability).toFixed(1)):undefined,rucEpsQ75Mm:Number.isFinite(number(best.q75Mm))?Number(number(best.q75Mm).toFixed(2)):undefined}})}
+J_XØ]ÚÜ™]\›ˆ[_B˜\Ş[˜È[˜İ[ÛˆÙXÔŒ”˜[™ÙJXÚÙ]Ù^KÙ™œÙ][™İ
+^ØÛÛœİØš™XİX]ØZ]XÚÙ]™Ù]
+Ù^KÜ˜[™ÙNÛÙ™œÙ][™İ_JNÚYŠ[Øš™Xİ
+\™]\›ˆ[Ü™]\›ˆ™]ÈZ[\œ˜^J]ØZ]Øš™Xİ˜\œ˜^PY™™\Š
+J_B™[˜İ[ÛˆÙXÓY]U[Y\İ[\
+Y]J^ØÛÛœİ˜]ÏTİš[™ÊY]OËœ[ŸY]OË™Ù[™\˜]Y]	ÉÊKÛÛ\Xİ\˜]Ë›X]Ú
+×ŠÍJJÌŸJJÌŸJJÌŸJJÎ—ÌŸJOÉÊNÚYŠÛÛ\Xİ
+\™]\›ˆ]K•UÊ[X™\ŠÛÛ\XİÌWJK[X™\ŠÛÛ\XİÌ—JKLK[X™\ŠÛÛ\XİÌ×JK[X™\ŠÛÛ\XİÍJJNÜ™]\›ˆ]Kœ\œÙJÖŞ–—_ÊËWWÌŸN×ÌŸIË\İ
+˜]ÊOÜ˜]Î˜	Ü˜]ßV˜
+_B™[˜İ[ÛˆÙXÓY]Qœ™\Ú
+Y]J^ØÛÛœİİ[\YÙXÓY]U[Y\İ[\
+Y]JNÜ™]\›ˆ[X™\‹š\Ñš[š]Jİ[\
+I‰œİ[\Q]K››İÊ
+JÎL
+Œ	‰‘]K››İÊ
+K\İ[\M
+ŒÍŒB˜\Ş[˜È[˜İ[ÛˆÙXÔŒ“]\İ
+XÚÙ]
+^ÚYŠÙXÓ]\İØXÚI‰‘]K››İÊ
+KYÙXÓ]\İØXÚK˜]JŒL	‰™ÙXÓY]Qœ™\Ú
+ÙXÓ]\İØXÚK›Y]JJ\™]\›ˆÙXÓ]\İØXÚK›Y]NØÛÛœİY]OX]ØZ]ÙXÔŒ’œÛÛŠXÚÙ]	Û]\İšœÛÛ‰ÊNÚYŠ[Y]_Y]KœØÚ[XHOOIÛZY™ÙœXË™ÜšYŒ‰ßYÙXÓY]Qœ™\Ú
+Y]JJ\™]\›ˆ[ÙÙXÓ]\İØXÚO^Ø]‘]K››İÊ
+KY]_NÜ™]\›ˆY]_B˜\Ş[˜È[˜İ[ÛˆÙXÔŒ’X[
+[Š^ÂˆYŠYÙXÔŒÛÛ™šYİ\™Y
+[ŠJ\™]\›ØÛÛ™šYİ\™Y™˜[ÙK™XYN™˜[ÙKœ™\Ú™˜[ÙKØÚ[XU˜[Y™˜[ÙK™X\ÛÛ‰ÓRQÑÑÔ•P×ÑUHšXÚÙX[™[‰ßNÂˆÛÛœİXÚÙ]Y[‹“RQÑÑÔ•P×ÑUKY]OX]ØZ]ÙXÔŒ’œÛÛŠXÚÙ]	Û]\İšœÛÛ‰ÊNÚYŠ[Y]J\™]\›ØÛÛ™šYİ\™YYK™XYN™˜[ÙKœ™\Ú™˜[ÙKØÚ[XU˜[Y™˜[ÙK™X\ÛÛ‰Û]\İšœÛÛˆ™ZÙ\ˆ\İ[™ğïYÉßNÂˆÛÛœİØÚ[XU˜[Y[Y]KœØÚ[XOOOIÛZY™ÙœXË™ÜšYŒ‰Ëİ[\YÙXÓY]U[Y\İ[\
+Y]JKYÙRİ\œÏS[X™\‹š\Ñš[š]Jİ[\
+OÓX]›X^
+
+]K››İÊ
+K\İ[\
+KÌÍŒ
+N›[œ™\Ú\ØÚ[XU˜[Y	‰™ÙXÓY]Qœ™\Ú
+Y]JKÚ[Ûİ[S[X™\ŠY]KœÚ[Ûİ[
+_Y[X™\Ûİ[S[X™\ŠY]OË™\ÏË›Y[X™\Ûİ[
+_™\]Z\™Y^ÛÛÚİ\›Y]OË›ÛÚİ\ËšÙ^K]\›Z[š\İXÎ›Y]OË™]\›Z[š\İXÏËšÙ^K\Ôİ[[X\N›Y]OË™\Ôİ[[X\OËšÙ^K\ÓY[X™\œÎ›Y]OË™\ÏËšÙ^_KÙ^\Ô™\Ù[SØš™Xİ™œ›ÛQ[šY\ÊØš™Xİ™[šY\Ê™\]Z\™Y
+K›X\
 
-async function fetchForecastFusionModel(model,lat,lon,elevation,env,refresh=false){
- let lastError='nicht verfÃ¼gbar';
- if(model.id==='icon_d2_ruc'){try{const adapted=await fetchDwdRucPointAdapter(model,lat,lon,elevation,env);if(adapted?.successful)return adapted;if(adapted?.reason)lastError=adapted.reason}catch(error){lastError=error instanceof Error?error.message:String(error)}return{...model,successful:false,reason:lastError,days:[],hours:[]}}
- for(const apiId of model.apiIds){
-  if(model.optionalCapability&&forecastCapabilityBlocked(apiId)){lastError=`${apiId}: Capability derzeit nicht verfÃ¼gbar`;continue}
-  const rapidHours=model.rapidUpdate&&Number.isFinite(Number(model.maxHours))?Math.max(1,Math.min(14,Math.floor(Number(model.maxHours)))):null,query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:rapidHours?'GMT':'auto',models:apiId,hourly:FORECAST_FUSION_HOURLY,wind_speed_unit:'kn',temperature_unit:'celsius',precipitation_unit:'mm',cell_selection:'land'});if(rapidHours)query.set('forecast_hours',String(rapidHours));else{query.set('forecast_days',String(Math.min(14,model.maxDays||14)));query.set('daily',FORECAST_FUSION_DAILY)}if(Number.isFinite(elevation))query.set('elevation',String(clamp(elevation,-500,9000)));
-  try{
-   const response=await fetchWithDeadline(`${OPEN_METEO_FORECAST}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,...(refresh?{'Cache-Control':'no-cache'}:{})},cf:refresh?{cacheEverything:false}:{cacheTtl:1200,cacheEverything:true}},15500),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}
-   if(!response.ok||payload?.error){lastError=String(payload?.reason||payload?.error||`HTTP ${response.status}`);if(model.optionalCapability)rememberUnsupportedForecastModel(apiId,lastError);continue}
-   const daily=payload?.daily??{},dates=Array.isArray(daily.time)?daily.time:[];if(!dates.length){lastError='keine Tagesdaten';continue}
-   const offsetSeconds=number(payload?.utc_offset_seconds)||0,hourly=payload?.hourly??{},hourTimes=Array.isArray(hourly.time)?hourly.time:[],hours=hourTimes.map((time,index)=>{
-    const epoch=Date.parse(`${time}Z`)-offsetSeconds*1000,rawPrecipitation=Math.max(0,number(at(hourly.precipitation,index))??0),probability=number(at(hourly.precipitation_probability,index));if(!Number.isFinite(epoch)||!Number.isFinite(probability))return null;
-    const cloud=number(at(hourly.cloud_cover,index)),lowCloud=number(at(hourly.cloud_cover_low,index)),humidity=number(at(hourly.relative_humidity_2m,index)),rain=Math.max(0,number(at(hourly.rain,index))??0),showers=Math.max(0,number(at(hourly.showers,index))??0),snowfall=Math.max(0,number(at(hourly.snowfall,index))??0),cape=Math.max(0,number(at(hourly.cape,index))??0),liftedIndex=number(at(hourly.lifted_index,index)),convectiveInhibition=number(at(hourly.convective_inhibition,index)),sunshineDuration=fusionNullableSunshine(at(hourly.sunshine_duration,index),3600),isDay=number(at(hourly.is_day,index))===1,signal=reconcileForecastPrecipitation(rawPrecipitation,probability,at(hourly.weather_code,index),cloud,{rain,showers,snowfall,lowCloud,humidity,cape,liftedIndex,convectiveInhibition,sunshineDuration,isDay,leadHours:(epoch-Date.now())/3600000});
-    return{time:String(time),epoch,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:Number.isFinite(cloud)?clamp(cloud,0,100):NaN,lowCloud,humidity,cape,liftedIndex,convectiveInhibition,sunshineDuration,isDay};
-   }).filter(Boolean);
-   const days=dates.map((date,index)=>{
-    const precipitationHours=fusionNonNegative(at(daily.precipitation_hours,index)),leadHours=(index+.5)*24,signal=fusionDailyPrecipitation(at(daily.precipitation_sum,index),at(daily.precipitation_probability_max,index),at(daily.weather_code,index),at(daily.rain_sum,index),at(daily.showers_sum,index),at(daily.snowfall_sum,index),leadHours),direction=number(at(daily.wind_direction_10m_dominant,index));
-    return{date:String(date),code:signal.code,max:number(at(daily.temperature_2m_max,index)),min:number(at(daily.temperature_2m_min,index)),precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,precipitationHours,probability:signal.probability,wind:fusionNonNegative(at(daily.wind_speed_10m_max,index)),gust:fusionNonNegative(at(daily.wind_gusts_10m_max,index)),direction:Number.isFinite(direction)?((direction%360)+360)%360:NaN,sunshineDuration:fusionNullableSunshine(at(daily.sunshine_duration,index))};
-   }).filter(day=>day.date&&[day.max,day.min].some(Number.isFinite));
-   return{...model,apiId,successful:days.length>=1,weatherBundleReady:hours.length>=12,reason:days.length?undefined:'keine verwertbaren Tagesdaten',timezone:String(payload?.timezone||'UTC'),days,hours};
-  }catch(error){lastError=error instanceof Error?error.message:String(error)}
- }
- return{...model,successful:false,reason:lastError,days:[],hours:[]};
-}
-function normalizedModelSuffix(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')}
-function forecastModelSeriesEntry(section,variable,model,allowPlain=false){
- if(!section||typeof section!=='object')return undefined;
- const aliases=[model.apiId,model.id,...(model.apiIds||[])].filter(Boolean),keys=[];if(allowPlain||model.anchor)keys.push(variable);for(const alias of aliases)keys.push(`${variable}_${alias}`);
- for(const key of keys)if(Array.isArray(section[key]))return{key,values:section[key]};
- const normalizedAliases=new Set(aliases.map(normalizedModelSuffix)),prefix=`${variable}_`;
- for(const[key,value]of Object.entries(section)){if(!Array.isArray(value)||!key.startsWith(prefix))continue;const suffix=normalizedModelSuffix(key.slice(prefix.length));if(normalizedAliases.has(suffix)||[...normalizedAliases].some(alias=>suffix.endsWith(alias)||alias.endsWith(suffix)))return{key,values:value}}
- return undefined;
-}
-function forecastModelSeries(section,variable,model,allowPlain=false){return forecastModelSeriesEntry(section,variable,model,allowPlain)?.values}
-function parseForecastFusionModelPayload(payload,model,apiId,suffixed=false){
- const daily=payload?.daily??{},hourly=payload?.hourly??{},dates=Array.isArray(daily.time)?daily.time:[],hourTimes=Array.isArray(hourly.time)?hourly.time:[],suffixFields=new Set(),series=(section,variable)=>{const entry=forecastModelSeriesEntry(section,variable,{...model,apiId},!suffixed);if(entry?.key&&entry.key!==variable)suffixFields.add(entry.key);return entry?.values},offsetSeconds=number(payload?.utc_offset_seconds)||0;
- if(!dates.length&&!hourTimes.length)return{...model,apiId,successful:false,reason:'keine suffizierten Tages-/Stundenreihen',days:[],hours:[],multiModelSuffixes:suffixed};
- const h={temperature:series(hourly,'temperature_2m'),dewPoint:series(hourly,'dew_point_2m'),pressure:series(hourly,'pressure_msl'),wind:series(hourly,'wind_speed_10m'),gust:series(hourly,'wind_gusts_10m'),direction:series(hourly,'wind_direction_10m'),precipitation:series(hourly,'precipitation'),probability:series(hourly,'precipitation_probability'),rain:series(hourly,'rain'),showers:series(hourly,'showers'),snowfall:series(hourly,'snowfall'),code:series(hourly,'weather_code'),cloud:series(hourly,'cloud_cover'),lowCloud:series(hourly,'cloud_cover_low'),humidity:series(hourly,'relative_humidity_2m'),cape:series(hourly,'cape'),liftedIndex:series(hourly,'lifted_index'),convectiveInhibition:series(hourly,'convective_inhibition'),sunshine:series(hourly,'sunshine_duration'),isDay:series(hourly,'is_day')};
- const d={precipitation:series(daily,'precipitation_sum'),rain:series(daily,'rain_sum'),showers:series(daily,'showers_sum'),snowfall:series(daily,'snowfall_sum'),precipitationHours:series(daily,'precipitation_hours'),probability:series(daily,'precipitation_probability_max'),code:series(daily,'weather_code'),max:series(daily,'temperature_2m_max'),min:series(daily,'temperature_2m_min'),wind:series(daily,'wind_speed_10m_max'),gust:series(daily,'wind_gusts_10m_max'),direction:series(daily,'wind_direction_10m_dominant'),sunshine:series(daily,'sunshine_duration')};
- const hours=hourTimes.map((time,index)=>{const epoch=Date.parse(`${time}Z`)-offsetSeconds*1000,rawPrecipitation=Math.max(0,number(at(h.precipitation,index))??0),probability=number(at(h.probability,index)),cloud=number(at(h.cloud,index)),sunshine=fusionNullableSunshine(at(h.sunshine,index),3600);if(!Number.isFinite(epoch)||!Number.isFinite(probability)||!Number.isFinite(cloud))return null;const rain=Math.max(0,number(at(h.rain,index))??0),showers=Math.max(0,number(at(h.showers,index))??0),snowfall=Math.max(0,number(at(h.snowfall,index))??0),lowCloud=number(at(h.lowCloud,index)),humidity=number(at(h.humidity,index)),cape=Math.max(0,number(at(h.cape,index))??0),liftedIndex=number(at(h.liftedIndex,index)),convectiveInhibition=number(at(h.convectiveInhibition,index)),isDay=number(at(h.isDay,index))===1,signal=reconcileForecastPrecipitation(rawPrecipitation,probability,at(h.code,index),cloud,{rain,showers,snowfall,lowCloud,humidity,cape,liftedIndex,convectiveInhibition,sunshineDuration:sunshine,isDay,leadHours:(epoch-Date.now())/3600000}),temperature=number(at(h.temperature,index)),dewPoint=number(at(h.dewPoint,index)),pressure=number(at(h.pressure,index)),wind=fusionNonNegative(at(h.wind,index)),gust=fusionNonNegative(at(h.gust,index)),direction=number(at(h.direction,index));return{time:String(time),epoch,temperature,dewPoint,pressure,wind,gust,direction:Number.isFinite(direction)?((direction%360)+360)%360:NaN,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,cloud:clamp(cloud,0,100),lowCloud,humidity,cape,liftedIndex,convectiveInhibition,sunshineDuration:sunshine,isDay}}).filter(Boolean);
- const days=dates.map((date,index)=>{const precipitationHours=fusionNonNegative(at(d.precipitationHours,index)),leadHours=(index+.5)*24,signal=fusionDailyPrecipitation(at(d.precipitation,index),at(d.probability,index),at(d.code,index),at(d.rain,index),at(d.showers,index),at(d.snowfall,index),leadHours),direction=number(at(d.direction,index));return{date:String(date),code:signal.code,max:number(at(d.max,index)),min:number(at(d.min,index)),precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,precipitationHours,probability:signal.probability,wind:fusionNonNegative(at(d.wind,index)),gust:fusionNonNegative(at(d.gust,index)),direction:Number.isFinite(direction)?((direction%360)+360)%360:NaN,sunshineDuration:fusionNullableSunshine(at(d.sunshine,index))}}).filter(day=>day.date&&[day.max,day.min].some(Number.isFinite));
- const successful=days.length>=1||model.id==='icon_d2_ruc'&&hours.length>=6;return{...model,apiId,successful,weatherBundleReady:hours.length>=6,reason:successful?undefined:'keine verwertbaren Tages-/Stundendaten',timezone:String(payload?.timezone||'UTC'),days,hours,multiModelSuffixes:suffixed,suffixFields:[...suffixFields]};
-}
-async function fetchForecastFusionModels(models,lat,lon,elevation,env,refresh=false){
- // Direkte Quellen (insbesondere DWD ICON-D2-RUC) und optionale Modell-Capabilities
- // werden nie in die gemeinsame Open-Meteo-Anfrage gemischt. Ein nicht von Open-Meteo
- // bereitgestellter Modellpfad darf den Multi-Model-Request weder verzÃ¶gern noch blockieren.
- const batchModels=models.filter(model=>!model.directOnly&&!model.optionalCapability),requested=batchModels.map(model=>({...model,apiId:model.apiIds?.[0]||model.id}));let parsed=[];
- if(requested.length){const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_days:'14',models:requested.map(model=>model.apiId).join(','),daily:FORECAST_FUSION_DAILY,hourly:FORECAST_FUSION_HOURLY,wind_speed_unit:'kn',temperature_unit:'celsius',precipitation_unit:'mm',cell_selection:'land'});if(Number.isFinite(elevation))query.set('elevation',String(clamp(elevation,-500,9000)));try{const response=await fetchWithDeadline(`${OPEN_METEO_FORECAST}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,...(refresh?{'Cache-Control':'no-cache'}:{})},cf:refresh?{cacheEverything:false}:{cacheTtl:1200,cacheEverything:true}},19000),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(response.ok&&!payload?.error){if(Array.isArray(payload))parsed=requested.map((model,index)=>parseForecastFusionModelPayload(payload[index]||{},model,model.apiId,false));else parsed=requested.map(model=>parseForecastFusionModelPayload(payload,model,model.apiId,true))}}catch{}}
- const byId=new Map(parsed.map(result=>[result.id,result])),missing=models.filter(model=>!byId.get(model.id)?.successful),fallback=missing.length?await mapConcurrent(missing,3,model=>fetchForecastFusionModel(model,lat,lon,elevation,env,refresh)):[];for(const result of fallback)byId.set(result.id,result);const successful=[...byId.values()].filter(result=>result?.successful&&!result.anchor),freshnessTargets=successful.slice(0,12),freshnessRows=await mapConcurrent(freshnessTargets,6,async result=>({id:result.id,...await forecastFusionFreshness(result)}));for(const meta of freshnessRows){const row=byId.get(meta.id);if(row)byId.set(meta.id,{...row,runFreshness:meta.factor,initialisationTime:row.initialisationTime||meta.initialisationTime,availabilityTime:row.availabilityTime||meta.availabilityTime})}const modelSuffixes=Object.fromEntries(parsed.filter(result=>result.successful&&result.suffixFields?.length).map(result=>[result.id,result.suffixFields]));return{results:models.map(model=>byId.get(model.id)||{...model,successful:false,reason:'nicht verfÃ¼gbar',days:[],hours:[]}),multiModelSuffixes:parsed.some(result=>result.successful&&result.multiModelSuffixes),modelSuffixes};
-}
-async function mapConcurrent(items,limit,worker){const output=new Array(items.length);let cursor=0;async function run(){while(cursor<items.length){const index=cursor++;output[index]=await worker(items[index],index)}}await Promise.all(Array.from({length:Math.min(limit,items.length)},run));return output}
-function weightedMedian(rows){const sorted=rows.filter(row=>Number.isFinite(row.value)&&row.weight>0).sort((a,b)=>a.value-b.value),total=sorted.reduce((sum,row)=>sum+row.weight,0);if(!total)return NaN;let seen=0;for(const row of sorted){seen+=row.weight;if(seen>=total/2)return row.value}return sorted.at(-1)?.value??NaN}
-function weightedMean(rows){const usable=rows.filter(row=>Number.isFinite(row.value)&&row.weight>0),total=usable.reduce((sum,row)=>sum+row.weight,0);return total?usable.reduce((sum,row)=>sum+row.value*row.weight,0)/total:NaN}
-function weightedConsensus(rows,transform=value=>value,inverse=value=>value){const usable=rows.map(row=>({value:transform(row.value),weight:row.weight})).filter(row=>Number.isFinite(row.value)&&row.weight>0);if(!usable.length)return NaN;return inverse(weightedMedian(usable)*.68+weightedMean(usable)*.32)}
-function fusionSpread(values){const finite=values.filter(Number.isFinite);if(finite.length<2)return 99;const center=finite.sort((a,b)=>a-b)[Math.floor(finite.length/2)],deviations=finite.map(value=>Math.abs(value-center)).sort((a,b)=>a-b);return deviations[Math.floor(deviations.length/2)]}
-function fusionWeatherRegime(day){const code=Math.round(number(day?.code)??-1),precipitation=Math.max(0,number(day?.precipitation)??0),gust=Math.max(0,number(day?.gust)??0),minimum=number(day?.min),snow=Math.max(0,number(day?.snowfall)??0),sunshine=Math.max(0,number(day?.sunshineDuration)??0);if([95,96,99].includes(code))return'convection';if(gust>=34)return'storm';if(snow>.05||[71,73,75,77,85,86].includes(code)||Number.isFinite(minimum)&&minimum<=1&&precipitation>.1)return'winter';if([80,81,82].includes(code))return'showers';if([51,53,55,61,63,65,66,67].includes(code)||precipitation>=8)return'precipitation';if([0,1].includes(code)&&sunshine>=6*3600&&precipitation<.2)return'high-pressure';return'changeable'}
-function fusionRegionalFactor(model,lat,lon,country){if(model.anchor)return 1;if(model.countries?.includes(country))return 1.18;if(model.bbox){const[minLon,minLat,maxLon,maxLat]=model.bbox;if(lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat)return 1.08}if(model.bbox||model.countries?.length)return .9;return .97}
-function fusionRegimeFactor(model,regime,horizon){if(model.anchor)return 1;const resolution=Math.max(.5,Number(model.resolutionKm)||30),regional=Boolean(model.bbox||model.countries?.length),highResolution=resolution<=5,rapid=Boolean(model.rapidUpdate)&&horizon<=1;if(regime==='convection'||regime==='showers')return rapid?1.2:highResolution&&regional?1.13:horizon<=2&&resolution>=20?.9:1;if(regime==='storm')return horizon>=3&&resolution<=15?1.08:rapid?1.05:1;if(regime==='winter')return highResolution&&regional?1.12:resolution>=25?.92:1;if(regime==='precipitation')return regional&&resolution<=12?1.08:1;if(regime==='high-pressure')return horizon>=4&&resolution<=15?1.06:rapid?.96:1;return highResolution&&horizon<=2?1.05:1}
-function fusionWeightFactors(model,horizon,context={}){const tierFactor={1:1.34,2:1.16,3:.96,4:.82}[model.tier]||.8;if(model.anchor)return{weight:1.3,tierFactor:1.3,horizonFactor:1,regionalFactor:1,regimeFactor:1,rapidFactor:1,latencyFactor:1,freshnessFactor:1};const leadHours=Math.max(0,horizon*24),rapidEligible=model.rapidUpdate&&leadHours<=Math.max(6,Number(model.maxHours)||Math.min(30,(model.maxDays||2)*24));let rapidFactor=1;if(rapidEligible)rapidFactor=leadHours<=14?1.18:leadHours<=24?1.1:1.03;else if(model.rapidUpdate&&horizon>7)rapidFactor=.8;else if(model.rapidUpdate&&horizon>2)rapidFactor=.94;const latencyFactor=model.latencyHours&&model.latencyHours>=3?.86:1,freshnessFactor=clamp(Number(model.runFreshness)||.94,.5,1),horizonFactor=horizon<=2?(model.tier===1?1.12:model.tier===4?.82:.98):horizon<=7?(model.tier===2?1.1:model.tier===1?.96:1):(model.tier===2?1.12:model.tier===4?1.04:model.tier===1?.78:.94),regionalFactor=fusionRegionalFactor(model,context.lat,context.lon,context.country),regimeFactor=fusionRegimeFactor(model,context.regime,horizon),weight=tierFactor*horizonFactor*rapidFactor*latencyFactor*freshnessFactor*regionalFactor*regimeFactor;return{weight,tierFactor,horizonFactor,regionalFactor,regimeFactor,rapidFactor,latencyFactor,freshnessFactor}}
-function fusionBaseWeight(model,horizon,context){return fusionWeightFactors(model,horizon,context).weight}
-function fusionHorizonEligible(model,horizon){const leadHours=Math.max(0,horizon*24),hardHours=Number(model.maxHours),maxHours=Number.isFinite(hardHours)&&hardHours>0?hardHours:Math.max(24,(Number(model.maxDays)||1)*24);return leadHours<=maxHours+3}
-function independentFusionRows(rows,horizon){
- const groups=new Map(),anchor=[];
- for(const row of rows){if(row.model?.anchor){anchor.push(row);continue}if(row.model?.consensusRole==='postprocessing'||!fusionHorizonEligible(row.model,horizon))continue;const group=row.model?.independenceGroup||row.model?.family||row.family||row.model?.id,items=groups.get(group)||[];items.push(row);groups.set(group,items)}
- const selected=[...anchor];for(const[group,items]of groups){const families=new Map();for(const row of items){const family=row.model?.family||row.model?.id,current=families.get(family);if(!current||row.weight>current.weight||(row.weight===current.weight&&(row.model?.resolutionKm||99)<(current.model?.resolutionKm||99)))families.set(family,row)}const representatives=[...families.values()],budget=Math.max(...representatives.map(row=>row.weight)),total=representatives.reduce((sum,row)=>sum+Math.max(0,row.weight),0)||1;for(const row of representatives)selected.push({...row,independenceGroup:group,groupBudget:budget,rawWeight:row.weight,weight:budget*Math.max(0,row.weight)/total})}return selected
-}
-function fusionConfidence(families,tempSpread,precipValues,horizon){const wet=precipValues.filter(value=>value>=.2).length,dry=precipValues.length-wet,wetAgreement=precipValues.length?Math.max(wet,dry)/precipValues.length:.5;const spreadScore=clamp(100-tempSpread*21,22,100),familyScore=clamp((families-1)*23,20,92),horizonPenalty=Math.max(0,horizon-7)*2.3;return Math.round(clamp(familyScore*.46+spreadScore*.34+wetAgreement*100*.2-horizonPenalty,0,100))}
-function safeFusionValue(anchor,consensus,strength,cap){if(!Number.isFinite(consensus))return anchor;return anchor+clamp(consensus-anchor,-cap,cap)*strength}
-function forecastHourAt(result,epoch){let best,distance=Infinity;for(const hour of result?.hours??[]){const delta=Math.abs(Number(hour.epoch)-epoch);if(delta<distance){best=hour;distance=delta}}return distance<=35*60000?best:undefined}
-function repairAuthorityCandidates(successful,leadHours,country){
- const independent=successful.filter(result=>!result.anchor&&result.consensusRole!=='postprocessing'),postprocessing=successful.filter(result=>!result.anchor&&result.consensusRole==='postprocessing'),rapid=independent.filter(result=>result.rapidUpdate&&leadHours<=Math.max(6,Number(result.maxHours)||Math.min(30,(result.maxDays||2)*24))).sort((a,b)=>(a.latencyHours||0)-(b.latencyHours||0)||(a.resolutionKm||99)-(b.resolutionKm||99));
- const ids=country==='DE'?(leadHours<=18?['icon_d2_ruc','knmi_harmonie_europe','icon_d2','chmi_aladin_ce','icon_eu','ecmwf_ifs','ecmwf_aifs','icon_global','gfs']:leadHours<=54?['icon_d2','knmi_harmonie_europe','chmi_aladin_ce','icon_eu','ecmwf_ifs','ecmwf_aifs','icon_global','gfs']:leadHours<=132?['icon_eu','ecmwf_ifs','ecmwf_aifs','icon_global','gfs']:['ecmwf_ifs','ecmwf_aifs','gfs','icon_global']):independent.sort((a,b)=>a.tier-b.tier).map(result=>result.id),preferred=[...rapid,...ids.map(id=>independent.find(result=>result.id===id)).filter(Boolean)].filter((result,index,rows)=>rows.indexOf(result)===index),remaining=independent.filter(result=>!preferred.includes(result));return[...preferred,...remaining,...postprocessing].filter(result=>leadHours<=Math.max(24,Number(result.maxHours)||0,(result.maxDays||2)*24+6));
-}
-function weatherBundleIssues(hour){
- const issues=[],precipitation=Math.max(0,number(hour?.precipitation)??0),rain=Math.max(0,number(hour?.rain)??0),showers=Math.max(0,number(hour?.showers)??0),snowfall=Math.max(0,number(hour?.snowfall)??0),probability=number(hour?.probability),code=Math.round(number(hour?.code)??-1),cloud=number(hour?.cloud),lowCloud=number(hour?.lowCloud),sunshine=number(hour?.sunshineDuration),cape=Math.max(0,number(hour?.cape)??0),isDay=hour?.isDay!==false,parts=rain+showers+snowfall,wet=FORECAST_PRECIPITATION_CODES.has(code);
- if(!Number.isFinite(probability)||!Number.isFinite(cloud)||!Number.isFinite(sunshine)||code<0)issues.push('unvollstÃ¤ndiges WetterbÃ¼ndel');
- if(Number.isFinite(sunshine)&&(sunshine<0||sunshine>3600))issues.push('Sonnenscheindauer auÃŸerhalb Stundenintervall');if(!isDay&&Number.isFinite(sunshine)&&sunshine>60)issues.push('Sonnenscheindauer auÃŸerhalb Tageslicht');
- if(precipitation>.15&&parts>.01&&Math.abs(parts-precipitation)>Math.max(.18,precipitation*.55))issues.push('Niederschlagsarten widersprechen Gesamtmenge');
- if(wet&&precipitation>=.1&&Number.isFinite(probability)&&probability<=5)issues.push('Niederschlag ohne probabilistische StÃ¼tzung');
- if(isDay&&Number.isFinite(sunshine)&&Number.isFinite(cloud)&&sunshine>=3000&&cloud>=88)issues.push('Sonne und GesamtbewÃ¶lkung widersprÃ¼chlich');
- if(isDay&&[51,53,55,61,63,65].includes(code)&&precipitation>=.1&&sunshine>=2400&&cloud<45&&(Number.isFinite(lowCloud)?lowCloud<35:true)&&showers<.05&&cape<180)issues.push('stratiformer Regen ohne tragfÃ¤hige BewÃ¶lkung');
- if([0,1].includes(code)&&cloud>=88)issues.push('Himmelszustand widerspricht BewÃ¶lkung');if(code===3&&cloud<=15&&sunshine>=2400)issues.push('Bedeckt-Code widerspricht Sonnenschein');
- return issues;
-}
-function weatherRepairDistance(anchor,candidate,rank){const phase=value=>FORECAST_PRECIPITATION_CODES.has(Math.round(number(value)||0))?1:0;return rank*2+Math.abs((number(candidate.cloud)??50)-(number(anchor.cloud)??50))/25+Math.abs((number(candidate.probability)??0)-(number(anchor.probability)??0))/30+Math.abs((number(candidate.sunshineDuration)??0)-(number(anchor.sunshineDuration)??0))/1800+Math.abs((number(candidate.precipitation)??0)-(number(anchor.precipitation)??0))*2+Math.abs(phase(candidate.code)-phase(anchor.code))*1.5}
-function selectWeatherRepair(successful,anchor,epoch,country){const leadHours=(epoch-Date.now())/3600000,candidates=[];for(const[result,rank]of repairAuthorityCandidates(successful,leadHours,country).map((result,index)=>[result,index])){const hour=forecastHourAt(result,epoch);if(!hour||weatherBundleIssues(hour).length)continue;candidates.push({result,hour,score:weatherRepairDistance(anchor,hour,rank)})}return candidates.sort((a,b)=>a.score-b.score)[0]}
-function coherentWeatherHours(successful,anchorResult,country){return(anchorResult?.hours??[]).map(anchor=>{const issues=weatherBundleIssues(anchor),repair=issues.length?selectWeatherRepair(successful,anchor,anchor.epoch,country):undefined,source=repair?.result??anchorResult,hour=repair?.hour??anchor,repaired=Boolean(repair);return{time:hour.time,epoch:hour.epoch,temperature:hour.temperature,dewPoint:hour.dewPoint,pressure:hour.pressure,wind:hour.wind,gust:hour.gust,direction:hour.direction,precipitation:hour.precipitation,rain:hour.rain,showers:hour.showers,snowfall:hour.snowfall,probability:hour.probability,code:hour.code,baseProbability:anchor.probability,baseCode:anchor.code,cloud:hour.cloud,lowCloud:hour.lowCloud,humidity:hour.humidity,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,sourceId:source.id,sourceLabel:repaired?`${source.label} Â· Best-Match-Reparatur`:source.label,sourceFamily:source.family,sourceRole:repaired?'repair':'best-match',repairReason:repaired?issues.join('; '):undefined,originalSourceId:'best_match',originalSourceLabel:'Open-Meteo Best Match'}}).filter(hour=>Number.isFinite(hour.epoch)&&Number.isFinite(hour.probability))}
+Û˜[YKÙ^WJOO–Û˜[YK›ÛÛX[ŠÙ^JWJJKØš™XİÔ™\Ù[^Ë‹‹šÙ^\Ô™\Ù[NÂˆYŠ\[ÙˆXÚÙ]šXYOOIÙ[˜İ[Û‰Ê^Ø]ØZ]›ÛZ\ÙK˜[
+Øš™Xİ™[šY\Ê™\]Z\™Y
+K›X\
+\Ş[˜ÊÛ˜[YKÙ^WJOOÚYŠZÙ^J^ÛØš™XİÔ™\Ù[Û˜[YWOY˜[ÙNÜ™]\›Ÿ]^ÛØš™XİÔ™\Ù[Û˜[YWOP›ÛÛX[Š]ØZ]XÚÙ]šXY
+Ù^JJ_XØ]ÚÛØš™XİÔ™\Ù[Û˜[YWOY˜[Ù__JJ_BˆÛÛœİØš™XİÔ™XYOSØš™Xİ˜[Y\ÊØš™XİÔ™\Ù[
+K™]™\J›ÛÛX[ŠK[YPÛİ[P\œ˜^Kš\Ğ\œ˜^JY]K[Y\ÊOÛY]K[Y\Ë›[™İŒ™XYOP›ÛÛX[ŠØÚ[XU˜[Y	‰™œ™\Ú	‰œÚ[Ûİ[Œ	‰[YPÛİ[M	‰›Y[X™\Ûİ[L‰‰›Øš™XİÔ™XYJNÂˆ™]\›ØÛÛ™šYİ\™YYK™XYKœ™\ÚØÚ[XU˜[Y˜XÚÙ[™‰ÜŒ‰Ë[”İš[™ÊY]Kœ[Ÿ	ÉÊKÙ[™\˜]Y]”İš[™ÊY]K™Ù[™\˜]Y]	ÉÊKYÙRİ\œÎ˜YÙRİ\œÏO[[Û[“[X™\ŠYÙRİ\œËÑš^Y
+ŠJKÚ[Ûİ[[YPÛİ[\ÓY[X™\Ûİ[›Y[X™\Ûİ[˜]]™Q\ÓY[X™\œÎYKØš™XİÔ™\Ù[™X\ÛÛœ™XYOİ[™Yš[™Yˆ\ØÚ[XU˜[YÉÔØÚ[XH[™ğïYÉÎˆYœ™\ÚÉÔ•PËS]YˆšXÚœš\ØÚ	Îˆ[Øš™XİÔ™XYOÉÓ]Y›Øš™ZİH[›Ûİ0é™YÉÎ‰ÓY]Y][ˆ[›Ûİ0é™YÉßBŸB™[˜İ[ÛˆÙXÔİ]XÓØš™Xİ\›
+˜\ÙKÙ^J^ØÛÛœİÛX[Tİš[™ÊÙ^_	ÉÊNÚYŠXÛX[ŸÛX[‹œİ\ÕÚ]
+	ËÉÊ_ÛX[‹š[˜ÛY\Ê	Ë‹‰Ê_XÛX[‹œİ\ÕÚ]
+	Ü[œËÉÊJ\™]\›ˆ[İ^ØÛÛœİ\›[™]ÈT“
+ÛX[‹˜\ÙJNÚYŠ\››ÜšYÚ[ˆOOX˜\ÙK›ÜšYÚ[Ÿ]\›œ]˜[YKœİ\ÕÚ]
+˜\ÙKœ]˜[YJJ\™]\›ˆ[Ü™]\›ˆ\›XØ]ÚÜ™]\›ˆ[_B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÒœÛÛŠ˜\ÙKÙ^J^İ^ØÛÛœİ\›ZÙ^OOOIÛ]\İšœÛÛ‰ÏÛ™]ÈT“
+	Û]\İšœÛÛ‰Ë˜\ÙJN™ÙXÔİ]XÓØš™Xİ\›
+˜\ÙKÙ^JNÚYŠ]\›
+\™]\›ˆ[ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J\›Ôİš[™Ê
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	ĞØXÚKPÛÛ›Û	Î‰Û›ËXØXÚIßKÙØØXÚQ]™\][™ÎšÙ^HOOIÛ]\İšœÛÛ‰ËØXÚUšÙ^OOOIÛ]\İšœÛÛ‰ÏÌŒÌMLÍŒ_K
+NÚYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆ[Ü™]\›ˆ]ØZ]™\ÜÛœÙKšœÛÛŠ
+_XØ]ÚÜ™]\›ˆ[_B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÓØš™Xİ
+˜\ÙKÙ^J^ØÛÛœİ\›YÙXÔİ]XÓØš™Xİ\›
+˜\ÙKÙ^JNÚYŠ]\›
+\™]\›ˆ[ØÛÛœİØXÚRÙ^O]\›Ôİš[™Ê
+KØXÚYYÙXÔİ]XÓØš™XİØXÚK™Ù]
+ØXÚRÙ^JNÚYŠØXÚY	‰‘]K››İÊ
+KXØXÚY˜]MJŒ
+ŒL
+\™]\›ˆØXÚY˜]\Îİ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™JØXÚRÙ^KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÛØİ]\İ™X[IË	ĞXØÙ\Q[˜ÛÙ[™ÉÎ‰ÚY[]IßKÙØØXÚQ]™\][™ÎYKØXÚUŒÌMLÍŒ_KLŒ
+NÚYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆ[ØÛÛœİ]\Ï[™]ÈZ[\œ˜^J]ØZ]™\ÜÛœÙK˜\œ˜^PY™™\Š
+JNÙÙXÔİ]XÓØš™XİØXÚKœÙ]
+ØXÚRÙ^KØ]‘]K››İÊ
+K]\ßJNÚYŠÙXÔİ]XÓØš™XİØXÚKœÚ^™OŒ
+YÙXÔİ]XÓØš™XİØXÚK™[]JÙXÔİ]XÓØš™XİØXÚKšÙ^\Ê
+K›™^
 
-async function forecastFusionResponse(url,env){
- const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),elevation=number(url.searchParams.get('elevation')),country=directCountryCode(url.searchParams.get('country')),refresh=url.searchParams.get('refresh')==='1';
- if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return json({schema:'mid.forecast-fusion.v1',version:9,active:false,error:'gÃ¼ltige lat/lon erforderlich',sources:[],days:[],modelDays:[],hours:[],weatherHours:[]},400,{'cache-control':'no-store'});
- const selected=forecastFusionSelection(lat,lon,country),[modelFetch,mosmix,rucEps]=await Promise.all([fetchForecastFusionModels(selected,lat,lon,elevation,env,refresh),fetchMosmixForecast(lat,lon,elevation,country,refresh),fusionModelApplies({bbox:[-3.85,43.18,20.22,58.05]},lat,lon,country)?fetchDwdRucEpsProbabilityAdapter(lat,lon,elevation,env):Promise.resolve({successful:false,configured:false,hours:[],reason:'auÃŸerhalb ICON-D2-RUC'})]),results=modelFetch.results,successful=results.filter(result=>result.successful),anchorResult=successful.find(result=>result.anchor),anchorDays=anchorResult?.days??[],baseWeatherHours=coherentWeatherHours(successful,anchorResult,country),rucWeatherHours=applyRucRapidUpdateWeatherHours(baseWeatherHours,successful,mosmix,rucEps),rucSpecialistHours=applyRucSpecialistHourly(rucWeatherHours,successful),weatherHours=applyRucEpsProbabilityHours(rucSpecialistHours,rucEps),rapidMinutes15=rucRapidMinute15Rows(successful);
- const sources=results.map(result=>({id:result.id,label:result.label,family:result.family,independenceGroup:result.independenceGroup||result.family,consensusRole:result.consensusRole==='postprocessing'?'postprocessing':result.anchor?'diagnostic':'independent',tier:result.tier,provider:result.provider,successful:Boolean(result.successful),reason:result.successful?undefined:result.reason,rapidUpdate:Boolean(result.rapidUpdate),updateHours:Number(result.updateHours)||undefined,resolutionKm:Number(result.resolutionKm)||undefined,maxHours:Number(result.maxHours)||undefined,runFreshness:Number(result.runFreshness)||undefined,initialisationTime:result.initialisationTime,availabilityTime:result.availabilityTime}));
- if(rucEps.configured||rucEps.successful)sources.push({id:'icon_d2_ruc_eps',label:'DWD ICON-D2-RUC-EPS',family:'dwd-icon-ruc',independenceGroup:'dwd-icon',consensusRole:'diagnostic',tier:1,provider:'DWD',successful:Boolean(rucEps.successful),reason:rucEps.successful?undefined:rucEps.reason,rapidUpdate:true,updateHours:1,resolutionKm:2,maxHours:14,initialisationTime:rucEps.initialisationTime,availabilityTime:rucEps.availabilityTime});
- if(mosmix.considered)sources.push({id:'dwd_mosmix',label:'DWD MOSMIX-S/L',family:'mosmix-postprocessing',independenceGroup:'dwd-postprocessing',consensusRole:'postprocessing',tier:1,provider:'DWD Open Data via Bright Sky',successful:Boolean(mosmix.successful),reason:mosmix.successful?undefined:mosmix.reason,rapidUpdate:true,updateHours:1,maxHours:240,initialisationTime:mosmix.shortInitialisationTime,availabilityTime:mosmix.shortAvailabilityTime,runFreshness:mosmix.runFreshness});
- const mosmixPrecipitationCoverageHours=Array.isArray(mosmix.hours)?mosmix.hours.filter(hour=>Number.isFinite(number(hour?.precipitation))).length:0,mosmixMeta={available:Boolean(mosmix.successful),applied:false,quality:Number(mosmix.quality)||0,stationId:mosmix.stationId,stationName:mosmix.stationName,distanceKm:mosmix.distanceKm,stationElevation:mosmix.stationElevation,elevationDifferenceM:mosmix.elevationDifferenceM,coverageHours:Array.isArray(mosmix.hours)?mosmix.hours.length:0,coverageDays:Array.isArray(mosmix.days)?mosmix.days.length:0,coverageUntil:mosmix.coverageUntil,initialisationTime:mosmix.shortInitialisationTime,availabilityTime:mosmix.shortAvailabilityTime,updateHours:1,runFreshness:mosmix.runFreshness,runMetaSource:mosmix.shortRunMetaSource,shortInitialisationTime:mosmix.shortInitialisationTime,shortAvailabilityTime:mosmix.shortAvailabilityTime,shortRunMetaSource:mosmix.shortRunMetaSource,longInitialisationTime:mosmix.longInitialisationTime,longAvailabilityTime:mosmix.longAvailabilityTime,longUpdateHours:6,longRunMetaSource:mosmix.longRunMetaSource,precipitationConsensusAvailable:mosmixPrecipitationCoverageHours>0,precipitationCoverageHours:mosmixPrecipitationCoverageHours,source:'DWD MOSMIX via Bright Sky'};
- if(!anchorDays.length){const inactiveSources=sources.map(source=>({...source,usedInCanonical:false,usedDays:0,usedHours:0,usageDetail:source.successful?'Lauf geladen und geprÃ¼ft, wegen fehlender Leitprognose aber nicht Ã¼bernommen.':'Lauf fÃ¼r diesen Prognosestand nicht geladen.'}));return json({schema:'mid.forecast-fusion.v1',version:9,generatedAt:new Date().toISOString(),active:false,summary:'Mehrquellen-Prognose derzeit nicht verfÃ¼gbar.',strategy:'Best Match bleibt unverÃ¤ndert.',timezone:anchorResult?.timezone||'UTC',sources:inactiveSources,days:[],modelDays:[],hours:mosmix.successful?mosmix.hours:[],weatherHours:[],rapidMinutes15:[],mosmix:mosmixMeta,error:'Best-Match-Anker fehlt.'},200,{'cache-control':refresh?'no-store':'public, max-age=300, stale-while-revalidate=1800'});}
- const rows=anchorDays.map((anchor,index)=>{
-  const horizon=index+1,regime=fusionWeatherRegime(anchor),context={lat,lon,country,regime},available=successful.filter(result=>result.days.some(day=>day.date===anchor.date)),rawRows=available.map(result=>{const day=result.days.find(item=>item.date===anchor.date),factors=fusionWeightFactors(result,horizon,context);return day?{model:result,family:result.family,independenceGroup:result.independenceGroup||result.family,weight:factors.weight,factors,day}:null}).filter(Boolean),weightedRows=independentFusionRows(rawRows,horizon),nonAnchor=weightedRows.filter(row=>!row.model.anchor),families=new Set(nonAnchor.map(row=>row.independenceGroup)).size,tempSpread=fusionSpread(nonAnchor.map(row=>(row.day.max+row.day.min)/2)),precipValues=nonAnchor.map(row=>row.day.precipitation).filter(Number.isFinite),confidence=fusionConfidence(families,tempSpread,precipValues,horizon),confidenceLabel=confidence>=72?'high':confidence>=52?'medium':'low',horizonStrength=horizon<=2?.5:horizon<=7?.58:.38,strength=families>=2&&confidence>=45?clamp(horizonStrength*(confidence/82),.16,.68):0,consensus=selector=>weightedConsensus(weightedRows.map(row=>({value:selector(row.day),weight:row.weight}))),weatherDay=anchor,weatherSource=anchorResult,totalWeight=nonAnchor.reduce((sum,row)=>sum+Math.max(0,row.weight),0)||1,weighting={date:anchor.date,horizonDays:horizon,regime,independentFamilies:families,contributors:nonAnchor.map(row=>({id:row.model.id,label:row.model.label,independenceGroup:row.independenceGroup,normalizedWeight:Number((100*Math.max(0,row.weight)/totalWeight).toFixed(1)),rawWeight:Number((row.rawWeight??row.weight).toFixed(3)),groupBudget:Number((row.groupBudget??row.weight).toFixed(3)),rapidUpdate:Boolean(row.model.rapidUpdate),tier:row.model.tier,resolutionKm:Number(row.model.resolutionKm)||undefined,factors:Object.fromEntries(Object.entries(row.factors||{}).filter(([key])=>key!=='weight').map(([key,value])=>[key,Number(Number(value).toFixed(3))]))}))};
-  const maxConsensus=consensus(day=>day.max),minConsensus=consensus(day=>day.min),windConsensus=consensus(day=>day.wind),gustConsensus=consensus(day=>day.gust),guardedStrength=confidence>=65&&families>=2?Math.min(.46,strength):0,initialMax=Math.abs(maxConsensus-anchor.max)>=1.4?safeFusionValue(anchor.max,maxConsensus,guardedStrength,horizon<=2?1.5:2):anchor.max,initialMin=Math.abs(minConsensus-anchor.min)>=1.2?safeFusionValue(anchor.min,minConsensus,guardedStrength,horizon<=2?1.4:1.8):anchor.min,initialWind=Math.abs(windConsensus-anchor.wind)>=3?Math.max(0,safeFusionValue(anchor.wind,windConsensus,guardedStrength,5)):anchor.wind,initialGust=Math.max(initialWind,Math.abs(gustConsensus-anchor.gust)>=4?safeFusionValue(anchor.gust,gustConsensus,guardedStrength,8):anchor.gust);
-  const contributors=[...new Set([...nonAnchor.map(row=>row.model.label),weatherSource?.label].filter(Boolean))],sunshineDuration=fusionNullableSunshine(weatherDay.sunshineDuration??anchor.sunshineDuration),baseRow={date:anchor.date,max:Number(initialMax.toFixed(2)),min:Number(initialMin.toFixed(2)),precipitation:Number(Math.max(0,weatherDay.precipitation).toFixed(2)),rain:Number(Math.max(0,number(weatherDay.rain)??0).toFixed(2)),showers:Number(Math.max(0,number(weatherDay.showers)??0).toFixed(2)),snowfall:Number(Math.max(0,number(weatherDay.snowfall)??0).toFixed(2)),precipitationHours:Number(Math.max(0,number(weatherDay.precipitationHours)??0).toFixed(1)),probability:Math.round(clamp(weatherDay.probability,0,100)),code:Math.round(number(weatherDay.code)??anchor.code),wind:Number(initialWind.toFixed(2)),gust:Number(initialGust.toFixed(2)),sunshineDuration:sunshineDuration==null?null:Math.round(sunshineDuration),weatherSourceId:weatherSource?.id||'best_match',weatherSourceLabel:weatherSource?.label||'Open-Meteo Best Match',confidence,confidenceLabel,strength:Number(strength.toFixed(3)),families,applied:guardedStrength>0,mosmixApplied:false,contributors};
-  const mosmixDay=mosmix.successful?mosmix.days.find(day=>day.date===anchor.date):undefined,mosmixBase=horizon<=2?.52:horizon<=7?.42:0,mosmixStrength=mosmixDay&&confidence>=52?mosmixBase*clamp(Number(mosmix.quality)||0,0,1):0,mosmixApplied=mosmixStrength>=.12;
-  const max=mosmixApplied?safeFusionValue(initialMax,mosmixDay.max,mosmixStrength,horizon<=2?1.6:2.2):initialMax,min=mosmixApplied?safeFusionValue(initialMin,mosmixDay.min,mosmixStrength,horizon<=2?1.5:2):initialMin,wind=mosmixApplied?Math.max(0,safeFusionValue(initialWind,mosmixDay.wind,mosmixStrength*.62,6)):initialWind,gust=mosmixApplied?Math.max(wind,safeFusionValue(initialGust,mosmixDay.gust,mosmixStrength*.62,9)):initialGust;
-  const finalRow={...baseRow,max:Number(max.toFixed(2)),min:Number(min.toFixed(2)),wind:Number(wind.toFixed(2)),gust:Number(gust.toFixed(2)),strength:Number(Math.max(guardedStrength,mosmixStrength).toFixed(3)),applied:baseRow.applied||mosmixApplied,mosmixApplied,contributors:[...contributors,...(mosmixApplied?['DWD MOSMIX (Temperatur/Wind)']:[])]};
-  return{model:baseRow,final:finalRow,weighting}
- }),modelDays=rows.map(row=>row.model),days=rows.map(row=>row.final),weightingByDate=rows.map(row=>row.weighting),applied=days.filter(day=>day.applied),mosmixAppliedDays=days.filter(day=>day.mosmixApplied).length,repairedHours=weatherHours.filter(hour=>hour.sourceRole==='repair').length,rucAppliedHours=weatherHours.filter(hour=>hour.rucApplied).length,rucEpsAppliedHours=weatherHours.filter(hour=>hour.rucEpsApplied).length,mosmixPrecipitationAppliedHours=weatherHours.filter(hour=>Number(hour.mosmixPrecipitationWeight)>0).length,repairSources=[...new Set(weatherHours.filter(hour=>hour.sourceRole==='repair').map(hour=>hour.sourceLabel))],meanConfidence=applied.length?Math.round(applied.reduce((sum,day)=>sum+day.confidence,0)/applied.length):0,active=weatherHours.length>=18||applied.length>=1||mosmixAppliedDays>0;
- mosmixMeta.applied=mosmixAppliedDays>0;mosmixMeta.precipitationConsensusApplied=mosmixPrecipitationAppliedHours>0;
- const usedDaysById=new Map(),repairHoursById=new Map();rows.forEach((row,index)=>{if(!modelDays[index]?.applied)return;for(const contributor of row.weighting?.contributors||[])usedDaysById.set(contributor.id,(usedDaysById.get(contributor.id)||0)+1)});for(const hour of weatherHours)if(hour.sourceRole==='repair'&&hour.sourceId)repairHoursById.set(hour.sourceId,(repairHoursById.get(hour.sourceId)||0)+1);
- const canonicalSources=sources.map(source=>{let usedDays=usedDaysById.get(source.id)||0,usedHours=repairHoursById.get(source.id)||0;if(source.id==='best_match'){usedDays=anchorDays.length;usedHours=weatherHours.filter(hour=>hour.sourceRole==='best-match').length}if(source.id==='icon_d2_ruc')usedHours=Math.max(usedHours,rucAppliedHours);if(source.id==='icon_d2_ruc_eps')usedHours=rucEpsAppliedHours;if(source.id==='dwd_mosmix'){usedDays=mosmixAppliedDays;usedHours=Math.max(usedHours,weatherHours.filter(hour=>Number(hour.mosmixPrecipitationWeight)>0).length)};const usedInCanonical=usedDays>0||usedHours>0;let usageDetail;if(source.id==='best_match'&&usedInCanonical)usageDetail=`Leitprognose Â· ${usedHours} h stÃ¼ndliche Basis Â· ${usedDays} Tage`;else if(source.id==='icon_d2_ruc'&&usedInCanonical)usageDetail=`Kurzfristkalibrierung in ${usedHours} h`;else if(source.id==='icon_d2_ruc_eps'&&usedInCanonical)usageDetail=`Niederschlagswahrscheinlichkeit in ${usedHours} h kalibriert`;else if(source.id==='dwd_mosmix'&&usedInCanonical)usageDetail=`Lokale Temperatur-/Windanpassung an ${usedDays} Tagen Â· RR1c-Niederschlagskonsens in ${usedHours} h Â· MOSMIX-S stÃ¼ndliche Kurzfrist-AktualitÃ¤t separat von MOSMIX-L (03/09/15/21 UTC) verifiziert`;else if(usedInCanonical)usageDetail=[usedHours?`${usedHours} h als stÃ¼ndliche Reparaturquelle`:'',usedDays?`${usedDays} Tage in der Tageskonsens-Anpassung`:'' ].filter(Boolean).join(' Â· ');else usageDetail=source.successful?'Lauf geladen und geprÃ¼ft, in diesem kanonischen Prognosestand aber nicht benÃ¶tigt.':'Lauf fÃ¼r diesen Prognosestand nicht geladen.';return{...source,usedInCanonical,usedDays,usedHours,usageDetail}});
- return json({schema:'mid.forecast-fusion.v1',version:9,generatedAt:new Date().toISOString(),active,summary:`Best Match als Hauptprognose Â· ${weatherHours.length} geprÃ¼fte Modellstunden Â· ${rucAppliedHours} h RUC Â· ${rucEpsAppliedHours} h RUC-EPS Â· ${repairedHours} notwendige BÃ¼ndelreparaturen${mosmixAppliedDays?` Â· MOSMIX lokal an ${mosmixAppliedDays} Tagen`:''}`,strategy:'Best Match bleibt die kohÃ¤rente Basis; innerhalb des DWD-RUC-Gebiets kalibriert ICON-D2-RUC die kanonischen 0â€“14-h-Stunden mit hÃ¶chstem Gewicht in 0â€“3 h. Bei deutlich nasserem RUC wird die Mengenwirkung kontinuierlich gegen Best Match, DWD MOSMIX-RR1c und RUC-EPS gestÃ¼tzt; ein nasser RUC erhÃ¶ht sein eigenes Niederschlagsgewicht nicht mehr. MOSMIX bleibt korreliertes DWD-Postprocessing und keine zusÃ¤tzliche unabhÃ¤ngige Modellstimme. RUC-EPS kalibriert die Niederschlagswahrscheinlichkeit derselben Kurzfrist. Nur intern unvollstÃ¤ndige Best-Match-Stunden werden als vollstÃ¤ndiges BÃ¼ndel repariert. Temperatur, Taupunkt, Druck und Wind bleiben eng begrenzt. Radar, beobachtete Blitze und Stationen bleiben nachgelagerte hyperlokale Korrekturen. Der Blitznachweis klassifiziert aktuelle Radar-/KONRAD3D-Zellen, sperrt aber keine numerische Gewitterprognose; Rapid-Konvektion wird aus mehreren physikalisch unabhÃ¤ngigen Zutaten statt aus einem Einzelparameter bewertet.',sources:canonicalSources,days,modelDays,hours:mosmix.successful?mosmix.hours:[],weatherHours,rapidMinutes15,mosmix:mosmixMeta,diagnostics:{bestMatchPreferred:true,repairedHours,rucAppliedHours,rucEpsAppliedHours,rucEpsMemberCount:rucEps.memberCount||0,mosmixPrecipitationAppliedHours,repairSources,multiModelSuffixes:Boolean(modelFetch.multiModelSuffixes),modelSuffixes:modelFetch.modelSuffixes||{},forceRefreshed:refresh,weightingByDate,independenceBudget:'one-budget-per-independence-group',localSkillStage:'weather-twin-on-device'},timezone:anchorResult?.timezone||'UTC'},200,{'cache-control':refresh?'no-store':'public, max-age=1200, stale-while-revalidate=21600'});
-}
+K˜[YJNÜ™]\›ˆ]\ßXØ]ÚÜ™]\›ˆ[_B™[˜İ[ÛˆÙXÔİ]XÔYÙR[™›ÊÜXÊ^ØÛÛœİYÙ\Ï\ÜXÏËœYÙ\ËÚ[šÔ™XÛÜ™ÏS[X™\ŠYÙ\ÏË˜Ú[šÔ™XÛÜ™ÊK™XÛÜ™]\ÏS[X™\ŠYÙ\ÏËœ™XÛÜ™]\ßÜXÏËœ™XÛÜ™]\ÊKÚ[šĞÛİ[S[X™\ŠYÙ\ÏË˜Ú[šĞÛİ[
+K™Yš^Tİš[™ÊYÙ\ÏËœ™Yš^	ÉÊNÜ™]\›ˆÚ[šÔ™XÛÜ™ÏŒ	‰œ™XÛÜ™]\ÏŒ	‰˜Ú[šĞÛİ[Œ	‰œ™Yš^œİ\ÕÚ]
+	Ü[œËÉÊOŞØÚ[šÔ™XÛÜ™Ë™XÛÜ™]\ËÚ[šĞÛİ[™Yš^N›[B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÔ™XÛÜ™
+˜\ÙKÜXË™XÛÜ™[™^
+^ØÛÛœİYÙOYÙXÔİ]XÔYÙR[™›ÊÜXÊNÚYŠ\YÙ_S[X™\‹š\Ò[YÙ\Š™XÛÜ™[™^
+_™XÛÜ™[™^
+\™]\›ˆ[ØÛÛœİÚ[šÒ[™^SX]™›ÛÜŠ™XÛÜ™[™^ÜYÙK˜Ú[šÔ™XÛÜ™ÊNÚYŠÚ[šÒ[™^\YÙK˜Ú[šĞÛİ[
+\™]\›ˆ[ØÛÛœİÙ^OX	ÜYÙKœ™Yš^KÉÔİš[™ÊÚ[šÒ[™^
+KœYİ\
+	Ì	Ê_K˜š[˜]\ÏX]ØZ]ÙXÔİ]XÓØš™Xİ
+˜\ÙKÙ^JNÚYŠX]\Ê\™]\›ˆ[ØÛÛœİØØ[\™XÛÜ™[™^	\YÙK˜Ú[šÔ™XÛÜ™ËÙ™œÙ][ØØ[
+œYÙKœ™XÛÜ™]\ÎÚYŠÙ™œÙ]
+ÜYÙKœ™XÛÜ™]\Ï˜]\Ë›[™İ
+\™]\›ˆ[Ü™]\›ˆ]\ËœÛXÙJÙ™œÙ]Ù™œÙ]
+ÜYÙKœ™XÛÜ™]\Ê_B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÓ]\İ
+[Š^ØÛÛœİ˜\ÙOYÙXÔİ]XĞ˜\ÙU\›
+[ŠNÚYŠX˜\ÙJ\™]\›ˆ[ÚYŠÙXÔİ]XÓ]\İØXÚI‰™ÙXÔİ]XÓ]\İØXÚK˜˜\ÙOOOX˜\ÙKÔİš[™Ê
+I‰‘]K››İÊ
+KYÙXÔİ]XÓ]\İØXÚK˜]JŒL	‰™ÙXÓY]Qœ™\Ú
+ÙXÔİ]XÓ]\İØXÚK›Y]JJ\™]\›Ø˜\ÙKY]N™ÙXÔİ]XÓ]\İØXÚK›Y]_NØÛÛœİY]OX]ØZ]ÙXÔİ]XÒœÛÛŠ˜\ÙK	Û]\İšœÛÛ‰ÊNÚYŠ[Y]_Y]KœØÚ[XHOOIÛZY™ÙœXË™ÜšYŒ‰ßY]KœİÜ˜YÙT›Ùš[HOOIÜYÙ\ËYœ™YK]ŒIßYÙXÓY]Qœ™\Ú
+Y]JJ\™]\›ˆ[ÙÙXÔİ]XÓ]\İØXÚO^Ø]‘]K››İÊ
+K˜\ÙN˜˜\ÙKÔİš[™Ê
+KY]_NÜ™]\›Ø˜\ÙKY]__B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÒX[
+[Š^ØÛÛœİ˜\ÙOYÙXÔİ]XĞ˜\ÙU\›
+[ŠNÚYŠX˜\ÙJ\™]\›ØÛÛ™šYİ\™Y™˜[ÙK™XYN™˜[ÙKœ™\Ú™˜[ÙKØÚ[XU˜[Y™˜[ÙK˜XÚÙ[™‰ÜYÙ\ÉË™X\ÛÛ‰Üİ]\ØÚ\ˆ•PËQ][ÙYÈXZİ]šY\	ßNØÛÛœİY]OX]ØZ]ÙXÔİ]XÒœÛÛŠ˜\ÙK	Û]\İšœÛÛ‰ÊNÚYŠ[Y]J\™]\›ØÛÛ™šYİ\™YYK™XYN™˜[ÙKœ™\Ú™˜[ÙKØÚ[XU˜[Y™˜[ÙK˜XÚÙ[™‰ÜYÙ\ÉË™X\ÛÛ‰ÑÚ]X‹TYÙ\È]\İšœÛÛˆ™ZÙ\ˆ\İ[™ğïYÉßNØÛÛœİØÚ[XU˜[Y[Y]KœØÚ[XOOOIÛZY™ÙœXË™ÜšYŒ‰É‰›Y]KœİÜ˜YÙT›Ùš[OOOIÜYÙ\ËYœ™YK]ŒIËœ™\Ú\ØÚ[XU˜[Y	‰™ÙXÓY]Qœ™\Ú
+Y]JKİ[\YÙXÓY]U[Y\İ[\
+Y]JKYÙRİ\œÏS[X™\‹š\Ñš[š]Jİ[\
+OÓX]›X^
+
+]K››İÊ
+K\İ[\
+KÌÍŒ
+N›[Ú[Ûİ[S[X™\ŠY]KœÚ[Ûİ[
+_[YPÛİ[P\œ˜^Kš\Ğ\œ˜^JY]K[Y\ÊOÛY]K[Y\Ë›[™İŒY[X™\Ûİ[S[X™\ŠY]OË™\ÏË›Y[X™\Ûİ[
+_Øš™XİÔ™\Ù[^ÛÛÚİ\™˜[ÙK]\›Z[š\İXÎ™˜[ÙK\Ôİ[[X\N™˜[ÙK\ÓY[X™\œÎ™˜[ÙK˜\Y™XÚ\N™˜[ÙK˜\YÛÛ™Xİ[ÛŒMN™˜[ÙK˜\Y^™[YN™˜[ÙK˜\Y™Y›Xİ]š]LMN™˜[ÙK˜\Y\ÙLMN™˜[ÙK˜\YÙ]™\™LMN™˜[ÙK˜\YÛÛ\ŒMN™˜[ÙKÜXÚX[\İİ\›N™˜[Ù_NÚYŠØÚ[XU˜[Y
+^ØÛÛœİ›Ø™\ÏVÖÉÛÛÚİ\	ËY]K›ÛÚİ\KÉÙ]\›Z[š\İXÉËY]K™]\›Z[š\İX×KÉÙ\Ôİ[[X\IËY]K™\Ôİ[[X\WKÉÜ˜\Y™XÚ\IËY]OËœ˜\YËœ™XÚ\WKÉÜ˜\YÛÛ™Xİ[ÛŒMIËY]OËœ˜\YË˜ÛÛ™Xİ[ÛŒMWKÉÜ˜\Y™Y›Xİ]š]LMIËY]OËœ˜\YËœ™Y›Xİ]š]LMWKÉÜ˜\Y\ÙLMIËY]OËœ˜\YËœ\ÙLMWKÉÜ˜\YÙ]™\™LMIËY]OËœ˜\YËœÙ]™\™LMWKÉÜ˜\YÛÛ\ŒMIËY]OËœ˜\YËœÛÛ\ŒMWKÉÜÜXÚX[\İİ\›IËY]OËœ˜\YËœÜXÚX[\İİ\›WWK™š[\Š
+ËÜX×JOOœÜXÊNØ]ØZ]›ÛZ\ÙK˜[
+›Ø™\Ë›X\
+\Ş[˜ÊÛ˜[YKÜX×JOOÛØš™XİÔ™\Ù[Û˜[YWOP›ÛÛX[Š]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKÜXË
+J_JJNÛØš™XİÔ™\Ù[œ˜\Y^™[YOP›ÛÛX[ŠY]OËœ˜\Y^™[YOËšÙ^I‰˜]ØZ]ÙXÔİ]XÒœÛÛŠ˜\ÙKY]Kœ˜\Y^™[YKšÙ^JJ_XÛÛœİØš™XİÔ™XYO[Øš™XİÔ™\Ù[›ÛÚİ\	‰›Øš™XİÔ™\Ù[™]\›Z[š\İXÉ‰›Øš™XİÔ™\Ù[™\Ôİ[[X\I‰›Øš™XİÔ™\Ù[œ˜\Y™XÚ\I‰›Øš™XİÔ™\Ù[œ˜\YÛÛ™Xİ[ÛŒMI‰›Øš™XİÔ™\Ù[œ˜\Y^™[YK™XYOP›ÛÛX[ŠØÚ[XU˜[Y	‰™œ™\Ú	‰œÚ[Ûİ[Œ	‰[YPÛİ[M	‰›Y[X™\Ûİ[L‰‰›Øš™XİÔ™XYJNÜ™]\›ØÛÛ™šYİ\™YYK™XYKœ™\ÚØÚ[XU˜[Y˜XÚÙ[™‰ÜYÙ\ÉËİÜ˜YÙT›Ùš[N”İš[™ÊY]KœİÜ˜YÙT›Ùš[_	ÉÊK[”İš[™ÊY]Kœ[Ÿ	ÉÊKÙ[™\˜]Y]”İš[™ÊY]K™Ù[™\˜]Y]	ÉÊKYÙRİ\œÎ˜YÙRİ\œÏO[[Û[“[X™\ŠYÙRİ\œËÑš^Y
+ŠJKÚ[Ûİ[[YPÛİ[\ÓY[X™\Ûİ[›Y[X™\Ûİ[˜]]™Q\ÓY[X™\œÎ™˜[ÙKØš™XİÔ™\Ù[™X\ÛÛœ™XYOİ[™Yš[™Yˆ\ØÚ[XU˜[YÉÔØÚ[XKÔYÙ\ËT›Ùš[[™ğïYÉÎˆYœ™\ÚÉÔ•PËS]YˆšXÚœš\ØÚ	Îˆ[Øš™XİÔ™XYOÉÔYÙ\ËS]Y›Øš™ZİH[›Ûİ0é™YÉÎ‰ÓY]Y][ˆ[›Ûİ0é™YÉß_B˜\Ş[˜È[˜İ[ÛˆÙXÔ˜\Y^™[YTÛ˜\Úİ
+[Š^ØÛÛœİİ\œ™[X]ØZ]ÙXÔİ]XÓ]\İ
+[ŠNÚYŠXİ\œ™[
+\™]\›ˆ[ØÛÛœİØ˜\ÙKY]_OXİ\œ™[ÜXÏ[Y]OËœ˜\Y^™[YKÙ^OTİš[™ÊÜXÏËšÙ^_	ÉÊNÚYŠZÙ^J\™]\›ˆ[ØÛÛœİ^[ØYX]ØZ]ÙXÔİ]XÒœÛÛŠ˜\ÙKÙ^JNÚYŠ\^[ØYVÉÛZY™ÙœXËœ˜\YY^™[YKŒIË	ÛZY™ÙœXËœ˜\YY^™[YKŒ‰Ë	ÛZY™ÙœXËœ˜\YY^™[YKŒÉË	ÛZY™ÙœXËœ˜\YY^™[YK	×Kš[˜ÛY\Ê^[ØYœØÚ[XJ_İš[™Ê^[ØYœ[ŠHOOTİš[™ÊY]Kœ[Š_P\œ˜^Kš\Ğ\œ˜^J^[ØY˜Ù[ÊJ\™]\›ˆ[Ü™]\›ˆ^[ØYB˜\Ş[˜È[˜İ[ÛˆÙXÔİÜ˜YÙRX[
+[Š^Û]Œ[[ÚYŠÙXÔŒÛÛ™šYİ\™Y
+[ŠJ^ÜŒX]ØZ]ÙXÔŒ’X[
+[ŠNÚYŠŒ‹œ™XYJ\™]\›ˆŒŸXÛÛœİYÙ\ÏX]ØZ]ÙXÔİ]XÒX[
+[ŠNÚYŠYÙ\Ëœ™XYJ\™]\›ˆYÙ\ÎÜ™]\›ˆŒË˜ÛÛ™šYİ\™YŞË‹‹œŒ‹˜[˜XÚĞ˜XÚÙ[™‰ÜYÙ\ÉË˜[˜XÚÔ™XYN›ÛÛX[ŠYÙ\Ëœ™XYJ_NœYÙ\ßB™[˜İ[ÛˆÙXÓÛÚİ\Ù™œÙ]
+Y]K]ÛŠ^ØÛÛœİÏ[Y]OË™ÜšYßK]Z[S[X™\ŠË›]Z[ŠKÛ“Z[S[X™\ŠË›Û“Z[ŠKOS[X™\ŠË™JKS[X™\ŠË™
+KOS[X™\ŠË›JKS[X™\ŠË›
+NÚYŠVÛ]Z[‹Û“Z[‹KKK™]™\J[X™\‹š\Ñš[š]J_LOL
+\™]\›ˆ[ØÛÛœİSX]œ›İ[™
 
-function widgetAstronomicalIsDay(time,daily,fallback=true){const stamp=String(time||''),date=stamp.slice(0,10),dates=Array.isArray(daily?.time)?daily.time.map(String):[],index=dates.indexOf(date),sunrise=index>=0?String(at(daily.sunrise,index)||''):'' ,sunset=index>=0?String(at(daily.sunset,index)||''):'';return sunrise&&sunset&&sunset>sunrise?stamp>=sunrise&&stamp<sunset:Boolean(fallback)}
-function widgetClockSeconds(value){const match=String(value||'').match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);return match?Number(match[1])*3600+Number(match[2])*60+Number(match[3]||0):NaN}
-function widgetDaylightSeconds(daily,index){const sunrise=widgetClockSeconds(at(daily.sunrise,index)),sunset=widgetClockSeconds(at(daily.sunset,index));if(Number.isFinite(sunrise)&&Number.isFinite(sunset)){const duration=sunset>=sunrise?sunset-sunrise:sunset+86400-sunrise;if(duration>0)return Math.min(86400,duration)}return 12*3600}
-function widgetIntervalDaylightSeconds(time,daily,intervalSeconds){const stamp=String(time||''),date=stamp.slice(0,10),dates=Array.isArray(daily?.time)?daily.time.map(String):[],index=dates.indexOf(date),end=widgetClockSeconds(stamp),sunrise=index>=0?widgetClockSeconds(at(daily.sunrise,index)):NaN,sunset=index>=0?widgetClockSeconds(at(daily.sunset,index)):NaN;if(!Number.isFinite(end)||!Number.isFinite(sunrise)||!Number.isFinite(sunset)||sunset<=sunrise)return undefined;const start=end-Math.max(60,intervalSeconds);return Math.max(0,Math.min(end,sunset)-Math.max(start,sunrise))}
-function widgetSunshineSeconds(value,cap){const parsed=number(value);return Number.isFinite(parsed)?clamp(parsed,0,cap):null}
-function coherentWidgetSunshineSeconds(value,cap,context={}){const raw=widgetSunshineSeconds(value,cap);if(raw===null)return null;const explicitDaylight=number(context.daylightSeconds),solarCap=Number.isFinite(explicitDaylight)?clamp(explicitDaylight,0,cap):context.isDay===false?0:cap;if(solarCap<=0)return 0;const code=Math.round(number(context.code)??-1),cloud=number(context.cloud),lowCloud=number(context.lowCloud),probability=number(context.probability),precipitation=Math.max(0,number(context.precipitation)??0),rain=Math.max(0,number(context.rain)??0),showers=Math.max(0,number(context.showers)??0),snowfall=Math.max(0,number(context.snowfall)??0),wetAmount=Math.max(precipitation,rain+showers,snowfall),showery=[80,81,82,83,84,85,86,95,96,97,99].includes(code)||showers>=Math.max(.05,rain*.65),finish=fraction=>Math.min(raw,solarCap*fraction);if([45,48].includes(code)&&(cloud>=82||lowCloud>=72))return finish(1/12);if(code===3&&cloud>=88||cloud>=96&&lowCloud>=88)return finish(1/12);const stratiform=[51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77].includes(code),wetSupported=!Number.isFinite(probability)||probability>=30,skySupported=cloud>=75||lowCloud>=65||wetAmount>=.3;if(!showery&&stratiform&&wetAmount>=.05&&wetSupported&&skySupported)return finish(wetAmount>=1||cloud>=95||lowCloud>=90||[55,57,65,67,69,75].includes(code)?1/12:1/6);return Math.min(raw,solarCap)}
-function widgetWeatherDescriptor(rawCode,isDay=true){const code=Math.round(number(rawCode)??3);if(code===0)return{condition:'Klar',symbolName:isDay?'sun.max.fill':'moon.stars.fill'};if(code<=2)return{condition:code===1?'Ãœberwiegend klar':'Wolken und Sonne',symbolName:isDay?'cloud.sun.fill':'cloud.moon.fill'};if(code===3)return{condition:'Bedeckt',symbolName:'cloud.fill'};if([45,48].includes(code))return{condition:'Nebel',symbolName:'cloud.fog.fill'};if([51,53,55,56,57].includes(code))return{condition:'SprÃ¼hregen',symbolName:'cloud.drizzle.fill'};if([61,63,65,66,67].includes(code))return{condition:'Regen',symbolName:'cloud.rain.fill'};if([71,73,75,77].includes(code))return{condition:'Schnee',symbolName:'cloud.snow.fill'};if([80,81,82].includes(code))return{condition:'Schauer',symbolName:'cloud.heavyrain.fill'};if([85,86].includes(code))return{condition:'Schneeschauer',symbolName:'cloud.snow.fill'};if([95,96,99].includes(code))return{condition:'Gewitter',symbolName:'cloud.bolt.rain.fill'};return{condition:'Wolkig',symbolName:'cloud.fill'}}
-function widgetWindUnit(value){return['kn','kmh','ms','mph'].includes(String(value))?String(value):'kn'}
-async function nativeWidgetFeed(url,env){
- const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),elevation=number(url.searchParams.get('elevation')),unit=widgetWindUnit(url.searchParams.get('unit')),name=String(url.searchParams.get('name')||'MID-Standort').trim().slice(0,80)||'MID-Standort';
- if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return json({error:'gÃ¼ltige lat/lon erforderlich',schema:'mid.native.widget.v1',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:'auto',forecast_hours:'12',forecast_days:'5',models:'best_match',temperature_unit:'celsius',precipitation_unit:'mm',wind_speed_unit:unit,current:'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,cape,is_day,sunshine_duration,wind_speed_10m,wind_gusts_10m,wind_direction_10m',hourly:'temperature_2m,relative_humidity_2m,precipitation,precipitation_probability,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,cape,lifted_index,convective_inhibition,sunshine_duration,wind_speed_10m,wind_gusts_10m,wind_direction_10m,is_day',daily:'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours,precipitation_probability_max,wind_gusts_10m_max,sunrise,sunset,sunshine_duration'});if(Number.isFinite(elevation))query.set('elevation',String(Math.max(-500,Math.min(9000,elevation))));
- const fusionUrl=new URL('https://mid.internal/?mode=forecast-fusion');fusionUrl.searchParams.set('lat',String(lat));fusionUrl.searchParams.set('lon',String(lon));if(Number.isFinite(elevation))fusionUrl.searchParams.set('elevation',String(elevation));const[response,fusionResponse]=await Promise.all([fetchWithDeadline(`${OPEN_METEO_FORECAST}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:900,cacheEverything:true}},14000),forecastFusionResponse(fusionUrl,env).catch(()=>null)]),body=await response.text();let payload={},fusion={};try{payload=JSON.parse(body)}catch{}if(!response.ok||payload?.error)return json({error:payload?.reason||payload?.error||`Open-Meteo HTTP ${response.status}`,schema:'mid.native.widget.v1',version:WORKER_VERSION},response.status>=500?502:response.status,{'cache-control':'no-store'});if(fusionResponse?.ok)try{fusion=await fusionResponse.json()}catch{}
- const current=payload?.current??{},hourly=payload?.hourly??{},daily=payload?.daily??{},fusionHours=Array.isArray(fusion?.weatherHours)?fusion.weatherHours:[],fusionDays=Array.isArray(fusion?.days)?fusion.days:[],fusionHourByTime=new Map(fusionHours.map(hour=>[String(hour?.time||''),hour])),fusionDayByDate=new Map(fusionDays.map(day=>[String(day?.date||''),day])),currentIsDay=widgetAstronomicalIsDay(current.time,daily,Number(current.is_day)===1),currentSignal=reconcileForecastPrecipitation(current.precipitation,100,current.weather_code,current.cloud_cover,{rain:current.rain,showers:current.showers,snowfall:current.snowfall,lowCloud:current.cloud_cover_low,humidity:current.relative_humidity_2m,cape:current.cape,isDay:currentIsDay,observed:true}),currentDescriptor=widgetWeatherDescriptor(currentSignal.code,currentIsDay),hourTimes=Array.isArray(hourly.time)?hourly.time:[],dayTimes=Array.isArray(daily.time)?daily.time:[],generatedAt=new Date().toISOString(),expiresAt=new Date(Date.now()+30*60000).toISOString();
- const hourRows=hourTimes.slice(0,12).map((time,index)=>{const fused=fusionHourByTime.get(String(time)),isDay=widgetAstronomicalIsDay(time,daily,Number(at(hourly.is_day,index))===1),rawSignal=reconcileForecastPrecipitation(at(hourly.precipitation,index),at(hourly.precipitation_probability,index),at(hourly.weather_code,index),at(hourly.cloud_cover,index),{rain:at(hourly.rain,index),showers:at(hourly.showers,index),snowfall:at(hourly.snowfall,index),lowCloud:at(hourly.cloud_cover_low,index),humidity:at(hourly.relative_humidity_2m,index),cape:at(hourly.cape,index),liftedIndex:at(hourly.lifted_index,index),convectiveInhibition:at(hourly.convective_inhibition,index),sunshineDuration:at(hourly.sunshine_duration,index),isDay,leadHours:index}),signal=fused?reconcileForecastPrecipitation(fused.precipitation,fused.probability,fused.code,fused.cloud,{rain:fused.rain,showers:fused.showers,snowfall:fused.snowfall,lowCloud:fused.lowCloud,humidity:fused.humidity,cape:fused.cape,liftedIndex:fused.liftedIndex,convectiveInhibition:fused.convectiveInhibition,sunshineDuration:fused.sunshineDuration,isDay,leadHours:index}):rawSignal,descriptor=widgetWeatherDescriptor(signal.code,isDay),rawWind=number(at(hourly.wind_speed_10m,index))??0,rawGust=number(at(hourly.wind_gusts_10m,index)),convertKn=value=>unit==='kn'?value:unit==='kmh'?value*1.852:unit==='ms'?value*.514444:value*1.15078,windSpeed=fused&&Number.isFinite(number(fused.wind))?convertKn(Number(fused.wind)):rawWind,canonicalGust=fused&&Number.isFinite(number(fused.gust))?convertKn(Number(fused.gust)):rawGust,sunshineDurationSeconds=coherentWidgetSunshineSeconds(fused?.sunshineDuration??at(hourly.sunshine_duration,index),3600,{isDay,daylightSeconds:widgetIntervalDaylightSeconds(time,daily,3600),code:signal.code,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,cloud:fused?.cloud??at(hourly.cloud_cover,index),lowCloud:fused?.lowCloud??at(hourly.cloud_cover_low,index)});return{time:String(time),temperature:Number.isFinite(number(fused?.temperature))?Number(fused.temperature):number(at(hourly.temperature_2m,index))??0,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,precipitationProbability:signal.probability,weatherCode:signal.code,condition:descriptor.condition,symbolName:descriptor.symbolName,windSpeed,windGust:Number.isFinite(canonicalGust)?Math.max(windSpeed,canonicalGust):windSpeed,windDirection:((number(fused?.direction)??number(at(hourly.wind_direction_10m,index))??0)%360+360)%360,sunshineDurationSeconds,isDay}});
- const dayRows=dayTimes.slice(0,5).map((date,index)=>{const fused=fusionDayByDate.get(String(date)),signal=reconcileForecastPrecipitation(fused?.precipitation??at(daily.precipitation_sum,index),fused?.probability??at(daily.precipitation_probability_max,index),fused?.code??at(daily.weather_code,index),undefined,{rain:fused?.rain??at(daily.rain_sum,index),showers:fused?.showers??at(daily.showers_sum,index),snowfall:fused?.snowfall??at(daily.snowfall_sum,index),leadHours:(index+.5)*24}),descriptor=widgetWeatherDescriptor(signal.code,true),sunshineDurationSeconds=widgetSunshineSeconds(at(daily.sunshine_duration,index),widgetDaylightSeconds(daily,index)),rawGust=Math.max(0,number(at(daily.wind_gusts_10m_max,index))??0),canonicalGust=Number.isFinite(number(fused?.gust))?(unit==='kn'?Number(fused.gust):unit==='kmh'?Number(fused.gust)*1.852:unit==='ms'?Number(fused.gust)*.514444:Number(fused.gust)*1.15078):rawGust;return{date:String(date),temperatureMax:Number.isFinite(number(fused?.max))?Number(fused.max):number(at(daily.temperature_2m_max,index))??0,temperatureMin:Number.isFinite(number(fused?.min))?Number(fused.min):number(at(daily.temperature_2m_min,index))??0,precipitationSum:signal.precipitation,rainSum:signal.rain,showersSum:signal.showers,snowfallSum:signal.snowfall,precipitationHours:Number.isFinite(number(fused?.precipitationHours))?Math.max(0,Number(fused.precipitationHours)):Math.max(0,number(at(daily.precipitation_hours,index))??0),precipitationProbabilityMax:signal.probability,weatherCode:signal.code,condition:descriptor.condition,symbolName:descriptor.symbolName,windGustMax:canonicalGust,sunshineDurationSeconds,sunrise:at(daily.sunrise,index)?String(at(daily.sunrise,index)):undefined,sunset:at(daily.sunset,index)?String(at(daily.sunset,index)):undefined}});
- const currentWind=number(current.wind_speed_10m)??0,currentRawGust=number(current.wind_gusts_10m);
- return json({schema:'mid.native.widget.v1',version:WORKER_VERSION,generatedAt,expiresAt,location:{name,latitude:lat,longitude:lon,elevation:Number.isFinite(number(payload?.elevation))?number(payload.elevation):elevation,timezone:String(payload?.timezone||url.searchParams.get('timezone')||'UTC')},units:{temperature:'Â°C',precipitation:'mm',wind:unit,sunshineDuration:'s'},current:{time:String(current.time||generatedAt),temperature:number(current.temperature_2m)??0,apparentTemperature:number(current.apparent_temperature)??number(current.temperature_2m)??0,precipitation:currentSignal.precipitation,rain:currentSignal.rain,showers:currentSignal.showers,snowfall:currentSignal.snowfall,weatherCode:currentSignal.code,condition:currentDescriptor.condition,symbolName:currentDescriptor.symbolName,windSpeed:currentWind,windGust:Number.isFinite(currentRawGust)?Math.max(currentWind,currentRawGust):currentWind,windDirection:((number(current.wind_direction_10m)??0)%360+360)%360,sunshineDurationSeconds:coherentWidgetSunshineSeconds(current.sunshine_duration,Math.max(60,number(current.interval)??900),{isDay:currentIsDay,daylightSeconds:widgetIntervalDaylightSeconds(current.time,daily,Math.max(60,number(current.interval)??900)),code:currentSignal.code,precipitation:currentSignal.precipitation,rain:currentSignal.rain,showers:currentSignal.showers,snowfall:currentSignal.snowfall,probability:100,cloud:current.cloud_cover,lowCloud:current.cloud_cover_low}),isDay:currentIsDay},hourly:hourRows,daily:dayRows,source:{provider:fusionHours.length?'MID Forecast Fusion Â· Open-Meteo':'Open-Meteo',model:fusionHours.length?'Kanonische MID-Ortsprognose':'Best Match',license:'Open-Meteo / jeweilige Modelldaten-Attribution'}},200,{'cache-control':'public, max-age=600, stale-while-revalidate=300'});
-}
-async function fetchWithDeadline(input,init={},timeoutMs=7000){const controller=new AbortController(),timer=setTimeout(()=>controller.abort('timeout'),timeoutMs);try{return await fetch(input,{...init,signal:controller.signal})}finally{clearTimeout(timer)}}
+Û‹[Û“Z[ŠKÙ
+KOSX]œ›İ[™
+
+][]Z[ŠKÙJNÚYŠO[O[J\™]\›ˆ[Ü™]\›ŠJ›
+Ş
+JB™[˜İ[ÛˆÙXÑXÛÙRLM”™XÛÜ™
+]\ËÜXË[Y\Ê^ØÛÛœİ^\ÏP\œ˜^Kš\Ğ\œ˜^JÜXÏË[Y\ÊI‰œÜXË[Y\Ë›[™İÜÜXË[Y\Î[Y\ËšY[Ï\ÜXÏË™šY[ß×KšY]Ï[™]È]UšY]Ê]\Ë˜Y™™\‹]\Ë˜]SÙ™œÙ]]\Ë˜]S[™İ
+Kİ\›O^İ[YN˜^\ßNÙ›ÜŠ]LÙšY[Ë›[™İÙŠÊÊ^ØÛÛœİšY[YšY[ÖÙ—K˜[Y\ÏV×NÙ›ÜŠ]Lİ^\Ë›[™İİ
+ÊÊ^ØÛÛœİ˜]Ï]šY]Ë™Ù][MŠ
+
+™šY[Ë›[™İ
+ÙŠJŒ‹YJNİ˜[Y\Ëœ\Ú
+˜]ÏOOKLÌÍÛ[œ˜]Ê“[X™\ŠšY[œØØ[JJÓ[X™\ŠšY[›Ù™œÙ]
+J_Zİ\›VÙšY[›˜[YWO]˜[Y\ß\™]\›ˆİ\›_B™[˜İ[ÛˆÙXÑXÛÙRLMŠ]\ËY]J^Ü™]\›ˆÙXÑXÛÙRLM”™XÛÜ™
+]\ËY]K™]\›Z[š\İXËY]K[Y\ß×J_B˜\Ş[˜È[˜İ[ÛˆÙXÔŒÛÛ^
+]Û‹[Š^ÚYŠYÙXÔŒÛÛ™šYİ\™Y
+[ŠJ\™]\›ˆ[ØÛÛœİXÚÙ]Y[‹“RQÑÑÔ•P×ÑUKY]OX]ØZ]ÙXÔŒ“]\İ
+XÚÙ]
+NÚYŠ[Y]J\™]\›ˆ[ØÛÛœİÙ™œÙ]YÙXÓÛÚİ\Ù™œÙ]
+Y]K]ÛŠNÚYŠÙ™œÙ]OO[[[Y]K›ÛÚİ\ËšÙ^J\™]\›ˆ[ØÛÛœİØXÚRÙ^OX	ÛY]Kœ[ŸN‰ÛÙ™œÙ]XØXÚYYÙXÓÛÚİ\ØXÚK™Ù]
+ØXÚRÙ^JNÚYŠØXÚY	‰‘]K››İÊ
+KXØXÚY˜]L
+Œ
+ŒL
+\™]\›ØXÚÙ]Y]KÚ[[™^˜ØXÚYœÚ[[™^NØÛÛœİÛÚİ\X]ØZ]ÙXÔŒ”˜[™ÙJXÚÙ]Y]K›ÛÚİ\šÙ^KÙ™œÙ]
+NÚYŠ[ÛÚİ\ÛÚİ\›[™İOOM
+\™]\›ˆ[ØÛÛœİÚ[[™^[™]È]UšY]ÊÛÚİ\˜Y™™\‹ÛÚİ\˜]SÙ™œÙ]
+K™Ù]Z[ÌŠYJNÚYŠÚ[[™^OOL™™™™™™™ŸÚ[[™^S[X™\ŠY]KœÚ[Ûİ[
+J\™]\›ˆ[ÙÙXÓÛÚİ\ØXÚKœÙ]
+ØXÚRÙ^KØ]‘]K››İÊ
+KÚ[[™^JNÚYŠÙXÓÛÚİ\ØXÚKœÚ^™OŒL
+YÙXÓÛÚİ\ØXÚK™[]JÙXÓÛÚİ\ØXÚKšÙ^\Ê
+K›™^
+
+K˜[YJNÜ™]\›ØXÚÙ]Y]KÚ[[™^_B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XĞÛÛ^
+]Û‹[Š^ØÛÛœİİ\œ™[X]ØZ]ÙXÔİ]XÓ]\İ
+[ŠNÚYŠXİ\œ™[
+\™]\›ˆ[ØÛÛœİØ˜\ÙKY]_OXİ\œ™[Ù™œÙ]YÙXÓÛÚİ\Ù™œÙ]
+Y]K]ÛŠNÚYŠÙ™œÙ]OO[[
+\™]\›ˆ[ØÛÛœİ™XÛÜ™[™^[Ù™œÙ]ÍØXÚRÙ^OX	ÛY]Kœ[ŸN‰Ü™XÛÜ™[™^XØXÚYYÙXÔİ]XÓÛÚİ\ØXÚK™Ù]
+ØXÚRÙ^JNÚYŠØXÚY	‰‘]K››İÊ
+KXØXÚY˜]L
+Œ
+ŒL
+\™]\›Ø˜\ÙKY]KÚ[[™^˜ØXÚYœÚ[[™^NØÛÛœİÛÚİ\X]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKY]K›ÛÚİ\™XÛÜ™[™^
+NÚYŠ[ÛÚİ\ÛÚİ\›[™İOOM
+\™]\›ˆ[ØÛÛœİÚ[[™^[™]È]UšY]ÊÛÚİ\˜Y™™\‹ÛÚİ\˜]SÙ™œÙ]
+K™Ù]Z[ÌŠYJNÚYŠÚ[[™^OOL™™™™™™™ŸÚ[[™^S[X™\ŠY]KœÚ[Ûİ[
+J\™]\›ˆ[ÙÙXÔİ]XÓÛÚİ\ØXÚKœÙ]
+ØXÚRÙ^KØ]‘]K››İÊ
+KÚ[[™^JNÚYŠÙXÔİ]XÓÛÚİ\ØXÚKœÚ^™OŒL
+YÙXÔİ]XÓÛÚİ\ØXÚK™[]JÙXÔİ]XÓÛÚİ\ØXÚKšÙ^\Ê
+K›™^
+
+K˜[YJNÜ™]\›Ø˜\ÙKY]KÚ[[™^_B˜\Ş[˜È[˜İ[ÛˆÙXÔŒ”˜\Y^[ØY
+ÛÛ^
+^ØÛÛœİØXÚÙ]Y]KÚ[[™^OXÛÛ^›ÙXİÏ[Y]OËœ˜\Y	‰\[ÙˆY]Kœ˜\YOOIÛØš™Xİ	ÏÛY]Kœ˜\YßK˜\Y^ßNØ]ØZ]›ÛZ\ÙK˜[
+Øš™Xİ™[šY\Ê›ÙXİÊK›X\
+\Ş[˜ÊÚYÜX×JOOØÛÛœİ™XÛÜ™]\ÏS[X™\ŠÜXÏËœ™XÛÜ™]\ÊNÚYŠ\ÜXÏËšÙ^_S[X™\‹š\Ñš[š]J™XÛÜ™]\Ê_™XÛÜ™]\ÏL
+\™]\›ØÛÛœİ]\ÏX]ØZ]ÙXÔŒ”˜[™ÙJXÚÙ]ÜXËšÙ^KÚ[[™^
+œ™XÛÜ™]\Ë™XÛÜ™]\ÊNÚYŠ]\É‰˜]\Ë›[™İOO\™XÛÜ™]\Ê\˜\YÚYOYÙXÑXÛÙRLM”™XÛÜ™
+]\ËÜXË\œ˜^Kš\Ğ\œ˜^JÜXÏË[Y\ÊOÜÜXË[Y\Î–×J_JJNÜ™]\›ˆ˜\YB˜\Ş[˜È[˜İ[ÛˆÙXÔŒ”Ú[^[ØY
+]Û‹[Š^ØÛÛœİÛÛ^X]ØZ]ÙXÔŒÛÛ^
+]Û‹[ŠNÚYŠXÛÛ^
+\™]\›ˆ[ØÛÛœİØXÚÙ]Y]KÚ[[™^OXÛÛ^][Y]K™]\›Z[š\İXÎÚYŠY]ËšÙ^_S[X™\‹š\Ñš[š]J[X™\Š]œ™XÛÜ™]\ÊJJ\™]\›ˆ[ØÛÛœİ]\ÏX]ØZ]ÙXÔŒ”˜[™ÙJXÚÙ]]šÙ^KÚ[[™^
+“[X™\Š]œ™XÛÜ™]\ÊK[X™\Š]œ™XÛÜ™]\ÊJNÚYŠX]\ß]\Ë›[™İOOS[X™\Š]œ™XÛÜ™]\ÊJ\™]\›ˆ[ØÛÛœİ˜\YX]ØZ]ÙXÔŒ”˜\Y^[ØY
+ÛÛ^
+NÜ™]\›Û]]YN›]Û™Ú]YN›Û‹[Y^›Û™N‰ÑÓU	Ë]×ÛÙ™œÙ]ÜÙXÛÛ™ÎŒİ\›N™ÙXÑXÛÙRLMŠ]\ËY]JK˜\YZYÜXÎÜ[›Y]Kœ[‹Ù[™\˜]Y]›Y]K™Ù[™\˜]Y]Ûİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PÉËİÜ˜YÙN‰ÔŒ‰Ë˜\Y›ÙXİÎ“Øš™XİšÙ^\Ê˜\Y
+___B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÔ˜\Y^[ØY
+ÛÛ^
+^ØÛÛœİØ˜\ÙKY]KÚ[[™^OXÛÛ^›ÙXİÏ[Y]OËœ˜\Y	‰\[ÙˆY]Kœ˜\YOOIÛØš™Xİ	ÏÛY]Kœ˜\YßK˜\Y^ßNØ]ØZ]›ÛZ\ÙK˜[
+Øš™Xİ™[šY\Ê›ÙXİÊK›X\
+\Ş[˜ÊÚYÜX×JOOØÛÛœİ]\ÏX]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKÜXËÚ[[™^
+NÚYŠ]\Ê\˜\YÚYOYÙXÑXÛÙRLM”™XÛÜ™
+]\ËÜXË\œ˜^Kš\Ğ\œ˜^JÜXÏË[Y\ÊOÜÜXË[Y\Î–×J_JJNÜ™]\›ˆ˜\YB™[˜İ[ÛˆÙXÔ˜\Y\ÙU[YR[™^
+ÜXË\™Ù]\Ê^ØÛÛœİ[Y\ÏP\œ˜^Kš\Ğ\œ˜^JÜXÏË[Y\ÊOÜÜXË[Y\Î–×K\œÙY][Y\Ë›X\
+˜[YOO™ÙXÓY]U[Y\İ[\
+Ü[”İš[™Ê˜[YJ_JJNÛ]™\İKLK™\İ[OR[™š[š]NÙ›ÜŠ][™^LÚ[™^\œÙY›[™İÚ[™^
+ÊÊ^ØÛÛœİİ[\\\œÙYÚ[™^K[OSX]˜XœÊİ[\]\™Ù]\ÊNÚYŠ[X™\‹š\Ñš[š]Jİ[\
+I‰™[O™\İ[J^Ø™\İZ[™^Ø™\İ[OY[__\™]\›ˆ™\İL	‰˜™\İ[OLŒ
+ŒŞÚ[™^˜™\İ[YN”İš[™Ê[Y\ÖØ™\İJKİ[\œ\œÙYØ™\İK[S\Î˜™\İ[_N›[B˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÔ\ÙQÜšY
+]ËÛœË\™Ù]\Ë[Š^ÂˆÛÛœİİ\œ™[X]ØZ]ÙXÔİ]XÓ]\İ
+[ŠNÚYŠXİ\œ™[
+\™]\›ˆ[ØÛÛœİØ˜\ÙKY]_OXİ\œ™[ÜXÏ[Y]OËœ˜\YËœ\ÙLMK[YTXÚÏYÙXÔ˜\Y\ÙU[YR[™^
+ÜXË\™Ù]\ÊNÚYŠ\ÜXß][YTXÚÊ\™]\›ˆ[ÂˆÛÛœİÛÛÜ™[˜]\ÏV×NÙ›ÜŠÛÛœİ]Ùˆ]ÊY›ÜŠÛÛœİÛˆÙˆÛœÊXÛÛÜ™[˜]\Ëœ\Ú
+Û]ÛŸJNØÛÛœİÚ[™YœÏV×KÚ[ØXÚO[™]ÈX\
+
+NÂˆ›ÜŠÛÛœİÚ[ÙˆÛÛÜ™[˜]\Ê^ØÛÛœİÙ™œÙ]YÙXÓÛÚİ\Ù™œÙ]
+Y]KÚ[›]Ú[›ÛŠNÚYŠÙ™œÙ]OO[[
+^ÜÚ[™YœËœ\Ú
+[
+NØÛÛ[Y_XÛÛœİ™XÛÜ™[™^[Ù™œÙ]ÍØXÚRÙ^OX	ÛY]Kœ[ŸN‰Ü™XÛÜ™[™^XØXÚYYÙXÔİ]XÓÛÚİ\ØXÚK™Ù]
+ØXÚRÙ^JNÛ]Ú[[™^XØXÚY	‰‘]K››İÊ
+KXØXÚY˜]L
+Œ
+ŒLØØXÚYœÚ[[™^›[ÚYŠÚ[[™^OO[[
+^ØÛÛœİÛÚİ\X]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKY]K›ÛÚİ\™XÛÜ™[™^
+NÚYŠÛÚİ\	‰›ÛÚİ\›[™İOOM
+^ØÛÛœİXÛÙY[™]È]UšY]ÊÛÚİ\˜Y™™\‹ÛÚİ\˜]SÙ™œÙ]
+K™Ù]Z[ÌŠYJNÚYŠXÛÙYOOL™™™™™™™‰‰™XÛÙY[X™\ŠY]KœÚ[Ûİ[
+J^ÜÚ[[™^YXÛÙYÙÙXÔİ]XÓÛÚİ\ØXÚKœÙ]
+ØXÚRÙ^KØ]‘]K››İÊ
+KÚ[[™^J___\Ú[™YœËœ\Ú
+[X™\‹š\Ò[YÙ\ŠÚ[[™^
+OÜÚ[[™^›[
+_BˆÛÛœİ[š\]YOVË‹‹›™]ÈÙ]
+Ú[™YœË™š[\Š[X™\‹š\Ò[YÙ\ŠJWKXÛÙYTÚ[[™]ÈX\
+
+NÙ›ÜŠÛÛœİÚ[[™^Ùˆ[š\]YJ^ØÛÛœİ]\ÏX]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKÜXËÚ[[™^
+NÚYŠX]\ÊXÛÛ[YNØÛÛœİXÛÙYYÙXÑXÛÙRLM”™XÛÜ™
+]\ËÜXËÜXË[Y\ß×JNÙXÛÙYTÚ[œÙ]
+Ú[[™^Ü˜Z[“[X™\ŠXÛÙYœ˜Z[Ë–İ[YTXÚËš[™^JKÛ›İÎ“[X™\ŠXÛÙYœÛ›İÙ˜[İØ]\—Ù\]Z]˜[[Ë–İ[YTXÚËš[™^JKÜ˜]\[“[X™\ŠXÛÙY™Ü˜]\[İØ]\—Ù\]Z]˜[[Ë–İ[YTXÚËš[™^J_J_BˆÛÛœİ˜Z[V×KÛ›İÙ˜[Ø]\‘\]Z]˜[[V×KÜ˜]\[Ø]\‘\]Z]˜[[V×NÛ]˜[YLÙ›ÜŠÛÛœİÚ[[™^ÙˆÚ[™YœÊ^ØÛÛœİ›İÏYXÛÙYTÚ[™Ù]
+Ú[[™^
+NÚYŠ›İÉ‰–Ü›İËœ˜Z[‹›İËœÛ›İË›İË™Ü˜]\[KœÛÛYJ[X™\‹š\Ñš[š]JJ]˜[Y
+ÊÎÜ˜Z[‹œ\Ú
+[X™\‹š\Ñš[š]J›İÏËœ˜Z[ŠOÓX]›X^
+›İËœ˜Z[ŠN“˜SŠNÜÛ›İÙ˜[Ø]\‘\]Z]˜[[œ\Ú
+[X™\‹š\Ñš[š]J›İÏËœÛ›İÊOÓX]›X^
+›İËœÛ›İÊN“˜SŠNÙÜ˜]\[Ø]\‘\]Z]˜[[œ\Ú
+[X™\‹š\Ñš[š]J›İÏË™Ü˜]\[
+OÓX]›X^
+›İË™Ü˜]\[
+N“˜SŠ_BˆYŠ˜[YÛÛÜ™[˜]\Ë›[™İ
+‹ÌŠ\™]\›ˆ[Ü™]\›İ[YN›™]È]J[YTXÚËœİ[\
+KÒTÓÔİš[™Ê
+K[”İš[™ÊY]Kœ[Ÿ	ÉÊK˜Z[‹Û›İÙ˜[Ø]\‘\]Z]˜[[Ü˜]\[Ø]\‘\]Z]˜[[˜[Yİ[˜ÛÛÜ™[˜]\Ë›[™İÛİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PÈ0­È˜]]™HMHZ[‰ßBŸB˜\Ş[˜È[˜İ[ÛˆÙXÔİ]XÔÚ[^[ØY
+]Û‹[Š^ØÛÛœİÛÛ^X]ØZ]ÙXÔİ]XĞÛÛ^
+]Û‹[ŠNÚYŠXÛÛ^
+\™]\›ˆ[ØÛÛœİØ˜\ÙKY]KÚ[[™^OXÛÛ^]\ÏX]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKY]K™]\›Z[š\İXËÚ[[™^
+NÚYŠX]\Ê\™]\›ˆ[ØÛÛœİ˜\YX]ØZ]ÙXÔİ]XÔ˜\Y^[ØY
+ÛÛ^
+NÜ™]\›Û]]YN›]Û™Ú]YN›Û‹[Y^›Û™N‰ÑÓU	Ë]×ÛÙ™œÙ]ÜÙXÛÛ™ÎŒİ\›N™ÙXÑXÛÙRLMŠ]\ËY]JK˜\YZYÜXÎÜ[›Y]Kœ[‹Ù[™\˜]Y]›Y]K™Ù[™\˜]Y]Ûİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PÉËİÜ˜YÙN‰ÑÚ]XˆYÙ\ÉË˜\Y›ÙXİÎ“Øš™XİšÙ^\Ê˜\Y
+___B˜\Ş[˜È[˜İ[ÛˆÙXÑ\Ôİ[[X\TŒ”^[ØY
+]Û‹[Š^ØÛÛœİÛÛ^X]ØZ]ÙXÔŒÛÛ^
+]Û‹[ŠNÚYŠXÛÛ^
+\™]\›ˆ[ØÛÛœİØXÚÙ]Y]KÚ[[™^OXÛÛ^ÜXÏ[Y]K™\Ôİ[[X\K[Y\ÏP\œ˜^Kš\Ğ\œ˜^JÜXÏË[Y\ÊI‰œÜXË[Y\Ë›[™İÜÜXË[Y\Î\œ˜^Kš\Ğ\œ˜^JY]K[Y\ÊOÛY]K[Y\Î–×K™XÛÜ™]\ÏS[X™\ŠÜXÏËœ™XÛÜ™]\ÊNÚYŠ\ÜXÏËšÙ^_[Y\Ë›[™İS[X™\‹š\Ñš[š]J™XÛÜ™]\Ê_™XÛÜ™]\ÏL
+\™]\›ˆ[ØÛÛœİ]\ÏX]ØZ]ÙXÔŒ”˜[™ÙJXÚÙ]ÜXËšÙ^KÚ[[™^
+œ™XÛÜ™]\Ë™XÛÜ™]\ÊNÚYŠX]\ß]\Ë›[™İOO\™XÛÜ™]\Ê\™]\›ˆ[Ü™]\›Û]]YN›]Û™Ú]YN›Û‹[Y^›Û™N‰ÑÓU	Ë]×ÛÙ™œÙ]ÜÙXÛÛ™ÎŒİ\›N™ÙXÑXÛÙRLM”™XÛÜ™
+]\ËÜXË[Y\ÊKZYÜXÎÜ[›Y]Kœ[‹Ù[™\˜]Y]›Y]K™Ù[™\˜]Y]Ûİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PËQTÉËİÜ˜YÙN‰ÔŒ‰ËYÙÜ™YØ][Û‰Ü™\›ØÙ\ÜÙY	ËY[X™\—ØÛİ[“[X™\ŠY]K™\ÏË›Y[X™\Ûİ[
+___B˜\Ş[˜È[˜İ[ÛˆÙXÑ\Ôİ[[X\Tİ]XÔ^[ØY
+]Û‹[Š^ØÛÛœİÛÛ^X]ØZ]ÙXÔİ]XĞÛÛ^
+]Û‹[ŠNÚYŠXÛÛ^
+\™]\›ˆ[ØÛÛœİØ˜\ÙKY]KÚ[[™^OXÛÛ^ÜXÏ[Y]K™\Ôİ[[X\K[Y\ÏP\œ˜^Kš\Ğ\œ˜^JÜXÏË[Y\ÊI‰œÜXË[Y\Ë›[™İÜÜXË[Y\Î\œ˜^Kš\Ğ\œ˜^JY]K[Y\ÊOÛY]K[Y\Î–×K]\ÏX]ØZ]ÙXÔİ]XÔ™XÛÜ™
+˜\ÙKÜXËÚ[[™^
+NÚYŠX]\ß[Y\Ë›[™İ
+\™]\›ˆ[Ü™]\›Û]]YN›]Û™Ú]YN›Û‹[Y^›Û™N‰ÑÓU	Ë]×ÛÙ™œÙ]ÜÙXÛÛ™ÎŒİ\›N™ÙXÑXÛÙRLM”™XÛÜ™
+]\ËÜXË[Y\ÊKZYÜXÎÜ[›Y]Kœ[‹Ù[™\˜]Y]›Y]K™Ù[™\˜]Y]Ûİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PËQTÉËİÜ˜YÙN‰ÑÚ]XˆYÙ\ÉËYÙÜ™YØ][Û‰Ü™\›ØÙ\ÜÙY	ËY[X™\—ØÛİ[“[X™\ŠY]K™\ÏË›Y[X™\Ûİ[
+___B˜\Ş[˜È[˜İ[ÛˆÙXÑ\ÔŒ”^[ØY
+]Û‹[Š^ØÛÛœİÛÛ^X]ØZ]ÙXÔŒÛÛ^
+]Û‹[ŠNÚYŠXÛÛ^
+\™]\›ˆ[ØÛÛœİØXÚÙ]Y]KÚ[[™^OXÛÛ^ÜXÏ[Y]K™\ËY[X™\Ûİ[S[X™\ŠÜXÏË›Y[X™\Ûİ[
+_[YPÛİ[P\œ˜^Kš\Ğ\œ˜^JY]K[Y\ÊOÛY]K[Y\Ë›[™İŒ™XÛÜ™]\ÏS[X™\ŠÜXÏËœ™XÛÜ™]\ÊNÚYŠ\ÜXÏËšÙ^_Y[X™\Ûİ[Ÿ[YPÛİ[™XÛÜ™]\ÈOO][YPÛİ[
+›Y[X™\Ûİ[
+ŒŠ\™]\›ˆ[ØÛÛœİ]\ÏX]ØZ]ÙXÔŒ”˜[™ÙJXÚÙ]ÜXËšÙ^KÚ[[™^
+œ™XÛÜ™]\Ë™XÛÜ™]\ÊNÚYŠX]\ß]\Ë›[™İOO\™XÛÜ™]\Ê\™]\›ˆ[ØÛÛœİšY]Ï[™]È]UšY]Ê]\Ë˜Y™™\‹]\Ë˜]SÙ™œÙ]]\Ë˜]S[™İ
+KØØ[OS[X™\ŠÜXËœØØ[J_ŒKİ\›O^İ[YN›Y]K[Y\ßNÙ›ÜŠ]Y[X™\LÛY[X™\Y[X™\Ûİ[ÛY[X™\ŠÊÊZİ\›VØ™XÚ\]][Û—ÛY[X™\‰ÛY[X™\ŠÌ_XOV×NÙ›ÜŠ]Lİ[YPÛİ[İ
+ÊÊY›ÜŠ]Y[X™\LÛY[X™\Y[X™\Ûİ[ÛY[X™\ŠÊÊ^ØÛÛœİ˜]Ï]šY]Ë™Ù]Z[MŠ
+
+›Y[X™\Ûİ[
+ÛY[X™\ŠJŒ‹YJK˜[YO\˜]ÏOOMMLÍOÛ[œ˜]ÊœØØ[NÚİ\›VØ™XÚ\]][Û—ÛY[X™\‰ÛY[X™\ŠÌ_XKœ\Ú
+˜[YJ_\™]\›Û]]YN›]Û™Ú]YN›Û‹[Y^›Û™N‰ÑÓU	Ë]×ÛÙ™œÙ]ÜÙXÛÛ™ÎŒİ\›KZYÜXÎÜ[›Y]Kœ[‹Ù[™\˜]Y]›Y]K™Ù[™\˜]Y]Ûİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PËQTÉËİÜ˜YÙN‰ÔŒ‰ËYÙÜ™YØ][Û‰Û˜]]™K[Y[X™\œËY]™[[Û›IËY[X™\—ØÛİ[›Y[X™\Ûİ[__B™[˜İ[Ûˆ™YÚ[Û˜[[œÙ[X›PÛÛ™šYİ\™Y
+YYš[š][Û‹[Š^ÚYŠYOOIÚXÛÛ—Ù—ÜX×Ù\ÉÊ\™]\›ˆÙXÔŒÛÛ™šYİ\™Y
+[Š_›ÛÛX[ŠY\\‘[™Ú[
+[‹Yš[š][Û‹™[™Ú[
+JNÚYŠYOOIÚÛ›ZWÚ\›[ÛšYWØ\›ÛYWØŞM×Ù\ÉÊ\™]\›ˆÛ›ZQ\Ô›ÙXİ[ÛÛÛ™šYİ\™Y
+[Š_›ÛÛX[ŠY\\‘[™Ú[
+[‹Yš[š][Û‹™[™Ú[
+JNÜ™]\›ˆ›ÛÛX[ŠY\\‘[™Ú[
+[‹Yš[š][Û‹™[™Ú[
+J_B™[˜İ[Ûˆ™YÚ[Û˜[[œÙ[X›PØ\Xš[]Y\Ê[Š^Ü™]\›ˆØš™Xİ™œ›ÛQ[šY\ÊØš™Xİ™[šY\Ê‘QÒSÓSÑS”ÑSP“WĞQTT”ÊK›X\
+
+ÚYYš[š][Û—JOO–ÚYÛX™[™Yš[š][Û‹›X™[ÛÛ™šYİ\™Yœ™YÚ[Û˜[[œÙ[X›PÛÛ™šYİ\™Y
+YYš[š][Û‹[ŠK™\]Z\™YšYOOIÚXÛÛ—Ù—ÜX×Ù\ÉÏÖÉÓRQÑÑÔ•P×ÑUHÜˆRQÑÑÔ•P×ÑT×ÔÒS•ÑS‘ÒS•	ËÜ[Û˜[	ÙYš[š][Û‹ÚÙ[ŸXN–ÙYš[š][Û‹™[™Ú[Ü[Û˜[	ÙYš[š][Û‹ÚÙ[ŸX_WJJ_B˜\Ş[˜È[˜İ[Ûˆ™YÚ[Û˜[[œÙ[X›PY\\”^[ØY
+[Ù[]Û‹^\Ë˜\šXX›\Ë[Š^ØÛÛœİYš[š][ÛT‘QÒSÓSÑS”ÑSP“WĞQTT”ÖÛ[Ù[NÚYŠYYš[š][ÛŠ\™]\›ˆ[ÚYŠ[Ù[OOIÚXÛÛ—Ù—ÜX×Ù\ÉÊ^ØÛÛœİŒX]ØZ]ÙXÑ\ÔŒ”^[ØY
+]Û‹[ŠNÚYŠŒŠ\™]\›Ë‹‹œŒ‹ÛZYÜÛİ\˜ÙN™Yš[š][Û‹›X™[ÛZYØY\\Y_NßZYŠ[Ù[OOIÚÛ›ZWÚ\›[ÛšYWØ\›ÛYWØŞM×Ù\ÉÉ‰šÛ›ZQ\Ô›ÙXİ[ÛÛÛ™šYİ\™Y
+[ŠJ\™]\›ˆÛ›ZQ\Ô›ÙXİ[ÛY\\”^[ØY
+]Û‹^\Ë˜\šXX›\Ë[ŠNØÛÛœİ[™Ú[XY\\‘[™Ú[
+[‹Yš[š][Û‹™[™Ú[
+NÚYŠY[™Ú[
+^ØÛÛœİ\œ›Ü[™]È\œ›ÜŠ	ÙYš[š][Û‹›X™[Nˆ[Y\š\ØÚ\ˆ[šİY\\ˆšXÚÛÛ™šYİ\šY\
+NÙ\œ›Ü‹›ZYİ]\ÏMLÎÙ\œ›Ü‹›ZY™\]Z\™Y[[Ù[OOIÚXÛÛ—Ù—ÜX×Ù\ÉÏÖÉÓRQÑÑÔ•P×ÑUHÜˆRQÑÑÔ•P×ÑT×ÔÒS•ÑS‘ÒS•	ËÜ[Û˜[	ÙYš[š][Û‹ÚÙ[ŸXN›[Ù[OOIÚÛ›ZWÚ\›[ÛšYWØ\›ÛYWØŞM×Ù\ÉÏÖÉÓRQÒÓ“RWĞTWÒÑVIËYš[š][Û‹™[™Ú[Ü[Û˜[	ÙYš[š][Û‹ÚÙ[ŸXN–ÙYš[š][Û‹™[™Ú[Ü[Û˜[	ÙYš[š][Û‹ÚÙ[ŸXNİ›İÈ\œ›ÜŸY[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ëİš[™Ê]
+JNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰Ëİš[™ÊÛŠJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü™XØ\İÙ^\ÉËİš[™Ê^\ÊJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü™XØ\İÚİ\œÉËİš[™ÊX]›Z[ŠM^\ÊŒ
+JJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	İ˜\šXX›\ÉË˜\šXX›\Ëš›Ú[Š	Ë	ÊJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û[Ù[	Ë[Ù[
+NØÛÛœİXY\œÏ^ĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÚÙ[Tİš[™Ê[Ë–ÙYš[š][Û‹ÚÙ[—_	ÉÊKš[J
+NÚYŠÚÙ[ŠZXY\œË]]Üš^˜][ÛX™X\™\ˆ	İÚÙ[ŸXØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[Ôİš[™Ê
+KÚXY\œßKÌ
+K^X]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØYİ^Ü^[ØYR”ÓÓ‹œ\œÙJ^
+_XØ]Úİ›İÈ™]È\œ›ÜŠ	ÙYš[š][Û‹›X™[Nˆ[™ğïYÙH”ÓÓ‹P[ÛÜ
+_ZYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠİš[™Ê^[ØYË™\œ›ÜŸ^[ØYË™]Z[	ÙYš[š][Û‹›X™[HY\\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+JNÚYŠP\œ˜^Kš\Ğ\œ˜^J^[ØYËšİ\›OË[YJ_^[ØYšİ\›K[YK›[™İ
+]›İÈ™]È\œ›ÜŠ	ÙYš[š][Û‹›X™[NˆÙZ[™H›Ûİ0é™YÙH[šİ™Z]™ZZX
+NÜ™]\›Ë‹‹œ^[ØYÛZYÜÛİ\˜ÙN™Yš[š][Û‹›X™[ÛZYØY\\Y__B˜ÛÛœİÓÔ‘WÑ“Ô‘PĞTÕĞÕT”‘S•Iİ[\\˜]\™WÌ›K™[]]™WÚ[ZY]WÌ›K]×ÜÚ[Ì›K\\™[İ[\\˜]\™K\×Ù^K™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[ÙX]\—ØÛÙKÛİYØÛİ™\‹ÛİYØÛİ™\—ÛİËÛİYØÛİ™\—ÛZYÛİYØÛİ™\—ÚYÚ™\Üİ\™WÛ\ÛÚ[™ÜÜYYÌLKÚ[™Ù\™Xİ[Û—ÌLKÚ[™Ùİ\İ×ÌLKš\ÚXš[]KØ\Kİ[œÚ[™WÙ\˜][Û‰ÎÂ˜ÛÛœİÓÔ‘WÑ“Ô‘PĞTÕÓRS•USOIÜ™XÚ\]][Û—Ü›Ø˜Xš[]K™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[ÙX]\—ØÛÙKİ[œÚ[™WÙ\˜][Û‰ÎÂ˜ÛÛœİÓÔ‘WÑ“Ô‘PĞTÕÒÕT“OIİ[\\˜]\™WÌ›K™[]]™WÚ[ZY]WÌ›K]×ÜÚ[Ì›K\\™[İ[\\˜]\™K™XÚ\]][Û—Ü›Ø˜Xš[]K™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[ÙX]\—ØÛÙKÛİYØÛİ™\‹ÛİYØÛİ™\—ÛİËÛİYØÛİ™\—ÛZYÛİYØÛİ™\—ÚYÚ™\Üİ\™WÛ\ÛÚ[™ÜÜYYÌLKÚ[™Ù\™Xİ[Û—ÌLKÚ[™Ùİ\İ×ÌLK]—Ú[™^š\ÚXš[]KØ\KYYÚ[™^ÛÛ™Xİ]™WÚ[šXš][Û‹İ[ØÛÛ[[—Ú[YÜ˜]YİØ]\—İ˜\İ\‹\×Ù^Kİ[œÚ[™WÙ\˜][Û‰ÎÂ˜ÛÛœİÓÔ‘WÑ“Ô‘PĞTÕÑRSOIİÙX]\—ØÛÙK[\\˜]\™WÌ›WÛX^[\\˜]\™WÌ›WÛZ[‹İ[œš\ÙKİ[œÙ]™XÚ\]][Û—Üİ[K˜Z[—Üİ[KÚİÙ\œ×Üİ[KÛ›İÙ˜[Üİ[K™XÚ\]][Û—Úİ\œË™XÚ\]][Û—Ü›Ø˜Xš[]WÛX^Ú[™ÜÜYYÌLWÛX^Ú[™Ùİ\İ×ÌLWÛX^Ú[™Ù\™Xİ[Û—ÌLWÙÛZ[˜[]—Ú[™^ÛX^İ[œÚ[™WÙ\˜][Û‰ÎÂ˜ÛÛœİÓÔ‘WÑ“Ô‘PĞTÕÑQÑWÑ”‘TÒÓTÏLŠŒ
+ŒLÓÔ‘WÑ“Ô‘PĞTÕÑQÑWÔÕSWÓTÏLN
+ŒÍŒÂ™[˜İ[ÛˆÛÜ™Q›Ü™XØ\İØXÚT™\]Y\İ
+]Û‹™\œÚ[ÛIİŒ‰Ê^Ü™]\›ˆ™]È™\]Y\İ
+Î‹ËÛZYXÛÜ™KXØXÚKš[˜[YÉİ™\œÚ[ÛŸKÉÛ]Ñš^Y
+Ê_KÉÛÛ‹Ñš^Y
+Ê_X
+_B˜\Ş[˜È[˜İ[Ûˆ™XYÛÜ™Q›Ü™XØ\İYÙPØXÚJ]ÛŠ^İ^ØÛÛœİØXÚOYÛØ˜[\Ë˜ØXÚ\ÏË™Y˜][ÚYŠXØXÚJ\™]\›ˆ[Ù›ÜŠÛÛœİ™\œÚ[ÛˆÙ–ÉİŒ‰Ë	İŒI×J^ØÛÛœİ™\ÜÛœÙOX]ØZ]ØXÚK›X]Ú
+ÛÜ™Q›Ü™XØ\İØXÚT™\]Y\İ
+]Û‹™\œÚ[ÛŠJNÚYŠ\™\ÜÛœÙJXÛÛ[YNØÛÛœİ›İÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+KYÙOQ]K››İÊ
+KS[X™\Š›İÏËœİÜ™Y]
+NÚYŠ\›İÏËœ^[ØYS[X™\‹š\Ñš[š]JYÙJ_YÙOYÙOÓÔ‘WÑ“Ô‘PĞTÕÑQÑWÔÕSWÓTß›İËœ^[ØYË—ÛZYØÛÜ™WÜ›ŞOË™˜[˜XÚÏOO]Y_ÓQU›ÜØ^KÚK\İ
+İš[™Ê›İËœ^[ØYË—ÛZYØÛÜ™WÜ›ŞOËœ›İšY\Ÿ	ÉÊJJXÛÛ[YNÜ™]\›Ü^[ØYœ›İËœ^[ØYYÙ__\™]\›ˆ[XØ]ÚÜ™]\›ˆ[_B˜\Ş[˜È[˜İ[ÛˆÜš]PÛÜ™Q›Ü™XØ\İYÙPØXÚJ]Û‹^[ØY
+^İ^ØÛÛœİØXÚOYÛØ˜[\Ë˜ØXÚ\ÏË™Y˜][ÚYŠXØXÚJ\™]\›ØÛÛœİ›ÙOR”ÓÓ‹œİš[™ÚYJÜİÜ™Y]‘]K››İÊ
+K^[ØYJNØ]ØZ]ØXÚKœ]
+ÛÜ™Q›Ü™XØ\İØXÚT™\]Y\İ
+]ÛŠK™]È™\ÜÛœÙJ›ÙKÚXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹ÚœÛÛÈÚ\œÙ]]]‹N	Ë	ØØXÚKXÛÛ›Û	Î˜X›XËX^XYÙOIÓX]œ›İ[™
+ÓÔ‘WÑ“Ô‘PĞTÕÑQÑWÔÕSWÓTËÌL
+_X_JJ_XØ]Úß_B™[˜İ[Ûˆ˜[YÛÜ™Q›Ü™XØ\İ^[ØY
+^[ØY
+^Ü™]\›ˆ›ÛÛX[Š^[ØY	‰\[Ùˆ^[ØYOOIÛØš™Xİ	É‰œ^[ØY˜İ\œ™[	‰œ^[ØYšİ\›I‰œ^[ØY™Z[I‰\œ˜^Kš\Ğ\œ˜^J^[ØYšİ\›K[YJI‰\œ˜^Kš\Ğ\œ˜^J^[ØY™Z[K[YJJ_B™[˜İ[ÛˆÛÜ™Q˜[˜XÚÕ[YV›Û™J˜[YJ^ØÛÛœİØ[™Y]OTİš[™Ê˜[Y_	ÉÊKš[J
+NÚYŠØ[™Y]I‰˜Ø[™Y]K›[™İN
+]^Û™]È[‘]U[YQ›Ü›X]
+	Ù[‹UTÉËİ[YV›Û™N˜Ø[™Y]_JK™›Ü›X]
+™]È]J
+JNÜ™]\›ˆØ[™Y]_XØ]Úß\™]\›‰ÕUÉßB™[˜İ[ÛˆÛÜ™Q˜[˜XÚÓØØ[\ÛÊ\ØÚ[YV›Û™J^İ^ØÛÛœİ\Ï[™]È[‘]U[YQ›Ü›X]
+	Ù[‹PĞIËİ[YV›Û™KYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	Ëİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJK™›Ü›X]Ô\Ê™]È]J\ØÚ
+JK\]\OOœ\Ë™š[™
+›İÏOœ›İË\OOO]\JOË˜[YNÜ™]\›˜	Ü\
+	ŞYX\‰Ê_KIÜ\
+	Û[Û	Ê_KIÜ\
+	Ù^IÊ_U	Ü\
+	Úİ\‰Ê_N‰Ü\
+	ÛZ[]IÊ_XXØ]ÚÜ™]\›ˆ™]È]J\ØÚ
+KÒTÓÔİš[™Ê
+KœÛXÙJMŠ__B™[˜İ[ÛˆÛÜ™Q˜[˜XÚÕ]ÓÙ™œÙ]ÙXÛÛ™Ê\ØÚ[YV›Û™J^İ^ØÛÛœİ\Ï[™]È[‘]U[YQ›Ü›X]
+	Ù[‹UTÉËİ[YV›Û™KYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	Ëİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ËÙXÛÛ™‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJK™›Ü›X]Ô\Ê™]È]J\ØÚ
+JKÙ]]\OO“[X™\Š\Ë™š[™
+›İÏOœ›İË\OOO]\JOË˜[YJKØ[Q]K•UÊÙ]
+	ŞYX\‰ÊKÙ]
+	Û[Û	ÊKLKÙ]
+	Ù^IÊKÙ]
+	Úİ\‰ÊKÙ]
+	ÛZ[]IÊKÙ]
+	ÜÙXÛÛ™	ÊJNÜ™]\›ˆX]œ›İ[™
+
+Ø[Y\ØÚ
+KÌL
+_XØ]ÚÜ™]\›ˆ_B™[˜İ[ÛˆY]›ÜØ^UÛ[ĞÛÙJŞ[X›Û
+^ØÛÛœİ˜[YOTİš[™ÊŞ[X›Û	ÉÊKÓİÙ\Ø\ÙJ
+NÚYŠ]˜[YJ\™]\›ˆÎÚYŠ˜[YKš[˜ÛY\Ê	İ[™\‰ÊJ\™]\›ˆ˜[YKš[˜ÛY\Ê	ÜÛ›İÉÊ_˜[YKš[˜ÛY\Ê	ÜÛY]	ÊOÎMNMNÚYŠ˜[YKš[˜ÛY\Ê	ÚX]\Û›İÜÚİÙ\œÉÊJ\™]\›ˆÚYŠ˜[YKš[˜ÛY\Ê	ÜÛ›İÜÚİÙ\œÉÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ÚX]\ÛY]ÚİÙ\œÉÊJ\™]\›ˆÚYŠ˜[YKš[˜ÛY\Ê	ÜÛY]ÚİÙ\œÉÊJ\™]\›ˆÎÚYŠ˜[YKš[˜ÛY\Ê	ÚX]\˜Z[œÚİÙ\œÉÊJ\™]\›ˆÚYŠ˜[YKš[˜ÛY\Ê	Ü˜Z[œÚİÙ\œÉÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ÚX]\Û›İÉÊJ\™]\›ˆÍNÚYŠ˜[YKš[˜ÛY\Ê	ÛYÚÛ›İÉÊJ\™]\›ˆÌNÚYŠ˜[YKš[˜ÛY\Ê	ÜÛ›İÉÊJ\™]\›ˆÌÎÚYŠ˜[YKš[˜ÛY\Ê	ÚX]\ÛY]	ÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ÛYÚÛY]	ÊJ\™]\›ˆÚYŠ˜[YKš[˜ÛY\Ê	ÜÛY]	ÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ÚX]\˜Z[‰ÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ÛYÚ˜Z[‰ÊJ\™]\›ˆŒNÚYŠ˜[YKš[˜ÛY\Ê	Ü˜Z[‰ÊJ\™]\›ˆŒÎÚYŠ˜[YKš[˜ÛY\Ê	Ù›ÙÉÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ØÛİYIÊJ\™]\›ˆ˜[YKš[˜ÛY\Ê	Ü\IÊOÌŒÎÚYŠ˜[YKš[˜ÛY\Ê	Ù˜Z\‰ÊJ\™]\›ˆNÚYŠ˜[YKš[˜ÛY\Ê	ØÛX\œÚŞIÊJ\™]\›ˆÜ™]\›ˆßB™[˜İ[ÛˆY]›ÜØ^R\Ñ^JŞ[X›Û
+^ØÛÛœİ˜[YOTİš[™ÊŞ[X›Û	ÉÊKÓİÙ\Ø\ÙJ
+NÚYŠ˜[YK™[™ÕÚ]
+	×ÛšYÚ	ÊJ\™]\›ˆÚYŠ˜[YK™[™ÕÚ]
+	×Ù^IÊJ\™]\›ˆNÜ™]\›ˆ˜[YKš[˜ÛY\Ê	ÜÛ\Ú[YÚ	ÊOÌŒ_B™[˜İ[ÛˆY]›ÜØ^P\\™[[\\˜]\™J[\šÚ[™\Ê^ØÛÛœİ[[X™\Š[\
+K[ZY]O[[X™\Šš
+KÚ[™SX]›X^
+[X™\ŠÚ[™\Ê_
+NÚYŠS[X™\‹š\Ñš[š]J
+J\™]\›ˆ[™Yš[™YÚYŠS[X™\‹š\Ñš[š]J[ZY]JJ\™]\›ˆØÛÛœİ˜\ÜZ[ZY]KÌL
+‹ŒLJ“X]™^
+MËŒÊÊŒÍËÊİ
+JNØÛÛœİ\\™[]
+ËŒÌÊ˜\Ü‹KÌ
+Ú[™MÜ™]\›ˆ[X™\‹š\Ñš[š]J\\™[
+OÓ[X™\Š\\™[Ñš^Y
+JJNB™[˜İ[ÛˆÚ\˜İ[\‘\™Xİ[Û“YX[Š˜[Y\Ê^ØÛÛœİ›İÜÏ]˜[Y\Ë™š[\Š[X™\‹š\Ñš[š]JNÚYŠ\›İÜË›[™İ
+\™]\›ˆØÛÛœİ\›İÜËœ™YXÙJ
+İ[K˜[YJOOœİ[JÓX]˜ÛÜÊ˜[YJ“X]”KÌN
+K
+KO\›İÜËœ™YXÙJ
+İ[K˜[YJOOœİ[JÓX]œÚ[Š˜[YJ“X]”KÌN
+K
+NÜ™]\›ŠX]˜][ŒŠK
+JŒNÓX]”JÌÍŒ
+ILÍŒB™[˜İ[ÛˆY]›ÜØ^T\š[Ù
+›İÊ^Ü™]\›ˆ›İÏË™]OË›™^ÌWÚİ\œß›İÏË™]OË›™^Í—Úİ\œß›İÏË™]OË›™^ÌL—Úİ\œß[B™[˜İ[ÛˆY]›ÜØ^T\š[Ùİ\œÊ›İÊ^Ü™]\›ˆ›İÏË™]OË›™^ÌWÚİ\œÏÌNœ›İÏË™]OË›™^Í—Úİ\œÏÍœ›İÏË™]OË›™^ÌL—Úİ\œÏÌLŒB™[˜İ[ÛˆY]›ÜØ^Q˜[˜XÚÔ^[ØY
+˜]Ë]Û‹[YV›Û™K[]˜][ÛŠ^ØÛÛœİÙ\šY\ÏP\œ˜^Kš\Ğ\œ˜^J˜]ÏËœ›Ü\Y\ÏË[Y\Ù\šY\ÊOÜ˜]Ëœ›Ü\Y\Ë[Y\Ù\šY\Î–×NÚYŠÙ\šY\Ë›[™İ
+\™]\›ˆ[ØÛÛœİ›İÏQ]K››İÊ
+K›Ü›X[\ÙY\Ù\šY\Ë›X\
+›İÏOØÛÛœİ\ØÚQ]Kœ\œÙJİš[™Ê›İÏË[Y_	ÉÊJK[œİ[\›İÏË™]OËš[œİ[Ë™]Z[ßßK\š[Ù[Y]›ÜØ^T\š[Ù
+›İÊK\š[Ùİ\œÏ[Y]›ÜØ^T\š[Ùİ\œÊ›İÊKŞ[X›Û\\š[ÙËœİ[[X\OËœŞ[X›ÛØÛÙ_	ÉË]Z[Ï\\š[ÙË™]Z[ßßK[\\˜]\™O[[X™\Š[œİ[˜Z\—İ[\\˜]\™JK[ZY]O[[X™\Š[œİ[œ™[]]™WÚ[ZY]JK]ÔÚ[[[X™\Š[œİ[™]×ÜÚ[İ[\\˜]\™JKÚ[™\Ï[[X™\Š[œİ[Ú[™ÜÜYY
+Kİ\İ\Ï[[X™\Š[œİ[Ú[™ÜÜYYÛÙ—Ùİ\İ
+K™XÚ\]][Û[[X™\Š]Z[Ëœ™XÚ\]][Û—Ø[[İ[
+K›Ø˜Xš[]O[[X™\Š]Z[Ëœ›Ø˜Xš[]WÛÙ—Ü™XÚ\]][ÛŠKÛİY[[X™\Š[œİ[˜ÛİYØ\™XWÙœ˜Xİ[ÛŠKİÏ[[X™\Š[œİ[˜ÛİYØ\™XWÙœ˜Xİ[Û—ÛİÊKZY[[X™\Š[œİ[˜ÛİYØ\™XWÙœ˜Xİ[Û—ÛYY][JKYÚ[[X™\Š[œİ[˜ÛİYØ\™XWÙœ˜Xİ[Û—ÚYÚ
+NÜ™]\›Ù\ØÚ[YN˜ÛÜ™Q˜[˜XÚÓØØ[\ÛÊ\ØÚ[YV›Û™JK]N˜ÛÜ™Q˜[˜XÚÓØØ[\ÛÊ\ØÚ[YV›Û™JKœÛXÙJL
+K[œİ[\š[Ù\š[Ùİ\œËŞ[X›Û[\\˜]\™K[ZY]K]ÔÚ[Ú[™\Ëİ\İ\Ë™XÚ\]][Û‹›Ø˜Xš[]KÛİYİËZYYÚÛÙN›Y]›ÜØ^UÛ[ĞÛÙJŞ[X›Û
+K\Ñ^N›Y]›ÜØ^R\Ñ^JŞ[X›Û
+__JK™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË™\ØÚ
+I‰“[X™\‹š\Ñš[š]J›İË[\\˜]\™JJNÚYŠ›Ü›X[\ÙY›[™İ
+\™]\›ˆ[ØÛÛœİİ\›T›İÜÏ[›Ü›X[\ÙY™š[\Š›İÏOœ›İËœ\š[Ùİ\œÏOOLI‰œ›İË™\ØÚ[›İËLŠŒÍŒ	‰œ›İË™\ØÚ[›İÊÍŠŒÍŒ
+NØÛÛœİİ\œÏZİ\›T›İÜË›[™İLNÚİ\›T›İÜÎ››Ü›X[\ÙY™š[\Š›İÏOœ›İË™\ØÚ[›İËLŠŒÍŒ	‰œ›İË™\ØÚ[›İÊÍŠŒÍŒ
+NÚYŠİ\œË›[™İ
+\™]\›ˆ[ØÛÛœİÛÜÙ\İVË‹‹šİ\œ×KœÛÜ
+
+KŠOO“X]˜XœÊK™\ØÚ[›İÊKSX]˜XœÊ‹™\ØÚ[›İÊJVÌKÛ›İÏLKMÎL‹\œ˜^\Ï^İ[YN–×K[\\˜]\™WÌ›N–×K™[]]™WÚ[ZY]WÌ›N–×K]×ÜÚ[Ì›N–×K\\™[İ[\\˜]\™N–×K™XÚ\]][Û—Ü›Ø˜Xš[]N–×K™XÚ\]][Û–×K˜Z[–×KÚİÙ\œÎ–×KÛ›İÙ˜[–×KÙX]\—ØÛÙN–×KÛİYØÛİ™\–×KÛİYØÛİ™\—ÛİÎ–×KÛİYØÛİ™\—ÛZY–×KÛİYØÛİ™\—ÚYÚ–×K™\Üİ\™WÛ\Û–×KÚ[™ÜÜYYÌLN–×KÚ[™Ù\™Xİ[Û—ÌLN–×KÚ[™Ùİ\İ×ÌLN–×K]—Ú[™^–×Kš\ÚXš[]N–×KØ\N–×KYYÚ[™^–×KÛÛ™Xİ]™WÚ[šXš][Û–×Kİ[ØÛÛ[[—Ú[YÜ˜]YİØ]\—İ˜\İ\–×K\×Ù^N–×Kİ[œÚ[™WÙ\˜][Û–×_NÙ›ÜŠÛÛœİ›İÈÙˆİ\œÊ^Ø\œ˜^\Ë[YKœ\Ú
+›İË[YJNØ\œ˜^\Ë[\\˜]\™WÌ›Kœ\Ú
+›İË[\\˜]\™JNØ\œ˜^\Ëœ™[]]™WÚ[ZY]WÌ›Kœ\Ú
+›İËš[ZY]OÏÛ[
+NØ\œ˜^\Ë™]×ÜÚ[Ì›Kœ\Ú
+›İË™]ÔÚ[ÏÛ[
+NØ\œ˜^\Ë˜\\™[İ[\\˜]\™Kœ\Ú
+Y]›ÜØ^P\\™[[\\˜]\™J›İË[\\˜]\™K›İËš[ZY]K›İËÚ[™\ÊOÏÜ›İË[\\˜]\™JNØ\œ˜^\Ëœ™XÚ\]][Û—Ü›Ø˜Xš[]Kœ\Ú
+›İËœ›Ø˜Xš[]OÏÛ[
+NØ\œ˜^\Ëœ™XÚ\]][Û‹œ\Ú
+›İËœ™XÚ\]][ÛÏÌ
+NØ\œ˜^\Ëœ˜Z[‹œ\Ú
+
+NØ\œ˜^\ËœÚİÙ\œËœ\Ú
+
+NØ\œ˜^\ËœÛ›İÙ˜[œ\Ú
+
+NØ\œ˜^\ËÙX]\—ØÛÙKœ\Ú
+›İË˜ÛÙJNØ\œ˜^\Ë˜ÛİYØÛİ™\‹œ\Ú
+›İË˜ÛİYÏÌ
+NØ\œ˜^\Ë˜ÛİYØÛİ™\—ÛİËœ\Ú
+›İË›İÏÏÛ[
+NØ\œ˜^\Ë˜ÛİYØÛİ™\—ÛZYœ\Ú
+›İË›ZYÏÛ[
+NØ\œ˜^\Ë˜ÛİYØÛİ™\—ÚYÚœ\Ú
+›İËšYÚÏÛ[
+NØ\œ˜^\Ëœ™\Üİ\™WÛ\Ûœ\Ú
+[X™\Š›İËš[œİ[˜Z\—Ü™\Üİ\™WØ]ÜÙXWÛ]™[
+OÏÛ[
+NØ\œ˜^\ËÚ[™ÜÜYYÌLKœ\Ú
+X]›X^
+
+›İËÚ[™\ÏÏÌ
+JšÛ›İÊJNØ\œ˜^\ËÚ[™Ù\™Xİ[Û—ÌLKœ\Ú
+[X™\Š›İËš[œİ[Ú[™Ùœ›ÛWÙ\™Xİ[ÛŠOÏÌ
+NØ\œ˜^\ËÚ[™Ùİ\İ×ÌLKœ\Ú
+X]›X^
+
+›İË™İ\İ\ÏÏÜ›İËÚ[™\ÏÏÌ
+JšÛ›İÊJNØ\œ˜^\Ë]—Ú[™^œ\Ú
+[
+NØ\œ˜^\Ëš\ÚXš[]Kœ\Ú
+[
+NØ\œ˜^\Ë˜Ø\Kœ\Ú
+[
+NØ\œ˜^\Ë›YYÚ[™^œ\Ú
+[
+NØ\œ˜^\Ë˜ÛÛ™Xİ]™WÚ[šXš][Û‹œ\Ú
+[
+NØ\œ˜^\Ëİ[ØÛÛ[[—Ú[YÜ˜]YİØ]\—İ˜\İ\‹œ\Ú
+[
+NØ\œ˜^\Ëš\×Ù^Kœ\Ú
+›İËš\Ñ^JNØ\œ˜^\Ëœİ[œÚ[™WÙ\˜][Û‹œ\Ú
+[
+_XÛÛœİÜ›İ\Ï[™]ÈX\
+
+NÙ›ÜŠÛÛœİ›İÈÙˆ›Ü›X[\ÙY
+^ØÛÛœİÜ›İ\YÜ›İ\Ë™Ù]
+›İË™]J_×NÙÜ›İ\œ\Ú
+›İÊNÙÜ›İ\ËœÙ]
+›İË™]KÜ›İ\
+_XÛÛœİZ[O^İ[YN–×KÙX]\—ØÛÙN–×K[\\˜]\™WÌ›WÛX^–×K[\\˜]\™WÌ›WÛZ[–×Kİ[œš\ÙN–×Kİ[œÙ]–×K™XÚ\]][Û—Üİ[N–×K˜Z[—Üİ[N–×KÚİÙ\œ×Üİ[N–×KÛ›İÙ˜[Üİ[N–×K™XÚ\]][Û—Úİ\œÎ–×K™XÚ\]][Û—Ü›Ø˜Xš[]WÛX^–×KÚ[™ÜÜYYÌLWÛX^–×KÚ[™Ùİ\İ×ÌLWÛX^–×KÚ[™Ù\™Xİ[Û—ÌLWÙÛZ[˜[–×K]—Ú[™^ÛX^–×Kİ[œÚ[™WÙ\˜][Û–×_NÙ›ÜŠÛÛœİÙ]K›İÜ×[ÙˆË‹‹™Ü›İ\Ë™[šY\Ê
+WKœÛÜ
+
+ØWKØ—JOO˜K›ØØ[PÛÛ\\™JŠJKœÛXÙJL
+J^ØÛÛœİ[\Ï\›İÜË›X\
+›İÏOœ›İË[\\˜]\™JK™š[\Š[X™\‹š\Ñš[š]JKÚ[™\›İÜË›X\
+›İÏO“X]›X^
+
+›İËÚ[™\ÏÏÌ
+JšÛ›İÊJKİ\İ\›İÜË›X\
+›İÏO“X]›X^
+
+›İË™İ\İ\ÏÏÜ›İËÚ[™\ÏÏÌ
+JšÛ›İÊJK›ØœÏ\›İÜË›X\
+›İÏOœ›İËœ›Ø˜Xš[]JK™š[\Š[X™\‹š\Ñš[š]JK™XÚ\›İÜÏ\›İÜË™š[\Š›İÏOœ›İËœ\š[Ùİ\œÏOOL_›İËœ\š[Ùİ\œÏOOM‰‰œ›İÜË™]™\Jİ\O›İ\‹œ\š[Ùİ\œÈOOL_X]˜XœÊİ\‹™\ØÚ\›İË™\ØÚ
+OKJŒÍŒ
+JK™XÚ\\™XÚ\›İÜËœ™YXÙJ
+İ[K›İÊOOœİ[JÓX]›X^
+›İËœ™XÚ\]][ÛÏÌ
+K
+K™\™\Ù[]]™OVË‹‹œ›İÜ×KœÛÜ
+
+KŠOOŠ‹œ›Ø˜Xš[]OÏÌ
+KJKœ›Ø˜Xš[]OÏÌ
+_
+‹œ™XÚ\]][ÛÏÌ
+KJKœ™XÚ\]][ÛÏÌ
+_X]˜XœÊK™\ØÚJ]Kœ\œÙJ	Ù]_ULŒŒ˜
+JJKSX]˜XœÊ‹™\ØÚJ]Kœ\œÙJ	Ù]_ULŒŒ˜
+JJJVÌ_›İÜÖÌNÚYŠ][\Ë›[™İ
+XÛÛ[YNÙZ[K[YKœ\Ú
+]JNÙZ[KÙX]\—ØÛÙKœ\Ú
+™\™\Ù[]]™OË˜ÛÙOÏÌÊNÙZ[K[\\˜]\™WÌ›WÛX^œ\Ú
+X]›X^
+‹‹[\ÊJNÙZ[K[\\˜]\™WÌ›WÛZ[‹œ\Ú
+X]›Z[Š‹‹[\ÊJNÙZ[Kœİ[œš\ÙKœ\Ú
+[
+NÙZ[Kœİ[œÙ]œ\Ú
+[
+NÙZ[Kœ™XÚ\]][Û—Üİ[Kœ\Ú
+[X™\Š™XÚ\Ñš^Y
+ŠJJNÙZ[Kœ˜Z[—Üİ[Kœ\Ú
+
+NÙZ[KœÚİÙ\œ×Üİ[Kœ\Ú
+
+NÙZ[KœÛ›İÙ˜[Üİ[Kœ\Ú
+
+NÙZ[Kœ™XÚ\]][Û—Úİ\œËœ\Ú
+›İÜË™š[\Š›İÏOœ›İËœ\š[Ùİ\œÏOOLI‰Š›İËœ™XÚ\]][ÛÏÌ
+OKŒJK›[™İ
+NÙZ[Kœ™XÚ\]][Û—Ü›Ø˜Xš[]WÛX^œ\Ú
+›ØœË›[™İÓX]›X^
+‹‹œ›ØœÊN›[
+NÙZ[KÚ[™ÜÜYYÌLWÛX^œ\Ú
+Ú[™›[™İÓX]›X^
+‹‹Ú[™
+NŒ
+NÙZ[KÚ[™Ùİ\İ×ÌLWÛX^œ\Ú
+İ\İ›[™İÓX]›X^
+‹‹™İ\İ
+NŒ
+NÙZ[KÚ[™Ù\™Xİ[Û—ÌLWÙÛZ[˜[œ\Ú
+Ú\˜İ[\‘\™Xİ[Û“YX[Š›İÜË›X\
+›İÏO›[X™\Š›İËš[œİ[Ú[™Ùœ›ÛWÙ\™Xİ[ÛŠJJJNÙZ[K]—Ú[™^ÛX^œ\Ú
+[
+NÙZ[Kœİ[œÚ[™WÙ\˜][Û‹œ\Ú
+[
+_ZYŠZ[K[YK›[™İŠ\™]\›ˆ[ØÛÛœİ›Ø˜Xš[]P]˜Z[X›O[›Ü›X[\ÙYœÛÛYJ›İÏO“[X™\‹š\Ñš[š]J›İËœ›Ø˜Xš[]JJK[]˜][Û•˜[YOS[X™\‹š\Ñš[š]J[X™\Š[]˜][ÛŠJOÓ[X™\Š[]˜][ÛŠN“[X™\Š˜]ÏË™Ù[ÛY]OË˜ÛÛÜ™[˜]\ÏË–Ì—J_İ\œ™[[œİ[XÛÜÙ\İš[œİ[İ\œ™[^İ[YN˜ÛÜÙ\İ[YK[\˜[ŒÍŒ[\\˜]\™WÌ›N˜ÛÜÙ\İ[\\˜]\™K™[]]™WÚ[ZY]WÌ›N˜ÛÜÙ\İš[ZY]OÏÌ]×ÜÚ[Ì›N˜ÛÜÙ\İ™]ÔÚ[ÏØÛÜÙ\İ[\\˜]\™K\\™[İ[\\˜]\™N›Y]›ÜØ^P\\™[[\\˜]\™JÛÜÙ\İ[\\˜]\™KÛÜÙ\İš[ZY]KÛÜÙ\İÚ[™\ÊOÏØÛÜÙ\İ[\\˜]\™K\×Ù^N˜ÛÜÙ\İš\Ñ^K™XÚ\]][Û˜ÛÜÙ\İœ™XÚ\]][ÛÏÌ˜Z[ŒÚİÙ\œÎŒÛ›İÙ˜[ŒÙX]\—ØÛÙN˜ÛÜÙ\İ˜ÛÙKÛİYØÛİ™\˜ÛÜÙ\İ˜ÛİYÏÌÛİYØÛİ™\—ÛİÎ˜ÛÜÙ\İ›İÏÏÌÛİYØÛİ™\—ÛZY˜ÛÜÙ\İ›ZYÏÌÛİYØÛİ™\—ÚYÚ˜ÛÜÙ\İšYÚÏÌ™\Üİ\™WÛ\Û›[X™\Šİ\œ™[[œİ[˜Z\—Ü™\Üİ\™WØ]ÜÙXWÛ]™[
+OÏÌÚ[™ÜÜYYÌLN“X]›X^
+
+ÛÜÙ\İÚ[™\ÏÏÌ
+JšÛ›İÊKÚ[™Ù\™Xİ[Û—ÌLN›[X™\Šİ\œ™[[œİ[Ú[™Ùœ›ÛWÙ\™Xİ[ÛŠOÏÌÚ[™Ùİ\İ×ÌLN“X]›X^
+
+ÛÜÙ\İ™İ\İ\ÏÏØÛÜÙ\İÚ[™\ÏÏÌ
+JšÛ›İÊ_NÜ™]\›Û]]YN›]Û™Ú]YN›Û‹[]˜][Û™[]˜][Û•˜[YK[Y^›Û™N[YV›Û™K[Y^›Û™WØX˜œ™]šX][Û‰ÉË]×ÛÙ™œÙ]ÜÙXÛÛ™Î˜ÛÜ™Q˜[˜XÚÕ]ÓÙ™œÙ]ÙXÛÛ™Ê›İË[YV›Û™JKİ\œ™[İ\›N˜\œ˜^\ËZ[KÛZYØÛÜ™WÜ›ŞNÜ›İšY\‰ÓQU›ÜØ^HØØ][Û™›Ü™XØ\İ	Ë˜[˜XÚÎYKÛİ\˜ÙU\]Y]”İš[™Ê˜]ÏËœ›Ü\Y\ÏË›Y]OË\]YØ]	ÉÊKÜš^›Û‘^\Î™Z[K[YK›[™İ™XÚ\]][Û”›Ø˜Xš[]P]˜Z[X›Nœ›Ø˜Xš[]P]˜Z[X›___B˜\Ş[˜È[˜İ[ÛˆY]›ÜØ^PÛÜ™Q›Ü™XØ\İ
+]Û‹[YV›Û™K[]˜][ÛŠ^ØÛÛœİ\›[™]ÈT“
+QUÓ“Ô•ĞVWÓĞĞUSÓ‘“Ô‘PĞTÕ
+Nİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ë]Ñš^Y
+
+JNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰ËÛ‹Ñš^Y
+
+JNÚYŠ[X™\‹š\Ñš[š]J[X™\Š[]˜][ÛŠJJ]\›œÙX\˜Ú\˜[\ËœÙ]
+	Ø[]YIËİš[™ÊX]œ›İ[™
+[X™\Š[]˜][ÛŠJJJNØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J\›Ôİš[™Ê
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸHÎ‹ËÛZYŞ˜\ØKÙØØXÚUŒØXÚQ]™\][™ÎY__KN
+K^X]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØYİ^Ü^[ØYR”ÓÓ‹œ\œÙJ^
+_XØ]ÚßZYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠQU›ÜØ^HØØ][Û™›Ü™XØ\İ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİX\Y[Y]›ÜØ^Q˜[˜XÚÔ^[ØY
+^[ØY]Û‹[YV›Û™K[]˜][ÛŠNÚYŠ[X\Y
+]›İÈ™]È\œ›ÜŠ	ÓQU›ÜØ^HØØ][Û™›Ü™XØ\İYY™\HÙZ[™[ˆ™[\İ˜\™[ˆÙ\›™›Ü™XØ\İ‰ÊNÜ™]\›ˆX\YB˜\Ş[˜È[˜İ[ÛˆÜ[“Y][ĞÛÜ™Q›Ü™XØ\İ
+\›
+^ÂˆÛÛœİ˜]Ó][[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	Û]	ÊJK˜]ÓÛ[[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛÛ‰ÊJK™Yœ™\Ú]\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ü™Yœ™\Ú	ÊOOOIÌIÎÂˆYŠS[X™\‹š\Ñš[š]J˜]Ó]
+_S[X™\‹š\Ñš[š]J˜]ÓÛŠ_X]˜XœÊ˜]Ó]
+OLX]˜XœÊ˜]ÓÛŠOŒN
+\™]\›ˆœÛÛŠÙ\œ›Ü‰ÙğïYÙH]ÛÛˆ\™›Ü™\›XÚ	Ë™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆÛÛœİ]S[X™\Š˜]Ó]Ñš^Y
+ÊJKÛS[X™\Š˜]ÓÛ‹Ñš^Y
+ÊJKØXÚYX]ØZ]™XYÛÜ™Q›Ü™XØ\İYÙPØXÚJ]ÛŠKØXÚYY]OXØXÚYËœ^[ØYË—ÛZYØÛÜ™WÜ›ŞI‰\[ÙˆØXÚYœ^[ØY—ÛZYØÛÜ™WÜ›ŞOOOIÛØš™Xİ	ÏØØXÚYœ^[ØY—ÛZYØÛÜ™WÜ›ŞNßNÂˆÛÛœİØXÚY™\ÜÛœÙOJ^˜O^ßJOOšœÛÛŠË‹‹˜ØXÚYœ^[ØYÛZYØÛÜ™WÜ›ŞNË‹‹˜ØXÚYY]K›İšY\‰ÓÜ[‹SY][È™\İX]Ú	Ë˜[˜XÚÎ™˜[ÙK™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓ‹ØXÚYYKYÙS\Î˜ØXÚY˜YÙK‹‹™^˜__KŒÉØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOMŒİ[K]Ú[K\™]˜[Y]OMŒ	ßJNÂˆYŠ\™Yœ™\Ú	‰˜ØXÚY	‰˜ØXÚY˜YÙOPÓÔ‘WÑ“Ô‘PĞTÕÑQÑWÑ”‘TÒÓTÊ\™]\›ˆØXÚY™\ÜÛœÙJÜİ[N™˜[Ù_JNÂˆÛÛœİ]Y\O[™]ÈT“ÙX\˜Ú\˜[\ÊÛ]]YN”İš[™Ê]
+KÛ™Ú]YN”İš[™ÊÛŠK[Y^›Û™N‰Ø]]ÉË›Ü™XØ\İÙ^\Î‰ÌM	Ë›Ü™XØ\İÛZ[][WÌMN‰Ì	Ë\İÛZ[][WÌMN‰Í	Ë[Ù[Î‰Ø™\İÛX]Ú	ËÚ[™ÜÜYYİ[š]‰ÚÛ‰Ëİ\œ™[ÓÔ‘WÑ“Ô‘PĞTÕĞÕT”‘S•Z[][WÌMNÓÔ‘WÑ“Ô‘PĞTÕÓRS•USKİ\›NÓÔ‘WÑ“Ô‘PĞTÕÒÕT“KZ[NÓÔ‘WÑ“Ô‘PĞTÕÑRS_JNÂˆ^ÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÓÔS—ÓQUS×Ñ“Ô‘PĞTÕOÉÜ]Y\_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒLŒØXÚQ]™\][™ÎY__KN
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØYİ^Ü^[ØYR”ÓÓ‹œ\œÙJ›ÙJ_XØ]ÚßBˆYŠ™\ÜÛœÙK›ÚÉ‰˜[YÛÜ™Q›Ü™XØ\İ^[ØY
+^[ØY
+J^ØÛÛœİİÜ™Y^Ë‹‹œ^[ØYÛZYØÛÜ™WÜ›ŞNÜ›İšY\‰ÓÜ[‹SY][È™\İX]Ú	Ë˜[˜XÚÎ™˜[ÙKÚXÚÙY]›™]È]J
+KÒTÓÔİš[™Ê
+__NØ]ØZ]Üš]PÛÜ™Q›Ü™XØ\İYÙPØXÚJ]Û‹İÜ™Y
+NÜ™]\›ˆœÛÛŠË‹‹œİÜ™YÛZYØÛÜ™WÜ›ŞNË‹‹œİÜ™Y—ÛZYØÛÜ™WÜ›ŞK™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓ‹ØXÚY™˜[Ù__KŒÉØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOLLŒİ[K]Ú[K\™]˜[Y]OMŒ	ßJ_BˆÛÛœİ™X\ÛÛTİš[™Ê^[ØYËœ™X\ÛÛŸ^[ØYË™\œ›ÜŸÜ[‹SY][ÈÙ\››Üš\œØYÙH	Ü™\ÜÛœÙKœİ]\ßX
+NÚYŠØXÚY
+\™]\›ˆØXÚY™\ÜÛœÙJÜİ[NYK\İ™X[Tİ]\Îœ™\ÜÛœÙKœİ]\Ë\İ™X[T™X\ÛÛœ™X\ÛÛŸJNÜ™]\›ˆœÛÛŠÙ\œ›Ü‰ÓÜ[‹SY][È™\İX]Ú›Ü°ï™\™ÙZ[™šXÚ\œ™ZXÚ˜\‹‰Ë\İ™X[Tİ]\Îœ™\ÜÛœÙKœİ]\Ë\İ™X[T™X\ÛÛœ™X\ÛÛ‹™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸK™\ÜÛœÙKœİ]\ÏOOMOÍNL‹ÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJBˆXØ]Ú
+\œ›ÜŠ^ØÛÛœİ™X\ÛÛY\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠNÚYŠØXÚY
+\™]\›ˆØXÚY™\ÜÛœÙJÜİ[NYK\İ™X[T™X\ÛÛœ™X\ÛÛŸJNÜ™]\›ˆœÛÛŠÙ\œ›Ü‰ÓÜ[‹SY][È™\İX]Ú›Ü°ï™\™ÙZ[™šXÚ\œ™ZXÚ˜\‹‰Ë\İ™X[T™X\ÛÛœ™X\ÛÛ‹™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKL‹ÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJ_BŸB‚˜\Ş[˜È[˜İ[ÛˆÜ[“Y][Ñ[œÙ[X›T›ŞJ\›[Š^ÂˆÛÛœİ][[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	Û]	ÊJKÛ[[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛÛ‰ÊJK^\ÏSX]›X^
+KX]›Z[ŠMKX]˜ÙZ[
+[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ù›Ü™XØ\İÙ^\ÉÊJ_M
+JJK[Ù[Tİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	Û[Ù[	Ê_	ÉÊKš[J
+K™\]Y\İYTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	İ˜\šXX›\ÉÊ_	İ[\\˜]\™WÌ›K™XÚ\]][Û‰ÊKœÜ]
+	Ë	ÊK›X\
+˜[YOO˜[YKš[J
+JK™š[\Š›ÛÛX[ŠK[İÙY˜\šXX›\Ï[™]ÈÙ]
+Éİ[\\˜]\™WÌ›IË	İ[\\˜]\™WÌ›WÜÜ™XY	Ë	Ü™XÚ\]][Û‰Ë	Ü™XÚ\]][Û—ÜÜ™XY	Ë	Üİ[œÚ[™WÙ\˜][Û‰Ë	Üİ[œÚ[™WÙ\˜][Û—ÜÜ™XY	Ë	İÚ[™ÜÜYYÌLIË	İÚ[™Ùİ\İ×ÌLIË	ØÛİYØÛİ™\‰Ë	ØÛİYØÛİ™\—ÛİÉË	ØÛİYØÛİ™\—ÛZY	Ë	ØÛİYØÛİ™\—ÚYÚ	×JNÂˆYŠS[X™\‹š\Ñš[š]J]
+_S[X™\‹š\Ñš[š]JÛŠ_X]˜XœÊ]
+OLX]˜XœÊÛŠOŒN
+\™]\›ˆœÛÛŠÙ\œ›Ü‰ÙğïYÙH]ÛÛˆ\™›Ü™\›XÚ	ßKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆYŠK×–ØK^ŒNW×^ÌËIÚK\İ
+[Ù[
+J\™]\›ˆœÛÛŠÙ\œ›Ü‰İ[™ğïYÙ\È[œÙ[X›[[Ù[	ßKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆÛÛœİ˜\šXX›\ÏVË‹‹›™]ÈÙ]
+™\]Y\İY™š[\Š˜[YOO˜[İÙY˜\šXX›\Ëš\Ê˜[YJJJWNÚYŠ]˜\šXX›\Ë›[™İ
+\™]\›ˆœÛÛŠÙ\œ›Ü‰ÚÙZ[™H[0éÜÚYÙ[ˆ[œÙ[X›]˜\šXX›[‰ßKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆYŠ‘QÒSÓSÑS”ÑSP“WĞQTT”ÖÛ[Ù[J^İ^Ü™]\›ˆœÛÛŠ]ØZ]™YÚ[Û˜[[œÙ[X›PY\\”^[ØY
+[Ù[]Û‹^\Ë˜\šXX›\Ë[ŠKŒÉØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOMŒ	ßJ_XØ]Ú
+\œ›ÜŠ^Ü™]\›ˆœÛÛŠÙ\œ›Ü™\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠKÛÛ™šYİ\™Yœ™YÚ[Û˜[[œÙ[X›PÛÛ™šYİ\™Y
+[Ù[‘QÒSÓSÑS”ÑSP“WĞQTT”ÖÛ[Ù[K[ŠK™\]Z\™Y™\œ›ÜË›ZY™\]Z\™YÔ‘QÒSÓSÑS”ÑSP“WĞQTT”ÖÛ[Ù[K™[™Ú[K[Ù[™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸK[X™\Š\œ›ÜË›ZYİ]\Ê_LËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJ__BˆÛÛœİ]Y\O[™]ÈT“ÙX\˜Ú\˜[\ÊÛ]]YN”İš[™Ê]
+KÛ™Ú]YN”İš[™ÊÛŠK[Y^›Û™N‰Ø]]ÉË›Ü™XØ\İÙ^\Î”İš[™Ê^\ÊK[Ù[Î›[Ù[İ\›N˜\šXX›\Ëš›Ú[Š	Ë	ÊKÚ[™ÜÜYYİ[š]‰ÚÛ‰ßJNÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÓÔS—ÓQUS×ÑS”ÑSP“_OÉÜ]Y\_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰ß_KN
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÂˆYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆœÛÛŠÙ\œ›Ü˜Ü[‹SY][È[œÙ[X›H	Ü™\ÜÛœÙKœİ]\ßX\İ™X[N˜›ÙKœÛXÙJ
+_K™\ÜÛœÙKœİ]\ÏMLÍLœ™\ÜÛœÙKœİ]\ËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆ^Ü™]\›ˆœÛÛŠ”ÓÓ‹œ\œÙJ›ÙJKŒÉØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOMŒ	ßJ_XØ]ÚÜ™]\›ˆœÛÛŠÙ\œ›Ü‰Õ[™ğïYÙH[œÙ[X›KP[ÛÜ	ßKL‹ÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJ_BŸB˜ÛÛœİÔS—ÓQUS×ÓQUWĞSPTÑTÏ^ÙXÛ]Ù—ØZYœÌN–ÉÙXÛ]Ù—ØZYœÌWÜÚ[™ÛIË	ÙXÛ]Ù—ØZYœÌI×KXÛ]Ù—ØZYœÎ–ÉÙXÛ]Ù—ØZYœÌWÜÚ[™ÛIË	ÙXÛ]Ù—ØZYœÉ×KXÛ]Ù—ØZYœÌWÜÚ[™ÛN–ÉÙXÛ]Ù—ØZYœÌWÜÚ[™ÛI×_NÂ™[˜İ[Ûˆ[Ù[Y]Qœ™\Ú
+^[ØY
+^ØÛÛœİ˜]Ï[[X™\Š^[ØYË›\İÜ[—Ú[š]X[\Ø][Û—İ[YJK[š]\ÏS[X™\‹š\Ñš[š]J˜]ÊOÊ˜]ÏŒLÜ˜]Îœ˜]ÊŒL
+N“˜S‹\]TÙXÛÛ™ÏSX]›X^
+ÍŒ[X™\Š^[ØYË\]WÚ[\˜[ÜÙXÛÛ™Ê_ŒMŒ
+KX^[][PYÙS\ÏSX]›X^
+N
+ŒÍŒX]›Z[ŠÌŠŒÍŒ\]TÙXÛÛ™Ê
+ÍŠŒÍŒ
+JNÜ™]\›ˆ[X™\‹š\Ñš[š]J[š]\ÊI‰š[š]\ÏQ]K››İÊ
+JÌŠŒÍŒ	‰‘]K››İÊ
+KZ[š]\Ï[X^[][PYÙS\ßB˜\Ş[˜È[˜İ[ÛˆÜ[“Y][Ó[Ù[Y]J\›
+^ÂˆÛÛœİ™\]Y\İYTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	Û[Ù[	Ê_	ÉÊKš[J
+KÚ[™]\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÚÚ[™	ÊOOOIÙ›Ü™XØ\İ	ÏÉÙ›Ü™XØ\İ	Î‰Ù[œÙ[X›IÎÚYŠK×–ØK^ŒNW×^ÌËIÚK\İ
+™\]Y\İY
+J\™]\›ˆœÛÛŠÙ\œ›Ü‰İ[™ğïYÙ\È[Ù[	ßKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆÛÛœİÜİZÚ[™OOIÙ›Ü™XØ\İ	ÏÉÚÎ‹ËØ\K›Ü[‹[Y][Ë˜ÛÛIÎ‰ÚÎ‹ËÙ[œÙ[X›KX\K›Ü[‹[Y][Ë˜ÛÛIË[Ù[ÏSÔS—ÓQUS×ÓQUWĞSPTÑTÖÜ™\]Y\İY_Ü™\]Y\İYK\œ›ÜœÏV×NÂˆ›ÜŠÛÛœİ[Ù[Ùˆ[Ù[Ê^İ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÚÜİKÙ]KÉÛ[Ù[KÜİ]XËÛY]KšœÛÛØØXÚWØ\İ\IÑ]K››İÊ
+_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰ß_KL
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÚYŠ\™\ÜÛœÙK›ÚÊ^Ù\œ›ÜœËœ\Ú
+	Û[Ù[Nˆ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛ[Y_XÛÛœİ^[ØYR”ÓÓ‹œ\œÙJ›ÙJNÚYŠ[[Ù[Y]Qœ™\Ú
+^[ØY
+J^Ù\œ›ÜœËœ\Ú
+	Û[Ù[Nˆ™\˜[]\ˆ[Ù[İ[™
+NØÛÛ[Y_\™]\›ˆœÛÛŠË‹‹œ^[ØYÛZYÜ™\]Y\İYÛ[Ù[œ™\]Y\İYÛZYÛY]Y]WÛ[Ù[›[Ù[ÛZYÛY]Y]WÜÛİ\˜ÙN‰ÓÜ[‹SY][ÈY]Y]HTIßKŒÉØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOLÌ	ßJ_XØ]Ú
+\œ›ÜŠ^Ù\œ›ÜœËœ\Ú
+	Û[Ù[Nˆ	Ù\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_X
+__Bˆ™]\›ˆœÛÛŠÙ\œ›Ü˜ÙZ[™HZİY[[ˆÜ[‹SY][ËS[Ù[Y]Y][ˆ	Ù\œ›ÜœËš›Ú[Š	È	Ê_XKLËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂŸB‚˜ÛÛœİÑÔTQÓQUO^Âˆ	ÚXÛÛ‹Y‹\XÉÎÜ]‰ÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹ÛÜİŒKÛKÚXÛÛ‹Y‹\XËÜÕÕÔ‘PËÜ‹ÉËX™[‰ÑÑPÓÓ‹Q‹T•PÉËÚ[™‰Ù›Ü™XØ\İ	Ë™\ÛÛ][Û’ÛNŒ‹›Ü™XØ\İÜš^›Û’İ\œÎŒM[\Ü˜[™\ÛÛ][Û”ÙXÛÛ™ÎŒÌKˆ	ÚXÛÛ‹Y‹\XËY\ÉÎÜ]‰ÚÎ‹ËÛÜ[™]K™Ù™KİÙX]\‹ÛÜİŒKÛKÚXÛÛ‹Y‹\XËY\ËÜÕÕÔ‘P×ÑÜ‹ÉËX™[‰ÑÑPÓÓ‹Q‹T•PËQTÉËÚ[™‰Ù[œÙ[X›IË™\ÛÛ][Û’ÛNŒ‹›Ü™XØ\İÜš^›Û’İ\œÎŒM[\Ü˜[™\ÛÛ][Û”ÙXÛÛ™ÎŒÍŒY[X™\œÎŒŒBŸNÂ™[˜İ[ÛˆÙ\XÚU[Y\İ[\
+˜[YJ^ØÛÛœİX]ÚTİš[™Ê˜[Y_	ÉÊK›X]Ú
+ÊÌŸJKJĞKV˜K^—^ÌßJKJÍJWÊÊÌŸJNŠÌŸJJÎŠÌŸJJOËÊNÚYŠ[X]Ú
+\™]\›ˆ˜SØÛÛœİ[ÛÏ^Ò˜[Œ™XŒKX\Œ‹\ŒËX^N[K[‹]YÎËÙ\ØİK›İŒLXÎŒL_K[Û[[ÛÖÛX]ÚÌ—WNÜ™]\›ˆ[X™\‹š\Ñš[š]J[Û
+OÑ]K•UÊ[X™\ŠX]ÚÌ×JK[Û[X™\ŠX]ÚÌWJK[X™\ŠX]ÚÍJK[X™\ŠX]ÚÍWJK[X™\ŠX]ÚÍ—_
+JN“˜SŸB˜\Ş[˜È[˜İ[ÛˆÙ˜\Y[Ù[Y]J\›
+^ÂˆÛÛœİ™\]Y\İYTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	Û[Ù[	Ê_	ÚXÛÛ‹Y‹\XÉÊKš[J
+KÓİÙ\Ø\ÙJ
+KÛÛ™šYÏQÑÔTQÓQUVÜ™\]Y\İYNÚYŠXÛÛ™šYÊ\™]\›ˆœÛÛŠÙ\œ›Ü‰İ[˜™ZØ[›\ÈÑT˜\YU\]KS[Ù[	ßKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆ^ÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™JÛÛ™šYËœ]ÚXY\œÎĞXØÙ\‰İ^Ú[	Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒÌØXÚQ]™\][™ÎY__KL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÑÜ[ˆ]H	Ü™\ÜÛœÙKœİ]\ßX
+NÂˆÛÛœİ[X]ØZ]™\ÜÛœÙK^
+
+K[œÏVË‹‹š[›X]Ú[
+Ú™YVÈ‰×OÊŒÌŸKWÌŸKWÌŸUÌŸJÎŸ	LĞJL
+WÖÈ‰×OÖ×———JÊÌŸKVĞKV˜K^—^ÌßKWÍWÊ×ÌŸN—ÌŸJÎ—ÌŸJOÊOËÙÚJWK›X\
+X]ÚOŠÜ[›X]ÚÌWKœ™\XÙJÉLĞKÚYË	Î‰ÊK[ÙYšYY›X]ÚÌ—_JJKœÛÜ
+
+KŠOO˜Kœ[‹›ØØ[PÛÛ\\™J‹œ[ŠJK]\İ\[œË˜]
+LJNÚYŠ[]\İ
+]›İÈ™]È\œ›ÜŠ	ÑÑ˜\YU\]KR[™^[0éÙZ[™[ˆZİY[[ˆ]Y‹‰ÊNÂˆÛÛœİ[š]\ÏQ]Kœ\œÙJ	Û]\İœ[ŸNŒ˜
+K[ÙYšYY\ÏYÙ\XÚU[Y\İ[\
+]\İ›[ÙYšYY
+KYÙRİ\œÏJ]K››İÊ
+KZ[š]\ÊKÌÍŒÚYŠS[X™\‹š\Ñš[š]J[š]\Ê_YÙRİ\œÏŠ]›İÈ™]È\œ›ÜŠÑ	ØÛÛ™šYË›X™[Nˆ]\ˆ]Yˆ\İH[˜
+NÂˆ]Üš^›ÛXÛÛ™šYË™›Ü™XØ\İÜš^›Û’İ\œË[\Ü˜[™\ÛÛ][ÛXÛÛ™šYË[\Ü˜[™\ÛÛ][Û”ÙXÛÛ™ÎÂˆËÈ\ˆÑØ[›ˆ]Y›Y[™ÙKÖ™Z]ØÚš]H[œ\ÜÙ[‹ˆ°ïˆ[ˆ]\›Z[š\İ\ØÚ[ˆ•PÂˆËÈÚ\™\Ú[ˆ\ˆZİY[™\°í™™™[XÚHËËR[™^]\ÙÙ]Ù\]İ]Z[‚ˆËÈ\İÜš\ØÚ\ˆ
+ÌMZUÙ\]Y\šY™\İ™\™˜Z]‚ˆYŠ™\]Y\İYOOIÚXÛÛ‹Y‹\XÉÊ]^ÂˆÛÛœİİ\™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ØÛÛ™šYËœ]IÛ]\İœ[ŸKÜËØÚXY\œÎĞXØÙ\‰İ^Ú[	Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒÌØXÚQ]™\][™ÎY__KÌ
+NÂˆYŠİ\™\ÜÛœÙK›ÚÊ^ØÛÛœİİ\[X]ØZ]İ\™\ÜÛœÙK^
+
+KZ[]\ÏVË‹‹œİ\[›X]Ú[
+Ô
+ÌßJR
+ÌŸJSW™ÜšXŒ‹ÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWJJŒ
+Ó[X™\ŠX]ÚÌ—JJK™š[\Š[X™\‹š\Ñš[š]JKœÛÜ
+
+KŠOO˜KXŠNÚYŠZ[]\Ë›[™İ
+^ÚÜš^›ÛSX]›X^
+‹‹›Z[]\ÊKÍŒØÛÛœİY™œÏ[Z[]\ËœÛXÙJJK›X\
+
+˜[YK[™^
+OO˜[YK[Z[]\ÖÚ[™^JK™š[\Š˜[YOO˜[YOŒ
+NÚYŠY™œË›[™İ
+][\Ü˜[™\ÛÛ][ÛSX]›Z[Š‹‹™Y™œÊJŒ_BˆXØ]ÚßBˆ™]\›ˆœÛÛŠÛ\İÜ[—Ú[š]X[\Ø][Û—İ[YNš[š]\ËÌL\İÜ[—Ø]˜Z[Xš[]Wİ[YN“[X™\‹š\Ñš[š]J[ÙYšYY\ÊOÛ[ÙYšYY\ËÌL[™Yš[™Y\]WÚ[\˜[ÜÙXÛÛ™ÎŒÍŒ[\Ü˜[Ü™\ÛÛ][Û—ÜÙXÛÛ™Î[\Ü˜[™\ÛÛ][Û‹ÛZYÜ™\]Y\İYÛ[Ù[œ™\]Y\İYÛZYÛY]Y]WÛ[Ù[œ™\]Y\İYÛZYÛY]Y]WÜÛİ\˜ÙN‰ÑÑÜ[ˆ]IËÛZYÛX™[˜ÛÛ™šYË›X™[ÛZYÜ˜\Yİ\]NYKÛZYÜ™\ÛÛ][Û—ÚÛN˜ÛÛ™šYËœ™\ÛÛ][Û’ÛKÛZYÙ›Ü™XØ\İÚÜš^›Û—Úİ\œÎšÜš^›Û‹ÛZYÛY[X™\œÎ˜ÛÛ™šYË›Y[X™\œßKŒÉØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOLÌİ[K]Ú[K\™]˜[Y]OLÌ	ßJBˆXØ]Ú
+\œ›ÜŠ^Ü™]\›ˆœÛÛŠÙ\œ›Ü™\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_KLËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJ_BŸB‚˜ÛÛœİ“Ô‘PĞTÕÑ•TÒSÓ—ÑRSOIİÙX]\—ØÛÙK[\\˜]\™WÌ›WÛX^[\\˜]\™WÌ›WÛZ[‹™XÚ\]][Û—Üİ[K˜Z[—Üİ[KÚİÙ\œ×Üİ[KÛ›İÙ˜[Üİ[K™XÚ\]][Û—Úİ\œË™XÚ\]][Û—Ü›Ø˜Xš[]WÛX^Ú[™ÜÜYYÌLWÛX^Ú[™Ùİ\İ×ÌLWÛX^Ú[™Ù\™Xİ[Û—ÌLWÙÛZ[˜[İ[œÚ[™WÙ\˜][Û‰ÎÂ˜ÛÛœİ“Ô‘PĞTÕÑ•TÒSÓ—ÒÕT“OIİ[\\˜]\™WÌ›K]×ÜÚ[Ì›K™\Üİ\™WÛ\ÛÚ[™ÜÜYYÌLKÚ[™Ùİ\İ×ÌLKÚ[™Ù\™Xİ[Û—ÌLK™XÚ\]][Û‹™XÚ\]][Û—Ü›Ø˜Xš[]K˜Z[‹ÚİÙ\œËÛ›İÙ˜[ÙX]\—ØÛÙKÛİYØÛİ™\‹ÛİYØÛİ™\—ÛİË™[]]™WÚ[ZY]WÌ›KØ\KYYÚ[™^ÛÛ™Xİ]™WÚ[šXš][Û‹İ[œÚ[™WÙ\˜][Û‹\×Ù^IÎÂ˜ÛÛœİ“Ô‘PĞTÕÑ•TÒSÓ—ÑUT“ÔOVËLKÌKÌ—NÂ˜ÛÛœİ“Ô‘PĞTÕÑ•TÒSÓ—ÓSÑSÏVÂˆÚY‰Ø™\İÛX]Ú	Ë\RYÎ–ÉØ™\İÛX]Ú	×KX™[‰ÓÜ[‹SY][È™\İX]Ú	Ë˜[Z[N‰Ø™\İ[X]Ú	Ë[™\[™[˜ÙQÜ›İ\‰Ø[˜ÚÜ‰Ë›İšY\‰ÓÜ[‹SY][ÉËY\ŒKX^^\ÎŒM[˜ÚÜYKÛÛœÙ[œİ\Ô›ÛN‰Ø[˜ÚÜ‰ßKˆËÈPÓÓ‹Q‹T•PÈ\İİ[™‹ŒKŒŒˆÙZ[ˆÜ[‹SY][ËS[Ù[ˆRQ™^šYZ[‚ˆËÈİ0ï™XÚZİX[\ÚY\[ˆ•PÈ\Ú[ˆ]\ÜØÚYpçÛXÚ0ï™\ˆ[ˆZYÙ[™[ˆÑ8¡¤”YÙ\ËÔŒ‹BˆËÈ[šİY\\‹ˆY\˜Ú[İZ[ˆÙY\ˆPØ\Xš[]KT›Ø™\È›ØÚZ[™H˜[ØÚBˆËÈÛZXÚÙ][™ÈZ][H™Yİ[0é™[‹\ˆË\İ0ï™XÚZİX[\ÚY\[ˆÜ[‹SY][ÈPÓÓ‹Q‹‚ˆÚY‰ÚXÛÛ—Ù—ÜXÉË\RYÎ–×KX™[‰ÑÑPÓÓ‹Q‹T•PÉË˜[Z[N‰ÙÙZXÛÛ‹\XÉË[™\[™[˜ÙQÜ›İ\‰ÙÙZXÛÛ‰Ë›İšY\‰ÑÑ	ËY\ŒKX^^\ÎŒKX^İ\œÎŒM˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒ‹˜›Ş–ËLËKËŒNŒŒŒ‹NŒWK\™XİÛ›NY_KˆÚY‰ÚXÛÛ—Ù‰Ë\RYÎ–ÉÚXÛÛ—Ù‰Ë	ÙÙÚXÛÛ—Ù‰×KX™[‰ÑÑPÓÓ‹Q‰Ë˜[Z[N‰ÙÙZXÛÛ‰Ë[™\[™[˜ÙQÜ›İ\‰ÙÙZXÛÛ‰Ë›İšY\‰ÑÑ	ËY\ŒKX^^\ÎŒ‹\]Rİ\œÎŒË™\ÛÛ][Û’ÛNŒ‹Ûİ[šY\Î–ÉÑIË	ĞU	Ë	ĞÒ	×K˜›Ş–ËM‹Ë‹N_KˆÚY‰ÚXÛÛ—Ù]IË\RYÎ–ÉÚXÛÛ—Ù]IË	ÙÙÚXÛÛ—Ù]I×KX™[‰ÑÑPÓÓ‹QUIË˜[Z[N‰ÙÙZXÛÛ‰Ë[™\[™[˜ÙQÜ›İ\‰ÙÙZXÛÛ‰Ë›İšY\‰ÑÑ	ËY\ŒKX^^\ÎK\]Rİ\œÎŒË™\ÛÛ][Û’ÛNË˜›Ş‘“Ô‘PĞTÕÑ•TÒSÓ—ÑUT“Ô_KˆÚY‰ÚXÛÛ—ÙÛØ˜[	Ë\RYÎ–ÉÚXÛÛ—ÙÛØ˜[	Ë	ÙÙÚXÛÛ‰×KX™[‰ÑÑPÓÓˆÛØ˜[	Ë˜[Z[N‰ÙÙZXÛÛ‰Ë[™\[™[˜ÙQÜ›İ\‰ÙÙZXÛÛ‰Ë›İšY\‰ÑÑ	ËY\ŒËX^^\ÎËK\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒL_KˆÚY‰ÚÛ›ZWÚ\›[ÛšYWÙ]\›ÜIË\RYÎ–ÉÚÛ›ZWÚ\›[ÛšYWØ\›ÛYWÙ]\›ÜIË	ÚÛ›ZWÜÙX[[\ÜÉ×KX™[‰ÒÓ“RHT“SÓ’QKPT“ÓQH]\›ÜIË˜[Z[N‰ÚÛ›ZKZ\›[ÛšYIË[™\[™[˜ÙQÜ›İ\‰İ]ØË]Ù\İZ\›[ÛšYIË›İšY\‰ÒÓ“RIËY\ŒKX^^\ÎŒË˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNKK˜›Ş–ËLL‹Ì‹_KˆÚY‰ÚÛ›ZWÚ\›[ÛšYIË\RYÎ–ÉÚÛ›ZWÚ\›[ÛšYWØ\›ÛYWÛ™]\›[™ÉË	ÚÛ›ZWÜÙX[[\ÜÉ×KX™[‰ÒÓ“RHT“SÓ’QKPT“ÓQH“	Ë˜[Z[N‰ÚÛ›ZKZ\›[ÛšYIË[™\[™[˜ÙQÜ›İ\‰İ]ØË]Ù\İZ\›[ÛšYIË›İšY\‰ÒÓ“RIËY\ŒKX^^\ÎŒË˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒ‹Ûİ[šY\Î–ÉÓ“	Ë	Ğ‘IË	ÓI×K˜›Ş–ËL‹L‹M—_KˆÚY‰ÛY][ÜİÚ\Ü×ÚXÛÛ—ØÚIË\RYÎ–ÉÛY][ÜİÚ\Ü×ÚXÛÛ—ØÚI×KX™[‰ÓY][ÔİÚ\ÜÈPÓÓ‹PÒIË˜[Z[N‰ÛY][ÜİÚ\ÜËZXÛÛ‰Ë[™\[™[˜ÙQÜ›İ\‰ÛY][ÜİÚ\ÜËZXÛÛ‰Ë›İšY\‰ÓY][ÔİÚ\ÜÉËY\ŒKX^^\ÎŒK\]Rİ\œÎŒË™\ÛÛ][Û’ÛNŒKÛİ[šY\Î–ÉĞÒ	×K˜›Ş–ÌËËNL_KˆÚY‰ÛY][ÜİÚ\Ü×ÚXÛÛ—ØÚ‰Ë\RYÎ–ÉÛY][ÜİÚ\Ü×ÚXÛÛ—ØÚ‰×KX™[‰ÓY][ÔİÚ\ÜÈPÓÓ‹PÒ‰Ë˜[Z[N‰ÛY][ÜİÚ\ÜËZXÛÛ‰Ë[™\[™[˜ÙQÜ›İ\‰ÛY][ÜİÚ\ÜËZXÛÛ‰Ë›İšY\‰ÓY][ÔİÚ\ÜÉËY\ŒKX^^\ÎK\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒ‹Ûİ[šY\Î–ÉĞÒ	×K˜›Ş–ÌËËNL_KˆÚY‰ÙÙ[ÜÜ\™WØ\›ÛYIË\RYÎ–ÉÙÙ[ÜÜ\™WØ\›ÛYWØ]\İšXI×KX™[‰ÑÙ[ÔÜ\™HT“ÓQH]\İšXIË˜[Z[N‰ÙÙ[ÜÜ\™KX\›ÛYIË[™\[™[˜ÙQÜ›İ\‰ÙÙ[ÜÜ\™KX\›ÛYIË›İšY\‰ÑÙ[ÔÜ\™H]\İšXIËY\ŒKX^^\ÎŒ‹K\]Rİ\œÎŒË™\ÛÛ][Û’ÛNŒ‹KÛİ[šY\Î–ÉĞU	×K˜›Ş–ÎKNL_KˆÚY‰ÛY][Ùœ˜[˜ÙWØ\›ÛYIË\RYÎ–ÉÛY][Ùœ˜[˜ÙWØ\›ÛYWÙœ˜[˜ÙWÚÌM[Z[‰Ë	ÛY][Ùœ˜[˜ÙWØ\›ÛYWÙœ˜[˜ÙWÚ	Ë	ÛY][Ùœ˜[˜ÙWØ\›ÛYWÙœ˜[˜ÙIË	ÛY][Ùœ˜[˜ÙWÜÙX[[\ÜÉ×KX™[‰Ópê]0ê[ËQœ˜[˜ÙHT“ÓQHÈÙX[[\ÜÉË˜[Z[N‰ÛY][Ùœ˜[˜ÙKX\›ÛYIË[™\[™[˜ÙQÜ›İ\‰ÛY][Ùœ˜[˜ÙIË›İšY\‰Ópê]0ê[ËQœ˜[˜ÙIËY\ŒKX^^\ÎŒ‹\]Rİ\œÎŒË™\ÛÛ][Û’ÛNŒKKÛİ[šY\Î–ÉÑ”‰×K˜›Ş–ËM‹KLKL—_KˆÚY‰İZÛ[×İZİ‰Ë\RYÎ–ÉİZÛ[×İZ×Ù]\›Z[š\İX×ÌšÛIË	İZÛ[×ÜÙX[[\ÜÉ×KX™[‰ÕRÓSÈRÕˆÈÙX[[\ÜÉË˜[Z[N‰İZÛ[Ë]Zİ‰Ë[™\[™[˜ÙQÜ›İ\‰İZÛ[ÉË›İšY\‰ÕRÈY]Ù™šXÙIËY\ŒKX^^\ÎŒ‹˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒ‹][˜ŞRİ\œÎÛİ[šY\Î–ÉÑĞ‰Ë	ÒQI×K˜›Ş–ËLL‹Œ—_KˆÚY‰ÛY]›×Û›Ü™XÉË\RYÎ–ÉÛY]›×Û›Ü™XÉË	ÛY]›×Û›Ü™X×Ü	×KX™[‰ÓQU›Ü™XÉË˜[Z[N‰ÛY]›Ë[›Ü™XÉË[™\[™[˜ÙQÜ›İ\‰ÛY]›ÉË›İšY\‰ÓQU›ÜØ^IËY\ŒKX^^\ÎŒË˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒKÛİ[šY\Î–ÉÓ“ÉË	ÔÑIË	ÑÉË	Ñ’I×K˜›Ş–ÌLËÌ‹Ì—_KˆÚY‰Úœœ‰Ë\RYÎ–ÉÛ˜Ù\Úœœ—ØÛÛ\É×KX™[‰Ó“ĞPH””‰Ë˜[Z[N‰Û›ØXKZœœ‰Ë[™\[™[˜ÙQÜ›İ\‰Û›ØXK[Ü	Ë›İšY\‰Ó“ĞPKÓÑT	ËY\ŒKX^^\ÎŒ‹˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒËÛİ[šY\Î–ÉÕTÉË	ĞĞI×K˜›Ş–ËLLÌŒMŒMW_KˆÚY‰Û˜[IË\RYÎ–ÉÛ˜Ù\Û˜[WØÛÛ\É×KX™[‰Ó“ĞPHSIË˜[Z[N‰Û›ØXK[˜[IË[™\[™[˜ÙQÜ›İ\‰Û›ØXK[Ü	Ë›İšY\‰Ó“ĞPKÓÑT	ËY\Œ‹X^^\ÎŒËK\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒL‹Ûİ[šY\Î–ÉÕTÉË	ĞĞI×K˜›Ş–ËLLÌŒMŒMWKÛÛœÙ[œİ\ÓÛ›NY_KˆËÈ“H\İZ[ˆÜİ›Ş™\ÜÚY\\È][KS[Ù[T›ÙZİ[™\Ú[ˆÙZ[™H\ğé›XÚBˆËÈ[˜Xš0é™ÚYÙHİ[[YH[HÛÛœÙ[œËˆ\È›ZX[ÈÚØ[\ˆXYÛ›ÜÙKKÔ™\\˜]\œ˜Y™\™°ïØ˜\‹‚ˆÚY‰Û˜›IË\RYÎ–ÉÛ˜Ù\Û˜›WØÛÛ\É×KX™[‰Ó“ĞPH“IË˜[Z[N‰Û›ØXK[˜›IË[™\[™[˜ÙQÜ›İ\‰Û›ØXK\Üİ›ØÙ\ÜÚ[™ÉË›İšY\‰Ó“ĞPKÓÑT	ËY\ŒKX^^\ÎŒLK˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒ‹KÛİ[šY\Î–ÉÕTÉË	ĞĞI×K˜›Ş–ËLLÌŒMŒMWKÛÛœÙ[œİ\Ô›ÛN‰ÜÜİ›ØÙ\ÜÚ[™ÉßKˆÚY‰ÙZWÚ\›[ÛšYIË\RYÎ–ÉÙZWÚ\›[ÛšYWØ\›ÛYWÙ]\›ÜI×KX™[‰ÑRHT“SÓ’QH]\›ÜIË˜[Z[N‰ÙZKZ\›[ÛšYIË[™\[™[˜ÙQÜ›İ\‰İ]ØË]Ù\İZ\›[ÛšYIË›İšY\‰ÑRIËY\Œ‹X^^\ÎŒ‹K\]Rİ\œÎŒË™\ÛÛ][Û’ÛNŒ‹˜›Ş–ËLMKÍKÌ‹Ì—_KˆÚY‰ØÚZWØ[Y[—ØŞ‰Ë\RYÎ–ÉØÚZWØ[Y[—ØŞ—ÌZÛI×KX™[‰ĞÒRHSQSˆÖ‰Ë˜[Z[N‰ØÚZKX[Y[‹XŞ‰Ë[™\[™[˜ÙQÜ›İ\‰ØÚZKX[Y[‰Ë›İšY\‰ĞÒRIËY\ŒKX^^\ÎŒË\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒKÛİ[šY\Î–ÉĞÖ‰×K˜›Ş–ÌLKËŒL—KÜ[Û˜[Ø\Xš[]NY_KˆÚY‰ØÚZWØ[Y[—ØÙIË\RYÎ–ÉØÚZWØ[Y[—ØÙ[˜[Ù]\›ÜWÌšÛIË	ØÚZWØ[Y[—ÜÙX[[\ÜÉ×KX™[‰ĞÒRHSQSˆZ][]\›ÜIË˜[Z[N‰ØÚZKX[Y[‹XÙIË[™\[™[˜ÙQÜ›İ\‰ØÚZKX[Y[‰Ë›İšY\‰ĞÒRIËY\Œ‹X^^\ÎŒË\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒ‹ŒË˜›Ş–ËLL‹ÍKÍKŒ—KÜ[Û˜[Ø\Xš[]NY_KˆÚY‰Ú][X[Y][×ÚXÛÛŒšIË\RYÎ–ÉÚ][XWÛY][×Ø\œYWÚXÛÛ—ÌšI×KX™[‰Ò][XSY][ÈPÓÓ‹L’IË˜[Z[N‰Ú][X[Y][ËZXÛÛŒšIË[™\[™[˜ÙQÜ›İ\‰Ú][X[Y][ËZXÛÛŒšIË›İšY\‰Ò][XSY][ÉËY\ŒKX^^\ÎŒË\]Rİ\œÎŒL‹™\ÛÛ][Û’ÛNŒ‹Ûİ[šY\Î–ÉÒU	×K˜›Ş–ÍKÍKŒW_KˆÚY‰Ú›XWÛ\ÛIË\RYÎ–ÉÚ›XWÛ\ÛIË	Ú›XWÜÙX[[\ÜÉ×KX™[‰Ò“PHTÓHÈÙX[[\ÜÉË˜[Z[N‰Ú›XK[\ÛIË[™\[™[˜ÙQÜ›İ\‰Ú›XIË›İšY\‰Ò“PIËY\ŒKX^^\Î\]Rİ\œÎŒË™\ÛÛ][Û’ÛNKÛİ[šY\Î–ÉÒ”	Ë	ÒÔ‰×K˜›Ş–ÌLNŒMMKL—KÛÛœÙ[œİ\ÓÛ›NY_KˆÚY‰ÙÙ[WÚ™ÉË\RYÎ–ÉØÛX×ÙÙ[WÚ™É×KX™[‰ÑÑSH‘ÉË˜[Z[N‰ÙÙ[KZ™ÉË[™\[™[˜ÙQÜ›İ\‰ØÛXËYÙ[IË›İšY\‰Ñ[š\›Û›Y[Ø[˜YIËY\ŒKX^^\ÎŒ‹\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒ‹KÛİ[šY\Î–ÉĞĞIË	ÕTÉ×K˜›Ş–ËLMLÍKMKÌ—_KˆÚY‰ÙÙ[WÜ™ÉË\RYÎ–ÉØÛX×ÙÙ[WÜ™É×KX™[‰ÑÑSH‘ÉË˜[Z[N‰ÙÙ[K\™ÉË[™\[™[˜ÙQÜ›İ\‰ØÛXËYÙ[IË›İšY\‰Ñ[š\›Û›Y[Ø[˜YIËY\Œ‹X^^\ÎŒËK\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒLÛİ[šY\Î–ÉĞĞIË	ÕTÉ×K˜›Ş–ËLMÌŒLÍKL_KˆÚY‰Ø\œYÙWÙ]\›ÜIË\RYÎ–ÉÛY][Ùœ˜[˜ÙWØ\œYÙWÙ]\›ÜI×KX™[‰Ópê]0ê[ËQœ˜[˜ÙHT”QÑH]\›ÜIË˜[Z[N‰ÛY][Ùœ˜[˜ÙKX\œYÙKY]IË[™\[™[˜ÙQÜ›İ\‰ÛY][Ùœ˜[˜ÙIË›İšY\‰Ópê]0ê[ËQœ˜[˜ÙIËY\Œ‹X^^\Î\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒLK˜›Ş‘“Ô‘PĞTÕÑ•TÒSÓ—ÑUT“Ô_KˆÚY‰ÙXÛ]Ù—ÚYœÉË\RYÎ–ÉÙXÛ]Ù—ÚYœÉË	ÙXÛ]Ù—ÚYœÌI×KX™[‰ÑPÓUÑˆQ”ÉË˜[Z[N‰ÙXÛ]Ù‹ZYœÉË[™\[™[˜ÙQÜ›İ\‰ÙXÛ]Ù‰Ë›İšY\‰ÑPÓUÑ‰ËY\Œ‹X^^\ÎŒMK\]Rİ\œÎ‹™\ÛÛ][Û’ÛN_KˆÚY‰ÙXÛ]Ù—ØZYœÉË\RYÎ–ÉÙXÛ]Ù—ØZYœÌWÜÚ[™ÛI×KX™[‰ÑPÓUÑˆRQ”ÈÚ[™ÛIË˜[Z[N‰ÙXÛ]Ù‹XZYœÉË[™\[™[˜ÙQÜ›İ\‰ÙXÛ]Ù‰Ë›İšY\‰ÑPÓUÑ‰ËY\Œ‹X^^\ÎŒMK\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒKÛÛœÙ[œİ\ÓÛ›NY_KˆÚY‰ÙÙœÉË\RYÎ–ÉÛ˜Ù\ÙÙœ×ÙÛØ˜[	Ë	Û˜Ù\ÙÙœÌLÉ×KX™[‰Ó“ĞPHÑ”ÉË˜[Z[N‰Û›ØXKYÙœÉË[™\[™[˜ÙQÜ›İ\‰Û›ØXK[Ü	Ë›İšY\‰Ó“ĞPKÓÑT	ËY\ŒËX^^\ÎŒM‹\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒLßKˆÚY‰ØZYÙœÉË\RYÎ–ÉÛ˜Ù\ØZYÙœÌI×KX™[‰Ó“ĞPHRQÑ”ÉË˜[Z[N‰Û›ØXKXZYÙœÉË[™\[™[˜ÙQÜ›İ\‰Û›ØXK[Ü	Ë›İšY\‰Ó“ĞPKÓÑT	ËY\ŒËX^^\ÎŒM‹\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒKÛÛœÙ[œİ\ÓÛ›NY_KˆÚY‰İZÛ[×ÙÛØ˜[	Ë\RYÎ–ÉİZÛ[×ÙÛØ˜[Ù]\›Z[š\İX×ÌLÛI×KX™[‰ÕRÓSÈÛØ˜[	Ë˜[Z[N‰İZÛ[ËYÛØ˜[	Ë[™\[™[˜ÙQÜ›İ\‰İZÛ[ÉË›İšY\‰ÕRÈY]Ù™šXÙIËY\Œ‹X^^\ÎË\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒL][˜ŞRİ\œÎKˆÚY‰ÙÙ[WÙÛØ˜[	Ë\RYÎ–ÉØÛX×ÙÙ[WÙÙÉ×KX™[‰ÑÑSHÛØ˜[	Ë˜[Z[N‰ÙÙ[KYÙÉË[™\[™[˜ÙQÜ›İ\‰ØÛXËYÙ[IË›İšY\‰Ñ[š\›Û›Y[Ø[˜YIËY\ŒËX^^\ÎŒL\]Rİ\œÎŒL‹™\ÛÛ][Û’ÛNŒM_KˆÚY‰Ú›XWÙÜÛIË\RYÎ–ÉÚ›XWÙÜÛI×KX™[‰Ò“PHÔÓIË˜[Z[N‰Ú›XKYÜÛIË[™\[™[˜ÙQÜ›İ\‰Ú›XIË›İšY\‰Ò“PIËY\X^^\ÎŒLK\]Rİ\œÎ‹™\ÛÛ][Û’ÛNMKÛÛœÙ[œİ\ÓÛ›NY_KˆÚY‰Ø›ÛWØXØÙ\Ü×ÙÛØ˜[	Ë\RYÎ–ÉØ›ÛWØXØÙ\Ü×ÙÛØ˜[	×KX™[‰Ğ“ÓHPĞÑTÔÈÛØ˜[	Ë˜[Z[N‰Ø›ÛKXXØÙ\ÜÉË[™\[™[˜ÙQÜ›İ\‰Ø›ÛIË›İšY\‰Ğ“ÓIËY\ŒËX^^\ÎŒL\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒMKÛÛœÙ[œİ\ÓÛ›NY_KˆÚY‰ØÛXWÙÜ˜\\×ÙÛØ˜[	Ë\RYÎ–ÉØÛXWÙÜ˜\\×ÙÛØ˜[	×KX™[‰ĞÓPHÔTTÈÛØ˜[	Ë˜[Z[N‰ØÛXKYÜ˜\\ÉË[™\[™[˜ÙQÜ›İ\‰ØÛXIË›İšY\‰ĞÓPIËY\ŒËX^^\ÎŒL\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒMKÛÛœÙ[œİ\ÓÛ›NY_KˆÚY‰Ø\œYÙWİÛÜ›	Ë\RYÎ–ÉÛY][Ùœ˜[˜ÙWØ\œYÙWİÛÜ›	×KX™[‰Ópê]0ê[ËQœ˜[˜ÙHT”QÑHÛÜ›	Ë˜[Z[N‰ÛY][Ùœ˜[˜ÙKX\œYÙK]ÛÜ›	Ë[™\[™[˜ÙQÜ›İ\‰ÛY][Ùœ˜[˜ÙIË›İšY\‰Ópê]0ê[ËQœ˜[˜ÙIËY\ŒËX^^\Î\]Rİ\œÎ‹™\ÛÛ][Û’ÛNŒKÛÛœÙ[œİ\ÓÛ›NY_B—NÂ‚™[˜İ[Ûˆ™\›[‘]SÙ™œÙ]
+^\ÏL
+^ØÛÛœİ]O[™]È]J]K››İÊ
+JÙ^\Ê
+Nİ^Ü™]\›ˆ™]È[‘]U[YQ›Ü›X]
+	Ù[‹PĞIËİ[YV›Û™N‰Ñ]\›ÜKĞ™\›[‰ËYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	ßJK™›Ü›X]
+]J_XØ]ÚÜ™]\›ˆ]KÒTÓÔİš[™Ê
+KœÛXÙJL
+__B™[˜İ[Ûˆ[ÜÛZ^]RÙ^J\ØÚ
+^İ^Ü™]\›ˆ™]È[‘]U[YQ›Ü›X]
+	Ù[‹PĞIËİ[YV›Û™N‰Ñ]\›ÜKĞ™\›[‰ËYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	ßJK™›Ü›X]
+™]È]J\ØÚ
+J_XØ]ÚÜ™]\›ˆ™]È]J\ØÚ
+KÒTÓÔİš[™Ê
+KœÛXÙJL
+__B™[˜İ[ÛˆÙ[ÜÛZ^\™XİÜU[Y\İ[\
+˜[YJ^ØÛÛœİX]ÚTİš[™Ê˜[Y_	ÉÊK›X]Ú
+ÊÌŸJKJĞKV˜K^—^ÌßJKJÍJWÊÊÌŸJNŠÌŸJNŠÌŸJKÊNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YØÛÛœİ[ÛÏ^Ò˜[Œ™XŒKX\Œ‹\ŒËX^N[K[‹]YÎËÙ\ØİK›İŒLXÎŒL_K[Û[[ÛÖÛX]ÚÌ—WNÚYŠ[ÛOO][™Yš[™Y
+\™]\›ˆ[™Yš[™YØÛÛœİİ[\Q]K•UÊ[X™\ŠX]ÚÌ×JK[Û[X™\ŠX]ÚÌWJK[X™\ŠX]ÚÍJK[X™\ŠX]ÚÍWJK[X™\ŠX]ÚÍ—JJNÜ™]\›ˆ[X™\‹š\Ñš[š]Jİ[\
+OÛ™]È]Jİ[\
+KÒTÓÔİš[™Ê
+N[™Yš[™YB™[˜İ[ÛˆÙ[ÜÛZ^[“Y]Qœ›ÛR[™^
+[›ÙXİIÓ	Ê^ØÛÛœİÚ[™\›ÙXİOOIÔÉÏÉÔÉÎ‰Ó	Ë›İÜÏV×K]\›ZÚ[™OOIÔÉÏËÓSÔÓRVÔ×ÊÌLJWÌšÛ^‹Î‹ÓSÔÓRVÓÊÌLJWšÛ^‹ÎÙ›ÜŠÛÛœİ[™HÙˆİš[™Ê[	ÉÊKœÜ]
+××‹ÊJ^ØÛÛœİ[[[™K›X]Ú
+]\›ŠNÚYŠ\[ŠXÛÛ[YNØÛÛœİÛÙO\[–ÌWKYX\S[X™\ŠÛÙKœÛXÙJ
+JK[ÛS[X™\ŠÛÙKœÛXÙJŠJKLK^OS[X™\ŠÛÙKœÛXÙJ‹
+JKİ\S[X™\ŠÛÙKœÛXÙJL
+JK[š]Q]K•UÊYX\‹[Û^Kİ\ŠNÚYŠS[X™\‹š\Ñš[š]J[š]
+JXÛÛ[YNØÛÛœİ]˜Z[Xš[]OYÙ[ÜÛZ^\™XİÜU[Y\İ[\
+[™JNÜ›İÜËœ\Ú
+Ü›ÙXİ˜SÔÓRVIÚÚ[™X[š]X[\Ø][Û•[YN›™]È]J[š]
+KÒTÓÔİš[™Ê
+K]˜Z[Xš[]U[YN˜]˜Z[Xš[]K\]Rİ\œÎšÚ[™OOIÔÉÏÌN‹›Ü™XØ\İÜš^›Û’İ\œÎšÚ[™OOIÔÉÏÌŒY]Y]TÛİ\˜ÙN˜ÑÜ[ˆ]H0­ÈSÔÓRVIÚÚ[™H]Yš[™^J_\™]\›ˆ›İÜËœÛÜ
+
+KŠOO‘]Kœ\œÙJ‹š[š]X[\Ø][Û•[YJKQ]Kœ\œÙJKš[š]X[\Ø][Û•[YJJVÌ_B˜\Ş[˜È[˜İ[Ûˆ™]ÚÙ[ÜÛZ^[’[™^
+\››ÙXİ™Yœ™\ÚY˜[ÙJ^İ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J\›ÚXY\œÎĞXØÙ\‰İ^Ú[	Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX‹‹Š™Yœ™\ÚŞÉĞØXÚKPÛÛ›Û	Î‰Û›ËXØXÚIßNßJ_KÙœ™Yœ™\ÚŞØØXÚQ]™\][™Î™˜[Ù_NØØXÚUŒØXÚQ]™\][™ÎY__KÌ
+NÚYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆ[™Yš[™YÜ™]\›ˆÙ[ÜÛZ^[“Y]Qœ›ÛR[™^
+]ØZ]™\ÜÛœÙK^
+
+K›ÙXİ
+_XØ]ÚÜ™]\›ˆ[™Yš[™Y_B˜\Ş[˜È[˜İ[Ûˆ™]ÚÙ[ÜÛZ^[“Y]J™Yœ™\ÚY˜[ÙJ^ØÛÛœİÜÚÜÛ™×OX]ØZ]›ÛZ\ÙK˜[
+Ù™]ÚÙ[ÜÛZ^[’[™^
+ÑÓSÔÓRVÔ×ÒS‘V	ÔÉË™Yœ™\Ú
+K™]ÚÙ[ÜÛZ^[’[™^
+ÑÓSÔÓRVÓÒS‘V	Ó	Ë™Yœ™\Ú
+WJNÜ™]\›ÜÚÜÛ™ß_B™[˜İ[Ûˆ[ÜÛZ^[‘œ™\Ú™\ÜÊ[š]X[\Ø][Û•[YK\]Rİ\œÏLJ^ØÛÛœİ[š]Q]Kœ\œÙJİš[™Ê[š]X[\Ø][Û•[Y_	ÉÊJNÚYŠS[X™\‹š\Ñš[š]J[š]
+J\™]\›ˆ[™Yš[™YØÛÛœİYÙRİ\œÏSX]›X^
+
+]K››İÊ
+KZ[š]
+KÌÍŒ
+KØY[˜ÙOSX]›X^
+K[X™\Š\]Rİ\œÊ_JKœ™\Ú[Z]XØY[˜ÙOLOÌ‹N˜ØY[˜ÙJŒK‹İ[S[Z]XØY[˜ÙOLOÍN˜ØY[˜ÙJŒ‹ŒÍÜ™]\›ˆ[X™\ŠÛ[\
+YÙRİ\œÏYœ™\Ú[Z]ÌN˜YÙRİ\œÏ\İ[S[Z]ËÌ‹JKÑš^Y
+ŠJ_B™[˜İ[Ûˆ[ÜÛZ^Ûİ\˜ÙT]X[]JÛİ\˜ÙK]Û‹[]˜][ÛŠ^ØÛÛœİÛ][[X™\ŠÛİ\˜ÙOË›]ÏÜÛİ\˜ÙOË›]]YJKÛÛ[[X™\ŠÛİ\˜ÙOË›ÛÏÜÛİ\˜ÙOË›Û™Ú]YJK™\ÜY\İ[˜ÙO[[X™\ŠÛİ\˜ÙOË™\İ[˜ÙJK\İ[˜ÙRÛOS[X™\‹š\Ñš[š]J™\ÜY\İ[˜ÙJOÜ™\ÜY\İ[˜ÙKÌL“[X™\‹š\Ñš[š]JÛ]
+I‰“[X™\‹š\Ñš[š]JÛÛŠOÙ\İ[˜ÙJ]Û‹Û]ÛÛŠKÌLNNKİ][Û‘[]˜][Û[[X™\ŠÛİ\˜ÙOËšZYÚÏÜÛİ\˜ÙOË™[]˜][ÛŠK[]˜][Û‘Y™™\™[˜ÙSOS[X™\‹š\Ñš[š]J[]˜][ÛŠI‰“[X™\‹š\Ñš[š]Jİ][Û‘[]˜][ÛŠOÓX]˜XœÊ[]˜][Û‹\İ][Û‘[]˜][ÛŠN[™Yš[™Y\İ[˜ÙTØÛÜ™OXÛ[\
+KY\İ[˜ÙRÛKÍŒJK[]˜][Û”ØÛÜ™OS[X™\‹š\Ñš[š]J[]˜][Û‘Y™™\™[˜ÙSJOØÛ[\
+KY[]˜][Û‘Y™™\™[˜ÙSKÍLJN‹Ì‹]X[]OXÛ[\
+\İ[˜ÙTØÛÜ™J‹
+Ù[]˜][Û”ØÛÜ™J‹ŒÌ‹JNÜ™]\›Ù\İ[˜ÙRÛKİ][Û‘[]˜][Û‹[]˜][Û‘Y™™\™[˜ÙSK]X[]K\ØX›N™\İ[˜ÙRÛOMMI‰ŠS[X™\‹š\Ñš[š]J[]˜][Û‘Y™™\™[˜ÙSJ_[]˜][Û‘Y™™\™[˜ÙSOML
+I‰œ]X[]OKŸ_B˜\Ş[˜È[˜İ[Ûˆ™]Ú[ÜÛZ^›Ü™XØ\İ
+]Û‹[]˜][Û‹Ûİ[K™Yœ™\ÚY˜[ÙJ^ÂˆÛÛœİÛÛœÚY\™YY\™XİÛİ[PÛÙJÛİ[JOOOIÑIß[‘Ù\›X[P›İ[™Ê]ÛŠNÚYŠXÛÛœÚY\™Y
+\™]\›ØÛÛœÚY\™Y™˜[ÙKİXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ‰ÓSÔÓRVT[šİÛÜœ™Zİ\ˆ\™Z]\ˆ[›™\š[ˆ]]ØÚ[™ÈZİ]šY\‰Ë^\Î–×Kİ\œÎ–×_NÂˆÛÛœİ[“Y]T›ÛZ\ÙOY™]ÚÙ[ÜÛZ^[“Y]J™Yœ™\Ú
+K]Y\O[™]ÈT“ÙX\˜Ú\˜[\ÊÛ]”İš[™Ê]
+KÛ”İš[™ÊÛŠK]N˜™\›[‘]SÙ™œÙ]
+
+K\İÙ]N˜™\›[‘]SÙ™œÙ]
+JKX^Ù\İ‰ÍML	ßJNÂˆ^ÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	Ğ”’QÒÒÖWÕÑPUTŸOÉÜ]Y\_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX‹‹Š™Yœ™\ÚŞÉĞØXÚKPÛÛ›Û	Î‰Û›ËXØXÚIßNßJ_KÙœ™Yœ™\ÚŞØØXÚQ]™\][™Î™˜[Ù_NØØXÚUŒLŒØXÚQ]™\][™ÎY__KLŒ
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØY^ßNİ^Ü^[ØYR”ÓÓ‹œ\œÙJ›ÙJ_XØ]ÚßBˆYŠ\™\ÜÛœÙK›Úß^[ØYË™\œ›ÜŠ\™]\›ØÛÛœÚY\™YYKİXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ”İš[™Ê^[ØYË™]Z[Ë–ÌOË›\Ùß^[ØYË™\œ›ÜŸœšYÚÚŞH	Ü™\ÜÛœÙKœİ]\ßX
+K^\Î–×Kİ\œÎ–×_NÂˆÛÛœİÛİ\˜Ù\ÏP\œ˜^Kš\Ğ\œ˜^J^[ØYËœÛİ\˜Ù\ÊOÜ^[ØYœÛİ\˜Ù\Î–×KÙX]\P\œ˜^Kš\Ğ\œ˜^J^[ØYËÙX]\ŠOÜ^[ØYÙX]\–×KÛİ\˜ÙSX\[™]ÈX\
+Ûİ\˜Ù\Ë›X\
+Ûİ\˜ÙOO–Ôİš[™ÊÛİ\˜ÙOËšY
+KÛİ\˜ÙWJJKÜ›İ\Ï[™]ÈX\
+
+K›İÏQ]K››İÊ
+KLŠŒÍŒX^\ØÚQ]K››İÊ
+JÌJŒÍŒÂˆ›ÜŠÛÛœİ›İÈÙˆÙX]\Š^ØÛÛœİ\ØÚQ]Kœ\œÙJİš[™Ê›İÏË[Y\İ[\	ÉÊJKÛİ\˜ÙO\Ûİ\˜ÙSX\™Ù]
+İš[™Ê›İÏËœÛİ\˜ÙWÚY
+JNÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+_\ØÚ›İß\ØÚ›X^\ØÚ\Ûİ\˜ÙJXÛÛ[YNØÛÛœİ›Ü™XØ\İKÙ›Ü™XØ\İÚK\İ
+İš[™ÊÛİ\˜ÙOË›ØœÙ\˜][Û—İ\_	ÉÊJ_]Kœ\œÙJİš[™ÊÛİ\˜ÙOË›\İÜ™XÛÜ™	ÉÊJO‘]K››İÊ
+JÌÍŒÚYŠY›Ü™XØ\İ
+XÛÛ[YNØÛÛœİÙ^OTİš[™ÊÛİ\˜ÙKšY
+KÜ›İ\YÜ›İ\Ë™Ù]
+Ù^J_ÜÛİ\˜ÙK›İÜÎ–×_NÙÜ›İ\œ›İÜËœ\Ú
+Ë‹‹œ›İË\ØÚJNÙÜ›İ\ËœÙ]
+Ù^KÜ›İ\
+_BˆÛÛœİØ[™Y]\ÏVË‹‹™Ü›İ\Ë˜[Y\Ê
+WK›X\
+Ü›İ\OŠË‹‹™Ü›İ\Ú]N›[ÜÛZ^Ûİ\˜ÙT]X[]JÜ›İ\œÛİ\˜ÙK]Û‹[]˜][ÛŠ_JJK™š[\ŠÜ›İ\O™Ü›İ\œ›İÜË›[™İLN
+KœÛÜ
+
+KŠOOŠ‹œÚ]K\ØX›KXKœÚ]K\ØX›J_
+‹œÚ]Kœ]X[]KXKœÚ]Kœ]X[]J_
+‹œ›İÜË›[™İXKœ›İÜË›[™İ
+_
+KœÚ]K™\İ[˜ÙRÛKX‹œÚ]K™\İ[˜ÙRÛJJKÙ[XİYXØ[™Y]\ÖÌNÂˆYŠ\Ù[XİYËœÚ]OË\ØX›J\™]\›ØÛÛœÚY\™YYKİXØÙ\ÜÙ[™˜[ÙK™X\ÛÛœÙ[XİYØ°éÚİ\ˆSÔÓRVT[šİHÙZ]Ù\ˆ0íš[›pé0çÚYÈ[™ÙYZYÛ™]
+	ÜÙ[XİYœÚ]K™\İ[˜ÙRÛKÑš^Y
+J_HÛJK˜‰ÒÙZ[™HZİY[HSÔÓRVT[šİ›Üš\œØYÙHÙY[™[‹‰Ë^\Î–×Kİ\œÎ–×_NÂˆËÈSÔÓRV›ZXZ[ˆÛÜœ™[Y\\ÈÑTÜİ›ØÙ\ÜÚ[™È[™°éZ\ˆšXÚ[ÂˆËÈ[˜Xš0é™ÚYÙH[Ù[İ[[YKˆ°ïˆ]]ØÚ[™\™ˆÙZ[™Hİ0ï™XÚH”ŒXË[˜ZBˆËÈšYY\œØÚYÜÛY[™ÙH
+œšYÚTÚŞKQ™[™XÚ\]][Û˜ˆ›Üš\šYÙHŒZ[][ŠBˆËÈX™\ˆ[ÈÚØ[\ˆÑRÛÛœÙ[œÈÈ]\ÚXš[]0éØ[šÙ\ˆÙYÙ[ˆZ[™[ˆ˜\ÜÙ[‚ˆËÈ]\›Z[š\İ\ØÚ[ˆPÓÓ‹Q‹T•PËP]\Ü™ZpçÙ\ˆÚ\šÙ[‹ˆÙ]\˜ÛÙK™]ğí›İ[™È[™ˆËÈÛÛ›™[œØÚZ[ˆ›ZX™[ˆÙZ]\š[ˆ›Ûİ0é™YÈ[HÛÚ0é™[[ˆÙ]\›[Ù[°ï™[‚ˆÛÛœİİ\œÏ\Ù[XİYœ›İÜËœÛÜ
+
+KŠOO˜K™\ØÚX‹™\ØÚ
+K›X\
+›İÏOØÛÛœİÚ[™ÛZSX]›X^
+[X™\Š›İÏËÚ[™ÜÜYY
+OÏÌ
+Kİ\İÛZSX]›X^
+Ú[™ÛZ[X™\Š›İÏËÚ[™Ùİ\İÜÜYY
+OÏİÚ[™ÛZ
+K™XÚ\]][Û[[X™\Š›İÏËœ™XÚ\]][ÛŠK™XÚ\]][Û”›Ø˜Xš[]O[[X™\Š›İÏËœ™XÚ\]][Û—Ü›Ø˜Xš[]JNÜ™]\›İ[YN›™]È]J›İË™\ØÚ
+KÒTÓÔİš[™Ê
+K\ØÚœ›İË™\ØÚ[\\˜]\™N›[X™\Š›İÏË[\\˜]\™JK]ÔÚ[›[X™\Š›İÏË™]×ÜÚ[
+K[ZY]N›[X™\Š›İÏËœ™[]]™WÚ[ZY]JK™\Üİ\™N›[X™\Š›İÏËœ™\Üİ\™WÛ\Û
+KÚ[™Ú[™ÛZÌKL‹İ\İ™İ\İÛZÌKL‹\™Xİ[ÛŠ
+[X™\Š›İÏËÚ[™Ù\™Xİ[ÛŠOÏÌ
+ILÍŒ
+ÌÍŒ
+ILÍŒ™XÚ\]][Û“[X™\‹š\Ñš[š]J™XÚ\]][ÛŠOÓX]›X^
+™XÚ\]][ÛŠN[™Yš[™Y™XÚ\]][Û”›Ø˜Xš[]N“[X™\‹š\Ñš[š]J™XÚ\]][Û”›Ø˜Xš[]JOØÛ[\
+™XÚ\]][Û”›Ø˜Xš[]KL
+N[™Yš[™Y_JK™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË[\\˜]\™JJNÂˆÛÛœİXÚÙ]Ï[™]ÈX\
+
+NÙ›ÜŠÛÛœİİ\ˆÙˆİ\œÊ^ØÛÛœİÙ^O[[ÜÛZ^]RÙ^Jİ\‹™\ØÚ
+KXÚÙ]XXÚÙ]Ë™Ù]
+Ù^J_Ù]NšÙ^K[\\˜]\™\Î–×KÚ[™Î–×Kİ\İÎ–×K™XÚ\]][Û–×_NØXÚÙ][\\˜]\™\Ëœ\Ú
+İ\‹[\\˜]\™JNÚYŠ[X™\‹š\Ñš[š]Jİ\‹Ú[™
+JXXÚÙ]Ú[™Ëœ\Ú
+İ\‹Ú[™
+NÚYŠ[X™\‹š\Ñš[š]Jİ\‹™İ\İ
+JXXÚÙ]™İ\İËœ\Ú
+İ\‹™İ\İ
+NÚYŠ[X™\‹š\Ñš[š]Jİ\‹œ™XÚ\]][ÛŠJXXÚÙ]œ™XÚ\]][Û‹œ\Ú
+İ\‹œ™XÚ\]][ÛŠNØXÚÙ]ËœÙ]
+Ù^KXÚÙ]
+_BˆÛÛœİ^\ÏVË‹‹˜XÚÙ]Ë˜[Y\Ê
+WKœÛÜ
+
+KŠOO˜K™]K›ØØ[PÛÛ\\™J‹™]JJKœÛXÙJL
+K›X\
+XÚÙ]OŠÙ]N˜XÚÙ]™]KX^“X]›X^
+‹‹˜XÚÙ][\\˜]\™\ÊKZ[“X]›Z[Š‹‹˜XÚÙ][\\˜]\™\ÊKÚ[™˜XÚÙ]Ú[™Ë›[™İÓX]›X^
+‹‹˜XÚÙ]Ú[™ÊNŒİ\İ˜XÚÙ]™İ\İË›[™İÓX]›X^
+‹‹˜XÚÙ]™İ\İÊNŒ™XÚ\]][Û˜XÚÙ]œ™XÚ\]][Û‹›[™İØXÚÙ]œ™XÚ\]][Û‹œ™YXÙJ
+İ[K˜[YJOOœİ[JÓX]›X^
+˜[YJK
+N[™Yš[™YJJK™š[\Š^OO–Ù^K›X^^K›Z[—K™]™\J[X™\‹š\Ñš[š]JJNÂˆÛÛœİÛİ\˜ÙO\Ù[XİYœÛİ\˜ÙKİ][Û’YTİš[™ÊÛİ\˜ÙOËÛ[×Üİ][Û—ÚYÛİ\˜ÙOË™ÙÜİ][Û—ÚYÛİ\˜ÙOËšY	ÉÊKİ][Û“˜[YOTİš[™ÊÛİ\˜ÙOËœİ][Û—Û˜[Y_Ûİ\˜ÙOË›˜[Y_İ][Û’Y	ÓSÔÓRVT[šİ	ÊK[“Y]OX]ØZ][“Y]T›ÛZ\ÙKÚÜ[\[“Y]OËœÚÜÛ™Ô[\[“Y]OË›Û™ÎÂˆ™]\›ØÛÛœÚY\™YYKİXØÙ\ÜÙ[™^\Ë›[™İL‰‰šİ\œË›[™İLNX™[‰ÑÑSÔÓRV	Ë˜[Z[N‰Û[ÜÛZ^\Üİ›ØÙ\ÜÚ[™ÉË›İšY\‰ÑÑÜ[ˆ]HšXHœšYÚÚŞIË™X\ÛÛ™^\Ë›[™İLİ[™Yš[™Y‰ÓSÔÓRVSYY™\[™È[›Ûİ0é™YË‰Ë^\Ëİ\œË]X[]N“[X™\ŠÙ[XİYœÚ]Kœ]X[]KÑš^Y
+ÊJKİ][Û’Yİ][Û“˜[YK\İ[˜ÙRÛN“[X™\ŠÙ[XİYœÚ]K™\İ[˜ÙRÛKÑš^Y
+JJKİ][Û‘[]˜][ÛœÙ[XİYœÚ]Kœİ][Û‘[]˜][Û‹[]˜][Û‘Y™™\™[˜ÙSN“[X™\‹š\Ñš[š]JÙ[XİYœÚ]K™[]˜][Û‘Y™™\™[˜ÙSJOÓX]œ›İ[™
+Ù[XİYœÚ]K™[]˜][Û‘Y™™\™[˜ÙSJN[™Yš[™Y[š]X[\Ø][Û•[YNœÚÜ[Ëš[š]X[\Ø][Û•[YK]˜Z[Xš[]U[YNœÚÜ[Ë˜]˜Z[Xš[]U[YK\]Rİ\œÎŒK[“Y]TÛİ\˜ÙNœÚÜ[Ë›Y]Y]TÛİ\˜ÙK[‘œ™\Ú™\ÜÎ›[ÜÛZ^[‘œ™\Ú™\ÜÊÚÜ[Ëš[š]X[\Ø][Û•[YKJKÚÜ[š]X[\Ø][Û•[YNœÚÜ[Ëš[š]X[\Ø][Û•[YKÚÜ]˜Z[Xš[]U[YNœÚÜ[Ë˜]˜Z[Xš[]U[YKÚÜ[“Y]TÛİ\˜ÙNœÚÜ[Ë›Y]Y]TÛİ\˜ÙKÛ™Ò[š]X[\Ø][Û•[YN›Û™Ô[Ëš[š]X[\Ø][Û•[YKÛ™Ğ]˜Z[Xš[]U[YN›Û™Ô[Ë˜]˜Z[Xš[]U[YKÛ™Õ\]Rİ\œÎ‹Û™Ô[“Y]TÛİ\˜ÙN›Û™Ô[Ë›Y]Y]TÛİ\˜ÙKÛİ™\˜YÙU[[šİ\œË˜]
+LJOË[Y_NÂˆXØ]Ú
+\œ›ÜŠ^Ü™]\›ØÛÛœÚY\™YYKİXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ™\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠK^\Î–×Kİ\œÎ–×__BŸB™[˜İ[Ûˆ\Ú[Û“[Ù[\Y\Ê[Ù[]Û‹Ûİ[J^ÚYŠ[Ù[˜[˜ÚÜŠ\™]\›ˆYNÚYŠ[Ù[˜˜›Ş
+^ØÛÛœİÛZ[“Û‹Z[“]X^Û‹X^]O[[Ù[˜˜›ŞÜ™]\›ˆÛ[Z[“Û‰‰›Û[X^Û‰‰›][Z[“]	‰›][X^]ZYŠ[Ù[˜Ûİ[šY\ÏË›[™İ
+\™]\›ˆ[Ù[˜Ûİ[šY\Ëš[˜ÛY\ÊÛİ[JNÜ™]\›ˆY_B™[˜İ[Ûˆ›Ü™XØ\İ\Ú[Û”Ù[Xİ[ÛŠ]Û‹Ûİ[J^ÂˆÛÛœİ\XØX›OQ“Ô‘PĞTÕÑ•TÒSÓ—ÓSÑSË™š[\Š[Ù[O™\Ú[Û“[Ù[\Y\Ê[Ù[]Û‹Ûİ[JJKÚÜÙ[V×NÂˆÛÛœİY[[Ù[OÚYŠ[[Ù[ÚÜÙ[‹œÛÛYJ][OOš][KšYOO[[Ù[šY
+J\™]\›ØÚÜÙ[‹œ\Ú
+[Ù[
+_NÂˆY
+\XØX›K™š[™
+[Ù[O›[Ù[˜[˜ÚÜŠJNÂˆËÈ˜\YKÔ™YÚ[Û˜[[Ù[HÙ\™[ˆ[Èİ\œ™ZXÚÙZ]YÙH]]Üš]0éZ]ÙY°ïˆYZ™\™BˆËÈ]Y›0íœİ[™Ù[ˆ\œÙ[™[ˆ[Ù[˜[Z[YH›ZX™[ˆ\ˆ[È™Z]XÚÙ\İY™™[H˜[˜XÚÜÂˆËÈ[H™\]Y\İÈ[HZYÙ[XÚ[ˆÛÛœÙ[œÈ\š0é™YH[˜Xš0é™ÚYÚÙZ]ÙÜ\HÙ[˜]HZ[™Hİ[[YK‚ˆ›ÜŠÛÛœİ[Ù[Ùˆ\XØX›K™š[\Š[Ù[O›[Ù[œ˜\Y\]I‰ˆ[[Ù[˜[˜ÚÜŠKœÛÜ
+
+KŠOOŠK›][˜ŞRİ\œß
+KJ‹›][˜ŞRİ\œß
+_
+Kœ™\ÛÛ][Û’Û_NJKJ‹œ™\ÛÛ][Û’Û_NJJJZYŠÚÜÙ[‹™š[\Š][OOš][Kœ˜\Y\]JK›[™İÊXY
+[Ù[
+NÂˆÛÛœİØØ[ÏX\XØX›K™š[\Š[Ù[Oˆ[[Ù[˜[˜ÚÜ‰‰Š[Ù[˜Ûİ[šY\ÏË›[™İ[Ù[˜˜›Ş
+JKœÛÜ
+
+KŠOO˜KY\‹X‹Y\Ÿ
+Kœ™\ÛÛ][Û’Û_NJKJ‹œ™\ÛÛ][Û’Û_NJ_
+‹›X^^\ß
+KJK›X^^\ß
+JNÂˆÛÛœİØØ[Ü›İ\Ï[™]ÈÙ]
+
+NÙ›ÜŠÛÛœİ[Ù[ÙˆØØ[Ê^ØÛÛœİÜ›İ\[[Ù[š[™\[™[˜ÙQÜ›İ\[Ù[™˜[Z[K[™XYO[ØØ[Ü›İ\Ëš\ÊÜ›İ\
+NÚYŠX[™XY_ÉÙÙZXÛÛ‰Ë	Û›ØXK[Ü	Ë	ØÛXËYÙ[IË	ÛY][Ùœ˜[˜ÙIË	ÛY][ÜİÚ\ÜËZXÛÛ‰×Kš[˜ÛY\ÊÜ›İ\
+J^ØY
+[Ù[
+NÛØØ[Ü›İ\Ë˜Y
+Ü›İ\
+_ZYŠÚÜÙ[‹™š[\Š][OOˆZ][K˜[˜ÚÜ‰‰Š][K˜Ûİ[šY\ÏË›[™İ][K˜˜›Ş
+JK›[™İMÊXœ™XZßBˆËÈÛØ˜[H˜[Z[Y[ˆ\™ğé™[ˆ™YÚ[Û˜[[Ù[H°ïˆYHZ]\™KÛ[™ÙH™ZXÚÙZ]K‚ˆËÈY\œİÚ\™Ù[˜]HZ[ˆ™\™]\ˆ™Y\ˆš\Û[™È™Z[™[ˆ[˜Xš0é™ÚYÚÙZ]ÙÜ\BˆËÈ\™ğéˆ˜\šX[[ˆ\œÙ[™[ˆ˜[Z[YH
+‹ˆ‹ˆQ”ËĞRQ”ÈÙ\ˆPÓÓ‹P]Y›0íœİ[™Ù[ŠBˆËÈÛÛ[Y[ˆ\œİ[˜XÚ[È™ZXÚÙZ][‹KÕ™\™°ïØ˜\šÙZ]Ù˜[˜XÚÈ[H[™\š[[‚ˆËÈ[HÛÛœÙ[œÈ›İ™[HÙZ[™HÙZ]Hİ[[YK‚ˆÛÛœİÛØ˜[YÏVÉÙXÛ]Ù—ÚYœÉË	ÙÙœÉË	ÚXÛÛ—ÙÛØ˜[	Ë	İZÛ[×ÙÛØ˜[	Ë	ÙÙ[WÙÛØ˜[	Ë	Ú›XWÙÜÛIË	Ø›ÛWØXØÙ\Ü×ÙÛØ˜[	Ë	ØÛXWÙÜ˜\\×ÙÛØ˜[	Ë	Ø\œYÙWİÛÜ›	Ë	ÙXÛ]Ù—ØZYœÉË	ØZYÙœÉ×KÛØ˜[›İÜÏYÛØ˜[YË›X\
+YO˜\XØX›K™š[™
+[Ù[O›[Ù[šYOOZY
+JK™š[\Š›ÛÛX[ŠKÙY[‘Ü›İ\Ï[™]ÈÙ]
+ÚÜÙ[‹™š[\Š[Ù[Oˆ[[Ù[˜[˜ÚÜŠK›X\
+[Ù[O›[Ù[š[™\[™[˜ÙQÜ›İ\[Ù[™˜[Z[JJNÂˆ›ÜŠÛÛœİ[Ù[ÙˆÛØ˜[›İÜÊ^ØÛÛœİÜ›İ\[[Ù[š[™\[™[˜ÙQÜ›İ\[Ù[™˜[Z[NÚYŠÙY[‘Ü›İ\Ëš\ÊÜ›İ\
+JXÛÛ[YNØY
+[Ù[
+NÜÙY[‘Ü›İ\Ë˜Y
+Ü›İ\
+_Bˆ›ÜŠÛÛœİ[Ù[ÙˆÛØ˜[›İÜÊXY
+[Ù[
+NÂˆ™]\›ˆÚÜÙ[‹œÛXÙJŒ
+NÂŸB˜ÛÛœİ›Ü™XØ\İ[Ù[Ø\Xš[]PØXÚO[™]ÈX\
+
+NÂ˜ÛÛœİ›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜĞØXÚO[™]ÈX\
+
+NÂ™[˜İ[Ûˆ›Ü™XØ\İØ\Xš[]P›ØÚÙY
+\RY
+^ØÛÛœİ[[Y›Ü™XØ\İ[Ù[Ø\Xš[]PØXÚK™Ù]
+\RY
+NÜ™]\›ˆ[X™\‹š\Ñš[š]J[[
+I‰[[‘]K››İÊ
+_B™[˜İ[Ûˆ\Ú[Û‘œ™\Ú™\ÜÑ˜XİÜŠ[Ù[^[ØY
+^ØÛÛœİ˜]Ï[[X™\Š^[ØYË›\İÜ[—Ú[š]X[\Ø][Û—İ[YJK[š]\ÏS[X™\‹š\Ñš[š]J˜]ÊOÊ˜]ÏŒLÜ˜]Îœ˜]ÊŒL
+N“˜S‹]˜Z[X›T˜]Ï[[X™\Š^[ØYË›\İÜ[—Ø]˜Z[Xš[]Wİ[YJK]˜Z[Xš[]S\ÏS[X™\‹š\Ñš[š]J]˜Z[X›T˜]ÊOÊ]˜Z[X›T˜]ÏŒLØ]˜Z[X›T˜]Î˜]˜Z[X›T˜]ÊŒL
+N“˜S‹ŞXÛRİ\œÏSX]›X^
+K
+[X™\Š^[ØYË\]WÚ[\˜[ÜÙXÛÛ™Ê_X]›X^
+K[X™\Š[Ù[\]Rİ\œÊ_ŠJŒÍŒ
+KÌÍŒ
+KYÙRİ\œÏJ]K››İÊ
+KZ[š]\ÊKÌÍŒÚYŠS[X™\‹š\Ñš[š]JYÙRİ\œÊ_YÙRİ\œÏKJ\™]\›ˆMÛ]˜XİÜXYÙRİ\œÏXŞXÛRİ\œÊŒKŒÍOÌN˜YÙRİ\œÏXŞXÛRİ\œÊŒË˜YÙRİ\œÏXŞXÛRİ\œÊŒÏËÎ‹LÚYŠ[X™\‹š\Ñš[š]J]˜Z[Xš[]S\ÊI‰‘]K››İÊ
+KX]˜Z[Xš[]S\ÏL
+Œ
+Y˜XİÜŠKMÎÜ™]\›ˆÛ[\
+˜XİÜ‹KJ_B˜\Ş[˜È[˜İ[Ûˆ›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜÊ[Ù[
+^ØÛÛœİØXÚYY›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜĞØXÚK™Ù]
+[Ù[šY
+NÚYŠØXÚY	‰‘]K››İÊ
+KXØXÚY˜]JŒ
+\™]\›ˆØXÚYÚYŠ[Ù[™\™XİÛ›J^ØÛÛœİ[š]\ÏQ]Kœ\œÙJİš[™Ê[Ù[š[š]X[\Ø][Û•[Y_	ÉÊJK]˜Z[X›S\ÏQ]Kœ\œÙJİš[™Ê[Ù[˜]˜Z[Xš[]U[Y_	ÉÊJK^[ØY^Û\İÜ[—Ú[š]X[\Ø][Û—İ[YN“[X™\‹š\Ñš[š]J[š]\ÊOÚ[š]\ËÌL[™Yš[™Y\İÜ[—Ø]˜Z[Xš[]Wİ[YN“[X™\‹š\Ñš[š]J]˜Z[X›S\ÊOØ]˜Z[X›S\ËÌL[™Yš[™Y\]WÚ[\˜[ÜÙXÛÛ™Î“X]›X^
+K[X™\Š[Ù[\]Rİ\œÊ_JJŒÍŒK˜[YO^Ø]‘]K››İÊ
+K˜XİÜ™\Ú[Û‘œ™\Ú™\ÜÑ˜XİÜŠ[Ù[^[ØY
+K[š]X[\Ø][Û•[YN“[X™\‹š\Ñš[š]J[š]\ÊOÛ™]È]J[š]\ÊKÒTÓÔİš[™Ê
+N[™Yš[™Y]˜Z[Xš[]U[YN“[X™\‹š\Ñš[š]J]˜Z[X›S\ÊOÛ™]È]J]˜Z[X›S\ÊKÒTÓÔİš[™Ê
+N[™Yš[™YNÙ›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜĞØXÚKœÙ]
+[Ù[šY˜[YJNÜ™]\›ˆ˜[Y_Y›ÜŠÛÛœİY]RYÙˆË‹‹›™]ÈÙ]
+Ë‹‹Š[Ù[˜\RYß×JK[Ù[šYJWJ^İ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™JÎ‹ËØ\K›Ü[‹[Y][Ë˜ÛÛKÙ]KÉÛY]RYKÜİ]XËÛY]KšœÛÛØØXÚWØ\İ\IÑ]K››İÊ
+_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX_KL
+NÚYŠ\™\ÜÛœÙK›ÚÊXÛÛ[YNØÛÛœİ^[ØYX]ØZ]™\ÜÛœÙKšœÛÛŠ
+K[š]˜]Ï[[X™\Š^[ØYË›\İÜ[—Ú[š]X[\Ø][Û—İ[YJK]˜Z[X›T˜]Ï[[X™\Š^[ØYË›\İÜ[—Ø]˜Z[Xš[]Wİ[YJK˜[YO^Ø]‘]K››İÊ
+K˜XİÜ™\Ú[Û‘œ™\Ú™\ÜÑ˜XİÜŠ[Ù[^[ØY
+K[š]X[\Ø][Û•[YN“[X™\‹š\Ñš[š]J[š]˜]ÊOÛ™]È]J
+[š]˜]ÏŒLÚ[š]˜]Îš[š]˜]ÊŒL
+JKÒTÓÔİš[™Ê
+N[™Yš[™Y]˜Z[Xš[]U[YN“[X™\‹š\Ñš[š]J]˜Z[X›T˜]ÊOÛ™]È]J
+]˜Z[X›T˜]ÏŒLØ]˜Z[X›T˜]Î˜]˜Z[X›T˜]ÊŒL
+JKÒTÓÔİš[™Ê
+N[™Yš[™YNÙ›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜĞØXÚKœÙ]
+[Ù[šY˜[YJNÜ™]\›ˆ˜[Y_XØ]Úß_XÛÛœİ˜[˜XÚÏ^Ø]‘]K››İÊ
+K˜XİÜ‹MNÙ›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜĞØXÚKœÙ]
+[Ù[šY˜[˜XÚÊNÜ™]\›ˆ˜[˜XÚßB™[˜İ[Ûˆ\Ú[Û“›Û“™YØ]]™J˜[YJ^ØÛÛœİ\œÙY[[X™\Š˜[YJNÜ™]\›ˆ[X™\‹š\Ñš[š]J\œÙY
+OÓX]›X^
+\œÙY
+N“˜SŸB™[˜İ[Ûˆ\Ú[Û“[X›Tİ[œÚ[™J˜[YKØ\N
+^ØÛÛœİ\œÙY[[X™\Š˜[YJNÜ™]\›ˆ[X™\‹š\Ñš[š]J\œÙY
+OØÛ[\
+\œÙYØ\
+N›[B™[˜İ[Ûˆ\Ú[Û‘Z[T™XÚ\]][ÛŠ˜]Õ˜[YK›Ø˜Xš[]U˜[YKÛÙU˜[YK˜Z[•˜[YKÚİÙ\œÕ˜[YKÛ›İÙ˜[˜[YKXYİ\œÊ^ÂˆÛÛœİ˜Z[Y\Ú[Û“›Û“™YØ]]™J˜Z[•˜[YJKÚİÙ\œÏY\Ú[Û“›Û“™YØ]]™JÚİÙ\œÕ˜[YJKÛ›İÙ˜[Y\Ú[Û“›Û“™YØ]]™JÛ›İÙ˜[˜[YJK˜]ÏY\Ú[Û“›Û“™YØ]]™J˜]Õ˜[YJK\ÏVÜ˜Z[‹ÚİÙ\œËÛ›İÙ˜[K™š[\Š[X™\‹š\Ñš[š]JK™XÚ\]][ÛS[X™\‹š\Ñš[š]J˜]ÊOÜ˜]Îœ\Ë›[™İÜ\Ëœ™YXÙJ
+İ[K˜[YJOOœİ[Jİ˜[YK
+N“˜S‹›Ø˜Xš[]O[[X™\Š›Ø˜Xš[]U˜[YJKÛÙO[[X™\ŠÛÙU˜[YJNÂˆYŠ[X™\‹š\Ñš[š]J™XÚ\]][ÛŠI‰“[X™\‹š\Ñš[š]J›Ø˜Xš[]JJ^ØÛÛœİÚYÛ˜[\™XÛÛ˜Ú[Q›Ü™XØ\İ™XÚ\]][ÛŠ™XÚ\]][Û‹›Ø˜Xš[]KÛÙU˜[YK[™Yš[™YÜ˜Z[“[X™\‹š\Ñš[š]J˜Z[ŠOÜ˜Z[ŒÚİÙ\œÎ“[X™\‹š\Ñš[š]JÚİÙ\œÊOÜÚİÙ\œÎŒÛ›İÙ˜[“[X™\‹š\Ñš[š]JÛ›İÙ˜[
+OÜÛ›İÙ˜[ŒXYİ\œßJNÜ™]\›Ü™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[“[X™\‹š\Ñš[š]J˜Z[ŠOÜÚYÛ˜[œ˜Z[“˜S‹ÚİÙ\œÎ“[X™\‹š\Ñš[š]JÚİÙ\œÊOÜÚYÛ˜[œÚİÙ\œÎ“˜S‹Û›İÙ˜[“[X™\‹š\Ñš[š]JÛ›İÙ˜[
+OÜÚYÛ˜[œÛ›İÙ˜[“˜S‹›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÛÙNœÚYÛ˜[˜ÛÙ__Bˆ™]\›Ü™XÚ\]][Û‹˜Z[‹ÚİÙ\œËÛ›İÙ˜[›Ø˜Xš[]N“[X™\‹š\Ñš[š]J›Ø˜Xš[]JOØÛ[\
+›Ø˜Xš[]KL
+N“˜S‹ÛÙN“[X™\‹š\Ñš[š]JÛÙJOÓX]œ›İ[™
+ÛÙJN“˜SŸBŸB™[˜İ[Ûˆ™[Y[X™\•[œİ\ÜY›Ü™XØ\İ[Ù[
+\RYY\ÜØYÙJ^ÚYŠÚ[˜[Y[šÛ›İÛŸ›İ›İ[™Ù\È›İ^\İ[Ù[Š››İŠ˜]˜Z[X›_Ø[››İŠ›[Ù[ÚK\İ
+İš[™ÊY\ÜØYÙ_	ÉÊJJY›Ü™XØ\İ[Ù[Ø\Xš[]PØXÚKœÙ]
+\RY]K››İÊ
+JÍŠŒÍŒ
+_B™[˜İ[ÛˆÙXÔ[’\ÛÊ˜[YJ^ØÛÛœİ˜]ÏTİš[™Ê˜[Y_	ÉÊKš[J
+KÛÛ\Xİ\˜]Ë›X]Ú
+×ŠŒÌŸJJÌŸJJÌŸJJÌŸJIÊK\ÛÏ\˜]Ë›X]Ú
+×ŠŒÌŸKWÌŸKWÌŸJU
+ÌŸJJÎŠÌŸJJOËÊNÚYŠÛÛ\Xİ
+\™]\›˜	ØÛÛ\XİÌW_KIØÛÛ\XİÌ—_KIØÛÛ\XİÌ×_U	ØÛÛ\XİÍ_NŒŒ˜ÚYŠ\ÛÊ\™]\›˜	Ú\ÛÖÌW_U	Ú\ÛÖÌ—_N‰Ú\ÛÖÌ×_	Ì	ßNŒ˜ØÛÛœİ\ØÚQ]Kœ\œÙJ˜]ÊNÜ™]\›ˆ[X™\‹š\Ñš[š]J\ØÚ
+OÛ™]È]J\ØÚ
+KÒTÓÔİš[™Ê
+N[™Yš[™YB™[˜İ[Ûˆ\œÙQÙXÔÚ[^[ØY
+^[ØY[Ù[\RYIÙÙÚXÛÛ—Ù—ÜXÉÊ^ÂˆÛÛœİ]O\^[ØYË™]I‰\[Ùˆ^[ØY™]OOOIÛØš™Xİ	ÏÜ^[ØY™]Nœ^[ØYİ\›OY]OËšİ\›OÏŞßK[Y\ÏP\œ˜^Kš\Ğ\œ˜^Jİ\›K[YJOÚİ\›K[YN–×KÙ™œÙ]ÙXÛÛ™Ï[[X™\Š]OË]×ÛÙ™œÙ]ÜÙXÛÛ™Ê_ÂˆÛÛœİİ\œÏ][Y\Ë›X\
+
+[YK[™^
+OOØÛÛœİ\ØÚQ]Kœ\œÙJ	İ[Y_V˜
+K[Ù™œÙ]ÙXÛÛ™ÊŒLÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+J\™]\›ˆ[ØÛÛœİ\™Xİ[Û[[X™\Š]
+İ\›KÚ[™Ù\™Xİ[Û—ÌLK[™^
+JNÜ™]\›İ[YN”İš[™Ê[YJK\ØÚ[\\˜]\™N›[X™\Š]
+İ\›K[\\˜]\™WÌ›K[™^
+JK]ÔÚ[›[X™\Š]
+İ\›K™]×ÜÚ[Ì›K[™^
+JK™\Üİ\™N›[X™\Š]
+İ\›Kœ™\Üİ\™WÛ\Û[™^
+JKÚ[™™\Ú[Û“›Û“™YØ]]™J]
+İ\›KÚ[™ÜÜYYÌLK[™^
+JKİ\İ™\Ú[Û“›Û“™YØ]]™J]
+İ\›KÚ[™Ùİ\İ×ÌLK[™^
+JK\™Xİ[Û“[X™\‹š\Ñš[š]J\™Xİ[ÛŠOÊ
+\™Xİ[Û‰LÍŒ
+JÌÍŒ
+ILÍŒ“˜S‹™XÚ\]][Û™\Ú[Û“›Û“™YØ]]™J]
+İ\›Kœ™XÚ\]][Û‹[™^
+JK˜Z[“˜S‹ÚİÙ\œÎ“˜S‹Û›İÙ˜[“˜S‹›Ø˜Xš[]N“˜S‹ÛÙN“˜S‹ÛİY›[X™\Š]
+İ\›K˜ÛİYØÛİ™\‹[™^
+JKİĞÛİY›[X™\Š]
+İ\›K˜ÛİYØÛİ™\—ÛİË[™^
+JK[ZY]N›[X™\Š]
+İ\›Kœ™[]]™WÚ[ZY]WÌ›K[™^
+JKØ\N™\Ú[Û“›Û“™YØ]]™J]
+İ\›K˜Ø\K[™^
+JKYY[™^“˜S‹ÛÛ™Xİ]™R[šXš][Û™\Ú[Û“›Û“™YØ]]™J]
+İ\›K˜ÛÛ™Xİ]™WÚ[šXš][Û‹[™^
+JKİ[œÚ[™Q\˜][Û›[\Ñ^N[™Yš[™Y_JK™š[\Šİ\Ošİ\‰‰“[X™\‹š\Ñš[š]Jİ\‹™\ØÚ
+I‰–Úİ\‹[\\˜]\™Kİ\‹œ™\Üİ\™Kİ\‹Ú[™İ\‹œ™XÚ\]][Û‹İ\‹˜ÛİYKœÛÛYJ[X™\‹š\Ñš[š]JJNÂˆ™]\›Ë‹‹›[Ù[\RYİXØÙ\ÜÙ[šİ\œË›[™İM‹ÙX]\[™T™XYN™˜[ÙK™X\ÛÛšİ\œË›[™İMİ[™Yš[™Y‰Ô•PËT[šİY\\ˆÚ™HZ[™\İ[œÈÙXÚÈ™\Ù\˜\™Hİ[™[‰Ë[Y^›Û™N”İš[™Ê]OË[Y^›Û™_	ÕUÉÊK^\Î–×Kİ\œË˜\Y™]OËœ˜\Y	‰\[Ùˆ]Kœ˜\YOOIÛØš™Xİ	ÏÙ]Kœ˜\YßKZYXÎ™]OË›ZYÜXË[š]X[\Ø][Û•[YN™ÙXÔ[’\ÛÊ]OË›ZYÜXÏËœ[ŠK]˜Z[Xš[]U[YNœØY™Q]J]OË›ZYÜXÏË™Ù[™\˜]Y]
+_NÂŸB˜\Ş[˜È[˜İ[Ûˆ™]ÚÙXÔÚ[Y\\Š[Ù[]Û‹[]˜][Û‹[Š^ÂˆÛÛœİŒ”^[ØYX]ØZ]ÙXÔŒ”Ú[^[ØY
+]Û‹[ŠNÚYŠŒ”^[ØY
+^ØÛÛœİ\œÙY\\œÙQÙXÔÚ[^[ØY
+Œ”^[ØY[Ù[	ÙÙÚXÛÛ—Ù—ÜX×ÜŒ‰ÊNÚYŠ\œÙYœİXØÙ\ÜÙ[
+\™]\›Ë‹‹œ\œÙYY\\‰ÓRQÑÑÔ•P×ÑUIË›İšY\‰ÑÑPÓÓ‹Q‹T•PÈ0­ÈŒ‹T[šİY\\‰ß_BˆÛÛœİİ]XÔ^[ØYX]ØZ]ÙXÔİ]XÔÚ[^[ØY
+]Û‹[ŠNÚYŠİ]XÔ^[ØY
+^ØÛÛœİ\œÙY\\œÙQÙXÔÚ[^[ØY
+İ]XÔ^[ØY[Ù[	ÙÙÚXÛÛ—Ù—ÜX×ÜYÙ\ÉÊNÚYŠ\œÙYœİXØÙ\ÜÙ[
+\™]\›Ë‹‹œ\œÙY˜\Yœİ]XÔ^[ØYœ˜\YßKY\\‰ÓRQÑÑÔ•P×ÔÕUP×ĞTÑWÕT“	Ë›İšY\‰ÑÑPÓÓ‹Q‹T•PÈ0­ÈÚ]X‹TYÙ\ËT[šİY\\‰ß_BˆÛÛœİ[™Ú[XY\\‘[™Ú[
+[‹	ÓRQÑÑÔ•P×ÔÒS•ÑS‘ÒS•	ÊNÚYŠY[™Ú[
+\™]\›ˆ[Âˆ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ëİš[™Ê]
+JNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰Ëİš[™ÊÛŠJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü™XØ\İÚİ\œÉËİš[™ÊX]›Z[ŠM[X™\Š[Ù[›X^İ\œÊ_M
+JJNÚYŠ[X™\‹š\Ñš[š]J[]˜][ÛŠJY[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ù[]˜][Û‰Ëİš[™ÊÛ[\
+[]˜][Û‹MLL
+JJNÂˆÛÛœİXY\œÏ^ĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÚÙ[Tİš[™Ê[Ë“RQÑÑÔ•P×ÔÒS•ÕÒÑSŸ	ÉÊKš[J
+NÚYŠÚÙ[ŠZXY\œË]]Üš^˜][ÛX™X\™\ˆ	İÚÙ[ŸXÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[Ôİš[™Ê
+KÚXY\œËÙØØXÚUŒÌØXÚQ]™\][™ÎY__KML
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØY^ßNİ^Ü^[ØYR”ÓÓ‹œ\œÙJ›ÙJ_XØ]ÚßBˆYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÑPÓÓ‹Q‹T•PÈÚ[PY\\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+NÚYŠ^[ØYË™\œ›ÜŠ]›İÈ™]È\œ›ÜŠİš[™Ê^[ØYœ™X\ÛÛŸ^[ØY™\œ›ÜŠJNØÛÛœİ\œÙY\\œÙQÙXÔÚ[^[ØY
+^[ØY[Ù[
+NÜ™]\›Ë‹‹œ\œÙYY\\‰ÓRQÑÑÔ•P×ÔÒS•ÑS‘ÒS•	Ë›İšY\‰ÑÑPÓÓ‹Q‹T•PÈ0­È[šİY\\‰Ë™X\ÛÛœ\œÙYœİXØÙ\ÜÙ[İ[™Yš[™Yœ\œÙYœ™X\ÛÛŸ	ÔÚ[PY\\ˆÚ™H™\Ù\˜\™H™ZZ[‰ßNÂŸB™[˜İ[ÛˆXÑ\Ô›Ø˜Xš[]T›İÜÊ^[ØY
+^ØÛÛœİ]O\^[ØYË™]I‰\[Ùˆ^[ØY™]OOOIÛØš™Xİ	ÏÜ^[ØY™]Nœ^[ØYİ\›OY]OËšİ\›OÏŞßK[Y\ÏP\œ˜^Kš\Ğ\œ˜^Jİ\›K[YJOÚİ\›K[YN–×KÙ™œÙ]ÙXÛÛ™Ï[[X™\Š]OË]×ÛÙ™œÙ]ÜÙXÛÛ™Ê_˜]]™OP\œ˜^Kš\Ğ\œ˜^Jİ\›Kœ™XÚ\]][Û—Ü›Ø˜Xš[]JOÚİ\›Kœ™XÚ\]][Û—Ü›Ø˜Xš[]N›[ÚYÛšYšXØ[P\œ˜^Kš\Ğ\œ˜^Jİ\›Kœ™XÚ\]][Û—Ü›Ø˜Xš[]WÜÚYÛšYšXØ[
+OÚİ\›Kœ™XÚ\]][Û—Ü›Ø˜Xš[]WÜÚYÛšYšXØ[›[MÍOP\œ˜^Kš\Ğ\œ˜^Jİ\›Kœ™XÚ\]][Û—ÜMÍJOÚİ\›Kœ™XÚ\]][Û—ÜMÍN›[YX[P\œ˜^Kš\Ğ\œ˜^Jİ\›Kœ™XÚ\]][Û—ÛYX[ŠOÚİ\›Kœ™XÚ\]][Û—ÛYX[›[Y[X™\’Ù^\ÏSØš™XİšÙ^\Êİ\›JK™š[\ŠÙ^OO‹×œ™XÚ\]][ÛŠÎ—Üİ[JO×ÛY[X™\—
+ÉÚK\İ
+Ù^JI‰\œ˜^Kš\Ğ\œ˜^Jİ\›VÚÙ^WJJKXÛ\™YY[X™\œÏSX]›X^
+[X™\Š]OË›ZYÜXÏË›Y[X™\—ØÛİ[
+_
+NÜ™]\›ˆ[Y\Ë›X\
+
+[YK[™^
+OOØÛÛœİ\ØÚQ]Kœ\œÙJ	İ[Y_V˜
+K[Ù™œÙ]ÙXÛÛ™ÊŒLÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+J\™]\›ˆ[Û]›Ø˜Xš[]O[[X™\Š˜]]™OË–Ú[™^JKÚYÛšYšXØ[›Ø˜Xš[]O[[X™\ŠÚYÛšYšXØ[Ë–Ú[™^JKMÍS[O[[X™\ŠMÍOË–Ú[™^JKYX[“[O[[X™\ŠYX[Ë–Ú[™^JKY[X™\Ûİ[S[X™\‹š\Ñš[š]J›Ø˜Xš[]JOÙXÛ\™YY[X™\œÎŒÚYŠY[X™\’Ù^\Ë›[™İ	‰ŠS[X™\‹š\Ñš[š]J›Ø˜Xš[]J_S[X™\‹š\Ñš[š]JÚYÛšYšXØ[›Ø˜Xš[]J_S[X™\‹š\Ñš[š]JMÍS[JJJ^ØÛÛœİ˜[Y\Ï[Y[X™\’Ù^\Ë›X\
+Ù^OO›[X™\Šİ\›VÚÙ^WVÚ[™^JJK™š[\Š[X™\‹š\Ñš[š]JKœÛÜ
+
+KŠOO˜KXŠNÛY[X™\Ûİ[]˜[Y\Ë›[™İÚYŠ˜[Y\Ë›[™İ
+^ÚYŠS[X™\‹š\Ñš[š]J›Ø˜Xš[]JJ\›Ø˜Xš[]OLL
+˜[Y\Ë™š[\Š˜[YOO˜[YO‹ŒŠK›[™İİ˜[Y\Ë›[™İÚYŠS[X™\‹š\Ñš[š]JÚYÛšYšXØ[›Ø˜Xš[]JJ\ÚYÛšYšXØ[›Ø˜Xš[]OLL
+˜[Y\Ë™š[\Š˜[YOO˜[YOJK›[™İİ˜[Y\Ë›[™İÚYŠS[X™\‹š\Ñš[š]JMÍS[JJ^ØÛÛœİÜÏKÍJŠ˜[Y\Ë›[™İLJKÏSX]™›ÛÜŠÜÊKOSX]˜ÙZ[
+ÜÊKZ^\ÜË[ÎÜMÍS[O]˜[Y\ÖÛ×JŠK[Z^
+Jİ˜[Y\ÖÚWJ›Z^ZYŠS[X™\‹š\Ñš[š]JYX[“[JJ[YX[“[O]˜[Y\Ëœ™YXÙJ
+İ[K˜[YJOOœİ[Jİ˜[YK
+Kİ˜[Y\Ë›[™İ_\™]\›ˆ[X™\‹š\Ñš[š]J›Ø˜Xš[]JOŞİ[YN”İš[™Ê[YJK\ØÚ›Ø˜Xš[]N˜Û[\
+›Ø˜Xš[]KL
+KÚYÛšYšXØ[›Ø˜Xš[]N“[X™\‹š\Ñš[š]JÚYÛšYšXØ[›Ø˜Xš[]JOØÛ[\
+ÚYÛšYšXØ[›Ø˜Xš[]KL
+N[™Yš[™YMÍS[N“[X™\‹š\Ñš[š]JMÍS[JOÓX]›X^
+MÍS[JN[™Yš[™YYX[“[N“[X™\‹š\Ñš[š]JYX[“[JOÓX]›X^
+YX[“[JN[™Yš[™YY[X™\Ûİ[N›[JK™š[\Š›ÛÛX[Š_B˜\Ş[˜È[˜İ[Ûˆ™]ÚÙXÑ\Ô›Ø˜Xš[]PY\\Š]Û‹[]˜][Û‹[Š^ÂˆÛÛœİ™\İ[J^[ØYY\\‹YÙÜ™YØ][ÛŠOOØÛÛœİİ\œÏ\XÑ\Ô›Ø˜Xš[]T›İÜÊ^[ØY
+K[Tİš[™Ê^[ØYË›ZYÜXÏËœ[Ÿ	ÉÊNÜ™]\›ÜİXØÙ\ÜÙ[šİ\œË›[™İMÛÛ™šYİ\™YYKİ\œËY[X™\Ûİ[“[X™\Š^[ØYË›ZYÜXÏË›Y[X™\—ØÛİ[X]›X^
+‹‹šİ\œË›X\
+›İÏOœ›İË›Y[X™\Ûİ[
+JJ_Y\\‹YÙÜ™YØ][Û‹[‹[š]X[\Ø][Û•[YN™ÙXÔ[’\ÛÊ[ŠK]˜Z[Xš[]U[YNœØY™Q]J^[ØYË›ZYÜXÏË™Ù[™\˜]Y]
+K™X\ÛÛšİ\œË›[™İMİ[™Yš[™Y‰Ô•PËQTËT[šİY\\ˆÚ™H™\Ù\˜\™HØZœØÚZ[›XÚÙZ]Ü™ZZ[‰ß_NÂˆÛÛœİİ[[X\OX]ØZ]ÙXÑ\Ôİ[[X\TŒ”^[ØY
+]Û‹[ŠNÚYŠİ[[X\J^ØÛÛœİ\œÙY\™\İ[
+İ[[X\K	ÓRQÑÑÔ•P×ÑUIË	Ü™\›ØÙ\ÜÙY	ÊNÚYŠ\œÙYœİXØÙ\ÜÙ[
+\™]\›ˆ\œÙYBˆÛÛœİİ]XÔİ[[X\OX]ØZ]ÙXÑ\Ôİ[[X\Tİ]XÔ^[ØY
+]Û‹[ŠNÚYŠİ]XÔİ[[X\J^ØÛÛœİ\œÙY\™\İ[
+İ]XÔİ[[X\K	ÓRQÑÑÔ•P×ÔÕUP×ĞTÑWÕT“	Ë	Ü™\›ØÙ\ÜÙY\YÙ\ÉÊNÚYŠ\œÙYœİXØÙ\ÜÙ[
+\™]\›ˆ\œÙYBˆÛÛœİŒX]ØZ]ÙXÑ\ÔŒ”^[ØY
+]Û‹[ŠNÚYŠŒŠ^ØÛÛœİ\œÙY\™\İ[
+Œ‹	ÓRQÑÑÔ•P×ÑUIË	Û˜]]™K[Y[X™\‹Y˜[˜XÚÉÊNÚYŠ\œÙYœİXØÙ\ÜÙ[
+\™]\›ˆ\œÙYBˆÛÛœİ[™Ú[XY\\‘[™Ú[
+[‹	ÓRQÑÑÔ•P×ÑT×ÔÒS•ÑS‘ÒS•	ÊNÚYŠY[™Ú[
+\™]\›ÜİXØÙ\ÜÙ[™˜[ÙKÛÛ™šYİ\™Y™ÙXÔİÜ˜YÙPÛÛ™šYİ\™Y
+[ŠKİ\œÎ–×K™X\ÛÛ‰Ô•PËQTËT[šİY\\ˆšXÚÛÛ™šYİ\šY\	ßNÂˆ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ëİš[™Ê]
+JNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰Ëİš[™ÊÛŠJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü™XØ\İÚİ\œÉË	ÌM	ÊNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	İ˜\šXX›\ÉË	Ü™XÚ\]][Û‹™XÚ\]][Û—Ü›Ø˜Xš[]IÊNÚYŠ[X™\‹š\Ñš[š]J[]˜][ÛŠJY[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ù[]˜][Û‰Ëİš[™ÊÛ[\
+[]˜][Û‹MLL
+JJNÂˆÛÛœİXY\œÏ^ĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÚÙ[Tİš[™Ê[Ë“RQÑÑÔ•P×ÑT×ÔÒS•ÕÒÑSŸ	ÉÊKš[J
+NÚYŠÚÙ[ŠZXY\œË]]Üš^˜][ÛX™X\™\ˆ	İÚÙ[ŸXÂˆ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[Ôİš[™Ê
+KÚXY\œËÙØØXÚUŒÌØXÚQ]™\][™ÎY__KML
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØY^ßNİ^Ü^[ØYR”ÓÓ‹œ\œÙJ›ÙJ_XØ]ÚßZYŠ\™\ÜÛœÙK›Úß^[ØYË™\œ›ÜŠ]›İÈ™]È\œ›ÜŠİš[™Ê^[ØYËœ™X\ÛÛŸ^[ØYË™\œ›ÜŸÑPÓÓ‹Q‹T•PËQTÈÚ[PY\\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+JNÜ™]\›ˆ™\İ[
+^[ØY	ÓRQÑÑÔ•P×ÑT×ÔÒS•ÑS‘ÒS•	Ë	ÜÚ[XY\\‰Ê_XØ]Ú
+\œ›ÜŠ^Ü™]\›ÜİXØÙ\ÜÙ[™˜[ÙKÛÛ™šYİ\™YYKİ\œÎ–×K™X\ÛÛ™\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ__BŸB™[˜İ[ÛˆXÓXY˜[œÚ][ÛŠXYİ\œËİ\İ\œË[™İ\œËİ\ÙZYÚ[™ÙZYÚ
+^ØÛÛœİÜ[SX]›X^
+ŒK[™İ\œË\İ\İ\œÊKXÛ[\
+
+XYİ\œË\İ\İ\œÊKÜÜ[‹JKÛ[Ûİ]
+
+ŠËLŠ
+NÜ™]\›ˆİ\ÙZYÚ
+Ê[™ÙZYÚ\İ\ÙZYÚ
+JœÛ[ÛİB™[˜İ[ÛˆXÔ˜\Y˜\ÙUÙZYÚ
+XYİ\œÊ^ØÛÛœİXYSX]›X^
+[X™\ŠXYİ\œÊOÏÌ
+NÚYŠXYLŠ\™]\›ˆÎÚYŠXYJ\™]\›ˆXÓXY˜[œÚ][ÛŠXY‹KËN
+NÚYŠXYJ\™]\›ˆXÓXY˜[œÚ][ÛŠXYKKNÊNÚYŠXYLŠ\™]\›ˆXÓXY˜[œÚ][ÛŠXYKL‹ËŒÊNÚYŠXYLM
+\™]\›ˆXÓXY˜[œÚ][ÛŠXYL‹MŒË
+NÜ™]\›ˆB™[˜İ[ÛˆXÔ˜\YÙZYÚ
+XYİ\œËİ\Š^Û]ÙZYÚ\XÔ˜\Y˜\ÙUÙZYÚ
+XYİ\œÊNÚYŠ]ÙZYÚ
+\™]\›ˆØÛÛœİÛÛ™Xİ]™OJ[X™\Šİ\Ë˜Ø\J_
+OMÚYŠÛÛ™Xİ]™J]ÙZYÚSX]›Z[Š‹ÙZYÚ
+ËŒJNÜ™]\›ˆÙZYÚB™[˜İ[ÛˆXÔ™XÚ\]][ÛYÜ™Y[Y[
+™Y™\™[˜ÙK\™Ù]
+^ØÛÛœİOSX]›X^
+[X™\Š™Y™\™[˜ÙJOÏÌ
+KSX]›X^
+[X™\Š\™Ù]
+OÏÌ
+K\™Ù\İSX]›X^
+KŠNÚYŠ\™Ù\İŒÊ\™]\›ˆNÜ™]\›ˆÛ[\
+KSX]˜XœÊKXŠKÓX]›X^
+ŒË\™Ù\İ
+‹JKJ_B™[˜İ[ÛˆXÔ™XÚ\]][ÛÛÛœÙ[œİ\ÊXYİ\œË[˜ÚÜ‹˜\Y[ÜÛZ^XÑ\Ë[ÜÛZ^]X[]OL
+^ÂˆÛÛœİ[˜ÚÜ[[İ[SX]›X^
+[X™\Š[˜ÚÜËœ™XÚ\]][ÛŠOÏÌ
+K˜\Y[[İ[SX]›X^
+[X™\Š˜\YËœ™XÚ\]][ÛŠOÏØ[˜ÚÜ[[İ[
+K˜\ÙUÙZYÚ\XÔ˜\Y˜\ÙUÙZYÚ
+XYİ\œÊKÛÛ™Xİ]™OJ[X™\Š˜\YË˜Ø\J_
+OM[ÜÛZ^[[İ[[[X™\Š[ÜÛZ^Ëœ™XÚ\]][ÛŠK\Ô›Ø˜Xš[]O[[X™\ŠXÑ\ÏËœ›Ø˜Xš[]JK\ÔÚYÛšYšXØ[›Ø˜Xš[]O[[X™\ŠXÑ\ÏËœÚYÛšYšXØ[›Ø˜Xš[]JK\ÔMÍS[O[[X™\ŠXÑ\ÏËœMÍS[JKØY™S[ÜÛZ^]X[]OXÛ[\
+[X™\Š[ÜÛZ^]X[]JOÏÌJK[˜ÚÜ”İ\Ü\XÔ™XÚ\]][ÛYÜ™Y[Y[
+[˜ÚÜ[[İ[˜\Y[[İ[
+K[ÜÛZ^İ\ÜS[X™\‹š\Ñš[š]J[ÜÛZ^[[İ[
+OÜXÔ™XÚ\]][ÛYÜ™Y[Y[
+[ÜÛZ^[[İ[˜\Y[[İ[
+N“˜S‹\ÓØØİ\œ™[˜ÙTİ\ÜS[X™\‹š\Ñš[š]J\Ô›Ø˜Xš[]JOØÛ[\
+
+\Ô›Ø˜Xš[]KLŒ
+KÍÌJN‹KØØ[™Y™\™[˜ÙOS[X™\‹š\Ñš[š]J[ÜÛZ^[[İ[
+OÓX]›X^
+[˜ÚÜ[[İ[
+ŠKKJœØY™S[ÜÛZ^]X[]JJÓX]›X^
+[ÜÛZ^[[İ[
+J‹JœØY™S[ÜÛZ^]X[]JN˜[˜ÚÜ[[İ[Âˆ]İ\ÜLK˜\YÙZYÚX˜\ÙUÙZYÚİ™\œÚÛİ˜][ÏL\Õ\\•Z[[˜[OLNÂˆËÈ•PËQTÈ›ZXZ[™HØZœØÚZ[›XÚÙZ]ËKÔİ™]][™ÜÜ]Y[H[™\œÙ]ÙZ[™BˆËÈ]\›Z[š\İ\ØÚHİ[™[›Y[™ÙKˆMÍHÚ\™\ˆ[ÈØ™\™H]\ÚXš[]0éÜİ0ï™BˆËÈÙ[]ˆYYİ\ˆ]\›Z[š\İ\ØÚH•PÈ]]XÚØ™\š[ˆ›ÛˆMÍH[™[‚ˆËÈÚØ[[ˆY[™Ù[˜[šÙ\›‹Ú[šİÙZ[ˆÙ]ÚXÚÛÛ[ZY\›XÚİ]\ÙXØ\HÙ\™[‹‚ˆYŠ˜\Y[[İ[˜[˜ÚÜ[[İ[
+ËŒLŠ^ØÛÛœİ[[İ[İ\ÜS[X™\‹š\Ñš[š]J[ÜÛZ^İ\Ü
+OØ[˜ÚÜ”İ\Ü
+‹ŒÍJÛ[ÜÛZ^İ\Ü
+‹N˜[˜ÚÜ”İ\Üİ™\œÚÛİSX]›X^
+˜\Y[[İ[[ØØ[™Y™\™[˜ÙKKŒLŠKİ™\œÚÛİØØ[OSX]›X^
+ŒKØØ[™Y™\™[˜ÙJËŒŠKİ™\œÚÛİ[˜[OLKÊJÊİ™\œÚÛİÛİ™\œÚÛİØØ[JJ‹ÍJNÛİ™\œÚÛİ˜][Ï[İ™\œÚÛİÛİ™\œÚÛİØØ[NÚYŠ[X™\‹š\Ñš[š]J\ÔMÍS[JI‰œ˜\Y[[İ[“X]›X^
+ØØ[™Y™\™[˜ÙJËŒN\ÔMÍS[JŒKŒÍJËŒ
+J^ØÛÛœİ\Óİ™\œÚÛİ\˜\Y[[İ[SX]›X^
+ØØ[™Y™\™[˜ÙK\ÔMÍS[JK\ÔØØ[OSX]›X^
+ŒË\ÔMÍS[JËŒJNÙ\Õ\\•Z[[˜[OLKÊJÊ\Óİ™\œÚÛİÙ\ÔØØ[JJ‹J_\İ\ÜXÛ[\
+[[İ[İ\Ü
+Š
+ËŒLŠ™\ÓØØİ\œ™[˜ÙTİ\Ü
+ËŒ
+˜Û[\
+
+[X™\Š\ÔÚYÛšYšXØ[›Ø˜Xš[]JOÏÌ
+KÍŒJJJ›İ™\œÚÛİ[˜[J™\Õ\\•Z[[˜[KJNØÛÛœİ›ÛÜXÛÛ™Xİ]™OËŒM
+ËŒ
+™\ÓØØİ\œ™[˜ÙTİ\Ü‹ŒJËŒ
+™\ÓØØİ\œ™[˜ÙTİ\ÜİX\™XÛ[\
+›ÛÜŠÊKY›ÛÜŠJœİ\Ü›ÛÜ‹JNÜ˜\YÙZYÚX˜\ÙUÙZYÚ
+™İX\™Bˆ][[İ[SX]›X^
+›[™˜\Y˜[YJ[˜ÚÜ[[İ[˜\Y[[İ[˜\YÙZYÚ
+JK[ÜÛZ^ÙZYÚLÂˆYŠ[X™\‹š\Ñš[š]J[ÜÛZ^[[İ[
+I‰œØY™S[ÜÛZ^]X[]OKŠ^ØÛÛœİXYİ™[™İ[XYİ\œÏMËŒ›XYİ\œÏLMËŒŒ‹ŒL‹ÛÛ™Xİ]™Q˜XİÜXÛÛ™Xİ]™OËNŒNÛ[ÜÛZ^ÙZYÚ[XYİ™[™İ
+œØY™S[ÜÛZ^]X[]J˜ÛÛ™Xİ]™Q˜XİÜØ[[İ[SX]›X^
+›[™˜\Y˜[YJ[[İ[X]›X^
+[ÜÛZ^[[İ[
+K[ÜÛZ^ÙZYÚŠJ_Bˆ™]\›Ø[[İ[˜\YÙZYÚ˜\ÙUÙZYÚİ\Üİ™\œÚÛİ˜][Ë\Õ\\•Z[[˜[KØØ[™Y™\™[˜ÙK[ÜÛZ^[[İ[“[X™\‹š\Ñš[š]J[ÜÛZ^[[İ[
+OÓX]›X^
+[ÜÛZ^[[İ[
+N[™Yš[™Y[ÜÛZ^ÙZYÚ\Ô›Ø˜Xš[]N“[X™\‹š\Ñš[š]J\Ô›Ø˜Xš[]JOØÛ[\
+\Ô›Ø˜Xš[]KL
+N[™Yš[™Y\ÔÚYÛšYšXØ[›Ø˜Xš[]N“[X™\‹š\Ñš[š]J\ÔÚYÛšYšXØ[›Ø˜Xš[]JOØÛ[\
+\ÔÚYÛšYšXØ[›Ø˜Xš[]KL
+N[™Yš[™Y\ÔMÍS[N“[X™\‹š\Ñš[š]J\ÔMÍS[JOÓX]›X^
+\ÔMÍS[JN[™Yš[™Y[˜ÚÜ[[İ[˜\Y[[İ[NÂŸB™[˜İ[Ûˆ˜\Y›Ü™XØ\İÙX]\ÛÙJ[˜ÚÜÛÙKXĞÛÙJ^ØÛÛœİ˜\Y[[X™\ŠXĞÛÙJK[˜ÚÜSX]œ›İ[™
+[X™\Š[˜ÚÜÛÙJOÏÌ
+NÜ™]\›ˆ[X™\‹š\Ñš[š]J˜\Y
+OÓX]œ›İ[™
+˜\Y
+N˜[˜ÚÜŸB™[˜İ[Ûˆ›[™˜\Y˜[YJ˜\ÙK˜\YÙZYÚX^[OR[™š[š]J^ØÛÛœİO[[X™\Š˜\ÙJK[[X™\Š˜\Y
+NÚYŠS[X™\‹š\Ñš[š]JŠJ\™]\›ˆNÚYŠS[X™\‹š\Ñš[š]JJJ\™]\›ˆØÛÛœİ\™Ù]XJÊ‹XJJÙZYÚÜ™]\›ˆ[X™\‹š\Ñš[š]JX^[JOØÛ[\
+\™Ù]K[X^[KJÛX^[JN\™Ù]B™[˜İ[ÛˆXÔ˜\YZ[]LMT›İÜÊİXØÙ\ÜÙ[
+^ØÛÛœİXÏ\İXØÙ\ÜÙ[™š[™
+™\İ[Oœ™\İ[šYOOIÚXÛÛ—Ù—ÜXÉÉ‰œ™\İ[œİXØÙ\ÜÙ[
+K˜\Y\XÏËœ˜\YßK]X\\\˜\Y˜ÛÛ™Xİ[ÛŒM_ßK[Y\ÏP\œ˜^Kš\Ğ\œ˜^J]X\\‹[YJOÜ]X\\‹[YN–×Kš]™O\˜\Yœ™XÚ\_ßKš]™U[Y\ÏP\œ˜^Kš\Ğ\œ˜^Jš]™K[YJOÙš]™K[YN–×K™Y›Xİ]š]O\˜\Yœ™Y›Xİ]š]LM_ßKÙ]™\™O\˜\YœÙ]™\™LM_ßKÛÛ\\˜\YœÛÛ\ŒM_ßK\ÙO\˜\Yœ\ÙLM_ßKš]™T›İÜÏYš]™U[Y\Ë›X\
+
+[YK[™^
+OOŠÙ\ØÚ‘]Kœ\œÙJ	İ[Y_V˜
+K™XÚ\]][Û“X]›X^
+[X™\Šš]™Kœ™XÚ\]][ÛË–Ú[™^J_
+_JJK™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË™\ØÚ
+JNÜ™]\›ˆ[Y\Ë›X\
+
+[YK[™^
+OOØÛÛœİ\ØÚQ]Kœ\œÙJ	İ[Y_V˜
+NÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+J\™]\›ˆ[ØÛÛœİ[\˜[İ\Y\ØÚLMJŒÚ][Yš]™T›İÜË™š[\Š›İÏOœ›İË™\ØÚš[\˜[İ\	‰œ›İË™\ØÚY\ØÚ
+K™XÚ\]][ÛSX]›X^
+[X™\Š]X\\‹œ™XÚ\]][ÛË–Ú[™^J_
+KØ\OSX]›X^
+[X™\Š]X\\‹˜Ø\OË–Ú[™^J_
+KÛÛ™Xİ]™R[šXš][ÛSX]›X^
+[X™\Š]X\\‹˜ÛÛ™Xİ]™WÚ[šXš][ÛË–Ú[™^J_
+KXZÔ˜]S[Z]Ú][‹›[™İÓX]›X^
+‹‹Ú][‹›X\
+›İÏOœ›İËœ™XÚ\]][ÛŠŒLŠJNœ™XÚ\]][ÛŠÛX^[[X™\Š™Y›Xİ]š]K™—ØÛX^Ë–Ú[™^JK˜Z[[[X™\Š\ÙKœ˜Z[Ë–Ú[™^JKÛ›İÙ˜[Ø]\‘\]Z]˜[[[[X™\Š\ÙKœÛ›İÙ˜[İØ]\—Ù\]Z]˜[[Ë–Ú[™^JKÜ˜]\[Ø]\‘\]Z]˜[[[[X™\Š\ÙK™Ü˜]\[İØ]\—Ù\]Z]˜[[Ë–Ú[™^JK˜[YO[˜[YOO›[X™\ŠÙ]™\™OË–Û˜[YWOË–Ú[™^JKÛÛ\•˜[YO[˜[YOO›[X™\ŠÛÛ\Ë–Û˜[YWOË–Ú[™^JNÜ™]\›İ[YN”İš[™Ê[YJK\ØÚ™XÚ\]][Û‹Ø\KÛÛ™Xİ]™R[šXš][Û‹XZÔ˜]S[Z“[X™\ŠXZÔ˜]S[ZÑš^Y
+ŠJKÛX^“[X™\‹š\Ñš[š]JÛX^
+OÓ[X™\ŠÛX^Ñš^Y
+JJN[™Yš[™Y˜Z[“[X™\‹š\Ñš[š]J˜Z[ŠOÓX]›X^
+˜Z[ŠN[™Yš[™YÛ›İÙ˜[Ø]\‘\]Z]˜[[“[X™\‹š\Ñš[š]JÛ›İÙ˜[Ø]\‘\]Z]˜[[
+OÓX]›X^
+Û›İÙ˜[Ø]\‘\]Z]˜[[
+N[™Yš[™YÜ˜]\[Ø]\‘\]Z]˜[[“[X™\‹š\Ñš[š]JÜ˜]\[Ø]\‘\]Z]˜[[
+OÓX]›X^
+Ü˜]\[Ø]\‘\]Z]˜[[
+N[™Yš[™YØ\S]N˜[YJ	ØØ\WÛ]IÊKÚ[“]N˜[YJ	ØÚ[—Û]IÊKN˜[YJ	ÛIÊKSX^˜[YJ	ÛWÛX^	ÊKZX^˜[YJ	İZÛX^	ÊKZX^İÎ˜[YJ	İZÛX^ÛİÉÊKZX^YY˜[YJ	İZÛX^ÛYY	ÊKXÚÕÜN˜[YJ	ÙXÚ×İÜÛIÊKZ[ÜÜ˜[YJ	ÚZ[ÙÜÜ	ÊK\ÙT˜]N˜[YJ	Û\ÙWÜ˜]IÊKÜš˜[YJ	ÜÜš	ÊKÚ[™ÚX\•N˜[YJ	İÚ[™ÜÚX\—İIÊKÚ[™ÚX\•˜[YJ	İÚ[™ÜÚX\—İ‰ÊK\˜YX^˜[YJ	İ×ØİX^	ÊK›ÜXÚ]SX^˜[YJ	İ›Ü×ØİX^	ÊKÚÜØ]™S™]œÛÛ\•˜[YJ	Ø\ÛØ—ÜÉÊKÚÜØ]™Q\™XİœÛÛ\•˜[YJ	Ø\İÙ\—ÜÉÊKÚÜØ]™QY™\ÙNœÛÛ\•˜[YJ	Ø\İÙY™ÜÉÊKÛİ\˜ÙN‰ÑÑPÓÓ‹Q‹T•PÉË˜]]™T™XÚ\]][Û”ÙXÛÛ™ÎÚ][‹›[™İÌÌL_JK™š[\Š›ÛÛX[Š_B™[˜İ[Ûˆ\TXÔÜXÚX[\İİ\›JÙX]\’İ\œËİXØÙ\ÜÙ[
+^ØÛÛœİXÏ\İXØÙ\ÜÙ[™š[™
+™\İ[Oœ™\İ[šYOOIÚXÛÛ—Ù—ÜXÉÉ‰œ™\İ[œİXØÙ\ÜÙ[
+KÜXÚX[\İ\XÏËœ˜\YËœÜXÚX[\İİ\›_ßK[Y\ÏP\œ˜^Kš\Ğ\œ˜^JÜXÚX[\İ[YJOÜÜXÚX[\İ[YN–×NÚYŠ][Y\Ë›[™İ
+\™]\›ˆÙX]\’İ\œÎÜ™]\›ˆÙX]\’İ\œË›X\
+İ\OÛ]™\İKLK\İ[˜ÙS\ÏR[™š[š]NÙ›ÜŠ][™^LÚ[™^[Y\Ë›[™İÚ[™^
+ÊÊ^ØÛÛœİ\ØÚQ]Kœ\œÙJ	İ[Y\ÖÚ[™^_V˜
+K[OSX]˜XœÊ\ØÚZİ\‹™\ØÚ
+NÚYŠ[O\İ[˜ÙS\Ê^Ø™\İZ[™^Ù\İ[˜ÙS\ÏY[__ZYŠ™\İ\İ[˜ÙS\ÏŒÍJŒ
+\™]\›ˆİ\ØÛÛœİXÚÏ[˜[YOO›[X™\ŠÜXÚX[\İË–Û˜[YWOË–Ø™\İJKZYÛİY\XÚÊ	ØÛİYØÛİ™\—ÛZY	ÊKYÚÛİY\XÚÊ	ØÛİYØÛİ™\—ÚYÚ	ÊKš\ÚXš[]O\XÚÊ	İš\ÚXš[]IÊKÙZ[[™Ï\XÚÊ	ØÙZ[[™ÉÊKœ™Y^š[™Ó]™[\XÚÊ	Ùœ™Y^š[™×Û]™[ÚZYÚ	ÊKÛ›İÛ[™O\XÚÊ	ÜÛ›İÛ[™WÚZYÚ	ÊKİ\™˜XÙU[\\˜]\™O\XÚÊ	Üİ\™˜XÙWİ[\\˜]\™IÊKÛ›İÑ\\XÚÊ	ÜÛ›İ×Ù\	ÊNÜ™]\›Ë‹‹šİ\‹ZYÛİY“[X™\‹š\Ñš[š]JZYÛİY
+OØÛ[\
+ZYÛİYL
+Nšİ\‹›ZYÛİYYÚÛİY“[X™\‹š\Ñš[š]JYÚÛİY
+OØÛ[\
+YÚÛİYL
+Nšİ\‹šYÚÛİYš\ÚXš[]N“[X™\‹š\Ñš[š]Jš\ÚXš[]JOÓX]›X^
+š\ÚXš[]JNšİ\‹š\ÚXš[]KXĞÙZ[[™ÓN“[X™\‹š\Ñš[š]JÙZ[[™ÊOÓX]›X^
+ÙZ[[™ÊN[™Yš[™YXÑœ™Y^š[™Ó]™[N“[X™\‹š\Ñš[š]Jœ™Y^š[™Ó]™[
+OÓX]›X^
+œ™Y^š[™Ó]™[
+N[™Yš[™YXÔÛ›İÛ[™SN“[X™\‹š\Ñš[š]JÛ›İÛ[™JOÓX]›X^
+Û›İÛ[™JN[™Yš[™YXÔİ\™˜XÙU[\\˜]\™PÎ“[X™\‹š\Ñš[š]Jİ\™˜XÙU[\\˜]\™JOÜİ\™˜XÙU[\\˜]\™N[™Yš[™YXÔÛ›İÑ\N“[X™\‹š\Ñš[š]JÛ›İÑ\
+OÓX]›X^
+Û›İÑ\
+N[™Yš[™Y_J_B™[˜İ[Ûˆ\TXÔ˜\Y\]UÙX]\’İ\œÊÙX]\’İ\œËİXØÙ\ÜÙ[[ÜÛZ^XÑ\Ê^ØÛÛœİXÏ\İXØÙ\ÜÙ[™š[™
+™\İ[Oœ™\İ[šYOOIÚXÛÛ—Ù—ÜXÉÉ‰œ™\İ[œİXØÙ\ÜÙ[	‰œ™\İ[šİ\œÏË›[™İ
+NÚYŠ\XÊ\™]\›ˆÙX]\’İ\œÎØÛÛœİ›İÏQ]K››İÊ
+K[ÜÛZ^]X[]OXÛ[\
+[X™\Š[ÜÛZ^Ëœ]X[]JOÏÌJNÜ™]\›ˆÙX]\’İ\œË›X\
+İ\OØÛÛœİXYİ\œÏJİ\‹™\ØÚ[›İÊKÌÍŒÚYŠXYİ\œÏK_XYİ\œÏŒM
+\™]\›ˆİ\ØÛÛœİ˜\YY›Ü™XØ\İİ\]
+XËİ\‹™\ØÚ
+KÙZYÚ\˜\YÜXÔ˜\YÙZYÚ
+XYİ\œË˜\Y
+NŒÚYŠ\˜\YÙZYÚL
+\™]\›ˆİ\ØÛÛœİ[ÜÛZ^İ\[[ÜÛZ^ËœİXØÙ\ÜÙ[Ù›Ü™XØ\İİ\]
+[ÜÛZ^İ\‹™\ØÚ
+N[™Yš[™YXÑ\Òİ\\XÑ\ÏËœİXØÙ\ÜÙ[Ù›Ü™XØ\İİ\]
+XÑ\Ëİ\‹™\ØÚ
+N[™Yš[™Y™XÚ\ÛÛœÙ[œİ\Ï\XÔ™XÚ\]][ÛÛÛœÙ[œİ\ÊXYİ\œËİ\‹˜\Y[ÜÛZ^İ\‹XÑ\Òİ\‹[ÜÛZ^]X[]JK™XÚ\]][Û\™XÚ\ÛÛœÙ[œİ\Ë˜[[İ[›Ø˜Xš[]OXÛ[\
+[X™\Šİ\‹œ›Ø˜Xš[]JOÏÌL
+KÛİYXÛ[\
+›[™˜\Y˜[YJİ\‹˜ÛİY˜\Y˜ÛİYÙZYÚJKL
+KİĞÛİYXÛ[\
+›[™˜\Y˜[YJİ\‹›İĞÛİY˜\Y›İĞÛİYÙZYÚJKL
+K[ZY]OXÛ[\
+›[™˜\Y˜[YJİ\‹š[ZY]K˜\Yš[ZY]KÙZYÚJKL
+KØ\OSX]›X^
+›[™˜\Y˜[YJİ\‹˜Ø\K˜\Y˜Ø\KÙZYÚLŒ
+JKÛÛ™Xİ]™R[šXš][ÛSX]›X^
+›[™˜\Y˜[YJİ\‹˜ÛÛ™Xİ]™R[šXš][Û‹˜\Y˜ÛÛ™Xİ]™R[šXš][Û‹ÙZYÚN
+JK[\\˜]\™OX›[™˜\Y˜[YJİ\‹[\\˜]\™K˜\Y[\\˜]\™KÙZYÚ
+‹ËÊK]ÔÚ[X›[™˜\Y˜[YJİ\‹™]ÔÚ[˜\Y™]ÔÚ[ÙZYÚ
+‹K
+K™\Üİ\™OX›[™˜\Y˜[YJİ\‹œ™\Üİ\™K˜\Yœ™\Üİ\™KÙZYÚ
+‹KŠKÚ[™SX]›X^
+›[™˜\Y˜[YJİ\‹Ú[™˜\YÚ[™ÙZYÚ
+‹K
+JKİ\İSX]›X^
+›[™˜\Y˜[YJİ\‹™İ\İ˜\Y™İ\İÙZYÚ
+‹KLŠJK\™Xİ[ÛS[X™\‹š\Ñš[š]J[X™\Š˜\Y™\™Xİ[ÛŠJOÜ˜\Y™\™Xİ[Ûšİ\‹™\™Xİ[Û‹˜\ÙT˜Z[SX]›X^
+[X™\Šİ\‹œ˜Z[ŠOÏÌ
+K˜\ÙTÚİÙ\œÏSX]›X^
+[X™\Šİ\‹œÚİÙ\œÊOÏÌ
+K˜\ÙTÛ›İÙ˜[SX]›X^
+[X™\Šİ\‹œÛ›İÙ˜[
+OÏÌ
+KÛÛ\Û™[İ[X˜\ÙT˜Z[ŠØ˜\ÙTÚİÙ\œÊØ˜\ÙTÛ›İÙ˜[ÛÛ\Û™[ØØ[OXÛÛ\Û™[İ[‹ŒOÜ™XÚ\]][Û‹ØÛÛ\Û™[İ[Œ˜Z[XÛÛ\Û™[İ[‹ŒOØ˜\ÙT˜Z[Š˜ÛÛ\Û™[ØØ[Nœ™XÚ\]][Û‹ŒI‰ˆVÎK‹ËK‹MKM‹MËNWKš[˜ÛY\ÊX]œ›İ[™
+[X™\Šİ\‹˜ÛÙJOÏÌ
+JI‰[\\˜]\™OŒOÜ™XÚ\]][ÛŒÚİÙ\œÏXÛÛ\Û™[İ[‹ŒOØ˜\ÙTÚİÙ\œÊ˜ÛÛ\Û™[ØØ[Nœ™XÚ\]][Û‹ŒI‰–ÎK‹ËMKM‹MËNWKš[˜ÛY\ÊX]œ›İ[™
+[X™\Šİ\‹˜ÛÙJOÏÌ
+JOÜ™XÚ\]][ÛŒÛ›İÙ˜[XÛÛ\Û™[İ[‹ŒOØ˜\ÙTÛ›İÙ˜[
+˜ÛÛ\Û™[ØØ[Nœ™XÚ\]][Û‹ŒI‰Š[\\˜]\™OL_ÍÌKÌËÍKÍËK—Kš[˜ÛY\ÊX]œ›İ[™
+[X™\Šİ\‹˜ÛÙJOÏÌ
+JJOÜ™XÚ\]][ÛŒÚYÛ˜[\™XÛÛ˜Ú[Q›Ü™XØ\İ™XÚ\]][ÛŠ™XÚ\]][Û‹›Ø˜Xš[]Kİ\‹˜ÛÙKÛİYÜ˜Z[‹ÚİÙ\œËÛ›İÙ˜[İĞÛİY[ZY]KØ\KYY[™^šİ\‹›YY[™^ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Ûšİ\‹œİ[œÚ[™Q\˜][Û‹\Ñ^Nšİ\‹š\Ñ^KXYİ\œßJKÛÙO\˜\Y›Ü™XØ\İÙX]\ÛÙJÚYÛ˜[˜ÛÙK˜\Y˜ÛÙJNÜ™]\›Ë‹‹šİ\‹[\\˜]\™K]ÔÚ[™\Üİ\™KÚ[™İ\İ\™Xİ[Û‹™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[œÚYÛ˜[œ˜Z[‹ÚİÙ\œÎœÚYÛ˜[œÚİÙ\œËÛ›İÙ˜[œÚYÛ˜[œÛ›İÙ˜[›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÛÙKÛİYİĞÛİY[ZY]KØ\KÛÛ™Xİ]™R[šXš][Û‹Ûİ\˜ÙRY‰ÚXÛÛ—Ù—ÜXÉËÛİ\˜ÙSX™[‰ÓRQRİ\™œš\İ\Ú[Ûˆ0­ÈÑPÓÓ‹Q‹T•PÈ
+ÈšYY\œØÚYÜÚÛÛœÙ[œÉËÛİ\˜ÙQ˜[Z[N‰ÙÙZXÛÛ‹\XÉËÛİ\˜ÙT›ÛN‰Ü˜\Y]\]IËXĞ\YYYKXÕÙZYÚ“[X™\ŠÙZYÚÑš^Y
+ÊJKXÔ™XÚ\]][Û•ÙZYÚ“[X™\Š™XÚ\ÛÛœÙ[œİ\Ëœ˜\YÙZYÚÑš^Y
+ÊJKXÔ™XÚ\]][Û”İ\Ü“[X™\Š™XÚ\ÛÛœÙ[œİ\Ëœİ\ÜÑš^Y
+ÊJKXÔ™XÚ\]][Û“İ™\œÚÛİ˜][Î“[X™\Š™XÚ\ÛÛœÙ[œİ\Ë›İ™\œÚÛİ˜][ËÑš^Y
+ÊJKXÑ\Õ\\•Z[[˜[N“[X™\Š™XÚ\ÛÛœÙ[œİ\Ë™\Õ\\•Z[[˜[KÑš^Y
+ÊJKØØ[™XÚ\]][Û”™Y™\™[˜ÙS[N“[X™\Š™XÚ\ÛÛœÙ[œİ\Ë›ØØ[™Y™\™[˜ÙKÑš^Y
+ÊJK˜\ÙT™XÚ\]][Û“[N“[X™\Š™XÚ\ÛÛœÙ[œİ\Ë˜[˜ÚÜ[[İ[Ñš^Y
+ÊJKXÔ˜]Ô™XÚ\]][Û“[N“[X™\Š™XÚ\ÛÛœÙ[œİ\Ëœ˜\Y[[İ[Ñš^Y
+ÊJK[ÜÛZ^™XÚ\]][Û“[N“[X™\‹š\Ñš[š]J™XÚ\ÛÛœÙ[œİ\Ë›[ÜÛZ^[[İ[
+OÓ[X™\Š™XÚ\ÛÛœÙ[œİ\Ë›[ÜÛZ^[[İ[Ñš^Y
+ÊJN[™Yš[™Y[ÜÛZ^™XÚ\]][Û•ÙZYÚ“[X™\Š™XÚ\ÛÛœÙ[œİ\Ë›[ÜÛZ^ÙZYÚÑš^Y
+ÊJKXÑ\Ô›Ø˜Xš[]N“[X™\‹š\Ñš[š]J™XÚ\ÛÛœÙ[œİ\Ë™\Ô›Ø˜Xš[]JOÓ[X™\Š™XÚ\ÛÛœÙ[œİ\Ë™\Ô›Ø˜Xš[]KÑš^Y
+JJN[™Yš[™YXÑ\ÔÚYÛšYšXØ[›Ø˜Xš[]N“[X™\‹š\Ñš[š]J™XÚ\ÛÛœÙ[œİ\Ë™\ÔÚYÛšYšXØ[›Ø˜Xš[]JOÓ[X™\Š™XÚ\ÛÛœÙ[œİ\Ë™\ÔÚYÛšYšXØ[›Ø˜Xš[]KÑš^Y
+JJN[™Yš[™YXÑ\ÔMÍS[N“[X™\‹š\Ñš[š]J™XÚ\ÛÛœÙ[œİ\Ë™\ÔMÍS[JOÓ[X™\Š™XÚ\ÛÛœÙ[œİ\Ë™\ÔMÍS[KÑš^Y
+ŠJN[™Yš[™Y_J_B™[˜İ[Ûˆ\TXÑ\Ô›Ø˜Xš[]Rİ\œÊÙX]\’İ\œËXÑ\Ê^ÚYŠ\XÑ\ÏËœİXØÙ\ÜÙ[\XÑ\Ëšİ\œÏË›[™İ
+\™]\›ˆÙX]\’İ\œÎØÛÛœİ›İÏQ]K››İÊ
+NÜ™]\›ˆÙX]\’İ\œË›X\
+İ\OØÛÛœİXYJİ\‹™\ØÚ[›İÊKÌÍŒÚYŠXYK_XYŒM
+\™]\›ˆİ\Û]™\İ\İ[˜ÙS\ÏR[™š[š]NÙ›ÜŠÛÛœİ›İÈÙˆXÑ\Ëšİ\œÊ^ØÛÛœİ[OSX]˜XœÊ›İË™\ØÚZİ\‹™\ØÚ
+NÚYŠ[O\İ[˜ÙS\Ê^Ø™\İ\›İÎÙ\İ[˜ÙS\ÏY[__ZYŠX™\İ\İ[˜ÙS\ÏŒÍJŒ
+\™]\›ˆİ\ØÛÛœİÙZYÚ[XYLÏË›XYMËN›XYLLË‹ŒÍ›Ø˜Xš[]OXÛ[\
+›[™˜\Y˜[YJİ\‹œ›Ø˜Xš[]K™\İœ›Ø˜Xš[]KÙZYÚÍJKL
+KÚYÛ˜[\™XÛÛ˜Ú[Q›Ü™XØ\İ™XÚ\]][ÛŠİ\‹œ™XÚ\]][Û‹›Ø˜Xš[]Kİ\‹˜ÛÙKİ\‹˜ÛİYÜ˜Z[šİ\‹œ˜Z[‹ÚİÙ\œÎšİ\‹œÚİÙ\œËÛ›İÙ˜[šİ\‹œÛ›İÙ˜[İĞÛİYšİ\‹›İĞÛİY[ZY]Nšİ\‹š[ZY]KØ\Nšİ\‹˜Ø\KYY[™^šİ\‹›YY[™^ÛÛ™Xİ]™R[šXš][Ûšİ\‹˜ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Ûšİ\‹œİ[œÚ[™Q\˜][Û‹\Ñ^Nšİ\‹š\Ñ^KXYİ\œÎ›XYJNÜ™]\›Ë‹‹šİ\‹™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[œÚYÛ˜[œ˜Z[‹ÚİÙ\œÎœÚYÛ˜[œÚİÙ\œËÛ›İÙ˜[œÚYÛ˜[œÛ›İÙ˜[›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÛÙNœÚYÛ˜[˜ÛÙKÛİ\˜ÙSX™[šİ\‹œXĞ\YYÉÓRQRİ\™œš\İ\Ú[Ûˆ0­ÈÑPÓÓ‹Q‹T•PËÔ•PËQTÈ
+ÈšYY\œØÚYÜÚÛÛœÙ[œÉÎšİ\‹œÛİ\˜ÙSX™[XÑ\Ğ\YYYKXÑ\ÕÙZYÚ“[X™\ŠÙZYÚÑš^Y
+ÊJKXÑ\ÓY[X™\Ûİ[˜™\İ›Y[X™\Ûİ[XÑ\Ë›Y[X™\Ûİ[XÑ\ÔÚYÛšYšXØ[›Ø˜Xš[]N“[X™\‹š\Ñš[š]J[X™\Š™\İœÚYÛšYšXØ[›Ø˜Xš[]JJOÓ[X™\Š[X™\Š™\İœÚYÛšYšXØ[›Ø˜Xš[]JKÑš^Y
+JJN[™Yš[™YXÑ\ÔMÍS[N“[X™\‹š\Ñš[š]J[X™\Š™\İœMÍS[JJOÓ[X™\Š[X™\Š™\İœMÍS[JKÑš^Y
+ŠJN[™Yš[™Y_J_B‚˜\Ş[˜È[˜İ[Ûˆ™]Ú›Ü™XØ\İ\Ú[Û“[Ù[
+[Ù[]Û‹[]˜][Û‹[‹™Yœ™\ÚY˜[ÙJ^Âˆ]\İ\œ›ÜIÛšXÚ™\™°ïØ˜\‰ÎÂˆYŠ[Ù[šYOOIÚXÛÛ—Ù—ÜXÉÊ^İ^ØÛÛœİY\YX]ØZ]™]ÚÙXÔÚ[Y\\Š[Ù[]Û‹[]˜][Û‹[ŠNÚYŠY\YËœİXØÙ\ÜÙ[
+\™]\›ˆY\YÚYŠY\YËœ™X\ÛÛŠ[\İ\œ›ÜXY\Yœ™X\ÛÛŸXØ]Ú
+\œ›ÜŠ^Û\İ\œ›ÜY\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_\™]\›Ë‹‹›[Ù[İXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ›\İ\œ›Ü‹^\Î–×Kİ\œÎ–×__Bˆ›ÜŠÛÛœİ\RYÙˆ[Ù[˜\RYÊ^ÂˆYŠ[Ù[›Ü[Û˜[Ø\Xš[]I‰™›Ü™XØ\İØ\Xš[]P›ØÚÙY
+\RY
+J^Û\İ\œ›ÜX	Ø\RYNˆØ\Xš[]H\™Z]šXÚ™\™°ïØ˜\˜ØÛÛ[Y_BˆÛÛœİ˜\Yİ\œÏ[[Ù[œ˜\Y\]I‰“[X™\‹š\Ñš[š]J[X™\Š[Ù[›X^İ\œÊJOÓX]›X^
+KX]›Z[ŠMX]™›ÛÜŠ[X™\Š[Ù[›X^İ\œÊJJJN›[]Y\O[™]ÈT“ÙX\˜Ú\˜[\ÊÛ]]YN”İš[™Ê]
+KÛ™Ú]YN”İš[™ÊÛŠK[Y^›Û™Nœ˜\Yİ\œÏÉÑÓU	Î‰Ø]]ÉË[Ù[Î˜\RYİ\›N‘“Ô‘PĞTÕÑ•TÒSÓ—ÒÕT“KÚ[™ÜÜYYİ[š]‰ÚÛ‰Ë[\\˜]\™Wİ[š]‰ØÙ[Ú]\ÉË™XÚ\]][Û—İ[š]‰Û[IËÙ[ÜÙ[Xİ[Û‰Û[™	ßJNÚYŠ˜\Yİ\œÊ\]Y\KœÙ]
+	Ù›Ü™XØ\İÚİ\œÉËİš[™Ê˜\Yİ\œÊJNÙ[Ù^Ü]Y\KœÙ]
+	Ù›Ü™XØ\İÙ^\ÉËİš[™ÊX]›Z[ŠM[Ù[›X^^\ßM
+JJNÜ]Y\KœÙ]
+	ÙZ[IË“Ô‘PĞTÕÑ•TÒSÓ—ÑRSJ_ZYŠ[X™\‹š\Ñš[š]J[]˜][ÛŠJ\]Y\KœÙ]
+	Ù[]˜][Û‰Ëİš[™ÊÛ[\
+[]˜][Û‹MLL
+JJNÂˆ^ÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÓÔS—ÓQUS×Ñ“Ô‘PĞTÕOÉÜ]Y\_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX‹‹Š™Yœ™\ÚŞÉĞØXÚKPÛÛ›Û	Î‰Û›ËXØXÚIßNßJ_KÙœ™Yœ™\ÚŞØØXÚQ]™\][™Î™˜[Ù_NØØXÚUŒLŒØXÚQ]™\][™ÎY__KMML
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØY^ßNİ^Ü^[ØYR”ÓÓ‹œ\œÙJ›ÙJ_XØ]ÚßBˆYŠ\™\ÜÛœÙK›Úß^[ØYË™\œ›ÜŠ^Û\İ\œ›ÜTİš[™Ê^[ØYËœ™X\ÛÛŸ^[ØYË™\œ›ÜŸ	Ü™\ÜÛœÙKœİ]\ßX
+NÚYŠ[Ù[›Ü[Û˜[Ø\Xš[]J\™[Y[X™\•[œİ\ÜY›Ü™XØ\İ[Ù[
+\RY\İ\œ›ÜŠNØÛÛ[Y_BˆÛÛœİZ[O\^[ØYË™Z[OÏŞßK]\ÏP\œ˜^Kš\Ğ\œ˜^JZ[K[YJOÙZ[K[YN–×NÚYŠY]\Ë›[™İ
+^Û\İ\œ›ÜIÚÙZ[™HYÙ\Ù][‰ÎØÛÛ[Y_BˆÛÛœİÙ™œÙ]ÙXÛÛ™Ï[[X™\Š^[ØYË]×ÛÙ™œÙ]ÜÙXÛÛ™Ê_İ\›O\^[ØYËšİ\›OÏŞßKİ\•[Y\ÏP\œ˜^Kš\Ğ\œ˜^Jİ\›K[YJOÚİ\›K[YN–×Kİ\œÏZİ\•[Y\Ë›X\
+
+[YK[™^
+OOÂˆÛÛœİ\ØÚQ]Kœ\œÙJ	İ[Y_V˜
+K[Ù™œÙ]ÙXÛÛ™ÊŒL˜]Ô™XÚ\]][ÛSX]›X^
+[X™\Š]
+İ\›Kœ™XÚ\]][Û‹[™^
+JOÏÌ
+K›Ø˜Xš[]O[[X™\Š]
+İ\›Kœ™XÚ\]][Û—Ü›Ø˜Xš[]K[™^
+JNÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+_S[X™\‹š\Ñš[š]J›Ø˜Xš[]JJ\™]\›ˆ[ÂˆÛÛœİÛİY[[X™\Š]
+İ\›K˜ÛİYØÛİ™\‹[™^
+JKİĞÛİY[[X™\Š]
+İ\›K˜ÛİYØÛİ™\—ÛİË[™^
+JK[ZY]O[[X™\Š]
+İ\›Kœ™[]]™WÚ[ZY]WÌ›K[™^
+JK˜Z[SX]›X^
+[X™\Š]
+İ\›Kœ˜Z[‹[™^
+JOÏÌ
+KÚİÙ\œÏSX]›X^
+[X™\Š]
+İ\›KœÚİÙ\œË[™^
+JOÏÌ
+KÛ›İÙ˜[SX]›X^
+[X™\Š]
+İ\›KœÛ›İÙ˜[[™^
+JOÏÌ
+KØ\OSX]›X^
+[X™\Š]
+İ\›K˜Ø\K[™^
+JOÏÌ
+KYY[™^[[X™\Š]
+İ\›K›YYÚ[™^[™^
+JKÛÛ™Xİ]™R[šXš][Û[[X™\Š]
+İ\›K˜ÛÛ™Xİ]™WÚ[šXš][Û‹[™^
+JKİ[œÚ[™Q\˜][ÛY\Ú[Û“[X›Tİ[œÚ[™J]
+İ\›Kœİ[œÚ[™WÙ\˜][Û‹[™^
+KÍŒ
+K\Ñ^O[[X™\Š]
+İ\›Kš\×Ù^K[™^
+JOOOLKÚYÛ˜[\™XÛÛ˜Ú[Q›Ü™XØ\İ™XÚ\]][ÛŠ˜]Ô™XÚ\]][Û‹›Ø˜Xš[]K]
+İ\›KÙX]\—ØÛÙK[™^
+KÛİYÜ˜Z[‹ÚİÙ\œËÛ›İÙ˜[İĞÛİY[ZY]KØ\KYY[™^ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Û‹\Ñ^KXYİ\œÎŠ\ØÚQ]K››İÊ
+JKÌÍŒJNÂˆ™]\›İ[YN”İš[™Ê[YJK\ØÚ™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[œÚYÛ˜[œ˜Z[‹ÚİÙ\œÎœÚYÛ˜[œÚİÙ\œËÛ›İÙ˜[œÚYÛ˜[œÛ›İÙ˜[›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÛÙNœÚYÛ˜[˜ÛÙKÛİY“[X™\‹š\Ñš[š]JÛİY
+OØÛ[\
+ÛİYL
+N“˜S‹İĞÛİY[ZY]KØ\KYY[™^ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Û‹\Ñ^_NÂˆJK™š[\Š›ÛÛX[ŠNÂˆÛÛœİ^\ÏY]\Ë›X\
+
+]K[™^
+OOÂˆÛÛœİ™XÚ\]][Û’İ\œÏY\Ú[Û“›Û“™YØ]]™J]
+Z[Kœ™XÚ\]][Û—Úİ\œË[™^
+JKXYİ\œÏJ[™^
+ËJJŒÚYÛ˜[Y\Ú[Û‘Z[T™XÚ\]][ÛŠ]
+Z[Kœ™XÚ\]][Û—Üİ[K[™^
+K]
+Z[Kœ™XÚ\]][Û—Ü›Ø˜Xš[]WÛX^[™^
+K]
+Z[KÙX]\—ØÛÙK[™^
+K]
+Z[Kœ˜Z[—Üİ[K[™^
+K]
+Z[KœÚİÙ\œ×Üİ[K[™^
+K]
+Z[KœÛ›İÙ˜[Üİ[K[™^
+KXYİ\œÊK\™Xİ[Û[[X™\Š]
+Z[KÚ[™Ù\™Xİ[Û—ÌLWÙÛZ[˜[[™^
+JNÂˆ™]\›Ù]N”İš[™Ê]JKÛÙNœÚYÛ˜[˜ÛÙKX^›[X™\Š]
+Z[K[\\˜]\™WÌ›WÛX^[™^
+JKZ[›[X™\Š]
+Z[K[\\˜]\™WÌ›WÛZ[‹[™^
+JK™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[œÚYÛ˜[œ˜Z[‹ÚİÙ\œÎœÚYÛ˜[œÚİÙ\œËÛ›İÙ˜[œÚYÛ˜[œÛ›İÙ˜[™XÚ\]][Û’İ\œË›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÚ[™™\Ú[Û“›Û“™YØ]]™J]
+Z[KÚ[™ÜÜYYÌLWÛX^[™^
+JKİ\İ™\Ú[Û“›Û“™YØ]]™J]
+Z[KÚ[™Ùİ\İ×ÌLWÛX^[™^
+JK\™Xİ[Û“[X™\‹š\Ñš[š]J\™Xİ[ÛŠOÊ
+\™Xİ[Û‰LÍŒ
+JÌÍŒ
+ILÍŒ“˜S‹İ[œÚ[™Q\˜][Û™\Ú[Û“[X›Tİ[œÚ[™J]
+Z[Kœİ[œÚ[™WÙ\˜][Û‹[™^
+J_NÂˆJK™š[\Š^OO™^K™]I‰–Ù^K›X^^K›Z[—KœÛÛYJ[X™\‹š\Ñš[š]JJNÂˆ™]\›Ë‹‹›[Ù[\RYİXØÙ\ÜÙ[™^\Ë›[™İLKÙX]\[™T™XYNšİ\œË›[™İLL‹™X\ÛÛ™^\Ë›[™İİ[™Yš[™Y‰ÚÙZ[™H™\Ù\˜\™[ˆYÙ\Ù][‰Ë[Y^›Û™N”İš[™Ê^[ØYË[Y^›Û™_	ÕUÉÊK^\Ëİ\œßNÂˆXØ]Ú
+\œ›ÜŠ^Û\İ\œ›ÜY\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_BˆBˆ™]\›Ë‹‹›[Ù[İXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ›\İ\œ›Ü‹^\Î–×Kİ\œÎ–×_NÂŸB™[˜İ[Ûˆ›Ü›X[^™Y[Ù[İY™š^
+˜[YJ^Ü™]\›ˆİš[™Ê˜[Y_	ÉÊKÓİÙ\Ø\ÙJ
+Kœ™\XÙJÖ×˜K^ŒNWJËÙË	×ÉÊKœ™\XÙJ×—ÊßÊÉÙË	ÉÊ_B™[˜İ[Ûˆ›Ü™XØ\İ[Ù[Ù\šY\Ñ[JÙXİ[Û‹˜\šXX›K[Ù[[İÔZ[Y˜[ÙJ^ÂˆYŠ\ÙXİ[ÛŸ\[ÙˆÙXİ[ÛˆOOIÛØš™Xİ	Ê\™]\›ˆ[™Yš[™YÂˆÛÛœİ[X\Ù\ÏVÛ[Ù[˜\RY[Ù[šY‹‹Š[Ù[˜\RYß×JWK™š[\Š›ÛÛX[ŠKÙ^\ÏV×NÚYŠ[İÔZ[Ÿ[Ù[˜[˜ÚÜŠZÙ^\Ëœ\Ú
+˜\šXX›JNÙ›ÜŠÛÛœİ[X\ÈÙˆ[X\Ù\ÊZÙ^\Ëœ\Ú
+	İ˜\šXX›_WÉØ[X\ßX
+NÂˆ›ÜŠÛÛœİÙ^HÙˆÙ^\ÊZYŠ\œ˜^Kš\Ğ\œ˜^JÙXİ[Û–ÚÙ^WJJ\™]\›ÚÙ^K˜[Y\ÎœÙXİ[Û–ÚÙ^W_NÂˆÛÛœİ›Ü›X[^™Y[X\Ù\Ï[™]ÈÙ]
+[X\Ù\Ë›X\
+›Ü›X[^™Y[Ù[İY™š^
+JK™Yš^X	İ˜\šXX›_WØÂˆ›ÜŠÛÛœİÚÙ^K˜[YW[ÙˆØš™Xİ™[šY\ÊÙXİ[ÛŠJ^ÚYŠP\œ˜^Kš\Ğ\œ˜^J˜[YJ_ZÙ^Kœİ\ÕÚ]
+™Yš^
+JXÛÛ[YNØÛÛœİİY™š^[›Ü›X[^™Y[Ù[İY™š^
+Ù^KœÛXÙJ™Yš^›[™İ
+JNÚYŠ›Ü›X[^™Y[X\Ù\Ëš\ÊİY™š^
+_Ë‹‹››Ü›X[^™Y[X\Ù\×KœÛÛYJ[X\ÏOœİY™š^™[™ÕÚ]
+[X\Ê_[X\Ë™[™ÕÚ]
+İY™š^
+JJ\™]\›ÚÙ^K˜[Y\Î˜[Y__Bˆ™]\›ˆ[™Yš[™YÂŸB™[˜İ[Ûˆ›Ü™XØ\İ[Ù[Ù\šY\ÊÙXİ[Û‹˜\šXX›K[Ù[[İÔZ[Y˜[ÙJ^Ü™]\›ˆ›Ü™XØ\İ[Ù[Ù\šY\Ñ[JÙXİ[Û‹˜\šXX›K[Ù[[İÔZ[ŠOË˜[Y\ßB™[˜İ[Ûˆ\œÙQ›Ü™XØ\İ\Ú[Û“[Ù[^[ØY
+^[ØY[Ù[\RYİY™š^YY˜[ÙJ^ÂˆÛÛœİZ[O\^[ØYË™Z[OÏŞßKİ\›O\^[ØYËšİ\›OÏŞßK]\ÏP\œ˜^Kš\Ğ\œ˜^JZ[K[YJOÙZ[K[YN–×Kİ\•[Y\ÏP\œ˜^Kš\Ğ\œ˜^Jİ\›K[YJOÚİ\›K[YN–×KİY™š^šY[Ï[™]ÈÙ]
+
+KÙ\šY\ÏJÙXİ[Û‹˜\šXX›JOOØÛÛœİ[OY›Ü™XØ\İ[Ù[Ù\šY\Ñ[JÙXİ[Û‹˜\šXX›KË‹‹›[Ù[\RYK\İY™š^Y
+NÚYŠ[OËšÙ^I‰™[KšÙ^HOO]˜\šXX›J\İY™š^šY[Ë˜Y
+[KšÙ^JNÜ™]\›ˆ[OË˜[Y\ßKÙ™œÙ]ÙXÛÛ™Ï[[X™\Š^[ØYË]×ÛÙ™œÙ]ÜÙXÛÛ™Ê_ÂˆYŠY]\Ë›[™İ	‰ˆZİ\•[Y\Ë›[™İ
+\™]\›Ë‹‹›[Ù[\RYİXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ‰ÚÙZ[™HİY™š^šY\[ˆYÙ\ËKÔİ[™[œ™ZZ[‰Ë^\Î–×Kİ\œÎ–×K][S[Ù[İY™š^\ÎœİY™š^YNÂˆÛÛœİ^İ[\\˜]\™NœÙ\šY\Êİ\›K	İ[\\˜]\™WÌ›IÊK]ÔÚ[œÙ\šY\Êİ\›K	Ù]×ÜÚ[Ì›IÊK™\Üİ\™NœÙ\šY\Êİ\›K	Ü™\Üİ\™WÛ\Û	ÊKÚ[™œÙ\šY\Êİ\›K	İÚ[™ÜÜYYÌLIÊKİ\İœÙ\šY\Êİ\›K	İÚ[™Ùİ\İ×ÌLIÊK\™Xİ[ÛœÙ\šY\Êİ\›K	İÚ[™Ù\™Xİ[Û—ÌLIÊK™XÚ\]][ÛœÙ\šY\Êİ\›K	Ü™XÚ\]][Û‰ÊK›Ø˜Xš[]NœÙ\šY\Êİ\›K	Ü™XÚ\]][Û—Ü›Ø˜Xš[]IÊK˜Z[œÙ\šY\Êİ\›K	Ü˜Z[‰ÊKÚİÙ\œÎœÙ\šY\Êİ\›K	ÜÚİÙ\œÉÊKÛ›İÙ˜[œÙ\šY\Êİ\›K	ÜÛ›İÙ˜[	ÊKÛÙNœÙ\šY\Êİ\›K	İÙX]\—ØÛÙIÊKÛİYœÙ\šY\Êİ\›K	ØÛİYØÛİ™\‰ÊKİĞÛİYœÙ\šY\Êİ\›K	ØÛİYØÛİ™\—ÛİÉÊK[ZY]NœÙ\šY\Êİ\›K	Ü™[]]™WÚ[ZY]WÌ›IÊKØ\NœÙ\šY\Êİ\›K	ØØ\IÊKYY[™^œÙ\šY\Êİ\›K	ÛYYÚ[™^	ÊKÛÛ™Xİ]™R[šXš][ÛœÙ\šY\Êİ\›K	ØÛÛ™Xİ]™WÚ[šXš][Û‰ÊKİ[œÚ[™NœÙ\šY\Êİ\›K	Üİ[œÚ[™WÙ\˜][Û‰ÊK\Ñ^NœÙ\šY\Êİ\›K	Ú\×Ù^IÊ_NÂˆÛÛœİ^Ü™XÚ\]][ÛœÙ\šY\ÊZ[K	Ü™XÚ\]][Û—Üİ[IÊK˜Z[œÙ\šY\ÊZ[K	Ü˜Z[—Üİ[IÊKÚİÙ\œÎœÙ\šY\ÊZ[K	ÜÚİÙ\œ×Üİ[IÊKÛ›İÙ˜[œÙ\šY\ÊZ[K	ÜÛ›İÙ˜[Üİ[IÊK™XÚ\]][Û’İ\œÎœÙ\šY\ÊZ[K	Ü™XÚ\]][Û—Úİ\œÉÊK›Ø˜Xš[]NœÙ\šY\ÊZ[K	Ü™XÚ\]][Û—Ü›Ø˜Xš[]WÛX^	ÊKÛÙNœÙ\šY\ÊZ[K	İÙX]\—ØÛÙIÊKX^œÙ\šY\ÊZ[K	İ[\\˜]\™WÌ›WÛX^	ÊKZ[œÙ\šY\ÊZ[K	İ[\\˜]\™WÌ›WÛZ[‰ÊKÚ[™œÙ\šY\ÊZ[K	İÚ[™ÜÜYYÌLWÛX^	ÊKİ\İœÙ\šY\ÊZ[K	İÚ[™Ùİ\İ×ÌLWÛX^	ÊK\™Xİ[ÛœÙ\šY\ÊZ[K	İÚ[™Ù\™Xİ[Û—ÌLWÙÛZ[˜[	ÊKİ[œÚ[™NœÙ\šY\ÊZ[K	Üİ[œÚ[™WÙ\˜][Û‰Ê_NÂˆÛÛœİİ\œÏZİ\•[Y\Ë›X\
+
+[YK[™^
+OOØÛÛœİ\ØÚQ]Kœ\œÙJ	İ[Y_V˜
+K[Ù™œÙ]ÙXÛÛ™ÊŒL˜]Ô™XÚ\]][ÛSX]›X^
+[X™\Š]
+œ™XÚ\]][Û‹[™^
+JOÏÌ
+K›Ø˜Xš[]O[[X™\Š]
+œ›Ø˜Xš[]K[™^
+JKÛİY[[X™\Š]
+˜ÛİY[™^
+JKİ[œÚ[™OY\Ú[Û“[X›Tİ[œÚ[™J]
+œİ[œÚ[™K[™^
+KÍŒ
+NÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+_S[X™\‹š\Ñš[š]J›Ø˜Xš[]J_S[X™\‹š\Ñš[š]JÛİY
+J\™]\›ˆ[ØÛÛœİ˜Z[SX]›X^
+[X™\Š]
+œ˜Z[‹[™^
+JOÏÌ
+KÚİÙ\œÏSX]›X^
+[X™\Š]
+œÚİÙ\œË[™^
+JOÏÌ
+KÛ›İÙ˜[SX]›X^
+[X™\Š]
+œÛ›İÙ˜[[™^
+JOÏÌ
+KİĞÛİY[[X™\Š]
+›İĞÛİY[™^
+JK[ZY]O[[X™\Š]
+š[ZY]K[™^
+JKØ\OSX]›X^
+[X™\Š]
+˜Ø\K[™^
+JOÏÌ
+KYY[™^[[X™\Š]
+›YY[™^[™^
+JKÛÛ™Xİ]™R[šXš][Û[[X™\Š]
+˜ÛÛ™Xİ]™R[šXš][Û‹[™^
+JK\Ñ^O[[X™\Š]
+š\Ñ^K[™^
+JOOOLKÚYÛ˜[\™XÛÛ˜Ú[Q›Ü™XØ\İ™XÚ\]][ÛŠ˜]Ô™XÚ\]][Û‹›Ø˜Xš[]K]
+˜ÛÙK[™^
+KÛİYÜ˜Z[‹ÚİÙ\œËÛ›İÙ˜[İĞÛİY[ZY]KØ\KYY[™^ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Ûœİ[œÚ[™K\Ñ^KXYİ\œÎŠ\ØÚQ]K››İÊ
+JKÌÍŒJK[\\˜]\™O[[X™\Š]
+[\\˜]\™K[™^
+JK]ÔÚ[[[X™\Š]
+™]ÔÚ[[™^
+JK™\Üİ\™O[[X™\Š]
+œ™\Üİ\™K[™^
+JKÚ[™Y\Ú[Û“›Û“™YØ]]™J]
+Ú[™[™^
+JKİ\İY\Ú[Û“›Û“™YØ]]™J]
+™İ\İ[™^
+JK\™Xİ[Û[[X™\Š]
+™\™Xİ[Û‹[™^
+JNÜ™]\›İ[YN”İš[™Ê[YJK\ØÚ[\\˜]\™K]ÔÚ[™\Üİ\™KÚ[™İ\İ\™Xİ[Û“[X™\‹š\Ñš[š]J\™Xİ[ÛŠOÊ
+\™Xİ[Û‰LÍŒ
+JÌÍŒ
+ILÍŒ“˜S‹™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[œÚYÛ˜[œ˜Z[‹ÚİÙ\œÎœÚYÛ˜[œÚİÙ\œËÛ›İÙ˜[œÚYÛ˜[œÛ›İÙ˜[›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÛÙNœÚYÛ˜[˜ÛÙKÛİY˜Û[\
+ÛİYL
+KİĞÛİY[ZY]KØ\KYY[™^ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Ûœİ[œÚ[™K\Ñ^__JK™š[\Š›ÛÛX[ŠNÂˆÛÛœİ^\ÏY]\Ë›X\
+
+]K[™^
+OOØÛÛœİ™XÚ\]][Û’İ\œÏY\Ú[Û“›Û“™YØ]]™J]
+œ™XÚ\]][Û’İ\œË[™^
+JKXYİ\œÏJ[™^
+ËJJŒÚYÛ˜[Y\Ú[Û‘Z[T™XÚ\]][ÛŠ]
+œ™XÚ\]][Û‹[™^
+K]
+œ›Ø˜Xš[]K[™^
+K]
+˜ÛÙK[™^
+K]
+œ˜Z[‹[™^
+K]
+œÚİÙ\œË[™^
+K]
+œÛ›İÙ˜[[™^
+KXYİ\œÊK\™Xİ[Û[[X™\Š]
+™\™Xİ[Û‹[™^
+JNÜ™]\›Ù]N”İš[™Ê]JKÛÙNœÚYÛ˜[˜ÛÙKX^›[X™\Š]
+›X^[™^
+JKZ[›[X™\Š]
+›Z[‹[™^
+JK™XÚ\]][ÛœÚYÛ˜[œ™XÚ\]][Û‹˜Z[œÚYÛ˜[œ˜Z[‹ÚİÙ\œÎœÚYÛ˜[œÚİÙ\œËÛ›İÙ˜[œÚYÛ˜[œÛ›İÙ˜[™XÚ\]][Û’İ\œË›Ø˜Xš[]NœÚYÛ˜[œ›Ø˜Xš[]KÚ[™™\Ú[Û“›Û“™YØ]]™J]
+Ú[™[™^
+JKİ\İ™\Ú[Û“›Û“™YØ]]™J]
+™İ\İ[™^
+JK\™Xİ[Û“[X™\‹š\Ñš[š]J\™Xİ[ÛŠOÊ
+\™Xİ[Û‰LÍŒ
+JÌÍŒ
+ILÍŒ“˜S‹İ[œÚ[™Q\˜][Û™\Ú[Û“[X›Tİ[œÚ[™J]
+œİ[œÚ[™K[™^
+J__JK™š[\Š^OO™^K™]I‰–Ù^K›X^^K›Z[—KœÛÛYJ[X™\‹š\Ñš[š]JJNÂˆÛÛœİİXØÙ\ÜÙ[Y^\Ë›[™İL_[Ù[šYOOIÚXÛÛ—Ù—ÜXÉÉ‰šİ\œË›[™İMÜ™]\›Ë‹‹›[Ù[\RYİXØÙ\ÜÙ[ÙX]\[™T™XYNšİ\œË›[™İM‹™X\ÛÛœİXØÙ\ÜÙ[İ[™Yš[™Y‰ÚÙZ[™H™\Ù\˜\™[ˆYÙ\ËKÔİ[™[™][‰Ë[Y^›Û™N”İš[™Ê^[ØYË[Y^›Û™_	ÕUÉÊK^\Ëİ\œË][S[Ù[İY™š^\ÎœİY™š^YİY™š^šY[Î–Ë‹‹œİY™š^šY[×_NÂŸB˜\Ş[˜È[˜İ[Ûˆ™]Ú›Ü™XØ\İ\Ú[Û“[Ù[Ê[Ù[Ë]Û‹[]˜][Û‹[‹™Yœ™\ÚY˜[ÙJ^ÂˆËÈ\™ZİH]Y[[ˆ
+[œØ™\ÛÛ™\™HÑPÓÓ‹Q‹T•PÊH[™Ü[Û˜[H[Ù[PØ\Xš[]Y\ÂˆËÈÙ\™[ˆšYH[ˆYHÙ[YZ[œØ[YHÜ[‹SY][ËP[™œ˜YÙHÙ[Z\ØÚˆZ[ˆšXÚ›ÛˆÜ[‹SY][ÂˆËÈ™\™Z]Ù\İ[\ˆ[Ù[˜Y\™ˆ[ˆ][KS[Ù[T™\]Y\İÙY\ˆ™\°í™Ù\›ˆ›ØÚ›ØÚÚY\™[‹‚ˆÛÛœİ˜]Ú[Ù[Ï[[Ù[Ë™š[\Š[Ù[Oˆ[[Ù[™\™XİÛ›I‰ˆ[[Ù[›Ü[Û˜[Ø\Xš[]JK™\]Y\İYX˜]Ú[Ù[Ë›X\
+[Ù[OŠË‹‹›[Ù[\RY›[Ù[˜\RYÏË–Ì_[Ù[šYJJNÛ]\œÙYV×NÂˆYŠ™\]Y\İY›[™İ
+^ØÛÛœİ]Y\O[™]ÈT“ÙX\˜Ú\˜[\ÊÛ]]YN”İš[™Ê]
+KÛ™Ú]YN”İš[™ÊÛŠK[Y^›Û™N‰Ø]]ÉË›Ü™XØ\İÙ^\Î‰ÌM	Ë[Ù[Îœ™\]Y\İY›X\
+[Ù[O›[Ù[˜\RY
+Kš›Ú[Š	Ë	ÊKZ[N‘“Ô‘PĞTÕÑ•TÒSÓ—ÑRSKİ\›N‘“Ô‘PĞTÕÑ•TÒSÓ—ÒÕT“KÚ[™ÜÜYYİ[š]‰ÚÛ‰Ë[\\˜]\™Wİ[š]‰ØÙ[Ú]\ÉË™XÚ\]][Û—İ[š]‰Û[IËÙ[ÜÙ[Xİ[Û‰Û[™	ßJNÚYŠ[X™\‹š\Ñš[š]J[]˜][ÛŠJ\]Y\KœÙ]
+	Ù[]˜][Û‰Ëİš[™ÊÛ[\
+[]˜][Û‹MLL
+JJNİ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÓÔS—ÓQUS×Ñ“Ô‘PĞTÕOÉÜ]Y\_XÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX‹‹Š™Yœ™\ÚŞÉĞØXÚKPÛÛ›Û	Î‰Û›ËXØXÚIßNßJ_KÙœ™Yœ™\ÚŞØØXÚQ]™\][™Î™˜[Ù_NØØXÚUŒLŒØXÚQ]™\][™ÎY__KNL
+K›ÙOX]ØZ]™\ÜÛœÙK^
+
+NÛ]^[ØY^ßNİ^Ü^[ØYR”ÓÓ‹œ\œÙJ›ÙJ_XØ]ÚßZYŠ™\ÜÛœÙK›ÚÉ‰ˆ\^[ØYË™\œ›ÜŠ^ÚYŠ\œ˜^Kš\Ğ\œ˜^J^[ØY
+J\\œÙY\™\]Y\İY›X\
+
+[Ù[[™^
+OOœ\œÙQ›Ü™XØ\İ\Ú[Û“[Ù[^[ØY
+^[ØYÚ[™^_ßK[Ù[[Ù[˜\RY˜[ÙJJNÙ[ÙH\œÙY\™\]Y\İY›X\
+[Ù[Oœ\œÙQ›Ü™XØ\İ\Ú[Û“[Ù[^[ØY
+^[ØY[Ù[[Ù[˜\RYYJJ__XØ]Úß_BˆÛÛœİRY[™]ÈX\
+\œÙY›X\
+™\İ[O–Ü™\İ[šY™\İ[JJKZ\ÜÚ[™Ï[[Ù[Ë™š[\Š[Ù[OˆXRY™Ù]
+[Ù[šY
+OËœİXØÙ\ÜÙ[
+K˜[˜XÚÏ[Z\ÜÚ[™Ë›[™İØ]ØZ]X\ÛÛ˜İ\œ™[
+Z\ÜÚ[™ËË[Ù[O™™]Ú›Ü™XØ\İ\Ú[Û“[Ù[
+[Ù[]Û‹[]˜][Û‹[‹™Yœ™\Ú
+JN–×NÙ›ÜŠÛÛœİ™\İ[Ùˆ˜[˜XÚÊXRYœÙ]
+™\İ[šY™\İ[
+NØÛÛœİİXØÙ\ÜÙ[VË‹‹˜RY˜[Y\Ê
+WK™š[\Š™\İ[Oœ™\İ[ËœİXØÙ\ÜÙ[	‰ˆ\™\İ[˜[˜ÚÜŠKœ™\Ú™\ÜÕ\™Ù]Ï\İXØÙ\ÜÙ[œÛXÙJLŠKœ™\Ú™\ÜÔ›İÜÏX]ØZ]X\ÛÛ˜İ\œ™[
+œ™\Ú™\ÜÕ\™Ù]Ë‹\Ş[˜È™\İ[OŠÚYœ™\İ[šY‹‹˜]ØZ]›Ü™XØ\İ\Ú[Û‘œ™\Ú™\ÜÊ™\İ[
+_JJNÙ›ÜŠÛÛœİY]HÙˆœ™\Ú™\ÜÔ›İÜÊ^ØÛÛœİ›İÏXRY™Ù]
+Y]KšY
+NÚYŠ›İÊXRYœÙ]
+Y]KšYË‹‹œ›İË[‘œ™\Ú™\ÜÎ›Y]K™˜XİÜ‹[š]X[\Ø][Û•[YNœ›İËš[š]X[\Ø][Û•[Y_Y]Kš[š]X[\Ø][Û•[YK]˜Z[Xš[]U[YNœ›İË˜]˜Z[Xš[]U[Y_Y]K˜]˜Z[Xš[]U[Y_J_XÛÛœİ[Ù[İY™š^\ÏSØš™Xİ™œ›ÛQ[šY\Ê\œÙY™š[\Š™\İ[Oœ™\İ[œİXØÙ\ÜÙ[	‰œ™\İ[œİY™š^šY[ÏË›[™İ
+K›X\
+™\İ[O–Ü™\İ[šY™\İ[œİY™š^šY[×JJNÜ™]\›Ü™\İ[Î›[Ù[Ë›X\
+[Ù[O˜RY™Ù]
+[Ù[šY
+_Ë‹‹›[Ù[İXØÙ\ÜÙ[™˜[ÙK™X\ÛÛ‰ÛšXÚ™\™°ïØ˜\‰Ë^\Î–×Kİ\œÎ–×_JK][S[Ù[İY™š^\Îœ\œÙYœÛÛYJ™\İ[Oœ™\İ[œİXØÙ\ÜÙ[	‰œ™\İ[›][S[Ù[İY™š^\ÊK[Ù[İY™š^\ßNÂŸB˜\Ş[˜È[˜İ[ÛˆX\ÛÛ˜İ\œ™[
+][\Ë[Z]ÛÜšÙ\Š^ØÛÛœİİ]][™]È\œ˜^J][\Ë›[™İ
+NÛ]İ\œÛÜLØ\Ş[˜È[˜İ[Ûˆ[Š
+^İÚ[Jİ\œÛÜ][\Ë›[™İ
+^ØÛÛœİ[™^Xİ\œÛÜŠÊÎÛİ]]Ú[™^OX]ØZ]ÛÜšÙ\Š][\ÖÚ[™^K[™^
+__X]ØZ]›ÛZ\ÙK˜[
+\œ˜^K™œ›ÛJÛ[™İ“X]›Z[Š[Z]][\Ë›[™İ
+_K[ŠJNÜ™]\›ˆİ]]B™[˜İ[ÛˆÙZYÚYYYX[Š›İÜÊ^ØÛÛœİÛÜY\›İÜË™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË˜[YJI‰œ›İËÙZYÚŒ
+KœÛÜ
+
+KŠOO˜K˜[YKX‹˜[YJKİ[\ÛÜYœ™YXÙJ
+İ[K›İÊOOœİ[JÜ›İËÙZYÚ
+NÚYŠ]İ[
+\™]\›ˆ˜SÛ]ÙY[LÙ›ÜŠÛÛœİ›İÈÙˆÛÜY
+^ÜÙY[ŠÏ\›İËÙZYÚÚYŠÙY[]İ[ÌŠ\™]\›ˆ›İË˜[Y_\™]\›ˆÛÜY˜]
+LJOË˜[YOÏÓ˜SŸB™[˜İ[ÛˆÙZYÚYYX[Š›İÜÊ^ØÛÛœİ\ØX›O\›İÜË™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË˜[YJI‰œ›İËÙZYÚŒ
+Kİ[]\ØX›Kœ™YXÙJ
+İ[K›İÊOOœİ[JÜ›İËÙZYÚ
+NÜ™]\›ˆİ[İ\ØX›Kœ™YXÙJ
+İ[K›İÊOOœİ[JÜ›İË˜[YJœ›İËÙZYÚ
+Kİİ[“˜SŸB™[˜İ[ÛˆÙZYÚYÛÛœÙ[œİ\Ê›İÜË˜[œÙ›Ü›O]˜[YOO˜[YK[™\œÙO]˜[YOO˜[YJ^ØÛÛœİ\ØX›O\›İÜË›X\
+›İÏOŠİ˜[YN˜[œÙ›Ü›J›İË˜[YJKÙZYÚœ›İËÙZYÚJJK™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË˜[YJI‰œ›İËÙZYÚŒ
+NÚYŠ]\ØX›K›[™İ
+\™]\›ˆ˜SÜ™]\›ˆ[™\œÙJÙZYÚYYYX[Š\ØX›JJ‹
+İÙZYÚYYX[Š\ØX›JJ‹ŒÌŠ_B™[˜İ[Ûˆ\Ú[Û”Ü™XY
+˜[Y\Ê^ØÛÛœİš[š]O]˜[Y\Ë™š[\Š[X™\‹š\Ñš[š]JNÚYŠš[š]K›[™İŠ\™]\›ˆNNØÛÛœİÙ[\Yš[š]KœÛÜ
+
+KŠOO˜KXŠVÓX]™›ÛÜŠš[š]K›[™İÌŠWK]šX][ÛœÏYš[š]K›X\
+˜[YOO“X]˜XœÊ˜[YKXÙ[\ŠJKœÛÜ
+
+KŠOO˜KXŠNÜ™]\›ˆ]šX][ÛœÖÓX]™›ÛÜŠ]šX][ÛœË›[™İÌŠW_B™[˜İ[Ûˆ\Ú[Û•ÙX]\”™YÚ[YJ^J^ØÛÛœİÛÙOSX]œ›İ[™
+[X™\Š^OË˜ÛÙJOÏËLJK™XÚ\]][ÛSX]›X^
+[X™\Š^OËœ™XÚ\]][ÛŠOÏÌ
+Kİ\İSX]›X^
+[X™\Š^OË™İ\İ
+OÏÌ
+KZ[š[][O[[X™\Š^OË›Z[ŠKÛ›İÏSX]›X^
+[X™\Š^OËœÛ›İÙ˜[
+OÏÌ
+Kİ[œÚ[™OSX]›X^
+[X™\Š^OËœİ[œÚ[™Q\˜][ÛŠOÏÌ
+NÚYŠÎMKM‹NWKš[˜ÛY\ÊÛÙJJ\™]\›‰ØÛÛ™Xİ[Û‰ÎÚYŠİ\İLÍ
+\™]\›‰ÜİÜ›IÎÚYŠÛ›İÏ‹Œ_ÍÌKÌËÍKÍËK—Kš[˜ÛY\ÊÛÙJ_[X™\‹š\Ñš[š]JZ[š[][JI‰›Z[š[][OLI‰œ™XÚ\]][Û‹ŒJ\™]\›‰İÚ[\‰ÎÚYŠÎK—Kš[˜ÛY\ÊÛÙJJ\™]\›‰ÜÚİÙ\œÉÎÚYŠÍLKLËMKŒKŒËK‹×Kš[˜ÛY\ÊÛÙJ_™XÚ\]][ÛN
+\™]\›‰Ü™XÚ\]][Û‰ÎÚYŠÌWKš[˜ÛY\ÊÛÙJI‰œİ[œÚ[™OMŠŒÍŒ	‰œ™XÚ\]][ÛŒŠ\™]\›‰ÚYÚ\™\Üİ\™IÎÜ™]\›‰ØÚ[™ÙXX›IßB™[˜İ[Ûˆ\Ú[Û”™YÚ[Û˜[˜XİÜŠ[Ù[]Û‹Ûİ[J^ÚYŠ[Ù[˜[˜ÚÜŠ\™]\›ˆNÚYŠ[Ù[˜Ûİ[šY\ÏËš[˜ÛY\ÊÛİ[JJ\™]\›ˆKŒNÚYŠ[Ù[˜˜›Ş
+^ØÛÛœİÛZ[“Û‹Z[“]X^Û‹X^]O[[Ù[˜˜›ŞÚYŠÛ[Z[“Û‰‰›Û[X^Û‰‰›][Z[“]	‰›][X^]
+\™]\›ˆKŒZYŠ[Ù[˜˜›Ş[Ù[˜Ûİ[šY\ÏË›[™İ
+\™]\›ˆNÜ™]\›ˆMßB™[˜İ[Ûˆ\Ú[Û”™YÚ[YQ˜XİÜŠ[Ù[™YÚ[YKÜš^›ÛŠ^ÚYŠ[Ù[˜[˜ÚÜŠ\™]\›ˆNØÛÛœİ™\ÛÛ][ÛSX]›X^
+K[X™\Š[Ù[œ™\ÛÛ][Û’ÛJ_Ì
+K™YÚ[Û˜[P›ÛÛX[Š[Ù[˜˜›Ş[Ù[˜Ûİ[šY\ÏË›[™İ
+KYÚ™\ÛÛ][Û\™\ÛÛ][ÛMK˜\YP›ÛÛX[Š[Ù[œ˜\Y\]JI‰šÜš^›ÛLNÚYŠ™YÚ[YOOOIØÛÛ™Xİ[Û‰ß™YÚ[YOOOIÜÚİÙ\œÉÊ\™]\›ˆ˜\YÌKŒšYÚ™\ÛÛ][Û‰‰œ™YÚ[Û˜[ÌKŒLÎšÜš^›ÛL‰‰œ™\ÛÛ][ÛLŒËNŒNÚYŠ™YÚ[YOOOIÜİÜ›IÊ\™]\›ˆÜš^›ÛLÉ‰œ™\ÛÛ][ÛLMOÌKŒœ˜\YÌKŒNŒNÚYŠ™YÚ[YOOOIİÚ[\‰Ê\™]\›ˆYÚ™\ÛÛ][Û‰‰œ™YÚ[Û˜[ÌKŒLœ™\ÛÛ][ÛLOËLŒNÚYŠ™YÚ[YOOOIÜ™XÚ\]][Û‰Ê\™]\›ˆ™YÚ[Û˜[	‰œ™\ÛÛ][ÛLLÌKŒŒNÚYŠ™YÚ[YOOOIÚYÚ\™\Üİ\™IÊ\™]\›ˆÜš^›ÛM	‰œ™\ÛÛ][ÛLMOÌKŒœ˜\YËMŒNÜ™]\›ˆYÚ™\ÛÛ][Û‰‰šÜš^›ÛLÌKŒNŒ_B™[˜İ[Ûˆ\Ú[Û•ÙZYÚ˜XİÜœÊ[Ù[Üš^›Û‹ÛÛ^^ßJ^ØÛÛœİY\‘˜XİÜ^ÌNŒKŒÍŒKŒM‹Î‹M‹‹ŸVÛ[Ù[Y\—_ÚYŠ[Ù[˜[˜ÚÜŠ\™]\›İÙZYÚŒKŒËY\‘˜XİÜŒKŒËÜš^›Û‘˜XİÜŒK™YÚ[Û˜[˜XİÜŒK™YÚ[YQ˜XİÜŒK˜\Y˜XİÜŒK][˜ŞQ˜XİÜŒKœ™\Ú™\ÜÑ˜XİÜŒ_NØÛÛœİXYİ\œÏSX]›X^
+Üš^›ÛŠŒ
+K˜\Y[YÚX›O[[Ù[œ˜\Y\]I‰›XYİ\œÏSX]›X^
+‹[X™\Š[Ù[›X^İ\œÊ_X]›Z[ŠÌ
+[Ù[›X^^\ßŠJŒ
+JNÛ]˜\Y˜XİÜLNÚYŠ˜\Y[YÚX›J\˜\Y˜XİÜ[XYİ\œÏLMÌKŒN›XYİ\œÏLÌKŒNŒKŒÎÙ[ÙHYŠ[Ù[œ˜\Y\]I‰šÜš^›ÛÊ\˜\Y˜XİÜKÙ[ÙHYŠ[Ù[œ˜\Y\]I‰šÜš^›ÛŒŠ\˜\Y˜XİÜKMØÛÛœİ][˜ŞQ˜XİÜ[[Ù[›][˜ŞRİ\œÉ‰›[Ù[›][˜ŞRİ\œÏLÏËŒKœ™\Ú™\ÜÑ˜XİÜXÛ[\
+[X™\Š[Ù[œ[‘œ™\Ú™\ÜÊ_MKJKÜš^›Û‘˜XİÜZÜš^›ÛLÊ[Ù[Y\OOLOÌKŒL›[Ù[Y\OOMË‹N
+NšÜš^›ÛMÏÊ[Ù[Y\OOLÌKŒN›[Ù[Y\OOLOËMŒJNŠ[Ù[Y\OOLÌKŒL›[Ù[Y\OOMÌKŒ›[Ù[Y\OOLOËÎ‹M
+K™YÚ[Û˜[˜XİÜY\Ú[Û”™YÚ[Û˜[˜XİÜŠ[Ù[ÛÛ^›]ÛÛ^›Û‹ÛÛ^˜Ûİ[JK™YÚ[YQ˜XİÜY\Ú[Û”™YÚ[YQ˜XİÜŠ[Ù[ÛÛ^œ™YÚ[YKÜš^›ÛŠKÙZYÚ]Y\‘˜XİÜŠšÜš^›Û‘˜XİÜŠœ˜\Y˜XİÜŠ›][˜ŞQ˜XİÜŠ™œ™\Ú™\ÜÑ˜XİÜŠœ™YÚ[Û˜[˜XİÜŠœ™YÚ[YQ˜XİÜÜ™]\›İÙZYÚY\‘˜XİÜ‹Üš^›Û‘˜XİÜ‹™YÚ[Û˜[˜XİÜ‹™YÚ[YQ˜XİÜ‹˜\Y˜XİÜ‹][˜ŞQ˜XİÜ‹œ™\Ú™\ÜÑ˜XİÜŸ_B™[˜İ[Ûˆ\Ú[Û˜\ÙUÙZYÚ
+[Ù[Üš^›Û‹ÛÛ^
+^Ü™]\›ˆ\Ú[Û•ÙZYÚ˜XİÜœÊ[Ù[Üš^›Û‹ÛÛ^
+KÙZYÚB™[˜İ[Ûˆ\Ú[Û’Üš^›Û‘[YÚX›J[Ù[Üš^›ÛŠ^ØÛÛœİXYİ\œÏSX]›X^
+Üš^›ÛŠŒ
+K\™İ\œÏS[X™\Š[Ù[›X^İ\œÊKX^İ\œÏS[X™\‹š\Ñš[š]J\™İ\œÊI‰š\™İ\œÏŒÚ\™İ\œÎ“X]›X^
+
+[X™\Š[Ù[›X^^\Ê_JJŒ
+NÜ™]\›ˆXYİ\œÏ[X^İ\œÊÌßB™[˜İ[Ûˆ[™\[™[\Ú[Û”›İÜÊ›İÜËÜš^›ÛŠ^ÂˆÛÛœİÜ›İ\Ï[™]ÈX\
+
+K[˜ÚÜV×NÂˆ›ÜŠÛÛœİ›İÈÙˆ›İÜÊ^ÚYŠ›İË›[Ù[Ë˜[˜ÚÜŠ^Ø[˜ÚÜ‹œ\Ú
+›İÊNØÛÛ[Y_ZYŠ›İË›[Ù[Ë˜ÛÛœÙ[œİ\Ô›ÛOOOIÜÜİ›ØÙ\ÜÚ[™ÉßY\Ú[Û’Üš^›Û‘[YÚX›J›İË›[Ù[Üš^›ÛŠJXÛÛ[YNØÛÛœİÜ›İ\\›İË›[Ù[Ëš[™\[™[˜ÙQÜ›İ\›İË›[Ù[Ë™˜[Z[_›İË™˜[Z[_›İË›[Ù[ËšY][\ÏYÜ›İ\Ë™Ù]
+Ü›İ\
+_×NÚ][\Ëœ\Ú
+›İÊNÙÜ›İ\ËœÙ]
+Ü›İ\][\Ê_BˆÛÛœİÙ[XİYVË‹‹˜[˜ÚÜ—NÙ›ÜŠÛÛœİÙÜ›İ\][\×[ÙˆÜ›İ\Ê^ØÛÛœİ˜[Z[Y\Ï[™]ÈX\
+
+NÙ›ÜŠÛÛœİ›İÈÙˆ][\Ê^ØÛÛœİ˜[Z[O\›İË›[Ù[Ë™˜[Z[_›İË›[Ù[ËšYİ\œ™[Y˜[Z[Y\Ë™Ù]
+˜[Z[JNÚYŠXİ\œ™[›İËÙZYÚ˜İ\œ™[ÙZYÚ
+›İËÙZYÚOOXİ\œ™[ÙZYÚ	‰Š›İË›[Ù[Ëœ™\ÛÛ][Û’Û_NJO
+İ\œ™[›[Ù[Ëœ™\ÛÛ][Û’Û_NJJJY˜[Z[Y\ËœÙ]
+˜[Z[K›İÊ_XÛÛœİ™\™\Ù[]]™\ÏVË‹‹™˜[Z[Y\Ë˜[Y\Ê
+WKYÙ]SX]›X^
+‹‹œ™\™\Ù[]]™\Ë›X\
+›İÏOœ›İËÙZYÚ
+JKİ[\™\™\Ù[]]™\Ëœ™YXÙJ
+İ[K›İÊOOœİ[JÓX]›X^
+›İËÙZYÚ
+K
+_NÙ›ÜŠÛÛœİ›İÈÙˆ™\™\Ù[]]™\Ê\Ù[XİYœ\Ú
+Ë‹‹œ›İË[™\[™[˜ÙQÜ›İ\™Ü›İ\Ü›İ\YÙ]˜YÙ]˜]ÕÙZYÚœ›İËÙZYÚÙZYÚ˜YÙ]
+“X]›X^
+›İËÙZYÚ
+Kİİ[J_\™]\›ˆÙ[XİYŸB™[˜İ[Ûˆ\Ú[ÛÛÛ™šY[˜ÙJ˜[Z[Y\Ë[\Ü™XY™XÚ\˜[Y\ËÜš^›ÛŠ^ØÛÛœİÙ]\™XÚ\˜[Y\Ë™š[\Š˜[YOO˜[YOKŒŠK›[™İO\™XÚ\˜[Y\Ë›[™İ]Ù]Ù]YÜ™Y[Y[\™XÚ\˜[Y\Ë›[™İÓX]›X^
+Ù]JKÜ™XÚ\˜[Y\Ë›[™İ‹NØÛÛœİÜ™XYØÛÜ™OXÛ[\
+L][\Ü™XY
+ŒŒKŒ‹L
+K˜[Z[TØÛÜ™OXÛ[\
+
+˜[Z[Y\ËLJJŒŒËŒLŠKÜš^›Û”[˜[OSX]›X^
+Üš^›Û‹MÊJŒ‹ŒÎÜ™]\›ˆX]œ›İ[™
+Û[\
+˜[Z[TØÛÜ™J‹ŠÜÜ™XYØÛÜ™J‹ŒÍ
+İÙ]YÜ™Y[Y[
+ŒL
+‹Œ‹ZÜš^›Û”[˜[KL
+J_B™[˜İ[ÛˆØY™Q\Ú[Û•˜[YJ[˜ÚÜ‹ÛÛœÙ[œİ\Ëİ™[™İØ\
+^ÚYŠS[X™\‹š\Ñš[š]JÛÛœÙ[œİ\ÊJ\™]\›ˆ[˜ÚÜÜ™]\›ˆ[˜ÚÜŠØÛ[\
+ÛÛœÙ[œİ\ËX[˜ÚÜ‹XØ\Ø\
+Jœİ™[™İB™[˜İ[Ûˆ›Ü™XØ\İİ\]
+™\İ[\ØÚ
+^Û]™\İ\İ[˜ÙOR[™š[š]NÙ›ÜŠÛÛœİİ\ˆÙˆ™\İ[Ëšİ\œÏÏÖ×J^ØÛÛœİ[OSX]˜XœÊ[X™\Šİ\‹™\ØÚ
+KY\ØÚ
+NÚYŠ[O\İ[˜ÙJ^Ø™\İZİ\Ù\İ[˜ÙOY[__\™]\›ˆ\İ[˜ÙOLÍJŒØ™\İ[™Yš[™YB™[˜İ[Ûˆ™\Z\]]Üš]PØ[™Y]\ÊİXØÙ\ÜÙ[XYİ\œËÛİ[J^ÂˆÛÛœİ[™\[™[\İXØÙ\ÜÙ[™š[\Š™\İ[Oˆ\™\İ[˜[˜ÚÜ‰‰œ™\İ[˜ÛÛœÙ[œİ\Ô›ÛHOOIÜÜİ›ØÙ\ÜÚ[™ÉÊKÜİ›ØÙ\ÜÚ[™Ï\İXØÙ\ÜÙ[™š[\Š™\İ[Oˆ\™\İ[˜[˜ÚÜ‰‰œ™\İ[˜ÛÛœÙ[œİ\Ô›ÛOOOIÜÜİ›ØÙ\ÜÚ[™ÉÊK˜\YZ[™\[™[™š[\Š™\İ[Oœ™\İ[œ˜\Y\]I‰›XYİ\œÏSX]›X^
+‹[X™\Š™\İ[›X^İ\œÊ_X]›Z[ŠÌ
+™\İ[›X^^\ßŠJŒ
+JJKœÛÜ
+
+KŠOOŠK›][˜ŞRİ\œß
+KJ‹›][˜ŞRİ\œß
+_
+Kœ™\ÛÛ][Û’Û_NJKJ‹œ™\ÛÛ][Û’Û_NJJNÂˆÛÛœİYÏXÛİ[OOOIÑIÏÊXYİ\œÏLNÖÉÚXÛÛ—Ù—ÜXÉË	ÚÛ›ZWÚ\›[ÛšYWÙ]\›ÜIË	ÚXÛÛ—Ù‰Ë	ØÚZWØ[Y[—ØÙIË	ÚXÛÛ—Ù]IË	ÙXÛ]Ù—ÚYœÉË	ÙXÛ]Ù—ØZYœÉË	ÚXÛÛ—ÙÛØ˜[	Ë	ÙÙœÉ×N›XYİ\œÏMMÖÉÚXÛÛ—Ù‰Ë	ÚÛ›ZWÚ\›[ÛšYWÙ]\›ÜIË	ØÚZWØ[Y[—ØÙIË	ÚXÛÛ—Ù]IË	ÙXÛ]Ù—ÚYœÉË	ÙXÛ]Ù—ØZYœÉË	ÚXÛÛ—ÙÛØ˜[	Ë	ÙÙœÉ×N›XYİ\œÏLLÌÖÉÚXÛÛ—Ù]IË	ÙXÛ]Ù—ÚYœÉË	ÙXÛ]Ù—ØZYœÉË	ÚXÛÛ—ÙÛØ˜[	Ë	ÙÙœÉ×N–ÉÙXÛ]Ù—ÚYœÉË	ÙXÛ]Ù—ØZYœÉË	ÙÙœÉË	ÚXÛÛ—ÙÛØ˜[	×JNš[™\[™[œÛÜ
+
+KŠOO˜KY\‹X‹Y\ŠK›X\
+™\İ[Oœ™\İ[šY
+K™Y™\œ™YVË‹‹œ˜\Y‹‹šYË›X\
+YOš[™\[™[™š[™
+™\İ[Oœ™\İ[šYOOZY
+JK™š[\Š›ÛÛX[ŠWK™š[\Š
+™\İ[[™^›İÜÊOOœ›İÜËš[™^ÙŠ™\İ[
+OOOZ[™^
+K™[XZ[š[™ÏZ[™\[™[™š[\Š™\İ[Oˆ\™Y™\œ™Yš[˜ÛY\Ê™\İ[
+JNÜ™]\›–Ë‹‹œ™Y™\œ™Y‹‹œ™[XZ[š[™Ë‹‹œÜİ›ØÙ\ÜÚ[™×K™š[\Š™\İ[O›XYİ\œÏSX]›X^
+[X™\Š™\İ[›X^İ\œÊ_
+™\İ[›X^^\ßŠJŒ
+ÍŠJNÂŸB™[˜İ[ÛˆÙX]\[™R\ÜİY\Êİ\Š^ÂˆÛÛœİ\ÜİY\ÏV×K™XÚ\]][ÛSX]›X^
+[X™\Šİ\Ëœ™XÚ\]][ÛŠOÏÌ
+K˜Z[SX]›X^
+[X™\Šİ\Ëœ˜Z[ŠOÏÌ
+KÚİÙ\œÏSX]›X^
+[X™\Šİ\ËœÚİÙ\œÊOÏÌ
+KÛ›İÙ˜[SX]›X^
+[X™\Šİ\ËœÛ›İÙ˜[
+OÏÌ
+K›Ø˜Xš[]O[[X™\Šİ\Ëœ›Ø˜Xš[]JKÛÙOSX]œ›İ[™
+[X™\Šİ\Ë˜ÛÙJOÏËLJKÛİY[[X™\Šİ\Ë˜ÛİY
+KİĞÛİY[[X™\Šİ\Ë›İĞÛİY
+Kİ[œÚ[™O[[X™\Šİ\Ëœİ[œÚ[™Q\˜][ÛŠKØ\OSX]›X^
+[X™\Šİ\Ë˜Ø\JOÏÌ
+K\Ñ^OZİ\Ëš\Ñ^HOOY˜[ÙK\Ï\˜Z[ŠÜÚİÙ\œÊÜÛ›İÙ˜[Ù]Q“Ô‘PĞTÕÔ‘PÒTUUSÓ—ĞÓÑTËš\ÊÛÙJNÂˆYŠS[X™\‹š\Ñš[š]J›Ø˜Xš[]J_S[X™\‹š\Ñš[š]JÛİY
+_S[X™\‹š\Ñš[š]Jİ[œÚ[™J_ÛÙO
+Z\ÜİY\Ëœ\Ú
+	İ[›Ûİ0é™YÙ\ÈÙ]\˜°ï™[	ÊNÂˆYŠ[X™\‹š\Ñš[š]Jİ[œÚ[™JI‰Šİ[œÚ[™Oİ[œÚ[™OŒÍŒ
+JZ\ÜİY\Ëœ\Ú
+	ÔÛÛ›™[œØÚZ[™]Y\ˆ]pçÙ\š[ˆİ[™[š[\˜[	ÊNÚYŠZ\Ñ^I‰“[X™\‹š\Ñš[š]Jİ[œÚ[™JI‰œİ[œÚ[™OŒ
+Z\ÜİY\Ëœ\Ú
+	ÔÛÛ›™[œØÚZ[™]Y\ˆ]pçÙ\š[ˆYÙ\ÛXÚ	ÊNÂˆYŠ™XÚ\]][Û‹ŒMI‰œ\Ï‹ŒI‰“X]˜XœÊ\Ë\™XÚ\]][ÛŠO“X]›X^
+ŒN™XÚ\]][ÛŠ‹MJJZ\ÜİY\Ëœ\Ú
+	ÓšYY\œØÚYÜØ\[ˆÚY\œÜ™XÚ[ˆÙ\Ø[]Y[™ÙIÊNÂˆYŠÙ]	‰œ™XÚ\]][ÛKŒI‰“[X™\‹š\Ñš[š]J›Ø˜Xš[]JI‰œ›Ø˜Xš[]OMJZ\ÜİY\Ëœ\Ú
+	ÓšYY\œØÚYÈÚ™H›Ø˜Xš[\İ\ØÚHİ0ï[™ÉÊNÂˆYŠ\Ñ^I‰“[X™\‹š\Ñš[š]Jİ[œÚ[™JI‰“[X™\‹š\Ñš[š]JÛİY
+I‰œİ[œÚ[™OLÌ	‰˜ÛİYN
+Z\ÜİY\Ëœ\Ú
+	ÔÛÛ›™H[™Ù\Ø[]™]ğí›İ[™ÈÚY\œÜ°ïÚXÚ	ÊNÂˆYŠ\Ñ^I‰–ÍLKLËMKŒKŒËWKš[˜ÛY\ÊÛÙJI‰œ™XÚ\]][ÛKŒI‰œİ[œÚ[™OL	‰˜ÛİYI‰Š[X™\‹š\Ñš[š]JİĞÛİY
+OÛİĞÛİYÍNYJI‰œÚİÙ\œÏŒI‰˜Ø\ON
+Z\ÜİY\Ëœ\Ú
+	Üİ˜]Y›Ü›Y\ˆ™YÙ[ˆÚ™H˜YÙ°éYÙH™]ğí›İ[™ÉÊNÂˆYŠÌWKš[˜ÛY\ÊÛÙJI‰˜ÛİYN
+Z\ÜİY\Ëœ\Ú
+	Ò[[Y[Ş\İ[™ÚY\œÜšXÚ™]ğí›İ[™ÉÊNÚYŠÛÙOOOLÉ‰˜ÛİYLMI‰œİ[œÚ[™OL
+Z\ÜİY\Ëœ\Ú
+	Ğ™YXÚİPÛÙHÚY\œÜšXÚÛÛ›™[œØÚZ[‰ÊNÂˆ™]\›ˆ\ÜİY\ÎÂŸB™[˜İ[ÛˆÙX]\”™\Z\‘\İ[˜ÙJ[˜ÚÜ‹Ø[™Y]K˜[šÊ^ØÛÛœİ\ÙO]˜[YOO‘“Ô‘PĞTÕÔ‘PÒTUUSÓ—ĞÓÑTËš\ÊX]œ›İ[™
+[X™\Š˜[YJ_
+JOÌNŒÜ™]\›ˆ˜[šÊŒŠÓX]˜XœÊ
+[X™\ŠØ[™Y]K˜ÛİY
+OÏÍL
+KJ[X™\Š[˜ÚÜ‹˜ÛİY
+OÏÍL
+JKÌJÓX]˜XœÊ
+[X™\ŠØ[™Y]Kœ›Ø˜Xš[]JOÏÌ
+KJ[X™\Š[˜ÚÜ‹œ›Ø˜Xš[]JOÏÌ
+JKÌÌ
+ÓX]˜XœÊ
+[X™\ŠØ[™Y]Kœİ[œÚ[™Q\˜][ÛŠOÏÌ
+KJ[X™\Š[˜ÚÜ‹œİ[œÚ[™Q\˜][ÛŠOÏÌ
+JKÌN
+ÓX]˜XœÊ
+[X™\ŠØ[™Y]Kœ™XÚ\]][ÛŠOÏÌ
+KJ[X™\Š[˜ÚÜ‹œ™XÚ\]][ÛŠOÏÌ
+JJŒŠÓX]˜XœÊ\ÙJØ[™Y]K˜ÛÙJK\\ÙJ[˜ÚÜ‹˜ÛÙJJJŒK_B™[˜İ[ÛˆÙ[XİÙX]\”™\Z\ŠİXØÙ\ÜÙ[[˜ÚÜ‹\ØÚÛİ[J^ØÛÛœİXYİ\œÏJ\ØÚQ]K››İÊ
+JKÌÍŒØ[™Y]\ÏV×NÙ›ÜŠÛÛœİÜ™\İ[˜[š×[Ùˆ™\Z\]]Üš]PØ[™Y]\ÊİXØÙ\ÜÙ[XYİ\œËÛİ[JK›X\
+
+™\İ[[™^
+OO–Ü™\İ[[™^JJ^ØÛÛœİİ\Y›Ü™XØ\İİ\]
+™\İ[\ØÚ
+NÚYŠZİ\ŸÙX]\[™R\ÜİY\Êİ\ŠK›[™İ
+XÛÛ[YNØØ[™Y]\Ëœ\Ú
+Ü™\İ[İ\‹ØÛÜ™NÙX]\”™\Z\‘\İ[˜ÙJ[˜ÚÜ‹İ\‹˜[šÊ_J_\™]\›ˆØ[™Y]\ËœÛÜ
+
+KŠOO˜KœØÛÜ™KX‹œØÛÜ™JVÌ_B™[˜İ[ÛˆÛÚ\™[ÙX]\’İ\œÊİXØÙ\ÜÙ[[˜ÚÜ”™\İ[Ûİ[J^Ü™]\›Š[˜ÚÜ”™\İ[Ëšİ\œÏÏÖ×JK›X\
+[˜ÚÜOØÛÛœİ\ÜİY\Ï]ÙX]\[™R\ÜİY\Ê[˜ÚÜŠK™\Z\Z\ÜİY\Ë›[™İÜÙ[XİÙX]\”™\Z\ŠİXØÙ\ÜÙ[[˜ÚÜ‹[˜ÚÜ‹™\ØÚÛİ[JN[™Yš[™YÛİ\˜ÙO\™\Z\Ëœ™\İ[ÏØ[˜ÚÜ”™\İ[İ\\™\Z\Ëšİ\ÏØ[˜ÚÜ‹™\Z\™YP›ÛÛX[Š™\Z\ŠNÜ™]\›İ[YNšİ\‹[YK\ØÚšİ\‹™\ØÚ[\\˜]\™Nšİ\‹[\\˜]\™K]ÔÚ[šİ\‹™]ÔÚ[™\Üİ\™Nšİ\‹œ™\Üİ\™KÚ[™šİ\‹Ú[™İ\İšİ\‹™İ\İ\™Xİ[Ûšİ\‹™\™Xİ[Û‹™XÚ\]][Ûšİ\‹œ™XÚ\]][Û‹˜Z[šİ\‹œ˜Z[‹ÚİÙ\œÎšİ\‹œÚİÙ\œËÛ›İÙ˜[šİ\‹œÛ›İÙ˜[›Ø˜Xš[]Nšİ\‹œ›Ø˜Xš[]KÛÙNšİ\‹˜ÛÙK˜\ÙT›Ø˜Xš[]N˜[˜ÚÜ‹œ›Ø˜Xš[]K˜\ÙPÛÙN˜[˜ÚÜ‹˜ÛÙKÛİYšİ\‹˜ÛİYİĞÛİYšİ\‹›İĞÛİY[ZY]Nšİ\‹š[ZY]KØ\Nšİ\‹˜Ø\KYY[™^šİ\‹›YY[™^ÛÛ™Xİ]™R[šXš][Ûšİ\‹˜ÛÛ™Xİ]™R[šXš][Û‹İ[œÚ[™Q\˜][Ûšİ\‹œİ[œÚ[™Q\˜][Û‹\Ñ^Nšİ\‹š\Ñ^KÛİ\˜ÙRYœÛİ\˜ÙKšYÛİ\˜ÙSX™[œ™\Z\™YØ	ÜÛİ\˜ÙK›X™[H0­È™\İSX]ÚT™\\˜]\˜œÛİ\˜ÙK›X™[Ûİ\˜ÙQ˜[Z[NœÛİ\˜ÙK™˜[Z[KÛİ\˜ÙT›ÛNœ™\Z\™YÉÜ™\Z\‰Î‰Ø™\İ[X]Ú	Ë™\Z\”™X\ÛÛœ™\Z\™YÚ\ÜİY\Ëš›Ú[Š	ÎÈ	ÊN[™Yš[™YÜšYÚ[˜[Ûİ\˜ÙRY‰Ø™\İÛX]Ú	ËÜšYÚ[˜[Ûİ\˜ÙSX™[‰ÓÜ[‹SY][È™\İX]Ú	ß_JK™š[\Šİ\O“[X™\‹š\Ñš[š]Jİ\‹™\ØÚ
+I‰“[X™\‹š\Ñš[š]Jİ\‹œ›Ø˜Xš[]JJ_B‚˜\Ş[˜È[˜İ[Ûˆ›Ü™XØ\İ\Ú[Û”™\ÜÛœÙJ\›[Š^ÂˆÛÛœİ][[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	Û]	ÊJKÛ[[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛÛ‰ÊJK[]˜][Û[[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ù[]˜][Û‰ÊJKÛİ[OY\™XİÛİ[PÛÙJ\›œÙX\˜Ú\˜[\Ë™Ù]
+	ØÛİ[IÊJK™Yœ™\Ú]\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ü™Yœ™\Ú	ÊOOOIÌIÎÂˆYŠS[X™\‹š\Ñš[š]J]
+_S[X™\‹š\Ñš[š]JÛŠ_X]˜XœÊ]
+OLX]˜XœÊÛŠOŒN
+\™]\›ˆœÛÛŠÜØÚ[XN‰ÛZY™›Ü™XØ\İY\Ú[Û‹ŒIË™\œÚ[ÛKXİ]™N™˜[ÙK\œ›Ü‰ÙğïYÙH]ÛÛˆ\™›Ü™\›XÚ	ËÛİ\˜Ù\Î–×K^\Î–×K[Ù[^\Î–×Kİ\œÎ–×KÙX]\’İ\œÎ–×_KÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÂˆÛÛœİÙ[XİYY›Ü™XØ\İ\Ú[Û”Ù[Xİ[ÛŠ]Û‹Ûİ[JKÛ[Ù[™]Ú[ÜÛZ^XÑ\×OX]ØZ]›ÛZ\ÙK˜[
+Ù™]Ú›Ü™XØ\İ\Ú[Û“[Ù[ÊÙ[XİY]Û‹[]˜][Û‹[‹™Yœ™\Ú
+K™]Ú[ÜÛZ^›Ü™XØ\İ
+]Û‹[]˜][Û‹Ûİ[K™Yœ™\Ú
+K\Ú[Û“[Ù[\Y\ÊØ˜›Ş–ËLËKËŒNŒŒŒ‹NŒW_K]Û‹Ûİ[JOÙ™]ÚÙXÑ\Ô›Ø˜Xš[]PY\\Š]Û‹[]˜][Û‹[ŠN”›ÛZ\ÙKœ™\ÛÛ™JÜİXØÙ\ÜÙ[™˜[ÙKÛÛ™šYİ\™Y™˜[ÙKİ\œÎ–×K™X\ÛÛ‰Ø]pçÙ\š[ˆPÓÓ‹Q‹T•PÉßJWJK™\İ[Ï[[Ù[™]Úœ™\İ[ËİXØÙ\ÜÙ[\™\İ[Ë™š[\Š™\İ[Oœ™\İ[œİXØÙ\ÜÙ[
+K[˜ÚÜ”™\İ[\İXØÙ\ÜÙ[™š[™
+™\İ[Oœ™\İ[˜[˜ÚÜŠK[˜ÚÜ‘^\ÏX[˜ÚÜ”™\İ[Ë™^\ÏÏÖ×K˜\ÙUÙX]\’İ\œÏXÛÚ\™[ÙX]\’İ\œÊİXØÙ\ÜÙ[[˜ÚÜ”™\İ[Ûİ[JKXÕÙX]\’İ\œÏX\TXÔ˜\Y\]UÙX]\’İ\œÊ˜\ÙUÙX]\’İ\œËİXØÙ\ÜÙ[[ÜÛZ^XÑ\ÊKXÔÜXÚX[\İİ\œÏX\TXÔÜXÚX[\İİ\›JXÕÙX]\’İ\œËİXØÙ\ÜÙ[
+KÙX]\’İ\œÏX\TXÑ\Ô›Ø˜Xš[]Rİ\œÊXÔÜXÚX[\İİ\œËXÑ\ÊK˜\YZ[]\ÌMO\XÔ˜\YZ[]LMT›İÜÊİXØÙ\ÜÙ[
+NÂˆÛÛœİÛİ\˜Ù\Ï\™\İ[Ë›X\
+™\İ[OŠÚYœ™\İ[šYX™[œ™\İ[›X™[˜[Z[Nœ™\İ[™˜[Z[K[™\[™[˜ÙQÜ›İ\œ™\İ[š[™\[™[˜ÙQÜ›İ\™\İ[™˜[Z[KÛÛœÙ[œİ\Ô›ÛNœ™\İ[˜ÛÛœÙ[œİ\Ô›ÛOOOIÜÜİ›ØÙ\ÜÚ[™ÉÏÉÜÜİ›ØÙ\ÜÚ[™ÉÎœ™\İ[˜[˜ÚÜÉÙXYÛ›ÜİXÉÎ‰Ú[™\[™[	ËY\œ™\İ[Y\‹›İšY\œ™\İ[œ›İšY\‹İXØÙ\ÜÙ[›ÛÛX[Š™\İ[œİXØÙ\ÜÙ[
+K™X\ÛÛœ™\İ[œİXØÙ\ÜÙ[İ[™Yš[™Yœ™\İ[œ™X\ÛÛ‹˜\Y\]N›ÛÛX[Š™\İ[œ˜\Y\]JK\]Rİ\œÎ“[X™\Š™\İ[\]Rİ\œÊ_[™Yš[™Y™\ÛÛ][Û’ÛN“[X™\Š™\İ[œ™\ÛÛ][Û’ÛJ_[™Yš[™YX^İ\œÎ“[X™\Š™\İ[›X^İ\œÊ_[™Yš[™Y[‘œ™\Ú™\ÜÎ“[X™\Š™\İ[œ[‘œ™\Ú™\ÜÊ_[™Yš[™Y[š]X[\Ø][Û•[YNœ™\İ[š[š]X[\Ø][Û•[YK]˜Z[Xš[]U[YNœ™\İ[˜]˜Z[Xš[]U[Y_JJNÂˆYŠXÑ\Ë˜ÛÛ™šYİ\™YXÑ\ËœİXØÙ\ÜÙ[
+\Ûİ\˜Ù\Ëœ\Ú
+ÚY‰ÚXÛÛ—Ù—ÜX×Ù\ÉËX™[‰ÑÑPÓÓ‹Q‹T•PËQTÉË˜[Z[N‰ÙÙZXÛÛ‹\XÉË[™\[™[˜ÙQÜ›İ\‰ÙÙZXÛÛ‰ËÛÛœÙ[œİ\Ô›ÛN‰ÙXYÛ›ÜİXÉËY\ŒK›İšY\‰ÑÑ	ËİXØÙ\ÜÙ[›ÛÛX[ŠXÑ\ËœİXØÙ\ÜÙ[
+K™X\ÛÛœXÑ\ËœİXØÙ\ÜÙ[İ[™Yš[™YœXÑ\Ëœ™X\ÛÛ‹˜\Y\]NYK\]Rİ\œÎŒK™\ÛÛ][Û’ÛNŒ‹X^İ\œÎŒM[š]X[\Ø][Û•[YNœXÑ\Ëš[š]X[\Ø][Û•[YK]˜Z[Xš[]U[YNœXÑ\Ë˜]˜Z[Xš[]U[Y_JNÂˆYŠ[ÜÛZ^˜ÛÛœÚY\™Y
+\Ûİ\˜Ù\Ëœ\Ú
+ÚY‰ÙÙÛ[ÜÛZ^	ËX™[‰ÑÑSÔÓRVTËÓ	Ë˜[Z[N‰Û[ÜÛZ^\Üİ›ØÙ\ÜÚ[™ÉË[™\[™[˜ÙQÜ›İ\‰ÙÙ\Üİ›ØÙ\ÜÚ[™ÉËÛÛœÙ[œİ\Ô›ÛN‰ÜÜİ›ØÙ\ÜÚ[™ÉËY\ŒK›İšY\‰ÑÑÜ[ˆ]HšXHœšYÚÚŞIËİXØÙ\ÜÙ[›ÛÛX[Š[ÜÛZ^œİXØÙ\ÜÙ[
+K™X\ÛÛ›[ÜÛZ^œİXØÙ\ÜÙ[İ[™Yš[™Y›[ÜÛZ^œ™X\ÛÛ‹˜\Y\]NYK\]Rİ\œÎŒKX^İ\œÎŒ[š]X[\Ø][Û•[YN›[ÜÛZ^œÚÜ[š]X[\Ø][Û•[YK]˜Z[Xš[]U[YN›[ÜÛZ^œÚÜ]˜Z[Xš[]U[YK[‘œ™\Ú™\ÜÎ›[ÜÛZ^œ[‘œ™\Ú™\ÜßJNÂˆÛÛœİ[ÜÛZ^™XÚ\]][ÛÛİ™\˜YÙRİ\œÏP\œ˜^Kš\Ğ\œ˜^J[ÜÛZ^šİ\œÊOÛ[ÜÛZ^šİ\œË™š[\Šİ\O“[X™\‹š\Ñš[š]J[X™\Šİ\Ëœ™XÚ\]][ÛŠJJK›[™İŒ[ÜÛZ^Y]O^Ø]˜Z[X›N›ÛÛX[Š[ÜÛZ^œİXØÙ\ÜÙ[
+K\YY™˜[ÙK]X[]N“[X™\Š[ÜÛZ^œ]X[]J_İ][Û’Y›[ÜÛZ^œİ][Û’Yİ][Û“˜[YN›[ÜÛZ^œİ][Û“˜[YK\İ[˜ÙRÛN›[ÜÛZ^™\İ[˜ÙRÛKİ][Û‘[]˜][Û›[ÜÛZ^œİ][Û‘[]˜][Û‹[]˜][Û‘Y™™\™[˜ÙSN›[ÜÛZ^™[]˜][Û‘Y™™\™[˜ÙSKÛİ™\˜YÙRİ\œÎ\œ˜^Kš\Ğ\œ˜^J[ÜÛZ^šİ\œÊOÛ[ÜÛZ^šİ\œË›[™İŒÛİ™\˜YÙQ^\Î\œ˜^Kš\Ğ\œ˜^J[ÜÛZ^™^\ÊOÛ[ÜÛZ^™^\Ë›[™İŒÛİ™\˜YÙU[[›[ÜÛZ^˜Ûİ™\˜YÙU[[[š]X[\Ø][Û•[YN›[ÜÛZ^œÚÜ[š]X[\Ø][Û•[YK]˜Z[Xš[]U[YN›[ÜÛZ^œÚÜ]˜Z[Xš[]U[YK\]Rİ\œÎŒK[‘œ™\Ú™\ÜÎ›[ÜÛZ^œ[‘œ™\Ú™\ÜË[“Y]TÛİ\˜ÙN›[ÜÛZ^œÚÜ[“Y]TÛİ\˜ÙKÚÜ[š]X[\Ø][Û•[YN›[ÜÛZ^œÚÜ[š]X[\Ø][Û•[YKÚÜ]˜Z[Xš[]U[YN›[ÜÛZ^œÚÜ]˜Z[Xš[]U[YKÚÜ[“Y]TÛİ\˜ÙN›[ÜÛZ^œÚÜ[“Y]TÛİ\˜ÙKÛ™Ò[š]X[\Ø][Û•[YN›[ÜÛZ^›Û™Ò[š]X[\Ø][Û•[YKÛ™Ğ]˜Z[Xš[]U[YN›[ÜÛZ^›Û™Ğ]˜Z[Xš[]U[YKÛ™Õ\]Rİ\œÎ‹Û™Ô[“Y]TÛİ\˜ÙN›[ÜÛZ^›Û™Ô[“Y]TÛİ\˜ÙK™XÚ\]][ÛÛÛœÙ[œİ\Ğ]˜Z[X›N›[ÜÛZ^™XÚ\]][ÛÛİ™\˜YÙRİ\œÏŒ™XÚ\]][ÛÛİ™\˜YÙRİ\œÎ›[ÜÛZ^™XÚ\]][ÛÛİ™\˜YÙRİ\œËÛİ\˜ÙN‰ÑÑSÔÓRVšXHœšYÚÚŞIßNÂˆYŠX[˜ÚÜ‘^\Ë›[™İ
+^ØÛÛœİ[˜Xİ]™TÛİ\˜Ù\Ï\Ûİ\˜Ù\Ë›X\
+Ûİ\˜ÙOOŠË‹‹œÛİ\˜ÙK\ÙY[Ø[›ÛšXØ[™˜[ÙK\ÙY^\ÎŒ\ÙYİ\œÎŒ\ØYÙQ]Z[œÛİ\˜ÙKœİXØÙ\ÜÙ[ÉÓ]YˆÙ[Y[ˆ[™Ù\°ïÙYÙ[ˆ™Z[™\ˆZ]›ÙÛ›ÜÙHX™\ˆšXÚ0ï™\››Û[Y[‹‰Î‰Ó]Yˆ°ïˆY\Ù[ˆ›ÙÛ›ÜÙ\İ[™šXÚÙ[Y[‹‰ßJJNÜ™]\›ˆœÛÛŠÜØÚ[XN‰ÛZY™›Ü™XØ\İY\Ú[Û‹ŒIË™\œÚ[ÛKÙ[™\˜]Y]›™]È]J
+KÒTÓÔİš[™Ê
+KXİ]™N™˜[ÙKİ[[X\N‰ÓYZœ]Y[[‹T›ÙÛ›ÜÙH\™Z]šXÚ™\™°ïØ˜\‹‰Ëİ˜]YŞN‰Ğ™\İX]Ú›ZX[™\°é™\‰Ë[Y^›Û™N˜[˜ÚÜ”™\İ[Ë[Y^›Û™_	ÕUÉËÛİ\˜Ù\Îš[˜Xİ]™TÛİ\˜Ù\Ë^\Î–×K[Ù[^\Î–×Kİ\œÎ›[ÜÛZ^œİXØÙ\ÜÙ[Û[ÜÛZ^šİ\œÎ–×KÙX]\’İ\œÎ–×K˜\YZ[]\ÌMN–×K[ÜÛZ^›[ÜÛZ^Y]K\œ›Ü‰Ğ™\İSX]ÚP[šÙ\ˆ™Z‰ßKŒÉØØXÚKXÛÛ›Û	Îœ™Yœ™\ÚÉÛ›Ë\İÜ™IÎ‰ÜX›XËX^XYÙOLÌİ[K]Ú[K\™]˜[Y]OLN	ßJNßBˆÛÛœİ›İÜÏX[˜ÚÜ‘^\Ë›X\
+
+[˜ÚÜ‹[™^
+OOÂˆÛÛœİÜš^›ÛZ[™^
+ÌK™YÚ[YOY\Ú[Û•ÙX]\”™YÚ[YJ[˜ÚÜŠKÛÛ^^Û]Û‹Ûİ[K™YÚ[Y_K]˜Z[X›O\İXØÙ\ÜÙ[™š[\Š™\İ[Oœ™\İ[™^\ËœÛÛYJ^OO™^K™]OOOX[˜ÚÜ‹™]JJK˜]Ô›İÜÏX]˜Z[X›K›X\
+™\İ[OØÛÛœİ^O\™\İ[™^\Ë™š[™
+][OOš][K™]OOOX[˜ÚÜ‹™]JK˜XİÜœÏY\Ú[Û•ÙZYÚ˜XİÜœÊ™\İ[Üš^›Û‹ÛÛ^
+NÜ™]\›ˆ^OŞÛ[Ù[œ™\İ[˜[Z[Nœ™\İ[™˜[Z[K[™\[™[˜ÙQÜ›İ\œ™\İ[š[™\[™[˜ÙQÜ›İ\™\İ[™˜[Z[KÙZYÚ™˜XİÜœËÙZYÚ˜XİÜœË^_N›[JK™š[\Š›ÛÛX[ŠKÙZYÚY›İÜÏZ[™\[™[\Ú[Û”›İÜÊ˜]Ô›İÜËÜš^›ÛŠK›Û[˜ÚÜ]ÙZYÚY›İÜË™š[\Š›İÏOˆ\›İË›[Ù[˜[˜ÚÜŠK˜[Z[Y\Ï[™]ÈÙ]
+›Û[˜ÚÜ‹›X\
+›İÏOœ›İËš[™\[™[˜ÙQÜ›İ\
+JKœÚ^™K[\Ü™XYY\Ú[Û”Ü™XY
+›Û[˜ÚÜ‹›X\
+›İÏOŠ›İË™^K›X^
+Ü›İË™^K›Z[ŠKÌŠJK™XÚ\˜[Y\Ï[›Û[˜ÚÜ‹›X\
+›İÏOœ›İË™^Kœ™XÚ\]][ÛŠK™š[\Š[X™\‹š\Ñš[š]JKÛÛ™šY[˜ÙOY\Ú[ÛÛÛ™šY[˜ÙJ˜[Z[Y\Ë[\Ü™XY™XÚ\˜[Y\ËÜš^›ÛŠKÛÛ™šY[˜ÙSX™[XÛÛ™šY[˜ÙOMÌÉÚYÚ	Î˜ÛÛ™šY[˜ÙOMLÉÛYY][IÎ‰ÛİÉËÜš^›Û”İ™[™İZÜš^›ÛLËNšÜš^›ÛMÏËN‹ŒÎİ™[™İY˜[Z[Y\ÏL‰‰˜ÛÛ™šY[˜ÙOMOØÛ[\
+Üš^›Û”İ™[™İ
+ŠÛÛ™šY[˜ÙKÎŠKŒM‹
+NŒÛÛœÙ[œİ\Ï\Ù[XİÜOÙZYÚYÛÛœÙ[œİ\ÊÙZYÚY›İÜË›X\
+›İÏOŠİ˜[YNœÙ[XİÜŠ›İË™^JKÙZYÚœ›İËÙZYÚJJJKÙX]\‘^OX[˜ÚÜ‹ÙX]\”Ûİ\˜ÙOX[˜ÚÜ”™\İ[İ[ÙZYÚ[›Û[˜ÚÜ‹œ™YXÙJ
+İ[K›İÊOOœİ[JÓX]›X^
+›İËÙZYÚ
+K
+_KÙZYÚ[™Ï^Ù]N˜[˜ÚÜ‹™]KÜš^›Û‘^\ÎšÜš^›Û‹™YÚ[YK[™\[™[˜[Z[Y\Î™˜[Z[Y\ËÛÛšX]ÜœÎ››Û[˜ÚÜ‹›X\
+›İÏOŠÚYœ›İË›[Ù[šYX™[œ›İË›[Ù[›X™[[™\[™[˜ÙQÜ›İ\œ›İËš[™\[™[˜ÙQÜ›İ\›Ü›X[^™YÙZYÚ“[X™\Š
+L
+“X]›X^
+›İËÙZYÚ
+Kİİ[ÙZYÚ
+KÑš^Y
+JJK˜]ÕÙZYÚ“[X™\Š
+›İËœ˜]ÕÙZYÚÏÜ›İËÙZYÚ
+KÑš^Y
+ÊJKÜ›İ\YÙ]“[X™\Š
+›İË™Ü›İ\YÙ]ÏÜ›İËÙZYÚ
+KÑš^Y
+ÊJK˜\Y\]N›ÛÛX[Š›İË›[Ù[œ˜\Y\]JKY\œ›İË›[Ù[Y\‹™\ÛÛ][Û’ÛN“[X™\Š›İË›[Ù[œ™\ÛÛ][Û’ÛJ_[™Yš[™Y˜XİÜœÎ“Øš™Xİ™œ›ÛQ[šY\ÊØš™Xİ™[šY\Ê›İË™˜XİÜœßßJK™š[\Š
+ÚÙ^WJOOšÙ^HOOIİÙZYÚ	ÊK›X\
+
+ÚÙ^K˜[YWJOO–ÚÙ^K[X™\Š[X™\Š˜[YJKÑš^Y
+ÊJWJJ_JJ_NÂˆÛÛœİX^ÛÛœÙ[œİ\ÏXÛÛœÙ[œİ\Ê^OO™^K›X^
+KZ[ÛÛœÙ[œİ\ÏXÛÛœÙ[œİ\Ê^OO™^K›Z[ŠKÚ[™ÛÛœÙ[œİ\ÏXÛÛœÙ[œİ\Ê^OO™^KÚ[™
+Kİ\İÛÛœÙ[œİ\ÏXÛÛœÙ[œİ\Ê^OO™^K™İ\İ
+KİX\™Yİ™[™İXÛÛ™šY[˜ÙOMI‰™˜[Z[Y\ÏLÓX]›Z[Š‹İ™[™İ
+NŒ[š]X[X^SX]˜XœÊX^ÛÛœÙ[œİ\ËX[˜ÚÜ‹›X^
+OLKÜØY™Q\Ú[Û•˜[YJ[˜ÚÜ‹›X^X^ÛÛœÙ[œİ\ËİX\™Yİ™[™İÜš^›ÛLÌKNŒŠN˜[˜ÚÜ‹›X^[š]X[Z[SX]˜XœÊZ[ÛÛœÙ[œİ\ËX[˜ÚÜ‹›Z[ŠOLKŒÜØY™Q\Ú[Û•˜[YJ[˜ÚÜ‹›Z[‹Z[ÛÛœÙ[œİ\ËİX\™Yİ™[™İÜš^›ÛLÌKŒK
+N˜[˜ÚÜ‹›Z[‹[š]X[Ú[™SX]˜XœÊÚ[™ÛÛœÙ[œİ\ËX[˜ÚÜ‹Ú[™
+OLÏÓX]›X^
+ØY™Q\Ú[Û•˜[YJ[˜ÚÜ‹Ú[™Ú[™ÛÛœÙ[œİ\ËİX\™Yİ™[™İJJN˜[˜ÚÜ‹Ú[™[š]X[İ\İSX]›X^
+[š]X[Ú[™X]˜XœÊİ\İÛÛœÙ[œİ\ËX[˜ÚÜ‹™İ\İ
+OMÜØY™Q\Ú[Û•˜[YJ[˜ÚÜ‹™İ\İİ\İÛÛœÙ[œİ\ËİX\™Yİ™[™İ
+N˜[˜ÚÜ‹™İ\İ
+NÂˆÛÛœİÛÛšX]ÜœÏVË‹‹›™]ÈÙ]
+Ë‹‹››Û[˜ÚÜ‹›X\
+›İÏOœ›İË›[Ù[›X™[
+KÙX]\”Ûİ\˜ÙOË›X™[K™š[\Š›ÛÛX[ŠJWKİ[œÚ[™Q\˜][ÛY\Ú[Û“[X›Tİ[œÚ[™JÙX]\‘^Kœİ[œÚ[™Q\˜][ÛÏØ[˜ÚÜ‹œİ[œÚ[™Q\˜][ÛŠK˜\ÙT›İÏ^Ù]N˜[˜ÚÜ‹™]KX^“[X™\Š[š]X[X^Ñš^Y
+ŠJKZ[“[X™\Š[š]X[Z[‹Ñš^Y
+ŠJK™XÚ\]][Û“[X™\ŠX]›X^
+ÙX]\‘^Kœ™XÚ\]][ÛŠKÑš^Y
+ŠJK˜Z[“[X™\ŠX]›X^
+[X™\ŠÙX]\‘^Kœ˜Z[ŠOÏÌ
+KÑš^Y
+ŠJKÚİÙ\œÎ“[X™\ŠX]›X^
+[X™\ŠÙX]\‘^KœÚİÙ\œÊOÏÌ
+KÑš^Y
+ŠJKÛ›İÙ˜[“[X™\ŠX]›X^
+[X™\ŠÙX]\‘^KœÛ›İÙ˜[
+OÏÌ
+KÑš^Y
+ŠJK™XÚ\]][Û’İ\œÎ“[X™\ŠX]›X^
+[X™\ŠÙX]\‘^Kœ™XÚ\]][Û’İ\œÊOÏÌ
+KÑš^Y
+JJK›Ø˜Xš[]N“X]œ›İ[™
+Û[\
+ÙX]\‘^Kœ›Ø˜Xš[]KL
+JKÛÙN“X]œ›İ[™
+[X™\ŠÙX]\‘^K˜ÛÙJOÏØ[˜ÚÜ‹˜ÛÙJKÚ[™“[X™\Š[š]X[Ú[™Ñš^Y
+ŠJKİ\İ“[X™\Š[š]X[İ\İÑš^Y
+ŠJKİ[œÚ[™Q\˜][Ûœİ[œÚ[™Q\˜][ÛO[[Û[“X]œ›İ[™
+İ[œÚ[™Q\˜][ÛŠKÙX]\”Ûİ\˜ÙRYÙX]\”Ûİ\˜ÙOËšY	Ø™\İÛX]Ú	ËÙX]\”Ûİ\˜ÙSX™[ÙX]\”Ûİ\˜ÙOË›X™[	ÓÜ[‹SY][È™\İX]Ú	ËÛÛ™šY[˜ÙKÛÛ™šY[˜ÙSX™[İ™[™İ“[X™\Šİ™[™İÑš^Y
+ÊJK˜[Z[Y\Ë\YY™İX\™Yİ™[™İŒ[ÜÛZ^\YY™˜[ÙKÛÛšX]ÜœßNÂˆÛÛœİ[ÜÛZ^^O[[ÜÛZ^œİXØÙ\ÜÙ[Û[ÜÛZ^™^\Ë™š[™
+^OO™^K™]OOOX[˜ÚÜ‹™]JN[™Yš[™Y[ÜÛZ^˜\ÙOZÜš^›ÛLËLšÜš^›ÛMÏËŒ[ÜÛZ^İ™[™İ[[ÜÛZ^^I‰˜ÛÛ™šY[˜ÙOMLÛ[ÜÛZ^˜\ÙJ˜Û[\
+[X™\Š[ÜÛZ^œ]X[]J_JNŒ[ÜÛZ^\YY[[ÜÛZ^İ™[™İKŒLÂˆÛÛœİX^[[ÜÛZ^\YYÜØY™Q\Ú[Û•˜[YJ[š]X[X^[ÜÛZ^^K›X^[ÜÛZ^İ™[™İÜš^›ÛLÌKŒ‹ŒŠNš[š]X[X^Z[[[ÜÛZ^\YYÜØY™Q\Ú[Û•˜[YJ[š]X[Z[‹[ÜÛZ^^K›Z[‹[ÜÛZ^İ™[™İÜš^›ÛLÌKNŒŠNš[š]X[Z[‹Ú[™[[ÜÛZ^\YYÓX]›X^
+ØY™Q\Ú[Û•˜[YJ[š]X[Ú[™[ÜÛZ^^KÚ[™[ÜÛZ^İ™[™İ
+‹Œ‹ŠJNš[š]X[Ú[™İ\İ[[ÜÛZ^\YYÓX]›X^
+Ú[™ØY™Q\Ú[Û•˜[YJ[š]X[İ\İ[ÜÛZ^^K™İ\İ[ÜÛZ^İ™[™İ
+‹Œ‹JJNš[š]X[İ\İÂˆÛÛœİš[˜[›İÏ^Ë‹‹˜˜\ÙT›İËX^“[X™\ŠX^Ñš^Y
+ŠJKZ[“[X™\ŠZ[‹Ñš^Y
+ŠJKÚ[™“[X™\ŠÚ[™Ñš^Y
+ŠJKİ\İ“[X™\Šİ\İÑš^Y
+ŠJKİ™[™İ“[X™\ŠX]›X^
+İX\™Yİ™[™İ[ÜÛZ^İ™[™İ
+KÑš^Y
+ÊJK\YY˜˜\ÙT›İË˜\YY[ÜÛZ^\YY[ÜÛZ^\YYÛÛšX]ÜœÎ–Ë‹‹˜ÛÛšX]ÜœË‹‹Š[ÜÛZ^\YYÖÉÑÑSÔÓRV
+[\\˜]\‹ÕÚ[™
+I×N–×JW_NÂˆ™]\›Û[Ù[˜˜\ÙT›İËš[˜[™š[˜[›İËÙZYÚ[™ßBˆJK[Ù[^\Ï\›İÜË›X\
+›İÏOœ›İË›[Ù[
+K^\Ï\›İÜË›X\
+›İÏOœ›İË™š[˜[
+KÙZYÚ[™ĞQ]O\›İÜË›X\
+›İÏOœ›İËÙZYÚ[™ÊK\YYY^\Ë™š[\Š^OO™^K˜\YY
+K[ÜÛuë<¶‰Ëkºwµç[œİY[›Ü›X[^™J\ØÜš\[ÛŠKšYÚ[›Ü›X[^™J˜[YJNÜ™]\›ˆYOO\šYÚ\™XQ\ØÜš\[Û“X]Ú\Ê\ØÜš\[Û‹\›\Ñ›ÜŠ˜[YJJ_\™XQ\ØÜš\[Û“X]Ú\Ê˜[YK\›\Ñ›ÜŠ\ØÜš\[ÛŠJ_JJ_B™[˜İ[ÛˆØØ[\™XSX]Ú
+\™XV[]Û‹\›\ËÙ™šXÚX[\™XS˜[Y\Ê^ÂˆÛÛœİÛYÛÛœÏ]YÕ˜[Y\Ê\™XV[	ÜÛYÛÛ‰ÊK›X\
+\œÙPØ\ÛYÛÛŠK™š[\ŠO›[™İLÊNÚYŠÛYÛÛœËœÛÛYJOœÚ[[”š[™Ê]Û‹
+JJ\™]\›ˆYNÂˆÛÛœİÚ\˜Û\Ï]YÕ˜[Y\Ê\™XV[	ØÚ\˜ÛIÊK›X\
+\œÙPÚ\˜ÛJK™š[\Š›ÛÛX[ŠNÚYŠÚ\˜Û\ËœÛÛYJÏO™\İ[˜ÙJ]Û‹Ë›]Ë›ÛŠOXËœ˜Y]\ÒÛJŒL
+J\™]\›ˆYNÂˆYŠÛYÛÛœË›[™İÚ\˜Û\Ë›[™İ
+\™]\›ˆ˜[ÙNÂˆÛÛœİ\ØÜš\[ÛœÏ]YÕ˜[Y\Ê\™XV[	Ø\™XQ\ØÉÊKš›Ú[Š	È	ÊNÚYŠ\™XQ\ØÜš\[Û“X]Ú\Ê\ØÜš\[ÛœË\›\ÊJ\™]\›ˆYNÂˆÛÛœİÙ™šXÚX[X]Ú[Ù™šXÚX[\™XQ\ØÜš\[Û“X]Ú\Ê\™XV[Ù™šXÚX[\™XS˜[Y\ÊNÚYŠÙ™šXÚX[X]ÚOO][™Yš[™Y
+\™]\›ˆÙ™šXÚX[X]ÚÂˆ™]\›ˆ˜[ÙNÂŸB™[˜İ[ÛˆØØ[X]Ú
+[]Û‹˜[YOIÉË™YÚ[ÛIÉË\İšXİIÉËÙ™šXÚX[\™XS˜[Y\Ê^ÂˆÛÛœİ\›\Ï]\›\Ñ›ÜŠ˜[YK\İšXİ™YÚ[ÛŠK\™X\ÏX›ØÚÜÊ[	Ø\™XIÊNÚYŠ\™X\Ë›[™İ
+\™]\›ˆ\™X\ËœÛÛYJ\™XOO›ØØ[\™XSX]Ú
+\™XK]Û‹\›\ËÙ™šXÚX[\™XS˜[Y\ÊJNÂˆ™]\›ˆØØ[\™XSX]Ú
+[]Û‹\›\ËÙ™šXÚX[\™XS˜[Y\ÊNÂŸB™[˜İ[Ûˆ]Ø\™[™\ÜÓ]™[
+[Ù]™\š]K^XÚ]
+^ÂˆÛÛœİ\™XİTİš[™Ê^XÚ]ÏÉÉÊKÓİÙ\Ø\ÙJ
+NÚYŠÉÜ\œIË	Ü™Y	Ë	ÛÜ˜[™ÙIË	ŞY[İÉ×Kš[˜ÛY\Ê\™Xİ
+J\™]\›ˆ\™XİÂˆÛÛœİS[X™\Š^XÚ]
+NÚYŠ[X™\‹š\Ñš[š]JŠJ^ÚYŠM
+\™]\›‰Ü\œIÎÚYŠOOLÊ\™]\›‰Ü™Y	ÎÚYŠOOLŠ\™]\›‰ÛÜ˜[™ÙIÎÚYŠOOLJ\™]\›‰ŞY[İÉßBˆÛÛœİ\˜[\ÏX›ØÚÜÊ[	Ü\˜[Y]\‰ÊNÛ]˜]ÏIÉÎÙ›ÜŠÛÛœİÙˆ\˜[\Ê^ØÛÛœİÙ^O]YÕ˜[YJ	İ˜[YS˜[YIÊKÓİÙ\Ø\ÙJ
+NÚYŠÙ^Kš[˜ÛY\Ê	Ø]Ø\™[™\Ü×Û]™[	Ê_Ù^OOOIİØ\››]™[	ßÙ^Kš[˜ÛY\Ê	İØ\›š[™È]™[	ÊJ^Ü˜]Ï]YÕ˜[YJ	İ˜[YIÊNØœ™XZß_BˆÛÛœİYÚ]Tİš[™Ê˜]ÊK›X]Ú
+×ŠÌKMJW‹ÊOË–ÌWNÚYŠYÚ]OOIÍ	Ê\™]\›ˆİš[™Ê˜]ÊKÓİÙ\Ø\ÙJ
+Kš[˜ÛY\Ê	Ü™Y	ÊOÉÜ™Y	Î‰Ü\œIÎÚYŠYÚ]OOIÌÉÊ\™]\›ˆİš[™Ê˜]ÊKÓİÙ\Ø\ÙJ
+Kš[˜ÛY\Ê	ÛÜ˜[™ÙIÊOÉÛÜ˜[™ÙIÎ‰Ü™Y	ÎÚYŠYÚ]OOIÌ‰Ê\™]\›ˆİš[™Ê˜]ÊKÓİÙ\Ø\ÙJ
+Kš[˜ÛY\Ê	ŞY[İÉÊOÉŞY[İÉÎ‰ÛÜ˜[™ÙIÎÚYŠYÚ]OOIÌIÊ\™]\›‰ŞY[İÉÎÂˆÛÛœİÏTİš[™ÊÙ]™\š]_	ÉÊKÓİÙ\Ø\ÙJ
+NÚYŠÏOOIÙ^™[YIÊ\™]\›‰Ü\œIÎÚYŠÏOOIÜÙ]™\™IÊ\™]\›‰Ü™Y	ÎÚYŠÏOOIÛ[Ù\˜]IÊ\™]\›‰ÛÜ˜[™ÙIÎÚYŠÏOOIÛZ[›Ü‰Ê\™]\›‰ŞY[İÉÎÜ™]\›‰İ[šÛ›İÛ‰ÎÂŸB™[˜İ[Ûˆ™\İ[™›Ê[[™İXYÙOIÙIÊ^ÂˆÛÛœİ[™›ÜÏX›ØÚÜÊ[	Ú[™›ÉÊNÚYŠZ[™›ÜË›[™İ
+\™]\›ˆ[ØÛÛœİ[™ÏTİš[™Ê[™İXYÙ_	ÙIÊKÓİÙ\Ø\ÙJ
+NÂˆ™]\›ˆ[™›ÜË™š[™
+OYÕ˜[YJ	Û[™İXYÙIÊKÓİÙ\Ø\ÙJ
+Kœİ\ÕÚ]
+[™ÊJ_[™›ÜË™š[™
+OYÕ˜[YJ	Û[™İXYÙIÊKÓİÙ\Ø\ÙJ
+Kœİ\ÕÚ]
+	ÙIÊJ_[™›ÜË™š[™
+OYÕ˜[YJ	Û[™İXYÙIÊKÓİÙ\Ø\ÙJ
+Kœİ\ÕÚ]
+	Ù[‰ÊJ_[™›ÜÖÌNÂŸB™[˜İ[ÛˆØ\Ù[ØÛÙ\Ê[
+^ØÛÛœİÛÙ\Ï[™]ÈÙ]
+
+NÙ›ÜŠÛÛœİ][HÙˆ›ØÚÜÊ[	ÙÙ[ØÛÙIÊJ^ØÛÛœİ˜[YO[›Ü›X[^™JYÕ˜[YJ][K	İ˜[YS˜[YIÊJKœ™\XÙJÈÙË	×ÉÊK˜[YO[›Ü›X[^™JYÕ˜[YJ][K	İ˜[YIÊJKœ™\XÙJÈÙË	×ÉÊNÚYŠ˜[YJXÛÙ\Ë˜Y
+	Û˜[Y_	ØÛÙIßN‰İ˜[Y_X
+_\™]\›–Ë‹‹˜ÛÙ\×KœÛÜ
+
+_B™[˜İ[ÛˆØ\™Y™\™[˜Ù\Ê[
+^ØÛÛœİYÏV×NÙ›ÜŠÛÛœİ˜[YHÙˆYÕ˜[Y\Ê[	Ü™Y™\™[˜Ù\ÉÊJY›ÜŠÛÛœİ][HÙˆ˜[YKœÜ]
+×ÊËÊJ^ØÛÛœİ\ÏZ][KœÜ]
+	Ë	ÊNØÛÛœİYTİš[™Ê\Ë›[™İLÜ\ÖÌWNœ\ÖÌ_	ÉÊKš[J
+NÚYŠY
+ZYËœ\Ú
+Y
+_\™]\›–Ë‹‹›™]ÈÙ]
+YÊW_B˜ÛÛœİSTWĞST•ÑTĞÔ’TSÓIÑ°ïˆY\ÙH[]XÚHØ\›[™ÈYYİÙZ[ˆ\ğé›XÚ\ˆY[[™Üİ^›Ü‹‰ÎÂ™[˜İ[Ûˆ[\\ÓÙ™šXÚX[^
+[\
+^ØÛÛœİ\ØÜš\[ÛXÛX[•^
+İš[™Ê[\Ë™\ØÜš\[ÛŸ	ÉÊJNÜ™]\›ˆ›ÛÛX[Š\ØÜš\[Û‰‰™\ØÜš\[ÛˆOOQSTWĞST•ÑTĞÔ’TSÓŠ_›ÛÛX[ŠÛX[•^
+İš[™Ê[\Ëš[œİXİ[ÛŸ	ÉÊJJ_B™[˜İ[Ûˆ™Y™\œ™YØ\XY[™J[™›Ë[
+^ØÛÛœİXY[™O]YÕ˜[YJ[™›Ë	ÚXY[™IÊK]™[]YÕ˜[YJ[™›Ë	Ù]™[	ÊNÜ™]\›ˆ]™[	‰‹×ŠÎY[İßÜ˜[™Ù_™Y\œJWÊİØ\›š[™×ÊÙ›Ü—‹ÚK\İ
+XY[™JOÙ]™[šXY[™_]™[YÕ˜[YJ[	İ]IÊ_B™[˜İ[Ûˆ[šÙYØ\›š[™ÒY[YšY\Š\›IÉÊ^İ^ØÛÛœİ\œÙY[™]ÈT“
+İš[™Ê\›
+JK\Ï\\œÙYœ]˜[YKœÜ]
+	ËÉÊK™š[\Š›ÛÛX[ŠNÜ™]\›ˆ\Ëš[˜ÛY\Ê	İØ\›š[™ÜÉÊOÙXÛÙUT’PÛÛ\Û™[
+\Ë˜]
+LJ_	ÉÊN‰ÉßXØ]ÚÜ™]\›‰Éß_B™[˜İ[Ûˆ\œÙPØ\
+[Ûİ\˜ÙK\›]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙOIÙIËÙ™šXÚX[\™XS˜[Y\Ê^ÂˆÛÛœİİ]\Ï]YÕ˜[YJ[	Üİ]\ÉÊK\ÙÕ\O]YÕ˜[YJ[	Û\ÙÕ\IÊNÚYŠİ]\É‰œİ]\ËÓİÙ\Ø\ÙJ
+HOOIØXİX[	Ê\™]\›ˆ[ÚYŠ\ÙÕ\I‰–ÉØØ[˜Ù[	Ë	Ù\œ›Ü‰×Kš[˜ÛY\Ê\ÙÕ\KÓİÙ\Ø\ÙJ
+JJ\™]\›ˆ[ÂˆÛÛœİ[™›ÏX™\İ[™›Ê[[™İXYÙJK^\™\Ï\ØY™Q]JYÕ˜[YJ[™›Ë	Ù^\™\ÉÊ_YÕ˜[YJ[	Ù^\™\ÉÊJNÚYŠ^\™\É‰›™]È]J^\™\ÊK™Ù][YJ
+O]K››İÊ
+J\™]\›ˆ[ÂˆYŠ[ØØ[X]Ú
+[™›Ë]Û‹˜[YK™YÚ[Û‹\İšXİÙ™šXÚX[\™XS˜[Y\ÊJ\™]\›ˆ[ÂˆÛÛœİXY[™O\™Y™\œ™YØ\XY[™J[™›Ë[
+NÚYŠZXY[™J\™]\›ˆ[ÂˆÛÛœİÙ]™\š]O]YÕ˜[YJ[™›Ë	ÜÙ]™\š]IÊK\ØÜš\[ÛXÛX[•^
+YÕ˜[YJ[™›Ë	Ù\ØÜš\[Û‰Ê_YÕ˜[YJ[	Ù\ØÜš\[Û‰Ê_YÕ˜[YJ[	Üİ[[X\IÊJK[œİXİ[ÛXÛX[•^
+YÕ˜[YJ[™›Ë	Ú[œİXİ[Û‰ÊJK\™XPÛÙ\ÏXØ\Ù[ØÛÙ\Ê[™›ÊK™Y™\™[˜Ù\ÏVË‹‹›™]ÈÙ]
+Ë‹‹˜Ø\™Y™\™[˜Ù\Ê[
+K[šÙYØ\›š[™ÒY[YšY\Š\›
+WK™š[\Š›ÛÛX[ŠJWKY\ÜØYÙS[™İXYÙO]YÕ˜[YJ[™›Ë	Û[™İXYÙIÊNÂˆ™]\›ÚYYÕ˜[YJ[	ÚY[YšY\‰Ê_YÕ˜[YJ[	ÙİZY	Ê_\›XY[™KXY[™K\ØÜš\[Û™\ØÜš\[ÛŸSTWĞST•ÑTĞÔ’TSÓ‹[œİXİ[Ûš[œİXİ[ÛŸ[™Yš[™Y[™İXYÙN›Y\ÜØYÙS[™İXYÙ_[™Yš[™Y]™[˜]Ø\™[™\ÜÓ]™[
+[™›ËÙ]™\š]JKÙ]™\š]NœÙ]™\š]_[™Yš[™Y]™[YÕ˜[YJ[™›Ë	Ù]™[	Ê_[™Yš[™YÛİ\˜ÙNYÕ˜[YJ[™›Ë	ÜÙ[™\“˜[YIÊ_Ûİ\˜ÙK\™XNYÕ˜[Y\Ê[™›Ë	Ø\™XQ\ØÉÊKš›Ú[Š	Ë	Ê_[™Yš[™Y\™XPÛÙ\Î˜\™XPÛÙ\Ë›[™İØ\™XPÛÙ\Î[™Yš[™Y™Y™\™[˜Ù\Îœ™Y™\™[˜Ù\Ë›[™İÜ™Y™\™[˜Ù\Î[™Yš[™YY™™Xİ]™NœØY™Q]JYÕ˜[YJ[™›Ë	ÙY™™Xİ]™IÊJKÛœÙ]œØY™Q]JYÕ˜[YJ[™›Ë	ÛÛœÙ]	ÊJK^\™\Ë\]Y]œØY™Q]JYÕ˜[YJ[	ÜÙ[	Ê_YÕ˜[YJ[	İ\]Y	ÊJK\›YÕ˜[YJ[™›Ë	İÙX‰Ê_\›[™Yš[™YNÂŸB™[˜İ[Ûˆ[šÓØš™XİÊ›ØÚÊ^ØÛÛœİİ]V×NÙ›ÜŠÛÛœİHÙˆİš[™Ê›ØÚÊK›X]Ú[
+Ï
+ÎŠÎ—ÊÊNŠOÛ[š×Š×—JŠWÏ×Ê‹ÙÚJJ^ØÛÛœİ]œÏ^ßNÙ›ÜŠÛÛœİHÙˆVÌWK›X]Ú[
+Ê×Î‹WJÊOVÈ‰×J×ˆ‰×JŠVÈ‰×KÙÊJX]œÖØVÌWKÓİÙ\Ø\ÙJ
+WOYXÛÙV[
+VÌ—JNÚYŠ]œËš™YŠ[İ]œ\Ú
+]œÊ_\™]\›ˆİ]B™[˜İ[ÛˆØ\[šÊ›ØÚË˜\ÙOIÉÊ^ÂˆÛÛœİ[šÜÏ[[šÓØš™XİÊ›ØÚÊKÛÛ[Ü˜ÏX]•˜[Y\Ê›ØÚË	ØÛÛ[	Ë	ÜÜ˜ÉÊVÌK˜]Ï[[šÜË™š[™
+O”İš[™Ê\_	ÉÊKÓİÙ\Ø\ÙJ
+Kš[˜ÛY\Ê	ØØ\
+Ş[	ÊJOËš™YŸ[šÜË™š[™
+O‹×Ø\Wİ—
+×İØ\›š[™Ü×ËÚK\İ
+š™YŸ	ÉÊJOËš™YŸ[šÜË™š[™
+O‹ØØ\[
+Î‰ÊKÚK\İ
+š™YŸ	ÉÊJOËš™YŸÛÛ[Ü˜ß[šÜË™š[™
+O”İš[™Êœ™[	ÉÊKÓİÙ\Ø\ÙJ
+OOOIØ[\›˜]IÉ‰‹×šÏÎ‹ÚK\İ
+š™YŸ	ÉÊJOËš™YŸ[šÜË™š[™
+O‹×šÏÎ‹ÚK\İ
+š™YŸ	ÉÊJOËš™YŸYÕ˜[Y\Ê›ØÚË	Û[šÉÊK™š[™
+O‹×šÏÎ‹ÚK\İ
+
+JNÂˆYŠ\˜]Ê\™]\›‰ÉÎİ^Ü™]\›ˆ™]ÈT“
+˜]Ë˜\Ù_[™Yš[™Y
+KÔİš[™Ê
+_XØ]ÚÜ™]\›ˆ˜]ßBŸB™[˜İ[Ûˆ[X™YYØ\
+›ØÚÊ^ÂˆÛÛœİXÛÙYYXÛÙV[
+›ØÚÊNØÛÛœİİ\YXÛÙYœÙX\˜Ú
+Ï
+Î—ÊÎŠOØ[\‹ÚJNÚYŠİ\
+\™]\›‰ÉÎÜ™]\›ˆXÛÙYœÛXÙJİ\
+NÂŸB˜\Ş[˜È[˜İ[Ûˆ™]Ú^
+\›XY\œÏ^ßJ^ØÛÛœİX]ØZ]™]Ú
+\›ÚXY\œÎÉÕ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸH
+
+ÚÎ‹ËÙÚ]X‹˜ÛÛKÓY][ÓX\[šKÓRQ
+X‹‹šXY\œßK™Y\™Xİ‰Ù›ÛİÉßJNÚYŠ\‹›ÚÊ]›İÈ™]È\œ›ÜŠ	İ\›H	Ü‹œİ]\ßX
+NÜ™]\›ˆ‹^
+
+_B˜\Ş[˜È[˜İ[Ûˆ™]ÚœÛÛŠ\›XY\œÏ^ßJ^ØÛÛœİX]ØZ]™]Ú
+\›ÚXY\œÎÉÕ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸH
+
+ÚÎ‹ËÙÚ]X‹˜ÛÛKÓY][ÓX\[šKÓRQ
+X	ĞXØÙ\	Î‰Ø\XØ][Û‹ÚœÛÛ‰Ë‹‹šXY\œßK™Y\™Xİ‰Ù›ÛİÉßJNÚYŠ\‹›ÚÊ]›İÈ™]È\œ›ÜŠ	İ\›H	Ü‹œİ]\ßX
+NÜ™]\›ˆ‹šœÛÛŠ
+_B™[˜İ[ÛˆY][Ø[\›Uš\ĞÛİ[PÛÙJÛİ[PÛÙJ^Ü™]\›ˆİš[™ÊÛİ[PÛÙ_	ÉÊKÕ\\Ø\ÙJ
+OOOIÑĞ‰ÏÉÕRÉÎ”İš[™ÊÛİ[PÛÙ_	ÉÊKÕ\\Ø\ÙJ
+_B™[˜İ[ÛˆY][Ø[\›P›ŞÛÛZ[œÊ˜‹]ÛŠ^ØÛÛœİÙ\İ[[X™\Š˜Ë–ÌOË–ÌJKÛİ][[X™\Š˜Ë–ÌOË–ÌWJKX\İ[[X™\Š˜Ë–ÌWOË–ÌJK›Ü[[X™\Š˜Ë–ÌWOË–ÌWJNÜ™]\›–İÙ\İÛİ]X\İ›ÜK™]™\J[X™\‹š\Ñš[š]JI‰›Û]Ù\İ	‰›ÛYX\İ	‰›]\Ûİ]	‰›][›ÜB™[˜İ[ÛˆY][Ø[\›P›Ş\™XJ˜Š^ØÛÛœİÙ\İ[[X™\Š˜Ë–ÌOË–ÌJKÛİ][[X™\Š˜Ë–ÌOË–ÌWJKX\İ[[X™\Š˜Ë–ÌWOË–ÌJK›Ü[[X™\Š˜Ë–ÌWOË–ÌWJNÜ™]\›–İÙ\İÛİ]X\İ›ÜK™]™\J[X™\‹š\Ñš[š]JOÓX]›X^
+X\İ]Ù\İ
+J“X]›X^
+›Ü\Ûİ]
+N“[X™\‹”ÔÒUU‘WÒS‘’S’U_B™[˜İ[ÛˆY][Ø[\›P\™XS˜[YTØÛÜ™J\™XK˜[YOIÉË™YÚ[ÛIÉË\İšXİIÉÊ^ØÛÛœİX™[XÛX[•^
+İš[™Ê\™XOË›˜[Y_	ÉÊJNÚYŠ[X™[
+\™]\›ˆØÛÛœİ›Ü›X[^™YX™[[›Ü›X[^™JX™[
+K˜[Y\ÏVÖÙ\İšXİLŒKÜ™YÚ[Û‹KÛ˜[YKWWNÛ]ØÛÜ™OLÙ›ÜŠÛÛœİİ˜[YKÙZYÚ[Ùˆ˜[Y\Ê^ØÛÛœİ›Ü›X[^™Y˜[YO[›Ü›X[^™J˜[YJNÚYŠ[›Ü›X[^™Y˜[YJXÛÛ[YNÚYŠ›Ü›X[^™YX™[OO[›Ü›X[^™Y˜[YJ\ØÛÜ™OSX]›X^
+ØÛÜ™KÙZYÚ
+ÌŒ
+NÙ[ÙHYŠ\™XQ\ØÜš\[Û“X]Ú\ÊX™[\›\Ñ›ÜŠ˜[YJJJ\ØÛÜ™OSX]›X^
+ØÛÜ™KÙZYÚ
+_\™]\›ˆØÛÜ™_B™[˜İ[ÛˆY][Ø[\›P™\İ\™XQ›Ü’^˜\™
+Ø[™Y]\Ë˜[YK™YÚ[Û‹\İšXİ
+^Ü™]\›–Ë‹‹˜Ø[™Y]\×KœÛÜ
+
+KŠOOØÛÛœİØÛÜ™QY™[Y][Ø[\›P\™XS˜[YTØÛÜ™J‹˜[YK™YÚ[Û‹\İšXİ
+K[Y][Ø[\›P\™XS˜[YTØÛÜ™JK˜[YK™YÚ[Û‹\İšXİ
+NÚYŠØÛÜ™QY™Š\™]\›ˆØÛÜ™QY™ØÛÛœİ\™XQY™[Y][Ø[\›P›Ş\™XJOË˜˜ŠK[Y][Ø[\›P›Ş\™XJË˜˜ŠNÚYŠ\™XQY™Š\™]\›ˆ\™XQY™Ü™]\›ˆİš[™ÊOË›˜[Y_	ÉÊK›ØØ[PÛÛ\\™Jİš[™ÊË›˜[Y_	ÉÊK	Ù[‰Ê_JVÌ_B˜\Ş[˜È[˜İ[ÛˆY][Ø[\›TÚ[ÛÛ^
+Ûİ[PÛÙK]Û‹˜[YOIÉË™YÚ[ÛIÉË\İšXİIÉÊ^ÂˆÛÛœİÛÙO[Y][Ø[\›Uš\ĞÛİ[PÛÙJÛİ[PÛÙJK™Y™\™[˜ÙQ]O[™]È]J
+KÒTÓÔİš[™Ê
+K\›[™]ÈT“
+İ™X[KXY™™\œËÛ]™KÚ^˜\™ËÉÙ[˜ÛÙUT’PÛÛ\Û™[
+ÛÙJ_XQUSĞST“WÕ’TÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü™\Ù]	Ë	İ[Y[[™IÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü™Y™\™[˜ÙQ]IË™Y™\™[˜ÙQ]JNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û[™İXYÙIË	Ù[‰ÊNÂˆÛÛœİ^[ØYX]ØZ]™]ÚœÛÛŠ\›Ôİš[™Ê
+JK[\™X\ÏP\œ˜^Kš\Ğ\œ˜^J^[ØYË˜\™X\ÊOÜ^[ØY˜\™X\Î–×K[^˜\™ÏP\œ˜^Kš\Ğ\œ˜^J^[ØYËš^˜\™ÊOÜ^[ØYš^˜\™Î–×K^˜\™™X]\™\Ï[™]ÈÙ]
+[^˜\™Ë›X\
+][OO”İš[™Ê][OË™™X]\™RY	ÉÊJK™š[\Š›ÛÛX[ŠJKQ™X]\™O[™]ÈX\
+
+NÂˆ›ÜŠÛÛœİ\™XHÙˆ[\™X\Ê^ØÛÛœİ™X]\™RYTİš[™Ê\™XOË™™X]\™RY	ÉÊNÚYŠY™X]\™RYZ^˜\™™X]\™\Ëš\Ê™X]\™RY
+_[Y][Ø[\›P›ŞÛÛZ[œÊ\™XOË˜˜‹]ÛŠJXÛÛ[YNØÛÛœİİ\œ™[XQ™X]\™K™Ù]
+™X]\™RY
+NÚYŠXİ\œ™[Y][Ø[\›P›Ş\™XJ\™XOË˜˜ŠOY][Ø[\›P›Ş\™XJİ\œ™[Ë˜˜ŠJXQ™X]\™KœÙ]
+™X]\™RY\™XJ_BˆÛÛœİÚ[\™X\ÏVË‹‹˜Q™X]\™K˜[Y\Ê
+WK^˜\™Ü›İ\Ï[™]ÈX\
+
+NÙ›ÜŠÛÛœİ][HÙˆ[^˜\™Ê^ØÛÛœİ™X]\™RYTİš[™Ê][OË™™X]\™RY	ÉÊK\RY[[X™\Š][OË\RY
+K]™[Y[[X™\Š][OË›]™[Y
+NÚYŠXQ™X]\™Kš\Ê™X]\™RY
+_\RYOO][™Yš[™Y]™[YOO][™Yš[™Y
+XÛÛ[YNØÛÛœİÙ^OX	İ\RYN‰Û]™[YXÜ›İ\Z^˜\™Ü›İ\Ë™Ù]
+Ù^J_×NÚYŠYÜ›İ\œÛÛYJ›İÏO”İš[™Ê›İË™™X]\™RY
+OOOY™X]\™RY
+JYÜ›İ\œ\Ú
+Ù™X]\™RY\RY]™[Y\™XN˜Q™X]\™K™Ù]
+™X]\™RY
+_JNÚ^˜\™Ü›İ\ËœÙ]
+Ù^KÜ›İ\
+_BˆÛÛœİÙ[XİYV×KÙY[‘™X]\™\Ï[™]ÈÙ]
+
+NÙ›ÜŠÛÛœİÜ›İ\Ùˆ^˜\™Ü›İ\Ë˜[Y\Ê
+J^ØÛÛœİ™\İ\™XO[Y][Ø[\›P™\İ\™XQ›Ü’^˜\™
+Ü›İ\›X\
+›İÏOœ›İË˜\™XJK˜[YK™YÚ[Û‹\İšXİ
+NÚYŠX™\İ\™XJXÛÛ[YNØÛÛœİ™X]\™RYTİš[™Ê™\İ\™XK™™X]\™RY
+K›İÏYÜ›İ\™š[™
+][OO”İš[™Ê][K™™X]\™RY
+OOOY™X]\™RY
+NÚYŠ›İÊ\Ù[XİYœ\Ú
+Ù™X]\™RY›İË\RYœ›İË\RY]™[Yœ›İË›]™[Y\™XN˜™\İ\™X_JNÜÙY[‘™X]\™\Ë˜Y
+™X]\™RY
+_BˆÛÛœİ\™X\ÏVË‹‹œÙY[‘™X]\™\×K›X\
+™X]\™RYO˜Q™X]\™K™Ù]
+™X]\™RY
+JK™š[\Š›ÛÛX[ŠKœÛÜ
+
+KŠOOØÛÛœİØÛÜ™QY™[Y][Ø[\›P\™XS˜[YTØÛÜ™J‹˜[YK™YÚ[Û‹\İšXİ
+K[Y][Ø[\›P\™XS˜[YTØÛÜ™JK˜[YK™YÚ[Û‹\İšXİ
+NÜ™]\›ˆØÛÜ™QY™ŸY][Ø[\›P›Ş\™XJOË˜˜ŠK[Y][Ø[\›P›Ş\™XJË˜˜Š_JK^˜\™ÏV×KÙY[[™]ÈÙ]
+
+NÙ›ÜŠÛÛœİ][HÙˆÙ[XİY
+^ØÛÛœİÙ^OX	Ú][K™™X]\™RYN‰Ú][K\RYN‰Ú][K›]™[YXÚYŠÙY[‹š\ÊÙ^JJXÛÛ[YNÜÙY[‹˜Y
+Ù^JNÚ^˜\™Ëœ\Ú
+Ù™X]\™RYš][K™™X]\™RY\RYš][K\RY]™[Yš][K›]™[YJ_BˆÛÛœİ^X[X]Ú\ÏX\™X\Ë™š[\Š\™XOO›Y][Ø[\›P\™XS˜[YTØÛÜ™J\™XK˜[YK™YÚ[Û‹\İšXİ
+OŒ
+K›[™İÜ™]\›ØÛÙK™Y™\™[˜ÙQ]K[™Ú[\›Ôİš[™Ê
+K™\ÛÛ™Y˜\™X\Ë›[™İŒ\™X\Ë^˜\™Îš^˜\™ËœÛXÙJLŠKØ[™Y]P\™X\ÎœÚ[\™X\Ë›[™İÙ[Xİ[Û^X[X]Ú\ÏÉÛØØ[[˜[YK\\ËX˜›Ş	Î‰ÜÛX[\İX˜›Ş\\‹Z^˜\™Y˜[˜XÚÉßNÂŸB™[˜İ[ÛˆY][Ø[\›S[™İXYÙSÜ™\Š[™İXYÙK˜[YJ^ØÛÛœİ™\]Y\İYTİš[™Ê[™İXYÙ_	ÙIÊKÓİÙ\Ø\ÙJ
+K˜\ÙO\™\]Y\İYœÜ]
+	ËIÊVÌKÙ^\Ï]˜[YI‰\[Ùˆ˜[YOOOIÛØš™Xİ	É‰ˆP\œ˜^Kš\Ğ\œ˜^J˜[YJOÓØš™XİšÙ^\Ê˜[YJN–×NÜ™]\›–Ë‹‹›™]ÈÙ]
+Ü™\]Y\İY˜\ÙK	ÙIË	Ù[‰Ë‹‹šÙ^\×K™š[\Š›ÛÛX[ŠJW_B™[˜İ[ÛˆY][Ø[\›SØØ[^™Y
+˜[YK[™İXYÙJ^ÚYŠ\[Ùˆ˜[YOOOIÜİš[™ÉÊ\™]\›İ^˜ÛX[•^
+˜[YJK[™İXYÙN[™Yš[™YNÚYŠ]˜[Y_\[Ùˆ˜[YHOOIÛØš™Xİ	Ê\™]\›İ^‰ÉË[™İXYÙN[™Yš[™YNÙ›ÜŠÛÛœİÙ^HÙˆY][Ø[\›S[™İXYÙSÜ™\Š[™İXYÙK˜[YJJ^ØÛÛœİ\™Xİ]˜[YVÚÙ^WOÏÓØš™Xİ™[šY\Ê˜[YJK™š[™
+
+ØØ[™Y]WJOO˜Ø[™Y]KÓİÙ\Ø\ÙJ
+OOOZÙ^_Ø[™Y]KÓİÙ\Ø\ÙJ
+Kœİ\ÕÚ]
+	ÚÙ^_KX
+JOË–ÌWK^XÛX[•^
+İš[™Ê\™Xİ	ÉÊJNÚYŠ^
+\™]\›İ^[™İXYÙNšÙ^__\™]\›İ^‰ÉË[™İXYÙN[™Yš[™Y_B™[˜İ[ÛˆY][Ø[\›Uš\Ó]™[
+]™[Y
+^Ü™]\›ŠÌN‰Ü™Y	Ë‰ÛÜ˜[™ÙIËÎ‰ŞY[İÉßJVÓ[X™\Š]™[Y
+W_	İ[šÛ›İÛ‰ßB™[˜İ[ÛˆY][Ø[\›Uš\ÔÙ]™\š]J]™[Y
+^Ü™]\›ŠÌN‰Ñ^™[YIË‰ÔÙ]™\™IËÎ‰Ó[Ù\˜]IßJVÓ[X™\Š]™[Y
+W_[™Yš[™YB™[˜İ[ÛˆY][Ø[\›Q\™Xİ[\
+Ø\›š[™Ë\™XK[™İXYÙJ^ÂˆÛÛœİ^\™\Ï\ØY™Q]JØ\›š[™ÏË™[™]JNÚYŠ^\™\É‰‘]Kœ\œÙJ^\™\ÊO]K››İÊ
+J\™]\›ˆ[ØÛÛœİ\ØÜš\[Û[Y][Ø[\›SØØ[^™Y
+Ø\›š[™ÏË™\ØÜš\[Û‹[™İXYÙJKXY[™O[Y][Ø[\›SØØ[^™Y
+Ø\›š[™ÏËšXY[™K\ØÜš\[Û‹›[™İXYÙ_[™İXYÙJK[œİXİ[Û[Y][Ø[\›SØØ[^™Y
+Ø\›š[™ÏËš[œİXİ[Û‹\ØÜš\[Û‹›[™İXYÙ_[™İXYÙJKYTİš[™ÊØ\›š[™ÏËšY	İØ\›š[™ÏË™™X]\™RY\™XOË™™X]\™RY	ÉßN‰İØ\›š[™ÏË\RY	ÉßN‰İØ\›š[™ÏËœİ\]_	ÉßX
+K™X]\™RYTİš[™ÊØ\›š[™ÏË™™X]\™RY\™XOË™™X]\™RY	ÉÊK\™XS˜[YOXÛX[•^
+İš[™ÊØ\›š[™ÏË›˜[Y_\™XOË›˜[Y_	ÉÊJNÚYŠZXY[™K^	‰ˆY\ØÜš\[Û‹^
+\™]\›ˆ[Âˆ™]\›ÚYXY[™NšXY[™K^	Ğ[]XÚHÙ]\Ø\›[™ÉË\ØÜš\[Û™\ØÜš\[Û‹^STWĞST•ÑTĞÔ’TSÓ‹[œİXİ[Ûš[œİXİ[Û‹^[™Yš[™Y[™İXYÙN™\ØÜš\[Û‹›[™İXYÙ_XY[™K›[™İXYÙ_[™Yš[™Y]™[›Y][Ø[\›Uš\Ó]™[
+Ø\›š[™ÏË›]™[Y
+KÙ]™\š]N›Y][Ø[\›Uš\ÔÙ]™\š]JØ\›š[™ÏË›]™[Y
+K]™[šXY[™K^[™Yš[™YÛİ\˜ÙN˜ÛX[•^
+İš[™ÊØ\›š[™ÏË›ÜšYÚ[˜]ÜË›˜[Y_	ÓY][Ğ[\›HÈ˜][Û˜[HÙ]\˜™Z0íœ™IÊJK\™XN˜\™XS˜[Y_[™Yš[™Y\™XPÛÙ\Î™™X]\™RYÖØY][Ø[\›WÙ™X]\™N‰Û›Ü›X[^™J™X]\™RY
+_XN[™Yš[™Y™Y™\™[˜Ù\Î–ÚYKY™™Xİ]™NœØY™Q]JØ\›š[™ÏËœİ\]JKÛœÙ]œØY™Q]JØ\›š[™ÏËœİ\]JK^\™\Ë\]Y]œØY™Q]JØ\›š[™ÏËœÙ[
+K\›”İš[™ÊØ\›š[™ÏË›ÜšYÚ[˜]ÜË\›	ÚÎ‹ËİİİË›Y][Ø[\›K›Ü™ËÉÊ_NÂŸB˜\Ş[˜È[˜İ[ÛˆY][Ø[\›TÚ[[\ÊÛÛ^[™İXYÙJ^ÂˆYŠXÛÛ^Ë˜\™X\ÏË›[™İXÛÛ^Ëš^˜\™ÏË›[™İ
+\™]\›–×NØÛÛœİ\™XPQ™X]\™O[™]ÈX\
+ÛÛ^˜\™X\Ë›X\
+\™XOO–Ôİš[™Ê\™XK™™X]\™RY
+K\™XWJJK™\]Y\İÏXÛÛ^š^˜\™Ë›X\
+\Ş[˜È^˜\™OØÛÛœİ\›[™]ÈT“
+İ™X[KXY™™\œËÛ]™KÙ™X]\™\ËÉÙ[˜ÛÙUT’PÛÛ\Û™[
+^˜\™™™X]\™RY
+_KİØ\›š[™ÜØQUSĞST“WÕ’TÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	İ\RY	Ëİš[™Ê^˜\™\RY
+JNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û]™[Y	Ëİš[™Ê^˜\™›]™[Y
+JNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û[™İXYÙIË	Ù[‰ÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü™Y™\™[˜ÙQ]IËÛÛ^œ™Y™\™[˜ÙQ]JNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü™\Ù]	Ë	İ[Y[[™IÊNØÛÛœİ^[ØYX]ØZ]™]ÚœÛÛŠ\›Ôİš[™Ê
+JNÜ™]\›Š\œ˜^Kš\Ğ\œ˜^J^[ØYËØ\›š[™ÜÊOÜ^[ØYØ\›š[™ÜÎ–×JK›X\
+Ø\›š[™ÏO›Y][Ø[\›Q\™Xİ[\
+Ø\›š[™Ë\™XPQ™X]\™K™Ù]
+^˜\™™™X]\™RY
+K[™İXYÙJJK™š[\Š›ÛÛX[Š_JKÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+™\]Y\İÊNÜ™]\›ˆY\P[\ÊÙ]Y™›]X\
+™\İ[Oœ™\İ[œİ]\ÏOOIÙ[š[Y	ÏÜ™\İ[˜[YN–×JJNÂŸB™[˜İ[Ûˆ[\\™XTÚYÛ˜]\™J[\
+^ÚYŠ\œ˜^Kš\Ğ\œ˜^J[\Ë˜\™XPÛÙ\ÊI‰˜[\˜\™XPÛÙ\Ë›[™İ
+\™]\›ˆ[\˜\™XPÛÙ\Ë›X\
+›Ü›X[^™JKœÛÜ
+
+Kš›Ú[Š	Ë	ÊNÜ™]\›ˆİš[™Ê[\Ë˜\™X_	ÉÊKœÜ]
+	Ë	ÊK›X\
+›Ü›X[^™JK™š[\Š›ÛÛX[ŠKœÛÜ
+
+Kš›Ú[Š	Ë	Ê_B™[˜İ[Ûˆ[\[YTÚYÛ˜]\™J˜[YJ^ØÛÛœİ]O\ØY™Q]J˜[YJNÜ™]\›ˆ]OÙ]KœÛXÙJMŠN‰ÉßB™[˜İ[Ûˆ[\Ù[X[XÒÙ^J[\
+^Ü™]\›–ÉÜÙ[X[XÉË›Ü›X[^™J[\Ë™]™[[\ËšXY[™JK[\\™XTÚYÛ˜]\™J[\
+K[\[YTÚYÛ˜]\™J[\Ë›ÛœÙ][\Ë™Y™™Xİ]™JK[\[YTÚYÛ˜]\™J[\Ë™^\™\ÊWKš›Ú[Š	ß	Ê_B™[˜İ[Ûˆ[\]X[]J[\
+^ØÛÛœİ\]YQ]Kœ\œÙJİš[™Ê[\Ë\]Y][\Ë™Y™™Xİ]™_	ÉÊJNÜ™]\›Š[X™\‹š\Ñš[š]J\]Y
+Oİ\]YÌYLLŒ
+JÔİš[™Ê[\Ë™\ØÜš\[ÛŸ	ÉÊK›[™İ
+Ôİš[™Ê[\Ëš[œİXİ[ÛŸ	ÉÊK›[™İ
+ŒŠÊ[\Ë˜\™XPÛÙ\ÏË›[™İ
+JŒŒB™[˜İ[ÛˆY\P[\Ê[\Ê^ÂˆÛÛœİ›İÜÏV×KÙ^UÒ[™^[™]ÈX\
+
+NÙ›ÜŠÛÛœİ[\Ùˆ[\Ê^ÚYŠX[\
+XÛÛ[YNØÛÛœİÙ^\ÏVØ[\šYØY‰Ø[\šYX‰ÉË‹‹Š[\œ™Y™\™[˜Ù\ß×JK›X\
+YO˜Y‰ÚYX
+K[\Ù[X[XÒÙ^J[\
+WK™š[\Š›ÛÛX[ŠK^\İ[™ÏZÙ^\Ë›X\
+Ù^OOšÙ^UÒ[™^™Ù]
+Ù^JJK™š[™
+[™^Oš[™^OO][™Yš[™Y
+NÚYŠ^\İ[™ÏOO][™Yš[™Y
+^ØÛÛœİ[™^\›İÜË›[™İÜ›İÜËœ\Ú
+[\
+NÙ›ÜŠÛÛœİÙ^HÙˆÙ^\ÊZÙ^UÒ[™^œÙ]
+Ù^K[™^
+_Y[Ù^ÚYŠ[\]X[]J[\
+O˜[\]X[]J›İÜÖÙ^\İ[™×JJ\›İÜÖÙ^\İ[™×OX[\Ù›ÜŠÛÛœİÙ^HÙˆÙ^\ÊZÙ^UÒ[™^œÙ]
+Ù^K^\İ[™Ê__BˆÛÛœİÜ™\^Ü\œN™YŒËÜ˜[™ÙNŒ‹Y[İÎŒK[šÛ›İÛŒNÜ™]\›ˆ›İÜËœÛÜ
+
+KŠOOŠÜ™\–Ø‹›]™[OÏÌ
+KJÜ™\–ØK›]™[OÏÌ
+_İš[™ÊK›ÛœÙ]K™Y™™Xİ]™_	ÉÊK›ØØ[PÛÛ\\™Jİš[™Ê‹›ÛœÙ]‹™Y™™Xİ]™_	ÉÊJJNÂŸB™[˜İ[Ûˆ™X]\™T›Ü
+›Ü\Y\Ë‹‹šÙ^\Ê^ÚYŠ\›Ü\Y\ß\[Ùˆ›Ü\Y\ÈOOIÛØš™Xİ	Ê\™]\›ˆ[™Yš[™YØÛÛœİX\[™]ÈX\
+Øš™Xİ™[šY\Ê›Ü\Y\ÊK›X\
+
+ÚË—JOO–ÚËÓİÙ\Ø\ÙJ
+K—JJNÙ›ÜŠÛÛœİÈÙˆÙ^\Ê^ØÛÛœİ[X\™Ù]
+ËÓİÙ\Ø\ÙJ
+JNÚYŠˆOO][™Yš[™Y	‰ˆOO[[	‰ˆOOIÉÊ\™]\›ˆŸ\™]\›ˆ[™Yš[™YB™[˜İ[ÛˆÙÛÛÜ“]™[
+˜[YJ^ØÛÛœİ™ØTİš[™Ê˜[Y_	ÉÊK›X]Ú
+×
+ÊÎ——
+ÊOËÙÊOËœÛXÙJÊK›X\
+[X™\ŠNÚYŠ\™ØŸ™Ø‹›[™İÊ\™]\›ˆ[™Yš[™YØÛÛœİÜ‹Ë—O\™ØÚYŠ
+ŒLŒ	‰˜™Ê_
+ŒMÌ	‰˜ŒLÌ	‰™ÏNL
+J\™]\›‰Ü\œIÎÚYŠŒNL	‰™ÏLL
+\™]\›‰Ü™Y	ÎÚYŠŒNL	‰™ÏLLL	‰™ÏŒŒ
+\™]\›‰ÛÜ˜[™ÙIÎÚYŠŒMÌ	‰™ÏLMÌ
+\™]\›‰ŞY[İÉÎÜ™]\›ˆ[™Yš[™YB™[˜İ[ÛˆÙ™X]\™P[\
+™X]\™J^ÂˆÛÛœİY™X]\™OËœ›Ü\Y\ÏÏŞßK^\™\Ï\ØY™Q]J™X]\™T›Ü
+	ÑVT‘TÉÊJNÚYŠ^\™\É‰›™]È]J^\™\ÊK™Ù][YJ
+O]K››İÊ
+J\™]\›ˆ[ÂˆÛÛœİİ]\ÏTİš[™Ê™X]\™T›Ü
+	ÔÕUTÉÊ_	ĞXİX[	ÊKÓİÙ\Ø\ÙJ
+K\ÙÕ\OTİš[™Ê™X]\™T›Ü
+	ÓTÑÕTIÊ_	Ğ[\	ÊKÓİÙ\Ø\ÙJ
+NÚYŠİ]\ÈOOIØXİX[	ßÉØØ[˜Ù[	Ë	Ù\œ›Ü‰×Kš[˜ÛY\Ê\ÙÕ\JJ\™]\›ˆ[ÂˆÛÛœİXY[™OTİš[™Ê™X]\™T›Ü
+	ÒPQS‘IË	ÑU‘S•	Ê_	Ğ[]XÚHÙ]\Ø\›[™ÉÊKÙ]™\š]OTİš[™Ê™X]\™T›Ü
+	ÔÑU‘T’UIÊ_	ÉÊNÂˆ™]\›ÚY”İš[™Ê™X]\™T›Ü
+	ÒQS•Q’QT‰Ê_™X]\™OËšYXY[™JKXY[™K\ØÜš\[Û˜ÛX[•^
+İš[™Ê™X]\™T›Ü
+	ÑTĞÔ’TSÓ‰Ê_	Ñ°ïˆY\ÙH[]XÚHØ\›[™ÈYYİÙZ[ˆ\ğé›XÚ\ˆY[[™Üİ^›Ü‹‰ÊJK[œİXİ[Û˜ÛX[•^
+İš[™Ê™X]\™T›Ü
+	ÒS”Õ•PÕSÓ‰Ê_	ÉÊJ_[™Yš[™Y]™[˜]Ø\™[™\ÜÓ]™[
+	ÉËÙ]™\š]KÙÛÛÜ“]™[
+™X]\™T›Ü
+	ÑP×ĞT‘PWĞÓÓÔ‰ÊJ_™X]\™T›Ü
+	ÕĞT““U‘S	Ë	ÕĞT“’S‘×ÓU‘S	Ë	ÓU‘S	ÊJKÙ]™\š]NœÙ]™\š]_[™Yš[™Y]™[”İš[™Ê™X]\™T›Ü
+	ÑU‘S•	Ê_	ÉÊ_[™Yš[™YÛİ\˜ÙN”İš[™Ê™X]\™T›Ü
+	ÔÑS‘T“SQIË	ĞÓÓ•PÕ	Ê_	Ñ]]ØÚ\ˆÙ]\™Y[œİ
+Ñ
+IÊK\™XN”İš[™Ê™X]\™T›Ü
+	ÓSQIË	ĞT‘PQTĞÉÊ_	ÉÊ_[™Yš[™YY™™Xİ]™NœØY™Q]J™X]\™T›Ü
+	ÑQ‘‘PÕU‘IË	ÔÑS•	ÊJKÛœÙ]œØY™Q]J™X]\™T›Ü
+	ÓÓ”ÑU	ÊJK^\™\Ë\›”İš[™Ê™X]\™T›Ü
+	ÕÑP‰Ê_	ÚÎ‹ËİİİË™Ù™KİØ\›[™Ù[‰Ê_NÂŸB˜\Ş[˜È[˜İ[ÛˆÙÙœÑœ›ÛJ˜\ÙK]ÛŠ^ÂˆÛÛœİ[OKŒKO[™]ÈT“
+˜\ÙJNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÜÙ\šXÙIË	ÕÑ”ÉÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	İ™\œÚ[Û‰Ë	Ì‹ŒŒ	ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ü™\]Y\İ	Ë	ÑÙ]™X]\™IÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	İ\S˜[YIË	ÙÙ•Ø\›[™Ù[—ÑÙ[YZ[™[‰ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ûİ]]›Ü›X]	Ë	Ø\XØ][Û‹ÚœÛÛ‰ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ĞÔ”ÉË	ĞÔ”Î	ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÜÜœÓ˜[YIË	ĞÔ”Î	ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ø˜›Ş	Ë	ÊÛ‹Y[JKÑš^Y
+J_K	Ê]Y[JKÑš^Y
+J_K	ÊÛŠÙ[JKÑš^Y
+J_K	Ê]
+Ù[JKÑš^Y
+J_KÔ”Î
+NÂˆÛÛœİ]OX]ØZ]™]ÚœÛÛŠKÔİš[™Ê
+JK™X]\™\ÏP\œ˜^Kš\Ğ\œ˜^J]OË™™X]\™\ÊOÙ]K™™X]\™\Î–×NÂˆÛÛœİ^XİY™X]\™\Ë™š[\ŠOœÚ[[‘Ù[ÛY]J]Û‹‹™Ù[ÛY]JJNÜ™]\›ˆY\P[\Ê
+^Xİ›[™İÙ^Xİ™™X]\™\Ë™š[\ŠOØÛÛœİYË˜˜›ŞÜ™]\›ˆ\œ˜^Kš\Ğ\œ˜^JŠI‰˜‹›[™İM	‰›ÛS[X™\Š–ÌJI‰›ÛS[X™\Š–Ì—JI‰›]S[X™\Š–ÌWJI‰›]S[X™\Š–Ì×J_JJK›X\
+Ù™X]\™P[\
+K™š[\Š›ÛÛX[ŠJNÂŸB˜\Ş[˜È[˜İ[ÛˆÙÙœĞ[\Ê]ÛŠ^Û]\İ\œ›ÜÙ›ÜŠÛÛœİ˜\ÙHÙ–ÑÑÕÑ”×Ô’SPT–KÑÕÑ”×ĞPÒÕTJ^İ^Ü™]\›Ø[\Î˜]ØZ]ÙÙœÑœ›ÛJ˜\ÙK]ÛŠK[™Ú[˜˜\Ù__XØ]Ú
+J^Û\İ\œ›ÜY__]›İÈ\İ\œ›ÜŸ™]È\œ›ÜŠ	ÑÑUÑ”ÈšXÚ\œ™ZXÚ˜\‰Ê_B™[˜İ[Ûˆ[TØÛÜ™J][K˜[YK™YÚ[Û‹\İšXİ
+^ØÛÛœİ^[›Ü›X[^™JÛX[•^
+][JJK\›\Ï]\›\Ñ›ÜŠ˜[YK\İšXİ™YÚ[ÛŠNÛ]ØÛÜ™OLÙ›ÜŠÛÛœİÙˆ\›\Ê^ÚYŠ^š[˜ÛY\Ê
+J\ØÛÜ™JÏ]OO[›Ü›X[^™J˜[YJOÌL_ZYŠYÕ˜[Y\Ê][K	ÜÛYÛÛ‰ÊK›[™İYÕ˜[Y\Ê][K	ØÚ\˜ÛIÊK›[™İ
+\ØÛÜ™JÏLŒØÛÛœİ\]Y\ØY™Q]JYÕ˜[YJ][K	İ\]Y	Ê_YÕ˜[YJ][K	ÜX›\ÚY	Ê_YÕ˜[YJ][K	ÜÙ[	ÊJNÚYŠ\]Y
+\ØÛÜ™JÏSX]›X^
+KJ]K››İÊ
+K[™]È]J\]Y
+K™Ù][YJ
+JKÎ
+NÜ™]\›ˆØÛÜ™_B˜\Ş[˜È[˜İ[ÛˆØ\™YY[\Ê™YY\›Ûİ\˜ÙK]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙOIÙIËX^Øİ[Y[ÏLÙ™šXÚX[\™XS˜[Y\Ê^ÂˆÛÛœİ[X]ØZ]™]Ú^
+™YY\›
+K˜]Ò][\ÏX›ØÚÜÊ[	Ù[IÊK›[™İØ›ØÚÜÊ[	Ù[IÊN˜›ØÚÜÊ[	Ú][IÊK][\Ï\˜]Ò][\Ë›X\
+
+][K[™^
+OOŠÚ][K[™^ØÛÜ™N™[TØÛÜ™J][K˜[YK™YÚ[Û‹\İšXİ
+K[šÎ˜Ø\[šÊ][K™YY\›
+K[X™YY™[X™YYØ\
+][J_JJKœÛÜ
+
+KŠOO˜‹œØÛÜ™KXKœØÛÜ™_Kš[™^X‹š[™^
+K[\ÏV×KØ[™Y]\ÏV×NÂˆ›ÜŠÛÛœİÙˆ][\Ê^ÂˆÛÛœİ\™Xİ[^™[X™YYš][K˜[˜XÚÏ\\œÙPØ\
+\™Xİ[Ûİ\˜ÙK›[šË]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙKÙ™šXÚX[\™XS˜[Y\ÊNÂˆËÈY][Ğ[\›KP]ÛKQZ[°éÙH[[[ˆ0éYšYÈ\ˆÙ[›[™ËÙXšY]\™ZYÛš\È[™ˆËÈğïYÚÙZ]ˆ\ˆZYÙ[XÚH[]XÚHY[[™ÜËH[™™\š[[œİ^İZ[BˆËÈ™\›[šİ[ˆĞTQÚİ[Y[ˆZ[ˆ\ÜÙ[™\ˆ[™^Z[˜YÈ\™ˆ[ˆĞTPXœYˆZ\‚ˆËÈšXÚ›Ü™Z]YÈ™Y[™[È™ZHZ[™[HXœY™™Z\ˆ›ZX\ˆ\ˆ[È˜[˜XÚË‚ˆYŠ›[šÉ‰Š^™[X™YYX[\\ÓÙ™šXÚX[^
+˜[˜XÚÊJJ^ÚYŠ\œ˜^Kš\Ğ\œ˜^JÙ™šXÚX[\™XS˜[Y\ÊI‰ˆY˜[˜XÚÊXÛÛ[YNØØ[™Y]\Ëœ\Ú
+Ë‹‹˜[˜XÚßJNØÛÛ[Y_BˆYŠ˜[˜XÚÊX[\Ëœ\Ú
+˜[˜XÚÊNÂˆBˆ›ÜŠ]OLÚOX]›Z[ŠØ[™Y]\Ë›[™İX^Øİ[Y[ÊNÚJÏMŠ^ØÛÛœİ˜]ÚXØ[™Y]\ËœÛXÙJKJÍŠNØÛÛœİ™\İ[ÏX]ØZ]›ÛZ\ÙK˜[Ù]Y
+˜]Ú›X\
+\Ş[˜ÈOØÛÛœİØ\[X]ØZ]™]Ú^
+›[šÊNÜ™]\›ˆ\œÙPØ\
+[X™YYØ\
+Ø\[
+_Ø\[Ûİ\˜ÙK›[šË]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙKÙ™šXÚX[\™XS˜[Y\Ê_JJNÙ›ÜŠ][™^LÚ[™^™\İ[Ë›[™İÚ[™^
+ÊÊ^ØÛÛœİ\™\İ[ÖÚ[™^NÚYŠ‹œİ]\ÏOOIÙ[š[Y	É‰œ‹˜[YJX[\Ëœ\Ú
+‹˜[YJNÙ[ÙHYŠ˜]ÚÚ[™^K™˜[˜XÚÊX[\Ëœ\Ú
+˜]ÚÚ[™^K™˜[˜XÚÊ__Bˆ™]\›ˆY\P[\Ê[\ÊNÂŸB˜\Ş[˜È[˜İ[ÛˆÙ[\Ê]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙJ^Âˆ^ØÛÛœİÙœÏX]ØZ]ÙÙœĞ[\Ê]ÛŠNÜ™]\›Ø[\ÎÙœË˜[\Ë›İšY\‰Ñ]]ØÚ\ˆÙ]\™Y[œİ
+Ñ
+IËÛİ™\˜YÙN‰Ñ]]ØÚ[™0­È[]XÚHÑUÑ”ËUØ\›[™Ù[ˆ]YˆÙ[YZ[™YX™[™IËÛİ\˜ÙTİ]\ÎÜİ˜]YŞN‰ÜÚ[™ÛKXØ[›ÛšXØ[\›İšY\‰Ëš[X\N‰ÑÑÑ”ÉË[™Ú[ÙœË™[™Ú[Y\XØ][Û‰ÒÙ[›[™ÈÛİÚYH\™ZYÛš\ËÙXšY][™ğïYÚÙZ]	ß__BˆØ]Ú
+ÙœÑ\œ›ÜŠ^ØÛÛœİ[\ÏX]ØZ]Ø\™YY[\ÊÑĞĞTÑ‘QQ	Ñ]]ØÚ\ˆÙ]\™Y[œİ
+Ñ
+IË]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙKMŠNÜ™]\›Ø[\Ë›İšY\‰Ñ]]ØÚ\ˆÙ]\™Y[œİ
+Ñ
+IËÛİ™\˜YÙN‰Ñ]]ØÚ[™0­È[]XÚHÑPĞTUØ\›[™Ù[ˆ
+˜[˜XÚÊIËÛİ\˜ÙTİ]\ÎÜİ˜]YŞN‰ÜÚ[™ÛKXØ[›ÛšXØ[\›İšY\‰Ëš[X\N‰ÑÑĞT	Ë˜[˜XÚÔ™X\ÛÛÙœÑ\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜİÙœÑ\œ›Ü‹›Y\ÜØYÙN”İš[™ÊÙœÑ\œ›ÜŠKY\XØ][Û‰ĞĞTRÙ[›[™ËÔ™Y™\™[™[ˆÛİÚYH\™ZYÛš\ËÙXšY][™ğïYÚÙZ]	ß__BŸB˜\Ş[˜È[˜İ[ÛˆÜĞ[\Ê]ÛŠ^ÂˆÛÛœİO[™]ÈT“
+•Ô×ĞST•ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÜÚ[	Ë	Û]Ñš^Y
+
+_K	ÛÛ‹Ñš^Y
+
+_X
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	Üİ]\ÉË	ØXİX[	ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÛY\ÜØYÙWİ\IË	Ø[\\]IÊNÂˆÛÛœİX]ØZ]™]ÚœÛÛŠKÔİš[™Ê
+KÉĞXØÙ\	Î‰Ø\XØ][Û‹ÙÙ[ÊÚœÛÛ‰ßJNÜ™]\›Š™™X]\™\ÏÏÖ×JK›X\
+OØÛÛœİY‹œ›Ü\Y\ÏÏŞßKÙ]™\š]OTİš[™ÊœÙ]™\š]_	ÉÊNÜ™]\›ÚY”İš[™ÊšY‹šYšXY[™JKXY[™N”İš[™ÊšXY[™_™]™[	Ğ[]XÚHÙ]\Ø\›[™ÉÊK\ØÜš\[Û”İš[™Ê™\ØÜš\[ÛŸ	Ñ°ïˆY\ÙH[]XÚHØ\›[™ÈYYİÙZ[ˆ\ğé›XÚ\ˆY[[™Üİ^›Ü‹‰ÊK[œİXİ[Ûœš[œİXİ[ÛŸ[™Yš[™Y]™[˜]Ø\™[™\ÜÓ]™[
+	ÉËÙ]™\š]JKÙ]™\š]K]™[œ™]™[[™Yš[™YÛİ\˜ÙNœœÙ[™\“˜[Y_	Ó“ĞPHÈ˜][Û˜[ÙX]\ˆÙ\šXÙIË\™XNœ˜\™XQ\Øß[™Yš[™YY™™Xİ]™NœØY™Q]J™Y™™Xİ]™JKÛœÙ]œØY™Q]J›ÛœÙ]
+K^\™\ÎœØY™Q]J™^\™\ÊK\›œÉĞY	×_‹šY[™Yš[™Y_JNÂŸB˜\Ş[˜È[˜İ[ÛˆÙ™šXÚX[[\Ê]Û‹Ûİ[K˜[YK™YÚ[Û‹\İšXİ[™İXYÙJ^ÂˆÛÛœİÏX]ØZ]™\ÛÛ™PÛİ[PÛÙJÛİ[K]Û‹˜[YK™YÚ[ÛŠNÚYŠÏOOIÑIÊ^ØÛÛœİ™\İ[X]ØZ]Ù[\Ê]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙJNÜ™]\›Ë‹‹œ™\İ[Ûİ[PÛÙN˜ß_BˆYŠÏOOIÕTÉÊ^ØÛÛœİ[\ÏX]ØZ]ÜĞ[\Ê]ÛŠNÜ™]\›Ø[\Î™Y\P[\Ê[\ÊK›İšY\‰Ó“ĞPHÈ˜][Û˜[ÙX]\ˆÙ\šXÙIËÛİ™\˜YÙN‰ÕTĞH0­È[]XÚHĞTUØ\›[™Ù[‰ËÛİ[PÛÙN˜ËÛİ\˜ÙTİ]\ÎÜİ˜]YŞN‰ÜÚ[™ÛKXØ[›ÛšXØ[\›İšY\‰Ëš[X\N‰Ó“ĞPKÓ•ÔÉËY\XØ][Û‰ÒÙ[›[™ÈÛİÚYH\™ZYÛš\ËÙXšY][™ğïYÚÙZ]	ß__BˆÛÛœİÛYÏQ‘QQÔÓQÔÖØ×NÚYŠÛYÊ^ÂˆÛÛœİ\›X	ÓQUSĞST“WÑ‘QQß[Y][Ø[\›K[YØXŞKX]ÛKIÜÛYßXÛ]Ú[ÛÛ^Ú[ÛÛ^\œ›Üİ^ÜÚ[ÛÛ^X]ØZ]Y][Ø[\›TÚ[ÛÛ^
+Ë]Û‹˜[YK™YÚ[Û‹\İšXİ
+_XØ]Ú
+\œ›ÜŠ^ÜÚ[ÛÛ^\œ›ÜY\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_XÛÛœİÙ™šXÚX[\™XS˜[Y\Ï\Ú[ÛÛ^Ëœ™\ÛÛ™YÜÚ[ÛÛ^˜\™X\Ë›X\
+\™XOO”İš[™Ê\™XOË›˜[Y_	ÉÊJK™š[\Š›ÛÛX[ŠN[™Yš[™YØØ\™\İ[Ú[™\İ[OX]ØZ]›ÛZ\ÙK˜[Ù]Y
+ØØ\™YY[\Ê\›	ÓY][Ğ[\›HÈ˜][Û˜[HÙ]\˜™Z0íœ™IË]Û‹˜[YK™YÚ[Û‹\İšXİ[™İXYÙKÌÙ™šXÚX[\™XS˜[Y\ÊKY][Ø[\›TÚ[[\ÊÚ[ÛÛ^[™İXYÙJWJKØ\[\ÏXØ\™\İ[œİ]\ÏOOIÙ[š[Y	ÏØØ\™\İ[˜[YN–×KÚ[[\Ï\Ú[™\İ[œİ]\ÏOOIÙ[š[Y	ÏÜÚ[™\İ[˜[YN–×K[\ÏYY\P[\ÊË‹‹˜Ø\[\Ë‹‹œÚ[[\×JNÚYŠX[\Ë›[™İ	‰˜Ø\™\İ[œİ]\ÏOOIÜ™Z™XİY	É‰œÚ[™\İ[œİ]\ÏOOIÜ™Z™XİY	Ê]›İÈØ\™\İ[œ™X\ÛÛÂˆ™]\›Ø[\Ë›İšY\‰ÓY][Ğ[\›HÈ˜][Û˜[HÙ]\˜™Z0íœ™IËÛİ™\˜YÙN˜]\›ÜH0­È[]XÚHØ\›[™Ù[ˆ\È˜][Û˜[[ˆÙ]\™Y[œİ\È0­ÈÛÛÜ™[˜][™Ù\°ï0­È	ØßXÛİ[PÛÙN˜ËÛİ\˜ÙTİ]\ÎÜİ˜]YŞN‰ÜÚ[™ÛKXØ[›ÛšXØ[\›İšY\‰Ëš[X\N‰ÓY][Ğ[\›H]™KUØ\›™ÙXšY]H
+È]ÛKĞĞT	Ë[™Ú[\›\™XQ[™Ú[œÚ[ÛÛ^Ë™[™Ú[	ÓQUSĞST“WÕ’Tß\İ™X[KXY™™\œËÛ]™KÚ^˜\™ËÉÛY][Ø[\›Uš\ĞÛİ[PÛÙJÊ_XÛÛÜ™[˜]P\ÜÚYÛ›Y[œÚ[ÛÛ^Ëœ™\ÛÛ™YØ[]XÚ\ÈØ\›™ÙXšY]ÚØ[Z[™ÙYÜ™[
+	ÜÚ[ÛÛ^œÙ[Xİ[ÛOOIÛØØ[[˜[YK\\ËX˜›Ş	ÏÉÓÜËKÔ™YÚ[ÛœØX™ÛZXÚ
+ÈØ\›™ÙXšY]Ø›Ş	Î‰ÚÛZ[œİH\ÜÙ[™HØ\›™ÙXšY]Ø›Ş™HØ\›˜\[È˜[˜XÚÉßNÈ	ÜÚ[ÛÛ^˜Ø[™Y]P\™X\ßÚ[ÛÛ^˜\™X\Ë›[™İH›ŞRØ[™Y][ŠX‰ĞĞTQÙ[ÛY]šYHËˆ›ÜœÚXÚYÙ\ˆÜÛ˜[Y[œØX™ÛZXÚ
+˜[˜XÚÊIË\™XT™\ÛÛ][Û‘\œ›ÜœÚ[ÛÛ^\œ›Ü‹Y\XØ][Û‰ÓY][Ğ[\›KUØ\›[™ÜÚÙ[›[™ËĞĞTT™Y™\™[™[ˆÛİÚYH\™ZYÛš\ËÙXšY][™ğïYÚÙZ]	ß_BˆBˆ™]\›Ø[\Î–×K›İšY\‰ĞĞT	ËÛİ™\˜YÙN‰Ñ\È[™ÛÛ›HšXÚÚXÚ\ˆ™\İ[[]Ù\™[ˆÙ\ˆ™\Ú]ÙZ[™[ˆ[H0í™™™[XÚ[ˆRQT›ŞH[\›Yİ[ˆ[]XÚ[ˆĞTQ™YY‰ËÛİ[PÛÙN˜ß[™Yš[™YNÂŸB‚˜ÛÛœİQUSĞST“WÑQ—ĞÓÓPÕSÓIİØ\›š[™ÜÉÎÂ˜ÛÛœİQUSĞST“WÑQ—ÓQĞPÖWÔUQT–WÔUT“”ÏVËÖÏÉ—JÎ˜\˜Ú]™_Ù[Ø™Y›Ü™_Ù[ØY\ŸXİ]™WØ™Y›Ü™_Xİ]™WØY\ŠOKÚK×Ø\˜Ú]™JÎ–ËÏÈ×_	
+KÚWNÂ˜\Ş[˜È[˜İ[ÛˆY][Ø[\›QY[\Ê[‹]Û‹Ûİ[K[™İXYÙOIÙIÊ^ÂˆÛÛœİ[™Ú[XY\\‘[™Ú[
+[‹	ÓRQÓQUSĞST“WÑQ—ÔÒS•ÑS‘ÒS•	ÊNÚYŠY[™Ú[
+\™]\›ØÛÛ™šYİ\™Y™˜[ÙK[\Î–×_NÚYŠQUSĞST“WÑQ—ÓQĞPÖWÔUQT–WÔUT“”ËœÛÛYJ]\›Oœ]\›‹\İ
+[™Ú[Ôİš[™Ê
+JJJ]›İÈ™]È\œ›ÜŠ	ÓY][Ğ[\›KQQ‹PY\\ˆ]Z[ˆ™\˜[]\ÈTKTØÚ[XIÊNÂˆ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØÛÛXİ[Û‰ËQUSĞST“WÑQ—ĞÓÓPÕSÓŠNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ëİš[™Ê]
+JNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰Ëİš[™ÊÛŠJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØÛİ[IËİš[™ÊÛİ[_	ÉÊJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û[™İXYÙIË[™İXYÙ_	ÙIÊNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØXİ]™IË	Û›İÉÊNÂˆÛÛœİÚÙ[Tİš[™Ê[Ë“RQÓQUSĞST“WÑQ—ÕÒÑSŸ	ÉÊKš[J
+KXY\œÏ^ĞXØÙ\‰Ø\XØ][Û‹ÙÙ[ÊÚœÛÛ‹\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXNÚYŠÚÙ[ŠZXY\œË]]Üš^˜][ÛX™X\™\ˆ	İÚÙ[ŸXÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[Ôİš[™Ê
+KÚXY\œßKL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠY][Ğ[\›HQˆY\\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+K›İÜÏP\œ˜^Kš\Ğ\œ˜^J˜]ÏË™™X]\™\ÊOÜ˜]Ë™™X]\™\Ë›X\
+™X]\™OOŠË‹‹™™X]\™OËœ›Ü\Y\ËÙ[ÛY]N™™X]\™OË™Ù[ÛY]_JJN\œ˜^Kš\Ğ\œ˜^J˜]ÏË˜[\ÊOÜ˜]Ë˜[\Î\œ˜^Kš\Ğ\œ˜^J˜]ÏË™]JOÜ˜]Ë™]N–×NÂˆÛÛœİ[\Ï\›İÜË›X\
+
+›İË[™^
+OOØÛÛœİ\›İÏËœ›Ü\Y\ÏÏÜ›İËYTİš[™ÊËšYÏÜËšY[YšY\ÏÜË˜Ø\Y[YšY\ÏØY][Ø[\›KYY‹IÚ[™^X
+KXY[™OTİš[™ÊËšXY[™OÏÜË™]™[ÏÜË]OÏÉĞ[]XÚHÙ]\Ø\›[™ÉÊK\ØÜš\[ÛTİš[™ÊË™\ØÜš\[ÛÏÜË^ÏÜËœİ[[X\OÏÉÉÊKš[J
+NÚYŠZXY[™I‰ˆY\ØÜš\[ÛŠ\™]\›ˆ[Ü™]\›ÚYXY[™K\ØÜš\[Û™\ØÜš\[ÛŸ	Ñ°ïˆY\ÙH[]XÚHØ\›[™ÈYYİÙZ[ˆ\ğé›XÚ\ˆY[[™Üİ^›Ü‹‰Ë[œİXİ[ÛœËš[œİXİ[ÛŸËœ™\ÜÛœÙ_[™Yš[™Y]™[˜]Ø\™[™\ÜÓ]™[
+İš[™ÊË˜]Ø\™[™\Ü×Û]™[ÏÜË›]™[ÏÉÉÊKİš[™ÊËœÙ]™\š]OÏÉÉÊJKÙ]™\š]NœËœÙ]™\š]_[™Yš[™Y]™[œË™]™[[™Yš[™YÛİ\˜ÙN”İš[™ÊËœÙ[™\“˜[YOÏÜËœÙ[™\ÏÉÓY][Ğ[\›HÈ˜][Û˜[HÙ]\˜™Z0íœ™IÊK\™XNœË˜\™XQ\ØÏÏÜË˜\™XOÏÜË˜\™XWÛ˜[YOÏİ[™Yš[™YY™™Xİ]™NœØY™Q]JË™Y™™Xİ]™OÏÜËœÙ[
+KÛœÙ]œØY™Q]JË›ÛœÙ]
+K^\™\ÎœØY™Q]JË™^\™\ÏÏÜË™[™ÊK\›œË˜Ø\İ\›ÏÜË˜Ø\\›ÏÜË\›Ïİ[™Yš[™Y_JK™š[\Š›ÛÛX[ŠNÂˆ™]\›ØÛÛ™šYİ\™YYK[\Î™Y\P[\Ê[\ÊK›İšY\‰ÓY][Ğ[\›HÑĞÈQˆÈĞTKŒ‰ßNÂŸB˜\Ş[˜È[˜İ[ÛˆÙ™šXÚX[[\ÕÚ][Ù\›“Y][Ğ[\›J]Û‹Ûİ[K˜[YK™YÚ[Û‹\İšXİ[™İXYÙK[Š^ØÛÛœİ˜\ÙOX]ØZ]Ù™šXÚX[[\Ê]Û‹Ûİ[K˜[YK™YÚ[Û‹\İšXİ[™İXYÙJNØÛÛœİÛÙOX˜\ÙK˜Ûİ[PÛÙ_]ØZ]™\ÛÛ™PÛİ[PÛÙJÛİ[K]Û‹˜[YK™YÚ[ÛŠNÚYŠQ‘QQÔÓQÔÖØÛÙW_XY\\‘[™Ú[
+[‹	ÓRQÓQUSĞST“WÑQ—ÔÒS•ÑS‘ÒS•	ÊJ\™]\›ˆ˜\ÙNİ^ØÛÛœİYX]ØZ]Y][Ø[\›QY[\Ê[‹]Û‹ÛÙK[™İXYÙJNÚYŠYY‹˜[\Ë›[™İ
+\™]\›Ë‹‹˜˜\ÙKÛİ\˜ÙTİ]\ÎË‹‹Š˜\ÙKœÛİ\˜ÙTİ]\ßßJKY][Ø[\›QY‰ØÛÛ™šYİ\™Y[›ËXXİ]™K]Ø\›š[™Éß_NÜ™]\›Ë‹‹˜˜\ÙK[\Î™Y\P[\ÊË‹‹Š˜\ÙK˜[\ß×JK‹‹™Y‹˜[\×JK›İšY\˜	Ø˜\ÙKœ›İšY\ŸH
+ÈY][Ğ[\›HÑĞÈQ˜Ûİ\˜ÙTİ]\ÎË‹‹Š˜\ÙKœÛİ\˜ÙTİ]\ßßJKY][Ø[\›QY‰ØXİ]™IËY][Ø[\›QYÛÛXİ[Û“QUSĞST“WÑQ—ĞÓÓPÕSÓ‹Ø\‰ÌKŒ‰ß__XØ]Ú
+\œ›ÜŠ^Ü™]\›Ë‹‹˜˜\ÙKÛİ\˜ÙTİ]\ÎË‹‹Š˜\ÙKœÛİ\˜ÙTİ]\ßßJKY][Ø[\›QY‰Ù˜[˜XÚË]Ë[˜][Û˜[	ËY][Ø[\›QY‘\œ›Ü™\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ____B‚‚™[˜İ[ÛˆÛÛœ˜Y[Y\İ[\
+š[[˜[YOIÉÊ^ÂˆÛÛœİX]ÚTİš[™Êš[[˜[YJK›X]Ú
+ÒÓÓ”QÑÊÎJU
+ÍŸJW[	ÚJNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YÂˆÛÛœİ]O[X]ÚÌWK[YO[X]ÚÌ—K˜[YOQ]K•UÊ[X™\Š]KœÛXÙJ
+JK[X™\Š]KœÛXÙJŠJKLK[X™\Š]KœÛXÙJ‹
+JK[X™\Š[YKœÛXÙJŠJK[X™\Š[YKœÛXÙJ‹
+JK[X™\Š[YKœÛXÙJŠJJNÜ™]\›ˆ[X™\‹š\Ñš[š]J˜[YJOİ˜[YN[™Yš[™YÂŸB™[˜İ[Ûˆ]\İÛÛœ˜Yš[[˜[YJ[™^[
+^ÂˆÛÛœİ›İÏQ]K››İÊ
+K˜[Y\ÏVË‹‹”İš[™Ê[™^[
+K›X]Ú[
+ÒÓÓ”QÑ×ÎUÍŸW[ÙÚJWK›X\
+X]ÚO›X]ÚÌJK[š\]YOVË‹‹›™]ÈÙ]
+˜[Y\ÊWK›X\
+˜[YOOŠÛ˜[YK[YNšÛÛœ˜Y[Y\İ[\
+˜[YJ_JJK™š[\Š][OO“[X™\‹š\Ñš[š]J][K[YJI‰š][K[YO[›İÊÌL
+Œ	‰š][K[YO[›İËLÍŠŒÍŒ
+KœÛÜ
+
+KŠOO˜‹[YKXK[YJNÜ™]\›ˆ[š\]YVÌNÂŸB™[˜İ[ÛˆYÓ[X™\Š[YÊ^ØÛÛœİ˜[YO[[X™\ŠYÕ˜[YJ[YÊJNÜ™]\›ˆ˜[YHOO][™Yš[™Y	‰˜[YO‹NNNLİ˜[YN[™Yš[™YB™[˜İ[ÛˆYÓ[X™\[J[‹‹YÜÊ^Ù›ÜŠÛÛœİYÈÙˆYÜÊ^ØÛÛœİ˜[YO]YÓ[X™\Š[YÊNÚYŠ˜[YHOO][™Yš[™Y
+\™]\›ˆ˜[Y_\™]\›ˆ[™Yš[™YB™[˜İ[ÛˆZYÚÛJ˜[YJ^ØÛÛœİ[Y\šXÏ[[X™\Š˜[YJNÚYŠ[Y\šXÏOO][™Yš[™Y[Y\šXÏ
+\™]\›ˆ[™Yš[™YÜ™]\›ˆ[Y\šXÏŒLÛ[Y\šXËÌL›[Y\šXßB™[˜İ[ÛˆZ[Ú^™PÛJ˜[YJ^ØÛÛœİ[Y\šXÏ[[X™\Š˜[YJNÚYŠ[Y\šXÏOO][™Yš[™Y[Y\šXÏL
+\™]\›ˆ[™Yš[™YÜ™]\›ˆ[Y\šXÏŒŒÛ[Y\šXËÌL›[Y\šXßB™[˜İ[ÛˆÛÛœ˜Y™X]\™SX]Ú\Ê[
+^Ü™]\›–Ë‹‹”İš[™Ê[
+K›X]Ú[
+Ï
+ÎŠÎ—ÊÊNŠOÙ™X]\™WŠ×—JŠOŠ×××JÊOÊÎŠÎ—ÊÊNŠOÙ™X]\™O‹ÙÚJW_B™[˜İ[ÛˆÛÛœ˜Y]šX]J]œË˜[YJ^Ü™]\›ˆXÛÙV[
+İš[™Ê]œß	ÉÊK›X]Ú
+™]È™YÑ^
+‰Û˜[Y_OVÈ‰×J×ˆ‰×JÊVÈ‰×X	ÚIÊJOË–ÌW_	ÉÊ_B™[˜İ[ÛˆÛÛœ˜Y[™İÛJ›ØÚË‹‹YÜÊ^Âˆ›ÜŠÛÛœİYÈÙˆYÜÊ^ØÛÛœİX]ÚTİš[™Ê›ØÚÊK›X]Ú
+™]È™YÑ^
+
+ÎŠÎ—ÊÊNŠOÉİYßWŠ×—JŠOŠ×JÊOÊÎŠÎ—ÊÊNŠOÉİYßO˜	ÚIÊJNÚYŠ[X]Ú
+XÛÛ[YNØÛÛœİ˜[YO[[X™\ŠXÛÙV[
+X]ÚÌ—JJNÚYŠ˜[YOOO][™Yš[™Y˜[YO
+XÛÛ[YNØÛÛœİ[š]ÏJÛÛœ˜Y]šX]JX]ÚÌWK	İ[š]	Ê_ÛÛœ˜Y]šX]JX]ÚÌWK	İ[š]ÉÊJKÓİÙ\Ø\ÙJ
+NÚYŠÊŸ×š×J[J	×˜K^—J_Y]\‹Ë\İ
+[š]ÊJ\™]\›ˆ˜[YKÌLÚYŠÚÛ_Ú[ÛY]\‹Ë\İ
+[š]ÊJ\™]\›ˆ˜[YNÜ™]\›ˆ˜[YOŒLİ˜[YKÌL˜[Y_Bˆ™]\›ˆ[™Yš[™YÂŸB™[˜İ[ÛˆÛÛœ˜Y\™XRÛLŠ›ØÚË‹‹YÜÊ^Âˆ›ÜŠÛÛœİYÈÙˆYÜÊ^ØÛÛœİX]ÚTİš[™Ê›ØÚÊK›X]Ú
+™]È™YÑ^
+
+ÎŠÎ—ÊÊNŠOÉİYßWŠ×—JŠOŠ×JÊOÊÎŠÎ—ÊÊNŠOÉİYßO˜	ÚIÊJNÚYŠ[X]Ú
+XÛÛ[YNØÛÛœİ˜[YO[[X™\ŠXÛÙV[
+X]ÚÌ—JJNÚYŠ˜[YOOO][™Yš[™Y˜[YO
+XÛÛ[YNØÛÛœİ[š]ÏJÛÛœ˜Y]šX]JX]ÚÌWK	İ[š]	Ê_ÛÛœ˜Y]šX]JX]ÚÌWK	İ[š]ÉÊJKÓİÙ\Ø\ÙJ
+NÚYŠÚÛLŸÛp¬ŸÜ]X\™KÚÚ[ÛY]\‹Ë\İ
+[š]ÊJ\™]\›ˆ˜[YNÚYŠÊŸ×š×J[LŸp¬ŸÜ]X\™KÛY]\‹Ë\İ
+[š]ÊJ\™]\›ˆ˜[YKÌYMÜ™]\›ˆ˜[YOŒLİ˜[YKÌYM˜[Y_Bˆ™]\›ˆ[™Yš[™YÂŸB™[˜İ[ÛˆÛÛœ˜YÜYYÛZ
+›ØÚË‹‹YÜÊ^Âˆ›ÜŠÛÛœİYÈÙˆYÜÊ^ØÛÛœİX]ÚTİš[™Ê›ØÚÊK›X]Ú
+™]È™YÑ^
+
+ÎŠÎ—ÊÊNŠOÉİYßWŠ×—JŠOŠ×JÊOÊÎŠÎ—ÊÊNŠOÉİYßO˜	ÚIÊJNÚYŠ[X]Ú
+XÛÛ[YNØÛÛœİ˜[YO[[X™\ŠXÛÙV[
+X]ÚÌ—JJNÚYŠ˜[YOOO][™Yš[™Y˜[YO
+XÛÛ[YNØÛÛœİ[š]ÏJÛÛœ˜Y]šX]JX]ÚÌWK	İ[š]	Ê_ÛÛœ˜Y]šX]JX]ÚÌWK	İ[š]ÉÊJKÓİÙ\Ø\ÙJ
+NÚYŠÛWÏÜßY]\‹ŠœÙXÛÛ™Ë\İ
+[š]ÊJ\™]\›ˆ˜[YJŒËÚYŠÚİÛ›İË\İ
+[š]ÊJ\™]\›ˆ˜[YJŒKLÜ™]\›ˆ˜[Y_Bˆ™]\›ˆ[™Yš[™YÂŸB™[˜İ[ÛˆÛÛœ˜YÛÛÜ™[˜]TZ\œÊ›ØÚÊ^ØÛÛœİ]]Y\Ï]YÕ˜[Y\Ê›ØÚË	Û]]YIÊK›X\
+[X™\ŠKÛ™Ú]Y\Ï]YÕ˜[Y\Ê›ØÚË	ÛÛ™Ú]YIÊK›X\
+[X™\ŠKÚ[ÏV×NÙ›ÜŠ][™^LÚ[™^X]›Z[Š]]Y\Ë›[™İÛ™Ú]Y\Ë›[™İ
+NÚ[™^
+ÊÊ^ØÛÛœİ]]YO[]]Y\ÖÚ[™^KÛ™Ú]YO[Û™Ú]Y\ÖÚ[™^NÚYŠ]]YOOO][™Yš[™YÛ™Ú]YOOO][™Yš[™YX]˜XœÊ]]YJOLX]˜XœÊÛ™Ú]YJOŒN
+XÛÛ[YNÜÚ[Ëœ\Ú
+Û]]YKÛ™Ú]Y_J_\™]\›ˆÚ[ßB™[˜İ[ÛˆÛÛœ˜Y›Ûİš[
+Ù[ÛY]K]]YKÛ™Ú]YJ^ÂˆÛÛœİØ[™Y]\ÏVË‹‹˜›ØÚÜÊÙ[ÛY]K	ÜÛYÛÛ‰ÊK‹‹˜›ØÚÜÊÙ[ÛY]K	ÙÙ[Ù]X×ØÛÛÜ™[˜]\ÉÊK‹‹˜›ØÚÜÊÙ[ÛY]K	ÙÙ[Ù]X×ØÛÛÜ™[˜]WÛ\İ	ÊWK›İÜÏV×NÂˆ›ÜŠÛÛœİ›ØÚÈÙˆØ[™Y]\Ê^ØÛÛœİÚ[ÏZÛÛœ˜YÛÛÜ™[˜]TZ\œÊ›ØÚÊNÚYŠÚ[Ë›[™İÊXÛÛ[YNØÛÛœİX^[][OSX]›X^
+‹‹œÚ[Ë›X\
+Ú[O™\İ[˜ÙJ]]YKÛ™Ú]YKÚ[›]]YKÚ[›Û™Ú]YJKÌL
+JNÚYŠS[X™\‹š\Ñš[š]JX^[][J_X^[][O
+XÛÛ[YNØÛÛœİ[š\]YO\Ú[Ë™š[\Š
+Ú[[™^\İ
+OOš[™^OOL\İ[˜ÙJÚ[›]]YKÚ[›Û™Ú]YK\İÚ[™^LWK›]]YK\İÚ[™^LWK›Û™Ú]YJOL
+NÚYŠ[š\]YK›[™İLÊ\›İÜËœ\Ú
+[š\]YJ_Bˆ™]\›ˆ›İÜËœÛÜ
+
+KŠOO˜‹›[™İXK›[™İ
+VÌ_×NÂŸB™[˜İ[ÛˆÛÛœ˜Y›Ûİš[Ù[\ŠÚ[Ë]]YKÛ™Ú]YJ^ÚYŠ\Ú[ÏË›[™İ
+\™]\›Û]]YKÛ™Ú]Y_NØÛÛœİÙ[\^Û]]YNœÚ[Ëœ™YXÙJ
+İ[KÚ[
+OOœİ[JÜÚ[›]]YK
+KÜÚ[Ë›[™İÛ™Ú]YNœÚ[Ëœ™YXÙJ
+İ[KÚ[
+OOœİ[JÜÚ[›Û™Ú]YK
+KÜÚ[Ë›[™İNÜ™]\›ˆ\İ[˜ÙJ]]YKÛ™Ú]YKÙ[\‹›]]YKÙ[\‹›Û™Ú]YJOLNØÙ[\Û]]YKÛ™Ú]Y__B™[˜İ[ÛˆÛÛœ˜Y›Ü™XØ\İÊ™X]\™K]Û‹™Y™\™[˜ÙS\Ê^ÂˆÛÛœİ›İÜÏV×KÙY[[™]ÈÙ]
+
+K˜[Y\ÏIØÙ[›ÚYÙ›Ü™XØ\İ›Ü™XØ\İØÙ[›ÚYÙ[›ÚYÜ™YXİ[ÛŸ›Ü™XØ\İÜÜÚ][ÛŸ™YXİYÜÜÚ][ÛŸÜÚ][Û—Ù›Ü™XØ\İ	ÎÂˆ›ÜŠÛÛœİX]ÚÙˆİš[™Ê™X]\™JK›X]Ú[
+™]È™YÑ^
+
+ÎŠÎ—ÊÊNŠOÊÎ‰Û˜[Y\ßJWŠ×—JŠOŠ×××JÊOÊÎŠÎ—ÊÊNŠOÊÎ‰Û˜[Y\ßJO˜	ÙÚIÊJJ^ÂˆÛÛœİ]œÏ[X]ÚÌWK›ØÚÏ[X]ÚÌ—KÛÛÜ™[˜]OX›ØÚÜÊ›ØÚË	ÙÙ[Ù]X×ØÛÛÜ™[˜]IÊVÌ_›ØÚÜÊ›ØÚË	ØÛÛÜ™[˜]IÊVÌ_›ØÚÜÊ›ØÚË	ØÙ[›ÚYÌÙ	ÊVÌ_›ØÚÜÊ›ØÚË	ØÙ[›ÚY	ÊVÌ_›ØÚÜÊ›ØÚË	ÜÜÚ][Û‰ÊVÌ_›ØÚËÛ]]YÓ[X™\[JÛÛÜ™[˜]K	Û]]YIË	Û]	ÊKÛÛ]YÓ[X™\[JÛÛÜ™[˜]K	ÛÛ™Ú]YIË	ÛÛ‰ÊNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+XÛÛ[YNÂˆÛÛœİ˜]Õ[YOZÛÛœ˜Y]šX]J]œË	Ù›Ü™XØ\İİ[YIÊ_ÛÛœ˜Y]šX]J]œË	İ˜[Yİ[YIÊ_ÛÛœ˜Y]šX]J]œË	İ[YIÊ_YÕ˜[YJ›ØÚË	Ù›Ü™XØ\İİ[YIÊ_YÕ˜[YJ›ØÚË	İ˜[Yİ[YIÊ_YÕ˜[YJ›ØÚË	İ[YIÊK\œÙY[YO\ØY™Q]J˜]Õ[YJK\œÙY\Ï\\œÙY[YOÑ]Kœ\œÙJ\œÙY[YJN“˜S‹˜]ÓXY[[X™\ŠÛÛœ˜Y]šX]J]œË	ÛXYİ[YWÛZ[]\ÉÊ_ÛÛœ˜Y]šX]J]œË	Ù›Ü™XØ\İÛZ[]\ÉÊ_ÛÛœ˜Y]šX]J]œË	ÛXYİ[YIÊ_YÕ˜[YJ›ØÚË	ÛXYİ[YWÛZ[]\ÉÊ_YÕ˜[YJ›ØÚË	Ù›Ü™XØ\İÛZ[]\ÉÊ_YÕ˜[YJ›ØÚË	ÛXYİ[YIÊ_YÕ˜[YJ›ØÚË	İ[YWÛÙ™œÙ]	ÊJKXYZ[]\Ï\˜]ÓXYOO][™Yš[™YÓ˜Sœ˜]ÓXYL	‰œ˜]ÓXYMÌŒÜ˜]ÓXYÍŒœ˜]ÓXYZ[]\ÏS[X™\‹š\Ñš[š]J\œÙY\ÊOÓX]œ›İ[™
+
+\œÙY\Ë\™Y™\™[˜ÙS\ÊKÍŒ
+N“[X™\‹š\Ñš[š]JXYZ[]\ÊOÓX]œ›İ[™
+XYZ[]\ÊN“˜SÚYŠS[X™\‹š\Ñš[š]JZ[]\Ê_Z[]\ÏZ[]\ÏL
+XÛÛ[YNÂˆÛÛœİ[\ÙOX›ØÚÜÊ›ØÚË	İ[˜Ù\Z[WÙ[\ÙIÊVÌ_›ØÚÜÊ›ØÚË	ÜÜÚ][Û—İ[˜Ù\Z[IÊVÌ_›ØÚÜÊ›ØÚË	Ù[\ÙIÊVÌ_	ÉËXZ›Ü^\ÏSX]›X^
+ÛÛœ˜Y[™İÛJ[\ÙK	ÜÙ[ZWÛXZ›Ü—Ø^\ÉË	ÛXZ›Ü—Ø^\ÉË	İ[˜Ù\Z[WÛXZ›Ü—Ø^\ÉÊ_
+KZ[›Ü^\ÏSX]›X^
+ÛÛœ˜Y[™İÛJ[\ÙK	ÜÙ[ZWÛZ[›Ü—Ø^\ÉË	ÛZ[›Ü—Ø^\ÉË	İ[˜Ù\Z[WÛZ[›Ü—Ø^\ÉÊ_XZ›Ü^\ÊKÜšY[][Û]YÓ[X™\[J[\ÙK	ÛÜšY[][Û‰Ë	Ø^š[]]	Ë	Ø[™ÛIÊK[YO\\œÙY[Y_™]È]J™Y™\™[˜ÙS\ÊÛZ[]\ÊŒ
+KÒTÓÔİš[™Ê
+KÙ^OX	ÛZ[]\ßN‰ØÛ]Ñš^Y
+J_N‰ØÛÛ‹Ñš^Y
+J_XÚYŠÙY[‹š\ÊÙ^JJXÛÛ[YNÜÙY[‹˜Y
+Ù^JNØÛÛœİ˜]Ñ\İ[˜ÙRÛOY\İ[˜ÙJ]Û‹Û]ÛÛŠKÌLÜ›İÜËœ\Ú
+İ[YKZ[]\Ë]]YN˜Û]Û™Ú]YN˜ÛÛ‹\İ[˜ÙRÛNœ˜]Ñ\İ[˜ÙRÛKY™™Xİ]™Q\İ[˜ÙRÛN“X]›X^
+˜]Ñ\İ[˜ÙRÛK[XZ›Ü^\ÊK[˜Ù\Z[RÛN›XZ›Ü^\Ë[˜Ù\Z[SZ[›Ü’ÛN›Z[›Ü^\Ë[˜Ù\Z[SÜšY[][Û‘YÎ›ÜšY[][ÛŸJNÂˆBˆ™]\›ˆ›İÜËœÛÜ
+
+KŠOO˜K›Z[]\ËX‹›Z[]\ÊNÂŸB‚™[˜İ[Ûˆ\œÙRÛÛœ˜YÙ[Ê[]Û‹ØœÙ\™Y]
+^ÂˆÛÛœİ™Y™\™[˜ÙS\ÏQ]Kœ\œÙJØœÙ\™Y]
+KÙ[ÏV×NÙ›ÜŠÛÛœİX]ÚÙˆÛÛœ˜Y™X]\™SX]Ú\Ê[
+J^ÂˆÛÛœİ]œÏ[X]ÚÌWK™X]\™O[X]ÚÌ—KÙ[ÛY]OX›ØÚÜÊ™X]\™K	ÙÙ[ÛY]IÊVÌ_™X]\™KÙ[›ÚYX›ØÚÜÊÙ[ÛY]K	ØÙ[›ÚYÌÙ	ÊVÌ_Ù[ÛY]KÛÛÜ™[˜]OX›ØÚÜÊÙ[›ÚY	ÙÙ[Ù]X×ØÛÛÜ™[˜]IÊVÌ_Ù[›ÚYÛ]]YÓ[X™\ŠÛÛÜ™[˜]K	Û]]YIÊKÛÛ]YÓ[X™\ŠÛÛÜ™[˜]K	ÛÛ™Ú]YIÊNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+XÛÛ[YNÂˆÛÛœİİ\œ™[›Ûİš[ZÛÛœ˜Y›Ûİš[
+Ù[ÛY]KÛ]ÛÛŠK\Ü^PÙ[\ZÛÛœ˜Y›Ûİš[Ù[\Šİ\œ™[›Ûİš[Û]ÛÛŠK\Ü^S]]YOY\Ü^PÙ[\‹›]]YK\Ü^SÛ™Ú]YOY\Ü^PÙ[\‹›Û™Ú]YK[[œÚ]OX›ØÚÜÊ™X]\™K	Ú[[œÚ]IÊVÌ_™X]\™K[YXÏX›ØÚÜÊ™X]\™K	Ú[YXÉÊVÌ_	ÉËYÚš[™ÏX›ØÚÜÊ™X]\™K	ÛYÚš[™ÉÊVÌ_	ÉË˜XÚÚ[™ÏX›ØÚÜÊ™X]\™K	İ˜XÚÚ[™ÉÊVÌ_	ÉË˜Y\X›ØÚÜÊ™X]\™K	Ü˜Y\‰ÊVÌ_›ØÚÜÊ™X]\™K	Ü˜Y\—Ø]šX]\ÉÊVÌ_™X]\™K\OX›ØÚÜÊ™X]\™K	Ü\IÊVÌ_›ØÚÜÊ™X]\™K	Ü™XÚ\]][Û‰ÊVÌ_	ÉË[š\›Û›Y[X›ØÚÜÊ™X]\™K	ÛÜ	ÊVÌ_›ØÚÜÊ™X]\™K	Ù[š\›Û›Y[	ÊVÌ_›ØÚÜÊ™X]\™K	Ø][ÜÜ\™IÊVÌ_	ÉËİ\œ™[\İ[˜ÙRÛOY\İ[˜ÙJ]Û‹\Ü^S]]YK\Ü^SÛ™Ú]YJKÌL›Ü™XØ\İÏZÛÛœ˜Y›Ü™XØ\İÊ™X]\™K]Û‹™Y™\™[˜ÙS\ÊK™\İ›Ü™XØ\İY›Ü™XØ\İËœ™YXÙJ
+™\İ›İÊOOˆX™\İ›İË™\İ[˜ÙRÛO™\İ™\İ[˜ÙRÛOÜ›İÎ˜™\İ[™Yš[™Y
+K™\İY™™Xİ]™Q›Ü™XØ\İY›Ü™XØ\İËœ™YXÙJ
+™\İ›İÊOOˆX™\İ›İË™Y™™Xİ]™Q\İ[˜ÙRÛO™\İ™Y™™Xİ]™Q\İ[˜ÙRÛOÜ›İÎ˜™\İ[™Yš[™Y
+K˜XÚÑ›Ü™XØ\İY›Ü™XØ\İË™š[\Š›İÏOœ›İË›Z[]\ÏLL
+K˜]
+LJ_›Ü™XØ\İË˜]
+LJKÙ[\\›ØXÚ[™ÏP›ÛÛX[Š™\İ›Ü™XØ\İ	‰˜™\İ›Ü™XØ\İ™\İ[˜ÙRÛJÌİ\œ™[\İ[˜ÙRÛJK™[]˜[˜ÙQ\İ[˜ÙRÛOSX]›Z[Šİ\œ™[\İ[˜ÙRÛK™\İY™™Xİ]™Q›Ü™XØ\İË™Y™™Xİ]™Q\İ[˜ÙRÛOÏÒ[™š[š]JK\œš]˜[Z[]\ÏXİ\œ™[\İ[˜ÙRÛOLŒÌ˜Ù[\\›ØXÚ[™É‰˜™\İ›Ü™XØ\İ	‰˜™\İ›Ü™XØ\İ™\İ[˜ÙRÛOLÍOØ™\İ›Ü™XØ\İ›Z[]\Î[™Yš[™YÂˆÛÛœİÙ]™\š]T˜]Ï]YÓ[X™\[J[[œÚ]K	ÜÙ]™\š]IË	ÜÙ]™\š]WØØ]YÛÜIÊ_Ù]™\š]OSX]›X^
+X]›Z[ŠËX]œ›İ[™
+Ù]™\š]T˜]ÊJJKÙ]™\š]T™XÚ\ÙO]YÓ[X™\[J[[œÚ]K	ÜÙ]™\š]WÜ™XÚ\ÙIË	ÜÙ]™\š]Wİ˜[YIË	ÜÙ]™\š]WÚ[™^	ÊK™[™SX]›X^
+L‹X]›Z[Š‹X]œ›İ[™
+YÓ[X™\Š[[œÚ]K	ÜÙ]™\š]Wİ™[™ØØ]YÛÜIÊ_
+JJKZ[›YÏSX]›X^
+X]›Z[ŠËX]œ›İ[™
+YÓ[X™\Š[[œÚ]K	ÚZ[Ù›YÉÊ_
+JJKX]T˜Z[‘›YÏSX]›X^
+X]›Z[ŠËX]œ›İ[™
+YÓ[X™\Š[[œÚ]K	ÚX]WÜ˜Z[—Ù›YÉÊ_
+JJKİ\İ›YÔ˜]Ï]YÓ[X™\Š[[œÚ]K	Ùİ\İÙ›YÉÊKİ\İ›YÏYİ\İ›YÔ˜]ÏOO][™Yš[™Yİ[™Yš[™Y“X]›X^
+X]›Z[ŠËX]œ›İ[™
+İ\İ›YÔ˜]ÊJJKYÚš[™Ô˜]OSX]›X^
+YÓ[X™\ŠYÚš[™Ë	ÛYÚš[™×Ü˜]IÊ_
+K\™XRZ[SX]›X^
+YÓ[X™\Š[YXË	Ø\™XWÚZ[	Ê_
+K\™XS\™ÙRZ[SX]›X^
+YÓ[X™\Š[YXË	Ø\™XWÛ\™ÙWÚZ[	Ê_
+KÜYYÛZSX]›X^
+ÛÛœ˜YÜYYÛZ
+˜XÚÚ[™Ë	ØÙ[ÜÜYY	Ë	ÜÜYY	Ê_
+K˜XÚÚ[™Ñ\™Xİ[Û]YÓ[X™\Š˜XÚÚ[™Ë	ØÙ[Ù\™Xİ[Û‰ÊOÏİYÓ[X™\Š˜XÚÚ[™Ë	ØÙ[Û[İ[Û—Ù\™Xİ[Û‰ÊOÏİYÓ[X™\Š˜XÚÚ[™Ë	Ù\™Xİ[Û‰ÊKX^™Y›Xİ]š]Q]YÓ[X™\[J˜Y\‹	ÛX^[][WÜ™Y›Xİ]š]IË	ÛX^Ü™Y›Xİ]š]IË	Ü™Y›Xİ]š]WÛX^	Ë	ÛX^Ù‰ÊKYX[”™Y›Xİ]š]Q]YÓ[X™\[J˜Y\‹	ÛYX[—Ü™Y›Xİ]š]IË	Ø]™\˜YÙWÜ™Y›Xİ]š]IÊKXÚÕÜÛOZZYÚÛJYÓ[X™\[J˜Y\‹	ÙXÚ×İÜÌN‰Ë	ÙXÚ×İÜ	Ë	Ù]ÜÌN‰Ë	ÛX^[][WÙXÚ×İÜ	ÊJKXÚĞ›İÛRÛOZZYÚÛJYÓ[X™\[J˜Y\‹	ÙXÚ×Ø›İÛWÌN‰Ë	ÙXÚ×Ø›İÛIË	ÙX˜\ÙWÌN‰Ë	ÛZ[š[][WÙXÚ×Ø›İÛIÊJKš[ÙÓL]YÓ[X™\[J˜Y\‹	İš[	Ë	İ™\XØ[WÚ[YÜ˜]YÛ\]ZY	ÊKš[[œÚ]QÛLÏ]YÓ[X™\[J˜Y\‹	İš[Ù[œÚ]IË	İ™\XØ[WÚ[YÜ˜]YÛ\]ZYÙ[œÚ]IÊKÙ[\™XRÛLZÛÛœ˜Y\™XRÛLŠÙ[ÛY]K	ØÛİ™\™YØ\™XIË	ØÙ[Ø\™XIË	Ø\™XWÚÛL‰ÊK]Xİ[ÛÛİ[]YÓ[X™\[J™X]\™K	Ù]Xİ[Û—ØÛİ[	Ë	Û[X™\—ÛÙ—Ù]Xİ[ÛœÉË	Û—Ù]Xİ[ÛœÉÊK˜Z[[[İ[[O]YÓ[X™\[J\K	Ü™XÚ\]][Û—Ø[[İ[	Ë	Ü˜Z[—Ø[[İ[	Ë	ÛX^[][WÜ™XÚ\]][Û‰Ë	Ü\WØ[[İ[	ÊKX^Z[Ú^™PÛOZZ[Ú^™PÛJYÓ[X™\[J[YXË	ÛX^[][WÚZ[ÜÚ^™IË	ÛX^ÚZ[ÜÚ^™IË	ÚZ[ÜÚ^™IÊJKÚ[™İ\İÛZ]YÓ[X™\[J[[œÚ]K	ÛX^[][WÙİ\İÚÛZ	Ë	Ùİ\İÜÜYYÚÛZ	Ë	ÛX^Ùİ\İÚÛZ	ÊK™X\‘Ü›İ[™Û\ÜÏ]YÓ[X™\[J[YXË	Û™X\—ÙÜ›İ[™ØÛ\ÜÉË	ÙÜ›İ[™ÚZ[ØÛ\ÜÉË	ÚZ[ØÛ\Ü×ÙÜ›İ[™	ÊK]PØ\RšÙÏ]YÓ[X™\[J[š\›Û›Y[	Û]WØØ\IË	Û]XØ\IË	Û[Üİİ[œİX›WØØ\IÊKÚ[™ÚX\Œ“\Ï]YÓ[X™\[J[š\›Û›Y[	İÚ[™ÜÚX\—ÌÍšÛIË	Ø[×ÜÚX\—ÌÍšÛIË	ÙY\Û^Y\—ÜÚX\‰ÊNÂˆÛÛœİİ\œ™[[\Xİ˜Y]\ÒÛOSX]›X^
+ËX]›Z[ŠN[X™\‹š\Ñš[š]JÙ[\™XRÛLŠI‰˜Ù[\™XRÛLŒÓX]œÜ\
+Ù[\™XRÛL‹ÓX]”JN“X]›X^
+X]›Z[ŠL‹[X™\Š˜XÚÑ›Ü™XØ\İË[˜Ù\Z[RÛJ_ŠJJJK˜XÚÑ›Ü™XØ\İÏY›Ü™XØ\İË›X\
+›İÏOŠİ[YNœ›İË[YKZ[]\Îœ›İË›Z[]\Ë]]YNœ›İË›]]YKÛ™Ú]YNœ›İË›Û™Ú]YK\İ[˜ÙRÛNœ›İË™\İ[˜ÙRÛKY™™Xİ]™Q\İ[˜ÙRÛNœ›İË™Y™™Xİ]™Q\İ[˜ÙRÛK[˜Ù\Z[RÛNœ›İË[˜Ù\Z[RÛK[˜Ù\Z[SZ[›Ü’ÛNœ›İË[˜Ù\Z[SZ[›Ü’ÛK[˜Ù\Z[SÜšY[][Û‘YÎœ›İË[˜Ù\Z[SÜšY[][Û‘YßJJNÂˆÙ[Ëœ\Ú
+ÚYšÛÛœ˜Y]šX]J]œË	ÚY[YšY\‰Ê_YÕ˜[YJ™X]\™K	ÚY[YšY\‰Ê_Ù[IØÙ[Ë›[™İ
+Ì_X]]YN˜Û]Û™Ú]YN˜ÛÛ‹\Ü^S]]YK\Ü^SÛ™Ú]YKİ\œ™[›Ûİš[İ\œ™[\İ[˜ÙRÛKÚ]P™X\š[™ÑYÎ“[X™\Š™X\š[™ÕİØ\™Ê]Û‹Û]ÛÛŠKÑš^Y
+JJK™[]˜[˜ÙQ\İ[˜ÙRÛKİ\œ™[[\Xİ˜Y]\ÒÛK˜XÚÑ›Ü™XØ\İË›Ü™XØ\İ\İ[˜ÙRÛN˜™\İ›Ü™XØ\İË™\İ[˜ÙRÛK›Ü™XØ\İY™™Xİ]™Q\İ[˜ÙRÛN˜™\İY™™Xİ]™Q›Ü™XØ\İË™Y™™Xİ]™Q\İ[˜ÙRÛK›Ü™XØ\İ[˜Ù\Z[RÛN˜™\İ›Ü™XØ\İË[˜Ù\Z[RÛK›Ü™XØ\İ[YN˜™\İ›Ü™XØ\İË[YK›Ü™XØ\İ]]YN˜™\İ›Ü™XØ\İË›]]YK›Ü™XØ\İÛ™Ú]YN˜™\İ›Ü™XØ\İË›Û™Ú]YK˜XÚÑ›Ü™XØ\İ[YN˜XÚÑ›Ü™XØ\İË[YK˜XÚÑ›Ü™XØ\İ]]YN˜XÚÑ›Ü™XØ\İË›]]YK˜XÚÑ›Ü™XØ\İÛ™Ú]YN˜XÚÑ›Ü™XØ\İË›Û™Ú]YK˜XÚÑ›Ü™XØ\İ[˜Ù\Z[RÛN˜XÚÑ›Ü™XØ\İË[˜Ù\Z[RÛK[İ[Û‘\™Xİ[Û‘YÎ˜XÚÑ›Ü™XØ\İÓ[X™\Š™X\š[™ÕİØ\™ÊÛ]ÛÛ‹˜XÚÑ›Ü™XØ\İ›]]YK˜XÚÑ›Ü™XØ\İ›Û™Ú]YJKÑš^Y
+JJN˜™\İ›Ü™XØ\İÓ[X™\Š™X\š[™ÕİØ\™ÊÛ]ÛÛ‹™\İ›Ü™XØ\İ›]]YK™\İ›Ü™XØ\İ›Û™Ú]YJKÑš^Y
+JJN“[X™\‹š\Ñš[š]J˜XÚÚ[™Ñ\™Xİ[ÛŠOÓ[X™\Š
 
 
-const CFSV2_SEASONAL_ROOT='https://www.cpc.ncep.noaa.gov/products/CFSv2';
-const CFSV2_GROUPS=['dataInd1','dataInd2','dataInd3'];
-const NC_DIMENSION=10,NC_VARIABLE=11,NC_ATTRIBUTE=12;
-function ncPad4(value){return(value+3)&~3}
-function ncTypeSize(type){return type===1||type===2?1:type===3?2:type===4||type===5?4:type===6?8:0}
-function ncString(view,state){const length=view.getUint32(state.offset,false);state.offset+=4;const bytes=new Uint8Array(view.buffer,view.byteOffset+state.offset,length);state.offset+=ncPad4(length);return new TextDecoder().decode(bytes)}
-function ncReadScalar(view,offset,type){if(type===1)return view.getInt8(offset);if(type===2)return view.getUint8(offset);if(type===3)return view.getInt16(offset,false);if(type===4)return view.getInt32(offset,false);if(type===5)return view.getFloat32(offset,false);if(type===6)return view.getFloat64(offset,false);return NaN}
-function ncAttributeList(view,state){const tag=view.getUint32(state.offset,false);state.offset+=4;if(tag===0){state.offset+=4;return{}}if(tag!==NC_ATTRIBUTE)throw new Error(`NetCDF Attribut-Tag ${tag} unbekannt`);const count=view.getUint32(state.offset,false);state.offset+=4;const attrs={};for(let i=0;i<count;i++){const name=ncString(view,state),type=view.getUint32(state.offset,false),length=view.getUint32(state.offset+4,false);state.offset+=8;const size=ncTypeSize(type);if(!size)throw new Error(`NetCDF Attributtyp ${type} nicht unterstÃ¼tzt`);if(type===2){const bytes=new Uint8Array(view.buffer,view.byteOffset+state.offset,length);attrs[name]=new TextDecoder().decode(bytes).replace(/\0+$/,'')}else{const values=[];for(let j=0;j<length;j++)values.push(ncReadScalar(view,state.offset+j*size,type));attrs[name]=length===1?values[0]:values}state.offset+=ncPad4(length*size)}return attrs}
-function parseNetcdfClassic(buffer){const view=new DataView(buffer);if(view.byteLength<32||view.getUint8(0)!==67||view.getUint8(1)!==68||view.getUint8(2)!==70)throw new Error('CFSv2-Datei ist kein NetCDF');const version=view.getUint8(3);if(version!==1&&version!==2)throw new Error(`NetCDF-Version ${version} nicht unterstÃ¼tzt`);const state={offset:8};const dimensions=[];const dimTag=view.getUint32(state.offset,false);state.offset+=4;if(dimTag===0)state.offset+=4;else{if(dimTag!==NC_DIMENSION)throw new Error('NetCDF Dimensionsliste ungÃ¼ltig');const count=view.getUint32(state.offset,false);state.offset+=4;for(let i=0;i<count;i++)dimensions.push({name:ncString(view,state),length:view.getUint32(state.offset,false)}),state.offset+=4}ncAttributeList(view,state);const varTag=view.getUint32(state.offset,false);state.offset+=4;const variables={};if(varTag===0)state.offset+=4;else{if(varTag!==NC_VARIABLE)throw new Error('NetCDF Variablenliste ungÃ¼ltig');const count=view.getUint32(state.offset,false);state.offset+=4;for(let i=0;i<count;i++){const name=ncString(view,state),ndims=view.getUint32(state.offset,false);state.offset+=4,dimids=[];for(let j=0;j<ndims;j++){dimids.push(view.getUint32(state.offset,false));state.offset+=4}const attrs=ncAttributeList(view,state),type=view.getUint32(state.offset,false),vsize=view.getUint32(state.offset+4,false);state.offset+=8;let begin;if(version===1){begin=view.getUint32(state.offset,false);state.offset+=4}else{const high=view.getUint32(state.offset,false),low=view.getUint32(state.offset+4,false);begin=high*4294967296+low;state.offset+=8}variables[name]={name,dimids,attrs,type,vsize,begin}}}return{view,dimensions,variables}}
-function ncVariableValues(parsed,variable){const size=ncTypeSize(variable.type),length=variable.dimids.reduce((product,id)=>product*Math.max(1,parsed.dimensions[id]?.length||1),1),values=[];for(let i=0;i<length;i++)values.push(ncReadScalar(parsed.view,variable.begin+i*size,variable.type));return values}
-function ncValid(value,attrs){const fill=Number(attrs?._FillValue),missing=Number(attrs?.missing_value);if(!Number.isFinite(value)||Number.isFinite(fill)&&Math.abs(value-fill)<1e-6||Number.isFinite(missing)&&Math.abs(value-missing)<1e-6||Math.abs(value)>1e30)return NaN;const scale=Number(attrs?.scale_factor),offset=Number(attrs?.add_offset);return value*(Number.isFinite(scale)?scale:1)+(Number.isFinite(offset)?offset:0)}
-function ncNearestIndex(values,target,circular=false){let best=0,distance=Infinity;for(let i=0;i<values.length;i++){const raw=Number(values[i]);if(!Number.isFinite(raw))continue;let delta=Math.abs(raw-target);if(circular)delta=Math.min(delta,360-delta);if(delta<distance){distance=delta;best=i}}return best}
-function ncTimeIso(value,units,index){const text=String(units||''),match=text.match(/(days|hours)\s+since\s+(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}(?::\d{2})?))?/i);if(match){const base=Date.parse(`${match[2]}T${match[3]||'00:00:00'}Z`),mult=/hours/i.test(match[1])?3600000:86400000;if(Number.isFinite(base)&&Number.isFinite(value))return new Date(base+Number(value)*mult).toISOString().slice(0,10)}const now=new Date(),date=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+index,1));return date.toISOString().slice(0,10)}
-function cfsv2PointFromNetcdf(buffer,lat,lon){const parsed=parseNetcdfClassic(buffer),vars=parsed.variables,find=name=>Object.values(vars).find(variable=>String(variable.name).toLowerCase()===name.toLowerCase()),lonVar=find('lon')||find('longitude'),latVar=find('lat')||find('latitude'),timeVar=find('time'),anom=find('anom');if(!lonVar||!latVar||!timeVar||!anom)throw new Error('CFSv2 NetCDF enthÃ¤lt nicht LON/LAT/TIME/anom');const lons=ncVariableValues(parsed,lonVar),lats=ncVariableValues(parsed,latVar),times=ncVariableValues(parsed,timeVar),targetLon=((lon%360)+360)%360,lonIndex=ncNearestIndex(lons,targetLon,true),latIndex=ncNearestIndex(lats,lat,false),dimNames=anom.dimids.map(id=>String(parsed.dimensions[id]?.name||'').toLowerCase()),dimLengths=anom.dimids.map(id=>Math.max(1,parsed.dimensions[id]?.length||1)),values=[];for(let timeIndex=0;timeIndex<times.length;timeIndex++){const indices=dimNames.map(name=>name.includes('lon')?lonIndex:name.includes('lat')?latIndex:name.includes('time')?timeIndex:0);let linear=0;for(let i=0;i<indices.length;i++)linear=linear*dimLengths[i]+indices[i];const size=ncTypeSize(anom.type),raw=ncReadScalar(parsed.view,anom.begin+linear*size,anom.type),value=ncValid(raw,anom.attrs);values.push({date:ncTimeIso(times[timeIndex],timeVar.attrs?.units,timeIndex),value:Number.isFinite(value)?value:null})}return{latitude:Number(lats[latIndex]),longitude:Number(lons[lonIndex])>180?Number(lons[lonIndex])-360:Number(lons[lonIndex]),values,units:String(anom.attrs?.units||'')}}
-function ncPointRangePlan(buffer,lat,lon){const parsed=parseNetcdfClassic(buffer),vars=parsed.variables,find=name=>Object.values(vars).find(variable=>String(variable.name).toLowerCase()===name.toLowerCase()),lonVar=find('lon')||find('longitude'),latVar=find('lat')||find('latitude'),timeVar=find('time'),anom=find('anom');if(!lonVar||!latVar||!timeVar||!anom)throw new Error('NMME NetCDF enthÃ¤lt nicht LON/LAT/TIME/anom');for(const variable of[lonVar,latVar,timeVar]){const size=ncTypeSize(variable.type),length=variable.dimids.reduce((product,id)=>product*Math.max(1,parsed.dimensions[id]?.length||1),1);if(variable.begin+length*size>parsed.view.byteLength)throw new Error('NMME Koordinaten liegen auÃŸerhalb des Header-Range')}const lons=ncVariableValues(parsed,lonVar),lats=ncVariableValues(parsed,latVar),times=ncVariableValues(parsed,timeVar),targetLon=((lon%360)+360)%360,lonIndex=ncNearestIndex(lons,targetLon,true),latIndex=ncNearestIndex(lats,lat,false),dimNames=anom.dimids.map(id=>String(parsed.dimensions[id]?.name||'').toLowerCase()),dimLengths=anom.dimids.map(id=>Math.max(1,parsed.dimensions[id]?.length||1)),size=ncTypeSize(anom.type),ranges=[];for(let timeIndex=0;timeIndex<times.length;timeIndex++){const indices=dimNames.map(name=>name.includes('lon')?lonIndex:name.includes('lat')?latIndex:name.includes('time')?timeIndex:0);let linear=0;for(let i=0;i<indices.length;i++)linear=linear*dimLengths[i]+indices[i];const start=anom.begin+linear*size;ranges.push({timeIndex,start,end:start+size-1,date:ncTimeIso(times[timeIndex],timeVar.attrs?.units,timeIndex)})}return{latitude:Number(lats[latIndex]),longitude:Number(lons[lonIndex])>180?Number(lons[lonIndex])-360:Number(lons[lonIndex]),ranges,type:anom.type,attrs:anom.attrs,units:String(anom.attrs?.units||'')}}
-function bytesIndexOf(haystack,needle,start=0){outer:for(let i=start;i<=haystack.length-needle.length;i++){for(let j=0;j<needle.length;j++)if(haystack[i+j]!==needle[j])continue outer;return i}return-1}
-function parseMultipartByteRanges(buffer,contentType){const boundaryMatch=String(contentType||'').match(/boundary=(?:\"([^\"]+)\"|([^;\s]+))/i);if(!boundaryMatch)return new Map();const boundary=new TextEncoder().encode(`--${boundaryMatch[1]||boundaryMatch[2]}`),bytes=new Uint8Array(buffer),decoder=new TextDecoder(),crlfcrlf=new Uint8Array([13,10,13,10]),parts=new Map();let cursor=bytesIndexOf(bytes,boundary,0);while(cursor>=0){const next=bytesIndexOf(bytes,boundary,cursor+boundary.length);if(next<0)break;const headerStart=cursor+boundary.length+(bytes[cursor+boundary.length]===13&&bytes[cursor+boundary.length+1]===10?2:0),headerEnd=bytesIndexOf(bytes,crlfcrlf,headerStart);if(headerEnd>0&&headerEnd<next){const header=decoder.decode(bytes.slice(headerStart,headerEnd)),range=header.match(/content-range:\s*bytes\s+(\d+)-(\d+)\//i);if(range){const bodyStart=headerEnd+4,bodyEnd=next>=2&&bytes[next-2]===13&&bytes[next-1]===10?next-2:next;parts.set(Number(range[1]),bytes.slice(bodyStart,bodyEnd))}}cursor=next}return parts}
-async function fetchNetcdfPointRanges(source,lat,lon,seasonalTtl){const baseHeaders={Accept:'application/x-netcdf,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf={cacheTtl:seasonalTtl,cacheEverything:true},headerResponse=await fetchWithDeadline(source,{headers:{...baseHeaders,Range:'bytes=0-262143'},cf},12000);if(!headerResponse.ok)throw new Error(`NMME Range-Header HTTP ${headerResponse.status}`);const headerBuffer=await headerResponse.arrayBuffer();if(headerResponse.status===200)return cfsv2PointFromNetcdf(headerBuffer,lat,lon);let plan;try{plan=ncPointRangePlan(headerBuffer,lat,lon)}catch{const full=await fetchWithDeadline(source,{headers:baseHeaders,cf},18000);if(!full.ok)throw new Error(`NMME Vollfallback HTTP ${full.status}`);return cfsv2PointFromNetcdf(await full.arrayBuffer(),lat,lon)}if(!plan.ranges.length)return{latitude:plan.latitude,longitude:plan.longitude,values:[],units:plan.units};const rangeHeader=`bytes=${plan.ranges.map(range=>`${range.start}-${range.end}`).join(',')}`,valuesResponse=await fetchWithDeadline(source,{headers:{...baseHeaders,Range:rangeHeader},cf},12000);if(!valuesResponse.ok)throw new Error(`NMME Multi-Range HTTP ${valuesResponse.status}`);const valuesBuffer=await valuesResponse.arrayBuffer();if(valuesResponse.status===200)return cfsv2PointFromNetcdf(valuesBuffer,lat,lon);const parts=parseMultipartByteRanges(valuesBuffer,valuesResponse.headers.get('content-type')),values=plan.ranges.map(range=>{const bytes=parts.get(range.start);if(!bytes||bytes.byteLength<ncTypeSize(plan.type))return{date:range.date,value:null};const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),raw=ncReadScalar(view,0,plan.type),value=ncValid(raw,plan.attrs);return{date:range.date,value:Number.isFinite(value)?value:null}});if(values.every(row=>row.value===null)){const full=await fetchWithDeadline(source,{headers:baseHeaders,cf},18000);if(!full.ok)throw new Error(`NMME Multi-Range-Fallback HTTP ${full.status}`);return cfsv2PointFromNetcdf(await full.arrayBuffer(),lat,lon)}return{latitude:plan.latitude,longitude:plan.longitude,values,units:plan.units}}
+˜XÚÚ[™Ñ\™Xİ[Û‰LÍŒ
+JÌÍŒ
+ILÍŒ
+KÑš^Y
+JJN[™Yš[™Y\œš]˜[Z[]\Ë\Ğ\›ØXÚ[™Î˜Ù[\\›ØXÚ[™ËÙ]™\š]KÙ]™\š]T™XÚ\ÙK™[™Z[›YËX]T˜Z[‘›YËİ\İ›YËYÚš[™Ô˜]K\™XRZ[\™XS\™ÙRZ[ÜYYÛZX^™Y›Xİ]š]Q‹YX[”™Y›Xİ]š]Q‹XÚÕÜÛKXÚĞ›İÛRÛKš[ÙÓL‹š[[œÚ]QÛLËÙ[\™XRÛL‹]Xİ[ÛÛİ[˜Z[[[İ[[KX^Z[Ú^™PÛKÚ[™İ\İÛZ™X\‘Ü›İ[™Û\ÜË]PØ\RšÙËÚ[™ÚX\Œ“\ßJNÂˆBˆËÈH˜Z™XİÜH\ÈÛ›HX›\ÚX›HÚ[ˆÓÓ”QÑİ\YYH™X[][K\Ú[ˆËÈ\ÜÛØÚX][Û‹ˆ[İ[Ûˆ™XİÜœÈ[Û™H]\İ™]™\ˆ™H^[™Y[ÈH›İ]K‚ˆ›ÜŠÛÛœİÙ[ÙˆÙ[Ê^ØÛÛœİÙ™šXÚX[JÙ[˜XÚÑ›Ü™XØ\İß×JK™š[\ŠÚ[O“[X™\ŠÚ[Ë›Z[]\ÊOŒ
+NØÙ[˜XÚÔ]X[]O[Ù™šXÚX[›[™İL‰‰“[X™\ŠÙ™šXÚX[˜]
+LJOË›Z[]\ÊKS[X™\ŠÙ™šXÚX[ÌOË›Z[]\ÊOLLÉÛÙ™šXÚX[	Î‰Ú[œİY™šXÚY[	ßBˆÛÛœİY\YV×NÙ›ÜŠÛÛœİÙ[ÙˆÙ[ËœÛÜ
+
+KŠOO˜Kœ™[]˜[˜ÙQ\İ[˜ÙRÛKX‹œ™[]˜[˜ÙQ\İ[˜ÙRÛJJ^ØÛÛœİÙ^OTİš[™ÊÙ[šY	ÉÊKš[J
+KÓİÙ\Ø\ÙJ
+K^\İ[™ÏYY\Y™š[™
+›İÏO”İš[™Ê›İËšY	ÉÊKš[J
+KÓİÙ\Ø\ÙJ
+OOOZÙ^I‰šÙ^JNÚYŠY^\İ[™ÊYY\Yœ\Ú
+Ù[
+NÙ[ÙHYŠ
+Ù[œÙ]™\š]_
+OŠ^\İ[™ËœÙ]™\š]_
+_[X™\ŠÙ[›X^™Y›Xİ]š]QŸ
+O“[X™\Š^\İ[™Ë›X^™Y›Xİ]š]QŸ
+JSØš™Xİ˜\ÜÚYÛŠ^\İ[™ËÙ[
+_\™]\›ˆY\YÂŸB™[˜İ[ÛˆY\ÛØŞXÛÛ™U[Y\İ[\
+š[[˜[YOIÉÊ^ØÛÛœİX]ÚTİš[™Êš[[˜[YJK›X]Ú
+ÛY\Û×ÊÎJWÊÍJW[	ÚJNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YØÛÛœİ]O[X]ÚÌWK[YO[X]ÚÌ—NÜ™]\›ˆ]K•UÊ[X™\Š]KœÛXÙJ
+JK[X™\Š]KœÛXÙJŠJKLK[X™\Š]KœÛXÙJ‹
+JK[X™\Š[YKœÛXÙJŠJK[X™\Š[YKœÛXÙJ‹
+JJ_B™[˜İ[Ûˆ]\İY\ÛØŞXÛÛ™Qš[[˜[YJ[™^[
+^ØÛÛœİ›İÏQ]K››İÊ
+K˜[Y\ÏVË‹‹”İš[™Ê[™^[
+K›X]Ú[
+ÛY\Û××ÎW×ÍW[ÙÚJWK›X\
+X]ÚO›X]ÚÌJNÜ™]\›–Ë‹‹›™]ÈÙ]
+˜[Y\ÊWK›X\
+˜[YOOŠÛ˜[YK[YN›Y\ÛØŞXÛÛ™U[Y\İ[\
+˜[YJ_JJK™š[\Š][OO“[X™\‹š\Ñš[š]J][K[YJI‰š][K[YO[›İÊÌL
+Œ	‰š][K[YO[›İËLÍŠŒÍŒ
+KœÛÜ
+
+KŠOO˜‹[YKXK[YJVÌ_B™[˜İ[Ûˆ\œÙSY\ÛØŞXÛÛ™Q]Xİ[ÛœÊ[
+^ÂˆÛÛœİ]™[ÏVË‹‹”İš[™Ê[
+K›X]Ú[
+Ï
+ÎŠÎ—ÊÊNŠOÙ]™[Š×—JŠOŠ×××JÊOÊÎŠÎ—ÊÊNŠOÙ]™[‹ÙÚJWNÂˆYŠ]™[Ë›[™İ
+\™]\›ˆ]™[Ë›X\
+
+X]Ú[™^
+OOØÛÛœİ]œÏ[X]ÚÌWK]™[[X]ÚÌ—K[İš[™ÏX›ØÚÜÊ]™[	Û[İš[™Ë\Ú[	ÊVÌ_›ØÚÜÊ]™[	Û[İš[™×ÜÚ[	ÊVÌ_›ØÚÜÊ]™[	ÙÙ[Ù]X×ØÛÛÜ™[˜]IÊVÌ_]™[]]YO]YÓ[X™\[J[İš[™Ë	Û]]YIË	Û]	ÊKÛ™Ú]YO]YÓ[X™\[J[İš[™Ë	ÛÛ™Ú]YIË	ÛÛ‰ÊNÚYŠ]]YOOO][™Yš[™YÛ™Ú]YOOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ\˜[Y]\œÏX›ØÚÜÊ]™[	Û›İØØ\İ\\˜[Y]\œÉÊVÌ_›ØÚÜÊ]™[	Û›İØØ\İÜ\˜[Y]\œÉÊVÌ_]™[[\ÙOX›ØÚÜÊ]™[	Ù[\ÙIÊVÌ_]™[Û\“[İ[ÛX›ØÚÜÊ[İš[™Ë	ÜÛ\—Û[İ[Û‰ÊVÌ_›ØÚÜÊ[İš[™Ë	ÜÛ\‹[[İ[Û‰ÊVÌ_[İš[™Ë˜]Õ[YO]YÕ˜[YJ]™[	İ[YIÊKØœÙ\™Y]\ØY™Q]J˜]Õ[YI‰‹ÊŞ–—_ÊËWWÌŸN×ÌŸJIË\İ
+˜]Õ[YJOÜ˜]Õ[YNœ˜]Õ[YOØ	Ü˜]Õ[Y_V˜[™Yš[™Y
+K]™[]YÓ[X™\[J\˜[Y]\œË	ÛY\Û×Ú[[œÚ]IË	ÛY\ÛØŞXÛÛ™WÚ[[œÚ]IË	Ü˜[šÉÊK›İÛOZZYÚÛJYÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WØ˜\ÙIË	Ø›İÛWÚZYÚ	Ë	Ø˜\ÙWÚZYÚ	Ë	ÛY\ÛØŞXÛÛ™WØ›İÛIÊJKÜZZYÚÛJYÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WİÜ	Ë	İÜÚZYÚ	Ë	İ\\—ÚZYÚ	ÊJKX[Y]\]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÙX[Y]\‰Ë	ÙX[Y]\‰Ë	ÙX[Y]\—ÚÛIÊOÏİYÓ[X™\[J[\ÙK	ÛXZ›Ü—Ø^\ÉÊKX[Y]\‘\]Z]˜[[]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÙX[Y]\—Ù\]Z]˜[[	ÊKXÚÕÜZZYÚÛJYÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÙXÚİÜ	Ë	ÙXÚ×İÜ	ÊJKš[]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™Wİš[	Ë	İš[	ÊKYX[”™Y›Xİ]š]O]YÓ[X™\[J\˜[Y]\œË	ÛYX[—Ù‰Ë	ÛYX[—Ü™Y›Xİ]š]IÊKX^™Y›Xİ]š]O]YÓ[X™\[J\˜[Y]\œË	ÛX^Ù‰Ë	ÛX^Ü™Y›Xİ]š]IÊKÚX\“YX[]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÜÚX\—ÛYX[‰ÊKÚX\“X^]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÜÚX\—ÛX^	ÊK[ÛY[[SYX[]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÛ[ÛY[[WÛYX[‰ÊK[ÛY[[SX^]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÛ[ÛY[[WÛX^	ÊKÚX\•™XİÜœÏ]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÜÚX\—İ™XİÜœÉÊKÚX\‘™X]\™\Ï]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™WÜÚX\—Ù™X]\™\ÉÊK™[ØÚ]SX^]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™Wİ™[ØÚ]WÛX^	ÊK›İ][Û˜[™[ØÚ]SX^]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™Wİ™[ØÚ]WÜ›İ][Û˜[ÛX^	ÊK›İ][Û˜[™[ØÚ]SYX[]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™Wİ™[ØÚ]WÜ›İ][Û˜[ÛYX[‰ÊK›İ][Û˜[™[ØÚ]QÜ›İ[™]YÓ[X™\[J\˜[Y]\œË	ÛY\ÛØŞXÛÛ™Wİ™[ØÚ]WÜ›İ][Û˜[ÛX^ØÛÜÙ\İİ×ÙÜ›İ[™	ÊK[İ[Û”ÜYYÛZ]YÓ[X™\[JÛ\“[İ[Û‹	ÜÜYY	ÊKÜšY[][Û‘YÏ]YÓ[X™\[J[\ÙK	ÛÜšY[][Û‰ÊKÜ›˜YÏ]YÓ[X™\[J\˜[Y]\œË	İÜ›˜Y×Ü›Ø˜Xš[]IË	İÜ›˜Y×Ü›Ø˜Xš[]WÜ\˜Ù[	Ë	İÜ›˜Y×Ü›Ø‰ÊNÜ™]\›ÚYšÛÛœ˜Y]šX]J]œË	ÒQ	Ê_YÕ˜[YJ]™[	ÚY[YšY\‰Ê_Y\ÛËIÚ[™^
+Ì_X]]YKÛ™Ú]YKØœÙ\™Y]]™[›İÛKÜX[Y]\‹X[Y]\‘\]Z]˜[[XÚÕÜš[YX[”™Y›Xİ]š]KX^™Y›Xİ]š]KÚX\“YX[‹ÚX\“X^[ÛY[[SYX[‹[ÛY[[SX^ÚX\•™XİÜœËÚX\‘™X]\™\Ë™[ØÚ]SX^›İ][Û˜[™[ØÚ]SX^›İ][Û˜[™[ØÚ]SYX[‹›İ][Û˜[™[ØÚ]QÜ›İ[™[İ[Û”ÜYYÛZÜšY[][Û‘YËÜ›˜Yß_JK™š[\Š›ÛÛX[ŠNÂˆÛÛœİ›ØÚÜÑ›İ[™VË‹‹˜›ØÚÜÊ[	ÛY\ÛØŞXÛÛ™IÊK‹‹˜›ØÚÜÊ[	Ù]Xİ[Û‰ÊK‹‹˜›ØÚÜÊ[	Ù™X]\™IÊWK›İÜÏX›ØÚÜÑ›İ[™›[™İØ›ØÚÜÑ›İ[™–Ôİš[™Ê[
+WNÜ™]\›ˆ›İÜË›X\
+
+›ØÚË[™^
+OOØÛÛœİÛÛÜ™[˜]OX›ØÚÜÊ›ØÚË	ÙÙ[Ù]X×ØÛÛÜ™[˜]IÊVÌ_›ØÚÜÊ›ØÚË	ØÙ[›ÚY	ÊVÌ_›ØÚË]]YO]YÓ[X™\[JÛÛÜ™[˜]K	Û]]YIË	Û]	ÊKÛ™Ú]YO]YÓ[X™\[JÛÛÜ™[˜]K	ÛÛ™Ú]YIË	ÛÛ‰ÊNÚYŠ]]YOOO][™Yš[™YÛ™Ú]YOOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ]™[]YÓ[X™\[J›ØÚË	Ü˜[šÉË	ÛY\ÛØŞXÛÛ™WÜ˜[šÉË	ÜÙ]™\š]IË	Üİ™[™İØÛ\ÜÉË	ÛY\Û×ØÛ\ÜÉÊK›İÛOZZYÚÛJYÓ[X™\[J›ØÚË	Ø›İÛWÚZYÚ	Ë	Ø˜\ÙWÚZYÚ	Ë	ÛY\ÛØŞXÛÛ™WØ›İÛIË	ÛİÙ\—ÚZYÚ	ÊJKÜZZYÚÛJYÓ[X™\[J›ØÚË	İÜÚZYÚ	Ë	ÛY\ÛØŞXÛÛ™WİÜ	Ë	İ\\—ÚZYÚ	ÊJKX[Y]\]YÓ[X™\[J›ØÚË	ÙX[Y]\‰Ë	ÙX[Y]\—ÚÛIË	ÛY\ÛØŞXÛÛ™WÙX[Y]\‰ÊKÜ›˜YÏ]YÓ[X™\[J›ØÚË	İÜ›˜Y×Ü›Ø˜Xš[]IË	İÜ›˜Y×Ü›Ø˜Xš[]WÜ\˜Ù[	Ë	İÜ›˜Y×Ü›Ø‰ÊNÜ™]\›ÚYYÕ˜[YJ›ØÚË	ÚY[YšY\‰Ê_YÕ˜[YJ›ØÚË	ÚY	Ê_Y\ÛËIÚ[™^
+Ì_X]]YKÛ™Ú]YK]™[›İÛKÜX[Y]\‹Ü›˜Yß_JK™š[\Š›ÛÛX[ŠBŸB˜\Ş[˜È[˜İ[Ûˆ]\İY\ÛØŞXÛÛ™Q]Xİ[ÛœÊ
+^Ù›ÜŠÛÛœİ›ÛİÙˆÑÓQTÓĞÖPÓÓ‘WÔ“ÓÕÊ^İ^ØÛÛœİ[™^X]ØZ]™]Ú^
+›ÛİÉĞXØÙ\	Î‰İ^Ú[\XØ][Û‹Ş[
+Ş[	ßJK]\İ[]\İY\ÛØŞXÛÛ™Qš[[˜[YJ[™^
+NÚYŠ[]\İ]K››İÊ
+K[]\İ[YOŒÍJŒ
+XÛÛ[YNØÛÛœİ[X]ØZ]™]Ú^
+™]ÈT“
+]\İ›˜[YK›Ûİ
+KÔİš[™Ê
+KÉĞXØÙ\	Î‰Ø\XØ][Û‹Ş[^Ş[
+‹Ê‰ßJNÜ™]\›ˆ\œÙSY\ÛØŞXÛÛ™Q]Xİ[ÛœÊ[
+_XØ]Úß_\™]\›–×_B™[˜İ[Ûˆ]XÚY\ÛØŞXÛÛ™\ÊÙ[Ë]Xİ[ÛœÊ^Ü™]\›ˆÙ[Ë›X\
+Ù[OÛ]™X\™\İ™X\™\İ\İ[˜ÙOR[™š[š]NÙ›ÜŠÛÛœİ]Xİ[ÛˆÙˆ]Xİ[ÛœÊ^ØÛÛœİİ\œ™[Y\İ[˜ÙJÙ[›]]YKÙ[›Û™Ú]YK]Xİ[Û‹›]]YK]Xİ[Û‹›Û™Ú]YJKÌLÚYŠİ\œ™[™X\™\İ\İ[˜ÙJ^Û™X\™\İY]Xİ[ÛÛ™X\™\İ\İ[˜ÙOXİ\œ™[_ZYŠ[™X\™\İ™X\™\İ\İ[˜ÙOŒÌ
+\™]\›ˆÙ[Ü™]\›Ë‹‹˜Ù[Y\ÛØŞXÛÛ™Q]XİYYKY\ÛØŞXÛÛ™SØœÙ\™Y]›™X\™\İ›ØœÙ\™Y]Y\ÛØŞXÛÛ™S]™[›™X\™\İ›]™[Y\ÛØŞXÛÛ™P›İÛRÛN›™X\™\İ˜›İÛKY\ÛØŞXÛÛ™UÜÛN›™X\™\İÜY\ÛØŞXÛÛ™QX[Y]\’ÛN›™X\™\İ™X[Y]\‹Y\ÛØŞXÛÛ™QX[Y]\‘\]Z]˜[[ÛN›™X\™\İ™X[Y]\‘\]Z]˜[[Y\ÛØŞXÛÛ™QXÚÕÜÛN›™X\™\İ™XÚÕÜY\ÛØŞXÛÛ™Uš[ÙÓL›™X\™\İš[Y\ÛØŞXÛÛ™SYX[”™Y›Xİ]š]Q›™X\™\İ›YX[”™Y›Xİ]š]KY\ÛØŞXÛÛ™SX^™Y›Xİ]š]Q›™X\™\İ›X^™Y›Xİ]š]KY\ÛØŞXÛÛ™TÚX\“YX[›™X\™\İœÚX\“YX[‹Y\ÛØŞXÛÛ™TÚX\“X^›™X\™\İœÚX\“X^Y\ÛØŞXÛÛ™S[ÛY[[SYX[›™X\™\İ›[ÛY[[SYX[‹Y\ÛØŞXÛÛ™S[ÛY[[SX^›™X\™\İ›[ÛY[[SX^Y\ÛØŞXÛÛ™TÚX\•™XİÜœÎ›™X\™\İœÚX\•™XİÜœËY\ÛØŞXÛÛ™TÚX\‘™X]\™\Î›™X\™\İœÚX\‘™X]\™\ËY\ÛØŞXÛÛ™U™[ØÚ]SX^\Î›™X\™\İ™[ØÚ]SX^Y\ÛØŞXÛÛ™U™[ØÚ]T›İ][Û˜[X^\Î›™X\™\İœ›İ][Û˜[™[ØÚ]SX^Y\ÛØŞXÛÛ™U™[ØÚ]T›İ][Û˜[YX[“\Î›™X\™\İœ›İ][Û˜[™[ØÚ]SYX[‹Y\ÛØŞXÛÛ™U™[ØÚ]T›İ][Û˜[Ü›İ[™\Î›™X\™\İœ›İ][Û˜[™[ØÚ]QÜ›İ[™Y\ÛØŞXÛÛ™S[İ[Û”ÜYYÛZ›™X\™\İ›[İ[Û”ÜYYÛZY\ÛØŞXÛÛ™SÜšY[][Û‘YÎ›™X\™\İ›ÜšY[][Û‘YËÜ›˜YÔ›Ø˜Xš[]T\˜Ù[›™X\™\İÜ›˜YËY\ÛØŞXÛÛ™Q\İ[˜ÙRÛN›™X\™\İ\İ[˜Ù__J_B‚˜ÛÛœİİÜ›TXÙPØ][ÙĞØXÚO[™]ÈX\
+
+NÂ˜ÛÛœİİÜ›T™]™\œÙTXÙPØXÚO[™]ÈX\
+
+NÂ™[˜İ[ÛˆİÜ›TXÙU\Tš[Üš]J˜[YOIÉÊ^Ü™]\›ŠØÚ]N‹İÛKš[YÙN[[]ŒËİX\˜Œ‹™ZYÚ›İ\šÛÙŒK™Y™\™[˜ÙNËØØ[]NŒŸVÔİš[™Ê˜[YJKÓİÙ\Ø\ÙJ
+WOÏÌ
+_B™[˜İ[ÛˆİÜ›TXÙUÚ[™İÊØœÙ\™Y]Z[]\ËX\™Ú[“Z[]\Ê^ØÛÛœİ˜\ÙOQ]Kœ\œÙJİš[™ÊØœÙ\™Y]	ÉÊJNÚYŠS[X™\‹š\Ñš[š]J˜\ÙJJ\™]\›ßNØÛÛœİÙ[\X˜\ÙJÓX]›X^
+Z[]\ÊJŒX\™Ú[SX]›X^
+X\™Ú[“Z[]\ÊJŒÜ™]\›Ø\œš]˜[]›™]È]JÙ[\ŠKÒTÓÔİš[™Ê
+K\œš]˜[Ú[™İÔİ\]›™]È]JÙ[\‹[X\™Ú[ŠKÒTÓÔİš[™Ê
+K\œš]˜[Ú[™İÑ[™]›™]È]JÙ[\ŠÛX\™Ú[ŠKÒTÓÔİš[™Ê
+__B™[˜İ[Ûˆ›Ü›X[^™TİÜ›TXÙS˜[YJ˜[YOIÉÊ^Ü™]\›ˆİš[™Ê˜[Y_	ÉÊKš[J
+Kœ™\XÙJ×ÊËÙË	È	Ê_B™[˜İ[ÛˆİÜ›S[İ[Û‘\İ[X]JÙ[XİX[˜XÚÊ^ÂˆÛÛœİXÛ\™Y\™Xİ[Û[[X™\ŠÙ[›[İ[Û‘\™Xİ[Û‘YÊKXÛ\™YÜYY[[X™\ŠÙ[œÜYYÛZ
+NÂˆYŠXÛ\™Y\™Xİ[ÛˆOO][™Yš[™Y	‰™XÛ\™YÜYYOO][™Yš[™Y	‰™XÛ\™YÜYYŒ
+\™]\›Ù\™Xİ[ÛŠXÛ\™Y\™Xİ[ÛŠÌÍŒ
+ILÍŒÜYYÛZ“X]›Z[ŠNX]›X^
+KXÛ\™YÜYY
+JKÛİ\˜ÙN‰Ü›ÙXİ	ßNÂˆÛÛœİ\İXXİX[˜XÚË˜]
+LJK™]š[İ\ÏXXİX[˜XÚË›[™İŒOØXİX[˜XÚË˜]
+LŠN[™Yš[™YÂˆYŠ\İ	‰œ™]š[İ\É‰“[X™\Š\İ›Z[]\ÊO“[X™\Š™]š[İ\Ë›Z[]\ÊJ^ØÛÛœİ[\ÙYİ\œÏJ[X™\Š\İ›Z[]\ÊKS[X™\Š™]š[İ\Ë›Z[]\ÊJKÍŒ˜]™[ÛOY\İ[˜ÙJ™]š[İ\Ë›]]YK™]š[İ\Ë›Û™Ú]YK\İ›]]YK\İ›Û™Ú]YJKÌLÚYŠ[\ÙYİ\œÏŒ	‰˜]™[ÛO‹ŒJ\™]\›Ù\™Xİ[Û˜™X\š[™ÕİØ\™Ê™]š[İ\Ë›]]YK™]š[İ\Ë›Û™Ú]YK\İ›]]YK\İ›Û™Ú]YJKÜYYÛZ“X]›Z[ŠNX]›X^
+K˜]™[ÛKÙ[\ÙYİ\œÊJKÛİ\˜ÙN‰İ˜XÚÉß_Bˆ™]\›Ù\™Xİ[Û™XÛ\™Y\™Xİ[ÛˆOO][™Yš[™YÊXÛ\™Y\™Xİ[ÛŠÌÍŒ
+ILÍŒŒÜYYÛZ™XÛ\™YÜYYOO][™Yš[™YÓX]›Z[ŠNX]›X^
+KXÛ\™YÜYY
+JNŒÍKÛİ\˜ÙN‰Ù˜[˜XÚÉßBŸB™[˜İ[ÛˆİÜ›U˜XÚÔÚ[ÊÙ[
+^ÂˆÛÛœİÜšYÚ[“]]YO[[X™\ŠÙ[›]]YJKÜšYÚ[“Û™Ú]YO[[X™\ŠÙ[›Û™Ú]YJNÚYŠÜšYÚ[“]]YOOO][™Yš[™YÜšYÚ[“Û™Ú]YOOO][™Yš[™Y
+\™]\›–×NÂˆÛÛœİXİX[VŞÛ]]YN›ÜšYÚ[“]]YKÛ™Ú]YN›ÜšYÚ[“Û™Ú]YKZ[]\ÎŒ[YN[™Yš[™Y[˜Ù\Z[RÛNŒŞ[]XÎ™˜[Ù_K‹‹Š\œ˜^Kš\Ğ\œ˜^JÙ[˜XÚÑ›Ü™XØ\İÊOØÙ[˜XÚÑ›Ü™XØ\İÎ–×JK›X\
+›İÏOŠÛ]]YN›[X™\Š›İÏË›]]YJKÛ™Ú]YN›[X™\Š›İÏË›Û™Ú]YJKZ[]\Î›[X™\Š›İÏË›Z[]\ÊK[YNœ›İÏË[YK[˜Ù\Z[RÛN“X]›X^
+[X™\Š›İÏË[˜Ù\Z[RÛJ_
+KŞ[]XÎ™˜[Ù_JJK™š[\Š›İÏOœ›İË›]]YHOO][™Yš[™Y	‰œ›İË›Û™Ú]YHOO][™Yš[™Y	‰œ›İË›Z[]\ÈOO][™Yš[™Y	‰œ›İË›Z[]\ÏŒ	‰œ›İË›Z[]\ÏNL
+WKœÛÜ
+
+KŠOO˜K›Z[]\ËX‹›Z[]\ÊNÂˆÛÛœİY\YV×NÙ›ÜŠÛÛœİÚ[ÙˆXİX[
+^ØÛÛœİ^\İ[™ÏYY\Y™š[™
+›İÏO“X]˜XœÊ›İË›Z[]\Ë\Ú[›Z[]\ÊOJNÚYŠ^\İ[™Ê^ÚYŠÚ[[˜Ù\Z[RÛO^\İ[™Ë[˜Ù\Z[RÛJSØš™Xİ˜\ÜÚYÛŠ^\İ[™ËÚ[
+_Y[ÙHY\Yœ\Ú
+Ú[
+_BˆÛÛœİ[İ[Û\İÜ›S[İ[Û‘\İ[X]JÙ[Y\Y
+K\İYY\Y˜]
+LJ_Y\YÌK™[XZ[š[™Ôİ\SX]›X^
+LX]˜ÙZ[
+
+[X™\Š\İ›Z[]\ÊJËŒJKÌL
+JŒL
+NÂˆ›ÜŠ]Z[]\Ï\™[XZ[š[™Ôİ\ÛZ[]\ÏMŒÛZ[]\ÊÏLL
+^ØÛÛœİ[\ÙYZ[]\Ï[Z[]\ËS[X™\Š\İ›Z[]\ÊK›Ú™XİYY\İ[˜][Û”Ú[
+\İ›]]YK\İ›Û™Ú]YK[İ[Û‹™\™Xİ[Û‹[İ[Û‹œÜYYÛZ
+™[\ÙYZ[]\ËÍŒ
+K[˜Ù\Z[RÛOSX]›Z[ŠŒ‹X]›X^
+[X™\Š\İ[˜Ù\Z[RÛJ_K
+ÛZ[]\Ê‹ŒLÊJNÙY\Yœ\Ú
+Ë‹‹œ›Ú™XİYZ[]\Ë[YN[™Yš[™Y[˜Ù\Z[RÛKŞ[]XÎY_J_Bˆ™]\›ˆY\YœÛÜ
+
+KŠOO˜K›Z[]\ËX‹›Z[]\ÊBŸB™[˜İ[ÛˆİÜ›PÛÜœšYÜ›İ[™ÊÙ[
+^ØÛÛœİÚ[Ï\İÜ›U˜XÚÔÚ[ÊÙ[
+NÚYŠ\Ú[Ë›[™İ
+\™]\›ˆ[ØÛÛœİ[\XİSX]›X^
+Ë[X™\ŠÙ[˜İ\œ™[[\Xİ˜Y]\ÒÛJ_ŠKY[™ÏSX]›X^
+[\Xİ‹‹œÚ[Ë›X\
+Ú[Oš[\Xİ
+ÓX]›X^
+[X™\ŠÚ[[˜Ù\Z[RÛJ_
+JK
+K]]Y\Ï\Ú[Ë›X\
+Ú[OœÚ[›]]YJKÛ™Ú]Y\Ï\Ú[Ë›X\
+Ú[OœÚ[›Û™Ú]YJKZY][]]Y\Ëœ™YXÙJ
+İ[K˜[YJOOœİ[Jİ˜[YK
+KÓX]›X^
+K]]Y\Ë›[™İ
+K]Y\Y[™ËÌLLKÛ”Y\Y[™ËÊLLJ“X]›X^
+ŒKX]˜ÛÜÊZY]
+“X]”KÌN
+JJNÜ™]\›ÜÛİ]“X]›X^
+NKKX]›Z[Š‹‹›]]Y\ÊK[]Y
+KÙ\İ“X]›X^
+LMÎKKX]›Z[Š‹‹›Û™Ú]Y\ÊK[Û”Y
+K›Ü“X]›Z[ŠKKX]›X^
+‹‹›]]Y\ÊJÛ]Y
+KX\İ“X]›Z[ŠMÎKKX]›X^
+‹‹›Û™Ú]Y\ÊJÛÛ”Y
+KY[™ÒÛNœY[™ß_B™[˜İ[ÛˆİÜ›PØ][ÙĞØXÚRÙ^J˜XÚË[\Xİ
+^Ü™]\›˜	İ˜XÚË™š[\Š
+Ë[™^
+OOš[™^OOL[™^OO]˜XÚË›[™İL_[™^	LOOL
+K›X\
+Ú[O˜	ÜÚ[›]]YKÑš^Y
+Š_K	ÜÚ[›Û™Ú]YKÑš^Y
+Š_K	ÓX]œ›İ[™
+Ú[›Z[]\Ê_X
+Kš›Ú[Š	ß	Ê_N‰ÓX]œ›İ[™
+[\Xİ
+_XB™[˜İ[ÛˆİÜ›U˜XÚÔ]Y\TØ[\\Ê˜XÚÊ^ØÛÛœİØ[\\ÏV×NÙ›ÜŠÛÛœİÚ[Ùˆ˜XÚÊ^ÚYŠÚ[›Z[]\ÏOOLÚ[›Z[]\ÏMŒX]œ›İ[™
+Ú[›Z[]\ÊILLOOL
+\Ø[\\Ëœ\Ú
+Ú[
+_\™]\›ˆØ[\\ËœÛXÙJ
+_B™[˜İ[Ûˆ\œÙSİ™\œ\ÜÔİÜ›TXÙ\Ê˜]Ê^Ü™]\›Š\œ˜^Kš\Ğ\œ˜^J˜]ÏË™[[Y[ÊOÜ˜]Ë™[[Y[Î–×JK›X\
+[[Y[OØÛÛœİ]]YO[[X™\Š[[Y[Ë›]ÏÙ[[Y[Ë˜Ù[\Ë›]
+KÛ™Ú]YO[[X™\Š[[Y[Ë›ÛÏÙ[[Y[Ë˜Ù[\Ë›ÛŠK˜[YO[›Ü›X[^™TİÜ›TXÙS˜[YJ[[Y[ËYÜÏË–ÉÛ˜[YN™I×_[[Y[ËYÜÏË›˜[YJKXÙU\OTİš[™Ê[[Y[ËYÜÏËœXÙ_	ÉÊKÓİÙ\Ø\ÙJ
+KÜ[][Û[[X™\Šİš[™Ê[[Y[ËYÜÏËœÜ[][ÛŸ	ÉÊKœ™\XÙJÖ×ŒNK—KÙË	ÉÊJNÚYŠ]]YOOO][™Yš[™YÛ™Ú]YOOO][™Yš[™Y[˜[YJ\™]\›ˆ[Ü™]\›Û˜[YK]]YKÛ™Ú]YKXÙU\KÜ[][Û‹Ûİ[PÛÙN”İš[™Ê[[Y[ËYÜÏË–ÉØY˜Ûİ[I×_[[Y[ËYÜÏË–ÉÚ\×Ú[˜Ûİ[WØÛÙI×_	ÉÊKÕ\\Ø\ÙJ
+_[™Yš[™Y_JK™š[\Š›ÛÛX[Š_B˜\Ş[˜È[˜İ[Ûˆİ™\œ\ÜÔİÜ›TXÙ\Ê˜XÚË[\Xİ
+^ÂˆÛÛœİÙ^O\İÜ›PØ][ÙĞØXÚRÙ^J˜XÚË[\Xİ
+KØXÚY\İÜ›TXÙPØ][ÙĞØXÚK™Ù]
+Ù^JNÚYŠØXÚY	‰˜ØXÚY™^\™\Ï‘]K››İÊ
+J\™]\›ˆØXÚYœXÙ\ÎÂˆÛÛœİÛ]\Ù\ÏV×NÙ›ÜŠÛÛœİÚ[ÙˆİÜ›U˜XÚÔ]Y\TØ[\\Ê˜XÚÊJ^ØÛÛœİ˜Y]\ÏSX]œ›İ[™
+X]›X^
+L
+[\Xİ
+ÓX]›X^
+[X™\ŠÚ[[˜Ù\Z[RÛJ_
+JÌŠJŒL
+JKÙ[\X	Ü˜Y]\ßK	Ó[X™\ŠÚ[›]]YJKÑš^Y
+J_K	Ó[X™\ŠÚ[›Û™Ú]YJKÑš^Y
+J_XÙ›ÜŠÛÛœİÚ[™ÙˆÉÛ›ÙIË	İØ^IË	Ü™[][Û‰×JXÛ]\Ù\Ëœ\Ú
+	ÚÚ[™VÈœXÙHŸˆ—ŠÚ]_İÛŸš[YÙ_[[]İX\˜ŠI—J\›İ[™‰ØÙ[\ŸJNØ
+_BˆÛÛœİ]Y\OXÛİ]šœÛÛ—Vİ[Y[İ]—NÊ	ØÛ]\Ù\Ëš›Ú[Š	ÉÊ_JNÛİ]Ù[\ˆYÜÎØ›ÙO[™]ÈT“ÙX\˜Ú\˜[\ÊÙ]Nœ]Y\_JKÔİš[™Ê
+NÂˆÛÛœİ™\]Y\İÏSÕ‘T”TÔ×ÑS‘ÒS•Ë›X\
+\Ş[˜È[™Ú[OØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[ÛY]Ù‰ÔÔÕ	ËXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹Ş]İİËY›Ü›K]\›[˜ÛÙYØÚ\œÙ]UU‹N	Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸH
+
+ÚÎ‹ËÙÚ]X‹˜ÛÛKÓY][ÓX\[šKÓRQ
+XK›Ù_KŒ
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ	Û™]ÈT“
+[™Ú[
+KšÜİ˜[Y_Nˆ	Ü™\ÜÛœÙKœİ]\ßX
+NÜ™]\›ˆ\œÙSİ™\œ\ÜÔİÜ›TXÙ\Ê]ØZ]™\ÜÛœÙKšœÛÛŠ
+J_JNÂˆ]XÙ\Îİ^ÜXÙ\ÏX]ØZ]›ÛZ\ÙK˜[J™\]Y\İÊ_XØ]Ú
+\œ›ÜŠ^İ›İÈ™]È\œ›ÜŠÜÙ][ˆšXÚ\œ™ZXÚ˜\ˆ	Ù\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_X
+_BˆİÜ›TXÙPØ][ÙĞØXÚKœÙ]
+Ù^KÙ^\™\Î‘]K››İÊ
+JÍŠŒÍŒXÙ\ßJNÚYŠİÜ›TXÙPØ][ÙĞØXÚKœÚ^™OŒÌŠ\İÜ›TXÙPØ][ÙĞØXÚK™[]JİÜ›TXÙPØ][ÙĞØXÚKšÙ^\Ê
+K›™^
+
+K˜[YJNÜ™]\›ˆXÙ\ÂŸB™[˜İ[ÛˆØØ[˜XÚĞÛÛÜ™[˜]\ÊÜšYÚ[‹Ú[
+^ØÛÛœİYX[“]JÜšYÚ[‹›]]YJÜÚ[›]]YJJ‹J“X]”KÌNÜ™]\›ŞŠÚ[›Û™Ú]YK[ÜšYÚ[‹›Û™Ú]YJJŒLLKŒÌŠ“X]›X^
+Œ‹X]˜ÛÜÊYX[“]
+JKNŠÚ[›]]YK[ÜšYÚ[‹›]]YJJŒLLMß_B™[˜İ[ÛˆÛÜÙ\İİÜ›U˜XÚÔ›Ú™Xİ[ÛŠXÙK˜XÚË[\Xİ˜Y]\ÒÛJ^ÂˆÛÛœİÜšYÚ[]˜XÚÖÌK\™Ù][ØØ[˜XÚĞÛÛÜ™[˜]\ÊÜšYÚ[‹XÙJNÛ]™\İ[[ÂˆYŠ˜XÚË›[™İOOLJ^ØÛÛœİ\İ[˜ÙRÛOY\İ[˜ÙJÜšYÚ[‹›]]YKÜšYÚ[‹›Û™Ú]YKXÙK›]]YKXÙK›Û™Ú]YJKÌLÜ™]\›ÜØÛÜ™N™\İ[˜ÙRÛKZ[\Xİ˜Y]\ÒÛJ‹ŒMK\İ[˜ÙRÛKZ[]\ÎŒ[˜Ù\Z[RÛNŒ]]YN›ÜšYÚ[‹›]]YKÛ™Ú]YN›ÜšYÚ[‹›Û™Ú]Y__Bˆ›ÜŠ][™^LÚ[™^˜XÚË›[™İLNÚ[™^
+ÊÊ^ØÛÛœİO]˜XÚÖÚ[™^K]˜XÚÖÚ[™^
+ÌWKO[ØØ[˜XÚĞÛÛÜ™[˜]\ÊÜšYÚ[‹JK[ØØ[˜XÚĞÛÛÜ™[˜]\ÊÜšYÚ[‹ŠK\‹\KO\‹K\KK[™İÜ]X\™YY
+™
+ÙJ™K[[™İÜ]X\™YŒÓX]›X^
+X]›Z[ŠK
+
+\™Ù]\K
+J™
+Ê\™Ù]K\KJJ™JKÛ[™İÜ]X\™Y
+JNŒ\K
+İ
+™O\KJİ
+™K\İ[˜ÙRÛOSX]š\İ
+\™Ù]^\™Ù]K^JKZ[]\ÏS[X™\ŠK›Z[]\ÊJİ
+Š[X™\Š‹›Z[]\ÊKS[X™\ŠK›Z[]\ÊJK[˜Ù\Z[RÛOSX]›X^
+[X™\ŠK[˜Ù\Z[RÛJ_
+Jİ
+ŠX]›X^
+[X™\Š‹[˜Ù\Z[RÛJ_
+KSX]›X^
+[X™\ŠK[˜Ù\Z[RÛJ_
+JKØÛÜ™OY\İ[˜ÙRÛKJZ[]\ÏLÚ[\Xİ˜Y]\ÒÛJ‹ŒMNŒ
+NÚYŠX™\İØÛÜ™O™\İœØÛÜ™JX™\İ^ÜØÛÜ™K\İ[˜ÙRÛKZ[]\Ë[˜Ù\Z[RÛK]]YN˜K›]]YJİ
+Š‹›]]YKXK›]]YJKÛ™Ú]YN˜K›Û™Ú]YJİ
+Š‹›Û™Ú]YKXK›Û™Ú]YJ__Bˆ™]\›ˆ™\İŸB™[˜İ[ÛˆİÜ›TXÙTİ]\Ê›Ú™Xİ[Û‹İ\œ™[\İ[˜ÙRÛK[\Xİ˜Y]\ÒÛJ^ÚYŠ[X™\‹š\Ñš[š]Jİ\œ™[\İ[˜ÙRÛJI‰˜İ\œ™[\İ[˜ÙRÛOZ[\Xİ˜Y]\ÒÛJ\™]\›‰Û›İÉÎÚYŠ\›Ú™Xİ[ÛŸ›Ú™Xİ[Û‹›Z[]\ÏLŠ\™]\›ˆ[ÚYŠ›Ú™Xİ[Û‹™\İ[˜ÙRÛOZ[\Xİ˜Y]\ÒÛJ‹
+\™]\›‰ÛZÙ[IÎÚYŠ›Ú™Xİ[Û‹™\İ[˜ÙRÛOZ[\Xİ˜Y]\ÒÛJ\™]\›‰ÜÜÜÚX›IÎÚYŠ›Ú™Xİ[Û‹™\İ[˜ÙRÛOZ[\Xİ˜Y]\ÒÛJÜ›Ú™Xİ[Û‹[˜Ù\Z[RÛJ\™]\›‰ØÛÜœšYÜ‰ÎÜ™]\›ˆ[B™[˜İ[ÛˆİÜ›Tİ]\Ô˜[šÊİ]\Ê^Ü™]\›ŠÛ›İÎZÙ[NŒËÜÜÚX›NŒ‹ÛÜœšYÜŒ_VÜİ]\×_
+_B™[˜İ[ÛˆİÜ›TXÙP\œš]˜[X\™Ú[Šİ]\Ë›Ú™Xİ[Û‹Ù[
+^ÚYŠİ]\ÏOOIÛ›İÉÊ\™]\›ˆØÛÛœİÜYYSX]›X^
+MK[X™\ŠÙ[œÜYYÛZ
+_ÍJK[˜Ù\Z[SZ[]\ÏSX]›X^
+[X™\Š›Ú™Xİ[ÛË[˜Ù\Z[RÛJ_
+KÜÜYY
+ŒÜ™]\›ˆX]œ›İ[™
+X]›Z[ŠÌX]›X^
+İ]\ÏOOIÛZÙ[IÏÍNœİ]\ÏOOIÜÜÜÚX›IÏÎNŒL‹[˜Ù\Z[SZ[]\ÊJJ_B™[˜İ[ÛˆY\TİÜ›TXÙ\Ê›İÜÊ^ØÛÛœİ™\İ[V×NÙ›ÜŠÛÛœİ›İÈÙˆ›İÜËœÛÜ
+
+KŠOO˜K˜\œš]˜[Z[]\ËX‹˜\œš]˜[Z[]\ßİÜ›Tİ]\Ô˜[šÊ‹œİ]\ÊK\İÜ›Tİ]\Ô˜[šÊKœİ]\Ê_İÜ›TXÙU\Tš[Üš]J‹œXÙU\JK\İÜ›TXÙU\Tš[Üš]JKœXÙU\J_
+‹œÜ[][ÛŸ
+KJKœÜ[][ÛŸ
+JJ^ØÛÛœİÙ^O[›Ü›X[^™J›İË›˜[YJKœ™\XÙJ×ÊËÙË	ÉÊK^\İ[™Ï\™\İ[™š[™
+][OO››Ü›X[^™J][K›˜[YJKœ™\XÙJ×ÊËÙË	ÉÊOOOZÙ^I‰™\İ[˜ÙJ][K›]]YK][K›Û™Ú]YK›İË›]]YK›İË›Û™Ú]YJOLÍL
+NÚYŠY^\İ[™Ê^Ü™\İ[œ\Ú
+›İÊNØÛÛ[Y_XÛÛœİ™Y™\™[˜ÙOP›ÛÛX[Š^\İ[™Ëš\Ô™Y™\™[˜ÙSØØ][ÛŸ›İËš\Ô™Y™\™[˜ÙSØØ][ÛŠNÚYŠİÜ›Tİ]\Ô˜[šÊ›İËœİ]\ÊOœİÜ›Tİ]\Ô˜[šÊ^\İ[™Ëœİ]\Ê_›İË˜\œš]˜[Z[]\Ï^\İ[™Ë˜\œš]˜[Z[]\ÊSØš™Xİ˜\ÜÚYÛŠ^\İ[™Ë›İÊNÙ^\İ[™Ëš\Ô™Y™\™[˜ÙSØØ][Û\™Y™\™[˜Ù_\™]\›ˆ™\İ[B™[˜İ[ÛˆÛÛ\XİİÜ›T›İ]Tİ[[X\JXÙ\Ê^ØÛÛœİÜ™\™Y\XÙ\Ë™š[\ŠXÙOOœXÙKœİ]\ÈOOIØÛÜœšYÜ‰ÊKœÛXÙJ
+K˜[Y\ÏVË‹‹›™]ÈÙ]
+Ü™\™Y›X\
+XÙOOœXÙK›˜[YJJWNÚYŠ[˜[Y\Ë›[™İ
+\™]\›‰ÉÎÚYŠ˜[Y\Ë›[™İOOLJ\™]\›ˆ˜[Y\ÖÌNÚYŠ˜[Y\Ë›[™İOOLŠ\™]\›˜›Ûˆ	Û˜[Y\ÖÌ_H˜XÚ	Û˜[Y\ÖÌW_XÜ™]\›˜›Ûˆ	Û˜[Y\ÖÌ_H0ï™\ˆ	Û˜[Y\ËœÛXÙJKLJKœÛXÙJÊKš›Ú[Š	Ë	Ê_H˜XÚ	Û˜[Y\Ë˜]
+LJ_XB™[˜İ[Ûˆ™]™\œÙTİÜ›TXÙS˜[YJ]J^ØÛÛœİYZ[š\İ˜]]™OP\œ˜^Kš\Ğ\œ˜^J]OË›ØØ[]R[™›ÏË˜YZ[š\İ˜]]™JOÙ]K›ØØ[]R[™›Ë˜YZ[š\İ˜]]™N–×KYZ[š\İ˜]]™S˜[YOXYZ[š\İ˜]]™K›X\
+][OO››Ü›X[^™TİÜ›TXÙS˜[YJ][OË›˜[YJJK™š[\Š›ÛÛX[ŠKœ™]™\œÙJ
+K™š[™
+˜[YOO›˜[YHOO[›Ü›X[^™TİÜ›TXÙS˜[YJ]OËœš[˜Ú\[İX™]š\Ú[ÛŠJNÜ™]\›ˆ›Ü›X[^™TİÜ›TXÙS˜[YJ]OË›ØØ[]_]OË˜Ú]_YZ[š\İ˜]]™S˜[Y_]OËœš[˜Ú\[İX™]š\Ú[ÛŠ_B˜\Ş[˜È[˜İ[Ûˆ™]™\œÙTİÜ›TXÙJ]]YKÛ™Ú]YJ^ÂˆÛÛœİÙ^OX	Ó[X™\Š]]YJKÑš^Y
+Ê_N‰Ó[X™\ŠÛ™Ú]YJKÑš^Y
+Ê_XØXÚY\İÜ›T™]™\œÙTXÙPØXÚK™Ù]
+Ù^JNÚYŠØXÚY	‰˜ØXÚY™^\™\Ï‘]K››İÊ
+J\™]\›ˆØXÚYœXÙNÂˆÛÛœİ\›[™]ÈT“
+’QÑUWÔ‘U‘T”ÑJNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û]]YIË[X™\Š]]YJKÑš^Y
+JJNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ™Ú]YIË[X™\ŠÛ™Ú]YJKÑš^Y
+JJNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	ÛØØ[]S[™İXYÙIË	ÙIÊNØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J\›Ôİš[™Ê
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸH
+
+ÚÎ‹ËÙÚ]X‹˜ÛÛKÓY][ÓX\[šKÓRQ
+XKÙØØXÚUŒŒMŒØXÚQ]™\][™ÎY__KML
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ]OX]ØZ]™\ÜÛœÙKšœÛÛŠ
+K˜[YO\™]™\œÙTİÜ›TXÙS˜[YJ]JNÚYŠ[˜[YJ\™]\›ˆ[ØÛÛœİXÙO^Û˜[YK]]YN“[X™\Š]]YJKÛ™Ú]YN“[X™\ŠÛ™Ú]YJKXÙU\N‰ÛØØ[]IËÛİ[PÛÙN”İš[™Ê]OË˜Ûİ[PÛÙ_	ÉÊKÕ\\Ø\ÙJ
+_[™Yš[™YNÜİÜ›T™]™\œÙTXÙPØXÚKœÙ]
+Ù^KÙ^\™\Î‘]K››İÊ
+JÍŠŒÍŒXÙ_JNÚYŠİÜ›T™]™\œÙTXÙPØXÚKœÚ^™OŒMŒ
+\İÜ›T™]™\œÙTXÙPØXÚK™[]JİÜ›T™]™\œÙTXÙPØXÚKšÙ^\Ê
+K›™^
+
+K˜[YJNÜ™]\›ˆXÙBŸB˜\Ş[˜È[˜İ[ÛˆX\İÜ›TXÙ\ĞÛÛ˜İ\œ™[
+][\Ë[Z]X\\Š^ØÛÛœİ™\İ[Ï[™]È\œ˜^J][\Ë›[™İ
+KÛÜšÙ\œÏP\œ˜^K™œ›ÛJÛ[™İ“X]›Z[ŠX]›X^
+K[Z]
+K][\Ë›[™İ
+_K\Ş[˜ÊËÛÜšÙ\’[™^
+OOÙ›ÜŠ][™^]ÛÜšÙ\’[™^Ú[™^][\Ë›[™İÚ[™^
+ÏSX]›Z[ŠX]›X^
+K[Z]
+K][\Ë›[™İ
+J^İ^Ü™\İ[ÖÚ[™^OX]ØZ]X\\Š][\ÖÚ[™^K[™^
+_XØ]ÚÜ™\İ[ÖÚ[™^O[[__JNØ]ØZ]›ÛZ\ÙK˜[
+ÛÜšÙ\œÊNÜ™]\›ˆ™\İ[Ë™š[\Š›ÛÛX[Š_B˜\Ş[˜È[˜İ[Ûˆ˜[˜XÚÔİÜ›TXÙ\ÊÙ[]Û‹ØœÙ\™Y]
+^ÂˆÛÛœİ˜XÚÏ\İÜ›U˜XÚÔÚ[ÊÙ[
+K[\XİSX]›X^
+Ë[X™\ŠÙ[˜İ\œ™[[\Xİ˜Y]\ÒÛJ_ŠNÚYŠ]˜XÚË›[™İ
+\™]\›–×NØÛÛœİ\™Xİ[Û\İÜ›S[İ[Û‘\İ[X]JÙ[˜XÚÊK™\™Xİ[Û‹Ø[\\ÏV×NÂˆ›ÜŠÛÛœİÚ[ÙˆİÜ›U˜XÚÔ]Y\TØ[\\Ê˜XÚÊJ^ÜØ[\\Ëœ\Ú
+Ë‹‹œÚ[İ]\ÎœÚ[›Z[]\ÏLÉÛ›İÉÎ‰ÛZÙ[IË\İ[˜ÙUÕ˜XÚÒÛNŒJNÚYŠÚ[›Z[]\ÏLŸX]œ›İ[™
+Ú[›Z[]\ÊILŒOOL
+^Ù›ÜŠÛÛœİÚYHÙˆËLKWJ\Ø[\\Ëœ\Ú
+Ë‹‹™\İ[˜][Û”Ú[
+Ú[›]]YKÚ[›Û™Ú]YK\™Xİ[ÛŠÜÚYJL[\Xİ
+ŠÚ[›Z[]\ÏLËN‹ŠJKZ[]\ÎœÚ[›Z[]\Ëİ]\ÎœÚ[›Z[]\ÏLÉÛ›İÉÎ‰ÜÜÜÚX›IË[˜Ù\Z[RÛNœÚ[[˜Ù\Z[RÛK\İ[˜ÙUÕ˜XÚÒÛNš[\Xİ
+ŠÚ[›Z[]\ÏLËN‹Š_J__BˆÛÛœİ\™Ù]›Ú™Xİ[ÛXÛÜÙ\İİÜ›U˜XÚÔ›Ú™Xİ[ÛŠÛ]]YN›]Û™Ú]YN›ÛŸK˜XÚË[\Xİ
+K\™Ù]İ]\Ï\İÜ›TXÙTİ]\Ê\™Ù]›Ú™Xİ[Û‹\İ[˜ÙJ]Û‹Ù[›]]YKÙ[›Û™Ú]YJKÌL[\Xİ
+NÚYŠ\™Ù]İ]\Ê\Ø[\\Ëœ\Ú
+Û]]YN›]Û™Ú]YN›Û‹Z[]\Î\™Ù]İ]\ÏOOIÛ›İÉÏÌ\™Ù]›Ú™Xİ[Û‹›Z[]\Ëİ]\Î\™Ù]İ]\Ë[˜Ù\Z[RÛN\™Ù]›Ú™Xİ[ÛË[˜Ù\Z[RÛ_\İ[˜ÙUÕ˜XÚÒÛN\™Ù]›Ú™Xİ[ÛË™\İ[˜ÙRÛ_\Ô™Y™\™[˜ÙSØØ][ÛY_JNÂˆÛÛœİXÙ\ÏX]ØZ]X\İÜ›TXÙ\ĞÛÛ˜İ\œ™[
+Ø[\\ËœÛXÙJŒ
+K\Ş[˜ÈØ[\OOØÛÛœİ™]™\œÙOX]ØZ]™]™\œÙTİÜ›TXÙJØ[\K›]]YKØ[\K›Û™Ú]YJNÚYŠ\™]™\œÙJ\™]\›ˆ[ØÛÛœİX\™Ú[\İÜ›TXÙP\œš]˜[X\™Ú[ŠØ[\Kœİ]\ËØ[\KÙ[
+NÜ™]\›Ë‹‹œ™]™\œÙKİ]\ÎœØ[\Kœİ]\Ë\œš]˜[Z[]\Î“X]›X^
+X]œ›İ[™
+Ø[\K›Z[]\ß
+JK\İ[˜ÙUÕ˜XÚÒÛN“[X™\ŠØ[\K™\İ[˜ÙUÕ˜XÚÒÛJ_ÛÜœšYÜ•ÚYÛNš[\Xİ
+ÓX]›X^
+[X™\ŠØ[\K[˜Ù\Z[RÛJ_
+KÛÛ™šY[˜ÙNœØ[\Kœİ]\ÏOOIÛ›İÉÏÉÚYÚ	ÎœØ[\Kœİ]\ÏOOIÛZÙ[IÏÉÛYY][IÎ‰ÛİÉËÛİ\˜ÙNœØ[\Kœİ]\ÏOOIÛ›İÉÏÉÜ˜Y\‹Y›Ûİš[	ÎœØ[\Kœİ]\ÏOOIØÛÜœšYÜ‰ÏÉİ[˜Ù\Z[KXÛÜœšYÜ‰Î‰Ù›Ü™XØ\İ]˜XÚÉË\Ô™Y™\™[˜ÙSØØ][Û›ÛÛX[ŠØ[\Kš\Ô™Y™\™[˜ÙSØØ][ÛŠK‹‹œİÜ›TXÙUÚ[™İÊØœÙ\™Y][X™\ŠØ[\K›Z[]\Ê_X\™Ú[Š__JNÜ™]\›ˆY\TİÜ›TXÙ\ÊXÙ\ÊKœÛXÙJÌ
+BŸB˜\Ş[˜È[˜İ[Ûˆ[œšXÚİÜ›PY™™XİYXÙ\ÊÙ[]Û‹ØœÙ\™Y]
+^ÂˆYŠÙ[˜XÚÔ]X[]HOOIÛÙ™šXÚX[	Ê\™]\›Ë‹‹˜Ù[˜XÚÑ›Ü™XØ\İÎŠÙ[˜XÚÑ›Ü™XØ\İß×JK™š[\ŠÚ[O“[X™\ŠÚ[Ë›Z[]\ÊOŒ
+KY™™XİYXÙ\Î–×KY™™XİYXÙ\Õİ[Œİ\œ™[Y™™XİYXÙPÛİ[Œ]\™PY™™XİYXÙPÛİ[Œ›İ]Tİ[[X\N‰ÉËXÙTÛİ\˜ÙN‰ÚÙZ[™H™\İ0éYİHÓÓ”QÑSYZœ[šİVYÜÜ\‰ßNÂˆÛÛœİ[\XİSX]›X^
+Ë[X™\ŠÙ[˜İ\œ™[[\Xİ˜Y]\ÒÛJ_ŠK˜XÚÏ\İÜ›U˜XÚÔÚ[ÊÙ[
+NÚYŠ]˜XÚË›[™İ
+\™]\›ˆÙ[Û]Ø][ÙÏV×Nİ^ØØ][ÙÏX]ØZ]İ™\œ\ÜÔİÜ›TXÙ\Ê˜XÚË[\Xİ
+_XØ]ÚßBˆ]›İÜÏXØ][ÙË›X\
+XÙOOØÛÛœİİ\œ™[\İ[˜ÙRÛOY\İ[˜ÙJÙ[›]]YKÙ[›Û™Ú]YKXÙK›]]YKXÙK›Û™Ú]YJKÌL›Ú™Xİ[ÛXÛÜÙ\İİÜ›U˜XÚÔ›Ú™Xİ[ÛŠXÙK˜XÚË[\Xİ
+Kİ]\Ï\İÜ›TXÙTİ]\Ê›Ú™Xİ[Û‹İ\œ™[\İ[˜ÙRÛK[\Xİ
+NÚYŠ\İ]\Ê\™]\›ˆ[ØÛÛœİ\œš]˜[Z[]\Ï\İ]\ÏOOIÛ›İÉÏÌ“X]›X^
+X]œ›İ[™
+›Ú™Xİ[Û‹›Z[]\ÊJKX\™Ú[\İÜ›TXÙP\œš]˜[X\™Ú[Šİ]\Ë›Ú™Xİ[Û‹Ù[
+NÜ™]\›Ë‹‹œXÙKİ]\Ë\œš]˜[Z[]\Ë\İ[˜ÙUÕ˜XÚÒÛNœİ]\ÏOOIÛ›İÉÏØİ\œ™[\İ[˜ÙRÛNœ›Ú™Xİ[Û‹™\İ[˜ÙRÛKÛÜœšYÜ•ÚYÛNš[\Xİ
+ÓX]›X^
+›Ú™Xİ[Û‹[˜Ù\Z[RÛJKÛÛ™šY[˜ÙNœİ]\ÏOOIÛ›İÉÏÉÚYÚ	Îœİ]\ÏOOIÛZÙ[IÏÉÛYY][IÎœİ]\ÏOOIÜÜÜÚX›IÏÉÛYY][IÎ‰ÛİÉËÛİ\˜ÙNœİ]\ÏOOIÛ›İÉÏÉÜ˜Y\‹Y›Ûİš[	Îœİ]\ÏOOIØÛÜœšYÜ‰ÏÉİ[˜Ù\Z[KXÛÜœšYÜ‰Î‰Ù›Ü™XØ\İ]˜XÚÉË‹‹œİÜ›TXÙUÚ[™İÊØœÙ\™Y]\œš]˜[Z[]\ËX\™Ú[Š__JK™š[\Š›ÛÛX[ŠNÂˆÛÛœİÚ]Pİ\œ™[\İ[˜ÙRÛOY\İ[˜ÙJÙ[›]]YKÙ[›Û™Ú]YK]ÛŠKÌLÚ]T›Ú™Xİ[ÛXÛÜÙ\İİÜ›U˜XÚÔ›Ú™Xİ[ÛŠÛ]]YN›]Û™Ú]YN›ÛŸK˜XÚË[\Xİ
+KÚ]Tİ]\Ï\İÜ›TXÙTİ]\ÊÚ]T›Ú™Xİ[Û‹Ú]Pİ\œ™[\İ[˜ÙRÛK[\Xİ
+NÚYŠÚ]Tİ]\Ê^Û]Ú]S˜[YOIĞ™^YÜÛÜ	ËÚ]PÛİ[OIÉÎİ^ØÛÛœİ™]™\œÙOX]ØZ]™]™\œÙTİÜ›TXÙJ]ÛŠNÚYŠ™]™\œÙJ^ÜÚ]S˜[YO\™]™\œÙK›˜[Y_Ú]S˜[YNÜÚ]PÛİ[O\™]™\œÙK˜Ûİ[PÛÙ_	Éß_XØ]ÚßXÛÛœİ\œš]˜[Z[]\Ï\Ú]Tİ]\ÏOOIÛ›İÉÏÌ“X]›X^
+X]œ›İ[™
+Ú]T›Ú™Xİ[Û‹›Z[]\ÊJKX\™Ú[\İÜ›TXÙP\œš]˜[X\™Ú[ŠÚ]Tİ]\ËÚ]T›Ú™Xİ[Û‹Ù[
+NÜ›İÜËœ\Ú
+Û˜[YNœÚ]S˜[YK]]YN›]Û™Ú]YN›Û‹XÙU\N‰Ü™Y™\™[˜ÙIËÛİ[PÛÙNœÚ]PÛİ[_[™Yš[™Yİ]\ÎœÚ]Tİ]\Ë\œš]˜[Z[]\Ë\İ[˜ÙUÕ˜XÚÒÛNœÚ]Tİ]\ÏOOIÛ›İÉÏÜÚ]Pİ\œ™[\İ[˜ÙRÛNœÚ]T›Ú™Xİ[Û‹™\İ[˜ÙRÛKÛÜœšYÜ•ÚYÛNš[\Xİ
+ÓX]›X^
+Ú]T›Ú™Xİ[ÛË[˜Ù\Z[RÛ_
+KÛÛ™šY[˜ÙNœÚ]Tİ]\ÏOOIÛ›İÉÏÉÚYÚ	ÎœÚ]Tİ]\ÏOOIÛZÙ[IÏÉÛYY][IÎœÚ]Tİ]\ÏOOIÜÜÜÚX›IÏÉÛYY][IÎ‰ÛİÉËÛİ\˜ÙN‰Ü™Y™\™[˜ÙK[ØØ][Û‰Ë\Ô™Y™\™[˜ÙSØØ][ÛYK‹‹œİÜ›TXÙUÚ[™İÊØœÙ\™Y]\œš]˜[Z[]\ËX\™Ú[Š_J_Bˆ›İÜÏYY\TİÜ›TXÙ\Ê›İÜÊNØÛÛœİ›Û”™Y™\™[˜ÙT›İÜÏ\›İÜË™š[\ŠXÙOOˆ\XÙKš\Ô™Y™\™[˜ÙSØØ][ÛŠK]\™T›İÜÏ\›İÜË™š[\ŠXÙOOœXÙKœİ]\ÈOOIÛ›İÉÊNÛ]˜[˜XÚÕ\ÙYY˜[ÙNÚYŠ›İÜË›[™İß›Û”™Y™\™[˜ÙT›İÜË›[™İŸ]\™T›İÜË›[™İŠ^ØÛÛœİ˜[˜XÚÏX]ØZ]˜[˜XÚÔİÜ›TXÙ\ÊÙ[]Û‹ØœÙ\™Y]
+NÚYŠ˜[˜XÚË›[™İ
+^Ü›İÜÏYY\TİÜ›TXÙ\ÊË‹‹œ›İÜË‹‹™˜[˜XÚ×JNÙ˜[˜XÚÕ\ÙY]Y__BˆÛÛœİİ[\›İÜË›[™İ›İÔXÙ\Ï\›İÜË™š[\ŠXÙOOœXÙKœİ]\ÏOOIÛ›İÉÊK]\™TXÙ\Ï\›İÜË™š[\ŠXÙOOœXÙKœİ]\ÈOOIÛ›İÉÊKÙ[XİYVË‹‹››İÔXÙ\ËœÛXÙJLŠK‹‹™]\™TXÙ\ËœÛXÙJÌ
+WKœÛXÙJÍŠK›İ]Tİ[[X\OXÛÛ\XİİÜ›T›İ]Tİ[[X\JÙ[XİY
+KXÙTÛİ\˜ÙOXØ][ÙË›[™İÊ˜[˜XÚÕ\ÙYÉÓÜ[”İ™Y]X\Óİ™\œ\ÜÈ
+ÈšYÑ]PÛİY0­È\™ğé\ˆÓÓ”QÑVYØ˜ZšÛÜœšYÜ‰Î‰ÓÜ[”İ™Y]X\Óİ™\œ\ÜÈ0­ÈÙ[ÛY]š\ØÚ\ˆÓÓ”QÑVYØ˜ZšÛÜœšYÜ‰ÊN‰ĞšYÑ]PÛİYQ˜[˜XÚÈ0­ÈÙ\Ø[\[\ˆÓÓ”QÑVYØ˜ZšÛÜœšYÜ‰ÎÜ™]\›Ë‹‹˜Ù[˜XÚÑ›Ü™XØ\İÎ˜XÚË™š[\ŠÚ[OœÚ[›Z[]\ÏŒ
+K›X\
+Ú[OŠË‹‹œÚ[\š]™Y›ÛÛX[ŠÚ[œŞ[]XÊ_JJKY™™XİYXÙ\ÎœÙ[XİYY™™XİYXÙ\Õİ[İ[›İ]Tİ[[X\Kİ\œ™[Y™™XİYXÙPÛİ[››İÔXÙ\Ë›[™İ]\™PY™™XİYXÙPÛİ[™]\™TXÙ\Ë›[™İXÙTÛİ\˜Ù_BŸB‚™[˜İ[ÛˆÛÛœ˜Yİ[[X\JÙ[
+^ØÛÛœİ]™[XÙ[œÙ]™\š]OLÏÉÜİ\šÉÎ˜Ù[œÙ]™\š]OLÉÛ[Ù\˜]	Î‰ÜØÚØXÚ	Ë™[™XÙ[™[™ŒÉİ™\œİ0éšÙ[™	Î˜Ù[™[™ÉØXœØÚğéÚ[™	Î‰ÜİXš[	Ëİ\œ™[\İ[˜ÙOS[X™\ŠÙ[˜İ\œ™[\İ[˜ÙRÛJK›Ü™XØ\İ\İ[˜ÙOS[X™\ŠÙ[™›Ü™XØ\İ\İ[˜ÙRÛJK™X\S[X™\‹š\Ñš[š]Jİ\œ™[\İ[˜ÙJI‰˜İ\œ™[\İ[˜ÙOLŒ]Ú]OS[X™\‹š\Ñš[š]Jİ\œ™[\İ[˜ÙJI‰˜İ\œ™[\İ[˜ÙOK\œš]˜[H[™X\‰‰˜Ù[š\Ğ\›ØXÚ[™É‰“[X™\‹š\Ñš[š]JÙ[˜\œš]˜[Z[]\ÊI‰“[X™\ŠÙ[˜\œš]˜[Z[]\ÊOŒØ0­Èpí™ÛXÚH[›°é\[™È[ˆ]ØH	ÓX]œ›İ[™
+Ù[˜\œš]˜[Z[]\Ê_HZ[˜“[X™\‹š\Ñš[š]J›Ü™XØ\İ\İ[˜ÙJI‰™›Ü™XØ\İ\İ[˜ÙO˜İ\œ™[\İ[˜ÙJÌÉÈ0­È™[™[[HšYZ›Ü˜]\ÜÚXÚXÚšXÚ°é\ˆ\˜[‰Î‰ÉÎÜ™]\›˜	Ø]Ú]OÉÒÓÓ”QÑV™[H[›Z][˜\ˆ[Hİ[™Ü	Î˜ÓÓ”QÑV™[H	ÓX]›X^
+KX]œ›İ[™
+İ\œ™[\İ[˜ÙJJ_HÛH[™\›IØ\œš]˜[H0­È	Û]™[H0­È	İ™[™K˜B˜\Ş[˜È[˜İ[ÛˆÙÛÛœ˜YÙ›İØØ\İ
+]Û‹Ûİ[OIÉÊ^ÂˆYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠI‰››Ü›X[^™PÛİ[PÛÙJÛİ[JHOOIÑIÊ\™]\›Ø]˜Z[X›N™˜[ÙKÛİ™\˜YÙN™˜[ÙK›İšY\‰ÑÑÓÓ”QÑ	Ë›ÙXİ‰ÒÓÓ”QÑ	ËÙ[Ñ›İ[™Œ™X\˜PÙ[Î–×Kİ[[X\N‰ÒÓÓ”QÑ\İ]Yˆ]]ØÚ[™[™\È[›Z][˜\™H[Y™[™YÜ™[‰Ë[\Ü˜[™\ÛÛ][Û“Z[]\ÎKXÙ[œÙN‰Ñ][ˆ]]ØÚ\ˆÙ]\™Y[œİ	ßNÂˆÛÛœİ\œ›ÜœÏV×NÛ]İ[T™\İ[[[Âˆ›ÜŠÛÛœİ›ÛİÙˆÑÒÓÓ”QÑÔ“ÓÕÊ^İ^ÂˆÛÛœİ[™^X]ØZ]™]Ú^
+›ÛİÉĞXØÙ\	Î‰İ^Ú[\XØ][Û‹Ş[
+Ş[	ßJK]\İ[]\İÛÛœ˜Yš[[˜[YJ[™^
+NÚYŠ[]\İ
+]›İÈ™]È\œ›ÜŠ	ÚÙZ[ˆ›ÙZİ[H™\™ZXÚš\ÉÊNÂˆÛÛœİØœÙ\™Y][™]È]J]\İ[YJKÒTÓÔİš[™Ê
+KYÙSZ[]\ÏSX]œ›İ[™
+
+]K››İÊ
+K[]\İ[YJKÍŒ
+NÂˆYŠYÙSZ[]\ÏŒÍ_YÙSZ[]\ÏLL
+^Üİ[T™\İ[^Ø]˜Z[X›N™˜[ÙKÛİ™\˜YÙNYK[\Ü˜\U[˜]˜Z[X›NYK›İšY\‰ÑÑÓÓ”QÑ	Ë›ÙXİ‰ÒÓÓ”QÑ	ËØœÙ\™Y]ØœÙ\˜][Û•[YTİ]\Î‰Üİ[IËYÙSZ[]\ËÙ[Ñ›İ[™Œ™X\˜PÙ[Î–×Kİ[[X\N˜\ˆ°ï™ÜİH\œ™ZXÚ˜\™HÓÓ”QÑV™[]Yˆ\İ	ØYÙSZ[]\ßHZ[][ˆ[˜[\Ü˜[™\ÛÛ][Û“Z[]\ÎKXÙ[œÙN‰Ñ][ˆ]]ØÚ\ˆÙ]\™Y[œİ	Ë\œ›Ü‰ÒÓÓ”QÑQ][œİ[™™\˜[]‰ßNØÛÛ[Y_BˆÛÛœİ[X]ØZ]™]Ú^
+™]ÈT“
+]\İ›˜[YK›Ûİ
+KÔİš[™Ê
+KÉĞXØÙ\	Î‰Ø\XØ][Û‹Ş[^Ş[
+‹Ê‰ßJK˜\ÙPÙ[Ï\\œÙRÛÛœ˜YÙ[Ê[]Û‹ØœÙ\™Y]
+KY\ÛØŞXÛÛ™\ÏX]ØZ]]\İY\ÛØŞXÛÛ™Q]Xİ[ÛœÊ
+K˜Ø]Ú
 
 
-const NMME_ENSMEAN_ROOT='https://ftp.cpc.ncep.noaa.gov/NMME/realtime_anom/ENSMEAN/';
-function nmmeModelLabel(id){const raw=String(id||'');if(/CFSv2/i.test(raw))return'NCEP CFSv2';if(/CanESM5/i.test(raw))return'ECCC CanESM5';if(/GEM5\.2.*NEMO/i.test(raw))return'ECCC GEM5.2-NEMO';if(/NASA.*GEOS|GEOS5v2/i.test(raw))return'NASA GEOS-S2S-2';if(/NCAR.*CCSM4/i.test(raw))return'NCAR CCSM4';if(/NCAR.*CESM1/i.test(raw))return'NCAR CESM1';if(/GFDL.*SPEAR/i.test(raw))return'NOAA GFDL SPEAR';return raw.replace(/_/g,' ').trim()}
-async function settleWithConcurrency(items,limit,task){const results=new Array(items.length);let cursor=0;async function run(){for(;;){const index=cursor++;if(index>=items.length)return;try{results[index]={status:'fulfilled',value:await task(items[index],index)}}catch(reason){results[index]={status:'rejected',reason}}}}await Promise.all(Array.from({length:Math.min(Math.max(1,limit),items.length)},()=>run()));return results}
-async function nmmeLatestSeasonalModels(lat,lon,refresh=false){const seasonalTtl=refresh?0:21600;const parent=await fetchWithDeadline(NMME_ENSMEAN_ROOT,{headers:{Accept:'text/html','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:seasonalTtl,cacheEverything:true}},12000);if(!parent.ok)throw new Error(`NOAA NMME Index HTTP ${parent.status}`);const parentHtml=await parent.text(),runs=[...parentHtml.matchAll(/href=["']?(20\d{8})\/["']?/gi)].map(match=>match[1]).sort();if(!runs.length)throw new Error('NOAA NMME ohne aktuellen ENSMEAN-Lauf');const run=runs.at(-1),month=run.slice(0,6),directory=`${NMME_ENSMEAN_ROOT}${run}/`,indexResponse=await fetchWithDeadline(directory,{headers:{Accept:'text/html','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:seasonalTtl,cacheEverything:true}},12000);if(!indexResponse.ok)throw new Error(`NOAA NMME ${run} HTTP ${indexResponse.status}`);const html=await indexResponse.text(),tempFiles=[...html.matchAll(/href=["']?([^"'<>\s]+\.tmp2m\.\d{6}\.ENSMEAN\.anom\.nc)["']?/gi)].map(match=>match[1]),models=[];for(const tempFile of tempFiles){const model=tempFile.split('.tmp2m.')[0];if(!model||/^ENSMEAN$/i.test(model))continue;const precipFile=`${model}.prate.${month}.ENSMEAN.anom.nc`;if(html.includes(precipFile))models.push({id:model,tempFile,precipFile})}const selected=models,settled=await settleWithConcurrency(selected,3,async model=>{const [temperature,precipitation]=await Promise.all([fetchNetcdfPointRanges(`${directory}${model.tempFile}`,lat,lon,seasonalTtl),fetchNetcdfPointRanges(`${directory}${model.precipFile}`,lat,lon,seasonalTtl)]),dates=[...new Set([...temperature.values,...precipitation.values].map(row=>row.date))].sort();return{id:model.id,label:nmmeModelLabel(model.id),temperatureUnits:temperature.units,precipitationUnits:precipitation.units,gridPoint:{latitude:temperature.latitude,longitude:temperature.longitude},months:dates.map(date=>({date,temperatureAnomaly:temperature.values.find(row=>row.date===date)?.value??null,precipitationAnomaly:precipitation.values.find(row=>row.date===date)?.value??null}))}}),rows=settled.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);if(!rows.length)throw new Error(`NOAA NMME ${run} ohne lesbare Modelle`);return{run,models:rows}}
+OO–×JKÙ[ÏX]XÚY\ÛØŞXÛÛ™\Ê˜\ÙPÙ[ËY\ÛØŞXÛÛ™\ÊK™X\˜PÙ[ÏXÙ[Ë™š[\ŠÙ[O˜Ù[œ™[]˜[˜ÙQ\İ[˜ÙRÛON
+KœÛXÙJ
+K™X\™\İ˜\ÙO[™X\˜PÙ[ÖÌK™X\™\İ[™X\™\İ˜\ÙOØ]ØZ][œšXÚİÜ›PY™™XİYXÙ\Ê™X\™\İ˜\ÙK]Û‹ØœÙ\™Y]
+N[™Yš[™Y[œšXÚY™X\˜PÙ[Ï[™X\™\İÖÛ™X\™\İ‹‹›™X\˜PÙ[ËœÛXÙJJWN›™X\˜PÙ[ÎÂˆ™]\›Ø]˜Z[X›NYKÛİ™\˜YÙNYK›İšY\‰ÑÑÓÓ”QÑ	Ë›ÙXİ‰ÒÓÓ”QÑ	ËØœÙ\™Y]ØœÙ\˜][Û•[YTİ]\Î‰ØÛÛ™š\›YY	ËYÙSZ[]\ËÙ[Ñ›İ[™˜Ù[Ë›[™İ™X\˜PÙ[Î™[œšXÚY™X\˜PÙ[Ë™X\™\İİ[[X\N›™X\™\İÚÛÛœ˜Yİ[[X\J™X\™\İ
+N‰ÒÙZ[™H™[]˜[HÓÓ”QÑV™[H[H[ZÜ™Z\È›ÛˆÛK‰Ë[\Ü˜[™\ÛÛ][Û“Z[]\ÎKXÙ[œÙN‰Ñ][ˆ]]ØÚ\ˆÙ]\™Y[œİ	ËXYÛ›ÜİXÜÎÜÛİ\˜ÙT›Ûİ›™]ÈT“
+›Ûİ
+KšÜİ˜[YKXÙTÛİ\˜ÙN›™X\™\İËœXÙTÛİ\˜Ù__NÂˆXØ]Ú
+\œ›ÜŠ^Ù\œ›ÜœËœ\Ú
+	Û™]ÈT“
+›Ûİ
+KšÜİ˜[Y_Nˆ	Ù\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_X
+__BˆYŠİ[T™\İ[
+\™]\›Ë‹‹œİ[T™\İ[XYÛ›ÜİXÜÎÙ\œ›Üœß_NÂˆ›İÈ™]È\œ›ÜŠÓÓ”QÑšXÚ\œ™ZXÚ˜\ˆ	Ù\œ›ÜœËš›Ú[Š	È	Ê_X
+NÂŸB™[˜İ[Ûˆİ][Û”Ú]PÛ\ÜÊ˜[YOIÉË›İšY\IÉÊ^ÂˆÛÛœİ^[›Ü›X[^™J	Û˜[Y_H	Ü›İšY\ŸX
+NÚYŠÚ[›™[œİYİYZ]_Ú]HÙ[\Ÿ\˜˜[‹Ë\İ
+^
+J\™]\›‰İ\˜˜[‰ÎÚYŠİ›ÜœİYİX\˜˜[‹Ë\İ
+^
+J\™]\›‰ÜİX\˜˜[‰ÎÚYŠÙ›YÚY™[ŸZ\œÜ›YÜ]Ÿ™[Ø\_™\™ßÚ\™[›ÜœİØ[Ë\İ
+^
+J\™]\›‰Ü\˜[	ÎÜ™]\›‰İ[šÛ›İÛ‰ÎÂŸB™[˜İ[Ûˆ[‘Ù\›X[P›İ[™Ê]ÛŠ^Ü™]\›ˆ]MËŒ	‰›]MMKŒÉ‰›ÛMK	‰›ÛLMKßB™[˜İ[Ûˆ˜YÛ[–]Õ[Y\İ[\
+š[[˜[YJ^ØÛÛœİX]ÚTİš[™Êš[[˜[YJK›X]Ú
+×œ˜XLK^]×ÌLJÌLJKYÙKKXš[—šIÚJNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YØÛÛœİ˜[YO[X]ÚÌWKYX\LŒ
+Ó[X™\Š˜[YKœÛXÙJŠJK[ÛS[X™\Š˜[YKœÛXÙJ‹
+JKLK^OS[X™\Š˜[YKœÛXÙJŠJKİ\S[X™\Š˜[YKœÛXÙJ‹
+JKZ[]OS[X™\Š˜[YKœÛXÙJL
+JK[YOQ]K•UÊYX\‹[Û^Kİ\‹Z[]JNÜ™]\›ˆ[X™\‹š\Ñš[š]J[YJOİ[YN[™Yš[™YB™[˜İ[Ûˆ˜YÛ[–]Ô›ŞU\›
+™\]Y\İš[[˜[YJ^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+Nİ\›œÙX\˜ÚIÉÎİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û[ÙIË	Ü˜YÛ[‹^]ËYš[IÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ùš[IËš[[˜[YJNÜ™]\›ˆ\›Ôİš[™Ê
+_B™[˜İ[Ûˆ˜YÛ[”›ÙXİ[Y\İ[\
+š[[˜[YK›ÙXİ
+^ØÛÛœİX]ÚTİš[™Êš[[˜[YJK›X]Ú
+™]È™YÑ^
+œ˜XLKIÜ›ÙXİWÌLJÌLJKYÙKKXš[—šI	ÚIÊJNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YØÛÛœİ˜[YO[X]ÚÌWKYX\LŒ
+Ó[X™\Š˜[YKœÛXÙJŠJK[ÛS[X™\Š˜[YKœÛXÙJ‹
+JKLK^OS[X™\Š˜[YKœÛXÙJŠJKİ\S[X™\Š˜[YKœÛXÙJ‹
+JKZ[]OS[X™\Š˜[YKœÛXÙJL
+JK[YOQ]K•UÊYX\‹[Û^Kİ\‹Z[]JNÜ™]\›ˆ[X™\‹š\Ñš[š]J[YJOİ[YN[™Yš[™YB™[˜İ[Ûˆ˜YÛ[’\İÜT›ŞU\›
+™\]Y\İ›ÙXİš[[˜[YJ^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+Nİ\›œÙX\˜ÚIÉÎİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û[ÙIË	Ü˜YÛ[‹Z\İÜKYš[IÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü›ÙXİ	Ë›ÙXİ
+Nİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ùš[IËš[[˜[YJNÜ™]\›ˆ\›Ôİš[™Ê
+_B˜\Ş[˜È[˜İ[Ûˆ˜YÛ[‘\™XİÜQš[\Ê›ÙXİÛÚØ˜XÚÒİ\œÏLÌ
+^ØÛÛœİ›ÛİQÑÔQÓS—ÒTÕÔ–WÔ“ÓÕÖÜ›ÙXİNÚYŠ\›Ûİ
+]›İÈ™]È\œ›ÜŠ[˜™ZØ[›\ÈQÓS‹T›ÙZİ	Ü›ÙXİX
+NØÛÛœİ[X]ØZ]™]Ú^
+›ÛİĞXØÙ\‰İ^Ú[\XØ][Û‹Ş[
+Ş[	ßJK›İÏQ]K››İÊ
+K]\›[™]È™YÑ^
+™YVÈ‰×J˜XLKIÜ›ÙXİWÌLWÌLKYÙKKXš[—šJVÈ‰×X	ÙÚIÊNÜ™]\›–Ë‹‹š[›X]Ú[
+]\›ŠWK›X\
+X]ÚO›X]ÚÌWJK›X\
+˜[YOOŠÛ˜[YK[YNœ˜YÛ[”›ÙXİ[Y\İ[\
+˜[YK›ÙXİ
+_JJK™š[\Š][OO“[X™\‹š\Ñš[š]J][K[YJI‰š][K[YO[›İÊÌMJŒ	‰š][K[YO[›İË[ÛÚØ˜XÚÒİ\œÊŒÍŒ
+KœÛÜ
 
-async function cfsv2SeasonalPoint(request){const url=new URL(request.url),lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon')),refresh=url.searchParams.get('refresh')==='1',seasonalTtl=refresh?0:21600;if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return json({error:'GÃ¼ltige lat/lon erforderlich.',version:WORKER_VERSION},400,{'cache-control':'no-store'});const nmme=await nmmeLatestSeasonalModels(lat,lon,refresh).catch(()=>null);if(nmme?.models?.length)return json({provider:'NOAA CPC',model:'NMME ENSMEAN',nmmeRun:nmme.run,nmmeModels:nmme.models,groups:[],generatedAt:new Date().toISOString(),source:'NOAA CPC NMME ENSMEAN monthly spatial anomaly NetCDF Â· sparse HTTP Multi-Range point extraction',version:WORKER_VERSION},200,{'cache-control':refresh?'no-store':'public, max-age=21600, stale-while-revalidate=21600'});const jobs=[];for(const group of CFSV2_GROUPS)for(const kind of['temperature','precipitation']){const file=kind==='temperature'?'glbT2mMon.nc':'glbPrecMon.nc',source=`${CFSV2_SEASONAL_ROOT}/${group}/${file}`;jobs.push((async()=>{const response=await fetchWithDeadline(source,{headers:{Accept:'application/x-netcdf,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:seasonalTtl,cacheEverything:true}},18000);if(!response.ok)throw new Error(`NOAA CFSv2 ${group} ${kind} HTTP ${response.status}`);return{group,kind,point:cfsv2PointFromNetcdf(await response.arrayBuffer(),lat,lon)}})())}const settled=await Promise.allSettled(jobs),rows=settled.filter(row=>row.status==='fulfilled').map(row=>row.value);if(!rows.length)return json({error:'NOAA CFSv2 Monatsanomalien derzeit nicht verfÃ¼gbar.',version:WORKER_VERSION},502,{'cache-control':'no-store'});const groups=CFSV2_GROUPS.map(group=>{const temperature=rows.find(row=>row.group===group&&row.kind==='temperature')?.point,precipitation=rows.find(row=>row.group===group&&row.kind==='precipitation')?.point;if(!temperature&&!precipitation)return null;const dates=[...(temperature?.values||[]),...(precipitation?.values||[])].map(row=>row.date),unique=[...new Set(dates)].sort();return{id:group,temperatureUnits:temperature?.units||'',precipitationUnits:precipitation?.units||'',months:unique.map(date=>({date,temperatureAnomaly:temperature?.values.find(row=>row.date===date)?.value??null,precipitationAnomaly:precipitation?.values.find(row=>row.date===date)?.value??null})),gridPoint:{latitude:temperature?.latitude??precipitation?.latitude,longitude:temperature?.longitude??precipitation?.longitude}}}).filter(Boolean);return json({provider:'NOAA CPC',model:'NMME + CFSv2',nmmeRun:nmme?.run,nmmeModels:nmme?.models||[],groups,generatedAt:new Date().toISOString(),source:'NOAA CPC NMME ENSMEAN + CFSv2 monthly spatial anomaly NetCDF',version:WORKER_VERSION},200,{'cache-control':refresh?'no-store':'public, max-age=21600, stale-while-revalidate=21600'})}
-function decodeXml(value=''){return String(value).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#39;/g,"'").replace(/&amp;/g,'&')}
-function cleanText(value=''){return decodeXml(value).replace(/<br\s*\/?\s*>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n\s+/g,'\n').trim()}
-function blocks(xml,tag){const re=new RegExp(`<(?:(?:\\w+):)?${tag}\\b[^>]*>([\\s\\S]*?)<\\/(?:(?:\\w+):)?${tag}>`,'gi');return[...String(xml).matchAll(re)].map(m=>m[1])}
-function tagValues(xml,tag){const re=new RegExp(`<(?:(?:\\w+):)?${tag}\\b[^>]*>([\\s\\S]*?)<\\/(?:(?:\\w+):)?${tag}>`,'gi');return[...String(xml).matchAll(re)].map(m=>cleanText(m[1])).filter(Boolean)}
-function tagValue(xml,tag){return tagValues(xml,tag)[0]||''}
-function attrValues(xml,tag,attr){const re=new RegExp(`<(?:(?:\\w+):)?${tag}\\b[^>]*\\b${attr}=["']([^"']+)["'][^>]*>`,'gi');return[...String(xml).matchAll(re)].map(m=>decodeXml(m[1])).filter(Boolean)}
-function safeDate(v){if(v===null||v===undefined||v==='')return undefined;let raw=v;if(typeof raw==='string'&&/^\d{10,13}$/.test(raw.trim()))raw=Number(raw);if(typeof raw==='number'&&Number.isFinite(raw))raw=raw<1e12?raw*1000:raw;const d=new Date(raw);return Number.isFinite(d.getTime())?d.toISOString():undefined}
-function normalize(value=''){return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
-function directCountryCode(value=''){
- const raw=String(value||'').trim();if(!raw)return'';const upper=raw.toUpperCase();if(/^[A-Z]{2}$/.test(upper))return upper==='UK'?'GB':upper;
- const key=normalize(raw).toUpperCase();return COUNTRY_ALIASES[key]||COUNTRY_ALIASES[key.replace(/ /g,'')]||'';
-}
-function namedCountryHeuristic(name='',region=''){
- const text=normalize(`${name} ${region}`);
- if(/cagliari|sardegna|sardinia|sardinien|italia|italien|italy/.test(text))return'IT';
- return'';
-}
-function coordinateCountryFallback(lat,lon){
- // Nur konservative RÃ¼ckfÃ¤lle: breite LÃ¤nder-Rechtecke wÃ¼rden Grenzregionen falsch zuordnen.
- if(lat>=38.75&&lat<=41.4&&lon>=8.0&&lon<=9.95)return'IT'; // Sardinien
- if(lat>=24&&lat<=50&&lon>=-125&&lon<=-66)return'US';
- return'';
-}
+KŠOO˜K[YKX‹[YJ_B˜\Ş[˜È[˜İ[Ûˆ˜YÛ[’\İÜSY]Y]J™\]Y\İ]ÛŠ^ÚYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠJ\™]\›ØÛİ™\˜YÙN™˜[ÙK›İšY\‰ÑÑQÓS‰Ëİ\›[^N›[İ[[X\N‰Ğ]pçÙ\š[ˆ\È]]ØÚ[ˆQÓS‹T˜\İ\œË‰ßNØÛÛœİ›İÏQ]K››İÊ
+KÜÔ™\İ[T™\İ[Ù”™\İ[OX]ØZ]›ÛZ\ÙK˜[Ù]Y
+Ü˜YÛ[‘\™XİÜQš[\Ê	ÜÉË
+K˜YÛ[‘\™XİÜQš[\Ê	ÜIË
+K˜YÛ[‘\™XİÜQš[\Ê	ÜÙ‰ËÌ
+WJKÏ\Ô™\İ[œİ]\ÏOOIÙ[š[Y	ÏÜÔ™\İ[˜[YN–×KO\T™\İ[œİ]\ÏOOIÙ[š[Y	ÏÜT™\İ[˜[YN–×KÙ\Ù”™\İ[œİ]\ÏOOIÙ[š[Y	ÏÜÙ”™\İ[˜[YN–×K]\İÏ\Ë˜]
+LJK]\İÙ\Ù‹˜]
+LJKĞYÙO[]\İÏÓX]œ›İ[™
 
-function seasonalAdapterUrl(value){try{const url=new URL(String(value||''));return url.protocol==='https:'?url:null}catch{return null}}
-function seasonalAdapterConfigured(env,key){return Boolean(seasonalAdapterUrl(env?.[key]))}
-function seasonalAdapterHeaders(env,tokenKey){const headers={'content-type':'application/json','accept':'application/json','user-agent':`MID-weather-dashboard/${WORKER_VERSION}`},token=String(env?.[tokenKey]||'').trim();if(token)headers.authorization=`Bearer ${token}`;return headers}
-async function callSeasonalAdapter(endpoint,tokenKey,requestBody,env,timeoutMs=50000){const target=seasonalAdapterUrl(env?.[endpoint]);if(!target)return{configured:false,available:false,detail:'Numerischer Serveradapter ist nicht konfiguriert.'};const response=await fetchWithDeadline(target.toString(),{method:'POST',headers:seasonalAdapterHeaders(env,tokenKey),body:JSON.stringify(requestBody)},timeoutMs),text=await response.text();let payload={};try{payload=JSON.parse(text)}catch{throw new Error(`Saisonadapter ${response.status}: keine gÃ¼ltige JSON-Antwort`)}if(!response.ok)throw new Error(String(payload?.error||payload?.detail||`Saisonadapter HTTP ${response.status}`));return{...payload,configured:true}}
-function validSeasonalCoordinates(lat,lon){return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180}
-function dwdEpisodesDomain(lat,lon){return lat>=47&&lat<=55.3&&lon>=5&&lon<=15.7}
-async function c3sSeasonalPoint(request,env){const url=new URL(request.url),lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon')),refresh=url.searchParams.get('refresh')==='1';if(!validSeasonalCoordinates(lat,lon))return json({error:'GÃ¼ltige lat/lon erforderlich.',version:WORKER_VERSION},400,{'cache-control':'no-store'});if(!seasonalAdapterConfigured(env,'MID_C3S_SEASONAL_POINT_ENDPOINT'))return json({available:false,configured:false,models:[],detail:'C3S-CDS-Punktdatenpfad vorbereitet; MID_C3S_SEASONAL_POINT_ENDPOINT ist noch nicht gesetzt. Es werden keine Kartenfarben in Zahlen zurÃ¼ckgerechnet.',required:['MID_C3S_SEASONAL_POINT_ENDPOINT','optional MID_C3S_SEASONAL_POINT_TOKEN'],dataset:'seasonal-monthly-single-levels',anomalyDataset:'seasonal-postprocessed-single-levels',systems:C3S_SEASONAL_POINT_SYSTEMS,version:WORKER_VERSION},200,{'cache-control':'public, max-age=900'});try{const payload=await callSeasonalAdapter('MID_C3S_SEASONAL_POINT_ENDPOINT','MID_C3S_SEASONAL_POINT_TOKEN',{schema:'mid-seasonal-point-v1',source:'C3S CDS',dataset:'seasonal-monthly-single-levels',anomalyDataset:'seasonal-postprocessed-single-levels',latitude:lat,longitude:lon,selection:'nearest-grid-point',variables:['2m_temperature','total_precipitation'],representation:['ensemble-members','monthly-anomalies'],leadtimeMonths:['1','2','3','4','5','6','7'],systems:C3S_SEASONAL_POINT_SYSTEMS,processing:'Numerische Memberwerte/Anomalien dekodieren; keine Rekonstruktion aus Kartenfarben.',refresh},env);return json({...payload,available:Array.isArray(payload?.models)&&payload.models.length>0,configured:true,source:payload?.source||'Copernicus Climate Change Service Â· Climate Data Store',version:WORKER_VERSION},200,{'cache-control':refresh?'no-store':'public, max-age=14400, stale-while-revalidate=14400'})}catch(error){return json({available:false,configured:true,models:[],error:error instanceof Error?error.message:String(error),detail:'C3S-CDS-Adapter erreichbar, numerische Punktdaten konnten jedoch nicht geladen werden.',version:WORKER_VERSION},200,{'cache-control':'no-store'})}}
-async function dwdGcfsEpisodesPoint(request,env){const url=new URL(request.url),lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon')),refresh=url.searchParams.get('refresh')==='1';if(!validSeasonalCoordinates(lat,lon))return json({error:'GÃ¼ltige lat/lon erforderlich.',version:WORKER_VERSION},400,{'cache-control':'no-store'});if(!dwdEpisodesDomain(lat,lon))return json({available:false,configured:seasonalAdapterConfigured(env,'MID_DWD_GCFS_EPISODES_POINT_ENDPOINT'),outsideDomain:true,periods:[],detail:'DWD GCFS2.2 / EPISODES wird als Deutschland-Perspektive nur innerhalb des Deutschlandbereichs abgefragt.',version:WORKER_VERSION},200,{'cache-control':'public, max-age=86400'});if(!seasonalAdapterConfigured(env,'MID_DWD_GCFS_EPISODES_POINT_ENDPOINT'))return json({available:false,configured:false,periods:[],modelVersion:'GCFS2.2',downscaling:'EPISODES',referencePeriod:'1991â€“2020',detail:'DWD-GCFS2.2/EPISODES-Punktdatenpfad vorbereitet; MID_DWD_GCFS_EPISODES_POINT_ENDPOINT ist noch nicht gesetzt. Archivierte GCFS2.1-QA-Karten werden nicht als aktuelle GCFS2.2-Werte ausgegeben.',required:['MID_DWD_GCFS_EPISODES_POINT_ENDPOINT','optional MID_DWD_GCFS_EPISODES_POINT_TOKEN'],version:WORKER_VERSION},200,{'cache-control':'public, max-age=900'});try{const payload=await callSeasonalAdapter('MID_DWD_GCFS_EPISODES_POINT_ENDPOINT','MID_DWD_GCFS_EPISODES_POINT_TOKEN',{schema:'mid-dwd-episodes-point-v1',source:'DWD ClimatePredictionsDE',experiment:'seasonal qa',drivingModel:'GCFS22',modelVersion:'GCFS2.2',downscaling:'EPISODES',domain:'DE-015x01',gridHint:'0.15Â° Ã— 0.1Â° Â· etwa 10 km',latitude:lat,longitude:lon,selection:'nearest-grid-point',aggregation:'3-month',forecastPeriods:['1-3','2-4','3-5','4-6'],variables:['tasAnom','prAnom'],qualityMetrics:['mse','corr_pea','MSESS','RPSS'],referencePeriod:'1991â€“2020',refresh},env);return json({...payload,available:Array.isArray(payload?.periods)&&payload.periods.length>0,configured:true,modelVersion:payload?.modelVersion||'GCFS2.2',downscaling:payload?.downscaling||'EPISODES',referencePeriod:payload?.referencePeriod||'1991â€“2020',version:WORKER_VERSION},200,{'cache-control':refresh?'no-store':'public, max-age=14400, stale-while-revalidate=14400'})}catch(error){return json({available:false,configured:true,periods:[],modelVersion:'GCFS2.2',downscaling:'EPISODES',referencePeriod:'1991â€“2020',error:error instanceof Error?error.message:String(error),detail:'DWD-EPISODES-Adapter erreichbar, numerische Punktdaten konnten jedoch nicht geladen werden.',version:WORKER_VERSION},200,{'cache-control':'no-store'})}}
+›İË[]\İË[YJKÍŒ
+N’[™š[š]KÙYÙO[]\İÙÓX]œ›İ[™
 
-async function resolveCountryCode(value,lat,lon,name='',region=''){
- const direct=directCountryCode(value);if(direct)return direct;
- const named=namedCountryHeuristic(name,region);if(named)return named;
- try{
-  const u=new URL(BIGDATA_REVERSE);u.searchParams.set('latitude',String(lat));u.searchParams.set('longitude',String(lon));u.searchParams.set('localityLanguage','en');
-  const data=await fetchJson(u.toString());const reverse=directCountryCode(data?.countryCode||data?.countryName);if(reverse)return reverse;
- }catch{}
- return coordinateCountryFallback(lat,lon);
-}
-const AREA_TERM_GROUPS=[
- ['sardegna','sardinia','sardinien'],
- ['dodekanisa','dodecanese','dodekanes','dodekanisos','rhodes','rodos','rhodos']
-];
-const AREA_TERM_STOP_WORDS=new Set(['stadt','gemeinde','bezirk','landkreis','kreis','land','region','bundesland','province','prefecture','municipality','district','county','island','islands','north','northern','south','southern','east','eastern','west','western','nord','norden','sud','sueden','ost','osten','westen','aegean','agais','aigaio']);
-function termsFor(...values){
- const terms=values.flatMap(value=>{const phrase=normalize(value),words=phrase.split(/\s+/).filter(x=>x.length>=3&&!AREA_TERM_STOP_WORDS.has(x));return phrase?[phrase,...words]:[]}).filter(x=>x.length>=3&&!AREA_TERM_STOP_WORDS.has(x));
- const expanded=new Set(terms);for(const group of AREA_TERM_GROUPS)if(group.some(x=>expanded.has(x)))for(const x of group)expanded.add(x);return[...expanded];
-}
-function commonPrefixLength(a,b){let index=0,limit=Math.min(a.length,b.length);while(index<limit&&a[index]===b[index])index++;return index}
-function fuzzyAreaTokenMatch(a,b){if(a===b)return true;if(a.length<7||b.length<7)return false;const shared=commonPrefixLength(a,b);return shared>=7&&shared>=Math.min(a.length,b.length)-3}
-function areaDescriptionMatches(value,terms){const area=normalize(value),tokens=area.split(/\s+/).filter(Boolean);if(!area)return false;return terms.some(term=>{if(area.includes(term))return true;const wanted=term.split(/\s+/).filter(x=>x.length>=3&&!AREA_TERM_STOP_WORDS.has(x));return Boolean(wanted.length&&wanted.every(item=>tokens.some(token=>fuzzyAreaTokenMatch(token,item))))})}
-function pointInRing(lat,lon,ring){let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const xi=Number(ring[i]?.[0]),yi=Number(ring[i]?.[1]),xj=Number(ring[j]?.[0]),yj=Number(ring[j]?.[1]);if(![xi,yi,xj,yj].every(Number.isFinite))continue;const hit=((yi>lat)!==(yj>lat))&&(lon<(xj-xi)*(lat-yi)/((yj-yi)||1e-12)+xi);if(hit)inside=!inside}return inside}
-function pointInPolygonCoords(lat,lon,rings){if(!Array.isArray(rings)||!rings.length||!pointInRing(lat,lon,rings[0]))return false;return !rings.slice(1).some(r=>pointInRing(lat,lon,r))}
-function pointInGeometry(lat,lon,g){if(!g)return false;if(g.type==='Polygon')return pointInPolygonCoords(lat,lon,g.coordinates);if(g.type==='MultiPolygon')return(g.coordinates||[]).some(p=>pointInPolygonCoords(lat,lon,p));if(g.type==='GeometryCollection')return(g.geometries||[]).some(x=>pointInGeometry(lat,lon,x));return false}
-function parseCapPolygon(value){return String(value).trim().split(/\s+/).map(pair=>pair.split(',').map(Number)).filter(x=>x.length>=2&&x.every(Number.isFinite)).map(([lat,lon])=>[lon,lat])}
-function parseCircle(value){const m=String(value).trim().match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\s+([\d.]+)$/);return m?{lat:Number(m[1]),lon:Number(m[2]),radiusKm:Number(m[3])}:null}
-function officialAreaDescriptionMatches(areaXml,officialAreaNames){const descriptions=tagValues(areaXml,'areaDesc').map(cleanText).filter(Boolean);if(!Array.isArray(officialAreaNames))return undefined;if(!descriptions.length||!officialAreaNames.length)return false;return descriptions.some(description=>officialAreaNames.some(name=>{const left=normalize(description),right=normalize(name);return left===right||areaDescriptionMatches(description,termsFor(name))||areaDescriptionMatches(name,termsFor(description))}))}
-function localAreaMatch(areaXml,lat,lon,terms,officialAreaNames){
- const polygons=tagValues(areaXml,'polygon').map(parseCapPolygon).filter(x=>x.length>=3);if(polygons.some(p=>pointInRing(lat,lon,p)))return true;
- const circles=tagValues(areaXml,'circle').map(parseCircle).filter(Boolean);if(circles.some(c=>distance(lat,lon,c.lat,c.lon)<=c.radiusKm*1000))return true;
- if(polygons.length||circles.length)return false;
- const descriptions=tagValues(areaXml,'areaDesc').join(' ');if(areaDescriptionMatches(descriptions,terms))return true;
- const officialMatch=officialAreaDescriptionMatches(areaXml,officialAreaNames);if(officialMatch!==undefined)return officialMatch;
- return false;
-}
-function localMatch(xml,lat,lon,name='',region='',district='',officialAreaNames){
- const terms=termsFor(name,district||region),areas=blocks(xml,'area');if(areas.length)return areas.some(area=>localAreaMatch(area,lat,lon,terms,officialAreaNames));
- return localAreaMatch(xml,lat,lon,terms,officialAreaNames);
-}
-function awarenessLevel(xml,severity,explicit){
- const direct=String(explicit??'').toLowerCase();if(['purple','red','orange','yellow'].includes(direct))return direct;
- const n=Number(explicit);if(Number.isFinite(n)){if(n>=4)return'purple';if(n===3)return'red';if(n===2)return'orange';if(n===1)return'yellow'}
- const params=blocks(xml,'parameter');let raw='';for(const p of params){const key=tagValue(p,'valueName').toLowerCase();if(key.includes('awareness_level')||key==='warnlevel'||key.includes('warning level')){raw=tagValue(p,'value');break}}
- const digit=String(raw).match(/\b([1-4])\b/)?.[1];if(digit==='4')return String(raw).toLowerCase().includes('red')?'red':'purple';if(digit==='3')return String(raw).toLowerCase().includes('orange')?'orange':'red';if(digit==='2')return String(raw).toLowerCase().includes('yellow')?'yellow':'orange';if(digit==='1')return'yellow';
- const s=String(severity||'').toLowerCase();if(s==='extreme')return'purple';if(s==='severe')return'red';if(s==='moderate')return'orange';if(s==='minor')return'yellow';return'unknown';
-}
-function bestInfo(xml,language='de'){
- const infos=blocks(xml,'info');if(!infos.length)return xml;const lang=String(language||'de').toLowerCase();
- return infos.find(x=>tagValue(x,'language').toLowerCase().startsWith(lang))||infos.find(x=>tagValue(x,'language').toLowerCase().startsWith('de'))||infos.find(x=>tagValue(x,'language').toLowerCase().startsWith('en'))||infos[0];
-}
-function capGeocodes(xml){const codes=new Set();for(const item of blocks(xml,'geocode')){const name=normalize(tagValue(item,'valueName')).replace(/ /g,'_'),value=normalize(tagValue(item,'value')).replace(/ /g,'_');if(value)codes.add(`${name||'code'}:${value}`)}return[...codes].sort()}
-function capReferences(xml){const ids=[];for(const value of tagValues(xml,'references'))for(const item of value.split(/\s+/)){const parts=item.split(',');const id=String(parts.length>=2?parts[1]:parts[0]||'').trim();if(id)ids.push(id)}return[...new Set(ids)]}
-const EMPTY_ALERT_DESCRIPTION='FÃ¼r diese amtliche Warnung liegt kein zusÃ¤tzlicher Meldungstext vor.';
-function alertHasOfficialText(alert){const description=cleanText(String(alert?.description||''));return Boolean(description&&description!==EMPTY_ALERT_DESCRIPTION)||Boolean(cleanText(String(alert?.instruction||'')))}
-function preferredCapHeadline(info,xml){const headline=tagValue(info,'headline'),event=tagValue(info,'event');return event&&/^(?:yellow|orange|red|purple)\s+warning\s+for\b/i.test(headline)?event:headline||event||tagValue(xml,'title')}
-function linkedWarningIdentifier(url=''){try{const parsed=new URL(String(url)),parts=parsed.pathname.split('/').filter(Boolean);return parts.includes('warnings')?decodeURIComponent(parts.at(-1)||''):''}catch{return''}}
-function parseCap(xml,source,url,lat,lon,name,region,district,language='de',officialAreaNames){
- const status=tagValue(xml,'status'),msgType=tagValue(xml,'msgType');if(status&&status.toLowerCase()!=='actual')return null;if(msgType&&['cancel','error'].includes(msgType.toLowerCase()))return null;
- const info=bestInfo(xml,language),expires=safeDate(tagValue(info,'expires')||tagValue(xml,'expires'));if(expires&&new Date(expires).getTime()<Date.now())return null;
- if(!localMatch(info,lat,lon,name,region,district,officialAreaNames))return null;
- const headline=preferredCapHeadline(info,xml);if(!headline)return null;
- const severity=tagValue(info,'severity'),description=cleanText(tagValue(info,'description')||tagValue(xml,'description')||tagValue(xml,'summary')),instruction=cleanText(tagValue(info,'instruction')),areaCodes=capGeocodes(info),references=[...new Set([...capReferences(xml),linkedWarningIdentifier(url)].filter(Boolean))],messageLanguage=tagValue(info,'language');
- return{id:tagValue(xml,'identifier')||tagValue(xml,'guid')||url||headline,headline,description:description||EMPTY_ALERT_DESCRIPTION,instruction:instruction||undefined,language:messageLanguage||undefined,level:awarenessLevel(info,severity),severity:severity||undefined,event:tagValue(info,'event')||undefined,source:tagValue(info,'senderName')||source,area:tagValues(info,'areaDesc').join(', ')||undefined,areaCodes:areaCodes.length?areaCodes:undefined,references:references.length?references:undefined,effective:safeDate(tagValue(info,'effective')),onset:safeDate(tagValue(info,'onset')),expires,updatedAt:safeDate(tagValue(xml,'sent')||tagValue(xml,'updated')),url:tagValue(info,'web')||url||undefined};
-}
-function linkObjects(block){const out=[];for(const m of String(block).matchAll(/<(?:(?:\w+):)?link\b([^>]*)\/?\s*>/gi)){const attrs={};for(const a of m[1].matchAll(/([\w:-]+)=["']([^"']*)["']/g))attrs[a[1].toLowerCase()]=decodeXml(a[2]);if(attrs.href)out.push(attrs)}return out}
-function capLink(block,base=''){
- const links=linkObjects(block),contentSrc=attrValues(block,'content','src')[0],raw=links.find(x=>String(x.type||'').toLowerCase().includes('cap+xml'))?.href||links.find(x=>/\/api\/v\d+\/warnings\//i.test(x.href||''))?.href||links.find(x=>/cap|\.xml(?:$|\?)/i.test(x.href||''))?.href||contentSrc||links.find(x=>String(x.rel||'').toLowerCase()==='alternate'&&/^https?:/i.test(x.href||''))?.href||links.find(x=>/^https?:/i.test(x.href||''))?.href||tagValues(block,'link').find(x=>/^https?:/i.test(x));
- if(!raw)return'';try{return new URL(raw,base||undefined).toString()}catch{return raw}
-}
-function embeddedCap(block){
- const decoded=decodeXml(block);const start=decoded.search(/<(?:\w+:)?alert\b/i);if(start<0)return'';return decoded.slice(start);
-}
-async function fetchText(url,headers={}){const r=await fetch(url,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,...headers},redirect:'follow'});if(!r.ok)throw new Error(`${url} HTTP ${r.status}`);return r.text()}
-async function fetchJson(url,headers={}){const r=await fetch(url,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json',...headers},redirect:'follow'});if(!r.ok)throw new Error(`${url} HTTP ${r.status}`);return r.json()}
-function meteoalarmVisCountryCode(countryCode){return String(countryCode||'').toUpperCase()==='GB'?'UK':String(countryCode||'').toUpperCase()}
-function meteoalarmBoxContains(bb,lat,lon){const west=number(bb?.[0]?.[0]),south=number(bb?.[0]?.[1]),east=number(bb?.[1]?.[0]),north=number(bb?.[1]?.[1]);return[west,south,east,north].every(Number.isFinite)&&lon>=west&&lon<=east&&lat>=south&&lat<=north}
-function meteoalarmBoxArea(bb){const west=number(bb?.[0]?.[0]),south=number(bb?.[0]?.[1]),east=number(bb?.[1]?.[0]),north=number(bb?.[1]?.[1]);return[west,south,east,north].every(Number.isFinite)?Math.max(0,east-west)*Math.max(0,north-south):Number.POSITIVE_INFINITY}
-function meteoalarmAreaNameScore(area,name='',region='',district=''){const label=cleanText(String(area?.name||''));if(!label)return 0;const normalizedLabel=normalize(label),values=[[district,120],[region,80],[name,45]];let score=0;for(const[value,weight]of values){const normalizedValue=normalize(value);if(!normalizedValue)continue;if(normalizedLabel===normalizedValue)score=Math.max(score,weight+20);else if(areaDescriptionMatches(label,termsFor(value)))score=Math.max(score,weight)}return score}
-function meteoalarmBestAreaForHazard(candidates,name,region,district){return[...candidates].sort((a,b)=>{const scoreDiff=meteoalarmAreaNameScore(b,name,region,district)-meteoalarmAreaNameScore(a,name,region,district);if(scoreDiff)return scoreDiff;const areaDiff=meteoalarmBoxArea(a?.bb)-meteoalarmBoxArea(b?.bb);if(areaDiff)return areaDiff;return String(a?.name||'').localeCompare(String(b?.name||''),'en')})[0]}
-async function meteoalarmPointContext(countryCode,lat,lon,name='',region='',district=''){
- const code=meteoalarmVisCountryCode(countryCode),referenceDate=new Date().toISOString(),url=new URL(`stream-buffers/live/hazards/${encodeURIComponent(code)}`,METEOALARM_VIS);url.searchParams.set('preset','timeline');url.searchParams.set('referenceDate',referenceDate);url.searchParams.set('language','en');
- const payload=await fetchJson(url.toString()),allAreas=Array.isArray(payload?.areas)?payload.areas:[],allHazards=Array.isArray(payload?.hazards)?payload.hazards:[],hazardFeatures=new Set(allHazards.map(item=>String(item?.featureId||'')).filter(Boolean)),byFeature=new Map();
- for(const area of allAreas){const featureId=String(area?.featureId||'');if(!featureId||!hazardFeatures.has(featureId)||!meteoalarmBoxContains(area?.bb,lat,lon))continue;const current=byFeature.get(featureId);if(!current||meteoalarmBoxArea(area?.bb)<meteoalarmBoxArea(current?.bb))byFeature.set(featureId,area)}
- const pointAreas=[...byFeature.values()],hazardGroups=new Map();for(const item of allHazards){const featureId=String(item?.featureId||''),typeId=number(item?.typeId),levelId=number(item?.levelId);if(!byFeature.has(featureId)||typeId===undefined||levelId===undefined)continue;const key=`${typeId}:${levelId}`,group=hazardGroups.get(key)||[];if(!group.some(row=>String(row.featureId)===featureId))group.push({featureId,typeId,levelId,area:byFeature.get(featureId)});hazardGroups.set(key,group)}
- const selected=[],seenFeatures=new Set();for(const group of hazardGroups.values()){const bestArea=meteoalarmBestAreaForHazard(group.map(row=>row.area),name,region,district);if(!bestArea)continue;const featureId=String(bestArea.featureId),row=group.find(item=>String(item.featureId)===featureId);if(row)selected.push({featureId,row,typeId:row.typeId,levelId:row.levelId,area:bestArea});seenFeatures.add(featureId)}
- const areas=[...seenFeatures].map(featureId=>byFeature.get(featureId)).filter(Boolean).sort((a,b)=>{const scoreDiff=meteoalarmAreaNameScore(b,name,region,district)-meteoalarmAreaNameScore(a,name,region,district);return scoreDiff||meteoalarmBoxArea(a?.bb)-meteoalarmBoxArea(b?.bb)}),hazards=[],seen=new Set();for(const item of selected){const key=`${item.featureId}:${item.typeId}:${item.levelId}`;if(seen.has(key))continue;seen.add(key);hazards.push({featureId:item.featureId,typeId:item.typeId,levelId:item.levelId})}
- const textualMatches=areas.filter(area=>meteoalarmAreaNameScore(area,name,region,district)>0).length;return{code,referenceDate,endpoint:url.toString(),resolved:areas.length>0,areas,hazards:hazards.slice(0,12),candidateAreas:pointAreas.length,selection:textualMatches?'local-name-plus-bbox':'smallest-bbox-per-hazard-fallback'};
-}
-function meteoalarmLanguageOrder(language,value){const requested=String(language||'de').toLowerCase(),base=requested.split('-')[0],keys=value&&typeof value==='object'&&!Array.isArray(value)?Object.keys(value):[];return[...new Set([requested,base,'de','en',...keys].filter(Boolean))]}
-function meteoalarmLocalized(value,language){if(typeof value==='string')return{text:cleanText(value),language:undefined};if(!value||typeof value!=='object')return{text:'',language:undefined};for(const key of meteoalarmLanguageOrder(language,value)){const direct=value[key]??Object.entries(value).find(([candidate])=>candidate.toLowerCase()===key||candidate.toLowerCase().startsWith(`${key}-`))?.[1],text=cleanText(String(direct||''));if(text)return{text,language:key}}return{text:'',language:undefined}}
-function meteoalarmVisLevel(levelId){return({1:'red',2:'orange',3:'yellow'})[Number(levelId)]||'unknown'}
-function meteoalarmVisSeverity(levelId){return({1:'Extreme',2:'Severe',3:'Moderate'})[Number(levelId)]||undefined}
-function meteoalarmDirectAlert(warning,area,language){
- const expires=safeDate(warning?.endDate);if(expires&&Date.parse(expires)<Date.now())return null;const description=meteoalarmLocalized(warning?.description,language),headline=meteoalarmLocalized(warning?.headline,description.language||language),instruction=meteoalarmLocalized(warning?.instruction,description.language||language),id=String(warning?.id||`${warning?.featureId||area?.featureId||''}:${warning?.typeId||''}:${warning?.startDate||''}`),featureId=String(warning?.featureId||area?.featureId||''),areaName=cleanText(String(warning?.name||area?.name||''));if(!headline.text&&!description.text)return null;
- return{id,headline:headline.text||'Amtliche Wetterwarnung',description:description.text||EMPTY_ALERT_DESCRIPTION,instruction:instruction.text||undefined,language:description.language||headline.language||undefined,level:meteoalarmVisLevel(warning?.levelId),severity:meteoalarmVisSeverity(warning?.levelId),event:headline.text||undefined,source:cleanText(String(warning?.originator?.name||'MeteoAlarm / nationale WetterbehÃ¶rde')),area:areaName||undefined,areaCodes:featureId?[`meteoalarm_feature:${normalize(featureId)}`]:undefined,references:[id],effective:safeDate(warning?.startDate),onset:safeDate(warning?.startDate),expires,updatedAt:safeDate(warning?.sent),url:String(warning?.originator?.url||'https://www.meteoalarm.org/')};
-}
-async function meteoalarmPointAlerts(context,language){
- if(!context?.areas?.length||!context?.hazards?.length)return[];const areaByFeature=new Map(context.areas.map(area=>[String(area.featureId),area])),requests=context.hazards.map(async hazard=>{const url=new URL(`stream-buffers/live/features/${encodeURIComponent(hazard.featureId)}/warnings`,METEOALARM_VIS);url.searchParams.set('typeId',String(hazard.typeId));url.searchParams.set('levelId',String(hazard.levelId));url.searchParams.set('language','en');url.searchParams.set('referenceDate',context.referenceDate);url.searchParams.set('preset','timeline');const payload=await fetchJson(url.toString());return(Array.isArray(payload?.warnings)?payload.warnings:[]).map(warning=>meteoalarmDirectAlert(warning,areaByFeature.get(hazard.featureId),language)).filter(Boolean)}),settled=await Promise.allSettled(requests);return dedupeAlerts(settled.flatMap(result=>result.status==='fulfilled'?result.value:[]));
-}
-function alertAreaSignature(alert){if(Array.isArray(alert?.areaCodes)&&alert.areaCodes.length)return alert.areaCodes.map(normalize).sort().join(',');return String(alert?.area||'').split(',').map(normalize).filter(Boolean).sort().join(',')}
-function alertTimeSignature(value){const date=safeDate(value);return date?date.slice(0,16):''}
-function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires)].join('|')}
-function alertQuality(alert){const updated=Date.parse(String(alert?.updatedAt||alert?.effective||''));return(Number.isFinite(updated)?updated/1e10:0)+String(alert?.description||'').length+String(alert?.instruction||'').length*2+(alert?.areaCodes?.length||0)*20}
-function dedupeAlerts(alerts){
- const rows=[],keyToIndex=new Map();for(const alert of alerts){if(!alert)continue;const keys=[alert.id?`id:${alert.id}`:'',...(alert.references||[]).map(id=>`id:${id}`),alertSemanticKey(alert)].filter(Boolean),existing=keys.map(key=>keyToIndex.get(key)).find(index=>index!==undefined);if(existing===undefined){const index=rows.length;rows.push(alert);for(const key of keys)keyToIndex.set(key,index)}else{if(alertQuality(alert)>alertQuality(rows[existing]))rows[existing]=alert;for(const key of keys)keyToIndex.set(key,existing)}}
- const order={purple:4,red:3,orange:2,yellow:1,unknown:0};return rows.sort((a,b)=>(order[b.level]??0)-(order[a.level]??0)||String(a.onset||a.effective||'').localeCompare(String(b.onset||b.effective||'')));
-}
-function featureProp(properties,...keys){if(!properties||typeof properties!=='object')return undefined;const map=new Map(Object.entries(properties).map(([k,v])=>[k.toLowerCase(),v]));for(const k of keys){const v=map.get(k.toLowerCase());if(v!==undefined&&v!==null&&v!=='')return v}return undefined}
-function dwdColorLevel(value){const rgb=String(value||'').match(/\d+(?:\.\d+)?/g)?.slice(0,3).map(Number);if(!rgb||rgb.length<3)return undefined;const[r,g,b]=rgb;if((b>120&&b>g)||(r>170&&b>130&&g<190))return'purple';if(r>190&&g<110)return'red';if(r>190&&g>=110&&g<220)return'orange';if(r>170&&g>=170)return'yellow';return undefined}
-function dwdFeatureAlert(feature){
- const p=feature?.properties??{},expires=safeDate(featureProp(p,'EXPIRES'));if(expires&&new Date(expires).getTime()<Date.now())return null;
- const status=String(featureProp(p,'STATUS')||'Actual').toLowerCase(),msgType=String(featureProp(p,'MSGTYPE')||'Alert').toLowerCase();if(status!=='actual'||['cancel','error'].includes(msgType))return null;
- const headline=String(featureProp(p,'HEADLINE','EVENT')||'Amtliche Wetterwarnung'),severity=String(featureProp(p,'SEVERITY')||'');
- return{id:String(featureProp(p,'IDENTIFIER')||feature?.id||headline),headline,description:cleanText(String(featureProp(p,'DESCRIPTION')||'FÃ¼r diese amtliche Warnung liegt kein zusÃ¤tzlicher Meldungstext vor.')),instruction:cleanText(String(featureProp(p,'INSTRUCTION')||''))||undefined,level:awarenessLevel('',severity,dwdColorLevel(featureProp(p,'EC_AREA_COLOR'))||featureProp(p,'WARNLEVEL','WARNING_LEVEL','LEVEL')),severity:severity||undefined,event:String(featureProp(p,'EVENT')||'')||undefined,source:String(featureProp(p,'SENDERNAME','CONTACT')||'Deutscher Wetterdienst (DWD)'),area:String(featureProp(p,'NAME','AREADESC')||'')||undefined,effective:safeDate(featureProp(p,'EFFECTIVE','SENT')),onset:safeDate(featureProp(p,'ONSET')),expires,url:String(featureProp(p,'WEB')||'https://www.dwd.de/warnungen')};
-}
-async function dwdWfsFrom(base,lat,lon){
- const delta=.025,u=new URL(base);u.searchParams.set('service','WFS');u.searchParams.set('version','2.0.0');u.searchParams.set('request','GetFeature');u.searchParams.set('typeName','dwd:Warnungen_Gemeinden');u.searchParams.set('outputFormat','application/json');u.searchParams.set('CRS','CRS:84');u.searchParams.set('srsName','CRS:84');u.searchParams.set('bbox',`${(lon-delta).toFixed(5)},${(lat-delta).toFixed(5)},${(lon+delta).toFixed(5)},${(lat+delta).toFixed(5)},CRS:84`);
- const data=await fetchJson(u.toString()),features=Array.isArray(data?.features)?data.features:[];
- const exact=features.filter(f=>pointInGeometry(lat,lon,f.geometry));return dedupeAlerts((exact.length?exact:features.filter(f=>{const b=f?.bbox;return Array.isArray(b)&&b.length>=4&&lon>=Number(b[0])&&lon<=Number(b[2])&&lat>=Number(b[1])&&lat<=Number(b[3])})).map(dwdFeatureAlert).filter(Boolean));
-}
-async function dwdWfsAlerts(lat,lon){let lastError;for(const base of[DWD_WFS_PRIMARY,DWD_WFS_BACKUP]){try{return{alerts:await dwdWfsFrom(base,lat,lon),endpoint:base}}catch(e){lastError=e}}throw lastError||new Error('DWD-WFS nicht erreichbar')}
-function entryScore(item,name,region,district){const text=normalize(cleanText(item)),terms=termsFor(name,district,region);let score=0;for(const t of terms){if(text.includes(t))score+=t===normalize(name)?12:5}if(tagValues(item,'polygon').length||tagValues(item,'circle').length)score+=20;const updated=safeDate(tagValue(item,'updated')||tagValue(item,'published')||tagValue(item,'sent'));if(updated)score+=Math.max(0,5-(Date.now()-new Date(updated).getTime())/86400000);return score}
-async function capFeedAlerts(feedUrl,source,lat,lon,name,region,district,language='de',maxDocuments=24,officialAreaNames){
- const xml=await fetchText(feedUrl),rawItems=blocks(xml,'entry').length?blocks(xml,'entry'):blocks(xml,'item'),items=rawItems.map((item,index)=>({item,index,score:entryScore(item,name,region,district),link:capLink(item,feedUrl),embedded:embeddedCap(item)})).sort((a,b)=>b.score-a.score||a.index-b.index),alerts=[],candidates=[];
- for(const x of items){
-  const directXml=x.embedded||x.item,fallback=parseCap(directXml,source,x.link,lat,lon,name,region,district,language,officialAreaNames);
-  // MeteoAlarm-Atom-EintrÃ¤ge enthalten hÃ¤ufig nur Kennung, Gebiet, Ereignis und
-  // GÃ¼ltigkeit. Der eigentliche amtliche Meldungs- und Verhaltenstext steht im
-  // verlinkten CAP-Dokument. Ein passender Indexeintrag darf den CAP-Abruf daher
-  // nicht vorzeitig beenden; bei einem Abruffehler bleibt er nur als Fallback.
-  if(x.link&&(!x.embedded||!alertHasOfficialText(fallback))){if(Array.isArray(officialAreaNames)&&!fallback)continue;candidates.push({...x,fallback});continue}
-  if(fallback)alerts.push(fallback);
- }
- for(let i=0;i<Math.min(candidates.length,maxDocuments);i+=6){const batch=candidates.slice(i,i+6);const results=await Promise.allSettled(batch.map(async x=>{const capXml=await fetchText(x.link);return parseCap(embeddedCap(capXml)||capXml,source,x.link,lat,lon,name,region,district,language,officialAreaNames)}));for(let index=0;index<results.length;index++){const r=results[index];if(r.status==='fulfilled'&&r.value)alerts.push(r.value);else if(batch[index].fallback)alerts.push(batch[index].fallback)}}
- return dedupeAlerts(alerts);
-}
-async function dwdAlerts(lat,lon,name,region,district,language){
- try{const wfs=await dwdWfsAlerts(lat,lon);return{alerts:wfs.alerts,provider:'Deutscher Wetterdienst (DWD)',coverage:'Deutschland Â· amtliche DWD-WFS-Warnungen auf Gemeindeebene',sourceStatus:{strategy:'single-canonical-provider',primary:'DWD WFS',endpoint:wfs.endpoint,deduplication:'Kennung sowie Ereignis, Gebiet und GÃ¼ltigkeit'}}}
- catch(wfsError){const alerts=await capFeedAlerts(DWD_CAP_FEED,'Deutscher Wetterdienst (DWD)',lat,lon,name,region,district,language,16);return{alerts,provider:'Deutscher Wetterdienst (DWD)',coverage:'Deutschland Â· amtliche DWD-CAP-Warnungen (Fallback)',sourceStatus:{strategy:'single-canonical-provider',primary:'DWD CAP',fallbackReason:wfsError instanceof Error?wfsError.message:String(wfsError),deduplication:'CAP-Kennung/Referenzen sowie Ereignis, Gebiet und GÃ¼ltigkeit'}}}
-}
-async function nwsAlerts(lat,lon){
- const u=new URL(NWS_ALERTS);u.searchParams.set('point',`${lat.toFixed(4)},${lon.toFixed(4)}`);u.searchParams.set('status','actual');u.searchParams.set('message_type','alert,update');
- const d=await fetchJson(u.toString(),{'Accept':'application/geo+json'});return(d.features??[]).map(f=>{const p=f.properties??{},severity=String(p.severity||'');return{id:String(p.id||f.id||p.headline),headline:String(p.headline||p.event||'Amtliche Wetterwarnung'),description:String(p.description||'FÃ¼r diese amtliche Warnung liegt kein zusÃ¤tzlicher Meldungstext vor.'),instruction:p.instruction||undefined,level:awarenessLevel('',severity),severity,event:p.event||undefined,source:p.senderName||'NOAA / National Weather Service',area:p.areaDesc||undefined,effective:safeDate(p.effective),onset:safeDate(p.onset),expires:safeDate(p.expires),url:p['@id']||f.id||undefined}});
-}
-async function officialAlerts(lat,lon,country,name,region,district,language){
- const c=await resolveCountryCode(country,lat,lon,name,region);if(c==='DE'){const result=await dwdAlerts(lat,lon,name,region,district,language);return{...result,countryCode:c}}
- if(c==='US'){const alerts=await nwsAlerts(lat,lon);return{alerts:dedupeAlerts(alerts),provider:'NOAA / National Weather Service',coverage:'USA Â· amtliche CAP-Warnungen',countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'NOAA/NWS',deduplication:'Kennung sowie Ereignis, Gebiet und GÃ¼ltigkeit'}}}
- const slug=FEED_SLUGS[c];if(slug){
-  const url=`${METEOALARM_FEEDS}meteoalarm-legacy-atom-${slug}`;let pointContext,pointContextError;try{pointContext=await meteoalarmPointContext(c,lat,lon,name,region,district)}catch(error){pointContextError=error instanceof Error?error.message:String(error)}const officialAreaNames=pointContext?.resolved?pointContext.areas.map(area=>String(area?.name||'')).filter(Boolean):undefined,[capResult,pointResult]=await Promise.allSettled([capFeedAlerts(url,'MeteoAlarm / nationale WetterbehÃ¶rde',lat,lon,name,region,district,language,30,officialAreaNames),meteoalarmPointAlerts(pointContext,language)]),capAlerts=capResult.status==='fulfilled'?capResult.value:[],pointAlerts=pointResult.status==='fulfilled'?pointResult.value:[],alerts=dedupeAlerts([...capAlerts,...pointAlerts]);if(!alerts.length&&capResult.status==='rejected'&&pointResult.status==='rejected')throw capResult.reason;
-  return{alerts,provider:'MeteoAlarm / nationale WetterbehÃ¶rde',coverage:`Europa Â· amtliche Warnungen des nationalen Wetterdienstes Â· koordinatengeprÃ¼ft Â· ${c}`,countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'MeteoAlarm Live-Warngebiete + Atom/CAP',endpoint:url,areaEndpoint:pointContext?.endpoint||`${METEOALARM_VIS}stream-buffers/live/hazards/${meteoalarmVisCountryCode(c)}`,coordinateAssignment:pointContext?.resolved?`amtliches Warngebiet lokal eingegrenzt (${pointContext.selection==='local-name-plus-bbox'?'Orts-/Regionsabgleich + Warngebietsbox':'kleinste passende Warngebietsbox je Warnart als Fallback'}; ${pointContext.candidateAreas||pointContext.areas.length} Box-Kandidaten)`:'CAP-Geometrie bzw. vorsichtiger Ortsnamensabgleich (Fallback)',areaResolutionError:pointContextError,deduplication:'MeteoAlarm-Warnungskennung/CAP-Referenzen sowie Ereignis, Gebiet und GÃ¼ltigkeit'}}
- }
- return{alerts:[],provider:'CAP',coverage:'Das Land konnte nicht sicher bestimmt werden oder besitzt keinen im Ã¶ffentlichen MID-Proxy hinterlegten amtlichen CAP-Feed.',countryCode:c||undefined};
-}
+›İË[]\İÙ‹[YJKÍŒ
+N’[™š[š]NÛ]İ\[[ÚYŠ]\İÉ‰œĞYÙOKLL	‰œĞYÙOMMJZİ\^Û[ÙN‰ÜÚ[™ÛIË›ÙXİ‰Ô•ÉËY\İYYKX™[‰ÔQÓSˆ•È0­È[™ÙYZXÚHKZTİ[[YIËØœÙ\™Y]›™]È]J]\İË[YJKÒTÓÔİš[™Ê
+Kœ˜[Y\Î–Şİ[YN›™]È]J]\İË[YJKÒTÓÔİš[™Ê
+Kš[U\›œ˜YÛ[’\İÜT›ŞU\›
+™\]Y\İ	ÜÉË]\İË›˜[YJ_W_NÙ[Ù^ØÛÛœİ]\İO\K˜]
+LJK]\İU[YO[]\İOË[YOÏÓ˜S‹œ˜[Y\Ï\K™š[\Š][OO“[X™\‹š\Ñš[š]J]\İU[YJI‰š][K[YO›]\İU[YKMJŒ	‰š][K[YO[]\İU[YJÍŒ
+KœÛXÙJLLÊK›X\
+][OOŠİ[YN›™]È]J][K[YJKÒTÓÔİš[™Ê
+Kš[U\›œ˜YÛ[’\İÜT›ŞU\›
+™\]Y\İ	ÜIË][K›˜[YJ_JJNÚYŠœ˜[Y\Ë›[™İ
+Zİ\^Û[ÙN‰Üİ[IË›ÙXİ‰Ô–IËY\İY™˜[ÙKX™[‰ÔQÓSˆ–H0­ÈšXÚ[™ÙYZXÚHK[Z[‹Tİ[[Y[‰ËØœÙ\™Y]™œ˜[Y\Ë˜]
+LJK[YKœ˜[Y\ß_XÛÛœİ^O[]\İÙ‰‰œÙYÙOKLL	‰œÙYÙOLMLŞÛ[ÙN‰ÜÚ[™ÛIË›ÙXİ‰ÔÑ‰ËY\İYYKX™[‰ÔQÓSˆÑˆ0­È[™ÙYZXÚHÛZ][™HZTİ[[YIËØœÙ\™Y]›™]È]J]\İÙ‹[YJKÒTÓÔİš[™Ê
+Kœ˜[Y\Î–Şİ[YN›™]È]J]\İÙ‹[YJKÒTÓÔİš[™Ê
+Kš[U\›œ˜YÛ[’\İÜT›ŞU\›
+™\]Y\İ	ÜÙ‰Ë]\İÙ‹›˜[YJ_W_N›[Ü™]\›ØÛİ™\˜YÙN›ÛÛX[Šİ\Ÿ^JK›İšY\‰ÑÑQÓS‰Ëİ\‹^KXÙ[œÙN‰ÑÑÜ[ˆ]IËXYÛ›ÜİXÜÎÜĞYÙSZ[]\Î“[X™\‹š\Ñš[š]JĞYÙJOÜĞYÙN[™Yš[™YÙYÙSZ[]\Î“[X™\‹š\Ñš[š]JÙYÙJOÜÙYÙN[™Yš[™YÑš[\ÎœË›[™İQš[\ÎœK›[™İÙ‘š[\ÎœÙ‹›[™İ\œ›ÜœÎ–ÜÔ™\İ[T™\İ[Ù”™\İ[K›X\
 
-const METEOALARM_EDR_COLLECTION='warnings';
-const METEOALARM_EDR_LEGACY_QUERY_PATTERNS=[/[?&](?:archive|sent_before|sent_after|active_before|active_after)=/i,/\/archive(?:[/?#]|$)/i];
-async function meteoalarmEdrAlerts(env,lat,lon,country,language='de'){
- const endpoint=adapterEndpoint(env,'MID_METEOALARM_EDR_POINT_ENDPOINT');if(!endpoint)return{configured:false,alerts:[]};if(METEOALARM_EDR_LEGACY_QUERY_PATTERNS.some(pattern=>pattern.test(endpoint.toString())))throw new Error('MeteoAlarm-EDR-Adapter nutzt ein veraltetes API-Schema');
- endpoint.searchParams.set('collection',METEOALARM_EDR_COLLECTION);endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('country',String(country||''));endpoint.searchParams.set('language',language||'de');endpoint.searchParams.set('active','now');
- const token=String(env?.MID_METEOALARM_EDR_TOKEN||'').trim(),headers={Accept:'application/geo+json,application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`};if(token)headers.Authorization=`Bearer ${token}`;
- const response=await fetchWithDeadline(endpoint.toString(),{headers},10000);if(!response.ok)throw new Error(`MeteoAlarm EDR Adapter HTTP ${response.status}`);const raw=await response.json(),rows=Array.isArray(raw?.features)?raw.features.map(feature=>({...feature?.properties,geometry:feature?.geometry})):Array.isArray(raw?.alerts)?raw.alerts:Array.isArray(raw?.data)?raw.data:[];
- const alerts=rows.map((row,index)=>{const p=row?.properties??row,id=String(p?.id??p?.identifier??p?.capIdentifier??`meteoalarm-edr-${index}`),headline=String(p?.headline??p?.event??p?.title??'Amtliche Wetterwarnung'),description=String(p?.description??p?.text??p?.summary??'').trim();if(!headline&&!description)return null;return{id,headline,description:description||'FÃ¼r diese amtliche Warnung liegt kein zusÃ¤tzlicher Meldungstext vor.',instruction:p?.instruction||p?.response||undefined,level:awarenessLevel(String(p?.awareness_level??p?.level??''),String(p?.severity??'')),severity:p?.severity||undefined,event:p?.event||undefined,source:String(p?.senderName??p?.sender??'MeteoAlarm / nationale WetterbehÃ¶rde'),area:p?.areaDesc??p?.area??p?.area_name??undefined,effective:safeDate(p?.effective??p?.sent),onset:safeDate(p?.onset),expires:safeDate(p?.expires??p?.ends),url:p?.cap_url??p?.capUrl??p?.url??undefined}}).filter(Boolean);
- return{configured:true,alerts:dedupeAlerts(alerts),provider:'MeteoAlarm OGC EDR / CAP 1.2'};
-}
-async function officialAlertsWithModernMeteoAlarm(lat,lon,country,name,region,district,language,env){const base=await officialAlerts(lat,lon,country,name,region,district,language);const code=base.countryCode||await resolveCountryCode(country,lat,lon,name,region);if(!FEED_SLUGS[code]||!adapterEndpoint(env,'MID_METEOALARM_EDR_POINT_ENDPOINT'))return base;try{const edr=await meteoalarmEdrAlerts(env,lat,lon,code,language);if(!edr.alerts.length)return{...base,sourceStatus:{...(base.sourceStatus||{}),meteoalarmEdr:'configured-no-active-warning'}};return{...base,alerts:dedupeAlerts([...(base.alerts||[]),...edr.alerts]),provider:`${base.provider} + MeteoAlarm OGC EDR`,sourceStatus:{...(base.sourceStatus||{}),meteoalarmEdr:'active',meteoalarmEdrCollection:METEOALARM_EDR_COLLECTION,cap:'1.2'}}}catch(error){return{...base,sourceStatus:{...(base.sourceStatus||{}),meteoalarmEdr:'fallback-to-national',meteoalarmEdrError:error instanceof Error?error.message:String(error)}}}}
+™\İ[[™^
+OOœ™\İ[œİ]\ÏOOIÜ™Z™XİY	ÏØ	ÖÉÔ•ÉË	Ô–IË	ÔÑ‰×VÚ[™^_Nˆ	Ü™\İ[œ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™\İ[œ™X\ÛÛ‹›Y\ÜØYÙN”İš[™Ê™\İ[œ™X\ÛÛŠ_X‰ÉÊK™š[\Š›ÛÛX[Š___B˜\Ş[˜È[˜İ[Ûˆ˜YÛ[’\İÜQš[T™\ÜÛœÙJ™\]Y\İ
+^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+K›ÙXİTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ü›ÙXİ	Ê_	ÉÊKÓİÙ\Ø\ÙJ
+Kš[[˜[YOTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ùš[IÊ_	ÉÊK›ÛİQÑÔQÓS—ÒTÕÔ–WÔ“ÓÕÖÜ›ÙXİK[YO\˜YÛ[”›ÙXİ[Y\İ[\
+š[[˜[YK›ÙXİ
+KX^YÙO\›ÙXİOOIÜÙ‰ÏÌÌJŒÍŒœ›ÙXİOOIÜÉÏÍŠŒÍŒ
+ŒÍŒÚYŠ\›Ûİ][Y_X]˜XœÊ]K››İÊ
+K][YJO›X^YÙJ\™]\›ˆœÛÛŠÙ\œ›Ü‰Õ[™ğïYÙHÙ\ˆ™\˜[]HQÓS‹T°ïÚÜØÚ]KQ]ZK‰Ë™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNØÛÛœİ\İ™X[O[™]ÈT“
+š[[˜[YK›Ûİ
+KÔİš[™Ê
+K™\ÜÛœÙOX]ØZ]™]Ú
+\İ™X[KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ŞZK\XØ][Û‹ÛØİ]\İ™X[K
+‹Ê‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUœ›ÙXİOOIÜÙ‰ÏÌÍŒLØXÚQ]™\][™ÎY__JNÚYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆœÛÛŠÙ\œ›Ü˜ÑQÓSˆ	Ü›ÙXİÕ\\Ø\ÙJ
+_H	Ü™\ÜÛœÙKœİ]\ßX™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸK™\ÜÛœÙKœİ]\ËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÜ™]\›ˆ™]È™\ÜÛœÙJ™\ÜÛœÙK˜›ÙKÜİ]\ÎŒŒXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹ŞZIË	ØÛÛ[Y\ÜÜÚ][Û‰Î˜[›[™NÈš[[˜[YOH‰Ùš[[˜[Y_H˜	ØXØÙ\ÜËXÛÛ›ÛX[İË[ÜšYÚ[‰Î‰Ê‰Ë	ØØXÚKXÛÛ›Û	Îœ›ÙXİOOIÜÙ‰ÏÉÜX›XËX^XYÙOLÍŒ	Î‰ÜX›XËX^XYÙONL	Ë	Ş[ZY]ÛÜšÙ\‹]™\œÚ[Û‰Î•ÓÔ’ÑT—Õ‘T”ÒSÓ‹	Ş[ZY\Ûİ\˜ÙIÎ˜ÑQÓSˆ	Ü›ÙXİÕ\\Ø\ÙJ
+_X_J_B˜\Ş[˜È[˜İ[Ûˆ˜YÛ[–]ÓY]Y]J™\]Y\İ]ÛŠ^ÚYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠJ\™]\›ØÛİ™\˜YÙN™˜[ÙK›İšY\‰ÑÑQÓS‰Ë›ÙXİ‰ÖUÉËœ˜[Y\Î–×Kİ[[X\N‰Ğ]pçÙ\š[ˆ\È]]ØÚ[ˆQÓS‹T˜\İ\œË‰ßNØÛÛœİ[X]ØZ]™]Ú^
+ÑÔQÓS—ÖU×Ô“ÓÕĞXØÙ\‰İ^Ú[\XØ][Û‹Ş[
+Ş[	ßJK›İÏQ]K››İÊ
+Kš[\ÏVË‹‹š[›X]Ú[
+Ú™YVÈ‰×J˜XLK^]×ÌLWÌLKYÙKKXš[—šJVÈ‰×KÙÚJWK›X\
+X]ÚO›X]ÚÌWJK›X\
+˜[YOOŠÛ˜[YK[YNœ˜YÛ[–]Õ[Y\İ[\
+˜[YJ_JJK™š[\Š][OO“[X™\‹š\Ñš[š]J][K[YJI‰š][K[YO[›İÊÌL
+Œ	‰š][K[YO[›İËN
+ŒÍŒ
+KœÛÜ
 
+KŠOO˜K[YKX‹[YJNØÛÛœİœ˜[Y\ÏYš[\ËœÛXÙJMÍŠK›X\
+][OOŠİ[YN›™]È]J][K[YJKÒTÓÔİš[™Ê
+Kš[U\›œ˜YÛ[–]Ô›ŞU\›
+™\]Y\İ][K›˜[YJ_JJNÚYŠYœ˜[Y\Ë›[™İ
+]›İÈ™]È\œ›ÜŠ	ÒÙZ[™HZİY[[ˆQÓS‹VUËQ]ZY[ˆÙY[™[‹‰ÊNÜ™]\›ØÛİ™\˜YÙNYK›İšY\‰ÑÑQÓS‰Ë›ÙXİ‰ÖUÈ8 $È]X\ÚKX[™ÙYZXÚHKSZ[][‹SšYY\œØÚYÜÚ0íšIËØœÙ\™Y]™œ˜[Y\Ë˜]
+LJK[YK[\Ü˜[™\ÛÛ][Û“Z[]\ÎK˜]]™T™\ÛÛ][Û’ÛNŒKXÙ[œÙN‰ÑÑÜ[ˆ]IËœ˜[Y\ß_B˜\Ş[˜È[˜İ[Ûˆ˜YÛ[–]Ñš[T™\ÜÛœÙJ™\]Y\İ
+^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+Kš[[˜[YOTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ùš[IÊ_	ÉÊK[YO\˜YÛ[–]Õ[Y\İ[\
+š[[˜[YJNÚYŠ][Y_X]˜XœÊ]K››İÊ
+K][YJOJŒÍŒ
+\™]\›ˆœÛÛŠÙ\œ›Ü‰Õ[™ğïYÙHÙ\ˆ™\˜[]HQÓS‹VUËQ]ZK‰Ë™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNØÛÛœİ\İ™X[O[™]ÈT“
+š[[˜[YKÑÔQÓS—ÖU×Ô“ÓÕ
+KÔİš[™Ê
+K™\ÜÛœÙOX]ØZ]™]Ú
+\İ™X[KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ŞZK\XØ][Û‹ÛØİ]\İ™X[K
+‹Ê‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒŒMŒØXÚQ]™\][™ÎY__JNÚYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆœÛÛŠÙ\œ›Ü˜ÑQÓSˆUÈ	Ü™\ÜÛœÙKœİ]\ßX™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸK™\ÜÛœÙKœİ]\ËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÜ™]\›ˆ™]È™\ÜÛœÙJ™\ÜÛœÙK˜›ÙKÜİ]\ÎŒŒXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹ŞZIË	ØÛÛ[Y\ÜÜÚ][Û‰Î˜[›[™NÈš[[˜[YOH‰Ùš[[˜[Y_H˜	ØXØÙ\ÜËXÛÛ›ÛX[İË[ÜšYÚ[‰Î‰Ê‰Ë	ØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOLŒMŒ	Ë	Ş[ZY]ÛÜšÙ\‹]™\œÚ[Û‰Î•ÓÔ’ÑT—Õ‘T”ÒSÓ‹	Ş[ZY\Ûİ\˜ÙIÎ‰ÑÑQÓSˆUÉß_J_B™[˜İ[ÛˆÙœÕ[Y\İ[\
+š[[˜[YJ^ØÛÛœİX]ÚTİš[™Êš[[˜[YJK›X]Ú
+×˜ÛÛ\ÜÚ]WÜœ×ÊÎJWÊÍJW\‰ÚJNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YØÛÛœİ]O[X]ÚÌWKÛØÚÏ[X]ÚÌ—K[YOQ]K•UÊ[X™\Š]KœÛXÙJ
+JK[X™\Š]KœÛXÙJŠJKLK[X™\Š]KœÛXÙJ‹
+JK[X™\ŠÛØÚËœÛXÙJŠJK[X™\ŠÛØÚËœÛXÙJ‹
+JJNÜ™]\›ˆ[X™\‹š\Ñš[š]J[YJOİ[YN[™Yš[™YB™[˜İ[ÛˆÙœÔ›ŞU\›
+™\]Y\İ\‹XY
+^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+Nİ\›œÙX\˜ÚIÉÎİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û[ÙIË	ÜœËYš[IÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	İ\‰Ë\ŠNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	ÛXY	Ëİš[™ÊXY
+JNÜ™]\›ˆ\›Ôİš[™Ê
+_B˜\Ş[˜È[˜İ[ÛˆÙœÓ]\İ\Š
+^ØÛÛœİ›İÏQ]K››İÊ
+K\œ›ÜœÏV×NÙ›ÜŠÛÛœİ›ÛİÙˆÑÔ”×Ô“ÓÕÊ^İ^ØÛÛœİ[X]ØZ]™]Ú^
+›ÛİĞXØÙ\‰İ^Ú[\XØ][Û‹Ş[
+Ş[	ßJK›İÜÏVË‹‹š[›X]Ú[
+Ú™YVÈ‰×JÛÛ\ÜÚ]WÜœ××ÎW×ÍW\ŠVÈ‰×KÙÚJWK›X\
+X]ÚO›X]ÚÌWJK›X\
+˜[YOOŠÛ˜[YK[YN™ÙœÕ[Y\İ[\
+˜[YJK›ÛİJJK™š[\Š›İÏO“[X™\‹š\Ñš[š]J›İË[YJI‰œ›İË[YO[›İÊÌL
+Œ	‰œ›İË[YO[›İËLÊŒÍŒ
+KœÛÜ
 
-function konradTimestamp(filename=''){
- const match=String(filename).match(/KONRAD3D_(\d{8})T(\d{6})\.xml$/i);if(!match)return undefined;
- const date=match[1],time=match[2],value=Date.UTC(Number(date.slice(0,4)),Number(date.slice(4,6))-1,Number(date.slice(6,8)),Number(time.slice(0,2)),Number(time.slice(2,4)),Number(time.slice(4,6)));return Number.isFinite(value)?value:undefined;
-}
-function latestKonradFilename(indexHtml){
- const now=Date.now(),names=[...String(indexHtml).matchAll(/KONRAD3D_\d{8}T\d{6}\.xml/gi)].map(match=>match[0]),unique=[...new Set(names)].map(name=>({name,time:konradTimestamp(name)})).filter(item=>Number.isFinite(item.time)&&item.time<=now+10*60000&&item.time>=now-36*3600000).sort((a,b)=>b.time-a.time);return unique[0];
-}
-function tagNumber(xml,tag){const value=number(tagValue(xml,tag));return value!==undefined&&value>-999000000?value:undefined}
-function tagNumberAny(xml,...tags){for(const tag of tags){const value=tagNumber(xml,tag);if(value!==undefined)return value}return undefined}
-function heightKm(value){const numeric=number(value);if(numeric===undefined||numeric<0)return undefined;return numeric>100?numeric/1000:numeric}
-function hailSizeCm(value){const numeric=number(value);if(numeric===undefined||numeric<=0)return undefined;return numeric>20?numeric/10:numeric}
-function konradFeatureMatches(xml){return[...String(xml).matchAll(/<(?:(?:\w+):)?feature\b([^>]*)>([\s\S]*?)<\/(?:(?:\w+):)?feature>/gi)]}
-function konradAttribute(attrs,name){return decodeXml(String(attrs||'').match(new RegExp(`\\b${name}=["']([^"']+)["']`,'i'))?.[1]||'')}
-function konradLengthKm(block,...tags){
- for(const tag of tags){const match=String(block).match(new RegExp(`<(?:(?:\\w+):)?${tag}\\b([^>]*)>([^<]+)<\\/(?:(?:\\w+):)?${tag}>`,'i'));if(!match)continue;const value=number(decodeXml(match[2]));if(value===undefined||value<0)continue;const units=(konradAttribute(match[1],'unit')||konradAttribute(match[1],'units')).toLowerCase();if(/(^|[^k])m($|[^a-z])|meter/.test(units))return value/1000;if(/km|kilometer/.test(units))return value;return value>100?value/1000:value}
- return undefined;
-}
-function konradAreaKm2(block,...tags){
- for(const tag of tags){const match=String(block).match(new RegExp(`<(?:(?:\\w+):)?${tag}\\b([^>]*)>([^<]+)<\\/(?:(?:\\w+):)?${tag}>`,'i'));if(!match)continue;const value=number(decodeXml(match[2]));if(value===undefined||value<0)continue;const units=(konradAttribute(match[1],'unit')||konradAttribute(match[1],'units')).toLowerCase();if(/km2|kmÂ²|square.?kilometer/.test(units))return value;if(/(^|[^k])m2|mÂ²|square.?meter/.test(units))return value/1e6;return value>100000?value/1e6:value}
- return undefined;
-}
-function konradSpeedKmh(block,...tags){
- for(const tag of tags){const match=String(block).match(new RegExp(`<(?:(?:\\w+):)?${tag}\\b([^>]*)>([^<]+)<\\/(?:(?:\\w+):)?${tag}>`,'i'));if(!match)continue;const value=number(decodeXml(match[2]));if(value===undefined||value<0)continue;const units=(konradAttribute(match[1],'unit')||konradAttribute(match[1],'units')).toLowerCase();if(/m\/?s|meter.*second/.test(units))return value*3.6;if(/kt|knot/.test(units))return value*1.852;return value}
- return undefined;
-}
-function konradCoordinatePairs(block){const latitudes=tagValues(block,'latitude').map(number),longitudes=tagValues(block,'longitude').map(number),points=[];for(let index=0;index<Math.min(latitudes.length,longitudes.length);index++){const latitude=latitudes[index],longitude=longitudes[index];if(latitude===undefined||longitude===undefined||Math.abs(latitude)>90||Math.abs(longitude)>180)continue;points.push({latitude,longitude})}return points}
-function konradFootprint(geometry,latitude,longitude){
- const candidates=[...blocks(geometry,'polygon'),...blocks(geometry,'geodetic_coordinates'),...blocks(geometry,'geodetic_coordinate_list')],rows=[];
- for(const block of candidates){const points=konradCoordinatePairs(block);if(points.length<3)continue;const maximum=Math.max(...points.map(point=>distance(latitude,longitude,point.latitude,point.longitude)/1000));if(!Number.isFinite(maximum)||maximum>80)continue;const unique=points.filter((point,index,list)=>index===0||distance(point.latitude,point.longitude,list[index-1].latitude,list[index-1].longitude)>50);if(unique.length>=3)rows.push(unique)}
- return rows.sort((a,b)=>b.length-a.length)[0]||[];
-}
-function konradFootprintCenter(points,latitude,longitude){if(!points?.length)return{latitude,longitude};const center={latitude:points.reduce((sum,point)=>sum+point.latitude,0)/points.length,longitude:points.reduce((sum,point)=>sum+point.longitude,0)/points.length};return distance(latitude,longitude,center.latitude,center.longitude)<=18000?center:{latitude,longitude}}
-function konradForecasts(feature,lat,lon,referenceMs){
- const rows=[],seen=new Set(),names='centroid_forecast|forecast_centroid|centroid_prediction|forecast_position|predicted_position|position_forecast';
- for(const match of String(feature).matchAll(new RegExp(`<(?:(?:\\w+):)?(?:${names})\\b([^>]*)>([\\s\\S]*?)<\\/(?:(?:\\w+):)?(?:${names})>`,'gi'))){
-  const attrs=match[1],block=match[2],coordinate=blocks(block,'geodetic_coordinate')[0]||blocks(block,'coordinate')[0]||blocks(block,'centroid_3d')[0]||blocks(block,'centroid')[0]||blocks(block,'position')[0]||block,clat=tagNumberAny(coordinate,'latitude','lat'),clon=tagNumberAny(coordinate,'longitude','lon');if(clat===undefined||clon===undefined)continue;
-  const rawTime=konradAttribute(attrs,'forecast_time')||konradAttribute(attrs,'valid_time')||konradAttribute(attrs,'time')||tagValue(block,'forecast_time')||tagValue(block,'valid_time')||tagValue(block,'time'),parsedTime=safeDate(rawTime),parsedMs=parsedTime?Date.parse(parsedTime):NaN,rawLead=number(konradAttribute(attrs,'lead_time_minutes')||konradAttribute(attrs,'forecast_minutes')||konradAttribute(attrs,'lead_time')||tagValue(block,'lead_time_minutes')||tagValue(block,'forecast_minutes')||tagValue(block,'lead_time')||tagValue(block,'time_offset')),leadMinutes=rawLead===undefined?NaN:rawLead>90&&rawLead<=7200?rawLead/60:rawLead,minutes=Number.isFinite(parsedMs)?Math.round((parsedMs-referenceMs)/60000):Number.isFinite(leadMinutes)?Math.round(leadMinutes):NaN;if(!Number.isFinite(minutes)||minutes<0||minutes>90)continue;
-  const ellipse=blocks(block,'uncertainty_ellipse')[0]||blocks(block,'position_uncertainty')[0]||blocks(block,'ellipse')[0]||'',majorAxis=Math.max(0,konradLengthKm(ellipse,'semi_major_axis','major_axis','uncertainty_major_axis')||0),minorAxis=Math.max(0,konradLengthKm(ellipse,'semi_minor_axis','minor_axis','uncertainty_minor_axis')||majorAxis),orientation=tagNumberAny(ellipse,'orientation','azimuth','angle'),time=parsedTime||new Date(referenceMs+minutes*60000).toISOString(),key=`${minutes}:${clat.toFixed(5)}:${clon.toFixed(5)}`;if(seen.has(key))continue;seen.add(key);const rawDistanceKm=distance(lat,lon,clat,clon)/1000;rows.push({time,minutes,latitude:clat,longitude:clon,distanceKm:rawDistanceKm,effectiveDistanceKm:Math.max(0,rawDistanceKm-majorAxis),uncertaintyKm:majorAxis,uncertaintyMinorKm:minorAxis,uncertaintyOrientationDeg:orientation});
- }
- return rows.sort((a,b)=>a.minutes-b.minutes);
-}
+KŠOO˜K[YKX‹[YJK]\İ\›İÜË˜]
+LJNÚYŠ]\İ
+\™]\›ˆ]\İÙ\œ›ÜœËœ\Ú
+	Û™]ÈT“
+›Ûİ
+KšÜİ˜[Y_NˆÙZ[ˆZİY[\È”ËUT˜
+_XØ]Ú
+\œ›ÜŠ^Ù\œ›ÜœËœ\Ú
+	Û™]ÈT“
+›Ûİ
+KšÜİ˜[Y_Nˆ	Ù\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_X
+__]›İÈ™]È\œ›ÜŠÑ”ÈšXÚ™\™°ïØ˜\ˆ	Ù\œ›ÜœËš›Ú[Š	È	Ê_X
+_B˜\Ş[˜È[˜İ[ÛˆÙœÓY]Y]J™\]Y\İ]ÛŠ^ÚYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠJ\™]\›ØÛİ™\˜YÙN™˜[ÙK›İšY\‰ÑÑ	Ë›ÙXİ‰Ô”ÉËœ˜[Y\Î–×Kİ[[X\N‰Ğ]pçÙ\š[ˆ\È]]ØÚ[ˆ”ËT˜\İ\œË‰ßNØÛÛœİ]\İX]ØZ]ÙœÓ]\İ\Š
+KYÙSZ[]\ÏSX]œ›İ[™
 
-function parseKonradCells(xml,lat,lon,observedAt){
- const referenceMs=Date.parse(observedAt),cells=[];for(const match of konradFeatureMatches(xml)){
-  const attrs=match[1],feature=match[2],geometry=blocks(feature,'geometry')[0]||feature,centroid=blocks(geometry,'centroid_3d')[0]||geometry,coordinate=blocks(centroid,'geodetic_coordinate')[0]||centroid,clat=tagNumber(coordinate,'latitude'),clon=tagNumber(coordinate,'longitude');if(clat===undefined||clon===undefined)continue;
-  const currentFootprint=konradFootprint(geometry,clat,clon),displayCenter=konradFootprintCenter(currentFootprint,clat,clon),displayLatitude=displayCenter.latitude,displayLongitude=displayCenter.longitude,intensity=blocks(feature,'intensity')[0]||feature,hymec=blocks(feature,'hymec')[0]||'',lightning=blocks(feature,'lightning')[0]||'',tracking=blocks(feature,'tracking')[0]||'',radar=blocks(feature,'radar')[0]||blocks(feature,'radar_attributes')[0]||feature,qpe=blocks(feature,'qpe')[0]||blocks(feature,'precipitation')[0]||'',environment=blocks(feature,'nwp')[0]||blocks(feature,'environment')[0]||blocks(feature,'atmosphere')[0]||'',currentDistanceKm=distance(lat,lon,displayLatitude,displayLongitude)/1000,forecasts=konradForecasts(feature,lat,lon,referenceMs),bestForecast=forecasts.reduce((best,row)=>!best||row.distanceKm<best.distanceKm?row:best,undefined),bestEffectiveForecast=forecasts.reduce((best,row)=>!best||row.effectiveDistanceKm<best.effectiveDistanceKm?row:best,undefined),trackForecast=forecasts.filter(row=>row.minutes>=10).at(-1)||forecasts.at(-1),centerApproaching=Boolean(bestForecast&&bestForecast.distanceKm+2<currentDistanceKm),relevanceDistanceKm=Math.min(currentDistanceKm,bestEffectiveForecast?.effectiveDistanceKm??Infinity),arrivalMinutes=currentDistanceKm<=20?0:centerApproaching&&bestForecast&&bestForecast.distanceKm<=35?bestForecast.minutes:undefined;
-  const severityRaw=tagNumberAny(intensity,'severity','severity_category')||0,severity=Math.max(0,Math.min(3,Math.round(severityRaw))),severityPrecise=tagNumberAny(intensity,'severity_precise','severity_value','severity_index'),trend=Math.max(-2,Math.min(2,Math.round(tagNumber(intensity,'severity_trend_category')||0))),hailFlag=Math.max(0,Math.min(3,Math.round(tagNumber(intensity,'hail_flag')||0))),heavyRainFlag=Math.max(0,Math.min(3,Math.round(tagNumber(intensity,'heavy_rain_flag')||0))),gustFlagRaw=tagNumber(intensity,'gust_flag'),gustFlag=gustFlagRaw===undefined?undefined:Math.max(0,Math.min(3,Math.round(gustFlagRaw))),lightningRate=Math.max(0,tagNumber(lightning,'lightning_rate')||0),areaHail=Math.max(0,tagNumber(hymec,'area_hail')||0),areaLargeHail=Math.max(0,tagNumber(hymec,'area_large_hail')||0),speedKmh=Math.max(0,konradSpeedKmh(tracking,'cell_speed','speed')||0),trackingDirection=tagNumber(tracking,'cell_direction')??tagNumber(tracking,'cell_motion_direction')??tagNumber(tracking,'direction'),maxReflectivityDbz=tagNumberAny(radar,'maximum_reflectivity','max_reflectivity','reflectivity_max','max_dbz'),meanReflectivityDbz=tagNumberAny(radar,'mean_reflectivity','average_reflectivity'),echoTopKm=heightKm(tagNumberAny(radar,'echo_top_18dbz','echo_top','etop_18dbz','maximum_echo_top')),echoBottomKm=heightKm(tagNumberAny(radar,'echo_bottom_18dbz','echo_bottom','ebase_18dbz','minimum_echo_bottom')),vilKgM2=tagNumberAny(radar,'vil','vertically_integrated_liquid'),vilDensityGm3=tagNumberAny(radar,'vil_density','vertically_integrated_liquid_density'),cellAreaKm2=konradAreaKm2(geometry,'covered_area','cell_area','area_km2'),detectionCount=tagNumberAny(feature,'detection_count','number_of_detections','n_detections'),rainAmountMm=tagNumberAny(qpe,'precipitation_amount','rain_amount','maximum_precipitation','qpe_amount'),maxHailSizeCm=hailSizeCm(tagNumberAny(hymec,'maximum_hail_size','max_hail_size','hail_size')),windGustKmh=tagNumberAny(intensity,'maximum_gust_kmh','gust_speed_kmh','max_gust_kmh'),nearGroundClass=tagNumberAny(hymec,'near_ground_class','ground_hail_class','hail_class_ground'),muCapeJkg=tagNumberAny(environment,'mu_cape','mucape','most_unstable_cape'),windShear06Ms=tagNumberAny(environment,'wind_shear_0_6km','bulk_shear_0_6km','deep_layer_shear');
-  const currentImpactRadiusKm=Math.max(3,Math.min(18,Number.isFinite(cellAreaKm2)&&cellAreaKm2>0?Math.sqrt(cellAreaKm2/Math.PI):Math.max(4,Math.min(12,Number(trackForecast?.uncertaintyKm)||6)))),trackForecasts=forecasts.map(row=>({time:row.time,minutes:row.minutes,latitude:row.latitude,longitude:row.longitude,distanceKm:row.distanceKm,effectiveDistanceKm:row.effectiveDistanceKm,uncertaintyKm:row.uncertaintyKm,uncertaintyMinorKm:row.uncertaintyMinorKm,uncertaintyOrientationDeg:row.uncertaintyOrientationDeg}));
-  cells.push({id:konradAttribute(attrs,'identifier')||tagValue(feature,'identifier')||`cell-${cells.length+1}`,latitude:clat,longitude:clon,displayLatitude,displayLongitude,currentFootprint,currentDistanceKm,siteBearingDeg:Number(bearingTowards(lat,lon,clat,clon).toFixed(1)),relevanceDistanceKm,currentImpactRadiusKm,trackForecasts,forecastDistanceKm:bestForecast?.distanceKm,forecastEffectiveDistanceKm:bestEffectiveForecast?.effectiveDistanceKm,forecastUncertaintyKm:bestForecast?.uncertaintyKm,forecastTime:bestForecast?.time,forecastLatitude:bestForecast?.latitude,forecastLongitude:bestForecast?.longitude,trackForecastTime:trackForecast?.time,trackForecastLatitude:trackForecast?.latitude,trackForecastLongitude:trackForecast?.longitude,trackForecastUncertaintyKm:trackForecast?.uncertaintyKm,motionDirectionDeg:trackForecast?Number(bearingTowards(clat,clon,trackForecast.latitude,trackForecast.longitude).toFixed(1)):bestForecast?Number(bearingTowards(clat,clon,bestForecast.latitude,bestForecast.longitude).toFixed(1)):Number.isFinite(trackingDirection)?Number((((trackingDirection%360)+360)%360).toFixed(1)):undefined,arrivalMinutes,isApproaching:centerApproaching,severity,severityPrecise,trend,hailFlag,heavyRainFlag,gustFlag,lightningRate,areaHail,areaLargeHail,speedKmh,maxReflectivityDbz,meanReflectivityDbz,echoTopKm,echoBottomKm,vilKgM2,vilDensityGm3,cellAreaKm2,detectionCount,rainAmountMm,maxHailSizeCm,windGustKmh,nearGroundClass,muCapeJkg,windShear06Ms});
- }
- // A trajectory is only publishable when KONRAD3D supplied a real multi-point
- // association. Motion vectors alone must never be expanded into a route.
- for(const cell of cells){const official=(cell.trackForecasts||[]).filter(point=>Number(point?.minutes)>0);cell.trackQuality=official.length>=2&&Number(official.at(-1)?.minutes)-Number(official[0]?.minutes)>=10?'official':'insufficient'}
- const deduped=[];for(const cell of cells.sort((a,b)=>a.relevanceDistanceKm-b.relevanceDistanceKm)){const key=String(cell.id||'').trim().toLowerCase(),existing=deduped.find(row=>String(row.id||'').trim().toLowerCase()===key&&key);if(!existing)deduped.push(cell);else if((cell.severity||0)>(existing.severity||0)||Number(cell.maxReflectivityDbz||0)>Number(existing.maxReflectivityDbz||0))Object.assign(existing,cell)}return deduped;
-}
-function mesocycloneTimestamp(filename=''){const match=String(filename).match(/meso_(\d{8})_(\d{4})\.xml$/i);if(!match)return undefined;const date=match[1],time=match[2];return Date.UTC(Number(date.slice(0,4)),Number(date.slice(4,6))-1,Number(date.slice(6,8)),Number(time.slice(0,2)),Number(time.slice(2,4)))}
-function latestMesocycloneFilename(indexHtml){const now=Date.now(),names=[...String(indexHtml).matchAll(/meso_\d{8}_\d{4}\.xml/gi)].map(match=>match[0]);return[...new Set(names)].map(name=>({name,time:mesocycloneTimestamp(name)})).filter(item=>Number.isFinite(item.time)&&item.time<=now+10*60000&&item.time>=now-36*3600000).sort((a,b)=>b.time-a.time)[0]}
-function parseMesocycloneDetections(xml){
- const events=[...String(xml).matchAll(/<(?:(?:\w+):)?event\b([^>]*)>([\s\S]*?)<\/(?:(?:\w+):)?event>/gi)];
- if(events.length)return events.map((match,index)=>{const attrs=match[1],event=match[2],moving=blocks(event,'moving-point')[0]||blocks(event,'moving_point')[0]||blocks(event,'geodetic_coordinate')[0]||event,latitude=tagNumberAny(moving,'latitude','lat'),longitude=tagNumberAny(moving,'longitude','lon');if(latitude===undefined||longitude===undefined)return null;const parameters=blocks(event,'nowcast-parameters')[0]||blocks(event,'nowcast_parameters')[0]||event,ellipse=blocks(event,'ellipse')[0]||event,polarMotion=blocks(moving,'polar_motion')[0]||blocks(moving,'polar-motion')[0]||moving,rawTime=tagValue(event,'time'),observedAt=safeDate(rawTime&&/([zZ]|[+-]\d{2}:?\d{2})$/.test(rawTime)?rawTime:rawTime?`${rawTime}Z`:undefined),level=tagNumberAny(parameters,'meso_intensity','mesocyclone_intensity','rank'),bottom=heightKm(tagNumberAny(parameters,'mesocyclone_base','bottom_height','base_height','mesocyclone_bottom')),top=heightKm(tagNumberAny(parameters,'mesocyclone_top','top_height','upper_height')),diameter=tagNumberAny(parameters,'mesocyclone_diameter','diameter','diameter_km')??tagNumberAny(ellipse,'major_axis'),diameterEquivalent=tagNumberAny(parameters,'mesocyclone_diameter_equivalent'),echoTop=heightKm(tagNumberAny(parameters,'mesocyclone_echotop','echo_top')),vil=tagNumberAny(parameters,'mesocyclone_vil','vil'),meanReflectivity=tagNumberAny(parameters,'mean_dbz','mean_reflectivity'),maxReflectivity=tagNumberAny(parameters,'max_dbz','max_reflectivity'),shearMean=tagNumberAny(parameters,'mesocyclone_shear_mean'),shearMax=tagNumberAny(parameters,'mesocyclone_shear_max'),momentumMean=tagNumberAny(parameters,'mesocyclone_momentum_mean'),momentumMax=tagNumberAny(parameters,'mesocyclone_momentum_max'),shearVectors=tagNumberAny(parameters,'mesocyclone_shear_vectors'),shearFeatures=tagNumberAny(parameters,'mesocyclone_shear_features'),velocityMax=tagNumberAny(parameters,'mesocyclone_velocity_max'),rotationalVelocityMax=tagNumberAny(parameters,'mesocyclone_velocity_rotational_max'),rotationalVelocityMean=tagNumberAny(parameters,'mesocyclone_velocity_rotational_mean'),rotationalVelocityGround=tagNumberAny(parameters,'mesocyclone_velocity_rotational_max_closest_to_ground'),motionSpeedKmh=tagNumberAny(polarMotion,'speed'),orientationDeg=tagNumberAny(ellipse,'orientation'),tornado=tagNumberAny(parameters,'tornado_probability','tornado_probability_percent','tornado_prob');return{id:konradAttribute(attrs,'ID')||tagValue(event,'identifier')||`meso-${index+1}`,latitude,longitude,observedAt,level,bottom,top,diameter,diameterEquivalent,echoTop,vil,meanReflectivity,maxReflectivity,shearMean,shearMax,momentumMean,momentumMax,shearVectors,shearFeatures,velocityMax,rotationalVelocityMax,rotationalVelocityMean,rotationalVelocityGround,motionSpeedKmh,orientationDeg,tornado}}).filter(Boolean);
- const blocksFound=[...blocks(xml,'mesocyclone'),...blocks(xml,'detection'),...blocks(xml,'feature')],rows=blocksFound.length?blocksFound:[String(xml)];return rows.map((block,index)=>{const coordinate=blocks(block,'geodetic_coordinate')[0]||blocks(block,'centroid')[0]||block,latitude=tagNumberAny(coordinate,'latitude','lat'),longitude=tagNumberAny(coordinate,'longitude','lon');if(latitude===undefined||longitude===undefined)return null;const level=tagNumberAny(block,'rank','mesocyclone_rank','severity','strength_class','meso_class'),bottom=heightKm(tagNumberAny(block,'bottom_height','base_height','mesocyclone_bottom','lower_height')),top=heightKm(tagNumberAny(block,'top_height','mesocyclone_top','upper_height')),diameter=tagNumberAny(block,'diameter','diameter_km','mesocyclone_diameter'),tornado=tagNumberAny(block,'tornado_probability','tornado_probability_percent','tornado_prob');return{id:tagValue(block,'identifier')||tagValue(block,'id')||`meso-${index+1}`,latitude,longitude,level,bottom,top,diameter,tornado}}).filter(Boolean)
-}
-async function latestMesocycloneDetections(){for(const root of DWD_MESOCYCLONE_ROOTS){try{const index=await fetchText(root,{'Accept':'text/html,application/xhtml+xml'}),latest=latestMesocycloneFilename(index);if(!latest||Date.now()-latest.time>35*60000)continue;const xml=await fetchText(new URL(latest.name,root).toString(),{'Accept':'application/xml,text/xml,*/*'});return parseMesocycloneDetections(xml)}catch{}}return[]}
-function attachMesocyclones(cells,detections){return cells.map(cell=>{let nearest,nearestDistance=Infinity;for(const detection of detections){const current=distance(cell.latitude,cell.longitude,detection.latitude,detection.longitude)/1000;if(current<nearestDistance){nearest=detection;nearestDistance=current}}if(!nearest||nearestDistance>30)return cell;return{...cell,mesocycloneDetected:true,mesocycloneObservedAt:nearest.observedAt,mesocycloneLevel:nearest.level,mesocycloneBottomKm:nearest.bottom,mesocycloneTopKm:nearest.top,mesocycloneDiameterKm:nearest.diameter,mesocycloneDiameterEquivalentKm:nearest.diameterEquivalent,mesocycloneEchoTopKm:nearest.echoTop,mesocycloneVilKgM2:nearest.vil,mesocycloneMeanReflectivityDbz:nearest.meanReflectivity,mesocycloneMaxReflectivityDbz:nearest.maxReflectivity,mesocycloneShearMean:nearest.shearMean,mesocycloneShearMax:nearest.shearMax,mesocycloneMomentumMean:nearest.momentumMean,mesocycloneMomentumMax:nearest.momentumMax,mesocycloneShearVectors:nearest.shearVectors,mesocycloneShearFeatures:nearest.shearFeatures,mesocycloneVelocityMaxMs:nearest.velocityMax,mesocycloneVelocityRotationalMaxMs:nearest.rotationalVelocityMax,mesocycloneVelocityRotationalMeanMs:nearest.rotationalVelocityMean,mesocycloneVelocityRotationalGroundMs:nearest.rotationalVelocityGround,mesocycloneMotionSpeedKmh:nearest.motionSpeedKmh,mesocycloneOrientationDeg:nearest.orientationDeg,tornadoProbabilityPercent:nearest.tornado,mesocycloneDistanceKm:nearestDistance}})}
+]K››İÊ
+K[]\İ[YJKÍŒ
+NÚYŠYÙSZ[]\ÏŒÍ_YÙSZ[]\ÏLL
+]›İÈ™]È\œ›ÜŠ°ï™Üİ\ˆÑT”ËS]Yˆ\İ	ØYÙSZ[]\ßHZ[][ˆ[˜
+NØÛÛœİœ˜[Y\ÏVÍŒLŒK›X\
+XYZ[]\ÏOŠÛXYZ[]\Ëš[U\›™ÙœÔ›ŞU\›
+™\]Y\İ]\İ›˜[YKXYZ[]\Ê_JJNÜ™]\›ØÛİ™\˜YÙNYK›İšY\‰ÑÑ	Ë›ÙXİ‰Ô”È0­ÈKZSšYY\œØÚYÜØZÚİ[][][Û‰ËØœÙ\™Y]›™]È]J]\İ[YJKÒTÓÔİš[™Ê
+K[\Ü˜[™\ÛÛ][Û“Z[]\ÎK›Ü™XØ\İÜš^›Û“Z[]\ÎŒLŒ˜]]™T™\ÛÛ][Û’ÛNŒKXÙ[œÙN‰ÑÑÜ[ˆ]IË\›]\İ›˜[YKœ˜[Y\Ëİ[[X\N‰Ğ[]XÚHKZPZÚİ[][][ÛœØ[šÙ\ˆ°ïˆ
+ÍŒ[™
+ÌLŒZ[][‹‰ß_B™[˜İ[Ûˆ\•^
+]\Ëİ\[™İ
+^Û][™\İ\İÚ[J[™İ\
+Û[™İ	‰˜]\ÖÙ[™HOOL
+Y[™
+ÊÎÜ™]\›ˆ™]È^XÛÙ\Š
+K™XÛÙJ]\ËœÛXÙJİ\[™
+JKš[J
+_B™[˜İ[Ûˆ\“Øİ[
+]\Ëİ\[™İ
+^ØÛÛœİ^]\•^
+]\Ëİ\[™İ
+Kœ™\XÙJÖ×ŒM×KŠ‰Ë	ÉÊKš[J
+NØÛÛœİ˜[YO\\œÙR[
+^	Ì	Ë
+NÜ™]\›ˆ[X™\‹š\Ñš[š]J˜[YJOİ˜[YNŒB™[˜İ[Ûˆ\‘[šY\ÊY™™\Š^ØÛÛœİ]\Ï[™]ÈZ[\œ˜^JY™™\ŠK[šY\ÏV×NÛ]Ù™œÙ]LİÚ[JÙ™œÙ]
+ÍLLX]\Ë›[™İ
+^Û]›Û–™\›ÏY˜[ÙNÙ›ÜŠ]O[Ù™œÙ]ÚOÙ™œÙ]
+ÍLLÚJÊÊZYŠ]\ÖÚWHOOL
+^Û›Û–™\›Ï]YNØœ™XZßZYŠ[›Û–™\›ÊXœ™XZÎØÛÛœİ˜[YO]\•^
+]\ËÙ™œÙ]L
+K™Yš^]\•^
+]\ËÙ™œÙ]
+ÌÍKMMJK[˜[YO\™Yš^Ø	Ü™Yš^KÉÛ˜[Y_X›˜[YKÚ^™O]\“Øİ[
+]\ËÙ™œÙ]
+ÌLLŠK]Tİ\[Ù™œÙ]
+ÍLL‹]Q[™Y]Tİ\
+ÜÚ^™NÚYŠY[˜[Y_]Q[™˜]\Ë›[™İ
+Xœ™XZÎÙ[šY\Ëœ\Ú
+Û˜[YN™[˜[YKÚ^™K]Tİ\]Q[™JNÛÙ™œÙ]Y]Tİ\
+ÓX]˜ÙZ[
+Ú^™KÍLLŠJLLŸ\™]\›Ø]\Ë[šY\ß_B˜\Ş[˜È[˜İ[ÛˆÙœÑš[T™\ÜÛœÙJ™\]Y\İ
+^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+K\Tİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	İ\‰Ê_	ÉÊKXYSX]œ›İ[™
+[X™\Š\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛXY	ÊJJK[YOYÙœÕ[Y\İ[\
+\ŠNÚYŠ][Y_VÍŒLŒKš[˜ÛY\ÊXY
+_X]˜XœÊ]K››İÊ
+K][YJO
+ŒÍŒ
+\™]\›ˆœÛÛŠÙ\œ›Ü‰Õ[™ğïYÙHÙ\ˆ™\˜[]HÑT”ËQ]ZX[™›Ü™\[™Ë‰Ë™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÛ]Y™™\‹\İİ]\ÏML‹\İ\œ›ÜIÉÎÙ›ÜŠÛÛœİ›ÛİÙˆÑÔ”×Ô“ÓÕÊ^İ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]Ú
+™]ÈT“
+\‹›Ûİ
+KÔİš[™Ê
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹Ş]\‹\XØ][Û‹ÛØİ]\İ™X[K
+‹Ê‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒÌØXÚQ]™\][™ÎY__JNÛ\İİ]\Ï\™\ÜÛœÙKœİ]\ÎÚYŠ\™\ÜÛœÙK›ÚÊXÛÛ[YNØY™™\X]ØZ]™\ÜÛœÙK˜\œ˜^PY™™\Š
+NÚYŠY™™\‹˜]S[™İL
+^Û\İ\œ›ÜIÔ”ËUTˆ[™\Ø\]ÛZ[‰ÎØY™™\][™Yš[™YØÛÛ[Y_Xœ™XZßXØ]Ú
+\œ›ÜŠ^Û\İ\œ›ÜY\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ__ZYŠXY™™\Š\™]\›ˆœÛÛŠÙ\œ›Ü˜Ñ”ÈTˆ	Û\İİ]\ßIÛ\İ\œ›ÜØ0­È	Û\İ\œ›ÜŸX‰ÉßX™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸK\İİ]\ËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNØÛÛœİ\œÙY]\‘[šY\ÊY™™\ŠK\Ú\™YTİš[™ÊXY
+KœYİ\
+Ë	Ì	ÊKX]Ú\Ï\\œÙY™[šY\Ë›X\
+[OOØÛÛœİX]ÚY[K›˜[YK›X]Ú
+ØÛÛ\ÜÚ]WÜœ××ÎW×ÍWÊÌßJKZIÚJNÜ™]\›ˆX]ÚŞÙ[KXY“[X™\ŠX]ÚÌWJ_N›[JK™š[\Š›ÛÛX[ŠKÙ[XİY[X]Ú\Ë™š[™
+›İÏOœ›İË›XYOO[XY
+_X]Ú\ËœÛÜ
 
-const stormPlaceCatalogCache=new Map();
-const stormReversePlaceCache=new Map();
-function stormPlaceTypePriority(value=''){return({city:6,town:5,village:4,hamlet:3,suburb:2,neighbourhood:1,reference:7,locality:2}[String(value).toLowerCase()]??0)}
-function stormPlaceWindow(observedAt,minutes,marginMinutes){const base=Date.parse(String(observedAt||''));if(!Number.isFinite(base))return{};const center=base+Math.max(0,minutes)*60000,margin=Math.max(0,marginMinutes)*60000;return{arrivalAt:new Date(center).toISOString(),arrivalWindowStartAt:new Date(center-margin).toISOString(),arrivalWindowEndAt:new Date(center+margin).toISOString()}}
-function normalizeStormPlaceName(value=''){return String(value||'').trim().replace(/\s+/g,' ')}
-function stormMotionEstimate(cell,actualTrack){
- const declaredDirection=number(cell.motionDirectionDeg),declaredSpeed=number(cell.speedKmh);
- if(declaredDirection!==undefined&&declaredSpeed!==undefined&&declaredSpeed>0)return{direction:(declaredDirection+360)%360,speedKmh:Math.min(180,Math.max(5,declaredSpeed)),source:'product'};
- const last=actualTrack.at(-1),previous=actualTrack.length>1?actualTrack.at(-2):undefined;
- if(last&&previous&&Number(last.minutes)>Number(previous.minutes)){const elapsedHours=(Number(last.minutes)-Number(previous.minutes))/60,travelKm=distance(previous.latitude,previous.longitude,last.latitude,last.longitude)/1000;if(elapsedHours>0&&travelKm>.1)return{direction:bearingTowards(previous.latitude,previous.longitude,last.latitude,last.longitude),speedKmh:Math.min(180,Math.max(5,travelKm/elapsedHours)),source:'track'}}
- return{direction:declaredDirection!==undefined?(declaredDirection+360)%360:0,speedKmh:declaredSpeed!==undefined?Math.min(180,Math.max(5,declaredSpeed)):35,source:'fallback'}
-}
-function stormTrackPoints(cell){
- const originLatitude=number(cell.latitude),originLongitude=number(cell.longitude);if(originLatitude===undefined||originLongitude===undefined)return[];
- const actual=[{latitude:originLatitude,longitude:originLongitude,minutes:0,time:undefined,uncertaintyKm:0,synthetic:false},...(Array.isArray(cell.trackForecasts)?cell.trackForecasts:[]).map(row=>({latitude:number(row?.latitude),longitude:number(row?.longitude),minutes:number(row?.minutes),time:row?.time,uncertaintyKm:Math.max(0,number(row?.uncertaintyKm)||0),synthetic:false})).filter(row=>row.latitude!==undefined&&row.longitude!==undefined&&row.minutes!==undefined&&row.minutes>0&&row.minutes<=90)].sort((a,b)=>a.minutes-b.minutes);
- const deduped=[];for(const point of actual){const existing=deduped.find(row=>Math.abs(row.minutes-point.minutes)<.5);if(existing){if(point.uncertaintyKm<existing.uncertaintyKm)Object.assign(existing,point)}else deduped.push(point)}
- const motion=stormMotionEstimate(cell,deduped),last=deduped.at(-1)||deduped[0],remainingStart=Math.max(10,Math.ceil((Number(last.minutes)+.1)/10)*10);
- for(let minutes=remainingStart;minutes<=60;minutes+=10){const elapsedMinutes=minutes-Number(last.minutes),projected=destinationPoint(last.latitude,last.longitude,motion.direction,motion.speedKmh*elapsedMinutes/60),uncertaintyKm=Math.min(22,Math.max(Number(last.uncertaintyKm)||0,1.4+minutes*.13));deduped.push({...projected,minutes,time:undefined,uncertaintyKm,synthetic:true})}
- return deduped.sort((a,b)=>a.minutes-b.minutes)
-}
-function stormCorridorBounds(cell){const points=stormTrackPoints(cell);if(!points.length)return null;const impact=Math.max(3,Number(cell.currentImpactRadiusKm)||6),padding=Math.max(impact,...points.map(point=>impact+Math.max(0,Number(point.uncertaintyKm)||0)),8),latitudes=points.map(point=>point.latitude),longitudes=points.map(point=>point.longitude),midLat=latitudes.reduce((sum,value)=>sum+value,0)/Math.max(1,latitudes.length),latPad=padding/111,lonPad=padding/(111*Math.max(.25,Math.cos(midLat*Math.PI/180)));return{south:Math.max(-89.9,Math.min(...latitudes)-latPad),west:Math.max(-179.9,Math.min(...longitudes)-lonPad),north:Math.min(89.9,Math.max(...latitudes)+latPad),east:Math.min(179.9,Math.max(...longitudes)+lonPad),paddingKm:padding}}
-function stormCatalogCacheKey(track,impact){return`${track.filter((_,index)=>index===0||index===track.length-1||index%2===0).map(point=>`${point.latitude.toFixed(2)},${point.longitude.toFixed(2)},${Math.round(point.minutes)}`).join('|')}:${Math.round(impact)}`}
-function stormTrackQuerySamples(track){const samples=[];for(const point of track){if(point.minutes===0||point.minutes>=60||Math.round(point.minutes)%10===0)samples.push(point)}return samples.slice(0,8)}
-function parseOverpassStormPlaces(raw){return(Array.isArray(raw?.elements)?raw.elements:[]).map(element=>{const latitude=number(element?.lat??element?.center?.lat),longitude=number(element?.lon??element?.center?.lon),name=normalizeStormPlaceName(element?.tags?.['name:de']||element?.tags?.name),placeType=String(element?.tags?.place||'').toLowerCase(),population=number(String(element?.tags?.population||'').replace(/[^0-9.]/g,''));if(latitude===undefined||longitude===undefined||!name)return null;return{name,latitude,longitude,placeType,population,countryCode:String(element?.tags?.['addr:country']||element?.tags?.['is_in:country_code']||'').toUpperCase()||undefined}}).filter(Boolean)}
-async function overpassStormPlaces(track,impact){
- const key=stormCatalogCacheKey(track,impact),cached=stormPlaceCatalogCache.get(key);if(cached&&cached.expires>Date.now())return cached.places;
- const clauses=[];for(const point of stormTrackQuerySamples(track)){const radius=Math.round(Math.max(4500,(impact+Math.max(0,Number(point.uncertaintyKm)||0)+2)*1000)),center=`${radius},${Number(point.latitude).toFixed(5)},${Number(point.longitude).toFixed(5)}`;for(const kind of ['node','way','relation'])clauses.push(`${kind}["place"~"^(city|town|village|hamlet|suburb)$"](around:${center});`)}
- const query=`[out:json][timeout:6];(${clauses.join('')});out center tags;`,body=new URLSearchParams({data:query}).toString();
- const requests=OVERPASS_ENDPOINTS.map(async endpoint=>{const response=await fetchWithDeadline(endpoint,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded;charset=UTF-8','User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`},body},6000);if(!response.ok)throw new Error(`${new URL(endpoint).hostname}: HTTP ${response.status}`);return parseOverpassStormPlaces(await response.json())});
- let places;try{places=await Promise.any(requests)}catch(error){throw new Error(`Ortsdaten nicht erreichbar: ${error instanceof Error?error.message:String(error)}`)}
- stormPlaceCatalogCache.set(key,{expires:Date.now()+6*3600000,places});if(stormPlaceCatalogCache.size>32)stormPlaceCatalogCache.delete(stormPlaceCatalogCache.keys().next().value);return places
-}
-function localTrackCoordinates(origin,point){const meanLat=(origin.latitude+point.latitude)*.5*Math.PI/180;return{x:(point.longitude-origin.longitude)*111.32*Math.max(.2,Math.cos(meanLat)),y:(point.latitude-origin.latitude)*110.57}}
-function closestStormTrackProjection(place,track,impactRadiusKm){
- const origin=track[0],target=localTrackCoordinates(origin,place);let best=null;
- if(track.length===1){const distanceKm=distance(origin.latitude,origin.longitude,place.latitude,place.longitude)/1000;return{score:distanceKm-impactRadiusKm*.15,distanceKm,minutes:0,uncertaintyKm:0,latitude:origin.latitude,longitude:origin.longitude}}
- for(let index=0;index<track.length-1;index++){const a=track[index],b=track[index+1],pa=localTrackCoordinates(origin,a),pb=localTrackCoordinates(origin,b),dx=pb.x-pa.x,dy=pb.y-pa.y,lengthSquared=dx*dx+dy*dy,t=lengthSquared>0?Math.max(0,Math.min(1,((target.x-pa.x)*dx+(target.y-pa.y)*dy)/lengthSquared)):0,x=pa.x+t*dx,y=pa.y+t*dy,distanceKm=Math.hypot(target.x-x,target.y-y),minutes=Number(a.minutes)+t*(Number(b.minutes)-Number(a.minutes)),uncertaintyKm=Math.max(0,Number(a.uncertaintyKm)||0)+t*(Math.max(0,Number(b.uncertaintyKm)||0)-Math.max(0,Number(a.uncertaintyKm)||0)),score=distanceKm-(minutes<=2?impactRadiusKm*.15:0);if(!best||score<best.score)best={score,distanceKm,minutes,uncertaintyKm,latitude:a.latitude+t*(b.latitude-a.latitude),longitude:a.longitude+t*(b.longitude-a.longitude)}}
- return best
-}
-function stormPlaceStatus(projection,currentDistanceKm,impactRadiusKm){if(Number.isFinite(currentDistanceKm)&&currentDistanceKm<=impactRadiusKm)return'now';if(!projection||projection.minutes<=2)return null;if(projection.distanceKm<=impactRadiusKm*.68)return'likely';if(projection.distanceKm<=impactRadiusKm)return'possible';if(projection.distanceKm<=impactRadiusKm+projection.uncertaintyKm)return'corridor';return null}
-function stormStatusRank(status){return({now:4,likely:3,possible:2,corridor:1}[status]||0)}
-function stormPlaceArrivalMargin(status,projection,cell){if(status==='now')return 0;const speed=Math.max(15,Number(cell.speedKmh)||35),uncertaintyMinutes=Math.max(0,Number(projection?.uncertaintyKm)||0)/speed*60;return Math.round(Math.min(30,Math.max(status==='likely'?5:status==='possible'?9:12,uncertaintyMinutes)))}
-function dedupeStormPlaces(rows){const result=[];for(const row of rows.sort((a,b)=>a.arrivalMinutes-b.arrivalMinutes||stormStatusRank(b.status)-stormStatusRank(a.status)||stormPlaceTypePriority(b.placeType)-stormPlaceTypePriority(a.placeType)||(b.population||0)-(a.population||0))){const key=normalize(row.name).replace(/\s+/g,''),existing=result.find(item=>normalize(item.name).replace(/\s+/g,'')===key&&distance(item.latitude,item.longitude,row.latitude,row.longitude)<=35000);if(!existing){result.push(row);continue}const reference=Boolean(existing.isReferenceLocation||row.isReferenceLocation);if(stormStatusRank(row.status)>stormStatusRank(existing.status)||row.arrivalMinutes<existing.arrivalMinutes)Object.assign(existing,row);existing.isReferenceLocation=reference}return result}
-function compactStormRouteSummary(places){const ordered=places.filter(place=>place.status!=='corridor').slice(0,8),names=[...new Set(ordered.map(place=>place.name))];if(!names.length)return'';if(names.length===1)return names[0];if(names.length===2)return`von ${names[0]} nach ${names[1]}`;return`von ${names[0]} Ã¼ber ${names.slice(1,-1).slice(0,3).join(', ')} nach ${names.at(-1)}`}
-function reverseStormPlaceName(data){const administrative=Array.isArray(data?.localityInfo?.administrative)?data.localityInfo.administrative:[],administrativeName=administrative.map(item=>normalizeStormPlaceName(item?.name)).filter(Boolean).reverse().find(name=>name!==normalizeStormPlaceName(data?.principalSubdivision));return normalizeStormPlaceName(data?.locality||data?.city||administrativeName||data?.principalSubdivision)}
-async function reverseStormPlace(latitude,longitude){
- const key=`${Number(latitude).toFixed(3)}:${Number(longitude).toFixed(3)}`,cached=stormReversePlaceCache.get(key);if(cached&&cached.expires>Date.now())return cached.place;
- const url=new URL(BIGDATA_REVERSE);url.searchParams.set('latitude',Number(latitude).toFixed(5));url.searchParams.set('longitude',Number(longitude).toFixed(5));url.searchParams.set('localityLanguage','de');const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`},cf:{cacheTtl:21600,cacheEverything:true}},5500);if(!response.ok)throw new Error(`HTTP ${response.status}`);const data=await response.json(),name=reverseStormPlaceName(data);if(!name)return null;const place={name,latitude:Number(latitude),longitude:Number(longitude),placeType:'locality',countryCode:String(data?.countryCode||'').toUpperCase()||undefined};stormReversePlaceCache.set(key,{expires:Date.now()+6*3600000,place});if(stormReversePlaceCache.size>160)stormReversePlaceCache.delete(stormReversePlaceCache.keys().next().value);return place
-}
-async function mapStormPlacesConcurrent(items,limit,mapper){const results=new Array(items.length),workers=Array.from({length:Math.min(Math.max(1,limit),items.length)},async(_,workerIndex)=>{for(let index=workerIndex;index<items.length;index+=Math.min(Math.max(1,limit),items.length)){try{results[index]=await mapper(items[index],index)}catch{results[index]=null}}});await Promise.all(workers);return results.filter(Boolean)}
-async function fallbackStormPlaces(cell,lat,lon,observedAt){
- const track=stormTrackPoints(cell),impact=Math.max(3,Number(cell.currentImpactRadiusKm)||6);if(!track.length)return[];const direction=stormMotionEstimate(cell,track).direction,samples=[];
- for(const point of stormTrackQuerySamples(track)){samples.push({...point,status:point.minutes<=2?'now':'likely',distanceToTrackKm:0});if(point.minutes<=2||Math.round(point.minutes)%20===0){for(const side of [-1,1])samples.push({...destinationPoint(point.latitude,point.longitude,direction+side*90,impact*(point.minutes<=2?.65:.82)),minutes:point.minutes,status:point.minutes<=2?'now':'possible',uncertaintyKm:point.uncertaintyKm,distanceToTrackKm:impact*(point.minutes<=2?.65:.82)})}}
- const targetProjection=closestStormTrackProjection({latitude:lat,longitude:lon},track,impact),targetStatus=stormPlaceStatus(targetProjection,distance(lat,lon,cell.latitude,cell.longitude)/1000,impact);if(targetStatus)samples.push({latitude:lat,longitude:lon,minutes:targetStatus==='now'?0:targetProjection.minutes,status:targetStatus,uncertaintyKm:targetProjection?.uncertaintyKm||0,distanceToTrackKm:targetProjection?.distanceKm||0,isReferenceLocation:true});
- const places=await mapStormPlacesConcurrent(samples.slice(0,20),4,async sample=>{const reverse=await reverseStormPlace(sample.latitude,sample.longitude);if(!reverse)return null;const margin=stormPlaceArrivalMargin(sample.status,sample,cell);return{...reverse,status:sample.status,arrivalMinutes:Math.max(0,Math.round(sample.minutes||0)),distanceToTrackKm:Number(sample.distanceToTrackKm)||0,corridorWidthKm:impact+Math.max(0,Number(sample.uncertaintyKm)||0),confidence:sample.status==='now'?'high':sample.status==='likely'?'medium':'low',source:sample.status==='now'?'radar-footprint':sample.status==='corridor'?'uncertainty-corridor':'forecast-track',isReferenceLocation:Boolean(sample.isReferenceLocation),...stormPlaceWindow(observedAt,Number(sample.minutes)||0,margin)}});return dedupeStormPlaces(places).slice(0,30)
-}
-async function enrichStormAffectedPlaces(cell,lat,lon,observedAt){
- if(cell.trackQuality!=='official')return{...cell,trackForecasts:(cell.trackForecasts||[]).filter(point=>Number(point?.minutes)>0),affectedPlaces:[],affectedPlacesTotal:0,currentAffectedPlaceCount:0,futureAffectedPlaceCount:0,routeSummary:'',placeSource:'keine bestÃ¤tigte KONRAD3D-Mehrpunkt-Zugspur'};
- const impact=Math.max(3,Number(cell.currentImpactRadiusKm)||6),track=stormTrackPoints(cell);if(!track.length)return cell;let catalog=[];try{catalog=await overpassStormPlaces(track,impact)}catch{}
- let rows=catalog.map(place=>{const currentDistanceKm=distance(cell.latitude,cell.longitude,place.latitude,place.longitude)/1000,projection=closestStormTrackProjection(place,track,impact),status=stormPlaceStatus(projection,currentDistanceKm,impact);if(!status)return null;const arrivalMinutes=status==='now'?0:Math.max(0,Math.round(projection.minutes)),margin=stormPlaceArrivalMargin(status,projection,cell);return{...place,status,arrivalMinutes,distanceToTrackKm:status==='now'?currentDistanceKm:projection.distanceKm,corridorWidthKm:impact+Math.max(0,projection.uncertaintyKm),confidence:status==='now'?'high':status==='likely'?'medium':status==='possible'?'medium':'low',source:status==='now'?'radar-footprint':status==='corridor'?'uncertainty-corridor':'forecast-track',...stormPlaceWindow(observedAt,arrivalMinutes,margin)}}).filter(Boolean);
- const siteCurrentDistanceKm=distance(cell.latitude,cell.longitude,lat,lon)/1000,siteProjection=closestStormTrackProjection({latitude:lat,longitude:lon},track,impact),siteStatus=stormPlaceStatus(siteProjection,siteCurrentDistanceKm,impact);if(siteStatus){let siteName='Bezugsort',siteCountry='';try{const reverse=await reverseStormPlace(lat,lon);if(reverse){siteName=reverse.name||siteName;siteCountry=reverse.countryCode||''}}catch{}const arrivalMinutes=siteStatus==='now'?0:Math.max(0,Math.round(siteProjection.minutes)),margin=stormPlaceArrivalMargin(siteStatus,siteProjection,cell);rows.push({name:siteName,latitude:lat,longitude:lon,placeType:'reference',countryCode:siteCountry||undefined,status:siteStatus,arrivalMinutes,distanceToTrackKm:siteStatus==='now'?siteCurrentDistanceKm:siteProjection.distanceKm,corridorWidthKm:impact+Math.max(0,siteProjection?.uncertaintyKm||0),confidence:siteStatus==='now'?'high':siteStatus==='likely'?'medium':siteStatus==='possible'?'medium':'low',source:'reference-location',isReferenceLocation:true,...stormPlaceWindow(observedAt,arrivalMinutes,margin)})}
- rows=dedupeStormPlaces(rows);const nonReferenceRows=rows.filter(place=>!place.isReferenceLocation),futureRows=rows.filter(place=>place.status!=='now');let fallbackUsed=false;if(rows.length<3||nonReferenceRows.length<2||futureRows.length<2){const fallback=await fallbackStormPlaces(cell,lat,lon,observedAt);if(fallback.length){rows=dedupeStormPlaces([...rows,...fallback]);fallbackUsed=true}}
- const total=rows.length,nowPlaces=rows.filter(place=>place.status==='now'),futurePlaces=rows.filter(place=>place.status!=='now'),selected=[...nowPlaces.slice(0,12),...futurePlaces.slice(0,30)].slice(0,36),routeSummary=compactStormRouteSummary(selected),placeSource=catalog.length?(fallbackUsed?'OpenStreetMap/Overpass + BigDataCloud Â· ergÃ¤nzter KONRAD3D-Zugbahnkorridor':'OpenStreetMap/Overpass Â· geometrischer KONRAD3D-Zugbahnkorridor'):'BigDataCloud-Fallback Â· gesampelter KONRAD3D-Zugbahnkorridor';return{...cell,trackForecasts:track.filter(point=>point.minutes>0).map(point=>({...point,derived:Boolean(point.synthetic)})),affectedPlaces:selected,affectedPlacesTotal:total,routeSummary,currentAffectedPlaceCount:nowPlaces.length,futureAffectedPlaceCount:futurePlaces.length,placeSource}
-}
+KŠOO“X]˜XœÊK›XY[XY
+KSX]˜XœÊ‹›XY[XY
+JVÌNÚYŠ\Ù[XİYX]˜XœÊÙ[XİY›XY[XY
+OŒL
+\™]\›ˆœÛÛŠÙ\œ›Ü˜Ñ”È[0éÙZ[™[ˆ	Ù\Ú\™YKSZ[][‹U›Üš\œØYÙ\ØÚš]˜™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNØÛÛœİ›ÙO\\œÙY˜]\ËœÛXÙJÙ[XİY™[K™]Tİ\Ù[XİY™[K™]Q[™
+Kš[[˜[YO\Ù[XİY™[K›˜[YKœÜ]
+	ËÉÊK˜]
+LJ_ÛÛ\ÜÚ]WÜœ×ÉÙ\Ú\™YKZXÜ™]\›ˆ™]È™\ÜÛœÙJ›ÙKÜİ]\ÎŒŒXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹ŞZIË	ØÛÛ[Y\ÜÜÚ][Û‰Î˜[›[™NÈš[[˜[YOH‰Ùš[[˜[Y_H˜	ØXØÙ\ÜËXÛÛ›ÛX[İË[ÜšYÚ[‰Î‰Ê‰Ë	ØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOLÌİ[K]Ú[K\™]˜[Y]OLN	Ë	Ş[ZY]ÛÜšÙ\‹]™\œÚ[Û‰Î•ÓÔ’ÑT—Õ‘T”ÒSÓ‹	Ş[ZY\Ûİ\˜ÙIÎ‰ÑÑ”ÉË	Ş[ZY\œË[XY	Î”İš[™ÊÙ[XİY›XY
+__J_B™[˜İ[ÛˆÛÜİ˜Q\˜][ÛÛÙJ˜[YJ^ØÛÛœİ\˜][ÛS[X™\Š˜[YJNÜ™]\›ˆ\˜][ÛOOLÌÉÑÌ	Î™\˜][ÛOOMŒÉÑŒ	Î™\˜][ÛOOLÍŒÉÑÍŒ	Î‰ÉßB˜\Ş[˜È[˜İ[ÛˆÛÜİ˜Qš[T™\ÜÛœÙJ™\]Y\İ
+^ØÛÛœİ\›[™]ÈT“
+™\]Y\İ\›
+KÛÙOZÛÜİ˜Q\˜][ÛÛÙJ\›œÙX\˜Ú\˜[\Ë™Ù]
+	Ù\˜][Û‰ÊJNÚYŠXÛÙJ\™]\›ˆœÛÛŠÙ\œ›Ü‰ÒÓÔÕKQ]Y\ˆ]\ÜÈÌŒÙ\ˆÍŒZ[][ˆ™]˜YÙ[‹‰Ë™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸKÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNØÛÛœİš[[˜[YOXİ]”—ÒÓÔÕKQÑLŒŒÉØÛÙ_WĞTĞËš\\İ™X[O[™]ÈT“
+š[[˜[YKÑÒÓÔÕWĞTĞ×Ô“ÓÕ
+KÔİš[™Ê
+K™\ÜÛœÙOX]ØZ]™]Ú
+\İ™X[KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹Şš\\XØ][Û‹ÛØİ]\İ™X[K
+‹Ê‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒØXÚQ]™\][™ÎY__JNÚYŠ\™\ÜÛœÙK›ÚÊ\™]\›ˆœÛÛŠÙ\œ›Ü˜ÑÓÔÕH	Ü™\ÜÛœÙKœİ]\ßX™\œÚ[Û•ÓÔ’ÑT—Õ‘T”ÒSÓŸK™\ÜÛœÙKœİ]\ËÉØØXÚKXÛÛ›Û	Î‰Û›Ë\İÜ™IßJNÜ™]\›ˆ™]È™\ÜÛœÙJ™\ÜÛœÙK˜›ÙKÜİ]\ÎŒŒXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹Şš\	Ë	ØÛÛ[Y\ÜÜÚ][Û‰Î˜[›[™NÈš[[˜[YOH‰Ùš[[˜[Y_H˜	ØXØÙ\ÜËXÛÛ›ÛX[İË[ÜšYÚ[‰Î‰Ê‰Ë	ØØXÚKXÛÛ›Û	Î‰ÜX›XËX^XYÙOMŒ	Ë	Ş[ZY]ÛÜšÙ\‹]™\œÚ[Û‰Î•ÓÔ’ÑT—Õ‘T”ÒSÓ‹	Ş[ZY\Ûİ\˜ÙIÎ‰ÒÓÔÕKQÑLŒŒ	ß_J_B™[˜İ[ÛˆÙ™œÙ]ÛJ]Û‹›ÜÛKX\İÛJ^Ü™]\›Û]›]
+Û›ÜÛKÌLLKÛ›ÛŠÙX\İÛKÊLLJ“X]›X^
+ŒKX]˜ÛÜÊ]
+“X]”KÌN
+JJ__B™[˜İ[ÛˆÜİÙ[Ê[™K[[Z]\IÎÉÊ^ØÛÛœİİ]V×NÛ]˜[YOIÉË][İYY˜[ÙNÙ›ÜŠ]OLÚOİš[™Ê[™JK›[™İÚJÊÊ^ØÛÛœİÚ[[™VÚWNÚYŠÚOOIÈ‰Ê^ÚYŠ][İY	‰›[™VÚJÌWOOOIÈ‰Ê^İ˜[YJÏIÈ‰ÎÚJÊßY[ÙH][İYH\][İYØÛÛ[Y_ZYŠÚOOY[[Z]\‰‰ˆ\][İY
+^Ûİ]œ\Ú
+˜[YKš[J
+JNİ˜[YOIÉÎØÛÛ[Y_]˜[YJÏXÚ[İ]œ\Ú
+˜[YKš[J
+JNÜ™]\›ˆİ]B™[˜İ[ÛˆØØ[S[X™\Š˜[YJ^ØÛÛœİ˜]ÏTİš[™Ê˜[YOÏÉÉÊKš[J
+NÚYŠ\˜]ß˜]ÏOOIËKKIß˜]ÏOOIËNNNIß˜]ÏOOIËNNNKŒ	Ê\™]\›ˆ[™Yš[™YÜ™]\›ˆ[X™\Š˜]Ëœ™\XÙJ	Ë	Ë	Ë‰ÊJ_B™[˜İ[ÛˆÜİ“Øš™Xİ
+XY\œËÙ[Ê^Ü™]\›ˆØš™Xİ™œ›ÛQ[šY\ÊXY\œË›X\
 
-function konradSummary(cell){const level=cell.severity>=3?'stark':cell.severity>=2?'moderat':'schwach',trend=cell.trend>0?'verstÃ¤rkend':cell.trend<0?'abschwÃ¤chend':'stabil',currentDistance=Number(cell.currentDistanceKm),forecastDistance=Number(cell.forecastDistanceKm),near=Number.isFinite(currentDistance)&&currentDistance<=20,atSite=Number.isFinite(currentDistance)&&currentDistance<1,arrival=!near&&cell.isApproaching&&Number.isFinite(cell.arrivalMinutes)&&Number(cell.arrivalMinutes)>0?` Â· mÃ¶gliche AnnÃ¤herung in etwa ${Math.round(cell.arrivalMinutes)} min`:Number.isFinite(forecastDistance)&&forecastDistance>currentDistance+2?' Â· Zellzentrum zieht voraussichtlich nicht nÃ¤her heran':'';return`${atSite?'KONRAD3D-Zelle unmittelbar am Standort':`KONRAD3D-Zelle ${Math.max(1,Math.round(currentDistance))} km entfernt`}${arrival} Â· ${level} Â· ${trend}.`}
-async function dwdKonrad3dNowcast(lat,lon,country=''){
- if(!inGermanyBounds(lat,lon)&&normalizeCountryCode(country)!=='DE')return{available:false,coverage:false,provider:'DWD KONRAD3D',product:'KONRAD3D',cellsFound:0,nearbyCells:[],summary:'KONRAD3D ist auf Deutschland und das unmittelbare Umfeld begrenzt.',temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst'};
- const errors=[];let staleResult=null;
- for(const root of DWD_KONRAD3D_ROOTS){try{
-  const index=await fetchText(root,{'Accept':'text/html,application/xhtml+xml'}),latest=latestKonradFilename(index);if(!latest)throw new Error('kein Produkt im Verzeichnis');
-  const observedAt=new Date(latest.time).toISOString(),ageMinutes=Math.round((Date.now()-latest.time)/60000);
-  if(ageMinutes>35||ageMinutes<-10){staleResult={available:false,coverage:true,temporaryUnavailable:true,provider:'DWD KONRAD3D',product:'KONRAD3D',observedAt,observationTimeStatus:'stale',ageMinutes,cellsFound:0,nearbyCells:[],summary:`Der jÃ¼ngste erreichbare KONRAD3D-Zelllauf ist ${ageMinutes} Minuten alt.`,temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst',error:'KONRAD3D-Datenstand veraltet.'};continue}
-  const xml=await fetchText(new URL(latest.name,root).toString(),{'Accept':'application/xml,text/xml,*/*'}),baseCells=parseKonradCells(xml,lat,lon,observedAt),mesocyclones=await latestMesocycloneDetections().catch(()=>[]),cells=attachMesocyclones(baseCells,mesocyclones),nearbyCells=cells.filter(cell=>cell.relevanceDistanceKm<=80).slice(0,8),nearestBase=nearbyCells[0],nearest=nearestBase?await enrichStormAffectedPlaces(nearestBase,lat,lon,observedAt):undefined,enrichedNearbyCells=nearest?[nearest,...nearbyCells.slice(1)]:nearbyCells;
-  return{available:true,coverage:true,provider:'DWD KONRAD3D',product:'KONRAD3D',observedAt,observationTimeStatus:'confirmed',ageMinutes,cellsFound:cells.length,nearbyCells:enrichedNearbyCells,nearest,summary:nearest?konradSummary(nearest):'Keine relevante KONRAD3D-Zelle im Umkreis von 80 km.',temporalResolutionMinutes:5,license:'Daten: Deutscher Wetterdienst',diagnostics:{sourceRoot:new URL(root).hostname,placeSource:nearest?.placeSource}};
- }catch(error){errors.push(`${new URL(root).hostname}: ${error instanceof Error?error.message:String(error)}`)}}
- if(staleResult)return{...staleResult,diagnostics:{errors}};
- throw new Error(`KONRAD3D nicht erreichbar: ${errors.join(' | ')}`);
-}
-function stationSiteClass(name='',provider=''){
- const text=normalize(`${name} ${provider}`);if(/innenstadt|stadtmitte|city center|urban/.test(text))return'urban';if(/vorstadt|suburban/.test(text))return'suburban';if(/flughafen|airport|flugplatz|feld|warte|berg|gipfel|forst|wald/.test(text))return'rural';return'unknown';
-}
-function inGermanyBounds(lat,lon){return lat>=47.0&&lat<=55.3&&lon>=5.4&&lon<=15.7}
-function radolanYwTimestamp(filename){const match=String(filename).match(/^raa01-yw_10000-(\d{10})-dwd---bin\.hdf5$/i);if(!match)return undefined;const value=match[1],year=2000+Number(value.slice(0,2)),month=Number(value.slice(2,4))-1,day=Number(value.slice(4,6)),hour=Number(value.slice(6,8)),minute=Number(value.slice(8,10)),time=Date.UTC(year,month,day,hour,minute);return Number.isFinite(time)?time:undefined}
-function radolanYwProxyUrl(request,filename){const url=new URL(request.url);url.search='';url.searchParams.set('mode','radolan-yw-file');url.searchParams.set('file',filename);return url.toString()}
-function radolanProductTimestamp(filename,product){const match=String(filename).match(new RegExp(`^raa01-${product}_10000-(\\d{10})-dwd---bin\\.hdf5$`,'i'));if(!match)return undefined;const value=match[1],year=2000+Number(value.slice(0,2)),month=Number(value.slice(2,4))-1,day=Number(value.slice(4,6)),hour=Number(value.slice(6,8)),minute=Number(value.slice(8,10)),time=Date.UTC(year,month,day,hour,minute);return Number.isFinite(time)?time:undefined}
-function radolanHistoryProxyUrl(request,product,filename){const url=new URL(request.url);url.search='';url.searchParams.set('mode','radolan-history-file');url.searchParams.set('product',product);url.searchParams.set('file',filename);return url.toString()}
-async function radolanDirectoryFiles(product,lookbackHours=30){const root=DWD_RADOLAN_HISTORY_ROOTS[product];if(!root)throw new Error(`Unbekanntes RADOLAN-Produkt ${product}`);const html=await fetchText(root,{Accept:'text/html,application/xhtml+xml'}),now=Date.now(),pattern=new RegExp(`href=["'](raa01-${product}_10000-\\d{10}-dwd---bin\\.hdf5)["']`,'gi');return[...html.matchAll(pattern)].map(match=>match[1]).map(name=>({name,time:radolanProductTimestamp(name,product)})).filter(item=>Number.isFinite(item.time)&&item.time<=now+15*60000&&item.time>=now-lookbackHours*3600000).sort((a,b)=>a.time-b.time)}
-async function radolanHistoryMetadata(request,lat,lon){if(!inGermanyBounds(lat,lon))return{coverage:false,provider:'DWD RADOLAN',hour:null,day:null,summary:'AuÃŸerhalb des deutschen RADOLAN-Rasters.'};const now=Date.now(),[rwResult,ryResult,sfResult]=await Promise.allSettled([radolanDirectoryFiles('rw',4),radolanDirectoryFiles('ry',4),radolanDirectoryFiles('sf',30)]),rw=rwResult.status==='fulfilled'?rwResult.value:[],ry=ryResult.status==='fulfilled'?ryResult.value:[],sf=sfResult.status==='fulfilled'?sfResult.value:[],latestRw=rw.at(-1),latestSf=sf.at(-1),rwAge=latestRw?Math.round((now-latestRw.time)/60000):Infinity,sfAge=latestSf?Math.round((now-latestSf.time)/60000):Infinity;let hour=null;if(latestRw&&rwAge>=-10&&rwAge<=55)hour={mode:'single',product:'RW',adjusted:true,label:'RADOLAN RW Â· angeeichte 1-h-Summe',observedAt:new Date(latestRw.time).toISOString(),frames:[{time:new Date(latestRw.time).toISOString(),fileUrl:radolanHistoryProxyUrl(request,'rw',latestRw.name)}]};else{const latestRy=ry.at(-1),latestRyTime=latestRy?.time??NaN,frames=ry.filter(item=>Number.isFinite(latestRyTime)&&item.time>latestRyTime-65*60000&&item.time<=latestRyTime+60000).slice(-13).map(item=>({time:new Date(item.time).toISOString(),fileUrl:radolanHistoryProxyUrl(request,'ry',item.name)}));if(frames.length)hour={mode:'sum',product:'RY',adjusted:false,label:'RADOLAN RY Â· nicht angeeichte 5-min-Summen',observedAt:frames.at(-1).time,frames}}const day=latestSf&&sfAge>=-10&&sfAge<=150?{mode:'single',product:'SF',adjusted:true,label:'RADOLAN SF Â· angeeichte gleitende 24-h-Summe',observedAt:new Date(latestSf.time).toISOString(),frames:[{time:new Date(latestSf.time).toISOString(),fileUrl:radolanHistoryProxyUrl(request,'sf',latestSf.name)}]}:null;return{coverage:Boolean(hour||day),provider:'DWD RADOLAN',hour,day,license:'DWD Open Data',diagnostics:{rwAgeMinutes:Number.isFinite(rwAge)?rwAge:undefined,sfAgeMinutes:Number.isFinite(sfAge)?sfAge:undefined,rwFiles:rw.length,ryFiles:ry.length,sfFiles:sf.length,errors:[rwResult,ryResult,sfResult].map((result,index)=>result.status==='rejected'?`${['RW','RY','SF'][index]}: ${result.reason instanceof Error?result.reason.message:String(result.reason)}`:'').filter(Boolean)}}}
-async function radolanHistoryFileResponse(request){const url=new URL(request.url),product=String(url.searchParams.get('product')||'').toLowerCase(),filename=String(url.searchParams.get('file')||''),root=DWD_RADOLAN_HISTORY_ROOTS[product],time=radolanProductTimestamp(filename,product),maxAge=product==='sf'?31*3600000:product==='rw'?6*3600000:4*3600000;if(!root||!time||Math.abs(Date.now()-time)>maxAge)return json({error:'UngÃ¼ltige oder veraltete RADOLAN-RÃ¼ckschau-Datei.',version:WORKER_VERSION},400,{'cache-control':'no-store'});const upstream=new URL(filename,root).toString(),response=await fetch(upstream,{headers:{Accept:'application/x-hdf5,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:product==='sf'?3600:900,cacheEverything:true}});if(!response.ok)return json({error:`DWD RADOLAN ${product.toUpperCase()} HTTP ${response.status}`,version:WORKER_VERSION},response.status,{'cache-control':'no-store'});return new Response(response.body,{status:200,headers:{'content-type':'application/x-hdf5','content-disposition':`inline; filename="${filename}"`,'access-control-allow-origin':'*','cache-control':product==='sf'?'public, max-age=3600':'public, max-age=900','x-mid-worker-version':WORKER_VERSION,'x-mid-source':`DWD RADOLAN ${product.toUpperCase()}`}})}
-async function radolanYwMetadata(request,lat,lon){if(!inGermanyBounds(lat,lon))return{coverage:false,provider:'DWD RADOLAN',product:'YW',frames:[],summary:'AuÃŸerhalb des deutschen RADOLAN-Rasters.'};const html=await fetchText(DWD_RADOLAN_YW_ROOT,{Accept:'text/html,application/xhtml+xml'}),now=Date.now(),files=[...html.matchAll(/href=["'](raa01-yw_10000-\d{10}-dwd---bin\.hdf5)["']/gi)].map(match=>match[1]).map(name=>({name,time:radolanYwTimestamp(name)})).filter(item=>Number.isFinite(item.time)&&item.time<=now+10*60000&&item.time>=now-8*3600000).sort((a,b)=>a.time-b.time);const frames=files.slice(-76).map(item=>({time:new Date(item.time).toISOString(),fileUrl:radolanYwProxyUrl(request,item.name)}));if(!frames.length)throw new Error('Keine aktuellen RADOLAN-YW-Dateien gefunden.');return{coverage:true,provider:'DWD RADOLAN',product:'YW â€“ quasi-angeeichte 5-Minuten-NiederschlagshÃ¶he',observedAt:frames.at(-1).time,temporalResolutionMinutes:5,nativeResolutionKm:1,license:'DWD Open Data',frames}}
-async function radolanYwFileResponse(request){const url=new URL(request.url),filename=String(url.searchParams.get('file')||''),time=radolanYwTimestamp(filename);if(!time||Math.abs(Date.now()-time)>9*3600000)return json({error:'UngÃ¼ltige oder veraltete RADOLAN-YW-Datei.',version:WORKER_VERSION},400,{'cache-control':'no-store'});const upstream=new URL(filename,DWD_RADOLAN_YW_ROOT).toString(),response=await fetch(upstream,{headers:{Accept:'application/x-hdf5,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:21600,cacheEverything:true}});if(!response.ok)return json({error:`DWD RADOLAN YW HTTP ${response.status}`,version:WORKER_VERSION},response.status,{'cache-control':'no-store'});return new Response(response.body,{status:200,headers:{'content-type':'application/x-hdf5','content-disposition':`inline; filename="${filename}"`,'access-control-allow-origin':'*','cache-control':'public, max-age=21600','x-mid-worker-version':WORKER_VERSION,'x-mid-source':'DWD RADOLAN YW'}})}
-function dwdRsTimestamp(filename){const match=String(filename).match(/^composite_rs_(\d{8})_(\d{4})\.tar$/i);if(!match)return undefined;const date=match[1],clock=match[2],time=Date.UTC(Number(date.slice(0,4)),Number(date.slice(4,6))-1,Number(date.slice(6,8)),Number(clock.slice(0,2)),Number(clock.slice(2,4)));return Number.isFinite(time)?time:undefined}
-function dwdRsProxyUrl(request,tar,lead){const url=new URL(request.url);url.search='';url.searchParams.set('mode','rs-file');url.searchParams.set('tar',tar);url.searchParams.set('lead',String(lead));return url.toString()}
-async function dwdRsLatestTar(){const now=Date.now(),errors=[];for(const root of DWD_RS_ROOTS){try{const html=await fetchText(root,{Accept:'text/html,application/xhtml+xml'}),rows=[...html.matchAll(/href=["'](composite_rs_\d{8}_\d{4}\.tar)["']/gi)].map(match=>match[1]).map(name=>({name,time:dwdRsTimestamp(name),root})).filter(row=>Number.isFinite(row.time)&&row.time<=now+10*60000&&row.time>=now-3*3600000).sort((a,b)=>a.time-b.time),latest=rows.at(-1);if(latest)return latest;errors.push(`${new URL(root).hostname}: kein aktuelles RS-TAR`)}catch(error){errors.push(`${new URL(root).hostname}: ${error instanceof Error?error.message:String(error)}`)}}throw new Error(`DWD RS nicht verfÃ¼gbar: ${errors.join(' | ')}`)}
-async function dwdRsMetadata(request,lat,lon){if(!inGermanyBounds(lat,lon))return{coverage:false,provider:'DWD',product:'RS',frames:[],summary:'AuÃŸerhalb des deutschen RS-Rasters.'};const latest=await dwdRsLatestTar(),ageMinutes=Math.round((Date.now()-latest.time)/60000);if(ageMinutes>35||ageMinutes<-10)throw new Error(`JÃ¼ngster DWD-RS-Lauf ist ${ageMinutes} Minuten alt.`);const frames=[60,120].map(leadMinutes=>({leadMinutes,fileUrl:dwdRsProxyUrl(request,latest.name,leadMinutes)}));return{coverage:true,provider:'DWD',product:'RS Â· 1-h-Niederschlagsakkumulation',observedAt:new Date(latest.time).toISOString(),temporalResolutionMinutes:5,forecastHorizonMinutes:120,nativeResolutionKm:1,license:'DWD Open Data',tar:latest.name,frames,summary:'Amtliche 1-h-Akkumulationsanker fÃ¼r +60 und +120 Minuten.'}}
-function tarText(bytes,start,length){let end=start;while(end<start+length&&bytes[end]!==0)end++;return new TextDecoder().decode(bytes.slice(start,end)).trim()}
-function tarOctal(bytes,start,length){const text=tarText(bytes,start,length).replace(/[^0-7].*$/,'').trim();const value=parseInt(text||'0',8);return Number.isFinite(value)?value:0}
-function tarEntries(buffer){const bytes=new Uint8Array(buffer),entries=[];let offset=0;while(offset+512<=bytes.length){let nonZero=false;for(let i=offset;i<offset+512;i++)if(bytes[i]!==0){nonZero=true;break}if(!nonZero)break;const name=tarText(bytes,offset,100),prefix=tarText(bytes,offset+345,155),fullName=prefix?`${prefix}/${name}`:name,size=tarOctal(bytes,offset+124,12),dataStart=offset+512,dataEnd=dataStart+size;if(!fullName||dataEnd>bytes.length)break;entries.push({name:fullName,size,dataStart,dataEnd});offset=dataStart+Math.ceil(size/512)*512}return{bytes,entries}}
-async function dwdRsFileResponse(request){const url=new URL(request.url),tar=String(url.searchParams.get('tar')||''),lead=Math.round(Number(url.searchParams.get('lead'))),time=dwdRsTimestamp(tar);if(!time||![60,120].includes(lead)||Math.abs(Date.now()-time)>4*3600000)return json({error:'UngÃ¼ltige oder veraltete DWD-RS-Dateianforderung.',version:WORKER_VERSION},400,{'cache-control':'no-store'});let buffer,lastStatus=502,lastError='';for(const root of DWD_RS_ROOTS){try{const response=await fetch(new URL(tar,root).toString(),{headers:{Accept:'application/x-tar,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:300,cacheEverything:true}});lastStatus=response.status;if(!response.ok)continue;buffer=await response.arrayBuffer();if(buffer.byteLength<1024){lastError='RS-TAR unerwartet klein';buffer=undefined;continue}break}catch(error){lastError=error instanceof Error?error.message:String(error)}}if(!buffer)return json({error:`DWD RS TAR HTTP ${lastStatus}${lastError?` Â· ${lastError}`:''}`,version:WORKER_VERSION},lastStatus,{'cache-control':'no-store'});const parsed=tarEntries(buffer),desired=String(lead).padStart(3,'0'),matches=parsed.entries.map(entry=>{const match=entry.name.match(/composite_rs_\d{8}_\d{4}_(\d{3})-hd5$/i);return match?{entry,lead:Number(match[1])}:null}).filter(Boolean),selected=matches.find(row=>row.lead===lead)||matches.sort((a,b)=>Math.abs(a.lead-lead)-Math.abs(b.lead-lead))[0];if(!selected||Math.abs(selected.lead-lead)>10)return json({error:`DWD RS enthÃ¤lt keinen ${desired}-Minuten-Vorhersageschritt.`,version:WORKER_VERSION},404,{'cache-control':'no-store'});const body=parsed.bytes.slice(selected.entry.dataStart,selected.entry.dataEnd),filename=selected.entry.name.split('/').at(-1)||`composite_rs_${desired}-hd5`;return new Response(body,{status:200,headers:{'content-type':'application/x-hdf5','content-disposition':`inline; filename="${filename}"`,'access-control-allow-origin':'*','cache-control':'public, max-age=300, stale-while-revalidate=180','x-mid-worker-version':WORKER_VERSION,'x-mid-source':'DWD RS','x-mid-rs-lead':String(selected.lead)}})}
-function kostraDurationCode(value){const duration=Number(value);return duration===30?'D00030':duration===60?'D00060':duration===360?'D00360':''}
-async function kostraFileResponse(request){const url=new URL(request.url),code=kostraDurationCode(url.searchParams.get('duration'));if(!code)return json({error:'KOSTRA-Dauer muss 30, 60 oder 360 Minuten betragen.',version:WORKER_VERSION},400,{'cache-control':'no-store'});const filename=`StatRR_KOSTRA-DWD-2020_${code}_ASC.zip`,upstream=new URL(filename,DWD_KOSTRA_ASC_ROOT).toString(),response=await fetch(upstream,{headers:{Accept:'application/zip,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:604800,cacheEverything:true}});if(!response.ok)return json({error:`DWD KOSTRA HTTP ${response.status}`,version:WORKER_VERSION},response.status,{'cache-control':'no-store'});return new Response(response.body,{status:200,headers:{'content-type':'application/zip','content-disposition':`inline; filename="${filename}"`,'access-control-allow-origin':'*','cache-control':'public, max-age=604800','x-mid-worker-version':WORKER_VERSION,'x-mid-source':'KOSTRA-DWD-2020'}})}
-function offsetKm(lat,lon,northKm,eastKm){return{lat:lat+northKm/111,lon:lon+eastKm/(111*Math.max(.25,Math.cos(lat*Math.PI/180)))}}
-function csvCells(line,delimiter=';'){const out=[];let value='',quoted=false;for(let i=0;i<String(line).length;i++){const ch=line[i];if(ch==='"'){if(quoted&&line[i+1]==='"'){value+='"';i++}else quoted=!quoted;continue}if(ch===delimiter&&!quoted){out.push(value.trim());value='';continue}value+=ch}out.push(value.trim());return out}
-function localeNumber(value){const raw=String(value??'').trim();if(!raw||raw==='---'||raw==='-999'||raw==='-999.0')return undefined;return number(raw.replace(',','.'))}
-function csvObject(headers,cells){return Object.fromEntries(headers.map((header,index)=>[header,cells[index]]))}
-function bboxAround(lat,lon,radiusKm){const radius=Math.max(1,Number(radiusKm)||1),dLat=radius/111,dLon=radius/(111*Math.max(.25,Math.cos(lat*Math.PI/180)));return[lon-dLon,lat-dLat,lon+dLon,lat+dLat]}
-function officialObservationRow(row,provider,sourceType='official-surface'){return{...row,provider,networkClass:'official',sourceType,qcStatus:2,trustFactor:sourceType==='road-weather'?90:99,qcLabel:row?.qcLabel||(sourceType==='road-weather'?'Amtliche spezialisierte StraÃŸenwettermessung':'Amtliche nationale Beobachtung')}}
-let dwdCdcCatalogCache={expires:0,catalogs:{}};
-function dwdCdcTimestamp(value){const raw=String(value||'').replace(/\D/g,'');if(raw.length<12)return undefined;const time=Date.UTC(Number(raw.slice(0,4)),Number(raw.slice(4,6))-1,Number(raw.slice(6,8)),Number(raw.slice(8,10)),Number(raw.slice(10,12)));return Number.isFinite(time)?new Date(time).toISOString():undefined}
-function dwdCdcStationCatalogText(text){const rows=[];for(const rawLine of String(text||'').split(/\r?\n/)){const line=rawLine.trim();if(!/^\d{1,6}\s+\d{8}\s+\d{8}\s+/.test(line))continue;const parts=line.split(/\s+/),id=String(parts[0]||'').padStart(5,'0'),elevation=localeNumber(parts[3]),lat=localeNumber(parts[4]),lon=localeNumber(parts[5]);if(lat===undefined||lon===undefined)continue;rows.push({id,name:parts.slice(6).join(' ')||`DWD ${id}`,lat,lon,elevation})}return rows}
-async function dwdCdcCatalog(kind){const cfg=DWD_CDC_10MIN_DATASETS[kind];if(!cfg)return[];if(dwdCdcCatalogCache.expires>Date.now()&&Array.isArray(dwdCdcCatalogCache.catalogs[kind]))return dwdCdcCatalogCache.catalogs[kind];const root=cfg.base||DWD_CDC_10MIN_ROOT,text=await fetchText(`${root}${cfg.path}${cfg.catalog}`,{Accept:'text/plain,*/*'}),rows=dwdCdcStationCatalogText(text);dwdCdcCatalogCache.catalogs={...dwdCdcCatalogCache.catalogs,[kind]:rows};dwdCdcCatalogCache.expires=Date.now()+6*3600000;return rows}
-function zipU16(view,offset){return view.getUint16(offset,true)}
-function zipU32(view,offset){return view.getUint32(offset,true)}
-async function unzipFirstText(bytes){const array=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes),view=new DataView(array.buffer,array.byteOffset,array.byteLength);let eocd=-1;for(let i=array.length-22;i>=Math.max(0,array.length-65557);i--){if(zipU32(view,i)===0x06054b50){eocd=i;break}}if(eocd<0)throw new Error('ZIP-Endverzeichnis fehlt');const entries=zipU16(view,eocd+10),centralOffset=zipU32(view,eocd+16);let ptr=centralOffset;for(let index=0;index<entries&&ptr+46<=array.length;index++){if(zipU32(view,ptr)!==0x02014b50)break;const method=zipU16(view,ptr+10),compressedSize=zipU32(view,ptr+20),nameLength=zipU16(view,ptr+28),extraLength=zipU16(view,ptr+30),commentLength=zipU16(view,ptr+32),localOffset=zipU32(view,ptr+42),name=new TextDecoder().decode(array.slice(ptr+46,ptr+46+nameLength));ptr+=46+nameLength+extraLength+commentLength;if(!/\.txt$/i.test(name)||/^meta_data/i.test(name)||/Beschreibung_Stationen/i.test(name))continue;if(localOffset+30>array.length||zipU32(view,localOffset)!==0x04034b50)continue;const localNameLength=zipU16(view,localOffset+26),localExtraLength=zipU16(view,localOffset+28),start=localOffset+30+localNameLength+localExtraLength,end=start+compressedSize;if(end>array.length)continue;const compressed=array.slice(start,end);let raw;if(method===0)raw=compressed;else if(method===8){const stream=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));raw=new Uint8Array(await new Response(stream).arrayBuffer())}else continue;return new TextDecoder().decode(raw)}throw new Error('Keine lesbare Produktdatei im ZIP')}
-function dwdCdcLatestRecord(text){const lines=String(text||'').split(/\r?\n/).filter(Boolean);if(lines.length<2)return null;const headers=csvCells(lines[0]).map(x=>String(x).trim()),records=[];for(const line of lines.slice(1)){const row=csvObject(headers,csvCells(line)),time=dwdCdcTimestamp(row.MESS_DATUM??row.MESS_DATUM_ENDE??row.DATUM);if(!time)continue;records.push({row,time,epoch:Date.parse(time)})}return records.filter(item=>Number.isFinite(item.epoch)&&item.epoch<=Date.now()+15*60000&&item.epoch>=Date.now()-3*3600000).sort((a,b)=>b.epoch-a.epoch)[0]??null}
-async function dwdCdcProduct(station,kind,targetLat,targetLon){const cfg=DWD_CDC_10MIN_DATASETS[kind];if(!cfg)return null;const filename=`${cfg.prefix}${station.id}_now.zip`,root=cfg.base||DWD_CDC_10MIN_ROOT,url=`${root}${cfg.path}${filename}`,response=await fetchWithDeadline(url,{headers:{Accept:'application/zip,application/octet-stream,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:75,cacheEverything:true}},8000);if(response.status===404)return null;if(!response.ok)throw new Error(`DWD CDC ${kind} ${station.id} HTTP ${response.status}`);const record=dwdCdcLatestRecord(await unzipFirstText(new Uint8Array(await response.arrayBuffer())));if(!record)return null;const r=record.row,base={stationId:station.id,name:station.name,lat:station.lat,lon:station.lon,elevation:station.elevation,distance:distance(targetLat,targetLon,station.lat,station.lon),reportTime:record.time,windUnit:'kmh',fieldObservedAt:{},fieldTemporalResolutionMinutes:{},temporalResolutionMinutes:10,siteClass:cfg.siteClass||stationSiteClass(station.name,'DWD CDC')};if(kind==='temperature'||kind==='urban_temperature'){const temp=localeNumber(r.TT_10),humidity=localeNumber(r.RF_10),dewp=localeNumber(r.TD_10);if(temp===undefined&&humidity===undefined&&dewp===undefined)return null;return{...base,temp,relativeHumidity:humidity,dewp,fieldObservedAt:{temperature:record.time,humidity:record.time,dewPoint:record.time},fieldTemporalResolutionMinutes:{temperature:10,humidity:10,dewPoint:10}}}if(kind==='wind'){const speed=localeNumber(r.FF_10),direction=localeNumber(r.DD_10);if(speed===undefined&&direction===undefined)return null;return{...base,windSpeed:speed===undefined?undefined:speed*3.6,windDirection:direction,fieldObservedAt:{windSpeed:record.time,windDirection:record.time},fieldTemporalResolutionMinutes:{windSpeed:10,windDirection:10}}}if(kind==='extreme_wind'){const gust=localeNumber(r.FX_10??r.FX_10M);if(gust===undefined)return null;return{...base,windGust:gust*3.6,fieldObservedAt:{windGust:record.time},fieldTemporalResolutionMinutes:{windGust:10}}}if(kind==='precipitation'){const precipitation=localeNumber(r.RWS_10??r.RWS_10_MN);if(precipitation===undefined)return null;return{...base,precipitation:Math.max(0,precipitation),precipitationMinutes:10,fieldObservedAt:{precipitation:record.time},fieldTemporalResolutionMinutes:{precipitation:10}}}return null}
-function mergeDwdCdcProducts(rows){const map=new Map();for(const row of rows.filter(Boolean)){const key=String(row.stationId),previous=map.get(key)??{},constTime=(a,b)=>Date.parse(String(a||''))>=Date.parse(String(b||''))?a:b;map.set(key,{...previous,...row,fieldObservedAt:{...(previous.fieldObservedAt||{}),...(row.fieldObservedAt||{})},fieldTemporalResolutionMinutes:{...(previous.fieldTemporalResolutionMinutes||{}),...(row.fieldTemporalResolutionMinutes||{})},reportTime:constTime(row.reportTime,previous.reportTime)})}return[...map.values()]}
-async function configuredSurfaceContext(env,lat,lon){const endpoint=adapterEndpoint(env,'MID_SURFACE_CONTEXT_POINT_ENDPOINT');if(!endpoint)return null;endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));const response=await fetchWithDeadline(endpoint.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},9000);if(!response.ok)throw new Error(`Surface-Context Adapter HTTP ${response.status}`);const raw=await response.json(),value=raw?.data&&typeof raw.data==='object'?raw.data:raw,n=v=>number(v);return{surfaceClass:String(value?.surfaceClass||value?.surface_class||value?.lcz||'').trim()||undefined,lcz:String(value?.lcz||value?.localClimateZone||'').trim()||undefined,imperviousnessPercent:n(value?.imperviousnessPercent??value?.imperviousness??value?.sealedPercent),builtFraction:n(value?.builtFraction??value?.built_fraction),roughnessLengthM:n(value?.roughnessLengthM??value?.z0??value?.roughness),source:String(value?.source||'Konfigurierter GIS-OberflÃ¤chenadapter')}}
-const CDSE_TOKEN_URL='https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token';
-const CDSE_STATS_URL='https://sh.dataspace.copernicus.eu/statistics/v1';
-const CLMS_LCM10_COLLECTION='828f6b20-8ffd-48f8-a1da-fefd271456db';
-let cdseTokenCache={token:'',expiresAt:0};
-function clmsConfigured(env){return Boolean(String(env?.MID_CDSE_CLIENT_ID||'').trim()&&String(env?.MID_CDSE_CLIENT_SECRET||'').trim())}
-async function cdseAccessToken(env){if(cdseTokenCache.token&&cdseTokenCache.expiresAt>Date.now()+60000)return cdseTokenCache.token;const clientId=String(env?.MID_CDSE_CLIENT_ID||'').trim(),secret=String(env?.MID_CDSE_CLIENT_SECRET||'').trim();if(!clientId||!secret)return'';const form=new URLSearchParams({grant_type:'client_credentials',client_id:clientId,client_secret:secret});const response=await fetchWithDeadline(CDSE_TOKEN_URL,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded',Accept:'application/json'},body:form.toString()},9000);if(!response.ok)throw new Error(`CDSE OAuth HTTP ${response.status}`);const payload=await response.json(),token=String(payload?.access_token||''),expires=Math.max(120,number(payload?.expires_in)||600);if(!token)throw new Error('CDSE OAuth ohne Access-Token');cdseTokenCache={token,expiresAt:Date.now()+expires*1000};return token}
-const CLMS_LCM_CODES=[10,20,30,40,50,60,70,80,90,100,110];
-function clmsSurfaceFromClass(code,share){const table={10:{surfaceClass:'wooded',roughnessLengthM:.8,imperviousnessPercent:4,builtFraction:.02},20:{surfaceClass:'open-shrub',roughnessLengthM:.25,imperviousnessPercent:3,builtFraction:.01},30:{surfaceClass:'open',roughnessLengthM:.03,imperviousnessPercent:2,builtFraction:.01},40:{surfaceClass:'rural',roughnessLengthM:.1,imperviousnessPercent:4,builtFraction:.02},50:{surfaceClass:'open-wetland',roughnessLengthM:.05,imperviousnessPercent:1,builtFraction:0},60:{surfaceClass:'wooded-wetland',roughnessLengthM:.8,imperviousnessPercent:1,builtFraction:0},70:{surfaceClass:'open',roughnessLengthM:.02,imperviousnessPercent:1,builtFraction:0},80:{surfaceClass:'open',roughnessLengthM:.01,imperviousnessPercent:1,builtFraction:0},90:{surfaceClass:'built',roughnessLengthM:.8,imperviousnessPercent:Math.round(clamp(65+share*25,65,92)),builtFraction:clamp(.55+share*.35,.55,.9)},100:{surfaceClass:'water',roughnessLengthM:.0002,imperviousnessPercent:0,builtFraction:0},110:{surfaceClass:'open-snow',roughnessLengthM:.003,imperviousnessPercent:0,builtFraction:0}};return table[code]||null}
-async function clmsSurfaceContext(env,lat,lon){if(!clmsConfigured(env))return null;const token=await cdseAccessToken(env);if(!token)return null;const radiusM=90,latDelta=radiusM/111000,lonDelta=radiusM/(111000*Math.max(.25,Math.cos(lat*Math.PI/180))),year=String(env?.MID_CLMS_LCM_YEAR||'2020').replace(/[^0-9]/g,'').slice(0,4)||'2020',evalscript=`//VERSION=3
-function setup(){return{input:[{bands:["LCM10","dataMask"]}],output:[{id:"classes",bands:${CLMS_LCM_CODES.length},sampleType:"FLOAT32"},{id:"dataMask",bands:1}]}}
-function evaluatePixel(s){return{classes:[${CLMS_LCM_CODES.map(code=>`s.LCM10===${code}?1:0`).join(',')}],dataMask:[s.dataMask]}}`;
- const body={input:{bounds:{bbox:[lon-lonDelta,lat-latDelta,lon+lonDelta,lat+latDelta],properties:{crs:'http://www.opengis.net/def/crs/EPSG/0/4326'}},data:[{type:`byoc-${CLMS_LCM10_COLLECTION}`,dataFilter:{mosaickingOrder:'mostRecent'}}]},aggregation:{timeRange:{from:`${year}-01-01T00:00:00Z`,to:`${Number(year)+1}-01-01T00:00:00Z`},aggregationInterval:{of:'P1Y'},evalscript,resx:.00009,resy:.00009}};
- const response=await fetchWithDeadline(CDSE_STATS_URL,{method:'POST',headers:{Authorization:`Bearer ${token}`,'content-type':'application/json',Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},body:JSON.stringify(body)},12500);if(!response.ok){const text=await response.text().catch(()=>String(response.status));throw new Error(`CLMS Statistical API HTTP ${response.status}: ${text.slice(0,160)}`)}const payload=await response.json(),bands=payload?.data?.[0]?.outputs?.classes?.bands??{},shares=CLMS_LCM_CODES.map((code,index)=>({code,share:clamp(number(bands?.[`B${index}`]?.stats?.mean)||0,0,1)})).sort((a,b)=>b.share-a.share),dominant=shares[0];if(!dominant||dominant.share<=0)return null;const mapped=clmsSurfaceFromClass(dominant.code,dominant.share);if(!mapped)return null;return{...mapped,clmsClass:dominant.code,clmsClassShare:dominant.share,source:`Copernicus CLMS LCM10 ${year} Â· CDSE Statistical API`}}
-function surfaceElementPoint(element){const lat=number(element?.lat??element?.center?.lat),lon=number(element?.lon??element?.center?.lon);return lat===undefined||lon===undefined?null:{lat,lon}}
-async function osmSurfaceContext(lat,lon){const radius=650,query=`[out:json][timeout:6];(way(around:450,${lat.toFixed(5)},${lon.toFixed(5)})["building"];way(around:${radius},${lat.toFixed(5)},${lon.toFixed(5)})["landuse"~"residential|commercial|industrial|retail|forest|farmland|meadow|grass|orchard"];way(around:${radius},${lat.toFixed(5)},${lon.toFixed(5)})["natural"~"wood|scrub|grassland|water|wetland"];way(around:${radius},${lat.toFixed(5)},${lon.toFixed(5)})["leisure"="park"];);out center 700;`,body=`data=${encodeURIComponent(query)}`;let payload=null,lastError;for(const endpoint of OVERPASS_ENDPOINTS){try{const response=await fetchWithDeadline(endpoint,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded;charset=UTF-8','User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`},body,cf:{cacheTtl:21600,cacheEverything:true}},7000);if(!response.ok)throw new Error(`${new URL(endpoint).hostname}: HTTP ${response.status}`);payload=await response.json();break}catch(error){lastError=error}}if(!payload)throw lastError??new Error('OSM-OberflÃ¤chenkontext nicht verfÃ¼gbar');let buildings=0,residential=0,commercial=0,forest=0,open=0,water=0;for(const element of Array.isArray(payload?.elements)?payload.elements:[]){const point=surfaceElementPoint(element);if(!point||distance(lat,lon,point.lat,point.lon)>radius)continue;const tags=element?.tags||{},landuse=String(tags.landuse||''),natural=String(tags.natural||''),leisure=String(tags.leisure||'');if(tags.building&&distance(lat,lon,point.lat,point.lon)<=450)buildings++;if(/residential/.test(landuse))residential++;if(/commercial|industrial|retail/.test(landuse))commercial++;if(/forest/.test(landuse)||/wood|scrub/.test(natural))forest++;if(/farmland|meadow|grass|orchard/.test(landuse)||/grassland/.test(natural)||leisure==='park')open++;if(/water|wetland/.test(natural))water++}const builtIntensity=clamp(buildings/150+(residential?0.15:0)+(commercial?0.22:0),0,1),surfaceClass=water&&buildings<5?'water':forest>=2&&buildings<20?'wooded':builtIntensity>=.75?'dense-built':builtIntensity>=.25?'built':open>=2?'open':'mixed',roughnessLengthM=surfaceClass==='water'?.0002:surfaceClass==='open'?.04:surfaceClass==='mixed'?.15:surfaceClass==='built'?.55:surfaceClass==='dense-built'?1.2:1.0;return{surfaceClass,builtIntensity:Number(builtIntensity.toFixed(3)),roughnessLengthM,buildingCount:buildings,landuseSignals:{residential,commercial,forest,open,water},source:'OpenStreetMap-Morphologieproxy'}}
-async function localSurfaceContext(lat,lon,env){const [configured,clms,osm]=await Promise.allSettled([configuredSurfaceContext(env,lat,lon),clmsSurfaceContext(env,lat,lon),osmSurfaceContext(lat,lon)]),exact=configured.status==='fulfilled'?configured.value:null,land=clms.status==='fulfilled'?clms.value:null,proxy=osm.status==='fulfilled'?osm.value:null,primary=exact||land;if(primary){const impervious=number(primary.imperviousnessPercent),built=number(primary.builtFraction);return{...proxy,...land,...exact,builtIntensity:Number.isFinite(impervious)?clamp(impervious/100,0,1):Number.isFinite(built)?clamp(built,0,1):proxy?.builtIntensity,source:[exact?.source,land?.source,proxy?.source].filter(Boolean).join(' + '),quality:'gis'}}if(proxy)return{...proxy,quality:'proxy'};const reasons=[configured,clms].filter(result=>result.status==='rejected').map(result=>result.reason instanceof Error?result.reason.message:String(result.reason));throw new Error(`Kein OberflÃ¤chenkontext verfÃ¼gbar${reasons.length?`: ${reasons.join('; ')}`:''}`)}
-async function dwdCdc10MinRows(lat,lon,radiusKm){if(!inGermanyBounds(lat,lon))return[];const kinds=['temperature','urban_temperature','wind','extreme_wind','precipitation'],catalogs=await Promise.all(kinds.map(kind=>dwdCdcCatalog(kind).catch(()=>[]))),jobs=[];for(let i=0;i<kinds.length;i++){const kind=kinds[i],nearby=(catalogs[i]||[]).map(station=>({...station,distance:distance(lat,lon,station.lat,station.lon)})).filter(station=>station.distance<=Math.min(radiusKm,75)*1000).sort((a,b)=>a.distance-b.distance).slice(0,kind==='urban_temperature'?3:4);for(const station of nearby)jobs.push(dwdCdcProduct(station,kind,lat,lon))}const settled=await Promise.allSettled(jobs),merged=mergeDwdCdcProducts(settled.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]));return merged.map(row=>officialObservationRow({...row,qcLabel:'DWD CDC Â· native 10-Minuten-Beobachtung'},'DWD CDC 10-Minuten')).sort((a,b)=>a.distance-b.distance).slice(0,15)}
-let dwdSynopticCatalogCache={expires:0,stations:[]};
-async function dwdSynopticCatalog(){if(dwdSynopticCatalogCache.expires>Date.now()&&dwdSynopticCatalogCache.stations.length)return dwdSynopticCatalogCache.stations;const text=await fetchText(DWD_SYNOPTIC_STATIONLIST,{'Accept':'text/csv,text/plain,*/*'}),lines=text.split(/\r?\n/).filter(Boolean),headers=csvCells(lines.shift()||'').map(value=>value.replace(/^#/,'').trim()),stations=lines.map(line=>{const row=csvObject(headers,csvCells(line)),lat=localeNumber(row.Geog_Breite),lon=localeNumber(row.Geog_Laenge),id=String(row.Kennung||'').trim();return id&&lat!==undefined&&lon!==undefined?{id,name:String(row.Stationsname||`DWD ${id}`),lat,lon,elevation:localeNumber(row.Stationshoehe)}:null}).filter(Boolean);dwdSynopticCatalogCache={expires:Date.now()+6*3600000,stations};return stations}
-function dwdPoiCloudCover(value,unit=''){const raw=localeNumber(value);if(raw===undefined)return undefined;const normalized=String(unit||'').toLowerCase(),octas=/1\s*\/\s*8|achtel|okta|octa/.test(normalized)||raw>=0&&raw<=9;if(octas){if(raw===9)return undefined;if(raw>=0&&raw<=8)return raw*12.5}return raw>=0&&raw<=100?raw:undefined}
-function dwdPoiCloudObservation(cloudCover){if(!Number.isFinite(cloudCover))return undefined;return Number(cloudCover)<=6.25?'clear':'layers'}
-function dwdPoiTimestamp(date,time){const match=String(date||'').match(/^(\d{2})\.(\d{2})\.(\d{2,4})$/),clock=String(time||'').match(/^(\d{1,2}):(\d{2})$/);if(!match||!clock)return undefined;let year=Number(match[3]);if(year<100)year+=year>=70?1900:2000;return new Date(Date.UTC(year,Number(match[2])-1,Number(match[1]),Number(clock[1]),Number(clock[2]))).toISOString()}
-async function dwdPoiObservation(station,targetLat,targetLon){const response=await fetchWithDeadline(`${DWD_POI_ROOT}${encodeURIComponent(station.id)}-BEOB.csv`,{headers:{Accept:'text/csv,text/plain,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:90,cacheEverything:true}},9000);if(!response.ok)throw new Error(`DWD POI ${station.id} HTTP ${response.status}`);const text=await response.text(),lines=text.split(/\r?\n/).filter(Boolean);if(lines.length<4)return null;const parameters=csvCells(lines[0]).slice(2),units=csvCells(lines[1]).slice(2),unitByParameter=Object.fromEntries(parameters.map((parameter,index)=>[parameter,units[index]||''])),dataHeaders=['date','time',...parameters],records=[];for(const line of lines.slice(3)){const row=csvObject(dataHeaders,csvCells(line)),reportTime=dwdPoiTimestamp(row.date,row.time),temp=localeNumber(row.dry_bulb_temperature_at_2_meter_above_ground),epoch=reportTime?Date.parse(reportTime):NaN;if(!reportTime||temp===undefined||!Number.isFinite(epoch))continue;const age=Date.now()-epoch;if(age>4*3600000||age<-45*60000)continue;records.push({row,reportTime,epoch,temp})}const latest=records.sort((a,b)=>b.epoch-a.epoch)[0];if(!latest)return null;const{row,reportTime,temp}=latest,cloudBaseM=localeNumber(row.height_of_base_of_lowest_cloud_above_station),visibilityKm=localeNumber(row.horizontal_visibility),cloudCover=dwdPoiCloudCover(row.cloud_cover_total,unitByParameter.cloud_cover_total),cloudObservation=dwdPoiCloudObservation(cloudCover);return officialObservationRow({stationId:station.id,name:station.name,lat:station.lat,lon:station.lon,elevation:station.elevation,reportTime,temp,dewp:localeNumber(row.dew_point_temperature_at_2_meter_above_ground),relativeHumidity:localeNumber(row.relative_humidity),pressureMsl:localeNumber(row.pressure_reduced_to_mean_sea_level),windDirection:localeNumber(row['mean_wind_direction_during_last_10 min_at_10_meters_above_ground']),windSpeed:localeNumber(row['mean_wind_speed_during last_10_min_at_10_meters_above_ground']),windGust:localeNumber(row.maximum_wind_speed_last_hour),visibility_m:visibilityKm===undefined?undefined:visibilityKm*1000,cloudCover,cloudObservation,cloudBaseFt:cloudBaseM===undefined?undefined:cloudBaseM*3.28084,precipitation:localeNumber(row.precipitation_amount_last_hour),precipitationMinutes:60,temporalResolutionMinutes:60,fieldTemporalResolutionMinutes:{temperature:60,dewPoint:60,humidity:60,pressure:60,windSpeed:10,windDirection:10,windGust:60,visibility:60,cloudCover:60,cloudBaseHft:60,precipitation:60},presentWeather:localeNumber(row.present_weather),distance:distance(targetLat,targetLon,station.lat,station.lon),windUnit:'kmh',siteClass:stationSiteClass(station.name,'DWD SYNOP')},'DWD SYNOP / OpenData POI')}
-async function dwdSynopRows(lat,lon,radiusKm){if(!inGermanyBounds(lat,lon))return[];const catalog=await dwdSynopticCatalog(),nearby=catalog.map(station=>({...station,distance:distance(lat,lon,station.lat,station.lon)})).filter(station=>station.distance<=Math.min(180,radiusKm)*1000).sort((a,b)=>a.distance-b.distance).slice(0,10),settled=await Promise.allSettled(nearby.map(station=>dwdPoiObservation(station,lat,lon)));return settled.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[]).sort((a,b)=>a.distance-b.distance)}
-function adapterEndpoint(env,key){try{const url=new URL(String(env?.[key]||''));return url.protocol==='https:'?url:null}catch{return null}}
-const METEOSWISS_SMN_STAC_COLLECTION='ch.meteoschweiz.ogd-smn';
-const KNMI_10MIN_EDR_COLLECTION='10-minute-in-situ-meteorological-observations';
-const KNMI_10MIN_EDR_COLLECTION_URL='https://api.dataplatform.knmi.nl/edr/v1/collections/10-minute-in-situ-meteorological-observations';
-const KNMI_LEGACY_OBSERVATION_PATTERNS=[/Actuele10mindataKNMIstations/i,/10_minute_observation_variables/i,/\/edr\/v1\/collections\/observations(?:[/?#]|$)/i];
-function officialAdapterResolution(provider,sourceType){if(sourceType==='road-weather')return 15;if(/MeteoSwiss|KNMI 10-min/i.test(provider))return 10;return undefined}
-function officialAdapterMaxAgeMinutes(provider,sourceType){if(sourceType==='road-weather')return 90;if(/MeteoSwiss|KNMI 10-min/i.test(provider))return 90;if(/MÃ©tÃ©o-France/i.test(provider))return 120;if(/WMO WIS2/i.test(provider))return 180;return 180}
-function officialAdapterTime(item){return safeDate(item?.reportTime??item?.observedAt??item?.observed_at??item?.timestamp??item?.time??item?.validTime??item?.valid_time)}
-function officialAdapterFresh(item,provider,sourceType){const observedAt=officialAdapterTime(item);if(!observedAt)return false;const epoch=Date.parse(observedAt),ageMinutes=(Date.now()-epoch)/60000,maxAge=officialAdapterMaxAgeMinutes(provider,sourceType);return Number.isFinite(epoch)&&ageMinutes>=-20&&ageMinutes<=maxAge}
-function applyOfficialAdapterContract(endpoint,provider){const href=endpoint.toString();if(/MeteoSwiss/i.test(provider)){endpoint.searchParams.set('source','swissmetnet-stac');endpoint.searchParams.set('collection',METEOSWISS_SMN_STAC_COLLECTION);endpoint.searchParams.set('resolution_minutes','10')}if(/KNMI 10-min/i.test(provider)){if(KNMI_LEGACY_OBSERVATION_PATTERNS.some(pattern=>pattern.test(href)))throw new Error('KNMI-Beobachtungsadapter verweist auf eine stillgelegte 10-Minuten-Quelle');endpoint.searchParams.set('source','knmi-edr');endpoint.searchParams.set('collection',KNMI_10MIN_EDR_COLLECTION);endpoint.searchParams.set('collection_url',KNMI_10MIN_EDR_COLLECTION_URL);endpoint.searchParams.set('resolution_minutes','10')}return endpoint}
-async function officialPointAdapterRows(env,key,provider,lat,lon,radiusKm,country,sourceType='official-surface'){const rawEndpoint=adapterEndpoint(env,key);if(!rawEndpoint)return[];const endpoint=applyOfficialAdapterContract(rawEndpoint,provider);const wis2=provider==='WMO WIS2 normalized observations';if(wis2)endpoint.searchParams.set('schema','mid-official-observation-v1');endpoint.searchParams.set('lat',String(lat));endpoint.searchParams.set('lon',String(lon));endpoint.searchParams.set('radius_km',String(radiusKm));endpoint.searchParams.set('country',country);const response=await fetchWithDeadline(endpoint.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},12000);if(!response.ok)throw new Error(`${provider} Adapter HTTP ${response.status}`);const raw=await response.json();if(wis2&&raw&&!Array.isArray(raw)&&raw.schema!==undefined&&raw.schema!=='mid-official-observation-v1')throw new Error('WIS2 Normalizer: unbekanntes MID-Observation-Schema');const rows=Array.isArray(raw)?raw:Array.isArray(raw?.data)?raw.data:[],defaultResolution=officialAdapterResolution(provider,sourceType);return rows.map(item=>{const slat=number(item?.lat??item?.latitude),slon=number(item?.lon??item?.longitude);if(slat===undefined||slon===undefined||!officialAdapterFresh(item,provider,sourceType))return null;const dist=number(item?.distance)??distance(lat,lon,slat,slon);if(dist>radiusKm*1000)return null;const reportTime=officialAdapterTime(item);return officialObservationRow({...item,reportTime,lat:slat,lon:slon,distance:dist,temporalResolutionMinutes:number(item?.temporalResolutionMinutes??item?.temporal_resolution_minutes)??defaultResolution},provider,sourceType)}).filter(Boolean)}
-const SMHI_PARAMETERS=[['45','temp','temperature',1],['43','relativeHumidity','humidity',1],['44','pressureMsl','pressure',1],['47','windSpeed','windSpeed',1],['48','windDirection','windDirection',1],['51','visibility_m','visibility',1],['50','cloudCover','cloudCover',5],['39','dewp','dewPoint',60],['7','precipitation','precipitation',60],['21','windGust','windGust',60]];
-function smhiStationRows(payload){return Array.isArray(payload?.station)?payload.station:Array.isArray(payload?.stations)?payload.stations:Array.isArray(payload)?payload:[]}
-function smhiLatestValue(station){const values=Array.isArray(station?.value)?station.value:Array.isArray(station?.values)?station.values:[];return values.map(item=>({value:localeNumber(item?.value??item),time:safeDate(item?.date??item?.time??item?.timestamp),quality:String(item?.quality||'')})).filter(item=>item.value!==undefined).sort((a,b)=>Date.parse(b.time||'')-Date.parse(a.time||''))[0]}
-async function smhiRows(lat,lon,radiusKm){const settled=await Promise.allSettled(SMHI_PARAMETERS.map(async([id,key,field,resolutionMinutes])=>{const response=await fetchWithDeadline(`${SMHI_METOBS_ROOT}${id}/station-set/all/period/latest-hour/data.json`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:60,cacheEverything:true}},9000);if(!response.ok)throw new Error(`SMHI ${id} HTTP ${response.status}`);return{key,field,resolutionMinutes,payload:await response.json()}})),map=new Map();for(const result of settled){if(result.status!=='fulfilled')continue;const{key,field,resolutionMinutes,payload}=result.value;for(const station of smhiStationRows(payload)){const slat=number(station?.latitude??station?.lat),slon=number(station?.longitude??station?.lon);if(slat===undefined||slon===undefined)continue;const dist=distance(lat,lon,slat,slon);if(dist>Math.min(120,radiusKm)*1000)continue;const latest=smhiLatestValue(station);if(!latest)continue;const id=String(station?.key??station?.id??station?.stationId??`${slat}:${slon}`),row=map.get(id)??{stationId:id,name:String(station?.name??id),lat:slat,lon:slon,elevation:number(station?.height??station?.elevation),distance:dist,windUnit:'kmh',reportTime:latest.time,qcLabel:'SMHI quality-controlled observation',fieldTemporalResolutionMinutes:{},fieldObservedAt:{}};row[key]=(key==='windSpeed'||key==='windGust')?latest.value*3.6:latest.value;row.fieldTemporalResolutionMinutes[field]=resolutionMinutes;if(latest.time)row.fieldObservedAt[field]=latest.time;if(key==='precipitation')row.precipitationMinutes=60;if(latest.time&&(!row.reportTime||Date.parse(latest.time)>Date.parse(row.reportTime)))row.reportTime=latest.time;if(latest.quality)row.qcLabel=`SMHI QC ${latest.quality}`;map.set(id,row)}}return[...map.values()].filter(row=>number(row.temp)!==undefined||number(row.windSpeed)!==undefined||number(row.pressureMsl)!==undefined).sort((a,b)=>a.distance-b.distance).slice(0,18).map(row=>officialObservationRow(row,'SMHI MetObs'))}
+XY\‹[™^
+OO–ÚXY\‹Ù[ÖÚ[™^WJJ_B™[˜İ[Ûˆ˜›Ş\›İ[™
+]Û‹˜Y]\ÒÛJ^ØÛÛœİ˜Y]\ÏSX]›X^
+K[X™\Š˜Y]\ÒÛJ_JK]\˜Y]\ËÌLLKÛ\˜Y]\ËÊLLJ“X]›X^
+ŒKX]˜ÛÜÊ]
+“X]”KÌN
+JJNÜ™]\›–ÛÛ‹YÛ‹]Y]ÛŠÙÛ‹]
+Ù]_B™[˜İ[ÛˆÙ™šXÚX[ØœÙ\˜][Û”›İÊ›İË›İšY\‹Ûİ\˜ÙU\OIÛÙ™šXÚX[\İ\™˜XÙIÊ^Ü™]\›Ë‹‹œ›İË›İšY\‹™]ÛÜšĞÛ\ÜÎ‰ÛÙ™šXÚX[	ËÛİ\˜ÙU\KXÔİ]\ÎŒ‹\İ˜XİÜœÛİ\˜ÙU\OOOIÜ›ØY]ÙX]\‰ÏÎLNKXÓX™[œ›İÏËœXÓX™[
+Ûİ\˜ÙU\OOOIÜ›ØY]ÙX]\‰ÏÉĞ[]XÚHÜ^šX[\ÚY\Hİ˜pçÙ[Ù]\›Y\Üİ[™ÉÎ‰Ğ[]XÚH˜][Û˜[H™[Ø˜XÚ[™ÉÊ__B›]ÙÙĞØ][ÙĞØXÚO^Ù^\™\ÎŒØ][ÙÜÎß_NÂ™[˜İ[ÛˆÙÙÕ[Y\İ[\
+˜[YJ^ØÛÛœİ˜]ÏTİš[™Ê˜[Y_	ÉÊKœ™\XÙJ×ÙË	ÉÊNÚYŠ˜]Ë›[™İLŠ\™]\›ˆ[™Yš[™YØÛÛœİ[YOQ]K•UÊ[X™\Š˜]ËœÛXÙJ
+JK[X™\Š˜]ËœÛXÙJŠJKLK[X™\Š˜]ËœÛXÙJ‹
+JK[X™\Š˜]ËœÛXÙJL
+JK[X™\Š˜]ËœÛXÙJLLŠJJNÜ™]\›ˆ[X™\‹š\Ñš[š]J[YJOÛ™]È]J[YJKÒTÓÔİš[™Ê
+N[™Yš[™YB™[˜İ[ÛˆÙÙÔİ][ÛØ][ÙÕ^
+^
+^ØÛÛœİ›İÜÏV×NÙ›ÜŠÛÛœİ˜]Ó[™HÙˆİš[™Ê^	ÉÊKœÜ]
+××‹ÊJ^ØÛÛœİ[™O\˜]Ó[™Kš[J
+NÚYŠK×—ÌKŸWÊ×ÎWÊ×ÎWÊËË\İ
+[™JJXÛÛ[YNØÛÛœİ\Ï[[™KœÜ]
+×ÊËÊKYTİš[™Ê\ÖÌ_	ÉÊKœYİ\
+K	Ì	ÊK[]˜][Û[ØØ[S[X™\Š\ÖÌ×JK][ØØ[S[X™\Š\ÖÍJKÛ[ØØ[S[X™\Š\ÖÍWJNÚYŠ]OO][™Yš[™YÛOO][™Yš[™Y
+XÛÛ[YNÜ›İÜËœ\Ú
+ÚY˜[YNœ\ËœÛXÙJŠKš›Ú[Š	È	Ê_Ñ	ÚYX]Û‹[]˜][ÛŸJ_\™]\›ˆ›İÜßB˜\Ş[˜È[˜İ[ÛˆÙÙĞØ][ÙÊÚ[™
+^ØÛÛœİÙ™ÏQÑĞÑ×ÌLRS—ÑUTÑUÖÚÚ[™NÚYŠXÙ™Ê\™]\›–×NÚYŠÙÙĞØ][ÙĞØXÚK™^\™\Ï‘]K››İÊ
+I‰\œ˜^Kš\Ğ\œ˜^JÙÙĞØ][ÙĞØXÚK˜Ø][ÙÜÖÚÚ[™JJ\™]\›ˆÙÙĞØ][ÙĞØXÚK˜Ø][ÙÜÖÚÚ[™NØÛÛœİ›ÛİXÙ™Ë˜˜\Ù_ÑĞÑ×ÌLRS—Ô“ÓÕ^X]ØZ]™]Ú^
+	Ü›ÛİIØÙ™Ëœ]IØÙ™Ë˜Ø][ÙßXĞXØÙ\‰İ^ÜZ[‹
+‹Ê‰ßJK›İÜÏYÙÙÔİ][ÛØ][ÙÕ^
+^
+NÙÙÙĞØ][ÙĞØXÚK˜Ø][ÙÜÏ^Ë‹‹™ÙÙĞØ][ÙĞØXÚK˜Ø][ÙÜËÚÚ[™Nœ›İÜßNÙÙÙĞØ][ÙĞØXÚK™^\™\ÏQ]K››İÊ
+JÍŠŒÍŒÜ™]\›ˆ›İÜßB™[˜İ[Ûˆš\LMŠšY]ËÙ™œÙ]
+^Ü™]\›ˆšY]Ë™Ù]Z[MŠÙ™œÙ]YJ_B™[˜İ[Ûˆš\LÌŠšY]ËÙ™œÙ]
+^Ü™]\›ˆšY]Ë™Ù]Z[ÌŠÙ™œÙ]YJ_B˜\Ş[˜È[˜İ[Ûˆ[š\š\œİ^
+]\Ê^ØÛÛœİ\œ˜^OX]\È[œİ[˜Ù[ÙˆZ[\œ˜^OØ]\Î›™]ÈZ[\œ˜^J]\ÊKšY]Ï[™]È]UšY]Ê\œ˜^K˜Y™™\‹\œ˜^K˜]SÙ™œÙ]\œ˜^K˜]S[™İ
+NÛ][ØÙKLNÙ›ÜŠ]OX\œ˜^K›[™İLŒÚOSX]›X^
+\œ˜^K›[™İMMMMÊNÚKKJ^ÚYŠš\LÌŠšY]ËJOOOLŒML
+^Ù[ØÙZNØœ™XZß_ZYŠ[ØÙ
+]›İÈ™]È\œ›ÜŠ	Ö’TQ[™™\™ZXÚš\È™Z	ÊNØÛÛœİ[šY\Ï^š\LMŠšY]Ë[ØÙ
+ÌL
+KÙ[˜[Ù™œÙ]^š\LÌŠšY]Ë[ØÙ
+ÌMŠNÛ]XÙ[˜[Ù™œÙ]Ù›ÜŠ][™^LÚ[™^[šY\É‰œŠÍX\œ˜^K›[™İÚ[™^
+ÊÊ^ÚYŠš\LÌŠšY]ËŠHOOLŒML
+Xœ™XZÎØÛÛœİY]Ù^š\LMŠšY]ËŠÌL
+KÛÛ\™\ÜÙYÚ^™O^š\LÌŠšY]ËŠÌŒ
+K˜[YS[™İ^š\LMŠšY]ËŠÌ
+K^˜S[™İ^š\LMŠšY]ËŠÌÌ
+KÛÛ[Y[[™İ^š\LMŠšY]ËŠÌÌŠKØØ[Ù™œÙ]^š\LÌŠšY]ËŠÍŠK˜[YO[™]È^XÛÙ\Š
+K™XÛÙJ\œ˜^KœÛXÙJŠÍ‹ŠÍŠÛ˜[YS[™İ
+JNÜŠÏMŠÛ˜[YS[™İ
+Ù^˜S[™İ
+ØÛÛ[Y[[™İÚYŠK×	ÚK\İ
+˜[YJ_×›Y]WÙ]KÚK\İ
+˜[YJ_Ğ™\ØÚ™ZX[™×Ôİ][Û™[‹ÚK\İ
+˜[YJJXÛÛ[YNÚYŠØØ[Ù™œÙ]
+ÌÌ˜\œ˜^K›[™İš\LÌŠšY]ËØØ[Ù™œÙ]
+HOOLÍL
+XÛÛ[YNØÛÛœİØØ[˜[YS[™İ^š\LMŠšY]ËØØ[Ù™œÙ]
+ÌŠKØØ[^˜S[™İ^š\LMŠšY]ËØØ[Ù™œÙ]
+Ì
+Kİ\[ØØ[Ù™œÙ]
+ÌÌ
+ÛØØ[˜[YS[™İ
+ÛØØ[^˜S[™İ[™\İ\
+ØÛÛ\™\ÜÙYÚ^™NÚYŠ[™˜\œ˜^K›[™İ
+XÛÛ[YNØÛÛœİÛÛ\™\ÜÙYX\œ˜^KœÛXÙJİ\[™
+NÛ]˜]ÎÚYŠY]ÙOOL
+\˜]ÏXÛÛ\™\ÜÙYÙ[ÙHYŠY]ÙOON
+^ØÛÛœİİ™X[O[™]È›ØŠØÛÛ\™\ÜÙYJKœİ™X[J
+Kœ\U›İYÚ
+™]ÈXÛÛ\™\ÜÚ[Û”İ™X[J	ÙY›]K\˜]ÉÊJNÜ˜]Ï[™]ÈZ[\œ˜^J]ØZ]™]È™\ÜÛœÙJİ™X[JK˜\œ˜^PY™™\Š
+J_Y[ÙHÛÛ[YNÜ™]\›ˆ™]È^XÛÙ\Š
+K™XÛÙJ˜]Ê_]›İÈ™]È\œ›ÜŠ	ÒÙZ[™H\Ø˜\™H›ÙZİ]ZH[H’T	Ê_B™[˜İ[ÛˆÙÙÓ]\İ™XÛÜ™
+^
+^ØÛÛœİ[™\ÏTİš[™Ê^	ÉÊKœÜ]
+××‹ÊK™š[\Š›ÛÛX[ŠNÚYŠ[™\Ë›[™İŠ\™]\›ˆ[ØÛÛœİXY\œÏXÜİÙ[Ê[™\ÖÌJK›X\
+O”İš[™Ê
+Kš[J
+JK™XÛÜ™ÏV×NÙ›ÜŠÛÛœİ[™HÙˆ[™\ËœÛXÙJJJ^ØÛÛœİ›İÏXÜİ“Øš™Xİ
+XY\œËÜİÙ[Ê[™JJK[YOYÙÙÕ[Y\İ[\
+›İË“QTÔ×ÑUSOÏÜ›İË“QTÔ×ÑUSWÑS‘OÏÜ›İË‘USJNÚYŠ][YJXÛÛ[YNÜ™XÛÜ™Ëœ\Ú
+Ü›İË[YK\ØÚ‘]Kœ\œÙJ[YJ_J_\™]\›ˆ™XÛÜ™Ë™š[\Š][OO“[X™\‹š\Ñš[š]J][K™\ØÚ
+I‰š][K™\ØÚQ]K››İÊ
+JÌMJŒ	‰š][K™\ØÚQ]K››İÊ
+KLÊŒÍŒ
+KœÛÜ
 
-function nwsMeasurement(value,scale=1){const raw=number(value?.value??value);return raw===undefined?undefined:raw*scale}
-async function nwsRows(lat,lon,radiusKm){const point=await fetchJson(`${NWS_POINTS}${lat.toFixed(4)},${lon.toFixed(4)}`,{'Accept':'application/geo+json'}),stationsUrl=point?.properties?.observationStations;if(!stationsUrl)return[];const stationsPayload=await fetchJson(stationsUrl,{'Accept':'application/geo+json'}),stations=(Array.isArray(stationsPayload?.features)?stationsPayload.features:[]).map(feature=>{const coordinates=feature?.geometry?.coordinates??[],slon=number(coordinates[0]),slat=number(coordinates[1]);return slat===undefined||slon===undefined?null:{id:String(feature?.properties?.stationIdentifier??feature?.id?.split('/').at(-1)??''),name:String(feature?.properties?.name??feature?.properties?.stationIdentifier??'NWS station'),lat:slat,lon:slon,elevation:nwsMeasurement(feature?.properties?.elevation),distance:distance(lat,lon,slat,slon)}}).filter(station=>station&&station.id&&station.distance<=radiusKm*1000).sort((a,b)=>a.distance-b.distance).slice(0,7),settled=await Promise.allSettled(stations.map(async station=>{const payload=await fetchJson(`https://api.weather.gov/stations/${encodeURIComponent(station.id)}/observations/latest`,{'Accept':'application/geo+json'}),p=payload?.properties??{},clouds=Array.isArray(p?.cloudLayers)?p.cloudLayers:undefined;return officialObservationRow({stationId:station.id,name:station.name,lat:station.lat,lon:station.lon,elevation:station.elevation,reportTime:safeDate(p?.timestamp),temp:nwsMeasurement(p?.temperature),dewp:nwsMeasurement(p?.dewpoint),relativeHumidity:nwsMeasurement(p?.relativeHumidity),pressureMsl:(nwsMeasurement(p?.seaLevelPressure)??nwsMeasurement(p?.barometricPressure))/100,windDirection:nwsMeasurement(p?.windDirection),windSpeed:nwsMeasurement(p?.windSpeed,3.6),windGust:nwsMeasurement(p?.windGust,3.6),visibility_m:nwsMeasurement(p?.visibility),precipitation:nwsMeasurement(p?.precipitationLastHour,1000),precipitationMinutes:60,clouds,distance:station.distance,windUnit:'kmh',siteClass:stationSiteClass(station.name,'NWS')},'US National Weather Service / MADIS')}));return settled.flatMap(result=>result.status==='fulfilled'&&result.value?[result.value]:[])}
-function propertyNumber(properties,...keys){for(const key of keys){const value=featureProp(properties,key);const parsed=localeNumber(value);if(parsed!==undefined)return parsed}return undefined}
-async function ecccRows(lat,lon,radiusKm){const [west,south,east,north]=bboxAround(lat,lon,Math.min(180,radiusKm)),url=new URL(ECCC_GEOMET);url.searchParams.set('bbox',[west,south,east,north].map(value=>value.toFixed(5)).join(','));url.searchParams.set('limit','80');url.searchParams.set('f','json');const payload=await fetchJson(url.toString(),{'Accept':'application/geo+json'}),features=Array.isArray(payload?.features)?payload.features:[];return features.map(feature=>{const p=feature?.properties??{},coordinates=feature?.geometry?.coordinates??[],slon=number(coordinates[0]??featureProp(p,'longitude','lon')),slat=number(coordinates[1]??featureProp(p,'latitude','lat'));if(slat===undefined||slon===undefined)return null;const dist=distance(lat,lon,slat,slon);if(dist>radiusKm*1000)return null;const temp=propertyNumber(p,'air_temp','air_temperature','temperature','temp','tc'),windMs=propertyNumber(p,'avg_wnd_spd_10m_pst10mts','wind_speed','wnd_spd','ws'),gustMs=propertyNumber(p,'max_wnd_spd_10m_pst1hr','wind_gust','gust','wsg');if(temp===undefined&&windMs===undefined)return null;return officialObservationRow({stationId:String(featureProp(p,'stn_id','station_id','wmo_id','climate_id')||feature.id||`${slat}:${slon}`),name:String(featureProp(p,'stn_nam','station_name','name')||'ECCC SWOB'),lat:slat,lon:slon,elevation:propertyNumber(p,'elevation','stn_elev','elev'),reportTime:safeDate(featureProp(p,'date_tm','observation_time','timestamp','valid_time','datetime')),temp,dewp:propertyNumber(p,'dew_point','dewpoint','td'),relativeHumidity:propertyNumber(p,'rel_hum','relative_humidity','rh'),pressureMsl:propertyNumber(p,'mslp','sea_level_pressure','pres_msl','pressure'),windDirection:propertyNumber(p,'avg_wnd_dir_10m_pst10mts','wind_direction','wnd_dir','wd'),windSpeed:windMs===undefined?undefined:windMs*3.6,windGust:gustMs===undefined?undefined:gustMs*3.6,visibility_m:(()=>{const km=propertyNumber(p,'visibility','vis','horizontal_visibility');return km===undefined?undefined:km>1000?km:km*1000})(),precipitation:propertyNumber(p,'pcpn_amt_pst1hr','precipitation_1h','precipitation','rainfall'),precipitationMinutes:60,distance:dist,windUnit:'kmh'},'Environment and Climate Change Canada / SWOB-GeoMet')}).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,20)}
-function aemetCoordinate(value){const raw=String(value??'').trim().toUpperCase();const direct=localeNumber(raw);if(direct!==undefined&&/^-?\d+(?:[.,]\d+)?$/.test(raw))return direct;const match=raw.match(/^(\d{2,3})(\d{2})(\d{2})?([NSEW])$/);if(!match)return undefined;const degrees=Number(match[1]),minutes=Number(match[2]),seconds=Number(match[3]||0),sign=/[SW]/.test(match[4])?-1:1;return sign*(degrees+minutes/60+seconds/3600)}
-async function aemetRows(lat,lon,radiusKm,env){const key=String(env?.MID_AEMET_API_KEY||env?.AEMET_API_KEY||'').trim();if(!key)return[];const response=await fetchWithDeadline('https://opendata.aemet.es/opendata/api/observacion/convencional/todas',{headers:{Accept:'application/json',api_key:key,'User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},10000);if(!response.ok)throw new Error(`AEMET OpenData HTTP ${response.status}`);const meta=await response.json(),dataUrl=String(meta?.datos||'');if(!/^https:\/\//i.test(dataUrl))throw new Error('AEMET OpenData ohne Daten-URL');const dataResponse=await fetchWithDeadline(dataUrl,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`}},12000);if(!dataResponse.ok)throw new Error(`AEMET Daten HTTP ${dataResponse.status}`);const raw=await dataResponse.json(),items=Array.isArray(raw)?raw:[];return items.map(item=>{const slat=aemetCoordinate(item?.lat),slon=aemetCoordinate(item?.lon);if(slat===undefined||slon===undefined)return null;const dist=distance(lat,lon,slat,slon);if(dist>radiusKm*1000)return null;const temp=localeNumber(item?.ta),wind=localeNumber(item?.vv),gust=localeNumber(item?.vmax);if(temp===undefined&&wind===undefined)return null;return officialObservationRow({stationId:String(item?.idema||item?.indicativo||`${slat}:${slon}`),name:String(item?.ubi||item?.nombre||item?.idema||'AEMET'),lat:slat,lon:slon,elevation:localeNumber(item?.alt),reportTime:safeDate(item?.fint??item?.fecha),temp,relativeHumidity:localeNumber(item?.hr),pressureMsl:localeNumber(item?.pres),windDirection:localeNumber(item?.dv),windSpeed:wind===undefined?undefined:wind*3.6,windGust:gust===undefined?undefined:gust*3.6,precipitation:localeNumber(item?.prec),precipitationMinutes:60,distance:dist,windUnit:'kmh'},'AEMET OpenData')}).filter(Boolean).sort((a,b)=>a.distance-b.distance).slice(0,20)}
-function fmiMembers(xml){const matches=[...String(xml).matchAll(/<wfs:member\b[^>]*>([\s\S]*?)<\/wfs:member>/gi)];return matches.map(match=>match[1])}
-async function fmiRows(lat,lon,radiusKm){const [west,south,east,north]=bboxAround(lat,lon,Math.min(160,radiusKm)),url=new URL(FMI_WFS);url.searchParams.set('service','WFS');url.searchParams.set('version','2.0.0');url.searchParams.set('request','getFeature');url.searchParams.set('storedquery_id','fmi::observations::weather::simple');url.searchParams.set('bbox',`${west.toFixed(5)},${south.toFixed(5)},${east.toFixed(5)},${north.toFixed(5)}`);url.searchParams.set('parameters','temperature,dewpoint,humidity,windspeedms,winddirection,windgust,pressure,visibility,precipitation1h,totalcloudcover');const xml=await fetchText(url.toString(),{'Accept':'application/xml,text/xml,*/*'}),map=new Map();for(const member of fmiMembers(xml)){const parameter=tagValue(member,'ParameterName'),value=localeNumber(tagValue(member,'ParameterValue')),time=safeDate(tagValue(member,'Time')),pos=tagValue(member,'pos').split(/\s+/).map(Number),slat=number(pos[0]),slon=number(pos[1]);if(!parameter||value===undefined||slat===undefined||slon===undefined)continue;const dist=distance(lat,lon,slat,slon);if(dist>radiusKm*1000)continue;const id=String(tagValue(member,'Geoid')||tagValue(member,'Location')||`${slat.toFixed(4)}:${slon.toFixed(4)}`),row=map.get(id)??{stationId:id,name:String(tagValue(member,'Location')||`FMI ${id}`),lat:slat,lon:slon,distance:dist,windUnit:'kmh',reportTime:time};const key=normalize(parameter).replace(/ /g,'');if(key.includes('temperature')&&!key.includes('dew'))row.temp=value;else if(key.includes('dewpoint'))row.dewp=value;else if(key.includes('humidity'))row.relativeHumidity=value;else if(key.includes('winddirection'))row.windDirection=value;else if(key.includes('windgust'))row.windGust=value*3.6;else if(key.includes('windspeed'))row.windSpeed=value*3.6;else if(key.includes('pressure'))row.pressureMsl=value;else if(key.includes('visibility'))row.visibility_m=value;else if(key.includes('precipitation')){row.precipitation=value;row.precipitationMinutes=60}else if(key.includes('cloud'))row.cloudCover=value;if(time&&(!row.reportTime||Date.parse(time)>Date.parse(row.reportTime)))row.reportTime=time;map.set(id,row)}return[...map.values()].filter(row=>number(row.temp)!==undefined||number(row.windSpeed)!==undefined).sort((a,b)=>a.distance-b.distance).slice(0,20).map(row=>officialObservationRow(row,'Finnish Meteorological Institute / Open Data'))}
-async function brightSkyRows(lat,lon,radiusKm){
- if(!inGermanyBounds(lat,lon))return[];
- const reach=Math.min(48,Math.max(14,radiusKm*.42)),points=[[0,0],[reach*.33,0],[-reach*.33,0],[0,reach*.33],[0,-reach*.33],[reach*.7,reach*.35],[reach*.7,-reach*.35],[-reach*.7,reach*.35],[-reach*.7,-reach*.35]].map(([n,e])=>offsetKm(lat,lon,n,e));
- const settled=await Promise.allSettled(points.map(async point=>{const u=new URL(BRIGHTSKY_CURRENT);u.searchParams.set('lat',point.lat.toFixed(5));u.searchParams.set('lon',point.lon.toFixed(5));u.searchParams.set('max_dist',String(Math.round(Math.min(90000,radiusKm*1000))));return fetchJson(u.toString())}));
- const rows=[],seen=new Set();for(const result of settled){if(result.status!=='fulfilled')continue;const d=result.value,w=d?.weather,sources=Array.isArray(d?.sources)?d.sources:[];if(!w)continue;const source=sources.find(x=>String(x?.id??x?.source_id)===String(w?.source_id))||sources[0]||{},slat=number(source?.lat??source?.latitude),slon=number(source?.lon??source?.longitude);if(slat===undefined||slon===undefined)continue;const id=String(source?.dwd_station_id??source?.wmo_station_id??source?.id??`${slat.toFixed(4)}:${slon.toFixed(4)}`);if(seen.has(id))continue;seen.add(id);const dist=distance(lat,lon,slat,slon);if(dist>radiusKm*1000)continue;const temp=number(w?.temperature);if(temp===undefined)continue;rows.push({stationId:id,name:source?.station_name??source?.name??`DWD ${id}`,lat:slat,lon:slon,elevation:number(source?.height??source?.elevation),reportTime:safeDate(w?.timestamp??w?.observation_time),temp,dewp:number(w?.dew_point),relativeHumidity:number(w?.relative_humidity),pressureMsl:number(w?.pressure_msl),windDirection:number(w?.wind_direction_10??w?.wind_direction),windSpeed:number(w?.wind_speed_10??w?.wind_speed),windGust:number(w?.wind_gust_speed_10??w?.wind_gust_speed),cloudCover:number(w?.cloud_cover),precipitation:number(w?.precipitation_10??w?.precipitation),precipitationMinutes:w?.precipitation_10!==undefined&&w?.precipitation_10!==null?10:60,provider:'DWD Open Data / Bright Sky',distance:dist,windUnit:'kmh',qcStatus:2,trustFactor:98,networkClass:'official',sourceType:'official-surface',qcLabel:'DWD-Wert Ã¼ber Bright-Sky-Fallback',siteClass:stationSiteClass(source?.station_name??source?.name,source?.observation_type??'DWD')});}
- return rows.sort((a,b)=>a.distance-b.distance).slice(0,18);
-}
-function senseMetricKey(title='',unit=''){const text=normalize(`${title} ${unit}`);if(/temperatur|temperature|lufttemperatur|air temp/.test(text)&&!/boden|soil|wasser|water/.test(text))return'temp';if(/luftfeuchte|humidity|relative humidity/.test(text))return'relativeHumidity';if(/taupunkt|dew point/.test(text))return'dewp';return''}
-async function openSenseMapRows(lat,lon,radiusKm){
- const radius=Math.min(22,Math.max(6,radiusKm*.18)),dLat=radius/111,dLon=radius/(111*Math.max(.25,Math.cos(lat*Math.PI/180))),u=new URL(OPENSENSEMAP_BOXES);u.searchParams.set('bbox',`${(lon-dLon).toFixed(5)},${(lat-dLat).toFixed(5)},${(lon+dLon).toFixed(5)},${(lat+dLat).toFixed(5)}`);u.searchParams.set('exposure','outdoor');u.searchParams.set('minimal','false');
- const raw=await fetchJson(u.toString()),boxes=Array.isArray(raw)?raw:Array.isArray(raw?.data)?raw.data:[],rows=[];
- for(const box of boxes.slice(0,120)){const coords=box?.currentLocation?.coordinates??box?.loc??box?.location?.coordinates,slon=number(coords?.[0]??box?.lon),slat=number(coords?.[1]??box?.lat);if(slat===undefined||slon===undefined)continue;const dist=distance(lat,lon,slat,slon);if(dist>radius*1000)continue;const row={stationId:String(box?._id??box?.id??`${slat}:${slon}`),name:String(box?.name??box?.title??'senseBox'),lat:slat,lon:slon,elevation:number(coords?.[2]??box?.elevation),provider:'openSenseMap / senseBox (ODbL)',distance:dist,windUnit:'kmh',qcStatus:1,trustFactor:42,networkClass:'citizen',siteClass:'unknown'};let newest=0;
-  for(const sensor of Array.isArray(box?.sensors)?box.sensors:[]){const measurement=sensor?.lastMeasurement??sensor?.last_measurement??{},value=number(measurement?.value??sensor?.value),timestamp=safeDate(measurement?.createdAt??measurement?.timestamp??sensor?.updatedAt),key=senseMetricKey(sensor?.title??sensor?.phenomenon,sensor?.unit);if(!key||value===undefined||!timestamp)continue;const age=Date.now()-new Date(timestamp).getTime();if(age<0||age>50*60000)continue;if(key==='temp'&&(value<-45||value>55))continue;if(key==='relativeHumidity'&&(value<0||value>100))continue;if(key==='dewp'&&(value<-60||value>40))continue;row[key]=value;newest=Math.max(newest,new Date(timestamp).getTime());}
-  if(number(row.temp)===undefined)continue;row.reportTime=new Date(newest).toISOString();rows.push(row);
- }
- return rows.sort((a,b)=>a.distance-b.distance).slice(0,32);
-}
-function awcMetarBboxes(lat,lon,radiusKm){
- const dLat=radiusKm/111,dLon=radiusKm/(111*Math.max(.25,Math.cos(lat*Math.PI/180))),lat0=Math.max(-89.9,lat-dLat),lat1=Math.min(89.9,lat+dLat),lon0=lon-dLon,lon1=lon+dLon,box=(a,b,c,d)=>[a,b,c,d].map(value=>Number(value).toFixed(3)).join(',');
- if(lon0>=-180&&lon1<=180)return[box(lat0,lon0,lat1,lon1)];
- if(lon0<-180)return[box(lat0,lon0+360,lat1,180),box(lat0,-180,lat1,lon1)];
- return[box(lat0,lon0,lat1,180),box(lat0,-180,lat1,lon1-360)];
-}
-function metarReportTime(row){const value=safeDate(row?.reportTime??row?.obsTime??row?.observation_time??row?.receiptTime);return value?Date.parse(value):0}
-function latestMetarRows(rows){const map=new Map();for(const row of rows){const key=String(row?.icaoId??row?.icao_id??row?.station_id??`${row?.lat??row?.latitude}:${row?.lon??row?.longitude}`);const previous=map.get(key);if(!previous||metarReportTime(row)>=metarReportTime(previous))map.set(key,row)}return[...map.values()]}
-async function awcMetarBoxRows(bbox){
- const api=new URL(AWC_API);api.searchParams.set('format','json');api.searchParams.set('hours','3');api.searchParams.set('bbox',bbox);
- const response=await fetch(api,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json'},cf:{cacheTtl:60,cacheEverything:true}});
- if(response.status===204)return[];if(!response.ok)throw new Error(`AviationWeather HTTP ${response.status}`);
- const raw=await response.json();return Array.isArray(raw)?raw:raw?.data??[];
-}
-async function metarRows(lat,lon,radiusKm){
- const settled=await Promise.allSettled(awcMetarBboxes(lat,lon,radiusKm).map(awcMetarBoxRows)),failures=settled.filter(result=>result.status==='rejected');
- if(failures.length===settled.length)throw failures[0].reason;
- const raw=latestMetarRows(settled.flatMap(result=>result.status==='fulfilled'?result.value:[]));
- return raw.map(r=>{const rlat=number(r.lat??r.latitude),rlon=number(r.lon??r.longitude);if(rlat===undefined||rlon===undefined)return null;const dist=distance(lat,lon,rlat,rlon);if(dist>radiusKm*1000)return null;return{icaoId:r.icaoId??r.icao_id??r.station_id,name:r.name??r.site??r.icaoId??r.station_id,lat:rlat,lon:rlon,elevation:number(r.elev??r.elevation??r.elevation_m),reportTime:safeDate(r.reportTime??r.obsTime??r.observation_time??r.receiptTime),temp:number(r.temp??r.temperature??r.temp_c),dewp:number(r.dewp??r.dewPoint??r.dewpoint_c),relativeHumidity:number(r.relativeHumidity??r.humidity),windDirection:number(r.wdir??r.windDirection??r.wind_dir_degrees),windSpeed:number(r.wspd??r.windSpeed??r.wind_speed_kt),windGust:number(r.wgst??r.windGust??r.wind_gust_kt),pressure:number(r.altim??r.pressureMsl??r.sea_level_pressure_mb),visibility:r.visib??r.visibility??r.visibility_statute_mi,cloudCover:number(r.cloudCover),clouds:Array.isArray(r.clouds)?r.clouds:Array.isArray(r.cloudLayers)?r.cloudLayers:undefined,vertVis:number(r.vertVis??r.verticalVisibility),rawOb:r.rawOb??r.raw_text,provider:'NOAA AviationWeather / METAR-WMO',distance:dist,windUnit:'kt',qcStatus:2,trustFactor:92,networkClass:'professional',sourceType:'aviation',qcLabel:'Amtliche/operative Flugplatzbeobachtung',siteClass:stationSiteClass(r.name??r.site??r.icaoId??r.station_id,'METAR airport')}}).filter(Boolean);
-}
+KŠOO˜‹™\ØÚXK™\ØÚ
+VÌOÏÛ[B˜\Ş[˜È[˜İ[ÛˆÙÙÔ›ÙXİ
+İ][Û‹Ú[™\™Ù]]\™Ù]ÛŠ^ØÛÛœİÙ™ÏQÑĞÑ×ÌLRS—ÑUTÑUÖÚÚ[™NÚYŠXÙ™Ê\™]\›ˆ[ØÛÛœİš[[˜[YOX	ØÙ™Ëœ™Yš^IÜİ][Û‹šYWÛ›İËš\›ÛİXÙ™Ë˜˜\Ù_ÑĞÑ×ÌLRS—Ô“ÓÕ\›X	Ü›ÛİIØÙ™Ëœ]IÙš[[˜[Y_X™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J\›ÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹Şš\\XØ][Û‹ÛØİ]\İ™X[K
+‹Ê‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUÍKØXÚQ]™\][™ÎY__K
+NÚYŠ™\ÜÛœÙKœİ]\ÏOOM
+\™]\›ˆ[ÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÑÑÈ	ÚÚ[™H	Üİ][Û‹šYH	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ™XÛÜ™YÙÙÓ]\İ™XÛÜ™
+]ØZ][š\š\œİ^
+™]ÈZ[\œ˜^J]ØZ]™\ÜÛœÙK˜\œ˜^PY™™\Š
+JJJNÚYŠ\™XÛÜ™
+\™]\›ˆ[ØÛÛœİ\™XÛÜ™œ›İË˜\ÙO^Üİ][Û’Yœİ][Û‹šY˜[YNœİ][Û‹›˜[YK]œİ][Û‹›]Ûœİ][Û‹›Û‹[]˜][Ûœİ][Û‹™[]˜][Û‹\İ[˜ÙN™\İ[˜ÙJ\™Ù]]\™Ù]Û‹İ][Û‹›]İ][Û‹›ÛŠK™\Ü[YNœ™XÛÜ™[YKÚ[™[š]‰ÚÛZ	ËšY[ØœÙ\™Y]ßKšY[[\Ü˜[™\ÛÛ][Û“Z[]\ÎßK[\Ü˜[™\ÛÛ][Û“Z[]\ÎŒLÚ]PÛ\ÜÎ˜Ù™ËœÚ]PÛ\Üßİ][Û”Ú]PÛ\ÜÊİ][Û‹›˜[YK	ÑÑÑÉÊ_NÚYŠÚ[™OOIİ[\\˜]\™IßÚ[™OOIİ\˜˜[—İ[\\˜]\™IÊ^ØÛÛœİ[\[ØØ[S[X™\Š‹•ÌL
+K[ZY]O[ØØ[S[X™\Š‹”‘—ÌL
+K]Ü[ØØ[S[X™\Š‹•ÌL
+NÚYŠ[\OO][™Yš[™Y	‰š[ZY]OOO][™Yš[™Y	‰™]ÜOO][™Yš[™Y
+\™]\›ˆ[Ü™]\›Ë‹‹˜˜\ÙK[\™[]]™R[ZY]Nš[ZY]K]ÜšY[ØœÙ\™Y]İ[\\˜]\™Nœ™XÛÜ™[YK[ZY]Nœ™XÛÜ™[YK]ÔÚ[œ™XÛÜ™[Y_KšY[[\Ü˜[™\ÛÛ][Û“Z[]\Îİ[\\˜]\™NŒL[ZY]NŒL]ÔÚ[ŒL__ZYŠÚ[™OOIİÚ[™	Ê^ØÛÛœİÜYY[ØØ[S[X™\Š‹‘‘—ÌL
+K\™Xİ[Û[ØØ[S[X™\Š‹‘ÌL
+NÚYŠÜYYOO][™Yš[™Y	‰™\™Xİ[ÛOO][™Yš[™Y
+\™]\›ˆ[Ü™]\›Ë‹‹˜˜\ÙKÚ[™ÜYYœÜYYOO][™Yš[™Yİ[™Yš[™YœÜYY
+ŒË‹Ú[™\™Xİ[Û™\™Xİ[Û‹šY[ØœÙ\™Y]İÚ[™ÜYYœ™XÛÜ™[YKÚ[™\™Xİ[Ûœ™XÛÜ™[Y_KšY[[\Ü˜[™\ÛÛ][Û“Z[]\ÎİÚ[™ÜYYŒLÚ[™\™Xİ[ÛŒL__ZYŠÚ[™OOIÙ^™[YWİÚ[™	Ê^ØÛÛœİİ\İ[ØØ[S[X™\Š‹‘–ÌLÏÜ‹‘–ÌLJNÚYŠİ\İOO][™Yš[™Y
+\™]\›ˆ[Ü™]\›Ë‹‹˜˜\ÙKÚ[™İ\İ™İ\İ
+ŒË‹šY[ØœÙ\™Y]İÚ[™İ\İœ™XÛÜ™[Y_KšY[[\Ü˜[™\ÛÛ][Û“Z[]\ÎİÚ[™İ\İŒL__ZYŠÚ[™OOIÜ™XÚ\]][Û‰Ê^ØÛÛœİ™XÚ\]][Û[ØØ[S[X™\Š‹”•Ô×ÌLÏÜ‹”•Ô×ÌLÓSŠNÚYŠ™XÚ\]][ÛOO][™Yš[™Y
+\™]\›ˆ[Ü™]\›Ë‹‹˜˜\ÙK™XÚ\]][Û“X]›X^
+™XÚ\]][ÛŠK™XÚ\]][Û“Z[]\ÎŒLšY[ØœÙ\™Y]Ü™XÚ\]][Ûœ™XÛÜ™[Y_KšY[[\Ü˜[™\ÛÛ][Û“Z[]\ÎÜ™XÚ\]][ÛŒL__\™]\›ˆ[B™[˜İ[ÛˆY\™ÙQÙÙÔ›ÙXİÊ›İÜÊ^ØÛÛœİX\[™]ÈX\
 
-let geoSphereMetadataCache={expires:0,stations:[]};
-function geoSphereApplies(lat,lon){return lat>=46.35&&lat<=49.05&&lon>=9.45&&lon<=17.3}
-function geoSphereStationArray(data){if(Array.isArray(data?.stations))return data.stations;if(Array.isArray(data?.station_metadata))return data.station_metadata;if(Array.isArray(data?.metadata?.stations))return data.metadata.stations;if(Array.isArray(data?.data?.stations))return data.data.stations;return[]}
-async function geoSphereMetadata(){
- if(geoSphereMetadataCache.expires>Date.now()&&geoSphereMetadataCache.stations.length)return geoSphereMetadataCache.stations;
- const raw=await fetchJson(GEOSPHERE_META),stations=geoSphereStationArray(raw).map(st=>({id:String(st?.id??st?.station_id??''),name:String(st?.name??st?.station_name??st?.id??'GeoSphere-Station'),lat:number(st?.lat??st?.latitude),lon:number(st?.lon??st?.longitude),elevation:number(st?.altitude??st?.height??st?.elevation),active:st?.is_active!==false})).filter(st=>st.id&&st.active&&st.lat!==undefined&&st.lon!==undefined);
- geoSphereMetadataCache={expires:Date.now()+6*60*60*1000,stations};return stations;
-}
-function geoSphereLast(value){const raw=value?.data??value?.values??value?.value??value;if(Array.isArray(raw)){for(let i=raw.length-1;i>=0;i--){const n=number(raw[i]);if(n!==undefined)return n}return undefined}return number(raw)}
-function geoSphereParam(feature,name){const props=feature?.properties??feature,parameters=props?.parameters??props?.parameter??props;return geoSphereLast(parameters?.[name]??parameters?.[name.toLowerCase()]??parameters?.[name.toUpperCase()])}
-function geoSphereFeatureId(feature){const station=feature?.properties?.station;return String(feature?.properties?.station_id??(station&&typeof station==='object'?station.id:station)??feature?.station_id??feature?.id??'')}
-function plausibleQff(value,height,stationPressure){const qff=number(value),elevation=number(height),surface=number(stationPressure);if(qff===undefined||qff<870||qff>1085)return false;if(elevation!==undefined&&elevation>=600&&qff<950)return false;if(elevation!==undefined&&surface!==undefined&&elevation>=150){const expectedLift=Math.min(155,Math.max(12,elevation*.055));if(qff-surface<expectedLift)return false}return true}
-async function geoSphereRows(lat,lon,radiusKm){
- if(!geoSphereApplies(lat,lon))return[];
- const meta=await geoSphereMetadata(),nearby=meta.map(st=>({...st,distance:distance(lat,lon,st.lat,st.lon)})).filter(st=>st.distance<=Math.min(120,radiusKm)*1000).sort((a,b)=>a.distance-b.distance).slice(0,14);if(!nearby.length)return[];
- const current=new URL(GEOSPHERE_CURRENT);current.searchParams.set('parameters','TL,TP,RF,PRED,P,FF,DD,FFX,RR');current.searchParams.set('station_ids',nearby.map(st=>st.id).join(','));current.searchParams.set('output_format','geojson');
- let raw;try{raw=await fetchJson(current.toString())}catch{current.searchParams.set('parameters','TL,RR,FF');raw=await fetchJson(current.toString())}
- const features=Array.isArray(raw?.features)?raw.features:Array.isArray(raw?.data)?raw.data:Array.isArray(raw)?raw:[],byId=new Map(nearby.map(st=>[st.id,st])),timestamp=safeDate(Array.isArray(raw?.timestamps)?raw.timestamps.at(-1):raw?.timestamp);
- return features.map(feature=>{const id=geoSphereFeatureId(feature),metaStation=byId.get(id),coordinates=feature?.geometry?.coordinates??[],slon=metaStation?.lon??number(coordinates[0]),slat=metaStation?.lat??number(coordinates[1]);if(!metaStation||slat===undefined||slon===undefined)return null;const temp=geoSphereParam(feature,'TL');if(temp===undefined)return null;const stationPressure=geoSphereParam(feature,'P'),pred=geoSphereParam(feature,'PRED'),pressureMsl=plausibleQff(pred,metaStation.elevation,stationPressure)?pred:undefined;return{stationId:id,name:metaStation.name,lat:slat,lon:slon,elevation:metaStation.elevation,reportTime:timestamp??safeDate(feature?.properties?.timestamp),temp,dewp:geoSphereParam(feature,'TP'),relativeHumidity:geoSphereParam(feature,'RF'),pressureMsl,pressure:stationPressure,windSpeed:(()=>{const v=geoSphereParam(feature,'FF');return v===undefined?undefined:v*3.6})(),windDirection:geoSphereParam(feature,'DD'),windGust:(()=>{const v=geoSphereParam(feature,'FFX');return v===undefined?undefined:v*3.6})(),precipitation:geoSphereParam(feature,'RR'),precipitationMinutes:10,temporalResolutionMinutes:10,fieldTemporalResolutionMinutes:{temperature:10,dewPoint:10,humidity:10,pressure:10,windSpeed:10,windDirection:10,windGust:10,precipitation:10},provider:'GeoSphere Austria / TAWES',distance:metaStation.distance,windUnit:'kmh',qcStatus:1,trustFactor:98,networkClass:'official',sourceType:'official-surface',qcLabel:'GeoSphere TAWES amtliche Beobachtung'}}).filter(Boolean);
-}
+NÙ›ÜŠÛÛœİ›İÈÙˆ›İÜË™š[\Š›ÛÛX[ŠJ^ØÛÛœİÙ^OTİš[™Ê›İËœİ][Û’Y
+K™]š[İ\Ï[X\™Ù]
+Ù^JOÏŞßKÛÛœİ[YOJKŠOO‘]Kœ\œÙJİš[™Ê_	ÉÊJOQ]Kœ\œÙJİš[™ÊŸ	ÉÊJOØN˜ÛX\œÙ]
+Ù^KË‹‹œ™]š[İ\Ë‹‹œ›İËšY[ØœÙ\™Y]Ë‹‹Š™]š[İ\Ë™šY[ØœÙ\™Y]ßJK‹‹Š›İË™šY[ØœÙ\™Y]ßJ_KšY[[\Ü˜[™\ÛÛ][Û“Z[]\ÎË‹‹Š™]š[İ\Ë™šY[[\Ü˜[™\ÛÛ][Û“Z[]\ßßJK‹‹Š›İË™šY[[\Ü˜[™\ÛÛ][Û“Z[]\ßßJ_K™\Ü[YN˜ÛÛœİ[YJ›İËœ™\Ü[YK™]š[İ\Ëœ™\Ü[YJ_J_\™]\›–Ë‹‹›X\˜[Y\Ê
+W_B˜\Ş[˜È[˜İ[ÛˆÛÛ™šYİ\™Yİ\™˜XÙPÛÛ^
+[‹]ÛŠ^ØÛÛœİ[™Ú[XY\\‘[™Ú[
+[‹	ÓRQÔÕT‘PÑWĞÓÓ•VÔÒS•ÑS‘ÒS•	ÊNÚYŠY[™Ú[
+\™]\›ˆ[Ù[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ëİš[™Ê]
+JNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰Ëİš[™ÊÛŠJNØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[Ôİš[™Ê
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX_KL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠİ\™˜XÙKPÛÛ^Y\\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+K˜[YO\˜]ÏË™]I‰\[Ùˆ˜]Ë™]OOOIÛØš™Xİ	ÏÜ˜]Ë™]Nœ˜]Ë]O›[X™\ŠŠNÜ™]\›Üİ\™˜XÙPÛ\ÜÎ”İš[™Ê˜[YOËœİ\™˜XÙPÛ\Üß˜[YOËœİ\™˜XÙWØÛ\Üß˜[YOË›ŞŸ	ÉÊKš[J
+_[™Yš[™YŞ”İš[™Ê˜[YOË›ŞŸ˜[YOË›ØØ[Û[X]V›Û™_	ÉÊKš[J
+_[™Yš[™Y[\\š[İ\Û™\ÜÔ\˜Ù[›Š˜[YOËš[\\š[İ\Û™\ÜÔ\˜Ù[Ïİ˜[YOËš[\\š[İ\Û™\ÜÏÏİ˜[YOËœÙX[Y\˜Ù[
+KZ[œ˜Xİ[Û›Š˜[YOË˜Z[œ˜Xİ[ÛÏİ˜[YOË˜Z[Ùœ˜Xİ[ÛŠK›İYÚ™\ÜÓ[™İN›Š˜[YOËœ›İYÚ™\ÜÓ[™İOÏİ˜[YOËŒÏİ˜[YOËœ›İYÚ™\ÜÊKÛİ\˜ÙN”İš[™Ê˜[YOËœÛİ\˜Ù_	ÒÛÛ™šYİ\šY\\ˆÒTËSØ™\™›0éÚ[˜Y\\‰Ê__B˜ÛÛœİÑÑWÕÒÑS—ÕT“IÚÎ‹ËÚY[]K™]\ÜXÙK˜ÛÜ\›šXİ\Ë™]KØ]]Ü™X[\ËĞÑÑKÜ›İØÛÛÛÜ[šYXÛÛ›™XİİÚÙ[‰ÎÂ˜ÛÛœİÑÑWÔÕU×ÕT“IÚÎ‹ËÜÚ™]\ÜXÙK˜ÛÜ\›šXİ\Ë™]KÜİ]\İXÜËİŒIÎÂ˜ÛÛœİÓT×ÓÓLLĞÓÓPÕSÓIÎ˜ŒŒN™™MXLYKY™Y™ÌMM™‰ÎÂ›]ÙÙUÚÙ[ØXÚO^İÚÙ[‰ÉË^\™\Ğ]ŒNÂ™[˜İ[ÛˆÛ\ĞÛÛ™šYİ\™Y
+[Š^Ü™]\›ˆ›ÛÛX[Šİš[™Ê[Ë“RQĞÑÑWĞÓQS•ÒQ	ÉÊKš[J
+I‰”İš[™Ê[Ë“RQĞÑÑWĞÓQS•ÔÑPÔ‘U	ÉÊKš[J
+J_B˜\Ş[˜È[˜İ[ÛˆÙÙPXØÙ\ÜÕÚÙ[Š[Š^ÚYŠÙÙUÚÙ[ØXÚKÚÙ[‰‰˜ÙÙUÚÙ[ØXÚK™^\™\Ğ]‘]K››İÊ
+JÍŒ
+\™]\›ˆÙÙUÚÙ[ØXÚKÚÙ[ØÛÛœİÛY[YTİš[™Ê[Ë“RQĞÑÑWĞÓQS•ÒQ	ÉÊKš[J
+KÙXÜ™]Tİš[™Ê[Ë“RQĞÑÑWĞÓQS•ÔÑPÔ‘U	ÉÊKš[J
+NÚYŠXÛY[Y\ÙXÜ™]
+\™]\›‰ÉÎØÛÛœİ›Ü›O[™]ÈT“ÙX\˜Ú\˜[\ÊÙÜ˜[İ\N‰ØÛY[ØÜ™Y[X[ÉËÛY[ÚY˜ÛY[YÛY[ÜÙXÜ™]œÙXÜ™]JNØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™JÑÑWÕÒÑS—ÕT“ÛY]Ù‰ÔÔÕ	ËXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹Ş]İİËY›Ü›K]\›[˜ÛÙY	ËXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰ßK›ÙN™›Ü›KÔİš[™Ê
+_KL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÑÑHĞ]]	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ^[ØYX]ØZ]™\ÜÛœÙKšœÛÛŠ
+KÚÙ[Tİš[™Ê^[ØYË˜XØÙ\Ü×İÚÙ[Ÿ	ÉÊK^\™\ÏSX]›X^
+LŒ[X™\Š^[ØYË™^\™\×Ú[Š_Œ
+NÚYŠ]ÚÙ[Š]›İÈ™]È\œ›ÜŠ	ĞÑÑHĞ]]Ú™HXØÙ\ÜËUÚÙ[‰ÊNØÙÙUÚÙ[ØXÚO^İÚÙ[‹^\™\Ğ]‘]K››İÊ
+JÙ^\™\ÊŒLNÜ™]\›ˆÚÙ[ŸB˜ÛÛœİÓT×ÓÓWĞÓÑTÏVÌLŒÌLŒÌLLLLNÂ™[˜İ[ÛˆÛ\Ôİ\™˜XÙQœ›ÛPÛ\ÜÊÛÙKÚ\™J^ØÛÛœİX›O^ÌLÜİ\™˜XÙPÛ\ÜÎ‰İÛÛÙY	Ë›İYÚ™\ÜÓ[™İN‹[\\š[İ\Û™\ÜÔ\˜Ù[Z[œ˜Xİ[Û‹ŒŸKŒÜİ\™˜XÙPÛ\ÜÎ‰ÛÜ[‹\ÚX‰Ë›İYÚ™\ÜÓ[™İN‹ŒK[\\š[İ\Û™\ÜÔ\˜Ù[ŒËZ[œ˜Xİ[Û‹Œ_KÌÜİ\™˜XÙPÛ\ÜÎ‰ÛÜ[‰Ë›İYÚ™\ÜÓ[™İN‹ŒË[\\š[İ\Û™\ÜÔ\˜Ù[Œ‹Z[œ˜Xİ[Û‹Œ_KÜİ\™˜XÙPÛ\ÜÎ‰Ü\˜[	Ë›İYÚ™\ÜÓ[™İN‹ŒK[\\š[İ\Û™\ÜÔ\˜Ù[Z[œ˜Xİ[Û‹ŒŸKLÜİ\™˜XÙPÛ\ÜÎ‰ÛÜ[‹]Ù][™	Ë›İYÚ™\ÜÓ[™İN‹ŒK[\\š[İ\Û™\ÜÔ\˜Ù[ŒKZ[œ˜Xİ[ÛŒKŒÜİ\™˜XÙPÛ\ÜÎ‰İÛÛÙY]Ù][™	Ë›İYÚ™\ÜÓ[™İN‹[\\š[İ\Û™\ÜÔ\˜Ù[ŒKZ[œ˜Xİ[ÛŒKÌÜİ\™˜XÙPÛ\ÜÎ‰ÛÜ[‰Ë›İYÚ™\ÜÓ[™İN‹Œ‹[\\š[İ\Û™\ÜÔ\˜Ù[ŒKZ[œ˜Xİ[ÛŒKÜİ\™˜XÙPÛ\ÜÎ‰ÛÜ[‰Ë›İYÚ™\ÜÓ[™İN‹ŒK[\\š[İ\Û™\ÜÔ\˜Ù[ŒKZ[œ˜Xİ[ÛŒKLÜİ\™˜XÙPÛ\ÜÎ‰ØZ[	Ë›İYÚ™\ÜÓ[™İN‹[\\š[İ\Û™\ÜÔ\˜Ù[“X]œ›İ[™
+Û[\
+JÜÚ\™JŒKKLŠJKZ[œ˜Xİ[Û˜Û[\
+MJÜÚ\™J‹ŒÍKMKJ_KLÜİ\™˜XÙPÛ\ÜÎ‰İØ]\‰Ë›İYÚ™\ÜÓ[™İN‹Œ‹[\\š[İ\Û™\ÜÔ\˜Ù[ŒZ[œ˜Xİ[ÛŒKLLÜİ\™˜XÙPÛ\ÜÎ‰ÛÜ[‹\Û›İÉË›İYÚ™\ÜÓ[™İN‹ŒË[\\š[İ\Û™\ÜÔ\˜Ù[ŒZ[œ˜Xİ[ÛŒ_NÜ™]\›ˆX›VØÛÙW_[B˜\Ş[˜È[˜İ[ÛˆÛ\Ôİ\™˜XÙPÛÛ^
+[‹]ÛŠ^ÚYŠXÛ\ĞÛÛ™šYİ\™Y
+[ŠJ\™]\›ˆ[ØÛÛœİÚÙ[X]ØZ]ÙÙPXØÙ\ÜÕÚÙ[Š[ŠNÚYŠ]ÚÙ[Š\™]\›ˆ[ØÛÛœİ˜Y]\ÓONL][O\˜Y]\ÓKÌLLLÛ‘[O\˜Y]\ÓKÊLLL
+“X]›X^
+ŒKX]˜ÛÜÊ]
+“X]”KÌN
+JJKYX\Tİš[™Ê[Ë“RQĞÓT×ÓÓWÖQPTŸ	ÌŒŒ	ÊKœ™\XÙJÖ×ŒNWKÙË	ÉÊKœÛXÙJ
+_	ÌŒŒ	Ë]˜[ØÜš\XËÕ‘T”ÒSÓLÂ™[˜İ[ÛˆÙ]\
+
+^Ü™]\›Ú[œ]–ŞØ˜[™Î–È“ÓLL‹™]SX\ÚÈ—_WKİ]]–ŞÚYˆ˜Û\ÜÙ\È‹˜[™Î‰ĞÓT×ÓÓWĞÓÑTË›[™İKØ[\U\Nˆ‘“ĞUÌˆŸKÚYˆ™]SX\ÚÈ‹˜[™ÎŒ_W__B™[˜İ[Ûˆ]˜[X]T^[
+Ê^Ü™]\›ØÛ\ÜÙ\Î–ÉĞÓT×ÓÓWĞÓÑTË›X\
+ÛÙOO˜Ë“ÓLLOOIØÛÙ_OÌNŒ
+Kš›Ú[Š	Ë	Ê_WK]SX\ÚÎ–ÜË™]SX\Ú×__XÂˆÛÛœİ›ÙO^Ú[œ]Ø›İ[™ÎØ˜›Ş–ÛÛ‹[Û‘[K][][KÛŠÛÛ‘[K]
+Û][WK›Ü\Y\ÎØÜœÎ‰Ú‹ËİİİË›Ü[™Ú\Ë›™]ÙY‹ØÜœËÑTÑËÌÍÌ‰ß_K]N–Şİ\N˜[ØËIĞÓT×ÓÓLLĞÓÓPÕSÓŸX]Qš[\Û[ÜØZXÚÚ[™ÓÜ™\‰Û[Üİ™XÙ[	ß_W_KYÙÜ™YØ][Ûİ[YT˜[™ÙNÙœ›ÛN˜	ŞYX\ŸKLKLUŒŒ˜Î˜	Ó[X™\ŠYX\ŠJÌ_KLKLUŒŒ˜KYÙÜ™YØ][Û’[\˜[ÛÙ‰ÔVIßK]˜[ØÜš\™\Ş‹ŒK™\ŞN‹Œ__NÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™JÑÑWÔÕU×ÕT“ÛY]Ù‰ÔÔÕ	ËXY\œÎĞ]]Üš^˜][Û˜™X\™\ˆ	İÚÙ[ŸX	ØÛÛ[]\IÎ‰Ø\XØ][Û‹ÚœÛÛ‰ËXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXK›ÙN’”ÓÓ‹œİš[™ÚYJ›ÙJ_KLL
+NÚYŠ\™\ÜÛœÙK›ÚÊ^ØÛÛœİ^X]ØZ]™\ÜÛœÙK^
+
+K˜Ø]Ú
 
 
-function geoSphereSnowTimestamp(raw,feature){return safeDate(feature?.properties?.timestamp??feature?.properties?.reference_time??feature?.timestamp??(Array.isArray(raw?.timestamps)?raw.timestamps.at(-1):raw?.timestamp))}
-async function geoSphereSnowMeasurement(lat,lon,elevation){
- if(!geoSphereApplies(lat,lon))return{available:false,provider:'GeoSphere Austria',reason:'auÃŸerhalb Ã–sterreichs'};
- const targetElevation=number(elevation),meta=await geoSphereMetadata(),nearby=meta.map(st=>({...st,distanceM:distance(lat,lon,st.lat,st.lon),heightDifferenceM:targetElevation!==undefined&&st.elevation!==undefined?st.elevation-targetElevation:undefined})).filter(st=>st.distanceM<=25000&&(targetElevation===undefined||st.elevation===undefined||Math.abs(st.elevation-targetElevation)<=350)).sort((a,b)=>(a.distanceM+Math.abs(a.heightDifferenceM||0)*45)-(b.distanceM+Math.abs(b.heightDifferenceM||0)*45)).slice(0,18);
- if(!nearby.length)return{available:false,provider:'GeoSphere Austria',reason:'keine Station innerhalb 25 km und Â±350 m HÃ¶henunterschied'};
- const parameters=['HS','SH','SNOW_DEPTH'];let lastError='';
- for(const parameter of parameters){
-  const url=new URL(GEOSPHERE_CURRENT);url.searchParams.set('parameters',parameter);url.searchParams.set('station_ids',nearby.map(st=>st.id).join(','));url.searchParams.set('output_format','geojson');
-  try{
-   const raw=await fetchJson(url.toString()),features=Array.isArray(raw?.features)?raw.features:Array.isArray(raw?.data)?raw.data:Array.isArray(raw)?raw:[],byId=new Map(nearby.map(st=>[st.id,st])),candidates=[];
-   for(const feature of features){const id=geoSphereFeatureId(feature),station=byId.get(id);if(!station)continue;const value=geoSphereParam(feature,parameter),observedAt=geoSphereSnowTimestamp(raw,feature),ageMs=observedAt?Date.now()-Date.parse(observedAt):Infinity;if(value===undefined||value<0||value>1000||!Number.isFinite(ageMs)||ageMs< -15*60000||ageMs>3*3600000)continue;candidates.push({available:true,valueCm:value,stationName:station.name,stationId:station.id,stationElevation:station.elevation,distanceKm:station.distanceM/1000,heightDifferenceM:station.heightDifferenceM??0,observedAt,provider:'GeoSphere Austria / TAWES',parameter,rawUnit:'cm'})}
-   candidates.sort((a,b)=>(a.distanceKm*1000+Math.abs(a.heightDifferenceM)*45)-(b.distanceKm*1000+Math.abs(b.heightDifferenceM)*45));if(candidates.length)return candidates[0];
-  }catch(error){lastError=error instanceof Error?error.message:String(error)}
- }
- return{available:false,provider:'GeoSphere Austria / TAWES',reason:'keine aktuelle, hÃ¶hennahe SchneehÃ¶henmessung',error:lastError||undefined};
-}
+OO”İš[™Ê™\ÜÛœÙKœİ]\ÊJNİ›İÈ™]È\œ›ÜŠÓTÈİ]\İXØ[TH	Ü™\ÜÛœÙKœİ]\ßNˆ	İ^œÛXÙJMŒ
+_X
+_XÛÛœİ^[ØYX]ØZ]™\ÜÛœÙKšœÛÛŠ
+K˜[™Ï\^[ØYË™]OË–ÌOË›İ]]ÏË˜Û\ÜÙ\ÏË˜˜[™ÏÏŞßKÚ\™\ÏPÓT×ÓÓWĞÓÑTË›X\
 
-async function weatherUndergroundRows(lat,lon,radiusKm,apiKey){
- if(!apiKey)return[];
- const near=new URL(TWC_NEAR);near.searchParams.set('geocode',`${lat.toFixed(5)},${lon.toFixed(5)}`);near.searchParams.set('product','pws');near.searchParams.set('format','json');near.searchParams.set('apiKey',apiKey);
- const nr=await fetch(near);if(!nr.ok)return[];const nd=await nr.json(),loc=nd?.location??nd,ids=loc?.stationId??[],rows=[];
- for(let i=0;i<Math.min(8,Array.isArray(ids)?ids.length:0);i++){
-  if(Number(at(loc?.qcStatus,i))===0)continue;
-  const stationId=String(ids[i]??'');if(!stationId)continue;
-  const stationLat=number(at(loc?.latitude,i)),stationLon=number(at(loc?.longitude,i)),dist=number(at(loc?.distanceKm,i));
-  if(dist!==undefined&&dist>radiusKm)continue;
-  const current=new URL(TWC_PWS);current.searchParams.set('stationId',stationId);current.searchParams.set('format','json');current.searchParams.set('units','m');current.searchParams.set('numericPrecision','decimal');current.searchParams.set('apiKey',apiKey);
-  try{
-   const cr=await fetch(current);if(!cr.ok)continue;const cd=await cr.json(),o=(cd?.observations??cd?.observation??[])[0]??cd,metric=o?.metric??{};
-   rows.push({stationId,name:at(loc?.stationName,i)||stationId,lat:stationLat??number(o?.lat),lon:stationLon??number(o?.lon),elevation:number(o?.elev??o?.elevation),reportTime:o?.obsTimeUtc??o?.obsTimeLocal??at(loc?.updateTimeUtc,i),temp:number(metric?.temp??o?.temp),dewp:number(metric?.dewpt??o?.dewpt),relativeHumidity:number(o?.humidity),windDirection:number(o?.winddir),windSpeed:number(metric?.windSpeed??o?.windSpeed),windGust:number(metric?.windGust??o?.windGust),pressure:number(metric?.pressure??o?.pressure),precipitation:number(metric?.precipTotal??metric?.precipRate),provider:'Weather Underground PWS (lizenzierter API-Zugang)',distance:dist===undefined&&stationLat!==undefined&&stationLon!==undefined?distance(lat,lon,stationLat,stationLon):dist===undefined?undefined:dist*1000,windUnit:'kmh',qcStatus:Number(at(loc?.qcStatus,i))});
-  }catch{}
- }
- return rows;
-}
-function latestNetatmoMeasure(measures){
- const out={timestamp:0};for(const module of Object.values(measures||{})){const types=Array.isArray(module?.type)?module.type:[],res=module?.res&&typeof module.res==='object'?module.res:{},latest=Object.keys(res).map(Number).filter(Number.isFinite).sort((a,b)=>b-a)[0];if(!latest)continue;const values=res[String(latest)]??res[latest]??[];if(latest<out.timestamp)continue;out.timestamp=latest;types.forEach((type,i)=>{const v=number(values?.[i]);if(v!==undefined)out[String(type).toLowerCase()]=v});for(const key of['rain_60min','rain_24h','rain_live','wind_strength','wind_angle','gust_strength','gust_angle']){const v=number(module?.[key]);if(v!==undefined)out[key]=v}}
- return out;
-}
-async function netatmoRows(lat,lon,radiusKm,accessToken){
- if(!accessToken)return[];const r=Math.min(45,Math.max(8,radiusKm)),dLat=r/111,dLon=r/(111*Math.max(.25,Math.cos(lat*Math.PI/180))),u=new URL(NETATMO_PUBLIC);u.searchParams.set('lat_ne',String(lat+dLat));u.searchParams.set('lon_ne',String(lon+dLon));u.searchParams.set('lat_sw',String(lat-dLat));u.searchParams.set('lon_sw',String(lon-dLon));u.searchParams.set('filter','true');u.searchParams.set('required_data','temperature');
- const response=await fetch(u,{headers:{Authorization:`Bearer ${accessToken}`,Accept:'application/json'}});if(!response.ok)throw new Error(`Netatmo HTTP ${response.status}`);const raw=await response.json(),stations=raw?.body??raw?.data??[];
- return(Array.isArray(stations)?stations:[]).map(st=>{const location=st?.place?.location??st?.location??[],slon=number(location?.[0]??st?.lon),slat=number(location?.[1]??st?.lat);if(slat===undefined||slon===undefined)return null;const dist=distance(lat,lon,slat,slon);if(dist>r*1000)return null;const m=latestNetatmoMeasure(st?.measures),temp=number(m.temperature);if(temp===undefined||!m.timestamp)return null;return{stationId:st?._id??st?.id,name:st?.place?.city||st?.place?.street||'Netatmo PWS',lat:slat,lon:slon,elevation:number(st?.place?.altitude),reportTime:new Date(m.timestamp*1000).toISOString(),temp,relativeHumidity:number(m.humidity),pressure:number(m.pressure),windSpeed:number(m.wind_strength),windDirection:number(m.wind_angle),windGust:number(m.gust_strength),precipitation:number(m.rain_60min??m.rain_live),provider:'Netatmo Weathermap PWS (autorisierter API-Zugang)',distance:dist,windUnit:'kmh',qcStatus:1}}).filter(Boolean).slice(0,35);
-}
-function synopticObservation(observations,names){for(const name of names){const key=Object.keys(observations||{}).find(k=>k===name||k.startsWith(`${name}_value`));if(!key)continue;const raw=observations[key],value=number(raw?.value??raw?.[0]?.value??raw),date=raw?.date_time??raw?.[0]?.date_time; if(value!==undefined)return{value,date}}return{};}
-async function synopticRows(lat,lon,radiusKm,token){
- if(!token)return[];const miles=Math.min(60,Math.max(8,radiusKm))*0.621371,u=new URL(SYNOPTIC_LATEST);u.searchParams.set('token',token);u.searchParams.set('radius',`${lat.toFixed(5)},${lon.toFixed(5)},${miles.toFixed(1)}`);u.searchParams.set('limit','35');u.searchParams.set('within','120');u.searchParams.set('status','active');u.searchParams.set('vars','air_temp,relative_humidity,dew_point_temperature,sea_level_pressure,pressure,wind_speed,wind_direction,wind_gust,precip_accum_one_hour');u.searchParams.set('units','temp|C,speed|kts,pres|mb,height|m,precip|mm');u.searchParams.set('qc','on');u.searchParams.set('qc_checks','synopticlabs');u.searchParams.set('qc_remove_data','on');u.searchParams.set('output','json');
- const response=await fetch(u,{headers:{Accept:'application/json'}});if(!response.ok)throw new Error(`Synoptic HTTP ${response.status}`);const raw=await response.json();if(Number(raw?.SUMMARY?.RESPONSE_CODE)===200)throw new Error('Synoptic-Token nicht autorisiert');
- return(Array.isArray(raw?.STATION)?raw.STATION:[]).map(st=>{const slat=number(st?.LATITUDE),slon=number(st?.LONGITUDE);if(slat===undefined||slon===undefined)return null;const obs=st?.OBSERVATIONS??{},temp=synopticObservation(obs,['air_temp']),hum=synopticObservation(obs,['relative_humidity']),dew=synopticObservation(obs,['dew_point_temperature']),pressure=synopticObservation(obs,['sea_level_pressure','pressure','altimeter']),wind=synopticObservation(obs,['wind_speed']),direction=synopticObservation(obs,['wind_direction']),gust=synopticObservation(obs,['wind_gust']),precip=synopticObservation(obs,['precip_accum_one_hour']),dist=number(st?.DISTANCE)!==undefined?number(st.DISTANCE)*1609.344:distance(lat,lon,slat,slon);if(temp.value===undefined||dist>Math.min(60,radiusKm)*1000)return null;return{stationId:st?.STID,name:st?.NAME||st?.STID,lat:slat,lon:slon,elevation:number(st?.ELEVATION),reportTime:temp.date||hum.date||wind.date,temp:temp.value,dewp:dew.value,relativeHumidity:hum.value,pressure:pressure.value,windSpeed:wind.value,windDirection:direction.value,windGust:gust.value,precipitation:precip.value,precipitationMinutes:60,provider:`Synoptic Data / MesoWest-MADIS${st?.MNET_ID?` (${st.MNET_ID})`:''}`,distance:dist,windUnit:'kt',qcStatus:st?.QC_FLAGGED?1:2}}).filter(Boolean);
-}
-async function xweatherRows(lat,lon,radiusKm,clientId,clientSecret){
- if(!clientId||!clientSecret)return[];const u=new URL(XWEATHER_OBS);u.searchParams.set('p',`${lat.toFixed(5)},${lon.toFixed(5)}`);u.searchParams.set('limit','20');u.searchParams.set('filter','pws');u.searchParams.set('client_id',clientId);u.searchParams.set('client_secret',clientSecret);
- const response=await fetch(u,{headers:{Accept:'application/json'}});if(!response.ok)throw new Error(`Xweather HTTP ${response.status}`);const raw=await response.json();if(raw?.success===false)throw new Error(raw?.error?.description||'Xweather-Abruf fehlgeschlagen');const list=Array.isArray(raw?.response)?raw.response:raw?.response?[raw.response]:[];
- return list.map(st=>{const ob=st?.ob??{},slat=number(st?.loc?.lat),slon=number(st?.loc?.long);if(slat===undefined||slon===undefined)return null;const dist=number(st?.relativeTo?.distanceKM)!==undefined?number(st.relativeTo.distanceKM)*1000:distance(lat,lon,slat,slon),trust=number(ob?.trustFactor),qc=number(ob?.QCcode);if(dist>Math.min(60,radiusKm)*1000||qc===0||(trust!==undefined&&trust<65))return null;return{stationId:st?.id,name:st?.place?.name||st?.id,lat:slat,lon:slon,elevation:number(st?.profile?.elevM),reportTime:ob?.dateTimeISO||st?.obDateTime,temp:number(ob?.tempC),dewp:number(ob?.dewpointC),relativeHumidity:number(ob?.humidity),pressure:number(ob?.pressureMB),windSpeed:number(ob?.windSpeedKTS),windDirection:number(ob?.windDirDEG),windGust:number(ob?.windGustKTS),cloudCover:number(ob?.sky),precipitation:number(ob?.precipMM),provider:`Xweather Observations${st?.dataSource?` / ${st.dataSource}`:''} (lizenzierter API-Zugang)`,distance:dist,windUnit:'kt',qcStatus:qc===undefined?1:qc>0?2:0,trustFactor:trust}}).filter(x=>x&&number(x.temp)!==undefined);
-}
+ÛÙK[™^
+OOŠØÛÙKÚ\™N˜Û[\
+[X™\Š˜[™ÏË–Ø‰Ú[™^XOËœİ]ÏË›YX[Š_J_JJKœÛÜ
+
+KŠOO˜‹œÚ\™KXKœÚ\™JKÛZ[˜[\Ú\™\ÖÌNÚYŠYÛZ[˜[ÛZ[˜[œÚ\™OL
+\™]\›ˆ[ØÛÛœİX\YXÛ\Ôİ\™˜XÙQœ›ÛPÛ\ÜÊÛZ[˜[˜ÛÙKÛZ[˜[œÚ\™JNÚYŠ[X\Y
+\™]\›ˆ[Ü™]\›Ë‹‹›X\YÛ\ĞÛ\ÜÎ™ÛZ[˜[˜ÛÙKÛ\ĞÛ\ÜÔÚ\™N™ÛZ[˜[œÚ\™KÛİ\˜ÙN˜ÛÜ\›šXİ\ÈÓTÈÓLL	ŞYX\ŸH0­ÈÑÑHİ]\İXØ[TX_B™[˜İ[Ûˆİ\™˜XÙQ[[Y[Ú[
+[[Y[
+^ØÛÛœİ][[X™\Š[[Y[Ë›]ÏÙ[[Y[Ë˜Ù[\Ë›]
+KÛ[[X™\Š[[Y[Ë›ÛÏÙ[[Y[Ë˜Ù[\Ë›ÛŠNÜ™]\›ˆ]OO][™Yš[™YÛOO][™Yš[™YÛ[Û]ÛŸ_B˜\Ş[˜È[˜İ[ÛˆÜÛTİ\™˜XÙPÛÛ^
+]ÛŠ^ØÛÛœİ˜Y]\ÏML]Y\OXÛİ]šœÛÛ—Vİ[Y[İ]—NÊØ^J\›İ[™L	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_JVÈ˜Z[[™È—NİØ^J\›İ[™‰Ü˜Y]\ßK	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_JVÈ›[™\ÙHŸˆœ™\ÚY[X[ÛÛ[Y\˜ÚX[[™\İšX[™]Z[›Ü™\İ˜\›[[™YXYİßÜ˜\ÜßÜ˜Ú\™—NİØ^J\›İ[™‰Ü˜Y]\ßK	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_JVÈ›˜]\˜[ŸˆÛÛÙØÜXŸÜ˜\ÜÛ[™Ø]\ŸÙ][™—NİØ^J\›İ[™‰Ü˜Y]\ßK	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_JVÈ›Z\İ\™HHœ\šÈ—NÊNÛİ]Ù[\ˆÌØ›ÙOX]OIÙ[˜ÛÙUT’PÛÛ\Û™[
+]Y\J_XÛ]^[ØY[[\İ\œ›ÜÙ›ÜŠÛÛœİ[™Ú[ÙˆÕ‘T”TÔ×ÑS‘ÒS•Ê^İ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[ÛY]Ù‰ÔÔÕ	ËXY\œÎÉØÛÛ[]\IÎ‰Ø\XØ][Û‹Ş]İİËY›Ü›K]\›[˜ÛÙYØÚ\œÙ]UU‹N	Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸH
+
+ÚÎ‹ËÙÚ]X‹˜ÛÛKÓY][ÓX\[šKÓRQ
+XK›ÙKÙØØXÚUŒŒMŒØXÚQ]™\][™ÎY__KÌ
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ	Û™]ÈT“
+[™Ú[
+KšÜİ˜[Y_Nˆ	Ü™\ÜÛœÙKœİ]\ßX
+NÜ^[ØYX]ØZ]™\ÜÛœÙKšœÛÛŠ
+NØœ™XZßXØ]Ú
+\œ›ÜŠ^Û\İ\œ›ÜY\œ›ÜŸ_ZYŠ\^[ØY
+]›İÈ\İ\œ›ÜÏÛ™]È\œ›ÜŠ	ÓÔÓKSØ™\™›0éÚ[šÛÛ^šXÚ™\™°ïØ˜\‰ÊNÛ]Z[[™ÜÏL™\ÚY[X[LÛÛ[Y\˜ÚX[L›Ü™\İLÜ[LØ]\LÙ›ÜŠÛÛœİ[[Y[Ùˆ\œ˜^Kš\Ğ\œ˜^J^[ØYË™[[Y[ÊOÜ^[ØY™[[Y[Î–×J^ØÛÛœİÚ[\İ\™˜XÙQ[[Y[Ú[
+[[Y[
+NÚYŠ\Ú[\İ[˜ÙJ]Û‹Ú[›]Ú[›ÛŠOœ˜Y]\ÊXÛÛ[YNØÛÛœİYÜÏY[[Y[ËYÜßßK[™\ÙOTİš[™ÊYÜË›[™\Ù_	ÉÊK˜]\˜[Tİš[™ÊYÜË›˜]\˜[	ÉÊKZ\İ\™OTİš[™ÊYÜË›Z\İ\™_	ÉÊNÚYŠYÜË˜Z[[™É‰™\İ[˜ÙJ]Û‹Ú[›]Ú[›ÛŠOML
+XZ[[™ÜÊÊÎÚYŠÜ™\ÚY[X[Ë\İ
+[™\ÙJJ\™\ÚY[X[
+ÊÎÚYŠØÛÛ[Y\˜ÚX[[™\İšX[™]Z[Ë\İ
+[™\ÙJJXÛÛ[Y\˜ÚX[
+ÊÎÚYŠÙ›Ü™\İË\İ
+[™\ÙJ_İÛÛÙØÜX‹Ë\İ
+˜]\˜[
+JY›Ü™\İ
+ÊÎÚYŠÙ˜\›[[™YXYİßÜ˜\ÜßÜ˜Ú\™Ë\İ
+[™\ÙJ_ÙÜ˜\ÜÛ[™Ë\İ
+˜]\˜[
+_Z\İ\™OOOIÜ\šÉÊ[Ü[ŠÊÎÚYŠİØ]\ŸÙ][™Ë\İ
+˜]\˜[
+J]Ø]\ŠÊßXÛÛœİZ[[[œÚ]OXÛ[\
+Z[[™ÜËÌML
+Ê™\ÚY[X[ÌŒMNŒ
+JÊÛÛ[Y\˜ÚX[ÌŒŒŒ
+KJKİ\™˜XÙPÛ\ÜÏ]Ø]\‰‰˜Z[[™ÜÏOÉİØ]\‰Î™›Ü™\İL‰‰˜Z[[™ÜÏŒÉİÛÛÙY	Î˜Z[[[œÚ]OKÍOÉÙ[œÙKXZ[	Î˜Z[[[œÚ]OKŒOÉØZ[	Î›Ü[LÉÛÜ[‰Î‰ÛZ^Y	Ë›İYÚ™\ÜÓ[™İO\İ\™˜XÙPÛ\ÜÏOOIİØ]\‰ÏËŒœİ\™˜XÙPÛ\ÜÏOOIÛÜ[‰ÏËŒœİ\™˜XÙPÛ\ÜÏOOIÛZ^Y	ÏËŒMNœİ\™˜XÙPÛ\ÜÏOOIØZ[	ÏËMNœİ\™˜XÙPÛ\ÜÏOOIÙ[œÙKXZ[	ÏÌKŒŒKŒÜ™]\›Üİ\™˜XÙPÛ\ÜËZ[[[œÚ]N“[X™\ŠZ[[[œÚ]KÑš^Y
+ÊJK›İYÚ™\ÜÓ[™İKZ[[™ĞÛİ[˜Z[[™ÜË[™\ÙTÚYÛ˜[ÎÜ™\ÚY[X[ÛÛ[Y\˜ÚX[›Ü™\İÜ[‹Ø]\ŸKÛİ\˜ÙN‰ÓÜ[”İ™Y]X\S[ÜœÛÙÚY\›ŞIß_B˜\Ş[˜È[˜İ[ÛˆØØ[İ\™˜XÙPÛÛ^
+]Û‹[Š^ØÛÛœİØÛÛ™šYİ\™YÛ\ËÜÛWOX]ØZ]›ÛZ\ÙK˜[Ù]Y
+ØÛÛ™šYİ\™Yİ\™˜XÙPÛÛ^
+[‹]ÛŠKÛ\Ôİ\™˜XÙPÛÛ^
+[‹]ÛŠKÜÛTİ\™˜XÙPÛÛ^
+]ÛŠWJK^XİXÛÛ™šYİ\™Yœİ]\ÏOOIÙ[š[Y	ÏØÛÛ™šYİ\™Y˜[YN›[[™XÛ\Ëœİ]\ÏOOIÙ[š[Y	ÏØÛ\Ë˜[YN›[›ŞO[ÜÛKœİ]\ÏOOIÙ[š[Y	ÏÛÜÛK˜[YN›[š[X\OY^Xİ[™ÚYŠš[X\J^ØÛÛœİ[\\š[İ\Ï[[X™\Šš[X\Kš[\\š[İ\Û™\ÜÔ\˜Ù[
+KZ[[[X™\Šš[X\K˜Z[œ˜Xİ[ÛŠNÜ™]\›Ë‹‹œ›ŞK‹‹›[™‹‹™^XİZ[[[œÚ]N“[X™\‹š\Ñš[š]J[\\š[İ\ÊOØÛ[\
+[\\š[İ\ËÌLJN“[X™\‹š\Ñš[š]JZ[
+OØÛ[\
+Z[JNœ›ŞOË˜Z[[[œÚ]KÛİ\˜ÙN–Ù^XİËœÛİ\˜ÙK[™ËœÛİ\˜ÙK›ŞOËœÛİ\˜ÙWK™š[\Š›ÛÛX[ŠKš›Ú[Š	È
+È	ÊK]X[]N‰ÙÚ\Éß_ZYŠ›ŞJ\™]\›Ë‹‹œ›ŞK]X[]N‰Ü›ŞIßNØÛÛœİ™X\ÛÛœÏVØÛÛ™šYİ\™YÛ\×K™š[\Š™\İ[Oœ™\İ[œİ]\ÏOOIÜ™Z™XİY	ÊK›X\
+™\İ[Oœ™\İ[œ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™\İ[œ™X\ÛÛ‹›Y\ÜØYÙN”İš[™Ê™\İ[œ™X\ÛÛŠJNİ›İÈ™]È\œ›ÜŠÙZ[ˆØ™\™›0éÚ[šÛÛ^™\™°ïØ˜\‰Ü™X\ÛÛœË›[™İØˆ	Ü™X\ÛÛœËš›Ú[Š	ÎÈ	Ê_X‰ÉßX
+_B˜\Ş[˜È[˜İ[ÛˆÙÙÌLZ[”›İÜÊ]Û‹˜Y]\ÒÛJ^ÚYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠJ\™]\›–×NØÛÛœİÚ[™ÏVÉİ[\\˜]\™IË	İ\˜˜[—İ[\\˜]\™IË	İÚ[™	Ë	Ù^™[YWİÚ[™	Ë	Ü™XÚ\]][Û‰×KØ][ÙÜÏX]ØZ]›ÛZ\ÙK˜[
+Ú[™Ë›X\
+Ú[™O™ÙÙĞØ][ÙÊÚ[™
+K˜Ø]Ú
+
+
+OO–×JJJK›ØœÏV×NÙ›ÜŠ]OLÚOÚ[™Ë›[™İÚJÊÊ^ØÛÛœİÚ[™ZÚ[™ÖÚWK™X\˜OJØ][ÙÜÖÚW_×JK›X\
+İ][ÛOŠË‹‹œİ][Û‹\İ[˜ÙN™\İ[˜ÙJ]Û‹İ][Û‹›]İ][Û‹›ÛŠ_JJK™š[\Šİ][ÛOœİ][Û‹™\İ[˜ÙOSX]›Z[Š˜Y]\ÒÛKÍJJŒL
+KœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJÚ[™OOIİ\˜˜[—İ[\\˜]\™IÏÌÎ
+NÙ›ÜŠÛÛœİİ][ÛˆÙˆ™X\˜JZ›ØœËœ\Ú
+ÙÙÔ›ÙXİ
+İ][Û‹Ú[™]ÛŠJ_XÛÛœİÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+›ØœÊKY\™ÙY[Y\™ÙQÙÙÔ›ÙXİÊÙ]Y™›]X\
+™\İ[Oœ™\İ[œİ]\ÏOOIÙ[š[Y	É‰œ™\İ[˜[YOÖÜ™\İ[˜[YWN–×JJNÜ™]\›ˆY\™ÙY›X\
+›İÏO›Ù™šXÚX[ØœÙ\˜][Û”›İÊË‹‹œ›İËXÓX™[‰ÑÑÑÈ0­È˜]]™HLSZ[][‹P™[Ø˜XÚ[™ÉßK	ÑÑÑÈLSZ[][‰ÊJKœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJMJ_B›]ÙŞ[›ÜXĞØ][ÙĞØXÚO^Ù^\™\ÎŒİ][ÛœÎ–×_NÂ˜\Ş[˜È[˜İ[ÛˆÙŞ[›ÜXĞØ][ÙÊ
+^ÚYŠÙŞ[›ÜXĞØ][ÙĞØXÚK™^\™\Ï‘]K››İÊ
+I‰™ÙŞ[›ÜXĞØ][ÙĞØXÚKœİ][ÛœË›[™İ
+\™]\›ˆÙŞ[›ÜXĞØ][ÙĞØXÚKœİ][ÛœÎØÛÛœİ^X]ØZ]™]Ú^
+ÑÔÖS“ÔP×ÔÕUSÓ“TÕÉĞXØÙ\	Î‰İ^ØÜİ‹^ÜZ[‹
+‹Ê‰ßJK[™\Ï]^œÜ]
+××‹ÊK™š[\Š›ÛÛX[ŠKXY\œÏXÜİÙ[Ê[™\ËœÚY
+
+_	ÉÊK›X\
+˜[YOO˜[YKœ™\XÙJ×ˆËË	ÉÊKš[J
+JKİ][ÛœÏ[[™\Ë›X\
+[™OOØÛÛœİ›İÏXÜİ“Øš™Xİ
+XY\œËÜİÙ[Ê[™JJK][ØØ[S[X™\Š›İË‘Ù[Ù×Ğœ™Z]JKÛ[ØØ[S[X™\Š›İË‘Ù[Ù×ÓY[™ÙJKYTİš[™Ê›İË’Ù[›[™ß	ÉÊKš[J
+NÜ™]\›ˆY	‰›]OO][™Yš[™Y	‰›ÛˆOO][™Yš[™YŞÚY˜[YN”İš[™Ê›İË”İ][ÛœÛ˜[Y_Ñ	ÚYX
+K]Û‹[]˜][Û›ØØ[S[X™\Š›İË”İ][ÛœÚÙZJ_N›[JK™š[\Š›ÛÛX[ŠNÙÙŞ[›ÜXĞØ][ÙĞØXÚO^Ù^\™\Î‘]K››İÊ
+JÍŠŒÍŒİ][ÛœßNÜ™]\›ˆİ][ÛœßB™[˜İ[ÛˆÙÚPÛİYÛİ™\Š˜[YK[š]IÉÊ^ØÛÛœİ˜]Ï[ØØ[S[X™\Š˜[YJNÚYŠ˜]ÏOO][™Yš[™Y
+\™]\›ˆ[™Yš[™YØÛÛœİ›Ü›X[^™YTİš[™Ê[š]	ÉÊKÓİÙ\Ø\ÙJ
+KØİ\ÏKÌWÊ—×ÊXÚ[Úİ_ØİKË\İ
+›Ü›X[^™Y
+_˜]ÏL	‰œ˜]ÏNNÚYŠØİ\Ê^ÚYŠ˜]ÏOONJ\™]\›ˆ[™Yš[™YÚYŠ˜]ÏL	‰œ˜]ÏN
+\™]\›ˆ˜]ÊŒL‹_\™]\›ˆ˜]ÏL	‰œ˜]ÏLLÜ˜]Î[™Yš[™YB™[˜İ[ÛˆÙÚPÛİYØœÙ\˜][ÛŠÛİYÛİ™\Š^ÚYŠS[X™\‹š\Ñš[š]JÛİYÛİ™\ŠJ\™]\›ˆ[™Yš[™YÜ™]\›ˆ[X™\ŠÛİYÛİ™\ŠOM‹ŒOÉØÛX\‰Î‰Û^Y\œÉßB™[˜İ[ÛˆÙÚU[Y\İ[\
+]K[YJ^ØÛÛœİX]ÚTİš[™Ê]_	ÉÊK›X]Ú
+×ŠÌŸJWŠÌŸJWŠÌ‹JIÊKÛØÚÏTİš[™Ê[Y_	ÉÊK›X]Ú
+×ŠÌKŸJNŠÌŸJIÊNÚYŠ[X]ÚXÛØÚÊ\™]\›ˆ[™Yš[™YÛ]YX\S[X™\ŠX]ÚÌ×JNÚYŠYX\L
+^YX\ŠÏ^YX\MÌÌNLŒŒÜ™]\›ˆ™]È]J]K•UÊYX\‹[X™\ŠX]ÚÌ—JKLK[X™\ŠX]ÚÌWJK[X™\ŠÛØÚÖÌWJK[X™\ŠÛØÚÖÌ—JJJKÒTÓÔİš[™Ê
+_B˜\Ş[˜È[˜İ[ÛˆÙÚSØœÙ\˜][ÛŠİ][Û‹\™Ù]]\™Ù]ÛŠ^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÑÑÔÒWÔ“ÓÕIÙ[˜ÛÙUT’PÛÛ\Û™[
+İ][Û‹šY
+_KP‘SĞ‹˜Üİ˜ÚXY\œÎĞXØÙ\‰İ^ØÜİ‹^ÜZ[‹
+‹Ê‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚULØXÚQ]™\][™ÎY__KL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÑÒH	Üİ][Û‹šYH	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ^X]ØZ]™\ÜÛœÙK^
+
+K[™\Ï]^œÜ]
+××‹ÊK™š[\Š›ÛÛX[ŠNÚYŠ[™\Ë›[™İ
+\™]\›ˆ[ØÛÛœİ\˜[Y]\œÏXÜİÙ[Ê[™\ÖÌJKœÛXÙJŠK[š]ÏXÜİÙ[Ê[™\ÖÌWJKœÛXÙJŠK[š]T\˜[Y]\SØš™Xİ™œ›ÛQ[šY\Ê\˜[Y]\œË›X\
+
+\˜[Y]\‹[™^
+OO–Ü\˜[Y]\‹[š]ÖÚ[™^_	É×JJK]RXY\œÏVÉÙ]IË	İ[YIË‹‹œ\˜[Y]\œ×K™XÛÜ™ÏV×NÙ›ÜŠÛÛœİ[™HÙˆ[™\ËœÛXÙJÊJ^ØÛÛœİ›İÏXÜİ“Øš™Xİ
+]RXY\œËÜİÙ[Ê[™JJK™\Ü[YOYÙÚU[Y\İ[\
+›İË™]K›İË[YJK[\[ØØ[S[X™\Š›İË™WØ[—İ[\\˜]\™WØ]Ì—ÛY]\—ØX›İ™WÙÜ›İ[™
+K\ØÚ\™\Ü[YOÑ]Kœ\œÙJ™\Ü[YJN“˜SÚYŠ\™\Ü[Y_[\OO][™Yš[™YS[X™\‹š\Ñš[š]J\ØÚ
+JXÛÛ[YNØÛÛœİYÙOQ]K››İÊ
+KY\ØÚÚYŠYÙO
+ŒÍŒYÙOMJŒ
+XÛÛ[YNÜ™XÛÜ™Ëœ\Ú
+Ü›İË™\Ü[YK\ØÚ[\J_XÛÛœİ]\İ\™XÛÜ™ËœÛÜ
+
+KŠOO˜‹™\ØÚXK™\ØÚ
+VÌNÚYŠ[]\İ
+\™]\›ˆ[ØÛÛœİÜ›İË™\Ü[YK[\O[]\İÛİY˜\ÙSO[ØØ[S[X™\Š›İËšZYÚÛÙ—Ø˜\ÙWÛÙ—ÛİÙ\İØÛİYØX›İ™WÜİ][ÛŠKš\ÚXš[]RÛO[ØØ[S[X™\Š›İËšÜš^›Û[İš\ÚXš[]JKÛİYÛİ™\YÙÚPÛİYÛİ™\Š›İË˜ÛİYØÛİ™\—İİ[[š]T\˜[Y]\‹˜ÛİYØÛİ™\—İİ[
+KÛİYØœÙ\˜][ÛYÙÚPÛİYØœÙ\˜][ÛŠÛİYÛİ™\ŠNÜ™]\›ˆÙ™šXÚX[ØœÙ\˜][Û”›İÊÜİ][Û’Yœİ][Û‹šY˜[YNœİ][Û‹›˜[YK]œİ][Û‹›]Ûœİ][Û‹›Û‹[]˜][Ûœİ][Û‹™[]˜][Û‹™\Ü[YK[\]Ü›ØØ[S[X™\Š›İË™]×ÜÚ[İ[\\˜]\™WØ]Ì—ÛY]\—ØX›İ™WÙÜ›İ[™
+K™[]]™R[ZY]N›ØØ[S[X™\Š›İËœ™[]]™WÚ[ZY]JK™\Üİ\™S\Û›ØØ[S[X™\Š›İËœ™\Üİ\™WÜ™YXÙYİ×ÛYX[—ÜÙXWÛ]™[
+KÚ[™\™Xİ[Û›ØØ[S[X™\Š›İÖÉÛYX[—İÚ[™Ù\™Xİ[Û—Ù\š[™×Û\İÌLZ[—Ø]ÌLÛY]\œ×ØX›İ™WÙÜ›İ[™	×JKÚ[™ÜYY›ØØ[S[X™\Š›İÖÉÛYX[—İÚ[™ÜÜYYÙ\š[™È\İÌLÛZ[—Ø]ÌLÛY]\œ×ØX›İ™WÙÜ›İ[™	×JKÚ[™İ\İ›ØØ[S[X™\Š›İË›X^[][WİÚ[™ÜÜYYÛ\İÚİ\ŠKš\ÚXš[]WÛNš\ÚXš[]RÛOOO][™Yš[™Yİ[™Yš[™Yš\ÚXš[]RÛJŒLÛİYÛİ™\‹ÛİYØœÙ\˜][Û‹ÛİY˜\ÙQ˜ÛİY˜\ÙSOOO][™Yš[™Yİ[™Yš[™Y˜ÛİY˜\ÙSJŒËŒ™XÚ\]][Û›ØØ[S[X™\Š›İËœ™XÚ\]][Û—Ø[[İ[Û\İÚİ\ŠK™XÚ\]][Û“Z[]\ÎŒ[\Ü˜[™\ÛÛ][Û“Z[]\ÎŒšY[[\Ü˜[™\ÛÛ][Û“Z[]\Îİ[\\˜]\™NŒ]ÔÚ[Œ[ZY]NŒ™\Üİ\™NŒÚ[™ÜYYŒLÚ[™\™Xİ[ÛŒLÚ[™İ\İŒš\ÚXš[]NŒÛİYÛİ™\ŒÛİY˜\ÙRŒ™XÚ\]][ÛŒK™\Ù[ÙX]\›ØØ[S[X™\Š›İËœ™\Ù[İÙX]\ŠK\İ[˜ÙN™\İ[˜ÙJ\™Ù]]\™Ù]Û‹İ][Û‹›]İ][Û‹›ÛŠKÚ[™[š]‰ÚÛZ	ËÚ]PÛ\ÜÎœİ][Û”Ú]PÛ\ÜÊİ][Û‹›˜[YK	ÑÑÖS“Ô	Ê_K	ÑÑÖS“ÔÈÜ[‘]HÒIÊ_B˜\Ş[˜È[˜İ[ÛˆÙŞ[›Ü›İÜÊ]Û‹˜Y]\ÒÛJ^ÚYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠJ\™]\›–×NØÛÛœİØ][ÙÏX]ØZ]ÙŞ[›ÜXĞØ][ÙÊ
+K™X\˜OXØ][ÙË›X\
+İ][ÛOŠË‹‹œİ][Û‹\İ[˜ÙN™\İ[˜ÙJ]Û‹İ][Û‹›]İ][Û‹›ÛŠ_JJK™š[\Šİ][ÛOœİ][Û‹™\İ[˜ÙOSX]›Z[ŠN˜Y]\ÒÛJJŒL
+KœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJL
+KÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+™X\˜K›X\
+İ][ÛO™ÙÚSØœÙ\˜][ÛŠİ][Û‹]ÛŠJJNÜ™]\›ˆÙ]Y™›]X\
+™\İ[Oœ™\İ[œİ]\ÏOOIÙ[š[Y	É‰œ™\İ[˜[YOÖÜ™\İ[˜[YWN–×JKœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJ_B™[˜İ[ÛˆY\\‘[™Ú[
+[‹Ù^J^İ^ØÛÛœİ\›[™]ÈT“
+İš[™Ê[Ë–ÚÙ^W_	ÉÊJNÜ™]\›ˆ\›œ›İØÛÛOOIÚÎ‰Ïİ\››[XØ]ÚÜ™]\›ˆ[_B˜ÛÛœİQUSÔÕÒTÔ×ÔÓS—ÔÕP×ĞÓÓPÕSÓIØÚ›Y][ÜØÚÙZ^‹›ÙÙ\Û[‰ÎÂ˜ÛÛœİÓ“RWÌLRS—ÑQ—ĞÓÓPÕSÓIÌL[Z[]KZ[‹\Ú]K[Y][Ü›ÛÙÚXØ[[ØœÙ\˜][ÛœÉÎÂ˜ÛÛœİÓ“RWÌLRS—ÑQ—ĞÓÓPÕSÓ—ÕT“IÚÎ‹ËØ\K™]\]›Ü›KšÛ›ZK››ÙY‹İŒKØÛÛXİ[ÛœËÌL[Z[]KZ[‹\Ú]K[Y][Ü›ÛÙÚXØ[[ØœÙ\˜][ÛœÉÎÂ˜ÛÛœİÓ“RWÓQĞPÖWÓĞ”ÑT•USÓ—ÔUT“”ÏVËĞXİY[LLZ[™]RÓ“R\İ][ÛœËÚKÌLÛZ[]WÛØœÙ\˜][Û—İ˜\šXX›\ËÚK×ÙY—İŒWØÛÛXİ[Ûœ×ÛØœÙ\˜][ÛœÊÎ–ËÏÈ×_	
+KÚWNÂ™[˜İ[ÛˆÙ™šXÚX[Y\\”™\ÛÛ][ÛŠ›İšY\‹Ûİ\˜ÙU\J^ÚYŠÛİ\˜ÙU\OOOIÜ›ØY]ÙX]\‰Ê\™]\›ˆMNÚYŠÓY][ÔİÚ\ÜßÓ“RHL[Z[‹ÚK\İ
+›İšY\ŠJ\™]\›ˆLÜ™]\›ˆ[™Yš[™YB™[˜İ[ÛˆÙ™šXÚX[Y\\“X^YÙSZ[]\Ê›İšY\‹Ûİ\˜ÙU\J^ÚYŠÛİ\˜ÙU\OOOIÜ›ØY]ÙX]\‰Ê\™]\›ˆLÚYŠÓY][ÔİÚ\ÜßÓ“RHL[Z[‹ÚK\İ
+›İšY\ŠJ\™]\›ˆLÚYŠÓpê]0ê[ËQœ˜[˜ÙKÚK\İ
+›İšY\ŠJ\™]\›ˆLŒÚYŠÕÓSÈÒTÌ‹ÚK\İ
+›İšY\ŠJ\™]\›ˆNÜ™]\›ˆNB™[˜İ[ÛˆÙ™šXÚX[Y\\•[YJ][J^Ü™]\›ˆØY™Q]J][OËœ™\Ü[YOÏÚ][OË›ØœÙ\™Y]ÏÚ][OË›ØœÙ\™YØ]ÏÚ][OË[Y\İ[\ÏÚ][OË[YOÏÚ][OË˜[Y[YOÏÚ][OË˜[Yİ[YJ_B™[˜İ[ÛˆÙ™šXÚX[Y\\‘œ™\Ú
+][K›İšY\‹Ûİ\˜ÙU\J^ØÛÛœİØœÙ\™Y][Ù™šXÚX[Y\\•[YJ][JNÚYŠ[ØœÙ\™Y]
+\™]\›ˆ˜[ÙNØÛÛœİ\ØÚQ]Kœ\œÙJØœÙ\™Y]
+KYÙSZ[]\ÏJ]K››İÊ
+KY\ØÚ
+KÍŒX^YÙO[Ù™šXÚX[Y\\“X^YÙSZ[]\Ê›İšY\‹Ûİ\˜ÙU\JNÜ™]\›ˆ[X™\‹š\Ñš[š]J\ØÚ
+I‰˜YÙSZ[]\ÏKLŒ	‰˜YÙSZ[]\Ï[X^YÙ_B™[˜İ[Ûˆ\SÙ™šXÚX[Y\\ÛÛ˜Xİ
+[™Ú[›İšY\Š^ØÛÛœİ™YY[™Ú[Ôİš[™Ê
+NÚYŠÓY][ÔİÚ\ÜËÚK\İ
+›İšY\ŠJ^Ù[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÜÛİ\˜ÙIË	ÜİÚ\ÜÛY]™]\İXÉÊNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØÛÛXİ[Û‰ËQUSÔÕÒTÔ×ÔÓS—ÔÕP×ĞÓÓPÕSÓŠNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ü™\ÛÛ][Û—ÛZ[]\ÉË	ÌL	Ê_ZYŠÒÓ“RHL[Z[‹ÚK\İ
+›İšY\ŠJ^ÚYŠÓ“RWÓQĞPÖWÓĞ”ÑT•USÓ—ÔUT“”ËœÛÛYJ]\›Oœ]\›‹\İ
+™YŠJJ]›İÈ™]È\œ›ÜŠ	ÒÓ“RKP™[Ø˜XÚ[™ÜØY\\ˆ™\ÙZ\İ]YˆZ[™Hİ[Ù[YİHLSZ[][‹T]Y[IÊNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÜÛİ\˜ÙIË	ÚÛ›ZKYY‰ÊNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØÛÛXİ[Û‰ËÓ“RWÌLRS—ÑQ—ĞÓÓPÕSÓŠNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØÛÛXİ[Û—İ\›	ËÓ“RWÌLRS—ÑQ—ĞÓÓPÕSÓ—ÕT“
+NÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ü™\ÛÛ][Û—ÛZ[]\ÉË	ÌL	Ê_\™]\›ˆ[™Ú[B˜\Ş[˜È[˜İ[ÛˆÙ™šXÚX[Ú[Y\\”›İÜÊ[‹Ù^K›İšY\‹]Û‹˜Y]\ÒÛKÛİ[KÛİ\˜ÙU\OIÛÙ™šXÚX[\İ\™˜XÙIÊ^ØÛÛœİ˜]Ñ[™Ú[XY\\‘[™Ú[
+[‹Ù^JNÚYŠ\˜]Ñ[™Ú[
+\™]\›–×NØÛÛœİ[™Ú[X\SÙ™šXÚX[Y\\ÛÛ˜Xİ
+˜]Ñ[™Ú[›İšY\ŠNØÛÛœİÚ\Ì\›İšY\OOIÕÓSÈÒTÌˆ›Ü›X[^™YØœÙ\˜][ÛœÉÎÚYŠÚ\ÌŠY[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÜØÚ[XIË	ÛZY[Ù™šXÚX[[ØœÙ\˜][Û‹]ŒIÊNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Û]	Ëİš[™Ê]
+JNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰Ëİš[™ÊÛŠJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	Ü˜Y]\×ÚÛIËİš[™Ê˜Y]\ÒÛJJNÙ[™Ú[œÙX\˜Ú\˜[\ËœÙ]
+	ØÛİ[IËÛİ[JNØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J[™Ú[Ôİš[™Ê
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX_KLŒ
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ	Ü›İšY\ŸHY\\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+NÚYŠÚ\Ì‰‰œ˜]É‰ˆP\œ˜^Kš\Ğ\œ˜^J˜]ÊI‰œ˜]ËœØÚ[XHOO][™Yš[™Y	‰œ˜]ËœØÚ[XHOOIÛZY[Ù™šXÚX[[ØœÙ\˜][Û‹]ŒIÊ]›İÈ™]È\œ›ÜŠ	ÕÒTÌˆ›Ü›X[^™\ˆ[˜™ZØ[›\ÈRQSØœÙ\˜][Û‹TØÚ[XIÊNØÛÛœİ›İÜÏP\œ˜^Kš\Ğ\œ˜^J˜]ÊOÜ˜]Î\œ˜^Kš\Ğ\œ˜^J˜]ÏË™]JOÜ˜]Ë™]N–×KY˜][™\ÛÛ][Û[Ù™šXÚX[Y\\”™\ÛÛ][ÛŠ›İšY\‹Ûİ\˜ÙU\JNÜ™]\›ˆ›İÜË›X\
+][OOØÛÛœİÛ][[X™\Š][OË›]ÏÚ][OË›]]YJKÛÛ[[X™\Š][OË›ÛÏÚ][OË›Û™Ú]YJNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y[Ù™šXÚX[Y\\‘œ™\Ú
+][K›İšY\‹Ûİ\˜ÙU\JJ\™]\›ˆ[ØÛÛœİ\İ[[X™\Š][OË™\İ[˜ÙJOÏÙ\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœ˜Y]\ÒÛJŒL
+\™]\›ˆ[ØÛÛœİ™\Ü[YO[Ù™šXÚX[Y\\•[YJ][JNÜ™]\›ˆÙ™šXÚX[ØœÙ\˜][Û”›İÊË‹‹š][K™\Ü[YK]œÛ]ÛœÛÛ‹\İ[˜ÙN™\İ[\Ü˜[™\ÛÛ][Û“Z[]\Î›[X™\Š][OË[\Ü˜[™\ÛÛ][Û“Z[]\ÏÏÚ][OË[\Ü˜[Ü™\ÛÛ][Û—ÛZ[]\ÊOÏÙY˜][™\ÛÛ][ÛŸK›İšY\‹Ûİ\˜ÙU\J_JK™š[\Š›ÛÛX[Š_B˜ÛÛœİÓRWÔTSQUT”ÏVÖÉÍIË	İ[\	Ë	İ[\\˜]\™IËWKÉÍÉË	Ü™[]]™R[ZY]IË	Ú[ZY]IËWKÉÍ	Ë	Ü™\Üİ\™S\Û	Ë	Ü™\Üİ\™IËWKÉÍÉË	İÚ[™ÜYY	Ë	İÚ[™ÜYY	ËWKÉÍ	Ë	İÚ[™\™Xİ[Û‰Ë	İÚ[™\™Xİ[Û‰ËWKÉÍLIË	İš\ÚXš[]WÛIË	İš\ÚXš[]IËWKÉÍL	Ë	ØÛİYÛİ™\‰Ë	ØÛİYÛİ™\‰ËWKÉÌÎIË	Ù]Ü	Ë	Ù]ÔÚ[	ËŒKÉÍÉË	Ü™XÚ\]][Û‰Ë	Ü™XÚ\]][Û‰ËŒKÉÌŒIË	İÚ[™İ\İ	Ë	İÚ[™İ\İ	ËŒWNÂ™[˜İ[ÛˆÛZTİ][Û”›İÜÊ^[ØY
+^Ü™]\›ˆ\œ˜^Kš\Ğ\œ˜^J^[ØYËœİ][ÛŠOÜ^[ØYœİ][Û\œ˜^Kš\Ğ\œ˜^J^[ØYËœİ][ÛœÊOÜ^[ØYœİ][ÛœÎ\œ˜^Kš\Ğ\œ˜^J^[ØY
+OÜ^[ØY–×_B™[˜İ[ÛˆÛZS]\İ˜[YJİ][ÛŠ^ØÛÛœİ˜[Y\ÏP\œ˜^Kš\Ğ\œ˜^Jİ][ÛË˜[YJOÜİ][Û‹˜[YN\œ˜^Kš\Ğ\œ˜^Jİ][ÛË˜[Y\ÊOÜİ][Û‹˜[Y\Î–×NÜ™]\›ˆ˜[Y\Ë›X\
+][OOŠİ˜[YN›ØØ[S[X™\Š][OË˜[YOÏÚ][JK[YNœØY™Q]J][OË™]OÏÚ][OË[YOÏÚ][OË[Y\İ[\
+K]X[]N”İš[™Ê][OËœ]X[]_	ÉÊ_JJK™š[\Š][OOš][K˜[YHOO][™Yš[™Y
+KœÛÜ
+
+KŠOO‘]Kœ\œÙJ‹[Y_	ÉÊKQ]Kœ\œÙJK[Y_	ÉÊJVÌ_B˜\Ş[˜È[˜İ[ÛˆÛZT›İÜÊ]Û‹˜Y]\ÒÛJ^ØÛÛœİÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+ÓRWÔTSQUT”Ë›X\
+\Ş[˜ÊÚYÙ^KšY[™\ÛÛ][Û“Z[]\×JOOØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÔÓRWÓQUĞ”×Ô“ÓÕIÚYKÜİ][Û‹\Ù]Ø[Ü\š[ÙÛ]\İZİ\‹Ù]KšœÛÛ˜ÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸXKÙØØXÚUŒØXÚQ]™\][™ÎY__KL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÓRH	ÚYH	Ü™\ÜÛœÙKœİ]\ßX
+NÜ™]\›ÚÙ^KšY[™\ÛÛ][Û“Z[]\Ë^[ØY˜]ØZ]™\ÜÛœÙKšœÛÛŠ
+__JJKX\[™]ÈX\
+
+NÙ›ÜŠÛÛœİ™\İ[ÙˆÙ]Y
+^ÚYŠ™\İ[œİ]\ÈOOIÙ[š[Y	ÊXÛÛ[YNØÛÛœİÚÙ^KšY[™\ÛÛ][Û“Z[]\Ë^[ØYO\™\İ[˜[YNÙ›ÜŠÛÛœİİ][ÛˆÙˆÛZTİ][Û”›İÜÊ^[ØY
+J^ØÛÛœİÛ][[X™\Šİ][ÛË›]]YOÏÜİ][ÛË›]
+KÛÛ[[X™\Šİ][ÛË›Û™Ú]YOÏÜİ][ÛË›ÛŠNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+XÛÛ[YNØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İ“X]›Z[ŠLŒ˜Y]\ÒÛJJŒL
+XÛÛ[YNØÛÛœİ]\İ\ÛZS]\İ˜[YJİ][ÛŠNÚYŠ[]\İ
+XÛÛ[YNØÛÛœİYTİš[™Êİ][ÛËšÙ^OÏÜİ][ÛËšYÏÜİ][ÛËœİ][Û’YÏØ	ÜÛ]N‰ÜÛÛŸX
+K›İÏ[X\™Ù]
+Y
+OÏŞÜİ][Û’YšY˜[YN”İš[™Êİ][ÛË›˜[YOÏÚY
+K]œÛ]ÛœÛÛ‹[]˜][Û›[X™\Šİ][ÛËšZYÚÏÜİ][ÛË™[]˜][ÛŠK\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	Ë™\Ü[YN›]\İ[YKXÓX™[‰ÔÓRH]X[]KXÛÛ›ÛYØœÙ\˜][Û‰ËšY[[\Ü˜[™\ÛÛ][Û“Z[]\ÎßKšY[ØœÙ\™Y]ß_NÜ›İÖÚÙ^WOJÙ^OOOIİÚ[™ÜYY	ßÙ^OOOIİÚ[™İ\İ	ÊOÛ]\İ˜[YJŒË›]\İ˜[YNÜ›İË™šY[[\Ü˜[™\ÛÛ][Û“Z[]\ÖÙšY[O\™\ÛÛ][Û“Z[]\ÎÚYŠ]\İ[YJ\›İË™šY[ØœÙ\™Y]ÙšY[O[]\İ[YNÚYŠÙ^OOOIÜ™XÚ\]][Û‰Ê\›İËœ™XÚ\]][Û“Z[]\ÏMŒÚYŠ]\İ[YI‰Š\›İËœ™\Ü[Y_]Kœ\œÙJ]\İ[YJO‘]Kœ\œÙJ›İËœ™\Ü[YJJJ\›İËœ™\Ü[YO[]\İ[YNÚYŠ]\İœ]X[]J\›İËœXÓX™[XÓRHPÈ	Û]\İœ]X[]_XÛX\œÙ]
+Y›İÊ__\™]\›–Ë‹‹›X\˜[Y\Ê
+WK™š[\Š›İÏO›[X™\Š›İË[\
+HOO][™Yš[™Y[X™\Š›İËÚ[™ÜYY
+HOO][™Yš[™Y[X™\Š›İËœ™\Üİ\™S\Û
+HOO][™Yš[™Y
+KœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJN
+K›X\
+›İÏO›Ù™šXÚX[ØœÙ\˜][Û”›İÊ›İË	ÔÓRHY]ØœÉÊJ_B‚™[˜İ[ÛˆÜÓYX\İ\™[Y[
+˜[YKØØ[OLJ^ØÛÛœİ˜]Ï[[X™\Š˜[YOË˜[YOÏİ˜[YJNÜ™]\›ˆ˜]ÏOO][™Yš[™Yİ[™Yš[™Yœ˜]ÊœØØ[_B˜\Ş[˜È[˜İ[ÛˆÜÔ›İÜÊ]Û‹˜Y]\ÒÛJ^ØÛÛœİÚ[X]ØZ]™]ÚœÛÛŠ	Ó•Ô×ÔÒS•ßIÛ]Ñš^Y
+
+_K	ÛÛ‹Ñš^Y
+
+_XÉĞXØÙ\	Î‰Ø\XØ][Û‹ÙÙ[ÊÚœÛÛ‰ßJKİ][ÛœÕ\›\Ú[Ëœ›Ü\Y\ÏË›ØœÙ\˜][Û”İ][ÛœÎÚYŠ\İ][ÛœÕ\›
+\™]\›–×NØÛÛœİİ][ÛœÔ^[ØYX]ØZ]™]ÚœÛÛŠİ][ÛœÕ\›ÉĞXØÙ\	Î‰Ø\XØ][Û‹ÙÙ[ÊÚœÛÛ‰ßJKİ][ÛœÏJ\œ˜^Kš\Ğ\œ˜^Jİ][ÛœÔ^[ØYË™™X]\™\ÊOÜİ][ÛœÔ^[ØY™™X]\™\Î–×JK›X\
+™X]\™OOØÛÛœİÛÛÜ™[˜]\ÏY™X]\™OË™Ù[ÛY]OË˜ÛÛÜ™[˜]\ÏÏÖ×KÛÛ[[X™\ŠÛÛÜ™[˜]\ÖÌJKÛ][[X™\ŠÛÛÜ™[˜]\ÖÌWJNÜ™]\›ˆÛ]OO][™Yš[™YÛÛOO][™Yš[™YÛ[ÚY”İš[™Ê™X]\™OËœ›Ü\Y\ÏËœİ][Û’Y[YšY\ÏÙ™X]\™OËšYËœÜ]
+	ËÉÊK˜]
+LJOÏÉÉÊK˜[YN”İš[™Ê™X]\™OËœ›Ü\Y\ÏË›˜[YOÏÙ™X]\™OËœ›Ü\Y\ÏËœİ][Û’Y[YšY\ÏÉÓ•ÔÈİ][Û‰ÊK]œÛ]ÛœÛÛ‹[]˜][Û›ÜÓYX\İ\™[Y[
+™X]\™OËœ›Ü\Y\ÏË™[]˜][ÛŠK\İ[˜ÙN™\İ[˜ÙJ]Û‹Û]ÛÛŠ__JK™š[\Šİ][ÛOœİ][Û‰‰œİ][Û‹šY	‰œİ][Û‹™\İ[˜ÙO\˜Y]\ÒÛJŒL
+KœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJÊKÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+İ][ÛœË›X\
+\Ş[˜Èİ][ÛOØÛÛœİ^[ØYX]ØZ]™]ÚœÛÛŠÎ‹ËØ\KÙX]\‹™Ûİ‹Üİ][ÛœËÉÙ[˜ÛÙUT’PÛÛ\Û™[
+İ][Û‹šY
+_KÛØœÙ\˜][ÛœËÛ]\İÉĞXØÙ\	Î‰Ø\XØ][Û‹ÙÙ[ÊÚœÛÛ‰ßJK\^[ØYËœ›Ü\Y\ÏÏŞßKÛİYÏP\œ˜^Kš\Ğ\œ˜^JË˜ÛİY^Y\œÊOÜ˜ÛİY^Y\œÎ[™Yš[™YÜ™]\›ˆÙ™šXÚX[ØœÙ\˜][Û”›İÊÜİ][Û’Yœİ][Û‹šY˜[YNœİ][Û‹›˜[YK]œİ][Û‹›]Ûœİ][Û‹›Û‹[]˜][Ûœİ][Û‹™[]˜][Û‹™\Ü[YNœØY™Q]JË[Y\İ[\
+K[\›ÜÓYX\İ\™[Y[
+Ë[\\˜]\™JK]Ü›ÜÓYX\İ\™[Y[
+Ë™]ÜÚ[
+K™[]]™R[ZY]N›ÜÓYX\İ\™[Y[
+Ëœ™[]]™R[ZY]JK™\Üİ\™S\ÛŠÜÓYX\İ\™[Y[
+ËœÙXS]™[™\Üİ\™JOÏÛÜÓYX\İ\™[Y[
+Ë˜˜\›ÛY]šXÔ™\Üİ\™JJKÌLÚ[™\™Xİ[Û›ÜÓYX\İ\™[Y[
+ËÚ[™\™Xİ[ÛŠKÚ[™ÜYY›ÜÓYX\İ\™[Y[
+ËÚ[™ÜYYËŠKÚ[™İ\İ›ÜÓYX\İ\™[Y[
+ËÚ[™İ\İËŠKš\ÚXš[]WÛN›ÜÓYX\İ\™[Y[
+Ëš\ÚXš[]JK™XÚ\]][Û›ÜÓYX\İ\™[Y[
+Ëœ™XÚ\]][Û“\İİ\‹L
+K™XÚ\]][Û“Z[]\ÎŒÛİYË\İ[˜ÙNœİ][Û‹™\İ[˜ÙKÚ[™[š]‰ÚÛZ	ËÚ]PÛ\ÜÎœİ][Û”Ú]PÛ\ÜÊİ][Û‹›˜[YK	Ó•ÔÉÊ_K	ÕTÈ˜][Û˜[ÙX]\ˆÙ\šXÙHÈPQTÉÊ_JJNÜ™]\›ˆÙ]Y™›]X\
+™\İ[Oœ™\İ[œİ]\ÏOOIÙ[š[Y	É‰œ™\İ[˜[YOÖÜ™\İ[˜[YWN–×J_B™[˜İ[Ûˆ›Ü\S[X™\Š›Ü\Y\Ë‹‹šÙ^\Ê^Ù›ÜŠÛÛœİÙ^HÙˆÙ^\Ê^ØÛÛœİ˜[YOY™X]\™T›Ü
+›Ü\Y\ËÙ^JNØÛÛœİ\œÙY[ØØ[S[X™\Š˜[YJNÚYŠ\œÙYOO][™Yš[™Y
+\™]\›ˆ\œÙY\™]\›ˆ[™Yš[™YB˜\Ş[˜È[˜İ[ÛˆXØØÔ›İÜÊ]Û‹˜Y]\ÒÛJ^ØÛÛœİİÙ\İÛİ]X\İ›ÜOX˜›Ş\›İ[™
+]Û‹X]›Z[ŠN˜Y]\ÒÛJJK\›[™]ÈT“
+PĞĞ×ÑÑSÓQU
+Nİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ø˜›Ş	ËİÙ\İÛİ]X\İ›ÜK›X\
+˜[YOO˜[YKÑš^Y
+JJKš›Ú[Š	Ë	ÊJNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Û[Z]	Ë	Î	ÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ù‰Ë	ÚœÛÛ‰ÊNØÛÛœİ^[ØYX]ØZ]™]ÚœÛÛŠ\›Ôİš[™Ê
+KÉĞXØÙ\	Î‰Ø\XØ][Û‹ÙÙ[ÊÚœÛÛ‰ßJK™X]\™\ÏP\œ˜^Kš\Ğ\œ˜^J^[ØYË™™X]\™\ÊOÜ^[ØY™™X]\™\Î–×NÜ™]\›ˆ™X]\™\Ë›X\
+™X]\™OOØÛÛœİY™X]\™OËœ›Ü\Y\ÏÏŞßKÛÛÜ™[˜]\ÏY™X]\™OË™Ù[ÛY]OË˜ÛÛÜ™[˜]\ÏÏÖ×KÛÛ[[X™\ŠÛÛÜ™[˜]\ÖÌOÏÙ™X]\™T›Ü
+	ÛÛ™Ú]YIË	ÛÛ‰ÊJKÛ][[X™\ŠÛÛÜ™[˜]\ÖÌWOÏÙ™X]\™T›Ü
+	Û]]YIË	Û]	ÊJNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœ˜Y]\ÒÛJŒL
+\™]\›ˆ[ØÛÛœİ[\\›Ü\S[X™\Š	ØZ\—İ[\	Ë	ØZ\—İ[\\˜]\™IË	İ[\\˜]\™IË	İ[\	Ë	İÉÊKÚ[™\Ï\›Ü\S[X™\Š	Ø]™×İÛ™ÜÜÌLWÜİL]ÉË	İÚ[™ÜÜYY	Ë	İÛ™ÜÜ	Ë	İÜÉÊKİ\İ\Ï\›Ü\S[X™\Š	ÛX^İÛ™ÜÜÌLWÜİZ‰Ë	İÚ[™Ùİ\İ	Ë	Ùİ\İ	Ë	İÜÙÉÊNÚYŠ[\OO][™Yš[™Y	‰Ú[™\ÏOO][™Yš[™Y
+\™]\›ˆ[Ü™]\›ˆÙ™šXÚX[ØœÙ\˜][Û”›İÊÜİ][Û’Y”İš[™Ê™X]\™T›Ü
+	Üİ—ÚY	Ë	Üİ][Û—ÚY	Ë	İÛ[×ÚY	Ë	ØÛ[X]WÚY	Ê_™X]\™KšY	ÜÛ]N‰ÜÛÛŸX
+K˜[YN”İš[™Ê™X]\™T›Ü
+	Üİ—Û˜[IË	Üİ][Û—Û˜[YIË	Û˜[YIÊ_	ÑPĞĞÈÕÓĞ‰ÊK]œÛ]ÛœÛÛ‹[]˜][Ûœ›Ü\S[X™\Š	Ù[]˜][Û‰Ë	Üİ—Ù[]‰Ë	Ù[]‰ÊK™\Ü[YNœØY™Q]J™X]\™T›Ü
+	Ù]WİIË	ÛØœÙ\˜][Û—İ[YIË	İ[Y\İ[\	Ë	İ˜[Yİ[YIË	Ù]][YIÊJK[\]Üœ›Ü\S[X™\Š	Ù]×ÜÚ[	Ë	Ù]ÜÚ[	Ë	İ	ÊK™[]]™R[ZY]Nœ›Ü\S[X™\Š	Ü™[Ú[IË	Ü™[]]™WÚ[ZY]IË	Üš	ÊK™\Üİ\™S\Ûœ›Ü\S[X™\Š	Û\Û	Ë	ÜÙXWÛ]™[Ü™\Üİ\™IË	Ü™\×Û\Û	Ë	Ü™\Üİ\™IÊKÚ[™\™Xİ[Ûœ›Ü\S[X™\Š	Ø]™×İÛ™Ù\—ÌLWÜİL]ÉË	İÚ[™Ù\™Xİ[Û‰Ë	İÛ™Ù\‰Ë	İÙ	ÊKÚ[™ÜYYÚ[™\ÏOO][™Yš[™Yİ[™Yš[™YÚ[™\ÊŒË‹Ú[™İ\İ™İ\İ\ÏOO][™Yš[™Yİ[™Yš[™Y™İ\İ\ÊŒË‹š\ÚXš[]WÛNŠ
+
+OOØÛÛœİÛO\›Ü\S[X™\Š	İš\ÚXš[]IË	İš\ÉË	ÚÜš^›Û[İš\ÚXš[]IÊNÜ™]\›ˆÛOOO][™Yš[™Yİ[™Yš[™YšÛOŒLÚÛNšÛJŒLJJ
+K™XÚ\]][Ûœ›Ü\S[X™\Š	ÜÜ—Ø[]ÜİZ‰Ë	Ü™XÚ\]][Û—ÌZ	Ë	Ü™XÚ\]][Û‰Ë	Ü˜Z[™˜[	ÊK™XÚ\]][Û“Z[]\ÎŒ\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	ßK	Ñ[š\›Û›Y[[™Û[X]HÚ[™ÙHØ[˜YHÈÕÓĞ‹QÙ[ÓY]	Ê_JK™š[\Š›ÛÛX[ŠKœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJŒ
+_B™[˜İ[ÛˆY[Y]ÛÛÜ™[˜]J˜[YJ^ØÛÛœİ˜]ÏTİš[™Ê˜[YOÏÉÉÊKš[J
+KÕ\\Ø\ÙJ
+NØÛÛœİ\™Xİ[ØØ[S[X™\Š˜]ÊNÚYŠ\™XİOO][™Yš[™Y	‰‹×‹O×
+ÊÎ–Ë‹W
+ÊOÉË\İ
+˜]ÊJ\™]\›ˆ\™XİØÛÛœİX]Ú\˜]Ë›X]Ú
+×ŠÌ‹ßJJÌŸJJÌŸJOÊÓ”ÑU×JIÊNÚYŠ[X]Ú
+\™]\›ˆ[™Yš[™YØÛÛœİYÜ™Y\ÏS[X™\ŠX]ÚÌWJKZ[]\ÏS[X™\ŠX]ÚÌ—JKÙXÛÛ™ÏS[X™\ŠX]ÚÌ×_
+KÚYÛKÖÔÕ×KË\İ
+X]ÚÍJOËLNŒNÜ™]\›ˆÚYÛŠŠYÜ™Y\ÊÛZ[]\ËÍŒ
+ÜÙXÛÛ™ËÌÍŒ
+_B˜\Ş[˜È[˜İ[ÛˆY[Y]›İÜÊ]Û‹˜Y]\ÒÛK[Š^ØÛÛœİÙ^OTİš[™Ê[Ë“RQĞQSQUĞTWÒÑV_[ËQSQUĞTWÒÑV_	ÉÊKš[J
+NÚYŠZÙ^J\™]\›–×NØÛÛœİ™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J	ÚÎ‹ËÛÜ[™]K˜Y[Y]™\ËÛÜ[™]KØ\KÛØœÙ\˜XÚ[Û‹ØÛÛ™[˜Ú[Û˜[İÙ\ÉËÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë\WÚÙ^NšÙ^K	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX_KL
+NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠQSQUÜ[‘]H	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİY]OX]ØZ]™\ÜÛœÙKšœÛÛŠ
+K]U\›Tİš[™ÊY]OË™]Üß	ÉÊNÚYŠK×šÎ—×ËÚK\İ
+]U\›
+J]›İÈ™]È\œ›ÜŠ	ĞQSQUÜ[‘]HÚ™H][‹UT“	ÊNØÛÛœİ]T™\ÜÛœÙOX]ØZ]™]ÚÚ]XY[™J]U\›ÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰Ë	Õ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸX_KLŒ
+NÚYŠY]T™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠQSQU][ˆ	Ù]T™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]]T™\ÜÛœÙKšœÛÛŠ
+K][\ÏP\œ˜^Kš\Ğ\œ˜^J˜]ÊOÜ˜]Î–×NÜ™]\›ˆ][\Ë›X\
+][OOØÛÛœİÛ]XY[Y]ÛÛÜ™[˜]J][OË›]
+KÛÛXY[Y]ÛÛÜ™[˜]J][OË›ÛŠNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœ˜Y]\ÒÛJŒL
+\™]\›ˆ[ØÛÛœİ[\[ØØ[S[X™\Š][OËJKÚ[™[ØØ[S[X™\Š][OËŠKİ\İ[ØØ[S[X™\Š][OË›X^
+NÚYŠ[\OO][™Yš[™Y	‰Ú[™OO][™Yš[™Y
+\™]\›ˆ[Ü™]\›ˆÙ™šXÚX[ØœÙ\˜][Û”›İÊÜİ][Û’Y”İš[™Ê][OËšY[X_][OËš[™XØ]]›ß	ÜÛ]N‰ÜÛÛŸX
+K˜[YN”İš[™Ê][OËXš_][OË››ÛXœ™_][OËšY[X_	ĞQSQU	ÊK]œÛ]ÛœÛÛ‹[]˜][Û›ØØ[S[X™\Š][OË˜[
+K™\Ü[YNœØY™Q]J][OË™š[ÏÚ][OË™™XÚJK[\™[]]™R[ZY]N›ØØ[S[X™\Š][OËšŠK™\Üİ\™S\Û›ØØ[S[X™\Š][OËœ™\ÊKÚ[™\™Xİ[Û›ØØ[S[X™\Š][OË™ŠKÚ[™ÜYYÚ[™OO][™Yš[™Yİ[™Yš[™YÚ[™
+ŒË‹Ú[™İ\İ™İ\İOO][™Yš[™Yİ[™Yš[™Y™İ\İ
+ŒË‹™XÚ\]][Û›ØØ[S[X™\Š][OËœ™XÊK™XÚ\]][Û“Z[]\ÎŒ\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	ßK	ĞQSQUÜ[‘]IÊ_JK™š[\Š›ÛÛX[ŠKœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJŒ
+_B™[˜İ[Ûˆ›ZSY[X™\œÊ[
+^ØÛÛœİX]Ú\ÏVË‹‹”İš[™Ê[
+K›X]Ú[
+ÏÙœÎ›Y[X™\—–×—JŠ×××JÊOİÙœÎ›Y[X™\‹ÙÚJWNÜ™]\›ˆX]Ú\Ë›X\
+X]ÚO›X]ÚÌWJ_B˜\Ş[˜È[˜İ[Ûˆ›ZT›İÜÊ]Û‹˜Y]\ÒÛJ^ØÛÛœİİÙ\İÛİ]X\İ›ÜOX˜›Ş\›İ[™
+]Û‹X]›Z[ŠMŒ˜Y]\ÒÛJJK\›[™]ÈT“
+“RWÕÑ”ÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	ÜÙ\šXÙIË	ÕÑ”ÉÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	İ™\œÚ[Û‰Ë	Ì‹ŒŒ	ÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü™\]Y\İ	Ë	ÙÙ]™X]\™IÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	ÜİÜ™Y]Y\WÚY	Ë	Ù›ZN›ØœÙ\˜][ÛœÎÙX]\œÚ[\IÊNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ø˜›Ş	Ë	İÙ\İÑš^Y
+J_K	ÜÛİ]Ñš^Y
+J_K	ÙX\İÑš^Y
+J_K	Û›ÜÑš^Y
+J_X
+Nİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü\˜[Y]\œÉË	İ[\\˜]\™K]ÜÚ[[ZY]KÚ[™ÜYY\ËÚ[™\™Xİ[Û‹Ú[™İ\İ™\Üİ\™Kš\ÚXš[]K™XÚ\]][ÛŒZİ[ÛİYÛİ™\‰ÊNØÛÛœİ[X]ØZ]™]Ú^
+\›Ôİš[™Ê
+KÉĞXØÙ\	Î‰Ø\XØ][Û‹Ş[^Ş[
+‹Ê‰ßJKX\[™]ÈX\
+
+NÙ›ÜŠÛÛœİY[X™\ˆÙˆ›ZSY[X™\œÊ[
+J^ØÛÛœİ\˜[Y]\]YÕ˜[YJY[X™\‹	Ô\˜[Y]\“˜[YIÊK˜[YO[ØØ[S[X™\ŠYÕ˜[YJY[X™\‹	Ô\˜[Y]\•˜[YIÊJK[YO\ØY™Q]JYÕ˜[YJY[X™\‹	Õ[YIÊJKÜÏ]YÕ˜[YJY[X™\‹	ÜÜÉÊKœÜ]
+×ÊËÊK›X\
+[X™\ŠKÛ][[X™\ŠÜÖÌJKÛÛ[[X™\ŠÜÖÌWJNÚYŠ\\˜[Y]\Ÿ˜[YOOO][™Yš[™YÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+XÛÛ[YNØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœ˜Y]\ÒÛJŒL
+XÛÛ[YNØÛÛœİYTİš[™ÊYÕ˜[YJY[X™\‹	ÑÙ[ÚY	Ê_YÕ˜[YJY[X™\‹	ÓØØ][Û‰Ê_	ÜÛ]Ñš^Y
+
+_N‰ÜÛÛ‹Ñš^Y
+
+_X
+K›İÏ[X\™Ù]
+Y
+OÏŞÜİ][Û’YšY˜[YN”İš[™ÊYÕ˜[YJY[X™\‹	ÓØØ][Û‰Ê_“RH	ÚYX
+K]œÛ]ÛœÛÛ‹\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	Ë™\Ü[YN[Y_NØÛÛœİÙ^O[›Ü›X[^™J\˜[Y]\ŠKœ™\XÙJÈÙË	ÉÊNÚYŠÙ^Kš[˜ÛY\Ê	İ[\\˜]\™IÊI‰ˆZÙ^Kš[˜ÛY\Ê	Ù]ÉÊJ\›İË[\]˜[YNÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	Ù]ÜÚ[	ÊJ\›İË™]Ü]˜[YNÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	Ú[ZY]IÊJ\›İËœ™[]]™R[ZY]O]˜[YNÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	İÚ[™\™Xİ[Û‰ÊJ\›İËÚ[™\™Xİ[Û]˜[YNÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	İÚ[™İ\İ	ÊJ\›İËÚ[™İ\İ]˜[YJŒËÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	İÚ[™ÜYY	ÊJ\›İËÚ[™ÜYY]˜[YJŒËÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	Ü™\Üİ\™IÊJ\›İËœ™\Üİ\™S\Û]˜[YNÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	İš\ÚXš[]IÊJ\›İËš\ÚXš[]WÛO]˜[YNÙ[ÙHYŠÙ^Kš[˜ÛY\Ê	Ü™XÚ\]][Û‰ÊJ^Ü›İËœ™XÚ\]][Û]˜[YNÜ›İËœ™XÚ\]][Û“Z[]\ÏMŒY[ÙHYŠÙ^Kš[˜ÛY\Ê	ØÛİY	ÊJ\›İË˜ÛİYÛİ™\]˜[YNÚYŠ[YI‰Š\›İËœ™\Ü[Y_]Kœ\œÙJ[YJO‘]Kœ\œÙJ›İËœ™\Ü[YJJJ\›İËœ™\Ü[YO][YNÛX\œÙ]
+Y›İÊ_\™]\›–Ë‹‹›X\˜[Y\Ê
+WK™š[\Š›İÏO›[X™\Š›İË[\
+HOO][™Yš[™Y[X™\Š›İËÚ[™ÜYY
+HOO][™Yš[™Y
+KœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJŒ
+K›X\
+›İÏO›Ù™šXÚX[ØœÙ\˜][Û”›İÊ›İË	Ñš[›š\ÚY][Ü›ÛÙÚXØ[[œİ]]HÈÜ[ˆ]IÊJ_B˜\Ş[˜È[˜İ[ÛˆœšYÚÚŞT›İÜÊ]Û‹˜Y]\ÒÛJ^ÂˆYŠZ[‘Ù\›X[P›İ[™Ê]ÛŠJ\™]\›–×NÂˆÛÛœİ™XXÚSX]›Z[ŠX]›X^
+M˜Y]\ÒÛJ‹ŠJKÚ[ÏVÖÌKÜ™XXÚ
+‹ŒÌËKË\™XXÚ
+‹ŒÌËKÌ™XXÚ
+‹ŒÌ×KÌ\™XXÚ
+‹ŒÌ×KÜ™XXÚ
+‹Ë™XXÚ
+‹ŒÍWKÜ™XXÚ
+‹Ë\™XXÚ
+‹ŒÍWKË\™XXÚ
+‹Ë™XXÚ
+‹ŒÍWKË\™XXÚ
+‹Ë\™XXÚ
+‹ŒÍWWK›X\
+
+Û‹WJOO›Ù™œÙ]ÛJ]Û‹‹JJNÂˆÛÛœİÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+Ú[Ë›X\
+\Ş[˜ÈÚ[OØÛÛœİO[™]ÈT“
+”’QÒÒÖWĞÕT”‘S•
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	Û]	ËÚ[›]Ñš^Y
+JJNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ‰ËÚ[›Û‹Ñš^Y
+JJNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÛX^Ù\İ	Ëİš[™ÊX]œ›İ[™
+X]›Z[ŠL˜Y]\ÒÛJŒL
+JJJNÜ™]\›ˆ™]ÚœÛÛŠKÔİš[™Ê
+J_JJNÂˆÛÛœİ›İÜÏV×KÙY[[™]ÈÙ]
+
+NÙ›ÜŠÛÛœİ™\İ[ÙˆÙ]Y
+^ÚYŠ™\İ[œİ]\ÈOOIÙ[š[Y	ÊXÛÛ[YNØÛÛœİ\™\İ[˜[YKÏYËÙX]\‹Ûİ\˜Ù\ÏP\œ˜^Kš\Ğ\œ˜^JËœÛİ\˜Ù\ÊOÙœÛİ\˜Ù\Î–×NÚYŠ]ÊXÛÛ[YNØÛÛœİÛİ\˜ÙO\Ûİ\˜Ù\Ë™š[™
+O”İš[™ÊËšYÏŞËœÛİ\˜ÙWÚY
+OOOTİš[™ÊÏËœÛİ\˜ÙWÚY
+J_Ûİ\˜Ù\ÖÌ_ßKÛ][[X™\ŠÛİ\˜ÙOË›]ÏÜÛİ\˜ÙOË›]]YJKÛÛ[[X™\ŠÛİ\˜ÙOË›ÛÏÜÛİ\˜ÙOË›Û™Ú]YJNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+XÛÛ[YNØÛÛœİYTİš[™ÊÛİ\˜ÙOË™ÙÜİ][Û—ÚYÏÜÛİ\˜ÙOËÛ[×Üİ][Û—ÚYÏÜÛİ\˜ÙOËšYÏØ	ÜÛ]Ñš^Y
+
+_N‰ÜÛÛ‹Ñš^Y
+
+_X
+NÚYŠÙY[‹š\ÊY
+JXÛÛ[YNÜÙY[‹˜Y
+Y
+NØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœ˜Y]\ÒÛJŒL
+XÛÛ[YNØÛÛœİ[\[[X™\ŠÏË[\\˜]\™JNÚYŠ[\OO][™Yš[™Y
+XÛÛ[YNÜ›İÜËœ\Ú
+Üİ][Û’YšY˜[YNœÛİ\˜ÙOËœİ][Û—Û˜[YOÏÜÛİ\˜ÙOË›˜[YOÏØÑ	ÚYX]œÛ]ÛœÛÛ‹[]˜][Û›[X™\ŠÛİ\˜ÙOËšZYÚÏÜÛİ\˜ÙOË™[]˜][ÛŠK™\Ü[YNœØY™Q]JÏË[Y\İ[\ÏİÏË›ØœÙ\˜][Û—İ[YJK[\]Ü›[X™\ŠÏË™]×ÜÚ[
+K™[]]™R[ZY]N›[X™\ŠÏËœ™[]]™WÚ[ZY]JK™\Üİ\™S\Û›[X™\ŠÏËœ™\Üİ\™WÛ\Û
+KÚ[™\™Xİ[Û›[X™\ŠÏËÚ[™Ù\™Xİ[Û—ÌLÏİÏËÚ[™Ù\™Xİ[ÛŠKÚ[™ÜYY›[X™\ŠÏËÚ[™ÜÜYYÌLÏİÏËÚ[™ÜÜYY
+KÚ[™İ\İ›[X™\ŠÏËÚ[™Ùİ\İÜÜYYÌLÏİÏËÚ[™Ùİ\İÜÜYY
+KÛİYÛİ™\›[X™\ŠÏË˜ÛİYØÛİ™\ŠK™XÚ\]][Û›[X™\ŠÏËœ™XÚ\]][Û—ÌLÏİÏËœ™XÚ\]][ÛŠK™XÚ\]][Û“Z[]\ÎÏËœ™XÚ\]][Û—ÌLOO][™Yš[™Y	‰ÏËœ™XÚ\]][Û—ÌLOO[[ÌLŒ›İšY\‰ÑÑÜ[ˆ]HÈœšYÚÚŞIË\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	ËXÔİ]\ÎŒ‹\İ˜XİÜN™]ÛÜšĞÛ\ÜÎ‰ÛÙ™šXÚX[	ËÛİ\˜ÙU\N‰ÛÙ™šXÚX[\İ\™˜XÙIËXÓX™[‰ÑÑUÙ\0ï™\ˆœšYÚTÚŞKQ˜[˜XÚÉËÚ]PÛ\ÜÎœİ][Û”Ú]PÛ\ÜÊÛİ\˜ÙOËœİ][Û—Û˜[YOÏÜÛİ\˜ÙOË›˜[YKÛİ\˜ÙOË›ØœÙ\˜][Û—İ\OÏÉÑÑ	Ê_JNßBˆ™]\›ˆ›İÜËœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJN
+NÂŸB™[˜İ[ÛˆÙ[œÙSY]šXÒÙ^J]OIÉË[š]IÉÊ^ØÛÛœİ^[›Ü›X[^™J	İ]_H	İ[š]X
+NÚYŠİ[\\˜]\Ÿ[\\˜]\™_Y[\\˜]\ŸZ\ˆ[\Ë\İ
+^
+I‰ˆKØ›Ù[ŸÛÚ[Ø\ÜÙ\ŸØ]\‹Ë\İ
+^
+J\™]\›‰İ[\	ÎÚYŠÛY™]XÚ_[ZY]_™[]]™H[ZY]KË\İ
+^
+J\™]\›‰Ü™[]]™R[ZY]IÎÚYŠİ]\[šİ]ÈÚ[Ë\İ
+^
+J\™]\›‰Ù]Ü	ÎÜ™]\›‰ÉßB˜\Ş[˜È[˜İ[ÛˆÜ[”Ù[œÙSX\›İÜÊ]Û‹˜Y]\ÒÛJ^ÂˆÛÛœİ˜Y]\ÏSX]›Z[ŠŒ‹X]›X^
+‹˜Y]\ÒÛJ‹ŒN
+JK]\˜Y]\ËÌLLKÛ\˜Y]\ËÊLLJ“X]›X^
+ŒKX]˜ÛÜÊ]
+“X]”KÌN
+JJKO[™]ÈT“
+ÔS”ÑS”ÑSPTĞ“ÖTÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ø˜›Ş	Ë	ÊÛ‹YÛŠKÑš^Y
+J_K	Ê]Y]
+KÑš^Y
+J_K	ÊÛŠÙÛŠKÑš^Y
+J_K	Ê]
+Ù]
+KÑš^Y
+J_X
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	Ù^Üİ\™IË	Ûİ]ÛÜ‰ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÛZ[š[X[	Ë	Ù˜[ÙIÊNÂˆÛÛœİ˜]ÏX]ØZ]™]ÚœÛÛŠKÔİš[™Ê
+JK›Ş\ÏP\œ˜^Kš\Ğ\œ˜^J˜]ÊOÜ˜]Î\œ˜^Kš\Ğ\œ˜^J˜]ÏË™]JOÜ˜]Ë™]N–×K›İÜÏV×NÂˆ›ÜŠÛÛœİ›ŞÙˆ›Ş\ËœÛXÙJLŒ
+J^ØÛÛœİÛÛÜ™ÏX›ŞË˜İ\œ™[ØØ][ÛË˜ÛÛÜ™[˜]\ÏÏØ›ŞË›ØÏÏØ›ŞË›ØØ][ÛË˜ÛÛÜ™[˜]\ËÛÛ[[X™\ŠÛÛÜ™ÏË–ÌOÏØ›ŞË›ÛŠKÛ][[X™\ŠÛÛÜ™ÏË–ÌWOÏØ›ŞË›]
+NÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+XÛÛ[YNØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœ˜Y]\ÊŒL
+XÛÛ[YNØÛÛœİ›İÏ^Üİ][Û’Y”İš[™Ê›ŞË—ÚYÏØ›ŞËšYÏØ	ÜÛ]N‰ÜÛÛŸX
+K˜[YN”İš[™Ê›ŞË›˜[YOÏØ›ŞË]OÏÉÜÙ[œÙP›Ş	ÊK]œÛ]ÛœÛÛ‹[]˜][Û›[X™\ŠÛÛÜ™ÏË–Ì—OÏØ›ŞË™[]˜][ÛŠK›İšY\‰ÛÜ[”Ù[œÙSX\ÈÙ[œÙP›Ş
+Ñ“
+IË\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	ËXÔİ]\ÎŒK\İ˜XİÜ‹™]ÛÜšĞÛ\ÜÎ‰ØÚ]^™[‰ËÚ]PÛ\ÜÎ‰İ[šÛ›İÛ‰ßNÛ]™]Ù\İLÂˆ›ÜŠÛÛœİÙ[œÛÜˆÙˆ\œ˜^Kš\Ğ\œ˜^J›ŞËœÙ[œÛÜœÊOØ›ŞœÙ[œÛÜœÎ–×J^ØÛÛœİYX\İ\™[Y[\Ù[œÛÜË›\İYX\İ\™[Y[ÏÜÙ[œÛÜË›\İÛYX\İ\™[Y[ÏŞßK˜[YO[[X™\ŠYX\İ\™[Y[Ë˜[YOÏÜÙ[œÛÜË˜[YJK[Y\İ[\\ØY™Q]JYX\İ\™[Y[Ë˜Ü™X]Y]ÏÛYX\İ\™[Y[Ë[Y\İ[\ÏÜÙ[œÛÜË\]Y]
+KÙ^O\Ù[œÙSY]šXÒÙ^JÙ[œÛÜË]OÏÜÙ[œÛÜËœ[›ÛY[›Û‹Ù[œÛÜË[š]
+NÚYŠZÙ^_˜[YOOO][™Yš[™Y][Y\İ[\
+XÛÛ[YNØÛÛœİYÙOQ]K››İÊ
+K[™]È]J[Y\İ[\
+K™Ù][YJ
+NÚYŠYÙOYÙOL
+Œ
+XÛÛ[YNÚYŠÙ^OOOIİ[\	É‰Š˜[YOM_˜[YOMJJXÛÛ[YNÚYŠÙ^OOOIÜ™[]]™R[ZY]IÉ‰Š˜[YO˜[YOŒL
+JXÛÛ[YNÚYŠÙ^OOOIÙ]Ü	É‰Š˜[YOMŒ˜[YO
+JXÛÛ[YNÜ›İÖÚÙ^WO]˜[YNÛ™]Ù\İSX]›X^
+™]Ù\İ™]È]J[Y\İ[\
+K™Ù][YJ
+JNßBˆYŠ[X™\Š›İË[\
+OOO][™Yš[™Y
+XÛÛ[YNÜ›İËœ™\Ü[YO[™]È]J™]Ù\İ
+KÒTÓÔİš[™Ê
+NÜ›İÜËœ\Ú
+›İÊNÂˆBˆ™]\›ˆ›İÜËœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJÌŠNÂŸB™[˜İ[Ûˆ]ØÓY]\˜›Ş\Ê]Û‹˜Y]\ÒÛJ^ÂˆÛÛœİ]\˜Y]\ÒÛKÌLLKÛ\˜Y]\ÒÛKÊLLJ“X]›X^
+ŒKX]˜ÛÜÊ]
+“X]”KÌN
+JJK]SX]›X^
+NKK]Y]
+K]OSX]›Z[ŠKK]
+Ù]
+KÛŒ[Û‹YÛ‹ÛŒO[ÛŠÙÛ‹›ŞJK‹Ë
+OO–ØK‹ËK›X\
+˜[YOO“[X™\Š˜[YJKÑš^Y
+ÊJKš›Ú[Š	Ë	ÊNÂˆYŠÛŒKLN	‰›ÛŒOLN
+\™]\›–Ø›Ş
+]ÛŒ]KÛŒJWNÂˆYŠÛŒLN
+\™]\›–Ø›Ş
+]ÛŒ
+ÌÍŒ]KN
+K›Ş
+]LN]KÛŒJWNÂˆ™]\›–Ø›Ş
+]ÛŒ]KN
+K›Ş
+]LN]KÛŒKLÍŒ
+WNÂŸB™[˜İ[ÛˆY]\”™\Ü[YJ›İÊ^ØÛÛœİ˜[YO\ØY™Q]J›İÏËœ™\Ü[YOÏÜ›İÏË›ØœÕ[YOÏÜ›İÏË›ØœÙ\˜][Û—İ[YOÏÜ›İÏËœ™XÙZ\[YJNÜ™]\›ˆ˜[YOÑ]Kœ\œÙJ˜[YJNŒB™[˜İ[Ûˆ]\İY]\”›İÜÊ›İÜÊ^ØÛÛœİX\[™]ÈX\
+
+NÙ›ÜŠÛÛœİ›İÈÙˆ›İÜÊ^ØÛÛœİÙ^OTİš[™Ê›İÏËšXØ[ÒYÏÜ›İÏËšXØ[×ÚYÏÜ›İÏËœİ][Û—ÚYÏØ	Ü›İÏË›]ÏÜ›İÏË›]]Y_N‰Ü›İÏË›ÛÏÜ›İÏË›Û™Ú]Y_X
+NØÛÛœİ™]š[İ\Ï[X\™Ù]
+Ù^JNÚYŠ\™]š[İ\ßY]\”™\Ü[YJ›İÊO[Y]\”™\Ü[YJ™]š[İ\ÊJ[X\œÙ]
+Ù^K›İÊ_\™]\›–Ë‹‹›X\˜[Y\Ê
+W_B˜\Ş[˜È[˜İ[Ûˆ]ØÓY]\›Ş›İÜÊ˜›Ş
+^ÂˆÛÛœİ\O[™]ÈT“
+UĞ×ĞTJNØ\KœÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü›X]	Ë	ÚœÛÛ‰ÊNØ\KœÙX\˜Ú\˜[\ËœÙ]
+	Úİ\œÉË	ÌÉÊNØ\KœÙX\˜Ú\˜[\ËœÙ]
+	Ø˜›Ş	Ë˜›Ş
+NÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]Ú
+\KÚXY\œÎÉÕ\Ù\‹PYÙ[	Î˜RQ]ÙX]\‹Y\Ú›Ø\™ÉÕÓÔ’ÑT—Õ‘T”ÒSÓŸH
+
+ÚÎ‹ËÙÚ]X‹˜ÛÛKÓY][ÓX\[šKÓRQ
+X	ĞXØÙ\	Î‰Ø\XØ][Û‹ÚœÛÛ‰ßKÙØØXÚUŒØXÚQ]™\][™ÎY__JNÂˆYŠ™\ÜÛœÙKœİ]\ÏOOLŒ
+\™]\›–×NÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ]šX][Û•ÙX]\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+NÂˆÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+NÜ™]\›ˆ\œ˜^Kš\Ğ\œ˜^J˜]ÊOÜ˜]Îœ˜]ÏË™]OÏÖ×NÂŸB˜\Ş[˜È[˜İ[ÛˆY]\”›İÜÊ]Û‹˜Y]\ÒÛJ^ÂˆÛÛœİÙ]YX]ØZ]›ÛZ\ÙK˜[Ù]Y
+]ØÓY]\˜›Ş\Ê]Û‹˜Y]\ÒÛJK›X\
+]ØÓY]\›Ş›İÜÊJK˜Z[\™\Ï\Ù]Y™š[\Š™\İ[Oœ™\İ[œİ]\ÏOOIÜ™Z™XİY	ÊNÂˆYŠ˜Z[\™\Ë›[™İOO\Ù]Y›[™İ
+]›İÈ˜Z[\™\ÖÌKœ™X\ÛÛÂˆÛÛœİ˜]Ï[]\İY]\”›İÜÊÙ]Y™›]X\
+™\İ[Oœ™\İ[œİ]\ÏOOIÙ[š[Y	ÏÜ™\İ[˜[YN–×JJNÂˆ™]\›ˆ˜]Ë›X\
+OØÛÛœİ›][[X™\Š‹›]ÏÜ‹›]]YJK›Û[[X™\Š‹›ÛÏÜ‹›Û™Ú]YJNÚYŠ›]OO][™Yš[™Y›ÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ\İY\İ[˜ÙJ]Û‹›]›ÛŠNÚYŠ\İœ˜Y]\ÒÛJŒL
+\™]\›ˆ[Ü™]\›ÚXØ[ÒYœ‹šXØ[ÒYÏÜ‹šXØ[×ÚYÏÜ‹œİ][Û—ÚY˜[YNœ‹›˜[YOÏÜ‹œÚ]OÏÜ‹šXØ[ÒYÏÜ‹œİ][Û—ÚY]œ›]Ûœ›Û‹[]˜][Û›[X™\Š‹™[]ÏÜ‹™[]˜][ÛÏÜ‹™[]˜][Û—ÛJK™\Ü[YNœØY™Q]J‹œ™\Ü[YOÏÜ‹›ØœÕ[YOÏÜ‹›ØœÙ\˜][Û—İ[YOÏÜ‹œ™XÙZ\[YJK[\›[X™\Š‹[\ÏÜ‹[\\˜]\™OÏÜ‹[\ØÊK]Ü›[X™\Š‹™]ÜÏÜ‹™]ÔÚ[ÏÜ‹™]ÜÚ[ØÊK™[]]™R[ZY]N›[X™\Š‹œ™[]]™R[ZY]OÏÜ‹š[ZY]JKÚ[™\™Xİ[Û›[X™\Š‹Ù\ÏÜ‹Ú[™\™Xİ[ÛÏÜ‹Ú[™Ù\—ÙYÜ™Y\ÊKÚ[™ÜYY›[X™\Š‹ÜÜÏÜ‹Ú[™ÜYYÏÜ‹Ú[™ÜÜYYÚİ
+KÚ[™İ\İ›[X™\Š‹ÙÜİÏÜ‹Ú[™İ\İÏÜ‹Ú[™Ùİ\İÚİ
+K™\Üİ\™N›[X™\Š‹˜[[OÏÜ‹œ™\Üİ\™S\ÛÏÜ‹œÙXWÛ]™[Ü™\Üİ\™WÛXŠKš\ÚXš[]Nœ‹š\ÚXÏÜ‹š\ÚXš[]OÏÜ‹š\ÚXš[]WÜİ]]WÛZKÛİYÛİ™\›[X™\Š‹˜ÛİYÛİ™\ŠKÛİYÎ\œ˜^Kš\Ğ\œ˜^J‹˜ÛİYÊOÜ‹˜ÛİYÎ\œ˜^Kš\Ğ\œ˜^J‹˜ÛİY^Y\œÊOÜ‹˜ÛİY^Y\œÎ[™Yš[™Y™\š\Î›[X™\Š‹™\š\ÏÏÜ‹™\XØ[š\ÚXš[]JK˜]ÓØœ‹œ˜]ÓØÏÜ‹œ˜]×İ^›İšY\‰Ó“ĞPH]šX][Û•ÙX]\ˆÈQUT‹UÓSÉË\İ[˜ÙN™\İÚ[™[š]‰Úİ	ËXÔİ]\ÎŒ‹\İ˜XİÜL‹™]ÛÜšĞÛ\ÜÎ‰Ü›Ù™\ÜÚ[Û˜[	ËÛİ\˜ÙU\N‰Ø]šX][Û‰ËXÓX™[‰Ğ[]XÚKÛÜ\˜]]™H›YÜ]˜™[Ø˜XÚ[™ÉËÚ]PÛ\ÜÎœİ][Û”Ú]PÛ\ÜÊ‹›˜[YOÏÜ‹œÚ]OÏÜ‹šXØ[ÒYÏÜ‹œİ][Û—ÚY	ÓQUTˆZ\œÜ	Ê__JK™š[\Š›ÛÛX[ŠNÂŸB‚›]Ù[ÔÜ\™SY]Y]PØXÚO^Ù^\™\ÎŒİ][ÛœÎ–×_NÂ™[˜İ[ÛˆÙ[ÔÜ\™P\Y\Ê]ÛŠ^Ü™]\›ˆ]M‹ŒÍI‰›]MKŒI‰›ÛNKI‰›ÛLMËŒßB™[˜İ[ÛˆÙ[ÔÜ\™Tİ][Û\œ˜^J]J^ÚYŠ\œ˜^Kš\Ğ\œ˜^J]OËœİ][ÛœÊJ\™]\›ˆ]Kœİ][ÛœÎÚYŠ\œ˜^Kš\Ğ\œ˜^J]OËœİ][Û—ÛY]Y]JJ\™]\›ˆ]Kœİ][Û—ÛY]Y]NÚYŠ\œ˜^Kš\Ğ\œ˜^J]OË›Y]Y]OËœİ][ÛœÊJ\™]\›ˆ]K›Y]Y]Kœİ][ÛœÎÚYŠ\œ˜^Kš\Ğ\œ˜^J]OË™]OËœİ][ÛœÊJ\™]\›ˆ]K™]Kœİ][ÛœÎÜ™]\›–×_B˜\Ş[˜È[˜İ[ÛˆÙ[ÔÜ\™SY]Y]J
+^ÂˆYŠÙ[ÔÜ\™SY]Y]PØXÚK™^\™\Ï‘]K››İÊ
+I‰™Ù[ÔÜ\™SY]Y]PØXÚKœİ][ÛœË›[™İ
+\™]\›ˆÙ[ÔÜ\™SY]Y]PØXÚKœİ][ÛœÎÂˆÛÛœİ˜]ÏX]ØZ]™]ÚœÛÛŠÑSÔÔT‘WÓQUJKİ][ÛœÏYÙ[ÔÜ\™Tİ][Û\œ˜^J˜]ÊK›X\
+İOŠÚY”İš[™ÊİËšYÏÜİËœİ][Û—ÚYÏÉÉÊK˜[YN”İš[™ÊİË›˜[YOÏÜİËœİ][Û—Û˜[YOÏÜİËšYÏÉÑÙ[ÔÜ\™KTİ][Û‰ÊK]›[X™\ŠİË›]ÏÜİË›]]YJKÛ›[X™\ŠİË›ÛÏÜİË›Û™Ú]YJK[]˜][Û›[X™\ŠİË˜[]YOÏÜİËšZYÚÏÜİË™[]˜][ÛŠKXİ]™NœİËš\×ØXİ]™HOOY˜[Ù_JJK™š[\ŠİOœİšY	‰œİ˜Xİ]™I‰œİ›]OO][™Yš[™Y	‰œİ›ÛˆOO][™Yš[™Y
+NÂˆÙ[ÔÜ\™SY]Y]PØXÚO^Ù^\™\Î‘]K››İÊ
+JÍŠŒ
+Œ
+ŒLİ][ÛœßNÜ™]\›ˆİ][ÛœÎÂŸB™[˜İ[ÛˆÙ[ÔÜ\™S\İ
+˜[YJ^ØÛÛœİ˜]Ï]˜[YOË™]OÏİ˜[YOË˜[Y\ÏÏİ˜[YOË˜[YOÏİ˜[YNÚYŠ\œ˜^Kš\Ğ\œ˜^J˜]ÊJ^Ù›ÜŠ]O\˜]Ë›[™İLNÚOLÚKKJ^ØÛÛœİ[[X™\Š˜]ÖÚWJNÚYŠˆOO][™Yš[™Y
+\™]\›ˆŸ\™]\›ˆ[™Yš[™Y\™]\›ˆ[X™\Š˜]Ê_B™[˜İ[ÛˆÙ[ÔÜ\™T\˜[J™X]\™K˜[YJ^ØÛÛœİ›ÜÏY™X]\™OËœ›Ü\Y\ÏÏÙ™X]\™K\˜[Y]\œÏ\›ÜÏËœ\˜[Y]\œÏÏÜ›ÜÏËœ\˜[Y]\ÏÜ›ÜÎÜ™]\›ˆÙ[ÔÜ\™S\İ
+\˜[Y]\œÏË–Û˜[YWOÏÜ\˜[Y]\œÏË–Û˜[YKÓİÙ\Ø\ÙJ
+WOÏÜ\˜[Y]\œÏË–Û˜[YKÕ\\Ø\ÙJ
+WJ_B™[˜İ[ÛˆÙ[ÔÜ\™Q™X]\™RY
+™X]\™J^ØÛÛœİİ][ÛY™X]\™OËœ›Ü\Y\ÏËœİ][ÛÜ™]\›ˆİš[™Ê™X]\™OËœ›Ü\Y\ÏËœİ][Û—ÚYÏÊİ][Û‰‰\[Ùˆİ][ÛOOIÛØš™Xİ	ÏÜİ][Û‹šYœİ][ÛŠOÏÙ™X]\™OËœİ][Û—ÚYÏÙ™X]\™OËšYÏÉÉÊ_B™[˜İ[Ûˆ]\ÚX›TY™Š˜[YKZYÚİ][Û”™\Üİ\™J^ØÛÛœİY™[[X™\Š˜[YJK[]˜][Û[[X™\ŠZYÚ
+Kİ\™˜XÙO[[X™\Šİ][Û”™\Üİ\™JNÚYŠY™OO][™Yš[™YY™ÌY™ŒLJ\™]\›ˆ˜[ÙNÚYŠ[]˜][ÛˆOO][™Yš[™Y	‰™[]˜][ÛMŒ	‰œY™ML
+\™]\›ˆ˜[ÙNÚYŠ[]˜][ÛˆOO][™Yš[™Y	‰œİ\™˜XÙHOO][™Yš[™Y	‰™[]˜][ÛLML
+^ØÛÛœİ^XİYYSX]›Z[ŠMMKX]›X^
+L‹[]˜][ÛŠ‹ŒMJJNÚYŠY™‹\İ\™˜XÙO^XİYY
+\™]\›ˆ˜[Ù_\™]\›ˆY_B˜\Ş[˜È[˜İ[ÛˆÙ[ÔÜ\™T›İÜÊ]Û‹˜Y]\ÒÛJ^ÂˆYŠYÙ[ÔÜ\™P\Y\Ê]ÛŠJ\™]\›–×NÂˆÛÛœİY]OX]ØZ]Ù[ÔÜ\™SY]Y]J
+K™X\˜O[Y]K›X\
+İOŠË‹‹œİ\İ[˜ÙN™\İ[˜ÙJ]Û‹İ›]İ›ÛŠ_JJK™š[\ŠİOœİ™\İ[˜ÙOSX]›Z[ŠLŒ˜Y]\ÒÛJJŒL
+KœÛÜ
+
+KŠOO˜K™\İ[˜ÙKX‹™\İ[˜ÙJKœÛXÙJM
+NÚYŠ[™X\˜K›[™İ
+\™]\›–×NÂˆÛÛœİİ\œ™[[™]ÈT“
+ÑSÔÔT‘WĞÕT”‘S•
+NØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Ü\˜[Y]\œÉË	Õ‘‹‘Q‘‹‘–”‰ÊNØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Üİ][Û—ÚYÉË™X\˜K›X\
+İOœİšY
+Kš›Ú[Š	Ë	ÊJNØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Ûİ]]Ù›Ü›X]	Ë	ÙÙ[ÚœÛÛ‰ÊNÂˆ]˜]Îİ^Ü˜]ÏX]ØZ]™]ÚœÛÛŠİ\œ™[Ôİš[™Ê
+J_XØ]ÚØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Ü\˜[Y]\œÉË	Õ”‹‘‰ÊNÜ˜]ÏX]ØZ]™]ÚœÛÛŠİ\œ™[Ôİš[™Ê
+J_BˆÛÛœİ™X]\™\ÏP\œ˜^Kš\Ğ\œ˜^J˜]ÏË™™X]\™\ÊOÜ˜]Ë™™X]\™\Î\œ˜^Kš\Ğ\œ˜^J˜]ÏË™]JOÜ˜]Ë™]N\œ˜^Kš\Ğ\œ˜^J˜]ÊOÜ˜]Î–×KRY[™]ÈX\
+™X\˜K›X\
+İO–ÜİšYİJJK[Y\İ[\\ØY™Q]J\œ˜^Kš\Ğ\œ˜^J˜]ÏË[Y\İ[\ÊOÜ˜]Ë[Y\İ[\Ë˜]
+LJNœ˜]ÏË[Y\İ[\
+NÂˆ™]\›ˆ™X]\™\Ë›X\
+™X]\™OOØÛÛœİYYÙ[ÔÜ\™Q™X]\™RY
+™X]\™JKY]Tİ][ÛXRY™Ù]
+Y
+KÛÛÜ™[˜]\ÏY™X]\™OË™Ù[ÛY]OË˜ÛÛÜ™[˜]\ÏÏÖ×KÛÛ[Y]Tİ][ÛË›ÛÏÛ[X™\ŠÛÛÜ™[˜]\ÖÌJKÛ][Y]Tİ][ÛË›]ÏÛ[X™\ŠÛÛÜ™[˜]\ÖÌWJNÚYŠ[Y]Tİ][ÛŸÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ[\YÙ[ÔÜ\™T\˜[J™X]\™K	Õ	ÊNÚYŠ[\OO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİİ][Û”™\Üİ\™OYÙ[ÔÜ\™T\˜[J™X]\™K	Ô	ÊK™YYÙ[ÔÜ\™T\˜[J™X]\™K	Ô‘Q	ÊK™\Üİ\™S\Û\]\ÚX›TY™Š™YY]Tİ][Û‹™[]˜][Û‹İ][Û”™\Üİ\™JOÜ™Y[™Yš[™YÜ™]\›Üİ][Û’YšY˜[YN›Y]Tİ][Û‹›˜[YK]œÛ]ÛœÛÛ‹[]˜][Û›Y]Tİ][Û‹™[]˜][Û‹™\Ü[YN[Y\İ[\ÏÜØY™Q]J™X]\™OËœ›Ü\Y\ÏË[Y\İ[\
+K[\]Ü™Ù[ÔÜ\™T\˜[J™X]\™K	Õ	ÊK™[]]™R[ZY]N™Ù[ÔÜ\™T\˜[J™X]\™K	Ô‘‰ÊK™\Üİ\™S\Û™\Üİ\™Nœİ][Û”™\Üİ\™KÚ[™ÜYYŠ
+
+OOØÛÛœİYÙ[ÔÜ\™T\˜[J™X]\™K	Ñ‘‰ÊNÜ™]\›ˆOO][™Yš[™Yİ[™Yš[™YŠŒËŸJJ
+KÚ[™\™Xİ[Û™Ù[ÔÜ\™T\˜[J™X]\™K	Ñ	ÊKÚ[™İ\İŠ
+
+OOØÛÛœİYÙ[ÔÜ\™T\˜[J™X]\™K	Ñ‘–	ÊNÜ™]\›ˆOO][™Yš[™Yİ[™Yš[™YŠŒËŸJJ
+K™XÚ\]][Û™Ù[ÔÜ\™T\˜[J™X]\™K	Ô”‰ÊK™XÚ\]][Û“Z[]\ÎŒL[\Ü˜[™\ÛÛ][Û“Z[]\ÎŒLšY[[\Ü˜[™\ÛÛ][Û“Z[]\Îİ[\\˜]\™NŒL]ÔÚ[ŒL[ZY]NŒL™\Üİ\™NŒLÚ[™ÜYYŒLÚ[™\™Xİ[ÛŒLÚ[™İ\İŒL™XÚ\]][ÛŒLK›İšY\‰ÑÙ[ÔÜ\™H]\İšXHÈUÑTÉË\İ[˜ÙN›Y]Tİ][Û‹™\İ[˜ÙKÚ[™[š]‰ÚÛZ	ËXÔİ]\ÎŒK\İ˜XİÜN™]ÛÜšĞÛ\ÜÎ‰ÛÙ™šXÚX[	ËÛİ\˜ÙU\N‰ÛÙ™šXÚX[\İ\™˜XÙIËXÓX™[‰ÑÙ[ÔÜ\™HUÑTÈ[]XÚH™[Ø˜XÚ[™Éß_JK™š[\Š›ÛÛX[ŠNÂŸB‚‚™[˜İ[ÛˆÙ[ÔÜ\™TÛ›İÕ[Y\İ[\
+˜]Ë™X]\™J^Ü™]\›ˆØY™Q]J™X]\™OËœ›Ü\Y\ÏË[Y\İ[\ÏÙ™X]\™OËœ›Ü\Y\ÏËœ™Y™\™[˜ÙWİ[YOÏÙ™X]\™OË[Y\İ[\ÏÊ\œ˜^Kš\Ğ\œ˜^J˜]ÏË[Y\İ[\ÊOÜ˜]Ë[Y\İ[\Ë˜]
+LJNœ˜]ÏË[Y\İ[\
+J_B˜\Ş[˜È[˜İ[ÛˆÙ[ÔÜ\™TÛ›İÓYX\İ\™[Y[
+]Û‹[]˜][ÛŠ^ÂˆYŠYÙ[ÔÜ\™P\Y\Ê]ÛŠJ\™]\›Ø]˜Z[X›N™˜[ÙK›İšY\‰ÑÙ[ÔÜ\™H]\İšXIË™X\ÛÛ‰Ø]pçÙ\š[ˆ0åœİ\œ™ZXÚÉßNÂˆÛÛœİ\™Ù][]˜][Û[[X™\Š[]˜][ÛŠKY]OX]ØZ]Ù[ÔÜ\™SY]Y]J
+K™X\˜O[Y]K›X\
+İOŠË‹‹œİ\İ[˜ÙSN™\İ[˜ÙJ]Û‹İ›]İ›ÛŠKZYÚY™™\™[˜ÙSN\™Ù][]˜][ÛˆOO][™Yš[™Y	‰œİ™[]˜][ÛˆOO][™Yš[™YÜİ™[]˜][Û‹]\™Ù][]˜][Û[™Yš[™YJJK™š[\ŠİOœİ™\İ[˜ÙSOLL	‰Š\™Ù][]˜][ÛOO][™Yš[™Yİ™[]˜][ÛOO][™Yš[™YX]˜XœÊİ™[]˜][Û‹]\™Ù][]˜][ÛŠOLÍL
+JKœÛÜ
+
+KŠOOŠK™\İ[˜ÙSJÓX]˜XœÊKšZYÚY™™\™[˜ÙS_
+JJKJ‹™\İ[˜ÙSJÓX]˜XœÊ‹šZYÚY™™\™[˜ÙS_
+JJJKœÛXÙJN
+NÂˆYŠ[™X\˜K›[™İ
+\™]\›Ø]˜Z[X›N™˜[ÙK›İšY\‰ÑÙ[ÔÜ\™H]\İšXIË™X\ÛÛ‰ÚÙZ[™Hİ][Ûˆ[›™\š[ˆHÛH[™0¬LÍLH0íš[[\œØÚYY	ßNÂˆÛÛœİ\˜[Y]\œÏVÉÒÉË	ÔÒ	Ë	ÔÓ“Õ×ÑT	×NÛ]\İ\œ›ÜIÉÎÂˆ›ÜŠÛÛœİ\˜[Y]\ˆÙˆ\˜[Y]\œÊ^ÂˆÛÛœİ\›[™]ÈT“
+ÑSÔÔT‘WĞÕT”‘S•
+Nİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ü\˜[Y]\œÉË\˜[Y]\ŠNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Üİ][Û—ÚYÉË™X\˜K›X\
+İOœİšY
+Kš›Ú[Š	Ë	ÊJNİ\›œÙX\˜Ú\˜[\ËœÙ]
+	Ûİ]]Ù›Ü›X]	Ë	ÙÙ[ÚœÛÛ‰ÊNÂˆ^ÂˆÛÛœİ˜]ÏX]ØZ]™]ÚœÛÛŠ\›Ôİš[™Ê
+JK™X]\™\ÏP\œ˜^Kš\Ğ\œ˜^J˜]ÏË™™X]\™\ÊOÜ˜]Ë™™X]\™\Î\œ˜^Kš\Ğ\œ˜^J˜]ÏË™]JOÜ˜]Ë™]N\œ˜^Kš\Ğ\œ˜^J˜]ÊOÜ˜]Î–×KRY[™]ÈX\
+™X\˜K›X\
+İO–ÜİšYİJJKØ[™Y]\ÏV×NÂˆ›ÜŠÛÛœİ™X]\™HÙˆ™X]\™\Ê^ØÛÛœİYYÙ[ÔÜ\™Q™X]\™RY
+™X]\™JKİ][ÛXRY™Ù]
+Y
+NÚYŠ\İ][ÛŠXÛÛ[YNØÛÛœİ˜[YOYÙ[ÔÜ\™T\˜[J™X]\™K\˜[Y]\ŠKØœÙ\™Y]YÙ[ÔÜ\™TÛ›İÕ[Y\İ[\
+˜]Ë™X]\™JKYÙS\Ï[ØœÙ\™Y]Ñ]K››İÊ
+KQ]Kœ\œÙJØœÙ\™Y]
+N’[™š[š]NÚYŠ˜[YOOO][™Yš[™Y˜[YO˜[YOŒLS[X™\‹š\Ñš[š]JYÙS\Ê_YÙS\ÏLMJŒYÙS\ÏŒÊŒÍŒ
+XÛÛ[YNØØ[™Y]\Ëœ\Ú
+Ø]˜Z[X›NYK˜[YPÛN˜[YKİ][Û“˜[YNœİ][Û‹›˜[YKİ][Û’Yœİ][Û‹šYİ][Û‘[]˜][Ûœİ][Û‹™[]˜][Û‹\İ[˜ÙRÛNœİ][Û‹™\İ[˜ÙSKÌLZYÚY™™\™[˜ÙSNœİ][Û‹šZYÚY™™\™[˜ÙSOÏÌØœÙ\™Y]›İšY\‰ÑÙ[ÔÜ\™H]\İšXHÈUÑTÉË\˜[Y]\‹˜]Õ[š]‰ØÛIßJ_BˆØ[™Y]\ËœÛÜ
+
+KŠOOŠK™\İ[˜ÙRÛJŒL
+ÓX]˜XœÊKšZYÚY™™\™[˜ÙSJJJKJ‹™\İ[˜ÙRÛJŒL
+ÓX]˜XœÊ‹šZYÚY™™\™[˜ÙSJJJJNÚYŠØ[™Y]\Ë›[™İ
+\™]\›ˆØ[™Y]\ÖÌNÂˆXØ]Ú
+\œ›ÜŠ^Û\İ\œ›ÜY\œ›Üˆ[œİ[˜Ù[Ùˆ\œ›ÜÙ\œ›Ü‹›Y\ÜØYÙN”İš[™Ê\œ›ÜŠ_BˆBˆ™]\›Ø]˜Z[X›N™˜[ÙK›İšY\‰ÑÙ[ÔÜ\™H]\İšXHÈUÑTÉË™X\ÛÛ‰ÚÙZ[™HZİY[K0íš[›˜ZHØÚ™YZ0íš[›Y\Üİ[™ÉË\œ›Ü›\İ\œ›ÜŸ[™Yš[™YNÂŸB‚˜\Ş[˜È[˜İ[ÛˆÙX]\•[™\™Ü›İ[™›İÜÊ]Û‹˜Y]\ÒÛK\RÙ^J^ÂˆYŠX\RÙ^J\™]\›–×NÂˆÛÛœİ™X\[™]ÈT“
+Ğ×Ó‘PTŠNÛ™X\‹œÙX\˜Ú\˜[\ËœÙ]
+	ÙÙ[ØÛÙIË	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_X
+NÛ™X\‹œÙX\˜Ú\˜[\ËœÙ]
+	Ü›ÙXİ	Ë	ÜÜÉÊNÛ™X\‹œÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü›X]	Ë	ÚœÛÛ‰ÊNÛ™X\‹œÙX\˜Ú\˜[\ËœÙ]
+	Ø\RÙ^IË\RÙ^JNÂˆÛÛœİœX]ØZ]™]Ú
+™X\ŠNÚYŠ[œ‹›ÚÊ\™]\›–×NØÛÛœİ™X]ØZ]œ‹šœÛÛŠ
+KØÏ[™Ë›ØØ][ÛÏÛ™YÏ[ØÏËœİ][Û’YÏÖ×K›İÜÏV×NÂˆ›ÜŠ]OLÚOX]›Z[Š\œ˜^Kš\Ğ\œ˜^JYÊOÚYË›[™İŒ
+NÚJÊÊ^ÂˆYŠ[X™\Š]
+ØÏËœXÔİ]\ËJJOOOL
+XÛÛ[YNÂˆÛÛœİİ][Û’YTİš[™ÊYÖÚWOÏÉÉÊNÚYŠ\İ][Û’Y
+XÛÛ[YNÂˆÛÛœİİ][Û“][[X™\Š]
+ØÏË›]]YKJJKİ][Û“Û[[X™\Š]
+ØÏË›Û™Ú]YKJJK\İ[[X™\Š]
+ØÏË™\İ[˜ÙRÛKJJNÂˆYŠ\İOO][™Yš[™Y	‰™\İœ˜Y]\ÒÛJXÛÛ[YNÂˆÛÛœİİ\œ™[[™]ÈT“
+Ğ×ÔÔÊNØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Üİ][Û’Y	Ëİ][Û’Y
+NØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Ù›Ü›X]	Ë	ÚœÛÛ‰ÊNØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	İ[š]ÉË	ÛIÊNØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Û[Y\šXÔ™XÚ\Ú[Û‰Ë	ÙXÚ[X[	ÊNØİ\œ™[œÙX\˜Ú\˜[\ËœÙ]
+	Ø\RÙ^IË\RÙ^JNÂˆ^ÂˆÛÛœİÜX]ØZ]™]Ú
+İ\œ™[
+NÚYŠXÜ‹›ÚÊXÛÛ[YNØÛÛœİÙX]ØZ]Ü‹šœÛÛŠ
+KÏJÙË›ØœÙ\˜][ÛœÏÏØÙË›ØœÙ\˜][ÛÏÖ×JVÌOÏØÙY]šXÏ[ÏË›Y]šXÏÏŞßNÂˆ›İÜËœ\Ú
+Üİ][Û’Y˜[YN˜]
+ØÏËœİ][Û“˜[YKJ_İ][Û’Y]œİ][Û“]ÏÛ[X™\ŠÏË›]
+KÛœİ][Û“ÛÏÛ[X™\ŠÏË›ÛŠK[]˜][Û›[X™\ŠÏË™[]ÏÛÏË™[]˜][ÛŠK™\Ü[YN›ÏË›ØœÕ[YU]ÏÏÛÏË›ØœÕ[YSØØ[ÏØ]
+ØÏË\]U[YU]ËJK[\›[X™\ŠY]šXÏË[\ÏÛÏË[\
+K]Ü›[X™\ŠY]šXÏË™]ÜÏÛÏË™]Ü
+K™[]]™R[ZY]N›[X™\ŠÏËš[ZY]JKÚ[™\™Xİ[Û›[X™\ŠÏËÚ[™\ŠKÚ[™ÜYY›[X™\ŠY]šXÏËÚ[™ÜYYÏÛÏËÚ[™ÜYY
+KÚ[™İ\İ›[X™\ŠY]šXÏËÚ[™İ\İÏÛÏËÚ[™İ\İ
+K™\Üİ\™N›[X™\ŠY]šXÏËœ™\Üİ\™OÏÛÏËœ™\Üİ\™JK™XÚ\]][Û›[X™\ŠY]šXÏËœ™XÚ\İ[ÏÛY]šXÏËœ™XÚ\˜]JK›İšY\‰ÕÙX]\ˆ[™\™Ü›İ[™ÔÈ
+^™[šY\\ˆTKVYØ[™ÊIË\İ[˜ÙN™\İOO][™Yš[™Y	‰œİ][Û“]OO][™Yš[™Y	‰œİ][Û“ÛˆOO][™Yš[™YÙ\İ[˜ÙJ]Û‹İ][Û“]İ][Û“ÛŠN™\İOO][™Yš[™Yİ[™Yš[™Y™\İ
+ŒLÚ[™[š]‰ÚÛZ	ËXÔİ]\Î“[X™\Š]
+ØÏËœXÔİ]\ËJJ_JNÂˆXØ]ÚßBˆBˆ™]\›ˆ›İÜÎÂŸB™[˜İ[Ûˆ]\İ™]][ÓYX\İ\™JYX\İ\™\Ê^ÂˆÛÛœİİ]^İ[Y\İ[\ŒNÙ›ÜŠÛÛœİ[Ù[HÙˆØš™Xİ˜[Y\ÊYX\İ\™\ßßJJ^ØÛÛœİ\\ÏP\œ˜^Kš\Ğ\œ˜^J[Ù[OË\JOÛ[Ù[K\N–×K™\Ï[[Ù[OËœ™\É‰\[Ùˆ[Ù[Kœ™\ÏOOIÛØš™Xİ	ÏÛ[Ù[Kœ™\ÎßK]\İSØš™XİšÙ^\Ê™\ÊK›X\
+[X™\ŠK™š[\Š[X™\‹š\Ñš[š]JKœÛÜ
+
+KŠOO˜‹XJVÌNÚYŠ[]\İ
+XÛÛ[YNØÛÛœİ˜[Y\Ï\™\ÖÔİš[™Ê]\İ
+WOÏÜ™\ÖÛ]\İOÏÖ×NÚYŠ]\İİ][Y\İ[\
+XÛÛ[YNÛİ][Y\İ[\[]\İİ\\Ë™›Ü‘XXÚ
+
+\KJOOØÛÛœİ[[X™\Š˜[Y\ÏË–ÚWJNÚYŠˆOO][™Yš[™Y
+[İ]Ôİš[™Ê\JKÓİÙ\Ø\ÙJ
+WO]ŸJNÙ›ÜŠÛÛœİÙ^HÙ–ÉÜ˜Z[—ÍŒZ[‰Ë	Ü˜Z[—Ì	Ë	Ü˜Z[—Û]™IË	İÚ[™Üİ™[™İ	Ë	İÚ[™Ø[™ÛIË	Ùİ\İÜİ™[™İ	Ë	Ùİ\İØ[™ÛI×J^ØÛÛœİ[[X™\Š[Ù[OË–ÚÙ^WJNÚYŠˆOO][™Yš[™Y
+[İ]ÚÙ^WO]Ÿ_Bˆ™]\›ˆİ]ÂŸB˜\Ş[˜È[˜İ[Ûˆ™]][Ô›İÜÊ]Û‹˜Y]\ÒÛKXØÙ\ÜÕÚÙ[Š^ÂˆYŠXXØÙ\ÜÕÚÙ[Š\™]\›–×NØÛÛœİSX]›Z[ŠKX]›X^
+˜Y]\ÒÛJJK]\‹ÌLLKÛ\‹ÊLLJ“X]›X^
+ŒKX]˜ÛÜÊ]
+“X]”KÌN
+JJKO[™]ÈT“
+‘UUS×ÔP“PÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Û]Û™IËİš[™Ê]
+Ù]
+JNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ—Û™IËİš[™ÊÛŠÙÛŠJNİKœÙX\˜Ú\˜[\ËœÙ]
+	Û]ÜİÉËİš[™Ê]Y]
+JNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÛÛ—ÜİÉËİš[™ÊÛ‹YÛŠJNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ùš[\‰Ë	İYIÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ü™\]Z\™YÙ]IË	İ[\\˜]\™IÊNÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]Ú
+KÚXY\œÎĞ]]Üš^˜][Û˜™X\™\ˆ	ØXØÙ\ÜÕÚÙ[ŸXXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰ß_JNÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ™]][È	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+Kİ][ÛœÏ\˜]ÏË˜›ÙOÏÜ˜]ÏË™]OÏÖ×NÂˆ™]\›Š\œ˜^Kš\Ğ\œ˜^Jİ][ÛœÊOÜİ][ÛœÎ–×JK›X\
+İOØÛÛœİØØ][Û\İËœXÙOË›ØØ][ÛÏÜİË›ØØ][ÛÏÖ×KÛÛ[[X™\ŠØØ][ÛË–ÌOÏÜİË›ÛŠKÛ][[X™\ŠØØ][ÛË–ÌWOÏÜİË›]
+NÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ\İY\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ\İœŠŒL
+\™]\›ˆ[ØÛÛœİO[]\İ™]][ÓYX\İ\™JİË›YX\İ\™\ÊK[\[[X™\ŠK[\\˜]\™JNÚYŠ[\OO][™Yš[™Y[K[Y\İ[\
+\™]\›ˆ[Ü™]\›Üİ][Û’YœİË—ÚYÏÜİËšY˜[YNœİËœXÙOË˜Ú]_İËœXÙOËœİ™Y]	Ó™]][ÈÔÉË]œÛ]ÛœÛÛ‹[]˜][Û›[X™\ŠİËœXÙOË˜[]YJK™\Ü[YN›™]È]JK[Y\İ[\
+ŒL
+KÒTÓÔİš[™Ê
+K[\™[]]™R[ZY]N›[X™\ŠKš[ZY]JK™\Üİ\™N›[X™\ŠKœ™\Üİ\™JKÚ[™ÜYY›[X™\ŠKÚ[™Üİ™[™İ
+KÚ[™\™Xİ[Û›[X™\ŠKÚ[™Ø[™ÛJKÚ[™İ\İ›[X™\ŠK™İ\İÜİ™[™İ
+K™XÚ\]][Û›[X™\ŠKœ˜Z[—ÍŒZ[ÏÛKœ˜Z[—Û]™JK›İšY\‰Ó™]][ÈÙX]\›X\ÔÈ
+]]Üš\ÚY\\ˆTKVYØ[™ÊIË\İ[˜ÙN™\İÚ[™[š]‰ÚÛZ	ËXÔİ]\ÎŒ__JK™š[\Š›ÛÛX[ŠKœÛXÙJÍJNÂŸB™[˜İ[ÛˆŞ[›ÜXÓØœÙ\˜][ÛŠØœÙ\˜][ÛœË˜[Y\Ê^Ù›ÜŠÛÛœİ˜[YHÙˆ˜[Y\Ê^ØÛÛœİÙ^OSØš™XİšÙ^\ÊØœÙ\˜][ÛœßßJK™š[™
+ÏOšÏOO[˜[Y_Ëœİ\ÕÚ]
+	Û˜[Y_Wİ˜[YX
+JNÚYŠZÙ^JXÛÛ[YNØÛÛœİ˜]Ï[ØœÙ\˜][ÛœÖÚÙ^WK˜[YO[[X™\Š˜]ÏË˜[YOÏÜ˜]ÏË–ÌOË˜[YOÏÜ˜]ÊK]O\˜]ÏË™]Wİ[YOÏÜ˜]ÏË–ÌOË™]Wİ[YNÈYŠ˜[YHOO][™Yš[™Y
+\™]\›İ˜[YK]__\™]\›ßNßB˜\Ş[˜È[˜İ[ÛˆŞ[›ÜXÔ›İÜÊ]Û‹˜Y]\ÒÛKÚÙ[Š^ÂˆYŠ]ÚÙ[Š\™]\›–×NØÛÛœİZ[\ÏSX]›Z[ŠŒX]›X^
+˜Y]\ÒÛJJJŒŒŒLÍÌKO[™]ÈT“
+ÖS“ÔP×ÓUTÕ
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	İÚÙ[‰ËÚÙ[ŠNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ü˜Y]\ÉË	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_K	ÛZ[\ËÑš^Y
+J_X
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	Û[Z]	Ë	ÌÍIÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	İÚ][‰Ë	ÌLŒ	ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Üİ]\ÉË	ØXİ]™IÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	İ˜\œÉË	ØZ\—İ[\™[]]™WÚ[ZY]K]×ÜÚ[İ[\\˜]\™KÙXWÛ]™[Ü™\Üİ\™K™\Üİ\™KÚ[™ÜÜYYÚ[™Ù\™Xİ[Û‹Ú[™Ùİ\İ™XÚ\ØXØİ[WÛÛ™WÚİ\‰ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	İ[š]ÉË	İ[\ËÜYYİË™\ßX‹ZYÚK™XÚ\[IÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÜXÉË	ÛÛ‰ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÜX×ØÚXÚÜÉË	ÜŞ[›ÜXÛXœÉÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ÜX×Ü™[[İ™WÙ]IË	ÛÛ‰ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ûİ]]	Ë	ÚœÛÛ‰ÊNÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]Ú
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰ß_JNÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠŞ[›ÜXÈ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+NÚYŠ[X™\Š˜]ÏË”ÕSSPT–OË”‘TÔÓ”ÑWĞÓÑJOOOLŒ
+]›İÈ™]È\œ›ÜŠ	ÔŞ[›ÜXËUÚÙ[ˆšXÚ]]Üš\ÚY\	ÊNÂˆ™]\›Š\œ˜^Kš\Ğ\œ˜^J˜]ÏË”ÕUSÓŠOÜ˜]Ë”ÕUSÓ–×JK›X\
+İOØÛÛœİÛ][[X™\ŠİË“UUQJKÛÛ[[X™\ŠİË“Ó‘ÒUQJNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİØœÏ\İË“Ğ”ÑT•USÓ”ÏÏŞßK[\\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉØZ\—İ[\	×JK[O\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉÜ™[]]™WÚ[ZY]I×JK]Ï\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉÙ]×ÜÚ[İ[\\˜]\™I×JK™\Üİ\™O\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉÜÙXWÛ]™[Ü™\Üİ\™IË	Ü™\Üİ\™IË	Ø[[Y]\‰×JKÚ[™\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉİÚ[™ÜÜYY	×JK\™Xİ[Û\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉİÚ[™Ù\™Xİ[Û‰×JKİ\İ\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉİÚ[™Ùİ\İ	×JK™XÚ\\Ş[›ÜXÓØœÙ\˜][ÛŠØœËÉÜ™XÚ\ØXØİ[WÛÛ™WÚİ\‰×JK\İ[[X™\ŠİË‘TÕSÑJHOO][™Yš[™YÛ[X™\Šİ‘TÕSÑJJŒMŒKŒÍ™\İ[˜ÙJ]Û‹Û]ÛÛŠNÚYŠ[\˜[YOOO][™Yš[™Y\İ“X]›Z[ŠŒ˜Y]\ÒÛJJŒL
+\™]\›ˆ[Ü™]\›Üİ][Û’YœİË”ÕQ˜[YNœİË“SQ_İË”ÕQ]œÛ]ÛœÛÛ‹[]˜][Û›[X™\ŠİË‘SUUSÓŠK™\Ü[YN[\™]_[K™]_Ú[™™]K[\[\˜[YK]Ü™]Ë˜[YK™[]]™R[ZY]Nš[K˜[YK™\Üİ\™Nœ™\Üİ\™K˜[YKÚ[™ÜYYÚ[™˜[YKÚ[™\™Xİ[Û™\™Xİ[Û‹˜[YKÚ[™İ\İ™İ\İ˜[YK™XÚ\]][Ûœ™XÚ\˜[YK™XÚ\]][Û“Z[]\ÎŒ›İšY\˜Ş[›ÜXÈ]HÈY\ÛÕÙ\İSPQTÉÜİË“S‘UÒQØ
+	Üİ“S‘UÒQJX‰ÉßX\İ[˜ÙN™\İÚ[™[š]‰Úİ	ËXÔİ]\ÎœİË”P×Ñ“QÑÑQÌNŒŸ_JK™š[\Š›ÛÛX[ŠNÂŸB˜\Ş[˜È[˜İ[ÛˆÙX]\”›İÜÊ]Û‹˜Y]\ÒÛKÛY[YÛY[ÙXÜ™]
+^ÂˆYŠXÛY[YXÛY[ÙXÜ™]
+\™]\›–×NØÛÛœİO[™]ÈT“
+ÑPUT—ÓĞ”ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ü	Ë	Û]Ñš^Y
+J_K	ÛÛ‹Ñš^Y
+J_X
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	Û[Z]	Ë	ÌŒ	ÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	Ùš[\‰Ë	ÜÜÉÊNİKœÙX\˜Ú\˜[\ËœÙ]
+	ØÛY[ÚY	ËÛY[Y
+NİKœÙX\˜Ú\˜[\ËœÙ]
+	ØÛY[ÜÙXÜ™]	ËÛY[ÙXÜ™]
+NÂˆÛÛœİ™\ÜÛœÙOX]ØZ]™]Ú
+KÚXY\œÎĞXØÙ\‰Ø\XØ][Û‹ÚœÛÛ‰ß_JNÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠÙX]\ˆ	Ü™\ÜÛœÙKœİ]\ßX
+NØÛÛœİ˜]ÏX]ØZ]™\ÜÛœÙKšœÛÛŠ
+NÚYŠ˜]ÏËœİXØÙ\ÜÏOOY˜[ÙJ]›İÈ™]È\œ›ÜŠ˜]ÏË™\œ›ÜË™\ØÜš\[ÛŸ	ÖÙX]\‹PXœYˆ™ZÙ\ØÚYÙ[‰ÊNØÛÛœİ\İP\œ˜^Kš\Ğ\œ˜^J˜]ÏËœ™\ÜÛœÙJOÜ˜]Ëœ™\ÜÛœÙNœ˜]ÏËœ™\ÜÛœÙOÖÜ˜]Ëœ™\ÜÛœÙWN–×NÂˆ™]\›ˆ\İ›X\
+İOØÛÛœİØ\İË›ØÏŞßKÛ][[X™\ŠİË›ØÏË›]
+KÛÛ[[X™\ŠİË›ØÏË›Û™ÊNÚYŠÛ]OO][™Yš[™YÛÛOO][™Yš[™Y
+\™]\›ˆ[ØÛÛœİ\İ[[X™\ŠİËœ™[]]™UÏË™\İ[˜ÙRÓJHOO][™Yš[™YÛ[X™\Šİœ™[]]™UË™\İ[˜ÙRÓJJŒL™\İ[˜ÙJ]Û‹Û]ÛÛŠK\İ[[X™\ŠØË\İ˜XİÜŠKXÏ[[X™\ŠØË”PØÛÙJNÚYŠ\İ“X]›Z[ŠŒ˜Y]\ÒÛJJŒLXÏOOL
+\İOO][™Yš[™Y	‰\İJJ\™]\›ˆ[Ü™]\›Üİ][Û’YœİËšY˜[YNœİËœXÙOË›˜[Y_İËšY]œÛ]ÛœÛÛ‹[]˜][Û›[X™\ŠİËœ›Ùš[OË™[]“JK™\Ü[YN›ØË™]U[YRTÓßİË›Ø‘]U[YK[\›[X™\ŠØË[\ÊK]Ü›[X™\ŠØË™]ÜÚ[ÊK™[]]™R[ZY]N›[X™\ŠØËš[ZY]JK™\Üİ\™N›[X™\ŠØËœ™\Üİ\™SPŠKÚ[™ÜYY›[X™\ŠØËÚ[™ÜYYÕÊKÚ[™\™Xİ[Û›[X™\ŠØËÚ[™\‘QÊKÚ[™İ\İ›[X™\ŠØËÚ[™İ\İÕÊKÛİYÛİ™\›[X™\ŠØËœÚŞJK™XÚ\]][Û›[X™\ŠØËœ™XÚ\SJK›İšY\˜ÙX]\ˆØœÙ\˜][ÛœÉÜİË™]TÛİ\˜ÙOØÈ	Üİ™]TÛİ\˜Ù_X‰ÉßH
+^™[šY\\ˆTKVYØ[™ÊX\İ[˜ÙN™\İÚ[™[š]‰Úİ	ËXÔİ]\ÎœXÏOO][™Yš[™YÌNœXÏŒÌŒ\İ˜XİÜ\İ_JK™š[\ŠO	‰›[X™\Š[\
+HOO][™Yš[™Y
+NÂŸB

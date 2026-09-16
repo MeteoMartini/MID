@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.22",
+  "releaseVersion": "0.9.85.23",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -482,6 +482,7 @@
     "scripts/test-c3-navigation-warning-status-098513.mjs",
     "scripts/test-c3-shared-page-grid-098514.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
+    "scripts/test-c7-redesign-workspaces-098523.mjs",
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-current-precip-radolan-history-visible-098483.mjs",
     "scripts/test-release-gate-architecture-098484.mjs",
@@ -897,6 +898,7 @@
     "scripts/test-c3-navigation-warning-status-098513.mjs",
     "scripts/test-c3-shared-page-grid-098514.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
+    "scripts/test-c7-redesign-workspaces-098523.mjs",
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs",
@@ -2098,7 +2100,7 @@
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs"
   ],
-  "version": "0.9.85.22",
+  "version": "0.9.85.23",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

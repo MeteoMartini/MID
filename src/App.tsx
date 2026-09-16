@@ -1,1661 +1,3593 @@
-import {Fragment,lazy,memo,Suspense,useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type CSSProperties,type KeyboardEvent as ReactKeyboardEvent,type MouseEvent as ReactMouseEvent,type PointerEvent as ReactPointerEvent,type TouchEvent as ReactTouchEvent,type ReactNode,type RefObject} from 'react';
-import {AlertTriangle,BadgeCheck,Bell,CalendarDays,CalendarRange,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Cloud,CloudFog,CloudLightning,CloudRain,ClipboardCopy,Clock3,Download,Droplets,Eye,FileDown,Gauge,GripVertical,Info,LocateFixed,Menu,MountainSnow,Monitor,Moon,MoveDown,Navigation,PanelBottom,RefreshCw,Search,Settings2,SlidersHorizontal,Snowflake,Star,Sun,Thermometer,Trash2,Upload,Waves,WifiOff,Wind,X} from 'lucide-react';
-import {createPortal} from 'react-dom';
-import {AppInfoHint as InfoHint} from './AppInfoPopover';
-import {AppPortalPopover as PortalPopover} from './AppPortalPopover';
-import {MID_VERSION as VERSION} from './version';
-import {formatDecimal,formatDecimalFixed,formatUvi} from './format';
-import {sunshineHoursLabel,sunshineMinutesLabel,sunshineWholeHoursLabel} from './sunshineDuration';
-import {airQuality,airQualityStation,applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayPrecipitationAssessment,dayWeatherCharacter,dayWeatherCharacterText,dailyPrecipitationProbabilityCompact,dailyPrecipitationProbabilityTitle,ensembles,forecast,hazards,label,localIsoEpoch,mapDays,mapHours,mapMinutely15,precipitationDurationDayOverviewCompactLabel,precipitationDurationDayOverviewLabel,precipitationDurationLabel,recentSunshineDuration,validateWindPair,officialWarnings,radarNowcast,thunderstormNowcast,searchLocations,reverseLocation,station,stationFieldObservationUsable,uvAltitudeFactor,warningEnsembleNeighborhood,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type EnsembleScenarioCluster,type Hour,type Location,type Minute15,type ModelRunMeta,type OfficialAlert,type RadarNowcast,type Station,type StationFieldSource,type ThunderstormNowcast,type WarningEnsembleSupport,type Weather,type WindUnit} from './weather';
-import {chronologicalOfficialAlerts} from './officialWarningOrder';
-import {precipitationAmountLabel,precipitationIntensityDescriptor,precipitationParts,presentPrecipTypes,type PrecipitationParts,type PrecipSample,type PrecipType} from './precipitation';
-import {precipitationPresentationHours,precipitationPresentationMinutes15,precipitationSlotLabel} from './precipitationIntervals';
-import {precipitationPhaseColor} from './precipitationPhaseColor';
-import type {StationAnalysisField} from './sourceQuality';
-import {representativeDetailPictograms} from './detailPictograms';
-import {getMidUpdateStatus,repairMidCache,resetMidServiceWorker,rollbackMidVersion,type MidUpdateStatus} from './pwa';
-import {DWD_THERMAL_FEEL_COLORS,DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,dwdWindThresholdExceededKmh,dwdWindWarningLevelKt,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWarningDirection,formatDwdWindValue,summarizeDwdWarningsForDay,type DwdWarningKind,type DwdWarningLevel} from './dwdWarnings';
-import {clamp,monotoneSvgPath,nicePositiveRange,niceRange} from './chartMath';
-import {combineThunderstormInformation,type ThunderInfo,type ThunderInfoPlace} from './thunderstorm';
-import {combineHeavyRain,loadHeavyRainBase,type HeavyRainBase,type HeavyRainInfo} from './heavyRain';
-import {radarHistory,type RadarHistory} from './radarHistory';
-import {PwaInstallButton} from './PwaInstallButton';
-import {astronomicalIsDayAt,astronomySummary,formatAstronomyTime,solarDaylightWindowAt} from './astronomy';
-import {applyMountainProfile,defaultMountainConfig,dwdSnowfallLimit,MOUNTAIN_CLOUD_PROFILE_LEVELS,mountainCurrentValue,mountainLevelLabel,mountainProfile,mountainProfileSourceLabel,mountainSeasonLabel,mountainSportsForecast,mountainTimeEpoch,normalizeMountainConfig,type MountainConfig,type MountainLevelForecast,type MountainSeason,type MountainSnowLineModel,type MountainSportsForecast} from './mountainSports';
-import {DEFAULT_PUSH_PRECIPITATION_ALERT,syncPushNotifications,type PushNotificationInterval,type PushPrecipitationAlertSettings,type PushPrecipitationDurationMinutes,type PushPrecipitationLeadMinutes,type PushPrecipitationThresholdMm,type PushRuleFavorite} from './pushNotifications';
-import {PushSettingsPanel} from './PushSettingsPanel';
-import {getWebAnalyticsStatus,type WebAnalyticsStatus} from './webAnalytics';
-import {DeviceSyncSettings} from './DeviceSyncSettings';
-import {ICloudBackupSettings} from './ICloudBackupSettings';
-import {WeatherTwinSettings as WeatherTwinSettingsPanel} from './WeatherTwinSettings';
-import {VentilationAssistantPanel} from './VentilationAssistantPanel';
-import {fetchConnectedStation,readConnectedStationConfig,type ConnectedStationObservation} from './connectedStation';
-import {readVentilationAssistantSettings,ventilationPushConfig,type VentilationAssistantSettings} from './ventilationAssistant';
-import {AppleWidgetSettings} from './AppleWidgetSettings';
-import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,ensembleConfidenceCalibrationFromReport,readWeatherTwinSettings,recordForecastCapture,recordLiveTwinObservation,refreshForecastReferences,restoreForecastVerificationArchive,writeWeatherTwinSettings,type ForecastVerificationReport,type TwinMainForecastStatus,type WeatherTwinSettings} from './forecastVerification';
-import {classifyEuropeanAirQuality,describeEuropeanAqiPollutantScale,EUROPEAN_AQI_BANDS,stationClassLabel,type AirQualityStationMeta,type EuropeanAqiPollutantResult,type EuropeanAirQualityResult} from './airQuality';
-import {learnWeatherTwinsForFavorites} from './twinBackgroundLearning';
-import {isOpenMeteoRateLimitError} from './openMeteoGuard';
-import {significantHourlyThunderRisk} from './detailThunderRisk';
-import {significantPeriodThunderRisk,type PeriodThunderRisk} from './detailThunderRisk';
-import {ShortTermForecast,shortTermAnchorFromCurrent} from './ShortTermForecast';
-import {hyperlocalSkyCondition} from './currentConditions';
-import {WeatherPictogram,synopticPhenomenonDescription,synopticPhenomenonPictogram,weatherPictogramIntensity,weatherPictogramKind} from './WeatherPictogram';
-import {DashboardModuleSettingsPanel,type DashboardModuleSettingsUpdater} from './DashboardModuleSettings';
-import {DASHBOARD_MODULE_DEFINITIONS,readDashboardModuleSettings,writeDashboardModuleSettings,type DashboardModuleId,type DashboardModuleSettings} from './dashboardModules';
-import {consumeDeviceSyncTransferFromLocation} from './deviceSync';
-import {SevenDayForecastSummary,buildSevenDayForecastSummary} from './SevenDayForecastSummary';
-import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
-import {detailSkyBarSegments} from './detailSkyBar';
-import {SkyBarSegmentsSvg} from './SkyBarSegments';
-import {applyForecastFusionDays,applyForecastFusionHours,applyForecastFusionModelDays,applyHyperlocalForecastHours,dryRadarNowcastProbability,finalizeForecastHours,finalizeForecastMinute15,reconcileForecastDaysWithHours,forecastFusionLabel,loadForecastFusion,rapidThunderRisk,significantRapidThunderRisk,type ForecastFusionRapidMinute15,type ForecastFusionResult,type RapidThunderRisk} from './forecastFusion';
-import {ForecastCockpit,SevenDayCurveOverview,type ForecastPresentationMode} from './ForecastCockpit';
-import {normalizeConfidenceDisplayMode,type ConfidenceDisplayMode} from './confidenceDisplay';
-import {nicePressureAxis} from './pressureAxis';
-import {compactSevenDayConditionLabel} from './forecastDayLabel';
-import {forecastDayRegime,type ForecastDayRegime} from './forecastRegime';
-import {ForecastSourceDiagnostics} from './ForecastSourceDiagnostics';
-import {ecmwfTemperatureTone,hourlyTemperatureTone} from './temperatureTone';
-import {displayTimeLabel,displayTimeZone,formatDisplayDateTime,formatLocalIsoDisplayTime,localIsoToEpoch,localTimeDisambiguationSuffix,readTimeDisplayMode,setTimeDisplayLocalZone,writeTimeDisplayMode,type TimeDisplayMode} from './timeDisplay';
-import {applyUiDensity,readUiDensityPreference,writeUiDensityPreference,type ResolvedUiDensity,type UiDensityPreference} from './uiDensity';
-import {EVENT_CENTER_OPEN_EVENT,EVENT_CENTER_REFRESH_DONE_EVENT,EVENT_CENTER_UPDATED_EVENT,deleteEventCenterRecord,isEventCenterRecordExpired,persistEventCenterRefreshRequest,readEventCenterRecords,sortEventCenterRecords,type EventCenterRecord} from './eventCenter';
-import {EventFeasibilityDot} from './EventFeasibilityDot';
-import {refreshAllEventWeather,startEventWeatherMonitor} from './eventWeatherRefresh';
-import {markForegroundNetworkBusy,markForegroundNetworkReady,runBackgroundNetworkTask} from './backgroundNetwork';
-import {getMidCurrentPosition} from './locationPlatform';
-import {captureMidExternalOAuthReturn,finishMidExternalOAuthReturn} from './externalNavigation';
-import {takePendingMidNativeUrl,type MidNativeUrlOpen} from './runtimePlatform';
-import {MID_RUNTIME_RESUME_EVENT,type MidRuntimeResumeDetail} from './runtimeLifecycle';
-import {shareOrExportMidFile} from './filePlatform';
-import {startupEnsembleForLocation,startupForecastForLocation,startupRadarForLocation,startupStationEnrichmentForLocation,startupStationForLocation} from './startupPreload';
-import {MidDisclosure} from './UiPrimitives';
-import {periodWeatherVisual,type PeriodWeatherVisual} from './periodWeatherVisual';
-import {readAnalysisCache,readAnalysisCacheEntry,writeAnalysisCache} from './analysisCache';
-import {appendIsoCountry,conciseThunderPlace,readThunderPlaceCache,resolveThunderPlace,thunderPlaceGridKey,type ThunderPlaceNames} from './thunderPlaceCache';
-import {readWidgetUrlExportRequest,type WidgetUrlExportRequest} from './widgetUrlExports';
-import {freezeWidgetSvgPaintsForExport} from './widgetImageExport';
-import type {EnsembleDisplayMetric} from './EnsemblePanel';
-import {loadExtremeWeatherOutlook} from './extremeWeatherOutlook';
-export {buildSevenDayForecastSummary} from './SevenDayForecastSummary';
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×¿vßÄèµ©hºÚn¶X§zÍZ[\ÜÑœ˜YÛY[^KY[[Ëİ\Ü[œÙK\ÙPØ[˜XÚË\ÙQY™™Xİ\ÙS^[İ]Y™™Xİ\ÙSY[[Ë\ÙT™Y‹\ÙTİ]K\HÔÔÔ›Ü\Y\Ë\HÙ^X›Ø\™]™[\È™XXİÙ^X›Ø\™]™[\H[İ\ÙQ]™[\È™XXİ[İ\ÙQ]™[\HÚ[\‘]™[\È™XXİÚ[\‘]™[\HİXÚ]™[\È™XXİİXÚ]™[\H™XXİ›ÙK\H™Y“Øš™XİHœ›ÛH	Ü™XXİ	ÎÂš[\ÜĞ[\šX[™ÛK˜YÙPÚXÚË™[Ø[[™\‘^\ËØ[[™\”˜[™ÙKÚ]œ›Û‘İÛ‹Ú]œ›Û“YÚ]œ›Û”šYÚÚ]œ›Û•\ÛİYÛİY›ÙËÛİYYÚš[™ËÛİY˜Z[‹Û\›Ø\™ÛÜKÛØÚÌËİÛ›ØY›Ü]Ë^YKš[QİÛ‹Ø]YÙKÜš\™\XØ[[™›ËØØ]Qš^YY[K[İ[Z[”Û›İË[Ûš]Ü‹[ÛÛ‹[İ™QİÛ‹˜]šYØ][Û‹[™[›İÛK™Yœ™\ÚİËÙX\˜ÚÙ][™ÜÌ‹ÛY\œÒÜš^›Û[Û›İÙ›ZÙKİ\‹İ[‹\›[ÛY]\‹˜\Ú‹\ØYØ]™\ËÚYšSÙ™‹Ú[™Hœ›ÛH	ÛXÚYK\™XXİ	ÎÂš[\ÜØÜ™X]TÜ[Hœ›ÛH	Ü™XXİYÛIÎÂš[\ÜĞ\[™›Ò[\È[™›Ò[Hœ›ÛH	Ë‹Ğ\[™›ÔÜİ™\‰ÎÂš[\ÜĞ\Ü[Üİ™\ˆ\ÈÜ[Üİ™\ŸHœ›ÛH	Ë‹Ğ\Ü[Üİ™\‰ÎÂš[\ÜÓRQÕ‘T”ÒSÓˆ\È‘T”ÒSÓŸHœ›ÛH	Ë‹İ™\œÚ[Û‰ÎÂš[\ÜÙ›Ü›X]XÚ[X[›Ü›X]XÚ[X[š^Y›Ü›X]]š_Hœ›ÛH	Ë‹Ù›Ü›X]	ÎÂš[\ÜÜİ[œÚ[™Rİ\œÓX™[İ[œÚ[™SZ[]\ÓX™[İ[œÚ[™UÚÛRİ\œÓX™[Hœ›ÛH	Ë‹Üİ[œÚ[™Q\˜][Û‰ÎÂš[\ÜØZ\”]X[]KZ\”]X[]Tİ][Û‹\Q[œÙ[X›QZ[T™XÚ\]][Û”›Ø˜Xš[]K™\İX]Ú[Ù[[™›ËÛ[X]ÛÙŞKÛİYÚİ\ËÛİ[PÛÙQœ›ÛSØØ][Û‹ÛİYÚİ\Õ^İ\œ™[[™^^T™XÚ\]][Û\ÜÙ\ÜÛY[^UÙX]\Ú\˜Xİ\‹^UÙX]\Ú\˜Xİ\•^Z[T™XÚ\]][Û”›Ø˜Xš[]PÛÛ\XİZ[T™XÚ\]][Û”›Ø˜Xš[]U]K[œÙ[X›\Ë›Ü™XØ\İ^˜\™ËX™[ØØ[\ÛÑ\ØÚX\^\ËX\İ\œËX\Z[][LMK™XÚ\]][Û‘\˜][Û‘^Sİ™\šY]ĞÛÛ\XİX™[™XÚ\]][Û‘\˜][Û‘^Sİ™\šY]ÓX™[™XÚ\]][Û‘\˜][Û“X™[™XÙ[İ[œÚ[™Q\˜][Û‹˜[Y]UÚ[™Z\‹Ù™šXÚX[Ø\›š[™ÜË˜Y\“›İØØ\İ[™\œİÜ›S›İØØ\İÙX\˜ÚØØ][ÛœË™]™\œÙSØØ][Û‹İ][Û‹İ][Û‘šY[ØœÙ\˜][Û•\ØX›K][]YQ˜XİÜ‹Ø\›š[™Ñ[œÙ[X›S™ZYÚ›ÜšÛÙÚ[™\H™\İX]Ú[Ù[[™›Ë\HÛ[X]Q^K\H^K\H[œÙ[X›Q^K\H[œÙ[X›TØÙ[˜\š[ĞÛ\İ\‹\Hİ\‹\HØØ][Û‹\HZ[]LMK\H[Ù[[“Y]K\HÙ™šXÚX[[\\H˜Y\“›İØØ\İ\Hİ][Û‹\Hİ][Û‘šY[Ûİ\˜ÙK\H[™\œİÜ›S›İØØ\İ\HØ\›š[™Ñ[œÙ[X›Tİ\Ü\HÙX]\‹\HÚ[™[š]Hœ›ÛH	Ë‹İÙX]\‰ÎÂš[\ÜØÚ›Û›ÛÙÚXØ[Ù™šXÚX[[\ßHœ›ÛH	Ë‹ÛÙ™šXÚX[Ø\›š[™ÓÜ™\‰ÎÂš[\ÜÜ™XÚ\]][Û[[İ[X™[™XÚ\]][Û’[[œÚ]Q\ØÜš\Ü‹™XÚ\]][Û”\Ë™\Ù[™XÚ\\\Ë\H™XÚ\]][Û”\Ë\H™XÚ\Ø[\K\H™XÚ\\_Hœ›ÛH	Ë‹Ü™XÚ\]][Û‰ÎÂš[\ÜÜ™XÚ\]][Û”™\Ù[][Û’İ\œË™XÚ\]][Û”™\Ù[][Û“Z[]\ÌMK™XÚ\]][Û”ÛİX™[Hœ›ÛH	Ë‹Ü™XÚ\]][Û’[\˜[ÉÎÂš[\ÜÜ™XÚ\]][Û”\ÙPÛÛÜŸHœ›ÛH	Ë‹Ü™XÚ\]][Û”\ÙPÛÛÜ‰ÎÂš[\Ü\HÔİ][Û[˜[\Ú\ÑšY[Hœ›ÛH	Ë‹ÜÛİ\˜ÙT]X[]IÎÂš[\ÜÜ™\™\Ù[]]™Q]Z[XİÙÜ˜[\ßHœ›ÛH	Ë‹Ù]Z[XİÙÜ˜[\ÉÎÂš[\ÜÙÙ]ZY\]Tİ]\Ë™\Z\“ZYØXÚK™\Ù]ZYÙ\šXÙUÛÜšÙ\‹›Û˜XÚÓZY™\œÚ[Û‹\HZY\]Tİ]\ßHœ›ÛH	Ë‹ÜØIÎÂš[\ÜÑÑÕT“PSÑ‘QSĞÓÓÔ”ËÑÕĞT“’S‘×ĞÓÓÔ”ËÑÕÒS‘Õ‘TÒÓ×ÒÓRÙÚ[™™\ÚÛ^ÙYYYÛZÙÚ[™Ø\›š[™Ó]™[İ›Ü›X]ÙØ\›š[™ĞÛÛ\Xİ˜[YK›Ü›X]ÙØ\›š[™Ñ]Z[›Ü›X]ÙØ\›š[™Ñ\™Xİ[Û‹›Ü›X]ÙÚ[™˜[YKİ[[X\š^™QÙØ\›š[™ÜÑ›Ü‘^K\HÙØ\›š[™ÒÚ[™\HÙØ\›š[™Ó]™[Hœ›ÛH	Ë‹ÙÙØ\›š[™ÜÉÎÂš[\ÜØÛ[\[Û›İÛ™Tİ™Ô]šXÙTÜÚ]]™T˜[™ÙKšXÙT˜[™Ù_Hœ›ÛH	Ë‹ØÚ\X]	ÎÂš[\ÜØÛÛXš[™U[™\œİÜ›R[™›Ü›X][Û‹\H[™\’[™›Ë\H[™\’[™›ÔXÙ_Hœ›ÛH	Ë‹İ[™\œİÜ›IÎÂš[\ÜØÛÛXš[™RX]T˜Z[‹ØYX]T˜Z[˜\ÙK\HX]T˜Z[˜\ÙK\HX]T˜Z[’[™›ßHœ›ÛH	Ë‹ÚX]T˜Z[‰ÎÂš[\ÜÜ˜Y\’\İÜK\H˜Y\’\İÜ_Hœ›ÛH	Ë‹Ü˜Y\’\İÜIÎÂš[\ÜÔØR[œİ[]ÛŸHœ›ÛH	Ë‹ÔØR[œİ[]Û‰ÎÂš[\ÜØ\İ›Û›ÛZXØ[\Ñ^P]\İ›Û›Û^Tİ[[X\K›Ü›X]\İ›Û›Û^U[YKÛÛ\‘^[YÚÚ[™İĞ]Hœ›ÛH	Ë‹Ø\İ›Û›Û^IÎÂš[\ÜØ\S[İ[Z[”›Ùš[KY˜][[İ[Z[ÛÛ™šYËÙÛ›İÙ˜[[Z]SÕS•RS—ĞÓÕQÔ“Ñ’SWÓU‘SË[İ[Z[İ\œ™[˜[YK[İ[Z[“]™[X™[[İ[Z[”›Ùš[K[İ[Z[”›Ùš[TÛİ\˜ÙSX™[[İ[Z[”ÙX\ÛÛ“X™[[İ[Z[”ÜÜÑ›Ü™XØ\İ[İ[Z[•[YQ\ØÚ›Ü›X[^™S[İ[Z[ÛÛ™šYË\H[İ[Z[ÛÛ™šYË\H[İ[Z[“]™[›Ü™XØ\İ\H[İ[Z[”ÙX\ÛÛ‹\H[İ[Z[”Û›İÓ[™S[Ù[\H[İ[Z[”ÜÜÑ›Ü™XØ\İHœ›ÛH	Ë‹Û[İ[Z[”ÜÜÉÎÂš[\ÜÑQUSÔTÒÔ‘PÒTUUSÓ—ĞST•Ş[˜Ô\Ú›İYšXØ][ÛœË\H\Ú›İYšXØ][Û’[\˜[\H\Ú™XÚ\]][Û[\Ù][™ÜË\H\Ú™XÚ\]][Û‘\˜][Û“Z[]\Ë\H\Ú™XÚ\]][Û“XYZ[]\Ë\H\Ú™XÚ\]][Û•™\ÚÛ[K\H\Ú[Q˜]›Üš]_Hœ›ÛH	Ë‹Ü\Ú›İYšXØ][ÛœÉÎÂš[\ÜÔ\ÚÙ][™ÜÔ[™[Hœ›ÛH	Ë‹Ô\ÚÙ][™ÜÔ[™[	ÎÂš[\ÜÙÙ]ÙX[˜[]XÜÔİ]\Ë\HÙX[˜[]XÜÔİ]\ßHœ›ÛH	Ë‹İÙX[˜[]XÜÉÎÂš[\ÜÑ]šXÙTŞ[˜ÔÙ][™ÜßHœ›ÛH	Ë‹Ñ]šXÙTŞ[˜ÔÙ][™ÜÉÎÂš[\ÜÒPÛİY˜XÚİ\Ù][™ÜßHœ›ÛH	Ë‹ÒPÛİY˜XÚİ\Ù][™ÜÉÎÂš[\ÜÕÙX]\•Ú[”Ù][™ÜÈ\ÈÙX]\•Ú[”Ù][™ÜÔ[™[Hœ›ÛH	Ë‹ÕÙX]\•Ú[”Ù][™ÜÉÎÂš[\ÜÕ™[[][Û\ÜÚ\İ[[™[Hœ›ÛH	Ë‹Õ™[[][Û\ÜÚ\İ[[™[	ÎÂš[\ÜÙ™]ÚÛÛ›™XİYİ][Û‹™XYÛÛ›™XİYİ][ÛÛÛ™šYË\HÛÛ›™XİYİ][Û“ØœÙ\˜][ÛŸHœ›ÛH	Ë‹ØÛÛ›™XİYİ][Û‰ÎÂš[\ÜÜ™XY™[[][Û\ÜÚ\İ[Ù][™ÜË™[[][Û”\ÚÛÛ™šYË\H™[[][Û\ÜÚ\İ[Ù][™ÜßHœ›ÛH	Ë‹İ™[[][Û\ÜÚ\İ[	ÎÂš[\ÜĞ\UÚYÙ]Ù][™ÜßHœ›ÛH	Ë‹Ğ\UÚYÙ]Ù][™ÜÉÎÂš[\ÜØ\SØØ[Ú[‘›Ü™XØ\İœ›ÛT™\Ü\SØØ[Ú[’İ\œËZ[›Ü™XØ\İ™\šYšXØ][Û”™\Ü[œÙ[X›PÛÛ™šY[˜ÙPØ[Xœ˜][Û‘œ›ÛT™\Ü™XYÙX]\•Ú[”Ù][™ÜË™XÛÜ™›Ü™XØ\İØ\\™K™XÛÜ™]™UÚ[“ØœÙ\˜][Û‹™Yœ™\Ú›Ü™XØ\İ™Y™\™[˜Ù\Ë™\İÜ™Q›Ü™XØ\İ™\šYšXØ][Û\˜Ú]™KÜš]UÙX]\•Ú[”Ù][™ÜË\H›Ü™XØ\İ™\šYšXØ][Û”™\Ü\HÚ[“XZ[‘›Ü™XØ\İİ]\Ë\HÙX]\•Ú[”Ù][™ÜßHœ›ÛH	Ë‹Ù›Ü™XØ\İ™\šYšXØ][Û‰ÎÂš[\ÜØÛ\ÜÚYQ]\›ÜX[Z\”]X[]K\ØÜšX™Q]\›ÜX[\ZTÛ][ØØ[KUT“ÔPS—ĞTRWĞS‘Ëİ][ÛÛ\ÜÓX™[\HZ\”]X[]Tİ][Û“Y]K\H]\›ÜX[\ZTÛ][™\İ[\H]\›ÜX[Z\”]X[]T™\İ[Hœ›ÛH	Ë‹ØZ\”]X[]IÎÂš[\ÜÛX\›•ÙX]\•Ú[œÑ›Ü‘˜]›Üš]\ßHœ›ÛH	Ë‹İÚ[˜XÚÙÜ›İ[™X\›š[™ÉÎÂš[\ÜÚ\ÓÜ[“Y][Ô˜]S[Z]\œ›ÜŸHœ›ÛH	Ë‹ÛÜ[“Y][ÑİX\™	ÎÂš[\ÜÜÚYÛšYšXØ[İ\›U[™\”š\ÚßHœ›ÛH	Ë‹Ù]Z[[™\”š\ÚÉÎÂš[\ÜÜÚYÛšYšXØ[\š[Ù[™\”š\ÚË\H\š[Ù[™\”š\ÚßHœ›ÛH	Ë‹Ù]Z[[™\”š\ÚÉÎÂš[\ÜÔÚÜ\›Q›Ü™XØ\İÚÜ\›P[˜ÚÜ‘œ›ÛPİ\œ™[Hœ›ÛH	Ë‹ÔÚÜ\›Q›Ü™XØ\İ	ÎÂš[\ÜÚ\\›ØØ[ÚŞPÛÛ™][ÛŸHœ›ÛH	Ë‹Øİ\œ™[ÛÛ™][ÛœÉÎÂš[\ÜÕÙX]\”XİÙÜ˜[KŞ[›ÜXÔ[›ÛY[›Û‘\ØÜš\[Û‹Ş[›ÜXÔ[›ÛY[›Û”XİÙÜ˜[KÙX]\”XİÙÜ˜[R[[œÚ]KÙX]\”XİÙÜ˜[RÚ[™Hœ›ÛH	Ë‹ÕÙX]\”XİÙÜ˜[IÎÂš[\ÜÑ\Ú›Ø\™[Ù[TÙ][™ÜÔ[™[\H\Ú›Ø\™[Ù[TÙ][™ÜÕ\]\ŸHœ›ÛH	Ë‹Ñ\Ú›Ø\™[Ù[TÙ][™ÜÉÎÂš[\ÜÑTÒ“ĞT‘ÓSÑSWÑQ’S’USÓ”Ë™XY\Ú›Ø\™[Ù[TÙ][™ÜËÜš]Q\Ú›Ø\™[Ù[TÙ][™ÜË\H\Ú›Ø\™[Ù[RY\H\Ú›Ø\™[Ù[TÙ][™ÜßHœ›ÛH	Ë‹Ù\Ú›Ø\™[Ù[\ÉÎÂš[\ÜØÛÛœİ[YQ]šXÙTŞ[˜Õ˜[œÙ™\‘œ›ÛSØØ][ÛŸHœ›ÛH	Ë‹Ù]šXÙTŞ[˜ÉÎÂš[\ÜÔÙ]™[‘^Q›Ü™XØ\İİ[[X\KZ[Ù]™[‘^Q›Ü™XØ\İİ[[X\_Hœ›ÛH	Ë‹ÔÙ]™[‘^Q›Ü™XØ\İİ[[X\IÎÂš[\ÜÙ^T\š[Ùİ\œÑ›Ü‘]K›ÛİÚ[™ÓšYÚİ\œÑ›Ü‘]_Hœ›ÛH	Ë‹Ù›Ü™XØ\İ\š[ÙÉÎÂš[\ÜÙ]Z[ÚŞP˜\”ÙYÛY[ßHœ›ÛH	Ë‹Ù]Z[ÚŞP˜\‰ÎÂš[\ÜÔÚŞP˜\”ÙYÛY[Ôİ™ßHœ›ÛH	Ë‹ÔÚŞP˜\”ÙYÛY[ÉÎÂš[\ÜØ\Q›Ü™XØ\İ\Ú[Û‘^\Ë\Q›Ü™XØ\İ\Ú[Û’İ\œË\Q›Ü™XØ\İ\Ú[Û“[Ù[^\Ë\R\\›ØØ[›Ü™XØ\İİ\œËT˜Y\“›İØØ\İ›Ø˜Xš[]Kš[˜[^™Q›Ü™XØ\İİ\œËš[˜[^™Q›Ü™XØ\İZ[]LMK™XÛÛ˜Ú[Q›Ü™XØ\İ^\ÕÚ]İ\œË›Ü™XØ\İ\Ú[Û“X™[ØY›Ü™XØ\İ\Ú[Û‹˜\Y[™\”š\ÚËÚYÛšYšXØ[˜\Y[™\”š\ÚË\H›Ü™XØ\İ\Ú[Û”˜\YZ[]LMK\H›Ü™XØ\İ\Ú[Û”™\İ[\H˜\Y[™\”š\ÚßHœ›ÛH	Ë‹Ù›Ü™XØ\İ\Ú[Û‰ÎÂš[\ÜÑ›Ü™XØ\İÛØÚÜ]Ù]™[‘^Pİ\™Sİ™\šY]Ë\H›Ü™XØ\İ™\Ù[][Û“[Ù_Hœ›ÛH	Ë‹Ñ›Ü™XØ\İÛØÚÜ]	ÎÂš[\ÜÛ›Ü›X[^™PÛÛ™šY[˜ÙQ\Ü^S[ÙK\HÛÛ™šY[˜ÙQ\Ü^S[Ù_Hœ›ÛH	Ë‹ØÛÛ™šY[˜ÙQ\Ü^IÎÂš[\ÜÛšXÙT™\Üİ\™P^\ßHœ›ÛH	Ë‹Ü™\Üİ\™P^\ÉÎÂš[\ÜØÛÛ\XİÙ]™[‘^PÛÛ™][Û“X™[Hœ›ÛH	Ë‹Ù›Ü™XØ\İ^SX™[	ÎÂš[\ÜÙ›Ü™XØ\İ^T™YÚ[YK\H›Ü™XØ\İ^T™YÚ[Y_Hœ›ÛH	Ë‹Ù›Ü™XØ\İ™YÚ[YIÎÂš[\ÜÑ›Ü™XØ\İÛİ\˜ÙQXYÛ›ÜİXÜßHœ›ÛH	Ë‹Ñ›Ü™XØ\İÛİ\˜ÙQXYÛ›ÜİXÜÉÎÂš[\ÜÙXÛ]Ù•[\\˜]\™UÛ™Kİ\›U[\\˜]\™UÛ™_Hœ›ÛH	Ë‹İ[\\˜]\™UÛ™IÎÂš[\ÜÙ\Ü^U[YSX™[\Ü^U[YV›Û™K›Ü›X]\Ü^Q]U[YK›Ü›X]ØØ[\ÛÑ\Ü^U[YKØØ[\ÛÕÑ\ØÚØØ[[YQ\Ø[XšYİX][Û”İY™š^™XY[YQ\Ü^S[ÙKÙ][YQ\Ü^SØØ[›Û™KÜš]U[YQ\Ü^S[ÙK\H[YQ\Ü^S[Ù_Hœ›ÛH	Ë‹İ[YQ\Ü^IÎÂš[\ÜØ\UZQ[œÚ]K™XYZQ[œÚ]T™Y™\™[˜ÙKÜš]UZQ[œÚ]T™Y™\™[˜ÙK\H™\ÛÛ™YZQ[œÚ]K\HZQ[œÚ]T™Y™\™[˜Ù_Hœ›ÛH	Ë‹İZQ[œÚ]IÎÂš[\ÜÑU‘S•ĞÑS•T—ÓÔS—ÑU‘S•U‘S•ĞÑS•T—Ô‘Q”‘TÒÑÓ‘WÑU‘S•U‘S•ĞÑS•T—ÕTUQÑU‘S•[]Q]™[Ù[\”™XÛÜ™\Ñ]™[Ù[\”™XÛÜ™^\™Y\œÚ\İ]™[Ù[\”™Yœ™\Ú™\]Y\İ™XY]™[Ù[\”™XÛÜ™ËÛÜ]™[Ù[\”™XÛÜ™Ë\H]™[Ù[\”™XÛÜ™Hœ›ÛH	Ë‹Ù]™[Ù[\‰ÎÂš[\ÜÑ]™[™X\ÚXš[]QİHœ›ÛH	Ë‹Ñ]™[™X\ÚXš[]Qİ	ÎÂš[\ÜÜ™Yœ™\Ú[]™[ÙX]\‹İ\]™[ÙX]\“[Ûš]ÜŸHœ›ÛH	Ë‹Ù]™[ÙX]\”™Yœ™\Ú	ÎÂš[\ÜÛX\šÑ›Ü™YÜ›İ[™™]ÛÜšĞ\ŞKX\šÑ›Ü™YÜ›İ[™™]ÛÜšÔ™XYK[˜XÚÙÜ›İ[™™]ÛÜšÕ\ÚßHœ›ÛH	Ë‹Ø˜XÚÙÜ›İ[™™]ÛÜšÉÎÂš[\ÜÙÙ]ZYİ\œ™[ÜÚ][ÛŸHœ›ÛH	Ë‹ÛØØ][Û”]›Ü›IÎÂš[\ÜØØ\\™SZY^\›˜[Ğ]]™]\›‹š[š\ÚZY^\›˜[Ğ]]™]\›ŸHœ›ÛH	Ë‹Ù^\›˜[˜]šYØ][Û‰ÎÂš[\ÜİZÙT[™[™ÓZY˜]]™U\›\HZY˜]]™U\›Ü[ŸHœ›ÛH	Ë‹Ü[[YT]›Ü›IÎÂš[\ÜÓRQÔ•S•SQWÔ‘TÕSQWÑU‘S•\HZY[[YT™\İ[YQ]Z[Hœ›ÛH	Ë‹Ü[[YSY™XŞXÛIÎÂš[\ÜÜÚ\™SÜ‘^ÜZYš[_Hœ›ÛH	Ë‹Ùš[T]›Ü›IÎÂš[\ÜÜİ\\[œÙ[X›Q›Ü“ØØ][Û‹İ\\›Ü™XØ\İ›Ü“ØØ][Û‹İ\\˜Y\‘›Ü“ØØ][Û‹İ\\İ][Û‘[œšXÚY[›Ü“ØØ][Û‹İ\\İ][Û‘›Ü“ØØ][ÛŸHœ›ÛH	Ë‹Üİ\\™[ØY	ÎÂš[\ÜÓZY\ØÛÜİ\™_Hœ›ÛH	Ë‹ÕZTš[Z]]™\ÉÎÂš[\ÜÜ\š[ÙÙX]\•š\İX[\H\š[ÙÙX]\•š\İX[Hœ›ÛH	Ë‹Ü\š[ÙÙX]\•š\İX[	ÎÂš[\ÜÜ™XY[˜[\Ú\ĞØXÚK™XY[˜[\Ú\ĞØXÚQ[KÜš]P[˜[\Ú\ĞØXÚ_Hœ›ÛH	Ë‹Ø[˜[\Ú\ĞØXÚIÎÂš[\ÜØ\[™\ÛĞÛİ[KÛÛ˜Ú\ÙU[™\”XÙK™XY[™\”XÙPØXÚK™\ÛÛ™U[™\”XÙK[™\”XÙQÜšYÙ^K\H[™\”XÙS˜[Y\ßHœ›ÛH	Ë‹İ[™\”XÙPØXÚIÎÂš[\ÜÜ™XYÚYÙ]\›^Ü™\]Y\İ\HÚYÙ]\›^Ü™\]Y\İHœ›ÛH	Ë‹İÚYÙ]\›^ÜÉÎÂš[\ÜÙœ™Y^™UÚYÙ]İ™ÔZ[Ñ›Ü‘^ÜHœ›ÛH	Ë‹İÚYÙ][XYÙQ^Ü	ÎÂš[\Ü\HÑ[œÙ[X›Q\Ü^SY]šXßHœ›ÛH	Ë‹Ñ[œÙ[X›T[™[	ÎÂš[\ÜÛØY^™[YUÙX]\“İ]ÛÚßHœ›ÛH	Ë‹Ù^™[YUÙX]\“İ]ÛÚÉÎÂ™^ÜØZ[Ù]™[‘^Q›Ü™XØ\İİ[[X\_Hœ›ÛH	Ë‹ÔÙ]™[‘^Q›Ü™XØ\İİ[[X\IÎÂ‚˜ÛÛœİQÒÓÑÓ×ÔUIË‹ÛZY[ÙÛË[YÚXÛÛ\Xİœ™ÉÎÂ˜ÛÛœİT’×ÓÑÓ×ÔUIË‹ÛZY[ÙÛËY\šËXÛÛ\Xİœ™ÉÎÂ˜ÛÛœİQÒÑU’PÓÓ—ÔUIË‹ÛZYY˜]šXÛÛ‹[YÚMœ™ÉÎÂ˜ÛÛœİT’×ÑU’PÓÓ—ÔUIË‹ÛZYY˜]šXÛÛ‹Y\šËMœ™ÉÎÂ˜ÛÛœİĞĞUSÓ—ÔÕÔQÑWÒÑVOIÛZY›\İØØ][Û‰ÎÂ˜ÛÛœİĞĞUSÓ—ÕTUQĞUÒÑVOIÛZY›\İØØ][Û\]YX]	ÎÂ‚˜ÛÛœİU“Ô’UT×ÔÕÔQÑWÒÑVOIÛZY™˜]›Üš]\ÉÎÂ˜ÛÛœİU“Ô’UT×ÕTUQĞUÒÑVOIÛZY™˜]›Üš]\Î\]YX]	ÎÂ˜ÛÛœİU“Ô’UT×ÔÒQÕ×ÒÑVOIÛZY™˜]›Üš]\ÎœÚYİÎŒIÎÂ˜ÛÛœİU“Ô’UT×ÕÓP”ÕÓ‘T×ÒÑVOIÛZY™˜]›Üš]\ÎÛXœİÛ™\ÎŒIÎÂ˜ÛÛœİU“Ô’UT×ÓÔ‘T—ÒÑVOIÛZY™˜]›Üš]\Î›Ü™\ŒIÎÂ˜ÛÛœİSQWÔÕÔQÑWÒÑVOIİ[YIÎÂ˜ÛÛœİ”S‘ÓÑÓ×ÔÕÔQÑWÒÑVOIÛZY˜œ˜[™ÙÛÕ˜\šX[	ÎÂ˜ÛÛœİTÒQÓ—ÓSÑWÔÕÔQÑWÒÑVOIÛZY™\ÚYÛ“[ÙNŒIÎÂ\H[YS[ÙOIØ]]Éß	ÛYÚ	ß	Ù\šÉÎÂ\Hœ˜[™ÙÛÕ˜\šX[IØ]]Éß	Ù\šÉß	ÛYÚ	ÎÂ\H\ÚYÛ“[ÙOIØÛ\ÜÚXÉß	ÛZY[™^	ÎÂ™[˜İ[Ûˆ™XY\ÚYÛ“[ÙJ
+N‘\ÚYÛ“[Ù^İ^Ü™]\›ˆØØ[İÜ˜YÙK™Ù]][JTÒQÓ—ÓSÑWÔÕÔQÑWÒÑVJOOOIØÛ\ÜÚXÉÏÉØÛ\ÜÚXÉÎ‰ÛZY[™^	ßXØ]ÚÜ™]\›‰ÛZY[™^	ß_B™[˜İ[ÛˆÜš]Q\ÚYÛ“[ÙJ[ÙN‘\ÚYÛ“[ÙJ^İ^ÛØØ[İÜ˜YÙKœÙ]][JTÒQÓ—ÓSÑWÔÕÔQÑWÒÑVK[ÙJ_XØ]ÚßNÜ™]\›ˆ[Ù_B˜ÛÛœİĞĞUSÓ—ÕPÒÒS‘×ÒÑVOIÛZY›ØØ][Û•˜XÚÚ[™Ñš\œİ	ÎÂ˜ÛÛœİPÒÑQÓĞĞUSÓ—ÒÑVOIÛZY›\İ˜XÚÙYØØ][Û‰ÎÂ˜ÛÛœİPÒÑQÔTÒÔ•ST×ÒÑVOIÛZY˜XÚÙY\Ú[\ÉÎÂ˜ÛÛœİTÒÓ“ÕQ’PĞUSÓ—ÒS•T•SÒÑVOIÛZYœ\Ú›İYšXØ][Û’[\˜[Z[]\ÉÎÂ˜ÛÛœİTÒÔ‘PÒTUUSÓ—ĞST•ÒÑVOIÛZYœ\Ú™XÚ\]][Û[\ŒIÎÂ˜ÛÛœİVSÕUÓSÑWÔÕÔQÑWÒÑVOIÛZY›^[İ][ÙIÎÂ˜ÛÛœİÕS‘T‘ÓVSÕUÒS’UPSV‘QÒÑVOIÛZYœİ[™\™^[İ][š]X[^™Y	ÎÂ˜ÛÛœİSÑSĞÒS‘ÑWÔÑUS‘Ô×ÒÑVOIÛZY›[Ù[Ú[™ÙTÙ][™ÜÉÎÂ˜ÛÛœİQT—ÑTÔVWÔÑUS‘Ô×ÒÑVOIÛZYœ˜Y\‘\Ü^TÙ][™ÜÉÎÂ˜ÛÛœİ“Ô‘PĞTÕÑTÔVWÔÑUS‘Ô×ÒÑVOIÛZY™›Ü™XØ\İ\Ü^TÙ][™ÜÉÎÂ˜ÛÛœİĞĞSÒVT‘ÑTÔVWÔÑUS‘Ô×ÒÑVOIÛZY›ØØ[^˜\™\Ü^TÙ][™ÜÉÎÂ˜ÛÛœİU“Ô’UWÔÕ’TÓSÑWÒÑVOIÛZY™˜]›Üš]K\İš\[[ÙNŒIÎÂ\H˜]›Üš]Tİš\[ÙOIØ]]Éß	Ø[Ø^\Éß	ÚY[‰ÎÂ™[˜İ[Ûˆ™XY˜]›Üš]Tİš\[ÙJ
+N‘˜]›Üš]Tİš\[Ù^İ^ØÛÛœİ˜[YO[ØØ[İÜ˜YÙK™Ù]][JU“Ô’UWÔÕ’TÓSÑWÒÑVJNÜ™]\›ˆ˜[YOOOIØ[Ø^\Éß˜[YOOOIÚY[‰Ïİ˜[YN‰Ø]]ÉßXØ]ÚÜ™]\›‰Ø]]Éß_B™[˜İ[ÛˆÜš]Q˜]›Üš]Tİš\[ÙJ[ÙN‘˜]›Üš]Tİš\[ÙJ^İ^ÛØØ[İÜ˜YÙKœÙ]][JU“Ô’UWÔÕ’TÓSÑWÒÑVK[ÙJ_XØ]ÚßNÜ™]\›ˆ[Ù_B˜ÛÛœİ“ÕÓWĞT—Ğ‘RU’SÔ—ÒÑVOIÛZY˜›İÛKX˜\‹X™Z]š[ÜŒIÎÂ\H›İÛP˜\™Z]š[ÜIØ]]Éß	Ùš^Y	ÎÂ™[˜İ[Ûˆ™XY›İÛP˜\™Z]š[ÜŠ
+N›İÛP˜\™Z]š[Üİ^Ü™]\›ˆØØ[İÜ˜YÙK™Ù]][J“ÕÓWĞT—Ğ‘RU’SÔ—ÒÑVJOOOIÙš^Y	ÏÉÙš^Y	Î‰Ø]]ÉßXØ]ÚÜ™]\›‰Ø]]Éß_B™[˜İ[ÛˆÜš]P›İÛP˜\™Z]š[ÜŠ[ÙN›İÛP˜\™Z]š[ÜŠ^İ^ÛØØ[İÜ˜YÙKœÙ]][J“ÕÓWĞT—Ğ‘RU’SÔ—ÒÑVK[ÙJ_XØ]ÚßNÜ™]\›ˆ[Ù_B\H˜]šYØ][Û“[ÙOIØ›İÛK]XœÉÎÂ˜ÛÛœİSÑSWÓÔS—ÔÕUWÔ‘Q’VIÛZY›[Ù[N‰ÎÂ˜ÛÛœİSÑSWÓÔS—ĞÓÓ•PÕÒÑVOIÛZY›[Ù[K[Ü[‹XÛÛ˜Xİ‰ÎÂ˜ÛÛœİSÑST×ÑQUSĞÓÔÑQVÉİ™[[][Û‰Ë	Û[İ[Z[‰Ë	İØ]\‰Ë	ØÛÛ\ÜÚ]IË	Ù[œÙ[X›IË	ÛÛ™Ë\˜[™ÙIË	ØÛ[X]IË	Ù›Ü™XØ\İ]™\šYšXØ][Û‰Ë	İ˜]™[\[›™\‰Ë	Ù]™[\[›™\‰Ë	Ù›YÚ[Y][Ü›ÛÙŞIË	İÙX]\‹[X\ÉË	İÚYÙ]	×H\ÈÛÛœİÂ™[˜İ[Ûˆ[Ù[SÜ[’Ù^JYœİš[™Ê^Ü™]\›˜	ÓSÑSWÓÔS—ÔÕUWÔ‘Q’VIÚYN›Ü[˜B™[˜İ[ÛˆİÜ™Y[Ù[SÜ[ŠYœİš[™ËY˜][Ü[Y˜[ÙJ^İ^ØÛÛœİ˜[YO[ØØ[İÜ˜YÙK™Ù]][J[Ù[SÜ[’Ù^JY
+JNÜ™]\›ˆ˜[YOOO[[ÙY˜][Ü[˜[YOOOIÌIßXØ]ÚÜ™]\›ˆY˜][Ü[Ÿ_B™[˜İ[Ûˆ\œÚ\İ[Ù[SÜ[ŠYœİš[™ËÜ[˜›ÛÛX[Š^İ^ÛØØ[İÜ˜YÙKœÙ]][J[Ù[SÜ[’Ù^JY
+KÜ[ÉÌIÎ‰Ì	Ê_XØ]Úß_B™[˜İ[Ûˆ[š]X[^™S[Ù[SÜ[ÛÛ˜Xİ
 
-const LIGHT_LOGO_PATH='./mid-logo-light-compact.png';
-const DARK_LOGO_PATH='./mid-logo-dark-compact.png';
-const LIGHT_FAVICON_PATH='./mid-favicon-light-64.png';
-const DARK_FAVICON_PATH='./mid-favicon-dark-64.png';
-const LOCATION_STORAGE_KEY='mid:lastLocation';
-const LOCATION_UPDATED_AT_KEY='mid:lastLocation:updated-at';
+^İ^ÚYŠ×ˆÛZY\ÙXİ[Û‹VØK^‹WJÉË\İ
+ØØ][Û‹š\Ú
+JZ\İÜKœ™\XÙTİ]J[	ÉË	ÛØØ][Û‹œ]˜[Y_IÛØØ][Û‹œÙX\˜ÚX
+NÚYŠØØ[İÜ˜YÙK™Ù]][JSÑSWÓÔS—ĞÓÓ•PÕÒÑVJOOOIÌIÊ\™]\›Ù›ÜŠÛÛœİYÙˆSÑST×ÑQUSĞÓÔÑQ
+\\œÚ\İ[Ù[SÜ[ŠY˜[ÙJNÙ›ÜŠÛÛœİYØXŞHÙ–ÉÛZY›[Ù[K[Ü[‹XÛÛ˜XİŒ‰Ë	ÛZY›[Ù[K[Ü[‹XÛÛ˜XİŒÉË	ÛZY›[Ù[K[Ü[‹XÛÛ˜Xİ	Ë	ÛZY›[Ù[K[Ü[‹XÛÛ˜XİI×J[ØØ[İÜ˜YÙKœ™[[İ™R][JYØXŞJNÛØØ[İÜ˜YÙKœÙ]][JSÑSWÓÔS—ĞÓÓ•PÕÒÑVK	ÌIÊ_XØ]Úß_B\H^[İ][ÙOIÜİ[™\™	ß	ØY˜[˜ÙY	ÎÂ\H[Ù[Ú[™ÙTÙ][™ÜÏ^Ù[˜X›Y˜›ÛÛX[Û›İYSX]\šX[˜›ÛÛX[ŸNÂ\H˜Y\‘\Ü^TÙ][™ÜÏ^ÜÚİÔ›Ø˜Xš[]U[Y[[™N˜›ÛÛX[ŸNÂ\H›Ü™XØ\İ\Ü^TÙ][™ÜÏ^ÜÚİÔÙ]™[‘^Tİ[[X\N˜›ÛÛX[ÜÚİÑÙ™XÚ\]][Û•\T˜Y\˜›ÛÛX[Ü™\Ù[][Û“[ÙOÎ‘›Ü™XØ\İ™\Ù[][Û“[ÙNØÛÛ™šY[˜ÙQ\Ü^S[ÙNÛÛ™šY[˜ÙQ\Ü^S[Ù_NÂ\HØØ[^˜\™\Ü^TÙ][™ÜÏ^ÜÚİÕ[™\[™›\Ú›ÛÙ˜›ÛÛX[ŸNÂ\H[Ù\›‘›Ü™XØ\İÜš^›ÛIÎLIß	Ì	ß	ÍÙ	ß	ÌM	ß	Í™	ß	ÜÙX\ÛÛ‰ÎÂ˜ÛÛœİSÑT“—Ñ“Ô‘PĞTÕÒÔ’V“Ó—ÔÕÔQÑWÒÑVOIÛZY›[Ù\›‘›Ü™XØ\İÜš^›ÛŒIÎÂ™[˜İ[Ûˆ™XY[Ù\›‘›Ü™XØ\İÜš^›ÛŠ
+N“[Ù\›‘›Ü™XØ\İÜš^›Ûİ^ØÛÛœİ˜[YO[ØØ[İÜ˜YÙK™Ù]][JSÑT“—Ñ“Ô‘PĞTÕÒÔ’V“Ó—ÔÕÔQÑWÒÑVJNÜ™]\›ˆ˜[YOOOIÌ	ÏÉÎLIÎ˜[YOOOIÍÙ	ß˜[YOOOIÌM	ß˜[YOOOIÍ™	ß˜[YOOOIÜÙX\ÛÛ‰Ïİ˜[YN‰ÎLIßXØ]ÚÜ™]\›‰ÎLIß_B˜ÛÛœİQUSÑ“Ô‘PĞTÕÑTÔVWÔÑUS‘ÔÎ‘›Ü™XØ\İ\Ü^TÙ][™ÜÏ^ÜÚİÔÙ]™[‘^Tİ[[X\NYKÚİÑÙ™XÚ\]][Û•\T˜Y\YKÛÛ™šY[˜ÙQ\Ü^S[ÙN‰ÜÚYÛ˜[	ßNÂ˜ÛÛœİ“Ô‘PĞTÕĞÓĞÒÔUÓSÑSTÎ‘\Ú›Ø\™[Ù[RY×OVÉÜÚÜ]\›IË	Ù›Ü™XØ\İ	Ë	Ù[œÙ[X›I×NÂ˜ÛÛœİSÑT“—Ñ“Ô‘PĞTÕÓSÑSTÎ‘\Ú›Ø\™[Ù[RY×OVË‹‹‘“Ô‘PĞTÕĞÓĞÒÔUÓSÑSTË	ÛÛ™Ë\˜[™ÙI×NÂ˜ÛÛœİTÕÑTÒ“ĞT‘ÔÑPÕSÓ—ÒÑVOIÛZY›\İY\Ú›Ø\™\ÙXİ[ÛŒIÎÂ˜ÛÛœİ‘TÕÔP“WÑTÒ“ĞT‘ÔÑPÕSÓ”Î‘\Ú›Ø\™[Ù[RY×OVÉØİ\œ™[	Ë	İØ\›š[™ÜÉË	Ù^™[YK[İ]ÛÚÉË	İ™[[][Û‰Ë	ÜÚÜ]\›IË	Ù›Ü™XØ\İ	Ë	Ù[œÙ[X›IË	ÛÛ™Ë\˜[™ÙIË	ØÛÛ\ÜÚ]IË	İÙX]\‹[X\ÉË	Ù]™[\[›™\‰Ë	İ˜]™[\[›™\‰Ë	Û[İ[Z[‰Ë	İØ]\‰Ë	ØÛ[X]IË	Ù›Ü™XØ\İ]™\šYšXØ][Û‰Ë	Ù›YÚ[Y][Ü›ÛÙŞIË	İÚYÙ]	×NÂ™[˜İ[Ûˆ™XY\İ\Ú›Ø\™ÙXİ[ÛŠ
+N‘\Ú›Ø\™[Ù[RY	ÜXÙIŞİ^ØÛÛœİ˜[YO[ØØ[İÜ˜YÙK™Ù]][JTÕÑTÒ“ĞT‘ÔÑPÕSÓ—ÒÑVJH\È\Ú›Ø\™[Ù[RY[Ü™]\›ˆ˜[YI‰”‘TÕÔP“WÑTÒ“ĞT‘ÔÑPÕSÓ”Ëš[˜ÛY\Ê˜[YJOİ˜[YN‰ÜXÙIßXØ]ÚÜ™]\›‰ÜXÙIß_B™[˜İ[Ûˆ\œÚ\İ\İ\Ú›Ø\™ÙXİ[ÛŠY‘\Ú›Ø\™[Ù[RY
+^ÚYŠT‘TÕÔP“WÑTÒ“ĞT‘ÔÑPÕSÓ”Ëš[˜ÛY\ÊY
+J\™]\›İ^ÚYŠØØ[İÜ˜YÙK™Ù]][JTÕÑTÒ“ĞT‘ÔÑPÕSÓ—ÒÑVJHOOZY
+[ØØ[İÜ˜YÙKœÙ]][JTÕÑTÒ“ĞT‘ÔÑPÕSÓ—ÒÑVKY
+_XØ]Úß_B\HÙ][™ÜÔÙXİ[ÛIİšY]Éß	Ø\X\˜[˜ÙIß	İ[š]Éß	Û›İYšXØ][ÛœÉß	Ù˜]›Üš]\Éß	İÚ[‰ß	ÜŞ[˜Éß	ÜŞ\İ[Iß	ÛYØ[	ÎÂ\H]Z[[™RÙ^OIİ[\\˜]\™Iß	Ø\\™[	ß	Ù]ÔÚ[	ß	Ü™\Üİ\™Iß	Ü›Ø˜Xš[]Iß	İÚ[™	ß	Ùİ\İ	ß	Ù\™Xİ[Û‰ÎÂ\H]Z[™XÚ\\OQ^ÛYO™XÚ\\K	Û›Û™IÏÂ™[˜İ[Ûˆ\Ñ]Z[™XÚ\\J\N”™XÚ\\JN\H\È]Z[™XÚ\\^Ü™]\›ˆ\HOOIÛ›Û™IßB\H]Z[Ú\™Y™\™[˜Ù\Ï^İš\ÚX›N”™XÛÜ™]Z[[™RÙ^K›ÛÛX[ÚY[”™XÚ\‘]Z[™XÚ\\V×_NÂ˜ÛÛœİURSĞÒT•ÔÕÔQÑWÒÑVOIÛZY™]Z[Ú\™Y™\™[˜Ù\ÉÎÂ˜ÛÛœİURSÓQÑS‘ÔÕÔQÑWÒÑVOIÛZY™]Z[YÙ[™Ü[‰ÎÂ˜ÛÛœİURSÔ‘PÒTÕTTÎ‘]Z[™XÚ\\V×OVÉÙš^›IË	Ùœ™Y^š[™Ñš^›IË	Ü˜Z[‰Ë	Ùœ™Y^š[™Ô˜Z[‰Ë	ÜÚİÙ\œÉË	ÜÛ›İÉË	ÜÛ›İÑÜ˜Z[œÉË	ÜÛ›İÔİ\œÉË	ÚXÙPÜ\İ[ÉË	ÚXÙT[]ÉË	ÜÛ›İÔÚİÙ\œÉË	ÜÛY]	Ë	ÜÛY]ÚİÙ\œÉË	ÙÜ˜]\[ÚİÙ\œÉË	ÚZ[ÚİÙ\œÉË	İÚ[PY\•[™\‰Ë	İ[™\œİÜ›IË	İ[™\œİÜ›RZ[	×NÂ˜ÛÛœİQUSÑURSÕ’TÒP’SUN”™XÛÜ™]Z[[™RÙ^K›ÛÛX[^İ[\\˜]\™NYK\\™[YK]ÔÚ[YK™\Üİ\™NYK›Ø˜Xš[]NYKÚ[™YKİ\İYK\™Xİ[ÛY_NÂ™[˜İ[Ûˆ[š]X[]Z[Ú\™Y™\™[˜Ù\Ê
+N‘]Z[Ú\™Y™\™[˜Ù\Şİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JURSĞÒT•ÔÕÔQÑWÒÑVJ_	ŞßIÊH\È\X[]Z[Ú\™Y™\™[˜Ù\ÏÜ™]\›İš\ÚX›NË‹‹‘QUSÑURSÕ’TÒP’SUK‹‹Š\œÙYš\ÚX›OÏŞßJ_KY[”™XÚ\\œ˜^Kš\Ğ\œ˜^J\œÙYšY[”™XÚ\
+OÜ\œÙYšY[”™XÚ\™š[\Š˜[YOO‘URSÔ‘PÒTÕTTËš[˜ÛY\Ê˜[YJJN–×__XØ]ÚÜ™]\›İš\ÚX›NË‹‹‘QUSÑURSÕ’TÒP’SU_KY[”™XÚ\–×___B™[˜İ[Ûˆ[š]X[]Z[YÙ[™Ü[Š
+^İ^ØÛÛœİİÜ™Y[ØØ[İÜ˜YÙK™Ù]][JURSÓQÑS‘ÔÕÔQÑWÒÑVJNÚYŠİÜ™YOO[[
+\™]\›ˆİÜ™YOOIÌIÎÜ™]\›ˆ\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	ßÚ[™İËš[›™\•ÚYÍŒXØ]ÚÜ™]\›ˆY__B™[˜İ[Ûˆ[š]X[^[İ][ÙJ
+N“^[İ][Ù^ØÛÛœİİÜ™Y[ØØ[İÜ˜YÙK™Ù]][JVSÕUÓSÑWÔÕÔQÑWÒÑVJNÜ™]\›ˆİÜ™YOOIØY˜[˜ÙY	ßİÜ™YOOIÙ[	ÏÉØY˜[˜ÙY	Î‰Üİ[™\™	ßB™[˜İ[ÛˆÛÛ\ÙTİÜ™Yİ[™\™[Ù[\Ê
+^İ^ÛØØ[İÜ˜YÙKœÙ]][J	ÛZY™›Ü™XØ\İ]Z[ÓÜ[‰Ë	Ì	ÊNÙ›ÜŠÛÛœİYÙ–ÉÛ[İ[Z[‰Ë	İØ]\‰Ë	ØÛÛ\ÜÚ]IË	Ù[œÙ[X›IË	ÛÛ™Ë\˜[™ÙIË	Ù›Ü™XØ\İ]™\šYšXØ][Û‰Ë	İ˜]™[\[›™\‰Ë	ÛY][ÙÜ˜[IË	Ù›YÚ[Y][Ü›ÛÙŞIË	İÙX]\‹[X\ÉË	İÚYÙ]	×J[ØØ[İÜ˜YÙKœÙ]][JZY›[Ù[N‰ÚYN›Ü[˜	Ì	Ê_XØ]Úß_B™[˜İ[Ûˆ[š]X[^™Y^[İ][ÙJ
+N“^[İ][Ù^Ú[š]X[^™S[Ù[SÜ[ÛÛ˜Xİ
 
-const FAVORITES_STORAGE_KEY='mid:favorites';
-const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at';
-const FAVORITES_SHADOW_KEY='mid:favorites:shadow:v1';
-const FAVORITES_TOMBSTONES_KEY='mid:favorites:tombstones:v1';
-const FAVORITES_ORDER_KEY='mid:favorites:order:v1';
-const THEME_STORAGE_KEY='theme';
-const BRAND_LOGO_STORAGE_KEY='mid:brandLogoVariant';
-const DESIGN_MODE_STORAGE_KEY='mid:designMode:v1';
-type ThemeMode='auto'|'light'|'dark';
-type BrandLogoVariant='auto'|'dark'|'light';
-type DesignMode='classic'|'mid-next';
-function readDesignMode():DesignMode{try{return localStorage.getItem(DESIGN_MODE_STORAGE_KEY)==='classic'?'classic':'mid-next'}catch{return'mid-next'}}
-function writeDesignMode(mode:DesignMode){try{localStorage.setItem(DESIGN_MODE_STORAGE_KEY,mode)}catch{};return mode}
-const LOCATION_TRACKING_KEY='mid:locationTrackingFirst';
-const TRACKED_LOCATION_KEY='mid:lastTrackedLocation';
-const TRACKED_PUSH_RULES_KEY='mid:trackedPushRules';
-const PUSH_NOTIFICATION_INTERVAL_KEY='mid:pushNotificationIntervalMinutes';
-const PUSH_PRECIPITATION_ALERT_KEY='mid:pushPrecipitationAlert:v1';
-const LAYOUT_MODE_STORAGE_KEY='mid:layoutMode';
-const STANDARD_LAYOUT_INITIALIZED_KEY='mid:standardLayoutInitialized';
-const MODEL_CHANGE_SETTINGS_KEY='mid:modelChangeSettings';
-const RADAR_DISPLAY_SETTINGS_KEY='mid:radarDisplaySettings';
-const FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings';
-const LOCAL_HAZARD_DISPLAY_SETTINGS_KEY='mid:localHazardDisplaySettings';
-const FAVORITE_STRIP_MODE_KEY='mid:favorite-strip-mode:v1';
-type FavoriteStripMode='auto'|'always'|'hidden';
-function readFavoriteStripMode():FavoriteStripMode{try{const value=localStorage.getItem(FAVORITE_STRIP_MODE_KEY);return value==='always'||value==='hidden'?value:'auto'}catch{return'auto'}}
-function writeFavoriteStripMode(mode:FavoriteStripMode){try{localStorage.setItem(FAVORITE_STRIP_MODE_KEY,mode)}catch{};return mode}
-const BOTTOM_BAR_BEHAVIOR_KEY='mid:bottom-bar-behavior:v1';
-type BottomBarBehavior='auto'|'fixed';
-function readBottomBarBehavior():BottomBarBehavior{try{return localStorage.getItem(BOTTOM_BAR_BEHAVIOR_KEY)==='fixed'?'fixed':'auto'}catch{return'auto'}}
-function writeBottomBarBehavior(mode:BottomBarBehavior){try{localStorage.setItem(BOTTOM_BAR_BEHAVIOR_KEY,mode)}catch{};return mode}
-type NavigationMode='bottom-tabs';
-const MODULE_OPEN_STATE_PREFIX='mid:module:';
-const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v6';
-const MODULES_DEFAULT_CLOSED=['ventilation','mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'] as const;
-function moduleOpenKey(id:string){return`${MODULE_OPEN_STATE_PREFIX}${id}:open`}
-function storedModuleOpen(id:string,defaultOpen=false){try{const value=localStorage.getItem(moduleOpenKey(id));return value===null?defaultOpen:value==='1'}catch{return defaultOpen}}
-function persistModuleOpen(id:string,open:boolean){try{localStorage.setItem(moduleOpenKey(id),open?'1':'0')}catch{}}
-function initializeModuleOpenContract(){try{if(/^#mid-section-[a-z-]+$/.test(location.hash))history.replaceState(null,'',`${location.pathname}${location.search}`);if(localStorage.getItem(MODULE_OPEN_CONTRACT_KEY)==='1')return;for(const id of MODULES_DEFAULT_CLOSED)persistModuleOpen(id,false);for(const legacy of['mid:module-open-contract:v2','mid:module-open-contract:v3','mid:module-open-contract:v4','mid:module-open-contract:v5'])localStorage.removeItem(legacy);localStorage.setItem(MODULE_OPEN_CONTRACT_KEY,'1')}catch{}}
-type LayoutMode='standard'|'advanced';
-type ModelChangeSettings={enabled:boolean;notifyMaterial:boolean};
-type RadarDisplaySettings={showProbabilityTimeline:boolean};
-type ForecastDisplaySettings={showSevenDaySummary:boolean;showDwdPrecipitationTypeRadar:boolean;presentationMode?:ForecastPresentationMode;confidenceDisplayMode:ConfidenceDisplayMode};
-type LocalHazardDisplaySettings={showThunderAndFlashFlood:boolean};
-type ModernForecastHorizon='90m'|'24h'|'7d'|'14d'|'46d'|'season';
-const MODERN_FORECAST_HORIZON_STORAGE_KEY='mid:modernForecastHorizon:v1';
-function readModernForecastHorizon():ModernForecastHorizon{try{const value=localStorage.getItem(MODERN_FORECAST_HORIZON_STORAGE_KEY);return value==='24h'?'90m':value==='7d'||value==='14d'||value==='46d'||value==='season'?value:'90m'}catch{return'90m'}}
-const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal'};
-const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble'];
-const MODERN_FORECAST_MODULES:DashboardModuleId[]=[...FORECAST_COCKPIT_MODULES,'long-range'];
-const LAST_DASHBOARD_SECTION_KEY='mid:last-dashboard-section:v1';
-const RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation','short-term','forecast','ensemble','long-range','composite','weather-maps','event-planner','travel-planner','mountain','water','climate','forecast-verification','flight-meteorology','widget'];
-function readLastDashboardSection():DashboardModuleId|'place'{try{const value=localStorage.getItem(LAST_DASHBOARD_SECTION_KEY) as DashboardModuleId|null;return value&&RESTORABLE_DASHBOARD_SECTIONS.includes(value)?value:'place'}catch{return'place'}}
-function persistLastDashboardSection(id:DashboardModuleId){if(!RESTORABLE_DASHBOARD_SECTIONS.includes(id))return;try{if(localStorage.getItem(LAST_DASHBOARD_SECTION_KEY)!==id)localStorage.setItem(LAST_DASHBOARD_SECTION_KEY,id)}catch{}}
-type SettingsSection='view'|'appearance'|'units'|'notifications'|'favorites'|'twin'|'sync'|'system'|'legal';
-type DetailLineKey='temperature'|'apparent'|'dewPoint'|'pressure'|'probability'|'wind'|'gust'|'direction';
-type DetailPrecipType=Exclude<PrecipType,'none'>;
-function isDetailPrecipType(type:PrecipType):type is DetailPrecipType{return type!=='none'}
-type DetailChartPreferences={visible:Record<DetailLineKey,boolean>;hiddenPrecip:DetailPrecipType[]};
-const DETAIL_CHART_STORAGE_KEY='mid:detailChartPreferences';
-const DETAIL_LEGEND_STORAGE_KEY='mid:detailLegendOpen';
-const DETAIL_PRECIP_TYPES:DetailPrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers','sleet','sleetShowers','graupelShowers','hailShowers','wintryAfterThunder','thunderstorm','thunderstormHail'];
-const DEFAULT_DETAIL_VISIBILITY:Record<DetailLineKey,boolean>={temperature:true,apparent:true,dewPoint:true,pressure:true,probability:true,wind:true,gust:true,direction:true};
-function initialDetailChartPreferences():DetailChartPreferences{try{const parsed=JSON.parse(localStorage.getItem(DETAIL_CHART_STORAGE_KEY)||'{}') as Partial<DetailChartPreferences>;return{visible:{...DEFAULT_DETAIL_VISIBILITY,...(parsed.visible??{})},hiddenPrecip:Array.isArray(parsed.hiddenPrecip)?parsed.hiddenPrecip.filter(value=>DETAIL_PRECIP_TYPES.includes(value)):[]}}catch{return{visible:{...DEFAULT_DETAIL_VISIBILITY},hiddenPrecip:[]}}}
-function initialDetailLegendOpen(){try{const stored=localStorage.getItem(DETAIL_LEGEND_STORAGE_KEY);if(stored!==null)return stored==='1';return typeof window==='undefined'||window.innerWidth>760}catch{return true}}
-function initialLayoutMode():LayoutMode{const stored=localStorage.getItem(LAYOUT_MODE_STORAGE_KEY);return stored==='advanced'||stored==='full'?'advanced':'standard'}
-function collapseStoredStandardModules(){try{localStorage.setItem('mid:forecastDetailsOpen','0');for(const id of['mountain','water','composite','ensemble','long-range','forecast-verification','travel-planner','meteogram','flight-meteorology','weather-maps','widget'])localStorage.setItem(`mid:module:${id}:open`,'0')}catch{}}
-function initializedLayoutMode():LayoutMode{initializeModuleOpenContract();const mode=initialLayoutMode();try{if(mode==='standard'&&localStorage.getItem(STANDARD_LAYOUT_INITIALIZED_KEY)!=='1'){collapseStoredStandardModules();localStorage.setItem(STANDARD_LAYOUT_INITIALIZED_KEY,'1')}}catch{}return mode}
-type FavoriteRules={enabled:boolean;rainProbability?:number;gustKt?:number;frostC?:number;heatC?:number;precipitationStart?:boolean;thunderstormApproach?:boolean};
-type PushRuleState={precipitationStart:boolean;thunderstormApproach:boolean};
-const PUSH_NOTIFICATION_INTERVALS:PushNotificationInterval[]=[15,30,60,120,180];
-type NumericFavoriteRuleKey='rainProbability'|'gustKt'|'frostC'|'heatC';
-type WaterType='auto'|'sea'|'lake'|'river';
-type WaterActivity='general'|'sailing'|'surfing'|'paddling'|'swimming';
-type WaterConfig={enabled:boolean;waterType:WaterType;activity:WaterActivity;maxWaveHeight:number;maxGustKt:number;minWaterTemperature:number};
-type Favorite={id:string;location:Location;alias:string;group:string;isDefault:boolean;rules:FavoriteRules;mountain:MountainConfig;water:WaterConfig};
-const DEFAULT_FAVORITE_RULES:FavoriteRules={enabled:false,rainProbability:70,gustKt:35,frostC:1,heatC:30,precipitationStart:false,thunderstormApproach:false};
-function legacyFavoriteRulesEnabled(rules:any){if(typeof rules?.enabled==='boolean')return rules.enabled;return (['rainProbability','gustKt','frostC','heatC'] as const).some(key=>Number.isFinite(Number(rules?.[key]))&&Number(rules[key])!==Number(DEFAULT_FAVORITE_RULES[key]))}
-function normalizeLocation(loc:Location):Location{const country_code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country)||undefined;return{...loc,country_code}}
-function favoriteLocation(loc:Location):Location{const clean={...normalizeLocation(loc)} as Location&Record<string,unknown>;for(const key of['date','startTime','endTime','isFavorite','favoriteUpdatedAt'])delete clean[key];return{...clean,autolocated:false} as Location}
-function persistSelectedLocation(location:Location,revise=true){localStorage.setItem(LOCATION_STORAGE_KEY,JSON.stringify(location));if(revise)localStorage.setItem(LOCATION_UPDATED_AT_KEY,new Date().toISOString())}
-function storedLocation():Location|null{try{const raw=localStorage.getItem(LOCATION_STORAGE_KEY);if(!raw)return null;const loc=JSON.parse(raw) as Location;if(!Number.isFinite(loc.latitude)||!Number.isFinite(loc.longitude))return null;const normalized=normalizeLocation(loc);persistSelectedLocation(normalized,false);if(!localStorage.getItem(LOCATION_UPDATED_AT_KEY))localStorage.setItem(LOCATION_UPDATED_AT_KEY,new Date().toISOString());return normalized}catch{return null}}
-function favoriteKey(loc:Location){return`${Number(loc.latitude).toFixed(5)}:${Number(loc.longitude).toFixed(5)}`}
-function locationDistanceMeters(a:Location,b:Location){const rad=Math.PI/180,dLat=(b.latitude-a.latitude)*rad,dLon=(b.longitude-a.longitude)*rad,lat1=a.latitude*rad,lat2=b.latitude*rad,h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;return 12742000*Math.asin(Math.min(1,Math.sqrt(h)))}
-export function locationsNearlyEquivalent(a:Location|undefined|null,b:Location|undefined|null){if(!a||!b||!Number.isFinite(a.latitude)||!Number.isFinite(a.longitude)||!Number.isFinite(b.latitude)||!Number.isFinite(b.longitude))return false;const distance=locationDistanceMeters(a,b),aElevation=Number(a.elevation),bElevation=Number(b.elevation),bothElevations=Number.isFinite(aElevation)&&Number.isFinite(bElevation);return distance<=(bothElevations?900:350)&&(!bothElevations||Math.abs(aElevation-bElevation)<=150)}
-function normalizedFavoriteIdentityName(loc:Location|undefined|null){return String(loc?.name||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('de-DE').replace(/[^a-z0-9]+/g,' ').trim()}
-function favoriteIdentityNamesEquivalent(a:Location|undefined|null,b:Location|undefined|null){const left=normalizedFavoriteIdentityName(a),right=normalizedFavoriteIdentityName(b);if(!left||!right)return false;if(left===right)return true;const leftTokens=left.split(/\s+/).filter(token=>token.length>=3),rightTokens=right.split(/\s+/).filter(token=>token.length>=3),shorter=leftTokens.length<=rightTokens.length?leftTokens:rightTokens,longer=new Set(leftTokens.length<=rightTokens.length?rightTokens:leftTokens);return shorter.length>=2&&shorter.every(token=>longer.has(token))}
-function isPoiFavoriteLocation(loc:Location|undefined|null){const category=String(loc?.poiCategory||'').trim().toLocaleLowerCase('de-DE');return Boolean(loc?.poiType||(category&&category!=='ort'))}
-function stableFavoriteLocationIdMatch(a:Location,b:Location){const aId=Number(a.id),bId=Number(b.id);if(!Number.isFinite(aId)||!Number.isFinite(bId)||aId!==bId)return false;const aSource=String(a.source||''),bSource=String(b.source||'');return Boolean(aSource&&bSource&&aSource===bSource)}
-function favoriteLocationsIdentical(a:Location|undefined|null,b:Location|undefined|null){if(!a||!b)return false;const nameMatch=favoriteIdentityNamesEquivalent(a,b);if(!nameMatch)return false;if(stableFavoriteLocationIdMatch(a,b))return true;const distance=locationDistanceMeters(a,b),poi=isPoiFavoriteLocation(a)||isPoiFavoriteLocation(b),limit=poi?45:80,aElevation=Number(a.elevation),bElevation=Number(b.elevation),bothElevations=Number.isFinite(aElevation)&&Number.isFinite(bElevation);return distance<=limit&&(!bothElevations||Math.abs(aElevation-bElevation)<=120)}
-function favoriteLocationsEquivalentForSelection(a:Location|undefined|null,b:Location|undefined|null){if(!a||!b)return false;if(favoriteLocationsIdentical(a,b))return true;const distance=locationDistanceMeters(a,b),poi=isPoiFavoriteLocation(a)||isPoiFavoriteLocation(b),nameMatch=favoriteIdentityNamesEquivalent(a,b);if(!nameMatch)return false;const limit=poi?180:450,aElevation=Number(a.elevation),bElevation=Number(b.elevation),bothElevations=Number.isFinite(aElevation)&&Number.isFinite(bElevation);return distance<=limit&&(!bothElevations||Math.abs(aElevation-bElevation)<=150)}
-function locationsMatchFavoriteSelection(a:Location|undefined|null,b:Location|undefined|null){return favoriteLocationsEquivalentForSelection(a,b)}
-function matchingStoredFavorite(favorites:Favorite[],location:Location|undefined|null){if(!location)return undefined;return favorites.find(item=>favoriteLocationsIdentical(item.location,location))}
-function matchingFavorite(favorites:Favorite[],location:Location|undefined|null){if(!location)return undefined;return matchingStoredFavorite(favorites,location)??favorites.find(item=>favoriteLocationsEquivalentForSelection(item.location,location))??favorites.find(item=>locationsNearlyEquivalent(item.location,location))}
-function trackedLocationTarget(favorites:Favorite[],tracked:Location){const favorite=matchingFavorite(favorites,tracked);return favorite?{...favoriteLocation(favorite.location),autolocated:true}:{...normalizeLocation(tracked),autolocated:true}}
-function revealWithinScrollContainer(container:HTMLElement,element:HTMLElement,axis:'vertical'|'horizontal'){const containerRect=container.getBoundingClientRect(),elementRect=element.getBoundingClientRect();if(axis==='vertical'){if(elementRect.top>=containerRect.top&&elementRect.bottom<=containerRect.bottom)return;container.scrollTo({top:Math.max(0,container.scrollTop+elementRect.top-containerRect.top-(containerRect.height-elementRect.height)/2),behavior:'auto'})}else{if(elementRect.left>=containerRect.left&&elementRect.right<=containerRect.right)return;container.scrollTo({left:Math.max(0,container.scrollLeft+elementRect.left-containerRect.left-(containerRect.width-elementRect.width)/2),behavior:'auto'})}}
-function centerWithinScrollContainer(container:HTMLElement,element:HTMLElement){const containerRect=container.getBoundingClientRect(),elementRect=element.getBoundingClientRect();if(!containerRect.height||!elementRect.height)return;const target=Math.max(0,container.scrollTop+elementRect.top-containerRect.top-(containerRect.height-elementRect.height)/2);container.scrollTop=target;if(Math.abs(container.scrollTop-target)>1)container.scrollTo({top:target,behavior:'auto'})}
-function useActiveItemReveal(enabled:boolean,revealKey:unknown,containerRef:RefObject<HTMLElement|null>,elementRef:RefObject<HTMLElement|null>,axis:'vertical'|'horizontal',center=false){
- useLayoutEffect(()=>{if(!enabled)return;let disposed=false,frame=0,settleTimer=0;const reveal=()=>{if(disposed)return;const container=containerRef.current,element=elementRef.current;if(!container||!element)return;if(center)centerWithinScrollContainer(container,element);else revealWithinScrollContainer(container,element,axis)},schedule=()=>{if(disposed||frame)return;frame=window.requestAnimationFrame(()=>{frame=0;reveal()})};schedule();settleTimer=window.setTimeout(schedule,180);const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(schedule);if(observer){if(containerRef.current)observer.observe(containerRef.current);if(elementRef.current)observer.observe(elementRef.current)}const fonts=document.fonts;void fonts?.ready.then(schedule).catch(()=>undefined);return()=>{disposed=true;if(frame)window.cancelAnimationFrame(frame);window.clearTimeout(settleTimer);observer?.disconnect()}},[enabled,revealKey,axis,center,containerRef,elementRef])
-}
-let favoriteIdFallbackCounter=0;
-function favoriteId(){try{if(typeof crypto!=='undefined'&&typeof crypto.randomUUID==='function')return crypto.randomUUID();if(typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'){const bytes=crypto.getRandomValues(new Uint32Array(4));return`fav-${Array.from(bytes,value=>value.toString(36)).join('-')}`}}catch{}favoriteIdFallbackCounter=(favoriteIdFallbackCounter+1)%Number.MAX_SAFE_INTEGER;return`fav-${Date.now().toString(36)}-${favoriteIdFallbackCounter.toString(36)}`}
-function mountainConfigKey(loc:Location){return`mid:mountain:${favoriteKey(loc)}`}
-function storedMountainConfig(loc:Location):MountainConfig{try{const raw=localStorage.getItem(mountainConfigKey(loc));return raw?normalizeMountainConfig(JSON.parse(raw),loc):defaultMountainConfig(loc)}catch{return defaultMountainConfig(loc)}}
-function writeStorageIfChanged(key:string,value:string){try{if(localStorage.getItem(key)!==value)localStorage.setItem(key,value)}catch{}}
-type FavoriteOrderSnapshot={ids:string[];updatedAt:string};
-function readFavoriteOrderSnapshot(raw=localStorage.getItem(FAVORITES_ORDER_KEY)):FavoriteOrderSnapshot|null{try{const parsed=JSON.parse(String(raw||'')) as Partial<FavoriteOrderSnapshot>,ids=Array.isArray(parsed.ids)?parsed.ids.map(value=>String(value||'').trim()).filter(Boolean):[],updatedAt=String(parsed.updatedAt||'');return ids.length&&Number.isFinite(Date.parse(updatedAt))?{ids:[...new Set(ids)],updatedAt}:null}catch{return null}}
-function applyFavoriteOrder(values:Favorite[],snapshot=readFavoriteOrderSnapshot()){if(!snapshot||values.length<2)return values;const rank=new Map(snapshot.ids.map((id,index)=>[id,index] as const)),fallback=snapshot.ids.length;return values.map((item,index)=>({item,index,rank:rank.get(item.id)??fallback+index})).sort((a,b)=>a.rank-b.rank||a.index-b.index).map(row=>row.item)}
-function persistFavoriteOrder(values:Favorite[]){const ids=values.map(item=>item.id),current=readFavoriteOrderSnapshot();if(current&&JSON.stringify(current.ids)===JSON.stringify(ids))return current;const snapshot:FavoriteOrderSnapshot={ids,updatedAt:new Date().toISOString()};writeStorageIfChanged(FAVORITES_ORDER_KEY,JSON.stringify(snapshot));return snapshot}
-type FavoriteTombstones=Record<string,number>;
-function looksLikeEventFavoriteRecord(value:any){return Boolean(value&&typeof value==='object'&&(Object.prototype.hasOwnProperty.call(value,'isFavorite')||Object.prototype.hasOwnProperty.call(value,'favoriteUpdatedAt'))&&(typeof value.date==='string'||typeof value.startTime==='string'||typeof value.endTime==='string')&&!Object.prototype.hasOwnProperty.call(value,'rules')&&!Object.prototype.hasOwnProperty.call(value,'mountain')&&!Object.prototype.hasOwnProperty.call(value,'water'))}
-function readFavoriteTombstones():FavoriteTombstones{try{const parsed=JSON.parse(localStorage.getItem(FAVORITES_TOMBSTONES_KEY)||'{}') as Record<string,unknown>,result:FavoriteTombstones={};for(const[id,value]of Object.entries(parsed)){const at=Number(value);if(id&&Number.isFinite(at)&&at>0)result[id]=at}return result}catch{return{}}}
-function writeFavoriteTombstones(values:FavoriteTombstones){const entries=Object.entries(values).filter(([id,at])=>Boolean(id)&&Number.isFinite(at)&&at>0).sort((a,b)=>b[1]-a[1]);try{localStorage.setItem(FAVORITES_TOMBSTONES_KEY,JSON.stringify(Object.fromEntries(entries)))}catch{}}
-function markFavoriteRemoved(item:Favorite|undefined){if(!item?.id)return;const at=Date.now(),tombstones=readFavoriteTombstones();tombstones[item.id]=Math.max(at,tombstones[item.id]||0);writeFavoriteTombstones(tombstones);try{localStorage.setItem(FAVORITES_UPDATED_AT_KEY,new Date(at).toISOString())}catch{}}
-function clearFavoriteTombstones(ids:string[]){if(!ids.length)return;const tombstones=readFavoriteTombstones();let changed=false;for(const id of ids)if(id&&Object.prototype.hasOwnProperty.call(tombstones,id)){delete tombstones[id];changed=true}if(changed)writeFavoriteTombstones(tombstones)}
-function persistFavoriteSnapshot(values:Favorite[]){const serialized=JSON.stringify(values);try{const changed=localStorage.getItem(FAVORITES_STORAGE_KEY)!==serialized;if(changed)localStorage.setItem(FAVORITES_STORAGE_KEY,serialized);writeStorageIfChanged(FAVORITES_SHADOW_KEY,serialized);persistFavoriteOrder(values);if(changed||!localStorage.getItem(FAVORITES_UPDATED_AT_KEY))localStorage.setItem(FAVORITES_UPDATED_AT_KEY,new Date().toISOString())}catch{}for(const item of values)writeStorageIfChanged(mountainConfigKey(item.location),JSON.stringify(item.mountain));return values}
-function locationsShallowEqual(a:Location,b:Location){const keys=new Set([...Object.keys(a),...Object.keys(b)]);for(const key of keys)if(!Object.is((a as any)[key],(b as any)[key]))return false;return true}
-function defaultWaterConfig():WaterConfig{return{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}}
-function normalizeWaterConfig(value:any):WaterConfig{const fallback=defaultWaterConfig(),waterTypes:WaterType[]=['auto','sea','lake','river'],activities:WaterActivity[]=['general','sailing','surfing','paddling','swimming'];return{enabled:Boolean(value?.enabled),waterType:waterTypes.includes(value?.waterType)?value.waterType:fallback.waterType,activity:activities.includes(value?.activity)?value.activity:fallback.activity,maxWaveHeight:Number.isFinite(Number(value?.maxWaveHeight))?Math.max(.1,Math.min(12,Number(value.maxWaveHeight))):fallback.maxWaveHeight,maxGustKt:Number.isFinite(Number(value?.maxGustKt))?Math.max(5,Math.min(100,Number(value.maxGustKt))):fallback.maxGustKt,minWaterTemperature:Number.isFinite(Number(value?.minWaterTemperature))?Math.max(-2,Math.min(35,Number(value.minWaterTemperature))):fallback.minWaterTemperature}}
-function storedLocationTracking(){try{return localStorage.getItem(LOCATION_TRACKING_KEY)==='1'}catch{return false}}
-function storedTrackedLocation():Location|null{try{const raw=localStorage.getItem(TRACKED_LOCATION_KEY);if(!raw)return null;const parsed=normalizeLocation(JSON.parse(raw) as Location);return Number.isFinite(parsed.latitude)&&Number.isFinite(parsed.longitude)?{...parsed,autolocated:true}:null}catch{return null}}
-function storedTrackedPushRules():PushRuleState{try{const parsed=JSON.parse(localStorage.getItem(TRACKED_PUSH_RULES_KEY)||'{}');return{precipitationStart:Boolean(parsed?.precipitationStart),thunderstormApproach:Boolean(parsed?.thunderstormApproach)}}catch{return{precipitationStart:false,thunderstormApproach:false}}}
-function storedPushNotificationInterval():PushNotificationInterval{try{const value=Number(localStorage.getItem(PUSH_NOTIFICATION_INTERVAL_KEY));return PUSH_NOTIFICATION_INTERVALS.includes(value as PushNotificationInterval)?value as PushNotificationInterval:30}catch{return 30}}
-function storedPushPrecipitationAlert():PushPrecipitationAlertSettings{try{const parsed=JSON.parse(localStorage.getItem(PUSH_PRECIPITATION_ALERT_KEY)||'{}') as Partial<PushPrecipitationAlertSettings>,leads:PushPrecipitationLeadMinutes[]=[15,30,45,60,90,120],amounts:PushPrecipitationThresholdMm[]=[.1,.2,.5,1,2,5],durations:PushPrecipitationDurationMinutes[]=[0,15,30,60,120,180],lead=Number(parsed.leadMinutes) as PushPrecipitationLeadMinutes,amount=Number(parsed.minimumAmountMm) as PushPrecipitationThresholdMm,duration=Number(parsed.minimumDurationMinutes) as PushPrecipitationDurationMinutes;return{leadMinutes:leads.includes(lead)?lead:DEFAULT_PUSH_PRECIPITATION_ALERT.leadMinutes,minimumAmountMm:amounts.includes(amount)?amount:DEFAULT_PUSH_PRECIPITATION_ALERT.minimumAmountMm,minimumDurationMinutes:durations.includes(duration)?duration:DEFAULT_PUSH_PRECIPITATION_ALERT.minimumDurationMinutes}}catch{return DEFAULT_PUSH_PRECIPITATION_ALERT}}
-function storedModelChangeSettings():ModelChangeSettings{try{const parsed=JSON.parse(localStorage.getItem(MODEL_CHANGE_SETTINGS_KEY)||'{}');return{enabled:Boolean(parsed?.enabled),notifyMaterial:Boolean(parsed?.notifyMaterial)}}catch{return{enabled:false,notifyMaterial:false}}}
-function storedRadarDisplaySettings():RadarDisplaySettings{try{const parsed=JSON.parse(localStorage.getItem(RADAR_DISPLAY_SETTINGS_KEY)||'{}');return{showProbabilityTimeline:Boolean(parsed?.showProbabilityTimeline)}}catch{return{showProbabilityTimeline:false}}}
-function storedForecastDisplaySettings():ForecastDisplaySettings{try{const parsed=JSON.parse(localStorage.getItem(FORECAST_DISPLAY_SETTINGS_KEY)||'{}'),presentationMode:ForecastPresentationMode=parsed?.presentationMode==='cockpit-tabs'||parsed?.presentationMode==='cockpit-ribbons'?parsed.presentationMode:'classic',confidenceDisplayMode=normalizeConfidenceDisplayMode(parsed?.confidenceDisplayMode);return{...DEFAULT_FORECAST_DISPLAY_SETTINGS,showSevenDaySummary:parsed?.showSevenDaySummary!==false,showDwdPrecipitationTypeRadar:parsed?.showDwdPrecipitationTypeRadar!==false,presentationMode,confidenceDisplayMode}}catch{return{...DEFAULT_FORECAST_DISPLAY_SETTINGS}}}
-function storedLocalHazardDisplaySettings():LocalHazardDisplaySettings{try{const parsed=JSON.parse(localStorage.getItem(LOCAL_HAZARD_DISPLAY_SETTINGS_KEY)||'{}');return{showThunderAndFlashFlood:parsed?.showThunderAndFlashFlood!==false}}catch{return{showThunderAndFlashFlood:true}}}
-function compactLocalHazardSummary(value:string,maxLength=150){const text=String(value||''),breakAt=text.indexOf('. '),sentence=breakAt>=0?text.slice(0,breakAt+1):text;return sentence.length<=maxLength?sentence:`${sentence.slice(0,maxLength-1).trimEnd()}â€¦`}
-function normalizeFavorite(value:any,index=0):Favorite|null{if(looksLikeEventFavoriteRecord(value))return null;const raw=value?.location??value;if(!Number.isFinite(raw?.latitude)||!Number.isFinite(raw?.longitude))return null;const location=favoriteLocation(raw as Location),rules=value?.rules&&typeof value.rules==='object'?value.rules:{},mountain=value?.mountain&&typeof value.mountain==='object'?normalizeMountainConfig(value.mountain,location):storedMountainConfig(location),water=value?.water&&typeof value.water==='object'?normalizeWaterConfig(value.water):defaultWaterConfig();return{id:String(value?.id||`fav-${favoriteKey(location)}-${index}`),location,alias:String(value?.alias||'').trim().slice(0,64),group:String(value?.group||'Allgemein').trim().slice(0,32)||'Allgemein',isDefault:Boolean(value?.isDefault),rules:{enabled:legacyFavoriteRulesEnabled(rules),rainProbability:Number.isFinite(Number(rules.rainProbability))?Number(rules.rainProbability):DEFAULT_FAVORITE_RULES.rainProbability,gustKt:Number.isFinite(Number(rules.gustKt))?Number(rules.gustKt):DEFAULT_FAVORITE_RULES.gustKt,frostC:Number.isFinite(Number(rules.frostC))?Number(rules.frostC):DEFAULT_FAVORITE_RULES.frostC,heatC:Number.isFinite(Number(rules.heatC))?Number(rules.heatC):DEFAULT_FAVORITE_RULES.heatC,precipitationStart:Boolean(rules.precipitationStart),thunderstormApproach:Boolean(rules.thunderstormApproach)},mountain,water}}
-function normaliseFavoriteCollection(values:any[]):Favorite[]{const seenIds=new Set<string>(),result:Favorite[]=[];for(let i=0;i<values.length;i++){let item=normalizeFavorite(values[i],i);if(!item)continue;if(seenIds.has(item.id)){const originalId=item.id,existing=result.find(value=>value.id===originalId);if(existing&&JSON.stringify(existing)===JSON.stringify(item))continue;item={...item,id:`${originalId}-${favoriteKey(item.location)}-${i}`}}seenIds.add(item.id);result.push(item)}let defaultUsed=false;return result.map(item=>item.isDefault&&!defaultUsed?(defaultUsed=true,item):item.isDefault?{...item,isDefault:false}:item)}
-function applyFavoriteTombstones(values:Favorite[],tombstones=readFavoriteTombstones()){const filtered=values.filter(item=>!tombstones[item.id]);if(!filtered.length||filtered.some(item=>item.isDefault))return filtered;return filtered.map((item,index)=>index===0?{...item,isDefault:true}:item)}
-function parseFavoriteSnapshot(raw:string|null){if(raw===null)return null;try{const parsed=JSON.parse(raw),values=Array.isArray(parsed)?parsed:Array.isArray(parsed?.favorites)?parsed.favorites:null;if(!values)return null;const rejectedEventRecords=values.some(looksLikeEventFavoriteRecord),favorites=normaliseFavoriteCollection(values);return{favorites,rejectedEventRecords,sourceCount:values.length}}catch{return null}}
-function storedFavorites():Favorite[]{try{const primary=parseFavoriteSnapshot(localStorage.getItem(FAVORITES_STORAGE_KEY)),shadow=parseFavoriteSnapshot(localStorage.getItem(FAVORITES_SHADOW_KEY)),primaryEmptyCorrupt=Boolean(primary&&primary.sourceCount>0&&primary.favorites.length===0),tombstones=readFavoriteTombstones();let recovered:Favorite[];if(!primary||primaryEmptyCorrupt)recovered=shadow?.favorites??[];else if(primary.rejectedEventRecords){const byId=new Set(primary.favorites.map(item=>item.id));recovered=[...primary.favorites,...(shadow?.favorites??[]).filter(item=>!byId.has(item.id))]}else recovered=primary.favorites;const cleaned=applyFavoriteOrder(applyFavoriteTombstones(recovered,tombstones)),needsRepair=!primary||primaryEmptyCorrupt||primary.rejectedEventRecords||cleaned.length!==recovered.length||JSON.stringify(cleaned)!==JSON.stringify(primary?.favorites??[]);if(needsRepair)persistFavoriteSnapshot(cleaned);else persistFavoriteOrder(cleaned);return cleaned}catch{return[]}}
-function notificationLocation():Location|null{try{const url=new URL(window.location.href),favoriteId=url.searchParams.get('mid-favorite')||'',favorites=storedFavorites(),favorite=favorites.find(item=>item.id===favoriteId),latitudeRaw=url.searchParams.get('mid-lat'),longitudeRaw=url.searchParams.get('mid-lon'),latitude=latitudeRaw===null||latitudeRaw.trim()===''?NaN:Number(latitudeRaw.replace(',','.')),longitude=longitudeRaw===null||longitudeRaw.trim()===''?NaN:Number(longitudeRaw.replace(',','.')),validCoordinates=Number.isFinite(latitude)&&Number.isFinite(longitude)&&Math.abs(latitude)<=90&&Math.abs(longitude)<=180&&!(latitude===0&&longitude===0);if(validCoordinates){const queryName=String(url.searchParams.get('mid-name')||'').trim(),base=favorite?.location,closeFavorite=base&&locationDistanceMeters(base,{...base,latitude,longitude})<=2500?favorite:undefined,name=queryName||closeFavorite?.alias||closeFavorite?.location.name||'Benachrichtigungsort',country=url.searchParams.get('mid-country')||closeFavorite?.location.country;return normalizeLocation({...closeFavorite?.location,id:Math.abs(Math.round(latitude*100000)*1000000+Math.round(longitude*100000)),name,latitude,longitude,country,autolocated:favoriteId==='tracked-location'} as Location)}if(favorite)return favorite.location;return null}catch{return null}}
-function initialLocation(){const widgetExport=readWidgetUrlExportRequest(window.location.href);if(widgetExport)return widgetExport.location as Location;const notified=notificationLocation();if(notified)return notified;const last=storedLocation();if(last)return last;return storedFavorites().find(item=>item.isDefault)?.location??null}
-function favoriteLabel(favorite:Favorite){return favorite.alias||favorite.location.name}
-function initialThemeMode():ThemeMode{try{const stored=localStorage.getItem(THEME_STORAGE_KEY);return stored==='dark'||stored==='light'||stored==='auto'?stored:'auto'}catch{return'auto'}}
-function readBrandLogoVariant():BrandLogoVariant{try{const stored=localStorage.getItem(BRAND_LOGO_STORAGE_KEY);return stored==='dark'||stored==='light'||stored==='auto'?stored:'auto'}catch{return'auto'}}
-function resolveBrandLogoVariant(variant:BrandLogoVariant,dark:boolean):Exclude<BrandLogoVariant,'auto'>{return variant==='auto'?(dark?'dark':'light'):variant}
-function brandLogoPathForVariant(variant:Exclude<BrandLogoVariant,'auto'>){return variant==='light'?LIGHT_LOGO_PATH:DARK_LOGO_PATH}
-function brandFaviconPathForVariant(variant:Exclude<BrandLogoVariant,'auto'>){return variant==='light'?LIGHT_FAVICON_PATH:DARK_FAVICON_PATH}
-function systemPrefersDark(){return window.matchMedia?.('(prefers-color-scheme: dark)').matches??false}
+NØÛÛœİ[ÙOZ[š]X[^[İ][ÙJ
+Nİ^ÚYŠ[ÙOOOIÜİ[™\™	É‰›ØØ[İÜ˜YÙK™Ù]][JÕS‘T‘ÓVSÕUÒS’UPSV‘QÒÑVJHOOIÌIÊ^ØÛÛ\ÙTİÜ™Yİ[™\™[Ù[\Ê
+NÛØØ[İÜ˜YÙKœÙ]][JÕS‘T‘ÓVSÕUÒS’UPSV‘QÒÑVK	ÌIÊ__XØ]Úß\™]\›ˆ[Ù_B\H˜]›Üš]T[\Ï^Ù[˜X›Y˜›ÛÛX[Ü˜Z[”›Ø˜Xš[]OÎ›[X™\Ùİ\İİÎ›[X™\Ùœ›ÜİÏÎ›[X™\ÚX]ÏÎ›[X™\Ü™XÚ\]][Û”İ\Î˜›ÛÛX[İ[™\œİÜ›P\›ØXÚÎ˜›ÛÛX[ŸNÂ\H\Ú[Tİ]O^Ü™XÚ\]][Û”İ\˜›ÛÛX[İ[™\œİÜ›P\›ØXÚ˜›ÛÛX[ŸNÂ˜ÛÛœİTÒÓ“ÕQ’PĞUSÓ—ÒS•T•SÎ”\Ú›İYšXØ][Û’[\˜[×OVÌMKÌŒLŒNNÂ\H[Y\šXÑ˜]›Üš]T[RÙ^OIÜ˜Z[”›Ø˜Xš[]Iß	Ùİ\İİ	ß	Ùœ›ÜİÉß	ÚX]ÉÎÂ\HØ]\•\OIØ]]Éß	ÜÙXIß	ÛZÙIß	Üš]™\‰ÎÂ\HØ]\Xİ]š]OIÙÙ[™\˜[	ß	ÜØZ[[™Éß	Üİ\™š[™Éß	ÜY[™Éß	ÜİÚ[[Z[™ÉÎÂ\HØ]\ÛÛ™šYÏ^Ù[˜X›Y˜›ÛÛX[İØ]\•\N•Ø]\•\NØXİ]š]N•Ø]\Xİ]š]NÛX^Ø]™RZYÚ›[X™\ÛX^İ\İİ›[X™\ÛZ[•Ø]\•[\\˜]\™N›[X™\ŸNÂ\H˜]›Üš]O^ÚYœİš[™ÎÛØØ][Û“ØØ][ÛØ[X\Îœİš[™ÎÙÜ›İ\œİš[™ÎÚ\ÑY˜][˜›ÛÛX[Ü[\Î‘˜]›Üš]T[\ÎÛ[İ[Z[“[İ[Z[ÛÛ™šYÎİØ]\•Ø]\ÛÛ™šYßNÂ˜ÛÛœİQUSÑU“Ô’UWÔ•STÎ‘˜]›Üš]T[\Ï^Ù[˜X›Y™˜[ÙK˜Z[”›Ø˜Xš[]NÌİ\İİŒÍKœ›ÜİÎŒKX]ÎŒÌ™XÚ\]][Û”İ\™˜[ÙK[™\œİÜ›P\›ØXÚ™˜[Ù_NÂ™[˜İ[ÛˆYØXŞQ˜]›Üš]T[\Ñ[˜X›Y
+[\Î˜[J^ÚYŠ\[Ùˆ[\ÏË™[˜X›YOOIØ›ÛÛX[‰Ê\™]\›ˆ[\Ë™[˜X›YÜ™]\›ˆ
+ÉÜ˜Z[”›Ø˜Xš[]IË	Ùİ\İİ	Ë	Ùœ›ÜİÉË	ÚX]É×H\ÈÛÛœİ
+KœÛÛYJÙ^OO“[X™\‹š\Ñš[š]J[X™\Š[\ÏË–ÚÙ^WJJI‰“[X™\Š[\ÖÚÙ^WJHOOS[X™\ŠQUSÑU“Ô’UWÔ•STÖÚÙ^WJJ_B™[˜İ[Ûˆ›Ü›X[^™SØØ][ÛŠØÎ“ØØ][ÛŠN“ØØ][ÛØÛÛœİÛİ[WØÛÙOXÛİ[PÛÙQœ›ÛSØØ][ÛŠØË˜Ûİ[WØÛÙJ_Ûİ[PÛÙQœ›ÛSØØ][ÛŠØË˜Ûİ[J_[™Yš[™YÜ™]\›Ë‹‹›ØËÛİ[WØÛÙ__B™[˜İ[Ûˆ˜]›Üš]SØØ][ÛŠØÎ“ØØ][ÛŠN“ØØ][ÛØÛÛœİÛX[^Ë‹‹››Ü›X[^™SØØ][ÛŠØÊ_H\ÈØØ][Û‰”™XÛÜ™İš[™Ë[šÛ›İÛÙ›ÜŠÛÛœİÙ^HÙ–ÉÙ]IË	Üİ\[YIË	Ù[™[YIË	Ú\Ñ˜]›Üš]IË	Ù˜]›Üš]U\]Y]	×JY[]HÛX[–ÚÙ^WNÜ™]\›Ë‹‹˜ÛX[‹]]ÛØØ]Y™˜[Ù_H\ÈØØ][ÛŸB™[˜İ[Ûˆ\œÚ\İÙ[XİYØØ][ÛŠØØ][Û“ØØ][Û‹™]š\ÙO]YJ^ÛØØ[İÜ˜YÙKœÙ]][JĞĞUSÓ—ÔÕÔQÑWÒÑVK”ÓÓ‹œİš[™ÚYJØØ][ÛŠJNÚYŠ™]š\ÙJ[ØØ[İÜ˜YÙKœÙ]][JĞĞUSÓ—ÕTUQĞUÒÑVK™]È]J
+KÒTÓÔİš[™Ê
+J_B™[˜İ[ÛˆİÜ™YØØ][ÛŠ
+N“ØØ][ÛŸ[İ^ØÛÛœİ˜]Ï[ØØ[İÜ˜YÙK™Ù]][JĞĞUSÓ—ÔÕÔQÑWÒÑVJNÚYŠ\˜]Ê\™]\›ˆ[ØÛÛœİØÏR”ÓÓ‹œ\œÙJ˜]ÊH\ÈØØ][ÛÚYŠS[X™\‹š\Ñš[š]JØË›]]YJ_S[X™\‹š\Ñš[š]JØË›Û™Ú]YJJ\™]\›ˆ[ØÛÛœİ›Ü›X[^™Y[›Ü›X[^™SØØ][ÛŠØÊNÜ\œÚ\İÙ[XİYØØ][ÛŠ›Ü›X[^™Y˜[ÙJNÚYŠ[ØØ[İÜ˜YÙK™Ù]][JĞĞUSÓ—ÕTUQĞUÒÑVJJ[ØØ[İÜ˜YÙKœÙ]][JĞĞUSÓ—ÕTUQĞUÒÑVK™]È]J
+KÒTÓÔİš[™Ê
+JNÜ™]\›ˆ›Ü›X[^™YXØ]ÚÜ™]\›ˆ[_B™[˜İ[Ûˆ˜]›Üš]RÙ^JØÎ“ØØ][ÛŠ^Ü™]\›˜	Ó[X™\ŠØË›]]YJKÑš^Y
+J_N‰Ó[X™\ŠØË›Û™Ú]YJKÑš^Y
+J_XB™[˜İ[ÛˆØØ][Û‘\İ[˜ÙSY]\œÊN“ØØ][Û‹“ØØ][ÛŠ^ØÛÛœİ˜YSX]”KÌN]J‹›]]YKXK›]]YJJœ˜YÛJ‹›Û™Ú]YKXK›Û™Ú]YJJœ˜Y]OXK›]]YJœ˜Y]X‹›]]YJœ˜YSX]œÚ[Š]ÌŠJŠŒŠÓX]˜ÛÜÊ]JJ“X]˜ÛÜÊ]ŠJ“X]œÚ[ŠÛ‹ÌŠJŠŒÜ™]\›ˆLÍŒ
+“X]˜\Ú[ŠX]›Z[ŠKX]œÜ\
+
+JJ_B™^Ü[˜İ[ÛˆØØ][ÛœÓ™X\›Q\]Z]˜[[
+N“ØØ][ÛŸ[™Yš[™Y[“ØØ][ÛŸ[™Yš[™Y[
+^ÚYŠX_XŸS[X™\‹š\Ñš[š]JK›]]YJ_S[X™\‹š\Ñš[š]JK›Û™Ú]YJ_S[X™\‹š\Ñš[š]J‹›]]YJ_S[X™\‹š\Ñš[š]J‹›Û™Ú]YJJ\™]\›ˆ˜[ÙNØÛÛœİ\İ[˜ÙO[ØØ][Û‘\İ[˜ÙSY]\œÊKŠKQ[]˜][ÛS[X™\ŠK™[]˜][ÛŠK‘[]˜][ÛS[X™\Š‹™[]˜][ÛŠK›İ[]˜][ÛœÏS[X™\‹š\Ñš[š]JQ[]˜][ÛŠI‰“[X™\‹š\Ñš[š]J‘[]˜][ÛŠNÜ™]\›ˆ\İ[˜ÙOJ›İ[]˜][ÛœÏÎLŒÍL
+I‰ŠX›İ[]˜][ÛœßX]˜XœÊQ[]˜][Û‹X‘[]˜][ÛŠOLML
+_B™[˜İ[Ûˆ›Ü›X[^™Y˜]›Üš]RY[]S˜[YJØÎ“ØØ][ÛŸ[™Yš[™Y[
+^Ü™]\›ˆİš[™ÊØÏË›˜[Y_	ÉÊKš[J
+K››Ü›X[^™J	Ó‘‘	ÊKœ™\XÙJÖ×LÌWLÍ™—KÙË	ÉÊKÓØØ[SİÙ\Ø\ÙJ	ÙKQIÊKœ™\XÙJÖ×˜K^ŒNWJËÙË	È	ÊKš[J
+_B™[˜İ[Ûˆ˜]›Üš]RY[]S˜[Y\Ñ\]Z]˜[[
+N“ØØ][ÛŸ[™Yš[™Y[“ØØ][ÛŸ[™Yš[™Y[
+^ØÛÛœİY[›Ü›X[^™Y˜]›Üš]RY[]S˜[YJJKšYÚ[›Ü›X[^™Y˜]›Üš]RY[]S˜[YJŠNÚYŠ[Y\šYÚ
+\™]\›ˆ˜[ÙNÚYŠYOO\šYÚ
+\™]\›ˆYNØÛÛœİYÚÙ[œÏ[YœÜ]
+×ÊËÊK™š[\ŠÚÙ[OÚÙ[‹›[™İLÊKšYÚÚÙ[œÏ\šYÚœÜ]
+×ÊËÊK™š[\ŠÚÙ[OÚÙ[‹›[™İLÊKÚÜ\[YÚÙ[œË›[™İ\šYÚÚÙ[œË›[™İÛYÚÙ[œÎœšYÚÚÙ[œËÛ™Ù\[™]ÈÙ]
+YÚÙ[œË›[™İ\šYÚÚÙ[œË›[™İÜšYÚÚÙ[œÎ›YÚÙ[œÊNÜ™]\›ˆÚÜ\‹›[™İL‰‰œÚÜ\‹™]™\JÚÙ[O›Û™Ù\‹š\ÊÚÙ[ŠJ_B™[˜İ[Ûˆ\ÔÚQ˜]›Üš]SØØ][ÛŠØÎ“ØØ][ÛŸ[™Yš[™Y[
+^ØÛÛœİØ]YÛÜOTİš[™ÊØÏËœÚPØ]YÛÜ_	ÉÊKš[J
+KÓØØ[SİÙ\Ø\ÙJ	ÙKQIÊNÜ™]\›ˆ›ÛÛX[ŠØÏËœÚU\_
+Ø]YÛÜI‰˜Ø]YÛÜHOOIÛÜ	ÊJ_B™[˜İ[ÛˆİX›Q˜]›Üš]SØØ][Û’YX]Ú
+N“ØØ][Û‹“ØØ][ÛŠ^ØÛÛœİRYS[X™\ŠKšY
+K’YS[X™\Š‹šY
+NÚYŠS[X™\‹š\Ñš[š]JRY
+_S[X™\‹š\Ñš[š]J’Y
+_RYOOX’Y
+\™]\›ˆ˜[ÙNØÛÛœİTÛİ\˜ÙOTİš[™ÊKœÛİ\˜Ù_	ÉÊK”Ûİ\˜ÙOTİš[™Ê‹œÛİ\˜Ù_	ÉÊNÜ™]\›ˆ›ÛÛX[ŠTÛİ\˜ÙI‰˜”Ûİ\˜ÙI‰˜TÛİ\˜ÙOOOX”Ûİ\˜ÙJ_B™[˜İ[Ûˆ˜]›Üš]SØØ][ÛœÒY[XØ[
+N“ØØ][ÛŸ[™Yš[™Y[“ØØ][ÛŸ[™Yš[™Y[
+^ÚYŠX_XŠ\™]\›ˆ˜[ÙNØÛÛœİ˜[YSX]ÚY˜]›Üš]RY[]S˜[Y\Ñ\]Z]˜[[
+KŠNÚYŠ[˜[YSX]Ú
+\™]\›ˆ˜[ÙNÚYŠİX›Q˜]›Üš]SØØ][Û’YX]Ú
+KŠJ\™]\›ˆYNØÛÛœİ\İ[˜ÙO[ØØ][Û‘\İ[˜ÙSY]\œÊKŠKÚOZ\ÔÚQ˜]›Üš]SØØ][ÛŠJ_\ÔÚQ˜]›Üš]SØØ][ÛŠŠK[Z]\ÚOÍNQ[]˜][ÛS[X™\ŠK™[]˜][ÛŠK‘[]˜][ÛS[X™\Š‹™[]˜][ÛŠK›İ[]˜][ÛœÏS[X™\‹š\Ñš[š]JQ[]˜][ÛŠI‰“[X™\‹š\Ñš[š]J‘[]˜][ÛŠNÜ™]\›ˆ\İ[˜ÙO[[Z]	‰ŠX›İ[]˜][ÛœßX]˜XœÊQ[]˜][Û‹X‘[]˜][ÛŠOLLŒ
+_B™[˜İ[Ûˆ˜]›Üš]SØØ][ÛœÑ\]Z]˜[[›Ü”Ù[Xİ[ÛŠN“ØØ][ÛŸ[™Yš[™Y[“ØØ][ÛŸ[™Yš[™Y[
+^ÚYŠX_XŠ\™]\›ˆ˜[ÙNÚYŠ˜]›Üš]SØØ][ÛœÒY[XØ[
+KŠJ\™]\›ˆYNØÛÛœİ\İ[˜ÙO[ØØ][Û‘\İ[˜ÙSY]\œÊKŠKÚOZ\ÔÚQ˜]›Üš]SØØ][ÛŠJ_\ÔÚQ˜]›Üš]SØØ][ÛŠŠK˜[YSX]ÚY˜]›Üš]RY[]S˜[Y\Ñ\]Z]˜[[
+KŠNÚYŠ[˜[YSX]Ú
+\™]\›ˆ˜[ÙNØÛÛœİ[Z]\ÚOÌNLQ[]˜][ÛS[X™\ŠK™[]˜][ÛŠK‘[]˜][ÛS[X™\Š‹™[]˜][ÛŠK›İ[]˜][ÛœÏS[X™\‹š\Ñš[š]JQ[]˜][ÛŠI‰“[X™\‹š\Ñš[š]J‘[]˜][ÛŠNÜ™]\›ˆ\İ[˜ÙO[[Z]	‰ŠX›İ[]˜][ÛœßX]˜XœÊQ[]˜][Û‹X‘[]˜][ÛŠOLML
+_B™[˜İ[ÛˆØØ][ÛœÓX]Ú˜]›Üš]TÙ[Xİ[ÛŠN“ØØ][ÛŸ[™Yš[™Y[“ØØ][ÛŸ[™Yš[™Y[
+^Ü™]\›ˆ˜]›Üš]SØØ][ÛœÑ\]Z]˜[[›Ü”Ù[Xİ[ÛŠKŠ_B™[˜İ[ÛˆX]Ú[™ÔİÜ™Y˜]›Üš]J˜]›Üš]\Î‘˜]›Üš]V×KØØ][Û“ØØ][ÛŸ[™Yš[™Y[
+^ÚYŠ[ØØ][ÛŠ\™]\›ˆ[™Yš[™YÜ™]\›ˆ˜]›Üš]\Ë™š[™
+][OO™˜]›Üš]SØØ][ÛœÒY[XØ[
+][K›ØØ][Û‹ØØ][ÛŠJ_B™[˜İ[ÛˆX]Ú[™Ñ˜]›Üš]J˜]›Üš]\Î‘˜]›Üš]V×KØØ][Û“ØØ][ÛŸ[™Yš[™Y[
+^ÚYŠ[ØØ][ÛŠ\™]\›ˆ[™Yš[™YÜ™]\›ˆX]Ú[™ÔİÜ™Y˜]›Üš]J˜]›Üš]\ËØØ][ÛŠOÏÙ˜]›Üš]\Ë™š[™
+][OO™˜]›Üš]SØØ][ÛœÑ\]Z]˜[[›Ü”Ù[Xİ[ÛŠ][K›ØØ][Û‹ØØ][ÛŠJOÏÙ˜]›Üš]\Ë™š[™
+][OO›ØØ][ÛœÓ™X\›Q\]Z]˜[[
+][K›ØØ][Û‹ØØ][ÛŠJ_B™[˜İ[Ûˆ˜XÚÙYØØ][Û•\™Ù]
+˜]›Üš]\Î‘˜]›Üš]V×K˜XÚÙY“ØØ][ÛŠ^ØÛÛœİ˜]›Üš]O[X]Ú[™Ñ˜]›Üš]J˜]›Üš]\Ë˜XÚÙY
+NÜ™]\›ˆ˜]›Üš]OŞË‹‹™˜]›Üš]SØØ][ÛŠ˜]›Üš]K›ØØ][ÛŠK]]ÛØØ]YY_NË‹‹››Ü›X[^™SØØ][ÛŠ˜XÚÙY
+K]]ÛØØ]YY__B™[˜İ[Ûˆ™]™X[Ú][”ØÜ›ÛÛÛZ[™\ŠÛÛZ[™\’S[[Y[[[Y[’S[[Y[^\Î‰İ™\XØ[	ß	ÚÜš^›Û[	Ê^ØÛÛœİÛÛZ[™\”™XİXÛÛZ[™\‹™Ù]›İ[™[™ĞÛY[™Xİ
 
-function dateOnlyUtc(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12)):new Date(Number.NaN)}
-function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const date=dateOnlyUtc(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{...options,timeZone:'UTC'}).format(date):value}
-function formatRawInZone(value:Date|number,timeZone:string|undefined,options:Intl.DateTimeFormatOptions){const date=typeof value==='number'?new Date(value):value;try{return new Intl.DateTimeFormat('de-DE',{...options,timeZone:timeZone||undefined}).format(date)}catch{return new Intl.DateTimeFormat('de-DE',options).format(date)}}
-function formatInZone(value:Date|number,timeZone:string|undefined,options:Intl.DateTimeFormatOptions){return formatRawInZone(value,displayTimeZone(timeZone),options)}
-function localDateInZone(timeZone?:string,at:Date|number=new Date()){const date=at instanceof Date?at:new Date(at);try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timeZone||undefined,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date),get=(type:string)=>parts.find(x=>x.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return date.toISOString().slice(0,10)}}
-function zoneCaption(timeZone?:string,abbreviation?:string){if(timeZone==='UTC')return'UTC Â· Z-Zeit';return abbreviation?`${abbreviation} Â· ${timeZone||'Lokalzeit'}`:timeZone||'Lokalzeit'}
-export function formatZuluHm(value:number|Date){const date=new Date(value);return Number.isFinite(date.getTime())?`${String(date.getUTCHours()).padStart(2,'0')}${String(date.getUTCMinutes()).padStart(2,'0')}Z`:''}
-function formatGmtOffset(seconds:unknown){const value=Number(seconds);if(!Number.isFinite(value))return'GMT';const sign=value<0?'âˆ’':'+';const totalMinutes=Math.round(Math.abs(value)/60),hours=Math.floor(totalMinutes/60),minutes=totalMinutes%60;return`GMT${sign}${hours}${minutes?`:${String(minutes).padStart(2,'0')}`:''}`}
-function LocalClock({timezone,abbreviation,utcOffsetSeconds,advanced}:{timezone:string;abbreviation?:string;utcOffsetSeconds?:number;advanced:boolean}){
- const[now,setNow]=useState(()=>Date.now());
- useEffect(()=>{let timer=0;const schedule=()=>{window.clearTimeout(timer);const delay=60000-Date.now()%60000+120;timer=window.setTimeout(()=>{if(document.visibilityState==='visible')setNow(Date.now());schedule()},delay)},visibility=()=>{if(document.visibilityState==='visible')setNow(Date.now())};schedule();document.addEventListener('visibilitychange',visibility);return()=>{window.clearTimeout(timer);document.removeEventListener('visibilitychange',visibility)}},[]);
- return <span className="local-timezone">{advanced?`${formatRawInZone(now,timezone,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'})} ${formatGmtOffset(utcOffsetSeconds)} (${formatZuluHm(now)})`:(abbreviation||timezone)}</span>
-}
-function maximizeVisibleIndices(length:number,maxVisible:number){
- if(length<=0||maxVisible<=0)return[];
- if(length<=maxVisible)return Array.from({length},(_,index)=>index);
- const count=Math.max(2,Math.min(length,Math.floor(maxVisible)));
- return Array.from({length:count},(_,index)=>Math.round(index*(length-1)/(count-1)));
-}
-const importRadarPanel=()=>import('./RadarPanel');
-const importExtremeWeatherOutlookPanel=()=>import('./ExtremeWeatherOutlookPanel');
-const LazyRadar=lazy(()=>import('./RadarPanel'));
-const LazyEnsembles=lazy(()=>import('./EnsemblePanel'));
-const LazyLongRange=lazy(()=>import('./LongRangePanel'));
-const LazyClimate=lazy(()=>import('./ClimatePanel'));
-const LazyWaterSports=lazy(()=>import('./WaterSportsPanel'));
-const LazyFlightMeteorology=lazy(()=>import('./FlightMeteorologyPanel'));
-const LazyWeatherMaps=lazy(()=>import('./WeatherMapsPanel'));
-const LazyExtremeWeatherOutlook=lazy(()=>import('./ExtremeWeatherOutlookPanel'));
-const LazyTravelPlanner=lazy(()=>import('./TravelPlannerPanel'));
-const LazyEventPlanner=lazy(()=>import('./EventPlannerPanel'));
-const LazyForecastVerification=lazy(()=>import('./ForecastVerificationPanel'));
-const MemoCurrent=memo(Current);
-const MemoMountainSki=memo(MountainSki);
-const MemoHazards=memo(Hazards);
-const MemoOfficialWarnings=memo(OfficialWarnings);
-let extremeOutlookWarmPromise:Promise<unknown>|undefined;
-function warmCompositePanel(){void importRadarPanel()}
-function warmExtremeWeatherOutlook(){void importExtremeWeatherOutlookPanel();extremeOutlookWarmPromise??=loadExtremeWeatherOutlook().catch(()=>undefined)}
-const MemoWarningCenter=memo(WarningCenter);
-const MemoForecast=memo(Forecast);
-const MemoFavoriteRuleNotice=memo(FavoriteRuleNotice);
-const MemoLazyRadar=memo(LazyRadar);
-const MemoLazyEnsembles=memo(LazyEnsembles);
-const MemoLazyLongRange=memo(LazyLongRange);
-const MemoLazyClimate=memo(LazyClimate);
-const MemoLazyWaterSports=memo(LazyWaterSports);
-const MemoLazyForecastVerification=memo(LazyForecastVerification);
-const MemoLazyFlightMeteorology=memo(LazyFlightMeteorology);
-const MemoLazyWeatherMaps=memo(LazyWeatherMaps);
-const MemoLazyExtremeWeatherOutlook=memo(LazyExtremeWeatherOutlook);
-const MemoLazyTravelPlanner=memo(LazyTravelPlanner);
-const MemoLazyEventPlanner=memo(LazyEventPlanner);
-function ViewportGate({children,onVisible,placeholder='Bereich wird beim Scrollen geladen â€¦',rootMargin='320px',className=''}:{children:ReactNode;onVisible?:()=>void;placeholder?:string;rootMargin?:string;className?:string}){
- const ref=useRef<HTMLDivElement>(null),[visible,setVisible]=useState(false),fired=useRef(false);
- useEffect(()=>{
-  if(visible)return;const node=ref.current;if(!node)return;let disposed=false,frame=0;
-  const activate=()=>{if(disposed||visible||frame)return;frame=window.requestAnimationFrame(()=>{frame=0;if(!disposed)setVisible(true)})};
-  if(!('IntersectionObserver'in window)){activate();return()=>{disposed=true;if(frame)window.cancelAnimationFrame(frame)}};
-  const observer=new IntersectionObserver(entries=>{if(!entries.some(entry=>entry.isIntersecting))return;observer.disconnect();activate()},{rootMargin,threshold:0.01});observer.observe(node);
-  return()=>{disposed=true;if(frame)window.cancelAnimationFrame(frame);observer.disconnect()}
- },[visible,rootMargin]);
- useEffect(()=>{if(visible&&!fired.current){fired.current=true;onVisible?.()}},[visible,onVisible]);
- return <div ref={ref} className={`viewport-gate${visible?' ready':''} ${className}`.trim()}>{visible?children:<section className="card lazy-placeholder"><RefreshCw size={17}/><span>{placeholder}</span></section>}</div>
-}
+K[[Y[™XİY[[Y[™Ù]›İ[™[™ĞÛY[™Xİ
 
-function thunderPlaceCompactDetail(place:ThunderInfoPlace){
- switch(place.status){
-  case'now':return place.isReferenceLocation?'Direkt betroffen am Bezugsort':'Direkt betroffener Ort';
-  case'likely':return place.arrivalMinutes>0?`voraussichtlich in ${place.arrivalMinutes} Min`:'voraussichtlich auf der Zugbahn';
-  case'possible':return place.arrivalMinutes>0?`mÃ¶glicher Treffer in ${place.arrivalMinutes} Min`:'mÃ¶glicher Treffer';
-  case'corridor':return'nur Unsicherheitskorridor';
-  default:return place.detail;
- }
-}
-function ThunderPlaceList({places,compact=false,total}:{places:ThunderInfoPlace[];compact?:boolean;total?:number}){
- // Vertragsanker fÃ¼r bestehende Regressionstests: currentVisible=currentPlaces.slice(0,2),futureVisible=futurePlaces.slice(0,3)
- const currentPlaces=places.filter(place=>place.status==='now'),futurePlaces=places.filter(place=>place.status!=='now'),currentVisible=currentPlaces.slice(0,compact?1:2),futureVisible=futurePlaces.slice(0,compact?2:3),shownCount=currentVisible.length+futureVisible.length,totalCount=Math.max(total??places.length,places.length),hiddenLoaded=Math.max(0,places.length-shownCount),hiddenExternal=Math.max(0,totalCount-places.length),hidden=Math.max(0,hiddenLoaded+hiddenExternal),overflowPlaces=[...currentPlaces.slice(currentVisible.length),...futurePlaces.slice(futureVisible.length)],extraCurrent=Math.max(0,currentPlaces.length-currentVisible.length),extraFuture=Math.max(0,futurePlaces.length-futureVisible.length),overflowLabel=overflowPlaces.length+hiddenExternal;
- const renderPlaceRows=(items:ThunderInfoPlace[])=>items.map((place,index)=><div className={`thunder-place-row ${place.status}${compact?' compact':''}`} key={`${place.name}:${place.arrivalAt??place.arrivalMinutes}:${index}`}><span><strong>{place.name}</strong><small>{compact?thunderPlaceCompactDetail(place):place.detail}</small></span><b>{place.badge}</b></div>);
- return <section className={`thunder-place-section${compact?' compact':''}`}><header><span><strong>Betroffene Orte &amp; Zugbahn</strong><small>{[currentPlaces.length?`${currentPlaces.length} aktuell`:null,futurePlaces.length?`${futurePlaces.length} vorausliegend`:null].filter(Boolean).join(' Â· ')}</small></span>{hidden>0&&<em>+{hidden} weitere</em>}</header><div className="thunder-place-summary"><span className="thunder-place-pill now">{currentPlaces.length||0} aktuell</span><span className="thunder-place-pill future">{futurePlaces.length||0} auf Zugbahn</span>{hidden>0&&<span className="thunder-place-pill more">+{hidden} weitere</span>}</div>{currentVisible.length?<section className="thunder-place-group current"><header><strong>Jetzt im Zellbereich</strong><small>{currentVisible.length===1?'Direkt betroffener Ort':'Direkt betroffene Orte'}{compact&&extraCurrent>0?` Â· +${extraCurrent} weitere aktuell`:''}</small></header><div className="thunder-place-stack">{renderPlaceRows(currentVisible)}</div></section>:null}{futureVisible.length?<section className="thunder-place-group future"><header><strong>{compact?'NÃ¤chste Zugbahnorte':'NÃ¤chste Orte auf der Zugbahn'}</strong><small>{futureVisible.length===1?'FrÃ¼heste erwartete AnnÃ¤herung':'FrÃ¼heste erwartete AnnÃ¤herungen'}{compact&&extraFuture>0?` Â· +${extraFuture} weitere`:''}</small></header><div className="thunder-place-stack">{renderPlaceRows(futureVisible)}</div></section>:null}{overflowLabel>0?<details className={`thunder-place-more${compact?' compact':''}`}><summary>Weitere Orte anzeigen ({overflowLabel})</summary>{overflowPlaces.length?<div className="thunder-place-stack">{renderPlaceRows(overflowPlaces)}</div>:null}{hiddenExternal>0?<p>ZusÃ¤tzlich sind noch {hiddenExternal} weitere Orte im Datensatz erfasst, die hier nicht einzeln aufgefÃ¼hrt werden.</p>:null}</details>:null}{!compact&&<p className="thunder-place-legend"><span><i className="now"/>Jetzt: radarbestimmter Zellbereich</span><span><i className="likely"/>voraussichtlich auf der Zugbahn</span><span><i className="possible"/>mÃ¶glicher Treffer</span><span><i className="corridor"/>nur Unsicherheitskorridor</span></p>}</section>
-}
+NÚYŠ^\ÏOOIİ™\XØ[	Ê^ÚYŠ[[Y[™XİÜXÛÛZ[™\”™XİÜ	‰™[[Y[™Xİ˜›İÛOXÛÛZ[™\”™Xİ˜›İÛJ\™]\›ØÛÛZ[™\‹œØÜ›ÛÊİÜ“X]›X^
+ÛÛZ[™\‹œØÜ›ÛÜ
+Ù[[Y[™XİÜXÛÛZ[™\”™XİÜJÛÛZ[™\”™XİšZYÚY[[Y[™XİšZYÚ
+KÌŠK™Z]š[Ü‰Ø]]ÉßJ_Y[Ù^ÚYŠ[[Y[™Xİ›YXÛÛZ[™\”™Xİ›Y	‰™[[Y[™XİœšYÚXÛÛZ[™\”™XİœšYÚ
+\™]\›ØÛÛZ[™\‹œØÜ›ÛÊÛY“X]›X^
+ÛÛZ[™\‹œØÜ›ÛY
+Ù[[Y[™Xİ›YXÛÛZ[™\”™Xİ›YJÛÛZ[™\”™XİÚYY[[Y[™XİÚY
+KÌŠK™Z]š[Ü‰Ø]]ÉßJ__B™[˜İ[ÛˆÙ[\•Ú][”ØÜ›ÛÛÛZ[™\ŠÛÛZ[™\’S[[Y[[[Y[’S[[Y[
+^ØÛÛœİÛÛZ[™\”™XİXÛÛZ[™\‹™Ù]›İ[™[™ĞÛY[™Xİ
 
-function CurrentNowcards({probability,precipNow,showProbabilityTimeline,radar,timezone,showLocalHazards,thunderInfo,thunderAffectedPlacesTotal,heavyRainInfo,advancedMode}:{probability:number;precipNow:PrecipNowResult;showProbabilityTimeline:boolean;radar:RadarNowcast|null;timezone?:string;showLocalHazards:boolean;thunderInfo:ThunderInfo|null;thunderAffectedPlacesTotal?:number;heavyRainInfo:HeavyRainInfo|null;advancedMode:boolean}){
- const thunderFacts=thunderInfo?.quickFacts?.filter(item=>item.prominent!==false)??[],compactThunderFacts=!advancedMode&&thunderInfo?.places?.length?thunderFacts.slice(0,2):thunderFacts.slice(0,3);
- return <section className={`place-nowcards current-nowcards${thunderInfo||heavyRainInfo?' has-local-hazards':''}`} aria-label="Aktuelle Niederschlags- und Gefahrenlage">
-  <aside className="precip-now current-precip-panel">
-   <div className="current-nowcard-heading"><span><small>Niederschlag jetzt</small><strong>{Math.round(probability)} %</strong></span><InfoHint label="Technische Radardetails anzeigen" width={420} popoverClassName="precip-now-info-popover"><div className="precip-now-info"><strong>Radar- und Modellabgleich</strong><p>{precipNow.source}</p>{radar&&<dl><dt>Radarquelle</dt><dd>{radar.provider}</dd><dt>RadarqualitÃ¤t</dt><dd>{radarQualityText(radar.quality)}</dd><dt>Zeitraum</dt><dd>âˆ’1 h bis +2 h Â· 5-Minuten-Schritte</dd>{radar.radarLayer&&<><dt>Radarprodukt</dt><dd>{radar.radarLayer}</dd></>}{radar.seasonalEchoLabel&&<><dt>Filterung</dt><dd>{radar.seasonalEchoLabel}</dd></>}{radar.amountSource&&<><dt>Mengenbasis</dt><dd>{radar.amountSource}</dd></>}{radar.growthTrend&&<><dt>Wachstum/Zerfall</dt><dd>{radar.growthTrend==='growing'?'zunehmend':radar.growthTrend==='decaying'?'abnehmend':'weitgehend stabil'}{Number.isFinite(Number(radar.growthRatePerHour))?` Â· ${Math.round(Number(radar.growthRatePerHour)*100)} %/h`:''}</dd></>}{radar.hxBoundaryCheck&&<><dt>250-m-GrenzprÃ¼fung</dt><dd>{Math.round(radar.hxBoundaryCheck.siteSupport*100)} % lokale EchosstÃ¼tzung</dd></>}{radar.stationCalibration&&<><dt>Stationskontrolle</dt><dd>{radar.stationCalibration.name||radar.stationCalibration.provider||'DWD-Station'} Â· {formatDecimalFixed(radar.stationCalibration.distanceKm||0,1)} km{Number.isFinite(Number(radar.stationCalibration.distanceWeight))&&Number.isFinite(Number(radar.stationCalibration.ageWeight))?` Â· rÃ¤uml./zeitl. Gewicht ${Math.round(Number(radar.stationCalibration.distanceWeight)*Number(radar.stationCalibration.ageWeight)*100)} %`:''}</dd></>}{radar.ensemble&&<><dt>9-Member-Spanne</dt><dd>{radarAmountLabel(radar.ensemble.totalP25)}â€“{radarAmountLabel(radar.ensemble.totalP75)} mm Â· Szenarioanteil {radar.ensemble.hitProbability} %</dd></>}</dl>}</div></InfoHint></div>
-   <span>{precipNow.summary}</span>
-   {showProbabilityTimeline&&radar&&radarSignalDetected(radar)&&<RadarNowcastTimeline radar={radar} timezone={timezone}/>} 
-   <em>{radarCompactSource(radar,precipNow.source,timezone)}</em>
-  </aside>
-  {showLocalHazards&&thunderInfo&&<details className={`local-now-disclosure thunder-now ${thunderInfo.level}${advancedMode?' advanced':''}`}>
-   <summary><span><small>{thunderInfo.sectionLabel}</small><strong>{thunderInfo.headline}</strong>{thunderInfo.status&&<em>{thunderInfo.status.label}</em>}</span><ChevronDown size={17}/></summary>
-   <div className="local-now-disclosure-body">
-    {thunderInfo.status&&<div className={`thunder-status ${thunderInfo.status.kind}`}><b>{thunderInfo.status.label}</b><span>{thunderInfo.status.detail}</span></div>}
-    {thunderInfo.places?.length?<ThunderPlaceList places={thunderInfo.places} compact={!advancedMode} total={thunderAffectedPlacesTotal}/>:null}
-    {thunderFacts.length?<div className="thunder-fact-grid">{(advancedMode?thunderFacts:compactThunderFacts).map(item=><div className={`thunder-fact ${item.tone??'neutral'}`} key={`${item.label}:${item.value}`}><small>{item.label}</small><strong>{item.value}</strong></div>)}</div>:null}
-    {advancedMode&&(thunderInfo.detailGroups?.length||thunderInfo.details?.length)?<InfoHint label="KONRAD3D-Zellinformationen anzeigen" width={560} popoverClassName="thunder-info-popover" showClose><div className="thunder-info-sheet">{thunderInfo.detailLead&&<p className="thunder-info-lead">{thunderInfo.detailLead}</p>}{thunderInfo.quickFacts?.length?<div className="thunder-fact-grid thunder-fact-grid-expanded">{thunderInfo.quickFacts.map(item=><div className={`thunder-fact ${item.tone??'neutral'}`} key={`${item.label}:${item.value}`}><small>{item.label}</small><strong>{item.value}</strong></div>)}</div>:null}{thunderInfo.places?.length?<ThunderPlaceList places={thunderInfo.places} total={thunderAffectedPlacesTotal}/>:null}{thunderInfo.detailGroups?.length?<div className="thunder-detail-groups">{thunderInfo.detailGroups.map(group=><section className="thunder-detail-group" key={group.title}><strong className="thunder-info-heading">{group.title}</strong><dl className="thunder-detail-list">{group.items.map(item=><Fragment key={`${group.title}:${item.label}:${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></Fragment>)}</dl></section>)}</div>:<><strong className="thunder-info-heading">KONRAD3D Â· Zell- und OrtsprÃ¼fung</strong><dl className="thunder-detail-list">{thunderInfo.details?.map(item=><Fragment key={`${item.label}:${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></Fragment>)}</dl></>}{thunderInfo.advisory&&<p className="thunder-info-advisory">{thunderInfo.advisory}</p>}<small>Die Entfernungsangabe der Karte ist die aktuelle Distanz zur Zellposition. Prognostizierter Abstand und Unsicherheitsradius werden davon getrennt ausgewiesen.</small></div></InfoHint>:null}
-    <em>{advancedMode?thunderInfo.source:'Automatische standortbezogene Analyse Â· keine amtliche Warnung'}</em>
-   </div>
-  </details>}
-  {showLocalHazards&&heavyRainInfo&&<details className={`local-now-disclosure heavy-rain-now ${heavyRainInfo.level}${advancedMode?' advanced':''}`}>
-   <summary><span><small>Starkregen-/Sturzflutindikator</small><strong>{heavyRainInfo.headline}</strong>{heavyRainInfo.flashFloodPotential&&<em>Sturzflutpotenzial</em>}</span><ChevronDown size={17}/></summary>
-   <div className="local-now-disclosure-body"><span>{advancedMode?heavyRainInfo.summary:compactLocalHazardSummary(heavyRainInfo.summary)}</span>{advancedMode&&heavyRainInfo.details.length?<ul>{heavyRainInfo.details.map(detail=><li key={detail}>{detail}</li>)}</ul>:null}<em>{heavyRainInfo.source}</em></div>
-  </details>}
- </section>
-}
+K[[Y[™XİY[[Y[™Ù]›İ[™[™ĞÛY[™Xİ
 
-function stationNeedsEnrichment(value:Station|null){if(!value)return true;const providers=value.sourceProviders?.length??(value.provider?1:0),candidates=Number(value.candidateCount??value.stationCount??0),uncertainty=Number(value.uncertainty),radius=Number(value.effectiveResolutionKm),qualitySparse=candidates<4||providers<2,qualityUncertain=Number.isFinite(uncertainty)&&uncertainty>1.3,coverageWide=Number.isFinite(radius)&&radius>30,surfaceContextMissing=!value.surfaceClass;return qualitySparse||qualityUncertain||coverageWide||surfaceContextMissing}
-function stationAnalysisRank(value:Station|null|undefined){if(!value)return 0;if(value.backgroundModel&&value.analysisMethod)return 4;if(value.analysisMethod)return 3;if(value.blended)return 2;return 1}
-function stationTemperatureObservedEpoch(value:Station|null|undefined){if(!value)return Number.NaN;const sourceEpochs=(value.fieldSources?.temperature??[]).map(source=>Date.parse(String(source.observedAt||''))).filter(Number.isFinite),fieldEpoch=Date.parse(String(value.fieldObservedAt?.temperature||'')),stationEpoch=Date.parse(String(value.timestamp||''));return Math.max(...sourceEpochs,Number.isFinite(fieldEpoch)?fieldEpoch:Number.NEGATIVE_INFINITY,Number.isFinite(stationEpoch)?stationEpoch:Number.NEGATIVE_INFINITY)}
-function preferStationResult(current:Station|null,next:Station|null){if(!next)return current;if(!current)return next;if(next.staleFallback&&!current.staleFallback)return current;const currentRank=stationAnalysisRank(current),nextRank=stationAnalysisRank(next),currentEpoch=stationTemperatureObservedEpoch(current),nextEpoch=stationTemperatureObservedEpoch(next),currentTemperature=Number(current.temperature),nextTemperature=Number(next.temperature),materialTemperatureChange=Number.isFinite(currentTemperature)&&Number.isFinite(nextTemperature)&&Math.abs(nextTemperature-currentTemperature)>=.5;if(Number.isFinite(currentEpoch)&&Number.isFinite(nextEpoch)&&currentEpoch>nextEpoch+5*60000&&materialTemperatureChange)return current;return nextRank>=currentRank?next:current}
-function stationCacheEntryForLocation(latitude:number,longitude:number,maxAgeMs=15*60000){const enriched=readAnalysisCacheEntry<Station>('station',latitude,longitude,maxAgeMs),provisional=readAnalysisCacheEntry<Station>('station-provisional',latitude,longitude,Math.min(maxAgeMs,8*60000));if(enriched&&provisional){const enrichedEpoch=stationTemperatureObservedEpoch(enriched.value),provisionalEpoch=stationTemperatureObservedEpoch(provisional.value),enrichedTemperature=Number(enriched.value.temperature),provisionalTemperature=Number(provisional.value.temperature),materialTemperatureChange=Number.isFinite(enrichedTemperature)&&Number.isFinite(provisionalTemperature)&&Math.abs(enrichedTemperature-provisionalTemperature)>=.5,newerObservation=Number.isFinite(provisionalEpoch)&&(!Number.isFinite(enrichedEpoch)||provisionalEpoch>enrichedEpoch+5*60000),newerAnalysis=provisional.savedAt>enriched.savedAt+30_000;if(!provisional.value.staleFallback&&(enriched.value.staleFallback||newerObservation||newerAnalysis&&materialTemperatureChange))return provisional}if(enriched&&stationAnalysisRank(enriched.value)>=2)return enriched;if(provisional&&(!enriched||provisional.savedAt>enriched.savedAt))return provisional;return enriched??provisional}
-function ModeExplanation({advanced,summary,technical}:{advanced:boolean;summary:ReactNode;technical?:ReactNode}){return <InfoHint label="ErklÃ¤rung anzeigen">{advanced?(technical??summary):summary}</InfoHint>}
-
-function CollapsibleModule({id,title,summary,defaultOpen=false,onOpen,onClose,children}:{id:string;title:string;summary:string;defaultOpen?:boolean;onOpen?:()=>void;onClose?:()=>void;children:ReactNode}){
- const[open,setOpen]=useState(()=>storedModuleOpen(id,defaultOpen)),expanded=open;
- const commitOpen=useCallback((next:boolean|((value:boolean)=>boolean))=>{setOpen(value=>{const resolved=typeof next==='function'?next(value):next;persistModuleOpen(id,resolved);return resolved})},[id]),toggle=()=>commitOpen((value:boolean)=>!value);
- useEffect(()=>{if(expanded)onOpen?.();else onClose?.()},[expanded]);
- useEffect(()=>{const reveal=(event:Event)=>{const detail=(event as CustomEvent<{id?:string}>).detail;if(detail?.id===id)commitOpen(true)},sync=(event:StorageEvent)=>{if(event.key===moduleOpenKey(id)&&event.newValue!==null)setOpen(event.newValue==='1')};window.addEventListener('mid:open-module',reveal);window.addEventListener('storage',sync);return()=>{window.removeEventListener('mid:open-module',reveal);window.removeEventListener('storage',sync)}},[id,commitOpen]);
- return <section className={`card module-shell ${expanded?'open':'collapsed'}`} data-mid-view={id}><button type="button" className="module-shell-toggle" onClick={toggle} aria-expanded={expanded}><span><strong>{title}</strong><small>{summary}</small></span>{expanded?<ChevronUp size={20}/>:<ChevronDown size={20}/>}</button>{expanded&&<div className="module-shell-content">{children}</div>}</section>
-}
+NÚYŠXÛÛZ[™\”™XİšZYÚY[[Y[™XİšZYÚ
+\™]\›ØÛÛœİ\™Ù]SX]›X^
+ÛÛZ[™\‹œØÜ›ÛÜ
+Ù[[Y[™XİÜXÛÛZ[™\”™XİÜJÛÛZ[™\”™XİšZYÚY[[Y[™XİšZYÚ
+KÌŠNØÛÛZ[™\‹œØÜ›ÛÜ]\™Ù]ÚYŠX]˜XœÊÛÛZ[™\‹œØÜ›ÛÜ]\™Ù]
+OŒJXÛÛZ[™\‹œØÜ›ÛÊİÜ\™Ù]™Z]š[Ü‰Ø]]ÉßJ_B™[˜İ[Ûˆ\ÙPXİ]™R][T™]™X[
+[˜X›Y˜›ÛÛX[‹™]™X[Ù^N[šÛ›İÛ‹ÛÛZ[™\”™Y”™Y“Øš™XİS[[Y[[‹[[Y[™Y”™Y“Øš™XİS[[Y[[‹^\Î‰İ™\XØ[	ß	ÚÜš^›Û[	ËÙ[\Y˜[ÙJ^Âˆ\ÙS^[İ]Y™™Xİ
 
 
-function ModernPlannerHub({eventEnabled,travelEnabled,mountainEnabled,waterEnabled,onNavigate,onOpenSettings}:{eventEnabled:boolean;travelEnabled:boolean;mountainEnabled:boolean;waterEnabled:boolean;onNavigate:(id:DashboardModuleId)=>void;onOpenSettings:(section:SettingsSection)=>void}){
- const cards=[
-  {id:'event-planner' as DashboardModuleId,label:'Event',caption:eventEnabled?'Termin, AktivitÃ¤t und Wetterfenster':'Modul in Ansicht aktivieren',icon:<CalendarRange size={21}/>,enabled:eventEnabled,settings:'view' as SettingsSection},
-  {id:'travel-planner' as DashboardModuleId,label:'Reise',caption:travelEnabled?'Klima und bestes Reisezeitfenster':'Modul in Ansicht aktivieren',icon:<Navigation size={21}/>,enabled:travelEnabled,settings:'view' as SettingsSection},
-  {id:'mountain' as DashboardModuleId,label:'Berg & Winter',caption:mountainEnabled?'HÃ¶henprofil und Bedingungen':'Profil fÃ¼r diesen Favoriten einrichten',icon:<MountainSnow size={21}/>,enabled:mountainEnabled,settings:'favorites' as SettingsSection},
-  {id:'water' as DashboardModuleId,label:'Wasser',caption:waterEnabled?'Pegel, Wasserwetter und Bedingungen':'Profil fÃ¼r diesen Favoriten einrichten',icon:<Waves size={21}/>,enabled:waterEnabled,settings:'favorites' as SettingsSection}
- ];
- return <section id="mid-modern-planner" className="modern-planner-hub" aria-labelledby="mid-modern-planner-heading"><header><div><small>MID Â· PLANEN</small><h2 id="mid-modern-planner-heading">Wetter fÃ¼r Entscheidungen</h2><p>Direkter Einstieg in vorhandene Planer und AktivitÃ¤tsprofile.</p></div><button type="button" onClick={()=>onOpenSettings('favorites')}><Settings2 size={17}/><span>Profile</span></button></header><div className="modern-planner-actions">{cards.map(card=><button type="button" key={card.id} className={card.enabled?'':'setup'} onClick={()=>card.enabled?onNavigate(card.id):onOpenSettings(card.settings)}><i aria-hidden="true">{card.icon}</i><span><strong>{card.label}</strong><small>{card.caption}</small></span><ChevronRight size={17}/></button>)}</div></section>
-}
+OOÚYŠY[˜X›Y
+\™]\›Û]\ÜÜÙYY˜[ÙKœ˜[YOLÙ]U[Y\LØÛÛœİ™]™X[J
+OOÚYŠ\ÜÜÙY
+\™]\›ØÛÛœİÛÛZ[™\XÛÛZ[™\”™Y‹˜İ\œ™[[[Y[Y[[Y[™Y‹˜İ\œ™[ÚYŠXÛÛZ[™\ŸY[[Y[
+\™]\›ÚYŠÙ[\ŠXÙ[\•Ú][”ØÜ›ÛÛÛZ[™\ŠÛÛZ[™\‹[[Y[
+NÙ[ÙH™]™X[Ú][”ØÜ›ÛÛÛZ[™\ŠÛÛZ[™\‹[[Y[^\Ê_KØÚY[OJ
+OOÚYŠ\ÜÜÙYœ˜[YJ\™]\›Ùœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
 
-type DashboardNavGroup={id:string;label:string;modules:DashboardModuleId[]};
-const DASHBOARD_NAV_GROUPS:DashboardNavGroup[]=[
- {id:'overview',label:'Ãœberblick',modules:['current','warnings','extreme-outlook','short-term','forecast']},
- {id:'analysis',label:'Analyse & Trend',modules:['composite','ensemble','long-range','climate']},
- {id:'profiles',label:'Profile',modules:['mountain','water']},
- {id:'planners',label:'Planer',modules:['event-planner','travel-planner']},
- {id:'pro',label:'Profi',modules:['forecast-verification','flight-meteorology','weather-maps']},
- {id:'tools',label:'Werkzeuge',modules:['widget']}
-];
-const MODERN_TODAY_MODULES:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'];
-const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps'];
-const MODERN_PLAN_MODULES:DashboardModuleId[]=['event-planner','travel-planner','mountain','water'];
-function modernPrimarySection(id:DashboardModuleId|'place'|''):'today'|'forecast'|'map'|'plan'|'more'{
- if(id==='place'||id===''||MODERN_TODAY_MODULES.includes(id))return'today';
- if(MODERN_FORECAST_MODULES.includes(id))return'forecast';
- if(MODERN_MAP_MODULES.includes(id))return'map';
- if(MODERN_PLAN_MODULES.includes(id))return'plan';
- return'more';
-}
-function dashboardNavIcon(id:DashboardModuleId,size=17){switch(id){case'current':return <Sun size={size}/>;case'ventilation':return <Wind size={size}/>;case'warnings':return <AlertTriangle size={size}/>;case'extreme-outlook':return <CloudLightning size={size}/>;case'short-term':return <Clock3 size={size}/>;case'forecast':return <CalendarDays size={size}/>;case'composite':return <Monitor size={size}/>;case'ensemble':return <SlidersHorizontal size={size}/>;case'long-range':return <CalendarRange size={size}/>;case'mountain':return <MountainSnow size={size}/>;case'water':return <Waves size={size}/>;case'travel-planner':return <Navigation size={size}/>;case'event-planner':return <CalendarRange size={size}/>;case'forecast-verification':return <BadgeCheck size={size}/>;case'flight-meteorology':return <Navigation size={size}/>;case'weather-maps':return <Monitor size={size}/>;case'widget':return <Download size={size}/>}}
-function DashboardSectionNavigation({settings,layoutMode,navigationMode,bottomBarBehavior,forecastTarget,currentFavorite,activeId,drawerOpen,onDrawerOpen,onNavigate}:{settings:DashboardModuleSettings;layoutMode:LayoutMode;navigationMode:NavigationMode;bottomBarBehavior:BottomBarBehavior;forecastTarget:DashboardModuleId;currentFavorite:Favorite|null;activeId:DashboardModuleId|'place'|'';drawerOpen:boolean;onDrawerOpen:(value:boolean)=>void;onNavigate:(id:DashboardModuleId)=>void}){
- const[expanded,setExpanded]=useState(()=>{try{return localStorage.getItem('mid:section-nav:expanded')==='1'}catch{return false}}),definitions=useMemo(()=>new Map(DASHBOARD_MODULE_DEFINITIONS.map(item=>[item.id,item])),[]),available=useMemo(()=>settings.order.filter(id=>{if(!settings.enabled[id])return false;const definition=definitions.get(id);if(definition?.advancedOnly&&layoutMode!=='advanced')return false;if(id==='mountain'&&!currentFavorite?.mountain.enabled)return false;if(id==='water'&&!currentFavorite?.water.enabled)return false;return true}),[settings,layoutMode,currentFavorite,definitions]);
- useEffect(()=>{try{localStorage.setItem('mid:section-nav:expanded',expanded?'1':'0')}catch{}},[expanded]);
- useEffect(()=>{if(!drawerOpen)return;const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')onDrawerOpen(false)},previous=document.body.style.overflow;document.body.style.overflow='hidden';document.addEventListener('keydown',escape);return()=>{document.removeEventListener('keydown',escape);document.body.style.overflow=previous}},[drawerOpen,onDrawerOpen]);
- const[bottomBarHidden,setBottomBarHidden]=useState(false);
- useEffect(()=>{if(navigationMode!=='bottom-tabs'||typeof window==='undefined')return;if(bottomBarBehavior==='fixed'){setBottomBarHidden(false);return}let lastY=Math.max(0,window.scrollY),downDistance=0,upDistance=0,frame=0;setBottomBarHidden(false);const apply=()=>{frame=0;const y=Math.max(0,window.scrollY),delta=y-lastY;if(drawerOpen||y<160){downDistance=0;upDistance=0;setBottomBarHidden(false)}else if(delta>0){downDistance+=delta;upDistance=0;if(downDistance>=118){setBottomBarHidden(true);downDistance=0}}else if(delta<0){upDistance-=delta;downDistance=0;if(upDistance>=8){setBottomBarHidden(false);upDistance=0}}lastY=y},onScroll=()=>{if(frame)return;frame=window.requestAnimationFrame(apply)};window.addEventListener('scroll',onScroll,{passive:true});return()=>{if(frame)window.cancelAnimationFrame(frame);window.removeEventListener('scroll',onScroll)}},[navigationMode,drawerOpen,bottomBarBehavior]);
- const groups=DASHBOARD_NAV_GROUPS.map(group=>({...group,modules:available.filter(id=>group.modules.includes(id))})).filter(group=>group.modules.length),modernMoreGroups=DASHBOARD_NAV_GROUPS.map(group=>({...group,modules:available.filter(id=>group.modules.includes(id)&&!['current','short-term','forecast','ensemble','composite'].includes(id))})).filter(group=>group.modules.length),navigate=(id:DashboardModuleId)=>{setBottomBarHidden(false);onNavigate(id);onDrawerOpen(false)},openSettings=(section:SettingsSection)=>{onDrawerOpen(false);window.dispatchEvent(new CustomEvent('mid:open-settings',{detail:{section}}))},moduleButton=(id:DashboardModuleId,variant:'rail'|'drawer')=>{const definition=definitions.get(id),active=activeId===id;return <button type="button" key={id} className={active?'active':''} onClick={()=>navigate(id)} aria-current={active?'location':undefined} title={definition?.label}><i aria-hidden="true">{dashboardNavIcon(id,variant==='rail'&&!expanded?18:16)}</i><span><b>{definition?.label??id}</b>{variant==='drawer'||expanded?<em>{definition?.description}</em>:null}</span></button>},list=(variant:'rail'|'drawer')=>{const modernDrawer=variant==='drawer'&&navigationMode==='bottom-tabs',visibleGroups=modernDrawer?modernMoreGroups:groups;return <nav className={`dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}`} aria-label="MID-Sektionen">{visibleGroups.map(group=>modernDrawer?<details key={group.id} open={group.modules.includes(activeId as DashboardModuleId)?true:undefined}><summary><span>{group.label}</span><small>{group.modules.length}</small><ChevronDown size={16}/></summary><section>{group.modules.map(id=>moduleButton(id,variant))}</section></details>:<section key={group.id}><small>{group.label}</small>{group.modules.map(id=>moduleButton(id,variant))}</section>)}</nav>};
- const forecastCandidateSource:DashboardModuleId[]=[forecastTarget,'forecast','ensemble','long-range'],forecastCandidates=forecastCandidateSource.filter((id,index,array)=>array.indexOf(id)===index),modernTabs:{id:string;label:string;icon:ReactNode;candidates:DashboardModuleId[]}[]=[{id:'current',label:'Aktuell',icon:<Sun size={21}/>,candidates:['current']},{id:'today',label:'Heute',icon:<Clock3 size={21}/>,candidates:['short-term']},{id:'forecast',label:'Vorhersage',icon:<CalendarDays size={21}/>,candidates:forecastCandidates},{id:'composite',label:'Karten',icon:<Monitor size={21}/>,candidates:['composite']}],moreActive=drawerOpen||!modernTabs.some(tab=>tab.candidates.includes(activeId as DashboardModuleId));
- return <>{navigationMode==='bottom-tabs'?<div className={`dashboard-section-quick dashboard-bottom-tabs${bottomBarHidden&&!drawerOpen&&bottomBarBehavior!=='fixed'?' is-scroll-hidden':''}`} aria-label="Hauptnavigation" data-scroll-hidden={bottomBarHidden&&!drawerOpen&&bottomBarBehavior!=='fixed'?'true':'false'} data-fixed={bottomBarBehavior==='fixed'?'true':'false'} onPointerDown={()=>{if(bottomBarHidden)setBottomBarHidden(false)}}>{modernTabs.map(tab=>{const target=tab.candidates.find(id=>available.includes(id)),active=tab.candidates.includes(activeId as DashboardModuleId),warm=tab.id==='composite'?warmCompositePanel:undefined;return <button type="button" key={tab.id} className={active?'active':''} onPointerEnter={warm} onFocus={warm} onPointerDown={warm} onClick={()=>{if(!target)return;navigate(target)}} disabled={!target} aria-current={active?'page':undefined}>{tab.icon}<span>{tab.label}</span></button>})}<button type="button" className={moreActive?'active':''} onClick={()=>{setBottomBarHidden(false);onDrawerOpen(true)}} aria-expanded={drawerOpen}><Menu size={21}/><span>Mehr</span></button></div>:<div className="dashboard-section-quick" aria-label="Schnellnavigation"><button type="button" className={activeId==='current'?'active':''} onClick={()=>navigate('current')}><Sun size={15}/><span>Aktuell</span></button>{settings.enabled['short-term']&&<button type="button" className={activeId==='short-term'?'active':''} onClick={()=>navigate('short-term')}><Clock3 size={15}/><span>Kurzfrist</span></button>}{settings.enabled.forecast&&<button type="button" className={activeId==='forecast'?'active':''} onClick={()=>navigate('forecast')}><CalendarDays size={15}/><span>7 Tage</span></button>}{settings.enabled.ensemble&&<button type="button" className={activeId==='ensemble'?'active':''} onClick={()=>navigate('ensemble')}><CalendarRange size={15}/><span>14 Tage</span></button>}<button type="button" onClick={()=>onDrawerOpen(true)}><Menu size={15}/><span>Mehr</span></button></div>}<aside className={`dashboard-section-rail${expanded?' expanded':''}`} aria-label="Sektionen"><button type="button" className="dashboard-section-rail-toggle" onClick={()=>setExpanded(value=>!value)} aria-expanded={expanded} title={expanded?'Seitenleiste einklappen':'Seitenleiste ausklappen'}><Menu size={18}/>{expanded?<span>Sektionen</span>:null}</button>{list('rail')}<button type="button" className="dashboard-section-config rail-config" onClick={()=>window.dispatchEvent(new CustomEvent('mid:open-dashboard-settings'))} title="Reihenfolge und Sichtbarkeit konfigurieren"><Settings2 size={16}/>{expanded?<span>Konfigurieren</span>:null}</button></aside>{drawerOpen?<div className="dashboard-section-drawer-backdrop" role="presentation" onPointerDown={event=>event.target===event.currentTarget&&onDrawerOpen(false)}><aside className={`dashboard-section-drawer${navigationMode==='bottom-tabs'?' modern-more-drawer':''}`} role="dialog" aria-modal="true" aria-label={navigationMode==='bottom-tabs'?'MID Mehr':'MID-Sektionen'}><header><div><small>{navigationMode==='bottom-tabs'?'MID':'Navigation'}</small><strong>{navigationMode==='bottom-tabs'?'Mehr':'Sektionen'}</strong></div><button type="button" onClick={()=>onDrawerOpen(false)} aria-label="Navigation schlieÃŸen"><X size={20}/></button></header>{navigationMode==='bottom-tabs'?<section className="modern-more-quick-actions" aria-label="Schnellzugriffe"><button type="button" onClick={()=>openSettings('view')}><Settings2 size={18}/><span><strong>Einstellungen</strong><small>Ansicht, Einheiten und Module</small></span></button><button type="button" onClick={()=>openSettings('notifications')}><Bell size={18}/><span><strong>Benachrichtigungen</strong><small>Warn- und Push-Regeln</small></span></button><button type="button" onClick={()=>openSettings('favorites')}><Star size={18}/><span><strong>Favoriten & Profile</strong><small>Orte, Berg und Wasser</small></span></button><button type="button" onClick={()=>openSettings('twin')}><BadgeCheck size={18}/><span><strong>Wetterzwilling</strong><small>Lokales Lernen und Quellen</small></span></button><button type="button" onClick={()=>openSettings('system')}><RefreshCw size={18}/><span><strong>Updates</strong><small>Version, Installation und Reparatur</small></span></button></section>:null}{list('drawer')}<button type="button" className="dashboard-section-config" onClick={()=>{onDrawerOpen(false);window.dispatchEvent(new CustomEvent('mid:open-dashboard-settings'))}}><Settings2 size={16}/><span>Reihenfolge & Sichtbarkeit</span></button></aside></div>:null}</>
-}
+OOÙœ˜[YOLÜ™]™X[
 
-function eventCenterDateLabel(value:string){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?`${match[3]}.${match[2]}.${match[1]}`:value}
-function eventCenterMetricNumber(value:number|null|undefined,digits=0){return Number.isFinite(Number(value))?formatDecimal(Number(value),digits,digits):'â€“'}
-function EventCenterHeaderMetrics({record,unit}:{record:EventCenterRecord;unit:WindUnit}){
- const summary=record.plan?.summary
- if(!summary)return <span className="event-center-header-metrics empty">Noch keine Wetteranalyse</span>
- const probability=summary.precipitationProbabilityRelevant??summary.precipitationProbabilityMax
- return <span className="event-center-header-metrics" aria-label="Meteorologische Eckdaten"><span title="Temperatur">{eventCenterMetricNumber(summary.temperatureAvg)}Â°</span><span title={`${summary.precipitationTypeLabel||'Niederschlag'} Â· erwartete Menge ${eventCenterMetricNumber(summary.precipitationTotal,1)} mm`}><CloudRain size={11}/>{eventCenterMetricNumber(probability)}% Â· {eventCenterMetricNumber(summary.precipitationTotal,1)}mm</span><span title="Wind Â· BÃ¶en"><Wind size={11}/>{wind(summary.windMax??Number.NaN,unit)} Â· G {wind(summary.gustMax??Number.NaN,unit)}</span>{Number.isFinite(Number(summary.uvMax))?<span title="Maximaler UV-Index"><Sun size={11}/>UV {eventCenterMetricNumber(summary.uvMax)}</span>:null}</span>
-}
-
-function ForecastHorizonNavigation({active,settings,onNavigate}:{active:ModernForecastHorizon;settings:DashboardModuleSettings;onNavigate:(horizon:ModernForecastHorizon)=>void}){
- const items:{id:ModernForecastHorizon;label:string;module:DashboardModuleId}[]=[{id:'90m',label:'Kurzfrist',module:'short-term'},{id:'7d',label:'7 T',module:'forecast'},{id:'14d',label:'14 T',module:'ensemble'},{id:'46d',label:'46 T',module:'long-range'},{id:'season',label:'Saison',module:'long-range'}],available=items.filter(item=>settings.enabled[item.module]);
- if(!available.length)return null;
- return <nav className="modern-forecast-horizons" aria-label="Prognose-Zeithorizont">{available.map(item=><button type="button" key={item.id} className={active===item.id?'active':''} aria-current={active===item.id?'page':undefined} aria-label={item.id==='90m'?'Kurzfrist: 90 Minuten und 24 Stunden':undefined} onClick={()=>onNavigate(item.id)}>{item.label}</button>)}</nav>
-}
-function EventCenterHeaderButton({onOpenPlanner,unit}:{onOpenPlanner:(recordId?:string)=>void;unit:WindUnit}){
- const[records,setRecords]=useState<EventCenterRecord[]>(()=>readEventCenterRecords()),[open,setOpen]=useState(false),[refreshing,setRefreshing]=useState(false),[eventClock,setEventClock]=useState(()=>Date.now()),wrapRef=useRef<HTMLDivElement>(null),visibleRecords=sortEventCenterRecords(records,eventClock).slice(0,3),activeRecords=records.filter(record=>!isEventCenterRecordExpired(record,eventClock)),hasUpdate=activeRecords.some(record=>record.change?.level==='major'||record.change?.level==='minor')
- useEffect(()=>{const sync=()=>setRecords(readEventCenterRecords());window.addEventListener(EVENT_CENTER_UPDATED_EVENT,sync);window.addEventListener(EVENT_CENTER_REFRESH_DONE_EVENT,sync);window.addEventListener('storage',sync);return()=>{window.removeEventListener(EVENT_CENTER_UPDATED_EVENT,sync);window.removeEventListener(EVENT_CENTER_REFRESH_DONE_EVENT,sync);window.removeEventListener('storage',sync)}},[])
- useEffect(()=>{const timer=window.setInterval(()=>setEventClock(Date.now()),60_000);return()=>window.clearInterval(timer)},[])
- useEffect(()=>{if(!refreshing)return;const timeout=window.setTimeout(()=>setRefreshing(false),60000);return()=>window.clearTimeout(timeout)},[refreshing])
- useEffect(()=>{if(!open)return;const outside=(event:PointerEvent)=>{if(!wrapRef.current?.contains(event.target as Node))setOpen(false)},escape=(event:KeyboardEvent)=>{if(event.key==='Escape')setOpen(false)};document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',outside,true);document.removeEventListener('keydown',escape)}},[open])
- const openPlanner=(recordId?:string)=>{setOpen(false);onOpenPlanner(recordId)},removeExpired=(record:EventCenterRecord)=>{deleteEventCenterRecord(record.id);setRecords(readEventCenterRecords())},refresh=async()=>{if(!activeRecords.length||refreshing)return;setRefreshing(true);const requestedAt=persistEventCenterRefreshRequest('header');try{await refreshAllEventWeather({reason:'header',requestedAt});setRecords(readEventCenterRecords())}finally{setRefreshing(false)}}
- return <div className="event-center-header-control" ref={wrapRef}><button type="button" className={`event-center-header-button${hasUpdate?' has-update':''}`} title={hasUpdate?'Event-Center Â· relevante WetterÃ¤nderung':'Event-Center'} aria-label={hasUpdate?'Event-Center Ã¶ffnen, relevante WetterÃ¤nderung vorhanden':'Event-Center Ã¶ffnen'} aria-expanded={open} onClick={()=>setOpen(value=>!value)}><Bell size={19}/>{hasUpdate?<i aria-hidden="true"/>:null}</button>{open?<section className="event-center-header-popover compact" role="dialog" aria-label="Event-Center"><header><div><small>Event-Center</small><strong>Events & AktivitÃ¤ten</strong></div><button type="button" onClick={()=>setOpen(false)} aria-label="Event-Center schlieÃŸen"><X size={16}/></button></header>{visibleRecords.length?<div className="event-center-header-list compact">{visibleRecords.map(record=>{const expired=isEventCenterRecordExpired(record,eventClock),meaningfulUpdate=!expired&&(record.change?.level==='major'||record.change?.level==='minor'),summary=record.plan?.summary;return <details key={record.id} className={`event-center-header-entry ${meaningfulUpdate?record.change?.level:'none'}${expired?' expired':''}`}><summary><span className="event-center-header-weather-icon"><WeatherPictogram code={summary?.weatherCode??0} intensity={summary?.weatherIntensity} phenomenon={summary?.weatherPhenomenon} day={summary?.isDay!==false} title={summary?.weatherLabel||label(summary?.weatherCode??0)} compact/><EventFeasibilityDot plan={record.plan}/></span><span className="event-center-header-entry-top"><strong>{record.title||record.location.name}</strong>{expired?<em className="expired">Abgelaufen</em>:meaningfulUpdate?<em>{record.change?.badge}</em>:null}</span><small>{eventCenterDateLabel(record.date)} Â· {record.startTime.slice(0,5)}â€“{record.endTime.slice(0,5)} Â· {record.location.name}</small><EventCenterHeaderMetrics record={record} unit={unit}/></summary><div className="event-center-header-entry-details"><span>{meaningfulUpdate?record.change?.summary:record.plan?.advice.headline||'Noch keine Analyse'}</span><span className="event-center-header-detail-actions"><button type="button" className="secondary" onClick={()=>openPlanner(record.id)}><CalendarRange size={14}/><span>Details Ã¶ffnen</span></button>{expired?<button type="button" className="secondary danger-lite" onClick={()=>removeExpired(record)}><Trash2 size={14}/><span>Entfernen</span></button>:null}</span></div></details>})}</div>:<div className="event-center-header-empty"><CalendarRange size={18}/><span>Noch keine Events gespeichert.</span></div>}<footer><button type="button" className="secondary event-center-header-reload" onClick={refresh} disabled={!activeRecords.length||refreshing} title="Gespeicherte Events jetzt mit den aktuellen Wetterdaten neu berechnen"><RefreshCw className={refreshing?'spin':undefined} size={15}/><span>{refreshing?'Aktualisiere â€¦':'Neu laden'}</span></button><button type="button" className="secondary" onClick={()=>openPlanner()}><CalendarRange size={15}/><span>Eventplaner Ã¶ffnen</span></button></footer></section>:null}</div>
-}
-
-export default function App(){
- const widgetUrlExport=useMemo(()=>readWidgetUrlExportRequest(window.location.href),[]);
- const[loc,setLocState]=useState<Location|null>(()=>initialLocation()),[w,setW]=useState<Weather|null>(null),[air,setAir]=useState<any>(null),[airStation,setAirStation]=useState<AirQualityStationMeta|null>(null),[bestMatchInfo,setBestMatchInfo]=useState<BestMatchModelInfo|null>(null),[ens,setEns]=useState<EnsembleDay[]>([]),[ensembleScenarios,setEnsembleScenarios]=useState<EnsembleScenarioCluster[]>([]),[models,setModels]=useState<string[]>([]),[ensembleRuns,setEnsembleRuns]=useState<ModelRunMeta[]>([]),[warningEnsemble,setWarningEnsemble]=useState<WarningEnsembleSupport|null>(null),[climate,setClimate]=useState<ClimateDay[]>([]),[climateLoading,setClimateLoading]=useState(false),[climateError,setClimateError]=useState(''),[ensLoading,setEnsLoading]=useState(false),[ensError,setEnsError]=useState(''),[ensembleRefreshRevision,setEnsembleRefreshRevision]=useState(0),[st,setSt]=useState<Station|null>(null),[stationLoading,setStationLoading]=useState(false),[official,setOfficial]=useState<OfficialAlert[]>([]),[officialLoading,setOfficialLoading]=useState(false),[officialError,setOfficialError]=useState(''),[officialProvider,setOfficialProvider]=useState(''),[radarAnalysis,setRadarAnalysis]=useState<RadarNowcast|null>(null),[radarHistoryInfo,setRadarHistoryInfo]=useState<RadarHistory|null>(null),[radarAnalysisLoading,setRadarAnalysisLoading]=useState(false),[radarAnalysisError,setRadarAnalysisError]=useState(''),[thunderAnalysis,setThunderAnalysis]=useState<ThunderstormNowcast|null>(null),[heavyRainBase,setHeavyRainBase]=useState<HeavyRainBase|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[themeMode,setThemeMode]=useState<ThemeMode>(initialThemeMode),[systemDark,setSystemDark]=useState(systemPrefersDark),[brandLogoVariant,setBrandLogoVariantState]=useState<BrandLogoVariant>(readBrandLogoVariant),[designMode,setDesignModeState]=useState<DesignMode>(readDesignMode),[unit,setUnit]=useState<WindUnit>(()=>(localStorage.getItem('windUnit') as WindUnit)||'kn'),[selectedSeed,setSelectedSeed]=useState(''),[forecastFusion,setForecastFusion]=useState<ForecastFusionResult|null>(null);
- const[locationSelectionSource,setLocationSelectionSource]=useState<'tracked'|'manual'>(()=>loc?.autolocated===true?'tracked':'manual'),[thunderPlaceNames,setThunderPlaceNames]=useState<ThunderPlaceNames>({}),[eventCenterRecordCount,setEventCenterRecordCount]=useState(()=>readEventCenterRecords().length),[networkOnline,setNetworkOnline]=useState(()=>typeof navigator==='undefined'||navigator.onLine!==false);
- useEffect(()=>startEventWeatherMonitor(),[]);
- const[favorites,setFavoritesState]=useState<Favorite[]>(storedFavorites),[settingsOpen,setSettingsOpen]=useState(false),[settingsSection,setSettingsSection]=useState<SettingsSection>('view'),[imprintOpen,setImprintOpen]=useState(false),[sectionNavOpen,setSectionNavOpen]=useState(false),[activeNavSection,setActiveNavSection]=useState<DashboardModuleId|'place'|''>(()=>readLastDashboardSection()),[locationTracking,setLocationTracking]=useState(storedLocationTracking),[trackedLocation,setTrackedLocation]=useState<Location|null>(storedTrackedLocation),[trackedPushRules,setTrackedPushRules]=useState<PushRuleState>(storedTrackedPushRules),[pushNotificationInterval,setPushNotificationInterval]=useState<PushNotificationInterval>(storedPushNotificationInterval),[pushPrecipitationAlert,setPushPrecipitationAlert]=useState<PushPrecipitationAlertSettings>(storedPushPrecipitationAlert),[modelChangeSettings,setModelChangeSettings]=useState<ModelChangeSettings>(storedModelChangeSettings),[radarDisplaySettings,setRadarDisplaySettings]=useState<RadarDisplaySettings>(storedRadarDisplaySettings),[forecastDisplaySettings,setForecastDisplaySettings]=useState<ForecastDisplaySettings>(storedForecastDisplaySettings),[localHazardDisplaySettings,setLocalHazardDisplaySettings]=useState<LocalHazardDisplaySettings>(storedLocalHazardDisplaySettings),[dashboardModuleSettings,setDashboardModuleSettings]=useState<DashboardModuleSettings>(readDashboardModuleSettings),[weatherTwinSettings,setWeatherTwinSettings]=useState<WeatherTwinSettings>(readWeatherTwinSettings),[ensembleRequested,setEnsembleRequested]=useState(()=>storedModuleOpen('ensemble',false)),[layoutMode,setLayoutModeState]=useState<LayoutMode>(initializedLayoutMode),[layoutRevision,setLayoutRevision]=useState(0),[timeDisplayMode,setTimeDisplayModeState]=useState<TimeDisplayMode>(readTimeDisplayMode),[favoriteStripMode,setFavoriteStripModeState]=useState<FavoriteStripMode>(readFavoriteStripMode),[bottomBarBehavior,setBottomBarBehaviorState]=useState<BottomBarBehavior>(readBottomBarBehavior),[uiDensityPreference,setUiDensityPreferenceState]=useState<UiDensityPreference>(readUiDensityPreference),[resolvedUiDensity,setResolvedUiDensity]=useState<ResolvedUiDensity>(()=>applyUiDensity(readUiDensityPreference())),[modernForecastHorizon,setModernForecastHorizon]=useState<ModernForecastHorizon>(readModernForecastHorizon);
- const navigationMode:NavigationMode='bottom-tabs';
- const[connectedStationConfig,setConnectedStationConfig]=useState(readConnectedStationConfig),[connectedObservation,setConnectedObservation]=useState<ConnectedStationObservation|null>(null),[connectedStationLoading,setConnectedStationLoading]=useState(false),[ventilationSettings,setVentilationSettings]=useState<VentilationAssistantSettings>(readVentilationAssistantSettings);
- const forecastPresentationMode=forecastDisplaySettings.presentationMode??'classic';
- const forecastCockpitEnabled=navigationMode==='bottom-tabs'||forecastPresentationMode!=='classic';
- const displayTimezone=displayTimeZone(w?.timezone,timeDisplayMode),setTimeDisplayMode=(mode:TimeDisplayMode)=>{setTimeDisplayModeState(mode);writeTimeDisplayMode(mode)},setFavoriteStripMode=(mode:FavoriteStripMode)=>{setFavoriteStripModeState(mode);writeFavoriteStripMode(mode)},setBottomBarBehavior=(mode:BottomBarBehavior)=>{setBottomBarBehaviorState(mode);writeBottomBarBehavior(mode)},setUiDensityPreference=(mode:UiDensityPreference)=>{setUiDensityPreferenceState(mode);writeUiDensityPreference(mode)},setDesignMode=(mode:DesignMode)=>{setDesignModeState(mode);writeDesignMode(mode)},updateDashboardModuleSettings=useCallback((update:DashboardModuleSettingsUpdater)=>{setDashboardModuleSettings(current=>writeDashboardModuleSettings(typeof update==='function'?update(current):update))},[]);
- useEffect(()=>{if(w?.timezone)setTimeDisplayLocalZone(w.timezone)},[w?.timezone]);
- useEffect(()=>{let frame=0;const apply=()=>{if(frame)return;frame=window.requestAnimationFrame(()=>{frame=0;setResolvedUiDensity(applyUiDensity(uiDensityPreference))})};apply();window.addEventListener('resize',apply,{passive:true});window.addEventListener('orientationchange',apply);return()=>{if(frame)window.cancelAnimationFrame(frame);window.removeEventListener('resize',apply);window.removeEventListener('orientationchange',apply)}},[uiDensityPreference]);
- const seq=useRef(0),locateSeq=useRef(0),autoLocationRequested=useRef(false),requestControllers=useRef(new Map<string,AbortController>()),pendingViewRestore=useRef<{section:string;viewportTop:number;scrollY:number;selectedDayIndex:number}|null>(null),dashboardStartupRestore=useRef(false),favoritesPersistRef=useRef(favorites),forecastRateRetryRef=useRef<number|undefined>(undefined),navigationFavoritesRef=useRef(favorites),navigationLocationRef=useRef(loc),selectedDateRef=useRef(''),lastPushSyncSignature=useRef('');
- const setFavorites=useCallback<FavoriteSetter>(updater=>{const current=favoritesPersistRef.current,next=typeof updater==='function'?(updater as (current:Favorite[])=>Favorite[])(current):updater;if(next===current)return;const cleaned=applyFavoriteTombstones(normaliseFavoriteCollection(next));favoritesPersistRef.current=cleaned;persistFavoriteSnapshot(cleaned);setFavoritesState(cleaned)},[]);
- useLayoutEffect(()=>{favoritesPersistRef.current=favorites;navigationFavoritesRef.current=favorites},[favorites]);
- useLayoutEffect(()=>{navigationLocationRef.current=loc},[loc]);
- const setForecastSelected=useCallback((date:string)=>{selectedDateRef.current=date;setSelectedSeed(current=>current===date?current:date)},[]);
- const pushFavoriteSignature=useMemo(()=>favorites.map(item=>[item.id,favoriteLabel(item),favoriteKey(item.location),item.location.country_code||item.location.country||'',Boolean(item.rules.precipitationStart),Boolean(item.rules.thunderstormApproach)].join(':')).join('|'),[favorites]);
- const pushFavoriteRules=useMemo<PushRuleFavorite[]>(()=>favorites.map(item=>({id:item.id,name:favoriteLabel(item),latitude:item.location.latitude,longitude:item.location.longitude,country:item.location.country_code||item.location.country,rules:{precipitationStart:Boolean(item.rules.precipitationStart),thunderstormApproach:Boolean(item.rules.thunderstormApproach),forecastMaterialChange:false}})),[pushFavoriteSignature]);
- const learningFavoriteSignature=useMemo(()=>favorites.map(item=>[favoriteKey(item.location),item.location.timezone||'',Number.isFinite(item.location.elevation)?Math.round(Number(item.location.elevation)):'' ].join(':')).join('|'),[favorites]);
- const learningFavoriteLocations=useMemo(()=>favorites.map(item=>item.location),[learningFavoriteSignature]);
- const setLayoutMode=(mode:LayoutMode)=>{try{if(mode==='standard'&&localStorage.getItem(STANDARD_LAYOUT_INITIALIZED_KEY)!=='1'){collapseStoredStandardModules();localStorage.setItem(STANDARD_LAYOUT_INITIALIZED_KEY,'1');setLayoutRevision(value=>value+1)}}catch{}setLayoutModeState(mode)};
- const dark=themeMode==='dark'||(themeMode==='auto'&&systemDark),documentDark=widgetUrlExport?widgetUrlExport.theme==='dark':dark;
- const resolvedBrandLogoVariant=resolveBrandLogoVariant(brandLogoVariant,dark),brandLogoPath=brandLogoPathForVariant(resolvedBrandLogoVariant),setBrandLogoVariant=(variant:BrandLogoVariant)=>setBrandLogoVariantState(variant);
- const beginRequest=(key:string)=>{requestControllers.current.get(key)?.abort();const controller=new AbortController();requestControllers.current.set(key,controller);return controller};
- const finishRequest=(key:string,controller:AbortController)=>{if(requestControllers.current.get(key)===controller)requestControllers.current.delete(key)};
- const abortRequest=(key:string)=>{requestControllers.current.get(key)?.abort();requestControllers.current.delete(key)};
- const abortAllRequests=()=>{for(const controller of requestControllers.current.values())controller.abort();requestControllers.current.clear()};
- const isAbort=(reason:unknown,signal?:AbortSignal)=>signal?.aborted||(reason instanceof DOMException&&reason.name==='AbortError')||(reason instanceof Error&&reason.name==='AbortError');
- useEffect(()=>{const query=window.matchMedia?.('(prefers-color-scheme: dark)');if(!query)return;const update=(event:MediaQueryListEvent)=>setSystemDark(event.matches);setSystemDark(query.matches);query.addEventListener?.('change',update);return()=>query.removeEventListener?.('change',update)},[]);
- useEffect(()=>{document.documentElement.dataset.theme=documentDark?'dark':'light';document.documentElement.dataset.themeMode=widgetUrlExport?'url-export':themeMode;document.querySelector<HTMLMetaElement>('meta[name=\"theme-color\"]')?.setAttribute('content',documentDark?'#07111f':'#edf3f8');if(!widgetUrlExport)localStorage.setItem(THEME_STORAGE_KEY,themeMode);window.dispatchEvent(new CustomEvent('mid:theme-change',{detail:{dark:documentDark}}))},[documentDark,themeMode,widgetUrlExport]);
- useEffect(()=>{document.documentElement.dataset.midDesign=designMode==='mid-next'?'next':'classic'},[designMode]);
- useEffect(()=>{document.documentElement.dataset.brandLogo=resolvedBrandLogoVariant;document.documentElement.dataset.brandLogoMode=brandLogoVariant;localStorage.setItem(BRAND_LOGO_STORAGE_KEY,brandLogoVariant);document.querySelector<HTMLLinkElement>('#mid-favicon')?.setAttribute('href',brandFaviconPathForVariant(resolvedBrandLogoVariant))},[brandLogoVariant,resolvedBrandLogoVariant]);
- useEffect(()=>localStorage.setItem('windUnit',unit),[unit]);
- useEffect(()=>{if(!dashboardModuleSettings.enabled.ensemble)setEnsembleRequested(()=>false)},[dashboardModuleSettings.enabled.ensemble]);
- useEffect(()=>{if(forecastCockpitEnabled&&dashboardModuleSettings.enabled.ensemble)setEnsembleRequested(true)},[forecastCockpitEnabled,dashboardModuleSettings.enabled.ensemble]);
- useEffect(()=>{if(consumeDeviceSyncTransferFromLocation()){setSettingsSection('sync');setSettingsOpen(true)}},[]);
- useEffect(()=>{if(!('serviceWorker'in navigator))return;const handleNotificationOpen=(event:MessageEvent)=>{if(event.data?.type!=='MID_NOTIFICATION_OPEN')return;setSettingsOpen(false);setImprintOpen(false);window.requestAnimationFrame(()=>window.scrollTo({top:0,left:0,behavior:'auto'}))};navigator.serviceWorker.addEventListener('message',handleNotificationOpen);return()=>navigator.serviceWorker.removeEventListener('message',handleNotificationOpen)},[]);
- useEffect(()=>{const flush=()=>persistFavoriteSnapshot(favoritesPersistRef.current),visibility=()=>{if(document.visibilityState==='hidden')flush()};window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',visibility);return()=>{window.removeEventListener('pagehide',flush);document.removeEventListener('visibilitychange',visibility)}},[]);
- useEffect(()=>{const onStation=(event:Event)=>{const next=(event as CustomEvent<ReturnType<typeof readConnectedStationConfig>>).detail||readConnectedStationConfig();setConnectedStationConfig(next);if(!next.enabled)setConnectedObservation(null)};window.addEventListener('mid:connected-station-settings',onStation);return()=>window.removeEventListener('mid:connected-station-settings',onStation)},[]);
- useEffect(()=>{const consume=(rawUrl:string)=>{if(!captureMidExternalOAuthReturn(rawUrl))return;setSettingsSection('twin');setSettingsOpen(true);void finishMidExternalOAuthReturn()};consume(location.href);const pending=takePendingMidNativeUrl();if(pending)consume(pending);const opened=(event:Event)=>consume((event as CustomEvent<MidNativeUrlOpen>).detail?.url||'');window.addEventListener('mid:native-url-open',opened);return()=>window.removeEventListener('mid:native-url-open',opened)},[]);
- useEffect(()=>{const onVentilation=(event:Event)=>setVentilationSettings((event as CustomEvent<VentilationAssistantSettings>).detail||readVentilationAssistantSettings());window.addEventListener('mid:ventilation-settings',onVentilation);return()=>window.removeEventListener('mid:ventilation-settings',onVentilation)},[]);
- useEffect(()=>{const timer=window.setTimeout(()=>{const pushFavorites=[...pushFavoriteRules];if(locationTracking&&trackedLocation)pushFavorites.unshift({id:'tracked-location',name:`Aktueller Standort Â· ${trackedLocation.name}`,latitude:trackedLocation.latitude,longitude:trackedLocation.longitude,country:trackedLocation.country_code||trackedLocation.country,rules:{...trackedPushRules,forecastMaterialChange:false}});if(modelChangeSettings.enabled&&modelChangeSettings.notifyMaterial&&loc)pushFavorites.unshift({id:'model-change-location',name:`ModelllaufÃ¤nderung Â· ${loc.name}`,latitude:loc.latitude,longitude:loc.longitude,country:loc.country_code||loc.country,rules:{precipitationStart:false,thunderstormApproach:false,forecastMaterialChange:true}});const ventilation=ventilationPushConfig(ventilationSettings),signature=JSON.stringify({notificationIntervalMinutes:pushNotificationInterval,precipitationAlert:pushPrecipitationAlert,ventilation,favorites:pushFavorites.map(item=>({id:item.id,name:item.name,latitude:Number(item.latitude).toFixed(5),longitude:Number(item.longitude).toFixed(5),country:item.country||'',rules:item.rules}))});if(signature===lastPushSyncSignature.current)return;lastPushSyncSignature.current=signature;void syncPushNotifications(pushFavorites,pushNotificationInterval,pushPrecipitationAlert,ventilation).catch(()=>{if(lastPushSyncSignature.current===signature)lastPushSyncSignature.current=''})},900);return()=>window.clearTimeout(timer)},[pushFavoriteRules,locationTracking,trackedLocation?.latitude,trackedLocation?.longitude,trackedLocation?.name,trackedLocation?.country_code,trackedLocation?.country,trackedPushRules.precipitationStart,trackedPushRules.thunderstormApproach,modelChangeSettings.enabled,modelChangeSettings.notifyMaterial,loc?.latitude,loc?.longitude,loc?.name,loc?.country_code,loc?.country,pushNotificationInterval,pushPrecipitationAlert.leadMinutes,pushPrecipitationAlert.minimumAmountMm,pushPrecipitationAlert.minimumDurationMinutes,ventilationSettings]);
- useEffect(()=>localStorage.setItem(LOCATION_TRACKING_KEY,locationTracking?'1':'0'),[locationTracking]);
- useEffect(()=>{try{localStorage.setItem(TRACKED_PUSH_RULES_KEY,JSON.stringify(trackedPushRules))}catch{}},[trackedPushRules]);
- useEffect(()=>{try{localStorage.setItem(PUSH_NOTIFICATION_INTERVAL_KEY,String(pushNotificationInterval))}catch{}},[pushNotificationInterval]);
- useEffect(()=>{try{localStorage.setItem(PUSH_PRECIPITATION_ALERT_KEY,JSON.stringify(pushPrecipitationAlert))}catch{}},[pushPrecipitationAlert]);
- useEffect(()=>{try{if(trackedLocation)localStorage.setItem(TRACKED_LOCATION_KEY,JSON.stringify(trackedLocation))}catch{}},[trackedLocation]);
- useEffect(()=>{try{localStorage.setItem(MODEL_CHANGE_SETTINGS_KEY,JSON.stringify(modelChangeSettings))}catch{}},[modelChangeSettings]);
- useEffect(()=>{try{localStorage.setItem(RADAR_DISPLAY_SETTINGS_KEY,JSON.stringify(radarDisplaySettings))}catch{}},[radarDisplaySettings]);
- useEffect(()=>{try{localStorage.setItem(FORECAST_DISPLAY_SETTINGS_KEY,JSON.stringify(forecastDisplaySettings))}catch{}},[forecastDisplaySettings]);
- useEffect(()=>{try{localStorage.setItem(LOCAL_HAZARD_DISPLAY_SETTINGS_KEY,JSON.stringify(localHazardDisplaySettings))}catch{}},[localHazardDisplaySettings]);
- useEffect(()=>{try{localStorage.removeItem('mid:navigationMode:v1')}catch{}},[]);
- useEffect(()=>{try{localStorage.setItem(MODERN_FORECAST_HORIZON_STORAGE_KEY,modernForecastHorizon)}catch{}},[modernForecastHorizon]);
- useEffect(()=>{const module:DashboardModuleId=modernForecastHorizon==='7d'?'forecast':modernForecastHorizon==='14d'?'ensemble':modernForecastHorizon==='46d'||modernForecastHorizon==='season'?'long-range':'short-term';if(dashboardModuleSettings.enabled[module])return;const fallback:ModernForecastHorizon=dashboardModuleSettings.enabled['short-term']?'90m':dashboardModuleSettings.enabled.forecast?'7d':dashboardModuleSettings.enabled.ensemble?'14d':'46d';if(fallback!==modernForecastHorizon)setModernForecastHorizon(fallback)},[dashboardModuleSettings.enabled,modernForecastHorizon]);
- useEffect(()=>localStorage.setItem(LAYOUT_MODE_STORAGE_KEY,layoutMode),[layoutMode]);
- useEffect(()=>{document.title='MID - Meteorological Information Dashboard';try{const url=new URL(window.location.href);url.searchParams.delete('mid-notification');for(const key of['mid-favorite','mid-lat','mid-lon','mid-name','mid-country'])url.searchParams.delete(key);window.history.replaceState(null,'',url.toString())}catch{}},[]);
- function captureCurrentView(){
-  if(typeof window==='undefined'||settingsOpen||!w)return null;
-  const viewportTop=Math.round(Math.min(180,Math.max(92,window.innerHeight*.16))),probeX=Math.max(1,Math.min(window.innerWidth-1,Math.round(window.innerWidth/2))),hit=document.elementFromPoint(probeX,viewportTop) as HTMLElement|null,node=hit?.closest<HTMLElement>('[data-mid-view]')??null,rect=node?.getBoundingClientRect(),dates=(w.daily.time as string[])??[],selectedDayIndex=Math.max(0,dates.indexOf(selectedDateRef.current||selectedSeed));
-  return{section:node?.dataset.midView||'',viewportTop:rect?Math.round(rect.top):viewportTop,scrollY:Math.round(window.scrollY),selectedDayIndex};
- }
- function setLoc(next:Location,preserveView=true){const normalized={...normalizeLocation(next),autolocated:next.autolocated===true},source=normalized.autolocated?'tracked':'manual',same=loc&&locationsNearlyEquivalent(loc,normalized);setLocationSelectionSource(source);if(same){if(loc&&!locationsShallowEqual(loc,normalized)){persistSelectedLocation(normalized,true);setLocState(normalized)}return}if(preserveView)pendingViewRestore.current=captureCurrentView();abortAllRequests();seq.current++;persistSelectedLocation(normalized,true);setLocState(normalized);setW(null);setAir(null);setAirStation(null);setBestMatchInfo(null);setSt(null);setEns([]);setEnsembleScenarios([]);setModels([]);setEnsembleRuns([]);setWarningEnsemble(null);setClimate([]);setClimateError('');setOfficial([]);setOfficialError('');setOfficialProvider('');setRadarAnalysis(null);setRadarAnalysisError('');setThunderAnalysis(null);setHeavyRainBase(null);setForecastFusion(null);selectedDateRef.current='';setSelectedSeed('')}
- function toggleFavorite(target:Location){const normalized=favoriteLocation(target);setFavorites(current=>{const existing=matchingStoredFavorite(current,normalized);if(existing){markFavoriteRemoved(existing);return current.filter(item=>item.id!==existing.id)}const added:Favorite={id:favoriteId(),location:normalized,alias:'',group:'Allgemein',isDefault:current.length===0,rules:{...DEFAULT_FAVORITE_RULES},mountain:defaultMountainConfig(normalized),water:defaultWaterConfig()};clearFavoriteTombstones([added.id]);return[...current,added]})}
- async function load(options:{forceFresh?:boolean}={}){
-  if(!loc)return;
-  const forceFresh=options.forceFresh===true,id=++seq.current,hadWeather=Boolean(w),warmStation=forceFresh?null:stationCacheEntryForLocation(loc.latitude,loc.longitude,15*60000)?.value??null,warmAir=readAnalysisCache<any>('air-quality',loc.latitude,loc.longitude,2*3600000,1200),warmRadar=readAnalysisCache<RadarNowcast>('radar',loc.latitude,loc.longitude,7*60000),warmRadarHistory=readAnalysisCache<RadarHistory>('radar-history',loc.latitude,loc.longitude,12*60000);abortAllRequests();markForegroundNetworkBusy();
-  const forecastController=beginRequest('forecast'),preloadedStationPromise=!forceFresh&&!warmStation?startupStationForLocation(loc):null,preloadedStationEnrichmentPromise=!forceFresh?startupStationEnrichmentForLocation(loc):null,preloadedRadarPromise=!forceFresh?startupRadarForLocation(loc):null,startupStationController=!warmStation&&!preloadedStationPromise?beginRequest('station-startup'):null,startupStationAborted=()=>startupStationController?.signal.aborted===true,startupStationSource=preloadedStationPromise??(startupStationController?station(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation,loc,startupStationController.signal,true,forceFresh):null),startupStationPromise=startupStationSource?startupStationSource.then(value=>{if(id===seq.current&&!startupStationAborted()&&value){writeAnalysisCache('station-provisional',loc.latitude,loc.longitude,value);setSt(current=>preferStationResult(current,value))}return value}).catch(reason=>{if(startupStationController&&isAbort(reason,startupStationController.signal))return null;return null}).finally(()=>{if(startupStationController)finishRequest('station-startup',startupStationController)}):null;
-  setLoading(true);setError('');
-  if(!hadWeather){setW(null);setAir(warmAir);setAirStation(null);setBestMatchInfo(null);setSt(warmStation);setOfficial([]);setOfficialProvider('');setRadarAnalysis(warmRadar);setRadarHistoryInfo(warmRadarHistory);setThunderAnalysis(null);setHeavyRainBase(null);setForecastFusion(null)}
-  setStationLoading(Boolean(startupStationPromise&&!warmStation));setOfficialError('');setOfficialLoading(false);setRadarAnalysisError('');setRadarAnalysisLoading(Boolean(preloadedRadarPromise&&!warmRadar));if(!hadWeather){setEns([]);setEnsembleScenarios([]);setModels([]);setEnsembleRuns([]);setWarningEnsemble(null)}setEnsError('');setEnsLoading(false);setClimate([]);setClimateError('');setClimateLoading(false);
-  const connection=(navigator as Navigator&{connection?:{saveData?:boolean;effectiveType?:string}}).connection,constrainedNetwork=connection?.saveData===true||connection?.effectiveType==='slow-2g'||connection?.effectiveType==='2g';
-  let radarEnrichmentScheduled=false;
-  const scheduleRadarEnrichment=()=>{if(radarEnrichmentScheduled||id!==seq.current)return;radarEnrichmentScheduled=true;const enrichController=beginRequest('radar-analysis-enrichment');window.setTimeout(()=>{if(id!==seq.current||enrichController.signal.aborted){finishRequest('radar-analysis-enrichment',enrichController);return}radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,enrichController.signal,false).then(enriched=>{if(id===seq.current&&!enrichController.signal.aborted&&enriched){setRadarAnalysis(enriched);writeAnalysisCache('radar',loc.latitude,loc.longitude,enriched)}}).catch(()=>undefined).finally(()=>finishRequest('radar-analysis-enrichment',enrichController))},constrainedNetwork?700:240)};
-  const publishFastRadar=(value:RadarNowcast|null)=>{if(id!==seq.current||!value)return;setRadarAnalysis(value);writeAnalysisCache('radar',loc.latitude,loc.longitude,value);scheduleRadarEnrichment()};
-  const retryFastRadarAfterPreloadMiss=()=>{if(id!==seq.current)return;const radarController=beginRequest('radar-analysis-retry');radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,radarController.signal,true).then(value=>{if(id===seq.current&&!radarController.signal.aborted)publishFastRadar(value)}).catch(()=>undefined).finally(()=>finishRequest('radar-analysis-retry',radarController))};
-  if(preloadedRadarPromise)void preloadedRadarPromise.then(value=>{if(value)publishFastRadar(value);else retryFastRadarAfterPreloadMiss()}).finally(()=>{if(id===seq.current)setRadarAnalysisLoading(false)});
-  try{
-   const startupForecast=!forceFresh?startupForecastForLocation(loc):null,fw=await(startupForecast?startupForecast.then(value=>value??forecast(loc.latitude,loc.longitude,forecastController.signal,{priority:'foreground',forceFresh:false,timeZone:loc.timezone||(loc.autolocated?Intl.DateTimeFormat().resolvedOptions().timeZone:undefined),elevation:loc.elevation})):forecast(loc.latitude,loc.longitude,forecastController.signal,{priority:'foreground',forceFresh:options.forceFresh===true,timeZone:loc.timezone||(loc.autolocated?Intl.DateTimeFormat().resolvedOptions().timeZone:undefined),elevation:loc.elevation}));if(id!==seq.current||forecastController.signal.aborted)return;if(forecastRateRetryRef.current!==undefined){window.clearTimeout(forecastRateRetryRef.current);forecastRateRetryRef.current=undefined}
-   setW(fw);try{document.documentElement.dataset.midCoreDataReady=String(Date.now());window.dispatchEvent(new CustomEvent('mid:core-data-ready',{detail:{at:Date.now(),source:String((fw as any)?._mid_core_source||'forecast')}}))}catch{}setEnsembleRefreshRevision(value=>value+1);const resolvedLocation={...loc,timezone:fw.timezone,elevation:Number.isFinite(loc.elevation)?loc.elevation:fw.elevation};persistSelectedLocation(resolvedLocation,false);setLocState(current=>current&&current.id===loc.id?resolvedLocation:current);setFavorites(current=>{let changed=false;const next=current.map(item=>{if(favoriteKey(item.location)!==favoriteKey(resolvedLocation))return item;const merged={...item.location,...resolvedLocation};if(locationsShallowEqual(item.location,merged))return item;changed=true;return{...item,location:merged}});return changed?next:current});const preferredDay=pendingViewRestore.current?.selectedDayIndex??0,setSelectedDate=String((fw.daily.time as string[])[Math.min(Math.max(0,preferredDay),Math.max(0,(fw.daily.time as string[]).length-1))]??fw.daily.time[0]);selectedDateRef.current=setSelectedDate;setSelectedSeed(setSelectedDate);setLoading(false);
-
-   const stationCacheEntry=forceFresh?null:stationCacheEntryForLocation(loc.latitude,loc.longitude,15*60000),cachedStation=stationCacheEntry?.value??null,cachedStationAge=stationCacheEntry?Date.now()-stationCacheEntry.savedAt:Infinity;if(cachedStation)setSt(current=>preferStationResult(current,cachedStation));
-   const publishStation=(value:Station|null,final:boolean)=>{if(id!==seq.current||!value)return;const rank=stationAnalysisRank(value);if(final&&rank>=2)writeAnalysisCache('station',loc.latitude,loc.longitude,value);else writeAnalysisCache('station-provisional',loc.latitude,loc.longitude,value);setSt(current=>preferStationResult(current,value))};
-   let fullStationAnalysisClaimed=false;
-   const runFullStationAnalysis=(allowStartupEnrichment=true)=>{if(fullStationAnalysisClaimed)return;fullStationAnalysisClaimed=true;setStationLoading(true);if(allowStartupEnrichment&&preloadedStationEnrichmentPromise&&!forceFresh){let fallbackStarted=false;void preloadedStationEnrichmentPromise.then(enriched=>{if(enriched){publishStation(enriched,true);return}fallbackStarted=true;fullStationAnalysisClaimed=false;runFullStationAnalysis(false)}).finally(()=>{if(id===seq.current&&!fallbackStarted)setStationLoading(false)});return}const enrichController=beginRequest('station-enrichment');station(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??fw.elevation,loc,enrichController.signal,false,forceFresh).then(enriched=>{if(!enrichController.signal.aborted)publishStation(enriched,true)}).catch(()=>undefined).finally(()=>{finishRequest('station-enrichment',enrichController);if(id===seq.current&&!enrichController.signal.aborted)setStationLoading(false)})};
-   const cachedRich=stationAnalysisRank(cachedStation)>=3&&!stationNeedsEnrichment(cachedStation),cachedFreshEnough=!forceFresh&&cachedRich&&cachedStationAge<=2*60000;
-   if(cachedFreshEnough)setStationLoading(false);
-   else if(cachedStation){runFullStationAnalysis()}
-   else{
-    const provisional=forceFresh?null:readAnalysisCache<Station>('station-provisional',loc.latitude,loc.longitude,8*60000);if(provisional)setSt(current=>preferStationResult(current,provisional));
-    const scheduleEnrichment=(value:Station|null,signal?:AbortSignal)=>{if(id!==seq.current||signal?.aborted)return;if(stationNeedsEnrichment(value)||stationAnalysisRank(value)<4)window.setTimeout(()=>{if(id===seq.current&&!signal?.aborted)runFullStationAnalysis()},80)};
-    if(startupStationPromise){setStationLoading(!provisional);startupStationPromise.then(value=>{if(id===seq.current&&!startupStationAborted()){publishStation(value,false);scheduleEnrichment(value,startupStationController?.signal)}}).finally(()=>{if(id===seq.current&&!startupStationAborted())setStationLoading(false)})}
-    else{const stationController=beginRequest('station');setStationLoading(!provisional);station(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??fw.elevation,loc,stationController.signal,true,forceFresh).then(value=>{if(id===seq.current&&!stationController.signal.aborted){publishStation(value,false);scheduleEnrichment(value,stationController.signal)}}).catch(reason=>{if(!isAbort(reason,stationController.signal)&&id===seq.current){if(!provisional)setSt(null);scheduleEnrichment(null,stationController.signal)}}).finally(()=>{finishRequest('station',stationController);if(id===seq.current&&!stationController.signal.aborted)setStationLoading(false)})}
-   }
-
-   const cachedAir=forceFresh?null:readAnalysisCache<any>('air-quality',loc.latitude,loc.longitude,15*60000,1200);if(cachedAir)setAir(cachedAir);
-   if(!cachedAir){const airController=beginRequest('air-quality');airQuality(loc.latitude,loc.longitude,airController.signal,forceFresh).then(value=>{if(id===seq.current&&!airController.signal.aborted){setAir(value);writeAnalysisCache('air-quality',loc.latitude,loc.longitude,value)}}).catch(()=>{}).finally(()=>finishRequest('air-quality',airController))}
-
-   const cachedRadar=forceFresh?null:readAnalysisCache<RadarNowcast>('radar',loc.latitude,loc.longitude,4*60000),radarFallback=cachedRadar??readAnalysisCache<RadarNowcast>('radar',loc.latitude,loc.longitude,7*60000);if(radarFallback)setRadarAnalysis(radarFallback);
-   if(!cachedRadar&&!preloadedRadarPromise){const radarController=beginRequest('radar-analysis');setRadarAnalysisLoading(!radarFallback);radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,radarController.signal,true).then(value=>{if(id===seq.current&&!radarController.signal.aborted)publishFastRadar(value)}).catch(reason=>{if(!isAbort(reason,radarController.signal)&&id===seq.current)setRadarAnalysisError(reason instanceof Error?reason.message:'Radarauswertung nicht verfÃ¼gbar.')}).finally(()=>{finishRequest('radar-analysis',radarController);if(id===seq.current&&!radarController.signal.aborted)setRadarAnalysisLoading(false)})}else if(cachedRadar){setRadarAnalysisLoading(false);scheduleRadarEnrichment()}
-
-   const cachedHistory=forceFresh?null:readAnalysisCache<RadarHistory>('radar-history',loc.latitude,loc.longitude,5*60000);if(cachedHistory)setRadarHistoryInfo(cachedHistory);else{const historyController=beginRequest('radar-history');radarHistory(loc.latitude,loc.longitude,historyController.signal).then(value=>{if(id===seq.current&&!historyController.signal.aborted){setRadarHistoryInfo(value);writeAnalysisCache('radar-history',loc.latitude,loc.longitude,value)}}).catch(()=>undefined).finally(()=>finishRequest('radar-history',historyController))}
-
-   const cachedWarnings=forceFresh?null:readAnalysisCache<{alerts:OfficialAlert[];provider?:string;coverage?:string}>('official-warnings',loc.latitude,loc.longitude,3*60000,650);if(cachedWarnings){setOfficial(cachedWarnings.alerts);setOfficialProvider(cachedWarnings.provider||cachedWarnings.coverage||'CAP')}else{const warningController=beginRequest('official-warnings');setOfficialLoading(true);officialWarnings(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.name,loc.admin1,loc.admin2,warningController.signal).then(value=>{if(id===seq.current&&!warningController.signal.aborted){setOfficial(value.alerts);setOfficialProvider(value.provider||value.coverage||'CAP');writeAnalysisCache('official-warnings',loc.latitude,loc.longitude,value)}}).catch(reason=>{if(!isAbort(reason,warningController.signal)&&id===seq.current)setOfficialError(reason instanceof Error?reason.message:'Amtliche Warnungen konnten nicht geladen werden.')}).finally(()=>{finishRequest('official-warnings',warningController);if(id===seq.current&&!warningController.signal.aborted)setOfficialLoading(false)})}
-
-   const modelController=beginRequest('best-match-info');bestMatchModelInfo(loc.latitude,loc.longitude,loc.country_code||loc.country,modelController.signal).then(value=>{if(id===seq.current&&!modelController.signal.aborted)setBestMatchInfo(value)}).catch(()=>{if(id===seq.current&&!modelController.signal.aborted)setBestMatchInfo(null)}).finally(()=>finishRequest('best-match-info',modelController));
-  }catch(reason){if(!isAbort(reason,forecastController.signal)&&id===seq.current){setLoading(false);if(isOpenMeteoRateLimitError(reason)){if(!hadWeather)setError(reason.message);else setError('');if(forecastRateRetryRef.current!==undefined)window.clearTimeout(forecastRateRetryRef.current);const retryAt=Number(reason.retryAt)||Date.now()+12000,delay=Math.max(2500,Math.min(60000,retryAt-Date.now()+350));forecastRateRetryRef.current=window.setTimeout(()=>{forecastRateRetryRef.current=undefined;if(document.visibilityState!=='hidden'&&seq.current===id)void load()},delay)}else setError(reason instanceof Error?reason.message:'Laden fehlgeschlagen')}}finally{finishRequest('forecast',forecastController);if(id===seq.current)markForegroundNetworkReady()}
- }
- useEffect(()=>{
-  if(!loc||!w){setForecastFusion(null);return}
-  let disposed=false,timer=0,idleHandle=0,controller:AbortController|null=null;
-  const cancelIdle=()=>{if(idleHandle&&'cancelIdleCallback'in window)(window as Window&{cancelIdleCallback?:(handle:number)=>void}).cancelIdleCallback?.(idleHandle);else if(idleHandle)window.clearTimeout(idleHandle);idleHandle=0};
-  const connection=(navigator as Navigator&{connection?:{saveData?:boolean;effectiveType?:string}}).connection,constrained=connection?.saveData===true||connection?.effectiveType==='slow-2g'||connection?.effectiveType==='2g';
-  const run=()=>{idleHandle=0;if(disposed||document.visibilityState!=='visible'||navigator.onLine===false)return;const pending=(navigator as Navigator&{scheduling?:{isInputPending?:(options?:{includeContinuous?:boolean})=>boolean}}).scheduling?.isInputPending?.({includeContinuous:true});if(pending){timer=window.setTimeout(schedule,constrained?700:260);return}controller=new AbortController();void loadForecastFusion(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??w.elevation,controller.signal).then(value=>{if(!disposed&&!controller?.signal.aborted)setForecastFusion(value)}).catch(()=>undefined)};
-  const schedule=()=>{if(disposed)return;cancelIdle();const idle=(window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number}).requestIdleCallback;idleHandle=idle?idle(run,{timeout:constrained?2200:850}):window.setTimeout(run,constrained?450:140)};
-  timer=window.setTimeout(schedule,constrained?650:140);
-  return()=>{disposed=true;window.clearTimeout(timer);cancelIdle();controller?.abort()};
- },[loc?.id,loc?.latitude,loc?.longitude,loc?.country_code,loc?.country,loc?.elevation,w]);
- useEffect(()=>{if(!loc){abortAllRequests();return}void load();return()=>{seq.current++;abortAllRequests();if(forecastRateRetryRef.current!==undefined){window.clearTimeout(forecastRateRetryRef.current);forecastRateRetryRef.current=undefined}}},[loc?.id,loc?.latitude,loc?.longitude]);
- useEffect(()=>{let lastRefreshAt=0;const refresh=(forceFresh:boolean)=>{const online=navigator.onLine!==false;setNetworkOnline(online);if(!online||!loc)return;const now=Date.now();if(now-lastRefreshAt<1800)return;lastRefreshAt=now;void load({forceFresh})},offline=()=>setNetworkOnline(false),online=()=>refresh(true),resume=(event:Event)=>{const detail=(event as CustomEvent<MidRuntimeResumeDetail>).detail;setNetworkOnline(detail?.online!==false);if(detail?.online!==false&&Number(detail?.elapsedMs||0)>=30_000)refresh(false)};window.addEventListener('offline',offline);window.addEventListener('online',online);window.addEventListener(MID_RUNTIME_RESUME_EVENT,resume);return()=>{window.removeEventListener('offline',offline);window.removeEventListener('online',online);window.removeEventListener(MID_RUNTIME_RESUME_EVENT,resume)}},[loc?.id,loc?.latitude,loc?.longitude,w]);
- useEffect(()=>{
-  if(layoutMode!=='advanced'||!loc){abortRequest('air-quality-station');setAirStation(null);return}
-  let active=true;const controller=beginRequest('air-quality-station');airQualityStation(loc.latitude,loc.longitude,controller.signal).then(value=>{if(active&&!controller.signal.aborted)setAirStation(value)}).catch(reason=>{if(active&&!isAbort(reason,controller.signal)){console.warn('EEA station lookup failed',reason);setAirStation({available:false,reason:'EEA-Messstationsdienst derzeit nicht erreichbar. Die EU-AQI-Einstufung basiert weiterhin auf den aktuellen Open-Meteo/CAMS-Standortwerten.'})}}).finally(()=>finishRequest('air-quality-station',controller));
-  return()=>{active=false;if(requestControllers.current.get('air-quality-station')===controller)abortRequest('air-quality-station');else controller.abort()};
- },[layoutMode,loc?.id,loc?.latitude,loc?.longitude]);
- useEffect(()=>{
-  if(!loc)return;const cached=readAnalysisCache<ThunderstormNowcast>('thunderstorm',loc.latitude,loc.longitude,90*1000,650);if(cached)setThunderAnalysis(cached);let active=true,inFlight=false,lastRun=cached?Date.now():0;
-  const refreshThunder=()=>{const now=Date.now();if(!active||inFlight||document.visibilityState==='hidden'||now-lastRun<60000)return;lastRun=now;inFlight=true;const controller=beginRequest('thunderstorm-analysis');thunderstormNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,controller.signal).then(value=>{if(active&&!controller.signal.aborted){setThunderAnalysis(value);writeAnalysisCache('thunderstorm',loc.latitude,loc.longitude,value)}}).catch(reason=>{if(active&&!isAbort(reason,controller.signal))setThunderAnalysis({available:false,coverage:true,temporaryUnavailable:true,provider:'DWD KONRAD3D',cellsFound:0,nearbyCells:[],summary:'KONRAD3D ist vorÃ¼bergehend nicht verfÃ¼gbar.',error:reason instanceof Error?reason.message:String(reason)})}).finally(()=>{inFlight=false;finishRequest('thunderstorm-analysis',controller)})};
-  refreshThunder();const timer=window.setInterval(refreshThunder,5*60*1000),visibility=()=>{if(document.visibilityState==='visible')refreshThunder()},focus=()=>refreshThunder();document.addEventListener('visibilitychange',visibility);window.addEventListener('focus',focus);
-  return()=>{active=false;abortRequest('thunderstorm-analysis');window.clearInterval(timer);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('focus',focus)};
- },[loc?.id,loc?.latitude,loc?.longitude,loc?.country_code,loc?.country]);
- const thunderSitePlaceSignature=loc?thunderPlaceGridKey(loc.latitude,loc.longitude):'',thunderCellPlaceSignature=thunderAnalysis?.nearest?[thunderAnalysis.nearest.id,thunderPlaceGridKey(thunderAnalysis.nearest.latitude,thunderAnalysis.nearest.longitude),thunderPlaceGridKey(thunderAnalysis.nearest.forecastLatitude,thunderAnalysis.nearest.forecastLongitude)].join('|'):'';
- useEffect(()=>{
-  if(!loc||!thunderSitePlaceSignature){setThunderPlaceNames(current=>current.site?{current:current.current,forecast:current.forecast}:current);return}
-  let active=true;const controller=new AbortController(),cached=readThunderPlaceCache(thunderSitePlaceSignature);
-  if(cached)setThunderPlaceNames(current=>({...current,site:cached}));
-  const request=cached?Promise.resolve(cached):resolveThunderPlace(loc.latitude,loc.longitude,controller.signal).catch(()=>conciseThunderPlace(loc));
-  request.then(site=>{if(active&&!controller.signal.aborted&&site)setThunderPlaceNames(current=>({...current,site}))});
-  return()=>{active=false;controller.abort()};
- },[thunderSitePlaceSignature]);
- useEffect(()=>{
-  const cell=thunderAnalysis?.nearest;if(!thunderAnalysis?.available||!cell){setThunderPlaceNames(current=>current.current||current.forecast?{site:current.site}:current);return}
-  let active=true;const controller=new AbortController(),currentKey=thunderPlaceGridKey(cell.latitude,cell.longitude),forecastKey=thunderPlaceGridKey(cell.forecastLatitude,cell.forecastLongitude),currentCached=readThunderPlaceCache(currentKey),forecastCached=readThunderPlaceCache(forecastKey);
-  if(currentCached||forecastCached)setThunderPlaceNames(previous=>({...previous,current:currentCached||undefined,forecast:forecastCached||undefined}));
-  const currentRequest=currentCached?Promise.resolve(currentCached):resolveThunderPlace(cell.latitude,cell.longitude,controller.signal).catch(()=>''),forecastRequest=!forecastKey?Promise.resolve(''):forecastKey===currentKey?currentRequest:forecastCached?Promise.resolve(forecastCached):resolveThunderPlace(cell.forecastLatitude,cell.forecastLongitude,controller.signal).catch(()=>'');
-  Promise.all([currentRequest,forecastRequest]).then(([current,forecast])=>{if(active&&!controller.signal.aborted)setThunderPlaceNames(previous=>({...previous,current:current||undefined,forecast:forecast||undefined}))});
-  return()=>{active=false;controller.abort()};
- },[thunderCellPlaceSignature]);
- useEffect(()=>{
-  if(!loc)return;let active=true,inFlight=false,lastRun=Date.now();
-  const refreshRadar=()=>{const now=Date.now();if(!active||inFlight||document.visibilityState==='hidden'||now-lastRun<45000)return;lastRun=now;inFlight=true;const controller=beginRequest('radar-analysis');setRadarAnalysisLoading(true);setRadarAnalysisError('');radarNowcast(loc.latitude,loc.longitude,loc.country_code||loc.country,controller.signal,false).then(result=>{if(active&&!controller.signal.aborted){setRadarAnalysis(result);writeAnalysisCache('radar',loc.latitude,loc.longitude,result)}}).catch(reason=>{if(active&&!isAbort(reason,controller.signal))setRadarAnalysisError(reason instanceof Error?reason.message:'Radarauswertung nicht verfÃ¼gbar.')}).finally(()=>{inFlight=false;finishRequest('radar-analysis',controller);if(active&&!controller.signal.aborted)setRadarAnalysisLoading(false)})};
-  const timer=window.setInterval(refreshRadar,5*60*1000),visibility=()=>{if(document.visibilityState==='visible')refreshRadar()},focus=()=>refreshRadar();document.addEventListener('visibilitychange',visibility);window.addEventListener('focus',focus);
-  return()=>{active=false;abortRequest('radar-analysis');window.clearInterval(timer);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('focus',focus)};
- },[loc?.id,loc?.latitude,loc?.longitude,loc?.country_code,loc?.country]);
- useEffect(()=>{
-  if(!loc||!localHazardDisplaySettings.showThunderAndFlashFlood){abortRequest('heavy-rain-analysis');setHeavyRainBase(null);return}const cached=readAnalysisCache<HeavyRainBase>('heavy-rain',loc.latitude,loc.longitude,5*60000,650);if(cached)setHeavyRainBase(cached);let active=true,inFlight=false,lastRun=cached?Date.now():0;
-  const refreshHeavyRain=()=>{const now=Date.now();if(!active||inFlight||document.visibilityState==='hidden'||now-lastRun<60000)return;lastRun=now;inFlight=true;const controller=beginRequest('heavy-rain-analysis');loadHeavyRainBase(loc.latitude,loc.longitude,loc.country_code||loc.country,controller.signal).then(result=>{if(active&&!controller.signal.aborted){setHeavyRainBase(result);writeAnalysisCache('heavy-rain',loc.latitude,loc.longitude,result)}}).catch(reason=>{if(active&&!isAbort(reason,controller.signal))setHeavyRainBase(null)}).finally(()=>{inFlight=false;finishRequest('heavy-rain-analysis',controller)})};
-  refreshHeavyRain();const timer=window.setInterval(refreshHeavyRain,10*60*1000),visibility=()=>{if(document.visibilityState==='visible')refreshHeavyRain()};document.addEventListener('visibilitychange',visibility);
-  return()=>{active=false;abortRequest('heavy-rain-analysis');window.clearInterval(timer);document.removeEventListener('visibilitychange',visibility)};
- },[loc?.id,loc?.latitude,loc?.longitude,loc?.country_code,loc?.country,localHazardDisplaySettings.showThunderAndFlashFlood]);
- useEffect(()=>{const update=(event:Event)=>setWeatherTwinSettings((event as CustomEvent<WeatherTwinSettings>).detail||readWeatherTwinSettings());window.addEventListener('mid:weather-twin-settings',update);return()=>window.removeEventListener('mid:weather-twin-settings',update)},[]);
- useEffect(()=>{const sync=()=>setEventCenterRecordCount(readEventCenterRecords().length);window.addEventListener(EVENT_CENTER_UPDATED_EVENT,sync);window.addEventListener('storage',sync);return()=>{window.removeEventListener(EVENT_CENTER_UPDATED_EVENT,sync);window.removeEventListener('storage',sync)}},[]);
- useEffect(()=>{
-  const climateRequested=dashboardModuleSettings.enabled.forecast||ensembleRequested||weatherTwinSettings.useAsMainForecast;
-  if(!climateRequested||!loc||!w){abortRequest('climate');if(!climateRequested)setClimate([]);return}
-  const id=seq.current,climateController=beginRequest('climate'),dates=(w.daily.time as string[]).slice(0,14);
-  setClimateLoading(true);setClimateError('');
-  climatology(loc.latitude,loc.longitude,loc.elevation??w.elevation,dates,climateController.signal).then(value=>{if(id===seq.current&&!climateController.signal.aborted)setClimate(value)}).catch(reason=>{if(!isAbort(reason,climateController.signal)&&id===seq.current)setClimateError(reason instanceof Error?reason.message:'Klimatologisches Mittel konnte nicht geladen werden.')}).finally(()=>{finishRequest('climate',climateController);if(id===seq.current&&!climateController.signal.aborted)setClimateLoading(false)});
-  return()=>{if(requestControllers.current.get('climate')===climateController)abortRequest('climate');else climateController.abort()};
- },[ensembleRequested,weatherTwinSettings.useAsMainForecast,dashboardModuleSettings.enabled.forecast,loc?.id,loc?.latitude,loc?.longitude,w]);
- useEffect(()=>{
-  if(!(ensembleRequested||weatherTwinSettings.enabled)||!loc||!w){abortRequest('ensemble');return}
-  const id=seq.current,ensembleController=beginRequest('ensemble'),requestPriority=ens.length?'normal':'foreground';let retryTimer=0,retryPending=false,watchdogTimer=0,keepLoadingUntilRefresh=false;
-  const requestRetry=()=>{if(document.visibilityState==='hidden'||navigator.onLine===false){retryPending=true;return}retryPending=false;setEnsembleRefreshRevision(value=>value+1)},scheduleRetry=(delayMs=45_000)=>{retryPending=true;if(retryTimer)return;retryTimer=window.setTimeout(()=>{retryTimer=0;requestRetry()},delayMs)},resumeRetry=()=>{if(!retryPending||document.visibilityState==='hidden'||navigator.onLine===false)return;if(retryTimer){window.clearTimeout(retryTimer);retryTimer=0}requestRetry()};
-  document.addEventListener('visibilitychange',resumeRetry);window.addEventListener('online',resumeRetry);
-  setEnsLoading(true);setEnsError('');watchdogTimer=window.setTimeout(()=>{if(id!==seq.current||ensembleController.signal.aborted)return;setEnsError('Der Ensemble-Abruf hat das Zeitbudget Ã¼berschritten. MID beendet den blockierten Pfad und versucht anschlieÃŸend automatisch eine frische Modellroute.');setEnsLoading(false);ensembleController.abort(new DOMException('Ensemble-Abruf-Zeitbudget Ã¼berschritten.','TimeoutError'));scheduleRetry(20_000)},65_000);
-  const preloadedEnsemble=requestPriority==='foreground'?startupEnsembleForLocation(loc):null,ensemblePromise=preloadedEnsemble??ensembles(loc.latitude,loc.longitude,ensembleController.signal,requestPriority);
-  ensemblePromise.then(value=>{if(id===seq.current&&!ensembleController.signal.aborted&&value){setEnsembleScenarios(current=>value.scenarios?.length?value.scenarios:current);setModels(value.models);setEnsembleRuns(current=>value.runs?.length?value.runs:current);if(value.days.length){setEns(value.days);setEnsError('');if(value.bootstrap)keepLoadingUntilRefresh=true;if(value.bootstrap)scheduleRetry(2_000)}else{setEnsError('Keine ausreichend vollstÃ¤ndigen Ensemble-Daten erhalten. Letzter erfolgreicher Stand bleibt sichtbar, sofern vorhanden.');scheduleRetry()}}else if(id===seq.current&&!ensembleController.signal.aborted&&!value){setEnsError('Ensemble-Schnellstart war beim App-Start nicht verfÃ¼gbar. MID versucht die Modellroute automatisch erneut.');scheduleRetry(2_000)}}).catch(reason=>{if(!isAbort(reason,ensembleController.signal)&&id===seq.current){setEnsError(reason instanceof Error?reason.message:'Ensemble-Daten konnten nicht geladen werden.');scheduleRetry()}}).finally(()=>{if(watchdogTimer)window.clearTimeout(watchdogTimer);finishRequest('ensemble',ensembleController);if(id===seq.current&&!ensembleController.signal.aborted)setEnsLoading(keepLoadingUntilRefresh)});
-  return()=>{if(retryTimer)window.clearTimeout(retryTimer);if(watchdogTimer)window.clearTimeout(watchdogTimer);document.removeEventListener('visibilitychange',resumeRetry);window.removeEventListener('online',resumeRetry);if(requestControllers.current.get('ensemble')===ensembleController)abortRequest('ensemble');else ensembleController.abort()};
- },[ensembleRequested,weatherTwinSettings.enabled,loc?.id,loc?.latitude,loc?.longitude,w?.timezone,ensembleRefreshRevision]);
- useEffect(()=>{
-  if(!loc||!w){abortRequest('warning-ensemble');setWarningEnsemble(null);return}const id=seq.current,controller=beginRequest('warning-ensemble');let timer=window.setTimeout(()=>{warningEnsembleNeighborhood(loc.latitude,loc.longitude,controller.signal).then(value=>{if(id===seq.current&&!controller.signal.aborted&&value)setWarningEnsemble(value)}).catch(()=>{}).finally(()=>finishRequest('warning-ensemble',controller))},900);
-  return()=>{window.clearTimeout(timer);if(requestControllers.current.get('warning-ensemble')===controller)abortRequest('warning-ensemble');else controller.abort()};
- },[loc?.id,loc?.latitude,loc?.longitude,w?.timezone]);
- useLayoutEffect(()=>{
-  const pending=pendingViewRestore.current;if(!w||!pending||typeof window==='undefined')return;
-  let frame=0,timer=0,cancelled=false;
-  const apply=()=>{if(cancelled)return;const node=pending.section?document.querySelector<HTMLElement>(`[data-mid-view="${pending.section}"]`):null;if(node){const rect=node.getBoundingClientRect();window.scrollTo({top:Math.max(0,window.scrollY+rect.top-pending.viewportTop),behavior:'auto'})}else window.scrollTo({top:pending.scrollY,behavior:'auto'})};
-  frame=window.requestAnimationFrame(()=>{apply();frame=window.requestAnimationFrame(apply)});timer=window.setTimeout(()=>{apply();pendingViewRestore.current=null},420);
-  return()=>{cancelled=true;window.cancelAnimationFrame(frame);window.clearTimeout(timer)};
- },[w,loc?.id]);
- useEffect(()=>{
-  if(typeof window==='undefined'||settingsOpen||!loc||favorites.length<2||!window.matchMedia('(max-width: 900px), (pointer: coarse)').matches)return;
-  let startX=0,startY=0,lastX=0,lastY=0,tracking=false,moved=false;let edge:'left'|'right'|''='';
-  const detachEdgeGestureListeners=()=>{window.removeEventListener('touchmove',move);window.removeEventListener('touchend',end);window.removeEventListener('touchcancel',cancel)};
-  function move(event:TouchEvent){if(!tracking||event.touches.length!==1)return;const touch=event.touches[0];lastX=touch.clientX;lastY=touch.clientY;const dx=lastX-startX,dy=lastY-startY,inward=edge==='left'?dx:-dx;if(inward>12&&Math.abs(dx)>Math.abs(dy)*1.25){moved=true;event.preventDefault()}}
-  function end(){if(!tracking){detachEdgeGestureListeners();return}const dx=lastX-startX,dy=lastY-startY,inward=edge==='left'?dx:-dx,needed=Math.min(180,Math.max(90,window.innerWidth*.22));tracking=false;detachEdgeGestureListeners();if(!moved||inward<needed||Math.abs(dx)<=Math.abs(dy)*1.35)return;const currentFavorites=navigationFavoritesRef.current,currentLocation=navigationLocationRef.current,index=currentLocation?currentFavorites.findIndex(item=>locationsMatchFavoriteSelection(item.location,currentLocation)):-1,target=index<0?undefined:currentFavorites[index+(edge==='left'?-1:1)];if(target)setLoc(target.location,true)}
-  function cancel(){tracking=false;detachEdgeGestureListeners()}
-  const start=(event:TouchEvent)=>{if(event.touches.length!==1)return;const target=event.target as HTMLElement|null;if(target?.closest('input,textarea,select,[contenteditable="true"],.settings-backdrop'))return;const touch=event.touches[0],limit=Math.max(22,Math.min(34,window.innerWidth*.045));edge=touch.clientX<=limit?'left':touch.clientX>=window.innerWidth-limit?'right':'';if(!edge)return;startX=lastX=touch.clientX;startY=lastY=touch.clientY;tracking=true;moved=false;window.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end,{passive:true});window.addEventListener('touchcancel',cancel,{passive:true})};
-  window.addEventListener('touchstart',start,{passive:true});return()=>{tracking=false;window.removeEventListener('touchstart',start);detachEdgeGestureListeners()};
- },[settingsOpen,favorites.length,Boolean(loc)]);
- async function reloadDashboardAndEvents(){const dashboard=load({forceFresh:true}),requestedAt=eventCenterRecordCount>0?persistEventCenterRefreshRequest('dashboard'):0,eventRefresh=requestedAt>0?refreshAllEventWeather({reason:'dashboard',requestedAt}):Promise.resolve(null);await Promise.allSettled([dashboard,eventRefresh])}
- function locate(openLocation=true){const requestId=++locateSeq.current;setLoading(true);setError('');const openTracked=(tracked:Location)=>{setTrackedLocation(tracked);if(openLocation)setLoc(trackedLocationTarget(favorites,tracked))};void getMidCurrentPosition({enableHighAccuracy:true,timeout:15000,maximumAge:120000}).then(async position=>{if(requestId!==locateSeq.current)return;const controller=beginRequest('reverse-location');try{const resolved=await reverseLocation(position.coords.latitude,position.coords.longitude,position.coords.altitude??undefined,controller.signal);if(requestId===locateSeq.current&&!controller.signal.aborted)openTracked({...resolved,autolocated:true})}catch(reason){if(!isAbort(reason,controller.signal)&&requestId===locateSeq.current)openTracked({id:Date.now(),name:`${formatDecimal(position.coords.latitude,2,2)}Â°, ${formatDecimal(position.coords.longitude,2,2)}Â°`,latitude:position.coords.latitude,longitude:position.coords.longitude,elevation:position.coords.altitude??undefined,autolocated:true})}finally{finishRequest('reverse-location',controller)}}).catch(()=>{if(requestId!==locateSeq.current)return;setLoading(false);setError('Standort konnte nicht ermittelt werden. Der Standard- oder letzte Ort bleibt geÃ¶ffnet.')})}
- useEffect(()=>{const refreshTracked=locationTracking||locationSelectionSource==='tracked';if(!refreshTracked){autoLocationRequested.current=false;return}if(autoLocationRequested.current)return;autoLocationRequested.current=true;locate(locationSelectionSource==='tracked')},[locationTracking]);
- const hours=useMemo(()=>w?mapHours(w):[],[w]),minutes15=useMemo(()=>w?mapMinutely15(w):[],[w]),days=useMemo(()=>w?mapDays(w):[],[w]),shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current,Date.now(),w.elevation??loc?.elevation):undefined,[st,w,loc?.elevation]);
- const fusedDays=useMemo(()=>applyForecastFusionDays(days,forecastFusion),[days,forecastFusion]),modelFusionDays=useMemo(()=>applyForecastFusionModelDays(days,forecastFusion),[days,forecastFusion]),fusionVerificationCandidates=useMemo(()=>{if(!forecastFusion?.active)return[];const candidates=[{id:'mid_best_match_quality',label:forecastFusion.mosmix?.applied?'Best Match geprÃ¼ft + MOSMIX lokal':'Best Match geprÃ¼ft',days:fusedDays,consensusRole:'derived' as const}];if(forecastFusion.mosmix?.applied&&modelFusionDays!==days)candidates.unshift({id:'mid_best_match_quality_model',label:'Best Match geprÃ¼ft ohne MOSMIX',days:modelFusionDays,consensusRole:'derived' as const});return candidates},[forecastFusion,fusedDays,modelFusionDays,days]);
- const twinForecastReport=useMemo(()=>loc&&weatherTwinSettings.enabled&&days.length?buildForecastVerificationReport(favoriteKey(loc),days,ens,loc,hours,fusionVerificationCandidates):null,[loc?.latitude,loc?.longitude,loc?.timezone,days,ens,hours,fusionVerificationCandidates,weatherTwinSettings.enabled]);
- const ensembleConfidenceCalibration=useMemo(()=>ensembleConfidenceCalibrationFromReport(twinForecastReport),[twinForecastReport]);
- const twinForecastStatus=twinForecastReport?.mainForecastStatus??null;
- const localTwinDays=useMemo(()=>twinForecastReport?applyLocalTwinForecastFromReport(fusedDays,twinForecastReport,radarAnalysis):fusedDays,[fusedDays,twinForecastReport,radarAnalysis,weatherTwinSettings.enabled,weatherTwinSettings.useAsMainForecast,weatherTwinSettings.nowcastAssimilation]),twinForecastActive=Boolean(weatherTwinSettings.useAsMainForecast&&twinForecastStatus?.eligible&&localTwinDays!==fusedDays);
- const baseDisplayDaysUnweighted=useMemo(()=>twinForecastActive?localTwinDays:fusedDays,[twinForecastActive,localTwinDays,fusedDays]),baseDisplayDays=useMemo(()=>applyEnsembleDailyPrecipitationProbability(baseDisplayDaysUnweighted,ens),[baseDisplayDaysUnweighted,ens]);
- // KompatibilitÃ¤tsvertrag: combineThunderstormInformation(thunderAnalysis,hours,radarAnalysis,st,displayLocationName) Â· [thunderAnalysis,hours,radarAnalysis,st,displayLocationName]
- const finalizationObservedTemperature=shortTermAnchor?.observed?.temperature?undefined:Number(w?.current?.temperature_2m),currentObservationEpoch=w?localIsoEpoch(String(w.current?.time||''),w.timezone,Number(w.utc_offset_seconds)||0):Number.NaN,finalizationObservedAt=Number.isFinite(currentObservationEpoch)?currentObservationEpoch:Date.now();
- const fusionHours=useMemo(()=>applyForecastFusionHours(hours,days,fusedDays,forecastFusion),[hours,days,fusedDays,forecastFusion]),twinHours=useMemo(()=>loc&&twinForecastActive?applyLocalTwinHours(favoriteKey(loc),fusionHours,fusedDays,localTwinDays,radarAnalysis):fusionHours,[loc?.latitude,loc?.longitude,twinForecastActive,fusionHours,fusedDays,localTwinDays,radarAnalysis,weatherTwinSettings.enabled,weatherTwinSettings.useAsMainForecast,weatherTwinSettings.nowcastAssimilation]),finalizedHours=useMemo(()=>{const core=finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature,observedAt:finalizationObservedAt}),local=applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours);return local===core.hours?core:{...core,hours:local}},[twinHours,baseDisplayDays,radarAnalysis,thunderAnalysis,finalizationObservedTemperature,finalizationObservedAt,shortTermAnchor]),displayHours=finalizedHours.hours,precipitationUiHours=useMemo(()=>precipitationPresentationHours(displayHours),[displayHours]),displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor,rucRapidMinutes15:forecastFusion?.rapidMinutes15}),[minutes15,twinHours,displayHours,radarAnalysis,shortTermAnchor,forecastFusion?.rapidMinutes15]),displayDays=useMemo(()=>reconcileForecastDaysWithHours(baseDisplayDays,displayHours),[baseDisplayDays,displayHours]),hz=useMemo(()=>hazards(displayHours,displayHours[currentIndex(displayHours)]?.uvIndex,w?.elevation??loc?.elevation??0,unit,warningEnsemble),[displayHours,w?.elevation,loc?.elevation,unit,warningEnsemble]),precipModel=useMemo(()=>precipitationNowSummary(displayMinutes15,displayHours,displayTimezone),[displayMinutes15,displayHours,displayTimezone]),precipNow=useMemo(()=>combineRadarAndModel(precipModel,radarAnalysis,radarAnalysisLoading,radarAnalysisError,displayTimezone),[precipModel,radarAnalysis,radarAnalysisLoading,radarAnalysisError,displayTimezone]),currentFavorite=useMemo(()=>matchingStoredFavorite(favorites,loc),[favorites,loc?.id,loc?.name,loc?.source,loc?.poiType,loc?.poiCategory,loc?.latitude,loc?.longitude,loc?.elevation]),displayLocationName=currentFavorite?favoriteLabel(currentFavorite):loc?.name??'Standort',thunderLocationName=thunderPlaceNames.site||appendIsoCountry(displayLocationName,loc?.country_code||loc?.country),thunderModelRisk3h=useMemo(()=>{const start=Math.max(0,currentIndex(precipitationUiHours));return significantPeriodThunderRisk(precipitationUiHours.slice(start,start+4),3)},[precipitationUiHours]),thunderRapidRisk=useMemo(()=>significantRapidThunderRisk(forecastFusion?.rapidMinutes15,Date.now(),3),[forecastFusion?.rapidMinutes15,forecastFusion?.generatedAt]),thunderRapidRisk6h=useMemo(()=>significantRapidThunderRisk(forecastFusion?.rapidMinutes15,Date.now(),6),[forecastFusion?.rapidMinutes15,forecastFusion?.generatedAt]),thunderInfo=useMemo(()=>combineThunderstormInformation(thunderAnalysis,displayHours,radarAnalysis,st,thunderLocationName,{timezone:displayTimezone,currentPlaceName:thunderPlaceNames.current,forecastPlaceName:thunderPlaceNames.forecast,windUnit:unit,modelRisk:thunderModelRisk3h??undefined,rapidRisk:thunderRapidRisk??undefined}),[thunderAnalysis,displayHours,radarAnalysis,st,thunderLocationName,displayTimezone,thunderPlaceNames.current,thunderPlaceNames.forecast,unit,thunderModelRisk3h,thunderRapidRisk]),heavyRainInfo=useMemo(()=>combineHeavyRain(heavyRainBase,thunderAnalysis),[heavyRainBase,thunderAnalysis]),risk=precipNow.probability??precipitationUiHours[currentIndex(precipitationUiHours)]?.probability??0,locationIsFavorite=Boolean(currentFavorite),activeFavoriteAlerts=useMemo(()=>currentFavorite?favoriteRuleAlerts(currentFavorite,precipitationUiHours):[],[currentFavorite,precipitationUiHours]);
- const warningStatus=useMemo(()=>{const count=official.length+hz.length;if(officialError)return{tone:'unavailable',label:'Warnlage prÃ¼fen',detail:'Amtliche Quelle derzeit nicht erreichbar',count};if(officialLoading)return{tone:'loading',label:'Warnlage wird geprÃ¼ft',detail:'Amtliche Daten werden aktualisiert',count};if(official.length)return{tone:'official',label:`${official.length} amtliche ${official.length===1?'Warnung':'Warnungen'}`,detail:'Direkt zur WarnÃ¼bersicht',count};if(hz.length)return{tone:'advisory',label:`${hz.length} MID-${hz.length===1?'Hinweis':'Hinweise'}`,detail:'Direkt zur WarnÃ¼bersicht',count};return{tone:'clear',label:'Keine Warnlage',detail:'Amtliche Lage und MID-Hinweise geprÃ¼ft',count:0}},[official,officialError,officialLoading,hz]);
- const locationThunderRisk=useMemo(()=>{const start=Math.max(0,currentIndex(displayHours));return significantPeriodThunderRisk(displayHours.slice(start,start+6),6)},[displayHours]);
- useEffect(()=>{if(!weatherTwinSettings.enabled||!loc||!days.length)return;recordForecastCapture(favoriteKey(loc),days,ens,loc,hours,fusionVerificationCandidates)},[weatherTwinSettings.enabled,loc?.latitude,loc?.longitude,days,ens,hours,fusionVerificationCandidates]);
- useEffect(()=>{if(!loc||!w||!connectedStationConfig.enabled){setConnectedObservation(null);setConnectedStationLoading(false);return}let disposed=false;let controller:AbortController|null=null;const run=()=>{controller?.abort();const current=new AbortController();controller=current;setConnectedStationLoading(true);void fetchConnectedStation(loc,st,w,current.signal).then(value=>{if(!disposed&&!current.signal.aborted)setConnectedObservation(value)}).catch(()=>{if(!disposed&&!current.signal.aborted)setConnectedObservation(null)}).finally(()=>{if(!disposed&&!current.signal.aborted)setConnectedStationLoading(false)})};run();const timer=window.setInterval(run,5*60*1000),visible=()=>{if(document.visibilityState==='visible')run()};document.addEventListener('visibilitychange',visible);return()=>{disposed=true;controller?.abort();window.clearInterval(timer);document.removeEventListener('visibilitychange',visible)}},[loc?.latitude,loc?.longitude,w?.timezone,connectedStationConfig.enabled,connectedStationConfig.provider,connectedStationConfig.connectionId,connectedStationConfig.selectedDeviceId,connectedStationConfig.selectedModuleId,connectedStationConfig.genericUrl]);
- const effectiveStation=useMemo(()=>connectedObservation?.station?(st?{...st,...connectedObservation.station,sourceProviders:[...new Set([...(st.sourceProviders??[]),...(connectedObservation.station.sourceProviders??[])])]}:connectedObservation.station):st,[st,connectedObservation]);
- useEffect(()=>{if(!weatherTwinSettings.enabled||!loc||!hours.length)return;recordLiveTwinObservation(favoriteKey(loc),loc,{station:effectiveStation,radar:radarAnalysis,currentHour:hours[currentIndex(hours)]})},[weatherTwinSettings.enabled,weatherTwinSettings.nowcastAssimilation,loc?.latitude,loc?.longitude,effectiveStation?.timestamp,radarAnalysis?.observedAt,hours]);
- useEffect(()=>{if(!weatherTwinSettings.enabled||!loc)return;const key=favoriteKey(loc),controller=new AbortController();void restoreForecastVerificationArchive(key).then(()=>refreshForecastReferences(key,loc,controller.signal)).catch(()=>{});const onVisible=()=>{if(document.visibilityState==='visible')void refreshForecastReferences(key,loc,controller.signal).catch(()=>{})};document.addEventListener('visibilitychange',onVisible);return()=>{controller.abort();document.removeEventListener('visibilitychange',onVisible)}},[weatherTwinSettings.enabled,loc?.id,loc?.latitude,loc?.longitude]);
- useEffect(()=>{if(!weatherTwinSettings.enabled||!weatherTwinSettings.learnAllFavorites||!learningFavoriteLocations.length)return;let disposed=false,timer=0,idleHandle=0,running=false,runController:AbortController|null=null;const clearScheduled=()=>{window.clearTimeout(timer);if(idleHandle&&'cancelIdleCallback'in window)(window as any).cancelIdleCallback(idleHandle);else if(idleHandle)window.clearTimeout(idleHandle);idleHandle=0},schedule=(delayOrEvent:number|Event=2400)=>{if(disposed)return;const delay=typeof delayOrEvent==='number'?delayOrEvent:1600;clearScheduled();timer=window.setTimeout(()=>{const requestIdle=(window as any).requestIdleCallback as undefined|((callback:()=>void,options?:{timeout:number})=>number);idleHandle=requestIdle?requestIdle(run,{timeout:1800}):(window.setTimeout(run,0) as unknown as number)},delay)},run=()=>{idleHandle=0;const inputPending=(navigator as Navigator&{scheduling?:{isInputPending?:(options?:{includeContinuous?:boolean})=>boolean}}).scheduling?.isInputPending?.({includeContinuous:true});if(disposed||running||document.visibilityState!=='visible'||navigator.onLine===false||inputPending){schedule(1400);return}running=true;const controller=new AbortController();runController=controller;void runBackgroundNetworkTask('weather-twin-favorites',()=>learnWeatherTwinsForFavorites(learningFavoriteLocations,loc?favoriteKey(loc):undefined,controller.signal),{signal:controller.signal,quietMs:60_000}).catch(()=>undefined).finally(()=>{if(runController===controller)runController=null;running=false})},pauseForInteraction=()=>{runController?.abort();runController=null;running=false;schedule(3000)},onVisible=()=>{if(document.visibilityState==='visible')schedule(1600)};schedule();document.addEventListener('pointerdown',pauseForInteraction,{capture:true,passive:true});document.addEventListener('keydown',pauseForInteraction,true);document.addEventListener('visibilitychange',onVisible);window.addEventListener('online',schedule);return()=>{disposed=true;clearScheduled();runController?.abort();document.removeEventListener('pointerdown',pauseForInteraction,true);document.removeEventListener('keydown',pauseForInteraction,true);document.removeEventListener('visibilitychange',onVisible);window.removeEventListener('online',schedule)}},[weatherTwinSettings.enabled,weatherTwinSettings.learnAllFavorites,learningFavoriteSignature,loc?.latitude,loc?.longitude]);
- const currentFavoriteId=currentFavorite?.id??'',dashboardUpdatedLabel=useMemo(()=>formatDisplayDateTime(Date.now(),w?.timezone,{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}),[w,timeDisplayMode]),cockpitSevenDaySummary=useMemo(()=>buildSevenDayForecastSummary(displayDays,displayHours,climate,w?.elevation??loc?.elevation??0),[displayDays,displayHours,climate,w?.elevation,loc?.elevation]),forecastCockpitAnchor=forecastCockpitEnabled?dashboardModuleSettings.order.find(id=>FORECAST_COCKPIT_MODULES.includes(id)&&dashboardModuleSettings.enabled[id])??null:null,forecastWorkspaceAnchor=dashboardModuleSettings.order.find(id=>MODERN_FORECAST_MODULES.includes(id)&&dashboardModuleSettings.enabled[id])??null,plannerModuleOrder=dashboardModuleSettings.order.filter(id=>(id==='event-planner'||id==='travel-planner')&&dashboardModuleSettings.enabled[id]),plannerSectionAnchor=plannerModuleOrder[0]??null,modernPlannerCandidates=dashboardModuleSettings.order.filter(id=>(id==='event-planner'||id==='travel-planner')&&dashboardModuleSettings.enabled[id]||id==='mountain'&&dashboardModuleSettings.enabled.mountain&&Boolean(currentFavorite?.mountain.enabled)||id==='water'&&dashboardModuleSettings.enabled.water&&Boolean(currentFavorite?.water.enabled)),modernPlannerAnchor=modernPlannerCandidates[0]??plannerSectionAnchor;
- const modelStatusRuns=useMemo(()=>{const combined=[...ensembleRuns,...(bestMatchInfo?.runs??[])],unique=new Map<string,ModelRunMeta>();for(const row of combined){const key=`${row.kind}:${row.id}`;if(!unique.has(key))unique.set(key,row)}return [...unique.values()]},[ensembleRuns,bestMatchInfo]);
- const navigateToDashboardSection=useCallback((id:DashboardModuleId,pushHistory=true,behavior:ScrollBehavior='smooth')=>{const cockpit=forecastCockpitEnabled&&FORECAST_COCKPIT_MODULES.includes(id),targetId=(cockpit?forecastCockpitAnchor:id)??id;if(cockpit){const horizon=id==='short-term'?'short-term':id==='forecast'?'seven-day':'fourteen-day';window.dispatchEvent(new CustomEvent('mid:navigate-forecast-horizon',{detail:{horizon}}))}window.dispatchEvent(new CustomEvent('mid:open-module',{detail:{id:targetId}}));setActiveNavSection(id);persistLastDashboardSection(id);if(pushHistory&&typeof history!=='undefined')history.pushState({midSection:id},'',`#mid-section-${id}`);const reveal=()=>{const node=document.getElementById(`mid-section-${targetId}`)||document.querySelector(`[data-mid-view=\"${targetId}\"]`);node?.scrollIntoView({behavior,block:'start'})};window.requestAnimationFrame(()=>window.requestAnimationFrame(reveal))},[forecastCockpitEnabled,forecastCockpitAnchor]);
- const navigateModernForecastHorizon=useCallback((horizon:ModernForecastHorizon)=>{setModernForecastHorizon(horizon);const target:DashboardModuleId=horizon==='7d'?'forecast':horizon==='14d'?'ensemble':horizon==='46d'||horizon==='season'?'long-range':'short-term';navigateToDashboardSection(target)},[navigateToDashboardSection]);
- useEffect(()=>{if(activeNavSection==='forecast')setModernForecastHorizon('7d');else if(activeNavSection==='ensemble')setModernForecastHorizon('14d');else if(activeNavSection==='long-range')setModernForecastHorizon(current=>current==='season'||current==='46d'?current:'46d');else if(activeNavSection==='short-term')setModernForecastHorizon('90m')},[activeNavSection]);
- useEffect(()=>{const openDashboardSettings=()=>{setSettingsSection('view');setSettingsOpen(true)},openSettings=(event:Event)=>{const requested=(event as CustomEvent<{section?:SettingsSection}>).detail?.section,valid:SettingsSection[]=['view','appearance','units','notifications','favorites','twin','sync','system','legal'];setSettingsSection(requested&&valid.includes(requested)?requested:'view');setSettingsOpen(true)};window.addEventListener('mid:open-dashboard-settings',openDashboardSettings);window.addEventListener('mid:open-settings',openSettings);return()=>{window.removeEventListener('mid:open-dashboard-settings',openDashboardSettings);window.removeEventListener('mid:open-settings',openSettings)}},[]);
- useEffect(()=>{const openPlanner=(event:Event)=>{const target=(event as CustomEvent<{target?:DashboardModuleId}>).detail?.target;if(target&&DASHBOARD_MODULE_DEFINITIONS.some(item=>item.id===target)){setActiveNavSection(target);persistLastDashboardSection(target)}if(typeof history!=='undefined'&&target)history.pushState({midSection:target},'',`#mid-section-${target}`);window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>(document.getElementById(`mid-section-${target}`)||document.getElementById('mid-modern-planner'))?.scrollIntoView({behavior:'smooth',block:'start'}))) };window.addEventListener('mid:navigate-modern-planner',openPlanner);return()=>window.removeEventListener('mid:navigate-modern-planner',openPlanner)},[]);
- useEffect(()=>{const handleHistory=()=>{const match=location.hash.match(/^#mid-section-([a-z-]+)$/),id=match?.[1] as DashboardModuleId|undefined;if(id&&DASHBOARD_MODULE_DEFINITIONS.some(item=>item.id===id))navigateToDashboardSection(id,false)};window.addEventListener('popstate',handleHistory);return()=>window.removeEventListener('popstate',handleHistory)},[navigateToDashboardSection]);
- useEffect(()=>{const horizon=(event:Event)=>{const value=(event as CustomEvent<{horizon?:string}>).detail?.horizon,id=value==='short-term'?'short-term':value==='seven-day'?'forecast':value==='fourteen-day'?'ensemble':undefined;if(id){setActiveNavSection(id);persistLastDashboardSection(id)}};window.addEventListener('mid:forecast-horizon-active',horizon);return()=>window.removeEventListener('mid:forecast-horizon-active',horizon)},[]);
- useEffect(()=>{if(dashboardStartupRestore.current||!w)return;const hashMatch=location.hash.match(/^#mid-section-([a-z-]+)$/),hashId=hashMatch?.[1] as DashboardModuleId|undefined,stored=readLastDashboardSection(),id=hashId&&DASHBOARD_MODULE_DEFINITIONS.some(item=>item.id===hashId)?hashId:stored==='place'?undefined:stored;dashboardStartupRestore.current=true;if(!id||!dashboardModuleSettings.enabled[id])return;navigateToDashboardSection(id,false,'auto')},[w,dashboardModuleSettings.enabled,navigateToDashboardSection]);
- useEffect(()=>{if(navigationMode==='bottom-tabs'||!w||typeof IntersectionObserver==='undefined')return;const nodes=dashboardModuleSettings.order.map(id=>document.getElementById(`mid-section-${id}`)).filter((node):node is HTMLElement=>Boolean(node)),observer=new IntersectionObserver(entries=>{const visible=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top))[0];if(!visible)return;const id=visible.target.getAttribute('data-dashboard-section') as DashboardModuleId|null;if(!id)return;if(forecastCockpitEnabled&&id===forecastCockpitAnchor)return;setActiveNavSection(id);persistLastDashboardSection(id)},{rootMargin:'-18% 0px -68% 0px',threshold:[0,.1,.5]});nodes.forEach(node=>observer.observe(node));return()=>observer.disconnect()},[w,dashboardModuleSettings.order,dashboardModuleSettings.enabled,forecastCockpitEnabled,forecastCockpitAnchor,layoutRevision,navigationMode]);
- const updateCurrentMountain=useCallback((change:Partial<MountainConfig>)=>{if(!currentFavoriteId)return;setFavorites(current=>current.map(item=>item.id===currentFavoriteId?{...item,mountain:{...item.mountain,...change}}:item))},[currentFavoriteId]);
- const updateCurrentWater=useCallback((change:Partial<WaterConfig>)=>{if(!currentFavoriteId)return;setFavorites(current=>current.map(item=>item.id===currentFavoriteId?{...item,water:{...item.water,...change}}:item))},[currentFavoriteId]);
- // KompatibilitÃ¤tsvertrÃ¤ge modularer Einbindung: layoutMode==='advanced'&&<><CollapsibleModule Â· <MemoLazyTravelPlanner initialLocation={loc}
- const renderDashboardModule=(id:DashboardModuleId):ReactNode=>{
-  if(navigationMode==='bottom-tabs'){
-   const modernActiveModule:DashboardModuleId=activeNavSection==='place'||activeNavSection===''?'current':activeNavSection;
-   const modernSection=modernPrimarySection(modernActiveModule),isForecast=modernSection==='forecast',isPlan=modernSection==='plan';
-   const visible=isForecast?id===(modernActiveModule==='long-range'?modernActiveModule:forecastWorkspaceAnchor):isPlan?id===modernPlannerAnchor||id===modernActiveModule:id===modernActiveModule;
-   if(!visible)return null;
-  }
-  if(forecastCockpitEnabled&&FORECAST_COCKPIT_MODULES.includes(id)){
-   if(id!==forecastCockpitAnchor)return null;
-   const sourceLabel=twinForecastActive?'Best Match Â· hyperlokal nachkorrigiert':!twinForecastActive&&forecastFusion?.active?forecastFusionLabel(forecastFusion):'Best Match Â· automatische Modellkombination';
-   return <ForecastCockpit key={`forecast-cockpit:${forecastPresentationMode}:${layoutMode}:${layoutRevision}`} mode={forecastPresentationMode==='classic'?'cockpit-tabs':forecastPresentationMode} advancedMode={layoutMode==='advanced'} bestMatchModelInfo={bestMatchInfo} ensembleRuns={modelStatusRuns} fusion={forecastFusion} confidenceCalibration={ensembleConfidenceCalibration} confidenceDisplayMode={forecastDisplaySettings.confidenceDisplayMode} workspaceMode={navigationMode==='bottom-tabs'} warningEnsemble={warningEnsemble} location={loc!} showDwdPrecipitationTypeRadar={forecastDisplaySettings.showDwdPrecipitationTypeRadar} hours={displayHours} minutes15={displayMinutes15} days={displayDays} ensemble={ens} scenarios={ensembleScenarios} climate={climate} timezone={displayTimezone} unit={unit} selectedDate={selectedSeed||displayDays[0]?.date||''} onSelectedDate={setForecastSelected} onFourteenDayRequested={()=>setEnsembleRequested(true)} availability={{shortTerm:dashboardModuleSettings.enabled['short-term'],sevenDay:dashboardModuleSettings.enabled.forecast,fourteenDay:dashboardModuleSettings.enabled.ensemble}} sourceLabel={sourceLabel} updatedLabel={`Aktualisiert ${dashboardUpdatedLabel}`} ensembleLoading={ensLoading||!ensembleRequested} ensembleError={ensError} sevenDaySummary={cockpitSevenDaySummary} cockpitDetails={{
-    sevenDay:dashboardModuleSettings.enabled.forecast?<MemoForecast key={`cockpit-hourly-forecast:${layoutMode}:${layoutRevision}:${weatherTwinSettings.useAsMainForecast}`} days={displayDays} hours={displayHours} minutes15={displayMinutes15} climate={climate} selected={selectedSeed} setSelected={setForecastSelected} unit={unit} modelInfo={bestMatchInfo} timezone={displayTimezone} timezoneAbbreviation={w!.timezone_abbreviation} elevation={w!.elevation??loc!.elevation??0} compactMode={false} advancedMode={layoutMode==='advanced'} showSevenDaySummary={false} twinActive={twinForecastActive} twinStatus={twinForecastStatus} twinReport={twinForecastReport} fusion={forecastFusion} fusionActive={!twinForecastActive&&fusedDays!==days} canonicalNowcast={finalizedHours.radarApplied||finalizedHours.thunderApplied||finalizedHours.observationApplied} presentation="hourly-detail"/>:undefined,
-    fourteenDay:dashboardModuleSettings.enabled.ensemble?<Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Ensemblegrafiken werden geladen â€¦</span></section>}><MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={modelStatusRuns} days={displayDays} hours={displayHours} elevation={w!.elevation??loc!.elevation??0} unit={unit} warningEnsemble={warningEnsemble} climate={climate} climateLoading={climateLoading} climateError={climateError} loading={ensLoading||!ensembleRequested} error={ensError} advancedMode={layoutMode==='advanced'} locationKey={favoriteKey(loc!)} locationName={currentFavorite?favoriteLabel(currentFavorite):loc!.name} changeRadarEnabled={modelChangeSettings.enabled} confidenceCalibration={ensembleConfidenceCalibration} confidenceDisplayMode={forecastDisplaySettings.confidenceDisplayMode} presentation="cockpit"/></Suspense>:undefined
-   }}/>;
-  }
-  if(!dashboardModuleSettings.enabled[id])return null;
-  switch(id){
-   case'current':return <MemoCurrent w={w!} hours={displayHours} days={displayDays} air={air} airStation={airStation} st={effectiveStation} stationLoading={stationLoading||connectedStationLoading} radarHistory={radarHistoryInfo} radarNowcast={radarAnalysis} thunderRisk={locationThunderRisk} unit={unit} advancedMode={layoutMode==='advanced'} nowcards={<CurrentNowcards probability={risk} precipNow={precipNow} showProbabilityTimeline={radarDisplaySettings.showProbabilityTimeline} radar={radarAnalysis} timezone={displayTimezone} showLocalHazards={localHazardDisplaySettings.showThunderAndFlashFlood} thunderInfo={thunderInfo} thunderAffectedPlacesTotal={thunderAnalysis?.nearest?.affectedPlacesTotal} heavyRainInfo={heavyRainInfo} advancedMode={layoutMode==='advanced'}/>}/>;
-   case'ventilation':return <CollapsibleModule key={`ventilation:${layoutRevision}`} id="ventilation" title="LÃ¼ftungsassistent" summary="Innenraum, AuÃŸenwetter und bestes LÃ¼ftungsfenster" defaultOpen={false}><VentilationAssistantPanel/></CollapsibleModule>;
-   case'mountain':return currentFavorite?.mountain.enabled?<CollapsibleModule key={`mountain:${layoutRevision}`} id="mountain" title="Berg-/Wintersport" summary="HÃ¶henprofil, Bergwetter und Bedingungen" defaultOpen={false}><ViewportGate className="mountain-gate" rootMargin="420px" placeholder="Berg- und Wintersportanalyse wird vorbereitet â€¦"><MemoMountainSki key={`${id}:${favoriteKey(loc!)}:${currentFavorite.mountain.profileUpdatedAt||'manual'}:${currentFavorite.mountain.season}:${currentFavorite.mountain.valleyElevation}:${currentFavorite.mountain.middleEnabled?currentFavorite.mountain.middleElevation:'-'}:${currentFavorite.mountain.summitElevation}`} loc={loc!} days={displayDays} ensembleDays={ens} rapidMinutes15={forecastFusion?.rapidMinutes15} unit={unit} config={currentFavorite.mountain} onConfigChange={updateCurrentMountain}/></ViewportGate></CollapsibleModule>:null;
-   case'water':return currentFavorite?.water.enabled?<CollapsibleModule key={`water:${layoutRevision}`} id="water" title="Wassersport" summary="Pegel, Wasserwetter, Gezeiten und Bedingungen" defaultOpen={false}><ViewportGate className="water-gate" rootMargin="450px" placeholder="Wassersportdaten werden beim Scrollen geladen â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Marine- und Gezeitendaten werden geladen â€¦</span></section>}><MemoLazyWaterSports key={`${favoriteKey(loc!)}:${currentFavorite.water.waterType}:${currentFavorite.water.activity}`} loc={loc!} weather={w!} hours={displayHours} unit={unit} thunderRisk={locationThunderRisk} rapidThunderRisk={thunderRapidRisk6h} config={currentFavorite.water} onConfigChange={updateCurrentWater}/></Suspense></ViewportGate></CollapsibleModule>:null;
-   // KompatibilitÃ¤tsvertrag Warnzeit-Darstellung: <MemoHazards data={hz} timezone={displayTimezone}/>
-   case'warnings':return <Fragment key={id}><MemoWarningCenter automatic={hz} alerts={official} loading={officialLoading} error={officialError} provider={officialProvider} timezone={displayTimezone} unit={unit}/>{twinForecastStatus?.eligible&&!weatherTwinSettings.useAsMainForecast&&<TwinForecastActivationOffer status={twinForecastStatus} onActivate={()=>writeWeatherTwinSettings({useAsMainForecast:true})}/>}</Fragment>;
-   case'extreme-outlook':return <CollapsibleModule key={`extreme-outlook:${layoutMode}:${layoutRevision}`} id="extreme-outlook" title="Extremwetter-Ausblick Â· Mitteleuropa" summary="Eigene Wahrscheinlichkeitsprognose Â· Gewitter, Regen, Sturm, Schnee und Eisregen" defaultOpen><ViewportGate className="extreme-outlook-gate" rootMargin="480px" placeholder="Mitteleuropa-Extremwetter-Ausblick wird vorbereitet â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Extremwetterkarte wird geladen â€¦</span></section>}><MemoLazyExtremeWeatherOutlook latitude={loc!.latitude} longitude={loc!.longitude} locationName={displayLocationName} timezone={displayTimezone} unit={unit} advancedMode={layoutMode==='advanced'}/></Suspense></ViewportGate></CollapsibleModule>;
-   case'short-term':return <ShortTermForecast key={id} minutes15={displayMinutes15} hours={displayHours} timezone={displayTimezone} unit={unit} anchor={shortTermAnchor} location={loc!} showDwdPrecipitationTypeRadar={forecastDisplaySettings.showDwdPrecipitationTypeRadar} forecastSourceLabel={!twinForecastActive&&forecastFusion?.active?forecastFusionLabel(forecastFusion):undefined}/>;
-   case'forecast':return <MemoForecast key={`forecast:${layoutMode}:${layoutRevision}:${weatherTwinSettings.useAsMainForecast}`} days={displayDays} hours={displayHours} minutes15={displayMinutes15} climate={climate} selected={selectedSeed} setSelected={setForecastSelected} unit={unit} modelInfo={bestMatchInfo} timezone={displayTimezone} timezoneAbbreviation={w!.timezone_abbreviation} elevation={w!.elevation??loc!.elevation??0} compactMode advancedMode={layoutMode==='advanced'} showSevenDaySummary={forecastDisplaySettings.showSevenDaySummary} twinActive={twinForecastActive} twinStatus={twinForecastStatus} twinReport={twinForecastReport} fusion={forecastFusion} fusionActive={!twinForecastActive&&fusedDays!==days} canonicalNowcast={finalizedHours.radarApplied||finalizedHours.thunderApplied||finalizedHours.observationApplied}/>;
-   case'composite':{const radarFocus=<ViewportGate className="radar-gate" placeholder="Kompositbild wird geladen â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>MapLibre und Komposit-Layer werden geladen â€¦</span></section>}><MemoLazyRadar lat={loc!.latitude} lon={loc!.longitude} timezone={displayTimezone} analysis={radarAnalysis} thunder={thunderAnalysis} isDay={astronomicalIsDayAt(Date.now(),{latitude:loc!.latitude,longitude:loc!.longitude,elevation:w!.elevation??loc!.elevation,timezone:displayTimezone},Number(w!.current.is_day)===1)} actualLocation={locationSelectionSource==='tracked'&&Boolean(trackedLocation)&&locationsNearlyEquivalent(loc,trackedLocation)} focusMode={navigationMode==='bottom-tabs'}/></Suspense></ViewportGate>;return navigationMode==='bottom-tabs'?<section key={`composite-focus:${layoutMode}:${layoutRevision}`} className="modern-map-focus-shell" data-mid-view="composite" aria-label="Kartenfokus">{radarFocus}</section>:<CollapsibleModule key={`composite:${layoutMode}:${layoutRevision}`} id="composite" title="Kompositbild" summary={layoutMode==='advanced'?'Radar, Satellit, Blitz und Modellkonturen':'Radar und aktuelle Wetterbeobachtungen'} defaultOpen={false}>{radarFocus}</CollapsibleModule>}
-   case'ensemble':return <CollapsibleModule key={`ensemble:${layoutMode}:${layoutRevision}`} id="ensemble" title="14-Tage-Ensemble" summary={layoutMode==='advanced'?'Unsicherheit, Konsistenz, Quartile und Klimavergleich':'MÃ¶gliche Entwicklung der nÃ¤chsten 14 Tage'} defaultOpen={false} onOpen={()=>setEnsembleRequested(true)} onClose={()=>setEnsembleRequested(false)}><ViewportGate className="ensemble-gate" placeholder="Ensembletrend wird geladen â€¦" onVisible={()=>setEnsembleRequested(true)}><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Ensemblegrafiken werden geladen â€¦</span></section>}><MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={modelStatusRuns} days={displayDays} hours={displayHours} elevation={w!.elevation??loc!.elevation??0} unit={unit} warningEnsemble={warningEnsemble} climate={climate} climateLoading={climateLoading} climateError={climateError} loading={ensLoading||!ensembleRequested} error={ensError} advancedMode={layoutMode==='advanced'} locationKey={favoriteKey(loc!)} locationName={currentFavorite?favoriteLabel(currentFavorite):loc!.name} changeRadarEnabled={modelChangeSettings.enabled} confidenceCalibration={ensembleConfidenceCalibration} confidenceDisplayMode={forecastDisplaySettings.confidenceDisplayMode}/></Suspense></ViewportGate></CollapsibleModule>;
-   case'long-range':return <CollapsibleModule key={`long-range:${layoutMode}:${layoutRevision}`} id="long-range" title="Trend 14d+" summary="Witterungstrend bis 46 Tage Â· saisonaler Multi-Modell-Vergleich" defaultOpen={false}><ViewportGate className="long-range-gate" rootMargin="450px" placeholder="Trend 14d+ wird beim Ã–ffnen geladen â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Witterungs- und Saisonmodelle werden geladen â€¦</span></section>}><MemoLazyLongRange location={loc!} locationName={currentFavorite?favoriteLabel(currentFavorite):loc!.name} advancedMode={layoutMode==='advanced'} windUnit={unit} initialHorizon={navigationMode==='bottom-tabs'?(modernForecastHorizon==='season'?'season':'46d'):undefined}/></Suspense></ViewportGate></CollapsibleModule>;
-   case'climate':return <CollapsibleModule key={`climate:${layoutRevision}`} id="climate" title="Klima" summary="Temperatur, Niederschlag, Wind und BewÃ¶lkung Â· Monate frei wÃ¤hlen" defaultOpen={false}><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Klimamodul wird geladen â€¦</span></section>}><MemoLazyClimate key={favoriteKey(loc!)} location={loc!} unit={unit} active favoriteName={currentFavorite?favoriteLabel(currentFavorite):undefined}/></Suspense></CollapsibleModule>;
-   case'forecast-verification':return layoutMode==='advanced'?<CollapsibleModule key={`forecast-verification:${layoutRevision}`} id="forecast-verification" title="PrognosegÃ¼te und RÃ¼ckblick" summary="Vorhersage, eingetretenes Wetter und lokale ModellgÃ¼te" defaultOpen={false} onOpen={()=>setEnsembleRequested(true)}><ViewportGate className="forecast-verification-gate" rootMargin="350px" placeholder="PrognoserÃ¼ckblick wird vorbereitet â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>PrognosegÃ¼te wird geladen â€¦</span></section>}><MemoLazyForecastVerification locationKey={favoriteKey(loc!)} location={loc!} days={days} ensemble={ens} hours={hours} station={effectiveStation} radar={radarAnalysis}/></Suspense></ViewportGate></CollapsibleModule>:null;
-   case'travel-planner':return <CollapsibleModule key={`travel-planner:${layoutMode}:${layoutRevision}`} id="travel-planner" title="Reisewetter & Reiseplaner" summary="Klimatologie und bestes Reisezeitfenster" defaultOpen={false}><ViewportGate className="travel-planner-gate" rootMargin="450px" placeholder="Reiseplaner wird beim Ã–ffnen vorbereitet â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Reiseplaner wird geladen â€¦</span></section>}><MemoLazyTravelPlanner initialLocation={loc!} advancedMode={layoutMode==='advanced'} unit={unit}/></Suspense></ViewportGate></CollapsibleModule>;
-   case'event-planner':return <CollapsibleModule key={`event-planner:${layoutMode}:${layoutRevision}`} id="event-planner" title="Eventplaner" summary="Termine, AktivitÃ¤ten, Verhaltenstipps und Modellupdates" defaultOpen={false}><ViewportGate className="event-planner-gate" rootMargin="450px" placeholder="Wetterplaner wird beim Ã–ffnen vorbereitet â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Wetterplaner wird geladen â€¦</span></section>}><MemoLazyEventPlanner initialLocation={loc!} advancedMode={layoutMode==='advanced'} unit={unit} canonicalHours={displayHours} canonicalFusion={forecastFusion} canonicalWeatherTwinApplied={twinForecastActive}/></Suspense></ViewportGate></CollapsibleModule>;
-   case'flight-meteorology':return layoutMode==='advanced'?<CollapsibleModule key={`flight-meteorology:${layoutMode}:${layoutRevision}`} id="flight-meteorology" title="Flugmeteorologie" summary="Streckenbriefing Â· Meteogramme Â· FlughÃ¶he/Zeiten" defaultOpen={false}><ViewportGate className="flight-meteorology-gate" rootMargin="450px" placeholder="Flugmeteorologie wird vorbereitet â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Flugmeteorologie wird geladen â€¦</span></section>}><MemoLazyFlightMeteorology lat={loc!.latitude} lon={loc!.longitude} elevation={loc!.elevation??w!.elevation} timezone={displayTimezone}/></Suspense></ViewportGate></CollapsibleModule>:null;
-   case'weather-maps':return layoutMode==='advanced'?<CollapsibleModule key={`weather-maps:${layoutRevision}`} id="weather-maps" title="Wetterkarten" summary="Modelle, HÃ¶henkarten, Signifikanzkarten und Zeitschritte" defaultOpen={false}><ViewportGate className="weather-maps-gate" rootMargin="500px" placeholder="Wetterkarten werden beim Ã–ffnen vorbereitet â€¦"><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Wetterkartenmodul wird geladen â€¦</span></section>}><MemoLazyWeatherMaps latitude={loc!.latitude} longitude={loc!.longitude} timezone={displayTimezone} locationName={currentFavorite?favoriteLabel(currentFavorite):loc!.name}/></Suspense></ViewportGate></CollapsibleModule>:null;
-   case'widget':return layoutMode==='advanced'?<CollapsibleModule key={`widget:${layoutMode}:${layoutRevision}`} id="widget" title="Widget- und PNG-Generator" summary="Konfigurierbare Exportansicht" defaultOpen={false}><Widget loc={loc!} days={displayDays} hours={displayHours} minutes15={displayMinutes15} unit={unit} elevation={loc!.elevation??w!.elevation} timezone={displayTimezone} timezoneAbbreviation={w!.timezone_abbreviation} ensemblePanel={ensembleMetric=><Suspense fallback={<section className="lazy-placeholder inner"><RefreshCw className="spin" size={17}/><span>Ensemblegrafik wird geladen â€¦</span></section>}><MemoLazyEnsembles data={ens} scenarios={ensembleScenarios} models={models} runs={modelStatusRuns} days={displayDays} hours={displayHours} elevation={w!.elevation??loc!.elevation??0} unit={unit} warningEnsemble={warningEnsemble} climate={climate} climateLoading={climateLoading} climateError={climateError} loading={ensLoading||!ensembleRequested} error={ensError} advancedMode={false} locationKey={favoriteKey(loc!)} locationName={currentFavorite?favoriteLabel(currentFavorite):loc!.name} changeRadarEnabled={false} confidenceCalibration={ensembleConfidenceCalibration} confidenceDisplayMode={forecastDisplaySettings.confidenceDisplayMode} presentation="widget" widgetMetric={ensembleMetric}/></Suspense>} onEnsembleRequested={()=>setEnsembleRequested(true)}/></CollapsibleModule>:null;
-  }
- };
- if(widgetUrlExport)return <div className={`app widget-url-export-app widget-url-${widgetUrlExport.view} widget-url-${widgetUrlExport.theme}`} data-widget-location={widgetUrlExport.location.slug} data-widget-days={widgetUrlExport.days}><main>{error&&<div className="error">{error}</div>}{loading&&!w?<div className="loading"><RefreshCw className="spin"/><strong>Aktuelles Widget wird geladen â€¦</strong><span>{widgetUrlExport.location.name} Â· {widgetUrlExport.days} Tage</span></div>:w&&loc?<Widget loc={loc} days={displayDays} hours={displayHours} minutes15={displayMinutes15} unit={unit} elevation={loc.elevation??w.elevation} timezone={displayTimezone} timezoneAbbreviation={w.timezone_abbreviation} ensemblePanel={null} onEnsembleRequested={()=>undefined} urlExport={widgetUrlExport}/>:null}</main></div>;
- return <div className={`app mode-${layoutMode} density-${resolvedUiDensity} with-section-navigation navigation-${navigationMode}`} data-ui-density={resolvedUiDensity} data-navigation-mode={navigationMode}>
-  <Header setLoc={setLoc} favorites={favorites} setFavorites={setFavorites} current={loc} trackedLocation={trackedLocation} trackedSelectionActive={locationSelectionSource==='tracked'} locationTracking={locationTracking} favoriteStripMode={favoriteStripMode} onOpenSettings={section=>{setSettingsSection(section||'view');setSettingsOpen(true)}} onOpenNavigation={()=>setSectionNavOpen(true)} onOpenEventPlanner={recordId=>{navigateToDashboardSection('event-planner');if(recordId)window.setTimeout(()=>window.dispatchEvent(new CustomEvent(EVENT_CENTER_OPEN_EVENT,{detail:{id:recordId}})),160)}} locate={()=>locate(true)} loading={loading} reload={reloadDashboardAndEvents} hasLocation={!!loc} brandLogoPath={brandLogoPath} unit={unit}/>
-  {!networkOnline&&<div className="runtime-offline-banner" role="status" aria-live="polite"><WifiOff size={16}/><div><strong>Offline</strong><span>{w?`Gespeicherter Wetterstand Â· Stand ${formatLocalIsoDisplayTime(String(w.current.time||''),w.timezone,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'})} Uhr`:'FÃ¼r diesen Ort ist noch kein gespeicherter Wetterstand verfÃ¼gbar.'}</span></div></div>}
-  {loc?<DashboardSectionNavigation settings={dashboardModuleSettings} layoutMode={layoutMode} navigationMode={navigationMode} bottomBarBehavior={bottomBarBehavior} forecastTarget={modernForecastHorizon==='7d'?'forecast':modernForecastHorizon==='14d'?'ensemble':modernForecastHorizon==='46d'||modernForecastHorizon==='season'?'long-range':'short-term'} currentFavorite={currentFavorite??null} activeId={activeNavSection} drawerOpen={sectionNavOpen} onDrawerOpen={setSectionNavOpen} onNavigate={navigateToDashboardSection}/>:null}
-  <main className="mid-page-grid">{!loc?<section className="empty-start"><Search size={30}/><div><strong>{locationTracking?'Aktueller Standort wird bestimmt':'Ort oder Standort auswÃ¤hlen'}</strong><span>{locationTracking?'Die GerÃ¤teposition wird als Standort geladen. Bei fehlender Freigabe bleibt der Standard- oder letzte Ort verfÃ¼gbar.':'Beim ersten Aufruf bleibt MID leer. Favoriten und der zuletzt gewÃ¤hlte Ort werden lokal gespeichert.'}</span></div></section>:<>
-   <section className="place"><div><span>{loc.autolocated?'Automatisch lokalisiert Â· ':''}{loc.admin1??loc.country??'Standort'}</span><div className="place-title-row"><h1>{currentFavorite?favoriteLabel(currentFavorite):loc.name}</h1><button className={`favorite-toggle${locationIsFavorite?' active':''}`} onClick={()=>toggleFavorite(loc)} title={locationIsFavorite?'Aus Favoriten entfernen':'Zu Favoriten hinzufÃ¼gen'} aria-label={locationIsFavorite?'Aus Favoriten entfernen':'Zu Favoriten hinzufÃ¼gen'} aria-pressed={locationIsFavorite}><Star size={21} fill={locationIsFavorite?'currentColor':'none'}/></button></div><p className={`place-meta${layoutMode==='advanced'?' advanced':''}`}>{currentFavorite?.alias&&currentFavorite.alias!==loc.name?`${loc.name} Â· `:''}{formatDecimal(loc.latitude,2,2)}Â°N, {formatDecimal(loc.longitude,2,2)}Â°E Â· {Math.round(loc.elevation??w?.elevation??0)} m Ã¼. NHN{w?.timezone&&<> Â· Ortszeit <LocalClock timezone={w.timezone} abbreviation={w.timezone_abbreviation} utcOffsetSeconds={w.utc_offset_seconds} advanced={layoutMode==='advanced'}/></>}</p><button type="button" className={`place-warning-status ${warningStatus.tone}`} onClick={()=>navigateToDashboardSection('warnings')} aria-label={`${warningStatus.label}. ${warningStatus.detail}`}><AlertTriangle size={15}/><span><small>WARNLAGE</small><strong>{warningStatus.label}</strong></span><em>{warningStatus.count||'â€º'}</em></button></div><div className="place-nowcards"><aside className="precip-now"><small>Aktuelle Niederschlagswahrscheinlichkeit</small><strong>{Math.round(risk)} %</strong><span>{precipNow.summary}</span>{radarDisplaySettings.showProbabilityTimeline&&radarAnalysis&&radarSignalDetected(radarAnalysis)&&<RadarNowcastTimeline radar={radarAnalysis} timezone={displayTimezone}/>}<div className="precip-now-source-row"><em>{radarCompactSource(radarAnalysis,precipNow.source,displayTimezone)}</em><InfoHint label="Technische Radardetails anzeigen" width={420} popoverClassName="precip-now-info-popover"><div className="precip-now-info"><strong>Radar- und Modellabgleich</strong><p>{precipNow.source}</p>{radarAnalysis&&<dl><dt>Radarquelle</dt><dd>{radarAnalysis.provider}</dd><dt>RadarqualitÃ¤t</dt><dd>{radarQualityText(radarAnalysis.quality)}</dd><dt>Zeitraum</dt><dd>âˆ’1 h bis +2 h Â· 5-Minuten-Schritte</dd>{radarAnalysis.radarLayer&&<><dt>Radarprodukt</dt><dd>{radarAnalysis.radarLayer}</dd></>}{radarAnalysis.seasonalEchoLabel&&<><dt>Filterung</dt><dd>{radarAnalysis.seasonalEchoLabel}</dd></>}{radarAnalysis.amountSource&&<><dt>Mengenbasis</dt><dd>{radarAnalysis.amountSource}</dd></>}{radarAnalysis.growthTrend&&<><dt>Wachstum/Zerfall</dt><dd>{radarAnalysis.growthTrend==='growing'?'zunehmend':radarAnalysis.growthTrend==='decaying'?'abnehmend':'weitgehend stabil'}{Number.isFinite(Number(radarAnalysis.growthRatePerHour))?` Â· ${Math.round(Number(radarAnalysis.growthRatePerHour)*100)} %/h`:''}</dd></>}{radarAnalysis.hxBoundaryCheck&&<><dt>250-m-GrenzprÃ¼fung</dt><dd>{Math.round(radarAnalysis.hxBoundaryCheck.siteSupport*100)} % lokale EchosstÃ¼tzung</dd></>}{radarAnalysis.stationCalibration&&<><dt>Stationskontrolle</dt><dd>{radarAnalysis.stationCalibration.name||radarAnalysis.stationCalibration.provider||'DWD-Station'} Â· {formatDecimalFixed(radarAnalysis.stationCalibration.distanceKm||0,1)} km{Number.isFinite(Number(radarAnalysis.stationCalibration.distanceWeight))&&Number.isFinite(Number(radarAnalysis.stationCalibration.ageWeight))?` Â· rÃ¤uml./zeitl. Gewicht ${Math.round(Number(radarAnalysis.stationCalibration.distanceWeight)*Number(radarAnalysis.stationCalibration.ageWeight)*100)} %`:''}</dd></>}{radarAnalysis.ensemble&&<><dt>9-Member-Spanne</dt><dd>{radarAmountLabel(radarAnalysis.ensemble.totalP25)}â€“{radarAmountLabel(radarAnalysis.ensemble.totalP75)} mm Â· Szenarioanteil {radarAnalysis.ensemble.hitProbability} %</dd></>}</dl>}</div></InfoHint></div></aside>{localHazardDisplaySettings.showThunderAndFlashFlood&&thunderInfo&&<aside className={`thunder-now ${thunderInfo.level}${layoutMode==='standard'?' standard-compact':''}`}><div className="nowcard-label-row"><small>{thunderInfo.sectionLabel}</small>{layoutMode==='advanced'&&(thunderInfo.detailGroups?.length||thunderInfo.details?.length)?<InfoHint label="KONRAD3D-Zellinformationen anzeigen" width={560} popoverClassName="thunder-info-popover" showClose><div className="thunder-info-sheet">{thunderInfo.detailLead&&<p className="thunder-info-lead">{thunderInfo.detailLead}</p>}{thunderInfo.quickFacts?.length?<div className="thunder-fact-grid thunder-fact-grid-expanded">{thunderInfo.quickFacts.map(item=><div className={`thunder-fact ${item.tone??'neutral'}`} key={`${item.label}:${item.value}`}><small>{item.label}</small><strong>{item.value}</strong></div>)}</div>:null}{thunderInfo.places?.length?<ThunderPlaceList places={thunderInfo.places} total={thunderAnalysis?.nearest?.affectedPlacesTotal}/>:null}{thunderInfo.detailGroups?.length?<div className="thunder-detail-groups">{thunderInfo.detailGroups.map(group=><section className="thunder-detail-group" key={group.title}><strong className="thunder-info-heading">{group.title}</strong><dl className="thunder-detail-list">{group.items.map(item=><Fragment key={`${group.title}:${item.label}:${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></Fragment>)}</dl></section>)}</div>:<><strong className="thunder-info-heading">KONRAD3D Â· Zell- und OrtsprÃ¼fung</strong><dl className="thunder-detail-list">{thunderInfo.details?.map(item=><Fragment key={`${item.label}:${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></Fragment>)}</dl></>}{thunderInfo.advisory&&<p className="thunder-info-advisory">{thunderInfo.advisory}</p>}<small>Die Entfernungsangabe der Karte ist die aktuelle Distanz zur Zellposition. Prognostizierter Abstand und Unsicherheitsradius werden davon getrennt ausgewiesen.</small></div></InfoHint>:null}</div><strong>{thunderInfo.headline}</strong>{thunderInfo.status&&<div className={`thunder-status ${thunderInfo.status.kind}`}><b>{thunderInfo.status.label}</b><span>{thunderInfo.status.detail}</span></div>}{layoutMode==='advanced'&&thunderInfo.places?.length?<ThunderPlaceList places={thunderInfo.places} compact total={thunderAnalysis?.nearest?.affectedPlacesTotal}/>:null}{thunderInfo.quickFacts?.length?<div className="thunder-fact-grid">{(layoutMode==='advanced'?thunderInfo.quickFacts.filter(item=>item.prominent!==false):thunderInfo.quickFacts.filter(item=>item.prominent!==false).slice(0,3)).map(item=><div className={`thunder-fact ${item.tone??'neutral'}`} key={`${item.label}:${item.value}`}><small>{item.label}</small><strong>{item.value}</strong></div>)}</div>:null}<em>{layoutMode==='advanced'?thunderInfo.source:'Automatische standortbezogene Analyse Â· keine amtliche Warnung'}</em></aside>}{localHazardDisplaySettings.showThunderAndFlashFlood&&heavyRainInfo&&<aside className={`heavy-rain-now ${heavyRainInfo.level}${layoutMode==='standard'?' standard-compact':''}`}><small>Starkregen-/Ãœberflutungsindikator</small><strong>{heavyRainInfo.headline}</strong><span>{layoutMode==='advanced'?heavyRainInfo.summary:compactLocalHazardSummary(heavyRainInfo.summary)}</span>{layoutMode==='advanced'?<em>{heavyRainInfo.source}</em>:null}</aside>}</div></section>
-   {currentFavorite&&activeFavoriteAlerts.length>0&&<MemoFavoriteRuleNotice favorite={currentFavorite} alerts={activeFavoriteAlerts}/>} 
-   {error&&<div className="error">{error}</div>}
-   {loading&&!w?<div className="loading"><RefreshCw className="spin"/><strong>Wettermodelle werden geladen â€¦</strong><span>Best Match wird priorisiert geladen</span></div>:w&&<>
-    {dashboardModuleSettings.order.map(id=>{const plannerHub=navigationMode==='bottom-tabs'&&id===modernPlannerAnchor?<ModernPlannerHub eventEnabled={dashboardModuleSettings.enabled['event-planner']} travelEnabled={dashboardModuleSettings.enabled['travel-planner']} mountainEnabled={Boolean(dashboardModuleSettings.enabled.mountain&&currentFavorite?.mountain.enabled)} waterEnabled={Boolean(dashboardModuleSettings.enabled.water&&currentFavorite?.water.enabled)} onNavigate={navigateToDashboardSection} onOpenSettings={section=>{setSettingsSection(section);setSettingsOpen(true)}}/>:null;if(id==='event-planner'||id==='travel-planner'){if(id!==plannerSectionAnchor)return plannerHub?<Fragment key={`modern-planner-hub-${id}`}>{plannerHub}</Fragment>:null;return <Fragment key="dashboard-planner-section-wrap">{plannerHub}<section className={`dashboard-planner-section${navigationMode==='bottom-tabs'?' modern-planner-section':''}`} aria-labelledby="mid-planner-section-heading"><header className="dashboard-planner-section-head"><div><small>PLANER</small><h2 id="mid-planner-section-heading">Planer</h2><p>Event- und Reiseplanung</p></div></header><div className="dashboard-planner-modules">{plannerModuleOrder.map(plannerId=>{const module=renderDashboardModule(plannerId);return module?<div key={`dashboard-section-${plannerId}`} id={`mid-section-${plannerId}`} className="dashboard-section-anchor dashboard-planner-module" data-dashboard-section={plannerId}>{module}</div>:null})}</div></section></Fragment>}const module=renderDashboardModule(id),horizonNavigation=navigationMode==='bottom-tabs'&&id===forecastWorkspaceAnchor?<ForecastHorizonNavigation active={modernForecastHorizon} settings={dashboardModuleSettings} onNavigate={navigateModernForecastHorizon}/>:null;return module||horizonNavigation||plannerHub?<Fragment key={`dashboard-section-${id}`}>{plannerHub}{horizonNavigation}{module?<div id={`mid-section-${id}`} className={`dashboard-section-anchor${navigationMode==='bottom-tabs'&&MODERN_FORECAST_MODULES.includes(id)?' modern-forecast-section':''}`} data-dashboard-section={id}>{module}</div>:null}</Fragment>:null})}
-   </>}
-  </>}</main>
-  <footer><span>MID v{VERSION} Â· <a href="https://github.com/MeteoMartini/MID/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">Changelog</a></span><button type="button" className="footer-legal-link" onClick={()=>setImprintOpen(true)}>Impressum</button><InfoHint label="Quellen anzeigen" trigger={<><Info size={13}/><span>Quellen</span></>}><div className="footer-source-overview"><strong>Datenquellen Â· je nach Ort, Horizont und VerfÃ¼gbarkeit</strong><p><b>Leitprognose & Kurzfrist:</b> Open-Meteo Best Match als GrundgerÃ¼st, ergÃ¤nzt durch die MID-Modellfusion. In Deutschland flieÃŸen DWD ICON-D2, ICON-D2-RUC/RUC-EPS und DWD MOSMIX-S/L aus DWD Open Data nach ihren jeweiligen fachlichen Rollen ein. Je nach Gebiet und Datenlage werden weitere geeignete deterministische Rapid-/Regional-/Globalmodelle herangezogen, darunter ECMWF IFS/AIFS, NOAA/NCEP, MÃ©tÃ©o-France AROME/ARPEGE, KNMI HARMONIE, UKMO, CMC/GEM, MeteoSwiss ICON-CH, BOM ACCESS und JMA. Varianten derselben Modellfamilie werden nicht als unabhÃ¤ngige Stimmen mehrfach gewichtet.</p><p><b>Ensembles & Unsicherheit:</b> DWD ICON-EPS, ECMWF IFS ENS/AIFS ENS, NOAA GEFS/AIGEFS/HGEFS, CMC/GEM GEPS, ECCC REPS, UKMO Ensemble, KNMI HARMONIE-AROME EPS, MeteoSwiss ICON-CH Ensemble, BOM ACCESS Global Ensemble und Google WeatherNext 2 â€“ jeweils nur innerhalb ihrer rÃ¤umlichen/zeitlichen VerfÃ¼gbarkeit und mit MID-UnabhÃ¤ngigkeitsgruppen.</p><p><b>Tag 15â€“46 & Saison:</b> ECMWF EC46 und NOAA GEFS fÃ¼r den subseasonalen Witterungstrend; saisonal numerische C3S/CDS-Systeme (u. a. ECMWF SEAS5, Met Office GloSea6 und weitere C3S-Zentren), NOAA CFSv2/NMME sowie fÃ¼r Deutschland DWD GCFS2.2/EPISODES, soweit der jeweilige Datenpfad numerisch verfÃ¼gbar ist. Reine KatalogeintrÃ¤ge werden nicht als numerische Vorhersage ausgegeben.</p><p><b>Beobachtungen & lokale Korrektur:</b> DWD Open Data/CDC/SYNOP sowie Bright-Sky-Fallback, GeoSphere Austria/TAWES, MeteoSwiss SwissMetNet (STAC/OGD), KNMI 10-Minuten-EDR, NOAA/NWS bzw. AviationWeather, SMHI, FMI und ECCC/GeoMet. Ein optionaler WMO-WIS2-Normalisierer erweitert die amtliche globale Abdeckung, ohne nationale Direktquellen zu verdrÃ¤ngen. ErgÃ¤nzend kÃ¶nnen openSenseMap sowie ausdrÃ¼cklich verbundene private Netze/Stationen wie Netatmo, Weather Underground, Synoptic/MesoWest-MADIS oder Xweather verwendet werden. Private Quellen ersetzen amtliche Beobachtungen nicht automatisch.</p><p><b>Warnungen, Radar & Satellit:</b> amtliche Warnungen aus DWD WFS/CAP, MeteoAlarm und NOAA/NWS; ein optionaler MeteoAlarm-OGC-EDR/CAP-Adapter ergÃ¤nzt die nationalen Pfade, ersetzt sie aber nicht. Radar-/Nowcastpfade nutzen u. a. DWD RV/RS/HX/PX250, RADOLAN YW, KONRAD3D und NowCastMIX; das europÃ¤ische Komposit nutzt EUMETNET OPERA CIRRUS, fÃ¼r US-Standorte kann serverseitig normalisiertes NOAA/NSSL MRMS vor dem generischen RainViewer-Fallback verwendet werden. Satellit/Konvektion: EUMETSAT MTG-FCI/LI (FCI-Bilddaten und LI Total Lightning) sowie verfÃ¼gbare DWD-Produkte. KOSTRA-DWD-2020 und DWD-Stationsniederschlag stÃ¼tzen den Starkregen-/Ãœberflutungsindikator.</p><p><b>Klima, Reise & Wasser:</b> ERA5/ERA5-Land bzw. ERA5-Seamless als Klimareferenz, Reise-Klimatologie 1991â€“2020 und NOAA OISST fÃ¼r maritime Wassertemperatur-Klimatologie. FÃ¼r Deutschland kann WSV PEGELONLINE aktuelle amtliche Pegel-Rohmesswerte und verfÃ¼gbare WV-Pegelvorhersagen liefern; fÃ¼r die Schweiz liefert die Ã¶ffentliche BAFU-Datenplattform aktuelle WasserstÃ¤nde, AbflÃ¼sse und Wassertemperaturen aus dem nationalen hydrologischen Messnetz. Marineparameter kÃ¶nnen aus einem serverseitig reduzierten Copernicus-Marine-Subset stammen, mit Open-Meteo Marine als Fallback. GloFAS wird ausschlieÃŸlich als modellierter Abflussausblick gekennzeichnet, nicht als Messung oder amtliche Hochwasserwarnung; frei verfÃ¼gbare, verzÃ¶gerte EFAS-Mittelfristprognosen werden nicht als aktuelle Hochwasserprognose dargestellt. Reiseprognosen nutzen innerhalb der Modellreichweite zusÃ¤tzlich die verfÃ¼gbaren Mittel-/Langfristmodelle statt ausschlieÃŸlich Klimatologie.</p><p><b>Flugmeteorologie:</b> NOAA AviationWeather Center (METAR/SPECI, PIREP/AIREP, SIGMET), verfÃ¼gbare ICAO-/nationale Open-Data-Produkte und â€“ bei eingerichtetem Zugang â€“ WIFS/WAFS-SIGWX sowie KNMI Aviation Open Data; MID-Druckniveau- und Streckenanalysen bleiben ergÃ¤nzende Diagnosen und ersetzen kein vorgeschriebenes amtliches Briefing.</p><p><b>Karten & Orte:</b> OpenStreetMap, Photon/Overpass, BigDataCloud sowie die jeweils eingebundenen amtlichen Geo-/WMS-Dienste. LuftqualitÃ¤t in Deutschland bevorzugt mit aktuellen UBA-Messwerten, danach EEA-Messstationsbezug; Open-Meteo/CAMS bleibt Modell-/Prognose- und Fallbackquelle.</p><small>Wichtig: Nicht jede genannte Quelle wird an jedem Ort oder in jedem Zeithorizont verwendet. MID kennzeichnet Modellstand, VerfÃ¼gbarkeit und tatsÃ¤chliche Nutzung getrennt. Automatische Hazards, Berg-/Wintersport-, Wasser-, Radar- und Ereignisindikatoren sind keine amtlichen Warnungen oder Navigationshilfen.</small></div></InfoHint><span>Aktualisiert: {dashboardUpdatedLabel}</span></footer>
-  <ImprintDialog open={imprintOpen} onClose={()=>setImprintOpen(false)}/>
-  <SettingsManager open={settingsOpen} section={settingsSection} setSection={setSettingsSection} onClose={()=>setSettingsOpen(false)} favorites={favorites} setFavorites={setFavorites} locationTracking={locationTracking} setLocationTracking={setLocationTracking} trackedLocation={trackedLocation} trackedPushRules={trackedPushRules} setTrackedPushRules={setTrackedPushRules} pushNotificationInterval={pushNotificationInterval} setPushNotificationInterval={setPushNotificationInterval} pushPrecipitationAlert={pushPrecipitationAlert} setPushPrecipitationAlert={setPushPrecipitationAlert} modelChangeSettings={modelChangeSettings} setModelChangeSettings={setModelChangeSettings} radarDisplaySettings={radarDisplaySettings} setRadarDisplaySettings={setRadarDisplaySettings} forecastDisplaySettings={forecastDisplaySettings} setForecastDisplaySettings={setForecastDisplaySettings} localHazardDisplaySettings={localHazardDisplaySettings} setLocalHazardDisplaySettings={setLocalHazardDisplaySettings} currentLocation={loc} onSelectFavorite={location=>{setLoc(favoriteLocation(location));setSettingsOpen(false)}} themeMode={themeMode} setThemeMode={setThemeMode} brandLogoVariant={brandLogoVariant} setBrandLogoVariant={setBrandLogoVariant} designMode={designMode} setDesignMode={setDesignMode} unit={unit} setUnit={setUnit} timeDisplayMode={timeDisplayMode} setTimeDisplayMode={setTimeDisplayMode} favoriteStripMode={favoriteStripMode} setFavoriteStripMode={setFavoriteStripMode} bottomBarBehavior={bottomBarBehavior} setBottomBarBehavior={setBottomBarBehavior} uiDensityPreference={uiDensityPreference} resolvedUiDensity={resolvedUiDensity} setUiDensityPreference={setUiDensityPreference} layoutMode={layoutMode} setLayoutMode={setLayoutMode} dashboardModuleSettings={dashboardModuleSettings} setDashboardModuleSettings={updateDashboardModuleSettings}/>
- </div>
-}
-
-function favoriteRuleAlerts(favorite:Favorite,hours:Hour[]){
- if(!favorite.rules?.enabled)return[];
- const start=Math.max(0,currentIndex(hours)),next=hours.slice(start,start+24),alerts:string[]=[];if(!next.length)return alerts;
- const rules=favorite.rules||{},maxRain=Math.max(...next.map(x=>x.probability||0)),maxGust=Math.max(...next.map(x=>x.gust||0)),minTemp=Math.min(...next.map(x=>x.temperature)),maxTemp=Math.max(...next.map(x=>x.temperature));
- if(Number.isFinite(rules.rainProbability)&&maxRain>=Number(rules.rainProbability))alerts.push(`Niederschlag bis ${Math.round(maxRain)} %`);
- if(Number.isFinite(rules.gustKt)&&maxGust>=Number(rules.gustKt))alerts.push(`BÃ¶en bis ${Math.round(maxGust)} kt`);
- if(Number.isFinite(rules.frostC)&&minTemp<=Number(rules.frostC))alerts.push(`Temperatur bis ${Math.round(minTemp)} Â°C`);
- if(Number.isFinite(rules.heatC)&&maxTemp>=Number(rules.heatC))alerts.push(`Temperatur bis ${Math.round(maxTemp)} Â°C`);
- return alerts;
-}
-function FavoriteRuleNotice({favorite,alerts}:{favorite:Favorite;alerts:string[]}){return <section className="favorite-rule-notice"><SlidersHorizontal size={16}/><div><strong>PersÃ¶nliche Regeln fÃ¼r {favoriteLabel(favorite)}</strong><span>{alerts.join(' Â· ')}</span></div></section>}
-type FavoriteSetter=(updater:Favorite[]|((current:Favorite[])=>Favorite[]))=>void;
-function FavoriteQuickStrip({favorites,setFavorites,current,trackedLocation,trackedSelectionActive,onSelect,onManage,locationTracking,onLocate}:{favorites:Favorite[];setFavorites:FavoriteSetter;current:Location|null;trackedLocation:Location|null;trackedSelectionActive:boolean;onSelect:(location:Location)=>void;onManage:()=>void;locationTracking:boolean;onLocate:()=>void}){
- const[dragId,setDragId]=useState(''),[dragOverId,setDragOverId]=useState(''),pointerDrag=useRef<{id:string;pointerId:number;startX:number;startY:number;dragging:boolean}|null>(null),suppressClick=useRef(false),lastGripSelection=useRef(0),lastTrackedPointerSelection=useRef(0),pendingDragTarget=useRef(''),dragFrame=useRef(0),bubbleContainerRef=useRef<HTMLDivElement>(null),activeBubbleRef=useRef<HTMLButtonElement>(null),activeFavoriteId=matchingStoredFavorite(favorites,current)?.id??'',trackedActive=Boolean(locationTracking&&trackedSelectionActive&&current&&trackedLocation&&locationsNearlyEquivalent(current,trackedLocation));
- useActiveItemReveal(Boolean(activeFavoriteId),`${activeFavoriteId}:${favorites.length}`,bubbleContainerRef,activeBubbleRef,'horizontal');
- const moveTo=(sourceId:string,targetId:string)=>{if(!sourceId||sourceId===targetId)return;setFavorites(currentItems=>{const from=currentItems.findIndex(item=>item.id===sourceId),to=currentItems.findIndex(item=>item.id===targetId);if(from<0||to<0||from===to)return currentItems;const copy=[...currentItems],[item]=copy.splice(from,1);copy.splice(to,0,item);return copy})};
- const flushDragTarget=()=>{dragFrame.current=0;const active=pointerDrag.current,target=pendingDragTarget.current;pendingDragTarget.current='';if(!active?.dragging||!target||target===active.id)return;setDragOverId(current=>current===target?current:target);moveTo(active.id,target)};
- const finish=()=>{if(dragFrame.current){window.cancelAnimationFrame(dragFrame.current);dragFrame.current=0}flushDragTarget();pointerDrag.current=null;pendingDragTarget.current='';setDragId('');setDragOverId('')};
- const pointerStart=(event:ReactPointerEvent<HTMLSpanElement>,id:string)=>{event.preventDefault();event.stopPropagation();event.currentTarget.setPointerCapture(event.pointerId);pointerDrag.current={id,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,dragging:false};pendingDragTarget.current=''};
- const pointerMove=(event:ReactPointerEvent<HTMLSpanElement>)=>{const active=pointerDrag.current;if(!active||active.pointerId!==event.pointerId)return;const distance=Math.hypot(event.clientX-active.startX,event.clientY-active.startY);if(!active.dragging){if(distance<8)return;active.dragging=true;setDragId(active.id)}event.preventDefault();const target=document.elementFromPoint(event.clientX,event.clientY)?.closest<HTMLElement>('[data-quick-favorite-id]')?.dataset.quickFavoriteId;if(!target||target===active.id||target===pendingDragTarget.current)return;pendingDragTarget.current=target;if(!dragFrame.current)dragFrame.current=window.requestAnimationFrame(flushDragTarget)};
- const pointerEnd=(event:ReactPointerEvent<HTMLSpanElement>,item:Favorite)=>{const active=pointerDrag.current;if(!active||active.pointerId!==event.pointerId)return;if(event.currentTarget.hasPointerCapture?.(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);if(!active.dragging){event.preventDefault();event.stopPropagation();finish();lastGripSelection.current=Date.now();onSelect(item.location);return}suppressClick.current=true;finish();window.setTimeout(()=>{suppressClick.current=false},220)};
- const pointerCancel=(event:ReactPointerEvent<HTMLSpanElement>)=>{if(pointerDrag.current?.pointerId!==event.pointerId)return;if(event.currentTarget.hasPointerCapture?.(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);finish()};
- return <nav className="favorite-strip header-favorites" aria-label="Favoriten-Schnellzugriff">
-  <div className="favorite-bubbles" ref={bubbleContainerRef}>
-   {locationTracking&&<button className={`tracked-location${trackedActive?' active':''}`} aria-current={trackedActive?'location':undefined} onPointerUp={event=>{if(event.pointerType==='mouse')return;event.preventDefault();lastTrackedPointerSelection.current=Date.now();onLocate()}} onClick={()=>{if(Date.now()-lastTrackedPointerSelection.current<420)return;onLocate()}} title="Aktuellen Standort erneut bestimmen"><LocateFixed size={14}/><span>Standort</span><small>aktuelle Position</small><b>Auto</b></button>}
-   {favorites.map(item=>{const active=item.id===activeFavoriteId;return <button key={item.id} ref={active?activeBubbleRef:undefined} data-quick-favorite-id={item.id} aria-current={active?'location':undefined} className={`${active?'active ':''}${dragId===item.id?'dragging ':''}${dragOverId===item.id&&dragId!==item.id?'drag-over':''}`.trim()} onClick={()=>{if(suppressClick.current||Date.now()-lastGripSelection.current<420)return;onSelect(item.location)}} title={`${favoriteLabel(item)} Â· am Griff ziehen; alternativ unter Favoriten verwalten mit Pfeiltasten verschieben`}><span className="favorite-quick-grip" aria-hidden="true" onPointerDown={event=>pointerStart(event,item.id)} onPointerMove={pointerMove} onPointerUp={event=>pointerEnd(event,item)} onPointerCancel={pointerCancel}><GripVertical size={11}/></span><Star size={13} fill="currentColor"/><span>{favoriteLabel(item)}</span><small>{item.group||item.location.name}</small>{item.isDefault&&<b>Standard</b>}{(item.mountain.enabled||item.water.enabled)&&<em className="favorite-profile-icons" title={[item.mountain.enabled?'Berg-/Wintersport':'',item.water.enabled?'Wassersport':''].filter(Boolean).join(' Â· ')}>{item.mountain.enabled&&<MountainSnow size={11}/>} {item.water.enabled&&<Waves size={11}/>}</em>}</button>})}
-  </div>
-  <button className="favorite-strip-manage" onClick={onManage} title="Favoriten verwalten" aria-label="Favoriten verwalten"><Settings2 size={16}/></button>
- </nav>
-}
-function HeightInput({label,value,min,max,step=50,onChange}:{label:string;value:number;min:number;max:number;step?:number;onChange:(value:number)=>void}){
- const[draft,setDraft]=useState(String(Math.round(value)));
- useEffect(()=>setDraft(String(Math.round(value))),[value]);
- const commit=()=>{if(!draft.trim()){setDraft(String(Math.round(value)));return}const parsed=Number(draft);if(!Number.isFinite(parsed)){setDraft(String(Math.round(value)));return}const next=Math.round(clamp(parsed,min,max));setDraft(String(next));if(next!==Math.round(value))onChange(next)};
- const nudge=(delta:number)=>{const next=Math.round(clamp(Math.round(value)+delta,min,max));setDraft(String(next));if(next!==Math.round(value))onChange(next)};
- return <div className="mountain-height-field"><span>{label}</span><div className="mountain-height-editor"><button type="button" onClick={()=>nudge(-step)} disabled={value<=min} aria-label={`${label} um ${step} Meter verringern`}>âˆ’</button><input type="text" inputMode="numeric" pattern="[0-9]*" value={draft} onFocus={event=>event.currentTarget.select()} onChange={event=>setDraft(event.target.value.replace(/[^0-9]/g,''))} onBlur={commit} onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();event.currentTarget.blur()}else if(event.key==='Escape'){setDraft(String(Math.round(value)));event.currentTarget.blur()}}} aria-label={`${label} in Metern direkt eingeben`}/><button type="button" onClick={()=>nudge(step)} disabled={value>=max} aria-label={`${label} um ${step} Meter erhÃ¶hen`}>+</button></div><b>m</b></div>
-}
-function FavoritesManager({open,favorites,setFavorites,current,locationTracking,setLocationTracking,onClose,onSelect,embedded=false}:{open:boolean;favorites:Favorite[];setFavorites:(updater:Favorite[]|((current:Favorite[])=>Favorite[]))=>void;current:Location|null;locationTracking:boolean;setLocationTracking:(value:boolean)=>void;onClose:()=>void;onSelect:(location:Location)=>void;embedded?:boolean}){
- const[dragId,setDragId]=useState(''),[dragOverId,setDragOverId]=useState(''),[message,setMessage]=useState(''),[mountainBusy,setMountainBusy]=useState(''),[mountainMessage,setMountainMessage]=useState<Record<string,string>>({});const fileRef=useRef<HTMLInputElement>(null),pointerDrag=useRef<{id:string;pointerId:number}|null>(null),pendingDragTarget=useRef(''),dragFrame=useRef(0),listRef=useRef<HTMLDivElement>(null),activeRowRef=useRef<HTMLElement>(null),currentFavoriteId=matchingStoredFavorite(favorites,current)?.id??'';
- useActiveItemReveal(open&&Boolean(currentFavoriteId),`${currentFavoriteId}:${favorites.length}`,listRef,activeRowRef,'vertical',true);
- if(!open)return null;
- const patch=(id:string,change:Partial<Favorite>)=>setFavorites(current=>current.map(item=>item.id===id?{...item,...change}:item));
- const patchRule=(id:string,key:NumericFavoriteRuleKey,value:number|undefined)=>setFavorites(current=>current.map(item=>item.id===id?{...item,rules:{...item.rules,[key]:value}}:item));
- const patchRuleEnabled=(id:string,value:boolean)=>setFavorites(current=>current.map(item=>item.id===id?{...item,rules:{...item.rules,enabled:value}}:item));
- const patchMountain=(id:string,change:Partial<MountainConfig>)=>setFavorites(current=>current.map(item=>item.id===id?{...item,mountain:{...item.mountain,...change}}:item));
- const detectMountain=async(item:Favorite)=>{setMountainBusy(item.id);setMountainMessage(current=>({...current,[item.id]:'Lift- und Stationsdaten werden gesucht â€¦'}));try{const profile=await mountainProfile(item.location),fallback=profile.diagnostics?.fallback===true,preserveExisting=fallback&&item.mountain.profileSource==='osm-dem'&&Boolean(item.mountain.profileUpdatedAt);setFavorites(current=>current.map(value=>{if(value.id!==item.id)return value;if(fallback&&value.mountain.profileSource==='osm-dem'&&value.mountain.profileUpdatedAt)return value;return{...value,mountain:applyMountainProfile(value.location,value.mountain,profile)}}));setMountainMessage(current=>({...current,[item.id]:preserveExisting?'Automatisches Profil bleibt erhalten Â· Lift-/Stationsdienst vorÃ¼bergehend nicht vollstÃ¤ndig erreichbar':`${profile.source} Â· ${profile.confidence==='high'?'hohe':profile.confidence==='medium'?'mittlere':'geringe'} Sicherheit Â· dauerhaft gespeichert`}))}catch(error){setMountainMessage(current=>({...current,[item.id]:error instanceof Error?error.message:'Automatische Bestimmung fehlgeschlagen.'}))}finally{setMountainBusy('')}};
- const patchWater=(id:string,change:Partial<WaterConfig>)=>setFavorites(current=>current.map(item=>item.id===id?{...item,water:{...item.water,...change}}:item));
- const moveTo=(sourceId:string,targetId:string)=>{if(!sourceId||sourceId===targetId)return;setFavorites(current=>{const from=current.findIndex(item=>item.id===sourceId),to=current.findIndex(item=>item.id===targetId);if(from<0||to<0||from===to)return current;const copy=[...current],[item]=copy.splice(from,1);copy.splice(to,0,item);return copy})};
- const move=(id:string,delta:number)=>setFavorites(current=>{const index=current.findIndex(item=>item.id===id),target=index+delta;if(index<0||target<0||target>=current.length)return current;const copy=[...current],[item]=copy.splice(index,1);copy.splice(target,0,item);return copy});
- const flushDragTarget=()=>{dragFrame.current=0;const active=pointerDrag.current,target=pendingDragTarget.current;pendingDragTarget.current='';if(!active||!target||target===active.id)return;setDragOverId(current=>current===target?current:target);moveTo(active.id,target)};
- const finishDrag=()=>{if(dragFrame.current){window.cancelAnimationFrame(dragFrame.current);dragFrame.current=0}flushDragTarget();pointerDrag.current=null;pendingDragTarget.current='';setDragId('');setDragOverId('')};
- const drop=(targetId:string)=>{moveTo(dragId,targetId);finishDrag()};
- const pointerStart=(event:ReactPointerEvent<HTMLDivElement>,id:string)=>{if(event.pointerType==='mouse')return;event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);pointerDrag.current={id,pointerId:event.pointerId};pendingDragTarget.current='';setDragId(id)};
- const pointerMove=(event:ReactPointerEvent<HTMLDivElement>)=>{const active=pointerDrag.current;if(!active||active.pointerId!==event.pointerId)return;event.preventDefault();const target=document.elementFromPoint(event.clientX,event.clientY)?.closest<HTMLElement>('[data-favorite-id]')?.dataset.favoriteId;if(!target||target===active.id||target===pendingDragTarget.current)return;pendingDragTarget.current=target;if(!dragFrame.current)dragFrame.current=window.requestAnimationFrame(flushDragTarget)};
- const pointerEnd=(event:ReactPointerEvent<HTMLDivElement>)=>{if(pointerDrag.current?.pointerId===event.pointerId)finishDrag()};
- const setDefault=(id:string)=>setFavorites(current=>current.map(item=>({...item,isDefault:item.id===id})));
- const remove=(id:string)=>setFavorites(current=>{const removed=current.find(x=>x.id===id);markFavoriteRemoved(removed);const next=current.filter(x=>x.id!==id);if(removed?.isDefault&&next.length)next[0]={...next[0],isDefault:true};return next});
- const exportJson=async()=>{const payload={schema:'mid-favorites',version:6,exportedAt:new Date().toISOString(),locationTrackingFirst:locationTracking,favorites},file=new File([JSON.stringify(payload,null,2)],'mid-favoriten.json',{type:'application/json'});try{await shareOrExportMidFile({file,title:'MID-Favoriten',text:'MID-Favoriten und Profile exportieren.'});setMessage('Favoritenexport wurde geÃ¶ffnet beziehungsweise gespeichert.')}catch(error){if((error as DOMException)?.name!=='AbortError')setMessage(error instanceof Error?error.message:'Export fehlgeschlagen.')}};
- const importJson=async(file?:File)=>{if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=normaliseFavoriteCollection(Array.isArray(parsed)?parsed:Array.isArray(parsed?.favorites)?parsed.favorites:[]);if(!incoming.length)throw new Error('Keine gÃ¼ltigen Favoriten gefunden.');clearFavoriteTombstones(incoming.map(item=>item.id));setFavorites(current=>normaliseFavoriteCollection([...current,...incoming]));if(typeof parsed?.locationTrackingFirst==='boolean')setLocationTracking(parsed.locationTrackingFirst);setMessage(`${incoming.length} Favorit(en) importiert.`)}catch(error){setMessage(error instanceof Error?error.message:'Import fehlgeschlagen.')}finally{if(fileRef.current)fileRef.current.value=''}};
- return <div className={embedded?'settings-embedded-panel':'favorite-modal-backdrop'} role="presentation" onMouseDown={event=>!embedded&&event.target===event.currentTarget&&onClose()}><section className={`favorite-modal${embedded?' embedded':''}`} role={embedded?'region':'dialog'} aria-modal={embedded?undefined:true} aria-labelledby="favorite-manager-title"><header><div><span>Favoriten & Profile</span><h2 id="favorite-manager-title">Favoriten verwalten</h2></div>{!embedded&&<button onClick={onClose} aria-label="Favoritenverwaltung schlieÃŸen"><X size={19}/></button>}</header><div className="favorite-location-option"><div><LocateFixed size={19}/><span><strong>Standort: aktuelle Position</strong><small>Blendet den GerÃ¤teort im Schnellzugriff ein. Der Standort-Button bestimmt die Position bei Bedarf neu.</small></span></div><label className="favorite-switch"><input type="checkbox" checked={locationTracking} onChange={event=>setLocationTracking(event.target.checked)}/><span/></label></div><div className="favorite-manager-actions"><button onClick={exportJson} disabled={!favorites.length}><FileDown size={16}/>Export</button><button onClick={()=>fileRef.current?.click()}><Upload size={16}/>Import</button><input ref={fileRef} hidden type="file" accept="application/json,.json" onChange={event=>void importJson(event.target.files?.[0])}/><small>{message||'Reihenfolge per Ziehen oder Pfeiltasten Ã¤ndern. Export und Import nutzen ein versioniertes JSON-Format.'}</small></div><div className="favorite-manager-list" ref={listRef}>{favorites.length?favorites.map((item,index)=><article key={item.id} ref={item.id===currentFavoriteId?activeRowRef:undefined} data-favorite-id={item.id} aria-current={item.id===currentFavoriteId?'location':undefined} onDragOver={event=>{event.preventDefault();setDragOverId(current=>current===item.id?current:item.id)}} onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDragOverId('')}} onDrop={()=>drop(item.id)} className={`${item.id===currentFavoriteId?'current-favorite-row ':''}${dragId===item.id?'dragging ':''}${dragOverId===item.id&&dragId!==item.id?'drag-over':''}`.trim()}><div className="favorite-drag" draggable aria-label={`${favoriteLabel(item)} verschieben`} title="Ziehen, um die Reihenfolge zu Ã¤ndern" onDragStart={event=>{event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',item.id);setDragId(item.id)}} onDragEnd={finishDrag} onPointerDown={event=>pointerStart(event,item.id)} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd}><GripVertical size={18}/><span>{index+1}</span></div><div className="favorite-fields"><label>Anzeigename<input value={item.alias} placeholder={item.location.name} maxLength={64} onChange={event=>patch(item.id,{alias:event.target.value})}/></label><label>Gruppe<input value={item.group} maxLength={32} list="favorite-groups" onChange={event=>patch(item.id,{group:event.target.value||'Allgemein'})}/></label><small>{item.location.name} Â· {Math.round(item.location.elevation??0)} m</small><details><summary><SlidersHorizontal size={14}/>Individuelle Regeln<em>{item.rules.enabled?'aktiv':'aus'}</em></summary><label className="favorite-mountain-toggle favorite-rule-toggle"><input type="checkbox" checked={Boolean(item.rules.enabled)} onChange={event=>patchRuleEnabled(item.id,event.target.checked)}/><span><strong>Numerische Regeln aktivieren</strong><small>Nur aktivierte Regeln werden bei jedem Wetterabruf fÃ¼r diesen Favoriten ausgewertet.</small></span></label>{item.rules.enabled&&<div className="favorite-rules"><RuleInput label="Regen ab" unit="%" value={item.rules.rainProbability} defaultValue={70} onChange={value=>patchRule(item.id,'rainProbability',value)}/><RuleInput label="BÃ¶en ab" unit="kt" value={item.rules.gustKt} defaultValue={35} onChange={value=>patchRule(item.id,'gustKt',value)}/><RuleInput label="Frost unter" unit="Â°C" value={item.rules.frostC} defaultValue={1} onChange={value=>patchRule(item.id,'frostC',value)}/><RuleInput label="Hitze Ã¼ber" unit="Â°C" value={item.rules.heatC} defaultValue={30} onChange={value=>patchRule(item.id,'heatC',value)}/></div>}<p>{item.rules.enabled?'Numerische Regeln werden beim Aufruf gegen die nÃ¤chsten 24 Stunden geprÃ¼ft.':'Numerische Regeln sind deaktiviert.'} Benachrichtigungen werden ausschlieÃŸlich im gleichnamigen Einstellungsbereich verwaltet.</p></details><details className="favorite-mountain-settings"><summary><MountainSnow size={14}/>Berg-/Wintersport</summary><label className="favorite-mountain-toggle"><input type="checkbox" checked={item.mountain.enabled} onChange={event=>{const enabled=event.target.checked;patchMountain(item.id,{enabled});if(enabled&&(!item.mountain.profileUpdatedAt||item.mountain.profileConfidence==='low'))void detectMountain(item)}}/><span><strong>FÃ¼r diesen Favoriten anzeigen</strong><small>Tal, optionale Mitte und Berg werden automatisch gesucht und nur fÃ¼r aktivierte Favoriten nachgeladen.</small></span></label>{item.mountain.enabled&&<div className="mountain-profile-grid"><label className="mountain-season-select"><span>Saisonprofil</span><select value={item.mountain.season} onChange={event=>patchMountain(item.id,{season:event.target.value as MountainSeason})}><option value="auto">Automatisch</option><option value="summer">Sommer</option><option value="winter">Winter</option></select></label><div className="mountain-auto-row"><button type="button" onClick={()=>void detectMountain(item)} disabled={mountainBusy===item.id}><LocateFixed size={15}/>{mountainBusy===item.id?'Wird bestimmt â€¦':'Automatisch bestimmen'}</button><small>{mountainMessage[item.id]||mountainProfileSourceLabel(item.mountain)}</small></div><label className="mountain-level-name"><span>Talstation</span><input value={item.mountain.valleyName} maxLength={80} onChange={event=>patchMountain(item.id,{valleyName:event.target.value,profileSource:'manual'})}/></label><HeightInput label="TalhÃ¶he" value={item.mountain.valleyElevation} min={0} max={Math.min(6000,item.mountain.middleEnabled?item.mountain.middleElevation-1:item.mountain.summitElevation-1)} onChange={valley=>patchMountain(item.id,{valleyElevation:valley,middleElevation:item.mountain.middleEnabled?Math.max(item.mountain.middleElevation,valley+1):item.mountain.middleElevation,summitElevation:Math.max(item.mountain.summitElevation,valley+2),profileSource:'manual'})}/><label className="mountain-middle-toggle"><input type="checkbox" checked={item.mountain.middleEnabled} onChange={event=>patchMountain(item.id,{middleEnabled:event.target.checked,middleElevation:Math.round((item.mountain.valleyElevation+item.mountain.summitElevation)/2)})}/><span>Mittelstation verwenden</span></label>{item.mountain.middleEnabled&&<><label className="mountain-level-name"><span>Mittelstation</span><input value={item.mountain.middleName} maxLength={80} onChange={event=>patchMountain(item.id,{middleName:event.target.value,profileSource:'manual'})}/></label><HeightInput label="MittelhÃ¶he" value={item.mountain.middleElevation} min={item.mountain.valleyElevation+1} max={item.mountain.summitElevation-1} onChange={middle=>patchMountain(item.id,{middleElevation:middle,profileSource:'manual'})}/></>}<label className="mountain-level-name"><span>Bergstation</span><input value={item.mountain.summitName} maxLength={80} onChange={event=>patchMountain(item.id,{summitName:event.target.value,profileSource:'manual'})}/></label><HeightInput label="BerghÃ¶he" value={item.mountain.summitElevation} min={(item.mountain.middleEnabled?item.mountain.middleElevation:item.mountain.valleyElevation)+1} max={7000} onChange={summit=>patchMountain(item.id,{summitElevation:summit,profileSource:'manual'})}/><small className="mountain-profile-status">Automatische Werte stammen aus OpenStreetMap-Liftstationen und dem Copernicus-GelÃ¤ndemodell. Im Winter stehen Schnee, Verfrachtung und Whiteout im Vordergrund; im Sommer Sicht, UV, Wind und Gewitterpotenzial.</small></div>}<p>Gefundene Stationsnamen, Koordinaten und HÃ¶hen bleiben editierbar. Eine Mittelstation wird nur automatisch aktiviert, wenn sie als solche erkennbar ist.</p></details><details className="favorite-water-settings"><summary><Waves size={14}/>Wassersport</summary><label className="favorite-mountain-toggle"><input type="checkbox" checked={item.water.enabled} onChange={event=>patchWater(item.id,{enabled:event.target.checked})}/><span><strong>FÃ¼r diesen Favoriten anzeigen</strong><small>Amtliche Pegel-, Marine- und Sicherheitsparameter werden nur fÃ¼r aktivierte Favoriten nachgeladen.</small></span></label>{item.water.enabled&&<div className="favorite-water-options"><label>GewÃ¤ssertyp<select value={item.water.waterType} onChange={event=>patchWater(item.id,{waterType:event.target.value as WaterType})}><option value="auto">Automatisch</option><option value="sea">KÃ¼ste / Meer</option><option value="lake">See</option><option value="river">Fluss</option></select></label><label>AktivitÃ¤tsprofil<select value={item.water.activity} onChange={event=>patchWater(item.id,{activity:event.target.value as WaterActivity})}><option value="general">Allgemein</option><option value="sailing">Segeln & Windsport</option><option value="surfing">Surfen</option><option value="paddling">Paddeln</option><option value="swimming">Schwimmen</option></select></label><label>Wellenwarnung ab<input type="number" min={.1} max={12} step={.1} value={item.water.maxWaveHeight} onChange={event=>patchWater(item.id,{maxWaveHeight:Math.max(.1,Number(event.target.value))})}/><b>m</b></label><label>BÃ¶enwarnung ab<input type="number" min={5} max={100} step={1} value={item.water.maxGustKt} onChange={event=>patchWater(item.id,{maxGustKt:Math.max(5,Number(event.target.value))})}/><b>kt</b></label><label>Kaltwasserwarnung unter<input type="number" min={-2} max={35} step={1} value={item.water.minWaterTemperature} onChange={event=>patchWater(item.id,{minWaterTemperature:Number(event.target.value)})}/><b>Â°C</b></label></div>}<p>Meereswerte stammen aus dem nÃ¤chstgelegenen geeigneten Marine-Modellgitter. Bei See und Fluss werden fehlende Wasserwerte nicht durch entfernte Meeresdaten ersetzt.</p></details></div><div className="favorite-row-actions"><button className={item.isDefault?'default active':'default'} onClick={()=>setDefault(item.id)} title="Als Standardort festlegen"><Star size={16} fill={item.isDefault?'currentColor':'none'}/></button><button onClick={()=>move(item.id,-1)} disabled={index===0} title="Nach oben"><ChevronUp size={16}/></button><button onClick={()=>move(item.id,1)} disabled={index===favorites.length-1} title="Nach unten"><ChevronDown size={16}/></button><button onClick={()=>onSelect(item.location)} title="Ort aufrufen"><Navigation size={16}/></button><button className="danger" onClick={()=>remove(item.id)} title="Favorit entfernen"><Trash2 size={16}/></button></div></article>):<div className="favorite-empty"><Star size={24}/><strong>Noch keine Favoriten</strong><span>Orte lassen sich Ã¼ber den Stern neben dem Ortsnamen hinzufÃ¼gen.</span></div>}</div><datalist id="favorite-groups">{[...new Set(['Allgemein','Zuhause','Arbeit','Reise','Ski','Wassersport',...favorites.map(item=>item.group)])].map(group=><option key={group} value={group}/>)}</datalist></section></div>
-}
-function RuleInput({label,unit,value,defaultValue,onChange}:{label:string;unit:string;value?:number;defaultValue:number;onChange:(value:number|undefined)=>void}){const active=Number.isFinite(value);return <label className="favorite-rule-input"><input type="checkbox" checked={active} onChange={event=>onChange(event.target.checked?defaultValue:undefined)}/><span>{label}</span><input type="number" value={active?value:''} disabled={!active} step={unit==='%'?5:1} onChange={event=>onChange(event.target.value===''?undefined:Number(event.target.value))}/><b>{unit}</b></label>}
-
-function SystemUpdateManager({open,onClose,embedded=false}:{open:boolean;onClose:()=>void;embedded?:boolean}){
- const[status,setStatus]=useState<MidUpdateStatus|null>(null),[busy,setBusy]=useState(''),[message,setMessage]=useState(''),[analytics,setAnalytics]=useState<WebAnalyticsStatus>(getWebAnalyticsStatus());
- const refresh=async()=>{setStatus(await getMidUpdateStatus())};
- useEffect(()=>{if(!open)return;setMessage('');void refresh();setAnalytics(getWebAnalyticsStatus());const statusUpdate=(event:Event)=>setAnalytics((event as CustomEvent<WebAnalyticsStatus>).detail||getWebAnalyticsStatus()),escape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!busy)onClose()};window.addEventListener('mid:web-analytics-status',statusUpdate);document.addEventListener('keydown',escape);return()=>{window.removeEventListener('mid:web-analytics-status',statusUpdate);document.removeEventListener('keydown',escape)}},[open]);
- if(!open)return null;
- const action=async(kind:'repair'|'rollback'|'reset')=>{setBusy(kind);setMessage('');try{
-  if(kind==='repair'){await repairMidCache();setMessage('Der geprÃ¼fte aktuelle App-Cache wurde vollstÃ¤ndig neu aufgebaut. MID wird neu geladen.');window.setTimeout(()=>location.reload(),700);return}
-  if(kind==='rollback'){const result=await rollbackMidVersion();setMessage(`RÃ¼ckfall auf Version ${result.version||status?.previousVersion||'zuvor'} wird aktiviert.`);window.setTimeout(()=>location.reload(),500);return}
-  if(!window.confirm('MID-App-Cache wirklich vollstÃ¤ndig zurÃ¼cksetzen? Lokale Favoriten und Einstellungen bleiben erhalten.'))return;
-  await resetMidServiceWorker();setMessage('Der MID-App-Cache wurde zurÃ¼ckgesetzt. MID wird frisch geladen.');window.setTimeout(()=>location.reload(),500);
- }catch(reason){setMessage(reason instanceof Error?reason.message:'Aktion konnte nicht ausgefÃ¼hrt werden.')}finally{setBusy('');void refresh()}};
- return <div className={embedded?'settings-embedded-panel':'system-update-backdrop'} role="presentation" onPointerDown={event=>{if(!embedded&&event.target===event.currentTarget&&!busy)onClose()}}><section className={`system-update-dialog${embedded?' embedded':''}`} role={embedded?'region':'dialog'} aria-modal={embedded?undefined:true} aria-labelledby="system-update-title"><header><div><span>Update- und RÃ¼ckfallsystem</span><h2 id="system-update-title">MID-Systemstatus</h2></div>{!embedded&&<button type="button" onClick={onClose} disabled={!!busy} aria-label="Systemstatus schlieÃŸen"><X size={18}/></button>}</header>{status?<div className="system-version-grid"><article><small>App</small><strong>v{status.appVersion}</strong></article><article><small>App-Cache</small><strong>{status.workerVersion?`v${status.workerVersion}`:'nicht aktiv'}</strong></article><article><small>Aktive App-Version</small><strong>{status.activeVersion?`v${status.activeVersion}`:'â€“'}</strong></article><article><small>RÃ¼ckfallversion</small><strong>{status.previousVersion?`v${status.previousVersion}`:'nicht vorhanden'}</strong></article></div>:<div className="system-update-loading"><RefreshCw className="spin"/>Systemstatus wird gelesen â€¦</div>}<div className={`system-analytics-card ${analytics.state}`}><small>Nutzungsstatistik</small><strong>{analytics.state==='loaded'?'Aktiv':analytics.state==='loading'?'Wird geladen':analytics.state==='disabled-dev'?'Nicht aktiv':analytics.state==='missing-token'?'Nicht verfÃ¼gbar':analytics.state==='missing-snippet'?'Nicht verfÃ¼gbar':'Nicht verfÃ¼gbar'}</strong><span>{analytics.message}</span></div><div className="system-cache-list"><small>GeprÃ¼fte lokale Versionen</small><span>{status?.availableVersions.length?status.availableVersions.map(version=>`v${version}`).join(' Â· '):'keine Versionsliste verfÃ¼gbar'}</span>{status?.pendingVersion&&<em>GesundheitsprÃ¼fung fÃ¼r v{status.pendingVersion} lÃ¤uft.</em>}</div><div className="system-update-actions"><button type="button" className="primary" onClick={()=>void action('repair')} disabled={!!busy}><RefreshCw size={16} className={busy==='repair'?'spin':''}/><span>MID-Cache reparieren</span></button><button type="button" onClick={()=>void action('rollback')} disabled={!!busy||!status?.rollbackAvailable}><Download size={16}/><span>Vorherige Version wiederherstellen</span></button><button type="button" className="danger" onClick={()=>void action('reset')} disabled={!!busy}><Trash2 size={16}/><span>App-Cache zurÃ¼cksetzen</span></button></div>{message&&<p className="system-update-message">{message}</p>}<small className="system-update-note">Neue Versionen werden vor der Aktivierung vollstÃ¤ndig zwischengespeichert und geprÃ¼ft. Meldet die neue App innerhalb von 20 Sekunden keinen erfolgreichen Start, stellt MID automatisch die vorige geprÃ¼fte Version wieder her.</small></section></div>
-}
-
-const IMPRESSUM_MAILBOX=[116,116,118,115] as const;
-const IMPRESSUM_DOMAIN=[109,117,53,107,108] as const;
-const IMPRESSUM_CODE_SHIFT_BASE=5;
-function imprintCodeShift(){return(typeof document==='undefined'?2:(document.documentElement.lang||'de').length)+IMPRESSUM_CODE_SHIFT_BASE}
-function decodeImprintPart(values:readonly number[]){const shift=imprintCodeShift();return String.fromCharCode(...values.map(value=>value-shift))}
-function ProtectedImprintEmail(){
- const[revealed,setRevealed]=useState(false),email=revealed?`${decodeImprintPart(IMPRESSUM_MAILBOX)}@${decodeImprintPart(IMPRESSUM_DOMAIN)}`:'';
- return <div className="protected-imprint-email" data-nosnippet>{revealed?<a href={`mailto:${email}`} aria-label="E-Mail an den Anbieter senden">{email}</a>:<button type="button" onClick={()=>setRevealed(true)}>E-Mail-Adresse anzeigen</button>}<small>Die Adresse wird erst nach einer bewussten Interaktion zusammengesetzt, um einfaches automatisiertes Auslesen zu erschweren.</small></div>
-}
-function ImprintContent({embedded=false}:{embedded?:boolean}){
- return <div className={`imprint-content${embedded?' embedded':''}`}><p>Angaben gemÃ¤ÃŸ Â§ 5 DDG und Â§ 18 Abs. 1 MStV</p><address><strong>Martin Molkentin</strong><span>Habsburgerstr. 8</span><span>53859 Niederkassel</span><span>Deutschland</span></address><section><strong>Kontakt</strong><ProtectedImprintEmail/></section><small>Dieses Impressum gilt fÃ¼r das Meteorological Information Dashboard (MID).</small></div>
-}
-function ImprintDialog({open,onClose}:{open:boolean;onClose:()=>void}){
- useEffect(()=>{if(!open)return;const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()};document.addEventListener('keydown',escape);const previous=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.removeEventListener('keydown',escape);document.body.style.overflow=previous}},[open,onClose]);
- if(!open||typeof document==='undefined')return null;
- return createPortal(<div className="imprint-backdrop" role="presentation" onPointerDown={event=>event.target===event.currentTarget&&onClose()}><section className="imprint-dialog" role="dialog" aria-modal="true" aria-labelledby="imprint-title"><header><div><span>Rechtliche Angaben</span><h2 id="imprint-title">Impressum</h2></div><button type="button" onClick={onClose} aria-label="Impressum schlieÃŸen"><X size={20}/></button></header><ImprintContent/></section></div>,document.body)
-}
-
-function SettingsManager({open,section,setSection,onClose,favorites,setFavorites,locationTracking,setLocationTracking,trackedLocation,trackedPushRules,setTrackedPushRules,pushNotificationInterval,setPushNotificationInterval,pushPrecipitationAlert,setPushPrecipitationAlert,modelChangeSettings,setModelChangeSettings,radarDisplaySettings,setRadarDisplaySettings,forecastDisplaySettings,setForecastDisplaySettings,localHazardDisplaySettings,setLocalHazardDisplaySettings,currentLocation,onSelectFavorite,themeMode,setThemeMode,brandLogoVariant,setBrandLogoVariant,designMode,setDesignMode,unit,setUnit,timeDisplayMode,setTimeDisplayMode,favoriteStripMode,setFavoriteStripMode,bottomBarBehavior,setBottomBarBehavior,uiDensityPreference,resolvedUiDensity,setUiDensityPreference,layoutMode,setLayoutMode,dashboardModuleSettings,setDashboardModuleSettings}:{open:boolean;section:SettingsSection;setSection:(section:SettingsSection)=>void;onClose:()=>void;favorites:Favorite[];setFavorites:FavoriteSetter;locationTracking:boolean;setLocationTracking:(value:boolean)=>void;trackedLocation:Location|null;trackedPushRules:PushRuleState;setTrackedPushRules:(value:PushRuleState|((current:PushRuleState)=>PushRuleState))=>void;pushNotificationInterval:PushNotificationInterval;setPushNotificationInterval:(value:PushNotificationInterval)=>void;pushPrecipitationAlert:PushPrecipitationAlertSettings;setPushPrecipitationAlert:(value:PushPrecipitationAlertSettings)=>void;modelChangeSettings:ModelChangeSettings;setModelChangeSettings:(value:ModelChangeSettings|((current:ModelChangeSettings)=>ModelChangeSettings))=>void;radarDisplaySettings:RadarDisplaySettings;setRadarDisplaySettings:(value:RadarDisplaySettings|((current:RadarDisplaySettings)=>RadarDisplaySettings))=>void;forecastDisplaySettings:ForecastDisplaySettings;setForecastDisplaySettings:(value:ForecastDisplaySettings|((current:ForecastDisplaySettings)=>ForecastDisplaySettings))=>void;localHazardDisplaySettings:LocalHazardDisplaySettings;setLocalHazardDisplaySettings:(value:LocalHazardDisplaySettings|((current:LocalHazardDisplaySettings)=>LocalHazardDisplaySettings))=>void;currentLocation:Location|null;onSelectFavorite:(location:Location)=>void;themeMode:ThemeMode;setThemeMode:(mode:ThemeMode)=>void;brandLogoVariant:BrandLogoVariant;setBrandLogoVariant:(variant:BrandLogoVariant)=>void;designMode:DesignMode;setDesignMode:(mode:DesignMode)=>void;unit:WindUnit;setUnit:(unit:WindUnit)=>void;timeDisplayMode:TimeDisplayMode;setTimeDisplayMode:(mode:TimeDisplayMode)=>void;favoriteStripMode:FavoriteStripMode;setFavoriteStripMode:(mode:FavoriteStripMode)=>void;bottomBarBehavior:BottomBarBehavior;setBottomBarBehavior:(mode:BottomBarBehavior)=>void;uiDensityPreference:UiDensityPreference;resolvedUiDensity:ResolvedUiDensity;setUiDensityPreference:(mode:UiDensityPreference)=>void;layoutMode:LayoutMode;setLayoutMode:(mode:LayoutMode)=>void;dashboardModuleSettings:DashboardModuleSettings;setDashboardModuleSettings:(update:DashboardModuleSettingsUpdater)=>void}){
- const forecastPresentationMode=forecastDisplaySettings.presentationMode??'classic';
- const resolvedBrandLogoVariant=resolveBrandLogoVariant(brandLogoVariant,themeMode==='dark'||(themeMode==='auto'&&systemPrefersDark()));
- const[contentReady,setContentReady]=useState(false);
- useEffect(()=>{if(!open){setContentReady(false);return}let first=0,second=0;first=window.requestAnimationFrame(()=>{second=window.requestAnimationFrame(()=>setContentReady(true))});return()=>{window.cancelAnimationFrame(first);window.cancelAnimationFrame(second)}},[open,section]);
- useEffect(()=>{if(!open)return;const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose()};document.addEventListener('keydown',escape);let frame=window.requestAnimationFrame(()=>document.documentElement.classList.add('mid-settings-open'));return()=>{document.removeEventListener('keydown',escape);window.cancelAnimationFrame(frame);document.documentElement.classList.remove('mid-settings-open')}},[open,onClose]);
- if(!open)return null;
- const patchPushRule=(id:string,key:'precipitationStart'|'thunderstormApproach',value:boolean)=>setFavorites(current=>current.map(item=>item.id===id?{...item,rules:{...item.rules,[key]:value}}:item));
- const patchTrackedPushRule=(key:keyof PushRuleState,value:boolean)=>setTrackedPushRules(current=>({...current,[key]:value}));
- const items:[SettingsSection,string,ReactNode,string][]=[
-  ['view','Ansicht & Einheiten',<Eye size={18}/>,'Modus, Design und MessgrÃ¶ÃŸen'],
-  ['notifications','Benachrichtigungen',<Bell size={18}/>,'Push-Regeln je Favorit und Standort'],
-  ['favorites','Favoriten & Profile',<Star size={18}/>,'Orte, Gruppen, Berg und Wasser'],
-  ['twin','Lokaler Wetterzwilling',<BadgeCheck size={18}/>,'Lernen, Gewichtung und eigene Station'],
-  ['sync','Daten & Synchronisation',<Upload size={18}/>,'GerÃ¤teÃ¼bergreifender Abgleich'],
-  ['system','System & Updates',<Download size={18}/>,'Version, Cache und RÃ¼ckfall'],
-  ['legal','Rechtliches',<Info size={18}/>,'Impressum und Kontakt']
- ];
- return <div className="settings-backdrop" role="presentation" onPointerDown={event=>event.target===event.currentTarget&&onClose()}><section className="settings-dialog" data-settings-mode={layoutMode} role="dialog" aria-modal="true" aria-labelledby="settings-title"><header className="settings-titlebar"><div><span>Konfiguration</span><h2 id="settings-title">Einstellungen</h2></div><button type="button" onClick={onClose} aria-label="Einstellungen schlieÃŸen"><X size={20}/></button></header><div className="settings-layout"><nav className="settings-nav" aria-label="Einstellungsbereiche">{items.map(([id,label,iconNode,caption])=><button type="button" key={id} className={section===id?'active':''} onClick={()=>{setContentReady(false);setSection(id)}} aria-current={section===id?'page':undefined}>{iconNode}<span><strong>{label}</strong><small>{caption}</small></span></button>)}</nav><div className={`settings-content settings-${section}`}>
-  {!contentReady&&<section className="settings-content-loading" aria-live="polite"><RefreshCw size={18}/><span>Bereich wird vorbereitet â€¦</span></section>}
-  {contentReady&&section==='view'&&<section className="settings-section design-system-settings"><header><span>MID Designsystem</span><h3>Instrumentenansicht</h3><p>MID Next bÃ¼ndelt Karten zu ruhigen MessflÃ¤chen, setzt Zeitskalen prÃ¤ziser ab und bleibt fÃ¼r Stunden-, Tages- und Langfristdaten skalierbar.</p></header><div className="settings-choice-grid"><button type="button" className={designMode==='mid-next'?'active':''} onClick={()=>setDesignMode('mid-next')} aria-pressed={designMode==='mid-next'}><Monitor size={22}/><strong>MID Next</strong><small>Neue MessflÃ¤chen, klare Hierarchie und adaptive AbstÃ¤nde</small></button><button type="button" className={designMode==='classic'?'active':''} onClick={()=>setDesignMode('classic')} aria-pressed={designMode==='classic'}><Eye size={22}/><strong>Klassisch</strong><small>Bisherige OberflÃ¤che als persistente RÃ¼ckfalloption</small></button></div></section>}
-  {contentReady&&section==='view'&&<div className="settings-section-stack"><section className="settings-section"><header><span>Darstellung</span><h3>Ansichtsoptionen</h3><p>{layoutMode==='advanced'?'Der Erweiterte Modus ergÃ¤nzt technische Auswertungen und Werkzeuge.':'Im Standardmodus bleiben Zusatzmodule zunÃ¤chst geschlossen und ErlÃ¤uterungen kurz.'}</p></header><div className="settings-choice-grid"><button type="button" className={layoutMode==='standard'?'active':''} onClick={()=>setLayoutMode('standard')} aria-pressed={layoutMode==='standard'}><Eye size={22}/><strong>Standard</strong><small>Ãœbersichtliche Wetterinformationen und kompakte Bedienung.</small></button><button type="button" className={layoutMode==='advanced'?'active':''} onClick={()=>setLayoutMode('advanced')} aria-pressed={layoutMode==='advanced'}><SlidersHorizontal size={22}/><strong>Erweiterter Modus</strong><small>ZusÃ¤tzliche Analysen, Modellvergleiche und Exportwerkzeuge.</small></button></div><div className="ui-density-settings"><header><span>Informationsdichte</span><strong>AbstÃ¤nde und Informationsdichte</strong><small>Auto reagiert auf Displaybreite und Hoch-/Querformat. Die klassische Darstellung bleibt davon unberÃ¼hrt; geÃ¤ndert werden Dichte, Legenden und TouchflÃ¤chen.</small></header><div className="settings-choice-grid three ui-density-grid"><button type="button" className={uiDensityPreference==='auto'?'active':''} onClick={()=>setUiDensityPreference('auto')} aria-pressed={uiDensityPreference==='auto'}><Monitor size={22}/><strong>Auto</strong><small>Aktuell: {resolvedUiDensity==='compact'?'Kompakt':'Komfortabel'}</small></button><button type="button" className={uiDensityPreference==='compact'?'active':''} onClick={()=>setUiDensityPreference('compact')} aria-pressed={uiDensityPreference==='compact'}><GripVertical size={22}/><strong>Kompakt</strong><small>Mehr Information auf engem Raum</small></button><button type="button" className={uiDensityPreference==='comfortable'?'active':''} onClick={()=>setUiDensityPreference('comfortable')} aria-pressed={uiDensityPreference==='comfortable'}><Eye size={22}/><strong>Komfortabel</strong><small>Mehr Abstand und grÃ¶ÃŸere Bedienelemente</small></button></div></div><div className="forecast-presentation-settings"><header><span>Prognose-Einstieg</span><strong>Darstellungsweise fÃ¼r Kurzfrist, 7 und 14 Tage</strong><small>Die klassische Ansicht bleibt Standard. Die Cockpit-Varianten vermeiden doppelte Inhalte: Tageskarten Ã¶ffnen direkt den stÃ¼ndlichen Verlauf; nur die eigenstÃ¤ndige Ensemble-Analyse bleibt zusÃ¤tzlich aufklappbar.</small></header><div className="settings-choice-grid three forecast-presentation-grid"><button type="button" className={forecastPresentationMode==='classic'?'active':''} onClick={()=>setForecastDisplaySettings(current=>({...current,presentationMode:'classic'}))} aria-pressed={forecastPresentationMode==='classic'}><Eye size={22}/><strong>Klassisch</strong><small>Bisherige drei Sektionen unverÃ¤ndert untereinander.</small></button><button type="button" className={forecastPresentationMode==='cockpit-tabs'?'active':''} onClick={()=>setForecastDisplaySettings(current=>({...current,presentationMode:'cockpit-tabs'}))} aria-pressed={forecastPresentationMode==='cockpit-tabs'}><Monitor size={22}/><strong>Cockpit Â· Register</strong><small>Klare Register fÃ¼r Kurzfrist, 7 und 14 Tage; Tageskarten Ã¶ffnen direkt die Stundenansicht.</small></button><button type="button" className={forecastPresentationMode==='cockpit-ribbons'?'active':''} onClick={()=>setForecastDisplaySettings(current=>({...current,presentationMode:'cockpit-ribbons'}))} aria-pressed={forecastPresentationMode==='cockpit-ribbons'}><GripVertical size={22}/><strong>Cockpit Â· Ribbons</strong><small>Mini-VerlÃ¤ufe in den Registern; darunter nur die jeweils ausgewÃ¤hlte Prognoseebene.</small></button></div></div><div className="confidence-display-settings"><header><span>Vorhersagekonfidenz</span><strong>Kompakte Darstellung</strong><small>Der Zahlenwert bleibt ein 0â€“100-Konfidenzindex und keine Trefferwahrscheinlichkeit. DatenqualitÃ¤t wird weiterhin separat Ã¼ber den AuÃŸenring gekennzeichnet.</small></header><div className="settings-choice-grid three confidence-display-grid"><button type="button" className={forecastDisplaySettings.confidenceDisplayMode==='signal'?'active':''} onClick={()=>setForecastDisplaySettings(current=>({...current,confidenceDisplayMode:'signal'}))} aria-pressed={forecastDisplaySettings.confidenceDisplayMode==='signal'}><span className="settings-confidence-preview signal" aria-hidden="true"><i/><i/><i/><i/></span><strong>Signalbalken</strong><small>Am kompaktesten Â· Standard</small></button><button type="button" className={forecastDisplaySettings.confidenceDisplayMode==='traffic-light'?'active':''} onClick={()=>setForecastDisplaySettings(current=>({...current,confidenceDisplayMode:'traffic-light'}))} aria-pressed={forecastDisplaySettings.confidenceDisplayMode==='traffic-light'}><span className="settings-confidence-preview traffic" aria-hidden="true"><i/><i/><i/></span><strong>Ampel</strong><small>Rot Â· Gelb Â· GrÃ¼n</small></button><button type="button" className={forecastDisplaySettings.confidenceDisplayMode==='text'?'active':''} onClick={()=>setForecastDisplaySettings(current=>({...current,confidenceDisplayMode:'text'}))} aria-pressed={forecastDisplaySettings.confidenceDisplayMode==='text'}><span className="settings-confidence-preview text" aria-hidden="true">hoch 93</span><strong>Text</strong><small>Begriff + Index</small></button></div></div><div className="favorite-strip-display-settings"><header><span>Favoritenleiste</span><strong>Sichtbarkeit im Kopfbereich</strong><small>Auto entspricht dem bisherigen Verhalten. â€Dauerhaftâ€œ hÃ¤lt die Leiste sichtbar; â€Ausâ€œ blendet sie vollstÃ¤ndig aus.</small></header><div className="settings-choice-grid three"><button type="button" className={favoriteStripMode==='auto'?'active':''} onClick={()=>setFavoriteStripMode('auto')} aria-pressed={favoriteStripMode==='auto'}><Star size={22}/><strong>Auto</strong><small>Nur bei Favoriten oder Standorttracking</small></button><button type="button" className={favoriteStripMode==='always'?'active':''} onClick={()=>setFavoriteStripMode('always')} aria-pressed={favoriteStripMode==='always'}><Star size={22} fill="currentColor"/><strong>Dauerhaft</strong><small>Leiste immer sichtbar</small></button><button type="button" className={favoriteStripMode==='hidden'?'active':''} onClick={()=>setFavoriteStripMode('hidden')} aria-pressed={favoriteStripMode==='hidden'}><X size={22}/><strong>Aus</strong><small>Favoritenleiste ausblenden</small></button></div></div><div className="bottom-bar-display-settings"><header><span>Bottom-Leiste</span><strong>Verhalten beim Scrollen</strong><small>â€Autoâ€œ minimiert die schwebende Navigation beim lÃ¤ngeren AbwÃ¤rtsscrollen. â€Fixiertâ€œ hÃ¤lt alle Ziele dauerhaft sichtbar.</small></header><div className="settings-choice-grid"><button type="button" className={bottomBarBehavior==='auto'?'active':''} onClick={()=>setBottomBarBehavior('auto')} aria-pressed={bottomBarBehavior==='auto'}><MoveDown size={22}/><strong>Auto</strong><small>Beim Scrollen platzsparend minimieren</small></button><button type="button" className={bottomBarBehavior==='fixed'?'active':''} onClick={()=>setBottomBarBehavior('fixed')} aria-pressed={bottomBarBehavior==='fixed'}><PanelBottom size={22}/><strong>Fixiert</strong><small>Leiste dauerhaft vollstÃ¤ndig sichtbar</small></button></div></div><div className="settings-option-list"><label className="settings-toggle-card seven-day-summary-setting"><input type="checkbox" checked={forecastDisplaySettings.showSevenDaySummary} onChange={event=>setForecastDisplaySettings(current=>({...current,showSevenDaySummary:event.target.checked}))}/><Sun size={21}/><span><strong>7-Tage-Kurzinterpretation</strong><small>Kurzer Satz zum Wetterverlauf der nÃ¤chsten sieben Tage.</small></span></label><label className="settings-toggle-card dwd-precip-type-radar-setting"><input type="checkbox" checked={forecastDisplaySettings.showDwdPrecipitationTypeRadar} onChange={event=>setForecastDisplaySettings(current=>({...current,showDwdPrecipitationTypeRadar:event.target.checked}))}/><CloudRain size={21}/><span><strong>DWD Niederschlagsarten-Radar</strong><small>Gezoomter DWD-Ausschnitt mit Wolken und bodennaher Niederschlagsart unter der Kurzfristansicht.</small></span></label><label className="settings-toggle-card radar-nowcast-setting"><input type="checkbox" checked={radarDisplaySettings.showProbabilityTimeline} onChange={event=>setRadarDisplaySettings(current=>({...current,showProbabilityTimeline:event.target.checked}))}/><CloudRain size={21}/><span><strong>Radar-Nowcast-Leiste</strong><small>Zeigt bei relevantem Niederschlag die Entwicklung von âˆ’1 bis +2 Stunden.</small></span></label><label className="settings-toggle-card local-hazard-setting"><input type="checkbox" checked={localHazardDisplaySettings.showThunderAndFlashFlood} onChange={event=>setLocalHazardDisplaySettings(current=>({...current,showThunderAndFlashFlood:event.target.checked}))}/><CloudLightning size={21}/><span><strong>Gewitter- und Sturzfluthinweise</strong><small>Standortbezogene Zusatzkarten; im Standardmodus kompakt, im Erweiterten Modus mit Detailanalyse.</small></span></label></div>{layoutMode==='advanced'&&<div className="advanced-feature-settings"><header><SlidersHorizontal size={21}/><span><strong>Analysewerkzeuge</strong><small>ZusÃ¤tzliche Funktionen lassen sich separat einschalten.</small></span></header><MidDisclosure className="advanced-feature-group" summary={<><RefreshCw size={19}/><span><strong>Modelllauf-Ã„nderungsradar</strong><small>Vergleicht aufeinanderfolgende VorhersagestÃ¤nde.</small></span><ChevronDown size={17}/></>}><div className="advanced-feature-group-content"><label><input type="checkbox" checked={modelChangeSettings.enabled} onChange={event=>setModelChangeSettings(current=>({...current,enabled:event.target.checked,notifyMaterial:event.target.checked?current.notifyMaterial:false}))}/><span><b>Ã„nderungsradar fÃ¼r die nÃ¤chsten drei Tage anzeigen</b><small>BerÃ¼cksichtigt die kommenden drei Tage und nennt die betroffene Modellfamilie.</small></span></label><small className="settings-inline-note">Benachrichtigungen zu ModelllaufÃ¤nderungen werden ausschlieÃŸlich unter â€Benachrichtigungenâ€œ verwaltet.</small></div></MidDisclosure></div>}</section><DashboardModuleSettingsPanel settings={dashboardModuleSettings} onChange={setDashboardModuleSettings} advancedMode={layoutMode==='advanced'}/><section className="settings-section"><header><span>OberflÃ¤che</span><h3>Farbdesign</h3><p>â€Autoâ€œ folgt der Einstellung des GerÃ¤ts.</p></header><div className="settings-choice-grid three"><button type="button" className={themeMode==='auto'?'active':''} onClick={()=>setThemeMode('auto')} aria-pressed={themeMode==='auto'}><Monitor size={22}/><strong>Auto</strong><small>GerÃ¤teeinstellung verwenden</small></button><button type="button" className={themeMode==='light'?'active':''} onClick={()=>setThemeMode('light')} aria-pressed={themeMode==='light'}><Sun size={22}/><strong>Hell</strong><small>Helles Design</small></button><button type="button" className={themeMode==='dark'?'active':''} onClick={()=>setThemeMode('dark')} aria-pressed={themeMode==='dark'}><Moon size={22}/><strong>Dunkel</strong><small>Dunkles Design</small></button></div></section><section className="settings-section"><header><span>Branding</span><h3>MID-Logo</h3><p>Auto verwendet das helle Logo im hellen Design und das dunkle Logo im dunklen Design.</p></header><div className="settings-choice-grid three brand-logo-grid"><button type="button" className={brandLogoVariant==='auto'?'active':''} onClick={()=>setBrandLogoVariant('auto')} aria-pressed={brandLogoVariant==='auto'}><img src={brandLogoPathForVariant(resolvedBrandLogoVariant)} alt="" className="brand-logo-preview"/><strong>Auto</strong><small>Aktuell: {resolvedBrandLogoVariant==='light'?'helles':'dunkles'} Logo</small></button><button type="button" className={brandLogoVariant==='dark'?'active':''} onClick={()=>setBrandLogoVariant('dark')} aria-pressed={brandLogoVariant==='dark'}><img src={DARK_LOGO_PATH} alt="" className="brand-logo-preview"/><strong>Dunkles Logo</strong><small>FÃ¼r dunkle OberflÃ¤chen und Dark Mode</small></button><button type="button" className={brandLogoVariant==='light'?'active':''} onClick={()=>setBrandLogoVariant('light')} aria-pressed={brandLogoVariant==='light'}><img src={LIGHT_LOGO_PATH} alt="" className="brand-logo-preview"/><strong>Helles Logo</strong><small>FÃ¼r helle OberflÃ¤chen und Light Mode</small></button></div><small className="settings-inline-note">Die Auswahl gilt sowohl im App-Kopf als auch bereits im Startbildschirm.</small></section><section className="settings-section time-display-settings"><header><span>Zeitangaben</span><h3>Zeitbasis</h3><p>Gilt appweit fÃ¼r Wetter-, Radar-, Warn- und Diagrammzeiten. Die Ortszeit im Standortkopf bleibt immer lokal.</p></header><div className="settings-choice-grid"><button type="button" className={timeDisplayMode==='local'?'active':''} onClick={()=>setTimeDisplayMode('local')} aria-pressed={timeDisplayMode==='local'}><Clock3 size={22}/><strong>Lokalzeit</strong><small>Zeitzone des gewÃ¤hlten Ortes Â· Standard</small></button><button type="button" className={timeDisplayMode==='zulu'?'active':''} onClick={()=>setTimeDisplayMode('zulu')} aria-pressed={timeDisplayMode==='zulu'}><Clock3 size={22}/><strong>Z-Zeit</strong><small>UTC / meteorologische Zulu-Zeit</small></button></div><small className="settings-inline-note">Aktiv: {displayTimeLabel(timeDisplayMode)} Â· Umgerechnete Quellzeiten tragen in Lokalzeit kompakt â€LTâ€œ; bereits ortslokale Prognoseachsen bleiben unverÃ¤ndert.</small></section><section className="settings-section"><header><span>MessgrÃ¶ÃŸen</span><h3>Einheitenauswahl</h3><p>Gilt einheitlich in Dashboard, Diagrammen und Profilen.</p></header><div className="settings-unit-grid">{([['kn','kt','Knoten'],['kmh','km/h','Kilometer pro Stunde'],['ms','m/s','Meter pro Sekunde'],['mph','mph','Meilen pro Stunde']] as [WindUnit,string,string][]).map(([value,labelText,caption])=><button type="button" key={value} className={unit===value?'active':''} onClick={()=>setUnit(value)} aria-pressed={unit===value}><Wind size={20}/><strong>{labelText}</strong><small>{caption}</small></button>)}</div></section></div>}
-  {contentReady&&section==='notifications'&&<PushSettingsPanel favorites={favorites} onRuleChange={patchPushRule} locationTracking={locationTracking} trackedLocation={trackedLocation} trackedRules={trackedPushRules} onTrackedRuleChange={patchTrackedPushRule} modelChangeLocation={currentLocation} modelChangeAvailable={modelChangeSettings.enabled} modelChangeNotificationEnabled={modelChangeSettings.notifyMaterial} onModelChangeNotificationChange={value=>setModelChangeSettings(current=>({...current,notifyMaterial:value}))} notificationIntervalMinutes={pushNotificationInterval} onNotificationIntervalChange={setPushNotificationInterval} precipitationAlert={pushPrecipitationAlert} onPrecipitationAlertChange={setPushPrecipitationAlert} advancedMode={layoutMode==='advanced'}/>} 
-  {contentReady&&section==='favorites'&&<FavoritesManager open favorites={favorites} setFavorites={setFavorites} current={currentLocation} locationTracking={locationTracking} setLocationTracking={setLocationTracking} onClose={onClose} onSelect={onSelectFavorite} embedded/>}
-  {contentReady&&section==='twin'&&<WeatherTwinSettingsPanel advancedMode={layoutMode==='advanced'}/>}
-  {contentReady&&section==='sync'&&<div className="settings-section-stack"><section className="data-sync-overview"><header><span>Daten &amp; Synchronisation</span><h3>Ein Stand auf allen MID-Web-Apps</h3><p><b>Automatische Synchronisation</b> hÃ¤lt verbundene Web-Apps laufend auf demselben Stand. Die <b>iCloud-Sicherheitskopie</b> ist eine zusÃ¤tzliche manuelle Datei fÃ¼r NotfÃ¤lle und ersetzt den laufenden Abgleich nicht.</p></header><ol><li>Auf der ersten Web-App die automatische Synchronisation aktivieren.</li><li>Den persÃ¶nlichen Code einmal in jeder weiteren installierten MID-Web-App eingeben.</li><li>Danach werden portable Einstellungen, Favoriten, Standorte und Wetterzwilling-Daten automatisch Ã¼bernommen.</li></ol><small>iOS kann Safari und eine Home-Bildschirm-Web-App getrennt speichern. Deshalb muss jede installierte Web-App einmal mit demselben Code verbunden werden.</small></section><DeviceSyncSettings advancedMode={layoutMode==='advanced'}/><ICloudBackupSettings advancedMode={layoutMode==='advanced'}/>{layoutMode==='advanced'?<AppleWidgetSettings location={currentLocation} unit={unit}/>:<section className="settings-section settings-advanced-note"><header><span>ZusÃ¤tzliche Integrationen</span><h3>Apple-Widgets</h3><p>Widget- und Komplikationswerkzeuge stehen im Erweiterten Modus bereit.</p></header></section>}</div>}
-  {contentReady&&section==='system'&&<SystemUpdateManager open onClose={onClose} embedded/>}
-  {contentReady&&section==='legal'&&<section className="settings-section settings-legal"><header><span>Rechtliche Angaben</span><h3>Impressum</h3><p>Anbieterkennzeichnung und KontaktmÃ¶glichkeit fÃ¼r MID.</p></header><ImprintContent embedded/></section>}
- </div></div></section></div>
-}
-function Header({setLoc,favorites,setFavorites,current,trackedLocation,trackedSelectionActive,locationTracking,favoriteStripMode,onOpenSettings,onOpenNavigation,onOpenEventPlanner,locate,loading,reload,hasLocation,brandLogoPath,unit}:{setLoc:(x:Location)=>void;favorites:Favorite[];setFavorites:FavoriteSetter;current:Location|null;trackedLocation:Location|null;trackedSelectionActive:boolean;locationTracking:boolean;favoriteStripMode:FavoriteStripMode;onOpenSettings:(section?:SettingsSection)=>void;onOpenNavigation:()=>void;onOpenEventPlanner:(recordId?:string)=>void;locate:()=>void;loading:boolean;reload:()=>void;hasLocation:boolean;brandLogoPath:string;unit:WindUnit}){
- const[q,setQ]=useState(''),[results,setResults]=useState<Location[]>([]),[open,setOpen]=useState(false),[searching,setSearching]=useState(false),[searchError,setSearchError]=useState(''),term=q.trim(),searchRef=useRef<HTMLDivElement>(null),inputRef=useRef<HTMLInputElement>(null),resultsRef=useRef<HTMLElement>(null),activeFavoriteRef=useRef<HTMLButtonElement>(null),searchTouchRef=useRef<{identifier:number;x:number;y:number}|null>(null),searchFocusFrameRef=useRef(0),searchRequestRef=useRef(0),currentFavoriteId=matchingStoredFavorite(favorites,current)?.id??'';
- const closeSearch=(blur=true)=>{setOpen(false);if(blur)window.setTimeout(()=>inputRef.current?.blur(),0)};
- const focusSearchInput=()=>{setOpen(true);const input=inputRef.current;if(!input)return;try{input.focus({preventScroll:true})}catch{input.focus()}if(searchFocusFrameRef.current)window.cancelAnimationFrame(searchFocusFrameRef.current);searchFocusFrameRef.current=window.requestAnimationFrame(()=>{searchFocusFrameRef.current=0;const currentInput=inputRef.current;if(currentInput&&document.activeElement!==currentInput){try{currentInput.focus({preventScroll:true})}catch{currentInput.focus()}}})};
- const beginSearchTouch=(event:ReactTouchEvent<HTMLDivElement>)=>{if((event.target as HTMLElement).closest('button'))return;const touch=event.touches[0];if(touch)searchTouchRef.current={identifier:touch.identifier,x:touch.clientX,y:touch.clientY}};
- const endSearchTouch=(event:ReactTouchEvent<HTMLDivElement>)=>{const start=searchTouchRef.current;searchTouchRef.current=null;if(!start||(event.target as HTMLElement).closest('button'))return;const touch=Array.from(event.changedTouches).find(item=>item.identifier===start.identifier);if(!touch||Math.hypot(touch.clientX-start.x,touch.clientY-start.y)>14)return;focusSearchInput()};
- useEffect(()=>()=>{if(searchFocusFrameRef.current)window.cancelAnimationFrame(searchFocusFrameRef.current)},[]);
- useEffect(()=>{const requestId=++searchRequestRef.current;if(term.length<2){setResults([]);setSearching(false);setSearchError('');return}const c=new AbortController(),debounceMs=/^\d{2,8}$/.test(term)?35:60;setSearching(true);setSearchError('');setOpen(true);const t=setTimeout(()=>searchLocations(term,c.signal).then(x=>{if(!c.signal.aborted&&requestId===searchRequestRef.current){setResults(x);setSearching(false);setSearchError('');setOpen(true)}}).catch(error=>{if(!c.signal.aborted&&requestId===searchRequestRef.current){setResults([]);setSearching(false);setSearchError(error instanceof Error?error.message:'Ortssuche vorÃ¼bergehend nicht erreichbar.');setOpen(true)}}),debounceMs);return()=>{clearTimeout(t);c.abort()}},[term]);
- useEffect(()=>{if(!open)return;const outside=(event:PointerEvent)=>{if(!searchRef.current?.contains(event.target as Node))closeSearch()},focusOutside=(event:FocusEvent)=>{if(!searchRef.current?.contains(event.target as Node))closeSearch(false)},escape=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.preventDefault();closeSearch()}};document.addEventListener('pointerdown',outside,true);document.addEventListener('focusin',focusOutside,true);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',outside,true);document.removeEventListener('focusin',focusOutside,true);document.removeEventListener('keydown',escape)}},[open]);
- const favoritesMode=term.length===0,choose=(location:Location)=>{setLoc(favoriteLocation(location));setQ('');setResults([]);closeSearch()},groups=useMemo(()=>[...new Set(favorites.map(item=>item.group||'Allgemein'))],[favorites]);
- useActiveItemReveal(open&&favoritesMode&&Boolean(currentFavoriteId),`${currentFavoriteId}:${favorites.length}:${groups.length}`,resultsRef,activeFavoriteRef,'vertical',true);
- return <header className="top settings-header">
-  <div className="brand"><img src={brandLogoPath} alt="MID Logo" className="brand-logo"/><span><strong><small className="brand-version">v{VERSION}</small></strong><small className="brand-expanded"><b>M</b>eteorological <b>I</b>nformation <b>D</b>ashboard</small></span></div>
-  <div className="search-stack">
-   <div className={`search${open?' open':''}`} ref={searchRef}>
-    <div className="search-input-shell" onTouchStartCapture={beginSearchTouch} onTouchEndCapture={endSearchTouch} onTouchCancelCapture={()=>{searchTouchRef.current=null}} onPointerDown={event=>{if(event.pointerType!=='mouse'||(event.target as HTMLElement).closest('button'))return;focusSearchInput()}} onClick={event=>{if((event.target as HTMLElement).closest('button'))return;focusSearchInput()}}><Search size={18}/><input ref={inputRef} type="search" inputMode="search" enterKeyHint="search" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={q} onPointerDown={()=>setOpen(true)} onFocus={()=>setOpen(true)} onChange={event=>{setQ(event.target.value);setOpen(true)}} placeholder="Ort, PLZ, ICAO, POI oder Favorit suchen" aria-label="Ort, ICAO-Kennung oder Favorit suchen" aria-expanded={open}/>{(q||open)&&<button type="button" onMouseDown={event=>event.preventDefault()} onClick={()=>{if(q){setQ('');setResults([]);focusSearchInput()}else closeSearch()}} title={q?'Suche leeren':'Suche schlieÃŸen'} aria-label={q?'Suche leeren':'Suche schlieÃŸen'}><X size={16}/></button>}</div>
-    <button className="secondary locate" onClick={()=>{closeSearch();locate()}} title="Standort automatisch bestimmen" aria-label="Standort automatisch bestimmen"><LocateFixed size={17}/><span>Standort</span></button>
-    {open&&<section ref={resultsRef}>{favoritesMode?<>
-     {locationTracking&&<><div className="search-section-label current-location-label"><LocateFixed size={13}/>Standort</div><button onClick={()=>{closeSearch();locate()}}><strong><LocateFixed className="favorite-result-location" size={14}/>Aktuelle Position bestimmen<em className="poi-kind">Auto</em></strong><small>Wird bei jedem Ã–ffnen automatisch aktualisiert.</small></button></>}
-     {groups.map(group=><div className="search-favorite-group" key={group}><div className="search-section-label"><Star size={13} fill="currentColor"/>{group}</div>{favorites.filter(item=>(item.group||'Allgemein')===group).map(item=><button key={item.id} ref={item.id===currentFavoriteId?activeFavoriteRef:undefined} className={item.id===currentFavoriteId?'current-favorite-result':undefined} aria-current={item.id===currentFavoriteId?'location':undefined} onClick={()=>choose(item.location)}><strong><Star className="favorite-result-star" size={13} fill="currentColor"/>{favoriteLabel(item)}{item.isDefault&&<em className="poi-kind">Standard</em>}{item.mountain.enabled&&<em className="poi-kind mountain">Ski</em>}{item.water.enabled&&<em className="poi-kind water">Wasser</em>}</strong><small>{item.alias&&item.alias!==item.location.name?`${item.location.name} Â· `:''}{[item.location.admin1,item.location.country].filter(Boolean).join(', ')}</small></button>)}</div>)}
-     {!locationTracking&&!favorites.length&&<div className="search-empty-favorites">Noch keine Favoriten gespeichert.</div>}
-     <button className="search-manage-favorites" onClick={()=>{closeSearch();onOpenSettings('favorites')}}><Settings2 size={16}/><strong>Favoriten verwalten</strong><small>Unter Einstellungen: Reihenfolge, Gruppen, Standardort und Profile</small></button>
-    </>:searching?<div className="search-query-state" role="status" aria-live="polite"><RefreshCw size={15} className="spin"/><span><strong>Orte werden gesucht â€¦</strong><small>PLZ, Ortsnamen, ICAO und POIs werden parallel geprÃ¼ft.</small></span></div>:results.length?results.map(result=><button key={`${result.id}:${result.latitude}:${result.longitude}`} onClick={()=>choose(result)}><strong>{result.name}{result.postcodes?.[0]?` ${result.postcodes[0]}`:''}{result.icao&&<em className="poi-kind">ICAO {result.icao}</em>}{!result.icao&&result.poiCategory&&result.poiCategory!=='Ort'&&<em className="poi-kind">{result.poiCategory}</em>}</strong><small>{[result.admin2,result.admin1,result.country].filter((value,index,array)=>value&&array.indexOf(value)===index).join(', ')}{Number.isFinite(result.elevation)?` Â· ${Math.round(result.elevation!)} m`:''}{result.source==='OpenStreetMap/Photon'?' Â· OpenStreetMap':result.source==='NOAA AviationWeather / ICAO'?' Â· NOAA AviationWeather':''}</small></button>):searchError?<div className="search-query-state error-state" role="status"><Search size={15}/><span><strong>Ortssuche vorÃ¼bergehend nicht erreichbar</strong><small>{searchError}</small></span></div>:<div className="search-empty-favorites">Keine passenden Orte oder POIs gefunden.</div>}<button type="button" className="search-close-results" onClick={()=>closeSearch()}><X size={15}/><strong>Suche schlieÃŸen</strong></button></section>}
-   </div>
-  </div>
-  <div className="actions compact-actions"><button className="section-nav-header-button" title="Sektionen Ã¶ffnen" aria-label="Sektionen Ã¶ffnen" onClick={onOpenNavigation}><Menu size={19}/></button><PwaInstallButton/><EventCenterHeaderButton onOpenPlanner={onOpenEventPlanner} unit={unit}/><button className="settings-button" title="Einstellungen Ã¶ffnen" aria-label="Einstellungen Ã¶ffnen" onClick={()=>onOpenSettings('view')}><Settings2 size={19}/></button><button className="reload-button" title="Wetterdaten neu laden" aria-label="Wetterdaten neu laden" onClick={reload} disabled={loading||!hasLocation}><RefreshCw size={19} className={loading?'spin':''}/></button></div>
-  {favoriteStripMode!=='hidden'&&(favoriteStripMode==='always'||locationTracking||favorites.length>0)&&<FavoriteQuickStrip favorites={favorites} setFavorites={setFavorites} current={current} trackedLocation={trackedLocation} trackedSelectionActive={trackedSelectionActive} onSelect={choose} onManage={()=>{closeSearch();onOpenSettings('favorites')}} locationTracking={locationTracking} onLocate={()=>{closeSearch();locate()}}/>}
- </header>
-}
-
-function cardinalDirection(value:number){if(!Number.isFinite(value))return'â€“';const labels=['N','NO','O','SO','S','SW','W','NW'];return labels[Math.round((((value%360)+360)%360)/45)%8]}
-function visibilityLabel(meters:number){if(!Number.isFinite(meters)||meters<0)return'â€“';const km=meters/1000;return km>=10?`${Math.round(km)} km`:`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:km<1?2:1,maximumFractionDigits:km<1?2:1}).format(km)} km`}
+_J_NÜØÚY[J
+NÜÙ]U[Y\]Ú[™İËœÙ][Y[İ]
+ØÚY[KN
+NØÛÛœİØœÙ\™\]\[Ùˆ™\Ú^™SØœÙ\™\OOIİ[™Yš[™Y	ÏÛ[›™]È™\Ú^™SØœÙ\™\ŠØÚY[JNÚYŠØœÙ\™\Š^ÚYŠÛÛZ[™\”™Y‹˜İ\œ™[
+[ØœÙ\™\‹›ØœÙ\™JÛÛZ[™\”™Y‹˜İ\œ™[
+NÚYŠ[[Y[™Y‹˜İ\œ™[
+[ØœÙ\™\‹›ØœÙ\™J[[Y[™Y‹˜İ\œ™[
+_XÛÛœİ›ÛÏYØİ[Y[™›ÛÎİ›ÚY›ÛÏËœ™XYK[ŠØÚY[JK˜Ø]Ú
 
 
-function AqiIndicator({result}:{result:EuropeanAirQualityResult|null}){
- if(!result)return null;
- const band=result.band;
- return <span className={`aqi-indicator aqi-${band.key}`} style={{'--aqi-color':band.color} as CSSProperties} role="img" aria-label={`LuftqualitÃ¤t ${band.label}, europÃ¤ische AQI-Stufe ${band.index+1} von 6`}><span className="aqi-marker" aria-hidden="true"/><span className="aqi-segments" aria-hidden="true">{EUROPEAN_AQI_BANDS.map((entry,index)=><i key={entry.key} className={index===band.index?'active':''} style={{background:entry.color}}/>)}</span></span>
-}
-function AqiPollutantScale({pollutant}:{pollutant:EuropeanAqiPollutantResult}){
- const scale=describeEuropeanAqiPollutantScale(pollutant.key,pollutant.value,pollutant.aqi);
- if(!scale)return null;
- return <span className={`aqi-pollutant-scale aqi-${pollutant.band.key}`} style={{'--aqi-color':pollutant.band.color,'--aqi-position':`${scale.positionPct}%`} as CSSProperties} role="img" aria-label={`${pollutant.formula}: ${pollutant.band.label}, europÃ¤ische AQI-Stufe ${pollutant.band.index+1} von 6`}><span className="aqi-pollutant-scale-marker" aria-hidden="true"/><span className="aqi-pollutant-scale-track" aria-hidden="true">{scale.segments.map((segment,index)=><i key={`${pollutant.key}:${segment.band.key}:${index}`} className={index===pollutant.band.index?'active':''} style={{background:segment.band.color}}/>)}</span></span>
-}
-function AirQualityExplanation({result,station,advanced,source}:{result:EuropeanAirQualityResult|null;station:AirQualityStationMeta|null;advanced:boolean;source?:{provider?:string;observation?:boolean;preliminary?:boolean;observedAt?:string;stationName?:string;fallbackModelProvider?:string}}){
- return <InfoHint label="EU-AQI erklÃ¤ren"><strong>EuropÃ¤ischer LuftqualitÃ¤tsindex</strong><br/>Der stÃ¼ndliche Gesamtindex entspricht der schlechtesten Stufe aus PM2,5, PM10, NOâ‚‚, Oâ‚ƒ und SOâ‚‚.{result&&<><br/><br/><b>Gesamt: {result.band.label}</b> Â· maÃŸgeblich {result.dominant.formula} ({formatDecimal(result.dominant.value,1,1)} Âµg/mÂ³).</>}{advanced&&result&&<><br/><br/><strong>Einzelwerte am Standort</strong><small className="aqi-tooltip-scale-caption">Vergleichsskala je Parameter: links gut Â· rechts Ã¤uÃŸerst schlecht.</small><span className="aqi-tooltip-values">{result.pollutants.map(item=><span key={item.key}><b>{item.formula}</b><em>{formatDecimal(item.value,1,1)} Âµg/mÂ³</em><small>{item.band.label}</small><AqiPollutantScale pollutant={item}/></span>)}</span><br/><strong>NÃ¤chstgelegene EEA-Messstation</strong><br/>{station?.available?<>{station.cached&&<><b>Zuletzt bestÃ¤tigte Messreferenz</b><br/></>}{station.name||station.stationCode||'EEA-Messstation'}{Number.isFinite(station.distanceKm)?` Â· ${formatDecimal(station.distanceKm!,1,1)} km`:''} Â· {stationClassLabel(station.stationClass)}{station.eoiCode?` Â· ${station.eoiCode}`:''}{station.sourceHost?<><br/><small>EEA-Dienst: {station.sourceHost}</small></>:null}</>:station?.reason||'Stationsmetadaten werden geladen oder sind nicht verfÃ¼gbar.'}<br/><small>{source?.observation?`Die aktuellen Schadstoffkonzentrationen stammen aus amtlichen UBA-Messdaten${source.stationName?` (${source.stationName})`:''}${source.preliminary?' und sind vorlÃ¤ufig':''}. Open-Meteo/CAMS bleibt fÃ¼r Prognose und Fallback erhalten.`:'Die angezeigten Konzentrationen sind die aktuellen Standortwerte aus Open-Meteo/CAMS. Die EEA-Station wird als nÃ¤chstgelegene Messreferenz ausgewiesen.'}</small></>}</InfoHint>
-}
+OO[™Yš[™Y
+NÜ™]\›Š
+OOÙ\ÜÜÙY]YNÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNİÚ[™İË˜ÛX\•[Y[İ]
+Ù]U[Y\ŠNÛØœÙ\™\Ë™\ØÛÛ›™Xİ
 
-type UvIndexBand={key:'low'|'moderate'|'high'|'very-high'|'extreme';label:string;range:string;color:string;recommendation:string};
-const UV_INDEX_BANDS:UvIndexBand[]=[
- {key:'low',label:'Keine bis gering',range:'0â€“2',color:'#289500',recommendation:'Im Allgemeinen sind keine besonderen SchutzmaÃŸnahmen erforderlich. Sonnenbrand trotzdem vermeiden.'},
- {key:'moderate',label:'Mittel',range:'3â€“5',color:'#f3cf00',recommendation:'Schatten bevorzugen. Kleidung, Sonnenbrille und ausreichend Sonnencreme verwenden.'},
- {key:'high',label:'Hoch',range:'6â€“7',color:'#f57c00',recommendation:'Mittags Schatten suchen. Kopfbedeckung, Kleidung, Sonnenbrille und Sonnencreme sind erforderlich.'},
- {key:'very-high',label:'Sehr hoch',range:'8â€“10',color:'#d92835',recommendation:'Zwischen 11 und 16 Uhr mÃ¶glichst nicht in der direkten Sonne aufhalten. Auch im Schatten konsequent schÃ¼tzen.'},
- {key:'extreme',label:'Extrem',range:'ab 11',color:'#7b3fb2',recommendation:'Zwischen 11 und 16 Uhr mÃ¶glichst im Schutz eines GebÃ¤udes bleiben. AuÃŸerhalb dieser Zeit Schatten und vollstÃ¤ndigen UV-Schutz nutzen.'}
-];
-function classifyUvIndex(value:number):UvIndexBand|null{if(!Number.isFinite(value)||value<0)return null;if(value<3)return UV_INDEX_BANDS[0];if(value<6)return UV_INDEX_BANDS[1];if(value<8)return UV_INDEX_BANDS[2];if(value<11)return UV_INDEX_BANDS[3];return UV_INDEX_BANDS[4]}
-function UviIndicator({band}:{band:UvIndexBand|null}){if(!band)return null;const active=UV_INDEX_BANDS.findIndex(entry=>entry.key===band.key);return <span className={`uvi-indicator uvi-${band.key}`} style={{'--uvi-color':band.color} as CSSProperties} role="img" aria-label={`UV-Index-Stufe ${band.label}`}><span className="uvi-marker" aria-hidden="true"/><span className="uvi-segments" aria-hidden="true">{UV_INDEX_BANDS.map((entry,index)=><i key={entry.key} className={index===active?'active':''} style={{background:entry.color}}/>)}</span></span>}
-function UvIndexExplanation({value,band,advanced,elevation,altitudeBonus}:{value:number;band:UvIndexBand|null;advanced:boolean;elevation:number;altitudeBonus:number}){
- return <span className="uvi-popover-content"><strong>UV-Index und Schutz</strong>{band?<><span className="uvi-current-band" style={{'--uvi-color':band.color} as CSSProperties}><i aria-hidden="true"/><span><b>{formatUvi(value)} Â· {band.label}</b><small>Offizielle Gefahrenstufe {band.range}</small></span></span><p>{band.recommendation}</p></>:<p>Aktuell ist kein belastbarer UV-Index verfÃ¼gbar.</p>}<span className="uvi-band-list">{UV_INDEX_BANDS.map(entry=><span key={entry.key} className={band?.key===entry.key?'active':''}><i style={{background:entry.color}}/><b>{entry.range}</b><small>{entry.label}</small></span>)}</span><small>Die Stufen und Schutzempfehlungen folgen dem UV-Gefahrenindex des Deutschen Wetterdienstes in Anlehnung an die WHO. Der Index gilt fÃ¼r alle Hauttypen.</small>{advanced&&<small>Der angezeigte Wert berÃ¼cksichtigt die BewÃ¶lkung{altitudeBonus>0?` und eine nÃ¤herungsweise HÃ¶henkorrektur von +${Math.round(altitudeBonus)} % bei ${Math.round(elevation)} m`:''}.</small>}</span>
-}
+__KÙ[˜X›Y™]™X[Ù^K^\ËÙ[\‹ÛÛZ[™\”™Y‹[[Y[™Y—JBŸB›]˜]›Üš]RY˜[˜XÚĞÛİ[\LÂ™[˜İ[Ûˆ˜]›Üš]RY
 
+^İ^ÚYŠ\[ÙˆÜ\ÈOOIİ[™Yš[™Y	É‰\[ÙˆÜ\Ëœ˜[™ÛUURQOOIÙ[˜İ[Û‰Ê\™]\›ˆÜ\Ëœ˜[™ÛUURQ
 
-type AstronomyData=ReturnType<typeof astronomySummary>;
-function moonCountdownText(days:number,compact=false){if(!Number.isFinite(days))return'';if(days<.55)return'heute';if(days<1.5)return compact?'in 1 T.':'in 1 Tag';const rounded=Math.round(days);return compact?`in ${rounded} T.`:`in ${rounded} Tagen`}
-function nextMoonPhaseSummary(astronomy:AstronomyData,compact=false){const fullFirst=astronomy.moonPhase==='Neumond'||(astronomy.moonPhase!=='Vollmond'&&astronomy.daysUntilFullMoon<=astronomy.daysUntilNewMoon),target=fullFirst?'Vollmond':'Neumond',days=fullFirst?astronomy.daysUntilFullMoon:astronomy.daysUntilNewMoon;return`${target} ${moonCountdownText(days,compact)}`}
-function eclipseDateLabel(date:Date,timezone:string,compact=false){return new Intl.DateTimeFormat('de-DE',{timeZone:timezone,day:'2-digit',month:'2-digit',...(compact?{}:{year:'numeric'})}).format(date)}
-function eclipseCoverageLabel(astronomy:AstronomyData){const event=astronomy.nextEclipse;if(!event)return'';if(event.kind==='penumbral')return'Halbschatten';return Number.isFinite(event.obscuration)?`${Math.round(Number(event.obscuration)*100)} % verdeckt`:''}
-function eclipseTimeRange(astronomy:AstronomyData){const event=astronomy.nextEclipse;if(!event)return null;return <span className="astronomy-eclipse-card"><span className="astronomy-eclipse-title"><i aria-hidden="true">{event.icon}</i><span><small>NÃ¤chste Finsternis</small><b>{event.label}</b></span></span><span className="astronomy-eclipse-facts"><time>{eclipseDateLabel(event.peak,astronomy.timezone)} Â· Maximum {formatAstronomyTime(event.peak,astronomy.timezone)}</time>{eclipseCoverageLabel(astronomy)&&<strong>{eclipseCoverageLabel(astronomy)}</strong>}</span><span className="astronomy-eclipse-times"><span>Beginn <b>{formatAstronomyTime(event.start,astronomy.timezone)}</b></span><span>Maximum <b>{formatAstronomyTime(event.peak,astronomy.timezone)}</b></span><span>Ende <b>{formatAstronomyTime(event.end,astronomy.timezone)}</b></span></span>{event.type==='solar'&&<small className="astronomy-eclipse-safety">Sonnenfinsternis nur mit geeigneter, zertifizierter Sonnenfinsternisbrille oder sicherem Sonnenfilter beobachten.</small>}</span>}
-function AstronomyExplanation({astronomy}:{astronomy:AstronomyData}){
- const events=[
-  {time:astronomy.astronomicalDawn,label:'Astronomische MorgendÃ¤mmerung',icon:'âœ¨'},
-  {time:astronomy.nauticalDawn,label:'Nautische MorgendÃ¤mmerung',icon:'ğŸŒŒ'},
-  {time:astronomy.blueHourMorningStart,label:'Blaue Stunde beginnt',icon:'ğŸ”µ'},
-  {time:astronomy.civilDawn,label:'BÃ¼rgerliche MorgendÃ¤mmerung',icon:'ğŸŒ…'},
-  {time:astronomy.blueHourMorningEnd,label:'Blaue Stunde endet',icon:'ğŸ”µ'},
-  {time:astronomy.sunrise,label:'Sonnenaufgang Â· Goldene Stunde beginnt',icon:'â˜€ï¸'},
-  {time:astronomy.goldenHourMorningEnd,label:'Goldene Stunde endet',icon:'ğŸŸ¡'},
-  {time:astronomy.solarNoon,label:'SonnenhÃ¶chststand',icon:'â˜€ï¸'},
-  {time:astronomy.goldenHourEveningStart,label:'Goldene Stunde beginnt',icon:'ğŸŸ¡'},
-  {time:astronomy.sunset,label:'Sonnenuntergang Â· Goldene Stunde endet',icon:'ğŸŒ‡'},
-  {time:astronomy.blueHourEveningStart,label:'Blaue Stunde beginnt',icon:'ğŸ”µ'},
-  {time:astronomy.civilDusk,label:'BÃ¼rgerliche AbenddÃ¤mmerung',icon:'ğŸŒ†'},
-  {time:astronomy.blueHourEveningEnd,label:'Blaue Stunde endet',icon:'ğŸ”µ'},
-  {time:astronomy.nauticalDusk,label:'Nautische AbenddÃ¤mmerung',icon:'ğŸŒŒ'},
-  {time:astronomy.astronomicalDusk,label:'Astronomische AbenddÃ¤mmerung',icon:'âœ¨'},
-  {time:astronomy.moonrise,label:'Mondaufgang',icon:astronomy.moonIcon},
-  {time:astronomy.moonset,label:'Monduntergang',icon:astronomy.moonIcon}
- ].filter((event):event is {time:Date;label:string;icon:string}=>event.time instanceof Date&&Number.isFinite(event.time.getTime())).sort((a,b)=>a.time.getTime()-b.time.getTime());
- const dateLabel=new Intl.DateTimeFormat('de-DE',{timeZone:astronomy.timezone,weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
- return <span className="astronomy-popover-content"><strong>Sonne und Mond Â· {dateLabel}</strong>{astronomy.nextEclipse&&eclipseTimeRange(astronomy)}<span className="astronomy-event-list">{events.map(event=><span key={`${event.label}:${event.time.getTime()}`}><i>{event.icon}</i><b>{event.label}</b><time>{formatAstronomyTime(event.time,astronomy.timezone)}</time></span>)}</span>{astronomy.moonAlwaysUp||astronomy.moonAlwaysDown?<span className="astronomy-polar-note">{astronomy.moonIcon} Mond {astronomy.moonAlwaysUp?'ganztÃ¤gig Ã¼ber dem Horizont':'ganztÃ¤gig unter dem Horizont'}</span>:null}<span className="astronomy-moon-detail">{astronomy.moonIcon} <b>{astronomy.moonPhase}</b> Â· {Math.round(astronomy.moonIllumination*100)} % beleuchtet Â· Mondalter {formatDecimal(astronomy.moonAgeDays,1,1)} Tage Â· {nextMoonPhaseSummary(astronomy)}</span><small>DÃ¤mmerungs-, blaue und goldene Stunden sowie die nÃ¤chste standortrelevante Finsternis werden astronomisch berechnet. Angezeigt wird ausschlieÃŸlich ein Ereignis mit Maximum in der Zukunft. Zeiten kÃ¶nnen durch GelÃ¤nde und lokale Horizontabschattung abweichen.</small></span>
-}
+NÚYŠ\[ÙˆÜ\ÈOOIİ[™Yš[™Y	É‰\[ÙˆÜ\Ë™Ù]˜[™ÛU˜[Y\ÏOOIÙ[˜İ[Û‰Ê^ØÛÛœİ]\ÏXÜ\Ë™Ù]˜[™ÛU˜[Y\Ê™]ÈZ[Ì\œ˜^J
+JNÜ™]\›˜˜]‹IĞ\œ˜^K™œ›ÛJ]\Ë˜[YOO˜[YKÔİš[™ÊÍŠJKš›Ú[Š	ËIÊ_X_XØ]ÚßY˜]›Üš]RY˜[˜XÚĞÛİ[\J˜]›Üš]RY˜[˜XÚĞÛİ[\ŠÌJIS[X™\‹“PVÔĞQ‘WÒS•QÑTÜ™]\›˜˜]‹IÑ]K››İÊ
+KÔİš[™ÊÍŠ_KIÙ˜]›Üš]RY˜[˜XÚĞÛİ[\‹Ôİš[™ÊÍŠ_XB™[˜İ[Ûˆ[İ[Z[ÛÛ™šYÒÙ^JØÎ“ØØ][ÛŠ^Ü™]\›˜ZY›[İ[Z[‰Ù˜]›Üš]RÙ^JØÊ_XB™[˜İ[ÛˆİÜ™Y[İ[Z[ÛÛ™šYÊØÎ“ØØ][ÛŠN“[İ[Z[ÛÛ™šYŞİ^ØÛÛœİ˜]Ï[ØØ[İÜ˜YÙK™Ù]][J[İ[Z[ÛÛ™šYÒÙ^JØÊJNÜ™]\›ˆ˜]ÏÛ›Ü›X[^™S[İ[Z[ÛÛ™šYÊ”ÓÓ‹œ\œÙJ˜]ÊKØÊN™Y˜][[İ[Z[ÛÛ™šYÊØÊ_XØ]ÚÜ™]\›ˆY˜][[İ[Z[ÛÛ™šYÊØÊ__B™[˜İ[ÛˆÜš]TİÜ˜YÙRYÚ[™ÙY
+Ù^Nœİš[™Ë˜[YNœİš[™Ê^İ^ÚYŠØØ[İÜ˜YÙK™Ù]][JÙ^JHOO]˜[YJ[ØØ[İÜ˜YÙKœÙ]][JÙ^K˜[YJ_XØ]Úß_B\H˜]›Üš]SÜ™\”Û˜\Úİ^ÚYÎœİš[™Ö×Nİ\]Y]œİš[™ßNÂ™[˜İ[Ûˆ™XY˜]›Üš]SÜ™\”Û˜\Úİ
+˜]Ï[ØØ[İÜ˜YÙK™Ù]][JU“Ô’UT×ÓÔ‘T—ÒÑVJJN‘˜]›Üš]SÜ™\”Û˜\Úİ[İ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJİš[™Ê˜]ß	ÉÊJH\È\X[˜]›Üš]SÜ™\”Û˜\Úİ‹YÏP\œ˜^Kš\Ğ\œ˜^J\œÙYšYÊOÜ\œÙYšYË›X\
+˜[YOO”İš[™Ê˜[Y_	ÉÊKš[J
+JK™š[\Š›ÛÛX[ŠN–×K\]Y]Tİš[™Ê\œÙY\]Y]	ÉÊNÜ™]\›ˆYË›[™İ	‰“[X™\‹š\Ñš[š]J]Kœ\œÙJ\]Y]
+JOŞÚYÎ–Ë‹‹›™]ÈÙ]
+YÊWK\]Y]N›[XØ]ÚÜ™]\›ˆ[_B™[˜İ[Ûˆ\Q˜]›Üš]SÜ™\Š˜[Y\Î‘˜]›Üš]V×KÛ˜\Úİ\™XY˜]›Üš]SÜ™\”Û˜\Úİ
 
-function pressureTendency(hours:Hour[]){
- const index=currentIndex(hours),current=hours[index];
- if(!current||!Number.isFinite(current.pressure)||!Number.isFinite(current.epoch))return null;
- const target=current.epoch-3*3600000;
- const past=hours.reduce<Hour|null>((best,item)=>{if(!Number.isFinite(item.pressure)||!Number.isFinite(item.epoch)||item.epoch>current.epoch)return best;return!best||Math.abs(item.epoch-target)<Math.abs(best.epoch-target)?item:best},null);
- if(!past||Math.abs(past.epoch-target)>50*60000)return null;
- const delta=current.pressure-past.pressure;if(!Number.isFinite(delta))return null;
- const label=delta<=-3?'stark fallend':delta<=-1?'fallend':delta<-.3?'leicht fallend':delta<=.3?'nahezu gleichbleibend':delta<1?'leicht steigend':delta<3?'steigend':'stark steigend';
- const arrow=delta>.3?'â†—':delta<-.3?'â†˜':'â†’';return{delta,label,arrow};
-}
+J^ÚYŠ\Û˜\Úİ˜[Y\Ë›[™İŠ\™]\›ˆ˜[Y\ÎØÛÛœİ˜[šÏ[™]ÈX\
+Û˜\ÚİšYË›X\
 
-function Current({w,hours,days,air,airStation,st,stationLoading,radarHistory,radarNowcast,thunderRisk,unit,advancedMode,nowcards}:{w:Weather;hours:Hour[];days:Day[];air:any;airStation:AirQualityStationMeta|null;st:Station|null;stationLoading:boolean;radarHistory:RadarHistory|null;radarNowcast:RadarNowcast|null;thunderRisk:PeriodThunderRisk|null;unit:WindUnit;advancedMode:boolean;nowcards:ReactNode}){
- const[metricsOpen,setMetricsOpen]=useState(()=>{try{return localStorage.getItem('mid:current-metrics-open')!=='0'}catch{return true}}),[solarNow,setSolarNow]=useState(()=>Date.now());
- useEffect(()=>{try{localStorage.setItem('mid:current-metrics-open',metricsOpen?'1':'0')}catch{}},[metricsOpen]);
- useEffect(()=>{let timer=0;const location={latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone},tick=()=>setSolarNow(Date.now()),schedule=()=>{window.clearTimeout(timer);const daylight=solarDaylightWindowAt(Date.now(),location),now=Date.now(),boundaries=[daylight.sunrise?.getTime(),daylight.sunset?.getTime()].filter((value):value is number=>Number.isFinite(value)&&Number(value)>now),next=boundaries.length?Math.min(...boundaries):Number.NaN,delay=Number.isFinite(next)?Math.max(250,Math.min(60000,next-now+250)):60000;timer=window.setTimeout(()=>{tick();schedule()},delay)},resume=()=>{if(document.visibilityState!=='hidden'){tick();schedule()}};schedule();document.addEventListener('visibilitychange',resume);window.addEventListener('focus',resume);return()=>{window.clearTimeout(timer);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume)}},[w.latitude,w.longitude,w.elevation,w.timezone]);
- const currentForecastHour=hours[currentIndex(hours)]??null;
- const c=w.current,now=solarNow,fieldFresh=(field:StationAnalysisField)=>stationFieldObservationUsable(st,field,now,w.elevation),temperatureFresh=fieldFresh('temperature'),fresh=Boolean(st&&(['temperature','humidity','dewPoint','pressure','windSpeed','windDirection','windGust','visibility','cloudCover','ceilingHft','cloudBaseHft','precipitation'] as StationAnalysisField[]).some(fieldFresh)),ownStation=Boolean(st?.provider?.startsWith('Eigene ')||st?.analysisMethod?.startsWith('Eigene ')),hyperlocalAnalysis=Boolean(st?.backgroundModel&&st?.analysisMethod),providerSummary=st?.sourceProviders?.slice(0,4).map(x=>x.replace(/ \(.*?\)$/,'')).join(', '),temperatureSupportCount=Number(st?.temperatureStationCount),temperatureSupportRadius=Number(st?.temperatureEffectiveResolutionKm),temperatureSourceSummary=st?.fieldSources?.temperature?.slice(0,4).map(source=>`${source.stationName}${Number.isFinite(source.distanceKm)?` ${formatDecimal(Number(source.distanceKm),1,1)} km`:''}${Number.isFinite(source.temporalResolutionMinutes)?`/${Math.round(Number(source.temporalResolutionMinutes))} min`:''}`).join(' Â· '),cloudSourceSummary=st?.fieldSources?.cloudCover?.slice(0,4).map(source=>`${source.provider} Â· ${source.stationName}${Number.isFinite(source.distanceKm)?` ${formatDecimal(Number(source.distanceKm),1,1)} km`:''}`).join(' Â· '),stationStatus=fresh?(st!.analysisMethod?(temperatureFresh&&Number.isFinite(temperatureSupportCount)&&temperatureSupportCount>0?`${Math.round(temperatureSupportCount)} Temp.-Messpunkte${Number.isFinite(temperatureSupportRadius)?` Â· Radius ${formatDecimal(temperatureSupportRadius,1,1)} km`:''}${Number.isFinite(st!.uncertainty)?` Â· Â±${formatDecimal(st!.uncertainty!,1,1)} K`:''}`:`${st!.stationCount??1} Messpunkte${Number.isFinite(st!.effectiveResolutionKm)?` Â· Radius ${formatDecimal(st!.effectiveResolutionKm!,1,1)} km`:''}${Number.isFinite(st!.uncertainty)?` Â· Â±${formatDecimal(st!.uncertainty!,1,1)} K`:''}`):st!.blended?`${st!.stationCount??2} Messstationen${Number.isFinite(st!.distance)?` Â· Ã˜ ${formatDecimal(st!.distance!/1000,1,1)} km`:''}`:`${st!.provider??'WMO/METAR'} Â· ${st!.name}`):''; const forecastSourceLabel='Best Match';
- const localTemperatureCorrection=Number.isFinite(st?.localCorrection)?Number(st!.localCorrection):Number.NaN,temperatureObservationConstraint=Number.isFinite(st?.temperatureObservationConstraint)?Number(st!.temperatureObservationConstraint):0,temperatureDirectEstimate=Number.isFinite(st?.temperatureDirectEstimate)?Number(st!.temperatureDirectEstimate):Number.NaN,terrainWindCorrection=Number.isFinite(st?.terrainWindCorrectionPercent)?Number(st!.terrainWindCorrectionPercent):Number.NaN,localTemperatureCorrectionSignificant=temperatureFresh&&Number.isFinite(localTemperatureCorrection)&&Math.abs(localTemperatureCorrection)>=.2,temperatureObservationConstraintSignificant=temperatureFresh&&Math.abs(temperatureObservationConstraint)>=.15,terrainWindCorrectionSignificant=Number.isFinite(terrainWindCorrection)&&Math.abs(terrainWindCorrection)>=1,temperatureAndWindNearModel=temperatureFresh&&Number.isFinite(localTemperatureCorrection)&&Number.isFinite(terrainWindCorrection)&&!localTemperatureCorrectionSignificant&&!terrainWindCorrectionSignificant;
- const stationDynamicStatus=fresh&&hyperlocalAnalysis?<span className="hyperlocal-analysis-compact">{st?.backgroundModel?<span>{st.backgroundModel}</span>:null}{temperatureFresh&&st?.thermalRegime==='stable-night'?<span>stabile Nacht{Number.isFinite(st?.thermalLocalizationKm)?` Â· ${formatDecimal(Number(st!.thermalLocalizationKm),1,1)} km`:''}</span>:null}{temperatureObservationConstraintSignificant?<span>Messkonsens aktiv</span>:null}{localTemperatureCorrectionSignificant?<span>Î”T {localTemperatureCorrection>=0?'+':''}{formatDecimal(localTemperatureCorrection,1,1)} K</span>:null}{!temperatureFresh?<span>Temperatur Â· Best Match</span>:null}{terrainWindCorrectionSignificant?<span>GelÃ¤nde-Wind {terrainWindCorrection>=0?'+':''}{formatDecimal(terrainWindCorrection,1,1)} %</span>:null}{temperatureAndWindNearModel?<span>Temp./Wind nahe Modell</span>:null}</span>:null;
- const stationAnalysisInfo=fresh&&hyperlocalAnalysis?<span className="hyperlocal-analysis-info"><strong>Hyperlokale Analyse</strong><span>{st?.analysisMethod}</span><span><b>Datenbasis:</b> Modellhintergrund {st?.backgroundModel||forecastSourceLabel}{providerSummary?` Â· Messnetze ${providerSummary}`:''}</span>{cloudSourceSummary?<span><b>BewÃ¶lkungsbasis:</b> {cloudSourceSummary}{st?.cloudAnalysisMethod?` Â· ${st.cloudAnalysisMethod}`:''}</span>:null}{temperatureFresh&&Number.isFinite(temperatureSupportCount)&&temperatureSupportCount>0?<span><b>Temperaturbasis:</b> {Math.round(temperatureSupportCount)} tatsÃ¤chlich verwendete Temperatur-Messpunkte{Number.isFinite(temperatureSupportRadius)?` Â· gewichteter Radius ${formatDecimal(temperatureSupportRadius,1,1)} km`:''}{temperatureSourceSummary?` Â· ${temperatureSourceSummary}`:''}</span>:!temperatureFresh?<span><b>Temperaturbasis:</b> kein ausreichend frischer Messanker Â· aktueller Temperaturwert bleibt Best Match</span>:null}{temperatureFresh&&Number.isFinite(temperatureDirectEstimate)?<span><b>Direkter Messkonsens:</b> {formatDecimal(temperatureDirectEstimate,1,1)} Â°C{temperatureObservationConstraintSignificant?` Â· zusÃ¤tzliche evidenzadaptive RÃ¼ckfÃ¼hrung ${temperatureObservationConstraint>=0?'+':''}${formatDecimal(temperatureObservationConstraint,1,1)} K`:' Â· keine zusÃ¤tzliche RÃ¼ckfÃ¼hrung erforderlich'}</span>:null}{st?.thermalRegime==='stable-night'?<span><b>Thermisches Nachtregime:</b> stabile, schwach durchmischte Nacht Â· Messwerte rÃ¤umlich enger gewichtet{Number.isFinite(st?.thermalLocalizationKm)?` Â· Reichweite ${formatDecimal(Number(st!.thermalLocalizationKm),1,1)} km`:''}{Number.isFinite(st?.thermalObservationSpreadK)?` Â· Stationsstreuung ${formatDecimal(Number(st!.thermalObservationSpreadK),1,1)} K`:''}</span>:null}{Number.isFinite(localTemperatureCorrection)?<span><b>Lokale Temperaturkorrektur:</b> {localTemperatureCorrection>=0?'+':''}{formatDecimal(localTemperatureCorrection,1,1)} K{!localTemperatureCorrectionSignificant?' Â· meteorologisch vernachlÃ¤ssigbar':''}</span>:null}{Number.isFinite(st?.terrainSlopeDeg)||Number.isFinite(st?.terrainReliefM)?<span><b>GelÃ¤nde:</b> {Number.isFinite(st!.terrainSlopeDeg)?`${formatDecimal(Number(st!.terrainSlopeDeg),1,1)}Â° Neigung`:''}{Number.isFinite(st!.terrainAspectDeg)?` Â· Exposition ${Math.round(Number(st!.terrainAspectDeg))}Â°`:''}{Number.isFinite(st!.terrainReliefM)?` Â· Relief ${Math.round(Number(st!.terrainReliefM))} m`:''}{Number.isFinite(st!.terrainPositionIndexM)?` Â· Lageindex ${Math.round(Number(st!.terrainPositionIndexM))} m`:''}</span>:null}{Number.isFinite(st?.terrainWindExposure)?<span><b>Dynamische Windexposition:</b> {Math.round(Number(st!.terrainWindExposure)*100)} % bei {Math.round(Number(st!.terrainWindDirection))}Â°{Number.isFinite(terrainWindCorrection)?` Â· GelÃ¤nde-/OberflÃ¤chenkorrektur ${terrainWindCorrection>=0?'+':''}${formatDecimal(terrainWindCorrection,1,1)} %${!terrainWindCorrectionSignificant?' (vernachlÃ¤ssigbar)':''}`:''}</span>:null}{st?.surfaceClass||Number.isFinite(st?.roughnessLengthM)||Number.isFinite(st?.imperviousnessPercent)?<span><b>OberflÃ¤che:</b> {st!.surfaceClass||'klassifiziert'}{Number.isFinite(st!.roughnessLengthM)?` Â· Rauigkeit zâ‚€ ${formatDecimal(Number(st!.roughnessLengthM),2,2)} m`:''}{Number.isFinite(st!.imperviousnessPercent)?` Â· Versiegelung ${Math.round(Number(st!.imperviousnessPercent))} %`:''}</span>:null}{st?.localContextSource?<small>Kontextquellen: {st?.localContextSource}</small>:null}<small>MID gewichtet Messwerte parameterbezogen nach QualitÃ¤t, AktualitÃ¤t, Entfernung, HÃ¶henlage, Standorttyp und aktueller GelÃ¤nde-/OberflÃ¤chenexposition. Die modellgestÃ¼tzte Restfeldanalyse bleibt der PrimÃ¤rpfad. Erkennt sie jedoch einen mÃ¶glichen Fehler des rÃ¤umlichen Modellgradienten am Zielort, darf ein robuster Konsens aus mindestens zwei voneinander getrennten, frischen und hinreichend nahen Temperaturmesspunkten den Zielwert zusÃ¤tzlich evidenzabhÃ¤ngig in Richtung der Messungen zurÃ¼ckfÃ¼hren. Ein einzelner Flughafen oder eine einzelne Privatstation kann diese Korrektur nicht erzwingen. Werte unter 0,2 K beziehungsweise 1 % GelÃ¤nde-Windkorrektur werden in der kompakten Zeile nicht als relevante Korrektur hervorgehoben; die exakten Werte bleiben in dieser Detailansicht erhalten. In stabilen, schwachwindigen NÃ¤chten wird die Temperatur nur evidenzbasiert stÃ¤rker lokalisiert; es wird kein pauschaler Nachtabschlag angewendet. In der Hauptkarte bleibt davon nur eine kompakte Ergebniszeile sichtbar; die exakten Korrekturwerte und Methodikdetails stehen hier.</small></span>:<span>Aktuelle Messwerte werden mit dem Ã¶rtlichen Modellhintergrund geprÃ¼ft und lokal gewichtet.</span>;
- const observed=(field:StationAnalysisField,v:number|undefined,fallback:number)=>fieldFresh(field)&&Number.isFinite(v)?Number(v):fallback;
- const qffStationPressure=Boolean(fieldFresh('pressure')&&st&&(st.pressureReference==='QFF'||st.pressureReference==='MSL')&&Number.isFinite(st.pressure)&&Number(st.pressure)>=870&&Number(st.pressure)<=1085),temp=observed('temperature',st?.temperature,Number(c.temperature_2m)),modelTemperature=Number(c.temperature_2m),modelApparentTemperature=Number(c.apparent_temperature),currentApparentTemperature=Number.isFinite(modelApparentTemperature)&&Number.isFinite(modelTemperature)&&Number.isFinite(temp)?modelApparentTemperature+(temp-modelTemperature):modelApparentTemperature,hum=observed('humidity',st?.humidity,Number(c.relative_humidity_2m)),dew=observed('dewPoint',st?.dewPoint,Number(c.dew_point_2m)),pressure=observed('pressure',qffStationPressure?st?.pressure:undefined,Number(c.pressure_msl)),windSpeed=observed('windSpeed',st?.windSpeed!=null?(st.windUnit==='kt'?st.windSpeed:st.windSpeed/1.852):undefined,Number(c.wind_speed_10m)),windGust=observed('windGust',st?.windGust!=null?(st.windUnit==='kt'?st.windGust:st.windGust/1.852):undefined,Number(c.wind_gusts_10m)),windDirection=observed('windDirection',st?.windDirection,Number(c.wind_direction_10m)),cloud=observed('cloudCover',st?.cloudCover,Number(c.cloud_cover)),cloudOktasValue=cloudOktas(cloud),observedCeilingHft=fieldFresh('ceilingHft')&&Number.isFinite(st?.ceilingHft)?Math.round(Number(st?.ceilingHft)):Number.NaN,modelCeilingM=Number(currentForecastHour?.ceiling),modelCeilingUsable=Number.isFinite(modelCeilingM)&&modelCeilingM>=0&&modelCeilingM<=15240,modelCeilingHft=modelCeilingUsable?Math.max(0,Math.round(modelCeilingM*3.28084/100)):Number.NaN,ceilingFromModel=!Number.isFinite(observedCeilingHft)&&Number.isFinite(modelCeilingHft),ceilingHft=Number.isFinite(observedCeilingHft)?observedCeilingHft:modelCeilingHft,cloudBaseHft=fieldFresh('cloudBaseHft')&&Number.isFinite(st?.cloudBaseHft)?Math.round(Number(st?.cloudBaseHft)):Number.NaN,ceilingCompactDetail=Number.isFinite(observedCeilingHft)?`Ceiling ${observedCeilingHft} hft`:ceilingFromModel?`Modell-Ceiling ~${modelCeilingHft} hft`:cloudOktasValue>=1&&cloudOktasValue<=4&&Number.isFinite(cloudBaseHft)?`Wolkenuntergrenze ${cloudBaseHft} hft`:'',cloudBaseDetail=advancedMode&&ceilingCompactDetail?`${ceilingCompactDetail} Â· `:'',precip=observed('precipitation',st?.precipitation,Number(c.precipitation)),visibility=observed('visibility',st?.visibility,Number(c.visibility));
- const mappedHours=hours,mappedDays=days,todayDate=localDateInZone(w.timezone,solarNow),currentDay=mappedDays.find(day=>day.date===todayDate)??mappedDays[0],currentRange=currentDay?{min:Math.min(currentDay.min,temp),max:Math.max(currentDay.max,temp)}:null,pressureChange=pressureTendency(mappedHours),astronomyHour=Math.floor(solarNow/3600000),astronomy=useMemo(()=>astronomySummary(w,new Date(solarNow)),[w.latitude,w.longitude,w.elevation,w.timezone,astronomyHour]),currentIsDay=astronomicalIsDayAt(solarNow,{latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone},Number(c.is_day)===1),radarObservedEpoch=Date.parse(String(radarNowcast?.observedAt||'')),radarCurrentUsable=Boolean(radarNowcast&&radarNowcast.coverage!==false&&Number.isFinite(Number(radarNowcast.currentRate))&&Number(radarNowcast.currentRate)>.01&&Number.isFinite(radarObservedEpoch)&&Math.abs(solarNow-radarObservedEpoch)<=15*60000),stationPrecipUsable=fieldFresh('precipitation')&&Number.isFinite(st?.precipitation),currentPrecipSourceRate=radarCurrentUsable?Math.max(0,Number(radarNowcast!.currentRate)):stationPrecipUsable?Math.max(0,Number(st!.precipitation)):precip,currentPrecipMinutes=radarCurrentUsable?60:stationPrecipUsable?Math.max(1,Number(st?.precipitationMinutes)||Number(st?.fieldTemporalResolutionMinutes?.precipitation)||60):60,currentPrecipIntervalSeconds=currentPrecipMinutes*60,currentPrecip=precipitationParts({precipitation:currentPrecipSourceRate,rain:Number(c.rain)||0,showers:Number(c.showers)||0,snowfall:Number(c.snowfall)||0,probability:0,code:Number(c.weather_code)||0,temperature:temp,dewPoint:dew,humidity:hum,cloud,lowCloud:Number(c.cloud_cover_low),cloudBaseHft:Number.isFinite(cloudBaseHft)?cloudBaseHft:undefined,ceilingHft:Number.isFinite(ceilingHft)?ceilingHft:undefined,precipitationIntervalStartEpoch:solarNow-currentPrecipIntervalSeconds*1000,precipitationIntervalEndEpoch:solarNow});
- // Ein frischer Radarwert von 0 mm/h ist ein valider Trockenabgleich, kein fehlender Wert.
- // Er darf daher nicht auf die modellierte Momentanbeschreibung zurÃ¼ckfallen.
- const radarCurrentFresh=Boolean(radarNowcast&&radarNowcast.coverage!==false&&Number.isFinite(Number(radarNowcast.currentRate))&&Number.isFinite(radarObservedEpoch)&&Math.abs(solarNow-radarObservedEpoch)<=15*60000),reconciledCurrentPrecipSourceRate=radarCurrentFresh?Math.max(0,Number(radarNowcast!.currentRate)):currentPrecipSourceRate,reconciledCurrentPrecipMinutes=radarCurrentFresh?60:currentPrecipMinutes,reconciledCurrentPrecipIntervalSeconds=reconciledCurrentPrecipMinutes*60,reconciledCurrentPrecipIsDry=radarCurrentFresh&&reconciledCurrentPrecipSourceRate<=.01,reconciledCurrentPrecipCode=radarCurrentFresh?Number(currentForecastHour?.code):Number(c.weather_code)||0,reconciledCurrentPrecip=precipitationParts({precipitation:reconciledCurrentPrecipSourceRate,rain:reconciledCurrentPrecipIsDry?0:Number(c.rain)||0,showers:reconciledCurrentPrecipIsDry?0:Number(c.showers)||0,snowfall:reconciledCurrentPrecipIsDry?0:Number(c.snowfall)||0,probability:0,code:reconciledCurrentPrecipCode,temperature:temp,dewPoint:dew,humidity:hum,cloud,lowCloud:Number(c.cloud_cover_low),cloudBaseHft:Number.isFinite(cloudBaseHft)?cloudBaseHft:undefined,ceilingHft:Number.isFinite(ceilingHft)?ceilingHft:undefined,precipitationIntervalStartEpoch:solarNow-reconciledCurrentPrecipIntervalSeconds*1000,precipitationIntervalEndEpoch:solarNow});
- void currentPrecip; // Rohwert bleibt fÃ¼r den RÃ¼ckwÃ¤rtskompatibilitÃ¤tsvertrag der aktuellen Wetteransicht erhalten.
- let currentWeatherCode=reconciledCurrentPrecip.displayCode,currentWeatherLabel=reconciledCurrentPrecip.type==='none'?label(currentWeatherCode):reconciledCurrentPrecip.weatherLabel;
- const currentObservedRaw=fresh&&st?.presentWeather?String(st.presentWeather).trim():undefined,currentObservedWeatherCode=currentObservedRaw&&/^\d{1,2}$/.test(currentObservedRaw)?Number(currentObservedRaw):undefined,currentObservedPhenomenon=currentObservedRaw&&currentObservedWeatherCode===undefined?currentObservedRaw:undefined,currentObservedPictogram=currentObservedPhenomenon?synopticPhenomenonPictogram(currentObservedPhenomenon):null,currentPictogramIntensity=currentObservedPictogram?.intensity??(currentObservedWeatherCode!==undefined?weatherPictogramIntensity(currentObservedWeatherCode):reconciledCurrentPrecip.intensity);
- const localSky=reconciledCurrentPrecip.type==='none'?hyperlocalSkyCondition({fallbackCode:currentWeatherCode,cloudCover:cloud,visibility,humidity:hum,temperature:temp,cloudObserved:fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover),visibilityObserved:fieldFresh('visibility')&&Number.isFinite(st?.visibility)}):undefined;
- if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}
- if(currentObservedWeatherCode!==undefined){currentWeatherCode=currentObservedWeatherCode;currentWeatherLabel=label(currentObservedWeatherCode)}
- if(currentObservedPhenomenon)currentWeatherLabel=synopticPhenomenonDescription(currentObservedPhenomenon)
- const currentPrecipIntensity=precipitationIntensityDescriptor(reconciledCurrentPrecip.type,reconciledCurrentPrecipSourceRate,reconciledCurrentPrecipIsDry?0:Number(c.snowfall)||0,reconciledCurrentPrecipIntervalSeconds,reconciledCurrentPrecipCode),currentObservedIntensityLabel=currentObservedPictogram&&currentObservedPictogram.intensity!=='none'?(currentObservedPictogram.intensity==='light'?'leicht':currentObservedPictogram.intensity==='moderate'?'mÃ¤ÃŸig':currentObservedPictogram.intensity==='heavy'?'stark':currentObservedPictogram.intensity==='very-heavy'?'sehr stark':''):undefined,currentPrecipIntensityLabel=currentObservedIntensityLabel??currentPrecipIntensity?.label,currentPrecipRate=reconciledCurrentPrecipSourceRate/(reconciledCurrentPrecipIntervalSeconds/3600),currentPrecipRateLabel=reconciledCurrentPrecip.type==='none'?(currentObservedIntensityLabel?'â€“':'0 mm/h'):Number.isFinite(currentPrecipRate)?`${formatDecimalFixed(currentPrecipRate,currentPrecipRate>=10?0:1)} mm/h`:'â€“',currentVisibilityCompact=visibility>=10000?'> 10 km':visibility>=1000?`${formatDecimalFixed(visibility/1000,1)} km`:`${Math.round(visibility/50)*50} m`;
- const forecastHour=currentForecastHour;
- const airCurrentUv=air?.current?Number(air.current.uv_index):Number.NaN;
- const altitudeFactor=uvAltitudeFactor(w.elevation),altitudeBonus=Math.max(0,Math.round((altitudeFactor-1)*100));
- const actualCurrentUv=forecastHour&&Number.isFinite(forecastHour.uvIndex)?forecastHour.uvIndex:(Number.isFinite(airCurrentUv)?Number((airCurrentUv*altitudeFactor).toFixed(1)):Number.NaN),roundedCurrentUv=Number.isFinite(actualCurrentUv)?Math.max(0,Math.round(actualCurrentUv)):Number.NaN,uvClassification=classifyUvIndex(roundedCurrentUv);
- const sunshineRecent=recentSunshineDuration(w,{localCloudCover:fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)?Number(st?.cloudCover):undefined,currentCloudCover:Number(c.cloud_cover),isDay:currentIsDay}),sunshineWindowLabel=sunshineRecent.coverageMinutes>=55?'in den letzten 60 Minuten':sunshineRecent.coverageMinutes>0?`in den letzten ${sunshineRecent.coverageMinutes} Minuten`:'aktueller Zeitraum',sunshineSource=sunshineRecent.source==='minutely_15'?`${Math.max(1,Math.round(sunshineRecent.coverageMinutes/Math.max(1,sunshineRecent.intervalMinutes)))} Ã— ${sunshineRecent.intervalMinutes}-min ${forecastSourceLabel}`:sunshineRecent.source==='hourly'?`letzte verfÃ¼gbare Modellstunde Â· ${forecastSourceLabel}`:`aktuelles ${forecastSourceLabel}-Intervall`;
- const airClassification=classifyEuropeanAirQuality(air?.current);
- const source=(available:boolean,defaultText:string)=>{const modelText=defaultText==='Best Match'?forecastSourceLabel:defaultText;return advancedMode?(available?(ownStation?`${st!.provider??'Eigene Wetterstation'} Â· plausibilisiert`:hyperlocalAnalysis?'hyperlokale Restfeldanalyse':st!.blended?`robustes Mittel aus ${st!.stationCount??2} Stationen`:`${st!.provider??'Stationsmessung'} Â· ${st!.name}`):modelText):(available?'mit Messwert geprÃ¼ft':'Vorhersage')};
- const fieldSourceRows=(fields:StationAnalysisField[]):StationFieldSource[]=>{const seen=new Set<string>(),rows:StationFieldSource[]=[];for(const field of fields)for(const item of st?.fieldSources?.[field]??[]){const key=`${item.provider}|${item.stationId??item.stationName}`;if(seen.has(key))continue;seen.add(key);rows.push(item);if(rows.length>=4)return rows}return rows};
- const sourceFor=(fields:StationAnalysisField[],available:boolean,defaultText:string)=>{const fieldAvailable=available&&fields.some(fieldFresh);if(advancedMode&&fieldAvailable){const rows=fieldSourceRows(fields);if(rows.length){const first=rows[0];return`${first.provider} Â· ${first.stationName}${rows.length>1?` +${rows.length-1}`:''}`}}return source(fieldAvailable,defaultText)};
- const sourceTypeText=(value?:string)=>value==='official-surface'?'amtliche Bodenbeobachtung':value==='aviation'?'Flugplatzbeobachtung':value==='road-weather'?'StraÃŸenwetter':value==='professional'?'professionelles Netz':value==='private'?'private Station':value==='citizen'?'BÃ¼rger-Messnetz':'Messstation';
- const fieldSourceInfo=(groups:{label:string;fields:StationAnalysisField[]}[])=>{const details=groups.map(group=>({label:group.label,rows:fieldSourceRows(group.fields)})).filter(group=>group.rows.length);return <div className="metric-source-info"><strong>Datenbasis</strong><p>MID kombiniert den Ã¶rtlichen Modellhintergrund mit geeigneten Messwerten. Die Auswahl erfolgt parameterbezogen nach QualitÃ¤t, AktualitÃ¤t, Entfernung, Standort- und Parameter-Eignung.</p><div><b>Modellhintergrund</b><small><b>{st?.backgroundModel||forecastSourceLabel}</b>{st?.analysisMethod?` Â· ${st.analysisMethod}`:''}</small>{st?.localContextSource?<small>Kontext: {st.localContextSource}</small>:null}</div>{details.length?details.map(group=><div key={group.label}><b>{group.label} Â· Messwertquellen</b>{group.rows.map((item,index)=>{const observed=Number.isFinite(Date.parse(String(item.observedAt||'')))?formatDisplayDateTime(Date.parse(String(item.observedAt)),w.timezone,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'',meta=(advancedMode?[sourceTypeText(item.sourceType),Number.isFinite(item.distanceKm)?`${formatDecimal(Number(item.distanceKm),1,1)} km`:null,observed?`Stand ${observed}`:null,Number.isFinite(item.temporalResolutionMinutes)?`Datenintervall ${Math.round(Number(item.temporalResolutionMinutes))} min`:null,Number.isFinite(item.weight)?`Gewicht ${formatDecimal(Number(item.weight),2,2)}`:null,item.qc]:[Number.isFinite(item.distanceKm)?`${formatDecimal(Number(item.distanceKm),1,1)} km`:null,observed?`Stand ${observed}`:null]).filter(Boolean).join(' Â· ');return <small key={`${group.label}:${item.provider}:${item.stationId??item.stationName}:${index}`}><b>{item.provider}</b> Â· {item.stationName}{meta?` Â· ${meta}`:''}</small>})}</div>):<div><b>Messwertquellen</b><small>Keine ausreichend aktuelle Messwertquelle fÃ¼r diesen Parameter; Wert aus dem Modellhintergrund.</small></div>}</div>};
- const baseCloudSource=advancedMode&&fieldFresh('cloudCover')&&st?.cloudAnalysisMethod?`${st.cloudAnalysisMethod} Â· ${sourceFor(['cloudCover','ceilingHft','cloudBaseHft'],Number.isFinite(st?.cloudCover)||Number.isFinite(st?.ceilingHft)||Number.isFinite(st?.cloudBaseHft),'Best Match')}`:sourceFor(['cloudCover','ceilingHft','cloudBaseHft'],Number.isFinite(st?.cloudCover)||Number.isFinite(st?.ceilingHft)||Number.isFinite(st?.cloudBaseHft),'Best Match'),cloudSource=ceilingFromModel?`${baseCloudSource} Â· Ceiling ${currentForecastHour?.ceilingSourceLabel||'DWD ICON-D2-RUC Â· CEILING'}`:baseCloudSource;const currentWindPair=validateWindPair(windSpeed,windGust),displayWindSpeed=currentWindPair.wind,displayWindGust=currentWindPair.gust;
- const historyParts=[] as string[],historyVisibleParts=[] as string[];if(Number.isFinite(radarHistory?.lastHourMm)){const value=formatDecimalFixed(Number(radarHistory!.lastHourMm),1),product=radarHistory?.hourProduct||'RADOLAN';historyVisibleParts.push(`1 h ${value} mm`);historyParts.push(`letzte 1 h ${value} mm Â· ${product}${radarHistory?.hourAdjusted?' angeeicht':' nicht angeeicht'}`)}if(Number.isFinite(radarHistory?.last24hMm)){const value=formatDecimalFixed(Number(radarHistory!.last24hMm),1),product=radarHistory?.dayProduct||'SF';historyVisibleParts.push(`24 h ${value} mm`);historyParts.push(`letzte 24 h ${value} mm Â· ${product}${radarHistory?.dayAdjusted?' angeeicht':' nicht angeeicht'}`)}const precipitationHistoryDetail=historyParts.length?`${historyParts.join(' Â· ')}${advancedMode?` Â· ${radarHistory?.provider||'DWD RADOLAN'}`:''}`:'';
- const thunderPeakLabel=thunderRisk&&Number.isFinite(thunderRisk.peakEpoch)?formatDisplayDateTime(Number(thunderRisk.peakEpoch),w.timezone,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):'';
- const thunderRiskInline=thunderRisk&&thunderRisk.percent>=30?`${thunderRisk.shortLabel} Â· ${thunderRisk.percent} %`:'';
- const precipitationDetail=[precipitationHistoryDetail||sourceFor(['precipitation'],Number.isFinite(st?.precipitation),'aktueller Modellzeitraum'),thunderRiskInline?`Schauer-/Gewittersignal ${thunderRiskInline}${thunderPeakLabel?` Â· Peak ${thunderPeakLabel} Uhr`:''}`:''].filter(Boolean).join(' Â· ');
- const precipitationCompactDetail=historyVisibleParts.length?`RADOLAN Â· ${historyVisibleParts.join(' Â· ')}`:'';
- const cloudCompactDetail=cloudOktasText(cloud).split(' Â· ')[1]||'',cloudVisibleDetail=[cloudCompactDetail,ceilingCompactDetail].filter(Boolean).join(' Â· ');
- const metricMore=(detail:ReactNode,sourceInfo?:ReactNode)=><div className="current-metric-more">{detail?<section><strong>Details</strong><span>{detail}</span></section>:null}{sourceInfo}</div>;
- type MetricCard={icon:ReactNode;label:string;value:ReactNode;detail?:ReactNode;checked:boolean;info?:ReactNode};
- const cards:MetricCard[]=[
-  {icon:<span className="metric-icon-wrap"><Droplets size={15}/></span>,label:'Taupunkt',value:`${Math.round(dew)} Â°C`,detail:`Feuchte ${Math.round(hum)} %`,checked:fieldFresh('dewPoint')&&Number.isFinite(st?.dewPoint),info:metricMore(`Relative Feuchte ${Math.round(hum)} % Â· ${sourceFor(['dewPoint','humidity'],Number.isFinite(st?.dewPoint),'Best Match')}`,fieldSourceInfo([{label:'Taupunkt',fields:['dewPoint']},{label:'Relative Feuchte',fields:['humidity']}]))},
-  {icon:<span className="metric-icon-wrap"><Wind size={15}/></span>,label:'Wind / BÃ¶en',value:<span className="wind-value-nowrap"><WindDirectionArrow direction={windDirection} gust={displayWindGust}/> {wind(displayWindSpeed,unit)} Â· {wind(displayWindGust,unit)}</span>,detail:`${Math.round(windDirection)}Â° Â· ${cardinalDirection(windDirection)}`,checked:(fieldFresh('windSpeed')&&Number.isFinite(st?.windSpeed))||(fieldFresh('windDirection')&&Number.isFinite(st?.windDirection))||(fieldFresh('windGust')&&Number.isFinite(st?.windGust)),info:metricMore(`Richtung ${Math.round(windDirection)}Â° Â· ${sourceFor(['windSpeed','windDirection','windGust'],Number.isFinite(st?.windSpeed)||Number.isFinite(st?.windDirection)||Number.isFinite(st?.windGust),'Best Match')}`,fieldSourceInfo([{label:'Wind',fields:['windSpeed','windDirection']},{label:'BÃ¶en',fields:['windGust']}]))},
-  {icon:<span className="metric-icon-wrap metric-icon-pictogram"><WeatherPictogram code={Number.isFinite(currentWeatherCode)?currentWeatherCode:61} intensity={currentPictogramIntensity} phenomenon={currentObservedPhenomenon??reconciledCurrentPrecip.phenomenon} day={currentIsDay} title={currentWeatherLabel} size={18}/></span>,label:'Niederschlag',value:<span className="current-metric-value-stack"><span>{precipitationAmountLabel({precipitation:reconciledCurrentPrecipSourceRate,snowfall:reconciledCurrentPrecipIsDry?0:Number(c.snowfall)||0})}</span>{thunderRiskInline&&<span className={`metric-inline-pill ${thunderRisk?.level==='high'?'alert':'watch'}`}>Gewitter {thunderRiskInline}</span>}</span>,detail:precipitationCompactDetail||undefined,checked:fieldFresh('precipitation')&&Number.isFinite(st?.precipitation),info:metricMore(precipitationDetail,fieldSourceInfo([{label:'Niederschlag',fields:['precipitation']}]))},
-  {icon:<span className="metric-icon-wrap"><Eye size={15}/></span>,label:'Sichtweite',value:visibilityLabel(visibility),checked:fieldFresh('visibility')&&Number.isFinite(st?.visibility),info:metricMore(`Meteorologische Sichtweite Â· ${sourceFor(['visibility'],Number.isFinite(st?.visibility),'Best Match')}`,fieldSourceInfo([{label:'Sichtweite',fields:['visibility']}]))},
-  {icon:<span className="metric-icon-wrap"><Cloud size={15}/></span>,label:'BewÃ¶lkung',value:`${cloudOktasValue}/8`,detail:cloudVisibleDetail,checked:(fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover))||(fieldFresh('ceilingHft')&&Number.isFinite(st?.ceilingHft))||(fieldFresh('cloudBaseHft')&&Number.isFinite(st?.cloudBaseHft)),info:metricMore(`${cloudBaseDetail}${cloudCompactDetail} Â· ${cloudSource}`,fieldSourceInfo([{label:'Bedeckung',fields:['cloudCover']},{label:'Untergrenze / Ceiling',fields:['cloudBaseHft','ceilingHft']}]))},
-  {icon:<span className="metric-icon-wrap"><Gauge size={15}/></span>,label:'Luftdruck',value:`${formatDecimalFixed(pressure,1)} hPa`,detail:advancedMode&&pressureChange?<span className="pressure-tendency compact"><b>{pressureChange.arrow} {pressureChange.delta>=0?'+':''}{formatDecimal(pressureChange.delta,1)} hPa / 3 h</b><span>{pressureChange.label}</span></span>:undefined,checked:qffStationPressure,info:metricMore(advancedMode?<>Auf MeereshÃ¶he (QFF) Â· {sourceFor(['pressure'],qffStationPressure,'Best Match')}</>:'Auf MeereshÃ¶he',fieldSourceInfo([{label:'Luftdruck',fields:['pressure']}]))},
-  {icon:<span className="metric-icon-wrap"><Sun size={15}/></span>,label:'UVI',value:uvClassification?uvClassification.label:'â€“',detail:Number.isFinite(actualCurrentUv)?`UVI ${formatUvi(actualCurrentUv)}`:'keine aktuellen Werte',checked:false,info:<UvIndexExplanation value={actualCurrentUv} band={uvClassification} advanced={advancedMode} elevation={w.elevation} altitudeBonus={altitudeBonus}/>},
-  {icon:<span className="metric-icon-wrap"><CloudFog size={15}/></span>,label:'LuftqualitÃ¤t',value:airClassification?airClassification.band.label:'â€“',detail:airClassification?`${airClassification.dominant.formula} Â· ${formatDecimal(airClassification.dominant.value,1,1)} Âµg/mÂ³`:'keine aktuellen Werte',checked:false},
-  {icon:<span className="metric-icon-wrap"><Sun size={15}/></span>,label:'Sonnenschein',value:sunshineMinutesLabel(sunshineRecent.seconds,sunshineRecent.coverageMinutes),detail:sunshineWindowLabel,checked:false,info:metricMore(`${sunshineSource}${sunshineRecent.plausibilityAdjusted?' Â· aktuelles Viertel mit lokaler BewÃ¶lkung plausibilisiert':''}`)},
-  {icon:<span className="metric-icon-wrap metric-icon-dual"><Sun size={13}/><Moon size={13}/></span>,label:'Sonne / Mond',value:<span className="sun-moon-card-value"><span className="sun-moon-time-block" aria-label="Sonnenaufgang"><small>Aufgang</small><b>{formatAstronomyTime(astronomy.sunrise,astronomy.timezone)}</b></span><span className="sun-moon-card-divider" aria-hidden="true"/><span className="sun-moon-time-block" aria-label="Sonnenuntergang"><small>Untergang</small><b>{formatAstronomyTime(astronomy.sunset,astronomy.timezone)}</b></span></span>,detail:<span className="sun-moon-phase compact"><i aria-hidden="true">{astronomy.moonIcon}</i><b>{astronomy.moonPhase}</b></span>,checked:false,info:<AstronomyExplanation astronomy={astronomy}/>}
- ];
- return <><section className="hero current-compact" data-mid-view="current"><div className="current-weather-overview"><div className="current-weather-icon"><WeatherPictogram code={currentWeatherCode} intensity={currentPictogramIntensity} phenomenon={currentObservedPhenomenon??reconciledCurrentPrecip.phenomenon} day={currentIsDay} title={currentWeatherLabel} cloud={Number(c.cloud_cover)} lowCloud={Number(c.cloud_cover_low)} midCloud={Number(c.cloud_cover_mid)} highCloud={Number(c.cloud_cover_high)}/></div><article><div className="hero-kicker-row"><span>Aktuelles Wetter</span></div><strong>{Math.round(temp)}Â°</strong><b>{currentWeatherLabel}</b><small>GefÃ¼hlt {Math.round(currentApparentTemperature)} Â°C{temperatureFresh?(advancedMode?(ownStation?' Â· eigene Wetterstation plausibilisiert':hyperlocalAnalysis?' Â· modell- und stationsgestÃ¼tzt lokal analysiert':st?.blended?' Â· Temperatur robust lokal gemittelt':' Â· Temperatur stationsgeprÃ¼ft'):' Â· mit Messwert geprÃ¼ft'):''}</small></article><div className="current-weather-facts" aria-label="Aktuelle Wetterparameter"><span className="precip"><small>Niederschlag</small><b>{currentPrecipRateLabel}</b>{currentPrecipIntensityLabel&&<em>{currentPrecipIntensityLabel}</em>}</span><span className="wind"><small>Wind / BÃ¶en</small><b>{wind(displayWindSpeed,unit)} Â· G{wind(displayWindGust,unit)}</b><em>{cardinalDirection(windDirection)}</em></span><span className="humidity"><small>Feuchte / Taupunkt</small><b>{Math.round(hum)} %</b><em>{Math.round(dew)} Â°C</em></span><span className="visibility"><small>Sicht</small><b>{currentVisibilityCompact}</b></span><span className="pressure"><small>Luftdruck</small><b>{Math.round(pressure)} hPa</b></span></div>{currentRange&&<span className="hero-day-range" aria-label={`Heute Tiefsttemperatur ${Math.round(currentRange.min)} Grad, HÃ¶chsttemperatur ${Math.round(currentRange.max)} Grad`} title="Heutiger Temperaturbereich aus Vorhersage und aktuellem Wert"><em>Heute</em><span className="hero-day-range-values"><span className="min"><small>Tmin</small><b>{Math.round(currentRange.min)}Â°</b></span><i aria-hidden="true"/><span className="max"><small>Tmax</small><b>{Math.round(currentRange.max)}Â°</b></span></span></span>}</div>{nowcards}<div className="current-compact-source"><aside className={fresh?'ok':''}><i/><span><b>{fresh?(ownStation?'Eigene Wetterstation':hyperlocalAnalysis?'Hyperlokale Analyse':st?.blended?'Lokales Stationsmittel':'Messwertabgleich'):stationLoading?'PrÃ¼fung lÃ¤uft':'Best Match'}</b>{advancedMode?<><small>{fresh?stationStatus:stationLoading?'Stationsdaten werden im Hintergrund geprÃ¼ft.':'Keine ausreichend aktuelle amtliche oder hyperlokale Messstation verfÃ¼gbar â€“ Fallback auf Best Match'}</small>{stationDynamicStatus}{fresh?<InfoHint className="current-analysis-trigger" label="Hyperlokale Analyse erklÃ¤ren">{stationAnalysisInfo}</InfoHint>:null}</>:<InfoHint className="current-analysis-trigger" label="Datenanalyse erklÃ¤ren">{fresh?'Aktuelle Messwerte werden mit dem Ã¶rtlichen Best-Match-Hintergrund geprÃ¼ft und lokal gewichtet.':stationLoading?'Geeignete Stationsdaten werden im Hintergrund gesucht und geprÃ¼ft.':'Ohne ausreichend aktuelle Messstation verwendet MID die Best-Match-Vorhersage.'}</InfoHint>}</span></aside><button type="button" className="current-metrics-toggle" onClick={()=>setMetricsOpen(open=>!open)} aria-expanded={metricsOpen} aria-controls="current-weather-metrics" aria-label={metricsOpen?'Weniger aktuelle Wetterdaten anzeigen':'Mehr aktuelle Wetterdaten anzeigen'} title={metricsOpen?'Weniger aktuelle Wetterdaten anzeigen':'Mehr aktuelle Wetterdaten anzeigen'}>{metricsOpen?<ChevronUp size={13}/>:<ChevronDown size={13}/>}<b>{metricsOpen?'weniger':'mehr'}</b></button></div></section><section id="current-weather-metrics" className="metrics" hidden={!metricsOpen}>{cards.map(x=>{const airCard=x.label==='LuftqualitÃ¤t',uviCard=x.label==='UVI',windCard=x.label==='Wind / BÃ¶en',sunMoonCard=x.label==='Sonne / Mond',cardClass=[airCard?'air-quality-card':'',uviCard?'uvi-card':'',windCard?'wind-gust-card':'',sunMoonCard?'sun-moon-card':''].filter(Boolean).join(' ')||undefined;return <article key={x.label} className={cardClass}><header><span className="current-metric-icon">{x.icon}</span><small>{airCard?'LuftqualitÃ¤t (EU-AQI)':x.label}</small>{airCard&&<AirQualityExplanation result={airClassification} station={airStation} advanced={advancedMode}/>} {airCard&&air?._mid_air_quality?.observation&&<InfoHint label="LuftqualitÃ¤tsquelle"><strong>{air._mid_air_quality.provider}</strong><br/><small>Aktuelle Schadstoffkonzentrationen: amtliche Messung{air._mid_air_quality.preliminary?' Â· vorlÃ¤ufig':''}{air._mid_air_quality.stationName?` Â· ${air._mid_air_quality.stationName}`:''}. {air._mid_air_quality.fallbackModelProvider||'Open-Meteo/CAMS'} bleibt Prognose- und Fallbackquelle.{air._mid_air_quality.attribution?<><br/>Quelle: {air._mid_air_quality.attribution}.</>:null}</small></InfoHint>} {x.info&&<InfoHint label={`${x.label} â€“ weitere Informationen`}>{x.info}</InfoHint>}{x.checked&&<i title="Mit aktueller Stationsmessung abgeglichen"/>}</header><strong className={airCard?'air-quality-primary':undefined}>{x.value}</strong>{airCard&&<AqiIndicator result={airClassification}/>} {uviCard&&<UviIndicator band={uvClassification}/>} {x.detail?<small className="current-metric-summary">{x.detail}</small>:null}</article>})}</section></>
-}
-function metricNumber(source:Record<string,any>|undefined,key:string){const value=Number(source?.[key]);return Number.isFinite(value)?value:NaN}
-function windChill(tempC:number,windKt:number){const kmh=windKt*1.852;if(tempC>10||kmh<4.8)return tempC;return 13.12+.6215*tempC-11.37*Math.pow(kmh,.16)+.3965*tempC*Math.pow(kmh,.16)}
-function cloudBase(elevation:number,temp:number,dew:number){return Number.isFinite(temp)&&Number.isFinite(dew)?Math.max(elevation,elevation+125*Math.max(0,temp-dew)):NaN}
-function localMinutesBefore(value:string|undefined,minutes:number){const match=String(value||'').match(/T(\d{2}):(\d{2})/);if(!match)return'';let total=Number(match[1])*60+Number(match[2])-minutes;while(total<0)total+=1440;return`${String(Math.floor(total/60)%24).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`}
-function mountainPrecipitationParts(source:Record<string,any>){return precipitationParts({precipitation:metricNumber(source,'precipitation')||0,rain:metricNumber(source,'rain')||0,showers:metricNumber(source,'showers')||0,snowfall:metricNumber(source,'snowfall')||0,probability:metricNumber(source,'precipitation_probability')||0,code:metricNumber(source,'weather_code')||0,temperature:metricNumber(source,'temperature_2m'),dewPoint:metricNumber(source,'dew_point_2m'),humidity:metricNumber(source,'relative_humidity_2m'),cloud:metricNumber(source,'cloud_cover'),lowCloud:metricNumber(source,'cloud_cover_low')})}
-function mountainPrecipitationLabel(current:Record<string,any>,elevation:number,snowLine:number){const part=mountainPrecipitationParts(current),precip=metricNumber(current,'precipitation');if(part.type!=='none')return part.weatherLabel;if(Number.isFinite(snowLine)&&elevation>=snowLine&&precip>.01)return'Schnee/Schneeregen';return'kein Niederschlag'}
-function mountainAvalancheUrl(loc:Location){const code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country);if((code==='AT'||code==='IT')&&loc.latitude>=45.4&&loc.latitude<=47.8&&loc.longitude>=9.5&&loc.longitude<=13.9)return'https://avalanche.report/';return'https://www.avalanches.org/'}
-function mountainSnowText(level:MountainLevelForecast){const measured=Number.isFinite(level.measuredSnowDepthCm)?`${Math.round(level.measuredSnowDepthCm)} cm Messung`:'Messung â€“',model=Number.isFinite(level.modelSnowDepthCm)?`${Math.round(level.modelSnowDepthCm)} cm Modell`:'Modell â€“';return`${measured} Â· ${model}`}
-function mountainSnowMeasurementTitle(level:MountainLevelForecast){const measurement=level.snowMeasurement;if(!measurement)return'Keine GeoSphere-Messstation innerhalb 25 km, Â±350 m und maximal 3 Stunden Alter.';const observed=formatDisplayDateTime(measurement.observedAt,level.weather.timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});return`${measurement.stationName} Â· ${measurement.distanceKm.toFixed(1).replace('.',',')} km Â· HÃ¶hendifferenz ${Math.round(measurement.heightDifferenceM)} m Â· Stand ${observed}`}
-function mountainProfileCaption(config:MountainConfig){const season=config.season==='auto'?'Saison automatisch erkannt':'Saison manuell gewÃ¤hlt',profile=config.profileSource==='manual'?'Profil manuell angepasst':config.profileSource==='osm-dem'?`Profil automatisch abgeleitet Â· ${config.profileConfidence==='high'?'hohe':config.profileConfidence==='medium'?'mittlere':'geringe'} Sicherheit`:'Profil aus abgeleiteten Ausgangswerten';return`${season} Â· ${profile}`}
-function mountainNewSnowLabel(value:number){return Number.isFinite(value)?`${formatDecimalFixed(Math.max(0,value),1)} cm`:'â€“'}
-type MountainZoneRow={time:string;epoch:number;score:number;temp:number;apparent:number;wetBulb:number;gust:number;visibility:number;insideCloud:boolean;probability:number;precipitation:number;snow:number;cape:number;convectiveRisk:number;convectiveSource:string;isDay:boolean;available:number};
-type MountainZoneAssessment={id:string;name:string;low:number;high:number;score:number;rating:string;window:string;snowQuality?:string;summary:string;risks:string[];rows:MountainZoneRow[]};
-type MountainDaylightWindow={date:string;label:string;sunrise:number;sunset:number};
-function mountainHourlyValue(level:MountainLevelForecast,key:string,index:number){const values=level.weather.hourly[key],value=Array.isArray(values)?Number(values[index]):NaN;return Number.isFinite(value)?value:NaN}
-function mountainHourlyPrecipitationValue(level:MountainLevelForecast,key:'precipitation'|'rain'|'showers'|'snowfall'|'precipitation_probability',slotIndex:number){const times=(level.weather.hourly.time??[]) as string[],nextIndex=slotIndex+1;if(nextIndex>=times.length)return NaN;const start=mountainTimeEpoch(level.weather,times[slotIndex]),end=mountainTimeEpoch(level.weather,times[nextIndex]),gap=end-start;if(!Number.isFinite(start)||!Number.isFinite(end)||gap<45*60000||gap>75*60000)return NaN;return mountainHourlyValue(level,key,nextIndex)}
-function mountainHourlyDryWeatherCode(level:MountainLevelForecast,index:number){const code=Math.round(mountainHourlyValue(level,'weather_code',index)),kind=weatherPictogramKind(code);if(kind==='fog'||kind==='rime-fog'||!['drizzle','freezing-drizzle','rain','freezing-rain','showers','sleet','sleet-showers','snow','snow-grains','snow-stars','ice-crystals','ice-pellets','snow-showers','graupel-showers','hail-showers','wintry-after-thunder','thunder','thunder-solid','thunder-graupel','thunder-hail'].includes(kind))return Number.isFinite(code)?code:0;const cloud=Math.max(0,Math.min(100,mountainHourlyValue(level,'cloud_cover',index)));if(!Number.isFinite(cloud))return 3;if(cloud<12.5)return 0;if(cloud<37.5)return 1;if(cloud<75)return 2;return 3}
-function mountainHourlyPresentationParts(level:MountainLevelForecast,index:number){const current=Object.fromEntries(Object.entries(level.weather.hourly).map(([key,values])=>[key,Array.isArray(values)?values[index]:undefined])),nextCode=mountainHourlyValue(level,'weather_code',index+1),source={...current,precipitation:mountainHourlyPrecipitationValue(level,'precipitation',index),rain:mountainHourlyPrecipitationValue(level,'rain',index),showers:mountainHourlyPrecipitationValue(level,'showers',index),snowfall:mountainHourlyPrecipitationValue(level,'snowfall',index),precipitation_probability:mountainHourlyPrecipitationValue(level,'precipitation_probability',index),weather_code:Number.isFinite(nextCode)?nextCode:mountainHourlyDryWeatherCode(level,index)},parts=mountainPrecipitationParts(source);return parts.type==='none'?mountainPrecipitationParts({...source,weather_code:mountainHourlyDryWeatherCode(level,index)}):parts}
-type MountainThunderRisk=PeriodThunderRisk&{heightName:string};
-function mountainLevelThunderRisk(level:MountainLevelForecast):MountainThunderRisk|null{
- const times=(level.weather.hourly.time??[]) as string[],now=Date.now(),rows=times.map((time,index)=>({time,index,epoch:mountainTimeEpoch(level.weather,time)})).filter(row=>Number.isFinite(row.epoch)&&row.epoch>=now-30*60000).slice(0,6),samples=rows.map(row=>({time:row.time,epoch:row.epoch,code:mountainHourlyPresentationParts(level,row.index).displayCode,cape:mountainHourlyValue(level,'cape',row.index),liftedIndex:mountainHourlyValue(level,'lifted_index',row.index),convectiveInhibition:mountainHourlyValue(level,'convective_inhibition',row.index),columnWaterVapour:mountainHourlyValue(level,'total_column_integrated_water_vapour',row.index),temperature:mountainHourlyValue(level,'temperature_2m',row.index),dewPoint:mountainHourlyValue(level,'dew_point_2m',row.index),humidity:mountainHourlyValue(level,'relative_humidity_2m',row.index),precipitation:mountainHourlyPrecipitationValue(level,'precipitation',row.index),rain:mountainHourlyPrecipitationValue(level,'rain',row.index),showers:mountainHourlyPrecipitationValue(level,'showers',row.index),probability:mountainHourlyPrecipitationValue(level,'precipitation_probability',row.index)})),risk=significantPeriodThunderRisk(samples,6);
- return risk?{...risk,heightName:level.name||mountainLevelLabel(level.role)}:null;
-}
-function mountainThunderRisk(data:MountainSportsForecast|null|undefined){const risks=(data?.levels??[]).map(mountainLevelThunderRisk).filter((risk):risk is MountainThunderRisk=>Boolean(risk));return risks.length?risks.reduce((best,risk)=>risk.percent>best.percent?risk:best,risks[0]):null}
-type MountainCloudLayerAssessment={base:number;top:number;cover:number;inCloud:boolean;source:'profile'|'thermodynamic'};
-type MountainVisibilityAssessment={raw:number;effective:number;cloudLimited:boolean;adjusted:boolean;cloud:MountainCloudLayerAssessment};
-function mountainCloudLayerAssessment(level:MountainLevelForecast,index:number,temp:number,dew:number):MountainCloudLayerAssessment{
- const thermodynamicBase=cloudBase(level.elevation,temp,dew),surfaceCover=[mountainHourlyValue(level,'cloud_cover',index),mountainHourlyValue(level,'cloud_cover_low',index)].filter(Number.isFinite),fallbackCover=surfaceCover.length?Math.max(...surfaceCover):NaN,rows=MOUNTAIN_CLOUD_PROFILE_LEVELS.map(pressure=>({height:mountainHourlyValue(level,`geopotential_height_${pressure}hPa`,index),cover:mountainHourlyValue(level,`cloud_cover_${pressure}hPa`,index)})).filter(row=>Number.isFinite(row.height)&&Number.isFinite(row.cover)&&row.height>=level.elevation-80).sort((a,b)=>a.height-b.height),threshold=62.5,layers:{base:number;top:number;cover:number}[]=[];
- let start=-1;
- for(let rowIndex=0;rowIndex<=rows.length;rowIndex++){
-  const cloudy=rowIndex<rows.length&&rows[rowIndex].cover>threshold;
-  if(cloudy&&start<0)start=rowIndex;
-  if((!cloudy||rowIndex===rows.length)&&start>=0){
-   const end=rowIndex-1,first=rows[start],last=rows[end],previous=rows[start-1],next=rows[end+1],lowerHalf=previous?(first.height-previous.height)/2:rows[start+1]?(rows[start+1].height-first.height)/2:300,upperHalf=next?(next.height-last.height)/2:rows[end-1]?(last.height-rows[end-1].height)/2:450;
-   layers.push({base:Math.max(0,first.height-Math.max(120,lowerHalf)),top:last.height+Math.max(180,upperHalf),cover:Math.max(...rows.slice(start,end+1).map(row=>row.cover))});start=-1;
-  }
- }
- const containing=layers.find(layer=>level.elevation>=layer.base-120&&level.elevation<=layer.top+120),above=layers.filter(layer=>layer.base>=level.elevation-120).sort((a,b)=>a.base-b.base)[0],selected=containing??above??layers.sort((a,b)=>Math.abs(a.base-level.elevation)-Math.abs(b.base-level.elevation))[0];
- if(selected)return{...selected,inCloud:level.elevation>=selected.base-120&&level.elevation<=selected.top+120,source:'profile'};
- const inCloud=Number.isFinite(fallbackCover)&&fallbackCover>threshold&&Number.isFinite(thermodynamicBase)&&thermodynamicBase<=level.elevation+120;
- return{base:thermodynamicBase,top:NaN,cover:fallbackCover,inCloud,source:'thermodynamic'};
-}
-function mountainVisibilityAssessment(level:MountainLevelForecast,index:number,temp:number,dew:number):MountainVisibilityAssessment{
- const raw=mountainHourlyValue(level,'visibility',index),cloud=mountainCloudLayerAssessment(level,index,temp,dew),cloudLimited=cloud.inCloud&&Number.isFinite(cloud.cover)&&cloud.cover>62.5,effective=cloudLimited?(Number.isFinite(raw)?Math.min(raw,1000):1000):raw,adjusted=cloudLimited&&(!Number.isFinite(raw)||raw>1000);return{raw,effective,cloudLimited,adjusted,cloud};
-}
-function mountainWindWarningMeta(gust:number){if(!Number.isFinite(gust))return undefined;const kmh=gust*KMH_PER_KT,entry=[...DWD_WIND_THRESHOLDS_KMH].reverse().find(item=>dwdWindThresholdExceededKmh(kmh,item.threshold));return entry?{className:`mountain-wind-warning-${entry.threshold}`,label:`${entry.label} ${entry.threshold===50||entry.threshold===140?'Ã¼ber':'ab'} ${entry.threshold} km/h`}:undefined}
-function mountainPrecipitationClass(amount:number){if(!Number.isFinite(amount)||amount<=.05)return'';if(amount<.5)return'mountain-precip-trace';if(amount<2)return'mountain-precip-light';if(amount<5)return'mountain-precip-moderate';return'mountain-precip-heavy'}
-function mountainZoneBounds(levels:MountainLevelForecast[],index:number){const sorted=[...levels].sort((a:MountainLevelForecast,b:MountainLevelForecast)=>a.elevation-b.elevation),level=sorted[index],previous=sorted[index-1],next=sorted[index+1],low=previous?Math.round((previous.elevation+level.elevation)/2):Math.round(level.elevation),high=next?Math.round((level.elevation+next.elevation)/2):Math.round(level.elevation);return{low:Math.min(low,high),high:Math.max(low,high)}}
-function mountainAssessmentRating(score:number){return score>=78?'sehr gut':score>=64?'gut':score>=48?'eingeschrÃ¤nkt':'ungÃ¼nstig'}
-function mountainSnowQuality(temp:number,wetBulb:number){if(!Number.isFinite(temp)&&!Number.isFinite(wetBulb))return'unklar';const effective=Number.isFinite(wetBulb)?wetBulb:temp;return effective<=-5?'trocken/pulvrig':effective<=-1?'trocken bis kompakt':effective<=1?'kompakt':'feucht bis nass'}
-function contiguousMountainWindow(rows:{time:string;score:number}[],timezone?:string){if(!rows.length)return'';const threshold=Math.max(48,Math.max(...rows.map(row=>row.score))-14);let best:{start:number;end:number;value:number}|null=null,start=-1,sum=0;for(let index=0;index<=rows.length;index++){const valid=index<rows.length&&rows[index].score>=threshold;if(valid){if(start<0){start=index;sum=0}sum+=rows[index].score}else if(start>=0){const end=index-1,length=end-start+1,value=sum/length+(length>=3?5:0);if(!best||value>best.value)best={start,end,value};start=-1;sum=0}}if(!best){const index=rows.reduce((selected,row,current)=>row.score>rows[selected].score?current:selected,0);best={start:index,end:index,value:rows[index].score}}const from=formatLocalIsoDisplayTime(rows[best.start].time,timezone),endEpoch=localIsoToEpoch(rows[best.end].time,timezone),to=Number.isFinite(endEpoch)?formatDisplayDateTime(endEpoch+3600000,timezone,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}):formatLocalIsoDisplayTime(rows[best.end].time,timezone);return`${from}â€“${to} Uhr`}
-function mountainLocalEpoch(weather:MountainLevelForecast['weather'],value:string|undefined){return value?mountainTimeEpoch(weather,value):NaN}
-function mountainDaylightWindow(days:Day[],weather:MountainLevelForecast['weather']):MountainDaylightWindow|undefined{
- const now=Date.now(),candidates=days.slice(0,3).map((day,index)=>({day,index,sunrise:mountainLocalEpoch(weather,day.sunrise),sunset:mountainLocalEpoch(weather,day.sunset)})).filter(row=>Number.isFinite(row.sunrise)&&Number.isFinite(row.sunset)&&row.sunset>row.sunrise);
- if(!candidates.length)return undefined;
- const today=candidates[0],selected=now>=today.sunset?(candidates[1]??today):today;
- return{date:selected.day.date,label:selected.index===0?'Heute':'Morgen',sunrise:selected.sunrise,sunset:selected.sunset};
-}
-function mountainHourlyThunderRisk(level:MountainLevelForecast,index:number){return significantHourlyThunderRisk({code:mountainHourlyPresentationParts(level,index).displayCode,cape:mountainHourlyValue(level,'cape',index),liftedIndex:mountainHourlyValue(level,'lifted_index',index),convectiveInhibition:mountainHourlyValue(level,'convective_inhibition',index),columnWaterVapour:mountainHourlyValue(level,'total_column_integrated_water_vapour',index),temperature:mountainHourlyValue(level,'temperature_2m',index),dewPoint:mountainHourlyValue(level,'dew_point_2m',index),humidity:mountainHourlyValue(level,'relative_humidity_2m',index),precipitation:mountainHourlyPrecipitationValue(level,'precipitation',index),rain:mountainHourlyPrecipitationValue(level,'rain',index),showers:mountainHourlyPrecipitationValue(level,'showers',index),probability:mountainHourlyPrecipitationValue(level,'precipitation_probability',index)})}
-function mountainRapidThunderRisk(samples:ForecastFusionRapidMinute15[]|undefined,epoch:number):RapidThunderRisk|null{if(!Array.isArray(samples)||!Number.isFinite(epoch))return null;const rows=samples.filter(sample=>Number.isFinite(sample.epoch)&&Math.abs(sample.epoch-epoch)<=45*60000).map(sample=>rapidThunderRisk(sample)).filter((risk):risk is RapidThunderRisk=>Boolean(risk));return rows.length?rows.reduce((best,row)=>row.percent>best.percent?row:best,rows[0]):null}
-function mountainCombinedThunderPercent(modelRisk:ReturnType<typeof significantHourlyThunderRisk>,rapidRisk:RapidThunderRisk|null){return Math.max(modelRisk?.percent??0,rapidRisk?.percent??0)}
-function mountainConvectivePenalty(percent:number){return percent>=80?35:percent>=60?25:percent>=30?12:0}
-function mountainRapidLabel(risk:RapidThunderRisk|null){return risk?.level==='high'?'hoch':risk?.level==='likely'?'erhÃ¶ht':risk?.level==='possible'?'mÃ¶glich':''}
-function mountainZoneAssessments(data:MountainSportsForecast,daylight:MountainDaylightWindow,rapidMinutes15?:ForecastFusionRapidMinute15[]):MountainZoneAssessment[]{
- const levels=[...data.levels].sort((a:MountainLevelForecast,b:MountainLevelForecast)=>a.elevation-b.elevation),finite=(value:number,fallback:number)=>Number.isFinite(value)?value:fallback;
- return levels.flatMap((level,index):MountainZoneAssessment[]=>{
-  const times=(level.weather.hourly.time??[]) as string[],rows:MountainZoneRow[]=times.map((time,hourIndex)=>{
-   const epoch=mountainTimeEpoch(level.weather,time),temp=mountainHourlyValue(level,'temperature_2m',hourIndex),apparent=mountainHourlyValue(level,'apparent_temperature',hourIndex),wetBulb=mountainHourlyValue(level,'wet_bulb_temperature_2m',hourIndex),gust=mountainHourlyValue(level,'wind_gusts_10m',hourIndex),visibilityAssessment=mountainVisibilityAssessment(level,hourIndex,temp,mountainHourlyValue(level,'dew_point_2m',hourIndex)),visibility=visibilityAssessment.effective,probability=mountainHourlyPrecipitationValue(level,'precipitation_probability',hourIndex),precipitation=mountainHourlyPrecipitationValue(level,'precipitation',hourIndex),snow=mountainHourlyPrecipitationValue(level,'snowfall',hourIndex),cape=mountainHourlyValue(level,'cape',hourIndex),modelThunder=mountainHourlyThunderRisk(level,hourIndex),rapidThunder=mountainRapidThunderRisk(rapidMinutes15,epoch),convectiveRisk=mountainCombinedThunderPercent(modelThunder,rapidThunder),convectiveSource=rapidThunder&&rapidThunder.percent>=(modelThunder?.percent??0)?'ICON-D2-RUC + HÃ¶henmodell':modelThunder?'HÃ¶henmodell Mehrparameter':'',isDayValue=mountainHourlyValue(level,'is_day',hourIndex),isDay=Number.isFinite(isDayValue)?isDayValue>=.5:true,available=[temp,apparent,wetBulb,gust,visibility,probability,precipitation,cape].filter(Number.isFinite).length;
-   let score=100-Math.max(0,5-available)*2.5;
-   if(data.season==='winter'){
-    const safeGust=finite(gust,0),safeProbability=finite(probability,0),safeWetBulb=finite(wetBulb,temp),safeApparent=finite(apparent,temp),safeSnow=finite(snow,0);
-    score-=Math.max(0,safeGust-14)*2.1;if(Number.isFinite(visibility))score-=visibility<500?42:visibility<1500?25:visibility<5000?10:0;score-=Math.max(0,safeProbability-55)*.22;if(Number.isFinite(safeWetBulb))score-=safeWetBulb>1?18:safeWetBulb>-1?7:0;if(safeSnow>.05&&Number.isFinite(safeWetBulb)&&safeWetBulb<=.5)score+=5;if(Number.isFinite(safeApparent))score-=safeApparent<-18?12:safeApparent<-12?5:0;
-   }else{
-    const safeGust=finite(gust,0),safeProbability=finite(probability,0),safePrecip=finite(precipitation,0);
-    score-=Math.max(0,safeGust-18)*1.8;if(Number.isFinite(visibility))score-=visibility<1000?42:visibility<4000?20:visibility<10000?7:0;score-=Math.max(0,safeProbability-35)*.45;score-=Math.max(0,safePrecip)*8;if(Number.isFinite(temp))score-=temp>25?Math.min(22,(temp-25)*3):temp<0?14:temp<5?5:0;score+=isDay?3:-4;
-   }
-   score-=mountainConvectivePenalty(convectiveRisk);
-   return{time,epoch,score:Math.max(0,Math.min(100,score)),temp,apparent,wetBulb,gust,visibility,insideCloud:visibilityAssessment.cloudLimited,probability,precipitation,snow,cape,convectiveRisk,convectiveSource,isDay,available};
-  }).filter(row=>Number.isFinite(row.epoch)&&row.epoch>=daylight.sunrise&&row.epoch<=daylight.sunset&&row.available>=3),relevant=rows;
-  if(relevant.length<2)return [];
-  const score=relevant.reduce((sum,row)=>sum+row.score,0)/relevant.length,bestRow=relevant.reduce((best,row)=>!best||row.score>best.score?row:best,relevant[0]),bounds=mountainZoneBounds(levels,index),risks:string[]=[];
-  if(relevant.some(row=>Number.isFinite(row.gust)&&row.gust>=28))risks.push('starke BÃ¶en/Liftbetrieb eingeschrÃ¤nkt');if(relevant.some(row=>row.insideCloud))risks.push('zeitweise innerhalb einer Wolkenschicht: Sicht stark reduziert');else if(relevant.some(row=>Number.isFinite(row.visibility)&&row.visibility<1200))risks.push('zeitweise sehr geringe Sicht');if(relevant.some(row=>row.convectiveRisk>=30)){const ruc=relevant.some(row=>row.convectiveRisk>=30&&row.convectiveSource.includes('RUC'));risks.push(ruc?'Gewitter-/Konvektionssignal Â· HÃ¶henmodell + ICON-D2-RUC':'Gewitter-/Konvektionssignal aus Mehrparameteranalyse');}if(data.season==='winter'&&relevant.some(row=>Number.isFinite(row.wetBulb)&&row.wetBulb>1))risks.push('nasser Schnee/Tauphase');if(data.season==='summer'&&relevant.some(row=>Number.isFinite(row.probability)&&row.probability>=65))risks.push('hÃ¤ufiger Niederschlag');
-  const snowQuality=data.season==='winter'?mountainSnowQuality(bestRow.temp,bestRow.wetBulb):undefined,visibilityText=Number.isFinite(bestRow.visibility)?bestRow.visibility>=10000?'gute Sicht':bestRow.visibility>=3000?'mÃ¤ÃŸige Sicht':'schlechte Sicht':'Sicht unklar',summary=data.season==='winter'?`${snowQuality} Â· ${visibilityText}`:`${Number.isFinite(bestRow.temp)?Math.round(bestRow.temp)+' Â°C':'Temperatur unklar'} Â· ${visibilityText}`;
-  return[{id:String(level.role),name:level.name||mountainLevelLabel(level.role),low:bounds.low,high:bounds.high,score,rating:mountainAssessmentRating(score),window:contiguousMountainWindow(relevant,level.weather.timezone),snowQuality,summary,risks,rows:relevant}];
- });
-}
-function mountainZoneLabel(zone:MountainZoneAssessment){return zone.low===zone.high?`${zone.low} m`:`${zone.low}â€“${zone.high} m`}
-function mountainTransitionReason(zone:MountainZoneAssessment,from:number){const rows=zone.rows.filter(row=>row.epoch>=from),reasons:string[]=[];if(rows.some(row=>row.precipitation>=.2||row.probability>=60))reasons.push('Niederschlag');if(rows.some(row=>row.visibility<3000))reasons.push('Sichtverschlechterung');if(rows.some(row=>row.gust>=24))reasons.push('zunehmende BÃ¶en');if(rows.some(row=>row.convectiveRisk>=30))reasons.push('zunehmender Konvektion');return reasons.slice(0,2).join(' und ')||'ungÃ¼nstigerer Bedingungen'}
-function mountainDaySegments(zones:MountainZoneAssessment[]){if(!zones.length)return[] as {zone:MountainZoneAssessment;start:number;end:number}[];const epochs=[...new Set(zones.flatMap(zone=>zone.rows.map(row=>row.epoch)))].sort((a,b)=>a-b),segments:{zone:MountainZoneAssessment;start:number;end:number}[]=[];for(const epoch of epochs){const candidates=zones.map(zone=>({zone,row:zone.rows.find(row=>row.epoch===epoch)})).filter(item=>item.row) as {zone:MountainZoneAssessment;row:MountainZoneRow}[],best=candidates.sort((a,b)=>b.row.score-a.row.score)[0];if(!best)continue;const current=segments.at(-1);if(current?.zone.id===best.zone.id)current.end=epoch;else segments.push({zone:best.zone,start:epoch,end:epoch})}return segments.filter((segment,index)=>index===0||segment.end-segment.start>=3600000||index===segments.length-1)}
-function mountainClock(epoch:number,timezone:string){return new Intl.DateTimeFormat('de-DE',{timeZone:timezone,hour:'2-digit',minute:'2-digit'}).format(new Date(epoch))}
-function MountainZoneAnalysis({data,days,rapidMinutes15}:{data:MountainSportsForecast;days:Day[];rapidMinutes15?:ForecastFusionRapidMinute15[]}){const weather=data.levels[0]?.weather,daylight=weather?mountainDaylightWindow(days,weather):undefined,zones=daylight?mountainZoneAssessments(data,daylight,rapidMinutes15):[],best=[...zones].sort((a,b)=>b.score-a.score)[0],segments=mountainDaySegments(zones);if(!best||!daylight||!weather)return null;const first=segments[0],second=segments[1],narrative=first?second?`${mountainZoneLabel(first.zone)} ist bis etwa ${mountainClock(second.start,weather.timezone)} Uhr am gÃ¼nstigsten. Danach ist wegen ${mountainTransitionReason(first.zone,second.start)} ${second.zone.name} (${mountainZoneLabel(second.zone)}) gÃ¼nstiger.`:`${mountainZoneLabel(first.zone)} ist Ã¼ber den bewerteten Tageszeitraum voraussichtlich am gÃ¼nstigsten.`:'';return <section className="mountain-zone-analysis"><header><div><span>Analyse nach HÃ¶henzone Â· {daylight.label}</span><strong>{mountainZoneLabel(best)} voraussichtlich am gÃ¼nstigsten</strong></div><em>{best.window}</em></header><p className="mountain-zone-period">Bewertet wird {daylight.label.toLowerCase()} von Sonnenaufgang ({mountainClock(daylight.sunrise,weather.timezone)} Uhr) bis Sonnenuntergang ({mountainClock(daylight.sunset,weather.timezone)} Uhr).{daylight.label==='Morgen'?' Der heutige Sonnenuntergang ist bereits Ã¼berschritten.':''}</p>{narrative&&<p><b>Tagesverlauf:</b> {narrative}</p>}<p>Beste Kombination aus Temperatur, Sicht, Niederschlag und Wind: <b>{best.name}</b>. Die Bewertung ist eine automatische Entscheidungshilfe und ersetzt keine Betriebs- oder Lawineninformation.</p><div>{zones.map(zone=><article key={zone.id} className={zone.id===best.id?'best':''}><header><span><b>{zone.name}</b><small>{mountainZoneLabel(zone)}</small></span><em>{Math.round(zone.score)}/100</em></header><strong>{zone.rating} Â· {zone.window||'kein klares Zeitfenster'}</strong><p>{zone.summary}</p>{zone.risks.length>0&&<small>{zone.risks.join(' Â· ')}</small>}</article>)}</div></section>}
-type MountainMatrixPoint={time:string;epoch:number;code:number;intensity?:PrecipitationParts['intensity'];phenomenon?:string;weatherLabel:string;isDay:boolean;temp:number;visibility:number;rawVisibility:number;visibilityAdjusted:boolean;insideCloud:boolean;cloudCover:number;cloudBase:number;cloudTop:number;cloudBaseAgl:number;wind:number;gust:number;precipitation:number;probability:number;snow:number;snowLine:number};
-type MountainMatrixWindow={date:string;label:string;sunrise:number;sunset:number};
-function mountainForecastWindows(days:Day[],weather:MountainLevelForecast['weather']){const now=Date.now(),candidates=days.slice(0,4).map((day,index)=>({date:day.date,index,sunrise:mountainLocalEpoch(weather,day.sunrise),sunset:mountainLocalEpoch(weather,day.sunset)})).filter(row=>Number.isFinite(row.sunrise)&&Number.isFinite(row.sunset)&&row.sunset>row.sunrise);if(!candidates.length)return[] as MountainMatrixWindow[];const start=now>=candidates[0].sunset?1:0;return candidates.slice(start,start+3).map((row,position)=>({date:row.date,label:position===0?(start===0?'Heute':'Morgen'):formatDateOnly(row.date,{weekday:'long'}),sunrise:row.sunrise,sunset:row.sunset}))}
-function mountainMatrixPoints(level:MountainLevelForecast,window:MountainMatrixWindow,resolution:1|3){const times=(level.weather.hourly.time??[]) as string[],indices=times.map((time,index)=>({time,index,epoch:mountainTimeEpoch(level.weather,time)})).filter(row=>Number.isFinite(row.epoch)&&row.epoch>=window.sunrise&&row.epoch<window.sunset),points:MountainMatrixPoint[]=[];for(let offset=0;offset<indices.length;offset+=resolution){const group=indices.slice(offset,offset+resolution);if(!group.length)continue;const sample=group[Math.floor(group.length/2)],slotStart=group[0]!,value=(key:string,index=sample.index)=>mountainHourlyValue(level,key,index),sumPrecip=(key:'precipitation'|'rain'|'showers'|'snowfall')=>group.reduce((total,row)=>{const current=mountainHourlyPrecipitationValue(level,key,row.index);return total+(Number.isFinite(current)?Math.max(0,current):0)},0),max=(key:string)=>{const values=group.map(row=>mountainHourlyValue(level,key,row.index)).filter(Number.isFinite);return values.length?Math.max(...values):NaN},maxPrecip=(key:'precipitation_probability')=>{const values=group.map(row=>mountainHourlyPrecipitationValue(level,key,row.index)).filter(Number.isFinite);return values.length?Math.max(...values):NaN},weatherRows=group.map(row=>{const part=mountainHourlyPresentationParts(level,row.index),amount=mountainHourlyPrecipitationValue(level,'precipitation',row.index),probability=mountainHourlyPrecipitationValue(level,'precipitation_probability',row.index),kind=weatherPictogramKind(part.displayCode),impact=(['thunder','thunder-solid','thunder-graupel','thunder-hail'].includes(kind)?100:kind==='showers'||kind==='sleet-showers'||kind==='snow-showers'||kind==='graupel-showers'||kind==='hail-showers'?78:kind==='rain'||kind==='freezing-rain'||kind==='sleet'||kind==='snow'||kind==='snow-stars'||kind==='ice-crystals'||kind==='ice-pellets'||kind==='wintry-after-thunder'?68:kind==='drizzle'||kind==='freezing-drizzle'||kind==='snow-grains'?48:kind==='fog'||kind==='rime-fog'?42:kind==='cloudy'?28:kind==='partly-cloudy'?18:kind==='mostly-clear'?9:0)+Math.min(18,Math.max(0,Number(amount)||0)*6)+Math.max(0,Number(probability)||0)*.12;return{part,impact}}),part=weatherRows.reduce((best,row)=>row.impact>best.impact?row:best,weatherRows[0]!).part,temp=value('temperature_2m'),dew=value('dew_point_2m'),freezing=value('freezing_level_height'),temperature850=value('temperature_850hPa'),height850=value('geopotential_height_850hPa'),windPair=validateWindPair(value('wind_speed_10m'),max('wind_gusts_10m')),visibilityAssessment=mountainVisibilityAssessment(level,sample.index,temp,dew),snowLine=dwdSnowfallLimit({temperature850,geopotentialHeight850:height850,freezingLevelHeight:freezing}),cloudLayer=visibilityAssessment.cloud,cloudBaseValue=cloudLayer.base,cloudBaseAgl=Number.isFinite(cloudBaseValue)?Math.max(0,cloudBaseValue-level.elevation):NaN;points.push({time:slotStart.time,epoch:slotStart.epoch,code:part.displayCode,intensity:part.intensity,phenomenon:part.phenomenon,weatherLabel:part.type==='none'?label(part.displayCode):part.weatherLabel,isDay:astronomicalIsDayAt(slotStart.epoch,{latitude:level.latitude,longitude:level.longitude,elevation:level.elevation,timezone:level.weather.timezone},slotStart.epoch>=window.sunrise&&slotStart.epoch<window.sunset),temp,visibility:visibilityAssessment.effective,rawVisibility:visibilityAssessment.raw,visibilityAdjusted:visibilityAssessment.adjusted,insideCloud:visibilityAssessment.cloudLimited,cloudCover:cloudLayer.cover,cloudBase:cloudBaseValue,cloudTop:cloudLayer.top,cloudBaseAgl,wind:windPair.wind,gust:windPair.gust,precipitation:sumPrecip('precipitation'),probability:maxPrecip('precipitation_probability'),snow:sumPrecip('snowfall'),snowLine})}return points}
-function mountainMatrixVisibility(value:number){if(!Number.isFinite(value))return'â€“';return value>=10000?`${Math.round(value/1000)} km`:`${formatDecimal(value/1000,1,1)} km`}
-function MountainMatrixVisibilityCell({point}:{point:MountainMatrixPoint}){if(point.insideCloud)return <span className="mountain-matrix-visibility cloud-limited"><strong>{Number.isFinite(point.visibility)&&point.visibility<1000?mountainMatrixVisibility(point.visibility):'â‰¤ 1 km'}</strong><small>in Wolkenschicht Â· &gt;5/8</small></span>;return <span className="mountain-matrix-visibility">{mountainMatrixVisibility(point.visibility)}</span>}
-function MountainMatrixCloudBaseCell({point}:{point:MountainMatrixPoint}){if(!Number.isFinite(point.cloudBase))return <span>â€“</span>;return <span className="mountain-matrix-cloudbase"><strong>ca. {Math.round(point.cloudBase/50)*50} m</strong><small>Ã¼. NHN{Number.isFinite(point.cloudBaseAgl)?` Â· ${Math.round(point.cloudBaseAgl/50)*50} m Ã¼. Grund`:''}</small>{point.insideCloud&&Number.isFinite(point.cloudTop)?<small>in Schicht bis ca. {Math.round(point.cloudTop/50)*50} m</small>:null}</span>}
-function MountainMatrixRow({label:rowLabel,points,render,cellClass,cellTitle}:{label:string;points:MountainMatrixPoint[];render:(point:MountainMatrixPoint,index:number)=>ReactNode;cellClass?:(point:MountainMatrixPoint,index:number)=>string;cellTitle?:(point:MountainMatrixPoint,index:number)=>string|undefined}){return <div className="mountain-matrix-row" style={{'--mountain-columns':points.length,minWidth:`${108+points.length*74}px`} as CSSProperties}><b>{rowLabel}</b>{points.map((point,index)=><span key={`${point.time}:${index}`} className={cellClass?.(point,index)||undefined} title={cellTitle?.(point,index)}>{render(point,index)}</span>)}</div>}
-function MountainForecastMatrix({data,days,unit}:{data:MountainSportsForecast;days:Day[];unit:WindUnit}){const[open,setOpen]=useState(false),[resolution,setResolution]=useState<1|3>(3),[expanded,setExpanded]=useState(false),weather=data.levels[0]?.weather,windows=useMemo(()=>weather?mountainForecastWindows(days,weather):[],[days,weather]),visibleWindows=expanded?windows:windows.slice(0,1),title=data.season==='winter'?'Winterprofil nach HÃ¶henzone':'Bergwetter nach HÃ¶henzone';useEffect(()=>{setOpen(false);setExpanded(false)},[data.season]);if(!weather||!windows.length)return null;return <section className={`mountain-forecast-matrix${open?' open':''}`}><button type="button" className="mountain-forecast-summary" onClick={()=>setOpen((value:boolean)=>!value)} aria-expanded={open}><span><small>HÃ¶henwetter-Verlauf</small><strong>{title}</strong><em>{open?'HÃ¶henwetter schlieÃŸen':'HÃ¶henwetter Ã¶ffnen'}</em></span>{open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}</button>{open&&<div className="mountain-forecast-content"><header><div className="mountain-matrix-controls"><div role="group" aria-label="Zeitliche AuflÃ¶sung"><button type="button" className={resolution===1?'active':''} aria-pressed={resolution===1} onClick={()=>setResolution(1)}>1 h</button><button type="button" className={resolution===3?'active':''} aria-pressed={resolution===3} onClick={()=>setResolution(3)}>3 h</button></div>{windows.length>1&&<button type="button" className="mountain-matrix-expand" onClick={()=>setExpanded(value=>!value)} aria-expanded={expanded}>{expanded?<><ChevronUp size={14}/>Nur ersten Tag</>:<><ChevronDown size={14}/>NÃ¤chste 3 Tage</>}</button>}</div></header><p>Je HÃ¶henzone: Wetter, Temperatur, Sicht, Wolkenbasis, Wind/BÃ¶en, Niederschlag und Schneefallgrenze nach dem DWD-Verfahren aus 850-hPa-Temperatur und -Geopotential. Die Wolkenbasis wird in m Ã¼. NHN und zusÃ¤tzlich Ã¼ber dem jeweiligen Stationsniveau angegeben. Unterschiede zwischen HÃ¶henzonen entstehen aus getrennten Punktprognosen und dem jeweiligen Vertikalprofil. Bei 3-Stunden-AuflÃ¶sung wird der Niederschlag je Intervall summiert.</p>{visibleWindows.map(window=><section className="mountain-matrix-day" key={window.date}><header><span><b>{window.label}</b><small>{formatDateOnly(window.date,{weekday:'long',day:'2-digit',month:'2-digit'})}</small></span><em>{mountainClock(window.sunrise,weather.timezone)}â€“{mountainClock(window.sunset,weather.timezone)} Uhr</em></header><div className="mountain-matrix-scroll">{[...data.levels].sort((a:MountainLevelForecast,b:MountainLevelForecast)=>a.elevation-b.elevation).map(level=>{const points=mountainMatrixPoints(level,window,resolution);if(!points.length)return null;return <section className="mountain-matrix-level" key={`${window.date}:${level.role}`}><header><b>{level.name||mountainLevelLabel(level.role)}</b><span>{Math.round(level.elevation)} m Ã¼. NHN</span></header><MountainMatrixRow label="Zeit" points={points} render={point=><time>{formatLocalIsoDisplayTime(point.time,weather.timezone)}</time>}/><MountainMatrixRow label="Wetter" points={points} render={point=><span className="mountain-matrix-weather" title={point.weatherLabel}><i><WeatherPictogram code={point.code} intensity={point.intensity} phenomenon={point.phenomenon} day={point.isDay} title={point.weatherLabel}/></i><small>{point.weatherLabel}</small></span>}/><MountainMatrixRow label="Temperatur" points={points} render={point=><strong>{Number.isFinite(point.temp)?`${Math.round(point.temp)} Â°C`:'â€“'}</strong>}/><MountainMatrixRow label="Sicht" points={points} render={point=><MountainMatrixVisibilityCell point={point}/>}/><MountainMatrixRow label="Wolkenbasis (NHN)" points={points} render={point=><MountainMatrixCloudBaseCell point={point}/>}/><MountainMatrixRow label="Wind / BÃ¶en" points={points} cellClass={point=>mountainWindWarningMeta(point.gust)?.className||''} cellTitle={point=>mountainWindWarningMeta(point.gust)?.label} render={point=><span className="mountain-matrix-nowrap">{wind(point.wind,unit)} / {wind(point.gust,unit)}</span>}/><MountainMatrixRow label="Niederschlag" points={points} cellClass={point=>mountainPrecipitationClass(point.precipitation)} render={point=><span>{formatDecimal(point.precipitation,1,1)} mm{Number.isFinite(point.probability)?<small>{Math.round(point.probability)} %</small>:null}{point.snow>.01?<small>{formatDecimalFixed(point.snow,1)} cm Schnee</small>:null}</span>}/><MountainMatrixRow label="Schneefallgrenze" points={points} render={point=>Number.isFinite(point.snowLine)?`ca. ${Math.round(point.snowLine/50)*50} m`:'â€“'}/></section>})}</div></section>)}</div>}</section>}
+Y[™^
+OO–ÚY[™^H\ÈÛÛœİ
+JK˜[˜XÚÏ\Û˜\ÚİšYË›[™İÜ™]\›ˆ˜[Y\Ë›X\
 
-type MountainSnowLineHorizon=1|3|7|14;
-type MountainSnowLineDisplayPoint={epoch:number;time:string;median:number;p25:number;p75:number;p10:number;p90:number;modelCount:number;memberEquivalent:number};
-function mountainSvgLine(points:MountainSnowLineDisplayPoint[],x:(index:number)=>number,y:(value:number)=>number,key:'median'|'p10'|'p90'|'p25'|'p75'){return points.reduce((path,point,index)=>`${path}${path?' L':'M'} ${x(index)} ${y(point[key])}`,'')}
-function mountainSvgBand(points:MountainSnowLineDisplayPoint[],x:(index:number)=>number,y:(value:number)=>number,low:'p10'|'p25',high:'p90'|'p75'){if(points.length<2)return'';const top=points.map((point,index)=>`${index?'L':'M'} ${x(index)} ${y(point[high])}`).join(' '),bottom=[...points].reverse().map((point,index)=>{const actual=points.length-1-index;return`L ${x(actual)} ${y(point[low])}`}).join(' ');return`${top} ${bottom} Z`}
-function mountainSnowZonePath(points:MountainSnowLineDisplayPoint[],x:(index:number)=>number,y:(value:number)=>number,top:number){if(!points.length)return'';const last=points.length-1,reverse=[...points].reverse().map((point,index)=>`L ${x(last-index)} ${y(point.median)}`).join(' ');return`M ${x(0)} ${top} L ${x(last)} ${top} L ${x(last)} ${y(points[last].median)} ${reverse} Z`}
-function mountainRainZonePath(points:MountainSnowLineDisplayPoint[],x:(index:number)=>number,y:(value:number)=>number,bottom:number){if(!points.length)return'';const line=points.map((point,index)=>`${index?'L':'M'} ${x(index)} ${y(point.median)}`).join(' '),last=points.length-1;return`${line} L ${x(last)} ${bottom} L ${x(0)} ${bottom} Z`}
+][K[™^
+OOŠÚ][K[™^˜[šÎœ˜[šË™Ù]
+][KšY
+OÏÙ˜[˜XÚÊÚ[™^JJKœÛÜ
 
-type MountainSnowLinePrecipSignal={active:boolean;amount:number;probability:number;strength:number;resolution:'hourly'|'daily';amountUnit:'mm/h'|'mm/Tag';timingResolved:boolean};
-function mountainLocalDateKey(epoch:number,timezone?:string){try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timezone||'UTC',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date(epoch).toISOString().slice(0,10)}}
-function mountainLocalHour(epoch:number,timezone?:string){try{return Number(new Intl.DateTimeFormat('en-GB',{timeZone:timezone||'UTC',hour:'2-digit',hourCycle:'h23'}).format(new Date(epoch)))}catch{return new Date(epoch).getUTCHours()}}
-function mountainSnowLinePrecipSignal(levels:MountainLevelForecast[],ensembleDays:EnsembleDay[],epoch:number,timezone?:string):MountainSnowLinePrecipSignal{
- let amount=0,probability=0,hourlyMatched=false;
- for(const level of levels){const times=(level.weather.hourly.time??[]) as string[];let bestIndex=-1,bestDistance=Infinity;for(let index=0;index<times.length;index+=1){const current=mountainTimeEpoch(level.weather,times[index]),distance=Math.abs(current-epoch);if(Number.isFinite(current)&&distance<bestDistance){bestDistance=distance;bestIndex=index}}if(bestIndex<0||bestDistance>95*60000)continue;hourlyMatched=true;const currentAmount=mountainHourlyPrecipitationValue(level,'precipitation',bestIndex),currentProbability=mountainHourlyPrecipitationValue(level,'precipitation_probability',bestIndex);if(Number.isFinite(currentAmount))amount=Math.max(amount,Math.max(0,currentAmount));if(Number.isFinite(currentProbability))probability=Math.max(probability,Math.max(0,currentProbability))}
- if(hourlyMatched){const active=amount>=.05||probability>=35,strength=active?Math.min(1,Math.max(.18,Math.max(probability/100,Math.min(1,amount/2)))):0;return{active,amount,probability,strength,resolution:'hourly',amountUnit:'mm/h',timingResolved:true}}
- const date=mountainLocalDateKey(epoch,timezone),day=ensembleDays.find(row=>row.date===date);if(!day)return{active:false,amount:0,probability:0,strength:0,resolution:'daily',amountUnit:'mm/Tag',timingResolved:false};
- const hour=mountainLocalHour(epoch,timezone),windows=(day.precipitationProbabilityWindows??[]).filter(item=>Number.isFinite(Number(item.probability))),strongWindows=windows.filter(item=>Number(item.probability)>=35),window=strongWindows.find(item=>hour>=item.startHour&&hour<item.endHour),dayProbability=Math.max(0,Number(day.precipitationProbability)||0),dayAmount=Math.max(0,Number(day.precipitationMean)||0),timingResolved=strongWindows.length>0;
- probability=timingResolved?(window?Math.max(0,Number(window.probability)||0):0):dayProbability;const active=timingResolved?Boolean(window):(dayAmount>=.1||probability>=35),strength=active?Math.min(1,Math.max(.16,Math.max(probability/100,Math.min(1,dayAmount/8)))):0;return{active,amount:dayAmount,probability,strength,resolution:'daily',amountUnit:'mm/Tag',timingResolved}
-}
-function mountainSnowLinePrecipPeriods(levels:MountainLevelForecast[],ensembleDays:EnsembleDay[],horizon:MountainSnowLineHorizon,timezone:string|undefined,now:number){const end=now+horizon*86400000,anchor=levels.at(-1),hourlyRows:({epoch:number;signal:MountainSnowLinePrecipSignal})[]=[];if(anchor){const times=(anchor.weather.hourly.time??[]) as string[];for(const time of times){const epoch=mountainTimeEpoch(anchor.weather,time);if(!Number.isFinite(epoch)||epoch<now-3600000||epoch>end)continue;const signal=mountainSnowLinePrecipSignal(levels,ensembleDays,epoch,timezone);if(signal.resolution==='hourly'&&signal.active)hourlyRows.push({epoch,signal})}}
- const groups:{start:number;end:number;probability:number}[]=[];for(const row of hourlyRows){const current=groups.at(-1);if(current&&row.epoch-current.end<=90*60000){current.end=row.epoch;current.probability=Math.max(current.probability,row.signal.probability)}else groups.push({start:row.epoch,end:row.epoch,probability:row.signal.probability})}
- const labels=groups.map(group=>`${formatInZone(group.start,timezone,{weekday:'short',day:'2-digit',month:'2-digit'})} ${formatInZone(group.start,timezone,{hour:'2-digit',minute:'2-digit'})}â€“${formatInZone(group.end+3600000,timezone,{hour:'2-digit',minute:'2-digit'})} Uhr${group.probability>0?` (${Math.round(group.probability)} %)`:''}`),lastHourly=anchor?Math.max(0,...((anchor.weather.hourly.time??[]) as string[]).map(time=>mountainTimeEpoch(anchor.weather,time)).filter(Number.isFinite)):0;
- const cutoffDate=lastHourly?mountainLocalDateKey(lastHourly,timezone):'',cutoffHour=lastHourly?mountainLocalHour(lastHourly,timezone):0,daily=ensembleDays.filter(day=>{const epoch=Date.parse(`${day.date}T12:00:00Z`);return Number.isFinite(epoch)&&epoch<=end+86400000&&day.date>=mountainLocalDateKey(Math.max(now,lastHourly),timezone)&&(Number(day.precipitationMean)>=.1||Number(day.precipitationProbability)>=35)});for(const day of daily){const windows=(day.precipitationProbabilityWindows??[]).filter(window=>window.probability>=35).map(window=>day.date===cutoffDate&&lastHourly?{...window,startHour:Math.max(window.startHour,cutoffHour)}:window).filter(window=>window.endHour>window.startHour);if(windows.length){for(const window of windows)labels.push(`${formatDateOnly(day.date,{weekday:'short',day:'2-digit',month:'2-digit'})} ${String(window.startHour).padStart(2,'0')}â€“${String(window.endHour).padStart(2,'0')} Uhr (${Math.round(window.probability)} %)`)}else if(day.date!==cutoffDate||!lastHourly||cutoffHour<23)labels.push(`${formatDateOnly(day.date,{weekday:'short',day:'2-digit',month:'2-digit'})} (${Math.round(day.precipitationProbability)} % Â· ${formatDecimalFixed(day.precipitationMean,1)} mm Â· Zeitpunkt nicht aufgelÃ¶st)`) }
- const unique=[...new Set(labels)],visible=unique.slice(0,6);return unique.length?`${visible.join(' Â· ')}${unique.length>visible.length?` Â· +${unique.length-visible.length} weitere`:''}`:'im gewÃ¤hlten Zeitraum kein belastbares Niederschlagssignal'}
-function MountainSnowLineTrend({data,ensembleDays}:{data:MountainSportsForecast;ensembleDays:EnsembleDay[]}){
- const[open,setOpen]=useState(false),[horizon,setHorizon]=useState<MountainSnowLineHorizon>(3),[selectedEpoch,setSelectedEpoch]=useState<number|null>(null),ensemble=data.snowLineEnsemble,levels=useMemo(()=>[...data.levels].sort((a:MountainLevelForecast,b:MountainLevelForecast)=>a.elevation-b.elevation),[data.levels]),timezone=levels.at(-1)?.weather.timezone;
- const fallback=useMemo<MountainSnowLineDisplayPoint[]>(()=>{if(ensemble?.points?.length)return[];const anchor=levels.at(-1);if(!anchor)return[];const times=(anchor.weather.hourly.time??[]) as string[];return times.map((time,index)=>{const freezing=mountainHourlyValue(anchor,'freezing_level_height',index),temperature850=mountainHourlyValue(anchor,'temperature_850hPa',index),height850=mountainHourlyValue(anchor,'geopotential_height_850hPa',index),epoch=mountainTimeEpoch(anchor.weather,time),median=dwdSnowfallLimit({temperature850,geopotentialHeight850:height850,freezingLevelHeight:freezing});return{epoch,time,median,p25:median,p75:median,p10:median,p90:median,modelCount:1,memberEquivalent:1}}).filter((point:MountainSnowLineDisplayPoint)=>Number.isFinite(point.epoch)&&Number.isFinite(point.median))},[ensemble,levels]);
- const allPoints=(ensemble?.points??fallback) as MountainSnowLineDisplayPoint[],now=Date.now(),visible=useMemo(()=>{const end=now+horizon*86400000,rows=allPoints.filter((point:MountainSnowLineDisplayPoint)=>point.epoch>=now-2*3600000&&point.epoch<=end);if(!rows.length)return[];const step=horizon===1?1:horizon===3?1:2;return rows.filter((_:MountainSnowLineDisplayPoint,index:number)=>index%step===0||index===rows.length-1)},[allPoints,horizon,now]),selected=useMemo(()=>{if(!visible.length)return undefined;const target=selectedEpoch??now;return visible.reduce((best:MountainSnowLineDisplayPoint,point:MountainSnowLineDisplayPoint)=>Math.abs(point.epoch-target)<Math.abs(best.epoch-target)?point:best,visible[0])},[visible,selectedEpoch,now]);
- if(!levels.length||!allPoints.length)return null;
- const summaryPoint=allPoints.find((point:MountainSnowLineDisplayPoint)=>point.epoch>=now)??allPoints[0],snowlineGroups=ensemble?new Map(ensemble.models.map((model:MountainSnowLineModel)=>[model.independenceGroup,model] as const)):null,modelCount=snowlineGroups?.size??1,memberCount=snowlineGroups?[...snowlineGroups.values()].reduce((sum:number,model:MountainSnowLineModel)=>sum+model.members,0):1,summary=`ca. ${Math.round(summaryPoint.median/50)*50} m`,uncertainty=Math.max(0,summaryPoint.p90-summaryPoint.p10),summaryUncertainty=uncertainty>10?`10â€“90 % ${Math.round(summaryPoint.p10/50)*50}â€“${Math.round(summaryPoint.p90/50)*50} m`:'Best Match',precipPeriodLabel=mountainSnowLinePrecipPeriods(levels,ensembleDays,horizon,timezone,now);
- const width=760,height=278,left=62,right=22,top=22,bottom=48,plotWidth=width-left-right,plotBottom=height-bottom,plotHeight=plotBottom-top,yMin=0,yMax=4500,y=(value:number)=>{const bounded=Math.min(yMax,Math.max(yMin,Number(value)||0));return top+(yMax-bounded)/(yMax-yMin)*plotHeight},x=(index:number)=>left+18+(visible.length<=1?plotWidth/2:index*(plotWidth-36)/(visible.length-1)),ticks=[0,500,1000,1500,2000,2500,3000,3500,4000,4500],outer=mountainSvgBand(visible,x,y,'p10','p90'),inner=mountainSvgBand(visible,x,y,'p25','p75'),median=mountainSvgLine(visible,x,y,'median'),snowZone=mountainSnowZonePath(visible,x,y,top),rainZone=mountainRainZonePath(visible,x,y,plotBottom),selectedIndex=selected?visible.findIndex((point:MountainSnowLineDisplayPoint)=>point.epoch===selected.epoch):-1,precipSignals=visible.map((point:MountainSnowLineDisplayPoint,index:number)=>({index,point,...mountainSnowLinePrecipSignal(levels,ensembleDays,point.epoch,timezone)})),precipBands=(()=>{const active=precipSignals.filter(signal=>signal.active),bands:{startIndex:number;endIndex:number;signal:typeof active[number]}[]=[];for(const signal of active){const current=bands.at(-1),sameDailyUnresolved=current&&signal.resolution==='daily'&&!signal.timingResolved&&current.signal.resolution==='daily'&&!current.signal.timingResolved&&mountainLocalDateKey(signal.point.epoch,timezone)===mountainLocalDateKey(current.signal.point.epoch,timezone),adjacent=current&&signal.index===current.endIndex+1;if(current&&(sameDailyUnresolved||adjacent&&signal.resolution===current.signal.resolution&&signal.timingResolved===current.signal.timingResolved)){current.endIndex=signal.index;if(signal.strength>current.signal.strength)current.signal=signal}else bands.push({startIndex:signal.index,endIndex:signal.index,signal})}return bands})(),selectedPrecip=selected?mountainSnowLinePrecipSignal(levels,ensembleDays,selected.epoch,timezone):undefined;
- const selectAt=(event:ReactPointerEvent<SVGRectElement>)=>{const rect=event.currentTarget.getBoundingClientRect(),ratio=Math.min(1,Math.max(0,(event.clientX-rect.left)/Math.max(1,rect.width))),index=Math.round(ratio*(visible.length-1));setSelectedEpoch(visible[index]?.epoch??null)};
- const timeLabel=(point:MountainSnowLineDisplayPoint)=>formatInZone(point.epoch,timezone,{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
- return <section className={`mountain-snowline-trend${open?' open':''}`}><button type="button" className="mountain-snowline-summary" onClick={()=>setOpen((value:boolean)=>!value)} aria-expanded={open}><span><small>Ensemble Â· Multi-Modell</small><strong>Schneefallgrenze</strong><em>{summary} Â· {summaryUncertainty}</em></span><span className="mountain-snowline-summary-meta"><b>{modelCount} Modellfamilien</b><small>{memberCount} Member-Ã„quiv.</small>{open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}</span></button>{open?<div className="mountain-snowline-content"><header><div className="mountain-snowline-horizons" role="group" aria-label="Zeitraum Schneefallgrenze">{([1,3,7,14] as MountainSnowLineHorizon[]).map((days:MountainSnowLineHorizon)=><button key={days} type="button" className={horizon===days?'active':''} onClick={()=>{setHorizon(days);setSelectedEpoch(null)}}>{days} T</button>)}</div>{ensemble?<small>{ensemble.models.map((model:MountainSnowLineModel)=>model.label).join(' Â· ')}</small>:<small>Ensemble derzeit nicht verfÃ¼gbar Â· Best-Match-Fallback</small>}</header><div className="mountain-snowline-precip-periods"><b>Niederschlag</b><span>{precipPeriodLabel}</span></div>{selected?<div className="mountain-snowline-selected"><b>{timeLabel(selected)}</b><span>Schneefallgrenze <strong>{Math.round(selected.median/50)*50} m</strong></span><span>10â€“90 % <strong>{Math.round(selected.p10/50)*50}â€“{Math.round(selected.p90/50)*50} m</strong></span>{selectedPrecip?.active?<span className="precip">{selectedPrecip.resolution==='hourly'?'Niederschlag':selectedPrecip.timingResolved?'Niederschlagsfenster':'Niederschlagstag Â· Zeitpunkt nicht aufgelÃ¶st'} <strong>{Math.round(selectedPrecip.probability)} % Â· {formatDecimalFixed(selectedPrecip.amount,1)} {selectedPrecip.amountUnit}</strong></span>:null}<span>{selected.modelCount} Modelle Â· {selected.memberEquivalent} Member</span></div>:null}<div className="mountain-snowline-chart"><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Schneefallgrenze fÃ¼r ${horizon} Tage`}>{snowZone?<path d={snowZone} className="mountain-snowline-zone snow"/>:null}{rainZone?<path d={rainZone} className="mountain-snowline-zone rain"/>:null}{precipBands.map((band,index)=>{const spacing=visible.length>1?Math.abs(x(1)-x(0)):10,start=Math.max(left,x(band.startIndex)-spacing*.48),end=Math.min(width-right,x(band.endIndex)+spacing*.48),signal=band.signal,label=signal.resolution==='hourly'?'Niederschlag':signal.timingResolved?'Niederschlagsfenster':'Niederschlagstag Â· Zeitpunkt nicht aufgelÃ¶st';return <rect key={`precip-band-${band.startIndex}-${band.endIndex}-${index}`} x={start} y={top} width={Math.max(4,end-start)} height={plotHeight} rx="3" className={`mountain-snowline-precip${signal.resolution==='daily'&&!signal.timingResolved?' unresolved':''}`} style={{opacity:.06+signal.strength*.12}}><title>{`${label} ${Math.round(signal.probability)} % Â· ${formatDecimalFixed(signal.amount,1)} ${signal.amountUnit}`}</title></rect>})}{ticks.map((tick:number)=><g key={tick}><line x1={left} x2={width-right} y1={y(tick)} y2={y(tick)} className="mountain-snowline-grid"/><text x={left-8} y={y(tick)+4} textAnchor="end" className="mountain-snowline-axis">{tick>=1000?`${formatDecimalFixed(tick/1000,1)} km`:`${tick} m`}</text></g>)}{levels.map((level:MountainLevelForecast)=><g key={`${level.role}-${level.elevation}`}><line x1={left} x2={width-right} y1={y(level.elevation)} y2={y(level.elevation)} className="mountain-snowline-level"/><g transform={`translate(${left+8},${y(level.elevation)-18})`}><rect width="126" height="18" rx="7" className="mountain-snowline-level-pill"/><text x="7" y="12.5" className="mountain-snowline-level-label">{level.name||mountainLevelLabel(level.role)} Â· {Math.round(level.elevation)} m</text></g></g>)}{outer?<path d={outer} className="mountain-snowline-band outer"/>:null}{inner?<path d={inner} className="mountain-snowline-band inner"/>:null}{median?<path d={median} className="mountain-snowline-line"/>:null}{visible.map((point:MountainSnowLineDisplayPoint,index:number)=>{const show=horizon<=3?index%2===0:index===0||index===visible.length-1||index%Math.max(1,Math.round(24/(horizon>=7?6:3)))===0;return show?<text key={`t-${point.epoch}`} x={x(index)} y={height-20} textAnchor="middle" className="mountain-snowline-time">{horizon===1?formatInZone(point.epoch,timezone,{hour:'2-digit',minute:'2-digit'}):formatInZone(point.epoch,timezone,{weekday:'short',day:'2-digit'})}</text>:null})}{selectedIndex>=0?<g className="mountain-snowline-selection"><line x1={x(selectedIndex)} x2={x(selectedIndex)} y1={top} y2={plotBottom}/><circle cx={x(selectedIndex)} cy={y(selected!.median)} r="6"/></g>:null}<rect x={left} y={top} width={plotWidth} height={plotHeight} className="mountain-snowline-hit" onPointerDown={selectAt}/></svg></div><footer><span><i className="snow"/>oberhalb der Schneefallgrenze</span><span><i className="rain"/>unterhalb Ã¼berwiegend Regen</span><span><i className="uncertainty"/>10â€“90-%-Unsicherheit</span><span><i className="precip"/>Niederschlag erwartet Â· bis 72 h stÃ¼ndlich, danach 6-h-Fenster bzw. Tageswahrscheinlichkeit</span></footer></div>:null}</section>
-}
-function MountainSki({loc,days,ensembleDays,rapidMinutes15,unit,config,onConfigChange}:{loc:Location;days:Day[];ensembleDays:EnsembleDay[];rapidMinutes15?:ForecastFusionRapidMinute15[];unit:WindUnit;config:MountainConfig;onConfigChange:(change:Partial<MountainConfig>)=>void}){
- const[data,setData]=useState<MountainSportsForecast|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState('');
- useEffect(()=>{if(!config.enabled){setData(null);setError('');return}if(config.summitElevation<=config.valleyElevation||config.middleEnabled&&(config.middleElevation<=config.valleyElevation||config.middleElevation>=config.summitElevation)){setData(null);setError('Die HÃ¶henstufen mÃ¼ssen in der Reihenfolge Tal â€“ Mitte â€“ Berg liegen.');return}const controller=new AbortController(),timer=window.setTimeout(()=>{setLoading(true);setError('');mountainSportsForecast(loc,config,controller.signal).then(setData).catch(reason=>{if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'HÃ¶henvergleich nicht verfÃ¼gbar.')} ).finally(()=>!controller.signal.aborted&&setLoading(false))},220);return()=>{window.clearTimeout(timer);controller.abort()}},[loc.latitude,loc.longitude,config.enabled,config.season,config.middleEnabled,config.valleyElevation,config.middleElevation,config.summitElevation,config.valleyLatitude,config.valleyLongitude,config.middleLatitude,config.middleLongitude,config.summitLatitude,config.summitLongitude,config.profileUpdatedAt]);
- if(!config.enabled)return null;
- const summit=data?.levels.at(-1),summitTemp=summit?mountainCurrentValue(summit,'temperature_2m'):NaN,summitDew=summit?mountainCurrentValue(summit,'dew_point_2m'):NaN,summitWind=summit?mountainCurrentValue(summit,'wind_speed_10m'):NaN,summitGust=summit?mountainCurrentValue(summit,'wind_gusts_10m'):NaN,visibility=summit?mountainCurrentValue(summit,'visibility'):NaN,freezing=summit?mountainCurrentValue(summit,'freezing_level_height'):NaN,temperature850=summit?mountainCurrentValue(summit,'temperature_850hPa'):NaN,height850=summit?mountainCurrentValue(summit,'geopotential_height_850hPa'):NaN,snowLine=dwdSnowfallLimit({temperature850,geopotentialHeight850:height850,freezingLevelHeight:freezing}),base=summit?cloudBase(summit.elevation,summitTemp,summitDew):NaN,descent=localMinutesBefore(days[0]?.sunset,45),winter=data?.season==='winter',daylight=summit?mountainDaylightWindow(days,summit.weather):undefined,daylightValues=(key:string)=>summit&&daylight?((summit.weather.hourly.time??[]) as string[]).map((time,index)=>({epoch:mountainTimeEpoch(summit.weather,time),value:mountainHourlyValue(summit,key,index)})).filter(row=>row.epoch>=daylight.sunrise&&row.epoch<=daylight.sunset&&Number.isFinite(row.value)).map(row=>row.value):[],maxCape=daylightValues('cape').length?Math.max(0,...daylightValues('cape')):NaN,maxUv=daylightValues('uv_index').length?Math.max(0,...daylightValues('uv_index')):NaN,summitWindPair=validateWindPair(summitWind,summitGust),summitWindDisplay=summitWindPair.wind,summitGustDisplay=summitWindPair.gust,drift=Boolean(winter&&summit&&summit.newSnow24Cm>=2&&summitGustDisplay>=20),whiteout=Boolean(winter&&summit&&(visibility<1200||mountainCurrentValue(summit,'cloud_cover_low')>=85)&&(summit.newSnow24Cm>.5||summitGustDisplay>=18));
- const heightThunderRisk=mountainThunderRisk(data),rapidHeightRisk=significantRapidThunderRisk(rapidMinutes15,Date.now(),6),rapidDominant=Boolean(rapidHeightRisk&&rapidHeightRisk.percent>=(heightThunderRisk?.percent??0)),heightThunderPercent=Math.max(heightThunderRisk?.percent??0,rapidHeightRisk?.percent??0),heightThunderLabel=rapidDominant?mountainRapidLabel(rapidHeightRisk):heightThunderRisk?.shortLabel??'',heightThunderDetail=rapidDominant?`ICON-D2-RUC Â· ${rapidHeightRisk?.signals.slice(0,3).join(' Â· ')||'Mehrparameterdiagnostik'}`:heightThunderRisk?`${heightThunderRisk.heightName} Â· CAPE + LI/CIN + Feuchte + Trigger`:Number.isFinite(maxCape)?`CAPE Berg bis ${Math.round(maxCape)} J/kg Â· allein kein Gewittersignal`:'keine signifikanten kombinierten Signale';
- return <section className="card mountain-ski" data-mid-view="mountain"><Title eye="HÃ¶henkorrigierter Best Match" title="Berg-/Wintersport"><div className="mountain-title-actions"><span className="mountain-favorite-note"><Star size={13} fill="currentColor"/>Favoritenprofil</span><div className="module-inline-segmented mountain-season-control" role="group" aria-label="Saisonprofil"><span>Modus</span>{(['auto','summer','winter'] as MountainSeason[]).map(value=><button key={value} type="button" className={config.season===value?'active':''} aria-pressed={config.season===value} onClick={()=>onConfigChange({season:value})}>{value==='auto'?'Auto':value==='summer'?'Sommer':'Winter'}</button>)}</div></div></Title><div className="mountain-profile-summary"><span><MountainSnow size={16}/><b>{mountainSeasonLabel(data?.season??config.season)}</b><small>{mountainProfileCaption(config)}</small></span></div>{loading&&!data?<div className="mountain-loading"><RefreshCw className="spin" size={18}/>HÃ¶henprognose wird geladen â€¦</div>:error?<div className="error">{error}</div>:data&&<><div className="mountain-levels">{data.levels.map((level:MountainLevelForecast)=><MountainLevel key={`${level.role}:${level.latitude}:${level.longitude}:${level.elevation}`} level={level} unit={unit} snowLine={snowLine}/>)}</div><div className="mountain-indicators"><article><Snowflake/><small>Nullgradgrenze</small><strong>{Number.isFinite(freezing)?`${Math.round(freezing)} m`:'â€“'}</strong></article><article><MountainSnow/><small>Schneefallgrenze <InfoHint label="DWD-Schneefallgrenze erklÃ¤ren" width={390}><strong>DWD-Verfahren</strong><p>MID berechnet die Schneefallgrenze bevorzugt aus Temperatur und Geopotential in 850 hPa. Vom tatsÃ¤chlichen 850-hPa-Niveau wird mit 0,65 K je 100 m feuchtadiabatisch bis zur Ã¼blichen +2-Â°C-Grenze gerechnet. Dadurch kann dasselbe Verfahren auf unterschiedliche Modellfamilien angewandt werden. Bei Inversionen oder fehlenden Druckniveaudaten bleibt die Angabe entsprechend unsicher; dann dient die modellierte Nullgradgrenze nur als Fallback.</p></InfoHint></small><strong>{Number.isFinite(snowLine)?`ca. ${Math.round(snowLine/50)*50} m`:'â€“'}</strong></article><article><Eye/><small>Sicht Berg</small><strong>{Number.isFinite(visibility)?visibility>=10000?`${Math.round(visibility/1000)} km`:`${formatDecimal(visibility/1000,1,1)} km`:'â€“'}</strong></article><article><CloudFog/><small>Wolkenuntergrenze (NHN)</small><strong>{Number.isFinite(base)?`ca. ${Math.round(base/50)*50} m`:'â€“'}</strong></article><article><Wind/><small>Windchill Berg</small><strong>{Number.isFinite(summitTemp)&&Number.isFinite(summitWindDisplay)?`${Math.round(windChill(summitTemp,summitWindDisplay))} Â°C`:'â€“'}</strong></article><article><Sun/><small>UVI Berg</small><strong>{Number.isFinite(maxUv)?`bis ${formatUvi(maxUv)}`:'â€“'}</strong></article><article><Sun/><small>Tageslicht-Orientierung</small><strong>{descent?`${descent} Uhr`:'â€“'}</strong></article>{winter&&<article title="Prognostizierter Neuschnee an der Bergstation in den nÃ¤chsten 24 Stunden"><MountainSnow/><small>Neuschnee +24 h</small><strong>{summit?mountainNewSnowLabel(summit.newSnow24Cm):'â€“'}</strong></article>}<article className={`mountain-thunder-risk ${heightThunderPercent>=30?'risk':'clear'}`} title="Einheitliche Mehrparameter-Gewitteranalyse fÃ¼r die nÃ¤chsten 6 Stunden"><CloudLightning/><small>Gewitterrisiko Â· 6 h</small><strong>{heightThunderPercent>=30?`${heightThunderLabel} Â· ${heightThunderPercent} %`:'kein Risiko'}</strong><em>{heightThunderDetail}</em></article></div>{(drift||whiteout)&&<div className="mountain-conditions">{drift&&<span className="warning"><Wind size={15}/>Schneeverfrachtung mÃ¶glich</span>}{whiteout&&<span className="warning"><CloudFog size={15}/>Whiteout-Risiko</span>}</div>}<MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/><MountainSnowLineTrend data={data} ensembleDays={ensembleDays}/><MountainForecastMatrix data={data} days={days} unit={unit}/><div className="mountain-links"><a href={mountainAvalancheUrl(loc)} target="_blank" rel="noreferrer"><AlertTriangle size={15}/>Amtliche Lawinenlage Ã¶ffnen</a><small>Schneefallgrenze (DWD-NÃ¤herung: +2 Â°C, 0,65 K/100 m) und Wolkenuntergrenze sind meteorologische NÃ¤herungen. Die Tageslichtzeit liegt 45 Minuten vor Sonnenuntergang und ist keine Sicherheitsfreigabe. GeÃ¶ffnete Pisten- und Liftinformationen sowie die amtliche Lawinenlage haben Vorrang.</small></div></>}</section>
-}
-function MountainLevel({level,unit,snowLine}:{level:MountainLevelForecast;unit:WindUnit;snowLine:number}){const current=level.weather.current,temp=mountainCurrentValue(level,'temperature_2m'),apparent=mountainCurrentValue(level,'apparent_temperature'),windSpeed=mountainCurrentValue(level,'wind_speed_10m'),gust=mountainCurrentValue(level,'wind_gusts_10m'),direction=mountainCurrentValue(level,'wind_direction_10m'),windPair=validateWindPair(windSpeed,gust),precipPart=mountainPrecipitationParts(current),code=precipPart.displayCode;return <article><header><span>{level.name||mountainLevelLabel(level.role)}</span><b>{Math.round(level.elevation)} m Ã¼. NHN</b></header><div className="mountain-level-main"><span><WeatherPictogram code={code} intensity={precipPart.intensity} phenomenon={precipPart.phenomenon} day={astronomicalIsDayAt(Date.now(),{latitude:level.latitude,longitude:level.longitude,elevation:level.elevation,timezone:level.weather.timezone},mountainCurrentValue(level,'is_day')===1)} title={label(code)} cloud={mountainCurrentValue(level,'cloud_cover')} lowCloud={mountainCurrentValue(level,'cloud_cover_low')}/></span><div className="mountain-temperature-pair"><strong>{Number.isFinite(temp)?`${Math.round(temp)} Â°C`:'â€“'}</strong><small>GefÃ¼hlt {Number.isFinite(apparent)?`${Math.round(apparent)} Â°C`:'â€“'}</small></div></div><p>{mountainPrecipitationLabel(current,level.elevation,snowLine)}</p><div className="mountain-level-meta"><small className="mountain-wind-values"><b>Wind</b><span>{Number.isFinite(direction)?<WindDirectionArrow direction={direction} gust={windPair.gust}/>:null} {Number.isFinite(windPair.wind)?wind(windPair.wind,unit):'â€“'} Â· BÃ¶en {Number.isFinite(windPair.gust)?wind(windPair.gust,unit):'â€“'}</span></small><small className="mountain-snow-values" title={mountainSnowMeasurementTitle(level)}><b>Schnee</b><span>Schneedecke {mountainSnowText(level)} Â· Neuschnee âˆ’24 h {formatDecimalFixed(level.pastSnow24Cm,1)} cm Â· +24 h {formatDecimalFixed(level.newSnow24Cm,1)} cm Â· +48 h {formatDecimalFixed(level.newSnow48Cm,1)} cm</span></small></div></article>}
+KŠOO˜Kœ˜[šËX‹œ˜[šßKš[™^X‹š[™^
+K›X\
+›İÏOœ›İËš][J_B™[˜İ[Ûˆ\œÚ\İ˜]›Üš]SÜ™\Š˜[Y\Î‘˜]›Üš]V×J^ØÛÛœİYÏ]˜[Y\Ë›X\
+][OOš][KšY
+Kİ\œ™[\™XY˜]›Üš]SÜ™\”Û˜\Úİ
 
-function hazardValidityLabel(validFrom:string|undefined,validTo:string|undefined,timezone?:string){
- const start=Date.parse(String(validFrom??'')),end=Date.parse(String(validTo??''));if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return'';
- const now=Date.now(),time=(value:number)=>formatInZone(value,timezone,{hour:'2-digit',minute:'2-digit'}),date=(value:number)=>formatInZone(value,timezone,{day:'2-digit',month:'2-digit'}),dateKey=(value:number)=>formatInZone(value,timezone,{year:'numeric',month:'2-digit',day:'2-digit'}),startDate=dateKey(start),endDate=dateKey(end),today=dateKey(now),tomorrow=dateKey(now+24*60*60*1000),sameDate=startDate===endDate,active=start<=now&&end>now;
- const localSuffix=localTimeDisambiguationSuffix(),suffix=localSuffix?` ${localSuffix}`:'';
- if(!sameDate)return`${date(start)}, ${active?'jetzt':time(start)} â€“ ${date(end)}, ${time(end)} Uhr${suffix}`;
- const dayPrefix=startDate===today?'':startDate===tomorrow?`Morgen, ${date(start)} Â· `:`${date(start)} Â· `;
- return`${dayPrefix}${active?'jetzt':time(start)}â€“${time(end)} Uhr${suffix}`;
-}
-function hazardSortEpoch(value:string|undefined){const epoch=Date.parse(String(value??''));return Number.isFinite(epoch)?epoch:Number.POSITIVE_INFINITY}
-function compareHazardsChronologically(a:AutomaticHazard,b:AutomaticHazard){const startDiff=hazardSortEpoch(a.validFrom)-hazardSortEpoch(b.validFrom);if(startDiff!==0)return startDiff;const endDiff=hazardSortEpoch(a.validTo)-hazardSortEpoch(b.validTo);if(endDiff!==0)return endDiff;const levelDiff=AUTOMATIC_HAZARD_LEVEL_RANK[b.level]-AUTOMATIC_HAZARD_LEVEL_RANK[a.level];if(levelDiff!==0)return levelDiff;return a.title.localeCompare(b.title,'de')}
-function warningKindFromText(value:string):DwdWarningKind|undefined{const text=value.toLocaleLowerCase('de-DE');if(/schneeverweh/.test(text))return'snowdrift';if(/dauerregen/.test(text))return'continuousRain';if(/starkregen|heftig(?:er|e|es)?\s+regen|extrem.*regen/.test(text))return'heavyRain';if(/gewitter/.test(text))return'thunderstorm';if(/glatteis|glÃ¤tte|eisregen|gefrier/.test(text))return'ice';if(/schnee/.test(text))return'snow';if(/frost/.test(text))return'frost';if(/nebel/.test(text))return'fog';if(/hitze|wÃ¤rme/.test(text))return'heat';if(/orkan|sturm|wind|bÃ¶e/.test(text))return'wind';return undefined}
-function officialAlertKind(alert:OfficialAlert):DwdWarningKind|undefined{return warningKindFromText(`${alert.event??''} ${alert.headline??''}`)??warningKindFromText(alert.description??'')}
-function warningIntervalsOverlap(startA:string|undefined,endA:string|undefined,startB:string|undefined,endB:string|undefined){const a0=Date.parse(String(startA??'')),a1=Date.parse(String(endA??'')),b0=Date.parse(String(startB??'')),b1=Date.parse(String(endB??''));if(!Number.isFinite(a0)||!Number.isFinite(a1)||!Number.isFinite(b0)||!Number.isFinite(b1))return true;return a0<b1&&b0<a1}
-function automaticHazardHasOfficialCompanion(item:AutomaticHazard,alerts:OfficialAlert[]){return alerts.some(alert=>officialAlertKind(alert)===item.kind&&warningIntervalsOverlap(item.validFrom,item.validTo,alert.onset??alert.effective,alert.expires))}
-function officialSourceBadge(alert:OfficialAlert,provider?:string){const source=`${alert.source||''} ${provider||''}`;if(/deutscher wetterdienst|\bdwd\b/i.test(source))return'DWD Â· AMTLICH';const compact=String(alert.source||provider||'CAP').trim().replace(/\s+/g,' ');return`${compact.length>18?`${compact.slice(0,17)}â€¦`:compact} Â· AMTLICH`}
-function uniqueNumbers(values:number[]){return[...new Set(values.filter(Number.isFinite).map(value=>Math.round(value*10)/10))].sort((a,b)=>a-b)}
-function officialAlertMetric(alert:OfficialAlert,unit:WindUnit){const kind=officialAlertKind(alert),text=`${alert.headline??''} ${alert.description??''} ${alert.instruction??''}`,formatValue=(value:number)=>unit==='ms'?`${formatDecimal(value,0,0)} m/s`:unit==='kmh'?`${Math.round(value)} km/h`:unit==='mph'?`${Math.round(value)} mph`:`${Math.round(value)} kt`;if(kind==='wind'||kind==='snowdrift'){const directPattern=unit==='kmh'?/(\d+(?:[,.]\d+)?)\s*km\s*\/\s*h/gi:unit==='ms'?/(\d+(?:[,.]\d+)?)\s*m\s*\/\s*s/gi:unit==='kn'?/(\d+(?:[,.]\d+)?)\s*(?:kn|kt|knoten)\b/gi:null,directValues=directPattern?uniqueNumbers([...text.matchAll(directPattern)].map(match=>Number(match[1].replace(',','.')))):[];if(directValues.length){const primary=formatValue(directValues[0]),peak=formatValue(directValues.at(-1)!);return directValues.length>1&&primary!==peak?`bis ${primary} Â· Spitzen ${peak}`:`bis ${peak}`}let kmh=uniqueNumbers([...text.matchAll(/(\d+(?:[,.]\d+)?)\s*km\s*\/\s*h/gi)].map(match=>Number(match[1].replace(',','.'))));if(!kmh.length)kmh=uniqueNumbers([...text.matchAll(/(\d+(?:[,.]\d+)?)\s*m\s*\/\s*s/gi)].map(match=>Number(match[1].replace(',','.'))*3.6));if(!kmh.length)kmh=uniqueNumbers([...text.matchAll(/(\d+(?:[,.]\d+)?)\s*(?:kn|kt|knoten)\b/gi)].map(match=>Number(match[1].replace(',','.'))*KMH_PER_KT));if(!kmh.length)return'';const primary=wind(kmh[0]/KMH_PER_KT,unit),peak=wind(kmh.at(-1)!/KMH_PER_KT,unit);return kmh.length>1&&primary!==peak?`bis ${primary} Â· Spitzen ${peak}`:`bis ${peak}`}
- if(kind==='heavyRain'||kind==='continuousRain'){const values=uniqueNumbers([...text.matchAll(/(\d+(?:[,.]\d+)?)\s*mm\b/gi)].map(match=>Number(match[1].replace(',','.'))));if(!values.length)return'';return values.length>1?`${values[0]}â€“${values.at(-1)} mm`:`${values[0]} mm`}
- if(kind==='snow'){const values=uniqueNumbers([...text.matchAll(/(\d+(?:[,.]\d+)?)\s*cm\b/gi)].map(match=>Number(match[1].replace(',','.'))));if(!values.length)return'';return values.length>1?`${values[0]}â€“${values.at(-1)} cm`:`${values[0]} cm`}
- if(kind==='heat'||kind==='frost'){const values=uniqueNumbers([...text.matchAll(/(-?\d+(?:[,.]\d+)?)\s*Â°\s*C\b/gi)].map(match=>Number(match[1].replace(',','.'))));if(!values.length)return'';return values.length>1?`${values[0]} bis ${values.at(-1)} Â°C`:`${values[0]} Â°C`}
- if(kind==='fog'){const values=uniqueNumbers([...text.matchAll(/(\d+(?:[,.]\d+)?)\s*m\b(?!\s*\/)/gi)].map(match=>Number(match[1].replace(',','.'))));if(!values.length)return'';return`Sicht â‰¤ ${values[0]} m`}
- return''}
-function Hazards({data,timezone,officialAlerts=[]}:{data:ReturnType<typeof hazards>;timezone?:string;officialAlerts?:OfficialAlert[]}){
- const[open,setOpen]=useState<string>(''),[expanded,setExpanded]=useState(false);
- if(!data.length)return <section className="hazards compact-list hazards-responsive-card hazards-current-clear"><header className="hazards-responsive-head"><span className="hazards-responsive-icon"><BadgeCheck size={19}/></span><div><small>MID Â· AUTOMATISCH</small><strong>Keine automatischen Hinweise</strong><span>Keine zusÃ¤tzliche modellbasierte Gefahr erkannt</span></div></header></section>;
- const sortedData=[...data].sort(compareHazardsChronologically),current=hazardCurrentItems(sortedData),currentLevel=hazardCurrentLevel(current),summaryData=current.length?current:sortedData,grouped=[...sortedData.reduce((map,item)=>{const key=hazardDayKey(item.validFrom,timezone),currentGroup=map.get(key);if(currentGroup)currentGroup.items.push(item);else map.set(key,{label:hazardDayHeading(item.validFrom,timezone),items:[item]}) ;return map},new Map<string,{label:string;items:AutomaticHazard[]}>()).entries()];
- return <section className={`hazards compact-list hazards-responsive-card hazards-current-${currentLevel}`}><button type="button" className="hazards-responsive-head hazards-responsive-summary" onClick={()=>setExpanded(value=>!value)} aria-expanded={expanded}><span className="hazards-responsive-icon"><Info size={19}/></span><div><small>MID Â· AUTOMATISCH</small><strong>{hazardOverviewTitle(summaryData)}</strong><span>{hazardOverviewStatus(sortedData)}</span></div><em>{sortedData.length} {sortedData.length===1?'Hinweis':'Hinweise'}</em>{expanded?<ChevronDown size={19}/>:<ChevronRight size={19}/>}</button>{expanded&&<div className="hazard-day-grid">{grouped.map(([key,group])=><section className="hazard-day-group" key={key}><header><strong>{group.label}</strong><small>{group.items.length} {group.items.length===1?'Hinweis':'Hinweise'}</small></header><div>{group.items.map(x=>{const validity=hazardValidityLabel(x.validFrom,x.validTo,timezone),id=`${x.kind??''}:${x.title}:${x.validFrom??''}`,itemExpanded=open===id,supplement=automaticHazardHasOfficialCompanion(x,officialAlerts),metric=x.displayMetric||x.metric;return <article id={`mid-warning-${id}`} className={`${x.level}${x.lowerIntensity?' lower-intensity':''} ${itemExpanded?'open':''}`.trim()} data-kind={x.kind} key={id}><button type="button" className="hazard-toggle" onClick={()=>setOpen(itemExpanded?'':id)} aria-expanded={itemExpanded}><i aria-hidden="true"/><span className="hazard-toggle-head"><span className="hazard-origin-row"><small className={`hazard-origin-badge${supplement?' supplement':''}`}>{supplement?'MID Â· ERGÃ„NZUNG':'MID Â· PROGNOSEHINWEIS'}</small>{validity&&<small className="hazard-validity" title="Probabilistisch abgeleitetes Zeitfenster des Warnindikators; der Schwerpunkt kann innerhalb dieses Fensters variieren."><Clock3 size={11}/><time dateTime={x.validFrom}>{x.conditional?'Schwerpunkt: ':'Fenster: '}{validity}</time></small>}</span><strong>{x.title}</strong>{metric&&<em>{metric}</em>}{(x.scopeLabel||x.precisionLabel)&&<span className="hazard-context">{[x.scopeLabel,x.precisionLabel].filter(Boolean).join(' Â· ')}</span>}</span>{itemExpanded?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</button>{itemExpanded&&<div className="hazard-body">{x.lowerIntensity&&<em>Niedrigere Stufe im selben Zeitraum</em>}<span>{x.displayText||x.text}</span></div>}</article>})}</div></section>)}</div>}</section>
-}
-type AutomaticHazard=ReturnType<typeof hazards>[number];
-type AutomaticHazardLevel=AutomaticHazard['level']|'clear';
-const AUTOMATIC_HAZARD_LEVEL_RANK:Record<Exclude<AutomaticHazardLevel,'clear'>,number>={yellow:1,orange:2,red:3,purple:4};
-function hazardIsCurrent(item:AutomaticHazard,now=Date.now()){const start=Date.parse(String(item.validFrom??'')),end=Date.parse(String(item.validTo??''));return Number.isFinite(start)&&Number.isFinite(end)&&start<=now&&end>now}
-function hazardCurrentItems(data:AutomaticHazard[]){const now=Date.now();return data.filter(item=>hazardIsCurrent(item,now))}
-function hazardCurrentLevel(data:AutomaticHazard[]):AutomaticHazardLevel{return data.reduce<AutomaticHazardLevel>((best,item)=>best==='clear'||AUTOMATIC_HAZARD_LEVEL_RANK[item.level]>AUTOMATIC_HAZARD_LEVEL_RANK[best]?item.level:best,'clear')}
-function hazardStrongestCurrent(data:AutomaticHazard[]){return data.reduce<AutomaticHazard|undefined>((best,item)=>!best||AUTOMATIC_HAZARD_LEVEL_RANK[item.level]>AUTOMATIC_HAZARD_LEVEL_RANK[best.level]?item:best,undefined)}
-function hazardPredicateState(item:AutomaticHazard){const title=item.title.trim();if(item.kind==='heat')return/^Extreme\b/i.test(title)?'extrem':/^Starke\b/i.test(title)?'stark':'erhÃ¶ht';if(/^Extrem(?:e|es|er|en)?\b/i.test(title))return'extrem';if(/^Stark(?:e|es|er|en)?\b/i.test(title))return'stark';if(/^Schwer(?:e|es|er|en)?\b/i.test(title))return'schwer';if(/^Markant(?:e|es|er|en)?\b/i.test(title))return'markant';if(/^Heftig(?:e|es|er|en)?\b/i.test(title))return'heftig';if(/^Ergiebig(?:e|es|er|en)?\b/i.test(title))return'ergiebig';if(/^Leicht(?:e|es|er|en)?\b/i.test(title))return'leicht';if(/^Streng(?:e|es|er|en)?\b/i.test(title))return'streng';if(/^Orkanartig(?:e|es|er|en)?\b/i.test(title))return'orkanartig';return title}
-function hazardDayKey(value:string|undefined,timezone?:string){const epoch=Date.parse(String(value??''));return Number.isFinite(epoch)?formatInZone(epoch,timezone,{year:'numeric',month:'2-digit',day:'2-digit'}):'ohne-datum'}
-function hazardDayHeading(value:string|undefined,timezone?:string){const epoch=Date.parse(String(value??''));if(!Number.isFinite(epoch))return'Weitere Zeitfenster';const key=hazardDayKey(value,timezone),today=hazardDayKey(new Date().toISOString(),timezone),tomorrow=hazardDayKey(new Date(Date.now()+24*60*60*1000).toISOString(),timezone),prefix=key===today?'Heute':key===tomorrow?'Morgen':formatInZone(epoch,timezone,{weekday:'long'});return`${prefix} Â· ${formatInZone(epoch,timezone,{day:'2-digit',month:'2-digit'})}`}
-function hazardOverviewTitle(data:AutomaticHazard[]){const kinds=new Set(data.map(item=>item.kind));if(kinds.size===1&&kinds.has('heat'))return'WÃ¤rmebelastung';if(kinds.size===1&&kinds.has('thunderstorm'))return'Gewitter & Konvektion';if([...kinds].some(kind=>kind==='heavyRain'||kind==='continuousRain'))return'Wettergefahren';return'Automatische Wetterhinweise'}
-function hazardOverviewStatus(data:AutomaticHazard[]){const current=hazardCurrentItems(data);if(!current.length)return'Derzeit kein MID-Hinweis aktiv';const strongest=hazardStrongestCurrent(current);if(!strongest)return'Derzeit kein MID-Hinweis aktiv';const sameKind=current.every(item=>item.kind===strongest.kind),state=sameKind?hazardPredicateState(strongest):strongest.title;return`Aktuell: ${state}`}
+NÚYŠİ\œ™[	‰’”ÓÓ‹œİš[™ÚYJİ\œ™[šYÊOOOR”ÓÓ‹œİš[™ÚYJYÊJ\™]\›ˆİ\œ™[ØÛÛœİÛ˜\Úİ‘˜]›Üš]SÜ™\”Û˜\Úİ^ÚYË\]Y]›™]È]J
+KÒTÓÔİš[™Ê
+_NİÜš]TİÜ˜YÙRYÚ[™ÙY
+U“Ô’UT×ÓÔ‘T—ÒÑVK”ÓÓ‹œİš[™ÚYJÛ˜\Úİ
+JNÜ™]\›ˆÛ˜\ÚİB\H˜]›Üš]UÛXœİÛ™\ÏT™XÛÜ™İš[™Ë[X™\Â™[˜İ[ÛˆÛÚÜÓZÙQ]™[˜]›Üš]T™XÛÜ™
+˜[YN˜[J^Ü™]\›ˆ›ÛÛX[Š˜[YI‰\[Ùˆ˜[YOOOIÛØš™Xİ	É‰ŠØš™Xİœ›İİ\Kš\ÓİÛ”›Ü\K˜Ø[
+˜[YK	Ú\Ñ˜]›Üš]IÊ_Øš™Xİœ›İİ\Kš\ÓİÛ”›Ü\K˜Ø[
+˜[YK	Ù˜]›Üš]U\]Y]	ÊJI‰Š\[Ùˆ˜[YK™]OOOIÜİš[™Éß\[Ùˆ˜[YKœİ\[YOOOIÜİš[™Éß\[Ùˆ˜[YK™[™[YOOOIÜİš[™ÉÊI‰ˆSØš™Xİœ›İİ\Kš\ÓİÛ”›Ü\K˜Ø[
+˜[YK	Ü[\ÉÊI‰ˆSØš™Xİœ›İİ\Kš\ÓİÛ”›Ü\K˜Ø[
+˜[YK	Û[İ[Z[‰ÊI‰ˆSØš™Xİœ›İİ\Kš\ÓİÛ”›Ü\K˜Ø[
+˜[YK	İØ]\‰ÊJ_B™[˜İ[Ûˆ™XY˜]›Üš]UÛXœİÛ™\Ê
+N‘˜]›Üš]UÛXœİÛ™\Şİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JU“Ô’UT×ÕÓP”ÕÓ‘T×ÒÑVJ_	ŞßIÊH\È™XÛÜ™İš[™Ë[šÛ›İÛ‹™\İ[‘˜]›Üš]UÛXœİÛ™\Ï^ßNÙ›ÜŠÛÛœİÚY˜[YW[ÙˆØš™Xİ™[šY\Ê\œÙY
+J^ØÛÛœİ]S[X™\Š˜[YJNÚYŠY	‰“[X™\‹š\Ñš[š]J]
+I‰˜]Œ
+\™\İ[ÚYOX]\™]\›ˆ™\İ[XØ]ÚÜ™]\›ß__B™[˜İ[ÛˆÜš]Q˜]›Üš]UÛXœİÛ™\Ê˜[Y\Î‘˜]›Üš]UÛXœİÛ™\Ê^ØÛÛœİ[šY\ÏSØš™Xİ™[šY\Ê˜[Y\ÊK™š[\Š
+ÚY]JOO›ÛÛX[ŠY
+I‰“[X™\‹š\Ñš[š]J]
+I‰˜]Œ
+KœÛÜ
 
-function alertTime(value:string|undefined,timezone?:string){if(!value)return'';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'';const text=formatInZone(d,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),suffix=localTimeDisambiguationSuffix();return suffix?`${text} ${suffix}`:text}
-function officialAlertValidity(alert:OfficialAlert,timezone?:string){const start=alert.onset??alert.effective,end=alert.expires,startText=start?`ab ${alertTime(start,timezone)}`:'',endText=end?`bis ${alertTime(end,timezone)}`:'';return[startText,endText].filter(Boolean).join(' Â· ')||'gÃ¼ltig'}
-function officialAlertLanguageLabel(language?:string){const code=String(language||'').trim().toLowerCase();if(!code)return'';if(code.startsWith('de'))return'Deutsch';if(code.startsWith('en'))return'Englisch';try{return new Intl.DisplayNames(['de'],{type:'language'}).of(code.split(/[-_]/)[0])||language||''}catch{return language||''}}
-function OfficialWarnings({alerts,loading,error,provider,timezone,unit}:{alerts:OfficialAlert[];loading:boolean;error:string;provider:string;timezone?:string;unit:WindUnit}){
- const[open,setOpen]=useState<string>(''),sortedAlerts=useMemo(()=>chronologicalOfficialAlerts(alerts),[alerts]);
- if(loading)return <section className="official-warnings compact"><header><AlertTriangle/><div><small>AMTLICH</small><strong>Amtliche Wetterwarnungen</strong><span>CAP-Meldungen werden geladen â€¦</span></div></header></section>;
- if(error)return <section className="official-warnings compact unavailable"><header><AlertTriangle/><div><small>AMTLICH</small><strong>Amtliche Wetterwarnungen</strong><span>{error}</span></div></header></section>;
- if(!sortedAlerts.length)return <section className="official-warnings compact clear"><header><BadgeCheck/><div><small>AMTLICH</small><strong>Keine amtlichen Wetterwarnungen</strong><span>{provider||'FÃ¼r den gewÃ¤hlten Standort liegt derzeit keine aktive CAP-Warnung vor.'}</span></div></header></section>;
- return <section className="official-warnings"><header><AlertTriangle/><div><small>AMTLICH</small><strong>Amtliche Wetterwarnungen</strong><span>{sortedAlerts.length} {sortedAlerts.length===1?'Meldung':'Meldungen'} Â· {provider||'CAP'}</span></div></header><div className="official-list">{sortedAlerts.map(a=>{const expanded=open===a.id,validity=officialAlertValidity(a,timezone),language=officialAlertLanguageLabel(a.language),metric=officialAlertMetric(a,unit),meta=[a.source,a.area,language?`Originaltext: ${language}`:'',a.onset?`ab ${alertTime(a.onset,timezone)}`:a.effective?`ab ${alertTime(a.effective,timezone)}`:'',a.expires?`bis ${alertTime(a.expires,timezone)}`:''].filter(Boolean).join(' Â· ');return <article id={`official-warning-${a.id}`} key={a.id} className={`official-alert ${a.level} ${expanded?'open':''}`}><button type="button" onClick={()=>setOpen(expanded?'':a.id)} aria-expanded={expanded}><i/><span className="official-alert-head"><small className="official-source-badge">{officialSourceBadge(a,provider)}</small><strong>{a.headline}</strong><span className="official-alert-meta">{validity}{metric?` Â· ${metric}`:''}</span></span>{expanded?<ChevronDown size={18}/>:<ChevronRight size={18}/>}</button>{expanded&&<div className="official-message"><p>{a.description}</p>{a.instruction&&<p className="instruction">{a.instruction}</p>}<small>{meta}</small></div>}</article>})}</div></section>
-}
-function warningEventIsRelevant(endValue:string|undefined){const end=Date.parse(String(endValue??''));return!Number.isFinite(end)||end>Date.now()}
-function warningEventState(start:number){if(!Number.isFinite(start))return'GÃ¼ltig';return start<=Date.now()?'Aktiv':'Anstehend'}
-function WarningEventTab({automatic,alerts,loading,error,provider,timezone,unit}:{automatic:AutomaticHazard[];alerts:OfficialAlert[];loading:boolean;error:string;provider:string;timezone?:string;unit:WindUnit}){const events=useMemo(()=>{const official=chronologicalOfficialAlerts(alerts).filter(alert=>warningEventIsRelevant(alert.expires)).map(alert=>({id:`official-${alert.id}`,source:'official' as const,level:alert.level,title:alert.headline,validity:officialAlertValidity(alert,timezone),metric:officialAlertMetric(alert,unit),targetId:`official-warning-${alert.id}`,start:Date.parse(String(alert.onset??alert.effective??''))})),mid=automatic.filter(item=>warningEventIsRelevant(item.validTo)).map(item=>{const id=`${item.kind??''}:${item.title}:${item.validFrom??''}`;return{id:`mid-${id}`,source:'mid' as const,level:item.level,title:item.title,validity:hazardValidityLabel(item.validFrom,item.validTo,timezone),metric:item.displayMetric||item.metric||'',targetId:`mid-warning-${id}`,start:Date.parse(String(item.validFrom??''))}});return[...official,...mid].sort((a,b)=>(Number.isFinite(a.start)?a.start:Number.MAX_SAFE_INTEGER)-(Number.isFinite(b.start)?b.start:Number.MAX_SAFE_INTEGER))},[automatic,alerts,timezone,unit]);const sourceState=loading?'Amtliche Daten werden geprÃ¼ft â€¦':error?'Amtliche Lage derzeit nicht erreichbar':provider?`Amtliche Quelle Â· ${provider}`:'Amtliche Quelle';return <section className="warning-event-tab" aria-label="Warnlage auf einen Blick"><header className="warning-event-tab-head"><div><small>WARNLAGE AUF EINEN BLICK</small><strong>{events.length?`${events.length} ${events.length===1?'Ereignis':'Ereignisse'} im Zeitfenster`:'Keine Warnereignisse im Zeitfenster'}</strong><span>{sourceState}</span></div><span className={`warning-event-count${events.length?' active':''}`}>{events.length}</span></header>{events.length?<div className="warning-event-track">{events.map(event=><button type="button" key={event.id} className={`warning-event-row ${event.level}`} onClick={()=>document.getElementById(event.targetId)?.scrollIntoView({behavior:'smooth',block:'center'})}><i aria-hidden="true"/><span className="warning-event-origin">{event.source==='official'?'AMTLICH':'MID'}</span><span className="warning-event-main"><strong>{event.title}</strong><small><b>{warningEventState(event.start)}</b>{event.validity?` Â· ${event.validity}`:''}{event.metric?` Â· ${event.metric}`:''}</small></span><ChevronRight size={16}/></button>)}</div>:<p className={`warning-event-empty${error?' unavailable':''}`}>{error?'Der amtliche Abruf ist nicht verfÃ¼gbar. MID-Hinweise erscheinen hier, sobald ein Ereignis erkannt wird.':'Keine laufenden oder erwarteten warnwÃ¼rdigen Ereignisse.'}</p>}</section>}
-function WarningCenter({automatic,alerts,loading,error,provider,timezone,unit}:{automatic:ReturnType<typeof hazards>;alerts:OfficialAlert[];loading:boolean;error:string;provider:string;timezone?:string;unit:WindUnit}){const officialCount=alerts.length,automaticCount=automatic.length,summary=loading?`Amtliche Lage wird geladen Â· ${automaticCount} MID-${automaticCount===1?'Hinweis':'Hinweise'}`:error?`Amtliche Lage derzeit nicht verfÃ¼gbar Â· ${automaticCount} MID-${automaticCount===1?'Hinweis':'Hinweise'}`:`${officialCount} ${officialCount===1?'amtliche Warnung':'amtliche Warnungen'} Â· ${automaticCount} MID-${automaticCount===1?'Hinweis':'Hinweise'}`,title=officialCount?'Amtliche Warnlage und MID-ErgÃ¤nzungen':automaticCount?'MID-Prognosehinweise':'Keine Warnlage',openExtreme=()=>window.dispatchEvent(new CustomEvent('mid:navigate-modern-planner',{detail:{target:'extreme-outlook'}}));return <section className="warnings-responsive-shell"><header className="warnings-hybrid-head forecast-entry-head forecast-entry-head-warnings"><span className="warnings-hybrid-icon">{officialCount?<AlertTriangle size={20}/>:automaticCount?<Info size={20}/>:<BadgeCheck size={20}/>}</span><div><small>WARNUNGEN & HINWEISE</small><strong>{title}</strong><span>{summary}</span></div><button type="button" className="warnings-extreme-entry" onPointerEnter={warmExtremeWeatherOutlook} onFocus={warmExtremeWeatherOutlook} onPointerDown={warmExtremeWeatherOutlook} onClick={openExtreme}><CloudLightning size={16}/><span>Extremwetter</span><ChevronRight size={15}/></button></header><WarningEventTab automatic={automatic} alerts={alerts} loading={loading} error={error} provider={provider} timezone={timezone} unit={unit}/>{officialCount?<MemoOfficialWarnings alerts={alerts} loading={false} error="" provider={provider} timezone={timezone} unit={unit}/>:null}{automaticCount?<MemoHazards data={automatic} timezone={timezone} officialAlerts={alerts}/>:null}</section>}
+KŠOO˜–ÌWKXVÌWJNİ^ÛØØ[İÜ˜YÙKœÙ]][JU“Ô’UT×ÕÓP”ÕÓ‘T×ÒÑVK”ÓÓ‹œİš[™ÚYJØš™Xİ™œ›ÛQ[šY\Ê[šY\ÊJJ_XØ]Úß_B™[˜İ[ÛˆX\šÑ˜]›Üš]T™[[İ™Y
+][N‘˜]›Üš]_[™Yš[™Y
+^ÚYŠZ][OËšY
+\™]\›ØÛÛœİ]Q]K››İÊ
+KÛXœİÛ™\Ï\™XY˜]›Üš]UÛXœİÛ™\Ê
+NİÛXœİÛ™\ÖÚ][KšYOSX]›X^
+]ÛXœİÛ™\ÖÚ][KšY_
+NİÜš]Q˜]›Üš]UÛXœİÛ™\ÊÛXœİÛ™\ÊNİ^ÛØØ[İÜ˜YÙKœÙ]][JU“Ô’UT×ÕTUQĞUÒÑVK™]È]J]
+KÒTÓÔİš[™Ê
+J_XØ]Úß_B™[˜İ[ÛˆÛX\‘˜]›Üš]UÛXœİÛ™\ÊYÎœİš[™Ö×J^ÚYŠZYË›[™İ
+\™]\›ØÛÛœİÛXœİÛ™\Ï\™XY˜]›Üš]UÛXœİÛ™\Ê
+NÛ]Ú[™ÙYY˜[ÙNÙ›ÜŠÛÛœİYÙˆYÊZYŠY	‰“Øš™Xİœ›İİ\Kš\ÓİÛ”›Ü\K˜Ø[
+ÛXœİÛ™\ËY
+J^Ù[]HÛXœİÛ™\ÖÚYNØÚ[™ÙY]Y_ZYŠÚ[™ÙY
+]Üš]Q˜]›Üš]UÛXœİÛ™\ÊÛXœİÛ™\Ê_B™[˜İ[Ûˆ\œÚ\İ˜]›Üš]TÛ˜\Úİ
+˜[Y\Î‘˜]›Üš]V×J^ØÛÛœİÙ\šX[^™YR”ÓÓ‹œİš[™ÚYJ˜[Y\ÊNİ^ØÛÛœİÚ[™ÙY[ØØ[İÜ˜YÙK™Ù]][JU“Ô’UT×ÔÕÔQÑWÒÑVJHOO\Ù\šX[^™YÚYŠÚ[™ÙY
+[ØØ[İÜ˜YÙKœÙ]][JU“Ô’UT×ÔÕÔQÑWÒÑVKÙ\šX[^™Y
+NİÜš]TİÜ˜YÙRYÚ[™ÙY
+U“Ô’UT×ÔÒQÕ×ÒÑVKÙ\šX[^™Y
+NÜ\œÚ\İ˜]›Üš]SÜ™\Š˜[Y\ÊNÚYŠÚ[™ÙY[ØØ[İÜ˜YÙK™Ù]][JU“Ô’UT×ÕTUQĞUÒÑVJJ[ØØ[İÜ˜YÙKœÙ]][JU“Ô’UT×ÕTUQĞUÒÑVK™]È]J
+KÒTÓÔİš[™Ê
+J_XØ]ÚßY›ÜŠÛÛœİ][HÙˆ˜[Y\Ê]Üš]TİÜ˜YÙRYÚ[™ÙY
+[İ[Z[ÛÛ™šYÒÙ^J][K›ØØ][ÛŠK”ÓÓ‹œİš[™ÚYJ][K›[İ[Z[ŠJNÜ™]\›ˆ˜[Y\ßB™[˜İ[ÛˆØØ][ÛœÔÚ[İÑ\]X[
+N“ØØ][Û‹“ØØ][ÛŠ^ØÛÛœİÙ^\Ï[™]ÈÙ]
+Ë‹‹“Øš™XİšÙ^\ÊJK‹‹“Øš™XİšÙ^\ÊŠWJNÙ›ÜŠÛÛœİÙ^HÙˆÙ^\ÊZYŠSØš™Xİš\Ê
+H\È[JVÚÙ^WK
+ˆ\È[JVÚÙ^WJJ\™]\›ˆ˜[ÙNÜ™]\›ˆY_B™[˜İ[ÛˆY˜][Ø]\ÛÛ™šYÊ
+N•Ø]\ÛÛ™šYŞÜ™]\›Ù[˜X›Y™˜[ÙKØ]\•\N‰Ø]]ÉËXİ]š]N‰ÙÙ[™\˜[	ËX^Ø]™RZYÚŒKKX^İ\İİŒZ[•Ø]\•[\\˜]\™NŒM__B™[˜İ[Ûˆ›Ü›X[^™UØ]\ÛÛ™šYÊ˜[YN˜[JN•Ø]\ÛÛ™šYŞØÛÛœİ˜[˜XÚÏYY˜][Ø]\ÛÛ™šYÊ
+KØ]\•\\Î•Ø]\•\V×OVÉØ]]ÉË	ÜÙXIË	ÛZÙIË	Üš]™\‰×KXİ]š]Y\Î•Ø]\Xİ]š]V×OVÉÙÙ[™\˜[	Ë	ÜØZ[[™ÉË	Üİ\™š[™ÉË	ÜY[™ÉË	ÜİÚ[[Z[™É×NÜ™]\›Ù[˜X›Y›ÛÛX[Š˜[YOË™[˜X›Y
+KØ]\•\NØ]\•\\Ëš[˜ÛY\Ê˜[YOËØ]\•\JOİ˜[YKØ]\•\N™˜[˜XÚËØ]\•\KXİ]š]N˜Xİ]š]Y\Ëš[˜ÛY\Ê˜[YOË˜Xİ]š]JOİ˜[YK˜Xİ]š]N™˜[˜XÚË˜Xİ]š]KX^Ø]™RZYÚ“[X™\‹š\Ñš[š]J[X™\Š˜[YOË›X^Ø]™RZYÚ
+JOÓX]›X^
+ŒKX]›Z[ŠL‹[X™\Š˜[YK›X^Ø]™RZYÚ
+JJN™˜[˜XÚË›X^Ø]™RZYÚX^İ\İİ“[X™\‹š\Ñš[š]J[X™\Š˜[YOË›X^İ\İİ
+JOÓX]›X^
+KX]›Z[ŠL[X™\Š˜[YK›X^İ\İİ
+JJN™˜[˜XÚË›X^İ\İİZ[•Ø]\•[\\˜]\™N“[X™\‹š\Ñš[š]J[X™\Š˜[YOË›Z[•Ø]\•[\\˜]\™JJOÓX]›X^
+L‹X]›Z[ŠÍK[X™\Š˜[YK›Z[•Ø]\•[\\˜]\™JJJN™˜[˜XÚË›Z[•Ø]\•[\\˜]\™__B™[˜İ[ÛˆİÜ™YØØ][Û•˜XÚÚ[™Ê
+^İ^Ü™]\›ˆØØ[İÜ˜YÙK™Ù]][JĞĞUSÓ—ÕPÒÒS‘×ÒÑVJOOOIÌIßXØ]ÚÜ™]\›ˆ˜[Ù__B™[˜İ[ÛˆİÜ™Y˜XÚÙYØØ][ÛŠ
+N“ØØ][ÛŸ[İ^ØÛÛœİ˜]Ï[ØØ[İÜ˜YÙK™Ù]][JPÒÑQÓĞĞUSÓ—ÒÑVJNÚYŠ\˜]Ê\™]\›ˆ[ØÛÛœİ\œÙY[›Ü›X[^™SØØ][ÛŠ”ÓÓ‹œ\œÙJ˜]ÊH\ÈØØ][ÛŠNÜ™]\›ˆ[X™\‹š\Ñš[š]J\œÙY›]]YJI‰“[X™\‹š\Ñš[š]J\œÙY›Û™Ú]YJOŞË‹‹œ\œÙY]]ÛØØ]YY_N›[XØ]ÚÜ™]\›ˆ[_B™[˜İ[ÛˆİÜ™Y˜XÚÙY\Ú[\Ê
+N”\Ú[Tİ]^İ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JPÒÑQÔTÒÔ•ST×ÒÑVJ_	ŞßIÊNÜ™]\›Ü™XÚ\]][Û”İ\›ÛÛX[Š\œÙYËœ™XÚ\]][Û”İ\
+K[™\œİÜ›P\›ØXÚ›ÛÛX[Š\œÙYË[™\œİÜ›P\›ØXÚ
+__XØ]ÚÜ™]\›Ü™XÚ\]][Û”İ\™˜[ÙK[™\œİÜ›P\›ØXÚ™˜[Ù___B™[˜İ[ÛˆİÜ™Y\Ú›İYšXØ][Û’[\˜[
 
-type HazardBadgeLevel='yellow'|'orange'|'red'|'purple';
-const KMH_PER_KT=1.852;
-const WIND_WARNING_BANDS=[
- {id:'wind-warning-yellow',lowerKt:50/KMH_PER_KT,upperKt:65/KMH_PER_KT,color:'#e6c229',label:'WindbÃ¶en Ã¼ber 50 km/h'},
- {id:'wind-warning-orange',lowerKt:65/KMH_PER_KT,upperKt:90/KMH_PER_KT,color:'#ef8d32',label:'SturmbÃ¶en ab 65 km/h'},
- {id:'wind-warning-orange-heavy',lowerKt:90/KMH_PER_KT,upperKt:105/KMH_PER_KT,color:'#d9771f',label:'Schwere SturmbÃ¶en ab 90 km/h'},
- {id:'wind-warning-red',lowerKt:105/KMH_PER_KT,upperKt:120/KMH_PER_KT,color:'#e74a4a',label:'Orkanartige BÃ¶en ab 105 km/h'},
- {id:'wind-warning-red-orkan',lowerKt:120/KMH_PER_KT,upperKt:140/KMH_PER_KT,color:'#c93434',label:'OrkanbÃ¶en ab 120 km/h'},
- {id:'wind-warning-purple',lowerKt:140/KMH_PER_KT,upperKt:Number.POSITIVE_INFINITY,color:'#9b59c6',label:'Extreme OrkanbÃ¶en Ã¼ber 140 km/h'}
-] as const;
-const precipMeta:Record<Exclude<PrecipType,'none'>,{label:string;legendClass:string;fill:string}>={
- drizzle:{label:'SprÃ¼hregen',legendClass:'drizzle',fill:'url(#drizzleFill)'},
- freezingDrizzle:{label:'Gefrierender SprÃ¼hregen',legendClass:'freezing-drizzle',fill:'url(#freezingDrizzlePattern)'},
- rain:{label:'Regen',legendClass:'rain',fill:'url(#rainFill)'},
- freezingRain:{label:'Gefrierender Regen',legendClass:'freezing-rain',fill:'url(#freezingRainPattern)'},
- showers:{label:'Regenschauer',legendClass:'showers',fill:'url(#showersPattern)'},
- snow:{label:'Schneefall',legendClass:'snow',fill:'url(#snowPattern)'},
- snowGrains:{label:'Schneegriesel',legendClass:'snow-grains',fill:'url(#snowGrainsPattern)'},
- snowStars:{label:'Schneesterne',legendClass:'snow-stars',fill:'url(#snowStarsPattern)'},
- iceCrystals:{label:'Eisnadeln',legendClass:'ice-crystals',fill:'url(#iceCrystalsPattern)'},
- icePellets:{label:'EiskÃ¶rner',legendClass:'ice-pellets',fill:'url(#icePelletsPattern)'},
- snowShowers:{label:'Schneeschauer',legendClass:'snow-showers',fill:'url(#snowShowersPattern)'},
- sleet:{label:'Schneeregen',legendClass:'sleet',fill:'url(#sleetPattern)'},
- sleetShowers:{label:'Schneeregenschauer',legendClass:'sleet-showers',fill:'url(#sleetShowersPattern)'},
- graupelShowers:{label:'Graupelschauer',legendClass:'graupel-showers',fill:'url(#graupelShowersPattern)'},
- hailShowers:{label:'Hagelschauer',legendClass:'hail-showers',fill:'url(#hailShowersPattern)'},
- wintryAfterThunder:{label:'Winterlicher Niederschlag nach Gewitter',legendClass:'sleet',fill:'url(#sleetPattern)'},
- thunderstorm:{label:'Gewitterniederschlag',legendClass:'thunderstorm',fill:'url(#thunderstormPattern)'},
- thunderstormHail:{label:'Gewitter mit Graupel oder Hagel',legendClass:'thunderstorm-hail',fill:'url(#thunderstormHailPattern)'}
-};
-function detailPrecipBarStyle(parts:PrecipitationParts):CSSProperties|undefined{if(!isDetailPrecipType(parts.type))return undefined;const amount=Math.max(0,Number(parts.total)||0),intensity=amount>=6?1:amount>=3?.9:amount>=1?.8:amount>=.25?.72:.64,phaseColor=precipitationPhaseColor(parts.type),strokeWidth=amount>=8?1.45:amount>=3?1.2:1.05;return{fill:precipMeta[parts.type].fill,opacity:.42+intensity*.52,stroke:phaseColor,strokeWidth,strokeOpacity:.38+intensity*.42}}
-function hazardLevelClass(level:DwdWarningLevel):HazardBadgeLevel{return level===4?'purple':level===3?'red':level===2?'orange':'yellow'}
-function dailyHazards(day:Day,hours:Hour[],elevation=0,unit:WindUnit='kn',minimumLevel:DwdWarningLevel=1){return summarizeDwdWarningsForDay(hours,day.date,elevation).filter(signal=>signal.level>=minimumLevel).map(signal=>({kind:signal.kind,stageRank:Number(signal.stageRank)||signal.level,symbol:signal.symbol,value:formatDwdWarningCompactValue(signal,unit),title:signal.title,detail:[formatDwdWarningDetail(signal,unit),formatDwdWarningDirection(signal)].filter(Boolean).join(' '),level:hazardLevelClass(signal.level)}))}
-type DailyHazardBadge=ReturnType<typeof dailyHazards>[number];
-function highestDailyHazardsByKind(items:DailyHazardBadge[],limit=3){
- const best=new Map<DwdWarningKind,DailyHazardBadge>();
- for(const item of items){const current=best.get(item.kind);if(!current||item.stageRank>current.stageRank)best.set(item.kind,item)}
- return items.filter(item=>best.get(item.kind)===item).slice(0,limit);
-}
-function strongestDailyHazards(items:DailyHazardBadge[],limit=3){
- if(!items.length)return[];
- const strongestStage=Math.max(...items.map(item=>item.stageRank));
- return highestDailyHazardsByKind(items.filter(item=>item.stageRank===strongestStage),limit);
-}
-function automaticHazardSymbol(kind?:DwdWarningKind){return kind==='wind'?'ğŸ’¨':kind==='thunderstorm'?'âš¡':kind==='heavyRain'?'â˜”':kind==='continuousRain'?'ğŸŒ§':kind==='snow'?'â„':kind==='snowdrift'?'ğŸŒ¬':kind==='ice'?'ğŸ§Š':kind==='frost'?'â„ï¸':kind==='fog'?'ğŸŒ«':kind==='heat'?'â˜€ï¸':'âš ï¸'}
-function automaticHazardOverlapsDay(item:AutomaticHazard,date:string,timezone?:string){
- const start=Date.parse(String(item.validFrom??'')),end=Date.parse(String(item.validTo??''));if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return false;
- const first=localDateInZone(timezone,start),last=localDateInZone(timezone,end-1);return date>=first&&date<=last;
-}
-function widgetAutomaticHazardsForDay(date:string,items:AutomaticHazard[],timezone?:string):DailyHazardBadge[]{return items.filter(item=>automaticHazardOverlapsDay(item,date,timezone)).map(item=>({kind:item.kind??'wind',stageRank:Number(item.stageRank)||AUTOMATIC_HAZARD_LEVEL_RANK[item.level],symbol:automaticHazardSymbol(item.kind),value:item.displayMetric||item.metric||'',title:item.title,detail:[item.displayText||item.text,hazardValidityLabel(item.validFrom,item.validTo,timezone)?`Fenster ${hazardValidityLabel(item.validFrom,item.validTo,timezone)}`:''].filter(Boolean).join(' Â· '),level:item.level}))}
-function ForecastHazards({hazards:items}:{hazards:DailyHazardBadge[]}){return <div className={`forecast-hazards${items.length?'':' empty'}`}>{items.length?items.map(item=><span key={`${item.kind}:${item.level}:${item.title}:${item.value}`} className={`${item.level} compact-hazard`} title={`${item.title}: ${item.detail}`} aria-label={`${item.title}: ${item.detail}`}><b>{item.symbol}</b>{item.value&&<em>{item.value}</em>}</span>):<span className="none no-hazard">âœ“ Keine Warnung</span>}</div>}
-function normalizeForecastConditionPill(text:string){
- const compact=String(text||'').replace(/\s+/g,' ').trim();
- if(!compact)return'';
- const normalized=compact
-  .replace(/\bab Mittags\b/gi,'ab Mittag')
-  .replace(/\bMittags\b/gi,'Mittag')
-  .replace(/\bVormittags\b/gi,'vormittags')
-  .replace(/\bNachmittags\b/gi,'nachmittags')
-  .replace(/\bAbends\b/gi,'abends')
-  .replace(/\bNachts\b/gi,'nachts');
- return /^(ab |bis |zeitweise |spÃ¤ter |morgens|vormittags|nachmittags|abends|nachts)/i.test(normalized)?normalized.charAt(0).toLocaleLowerCase('de-DE')+normalized.slice(1):normalized.charAt(0).toLocaleUpperCase('de-DE')+normalized.slice(1);
-}
-function forecastConditionPillTexts(label:string,secondary?:string){
- const pieces=[label,secondary||'']
-  .flatMap(value=>String(value||'').split(/\s*[Â·â€¢]\s*/))
-  .flatMap(value=>value.split(/\s*,\s*/))
-  .map(normalizeForecastConditionPill)
-  .filter(Boolean);
- const unique:string[]=[];
- for(const piece of pieces){if(unique.some(entry=>entry.toLocaleLowerCase('de-DE')===piece.toLocaleLowerCase('de-DE')))continue;unique.push(piece)}
- return unique.slice(0,3);
-}
-function ForecastConditionPills({label,secondary,regime}:{label:string;secondary?:string;regime?:ForecastDayRegime}){
- const pills=forecastConditionPillTexts(label,secondary);if(!pills.length)return null;
- return <div className="forecast-condition-pill-cluster" aria-label={[label,secondary].filter(Boolean).join(' Â· ')}>{pills.map((pill,index)=><span key={`${pill}:${index}`} className={`forecast-condition-pill ${index===0?`main${regime?` regime-${regime}`:''}`:'secondary'}`}>{pill}</span>)}</div>
-}
-function normalizeDegrees(deg:number){return((Number(deg)%360)+360)%360}
-function windToDegrees(deg:number){return normalizeDegrees(deg+180)}
-function windDirectionDescription(deg:number){const from=normalizeDegrees(deg),to=windToDegrees(deg);return`Wind aus ${Math.round(from)}Â°, nach ${Math.round(to)}Â°`}
-function windDirectionWarningLevel(gust?:number){return dwdWindWarningLevelKt(Number(gust))}
-function WindDirectionArrow({direction,gust,className=''}:{direction:number;gust?:number;className?:string}){const to=windToDegrees(direction),description=windDirectionDescription(direction),warningLevel=windDirectionWarningLevel(gust);return <span className={`wind-direction-arrow warning-${warningLevel} ${className}`.trim()} style={{transform:`rotate(${to.toFixed(1)}deg)`}} role="img" aria-label={description} title={description}>â†‘</span>}
-function SvgWindDirectionArrow({x,y,direction,gust,size=14}:{x:number;y:number;direction:number;gust?:number;size?:number}){const to=windToDegrees(direction),scale=size/14,description=windDirectionDescription(direction),warningLevel=windDirectionWarningLevel(gust);return <g className={`svg-wind-direction-arrow warning-${warningLevel}`} transform={`translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${to.toFixed(1)}) scale(${scale.toFixed(3)})`} role="img" aria-label={description}><title>{description}</title><line x1="0" y1="5" x2="0" y2="-5"/><path d="M -3 -2 L 0 -6 L 3 -2"/></g>}
-function localTimeLabel(value:number,timezone?:string){return formatInZone(value,timezone,{hour:'2-digit',minute:'2-digit'})}
-function hourDisplayClock(hour:Hour,timezone?:string,withMinutes=true){const epoch=Number(hour.epoch);if(Number.isFinite(epoch))return formatInZone(epoch,timezone,{hour:'2-digit',...(withMinutes?{minute:'2-digit'}:{}),hourCycle:'h23'});return formatLocalIsoDisplayTime(hour.time,timezone,{hour:'2-digit',...(withMinutes?{minute:'2-digit'}:{}),hourCycle:'h23'})}
-function clockMinutes(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);if(!match)return null;const hours=Number(match[1]),minutes=Number(match[2]);return Number.isFinite(hours)&&Number.isFinite(minutes)?hours*60+minutes:null}
-function clockLabel(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?`${match[1]}:${match[2]}`:''}
-function precipitationBeyondTwoHours(hours:Hour[],timezone?:string){
- const now=Date.now(),boundary=now+2*3600000,end=now+6*3600000,wet=(hour:Hour)=>{const parts=precipitationParts(hour);return parts.type!=='none'&&(parts.total>=.05||Number(hour.probability)>=55)};
- const after=hours.filter(hour=>Number(hour.epoch)>boundary&&Number(hour.epoch)<=end&&wet(hour)).sort((a,b)=>a.epoch-b.epoch);if(!after.length)return'';
- const groups:Hour[][]=[];for(const hour of after){const last=groups.at(-1);if(last&&hour.epoch-last.at(-1)!.epoch<=90*60000)last.push(hour);else groups.push([hour])}const first=groups[0],start=first[0].epoch,endEpoch=first.at(-1)!.epoch+3600000,nearBoundary=hours.some(hour=>hour.epoch>=boundary-75*60000&&hour.epoch<=boundary+15*60000&&wet(hour));
- if(nearBoundary&&start<=boundary+75*60000)return`Ãœber das +2-h-Fenster hinaus ist weiterer Niederschlag voraussichtlich bis etwa ${localTimeLabel(endEpoch,timezone)} Uhr zu erwarten.`;
- return`Nach dem +2-h-Fenster ist ab etwa ${localTimeLabel(start,timezone)} Uhr erneut Niederschlag mÃ¶glich.`;
-}
-function precipitationNowSummary(minutes:Minute15[],hours:Hour[],timezone?:string){
- const now=Date.now();
- const hourlySource=hours[currentIndex(hours)]?.weatherSourceLabel||'Open-Meteo Best Match',source=minutes.length?'15-Minuten-Best-Match':`stÃ¼ndlich Â· ${hourlySource}`;
- const samples:PrecipSample[]=minutes.length?minutes:hours.slice(currentIndex(hours),currentIndex(hours)+7);
- if(!samples.length)return{probability:0,summary:'Keine Kurzfristdaten verfÃ¼gbar.',source,continuation:precipitationBeyondTwoHours(hours,timezone)};
- const timed=samples.map(x=>({...x,ts:Number.isFinite(x.epoch)?Number(x.epoch):Date.parse(`${String(x.time)}Z`)})).filter(x=>Number.isFinite(x.ts)).sort((a,b)=>a.ts-b.ts);
- const nearest=timed.reduce((best,x)=>Math.abs(x.ts-now)<Math.abs(best.ts-now)?x:best,timed[0]);
- const stepMs=minutes.length?15*60000:60*60000;
- const horizonEnd=now+6*3600000;
- const relevant=timed.filter(x=>x.ts>=now-stepMs&&x.ts<=horizonEnd);
- const wet=(x:typeof relevant[number])=>{const p=precipitationParts(x);return p.type!=='none'&&(p.total>=.01||x.snowfall>=.01)};
- const groups:{items:typeof relevant}[]=[];
- for(const item of relevant){if(!wet(item))continue;const last=groups.at(-1);if(last&&item.ts-last.items.at(-1)!.ts<=stepMs*1.6)last.items.push(item);else groups.push({items:[item]})}
- const active=groups.find(g=>g.items[0].ts-stepMs<=now&&g.items.at(-1)!.ts>=now);
- const event=active??groups.find(g=>g.items[0].ts>=now);
- if(!event){const maxProb=Math.max(...relevant.map(x=>Number(x.probability)||0),0),continuation=precipitationBeyondTwoHours(hours,timezone),base=maxProb>=30?`Bis zu ${Math.round(maxProb)} % Risiko im betrachteten Kurzfristfenster; noch kein messbarer Niederschlag darin.`:continuation?'Im betrachteten +2-h-Fenster kein messbarer Niederschlag erwartet.':'Kein messbarer Niederschlag in den nÃ¤chsten 6 Stunden erwartet.',probability=maxProb<=5&&!continuation?0:Number(nearest.probability)||0;return{probability,summary:[base,continuation].filter(Boolean).join(' '),source,continuation}}
- const start=event.items[0].ts-stepMs,end=event.items.at(-1)!.ts;
- const types=[...new Set(event.items.map(x=>precipitationParts(x).type).filter(t=>t!=='none'))] as Exclude<PrecipType,'none'>[];
- const typeText=types.map(t=>precipMeta[t].label).join(' â†’ ');
- const summary=active?`Aktuell ${typeText}; voraussichtlich bis ${localTimeLabel(end,timezone)} Uhr.`:`${typeText} voraussichtlich ab ${localTimeLabel(start,timezone)} bis ${localTimeLabel(end,timezone)} Uhr.`;
- const continuation=precipitationBeyondTwoHours(hours,timezone);return{probability:Number(nearest.probability)||0,summary:[summary,continuation].filter(Boolean).join(' '),source,continuation};
-}
+N”\Ú›İYšXØ][Û’[\˜[İ^ØÛÛœİ˜[YOS[X™\ŠØØ[İÜ˜YÙK™Ù]][JTÒÓ“ÕQ’PĞUSÓ—ÒS•T•SÒÑVJJNÜ™]\›ˆTÒÓ“ÕQ’PĞUSÓ—ÒS•T•SËš[˜ÛY\Ê˜[YH\È\Ú›İYšXØ][Û’[\˜[
+Oİ˜[YH\È\Ú›İYšXØ][Û’[\˜[ŒÌXØ]ÚÜ™]\›ˆÌ_B™[˜İ[ÛˆİÜ™Y\Ú™XÚ\]][Û[\
 
-type PrecipNowResult={probability:number;summary:string;source:string;continuation?:string};
-function radarClock(value:string|undefined,timezone?:string){if(!value)return'';const time=new Date(value).getTime();return Number.isFinite(time)?formatInZone(time,timezone,{hour:'2-digit',minute:'2-digit'}):''}
-function radarHourTick(value:number,timezone?:string){const label=formatInZone(value,timezone,{hour:'2-digit',hourCycle:'h23'});const match=label.match(/(\d{1,2})/);return`${match?.[1]??label} Uhr`}
-function radarRateText(rate:number|undefined,approximate=false,uncertain=false){const value=Number(rate);if(!Number.isFinite(value)||value<.05)return'';const prefix=approximate?'geschÃ¤tzt ':'';if(value>=50)return`${prefix}> 50 mm/h${uncertain?' (lokal/unsicher)':''}`;if(value>=20)return`${prefix}${Math.round(value)} mm/h`;return`${prefix}${formatDecimalFixed(value,1)} mm/h`}
-function radarIntensity(rate:number|undefined){const value=Number(rate);if(value>=50)return'extremes Radarecho';if(value>=20)return'sehr stark';if(value>=8)return'stark';if(value>=2.5)return'mÃ¤ÃŸig';if(value>=.5)return'leicht';if(value>=.1)return'sehr leicht';return''}
-function radarAmountScale(maxAmount:number){const value=Math.max(.005,Number(maxAmount)||.005);for(const level of[.02,.05,.1,.2,.5,1,2,4,6,10])if(value<=level)return level;return Math.ceil(value*2)/2}
-function radarAxisLabel(value:number){const numeric=Math.max(0,Number(value)||0);if(numeric>=1)return formatDecimalFixed(numeric,1).replace(/,0$/,'');if(numeric>=.1)return formatDecimalFixed(numeric,2);return formatDecimalFixed(numeric,3).replace(/0$/,'').replace(/,$/,'')}
-function radarAmountLabel(value:number){const numeric=Math.max(0,Number(value)||0);return numeric>=10?String(Math.round(numeric)):numeric>=1?formatDecimalFixed(numeric,1):formatDecimalFixed(numeric,2)}
-function radarBarHeight(amount:number,scale:number,nearby=false){const safeScale=Math.max(.01,scale),ratio=Math.max(0,Math.min(1,(Number(amount)||0)/safeScale));if(ratio<=0)return nearby?6:4;return Math.max(6,Math.min(48,4+44*ratio))}
-function radarIntervalAmount(rate:number,minutes:number){return Math.max(0,Number(rate)||0)*Math.max(1,minutes)/60}
-function radarSiteThreshold(radar:RadarNowcast){const value=Number(radar.siteEchoThreshold);return Number.isFinite(value)&&value>0?value:.05}
-function radarNearbyThreshold(radar:RadarNowcast){const value=Number(radar.nearbyEchoThreshold);return Number.isFinite(value)&&value>0?value:.18}
-function radarSiteSignalDetected(radar:RadarNowcast|null){if(!radar)return false;const threshold=radarSiteThreshold(radar);if(Number(radar.currentRate||0)>=threshold||(radar.siteIntervals?.length??0)>0)return true;const now=Date.now();return(radar.nowcastSeries??[]).some(frame=>{const time=Date.parse(frame.time);return time>=now-10*60000&&time<=now+120*60000&&Number(frame.rate||0)>=threshold})}
-function radarNearbySignalDetected(radar:RadarNowcast|null){if(!radar)return false;const threshold=radarNearbyThreshold(radar),now=Date.now();return(radar.nowcastSeries??[]).some(frame=>{const time=Date.parse(frame.time);return time>=now-10*60000&&time<=now+120*60000&&Number(frame.rate||0)<radarSiteThreshold(radar)&&Number(frame.nearbyRate||0)>=threshold})}
-function radarSignalDetected(radar:RadarNowcast|null){return radarSiteSignalDetected(radar)||radarNearbySignalDetected(radar)}
-function scaleNearbyMarker(rate:number){return Math.max(.10,Math.min(.35,.10+Math.log1p(Math.max(0,rate))*.06))}
-function RadarNowcastTimeline({radar,timezone}:{radar:RadarNowcast;timezone?:string}){
- const FIVE_MINUTES=5*60000,now=Date.now(),siteThreshold=radarSiteThreshold(radar),nearbyThreshold=radarNearbyThreshold(radar),start=Math.floor((now-60*60000)/FIVE_MINUTES)*FIVE_MINUTES,end=start+180*60000,range=end-start,series=(radar.nowcastSeries??[]).map(frame=>({...frame,epoch:Date.parse(frame.time)})).filter(frame=>Number.isFinite(frame.epoch)&&frame.epoch>=start-15*60000&&frame.epoch<=end+15*60000).sort((a,b)=>a.epoch-b.epoch),position=(epoch:number)=>Math.max(0,Math.min(100,(epoch-start)/range*100));
- const ticks:number[]=[];for(let tick=Math.ceil(start/3600000)*3600000;tick<=end;tick+=3600000)ticks.push(tick);
- type Segment={id:string;start:number;end:number;left:number;right:number;rate:number;amount:number;amountP25?:number;amountP75?:number;hitProbability?:number;amountSource?:string;future:boolean;nearby:boolean;nearestWetKm?:number;expected?:boolean;uncertain?:boolean;status:string};
- type RawSegment=Omit<Segment,'id'|'left'|'right'|'status'>;
- const rawSegments:RawSegment[]=[];
- for(let index=0;index<series.length;index++){
-  const frame=series[index],siteRate=Math.max(0,Number(frame.rate)||0),nearbyRate=Math.max(0,Number(frame.nearbyRate)||0),nearbyOnly=siteRate<siteThreshold&&nearbyRate>=nearbyThreshold,rate=nearbyOnly?Math.min(nearbyRate,scaleNearbyMarker(nearbyRate)):siteRate;if(siteRate<siteThreshold&&!nearbyOnly)continue;
-  const rawStep=Math.max(FIVE_MINUTES,Math.min(15*60000,(series[index+1]?.epoch??frame.epoch+FIVE_MINUTES)-frame.epoch)),segmentStart=Math.max(start,frame.epoch),segmentEnd=Math.min(end,frame.epoch+rawStep);if(segmentEnd<=segmentStart)continue;
-  rawSegments.push({start:segmentStart,end:segmentEnd,rate,amount:nearbyOnly?0:(Number.isFinite(Number(frame.amountMm))?Math.max(0,Number(frame.amountMm)):radarIntervalAmount(rate,rawStep/60000)),amountP25:Number.isFinite(Number(frame.amountP25))?Math.max(0,Number(frame.amountP25)):undefined,amountP75:Number.isFinite(Number(frame.amountP75))?Math.max(0,Number(frame.amountP75)):undefined,hitProbability:Number.isFinite(Number(frame.hitProbability))?Math.max(0,Math.min(100,Number(frame.hitProbability))):undefined,amountSource:frame.amountSource,future:Boolean(frame.future||frame.epoch>now),nearby:nearbyOnly,nearestWetKm:Number.isFinite(Number(frame.nearestWetKm))?Number(frame.nearestWetKm):undefined});
- }
- const arrivalStart=radar.arrivalStartAt?Date.parse(radar.arrivalStartAt):(Number.isFinite(Number(radar.arrivalMinutes))?now+Number(radar.arrivalMinutes)*60000:NaN),arrivalEndRaw=radar.arrivalEndAt?Date.parse(radar.arrivalEndAt):radar.endAt?Date.parse(radar.endAt):NaN,arrivalEnd=Number.isFinite(arrivalEndRaw)?arrivalEndRaw:Number.isFinite(arrivalStart)?arrivalStart+20*60000:NaN,rawArrivalRate=Math.max(Number(radar.peakRate)||0,Number(radar.currentRate)||0,.15),arrivalRate=radar.rateUncertain?Math.min(12,rawArrivalRate):radar.rateApproximate?Math.min(30,rawArrivalRate):rawArrivalRate,arrivalVisible=radar.arrivalKind==='site'&&Number.isFinite(arrivalStart)&&Number.isFinite(arrivalEnd)&&arrivalEnd>=start&&arrivalStart<=end;
- if(arrivalVisible){const segmentStart=Math.max(start,arrivalStart),segmentEnd=Math.min(end,Math.max(arrivalEnd,arrivalStart+10*60000)),observedArrivalCovered=rawSegments.some(segment=>segment.future&&!segment.nearby&&segment.end>=segmentStart&&segment.start<=segmentEnd);if(!observedArrivalCovered)rawSegments.push({start:segmentStart,end:segmentEnd,rate:arrivalRate,amount:radar.arrivalKind!=='site'?0:radarIntervalAmount(arrivalRate,(segmentEnd-segmentStart)/60000),future:true,nearby:radar.arrivalKind!=='site',expected:true,uncertain:radar.arrivalKind!=='site'})}
- const bucketMap=new Map<number,Segment>();
- const statusFor=(segment:RawSegment)=>segment.expected?(segment.uncertain?'Erwarteter Treffer Â· unsicher':'Erwarteter Standorttreffer'):segment.nearby?`Echo nur im Umfeld${Number.isFinite(segment.nearestWetKm)?` Â· ca. ${formatDecimalFixed(segment.nearestWetKm!,1)} km entfernt`:''}`:segment.future?'Prognostizierter Standorttreffer':'Beobachtung am Standort';
- for(const segment of rawSegments){const first=Math.floor(segment.start/FIVE_MINUTES)*FIVE_MINUTES,last=Math.ceil(segment.end/FIVE_MINUTES)*FIVE_MINUTES;for(let slot=first;slot<last;slot+=FIVE_MINUTES){if(slot<start||slot>=end)continue;const durationMinutes=Math.max(5,(segment.end-segment.start)/60000),share=Math.min(1,5/durationMinutes),candidate:Segment={id:`${slot}`,start:slot,end:slot+FIVE_MINUTES,left:position(slot),right:position(slot+FIVE_MINUTES),rate:segment.rate,amount:segment.nearby?0:segment.amount*share,amountP25:segment.amountP25===undefined?undefined:segment.amountP25*share,amountP75:segment.amountP75===undefined?undefined:segment.amountP75*share,hitProbability:segment.hitProbability,amountSource:segment.amountSource,future:segment.future||slot>now,nearby:segment.nearby,nearestWetKm:segment.nearestWetKm,expected:segment.expected,uncertain:segment.uncertain,status:statusFor(segment)},existing=bucketMap.get(slot),candidateRank=(candidate.expected?0:candidate.nearby?1:2)+(candidate.rate/1000),existingRank=existing?((existing.expected?0:existing.nearby?1:2)+(existing.rate/1000)):-1;if(!existing||candidateRank>existingRank)bucketMap.set(slot,candidate)}}
- const timelineSegments:Segment[]=[];for(let slot=start;slot<end;slot+=FIVE_MINUTES){const existing=bucketMap.get(slot);timelineSegments.push(existing??{id:`${slot}`,start:slot,end:slot+FIVE_MINUTES,left:position(slot),right:position(slot+FIVE_MINUTES),rate:0,amount:0,future:slot>now,nearby:false,status:slot>now?'Kein prognostiziertes Radarsignal':'Kein Radarsignal am Standort'})}
- const displaySegments=timelineSegments.filter(segment=>segment.rate>0||segment.amount>0),scale=radarAmountScale(Math.max(...displaySegments.map(segment=>segment.amount),0)),rawForecastAmount=timelineSegments.filter(segment=>!segment.nearby&&segment.end>now).reduce((sum,segment)=>sum+segment.amount,0),forecastAmount=Number.isFinite(Number(radar.ensemble?.totalMedian))?Number(radar.ensemble!.totalMedian):Number.isFinite(Number(radar.forecastAmount120))?Number(radar.forecastAmount120):rawForecastAmount,[selectedId,setSelectedId]=useState<string|null>(null),selected=timelineSegments.find(segment=>segment.id===selectedId)??null,anchorRef=useRef<HTMLButtonElement|null>(null),trackRef=useRef<HTMLDivElement|null>(null),dragPointer=useRef<number|null>(null);
- useEffect(()=>{if(selectedId&&!timelineSegments.some(segment=>segment.id===selectedId))setSelectedId(null)},[selectedId,timelineSegments]);
- const selectAt=(clientX:number)=>{const track=trackRef.current;if(!track)return;const rect=track.getBoundingClientRect(),ratio=Math.max(0,Math.min(.9999,(clientX-rect.left)/Math.max(1,rect.width))),slot=start+Math.floor(ratio*timelineSegments.length)*FIVE_MINUTES,set=timelineSegments.find(segment=>segment.start===slot)??timelineSegments.at(-1);if(set)setSelectedId(set.id)};
- const pointerDown=(event:ReactPointerEvent<HTMLDivElement>)=>{if(event.button!==0)return;dragPointer.current=event.pointerId;event.currentTarget.setPointerCapture?.(event.pointerId);selectAt(event.clientX)};
- const pointerMove=(event:ReactPointerEvent<HTMLDivElement>)=>{if(dragPointer.current!==event.pointerId)return;event.preventDefault();selectAt(event.clientX)};
- const pointerEnd=(event:ReactPointerEvent<HTMLDivElement>)=>{if(dragPointer.current!==event.pointerId)return;selectAt(event.clientX);dragPointer.current=null;event.currentTarget.releasePointerCapture?.(event.pointerId)};
- const keyDown=(event:ReactKeyboardEvent<HTMLDivElement>)=>{if(event.key!=='ArrowLeft'&&event.key!=='ArrowRight')return;event.preventDefault();const currentIndex=Math.max(0,timelineSegments.findIndex(segment=>segment.id===selectedId)),next=Math.max(0,Math.min(timelineSegments.length-1,currentIndex+(event.key==='ArrowRight'?1:-1)));setSelectedId(timelineSegments[next]?.id??null)};
- const selectSegment=(event:ReactPointerEvent<HTMLButtonElement>,segment:Segment)=>{event.preventDefault();event.stopPropagation();anchorRef.current=event.currentTarget;setSelectedId(segment.id)};
- return <div className="radar-nowcast-strip compact" aria-label="Radar-Nowcast mit 5-Minuten-Balken"><div className="radar-nowcast-title"><b>Radar-Nowcast</b><span className="radar-nowcast-total"><span className="radar-nowcast-total-main"><small>2-h-Summe</small><strong>{radarAmountLabel(forecastAmount)} mm</strong></span>{radar.ensemble&&<em title="9 Zeit-/IntensitÃ¤tsszenarien (unkalibriert)">P25â€“P75 {radarAmountLabel(radar.ensemble.totalP25)}â€“{radarAmountLabel(radar.ensemble.totalP75)} mm</em>}</span></div><div className="radar-nowcast-chart"><div className="radar-nowcast-yaxis"><b>{radarAxisLabel(scale)}</b><span>{radarAxisLabel(scale/2)}</span><i>0</i><em>mm/5 min</em></div><div ref={trackRef} className="radar-nowcast-track radar-nowcast-scrubber" role="slider" tabIndex={0} aria-label="Radar-Nowcast zeitschrittweise erkunden" aria-valuemin={0} aria-valuemax={timelineSegments.length-1} aria-valuenow={Math.max(0,timelineSegments.findIndex(segment=>segment.id===selectedId))} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd} onKeyDown={keyDown}><div className="radar-nowcast-grid half"/><div className="radar-nowcast-axis"/>{ticks.map(tick=><span key={tick} className="radar-nowcast-tick" style={{left:`${position(tick)}%`}}><i/><b>{radarHourTick(tick,timezone)}</b></span>)}{displaySegments.map(segment=><button key={segment.id} type="button" tabIndex={-1} className={`radar-nowcast-wet${segment.future?' future':''}${segment.nearby?' nearby':''}${segment.expected?' expected':''}${segment.uncertain?' uncertain':''}${selectedId===segment.id?' selected':''}`} aria-label={`${formatInZone(segment.start,timezone,{hour:'2-digit',minute:'2-digit'})} bis ${formatInZone(segment.end,timezone,{hour:'2-digit',minute:'2-digit'})}: ${formatDecimalFixed(segment.amount,2)} Millimeter`} onPointerUp={event=>selectSegment(event,segment)} style={{left:`${segment.left}%`,width:`${Math.max(1.15,segment.right-segment.left)}%`,height:radarBarHeight(segment.amount,scale,segment.nearby)}}/>)}{selected&&<button ref={anchorRef} type="button" tabIndex={-1} aria-hidden="true" className="radar-nowcast-scrub-anchor" style={{left:`${(selected.left+selected.right)/2}%`}}/>}<span className="radar-nowcast-now" style={{left:`${position(now)}%`}}><i/><b>Jetzt</b></span></div></div><PortalPopover anchorRef={anchorRef} open={Boolean(selected)} onClose={()=>setSelectedId(null)} className="radar-nowcast-popover" width={270} positionKey={selectedId}>{selected&&<><strong>{formatInZone(selected.start,timezone,{hour:'2-digit',minute:'2-digit'})}â€“{formatInZone(selected.end,timezone,{hour:'2-digit',minute:'2-digit'})} Uhr</strong><span>{selected.status}</span><dl><dt>IntensitÃ¤t</dt><dd>{selected.rate>0?`${formatDecimalFixed(selected.rate,1)} mm/h Â· ${radarIntensity(selected.rate)}`:'0,0 mm/h'}</dd>{selected.nearby&&Number.isFinite(selected.nearestWetKm)&&<><dt>Abstand</dt><dd>ca. {formatDecimalFixed(selected.nearestWetKm!,1)} km Â· kein Standorttreffer</dd></>}<dt>5-Minuten-Menge am Standort</dt><dd>{selected.amount>0?`ca. ${formatDecimalFixed(selected.amount,2)} mm`:'0,00 mm'}</dd>{selected.amountP25!==undefined&&selected.amountP75!==undefined&&<><dt>P25â€“P75</dt><dd>{formatDecimalFixed(selected.amountP25,2)}â€“{formatDecimalFixed(selected.amountP75,2)} mm</dd></>}{selected.hitProbability!==undefined&&<><dt>Szenarioanteil (unkalibriert)</dt><dd>{Math.round(selected.hitProbability)} %</dd></>}{selected.amountSource&&<><dt>Mengenbasis</dt><dd>{selected.amountSource}</dd></>}</dl></>}</PortalPopover></div>
-}
-function radarSummary(radar:RadarNowcast,timezone?:string){
- const observed=radarClock(radar.observedAt,timezone),siteThreshold=radarSiteThreshold(radar),current=Number(radar.currentRate||0),peak=Number(radar.peakRate||0),rate=current>=siteThreshold?current:peak,intensity=radarIntensity(rate),rateText=radarRateText(rate,!!radar.rateApproximate,!!radar.rateUncertain),intervals=(radar.siteIntervals??[]).map(item=>({...item,start:radarClock(item.startAt,timezone),end:radarClock(item.endAt,timezone)})).filter(item=>item.start&&item.end);
- const phaseText=()=>{if(!intervals.length)return'';if(intervals.length===1)return`von ${intervals[0].start} bis ${intervals[0].end} Uhr`;if(intervals.length===2)return`zunÃ¤chst von ${intervals[0].start} bis ${intervals[0].end} Uhr, nach kurzer Unterbrechung erneut von ${intervals[1].start} bis ${intervals[1].end} Uhr`;return`in ${intervals.length} Phasen ab ${intervals[0].start} Uhr mit Unterbrechungen bis ${intervals.at(-1)!.end} Uhr`};
- const beyondWindow=radar.endOpenEnded?' Ein Ende ist innerhalb des betrachteten +2-h-Fensters noch nicht sicher absehbar.':'';
- if(current>=siteThreshold){const later=intervals.filter(item=>Date.parse(item.endAt)>Date.now()+2*60000),phases=later.length?` Weitere Niederschlagsphasen ${phaseText()}.`:'';return`Niederschlag am Standort erkannt${observed?` (${observed} Uhr)`:''}: ${intensity}${rateText?` Â· ${rateText}`:''}.${phases}${beyondWindow}`}
- if(intervals.length){return`Niederschlag am Standort voraussichtlich ${phaseText()}${intensity?` Â· ${intensity}`:''}${rateText?` Â· ${rateText}`:''}.${beyondWindow}`}
- const nearbyOnly=(radar.nowcastSeries??[]).some(frame=>Number(frame.rate||0)<siteThreshold&&Number(frame.nearbyRate||0)>=radarNearbyThreshold(radar));
- if(nearbyOnly){const distance=Number(radar.nearestWetKm),distanceText=Number.isFinite(distance)?` etwa ${formatDecimalFixed(distance,1)} km entfernt`: ' im Umfeld';return`Niederschlagsfeld${distanceText}; im direkten DWD-RV-Punkt-Nowcast bis +2 Stunden derzeit kein Standorttreffer.`}
- return radar.summary||`Im Radarverbund ist am Standort kein relevanter Niederschlag erkennbar${observed?` (Datenstand ${observed} Uhr)`:''}.`;
-}
-function radarQualityText(quality:RadarNowcast['quality']){return quality==='high'?'hoch':quality==='medium'?'mittel':'eingeschrÃ¤nkt'}
-function radarCompactSource(radar:RadarNowcast|null,fallback:string,timezone?:string){
- if(!radar||radar.source==='model'||radar.coverage===false)return fallback.split(' Â· ').slice(0,2).join(' Â· ');
- const observed=radarClock(radar.observedAt,timezone),parts=[radar.provider];
- if(observed)parts.push(`Stand ${observed} Uhr`);
- return parts.filter(Boolean).join(' Â· ');
-}
-function combineRadarAndModel(model:PrecipNowResult,radar:RadarNowcast|null,loading:boolean,error:string,timezone?:string):PrecipNowResult{
- if(!radar){return{...model,source:loading?`${model.source} Â· Radarabgleich lÃ¤uft â€¦`:error?`${model.source} Â· Radarabgleich nicht verfÃ¼gbar`:model.source}}
- if(radar.source==='model'||radar.coverage===false){if(radar.temporaryUnavailable||radar.coverageExpected)return{...model,source:`${model.source} Â· ${radar.expectedSource||'Radar'} vorÃ¼bergehend nicht auswertbar`};return{...model,source:`${model.source} Â· keine verwertbare Radarabdeckung`}};
- const observedMs=radar.observedAt?Date.parse(radar.observedAt):NaN,ageMinutes=Number.isFinite(observedMs)?Math.round((Date.now()-observedMs)/60000):Infinity,siteSignal=radarSiteSignalDetected(radar),nearbyOnly=!siteSignal&&radarNearbySignalDetected(radar),arrival=Number.isFinite(radar.arrivalMinutes as number)&&radar.arrivalKind==='site'?Number(radar.arrivalMinutes):(Number(radar.currentRate||0)>=radarSiteThreshold(radar)?0:120),modelProbability=Math.max(0,Math.min(100,Number(model.probability)||0)),radarProbability=Math.max(0,Math.min(100,nearbyOnly?Math.min(45,Number(radar.radarProbability)||0):Number(radar.radarProbability)||0));
- if(ageMinutes>35||ageMinutes<-10)return{...model,source:`${model.source} Â· Radarstand veraltet oder zeitlich unplausibel`};
- const dryBlend=!siteSignal&&!nearbyOnly?dryRadarNowcastProbability(modelProbability,radar,0):null;if(arrival>180&&!dryBlend&&!nearbyOnly)return{...model,source:`${model.source} Â· Radarsignal auÃŸerhalb des 3-Stunden-Abgleichs`};
- const horizonWeight=arrival<=30?.85:arrival<=60?.70:arrival<=120?.58:.42,qualityFactor=radar.quality==='high'?1:radar.quality==='medium'?.82:.65,radarWeight=nearbyOnly?.72:(dryBlend?.radarWeight??Math.max(.25,Math.min(.85,horizonWeight*qualityFactor)));let probability=Math.round(dryBlend?.probability??(radarWeight*radarProbability+(1-radarWeight)*modelProbability));if(Number(radar.currentRate||0)>=radarSiteThreshold(radar))probability=Math.max(probability,90);if(nearbyOnly)probability=Math.min(probability,55);
- const quality=radar.quality==='high'?'hoch':radar.quality==='medium'?'mittel':'eingeschrÃ¤nkt',observed=radarClock(radar.observedAt,timezone),seasonal=radar.seasonalEchoLabel?` Â· ${radar.seasonalEchoLabel}`:'',radarFinding=dryBlend?' Â· Radarbefund: kein Niederschlag am Standort':nearbyOnly?' Â· Radarbefund: Echo nur im Umfeld, kein direkter Standorttreffer':'';
- const radarText=radarSummary(radar,timezone)||model.summary,continuation=model.continuation&&!radarText.includes(model.continuation)?model.continuation:'';return{probability,summary:[radarText,continuation].filter(Boolean).join(' '),source:`Radar- und Modellabgleich${radarFinding} Â· ${radar.provider}${radar.observationProvider?` Â· Beobachtung: ${radar.observationProvider}`:''}${observed?` Â· Datenstand ${observed} Uhr`:''} Â· AktualitÃ¤t ${ageMinutes} min Â· RadarqualitÃ¤t: ${quality}${seasonal} Â· Gewichtung: Radar ${Math.round(radarWeight*100)} % / Modell ${Math.round((1-radarWeight)*100)} %`,continuation:model.continuation};
-}
+N”\Ú™XÚ\]][Û[\Ù][™ÜŞİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JTÒÔ‘PÒTUUSÓ—ĞST•ÒÑVJ_	ŞßIÊH\È\X[\Ú™XÚ\]][Û[\Ù][™ÜÏ‹XYÎ”\Ú™XÚ\]][Û“XYZ[]\Ö×OVÌMKÌKŒLLŒK[[İ[Î”\Ú™XÚ\]][Û•™\ÚÛ[V×OVËŒKŒ‹KK‹WK\˜][ÛœÎ”\Ú™XÚ\]][Û‘\˜][Û“Z[]\Ö×OVÌMKÌŒLŒNKXYS[X™\Š\œÙY›XYZ[]\ÊH\È\Ú™XÚ\]][Û“XYZ[]\Ë[[İ[S[X™\Š\œÙY›Z[š[][P[[İ[[JH\È\Ú™XÚ\]][Û•™\ÚÛ[K\˜][ÛS[X™\Š\œÙY›Z[š[][Q\˜][Û“Z[]\ÊH\È\Ú™XÚ\]][Û‘\˜][Û“Z[]\ÎÜ™]\›ÛXYZ[]\Î›XYËš[˜ÛY\ÊXY
+OÛXY‘QUSÔTÒÔ‘PÒTUUSÓ—ĞST•›XYZ[]\ËZ[š[][P[[İ[[N˜[[İ[Ëš[˜ÛY\Ê[[İ[
+OØ[[İ[‘QUSÔTÒÔ‘PÒTUUSÓ—ĞST•›Z[š[][P[[İ[[KZ[š[][Q\˜][Û“Z[]\Î™\˜][ÛœËš[˜ÛY\Ê\˜][ÛŠOÙ\˜][Û‘QUSÔTÒÔ‘PÒTUUSÓ—ĞST•›Z[š[][Q\˜][Û“Z[]\ß_XØ]ÚÜ™]\›ˆQUSÔTÒÔ‘PÒTUUSÓ—ĞST•_B™[˜İ[ÛˆİÜ™Y[Ù[Ú[™ÙTÙ][™ÜÊ
+N“[Ù[Ú[™ÙTÙ][™ÜŞİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JSÑSĞÒS‘ÑWÔÑUS‘Ô×ÒÑVJ_	ŞßIÊNÜ™]\›Ù[˜X›Y›ÛÛX[Š\œÙYË™[˜X›Y
+K›İYSX]\šX[›ÛÛX[Š\œÙYË››İYSX]\šX[
+__XØ]ÚÜ™]\›Ù[˜X›Y™˜[ÙK›İYSX]\šX[™˜[Ù___B™[˜İ[ÛˆİÜ™Y˜Y\‘\Ü^TÙ][™ÜÊ
+N”˜Y\‘\Ü^TÙ][™ÜŞİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JQT—ÑTÔVWÔÑUS‘Ô×ÒÑVJ_	ŞßIÊNÜ™]\›ÜÚİÔ›Ø˜Xš[]U[Y[[™N›ÛÛX[Š\œÙYËœÚİÔ›Ø˜Xš[]U[Y[[™J__XØ]ÚÜ™]\›ÜÚİÔ›Ø˜Xš[]U[Y[[™N™˜[Ù___B™[˜İ[ÛˆİÜ™Y›Ü™XØ\İ\Ü^TÙ][™ÜÊ
+N‘›Ü™XØ\İ\Ü^TÙ][™ÜŞİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][J“Ô‘PĞTÕÑTÔVWÔÑUS‘Ô×ÒÑVJ_	ŞßIÊK™\Ù[][Û“[ÙN‘›Ü™XØ\İ™\Ù[][Û“[ÙO\\œÙYËœ™\Ù[][Û“[ÙOOOIØÛØÚÜ]]XœÉß\œÙYËœ™\Ù[][Û“[ÙOOOIØÛØÚÜ]\šX˜›ÛœÉÏÜ\œÙYœ™\Ù[][Û“[ÙN‰ØÛ\ÜÚXÉËÛÛ™šY[˜ÙQ\Ü^S[ÙO[›Ü›X[^™PÛÛ™šY[˜ÙQ\Ü^S[ÙJ\œÙYË˜ÛÛ™šY[˜ÙQ\Ü^S[ÙJNÜ™]\›Ë‹‹‘QUSÑ“Ô‘PĞTÕÑTÔVWÔÑUS‘ÔËÚİÔÙ]™[‘^Tİ[[X\Nœ\œÙYËœÚİÔÙ]™[‘^Tİ[[X\HOOY˜[ÙKÚİÑÙ™XÚ\]][Û•\T˜Y\œ\œÙYËœÚİÑÙ™XÚ\]][Û•\T˜Y\ˆOOY˜[ÙK™\Ù[][Û“[ÙKÛÛ™šY[˜ÙQ\Ü^S[Ù__XØ]ÚÜ™]\›Ë‹‹‘QUSÑ“Ô‘PĞTÕÑTÔVWÔÑUS‘Ôß__B™[˜İ[ÛˆİÜ™YØØ[^˜\™\Ü^TÙ][™ÜÊ
+N“ØØ[^˜\™\Ü^TÙ][™ÜŞİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JĞĞSÒVT‘ÑTÔVWÔÑUS‘Ô×ÒÑVJ_	ŞßIÊNÜ™]\›ÜÚİÕ[™\[™›\Ú›ÛÙœ\œÙYËœÚİÕ[™\[™›\Ú›ÛÙOOY˜[Ù__XØ]ÚÜ™]\›ÜÚİÕ[™\[™›\Ú›ÛÙY___B™[˜İ[ÛˆÛÛ\XİØØ[^˜\™İ[[X\J˜[YNœİš[™ËX^[™İLML
+^ØÛÛœİ^Tİš[™Ê˜[Y_	ÉÊKœ™XZĞ]]^š[™^ÙŠ	Ëˆ	ÊKÙ[[˜ÙOXœ™XZĞ]Lİ^œÛXÙJœ™XZĞ]
+ÌJN^Ü™]\›ˆÙ[[˜ÙK›[™İ[X^[™İÜÙ[[˜ÙN˜	ÜÙ[[˜ÙKœÛXÙJX^[™İLJKš[Q[™
+
+_x )˜B™[˜İ[Ûˆ›Ü›X[^™Q˜]›Üš]J˜[YN˜[K[™^L
+N‘˜]›Üš]_[ÚYŠÛÚÜÓZÙQ]™[˜]›Üš]T™XÛÜ™
+˜[YJJ\™]\›ˆ[ØÛÛœİ˜]Ï]˜[YOË›ØØ][ÛÏİ˜[YNÚYŠS[X™\‹š\Ñš[š]J˜]ÏË›]]YJ_S[X™\‹š\Ñš[š]J˜]ÏË›Û™Ú]YJJ\™]\›ˆ[ØÛÛœİØØ][ÛY˜]›Üš]SØØ][ÛŠ˜]È\ÈØØ][ÛŠK[\Ï]˜[YOËœ[\É‰\[Ùˆ˜[YKœ[\ÏOOIÛØš™Xİ	Ïİ˜[YKœ[\ÎßK[İ[Z[]˜[YOË›[İ[Z[‰‰\[Ùˆ˜[YK›[İ[Z[OOIÛØš™Xİ	ÏÛ›Ü›X[^™S[İ[Z[ÛÛ™šYÊ˜[YK›[İ[Z[‹ØØ][ÛŠNœİÜ™Y[İ[Z[ÛÛ™šYÊØØ][ÛŠKØ]\]˜[YOËØ]\‰‰\[Ùˆ˜[YKØ]\OOIÛØš™Xİ	ÏÛ›Ü›X[^™UØ]\ÛÛ™šYÊ˜[YKØ]\ŠN™Y˜][Ø]\ÛÛ™šYÊ
+NÜ™]\›ÚY”İš[™Ê˜[YOËšY˜]‹IÙ˜]›Üš]RÙ^JØØ][ÛŠ_KIÚ[™^X
+KØØ][Û‹[X\Î”İš[™Ê˜[YOË˜[X\ß	ÉÊKš[J
+KœÛXÙJ
+KÜ›İ\”İš[™Ê˜[YOË™Ü›İ\	Ğ[Ù[YZ[‰ÊKš[J
+KœÛXÙJÌŠ_	Ğ[Ù[YZ[‰Ë\ÑY˜][›ÛÛX[Š˜[YOËš\ÑY˜][
+K[\ÎÙ[˜X›Y›YØXŞQ˜]›Üš]T[\Ñ[˜X›Y
+[\ÊK˜Z[”›Ø˜Xš[]N“[X™\‹š\Ñš[š]J[X™\Š[\Ëœ˜Z[”›Ø˜Xš[]JJOÓ[X™\Š[\Ëœ˜Z[”›Ø˜Xš[]JN‘QUSÑU“Ô’UWÔ•STËœ˜Z[”›Ø˜Xš[]Kİ\İİ“[X™\‹š\Ñš[š]J[X™\Š[\Ë™İ\İİ
+JOÓ[X™\Š[\Ë™İ\İİ
+N‘QUSÑU“Ô’UWÔ•STË™İ\İİœ›ÜİÎ“[X™\‹š\Ñš[š]J[X™\Š[\Ë™œ›ÜİÊJOÓ[X™\Š[\Ë™œ›ÜİÊN‘QUSÑU“Ô’UWÔ•STË™œ›ÜİËX]Î“[X™\‹š\Ñš[š]J[X™\Š[\ËšX]ÊJOÓ[X™\Š[\ËšX]ÊN‘QUSÑU“Ô’UWÔ•STËšX]Ë™XÚ\]][Û”İ\›ÛÛX[Š[\Ëœ™XÚ\]][Û”İ\
+K[™\œİÜ›P\›ØXÚ›ÛÛX[Š[\Ë[™\œİÜ›P\›ØXÚ
+_K[İ[Z[‹Ø]\Ÿ_B™[˜İ[Ûˆ›Ü›X[\ÙQ˜]›Üš]PÛÛXİ[ÛŠ˜[Y\Î˜[V×JN‘˜]›Üš]V×^ØÛÛœİÙY[’YÏ[™]ÈÙ]İš[™ÏŠ
+K™\İ[‘˜]›Üš]V×OV×NÙ›ÜŠ]OLÚO˜[Y\Ë›[™İÚJÊÊ^Û]][O[›Ü›X[^™Q˜]›Üš]J˜[Y\ÖÚWKJNÚYŠZ][JXÛÛ[YNÚYŠÙY[’YËš\Ê][KšY
+J^ØÛÛœİÜšYÚ[˜[YZ][KšY^\İ[™Ï\™\İ[™š[™
+˜[YOO˜[YKšYOO[ÜšYÚ[˜[Y
+NÚYŠ^\İ[™É‰’”ÓÓ‹œİš[™ÚYJ^\İ[™ÊOOOR”ÓÓ‹œİš[™ÚYJ][JJXÛÛ[YNÚ][O^Ë‹‹š][KY˜	ÛÜšYÚ[˜[YKIÙ˜]›Üš]RÙ^J][K›ØØ][ÛŠ_KIÚ_X_\ÙY[’YË˜Y
+][KšY
+NÜ™\İ[œ\Ú
+][J_[]Y˜][\ÙYY˜[ÙNÜ™]\›ˆ™\İ[›X\
+][OOš][Kš\ÑY˜][	‰ˆYY˜][\ÙYÊY˜][\ÙY]YK][JNš][Kš\ÑY˜][ŞË‹‹š][K\ÑY˜][™˜[Ù_Nš][J_B™[˜İ[Ûˆ\Q˜]›Üš]UÛXœİÛ™\Ê˜[Y\Î‘˜]›Üš]V×KÛXœİÛ™\Ï\™XY˜]›Üš]UÛXœİÛ™\Ê
+J^ØÛÛœİš[\™Y]˜[Y\Ë™š[\Š][OOˆ]ÛXœİÛ™\ÖÚ][KšYJNÚYŠYš[\™Y›[™İš[\™YœÛÛYJ][OOš][Kš\ÑY˜][
+J\™]\›ˆš[\™YÜ™]\›ˆš[\™Y›X\
+
+][K[™^
+OOš[™^OOLŞË‹‹š][K\ÑY˜][Y_Nš][J_B™[˜İ[Ûˆ\œÙQ˜]›Üš]TÛ˜\Úİ
+˜]Îœİš[™ß[
+^ÚYŠ˜]ÏOO[[
+\™]\›ˆ[İ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJ˜]ÊK˜[Y\ÏP\œ˜^Kš\Ğ\œ˜^J\œÙY
+OÜ\œÙY\œ˜^Kš\Ğ\œ˜^J\œÙYË™˜]›Üš]\ÊOÜ\œÙY™˜]›Üš]\Î›[ÚYŠ]˜[Y\Ê\™]\›ˆ[ØÛÛœİ™Z™XİY]™[™XÛÜ™Ï]˜[Y\ËœÛÛYJÛÚÜÓZÙQ]™[˜]›Üš]T™XÛÜ™
+K˜]›Üš]\Ï[›Ü›X[\ÙQ˜]›Üš]PÛÛXİ[ÛŠ˜[Y\ÊNÜ™]\›Ù˜]›Üš]\Ë™Z™XİY]™[™XÛÜ™ËÛİ\˜ÙPÛİ[˜[Y\Ë›[™İ_XØ]ÚÜ™]\›ˆ[_B™[˜İ[ÛˆİÜ™Y˜]›Üš]\Ê
+N‘˜]›Üš]V×^İ^ØÛÛœİš[X\O\\œÙQ˜]›Üš]TÛ˜\Úİ
+ØØ[İÜ˜YÙK™Ù]][JU“Ô’UT×ÔÕÔQÑWÒÑVJJKÚYİÏ\\œÙQ˜]›Üš]TÛ˜\Úİ
+ØØ[İÜ˜YÙK™Ù]][JU“Ô’UT×ÔÒQÕ×ÒÑVJJKš[X\Q[\PÛÜœ\P›ÛÛX[Šš[X\I‰œš[X\KœÛİ\˜ÙPÛİ[Œ	‰œš[X\K™˜]›Üš]\Ë›[™İOOL
+KÛXœİÛ™\Ï\™XY˜]›Üš]UÛXœİÛ™\Ê
+NÛ]™XÛİ™\™Y‘˜]›Üš]V×NÚYŠ\š[X\_š[X\Q[\PÛÜœ\
+\™XÛİ™\™Y\ÚYİÏË™˜]›Üš]\ÏÏÖ×NÙ[ÙHYŠš[X\Kœ™Z™XİY]™[™XÛÜ™Ê^ØÛÛœİRY[™]ÈÙ]
+š[X\K™˜]›Üš]\Ë›X\
+][OOš][KšY
+JNÜ™XÛİ™\™YVË‹‹œš[X\K™˜]›Üš]\Ë‹‹ŠÚYİÏË™˜]›Üš]\ÏÏÖ×JK™š[\Š][OOˆXRYš\Ê][KšY
+JW_Y[ÙH™XÛİ™\™Y\š[X\K™˜]›Üš]\ÎØÛÛœİÛX[™YX\Q˜]›Üš]SÜ™\Š\Q˜]›Üš]UÛXœİÛ™\Ê™XÛİ™\™YÛXœİÛ™\ÊJK™YYÔ™\Z\H\š[X\_š[X\Q[\PÛÜœ\š[X\Kœ™Z™XİY]™[™XÛÜ™ßÛX[™Y›[™İOO\™XÛİ™\™Y›[™İ”ÓÓ‹œİš[™ÚYJÛX[™Y
+HOOR”ÓÓ‹œİš[™ÚYJš[X\OË™˜]›Üš]\ÏÏÖ×JNÚYŠ™YYÔ™\Z\Š\\œÚ\İ˜]›Üš]TÛ˜\Úİ
+ÛX[™Y
+NÙ[ÙH\œÚ\İ˜]›Üš]SÜ™\ŠÛX[™Y
+NÜ™]\›ˆÛX[™YXØ]ÚÜ™]\›–×__B™[˜İ[Ûˆ›İYšXØ][Û“ØØ][ÛŠ
+N“ØØ][ÛŸ[İ^ØÛÛœİ\›[™]ÈT“
+Ú[™İË›ØØ][Û‹š™YŠK˜]›Üš]RY]\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛZYY˜]›Üš]IÊ_	ÉË˜]›Üš]\Ï\İÜ™Y˜]›Üš]\Ê
+K˜]›Üš]OY˜]›Üš]\Ë™š[™
+][OOš][KšYOOY˜]›Üš]RY
+K]]YT˜]Ï]\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛZY[]	ÊKÛ™Ú]YT˜]Ï]\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛZY[Û‰ÊK]]YO[]]YT˜]ÏOO[[]]YT˜]Ëš[J
+OOOIÉÏÓ˜S“[X™\Š]]YT˜]Ëœ™\XÙJ	Ë	Ë	Ë‰ÊJKÛ™Ú]YO[Û™Ú]YT˜]ÏOO[[Û™Ú]YT˜]Ëš[J
+OOOIÉÏÓ˜S“[X™\ŠÛ™Ú]YT˜]Ëœ™\XÙJ	Ë	Ë	Ë‰ÊJK˜[YÛÛÜ™[˜]\ÏS[X™\‹š\Ñš[š]J]]YJI‰“[X™\‹š\Ñš[š]JÛ™Ú]YJI‰“X]˜XœÊ]]YJONL	‰“X]˜XœÊÛ™Ú]YJOLN	‰ˆJ]]YOOOL	‰›Û™Ú]YOOOL
+NÚYŠ˜[YÛÛÜ™[˜]\Ê^ØÛÛœİ]Y\S˜[YOTİš[™Ê\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛZY[˜[YIÊ_	ÉÊKš[J
+K˜\ÙOY˜]›Üš]OË›ØØ][Û‹ÛÜÙQ˜]›Üš]OX˜\ÙI‰›ØØ][Û‘\İ[˜ÙSY]\œÊ˜\ÙKË‹‹˜˜\ÙK]]YKÛ™Ú]Y_JOLLÙ˜]›Üš]N[™Yš[™Y˜[YO\]Y\S˜[Y_ÛÜÙQ˜]›Üš]OË˜[X\ßÛÜÙQ˜]›Üš]OË›ØØ][Û‹›˜[Y_	Ğ™[˜XÚšXÚYİ[™ÜÛÜ	ËÛİ[O]\›œÙX\˜Ú\˜[\Ë™Ù]
+	ÛZYXÛİ[IÊ_ÛÜÙQ˜]›Üš]OË›ØØ][Û‹˜Ûİ[NÜ™]\›ˆ›Ü›X[^™SØØ][ÛŠË‹‹˜ÛÜÙQ˜]›Üš]OË›ØØ][Û‹Y“X]˜XœÊX]œ›İ[™
+]]YJŒL
+JŒL
+ÓX]œ›İ[™
+Û™Ú]YJŒL
+JK˜[YK]]YKÛ™Ú]YKÛİ[K]]ÛØØ]Y™˜]›Üš]RYOOIİ˜XÚÙY[ØØ][Û‰ßH\ÈØØ][ÛŠ_ZYŠ˜]›Üš]J\™]\›ˆ˜]›Üš]K›ØØ][ÛÜ™]\›ˆ[XØ]ÚÜ™]\›ˆ[_B™[˜İ[Ûˆ[š]X[ØØ][ÛŠ
+^ØÛÛœİÚYÙ]^Ü\™XYÚYÙ]\›^Ü™\]Y\İ
+Ú[™İË›ØØ][Û‹š™YŠNÚYŠÚYÙ]^Ü
+\™]\›ˆÚYÙ]^Ü›ØØ][Ûˆ\ÈØØ][ÛØÛÛœİ›İYšYY[›İYšXØ][Û“ØØ][ÛŠ
+NÚYŠ›İYšYY
+\™]\›ˆ›İYšYYØÛÛœİ\İ\İÜ™YØØ][ÛŠ
+NÚYŠ\İ
+\™]\›ˆ\İÜ™]\›ˆİÜ™Y˜]›Üš]\Ê
+K™š[™
+][OOš][Kš\ÑY˜][
+OË›ØØ][ÛÏÛ[B™[˜İ[Ûˆ˜]›Üš]SX™[
+˜]›Üš]N‘˜]›Üš]J^Ü™]\›ˆ˜]›Üš]K˜[X\ß˜]›Üš]K›ØØ][Û‹›˜[Y_B™[˜İ[Ûˆ[š]X[[YS[ÙJ
+N•[YS[Ù^İ^ØÛÛœİİÜ™Y[ØØ[İÜ˜YÙK™Ù]][JSQWÔÕÔQÑWÒÑVJNÜ™]\›ˆİÜ™YOOIÙ\šÉßİÜ™YOOIÛYÚ	ßİÜ™YOOIØ]]ÉÏÜİÜ™Y‰Ø]]ÉßXØ]ÚÜ™]\›‰Ø]]Éß_B™[˜İ[Ûˆ™XYœ˜[™ÙÛÕ˜\šX[
+
+Nœ˜[™ÙÛÕ˜\šX[İ^ØÛÛœİİÜ™Y[ØØ[İÜ˜YÙK™Ù]][J”S‘ÓÑÓ×ÔÕÔQÑWÒÑVJNÜ™]\›ˆİÜ™YOOIÙ\šÉßİÜ™YOOIÛYÚ	ßİÜ™YOOIØ]]ÉÏÜİÜ™Y‰Ø]]ÉßXØ]ÚÜ™]\›‰Ø]]Éß_B™[˜İ[Ûˆ™\ÛÛ™Pœ˜[™ÙÛÕ˜\šX[
+˜\šX[œ˜[™ÙÛÕ˜\šX[\šÎ˜›ÛÛX[ŠN‘^ÛYOœ˜[™ÙÛÕ˜\šX[	Ø]]ÉÏÜ™]\›ˆ˜\šX[OOIØ]]ÉÏÊ\šÏÉÙ\šÉÎ‰ÛYÚ	ÊN˜\šX[B™[˜İ[Ûˆœ˜[™ÙÛÔ]›Ü•˜\šX[
+˜\šX[‘^ÛYOœ˜[™ÙÛÕ˜\šX[	Ø]]ÉÏŠ^Ü™]\›ˆ˜\šX[OOIÛYÚ	ÏÓQÒÓÑÓ×ÔU‘T’×ÓÑÓ×ÔUB™[˜İ[Ûˆœ˜[™˜]šXÛÛ”]›Ü•˜\šX[
+˜\šX[‘^ÛYOœ˜[™ÙÛÕ˜\šX[	Ø]]ÉÏŠ^Ü™]\›ˆ˜\šX[OOIÛYÚ	ÏÓQÒÑU’PÓÓ—ÔU‘T’×ÑU’PÓÓ—ÔUB™[˜İ[ÛˆŞ\İ[T™Y™\œÑ\šÊ
+^Ü™]\›ˆÚ[™İË›X]ÚYYXOËŠ	Ê™Y™\œËXÛÛÜ‹\ØÚ[YNˆ\šÊIÊK›X]Ú\ÏÏÙ˜[Ù_B‚™[˜İ[Ûˆ]SÛ›U]Ê˜[YNœİš[™Ê^ØÛÛœİX]ÚTİš[™Ê˜[Y_	ÉÊK›X]Ú
+×ŠÍJKJÌŸJKJÌŸJIÊNÜ™]\›ˆX]ÚÛ™]È]J]K•UÊ[X™\ŠX]ÚÌWJK[X™\ŠX]ÚÌ—JKLK[X™\ŠX]ÚÌ×JKLŠJN›™]È]J[X™\‹“˜SŠ_B™[˜İ[Ûˆ›Ü›X]]SÛ›J˜[YNœİš[™ËÜ[ÛœÎ’[‘]U[YQ›Ü›X]Ü[ÛœÊ^ØÛÛœİ]OY]SÛ›U]Ê˜[YJNÜ™]\›ˆ[X™\‹š\Ñš[š]J]K™Ù][YJ
+JOÛ™]È[‘]U[YQ›Ü›X]
+	ÙKQIËË‹‹›Ü[ÛœË[YV›Û™N‰ÕUÉßJK™›Ü›X]
+]JN˜[Y_B™[˜İ[Ûˆ›Ü›X]˜]Ò[–›Û™J˜[YN‘]_[X™\‹[YV›Û™Nœİš[™ß[™Yš[™YÜ[ÛœÎ’[‘]U[YQ›Ü›X]Ü[ÛœÊ^ØÛÛœİ]O]\[Ùˆ˜[YOOOIÛ[X™\‰ÏÛ™]È]J˜[YJN˜[YNİ^Ü™]\›ˆ™]È[‘]U[YQ›Ü›X]
+	ÙKQIËË‹‹›Ü[ÛœË[YV›Û™N[YV›Û™_[™Yš[™YJK™›Ü›X]
+]J_XØ]ÚÜ™]\›ˆ™]È[‘]U[YQ›Ü›X]
+	ÙKQIËÜ[ÛœÊK™›Ü›X]
+]J__B™[˜İ[Ûˆ›Ü›X][–›Û™J˜[YN‘]_[X™\‹[YV›Û™Nœİš[™ß[™Yš[™YÜ[ÛœÎ’[‘]U[YQ›Ü›X]Ü[ÛœÊ^Ü™]\›ˆ›Ü›X]˜]Ò[–›Û™J˜[YK\Ü^U[YV›Û™J[YV›Û™JKÜ[ÛœÊ_B™[˜İ[ÛˆØØ[]R[–›Û™J[YV›Û™OÎœİš[™Ë]‘]_[X™\[™]È]J
+J^ØÛÛœİ]OX][œİ[˜Ù[Ùˆ]OØ]›™]È]J]
+Nİ^ØÛÛœİ\Ï[™]È[‘]U[YQ›Ü›X]
+	Ù[‹PĞIËİ[YV›Û™N[YV›Û™_[™Yš[™YYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	ßJK™›Ü›X]Ô\Ê]JKÙ]J\Nœİš[™ÊOOœ\Ë™š[™
+O\OOO]\JOË˜[YNÜ™]\›˜	ÙÙ]
+	ŞYX\‰Ê_KIÙÙ]
+	Û[Û	Ê_KIÙÙ]
+	Ù^IÊ_XXØ]ÚÜ™]\›ˆ]KÒTÓÔİš[™Ê
+KœÛXÙJL
+__B™[˜İ[Ûˆ›Û™PØ\[ÛŠ[YV›Û™OÎœİš[™ËX˜œ™]šX][ÛÎœİš[™Ê^ÚYŠ[YV›Û™OOOIÕUÉÊ\™]\›‰ÕUÈ0­È‹V™Z]	ÎÜ™]\›ˆX˜œ™]šX][ÛØ	ØX˜œ™]šX][ÛŸH0­È	İ[YV›Û™_	ÓÚØ[™Z]	ßX[YV›Û™_	ÓÚØ[™Z]	ßB™^Ü[˜İ[Ûˆ›Ü›X][RJ˜[YN›[X™\Ÿ]J^ØÛÛœİ]O[™]È]J˜[YJNÜ™]\›ˆ[X™\‹š\Ñš[š]J]K™Ù][YJ
+JOØ	Ôİš[™Ê]K™Ù]UÒİ\œÊ
+JKœYİ\
+‹	Ì	Ê_IÔİš[™Ê]K™Ù]UÓZ[]\Ê
+JKœYİ\
+‹	Ì	Ê_V˜‰ÉßB™[˜İ[Ûˆ›Ü›X]Û]Ù™œÙ]
+ÙXÛÛ™Î[šÛ›İÛŠ^ØÛÛœİ˜[YOS[X™\ŠÙXÛÛ™ÊNÚYŠS[X™\‹š\Ñš[š]J˜[YJJ\™]\›‰ÑÓU	ÎØÛÛœİÚYÛ]˜[YOÉø¢$‰Î‰ÊÉÎØÛÛœİİ[Z[]\ÏSX]œ›İ[™
+X]˜XœÊ˜[YJKÍŒ
+Kİ\œÏSX]™›ÛÜŠİ[Z[]\ËÍŒ
+KZ[]\Ï]İ[Z[]\ÉMŒÜ™]\›˜ÓU	ÜÚYÛŸIÚİ\œßIÛZ[]\ÏØ‰Ôİš[™ÊZ[]\ÊKœYİ\
+‹	Ì	Ê_X‰ÉßXB™[˜İ[ÛˆØØ[ÛØÚÊİ[Y^›Û™KX˜œ™]šX][Û‹]ÓÙ™œÙ]ÙXÛÛ™ËY˜[˜ÙYNİ[Y^›Û™Nœİš[™ÎØX˜œ™]šX][ÛÎœİš[™Îİ]ÓÙ™œÙ]ÙXÛÛ™ÏÎ›[X™\ØY˜[˜ÙY˜›ÛÛX[ŸJ^ÂˆÛÛœİÛ›İËÙ]›İ×O]\ÙTİ]J
+
+OO‘]K››İÊ
+JNÂˆ\ÙQY™™Xİ
 
 
-function TwinForecastActivationOffer({status,onActivate}:{status:TwinMainForecastStatus;onActivate:()=>void}){const improvement=Number.isFinite(status.improvement)?`${Number(status.improvement)>=0?'+':''}${Math.round(Number(status.improvement))} %`:'mindestens gleichwertig';return <section className="weather-twin-activation-offer" aria-label="Lokale Best-Match-Nachkorrektur aktivieren"><BadgeCheck size={22}/><span><strong>Lokale Best-Match-Nachkorrektur ist freigegeben</strong><small>{status.sourceLabel} Â· {status.validationDays} Kontrolltage Â· gegenÃ¼ber Best Match {improvement}</small></span><button type="button" onClick={onActivate}>FÃ¼r Best Match anwenden</button></section>}
+OOÛ][Y\LØÛÛœİØÚY[OJ
+OOİÚ[™İË˜ÛX\•[Y[İ]
+[Y\ŠNØÛÛœİ[^OMŒQ]K››İÊ
+IMŒ
+ÌLŒİ[Y\]Ú[™İËœÙ][Y[İ]
 
 
-function meanCloudLayer(hours:Hour[],key:'cloud'|'lowCloud'|'midCloud'|'highCloud'){const values=hours.map(hour=>Number(hour[key])).filter(Number.isFinite);return values.length?values.reduce((sum,value)=>sum+value,0)/values.length:undefined}
-function periodDisplayCode(hour:Hour){return precipitationParts(hour).displayCode}
-function periodWeatherImpact(hour:Hour){const code=periodDisplayCode(hour),kind=weatherPictogramKind(code),base=['thunder','thunder-solid','thunder-graupel','thunder-hail'].includes(kind)?100:kind==='showers'||kind==='sleet-showers'||kind==='snow-showers'||kind==='graupel-showers'||kind==='hail-showers'?78:kind==='rain'||kind==='freezing-rain'||kind==='sleet'||kind==='snow'||kind==='snow-stars'||kind==='ice-crystals'||kind==='ice-pellets'||kind==='wintry-after-thunder'?68:kind==='drizzle'||kind==='freezing-drizzle'||kind==='snow-grains'?48:kind==='fog'||kind==='rime-fog'?42:kind==='cloudy'?28:kind==='partly-cloudy'?18:kind==='mostly-clear'?9:0;return base+Math.min(18,Math.max(0,hour.precipitation)*6)+Math.max(0,hour.probability)*.12+Math.max(0,hour.cloud)*.025}
-function WeatherPeriodIcons({dayVisual,nightVisual,daySize=44,nightSize=25}:{dayVisual:PeriodWeatherVisual;nightVisual?:PeriodWeatherVisual;daySize?:number;nightSize?:number}){return <span className="weather-period-icons"><span className="weather-period-day"><WeatherPictogram code={dayVisual.code} intensity={dayVisual.intensity} phenomenon={dayVisual.phenomenon} day size={daySize} style={{width:daySize,height:daySize}} title={dayVisual.title} cloud={dayVisual.cloud} lowCloud={dayVisual.lowCloud} midCloud={dayVisual.midCloud} highCloud={dayVisual.highCloud}/></span>{nightVisual?.available&&<span className="weather-period-night"><WeatherPictogram code={nightVisual.code} intensity={nightVisual.intensity} phenomenon={nightVisual.phenomenon} day={false} size={nightSize} style={{width:nightSize,height:nightSize}} compact title={nightVisual.title} cloud={nightVisual.cloud} lowCloud={nightVisual.lowCloud} midCloud={nightVisual.midCloud} highCloud={nightVisual.highCloud}/></span>}</span>}
-function windDirectionShort(direction:number){const labels=['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW'];return labels[Math.round((((direction%360)+360)%360)/22.5)%16]??'â€“'}
-function detailListPrecipLabel(hour:Hour){const amount=Math.max(0,Number(hour.precipitation)||0),snowfall=Math.max(0,Number(hour.snowfall)||0);return amount>.04||snowfall>=.05?precipitationAmountLabel(hour):'â€“'}
-function detailListWeatherLabel(parts:PrecipitationParts){return parts.type==='none'?label(parts.displayCode):parts.weatherLabel}
-function clockHourInZone(timezone:string,epoch=Date.now()){try{return Number(new Intl.DateTimeFormat('en-GB',{timeZone:timezone,hour:'2-digit',hourCycle:'h23'}).format(new Date(epoch)))}catch{return new Date(epoch).getHours()}}
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIİš\ÚX›IÊ\Ù]›İÊ]K››İÊ
+JNÜØÚY[J
+_K[^J_Kš\ÚXš[]OJ
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIİš\ÚX›IÊ\Ù]›İÊ]K››İÊ
+J_NÜØÚY[J
+NÙØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNÜ™]\›Š
+OOİÚ[™İË˜ÛX\•[Y[İ]
+[Y\ŠNÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]J__K×JNÂˆ™]\›ˆÜ[ˆÛ\ÜÓ˜[YOH›ØØ[][Y^›Û™HØY˜[˜ÙYØ	Ù›Ü›X]˜]Ò[–›Û™J›İË[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJ_H	Ù›Ü›X]Û]Ù™œÙ]
+]ÓÙ™œÙ]ÙXÛÛ™Ê_H
+	Ù›Ü›X][RJ›İÊ_JXŠX˜œ™]šX][ÛŸ[Y^›Û™J_OÜÜ[‚ŸB™[˜İ[ÛˆX^[Z^™Uš\ÚX›R[™XÙ\Ê[™İ›[X™\‹X^š\ÚX›N›[X™\Š^ÂˆYŠ[™İLX^š\ÚX›OL
+\™]\›–×NÂˆYŠ[™İ[X^š\ÚX›J\™]\›ˆ\œ˜^K™œ›ÛJÛ[™İK
+Ë[™^
+OOš[™^
+NÂˆÛÛœİÛİ[SX]›X^
+‹X]›Z[Š[™İX]™›ÛÜŠX^š\ÚX›JJJNÂˆ™]\›ˆ\œ˜^K™œ›ÛJÛ[™İ˜Ûİ[K
+Ë[™^
+OO“X]œ›İ[™
+[™^
+Š[™İLJKÊÛİ[LJJJNÂŸB˜ÛÛœİ[\Ü˜Y\”[™[J
+OOš[\Ü
+	Ë‹Ô˜Y\”[™[	ÊNÂ˜ÛÛœİ[\Ü^™[YUÙX]\“İ]ÛÚÔ[™[J
+OOš[\Ü
+	Ë‹Ñ^™[YUÙX]\“İ]ÛÚÔ[™[	ÊNÂ˜ÛÛœİ^T˜Y\[^J
 
-type DetailThermalFeel={score:number;label:string;burden:string;color:string;delta:number;sultry:boolean};
-function detailSaturationVaporPressureHpa(temperature:number){const value=Number(temperature);if(!Number.isFinite(value))return Number.NaN;return 6.112*Math.exp(17.62*value/(243.12+value))}
-function detailThermalFeel(hour:Hour):DetailThermalFeel{
- const air=Number(hour.temperature),apparent=Number(hour.apparent),felt=Number.isFinite(apparent)?apparent:air,delta=Number.isFinite(felt)&&Number.isFinite(air)?felt-air:0,dew=Number(hour.dewPoint),humidity=clamp(Number(hour.humidity)||0,0,100),dewVapor=detailSaturationVaporPressureHpa(dew),rhVapor=detailSaturationVaporPressureHpa(air)*humidity/100,vaporPressure=Number.isFinite(dewVapor)?dewVapor:rhVapor,windMs=Math.max(0,Number(hour.wind)||0)*.514444,sunshine=Number(hour.sunshineDuration),cloud=clamp(Number(hour.cloud)||0,0,100),sunShare=hour.isDay?(Number.isFinite(sunshine)?clamp(sunshine/3600,0,1):clamp(1-cloud/100,0,1)):0,radiationLoad=hour.isDay?clamp(.72*sunShare+.28*(1-cloud/100),0,1):0,windRelief=clamp((windMs-1.5)/6.5,0,1),moistureLoad=clamp((vaporPressure-16.5)/8.5,0,1),thermalLoad=clamp((felt-17)/15,0,1),feltBoost=clamp((felt-air+1.5)/6,0,1),sultryScore=Math.round(clamp(100*(.54*moistureLoad+.20*thermalLoad+.14*radiationLoad+.12*feltBoost-.22*windRelief),0,100)),coreMoisture=vaporPressure>=18.8,borderlineMoisture=vaporPressure>=17.8&&felt>=26&&radiationLoad>=.55&&windMs<3.5,strongMoisture=vaporPressure>=21.5,windSuppressed=!strongMoisture&&windMs>=7&&felt<=air+.5,sultry=(coreMoisture||borderlineMoisture)&&felt>=17&&!windSuppressed&&sultryScore>=28;
- let label='behaglich',burden='keine thermische Belastung',score=8,color:string=DWD_THERMAL_FEEL_COLORS.comfortable;
- if(felt>38){label='sehr heiÃŸ';burden='sehr hohe WÃ¤rmebelastung';score=100;color=DWD_THERMAL_FEEL_COLORS.veryHot}else if(felt>=32){label='heiÃŸ';burden='hohe WÃ¤rmebelastung';score=82;color=DWD_THERMAL_FEEL_COLORS.hot}else if(felt>=26){label='warm';burden='mittlere WÃ¤rmebelastung';score=64;color=DWD_THERMAL_FEEL_COLORS.warm}else if(felt>=20){label='leicht warm';burden='geringe WÃ¤rmebelastung';score=42;color=DWD_THERMAL_FEEL_COLORS.slightlyWarm}else if(felt>=0){label='behaglich';burden='keine thermische Belastung';score=8;color=DWD_THERMAL_FEEL_COLORS.comfortable}else if(felt>=-13){label='leicht kÃ¼hl';burden='geringer KÃ¤ltestress';score=42;color=DWD_THERMAL_FEEL_COLORS.slightlyCool}else if(felt>=-26){label='kÃ¼hl';burden='mittlerer KÃ¤ltestress';score=64;color=DWD_THERMAL_FEEL_COLORS.cool}else if(felt>=-39){label='kalt';burden='hoher KÃ¤ltestress';score=82;color=DWD_THERMAL_FEEL_COLORS.cold}else{label='sehr kalt';burden='sehr hoher KÃ¤ltestress';score=100;color=DWD_THERMAL_FEEL_COLORS.veryCold}
- return{score,label,burden,color,delta,sultry}
-}
+OOš[\Ü
+	Ë‹Ô˜Y\”[™[	ÊJNÂ˜ÛÛœİ^Q[œÙ[X›\Ï[^J
 
-function detailHoursByResolution(hours:Hour[],resolution:'3h'|'1h'){
- if(resolution==='1h')return hours;
- const groups=new Map<number,Hour[]>();for(const hour of hours){const clock=Number(hour.time.slice(11,13)),block=Number.isFinite(clock)?Math.floor(clock/3)*3:groups.size*3;const current=groups.get(block)??[];current.push(hour);groups.set(block,current)}
- return [...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([,group])=>{const base=group[0],representative=group.reduce((best,hour)=>periodWeatherImpact(hour)>periodWeatherImpact(best)?hour:best,base),sum=(key:'precipitation'|'rain'|'showers'|'snowfall')=>group.reduce((total,hour)=>total+Math.max(0,Number(hour[key])||0),0),maximum=(key:'probability'|'gust')=>Math.max(...group.map(hour=>Number(hour[key])||0)),sunshineValues=group.map(hour=>hour.sunshineDuration).filter((value):value is number=>value!==null&&value!==undefined&&Number.isFinite(value)),sunshineDuration=sunshineValues.length?sunshineValues.reduce((total,value)=>total+Math.max(0,value),0):null;return{...base,code:representative.code,precipitation:sum('precipitation'),rain:sum('rain'),showers:sum('showers'),snowfall:sum('snowfall'),probability:maximum('probability'),gust:Math.max(base.wind,maximum('gust')),cloud:meanCloudLayer(group,'cloud')??base.cloud,lowCloud:meanCloudLayer(group,'lowCloud')??base.lowCloud,midCloud:meanCloudLayer(group,'midCloud'),highCloud:meanCloudLayer(group,'highCloud'),sunshineDuration,isDay:representative.isDay} satisfies Hour})
-}
+OOš[\Ü
+	Ë‹Ñ[œÙ[X›T[™[	ÊJNÂ˜ÛÛœİ^SÛ™Ô˜[™ÙO[^J
 
-function Forecast({days,hours,minutes15,climate,selected:selectedSeed,setSelected:onSelectedChange,unit,modelInfo,timezone,timezoneAbbreviation,elevation,compactMode,advancedMode,showSevenDaySummary,twinActive,twinStatus,twinReport,fusion,fusionActive,canonicalNowcast,presentation='full'}:{days:Day[];hours:Hour[];minutes15:Minute15[];climate:ClimateDay[];selected:string;setSelected:(x:string)=>void;unit:WindUnit;modelInfo:BestMatchModelInfo|null;timezone:string;timezoneAbbreviation?:string;elevation:number;compactMode:boolean;advancedMode:boolean;showSevenDaySummary:boolean;twinActive:boolean;twinStatus?:TwinMainForecastStatus|null;twinReport?:ForecastVerificationReport|null;fusion?:ForecastFusionResult|null;fusionActive:boolean;canonicalNowcast:boolean;presentation?:'full'|'hourly-detail'}){
- const hourlyDetailOnly=presentation==='hourly-detail';
- const [selected,setSelectedState]=useState(()=>selectedSeed||days[0]?.date||''),selectedSeedRef=useRef(selectedSeed);
- const setSelected=useCallback((date:string)=>{setSelectedState(current=>current===date?current:date);onSelectedChange(date)},[onSelectedChange]);
- useEffect(()=>{const available=days.some(day=>day.date===selected),seedChanged=selectedSeedRef.current!==selectedSeed;selectedSeedRef.current=selectedSeed;if(seedChanged&&selectedSeed&&days.some(day=>day.date===selectedSeed)){setSelectedState(selectedSeed);return}if(!available){const fallback=(selectedSeed&&days.some(day=>day.date===selectedSeed)?selectedSeed:days[0]?.date)||'';setSelectedState(fallback);if(fallback)onSelectedChange(fallback)}},[days,selected,selectedSeed,onSelectedChange]);
- const initialDetailPreferences=useMemo(initialDetailChartPreferences,[]);
- const [selectedHour,setSelectedHour]=useState(0),[detailsOpen,setDetailsOpen]=useState(()=>hourlyDetailOnly||localStorage.getItem('mid:forecastDetailsOpen')==='1'),[detailResolution,setDetailResolution]=useState<'3h'|'1h'>(()=>hourlyDetailOnly?'1h':'3h'),[detailLegendOpen,setDetailLegendOpen]=useState(()=>hourlyDetailOnly?false:initialDetailLegendOpen()),[nowTick,setNowTick]=useState(()=>Date.now()),[detailVisibility,setDetailVisibility]=useState<Record<DetailLineKey,boolean>>(initialDetailPreferences.visible),[hiddenPrecipTypes,setHiddenPrecipTypes]=useState<DetailPrecipType[]>(initialDetailPreferences.hiddenPrecip),[detailChartWidth,setDetailChartWidth]=useState(()=>typeof window==='undefined'?720:Math.max(320,Math.min(1380,window.innerWidth-42))),[compactLandscape,setCompactLandscape]=useState(()=>typeof window!=='undefined'&&window.innerWidth>window.innerHeight),[compactDetailExpanded,setCompactDetailExpanded]=useState(false);
- const requestedClockSelectionRef=useRef<{date:string;hour:number}|null>(null),detailTapRef=useRef<{pointerId:number;index:number;x:number;y:number}|null>(null),dayJumpTouchRef=useRef<{identifier:number;delta:-1|1;x:number;y:number}|null>(null),dayJumpTouchAtRef=useRef(0);
- const detailChartRef=useRef<HTMLDivElement>(null),detailPlotRef=useRef<SVGSVGElement>(null),wheelGateRef=useRef(0);
- useEffect(()=>{if(!detailsOpen||selected!==localDateInZone(timezone))return;let timer=0;const schedule=()=>{window.clearTimeout(timer);timer=window.setTimeout(()=>{if(document.visibilityState==='visible')setNowTick(Date.now());schedule()},60000-Date.now()%60000+120)};schedule();return()=>window.clearTimeout(timer)},[detailsOpen,selected,timezone]);
- useEffect(()=>{if(hourlyDetailOnly)return;try{localStorage.setItem('mid:forecastDetailsOpen',detailsOpen?'1':'0')}catch{}},[detailsOpen,hourlyDetailOnly]);
- useEffect(()=>{if(!hourlyDetailOnly)return;if(!detailsOpen)setDetailsOpen(true);if(detailResolution!=='1h')setDetailResolution('1h')},[hourlyDetailOnly,detailsOpen,detailResolution]);
- useEffect(()=>{try{localStorage.setItem(DETAIL_CHART_STORAGE_KEY,JSON.stringify({visible:detailVisibility,hiddenPrecip:hiddenPrecipTypes}))}catch{}},[detailVisibility,hiddenPrecipTypes]);
- useEffect(()=>{if(hourlyDetailOnly)return;try{localStorage.setItem(DETAIL_LEGEND_STORAGE_KEY,detailLegendOpen?'1':'0')}catch{}},[detailLegendOpen,hourlyDetailOnly]);
- useEffect(()=>{const node=detailChartRef.current;if(!node||typeof ResizeObserver==='undefined'||(compactMode&&!detailsOpen))return;let frame=0;const update=()=>{if(frame)return;frame=window.requestAnimationFrame(()=>{frame=0;const width=Math.max(320,Math.round(node.clientWidth||320));setDetailChartWidth(current=>current===width?current:width)})},observer=new ResizeObserver(update);update();observer.observe(node);return()=>{if(frame)window.cancelAnimationFrame(frame);observer.disconnect()}},[detailsOpen,compactMode]);
- useEffect(()=>{if(typeof window==='undefined')return;let frame=0;const update=()=>{if(frame)return;frame=window.requestAnimationFrame(()=>{frame=0;const nextLandscape=window.innerWidth>window.innerHeight,nodeWidth=Math.round(detailChartRef.current?.clientWidth||0),fallbackWidth=Math.max(320,Math.min(1380,window.innerWidth-42)),nextWidth=Math.max(320,nodeWidth||fallbackWidth);setCompactLandscape(current=>current===nextLandscape?current:nextLandscape);setDetailChartWidth(current=>current===nextWidth?current:nextWidth)})};update();window.addEventListener('resize',update,{passive:true});window.addEventListener('orientationchange',update,{passive:true});return()=>{if(frame)window.cancelAnimationFrame(frame);window.removeEventListener('resize',update);window.removeEventListener('orientationchange',update)}},[]);
- function toggleDetailLine(key:DetailLineKey){if(!advancedMode&&key!=='pressure')return;setDetailVisibility(current=>({...current,[key]:!current[key]}))}
- function togglePrecipType(type:DetailPrecipType){if(!advancedMode)return;setHiddenPrecipTypes(current=>current.includes(type)?current.filter(value=>value!==type):[...current,type])}
- const forecastDays=useMemo(()=>days.slice(0,7),[days]);
- const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]),precipitationDisplayMinutes15=useMemo(()=>precipitationPresentationMinutes15(minutes15),[minutes15]);
- const allMin=forecastDays.length?Math.min(...forecastDays.map(x=>x.min)):0,allMax=forecastDays.length?Math.max(...forecastDays.map(x=>x.max)):1,range=Math.max(1,allMax-allMin);
- const allDayHours=useMemo(()=>precipitationDisplayHours.filter(x=>x.time.startsWith(selected)),[precipitationDisplayHours,selected]);
- const p=useMemo(()=>detailHoursByResolution(allDayHours,detailResolution),[allDayHours,detailResolution]);
- const queueRequestedClockHour=(date:string,hour:number)=>{requestedClockSelectionRef.current={date,hour:((Math.round(hour)%24)+24)%24}};
- useEffect(()=>{setCompactDetailExpanded(false)},[selected,detailResolution]);
- const precipSeries=useMemo(()=>p.map(precipitationParts),[p]);
- const pressureValues=useMemo(()=>p.map(x=>x.pressure).filter(Number.isFinite),[p]),detailThermalAssessments=useMemo(()=>p.map(detailThermalFeel),[p]);
- const forecastRowContents=useMemo(()=>new Map(forecastDays.map(d=>{const leftPct=((d.min-allMin)/range)*100,widthPct=(Math.max(1,d.max-d.min)/range)*100,allDayHoursForDate=precipitationDisplayHours.filter(x=>x.time.startsWith(d.date)),daylightHoursForDate=dayPeriodHoursForDate(d.date,precipitationDisplayHours),precipitationAssessment=dayPrecipitationAssessment(d,daylightHoursForDate.length?daylightHoursForDate:allDayHoursForDate,precipitationDisplayMinutes15),precipitationDuration=precipitationDurationDayOverviewLabel(precipitationAssessment.durationHours),precipitationDurationCompact=precipitationDurationDayOverviewCompactLabel(precipitationAssessment.durationHours),followingNightHours=followingNightHoursForDate(d.date,precipitationDisplayHours),character=dayWeatherCharacter(d,daylightHoursForDate.length?daylightHoursForDate:allDayHoursForDate),regime=forecastDayRegime(d,allDayHoursForDate),dayVisual=periodWeatherVisual(daylightHoursForDate.length?daylightHoursForDate:allDayHoursForDate,true,character.code,dayWeatherCharacterText(character),{preferFallbackCode:true}),nightVisual=periodWeatherVisual(followingNightHours,false,character.code,character.label),hz=dailyHazards(d,hours,elevation,unit,1),compactHz=highestDailyHazardsByKind(hz),minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max);return[d.date,<Fragment key={`${d.date}:content`}><div className="forecast-date"><strong>{formatDateOnly(d.date,{weekday:'short'})}</strong><small>{formatDateOnly(d.date,{day:'2-digit',month:'2-digit'})}</small></div><div className="forecast-icon" title={dayWeatherCharacterText(character)}><WeatherPeriodIcons dayVisual={dayVisual} nightVisual={nightVisual} daySize={46} nightSize={26}/><ForecastConditionPills label={compactSevenDayConditionLabel(d,allDayHoursForDate)} regime={regime}/></div><div className="forecast-meta"><span className="forecast-meta-rain" title={`${dailyPrecipitationProbabilityTitle(d,allDayHoursForDate)} Â· Niederschlagsdauer ${precipitationDuration}`}><b><Droplets size={12}/>{precipitationAmountLabel(d)}</b><small>{dailyPrecipitationProbabilityCompact(d,allDayHoursForDate)}{precipitationDurationCompact?` Â· ${precipitationDurationCompact}`:''}</small></span><span className="forecast-meta-sun"><Sun size={12}/>{sunshineHoursLabel(d.sunshineDuration)}</span><span className="forecast-meta-wind"><Wind size={12}/><WindDirectionArrow direction={d.direction} gust={d.gust}/> {wind(d.wind,unit)} Â· BÃ¶en {wind(d.gust,unit)}</span></div><div className="forecast-barwrap"><b className="climate-tone climate-tone-daily" style={{color:minTone.color,background:minTone.background,borderColor:minTone.border}} title={minTone.title}><span>{Math.round(d.min)}Â°</span></b><div className="forecast-barbg"><div className="forecast-bar" style={{left:`${leftPct}%`,width:`${Math.max(8,widthPct)}%`,background:`linear-gradient(90deg,${minTone.color},${maxTone.color})`}}/></div><strong className="climate-tone climate-tone-daily" style={{color:maxTone.color,background:maxTone.background,borderColor:maxTone.border}} title={maxTone.title}><span>{Math.round(d.max)}Â°</span></strong></div><ForecastHazards hazards={compactHz}/></Fragment>] as const})),[forecastDays,hours,precipitationDisplayHours,precipitationDisplayMinutes15,allMin,range,nowTick,elevation,unit,timezone]);
- useEffect(()=>{
-  if(!p.length)return;
-  const requestedSelection=requestedClockSelectionRef.current;
-  if(requestedSelection&&requestedSelection.date===selected){
-   const requested=requestedSelection.hour;
-   const exact=p.findIndex(x=>Number(x.time.slice(11,13))===requested);
-   const nearest=exact>=0?exact:p.reduce((best,x,index)=>Math.abs(Number(x.time.slice(11,13))-requested)<Math.abs(Number(p[best].time.slice(11,13))-requested)?index:best,0);
-   setSelectedHour(nearest);
-   return;
-  }
-  const isToday=selected===localDateInZone(timezone),currentClock=clockHourInZone(timezone,nowTick),currentClockIndex=p.reduce((best,x,index)=>Math.abs(Number(x.time.slice(11,13))-currentClock)<Math.abs(Number(p[best].time.slice(11,13))-currentClock)?index:best,0),middayIndex=p.findIndex(x=>x.time.slice(11,13)==='12'),fallback=middayIndex>=0?middayIndex:Math.min(6,Math.max(0,p.length-1));
-  setSelectedHour(isToday?currentClockIndex:fallback)
- },[selected,p,timezone,nowTick]);
- useEffect(()=>{
-  const requestedSelection=requestedClockSelectionRef.current;
-  if(!requestedSelection||requestedSelection.date!==selected||!p.length)return;
-  const exact=p.findIndex(x=>Number(x.time.slice(11,13))===requestedSelection.hour);
-  const nearest=exact>=0?exact:p.reduce((best,x,index)=>Math.abs(Number(x.time.slice(11,13))-requestedSelection.hour)<Math.abs(Number(p[best].time.slice(11,13))-requestedSelection.hour)?index:best,0);
-  if(selectedHour===nearest)requestedClockSelectionRef.current=null;
- },[selected,p,selectedHour]);
- function moveHour(delta:-1|1){
-  const nextIndex=selectedHour+delta;
-  if(nextIndex>=0&&nextIndex<p.length){setSelectedHour(nextIndex);return}
-  const dayIndex=forecastDays.findIndex(x=>x.date===selected);
-  const targetDay=forecastDays[dayIndex+delta];
-  if(!targetDay||!hours.some(x=>x.time.startsWith(targetDay.date)))return;
-  queueRequestedClockHour(targetDay.date,delta>0?0:23);
-  setSelected(targetDay.date);
- }
- function moveDay(delta:-1|1){
-  const dayIndex=forecastDays.findIndex(x=>x.date===selected),targetDay=forecastDays[dayIndex+delta];
-  if(!targetDay)return;
-  const activeHour=p[Math.min(Math.max(0,selectedHour),p.length-1)];
-  const clockHour=Number(activeHour?.time.slice(11,13));
-  queueRequestedClockHour(targetDay.date,Number.isFinite(clockHour)?clockHour:12);
-  setSelected(targetDay.date);
- }
- function beginDayJumpTouch(event:ReactTouchEvent<HTMLButtonElement>,delta:-1|1){const touch=event.touches[0];dayJumpTouchAtRef.current=Date.now();if(touch)dayJumpTouchRef.current={identifier:touch.identifier,delta,x:touch.clientX,y:touch.clientY}}
- function endDayJumpTouch(event:ReactTouchEvent<HTMLButtonElement>,delta:-1|1){const start=dayJumpTouchRef.current;dayJumpTouchRef.current=null;if(!start||start.delta!==delta)return;const touch=Array.from(event.changedTouches).find(item=>item.identifier===start.identifier);if(!touch||Math.hypot(touch.clientX-start.x,touch.clientY-start.y)>14)return;event.preventDefault();event.stopPropagation();dayJumpTouchAtRef.current=Date.now();moveDay(delta)}
- function clickDayJump(event:ReactMouseEvent<HTMLButtonElement>,delta:-1|1){event.stopPropagation();if(Date.now()-dayJumpTouchAtRef.current<650)return;moveDay(delta)}
- useEffect(()=>{
-  const node=detailChartRef.current,plot=detailPlotRef.current;if(!node||!plot||typeof window==='undefined'||(compactMode&&!detailsOpen))return;
-  const desktop=()=>window.matchMedia('(min-width: 851px)').matches;
-  const focusChart=()=>{if(desktop())node.focus({preventScroll:true})};
-  const keydown=(event:KeyboardEvent)=>{if(!desktop())return;if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();event.stopPropagation();moveHour(event.key==='ArrowLeft'?-1:1);return}if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();event.stopPropagation();moveDay(event.key==='ArrowUp'?1:-1)}};
-  const wheel=(event:WheelEvent)=>{if(!desktop())return;const delta=Math.abs(event.deltaY)>=Math.abs(event.deltaX)?event.deltaY:event.deltaX;if(Math.abs(delta)<8)return;event.preventDefault();event.stopPropagation();focusChart();const now=performance.now();if(now-wheelGateRef.current<130)return;wheelGateRef.current=now;moveHour(delta<0?1:-1)};
-  node.addEventListener('pointerdown',focusChart,true);node.addEventListener('mousedown',focusChart,true);node.addEventListener('keydown',keydown);plot.addEventListener('wheel',wheel,{passive:false});
-  return()=>{node.removeEventListener('pointerdown',focusChart,true);node.removeEventListener('mousedown',focusChart,true);node.removeEventListener('keydown',keydown);plot.removeEventListener('wheel',wheel)};
- },[selected,selectedHour,p.length,detailsOpen,compactMode,hours]);
- function beginDetailHourTap(event:ReactPointerEvent<SVGRectElement>,index:number){if(event.pointerType==='mouse')return;detailTapRef.current={pointerId:event.pointerId,index,x:event.clientX,y:event.clientY}}
- function endDetailHourTap(event:ReactPointerEvent<SVGRectElement>,index:number){const start=detailTapRef.current;detailTapRef.current=null;if(!start||start.pointerId!==event.pointerId||start.index!==index)return;if(Math.hypot(event.clientX-start.x,event.clientY-start.y)>12)return;event.preventDefault();setSelectedHour(index)}
- function cancelDetailHourTap(){detailTapRef.current=null}
- if(!p.length)return null;
- const selectedDetailIndex=Math.min(selectedHour,p.length-1),currentHour=p[selectedDetailIndex]??p[0],currentThermal=detailThermalAssessments[selectedDetailIndex]??detailThermalFeel(currentHour),currentPrecip=precipSeries[selectedDetailIndex]??precipitationParts(currentHour),currentWeatherCode=currentPrecip.displayCode,currentWeatherLabel=currentPrecip.type==='none'?label(currentWeatherCode):currentPrecip.weatherLabel,currentThunderRisk=significantHourlyThunderRisk(currentHour);
- const precipLegendTypes=presentPrecipTypes(precipSeries) as DetailPrecipType[];
- const visiblePrecipLegendTypes=advancedMode?precipLegendTypes.filter(type=>!hiddenPrecipTypes.includes(type)):precipLegendTypes;
- const pressureAvailable=pressureValues.length>=2;
- const showTemperature=!advancedMode||detailVisibility.temperature,showApparent=!advancedMode||detailVisibility.apparent,showDewPoint=advancedMode&&detailVisibility.dewPoint,showPressure=detailVisibility.pressure&&pressureAvailable,showProbability=!advancedMode||detailVisibility.probability,showWind=advancedMode&&detailVisibility.wind,showGust=advancedMode&&detailVisibility.gust,showDirection=advancedMode&&detailVisibility.direction;
- const showTemperatureSection=showTemperature||showApparent||showDewPoint,showPressureSection=showPressure,showRainBars=visiblePrecipLegendTypes.length>0,showRainSection=showRainBars||showProbability,showWindSection=showWind||showGust||showDirection;
- const temperatureValues=[...(showTemperature?p.map(x=>x.temperature):[]),...(showApparent?p.map(x=>x.apparent):[]),...(showDewPoint?p.map(x=>x.dewPoint):[])].filter(Number.isFinite);
- const temperatureScale=niceRange((temperatureValues.length?Math.min(...temperatureValues):0)-1.5,(temperatureValues.length?Math.max(...temperatureValues):10)+1.5,4),tMin=temperatureScale.min,tMax=temperatureScale.max,tempRange=Math.max(1,tMax-tMin),temperatureTicks=temperatureScale.ticks;
- const pressureScale=nicePressureAxis(pressureValues),pressureMin=pressureScale.minimum,pressureMax=pressureScale.maximum,pressureRange=Math.max(1,pressureMax-pressureMin),pressureTicks=pressureScale.ticks;
- const rawRainMax=Math.max(0,...p.map((x,index)=>{const type=precipSeries[index].type;return isDetailPrecipType(type)&&visiblePrecipLegendTypes.includes(type)?x.precipitation:0})),rainScale=nicePositiveRange(Math.max(1,rawRainMax),3),rainMax=rainScale.max,rainTicks=rainScale.ticks;
- const rawWindMax=Math.max(0,...p.flatMap(x=>[showWind?x.wind:0,showGust?x.gust:0])),windScale=nicePositiveRange(Math.max(5,rawWindMax),3),windMaxScale=windScale.max,windTicks=windScale.ticks;
- const W=Math.max(320,detailChartWidth),narrowChart=W<560,mediumChart=W<900,left=narrowChart?42:58,right=narrowChart?48:mediumChart?64:72,plotW=Math.max(180,W-left-right),nowBadgeY=4,iconY=narrowChart?46:48,skyBarY=narrowChart?69:71,cloudTop=skyBarY+(narrowChart?19:21),selectedMarkerTop=iconY-10;
- const tempHeight=narrowChart?112:mediumChart?132:154,thermalFeelHeight=narrowChart?10:12,pressureHeight=narrowChart?54:mediumChart?62:70,rainHeight=narrowChart?68:mediumChart?80:92,windHeight=narrowChart?58:mediumChart?70:82,directionHeight=showDirection?(narrowChart?26:30):0,sectionGap=narrowChart?10:14,thermalGap=narrowChart?7:9;
- let sectionCursor=cloudTop+12;
- const tempTop=sectionCursor,tempBottom=showTemperatureSection?tempTop+tempHeight:tempTop;if(showTemperatureSection)sectionCursor=tempBottom+thermalGap;
- const thermalFeelTop=sectionCursor,thermalFeelBottom=thermalFeelTop+thermalFeelHeight;sectionCursor=thermalFeelBottom+thermalGap;
- const pressureTop=sectionCursor,pressureBottom=showPressureSection?pressureTop+pressureHeight:pressureTop;if(showPressureSection)sectionCursor=pressureBottom+sectionGap;
- const rainTop=sectionCursor,rainBottom=showRainSection?rainTop+rainHeight:rainTop;if(showRainSection)sectionCursor=rainBottom+sectionGap;
- const windTop=sectionCursor,windLineBottom=(showWind||showGust)?windTop+windHeight:windTop,directionY=showDirection?windLineBottom+(showWind||showGust?directionHeight*.62:directionHeight*.72):windLineBottom,windBottom=showWindSection?windLineBottom+directionHeight:windTop;if(showWindSection)sectionCursor=windBottom+sectionGap;
- const timeY=sectionCursor+8,H=Math.ceil(timeY+30),nightBottom=timeY-8,contentBottom=Math.max(cloudTop,showWindSection?windBottom:showRainSection?rainBottom:showPressureSection?pressureBottom:thermalFeelBottom),axisFont=narrowChart?10:12,smallFont=narrowChart?9:11,labelFont=narrowChart?10:12;
- const xAt=(i:number)=>left+(i/Math.max(1,p.length))*plotW,slotEndAt=(i:number)=>i>=p.length-1?W-right:xAt(i+1),skyBarSegments=detailSkyBarSegments(p,left,right,W,skyBarY);
- const yTemp=(v:number)=>tempBottom-((v-tMin)/tempRange)*Math.max(1,tempBottom-tempTop);
- const yPressure=(v:number)=>pressureBottom-((v-pressureMin)/pressureRange)*Math.max(1,pressureBottom-pressureTop);
- const yRain=(v:number)=>rainBottom-(v/rainMax)*Math.max(1,rainBottom-rainTop);
- const yProb=(v:number)=>rainBottom-(Math.max(0,Math.min(100,v))/100)*Math.max(1,rainBottom-rainTop);
- const yWind=(v:number)=>windLineBottom-(Math.max(0,v)/windMaxScale)*Math.max(1,windLineBottom-windTop);
- const windWarningBands=(showWind||showGust)?WIND_WARNING_BANDS.flatMap(band=>{if(windMaxScale<=band.lowerKt)return[];const upperKt=Math.min(windMaxScale,band.upperKt),topY=yWind(upperKt),bottomY=yWind(band.lowerKt),height=Math.max(0,bottomY-topY);return height>.5?[{...band,upperKt,y:topY,height}]:[]}):[];
- const windWarningThresholds=(showWind||showGust)?DWD_WIND_THRESHOLDS_KMH.filter(item=>windMaxScale>=item.threshold/KMH_PER_KT).map(item=>({...item,y:yWind(item.threshold/KMH_PER_KT),color:DWD_WARNING_COLORS[item.level]})):[];
- const temperatureCurvePoints=showTemperature?p.map((x,i)=>({x:xAt(i),y:yTemp(x.temperature)})):[];
- const apparentCurvePoints=showApparent?p.map((x,i)=>({x:xAt(i),y:yTemp(x.apparent)})):[];
- const dewPointCurvePoints=showDewPoint?p.map((x,i)=>({x:xAt(i),y:yTemp(x.dewPoint)})):[];
- const pressureCurvePoints=showPressure?p.map((x,i)=>({value:x.pressure,index:i})).filter(({value})=>Number.isFinite(value)).map(({value,index})=>({x:xAt(index),y:yPressure(value)})):[];
- const windCurvePoints=showWind?p.map((x,i)=>({x:xAt(i),y:yWind(x.wind)})):[];
- const gustCurvePoints=showGust?p.map((x,i)=>({x:xAt(i),y:yWind(x.gust)})):[];
- const tempPath=showTemperature?monotoneSvgPath(temperatureCurvePoints):'';
- const apparentPath=showApparent?monotoneSvgPath(apparentCurvePoints):'';
- const dewPointPath=showDewPoint?monotoneSvgPath(dewPointCurvePoints):'';
- const pressurePath=showPressure?monotoneSvgPath(pressureCurvePoints):'';
- const probabilityCurvePoints=showProbability&&p.length?[{x:xAt(0),y:yProb(p[0].probability)},...p.map((item,index)=>({x:(xAt(index)+slotEndAt(index))/2,y:yProb(item.probability)})),{x:slotEndAt(p.length-1),y:yProb(p[p.length-1].probability)}]:[],probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints):'';
- const windPath=showWind?monotoneSvgPath(windCurvePoints):'';
- const gustPath=showGust?monotoneSvgPath(gustCurvePoints):'';
- const areaPath=showTemperature&&temperatureCurvePoints.length?`${tempPath} L ${temperatureCurvePoints[temperatureCurvePoints.length-1].x} ${tempBottom} L ${temperatureCurvePoints[0].x} ${tempBottom} Z`:'';
- const portraitTabletMarkers=mediumChart&&!narrowChart&&!compactLandscape,showAllDetailMarkers=narrowChart||compactLandscape||portraitTabletMarkers,markerSpacing=plotW/Math.max(1,p.length),iconFontSize=portraitTabletMarkers?Math.max(8,Math.min(11,markerSpacing*.48)):showAllDetailMarkers?Math.max(8,Math.min(13,markerSpacing*.72)):mediumChart?17:20,iconMinimumSpacing=narrowChart?34:mediumChart?36:38,maxIconCount=Math.max(2,Math.floor(plotW/iconMinimumSpacing)+1),iconIndices=maximizeVisibleIndices(p.length,maxIconCount),iconPoints=representativeDetailPictograms(iconIndices,p,precipSeries);if(showAllDetailMarkers){iconPoints.length=0;iconPoints.push(...representativeDetailPictograms(p.map((_,i)=>i),p,precipSeries))}
- const timeStep=Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(narrowChart?72:mediumChart?82:92))))),timeIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%timeStep===0);
- const directionStep=showAllDetailMarkers?1:Math.max(1,Math.ceil((p.length-1)/Math.max(1,Math.floor(plotW/(mediumChart?32:36))))),directionIndices=p.map((_,i)=>i).filter(i=>i===0||i===p.length-1||i%directionStep===0),directionArrowSize=portraitTabletMarkers?Math.max(6,Math.min(8.5,markerSpacing*.34)):showAllDetailMarkers?Math.max(7,Math.min(10,markerSpacing*.46)):labelFont+5;
- const maxIdx=p.reduce((b,x,i)=>x.temperature>p[b].temperature?i:b,0),minIdx=p.reduce((b,x,i)=>x.temperature<p[b].temperature?i:b,0);
- const selectedDay=days.find(x=>x.date===selected)??days[0],selectedDayIndex=forecastDays.findIndex(x=>x.date===selectedDay.date),previousDay=selectedDayIndex>0?forecastDays[selectedDayIndex-1]:null,nextDay=selectedDayIndex>=0&&selectedDayIndex<forecastDays.length-1?forecastDays[selectedDayIndex+1]:null,selectedIsToday=selected===localDateInZone(timezone),presentationHours=selectedIsToday?allDayHours.filter(hour=>hour.epoch>=nowTick-30*60000):allDayHours,characterHours=presentationHours.length?presentationHours:p,metricHours=characterHours;
- const selectedPrecipitationAssessment=dayPrecipitationAssessment(selectedDay,characterHours,precipitationDisplayMinutes15),selectedPrecipitationDuration=precipitationDurationLabel(selectedPrecipitationAssessment.durationHours),totalRain=Number.isFinite(selectedDay.precipitation)?Math.max(0,selectedDay.precipitation):metricHours.reduce((a,b)=>a+b.precipitation,0),totalSnow=Number.isFinite(Number(selectedDay.snowfall))?Math.max(0,Number(selectedDay.snowfall)):metricHours.reduce((a,b)=>a+Math.max(0,Number(b.snowfall)||0),0),maxProb=Number.isFinite(selectedDay.probability)?clamp(selectedDay.probability,0,100):Math.max(...metricHours.map(x=>x.probability)),gustMax=Math.max(...metricHours.map(x=>x.gust)),windMax=Math.max(...metricHours.map(x=>x.wind)),uviValues=metricHours.map(x=>x.uvIndex).filter(Number.isFinite),maxUvi=uviValues.length?Math.max(...uviValues):Number.NaN;
- const selectedPressureIndex=Math.min(selectedHour,p.length-1),pressureReferenceIndex=Math.max(0,selectedPressureIndex-(detailResolution==='1h'?3:1)),pressureTrendHours=Math.max(0,Math.round((currentHour.epoch-(p[pressureReferenceIndex]?.epoch??currentHour.epoch))/3600000)),pressureDelta=Number.isFinite(currentHour.pressure)&&Number.isFinite(p[pressureReferenceIndex]?.pressure)?currentHour.pressure-p[pressureReferenceIndex].pressure:Number.NaN,pressureTrendLabel=pressureTrendHours>0&&Number.isFinite(pressureDelta)?`${pressureDelta>0?'+':''}${formatDecimalFixed(pressureDelta,1)} hPa / ${pressureTrendHours} h Â· ${Math.abs(pressureDelta)<.4?'nahezu gleichbleibend':pressureDelta>0?'steigend':'fallend'}`:pressureValues.length?`Tagesbereich ${formatDecimalFixed(Math.min(...pressureValues),1)}â€“${formatDecimalFixed(Math.max(...pressureValues),1)} hPa`:'Nicht verfÃ¼gbar';
- const sunriseMinutes=clockMinutes(selectedDay.sunrise),sunsetMinutes=clockMinutes(selectedDay.sunset);
- const sunriseLabel=clockLabel(selectedDay.sunrise),sunsetLabel=clockLabel(selectedDay.sunset);
- const xClock=(minutes:number)=>left+(clamp(minutes,0,23*60)/(23*60))*plotW;
- const sunriseX=sunriseMinutes===null?null:xClock(sunriseMinutes),sunsetX=sunsetMinutes===null?null:xClock(sunsetMinutes);
- const nowParts=selected===localDateInZone(timezone)?new Intl.DateTimeFormat('en-GB',{timeZone:timezone,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(nowTick)):[],nowPart=(type:string)=>Number(nowParts.find(part=>part.type===type)?.value),nowMinutes=nowPart('hour')*60+nowPart('minute')+nowPart('second')/60,nowX=selected===localDateInZone(timezone)&&Number.isFinite(nowMinutes)?xClock(nowMinutes):null,nowLabel=Number.isFinite(nowMinutes)?formatInZone(nowTick,timezone,{hour:'2-digit',minute:'2-digit'}):'';
- const selectedCharacter=dayWeatherCharacter(selectedDay,characterHours),selectedDayVisual=periodWeatherVisual(dayPeriodHoursForDate(selectedDay.date,precipitationDisplayHours),true,selectedCharacter.code,dayWeatherCharacterText(selectedCharacter),{preferFallbackCode:true}),selectedNightVisual=periodWeatherVisual(followingNightHoursForDate(selectedDay.date,precipitationDisplayHours),false,selectedCharacter.code,selectedCharacter.label);
- const inlineAccordionMode=!hourlyDetailOnly,compactWindowSize=7,compactDetailStart=detailResolution==='1h'&&!compactDetailExpanded?Math.max(0,Math.min(Math.max(0,p.length-compactWindowSize),selectedHour-Math.floor(compactWindowSize/2))):0,compactDetailEnd=detailResolution==='1h'&&!compactDetailExpanded?Math.min(p.length,compactDetailStart+compactWindowSize):p.length,compactDetailRows=p.slice(compactDetailStart,compactDetailEnd).map((hour,offset)=>{const index=compactDetailStart+offset,parts=precipSeries[index]??precipitationParts(hour);return{hour,index,parts,weatherLabel:detailListWeatherLabel(parts)}}),compactDetailCanExpand=detailResolution==='1h'&&p.length>compactWindowSize;
- return <section className={hourlyDetailOnly?"cockpit-hourly-detail-source":"card"} data-mid-view={hourlyDetailOnly?"forecast-hourly-detail":"forecast"}>{!hourlyDetailOnly&&<Title eye={twinActive?"Best Match Â· hyperlokal nachkorrigiert":fusionActive?"Best Match Â· geprÃ¼ft und lokal nachkorrigiert":"Best Match Â· automatische Modellkombination"} title="7-Tage-Vorhersage"><span className="forecast-source-actions">{twinActive&&<><em className="weather-twin-active-badge">Best-Match-Nachkorrektur aktiv</em>{twinStatus?.dominantModel&&<em className="weather-twin-model-badge" title={`${twinStatus.sourceLabel}. Best Match bleibt unverÃ¤ndert als Kontrollgruppe im Archiv.`}>Diagnose-Schwerpunkt: {twinStatus.dominantModel.label} {Math.round(twinStatus.dominantModel.weight)} %</em>}</>}{fusionActive&&<em className="weather-twin-active-badge" title={fusion?.strategy}>{forecastFusionLabel(fusion)}</em>}<ModelRunDetails kind="best" info={modelInfo}/></span></Title>}{!hourlyDetailOnly&&advancedMode&&<ForecastSourceDiagnostics fusion={fusion} twinReport={twinReport} date={selected} canonicalNowcast={canonicalNowcast}/>} 
-   {!hourlyDetailOnly&&<div className="forecastrows">{showSevenDaySummary&&<SevenDayForecastSummary days={forecastDays} hours={hours} climate={climate} elevation={elevation}/>} {forecastDays.map(d=>{const isActive=selected===d.date;return <Fragment key={d.date}><button type="button" className={`forecastrow ${isActive?'active':''}`} onClick={()=>{queueRequestedClockHour(d.date,clockHourInZone(timezone,nowTick));setSelected(d.date);if(!isActive)setDetailResolution('3h');setDetailsOpen(current=>isActive?!current:true)}}>{forecastRowContents.get(d.date)}</button>{inlineAccordionMode&&detailsOpen&&isActive&&<div className="forecast-inline-detail" data-mid-view="forecast-inline-detail"><div className="forecast-inline-detail-head"><div><strong>{detailResolution==='3h'?'3-Stundenansicht':'Stundenansicht'}</strong><small>{formatDateOnly(selectedDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})} Â· Zeitbasis {zoneCaption(timezone,timezoneAbbreviation)}</small></div><div className="detailhead-controls"><div className="detail-resolution-switch" role="group" aria-label="ZeitauflÃ¶sung der Tagesdetails"><button type="button" className={detailResolution==='3h'?'active':''} onClick={()=>setDetailResolution('3h')} aria-pressed={detailResolution==='3h'}>3 h</button><button type="button" className={detailResolution==='1h'?'active':''} onClick={()=>setDetailResolution('1h')} aria-pressed={detailResolution==='1h'}>1 h</button></div><ModeExplanation advanced={advancedMode} summary={<>Zeitbasis {zoneCaption(timezone,timezoneAbbreviation)}. Die Tage klappen wie bei meteoblue nach unten auf; standardmÃ¤ÃŸig im 3-Stunden-Raster, auf Wunsch stÃ¼ndlich.</>} technical={<>Die kompakte Listenansicht konzentriert sich auf Zeit, Wetterpiktogramm, Temperatur, Wind sowie Niederschlag und Wahrscheinlichkeit. Ãœber die Umschaltung lÃ¤sst sich jederzeit zwischen 3-Stunden- und 1-Stunden-Details wechseln.</>}/></div></div><div className="forecast-inline-detail-grid">{compactDetailRows.map(({hour,index,parts,weatherLabel})=>{const climateDay=climate.find(item=>item.date===hour.time.slice(0,10)),temperatureTone=hourlyTemperatureTone(hour.temperature,climateDay?.minMean,climateDay?.maxMean);return <article key={hour.time} className={`forecast-inline-detail-row ${selectedHour===index?'active':''}`} role="button" tabIndex={0} onClick={()=>setSelectedHour(index)} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setSelectedHour(index)}}}><time dateTime={hour.time}>{hourDisplayClock(hour,timezone,false)}</time><div className="forecast-inline-detail-weather" title={weatherLabel} data-weather-label={weatherLabel} aria-label={weatherLabel} tabIndex={0}><WeatherPictogram code={parts.displayCode} intensity={parts.intensity} phenomenon={parts.phenomenon} day={hour.isDay} size={52} title={weatherLabel} cloud={hour.cloud} lowCloud={hour.lowCloud} midCloud={hour.midCloud} highCloud={hour.highCloud}/></div><div className="forecast-inline-detail-temp" style={{background:temperatureTone.background,color:temperatureTone.color,borderColor:temperatureTone.border}} title={temperatureTone.title}><strong>{Math.round(hour.temperature)}Â°</strong><small>gef. {Math.round(hour.apparent)}Â°</small></div><div className="forecast-inline-detail-metrics"><span><b><WindDirectionArrow direction={hour.direction} gust={hour.gust}/> {windDirectionShort(hour.direction)}</b><small>{wind(hour.wind,unit)} Â· BÃ¶en {wind(hour.gust,unit)}</small></span><span><b><Droplets size={12}/>{detailListPrecipLabel(hour)}</b><small>{Math.round(hour.probability)} % Â· <Sun size={11}/>{sunshineMinutesLabel(hour.sunshineDuration)}</small></span></div></article>})}</div>{compactDetailCanExpand&&!compactDetailExpanded&&<button type="button" className="forecast-inline-detail-more" onClick={()=>setCompactDetailExpanded(true)}>Mehr anzeigen</button>}{compactDetailCanExpand&&compactDetailExpanded&&<button type="button" className="forecast-inline-detail-less" onClick={()=>setCompactDetailExpanded(false)}>Weniger anzeigen</button>}</div>}</Fragment>})}</div>}
-   {(hourlyDetailOnly||(!inlineAccordionMode&&detailsOpen))&&<div className="hourdetail meteogram-day" data-mid-view="forecast-detail">
-     {!hourlyDetailOnly&&<div className="detailhead"><strong>{formatDateOnly(selectedDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})} Â· Detailansicht</strong><div className="detailhead-controls"><div className="detail-resolution-switch" role="group" aria-label="ZeitauflÃ¶sung der Tagesdetails"><button type="button" className={detailResolution==='3h'?'active':''} onClick={()=>setDetailResolution('3h')} aria-pressed={detailResolution==='3h'}>3 h</button><button type="button" className={detailResolution==='1h'?'active':''} onClick={()=>setDetailResolution('1h')} aria-pressed={detailResolution==='1h'}>1 h</button></div><ModeExplanation advanced={advancedMode} summary={<>Zeitbasis {zoneCaption(timezone,timezoneAbbreviation)}. StandardmÃ¤ÃŸig wird ein 3-Stunden-Raster gezeigt; auf Wunsch stÃ¼ndlich. Die Randpfeile wechseln auf Handy, Tablet und Desktop tageweise.</>} technical={<>Aktuelle beziehungsweise mittÃ¤gliche Bezugszeit ist vorausgewÃ¤hlt Â· Zeitbasis {zoneCaption(timezone,timezoneAbbreviation)}. Die Legende lÃ¤sst sich vollstÃ¤ndig ein- und ausklappen. Der Luftdruck kann in jedem Modus, weitere Temperatur-, Niederschlags- und Windparameter im Erweiterten Modus einzeln geschaltet werden; nicht benÃ¶tigte Diagrammbereiche werden automatisch entfernt. Am Desktop wechseln â†/â†’ zum nÃ¤chsten dargestellten Zeitschritt, â†‘ zum nÃ¤chsten und â†“ zum vorherigen Tag. Das Mausrad wirkt nur Ã¼ber der DiagrammflÃ¤che.</>}/></div></div>}
-     {!hourlyDetailOnly&&<div className="quickfacts"><span className="quickfact weather period-weather" title={dayWeatherCharacterText(selectedCharacter)}><WeatherPeriodIcons dayVisual={selectedDayVisual} nightVisual={selectedNightVisual} daySize={36} nightSize={23}/><span><b>{selectedCharacter.label}</b>{selectedCharacter.secondary&&<small>{selectedCharacter.secondary}</small>}</span></span><span className="quickfact metric" aria-label="Niederschlag gesamt und Dauer"><Droplets size={14}/><b>{precipitationAmountLabel({precipitation:totalRain,snowfall:totalSnow})} Â· {selectedPrecipitationDuration}</b></span><span className="quickfact metric" aria-label="Maximale Niederschlagswahrscheinlichkeit"><CloudRain size={14}/><b>max. {Math.round(maxProb)} %</b></span><span className="quickfact metric" aria-label="Maximaler UV-Index"><Sun size={14}/> <b>UVI {Number.isFinite(maxUvi)?formatUvi(maxUvi):'â€“'}</b></span><span className="quickfact metric" aria-label="Sonnenscheindauer"><Sun size={14}/><b>{sunshineHoursLabel(selectedDay.sunshineDuration)}</b></span><span className="quickfact metric" aria-label="Maximaler Wind und maximale BÃ¶en"><Wind size={14}/><b>{wind(windMax,unit)} Â· BÃ¶en {wind(gustMax,unit)}</b></span></div>}
-     <div className={`detail-legend-shell${detailLegendOpen?' open':' collapsed'}`}>
-      <div className="detail-legend-toolbar"><button type="button" className="detail-legend-toggle" onClick={()=>setDetailLegendOpen(value=>!value)} aria-expanded={detailLegendOpen} aria-controls="mid-detail-legend"><span>Legende</span><small>{detailLegendOpen?'ausblenden':'einblenden'}</small>{detailLegendOpen?<ChevronUp size={15}/>:<ChevronDown size={15}/>}</button></div>
-      {detailLegendOpen&&<div id="mid-detail-legend" className="detaillegend interactive" aria-label={advancedMode?'Diagrammparameter ein- oder ausblenden':'Diagrammlegende mit schaltbarem Luftdruck'}>{advancedMode?<><button type="button" className={showTemperature?'active':'inactive'} onClick={()=>toggleDetailLine('temperature')} aria-pressed={showTemperature}><i className="temp"/><Thermometer size={12}/>Temperatur</button><button type="button" className={showApparent?'active':'inactive'} onClick={()=>toggleDetailLine('apparent')} aria-pressed={showApparent}><i className="apparent"/>GefÃ¼hlt</button><button type="button" className={showDewPoint?'active':'inactive'} onClick={()=>toggleDetailLine('dewPoint')} aria-pressed={showDewPoint}><i className="dewpoint"/>Taupunkt</button><button type="button" disabled={!pressureAvailable} className={showPressure?'active':'inactive'} onClick={()=>toggleDetailLine('pressure')} aria-pressed={showPressure}><i className="pressureline"/>Luftdruck</button>{precipLegendTypes.map(type=>{const active=!hiddenPrecipTypes.includes(type);return <button type="button" key={type} className={active?'active':'inactive'} onClick={()=>togglePrecipType(type)} aria-pressed={active}><i className={`precip-bar-key ${precipMeta[type].legendClass}`}/>{precipMeta[type].label}</button>})}<button type="button" className={showProbability?'active':'inactive'} onClick={()=>toggleDetailLine('probability')} aria-pressed={showProbability}><i className="probability"/><CloudRain size={12}/>Wahrscheinlichkeit</button><button type="button" className={showWind?'active':'inactive'} onClick={()=>toggleDetailLine('wind')} aria-pressed={showWind}><i className="windline"/>Wind</button><button type="button" className={showGust?'active':'inactive'} onClick={()=>toggleDetailLine('gust')} aria-pressed={showGust}><i className="gustline"/>BÃ¶en</button><button type="button" className={showDirection?'active':'inactive'} onClick={()=>toggleDetailLine('direction')} aria-pressed={showDirection}><i className="direction"/>Richtung</button></>:<><span><i className="temp"/><Thermometer size={12}/>Temperatur</span><span><i className="apparent"/>GefÃ¼hlt</span><button type="button" disabled={!pressureAvailable} className={showPressure?'active':'inactive'} onClick={()=>toggleDetailLine('pressure')} aria-pressed={showPressure}><i className="pressureline"/>Luftdruck</button>{precipLegendTypes.map(type=><span key={type}><i className={`precip-bar-key ${precipMeta[type].legendClass}`}/>{precipMeta[type].label}</span>)}<span><i className="probability"/><CloudRain size={12}/>Wahrscheinlichkeit</span></>}<span data-mid-sky-legend="react"><i className="sunshine-bar"/>Sonnenschein Â· gelb</span><span data-mid-sky-legend="react"><i className="cloudiness-bar"/>BewÃ¶lkung Â· grau</span><span data-mid-sky-legend="react"><i className="precipitation-bar"/>Niederschlag Â· nach Phase</span><small data-mid-sky-note="react" className="mid-skybar-note">Vier Dickenstufen: FÃ¼r die Skybar ist die GesamtbewÃ¶lkung die primÃ¤re HimmelsgrÃ¶ÃŸe. Ab 50 % GesamtbewÃ¶lkung ist das Grundband grau; unter 50 % ist es tagsÃ¼ber gelb und seine Dicke folgt dem komplementÃ¤ren Aufklarungsanteil. Dadurch kÃ¶nnen z. B. 69 % GesamtbewÃ¶lkung nicht durch eine hohe Sonnenscheindauer als maximal sonnig dargestellt werden. Nur wenn die GesamtbewÃ¶lkung fehlt, darf die relative Sonnenscheindauer als gelber Fallback dienen. Gelb und Grau werden nie gleichzeitig gezeichnet. Die Sonnenscheindauer bleibt als eigener WMO-Strahlungsparameter erhalten und wird nicht meteorologisch mit 100 % minus BewÃ¶lkung gleichgesetzt; die KomplementÃ¤rregel gilt nur fÃ¼r die kompakte Skybar-Darstellung. Niederschlag liegt als eigenstÃ¤ndige farbreine Lage darÃ¼ber: Regen/SprÃ¼hregen/Schauer blau, Schnee/Eis hellblau, Misch-/gefrierende Phase violett, Gewitter/Graupel/Hagel purpur. Bei Sonne bleibt ein breiteres gelbes Grundband seitlich sichtbar; ist der Niederschlagsbalken gleich dick oder dicker, verdeckt er das gelbe Band vollstÃ¤ndig. Die Niederschlagsdicke folgt der jeweiligen Niederschlagsart: Dauerregen nutzt die DWD-Stufen leicht bis 0,5 mm/h, mÃ¤ÃŸig Ã¼ber 0,5 bis 4 mm/h und stark Ã¼ber 4 mm/h; Regenschauer kÃ¶nnen nach der DWD-10-Minuten-IntensitÃ¤t zusÃ¤tzlich sehr stark erreichen, Schnee wird nach Schneezuwachs und SprÃ¼hregen bevorzugt nach Wettercode eingestuft. Klare NÃ¤chte kÃ¶nnen ohne Grundband bleiben.</small></div>}
-     </div>
-     <div ref={detailChartRef} className="meteogram-stage" tabIndex={0} role="application" aria-label={`${detailResolution==='3h'?'DreistÃ¼ndliches':'StÃ¼ndliches'} Wetterdiagramm. Pfeil links und rechts wechseln zum nÃ¤chsten dargestellten Zeitschritt, Pfeil oben zum nÃ¤chsten Tag und Pfeil unten zum vorherigen Tag.`}>
-     <nav className="meteogram-day-jump" aria-label="Tageweise in der Detailansicht wechseln">{previousDay?<button type="button" onTouchStart={event=>beginDayJumpTouch(event,-1)} onTouchEnd={event=>endDayJumpTouch(event,-1)} onTouchCancel={()=>{dayJumpTouchRef.current=null}} onClick={event=>clickDayJump(event,-1)} aria-label={`Vorheriger Tag: ${formatDateOnly(previousDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})}`}><ChevronLeft size={18}/><span>{formatDateOnly(previousDay.date,{weekday:'short'})}</span></button>:<span/>}{nextDay?<button type="button" onTouchStart={event=>beginDayJumpTouch(event,1)} onTouchEnd={event=>endDayJumpTouch(event,1)} onTouchCancel={()=>{dayJumpTouchRef.current=null}} onClick={event=>clickDayJump(event,1)} aria-label={`NÃ¤chster Tag: ${formatDateOnly(nextDay.date,{weekday:'long',day:'2-digit',month:'2-digit'})}`}><span>{formatDateOnly(nextDay.date,{weekday:'short'})}</span><ChevronRight size={18}/></button>:<span/>}</nav>
-     <svg ref={detailPlotRef} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="meteogramsvg adaptive-detail-chart" data-plot-left={left} data-plot-right={right} data-skybar-y={skyBarY} style={{height:`${H}px`}}>
-       <defs>
-        <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--param-temperature)" stopOpacity="0.32"/><stop offset="100%" stopColor="var(--param-temperature)" stopOpacity="0.03"/></linearGradient>
-        <pattern id="nightHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(32)"><rect width="8" height="8" fill="#71809b" opacity="0.055"/><line x1="0" y1="0" x2="0" y2="8" stroke="#71809b" strokeWidth="1" opacity="0.18"/></pattern>
-        <linearGradient id="rainFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--param-precipitation)" stopOpacity="0.98"/><stop offset="100%" stopColor="var(--param-precipitation)" stopOpacity="0.68"/></linearGradient>
-        <linearGradient id="drizzleFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--param-precipitation)" stopOpacity="0.78"/><stop offset="100%" stopColor="var(--param-precipitation)" stopOpacity="0.46"/></linearGradient>
-        <pattern id="freezingDrizzlePattern" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="var(--param-precipitation-mixed)"/><path d="M0 7L7 0" stroke="#e9fbff" strokeWidth="1.2"/><circle cx="1.6" cy="1.6" r=".8" fill="#fff"/></pattern>
-        <pattern id="freezingRainPattern" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="var(--param-precipitation-mixed)"/><path d="M0 7L7 0" stroke="#d9f5ff" strokeWidth="1.4"/><circle cx="5.2" cy="5.2" r=".8" fill="#fff"/></pattern>
-        <pattern id="showersPattern" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="6" height="6" fill="var(--param-precipitation)"/><rect width="2" height="6" fill="#e4f6ff" opacity="0.42"/></pattern>
-        <pattern id="snowPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-snow)" opacity="0.9"/><circle cx="2" cy="2" r="1" fill="#fff"/><circle cx="6" cy="5.8" r="1" fill="#fff"/></pattern>
-        <pattern id="snowGrainsPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-snow)"/><rect x="1.5" y="1.5" width="1.7" height="1.7" rx=".3" fill="#fff"/><rect x="5" y="4.8" width="1.7" height="1.7" rx=".3" fill="#fff"/></pattern>
-        <pattern id="snowStarsPattern" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="var(--param-precipitation-snow)" opacity="0.88"/><path d="M2.5 1.2v3M1.2 2.7h2.6M6.9 5.8v3M5.6 7.3h2.6" stroke="#fff" strokeWidth=".8" strokeLinecap="round"/></pattern>
-        <pattern id="iceCrystalsPattern" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="var(--param-precipitation-snow)"/><path d="M2.5 1v4M.8 3h3.4M6.8 5v4M5.1 7h3.4" stroke="#fff" strokeWidth=".6" strokeLinecap="round" opacity=".94"/></pattern>
-        <pattern id="icePelletsPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-snow)"/><circle cx="2" cy="2" r="1.2" fill="none" stroke="#fff" strokeWidth=".8"/><circle cx="6" cy="5.8" r="1.2" fill="none" stroke="#fff" strokeWidth=".8"/></pattern>
-        <pattern id="snowShowersPattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="8" height="8" fill="var(--param-precipitation-snow)"/><rect width="1.8" height="8" fill="#eefaff" opacity="0.5"/><circle cx="6.2" cy="2" r="1" fill="#fff"/><circle cx="3" cy="6" r="1" fill="#fff"/></pattern>
-        <pattern id="graupelShowersPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-snow)"/><circle cx="2.2" cy="2.2" r="1.35" fill="#fff" opacity="0.94"/><circle cx="6" cy="5.8" r="1.15" fill="#fff" opacity="0.88"/></pattern>
-        <pattern id="hailShowersPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-storm)"/><path d="M2 0.8L3.5 2.2L2.1 3.7L0.7 2.2Z M6.1 4.3L7.5 5.7L6 7.2L4.6 5.7Z" fill="#fff" opacity="0.96"/></pattern>
-        <pattern id="sleetPattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="8" height="8" fill="var(--param-precipitation-mixed)" opacity="0.94"/><rect width="2" height="8" fill="#f4f7ff" opacity="0.9"/></pattern>
-        <pattern id="sleetShowersPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-mixed)" opacity="0.95"/><rect width="1.8" height="8" fill="#f4f7ff" opacity="0.54"/><circle cx="6.2" cy="2" r="1" fill="#fff"/><circle cx="3" cy="5.8" r="1" fill="#fff"/></pattern>
-        <pattern id="thunderstormPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-storm)"/><path d="M1 0L4 3H3L6 8" stroke="#ffe56b" strokeWidth="1.3" fill="none"/></pattern>
-        <pattern id="thunderstormHailPattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--param-precipitation-storm)"/><path d="M1 0L4 3H3L6 8" stroke="#ffe56b" strokeWidth="1.3" fill="none"/><path d="M6.5 .6L7.7 1.8L6.5 3L5.3 1.8Z" fill="#fff"/></pattern>
-        {WIND_WARNING_BANDS.map(band=><pattern key={band.id} id={band.id} width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="9" fill={band.color} opacity="0.045"/><line x1="0" y1="0" x2="0" y2="9" stroke={band.color} strokeWidth="2" opacity="0.24"/></pattern>)}
-       </defs>
-       {sunriseX!==null&&sunriseX>left&&<rect x={left} y="0" width={Math.max(0,sunriseX-left)} height={nightBottom} fill="url(#nightHatch)" pointerEvents="none"/>}
-       {sunsetX!==null&&sunsetX<W-right&&<rect x={sunsetX} y="0" width={Math.max(0,W-right-sunsetX)} height={nightBottom} fill="url(#nightHatch)" pointerEvents="none"/>}
-       <g data-mid-skybar="react" pointerEvents="none" aria-label="Wetterstreifen fÃ¼r Sonnenschein, BewÃ¶lkung und Niederschlag mit vier Dickenstufen"><SkyBarSegmentsSvg segments={skyBarSegments} keyPrefix="detail"/></g>
-       {sunriseX!==null&&<g pointerEvents="none"><line x1={sunriseX} x2={sunriseX} y1="0" y2={nightBottom} stroke="#7f91ad" strokeWidth="1" opacity="0.42" strokeDasharray="4 4"/><text x={sunriseX+5} y={timeY-5} textAnchor="start" fontSize={smallFont} fill="currentColor" opacity="0.68">â†— {sunriseLabel}</text></g>}
-       {sunsetX!==null&&<g pointerEvents="none"><line x1={sunsetX} x2={sunsetX} y1="0" y2={nightBottom} stroke="#7f91ad" strokeWidth="1" opacity="0.42" strokeDasharray="4 4"/><text x={sunsetX-5} y={timeY-5} textAnchor="end" fontSize={smallFont} fill="currentColor" opacity="0.68">{sunsetLabel} â†˜</text></g>}
-       {windWarningBands.map(band=><rect key={`wind-warning-band-${band.id}`} x={left} y={band.y} width={plotW} height={band.height} fill={`url(#${band.id})`} pointerEvents="none"><title>{`${band.label}: ${formatDwdWindValue(band.lowerKt*KMH_PER_KT,unit)} bis ${Number.isFinite(band.upperKt)?formatDwdWindValue(band.upperKt*KMH_PER_KT,unit):'darÃ¼ber'}`}</title></rect>)}{windWarningThresholds.map(item=><line key={`wind-threshold-${item.threshold}`} x1={left} x2={W-right} y1={item.y} y2={item.y} stroke={item.color} strokeWidth={1} opacity={.46} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{item.label} {item.threshold===50?'Ã¼ber':'ab'} {formatDwdWindValue(item.threshold,unit)}</title></line>)}
-       {showTemperatureSection&&temperatureTicks.map(value=>{const y=yTemp(value);return <g key={`temperature-grid-${value}`}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.12"/><text x={left-8} y={y+axisFont*.34} textAnchor="end" fontSize={axisFont} fill="currentColor" opacity="0.82">{formatDecimal(value,1)}Â°C</text></g>})}
-       <rect className="detail-thermal-feel-bg" x={left} y={thermalFeelTop-2} width={plotW} height={thermalFeelHeight+4} rx={Math.max(4,thermalFeelHeight/2)}/><text className="detail-thermal-feel-label" x={left+5} y={thermalFeelTop-4} fontSize={Math.max(7,smallFont-2)}>Thermisches Empfinden</text>{detailThermalAssessments.map((thermal,i)=>{const x0=xAt(i),x1=slotEndAt(i);return <rect key={`thermal-feel-${p[i].time}`} className={`detail-thermal-feel-band${i===selectedHour?' active':''}`} x={x0} y={thermalFeelTop} width={Math.max(1,x1-x0)} height={thermalFeelHeight} rx={Math.min(3,thermalFeelHeight/3)} style={{fill:thermal.color,opacity:.34+thermal.score/100*.58}}><title>{`${hourDisplayClock(p[i],timezone)}: ${thermal.label} Â· ${thermal.burden}${thermal.sultry?' Â· schwÃ¼l':''} Â· Î” ${thermal.delta>=0?'+':''}${formatDecimalFixed(thermal.delta,1)} K`}</title></rect>})}
-       {showPressureSection&&<><text x={left-8} y={pressureTop-3} textAnchor="end" fontSize={smallFont} fill="var(--param-pressure)" opacity="0.78">hPa</text>{pressureTicks.map(value=>{const y=yPressure(value);return <g key={`pressure-grid-${value}`}><line x1={left} x2={W-right} y1={y} y2={y} stroke="var(--param-pressure)" opacity="0.10"/><text x={left-8} y={y+smallFont*.34} textAnchor="end" fontSize={smallFont} fill="var(--param-pressure)" opacity="0.84">{value}</text></g>})}</>}
-       {showRainSection&&rainTicks.map(value=>{const y=yRain(value);return <g key={`rain-grid-${value}`}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.09"/>{showRainBars&&<text x={left-8} y={y+axisFont*.34} textAnchor="end" fontSize={axisFont} fill="currentColor" opacity="0.68">{value===0?'0':formatDecimal(value,1)} mm</text>}</g>})}{showProbability&&<g className="probability-axis"><line x1={W-right} x2={W-right} y1={rainTop} y2={rainBottom} stroke="var(--param-precipitation)" opacity="0.32"/>{[0,50,100].map(value=>{const y=yProb(value);return <g key={`probability-axis-${value}`}><line x1={W-right} x2={W-right+5} y1={y} y2={y} stroke="var(--param-precipitation)" opacity="0.5"/><text x={W-right+8} y={y+axisFont*.34} textAnchor="start" fontSize={axisFont} fill="var(--param-precipitation)" opacity="0.82">{value} %</text></g>})}</g>}
-       {(showWind||showGust)&&windTicks.map(value=>{const y=yWind(value);return <g key={`wind-grid-${value}`}><line x1={left} x2={W-right} y1={y} y2={y} stroke="currentColor" opacity="0.08"/><text x={left-8} y={y+axisFont*.34} textAnchor="end" fontSize={smallFont} fill="currentColor" opacity="0.72">{wind(value,unit)}</text></g>})}
-       {showDirection&&<line x1={left} x2={W-right} y1={directionY-11} y2={directionY-11} stroke="currentColor" opacity="0.08"/>}
-       {timeIndices.map(i=><line key={`time-grid-${i}`} x1={xAt(i)} x2={xAt(i)} y1={cloudTop} y2={contentBottom} stroke="currentColor" opacity="0.08" strokeDasharray="4 4"/>)}
-       {nowX!==null&&<g className="now-time-marker" pointerEvents="none"><line x1={nowX} x2={nowX} y1={nowBadgeY+22} y2={nightBottom} stroke="#ff315b" strokeWidth="2" opacity="0.98" vectorEffect="non-scaling-stroke"/><circle cx={nowX} cy={nowBadgeY+11} r="4" fill="#ff315b" stroke="#fff" strokeWidth="1"/><rect x={Math.max(left,Math.min(W-right-88,nowX-44))} y={nowBadgeY} width="88" height="22" rx="11" fill="#ff315b"/><text x={Math.max(left+44,Math.min(W-right-44,nowX))} y={nowBadgeY+15} textAnchor="middle" fontSize={smallFont} fontWeight="800" fill="#fff">JETZT {nowLabel}</text></g>}
-       {showRainBars&&p.map((x,i)=>{const slotLeft=xAt(i),slotRight=slotEndAt(i),slotWidth=Math.max(1,slotRight-slotLeft),barWidth=Math.max(2,slotWidth*.82),barInset=Math.max(0,(slotWidth-barWidth)/2),barLeft=Math.max(left,slotLeft+barInset),barRight=Math.min(W-right,slotRight-barInset),parts=precipSeries[i],type=parts.type,totalTop=yRain(parts.total);if(!isDetailPrecipType(type))return <g key={x.time}/>;const visible=visiblePrecipLegendTypes.includes(type),barStyle=visible?detailPrecipBarStyle(parts):undefined;return <g key={x.time}>{parts.total>.001&&visible&&barRight>barLeft&&<rect className={`detail-precip-bar detail-precip-${type}`} x={barLeft} y={totalTop} width={barRight-barLeft} height={Math.max(1,rainBottom-totalTop)} rx="2" style={barStyle}/>}</g>})}
-       {showTemperature&&<path d={areaPath} fill="url(#tempFill)"/>}
-       {showApparent&&<path d={apparentPath} fill="none" stroke="var(--apparent-line)" opacity="0.96" strokeDasharray="8 6" strokeWidth="2" vectorEffect="non-scaling-stroke"/>}
-       {showDewPoint&&<path d={dewPointPath} fill="none" stroke="var(--param-dewpoint)" opacity="0.72" strokeWidth="1.5" vectorEffect="non-scaling-stroke"/>}
-       {showTemperature&&<path d={tempPath} fill="none" stroke="var(--param-temperature)" strokeWidth="2.2" vectorEffect="non-scaling-stroke"/>}
-       {showPressure&&<path d={pressurePath} fill="none" stroke="var(--param-pressure)" strokeWidth="1.4" vectorEffect="non-scaling-stroke"/>}
-       {showProbability&&<g className="detail-probability-line" pointerEvents="none"><path className="detail-probability-halo" d={probabilityPath} fill="none" stroke="var(--detail-probability-halo)" strokeWidth="4.6" strokeDasharray="6 5" strokeLinecap="round" strokeLinejoin="round" opacity="0.82" vectorEffect="non-scaling-stroke"/><path d={probabilityPath} fill="none" stroke="var(--param-precipitation)" strokeWidth="2.2" strokeDasharray="6 5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/></g>}
-       {showWind&&<path d={windPath} fill="none" stroke="var(--param-wind)" strokeWidth="2" vectorEffect="non-scaling-stroke"/>}
-       {showGust&&<path d={gustPath} fill="none" stroke="var(--param-gust)" strokeWidth="2" strokeDasharray="7 5" vectorEffect="non-scaling-stroke"/>}
-       {showDirection&&directionIndices.map(i=><SvgWindDirectionArrow key={`direction-${i}`} x={xAt(i)} y={directionY-2} direction={p[i].direction} gust={p[i].gust} size={directionArrowSize}/>)}
-       <line className="selected-hour-line" x1={xAt(selectedHour)} x2={xAt(selectedHour)} y1={selectedMarkerTop} y2={contentBottom} stroke="#9ad0ff" opacity="0.85" strokeWidth="1.5" vectorEffect="non-scaling-stroke"/>
-       {iconPoints.map(point=>{const i=point.index,source=p[point.sourceIndex]??p[i],size=iconFontSize*1.45;return <WeatherPictogram key={`weather-icon-${i}`} code={point.displayCode} intensity={point.intensity} phenomenon={point.phenomenon} day={source.isDay} title={label(point.displayCode)} cloud={source.cloud} lowCloud={source.lowCloud} midCloud={source.midCloud} highCloud={source.highCloud} x={xAt(i)-size/2} y={iconY-size*.78} size={size}/>})}
-       {timeIndices.map(i=><g key={`time-label-${i}`}><text x={xAt(i)} y={timeY+17} textAnchor="middle" fontSize={labelFont} fill="currentColor" opacity="0.86">{hourDisplayClock(p[i],timezone)}</text></g>)}
-       {showTemperature&&[minIdx,maxIdx].map(i=>{const token=i===minIdx?'var(--param-temperature-min)':'var(--param-temperature-max)';return <g key={`temperature-extreme-${i}`}><circle cx={xAt(i)} cy={yTemp(p[i].temperature)} r="4" fill="#fff" stroke={token} strokeWidth="2"/><text x={xAt(i)} y={yTemp(p[i].temperature)-8} textAnchor="middle" fontSize={labelFont} fill={token}>{Math.round(p[i].temperature)}Â°</text></g>})}
-       {p.map((x,i)=>{const x0=xAt(i),x1=slotEndAt(i);return <rect key={`hit${x.time}`} x={x0} y="0" width={Math.max(1,x1-x0)} height={H} fill="transparent" className="hour-hit" onPointerDown={event=>beginDetailHourTap(event,i)} onPointerUp={event=>endDetailHourTap(event,i)} onPointerCancel={cancelDetailHourTap} onClick={()=>setSelectedHour(i)}><title>{`${hourDisplayClock(x,timezone)} Â· ${Math.round(x.temperature)} Â°C Â· Thermisches Empfinden ${detailThermalAssessments[i]?.label??'â€“'} Â· Taupunkt ${Math.round(x.dewPoint)} Â°C${Number.isFinite(x.pressure)?` Â· Luftdruck ${formatDecimalFixed(x.pressure,1)} hPa`:''} Â· ${Math.round(x.probability)} % Niederschlagswahrscheinlichkeit (${precipitationSlotLabel(x)}) Â· Sonnenscheindauer ${sunshineMinutesLabel(x.sunshineDuration)} Â· ${windDirectionDescription(x.direction)} Â· ${wind(x.wind,unit)}, BÃ¶en ${wind(x.gust,unit)}${x.gustAdjusted?' (auf Windniveau plausibilisiert)':''}`}</title></rect>})}
-       {showTemperature&&<circle cx={xAt(selectedHour)} cy={yTemp(currentHour.temperature)} r="4.3" fill="#fff" stroke="var(--param-temperature)" strokeWidth="2"/>}{showApparent&&<circle cx={xAt(selectedHour)} cy={yTemp(currentHour.apparent)} r="3.5" fill="var(--surface)" stroke="var(--apparent-line)" strokeWidth="2"/>}{showDewPoint&&<circle cx={xAt(selectedHour)} cy={yTemp(currentHour.dewPoint)} r="3.2" fill="var(--surface)" stroke="var(--param-dewpoint)" strokeWidth="1.7"/>}{showPressure&&Number.isFinite(currentHour.pressure)&&<circle cx={xAt(selectedHour)} cy={yPressure(currentHour.pressure)} r="3.5" fill="var(--surface)" stroke="var(--param-pressure)" strokeWidth="2"/>}{showProbability&&<circle cx={xAt(selectedHour)} cy={yProb(currentHour.probability)} r="3.5" fill="var(--param-precipitation)" stroke="#ffffff" strokeWidth="1.2"/>}{showWind&&<circle cx={xAt(selectedHour)} cy={yWind(currentHour.wind)} r="3.5" fill="var(--param-wind)" stroke="#fff" strokeWidth="1.1"/>}{showGust&&<circle cx={xAt(selectedHour)} cy={yWind(currentHour.gust)} r="3.5" fill="var(--param-gust)" stroke="#fff" strokeWidth="1.1"/>}
-     </svg>
-     <div className="hour-chart-tooltip persistent" role="status" aria-live="polite" aria-label={`Details fÃ¼r ${hourDisplayClock(currentHour,timezone)} Uhr`}>
-       <header><button type="button" onClick={()=>moveHour(-1)} aria-label="Vorherige Stunde">â€¹</button><div><small>{hourDisplayClock(currentHour,timezone)} Uhr</small><strong><WeatherPictogram code={currentWeatherCode} intensity={currentPrecip.intensity} phenomenon={currentPrecip.phenomenon} day={currentHour.isDay} title={currentWeatherLabel} cloud={currentHour.cloud} lowCloud={currentHour.lowCloud} midCloud={currentHour.midCloud} highCloud={currentHour.highCloud}/> {currentWeatherLabel}</strong></div><button type="button" onClick={()=>moveHour(1)} aria-label="NÃ¤chste Stunde">â€º</button></header>
-       <div className="hour-tooltip-grid compact"><span><small>Temperatur / gefÃ¼hlt</small><b>{Math.round(currentHour.temperature)}Â° / {Math.round(currentHour.apparent)}Â°</b><em className="hour-tooltip-thermal-feel"><i style={{background:currentThermal.color}}/>Thermisches Empfinden: {currentThermal.label} Â· {currentThermal.burden}{currentThermal.sultry?' Â· schwÃ¼l':''}</em></span><span className="hour-tooltip-precipitation"><small>Niederschlag</small><b>{precipitationAmountLabel(currentHour)} Â· {Math.round(currentHour.probability)} %</b>{currentThunderRisk&&<em title={`${currentThunderRisk.label} Â· ${Math.round(currentThunderRisk.percent)} %`}><span className={`hourly-thunder-risk ${currentThunderRisk.level}`}><CloudLightning size={11}/>Gewitterrisiko {Math.round(currentThunderRisk.percent)} %</span></em>}</span><span><small>Taupunkt / Feuchte</small><b>{Math.round(currentHour.dewPoint)}Â° Â· {Math.round(currentHour.humidity)} %</b></span><span><small>Wind / BÃ¶en</small><b><WindDirectionArrow direction={currentHour.direction} gust={currentHour.gust}/> {wind(currentHour.wind,unit)} Â· {wind(currentHour.gust,unit)}</b>{currentHour.gustAdjusted&&<em>BÃ¶e auf Windniveau plausibilisiert</em>}</span><span><small>Luftdruck</small><b>{Number.isFinite(currentHour.pressure)?`${formatDecimalFixed(currentHour.pressure,1)} hPa`:'â€“'}</b><em>{pressureTrendLabel}</em></span><span className="hour-tooltip-cloud-uvi"><small>BewÃ¶lkung / UVI / Sonnenscheindauer</small><b>{cloudOktas(currentHour.cloud)}/8 Â· UVI {formatUvi(currentHour.uvIndex)} Â· <Sun size={11}/>{sunshineMinutesLabel(currentHour.sunshineDuration)}</b><em>{cloudOktasText(currentHour.cloud).split(' Â· ')[1]}</em></span></div>
-       {currentHour.weatherSourceLabel&&<small className="hour-tooltip-source">Wetter-/NiederschlagsbÃ¼ndel: {currentHour.weatherSourceLabel}{currentHour.weatherBundleKind==='coherent-model'?' Â· kohÃ¤rent aus einem Modell':''}</small>}
-     </div>
-     </div>
-   </div>}
- </section>}
+OOš[\Ü
+	Ë‹ÓÛ™Ô˜[™ÙT[™[	ÊJNÂ˜ÛÛœİ^PÛ[X]O[^J
 
-type WidgetDayCount=3|4|5|6|7;
-type WidgetView='cards'|'curve'|'ensemble';
-type WidgetStoredSettings={schema:5;days:WidgetDayCount;dark:boolean;showWind:boolean;showRain:boolean;showSunshine:boolean;showHazards:boolean;ecmwfTemperatureColors:boolean;view:WidgetView;ensembleMetric:EnsembleDisplayMetric};
-const WIDGET_SETTINGS_STORAGE_KEY='mid:0.7.1:widget-settings',WIDGET_DAY_OPTIONS=[3,4,5,6,7] as const;
-function storedWidgetSettings():WidgetStoredSettings{const defaults:WidgetStoredSettings={schema:5,days:7,dark:true,showWind:true,showRain:true,showSunshine:true,showHazards:true,ecmwfTemperatureColors:true,view:'cards',ensembleMetric:'temperature'};try{const parsed=JSON.parse(localStorage.getItem(WIDGET_SETTINGS_STORAGE_KEY)||'{}') as Partial<Omit<WidgetStoredSettings,'schema'>>&{schema?:number},rawDays=Number(parsed.days),days=(WIDGET_DAY_OPTIONS.includes(rawDays as WidgetDayCount)?rawDays:7) as WidgetDayCount,legacyShowRain=(parsed.schema===2||parsed.schema===3)&&typeof parsed.showRain==='boolean'?parsed.showRain:true,showRain=(parsed.schema===4||parsed.schema===5)&&typeof parsed.showRain==='boolean'?parsed.showRain:legacyShowRain,ecmwfTemperatureColors=typeof parsed.ecmwfTemperatureColors==='boolean'?parsed.ecmwfTemperatureColors:defaults.ecmwfTemperatureColors,ensembleMetric=parsed.ensembleMetric==='precipitation'?'precipitation':parsed.ensembleMetric==='wind'?'wind':'temperature';return{schema:5,days,dark:typeof parsed.dark==='boolean'?parsed.dark:defaults.dark,showWind:typeof parsed.showWind==='boolean'?parsed.showWind:defaults.showWind,showRain,showSunshine:typeof parsed.showSunshine==='boolean'?parsed.showSunshine:defaults.showSunshine,showHazards:typeof parsed.showHazards==='boolean'?parsed.showHazards:defaults.showHazards,ecmwfTemperatureColors,view:parsed.view==='curve'?'curve':parsed.view==='ensemble'?'ensemble':'cards',ensembleMetric}}catch{return defaults}}
-function Widget({loc,days,hours,minutes15,unit,elevation,timezone,timezoneAbbreviation,ensemblePanel,onEnsembleRequested,urlExport}:{loc:Location;days:Day[];hours:Hour[];minutes15:Minute15[];unit:WindUnit;elevation?:number;timezone:string;timezoneAbbreviation?:string;ensemblePanel:((metric:EnsembleDisplayMetric)=>ReactNode)|null;onEnsembleRequested:()=>void;urlExport?:WidgetUrlExportRequest}){
- const initial=useMemo(()=>{const stored=storedWidgetSettings();return urlExport?{...stored,days:urlExport.days,dark:urlExport.theme==='dark',view:urlExport.view,showWind:true,showRain:true,showSunshine:true,showHazards:true,ecmwfTemperatureColors:true}:stored},[urlExport]),[n,setN]=useState<WidgetDayCount>(initial.days),[dark,setDark]=useState(initial.dark),[showWind,setShowWind]=useState(initial.showWind),[showRain,setShowRain]=useState(initial.showRain),[showSunshine,setShowSunshine]=useState(initial.showSunshine),[showHazards,setShowHazards]=useState(initial.showHazards),[ecmwfTemperatureColors,setEcmwfTemperatureColors]=useState(initial.ecmwfTemperatureColors),[view,setView]=useState<WidgetView>(initial.view),[ensembleMetric,setEnsembleMetric]=useState<EnsembleDisplayMetric>(initial.ensembleMetric),[copyState,setCopyState]=useState<'idle'|'working'|'done'|'fallback'|'error'>('idle'),[copyImage,setCopyImage]=useState(''),ref=useRef<HTMLDivElement>(null);
- useEffect(()=>{if(urlExport)return;try{localStorage.setItem(WIDGET_SETTINGS_STORAGE_KEY,JSON.stringify({schema:5,days:n,dark,showWind,showRain,showSunshine,showHazards,ecmwfTemperatureColors,view,ensembleMetric} satisfies WidgetStoredSettings))}catch{}},[n,dark,showWind,showRain,showSunshine,showHazards,ecmwfTemperatureColors,view,ensembleMetric,urlExport]);
- useEffect(()=>()=>{if(copyImage)URL.revokeObjectURL(copyImage)},[copyImage]);
- useEffect(()=>{if(view==='ensemble')onEnsembleRequested()},[view,onEnsembleRequested]);
- const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]),precipitationDisplayMinutes15=useMemo(()=>precipitationPresentationMinutes15(minutes15),[minutes15]),widgetHazardThroughDate=days[Math.max(0,Math.min(n,days.length)-1)]?.date,automaticWidgetHazards=useMemo(()=>hazards(hours,undefined,elevation??0,unit,undefined,widgetHazardThroughDate),[hours,elevation,unit,widgetHazardThroughDate]);
- const previewDays=useMemo(()=>days.slice(0,n).map(d=>{const dayHours=precipitationDisplayHours.filter(x=>x.time.startsWith(d.date)),character=dayWeatherCharacter(d,dayHours),precipitationAssessment=dayPrecipitationAssessment(d,dayHours,precipitationDisplayMinutes15),precipitationDuration=precipitationDurationDayOverviewLabel(precipitationAssessment.durationHours),precipitationDurationCompact=precipitationDurationDayOverviewCompactLabel(precipitationAssessment.durationHours);return{...d,probabilityHours:dayHours,precipitationDuration,precipitationDurationCompact,hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone)),character,dayVisual:periodWeatherVisual(dayPeriodHoursForDate(d.date,precipitationDisplayHours),true,character.code,dayWeatherCharacterText(character),{preferFallbackCode:true}),nightVisual:periodWeatherVisual(followingNightHoursForDate(d.date,precipitationDisplayHours),false,character.code,character.label)}}),[days,precipitationDisplayHours,precipitationDisplayMinutes15,n,automaticWidgetHazards,timezone]),widgetWidth=Math.max(420,128+n*88),curveWidgetWidth=Math.max(700,176+n*104),previewWidth=view==='ensemble'?1180:view==='curve'?curveWidgetWidth:widgetWidth;
- useEffect(()=>{if(!urlExport)return;let active=true;document.documentElement.dataset.midWidgetReady='pending';const markReady=async()=>{if(previewDays.length<urlExport.days||!ref.current)return;try{await document.fonts?.ready;const images=Array.from(ref.current.querySelectorAll('img'));await Promise.all(images.map(image=>image.complete?Promise.resolve():image.decode?.().catch(()=>undefined)??Promise.resolve()));await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())))}catch{}if(!active||!ref.current)return;const bounds=ref.current.getBoundingClientRect();if(bounds.width<100||bounds.height<100)return;document.documentElement.dataset.midWidgetReady='ready';ref.current.dataset.midWidgetReady='ready';window.dispatchEvent(new CustomEvent('mid:widget-export-ready',{detail:{location:urlExport.location.slug,view:urlExport.view,days:urlExport.days,theme:urlExport.theme,temperatureColors:urlExport.temperatureColors,width:Math.ceil(bounds.width),height:Math.ceil(bounds.height)}}))};void markReady();return()=>{active=false;delete document.documentElement.dataset.midWidgetReady}},[urlExport,previewDays.length,precipitationDisplayHours.length,view,n]);
- async function renderWidgetBlob(){if(!ref.current)return null;const target=ref.current,restoreSvgPaints=freezeWidgetSvgPaintsForExport(target);try{const{toBlob}=await import('html-to-image');return await toBlob(target,{pixelRatio:2,cacheBust:true,backgroundColor:dark?'#07111f':'#f7fbff',width:target.scrollWidth,height:target.scrollHeight})}finally{restoreSvgPaints()}}
- function exposeForCopy(blob:Blob){setCopyImage(current=>{if(current)URL.revokeObjectURL(current);return URL.createObjectURL(blob)});setCopyState('fallback')}
- async function copyForPowerPoint(){if(!ref.current)return;setCopyState('working');let blob:Blob|null=null;try{blob=await renderWidgetBlob();if(!blob)throw new Error('Bild konnte nicht erzeugt werden.');const ClipboardItemCtor=(window as any).ClipboardItem;if(!navigator.clipboard?.write||!ClipboardItemCtor){exposeForCopy(blob);return}await navigator.clipboard.write([new ClipboardItemCtor({'image/png':blob})]);setCopyState('done');setTimeout(()=>setCopyState(current=>current==='done'?'idle':current),2600)}catch{if(blob)exposeForCopy(blob);else setCopyState('error')}}
- async function png(){const blob=await renderWidgetBlob();if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.download=`wetter-widget-${loc.name.toLowerCase().replace(/[^a-z0-9]+/gi,'-')}-${n}tage.png`;a.href=url;a.click();setTimeout(()=>URL.revokeObjectURL(url),1200)}
- const copyCaption=copyState==='working'?'Widget wird gerendert â€¦':copyState==='done'?'In Zwischenablage Â· jetzt in der Zielanwendung einfÃ¼gen':copyState==='fallback'?'Browser blockiert Direktkopie Â· Bild unten per Rechtsklick kopieren':copyState==='error'?'Export konnte nicht erstellt werden.':'PNG direkt in die Zwischenablage kopieren';
- const widgetForecastSource=previewDays.find(day=>day.weatherSourceLabel)?.weatherSourceLabel||'Open-Meteo Best Match',hasWidgetHazards=showHazards&&previewDays.some(day=>day.hz.length>0);
- // GeschÃ¼tzte AltvertrÃ¤ge der Widget-Audits: <small>BÃ¶en {wind(d.gust,unit)}</small>
- // Kurvenoption bleibt eigenstÃ¤ndig: view==='ensemble'?ensemblePanel:view==='curve'?<SevenDayCurveOverview
- return <section className="card widget widget-embedded"><div className="widgetlayout"><aside className="widget-controls"><div className="widget-controls-heading"><span>Widget</span><strong>Ausgabe gestalten</strong><small>Auswahl wird automatisch gespeichert.</small></div><div className="widget-location-preview"><span>Ort</span><strong>{loc.name}</strong></div><div className="widget-control-grid"><div className="widget-control-group"><span className="widget-control-label">Zeitraum</span><label>Tage{view==='ensemble'?<strong className="widget-fixed-days">14 Tage</strong>:<select aria-label="Anzahl Tage" value={n} onChange={e=>setN(Number(e.target.value) as WidgetDayCount)}>{WIDGET_DAY_OPTIONS.map(x=><option key={x}>{x}</option>)}</select>}</label></div><div className="widget-control-group"><span className="widget-control-label">Darstellung</span><label>Ansicht<select aria-label="Widget-Darstellung" value={view} onChange={e=>setView(e.target.value as WidgetView)}><option value="cards">Kompakte Tage</option><option value="curve">KurvenÃ¼bersicht</option><option value="ensemble">14-Tage-Ensemble</option></select></label></div></div>{view==='ensemble'&&<div className="widget-control-group widget-ensemble-metric"><span className="widget-control-label">Ensemble auswÃ¤hlen</span><label>Diagramm<select aria-label="Ensemble-Diagramm" value={ensembleMetric} onChange={e=>setEnsembleMetric(e.target.value as EnsembleDisplayMetric)}><option value="temperature">Temperatur</option><option value="precipitation">Niederschlag</option><option value="wind">Wind/BÃ¶en</option></select></label></div>}<label className="widget-theme-toggle"><input type="checkbox" checked={dark} onChange={e=>setDark(e.target.checked)}/><span>Dunkles Widget</span></label>{view!=='ensemble'&&<div className="widget-option-group"><span className="widget-control-label">Einblenden</span><div className="widget-option-grid"><label><input type="checkbox" checked={showWind} onChange={e=>setShowWind(e.target.checked)}/><span>Wind</span></label><label title={view==='curve'?'Steuert Niederschlag in Skybar und SÃ¤ulendiagramm':'Steuert Niederschlagswerte'}><input type="checkbox" checked={showRain} onChange={e=>setShowRain(e.target.checked)}/><span>Niederschlag</span></label><label><input type="checkbox" checked={showSunshine} onChange={e=>setShowSunshine(e.target.checked)}/><span>Sonnenschein</span></label><label><input type="checkbox" checked={showHazards} onChange={e=>setShowHazards(e.target.checked)}/><span>Hazards</span></label><label title="Tmin/Tmax im Export mit der wertbasierten ECMWF-Temperaturpalette darstellen"><input type="checkbox" checked={ecmwfTemperatureColors} onChange={e=>setEcmwfTemperatureColors(e.target.checked)}/><span>ECMWF-Temperaturfarben</span></label></div></div>}<small className="widget-help-note">{view==='ensemble'?`EigenstÃ¤ndiges 14-Tage-Diagramm: ${ensembleMetric==='temperature'?'Temperatur':ensembleMetric==='precipitation'?'Niederschlag':'Wind/BÃ¶en'}.`:view==='curve'?'Tageskopf, Piktogramme, Tmin/Tmax, Skybar, Temperaturkurve und NiederschlagssÃ¤ulen.':'Kompakte Tageskarten mit den gewÃ¤hlten Zusatzwerten.'}</small><div className="widget-export-actions"><button className="primary" disabled={copyState==='working'} onClick={()=>void copyForPowerPoint()}><ClipboardCopy size={17}/>{copyState==='working'?'Wird kopiert â€¦':'In Zwischenablage kopieren'}</button><button className="secondary" onClick={()=>void png()}><Download size={17}/>PNG herunterladen</button></div><small className={`widget-copy-status ${copyState}`}>{copyCaption}</small>{copyImage&&copyState==='fallback'&&<div className="widget-copy-fallback"><img src={copyImage} alt="Gerendertes MID-Widget zum Kopieren"/><small>Rechtsklick beziehungsweise langes DrÃ¼cken auf das Bild â†’ â€Bild kopierenâ€œ, danach in PowerPoint einfÃ¼gen.</small></div>}</aside><div className="preview widget-preview"><div ref={ref} style={{width:`${previewWidth}px`}} className={`weatherwidget modern compact ${dark?'dark':'light'} ${hasWidgetHazards?'hazards-on':'hazards-off'} ${ecmwfTemperatureColors?'temperature-colors-ecmwf':'temperature-colors-standard'} widget-view-${view}`}>{view==='ensemble'?ensemblePanel?.(ensembleMetric):view==='curve'?<SevenDayCurveOverview days={previewDays} hours={precipitationDisplayHours} presentationReady selectedDate={previewDays[0]?.date??''} onSelectedDate={()=>undefined} showRain={showRain} showSunshine={showSunshine} showWind={showWind} ecmwfTemperatureColors={ecmwfTemperatureColors} hazardsByDate={showHazards?Object.fromEntries(previewDays.map(day=>[day.date,day.hz])):undefined} unit={unit}/>:<><header><div><span>MID Widget</span><strong>{loc.name}</strong><small>{formatDecimal(loc.latitude,2,2)}Â°N, {formatDecimal(loc.longitude,2,2)}Â°E Â· {Math.round(elevation??0)} m Ã¼. NHN Â· Ortszeit {timezoneAbbreviation||timezone}</small></div><b>{n}-Tage-Ausblick</b></header><div className={`widgetgrid days-${n}`}>{previewDays.map(d=><article key={d.date} className="widgetday"><div className="widgetday-head"><strong>{formatDateOnly(d.date,{weekday:'short'})}</strong><small>{formatDateOnly(d.date,{day:'2-digit',month:'2-digit'})}</small></div><div className="widgeticon period-widget-icon"><WeatherPeriodIcons dayVisual={d.dayVisual} nightVisual={d.nightVisual} daySize={40} nightSize={24}/></div><b className="widgetlabel">{d.character.label}</b><div className="widgettemps">{(()=>{const maxTone=ecmwfTemperatureTone(d.max),minTone=ecmwfTemperatureTone(d.min);return <><strong className={ecmwfTemperatureColors?'widget-temp-ecmwf':undefined} style={ecmwfTemperatureColors?{'--widget-temp-color':maxTone.color,'--widget-temp-background':maxTone.background,'--widget-temp-border':maxTone.border} as CSSProperties:undefined}>{Math.round(d.max)}Â°</strong><em className={ecmwfTemperatureColors?'widget-temp-ecmwf':undefined} style={ecmwfTemperatureColors?{'--widget-temp-color':minTone.color,'--widget-temp-background':minTone.background,'--widget-temp-border':minTone.border} as CSSProperties:undefined}>{Math.round(d.min)}Â°</em></>})()}</div><div className="widgetmeta">{showRain&&<span className="widgetmeta-rain" title={`${dailyPrecipitationProbabilityTitle(d,d.probabilityHours)} Â· Niederschlagsdauer ${d.precipitationDuration}`}><b><Droplets size={12}/>{precipitationAmountLabel(d)}</b><small>{dailyPrecipitationProbabilityCompact(d,d.probabilityHours)}{d.precipitationDurationCompact?` Â· ${d.precipitationDurationCompact}`:''}</small></span>}{showSunshine&&<span className="widgetmeta-sun" title={`Sonnenscheindauer ${sunshineWholeHoursLabel(d.sunshineDuration)}`} aria-label={`Sonnenscheindauer ${sunshineWholeHoursLabel(d.sunshineDuration)}`}><b><Sun size={12}/>{sunshineWholeHoursLabel(d.sunshineDuration)}</b></span>}{showWind&&<span className={`widgetmeta-wind warning-${dwdWindWarningLevelKt(d.gust)}`}><b><Wind size={12}/><WindDirectionArrow className="widget-wind-arrow" direction={d.direction} gust={d.gust}/><span className="widget-wind-value">{wind(d.wind,unit)}</span></b><small><b className="widget-gust-label">BÃ¶en</b> <span className="widget-gust-value">{wind(d.gust,unit)}</span></small></span>}</div>{showHazards&&d.hz.length?<div className="widgethazards">{d.hz.map((h,i)=><span key={i} className={h.level} title={`${h.title}: ${h.detail}`}>{h.symbol}{h.value?` ${h.value}`:''}</span>)}</div>:null}</article>)}</div></>}<footer><span>{widgetForecastSource} Â· MID v{VERSION}</span><span>{formatInZone(new Date(),timezone,{day:'2-digit',month:'2-digit',year:'numeric'})}</span></footer></div></div></div></section>
-}
-function formatModelRunTime(value?:string){return value?formatDisplayDateTime(value,undefined,{day:'2-digit',month:'2-digit',hour:'2-digit',hourCycle:'h23'}):'â€“'}
-function formatAvailabilityTime(value?:string){if(!value)return'â€“';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'â€“';const recent=Date.now()-d.getTime()<18*3600000;return formatDisplayDateTime(d,undefined,recent?{hour:'2-digit',minute:'2-digit',hourCycle:'h23'}:{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}
-function modelUsageLabel(row:ModelRunMeta){return row.usageStatus==='active'?'Aktiv':row.usageStatus==='fallback'?'Fallback':row.usageStatus==='adapter-not-configured'?'Adapter fehlt':row.usageStatus==='unavailable'?'Nicht verfÃ¼gbar':row.usageStatus==='reserve'?'Reserve':''}
-function modelRunExtra(row:ModelRunMeta){const cadence=row.updateIntervalSeconds&&row.updateIntervalSeconds<=3600?'stÃ¼ndlicher Lauf':row.updateIntervalSeconds?`Lauf alle ${Math.max(1,Math.round(row.updateIntervalSeconds/3600))} h`:'';const resolutionKm=Number(row.resolutionKm),horizonHours=Number(row.forecastHorizonHours),ruc=/icon[-_]?d2[-_]?ruc/i.test(row.id);const resolution=Number.isFinite(resolutionKm)?`${formatDecimal(resolutionKm,resolutionKm<2?1:0,resolutionKm<2?1:0)} km`:'';const horizon=Number.isFinite(horizonHours)?`bis +${Math.round(horizonHours)} h`:'';return [ruc?'DWD RUC':row.rapidUpdate?'Rapid Update':'',cadence,resolution,horizon,row.availabilityOnly?'nur LaufverfÃ¼gbarkeit erkannt':'',row.statusNote??''].filter(Boolean).join(' Â· ')}
-function ModelRunDetails({kind,info,runs=[]}:{kind:'best'|'ensemble';info?:BestMatchModelInfo|null;runs?:ModelRunMeta[]}){
- const rows=kind==='best'?(info?.runs??[]):runs,buttonRef=useRef<HTMLButtonElement>(null),[open,setOpen]=useState(false);
- return <span className="model-run-details"><button ref={buttonRef} type="button" className="model-run-button" title="ModelllÃ¤ufe und Datenstand anzeigen" aria-label="ModellstÃ¤nde anzeigen" aria-expanded={open} onClick={event=>{event.preventDefault();event.stopPropagation();setOpen((value:boolean)=>!value)}}>â“˜ ModellstÃ¤nde</button><PortalPopover anchorRef={buttonRef} open={open} onClose={()=>setOpen(false)} className="model-run-popover" width={420}>{kind==='best'?<><strong>Best Match + MID-Kurzfristfusion</strong><p>{info?.summary??'Modellinformationen werden geladen â€¦'}</p>{info?.candidateModels&&<p className="model-run-chain"><b>Am Standort relevante Rapid-/Regionalmodelle:</b> {info.candidateModels}</p>}</>:<><strong>Ensemble Â· Quellenstatus</strong><p>Aktiv verwendete Modelle werden auch ohne Laufmetadaten angezeigt. Fallbacks, nicht konfigurierte Adapter, fehlgeschlagene Abrufe und Reservepfade sind getrennt markiert.</p></>}{rows.length?<div className="model-run-list">{rows.map(row=><div className={`model-run-row${row.rapidUpdate?' rapid-update':''}`} key={`${row.kind}:${row.id}`}><span>{row.label}{/icon[-_]?d2[-_]?ruc/i.test(row.id)?<em className="model-rapid-badge">RUC</em>:row.rapidUpdate?<em className="model-rapid-badge">Rapid</em>:null}{modelUsageLabel(row)?<em className={`model-usage-badge status-${row.usageStatus}`}>{modelUsageLabel(row)}</em>:null}</span>{row.metadataUnavailable?<small>Laufmetadaten derzeit nicht abrufbar</small>:<small>Initialisierung {formatModelRunTime(row.initialisationTime)} Â· verfÃ¼gbar seit {formatAvailabilityTime(row.availabilityTime)}{row.metadataSource?` Â· ${row.metadataSource}`:''}</small>}{modelRunExtra(row)?<small className="model-run-extra">{modelRunExtra(row)}</small>:null}</div>)}</div>:<small className="model-run-empty">Keine aktuellen, plausiblen Modellmetadaten verfÃ¼gbar.</small>}</PortalPopover></span>
-}
-function Title({eye,title,children}:{eye:string;title:string;children?:ReactNode}){return <header className="title"><div><span>{eye}</span><h2>{title}</h2></div>{children&&<div className="title-tools">{children}</div>}</header>}
+OOš[\Ü
+	Ë‹ĞÛ[X]T[™[	ÊJNÂ˜ÛÛœİ^UØ]\”ÜÜÏ[^J
+
+OOš[\Ü
+	Ë‹ÕØ]\”ÜÜÔ[™[	ÊJNÂ˜ÛÛœİ^Q›YÚY][Ü›ÛÙŞO[^J
+
+OOš[\Ü
+	Ë‹Ñ›YÚY][Ü›ÛÙŞT[™[	ÊJNÂ˜ÛÛœİ^UÙX]\“X\Ï[^J
+
+OOš[\Ü
+	Ë‹ÕÙX]\“X\Ô[™[	ÊJNÂ˜ÛÛœİ^Q^™[YUÙX]\“İ]ÛÚÏ[^J
+
+OOš[\Ü
+	Ë‹Ñ^™[YUÙX]\“İ]ÛÚÔ[™[	ÊJNÂ˜ÛÛœİ^U˜]™[[›™\[^J
+
+OOš[\Ü
+	Ë‹Õ˜]™[[›™\”[™[	ÊJNÂ˜ÛÛœİ^Q]™[[›™\[^J
+
+OOš[\Ü
+	Ë‹Ñ]™[[›™\”[™[	ÊJNÂ˜ÛÛœİ^Q›Ü™XØ\İ™\šYšXØ][Û[^J
+
+OOš[\Ü
+	Ë‹Ñ›Ü™XØ\İ™\šYšXØ][Û”[™[	ÊJNÂ˜ÛÛœİY[[Ğİ\œ™[[Y[[Êİ\œ™[
+NÂ˜ÛÛœİY[[Ó[İ[Z[”ÚÚO[Y[[Ê[İ[Z[”ÚÚJNÂ˜ÛÛœİY[[Ò^˜\™Ï[Y[[Ê^˜\™ÊNÂ˜ÛÛœİY[[ÓÙ™šXÚX[Ø\›š[™ÜÏ[Y[[ÊÙ™šXÚX[Ø\›š[™ÜÊNÂ›]^™[YSİ]ÛÚÕØ\›T›ÛZ\ÙN”›ÛZ\ÙO[šÛ›İÛŸ[™Yš[™YÂ™[˜İ[ÛˆØ\›PÛÛ\ÜÚ]T[™[
+
+^İ›ÚY[\Ü˜Y\”[™[
+
+_B™[˜İ[ÛˆØ\›Q^™[YUÙX]\“İ]ÛÚÊ
+^İ›ÚY[\Ü^™[YUÙX]\“İ]ÛÚÔ[™[
+
+NÙ^™[YSİ]ÛÚÕØ\›T›ÛZ\ÙOÏÏ[ØY^™[YUÙX]\“İ]ÛÚÊ
+K˜Ø]Ú
+
+
+OO[™Yš[™Y
+_B˜ÛÛœİY[[ÕØ\›š[™ĞÙ[\[Y[[ÊØ\›š[™ĞÙ[\ŠNÂ˜ÛÛœİY[[Ñ›Ü™XØ\İ[Y[[Ê›Ü™XØ\İ
+NÂ˜ÛÛœİY[[Ñ˜]›Üš]T[S›İXÙO[Y[[Ê˜]›Üš]T[S›İXÙJNÂ˜ÛÛœİY[[Ó^T˜Y\[Y[[Ê^T˜Y\ŠNÂ˜ÛÛœİY[[Ó^Q[œÙ[X›\Ï[Y[[Ê^Q[œÙ[X›\ÊNÂ˜ÛÛœİY[[Ó^SÛ™Ô˜[™ÙO[Y[[Ê^SÛ™Ô˜[™ÙJNÂ˜ÛÛœİY[[Ó^PÛ[X]O[Y[[Ê^PÛ[X]JNÂ˜ÛÛœİY[[Ó^UØ]\”ÜÜÏ[Y[[Ê^UØ]\”ÜÜÊNÂ˜ÛÛœİY[[Ó^Q›Ü™XØ\İ™\šYšXØ][Û[Y[[Ê^Q›Ü™XØ\İ™\šYšXØ][ÛŠNÂ˜ÛÛœİY[[Ó^Q›YÚY][Ü›ÛÙŞO[Y[[Ê^Q›YÚY][Ü›ÛÙŞJNÂ˜ÛÛœİY[[Ó^UÙX]\“X\Ï[Y[[Ê^UÙX]\“X\ÊNÂ˜ÛÛœİY[[Ó^Q^™[YUÙX]\“İ]ÛÚÏ[Y[[Ê^Q^™[YUÙX]\“İ]ÛÚÊNÂ˜ÛÛœİY[[Ó^U˜]™[[›™\[Y[[Ê^U˜]™[[›™\ŠNÂ˜ÛÛœİY[[Ó^Q]™[[›™\[Y[[Ê^Q]™[[›™\ŠNÂ™[˜İ[ÛˆšY]ÜÜØ]JØÚ[™[‹Û•š\ÚX›KXÙZÛ\IĞ™\™ZXÚÚ\™™Z[HØÜ›Û[ˆÙ[Y[ˆ8 )‰Ë›ÛİX\™Ú[IÌÌŒ	ËÛ\ÜÓ˜[YOIÉßNØÚ[™[”™XXİ›ÙNÛÛ•š\ÚX›OÎŠ
+OO›ÚYÜXÙZÛ\Îœİš[™ÎÜ›ÛİX\™Ú[Îœİš[™ÎØÛ\ÜÓ˜[YOÎœİš[™ßJ^ÂˆÛÛœİ™Y]\ÙT™YS]‘[[Y[Š[
+Kİš\ÚX›KÙ]š\ÚX›WO]\ÙTİ]J˜[ÙJKš\™Y]\ÙT™YŠ˜[ÙJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠš\ÚX›J\™]\›ØÛÛœİ›ÙO\™Y‹˜İ\œ™[ÚYŠ[›ÙJ\™]\›Û]\ÜÜÙYY˜[ÙKœ˜[YOLÂˆÛÛœİXİ]˜]OJ
+OOÚYŠ\ÜÜÙYš\ÚX›_œ˜[YJ\™]\›Ùœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOÙœ˜[YOLÚYŠY\ÜÜÙY
+\Ù]š\ÚX›JYJ_J_NÂˆYŠJ	Ò[\œÙXİ[Û“ØœÙ\™\‰Ú[ˆÚ[™İÊJ^ØXİ]˜]J
+NÜ™]\›Š
+OOÙ\ÜÜÙY]YNÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJ__NÂˆÛÛœİØœÙ\™\[™]È[\œÙXİ[Û“ØœÙ\™\Š[šY\ÏOÚYŠY[šY\ËœÛÛYJ[OO™[Kš\Ò[\œÙXİ[™ÊJ\™]\›ÛØœÙ\™\‹™\ØÛÛ›™Xİ
+
+NØXİ]˜]J
+_KÜ›ÛİX\™Ú[‹™\ÚÛŒŒ_JNÛØœÙ\™\‹›ØœÙ\™J›ÙJNÂˆ™]\›Š
+OOÙ\ÜÜÙY]YNÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNÛØœÙ\™\‹™\ØÛÛ›™Xİ
+
+_BˆKİš\ÚX›K›ÛİX\™Ú[—JNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠš\ÚX›I‰ˆYš\™Y˜İ\œ™[
+^Ùš\™Y˜İ\œ™[]YNÛÛ•š\ÚX›OËŠ
+__Kİš\ÚX›KÛ•š\ÚX›WJNÂˆ™]\›ˆ]ˆ™Y^Ü™YŸHÛ\ÜÓ˜[YO^ØšY]ÜÜYØ]Iİš\ÚX›OÉÈ™XYIÎ‰ÉßH	ØÛ\ÜÓ˜[Y_Xš[J
+_Oİš\ÚX›OØÚ[™[ÙXİ[ÛˆÛ\ÜÓ˜[YOH˜Ø\™^K\XÙZÛ\ˆ™Yœ™\ÚİÈÚ^™O^ÌMßKÏÜ[ÜXÙZÛ\ŸOÜÜ[ÜÙXİ[ÛŸOÙ]‚ŸB‚™[˜İ[Ûˆ[™\”XÙPÛÛ\Xİ]Z[
+XÙN•[™\’[™›ÔXÙJ^ÂˆİÚ]Ú
+XÙKœİ]\Ê^ÂˆØ\ÙIÛ›İÉÎœ™]\›ˆXÙKš\Ô™Y™\™[˜ÙSØØ][ÛÉÑ\™Zİ™]›Ù™™[ˆ[H™^YÜÛÜ	Î‰Ñ\™Zİ™]›Ù™™[™\ˆÜ	ÎÂˆØ\ÙIÛZÙ[IÎœ™]\›ˆXÙK˜\œš]˜[Z[]\ÏŒØ›Ü˜]\ÜÚXÚXÚ[ˆ	ÜXÙK˜\œš]˜[Z[]\ßHZ[˜‰İ›Ü˜]\ÜÚXÚXÚ]Yˆ\ˆYØ˜Z‰ÎÂˆØ\ÙIÜÜÜÚX›IÎœ™]\›ˆXÙK˜\œš]˜[Z[]\ÏŒØpí™ÛXÚ\ˆ™Y™™\ˆ[ˆ	ÜXÙK˜\œš]˜[Z[]\ßHZ[˜‰Ûpí™ÛXÚ\ˆ™Y™™\‰ÎÂˆØ\ÙIØÛÜœšYÜ‰Îœ™]\›‰Û\ˆ[œÚXÚ\šZ]ÚÛÜœšYÜ‰ÎÂˆY˜][œ™]\›ˆXÙK™]Z[ÂˆBŸB™[˜İ[Ûˆ[™\”XÙS\İ
+ÜXÙ\ËÛÛ\XİY˜[ÙKİ[NÜXÙ\Î•[™\’[™›ÔXÙV×NØÛÛ\XİÎ˜›ÛÛX[İİ[Î›[X™\ŸJ^ÂˆËÈ™\˜YÜØ[šÙ\ˆ°ïˆ™\İZ[™H™YÜ™\ÜÚ[Ûœİ\İÎˆİ\œ™[š\ÚX›OXİ\œ™[XÙ\ËœÛXÙJŠK]\™Uš\ÚX›OY]\™TXÙ\ËœÛXÙJÊBˆÛÛœİİ\œ™[XÙ\Ï\XÙ\Ë™š[\ŠXÙOOœXÙKœİ]\ÏOOIÛ›İÉÊK]\™TXÙ\Ï\XÙ\Ë™š[\ŠXÙOOœXÙKœİ]\ÈOOIÛ›İÉÊKİ\œ™[š\ÚX›OXİ\œ™[XÙ\ËœÛXÙJÛÛ\XİÌNŒŠK]\™Uš\ÚX›OY]\™TXÙ\ËœÛXÙJÛÛ\XİÌŒÊKÚİÛÛİ[Xİ\œ™[š\ÚX›K›[™İ
+Ù]\™Uš\ÚX›K›[™İİ[Ûİ[SX]›X^
+İ[ÏÜXÙ\Ë›[™İXÙ\Ë›[™İ
+KY[“ØYYSX]›X^
+XÙ\Ë›[™İ\ÚİÛÛİ[
+KY[‘^\›˜[SX]›X^
+İ[Ûİ[\XÙ\Ë›[™İ
+KY[SX]›X^
+Y[“ØYY
+ÚY[‘^\›˜[
+Kİ™\™›İÔXÙ\ÏVË‹‹˜İ\œ™[XÙ\ËœÛXÙJİ\œ™[š\ÚX›K›[™İ
+K‹‹™]\™TXÙ\ËœÛXÙJ]\™Uš\ÚX›K›[™İ
+WK^˜Pİ\œ™[SX]›X^
+İ\œ™[XÙ\Ë›[™İXİ\œ™[š\ÚX›K›[™İ
+K^˜Q]\™OSX]›X^
+]\™TXÙ\Ë›[™İY]\™Uš\ÚX›K›[™İ
+Kİ™\™›İÓX™[[İ™\™›İÔXÙ\Ë›[™İ
+ÚY[‘^\›˜[ÂˆÛÛœİ™[™\”XÙT›İÜÏJ][\Î•[™\’[™›ÔXÙV×JOOš][\Ë›X\
+
+XÙK[™^
+OO]ˆÛ\ÜÓ˜[YO^Ø[™\‹\XÙK\›İÈ	ÜXÙKœİ]\ßIØÛÛ\XİÉÈÛÛ\Xİ	Î‰ÉßXHÙ^O^Ø	ÜXÙK›˜[Y_N‰ÜXÙK˜\œš]˜[]ÏÜXÙK˜\œš]˜[Z[]\ßN‰Ú[™^XOÜ[İ›Û™ÏÜXÙK›˜[Y_OÜİ›Û™ÏÛX[ØÛÛ\Xİİ[™\”XÙPÛÛ\Xİ]Z[
+XÙJNœXÙK™]Z[OÜÛX[ÜÜ[ÜXÙK˜˜YÙ_OØÙ]ŠNÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YO^Ø[™\‹\XÙK\ÙXİ[Û‰ØÛÛ\XİÉÈÛÛ\Xİ	Î‰ÉßXOXY\Ü[İ›Û™Ï™]›Ù™™[™HÜH	˜[\ÈYØ˜ZÜİ›Û™ÏÛX[ÖØİ\œ™[XÙ\Ë›[™İØ	Øİ\œ™[XÙ\Ë›[™İHZİY[›[]\™TXÙ\Ë›[™İØ	Ù]\™TXÙ\Ë›[™İH›Ü˜]\ÛYYÙ[™›[K™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	Ê_OÜÛX[ÜÜ[ÚY[Œ	‰[OŠŞÚY[ŸHÙZ]\™OÙ[OŸOÚXY\]ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\İ[[X\HÜ[ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\[›İÈØİ\œ™[XÙ\Ë›[™İHZİY[ÜÜ[Ü[ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\[]\™HÙ]\™TXÙ\Ë›[™İH]YˆYØ˜ZÜÜ[ÚY[Œ	‰Ü[ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\[[Ü™HŠŞÚY[ŸHÙZ]\™OÜÜ[ŸOÙ]Øİ\œ™[š\ÚX›K›[™İÏÙXİ[ÛˆÛ\ÜÓ˜[YOH[™\‹\XÙKYÜ›İ\İ\œ™[XY\İ›Û™Ï’™][H™[™\™ZXÚÜİ›Û™ÏÛX[Øİ\œ™[š\ÚX›K›[™İOOLOÉÑ\™Zİ™]›Ù™™[™\ˆÜ	Î‰Ñ\™Zİ™]›Ù™™[™HÜIß^ØÛÛ\Xİ	‰™^˜Pİ\œ™[ŒØ0­È
+ÉÙ^˜Pİ\œ™[HÙZ]\™HZİY[‰ÉßOÜÛX[ÚXY\]ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\İXÚÈÜ™[™\”XÙT›İÜÊİ\œ™[š\ÚX›J_OÙ]ÜÙXİ[Û›[^Ù]\™Uš\ÚX›K›[™İÏÙXİ[ÛˆÛ\ÜÓ˜[YOH[™\‹\XÙKYÜ›İ\]\™HXY\İ›Û™ÏØÛÛ\XİÉÓ°éÚİHYØ˜Z›ÜIÎ‰Ó°éÚİHÜH]Yˆ\ˆYØ˜Z‰ßOÜİ›Û™ÏÛX[Ù]\™Uš\ÚX›K›[™İOOLOÉÑœ°ï\İH\Ø\]H[›°é\[™ÉÎ‰Ñœ°ï\İH\Ø\]H[›°é\[™Ù[‰ß^ØÛÛ\Xİ	‰™^˜Q]\™OŒØ0­È
+ÉÙ^˜Q]\™_HÙZ]\™X‰ÉßOÜÛX[ÚXY\]ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\İXÚÈÜ™[™\”XÙT›İÜÊ]\™Uš\ÚX›J_OÙ]ÜÙXİ[Û›[^Ûİ™\™›İÓX™[ŒÏ]Z[ÈÛ\ÜÓ˜[YO^Ø[™\‹\XÙK[[Ü™IØÛÛ\XİÉÈÛÛ\Xİ	Î‰ÉßXOİ[[X\O•ÙZ]\™HÜH[™ZYÙ[ˆ
+Ûİ™\™›İÓX™[JOÜİ[[X\OÛİ™\™›İÔXÙ\Ë›[™İÏ]ˆÛ\ÜÓ˜[YOH[™\‹\XÙK\İXÚÈÜ™[™\”XÙT›İÜÊİ™\™›İÔXÙ\Ê_OÙ]›[^ÚY[‘^\›˜[ŒÏ–\ğé›XÚÚ[™›ØÚÚY[‘^\›˜[HÙZ]\™HÜH[H][œØ]ˆ\™˜\ÜİYHY\ˆšXÚZ[™[ˆ]Y™ÙY°ïÙ\™[‹Ü›[OÙ]Z[Ï›[^ÈXÛÛ\Xİ	‰Û\ÜÓ˜[YOH[™\‹\XÙK[YÙ[™Ü[HÛ\ÜÓ˜[YOH››İÈ‹Ï’™]ˆ˜Y\˜™\İ[[]\ˆ™[™\™ZXÚÜÜ[Ü[HÛ\ÜÓ˜[YOH›ZÙ[H‹Ï›Ü˜]\ÜÚXÚXÚ]Yˆ\ˆYØ˜ZÜÜ[Ü[HÛ\ÜÓ˜[YOHœÜÜÚX›H‹Ï›pí™ÛXÚ\ˆ™Y™™\ÜÜ[Ü[HÛ\ÜÓ˜[YOH˜ÛÜœšYÜˆ‹Ï›\ˆ[œÚXÚ\šZ]ÚÛÜœšYÜÜÜ[ÜŸOÜÙXİ[Û‚ŸB‚™[˜İ[Ûˆİ\œ™[›İØØ\™ÊÜ›Ø˜Xš[]K™XÚ\›İËÚİÔ›Ø˜Xš[]U[Y[[™K˜Y\‹[Y^›Û™KÚİÓØØ[^˜\™Ë[™\’[™›Ë[™\Y™™XİYXÙ\Õİ[X]T˜Z[’[™›ËY˜[˜ÙY[Ù_NÜ›Ø˜Xš[]N›[X™\Ü™XÚ\›İÎ”™XÚ\›İÔ™\İ[ÜÚİÔ›Ø˜Xš[]U[Y[[™N˜›ÛÛX[Ü˜Y\”˜Y\“›İØØ\İ[İ[Y^›Û™OÎœİš[™ÎÜÚİÓØØ[^˜\™Î˜›ÛÛX[İ[™\’[™›Î•[™\’[™›ß[İ[™\Y™™XİYXÙ\Õİ[Î›[X™\ÚX]T˜Z[’[™›Î’X]T˜Z[’[™›ß[ØY˜[˜ÙY[ÙN˜›ÛÛX[ŸJ^ÂˆÛÛœİ[™\‘˜XİÏ][™\’[™›ÏËœ]ZXÚÑ˜XİÏË™š[\Š][OOš][Kœ›ÛZ[™[OOY˜[ÙJOÏÖ×KÛÛ\Xİ[™\‘˜XİÏHXY˜[˜ÙY[ÙI‰[™\’[™›ÏËœXÙ\ÏË›[™İİ[™\‘˜XİËœÛXÙJŠN[™\‘˜XİËœÛXÙJÊNÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YO^ØXÙK[›İØØ\™Èİ\œ™[[›İØØ\™Éİ[™\’[™›ßX]T˜Z[’[™›ÏÉÈ\Ë[ØØ[Z^˜\™ÉÎ‰ÉßXH\šXK[X™[HZİY[HšYY\œØÚYÜËH[™ÙY˜Z™[›YÙH‚ˆ\ÚYHÛ\ÜÓ˜[YOHœ™XÚ\[›İÈİ\œ™[\™XÚ\\[™[‚ˆ]ˆÛ\ÜÓ˜[YOH˜İ\œ™[[›İØØ\™ZXY[™ÈÜ[ÛX[“šYY\œØÚYÈ™]ÜÛX[İ›Û™ÏÓX]œ›İ[™
+›Ø˜Xš[]J_H	OÜİ›Û™ÏÜÜ[[™›Ò[X™[H•XÚš\ØÚH˜Y\™]Z[È[™ZYÙ[ˆˆÚY^ÍŒHÜİ™\Û\ÜÓ˜[YOHœ™XÚ\[›İËZ[™›Ë\Üİ™\ˆ]ˆÛ\ÜÓ˜[YOHœ™XÚ\[›İËZ[™›Èİ›Û™Ï”˜Y\‹H[™[Ù[X™ÛZXÚÜİ›Û™ÏÜ™XÚ\›İËœÛİ\˜Ù_OÜÜ˜Y\‰‰”˜Y\œ]Y[OÙÜ˜Y\‹œ›İšY\ŸOÙ”˜Y\œ]X[]0éÙÜ˜Y\”]X[]U^
+˜Y\‹œ]X[]J_OÙ–™Z]˜][OÙ¸¢$ŒHš\È
+Ìˆ0­ÈKSZ[][‹TØÚš]OÙÜ˜Y\‹œ˜Y\“^Y\‰‰”˜Y\œ›ÙZİÙÜ˜Y\‹œ˜Y\“^Y\ŸOÙÏŸ^Ü˜Y\‹œÙX\ÛÛ˜[XÚÓX™[	‰‘š[\[™ÏÙÜ˜Y\‹œÙX\ÛÛ˜[XÚÓX™[OÙÏŸ^Ü˜Y\‹˜[[İ[Ûİ\˜ÙI‰“Y[™Ù[˜˜\Ú\ÏÙÜ˜Y\‹˜[[İ[Ûİ\˜Ù_OÙÏŸ^Ü˜Y\‹™Ü›İİ™[™	‰•ØXÚİ[KÖ™\™˜[ÙÜ˜Y\‹™Ü›İİ™[™OOIÙÜ›İÚ[™ÉÏÉŞ[™ZY[™	Îœ˜Y\‹™Ü›İİ™[™OOIÙXØ^Z[™ÉÏÉØX›™ZY[™	Î‰İÙZ]ÙZ[™İXš[	ß^Ó[X™\‹š\Ñš[š]J[X™\Š˜Y\‹™Ü›İİ˜]T\’İ\ŠJOØ0­È	ÓX]œ›İ[™
+[X™\Š˜Y\‹™Ü›İİ˜]T\’İ\ŠJŒL
+_H	KÚ‰ÉßOÙÏŸ^Ü˜Y\‹š›İ[™\PÚXÚÉ‰ŒL[KQÜ™[œ°ï[™ÏÙÓX]œ›İ[™
+˜Y\‹š›İ[™\PÚXÚËœÚ]Tİ\Ü
+ŒL
+_H	HÚØ[HXÚÜÜİ0ï[™ÏÙÏŸ^Ü˜Y\‹œİ][ÛØ[Xœ˜][Û‰‰”İ][ÛœÚÛÛ›ÛOÙÜ˜Y\‹œİ][ÛØ[Xœ˜][Û‹›˜[Y_˜Y\‹œİ][ÛØ[Xœ˜][Û‹œ›İšY\Ÿ	ÑÑTİ][Û‰ßH0­ÈÙ›Ü›X]XÚ[X[š^Y
+˜Y\‹œİ][ÛØ[Xœ˜][Û‹™\İ[˜ÙRÛ_J_HÛ^Ó[X™\‹š\Ñš[š]J[X™\Š˜Y\‹œİ][ÛØ[Xœ˜][Û‹™\İ[˜ÙUÙZYÚ
+JI‰“[X™\‹š\Ñš[š]J[X™\Š˜Y\‹œİ][ÛØ[Xœ˜][Û‹˜YÙUÙZYÚ
+JOØ0­È°é[[‹Ş™Z]ˆÙ]ÚXÚ	ÓX]œ›İ[™
+[X™\Š˜Y\‹œİ][ÛØ[Xœ˜][Û‹™\İ[˜ÙUÙZYÚ
+J“[X™\Š˜Y\‹œİ][ÛØ[Xœ˜][Û‹˜YÙUÙZYÚ
+JŒL
+_H	X‰ÉßOÙÏŸ^Ü˜Y\‹™[œÙ[X›I‰KSY[X™\‹TÜ[›™OÙÜ˜Y\[[İ[X™[
+˜Y\‹™[œÙ[X›Kİ[J_x $ŞÜ˜Y\[[İ[X™[
+˜Y\‹™[œÙ[X›Kİ[ÍJ_H[H0­ÈŞ™[˜\š[Ø[Z[Ü˜Y\‹™[œÙ[X›Kš]›Ø˜Xš[]_H	OÙÏŸOÙŸOÙ]Ò[™›Ò[Ù]‚ˆÜ[Ü™XÚ\›İËœİ[[X\_OÜÜ[‚ˆÜÚİÔ›Ø˜Xš[]U[Y[[™I‰œ˜Y\‰‰œ˜Y\”ÚYÛ˜[]XİY
+˜Y\ŠI‰˜Y\“›İØØ\İ[Y[[™H˜Y\^Ü˜Y\ŸH[Y^›Û™O^İ[Y^›Û™_KÏŸHˆ[OÜ˜Y\ÛÛ\XİÛİ\˜ÙJ˜Y\‹™XÚ\›İËœÛİ\˜ÙK[Y^›Û™J_OÙ[O‚ˆØ\ÚYO‚ˆÜÚİÓØØ[^˜\™É‰[™\’[™›É‰]Z[ÈÛ\ÜÓ˜[YO^ØØØ[[›İËY\ØÛÜİ\™H[™\‹[›İÈ	İ[™\’[™›Ë›]™[IØY˜[˜ÙY[ÙOÉÈY˜[˜ÙY	Î‰ÉßXO‚ˆİ[[X\OÜ[ÛX[İ[™\’[™›ËœÙXİ[Û“X™[OÜÛX[İ›Û™Ïİ[™\’[™›ËšXY[™_OÜİ›Û™Ïİ[™\’[™›Ëœİ]\É‰[Oİ[™\’[™›Ëœİ]\Ë›X™[OÙ[OŸOÜÜ[Ú]œ›Û‘İÛˆÚ^™O^ÌMßKÏÜİ[[X\O‚ˆ]ˆÛ\ÜÓ˜[YOH›ØØ[[›İËY\ØÛÜİ\™KX›ÙH‚ˆİ[™\’[™›Ëœİ]\É‰]ˆÛ\ÜÓ˜[YO^Ø[™\‹\İ]\È	İ[™\’[™›Ëœİ]\ËšÚ[™XOİ[™\’[™›Ëœİ]\Ë›X™[OØÜ[İ[™\’[™›Ëœİ]\Ë™]Z[OÜÜ[Ù]ŸBˆİ[™\’[™›ËœXÙ\ÏË›[™İÏ[™\”XÙS\İXÙ\Ï^İ[™\’[™›ËœXÙ\ßHÛÛ\Xİ^ÈXY˜[˜ÙY[Ù_Hİ[^İ[™\Y™™XİYXÙ\Õİ[KÏ›[Bˆİ[™\‘˜XİË›[™İÏ]ˆÛ\ÜÓ˜[YOH[™\‹Y˜XİYÜšYÊY˜[˜ÙY[ÙOİ[™\‘˜XİÎ˜ÛÛ\Xİ[™\‘˜XİÊK›X\
+][OO]ˆÛ\ÜÓ˜[YO^Ø[™\‹Y˜Xİ	Ú][KÛ™OÏÉÛ™]]˜[	ßXHÙ^O^Ø	Ú][K›X™[N‰Ú][K˜[Y_XOÛX[Ú][K›X™[OÜÛX[İ›Û™ÏÚ][K˜[Y_OÜİ›Û™ÏÙ]Š_OÙ]›[BˆØY˜[˜ÙY[ÙI‰Š[™\’[™›Ë™]Z[Ü›İ\ÏË›[™İ[™\’[™›Ë™]Z[ÏË›[™İ
+OÏ[™›Ò[X™[H’ÓÓ”QÑV™[[™›Ü›X][Û™[ˆ[™ZYÙ[ˆˆÚY^ÍMŒHÜİ™\Û\ÜÓ˜[YOH[™\‹Z[™›Ë\Üİ™\ˆˆÚİĞÛÜÙO]ˆÛ\ÜÓ˜[YOH[™\‹Z[™›Ë\ÚY]İ[™\’[™›Ë™]Z[XY	‰Û\ÜÓ˜[YOH[™\‹Z[™›Ë[XYİ[™\’[™›Ë™]Z[XYOÜŸ^İ[™\’[™›Ëœ]ZXÚÑ˜XİÏË›[™İÏ]ˆÛ\ÜÓ˜[YOH[™\‹Y˜XİYÜšY[™\‹Y˜XİYÜšYY^[™Yİ[™\’[™›Ëœ]ZXÚÑ˜XİË›X\
+][OO]ˆÛ\ÜÓ˜[YO^Ø[™\‹Y˜Xİ	Ú][KÛ™OÏÉÛ™]]˜[	ßXHÙ^O^Ø	Ú][K›X™[N‰Ú][K˜[Y_XOÛX[Ú][K›X™[OÜÛX[İ›Û™ÏÚ][K˜[Y_OÜİ›Û™ÏÙ]Š_OÙ]›[^İ[™\’[™›ËœXÙ\ÏË›[™İÏ[™\”XÙS\İXÙ\Ï^İ[™\’[™›ËœXÙ\ßHİ[^İ[™\Y™™XİYXÙ\Õİ[KÏ›[^İ[™\’[™›Ë™]Z[Ü›İ\ÏË›[™İÏ]ˆÛ\ÜÓ˜[YOH[™\‹Y]Z[YÜ›İ\Èİ[™\’[™›Ë™]Z[Ü›İ\Ë›X\
+Ü›İ\OÙXİ[ÛˆÛ\ÜÓ˜[YOH[™\‹Y]Z[YÜ›İ\ˆÙ^O^ÙÜ›İ\]_Oİ›Û™ÈÛ\ÜÓ˜[YOH[™\‹Z[™›ËZXY[™ÈÙÜ›İ\]_OÜİ›Û™ÏÛ\ÜÓ˜[YOH[™\‹Y]Z[[\İÙÜ›İ\š][\Ë›X\
+][OOœ˜YÛY[Ù^O^Ø	ÙÜ›İ\]_N‰Ú][K›X™[N‰Ú][K˜[Y_XOÚ][K›X™[OÙÚ][K˜[Y_OÙÑœ˜YÛY[Š_OÙÜÙXİ[ÛŠ_OÙ]İ›Û™ÈÛ\ÜÓ˜[YOH[™\‹Z[™›ËZXY[™È’ÓÓ”QÑ0­È™[H[™ÜÜ°ï[™ÏÜİ›Û™ÏÛ\ÜÓ˜[YOH[™\‹Y]Z[[\İİ[™\’[™›Ë™]Z[ÏË›X\
+][OOœ˜YÛY[Ù^O^Ø	Ú][K›X™[N‰Ú][K˜[Y_XOÚ][K›X™[OÙÚ][K˜[Y_OÙÑœ˜YÛY[Š_OÙÏŸ^İ[™\’[™›Ë˜Yš\ÛÜI‰Û\ÜÓ˜[YOH[™\‹Z[™›ËXYš\ÛÜHİ[™\’[™›Ë˜Yš\ÛÜ_OÜŸOÛX[‘YH[™\›[™ÜØ[™ØX™H\ˆØ\H\İYHZİY[H\İ[ˆ\ˆ™[ÜÚ][Û‹ˆ›ÙÛ›Üİ^šY\\ˆXœİ[™[™[œÚXÚ\šZ]Ü˜Y]\ÈÙ\™[ˆ]›ÛˆÙ]™[›]\ÙÙ]ÚY\Ù[‹ÜÛX[Ù]Ò[™›Ò[›[Bˆ[OØY˜[˜ÙY[ÙOİ[™\’[™›ËœÛİ\˜ÙN‰Ğ]]ÛX]\ØÚHİ[™Ü™^›ÙÙ[™H[˜[\ÙH0­ÈÙZ[™H[]XÚHØ\›[™ÉßOÙ[O‚ˆÙ]‚ˆÙ]Z[ÏŸBˆÜÚİÓØØ[^˜\™É‰šX]T˜Z[’[™›É‰]Z[ÈÛ\ÜÓ˜[YO^ØØØ[[›İËY\ØÛÜİ\™HX]K\˜Z[‹[›İÈ	ÚX]T˜Z[’[™›Ë›]™[IØY˜[˜ÙY[ÙOÉÈY˜[˜ÙY	Î‰ÉßXO‚ˆİ[[X\OÜ[ÛX[”İ\šÜ™YÙ[‹KÔİ\™›][™ZØ]ÜÜÛX[İ›Û™ÏÚX]T˜Z[’[™›ËšXY[™_OÜİ›Û™ÏÚX]T˜Z[’[™›Ë™›\Ú›ÛÙİ[X[	‰[O”İ\™›]İ[šX[Ù[OŸOÜÜ[Ú]œ›Û‘İÛˆÚ^™O^ÌMßKÏÜİ[[X\O‚ˆ]ˆÛ\ÜÓ˜[YOH›ØØ[[›İËY\ØÛÜİ\™KX›ÙHÜ[ØY˜[˜ÙY[ÙOÚX]T˜Z[’[™›Ëœİ[[X\N˜ÛÛ\XİØØ[^˜\™İ[[X\JX]T˜Z[’[™›Ëœİ[[X\J_OÜÜ[ØY˜[˜ÙY[ÙI‰šX]T˜Z[’[™›Ë™]Z[Ë›[™İÏ[ÚX]T˜Z[’[™›Ë™]Z[Ë›X\
+]Z[OHÙ^O^Ù]Z[OÙ]Z[OÛOŠ_Oİ[›[O[OÚX]T˜Z[’[™›ËœÛİ\˜Ù_OÙ[OÙ]‚ˆÙ]Z[ÏŸBˆÜÙXİ[Û‚ŸB‚™[˜İ[Ûˆİ][Û“™YYÑ[œšXÚY[
+˜[YN”İ][ÛŸ[
+^ÚYŠ]˜[YJ\™]\›ˆYNØÛÛœİ›İšY\œÏ]˜[YKœÛİ\˜ÙT›İšY\œÏË›[™İÏÊ˜[YKœ›İšY\ÌNŒ
+KØ[™Y]\ÏS[X™\Š˜[YK˜Ø[™Y]PÛİ[Ïİ˜[YKœİ][ÛÛİ[ÏÌ
+K[˜Ù\Z[OS[X™\Š˜[YK[˜Ù\Z[JK˜Y]\ÏS[X™\Š˜[YK™Y™™Xİ]™T™\ÛÛ][Û’ÛJK]X[]TÜ\œÙOXØ[™Y]\Ï›İšY\œÏ‹]X[]U[˜Ù\Z[S[X™\‹š\Ñš[š]J[˜Ù\Z[JI‰[˜Ù\Z[OŒKŒËÛİ™\˜YÙUÚYOS[X™\‹š\Ñš[š]J˜Y]\ÊI‰œ˜Y]\ÏŒÌİ\™˜XÙPÛÛ^Z\ÜÚ[™ÏH]˜[YKœİ\™˜XÙPÛ\ÜÎÜ™]\›ˆ]X[]TÜ\œÙ_]X[]U[˜Ù\Z[ŸÛİ™\˜YÙUÚY_İ\™˜XÙPÛÛ^Z\ÜÚ[™ßB™[˜İ[Ûˆİ][Û[˜[\Ú\Ô˜[šÊ˜[YN”İ][ÛŸ[[™Yš[™Y
+^ÚYŠ]˜[YJ\™]\›ˆÚYŠ˜[YK˜˜XÚÙÜ›İ[™[Ù[	‰˜[YK˜[˜[\Ú\ÓY]Ù
+\™]\›ˆÚYŠ˜[YK˜[˜[\Ú\ÓY]Ù
+\™]\›ˆÎÚYŠ˜[YK˜›[™Y
+\™]\›ˆÜ™]\›ˆ_B™[˜İ[Ûˆİ][Û•[\\˜]\™SØœÙ\™Y\ØÚ
+˜[YN”İ][ÛŸ[[™Yš[™Y
+^ÚYŠ]˜[YJ\™]\›ˆ[X™\‹“˜SØÛÛœİÛİ\˜ÙQ\ØÚÏJ˜[YK™šY[Ûİ\˜Ù\ÏË[\\˜]\™OÏÖ×JK›X\
+Ûİ\˜ÙOO‘]Kœ\œÙJİš[™ÊÛİ\˜ÙK›ØœÙ\™Y]	ÉÊJJK™š[\Š[X™\‹š\Ñš[š]JKšY[\ØÚQ]Kœ\œÙJİš[™Ê˜[YK™šY[ØœÙ\™Y]Ë[\\˜]\™_	ÉÊJKİ][Û‘\ØÚQ]Kœ\œÙJİš[™Ê˜[YK[Y\İ[\	ÉÊJNÜ™]\›ˆX]›X^
+‹‹œÛİ\˜ÙQ\ØÚË[X™\‹š\Ñš[š]JšY[\ØÚ
+OÙšY[\ØÚ“[X™\‹“‘QĞUU‘WÒS‘’S’UK[X™\‹š\Ñš[š]Jİ][Û‘\ØÚ
+OÜİ][Û‘\ØÚ“[X™\‹“‘QĞUU‘WÒS‘’S’UJ_B™[˜İ[Ûˆ™Y™\”İ][Û”™\İ[
+İ\œ™[”İ][ÛŸ[™^”İ][ÛŸ[
+^ÚYŠ[™^
+\™]\›ˆİ\œ™[ÚYŠXİ\œ™[
+\™]\›ˆ™^ÚYŠ™^œİ[Q˜[˜XÚÉ‰ˆXİ\œ™[œİ[Q˜[˜XÚÊ\™]\›ˆİ\œ™[ØÛÛœİİ\œ™[˜[šÏ\İ][Û[˜[\Ú\Ô˜[šÊİ\œ™[
+K™^˜[šÏ\İ][Û[˜[\Ú\Ô˜[šÊ™^
+Kİ\œ™[\ØÚ\İ][Û•[\\˜]\™SØœÙ\™Y\ØÚ
+İ\œ™[
+K™^\ØÚ\İ][Û•[\\˜]\™SØœÙ\™Y\ØÚ
+™^
+Kİ\œ™[[\\˜]\™OS[X™\Šİ\œ™[[\\˜]\™JK™^[\\˜]\™OS[X™\Š™^[\\˜]\™JKX]\šX[[\\˜]\™PÚ[™ÙOS[X™\‹š\Ñš[š]Jİ\œ™[[\\˜]\™JI‰“[X™\‹š\Ñš[š]J™^[\\˜]\™JI‰“X]˜XœÊ™^[\\˜]\™KXİ\œ™[[\\˜]\™JOKNÚYŠ[X™\‹š\Ñš[š]Jİ\œ™[\ØÚ
+I‰“[X™\‹š\Ñš[š]J™^\ØÚ
+I‰˜İ\œ™[\ØÚ›™^\ØÚ
+ÍJŒ	‰›X]\šX[[\\˜]\™PÚ[™ÙJ\™]\›ˆİ\œ™[Ü™]\›ˆ™^˜[šÏXİ\œ™[˜[šÏÛ™^˜İ\œ™[B™[˜İ[Ûˆİ][ÛØXÚQ[Q›Ü“ØØ][ÛŠ]]YN›[X™\‹Û™Ú]YN›[X™\‹X^YÙS\ÏLMJŒ
+^ØÛÛœİ[œšXÚY\™XY[˜[\Ú\ĞØXÚQ[Oİ][ÛŠ	Üİ][Û‰Ë]]YKÛ™Ú]YKX^YÙS\ÊK›İš\Ú[Û˜[\™XY[˜[\Ú\ĞØXÚQ[Oİ][ÛŠ	Üİ][Û‹\›İš\Ú[Û˜[	Ë]]YKÛ™Ú]YKX]›Z[ŠX^YÙS\Ë
+Œ
+JNÚYŠ[œšXÚY	‰œ›İš\Ú[Û˜[
+^ØÛÛœİ[œšXÚY\ØÚ\İ][Û•[\\˜]\™SØœÙ\™Y\ØÚ
+[œšXÚY˜[YJK›İš\Ú[Û˜[\ØÚ\İ][Û•[\\˜]\™SØœÙ\™Y\ØÚ
+›İš\Ú[Û˜[˜[YJK[œšXÚY[\\˜]\™OS[X™\Š[œšXÚY˜[YK[\\˜]\™JK›İš\Ú[Û˜[[\\˜]\™OS[X™\Š›İš\Ú[Û˜[˜[YK[\\˜]\™JKX]\šX[[\\˜]\™PÚ[™ÙOS[X™\‹š\Ñš[š]J[œšXÚY[\\˜]\™JI‰“[X™\‹š\Ñš[š]J›İš\Ú[Û˜[[\\˜]\™JI‰“X]˜XœÊ[œšXÚY[\\˜]\™K\›İš\Ú[Û˜[[\\˜]\™JOKK™]Ù\“ØœÙ\˜][ÛS[X™\‹š\Ñš[š]J›İš\Ú[Û˜[\ØÚ
+I‰ŠS[X™\‹š\Ñš[š]J[œšXÚY\ØÚ
+_›İš\Ú[Û˜[\ØÚ™[œšXÚY\ØÚ
+ÍJŒ
+K™]Ù\[˜[\Ú\Ï\›İš\Ú[Û˜[œØ]™Y]™[œšXÚYœØ]™Y]
+ÌÌÌÚYŠ\›İš\Ú[Û˜[˜[YKœİ[Q˜[˜XÚÉ‰Š[œšXÚY˜[YKœİ[Q˜[˜XÚß™]Ù\“ØœÙ\˜][ÛŸ™]Ù\[˜[\Ú\É‰›X]\šX[[\\˜]\™PÚ[™ÙJJ\™]\›ˆ›İš\Ú[Û˜[ZYŠ[œšXÚY	‰œİ][Û[˜[\Ú\Ô˜[šÊ[œšXÚY˜[YJOLŠ\™]\›ˆ[œšXÚYÚYŠ›İš\Ú[Û˜[	‰ŠY[œšXÚY›İš\Ú[Û˜[œØ]™Y]™[œšXÚYœØ]™Y]
+J\™]\›ˆ›İš\Ú[Û˜[Ü™]\›ˆ[œšXÚYÏÜ›İš\Ú[Û˜[B™[˜İ[Ûˆ[ÙQ^[˜][ÛŠØY˜[˜ÙYİ[[X\KXÚšXØ[NØY˜[˜ÙY˜›ÛÛX[Üİ[[X\N”™XXİ›ÙNİXÚšXØ[Î”™XXİ›Ù_J^Ü™]\›ˆ[™›Ò[X™[H‘\šÛ0é[™È[™ZYÙ[ˆØY˜[˜ÙYÊXÚšXØ[ÏÜİ[[X\JNœİ[[X\_OÒ[™›Ò[ŸB‚™[˜İ[ÛˆÛÛ\ÚX›S[Ù[JÚY]Kİ[[X\KY˜][Ü[Y˜[ÙKÛ“Ü[‹ÛÛÜÙKÚ[™[ŸNÚYœİš[™Îİ]Nœİš[™ÎÜİ[[X\Nœİš[™ÎÙY˜][Ü[Î˜›ÛÛX[ÛÛ“Ü[ÎŠ
+OO›ÚYÛÛÛÜÙOÎŠ
+OO›ÚYØÚ[™[”™XXİ›Ù_J^ÂˆÛÛœİÛÜ[‹Ù]Ü[—O]\ÙTİ]J
+
+OOœİÜ™Y[Ù[SÜ[ŠYY˜][Ü[ŠJK^[™Y[Ü[ÂˆÛÛœİÛÛ[Z]Ü[]\ÙPØ[˜XÚÊ
+™^˜›ÛÛX[Ÿ
+
+˜[YN˜›ÛÛX[ŠOO˜›ÛÛX[ŠJOOÜÙ]Ü[Š˜[YOOØÛÛœİ™\ÛÛ™Y]\[Ùˆ™^OOIÙ[˜İ[Û‰ÏÛ™^
+˜[YJN›™^Ü\œÚ\İ[Ù[SÜ[ŠY™\ÛÛ™Y
+NÜ™]\›ˆ™\ÛÛ™YJ_KÚYJKÙÙÛOJ
+OO˜ÛÛ[Z]Ü[Š
+˜[YN˜›ÛÛX[ŠOOˆ]˜[YJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ^[™Y
+[Û“Ü[ËŠ
+NÙ[ÙHÛÛÜÙOËŠ
+_KÙ^[™YJNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ™]™X[J]™[‘]™[
+OOØÛÛœİ]Z[J]™[\Èİ\İÛQ]™[ÚYÎœİš[™ßOŠK™]Z[ÚYŠ]Z[ËšYOOZY
+XÛÛ[Z]Ü[ŠYJ_KŞ[˜ÏJ]™[”İÜ˜YÙQ]™[
+OOÚYŠ]™[šÙ^OOO[[Ù[SÜ[’Ù^JY
+I‰™]™[›™]Õ˜[YHOO[[
+\Ù]Ü[Š]™[›™]Õ˜[YOOOIÌIÊ_NİÚ[™İË˜Y]™[\İ[™\Š	ÛZY›Ü[‹[[Ù[IË™]™X[
+NİÚ[™İË˜Y]™[\İ[™\Š	ÜİÜ˜YÙIËŞ[˜ÊNÜ™]\›Š
+OOİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛZY›Ü[‹[[Ù[IË™]™X[
+NİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÜİÜ˜YÙIËŞ[˜Ê__KÚYÛÛ[Z]Ü[—JNÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YO^ØØ\™[Ù[K\Ú[	Ù^[™YÉÛÜ[‰Î‰ØÛÛ\ÙY	ßXH]K[ZY]šY]Ï^ÚYO]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH›[Ù[K\Ú[]ÙÙÛHˆÛÛXÚÏ^İÙÙÛ_H\šXKY^[™Y^Ù^[™YOÜ[İ›Û™Ïİ]_OÜİ›Û™ÏÛX[Üİ[[X\_OÜÛX[ÜÜ[Ù^[™YÏÚ]œ›Û•\Ú^™O^ÌŒKÏÚ]œ›Û‘İÛˆÚ^™O^ÌŒKÏŸOØ]ÛÙ^[™Y	‰]ˆÛ\ÜÓ˜[YOH›[Ù[K\Ú[XÛÛ[ØÚ[™[ŸOÙ]ŸOÜÙXİ[Û‚ŸB‚‚™[˜İ[Ûˆ[Ù\›”[›™\’XŠÙ]™[[˜X›Y˜]™[[˜X›Y[İ[Z[‘[˜X›YØ]\‘[˜X›YÛ“˜]šYØ]KÛ“Ü[”Ù][™ÜßNÙ]™[[˜X›Y˜›ÛÛX[İ˜]™[[˜X›Y˜›ÛÛX[Û[İ[Z[‘[˜X›Y˜›ÛÛX[İØ]\‘[˜X›Y˜›ÛÛX[ÛÛ“˜]šYØ]NŠY‘\Ú›Ø\™[Ù[RY
+OO›ÚYÛÛ“Ü[”Ù][™ÜÎŠÙXİ[Û”Ù][™ÜÔÙXİ[ÛŠOO›ÚYJ^ÂˆÛÛœİØ\™ÏVÂˆÚY‰Ù]™[\[›™\‰È\È\Ú›Ø\™[Ù[RYX™[‰Ñ]™[	ËØ\[Û™]™[[˜X›YÉÕ\›Z[‹Zİ]š]0é[™Ù]\™™[œİ\‰Î‰Ó[Ù[[ˆ[œÚXÚZİ]šY\™[‰ËXÛÛØ[[™\”˜[™ÙHÚ^™O^ÌŒ_KÏ‹[˜X›Y™]™[[˜X›YÙ][™ÜÎ‰İšY]ÉÈ\ÈÙ][™ÜÔÙXİ[ÛŸKˆÚY‰İ˜]™[\[›™\‰È\È\Ú›Ø\™[Ù[RYX™[‰Ô™Z\ÙIËØ\[Û˜]™[[˜X›YÉÒÛ[XH[™™\İ\È™Z\Ù^™Z]™[œİ\‰Î‰Ó[Ù[[ˆ[œÚXÚZİ]šY\™[‰ËXÛÛ˜]šYØ][ÛˆÚ^™O^ÌŒ_KÏ‹[˜X›Y˜]™[[˜X›YÙ][™ÜÎ‰İšY]ÉÈ\ÈÙ][™ÜÔÙXİ[ÛŸKˆÚY‰Û[İ[Z[‰È\È\Ú›Ø\™[Ù[RYX™[‰Ğ™\™È	ˆÚ[\‰ËØ\[Û›[İ[Z[‘[˜X›YÉÒ0íš[œ›Ùš[[™™Y[™İ[™Ù[‰Î‰Ô›Ùš[°ïˆY\Ù[ˆ˜]›Üš][ˆZ[œšXÚ[‰ËXÛÛ[İ[Z[”Û›İÈÚ^™O^ÌŒ_KÏ‹[˜X›Y›[İ[Z[‘[˜X›YÙ][™ÜÎ‰Ù˜]›Üš]\ÉÈ\ÈÙ][™ÜÔÙXİ[ÛŸKˆÚY‰İØ]\‰È\È\Ú›Ø\™[Ù[RYX™[‰ÕØ\ÜÙ\‰ËØ\[ÛØ]\‘[˜X›YÉÔYÙ[Ø\ÜÙ\Ù]\ˆ[™™Y[™İ[™Ù[‰Î‰Ô›Ùš[°ïˆY\Ù[ˆ˜]›Üš][ˆZ[œšXÚ[‰ËXÛÛØ]™\ÈÚ^™O^ÌŒ_KÏ‹[˜X›YØ]\‘[˜X›YÙ][™ÜÎ‰Ù˜]›Üš]\ÉÈ\ÈÙ][™ÜÔÙXİ[ÛŸBˆNÂˆ™]\›ˆÙXİ[ÛˆYH›ZY[[Ù\›‹\[›™\ˆˆÛ\ÜÓ˜[YOH›[Ù\›‹\[›™\‹ZXˆˆ\šXK[X™[YOH›ZY[[Ù\›‹\[›™\‹ZXY[™ÈXY\]ÛX[“RQ0­ÈS‘SÜÛX[ˆYH›ZY[[Ù\›‹\[›™\‹ZXY[™È•Ù]\ˆ°ïˆ[ØÚZY[™Ù[Ú‘\™Zİ\ˆZ[œİYYÈ[ˆ›Üš[™[™H[™\ˆ[™Zİ]š]0éÜ›Ùš[KÜÙ]]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Û“Ü[”Ù][™ÜÊ	Ù˜]›Üš]\ÉÊ_OÙ][™ÜÌˆÚ^™O^ÌMßKÏÜ[”›Ùš[OÜÜ[Ø]ÛÚXY\]ˆÛ\ÜÓ˜[YOH›[Ù\›‹\[›™\‹XXİ[ÛœÈØØ\™Ë›X\
+Ø\™O]Ûˆ\OH˜]ÛˆˆÙ^O^ØØ\™šYHÛ\ÜÓ˜[YO^ØØ\™™[˜X›YÉÉÎ‰ÜÙ]\	ßHÛÛXÚÏ^Ê
+OO˜Ø\™™[˜X›YÛÛ“˜]šYØ]JØ\™šY
+N›Û“Ü[”Ù][™ÜÊØ\™œÙ][™ÜÊ_OH\šXKZY[HYHØØ\™šXÛÛŸOÚOÜ[İ›Û™ÏØØ\™›X™[OÜİ›Û™ÏÛX[ØØ\™˜Ø\[ÛŸOÜÛX[ÜÜ[Ú]œ›Û”šYÚÚ^™O^ÌMßKÏØ]ÛŠ_OÙ]ÜÙXİ[Û‚ŸB‚\H\Ú›Ø\™˜]‘Ü›İ\^ÚYœİš[™ÎÛX™[œİš[™ÎÛ[Ù[\Î‘\Ú›Ø\™[Ù[RY×_NÂ˜ÛÛœİTÒ“ĞT‘ÓU—ÑÔ“ÕTÎ‘\Ú›Ø\™˜]‘Ü›İ\×OVÂˆÚY‰Ûİ™\šY]ÉËX™[‰ğç™\˜›XÚÉË[Ù[\Î–ÉØİ\œ™[	Ë	İØ\›š[™ÜÉË	Ù^™[YK[İ]ÛÚÉË	ÜÚÜ]\›IË	Ù›Ü™XØ\İ	×_KˆÚY‰Ø[˜[\Ú\ÉËX™[‰Ğ[˜[\ÙH	ˆ™[™	Ë[Ù[\Î–ÉØÛÛ\ÜÚ]IË	Ù[œÙ[X›IË	ÛÛ™Ë\˜[™ÙIË	ØÛ[X]I×_KˆÚY‰Ü›Ùš[\ÉËX™[‰Ô›Ùš[IË[Ù[\Î–ÉÛ[İ[Z[‰Ë	İØ]\‰×_KˆÚY‰Ü[›™\œÉËX™[‰Ô[™\‰Ë[Ù[\Î–ÉÙ]™[\[›™\‰Ë	İ˜]™[\[›™\‰×_KˆÚY‰Ü›ÉËX™[‰Ô›ÙšIË[Ù[\Î–ÉÙ›Ü™XØ\İ]™\šYšXØ][Û‰Ë	Ù›YÚ[Y][Ü›ÛÙŞIË	İÙX]\‹[X\É×_KˆÚY‰İÛÛÉËX™[‰ÕÙ\šŞ™]YÙIË[Ù[\Î–ÉİÚYÙ]	×_B—NÂ˜ÛÛœİSÑT“—ÕÑVWÓSÑSTÎ‘\Ú›Ø\™[Ù[RY×OVÉØİ\œ™[	Ë	İØ\›š[™ÜÉË	Ù^™[YK[İ]ÛÚÉË	İ™[[][Û‰×NÂ˜ÛÛœİSÑT“—ÓPTÓSÑSTÎ‘\Ú›Ø\™[Ù[RY×OVÉØÛÛ\ÜÚ]IË	İÙX]\‹[X\É×NÂ˜ÛÛœİSÑT“—ÔS—ÓSÑSTÎ‘\Ú›Ø\™[Ù[RY×OVÉÙ]™[\[›™\‰Ë	İ˜]™[\[›™\‰Ë	Û[İ[Z[‰Ë	İØ]\‰×NÂ™[˜İ[Ûˆ[Ù\›”š[X\TÙXİ[ÛŠY‘\Ú›Ø\™[Ù[RY	ÜXÙIß	ÉÊN‰İÙ^Iß	Ù›Ü™XØ\İ	ß	ÛX\	ß	Ü[‰ß	Û[Ü™IŞÂˆYŠYOOIÜXÙIßYOOIÉßSÑT“—ÕÑVWÓSÑSTËš[˜ÛY\ÊY
+J\™]\›‰İÙ^IÎÂˆYŠSÑT“—Ñ“Ô‘PĞTÕÓSÑSTËš[˜ÛY\ÊY
+J\™]\›‰Ù›Ü™XØ\İ	ÎÂˆYŠSÑT“—ÓPTÓSÑSTËš[˜ÛY\ÊY
+J\™]\›‰ÛX\	ÎÂˆYŠSÑT“—ÔS—ÓSÑSTËš[˜ÛY\ÊY
+J\™]\›‰Ü[‰ÎÂˆ™]\›‰Û[Ü™IÎÂŸB™[˜İ[Ûˆ\Ú›Ø\™˜]’XÛÛŠY‘\Ú›Ø\™[Ù[RYÚ^™OLMÊ^ÜİÚ]Ú
+Y
+^ØØ\ÙIØİ\œ™[	Îœ™]\›ˆİ[ˆÚ^™O^ÜÚ^™_KÏØØ\ÙIİ™[[][Û‰Îœ™]\›ˆÚ[™Ú^™O^ÜÚ^™_KÏØØ\ÙIİØ\›š[™ÜÉÎœ™]\›ˆ[\šX[™ÛHÚ^™O^ÜÚ^™_KÏØØ\ÙIÙ^™[YK[İ]ÛÚÉÎœ™]\›ˆÛİYYÚš[™ÈÚ^™O^ÜÚ^™_KÏØØ\ÙIÜÚÜ]\›IÎœ™]\›ˆÛØÚÌÈÚ^™O^ÜÚ^™_KÏØØ\ÙIÙ›Ü™XØ\İ	Îœ™]\›ˆØ[[™\‘^\ÈÚ^™O^ÜÚ^™_KÏØØ\ÙIØÛÛ\ÜÚ]IÎœ™]\›ˆ[Ûš]ÜˆÚ^™O^ÜÚ^™_KÏØØ\ÙIÙ[œÙ[X›IÎœ™]\›ˆÛY\œÒÜš^›Û[Ú^™O^ÜÚ^™_KÏØØ\ÙIÛÛ™Ë\˜[™ÙIÎœ™]\›ˆØ[[™\”˜[™ÙHÚ^™O^ÜÚ^™_KÏØØ\ÙIÛ[İ[Z[‰Îœ™]\›ˆ[İ[Z[”Û›İÈÚ^™O^ÜÚ^™_KÏØØ\ÙIİØ]\‰Îœ™]\›ˆØ]™\ÈÚ^™O^ÜÚ^™_KÏØØ\ÙIİ˜]™[\[›™\‰Îœ™]\›ˆ˜]šYØ][ÛˆÚ^™O^ÜÚ^™_KÏØØ\ÙIÙ]™[\[›™\‰Îœ™]\›ˆØ[[™\”˜[™ÙHÚ^™O^ÜÚ^™_KÏØØ\ÙIÙ›Ü™XØ\İ]™\šYšXØ][Û‰Îœ™]\›ˆ˜YÙPÚXÚÈÚ^™O^ÜÚ^™_KÏØØ\ÙIÙ›YÚ[Y][Ü›ÛÙŞIÎœ™]\›ˆ˜]šYØ][ÛˆÚ^™O^ÜÚ^™_KÏØØ\ÙIİÙX]\‹[X\ÉÎœ™]\›ˆ[Ûš]ÜˆÚ^™O^ÜÚ^™_KÏØØ\ÙIİÚYÙ]	Îœ™]\›ˆİÛ›ØYÚ^™O^ÜÚ^™_KÏŸ_B™[˜İ[Ûˆ\Ú›Ø\™ÙXİ[Û“˜]šYØ][ÛŠÜÙ][™ÜË^[İ][ÙK˜]šYØ][Û“[ÙK›İÛP˜\™Z]š[Ü‹›Ü™XØ\İ\™Ù]İ\œ™[˜]›Üš]KXİ]™RY˜]Ù\“Ü[‹Û‘˜]Ù\“Ü[‹Û“˜]šYØ]_NÜÙ][™ÜÎ‘\Ú›Ø\™[Ù[TÙ][™ÜÎÛ^[İ][ÙN“^[İ][ÙNÛ˜]šYØ][Û“[ÙN“˜]šYØ][Û“[ÙNØ›İÛP˜\™Z]š[Ü›İÛP˜\™Z]š[ÜÙ›Ü™XØ\İ\™Ù]‘\Ú›Ø\™[Ù[RYØİ\œ™[˜]›Üš]N‘˜]›Üš]_[ØXİ]™RY‘\Ú›Ø\™[Ù[RY	ÜXÙIß	ÉÎÙ˜]Ù\“Ü[˜›ÛÛX[ÛÛ‘˜]Ù\“Ü[Š˜[YN˜›ÛÛX[ŠOO›ÚYÛÛ“˜]šYØ]NŠY‘\Ú›Ø\™[Ù[RY
+OO›ÚYJ^ÂˆÛÛœİÙ^[™YÙ]^[™YO]\ÙTİ]J
+
+OOİ^Ü™]\›ˆØØ[İÜ˜YÙK™Ù]][J	ÛZYœÙXİ[Û‹[˜]™^[™Y	ÊOOOIÌIßXØ]ÚÜ™]\›ˆ˜[Ù__JKYš[š][ÛœÏ]\ÙSY[[Ê
+
+OO›™]ÈX\
+TÒ“ĞT‘ÓSÑSWÑQ’S’USÓ”Ë›X\
+][OO–Ú][KšY][WJJK×JK]˜Z[X›O]\ÙSY[[Ê
+
+OOœÙ][™ÜË›Ü™\‹™š[\ŠYOÚYŠ\Ù][™ÜË™[˜X›YÚYJ\™]\›ˆ˜[ÙNØÛÛœİYš[š][ÛYYš[š][ÛœË™Ù]
+Y
+NÚYŠYš[š][ÛË˜Y˜[˜ÙYÛ›I‰›^[İ][ÙHOOIØY˜[˜ÙY	Ê\™]\›ˆ˜[ÙNÚYŠYOOIÛ[İ[Z[‰É‰ˆXİ\œ™[˜]›Üš]OË›[İ[Z[‹™[˜X›Y
+\™]\›ˆ˜[ÙNÚYŠYOOIİØ]\‰É‰ˆXİ\œ™[˜]›Üš]OËØ]\‹™[˜X›Y
+\™]\›ˆ˜[ÙNÜ™]\›ˆY_JKÜÙ][™ÜË^[İ][ÙKİ\œ™[˜]›Üš]KYš[š][Ûœ×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][J	ÛZYœÙXİ[Û‹[˜]™^[™Y	Ë^[™YÉÌIÎ‰Ì	Ê_XØ]Úß_KÙ^[™YJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠY˜]Ù\“Ü[Š\™]\›ØÛÛœİ\ØØ\OJ]™[’Ù^X›Ø\™]™[
+OOÚYŠ]™[šÙ^OOOIÑ\ØØ\IÊ[Û‘˜]Ù\“Ü[Š˜[ÙJ_K™]š[İ\ÏYØİ[Y[˜›ÙKœİ[K›İ™\™›İÎÙØİ[Y[˜›ÙKœİ[K›İ™\™›İÏIÚY[‰ÎÙØİ[Y[˜Y]™[\İ[™\Š	ÚÙ^YİÛ‰Ë\ØØ\JNÜ™]\›Š
+OOÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	ÚÙ^YİÛ‰Ë\ØØ\JNÙØİ[Y[˜›ÙKœİ[K›İ™\™›İÏ\™]š[İ\ß_KÙ˜]Ù\“Ü[‹Û‘˜]Ù\“Ü[—JNÂˆÛÛœİØ›İÛP˜\’Y[‹Ù]›İÛP˜\’Y[—O]\ÙTİ]J˜[ÙJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ˜]šYØ][Û“[ÙHOOIØ›İÛK]XœÉß\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	Ê\™]\›ÚYŠ›İÛP˜\™Z]š[ÜOOIÙš^Y	Ê^ÜÙ]›İÛP˜\’Y[Š˜[ÙJNÜ™]\›Ÿ[]\İOSX]›X^
+Ú[™İËœØÜ›ÛJKİÛ‘\İ[˜ÙOL\\İ[˜ÙOLœ˜[YOLÜÙ]›İÛP˜\’Y[Š˜[ÙJNØÛÛœİ\OJ
+OOÙœ˜[YOLØÛÛœİOSX]›X^
+Ú[™İËœØÜ›ÛJK[O^K[\İNÚYŠ˜]Ù\“Ü[ŸOMŒ
+^ÙİÛ‘\İ[˜ÙOLİ\\İ[˜ÙOLÜÙ]›İÛP˜\’Y[Š˜[ÙJ_Y[ÙHYŠ[OŒ
+^ÙİÛ‘\İ[˜ÙJÏY[Nİ\\İ[˜ÙOLÚYŠİÛ‘\İ[˜ÙOLLN
+^ÜÙ]›İÛP˜\’Y[ŠYJNÙİÛ‘\İ[˜ÙOL_Y[ÙHYŠ[O
+^İ\\İ[˜ÙKOY[NÙİÛ‘\İ[˜ÙOLÚYŠ\\İ[˜ÙON
+^ÜÙ]›İÛP˜\’Y[Š˜[ÙJNİ\\İ[˜ÙOL_[\İO^_KÛ”ØÜ›ÛJ
+OOÚYŠœ˜[YJ\™]\›Ùœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ\J_NİÚ[™İË˜Y]™[\İ[™\Š	ÜØÜ›Û	ËÛ”ØÜ›ÛÜ\ÜÚ]™NY_JNÜ™]\›Š
+OOÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÜØÜ›Û	ËÛ”ØÜ›Û
+__KÛ˜]šYØ][Û“[ÙK˜]Ù\“Ü[‹›İÛP˜\™Z]š[Ü—JNÂˆÛÛœİÜ›İ\ÏQTÒ“ĞT‘ÓU—ÑÔ“ÕTË›X\
+Ü›İ\OŠË‹‹™Ü›İ\[Ù[\Î˜]˜Z[X›K™š[\ŠYO™Ü›İ\›[Ù[\Ëš[˜ÛY\ÊY
+J_JJK™š[\ŠÜ›İ\O™Ü›İ\›[Ù[\Ë›[™İ
+K[Ù\›“[Ü™QÜ›İ\ÏQTÒ“ĞT‘ÓU—ÑÔ“ÕTË›X\
+Ü›İ\OŠË‹‹™Ü›İ\[Ù[\Î˜]˜Z[X›K™š[\ŠYO™Ü›İ\›[Ù[\Ëš[˜ÛY\ÊY
+I‰ˆVÉØİ\œ™[	Ë	ÜÚÜ]\›IË	Ù›Ü™XØ\İ	Ë	Ù[œÙ[X›IË	ØÛÛ\ÜÚ]I×Kš[˜ÛY\ÊY
+J_JJK™š[\ŠÜ›İ\O™Ü›İ\›[Ù[\Ë›[™İ
+K˜]šYØ]OJY‘\Ú›Ø\™[Ù[RY
+OOÜÙ]›İÛP˜\’Y[Š˜[ÙJNÛÛ“˜]šYØ]JY
+NÛÛ‘˜]Ù\“Ü[Š˜[ÙJ_KÜ[”Ù][™ÜÏJÙXİ[Û”Ù][™ÜÔÙXİ[ÛŠOOÛÛ‘˜]Ù\“Ü[Š˜[ÙJNİÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZY›Ü[‹\Ù][™ÜÉËÙ]Z[ÜÙXİ[ÛŸ_JJ_K[Ù[P]ÛJY‘\Ú›Ø\™[Ù[RY˜\šX[‰Ü˜Z[	ß	Ù˜]Ù\‰ÊOOØÛÛœİYš[š][ÛYYš[š][ÛœË™Ù]
+Y
+KXİ]™OXXİ]™RYOOZYÜ™]\›ˆ]Ûˆ\OH˜]ÛˆˆÙ^O^ÚYHÛ\ÜÓ˜[YO^ØXİ]™OÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OO›˜]šYØ]JY
+_H\šXKXİ\œ™[^ØXİ]™OÉÛØØ][Û‰Î[™Yš[™YH]O^ÙYš[š][ÛË›X™[OH\šXKZY[HYHÙ\Ú›Ø\™˜]’XÛÛŠY˜\šX[OOIÜ˜Z[	É‰ˆY^[™YÌNŒMŠ_OÚOÜ[ÙYš[š][ÛË›X™[ÏÚYOØİ˜\šX[OOIÙ˜]Ù\‰ß^[™YÏ[OÙYš[š][ÛË™\ØÜš\[ÛŸOÙ[O›[OÜÜ[Ø]ÛŸK\İJ˜\šX[‰Ü˜Z[	ß	Ù˜]Ù\‰ÊOOØÛÛœİ[Ù\›‘˜]Ù\]˜\šX[OOIÙ˜]Ù\‰É‰›˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉËš\ÚX›QÜ›İ\Ï[[Ù\›‘˜]Ù\Û[Ù\›“[Ü™QÜ›İ\Î™Ü›İ\ÎÜ™]\›ˆ˜]ˆÛ\ÜÓ˜[YO^Ø\Ú›Ø\™\ÙXİ[Û‹[˜]‹[\İ	İ˜\šX[IÛ[Ù\›‘˜]Ù\ÉÈ›ÙÜ™\ÜÚ]™IÎ‰ÉßXH\šXK[X™[H“RQTÙZİ[Û™[ˆİš\ÚX›QÜ›İ\Ë›X\
+Ü›İ\O›[Ù\›‘˜]Ù\Ï]Z[ÈÙ^O^ÙÜ›İ\šYHÜ[^ÙÜ›İ\›[Ù[\Ëš[˜ÛY\ÊXİ]™RY\È\Ú›Ø\™[Ù[RY
+OİYN[™Yš[™YOİ[[X\OÜ[ÙÜ›İ\›X™[OÜÜ[ÛX[ÙÜ›İ\›[Ù[\Ë›[™İOÜÛX[Ú]œ›Û‘İÛˆÚ^™O^ÌMŸKÏÜİ[[X\OÙXİ[ÛÙÜ›İ\›[Ù[\Ë›X\
+YO›[Ù[P]ÛŠY˜\šX[
+J_OÜÙXİ[ÛÙ]Z[ÏÙXİ[ÛˆÙ^O^ÙÜ›İ\šYOÛX[ÙÜ›İ\›X™[OÜÛX[ÙÜ›İ\›[Ù[\Ë›X\
+YO›[Ù[P]ÛŠY˜\šX[
+J_OÜÙXİ[ÛŠ_OÛ˜]ŸNÂˆÛÛœİ›Ü™XØ\İØ[™Y]TÛİ\˜ÙN‘\Ú›Ø\™[Ù[RY×OVÙ›Ü™XØ\İ\™Ù]	Ù›Ü™XØ\İ	Ë	Ù[œÙ[X›IË	ÛÛ™Ë\˜[™ÙI×K›Ü™XØ\İØ[™Y]\ÏY›Ü™XØ\İØ[™Y]TÛİ\˜ÙK™š[\Š
+Y[™^\œ˜^JOO˜\œ˜^Kš[™^ÙŠY
+OOOZ[™^
+K[Ù\›•XœÎÚYœİš[™ÎÛX™[œİš[™ÎÚXÛÛ”™XXİ›ÙNØØ[™Y]\Î‘\Ú›Ø\™[Ù[RY×_V×OVŞÚY‰Øİ\œ™[	ËX™[‰ĞZİY[	ËXÛÛİ[ˆÚ^™O^ÌŒ_KÏ‹Ø[™Y]\Î–ÉØİ\œ™[	×_KÚY‰İÙ^IËX™[‰Ò]]IËXÛÛÛØÚÌÈÚ^™O^ÌŒ_KÏ‹Ø[™Y]\Î–ÉÜÚÜ]\›I×_KÚY‰Ù›Ü™XØ\İ	ËX™[‰Õ›Üš\œØYÙIËXÛÛØ[[™\‘^\ÈÚ^™O^ÌŒ_KÏ‹Ø[™Y]\Î™›Ü™XØ\İØ[™Y]\ßKÚY‰ØÛÛ\ÜÚ]IËX™[‰ÒØ\[‰ËXÛÛ[Ûš]ÜˆÚ^™O^ÌŒ_KÏ‹Ø[™Y]\Î–ÉØÛÛ\ÜÚ]I×_WK[Ü™PXİ]™OY˜]Ù\“Ü[Ÿ[[Ù\›•XœËœÛÛYJXOX‹˜Ø[™Y]\Ëš[˜ÛY\ÊXİ]™RY\È\Ú›Ø\™[Ù[RY
+JNÂˆ™]\›ˆÛ˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉÏÏ]ˆÛ\ÜÓ˜[YO^Ø\Ú›Ø\™\ÙXİ[Û‹\]ZXÚÈ\Ú›Ø\™X›İÛK]XœÉØ›İÛP˜\’Y[‰‰ˆY˜]Ù\“Ü[‰‰˜›İÛP˜\™Z]š[ÜˆOOIÙš^Y	ÏÉÈ\Ë\ØÜ›ÛZY[‰Î‰ÉßXH\šXK[X™[H’]\˜]šYØ][Ûˆˆ]K\ØÜ›ÛZY[^Ø›İÛP˜\’Y[‰‰ˆY˜]Ù\“Ü[‰‰˜›İÛP˜\™Z]š[ÜˆOOIÙš^Y	ÏÉİYIÎ‰Ù˜[ÙIßH]KYš^Y^Ø›İÛP˜\™Z]š[ÜOOIÙš^Y	ÏÉİYIÎ‰Ù˜[ÙIßHÛ”Ú[\‘İÛ^Ê
+OOÚYŠ›İÛP˜\’Y[Š\Ù]›İÛP˜\’Y[Š˜[ÙJ__OÛ[Ù\›•XœË›X\
+XOØÛÛœİ\™Ù]]X‹˜Ø[™Y]\Ë™š[™
+YO˜]˜Z[X›Kš[˜ÛY\ÊY
+JKXİ]™O]X‹˜Ø[™Y]\Ëš[˜ÛY\ÊXİ]™RY\È\Ú›Ø\™[Ù[RY
+KØ\›O]X‹šYOOIØÛÛ\ÜÚ]IÏİØ\›PÛÛ\ÜÚ]T[™[[™Yš[™YÜ™]\›ˆ]Ûˆ\OH˜]ÛˆˆÙ^O^İX‹šYHÛ\ÜÓ˜[YO^ØXİ]™OÉØXİ]™IÎ‰ÉßHÛ”Ú[\‘[\^İØ\›_HÛ‘›Øİ\Ï^İØ\›_HÛ”Ú[\‘İÛ^İØ\›_HÛÛXÚÏ^Ê
+OOÚYŠ]\™Ù]
+\™]\›Û˜]šYØ]J\™Ù]
+__H\ØX›Y^È]\™Ù]H\šXKXİ\œ™[^ØXİ]™OÉÜYÙIÎ[™Yš[™YOİX‹šXÛÛŸOÜ[İX‹›X™[OÜÜ[Ø]ÛŸJ_O]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Û[Ü™PXİ]™OÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OOÜÙ]›İÛP˜\’Y[Š˜[ÙJNÛÛ‘˜]Ù\“Ü[ŠYJ__H\šXKY^[™Y^Ù˜]Ù\“Ü[ŸOY[HÚ^™O^ÌŒ_KÏÜ[“YZÜÜ[Ø]ÛÙ]]ˆÛ\ÜÓ˜[YOH™\Ú›Ø\™\ÙXİ[Û‹\]ZXÚÈˆ\šXK[X™[H”ØÚ™[˜]šYØ][Ûˆ]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ØXİ]™RYOOIØİ\œ™[	ÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OO›˜]šYØ]J	Øİ\œ™[	Ê_Oİ[ˆÚ^™O^ÌM_KÏÜ[ZİY[ÜÜ[Ø]ÛÜÙ][™ÜË™[˜X›YÉÜÚÜ]\›I×I‰]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ØXİ]™RYOOIÜÚÜ]\›IÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OO›˜]šYØ]J	ÜÚÜ]\›IÊ_OÛØÚÌÈÚ^™O^ÌM_KÏÜ[’İ\™œš\İÜÜ[Ø]ÛŸ^ÜÙ][™ÜË™[˜X›Y™›Ü™XØ\İ	‰]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ØXİ]™RYOOIÙ›Ü™XØ\İ	ÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OO›˜]šYØ]J	Ù›Ü™XØ\İ	Ê_OØ[[™\‘^\ÈÚ^™O^ÌM_KÏÜ[ÈYÙOÜÜ[Ø]ÛŸ^ÜÙ][™ÜË™[˜X›Y™[œÙ[X›I‰]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ØXİ]™RYOOIÙ[œÙ[X›IÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OO›˜]šYØ]J	Ù[œÙ[X›IÊ_OØ[[™\”˜[™ÙHÚ^™O^ÌM_KÏÜ[ŒMYÙOÜÜ[Ø]ÛŸO]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Û‘˜]Ù\“Ü[ŠYJ_OY[HÚ^™O^ÌM_KÏÜ[“YZÜÜ[Ø]ÛÙ]ŸO\ÚYHÛ\ÜÓ˜[YO^Ø\Ú›Ø\™\ÙXİ[Û‹\˜Z[	Ù^[™YÉÈ^[™Y	Î‰ÉßXH\šXK[X™[H”ÙZİ[Û™[ˆ]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH™\Ú›Ø\™\ÙXİ[Û‹\˜Z[]ÙÙÛHˆÛÛXÚÏ^Ê
+OOœÙ]^[™Y
+˜[YOOˆ]˜[YJ_H\šXKY^[™Y^Ù^[™YH]O^Ù^[™YÉÔÙZ][›Z\İHZ[šÛ\[‰Î‰ÔÙZ][›Z\İH]\ÚÛ\[‰ßOY[HÚ^™O^ÌNKÏÙ^[™YÏÜ[”ÙZİ[Û™[ÜÜ[›[OØ]ÛÛ\İ
+	Ü˜Z[	Ê_O]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH™\Ú›Ø\™\ÙXİ[Û‹XÛÛ™šYÈ˜Z[XÛÛ™šYÈˆÛÛXÚÏ^Ê
+OOÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZY›Ü[‹Y\Ú›Ø\™\Ù][™ÜÉÊJ_H]OH”™ZZ[™›ÛÙH[™ÚXÚ˜\šÙZ]ÛÛ™šYİ\šY\™[ˆÙ][™ÜÌˆÚ^™O^ÌMŸKÏÙ^[™YÏÜ[’ÛÛ™šYİ\šY\™[ÜÜ[›[OØ]ÛØ\ÚYOÙ˜]Ù\“Ü[Ï]ˆÛ\ÜÓ˜[YOH™\Ú›Ø\™\ÙXİ[Û‹Y˜]Ù\‹X˜XÚÙ›Üˆ›ÛOHœ™\Ù[][ÛˆˆÛ”Ú[\‘İÛ^Ù]™[O™]™[\™Ù]OOY]™[˜İ\œ™[\™Ù]	‰›Û‘˜]Ù\“Ü[Š˜[ÙJ_O\ÚYHÛ\ÜÓ˜[YO^Ø\Ú›Ø\™\ÙXİ[Û‹Y˜]Ù\‰Û˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉÏÉÈ[Ù\›‹[[Ü™KY˜]Ù\‰Î‰ÉßXH›ÛOH™X[ÙÈˆ\šXK[[Ù[HYHˆ\šXK[X™[^Û˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉÏÉÓRQYZ‰Î‰ÓRQTÙZİ[Û™[‰ßOXY\]ÛX[Û˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉÏÉÓRQ	Î‰Ó˜]šYØ][Û‰ßOÜÛX[İ›Û™ÏÛ˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉÏÉÓYZ‰Î‰ÔÙZİ[Û™[‰ßOÜİ›Û™ÏÙ]]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Û‘˜]Ù\“Ü[Š˜[ÙJ_H\šXK[X™[H“˜]šYØ][ÛˆØÚYpçÙ[ˆÚ^™O^ÌŒKÏØ]ÛÚXY\Û˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉÏÏÙXİ[ÛˆÛ\ÜÓ˜[YOH›[Ù\›‹[[Ü™K\]ZXÚËXXİ[ÛœÈˆ\šXK[X™[H”ØÚ™[YÜšY™™H]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Ü[”Ù][™ÜÊ	İšY]ÉÊ_OÙ][™ÜÌˆÚ^™O^ÌNKÏÜ[İ›Û™Ï‘Z[œİ[[™Ù[Üİ›Û™ÏÛX[[œÚXÚZ[šZ][ˆ[™[Ù[OÜÛX[ÜÜ[Ø]Û]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Ü[”Ù][™ÜÊ	Û›İYšXØ][ÛœÉÊ_O™[Ú^™O^ÌNKÏÜ[İ›Û™Ï™[˜XÚšXÚYİ[™Ù[Üİ›Û™ÏÛX[•Ø\›‹H[™\ÚT™YÙ[ÜÛX[ÜÜ[Ø]Û]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Ü[”Ù][™ÜÊ	Ù˜]›Üš]\ÉÊ_Oİ\ˆÚ^™O^ÌNKÏÜ[İ›Û™Ï‘˜]›Üš][ˆ	ˆ›Ùš[OÜİ›Û™ÏÛX[“ÜK™\™È[™Ø\ÜÙ\ÜÛX[ÜÜ[Ø]Û]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Ü[”Ù][™ÜÊ	İÚ[‰Ê_O˜YÙPÚXÚÈÚ^™O^ÌNKÏÜ[İ›Û™Ï•Ù]\Ú[[™ÏÜİ›Û™ÏÛX[“ÚØ[\È\›™[ˆ[™]Y[[ÜÛX[ÜÜ[Ø]Û]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›Ü[”Ù][™ÜÊ	ÜŞ\İ[IÊ_O™Yœ™\ÚİÈÚ^™O^ÌNKÏÜ[İ›Û™Ï•\]\ÏÜİ›Û™ÏÛX[•™\œÚ[Û‹[œİ[][Ûˆ[™™\\˜]\ÜÛX[ÜÜ[Ø]ÛÜÙXİ[Û›[^Û\İ
+	Ù˜]Ù\‰Ê_O]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH™\Ú›Ø\™\ÙXİ[Û‹XÛÛ™šYÈˆÛÛXÚÏ^Ê
+OOÛÛ‘˜]Ù\“Ü[Š˜[ÙJNİÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZY›Ü[‹Y\Ú›Ø\™\Ù][™ÜÉÊJ__OÙ][™ÜÌˆÚ^™O^ÌMŸKÏÜ[”™ZZ[™›ÛÙH	ˆÚXÚ˜\šÙZ]ÜÜ[Ø]ÛØ\ÚYOÙ]›[OÏ‚ŸB‚™[˜İ[Ûˆ]™[Ù[\‘]SX™[
+˜[YNœİš[™Ê^ØÛÛœİX]Ú]˜[YK›X]Ú
+×ŠÍJKJÌŸJKJÌŸJIÊNÜ™]\›ˆX]ÚØ	ÛX]ÚÌ×_K‰ÛX]ÚÌ—_K‰ÛX]ÚÌW_X˜[Y_B™[˜İ[Ûˆ]™[Ù[\“Y]šXÓ[X™\Š˜[YN›[X™\Ÿ[[™Yš[™YYÚ]ÏL
+^Ü™]\›ˆ[X™\‹š\Ñš[š]J[X™\Š˜[YJJOÙ›Ü›X]XÚ[X[
+[X™\Š˜[YJKYÚ]ËYÚ]ÊN‰ø $ÉßB™[˜İ[Ûˆ]™[Ù[\’XY\“Y]šXÜÊÜ™XÛÜ™[š]NÜ™XÛÜ™‘]™[Ù[\”™XÛÜ™İ[š]•Ú[™[š]J^ÂˆÛÛœİİ[[X\O\™XÛÜ™œ[Ëœİ[[X\BˆYŠ\İ[[X\J\™]\›ˆÜ[ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹[Y]šXÜÈ[\H“›ØÚÙZ[™HÙ]\˜[˜[\ÙOÜÜ[‚ˆÛÛœİ›Ø˜Xš[]O\İ[[X\Kœ™XÚ\]][Û”›Ø˜Xš[]T™[]˜[ÏÜİ[[X\Kœ™XÚ\]][Û”›Ø˜Xš[]SX^ˆ™]\›ˆÜ[ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹[Y]šXÜÈˆ\šXK[X™[H“Y][Ü›ÛÙÚ\ØÚHXÚÙ][ˆÜ[ˆ]OH•[\\˜]\ˆÙ]™[Ù[\“Y]šXÓ[X™\Šİ[[X\K[\\˜]\™P]™Ê_p¬ÜÜ[Ü[ˆ]O^Ø	Üİ[[X\Kœ™XÚ\]][Û•\SX™[	ÓšYY\œØÚYÉßH0­È\Ø\]HY[™ÙH	Ù]™[Ù[\“Y]šXÓ[X™\Šİ[[X\Kœ™XÚ\]][Û•İ[J_H[XOÛİY˜Z[ˆÚ^™O^ÌL_KÏÙ]™[Ù[\“Y]šXÓ[X™\Š›Ø˜Xš[]J_IH0­ÈÙ]™[Ù[\“Y]šXÓ[X™\Šİ[[X\Kœ™XÚ\]][Û•İ[J_[[OÜÜ[Ü[ˆ]OH•Ú[™0­È°í™[ˆÚ[™Ú^™O^ÌL_KÏİÚ[™
+İ[[X\KÚ[™X^ÏÓ[X™\‹“˜S‹[š]
+_H0­ÈÈİÚ[™
+İ[[X\K™İ\İX^ÏÓ[X™\‹“˜S‹[š]
+_OÜÜ[Ó[X™\‹š\Ñš[š]J[X™\Šİ[[X\K]“X^
+JOÏÜ[ˆ]OH“X^[X[\ˆU‹R[™^İ[ˆÚ^™O^ÌL_KÏ•UˆÙ]™[Ù[\“Y]šXÓ[X™\Šİ[[X\K]“X^
+_OÜÜ[›[OÜÜ[‚ŸB‚™[˜İ[Ûˆ›Ü™XØ\İÜš^›Û“˜]šYØ][ÛŠØXİ]™KÙ][™ÜËÛ“˜]šYØ]_NØXİ]™N“[Ù\›‘›Ü™XØ\İÜš^›ÛÜÙ][™ÜÎ‘\Ú›Ø\™[Ù[TÙ][™ÜÎÛÛ“˜]šYØ]NŠÜš^›Û“[Ù\›‘›Ü™XØ\İÜš^›ÛŠOO›ÚYJ^ÂˆÛÛœİ][\ÎÚY“[Ù\›‘›Ü™XØ\İÜš^›ÛÛX™[œİš[™ÎÛ[Ù[N‘\Ú›Ø\™[Ù[RYV×OVŞÚY‰ÎLIËX™[‰Òİ\™œš\İ	Ë[Ù[N‰ÜÚÜ]\›IßKÚY‰ÍÙ	ËX™[‰ÍÈ	Ë[Ù[N‰Ù›Ü™XØ\İ	ßKÚY‰ÌM	ËX™[‰ÌM	Ë[Ù[N‰Ù[œÙ[X›IßKÚY‰Í™	ËX™[‰Íˆ	Ë[Ù[N‰ÛÛ™Ë\˜[™ÙIßKÚY‰ÜÙX\ÛÛ‰ËX™[‰ÔØZ\ÛÛ‰Ë[Ù[N‰ÛÛ™Ë\˜[™ÙIßWK]˜Z[X›OZ][\Ë™š[\Š][OOœÙ][™ÜË™[˜X›YÚ][K›[Ù[WJNÂˆYŠX]˜Z[X›K›[™İ
+\™]\›ˆ[Âˆ™]\›ˆ˜]ˆÛ\ÜÓ˜[YOH›[Ù\›‹Y›Ü™XØ\İZÜš^›ÛœÈˆ\šXK[X™[H”›ÙÛ›ÜÙKV™Z]Üš^›ÛØ]˜Z[X›K›X\
+][OO]Ûˆ\OH˜]ÛˆˆÙ^O^Ú][KšYHÛ\ÜÓ˜[YO^ØXİ]™OOOZ][KšYÉØXİ]™IÎ‰ÉßH\šXKXİ\œ™[^ØXİ]™OOOZ][KšYÉÜYÙIÎ[™Yš[™YH\šXK[X™[^Ú][KšYOOIÎLIÏÉÒİ\™œš\İˆLZ[][ˆ[™İ[™[‰Î[™Yš[™YHÛÛXÚÏ^Ê
+OO›Û“˜]šYØ]J][KšY
+_OÚ][K›X™[OØ]ÛŠ_OÛ˜]‚ŸB™[˜İ[Ûˆ]™[Ù[\’XY\]ÛŠÛÛ“Ü[”[›™\‹[š]NÛÛ“Ü[”[›™\Š™XÛÜ™YÎœİš[™ÊOO›ÚYİ[š]•Ú[™[š]J^ÂˆÛÛœİÜ™XÛÜ™ËÙ]™XÛÜ™×O]\ÙTİ]O]™[Ù[\”™XÛÜ™×OŠ
+
+OOœ™XY]™[Ù[\”™XÛÜ™Ê
+JKÛÜ[‹Ù]Ü[—O]\ÙTİ]J˜[ÙJKÜ™Yœ™\Ú[™ËÙ]™Yœ™\Ú[™×O]\ÙTİ]J˜[ÙJKÙ]™[ÛØÚËÙ]]™[ÛØÚ×O]\ÙTİ]J
+
+OO‘]K››İÊ
+JKÜ˜\™Y]\ÙT™YS]‘[[Y[Š[
+Kš\ÚX›T™XÛÜ™Ï\ÛÜ]™[Ù[\”™XÛÜ™Ê™XÛÜ™Ë]™[ÛØÚÊKœÛXÙJÊKXİ]™T™XÛÜ™Ï\™XÛÜ™Ë™š[\Š™XÛÜ™OˆZ\Ñ]™[Ù[\”™XÛÜ™^\™Y
+™XÛÜ™]™[ÛØÚÊJK\Õ\]OXXİ]™T™XÛÜ™ËœÛÛYJ™XÛÜ™Oœ™XÛÜ™˜Ú[™ÙOË›]™[OOIÛXZ›Ü‰ß™XÛÜ™˜Ú[™ÙOË›]™[OOIÛZ[›Ü‰ÊBˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİŞ[˜ÏJ
+OOœÙ]™XÛÜ™Ê™XY]™[Ù[\”™XÛÜ™Ê
+JNİÚ[™İË˜Y]™[\İ[™\ŠU‘S•ĞÑS•T—ÕTUQÑU‘S•Ş[˜ÊNİÚ[™İË˜Y]™[\İ[™\ŠU‘S•ĞÑS•T—Ô‘Q”‘TÒÑÓ‘WÑU‘S•Ş[˜ÊNİÚ[™İË˜Y]™[\İ[™\Š	ÜİÜ˜YÙIËŞ[˜ÊNÜ™]\›Š
+OOİÚ[™İËœ™[[İ™Q]™[\İ[™\ŠU‘S•ĞÑS•T—ÕTUQÑU‘S•Ş[˜ÊNİÚ[™İËœ™[[İ™Q]™[\İ[™\ŠU‘S•ĞÑS•T—Ô‘Q”‘TÒÑÓ‘WÑU‘S•Ş[˜ÊNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÜİÜ˜YÙIËŞ[˜Ê__K×JBˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ[Y\]Ú[™İËœÙ][\˜[
+
+
+OOœÙ]]™[ÛØÚÊ]K››İÊ
+JKŒÌ
+NÜ™]\›Š
+OOÚ[™İË˜ÛX\’[\˜[
+[Y\Š_K×JBˆ\ÙQY™™Xİ
+
+
+OOÚYŠ\™Yœ™\Ú[™Ê\™]\›ØÛÛœİ[Y[İ]]Ú[™İËœÙ][Y[İ]
+
+
+OOœÙ]™Yœ™\Ú[™Ê˜[ÙJKŒ
+NÜ™]\›Š
+OOÚ[™İË˜ÛX\•[Y[İ]
+[Y[İ]
+_KÜ™Yœ™\Ú[™×JBˆ\ÙQY™™Xİ
+
+
+OOÚYŠ[Ü[Š\™]\›ØÛÛœİİ]ÚYOJ]™[”Ú[\‘]™[
+OOÚYŠ]Ü˜\™Y‹˜İ\œ™[Ë˜ÛÛZ[œÊ]™[\™Ù]\È›ÙJJ\Ù]Ü[Š˜[ÙJ_K\ØØ\OJ]™[’Ù^X›Ø\™]™[
+OOÚYŠ]™[šÙ^OOOIÑ\ØØ\IÊ\Ù]Ü[Š˜[ÙJ_NÙØİ[Y[˜Y]™[\İ[™\Š	ÜÚ[\™İÛ‰Ëİ]ÚYKYJNÙØİ[Y[˜Y]™[\İ[™\Š	ÚÙ^YİÛ‰Ë\ØØ\JNÜ™]\›Š
+OOÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	ÜÚ[\™İÛ‰Ëİ]ÚYKYJNÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	ÚÙ^YİÛ‰Ë\ØØ\J__KÛÜ[—JBˆÛÛœİÜ[”[›™\J™XÛÜ™YÎœİš[™ÊOOÜÙ]Ü[Š˜[ÙJNÛÛ“Ü[”[›™\Š™XÛÜ™Y
+_K™[[İ™Q^\™YJ™XÛÜ™‘]™[Ù[\”™XÛÜ™
+OOÙ[]Q]™[Ù[\”™XÛÜ™
+™XÛÜ™šY
+NÜÙ]™XÛÜ™Ê™XY]™[Ù[\”™XÛÜ™Ê
+J_K™Yœ™\ÚX\Ş[˜Ê
+OOÚYŠXXİ]™T™XÛÜ™Ë›[™İ™Yœ™\Ú[™Ê\™]\›ÜÙ]™Yœ™\Ú[™ÊYJNØÛÛœİ™\]Y\İY]\\œÚ\İ]™[Ù[\”™Yœ™\Ú™\]Y\İ
+	ÚXY\‰ÊNİ^Ø]ØZ]™Yœ™\Ú[]™[ÙX]\ŠÜ™X\ÛÛ‰ÚXY\‰Ë™\]Y\İY]JNÜÙ]™XÛÜ™Ê™XY]™[Ù[\”™XÛÜ™Ê
+J_Yš[˜[^ÜÙ]™Yœ™\Ú[™Ê˜[ÙJ__Bˆ™]\›ˆ]ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹XÛÛ›Ûˆ™Y^İÜ˜\™YŸO]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Ø]™[XÙ[\‹ZXY\‹X]Û‰Ú\Õ\]OÉÈ\Ë]\]IÎ‰ÉßXH]O^Ú\Õ\]OÉÑ]™[PÙ[\ˆ0­È™[]˜[HÙ]\°é™\[™ÉÎ‰Ñ]™[PÙ[\‰ßH\šXK[X™[^Ú\Õ\]OÉÑ]™[PÙ[\ˆ0í™™›™[‹™[]˜[HÙ]\°é™\[™È›Üš[™[‰Î‰Ñ]™[PÙ[\ˆ0í™™›™[‰ßH\šXKY^[™Y^ÛÜ[ŸHÛÛXÚÏ^Ê
+OOœÙ]Ü[Š˜[YOOˆ]˜[YJ_O™[Ú^™O^ÌN_KÏÚ\Õ\]OÏH\šXKZY[HYH‹Ï›[OØ]ÛÛÜ[ÏÙXİ[ÛˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹\Üİ™\ˆÛÛ\Xİˆ›ÛOH™X[ÙÈˆ\šXK[X™[H‘]™[PÙ[\ˆXY\]ÛX[‘]™[PÙ[\ÜÛX[İ›Û™Ï‘]™[È	ˆZİ]š]0é[Üİ›Û™ÏÙ]]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OOœÙ]Ü[Š˜[ÙJ_H\šXK[X™[H‘]™[PÙ[\ˆØÚYpçÙ[ˆÚ^™O^ÌMŸKÏØ]ÛÚXY\İš\ÚX›T™XÛÜ™Ë›[™İÏ]ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹[\İÛÛ\Xİİš\ÚX›T™XÛÜ™Ë›X\
+™XÛÜ™OØÛÛœİ^\™YZ\Ñ]™[Ù[\”™XÛÜ™^\™Y
+™XÛÜ™]™[ÛØÚÊKYX[š[™Ù[\]OHY^\™Y	‰Š™XÛÜ™˜Ú[™ÙOË›]™[OOIÛXZ›Ü‰ß™XÛÜ™˜Ú[™ÙOË›]™[OOIÛZ[›Ü‰ÊKİ[[X\O\™XÛÜ™œ[Ëœİ[[X\NÜ™]\›ˆ]Z[ÈÙ^O^Ü™XÛÜ™šYHÛ\ÜÓ˜[YO^Ø]™[XÙ[\‹ZXY\‹Y[H	ÛYX[š[™Ù[\]OÜ™XÛÜ™˜Ú[™ÙOË›]™[‰Û›Û™IßIÙ^\™YÉÈ^\™Y	Î‰ÉßXOİ[[X\OÜ[ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹]ÙX]\‹ZXÛÛˆÙX]\”XİÙÜ˜[HÛÙO^Üİ[[X\OËÙX]\ÛÙOÏÌH[[œÚ]O^Üİ[[X\OËÙX]\’[[œÚ]_H[›ÛY[›Û^Üİ[[X\OËÙX]\”[›ÛY[›ÛŸH^O^Üİ[[X\OËš\Ñ^HOOY˜[Ù_H]O^Üİ[[X\OËÙX]\“X™[X™[
+İ[[X\OËÙX]\ÛÙOÏÌ
+_HÛÛ\XİÏ]™[™X\ÚXš[]Qİ[^Ü™XÛÜ™œ[ŸKÏÜÜ[Ü[ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹Y[K]Üİ›Û™ÏÜ™XÛÜ™]_™XÛÜ™›ØØ][Û‹›˜[Y_OÜİ›Û™ÏÙ^\™YÏ[HÛ\ÜÓ˜[YOH™^\™YX™Ù[]Y™[Ù[O›YX[š[™Ù[\]OÏ[OÜ™XÛÜ™˜Ú[™ÙOË˜˜YÙ_OÙ[O›[OÜÜ[ÛX[Ù]™[Ù[\‘]SX™[
+™XÛÜ™™]J_H0­ÈÜ™XÛÜ™œİ\[YKœÛXÙJJ_x $ŞÜ™XÛÜ™™[™[YKœÛXÙJJ_H0­ÈÜ™XÛÜ™›ØØ][Û‹›˜[Y_OÜÛX[]™[Ù[\’XY\“Y]šXÜÈ™XÛÜ™^Ü™XÛÜ™H[š]^İ[š]KÏÜİ[[X\O]ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹Y[KY]Z[ÈÜ[ÛYX[š[™Ù[\]OÜ™XÛÜ™˜Ú[™ÙOËœİ[[X\Nœ™XÛÜ™œ[Ë˜YšXÙKšXY[™_	Ó›ØÚÙZ[™H[˜[\ÙIßOÜÜ[Ü[ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹Y]Z[XXİ[ÛœÈ]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHœÙXÛÛ™\HˆÛÛXÚÏ^Ê
+OO›Ü[”[›™\Š™XÛÜ™šY
+_OØ[[™\”˜[™ÙHÚ^™O^ÌMKÏÜ[‘]Z[È0í™™›™[ÜÜ[Ø]ÛÙ^\™YÏ]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHœÙXÛÛ™\H[™Ù\‹[]HˆÛÛXÚÏ^Ê
+OOœ™[[İ™Q^\™Y
+™XÛÜ™
+_O˜\ÚˆÚ^™O^ÌMKÏÜ[‘[™\›™[ÜÜ[Ø]Û›[OÜÜ[Ù]Ù]Z[ÏŸJ_OÙ]]ˆÛ\ÜÓ˜[YOH™]™[XÙ[\‹ZXY\‹Y[\HØ[[™\”˜[™ÙHÚ^™O^ÌNKÏÜ[“›ØÚÙZ[™H]™[ÈÙ\ÜZXÚ\ÜÜ[Ù]ŸO›Ûİ\]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHœÙXÛÛ™\H]™[XÙ[\‹ZXY\‹\™[ØYˆÛÛXÚÏ^Ü™Yœ™\ÚH\ØX›Y^ÈXXİ]™T™XÛÜ™Ë›[™İ™Yœ™\Ú[™ßH]OH‘Ù\ÜZXÚ\H]™[È™]Z][ˆZİY[[ˆÙ]\™][ˆ™]H™\™XÚ™[ˆ™Yœ™\ÚİÈÛ\ÜÓ˜[YO^Ü™Yœ™\Ú[™ÏÉÜÜ[‰Î[™Yš[™YHÚ^™O^ÌM_KÏÜ[Ü™Yœ™\Ú[™ÏÉĞZİX[\ÚY\™H8 )‰Î‰Ó™]HY[‰ßOÜÜ[Ø]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHœÙXÛÛ™\HˆÛÛXÚÏ^Ê
+OO›Ü[”[›™\Š
+_OØ[[™\”˜[™ÙHÚ^™O^ÌM_KÏÜ[‘]™[[™\ˆ0í™™›™[ÜÜ[Ø]ÛÙ›Ûİ\ÜÙXİ[Û›[OÙ]‚ŸB‚™^ÜY˜][[˜İ[Ûˆ\
+
+^ÂˆÛÛœİÚYÙ]\›^Ü]\ÙSY[[Ê
+
+OOœ™XYÚYÙ]\›^Ü™\]Y\İ
+Ú[™İË›ØØ][Û‹š™YŠK×JNÂˆÛÛœİÛØËÙ]ØÔİ]WO]\ÙTİ]OØØ][ÛŸ[Š
+
+OOš[š]X[ØØ][ÛŠ
+JKİËÙ]×O]\ÙTİ]OÙX]\Ÿ[Š[
+KØZ\‹Ù]Z\—O]\ÙTİ]O[OŠ[
+KØZ\”İ][Û‹Ù]Z\”İ][Û—O]\ÙTİ]OZ\”]X[]Tİ][Û“Y]_[Š[
+KØ™\İX]Ú[™›ËÙ]™\İX]Ú[™›×O]\ÙTİ]O™\İX]Ú[Ù[[™›ß[Š[
+KÙ[œËÙ][œ×O]\ÙTİ]O[œÙ[X›Q^V×OŠ×JKÙ[œÙ[X›TØÙ[˜\š[ÜËÙ][œÙ[X›TØÙ[˜\š[Ü×O]\ÙTİ]O[œÙ[X›TØÙ[˜\š[ĞÛ\İ\–×OŠ×JKÛ[Ù[ËÙ][Ù[×O]\ÙTİ]Oİš[™Ö×OŠ×JKÙ[œÙ[X›T[œËÙ][œÙ[X›T[œ×O]\ÙTİ]O[Ù[[“Y]V×OŠ×JKİØ\›š[™Ñ[œÙ[X›KÙ]Ø\›š[™Ñ[œÙ[X›WO]\ÙTİ]OØ\›š[™Ñ[œÙ[X›Tİ\Ü[Š[
+KØÛ[X]KÙ]Û[X]WO]\ÙTİ]OÛ[X]Q^V×OŠ×JKØÛ[X]SØY[™ËÙ]Û[X]SØY[™×O]\ÙTİ]J˜[ÙJKØÛ[X]Q\œ›Ü‹Ù]Û[X]Q\œ›Ü—O]\ÙTİ]J	ÉÊKÙ[œÓØY[™ËÙ][œÓØY[™×O]\ÙTİ]J˜[ÙJKÙ[œÑ\œ›Ü‹Ù][œÑ\œ›Ü—O]\ÙTİ]J	ÉÊKÙ[œÙ[X›T™Yœ™\Ú™]š\Ú[Û‹Ù][œÙ[X›T™Yœ™\Ú™]š\Ú[Û—O]\ÙTİ]J
+KÜİÙ]İO]\ÙTİ]Oİ][ÛŸ[Š[
+KÜİ][Û“ØY[™ËÙ]İ][Û“ØY[™×O]\ÙTİ]J˜[ÙJKÛÙ™šXÚX[Ù]Ù™šXÚX[O]\ÙTİ]OÙ™šXÚX[[\×OŠ×JKÛÙ™šXÚX[ØY[™ËÙ]Ù™šXÚX[ØY[™×O]\ÙTİ]J˜[ÙJKÛÙ™šXÚX[\œ›Ü‹Ù]Ù™šXÚX[\œ›Ü—O]\ÙTİ]J	ÉÊKÛÙ™šXÚX[›İšY\‹Ù]Ù™šXÚX[›İšY\—O]\ÙTİ]J	ÉÊKÜ˜Y\[˜[\Ú\ËÙ]˜Y\[˜[\Ú\×O]\ÙTİ]O˜Y\“›İØØ\İ[Š[
+KÜ˜Y\’\İÜR[™›ËÙ]˜Y\’\İÜR[™›×O]\ÙTİ]O˜Y\’\İÜ_[Š[
+KÜ˜Y\[˜[\Ú\ÓØY[™ËÙ]˜Y\[˜[\Ú\ÓØY[™×O]\ÙTİ]J˜[ÙJKÜ˜Y\[˜[\Ú\Ñ\œ›Ü‹Ù]˜Y\[˜[\Ú\Ñ\œ›Ü—O]\ÙTİ]J	ÉÊKİ[™\[˜[\Ú\ËÙ][™\[˜[\Ú\×O]\ÙTİ]O[™\œİÜ›S›İØØ\İ[Š[
+KÚX]T˜Z[˜\ÙKÙ]X]T˜Z[˜\ÙWO]\ÙTİ]OX]T˜Z[˜\Ù_[Š[
+KÛØY[™ËÙ]ØY[™×O]\ÙTİ]J˜[ÙJKÙ\œ›Ü‹Ù]\œ›Ü—O]\ÙTİ]J	ÉÊKİ[YS[ÙKÙ][YS[ÙWO]\ÙTİ]O[YS[ÙOŠ[š]X[[YS[ÙJKÜŞ\İ[Q\šËÙ]Ş\İ[Q\š×O]\ÙTİ]JŞ\İ[T™Y™\œÑ\šÊKØœ˜[™ÙÛÕ˜\šX[Ù]œ˜[™ÙÛÕ˜\šX[İ]WO]\ÙTİ]Oœ˜[™ÙÛÕ˜\šX[Š™XYœ˜[™ÙÛÕ˜\šX[
+KÙ\ÚYÛ“[ÙKÙ]\ÚYÛ“[ÙTİ]WO]\ÙTİ]O\ÚYÛ“[ÙOŠ™XY\ÚYÛ“[ÙJKİ[š]Ù][š]O]\ÙTİ]OÚ[™[š]Š
+
+OOŠØØ[İÜ˜YÙK™Ù]][J	İÚ[™[š]	ÊH\ÈÚ[™[š]
+_	ÚÛ‰ÊKÜÙ[XİYÙYYÙ]Ù[XİYÙYYO]\ÙTİ]J	ÉÊKÙ›Ü™XØ\İ\Ú[Û‹Ù]›Ü™XØ\İ\Ú[Û—O]\ÙTİ]O›Ü™XØ\İ\Ú[Û”™\İ[[Š[
+NÂˆÛÛœİÛØØ][Û”Ù[Xİ[Û”Ûİ\˜ÙKÙ]ØØ][Û”Ù[Xİ[Û”Ûİ\˜ÙWO]\ÙTİ]O	İ˜XÚÙY	ß	ÛX[X[	ÏŠ
+
+OO›ØÏË˜]]ÛØØ]YOO]YOÉİ˜XÚÙY	Î‰ÛX[X[	ÊKİ[™\”XÙS˜[Y\ËÙ][™\”XÙS˜[Y\×O]\ÙTİ]O[™\”XÙS˜[Y\ÏŠßJKÙ]™[Ù[\”™XÛÜ™Ûİ[Ù]]™[Ù[\”™XÛÜ™Ûİ[O]\ÙTİ]J
+
+OOœ™XY]™[Ù[\”™XÛÜ™Ê
+K›[™İ
+KÛ™]ÛÜšÓÛ›[™KÙ]™]ÛÜšÓÛ›[™WO]\ÙTİ]J
+
+OO\[Ùˆ˜]šYØ]ÜOOIİ[™Yš[™Y	ß˜]šYØ]Ü‹›Û“[™HOOY˜[ÙJNÂˆ\ÙQY™™Xİ
+
+
+OOœİ\]™[ÙX]\“[Ûš]ÜŠ
+K×JNÂˆÛÛœİÙ˜]›Üš]\ËÙ]˜]›Üš]\Ôİ]WO]\ÙTİ]O˜]›Üš]V×OŠİÜ™Y˜]›Üš]\ÊKÜÙ][™ÜÓÜ[‹Ù]Ù][™ÜÓÜ[—O]\ÙTİ]J˜[ÙJKÜÙ][™ÜÔÙXİ[Û‹Ù]Ù][™ÜÔÙXİ[Û—O]\ÙTİ]OÙ][™ÜÔÙXİ[ÛŠ	İšY]ÉÊKÚ[\š[Ü[‹Ù][\š[Ü[—O]\ÙTİ]J˜[ÙJKÜÙXİ[Û“˜]“Ü[‹Ù]ÙXİ[Û“˜]“Ü[—O]\ÙTİ]J˜[ÙJKØXİ]™S˜]”ÙXİ[Û‹Ù]Xİ]™S˜]”ÙXİ[Û—O]\ÙTİ]O\Ú›Ø\™[Ù[RY	ÜXÙIß	ÉÏŠ
+
+OOœ™XY\İ\Ú›Ø\™ÙXİ[ÛŠ
+JKÛØØ][Û•˜XÚÚ[™ËÙ]ØØ][Û•˜XÚÚ[™×O]\ÙTİ]JİÜ™YØØ][Û•˜XÚÚ[™ÊKİ˜XÚÙYØØ][Û‹Ù]˜XÚÙYØØ][Û—O]\ÙTİ]OØØ][ÛŸ[ŠİÜ™Y˜XÚÙYØØ][ÛŠKİ˜XÚÙY\Ú[\ËÙ]˜XÚÙY\Ú[\×O]\ÙTİ]O\Ú[Tİ]OŠİÜ™Y˜XÚÙY\Ú[\ÊKÜ\Ú›İYšXØ][Û’[\˜[Ù]\Ú›İYšXØ][Û’[\˜[O]\ÙTİ]O\Ú›İYšXØ][Û’[\˜[ŠİÜ™Y\Ú›İYšXØ][Û’[\˜[
+KÜ\Ú™XÚ\]][Û[\Ù]\Ú™XÚ\]][Û[\O]\ÙTİ]O\Ú™XÚ\]][Û[\Ù][™ÜÏŠİÜ™Y\Ú™XÚ\]][Û[\
+KÛ[Ù[Ú[™ÙTÙ][™ÜËÙ][Ù[Ú[™ÙTÙ][™Ü×O]\ÙTİ]O[Ù[Ú[™ÙTÙ][™ÜÏŠİÜ™Y[Ù[Ú[™ÙTÙ][™ÜÊKÜ˜Y\‘\Ü^TÙ][™ÜËÙ]˜Y\‘\Ü^TÙ][™Ü×O]\ÙTİ]O˜Y\‘\Ü^TÙ][™ÜÏŠİÜ™Y˜Y\‘\Ü^TÙ][™ÜÊKÙ›Ü™XØ\İ\Ü^TÙ][™ÜËÙ]›Ü™XØ\İ\Ü^TÙ][™Ü×O]\ÙTİ]O›Ü™XØ\İ\Ü^TÙ][™ÜÏŠİÜ™Y›Ü™XØ\İ\Ü^TÙ][™ÜÊKÛØØ[^˜\™\Ü^TÙ][™ÜËÙ]ØØ[^˜\™\Ü^TÙ][™Ü×O]\ÙTİ]OØØ[^˜\™\Ü^TÙ][™ÜÏŠİÜ™YØØ[^˜\™\Ü^TÙ][™ÜÊKÙ\Ú›Ø\™[Ù[TÙ][™ÜËÙ]\Ú›Ø\™[Ù[TÙ][™Ü×O]\ÙTİ]O\Ú›Ø\™[Ù[TÙ][™ÜÏŠ™XY\Ú›Ø\™[Ù[TÙ][™ÜÊKİÙX]\•Ú[”Ù][™ÜËÙ]ÙX]\•Ú[”Ù][™Ü×O]\ÙTİ]OÙX]\•Ú[”Ù][™ÜÏŠ™XYÙX]\•Ú[”Ù][™ÜÊKÙ[œÙ[X›T™\]Y\İYÙ][œÙ[X›T™\]Y\İYO]\ÙTİ]J
+
+OOœİÜ™Y[Ù[SÜ[Š	Ù[œÙ[X›IË˜[ÙJJKÛ^[İ][ÙKÙ]^[İ][ÙTİ]WO]\ÙTİ]O^[İ][ÙOŠ[š]X[^™Y^[İ][ÙJKÛ^[İ]™]š\Ú[Û‹Ù]^[İ]™]š\Ú[Û—O]\ÙTİ]J
+Kİ[YQ\Ü^S[ÙKÙ][YQ\Ü^S[ÙTİ]WO]\ÙTİ]O[YQ\Ü^S[ÙOŠ™XY[YQ\Ü^S[ÙJKÙ˜]›Üš]Tİš\[ÙKÙ]˜]›Üš]Tİš\[ÙTİ]WO]\ÙTİ]O˜]›Üš]Tİš\[ÙOŠ™XY˜]›Üš]Tİš\[ÙJKØ›İÛP˜\™Z]š[Ü‹Ù]›İÛP˜\™Z]š[Ü”İ]WO]\ÙTİ]O›İÛP˜\™Z]š[ÜŠ™XY›İÛP˜\™Z]š[ÜŠKİZQ[œÚ]T™Y™\™[˜ÙKÙ]ZQ[œÚ]T™Y™\™[˜ÙTİ]WO]\ÙTİ]OZQ[œÚ]T™Y™\™[˜ÙOŠ™XYZQ[œÚ]T™Y™\™[˜ÙJKÜ™\ÛÛ™YZQ[œÚ]KÙ]™\ÛÛ™YZQ[œÚ]WO]\ÙTİ]O™\ÛÛ™YZQ[œÚ]OŠ
+
+OO˜\UZQ[œÚ]J™XYZQ[œÚ]T™Y™\™[˜ÙJ
+JJKÛ[Ù\›‘›Ü™XØ\İÜš^›Û‹Ù][Ù\›‘›Ü™XØ\İÜš^›Û—O]\ÙTİ]O[Ù\›‘›Ü™XØ\İÜš^›ÛŠ™XY[Ù\›‘›Ü™XØ\İÜš^›ÛŠNÂˆÛÛœİ˜]šYØ][Û“[ÙN“˜]šYØ][Û“[ÙOIØ›İÛK]XœÉÎÂˆÛÛœİØÛÛ›™XİYİ][ÛÛÛ™šYËÙ]ÛÛ›™XİYİ][ÛÛÛ™šY×O]\ÙTİ]J™XYÛÛ›™XİYİ][ÛÛÛ™šYÊKØÛÛ›™XİYØœÙ\˜][Û‹Ù]ÛÛ›™XİYØœÙ\˜][Û—O]\ÙTİ]OÛÛ›™XİYİ][Û“ØœÙ\˜][ÛŸ[Š[
+KØÛÛ›™XİYİ][Û“ØY[™ËÙ]ÛÛ›™XİYİ][Û“ØY[™×O]\ÙTİ]J˜[ÙJKİ™[[][Û”Ù][™ÜËÙ]™[[][Û”Ù][™Ü×O]\ÙTİ]O™[[][Û\ÜÚ\İ[Ù][™ÜÏŠ™XY™[[][Û\ÜÚ\İ[Ù][™ÜÊNÂˆÛÛœİ›Ü™XØ\İ™\Ù[][Û“[ÙOY›Ü™XØ\İ\Ü^TÙ][™ÜËœ™\Ù[][Û“[ÙOÏÉØÛ\ÜÚXÉÎÂˆÛÛœİ›Ü™XØ\İÛØÚÜ][˜X›Y[˜]šYØ][Û“[ÙOOOIØ›İÛK]XœÉß›Ü™XØ\İ™\Ù[][Û“[ÙHOOIØÛ\ÜÚXÉÎÂˆÛÛœİ\Ü^U[Y^›Û™OY\Ü^U[YV›Û™JÏË[Y^›Û™K[YQ\Ü^S[ÙJKÙ][YQ\Ü^S[ÙOJ[ÙN•[YQ\Ü^S[ÙJOOÜÙ][YQ\Ü^S[ÙTİ]J[ÙJNİÜš]U[YQ\Ü^S[ÙJ[ÙJ_KÙ]˜]›Üš]Tİš\[ÙOJ[ÙN‘˜]›Üš]Tİš\[ÙJOOÜÙ]˜]›Üš]Tİš\[ÙTİ]J[ÙJNİÜš]Q˜]›Üš]Tİš\[ÙJ[ÙJ_KÙ]›İÛP˜\™Z]š[ÜJ[ÙN›İÛP˜\™Z]š[ÜŠOOÜÙ]›İÛP˜\™Z]š[Ü”İ]J[ÙJNİÜš]P›İÛP˜\™Z]š[ÜŠ[ÙJ_KÙ]ZQ[œÚ]T™Y™\™[˜ÙOJ[ÙN•ZQ[œÚ]T™Y™\™[˜ÙJOOÜÙ]ZQ[œÚ]T™Y™\™[˜ÙTİ]J[ÙJNİÜš]UZQ[œÚ]T™Y™\™[˜ÙJ[ÙJ_KÙ]\ÚYÛ“[ÙOJ[ÙN‘\ÚYÛ“[ÙJOOÜÙ]\ÚYÛ“[ÙTİ]J[ÙJNİÜš]Q\ÚYÛ“[ÙJ[ÙJ_K\]Q\Ú›Ø\™[Ù[TÙ][™ÜÏ]\ÙPØ[˜XÚÊ
+\]N‘\Ú›Ø\™[Ù[TÙ][™ÜÕ\]\ŠOOÜÙ]\Ú›Ø\™[Ù[TÙ][™ÜÊİ\œ™[OÜš]Q\Ú›Ø\™[Ù[TÙ][™ÜÊ\[Ùˆ\]OOOIÙ[˜İ[Û‰Ïİ\]Jİ\œ™[
+N\]JJ_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠÏË[Y^›Û™J\Ù][YQ\Ü^SØØ[›Û™JË[Y^›Û™J_KİÏË[Y^›Û™WJNÂˆ\ÙQY™™Xİ
+
+
+OOÛ]œ˜[YOLØÛÛœİ\OJ
+OOÚYŠœ˜[YJ\™]\›Ùœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOÙœ˜[YOLÜÙ]™\ÛÛ™YZQ[œÚ]J\UZQ[œÚ]JZQ[œÚ]T™Y™\™[˜ÙJJ_J_NØ\J
+NİÚ[™İË˜Y]™[\İ[™\Š	Ü™\Ú^™IË\KÜ\ÜÚ]™NY_JNİÚ[™İË˜Y]™[\İ[™\Š	ÛÜšY[][Û˜Ú[™ÙIË\JNÜ™]\›Š
+OOÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	Ü™\Ú^™IË\JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛÜšY[][Û˜Ú[™ÙIË\J__KİZQ[œÚ]T™Y™\™[˜ÙWJNÂˆÛÛœİÙ\O]\ÙT™YŠ
+KØØ]TÙ\O]\ÙT™YŠ
+K]]ÓØØ][Û”™\]Y\İY]\ÙT™YŠ˜[ÙJK™\]Y\İÛÛ›Û\œÏ]\ÙT™YŠ™]ÈX\İš[™ËX›ÜÛÛ›Û\Š
+JK[™[™ÕšY]Ô™\İÜ™O]\ÙT™YÜÙXİ[Ûœİš[™ÎİšY]ÜÜÜ›[X™\ÜØÜ›ÛN›[X™\ÜÙ[XİY^R[™^›[X™\Ÿ_[Š[
+K\Ú›Ø\™İ\\™\İÜ™O]\ÙT™YŠ˜[ÙJK˜]›Üš]\Ô\œÚ\İ™Y]\ÙT™YŠ˜]›Üš]\ÊK›Ü™XØ\İ˜]T™]T™Y]\ÙT™Y[X™\Ÿ[™Yš[™YŠ[™Yš[™Y
+K˜]šYØ][Û‘˜]›Üš]\Ô™Y]\ÙT™YŠ˜]›Üš]\ÊK˜]šYØ][Û“ØØ][Û”™Y]\ÙT™YŠØÊKÙ[XİY]T™Y]\ÙT™YŠ	ÉÊK\İ\ÚŞ[˜ÔÚYÛ˜]\™O]\ÙT™YŠ	ÉÊNÂˆÛÛœİÙ]˜]›Üš]\Ï]\ÙPØ[˜XÚÏ˜]›Üš]TÙ]\Š\]\OØÛÛœİİ\œ™[Y˜]›Üš]\Ô\œÚ\İ™Y‹˜İ\œ™[™^]\[Ùˆ\]\OOIÙ[˜İ[Û‰ÏÊ\]\ˆ\È
+İ\œ™[‘˜]›Üš]V×JOO‘˜]›Üš]V×JJİ\œ™[
+N\]\ÚYŠ™^OOXİ\œ™[
+\™]\›ØÛÛœİÛX[™YX\Q˜]›Üš]UÛXœİÛ™\Ê›Ü›X[\ÙQ˜]›Üš]PÛÛXİ[ÛŠ™^
+JNÙ˜]›Üš]\Ô\œÚ\İ™Y‹˜İ\œ™[XÛX[™YÜ\œÚ\İ˜]›Üš]TÛ˜\Úİ
+ÛX[™Y
+NÜÙ]˜]›Üš]\Ôİ]JÛX[™Y
+_K×JNÂˆ\ÙS^[İ]Y™™Xİ
+
+
+OOÙ˜]›Üš]\Ô\œÚ\İ™Y‹˜İ\œ™[Y˜]›Üš]\ÎÛ˜]šYØ][Û‘˜]›Üš]\Ô™Y‹˜İ\œ™[Y˜]›Üš]\ßKÙ˜]›Üš]\×JNÂˆ\ÙS^[İ]Y™™Xİ
+
+
+OOÛ˜]šYØ][Û“ØØ][Û”™Y‹˜İ\œ™[[ØßKÛØ×JNÂˆÛÛœİÙ]›Ü™XØ\İÙ[XİY]\ÙPØ[˜XÚÊ
+]Nœİš[™ÊOOÜÙ[XİY]T™Y‹˜İ\œ™[Y]NÜÙ]Ù[XİYÙYY
+İ\œ™[O˜İ\œ™[OOY]OØİ\œ™[™]J_K×JNÂˆÛÛœİ\Ú˜]›Üš]TÚYÛ˜]\™O]\ÙSY[[Ê
+
+OO™˜]›Üš]\Ë›X\
+][OO–Ú][KšY˜]›Üš]SX™[
+][JK˜]›Üš]RÙ^J][K›ØØ][ÛŠK][K›ØØ][Û‹˜Ûİ[WØÛÙ_][K›ØØ][Û‹˜Ûİ[_	ÉË›ÛÛX[Š][Kœ[\Ëœ™XÚ\]][Û”İ\
+K›ÛÛX[Š][Kœ[\Ë[™\œİÜ›P\›ØXÚ
+WKš›Ú[Š	Î‰ÊJKš›Ú[Š	ß	ÊKÙ˜]›Üš]\×JNÂˆÛÛœİ\Ú˜]›Üš]T[\Ï]\ÙSY[[Ï\Ú[Q˜]›Üš]V×OŠ
+
+OO™˜]›Üš]\Ë›X\
+][OOŠÚYš][KšY˜[YN™˜]›Üš]SX™[
+][JK]]YNš][K›ØØ][Û‹›]]YKÛ™Ú]YNš][K›ØØ][Û‹›Û™Ú]YKÛİ[Nš][K›ØØ][Û‹˜Ûİ[WØÛÙ_][K›ØØ][Û‹˜Ûİ[K[\ÎÜ™XÚ\]][Û”İ\›ÛÛX[Š][Kœ[\Ëœ™XÚ\]][Û”İ\
+K[™\œİÜ›P\›ØXÚ›ÛÛX[Š][Kœ[\Ë[™\œİÜ›P\›ØXÚ
+K›Ü™XØ\İX]\šX[Ú[™ÙN™˜[Ù__JJKÜ\Ú˜]›Üš]TÚYÛ˜]\™WJNÂˆÛÛœİX\›š[™Ñ˜]›Üš]TÚYÛ˜]\™O]\ÙSY[[Ê
+
+OO™˜]›Üš]\Ë›X\
+][OO–Ù˜]›Üš]RÙ^J][K›ØØ][ÛŠK][K›ØØ][Û‹[Y^›Û™_	ÉË[X™\‹š\Ñš[š]J][K›ØØ][Û‹™[]˜][ÛŠOÓX]œ›İ[™
+[X™\Š][K›ØØ][Û‹™[]˜][ÛŠJN‰ÉÈKš›Ú[Š	Î‰ÊJKš›Ú[Š	ß	ÊKÙ˜]›Üš]\×JNÂˆÛÛœİX\›š[™Ñ˜]›Üš]SØØ][ÛœÏ]\ÙSY[[Ê
+
+OO™˜]›Üš]\Ë›X\
+][OOš][K›ØØ][ÛŠKÛX\›š[™Ñ˜]›Üš]TÚYÛ˜]\™WJNÂˆÛÛœİÙ]^[İ][ÙOJ[ÙN“^[İ][ÙJOOİ^ÚYŠ[ÙOOOIÜİ[™\™	É‰›ØØ[İÜ˜YÙK™Ù]][JÕS‘T‘ÓVSÕUÒS’UPSV‘QÒÑVJHOOIÌIÊ^ØÛÛ\ÙTİÜ™Yİ[™\™[Ù[\Ê
+NÛØØ[İÜ˜YÙKœÙ]][JÕS‘T‘ÓVSÕUÒS’UPSV‘QÒÑVK	ÌIÊNÜÙ]^[İ]™]š\Ú[ÛŠ˜[YOO˜[YJÌJ__XØ]Úß\Ù]^[İ][ÙTİ]J[ÙJ_NÂˆÛÛœİ\šÏ][YS[ÙOOOIÙ\šÉß
+[YS[ÙOOOIØ]]ÉÉ‰œŞ\İ[Q\šÊKØİ[Y[\šÏ]ÚYÙ]\›^ÜİÚYÙ]\›^Ü[YOOOIÙ\šÉÎ™\šÎÂˆÛÛœİ™\ÛÛ™Yœ˜[™ÙÛÕ˜\šX[\™\ÛÛ™Pœ˜[™ÙÛÕ˜\šX[
+œ˜[™ÙÛÕ˜\šX[\šÊKœ˜[™ÙÛÔ]Xœ˜[™ÙÛÔ]›Ü•˜\šX[
+™\ÛÛ™Yœ˜[™ÙÛÕ˜\šX[
+KÙ]œ˜[™ÙÛÕ˜\šX[J˜\šX[œ˜[™ÙÛÕ˜\šX[
+OOœÙ]œ˜[™ÙÛÕ˜\šX[İ]J˜\šX[
+NÂˆÛÛœİ™YÚ[”™\]Y\İJÙ^Nœİš[™ÊOOÜ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+Ù^JOË˜X›Ü
+
+NØÛÛœİÛÛ›Û\[™]ÈX›ÜÛÛ›Û\Š
+NÜ™\]Y\İÛÛ›Û\œË˜İ\œ™[œÙ]
+Ù^KÛÛ›Û\ŠNÜ™]\›ˆÛÛ›Û\ŸNÂˆÛÛœİš[š\Ú™\]Y\İJÙ^Nœİš[™ËÛÛ›Û\X›ÜÛÛ›Û\ŠOOÚYŠ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+Ù^JOOOXÛÛ›Û\Š\™\]Y\İÛÛ›Û\œË˜İ\œ™[™[]JÙ^J_NÂˆÛÛœİX›Ü™\]Y\İJÙ^Nœİš[™ÊOOÜ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+Ù^JOË˜X›Ü
+
+NÜ™\]Y\İÛÛ›Û\œË˜İ\œ™[™[]JÙ^J_NÂˆÛÛœİX›Ü[™\]Y\İÏJ
+OOÙ›ÜŠÛÛœİÛÛ›Û\ˆÙˆ™\]Y\İÛÛ›Û\œË˜İ\œ™[˜[Y\Ê
+JXÛÛ›Û\‹˜X›Ü
+
+NÜ™\]Y\İÛÛ›Û\œË˜İ\œ™[˜ÛX\Š
+_NÂˆÛÛœİ\ĞX›ÜJ™X\ÛÛ[šÛ›İÛ‹ÚYÛ˜[ÎX›ÜÚYÛ˜[
+OOœÚYÛ˜[Ë˜X›ÜY
+™X\ÛÛˆ[œİ[˜Ù[ÙˆÓQ^Ù\[Û‰‰œ™X\ÛÛ‹›˜[YOOOIĞX›Ü\œ›Ü‰Ê_
+™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›Ü‰‰œ™X\ÛÛ‹›˜[YOOOIĞX›Ü\œ›Ü‰ÊNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ]Y\O]Ú[™İË›X]ÚYYXOËŠ	Ê™Y™\œËXÛÛÜ‹\ØÚ[YNˆ\šÊIÊNÚYŠ\]Y\J\™]\›ØÛÛœİ\]OJ]™[“YYXT]Y\S\İ]™[
+OOœÙ]Ş\İ[Q\šÊ]™[›X]Ú\ÊNÜÙ]Ş\İ[Q\šÊ]Y\K›X]Ú\ÊNÜ]Y\K˜Y]™[\İ[™\ËŠ	ØÚ[™ÙIË\]JNÜ™]\›Š
+OOœ]Y\Kœ™[[İ™Q]™[\İ[™\ËŠ	ØÚ[™ÙIË\]J_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOÙØİ[Y[™Øİ[Y[[[Y[™]\Ù][YOYØİ[Y[\šÏÉÙ\šÉÎ‰ÛYÚ	ÎÙØİ[Y[™Øİ[Y[[[Y[™]\Ù][YS[ÙO]ÚYÙ]\›^ÜÉİ\›Y^Ü	Î[YS[ÙNÙØİ[Y[œ]Y\TÙ[XİÜSY]Q[[Y[Š	ÛY]VÛ˜[YOW[YKXÛÛÜ——IÊOËœÙ]]šX]J	ØÛÛ[	ËØİ[Y[\šÏÉÈÌÌLLY‰Î‰ÈÙYŒÙ	ÊNÚYŠ]ÚYÙ]\›^Ü
+[ØØ[İÜ˜YÙKœÙ]][JSQWÔÕÔQÑWÒÑVK[YS[ÙJNİÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZY[YKXÚ[™ÙIËÙ]Z[Ù\šÎ™Øİ[Y[\šß_JJ_KÙØİ[Y[\šË[YS[ÙKÚYÙ]\›^ÜJNÂˆ\ÙQY™™Xİ
+
+
+OOÙØİ[Y[™Øİ[Y[[[Y[™]\Ù]›ZY\ÚYÛY\ÚYÛ“[ÙOOOIÛZY[™^	ÏÉÛ™^	Î‰ØÛ\ÜÚXÉßKÙ\ÚYÛ“[ÙWJNÂˆ\ÙQY™™Xİ
+
+
+OOÙØİ[Y[™Øİ[Y[[[Y[™]\Ù]˜œ˜[™ÙÛÏ\™\ÛÛ™Yœ˜[™ÙÛÕ˜\šX[ÙØİ[Y[™Øİ[Y[[[Y[™]\Ù]˜œ˜[™ÙÛÓ[ÙOXœ˜[™ÙÛÕ˜\šX[ÛØØ[İÜ˜YÙKœÙ]][J”S‘ÓÑÓ×ÔÕÔQÑWÒÑVKœ˜[™ÙÛÕ˜\šX[
+NÙØİ[Y[œ]Y\TÙ[XİÜS[šÑ[[Y[Š	ÈÛZYY˜]šXÛÛ‰ÊOËœÙ]]šX]J	Ú™Y‰Ëœ˜[™˜]šXÛÛ”]›Ü•˜\šX[
+™\ÛÛ™Yœ˜[™ÙÛÕ˜\šX[
+J_KØœ˜[™ÙÛÕ˜\šX[™\ÛÛ™Yœ˜[™ÙÛÕ˜\šX[JNÂˆ\ÙQY™™Xİ
+
+
+OO›ØØ[İÜ˜YÙKœÙ]][J	İÚ[™[š]	Ë[š]
+Kİ[š]JNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠY\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™[œÙ[X›J\Ù][œÙ[X›T™\]Y\İY
+
+
+OO™˜[ÙJ_KÙ\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™[œÙ[X›WJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ›Ü™XØ\İÛØÚÜ][˜X›Y	‰™\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™[œÙ[X›J\Ù][œÙ[X›T™\]Y\İY
+YJ_KÙ›Ü™XØ\İÛØÚÜ][˜X›Y\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™[œÙ[X›WJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠÛÛœİ[YQ]šXÙTŞ[˜Õ˜[œÙ™\‘œ›ÛSØØ][ÛŠ
+J^ÜÙ]Ù][™ÜÔÙXİ[ÛŠ	ÜŞ[˜ÉÊNÜÙ]Ù][™ÜÓÜ[ŠYJ__K×JNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠJ	ÜÙ\šXÙUÛÜšÙ\‰Ú[ˆ˜]šYØ]ÜŠJ\™]\›ØÛÛœİ[™S›İYšXØ][Û“Ü[J]™[“Y\ÜØYÙQ]™[
+OOÚYŠ]™[™]OË\HOOIÓRQÓ“ÕQ’PĞUSÓ—ÓÔS‰Ê\™]\›ÜÙ]Ù][™ÜÓÜ[Š˜[ÙJNÜÙ][\š[Ü[Š˜[ÙJNİÚ[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOÚ[™İËœØÜ›ÛÊİÜŒYŒ™Z]š[Ü‰Ø]]ÉßJJ_NÛ˜]šYØ]Ü‹œÙ\šXÙUÛÜšÙ\‹˜Y]™[\İ[™\Š	ÛY\ÜØYÙIË[™S›İYšXØ][Û“Ü[ŠNÜ™]\›Š
+OO›˜]šYØ]Ü‹œÙ\šXÙUÛÜšÙ\‹œ™[[İ™Q]™[\İ[™\Š	ÛY\ÜØYÙIË[™S›İYšXØ][Û“Ü[Š_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ›\ÚJ
+OOœ\œÚ\İ˜]›Üš]TÛ˜\Úİ
+˜]›Üš]\Ô\œÚ\İ™Y‹˜İ\œ™[
+Kš\ÚXš[]OJ
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIÚY[‰ÊY›\Ú
+
+_NİÚ[™İË˜Y]™[\İ[™\Š	ÜYÙZYIË›\Ú
+NÙØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNÜ™]\›Š
+OOİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÜYÙZYIË›\Ú
+NÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]J__K×JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİÛ”İ][ÛJ]™[‘]™[
+OOØÛÛœİ™^J]™[\Èİ\İÛQ]™[™]\›•\O\[Ùˆ™XYÛÛ›™XİYİ][ÛÛÛ™šYÏŠK™]Z[™XYÛÛ›™XİYİ][ÛÛÛ™šYÊ
+NÜÙ]ÛÛ›™XİYİ][ÛÛÛ™šYÊ™^
+NÚYŠ[™^™[˜X›Y
+\Ù]ÛÛ›™XİYØœÙ\˜][ÛŠ[
+_NİÚ[™İË˜Y]™[\İ[™\Š	ÛZY˜ÛÛ›™XİY\İ][Û‹\Ù][™ÜÉËÛ”İ][ÛŠNÜ™]\›Š
+OOÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛZY˜ÛÛ›™XİY\İ][Û‹\Ù][™ÜÉËÛ”İ][ÛŠ_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİÛÛœİ[YOJ˜]Õ\›œİš[™ÊOOÚYŠXØ\\™SZY^\›˜[Ğ]]™]\›Š˜]Õ\›
+J\™]\›ÜÙ]Ù][™ÜÔÙXİ[ÛŠ	İÚ[‰ÊNÜÙ]Ù][™ÜÓÜ[ŠYJNİ›ÚYš[š\ÚZY^\›˜[Ğ]]™]\›Š
+_NØÛÛœİ[YJØØ][Û‹š™YŠNØÛÛœİ[™[™Ï]ZÙT[™[™ÓZY˜]]™U\›
+
+NÚYŠ[™[™ÊXÛÛœİ[YJ[™[™ÊNØÛÛœİÜ[™YJ]™[‘]™[
+OO˜ÛÛœİ[YJ
+]™[\Èİ\İÛQ]™[ZY˜]]™U\›Ü[ŠK™]Z[Ë\›	ÉÊNİÚ[™İË˜Y]™[\İ[™\Š	ÛZY›˜]]™K]\›[Ü[‰ËÜ[™Y
+NÜ™]\›Š
+OOÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛZY›˜]]™K]\›[Ü[‰ËÜ[™Y
+_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİÛ•™[[][ÛJ]™[‘]™[
+OOœÙ]™[[][Û”Ù][™ÜÊ
+]™[\Èİ\İÛQ]™[™[[][Û\ÜÚ\İ[Ù][™ÜÏŠK™]Z[™XY™[[][Û\ÜÚ\İ[Ù][™ÜÊ
+JNİÚ[™İË˜Y]™[\İ[™\Š	ÛZY™[[][Û‹\Ù][™ÜÉËÛ•™[[][ÛŠNÜ™]\›Š
+OOÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛZY™[[][Û‹\Ù][™ÜÉËÛ•™[[][ÛŠ_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ[Y\]Ú[™İËœÙ][Y[İ]
+
+
+OOØÛÛœİ\Ú˜]›Üš]\ÏVË‹‹œ\Ú˜]›Üš]T[\×NÚYŠØØ][Û•˜XÚÚ[™É‰˜XÚÙYØØ][ÛŠ\\Ú˜]›Üš]\Ë[œÚY
+ÚY‰İ˜XÚÙY[ØØ][Û‰Ë˜[YN˜ZİY[\ˆİ[™Ü0­È	İ˜XÚÙYØØ][Û‹›˜[Y_X]]YN˜XÚÙYØØ][Û‹›]]YKÛ™Ú]YN˜XÚÙYØØ][Û‹›Û™Ú]YKÛİ[N˜XÚÙYØØ][Û‹˜Ûİ[WØÛÙ_˜XÚÙYØØ][Û‹˜Ûİ[K[\ÎË‹‹˜XÚÙY\Ú[\Ë›Ü™XØ\İX]\šX[Ú[™ÙN™˜[Ù__JNÚYŠ[Ù[Ú[™ÙTÙ][™ÜË™[˜X›Y	‰›[Ù[Ú[™ÙTÙ][™ÜË››İYSX]\šX[	‰›ØÊ\\Ú˜]›Üš]\Ë[œÚY
+ÚY‰Û[Ù[XÚ[™ÙK[ØØ][Û‰Ë˜[YN˜[Ù[]Y°é™\[™È0­È	ÛØË›˜[Y_X]]YN›ØË›]]YKÛ™Ú]YN›ØË›Û™Ú]YKÛİ[N›ØË˜Ûİ[WØÛÙ_ØË˜Ûİ[K[\ÎÜ™XÚ\]][Û”İ\™˜[ÙK[™\œİÜ›P\›ØXÚ™˜[ÙK›Ü™XØ\İX]\šX[Ú[™ÙNY__JNØÛÛœİ™[[][Û]™[[][Û”\ÚÛÛ™šYÊ™[[][Û”Ù][™ÜÊKÚYÛ˜]\™OR”ÓÓ‹œİš[™ÚYJÛ›İYšXØ][Û’[\˜[Z[]\Îœ\Ú›İYšXØ][Û’[\˜[™XÚ\]][Û[\œ\Ú™XÚ\]][Û[\™[[][Û‹˜]›Üš]\Îœ\Ú˜]›Üš]\Ë›X\
+][OOŠÚYš][KšY˜[YNš][K›˜[YK]]YN“[X™\Š][K›]]YJKÑš^Y
+JKÛ™Ú]YN“[X™\Š][K›Û™Ú]YJKÑš^Y
+JKÛİ[Nš][K˜Ûİ[_	ÉË[\Îš][Kœ[\ßJJ_JNÚYŠÚYÛ˜]\™OOO[\İ\ÚŞ[˜ÔÚYÛ˜]\™K˜İ\œ™[
+\™]\›Û\İ\ÚŞ[˜ÔÚYÛ˜]\™K˜İ\œ™[\ÚYÛ˜]\™Nİ›ÚYŞ[˜Ô\Ú›İYšXØ][ÛœÊ\Ú˜]›Üš]\Ë\Ú›İYšXØ][Û’[\˜[\Ú™XÚ\]][Û[\™[[][ÛŠK˜Ø]Ú
+
+
+OOÚYŠ\İ\ÚŞ[˜ÔÚYÛ˜]\™K˜İ\œ™[OO\ÚYÛ˜]\™J[\İ\ÚŞ[˜ÔÚYÛ˜]\™K˜İ\œ™[IÉßJ_KL
+NÜ™]\›Š
+OOÚ[™İË˜ÛX\•[Y[İ]
+[Y\Š_KÜ\Ú˜]›Üš]T[\ËØØ][Û•˜XÚÚ[™Ë˜XÚÙYØØ][ÛË›]]YK˜XÚÙYØØ][ÛË›Û™Ú]YK˜XÚÙYØØ][ÛË›˜[YK˜XÚÙYØØ][ÛË˜Ûİ[WØÛÙK˜XÚÙYØØ][ÛË˜Ûİ[K˜XÚÙY\Ú[\Ëœ™XÚ\]][Û”İ\˜XÚÙY\Ú[\Ë[™\œİÜ›P\›ØXÚ[Ù[Ú[™ÙTÙ][™ÜË™[˜X›Y[Ù[Ú[™ÙTÙ][™ÜË››İYSX]\šX[ØÏË›]]YKØÏË›Û™Ú]YKØÏË›˜[YKØÏË˜Ûİ[WØÛÙKØÏË˜Ûİ[K\Ú›İYšXØ][Û’[\˜[\Ú™XÚ\]][Û[\›XYZ[]\Ë\Ú™XÚ\]][Û[\›Z[š[][P[[İ[[K\Ú™XÚ\]][Û[\›Z[š[][Q\˜][Û“Z[]\Ë™[[][Û”Ù][™Ü×JNÂˆ\ÙQY™™Xİ
+
+
+OO›ØØ[İÜ˜YÙKœÙ]][JĞĞUSÓ—ÕPÒÒS‘×ÒÑVKØØ][Û•˜XÚÚ[™ÏÉÌIÎ‰Ì	ÊKÛØØ][Û•˜XÚÚ[™×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JPÒÑQÔTÒÔ•ST×ÒÑVK”ÓÓ‹œİš[™ÚYJ˜XÚÙY\Ú[\ÊJ_XØ]Úß_Kİ˜XÚÙY\Ú[\×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JTÒÓ“ÕQ’PĞUSÓ—ÒS•T•SÒÑVKİš[™Ê\Ú›İYšXØ][Û’[\˜[
+J_XØ]Úß_KÜ\Ú›İYšXØ][Û’[\˜[JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JTÒÔ‘PÒTUUSÓ—ĞST•ÒÑVK”ÓÓ‹œİš[™ÚYJ\Ú™XÚ\]][Û[\
+J_XØ]Úß_KÜ\Ú™XÚ\]][Û[\JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÚYŠ˜XÚÙYØØ][ÛŠ[ØØ[İÜ˜YÙKœÙ]][JPÒÑQÓĞĞUSÓ—ÒÑVK”ÓÓ‹œİš[™ÚYJ˜XÚÙYØØ][ÛŠJ_XØ]Úß_Kİ˜XÚÙYØØ][Û—JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JSÑSĞÒS‘ÑWÔÑUS‘Ô×ÒÑVK”ÓÓ‹œİš[™ÚYJ[Ù[Ú[™ÙTÙ][™ÜÊJ_XØ]Úß_KÛ[Ù[Ú[™ÙTÙ][™Ü×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JQT—ÑTÔVWÔÑUS‘Ô×ÒÑVK”ÓÓ‹œİš[™ÚYJ˜Y\‘\Ü^TÙ][™ÜÊJ_XØ]Úß_KÜ˜Y\‘\Ü^TÙ][™Ü×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][J“Ô‘PĞTÕÑTÔVWÔÑUS‘Ô×ÒÑVK”ÓÓ‹œİš[™ÚYJ›Ü™XØ\İ\Ü^TÙ][™ÜÊJ_XØ]Úß_KÙ›Ü™XØ\İ\Ü^TÙ][™Ü×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JĞĞSÒVT‘ÑTÔVWÔÑUS‘Ô×ÒÑVK”ÓÓ‹œİš[™ÚYJØØ[^˜\™\Ü^TÙ][™ÜÊJ_XØ]Úß_KÛØØ[^˜\™\Ü^TÙ][™Ü×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœ™[[İ™R][J	ÛZY›˜]šYØ][Û“[ÙNŒIÊ_XØ]Úß_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JSÑT“—Ñ“Ô‘PĞTÕÒÔ’V“Ó—ÔÕÔQÑWÒÑVK[Ù\›‘›Ü™XØ\İÜš^›ÛŠ_XØ]Úß_KÛ[Ù\›‘›Ü™XØ\İÜš^›Û—JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ[Ù[N‘\Ú›Ø\™[Ù[RY[[Ù\›‘›Ü™XØ\İÜš^›ÛOOIÍÙ	ÏÉÙ›Ü™XØ\İ	Î›[Ù\›‘›Ü™XØ\İÜš^›ÛOOIÌM	ÏÉÙ[œÙ[X›IÎ›[Ù\›‘›Ü™XØ\İÜš^›ÛOOIÍ™	ß[Ù\›‘›Ü™XØ\İÜš^›ÛOOIÜÙX\ÛÛ‰ÏÉÛÛ™Ë\˜[™ÙIÎ‰ÜÚÜ]\›IÎÚYŠ\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›YÛ[Ù[WJ\™]\›ØÛÛœİ˜[˜XÚÎ“[Ù\›‘›Ü™XØ\İÜš^›ÛY\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›YÉÜÚÜ]\›I×OÉÎLIÎ™\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™›Ü™XØ\İÉÍÙ	Î™\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™[œÙ[X›OÉÌM	Î‰Í™	ÎÚYŠ˜[˜XÚÈOO[[Ù\›‘›Ü™XØ\İÜš^›ÛŠ\Ù][Ù\›‘›Ü™XØ\İÜš^›ÛŠ˜[˜XÚÊ_KÙ\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y[Ù\›‘›Ü™XØ\İÜš^›Û—JNÂˆ\ÙQY™™Xİ
+
+
+OO›ØØ[İÜ˜YÙKœÙ]][JVSÕUÓSÑWÔÕÔQÑWÒÑVK^[İ][ÙJKÛ^[İ][ÙWJNÂˆ\ÙQY™™Xİ
+
+
+OOÙØİ[Y[]OIÓRQHY][Ü›ÛÙÚXØ[[™›Ü›X][Ûˆ\Ú›Ø\™	Îİ^ØÛÛœİ\›[™]ÈT“
+Ú[™İË›ØØ][Û‹š™YŠNİ\›œÙX\˜Ú\˜[\Ë™[]J	ÛZY[›İYšXØ][Û‰ÊNÙ›ÜŠÛÛœİÙ^HÙ–ÉÛZYY˜]›Üš]IË	ÛZY[]	Ë	ÛZY[Û‰Ë	ÛZY[˜[YIË	ÛZYXÛİ[I×J]\›œÙX\˜Ú\˜[\Ë™[]JÙ^JNİÚ[™İËš\İÜKœ™\XÙTİ]J[	ÉË\›Ôİš[™Ê
+J_XØ]Úß_K×JNÂˆ[˜İ[ÛˆØ\\™Pİ\œ™[šY]Ê
+^ÂˆYŠ\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	ßÙ][™ÜÓÜ[Ÿ]Ê\™]\›ˆ[ÂˆÛÛœİšY]ÜÜÜSX]œ›İ[™
+X]›Z[ŠNX]›X^
+L‹Ú[™İËš[›™\’ZYÚ
+‹ŒMŠJJK›Ø™VSX]›X^
+KX]›Z[ŠÚ[™İËš[›™\•ÚYLKX]œ›İ[™
+Ú[™İËš[›™\•ÚYÌŠJJK]YØİ[Y[™[[Y[œ›ÛTÚ[
+›Ø™VšY]ÜÜÜ
+H\ÈS[[Y[[›ÙOZ]Ë˜ÛÜÙ\İS[[Y[Š	ÖÙ]K[ZY]šY]×IÊOÏÛ[™Xİ[›ÙOË™Ù]›İ[™[™ĞÛY[™Xİ
+
+K]\ÏJË™Z[K[YH\Èİš[™Ö×JOÏÖ×KÙ[XİY^R[™^SX]›X^
+]\Ëš[™^ÙŠÙ[XİY]T™Y‹˜İ\œ™[Ù[XİYÙYY
+JNÂˆ™]\›ÜÙXİ[Û››ÙOË™]\Ù]›ZYšY]ß	ÉËšY]ÜÜÜœ™XİÓX]œ›İ[™
+™XİÜ
+NšY]ÜÜÜØÜ›ÛN“X]œ›İ[™
+Ú[™İËœØÜ›ÛJKÙ[XİY^R[™^NÂˆBˆ[˜İ[ÛˆÙ]ØÊ™^“ØØ][Û‹™\Ù\™UšY]Ï]YJ^ØÛÛœİ›Ü›X[^™Y^Ë‹‹››Ü›X[^™SØØ][ÛŠ™^
+K]]ÛØØ]Y›™^˜]]ÛØØ]YOO]Y_KÛİ\˜ÙO[›Ü›X[^™Y˜]]ÛØØ]YÉİ˜XÚÙY	Î‰ÛX[X[	ËØ[YO[ØÉ‰›ØØ][ÛœÓ™X\›Q\]Z]˜[[
+ØË›Ü›X[^™Y
+NÜÙ]ØØ][Û”Ù[Xİ[Û”Ûİ\˜ÙJÛİ\˜ÙJNÚYŠØ[YJ^ÚYŠØÉ‰ˆ[ØØ][ÛœÔÚ[İÑ\]X[
+ØË›Ü›X[^™Y
+J^Ü\œÚ\İÙ[XİYØØ][ÛŠ›Ü›X[^™YYJNÜÙ]ØÔİ]J›Ü›X[^™Y
+_\™]\›ŸZYŠ™\Ù\™UšY]Ê\[™[™ÕšY]Ô™\İÜ™K˜İ\œ™[XØ\\™Pİ\œ™[šY]Ê
+NØX›Ü[™\]Y\İÊ
+NÜÙ\K˜İ\œ™[
+ÊÎÜ\œÚ\İÙ[XİYØØ][ÛŠ›Ü›X[^™YYJNÜÙ]ØÔİ]J›Ü›X[^™Y
+NÜÙ]Ê[
+NÜÙ]Z\Š[
+NÜÙ]Z\”İ][ÛŠ[
+NÜÙ]™\İX]Ú[™›Ê[
+NÜÙ]İ
+[
+NÜÙ][œÊ×JNÜÙ][œÙ[X›TØÙ[˜\š[ÜÊ×JNÜÙ][Ù[Ê×JNÜÙ][œÙ[X›T[œÊ×JNÜÙ]Ø\›š[™Ñ[œÙ[X›J[
+NÜÙ]Û[X]J×JNÜÙ]Û[X]Q\œ›ÜŠ	ÉÊNÜÙ]Ù™šXÚX[
+×JNÜÙ]Ù™šXÚX[\œ›ÜŠ	ÉÊNÜÙ]Ù™šXÚX[›İšY\Š	ÉÊNÜÙ]˜Y\[˜[\Ú\Ê[
+NÜÙ]˜Y\[˜[\Ú\Ñ\œ›ÜŠ	ÉÊNÜÙ][™\[˜[\Ú\Ê[
+NÜÙ]X]T˜Z[˜\ÙJ[
+NÜÙ]›Ü™XØ\İ\Ú[ÛŠ[
+NÜÙ[XİY]T™Y‹˜İ\œ™[IÉÎÜÙ]Ù[XİYÙYY
+	ÉÊ_Bˆ[˜İ[ÛˆÙÙÛQ˜]›Üš]J\™Ù]“ØØ][ÛŠ^ØÛÛœİ›Ü›X[^™YY˜]›Üš]SØØ][ÛŠ\™Ù]
+NÜÙ]˜]›Üš]\Êİ\œ™[OØÛÛœİ^\İ[™Ï[X]Ú[™ÔİÜ™Y˜]›Üš]Jİ\œ™[›Ü›X[^™Y
+NÚYŠ^\İ[™Ê^ÛX\šÑ˜]›Üš]T™[[İ™Y
+^\İ[™ÊNÜ™]\›ˆİ\œ™[™š[\Š][OOš][KšYOOY^\İ[™ËšY
+_XÛÛœİYY‘˜]›Üš]O^ÚY™˜]›Üš]RY
+
+KØØ][Û››Ü›X[^™Y[X\Î‰ÉËÜ›İ\‰Ğ[Ù[YZ[‰Ë\ÑY˜][˜İ\œ™[›[™İOOL[\ÎË‹‹‘QUSÑU“Ô’UWÔ•STßK[İ[Z[™Y˜][[İ[Z[ÛÛ™šYÊ›Ü›X[^™Y
+KØ]\™Y˜][Ø]\ÛÛ™šYÊ
+_NØÛX\‘˜]›Üš]UÛXœİÛ™\ÊØYYšYJNÜ™]\›–Ë‹‹˜İ\œ™[YY_J_Bˆ\Ş[˜È[˜İ[ÛˆØY
+Ü[ÛœÎÙ›Ü˜ÙQœ™\ÚÎ˜›ÛÛX[ŸO^ßJ^ÂˆYŠ[ØÊ\™]\›ÂˆÛÛœİ›Ü˜ÙQœ™\Ú[Ü[ÛœË™›Ü˜ÙQœ™\ÚOO]YKYJÊÜÙ\K˜İ\œ™[YÙX]\P›ÛÛX[ŠÊKØ\›Tİ][ÛY›Ü˜ÙQœ™\ÚÛ[œİ][ÛØXÚQ[Q›Ü“ØØ][ÛŠØË›]]YKØË›Û™Ú]YKMJŒ
+OË˜[YOÏÛ[Ø\›PZ\\™XY[˜[\Ú\ĞØXÚO[OŠ	ØZ\‹\]X[]IËØË›]]YKØË›Û™Ú]YKŠŒÍŒLŒ
+KØ\›T˜Y\\™XY[˜[\Ú\ĞØXÚO˜Y\“›İØØ\İŠ	Ü˜Y\‰ËØË›]]YKØË›Û™Ú]YKÊŒ
+KØ\›T˜Y\’\İÜO\™XY[˜[\Ú\ĞØXÚO˜Y\’\İÜOŠ	Ü˜Y\‹Z\İÜIËØË›]]YKØË›Û™Ú]YKLŠŒ
+NØX›Ü[™\]Y\İÊ
+NÛX\šÑ›Ü™YÜ›İ[™™]ÛÜšĞ\ŞJ
+NÂˆÛÛœİ›Ü™XØ\İÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ù›Ü™XØ\İ	ÊK™[ØYYİ][Û”›ÛZ\ÙOHY›Ü˜ÙQœ™\Ú	‰ˆ]Ø\›Tİ][ÛÜİ\\İ][Û‘›Ü“ØØ][ÛŠØÊN›[™[ØYYİ][Û‘[œšXÚY[›ÛZ\ÙOHY›Ü˜ÙQœ™\ÚÜİ\\İ][Û‘[œšXÚY[›Ü“ØØ][ÛŠØÊN›[™[ØYY˜Y\”›ÛZ\ÙOHY›Ü˜ÙQœ™\ÚÜİ\\˜Y\‘›Ü“ØØ][ÛŠØÊN›[İ\\İ][ÛÛÛ›Û\H]Ø\›Tİ][Û‰‰ˆ\™[ØYYİ][Û”›ÛZ\ÙOØ™YÚ[”™\]Y\İ
+	Üİ][Û‹\İ\\	ÊN›[İ\\İ][ÛX›ÜYJ
+OOœİ\\İ][ÛÛÛ›Û\ËœÚYÛ˜[˜X›ÜYOO]YKİ\\İ][Û”Ûİ\˜ÙO\™[ØYYİ][Û”›ÛZ\ÙOÏÊİ\\İ][ÛÛÛ›Û\Üİ][ÛŠØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KØË™[]˜][Û‹ØËİ\\İ][ÛÛÛ›Û\‹œÚYÛ˜[YK›Ü˜ÙQœ™\Ú
+N›[
+Kİ\\İ][Û”›ÛZ\ÙO\İ\\İ][Û”Ûİ\˜ÙOÜİ\\İ][Û”Ûİ\˜ÙK[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\İ\\İ][ÛX›ÜY
+
+I‰˜[YJ^İÜš]P[˜[\Ú\ĞØXÚJ	Üİ][Û‹\›İš\Ú[Û˜[	ËØË›]]YKØË›Û™Ú]YK˜[YJNÜÙ]İ
+İ\œ™[Oœ™Y™\”İ][Û”™\İ[
+İ\œ™[˜[YJJ_\™]\›ˆ˜[Y_JK˜Ø]Ú
+™X\ÛÛOÚYŠİ\\İ][ÛÛÛ›Û\‰‰š\ĞX›Ü
+™X\ÛÛ‹İ\\İ][ÛÛÛ›Û\‹œÚYÛ˜[
+J\™]\›ˆ[Ü™]\›ˆ[JK™š[˜[J
+
+OOÚYŠİ\\İ][ÛÛÛ›Û\ŠYš[š\Ú™\]Y\İ
+	Üİ][Û‹\İ\\	Ëİ\\İ][ÛÛÛ›Û\Š_JN›[ÂˆÙ]ØY[™ÊYJNÜÙ]\œ›ÜŠ	ÉÊNÂˆYŠZYÙX]\Š^ÜÙ]Ê[
+NÜÙ]Z\ŠØ\›PZ\ŠNÜÙ]Z\”İ][ÛŠ[
+NÜÙ]™\İX]Ú[™›Ê[
+NÜÙ]İ
+Ø\›Tİ][ÛŠNÜÙ]Ù™šXÚX[
+×JNÜÙ]Ù™šXÚX[›İšY\Š	ÉÊNÜÙ]˜Y\[˜[\Ú\ÊØ\›T˜Y\ŠNÜÙ]˜Y\’\İÜR[™›ÊØ\›T˜Y\’\İÜJNÜÙ][™\[˜[\Ú\Ê[
+NÜÙ]X]T˜Z[˜\ÙJ[
+NÜÙ]›Ü™XØ\İ\Ú[ÛŠ[
+_BˆÙ]İ][Û“ØY[™Ê›ÛÛX[Šİ\\İ][Û”›ÛZ\ÙI‰ˆ]Ø\›Tİ][ÛŠJNÜÙ]Ù™šXÚX[\œ›ÜŠ	ÉÊNÜÙ]Ù™šXÚX[ØY[™Ê˜[ÙJNÜÙ]˜Y\[˜[\Ú\Ñ\œ›ÜŠ	ÉÊNÜÙ]˜Y\[˜[\Ú\ÓØY[™Ê›ÛÛX[Š™[ØYY˜Y\”›ÛZ\ÙI‰ˆ]Ø\›T˜Y\ŠJNÚYŠZYÙX]\Š^ÜÙ][œÊ×JNÜÙ][œÙ[X›TØÙ[˜\š[ÜÊ×JNÜÙ][Ù[Ê×JNÜÙ][œÙ[X›T[œÊ×JNÜÙ]Ø\›š[™Ñ[œÙ[X›J[
+_\Ù][œÑ\œ›ÜŠ	ÉÊNÜÙ][œÓØY[™Ê˜[ÙJNÜÙ]Û[X]J×JNÜÙ]Û[X]Q\œ›ÜŠ	ÉÊNÜÙ]Û[X]SØY[™Ê˜[ÙJNÂˆÛÛœİÛÛ›™Xİ[ÛJ˜]šYØ]Üˆ\È˜]šYØ]Ü‰ØÛÛ›™Xİ[ÛÎÜØ]™Q]OÎ˜›ÛÛX[ÙY™™Xİ]™U\OÎœİš[™ß_JK˜ÛÛ›™Xİ[Û‹ÛÛœİ˜Z[™Y™]ÛÜšÏXÛÛ›™Xİ[ÛËœØ]™Q]OOO]Y_ÛÛ›™Xİ[ÛË™Y™™Xİ]™U\OOOIÜÛİËL™ÉßÛÛ›™Xİ[ÛË™Y™™Xİ]™U\OOOIÌ™ÉÎÂˆ]˜Y\‘[œšXÚY[ØÚY[YY˜[ÙNÂˆÛÛœİØÚY[T˜Y\‘[œšXÚY[J
+OOÚYŠ˜Y\‘[œšXÚY[ØÚY[YYOO\Ù\K˜İ\œ™[
+\™]\›Ü˜Y\‘[œšXÚY[ØÚY[Y]YNØÛÛœİ[œšXÚÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ËY[œšXÚY[	ÊNİÚ[™İËœÙ][Y[İ]
+
+
+OOÚYŠYOO\Ù\K˜İ\œ™[[œšXÚÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^Ùš[š\Ú™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ËY[œšXÚY[	Ë[œšXÚÛÛ›Û\ŠNÜ™]\›Ÿ\˜Y\“›İØØ\İ
+ØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[K[œšXÚÛÛ›Û\‹œÚYÛ˜[˜[ÙJK[Š[œšXÚYOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆY[œšXÚÛÛ›Û\‹œÚYÛ˜[˜X›ÜY	‰™[œšXÚY
+^ÜÙ]˜Y\[˜[\Ú\Ê[œšXÚY
+NİÜš]P[˜[\Ú\ĞØXÚJ	Ü˜Y\‰ËØË›]]YKØË›Û™Ú]YK[œšXÚY
+__JK˜Ø]Ú
+
+
+OO[™Yš[™Y
+K™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ËY[œšXÚY[	Ë[œšXÚÛÛ›Û\ŠJ_KÛÛœİ˜Z[™Y™]ÛÜšÏÍÌŒ
+_NÂˆÛÛœİX›\Ú˜\İ˜Y\J˜[YN”˜Y\“›İØØ\İ[
+OOÚYŠYOO\Ù\K˜İ\œ™[]˜[YJ\™]\›ÜÙ]˜Y\[˜[\Ú\Ê˜[YJNİÜš]P[˜[\Ú\ĞØXÚJ	Ü˜Y\‰ËØË›]]YKØË›Û™Ú]YK˜[YJNÜØÚY[T˜Y\‘[œšXÚY[
+
+_NÂˆÛÛœİ™]Q˜\İ˜Y\Y\”™[ØYZ\ÜÏJ
+OOÚYŠYOO\Ù\K˜İ\œ™[
+\™]\›ØÛÛœİ˜Y\ÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\Ë\™]IÊNÜ˜Y\“›İØØ\İ
+ØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[K˜Y\ÛÛ›Û\‹œÚYÛ˜[YJK[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\˜Y\ÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\X›\Ú˜\İ˜Y\Š˜[YJ_JK˜Ø]Ú
+
+
+OO[™Yš[™Y
+K™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\Ë\™]IË˜Y\ÛÛ›Û\ŠJ_NÂˆYŠ™[ØYY˜Y\”›ÛZ\ÙJ]›ÚY™[ØYY˜Y\”›ÛZ\ÙK[Š˜[YOOÚYŠ˜[YJ\X›\Ú˜\İ˜Y\Š˜[YJNÙ[ÙH™]Q˜\İ˜Y\Y\”™[ØYZ\ÜÊ
+_JK™š[˜[J
+
+OOÚYŠYOO\Ù\K˜İ\œ™[
+\Ù]˜Y\[˜[\Ú\ÓØY[™Ê˜[ÙJ_JNÂˆ^ÂˆÛÛœİİ\\›Ü™XØ\İHY›Ü˜ÙQœ™\ÚÜİ\\›Ü™XØ\İ›Ü“ØØ][ÛŠØÊN›[ÏX]ØZ]
+İ\\›Ü™XØ\İÜİ\\›Ü™XØ\İ[Š˜[YOO˜[YOÏÙ›Ü™XØ\İ
+ØË›]]YKØË›Û™Ú]YK›Ü™XØ\İÛÛ›Û\‹œÚYÛ˜[Üš[Üš]N‰Ù›Ü™YÜ›İ[™	Ë›Ü˜ÙQœ™\Ú™˜[ÙK[YV›Û™N›ØË[Y^›Û™_
+ØË˜]]ÛØØ]YÒ[‘]U[YQ›Ü›X]
+
+Kœ™\ÛÛ™YÜ[ÛœÊ
+K[YV›Û™N[™Yš[™Y
+K[]˜][Û›ØË™[]˜][ÛŸJJN™›Ü™XØ\İ
+ØË›]]YKØË›Û™Ú]YK›Ü™XØ\İÛÛ›Û\‹œÚYÛ˜[Üš[Üš]N‰Ù›Ü™YÜ›İ[™	Ë›Ü˜ÙQœ™\Ú›Ü[ÛœË™›Ü˜ÙQœ™\ÚOO]YK[YV›Û™N›ØË[Y^›Û™_
+ØË˜]]ÛØØ]YÒ[‘]U[YQ›Ü›X]
+
+Kœ™\ÛÛ™YÜ[ÛœÊ
+K[YV›Û™N[™Yš[™Y
+K[]˜][Û›ØË™[]˜][ÛŸJJNÚYŠYOO\Ù\K˜İ\œ™[›Ü™XØ\İÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\™]\›ÚYŠ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[OO][™Yš[™Y
+^İÚ[™İË˜ÛX\•[Y[İ]
+›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[
+NÙ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[][™Yš[™YBˆÙ]ÊÊNİ^ÙØİ[Y[™Øİ[Y[[[Y[™]\Ù]›ZYÛÜ™Q]T™XYOTİš[™Ê]K››İÊ
+JNİÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZY˜ÛÜ™KY]K\™XYIËÙ]Z[Ø]‘]K››İÊ
+KÛİ\˜ÙN”İš[™Ê
+È\È[JOË—ÛZYØÛÜ™WÜÛİ\˜Ù_	Ù›Ü™XØ\İ	Ê__JJ_XØ]Úß\Ù][œÙ[X›T™Yœ™\Ú™]š\Ú[ÛŠ˜[YOO˜[YJÌJNØÛÛœİ™\ÛÛ™YØØ][Û^Ë‹‹›ØË[Y^›Û™N™Ë[Y^›Û™K[]˜][Û“[X™\‹š\Ñš[š]JØË™[]˜][ÛŠOÛØË™[]˜][Û™Ë™[]˜][ÛŸNÜ\œÚ\İÙ[XİYØØ][ÛŠ™\ÛÛ™YØØ][Û‹˜[ÙJNÜÙ]ØÔİ]Jİ\œ™[O˜İ\œ™[	‰˜İ\œ™[šYOO[ØËšYÜ™\ÛÛ™YØØ][Û˜İ\œ™[
+NÜÙ]˜]›Üš]\Êİ\œ™[OÛ]Ú[™ÙYY˜[ÙNØÛÛœİ™^Xİ\œ™[›X\
+][OOÚYŠ˜]›Üš]RÙ^J][K›ØØ][ÛŠHOOY˜]›Üš]RÙ^J™\ÛÛ™YØØ][ÛŠJ\™]\›ˆ][NØÛÛœİY\™ÙY^Ë‹‹š][K›ØØ][Û‹‹‹œ™\ÛÛ™YØØ][ÛŸNÚYŠØØ][ÛœÔÚ[İÑ\]X[
+][K›ØØ][Û‹Y\™ÙY
+J\™]\›ˆ][NØÚ[™ÙY]YNÜ™]\›Ë‹‹š][KØØ][Û›Y\™ÙY_JNÜ™]\›ˆÚ[™ÙYÛ™^˜İ\œ™[JNØÛÛœİ™Y™\œ™Y^O\[™[™ÕšY]Ô™\İÜ™K˜İ\œ™[ËœÙ[XİY^R[™^ÏÌÙ]Ù[XİY]OTİš[™Ê
+Ë™Z[K[YH\Èİš[™Ö×JVÓX]›Z[ŠX]›X^
+™Y™\œ™Y^JKX]›X^
+
+Ë™Z[K[YH\Èİš[™Ö×JK›[™İLJJWOÏÙË™Z[K[YVÌJNÜÙ[XİY]T™Y‹˜İ\œ™[\Ù]Ù[XİY]NÜÙ]Ù[XİYÙYY
+Ù]Ù[XİY]JNÜÙ]ØY[™Ê˜[ÙJNÂ‚ˆÛÛœİİ][ÛØXÚQ[OY›Ü˜ÙQœ™\ÚÛ[œİ][ÛØXÚQ[Q›Ü“ØØ][ÛŠØË›]]YKØË›Û™Ú]YKMJŒ
+KØXÚYİ][Û\İ][ÛØXÚQ[OË˜[YOÏÛ[ØXÚYİ][ÛYÙO\İ][ÛØXÚQ[OÑ]K››İÊ
+K\İ][ÛØXÚQ[KœØ]™Y]’[™š[š]NÚYŠØXÚYİ][ÛŠ\Ù]İ
+İ\œ™[Oœ™Y™\”İ][Û”™\İ[
+İ\œ™[ØXÚYİ][ÛŠJNÂˆÛÛœİX›\Úİ][ÛJ˜[YN”İ][ÛŸ[š[˜[˜›ÛÛX[ŠOOÚYŠYOO\Ù\K˜İ\œ™[]˜[YJ\™]\›ØÛÛœİ˜[šÏ\İ][Û[˜[\Ú\Ô˜[šÊ˜[YJNÚYŠš[˜[	‰œ˜[šÏLŠ]Üš]P[˜[\Ú\ĞØXÚJ	Üİ][Û‰ËØË›]]YKØË›Û™Ú]YK˜[YJNÙ[ÙHÜš]P[˜[\Ú\ĞØXÚJ	Üİ][Û‹\›İš\Ú[Û˜[	ËØË›]]YKØË›Û™Ú]YK˜[YJNÜÙ]İ
+İ\œ™[Oœ™Y™\”İ][Û”™\İ[
+İ\œ™[˜[YJJ_NÂˆ][İ][Û[˜[\Ú\ĞÛZ[YYY˜[ÙNÂˆÛÛœİ[‘[İ][Û[˜[\Ú\ÏJ[İÔİ\\[œšXÚY[]YJOOÚYŠ[İ][Û[˜[\Ú\ĞÛZ[YY
+\™]\›Ù[İ][Û[˜[\Ú\ĞÛZ[YY]YNÜÙ]İ][Û“ØY[™ÊYJNÚYŠ[İÔİ\\[œšXÚY[	‰œ™[ØYYİ][Û‘[œšXÚY[›ÛZ\ÙI‰ˆY›Ü˜ÙQœ™\Ú
+^Û]˜[˜XÚÔİ\YY˜[ÙNİ›ÚY™[ØYYİ][Û‘[œšXÚY[›ÛZ\ÙK[Š[œšXÚYOÚYŠ[œšXÚY
+^ÜX›\Úİ][ÛŠ[œšXÚYYJNÜ™]\›ŸY˜[˜XÚÔİ\Y]YNÙ[İ][Û[˜[\Ú\ĞÛZ[YYY˜[ÙNÜ[‘[İ][Û[˜[\Ú\Ê˜[ÙJ_JK™š[˜[J
+
+OOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆY˜[˜XÚÔİ\Y
+\Ù]İ][Û“ØY[™Ê˜[ÙJ_JNÜ™]\›ŸXÛÛœİ[œšXÚÛÛ›Û\X™YÚ[”™\]Y\İ
+	Üİ][Û‹Y[œšXÚY[	ÊNÜİ][ÛŠØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KØË™[]˜][ÛÏÙË™[]˜][Û‹ØË[œšXÚÛÛ›Û\‹œÚYÛ˜[˜[ÙK›Ü˜ÙQœ™\Ú
+K[Š[œšXÚYOÚYŠY[œšXÚÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\X›\Úİ][ÛŠ[œšXÚYYJ_JK˜Ø]Ú
+
+
+OO[™Yš[™Y
+K™š[˜[J
+
+OOÙš[š\Ú™\]Y\İ
+	Üİ][Û‹Y[œšXÚY[	Ë[œšXÚÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[	‰ˆY[œšXÚÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]İ][Û“ØY[™Ê˜[ÙJ_J_NÂˆÛÛœİØXÚYšXÚ\İ][Û[˜[\Ú\Ô˜[šÊØXÚYİ][ÛŠOLÉ‰ˆ\İ][Û“™YYÑ[œšXÚY[
+ØXÚYİ][ÛŠKØXÚYœ™\Ú[›İYÚHY›Ü˜ÙQœ™\Ú	‰˜ØXÚYšXÚ	‰˜ØXÚYİ][ÛYÙOLŠŒÂˆYŠØXÚYœ™\Ú[›İYÚ
+\Ù]İ][Û“ØY[™Ê˜[ÙJNÂˆ[ÙHYŠØXÚYİ][ÛŠ^Ü[‘[İ][Û[˜[\Ú\Ê
+_Bˆ[Ù^ÂˆÛÛœİ›İš\Ú[Û˜[Y›Ü˜ÙQœ™\ÚÛ[œ™XY[˜[\Ú\ĞØXÚOİ][ÛŠ	Üİ][Û‹\›İš\Ú[Û˜[	ËØË›]]YKØË›Û™Ú]YK
+Œ
+NÚYŠ›İš\Ú[Û˜[
+\Ù]İ
+İ\œ™[Oœ™Y™\”İ][Û”™\İ[
+İ\œ™[›İš\Ú[Û˜[
+JNÂˆÛÛœİØÚY[Q[œšXÚY[J˜[YN”İ][ÛŸ[ÚYÛ˜[ÎX›ÜÚYÛ˜[
+OOÚYŠYOO\Ù\K˜İ\œ™[ÚYÛ˜[Ë˜X›ÜY
+\™]\›ÚYŠİ][Û“™YYÑ[œšXÚY[
+˜[YJ_İ][Û[˜[\Ú\Ô˜[šÊ˜[YJO
+]Ú[™İËœÙ][Y[İ]
+
+
+OOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\ÚYÛ˜[Ë˜X›ÜY
+\[‘[İ][Û[˜[\Ú\Ê
+_K
+_NÂˆYŠİ\\İ][Û”›ÛZ\ÙJ^ÜÙ]İ][Û“ØY[™Ê\›İš\Ú[Û˜[
+NÜİ\\İ][Û”›ÛZ\ÙK[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\İ\\İ][ÛX›ÜY
+
+J^ÜX›\Úİ][ÛŠ˜[YK˜[ÙJNÜØÚY[Q[œšXÚY[
+˜[YKİ\\İ][ÛÛÛ›Û\ËœÚYÛ˜[
+__JK™š[˜[J
+
+OOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\İ\\İ][ÛX›ÜY
+
+J\Ù]İ][Û“ØY[™Ê˜[ÙJ_J_Bˆ[Ù^ØÛÛœİİ][ÛÛÛ›Û\X™YÚ[”™\]Y\İ
+	Üİ][Û‰ÊNÜÙ]İ][Û“ØY[™Ê\›İš\Ú[Û˜[
+NÜİ][ÛŠØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KØË™[]˜][ÛÏÙË™[]˜][Û‹ØËİ][ÛÛÛ›Û\‹œÚYÛ˜[YK›Ü˜ÙQœ™\Ú
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\İ][ÛÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜX›\Úİ][ÛŠ˜[YK˜[ÙJNÜØÚY[Q[œšXÚY[
+˜[YKİ][ÛÛÛ›Û\‹œÚYÛ˜[
+__JK˜Ø]Ú
+™X\ÛÛOÚYŠZ\ĞX›Ü
+™X\ÛÛ‹İ][ÛÛÛ›Û\‹œÚYÛ˜[
+I‰šYOO\Ù\K˜İ\œ™[
+^ÚYŠ\›İš\Ú[Û˜[
+\Ù]İ
+[
+NÜØÚY[Q[œšXÚY[
+[İ][ÛÛÛ›Û\‹œÚYÛ˜[
+__JK™š[˜[J
+
+OOÙš[š\Ú™\]Y\İ
+	Üİ][Û‰Ëİ][ÛÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\İ][ÛÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]İ][Û“ØY[™Ê˜[ÙJ_J_BˆB‚ˆÛÛœİØXÚYZ\Y›Ü˜ÙQœ™\ÚÛ[œ™XY[˜[\Ú\ĞØXÚO[OŠ	ØZ\‹\]X[]IËØË›]]YKØË›Û™Ú]YKMJŒLŒ
+NÚYŠØXÚYZ\Š\Ù]Z\ŠØXÚYZ\ŠNÂˆYŠXØXÚYZ\Š^ØÛÛœİZ\ÛÛ›Û\X™YÚ[”™\]Y\İ
+	ØZ\‹\]X[]IÊNØZ\”]X[]JØË›]]YKØË›Û™Ú]YKZ\ÛÛ›Û\‹œÚYÛ˜[›Ü˜ÙQœ™\Ú
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆXZ\ÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜÙ]Z\Š˜[YJNİÜš]P[˜[\Ú\ĞØXÚJ	ØZ\‹\]X[]IËØË›]]YKØË›Û™Ú]YK˜[YJ__JK˜Ø]Ú
+
+
+OOßJK™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	ØZ\‹\]X[]IËZ\ÛÛ›Û\ŠJ_B‚ˆÛÛœİØXÚY˜Y\Y›Ü˜ÙQœ™\ÚÛ[œ™XY[˜[\Ú\ĞØXÚO˜Y\“›İØØ\İŠ	Ü˜Y\‰ËØË›]]YKØË›Û™Ú]YK
+Œ
+K˜Y\‘˜[˜XÚÏXØXÚY˜Y\ÏÜ™XY[˜[\Ú\ĞØXÚO˜Y\“›İØØ\İŠ	Ü˜Y\‰ËØË›]]YKØË›Û™Ú]YKÊŒ
+NÚYŠ˜Y\‘˜[˜XÚÊ\Ù]˜Y\[˜[\Ú\Ê˜Y\‘˜[˜XÚÊNÂˆYŠXØXÚY˜Y\‰‰ˆ\™[ØYY˜Y\”›ÛZ\ÙJ^ØÛÛœİ˜Y\ÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ÉÊNÜÙ]˜Y\[˜[\Ú\ÓØY[™Ê\˜Y\‘˜[˜XÚÊNÜ˜Y\“›İØØ\İ
+ØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[K˜Y\ÛÛ›Û\‹œÚYÛ˜[YJK[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\˜Y\ÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\X›\Ú˜\İ˜Y\Š˜[YJ_JK˜Ø]Ú
+™X\ÛÛOÚYŠZ\ĞX›Ü
+™X\ÛÛ‹˜Y\ÛÛ›Û\‹œÚYÛ˜[
+I‰šYOO\Ù\K˜İ\œ™[
+\Ù]˜Y\[˜[\Ú\Ñ\œ›ÜŠ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN‰Ô˜Y\˜]\İÙ\[™ÈšXÚ™\™°ïØ˜\‹‰Ê_JK™š[˜[J
+
+OOÙš[š\Ú™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ÉË˜Y\ÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ\˜Y\ÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]˜Y\[˜[\Ú\ÓØY[™Ê˜[ÙJ_J_Y[ÙHYŠØXÚY˜Y\Š^ÜÙ]˜Y\[˜[\Ú\ÓØY[™Ê˜[ÙJNÜØÚY[T˜Y\‘[œšXÚY[
+
+_B‚ˆÛÛœİØXÚY\İÜOY›Ü˜ÙQœ™\ÚÛ[œ™XY[˜[\Ú\ĞØXÚO˜Y\’\İÜOŠ	Ü˜Y\‹Z\İÜIËØË›]]YKØË›Û™Ú]YKJŒ
+NÚYŠØXÚY\İÜJ\Ù]˜Y\’\İÜR[™›ÊØXÚY\İÜJNÙ[Ù^ØÛÛœİ\İÜPÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ü˜Y\‹Z\İÜIÊNÜ˜Y\’\İÜJØË›]]YKØË›Û™Ú]YK\İÜPÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆZ\İÜPÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜÙ]˜Y\’\İÜR[™›Ê˜[YJNİÜš]P[˜[\Ú\ĞØXÚJ	Ü˜Y\‹Z\İÜIËØË›]]YKØË›Û™Ú]YK˜[YJ__JK˜Ø]Ú
+
+
+OO[™Yš[™Y
+K™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	Ü˜Y\‹Z\İÜIË\İÜPÛÛ›Û\ŠJ_B‚ˆÛÛœİØXÚYØ\›š[™ÜÏY›Ü˜ÙQœ™\ÚÛ[œ™XY[˜[\Ú\ĞØXÚOØ[\Î“Ù™šXÚX[[\×NÜ›İšY\Îœİš[™ÎØÛİ™\˜YÙOÎœİš[™ßOŠ	ÛÙ™šXÚX[]Ø\›š[™ÜÉËØË›]]YKØË›Û™Ú]YKÊŒL
+NÚYŠØXÚYØ\›š[™ÜÊ^ÜÙ]Ù™šXÚX[
+ØXÚYØ\›š[™ÜË˜[\ÊNÜÙ]Ù™šXÚX[›İšY\ŠØXÚYØ\›š[™ÜËœ›İšY\ŸØXÚYØ\›š[™ÜË˜Ûİ™\˜YÙ_	ĞĞT	Ê_Y[Ù^ØÛÛœİØ\›š[™ĞÛÛ›Û\X™YÚ[”™\]Y\İ
+	ÛÙ™šXÚX[]Ø\›š[™ÜÉÊNÜÙ]Ù™šXÚX[ØY[™ÊYJNÛÙ™šXÚX[Ø\›š[™ÜÊØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KØË›˜[YKØË˜YZ[ŒKØË˜YZ[Œ‹Ø\›š[™ĞÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ]Ø\›š[™ĞÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜÙ]Ù™šXÚX[
+˜[YK˜[\ÊNÜÙ]Ù™šXÚX[›İšY\Š˜[YKœ›İšY\Ÿ˜[YK˜Ûİ™\˜YÙ_	ĞĞT	ÊNİÜš]P[˜[\Ú\ĞØXÚJ	ÛÙ™šXÚX[]Ø\›š[™ÜÉËØË›]]YKØË›Û™Ú]YK˜[YJ__JK˜Ø]Ú
+™X\ÛÛOÚYŠZ\ĞX›Ü
+™X\ÛÛ‹Ø\›š[™ĞÛÛ›Û\‹œÚYÛ˜[
+I‰šYOO\Ù\K˜İ\œ™[
+\Ù]Ù™šXÚX[\œ›ÜŠ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN‰Ğ[]XÚHØ\›[™Ù[ˆÛÛ›[ˆšXÚÙ[Y[ˆÙ\™[‹‰Ê_JK™š[˜[J
+
+OOÙš[š\Ú™\]Y\İ
+	ÛÙ™šXÚX[]Ø\›š[™ÜÉËØ\›š[™ĞÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ]Ø\›š[™ĞÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]Ù™šXÚX[ØY[™Ê˜[ÙJ_J_B‚ˆÛÛœİ[Ù[ÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ø™\İ[X]ÚZ[™›ÉÊNØ™\İX]Ú[Ù[[™›ÊØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[K[Ù[ÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ[[Ù[ÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]™\İX]Ú[™›Ê˜[YJ_JK˜Ø]Ú
+
+
+OOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆ[[Ù[ÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]™\İX]Ú[™›Ê[
+_JK™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	Ø™\İ[X]ÚZ[™›ÉË[Ù[ÛÛ›Û\ŠJNÂˆXØ]Ú
+™X\ÛÛŠ^ÚYŠZ\ĞX›Ü
+™X\ÛÛ‹›Ü™XØ\İÛÛ›Û\‹œÚYÛ˜[
+I‰šYOO\Ù\K˜İ\œ™[
+^ÜÙ]ØY[™Ê˜[ÙJNÚYŠ\ÓÜ[“Y][Ô˜]S[Z]\œ›ÜŠ™X\ÛÛŠJ^ÚYŠZYÙX]\Š\Ù]\œ›ÜŠ™X\ÛÛ‹›Y\ÜØYÙJNÙ[ÙHÙ]\œ›ÜŠ	ÉÊNÚYŠ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[OO][™Yš[™Y
+]Ú[™İË˜ÛX\•[Y[İ]
+›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[
+NØÛÛœİ™]P]S[X™\Š™X\ÛÛ‹œ™]P]
+_]K››İÊ
+JÌLŒ[^OSX]›X^
+LX]›Z[ŠŒ™]P]Q]K››İÊ
+JÌÍL
+JNÙ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[]Ú[™İËœÙ][Y[İ]
+
+
+OOÙ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[][™Yš[™YÚYŠØİ[Y[š\ÚXš[]Tİ]HOOIÚY[‰É‰œÙ\K˜İ\œ™[OOZY
+]›ÚYØY
+
+_K[^J_Y[ÙHÙ]\œ›ÜŠ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN‰ÓY[ˆ™ZÙ\ØÚYÙ[‰Ê__Yš[˜[^Ùš[š\Ú™\]Y\İ
+	Ù›Ü™XØ\İ	Ë›Ü™XØ\İÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[
+[X\šÑ›Ü™YÜ›İ[™™]ÛÜšÔ™XYJ
+_BˆBˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ[Øß]Ê^ÜÙ]›Ü™XØ\İ\Ú[ÛŠ[
+NÜ™]\›ŸBˆ]\ÜÜÙYY˜[ÙK[Y\LYR[™OLÛÛ›Û\X›ÜÛÛ›Û\Ÿ[[[ÂˆÛÛœİØ[˜Ù[YOJ
+OOÚYŠYR[™I‰‰ØØ[˜Ù[YPØ[˜XÚÉÚ[ˆÚ[™İÊJÚ[™İÈ\ÈÚ[™İÉØØ[˜Ù[YPØ[˜XÚÏÎŠ[™N›[X™\ŠOO›ÚYJK˜Ø[˜Ù[YPØ[˜XÚÏËŠYR[™JNÙ[ÙHYŠYR[™J]Ú[™İË˜ÛX\•[Y[İ]
+YR[™JNÚYR[™OLNÂˆÛÛœİÛÛ›™Xİ[ÛJ˜]šYØ]Üˆ\È˜]šYØ]Ü‰ØÛÛ›™Xİ[ÛÎÜØ]™Q]OÎ˜›ÛÛX[ÙY™™Xİ]™U\OÎœİš[™ß_JK˜ÛÛ›™Xİ[Û‹ÛÛœİ˜Z[™YXÛÛ›™Xİ[ÛËœØ]™Q]OOO]Y_ÛÛ›™Xİ[ÛË™Y™™Xİ]™U\OOOIÜÛİËL™ÉßÛÛ›™Xİ[ÛË™Y™™Xİ]™U\OOOIÌ™ÉÎÂˆÛÛœİ[J
+OOÚYR[™OLÚYŠ\ÜÜÙYØİ[Y[š\ÚXš[]Tİ]HOOIİš\ÚX›Iß˜]šYØ]Ü‹›Û“[™OOOY˜[ÙJ\™]\›ØÛÛœİ[™[™ÏJ˜]šYØ]Üˆ\È˜]šYØ]Ü‰ÜØÚY[[™ÏÎÚ\Ò[œ][™[™ÏÎŠÜ[ÛœÏÎÚ[˜ÛYPÛÛ[[İ\ÏÎ˜›ÛÛX[ŸJOO˜›ÛÛX[Ÿ_JKœØÚY[[™ÏËš\Ò[œ][™[™ÏËŠÚ[˜ÛYPÛÛ[[İ\ÎY_JNÚYŠ[™[™Ê^İ[Y\]Ú[™İËœÙ][Y[İ]
+ØÚY[KÛÛœİ˜Z[™YÍÌŒŒ
+NÜ™]\›ŸXÛÛ›Û\[™]ÈX›ÜÛÛ›Û\Š
+Nİ›ÚYØY›Ü™XØ\İ\Ú[ÛŠØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KØË™[]˜][ÛÏİË™[]˜][Û‹ÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠY\ÜÜÙY	‰ˆXÛÛ›Û\ËœÚYÛ˜[˜X›ÜY
+\Ù]›Ü™XØ\İ\Ú[ÛŠ˜[YJ_JK˜Ø]Ú
+
+
+OO[™Yš[™Y
+_NÂˆÛÛœİØÚY[OJ
+OOÚYŠ\ÜÜÙY
+\™]\›ØØ[˜Ù[YJ
+NØÛÛœİYOJÚ[™İÈ\ÈÚ[™İÉÜ™\]Y\İYPØ[˜XÚÏÎŠØ[˜XÚÎŠ
+OO›ÚYÜ[ÛœÏÎİ[Y[İ]›[X™\ŸJOO›[X™\ŸJKœ™\]Y\İYPØ[˜XÚÎÚYR[™OZYOÚYJ[‹İ[Y[İ]˜ÛÛœİ˜Z[™YÌŒŒLJNÚ[™İËœÙ][Y[İ]
+[‹ÛÛœİ˜Z[™YÍLŒM
+_NÂˆ[Y\]Ú[™İËœÙ][Y[İ]
+ØÚY[KÛÛœİ˜Z[™YÍLŒM
+NÂˆ™]\›Š
+OOÙ\ÜÜÙY]YNİÚ[™İË˜ÛX\•[Y[İ]
+[Y\ŠNØØ[˜Ù[YJ
+NØÛÛ›Û\Ë˜X›Ü
+
+_NÂˆKÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YKØÏË˜Ûİ[WØÛÙKØÏË˜Ûİ[KØÏË™[]˜][Û‹×JNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ[ØÊ^ØX›Ü[™\]Y\İÊ
+NÜ™]\›Ÿ]›ÚYØY
+
+NÜ™]\›Š
+OOÜÙ\K˜İ\œ™[
+ÊÎØX›Ü[™\]Y\İÊ
+NÚYŠ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[OO][™Yš[™Y
+^İÚ[™İË˜ÛX\•[Y[İ]
+›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[
+NÙ›Ü™XØ\İ˜]T™]T™Y‹˜İ\œ™[][™Yš[™Y__KÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YWJNÂˆ\ÙQY™™Xİ
+
+
+OOÛ]\İ™Yœ™\Ú]LØÛÛœİ™Yœ™\ÚJ›Ü˜ÙQœ™\Ú˜›ÛÛX[ŠOOØÛÛœİÛ›[™O[˜]šYØ]Ü‹›Û“[™HOOY˜[ÙNÜÙ]™]ÛÜšÓÛ›[™JÛ›[™JNÚYŠ[Û›[™_[ØÊ\™]\›ØÛÛœİ›İÏQ]K››İÊ
+NÚYŠ›İË[\İ™Yœ™\Ú]N
+\™]\›Û\İ™Yœ™\Ú][›İÎİ›ÚYØY
+Ù›Ü˜ÙQœ™\ÚJ_KÙ™›[™OJ
+OOœÙ]™]ÛÜšÓÛ›[™J˜[ÙJKÛ›[™OJ
+OOœ™Yœ™\Ú
+YJK™\İ[YOJ]™[‘]™[
+OOØÛÛœİ]Z[J]™[\Èİ\İÛQ]™[ZY[[YT™\İ[YQ]Z[ŠK™]Z[ÜÙ]™]ÛÜšÓÛ›[™J]Z[Ë›Û›[™HOOY˜[ÙJNÚYŠ]Z[Ë›Û›[™HOOY˜[ÙI‰“[X™\Š]Z[Ë™[\ÙY\ß
+OLÌÌ
+\™Yœ™\Ú
+˜[ÙJ_NİÚ[™İË˜Y]™[\İ[™\Š	ÛÙ™›[™IËÙ™›[™JNİÚ[™İË˜Y]™[\İ[™\Š	ÛÛ›[™IËÛ›[™JNİÚ[™İË˜Y]™[\İ[™\ŠRQÔ•S•SQWÔ‘TÕSQWÑU‘S•™\İ[YJNÜ™]\›Š
+OOİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛÙ™›[™IËÙ™›[™JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛÛ›[™IËÛ›[™JNİÚ[™İËœ™[[İ™Q]™[\İ[™\ŠRQÔ•S•SQWÔ‘TÕSQWÑU‘S•™\İ[YJ__KÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YK×JNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ^[İ][ÙHOOIØY˜[˜ÙY	ß[ØÊ^ØX›Ü™\]Y\İ
+	ØZ\‹\]X[]K\İ][Û‰ÊNÜÙ]Z\”İ][ÛŠ[
+NÜ™]\›ŸBˆ]Xİ]™O]YNØÛÛœİÛÛ›Û\X™YÚ[”™\]Y\İ
+	ØZ\‹\]X[]K\İ][Û‰ÊNØZ\”]X[]Tİ][ÛŠØË›]]YKØË›Û™Ú]YKÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]Z\”İ][ÛŠ˜[YJ_JK˜Ø]Ú
+™X\ÛÛOÚYŠXİ]™I‰ˆZ\ĞX›Ü
+™X\ÛÛ‹ÛÛ›Û\‹œÚYÛ˜[
+J^ØÛÛœÛÛKØ\›Š	ÑQPHİ][ÛˆÛÚİ\˜Z[Y	Ë™X\ÛÛŠNÜÙ]Z\”İ][ÛŠØ]˜Z[X›N™˜[ÙK™X\ÛÛ‰ÑQPKSY\ÜÜİ][ÛœÙY[œİ\™Z]šXÚ\œ™ZXÚ˜\‹ˆYHUKPTRKQZ[œİY[™È˜\ÚY\ÙZ]\š[ˆ]Yˆ[ˆZİY[[ˆÜ[‹SY][ËĞĞSTËTİ[™ÜÙ\[‹‰ßJ__JK™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	ØZ\‹\]X[]K\İ][Û‰ËÛÛ›Û\ŠJNÂˆ™]\›Š
+OOØXİ]™OY˜[ÙNÚYŠ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+	ØZ\‹\]X[]K\İ][Û‰ÊOOOXÛÛ›Û\ŠXX›Ü™\]Y\İ
+	ØZ\‹\]X[]K\İ][Û‰ÊNÙ[ÙHÛÛ›Û\‹˜X›Ü
+
+_NÂˆKÛ^[İ][ÙKØÏËšYØÏË›]]YKØÏË›Û™Ú]YWJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ[ØÊ\™]\›ØÛÛœİØXÚY\™XY[˜[\Ú\ĞØXÚO[™\œİÜ›S›İØØ\İŠ	İ[™\œİÜ›IËØË›]]YKØË›Û™Ú]YKL
+ŒLL
+NÚYŠØXÚY
+\Ù][™\[˜[\Ú\ÊØXÚY
+NÛ]Xİ]™O]YK[‘›YÚY˜[ÙK\İ[XØXÚYÑ]K››İÊ
+NŒÂˆÛÛœİ™Yœ™\Ú[™\J
+OOØÛÛœİ›İÏQ]K››İÊ
+NÚYŠXXİ]™_[‘›YÚØİ[Y[š\ÚXš[]Tİ]OOOIÚY[‰ß›İË[\İ[Œ
+\™]\›Û\İ[[›İÎÚ[‘›YÚ]YNØÛÛœİÛÛ›Û\X™YÚ[”™\]Y\İ
+	İ[™\œİÜ›KX[˜[\Ú\ÉÊNİ[™\œİÜ›S›İØØ\İ
+ØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜÙ][™\[˜[\Ú\Ê˜[YJNİÜš]P[˜[\Ú\ĞØXÚJ	İ[™\œİÜ›IËØË›]]YKØË›Û™Ú]YK˜[YJ__JK˜Ø]Ú
+™X\ÛÛOÚYŠXİ]™I‰ˆZ\ĞX›Ü
+™X\ÛÛ‹ÛÛ›Û\‹œÚYÛ˜[
+J\Ù][™\[˜[\Ú\ÊØ]˜Z[X›N™˜[ÙKÛİ™\˜YÙNYK[\Ü˜\U[˜]˜Z[X›NYK›İšY\‰ÑÑÓÓ”QÑ	ËÙ[Ñ›İ[™Œ™X\˜PÙ[Î–×Kİ[[X\N‰ÒÓÓ”QÑ\İ›Ü°ï™\™ÙZ[™šXÚ™\™°ïØ˜\‹‰Ë\œ›Üœ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN”İš[™Ê™X\ÛÛŠ_J_JK™š[˜[J
+
+OOÚ[‘›YÚY˜[ÙNÙš[š\Ú™\]Y\İ
+	İ[™\œİÜ›KX[˜[\Ú\ÉËÛÛ›Û\Š_J_NÂˆ™Yœ™\Ú[™\Š
+NØÛÛœİ[Y\]Ú[™İËœÙ][\˜[
+™Yœ™\Ú[™\‹JŒ
+ŒL
+Kš\ÚXš[]OJ
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIİš\ÚX›IÊ\™Yœ™\Ú[™\Š
+_K›Øİ\ÏJ
+OOœ™Yœ™\Ú[™\Š
+NÙØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNİÚ[™İË˜Y]™[\İ[™\Š	Ù›Øİ\ÉË›Øİ\ÊNÂˆ™]\›Š
+OOØXİ]™OY˜[ÙNØX›Ü™\]Y\İ
+	İ[™\œİÜ›KX[˜[\Ú\ÉÊNİÚ[™İË˜ÛX\’[\˜[
+[Y\ŠNÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	Ù›Øİ\ÉË›Øİ\Ê_NÂˆKÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YKØÏË˜Ûİ[WØÛÙKØÏË˜Ûİ[WJNÂˆÛÛœİ[™\”Ú]TXÙTÚYÛ˜]\™O[ØÏİ[™\”XÙQÜšYÙ^JØË›]]YKØË›Û™Ú]YJN‰ÉË[™\Ù[XÙTÚYÛ˜]\™O][™\[˜[\Ú\ÏË›™X\™\İÖİ[™\[˜[\Ú\Ë›™X\™\İšY[™\”XÙQÜšYÙ^J[™\[˜[\Ú\Ë›™X\™\İ›]]YK[™\[˜[\Ú\Ë›™X\™\İ›Û™Ú]YJK[™\”XÙQÜšYÙ^J[™\[˜[\Ú\Ë›™X\™\İ™›Ü™XØ\İ]]YK[™\[˜[\Ú\Ë›™X\™\İ™›Ü™XØ\İÛ™Ú]YJWKš›Ú[Š	ß	ÊN‰ÉÎÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ[Øß][™\”Ú]TXÙTÚYÛ˜]\™J^ÜÙ][™\”XÙS˜[Y\Êİ\œ™[O˜İ\œ™[œÚ]OŞØİ\œ™[˜İ\œ™[˜İ\œ™[›Ü™XØ\İ˜İ\œ™[™›Ü™XØ\İN˜İ\œ™[
+NÜ™]\›ŸBˆ]Xİ]™O]YNØÛÛœİÛÛ›Û\[™]ÈX›ÜÛÛ›Û\Š
+KØXÚY\™XY[™\”XÙPØXÚJ[™\”Ú]TXÙTÚYÛ˜]\™JNÂˆYŠØXÚY
+\Ù][™\”XÙS˜[Y\Êİ\œ™[OŠË‹‹˜İ\œ™[Ú]N˜ØXÚYJJNÂˆÛÛœİ™\]Y\İXØXÚYÔ›ÛZ\ÙKœ™\ÛÛ™JØXÚY
+Nœ™\ÛÛ™U[™\”XÙJØË›]]YKØË›Û™Ú]YKÛÛ›Û\‹œÚYÛ˜[
+K˜Ø]Ú
+
+
+OO˜ÛÛ˜Ú\ÙU[™\”XÙJØÊJNÂˆ™\]Y\İ[ŠÚ]OOÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY	‰œÚ]J\Ù][™\”XÙS˜[Y\Êİ\œ™[OŠË‹‹˜İ\œ™[Ú]_JJ_JNÂˆ™]\›Š
+OOØXİ]™OY˜[ÙNØÛÛ›Û\‹˜X›Ü
+
+_NÂˆKİ[™\”Ú]TXÙTÚYÛ˜]\™WJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆÛÛœİÙ[][™\[˜[\Ú\ÏË›™X\™\İÚYŠ][™\[˜[\Ú\ÏË˜]˜Z[X›_XÙ[
+^ÜÙ][™\”XÙS˜[Y\Êİ\œ™[O˜İ\œ™[˜İ\œ™[İ\œ™[™›Ü™XØ\İŞÜÚ]N˜İ\œ™[œÚ]_N˜İ\œ™[
+NÜ™]\›ŸBˆ]Xİ]™O]YNØÛÛœİÛÛ›Û\[™]ÈX›ÜÛÛ›Û\Š
+Kİ\œ™[Ù^O][™\”XÙQÜšYÙ^JÙ[›]]YKÙ[›Û™Ú]YJK›Ü™XØ\İÙ^O][™\”XÙQÜšYÙ^JÙ[™›Ü™XØ\İ]]YKÙ[™›Ü™XØ\İÛ™Ú]YJKİ\œ™[ØXÚY\™XY[™\”XÙPØXÚJİ\œ™[Ù^JK›Ü™XØ\İØXÚY\™XY[™\”XÙPØXÚJ›Ü™XØ\İÙ^JNÂˆYŠİ\œ™[ØXÚY›Ü™XØ\İØXÚY
+\Ù][™\”XÙS˜[Y\Ê™]š[İ\ÏOŠË‹‹œ™]š[İ\Ëİ\œ™[˜İ\œ™[ØXÚY[™Yš[™Y›Ü™XØ\İ™›Ü™XØ\İØXÚY[™Yš[™YJJNÂˆÛÛœİİ\œ™[™\]Y\İXİ\œ™[ØXÚYÔ›ÛZ\ÙKœ™\ÛÛ™Jİ\œ™[ØXÚY
+Nœ™\ÛÛ™U[™\”XÙJÙ[›]]YKÙ[›Û™Ú]YKÛÛ›Û\‹œÚYÛ˜[
+K˜Ø]Ú
+
+
+OO‰ÉÊK›Ü™XØ\İ™\]Y\İHY›Ü™XØ\İÙ^OÔ›ÛZ\ÙKœ™\ÛÛ™J	ÉÊN™›Ü™XØ\İÙ^OOOXİ\œ™[Ù^OØİ\œ™[™\]Y\İ™›Ü™XØ\İØXÚYÔ›ÛZ\ÙKœ™\ÛÛ™J›Ü™XØ\İØXÚY
+Nœ™\ÛÛ™U[™\”XÙJÙ[™›Ü™XØ\İ]]YKÙ[™›Ü™XØ\İÛ™Ú]YKÛÛ›Û\‹œÚYÛ˜[
+K˜Ø]Ú
+
+
+OO‰ÉÊNÂˆ›ÛZ\ÙK˜[
+Øİ\œ™[™\]Y\İ›Ü™XØ\İ™\]Y\İJK[Š
+Øİ\œ™[›Ü™XØ\İJOOÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù][™\”XÙS˜[Y\Ê™]š[İ\ÏOŠË‹‹œ™]š[İ\Ëİ\œ™[˜İ\œ™[[™Yš[™Y›Ü™XØ\İ™›Ü™XØ\İ[™Yš[™YJJ_JNÂˆ™]\›Š
+OOØXİ]™OY˜[ÙNØÛÛ›Û\‹˜X›Ü
+
+_NÂˆKİ[™\Ù[XÙTÚYÛ˜]\™WJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ[ØÊ\™]\›Û]Xİ]™O]YK[‘›YÚY˜[ÙK\İ[Q]K››İÊ
+NÂˆÛÛœİ™Yœ™\Ú˜Y\J
+OOØÛÛœİ›İÏQ]K››İÊ
+NÚYŠXXİ]™_[‘›YÚØİ[Y[š\ÚXš[]Tİ]OOOIÚY[‰ß›İË[\İ[L
+\™]\›Û\İ[[›İÎÚ[‘›YÚ]YNØÛÛœİÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ÉÊNÜÙ]˜Y\[˜[\Ú\ÓØY[™ÊYJNÜÙ]˜Y\[˜[\Ú\Ñ\œ›ÜŠ	ÉÊNÜ˜Y\“›İØØ\İ
+ØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KÛÛ›Û\‹œÚYÛ˜[˜[ÙJK[Š™\İ[OÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜÙ]˜Y\[˜[\Ú\Ê™\İ[
+NİÜš]P[˜[\Ú\ĞØXÚJ	Ü˜Y\‰ËØË›]]YKØË›Û™Ú]YK™\İ[
+__JK˜Ø]Ú
+™X\ÛÛOÚYŠXİ]™I‰ˆZ\ĞX›Ü
+™X\ÛÛ‹ÛÛ›Û\‹œÚYÛ˜[
+J\Ù]˜Y\[˜[\Ú\Ñ\œ›ÜŠ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN‰Ô˜Y\˜]\İÙ\[™ÈšXÚ™\™°ïØ˜\‹‰Ê_JK™š[˜[J
+
+OOÚ[‘›YÚY˜[ÙNÙš[š\Ú™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ÉËÛÛ›Û\ŠNÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]˜Y\[˜[\Ú\ÓØY[™Ê˜[ÙJ_J_NÂˆÛÛœİ[Y\]Ú[™İËœÙ][\˜[
+™Yœ™\Ú˜Y\‹JŒ
+ŒL
+Kš\ÚXš[]OJ
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIİš\ÚX›IÊ\™Yœ™\Ú˜Y\Š
+_K›Øİ\ÏJ
+OOœ™Yœ™\Ú˜Y\Š
+NÙØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNİÚ[™İË˜Y]™[\İ[™\Š	Ù›Øİ\ÉË›Øİ\ÊNÂˆ™]\›Š
+OOØXİ]™OY˜[ÙNØX›Ü™\]Y\İ
+	Ü˜Y\‹X[˜[\Ú\ÉÊNİÚ[™İË˜ÛX\’[\˜[
+[Y\ŠNÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	Ù›Øİ\ÉË›Øİ\Ê_NÂˆKÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YKØÏË˜Ûİ[WØÛÙKØÏË˜Ûİ[WJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ[Øß[ØØ[^˜\™\Ü^TÙ][™ÜËœÚİÕ[™\[™›\Ú›ÛÙ
+^ØX›Ü™\]Y\İ
+	ÚX]K\˜Z[‹X[˜[\Ú\ÉÊNÜÙ]X]T˜Z[˜\ÙJ[
+NÜ™]\›ŸXÛÛœİØXÚY\™XY[˜[\Ú\ĞØXÚOX]T˜Z[˜\ÙOŠ	ÚX]K\˜Z[‰ËØË›]]YKØË›Û™Ú]YKJŒL
+NÚYŠØXÚY
+\Ù]X]T˜Z[˜\ÙJØXÚY
+NÛ]Xİ]™O]YK[‘›YÚY˜[ÙK\İ[XØXÚYÑ]K››İÊ
+NŒÂˆÛÛœİ™Yœ™\ÚX]T˜Z[J
+OOØÛÛœİ›İÏQ]K››İÊ
+NÚYŠXXİ]™_[‘›YÚØİ[Y[š\ÚXš[]Tİ]OOOIÚY[‰ß›İË[\İ[Œ
+\™]\›Û\İ[[›İÎÚ[‘›YÚ]YNØÛÛœİÛÛ›Û\X™YÚ[”™\]Y\İ
+	ÚX]K\˜Z[‹X[˜[\Ú\ÉÊNÛØYX]T˜Z[˜\ÙJØË›]]YKØË›Û™Ú]YKØË˜Ûİ[WØÛÙ_ØË˜Ûİ[KÛÛ›Û\‹œÚYÛ˜[
+K[Š™\İ[OÚYŠXİ]™I‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+^ÜÙ]X]T˜Z[˜\ÙJ™\İ[
+NİÜš]P[˜[\Ú\ĞØXÚJ	ÚX]K\˜Z[‰ËØË›]]YKØË›Û™Ú]YK™\İ[
+__JK˜Ø]Ú
+™X\ÛÛOÚYŠXİ]™I‰ˆZ\ĞX›Ü
+™X\ÛÛ‹ÛÛ›Û\‹œÚYÛ˜[
+J\Ù]X]T˜Z[˜\ÙJ[
+_JK™š[˜[J
+
+OOÚ[‘›YÚY˜[ÙNÙš[š\Ú™\]Y\İ
+	ÚX]K\˜Z[‹X[˜[\Ú\ÉËÛÛ›Û\Š_J_NÂˆ™Yœ™\ÚX]T˜Z[Š
+NØÛÛœİ[Y\]Ú[™İËœÙ][\˜[
+™Yœ™\ÚX]T˜Z[‹L
+Œ
+ŒL
+Kš\ÚXš[]OJ
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIİš\ÚX›IÊ\™Yœ™\ÚX]T˜Z[Š
+_NÙØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]JNÂˆ™]\›Š
+OOØXİ]™OY˜[ÙNØX›Ü™\]Y\İ
+	ÚX]K\˜Z[‹X[˜[\Ú\ÉÊNİÚ[™İË˜ÛX\’[\˜[
+[Y\ŠNÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIËš\ÚXš[]J_NÂˆKÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YKØÏË˜Ûİ[WØÛÙKØÏË˜Ûİ[KØØ[^˜\™\Ü^TÙ][™ÜËœÚİÕ[™\[™›\Ú›ÛÙJNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ\]OJ]™[‘]™[
+OOœÙ]ÙX]\•Ú[”Ù][™ÜÊ
+]™[\Èİ\İÛQ]™[ÙX]\•Ú[”Ù][™ÜÏŠK™]Z[™XYÙX]\•Ú[”Ù][™ÜÊ
+JNİÚ[™İË˜Y]™[\İ[™\Š	ÛZYÙX]\‹]Ú[‹\Ù][™ÜÉË\]JNÜ™]\›Š
+OOÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛZYÙX]\‹]Ú[‹\Ù][™ÜÉË\]J_K×JNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİŞ[˜ÏJ
+OOœÙ]]™[Ù[\”™XÛÜ™Ûİ[
+™XY]™[Ù[\”™XÛÜ™Ê
+K›[™İ
+NİÚ[™İË˜Y]™[\İ[™\ŠU‘S•ĞÑS•T—ÕTUQÑU‘S•Ş[˜ÊNİÚ[™İË˜Y]™[\İ[™\Š	ÜİÜ˜YÙIËŞ[˜ÊNÜ™]\›Š
+OOİÚ[™İËœ™[[İ™Q]™[\İ[™\ŠU‘S•ĞÑS•T—ÕTUQÑU‘S•Ş[˜ÊNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÜİÜ˜YÙIËŞ[˜Ê__K×JNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆÛÛœİÛ[X]T™\]Y\İYY\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™›Ü™XØ\İ[œÙ[X›T™\]Y\İYÙX]\•Ú[”Ù][™ÜË\ÙP\ÓXZ[‘›Ü™XØ\İÂˆYŠXÛ[X]T™\]Y\İY[Øß]Ê^ØX›Ü™\]Y\İ
+	ØÛ[X]IÊNÚYŠXÛ[X]T™\]Y\İY
+\Ù]Û[X]J×JNÜ™]\›ŸBˆÛÛœİY\Ù\K˜İ\œ™[Û[X]PÛÛ›Û\X™YÚ[”™\]Y\İ
+	ØÛ[X]IÊK]\ÏJË™Z[K[YH\Èİš[™Ö×JKœÛXÙJM
+NÂˆÙ]Û[X]SØY[™ÊYJNÜÙ]Û[X]Q\œ›ÜŠ	ÉÊNÂˆÛ[X]ÛÙŞJØË›]]YKØË›Û™Ú]YKØË™[]˜][ÛÏİË™[]˜][Û‹]\ËÛ[X]PÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆXÛ[X]PÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]Û[X]J˜[YJ_JK˜Ø]Ú
+™X\ÛÛOÚYŠZ\ĞX›Ü
+™X\ÛÛ‹Û[X]PÛÛ›Û\‹œÚYÛ˜[
+I‰šYOO\Ù\K˜İ\œ™[
+\Ù]Û[X]Q\œ›ÜŠ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN‰ÒÛ[X]ÛÙÚ\ØÚ\ÈZ][ÛÛ›HšXÚÙ[Y[ˆÙ\™[‹‰Ê_JK™š[˜[J
+
+OOÙš[š\Ú™\]Y\İ
+	ØÛ[X]IËÛ[X]PÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[	‰ˆXÛ[X]PÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù]Û[X]SØY[™Ê˜[ÙJ_JNÂˆ™]\›Š
+OOÚYŠ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+	ØÛ[X]IÊOOOXÛ[X]PÛÛ›Û\ŠXX›Ü™\]Y\İ
+	ØÛ[X]IÊNÙ[ÙHÛ[X]PÛÛ›Û\‹˜X›Ü
+
+_NÂˆKÙ[œÙ[X›T™\]Y\İYÙX]\•Ú[”Ù][™ÜË\ÙP\ÓXZ[‘›Ü™XØ\İ\Ú›Ø\™[Ù[TÙ][™ÜË™[˜X›Y™›Ü™XØ\İØÏËšYØÏË›]]YKØÏË›Û™Ú]YK×JNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠJ[œÙ[X›T™\]Y\İYÙX]\•Ú[”Ù][™ÜË™[˜X›Y
+_[Øß]Ê^ØX›Ü™\]Y\İ
+	Ù[œÙ[X›IÊNÜ™]\›ŸBˆÛÛœİY\Ù\K˜İ\œ™[[œÙ[X›PÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ù[œÙ[X›IÊK™\]Y\İš[Üš]OY[œË›[™İÉÛ›Ü›X[	Î‰Ù›Ü™YÜ›İ[™	ÎÛ]™]U[Y\L™]T[™[™ÏY˜[ÙKØ]ÚÙÕ[Y\LÙY\ØY[™Õ[[™Yœ™\ÚY˜[ÙNÂˆÛÛœİ™\]Y\İ™]OJ
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIÚY[‰ß˜]šYØ]Ü‹›Û“[™OOOY˜[ÙJ^Ü™]T[™[™Ï]YNÜ™]\›Ÿ\™]T[™[™ÏY˜[ÙNÜÙ][œÙ[X›T™Yœ™\Ú™]š\Ú[ÛŠ˜[YOO˜[YJÌJ_KØÚY[T™]OJ[^S\ÏMWÌ
+OOÜ™]T[™[™Ï]YNÚYŠ™]U[Y\Š\™]\›Ü™]U[Y\]Ú[™İËœÙ][Y[İ]
+
+
+OOÜ™]U[Y\LÜ™\]Y\İ™]J
+_K[^S\Ê_K™\İ[YT™]OJ
+OOÚYŠ\™]T[™[™ßØİ[Y[š\ÚXš[]Tİ]OOOIÚY[‰ß˜]šYØ]Ü‹›Û“[™OOOY˜[ÙJ\™]\›ÚYŠ™]U[Y\Š^İÚ[™İË˜ÛX\•[Y[İ]
+™]U[Y\ŠNÜ™]U[Y\L\™\]Y\İ™]J
+_NÂˆØİ[Y[˜Y]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIË™\İ[YT™]JNİÚ[™İË˜Y]™[\İ[™\Š	ÛÛ›[™IË™\İ[YT™]JNÂˆÙ][œÓØY[™ÊYJNÜÙ][œÑ\œ›ÜŠ	ÉÊNİØ]ÚÙÕ[Y\]Ú[™İËœÙ][Y[İ]
+
+
+OOÚYŠYOO\Ù\K˜İ\œ™[[œÙ[X›PÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\™]\›ÜÙ][œÑ\œ›ÜŠ	Ñ\ˆ[œÙ[X›KPXœYˆ]\È™Z]YÙ]0ï™\œØÚš][‹ˆRQ™Y[™][ˆ›ØÚÚY\[ˆ˜Y[™™\œİXÚ[œØÚYpçÙ[™]]ÛX]\ØÚZ[™Hœš\ØÚH[Ù[›İ]K‰ÊNÜÙ][œÓØY[™Ê˜[ÙJNÙ[œÙ[X›PÛÛ›Û\‹˜X›Ü
+™]ÈÓQ^Ù\[ÛŠ	Ñ[œÙ[X›KPXœY‹V™Z]YÙ]0ï™\œØÚš][‹‰Ë	Õ[Y[İ]\œ›Ü‰ÊJNÜØÚY[T™]JŒÌ
+_KWÌ
+NÂˆÛÛœİ™[ØYY[œÙ[X›O\™\]Y\İš[Üš]OOOIÙ›Ü™YÜ›İ[™	ÏÜİ\\[œÙ[X›Q›Ü“ØØ][ÛŠØÊN›[[œÙ[X›T›ÛZ\ÙO\™[ØYY[œÙ[X›OÏÙ[œÙ[X›\ÊØË›]]YKØË›Û™Ú]YK[œÙ[X›PÛÛ›Û\‹œÚYÛ˜[™\]Y\İš[Üš]JNÂˆ[œÙ[X›T›ÛZ\ÙK[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆY[œÙ[X›PÛÛ›Û\‹œÚYÛ˜[˜X›ÜY	‰˜[YJ^ÜÙ][œÙ[X›TØÙ[˜\š[ÜÊİ\œ™[O˜[YKœØÙ[˜\š[ÜÏË›[™İİ˜[YKœØÙ[˜\š[ÜÎ˜İ\œ™[
+NÜÙ][Ù[Ê˜[YK›[Ù[ÊNÜÙ][œÙ[X›T[œÊİ\œ™[O˜[YKœ[œÏË›[™İİ˜[YKœ[œÎ˜İ\œ™[
+NÚYŠ˜[YK™^\Ë›[™İ
+^ÜÙ][œÊ˜[YK™^\ÊNÜÙ][œÑ\œ›ÜŠ	ÉÊNÚYŠ˜[YK˜›Ûİİ˜\
+ZÙY\ØY[™Õ[[™Yœ™\Ú]YNÚYŠ˜[YK˜›Ûİİ˜\
+\ØÚY[T™]J—Ì
+_Y[Ù^ÜÙ][œÑ\œ›ÜŠ	ÒÙZ[™H]\Ü™ZXÚ[™›Ûİ0é™YÙ[ˆ[œÙ[X›KQ][ˆ\š[[‹ˆ]\ˆ\™›ÛÜ™ZXÚ\ˆİ[™›ZXÚXÚ˜\‹ÛÙ™\›ˆ›Üš[™[‹‰ÊNÜØÚY[T™]J
+__Y[ÙHYŠYOO\Ù\K˜İ\œ™[	‰ˆY[œÙ[X›PÛÛ›Û\‹œÚYÛ˜[˜X›ÜY	‰ˆ]˜[YJ^ÜÙ][œÑ\œ›ÜŠ	Ñ[œÙ[X›KTØÚ™[İ\Ø\ˆ™Z[H\Tİ\šXÚ™\™°ïØ˜\‹ˆRQ™\œİXÚYH[Ù[›İ]H]]ÛX]\ØÚ\›™]]‰ÊNÜØÚY[T™]J—Ì
+__JK˜Ø]Ú
+™X\ÛÛOÚYŠZ\ĞX›Ü
+™X\ÛÛ‹[œÙ[X›PÛÛ›Û\‹œÚYÛ˜[
+I‰šYOO\Ù\K˜İ\œ™[
+^ÜÙ][œÑ\œ›ÜŠ™X\ÛÛˆ[œİ[˜Ù[Ùˆ\œ›ÜÜ™X\ÛÛ‹›Y\ÜØYÙN‰Ñ[œÙ[X›KQ][ˆÛÛ›[ˆšXÚÙ[Y[ˆÙ\™[‹‰ÊNÜØÚY[T™]J
+__JK™š[˜[J
+
+OOÚYŠØ]ÚÙÕ[Y\Š]Ú[™İË˜ÛX\•[Y[İ]
+Ø]ÚÙÕ[Y\ŠNÙš[š\Ú™\]Y\İ
+	Ù[œÙ[X›IË[œÙ[X›PÛÛ›Û\ŠNÚYŠYOO\Ù\K˜İ\œ™[	‰ˆY[œÙ[X›PÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+\Ù][œÓØY[™ÊÙY\ØY[™Õ[[™Yœ™\Ú
+_JNÂˆ™]\›Š
+OOÚYŠ™]U[Y\Š]Ú[™İË˜ÛX\•[Y[İ]
+™]U[Y\ŠNÚYŠØ]ÚÙÕ[Y\Š]Ú[™İË˜ÛX\•[Y[İ]
+Ø]ÚÙÕ[Y\ŠNÙØİ[Y[œ™[[İ™Q]™[\İ[™\Š	İš\ÚXš[]XÚ[™ÙIË™\İ[YT™]JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛÛ›[™IË™\İ[YT™]JNÚYŠ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+	Ù[œÙ[X›IÊOOOY[œÙ[X›PÛÛ›Û\ŠXX›Ü™\]Y\İ
+	Ù[œÙ[X›IÊNÙ[ÙH[œÙ[X›PÛÛ›Û\‹˜X›Ü
+
+_NÂˆKÙ[œÙ[X›T™\]Y\İYÙX]\•Ú[”Ù][™ÜË™[˜X›YØÏËšYØÏË›]]YKØÏË›Û™Ú]YKÏË[Y^›Û™K[œÙ[X›T™Yœ™\Ú™]š\Ú[Û—JNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ[Øß]Ê^ØX›Ü™\]Y\İ
+	İØ\›š[™ËY[œÙ[X›IÊNÜÙ]Ø\›š[™Ñ[œÙ[X›J[
+NÜ™]\›ŸXÛÛœİY\Ù\K˜İ\œ™[ÛÛ›Û\X™YÚ[”™\]Y\İ
+	İØ\›š[™ËY[œÙ[X›IÊNÛ][Y\]Ú[™İËœÙ][Y[İ]
+
+
+OOİØ\›š[™Ñ[œÙ[X›S™ZYÚ›ÜšÛÙ
+ØË›]]YKØË›Û™Ú]YKÛÛ›Û\‹œÚYÛ˜[
+K[Š˜[YOOÚYŠYOO\Ù\K˜İ\œ™[	‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY	‰˜[YJ\Ù]Ø\›š[™Ñ[œÙ[X›J˜[YJ_JK˜Ø]Ú
+
+
+OOßJK™š[˜[J
+
+OO™š[š\Ú™\]Y\İ
+	İØ\›š[™ËY[œÙ[X›IËÛÛ›Û\ŠJ_KL
+NÂˆ™]\›Š
+OOİÚ[™İË˜ÛX\•[Y[İ]
+[Y\ŠNÚYŠ™\]Y\İÛÛ›Û\œË˜İ\œ™[™Ù]
+	İØ\›š[™ËY[œÙ[X›IÊOOOXÛÛ›Û\ŠXX›Ü™\]Y\İ
+	İØ\›š[™ËY[œÙ[X›IÊNÙ[ÙHÛÛ›Û\‹˜X›Ü
+
+_NÂˆKÛØÏËšYØÏË›]]YKØÏË›Û™Ú]YKÏË[Y^›Û™WJNÂˆ\ÙS^[İ]Y™™Xİ
+
+
+OOÂˆÛÛœİ[™[™Ï\[™[™ÕšY]Ô™\İÜ™K˜İ\œ™[ÚYŠ]ß\[™[™ß\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	Ê\™]\›Âˆ]œ˜[YOL[Y\LØ[˜Ù[YY˜[ÙNÂˆÛÛœİ\OJ
+OOÚYŠØ[˜Ù[Y
+\™]\›ØÛÛœİ›ÙO\[™[™ËœÙXİ[ÛÙØİ[Y[œ]Y\TÙ[XİÜS[[Y[ŠÙ]K[ZY]šY]ÏH‰Ü[™[™ËœÙXİ[ÛŸH—X
+N›[ÚYŠ›ÙJ^ØÛÛœİ™Xİ[›ÙK™Ù]›İ[™[™ĞÛY[™Xİ
+
+NİÚ[™İËœØÜ›ÛÊİÜ“X]›X^
+Ú[™İËœØÜ›ÛJÜ™XİÜ\[™[™ËšY]ÜÜÜ
+K™Z]š[Ü‰Ø]]ÉßJ_Y[ÙHÚ[™İËœØÜ›ÛÊİÜœ[™[™ËœØÜ›ÛK™Z]š[Ü‰Ø]]ÉßJ_NÂˆœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOØ\J
+NÙœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ\J_JNİ[Y\]Ú[™İËœÙ][Y[İ]
+
+
+OOØ\J
+NÜ[™[™ÕšY]Ô™\İÜ™K˜İ\œ™[[[KŒ
+NÂˆ™]\›Š
+OOØØ[˜Ù[Y]YNİÚ[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNİÚ[™İË˜ÛX\•[Y[İ]
+[Y\Š_NÂˆKİËØÏËšYJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	ßÙ][™ÜÓÜ[Ÿ[Øß˜]›Üš]\Ë›[™İŸ]Ú[™İË›X]ÚYYXJ	ÊX^]ÚYˆL
+K
+Ú[\ˆÛØ\œÙJIÊK›X]Ú\Ê\™]\›Âˆ]İ\Lİ\OL\İL\İOL˜XÚÚ[™ÏY˜[ÙK[İ™YY˜[ÙNÛ]YÙN‰ÛY	ß	ÜšYÚ	ß	ÉÏIÉÎÂˆÛÛœİ]XÚYÙQÙ\İ\™S\İ[™\œÏJ
+OOİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	İİXÚ[İ™IË[İ™JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	İİXÚ[™	Ë[™
+NİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	İİXÚØ[˜Ù[	ËØ[˜Ù[
+_NÂˆ[˜İ[Ûˆ[İ™J]™[•İXÚ]™[
+^ÚYŠ]˜XÚÚ[™ß]™[İXÚ\Ë›[™İOOLJ\™]\›ØÛÛœİİXÚY]™[İXÚ\ÖÌNÛ\İ]İXÚ˜ÛY[Û\İO]İXÚ˜ÛY[NØÛÛœİ[\İ\İ\O[\İK\İ\K[Ø\™YYÙOOOIÛY	ÏÙ‹YÚYŠ[Ø\™ŒL‰‰“X]˜XœÊ
+O“X]˜XœÊJJŒKŒJ^Û[İ™Y]YNÙ]™[œ™]™[Y˜][
+
+__Bˆ[˜İ[Ûˆ[™
+
+^ÚYŠ]˜XÚÚ[™Ê^Ù]XÚYÙQÙ\İ\™S\İ[™\œÊ
+NÜ™]\›ŸXÛÛœİ[\İ\İ\O[\İK\İ\K[Ø\™YYÙOOOIÛY	ÏÙ‹Y™YYYSX]›Z[ŠNX]›X^
+LÚ[™İËš[›™\•ÚY
+‹ŒŒŠJNİ˜XÚÚ[™ÏY˜[ÙNÙ]XÚYÙQÙ\İ\™S\İ[™\œÊ
+NÚYŠ[[İ™Y[Ø\™™YYYX]˜XœÊ
+OSX]˜XœÊJJŒKŒÍJ\™]\›ØÛÛœİİ\œ™[˜]›Üš]\Ï[˜]šYØ][Û‘˜]›Üš]\Ô™Y‹˜İ\œ™[İ\œ™[ØØ][Û[˜]šYØ][Û“ØØ][Û”™Y‹˜İ\œ™[[™^Xİ\œ™[ØØ][ÛØİ\œ™[˜]›Üš]\Ë™š[™[™^
+][OO›ØØ][ÛœÓX]Ú˜]›Üš]TÙ[Xİ[ÛŠ][K›ØØ][Û‹İ\œ™[ØØ][ÛŠJN‹LK\™Ù]Z[™^İ[™Yš[™Y˜İ\œ™[˜]›Üš]\ÖÚ[™^
+ÊYÙOOOIÛY	ÏËLNŒJWNÚYŠ\™Ù]
+\Ù]ØÊ\™Ù]›ØØ][Û‹YJ_Bˆ[˜İ[ÛˆØ[˜Ù[
+
+^İ˜XÚÚ[™ÏY˜[ÙNÙ]XÚYÙQÙ\İ\™S\İ[™\œÊ
+_BˆÛÛœİİ\J]™[•İXÚ]™[
+OOÚYŠ]™[İXÚ\Ë›[™İOOLJ\™]\›ØÛÛœİ\™Ù]Y]™[\™Ù]\ÈS[[Y[[ÚYŠ\™Ù]Ë˜ÛÜÙ\İ
+	Ú[œ]^\™XKÙ[XİØÛÛ[Y]X›OHYH—KœÙ][™ÜËX˜XÚÙ›Ü	ÊJ\™]\›ØÛÛœİİXÚY]™[İXÚ\ÖÌK[Z]SX]›X^
+Œ‹X]›Z[ŠÍÚ[™İËš[›™\•ÚY
+‹ŒJJNÙYÙO]İXÚ˜ÛY[[[Z]ÉÛY	ÎİXÚ˜ÛY[]Ú[™İËš[›™\•ÚY[[Z]ÉÜšYÚ	Î‰ÉÎÚYŠYYÙJ\™]\›Üİ\[\İ]İXÚ˜ÛY[Üİ\O[\İO]İXÚ˜ÛY[Nİ˜XÚÚ[™Ï]YNÛ[İ™YY˜[ÙNİÚ[™İË˜Y]™[\İ[™\Š	İİXÚ[İ™IË[İ™KÜ\ÜÚ]™N™˜[Ù_JNİÚ[™İË˜Y]™[\İ[™\Š	İİXÚ[™	Ë[™Ü\ÜÚ]™NY_JNİÚ[™İË˜Y]™[\İ[™\Š	İİXÚØ[˜Ù[	ËØ[˜Ù[Ü\ÜÚ]™NY_J_NÂˆÚ[™İË˜Y]™[\İ[™\Š	İİXÚİ\	Ëİ\Ü\ÜÚ]™NY_JNÜ™]\›Š
+OOİ˜XÚÚ[™ÏY˜[ÙNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	İİXÚİ\	Ëİ\
+NÙ]XÚYÙQÙ\İ\™S\İ[™\œÊ
+_NÂˆKÜÙ][™ÜÓÜ[‹˜]›Üš]\Ë›[™İ›ÛÛX[ŠØÊWJNÂˆ\Ş[˜È[˜İ[Ûˆ™[ØY\Ú›Ø\™[™]™[Ê
+^ØÛÛœİ\Ú›Ø\™[ØY
+Ù›Ü˜ÙQœ™\ÚY_JK™\]Y\İY]Y]™[Ù[\”™XÛÜ™Ûİ[ŒÜ\œÚ\İ]™[Ù[\”™Yœ™\Ú™\]Y\İ
+	Ù\Ú›Ø\™	ÊNŒ]™[™Yœ™\Ú\™\]Y\İY]ŒÜ™Yœ™\Ú[]™[ÙX]\ŠÜ™X\ÛÛ‰Ù\Ú›Ø\™	Ë™\]Y\İY]JN”›ÛZ\ÙKœ™\ÛÛ™J[
+NØ]ØZ]›ÛZ\ÙK˜[Ù]Y
+Ù\Ú›Ø\™]™[™Yœ™\ÚJ_Bˆ[˜İ[ÛˆØØ]JÜ[“ØØ][Û]YJ^ØÛÛœİ™\]Y\İYJÊÛØØ]TÙ\K˜İ\œ™[ÜÙ]ØY[™ÊYJNÜÙ]\œ›ÜŠ	ÉÊNØÛÛœİÜ[•˜XÚÙYJ˜XÚÙY“ØØ][ÛŠOOÜÙ]˜XÚÙYØØ][ÛŠ˜XÚÙY
+NÚYŠÜ[“ØØ][ÛŠ\Ù]ØÊ˜XÚÙYØØ][Û•\™Ù]
+˜]›Üš]\Ë˜XÚÙY
+J_Nİ›ÚYÙ]ZYİ\œ™[ÜÚ][ÛŠÙ[˜X›RYÚXØİ\˜XŞNYK[Y[İ]ŒMLX^[][PYÙNŒLŒJK[Š\Ş[˜ÈÜÚ][ÛOÚYŠ™\]Y\İYOO[ØØ]TÙ\K˜İ\œ™[
+\™]\›ØÛÛœİÛÛ›Û\X™YÚ[”™\]Y\İ
+	Ü™]™\œÙK[ØØ][Û‰ÊNİ^ØÛÛœİ™\ÛÛ™YX]ØZ]™]™\œÙSØØ][ÛŠÜÚ][Û‹˜ÛÛÜ™Ë›]]YKÜÚ][Û‹˜ÛÛÜ™Ë›Û™Ú]YKÜÚ][Û‹˜ÛÛÜ™Ë˜[]YOÏİ[™Yš[™YÛÛ›Û\‹œÚYÛ˜[
+NÚYŠ™\]Y\İYOO[ØØ]TÙ\K˜İ\œ™[	‰ˆXÛÛ›Û\‹œÚYÛ˜[˜X›ÜY
+[Ü[•˜XÚÙY
+Ë‹‹œ™\ÛÛ™Y]]ÛØØ]YY_J_XØ]Ú
+™X\ÛÛŠ^ÚYŠZ\ĞX›Ü
+™X\ÛÛ‹ÛÛ›Û\‹œÚYÛ˜[
+I‰œ™\]Y\İYOO[ØØ]TÙ\K˜İ\œ™[
+[Ü[•˜XÚÙY
+ÚY‘]K››İÊ
+K˜[YN˜	Ù›Ü›X]XÚ[X[
+ÜÚ][Û‹˜ÛÛÜ™Ë›]]YK‹Š_p¬	Ù›Ü›X]XÚ[X[
+ÜÚ][Û‹˜ÛÛÜ™Ë›Û™Ú]YK‹Š_p¬]]YNœÜÚ][Û‹˜ÛÛÜ™Ë›]]YKÛ™Ú]YNœÜÚ][Û‹˜ÛÛÜ™Ë›Û™Ú]YK[]˜][ÛœÜÚ][Û‹˜ÛÛÜ™Ë˜[]YOÏİ[™Yš[™Y]]ÛØØ]YY_J_Yš[˜[^Ùš[š\Ú™\]Y\İ
+	Ü™]™\œÙK[ØØ][Û‰ËÛÛ›Û\Š__JK˜Ø]Ú
+
+
+OOÚYŠ™\]Y\İYOO[ØØ]TÙ\K˜İ\œ™[
+\™]\›ÜÙ]ØY[™Ê˜[ÙJNÜÙ]\œ›ÜŠ	Ôİ[™ÜÛÛ›HšXÚ\›Z][Ù\™[‹ˆ\ˆİ[™\™HÙ\ˆ]HÜ›ZXÙpí™™›™]‰Ê_J_Bˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ™Yœ™\Ú˜XÚÙY[ØØ][Û•˜XÚÚ[™ßØØ][Û”Ù[Xİ[Û”Ûİ\˜ÙOOOIİ˜XÚÙY	ÎÚYŠ\™Yœ™\Ú˜XÚÙY
+^Ø]]ÓØØ][Û”™\]Y\İY˜İ\œ™[Y˜[ÙNÜ™]\›ŸZYŠ]]ÓØØ][Û”™\]Y\İY˜İ\œ™[
+\™]\›Ø]]ÓØØ][Û”™\]Y\İY˜İ\œ™[]YNÛØØ]JØØ][Û”Ù[Xİ[Û”Ûİ\˜ÙOOOIİ˜XÚÙY	Ê_KÛØØ][Û•˜XÚÚ[™×JNÂˆÛÛœİİ\œÏ]\ÙSY[[Ê
+
+OOÏÛX\İ\œÊÊN–×Kİ×JKZ[]\ÌMO]\ÙSY[[Ê
+
+OOÏÛX\Z[][LMJÊN–×Kİ×JK^\Ï]\ÙSY[[Ê
+
+OOÏÛX\^\ÊÊN–×Kİ×JKÚÜ\›P[˜ÚÜ]\ÙSY[[Ê
+
+OOÏÜÚÜ\›P[˜ÚÜ‘œ›ÛPİ\œ™[
+İË˜İ\œ™[]K››İÊ
+KË™[]˜][ÛÏÛØÏË™[]˜][ÛŠN[™Yš[™YÜİËØÏË™[]˜][Û—JNÂˆÛÛœİ\ÙY^\Ï]\ÙSY[[Ê
+
+OO˜\Q›Ü™XØ\İ\Ú[Û‘^\Ê^\Ë›Ü™XØ\İ\Ú[ÛŠKÙ^\Ë›Ü™XØ\İ\Ú[Û—JK[Ù[\Ú[Û‘^\Ï]\ÙSY[[Ê
+
+OO˜\Q›Ü™XØ\İ\Ú[Û“[Ù[^\Ê^\Ë›Ü™XØ\İ\Ú[ÛŠKÙ^\Ë›Ü™XØ\İ\Ú[Û—JK\Ú[Û•™\šYšXØ][ÛØ[™Y]\Ï]\ÙSY[[Ê
+
+OOÚYŠY›Ü™XØ\İ\Ú[ÛË˜Xİ]™J\™]\›–×NØÛÛœİØ[™Y]\ÏVŞÚY‰ÛZYØ™\İÛX]ÚÜ]X[]IËX™[™›Ü™XØ\İ\Ú[Û‹›[ÜÛZ^Ë˜\YYÉĞ™\İX]ÚÙ\°ï
+ÈSÔÓRVÚØ[	Î‰Ğ™\İX]ÚÙ\°ï	Ë^\Î™\ÙY^\ËÛÛœÙ[œİ\Ô›ÛN‰Ù\š]™Y	È\ÈÛÛœİWNÚYŠ›Ü™XØ\İ\Ú[Û‹›[ÜÛZ^Ë˜\YY	‰›[Ù[\Ú[Û‘^\ÈOOY^\ÊXØ[™Y]\Ë[œÚY
+ÚY‰ÛZYØ™\İÛX]ÚÜ]X[]WÛ[Ù[	ËX™[‰Ğ™\İX]ÚÙ\°ïÚ™HSÔÓRV	Ë^\Î›[Ù[\Ú[Û‘^\ËÛÛœÙ[œİ\Ô›ÛN‰Ù\š]™Y	È\ÈÛÛœİJNÜ™]\›ˆØ[™Y]\ßKÙ›Ü™XØ\İ\Ú[Û‹\ÙY^\Ë[Ù[\Ú[Û‘^\Ë^\×JNÂˆÛÛœİÚ[‘›Ü™XØ\İ™\Ü]\ÙSY[[Ê
+
+OO›ØÉ‰ÙX]\•Ú[”Ù][™ÜË™[˜X›Y	‰™^\Ë›[™İØZ[›Ü™XØ\İ™\šYšXØ][Û”™\Ü
+˜]›Üš]RÙ^JØÊK^\Ë[œËØËİ\œË\Ú[Û•™\šYšXØ][ÛØ[™Y]\ÊN›[ÛØÏË›]]YKØÏË›Û™Ú]YKØÏË[Y^›Û™K^\Ë[œËİ\œË\Ú[Û•™\šYšXØ][ÛØ[™Y]\ËÙX]\•Ú[”Ù][™ÜË™[˜X›YJNÂˆÛÛœİ[œÙ[X›PÛÛ™šY[˜ÙPØ[Xœ˜][Û]\ÙSY[[Ê
+
+OO™[œÙ[X›PÛÛ™šY[˜ÙPØ[Xœ˜][Û‘œ›ÛT™\Ü
+Ú[‘›Ü™XØ\İ™\Ü
+KİÚ[‘›Ü™XØ\İ™\ÜJNÂˆÛÛœİÚ[‘›Ü™XØ\İİ]\Ï]Ú[‘›Ü™XØ\İ™\ÜË›XZ[‘›Ü™XØ\İİ]\ÏÏÛ[ÂˆÛÛœİØØ[Ú[‘^\Ï]\ÙSY[[Ê
+
+OOÚ[‘›Ü™XØ\İ™\ÜØ\SØØ[Ú[‘›Ü™XØ\İœ›ÛT™\Ü
+\ÙY^\ËÚ[‘›Ü™XØ\İ™\Ü˜Y\[˜[\Ú\ÊN™\ÙY^\ËÙ\ÙY^\ËÚ[‘›Ü™XØ\İ™\Ü˜Y\[˜[\Ú\ËÙX]\•Ú[”Ù][™ÜË™[˜X›YÙX]\•Ú[”Ù][™ÜË\ÙP\ÓXZ[‘›Ü™XØ\İÙX]\•Ú[”Ù][™ÜË››İØØ\İ\ÜÚ[Z[][Û—JKÚ[‘›Ü™XØ\İXİ]™OP›ÛÛX[ŠÙX]\•Ú[”Ù][™ÜË\ÙP\ÓXZ[‘›Ü™XØ\İ	‰Ú[‘›Ü™XØ\İİ]\ÏË™[YÚX›I‰›ØØ[Ú[‘^\ÈOOY\ÙY^\ÊNÂˆÛÛœİ˜\ÙQ\Ü^Q^\Õ[ÙZYÚY]\ÙSY[[Ê
+
+OOÚ[‘›Ü™XØ\İXİ]™OÛØØ[Ú[‘^\Î™\ÙY^\ËİÚ[‘›Ü™XØ\İXİ]™KØØ[Ú[‘^\Ë\ÙY^\×JK˜\ÙQ\Ü^Q^\Ï]\ÙSY[[Ê
+
+OO˜\Q[œÙ[X›QZ[T™XÚ\]][Û”›Ø˜Xš[]J˜\ÙQ\Ü^Q^\Õ[ÙZYÚY[œÊKØ˜\ÙQ\Ü^Q^\Õ[ÙZYÚY[œ×JNÂˆËÈÛÛ\]Xš[]0éİ™\˜YÎˆÛÛXš[™U[™\œİÜ›R[™›Ü›X][ÛŠ[™\[˜[\Ú\Ëİ\œË˜Y\[˜[\Ú\Ëİ\Ü^SØØ][Û“˜[YJH0­Èİ[™\[˜[\Ú\Ëİ\œË˜Y\[˜[\Ú\Ëİ\Ü^SØØ][Û“˜[YWBˆÛÛœİš[˜[^˜][Û“ØœÙ\™Y[\\˜]\™O\ÚÜ\›P[˜ÚÜË›ØœÙ\™YË[\\˜]\™Oİ[™Yš[™Y“[X™\ŠÏË˜İ\œ™[Ë[\\˜]\™WÌ›JKİ\œ™[ØœÙ\˜][Û‘\ØÚ]ÏÛØØ[\ÛÑ\ØÚ
+İš[™ÊË˜İ\œ™[Ë[Y_	ÉÊKË[Y^›Û™K[X™\ŠË]×ÛÙ™œÙ]ÜÙXÛÛ™Ê_
+N“[X™\‹“˜S‹š[˜[^˜][Û“ØœÙ\™Y]S[X™\‹š\Ñš[š]Jİ\œ™[ØœÙ\˜][Û‘\ØÚ
+OØİ\œ™[ØœÙ\˜][Û‘\ØÚ‘]K››İÊ
+NÂˆÛÛœİ\Ú[Û’İ\œÏ]\ÙSY[[Ê
+
+OO˜\Q›Ü™XØ\İ\Ú[Û’İ\œÊİ\œË^\Ë\ÙY^\Ë›Ü™XØ\İ\Ú[ÛŠKÚİ\œË^\Ë\ÙY^\Ë›Ü™XØ\İ\Ú[Û—JKÚ[’İ\œÏ]\ÙSY[[Ê
+
+OO›ØÉ‰Ú[‘›Ü™XØ\İXİ]™OØ\SØØ[Ú[’İ\œÊ˜]›Üš]RÙ^JØÊK\Ú[Û’İ\œË\ÙY^\ËØØ[Ú[‘^\Ë˜Y\[˜[\Ú\ÊN™\Ú[Û’İ\œËÛØÏË›]]YKØÏË›Û™Ú]YKÚ[‘›Ü™XØ\İXİ]™K\Ú[Û’İ\œË\ÙY^\ËØØ[Ú[‘^\Ë˜Y\[˜[\Ú\ËÙX]\•Ú[”Ù][™ÜË™[˜X›YÙX]\•Ú[”Ù][™ÜË\ÙP\ÓXZ[‘›Ü™XØ\İÙX]\•Ú[”Ù][™ÜË››İØØ\İ\ÜÚ[Z[][Û—JKš[˜[^™Yİ\œÏ]\ÙSY[[Ê
+
+OOØÛÛœİÛÜ™OYš[˜[^™Q›Ü™XØ\İİ\œÊÚ[’İ\œË˜\ÙQ\Ü^Q^\ËÜ˜Y\œ˜Y\[˜[\Ú\Ë[™\[™\[˜[\Ú\ËØœÙ\™Y[\\˜]\™N™š[˜[^˜][Û“ØœÙ\™Y[\\˜]\™KØœÙ\™Y]™š[˜[^˜][Û“ØœÙ\™Y]JKØØ[X\R\\›ØØ[›Ü™XØ\İİ\œÊÛÜ™Kšİ\œËÚÜ\›P[˜ÚÜ‹]K››İÊ
+KÚ[’İ\œÊNÜ™]\›ˆØØ[OOXÛÜ™Kšİ\œÏØÛÜ™NË‹‹˜ÛÜ™Kİ\œÎ›ØØ[_KİÚ[’İ\œË˜\ÙQ\Ü^Q^\Ë˜Y\[˜[\Ú\Ë[™\[˜[\Ú\Ëš[˜[^˜][Û“ØœÙ\™Y[\\˜]\™Kš[˜[^˜][Û“ØœÙ\™Y]ÚÜ\›P[˜ÚÜ—JK\Ü^Rİ\œÏYš[˜[^™Yİ\œËšİ\œË™XÚ\]][Û•ZRİ\œÏ]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û”™\Ù[][Û’İ\œÊ\Ü^Rİ\œÊKÙ\Ü^Rİ\œ×JK\Ü^SZ[]\ÌMO]\ÙSY[[Ê
+
+OO™š[˜[^™Q›Ü™XØ\İZ[]LMJZ[]\ÌMKÚ[’İ\œË\Ü^Rİ\œËÜ˜Y\œ˜Y\[˜[\Ú\ËØØ[[˜ÚÜœÚÜ\›P[˜ÚÜ‹XÔ˜\YZ[]\ÌMN™›Ü™XØ\İ\Ú[ÛËœ˜\YZ[]\ÌM_JKÛZ[]\ÌMKÚ[’İ\œË\Ü^Rİ\œË˜Y\[˜[\Ú\ËÚÜ\›P[˜ÚÜ‹›Ü™XØ\İ\Ú[ÛËœ˜\YZ[]\ÌMWJK\Ü^Q^\Ï]\ÙSY[[Ê
+
+OOœ™XÛÛ˜Ú[Q›Ü™XØ\İ^\ÕÚ]İ\œÊ˜\ÙQ\Ü^Q^\Ë\Ü^Rİ\œÊKØ˜\ÙQ\Ü^Q^\Ë\Ü^Rİ\œ×JK]\ÙSY[[Ê
+
+OOš^˜\™Ê\Ü^Rİ\œË\Ü^Rİ\œÖØİ\œ™[[™^
+\Ü^Rİ\œÊWOË]’[™^ÏË™[]˜][ÛÏÛØÏË™[]˜][ÛÏÌ[š]Ø\›š[™Ñ[œÙ[X›JKÙ\Ü^Rİ\œËÏË™[]˜][Û‹ØÏË™[]˜][Û‹[š]Ø\›š[™Ñ[œÙ[X›WJK™XÚ\[Ù[]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û“›İÔİ[[X\J\Ü^SZ[]\ÌMK\Ü^Rİ\œË\Ü^U[Y^›Û™JKÙ\Ü^SZ[]\ÌMK\Ü^Rİ\œË\Ü^U[Y^›Û™WJK™XÚ\›İÏ]\ÙSY[[Ê
+
+OO˜ÛÛXš[™T˜Y\[™[Ù[
+™XÚ\[Ù[˜Y\[˜[\Ú\Ë˜Y\[˜[\Ú\ÓØY[™Ë˜Y\[˜[\Ú\Ñ\œ›Ü‹\Ü^U[Y^›Û™JKÜ™XÚ\[Ù[˜Y\[˜[\Ú\Ë˜Y\[˜[\Ú\ÓØY[™Ë˜Y\[˜[\Ú\Ñ\œ›Ü‹\Ü^U[Y^›Û™WJKİ\œ™[˜]›Üš]O]\ÙSY[[Ê
+
+OO›X]Ú[™ÔİÜ™Y˜]›Üš]J˜]›Üš]\ËØÊKÙ˜]›Üš]\ËØÏËšYØÏË›˜[YKØÏËœÛİ\˜ÙKØÏËœÚU\KØÏËœÚPØ]YÛÜKØÏË›]]YKØÏË›Û™Ú]YKØÏË™[]˜][Û—JK\Ü^SØØ][Û“˜[YOXİ\œ™[˜]›Üš]OÙ˜]›Üš]SX™[
+İ\œ™[˜]›Üš]JN›ØÏË›˜[YOÏÉÔİ[™Ü	Ë[™\“ØØ][Û“˜[YO][™\”XÙS˜[Y\ËœÚ]_\[™\ÛĞÛİ[J\Ü^SØØ][Û“˜[YKØÏË˜Ûİ[WØÛÙ_ØÏË˜Ûİ[JK[™\“[Ù[š\ÚÌÚ]\ÙSY[[Ê
+
+OOØÛÛœİİ\SX]›X^
+İ\œ™[[™^
+™XÚ\]][Û•ZRİ\œÊJNÜ™]\›ˆÚYÛšYšXØ[\š[Ù[™\”š\ÚÊ™XÚ\]][Û•ZRİ\œËœÛXÙJİ\İ\
+Í
+KÊ_KÜ™XÚ\]][Û•ZRİ\œ×JK[™\”˜\Yš\ÚÏ]\ÙSY[[Ê
+
+OOœÚYÛšYšXØ[˜\Y[™\”š\ÚÊ›Ü™XØ\İ\Ú[ÛËœ˜\YZ[]\ÌMK]K››İÊ
+KÊKÙ›Ü™XØ\İ\Ú[ÛËœ˜\YZ[]\ÌMK›Ü™XØ\İ\Ú[ÛË™Ù[™\˜]Y]JK[™\”˜\Yš\ÚÍš]\ÙSY[[Ê
+
+OOœÚYÛšYšXØ[˜\Y[™\”š\ÚÊ›Ü™XØ\İ\Ú[ÛËœ˜\YZ[]\ÌMK]K››İÊ
+KŠKÙ›Ü™XØ\İ\Ú[ÛËœ˜\YZ[]\ÌMK›Ü™XØ\İ\Ú[ÛË™Ù[™\˜]Y]JK[™\’[™›Ï]\ÙSY[[Ê
+
+OO˜ÛÛXš[™U[™\œİÜ›R[™›Ü›X][ÛŠ[™\[˜[\Ú\Ë\Ü^Rİ\œË˜Y\[˜[\Ú\Ëİ[™\“ØØ][Û“˜[YKİ[Y^›Û™N™\Ü^U{÷mü¶‰Ëkºwµç[™Ù[‹ˆYHYÙ\ÛXÚ™Z]YYİHZ[][ˆ›ÜˆÛÛ›™[[\™Ø[™È[™\İÙZ[™HÚXÚ\šZ]Ùœ™ZYØX™KˆÙpí™™›™]H\İ[‹H[™Y[™›Ü›X][Û™[ˆÛİÚYHYH[]XÚH]Ú[™[›YÙHX™[ˆ›Üœ˜[™ËÜÛX[Ù]ÏŸOÜÙXİ[Û‚ŸB™[˜İ[Ûˆ[İ[Z[“]™[
+Û]™[[š]Û›İÓ[™_NÛ]™[“[İ[Z[“]™[›Ü™XØ\İİ[š]•Ú[™[š]ÜÛ›İÓ[™N›[X™\ŸJ^ØÛÛœİİ\œ™[[]™[ÙX]\‹˜İ\œ™[[\[[İ[Z[İ\œ™[˜[YJ]™[	İ[\\˜]\™WÌ›IÊK\\™[[[İ[Z[İ\œ™[˜[YJ]™[	Ø\\™[İ[\\˜]\™IÊKÚ[™ÜYY[[İ[Z[İ\œ™[˜[YJ]™[	İÚ[™ÜÜYYÌLIÊKİ\İ[[İ[Z[İ\œ™[˜[YJ]™[	İÚ[™Ùİ\İ×ÌLIÊK\™Xİ[Û[[İ[Z[İ\œ™[˜[YJ]™[	İÚ[™Ù\™Xİ[Û—ÌLIÊKÚ[™Z\]˜[Y]UÚ[™Z\ŠÚ[™ÜYYİ\İ
+K™XÚ\\[[İ[Z[”™XÚ\]][Û”\Êİ\œ™[
+KÛÙO\™XÚ\\™\Ü^PÛÙNÜ™]\›ˆ\XÛOXY\Ü[Û]™[›˜[Y_[İ[Z[“]™[X™[
+]™[œ›ÛJ_OÜÜ[ÓX]œ›İ[™
+]™[™[]˜][ÛŠ_HH0ïˆ’ØÚXY\]ˆÛ\ÜÓ˜[YOH›[İ[Z[‹[]™[[XZ[ˆÜ[ÙX]\”XİÙÜ˜[HÛÙO^ØÛÙ_H[[œÚ]O^Ü™XÚ\\š[[œÚ]_H[›ÛY[›Û^Ü™XÚ\\œ[›ÛY[›ÛŸH^O^Ø\İ›Û›ÛZXØ[\Ñ^P]
+]K››İÊ
+KÛ]]YN›]™[›]]YKÛ™Ú]YN›]™[›Û™Ú]YK[]˜][Û›]™[™[]˜][Û‹[Y^›Û™N›]™[ÙX]\‹[Y^›Û™_K[İ[Z[İ\œ™[˜[YJ]™[	Ú\×Ù^IÊOOOLJ_H]O^ÛX™[
+ÛÙJ_HÛİY^Û[İ[Z[İ\œ™[˜[YJ]™[	ØÛİYØÛİ™\‰Ê_HİĞÛİY^Û[İ[Z[İ\œ™[˜[YJ]™[	ØÛİYØÛİ™\—ÛİÉÊ_KÏÜÜ[]ˆÛ\ÜÓ˜[YOH›[İ[Z[‹][\\˜]\™K\Z\ˆİ›Û™ÏÓ[X™\‹š\Ñš[š]J[\
+OØ	ÓX]œ›İ[™
+[\
+_H0¬Ø‰ø $ÉßOÜİ›Û™ÏÛX[‘ÙY°ïÓ[X™\‹š\Ñš[š]J\\™[
+OØ	ÓX]œ›İ[™
+\\™[
+_H0¬Ø‰ø $ÉßOÜÛX[Ù]Ù]Û[İ[Z[”™XÚ\]][Û“X™[
+İ\œ™[]™[™[]˜][Û‹Û›İÓ[™J_OÜ]ˆÛ\ÜÓ˜[YOH›[İ[Z[‹[]™[[Y]HÛX[Û\ÜÓ˜[YOH›[İ[Z[‹]Ú[™]˜[Y\È•Ú[™ØÜ[Ó[X™\‹š\Ñš[š]J\™Xİ[ÛŠOÏÚ[™\™Xİ[Û\œ›İÈ\™Xİ[Û^Ù\™Xİ[ÛŸHİ\İ^İÚ[™Z\‹™İ\İKÏ›[HÓ[X™\‹š\Ñš[š]JÚ[™Z\‹Ú[™
+OİÚ[™
+Ú[™Z\‹Ú[™[š]
+N‰ø $ÉßH0­È°í™[ˆÓ[X™\‹š\Ñš[š]JÚ[™Z\‹™İ\İ
+OİÚ[™
+Ú[™Z\‹™İ\İ[š]
+N‰ø $ÉßOÜÜ[ÜÛX[ÛX[Û\ÜÓ˜[YOH›[İ[Z[‹\Û›İË]˜[Y\Èˆ]O^Û[İ[Z[”Û›İÓYX\İ\™[Y[]J]™[
+_O”ØÚ™YOØÜ[”ØÚ™YYXÚÙHÛ[İ[Z[”Û›İÕ^
+]™[
+_H0­È™]\ØÚ™YH8¢$ŒÙ›Ü›X]XÚ[X[š^Y
+]™[œ\İÛ›İÌÛKJ_HÛH0­È
+ÌÙ›Ü›X]XÚ[X[š^Y
+]™[›™]ÔÛ›İÌÛKJ_HÛH0­È
+ÍÙ›Ü›X]XÚ[X[š^Y
+]™[›™]ÔÛ›İÍÛKJ_HÛOÜÜ[ÜÛX[Ù]Ø\XÛOŸB‚™[˜İ[Ûˆ^˜\™˜[Y]SX™[
+˜[Yœ›ÛNœİš[™ß[™Yš[™Y˜[YÎœİš[™ß[™Yš[™Y[Y^›Û™OÎœİš[™Ê^ÂˆÛÛœİİ\Q]Kœ\œÙJİš[™Ê˜[Yœ›ÛOÏÉÉÊJK[™Q]Kœ\œÙJİš[™Ê˜[YÏÏÉÉÊJNÚYŠS[X™\‹š\Ñš[š]Jİ\
+_S[X™\‹š\Ñš[š]J[™
+_[™\İ\
+\™]\›‰ÉÎÂˆÛÛœİ›İÏQ]K››İÊ
+K[YOJ˜[YN›[X™\ŠOO™›Ü›X][–›Û™J˜[YK[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJK]OJ˜[YN›[X™\ŠOO™›Ü›X][–›Û™J˜[YK[Y^›Û™KÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJK]RÙ^OJ˜[YN›[X™\ŠOO™›Ü›X][–›Û™J˜[YK[Y^›Û™KŞYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	ßJKİ\]OY]RÙ^Jİ\
+K[™]OY]RÙ^J[™
+KÙ^OY]RÙ^J›İÊKÛ[Üœ›İÏY]RÙ^J›İÊÌ
+Œ
+Œ
+ŒL
+KØ[YQ]O\İ\]OOOY[™]KXİ]™O\İ\[›İÉ‰™[™››İÎÂˆÛÛœİØØ[İY™š^[ØØ[[YQ\Ø[XšYİX][Û”İY™š^
+
+KİY™š^[ØØ[İY™š^Ø	ÛØØ[İY™š^X‰ÉÎÂˆYŠ\Ø[YQ]J\™]\›˜	Ù]Jİ\
+_K	ØXİ]™OÉÚ™]	Î[YJİ\
+_H8 $È	Ù]J[™
+_K	İ[YJ[™
+_HZ‰ÜİY™š^XÂˆÛÛœİ^T™Yš^\İ\]OOO]Ù^OÉÉÎœİ\]OOO]Û[Üœ›İÏØ[Ü™Ù[‹	Ù]Jİ\
+_H0­È˜	Ù]Jİ\
+_H0­ÈÂˆ™]\›˜	Ù^T™Yš^IØXİ]™OÉÚ™]	Î[YJİ\
+_x $Éİ[YJ[™
+_HZ‰ÜİY™š^XÂŸB™[˜İ[Ûˆ^˜\™ÛÜ\ØÚ
+˜[YNœİš[™ß[™Yš[™Y
+^ØÛÛœİ\ØÚQ]Kœ\œÙJİš[™Ê˜[YOÏÉÉÊJNÜ™]\›ˆ[X™\‹š\Ñš[š]J\ØÚ
+OÙ\ØÚ“[X™\‹”ÔÒUU‘WÒS‘’S’U_B™[˜İ[ÛˆÛÛ\\™R^˜\™ĞÚ›Û›ÛÙÚXØ[JN]]ÛX]XÒ^˜\™]]ÛX]XÒ^˜\™
+^ØÛÛœİİ\Y™Z^˜\™ÛÜ\ØÚ
+K˜[Yœ›ÛJKZ^˜\™ÛÜ\ØÚ
+‹˜[Yœ›ÛJNÚYŠİ\Y™ˆOOL
+\™]\›ˆİ\Y™ØÛÛœİ[™Y™Z^˜\™ÛÜ\ØÚ
+K˜[YÊKZ^˜\™ÛÜ\ØÚ
+‹˜[YÊNÚYŠ[™Y™ˆOOL
+\™]\›ˆ[™Y™ØÛÛœİ]™[Y™PUUÓPUP×ÒVT‘ÓU‘SÔS’ÖØ‹›]™[KPUUÓPUP×ÒVT‘ÓU‘SÔS’ÖØK›]™[NÚYŠ]™[Y™ˆOOL
+\™]\›ˆ]™[Y™Ü™]\›ˆK]K›ØØ[PÛÛ\\™J‹]K	ÙIÊ_B™[˜İ[ÛˆØ\›š[™ÒÚ[™œ›ÛU^
+˜[YNœİš[™ÊN‘ÙØ\›š[™ÒÚ[™[™Yš[™YØÛÛœİ^]˜[YKÓØØ[SİÙ\Ø\ÙJ	ÙKQIÊNÚYŠÜØÚ™Y]™\ÙZË\İ
+^
+J\™]\›‰ÜÛ›İÙšY	ÎÚYŠÙ]Y\œ™YÙ[‹Ë\İ
+^
+J\™]\›‰ØÛÛ[[İ\Ô˜Z[‰ÎÚYŠÜİ\šÜ™YÙ[ŸYYÊÎ™\Ÿ_\ÊO×ÊÜ™YÙ[Ÿ^™[KŠœ™YÙ[‹Ë\İ
+^
+J\™]\›‰ÚX]T˜Z[‰ÎÚYŠÙÙ]Ú]\‹Ë\İ
+^
+J\™]\›‰İ[™\œİÜ›IÎÚYŠÙÛ]Z\ßÛ0é_Z\Ü™YÙ[ŸÙYœšY\‹Ë\İ
+^
+J\™]\›‰ÚXÙIÎÚYŠÜØÚ™YKË\İ
+^
+J\™]\›‰ÜÛ›İÉÎÚYŠÙœ›ÜİË\İ
+^
+J\™]\›‰Ùœ›Üİ	ÎÚYŠÛ™X™[Ë\İ
+^
+J\™]\›‰Ù›ÙÉÎÚYŠÚ]™_ğé›YKË\İ
+^
+J\™]\›‰ÚX]	ÎÚYŠÛÜšØ[Ÿİ\›_Ú[™°í™KË\İ
+^
+J\™]\›‰İÚ[™	ÎÜ™]\›ˆ[™Yš[™YB™[˜İ[ÛˆÙ™šXÚX[[\Ú[™
+[\“Ù™šXÚX[[\
+N‘ÙØ\›š[™ÒÚ[™[™Yš[™YÜ™]\›ˆØ\›š[™ÒÚ[™œ›ÛU^
+	Ø[\™]™[ÏÉÉßH	Ø[\šXY[™OÏÉÉßX
+OÏİØ\›š[™ÒÚ[™œ›ÛU^
+[\™\ØÜš\[ÛÏÉÉÊ_B™[˜İ[ÛˆØ\›š[™Ò[\˜[Óİ™\›\
+İ\Nœİš[™ß[™Yš[™Y[™Nœİš[™ß[™Yš[™Yİ\œİš[™ß[™Yš[™Y[™œİš[™ß[™Yš[™Y
+^ØÛÛœİLQ]Kœ\œÙJİš[™Êİ\OÏÉÉÊJKLOQ]Kœ\œÙJİš[™Ê[™OÏÉÉÊJKŒQ]Kœ\œÙJİš[™Êİ\ÏÉÉÊJKŒOQ]Kœ\œÙJİš[™Ê[™ÏÉÉÊJNÚYŠS[X™\‹š\Ñš[š]JL
+_S[X™\‹š\Ñš[š]JLJ_S[X™\‹š\Ñš[š]JŒ
+_S[X™\‹š\Ñš[š]JŒJJ\™]\›ˆYNÜ™]\›ˆLŒI‰˜ŒL_B™[˜İ[Ûˆ]]ÛX]XÒ^˜\™\ÓÙ™šXÚX[ÛÛ\[š[ÛŠ][N]]ÛX]XÒ^˜\™[\Î“Ù™šXÚX[[\×J^Ü™]\›ˆ[\ËœÛÛYJ[\O›Ù™šXÚX[[\Ú[™
+[\
+OOOZ][KšÚ[™	‰Ø\›š[™Ò[\˜[Óİ™\›\
+][K˜[Yœ›ÛK][K˜[YË[\›ÛœÙ]ÏØ[\™Y™™Xİ]™K[\™^\™\ÊJ_B™[˜İ[ÛˆÙ™šXÚX[Ûİ\˜ÙP˜YÙJ[\“Ù™šXÚX[[\›İšY\Îœİš[™Ê^ØÛÛœİÛİ\˜ÙOX	Ø[\œÛİ\˜Ù_	ÉßH	Ü›İšY\Ÿ	ÉßXÚYŠÙ]]ØÚ\ˆÙ]\™Y[œİ™Ù‹ÚK\İ
+Ûİ\˜ÙJJ\™]\›‰ÑÑ0­ÈSUPÒ	ÎØÛÛœİÛÛ\XİTİš[™Ê[\œÛİ\˜Ù_›İšY\Ÿ	ĞĞT	ÊKš[J
+Kœ™\XÙJ×ÊËÙË	È	ÊNÜ™]\›˜	ØÛÛ\Xİ›[™İŒNØ	ØÛÛ\XİœÛXÙJMÊ_x )˜˜ÛÛ\XİH0­ÈSUPÒB™[˜İ[Ûˆ[š\]YS[X™\œÊ˜[Y\Î›[X™\–×J^Ü™]\›–Ë‹‹›™]ÈÙ]
+˜[Y\Ë™š[\Š[X™\‹š\Ñš[š]JK›X\
+˜[YOO“X]œ›İ[™
+˜[YJŒL
+KÌL
+JWKœÛÜ
+
+KŠOO˜KXŠ_B™[˜İ[ÛˆÙ™šXÚX[[\Y]šXÊ[\“Ù™šXÚX[[\[š]•Ú[™[š]
+^ØÛÛœİÚ[™[Ù™šXÚX[[\Ú[™
+[\
+K^X	Ø[\šXY[™OÏÉÉßH	Ø[\™\ØÜš\[ÛÏÉÉßH	Ø[\š[œİXİ[ÛÏÉÉßX›Ü›X]˜[YOJ˜[YN›[X™\ŠOO[š]OOIÛ\ÉÏØ	Ù›Ü›X]XÚ[X[
+˜[YK
+_HKÜØ[š]OOIÚÛZ	ÏØ	ÓX]œ›İ[™
+˜[YJ_HÛKÚ[š]OOIÛ\	ÏØ	ÓX]œ›İ[™
+˜[YJ_H\˜	ÓX]œ›İ[™
+˜[YJ_HİÚYŠÚ[™OOIİÚ[™	ßÚ[™OOIÜÛ›İÙšY	Ê^ØÛÛœİ\™Xİ]\›][š]OOIÚÛZ	ÏËÊ
+ÊÎ–Ë—W
+ÊOÊWÊšÛWÊ—×ÊšÙÚN[š]OOIÛ\ÉÏËÊ
+ÊÎ–Ë—W
+ÊOÊWÊ›WÊ—×ÊœËÙÚN[š]OOIÚÛ‰ÏËÊ
+ÊÎ–Ë—W
+ÊOÊWÊŠÎšÛŸİÛ›İ[ŠW‹ÙÚN›[\™Xİ˜[Y\ÏY\™Xİ]\›İ[š\]YS[X™\œÊË‹‹^›X]Ú[
+\™Xİ]\›ŠWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJJN–×NÚYŠ\™Xİ˜[Y\Ë›[™İ
+^ØÛÛœİš[X\OY›Ü›X]˜[YJ\™Xİ˜[Y\ÖÌJKXZÏY›Ü›X]˜[YJ\™Xİ˜[Y\Ë˜]
+LJHJNÜ™]\›ˆ\™Xİ˜[Y\Ë›[™İŒI‰œš[X\HOO\XZÏØš\È	Üš[X\_H0­ÈÜ]™[ˆ	ÜXZßX˜š\È	ÜXZßX[]ÛZ][š\]YS[X™\œÊË‹‹^›X]Ú[
+Ê
+ÊÎ–Ë—W
+ÊOÊWÊšÛWÊ—×ÊšÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJJNÚYŠZÛZ›[™İ
+ZÛZ][š\]YS[X™\œÊË‹‹^›X]Ú[
+Ê
+ÊÎ–Ë—W
+ÊOÊWÊ›WÊ—×ÊœËÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJŒËŠJNÚYŠZÛZ›[™İ
+ZÛZ][š\]YS[X™\œÊË‹‹^›X]Ú[
+Ê
+ÊÎ–Ë—W
+ÊOÊWÊŠÎšÛŸİÛ›İ[ŠW‹ÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJ’ÓRÔT—ÒÕ
+JNÚYŠZÛZ›[™İ
+\™]\›‰ÉÎØÛÛœİš[X\O]Ú[™
+ÛZÌKÒÓRÔT—ÒÕ[š]
+KXZÏ]Ú[™
+ÛZ˜]
+LJHKÒÓRÔT—ÒÕ[š]
+NÜ™]\›ˆÛZ›[™İŒI‰œš[X\HOO\XZÏØš\È	Üš[X\_H0­ÈÜ]™[ˆ	ÜXZßX˜š\È	ÜXZßXBˆYŠÚ[™OOIÚX]T˜Z[‰ßÚ[™OOIØÛÛ[[İ\Ô˜Z[‰Ê^ØÛÛœİ˜[Y\Ï][š\]YS[X™\œÊË‹‹^›X]Ú[
+Ê
+ÊÎ–Ë—W
+ÊOÊWÊ›[W‹ÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJJNÚYŠ]˜[Y\Ë›[™İ
+\™]\›‰ÉÎÜ™]\›ˆ˜[Y\Ë›[™İŒOØ	İ˜[Y\ÖÌ_x $Éİ˜[Y\Ë˜]
+LJ_H[X˜	İ˜[Y\ÖÌ_H[XBˆYŠÚ[™OOIÜÛ›İÉÊ^ØÛÛœİ˜[Y\Ï][š\]YS[X™\œÊË‹‹^›X]Ú[
+Ê
+ÊÎ–Ë—W
+ÊOÊWÊ˜ÛW‹ÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJJNÚYŠ]˜[Y\Ë›[™İ
+\™]\›‰ÉÎÜ™]\›ˆ˜[Y\Ë›[™İŒOØ	İ˜[Y\ÖÌ_x $Éİ˜[Y\Ë˜]
+LJ_HÛX˜	İ˜[Y\ÖÌ_HÛXBˆYŠÚ[™OOIÚX]	ßÚ[™OOIÙœ›Üİ	Ê^ØÛÛœİ˜[Y\Ï][š\]YS[X™\œÊË‹‹^›X]Ú[
+ÊO×
+ÊÎ–Ë—W
+ÊOÊWÊ°¬Ê×‹ÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJJNÚYŠ]˜[Y\Ë›[™İ
+\™]\›‰ÉÎÜ™]\›ˆ˜[Y\Ë›[™İŒOØ	İ˜[Y\ÖÌ_Hš\È	İ˜[Y\Ë˜]
+LJ_H0¬Ø˜	İ˜[Y\ÖÌ_H0¬ØBˆYŠÚ[™OOIÙ›ÙÉÊ^ØÛÛœİ˜[Y\Ï][š\]YS[X™\œÊË‹‹^›X]Ú[
+Ê
+ÊÎ–Ë—W
+ÊOÊWÊ›WŠÈWÊ—ÊKÙÚJWK›X\
+X]ÚO“[X™\ŠX]ÚÌWKœ™\XÙJ	Ë	Ë	Ë‰ÊJJJNÚYŠ]˜[Y\Ë›[™İ
+\™]\›‰ÉÎÜ™]\›˜ÚXÚ8¢i	İ˜[Y\ÖÌ_HXBˆ™]\›‰ÉßB™[˜İ[Ûˆ^˜\™ÊÙ]K[Y^›Û™KÙ™šXÚX[[\ÏV×_NÙ]N”™]\›•\O\[Ùˆ^˜\™Ïİ[Y^›Û™OÎœİš[™ÎÛÙ™šXÚX[[\ÏÎ“Ù™šXÚX[[\×_J^ÂˆÛÛœİÛÜ[‹Ù]Ü[—O]\ÙTİ]Oİš[™ÏŠ	ÉÊKÙ^[™YÙ]^[™YO]\ÙTİ]J˜[ÙJNÂˆYŠY]K›[™İ
+\™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOHš^˜\™ÈÛÛ\Xİ[\İ^˜\™Ë\™\ÜÛœÚ]™KXØ\™^˜\™ËXİ\œ™[XÛX\ˆXY\ˆÛ\ÜÓ˜[YOHš^˜\™Ë\™\ÜÛœÚ]™KZXYÜ[ˆÛ\ÜÓ˜[YOHš^˜\™Ë\™\ÜÛœÚ]™KZXÛÛˆ˜YÙPÚXÚÈÚ^™O^ÌN_KÏÜÜ[]ÛX[“RQ0­ÈUUÓPUTĞÒÜÛX[İ›Û™Ï’ÙZ[™H]]ÛX]\ØÚ[ˆ[ÙZ\ÙOÜİ›Û™ÏÜ[’ÙZ[™H\ğé›XÚH[Ù[˜\ÚY\HÙY˜Zˆ\šØ[›ÜÜ[Ù]ÚXY\ÜÙXİ[ÛÂˆÛÛœİÛÜY]OVË‹‹™]WKœÛÜ
+ÛÛ\\™R^˜\™ĞÚ›Û›ÛÙÚXØ[JKİ\œ™[Z^˜\™İ\œ™[][\ÊÛÜY]JKİ\œ™[]™[Z^˜\™İ\œ™[]™[
+İ\œ™[
+Kİ[[X\Q]OXİ\œ™[›[™İØİ\œ™[œÛÜY]KÜ›İ\YVË‹‹œÛÜY]Kœ™YXÙJ
+X\][JOOØÛÛœİÙ^OZ^˜\™^RÙ^J][K˜[Yœ›ÛK[Y^›Û™JKİ\œ™[Ü›İ\[X\™Ù]
+Ù^JNÚYŠİ\œ™[Ü›İ\
+Xİ\œ™[Ü›İ\š][\Ëœ\Ú
+][JNÙ[ÙHX\œÙ]
+Ù^KÛX™[š^˜\™^RXY[™Ê][K˜[Yœ›ÛK[Y^›Û™JK][\Î–Ú][W_JHÜ™]\›ˆX\K™]ÈX\İš[™ËÛX™[œİš[™ÎÚ][\Î]]ÛX]XÒ^˜\™×_OŠ
+JK™[šY\Ê
+WNÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YO^Ø^˜\™ÈÛÛ\Xİ[\İ^˜\™Ë\™\ÜÛœÚ]™KXØ\™^˜\™ËXİ\œ™[IØİ\œ™[]™[XO]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHš^˜\™Ë\™\ÜÛœÚ]™KZXY^˜\™Ë\™\ÜÛœÚ]™K\İ[[X\HˆÛÛXÚÏ^Ê
+OOœÙ]^[™Y
+˜[YOOˆ]˜[YJ_H\šXKY^[™Y^Ù^[™YOÜ[ˆÛ\ÜÓ˜[YOHš^˜\™Ë\™\ÜÛœÚ]™KZXÛÛˆ[™›ÈÚ^™O^ÌN_KÏÜÜ[]ÛX[“RQ0­ÈUUÓPUTĞÒÜÛX[İ›Û™ÏÚ^˜\™İ™\šY]Õ]Jİ[[X\Q]J_OÜİ›Û™ÏÜ[Ú^˜\™İ™\šY]Ôİ]\ÊÛÜY]J_OÜÜ[Ù][OÜÛÜY]K›[™İHÜÛÜY]K›[™İOOLOÉÒ[ÙZ\ÉÎ‰Ò[ÙZ\ÙIßOÙ[OÙ^[™YÏÚ]œ›Û‘İÛˆÚ^™O^ÌN_KÏÚ]œ›Û”šYÚÚ^™O^ÌN_KÏŸOØ]ÛÙ^[™Y	‰]ˆÛ\ÜÓ˜[YOHš^˜\™Y^KYÜšYÙÜ›İ\Y›X\
+
+ÚÙ^KÜ›İ\JOOÙXİ[ÛˆÛ\ÜÓ˜[YOHš^˜\™Y^KYÜ›İ\ˆÙ^O^ÚÙ^_OXY\İ›Û™ÏÙÜ›İ\›X™[OÜİ›Û™ÏÛX[ÙÜ›İ\š][\Ë›[™İHÙÜ›İ\š][\Ë›[™İOOLOÉÒ[ÙZ\ÉÎ‰Ò[ÙZ\ÙIßOÜÛX[ÚXY\]ÙÜ›İ\š][\Ë›X\
+OØÛÛœİ˜[Y]OZ^˜\™˜[Y]SX™[
+˜[Yœ›ÛK˜[YË[Y^›Û™JKYX	ŞšÚ[™ÏÉÉßN‰Ş]_N‰Ş˜[Yœ›ÛOÏÉÉßX][Q^[™Y[Ü[OOZYİ\[Y[X]]ÛX]XÒ^˜\™\ÓÙ™šXÚX[ÛÛ\[š[ÛŠÙ™šXÚX[[\ÊKY]šXÏ^™\Ü^SY]šXß›Y]šXÎÜ™]\›ˆ\XÛHY^ØZY]Ø\›š[™ËIÚYXHÛ\ÜÓ˜[YO^Ø	Ş›]™[IŞ›İÙ\’[[œÚ]OÉÈİÙ\‹Z[[œÚ]IÎ‰ÉßH	Ú][Q^[™YÉÛÜ[‰Î‰ÉßXš[J
+_H]KZÚ[™^ŞšÚ[™HÙ^O^ÚYO]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHš^˜\™]ÙÙÛHˆÛÛXÚÏ^Ê
+OOœÙ]Ü[Š][Q^[™YÉÉÎšY
+_H\šXKY^[™Y^Ú][Q^[™YOH\šXKZY[HYH‹ÏÜ[ˆÛ\ÜÓ˜[YOHš^˜\™]ÙÙÛKZXYÜ[ˆÛ\ÜÓ˜[YOHš^˜\™[ÜšYÚ[‹\›İÈÛX[Û\ÜÓ˜[YO^Ø^˜\™[ÜšYÚ[‹X˜YÙIÜİ\[Y[ÉÈİ\[Y[	Î‰ÉßXOÜİ\[Y[ÉÓRQ0­ÈT‘ğá–•S‘ÉÎ‰ÓRQ0­È“ÑÓ“ÔÑRS•ÑRTÉßOÜÛX[İ˜[Y]I‰ÛX[Û\ÜÓ˜[YOHš^˜\™]˜[Y]Hˆ]OH”›Ø˜Xš[\İ\ØÚX™Ù[Z]]\È™Z]™[œİ\ˆ\ÈØ\›š[™ZØ]ÜœÎÈ\ˆØÚÙ\œ[šİØ[›ˆ[›™\š[ˆY\Ù\È™[œİ\œÈ˜\šZY\™[‹ˆÛØÚÌÈÚ^™O^ÌL_KÏ[YH]U[YO^Ş˜[Yœ›Û_OŞ˜ÛÛ™][Û˜[ÉÔØÚÙ\œ[šİˆ	Î‰Ñ™[œİ\ˆ	ß^İ˜[Y]_Oİ[YOÜÛX[ŸOÜÜ[İ›Û™ÏŞ]_OÜİ›Û™ÏÛY]šXÉ‰[OÛY]šXßOÙ[OŸ^ÊœØÛÜSX™[œ™XÚ\Ú[Û“X™[
+I‰Ü[ˆÛ\ÜÓ˜[YOHš^˜\™XÛÛ^ÖŞœØÛÜSX™[œ™XÚ\Ú[Û“X™[K™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	Ê_OÜÜ[ŸOÜÜ[Ú][Q^[™YÏÚ]œ›Û‘İÛˆÚ^™O^ÌNKÏÚ]œ›Û”šYÚÚ^™O^ÌNKÏŸOØ]ÛÚ][Q^[™Y	‰]ˆÛ\ÜÓ˜[YOHš^˜\™X›ÙHŞ›İÙ\’[[œÚ]I‰[O“šYYšYÙ\™HİY™H[HÙ[™[ˆ™Z]˜][OÙ[OŸOÜ[Ş™\Ü^U^^OÜÜ[Ù]ŸOØ\XÛOŸJ_OÙ]ÜÙXİ[ÛŠ_OÙ]ŸOÜÙXİ[Û‚ŸB\H]]ÛX]XÒ^˜\™T™]\›•\O\[Ùˆ^˜\™Ï–Û[X™\—NÂ\H]]ÛX]XÒ^˜\™]™[P]]ÛX]XÒ^˜\™ÉÛ]™[	×_	ØÛX\‰ÎÂ˜ÛÛœİUUÓPUP×ÒVT‘ÓU‘SÔS’Î”™XÛÜ™^ÛYO]]ÛX]XÒ^˜\™]™[	ØÛX\‰Ï‹[X™\^ŞY[İÎŒKÜ˜[™ÙNŒ‹™YŒË\œNNÂ™[˜İ[Ûˆ^˜\™\Ğİ\œ™[
+][N]]ÛX]XÒ^˜\™›İÏQ]K››İÊ
+J^ØÛÛœİİ\Q]Kœ\œÙJİš[™Ê][K˜[Yœ›ÛOÏÉÉÊJK[™Q]Kœ\œÙJİš[™Ê][K˜[YÏÏÉÉÊJNÜ™]\›ˆ[X™\‹š\Ñš[š]Jİ\
+I‰“[X™\‹š\Ñš[š]J[™
+I‰œİ\[›İÉ‰™[™››İßB™[˜İ[Ûˆ^˜\™İ\œ™[][\Ê]N]]ÛX]XÒ^˜\™×J^ØÛÛœİ›İÏQ]K››İÊ
+NÜ™]\›ˆ]K™š[\Š][OOš^˜\™\Ğİ\œ™[
+][K›İÊJ_B™[˜İ[Ûˆ^˜\™İ\œ™[]™[
+]N]]ÛX]XÒ^˜\™×JN]]ÛX]XÒ^˜\™]™[Ü™]\›ˆ]Kœ™YXÙO]]ÛX]XÒ^˜\™]™[Š
+™\İ][JOO˜™\İOOIØÛX\‰ßUUÓPUP×ÒVT‘ÓU‘SÔS’ÖÚ][K›]™[OUUÓPUP×ÒVT‘ÓU‘SÔS’ÖØ™\İOÚ][K›]™[˜™\İ	ØÛX\‰Ê_B™[˜İ[Ûˆ^˜\™İ›Û™Ù\İİ\œ™[
+]N]]ÛX]XÒ^˜\™×J^Ü™]\›ˆ]Kœ™YXÙO]]ÛX]XÒ^˜\™[™Yš[™YŠ
+™\İ][JOOˆX™\İUUÓPUP×ÒVT‘ÓU‘SÔS’ÖÚ][K›]™[OUUÓPUP×ÒVT‘ÓU‘SÔS’ÖØ™\İ›]™[OÚ][N˜™\İ[™Yš[™Y
+_B™[˜İ[Ûˆ^˜\™™YXØ]Tİ]J][N]]ÛX]XÒ^˜\™
+^ØÛÛœİ]OZ][K]Kš[J
+NÚYŠ][KšÚ[™OOIÚX]	Ê\™]\›‹×‘^™[YW‹ÚK\İ
+]JOÉÙ^™[IÎ‹×”İ\šÙW‹ÚK\İ
+]JOÉÜİ\šÉÎ‰Ù\š0íš	ÎÚYŠ×‘^™[JÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰Ù^™[IÎÚYŠ×”İ\šÊÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰Üİ\šÉÎÚYŠ×”ØÚÙ\ŠÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰ÜØÚÙ\‰ÎÚYŠ×“X\šØ[
+Î™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰ÛX\šØ[	ÎÚYŠ×’YYÊÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰ÚYYÉÎÚYŠ×‘\™ÚYXšYÊÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰Ù\™ÚYXšYÉÎÚYŠ×“ZXÚ
+Î™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰ÛZXÚ	ÎÚYŠ×”İ™[™ÊÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰Üİ™[™ÉÎÚYŠ×“ÜšØ[˜\YÊÎ™_\ß\Ÿ[ŠO×‹ÚK\İ
+]JJ\™]\›‰ÛÜšØ[˜\YÉÎÜ™]\›ˆ]_B™[˜İ[Ûˆ^˜\™^RÙ^J˜[YNœİš[™ß[™Yš[™Y[Y^›Û™OÎœİš[™Ê^ØÛÛœİ\ØÚQ]Kœ\œÙJİš[™Ê˜[YOÏÉÉÊJNÜ™]\›ˆ[X™\‹š\Ñš[š]J\ØÚ
+OÙ›Ü›X][–›Û™J\ØÚ[Y^›Û™KŞYX\‰Û[Y\šXÉË[Û‰Ì‹YYÚ]	Ë^N‰Ì‹YYÚ]	ßJN‰ÛÚ™KY][IßB™[˜İ[Ûˆ^˜\™^RXY[™Ê˜[YNœİš[™ß[™Yš[™Y[Y^›Û™OÎœİš[™Ê^ØÛÛœİ\ØÚQ]Kœ\œÙJİš[™Ê˜[YOÏÉÉÊJNÚYŠS[X™\‹š\Ñš[š]J\ØÚ
+J\™]\›‰ÕÙZ]\™H™Z]™[œİ\‰ÎØÛÛœİÙ^OZ^˜\™^RÙ^J˜[YK[Y^›Û™JKÙ^OZ^˜\™^RÙ^J™]È]J
+KÒTÓÔİš[™Ê
+K[Y^›Û™JKÛ[Üœ›İÏZ^˜\™^RÙ^J™]È]J]K››İÊ
+JÌ
+Œ
+Œ
+ŒL
+KÒTÓÔİš[™Ê
+K[Y^›Û™JK™Yš^ZÙ^OOO]Ù^OÉÒ]]IÎšÙ^OOO]Û[Üœ›İÏÉÓ[Ü™Ù[‰Î™›Ü›X][–›Û™J\ØÚ[Y^›Û™KİÙYZÙ^N‰ÛÛ™ÉßJNÜ™]\›˜	Ü™Yš^H0­È	Ù›Ü›X][–›Û™J\ØÚ[Y^›Û™KÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_XB™[˜İ[Ûˆ^˜\™İ™\šY]Õ]J]N]]ÛX]XÒ^˜\™×J^ØÛÛœİÚ[™Ï[™]ÈÙ]
+]K›X\
+][OOš][KšÚ[™
+JNÚYŠÚ[™ËœÚ^™OOOLI‰šÚ[™Ëš\Ê	ÚX]	ÊJ\™]\›‰Õğé›YX™[\İ[™ÉÎÚYŠÚ[™ËœÚ^™OOOLI‰šÚ[™Ëš\Ê	İ[™\œİÜ›IÊJ\™]\›‰ÑÙ]Ú]\ˆ	ˆÛÛ™Zİ[Û‰ÎÚYŠË‹‹šÚ[™×KœÛÛYJÚ[™OšÚ[™OOIÚX]T˜Z[‰ßÚ[™OOIØÛÛ[[İ\Ô˜Z[‰ÊJ\™]\›‰ÕÙ]\™ÙY˜Z™[‰ÎÜ™]\›‰Ğ]]ÛX]\ØÚHÙ]\š[ÙZ\ÙIßB™[˜İ[Ûˆ^˜\™İ™\šY]Ôİ]\Ê]N]]ÛX]XÒ^˜\™×J^ØÛÛœİİ\œ™[Z^˜\™İ\œ™[][\Ê]JNÚYŠXİ\œ™[›[™İ
+\™]\›‰Ñ\™Z]ÙZ[ˆRQR[ÙZ\ÈZİ]‰ÎØÛÛœİİ›Û™Ù\İZ^˜\™İ›Û™Ù\İİ\œ™[
+İ\œ™[
+NÚYŠ\İ›Û™Ù\İ
+\™]\›‰Ñ\™Z]ÙZ[ˆRQR[ÙZ\ÈZİ]‰ÎØÛÛœİØ[YRÚ[™Xİ\œ™[™]™\J][OOš][KšÚ[™OO\İ›Û™Ù\İšÚ[™
+Kİ]O\Ø[YRÚ[™Ú^˜\™™YXØ]Tİ]Jİ›Û™Ù\İ
+Nœİ›Û™Ù\İ]NÜ™]\›˜ZİY[ˆ	Üİ]_XB‚™[˜İ[Ûˆ[\[YJ˜[YNœİš[™ß[™Yš[™Y[Y^›Û™OÎœİš[™Ê^ÚYŠ]˜[YJ\™]\›‰ÉÎØÛÛœİ[™]È]J˜[YJNÚYŠS[X™\‹š\Ñš[š]J™Ù][YJ
+JJ\™]\›‰ÉÎØÛÛœİ^Y›Ü›X][–›Û™J[Y^›Û™KÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	Ëİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJKİY™š^[ØØ[[YQ\Ø[XšYİX][Û”İY™š^
+
+NÜ™]\›ˆİY™š^Ø	İ^H	ÜİY™š^X^B™[˜İ[ÛˆÙ™šXÚX[[\˜[Y]J[\“Ù™šXÚX[[\[Y^›Û™OÎœİš[™Ê^ØÛÛœİİ\X[\›ÛœÙ]ÏØ[\™Y™™Xİ]™K[™X[\™^\™\Ëİ\^\İ\ØXˆ	Ø[\[YJİ\[Y^›Û™J_X‰ÉË[™^Y[™Øš\È	Ø[\[YJ[™[Y^›Û™J_X‰ÉÎÜ™]\›–Üİ\^[™^K™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	Ê_	ÙğïYÉßB™[˜İ[ÛˆÙ™šXÚX[[\[™İXYÙSX™[
+[™İXYÙOÎœİš[™Ê^ØÛÛœİÛÙOTİš[™Ê[™İXYÙ_	ÉÊKš[J
+KÓİÙ\Ø\ÙJ
+NÚYŠXÛÙJ\™]\›‰ÉÎÚYŠÛÙKœİ\ÕÚ]
+	ÙIÊJ\™]\›‰Ñ]]ØÚ	ÎÚYŠÛÙKœİ\ÕÚ]
+	Ù[‰ÊJ\™]\›‰Ñ[™Û\ØÚ	Îİ^Ü™]\›ˆ™]È[‘\Ü^S˜[Y\ÊÉÙI×Kİ\N‰Û[™İXYÙIßJK›ÙŠÛÙKœÜ]
+ÖËW×KÊVÌJ_[™İXYÙ_	ÉßXØ]ÚÜ™]\›ˆ[™İXYÙ_	Éß_B™[˜İ[ÛˆÙ™šXÚX[Ø\›š[™ÜÊØ[\ËØY[™Ë\œ›Ü‹›İšY\‹[Y^›Û™K[š]NØ[\Î“Ù™šXÚX[[\×NÛØY[™Î˜›ÛÛX[Ù\œ›Üœİš[™ÎÜ›İšY\œİš[™Îİ[Y^›Û™OÎœİš[™Îİ[š]•Ú[™[š]J^ÂˆÛÛœİÛÜ[‹Ù]Ü[—O]\ÙTİ]Oİš[™ÏŠ	ÉÊKÛÜY[\Ï]\ÙSY[[Ê
+
+OO˜Ú›Û›ÛÙÚXØ[Ù™šXÚX[[\Ê[\ÊKØ[\×JNÂˆYŠØY[™Ê\™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH›Ù™šXÚX[]Ø\›š[™ÜÈÛÛ\XİXY\[\šX[™ÛKÏ]ÛX[SUPÒÜÛX[İ›Û™Ï[]XÚHÙ]\Ø\›[™Ù[Üİ›Û™ÏÜ[ĞTSY[[™Ù[ˆÙ\™[ˆÙ[Y[ˆ8 )ÜÜ[Ù]ÚXY\ÜÙXİ[ÛÂˆYŠ\œ›ÜŠ\™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH›Ù™šXÚX[]Ø\›š[™ÜÈÛÛ\Xİ[˜]˜Z[X›HXY\[\šX[™ÛKÏ]ÛX[SUPÒÜÛX[İ›Û™Ï[]XÚHÙ]\Ø\›[™Ù[Üİ›Û™ÏÜ[Ù\œ›ÜŸOÜÜ[Ù]ÚXY\ÜÙXİ[ÛÂˆYŠ\ÛÜY[\Ë›[™İ
+\™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH›Ù™šXÚX[]Ø\›š[™ÜÈÛÛ\XİÛX\ˆXY\˜YÙPÚXÚËÏ]ÛX[SUPÒÜÛX[İ›Û™Ï’ÙZ[™H[]XÚ[ˆÙ]\Ø\›[™Ù[Üİ›Û™ÏÜ[Ü›İšY\Ÿ	Ñ°ïˆ[ˆÙ]ğé[ˆİ[™ÜYYİ\™Z]ÙZ[™HZİ]™HĞTUØ\›[™È›Ü‹‰ßOÜÜ[Ù]ÚXY\ÜÙXİ[ÛÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH›Ù™šXÚX[]Ø\›š[™ÜÈXY\[\šX[™ÛKÏ]ÛX[SUPÒÜÛX[İ›Û™Ï[]XÚHÙ]\Ø\›[™Ù[Üİ›Û™ÏÜ[ÜÛÜY[\Ë›[™İHÜÛÜY[\Ë›[™İOOLOÉÓY[[™ÉÎ‰ÓY[[™Ù[‰ßH0­ÈÜ›İšY\Ÿ	ĞĞT	ßOÜÜ[Ù]ÚXY\]ˆÛ\ÜÓ˜[YOH›Ù™šXÚX[[\İÜÛÜY[\Ë›X\
+OOØÛÛœİ^[™Y[Ü[OOXKšY˜[Y]O[Ù™šXÚX[[\˜[Y]JK[Y^›Û™JK[™İXYÙO[Ù™šXÚX[[\[™İXYÙSX™[
+K›[™İXYÙJKY]šXÏ[Ù™šXÚX[[\Y]šXÊK[š]
+KY]OVØKœÛİ\˜ÙKK˜\™XK[™İXYÙOØÜšYÚ[˜[^ˆ	Û[™İXYÙ_X‰ÉËK›ÛœÙ]ØXˆ	Ø[\[YJK›ÛœÙ][Y^›Û™J_X˜K™Y™™Xİ]™OØXˆ	Ø[\[YJK™Y™™Xİ]™K[Y^›Û™J_X‰ÉËK™^\™\ÏØš\È	Ø[\[YJK™^\™\Ë[Y^›Û™J_X‰É×K™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	ÊNÜ™]\›ˆ\XÛHY^ØÙ™šXÚX[]Ø\›š[™ËIØKšYXHÙ^O^ØKšYHÛ\ÜÓ˜[YO^ØÙ™šXÚX[X[\	ØK›]™[H	Ù^[™YÉÛÜ[‰Î‰ÉßXO]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OOœÙ]Ü[Š^[™YÉÉÎ˜KšY
+_H\šXKY^[™Y^Ù^[™YOKÏÜ[ˆÛ\ÜÓ˜[YOH›Ù™šXÚX[X[\ZXYÛX[Û\ÜÓ˜[YOH›Ù™šXÚX[\Ûİ\˜ÙKX˜YÙHÛÙ™šXÚX[Ûİ\˜ÙP˜YÙJK›İšY\Š_OÜÛX[İ›Û™ÏØKšXY[™_OÜİ›Û™ÏÜ[ˆÛ\ÜÓ˜[YOH›Ù™šXÚX[X[\[Y]Hİ˜[Y]_^ÛY]šXÏØ0­È	ÛY]šXßX‰ÉßOÜÜ[ÜÜ[Ù^[™YÏÚ]œ›Û‘İÛˆÚ^™O^ÌNKÏÚ]œ›Û”šYÚÚ^™O^ÌNKÏŸOØ]ÛÙ^[™Y	‰]ˆÛ\ÜÓ˜[YOH›Ù™šXÚX[[Y\ÜØYÙHØK™\ØÜš\[ÛŸOÜØKš[œİXİ[Û‰‰Û\ÜÓ˜[YOHš[œİXİ[ÛˆØKš[œİXİ[ÛŸOÜŸOÛX[ÛY]_OÜÛX[Ù]ŸOØ\XÛOŸJ_OÙ]ÜÙXİ[Û‚ŸB™[˜İ[ÛˆØ\›š[™Ñ]™[\Ô™[]˜[
+[™˜[YNœİš[™ß[™Yš[™Y
+^ØÛÛœİ[™Q]Kœ\œÙJİš[™Ê[™˜[YOÏÉÉÊJNÜ™]\›ˆS[X™\‹š\Ñš[š]J[™
+_[™‘]K››İÊ
+_B™[˜İ[ÛˆØ\›š[™Ñ]™[İ]Jİ\›[X™\Š^ÚYŠS[X™\‹š\Ñš[š]Jİ\
+J\™]\›‰ÑğïYÉÎÜ™]\›ˆİ\Q]K››İÊ
+OÉĞZİ]‰Î‰Ğ[œİZ[™	ßB™[˜İ[ÛˆØ\›š[™Ñ]™[XŠØ]]ÛX]XË[\ËØY[™Ë\œ›Ü‹›İšY\‹[Y^›Û™K[š]NØ]]ÛX]XÎ]]ÛX]XÒ^˜\™×NØ[\Î“Ù™šXÚX[[\×NÛØY[™Î˜›ÛÛX[Ù\œ›Üœİš[™ÎÜ›İšY\œİš[™Îİ[Y^›Û™OÎœİš[™Îİ[š]•Ú[™[š]J^ØÛÛœİ]™[Ï]\ÙSY[[Ê
+
+OOØÛÛœİÙ™šXÚX[XÚ›Û›ÛÙÚXØ[Ù™šXÚX[[\Ê[\ÊK™š[\Š[\OØ\›š[™Ñ]™[\Ô™[]˜[
+[\™^\™\ÊJK›X\
+[\OŠÚY˜Ù™šXÚX[IØ[\šYXÛİ\˜ÙN‰ÛÙ™šXÚX[	È\ÈÛÛœİ]™[˜[\›]™[]N˜[\šXY[™K˜[Y]N›Ù™šXÚX[[\˜[Y]J[\[Y^›Û™JKY]šXÎ›Ù™šXÚX[[\Y]šXÊ[\[š]
+K\™Ù]Y˜Ù™šXÚX[]Ø\›š[™ËIØ[\šYXİ\‘]Kœ\œÙJİš[™Ê[\›ÛœÙ]ÏØ[\™Y™™Xİ]™OÏÉÉÊJ_JJKZYX]]ÛX]XË™š[\Š][OOØ\›š[™Ñ]™[\Ô™[]˜[
+][K˜[YÊJK›X\
+][OOØÛÛœİYX	Ú][KšÚ[™ÏÉÉßN‰Ú][K]_N‰Ú][K˜[Yœ›ÛOÏÉÉßXÜ™]\›ÚY˜ZYIÚYXÛİ\˜ÙN‰ÛZY	È\ÈÛÛœİ]™[š][K›]™[]Nš][K]K˜[Y]Nš^˜\™˜[Y]SX™[
+][K˜[Yœ›ÛK][K˜[YË[Y^›Û™JKY]šXÎš][K™\Ü^SY]šXß][K›Y]šXß	ÉË\™Ù]Y˜ZY]Ø\›š[™ËIÚYXİ\‘]Kœ\œÙJİš[™Ê][K˜[Yœ›ÛOÏÉÉÊJ__JNÜ™]\›–Ë‹‹›Ù™šXÚX[‹‹›ZYKœÛÜ
+
+KŠOOŠ[X™\‹š\Ñš[š]JKœİ\
+OØKœİ\“[X™\‹“PVÔĞQ‘WÒS•QÑTŠKJ[X™\‹š\Ñš[š]J‹œİ\
+OØ‹œİ\“[X™\‹“PVÔĞQ‘WÒS•QÑTŠJ_KØ]]ÛX]XË[\Ë[Y^›Û™K[š]JNØÛÛœİÛİ\˜ÙTİ]O[ØY[™ÏÉĞ[]XÚH][ˆÙ\™[ˆÙ\°ï8 )‰Î™\œ›ÜÉĞ[]XÚHYÙH\™Z]šXÚ\œ™ZXÚ˜\‰Îœ›İšY\Ø[]XÚH]Y[H0­È	Ü›İšY\ŸX‰Ğ[]XÚH]Y[IÎÜ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOHØ\›š[™ËY]™[]Xˆˆ\šXK[X™[H•Ø\››YÙH]YˆZ[™[ˆ›XÚÈXY\ˆÛ\ÜÓ˜[YOHØ\›š[™ËY]™[]X‹ZXY]ÛX[•ĞT““QÑHUQˆRS‘Sˆ“PÒÏÜÛX[İ›Û™ÏÙ]™[Ë›[™İØ	Ù]™[Ë›[™İH	Ù]™[Ë›[™İOOLOÉÑ\™ZYÛš\ÉÎ‰Ñ\™ZYÛš\ÜÙIßH[H™Z]™[œİ\˜‰ÒÙZ[™HØ\›™\™ZYÛš\ÜÙH[H™Z]™[œİ\‰ßOÜİ›Û™ÏÜ[ÜÛİ\˜ÙTİ]_OÜÜ[Ù]Ü[ˆÛ\ÜÓ˜[YO^ØØ\›š[™ËY]™[XÛİ[	Ù]™[Ë›[™İÉÈXİ]™IÎ‰ÉßXOÙ]™[Ë›[™İOÜÜ[ÚXY\Ù]™[Ë›[™İÏ]ˆÛ\ÜÓ˜[YOHØ\›š[™ËY]™[]˜XÚÈÙ]™[Ë›X\
+]™[O]Ûˆ\OH˜]ÛˆˆÙ^O^Ù]™[šYHÛ\ÜÓ˜[YO^ØØ\›š[™ËY]™[\›İÈ	Ù]™[›]™[XHÛÛXÚÏ^Ê
+OO™Øİ[Y[™Ù][[Y[RY
+]™[\™Ù]Y
+OËœØÜ›Û[ÕšY]ÊØ™Z]š[Ü‰ÜÛ[Ûİ	Ë›ØÚÎ‰ØÙ[\‰ßJ_OH\šXKZY[HYH‹ÏÜ[ˆÛ\ÜÓ˜[YOHØ\›š[™ËY]™[[ÜšYÚ[ˆÙ]™[œÛİ\˜ÙOOOIÛÙ™šXÚX[	ÏÉĞSUPÒ	Î‰ÓRQ	ßOÜÜ[Ü[ˆÛ\ÜÓ˜[YOHØ\›š[™ËY]™[[XZ[ˆİ›Û™ÏÙ]™[]_OÜİ›Û™ÏÛX[İØ\›š[™Ñ]™[İ]J]™[œİ\
+_OØÙ]™[˜[Y]OØ0­È	Ù]™[˜[Y]_X‰Éß^Ù]™[›Y]šXÏØ0­È	Ù]™[›Y]šXßX‰ÉßOÜÛX[ÜÜ[Ú]œ›Û”šYÚÚ^™O^ÌMŸKÏØ]ÛŠ_OÙ]Û\ÜÓ˜[YO^ØØ\›š[™ËY]™[Y[\IÙ\œ›ÜÉÈ[˜]˜Z[X›IÎ‰ÉßXOÙ\œ›ÜÉÑ\ˆ[]XÚHXœYˆ\İšXÚ™\™°ïØ˜\‹ˆRQR[ÙZ\ÙH\œØÚZ[™[ˆY\‹ÛØ˜[Z[ˆ\™ZYÛš\È\šØ[›Ú\™‰Î‰ÒÙZ[™H]Y™[™[ˆÙ\ˆ\Ø\][ˆØ\›ğï™YÙ[ˆ\™ZYÛš\ÜÙK‰ßOÜŸOÜÙXİ[ÛŸB™[˜İ[ÛˆØ\›š[™ĞÙ[\ŠØ]]ÛX]XË[\ËØY[™Ë\œ›Ü‹›İšY\‹[Y^›Û™K[š]NØ]]ÛX]XÎ”™]\›•\O\[Ùˆ^˜\™ÏØ[\Î“Ù™šXÚX[[\×NÛØY[™Î˜›ÛÛX[Ù\œ›Üœİš[™ÎÜ›İšY\œİš[™Îİ[Y^›Û™OÎœİš[™Îİ[š]•Ú[™[š]J^ØÛÛœİÙ™šXÚX[Ûİ[X[\Ë›[™İ]]ÛX]XĞÛİ[X]]ÛX]XË›[™İİ[[X\O[ØY[™ÏØ[]XÚHYÙHÚ\™Ù[Y[ˆ0­È	Ø]]ÛX]XĞÛİ[HRQIØ]]ÛX]XĞÛİ[OOLOÉÒ[ÙZ\ÉÎ‰Ò[ÙZ\ÙIßX™\œ›ÜØ[]XÚHYÙH\™Z]šXÚ™\™°ïØ˜\ˆ0­È	Ø]]ÛX]XĞÛİ[HRQIØ]]ÛX]XĞÛİ[OOLOÉÒ[ÙZ\ÉÎ‰Ò[ÙZ\ÙIßX˜	ÛÙ™šXÚX[Ûİ[H	ÛÙ™šXÚX[Ûİ[OOLOÉØ[]XÚHØ\›[™ÉÎ‰Ø[]XÚHØ\›[™Ù[‰ßH0­È	Ø]]ÛX]XĞÛİ[HRQIØ]]ÛX]XĞÛİ[OOLOÉÒ[ÙZ\ÉÎ‰Ò[ÙZ\ÙIßX]O[Ù™šXÚX[Ûİ[ÉĞ[]XÚHØ\››YÙH[™RQQ\™ğé[™Ù[‰Î˜]]ÛX]XĞÛİ[ÉÓRQT›ÙÛ›ÜÙZ[ÙZ\ÙIÎ‰ÒÙZ[™HØ\››YÙIËÜ[‘^™[YOJ
+OOÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZY›˜]šYØ]K[[Ù\›‹\[›™\‰ËÙ]Z[İ\™Ù]‰Ù^™[YK[İ]ÛÚÉß_JJNÜ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOHØ\›š[™ÜË\™\ÜÛœÚ]™K\Ú[XY\ˆÛ\ÜÓ˜[YOHØ\›š[™ÜËZXœšYZXY›Ü™XØ\İY[KZXY›Ü™XØ\İY[KZXY]Ø\›š[™ÜÈÜ[ˆÛ\ÜÓ˜[YOHØ\›š[™ÜËZXœšYZXÛÛˆÛÙ™šXÚX[Ûİ[Ï[\šX[™ÛHÚ^™O^ÌŒKÏ˜]]ÛX]XĞÛİ[Ï[™›ÈÚ^™O^ÌŒKÏ˜YÙPÚXÚÈÚ^™O^ÌŒKÏŸOÜÜ[]ÛX[•ĞT“•S‘ÑSˆ	ˆS•ÑRTÑOÜÛX[İ›Û™Ïİ]_OÜİ›Û™ÏÜ[Üİ[[X\_OÜÜ[Ù]]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOHØ\›š[™ÜËY^™[YKY[HˆÛ”Ú[\‘[\^İØ\›Q^™[YUÙX]\“İ]ÛÚßHÛ‘›Øİ\Ï^İØ\›Q^™[YUÙX]\“İ]ÛÚßHÛ”Ú[\‘İÛ^İØ\›Q^™[YUÙX]\“İ]ÛÚßHÛÛXÚÏ^ÛÜ[‘^™[Y_OÛİYYÚš[™ÈÚ^™O^ÌMŸKÏÜ[‘^™[]Ù]\ÜÜ[Ú]œ›Û”šYÚÚ^™O^ÌM_KÏØ]ÛÚXY\Ø\›š[™Ñ]™[Xˆ]]ÛX]XÏ^Ø]]ÛX]XßH[\Ï^Ø[\ßHØY[™Ï^ÛØY[™ßH\œ›Ü^Ù\œ›ÜŸH›İšY\^Ü›İšY\ŸH[Y^›Û™O^İ[Y^›Û™_H[š]^İ[š]KÏÛÙ™šXÚX[Ûİ[ÏY[[ÓÙ™šXÚX[Ø\›š[™ÜÈ[\Ï^Ø[\ßHØY[™Ï^Ù˜[Ù_H\œ›ÜHˆˆ›İšY\^Ü›İšY\ŸH[Y^›Û™O^İ[Y^›Û™_H[š]^İ[š]KÏ›[^Ø]]ÛX]XĞÛİ[ÏY[[Ò^˜\™È]O^Ø]]ÛX]XßH[Y^›Û™O^İ[Y^›Û™_HÙ™šXÚX[[\Ï^Ø[\ßKÏ›[OÜÙXİ[ÛŸB‚\H^˜\™˜YÙS]™[IŞY[İÉß	ÛÜ˜[™ÙIß	Ü™Y	ß	Ü\œIÎÂ˜ÛÛœİÓRÔT—ÒÕLKLÂ˜ÛÛœİÒS‘ÕĞT“’S‘×ĞS‘ÏVÂˆÚY‰İÚ[™]Ø\›š[™Ë^Y[İÉËİÙ\’İLÒÓRÔT—ÒÕ\\’İKÒÓRÔT—ÒÕÛÛÜ‰ÈÙM˜ÌŒIËX™[‰ÕÚ[™°í™[ˆ0ï™\ˆLÛKÚ	ßKˆÚY‰İÚ[™]Ø\›š[™Ë[Ü˜[™ÙIËİÙ\’İKÒÓRÔT—ÒÕ\\’İLÒÓRÔT—ÒÕÛÛÜ‰ÈÙYÌ‰ËX™[‰Ôİ\›X°í™[ˆXˆHÛKÚ	ßKˆÚY‰İÚ[™]Ø\›š[™Ë[Ü˜[™ÙKZX]IËİÙ\’İLÒÓRÔT—ÒÕ\\’İŒLKÒÓRÔT—ÒÕÛÛÜ‰ÈÙMÍÌY‰ËX™[‰ÔØÚÙ\™Hİ\›X°í™[ˆXˆLÛKÚ	ßKˆÚY‰İÚ[™]Ø\›š[™Ë\™Y	ËİÙ\’İŒLKÒÓRÔT—ÒÕ\\’İŒLŒÒÓRÔT—ÒÕÛÛÜ‰ÈÙMÍMIËX™[‰ÓÜšØ[˜\YÙH°í™[ˆXˆLHÛKÚ	ßKˆÚY‰İÚ[™]Ø\›š[™Ë\™Y[ÜšØ[‰ËİÙ\’İŒLŒÒÓRÔT—ÒÕ\\’İŒMÒÓRÔT—ÒÕÛÛÜ‰ÈØÎLÍÍ	ËX™[‰ÓÜšØ[˜°í™[ˆXˆLŒÛKÚ	ßKˆÚY‰İÚ[™]Ø\›š[™Ë\\œIËİÙ\’İŒMÒÓRÔT—ÒÕ\\’İ“[X™\‹”ÔÒUU‘WÒS‘’S’UKÛÛÜ‰ÈÎXNXÍ‰ËX™[‰Ñ^™[YHÜšØ[˜°í™[ˆ0ï™\ˆMÛKÚ	ßB—H\ÈÛÛœİÂ˜ÛÛœİ™XÚ\Y]N”™XÛÜ™^ÛYO™XÚ\\K	Û›Û™IÏ‹ÛX™[œİš[™ÎÛYÙ[™Û\ÜÎœİš[™ÎÙš[œİš[™ßO^Âˆš^›NÛX™[‰ÔÜ°ï™YÙ[‰ËYÙ[™Û\ÜÎ‰Ùš^›IËš[‰İ\›
+Ùš^›Qš[
+IßKˆœ™Y^š[™Ñš^›NÛX™[‰ÑÙYœšY\™[™\ˆÜ°ï™YÙ[‰ËYÙ[™Û\ÜÎ‰Ùœ™Y^š[™ËYš^›IËš[‰İ\›
+Ùœ™Y^š[™Ñš^›T]\›ŠIßKˆ˜Z[ÛX™[‰Ô™YÙ[‰ËYÙ[™Û\ÜÎ‰Ü˜Z[‰Ëš[‰İ\›
+Ü˜Z[‘š[
+IßKˆœ™Y^š[™Ô˜Z[ÛX™[‰ÑÙYœšY\™[™\ˆ™YÙ[‰ËYÙ[™Û\ÜÎ‰Ùœ™Y^š[™Ë\˜Z[‰Ëš[‰İ\›
+Ùœ™Y^š[™Ô˜Z[”]\›ŠIßKˆÚİÙ\œÎÛX™[‰Ô™YÙ[œØÚ]Y\‰ËYÙ[™Û\ÜÎ‰ÜÚİÙ\œÉËš[‰İ\›
+ÜÚİÙ\œÔ]\›ŠIßKˆÛ›İÎÛX™[‰ÔØÚ™YY˜[	ËYÙ[™Û\ÜÎ‰ÜÛ›İÉËš[‰İ\›
+ÜÛ›İÔ]\›ŠIßKˆÛ›İÑÜ˜Z[œÎÛX™[‰ÔØÚ™YYÜšY\Ù[	ËYÙ[™Û\ÜÎ‰ÜÛ›İËYÜ˜Z[œÉËš[‰İ\›
+ÜÛ›İÑÜ˜Z[œÔ]\›ŠIßKˆÛ›İÔİ\œÎÛX™[‰ÔØÚ™Y\İ\›™IËYÙ[™Û\ÜÎ‰ÜÛ›İË\İ\œÉËš[‰İ\›
+ÜÛ›İÔİ\œÔ]\›ŠIßKˆXÙPÜ\İ[ÎÛX™[‰ÑZ\Û˜Y[‰ËYÙ[™Û\ÜÎ‰ÚXÙKXÜ\İ[ÉËš[‰İ\›
+ÚXÙPÜ\İ[Ô]\›ŠIßKˆXÙT[]ÎÛX™[‰ÑZ\Úğíœ›™\‰ËYÙ[™Û\ÜÎ‰ÚXÙK\[]ÉËš[‰İ\›
+ÚXÙT[]Ô]\›ŠIßKˆÛ›İÔÚİÙ\œÎÛX™[‰ÔØÚ™Y\ØÚ]Y\‰ËYÙ[™Û\ÜÎ‰ÜÛ›İË\ÚİÙ\œÉËš[‰İ\›
+ÜÛ›İÔÚİÙ\œÔ]\›ŠIßKˆÛY]ÛX™[‰ÔØÚ™Y\™YÙ[‰ËYÙ[™Û\ÜÎ‰ÜÛY]	Ëš[‰İ\›
+ÜÛY]]\›ŠIßKˆÛY]ÚİÙ\œÎÛX™[‰ÔØÚ™Y\™YÙ[œØÚ]Y\‰ËYÙ[™Û\ÜÎ‰ÜÛY]\ÚİÙ\œÉËš[‰İ\›
+ÜÛY]ÚİÙ\œÔ]\›ŠIßKˆÜ˜]\[ÚİÙ\œÎÛX™[‰ÑÜ˜]\[ØÚ]Y\‰ËYÙ[™Û\ÜÎ‰ÙÜ˜]\[\ÚİÙ\œÉËš[‰İ\›
+ÙÜ˜]\[ÚİÙ\œÔ]\›ŠIßKˆZ[ÚİÙ\œÎÛX™[‰ÒYÙ[ØÚ]Y\‰ËYÙ[™Û\ÜÎ‰ÚZ[\ÚİÙ\œÉËš[‰İ\›
+ÚZ[ÚİÙ\œÔ]\›ŠIßKˆÚ[PY\•[™\ÛX™[‰ÕÚ[\›XÚ\ˆšYY\œØÚYÈ˜XÚÙ]Ú]\‰ËYÙ[™Û\ÜÎ‰ÜÛY]	Ëš[‰İ\›
+ÜÛY]]\›ŠIßKˆ[™\œİÜ›NÛX™[‰ÑÙ]Ú]\›šYY\œØÚYÉËYÙ[™Û\ÜÎ‰İ[™\œİÜ›IËš[‰İ\›
+İ[™\œİÜ›T]\›ŠIßKˆ[™\œİÜ›RZ[ÛX™[‰ÑÙ]Ú]\ˆZ]Ü˜]\[Ù\ˆYÙ[	ËYÙ[™Û\ÜÎ‰İ[™\œİÜ›KZZ[	Ëš[‰İ\›
+İ[™\œİÜ›RZ[]\›ŠIßBŸNÂ™[˜İ[Ûˆ]Z[™XÚ\˜\”İ[J\Î”™XÚ\]][Û”\ÊNÔÔÔ›Ü\Y\ß[™Yš[™YÚYŠZ\Ñ]Z[™XÚ\\J\Ë\JJ\™]\›ˆ[™Yš[™YØÛÛœİ[[İ[SX]›X^
+[X™\Š\Ëİ[
+_
+K[[œÚ]OX[[İ[MÌN˜[[İ[LÏËN˜[[İ[LOË˜[[İ[KŒOËÌ‹\ÙPÛÛÜ\™XÚ\]][Û”\ÙPÛÛÜŠ\Ë\JKİ›ÚÙUÚYX[[İ[NÌKN˜[[İ[LÏÌKŒŒKŒNÜ™]\›Ùš[œ™XÚ\Y]VÜ\Ë\WK™š[ÜXÚ]N‹ŠÚ[[œÚ]J‹L‹İ›ÚÙNœ\ÙPÛÛÜ‹İ›ÚÙUÚYİ›ÚÙSÜXÚ]N‹ŒÎ
+Ú[[œÚ]J‹Ÿ_B™[˜İ[Ûˆ^˜\™]™[Û\ÜÊ]™[‘ÙØ\›š[™Ó]™[
+N’^˜\™˜YÙS]™[Ü™]\›ˆ]™[OOMÉÜ\œIÎ›]™[OOLÏÉÜ™Y	Î›]™[OOLÉÛÜ˜[™ÙIÎ‰ŞY[İÉßB™[˜İ[ÛˆZ[R^˜\™Ê^N‘^Kİ\œÎ’İ\–×K[]˜][ÛL[š]•Ú[™[š]IÚÛ‰ËZ[š[][S]™[‘ÙØ\›š[™Ó]™[LJ^Ü™]\›ˆİ[[X\š^™QÙØ\›š[™ÜÑ›Ü‘^Jİ\œË^K™]K[]˜][ÛŠK™š[\ŠÚYÛ˜[OœÚYÛ˜[›]™[[Z[š[][S]™[
+K›X\
+ÚYÛ˜[OŠÚÚ[™œÚYÛ˜[šÚ[™İYÙT˜[šÎ“[X™\ŠÚYÛ˜[œİYÙT˜[šÊ_ÚYÛ˜[›]™[Ş[X›ÛœÚYÛ˜[œŞ[X›Û˜[YN™›Ü›X]ÙØ\›š[™ĞÛÛ\Xİ˜[YJÚYÛ˜[[š]
+K]NœÚYÛ˜[]K]Z[–Ù›Ü›X]ÙØ\›š[™Ñ]Z[
+ÚYÛ˜[[š]
+K›Ü›X]ÙØ\›š[™Ñ\™Xİ[ÛŠÚYÛ˜[
+WK™š[\Š›ÛÛX[ŠKš›Ú[Š	È	ÊK]™[š^˜\™]™[Û\ÜÊÚYÛ˜[›]™[
+_JJ_B\HZ[R^˜\™˜YÙOT™]\›•\O\[ÙˆZ[R^˜\™Ï–Û[X™\—NÂ™[˜İ[ÛˆYÚ\İZ[R^˜\™ĞRÚ[™
+][\Î‘Z[R^˜\™˜YÙV×K[Z]LÊ^ÂˆÛÛœİ™\İ[™]ÈX\ÙØ\›š[™ÒÚ[™Z[R^˜\™˜YÙOŠ
+NÂˆ›ÜŠÛÛœİ][HÙˆ][\Ê^ØÛÛœİİ\œ™[X™\İ™Ù]
+][KšÚ[™
+NÚYŠXİ\œ™[][KœİYÙT˜[šÏ˜İ\œ™[œİYÙT˜[šÊX™\İœÙ]
+][KšÚ[™][J_Bˆ™]\›ˆ][\Ë™š[\Š][OO˜™\İ™Ù]
+][KšÚ[™
+OOOZ][JKœÛXÙJ[Z]
+NÂŸB™[˜İ[Ûˆİ›Û™Ù\İZ[R^˜\™Ê][\Î‘Z[R^˜\™˜YÙV×K[Z]LÊ^ÂˆYŠZ][\Ë›[™İ
+\™]\›–×NÂˆÛÛœİİ›Û™Ù\İİYÙOSX]›X^
+‹‹š][\Ë›X\
+][OOš][KœİYÙT˜[šÊJNÂˆ™]\›ˆYÚ\İZ[R^˜\™ĞRÚ[™
+][\Ë™š[\Š][OOš][KœİYÙT˜[šÏOO\İ›Û™Ù\İİYÙJK[Z]
+NÂŸB™[˜İ[Ûˆ]]ÛX]XÒ^˜\™Ş[X›Û
+Ú[™Î‘ÙØ\›š[™ÒÚ[™
+^Ü™]\›ˆÚ[™OOIİÚ[™	ÏÉü'äª	ÎšÚ[™OOIİ[™\œİÜ›IÏÉø¦¨IÎšÚ[™OOIÚX]T˜Z[‰ÏÉø¦%	ÎšÚ[™OOIØÛÛ[[İ\Ô˜Z[‰ÏÉü'ã)ÉÎšÚ[™OOIÜÛ›İÉÏÉø§a	ÎšÚ[™OOIÜÛ›İÙšY	ÏÉü'ã+	ÎšÚ[™OOIÚXÙIÏÉü'éâ‰ÎšÚ[™OOIÙœ›Üİ	ÏÉø§a;î#ÉÎšÚ[™OOIÙ›ÙÉÏÉü'ã*ÉÎšÚ[™OOIÚX]	ÏÉø¦ ;î#ÉÎ‰ø¦¨;î#ÉßB™[˜İ[Ûˆ]]ÛX]XÒ^˜\™İ™\›\Ñ^J][N]]ÛX]XÒ^˜\™]Nœİš[™Ë[Y^›Û™OÎœİš[™Ê^ÂˆÛÛœİİ\Q]Kœ\œÙJİš[™Ê][K˜[Yœ›ÛOÏÉÉÊJK[™Q]Kœ\œÙJİš[™Ê][K˜[YÏÏÉÉÊJNÚYŠS[X™\‹š\Ñš[š]Jİ\
+_S[X™\‹š\Ñš[š]J[™
+_[™\İ\
+\™]\›ˆ˜[ÙNÂˆÛÛœİš\œİ[ØØ[]R[–›Û™J[Y^›Û™Kİ\
+K\İ[ØØ[]R[–›Û™J[Y^›Û™K[™LJNÜ™]\›ˆ]OYš\œİ	‰™]O[\İÂŸB™[˜İ[ÛˆÚYÙ]]]ÛX]XÒ^˜\™Ñ›Ü‘^J]Nœİš[™Ë][\Î]]ÛX]XÒ^˜\™×K[Y^›Û™OÎœİš[™ÊN‘Z[R^˜\™˜YÙV×^Ü™]\›ˆ][\Ë™š[\Š][OO˜]]ÛX]XÒ^˜\™İ™\›\Ñ^J][K]K[Y^›Û™JJK›X\
+][OOŠÚÚ[™š][KšÚ[™ÏÉİÚ[™	ËİYÙT˜[šÎ“[X™\Š][KœİYÙT˜[šÊ_UUÓPUP×ÒVT‘ÓU‘SÔS’ÖÚ][K›]™[KŞ[X›Û˜]]ÛX]XÒ^˜\™Ş[X›Û
+][KšÚ[™
+K˜[YNš][K™\Ü^SY]šXß][K›Y]šXß	ÉË]Nš][K]K]Z[–Ú][K™\Ü^U^][K^^˜\™˜[Y]SX™[
+][K˜[Yœ›ÛK][K˜[YË[Y^›Û™JOØ™[œİ\ˆ	Ú^˜\™˜[Y]SX™[
+][K˜[Yœ›ÛK][K˜[YË[Y^›Û™J_X‰É×K™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	ÊK]™[š][K›]™[JJ_B™[˜İ[Ûˆ›Ü™XØ\İ^˜\™ÊÚ^˜\™Îš][\ßNÚ^˜\™Î‘Z[R^˜\™˜YÙV×_J^Ü™]\›ˆ]ˆÛ\ÜÓ˜[YO^Ø›Ü™XØ\İZ^˜\™ÉÚ][\Ë›[™İÉÉÎ‰È[\IßXOÚ][\Ë›[™İÚ][\Ë›X\
+][OOÜ[ˆÙ^O^Ø	Ú][KšÚ[™N‰Ú][K›]™[N‰Ú][K]_N‰Ú][K˜[Y_XHÛ\ÜÓ˜[YO^Ø	Ú][K›]™[HÛÛ\XİZ^˜\™H]O^Ø	Ú][K]_Nˆ	Ú][K™]Z[XH\šXK[X™[^Ø	Ú][K]_Nˆ	Ú][K™]Z[XOÚ][KœŞ[X›ÛOØÚ][K˜[YI‰[OÚ][K˜[Y_OÙ[OŸOÜÜ[ŠNÜ[ˆÛ\ÜÓ˜[YOH››Û™H›ËZ^˜\™¸§$ÈÙZ[™HØ\›[™ÏÜÜ[ŸOÙ]ŸB™[˜İ[Ûˆ›Ü›X[^™Q›Ü™XØ\İÛÛ™][Û”[
+^œİš[™Ê^ÂˆÛÛœİÛÛ\XİTİš[™Ê^	ÉÊKœ™\XÙJ×ÊËÙË	È	ÊKš[J
+NÂˆYŠXÛÛ\Xİ
+\™]\›‰ÉÎÂˆÛÛœİ›Ü›X[^™YXÛÛ\Xİˆœ™\XÙJ×˜XˆZ]YÜ×‹ÙÚK	ØXˆZ]YÉÊBˆœ™\XÙJ×“Z]YÜ×‹ÙÚK	ÓZ]YÉÊBˆœ™\XÙJ×•›Ü›Z]YÜ×‹ÙÚK	İ›Ü›Z]YÜÉÊBˆœ™\XÙJ×“˜XÚZ]YÜ×‹ÙÚK	Û˜XÚZ]YÜÉÊBˆœ™\XÙJ×X™[™×‹ÙÚK	ØX™[™ÉÊBˆœ™\XÙJ×“˜XÚ×‹ÙÚK	Û˜XÚÉÊNÂˆ™]\›ˆ×ŠXˆš\È™Z]ÙZ\ÙHÜ0é\ˆ[Ü™Ù[œß›Ü›Z]YÜß˜XÚZ]YÜßX™[™ß˜XÚÊKÚK\İ
+›Ü›X[^™Y
+OÛ›Ü›X[^™Y˜Ú\]
+
+KÓØØ[SİÙ\Ø\ÙJ	ÙKQIÊJÛ›Ü›X[^™YœÛXÙJJN››Ü›X[^™Y˜Ú\]
+
+KÓØØ[U\\Ø\ÙJ	ÙKQIÊJÛ›Ü›X[^™YœÛXÙJJNÂŸB™[˜İ[Ûˆ›Ü™XØ\İÛÛ™][Û”[^ÊX™[œİš[™ËÙXÛÛ™\OÎœİš[™Ê^ÂˆÛÛœİYXÙ\ÏVÛX™[ÙXÛÛ™\_	É×Bˆ™›]X\
+˜[YOO”İš[™Ê˜[Y_	ÉÊKœÜ]
+×Ê–ğ­ø (—WÊ‹ÊJBˆ™›]X\
+˜[YOO˜[YKœÜ]
+×Ê‹Ê‹ÊJBˆ›X\
+›Ü›X[^™Q›Ü™XØ\İÛÛ™][Û”[
+Bˆ™š[\Š›ÛÛX[ŠNÂˆÛÛœİ[š\]YNœİš[™Ö×OV×NÂˆ›ÜŠÛÛœİYXÙHÙˆYXÙ\Ê^ÚYŠ[š\]YKœÛÛYJ[OO™[KÓØØ[SİÙ\Ø\ÙJ	ÙKQIÊOOO\YXÙKÓØØ[SİÙ\Ø\ÙJ	ÙKQIÊJJXÛÛ[YNİ[š\]YKœ\Ú
+YXÙJ_Bˆ™]\›ˆ[š\]YKœÛXÙJÊNÂŸB™[˜İ[Ûˆ›Ü™XØ\İÛÛ™][Û”[ÊÛX™[ÙXÛÛ™\K™YÚ[Y_NÛX™[œİš[™ÎÜÙXÛÛ™\OÎœİš[™ÎÜ™YÚ[YOÎ‘›Ü™XØ\İ^T™YÚ[Y_J^ÂˆÛÛœİ[ÏY›Ü™XØ\İÛÛ™][Û”[^ÊX™[ÙXÛÛ™\JNÚYŠ\[Ë›[™İ
+\™]\›ˆ[Âˆ™]\›ˆ]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İXÛÛ™][Û‹\[XÛ\İ\ˆˆ\šXK[X™[^ÖÛX™[ÙXÛÛ™\WK™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	Ê_OÜ[Ë›X\
+
+[[™^
+OOÜ[ˆÙ^O^Ø	Ü[N‰Ú[™^XHÛ\ÜÓ˜[YO^Ø›Ü™XØ\İXÛÛ™][Û‹\[	Ú[™^OOLØXZ[‰Ü™YÚ[YOØ™YÚ[YKIÜ™YÚ[Y_X‰ÉßX‰ÜÙXÛÛ™\IßXOÜ[OÜÜ[Š_OÙ]‚ŸB™[˜İ[Ûˆ›Ü›X[^™QYÜ™Y\ÊYÎ›[X™\Š^Ü™]\›Š
+[X™\ŠYÊILÍŒ
+JÌÍŒ
+ILÍŒB™[˜İ[ÛˆÚ[™ÑYÜ™Y\ÊYÎ›[X™\Š^Ü™]\›ˆ›Ü›X[^™QYÜ™Y\ÊYÊÌN
+_B™[˜İ[ÛˆÚ[™\™Xİ[Û‘\ØÜš\[ÛŠYÎ›[X™\Š^ØÛÛœİœ›ÛO[›Ü›X[^™QYÜ™Y\ÊYÊKÏ]Ú[™ÑYÜ™Y\ÊYÊNÜ™]\›˜Ú[™]\È	ÓX]œ›İ[™
+œ›ÛJ_p¬˜XÚ	ÓX]œ›İ[™
+Ê_p¬B™[˜İ[ÛˆÚ[™\™Xİ[Û•Ø\›š[™Ó]™[
+İ\İÎ›[X™\Š^Ü™]\›ˆÙÚ[™Ø\›š[™Ó]™[İ
+[X™\Šİ\İ
+J_B™[˜İ[ÛˆÚ[™\™Xİ[Û\œ›İÊÙ\™Xİ[Û‹İ\İÛ\ÜÓ˜[YOIÉßNÙ\™Xİ[Û›[X™\Ùİ\İÎ›[X™\ØÛ\ÜÓ˜[YOÎœİš[™ßJ^ØÛÛœİÏ]Ú[™ÑYÜ™Y\Ê\™Xİ[ÛŠK\ØÜš\[Û]Ú[™\™Xİ[Û‘\ØÜš\[ÛŠ\™Xİ[ÛŠKØ\›š[™Ó]™[]Ú[™\™Xİ[Û•Ø\›š[™Ó]™[
+İ\İ
+NÜ™]\›ˆÜ[ˆÛ\ÜÓ˜[YO^ØÚ[™Y\™Xİ[Û‹X\œ›İÈØ\›š[™ËIİØ\›š[™Ó]™[H	ØÛ\ÜÓ˜[Y_Xš[J
+_Hİ[O^Şİ˜[œÙ›Ü›N˜›İ]J	İËÑš^Y
+J_YYÊX_H›ÛOHš[YÈˆ\šXK[X™[^Ù\ØÜš\[ÛŸH]O^Ù\ØÜš\[ÛŸO¸¡¤OÜÜ[ŸB™[˜İ[Ûˆİ™ÕÚ[™\™Xİ[Û\œ›İÊŞK\™Xİ[Û‹İ\İÚ^™OLMNŞ›[X™\ŞN›[X™\Ù\™Xİ[Û›[X™\Ùİ\İÎ›[X™\ÜÚ^™OÎ›[X™\ŸJ^ØÛÛœİÏ]Ú[™ÑYÜ™Y\Ê\™Xİ[ÛŠKØØ[O\Ú^™KÌM\ØÜš\[Û]Ú[™\™Xİ[Û‘\ØÜš\[ÛŠ\™Xİ[ÛŠKØ\›š[™Ó]™[]Ú[™\™Xİ[Û•Ø\›š[™Ó]™[
+İ\İ
+NÜ™]\›ˆÈÛ\ÜÓ˜[YO^Øİ™Ë]Ú[™Y\™Xİ[Û‹X\œ›İÈØ\›š[™ËIİØ\›š[™Ó]™[XH˜[œÙ›Ü›O^Ø˜[œÛ]J	ŞÑš^Y
+Š_H	ŞKÑš^Y
+Š_JH›İ]J	İËÑš^Y
+J_JHØØ[J	ÜØØ[KÑš^Y
+Ê_JXH›ÛOHš[YÈˆ\šXK[X™[^Ù\ØÜš\[ÛŸO]OÙ\ØÜš\[ÛŸOİ]O[™HOHŒˆLOHHˆHŒˆLH‹MH‹Ï]H“HLÈLˆMˆÈLˆ‹ÏÙÏŸB™[˜İ[ÛˆØØ[[YSX™[
+˜[YN›[X™\‹[Y^›Û™OÎœİš[™Ê^Ü™]\›ˆ›Ü›X][–›Û™J˜[YK[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJ_B™[˜İ[Ûˆİ\‘\Ü^PÛØÚÊİ\’İ\‹[Y^›Û™OÎœİš[™ËÚ]Z[]\Ï]YJ^ØÛÛœİ\ØÚS[X™\Šİ\‹™\ØÚ
+NÚYŠ[X™\‹š\Ñš[š]J\ØÚ
+J\™]\›ˆ›Ü›X][–›Û™J\ØÚ[Y^›Û™KÚİ\‰Ì‹YYÚ]	Ë‹‹ŠÚ]Z[]\ÏŞÛZ[]N‰Ì‹YYÚ]	ßNßJKİ\ŞXÛN‰ÚŒÉßJNÜ™]\›ˆ›Ü›X]ØØ[\ÛÑ\Ü^U[YJİ\‹[YK[Y^›Û™KÚİ\‰Ì‹YYÚ]	Ë‹‹ŠÚ]Z[]\ÏŞÛZ[]N‰Ì‹YYÚ]	ßNßJKİ\ŞXÛN‰ÚŒÉßJ_B™[˜İ[ÛˆÛØÚÓZ[]\Ê˜[YOÎœİš[™Ê^ØÛÛœİX]ÚTİš[™Ê˜[Y_	ÉÊK›X]Ú
+Õ
+ÌŸJNŠÌŸJKÊNÚYŠ[X]Ú
+\™]\›ˆ[ØÛÛœİİ\œÏS[X™\ŠX]ÚÌWJKZ[]\ÏS[X™\ŠX]ÚÌ—JNÜ™]\›ˆ[X™\‹š\Ñš[š]Jİ\œÊI‰“[X™\‹š\Ñš[š]JZ[]\ÊOÚİ\œÊŒ
+ÛZ[]\Î›[B™[˜İ[ÛˆÛØÚÓX™[
+˜[YOÎœİš[™Ê^ØÛÛœİX]ÚTİš[™Ê˜[Y_	ÉÊK›X]Ú
+Õ
+ÌŸJNŠÌŸJKÊNÜ™]\›ˆX]ÚØ	ÛX]ÚÌW_N‰ÛX]ÚÌ—_X‰ÉßB™[˜İ[Ûˆ™XÚ\]][Û™^[Û™ÛÒİ\œÊİ\œÎ’İ\–×K[Y^›Û™OÎœİš[™Ê^ÂˆÛÛœİ›İÏQ]K››İÊ
+K›İ[™\O[›İÊÌŠŒÍŒ[™[›İÊÍŠŒÍŒÙ]Jİ\’İ\ŠOOØÛÛœİ\Ï\™XÚ\]][Û”\Êİ\ŠNÜ™]\›ˆ\Ë\HOOIÛ›Û™IÉ‰Š\Ëİ[KŒ_[X™\Šİ\‹œ›Ø˜Xš[]JOMMJ_NÂˆÛÛœİY\Zİ\œË™š[\Šİ\O“[X™\Šİ\‹™\ØÚ
+O˜›İ[™\I‰“[X™\Šİ\‹™\ØÚ
+OY[™	‰Ù]
+İ\ŠJKœÛÜ
+
+KŠOO˜K™\ØÚX‹™\ØÚ
+NÚYŠXY\‹›[™İ
+\™]\›‰ÉÎÂˆÛÛœİÜ›İ\Î’İ\–×V×OV×NÙ›ÜŠÛÛœİİ\ˆÙˆY\Š^ØÛÛœİ\İYÜ›İ\Ë˜]
+LJNÚYŠ\İ	‰šİ\‹™\ØÚ[\İ˜]
+LJHK™\ØÚNL
+Œ
+[\İœ\Ú
+İ\ŠNÙ[ÙHÜ›İ\Ëœ\Ú
+Úİ\—J_XÛÛœİš\œİYÜ›İ\ÖÌKİ\Yš\œİÌK™\ØÚ[™\ØÚYš\œİ˜]
+LJHK™\ØÚ
+ÌÍŒ™X\›İ[™\OZİ\œËœÛÛYJİ\Ošİ\‹™\ØÚX›İ[™\KMÍJŒ	‰šİ\‹™\ØÚX›İ[™\JÌMJŒ	‰Ù]
+İ\ŠJNÂˆYŠ™X\›İ[™\I‰œİ\X›İ[™\JÍÍJŒ
+\™]\›˜0ç™\ˆ\È
+Ì‹ZQ™[œİ\ˆ[˜]\È\İÙZ]\™\ˆšYY\œØÚYÈ›Ü˜]\ÜÚXÚXÚš\È]ØH	ÛØØ[[YSX™[
+[™\ØÚ[Y^›Û™J_HZˆH\Ø\[‹˜Âˆ™]\›˜˜XÚ[H
+Ì‹ZQ™[œİ\ˆ\İXˆ]ØH	ÛØØ[[YSX™[
+İ\[Y^›Û™J_HZˆ\›™]]šYY\œØÚYÈpí™ÛXÚ˜ÂŸB™[˜İ[Ûˆ™XÚ\]][Û“›İÔİ[[X\JZ[]\Î“Z[]LMV×Kİ\œÎ’İ\–×K[Y^›Û™OÎœİš[™Ê^ÂˆÛÛœİ›İÏQ]K››İÊ
+NÂˆÛÛœİİ\›TÛİ\˜ÙOZİ\œÖØİ\œ™[[™^
+İ\œÊWOËÙX]\”Ûİ\˜ÙSX™[	ÓÜ[‹SY][È™\İX]Ú	ËÛİ\˜ÙO[Z[]\Ë›[™İÉÌMKSZ[][‹P™\İSX]Ú	Î˜İ0ï™XÚ0­È	Úİ\›TÛİ\˜Ù_XÂˆÛÛœİØ[\\Î”™XÚ\Ø[\V×O[Z[]\Ë›[™İÛZ[]\Îšİ\œËœÛXÙJİ\œ™[[™^
+İ\œÊKİ\œ™[[™^
+İ\œÊJÍÊNÂˆYŠ\Ø[\\Ë›[™İ
+\™]\›Ü›Ø˜Xš[]NŒİ[[X\N‰ÒÙZ[™Hİ\™œš\İ][ˆ™\™°ïØ˜\‹‰ËÛİ\˜ÙKÛÛ[X][Ûœ™XÚ\]][Û™^[Û™ÛÒİ\œÊİ\œË[Y^›Û™J_NÂˆÛÛœİ[YY\Ø[\\Ë›X\
+OŠË‹‹Î“[X™\‹š\Ñš[š]J™\ØÚ
+OÓ[X™\Š™\ØÚ
+N‘]Kœ\œÙJ	Ôİš[™Ê[YJ_V˜
+_JJK™š[\ŠO“[X™\‹š\Ñš[š]JÊJKœÛÜ
+
+KŠOO˜KËX‹ÊNÂˆÛÛœİ™X\™\İ][YYœ™YXÙJ
+™\İ
+OO“X]˜XœÊË[›İÊOX]˜XœÊ™\İË[›İÊOŞ˜™\İ[YYÌJNÂˆÛÛœİİ\\Ï[Z[]\Ë›[™İÌMJŒŒ
+ŒÂˆÛÛœİÜš^›Û‘[™[›İÊÍŠŒÍŒÂˆÛÛœİ™[]˜[][YY™š[\ŠOÏ[›İË\İ\\É‰ÏZÜš^›Û‘[™
+NÂˆÛÛœİÙ]J\[Ùˆ™[]˜[Û[X™\—JOOØÛÛœİ\™XÚ\]][Û”\Ê
+NÜ™]\›ˆ\HOOIÛ›Û™IÉ‰Šİ[KŒ_œÛ›İÙ˜[KŒJ_NÂˆÛÛœİÜ›İ\ÎÚ][\Î\[Ùˆ™[]˜[V×OV×NÂˆ›ÜŠÛÛœİ][HÙˆ™[]˜[
+^ÚYŠ]Ù]
+][JJXÛÛ[YNØÛÛœİ\İYÜ›İ\Ë˜]
+LJNÚYŠ\İ	‰š][KË[\İš][\Ë˜]
+LJHKÏ\İ\\ÊŒKŠ[\İš][\Ëœ\Ú
+][JNÙ[ÙHÜ›İ\Ëœ\Ú
+Ú][\Î–Ú][W_J_BˆÛÛœİXİ]™OYÜ›İ\Ë™š[™
+ÏO™Ëš][\ÖÌKË\İ\\Ï[›İÉ‰™Ëš][\Ë˜]
+LJHKÏ[›İÊNÂˆÛÛœİ]™[XXİ]™OÏÙÜ›İ\Ë™š[™
+ÏO™Ëš][\ÖÌKÏ[›İÊNÂˆYŠY]™[
+^ØÛÛœİX^›ØSX]›X^
+‹‹œ™[]˜[›X\
+O“[X™\Šœ›Ø˜Xš[]J_
+K
+KÛÛ[X][Û\™XÚ\]][Û™^[Û™ÛÒİ\œÊİ\œË[Y^›Û™JK˜\ÙO[X^›ØLÌØš\ÈH	ÓX]œ›İ[™
+X^›ØŠ_H	Hš\ÚZÛÈ[H™]˜XÚ][ˆİ\™œš\İ™[œİ\È›ØÚÙZ[ˆY\ÜØ˜\™\ˆšYY\œØÚYÈ\š[‹˜˜ÛÛ[X][ÛÉÒ[H™]˜XÚ][ˆ
+Ì‹ZQ™[œİ\ˆÙZ[ˆY\ÜØ˜\™\ˆšYY\œØÚYÈ\Ø\]‰Î‰ÒÙZ[ˆY\ÜØ˜\™\ˆšYY\œØÚYÈ[ˆ[ˆ°éÚİ[ˆˆİ[™[ˆ\Ø\]‰Ë›Ø˜Xš[]O[X^›ØMI‰ˆXÛÛ[X][ÛÌ“[X™\Š™X\™\İœ›Ø˜Xš[]J_Ü™]\›Ü›Ø˜Xš[]Kİ[[X\N–Ø˜\ÙKÛÛ[X][Û—K™š[\Š›ÛÛX[ŠKš›Ú[Š	È	ÊKÛİ\˜ÙKÛÛ[X][ÛŸ_BˆÛÛœİİ\Y]™[š][\ÖÌKË\İ\\Ë[™Y]™[š][\Ë˜]
+LJHKÎÂˆÛÛœİ\\ÏVË‹‹›™]ÈÙ]
+]™[š][\Ë›X\
+Oœ™XÚ\]][Û”\Ê
+K\JK™š[\ŠOOOIÛ›Û™IÊJWH\È^ÛYO™XÚ\\K	Û›Û™IÏ–×NÂˆÛÛœİ\U^]\\Ë›X\
+Oœ™XÚ\Y]VİK›X™[
+Kš›Ú[Š	È8¡¤ˆ	ÊNÂˆÛÛœİİ[[X\OXXİ]™OØZİY[	İ\U^NÈ›Ü˜]\ÜÚXÚXÚš\È	ÛØØ[[YSX™[
+[™[Y^›Û™J_HZ‹˜˜	İ\U^H›Ü˜]\ÜÚXÚXÚXˆ	ÛØØ[[YSX™[
+İ\[Y^›Û™J_Hš\È	ÛØØ[[YSX™[
+[™[Y^›Û™J_HZ‹˜ÂˆÛÛœİÛÛ[X][Û\™XÚ\]][Û™^[Û™ÛÒİ\œÊİ\œË[Y^›Û™JNÜ™]\›Ü›Ø˜Xš[]N“[X™\Š™X\™\İœ›Ø˜Xš[]J_İ[[X\N–Üİ[[X\KÛÛ[X][Û—K™š[\Š›ÛÛX[ŠKš›Ú[Š	È	ÊKÛİ\˜ÙKÛÛ[X][ÛŸNÂŸB‚\H™XÚ\›İÔ™\İ[^Ü›Ø˜Xš[]N›[X™\Üİ[[X\Nœİš[™ÎÜÛİ\˜ÙNœİš[™ÎØÛÛ[X][ÛÎœİš[™ßNÂ™[˜İ[Ûˆ˜Y\ÛØÚÊ˜[YNœİš[™ß[™Yš[™Y[Y^›Û™OÎœİš[™Ê^ÚYŠ]˜[YJ\™]\›‰ÉÎØÛÛœİ[YO[™]È]J˜[YJK™Ù][YJ
+NÜ™]\›ˆ[X™\‹š\Ñš[š]J[YJOÙ›Ü›X][–›Û™J[YK[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJN‰ÉßB™[˜İ[Ûˆ˜Y\’İ\•XÚÊ˜[YN›[X™\‹[Y^›Û™OÎœİš[™Ê^ØÛÛœİX™[Y›Ü›X][–›Û™J˜[YK[Y^›Û™KÚİ\‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJNØÛÛœİX]Ú[X™[›X]Ú
+ÊÌKŸJKÊNÜ™]\›˜	ÛX]ÚË–ÌWOÏÛX™[HZ˜B™[˜İ[Ûˆ˜Y\”˜]U^
+˜]N›[X™\Ÿ[™Yš[™Y\›Ş[X]OY˜[ÙK[˜Ù\Z[Y˜[ÙJ^ØÛÛœİ˜[YOS[X™\Š˜]JNÚYŠS[X™\‹š\Ñš[š]J˜[YJ_˜[YOŒJ\™]\›‰ÉÎØÛÛœİ™Yš^X\›Ş[X]OÉÙÙ\ØÚ0é	Î‰ÉÎÚYŠ˜[YOML
+\™]\›˜	Ü™Yš^OˆL[KÚ	İ[˜Ù\Z[ÉÈ
+ÚØ[İ[œÚXÚ\ŠIÎ‰ÉßXÚYŠ˜[YOLŒ
+\™]\›˜	Ü™Yš^IÓX]œ›İ[™
+˜[YJ_H[KÚÜ™]\›˜	Ü™Yš^IÙ›Ü›X]XÚ[X[š^Y
+˜[YKJ_H[KÚB™[˜İ[Ûˆ˜Y\’[[œÚ]J˜]N›[X™\Ÿ[™Yš[™Y
+^ØÛÛœİ˜[YOS[X™\Š˜]JNÚYŠ˜[YOML
+\™]\›‰Ù^™[Y\È˜Y\™XÚÉÎÚYŠ˜[YOLŒ
+\™]\›‰ÜÙZˆİ\šÉÎÚYŠ˜[YON
+\™]\›‰Üİ\šÉÎÚYŠ˜[YOL‹J\™]\›‰Ûpé0çÚYÉÎÚYŠ˜[YOKJ\™]\›‰ÛZXÚ	ÎÚYŠ˜[YOKŒJ\™]\›‰ÜÙZˆZXÚ	ÎÜ™]\›‰ÉßB™[˜İ[Ûˆ˜Y\[[İ[ØØ[JX^[[İ[›[X™\Š^ØÛÛœİ˜[YOSX]›X^
+ŒK[X™\ŠX^[[İ[
+_ŒJNÙ›ÜŠÛÛœİ]™[Ù–ËŒ‹ŒKŒKŒ‹KK‹‹LJZYŠ˜[YO[]™[
+\™]\›ˆ]™[Ü™]\›ˆX]˜ÙZ[
+˜[YJŒŠKÌŸB™[˜İ[Ûˆ˜Y\^\ÓX™[
+˜[YN›[X™\Š^ØÛÛœİ[Y\šXÏSX]›X^
+[X™\Š˜[YJ_
+NÚYŠ[Y\šXÏLJ\™]\›ˆ›Ü›X]XÚ[X[š^Y
+[Y\šXËJKœ™\XÙJË	Ë	ÉÊNÚYŠ[Y\šXÏKŒJ\™]\›ˆ›Ü›X]XÚ[X[š^Y
+[Y\šXËŠNÜ™]\›ˆ›Ü›X]XÚ[X[š^Y
+[Y\šXËÊKœ™\XÙJÌ	Ë	ÉÊKœ™\XÙJË	Ë	ÉÊ_B™[˜İ[Ûˆ˜Y\[[İ[X™[
+˜[YN›[X™\Š^ØÛÛœİ[Y\šXÏSX]›X^
+[X™\Š˜[YJ_
+NÜ™]\›ˆ[Y\šXÏLLÔİš[™ÊX]œ›İ[™
+[Y\šXÊJN›[Y\šXÏLOÙ›Ü›X]XÚ[X[š^Y
+[Y\šXËJN™›Ü›X]XÚ[X[š^Y
+[Y\šXËŠ_B™[˜İ[Ûˆ˜Y\˜\’ZYÚ
+[[İ[›[X™\‹ØØ[N›[X™\‹™X\˜OY˜[ÙJ^ØÛÛœİØY™TØØ[OSX]›X^
+ŒKØØ[JK˜][ÏSX]›X^
+X]›Z[ŠK
+[X™\Š[[İ[
+_
+KÜØY™TØØ[JJNÚYŠ˜][ÏL
+\™]\›ˆ™X\˜OÍÜ™]\›ˆX]›X^
+‹X]›Z[Š
+Í
+œ˜][ÊJ_B™[˜İ[Ûˆ˜Y\’[\˜[[[İ[
+˜]N›[X™\‹Z[]\Î›[X™\Š^Ü™]\›ˆX]›X^
+[X™\Š˜]J_
+J“X]›X^
+KZ[]\ÊKÍŒB™[˜İ[Ûˆ˜Y\”Ú]U™\ÚÛ
+˜Y\”˜Y\“›İØØ\İ
+^ØÛÛœİ˜[YOS[X™\Š˜Y\‹œÚ]QXÚÕ™\ÚÛ
+NÜ™]\›ˆ[X™\‹š\Ñš[š]J˜[YJI‰˜[YOŒİ˜[YN‹Œ_B™[˜İ[Ûˆ˜Y\“™X\˜U™\ÚÛ
+˜Y\”˜Y\“›İØØ\İ
+^ØÛÛœİ˜[YOS[X™\Š˜Y\‹›™X\˜QXÚÕ™\ÚÛ
+NÜ™]\›ˆ[X™\‹š\Ñš[š]J˜[YJI‰˜[YOŒİ˜[YN‹ŒNB™[˜İ[Ûˆ˜Y\”Ú]TÚYÛ˜[]XİY
+˜Y\”˜Y\“›İØØ\İ[
+^ÚYŠ\˜Y\Š\™]\›ˆ˜[ÙNØÛÛœİ™\ÚÛ\˜Y\”Ú]U™\ÚÛ
+˜Y\ŠNÚYŠ[X™\Š˜Y\‹˜İ\œ™[˜]_
+O]™\ÚÛ
+˜Y\‹œÚ]R[\˜[ÏË›[™İÏÌ
+OŒ
+\™]\›ˆYNØÛÛœİ›İÏQ]K››İÊ
+NÜ™]\›Š˜Y\‹››İØØ\İÙ\šY\ÏÏÖ×JKœÛÛYJœ˜[YOOØÛÛœİ[YOQ]Kœ\œÙJœ˜[YK[YJNÜ™]\›ˆ[YO[›İËLL
+Œ	‰[YO[›İÊÌLŒ
+Œ	‰“[X™\Šœ˜[YKœ˜]_
+O]™\ÚÛJ_B™[˜İ[Ûˆ˜Y\“™X\˜TÚYÛ˜[]XİY
+˜Y\”˜Y\“›İØØ\İ[
+^ÚYŠ\˜Y\Š\™]\›ˆ˜[ÙNØÛÛœİ™\ÚÛ\˜Y\“™X\˜U™\ÚÛ
+˜Y\ŠK›İÏQ]K››İÊ
+NÜ™]\›Š˜Y\‹››İØØ\İÙ\šY\ÏÏÖ×JKœÛÛYJœ˜[YOOØÛÛœİ[YOQ]Kœ\œÙJœ˜[YK[YJNÜ™]\›ˆ[YO[›İËLL
+Œ	‰[YO[›İÊÌLŒ
+Œ	‰“[X™\Šœ˜[YKœ˜]_
+O˜Y\”Ú]U™\ÚÛ
+˜Y\ŠI‰“[X™\Šœ˜[YK›™X\˜T˜]_
+O]™\ÚÛJ_B™[˜İ[Ûˆ˜Y\”ÚYÛ˜[]XİY
+˜Y\”˜Y\“›İØØ\İ[
+^Ü™]\›ˆ˜Y\”Ú]TÚYÛ˜[]XİY
+˜Y\Š_˜Y\“™X\˜TÚYÛ˜[]XİY
+˜Y\Š_B™[˜İ[ÛˆØØ[S™X\˜SX\šÙ\Š˜]N›[X™\Š^Ü™]\›ˆX]›X^
+ŒLX]›Z[ŠŒÍKŒL
+ÓX]›ÙÌ\
+X]›X^
+˜]JJJ‹ŒŠJ_B™[˜İ[Ûˆ˜Y\“›İØØ\İ[Y[[™JÜ˜Y\‹[Y^›Û™_NÜ˜Y\”˜Y\“›İØØ\İİ[Y^›Û™OÎœİš[™ßJ^ÂˆÛÛœİ’U‘WÓRS•UTÏMJŒ›İÏQ]K››İÊ
+KÚ]U™\ÚÛ\˜Y\”Ú]U™\ÚÛ
+˜Y\ŠK™X\˜U™\ÚÛ\˜Y\“™X\˜U™\ÚÛ
+˜Y\ŠKİ\SX]™›ÛÜŠ
+›İËMŒ
+Œ
+KÑ’U‘WÓRS•UTÊJ‘’U‘WÓRS•UTË[™\İ\
+ÌN
+Œ˜[™ÙOY[™\İ\Ù\šY\ÏJ˜Y\‹››İØØ\İÙ\šY\ÏÏÖ×JK›X\
+œ˜[YOOŠË‹‹™œ˜[YK\ØÚ‘]Kœ\œÙJœ˜[YK[YJ_JJK™š[\Šœ˜[YOO“[X™\‹š\Ñš[š]Jœ˜[YK™\ØÚ
+I‰™œ˜[YK™\ØÚ\İ\LMJŒ	‰™œ˜[YK™\ØÚY[™
+ÌMJŒ
+KœÛÜ
+
+KŠOO˜K™\ØÚX‹™\ØÚ
+KÜÚ][ÛJ\ØÚ›[X™\ŠOO“X]›X^
+X]›Z[ŠL
+\ØÚ\İ\
+KÜ˜[™ÙJŒL
+JNÂˆÛÛœİXÚÜÎ›[X™\–×OV×NÙ›ÜŠ]XÚÏSX]˜ÙZ[
+İ\ÌÍŒ
+JŒÍŒİXÚÏY[™İXÚÊÏLÍŒ
+]XÚÜËœ\Ú
+XÚÊNÂˆ\HÙYÛY[^ÚYœİš[™ÎÜİ\›[X™\Ù[™›[X™\ÛY›[X™\ÜšYÚ›[X™\Ü˜]N›[X™\Ø[[İ[›[X™\Ø[[İ[OÎ›[X™\Ø[[İ[ÍOÎ›[X™\Ú]›Ø˜Xš[]OÎ›[X™\Ø[[İ[Ûİ\˜ÙOÎœİš[™ÎÙ]\™N˜›ÛÛX[Û™X\˜N˜›ÛÛX[Û™X\™\İÙ]ÛOÎ›[X™\Ù^XİYÎ˜›ÛÛX[İ[˜Ù\Z[Î˜›ÛÛX[Üİ]\Îœİš[™ßNÂˆ\H˜]ÔÙYÛY[SÛZ]ÙYÛY[	ÚY	ß	ÛY	ß	ÜšYÚ	ß	Üİ]\ÉÏÂˆÛÛœİ˜]ÔÙYÛY[Î”˜]ÔÙYÛY[×OV×NÂˆ›ÜŠ][™^LÚ[™^Ù\šY\Ë›[™İÚ[™^
+ÊÊ^ÂˆÛÛœİœ˜[YO\Ù\šY\ÖÚ[™^KÚ]T˜]OSX]›X^
+[X™\Šœ˜[YKœ˜]J_
+K™X\˜T˜]OSX]›X^
+[X™\Šœ˜[YK›™X\˜T˜]J_
+K™X\˜SÛ›O\Ú]T˜]OÚ]U™\ÚÛ	‰›™X\˜T˜]O[™X\˜U™\ÚÛ˜]O[™X\˜SÛ›OÓX]›Z[Š™X\˜T˜]KØØ[S™X\˜SX\šÙ\Š™X\˜T˜]JJNœÚ]T˜]NÚYŠÚ]T˜]OÚ]U™\ÚÛ	‰ˆ[™X\˜SÛ›JXÛÛ[YNÂˆÛÛœİ˜]Ôİ\SX]›X^
+’U‘WÓRS•UTËX]›Z[ŠMJŒ
+Ù\šY\ÖÚ[™^
+ÌWOË™\ØÚÏÙœ˜[YK™\ØÚ
+Ñ’U‘WÓRS•UTÊKYœ˜[YK™\ØÚ
+JKÙYÛY[İ\SX]›X^
+İ\œ˜[YK™\ØÚ
+KÙYÛY[[™SX]›Z[Š[™œ˜[YK™\ØÚ
+Ü˜]Ôİ\
+NÚYŠÙYÛY[[™\ÙYÛY[İ\
+XÛÛ[YNÂˆ˜]ÔÙYÛY[Ëœ\Ú
+Üİ\œÙYÛY[İ\[™œÙYÛY[[™˜]K[[İ[›™X\˜SÛ›OÌŠ[X™\‹š\Ñš[š]J[X™\Šœ˜[YK˜[[İ[[JJOÓX]›X^
+[X™\Šœ˜[YK˜[[İ[[JJNœ˜Y\’[\˜[[[İ[
+˜]K˜]Ôİ\ÍŒ
+JK[[İ[N“[X™\‹š\Ñš[š]J[X™\Šœ˜[YK˜[[İ[JJOÓX]›X^
+[X™\Šœ˜[YK˜[[İ[JJN[™Yš[™Y[[İ[ÍN“[X™\‹š\Ñš[š]J[X™\Šœ˜[YK˜[[İ[ÍJJOÓX]›X^
+[X™\Šœ˜[YK˜[[İ[ÍJJN[™Yš[™Y]›Ø˜Xš[]N“[X™\‹š\Ñš[š]J[X™\Šœ˜[YKš]›Ø˜Xš[]JJOÓX]›X^
+X]›Z[ŠL[X™\Šœ˜[YKš]›Ø˜Xš[]JJJN[™Yš[™Y[[İ[Ûİ\˜ÙN™œ˜[YK˜[[İ[Ûİ\˜ÙK]\™N›ÛÛX[Šœ˜[YK™]\™_œ˜[YK™\ØÚ››İÊK™X\˜N›™X\˜SÛ›K™X\™\İÙ]ÛN“[X™\‹š\Ñš[š]J[X™\Šœ˜[YK›™X\™\İÙ]ÛJJOÓ[X™\Šœ˜[YK›™X\™\İÙ]ÛJN[™Yš[™YJNÂˆBˆÛÛœİ\œš]˜[İ\\˜Y\‹˜\œš]˜[İ\]Ñ]Kœ\œÙJ˜Y\‹˜\œš]˜[İ\]
+NŠ[X™\‹š\Ñš[š]J[X™\Š˜Y\‹˜\œš]˜[Z[]\ÊJOÛ›İÊÓ[X™\Š˜Y\‹˜\œš]˜[Z[]\ÊJŒ“˜SŠK\œš]˜[[™˜]Ï\˜Y\‹˜\œš]˜[[™]Ñ]Kœ\œÙJ˜Y\‹˜\œš]˜[[™]
+Nœ˜Y\‹™[™]Ñ]Kœ\œÙJ˜Y\‹™[™]
+N“˜S‹\œš]˜[[™S[X™\‹š\Ñš[š]J\œš]˜[[™˜]ÊOØ\œš]˜[[™˜]Î“[X™\‹š\Ñš[š]J\œš]˜[İ\
+OØ\œš]˜[İ\
+ÌŒ
+Œ“˜S‹˜]Ğ\œš]˜[˜]OSX]›X^
+[X™\Š˜Y\‹œXZÔ˜]J_[X™\Š˜Y\‹˜İ\œ™[˜]J_ŒMJK\œš]˜[˜]O\˜Y\‹œ˜]U[˜Ù\Z[ÓX]›Z[ŠL‹˜]Ğ\œš]˜[˜]JNœ˜Y\‹œ˜]P\›Ş[X]OÓX]›Z[ŠÌ˜]Ğ\œš]˜[˜]JNœ˜]Ğ\œš]˜[˜]K\œš]˜[š\ÚX›O\˜Y\‹˜\œš]˜[Ú[™OOIÜÚ]IÉ‰“[X™\‹š\Ñš[š]J\œš]˜[İ\
+I‰“[X™\‹š\Ñš[š]J\œš]˜[[™
+I‰˜\œš]˜[[™\İ\	‰˜\œš]˜[İ\Y[™ÂˆYŠ\œš]˜[š\ÚX›J^ØÛÛœİÙYÛY[İ\SX]›X^
+İ\\œš]˜[İ\
+KÙYÛY[[™SX]›Z[Š[™X]›X^
+\œš]˜[[™\œš]˜[İ\
+ÌL
+Œ
+JKØœÙ\™Y\œš]˜[Ûİ™\™Y\˜]ÔÙYÛY[ËœÛÛYJÙYÛY[OœÙYÛY[™]\™I‰ˆ\ÙYÛY[›™X\˜I‰œÙYÛY[™[™\ÙYÛY[İ\	‰œÙYÛY[œİ\\ÙYÛY[[™
+NÚYŠ[ØœÙ\™Y\œš]˜[Ûİ™\™Y
+\˜]ÔÙYÛY[Ëœ\Ú
+Üİ\œÙYÛY[İ\[™œÙYÛY[[™˜]N˜\œš]˜[˜]K[[İ[œ˜Y\‹˜\œš]˜[Ú[™OOIÜÚ]IÏÌœ˜Y\’[\˜[[[İ[
+\œš]˜[˜]K
+ÙYÛY[[™\ÙYÛY[İ\
+KÍŒ
+K]\™NYK™X\˜Nœ˜Y\‹˜\œš]˜[Ú[™OOIÜÚ]IË^XİYYK[˜Ù\Z[œ˜Y\‹˜\œš]˜[Ú[™OOIÜÚ]IßJ_BˆÛÛœİXÚÙ]X\[™]ÈX\[X™\‹ÙYÛY[Š
+NÂˆÛÛœİİ]\Ñ›ÜJÙYÛY[”˜]ÔÙYÛY[
+OOœÙYÛY[™^XİYÊÙYÛY[[˜Ù\Z[ÉÑ\Ø\]\ˆ™Y™™\ˆ0­È[œÚXÚ\‰Î‰Ñ\Ø\]\ˆİ[™Ü™Y™™\‰ÊNœÙYÛY[›™X\˜OØXÚÈ\ˆ[H[Y™[	Ó[X™\‹š\Ñš[š]JÙYÛY[›™X\™\İÙ]ÛJOØ0­ÈØKˆ	Ù›Ü›X]XÚ[X[š^Y
+ÙYÛY[›™X\™\İÙ]ÛHKJ_HÛH[™\›‰ÉßXœÙYÛY[™]\™OÉÔ›ÙÛ›Üİ^šY\\ˆİ[™Ü™Y™™\‰Î‰Ğ™[Ø˜XÚ[™È[Hİ[™Ü	ÎÂˆ›ÜŠÛÛœİÙYÛY[Ùˆ˜]ÔÙYÛY[Ê^ØÛÛœİš\œİSX]™›ÛÜŠÙYÛY[œİ\Ñ’U‘WÓRS•UTÊJ‘’U‘WÓRS•UTË\İSX]˜ÙZ[
+ÙYÛY[™[™Ñ’U‘WÓRS•UTÊJ‘’U‘WÓRS•UTÎÙ›ÜŠ]ÛİYš\œİÜÛİ\İÜÛİ
+ÏQ’U‘WÓRS•UTÊ^ÚYŠÛİİ\ÛİY[™
+XÛÛ[YNØÛÛœİ\˜][Û“Z[]\ÏSX]›X^
+K
+ÙYÛY[™[™\ÙYÛY[œİ\
+KÍŒ
+KÚ\™OSX]›Z[ŠKKÙ\˜][Û“Z[]\ÊKØ[™Y]N”ÙYÛY[^ÚY˜	ÜÛİXİ\œÛİ[™œÛİ
+Ñ’U‘WÓRS•UTËYœÜÚ][ÛŠÛİ
+KšYÚœÜÚ][ÛŠÛİ
+Ñ’U‘WÓRS•UTÊK˜]NœÙYÛY[œ˜]K[[İ[œÙYÛY[›™X\˜OÌœÙYÛY[˜[[İ[
+œÚ\™K[[İ[NœÙYÛY[˜[[İ[OOO][™Yš[™Yİ[™Yš[™YœÙYÛY[˜[[İ[JœÚ\™K[[İ[ÍNœÙYÛY[˜[[İ[ÍOOO][™Yš[™Yİ[™Yš[™YœÙYÛY[˜[[İ[ÍJœÚ\™K]›Ø˜Xš[]NœÙYÛY[š]›Ø˜Xš[]K[[İ[Ûİ\˜ÙNœÙYÛY[˜[[İ[Ûİ\˜ÙK]\™NœÙYÛY[™]\™_Ûİ››İË™X\˜NœÙYÛY[›™X\˜K™X\™\İÙ]ÛNœÙYÛY[›™X\™\İÙ]ÛK^XİYœÙYÛY[™^XİY[˜Ù\Z[œÙYÛY[[˜Ù\Z[‹İ]\Îœİ]\Ñ›ÜŠÙYÛY[
+_K^\İ[™ÏXXÚÙ]X\™Ù]
+Ûİ
+KØ[™Y]T˜[šÏJØ[™Y]K™^XİYÌ˜Ø[™Y]K›™X\˜OÌNŒŠJÊØ[™Y]Kœ˜]KÌL
+K^\İ[™Ô˜[šÏY^\İ[™ÏÊ
+^\İ[™Ë™^XİYÌ™^\İ[™Ë›™X\˜OÌNŒŠJÊ^\İ[™Ëœ˜]KÌL
+JN‹LNÚYŠY^\İ[™ßØ[™Y]T˜[šÏ™^\İ[™Ô˜[šÊXXÚÙ]X\œÙ]
+ÛİØ[™Y]J__BˆÛÛœİ[Y[[™TÙYÛY[Î”ÙYÛY[×OV×NÙ›ÜŠ]Ûİ\İ\ÜÛİ[™ÜÛİ
+ÏQ’U‘WÓRS•UTÊ^ØÛÛœİ^\İ[™ÏXXÚÙ]X\™Ù]
+Ûİ
+Nİ[Y[[™TÙYÛY[Ëœ\Ú
+^\İ[™ÏÏŞÚY˜	ÜÛİXİ\œÛİ[™œÛİ
+Ñ’U‘WÓRS•UTËYœÜÚ][ÛŠÛİ
+KšYÚœÜÚ][ÛŠÛİ
+Ñ’U‘WÓRS•UTÊK˜]NŒ[[İ[Œ]\™NœÛİ››İË™X\˜N™˜[ÙKİ]\ÎœÛİ››İÏÉÒÙZ[ˆ›ÙÛ›Üİ^šY\\È˜Y\œÚYÛ˜[	Î‰ÒÙZ[ˆ˜Y\œÚYÛ˜[[Hİ[™Ü	ßJ_BˆÛÛœİ\Ü^TÙYÛY[Ï][Y[[™TÙYÛY[Ë™š[\ŠÙYÛY[OœÙYÛY[œ˜]OŒÙYÛY[˜[[İ[Œ
+KØØ[O\˜Y\[[İ[ØØ[JX]›X^
+‹‹™\Ü^TÙYÛY[Ë›X\
+ÙYÛY[OœÙYÛY[˜[[İ[
+K
+JK˜]Ñ›Ü™XØ\İ[[İ[][Y[[™TÙYÛY[Ë™š[\ŠÙYÛY[Oˆ\ÙYÛY[›™X\˜I‰œÙYÛY[™[™››İÊKœ™YXÙJ
+İ[KÙYÛY[
+OOœİ[JÜÙYÛY[˜[[İ[
+K›Ü™XØ\İ[[İ[S[X™\‹š\Ñš[š]J[X™\Š˜Y\‹™[œÙ[X›OËİ[YYX[ŠJOÓ[X™\Š˜Y\‹™[œÙ[X›HKİ[YYX[ŠN“[X™\‹š\Ñš[š]J[X™\Š˜Y\‹™›Ü™XØ\İ[[İ[LŒ
+JOÓ[X™\Š˜Y\‹™›Ü™XØ\İ[[İ[LŒ
+Nœ˜]Ñ›Ü™XØ\İ[[İ[ÜÙ[XİYYÙ]Ù[XİYYO]\ÙTİ]Oİš[™ß[Š[
+KÙ[XİY][Y[[™TÙYÛY[Ë™š[™
+ÙYÛY[OœÙYÛY[šYOO\Ù[XİYY
+OÏÛ[[˜ÚÜ”™Y]\ÙT™YS]Û‘[[Y[[Š[
+K˜XÚÔ™Y]\ÙT™YS]‘[[Y[[Š[
+K˜YÔÚ[\]\ÙT™Y[X™\Ÿ[Š[
+NÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠÙ[XİYY	‰ˆ][Y[[™TÙYÛY[ËœÛÛYJÙYÛY[OœÙYÛY[šYOO\Ù[XİYY
+J\Ù]Ù[XİYY
+[
+_KÜÙ[XİYY[Y[[™TÙYÛY[×JNÂˆÛÛœİÙ[Xİ]JÛY[›[X™\ŠOOØÛÛœİ˜XÚÏ]˜XÚÔ™Y‹˜İ\œ™[ÚYŠ]˜XÚÊ\™]\›ØÛÛœİ™Xİ]˜XÚË™Ù]›İ[™[™ĞÛY[™Xİ
+
+K˜][ÏSX]›X^
+X]›Z[ŠNNNK
+ÛY[\™Xİ›Y
+KÓX]›X^
+K™XİÚY
+JJKÛİ\İ\
+ÓX]™›ÛÜŠ˜][Ê[Y[[™TÙYÛY[Ë›[™İ
+J‘’U‘WÓRS•UTËÙ]][Y[[™TÙYÛY[Ë™š[™
+ÙYÛY[OœÙYÛY[œİ\OO\Ûİ
+OÏİ[Y[[™TÙYÛY[Ë˜]
+LJNÚYŠÙ]
+\Ù]Ù[XİYY
+Ù]šY
+_NÂˆÛÛœİÚ[\‘İÛJ]™[”™XXİÚ[\‘]™[S]‘[[Y[ŠOOÚYŠ]™[˜]ÛˆOOL
+\™]\›Ù˜YÔÚ[\‹˜İ\œ™[Y]™[œÚ[\’YÙ]™[˜İ\œ™[\™Ù]œÙ]Ú[\Ø\\™OËŠ]™[œÚ[\’Y
+NÜÙ[Xİ]
+]™[˜ÛY[
+_NÂˆÛÛœİÚ[\“[İ™OJ]™[”™XXİÚ[\‘]™[S]‘[[Y[ŠOOÚYŠ˜YÔÚ[\‹˜İ\œ™[OOY]™[œÚ[\’Y
+\™]\›Ù]™[œ™]™[Y˜][
+
+NÜÙ[Xİ]
+]™[˜ÛY[
+_NÂˆÛÛœİÚ[\‘[™J]™[”™XXİÚ[\‘]™[S]‘[[Y[ŠOOÚYŠ˜YÔÚ[\‹˜İ\œ™[OOY]™[œÚ[\’Y
+\™]\›ÜÙ[Xİ]
+]™[˜ÛY[
+NÙ˜YÔÚ[\‹˜İ\œ™[[[Ù]™[˜İ\œ™[\™Ù]œ™[X\ÙTÚ[\Ø\\™OËŠ]™[œÚ[\’Y
+_NÂˆÛÛœİÙ^QİÛJ]™[”™XXİÙ^X›Ø\™]™[S]‘[[Y[ŠOOÚYŠ]™[šÙ^HOOIĞ\œ›İÓY	É‰™]™[šÙ^HOOIĞ\œ›İÔšYÚ	Ê\™]\›Ù]™[œ™]™[Y˜][
+
+NØÛÛœİİ\œ™[[™^SX]›X^
+[Y[[™TÙYÛY[Ë™š[™[™^
+ÙYÛY[OœÙYÛY[šYOO\Ù[XİYY
+JK™^SX]›X^
+X]›Z[Š[Y[[™TÙYÛY[Ë›[™İLKİ\œ™[[™^
+Ê]™[šÙ^OOOIĞ\œ›İÔšYÚ	ÏÌN‹LJJJNÜÙ]Ù[XİYY
+[Y[[™TÙYÛY[ÖÛ™^OËšYÏÛ[
+_NÂˆÛÛœİÙ[XİÙYÛY[J]™[”™XXİÚ[\‘]™[S]Û‘[[Y[‹ÙYÛY[”ÙYÛY[
+OOÙ]™[œ™]™[Y˜][
+
+NÙ]™[œİÜ›ÜYØ][ÛŠ
+NØ[˜ÚÜ”™Y‹˜İ\œ™[Y]™[˜İ\œ™[\™Ù]ÜÙ]Ù[XİYY
+ÙYÛY[šY
+_NÂˆ™]\›ˆ]ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ\İš\ÛÛ\Xİˆ\šXK[X™[H”˜Y\‹S›İØØ\İZ]KSZ[][‹P˜[Ù[ˆ]ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ]]H”˜Y\‹S›İØØ\İØÜ[ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ]İ[Ü[ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ]İ[[XZ[ˆÛX[Œ‹ZTİ[[YOÜÛX[İ›Û™ÏÜ˜Y\[[İ[X™[
+›Ü™XØ\İ[[İ[
+_H[OÜİ›Û™ÏÜÜ[Ü˜Y\‹™[œÙ[X›I‰[H]OHH™Z]KÒ[[œÚ]0éÜŞ™[˜\šY[ˆ
+[šØ[XœšY\
+H”x $ÔÍHÜ˜Y\[[İ[X™[
+˜Y\‹™[œÙ[X›Kİ[J_x $ŞÜ˜Y\[[İ[X™[
+˜Y\‹™[œÙ[X›Kİ[ÍJ_H[OÙ[OŸOÜÜ[Ù]]ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İXÚ\]ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ^X^\ÈÜ˜Y\^\ÓX™[
+ØØ[J_OØÜ[Ü˜Y\^\ÓX™[
+ØØ[KÌŠ_OÜÜ[OŒÚO[O›[KÍHZ[Ù[OÙ]]ˆ™Y^İ˜XÚÔ™YŸHÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ]˜XÚÈ˜Y\‹[›İØØ\İ\ØÜX˜™\ˆˆ›ÛOHœÛY\ˆˆX’[™^^ÌH\šXK[X™[H”˜Y\‹S›İØØ\İ™Z]ØÚš]ÙZ\ÙH\šİ[™[ˆˆ\šXK]˜[Y[Z[^ÌH\šXK]˜[Y[X^^İ[Y[[™TÙYÛY[Ë›[™İL_H\šXK]˜[Y[›İÏ^ÓX]›X^
+[Y[[™TÙYÛY[Ë™š[™[™^
+ÙYÛY[OœÙYÛY[šYOO\Ù[XİYY
+J_HÛ”Ú[\‘İÛ^ÜÚ[\‘İÛŸHÛ”Ú[\“[İ™O^ÜÚ[\“[İ™_HÛ”Ú[\•\^ÜÚ[\‘[™HÛ”Ú[\Ø[˜Ù[^ÜÚ[\‘[™HÛ’Ù^QİÛ^ÚÙ^QİÛŸO]ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İYÜšY[ˆ‹Ï]ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İX^\È‹ÏİXÚÜË›X\
+XÚÏOÜ[ˆÙ^O^İXÚßHÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ]XÚÈˆİ[O^ŞÛY˜	ÜÜÚ][ÛŠXÚÊ_IX_OKÏÜ˜Y\’İ\•XÚÊXÚË[Y^›Û™J_OØÜÜ[Š_^Ù\Ü^TÙYÛY[Ë›X\
+ÙYÛY[O]ÛˆÙ^O^ÜÙYÛY[šYH\OH˜]ÛˆˆX’[™^^ËL_HÛ\ÜÓ˜[YO^Ø˜Y\‹[›İØØ\İ]Ù]	ÜÙYÛY[™]\™OÉÈ]\™IÎ‰ÉßIÜÙYÛY[›™X\˜OÉÈ™X\˜IÎ‰ÉßIÜÙYÛY[™^XİYÉÈ^XİY	Î‰ÉßIÜÙYÛY[[˜Ù\Z[ÉÈ[˜Ù\Z[‰Î‰ÉßIÜÙ[XİYYOO\ÙYÛY[šYÉÈÙ[XİY	Î‰ÉßXH\šXK[X™[^Ø	Ù›Ü›X][–›Û™JÙYÛY[œİ\[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJ_Hš\È	Ù›Ü›X][–›Û™JÙYÛY[™[™[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJ_Nˆ	Ù›Ü›X]XÚ[X[š^Y
+ÙYÛY[˜[[İ[Š_HZ[[Y]\˜HÛ”Ú[\•\^Ù]™[OœÙ[XİÙYÛY[
+]™[ÙYÛY[
+_Hİ[O^ŞÛY˜	ÜÙYÛY[›YIXÚY˜	ÓX]›X^
+KŒMKÙYÛY[œšYÚ\ÙYÛY[›Y
+_IXZYÚœ˜Y\˜\’ZYÚ
+ÙYÛY[˜[[İ[ØØ[KÙYÛY[›™X\˜J__KÏŠ_^ÜÙ[XİY	‰]Ûˆ™Y^Ø[˜ÚÜ”™YŸH\OH˜]ÛˆˆX’[™^^ËL_H\šXKZY[HYHˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ\ØÜX‹X[˜ÚÜˆˆİ[O^ŞÛY˜	ÊÙ[XİY›Y
+ÜÙ[XİYœšYÚ
+KÌŸIX_KÏŸOÜ[ˆÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ[›İÈˆİ[O^ŞÛY˜	ÜÜÚ][ÛŠ›İÊ_IX_OKÏ’™]ØÜÜ[Ù]Ù]Ü[Üİ™\ˆ[˜ÚÜ”™Y^Ø[˜ÚÜ”™YŸHÜ[^Ğ›ÛÛX[ŠÙ[XİY
+_HÛÛÜÙO^Ê
+OOœÙ]Ù[XİYY
+[
+_HÛ\ÜÓ˜[YOHœ˜Y\‹[›İØØ\İ\Üİ™\ˆˆÚY^ÌÌHÜÚ][Û’Ù^O^ÜÙ[XİYYOÜÙ[XİY	‰İ›Û™ÏÙ›Ü›X][–›Û™JÙ[XİYœİ\[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJ_x $ŞÙ›Ü›X][–›Û™JÙ[XİY™[™[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJ_HZÜİ›Û™ÏÜ[ÜÙ[XİYœİ]\ßOÜÜ[’[[œÚ]0éÙÜÙ[XİYœ˜]OŒØ	Ù›Ü›X]XÚ[X[š^Y
+Ù[XİYœ˜]KJ_H[KÚ0­È	Ü˜Y\’[[œÚ]JÙ[XİYœ˜]J_X‰Ì[KÚ	ßOÙÜÙ[XİY›™X\˜I‰“[X™\‹š\Ñš[š]JÙ[XİY›™X\™\İÙ]ÛJI‰Xœİ[™Ù˜ØKˆÙ›Ü›X]XÚ[X[š^Y
+Ù[XİY›™X\™\İÙ]ÛHKJ_HÛH0­ÈÙZ[ˆİ[™Ü™Y™™\ÙÏŸOKSZ[][‹SY[™ÙH[Hİ[™ÜÙÜÙ[XİY˜[[İ[ŒØØKˆ	Ù›Ü›X]XÚ[X[š^Y
+Ù[XİY˜[[İ[Š_H[X‰Ì[IßOÙÜÙ[XİY˜[[İ[HOO][™Yš[™Y	‰œÙ[XİY˜[[İ[ÍHOO][™Yš[™Y	‰”x $ÔÍOÙÙ›Ü›X]XÚ[X[š^Y
+Ù[XİY˜[[İ[KŠ_x $ŞÙ›Ü›X]XÚ[X[š^Y
+Ù[XİY˜[[İ[ÍKŠ_H[OÙÏŸ^ÜÙ[XİYš]›Ø˜Xš[]HOO][™Yš[™Y	‰”Ş™[˜\š[Ø[Z[
+[šØ[XœšY\
+OÙÓX]œ›İ[™
+Ù[XİYš]›Ø˜Xš[]J_H	OÙÏŸ^ÜÙ[XİY˜[[İ[Ûİ\˜ÙI‰“Y[™Ù[˜˜\Ú\ÏÙÜÙ[XİY˜[[İ[Ûİ\˜Ù_OÙÏŸOÙÏŸOÔÜ[Üİ™\Ù]‚ŸB™[˜İ[Ûˆ˜Y\”İ[[X\J˜Y\”˜Y\“›İØØ\İ[Y^›Û™OÎœİš[™Ê^ÂˆÛÛœİØœÙ\™Y\˜Y\ÛØÚÊ˜Y\‹›ØœÙ\™Y][Y^›Û™JKÚ]U™\ÚÛ\˜Y\”Ú]U™\ÚÛ
+˜Y\ŠKİ\œ™[S[X™\Š˜Y\‹˜İ\œ™[˜]_
+KXZÏS[X™\Š˜Y\‹œXZÔ˜]_
+K˜]OXİ\œ™[\Ú]U™\ÚÛØİ\œ™[œXZË[[œÚ]O\˜Y\’[[œÚ]J˜]JK˜]U^\˜Y\”˜]U^
+˜]KH\˜Y\‹œ˜]P\›Ş[X]KH\˜Y\‹œ˜]U[˜Ù\Z[ŠK[\˜[ÏJ˜Y\‹œÚ]R[\˜[ÏÏÖ×JK›X\
+][OOŠË‹‹š][Kİ\œ˜Y\ÛØÚÊ][Kœİ\][Y^›Û™JK[™œ˜Y\ÛØÚÊ][K™[™][Y^›Û™J_JJK™š[\Š][OOš][Kœİ\	‰š][K™[™
+NÂˆÛÛœİ\ÙU^J
+OOÚYŠZ[\˜[Ë›[™İ
+\™]\›‰ÉÎÚYŠ[\˜[Ë›[™İOOLJ\™]\›˜›Ûˆ	Ú[\˜[ÖÌKœİ\Hš\È	Ú[\˜[ÖÌK™[™HZ˜ÚYŠ[\˜[Ë›[™İOOLŠ\™]\›˜[°éÚİ›Ûˆ	Ú[\˜[ÖÌKœİ\Hš\È	Ú[\˜[ÖÌK™[™HZ‹˜XÚİ\™\ˆ[\˜œ™XÚ[™È\›™]]›Ûˆ	Ú[\˜[ÖÌWKœİ\Hš\È	Ú[\˜[ÖÌWK™[™HZ˜Ü™]\›˜[ˆ	Ú[\˜[Ë›[™İH\Ù[ˆXˆ	Ú[\˜[ÖÌKœİ\HZˆZ][\˜œ™XÚ[™Ù[ˆš\È	Ú[\˜[Ë˜]
+LJHK™[™HZ˜NÂˆÛÛœİ™^[Û™Ú[™İÏ\˜Y\‹™[™Ü[‘[™YÉÈZ[ˆ[™H\İ[›™\š[ˆ\È™]˜XÚ][ˆ
+Ì‹ZQ™[œİ\œÈ›ØÚšXÚÚXÚ\ˆXœÙZ˜\‹‰Î‰ÉÎÂˆYŠİ\œ™[\Ú]U™\ÚÛ
+^ØÛÛœİ]\Z[\˜[Ë™š[\Š][OO‘]Kœ\œÙJ][K™[™]
+O‘]K››İÊ
+JÌŠŒ
+K\Ù\Ï[]\‹›[™İØÙZ]\™HšYY\œØÚYÜÜ\Ù[ˆ	Ü\ÙU^
+
+_K˜‰ÉÎÜ™]\›˜šYY\œØÚYÈ[Hİ[™Ü\šØ[›	ÛØœÙ\™YØ
+	ÛØœÙ\™YHZŠX‰ÉßNˆ	Ú[[œÚ]_IÜ˜]U^Ø0­È	Ü˜]U^X‰ÉßK‰Ü\Ù\ßIØ™^[Û™Ú[™İßXBˆYŠ[\˜[Ë›[™İ
+^Ü™]\›˜šYY\œØÚYÈ[Hİ[™Ü›Ü˜]\ÜÚXÚXÚ	Ü\ÙU^
+
+_IÚ[[œÚ]OØ0­È	Ú[[œÚ]_X‰ÉßIÜ˜]U^Ø0­È	Ü˜]U^X‰ÉßK‰Ø™^[Û™Ú[™İßXBˆÛÛœİ™X\˜SÛ›OJ˜Y\‹››İØØ\İÙ\šY\ÏÏÖ×JKœÛÛYJœ˜[YOO“[X™\Šœ˜[YKœ˜]_
+OÚ]U™\ÚÛ	‰“[X™\Šœ˜[YK›™X\˜T˜]_
+O\˜Y\“™X\˜U™\ÚÛ
+˜Y\ŠJNÂˆYŠ™X\˜SÛ›J^ØÛÛœİ\İ[˜ÙOS[X™\Š˜Y\‹›™X\™\İÙ]ÛJK\İ[˜ÙU^S[X™\‹š\Ñš[š]J\İ[˜ÙJOØ]ØH	Ù›Ü›X]XÚ[X[š^Y
+\İ[˜ÙKJ_HÛH[™\›ˆ	È[H[Y™[	ÎÜ™]\›˜šYY\œØÚYÜÙ™[	Ù\İ[˜ÙU^NÈ[H\™Zİ[ˆÑT•‹T[šİS›İØØ\İš\È
+Ìˆİ[™[ˆ\™Z]ÙZ[ˆİ[™Ü™Y™™\‹˜Bˆ™]\›ˆ˜Y\‹œİ[[X\_[H˜Y\™\˜[™\İ[Hİ[™ÜÙZ[ˆ™[]˜[\ˆšYY\œØÚYÈ\šÙ[›˜˜\‰ÛØœÙ\™YØ
+][œİ[™	ÛØœÙ\™YHZŠX‰ÉßK˜ÂŸB™[˜İ[Ûˆ˜Y\”]X[]U^
+]X[]N”˜Y\“›İØØ\İÉÜ]X[]I×J^Ü™]\›ˆ]X[]OOOIÚYÚ	ÏÉÚØÚ	Îœ]X[]OOOIÛYY][IÏÉÛZ][	Î‰ÙZ[™Ù\ØÚ°éšİ	ßB™[˜İ[Ûˆ˜Y\ÛÛ\XİÛİ\˜ÙJ˜Y\”˜Y\“›İØØ\İ[˜[˜XÚÎœİš[™Ë[Y^›Û™OÎœİš[™Ê^ÂˆYŠ\˜Y\Ÿ˜Y\‹œÛİ\˜ÙOOOIÛ[Ù[	ß˜Y\‹˜Ûİ™\˜YÙOOOY˜[ÙJ\™]\›ˆ˜[˜XÚËœÜ]
+	È0­È	ÊKœÛXÙJŠKš›Ú[Š	È0­È	ÊNÂˆÛÛœİØœÙ\™Y\˜Y\ÛØÚÊ˜Y\‹›ØœÙ\™Y][Y^›Û™JK\ÏVÜ˜Y\‹œ›İšY\—NÂˆYŠØœÙ\™Y
+\\Ëœ\Ú
+İ[™	ÛØœÙ\™YHZ˜
+NÂˆ™]\›ˆ\Ë™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	ÊNÂŸB™[˜İ[ÛˆÛÛXš[™T˜Y\[™[Ù[
+[Ù[”™XÚ\›İÔ™\İ[˜Y\”˜Y\“›İØØ\İ[ØY[™Î˜›ÛÛX[‹\œ›Üœİš[™Ë[Y^›Û™OÎœİš[™ÊN”™XÚ\›İÔ™\İ[ÂˆYŠ\˜Y\Š^Ü™]\›Ë‹‹›[Ù[Ûİ\˜ÙN›ØY[™ÏØ	Û[Ù[œÛİ\˜Ù_H0­È˜Y\˜X™ÛZXÚ0éY8 )˜™\œ›ÜØ	Û[Ù[œÛİ\˜Ù_H0­È˜Y\˜X™ÛZXÚšXÚ™\™°ïØ˜\˜›[Ù[œÛİ\˜Ù__BˆYŠ˜Y\‹œÛİ\˜ÙOOOIÛ[Ù[	ß˜Y\‹˜Ûİ™\˜YÙOOOY˜[ÙJ^ÚYŠ˜Y\‹[\Ü˜\U[˜]˜Z[X›_˜Y\‹˜Ûİ™\˜YÙQ^XİY
+\™]\›Ë‹‹›[Ù[Ûİ\˜ÙN˜	Û[Ù[œÛİ\˜Ù_H0­È	Ü˜Y\‹™^XİYÛİ\˜Ù_	Ô˜Y\‰ßH›Ü°ï™\™ÙZ[™šXÚ]\İÙ\˜\˜NÜ™]\›Ë‹‹›[Ù[Ûİ\˜ÙN˜	Û[Ù[œÛİ\˜Ù_H0­ÈÙZ[™H™\Ù\˜\™H˜Y\˜X™XÚİ[™Ø_NÂˆÛÛœİØœÙ\™Y\Ï\˜Y\‹›ØœÙ\™Y]Ñ]Kœ\œÙJ˜Y\‹›ØœÙ\™Y]
+N“˜S‹YÙSZ[]\ÏS[X™\‹š\Ñš[š]JØœÙ\™Y\ÊOÓX]œ›İ[™
+
+]K››İÊ
+K[ØœÙ\™Y\ÊKÍŒ
+N’[™š[š]KÚ]TÚYÛ˜[\˜Y\”Ú]TÚYÛ˜[]XİY
+˜Y\ŠK™X\˜SÛ›OH\Ú]TÚYÛ˜[	‰œ˜Y\“™X\˜TÚYÛ˜[]XİY
+˜Y\ŠK\œš]˜[S[X™\‹š\Ñš[š]J˜Y\‹˜\œš]˜[Z[]\È\È[X™\ŠI‰œ˜Y\‹˜\œš]˜[Ú[™OOIÜÚ]IÏÓ[X™\Š˜Y\‹˜\œš]˜[Z[]\ÊNŠ[X™\Š˜Y\‹˜İ\œ™[˜]_
+O\˜Y\”Ú]U™\ÚÛ
+˜Y\ŠOÌŒLŒ
+K[Ù[›Ø˜Xš[]OSX]›X^
+X]›Z[ŠL[X™\Š[Ù[œ›Ø˜Xš[]J_
+JK˜Y\”›Ø˜Xš[]OSX]›X^
+X]›Z[ŠL™X\˜SÛ›OÓX]›Z[ŠK[X™\Š˜Y\‹œ˜Y\”›Ø˜Xš[]J_
+N“[X™\Š˜Y\‹œ˜Y\”›Ø˜Xš[]J_
+JNÂˆYŠYÙSZ[]\ÏŒÍ_YÙSZ[]\ÏLL
+\™]\›Ë‹‹›[Ù[Ûİ\˜ÙN˜	Û[Ù[œÛİ\˜Ù_H0­È˜Y\œİ[™™\˜[]Ù\ˆ™Z]XÚ[œ]\ÚX™[NÂˆÛÛœİP›[™H\Ú]TÚYÛ˜[	‰ˆ[™X\˜SÛ›OÙT˜Y\“›İØØ\İ›Ø˜Xš[]J[Ù[›Ø˜Xš[]K˜Y\‹
+N›[ÚYŠ\œš]˜[ŒN	‰ˆYP›[™	‰ˆ[™X\˜SÛ›J\™]\›Ë‹‹›[Ù[Ûİ\˜ÙN˜	Û[Ù[œÛİ\˜Ù_H0­È˜Y\œÚYÛ˜[]pçÙ\š[ˆ\ÈËTİ[™[‹PX™ÛZXÚØNÂˆÛÛœİÜš^›Û•ÙZYÚX\œš]˜[LÌËN˜\œš]˜[MŒËÌ˜\œš]˜[LLŒËN‹‹]X[]Q˜XİÜ\˜Y\‹œ]X[]OOOIÚYÚ	ÏÌNœ˜Y\‹œ]X[]OOOIÛYY][IÏË‹K˜Y\•ÙZYÚ[™X\˜SÛ›OËÌŠP›[™Ëœ˜Y\•ÙZYÚÏÓX]›X^
+ŒKX]›Z[ŠKÜš^›Û•ÙZYÚ
+œ]X[]Q˜XİÜŠJJNÛ]›Ø˜Xš[]OSX]œ›İ[™
+P›[™Ëœ›Ø˜Xš[]OÏÊ˜Y\•ÙZYÚ
+œ˜Y\”›Ø˜Xš[]JÊK\˜Y\•ÙZYÚ
+J›[Ù[›Ø˜Xš[]JJNÚYŠ[X™\Š˜Y\‹˜İ\œ™[˜]_
+O\˜Y\”Ú]U™\ÚÛ
+˜Y\ŠJ\›Ø˜Xš[]OSX]›X^
+›Ø˜Xš[]KL
+NÚYŠ™X\˜SÛ›J\›Ø˜Xš[]OSX]›Z[Š›Ø˜Xš[]KMJNÂˆÛÛœİ]X[]O\˜Y\‹œ]X[]OOOIÚYÚ	ÏÉÚØÚ	Îœ˜Y\‹œ]X[]OOOIÛYY][IÏÉÛZ][	Î‰ÙZ[™Ù\ØÚ°éšİ	ËØœÙ\™Y\˜Y\ÛØÚÊ˜Y\‹›ØœÙ\™Y][Y^›Û™JKÙX\ÛÛ˜[\˜Y\‹œÙX\ÛÛ˜[XÚÓX™[Ø0­È	Ü˜Y\‹œÙX\ÛÛ˜[XÚÓX™[X‰ÉË˜Y\‘š[™[™ÏYP›[™ÉÈ0­È˜Y\˜™Y[™ˆÙZ[ˆšYY\œØÚYÈ[Hİ[™Ü	Î›™X\˜SÛ›OÉÈ0­È˜Y\˜™Y[™ˆXÚÈ\ˆ[H[Y™[ÙZ[ˆ\™Zİ\ˆİ[™Ü™Y™™\‰Î‰ÉÎÂˆÛÛœİ˜Y\•^\˜Y\”İ[[X\J˜Y\‹[Y^›Û™J_[Ù[œİ[[X\KÛÛ[X][Û[[Ù[˜ÛÛ[X][Û‰‰ˆ\˜Y\•^š[˜ÛY\Ê[Ù[˜ÛÛ[X][ÛŠOÛ[Ù[˜ÛÛ[X][Û‰ÉÎÜ™]\›Ü›Ø˜Xš[]Kİ[[X\N–Ü˜Y\•^ÛÛ[X][Û—K™š[\Š›ÛÛX[ŠKš›Ú[Š	È	ÊKÛİ\˜ÙN˜˜Y\‹H[™[Ù[X™ÛZXÚ	Ü˜Y\‘š[™[™ßH0­È	Ü˜Y\‹œ›İšY\ŸIÜ˜Y\‹›ØœÙ\˜][Û”›İšY\Ø0­È™[Ø˜XÚ[™Îˆ	Ü˜Y\‹›ØœÙ\˜][Û”›İšY\ŸX‰ÉßIÛØœÙ\™YØ0­È][œİ[™	ÛØœÙ\™YHZ˜‰ÉßH0­ÈZİX[]0é	ØYÙSZ[]\ßHZ[ˆ0­È˜Y\œ]X[]0éˆ	Ü]X[]_IÜÙX\ÛÛ˜[H0­ÈÙ]ÚXÚ[™Îˆ˜Y\ˆ	ÓX]œ›İ[™
+˜Y\•ÙZYÚ
+ŒL
+_H	HÈ[Ù[	ÓX]œ›İ[™
+
+K\˜Y\•ÙZYÚ
+JŒL
+_H	XÛÛ[X][Û›[Ù[˜ÛÛ[X][ÛŸNÂŸB‚‚™[˜İ[ÛˆÚ[‘›Ü™XØ\İXİ]˜][Û“Ù™™\ŠÜİ]\ËÛXİ]˜]_NÜİ]\Î•Ú[“XZ[‘›Ü™XØ\İİ]\ÎÛÛXİ]˜]NŠ
+OO›ÚYJ^ØÛÛœİ[\›İ™[Y[S[X™\‹š\Ñš[š]Jİ]\Ëš[\›İ™[Y[
+OØ	Ó[X™\Šİ]\Ëš[\›İ™[Y[
+OLÉÊÉÎ‰ÉßIÓX]œ›İ[™
+[X™\Šİ]\Ëš[\›İ™[Y[
+J_H	X‰ÛZ[™\İ[œÈÛZXÚÙ\YÉÎÜ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOHÙX]\‹]Ú[‹XXİ]˜][Û‹[Ù™™\ˆˆ\šXK[X™[H“ÚØ[H™\İSX]ÚS˜XÚÛÜœ™Zİ\ˆZİ]šY\™[ˆ˜YÙPÚXÚÈÚ^™O^ÌŒŸKÏÜ[İ›Û™Ï“ÚØ[H™\İSX]ÚS˜XÚÛÜœ™Zİ\ˆ\İœ™ZYÙYÙX™[Üİ›Û™ÏÛX[Üİ]\ËœÛİ\˜ÙSX™[H0­ÈÜİ]\Ë˜[Y][Û‘^\ßHÛÛ›ÛYÙH0­ÈÙYÙ[°ï™\ˆ™\İX]ÚÚ[\›İ™[Y[OÜÛX[ÜÜ[]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^ÛÛXİ]˜]_O‘°ïˆ™\İX]Ú[Ù[™[Ø]ÛÜÙXİ[ÛŸB‚‚™[˜İ[ÛˆYX[ÛİY^Y\Šİ\œÎ’İ\–×KÙ^N‰ØÛİY	ß	ÛİĞÛİY	ß	ÛZYÛİY	ß	ÚYÚÛİY	Ê^ØÛÛœİ˜[Y\ÏZİ\œË›X\
+İ\O“[X™\Šİ\–ÚÙ^WJJK™š[\Š[X™\‹š\Ñš[š]JNÜ™]\›ˆ˜[Y\Ë›[™İİ˜[Y\Ëœ™YXÙJ
+İ[K˜[YJOOœİ[Jİ˜[YK
+Kİ˜[Y\Ë›[™İ[™Yš[™YB™[˜İ[Ûˆ\š[Ù\Ü^PÛÙJİ\’İ\Š^Ü™]\›ˆ™XÚ\]][Û”\Êİ\ŠK™\Ü^PÛÙ_B™[˜İ[Ûˆ\š[ÙÙX]\’[\Xİ
+İ\’İ\Š^ØÛÛœİÛÙO\\š[Ù\Ü^PÛÙJİ\ŠKÚ[™]ÙX]\”XİÙÜ˜[RÚ[™
+ÛÙJK˜\ÙOVÉİ[™\‰Ë	İ[™\‹\ÛÛY	Ë	İ[™\‹YÜ˜]\[	Ë	İ[™\‹ZZ[	×Kš[˜ÛY\ÊÚ[™
+OÌLšÚ[™OOIÜÚİÙ\œÉßÚ[™OOIÜÛY]\ÚİÙ\œÉßÚ[™OOIÜÛ›İË\ÚİÙ\œÉßÚ[™OOIÙÜ˜]\[\ÚİÙ\œÉßÚ[™OOIÚZ[\ÚİÙ\œÉÏÍÎšÚ[™OOIÜ˜Z[‰ßÚ[™OOIÙœ™Y^š[™Ë\˜Z[‰ßÚ[™OOIÜÛY]	ßÚ[™OOIÜÛ›İÉßÚ[™OOIÜÛ›İË\İ\œÉßÚ[™OOIÚXÙKXÜ\İ[ÉßÚ[™OOIÚXÙK\[]ÉßÚ[™OOIİÚ[KXY\‹][™\‰ÏÍšÚ[™OOIÙš^›IßÚ[™OOIÙœ™Y^š[™ËYš^›IßÚ[™OOIÜÛ›İËYÜ˜Z[œÉÏÍšÚ[™OOIÙ›ÙÉßÚ[™OOIÜš[YKY›ÙÉÏÍšÚ[™OOIØÛİYIÏÌšÚ[™OOIÜ\KXÛİYIÏÌNšÚ[™OOIÛ[ÜİKXÛX\‰ÏÎNŒÜ™]\›ˆ˜\ÙJÓX]›Z[ŠNX]›X^
+İ\‹œ™XÚ\]][ÛŠJŠJÓX]›X^
+İ\‹œ›Ø˜Xš[]JJ‹ŒLŠÓX]›X^
+İ\‹˜ÛİY
+J‹Œ_B™[˜İ[ÛˆÙX]\”\š[ÙXÛÛœÊÙ^Uš\İX[šYÚš\İX[^TÚ^™OMšYÚÚ^™OL_NÙ^Uš\İX[”\š[ÙÙX]\•š\İX[ÛšYÚš\İX[Î”\š[ÙÙX]\•š\İX[Ù^TÚ^™OÎ›[X™\ÛšYÚÚ^™OÎ›[X™\ŸJ^Ü™]\›ˆÜ[ˆÛ\ÜÓ˜[YOHÙX]\‹\\š[ÙZXÛÛœÈÜ[ˆÛ\ÜÓ˜[YOHÙX]\‹\\š[ÙY^HÙX]\”XİÙÜ˜[HÛÙO^Ù^Uš\İX[˜ÛÙ_H[[œÚ]O^Ù^Uš\İX[š[[œÚ]_H[›ÛY[›Û^Ù^Uš\İX[œ[›ÛY[›ÛŸH^HÚ^™O^Ù^TÚ^™_Hİ[O^ŞİÚY™^TÚ^™KZYÚ™^TÚ^™__H]O^Ù^Uš\İX[]_HÛİY^Ù^Uš\İX[˜ÛİYHİĞÛİY^Ù^Uš\İX[›İĞÛİYHZYÛİY^Ù^Uš\İX[›ZYÛİYHYÚÛİY^Ù^Uš\İX[šYÚÛİYKÏÜÜ[ÛšYÚš\İX[Ë˜]˜Z[X›I‰Ü[ˆÛ\ÜÓ˜[YOHÙX]\‹\\š[Ù[šYÚÙX]\”XİÙÜ˜[HÛÙO^ÛšYÚš\İX[˜ÛÙ_H[[œÚ]O^ÛšYÚš\İX[š[[œÚ]_H[›ÛY[›Û^ÛšYÚš\İX[œ[›ÛY[›ÛŸH^O^Ù˜[Ù_HÚ^™O^ÛšYÚÚ^™_Hİ[O^ŞİÚY›šYÚÚ^™KZYÚ›šYÚÚ^™__HÛÛ\Xİ]O^ÛšYÚš\İX[]_HÛİY^ÛšYÚš\İX[˜ÛİYHİĞÛİY^ÛšYÚš\İX[›İĞÛİYHZYÛİY^ÛšYÚš\İX[›ZYÛİYHYÚÛİY^ÛšYÚš\İX[šYÚÛİYKÏÜÜ[ŸOÜÜ[ŸB™[˜İ[ÛˆÚ[™\™Xİ[Û”ÚÜ
+\™Xİ[Û›[X™\Š^ØÛÛœİX™[ÏVÉÓ‰Ë	Ó““ÉË	Ó“ÉË	ÓÓ“ÉË	ÓÉË	ÓÔÓÉË	ÔÓÉË	ÔÔÓÉË	ÔÉË	ÔÔÕÉË	ÔÕÉË	ÕÔÕÉË	ÕÉË	ÕÓ•ÉË	Ó•ÉË	Ó“•É×NÜ™]\›ˆX™[ÖÓX]œ›İ[™
+
+
+
+\™Xİ[Û‰LÍŒ
+JÌÍŒ
+ILÍŒ
+KÌŒ‹JILM—OÏÉø $ÉßB™[˜İ[Ûˆ]Z[\İ™XÚ\X™[
+İ\’İ\Š^ØÛÛœİ[[İ[SX]›X^
+[X™\Šİ\‹œ™XÚ\]][ÛŠ_
+KÛ›İÙ˜[SX]›X^
+[X™\Šİ\‹œÛ›İÙ˜[
+_
+NÜ™]\›ˆ[[İ[‹ŒÛ›İÙ˜[KŒOÜ™XÚ\]][Û[[İ[X™[
+İ\ŠN‰ø $ÉßB™[˜İ[Ûˆ]Z[\İÙX]\“X™[
+\Î”™XÚ\]][Û”\Ê^Ü™]\›ˆ\Ë\OOOIÛ›Û™IÏÛX™[
+\Ë™\Ü^PÛÙJNœ\ËÙX]\“X™[B™[˜İ[ÛˆÛØÚÒİ\’[–›Û™J[Y^›Û™Nœİš[™Ë\ØÚQ]K››İÊ
+J^İ^Ü™]\›ˆ[X™\Š™]È[‘]U[YQ›Ü›X]
+	Ù[‹QĞ‰Ëİ[YV›Û™N[Y^›Û™Kİ\‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJK™›Ü›X]
+™]È]J\ØÚ
+JJ_XØ]ÚÜ™]\›ˆ™]È]J\ØÚ
+K™Ù]İ\œÊ
+__B‚\H]Z[\›X[™Y[^ÜØÛÜ™N›[X™\ÛX™[œİš[™ÎØ\™[œİš[™ÎØÛÛÜœİš[™ÎÙ[N›[X™\Üİ[N˜›ÛÛX[ŸNÂ™[˜İ[Ûˆ]Z[Ø]\˜][Û•˜\Ü”™\Üİ\™RJ[\\˜]\™N›[X™\Š^ØÛÛœİ˜[YOS[X™\Š[\\˜]\™JNÚYŠS[X™\‹š\Ñš[š]J˜[YJJ\™]\›ˆ[X™\‹“˜SÜ™]\›ˆ‹ŒLLŠ“X]™^
+MËŒŠ˜[YKÊËŒLŠİ˜[YJJ_B™[˜İ[Ûˆ]Z[\›X[™Y[
+İ\’İ\ŠN‘]Z[\›X[™Y[ÂˆÛÛœİZ\S[X™\Šİ\‹[\\˜]\™JK\\™[S[X™\Šİ\‹˜\\™[
+K™[S[X™\‹š\Ñš[š]J\\™[
+OØ\\™[˜Z\‹[OS[X™\‹š\Ñš[š]J™[
+I‰“[X™\‹š\Ñš[š]JZ\ŠOÙ™[XZ\Œ]ÏS[X™\Šİ\‹™]ÔÚ[
+K[ZY]OXÛ[\
+[X™\Šİ\‹š[ZY]J_L
+K]Õ˜\ÜY]Z[Ø]\˜][Û•˜\Ü”™\Üİ\™RJ]ÊKš˜\ÜY]Z[Ø]\˜][Û•˜\Ü”™\Üİ\™RJZ\ŠJš[ZY]KÌL˜\Ü”™\Üİ\™OS[X™\‹š\Ñš[š]J]Õ˜\ÜŠOÙ]Õ˜\Üœš˜\Ü‹Ú[™\ÏSX]›X^
+[X™\Šİ\‹Ú[™
+_
+J‹LMİ[œÚ[™OS[X™\Šİ\‹œİ[œÚ[™Q\˜][ÛŠKÛİYXÛ[\
+[X™\Šİ\‹˜ÛİY
+_L
+Kİ[”Ú\™OZİ\‹š\Ñ^OÊ[X™\‹š\Ñš[š]Jİ[œÚ[™JOØÛ[\
+İ[œÚ[™KÌÍŒJN˜Û[\
+KXÛİYÌLJJNŒ˜YX][Û“ØYZİ\‹š\Ñ^OØÛ[\
+ÌŠœİ[”Ú\™JËŒ
+ŠKXÛİYÌL
+KJNŒÚ[™™[YYXÛ[\
+
+Ú[™\ËLKJKÍ‹KJK[Ú\İ\™SØYXÛ[\
+
+˜\Ü”™\Üİ\™KLM‹JKÎKJK\›X[ØYXÛ[\
+
+™[LMÊKÌMKJK™[›ÛÜİXÛ[\
+
+™[XZ\ŠÌKJKÍ‹JKİ[TØÛÜ™OSX]œ›İ[™
+Û[\
+L
+ŠM
+›[Ú\İ\™SØY
+ËŒŒ
+\›X[ØY
+ËŒM
+œ˜YX][Û“ØY
+ËŒLŠ™™[›ÛÜİKŒŒŠÚ[™™[YYŠKL
+JKÛÜ™S[Ú\İ\™O]˜\Ü”™\Üİ\™OLN›Ü™\›[™S[Ú\İ\™O]˜\Ü”™\Üİ\™OLMË	‰™™[L‰‰œ˜YX][Û“ØYKMI‰Ú[™\ÏËKİ›Û™Ó[Ú\İ\™O]˜\Ü”™\Üİ\™OLŒKKÚ[™İ\™\ÜÙYH\İ›Û™Ó[Ú\İ\™I‰Ú[™\ÏMÉ‰™™[XZ\ŠËKİ[OJÛÜ™S[Ú\İ\™_›Ü™\›[™S[Ú\İ\™JI‰™™[LMÉ‰ˆ]Ú[™İ\™\ÜÙY	‰œİ[TØÛÜ™OLÂˆ]X™[IØ™ZYÛXÚ	Ë\™[IÚÙZ[™H\›Z\ØÚH™[\İ[™ÉËØÛÜ™ONÛÛÜœİš[™ÏQÑÕT“PSÑ‘QSĞÓÓÔ”Ë˜ÛÛY›ÜX›NÂˆYŠ™[ŒÎ
+^ÛX™[IÜÙZˆZpçÉÎØ\™[IÜÙZˆÚHğé›YX™[\İ[™ÉÎÜØÛÜ™OLLØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”Ë™\RİY[ÙHYŠ™[LÌŠ^ÛX™[IÚZpçÉÎØ\™[IÚÚHğé›YX™[\İ[™ÉÎÜØÛÜ™ONØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”ËšİY[ÙHYŠ™[LŠ^ÛX™[IİØ\›IÎØ\™[IÛZ]\™Hğé›YX™[\İ[™ÉÎÜØÛÜ™OMØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”ËØ\›_Y[ÙHYŠ™[LŒ
+^ÛX™[IÛZXÚØ\›IÎØ\™[IÙÙ\š[™ÙHğé›YX™[\İ[™ÉÎÜØÛÜ™OMØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”ËœÛYÚUØ\›_Y[ÙHYŠ™[L
+^ÛX™[IØ™ZYÛXÚ	ÎØ\™[IÚÙZ[™H\›Z\ØÚH™[\İ[™ÉÎÜØÛÜ™ONØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”Ë˜ÛÛY›ÜX›_Y[ÙHYŠ™[KLLÊ^ÛX™[IÛZXÚğï	ÎØ\™[IÙÙ\š[™Ù\ˆğé\İ™\ÜÉÎÜØÛÜ™OMØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”ËœÛYÚPÛÛÛY[ÙHYŠ™[KLŠ^ÛX™[IÚğï	ÎØ\™[IÛZ]\™\ˆğé\İ™\ÜÉÎÜØÛÜ™OMØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”Ë˜ÛÛÛY[ÙHYŠ™[KLÎJ^ÛX™[IÚØ[	ÎØ\™[IÚÚ\ˆğé\İ™\ÜÉÎÜØÛÜ™ONØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”Ë˜ÛÛY[Ù^ÛX™[IÜÙZˆØ[	ÎØ\™[IÜÙZˆÚ\ˆğé\İ™\ÜÉÎÜØÛÜ™OLLØÛÛÜQÑÕT“PSÑ‘QSĞÓÓÔ”Ë™\PÛÛBˆ™]\›ÜØÛÜ™KX™[\™[‹ÛÛÜ‹[Kİ[_BŸB‚™[˜İ[Ûˆ]Z[İ\œĞT™\ÛÛ][ÛŠİ\œÎ’İ\–×K™\ÛÛ][Û‰ÌÚ	ß	ÌZ	Ê^ÂˆYŠ™\ÛÛ][ÛOOIÌZ	Ê\™]\›ˆİ\œÎÂˆÛÛœİÜ›İ\Ï[™]ÈX\[X™\‹İ\–×OŠ
+NÙ›ÜŠÛÛœİİ\ˆÙˆİ\œÊ^ØÛÛœİÛØÚÏS[X™\Šİ\‹[YKœÛXÙJLKLÊJK›ØÚÏS[X™\‹š\Ñš[š]JÛØÚÊOÓX]™›ÛÜŠÛØÚËÌÊJŒÎ™Ü›İ\ËœÚ^™JŒÎØÛÛœİİ\œ™[YÜ›İ\Ë™Ù]
+›ØÚÊOÏÖ×NØİ\œ™[œ\Ú
+İ\ŠNÙÜ›İ\ËœÙ]
+›ØÚËİ\œ™[
+_Bˆ™]\›ˆË‹‹™Ü›İ\Ë™[šY\Ê
+WKœÛÜ
+
+KŠOO˜VÌKX–ÌJK›X\
+
+ËÜ›İ\JOOØÛÛœİ˜\ÙOYÜ›İ\ÌK™\™\Ù[]]™OYÜ›İ\œ™YXÙJ
+™\İİ\ŠOOœ\š[ÙÙX]\’[\Xİ
+İ\ŠOœ\š[ÙÙX]\’[\Xİ
+™\İ
+OÚİ\˜™\İ˜\ÙJKİ[OJÙ^N‰Ü™XÚ\]][Û‰ß	Ü˜Z[‰ß	ÜÚİÙ\œÉß	ÜÛ›İÙ˜[	ÊOO™Ü›İ\œ™YXÙJ
+İ[İ\ŠOOİ[
+ÓX]›X^
+[X™\Šİ\–ÚÙ^WJ_
+K
+KX^[][OJÙ^N‰Ü›Ø˜Xš[]Iß	Ùİ\İ	ÊOO“X]›X^
+‹‹™Ü›İ\›X\
+İ\O“[X™\Šİ\–ÚÙ^WJ_
+JKİ[œÚ[™U˜[Y\ÏYÜ›İ\›X\
+İ\Ošİ\‹œİ[œÚ[™Q\˜][ÛŠK™š[\Š
+˜[YJN˜[YH\È[X™\O˜[YHOO[[	‰˜[YHOO][™Yš[™Y	‰“[X™\‹š\Ñš[š]J˜[YJJKİ[œÚ[™Q\˜][Û\İ[œÚ[™U˜[Y\Ë›[™İÜİ[œÚ[™U˜[Y\Ëœ™YXÙJ
+İ[˜[YJOOİ[
+ÓX]›X^
+˜[YJK
+N›[Ü™]\›Ë‹‹˜˜\ÙKÛÙNœ™\™\Ù[]]™K˜ÛÙK™XÚ\]][Ûœİ[J	Ü™XÚ\]][Û‰ÊK˜Z[œİ[J	Ü˜Z[‰ÊKÚİÙ\œÎœİ[J	ÜÚİÙ\œÉÊKÛ›İÙ˜[œİ[J	ÜÛ›İÙ˜[	ÊK›Ø˜Xš[]N›X^[][J	Ü›Ø˜Xš[]IÊKİ\İ“X]›X^
+˜\ÙKÚ[™X^[][J	Ùİ\İ	ÊJKÛİY›YX[ÛİY^Y\ŠÜ›İ\	ØÛİY	ÊOÏØ˜\ÙK˜ÛİYİĞÛİY›YX[ÛİY^Y\ŠÜ›İ\	ÛİĞÛİY	ÊOÏØ˜\ÙK›İĞÛİYZYÛİY›YX[ÛİY^Y\ŠÜ›İ\	ÛZYÛİY	ÊKYÚÛİY›YX[ÛİY^Y\ŠÜ›İ\	ÚYÚÛİY	ÊKİ[œÚ[™Q\˜][Û‹\Ñ^Nœ™\™\Ù[]]™Kš\Ñ^_HØ]\ÙšY\Èİ\ŸJBŸB‚™[˜İ[Ûˆ›Ü™XØ\İ
+Ù^\Ëİ\œËZ[]\ÌMKÛ[X]KÙ[XİYœÙ[XİYÙYYÙ]Ù[XİY›Û”Ù[XİYÚ[™ÙK[š][Ù[[™›Ë[Y^›Û™K[Y^›Û™PX˜œ™]šX][Û‹[]˜][Û‹ÛÛ\Xİ[ÙKY˜[˜ÙY[ÙKÚİÔÙ]™[‘^Tİ[[X\KÚ[Xİ]™KÚ[”İ]\ËÚ[”™\Ü\Ú[Û‹\Ú[ÛXİ]™KØ[›ÛšXØ[›İØØ\İ™\Ù[][ÛIÙ[	ßNÙ^\Î‘^V×NÚİ\œÎ’İ\–×NÛZ[]\ÌMN“Z[]LMV×NØÛ[X]NÛ[X]Q^V×NÜÙ[XİYœİš[™ÎÜÙ]Ù[XİYŠœİš[™ÊOO›ÚYİ[š]•Ú[™[š]Û[Ù[[™›Î™\İX]Ú[Ù[[™›ß[İ[Y^›Û™Nœİš[™Îİ[Y^›Û™PX˜œ™]šX][ÛÎœİš[™ÎÙ[]˜][Û›[X™\ØÛÛ\Xİ[ÙN˜›ÛÛX[ØY˜[˜ÙY[ÙN˜›ÛÛX[ÜÚİÔÙ]™[‘^Tİ[[X\N˜›ÛÛX[İÚ[Xİ]™N˜›ÛÛX[İÚ[”İ]\ÏÎ•Ú[“XZ[‘›Ü™XØ\İİ]\ß[İÚ[”™\ÜÎ‘›Ü™XØ\İ™\šYšXØ][Û”™\Ü[Ù\Ú[ÛÎ‘›Ü™XØ\İ\Ú[Û”™\İ[[Ù\Ú[ÛXİ]™N˜›ÛÛX[ØØ[›ÛšXØ[›İØØ\İ˜›ÛÛX[Ü™\Ù[][ÛÎ‰Ù[	ß	Úİ\›KY]Z[	ßJ^ÂˆÛÛœİİ\›Q]Z[Û›O\™\Ù[][ÛOOIÚİ\›KY]Z[	ÎÂˆÛÛœİÜÙ[XİYÙ]Ù[XİYİ]WO]\ÙTİ]J
+
+OOœÙ[XİYÙYY^\ÖÌOË™]_	ÉÊKÙ[XİYÙYY™Y]\ÙT™YŠÙ[XİYÙYY
+NÂˆÛÛœİÙ]Ù[XİY]\ÙPØ[˜XÚÊ
+]Nœİš[™ÊOOÜÙ]Ù[XİYİ]Jİ\œ™[O˜İ\œ™[OOY]OØİ\œ™[™]JNÛÛ”Ù[XİYÚ[™ÙJ]J_KÛÛ”Ù[XİYÚ[™ÙWJNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ]˜Z[X›OY^\ËœÛÛYJ^OO™^K™]OOO\Ù[XİY
+KÙYYÚ[™ÙY\Ù[XİYÙYY™Y‹˜İ\œ™[OO\Ù[XİYÙYYÜÙ[XİYÙYY™Y‹˜İ\œ™[\Ù[XİYÙYYÚYŠÙYYÚ[™ÙY	‰œÙ[XİYÙYY	‰™^\ËœÛÛYJ^OO™^K™]OOO\Ù[XİYÙYY
+J^ÜÙ]Ù[XİYİ]JÙ[XİYÙYY
+NÜ™]\›ŸZYŠX]˜Z[X›J^ØÛÛœİ˜[˜XÚÏJÙ[XİYÙYY	‰™^\ËœÛÛYJ^OO™^K™]OOO\Ù[XİYÙYY
+OÜÙ[XİYÙYY™^\ÖÌOË™]J_	ÉÎÜÙ]Ù[XİYİ]J˜[˜XÚÊNÚYŠ˜[˜XÚÊ[Û”Ù[XİYÚ[™ÙJ˜[˜XÚÊ__KÙ^\ËÙ[XİYÙ[XİYÙYYÛ”Ù[XİYÚ[™ÙWJNÂˆÛÛœİ[š]X[]Z[™Y™\™[˜Ù\Ï]\ÙSY[[Ê[š]X[]Z[Ú\™Y™\™[˜Ù\Ë×JNÂˆÛÛœİÜÙ[XİYİ\‹Ù]Ù[XİYİ\—O]\ÙTİ]J
+KÙ]Z[ÓÜ[‹Ù]]Z[ÓÜ[—O]\ÙTİ]J
+
+OOšİ\›Q]Z[Û›_ØØ[İÜ˜YÙK™Ù]][J	ÛZY™›Ü™XØ\İ]Z[ÓÜ[‰ÊOOOIÌIÊKÙ]Z[™\ÛÛ][Û‹Ù]]Z[™\ÛÛ][Û—O]\ÙTİ]O	ÌÚ	ß	ÌZ	ÏŠ
+
+OOšİ\›Q]Z[Û›OÉÌZ	Î‰ÌÚ	ÊKÙ]Z[YÙ[™Ü[‹Ù]]Z[YÙ[™Ü[—O]\ÙTİ]J
+
+OOšİ\›Q]Z[Û›OÙ˜[ÙNš[š]X[]Z[YÙ[™Ü[Š
+JKÛ›İÕXÚËÙ]›İÕXÚ×O]\ÙTİ]J
+
+OO‘]K››İÊ
+JKÙ]Z[š\ÚXš[]KÙ]]Z[š\ÚXš[]WO]\ÙTİ]O™XÛÜ™]Z[[™RÙ^K›ÛÛX[Š[š]X[]Z[™Y™\™[˜Ù\Ëš\ÚX›JKÚY[”™XÚ\\\ËÙ]Y[”™XÚ\\\×O]\ÙTİ]O]Z[™XÚ\\V×OŠ[š]X[]Z[™Y™\™[˜Ù\ËšY[”™XÚ\
+KÙ]Z[Ú\ÚYÙ]]Z[Ú\ÚYO]\ÙTİ]J
+
+OO\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	ÏÍÌŒ“X]›X^
+ÌŒX]›Z[ŠLÎÚ[™İËš[›™\•ÚYMŠJJKØÛÛ\Xİ[™ØØ\KÙ]ÛÛ\Xİ[™ØØ\WO]\ÙTİ]J
+
+OO\[ÙˆÚ[™İÈOOIİ[™Yš[™Y	É‰Ú[™İËš[›™\•ÚYÚ[™İËš[›™\’ZYÚ
+KØÛÛ\Xİ]Z[^[™YÙ]ÛÛ\Xİ]Z[^[™YO]\ÙTİ]J˜[ÙJNÂˆÛÛœİ™\]Y\İYÛØÚÔÙ[Xİ[Û”™Y]\ÙT™YÙ]Nœİš[™ÎÚİ\›[X™\Ÿ_[Š[
+K]Z[\™Y]\ÙT™YÜÚ[\’Y›[X™\Ú[™^›[X™\Ş›[X™\ŞN›[X™\Ÿ_[Š[
+K^R[\İXÚ™Y]\ÙT™YÚY[YšY\›[X™\Ù[N‹L_NŞ›[X™\ŞN›[X™\Ÿ_[Š[
+K^R[\İXÚ]™Y]\ÙT™YŠ
+NÂˆÛÛœİ]Z[Ú\™Y]\ÙT™YS]‘[[Y[Š[
+K]Z[İ™Y]\ÙT™YÕ‘ÔÕ‘Ñ[[Y[Š[
+KÚY[Ø]T™Y]\ÙT™YŠ
+NÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠY]Z[ÓÜ[ŸÙ[XİYOO[ØØ[]R[–›Û™J[Y^›Û™JJ\™]\›Û][Y\LØÛÛœİØÚY[OJ
+OOİÚ[™İË˜ÛX\•[Y[İ]
+[Y\ŠNİ[Y\]Ú[™İËœÙ][Y[İ]
+
+
+OOÚYŠØİ[Y[š\ÚXš[]Tİ]OOOIİš\ÚX›IÊ\Ù]›İÕXÚÊ]K››İÊ
+JNÜØÚY[J
+_KŒQ]K››İÊ
+IMŒ
+ÌLŒ
+_NÜØÚY[J
+NÜ™]\›Š
+OOÚ[™İË˜ÛX\•[Y[İ]
+[Y\Š_KÙ]Z[ÓÜ[‹Ù[XİY[Y^›Û™WJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠİ\›Q]Z[Û›J\™]\›İ^ÛØØ[İÜ˜YÙKœÙ]][J	ÛZY™›Ü™XØ\İ]Z[ÓÜ[‰Ë]Z[ÓÜ[ÉÌIÎ‰Ì	Ê_XØ]Úß_KÙ]Z[ÓÜ[‹İ\›Q]Z[Û›WJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠZİ\›Q]Z[Û›J\™]\›ÚYŠY]Z[ÓÜ[Š\Ù]]Z[ÓÜ[ŠYJNÚYŠ]Z[™\ÛÛ][ÛˆOOIÌZ	Ê\Ù]]Z[™\ÛÛ][ÛŠ	ÌZ	Ê_KÚİ\›Q]Z[Û›K]Z[ÓÜ[‹]Z[™\ÛÛ][Û—JNÂˆ\ÙQY™™Xİ
+
+
+OOİ^ÛØØ[İÜ˜YÙKœÙ]][JURSĞÒT•ÔÕÔQÑWÒÑVK”ÓÓ‹œİš[™ÚYJİš\ÚX›N™]Z[š\ÚXš[]KY[”™XÚ\šY[”™XÚ\\\ßJJ_XØ]Úß_KÙ]Z[š\ÚXš[]KY[”™XÚ\\\×JNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠİ\›Q]Z[Û›J\™]\›İ^ÛØØ[İÜ˜YÙKœÙ]][JURSÓQÑS‘ÔÕÔQÑWÒÑVK]Z[YÙ[™Ü[ÉÌIÎ‰Ì	Ê_XØ]Úß_KÙ]Z[YÙ[™Ü[‹İ\›Q]Z[Û›WJNÂˆ\ÙQY™™Xİ
+
+
+OOØÛÛœİ›ÙOY]Z[Ú\™Y‹˜İ\œ™[ÚYŠ[›Ù_\[Ùˆ™\Ú^™SØœÙ\™\OOIİ[™Yš[™Y	ß
+ÛÛ\Xİ[ÙI‰ˆY]Z[ÓÜ[ŠJ\™]\›Û]œ˜[YOLØÛÛœİ\]OJ
+OOÚYŠœ˜[YJ\™]\›Ùœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOÙœ˜[YOLØÛÛœİÚYSX]›X^
+ÌŒX]œ›İ[™
+›ÙK˜ÛY[ÚYÌŒ
+JNÜÙ]]Z[Ú\ÚY
+İ\œ™[O˜İ\œ™[OO]ÚYØİ\œ™[ÚY
+_J_KØœÙ\™\[™]È™\Ú^™SØœÙ\™\Š\]JNİ\]J
+NÛØœÙ\™\‹›ØœÙ\™J›ÙJNÜ™]\›Š
+OOÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNÛØœÙ\™\‹™\ØÛÛ›™Xİ
+
+__KÙ]Z[ÓÜ[‹ÛÛ\Xİ[ÙWJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	Ê\™]\›Û]œ˜[YOLØÛÛœİ\]OJ
+OOÚYŠœ˜[YJ\™]\›Ùœ˜[YO]Ú[™İËœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOÙœ˜[YOLØÛÛœİ™^[™ØØ\O]Ú[™İËš[›™\•ÚYÚ[™İËš[›™\’ZYÚ›ÙUÚYSX]œ›İ[™
+]Z[Ú\™Y‹˜İ\œ™[Ë˜ÛY[ÚY
+K˜[˜XÚÕÚYSX]›X^
+ÌŒX]›Z[ŠLÎÚ[™İËš[›™\•ÚYMŠJK™^ÚYSX]›X^
+ÌŒ›ÙUÚY˜[˜XÚÕÚY
+NÜÙ]ÛÛ\Xİ[™ØØ\Jİ\œ™[O˜İ\œ™[OO[™^[™ØØ\OØİ\œ™[›™^[™ØØ\JNÜÙ]]Z[Ú\ÚY
+İ\œ™[O˜İ\œ™[OO[™^ÚYØİ\œ™[›™^ÚY
+_J_Nİ\]J
+NİÚ[™İË˜Y]™[\İ[™\Š	Ü™\Ú^™IË\]KÜ\ÜÚ]™NY_JNİÚ[™İË˜Y]™[\İ[™\Š	ÛÜšY[][Û˜Ú[™ÙIË\]KÜ\ÜÚ]™NY_JNÜ™]\›Š
+OOÚYŠœ˜[YJ]Ú[™İË˜Ø[˜Ù[[š[X][Û‘œ˜[YJœ˜[YJNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	Ü™\Ú^™IË\]JNİÚ[™İËœ™[[İ™Q]™[\İ[™\Š	ÛÜšY[][Û˜Ú[™ÙIË\]J__K×JNÂˆ[˜İ[ÛˆÙÙÛQ]Z[[™JÙ^N‘]Z[[™RÙ^J^ÚYŠXY˜[˜ÙY[ÙI‰šÙ^HOOIÜ™\Üİ\™IÊ\™]\›ÜÙ]]Z[š\ÚXš[]Jİ\œ™[OŠË‹‹˜İ\œ™[ÚÙ^WNˆXİ\œ™[ÚÙ^W_JJ_Bˆ[˜İ[ÛˆÙÙÛT™XÚ\\J\N‘]Z[™XÚ\\J^ÚYŠXY˜[˜ÙY[ÙJ\™]\›ÜÙ]Y[”™XÚ\\\Êİ\œ™[O˜İ\œ™[š[˜ÛY\Ê\JOØİ\œ™[™š[\Š˜[YOO˜[YHOO]\JN–Ë‹‹˜İ\œ™[\WJ_BˆÛÛœİ›Ü™XØ\İ^\Ï]\ÙSY[[Ê
+
+OO™^\ËœÛXÙJÊKÙ^\×JNÂˆÛÛœİ™XÚ\]][Û‘\Ü^Rİ\œÏ]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û”™\Ù[][Û’İ\œÊİ\œÊKÚİ\œ×JK™XÚ\]][Û‘\Ü^SZ[]\ÌMO]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û”™\Ù[][Û“Z[]\ÌMJZ[]\ÌMJKÛZ[]\ÌMWJNÂˆÛÛœİ[Z[Y›Ü™XØ\İ^\Ë›[™İÓX]›Z[Š‹‹™›Ü™XØ\İ^\Ë›X\
+O›Z[ŠJNŒ[X^Y›Ü™XØ\İ^\Ë›[™İÓX]›X^
+‹‹™›Ü™XØ\İ^\Ë›X\
+O›X^
+JNŒK˜[™ÙOSX]›X^
+K[X^X[Z[ŠNÂˆÛÛœİ[^Rİ\œÏ]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û‘\Ü^Rİ\œË™š[\ŠO[YKœİ\ÕÚ]
+Ù[XİY
+JKÜ™XÚ\]][Û‘\Ü^Rİ\œËÙ[XİYJNÂˆÛÛœİ]\ÙSY[[Ê
+
+OO™]Z[İ\œĞT™\ÛÛ][ÛŠ[^Rİ\œË]Z[™\ÛÛ][ÛŠKØ[^Rİ\œË]Z[™\ÛÛ][Û—JNÂˆÛÛœİ]Y]YT™\]Y\İYÛØÚÒİ\J]Nœİš[™Ëİ\›[X™\ŠOOÜ™\]Y\İYÛØÚÔÙ[Xİ[Û”™Y‹˜İ\œ™[^Ù]Kİ\Š
+X]œ›İ[™
+İ\ŠIL
+JÌ
+IL_NÂˆ\ÙQY™™Xİ
+
+
+OOÜÙ]ÛÛ\Xİ]Z[^[™Y
+˜[ÙJ_KÜÙ[XİY]Z[™\ÛÛ][Û—JNÂˆÛÛœİ™XÚ\Ù\šY\Ï]\ÙSY[[Ê
+
+OOœ›X\
+™XÚ\]][Û”\ÊKÜJNÂˆÛÛœİ™\Üİ\™U˜[Y\Ï]\ÙSY[[Ê
+
+OOœ›X\
+Oœ™\Üİ\™JK™š[\Š[X™\‹š\Ñš[š]JKÜJK]Z[\›X[\ÜÙ\ÜÛY[Ï]\ÙSY[[Ê
+
+OOœ›X\
+]Z[\›X[™Y[
+KÜJNÂˆÛÛœİ›Ü™XØ\İ›İĞÛÛ[Ï]\ÙSY[[Ê
+
+OO›™]ÈX\
+›Ü™XØ\İ^\Ë›X\
+OØÛÛœİYİJ
+›Z[‹X[Z[ŠKÜ˜[™ÙJJŒLÚYİJX]›X^
+K›X^Y›Z[ŠKÜ˜[™ÙJJŒL[^Rİ\œÑ›Ü‘]O\™XÚ\]][Û‘\Ü^Rİ\œË™š[\ŠO[YKœİ\ÕÚ]
+™]JJK^[YÚİ\œÑ›Ü‘]OY^T\š[Ùİ\œÑ›Ü‘]J™]K™XÚ\]][Û‘\Ü^Rİ\œÊK™XÚ\]][Û\ÜÙ\ÜÛY[Y^T™XÚ\]][Û\ÜÙ\ÜÛY[
+^[YÚİ\œÑ›Ü‘]K›[™İÙ^[YÚİ\œÑ›Ü‘]N˜[^Rİ\œÑ›Ü‘]K™XÚ\]][Û‘\Ü^SZ[]\ÌMJK™XÚ\]][Û‘\˜][Û\™XÚ\]][Û‘\˜][Û‘^Sİ™\šY]ÓX™[
+™XÚ\]][Û\ÜÙ\ÜÛY[™\˜][Û’İ\œÊK™XÚ\]][Û‘\˜][ÛÛÛ\Xİ\™XÚ\]][Û‘\˜][Û‘^Sİ™\šY]ĞÛÛ\XİX™[
+™XÚ\]][Û\ÜÙ\ÜÛY[™\˜][Û’İ\œÊK›ÛİÚ[™ÓšYÚİ\œÏY›ÛİÚ[™ÓšYÚİ\œÑ›Ü‘]J™]K™XÚ\]][Û‘\Ü^Rİ\œÊKÚ\˜Xİ\Y^UÙX]\Ú\˜Xİ\Š^[YÚİ\œÑ›Ü‘]K›[™İÙ^[YÚİ\œÑ›Ü‘]N˜[^Rİ\œÑ›Ü‘]JK™YÚ[YOY›Ü™XØ\İ^T™YÚ[YJ[^Rİ\œÑ›Ü‘]JK^Uš\İX[\\š[ÙÙX]\•š\İX[
+^[YÚİ\œÑ›Ü‘]K›[™İÙ^[YÚİ\œÑ›Ü‘]N˜[^Rİ\œÑ›Ü‘]KYKÚ\˜Xİ\‹˜ÛÙK^UÙX]\Ú\˜Xİ\•^
+Ú\˜Xİ\ŠKÜ™Y™\‘˜[˜XÚĞÛÙNY_JKšYÚš\İX[\\š[ÙÙX]\•š\İX[
+›ÛİÚ[™ÓšYÚİ\œË˜[ÙKÚ\˜Xİ\‹˜ÛÙKÚ\˜Xİ\‹›X™[
+KYZ[R^˜\™Êİ\œË[]˜][Û‹[š]JKÛÛ\XİZYÚ\İZ[R^˜\™ĞRÚ[™
+ŠKZ[•Û™OYXÛ]Ù•[\\˜]\™UÛ™J›Z[ŠKX^Û™OYXÛ]Ù•[\\˜]\™UÛ™J›X^
+NÜ™]\›–Ù™]Kœ˜YÛY[Ù^O^Ø	Ù™]_N˜ÛÛ[O]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İY]Hİ›Û™ÏÙ›Ü›X]]SÛ›J™]KİÙYZÙ^N‰ÜÚÜ	ßJ_OÜİ›Û™ÏÛX[Ù›Ü›X]]SÛ›J™]KÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_OÜÛX[Ù]]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZXÛÛˆˆ]O^Ù^UÙX]\Ú\˜Xİ\•^
+Ú\˜Xİ\Š_OÙX]\”\š[ÙXÛÛœÈ^Uš\İX[^Ù^Uš\İX[HšYÚš\İX[^ÛšYÚš\İX[H^TÚ^™O^ÍŸHšYÚÚ^™O^ÌŸKÏ›Ü™XØ\İÛÛ™][Û”[ÈX™[^ØÛÛ\XİÙ]™[‘^PÛÛ™][Û“X™[
+[^Rİ\œÑ›Ü‘]J_H™YÚ[YO^Ü™YÚ[Y_KÏÙ]]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İ[Y]HÜ[ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İ[Y]K\˜Z[ˆˆ]O^Ø	ÙZ[T™XÚ\]][Û”›Ø˜Xš[]U]J[^Rİ\œÑ›Ü‘]J_H0­ÈšYY\œØÚYÜÙ]Y\ˆ	Ü™XÚ\]][Û‘\˜][ÛŸXO›Ü]ÈÚ^™O^ÌLŸKÏÜ™XÚ\]][Û[[İ[X™[
+
+_OØÛX[ÙZ[T™XÚ\]][Û”›Ø˜Xš[]PÛÛ\Xİ
+[^Rİ\œÑ›Ü‘]J_^Ü™XÚ\]][Û‘\˜][ÛÛÛ\XİØ0­È	Ü™XÚ\]][Û‘\˜][ÛÛÛ\XİX‰ÉßOÜÛX[ÜÜ[Ü[ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İ[Y]K\İ[ˆİ[ˆÚ^™O^ÌLŸKÏÜİ[œÚ[™Rİ\œÓX™[
+œİ[œÚ[™Q\˜][ÛŠ_OÜÜ[Ü[ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İ[Y]K]Ú[™Ú[™Ú^™O^ÌLŸKÏÚ[™\™Xİ[Û\œ›İÈ\™Xİ[Û^Ù™\™Xİ[ÛŸHİ\İ^Ù™İ\İKÏˆİÚ[™
+Ú[™[š]
+_H0­È°í™[ˆİÚ[™
+™İ\İ[š]
+_OÜÜ[Ù]]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İX˜\Ü˜\ˆÛ\ÜÓ˜[YOH˜Û[X]K]Û™HÛ[X]K]Û™KYZ[Hˆİ[O^ŞØÛÛÜ›Z[•Û™K˜ÛÛÜ‹˜XÚÙÜ›İ[™›Z[•Û™K˜˜XÚÙÜ›İ[™›Ü™\ÛÛÜ›Z[•Û™K˜›Ü™\Ÿ_H]O^ÛZ[•Û™K]_OÜ[ÓX]œ›İ[™
+›Z[Š_p¬ÜÜ[Ø]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İX˜\˜™È]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İX˜\ˆˆİ[O^ŞÛY˜	ÛYİIXÚY˜	ÓX]›X^
+ÚYİ
+_IX˜XÚÙÜ›İ[™˜[™X\‹YÜ˜YY[
+LYË	ÛZ[•Û™K˜ÛÛÜŸK	ÛX^Û™K˜ÛÛÜŸJX_KÏÙ]İ›Û™ÈÛ\ÜÓ˜[YOH˜Û[X]K]Û™HÛ[X]K]Û™KYZ[Hˆİ[O^ŞØÛÛÜ›X^Û™K˜ÛÛÜ‹˜XÚÙÜ›İ[™›X^Û™K˜˜XÚÙÜ›İ[™›Ü™\ÛÛÜ›X^Û™K˜›Ü™\Ÿ_H]O^ÛX^Û™K]_OÜ[ÓX]œ›İ[™
+›X^
+_p¬ÜÜ[Üİ›Û™ÏÙ]›Ü™XØ\İ^˜\™È^˜\™Ï^ØÛÛ\XİŸKÏÑœ˜YÛY[—H\ÈÛÛœİJJKÙ›Ü™XØ\İ^\Ëİ\œË™XÚ\]][Û‘\Ü^Rİ\œË™XÚ\]][Û‘\Ü^SZ[]\ÌMK[Z[‹˜[™ÙK›İÕXÚË[]˜][Û‹[š][Y^›Û™WJNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆYŠ\›[™İ
+\™]\›ÂˆÛÛœİ™\]Y\İYÙ[Xİ[Û\™\]Y\İYÛØÚÔÙ[Xİ[Û”™Y‹˜İ\œ™[ÂˆYŠ™\]Y\İYÙ[Xİ[Û‰‰œ™\]Y\İYÙ[Xİ[Û‹™]OOO\Ù[XİY
+^ÂˆÛÛœİ™\]Y\İY\™\]Y\İYÙ[Xİ[Û‹šİ\ÂˆÛÛœİ^Xİ\™š[™[™^
+O“[X™\Š[YKœÛXÙJLKLÊJOOO\™\]Y\İY
+NÂˆÛÛœİ™X\™\İY^XİLÙ^Xİœœ™YXÙJ
+™\İ[™^
+OO“X]˜XœÊ[X™\Š[YKœÛXÙJLKLÊJK\™\]Y\İY
+OX]˜XœÊ[X™\ŠØ™\İK[YKœÛXÙJLKLÊJK\™\]Y\İY
+OÚ[™^˜™\İ
+NÂˆÙ]Ù[XİYİ\Š™X\™\İ
+NÂˆ™]\›ÂˆBˆÛÛœİ\ÕÙ^O\Ù[XİYOO[ØØ[]R[–›Û™J[Y^›Û™JKİ\œ™[ÛØÚÏXÛØÚÒİ\’[–›Û™J[Y^›Û™K›İÕXÚÊKİ\œ™[ÛØÚÒ[™^\œ™YXÙJ
+™\İ[™^
+OO“X]˜XœÊ[X™\Š[YKœÛXÙJLKLÊJKXİ\œ™[ÛØÚÊOX]˜XœÊ[X™\ŠØ™\İK[YKœÛXÙJLKLÊJKXİ\œ™[ÛØÚÊOÚ[™^˜™\İ
+KZY^R[™^\™š[™[™^
+O[YKœÛXÙJLKLÊOOOIÌL‰ÊK˜[˜XÚÏ[ZY^R[™^LÛZY^R[™^“X]›Z[Š‹X]›X^
+›[™İLJJNÂˆÙ]Ù[XİYİ\Š\ÕÙ^OØİ\œ™[ÛØÚÒ[™^™˜[˜XÚÊBˆKÜÙ[XİY[Y^›Û™K›İÕXÚ×JNÂˆ\ÙQY™™Xİ
+
+
+OOÂˆÛÛœİ™\]Y\İYÙ[Xİ[Û\™\]Y\İYÛØÚÔÙ[Xİ[Û”™Y‹˜İ\œ™[ÂˆYŠ\™\]Y\İYÙ[Xİ[ÛŸ™\]Y\İYÙ[Xİ[Û‹™]HOO\Ù[XİY\›[™İ
+\™]\›ÂˆÛÛœİ^Xİ\™š[™[™^
+O“[X™\Š[YKœÛXÙJLKLÊJOOO\™\]Y\İYÙ[Xİ[Û‹šİ\ŠNÂˆÛÛœİ™X\™\İY^XİLÙ^Xİœœ™YXÙJ
+™\İ[™^
+OO“X]˜XœÊ[X™\Š[YKœÛXÙJLKLÊJK\™\]Y\İYÙ[Xİ[Û‹šİ\ŠOX]˜XœÊ[X™\ŠØ™\İK[YKœÛXÙJLKLÊJK\™\]Y\İYÙ[Xİ[Û‹šİ\ŠOÚ[™^˜™\İ
+NÂˆYŠÙ[XİYİ\OO[™X\™\İ
+\™\]Y\İYÛØÚÔÙ[Xİ[Û”™Y‹˜İ\œ™[[[ÂˆKÜÙ[XİYÙ[XİYİ\—JNÂˆ[˜İ[Ûˆ[İ™Rİ\Š[N‹L_J^ÂˆÛÛœİ™^[™^\Ù[XİYİ\ŠÙ[NÂˆYŠ™^[™^L	‰›™^[™^›[™İ
+^ÜÙ]Ù[XİYİ\Š™^[™^
+NÜ™]\›ŸBˆÛÛœİ^R[™^Y›Ü™XØ\İ^\Ë™š[™[™^
+O™]OOO\Ù[XİY
+NÂˆÛÛœİ\™Ù]^OY›Ü™XØ\İ^\ÖÙ^R[™^
+Ù[WNÂˆYŠ]\™Ù]^_Zİ\œËœÛÛYJO[YKœİ\ÕÚ]
+\™Ù]^K™]JJJ\™]\›Âˆ]Y]YT™\]Y\İYÛØÚÒİ\Š\™Ù]^K™]K[OŒÌŒŒÊNÂˆÙ]Ù[XİY
+\™Ù]^K™]JNÂˆBˆ[˜İ[Ûˆ[İ™Q^J[N‹L_J^ÂˆÛÛœİ^R[™^Y›Ü™XØ\İ^\Ë™š[™[™^
+O™]OOO\Ù[XİY
+K\™Ù]^OY›Ü™XØ\İ^\ÖÙ^R[™^
+Ù[WNÂˆYŠ]\™Ù]^J\™]\›ÂˆÛÛœİXİ]™Rİ\\ÓX]›Z[ŠX]›X^
+Ù[XİYİ\ŠK›[™İLJWNÂˆÛÛœİÛØÚÒİ\S[X™\ŠXİ]™Rİ\Ë[YKœÛXÙJLKLÊJNÂˆ]Y]YT™\]Y\İYÛØÚÒİ\Š\™Ù]^K™]K[X™\‹š\Ñš[š]JÛØÚÒİ\ŠOØÛØÚÒİ\ŒLŠNÂˆÙ]Ù[XİY
+\™Ù]^K™]JNÂˆBˆ[˜İ[Ûˆ™YÚ[‘^R[\İXÚ
+]™[”™XXİİXÚ]™[S]Û‘[[Y[‹[N‹L_J^ØÛÛœİİXÚY]™[İXÚ\ÖÌNÙ^R[\İXÚ]™Y‹˜İ\œ™[Q]K››İÊ
+NÚYŠİXÚ
+Y^R[\İXÚ™Y‹˜İ\œ™[^ÚY[YšY\İXÚšY[YšY\‹[KİXÚ˜ÛY[NİXÚ˜ÛY[__Bˆ[˜İ[Ûˆ[™^R[\İXÚ
+]™[”™XXİİXÚ]™[S]Û‘[[Y[‹[N‹L_J^ØÛÛœİİ\Y^R[\İXÚ™Y‹˜İ\œ™[Ù^R[\İXÚ™Y‹˜İ\œ™[[[ÚYŠ\İ\İ\™[HOOY[J\™]\›ØÛÛœİİXÚP\œ˜^K™œ›ÛJ]™[˜Ú[™ÙYİXÚ\ÊK™š[™
+][OOš][KšY[YšY\OO\İ\šY[YšY\ŠNÚYŠ]İXÚX]š\İ
+İXÚ˜ÛY[\İ\İXÚ˜ÛY[K\İ\JOŒM
+\™]\›Ù]™[œ™]™[Y˜][
+
+NÙ]™[œİÜ›ÜYØ][ÛŠ
+NÙ^R[\İXÚ]™Y‹˜İ\œ™[Q]K››İÊ
+NÛ[İ™Q^J[J_Bˆ[˜İ[ÛˆÛXÚÑ^R[\
+]™[”™XXİ[İ\ÙQ]™[S]Û‘[[Y[‹[N‹L_J^Ù]™[œİÜ›ÜYØ][ÛŠ
+NÚYŠ]K››İÊ
+KY^R[\İXÚ]™Y‹˜İ\œ™[L
+\™]\›Û[İ™Q^J[J_Bˆ\ÙQY™™Xİ
+
+
+OOÂˆÛÛœİ›ÙOY]Z[Ú\™Y‹˜İ\œ™[İY]Z[İ™Y‹˜İ\œ™[ÚYŠ[›Ù_\İ\[ÙˆÚ[™İÏOOIİ[™Yš[™Y	ß
+ÛÛ\Xİ[ÙI‰ˆY]Z[ÓÜ[ŠJ\™]\›ÂˆÛÛœİ\ÚİÜJ
+OOÚ[™İË›X]ÚYYXJ	ÊZ[‹]ÚYˆL\
+IÊK›X]Ú\ÎÂˆÛÛœİ›Øİ\ĞÚ\J
+OOÚYŠ\ÚİÜ
+
+J[›ÙK™›Øİ\ÊÜ™]™[ØÜ›ÛY_J_NÂˆÛÛœİÙ^YİÛJ]™[’Ù^X›Ø\™]™[
+OOÚYŠY\ÚİÜ
+
+J\™]\›ÚYŠ]™[šÙ^OOOIĞ\œ›İÓY	ß]™[šÙ^OOOIĞ\œ›İÔšYÚ	Ê^Ù]™[œ™]™[Y˜][
+
+NÙ]™[œİÜ›ÜYØ][ÛŠ
+NÛ[İ™Rİ\Š]™[šÙ^OOOIĞ\œ›İÓY	ÏËLNŒJNÜ™]\›ŸZYŠ]™[šÙ^OOOIĞ\œ›İÕ\	ß]™[šÙ^OOOIĞ\œ›İÑİÛ‰Ê^Ù]™[œ™]™[Y˜][
+
+NÙ]™[œİÜ›ÜYØ][ÛŠ
+NÛ[İ™Q^J]™[šÙ^OOOIĞ\œ›İÕ\	ÏÌN‹LJ__NÂˆÛÛœİÚY[J]™[•ÚY[]™[
+OOÚYŠY\ÚİÜ
+
+J\™]\›ØÛÛœİ[OSX]˜XœÊ]™[™[VJOSX]˜XœÊ]™[™[V
+OÙ]™[™[VN™]™[™[VÚYŠX]˜XœÊ[JO
+\™]\›Ù]™[œ™]™[Y˜][
+
+NÙ]™[œİÜ›ÜYØ][ÛŠ
+NÙ›Øİ\ĞÚ\
+
+NØÛÛœİ›İÏ\\™›Ü›X[˜ÙK››İÊ
+NÚYŠ›İË]ÚY[Ø]T™Y‹˜İ\œ™[LÌ
+\™]\›İÚY[Ø]T™Y‹˜İ\œ™[[›İÎÛ[İ™Rİ\Š[OÌN‹LJ_NÂˆ›ÙK˜Y]™[\İ[™\Š	ÜÚ[\™İÛ‰Ë›Øİ\ĞÚ\YJNÛ›ÙK˜Y]™[\İ[™\Š	Û[İ\ÙYİÛ‰Ë›Øİ\ĞÚ\YJNÛ›ÙK˜Y]™[\İ[™\Š	ÚÙ^YİÛ‰ËÙ^YİÛŠNÜİ˜Y]™[\İ[™\Š	İÚY[	ËÚY[Ü\ÜÚ]™N™˜[Ù_JNÂˆ™]\›Š
+OOÛ›ÙKœ™[[İ™Q]™[\İ[™\Š	ÜÚ[\™İÛ‰Ë›Øİ\ĞÚ\YJNÛ›ÙKœ™[[İ™Q]™[\İ[™\Š	Û[İ\ÙYİÛ‰Ë›Øİ\ĞÚ\YJNÛ›ÙKœ™[[İ™Q]™[\İ[™\Š	ÚÙ^YİÛ‰ËÙ^YİÛŠNÜİœ™[[İ™Q]™[\İ[™\Š	İÚY[	ËÚY[
+_NÂˆKÜÙ[XİYÙ[XİYİ\‹›[™İ]Z[ÓÜ[‹ÛÛ\Xİ[ÙKİ\œ×JNÂˆ[˜İ[Ûˆ™YÚ[‘]Z[İ\•\
+]™[”™XXİÚ[\‘]™[Õ‘Ô™Xİ[[Y[‹[™^›[X™\Š^ÚYŠ]™[œÚ[\•\OOOIÛ[İ\ÙIÊ\™]\›Ù]Z[\™Y‹˜İ\œ™[^ÜÚ[\’Y™]™[œÚ[\’Y[™^™]™[˜ÛY[N™]™[˜ÛY[__Bˆ[˜İ[Ûˆ[™]Z[İ\•\
+]™[”™XXİÚ[\‘]™[Õ‘Ô™Xİ[[Y[‹[™^›[X™\Š^ØÛÛœİİ\Y]Z[\™Y‹˜İ\œ™[Ù]Z[\™Y‹˜İ\œ™[[[ÚYŠ\İ\İ\œÚ[\’YOOY]™[œÚ[\’Yİ\š[™^OOZ[™^
+\™]\›ÚYŠX]š\İ
+]™[˜ÛY[\İ\]™[˜ÛY[K\İ\JOŒLŠ\™]\›Ù]™[œ™]™[Y˜][
+
+NÜÙ]Ù[XİYİ\Š[™^
+_Bˆ[˜İ[ÛˆØ[˜Ù[]Z[İ\•\
+
+^Ù]Z[\™Y‹˜İ\œ™[[[BˆYŠ\›[™İ
+\™]\›ˆ[ÂˆÛÛœİÙ[XİY]Z[[™^SX]›Z[ŠÙ[XİYİ\‹›[™İLJKİ\œ™[İ\\ÜÙ[XİY]Z[[™^OÏÜÌKİ\œ™[\›X[Y]Z[\›X[\ÜÙ\ÜÛY[ÖÜÙ[XİY]Z[[™^OÏÙ]Z[\›X[™Y[
+İ\œ™[İ\ŠKİ\œ™[™XÚ\\™XÚ\Ù\šY\ÖÜÙ[XİY]Z[[™^OÏÜ™XÚ\]][Û”\Êİ\œ™[İ\ŠKİ\œ™[ÙX]\ÛÙOXİ\œ™[™XÚ\™\Ü^PÛÙKİ\œ™[ÙX]\“X™[Xİ\œ™[™XÚ\\OOOIÛ›Û™IÏÛX™[
+İ\œ™[ÙX]\ÛÙJN˜İ\œ™[™XÚ\ÙX]\“X™[İ\œ™[[™\”š\ÚÏ\ÚYÛšYšXØ[İ\›U[™\”š\ÚÊİ\œ™[İ\ŠNÂˆÛÛœİ™XÚ\YÙ[™\\Ï\™\Ù[™XÚ\\\Ê™XÚ\Ù\šY\ÊH\È]Z[™XÚ\\V×NÂˆÛÛœİš\ÚX›T™XÚ\YÙ[™\\ÏXY˜[˜ÙY[ÙOÜ™XÚ\YÙ[™\\Ë™š[\Š\OOˆZY[”™XÚ\\\Ëš[˜ÛY\Ê\JJNœ™XÚ\YÙ[™\\ÎÂˆÛÛœİ™\Üİ\™P]˜Z[X›O\™\Üİ\™U˜[Y\Ë›[™İLÂˆÛÛœİÚİÕ[\\˜]\™OHXY˜[˜ÙY[Ù_]Z[š\ÚXš[]K[\\˜]\™KÚİĞ\\™[HXY˜[˜ÙY[Ù_]Z[š\ÚXš[]K˜\\™[ÚİÑ]ÔÚ[XY˜[˜ÙY[ÙI‰™]Z[š\ÚXš[]K™]ÔÚ[ÚİÔ™\Üİ\™OY]Z[š\ÚXš[]Kœ™\Üİ\™I‰œ™\Üİ\™P]˜Z[X›KÚİÔ›Ø˜Xš[]OHXY˜[˜ÙY[Ù_]Z[š\ÚXš[]Kœ›Ø˜Xš[]KÚİÕÚ[™XY˜[˜ÙY[ÙI‰™]Z[š\ÚXš[]KÚ[™ÚİÑİ\İXY˜[˜ÙY[ÙI‰™]Z[š\ÚXš[]K™İ\İÚİÑ\™Xİ[ÛXY˜[˜ÙY[ÙI‰™]Z[š\ÚXš[]K™\™Xİ[ÛÂˆÛÛœİÚİÕ[\\˜]\™TÙXİ[Û\ÚİÕ[\\˜]\™_ÚİĞ\\™[ÚİÑ]ÔÚ[ÚİÔ™\Üİ\™TÙXİ[Û\ÚİÔ™\Üİ\™KÚİÔ˜Z[˜\œÏ]š\ÚX›T™XÚ\YÙ[™\\Ë›[™İŒÚİÔ˜Z[”ÙXİ[Û\ÚİÔ˜Z[˜\œßÚİÔ›Ø˜Xš[]KÚİÕÚ[™ÙXİ[Û\ÚİÕÚ[™ÚİÑİ\İÚİÑ\™Xİ[ÛÂˆÛÛœİ[\\˜]\™U˜[Y\ÏVË‹‹ŠÚİÕ[\\˜]\™OÜ›X\
+O[\\˜]\™JN–×JK‹‹ŠÚİĞ\\™[Ü›X\
+O˜\\™[
+N–×JK‹‹ŠÚİÑ]ÔÚ[Ü›X\
+O™]ÔÚ[
+N–×JWK™š[\Š[X™\‹š\Ñš[š]JNÂˆÛÛœİ[\\˜]\™TØØ[O[šXÙT˜[™ÙJ
+[\\˜]\™U˜[Y\Ë›[™İÓX]›Z[Š‹‹[\\˜]\™U˜[Y\ÊNŒ
+KLKK
+[\\˜]\™U˜[Y\Ë›[™İÓX]›X^
+‹‹[\\˜]\™U˜[Y\ÊNŒL
+JÌKK
+KZ[][\\˜]\™TØØ[K›Z[‹X^][\\˜]\™TØØ[K›X^[\˜[™ÙOSX]›X^
+KX^]Z[ŠK[\\˜]\™UXÚÜÏ][\\˜]\™TØØ[KXÚÜÎÂˆÛÛœİ™\Üİ\™TØØ[O[šXÙT™\Üİ\™P^\Ê™\Üİ\™U˜[Y\ÊK™\Üİ\™SZ[\™\Üİ\™TØØ[K›Z[š[][K™\Üİ\™SX^\™\Üİ\™TØØ[K›X^[][K™\Üİ\™T˜[™ÙOSX]›X^
+K™\Üİ\™SX^\™\Üİ\™SZ[ŠK™\Üİ\™UXÚÜÏ\™\Üİ\™TØØ[KXÚÜÎÂˆÛÛœİ˜]Ô˜Z[“X^SX]›X^
+‹‹œ›X\
+
+[™^
+OOØÛÛœİ\O\™XÚ\Ù\šY\ÖÚ[™^K\NÜ™]\›ˆ\Ñ]Z[™XÚ\\J\JI‰š\ÚX›T™XÚ\YÙ[™\\Ëš[˜ÛY\Ê\JOŞœ™XÚ\]][ÛŒJJK˜Z[”ØØ[O[šXÙTÜÚ]]™T˜[™ÙJX]›X^
+K˜]Ô˜Z[“X^
+KÊK˜Z[“X^\˜Z[”ØØ[K›X^˜Z[•XÚÜÏ\˜Z[”ØØ[KXÚÜÎÂˆÛÛœİ˜]ÕÚ[™X^SX]›X^
+‹‹œ™›]X\
+O–ÜÚİÕÚ[™ŞÚ[™ŒÚİÑİ\İŞ™İ\İŒJJKÚ[™ØØ[O[šXÙTÜÚ]]™T˜[™ÙJX]›X^
+K˜]ÕÚ[™X^
+KÊKÚ[™X^ØØ[O]Ú[™ØØ[K›X^Ú[™XÚÜÏ]Ú[™ØØ[KXÚÜÎÂˆÛÛœİÏSX]›X^
+ÌŒ]Z[Ú\ÚY
+K˜\œ›İĞÚ\UÏMŒYY][PÚ\UÏLY[˜\œ›İĞÚ\ÍNšYÚ[˜\œ›İĞÚ\Í›YY][PÚ\ÍÌ‹İÏSX]›X^
+NË[Y\šYÚ
+K›İĞ˜YÙVOMXÛÛ–O[˜\œ›İĞÚ\ÍÚŞP˜\–O[˜\œ›İĞÚ\ÍNÌKÛİYÜ\ÚŞP˜\–JÊ˜\œ›İĞÚ\ÌNNŒŒJKÙ[XİYX\šÙ\•ÜZXÛÛ–KLLÂˆÛÛœİ[\ZYÚ[˜\œ›İĞÚ\ÌLL›YY][PÚ\ÌLÌŒMM\›X[™Y[ZYÚ[˜\œ›İĞÚ\ÌLŒL‹™\Üİ\™RZYÚ[˜\œ›İĞÚ\ÍM›YY][PÚ\ÍŒÌ˜Z[’ZYÚ[˜\œ›İĞÚ\Í›YY][PÚ\ÎL‹Ú[™ZYÚ[˜\œ›İĞÚ\ÍN›YY][PÚ\ÍÌ‹\™Xİ[Û’ZYÚ\ÚİÑ\™Xİ[ÛÊ˜\œ›İĞÚ\ÌŒÌ
+NŒÙXİ[Û‘Ø\[˜\œ›İĞÚ\ÌLŒM\›X[Ø\[˜\œ›İĞÚ\ÍÎNÂˆ]ÙXİ[Ûİ\œÛÜXÛİYÜ
+ÌLÂˆÛÛœİ[\Ü\ÙXİ[Ûİ\œÛÜ‹[\›İÛO\ÚİÕ[\\˜]\™TÙXİ[Ûİ[\Ü
+İ[\ZYÚ[\ÜÚYŠÚİÕ[\\˜]\™TÙXİ[ÛŠ\ÙXİ[Ûİ\œÛÜ][\›İÛJİ\›X[Ø\ÂˆÛÛœİ\›X[™Y[Ü\ÙXİ[Ûİ\œÛÜ‹\›X[™Y[›İÛO]\›X[™Y[Ü
+İ\›X[™Y[ZYÚÜÙXİ[Ûİ\œÛÜ]\›X[™Y[›İÛJİ\›X[Ø\ÂˆÛÛœİ™\Üİ\™UÜ\ÙXİ[Ûİ\œÛÜ‹™\Üİ\™P›İÛO\ÚİÔ™\Üİ\™TÙXİ[ÛÜ™\Üİ\™UÜ
+Ü™\Üİ\™RZYÚœ™\Üİ\™UÜÚYŠÚİÔ™\Üİ\™TÙXİ[ÛŠ\ÙXİ[Ûİ\œÛÜ\™\Üİ\™P›İÛJÜÙXİ[Û‘Ø\ÂˆÛÛœİ˜Z[•Ü\ÙXİ[Ûİ\œÛÜ‹˜Z[›İÛO\ÚİÔ˜Z[”ÙXİ[ÛÜ˜Z[•Ü
+Ü˜Z[’ZYÚœ˜Z[•ÜÚYŠÚİÔ˜Z[”ÙXİ[ÛŠ\ÙXİ[Ûİ\œÛÜ\˜Z[›İÛJÜÙXİ[Û‘Ø\ÂˆÛÛœİÚ[™Ü\ÙXİ[Ûİ\œÛÜ‹Ú[™[™P›İÛOJÚİÕÚ[™ÚİÑİ\İ
+OİÚ[™Ü
+İÚ[™ZYÚÚ[™Ü\™Xİ[Û–O\ÚİÑ\™Xİ[ÛİÚ[™[™P›İÛJÊÚİÕÚ[™ÚİÑİ\İÙ\™Xİ[Û’ZYÚ
+‹Œ™\™Xİ[Û’ZYÚ
+‹ÌŠNÚ[™[™P›İÛKÚ[™›İÛO\ÚİÕÚ[™ÙXİ[ÛİÚ[™[™P›İÛJÙ\™Xİ[Û’ZYÚÚ[™ÜÚYŠÚİÕÚ[™ÙXİ[ÛŠ\ÙXİ[Ûİ\œÛÜ]Ú[™›İÛJÜÙXİ[Û‘Ø\ÂˆÛÛœİ[YVO\ÙXİ[Ûİ\œÛÜŠÎSX]˜ÙZ[
+[YVJÌÌ
+KšYÚ›İÛO][YVKNÛÛ[›İÛOSX]›X^
+ÛİYÜÚİÕÚ[™ÙXİ[ÛİÚ[™›İÛNœÚİÔ˜Z[”ÙXİ[ÛÜ˜Z[›İÛNœÚİÔ™\Üİ\™TÙXİ[ÛÜ™\Üİ\™P›İÛN\›X[™Y[›İÛJK^\Ñ›Û[˜\œ›İĞÚ\ÌLŒL‹ÛX[›Û[˜\œ›İĞÚ\ÎNŒLKX™[›Û[˜\œ›İĞÚ\ÌLŒLÂˆÛÛœİ]JN›[X™\ŠOO›Y
+ÊKÓX]›X^
+K›[™İ
+JJœİËÛİ[™]JN›[X™\ŠOOšO\›[™İLOÕË\šYÚ]
+JÌJKÚŞP˜\”ÙYÛY[ÏY]Z[ÚŞP˜\”ÙYÛY[ÊYšYÚËÚŞP˜\–JNÂˆÛÛœİU[\J›[X™\ŠOO[\›İÛKJ
+‹]Z[ŠKİ[\˜[™ÙJJ“X]›X^
+K[\›İÛK][\Ü
+NÂˆÛÛœİT™\Üİ\™OJ›[X™\ŠOOœ™\Üİ\™P›İÛKJ
+‹\™\Üİ\™SZ[ŠKÜ™\Üİ\™T˜[™ÙJJ“X]›X^
+K™\Üİ\™P›İÛK\™\Üİ\™UÜ
+NÂˆÛÛœİT˜Z[J›[X™\ŠOOœ˜Z[›İÛKJ‹Ü˜Z[“X^
+J“X]›X^
+K˜Z[›İÛK\˜Z[•Ü
+NÂˆÛÛœİT›ØJ›[X™\ŠOOœ˜Z[›İÛKJX]›X^
+X]›Z[ŠLŠJKÌL
+J“X]›X^
+K˜Z[›İÛK\˜Z[•Ü
+NÂˆÛÛœİUÚ[™J›[X™\ŠOOÚ[™[™P›İÛKJX]›X^
+ŠKİÚ[™X^ØØ[JJ“X]›X^
+KÚ[™[™P›İÛK]Ú[™Ü
+NÂˆÛÛœİÚ[™Ø\›š[™Ğ˜[™ÏJÚİÕÚ[™ÚİÑİ\İ
+OÕÒS‘ÕĞT“’S‘×ĞS‘Ë™›]X\
+˜[™OÚYŠÚ[™X^ØØ[OX˜[™›İÙ\’İ
+\™]\›–×NØÛÛœİ\\’İSX]›Z[ŠÚ[™X^ØØ[K˜[™\\’İ
+KÜO^UÚ[™
+\\’İ
+K›İÛVO^UÚ[™
+˜[™›İÙ\’İ
+KZYÚSX]›X^
+›İÛVK]ÜJNÜ™]\›ˆZYÚ‹OÖŞË‹‹˜˜[™\\’İNÜKZYÚWN–×_JN–×NÂˆÛÛœİÚ[™Ø\›š[™Õ™\ÚÛÏJÚİÕÚ[™ÚİÑİ\İ
+OÑÑÕÒS‘Õ‘TÒÓ×ÒÓR™š[\Š][OOÚ[™X^ØØ[OZ][K™\ÚÛÒÓRÔT—ÒÕ
+K›X\
+][OOŠË‹‹š][KNUÚ[™
+][K™\ÚÛÒÓRÔT—ÒÕ
+KÛÛÜ‘ÑÕĞT“’S‘×ĞÓÓÔ”ÖÚ][K›]™[_JJN–×NÂˆÛÛœİ[\\˜]\™Pİ\™TÚ[Ï\ÚİÕ[\\˜]\™OÜ›X\
+
+JOOŠŞ]
+JKNU[\
+[\\˜]\™J_JJN–×NÂˆÛÛœİ\\™[İ\™TÚ[Ï\ÚİĞ\\™[Ü›X\
+
+JOOŠŞ]
+JKNU[\
+˜\\™[
+_JJN–×NÂˆÛÛœİ]ÔÚ[İ\™TÚ[Ï\ÚİÑ]ÔÚ[Ü›X\
+
+JOOŠŞ]
+JKNU[\
+™]ÔÚ[
+_JJN–×NÂˆÛÛœİ™\Üİ\™Pİ\™TÚ[Ï\ÚİÔ™\Üİ\™OÜ›X\
+
+JOOŠİ˜[YNœ™\Üİ\™K[™^š_JJK™š[\Š
+İ˜[Y_JOO“[X™\‹š\Ñš[š]J˜[YJJK›X\
+
+İ˜[YK[™^JOOŠŞ]
+[™^
+KNT™\Üİ\™J˜[YJ_JJN–×NÂˆÛÛœİÚ[™İ\™TÚ[Ï\ÚİÕÚ[™Ü›X\
+
+JOOŠŞ]
+JKNUÚ[™
+Ú[™
+_JJN–×NÂˆÛÛœİİ\İİ\™TÚ[Ï\ÚİÑİ\İÜ›X\
+
+JOOŠŞ]
+JKNUÚ[™
+™İ\İ
+_JJN–×NÂˆÛÛœİ[\]\ÚİÕ[\\˜]\™OÛ[Û›İÛ™Tİ™Ô]
+[\\˜]\™Pİ\™TÚ[ÊN‰ÉÎÂˆÛÛœİ\\™[]\ÚİĞ\\™[Û[Û›İÛ™Tİ™Ô]
+\\™[İ\™TÚ[ÊN‰ÉÎÂˆÛÛœİ]ÔÚ[]\ÚİÑ]ÔÚ[Û[Û›İÛ™Tİ™Ô]
+]ÔÚ[İ\™TÚ[ÊN‰ÉÎÂˆÛÛœİ™\Üİ\™T]\ÚİÔ™\Üİ\™OÛ[Û›İÛ™Tİ™Ô]
+™\Üİ\™Pİ\™TÚ[ÊN‰ÉÎÂˆÛÛœİ›Ø˜Xš[]Pİ\™TÚ[Ï\ÚİÔ›Ø˜Xš[]I‰œ›[™İÖŞŞ]
+
+KNT›ØŠÌKœ›Ø˜Xš[]J_K‹‹œ›X\
+
+][K[™^
+OOŠŞŠ]
+[™^
+JÜÛİ[™]
+[™^
+JKÌ‹NT›ØŠ][Kœ›Ø˜Xš[]J_JJKŞœÛİ[™]
+›[™İLJKNT›ØŠÜ›[™İLWKœ›Ø˜Xš[]J_WN–×K›Ø˜Xš[]T]\ÚİÔ›Ø˜Xš[]OÛ[Û›İÛ™Tİ™Ô]
+›Ø˜Xš[]Pİ\™TÚ[ÊN‰ÉÎÂˆÛÛœİÚ[™]\ÚİÕÚ[™Û[Û›İÛ™Tİ™Ô]
+Ú[™İ\™TÚ[ÊN‰ÉÎÂˆÛÛœİİ\İ]\ÚİÑİ\İÛ[Û›İÛ™Tİ™Ô]
+İ\İİ\™TÚ[ÊN‰ÉÎÂˆÛÛœİ\™XT]\ÚİÕ[\\˜]\™I‰[\\˜]\™Pİ\™TÚ[Ë›[™İØ	İ[\]H	İ[\\˜]\™Pİ\™TÚ[Öİ[\\˜]\™Pİ\™TÚ[Ë›[™İLWKH	İ[\›İÛ_H	İ[\\˜]\™Pİ\™TÚ[ÖÌKH	İ[\›İÛ_H˜‰ÉÎÂˆÛÛœİÜ˜Z]X›]X\šÙ\œÏ[YY][PÚ\	‰ˆ[˜\œ›İĞÚ\	‰ˆXÛÛ\Xİ[™ØØ\KÚİĞ[]Z[X\šÙ\œÏ[˜\œ›İĞÚ\ÛÛ\Xİ[™ØØ\_Ü˜Z]X›]X\šÙ\œËX\šÙ\”ÜXÚ[™Ï\İËÓX]›X^
+K›[™İ
+KXÛÛ‘›ÛÚ^™O\Ü˜Z]X›]X\šÙ\œÏÓX]›X^
+X]›Z[ŠLKX\šÙ\”ÜXÚ[™Ê‹
+JNœÚİĞ[]Z[X\šÙ\œÏÓX]›X^
+X]›Z[ŠLËX\šÙ\”ÜXÚ[™Ê‹ÌŠJN›YY][PÚ\ÌMÎŒŒXÛÛ“Z[š[][TÜXÚ[™Ï[˜\œ›İĞÚ\ÌÍ›YY][PÚ\ÌÍŒÎX^XÛÛÛİ[SX]›X^
+‹X]™›ÛÜŠİËÚXÛÛ“Z[š[][TÜXÚ[™ÊJÌJKXÛÛ’[™XÙ\Ï[X^[Z^™Uš\ÚX›R[™XÙ\Ê›[™İX^XÛÛÛİ[
+KXÛÛ”Ú[Ï\™\™\Ù[]]™Q]Z[XİÙÜ˜[\ÊXÛÛ’[™XÙ\Ë™XÚ\Ù\šY\ÊNÚYŠÚİĞ[]Z[X\šÙ\œÊ^ÚXÛÛ”Ú[Ë›[™İLÚXÛÛ”Ú[Ëœ\Ú
+‹‹œ™\™\Ù[]]™Q]Z[XİÙÜ˜[\Ê›X\
+
+ËJOOšJK™XÚ\Ù\šY\ÊJ_BˆÛÛœİ[YTİ\SX]›X^
+KX]˜ÙZ[
+
+›[™İLJKÓX]›X^
+KX]™›ÛÜŠİËÊ˜\œ›İĞÚ\ÍÌ›YY][PÚ\ÎLŠJJJJK[YR[™XÙ\Ï\›X\
+
+ËJOOšJK™š[\ŠOOšOOOLOOO\›[™İL_I][YTİ\OOL
+NÂˆÛÛœİ\™Xİ[Û”İ\\ÚİĞ[]Z[X\šÙ\œÏÌN“X]›X^
+KX]˜ÙZ[
+
+›[™İLJKÓX]›X^
+KX]™›ÛÜŠİËÊYY][PÚ\ÌÌŒÍŠJJJJK\™Xİ[Û’[™XÙ\Ï\›X\
+
+ËJOOšJK™š[\ŠOOšOOOLOOO\›[™İL_IY\™Xİ[Û”İ\OOL
+K\™Xİ[Û\œ›İÔÚ^™O\Ü˜Z]X›]X\šÙ\œÏÓX]›X^
+‹X]›Z[ŠKX\šÙ\”ÜXÚ[™Ê‹ŒÍ
+JNœÚİĞ[]Z[X\šÙ\œÏÓX]›X^
+ËX]›Z[ŠLX\šÙ\”ÜXÚ[™Ê‹ŠJN›X™[›Û
+ÍNÂˆÛÛœİX^Y\œ™YXÙJ
+‹JOO[\\˜]\™OœØ—K[\\˜]\™OÚN˜‹
+KZ[’Y\œ™YXÙJ
+‹JOO[\\˜]\™OØ—K[\\˜]\™OÚN˜‹
+NÂˆÛÛœİÙ[XİY^OY^\Ë™š[™
+O™]OOO\Ù[XİY
+OÏÙ^\ÖÌKÙ[XİY^R[™^Y›Ü™XØ\İ^\Ë™š[™[™^
+O™]OOO\Ù[XİY^K™]JK™]š[İ\Ñ^O\Ù[XİY^R[™^ŒÙ›Ü™XØ\İ^\ÖÜÙ[XİY^R[™^LWN›[™^^O\Ù[XİY^R[™^L	‰œÙ[XİY^R[™^›Ü™XØ\İ^\Ë›[™İLOÙ›Ü™XØ\İ^\ÖÜÙ[XİY^R[™^
+ÌWN›[Ù[XİY\ÕÙ^O\Ù[XİYOO[ØØ[]R[–›Û™J[Y^›Û™JK™\Ù[][Û’İ\œÏ\Ù[XİY\ÕÙ^OØ[^Rİ\œË™š[\Šİ\Ošİ\‹™\ØÚ[›İÕXÚËLÌ
+Œ
+N˜[^Rİ\œËÚ\˜Xİ\’İ\œÏ\™\Ù[][Û’İ\œË›[™İÜ™\Ù[][Û’İ\œÎœY]šXÒİ\œÏXÚ\˜Xİ\’İ\œÎÂˆÛÛœİÙ[XİY™XÚ\]][Û\ÜÙ\ÜÛY[Y^T™XÚ\]][Û\ÜÙ\ÜÛY[
+Ù[XİY^KÚ\˜Xİ\’İ\œË™XÚ\]][Û‘\Ü^SZ[]\ÌMJKÙ[XİY™XÚ\]][Û‘\˜][Û\™XÚ\]][Û‘\˜][Û“X™[
+Ù[XİY™XÚ\]][Û\ÜÙ\ÜÛY[™\˜][Û’İ\œÊKİ[˜Z[S[X™\‹š\Ñš[š]JÙ[XİY^Kœ™XÚ\]][ÛŠOÓX]›X^
+Ù[XİY^Kœ™XÚ\]][ÛŠN›Y]šXÒİ\œËœ™YXÙJ
+KŠOO˜JØ‹œ™XÚ\]][Û‹
+Kİ[Û›İÏS[X™\‹š\Ñš[š]J[X™\ŠÙ[XİY^KœÛ›İÙ˜[
+JOÓX]›X^
+[X™\ŠÙ[XİY^KœÛ›İÙ˜[
+JN›Y]šXÒİ\œËœ™YXÙJ
+KŠOO˜JÓX]›X^
+[X™\Š‹œÛ›İÙ˜[
+_
+K
+KX^›ØS[X™\‹š\Ñš[š]JÙ[XİY^Kœ›Ø˜Xš[]JOØÛ[\
+Ù[XİY^Kœ›Ø˜Xš[]KL
+N“X]›X^
+‹‹›Y]šXÒİ\œË›X\
+Oœ›Ø˜Xš[]JJKİ\İX^SX]›X^
+‹‹›Y]šXÒİ\œË›X\
+O™İ\İ
+JKÚ[™X^SX]›X^
+‹‹›Y]šXÒİ\œË›X\
+OÚ[™
+JK]šU˜[Y\Ï[Y]šXÒİ\œË›X\
+O]’[™^
+K™š[\Š[X™\‹š\Ñš[š]JKX^]šO]]šU˜[Y\Ë›[™İÓX]›X^
+‹‹]šU˜[Y\ÊN“[X™\‹“˜SÂˆÛÛœİÙ[XİY™\Üİ\™R[™^SX]›Z[ŠÙ[XİYİ\‹›[™İLJK™\Üİ\™T™Y™\™[˜ÙR[™^SX]›X^
+Ù[XİY™\Üİ\™R[™^J]Z[™\ÛÛ][ÛOOIÌZ	ÏÌÎŒJJK™\Üİ\™U™[™İ\œÏSX]›X^
+X]œ›İ[™
+
+İ\œ™[İ\‹™\ØÚJÜ™\Üİ\™T™Y™\™[˜ÙR[™^OË™\ØÚÏØİ\œ™[İ\‹™\ØÚ
+JKÌÍŒ
+JK™\Üİ\™Q[OS[X™\‹š\Ñš[š]Jİ\œ™[İ\‹œ™\Üİ\™JI‰“[X™\‹š\Ñš[š]JÜ™\Üİ\™T™Y™\™[˜ÙR[™^OËœ™\Üİ\™JOØİ\œ™[İ\‹œ™\Üİ\™K\Ü™\Üİ\™T™Y™\™[˜ÙR[™^Kœ™\Üİ\™N“[X™\‹“˜S‹™\Üİ\™U™[™X™[\™\Üİ\™U™[™İ\œÏŒ	‰“[X™\‹š\Ñš[š]J™\Üİ\™Q[JOØ	Ü™\Üİ\™Q[OŒÉÊÉÎ‰ÉßIÙ›Ü›X]XÚ[X[š^Y
+™\Üİ\™Q[KJ_HHÈ	Ü™\Üİ\™U™[™İ\œßH0­È	ÓX]˜XœÊ™\Üİ\™Q[JOÉÛ˜Z^HÛZXÚ›ZX™[™	Îœ™\Üİ\™Q[OŒÉÜİZYÙ[™	Î‰Ù˜[[™	ßXœ™\Üİ\™U˜[Y\Ë›[™İØYÙ\Ø™\™ZXÚ	Ù›Ü›X]XÚ[X[š^Y
+X]›Z[Š‹‹œ™\Üİ\™U˜[Y\ÊKJ_x $ÉÙ›Ü›X]XÚ[X[š^Y
+X]›X^
+‹‹œ™\Üİ\™U˜[Y\ÊKJ_HX‰ÓšXÚ™\™°ïØ˜\‰ÎÂˆÛÛœİİ[œš\ÙSZ[]\ÏXÛØÚÓZ[]\ÊÙ[XİY^Kœİ[œš\ÙJKİ[œÙ]Z[]\ÏXÛØÚÓZ[]\ÊÙ[XİY^Kœİ[œÙ]
+NÂˆÛÛœİİ[œš\ÙSX™[XÛØÚÓX™[
+Ù[XİY^Kœİ[œš\ÙJKİ[œÙ]X™[XÛØÚÓX™[
+Ù[XİY^Kœİ[œÙ]
+NÂˆÛÛœİÛØÚÏJZ[]\Î›[X™\ŠOO›Y
+ÊÛ[\
+Z[]\ËŒÊŒ
+KÊŒÊŒ
+JJœİÎÂˆÛÛœİİ[œš\ÙV\İ[œš\ÙSZ[]\ÏOO[[Û[ÛØÚÊİ[œš\ÙSZ[]\ÊKİ[œÙ]\İ[œÙ]Z[]\ÏOO[[Û[ÛØÚÊİ[œÙ]Z[]\ÊNÂˆÛÛœİ›İÔ\Ï\Ù[XİYOO[ØØ[]R[–›Û™J[Y^›Û™JOÛ™]È[‘]U[YQ›Ü›X]
+	Ù[‹QĞ‰Ëİ[YV›Û™N[Y^›Û™Kİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ËÙXÛÛ™‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJK™›Ü›X]Ô\Ê™]È]J›İÕXÚÊJN–×K›İÔ\J\Nœİš[™ÊOO“[X™\Š›İÔ\Ë™š[™
+\Oœ\\OOO]\JOË˜[YJK›İÓZ[]\Ï[›İÔ\
+	Úİ\‰ÊJŒ
+Û›İÔ\
+	ÛZ[]IÊJÛ›İÔ\
+	ÜÙXÛÛ™	ÊKÍŒ›İÖ\Ù[XİYOO[ØØ[]R[–›Û™J[Y^›Û™JI‰“[X™\‹š\Ñš[š]J›İÓZ[]\ÊOŞÛØÚÊ›İÓZ[]\ÊN›[›İÓX™[S[X™\‹š\Ñš[š]J›İÓZ[]\ÊOÙ›Ü›X][–›Û™J›İÕXÚË[Y^›Û™KÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	ßJN‰ÉÎÂˆÛÛœİÙ[XİYÚ\˜Xİ\Y^UÙX]\Ú\˜Xİ\ŠÙ[XİY^KÚ\˜Xİ\’İ\œÊKÙ[XİY^Uš\İX[\\š[ÙÙX]\•š\İX[
+^T\š[Ùİ\œÑ›Ü‘]JÙ[XİY^K™]K™XÚ\]][Û‘\Ü^Rİ\œÊKYKÙ[XİYÚ\˜Xİ\‹˜ÛÙK^UÙX]\Ú\˜Xİ\•^
+Ù[XİYÚ\˜Xİ\ŠKÜ™Y™\‘˜[˜XÚĞÛÙNY_JKÙ[XİYšYÚš\İX[\\š[ÙÙX]\•š\İX[
+›ÛİÚ[™ÓšYÚİ\œÑ›Ü‘]JÙ[XİY^K™]K™XÚ\]][Û‘\Ü^Rİ\œÊK˜[ÙKÙ[XİYÚ\˜Xİ\‹˜ÛÙKÙ[XİYÚ\˜Xİ\‹›X™[
+NÂˆÛÛœİ[›[™PXØÛÜ™[Û“[ÙOHZİ\›Q]Z[Û›KÛÛ\XİÚ[™İÔÚ^™OMËÛÛ\Xİ]Z[İ\Y]Z[™\ÛÛ][ÛOOIÌZ	É‰ˆXÛÛ\Xİ]Z[^[™YÓX]›X^
+X]›Z[ŠX]›X^
+›[™İXÛÛ\XİÚ[™İÔÚ^™JKÙ[XİYİ\‹SX]™›ÛÜŠÛÛ\XİÚ[™İÔÚ^™KÌŠJJNŒÛÛ\Xİ]Z[[™Y]Z[™\ÛÛ][ÛOOIÌZ	É‰ˆXÛÛ\Xİ]Z[^[™YÓX]›Z[Š›[™İÛÛ\Xİ]Z[İ\
+ØÛÛ\XİÚ[™İÔÚ^™JNœ›[™İÛÛ\Xİ]Z[›İÜÏ\œÛXÙJÛÛ\Xİ]Z[İ\ÛÛ\Xİ]Z[[™
+K›X\
+
+İ\‹Ù™œÙ]
+OOØÛÛœİ[™^XÛÛ\Xİ]Z[İ\
+ÛÙ™œÙ]\Ï\™XÚ\Ù\šY\ÖÚ[™^OÏÜ™XÚ\]][Û”\Êİ\ŠNÜ™]\›Úİ\‹[™^\ËÙX]\“X™[™]Z[\İÙX]\“X™[
+\Ê__JKÛÛ\Xİ]Z[Ø[‘^[™Y]Z[™\ÛÛ][ÛOOIÌZ	É‰œ›[™İ˜ÛÛ\XİÚ[™İÔÚ^™NÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YO^Úİ\›Q]Z[Û›OÈ˜ÛØÚÜ]Zİ\›KY]Z[\Ûİ\˜ÙHˆ˜Ø\™ŸH]K[ZY]šY]Ï^Úİ\›Q]Z[Û›OÈ™›Ü™XØ\İZİ\›KY]Z[ˆ™›Ü™XØ\İŸOÈZİ\›Q]Z[Û›I‰]H^YO^İÚ[Xİ]™OÈ™\İX]Ú0­È\\›ÚØ[˜XÚÛÜœšYÚY\™\Ú[ÛXİ]™OÈ™\İX]Ú0­ÈÙ\°ï[™ÚØ[˜XÚÛÜœšYÚY\ˆ™\İX]Ú0­È]]ÛX]\ØÚH[Ù[ÛÛXš[˜][ÛˆŸH]OHËUYÙKU›Üš\œØYÙHÜ[ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İ\Ûİ\˜ÙKXXİ[ÛœÈİÚ[Xİ]™I‰[HÛ\ÜÓ˜[YOHÙX]\‹]Ú[‹XXİ]™KX˜YÙH™\İSX]ÚS˜XÚÛÜœ™Zİ\ˆZİ]Ù[OİÚ[”İ]\ÏË™ÛZ[˜[[Ù[	‰[HÛ\ÜÓ˜[YOHÙX]\‹]Ú[‹[[Ù[X˜YÙHˆ]O^Ø	İÚ[”İ]\ËœÛİ\˜ÙSX™[Kˆ™\İX]Ú›ZX[™\°é™\[ÈÛÛ›ÛÜ\H[H\˜Ú]‹˜O‘XYÛ›ÜÙKTØÚÙ\œ[šİˆİÚ[”İ]\Ë™ÛZ[˜[[Ù[›X™[HÓX]œ›İ[™
+Ú[”İ]\Ë™ÛZ[˜[[Ù[ÙZYÚ
+_H	OÙ[OŸOÏŸ^Ù\Ú[ÛXİ]™I‰[HÛ\ÜÓ˜[YOHÙX]\‹]Ú[‹XXİ]™KX˜YÙHˆ]O^Ù\Ú[ÛËœİ˜]YŞ_OÙ›Ü™XØ\İ\Ú[Û“X™[
+\Ú[ÛŠ_OÙ[OŸO[Ù[[‘]Z[ÈÚ[™H˜™\İˆ[™›Ï^Û[Ù[[™›ßKÏÜÜ[Õ]OŸ^ÈZİ\›Q]Z[Û›I‰˜Y˜[˜ÙY[ÙI‰›Ü™XØ\İÛİ\˜ÙQXYÛ›ÜİXÜÈ\Ú[Û^Ù\Ú[ÛŸHÚ[”™\Ü^İÚ[”™\ÜH]O^ÜÙ[XİYHØ[›ÛšXØ[›İØØ\İ^ØØ[›ÛšXØ[›İØØ\İKÏŸHˆÈZİ\›Q]Z[Û›I‰]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İ›İÜÈÜÚİÔÙ]™[‘^Tİ[[X\I‰Ù]™[‘^Q›Ü™XØ\İİ[[X\H^\Ï^Ù›Ü™XØ\İ^\ßHİ\œÏ^Úİ\œßHÛ[X]O^ØÛ[X]_H[]˜][Û^Ù[]˜][ÛŸKÏŸHÙ›Ü™XØ\İ^\Ë›X\
+OØÛÛœİ\ĞXİ]™O\Ù[XİYOOY™]NÜ™]\›ˆœ˜YÛY[Ù^O^Ù™]_O]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Ø›Ü™XØ\İ›İÈ	Ú\ĞXİ]™OÉØXİ]™IÎ‰ÉßXHÛÛXÚÏ^Ê
+OOÜ]Y]YT™\]Y\İYÛØÚÒİ\Š™]KÛØÚÒİ\’[–›Û™J[Y^›Û™K›İÕXÚÊJNÜÙ]Ù[XİY
+™]JNÚYŠZ\ĞXİ]™J\Ù]]Z[™\ÛÛ][ÛŠ	ÌÚ	ÊNÜÙ]]Z[ÓÜ[Šİ\œ™[Oš\ĞXİ]™OÈXİ\œ™[YJ__OÙ›Ü™XØ\İ›İĞÛÛ[Ë™Ù]
+™]J_OØ]ÛÚ[›[™PXØÛÜ™[Û“[ÙI‰™]Z[ÓÜ[‰‰š\ĞXİ]™I‰]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[ˆ]K[ZY]šY]ÏH™›Ü™XØ\İZ[›[™KY]Z[]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[ZXY]İ›Û™ÏÙ]Z[™\ÛÛ][ÛOOIÌÚ	ÏÉÌËTİ[™[˜[œÚXÚ	Î‰Ôİ[™[˜[œÚXÚ	ßOÜİ›Û™ÏÛX[Ù›Ü›X]]SÛ›JÙ[XİY^K™]KİÙYZÙ^N‰ÛÛ™ÉË^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_H0­È™Z]˜\Ú\ÈŞ›Û™PØ\[ÛŠ[Y^›Û™K[Y^›Û™PX˜œ™]šX][ÛŠ_OÜÛX[Ù]]ˆÛ\ÜÓ˜[YOH™]Z[XYXÛÛ›ÛÈ]ˆÛ\ÜÓ˜[YOH™]Z[\™\ÛÛ][Û‹\İÚ]Úˆ›ÛOH™Ü›İ\ˆ\šXK[X™[H–™Z]]Y›0íœİ[™È\ˆYÙ\Ù]Z[È]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Ù]Z[™\ÛÛ][ÛOOIÌÚ	ÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OOœÙ]]Z[™\ÛÛ][ÛŠ	ÌÚ	Ê_H\šXK\™\ÜÙY^Ù]Z[™\ÛÛ][ÛOOIÌÚ	ßOŒÈØ]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Ù]Z[™\ÛÛ][ÛOOIÌZ	ÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OOœÙ]]Z[™\ÛÛ][ÛŠ	ÌZ	Ê_H\šXK\™\ÜÙY^Ù]Z[™\ÛÛ][ÛOOIÌZ	ßOŒHØ]ÛÙ][ÙQ^[˜][ÛˆY˜[˜ÙY^ØY˜[˜ÙY[Ù_Hİ[[X\O^Ï–™Z]˜\Ú\ÈŞ›Û™PØ\[ÛŠ[Y^›Û™K[Y^›Û™PX˜œ™]šX][ÛŠ_KˆYHYÙHÛ\[ˆÚYH™ZHY][Ø›YH˜XÚ[[ˆ]YÈİ[™\™pé0çÚYÈ[HËTİ[™[‹T˜\İ\‹]Yˆİ[œØÚİ0ï™XÚÏŸHXÚšXØ[^Ï‘YHÛÛ\ZİH\İ[˜[œÚXÚÛÛ™[šY\ÚXÚ]Yˆ™Z]Ù]\œZİÙÜ˜[[K[\\˜]\‹Ú[™ÛİÚYHšYY\œØÚYÈ[™ØZœØÚZ[›XÚÙZ]ˆ0ç™\ˆYH[\ØÚ[[™È0éÜİÚXÚ™Y\™Z]Ú\ØÚ[ˆËTİ[™[‹H[™KTİ[™[‹Q]Z[ÈÙXÚÙ[‹ÏŸKÏÙ]Ù]]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[YÜšYØÛÛ\Xİ]Z[›İÜË›X\
+
+Úİ\‹[™^\ËÙX]\“X™[JOOØÛÛœİÛ[X]Q^OXÛ[X]K™š[™
+][OOš][K™]OOOZİ\‹[YKœÛXÙJL
+JK[\\˜]\™UÛ™OZİ\›U[\\˜]\™UÛ™Jİ\‹[\\˜]\™KÛ[X]Q^OË›Z[“YX[‹Û[X]Q^OË›X^YX[ŠNÜ™]\›ˆ\XÛHÙ^O^Úİ\‹[Y_HÛ\ÜÓ˜[YO^Ø›Ü™XØ\İZ[›[™KY]Z[\›İÈ	ÜÙ[XİYİ\OOZ[™^ÉØXİ]™IÎ‰ÉßXH›ÛOH˜]ÛˆˆX’[™^^ÌHÛÛXÚÏ^Ê
+OOœÙ]Ù[XİYİ\Š[™^
+_HÛ’Ù^QİÛ^Ù]™[OÚYŠ]™[šÙ^OOOIÑ[\‰ß]™[šÙ^OOOIÈ	Ê^Ù]™[œ™]™[Y˜][
+
+NÜÙ]Ù[XİYİ\Š[™^
+___O[YH]U[YO^Úİ\‹[Y_OÚİ\‘\Ü^PÛØÚÊİ\‹[Y^›Û™K˜[ÙJ_Oİ[YO]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[]ÙX]\ˆˆ]O^İÙX]\“X™[H]K]ÙX]\‹[X™[^İÙX]\“X™[H\šXK[X™[^İÙX]\“X™[HX’[™^^ÌOÙX]\”XİÙÜ˜[HÛÙO^Ü\Ë™\Ü^PÛÙ_H[[œÚ]O^Ü\Ëš[[œÚ]_H[›ÛY[›Û^Ü\Ëœ[›ÛY[›ÛŸH^O^Úİ\‹š\Ñ^_HÚ^™O^ÍLŸH]O^İÙX]\“X™[HÛİY^Úİ\‹˜ÛİYHİĞÛİY^Úİ\‹›İĞÛİYHZYÛİY^Úİ\‹›ZYÛİYHYÚÛİY^Úİ\‹šYÚÛİYKÏÙ]]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[][\ˆİ[O^ŞØ˜XÚÙÜ›İ[™[\\˜]\™UÛ™K˜˜XÚÙÜ›İ[™ÛÛÜ[\\˜]\™UÛ™K˜ÛÛÜ‹›Ü™\ÛÛÜ[\\˜]\™UÛ™K˜›Ü™\Ÿ_H]O^İ[\\˜]\™UÛ™K]_Oİ›Û™ÏÓX]œ›İ[™
+İ\‹[\\˜]\™J_p¬Üİ›Û™ÏÛX[™ÙY‹ˆÓX]œ›İ[™
+İ\‹˜\\™[
+_p¬ÜÛX[Ù]]ˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[[Y]šXÜÈÜ[Ú[™\™Xİ[Û\œ›İÈ\™Xİ[Û^Úİ\‹™\™Xİ[ÛŸHİ\İ^Úİ\‹™İ\İKÏˆİÚ[™\™Xİ[Û”ÚÜ
+İ\‹™\™Xİ[ÛŠ_OØÛX[İÚ[™
+İ\‹Ú[™[š]
+_H0­È°í™[ˆİÚ[™
+İ\‹™İ\İ[š]
+_OÜÛX[ÜÜ[Ü[›Ü]ÈÚ^™O^ÌLŸKÏÙ]Z[\İ™XÚ\X™[
+İ\Š_OØÛX[ÓX]œ›İ[™
+İ\‹œ›Ø˜Xš[]J_H	H0­Èİ[ˆÚ^™O^ÌL_KÏÜİ[œÚ[™SZ[]\ÓX™[
+İ\‹œİ[œÚ[™Q\˜][ÛŠ_OÜÛX[ÜÜ[Ù]Ø\XÛOŸJ_OÙ]ØÛÛ\Xİ]Z[Ø[‘^[™	‰ˆXÛÛ\Xİ]Z[^[™Y	‰]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[[[Ü™HˆÛÛXÚÏ^Ê
+OOœÙ]ÛÛ\Xİ]Z[^[™Y
+YJ_O“YZˆ[™ZYÙ[Ø]ÛŸ^ØÛÛ\Xİ]Z[Ø[‘^[™	‰˜ÛÛ\Xİ]Z[^[™Y	‰]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH™›Ü™XØ\İZ[›[™KY]Z[[\ÜÈˆÛÛXÚÏ^Ê
+OOœÙ]ÛÛ\Xİ]Z[^[™Y
+˜[ÙJ_O•Ù[šYÙ\ˆ[™ZYÙ[Ø]ÛŸOÙ]ŸOÑœ˜YÛY[ŸJ_OÙ]ŸBˆÊİ\›Q]Z[Û›_
+Z[›[™PXØÛÜ™[Û“[ÙI‰™]Z[ÓÜ[ŠJI‰]ˆÛ\ÜÓ˜[YOHšİ\™]Z[Y][ÙÜ˜[KY^Hˆ]K[ZY]šY]ÏH™›Ü™XØ\İY]Z[‚ˆÈZİ\›Q]Z[Û›I‰]ˆÛ\ÜÓ˜[YOH™]Z[XYİ›Û™ÏÙ›Ü›X]]SÛ›JÙ[XİY^K™]KİÙYZÙ^N‰ÛÛ™ÉË^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_H0­È]Z[[œÚXÚÜİ›Û™Ï]ˆÛ\ÜÓ˜[YOH™]Z[XYXÛÛ›ÛÈ]ˆÛ\ÜÓ˜[YOH™]Z[\™\ÛÛ][Û‹\İÚ]Úˆ›ÛOH™Ü›İ\ˆ\šXK[X™[H–™Z]]Y›0íœİ[™È\ˆYÙ\Ù]Z[È]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Ù]Z[™\ÛÛ][ÛOOIÌÚ	ÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OOœÙ]]Z[™\ÛÛ][ÛŠ	ÌÚ	Ê_H\šXK\™\ÜÙY^Ù]Z[™\ÛÛ][ÛOOIÌÚ	ßOŒÈØ]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^Ù]Z[™\ÛÛ][ÛOOIÌZ	ÏÉØXİ]™IÎ‰ÉßHÛÛXÚÏ^Ê
+OOœÙ]]Z[™\ÛÛ][ÛŠ	ÌZ	Ê_H\šXK\™\ÜÙY^Ù]Z[™\ÛÛ][ÛOOIÌZ	ßOŒHØ]ÛÙ][ÙQ^[˜][ÛˆY˜[˜ÙY^ØY˜[˜ÙY[Ù_Hİ[[X\O^Ï–™Z]˜\Ú\ÈŞ›Û™PØ\[ÛŠ[Y^›Û™K[Y^›Û™PX˜œ™]šX][ÛŠ_Kˆİ[™\™pé0çÚYÈÚ\™Z[ˆËTİ[™[‹T˜\İ\ˆÙ^™ZYİÈ]Yˆİ[œØÚİ0ï™XÚˆYH˜[™™Z[HÙXÚÙ[ˆ]Yˆ[™KX›][™\ÚİÜYÙ]ÙZ\ÙKÏŸHXÚšXØ[^ÏZİY[H™^šYZ[™ÜİÙZ\ÙHZ]0éÛXÚH™^YÜŞ™Z]\İ›Ü˜]\ÙÙ]ğé0­È™Z]˜\Ú\ÈŞ›Û™PØ\[ÛŠ[Y^›Û™K[Y^›Û™PX˜œ™]šX][ÛŠ_KˆYHYÙ[™H0éÜİÚXÚ›Ûİ0é™YÈZ[‹H[™]\ÚÛ\[‹ˆ\ˆYXÚÈØ[›ˆ[ˆ™Y[H[Ù\ËÙZ]\™H[\\˜]\‹KšYY\œØÚYÜËH[™Ú[™\˜[Y]\ˆ[H\ÙZ]\[ˆ[Ù\ÈZ[™[ˆÙ\ØÚ[]Ù\™[ÈšXÚ™[°íYİHXYÜ˜[[X™\™ZXÚHÙ\™[ˆ]]ÛX]\ØÚ[™\›ˆ[H\ÚİÜÙXÚÙ[ˆ8¡¤ø¡¤ˆ[H°éÚİ[ˆ\™Ù\İ[[ˆ™Z]ØÚš]8¡¤H[H°éÚİ[ˆ[™8¡¤È[H›Üš\šYÙ[ˆYËˆ\ÈX]\Ü˜YÚ\šİ\ˆ0ï™\ˆ\ˆXYÜ˜[[Y›0éÚKÏŸKÏÙ]Ù]ŸBˆÈZİ\›Q]Z[Û›I‰]ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİÈÜ[ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİÙX]\ˆ\š[Ù]ÙX]\ˆˆ]O^Ù^UÙX]\Ú\˜Xİ\•^
+Ù[XİYÚ\˜Xİ\Š_OÙX]\”\š[ÙXÛÛœÈ^Uš\İX[^ÜÙ[XİY^Uš\İX[HšYÚš\İX[^ÜÙ[XİYšYÚš\İX[H^TÚ^™O^ÌÍŸHšYÚÚ^™O^ÌŒßKÏÜ[ÜÙ[XİYÚ\˜Xİ\‹›X™[OØÜÙ[XİYÚ\˜Xİ\‹œÙXÛÛ™\I‰ÛX[ÜÙ[XİYÚ\˜Xİ\‹œÙXÛÛ™\_OÜÛX[ŸOÜÜ[ÜÜ[Ü[ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİY]šXÈˆ\šXK[X™[H“šYY\œØÚYÈÙ\Ø[][™]Y\ˆ›Ü]ÈÚ^™O^ÌMKÏÜ™XÚ\]][Û[[İ[X™[
+Ü™XÚ\]][Ûİ[˜Z[‹Û›İÙ˜[İ[Û›İßJ_H0­ÈÜÙ[XİY™XÚ\]][Û‘\˜][ÛŸOØÜÜ[Ü[ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİY]šXÈˆ\šXK[X™[H“X^[X[HšYY\œØÚYÜİØZœØÚZ[›XÚÙZ]ÛİY˜Z[ˆÚ^™O^ÌMKÏ›X^ˆÓX]œ›İ[™
+X^›ØŠ_H	OØÜÜ[Ü[ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİY]šXÈˆ\šXK[X™[H“X^[X[\ˆU‹R[™^İ[ˆÚ^™O^ÌMKÏˆ•U’HÓ[X™\‹š\Ñš[š]JX^]šJOÙ›Ü›X]]šJX^]šJN‰ø $ÉßOØÜÜ[Ü[ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİY]šXÈˆ\šXK[X™[H”ÛÛ›™[œØÚZ[™]Y\ˆİ[ˆÚ^™O^ÌMKÏÜİ[œÚ[™Rİ\œÓX™[
+Ù[XİY^Kœİ[œÚ[™Q\˜][ÛŠ_OØÜÜ[Ü[ˆÛ\ÜÓ˜[YOHœ]ZXÚÙ˜XİY]šXÈˆ\šXK[X™[H“X^[X[\ˆÚ[™[™X^[X[H°í™[ˆÚ[™Ú^™O^ÌMKÏİÚ[™
+Ú[™X^[š]
+_H0­È°í™[ˆİÚ[™
+İ\İX^[š]
+_OØÜÜ[Ù]ŸBˆ]ˆÛ\ÜÓ˜[YO^Ø]Z[[YÙ[™\Ú[	Ù]Z[YÙ[™Ü[ÉÈÜ[‰Î‰ÈÛÛ\ÙY	ßXO‚ˆ]ˆÛ\ÜÓ˜[YOH™]Z[[YÙ[™]ÛÛ˜\ˆ]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YOH™]Z[[YÙ[™]ÙÙÛHˆÛÛXÚÏ^Ê
+OOœÙ]]Z[YÙ[™Ü[Š˜[YOOˆ]˜[YJ_H\šXKY^[™Y^Ù]Z[YÙ[™Ü[ŸH\šXKXÛÛ›ÛÏH›ZYY]Z[[YÙ[™Ü[“YÙ[™OÜÜ[ÛX[Ù]Z[YÙ[™Ü[ÉØ]\Ø›[™[‰Î‰ÙZ[˜›[™[‰ßOÜÛX[Ù]Z[YÙ[™Ü[ÏÚ]œ›Û•\Ú^™O^ÌM_KÏÚ]œ›Û‘İÛˆÚ^™O^ÌM_KÏŸOØ]ÛÙ]‚ˆÙ]Z[YÙ[™Ü[‰‰]ˆYH›ZYY]Z[[YÙ[™ˆÛ\ÜÓ˜[YOH™]Z[YÙ[™[\˜Xİ]™Hˆ\šXK[X™[^ØY˜[˜ÙY[ÙOÉÑXYÜ˜[[\\˜[Y]\ˆZ[‹HÙ\ˆ]\Ø›[™[‰Î‰ÑXYÜ˜[[[YÙ[™HZ]ØÚ[˜\™[HYXÚÉßOØY˜[˜ÙY[ÙOÏ]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİÕ[\\˜]\™OÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	İ[\\˜]\™IÊ_H\šXK\™\ÜÙY^ÜÚİÕ[\\˜]\™_OHÛ\ÜÓ˜[YOH[\‹Ï\›[ÛY]\ˆÚ^™O^ÌLŸKÏ•[\\˜]\Ø]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİĞ\\™[ÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ø\\™[	Ê_H\šXK\™\ÜÙY^ÜÚİĞ\\™[OHÛ\ÜÓ˜[YOH˜\\™[‹Ï‘ÙY°ïØ]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİÑ]ÔÚ[ÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ù]ÔÚ[	Ê_H\šXK\™\ÜÙY^ÜÚİÑ]ÔÚ[OHÛ\ÜÓ˜[YOH™]ÜÚ[‹Ï•]\[šİØ]Û]Ûˆ\OH˜]Ûˆˆ\ØX›Y^È\™\Üİ\™P]˜Z[X›_HÛ\ÜÓ˜[YO^ÜÚİÔ™\Üİ\™OÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ü™\Üİ\™IÊ_H\šXK\™\ÜÙY^ÜÚİÔ™\Üİ\™_OHÛ\ÜÓ˜[YOHœ™\Üİ\™[[™H‹Ï“YXÚÏØ]ÛÜ™XÚ\YÙ[™\\Ë›X\
+\OOØÛÛœİXİ]™OHZY[”™XÚ\\\Ëš[˜ÛY\Ê\JNÜ™]\›ˆ]Ûˆ\OH˜]ÛˆˆÙ^O^İ\_HÛ\ÜÓ˜[YO^ØXİ]™OÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛT™XÚ\\J\J_H\šXK\™\ÜÙY^ØXİ]™_OHÛ\ÜÓ˜[YO^Ø™XÚ\X˜\‹ZÙ^H	Ü™XÚ\Y]Vİ\WK›YÙ[™Û\ÜßXKÏÜ™XÚ\Y]Vİ\WK›X™[OØ]ÛŸJ_O]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİÔ›Ø˜Xš[]OÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ü›Ø˜Xš[]IÊ_H\šXK\™\ÜÙY^ÜÚİÔ›Ø˜Xš[]_OHÛ\ÜÓ˜[YOHœ›Ø˜Xš[]H‹ÏÛİY˜Z[ˆÚ^™O^ÌLŸKÏ•ØZœØÚZ[›XÚÙZ]Ø]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİÕÚ[™ÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	İÚ[™	Ê_H\šXK\™\ÜÙY^ÜÚİÕÚ[™OHÛ\ÜÓ˜[YOHÚ[™[™H‹Ï•Ú[™Ø]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİÑİ\İÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ùİ\İ	Ê_H\šXK\™\ÜÙY^ÜÚİÑİ\İOHÛ\ÜÓ˜[YOH™İ\İ[™H‹Ï°í™[Ø]Û]Ûˆ\OH˜]ÛˆˆÛ\ÜÓ˜[YO^ÜÚİÑ\™Xİ[ÛÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ù\™Xİ[Û‰Ê_H\šXK\™\ÜÙY^ÜÚİÑ\™Xİ[ÛŸOHÛ\ÜÓ˜[YOH™\™Xİ[Ûˆ‹Ï”šXÚ[™ÏØ]ÛÏÜ[HÛ\ÜÓ˜[YOH[\‹Ï\›[ÛY]\ˆÚ^™O^ÌLŸKÏ•[\\˜]\ÜÜ[Ü[HÛ\ÜÓ˜[YOH˜\\™[‹Ï‘ÙY°ïÜÜ[]Ûˆ\OH˜]Ûˆˆ\ØX›Y^È\™\Üİ\™P]˜Z[X›_HÛ\ÜÓ˜[YO^ÜÚİÔ™\Üİ\™OÉØXİ]™IÎ‰Ú[˜Xİ]™IßHÛÛXÚÏ^Ê
+OOÙÙÛQ]Z[[™J	Ü™\Üİ\™IÊ_H\šXK\™\ÜÙY^ÜÚİÔ™\Üİ\™_OHÛ\ÜÓ˜[YOHœ™\Üİ\™[[™H‹Ï“YXÚÏØ]ÛÜ™XÚ\YÙ[™\\Ë›X\
+\OOÜ[ˆÙ^O^İ\_OHÛ\ÜÓ˜[YO^Ø™XÚ\X˜\‹ZÙ^H	Ü™XÚ\Y]Vİ\WK›YÙ[™Û\ÜßXKÏÜ™XÚ\Y]Vİ\WK›X™[OÜÜ[Š_OÜ[HÛ\ÜÓ˜[YOHœ›Ø˜Xš[]H‹ÏÛİY˜Z[ˆÚ^™O^ÌLŸKÏ•ØZœØÚZ[›XÚÙZ]ÜÜ[ÏŸOÜ[ˆ]K[ZY\ÚŞK[YÙ[™Hœ™XXİHÛ\ÜÓ˜[YOHœİ[œÚ[™KX˜\ˆ‹Ï”ÛÛ›™[œØÚZ[ˆ0­ÈÙ[ÜÜ[Ü[ˆ]K[ZY\ÚŞK[YÙ[™Hœ™XXİHÛ\ÜÓ˜[YOH˜ÛİY[™\ÜËX˜\ˆ‹Ï™]ğí›İ[™È0­ÈÜ˜]OÜÜ[Ü[ˆ]K[ZY\ÚŞK[YÙ[™Hœ™XXİHÛ\ÜÓ˜[YOHœ™XÚ\]][Û‹X˜\ˆ‹Ï“šYY\œØÚYÈ0­È˜XÚ\ÙOÜÜ[ÛX[]K[ZY\ÚŞK[›İOHœ™XXİˆÛ\ÜÓ˜[YOH›ZY\ÚŞX˜\‹[›İH•šY\ˆXÚÙ[œİY™[ˆ°ïˆYHÚŞX˜\ˆ\İYHÙ\Ø[]™]ğí›İ[™ÈYHš[pé™H[[Y[ÙÜ°í°çÙKˆXˆL	HÙ\Ø[]™]ğí›İ[™È\İ\ÈÜ[™˜[™Ü˜]NÈ[\ˆL	H\İ\ÈYÜğï™\ˆÙ[ˆ[™ÙZ[™HXÚÙH›Ûİ[HÛÛ\[Y[0é™[ˆ]YšÛ\[™ÜØ[Z[ˆY\˜Úğí››™[ˆ‹ˆ‹ˆH	HÙ\Ø[]™]ğí›İ[™ÈšXÚ\˜ÚZ[™HÚHÛÛ›™[œØÚZ[™]Y\ˆ[ÈX^[X[ÛÛ›šYÈ\™Ù\İ[Ù\™[‹ˆ\ˆÙ[›ˆYHÙ\Ø[]™]ğí›İ[™È™Z\™ˆYH™[]]™HÛÛ›™[œØÚZ[™]Y\ˆ[ÈÙ[™\ˆ˜[˜XÚÈY[™[‹ˆÙ[ˆ[™Ü˜]HÙ\™[ˆšYHÛZXÚ™Z]YÈÙ^™ZXÚ™]ˆYHÛÛ›™[œØÚZ[™]Y\ˆ›ZX[ÈZYÙ[™\ˆÓSËTİ˜Z[™ÜÜ\˜[Y]\ˆ\š[[ˆ[™Ú\™šXÚY][Ü›ÛÙÚ\ØÚZ]L	HZ[\È™]ğí›İ[™ÈÛZXÚÙ\Ù]ÈYHÛÛ\[Y[0éœ™YÙ[Ú[\ˆ°ïˆYHÛÛ\ZİHÚŞX˜\‹Q\œİ[[™ËˆšYY\œØÚYÈYYİ[ÈZYÙ[œİ0é™YÙH˜\˜œ™Z[™HYÙH\°ï™\ˆ™YÙ[‹ÔÜ°ï™YÙ[‹ÔØÚ]Y\ˆ›]KØÚ™YKÑZ\È[›]KZ\ØÚKÙÙYœšY\™[™H\ÙHš[Û]Ù]Ú]\‹ÑÜ˜]\[ÒYÙ[\œ\‹ˆ™ZHÛÛ›™H›ZXZ[ˆœ™Z]\™\ÈÙ[™\ÈÜ[™˜[™ÙZ]XÚÚXÚ˜\È\İ\ˆšYY\œØÚYÜØ˜[Ù[ˆÛZXÚXÚÈÙ\ˆXÚÙ\‹™\™XÚİ\ˆ\ÈÙ[™H˜[™›Ûİ0é™YËˆYHšYY\œØÚYÜÙXÚÙH›Ûİ\ˆ™]ÙZ[YÙ[ˆšYY\œØÚYÜØ\ˆ]Y\œ™YÙ[ˆ]YHÑTİY™[ˆZXÚš\ÈH[KÚpé0çÚYÈ0ï™\ˆHš\È[KÚ[™İ\šÈ0ï™\ˆ[KÚÈ™YÙ[œØÚ]Y\ˆğí››™[ˆ˜XÚ\ˆÑLLSZ[][‹R[[œÚ]0é\ğé›XÚÙZˆİ\šÈ\œ™ZXÚ[‹ØÚ™YHÚ\™˜XÚØÚ™Y^]ØXÚÈ[™Ü°ï™YÙ[ˆ™]›ÜYİ˜XÚÙ]\˜ÛÙHZ[™Ù\İYˆÛ\™H°éÚHğí››™[ˆÚ™HÜ[™˜[™›ZX™[‹ÜÛX[Ù]ŸBˆÙ]‚ˆ]ˆ™Y^Ù]Z[Ú\™YŸHÛ\ÜÓ˜[YOH›Y][ÙÜ˜[K\İYÙHˆX’[™^^ÌH›ÛOH˜\XØ][Ûˆˆ\šXK[X™[^Ø	Ù]Z[™\ÛÛ][ÛOOIÌÚ	ÏÉÑ™Z\İ0ï™XÚ\ÉÎ‰Ôİ0ï™XÚ\ÉßHÙ]\™XYÜ˜[[Kˆ™Z[[šÜÈ[™™XÚÈÙXÚÙ[ˆ[H°éÚİ[ˆ\™Ù\İ[[ˆ™Z]ØÚš]™Z[Ø™[ˆ[H°éÚİ[ˆYÈ[™™Z[[[ˆ[H›Üš\šYÙ[ˆYË˜O‚ˆ˜]ˆÛ\ÜÓ˜[YOH›Y][ÙÜ˜[KY^KZ[\ˆ\šXK[X™[H•YÙ]ÙZ\ÙH[ˆ\ˆ]Z[[œÚXÚÙXÚÙ[ˆÜ™]š[İ\Ñ^OÏ]Ûˆ\OH˜]ÛˆˆÛ•İXÚİ\^Ù]™[O˜™YÚ[‘^R[\İXÚ
+]™[LJ_HÛ•İXÚ[™^Ù]™[O™[™^R[\İXÚ
+]™[LJ_HÛ•İXÚØ[˜Ù[^Ê
+OOÙ^R[\İXÚ™Y‹˜İ\œ™[[[_HÛÛXÚÏ^Ù]™[O˜ÛXÚÑ^R[\
+]™[LJ_H\šXK[X™[^Ø›Üš\šYÙ\ˆYÎˆ	Ù›Ü›X]]SÛ›J™]š[İ\Ñ^K™]KİÙYZÙ^N‰ÛÛ™ÉË^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_XOÚ]œ›Û“YÚ^™O^ÌNKÏÜ[Ù›Ü›X]]SÛ›J™]š[İ\Ñ^K™]KİÙYZÙ^N‰ÜÚÜ	ßJ_OÜÜ[Ø]ÛÜ[‹ÏŸ^Û™^^OÏ]Ûˆ\OH˜]ÛˆˆÛ•İXÚİ\^Ù]™[O˜™YÚ[‘^R[\İXÚ
+]™[J_HÛ•İXÚ[™^Ù]™[O™[™^R[\İXÚ
+]™[J_HÛ•İXÚØ[˜Ù[^Ê
+OOÙ^R[\İXÚ™Y‹˜İ\œ™[[[_HÛÛXÚÏ^Ù]™[O˜ÛXÚÑ^R[\
+]™[J_H\šXK[X™[^Ø°éÚİ\ˆYÎˆ	Ù›Ü›X]]SÛ›J™^^K™]KİÙYZÙ^N‰ÛÛ™ÉË^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_XOÜ[Ù›Ü›X]]SÛ›J™^^K™]KİÙYZÙ^N‰ÜÚÜ	ßJ_OÜÜ[Ú]œ›Û”šYÚÚ^™O^ÌNKÏØ]ÛÜ[‹ÏŸOÛ˜]‚ˆİ™È™Y^Ù]Z[İ™YŸHšY]Ğ›Ş^Ø	ÕßH	ÒXH™\Ù\™P\ÜXİ˜][ÏHZYSZYYY]ˆÛ\ÜÓ˜[YOH›Y][ÙÜ˜[\İ™ÈY\]™KY]Z[XÚ\ˆ]K\İ[Y^ÛYH]K\İ\šYÚ^ÜšYÚH]K\ÚŞX˜\‹^O^ÜÚŞP˜\–_Hİ[O^ŞÚZYÚ˜	Ò\_O‚ˆYœÏ‚ˆ[™X\‘Ü˜YY[YH[\š[ˆOHŒˆLOHŒˆHŒˆLHŒHİÜÙ™œÙ]HŒ	HˆİÜÛÛÜH˜\ŠK\\˜[K][\\˜]\™JHˆİÜÜXÚ]OHŒŒÌˆ‹ÏİÜÙ™œÙ]HŒL	HˆİÜÛÛÜH˜\ŠK\\˜[K][\\˜]\™JHˆİÜÜXÚ]OHŒŒÈ‹ÏÛ[™X\‘Ü˜YY[‚ˆ]\›ˆYH›šYÚ]ÚˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙHˆ]\›•˜[œÙ›Ü›OHœ›İ]JÌŠH™XİÚYHˆZYÚHˆš[HˆÍÌNXˆˆÜXÚ]OHŒŒMH‹Ï[™HOHŒˆLOHŒˆHŒˆLHˆİ›ÚÙOHˆÍÌNXˆˆİ›ÚÙUÚYHŒHˆÜXÚ]OHŒŒN‹ÏÜ]\›‚ˆ[™X\‘Ü˜YY[YHœ˜Z[‘š[ˆOHŒˆLOHŒˆHŒˆLHŒHİÜÙ™œÙ]HŒ	HˆİÜÛÛÜH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆİÜÜXÚ]OHŒN‹ÏİÜÙ™œÙ]HŒL	HˆİÜÛÛÜH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆİÜÜXÚ]OHŒ‹ÏÛ[™X\‘Ü˜YY[‚ˆ[™X\‘Ü˜YY[YH™š^›Qš[ˆOHŒˆLOHŒˆHŒˆLHŒHİÜÙ™œÙ]HŒ	HˆİÜÛÛÜH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆİÜÜXÚ]OHŒÎ‹ÏİÜÙ™œÙ]HŒL	HˆİÜÛÛÜH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆİÜÜXÚ]OHŒˆ‹ÏÛ[™X\‘Ü˜YY[‚ˆ]\›ˆYH™œ™Y^š[™Ñš^›T]\›ˆˆÚYHÈˆZYÚHÈˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHÈˆZYÚHÈˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹[Z^Y
+H‹Ï]H“LÓÈˆİ›ÚÙOHˆÙNY˜™™ˆˆİ›ÚÙUÚYHŒKŒˆ‹ÏÚ\˜ÛHŞHŒKˆˆŞOHŒKˆˆH‹ˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆ]\›ˆYH™œ™Y^š[™Ô˜Z[”]\›ˆˆÚYHÈˆZYÚHÈˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHÈˆZYÚHÈˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹[Z^Y
+H‹Ï]H“LÓÈˆİ›ÚÙOHˆÙYY™ˆˆİ›ÚÙUÚYHŒK‹ÏÚ\˜ÛHŞHKŒˆˆŞOHKŒˆˆH‹ˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆ]\›ˆYHœÚİÙ\œÔ]\›ˆˆÚYHˆˆZYÚHˆˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙHˆ]\›•˜[œÙ›Ü›OHœ›İ]JÍJH™XİÚYHˆˆZYÚHˆˆš[H˜\ŠK\\˜[K\™XÚ\]][ÛŠH‹Ï™XİÚYHŒˆˆZYÚHˆˆš[HˆÙM™™ˆˆÜXÚ]OHŒˆ‹ÏÜ]\›‚ˆ]\›ˆYHœÛ›İÔ]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊHˆÜXÚ]OHŒH‹ÏÚ\˜ÛHŞHŒˆˆŞOHŒˆˆHŒHˆš[HˆÙ™™ˆ‹ÏÚ\˜ÛHŞHˆˆŞOHKˆHŒHˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆ]\›ˆYHœÛ›İÑÜ˜Z[œÔ]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊH‹Ï™XİHŒKHˆOHŒKHˆÚYHŒKÈˆZYÚHŒKÈˆH‹ŒÈˆš[HˆÙ™™ˆ‹Ï™XİHHˆOHˆÚYHŒKÈˆZYÚHŒKÈˆH‹ŒÈˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆ]\›ˆYHœÛ›İÔİ\œÔ]\›ˆˆÚYHŒLˆZYÚHŒLˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHŒLˆZYÚHŒLˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊHˆÜXÚ]OHŒ‹Ï]H“L‹HKŒŒÓLKŒˆ‹Ú‹“M‹HKŒÓMKˆËŒÚ‹ˆˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYH‹ˆİ›ÚÙS[™XØ\Hœ›İ[™‹ÏÜ]\›‚ˆ]\›ˆYHšXÙPÜ\İ[Ô]\›ˆˆÚYHŒLˆZYÚHŒLˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHŒLˆZYÚHŒLˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊH‹Ï]H“L‹H]KÚËM‹]MKŒHÚËˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYH‹ˆˆİ›ÚÙS[™XØ\Hœ›İ[™ˆÜXÚ]OH‹M‹ÏÜ]\›‚ˆ]\›ˆYHšXÙT[]Ô]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊH‹ÏÚ\˜ÛHŞHŒˆˆŞOHŒˆˆHŒKŒˆˆš[H››Û™Hˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYH‹‹ÏÚ\˜ÛHŞHˆˆŞOHKˆHŒKŒˆˆš[H››Û™Hˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYH‹‹ÏÜ]\›‚ˆ]\›ˆYHœÛ›İÔÚİÙ\œÔ]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙHˆ]\›•˜[œÙ›Ü›OHœ›İ]JÍJH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊH‹Ï™XİÚYHŒKˆZYÚHˆš[HˆÙYY˜Y™ˆˆÜXÚ]OHŒH‹ÏÚ\˜ÛHŞH‹ŒˆˆŞOHŒˆˆHŒHˆš[HˆÙ™™ˆ‹ÏÚ\˜ÛHŞHŒÈˆŞOHˆˆHŒHˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆ]\›ˆYH™Ü˜]\[ÚİÙ\œÔ]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\Û›İÊH‹ÏÚ\˜ÛHŞHŒ‹ŒˆˆŞOHŒ‹ŒˆˆHŒKŒÍHˆš[HˆÙ™™ˆˆÜXÚ]OHŒM‹ÏÚ\˜ÛHŞHˆˆŞOHKˆHŒKŒMHˆš[HˆÙ™™ˆˆÜXÚ]OHŒ‹ÏÜ]\›‚ˆ]\›ˆYHšZ[ÚİÙ\œÔ]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\İÜ›JH‹Ï]H“LˆËH‹Œ“‹ŒHËÓÈ‹Œ–ˆM‹ŒHŒÓËHKÓˆËŒ“ˆKÖˆˆš[HˆÙ™™ˆˆÜXÚ]OHŒMˆ‹ÏÜ]\›‚ˆ]\›ˆYHœÛY]]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙHˆ]\›•˜[œÙ›Ü›OHœ›İ]JÍJH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹[Z^Y
+HˆÜXÚ]OHŒM‹Ï™XİÚYHŒˆˆZYÚHˆš[HˆÙÙ™ˆˆÜXÚ]OHŒH‹ÏÜ]\›‚ˆ]\›ˆYHœÛY]ÚİÙ\œÔ]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹[Z^Y
+HˆÜXÚ]OHŒMH‹Ï™XİÚYHŒKˆZYÚHˆš[HˆÙÙ™ˆˆÜXÚ]OHŒM‹ÏÚ\˜ÛHŞH‹ŒˆˆŞOHŒˆˆHŒHˆš[HˆÙ™™ˆ‹ÏÚ\˜ÛHŞHŒÈˆŞOHKˆHŒHˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆ]\›ˆYH[™\œİÜ›T]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\İÜ›JH‹Ï]H“LHÒÓˆˆİ›ÚÙOHˆÙ™™MM˜ˆˆİ›ÚÙUÚYHŒKŒÈˆš[H››Û™H‹ÏÜ]\›‚ˆ]\›ˆYH[™\œİÜ›RZ[]\›ˆˆÚYHˆZYÚHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙH™XİÚYHˆZYÚHˆš[H˜\ŠK\\˜[K\™XÚ\]][Û‹\İÜ›JH‹Ï]H“LHÒÓˆˆİ›ÚÙOHˆÙ™™MM˜ˆˆİ›ÚÙUÚYHŒKŒÈˆš[H››Û™H‹Ï]H“M‹H“ËÈK‹HÓKŒÈKˆˆš[HˆÙ™™ˆ‹ÏÜ]\›‚ˆÕÒS‘ÕĞT“’S‘×ĞS‘Ë›X\
+˜[™O]\›ˆÙ^O^Ø˜[™šYHY^Ø˜[™šYHÚYHHˆZYÚHHˆ]\›•[š]ÏH\Ù\”ÜXÙSÛ•\ÙHˆ]\›•˜[œÙ›Ü›OHœ›İ]JÍJH™XİÚYHHˆZYÚHHˆš[^Ø˜[™˜ÛÛÜŸHÜXÚ]OHŒŒH‹Ï[™HOHŒˆLOHŒˆHŒˆLHHˆİ›ÚÙO^Ø˜[™˜ÛÛÜŸHİ›ÚÙUÚYHŒˆˆÜXÚ]OHŒŒ‹ÏÜ]\›Š_BˆÙYœÏ‚ˆÜİ[œš\ÙVOO[[	‰œİ[œš\ÙV›Y	‰™Xİ^ÛYHOHŒˆÚY^ÓX]›X^
+İ[œš\ÙV[Y
+_HZYÚ^ÛšYÚ›İÛ_Hš[H\›
+ÛšYÚ]Ú
+HˆÚ[\‘]™[ÏH››Û™H‹ÏŸBˆÜİ[œÙ]OO[[	‰œİ[œÙ]Ë\šYÚ	‰™Xİ^Üİ[œÙ]HOHŒˆÚY^ÓX]›X^
+Ë\šYÚ\İ[œÙ]
+_HZYÚ^ÛšYÚ›İÛ_Hš[H\›
+ÛšYÚ]Ú
+HˆÚ[\‘]™[ÏH››Û™H‹ÏŸBˆÈ]K[ZY\ÚŞX˜\Hœ™XXİˆÚ[\‘]™[ÏH››Û™Hˆ\šXK[X™[H•Ù]\œİ™ZY™[ˆ°ïˆÛÛ›™[œØÚZ[‹™]ğí›İ[™È[™šYY\œØÚYÈZ]šY\ˆXÚÙ[œİY™[ˆÚŞP˜\”ÙYÛY[Ôİ™ÈÙYÛY[Ï^ÜÚŞP˜\”ÙYÛY[ßHÙ^T™Yš^H™]Z[‹ÏÙÏ‚ˆÜİ[œš\ÙVOO[[	‰ÈÚ[\‘]™[ÏH››Û™H[™HO^Üİ[œš\ÙVH^Üİ[œš\ÙVHLOHŒˆL^ÛšYÚ›İÛ_Hİ›ÚÙOHˆÍÙLXYˆİ›ÚÙUÚYHŒHˆÜXÚ]OHŒˆˆİ›ÚÙQ\Ú\œ˜^OH‹Ï^^Üİ[œš\ÙV
+Í_HO^İ[YVKM_H^[˜ÚÜHœİ\ˆ›ÛÚ^™O^ÜÛX[›ÛHš[H˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒ¸¡¥ÈÜİ[œš\ÙSX™[Oİ^ÙÏŸBˆÜİ[œÙ]OO[[	‰ÈÚ[\‘]™[ÏH››Û™H[™HO^Üİ[œÙ]H^Üİ[œÙ]HLOHŒˆL^ÛšYÚ›İÛ_Hİ›ÚÙOHˆÍÙLXYˆİ›ÚÙUÚYHŒHˆÜXÚ]OHŒˆˆİ›ÚÙQ\Ú\œ˜^OH‹Ï^^Üİ[œÙ]M_HO^İ[YVKM_H^[˜ÚÜH™[™ˆ›ÛÚ^™O^ÜÛX[›ÛHš[H˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒÜİ[œÙ]X™[H8¡¦İ^ÙÏŸBˆİÚ[™Ø\›š[™Ğ˜[™Ë›X\
+˜[™O™XİÙ^O^ØÚ[™]Ø\›š[™ËX˜[™IØ˜[™šYXH^ÛYHO^Ø˜[™_HÚY^ÜİßHZYÚ^Ø˜[™šZYÚHš[^Ø\›
+ÉØ˜[™šYJXHÚ[\‘]™[ÏH››Û™H]OØ	Ø˜[™›X™[Nˆ	Ù›Ü›X]ÙÚ[™˜[YJ˜[™›İÙ\’İ
+’ÓRÔT—ÒÕ[š]
+_Hš\È	Ó[X™\‹š\Ñš[š]J˜[™\\’İ
+OÙ›Ü›X]ÙÚ[™˜[YJ˜[™\\’İ
+’ÓRÔT—ÒÕ[š]
+N‰Ù\°ï™\‰ßXOİ]OÜ™XİŠ_^İÚ[™Ø\›š[™Õ™\ÚÛË›X\
+][OO[™HÙ^O^ØÚ[™]™\ÚÛIÚ][K™\ÚÛXHO^ÛYH^ÕË\šYÚHLO^Ú][K_HL^Ú][K_Hİ›ÚÙO^Ú][K˜ÛÛÜŸHİ›ÚÙUÚY^Ì_HÜXÚ]O^ËŸH™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙHˆÚ[\‘]™[ÏH››Û™H]OÚ][K›X™[HÚ][K™\ÚÛOOMLÉğï™\‰Î‰ØX‰ßHÙ›Ü›X]ÙÚ[™˜[YJ][K™\ÚÛ[š]
+_Oİ]OÛ[™OŠ_BˆÜÚİÕ[\\˜]\™TÙXİ[Û‰‰[\\˜]\™UXÚÜË›X\
+˜[YOOØÛÛœİO^U[\
+˜[YJNÜ™]\›ˆÈÙ^O^Ø[\\˜]\™KYÜšYIİ˜[Y_XO[™HO^ÛYH^ÕË\šYÚHLO^Ş_HL^Ş_Hİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒŒLˆ‹Ï^^ÛYNHO^ŞJØ^\Ñ›Û
+‹ŒÍH^[˜ÚÜH™[™ˆ›ÛÚ^™O^Ø^\Ñ›ÛHš[H˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒˆÙ›Ü›X]XÚ[X[
+˜[YKJ_p¬Ïİ^ÙÏŸJ_Bˆ™XİÛ\ÜÓ˜[YOH™]Z[]\›X[Y™Y[X™Èˆ^ÛYHO^İ\›X[™Y[ÜLŸHÚY^ÜİßHZYÚ^İ\›X[™Y[ZYÚ
+ÍH^ÓX]›X^
+\›X[™Y[ZYÚÌŠ_KÏ^Û\ÜÓ˜[YOH™]Z[]\›X[Y™Y[[X™[ˆ^ÛY
+Í_HO^İ\›X[™Y[ÜMH›ÛÚ^™O^ÓX]›X^
+ËÛX[›ÛLŠ_O•\›Z\ØÚ\È[\š[™[İ^Ù]Z[\›X[\ÜÙ\ÜÛY[Ë›X\
+
+\›X[JOOØÛÛœİ^]
+JKO\Ûİ[™]
+JNÜ™]\›ˆ™XİÙ^O^Ø\›X[Y™Y[IÜÚWK[Y_XHÛ\ÜÓ˜[YO^Ø]Z[]\›X[Y™Y[X˜[™	ÚOOO\Ù[XİYİ\ÉÈXİ]™IÎ‰ÉßXH^ŞHO^İ\›X[™Y[ÜHÚY^ÓX]›X^
+KK^
+_HZYÚ^İ\›X[™Y[ZYÚH^ÓX]›Z[ŠË\›X[™Y[ZYÚÌÊ_Hİ[O^ŞÙš[\›X[˜ÛÛÜ‹ÜXÚ]N‹ŒÍ
+İ\›X[œØÛÜ™KÌL
+‹N_O]OØ	Úİ\‘\Ü^PÛØÚÊÚWK[Y^›Û™J_Nˆ	İ\›X[›X™[H0­È	İ\›X[˜\™[ŸIİ\›X[œİ[OÉÈ0­ÈØÚğï	Î‰ÉßH0­È3¥	İ\›X[™[OLÉÊÉÎ‰ÉßIÙ›Ü›X]XÚ[X[š^Y
+\›X[™[KJ_HØOİ]OÜ™XİŸJ_BˆÜÚİÔ™\Üİ\™TÙXİ[Û‰‰^^ÛYNHO^Ü™\Üİ\™UÜLßH^[˜ÚÜH™[™ˆ›ÛÚ^™O^ÜÛX[›ÛHš[H˜\ŠK\\˜[K\™\Üİ\™JHˆÜXÚ]OHŒÎšOİ^Ü™\Üİ\™UXÚÜË›X\
+˜[YOOØÛÛœİO^T™\Üİ\™J˜[YJNÜ™]\›ˆÈÙ^O^Ø™\Üİ\™KYÜšYIİ˜[Y_XO[™HO^ÛYH^ÕË\šYÚHLO^Ş_HL^Ş_Hİ›ÚÙOH˜\ŠK\\˜[K\™\Üİ\™JHˆÜXÚ]OHŒŒL‹Ï^^ÛYNHO^ŞJÜÛX[›Û
+‹ŒÍH^[˜ÚÜH™[™ˆ›ÛÚ^™O^ÜÛX[›ÛHš[H˜\ŠK\\˜[K\™\Üİ\™JHˆÜXÚ]OHŒİ˜[Y_Oİ^ÙÏŸJ_OÏŸBˆÜÚİÔ˜Z[”ÙXİ[Û‰‰œ˜Z[•XÚÜË›X\
+˜[YOOØÛÛœİO^T˜Z[Š˜[YJNÜ™]\›ˆÈÙ^O^Ø˜Z[‹YÜšYIİ˜[Y_XO[™HO^ÛYH^ÕË\šYÚHLO^Ş_HL^Ş_Hİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒŒH‹ÏÜÚİÔ˜Z[˜\œÉ‰^^ÛYNHO^ŞJØ^\Ñ›Û
+‹ŒÍH^[˜ÚÜH™[™ˆ›ÛÚ^™O^Ø^\Ñ›ÛHš[H˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒİ˜[YOOOLÉÌ	Î™›Ü›X]XÚ[X[
+˜[YKJ_H[Oİ^ŸOÙÏŸJ_^ÜÚİÔ›Ø˜Xš[]I‰ÈÛ\ÜÓ˜[YOHœ›Ø˜Xš[]KX^\È[™HO^ÕË\šYÚH^ÕË\šYÚHLO^Ü˜Z[•ÜHL^Ü˜Z[›İÛ_Hİ›ÚÙOH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆÜXÚ]OHŒŒÌˆ‹ÏÖÌLLK›X\
+˜[YOOØÛÛœİO^T›ØŠ˜[YJNÜ™]\›ˆÈÙ^O^Ø›Ø˜Xš[]KX^\ËIİ˜[Y_XO[™HO^ÕË\šYÚH^ÕË\šYÚ
+Í_HLO^Ş_HL^Ş_Hİ›ÚÙOH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆÜXÚ]OHŒH‹Ï^^ÕË\šYÚ
+ÎHO^ŞJØ^\Ñ›Û
+‹ŒÍH^[˜ÚÜHœİ\ˆ›ÛÚ^™O^Ø^\Ñ›ÛHš[H˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆÜXÚ]OHŒˆİ˜[Y_H	Oİ^ÙÏŸJ_OÙÏŸBˆÊÚİÕÚ[™ÚİÑİ\İ
+I‰Ú[™XÚÜË›X\
+˜[YOOØÛÛœİO^UÚ[™
+˜[YJNÜ™]\›ˆÈÙ^O^ØÚ[™YÜšYIİ˜[Y_XO[™HO^ÛYH^ÕË\šYÚHLO^Ş_HL^Ş_Hİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒŒ‹Ï^^ÛYNHO^ŞJØ^\Ñ›Û
+‹ŒÍH^[˜ÚÜH™[™ˆ›ÛÚ^™O^ÜÛX[›ÛHš[H˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒÌˆİÚ[™
+˜[YK[š]
+_Oİ^ÙÏŸJ_BˆÜÚİÑ\™Xİ[Û‰‰[™HO^ÛYH^ÕË\šYÚHLO^Ù\™Xİ[Û–KLL_HL^Ù\™Xİ[Û–KLL_Hİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒŒ‹ÏŸBˆİ[YR[™XÙ\Ë›X\
+OO[™HÙ^O^Ø[YKYÜšYIÚ_XHO^Ş]
+J_H^Ş]
+J_HLO^ØÛİYÜHL^ØÛÛ[›İÛ_Hİ›ÚÙOH˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒŒˆİ›ÚÙQ\Ú\œ˜^OH‹ÏŠ_BˆÛ›İÖOO[[	‰ÈÛ\ÜÓ˜[YOH››İË][YK[X\šÙ\ˆˆÚ[\‘]™[ÏH››Û™H[™HO^Û›İÖH^Û›İÖHLO^Û›İĞ˜YÙVJÌŒŸHL^ÛšYÚ›İÛ_Hİ›ÚÙOHˆÙ™ŒÌMXˆˆİ›ÚÙUÚYHŒˆˆÜXÚ]OHŒNˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏÚ\˜ÛHŞ^Û›İÖHŞO^Û›İĞ˜YÙVJÌL_HHˆš[HˆÙ™ŒÌMXˆˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYHŒH‹Ï™Xİ^ÓX]›X^
+YX]›Z[ŠË\šYÚN›İÖM
+J_HO^Û›İĞ˜YÙV_HÚYHˆZYÚHŒŒˆˆHŒLHˆš[HˆÙ™ŒÌMXˆ‹Ï^^ÓX]›X^
+Y
+ÍX]›Z[ŠË\šYÚM›İÖ
+J_HO^Û›İĞ˜YÙVJÌM_H^[˜ÚÜH›ZYHˆ›ÛÚ^™O^ÜÛX[›ÛH›ÛÙZYÚHˆš[HˆÙ™™ˆ’‘U•Û›İÓX™[Oİ^ÙÏŸBˆÜÚİÔ˜Z[˜\œÉ‰œ›X\
+
+JOOØÛÛœİÛİY^]
+JKÛİšYÚ\Ûİ[™]
+JKÛİÚYSX]›X^
+KÛİšYÚ\ÛİY
+K˜\•ÚYSX]›X^
+‹ÛİÚY
+‹ŠK˜\’[œÙ]SX]›X^
+
+ÛİÚYX˜\•ÚY
+KÌŠK˜\“YSX]›X^
+YÛİY
+Ø˜\’[œÙ]
+K˜\”šYÚSX]›Z[ŠË\šYÚÛİšYÚX˜\’[œÙ]
+K\Ï\™XÚ\Ù\šY\ÖÚWK\O\\Ë\Kİ[Ü^T˜Z[Š\Ëİ[
+NÚYŠZ\Ñ]Z[™XÚ\\J\JJ\™]\›ˆÈÙ^O^Ş[Y_KÏØÛÛœİš\ÚX›O]š\ÚX›T™XÚ\YÙ[™\\Ëš[˜ÛY\Ê\JK˜\”İ[O]š\ÚX›OÙ]Z[™XÚ\˜\”İ[J\ÊN[™Yš[™YÜ™]\›ˆÈÙ^O^Ş[Y_OÜ\Ëİ[‹ŒI‰š\ÚX›I‰˜˜\”šYÚ˜˜\“Y	‰™XİÛ\ÜÓ˜[YO^Ø]Z[\™XÚ\X˜\ˆ]Z[\™XÚ\Iİ\_XH^Ø˜\“YHO^İİ[ÜHÚY^Ø˜\”šYÚX˜\“YHZYÚ^ÓX]›X^
+K˜Z[›İÛK]İ[Ü
+_HHŒˆˆİ[O^Ø˜\”İ[_KÏŸOÙÏŸJ_BˆÜÚİÕ[\\˜]\™I‰]^Ø\™XT]Hš[H\›
+İ[\š[
+H‹ÏŸBˆÜÚİĞ\\™[	‰]^Ø\\™[]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠKX\\™[[[™JHˆÜXÚ]OHŒMˆˆİ›ÚÙQ\Ú\œ˜^OHˆˆİ›ÚÙUÚYHŒˆˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏŸBˆÜÚİÑ]ÔÚ[	‰]^Ù]ÔÚ[]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠK\\˜[KY]ÜÚ[
+HˆÜXÚ]OHŒÌˆˆİ›ÚÙUÚYHŒKHˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏŸBˆÜÚİÕ[\\˜]\™I‰]^İ[\]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠK\\˜[K][\\˜]\™JHˆİ›ÚÙUÚYHŒ‹Œˆˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏŸBˆÜÚİÔ™\Üİ\™I‰]^Ü™\Üİ\™T]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠK\\˜[K\™\Üİ\™JHˆİ›ÚÙUÚYHŒKˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏŸBˆÜÚİÔ›Ø˜Xš[]I‰ÈÛ\ÜÓ˜[YOH™]Z[\›Ø˜Xš[]K[[™HˆÚ[\‘]™[ÏH››Û™H]Û\ÜÓ˜[YOH™]Z[\›Ø˜Xš[]KZ[Èˆ^Ü›Ø˜Xš[]T]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠKY]Z[\›Ø˜Xš[]KZ[ÊHˆİ›ÚÙUÚYHˆˆİ›ÚÙQ\Ú\œ˜^OHˆHˆİ›ÚÙS[™XØ\Hœ›İ[™ˆİ›ÚÙS[™Z›Ú[Hœ›İ[™ˆÜXÚ]OHŒˆˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹Ï]^Ü›Ø˜Xš[]T]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆİ›ÚÙUÚYHŒ‹Œˆˆİ›ÚÙQ\Ú\œ˜^OHˆHˆİ›ÚÙS[™XØ\Hœ›İ[™ˆİ›ÚÙS[™Z›Ú[Hœ›İ[™ˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏÙÏŸBˆÜÚİÕÚ[™	‰]^İÚ[™]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠK\\˜[K]Ú[™
+Hˆİ›ÚÙUÚYHŒˆˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏŸBˆÜÚİÑİ\İ	‰]^Ùİ\İ]Hš[H››Û™Hˆİ›ÚÙOH˜\ŠK\\˜[KYİ\İ
+Hˆİ›ÚÙUÚYHŒˆˆİ›ÚÙQ\Ú\œ˜^OHÈHˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹ÏŸBˆÜÚİÑ\™Xİ[Û‰‰™\™Xİ[Û’[™XÙ\Ë›X\
+OOİ™ÕÚ[™\™Xİ[Û\œ›İÈÙ^O^Ø\™Xİ[Û‹IÚ_XH^Ş]
+J_HO^Ù\™Xİ[Û–KLŸH\™Xİ[Û^ÜÚWK™\™Xİ[ÛŸHİ\İ^ÜÚWK™İ\İHÚ^™O^Ù\™Xİ[Û\œ›İÔÚ^™_KÏŠ_Bˆ[™HÛ\ÜÓ˜[YOHœÙ[XİYZİ\‹[[™HˆO^Ş]
+Ù[XİYİ\Š_H^Ş]
+Ù[XİYİ\Š_HLO^ÜÙ[XİYX\šÙ\•ÜHL^ØÛÛ[›İÛ_Hİ›ÚÙOHˆÎXY™ˆˆÜXÚ]OHŒHˆİ›ÚÙUÚYHŒKHˆ™XİÜ‘Y™™XİH››Û‹\ØØ[[™Ë\İ›ÚÙH‹Ï‚ˆÚXÛÛ”Ú[Ë›X\
+Ú[OØÛÛœİO\Ú[š[™^Ûİ\˜ÙO\ÜÚ[œÛİ\˜ÙR[™^OÏÜÚWKÚ^™OZXÛÛ‘›ÛÚ^™JŒKNÜ™]\›ˆÙX]\”XİÙÜ˜[HÙ^O^ØÙX]\‹ZXÛÛ‹IÚ_XHÛÙO^ÜÚ[™\Ü^PÛÙ_H[[œÚ]O^ÜÚ[š[[œÚ]_H[›ÛY[›Û^ÜÚ[œ[›ÛY[›ÛŸH^O^ÜÛİ\˜ÙKš\Ñ^_H]O^ÛX™[
+Ú[™\Ü^PÛÙJ_HÛİY^ÜÛİ\˜ÙK˜ÛİYHİĞÛİY^ÜÛİ\˜ÙK›İĞÛİYHZYÛİY^ÜÛİ\˜ÙK›ZYÛİYHYÚÛİY^ÜÛİ\˜ÙKšYÚÛİYH^Ş]
+JK\Ú^™KÌŸHO^ÚXÛÛ–K\Ú^™J‹ÎHÚ^™O^ÜÚ^™_KÏŸJ_Bˆİ[YR[™XÙ\Ë›X\
+OOÈÙ^O^Ø[YK[X™[IÚ_XO^^Ş]
+J_HO^İ[YVJÌMßH^[˜ÚÜH›ZYHˆ›ÛÚ^™O^ÛX™[›ÛHš[H˜İ\œ™[ÛÛÜˆˆÜXÚ]OHŒˆÚİ\‘\Ü^PÛØÚÊÚWK[Y^›Û™J_Oİ^ÙÏŠ_BˆÜÚİÕ[\\˜]\™I‰–ÛZ[’YX^YK›X\
+OOØÛÛœİÚÙ[ZOOO[Z[’YÉİ˜\ŠK\\˜[K][\\˜]\™K[Z[ŠIÎ‰İ˜\ŠK\\˜[K][\\˜]\™K[X^
+IÎÜ™]\›ˆÈÙ^O^Ø[\\˜]\™KY^™[YKIÚ_XOÚ\˜ÛHŞ^Ş]
+J_HŞO^ŞU[\
+ÚWK[\\˜]\™J_HHˆš[HˆÙ™™ˆˆİ›ÚÙO^İÚÙ[ŸHİ›ÚÙUÚYHŒˆ‹Ï^^Ş]
+J_HO^ŞU[\
+ÚWK[\\˜]\™JKNH^[˜ÚÜH›ZYHˆ›ÛÚ^™O^ÛX™[›ÛHš[^İÚÙ[ŸOÓX]œ›İ[™
+ÚWK[\\˜]\™J_p¬İ^ÙÏŸJ_BˆÜ›X\
+
+JOOØÛÛœİ^]
+JKO\Ûİ[™]
+JNÜ™]\›ˆ™XİÙ^O^Ø]	Ş[Y_XH^ŞHOHŒˆÚY^ÓX]›X^
+KK^
+_HZYÚ^ÒHš[H˜[œÜ\™[ˆÛ\ÜÓ˜[YOHšİ\‹Z]ˆÛ”Ú[\‘İÛ^Ù]™[O˜™YÚ[‘]Z[İ\•\
+]™[J_HÛ”Ú[\•\^Ù]™[O™[™]Z[İ\•\
+]™[J_HÛ”Ú[\Ø[˜Ù[^ØØ[˜Ù[]Z[İ\•\HÛÛXÚÏ^Ê
+OOœÙ]Ù[XİYİ\ŠJ_O]OØ	Úİ\‘\Ü^PÛØÚÊ[Y^›Û™J_H0­È	ÓX]œ›İ[™
+[\\˜]\™J_H0¬È0­È\›Z\ØÚ\È[\š[™[ˆ	Ù]Z[\›X[\ÜÙ\ÜÛY[ÖÚWOË›X™[ÏÉø $ÉßH0­È]\[šİ	ÓX]œ›İ[™
+™]ÔÚ[
+_H0¬ÉÓ[X™\‹š\Ñš[š]Jœ™\Üİ\™JOØ0­ÈYXÚÈ	Ù›Ü›X]XÚ[X[š^Y
+œ™\Üİ\™KJ_HX‰ÉßH0­È	ÓX]œ›İ[™
+œ›Ø˜Xš[]J_H	HšYY\œØÚYÜİØZœØÚZ[›XÚÙZ]
+	Ü™XÚ\]][Û”ÛİX™[
+
+_JH0­ÈÛÛ›™[œØÚZ[™]Y\ˆ	Üİ[œÚ[™SZ[]\ÓX™[
+œİ[œÚ[™Q\˜][ÛŠ_H0­È	İÚ[™\™Xİ[Û‘\ØÜš\[ÛŠ™\™Xİ[ÛŠ_H0­È	İÚ[™
+Ú[™[š]
+_K°í™[ˆ	İÚ[™
+™İ\İ[š]
+_IŞ™İ\İY\İYÉÈ
+]YˆÚ[™š]™X]H]\ÚXš[\ÚY\
+IÎ‰ÉßXOİ]OÜ™XİŸJ_BˆÜÚİÕ[\\˜]\™I‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞU[\
+İ\œ™[İ\‹[\\˜]\™J_HHŒÈˆš[HˆÙ™™ˆˆİ›ÚÙOH˜\ŠK\\˜[K][\\˜]\™JHˆİ›ÚÙUÚYHŒˆ‹ÏŸ^ÜÚİĞ\\™[	‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞU[\
+İ\œ™[İ\‹˜\\™[
+_HHŒËHˆš[H˜\ŠK\İ\™˜XÙJHˆİ›ÚÙOH˜\ŠKX\\™[[[™JHˆİ›ÚÙUÚYHŒˆ‹ÏŸ^ÜÚİÑ]ÔÚ[	‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞU[\
+İ\œ™[İ\‹™]ÔÚ[
+_HHŒËŒˆˆš[H˜\ŠK\İ\™˜XÙJHˆİ›ÚÙOH˜\ŠK\\˜[KY]ÜÚ[
+Hˆİ›ÚÙUÚYHŒKÈ‹ÏŸ^ÜÚİÔ™\Üİ\™I‰“[X™\‹š\Ñš[š]Jİ\œ™[İ\‹œ™\Üİ\™JI‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞT™\Üİ\™Jİ\œ™[İ\‹œ™\Üİ\™J_HHŒËHˆš[H˜\ŠK\İ\™˜XÙJHˆİ›ÚÙOH˜\ŠK\\˜[K\™\Üİ\™JHˆİ›ÚÙUÚYHŒˆ‹ÏŸ^ÜÚİÔ›Ø˜Xš[]I‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞT›ØŠİ\œ™[İ\‹œ›Ø˜Xš[]J_HHŒËHˆš[H˜\ŠK\\˜[K\™XÚ\]][ÛŠHˆİ›ÚÙOHˆÙ™™™™™ˆˆİ›ÚÙUÚYHŒKŒˆ‹ÏŸ^ÜÚİÕÚ[™	‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞUÚ[™
+İ\œ™[İ\‹Ú[™
+_HHŒËHˆš[H˜\ŠK\\˜[K]Ú[™
+Hˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYHŒKŒH‹ÏŸ^ÜÚİÑİ\İ	‰Ú\˜ÛHŞ^Ş]
+Ù[XİYİ\Š_HŞO^ŞUÚ[™
+İ\œ™[İ\‹™İ\İ
+_HHŒËHˆš[H˜\ŠK\\˜[KYİ\İ
+Hˆİ›ÚÙOHˆÙ™™ˆˆİ›ÚÙUÚYHŒKŒH‹ÏŸBˆÜİ™Ï‚ˆ]ˆÛ\ÜÓ˜[YOHšİ\‹XÚ\]ÛÛ\\œÚ\İ[ˆ›ÛOHœİ]\Èˆ\šXK[]™OHœÛ]Hˆ\šXK[X™[^Ø]Z[È°ïˆ	Úİ\‘\Ü^PÛØÚÊİ\œ™[İ\‹[Y^›Û™J_HZ˜O‚ˆXY\]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›[İ™Rİ\ŠLJ_H\šXK[X™[H•›Üš\šYÙHİ[™H¸ .OØ]Û]ÛX[Úİ\‘\Ü^PÛØÚÊİ\œ™[İ\‹[Y^›Û™J_HZÜÛX[İ›Û™ÏÙX]\”XİÙÜ˜[HÛÙO^Øİ\œ™[ÙX]\ÛÙ_H[[œÚ]O^Øİ\œ™[™XÚ\š[[œÚ]_H[›ÛY[›Û^Øİ\œ™[™XÚ\œ[›ÛY[›ÛŸH^O^Øİ\œ™[İ\‹š\Ñ^_H]O^Øİ\œ™[ÙX]\“X™[HÛİY^Øİ\œ™[İ\‹˜ÛİYHİĞÛİY^Øİ\œ™[İ\‹›İĞÛİYHZYÛİY^Øİ\œ™[İ\‹›ZYÛİYHYÚÛİY^Øİ\œ™[İ\‹šYÚÛİYKÏˆØİ\œ™[ÙX]\“X™[OÜİ›Û™ÏÙ]]Ûˆ\OH˜]ÛˆˆÛÛXÚÏ^Ê
+OO›[İ™Rİ\ŠJ_H\šXK[X™[H“°éÚİHİ[™H¸ .Ø]ÛÚXY\‚ˆ]ˆÛ\ÜÓ˜[YOHšİ\‹]ÛÛ\YÜšYÛÛ\XİÜ[ÛX[•[\\˜]\ˆÈÙY°ïÜÛX[ÓX]œ›İ[™
+İ\œ™[İ\‹[\\˜]\™J_p¬ÈÓX]œ›İ[™
+İ\œ™[İ\‹˜\\™[
+_p¬Ø[HÛ\ÜÓ˜[YOHšİ\‹]ÛÛ\]\›X[Y™Y[Hİ[O^ŞØ˜XÚÙÜ›İ[™˜İ\œ™[\›X[˜ÛÛÜŸ_KÏ•\›Z\ØÚ\È[\š[™[ˆØİ\œ™[\›X[›X™[H0­ÈØİ\œ™[\›X[˜\™[Ÿ^Øİ\œ™[\›X[œİ[OÉÈ0­ÈØÚğï	Î‰ÉßOÙ[OÜÜ[Ü[ˆÛ\ÜÓ˜[YOHšİ\‹]ÛÛ\\™XÚ\]][ÛˆÛX[“šYY\œØÚYÏÜÛX[Ü™XÚ\]][Û[[İ[X™[
+İ\œ™[İ\Š_H0­ÈÓX]œ›İ[™
+İ\œ™[İ\‹œ›Ø˜Xš[]J_H	OØØİ\œ™[[™\”š\ÚÉ‰[H]O^Ø	Øİ\œ™[[™\”š\ÚË›X™[H0­È	ÓX]œ›İ[™
+İ\œ™[[™\”š\ÚËœ\˜Ù[
+_H	XOÜ[ˆÛ\ÜÓ˜[YO^Øİ\›K][™\‹\š\ÚÈ	Øİ\œ™[[™\”š\ÚË›]™[XOÛİYYÚš[™ÈÚ^™O^ÌL_KÏ‘Ù]Ú]\œš\ÚZÛÈÓX]œ›İ[™
+İ\œ™[[™\”š\ÚËœ\˜Ù[
+_H	OÜÜ[Ù[OŸOÜÜ[Ü[ÛX[•]\[šİÈ™]XÚOÜÛX[ÓX]œ›İ[™
+İ\œ™[İ\‹™]ÔÚ[
+_p¬0­ÈÓX]œ›İ[™
+İ\œ™[İ\‹š[ZY]J_H	OØÜÜ[Ü[ÛX[•Ú[™È°í™[ÜÛX[Ú[™\™Xİ[Û\œ›İÈ\™Xİ[Û^Øİ\œ™[İ\‹™\™Xİ[ÛŸHİ\İ^Øİ\œ™[İ\‹™İ\İKÏˆİÚ[™
+İ\œ™[İ\‹Ú[™[š]
+_H0­ÈİÚ[™
+İ\œ™[İ\‹™İ\İ[š]
+_OØØİ\œ™[İ\‹™İ\İY\İY	‰[O°í™H]YˆÚ[™š]™X]H]\ÚXš[\ÚY\Ù[OŸOÜÜ[Ü[ÛX[“YXÚÏÜÛX[Ó[X™\‹š\Ñš[š]Jİ\œ™[İ\‹œ™\Üİ\™JOØ	Ù›Ü›X]XÚ[X[š^Y
+İ\œ™[İ\‹œ™\Üİ\™KJ_HX‰ø $ÉßOØ[OÜ™\Üİ\™U™[™X™[OÙ[OÜÜ[Ü[ˆÛ\ÜÓ˜[YOHšİ\‹]ÛÛ\XÛİY]]šHÛX[™]ğí›İ[™ÈÈU’HÈÛÛ›™[œØÚZ[™]Y\ÜÛX[ØÛİYÚİ\Êİ\œ™[İ\‹˜ÛİY
+_KÎ0­ÈU’HÙ›Ü›X]]šJİ\œ™[İ\‹]’[™^
+_H0­Èİ[ˆÚ^™O^ÌL_KÏÜİ[œÚ[™SZ[]\ÓX™[
+İ\œ™[İ\‹œİ[œÚ[™Q\˜][ÛŠ_OØ[OØÛİYÚİ\Õ^
+İ\œ™[İ\‹˜ÛİY
+KœÜ]
+	È0­È	ÊVÌW_OÙ[OÜÜ[Ù]‚ˆØİ\œ™[İ\‹ÙX]\”Ûİ\˜ÙSX™[	‰ÛX[Û\ÜÓ˜[YOHšİ\‹]ÛÛ\\Ûİ\˜ÙH•Ù]\‹KÓšYY\œØÚYÜØ°ï™[ˆØİ\œ™[İ\‹ÙX]\”Ûİ\˜ÙSX™[^Øİ\œ™[İ\‹ÙX]\[™RÚ[™OOIØÛÚ\™[[[Ù[	ÏÉÈ0­ÈÛÚ0é™[]\ÈZ[™[H[Ù[	Î‰ÉßOÜÛX[ŸBˆÙ]‚ˆÙ]‚ˆÙ]ŸBˆÜÙXİ[ÛŸB‚\HÚYÙ]^PÛİ[Lß_ŸÎÂ\HÚYÙ]šY]ÏIØØ\™Éß	Øİ\™Iß	Ù[œÙ[X›IÎÂ\HÚYÙ]İÜ™YÙ][™ÜÏ^ÜØÚ[XNNÙ^\Î•ÚYÙ]^PÛİ[Ù\šÎ˜›ÛÛX[ÜÚİÕÚ[™˜›ÛÛX[ÜÚİÔ˜Z[˜›ÛÛX[ÜÚİÔİ[œÚ[™N˜›ÛÛX[ÜÚİÒ^˜\™Î˜›ÛÛX[ÙXÛ]Ù•[\\˜]\™PÛÛÜœÎ˜›ÛÛX[İšY]Î•ÚYÙ]šY]ÎÙ[œÙ[X›SY]šXÎ‘[œÙ[X›Q\Ü^SY]šXßNÂ˜ÛÛœİÒQÑUÔÑUS‘Ô×ÔÕÔQÑWÒÑVOIÛZYŒËŒNÚYÙ]\Ù][™ÜÉËÒQÑUÑVWÓÔSÓ”ÏVÌËK‹×H\ÈÛÛœİÂ™[˜İ[ÛˆİÜ™YÚYÙ]Ù][™ÜÊ
+N•ÚYÙ]İÜ™YÙ][™ÜŞØÛÛœİY˜][Î•ÚYÙ]İÜ™YÙ][™ÜÏ^ÜØÚ[XNK^\ÎË\šÎYKÚİÕÚ[™YKÚİÔ˜Z[YKÚİÔİ[œÚ[™NYKÚİÒ^˜\™ÎYKXÛ]Ù•[\\˜]\™PÛÛÜœÎYKšY]Î‰ØØ\™ÉË[œÙ[X›SY]šXÎ‰İ[\\˜]\™IßNİ^ØÛÛœİ\œÙYR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][JÒQÑUÔÑUS‘Ô×ÔÕÔQÑWÒÑVJ_	ŞßIÊH\È\X[ÛZ]ÚYÙ]İÜ™YÙ][™ÜË	ÜØÚ[XIÏ‰ÜØÚ[XOÎ›[X™\ŸK˜]Ñ^\ÏS[X™\Š\œÙY™^\ÊK^\ÏJÒQÑUÑVWÓÔSÓ”Ëš[˜ÛY\Ê˜]Ñ^\È\ÈÚYÙ]^PÛİ[
+OÜ˜]Ñ^\ÎÊH\ÈÚYÙ]^PÛİ[YØXŞTÚİÔ˜Z[J\œÙYœØÚ[XOOOLŸ\œÙYœØÚ[XOOOLÊI‰\[Ùˆ\œÙYœÚİÔ˜Z[OOIØ›ÛÛX[‰ÏÜ\œÙYœÚİÔ˜Z[YKÚİÔ˜Z[J\œÙYœØÚ[XOOOM\œÙYœØÚ[XOOOMJI‰\[Ùˆ\œÙYœÚİÔ˜Z[OOIØ›ÛÛX[‰ÏÜ\œÙYœÚİÔ˜Z[›YØXŞTÚİÔ˜Z[‹XÛ]Ù•[\\˜]\™PÛÛÜœÏ]\[Ùˆ\œÙY™XÛ]Ù•[\\˜]\™PÛÛÜœÏOOIØ›ÛÛX[‰ÏÜ\œÙY™XÛ]Ù•[\\˜]\™PÛÛÜœÎ™Y˜][Ë™XÛ]Ù•[\\˜]\™PÛÛÜœË[œÙ[X›SY]šXÏ\\œÙY™[œÙ[X›SY]šXÏOOIÜ™XÚ\]][Û‰ÏÉÜ™XÚ\]][Û‰Îœ\œÙY™[œÙ[X›SY]šXÏOOIİÚ[™	ÏÉİÚ[™	Î‰İ[\\˜]\™IÎÜ™]\›ÜØÚ[XNK^\Ë\šÎ\[Ùˆ\œÙY™\šÏOOIØ›ÛÛX[‰ÏÜ\œÙY™\šÎ™Y˜][Ë™\šËÚİÕÚ[™\[Ùˆ\œÙYœÚİÕÚ[™OOIØ›ÛÛX[‰ÏÜ\œÙYœÚİÕÚ[™™Y˜][ËœÚİÕÚ[™ÚİÔ˜Z[‹ÚİÔİ[œÚ[™N\[Ùˆ\œÙYœÚİÔİ[œÚ[™OOOIØ›ÛÛX[‰ÏÜ\œÙYœÚİÔİ[œÚ[™N™Y˜][ËœÚİÔİ[œÚ[™KÚİÒ^˜\™Î\[Ùˆ\œÙYœÚİÒ^˜\™ÏOOIØ›ÛÛX[‰ÏÜ\œÙYœÚİÒ^˜\™Î™Y˜][ËœÚİÒ^˜\™ËXÛ]Ù•[\\˜]\™PÛÛÜœËšY]Îœ\œÙYšY]ÏOOIØİ\™IÏÉØİ\™IÎœ\œÙYšY]ÏOOIÙ[œÙ[X›IÏÉÙ[œÙ[X›IÎ‰ØØ\™ÉË[œÙ[X›SY]šXß_XØ]ÚÜ™]\›ˆY˜][ß_B™[˜İ[ÛˆÚYÙ]
+ÛØË^\Ëİ\œËZ[]\ÌMK[š][]˜][Û‹[Y^›Û™K[Y^›Û™PX˜œ™]šX][Û‹[œÙ[X›T[™[Û‘[œÙ[X›T™\]Y\İY\›^ÜNÛØÎ“ØØ][ÛÙ^\Î‘^V×NÚİ\œÎ’İ\–×NÛZ[]\ÌMN“Z[]LMV×Nİ[š]•Ú[™[š]Ù[]˜][ÛÎ›[X™\İ[Y^›Û™Nœİš[™Îİ[Y^›Û™PX˜œ™]šX][ÛÎœİš[™ÎÙ[œÙ[X›T[™[Š
+Y]šXÎ‘[œÙ[X›Q\Ü^SY]šXÊOO”™XXİ›ÙJ_[ÛÛ‘[œÙ[X›T™\]Y\İYŠ
+OO›ÚYİ\›^ÜÎ•ÚYÙ]\›^Ü™\]Y\İJ^ÂˆÛÛœİ[š]X[]\ÙSY[[Ê
+
+OOØÛÛœİİÜ™Y\İÜ™YÚYÙ]Ù][™ÜÊ
+NÜ™]\›ˆ\›^ÜŞË‹‹œİÜ™Y^\Î\›^Ü™^\Ë\šÎ\›^Ü[YOOOIÙ\šÉËšY]Î\›^ÜšY]ËÚİÕÚ[™YKÚİÔ˜Z[YKÚİÔİ[œÚ[™NYKÚİÒ^˜\™ÎYKXÛ]Ù•[\\˜]\™PÛÛÜœÎY_NœİÜ™YKİ\›^ÜJKÛ‹Ù]—O]\ÙTİ]OÚYÙ]^PÛİ[Š[š]X[™^\ÊKÙ\šËÙ]\š×O]\ÙTİ]J[š]X[™\šÊKÜÚİÕÚ[™Ù]ÚİÕÚ[™O]\ÙTİ]J[š]X[œÚİÕÚ[™
+KÜÚİÔ˜Z[‹Ù]ÚİÔ˜Z[—O]\ÙTİ]J[š]X[œÚİÔ˜Z[ŠKÜÚİÔİ[œÚ[™KÙ]ÚİÔİ[œÚ[™WO]\ÙTİ]J[š]X[œÚİÔİ[œÚ[™JKÜÚİÒ^˜\™ËÙ]ÚİÒ^˜\™×O]\ÙTİ]J[š]X[œÚİÒ^˜\™ÊKÙXÛ]Ù•[\\˜]\™PÛÛÜœËÙ]XÛ]Ù•[\\˜]\™PÛÛÜœ×O]\ÙTİ]J[š]X[™XÛ]Ù•[\\˜]\™PÛÛÜœÊKİšY]ËÙ]šY]×O]\ÙTİ]OÚYÙ]šY]ÏŠ[š]X[šY]ÊKÙ[œÙ[X›SY]šXËÙ][œÙ[X›SY]šX×O]\ÙTİ]O[œÙ[X›Q\Ü^SY]šXÏŠ[š]X[™[œÙ[X›SY]šXÊKØÛÜTİ]KÙ]ÛÜTİ]WO]\ÙTİ]O	ÚYIß	İÛÜšÚ[™Éß	ÙÛ™Iß	Ù˜[˜XÚÉß	Ù\œ›Ü‰ÏŠ	ÚYIÊKØÛÜR[XYÙKÙ]ÛÜR[XYÙWO]\ÙTİ]J	ÉÊK™Y]\ÙT™YS]‘[[Y[Š[
+NÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ\›^Ü
+\™]\›İ^ÛØØ[İÜ˜YÙKœÙ]][JÒQÑUÔÑUS‘Ô×ÔÕÔQÑWÒÑVK”ÓÓ‹œİš[™ÚYJÜØÚ[XNK^\Î›‹\šËÚİÕÚ[™ÚİÔ˜Z[‹ÚİÔİ[œÚ[™KÚİÒ^˜\™ËXÛ]Ù•[\\˜]\™PÛÛÜœËšY]Ë[œÙ[X›SY]šXßHØ]\ÙšY\ÈÚYÙ]İÜ™YÙ][™ÜÊJ_XØ]Úß_KÛ‹\šËÚİÕÚ[™ÚİÔ˜Z[‹ÚİÔİ[œÚ[™KÚİÒ^˜\™ËXÛ]Ù•[\\˜]\™PÛÛÜœËšY]Ë[œÙ[X›SY]šXË\›^ÜJNÂˆ\ÙQY™™Xİ
+
+
+OOŠ
+OOÚYŠÛÜR[XYÙJUT“œ™]›ÚÙSØš™XİT“
+ÛÜR[XYÙJ_KØÛÜR[XYÙWJNÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠšY]ÏOOIÙ[œÙ[X›IÊ[Û‘[œÙ[X›T™\]Y\İY
+
+_KİšY]ËÛ‘[œÙ[X›T™\]Y\İYJNÂˆÛÛœİ™XÚ\]][Û‘\Ü^Rİ\œÏ]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û”™\Ù[][Û’İ\œÊİ\œÊKÚİ\œ×JK™XÚ\]][Û‘\Ü^SZ[]\ÌMO]\ÙSY[[Ê
+
+OOœ™XÚ\]][Û”™\Ù[][Û“Z[]\ÌMJZ[]\ÌMJKÛZ[]\ÌMWJKÚYÙ]^˜\™›İYÚ]OY^\ÖÓX]›X^
+X]›Z[Š‹^\Ë›[™İ
+KLJWOË™]K]]ÛX]XÕÚYÙ]^˜\™Ï]\ÙSY[[Ê
+
+OOš^˜\™Êİ\œË[™Yš[™Y[]˜][ÛÏÌ[š][™Yš[™YÚYÙ]^˜\™›İYÚ]JKÚİ\œË[]˜][Û‹[š]ÚYÙ]^˜\™›İYÚ]WJNÂˆÛÛœİ™]šY]Ñ^\Ï]\ÙSY[[Ê
+
+OO™^\ËœÛXÙJŠK›X\
+OØÛÛœİ^Rİ\œÏ\™XÚ\]][Û‘\Ü^Rİ\œË™š[\ŠO[YKœİ\ÕÚ]
+™]JJKÚ\˜Xİ\Y^UÙX]\Ú\˜Xİ\Š^Rİ\œÊK™XÚ\]][Û\ÜÙ\ÜÛY[Y^T™XÚ\]][Û\ÜÙ\ÜÛY[
+^Rİ\œË™XÚ\]][Û‘\Ü^SZ[]\ÌMJK™XÚ\]][Û‘\˜][Û\™XÚ\]][Û‘\˜][Û‘^Sİ™\šY]ÓX™[
+™XÚ\]][Û\ÜÙ\ÜÛY[™\˜][Û’İ\œÊK™XÚ\]][Û‘\˜][ÛÛÛ\Xİ\™XÚ\]][Û‘\˜][Û‘^Sİ™\šY]ĞÛÛ\XİX™[
+™XÚ\]][Û\ÜÙ\ÜÛY[™\˜][Û’İ\œÊNÜ™]\›Ë‹‹™›Ø˜Xš[]Rİ\œÎ™^Rİ\œË™XÚ\]][Û‘\˜][Û‹™XÚ\]][Û‘\˜][ÛÛÛ\Xİœİ›Û™Ù\İZ[R^˜\™ÊÚYÙ]]]ÛX]XÒ^˜\™Ñ›Ü‘^J™]K]]ÛX]XÕÚYÙ]^˜\™Ë[Y^›Û™JJKÚ\˜Xİ\‹^Uš\İX[œ\š[ÙÙX]\•š\İX[
+^T\š[Ùİ\œÑ›Ü‘]J™]K™XÚ\]][Û‘\Ü^Rİ\œÊKYKÚ\˜Xİ\‹˜ÛÙK^UÙX]\Ú\˜Xİ\•^
+Ú\˜Xİ\ŠKÜ™Y™\‘˜[˜XÚĞÛÙNY_JKšYÚš\İX[œ\š[ÙÙX]\•š\İX[
+›ÛİÚ[™ÓšYÚİ\œÑ›Ü‘]J™]K™XÚ\]][Û‘\Ü^Rİ\œÊK˜[ÙKÚ\˜Xİ\‹˜ÛÙKÚ\˜Xİ\‹›X™[
+__JKÙ^\Ë™XÚ\]][Û‘\Ü^Rİ\œË™XÚ\]][Û‘\Ü^SZ[]\ÌMK‹]]ÛX]XÕÚYÙ]^˜\™Ë[Y^›Û™WJKÚYÙ]ÚYSX]›X^
+ŒL
+ÛŠ
+Kİ\™UÚYÙ]ÚYSX]›X^
+ÌMÍŠÛŠŒL
+K™]šY]ÕÚY]šY]ÏOOIÙ[œÙ[X›IÏÌLNšY]ÏOOIØİ\™IÏØİ\™UÚYÙ]ÚYÚYÙ]ÚYÂˆ\ÙQY™™Xİ
+
+
+OOÚYŠ]\›^Ü
+\™]\›Û]Xİ]™O]YNÙØİ[Y[™Øİ[Y[[[Y[™]\Ù]›ZYÚYÙ]™XYOIÜ[™[™ÉÎØÛÛœİX\šÔ™XYOX\Ş[˜Ê
+OOÚYŠ™]šY]Ñ^\Ë›[™İ\›^Ü™^\ß\™Y‹˜İ\œ™[
+\™]\›İ^Ø]ØZ]Øİ[Y[™›ÛÏËœ™XYNØÛÛœİ[XYÙ\ÏP\œ˜^K™œ›ÛJ™Y‹˜İ\œ™[œ]Y\TÙ[XİÜ[
+	Ú[YÉÊJNØ]ØZ]›ÛZ\ÙK˜[
+[XYÙ\Ë›X\
+[XYÙOOš[XYÙK˜ÛÛ\]OÔ›ÛZ\ÙKœ™\ÛÛ™J
+Nš[XYÙK™XÛÙOËŠ
+K˜Ø]Ú
+
+
+OO[™Yš[™Y
+OÏÔ›ÛZ\ÙKœ™\ÛÛ™J
+JJNØ]ØZ]™]È›ÛZ\ÙO›ÚYŠ™\ÛÛ™OOœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOœ™\]Y\İ[š[X][Û‘œ˜[YJ
+
+OOœ™\ÛÛ™J
+JJJ_XØ]ÚßZYŠXXİ]™_\™Y‹˜İ\œ™[
+\™]\›ØÛÛœİ›İ[™Ï\™Y‹˜İ\œ™[™Ù]›İ[™[™ĞÛY[™Xİ
+
+NÚYŠ›İ[™ËÚYL›İ[™ËšZYÚL
+\™]\›ÙØİ[Y[™Øİ[Y[[[Y[™]\Ù]›ZYÚYÙ]™XYOIÜ™XYIÎÜ™Y‹˜İ\œ™[™]\Ù]›ZYÚYÙ]™XYOIÜ™XYIÎİÚ[™İË™\Ü]Ú]™[
+™]Èİ\İÛQ]™[
+	ÛZYÚYÙ]Y^Ü\™XYIËÙ]Z[ÛØØ][Û\›^Ü›ØØ][Û‹œÛYËšY]Î\›^ÜšY]Ë^\Î\›^Ü™^\Ë[YN\›^Ü[YK[\\˜]\™PÛÛÜœÎ\›^Ü[\\˜]\™PÛÛÜœËÚY“X]˜ÙZ[
+›İ[™ËÚY
+KZYÚ“X]˜ÙZ[
+›İ[™ËšZYÚ
+__JJ_Nİ›ÚYX\šÔ™XYJ
+NÜ™]\›Š
+OOØXİ]™OY˜[ÙNÙ[]HØİ[Y[™Øİ[Y[[[Y[™]\Ù]›ZYÚYÙ]™XY__Kİ\›^Ü™]šY]Ñ^\Ë›[™İ™XÚ\]][Û‘\Ü^Rİ\œË›[™İšY]Ë—JNÂˆ\Ş[˜È[˜İ[Ûˆ™[™\•ÚYÙ]›ØŠ
+^ÚYŠ\™Y‹˜İ\œ™[
+\™]\›ˆ[ØÛÛœİ\™Ù]\™Y‹˜İ\œ™[™\İÜ™Tİ™ÔZ[ÏYœ™Y^™UÚYÙ]İ™ÔZ[Ñ›Ü‘^Ü
+\™Ù]
+Nİ^ØÛÛœİİĞ›ØŸOX]ØZ][\Ü
+	Ú[]ËZ[XYÙIÊNÜ™]\›ˆ]ØZ]Ğ›ØŠ\™Ù]Ü^[˜][ÎŒ‹ØXÚP\İYK˜XÚÙÜ›İ[™ÛÛÜ™\šÏÉÈÌÌLLY‰Î‰ÈÙÙ˜™™‰ËÚY\™Ù]œØÜ›ÛÚYZYÚ\™Ù]œØÜ›ÛZYÚJ_Yš[˜[^Ü™\İÜ™Tİ™ÔZ[Ê
+__Bˆ[˜İ[Ûˆ^ÜÙQ›ÜÛÜJ›Ø›ØŠ^ÜÙ]ÛÜR[XYÙJİ\œ™[OÚYŠİ\œ™[
+UT“œ™]›ÚÙSØš™XİT“
+İ\œ™[
+NÜ™]\›ˆT“˜Ü™X]SØš™XİT“
+›ØŠ_JNÜÙ]ÛÜTİ]J	Ù˜[˜XÚÉÊ_Bˆ\Ş[˜È[˜İ[ÛˆÛÜQ›Ü”İÙ\”Ú[
+
+^ÚYŠ\™Y‹˜İ\œ™[
+\™]\›ÜÙ]ÛÜTİ]J	İÛÜšÚ[™ÉÊNÛ]›Ø›ØŸ[[[İ^Ø›ØX]ØZ]™[™\•ÚYÙ]›ØŠ
+NÚYŠX›ØŠ]›İÈ™]È\œ›ÜŠ	Ğš[ÛÛ›HšXÚ\™]YİÙ\™[‹‰ÊNØÛÛœİÛ\›Ø\™][PİÜJÚ[™İÈ\È[JKÛ\›Ø\™][NÚYŠ[˜]šYØ]Ü‹˜Û\›Ø\™ËÜš]_PÛ\›Ø\™][PİÜŠ^Ù^ÜÙQ›ÜÛÜJ›ØŠNÜ™]\›ŸX]ØZ]˜]šYØ]Ü‹˜Û\›Ø\™Üš]JÛ™]ÈÛ\›Ø\™][PİÜŠÉÚ[XYÙKÜ™ÉÎ˜›ØŸJWJNÜÙ]ÛÜTİ]J	ÙÛ™IÊNÜÙ][Y[İ]
+
+
+OOœÙ]ÛÜTİ]Jİ\œ™[O˜İ\œ™[OOIÙÛ™IÏÉÚYIÎ˜İ\œ™[
+KŒ
+_XØ]ÚÚYŠ›ØŠY^ÜÙQ›ÜÛÜJ›ØŠNÙ[ÙHÙ]ÛÜTİ]J	Ù\œ›Ü‰Ê__Bˆ\Ş[˜È[˜İ[Ûˆ™Ê
+^ØÛÛœİ›ØX]ØZ]™[™\•ÚYÙ]›ØŠ
+NÚYŠX›ØŠ\™]\›ØÛÛœİ\›UT“˜Ü™X]SØš™XİT“
+›ØŠKOYØİ[Y[˜Ü™X]Q[[Y[
+	ØIÊNØK™İÛ›ØYXÙ]\‹]ÚYÙ]IÛØË›˜[YKÓİÙ\Ø\ÙJ
+Kœ™\XÙJÖ×˜K^ŒNWJËÙÚK	ËIÊ_KIÛŸ]YÙKœ™ØØKš™Y]\›ØK˜ÛXÚÊ
+NÜÙ][Y[İ]
+
+
+OO•T“œ™]›ÚÙSØš™XİT“
+\›
+KLŒ
+_BˆÛÛœİÛÜPØ\[ÛXÛÜTİ]OOOIİÛÜšÚ[™ÉÏÉÕÚYÙ]Ú\™Ù\™[™\8 )‰Î˜ÛÜTİ]OOOIÙÛ™IÏÉÒ[ˆÚ\ØÚ[˜X›YÙH0­È™][ˆ\ˆšY[[Ù[™[™ÈZ[™°ïÙ[‰Î˜ÛÜTİ]OOOIÙ˜[˜XÚÉÏÉĞœ›İÜÙ\ˆ›ØÚÚY\\™ZİÛÜYH0­Èš[[[ˆ\ˆ™XÚÚÛXÚÈÛÜY\™[‰Î˜ÛÜTİ]OOOIÙ\œ›Ü‰ÏÉÑ^ÜÛÛ›HšXÚ\œİ[Ù\™[‹‰Î‰Ô‘È\™Zİ[ˆYHÚ\ØÚ[˜X›YÙHÛÜY\™[‰ÎÂˆÛÛœİÚYÙ]›Ü™XØ\İÛİ\˜ÙO\™]šY]Ñ^\Ë™š[™
+^OO™^KÙX]\”Ûİ\˜ÙSX™[
+OËÙX]\”Ûİ\˜ÙSX™[	ÓÜ[‹SY][È™\İX]Ú	Ë\ÕÚYÙ]^˜\™Ï\ÚİÒ^˜\™É‰œ™]šY]Ñ^\ËœÛÛYJ^OO™^Kš‹›[™İŒ
+NÂˆËÈÙ\ØÚ0ïH[™\°éÙH\ˆÚYÙ]P]Y]ÎˆÛX[°í™[ˆİÚ[™
+™İ\İ[š]
+_OÜÛX[‚ˆËÈİ\™[›Ü[Ûˆ›ZXZYÙ[œİ0é™YÎˆšY]ÏOOIÙ[œÙ[X›IÏÙ[œÙ[X›T[™[šY]ÏOOIØİ\™IÏÏÙ]™[‘^Pİ\™Sİ™\šY]Âˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH˜Ø\™ÚYÙ]ÚYÙ]Y[X™YY]ˆÛ\ÜÓ˜[YOHÚYÙ]^[İ]\ÚYHÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›ÛÈ]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›ÛËZXY[™ÈÜ[•ÚYÙ]ÜÜ[İ›Û™Ï]\ÙØX™HÙ\İ[[Üİ›Û™ÏÛX[]\İØZÚ\™]]ÛX]\ØÚÙ\ÜZXÚ\ÜÛX[Ù]]ˆÛ\ÜÓ˜[YOHÚYÙ][ØØ][Û‹\™]šY]ÈÜ[“ÜÜÜ[İ›Û™ÏÛØË›˜[Y_OÜİ›Û™ÏÙ]]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›ÛYÜšY]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›ÛYÜ›İ\Ü[ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›Û[X™[–™Z]˜][OÜÜ[X™[•YÙ^İšY]ÏOOIÙ[œÙ[X›IÏÏİ›Û™ÈÛ\ÜÓ˜[YOHÚYÙ]Yš^YY^\ÈŒMYÙOÜİ›Û™ÏÙ[Xİ\šXK[X™[H[˜ZYÙHˆ˜[YO^ÛŸHÛÚ[™ÙO^ÙOOœÙ]Š[X™\ŠK\™Ù]˜[YJH\ÈÚYÙ]^PÛİ[
+_OÕÒQÑUÑVWÓÔSÓ”Ë›X\
+OÜ[ÛˆÙ^O^ŞOŞOÛÜ[ÛŠ_OÜÙ[XİŸOÛX™[Ù]]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›ÛYÜ›İ\Ü[ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›Û[X™[‘\œİ[[™ÏÜÜ[X™[[œÚXÚÙ[Xİ\šXK[X™[H•ÚYÙ]Q\œİ[[™Èˆ˜[YO^İšY]ßHÛÚ[™ÙO^ÙOOœÙ]šY]ÊK\™Ù]˜[YH\ÈÚYÙ]šY]Ê_OÜ[Ûˆ˜[YOH˜Ø\™È’ÛÛ\ZİHYÙOÛÜ[ÛÜ[Ûˆ˜[YOH˜İ\™H’İ\™[°ï™\œÚXÚÛÜ[ÛÜ[Ûˆ˜[YOH™[œÙ[X›HŒMUYÙKQ[œÙ[X›OÛÜ[ÛÜÙ[XİÛX™[Ù]Ù]İšY]ÏOOIÙ[œÙ[X›IÉ‰]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›ÛYÜ›İ\ÚYÙ]Y[œÙ[X›K[Y]šXÈÜ[ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›Û[X™[‘[œÙ[X›H]\İğé[ÜÜ[X™[‘XYÜ˜[[OÙ[Xİ\šXK[X™[H‘[œÙ[X›KQXYÜ˜[[Hˆ˜[YO^Ù[œÙ[X›SY]šXßHÛÚ[™ÙO^ÙOOœÙ][œÙ[X›SY]šXÊK\™Ù]˜[YH\È[œÙ[X›Q\Ü^SY]šXÊ_OÜ[Ûˆ˜[YOH[\\˜]\™H•[\\˜]\ÛÜ[ÛÜ[Ûˆ˜[YOHœ™XÚ\]][Ûˆ“šYY\œØÚYÏÛÜ[ÛÜ[Ûˆ˜[YOHÚ[™•Ú[™Ğ°í™[ÛÜ[ÛÜÙ[XİÛX™[Ù]ŸOX™[Û\ÜÓ˜[YOHÚYÙ]][YK]ÙÙÛH[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Ù\šßHÛÚ[™ÙO^ÙOOœÙ]\šÊK\™Ù]˜ÚXÚÙY
+_KÏÜ[‘[šÛ\ÈÚYÙ]ÜÜ[ÛX™[İšY]ÈOOIÙ[œÙ[X›IÉ‰]ˆÛ\ÜÓ˜[YOHÚYÙ][Ü[Û‹YÜ›İ\Ü[ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛ›Û[X™[‘Z[˜›[™[ÜÜ[]ˆÛ\ÜÓ˜[YOHÚYÙ][Ü[Û‹YÜšYX™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ÜÚİÕÚ[™HÛÚ[™ÙO^ÙOOœÙ]ÚİÕÚ[™
+K\™Ù]˜ÚXÚÙY
+_KÏÜ[•Ú[™ÜÜ[ÛX™[X™[]O^İšY]ÏOOIØİ\™IÏÉÔİ]Y\šYY\œØÚYÈ[ˆÚŞX˜\ˆ[™ğé[[™XYÜ˜[[IÎ‰Ôİ]Y\šYY\œØÚYÜİÙ\IßO[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ÜÚİÔ˜Z[ŸHÛÚ[™ÙO^ÙOOœÙ]ÚİÔ˜Z[ŠK\™Ù]˜ÚXÚÙY
+_KÏÜ[“šYY\œØÚYÏÜÜ[ÛX™[X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ÜÚİÔİ[œÚ[™_HÛÚ[™ÙO^ÙOOœÙ]ÚİÔİ[œÚ[™JK\™Ù]˜ÚXÚÙY
+_KÏÜ[”ÛÛ›™[œØÚZ[ÜÜ[ÛX™[X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ÜÚİÒ^˜\™ßHÛÚ[™ÙO^ÙOOœÙ]ÚİÒ^˜\™ÊK\™Ù]˜ÚXÚÙY
+_KÏÜ[’^˜\™ÏÜÜ[ÛX™[X™[]OH•Z[‹ÕX^[H^ÜZ]\ˆÙ\˜\ÚY\[ˆPÓUÑ‹U[\\˜]\œ[]H\œİ[[ˆ[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ÙXÛ]Ù•[\\˜]\™PÛÛÜœßHÛÚ[™ÙO^ÙOOœÙ]XÛ]Ù•[\\˜]\™PÛÛÜœÊK\™Ù]˜ÚXÚÙY
+_KÏÜ[‘PÓUÑ‹U[\\˜]\™˜\˜™[ÜÜ[ÛX™[Ù]Ù]ŸOÛX[Û\ÜÓ˜[YOHÚYÙ]Z[[›İHİšY]ÏOOIÙ[œÙ[X›IÏØZYÙ[œİ0é™YÙ\ÈMUYÙKQXYÜ˜[[Nˆ	Ù[œÙ[X›SY]šXÏOOIİ[\\˜]\™IÏÉÕ[\\˜]\‰Î™[œÙ[X›SY]šXÏOOIÜ™XÚ\]][Û‰ÏÉÓšYY\œØÚYÉÎ‰ÕÚ[™Ğ°í™[‰ßK˜šY]ÏOOIØİ\™IÏÉÕYÙ\ÚÛÜ‹ZİÙÜ˜[[YKZ[‹ÕX^ÚŞX˜\‹[\\˜]\šİ\™H[™šYY\œØÚYÜÜğé[[‹‰Î‰ÒÛÛ\ZİHYÙ\ÚØ\[ˆZ][ˆÙ]ğé[ˆ\Ø]Ù\[‹‰ßOÜÛX[]ˆÛ\ÜÓ˜[YOHÚYÙ]Y^ÜXXİ[ÛœÈ]ÛˆÛ\ÜÓ˜[YOHœš[X\Hˆ\ØX›Y^ØÛÜTİ]OOOIİÛÜšÚ[™ÉßHÛÛXÚÏ^Ê
+OO›ÚYÛÜQ›Ü”İÙ\”Ú[
+
+_OÛ\›Ø\™ÛÜHÚ^™O^ÌMßKÏØÛÜTİ]OOOIİÛÜšÚ[™ÉÏÉÕÚ\™ÛÜY\8 )‰Î‰Ò[ˆÚ\ØÚ[˜X›YÙHÛÜY\™[‰ßOØ]Û]ÛˆÛ\ÜÓ˜[YOHœÙXÛÛ™\HˆÛÛXÚÏ^Ê
+OO›ÚY™Ê
+_OİÛ›ØYÚ^™O^ÌMßKÏ”‘È\[\›Y[Ø]ÛÙ]ÛX[Û\ÜÓ˜[YO^ØÚYÙ]XÛÜK\İ]\È	ØÛÜTİ]_XOØÛÜPØ\[ÛŸOÜÛX[ØÛÜR[XYÙI‰˜ÛÜTİ]OOOIÙ˜[˜XÚÉÉ‰]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÜKY˜[˜XÚÈ[YÈÜ˜Ï^ØÛÜR[XYÙ_H[H‘Ù\™[™\\ÈRQUÚYÙ][HÛÜY\™[ˆ‹ÏÛX[”™XÚÚÛXÚÈ™^šYZ[™ÜİÙZ\ÙH[™Ù\È°ïÚÙ[ˆ]Yˆ\Èš[8¡¤ˆ8 'š[ÛÜY\™[¸ '[˜XÚ[ˆİÙ\”Ú[Z[™°ïÙ[‹ÜÛX[Ù]ŸOØ\ÚYO]ˆÛ\ÜÓ˜[YOHœ™]šY]ÈÚYÙ]\™]šY]È]ˆ™Y^Ü™YŸHİ[O^ŞİÚY˜	Ü™]šY]ÕÚY\_HÛ\ÜÓ˜[YO^ØÙX]\ÚYÙ][Ù\›ˆÛÛ\Xİ	Ù\šÏÉÙ\šÉÎ‰ÛYÚ	ßH	Ú\ÕÚYÙ]^˜\™ÏÉÚ^˜\™Ë[Û‰Î‰Ú^˜\™Ë[Ù™‰ßH	ÙXÛ]Ù•[\\˜]\™PÛÛÜœÏÉİ[\\˜]\™KXÛÛÜœËYXÛ]Ù‰Î‰İ[\\˜]\™KXÛÛÜœË\İ[™\™	ßHÚYÙ]]šY]ËIİšY]ßXOİšY]ÏOOIÙ[œÙ[X›IÏÙ[œÙ[X›T[™[ËŠ[œÙ[X›SY]šXÊNšY]ÏOOIØİ\™IÏÏÙ]™[‘^Pİ\™Sİ™\šY]È^\Ï^Ü™]šY]Ñ^\ßHİ\œÏ^Ü™XÚ\]][Û‘\Ü^Rİ\œßH™\Ù[][Û”™XYHÙ[XİY]O^Ü™]šY]Ñ^\ÖÌOË™]OÏÉÉßHÛ”Ù[XİY]O^Ê
+OO[™Yš[™YHÚİÔ˜Z[^ÜÚİÔ˜Z[ŸHÚİÔİ[œÚ[™O^ÜÚİÔİ[œÚ[™_HÚİÕÚ[™^ÜÚİÕÚ[™HXÛ]Ù•[\\˜]\™PÛÛÜœÏ^ÙXÛ]Ù•[\\˜]\™PÛÛÜœßH^˜\™ĞQ]O^ÜÚİÒ^˜\™ÏÓØš™Xİ™œ›ÛQ[šY\Ê™]šY]Ñ^\Ë›X\
+^OO–Ù^K™]K^Kš—JJN[™Yš[™YH[š]^İ[š]KÏXY\]Ü[“RQÚYÙ]ÜÜ[İ›Û™ÏÛØË›˜[Y_OÜİ›Û™ÏÛX[Ù›Ü›X]XÚ[X[
+ØË›]]YK‹Š_p¬‹Ù›Ü›X]XÚ[X[
+ØË›Û™Ú]YK‹Š_p¬H0­ÈÓX]œ›İ[™
+[]˜][ÛÏÌ
+_HH0ïˆ’ˆ0­ÈÜŞ™Z]İ[Y^›Û™PX˜œ™]šX][ÛŸ[Y^›Û™_OÜÛX[Ù]ÛŸKUYÙKP]\Ø›XÚÏØÚXY\]ˆÛ\ÜÓ˜[YO^ØÚYÙ]ÜšY^\ËIÛŸXOÜ™]šY]Ñ^\Ë›X\
+O\XÛHÙ^O^Ù™]_HÛ\ÜÓ˜[YOHÚYÙ]^H]ˆÛ\ÜÓ˜[YOHÚYÙ]^KZXYİ›Û™ÏÙ›Ü›X]]SÛ›J™]KİÙYZÙ^N‰ÜÚÜ	ßJ_OÜİ›Û™ÏÛX[Ù›Ü›X]]SÛ›J™]KÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ßJ_OÜÛX[Ù]]ˆÛ\ÜÓ˜[YOHÚYÙ]XÛÛˆ\š[Ù]ÚYÙ]ZXÛÛˆÙX]\”\š[ÙXÛÛœÈ^Uš\İX[^Ù™^Uš\İX[HšYÚš\İX[^Ù›šYÚš\İX[H^TÚ^™O^ÍHšYÚÚ^™O^ÌKÏÙ]ˆÛ\ÜÓ˜[YOHÚYÙ]X™[Ù˜Ú\˜Xİ\‹›X™[OØ]ˆÛ\ÜÓ˜[YOHÚYÙ][\ÈÊ
+
+OOØÛÛœİX^Û™OYXÛ]Ù•[\\˜]\™UÛ™J›X^
+KZ[•Û™OYXÛ]Ù•[\\˜]\™UÛ™J›Z[ŠNÜ™]\›ˆİ›Û™ÈÛ\ÜÓ˜[YO^ÙXÛ]Ù•[\\˜]\™PÛÛÜœÏÉİÚYÙ]][\YXÛ]Ù‰Î[™Yš[™YHİ[O^ÙXÛ]Ù•[\\˜]\™PÛÛÜœÏŞÉËK]ÚYÙ]][\XÛÛÜ‰Î›X^Û™K˜ÛÛÜ‹	ËK]ÚYÙ]][\X˜XÚÙÜ›İ[™	Î›X^Û™K˜˜XÚÙÜ›İ[™	ËK]ÚYÙ]][\X›Ü™\‰Î›X^Û™K˜›Ü™\ŸH\ÈÔÔÔ›Ü\Y\Î[™Yš[™YOÓX]œ›İ[™
+›X^
+_p¬Üİ›Û™Ï[HÛ\ÜÓ˜[YO^ÙXÛ]Ù•[\\˜]\™PÛÛÜœÏÉİÚYÙ]][\YXÛ]Ù‰Î[™Yš[™YHİ[O^ÙXÛ]Ù•[\\˜]\™PÛÛÜœÏŞÉËK]ÚYÙ]][\XÛÛÜ‰Î›Z[•Û™K˜ÛÛÜ‹	ËK]ÚYÙ]][\X˜XÚÙÜ›İ[™	Î›Z[•Û™K˜˜XÚÙÜ›İ[™	ËK]ÚYÙ]][\X›Ü™\‰Î›Z[•Û™K˜›Ü™\ŸH\ÈÔÔÔ›Ü\Y\Î[™Yš[™YOÓX]œ›İ[™
+›Z[Š_p¬Ù[OÏŸJJ
+_OÙ]]ˆÛ\ÜÓ˜[YOHÚYÙ]Y]HÜÚİÔ˜Z[‰‰Ü[ˆÛ\ÜÓ˜[YOHÚYÙ]Y]K\˜Z[ˆˆ]O^Ø	ÙZ[T™XÚ\]][Û”›Ø˜Xš[]U]Jœ›Ø˜Xš[]Rİ\œÊ_H0­ÈšYY\œØÚYÜÙ]Y\ˆ	Ùœ™XÚ\]][Û‘\˜][ÛŸXO›Ü]ÈÚ^™O^ÌLŸKÏÜ™XÚ\]][Û[[İ[X™[
+
+_OØÛX[ÙZ[T™XÚ\]][Û”›Ø˜Xš[]PÛÛ\Xİ
+œ›Ø˜Xš[]Rİ\œÊ_^Ùœ™XÚ\]][Û‘\˜][ÛÛÛ\XİØ0­È	Ùœ™XÚ\]][Û‘\˜][ÛÛÛ\XİX‰ÉßOÜÛX[ÜÜ[Ÿ^ÜÚİÔİ[œÚ[™I‰Ü[ˆÛ\ÜÓ˜[YOHÚYÙ]Y]K\İ[ˆˆ]O^ØÛÛ›™[œØÚZ[™]Y\ˆ	Üİ[œÚ[™UÚÛRİ\œÓX™[
+œİ[œÚ[™Q\˜][ÛŠ_XH\šXK[X™[^ØÛÛ›™[œØÚZ[™]Y\ˆ	Üİ[œÚ[™UÚÛRİ\œÓX™[
+œİ[œÚ[™Q\˜][ÛŠ_XOİ[ˆÚ^™O^ÌLŸKÏÜİ[œÚ[™UÚÛRİ\œÓX™[
+œİ[œÚ[™Q\˜][ÛŠ_OØÜÜ[Ÿ^ÜÚİÕÚ[™	‰Ü[ˆÛ\ÜÓ˜[YO^ØÚYÙ]Y]K]Ú[™Ø\›š[™ËIÙÙÚ[™Ø\›š[™Ó]™[İ
+™İ\İ
+_XOÚ[™Ú^™O^ÌLŸKÏÚ[™\™Xİ[Û\œ›İÈÛ\ÜÓ˜[YOHÚYÙ]]Ú[™X\œ›İÈˆ\™Xİ[Û^Ù™\™Xİ[ÛŸHİ\İ^Ù™İ\İKÏÜ[ˆÛ\ÜÓ˜[YOHÚYÙ]]Ú[™]˜[YHİÚ[™
+Ú[™[š]
+_OÜÜ[ØÛX[ˆÛ\ÜÓ˜[YOHÚYÙ]Yİ\İ[X™[°í™[ØˆÜ[ˆÛ\ÜÓ˜[YOHÚYÙ]Yİ\İ]˜[YHİÚ[™
+™İ\İ[š]
+_OÜÜ[ÜÛX[ÜÜ[ŸOÙ]ÜÚİÒ^˜\™É‰™š‹›[™İÏ]ˆÛ\ÜÓ˜[YOHÚYÙ]^˜\™ÈÙš‹›X\
+
+JOOÜ[ˆÙ^O^Ú_HÛ\ÜÓ˜[YO^Ú›]™[H]O^Ø	Ú]_Nˆ	Ú™]Z[XOÚœŞ[X›Û^Ú˜[YOØ	Ú˜[Y_X‰ÉßOÜÜ[Š_OÙ]›[OØ\XÛOŠ_OÙ]ÏŸO›Ûİ\Ü[İÚYÙ]›Ü™XØ\İÛİ\˜Ù_H0­ÈRQÕ‘T”ÒSÓŸOÜÜ[Ü[Ù›Ü›X][–›Û™J™]È]J
+K[Y^›Û™KÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	ËYX\‰Û[Y\šXÉßJ_OÜÜ[Ù›Ûİ\Ù]Ù]Ù]ÜÙXİ[Û‚ŸB™[˜İ[Ûˆ›Ü›X][Ù[[•[YJ˜[YOÎœİš[™Ê^Ü™]\›ˆ˜[YOÙ›Ü›X]\Ü^Q]U[YJ˜[YK[™Yš[™YÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	Ëİ\‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJN‰ø $ÉßB™[˜İ[Ûˆ›Ü›X]]˜Z[Xš[]U[YJ˜[YOÎœİš[™Ê^ÚYŠ]˜[YJ\™]\›‰ø $ÉÎØÛÛœİ[™]È]J˜[YJNÚYŠS[X™\‹š\Ñš[š]J™Ù][YJ
+JJ\™]\›‰ø $ÉÎØÛÛœİ™XÙ[Q]K››İÊ
+KY™Ù][YJ
+ON
+ŒÍŒÜ™]\›ˆ›Ü›X]\Ü^Q]U[YJ[™Yš[™Y™XÙ[ŞÚİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßNÙ^N‰Ì‹YYÚ]	Ë[Û‰Ì‹YYÚ]	Ëİ\‰Ì‹YYÚ]	ËZ[]N‰Ì‹YYÚ]	Ëİ\ŞXÛN‰ÚŒÉßJ_B™[˜İ[Ûˆ[Ù[\ØYÙSX™[
+›İÎ“[Ù[[“Y]J^Ü™]\›ˆ›İË\ØYÙTİ]\ÏOOIØXİ]™IÏÉĞZİ]‰Îœ›İË\ØYÙTİ]\ÏOOIÙ˜[˜XÚÉÏÉÑ˜[˜XÚÉÎœ›İË\ØYÙTİ]\ÏOOIØY\\‹[›İXÛÛ™šYİ\™Y	ÏÉĞY\\ˆ™Z	Îœ›İË\ØYÙTİ]\ÏOOIİ[˜]˜Z[X›IÏÉÓšXÚ™\™°ïØ˜\‰Îœ›İË\ØYÙTİ]\ÏOOIÜ™\Ù\™IÏÉÔ™\Ù\™IÎ‰ÉßB™[˜İ[Ûˆ[Ù[[‘^˜J›İÎ“[Ù[[“Y]J^ØÛÛœİØY[˜ÙO\›İË\]R[\˜[ÙXÛÛ™É‰œ›İË\]R[\˜[ÙXÛÛ™ÏLÍŒÉÜİ0ï™XÚ\ˆ]Y‰Îœ›İË\]R[\˜[ÙXÛÛ™ÏØ]Yˆ[H	ÓX]›X^
+KX]œ›İ[™
+›İË\]R[\˜[ÙXÛÛ™ËÌÍŒ
+J_H‰ÉÎØÛÛœİ™\ÛÛ][Û’ÛOS[X™\Š›İËœ™\ÛÛ][Û’ÛJKÜš^›Û’İ\œÏS[X™\Š›İË™›Ü™XØ\İÜš^›Û’İ\œÊKXÏKÚXÛÛ–ËW×OÙ–ËW×OÜXËÚK\İ
+›İËšY
+NØÛÛœİ™\ÛÛ][ÛS[X™\‹š\Ñš[š]J™\ÛÛ][Û’ÛJOØ	Ù›Ü›X]XÚ[X[
+™\ÛÛ][Û’ÛK™\ÛÛ][Û’ÛOÌNŒ™\ÛÛ][Û’ÛOÌNŒ
+_HÛX‰ÉÎØÛÛœİÜš^›ÛS[X™\‹š\Ñš[š]JÜš^›Û’İ\œÊOØš\È
+ÉÓX]œ›İ[™
+Üš^›Û’İ\œÊ_H‰ÉÎÜ™]\›ˆÜXÏÉÑÑ•PÉÎœ›İËœ˜\Y\]OÉÔ˜\Y\]IÎ‰ÉËØY[˜ÙK™\ÛÛ][Û‹Üš^›Û‹›İË˜]˜Z[Xš[]SÛ›OÉÛ\ˆ]Y™\™°ïØ˜\šÙZ]\šØ[›	Î‰ÉË›İËœİ]\Ó›İOÏÉÉ×K™š[\Š›ÛÛX[ŠKš›Ú[Š	È0­È	Ê_B™[˜İ[Ûˆ[Ù[[‘]Z[ÊÚÚ[™[™›Ë[œÏV×_NÚÚ[™‰Ø™\İ	ß	Ù[œÙ[X›IÎÚ[™›ÏÎ™\İX]Ú[Ù[[™›ß[Ü[œÏÎ“[Ù[[“Y]V×_J^ÂˆÛÛœİ›İÜÏZÚ[™OOIØ™\İ	ÏÊ[™›ÏËœ[œÏÏÖ×JNœ[œË]Û”™Y]\ÙT™YS]Û‘[[Y[Š[
+KÛÜ[‹Ù]Ü[—O]\ÙTİ]J˜[ÙJNÂˆ™]\›ˆÜ[ˆÛ\ÜÓ˜[YOH›[Ù[\[‹Y]Z[È]Ûˆ™Y^Ø]Û”™YŸH\OH˜]ÛˆˆÛ\ÜÓ˜[YOH›[Ù[\[‹X]Ûˆˆ]OH“[Ù[0éY™H[™][œİ[™[™ZYÙ[ˆˆ\šXK[X™[H“[Ù[İ0é™H[™ZYÙ[ˆˆ\šXKY^[™Y^ÛÜ[ŸHÛÛXÚÏ^Ù]™[OÙ]™[œ™]™[Y˜][
+
+NÙ]™[œİÜ›ÜYØ][ÛŠ
+NÜÙ]Ü[Š
+˜[YN˜›ÛÛX[ŠOOˆ]˜[YJ__O¸¤æ[Ù[İ0é™OØ]ÛÜ[Üİ™\ˆ[˜ÚÜ”™Y^Ø]Û”™YŸHÜ[^ÛÜ[ŸHÛÛÜÙO^Ê
+OOœÙ]Ü[Š˜[ÙJ_HÛ\ÜÓ˜[YOH›[Ù[\[‹\Üİ™\ˆˆÚY^ÍŒOÚÚ[™OOIØ™\İ	ÏÏİ›Û™Ï™\İX]Ú
+ÈRQRİ\™œš\İ\Ú[ÛÜİ›Û™ÏÚ[™›ÏËœİ[[X\OÏÉÓ[Ù[[™›Ü›X][Û™[ˆÙ\™[ˆÙ[Y[ˆ8 )‰ßOÜÚ[™›ÏË˜Ø[™Y]S[Ù[É‰Û\ÜÓ˜[YOH›[Ù[\[‹XÚZ[ˆ[Hİ[™Ü™[]˜[H˜\YKÔ™YÚ[Û˜[[Ù[NØˆÚ[™›Ë˜Ø[™Y]S[Ù[ßOÜŸOÏİ›Û™Ï‘[œÙ[X›H0­È]Y[[œİ]\ÏÜİ›Û™ÏZİ]ˆ™\Ù[™]H[Ù[HÙ\™[ˆ]XÚÚ™H]Y›Y]Y][ˆ[™Ù^™ZYİˆ˜[˜XÚÜËšXÚÛÛ™šYİ\šY\HY\\‹™ZÙ\ØÚYÙ[™HXœY™H[™™\Ù\™\˜YHÚ[™Ù]™[›X\šÚY\ÜÏŸ^Ü›İÜË›[™İÏ]ˆÛ\ÜÓ˜[YOH›[Ù[\[‹[\İÜ›İÜË›X\
+›İÏO]ˆÛ\ÜÓ˜[YO^Ø[Ù[\[‹\›İÉÜ›İËœ˜\Y\]OÉÈ˜\Y]\]IÎ‰ÉßXHÙ^O^Ø	Ü›İËšÚ[™N‰Ü›İËšYXOÜ[Ü›İË›X™[^ËÚXÛÛ–ËW×OÙ–ËW×OÜXËÚK\İ
+›İËšY
+OÏ[HÛ\ÜÓ˜[YOH›[Ù[\˜\YX˜YÙH”•PÏÙ[Oœ›İËœ˜\Y\]OÏ[HÛ\ÜÓ˜[YOH›[Ù[\˜\YX˜YÙH”˜\YÙ[O›[^Û[Ù[\ØYÙSX™[
+›İÊOÏ[HÛ\ÜÓ˜[YO^Ø[Ù[]\ØYÙKX˜YÙHİ]\ËIÜ›İË\ØYÙTİ]\ßXOÛ[Ù[\ØYÙSX™[
+›İÊ_OÙ[O›[OÜÜ[Ü›İË›Y]Y]U[˜]˜Z[X›OÏÛX[“]Y›Y]Y][ˆ\™Z]šXÚXœY˜˜\ÜÛX[ÛX[’[š]X[\ÚY\[™ÈÙ›Ü›X][Ù[[•[YJ›İËš[š]X[\Ø][Û•[YJ_H0­È™\™°ïØ˜\ˆÙZ]Ù›Ü›X]]˜Z[Xš[]U[YJ›İË˜]˜Z[Xš[]U[YJ_^Ü›İË›Y]Y]TÛİ\˜ÙOØ0­È	Ü›İË›Y]Y]TÛİ\˜Ù_X‰ÉßOÜÛX[Ÿ^Û[Ù[[‘^˜J›İÊOÏÛX[Û\ÜÓ˜[YOH›[Ù[\[‹Y^˜HÛ[Ù[[‘^˜J›İÊ_OÜÛX[›[OÙ]Š_OÙ]ÛX[Û\ÜÓ˜[YOH›[Ù[\[‹Y[\H’ÙZ[™HZİY[[‹]\ÚX›[ˆ[Ù[Y]Y][ˆ™\™°ïØ˜\‹ÜÛX[ŸOÔÜ[Üİ™\ÜÜ[‚ŸB™[˜İ[Ûˆ]JÙ^YK]KÚ[™[ŸNÙ^YNœİš[™Îİ]Nœİš[™ÎØÚ[™[Î”™XXİ›Ù_J^Ü™]\›ˆXY\ˆÛ\ÜÓ˜[YOH]H]Ü[Ù^Y_OÜÜ[İ]_OÚÙ]ØÚ[™[‰‰]ˆÛ\ÜÓ˜[YOH]K]ÛÛÈØÚ[™[ŸOÙ]ŸOÚXY\ŸB
