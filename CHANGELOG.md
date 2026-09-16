@@ -1,3 +1,11 @@
+# MID v0.9.85.17
+
+## MID-C5 · schnellere lokale Lage und belastbare Zugspuren
+
+- Der aktuelle Standortstand erhält amtliche Stationsquellen im schnellen Pfad parallel zur Sammelabfrage. Die vollständige Gelände-/Oberflächenanalyse verfeinert danach weiter, ohne die erste sichtbare Korrektur aufzuhalten.
+- Der Radar-Nowcast liefert den schnellen DWD-Standortabgleich früher aus. Scheitert die Startvorladung, startet MID automatisch einen frischen Schnellversuch und anschließend wie bisher die vollständige Kalibrierung mit Radar, Stations- und Qualitätsabgleich.
+- KONRAD3D-Zellen und ihre prognostizierten Zugkorridore sind auf neuen Kartenansichten direkt sichtbar. Die gestrichelte Spur markiert nun alle 15 Minuten mit relativer und optional absoluter Zeit; Unsicherheitsellipsen bleiben klar getrennt vom beobachteten Zellbereich.
+
 # MID v0.9.85.15
 
 ## MID-C3 · Schritt 3: Aktuell, Heute und Tagesprofil

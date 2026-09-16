@@ -747,10 +747,19 @@ function rememberStationCandidates(key:string,rows:Station[]){if(!rows.length)re
 function recentStationCandidates(key:string,maxAgeMs=6*60000){const snapshot=stationCandidateSnapshots.get(key);return snapshot&&Date.now()-snapshot.at<=maxAgeMs?snapshot.rows:[]}
 async function stationUncached(lat:number,lon:number,country?:string,elevation?:number,context?:Location,signal?:AbortSignal,fast=false):Promise<Station|null>{
  const c=countryCodeFromLocation(country),snapshotKey=stationCandidateSnapshotKey(lat,lon,c),inGermany=c==='DE'||(!c&&lat>=47.2&&lat<=55.2&&lon>=5.5&&lon<=15.6),metarRadiusKm=inGermany?140:220,workerStationsAvailable=workerBaseCandidates('metar').length>0,metarTask=fast?metarStations(lat,lon,metarRadiusKm,signal,true,c):metarStations(lat,lon,metarRadiusKm,signal,false,c),tasks:Promise<Station[]|Station|null>[]=[metarTask];
+ // Der sichtbare Erststand darf nicht auf eine langsame Sammelantwort warten. Für den
+ // Fast-Pass laufen die amtlichen Punktquellen daher parallel zum Worker; der Full-Pass
+ // ergänzt sie weiterhin nur bei tatsächlich fehlender Abdeckung.
+ if(fast&&workerStationsAvailable&&geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
  if(!workerStationsAvailable&&geoSphereApplies(lat,lon,c))tasks.push(geoSphereStation(lat,lon,elevation,signal));
+ if(fast&&workerStationsAvailable&&inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
  if(!workerStationsAvailable&&inGermany)tasks.push(brightSkyStation(lat,lon,elevation,signal));
- const settled=await Promise.allSettled(tasks);let results=settled.filter((x):x is PromiseFulfilledResult<Station[]|Station|null>=>x.status==='fulfilled').flatMap(x=>Array.isArray(x.value)?x.value:x.value?[x.value]:[]);
- if(workerStationsAvailable){const fallbacks:Promise<Station|null>[]=[];if(geoSphereApplies(lat,lon,c)&&!results.some(item=>/geosphere/i.test(String(item.provider||''))))fallbacks.push(geoSphereStation(lat,lon,elevation,signal));if(inGermany&&!results.some(item=>/dwd synop|dwd open data|bright sky/i.test(String(item.provider||''))))fallbacks.push(brightSkyStation(lat,lon,elevation,signal));if(fallbacks.length){const extra=await Promise.allSettled(fallbacks);results=[...results,...extra.filter((item):item is PromiseFulfilledResult<Station|null>=>item.status==='fulfilled').flatMap(item=>item.value?[item.value]:[])]}}
+ const completed:(Station[]|Station|null)[]=[],observedTasks=tasks.map(task=>task.then(value=>{completed.push(value);return value})),settled=Promise.allSettled(observedTasks);
+ // Nach 1,6 s wird ein bereits vorliegender amtlicher Punktstand sichtbar. Der
+ // anschließende Full-Pass bleibt die alleinige Quelle für die teurere Restfeldanalyse.
+ if(fast)await Promise.race([settled,new Promise<void>(resolve=>setTimeout(resolve,1600))]);else await settled;
+ let results=completed.flatMap(value=>Array.isArray(value)?value:value?[value]:[]);
+ if(workerStationsAvailable&&!fast){const fallbacks:Promise<Station|null>[]=[];if(geoSphereApplies(lat,lon,c)&&!results.some(item=>/geosphere/i.test(String(item.provider||''))))fallbacks.push(geoSphereStation(lat,lon,elevation,signal));if(inGermany&&!results.some(item=>/dwd synop|dwd open data|bright sky/i.test(String(item.provider||''))))fallbacks.push(brightSkyStation(lat,lon,elevation,signal));if(fallbacks.length){const extra=await Promise.allSettled(fallbacks);results=[...results,...extra.filter((item):item is PromiseFulfilledResult<Station|null>=>item.status==='fulfilled').flatMap(item=>item.value?[item.value]:[])]}}
  if(!results.length)return null;
  // Fast- und Full-Pass besitzen absichtlich getrennte Antwortcaches, weil nur der
  // Full-Pass optionale private/professionelle Netze ergänzt. Dadurch darf aber ein
@@ -798,8 +807,8 @@ function radarRetryDelay(signal?:AbortSignal){
  return new Promise<void>((resolve,reject)=>{let settled=false;const finish=(error?:unknown)=>{if(settled)return;settled=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);error===undefined?resolve():reject(error)},abort=()=>finish(signal?.reason??new DOMException('Vorgang abgebrochen.','AbortError')),timer=setTimeout(()=>finish(),700);signal?.addEventListener('abort',abort,{once:true})});
 }
 async function requestRadarStage(params:{lat:number;lon:number;country:string;_ts:number},stage:'dwd'|'rainviewer',signal?:AbortSignal,fast=false){
- try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?8000:14000):16000})}
- catch(firstError){abortError(signal);await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?11000:18000):20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
+ try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?4500:14000):16000})}
+ catch(firstError){abortError(signal);if(fast){void firstError;return null}await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?18000:20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
 }
 
 
