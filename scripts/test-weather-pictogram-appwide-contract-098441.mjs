@@ -54,7 +54,7 @@ assert.ok(warnings.includes('liquidPrecipitation')&&!warnings.includes('[95,96,9
 // 4) Present Weather from fresh observations reaches the shared renderer and main views.
 assert.ok(types.includes('presentWeather?:string'),'Stationsmodell muss Present Weather tragen.');
 assert.ok(obs.includes('function metarPresentWeather')&&obs.includes('presentWeather:metarPresentWeather(r)')&&obs.includes('function representativePresentWeather'),'Beobachtungspfad muss Present Weather dekodieren und repräsentativ weitergeben.');
-assert.ok(app.includes('currentObservedPhenomenon')&&app.includes('synopticPhenomenonDescription')&&app.includes('phenomenon={currentObservedPhenomenon??currentPrecip.phenomenon}'),'Aktuelles Wetter muss frisches Present Weather an WeatherPictogram geben.');
+assert.ok(app.includes('currentObservedPhenomenon')&&app.includes('synopticPhenomenonDescription')&&app.includes('phenomenon={currentObservedPhenomenon??reconciledCurrentPrecip.phenomenon}'),'Aktuelles Wetter muss frisches Present Weather an WeatherPictogram geben.');
 for(const [name,source,token] of [['Kurzfrist',shortTerm,'weatherPhenomenon'],['Event-Engine',eventEngine,'weatherPhenomenon'],['Event-Center',eventCenter,'weatherPhenomenon'],['Event-UI',eventPanel,'weatherPhenomenon'],['Route',route,'phenomenon'],['Route-UI',routePanel,'phenomenon'],['Wasser',water,'phenomenon'],['Detail',detail,'phenomenon'],['Periode',period,'phenomenon'],['Cockpit',cockpit,'weatherPhenomenon']]){
  assert.ok(source.includes(token),`${name} verliert die appweite phenomenon-Information.`);
 }

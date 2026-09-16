@@ -1,3 +1,10 @@
+# MID v0.9.85.20
+
+## MID-C6 · aktueller Niederschlagsabgleich
+
+- Ein frischer DWD-Radarwert von 0 mm/h gilt jetzt ausdrücklich als trockener Standortbefund. MID fällt dann weder auf einen älteren Modell-Schauercode zurück noch zeigt es eine davon abgeleitete Intensität.
+- Bei realem Radarsignal bleiben Art und Intensität unverändert aus dem geprüften, aktuellen Niederschlagszustand abgeleitet.
+
 # MID v0.9.85.19
 
 ## MID-C6 · Schritt 4: ein Prognose-Arbeitsraum
