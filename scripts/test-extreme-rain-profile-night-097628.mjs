@@ -21,7 +21,7 @@ need('Extrem-UI',panel,'function rainMetricDisplay(metric:ResolvedExtremeSignal[
 need('Extrem-UI',panel,"if(signal.hazard==='rain')return`${threshold} · ${source} ${rainMetricLabel(metric)}`");
 need('Extrem-UI',panel,"['Intensitätsschwelle',threshold]");
 need('Extrem-UI',panel,"[`${source} Akkumulation`,rainMetricLabel(metric)]");
-need('Extrem-UI',panel,"['Schwellenchance',probabilityEvidenceLabel(signal)]");
+need('Extrem-UI',panel,"['Eintrittswahrscheinlichkeit',probabilityEvidenceLabel(signal)]");
 need('Extrem-UI',panel,'EPS-Streuung Akkumulation');
 need('Extrem-UI',panel,"['Geländehöhe',terrainElevationLabel(metric.elevationM)]");
 
