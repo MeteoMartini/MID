@@ -35,7 +35,7 @@ try{
  const executable=inlineSunshineDurationContract(blendSource).replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};").replace("import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>input;").replace("import {precipitationPresentationHours} from './precipitationIntervals';","const precipitationPresentationHours=hours=>hours;").replace("import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';","const readStoredJsonCache=()=>undefined;const writeStoredJsonCache=()=>false;").replace("import type {Day,Hour,RadarNowcast,RadarNowcastFrame,ThunderstormNowcast} from './weather';",'');
  const compiled=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},fileName:'forecastFusion.ts'}).outputText;
  const modulePath=join(directory,'radarBlend.mjs');writeFileSync(modulePath,compiled);
- const {blendRadarAtTarget}=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);
+ const {blendRadarAtTarget,finalizeForecastMinute15}=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);
  const now=Date.now(),radar={source:'dwd',provider:'DWD',quality:'high',radarProbability:96,currentRate:177.6,peakRate:177.6,coverage:true,arrivalMinutes:0,endMinutes:180,summary:'Test'};
  const quarter=blendRadarAtTarget({radar,targetEpoch:now+75*60000,intervalMinutes:15,modelAmount:.1,modelProbability:20,now});
  assert.equal(quarter?.mode,'direct','75-Minuten-Punkt muss im direkten Radarfenster liegen.');
@@ -48,5 +48,12 @@ try{
  assert.ok(Number(transition?.probability)>35,'Radar-Timing sollte die Modellwahrscheinlichkeit im Übergangsfenster noch schwach beeinflussen.');
  const beyond=blendRadarAtTarget({radar,targetEpoch:now+181*60000,intervalMinutes:60,modelAmount:2.4,modelProbability:35,now});
  assert.equal(beyond,null,'Nach drei Stunden darf der Radarblend nicht mehr wirken.');
+ const target=now+15*60000,dryRadar={source:'dwd',provider:'DWD',quality:'high',coverage:true,currentRate:0,peakRate:0,nowcastSeries:[{time:new Date(target-5*60000).toISOString(),rate:0,nearbyRate:0,hitClass:'dry'}]},minute={epoch:target,precipitation:0,rain:0,showers:0,snowfall:0,probability:27,code:61,isDay:true},reference={epoch:target,precipitation:0,rain:0,showers:0,snowfall:0,probability:27,code:61,isDay:true,cloud:90,temperature:12};
+ const radarDry=finalizeForecastMinute15([minute],[],[reference],{radar:dryRadar,now})[0];
+ assert.equal(radarDry.precipitation,0,'Ein frischer trockener Radarabschnitt darf keine 15-Minuten-Menge erzeugen.');
+ assert.equal(radarDry.code,3,'Ein trockener Radarabschnitt darf keinen Regen-Code auf der 90-Minuten-Karte behalten.');
+ const rucDry=finalizeForecastMinute15([minute],[],[reference],{rucRapidMinutes15:[{epoch:target,precipitation:0,peakRateMmh:0,dbzCmax:0,cape:0,convectiveInhibition:250}],now})[0];
+ assert.ok(rucDry.probability<27,'Trockener RUC-Kurzfristlauf muss eine bloße Modell-Restwahrscheinlichkeit absenken.');
+ assert.equal(rucDry.code,3,'0,0 mm mit geringer Restwahrscheinlichkeit darf nicht als Regen etikettiert werden.');
  console.log('Radarintervall und nahtloser 0–180-Minuten-Blend fachlich geprüft.');
 }finally{rmSync(directory,{recursive:true,force:true})}
