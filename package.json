@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.18",
+  "version": "0.9.85.19",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -468,6 +468,7 @@
     "test:c3-navigation-warning-status": "node scripts/test-c3-navigation-warning-status-098513.mjs",
     "test:c3-shared-page-grid": "node scripts/test-c3-shared-page-grid-098514.mjs",
     "test:c3-current-today-profile": "node scripts/test-c3-current-today-profile-098515.mjs",
+    "test:c6-unified-forecast-workspace": "node scripts/test-c6-unified-forecast-workspace-098519.mjs",
     "test:secondary-detail-popover-readability": "node scripts/test-secondary-detail-popover-readability-098473.mjs",
     "test:responsive-layout-tooltip": "node scripts/test-responsive-layout-tooltip-098474.mjs",
     "test:source-audit-official-sources": "node scripts/test-source-audit-official-sources-098475.mjs",

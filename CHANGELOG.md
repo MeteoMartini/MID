@@ -1,3 +1,11 @@
+# MID v0.9.85.19
+
+## MID-C6 · Schritt 4: ein Prognose-Arbeitsraum
+
+- Im neuen Bedienkonzept sind Kurzfrist, 7 Tage und 14 Tage jetzt stets eine gemeinsame Prognosefläche. Der gewählte Horizont wechselt ohne doppelte Kartenstapel oder einen zusätzlichen Einstellschritt.
+- Die fünfteilige Horizontleiste steuert diese Fläche direkt; gewählte Tage, horizontale Positionen und die Detailansicht bleiben beim Wechsel erhalten.
+- Die klassische Darstellung außerhalb des Redesigns bleibt unverändert verfügbar.
+
 # MID v0.9.85.18
 
 ## MID-C5 · verifizierte K3D-Zugspuren
