@@ -6508,3 +6508,21 @@ html[data-mid-design='next'] .app>footer{display:flex;align-items:center;gap:10p
  html[data-mid-design='next'] .mid-page-grid>.place>.place-nowcards{padding-top:0;padding-left:14px;border-top:0;border-left:1px solid var(--mid-surface-line)}
 }
 @media(max-width:850px){html[data-mid-design='next'] .mid-page-grid{--mid-page-gap:10px}.mid-page-grid>.dashboard-section-anchor{scroll-margin-top:calc(var(--mid-safe-top) + 86px)}}
+
+/* MID-C3 · Schritt 3: Atmosphäre zuerst. Die vier unmittelbar relevanten
+   Messwerte bleiben gleichrangig; der Temperaturfaden verbindet Aktuell und
+   Heute mit der vorhandenen Zeit-Lupe, Skybar und Detailauswahl. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.pressure{display:none}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts{grid-template-columns:repeat(4,minmax(0,1fr))}
+html[data-mid-design='next'] .short-term-signature{display:grid;grid-template-columns:minmax(120px,.42fr) minmax(0,1fr);align-items:center;gap:14px;margin:0 12px;padding:10px 0 8px;border-bottom:1px solid var(--mid-surface-line)}
+html[data-mid-design='next'] .short-term-signature>span{display:grid;gap:2px;min-width:0}
+html[data-mid-design='next'] .short-term-signature small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+html[data-mid-design='next'] .short-term-signature strong{font-size:12px;letter-spacing:-.02em}
+html[data-mid-design='next'] .short-term-signature .mid-weather-thread{height:30px}
+html[data-mid-design='next'] .short-term-strip>button:not(.active) .short-term-temperature{color:var(--muted)}
+html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 3px 0 var(--param-temperature-mean,var(--accent))}
+@media(max-width:620px){
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html[data-mid-design='next'] .short-term-signature{grid-template-columns:1fr;gap:6px;margin-inline:9px;padding-block:9px 7px}
+ html[data-mid-design='next'] .short-term-signature .mid-weather-thread{height:26px}
+}
