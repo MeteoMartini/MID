@@ -13,6 +13,12 @@ function registrationUpdateWithBudget(registration:ServiceWorkerRegistration,tim
  return new Promise(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;window.clearTimeout(timer);resolve()},timer=window.setTimeout(finish,timeoutMs);registration.update().then(finish,finish)});
 }
 
+function activateWaitingMidUpdate(registration:ServiceWorkerRegistration){
+ const activate=()=>{const waiting=registration.waiting;if(waiting&&navigator.serviceWorker.controller)waiting.postMessage({type:'MID_ACTIVATE_UPDATE'})};
+ registration.addEventListener('updatefound',()=>{const installing=registration.installing;if(!installing)return;installing.addEventListener('statechange',()=>{if(installing.state==='installed')activate()})});
+ activate();
+}
+
 export type MidUpdateStatus={
  appVersion:string;
  workerVersion?:string;
@@ -86,7 +92,9 @@ export async function registerMidServiceWorker(){
  try{
   const scriptUrl=new URL('./service-worker.js',document.baseURI);
   const registration=await navigator.serviceWorker.register(scriptUrl,{scope:'./',updateViaCache:'none'});
+  activateWaitingMidUpdate(registration);
   await registrationUpdateWithBudget(registration);
+  activateWaitingMidUpdate(registration);
   if(updateTimer)window.clearInterval(updateTimer);
   if(visibilityHandler)document.removeEventListener('visibilitychange',visibilityHandler);
   if(focusHandler)window.removeEventListener('focus',focusHandler);

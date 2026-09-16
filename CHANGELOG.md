@@ -1,3 +1,9 @@
+# MID v0.9.85.24
+
+## MID-C7 · zuverlässige Aktualisierung
+
+- Eine bereits geladene neue MID-Version übernimmt jetzt auch dann zuverlässig, wenn die App während des Releases geöffnet war. Beim nächsten sicheren Wechsel aktiviert MID den wartenden App-Cache und lädt die neue Oberfläche, ohne Orte oder persönliche Einstellungen zu löschen.
+
 # MID v0.9.85.23
 
 ## MID-C7 · fokussierte Arbeitsbereiche
