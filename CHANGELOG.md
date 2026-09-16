@@ -1,3 +1,10 @@
+# MID v0.9.85.21
+
+## MID-C6 · 90-Minuten-Nowcast und RUC-Abgleich
+
+- Ein frischer, trockener DWD-Radarabschnitt unterdrückt in jeder betroffenen 15-Minuten-Karte Menge, Niederschlagsart und Regen-Piktogramm. Eine entfernte Zelle bleibt damit keine ortsfeste Regenmeldung.
+- Trockene DWD-ICON-D2-RUC-Kurzfristwerte können die Modell-Restwahrscheinlichkeit nun auch absenken; sie erzeugen bei 0,0 mm keinen Regen-Code. Direkte Radar-Beobachtungen behalten im Nowcast-Fenster Vorrang.
+
 # MID v0.9.85.20
 
 ## MID-C6 · aktueller Niederschlagsabgleich
