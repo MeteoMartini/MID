@@ -4,6 +4,7 @@ import './styles.css';
 import './midNext.css';
 import './midDesign.css';
 import './midC7Redesign.css';
+import './midC7Composition.css';
 import './v078';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';

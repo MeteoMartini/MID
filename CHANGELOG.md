@@ -1,3 +1,10 @@
+# MID v0.9.85.25
+
+## MID-C7 · verlässliche Darstellung auf allen Bildschirmgrößen
+
+- MID prüft Navigation, sichere Bildschirmränder und die Trennung der Arbeitsbereiche nun zusätzlich gegen typische Handy-, Tablet- und Desktopgrößen. Spätere Änderungen können diese Darstellung nicht unbemerkt verschieben.
+- MID Next erhält eine sichtbar zusammenhängende Arbeitsfläche: Ortskopf und Kernaussage stehen im Vordergrund, die Zeitauswahl ist klar abgesetzt und Karten sowie Planer erscheinen als ruhige, eigenständige Arbeitsräume.
+
 # MID v0.9.85.24
 
 ## MID-C7 · zuverlässige Aktualisierung
