@@ -1,3 +1,10 @@
+# MID v0.9.85.18
+
+## MID-C5 · verifizierte K3D-Zugspuren
+
+- Eine gestrichelte K3D-Zugspur, Zeitstempel und der Unsicherheitskorridor werden ausschließlich aus mindestens zwei zeitlich getrennten, amtlichen KONRAD3D-Prognosepunkten erzeugt. Geschwindigkeit und Richtung allein werden nicht mehr zu einer Route hochgerechnet.
+- K3D-Objekte werden nur mit bestätigtem, frischem Beobachtungszeitpunkt gezeigt. Unbekannte oder alte Datenstände können daher nicht mehr wie eine aktuelle Lage erscheinen.
+
 # MID v0.9.85.17
 
 ## MID-C5 · schnellere lokale Lage und belastbare Zugspuren

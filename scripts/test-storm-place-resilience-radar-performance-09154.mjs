@@ -62,10 +62,13 @@ try{
   throw new Error(`Unerwartete Test-URL ${url}`);
  };
  const module={exports:{}};new Function('module','exports','fetch',transformed)(module,module.exports,mockFetch);
- const cell={id:'K3D-resilience',latitude:50,longitude:7,currentImpactRadiusKm:6,motionDirectionDeg:90,speedKmh:60,trackForecasts:[]};
+ const unverified={id:'K3D-unverified',latitude:50,longitude:7,currentImpactRadiusKm:6,motionDirectionDeg:90,speedKmh:60,trackForecasts:[]};
+ const withheld=await module.exports.enrichStormAffectedPlaces(unverified,50,7,'2026-08-04T12:00:00Z');
+ if((withheld.affectedPlaces??[]).length||withheld.futureAffectedPlaceCount)failures.push('Eine unbestätigte K3D-Bewegungsrichtung erzeugt weiterhin Ortsfolgen.');
+ const cell={id:'K3D-resilience',latitude:50,longitude:7,currentImpactRadiusKm:6,motionDirectionDeg:90,speedKmh:60,trackQuality:'official',trackForecasts:[{minutes:10,latitude:50,longitude:7.14,uncertaintyKm:2},{minutes:60,latitude:50,longitude:7.84,uncertaintyKm:8}]};
  const track=module.exports.stormTrackPoints(cell);
- if(track.length<7||track.at(-1)?.minutes!==60)failures.push(`Synthetische 60-Minuten-Zugbahn unvollständig: ${track.length}/${track.at(-1)?.minutes}`);
- if(!track.slice(1).every(point=>point.synthetic===true))failures.push('Ausgedünnte Produktspur wird nicht eindeutig als abgeleitete Ergänzung gekennzeichnet.');
+ if(track.length<3||track.at(-1)?.minutes!==60)failures.push(`Amtliche 60-Minuten-Zugbahn unvollständig: ${track.length}/${track.at(-1)?.minutes}`);
+ if(track.slice(1).some(point=>point.synthetic===true))failures.push('Eine vollständige amtliche K3D-Zugspur wurde unnötig synthetisch ergänzt.');
  const enriched=await module.exports.enrichStormAffectedPlaces(cell,50,7,'2026-08-04T12:00:00Z'),places=enriched.affectedPlaces??[],names=new Set(places.map(place=>place.name));
  if(places.length<3||names.size<3)failures.push(`Ortsliste bleibt auf einen/zu wenige Orte beschränkt: ${places.map(place=>place.name).join(', ')}`);
  if((enriched.futureAffectedPlaceCount??0)<2)failures.push(`Zu wenige vorausliegende Orte: ${enriched.futureAffectedPlaceCount}`);
