@@ -1,3 +1,11 @@
+# MID v0.9.85.15
+
+## MID-C3 · Schritt 3: Aktuell, Heute und Tagesprofil
+
+- Die aktuelle Atmosphärenkarte konzentriert sich jetzt auf vier sofort entscheidungsrelevante Werte: Niederschlag, Wind/Böen, Feuchte/Taupunkt und Sicht. Luftdruck bleibt in der Detailtiefe zugänglich.
+- Der gemeinsame 24-Stunden-Verlauf verbindet Aktuell und Heute nun sichtbar mit einem MID-Wetterfaden. Skybar, Zeitleiste und Quellenlogik bleiben synchron.
+- Zeitdetails öffnen ausschließlich für den gewählten Zeitschritt; nicht aktive Werte treten visuell zurück.
+
 # MID v0.9.85.14
 
 ## MID-C3 · Schritt 2: gemeinsames Seitenraster
