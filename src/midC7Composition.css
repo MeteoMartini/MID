@@ -59,6 +59,38 @@ html[data-mid-design='next'] :is(.modern-map-focus-shell,.modern-planner-hub,.fo
 }
 html[data-mid-design='next'] .modern-planner-hub>header{padding-bottom:14px;border-bottom:1px solid color-mix(in srgb,var(--c7c-line) 42%,transparent)}
 html[data-mid-design='next'] .modern-planner-actions>button{border-radius:18px!important;border-color:color-mix(in srgb,var(--c7c-line) 52%,transparent)!important;background:var(--c7c-raised)!important}
+/* Kartenbühne: Livebild und Analyse bleiben fachlich getrennt, erhalten aber
+   dieselbe ruhige Bedienhierarchie wie die Konzeptansicht. */
+html[data-mid-design='next'] .modern-map-focus-shell .composite-focus-mode{padding:clamp(10px,1.7vw,20px)!important}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-view-tabs{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px!important;
+ border:1px solid color-mix(in srgb,var(--c7c-line) 56%,transparent)!important;border-radius:19px!important;
+ background:color-mix(in srgb,var(--c7c-raised) 78%,transparent)!important;
+}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-view-tabs>button{
+ min-height:56px!important;border-radius:14px!important;justify-content:flex-start!important;padding:9px 12px!important;
+}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-view-tabs>button.active{
+ border-color:transparent!important;background:var(--primary)!important;color:#fff!important;
+ box-shadow:0 9px 20px color-mix(in srgb,var(--primary) 27%,transparent)!important;
+}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-view-tabs>button.active :is(svg,small){color:inherit!important}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-layer-toolbar{
+ margin:12px 0!important;padding:12px!important;border:1px solid color-mix(in srgb,var(--c7c-line) 48%,transparent)!important;
+ border-radius:20px!important;background:linear-gradient(100deg,color-mix(in srgb,var(--c7c-raised) 84%,transparent),transparent)!important;
+}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-layer-toolbar>header strong{font-size:12px!important;letter-spacing:.01em}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-layer-switches{gap:8px!important}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-switch.compact{
+ min-height:64px!important;border-radius:15px!important;border-color:color-mix(in srgb,var(--c7c-line) 43%,transparent)!important;
+ background:color-mix(in srgb,var(--surface) 80%,transparent)!important;
+}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-switch.active{background:color-mix(in srgb,var(--primary) 12%,var(--c7c-raised))!important}
+html[data-mid-design='next'] .modern-map-focus-shell :is(.radarmap,.composite-map-frame){border-radius:21px!important;overflow:hidden}
+html[data-mid-design='next'] .modern-map-focus-shell .composite-data-state{
+ border-radius:999px!important;border-color:color-mix(in srgb,var(--c7c-line) 62%,transparent)!important;
+ background:color-mix(in srgb,var(--surface) 86%,transparent)!important;box-shadow:0 7px 18px rgba(8,36,59,.12)!important;
+}
 @media (min-width:851px){
  html[data-mid-design='next'] .app.navigation-bottom-tabs.with-section-navigation{padding-left:212px!important}
  html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{width:176px!important;padding:9px!important;border-radius:22px!important;box-shadow:var(--c7c-shadow)!important}
@@ -74,5 +106,10 @@ html[data-mid-design='next'] .modern-planner-actions>button{border-radius:18px!i
  html[data-mid-design='next'] .hero.current-compact{padding:14px!important;border-radius:22px!important}
  html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{border-radius:13px!important}
  html[data-mid-design='next'] :is(.modern-map-focus-shell,.modern-planner-hub,.forecast-cockpit){border-radius:22px!important}
+ html[data-mid-design='next'] .modern-map-focus-shell .composite-view-tabs>button{min-height:48px!important;justify-content:center!important;padding:6px!important}
+ html[data-mid-design='next'] .modern-map-focus-shell .composite-view-tabs>button small{display:none!important}
+ html[data-mid-design='next'] .modern-map-focus-shell .composite-layer-toolbar{padding:9px!important;border-radius:16px!important}
+ html[data-mid-design='next'] .modern-map-focus-shell .composite-layer-switches{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html[data-mid-design='next'] .modern-map-focus-shell .composite-switch.compact{min-height:58px!important}
 }
 @media (prefers-reduced-motion:reduce){html[data-mid-design='next'] .hero.current-compact .current-weather-icon{transform:none}}
