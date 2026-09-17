@@ -41,7 +41,7 @@ for(const token of [
 
 assert.ok(app.includes('function ImprintDialog({open,onClose}'),'Das Impressum muss weiterhin als eigener Dialog existieren.');
 assert.ok(app.includes('aria-label="Impressum schließen"'),'Das Impressum braucht einen expliziten Schließen-Button.');
-assert.ok(dwd.includes('className="dwd-precip-type-radar__original-viewport'),'Das DWD-Originalbild muss in einem eigenen Scroll-/Zoom-Viewport bleiben.');
+assert.ok(dwd.includes('dwd-precip-type-radar__original-viewport'),'Das DWD-Originalbild muss in einem eigenen Scroll-/Zoom-Viewport bleiben; dynamische Zustandsklassen sind zulässig.');
 
 assert.ok(timeline.includes("export type CompositeTimePhase='observation'|'nowcast'|'forecast'"),'Die gemeinsame Kartenzeitachse muss Beobachtung, Nowcast und Forecast unterscheiden.');
 assert.ok(timeline.includes('phaseSources?:Partial<Record<CompositeTimePhase,string>>'),'Die Zeitachse muss einen transparenten Quellenwechsel je Phase unterstützen.');
@@ -51,4 +51,4 @@ assert.ok(timeline.includes('does not invent five-minute frames'),'Der Kartenver
 assert.match(version,/^0\.9\.85\.\d+$/,'C14 muss innerhalb der 0.9.85-Releasefolge bleiben.');
 assert.ok(publicChangelog.startsWith(`# MID v${version}`),`Der ausgelieferte Changelog muss mit v${version} beginnen.`);
 
-console.log(`MID-C14: CSS-Reihenfolge, kompakter Smartphone-Kopf, Portrait-Impressum, interne Zoom-Containment und zukünftiger Satellit/Pseudo-Satellit-Quellenwechsel für v${version} geprüft.`);
+console.log(`MID-C14: CSS-Reihenfolge, kompakter Smartphone-Kopf, Portrait-Impressum, internes Zoom-Containment und zukünftiger Satellit/Pseudo-Satellit-Quellenwechsel für v${version} geprüft.`);
