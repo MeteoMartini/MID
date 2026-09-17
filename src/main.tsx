@@ -23,12 +23,22 @@ import {markMidNativeRuntimeReady,prepareMidRuntimeDocument,startMidNativeRuntim
 import {startRuntimeLifecycleBridge} from './runtimeLifecycle';
 
 const BOOT_MARKER='mid:runtime:boot-marker:v1';
+const LEGACY_CHANGELOG_URL='https://github.com/MeteoMartini/MID/blob/main/CHANGELOG.md';
 prepareMidRuntimeDocument();
 function timeout<T>(promise:Promise<T>,ms:number){return new Promise<T>((resolve,reject)=>{const timer=window.setTimeout(()=>reject(new Error('Startschritt hat das Zeitlimit überschritten.')),ms);promise.then(value=>{window.clearTimeout(timer);resolve(value)},error=>{window.clearTimeout(timer);reject(error)})})}
 function markBootStart(){try{sessionStorage.setItem(BOOT_MARKER,JSON.stringify({at:Date.now(),version:document.querySelector('meta[name="mid-version"]')?.getAttribute('content')||''}))}catch{}}
 function setBootStage(message:string){const node=document.getElementById('mid-boot-stage');if(node)node.textContent=message}
 function wait(ms:number){return new Promise<void>(resolve=>window.setTimeout(resolve,ms))}
 function markBootHealthy(){try{sessionStorage.removeItem(BOOT_MARKER);localStorage.removeItem('mid:runtime:last-start-error')}catch{}}
+function pointChangelogLinkToBundledRelease(){
+ const target=`${import.meta.env.BASE_URL}CHANGELOG.md`,root=document.getElementById('root');
+ if(!root)return;
+ const rewrite=()=>{const link=root.querySelector<HTMLAnchorElement>(`footer a[href="${LEGACY_CHANGELOG_URL}"]`);if(!link)return false;link.href=target;link.target='_blank';link.rel='noreferrer';return true};
+ if(rewrite())return;
+ const observer=new MutationObserver(()=>{if(rewrite())observer.disconnect()});
+ observer.observe(root,{childList:true,subtree:true});
+ window.setTimeout(()=>observer.disconnect(),10_000);
+}
 function nativeFailure(error:unknown){void error;void markMidNativeRuntimeReady();const root=document.getElementById('root');if(!root)return;root.innerHTML=`<main class="mid-native-start-failure"><section><h1>MID konnte nicht starten</h1><p>Lokale Daten wurden nicht gelöscht. Bitte lade MID erneut oder repariere den App-Cache.</p><div><button id="mid-native-reload">Neu laden</button><button id="mid-native-repair">App-Cache reparieren</button></div></section></main>`;root.querySelector('#mid-native-reload')?.addEventListener('click',()=>location.reload());root.querySelector('#mid-native-repair')?.addEventListener('click',async()=>{try{const registrations=await navigator.serviceWorker?.getRegistrations?.()||[];await Promise.all(registrations.map(item=>item.unregister().catch(()=>false)));if('caches'in window){const names=await caches.keys();await Promise.all(names.filter(name=>name.startsWith('mid-shell-v')||name==='mid-system-meta-v1').map(name=>caches.delete(name)))}}finally{location.reload()}})}
 function appSurfaceReady(){return Boolean(document.querySelector('#root .app'))&&!document.querySelector('#root .mid-startup-recovery,#root .mid-native-start-failure')}
 function waitForStableAppSurface(timeoutMs=8000,stableMs=1600){
@@ -72,6 +82,7 @@ async function start(){
  try{startRuntimeLifecycleBridge()}catch{}
  const root=document.getElementById('root');if(!root)throw new Error('MID-Startcontainer fehlt.');
  ReactDOM.createRoot(root).render(<React.StrictMode><StartupGuard><App/></StartupGuard></React.StrictMode>);
+ pointChangelogLinkToBundledRelease();
  const scheduleIdle=(task:()=>void)=>{const idle=(window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number}).requestIdleCallback;if(idle)idle(task,{timeout:3500});else window.setTimeout(task,650)};
  scheduleIdle(()=>{void compactForecastVerificationLocalStorage().catch(()=>0)});
  scheduleIdle(()=>{void restoreWeatherTwinArchiveDeferred().catch(()=>false)});
