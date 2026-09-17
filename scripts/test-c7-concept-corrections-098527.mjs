@@ -14,7 +14,8 @@ assert.match(app,/if\(isQuotaExceededError\(reason\)\)\{setError\(['"]{2}\)/,'Ei
 assert.match(shortTerm,/className="short-term-matrix"/,'Die Kurzfrist benötigt die zusammenhängende Zeitmatrix.');
 assert.match(shortTerm,/Zeit<\/span><span>Wetter<\/span><span>Temperatur<\/span><span>Niederschlag<\/span><span>Wind/,'Die Matrix muss ihre feste Messhierarchie benennen.');
 for(const token of ['grid-auto-flow:column','border-right:1px solid','box-shadow:none!important','scroll-snap-type:inline proximity']) assert.ok(composition.includes(token),`C7-Konzeptkorrektur fehlt: ${token}`);
-assert.match(radar,/forecasts:modelLines==='off'\?\[\]:modelForecastTimes/,'Die Kartenzeitachse muss vorhandene echte Modelltermine ohne Moduswechsel ergänzen.');
+assert.match(radar,/forecasts:modelForecastTimes/,'Die Kartenzeitachse muss vorhandene echte Modelltermine ohne Moduswechsel ergänzen.');
+assert.doesNotMatch(radar,/forecasts:modelLines==='off'\?\[\]:modelForecastTimes/,'Modelltermine dürfen nicht von einer freiwilligen Live-Linienauswahl abhängen.');
 assert.match(radar,/modelAtSelectedTime=selectedFrame\?\.phase==='forecast'/,'Ein Modellzeitpunkt muss fachlich als Modellzustand ausgewiesen werden.');
 
 console.log('MID-C7 Konzeptkorrekturen: exklusive Navigation, Quota-Recovery und Kurzfrist-Zeitmatrix geprüft.');
