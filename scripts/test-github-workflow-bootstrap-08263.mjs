@@ -14,6 +14,14 @@ if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-0
 
 const managed=managedFiles.map(([sourceRelative])=>sourceRelative);
 for(const relative of managed)await readFile(path.join(root,'ci','github',relative),'utf8');
+const sourceRelease=await readFile(path.join(root,'ci','github','workflows','agent-source-release.yml'),'utf8');
+for(const token of [
+  '-f state=all',
+  '.state == "open" or .merged_at != null',
+  'already_merged=true',
+  "steps.pr.outputs.already_merged != 'true'",
+  'steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha'
+])if(!sourceRelease.includes(token))failures.push(`Agent-Release-Recovery für bereits geschützte Merges fehlt: ${token}`);
 
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));
 try{

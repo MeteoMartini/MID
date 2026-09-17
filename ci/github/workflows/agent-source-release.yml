@@ -47,27 +47,33 @@ jobs:
 
           owner="${GITHUB_REPOSITORY%%/*}"
           prs="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
-            -f state=open \
+            -f state=all \
             -f base=main \
             -f head="${owner}:${RUN_HEAD_BRANCH}" \
             -f per_page=100)"
 
-          matches="$(jq --arg repo "$GITHUB_REPOSITORY" --arg sha "$RUN_HEAD_SHA" '[.[] | select(.head.repo.full_name == $repo and .head.sha == $sha and .draft == false)]' <<<"$prs")"
+          matches="$(jq --arg repo "$GITHUB_REPOSITORY" --arg sha "$RUN_HEAD_SHA" '[.[] | select(.head.repo.full_name == $repo and .head.sha == $sha and .draft == false and (.state == "open" or .merged_at != null))]' <<<"$prs")"
           count="$(jq 'length' <<<"$matches")"
           if [ "$count" != "1" ]; then
             echo "eligible=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Kein exakt passender offener Agent-PR für ${RUN_HEAD_BRANCH}@${RUN_HEAD_SHA} gefunden; Auto-Release wird sauber übersprungen."
+            echo "::notice::Kein exakt passender offener oder bereits geschützter gemergter Agent-PR für ${RUN_HEAD_BRANCH}@${RUN_HEAD_SHA} gefunden; Auto-Release wird sauber übersprungen."
             exit 0
           fi
 
           pr_number="$(jq -r '.[0].number' <<<"$matches")"
           head_sha="$(jq -r '.[0].head.sha' <<<"$matches")"
+          if [ "$(jq -r '.[0].merged_at != null' <<<"$matches")" = "true" ]; then
+            echo "already_merged=true" >> "$GITHUB_OUTPUT"
+            echo "merge_sha=$(jq -r '.[0].merge_commit_sha // empty' <<<"$matches")" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_merged=false" >> "$GITHUB_OUTPUT"
+          fi
           echo "eligible=true" >> "$GITHUB_OUTPUT"
           echo "number=${pr_number}" >> "$GITHUB_OUTPUT"
           echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
 
       - name: Geprüften Agent-PR automatisch zusammenführen
-        if: steps.pr.outputs.eligible == 'true'
+        if: steps.pr.outputs.eligible == 'true' && steps.pr.outputs.already_merged != 'true'
         id: merge
         shell: bash
         env:
@@ -171,7 +177,7 @@ jobs:
             echo "### Automatischer MID-Release gestartet"
             echo
             echo "- PR: #${{ steps.pr.outputs.number }}"
-            echo "- Merge: ${{ steps.merge.outputs.merge_sha }}"
+            echo "- Merge: ${{ steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha }}"
             echo "- Release-Paket: ${{ steps.package.outputs.package_sha }}"
             echo "- Installer: install-mid.yml via workflow_dispatch"
           } >> "$GITHUB_STEP_SUMMARY"
