@@ -9,6 +9,7 @@ import './midC8VisibleRedesign.css';
 import './midC10CurrentRedesign.css';
 import './midC11TodayRedesign.css';
 import './midC12ForecastRedesign.css';
+import './midC13MobileDensity.css';
 import './v078';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
