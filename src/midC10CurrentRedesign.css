@@ -1,0 +1,250 @@
+/* MID-C10 · Aktuell: hierarchy before decoration.
+   This layer deliberately removes duplicate current-condition presentation and
+   turns the location block into a compact context header. Parameter colours and
+   meteorological source logic stay untouched. */
+
+html[data-mid-design='next'] .top.settings-header{
+ margin-top:10px!important;
+ padding:8px 10px!important;
+}
+html[data-mid-design='next'] .top.settings-header .search-input-shell{
+ min-height:48px!important;
+}
+html[data-mid-design='next'] .top.settings-header .secondary.locate,
+html[data-mid-design='next'] .top.settings-header .compact-actions>button{
+ min-width:44px!important;
+ min-height:44px!important;
+}
+html[data-mid-design='next'] .header-favorites{
+ margin-top:6px!important;
+ padding-top:6px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+ min-height:40px!important;
+}
+
+/* The location belongs before the weather statement and is context, not content. */
+html[data-mid-design='next'] .place{
+ display:block!important;
+ max-width:1520px!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .place>div:first-child{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-areas:
+  'eyebrow warning'
+  'title warning'
+  'meta warning'!important;
+ align-items:center!important;
+ column-gap:18px!important;
+ row-gap:2px!important;
+ padding:13px 17px!important;
+ border-right:0!important;
+ border-bottom:0!important;
+}
+html[data-mid-design='next'] .place>div:first-child>span{
+ grid-area:eyebrow!important;
+ align-self:end!important;
+}
+html[data-mid-design='next'] .place-title-row{
+ grid-area:title!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .place-title-row h1{
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ font-size:clamp(20px,2vw,28px)!important;
+}
+html[data-mid-design='next'] .place .favorite-toggle.active{
+ display:none!important;
+}
+html[data-mid-design='next'] .place-meta{
+ grid-area:meta!important;
+ min-width:0!important;
+ margin:0!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .place-warning-status{
+ grid-area:warning!important;
+ align-self:center!important;
+ min-width:190px!important;
+ margin:0!important;
+}
+/* Current precip/hazard information already has its proper place in the current
+   weather stage. Do not repeat it in the location header. */
+html[data-mid-design='next'] .place>.place-nowcards{
+ display:none!important;
+}
+
+/* Opening Aktuell must not jump past the location context. */
+html[data-mid-design='next'] #mid-section-current{
+ scroll-margin-top:clamp(220px,28vh,340px)!important;
+}
+
+/* Exactly four core parameters in the atmosphere stage. Visibility remains a
+   detail parameter and is therefore removed from the lead rail. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.visibility{
+ display:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.pressure{
+ grid-column:auto!important;
+ border-left:1px solid var(--c8-line)!important;
+ border-bottom:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity{
+ border-left:0!important;
+ border-bottom:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.precip,
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.wind{
+ border-bottom:1px solid var(--c8-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.wind{
+ border-left:1px solid var(--c8-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.precip{
+ border-left:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .hero-day-range{
+ position:static!important;
+ grid-column:1/-1!important;
+ justify-self:end!important;
+ margin:0 15px 12px!important;
+ inset:auto!important;
+}
+
+/* The expanded area contains only information that adds something to the lead
+   stage: visibility/cloud, environment, and sun/astronomy. Core values are not
+   repeated as equally prominent cards. */
+html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:10px!important;
+ margin-top:12px!important;
+ overflow:visible!important;
+ border:0!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(1),
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(2),
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(3),
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(6){
+ display:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+ min-height:100px!important;
+ border:1px solid var(--c8-line)!important;
+ border-radius:18px!important;
+ background:var(--c8-paper)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(4),
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(5){
+ background:color-mix(in srgb,var(--c8-paper) 94%,var(--param-cloud) 6%)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(7),
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(8){
+ background:color-mix(in srgb,var(--c8-paper) 95%,var(--param-sun) 5%)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(9),
+html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(10){
+ background:color-mix(in srgb,var(--c8-paper) 96%,var(--param-sun) 4%)!important;
+}
+
+/* Preserve room for the floating mobile navigation. It may never cover weather
+   values, cards, data status or the footer. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .top.settings-header{
+  width:calc(100% - 16px)!important;
+  margin-top:6px!important;
+  padding:7px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .search-input-shell{
+  min-height:46px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .secondary.locate,
+ html[data-mid-design='next'] .top.settings-header .compact-actions>button{
+  min-width:42px!important;
+  min-height:42px!important;
+ }
+ html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+  min-height:38px!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid{
+  padding-bottom:calc(116px + env(safe-area-inset-bottom))!important;
+ }
+ html[data-mid-design='next'] .app>footer{
+  margin-bottom:calc(96px + env(safe-area-inset-bottom))!important;
+ }
+ html[data-mid-design='next'] #mid-section-current{
+  scroll-margin-top:clamp(280px,36vh,390px)!important;
+ }
+ html[data-mid-design='next'] .place>div:first-child{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+   'eyebrow warning'
+   'title warning'
+   'meta meta'!important;
+  column-gap:10px!important;
+  padding:11px 12px!important;
+ }
+ html[data-mid-design='next'] .place-warning-status{
+  min-width:128px!important;
+  padding:8px 10px!important;
+ }
+ html[data-mid-design='next'] .place-title-row h1{
+  font-size:21px!important;
+ }
+ html[data-mid-design='next'] .place-meta{
+  margin-top:2px!important;
+  font-size:11px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+  min-height:68px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  min-width:0!important;
+  min-height:96px!important;
+  border-radius:16px!important;
+ }
+}
+
+@media(max-width:430px){
+ html[data-mid-design='next'] .place>div:first-child{
+  grid-template-columns:minmax(0,1fr) 118px!important;
+ }
+ html[data-mid-design='next'] .place-warning-status{
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .place-warning-status span strong{
+  font-size:11px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  padding:12px!important;
+ }
+}
+
+@media(max-width:360px){
+ html[data-mid-design='next'] .place>div:first-child{
+  grid-template-columns:1fr!important;
+  grid-template-areas:'eyebrow' 'title' 'meta' 'warning'!important;
+ }
+ html[data-mid-design='next'] .place-warning-status{
+  width:100%!important;
+  margin-top:6px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+  grid-template-columns:1fr!important;
+ }
+}
