@@ -1,0 +1,135 @@
+/* MID-C8: one coherent weather workspace.  This intentionally wins over the
+   earlier experimental layers that recreated the legacy card stack. */
+html[data-mid-design='next']{
+ --c8-paper:color-mix(in srgb,var(--surface) 95%,#eaf6ff);
+ --c8-raised:color-mix(in srgb,var(--s2) 90%,#edf8ff);
+ --c8-line:color-mix(in srgb,var(--border) 74%,#6daed7);
+ --c8-strong-line:color-mix(in srgb,var(--primary) 48%,var(--border));
+ --c8-ink:color-mix(in srgb,var(--text) 95%,#071d34);
+ --c8-radius:clamp(20px,2.3vw,30px);
+}
+html[data-theme='dark'][data-mid-design='next']{
+ --c8-paper:color-mix(in srgb,var(--surface) 96%,#08233a);
+ --c8-raised:color-mix(in srgb,var(--s2) 91%,#0a2c46);
+ --c8-line:color-mix(in srgb,var(--border) 76%,#3681af);
+}
+
+/* The header becomes a compact control dock; the weather data starts below it. */
+html[data-mid-design='next'] .top.settings-header{
+ width:min(1520px,calc(100% - 28px)); margin:14px auto 0; padding:10px 12px!important;
+ border:1px solid var(--c8-line)!important; border-radius:var(--c8-radius)!important;
+ background:color-mix(in srgb,var(--surface) 88%,transparent)!important;
+ box-shadow:0 16px 42px rgba(8,40,64,.09)!important; backdrop-filter:blur(18px) saturate(1.08);
+}
+html[data-mid-design='next'] .top.settings-header .brand{padding-inline:7px}
+html[data-mid-design='next'] .top.settings-header .brand-logo{filter:none}
+html[data-mid-design='next'] .top.settings-header .search-input-shell{
+ min-height:52px; border-radius:17px!important; border-color:var(--c8-line)!important;
+ background:var(--c8-raised)!important; box-shadow:none!important;
+}
+html[data-mid-design='next'] .top.settings-header .secondary.locate,
+html[data-mid-design='next'] .top.settings-header .compact-actions>button{
+ min-width:48px; min-height:48px; border-radius:16px!important; border-color:var(--c8-line)!important;
+ background:var(--c8-raised)!important; box-shadow:none!important;
+}
+html[data-mid-design='next'] .header-favorites{border-top:1px solid var(--c8-line); margin-top:8px; padding-top:8px}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles{padding:4px!important; border:1px solid var(--c8-line)!important; background:var(--c8-raised)!important; box-shadow:none!important}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{min-height:44px!important; border-radius:14px!important}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button.active{background:color-mix(in srgb,var(--primary) 13%,var(--c8-paper))!important; box-shadow:inset 0 3px 0 var(--primary)!important}
+
+/* Location is an information strip, never another hero card. */
+html[data-mid-design='next'] .mid-page-grid{gap:12px!important}
+html[data-mid-design='next'] .place{
+ display:grid!important; grid-template-columns:minmax(210px,.85fr) minmax(0,2.15fr); gap:0!important;
+ max-width:1520px!important; padding:0!important; overflow:hidden;
+ border:1px solid var(--c8-line)!important; border-radius:var(--c8-radius)!important;
+ background:var(--c8-paper)!important; box-shadow:none!important;
+}
+html[data-mid-design='next'] .place>div:first-child{padding:17px 19px; border-right:1px solid var(--c8-line)}
+html[data-mid-design='next'] .place>div:first-child>span{font-size:9px; font-weight:900; letter-spacing:.11em; text-transform:uppercase; color:var(--muted)}
+html[data-mid-design='next'] .place-title-row h1{font-size:clamp(21px,2.3vw,32px); letter-spacing:-.045em}
+html[data-mid-design='next'] .place-warning-status{margin-top:9px!important; border-radius:12px!important; box-shadow:none!important}
+html[data-mid-design='next'] .place-nowcards{grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:0!important; align-items:stretch!important}
+html[data-mid-design='next'] .place-nowcards aside{
+ min-height:112px; padding:17px!important; border:0!important; border-left:1px solid var(--c8-line)!important;
+ border-radius:0!important; background:transparent!important; text-align:left!important; box-shadow:none!important;
+}
+html[data-mid-design='next'] .place-nowcards aside:first-child{border-left:0!important}
+html[data-mid-design='next'] .place-nowcards aside small{font-size:8px!important; font-weight:900!important; letter-spacing:.1em; text-transform:uppercase}
+html[data-mid-design='next'] .place-nowcards .precip-now strong{font-size:clamp(27px,3vw,40px)!important; letter-spacing:-.05em}
+
+/* A single current-weather stage: icon + temperature lead + an integrated data rail. */
+html[data-mid-design='next'] .hero.current-compact{
+ padding:0!important; overflow:hidden!important; border:1px solid var(--c8-strong-line)!important;
+ border-radius:var(--c8-radius)!important; background:var(--c8-paper)!important; box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact::before{display:none!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+ display:grid!important; grid-template-columns:minmax(150px,.8fr) minmax(240px,1.1fr) minmax(420px,1.65fr)!important;
+ grid-template-rows:auto!important; gap:0!important; align-items:stretch!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+ min-height:226px; margin:0!important; padding:28px!important; border-right:1px solid var(--c8-line)!important;
+ background:linear-gradient(150deg,color-mix(in srgb,var(--primary) 9%,var(--c8-raised)),var(--c8-paper))!important;
+ filter:none!important; transform:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon svg{width:clamp(88px,10vw,132px)!important; height:clamp(88px,10vw,132px)!important; filter:drop-shadow(0 10px 14px rgba(10,63,97,.12))}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+ display:grid!important; align-content:center!important; gap:7px!important; padding:28px clamp(20px,3vw,42px)!important;
+ border-right:1px solid var(--c8-line)!important; background:transparent!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{font-size:clamp(68px,9vw,116px)!important; line-height:.78!important; color:var(--c8-ink)!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>b{font-size:clamp(16px,1.7vw,23px)!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+ display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:0!important;
+ border:0!important; background:transparent!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+ display:grid!important; align-content:center!important; min-height:75px; padding:14px 18px!important;
+ border:0!important; border-left:1px solid var(--c8-line)!important; border-bottom:1px solid var(--c8-line)!important;
+ border-radius:0!important; background:transparent!important; box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-child(2n+1){border-left:0!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:last-child{grid-column:span 2; border-bottom:0!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts small{font-size:8px!important; letter-spacing:.1em!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts b{font-size:clamp(14px,1.55vw,20px)!important}
+html[data-mid-design='next'] .hero.current-compact .hero-day-range{right:18px!important; bottom:14px!important; background:var(--c8-raised)!important; box-shadow:none!important}
+html[data-mid-design='next'] .hero.current-compact .current-compact-source{margin:0!important; padding:10px 17px!important; border-top:1px solid var(--c8-line)!important; background:color-mix(in srgb,var(--c8-raised) 66%,transparent)!important}
+html[data-mid-design='next'] .hero.current-compact+.metrics{
+ display:grid!important; grid-template-columns:repeat(5,minmax(0,1fr))!important; gap:1px!important; margin-top:12px!important;
+ overflow:hidden; border:1px solid var(--c8-line)!important; border-radius:var(--c8-radius)!important; background:var(--c8-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+ min-height:108px; padding:15px!important; border:0!important; border-radius:0!important;
+ background:var(--c8-paper)!important; box-shadow:none!important;
+}
+
+/* Forecast and map are continuous workspaces, not piles of floating cards. */
+html[data-mid-design='next'] :is(.forecast-cockpit,.modern-map-focus-shell,.short-term-forecast){border-radius:var(--c8-radius)!important; border-color:var(--c8-line)!important; background:var(--c8-paper)!important; box-shadow:none!important}
+html[data-mid-design='next'] .short-term-matrix{border-radius:0!important; border-inline:0!important; background:var(--c8-paper)!important}
+html[data-mid-design='next'] .short-term-strip>button{border-radius:0!important; background:transparent!important; box-shadow:none!important}
+html[data-mid-design='next'] .modern-map-focus-shell :is(.composite-view-tabs,.composite-layer-toolbar){border-radius:16px!important; box-shadow:none!important}
+
+/* The mobile bar is visibly floating, while desktop keeps its dedicated rail. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .top.settings-header{width:calc(100% - 20px); margin-top:8px; padding:8px!important; border-radius:22px!important}
+ html[data-mid-design='next'] .top.settings-header .brand-expanded{display:none!important}
+ html[data-mid-design='next'] .place{grid-template-columns:1fr!important; border-radius:22px!important}
+ html[data-mid-design='next'] .place>div:first-child{border-right:0; border-bottom:1px solid var(--c8-line)}
+ html[data-mid-design='next'] .place-nowcards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html[data-mid-design='next'] .place-nowcards aside{min-height:94px; padding:12px!important; border-top:1px solid var(--c8-line)!important}
+ html[data-mid-design='next'] .place-nowcards aside:nth-child(2n+1){border-left:0!important}
+ html[data-mid-design='next'] .hero.current-compact{border-radius:22px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{grid-template-columns:96px minmax(0,1fr)!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-icon{min-height:166px; padding:14px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{padding:20px 15px!important; border-right:0!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{font-size:68px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{grid-column:1/-1!important; border-top:1px solid var(--c8-line)!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{min-height:72px; padding:11px 12px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important; border-radius:22px!important}
+ html[data-mid-design='next'] .dashboard-section-quick.dashboard-bottom-tabs{left:50%!important; bottom:max(11px,env(safe-area-inset-bottom))!important; width:calc(100% - 22px)!important; transform:translateX(-50%)!important; border:1px solid var(--c8-line)!important; border-radius:22px!important; background:color-mix(in srgb,var(--surface) 88%,transparent)!important; box-shadow:0 18px 42px rgba(7,33,54,.18)!important; backdrop-filter:blur(20px) saturate(1.1)}
+ html[data-mid-design='next'] .dashboard-bottom-tabs button{min-height:58px!important; border-radius:16px!important}
+ html[data-mid-design='next'] .dashboard-bottom-tabs button.active{background:color-mix(in srgb,var(--primary) 15%,var(--c8-paper))!important; box-shadow:inset 0 3px 0 var(--primary)!important}
+}
+@media(max-width:390px){html[data-mid-design='next'] .place-nowcards{grid-template-columns:1fr!important}.place-nowcards aside{border-left:0!important}.dashboard-bottom-tabs button span{font-size:8px!important}}
+@media(prefers-reduced-motion:reduce){html[data-mid-design='next'] .top.settings-header{backdrop-filter:none}}
