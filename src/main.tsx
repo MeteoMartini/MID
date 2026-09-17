@@ -6,6 +6,7 @@ import './midDesign.css';
 import './midC7Redesign.css';
 import './midC7Composition.css';
 import './midC8VisibleRedesign.css';
+import './midC10CurrentRedesign.css';
 import './v078';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
