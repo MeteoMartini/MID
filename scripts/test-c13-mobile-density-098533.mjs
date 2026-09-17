@@ -1,14 +1,16 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [main,styles,app,pkg]=await Promise.all([
+const [main,styles,touch,app,pkg,publicChangelog]=await Promise.all([
  readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC13MobileDensity.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/midC13MobileTouch.css',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
- readFile(new URL('../package.json',import.meta.url),'utf8')
+ readFile(new URL('../package.json',import.meta.url),'utf8'),
+ readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8')
 ]);
 
-assert.ok(main.includes("import './midC12ForecastRedesign.css';\nimport './midC13MobileDensity.css';"),'C13 muss nach C12 geladen werden.');
+assert.ok(main.includes("import './midC12ForecastRedesign.css';\nimport './midC13MobileDensity.css';\nimport './midC13MobileTouch.css';"),'C13 und sein Touch-Schutz müssen nach C12 geladen werden.');
 assert.ok(app.includes('className="metrics" hidden={!metricsOpen}'),'Aktuell muss seine bestehende Mehr/Weniger-Semantik behalten.');
 assert.ok(styles.includes(".mid-page-grid>.place{order:-2!important}"),'Orts-/Warnkontext muss vor Aktuell stehen.');
 assert.ok(styles.includes(".dashboard-section-anchor[data-dashboard-section='current']{order:-1!important}"),'Aktuell muss direkt nach dem Ortskontext stehen.');
@@ -19,8 +21,6 @@ assert.ok(styles.includes('position:relative!important;\n  top:auto!important'),
 for(const token of [
  "grid-template-areas:'brand actions' 'search search' 'favorites favorites'!important",
  'width:30px!important;\n  height:30px!important',
- 'height:36px!important',
- 'min-height:30px!important',
  '.place-title-row h1{font-size:17px!important',
  'font-size:50px!important',
  'min-height:48px!important',
@@ -34,6 +34,14 @@ for(const token of [
 ])assert.ok(styles.includes(token),`C13-Dichte-/Responsive-Vertrag fehlt: ${token}`);
 assert.ok(styles.includes('background:transparent!important;\n  box-shadow:none!important'),'Nowcast-/Detailflächen müssen verschachtelte Kartenoptik abbauen.');
 assert.ok(!styles.includes('filter:blur('),'Fachliche Wetterflächen dürfen nicht dekorativ weichgezeichnet werden.');
+for(const token of [
+ 'min-width:38px!important',
+ 'min-height:38px!important',
+ 'min-height:36px!important',
+ 'nth-last-child(1){display:grid!important}',
+ 'nth-last-child(2){display:grid!important}'
+])assert.ok(touch.includes(token),`C13 darf kompakte Controls nicht unbedienbar machen: ${token}`);
 assert.equal(JSON.parse(pkg).version,'0.9.85.33','C13 muss als v0.9.85.33 veröffentlicht werden.');
+assert.ok(publicChangelog.startsWith('# MID v0.9.85.33'),'Der ausgelieferte nichttechnische Changelog muss mit C13 beginnen.');
 
-console.log('MID-C13: mobiler Kopf, Ortsreihenfolge, echte Zusatzwert-Klappung und de-kachelte Aktuell-Ansicht geprüft.');
+console.log('MID-C13: kompakter Kopf, Ortsreihenfolge, echte Zusatzwert-Klappung, de-kachelte Aktuell-Ansicht und Touchflächen geprüft.');
