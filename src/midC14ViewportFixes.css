@@ -1,0 +1,403 @@
+/* MID C14 · reale Smartphone-Korrekturen aus dem Sichtvergleich.
+   Diese Datei wird bewusst NACH v078 und allen bisherigen Redesign-Stufen geladen.
+   Ziel: einheitliche Abstände, kompakter Kopf, sichere Portrait-Modale und keine
+   Layout-Verbreiterung durch zoombare Wetterbilder oder Diagramme. */
+
+:root{
+ --c14-mobile-gap:6px;
+ --c14-safe-bottom:env(safe-area-inset-bottom,0px);
+ --c14-safe-top:env(safe-area-inset-top,0px);
+}
+
+html,body,#root{
+ max-width:100%;
+ overflow-x:hidden;
+}
+.app{
+ max-width:100%;
+ overflow-x:clip;
+}
+.app>main,
+.app main>*{
+ min-width:0;
+ max-width:100%;
+}
+.app main img,
+.app main canvas,
+.app main svg{
+ max-width:100%;
+}
+.app.navigation-bottom-tabs>main{
+ min-height:0!important;
+ padding-bottom:calc(92px + var(--c14-safe-bottom))!important;
+ scroll-padding-bottom:calc(104px + var(--c14-safe-bottom));
+}
+.app.navigation-bottom-tabs>footer{
+ margin-top:8px!important;
+}
+
+/* Impressum bleibt in jeder Orientierung vollständig schließbar. */
+.imprint-backdrop{
+ position:fixed!important;
+ z-index:7200!important;
+ inset:0!important;
+ display:grid!important;
+ place-items:center!important;
+ min-width:0!important;
+ max-width:100vw!important;
+ padding:max(10px,var(--c14-safe-top)) max(10px,env(safe-area-inset-right,0px)) max(10px,var(--c14-safe-bottom)) max(10px,env(safe-area-inset-left,0px))!important;
+ overflow:hidden!important;
+ background:rgba(2,8,17,.68)!important;
+}
+.imprint-dialog{
+ display:grid!important;
+ grid-template-rows:auto minmax(0,1fr)!important;
+ width:min(560px,100%)!important;
+ max-width:100%!important;
+ max-height:calc(100dvh - max(20px,var(--c14-safe-top)) - max(20px,var(--c14-safe-bottom)))!important;
+ min-width:0!important;
+ overflow:hidden!important;
+ border-radius:20px!important;
+}
+.imprint-dialog>header{
+ position:sticky!important;
+ z-index:3!important;
+ top:0!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:12px!important;
+ min-width:0!important;
+ padding:12px 14px!important;
+ background:color-mix(in srgb,var(--surface) 96%,var(--primary) 4%)!important;
+ border-bottom:1px solid var(--border)!important;
+}
+.imprint-dialog>header>button{
+ display:grid!important;
+ place-items:center!important;
+ flex:0 0 40px!important;
+ width:40px!important;
+ height:40px!important;
+ min-width:40px!important;
+ min-height:40px!important;
+ padding:0!important;
+}
+.imprint-dialog>.imprint-content{
+ min-width:0!important;
+ min-height:0!important;
+ max-width:100%!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch;
+ padding:14px!important;
+}
+
+/* Das amtliche DWD-Original darf beim Zoomen nur IN seinem Viewport wachsen. */
+.dwd-precip-type-radar,
+.dwd-precip-type-radar>header,
+.dwd-precip-type-radar__timestamps,
+.dwd-precip-type-radar__viewport-shell,
+.dwd-precip-type-radar__original-viewport{
+ min-width:0!important;
+ width:100%!important;
+ max-width:100%!important;
+}
+.dwd-precip-type-radar{
+ overflow:hidden!important;
+}
+.dwd-precip-type-radar>header{
+ flex-wrap:wrap!important;
+}
+.dwd-precip-type-radar>header>span{
+ min-width:0!important;
+ flex:1 1 260px!important;
+}
+.dwd-precip-type-radar>header strong,
+.dwd-precip-type-radar>header em{
+ overflow-wrap:anywhere!important;
+}
+.dwd-precip-type-radar__timestamps{
+ display:flex!important;
+ flex-wrap:wrap!important;
+ gap:5px!important;
+ overflow:hidden!important;
+}
+.dwd-precip-type-radar__point-strip{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+}
+.dwd-precip-type-radar__zoom-toolbar{
+ max-width:100%!important;
+ flex-wrap:wrap!important;
+}
+.dwd-precip-type-radar__viewport-shell{
+ position:relative!important;
+ overflow:hidden!important;
+ contain:layout paint!important;
+}
+.dwd-precip-type-radar__original-viewport{
+ overflow:auto!important;
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch;
+}
+.dwd-precip-type-radar__original-canvas{
+ max-width:none!important;
+}
+
+/* Breite Diagramme bleiben innerhalb ihrer eigenen Scroll-/Skalierfläche. */
+.meteogram-card,
+.meteogram-content,
+.meteogram-export-stage,
+.meteogram-block,
+.meteogram-chart-wrap,
+.meteogram-scroll,
+.short-term-forecast,
+.short-term-matrix,
+.short-term-strip,
+.forecast-cockpit,
+.forecast-cockpit-content,
+.forecast-inline-detail,
+.weather-profile,
+.weather-profile-card,
+.weather-profile-chart{
+ min-width:0!important;
+ max-width:100%!important;
+}
+.meteogram-scroll,
+.meteogram-chart-wrap,
+.short-term-strip{
+ width:100%!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ overscroll-behavior-inline:contain!important;
+ -webkit-overflow-scrolling:touch;
+}
+
+@media(max-width:850px){
+ /* C13 war fachlich richtig, wurde aber bislang vom später geladenen Alt-CSS
+    teilweise wieder überschrieben. C14 legt die reale Smartphone-Hierarchie fest. */
+ html[data-mid-design='next'] .top.settings-header{
+  width:calc(100% - 4px)!important;
+  margin:2px auto 0!important;
+  padding:4px 5px!important;
+  gap:4px 6px!important;
+  border-radius:14px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .brand-logo{
+  width:28px!important;
+  height:28px!important;
+  border-radius:8px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .brand-version{
+  font-size:10.5px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .compact-actions{
+  gap:2px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .compact-actions>button{
+  width:32px!important;
+  min-width:32px!important;
+  height:32px!important;
+  min-height:32px!important;
+  border-radius:10px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .compact-actions>button svg{
+  width:16px!important;
+  height:16px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .search{
+  grid-template-columns:minmax(0,1fr) 34px!important;
+  gap:4px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .search-input-shell,
+ html[data-mid-design='next'] .top.settings-header .search input{
+  min-height:34px!important;
+  height:34px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .search-input-shell{
+  padding:0 7px!important;
+  border-radius:10px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .secondary.locate{
+  width:34px!important;
+  min-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .header-favorites{
+  padding-top:2px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .header-favorites .favorite-bubbles{
+  gap:3px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .header-favorites .favorite-bubbles>button{
+  min-height:28px!important;
+  padding:3px 6px!important;
+  border-radius:9px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .header-favorites .favorite-strip-manage{
+  width:28px!important;
+  min-width:28px!important;
+  height:28px!important;
+  min-height:28px!important;
+  flex-basis:28px!important;
+ }
+
+ html[data-mid-design='next'] .mid-page-grid{
+  gap:var(--c14-mobile-gap)!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place{
+  margin:0!important;
+ }
+ html[data-mid-design='next'] .place>div:first-child{
+  min-height:0!important;
+  padding:6px 8px!important;
+ }
+ html[data-mid-design='next'] .place-title-row h1{
+  font-size:16px!important;
+ }
+ html[data-mid-design='next'] .place-meta{
+  margin-top:0!important;
+  font-size:8px!important;
+ }
+ html[data-mid-design='next'] .place-warning-status{
+  min-width:96px!important;
+  min-height:32px!important;
+  padding:4px 6px!important;
+ }
+
+ html[data-mid-design='next'] .hero.current-compact{
+  margin:0!important;
+  padding:0!important;
+  border-radius:15px!important;
+  overflow:hidden!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:62px minmax(0,1fr)!important;
+  gap:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+  min-height:96px!important;
+  padding:6px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-icon svg{
+  width:46px!important;
+  height:46px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+  min-width:0!important;
+  padding:8px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{
+  font-size:46px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:0!important;
+  margin:0!important;
+  border-top:1px solid var(--c8-line)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+  min-height:42px!important;
+  padding:5px 7px!important;
+  border:0!important;
+  border-right:1px solid color-mix(in srgb,var(--c8-line) 62%,transparent)!important;
+  border-bottom:1px solid color-mix(in srgb,var(--c8-line) 62%,transparent)!important;
+  border-radius:0!important;
+  background:transparent!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-child(even){border-right:0!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.visibility{display:none!important}
+ html[data-mid-design='next'] .hero.current-compact .hero-day-range{
+  margin:4px 7px 5px!important;
+  padding:3px 6px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact>.current-nowcards{
+  margin:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact{
+  max-width:100%!important;
+  overflow:hidden!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-compact-source{
+  margin:0!important;
+  padding:6px 8px!important;
+ }
+
+ .dwd-precip-type-radar{
+  margin-inline:0!important;
+  padding-inline:0!important;
+  border-radius:14px!important;
+ }
+ .dwd-precip-type-radar>header{
+  gap:7px!important;
+  padding-inline:9px!important;
+ }
+ .dwd-precip-type-radar__timestamps,
+ .dwd-precip-type-radar__zoom-toolbar{
+  margin-inline:9px!important;
+ }
+ .dwd-precip-type-radar__viewport-shell{
+  margin-inline:9px!important;
+  width:calc(100% - 18px)!important;
+ }
+
+ .imprint-backdrop{
+  place-items:stretch!important;
+  align-items:center!important;
+  padding:max(8px,var(--c14-safe-top)) max(8px,env(safe-area-inset-right,0px)) max(8px,var(--c14-safe-bottom)) max(8px,env(safe-area-inset-left,0px))!important;
+ }
+ .imprint-dialog{
+  width:100%!important;
+  max-height:calc(100dvh - max(16px,var(--c14-safe-top)) - max(16px,var(--c14-safe-bottom)))!important;
+  border-radius:17px!important;
+ }
+ .imprint-dialog>header{
+  padding:9px 10px!important;
+ }
+ .imprint-dialog>header h2{
+  margin:1px 0 0!important;
+  font-size:19px!important;
+ }
+ .imprint-dialog>.imprint-content{
+  padding:11px!important;
+ }
+
+ .short-term-forecast,
+ .forecast-cockpit,
+ .meteogram-card{
+  overflow:hidden!important;
+ }
+ .short-term-strip,
+ .meteogram-scroll{
+  scroll-padding-inline:10px!important;
+ }
+}
+
+@media(max-width:430px){
+ html[data-mid-design='next'] .top.settings-header .brand-version{font-size:10px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{grid-template-columns:58px minmax(0,1fr)!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{font-size:43px!important}
+ .dwd-precip-type-radar__timestamps>small{display:none!important}
+ .dwd-precip-type-radar__point-strip{flex:1 1 100%!important}
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ .imprint-dialog{
+  width:min(720px,100%)!important;
+  max-height:calc(100dvh - 12px)!important;
+ }
+ .imprint-dialog>.imprint-content{
+  padding:9px 12px!important;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ .imprint-dialog,
+ .dwd-precip-type-radar__original-canvas{scroll-behavior:auto!important}
+}
