@@ -14,6 +14,14 @@ Agentenänderungen werden nicht mehr als manuell hochzuladendes Release-ZIP übe
 6. Der vorhandene Installer bleibt die Release-Autorität für erneute Verifikation, Worker-Entscheidung, Pages-Deployment und Promotion nach `mid-stable`.
 7. Der Browser-/iPhone-ZIP-Upload bleibt ausschließlich Notfall-Fallback.
 
+## Fortsetzungsauftrag und Freigabe
+
+Ein MID-Auftrag wie „fortsetzen“, „fahre fort“, „veröffentlichen“ oder „nutze den etablierten Veröffentlichungsweg“ autorisiert Agenten verbindlich, den vorstehenden Normalweg vollständig weiterzuführen: Source-PR, grünes Gate, regulärer geschützter Merge, Installer, Deployment und Stable-Promotion.
+
+Eine erneute Nachfrage beim Beginn eines neuen MID-Chats ist nicht erforderlich. Agenten halten nur bei einem echten Blocker an: einem roten oder noch laufenden Pflichtgate, einem Konflikt, fehlenden Berechtigungen, einer geänderten PR-Spitze, einer sicherheitsrelevanten Auffälligkeit oder einer fachlich nicht ableitbaren Produktentscheidung. Sie umgehen dabei niemals Schutzregeln, force-pushen nicht und promoten `mid-stable` nicht manuell.
+
+Ist das Repository-Auto-Merge deaktiviert, verwenden Agenten nach erfolgreichem Source-Gate den dort vorgesehenen normalen, geschützten PR-Merge mit gebundenem Head-SHA. Die anschließende Installer-/Promotion-Kette bleibt unverändert verpflichtend.
+
 ## Fehlerbehandlung
 
 `MID Release Self-Heal` darf ausschließlich klar als temporär klassifizierte Infrastruktur-/Netzwerkfehler automatisch erneut ausführen, höchstens bis zum dritten Workflow-Versuch. Dazu zählen insbesondere kurzzeitige Registry-, Netzwerk-, Rate-Limit-, Pages- oder Upstream-Fehler.
