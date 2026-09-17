@@ -43,7 +43,7 @@ for(const token of [
  '@media(prefers-reduced-motion:reduce)'
 ])assert.ok(styles.includes(token),`C14-Karten-/Responsive-Vertrag fehlt: ${token}`);
 assert.ok(styles.includes('Karten als Arbeitsraum statt Karten-/Control-Stapel'),'C14 muss die Map-first-Hierarchie als Designvertrag dokumentieren.');
-assert.ok(!styles.includes('filter:blur('),'Fachliche Kartenflächen dürfen nicht mit CSS filter:blur verfremdet werden.');
+assert.ok(!/(^|[;{\s])filter\s*:\s*blur\(/m.test(styles),'Fachliche Kartenflächen dürfen nicht mit CSS filter:blur verfremdet werden; backdrop-filter für Controls bleibt zulässig.');
 assert.ok(radar.includes('className={`card composite-card${focusMode?\' composite-focus-mode\':\'\'}`}'),'Das bestehende Komposit muss weiterhin den dedizierten Fokusmodus verwenden.');
 assert.ok(radar.includes('className="composite-timeline-card"'),'Radar, Satellit, Nowcast und Modelltermine müssen die bestehende gemeinsame Kartenzeitachse behalten.');
 assert.ok(radar.includes('<details className="composite-advanced">'),'Erweiterte Kartenlayer müssen im Fokusmodus einklappbar bleiben.');
