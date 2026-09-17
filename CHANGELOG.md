@@ -1,3 +1,11 @@
+# MID v0.9.85.28
+
+## MID-C8 · sichtbarer Konzeptumbau
+
+- MID Next ordnet den Startbereich jetzt als zusammenhängende Wetterbühne: Ortslage, Wetterkern und Messwerte sind klar getrennte Ebenen statt einer Folge gleichrangiger Kacheln.
+- Kopf, Ortsschnellzugriff und Navigation folgen dem Konzeptbild als kompakte Kontrollflächen. Die schwebende Bottom-Bar bleibt auf Mobilgeräten erreichbar; die fachlichen Wetterflächen bleiben bewusst ruhig und ohne dekoratives Glas.
+- Kurzfrist, Vorhersage und Karten verwenden weiterhin ihre echten Zeit- und Produktdaten, erscheinen aber als durchgehende Arbeitsflächen statt als gestapelte Einzelkarten.
+
 # MID v0.9.85.27
 
 ## MID-C7 · sichtbare Konzeptkorrekturen
