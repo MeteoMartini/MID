@@ -1,3 +1,11 @@
+# MID v0.9.85.27
+
+## MID-C7 · sichtbare Konzeptkorrekturen
+
+- Die Bottom-Bar markiert nun immer genau einen Hauptbereich. `Heute` und `Vorhersage` können nicht mehr gleichzeitig aktiv sein.
+- Eine lokale Speicherquota wird automatisch und datenerhaltend bereinigt; die technische Browsermeldung erscheint nicht mehr zwischen Wetterinhalten.
+- Die Kurzfristdarstellung ist jetzt eine fortlaufende Zeitmatrix statt einer Reihe einzelner Wetterkacheln. Zeit, Wetter, Temperatur, Niederschlag und Wind folgen derselben festen Hierarchie.
+
 # MID v0.9.85.26
 
 ## MID-C7 · Kartenarbeitsraum
