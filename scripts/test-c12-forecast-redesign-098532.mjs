@@ -1,10 +1,12 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [main,styles,cockpit]=await Promise.all([
+const [main,styles,cockpit,app,publicChangelog]=await Promise.all([
  readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC12ForecastRedesign.css',import.meta.url),'utf8'),
- readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8')
+ readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8')
 ]);
 
 assert.ok(main.includes("import './midC11TodayRedesign.css';\nimport './midC12ForecastRedesign.css';"),'C12 muss nach dem Heute-Redesign geladen werden.');
@@ -45,5 +47,8 @@ assert.ok(styles.includes('Selected 14-day detail is a low information band'),'1
 assert.ok(/\.cockpit-seven-grid>\.cockpit-day\.active\{[\s\S]*?box-shadow:inset 0 3px 0 var\(--primary\)!important/.test(styles),'Gewählter 7-Tage-Tag muss eindeutig markiert sein.');
 assert.ok(/\.cockpit-fourteen-card\.active\{[\s\S]*?box-shadow:inset 0 3px 0 var\(--primary\)!important/.test(styles),'Gewählter 14-Tage-Tag muss eindeutig markiert sein.');
 assert.ok(!styles.includes('filter:blur('),'Fachliche Prognoseflächen dürfen nicht durch dekorative Unschärfe beeinträchtigt werden.');
+assert.ok(app.includes("${import.meta.env.BASE_URL}CHANGELOG.md"),'Der in der App sichtbare Änderungslink muss auf den ausgelieferten Changelog zeigen.');
+assert.ok(publicChangelog.startsWith('# MID v0.9.85.32'),'Der ausgelieferte Changelog muss mit der aktuellen Releaseversion beginnen.');
+assert.ok(publicChangelog.includes('# MID v0.9.85.31')&&publicChangelog.includes('# MID v0.9.85.30'),'Der externe Changelog darf die unmittelbar vorherigen Redesign-Schritte nicht auslassen.');
 
-console.log('MID-C12: Vorhersage als zusammenhängender 7-/14-Tage-Arbeitsraum mit responsiver Detailtiefe geprüft.');
+console.log('MID-C12: Vorhersage als zusammenhängender 7-/14-Tage-Arbeitsraum mit responsiver Detailtiefe und app-sichtbarem Changelog geprüft.');
