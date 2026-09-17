@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.33",
+  "version": "0.9.85.34",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -105,7 +105,7 @@
     "test:short-term-rounding-wind-layout": "node scripts/test-short-term-rounding-wind-layout-08221.mjs",
     "test:radar-period-wording": "node scripts/test-radar-period-wording-08222.mjs",
     "test:short-term-card-labels": "node scripts/test-short-term-card-labels-08223.mjs",
-    "test:weather-pictograms-country-codes": "node scripts/test-weather-pictograms-country-codes-08230.mjs",
+    "test:weather-pictograms-country-codes": "node scripts/test-weather-pictogram-country-codes-08230.mjs",
     "test:current-metrics-collapse": "node scripts/test-current-metrics-collapse-08240.mjs",
     "test:ensemble-diagonal-date-axis": "node scripts/test-ensemble-diagonal-date-axis-08241.mjs",
     "test:current-more-hazard-caption": "node scripts/test-current-more-hazard-caption-08242.mjs",
