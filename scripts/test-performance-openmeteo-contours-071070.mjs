@@ -24,7 +24,7 @@ for(const token of [
  'prepareContours(levels,type)',
  'pointAlongPrepared',
  "Pane name=\"mid-model-lines\"",
- "modelLines!=='off'&&(dominantModelFrame||vectorIsoheightFrame||hasGridCenters)&&<Pane",
+ "visibleModelLines!=='off'&&(dominantModelFrame||vectorIsoheightFrame||hasGridCenters)&&<Pane",
  "window.setInterval(load,60*60000)",
  'writeCompositeSettings('
 ])if(!radar.includes(token))failures.push(`Komposit-/Performance-Optimierung fehlt: ${token}`);

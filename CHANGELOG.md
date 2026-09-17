@@ -1,3 +1,11 @@
+# MID v0.9.85.29
+
+## MID-C9 · durchgehender Kartenzeitraum
+
+- Die Kartenzeitachse führt bestätigte Radar- und Satellitenbeobachtungen, amtliche Nowcast-Stände und die real verfügbaren Modelltermine in einer durchgehenden Reihenfolge zusammen.
+- Der Wechsel in einen Modelltermin verlangt keinen separaten Ansichtsschalter mehr: Die Karte zeigt dort automatisch Isobaren und 500-hPa-Isohypsen und kennzeichnet den Stand eindeutig als „Modell · Synoptik“.
+- Radar, Satellit und Blitze enden weiterhin an ihren echten Produktzeiten. MID erzeugt keine optischen Übergangsbilder und keine Radar- oder Satellitenprognose.
+
 # MID v0.9.85.28
 
 ## MID-C8 · sichtbarer Konzeptumbau
