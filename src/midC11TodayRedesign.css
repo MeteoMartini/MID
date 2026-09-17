@@ -1,0 +1,455 @@
+/* MID-C11 · Heute / 24 h
+   The 24-hour page is a single time workspace, not another card collection.
+   Meteorological data, colours and WMO/DWD semantics are deliberately untouched. */
+
+html[data-mid-design='next'] .short-term-forecast{
+  position:relative!important;
+  overflow:visible!important;
+  padding:0!important;
+  border:1px solid var(--c8-line)!important;
+  border-radius:var(--c8-radius)!important;
+  background:var(--c8-paper)!important;
+  box-shadow:none!important;
+}
+
+/* Compact title/status bar. */
+html[data-mid-design='next'] .short-term-forecast>.short-term-header,
+html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:14px!important;
+  min-height:62px!important;
+  margin:0!important;
+  padding:12px 16px!important;
+  border-bottom:1px solid var(--c8-line)!important;
+  background:transparent!important;
+}
+html[data-mid-design='next'] .short-term-forecast>.short-term-header span,
+html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head span{
+  display:grid!important;
+  gap:2px!important;
+  min-width:0!important;
+}
+html[data-mid-design='next'] .short-term-forecast>.short-term-header small,
+html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head small{
+  color:var(--muted)!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.11em!important;
+  text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .short-term-forecast>.short-term-header strong,
+html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head strong{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:clamp(17px,2vw,22px)!important;
+  letter-spacing:-.025em!important;
+}
+html[data-mid-design='next'] .short-term-forecast>.short-term-header em,
+html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head em{
+  flex:0 0 auto!important;
+  max-width:min(42vw,320px)!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  padding:7px 10px!important;
+  border:1px solid var(--c8-line)!important;
+  border-radius:999px!important;
+  background:var(--c8-raised)!important;
+  color:var(--muted)!important;
+  font-size:10px!important;
+  font-style:normal!important;
+  font-weight:800!important;
+}
+
+/* Wetterfaden becomes a quiet context band directly above the synchronized rows. */
+html[data-mid-design='next'] .short-term-signature{
+  display:grid!important;
+  grid-template-columns:132px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:14px!important;
+  min-height:74px!important;
+  margin:0!important;
+  padding:10px 16px!important;
+  border-bottom:1px solid var(--c8-line)!important;
+  background:color-mix(in srgb,var(--c8-raised) 56%,transparent)!important;
+}
+html[data-mid-design='next'] .short-term-signature>span{
+  display:grid!important;
+  gap:2px!important;
+}
+html[data-mid-design='next'] .short-term-signature>span small{
+  color:var(--muted)!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.1em!important;
+  text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .short-term-signature>span strong{
+  font-size:12px!important;
+}
+html[data-mid-design='next'] .short-term-signature .mid-weather-thread{
+  width:100%!important;
+  height:42px!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .short-term-signature .mid-weather-thread path{
+  fill:none!important;
+  stroke:var(--param-temp)!important;
+  stroke-width:2.2!important;
+  vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .short-term-signature .mid-weather-thread circle{
+  fill:var(--param-temp)!important;
+  stroke:var(--c8-paper)!important;
+  stroke-width:1.5!important;
+  vector-effect:non-scaling-stroke!important;
+}
+
+/* One synchronized matrix. No floating column cards. */
+html[data-mid-design='next'] .short-term-matrix{
+  position:relative!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+html[data-mid-design='next'] .short-term-matrix>header{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  min-height:32px!important;
+  margin:0!important;
+  padding:8px 14px!important;
+  border-bottom:1px solid var(--c8-line)!important;
+  background:var(--c8-paper)!important;
+  color:var(--muted)!important;
+  font-size:8px!important;
+  font-weight:900!important;
+  letter-spacing:.1em!important;
+  text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .short-term-strip{
+  display:grid!important;
+  grid-auto-flow:column!important;
+  grid-auto-columns:minmax(84px,1fr)!important;
+  gap:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-inline:contain!important;
+  scroll-snap-type:inline proximity!important;
+  scrollbar-gutter:stable!important;
+  background:transparent!important;
+}
+html[data-mid-design='next'] .short-term-strip>button{
+  position:relative!important;
+  display:grid!important;
+  grid-template-rows:24px 42px 30px 38px 38px!important;
+  align-content:start!important;
+  gap:2px!important;
+  min-width:84px!important;
+  min-height:178px!important;
+  margin:0!important;
+  padding:8px 6px!important;
+  scroll-snap-align:start!important;
+  border:0!important;
+  border-right:1px solid var(--c8-line)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--text)!important;
+}
+html[data-mid-design='next'] .short-term-strip>button:last-child{
+  border-right:0!important;
+}
+html[data-mid-design='next'] .short-term-strip>button:hover{
+  background:color-mix(in srgb,var(--primary) 4%,transparent)!important;
+}
+html[data-mid-design='next'] .short-term-strip>button.active{
+  background:color-mix(in srgb,var(--primary) 8%,var(--c8-paper))!important;
+  box-shadow:inset 0 3px 0 var(--primary)!important;
+}
+html[data-mid-design='next'] .short-term-strip>button.active::after{
+  content:"";
+  position:absolute;
+  inset:3px 0 0;
+  border-inline:1px solid color-mix(in srgb,var(--primary) 42%,transparent);
+  pointer-events:none;
+}
+html[data-mid-design='next'] .short-term-strip>button time{
+  display:grid!important;
+  place-items:center!important;
+  color:var(--muted)!important;
+  font-size:10px!important;
+}
+html[data-mid-design='next'] .short-term-strip>button time b{
+  font-size:11px!important;
+  font-variant-numeric:tabular-nums!important;
+}
+html[data-mid-design='next'] .short-term-strip>button .short-term-weather-icon{
+  display:grid!important;
+  place-items:center!important;
+  min-height:42px!important;
+}
+html[data-mid-design='next'] .short-term-strip>button .short-term-weather-icon svg{
+  width:32px!important;
+  height:32px!important;
+}
+html[data-mid-design='next'] .short-term-strip>button .short-term-temperature{
+  align-self:center!important;
+  font-size:21px!important;
+  line-height:1!important;
+  text-align:center!important;
+}
+html[data-mid-design='next'] .short-term-strip>button :is(.short-term-precip,.short-term-wind){
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  min-width:0!important;
+  min-height:34px!important;
+  padding-top:4px!important;
+  border-top:1px solid color-mix(in srgb,var(--c8-line) 72%,transparent)!important;
+}
+html[data-mid-design='next'] .short-term-strip>button :is(.short-term-precip,.short-term-wind) small{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:9px!important;
+  line-height:1.15!important;
+}
+html[data-mid-design='next'] .short-term-strip>button .short-term-precip em{
+  display:none!important;
+}
+html[data-mid-design='next'] .short-term-strip>button .short-term-thunder{
+  position:absolute!important;
+  right:4px!important;
+  bottom:3px!important;
+  font-size:8px!important;
+}
+
+/* Selected time = Zeitlupe. Desktop keeps it inside the workspace; mobile lifts
+   it above the navigation so the selected values are never hidden by the bar. */
+html[data-mid-design='next'] .short-term-detail{
+  margin:0!important;
+  padding:14px 16px!important;
+  border:0!important;
+  border-top:1px solid var(--c8-line)!important;
+  border-radius:0!important;
+  background:color-mix(in srgb,var(--c8-raised) 70%,var(--c8-paper))!important;
+  box-shadow:none!important;
+}
+html[data-mid-design='next'] .short-term-detail>header{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+html[data-mid-design='next'] .short-term-detail>header span{
+  display:grid!important;
+  gap:2px!important;
+  min-width:0!important;
+}
+html[data-mid-design='next'] .short-term-detail>header span::before{
+  content:"Zeitlupe";
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+html[data-mid-design='next'] .short-term-detail>header b{
+  font-size:15px!important;
+}
+html[data-mid-design='next'] .short-term-detail>header small{
+  color:var(--muted)!important;
+  font-size:10px!important;
+}
+html[data-mid-design='next'] .short-term-detail>header>button{
+  flex:0 0 auto!important;
+  width:34px!important;
+  height:34px!important;
+  border:1px solid var(--c8-line)!important;
+  border-radius:12px!important;
+  background:var(--c8-paper)!important;
+}
+html[data-mid-design='next'] .short-term-detail>div{
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  gap:1px!important;
+  overflow:hidden!important;
+  border:1px solid var(--c8-line)!important;
+  border-radius:14px!important;
+  background:var(--c8-line)!important;
+}
+html[data-mid-design='next'] .short-term-detail>div>span{
+  display:grid!important;
+  align-content:start!important;
+  gap:4px!important;
+  min-width:0!important;
+  min-height:82px!important;
+  padding:10px!important;
+  background:var(--c8-paper)!important;
+}
+html[data-mid-design='next'] .short-term-detail>div>span>svg{
+  width:15px!important;
+  height:15px!important;
+}
+html[data-mid-design='next'] .short-term-detail>div>span small{
+  color:var(--muted)!important;
+  font-size:8px!important;
+  font-weight:850!important;
+  letter-spacing:.04em!important;
+}
+html[data-mid-design='next'] .short-term-detail>div>span strong{
+  overflow-wrap:anywhere!important;
+  font-size:11px!important;
+  line-height:1.25!important;
+}
+html[data-mid-design='next'] .short-term-detail>div>span em{
+  color:var(--muted)!important;
+  font-size:9px!important;
+  line-height:1.3!important;
+}
+
+/* The DWD precipitation-type product is supporting evidence, not a second hero. */
+html[data-mid-design='next'] .short-term-forecast>.dwd-precipitation-type-radar,
+html[data-mid-design='next'] .short-term-forecast [class*='dwd-precipitation-type']{
+  margin:0!important;
+  border-top:1px solid var(--c8-line)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+
+@media(max-width:1020px){
+  html[data-mid-design='next'] .short-term-detail>div{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+}
+
+@media(max-width:850px){
+  html[data-mid-design='next'] .short-term-forecast{
+    border-radius:22px!important;
+  }
+  html[data-mid-design='next'] .short-term-forecast>.short-term-header,
+  html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head{
+    min-height:56px!important;
+    padding:10px 12px!important;
+  }
+  html[data-mid-design='next'] .short-term-forecast>.short-term-header em,
+  html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head em{
+    max-width:38vw!important;
+    padding:6px 8px!important;
+    font-size:9px!important;
+  }
+  html[data-mid-design='next'] .short-term-signature{
+    grid-template-columns:96px minmax(0,1fr)!important;
+    min-height:64px!important;
+    gap:9px!important;
+    padding:8px 12px!important;
+  }
+  html[data-mid-design='next'] .short-term-signature>span strong{
+    font-size:10px!important;
+  }
+  html[data-mid-design='next'] .short-term-signature .mid-weather-thread{
+    height:34px!important;
+  }
+  html[data-mid-design='next'] .short-term-matrix>header{
+    padding-inline:8px!important;
+    font-size:7px!important;
+  }
+  html[data-mid-design='next'] .short-term-strip{
+    grid-auto-columns:78px!important;
+    scrollbar-width:thin!important;
+  }
+  html[data-mid-design='next'] .short-term-strip>button{
+    grid-template-rows:22px 38px 28px 34px 34px!important;
+    min-width:78px!important;
+    min-height:164px!important;
+    padding:7px 4px!important;
+  }
+  html[data-mid-design='next'] .short-term-strip>button .short-term-weather-icon svg{
+    width:29px!important;
+    height:29px!important;
+  }
+  html[data-mid-design='next'] .short-term-strip>button .short-term-temperature{
+    font-size:19px!important;
+  }
+  html[data-mid-design='next'] .short-term-detail{
+    position:fixed!important;
+    z-index:79!important;
+    left:max(10px,env(safe-area-inset-left))!important;
+    right:max(10px,env(safe-area-inset-right))!important;
+    bottom:calc(88px + env(safe-area-inset-bottom))!important;
+    max-height:min(58vh,520px)!important;
+    overflow:auto!important;
+    padding:12px!important;
+    border:1px solid var(--c8-line)!important;
+    border-radius:20px!important;
+    background:color-mix(in srgb,var(--surface) 94%,transparent)!important;
+    box-shadow:0 18px 48px rgba(4,25,43,.2)!important;
+    backdrop-filter:blur(20px) saturate(1.08)!important;
+  }
+  html[data-mid-design='next'] .short-term-detail>div{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  html[data-mid-design='next'] .short-term-detail>div>span{
+    min-height:76px!important;
+  }
+}
+
+@media(max-width:430px){
+  html[data-mid-design='next'] .short-term-forecast>.short-term-header strong,
+  html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head strong{
+    font-size:16px!important;
+  }
+  html[data-mid-design='next'] .short-term-forecast>.short-term-header em,
+  html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head em{
+    max-width:34vw!important;
+  }
+  html[data-mid-design='next'] .short-term-signature{
+    grid-template-columns:82px minmax(0,1fr)!important;
+  }
+  html[data-mid-design='next'] .short-term-signature>span small{
+    font-size:7px!important;
+  }
+  html[data-mid-design='next'] .short-term-strip{
+    grid-auto-columns:74px!important;
+  }
+  html[data-mid-design='next'] .short-term-strip>button{
+    min-width:74px!important;
+  }
+}
+
+@media(max-width:360px){
+  html[data-mid-design='next'] .short-term-forecast>.short-term-header em,
+  html[data-mid-design='next'] .short-term-forecast>.forecast-entry-head em{
+    display:none!important;
+  }
+  html[data-mid-design='next'] .short-term-signature{
+    grid-template-columns:1fr!important;
+    gap:4px!important;
+  }
+  html[data-mid-design='next'] .short-term-signature>span{
+    grid-template-columns:auto 1fr!important;
+    align-items:baseline!important;
+    gap:8px!important;
+  }
+  html[data-mid-design='next'] .short-term-detail>div{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  html[data-mid-design='next'] .short-term-strip{
+    scroll-behavior:auto!important;
+  }
+  html[data-mid-design='next'] .short-term-detail{
+    backdrop-filter:none!important;
+  }
+}
