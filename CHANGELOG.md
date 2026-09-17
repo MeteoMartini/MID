@@ -1,3 +1,9 @@
+# MID v0.9.85.26
+
+## MID-C7 · Kartenarbeitsraum
+
+- Karten sind nun klarer als eigener Arbeitsbereich aufgebaut: Livebild, Analyse und Ebenen lassen sich ruhiger unterscheiden, ohne die Farben der amtlichen und meteorologischen Produkte zu verändern.
+
 # MID v0.9.85.25
 
 ## MID-C7 · verlässliche Darstellung auf allen Bildschirmgrößen
