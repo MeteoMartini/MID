@@ -15,6 +15,7 @@ import './midC13MobileTouch.css';
 import './midC14MapWorkspace.css';
 import './midC14ViewportFixes.css';
 import './midC15TodayDensity.css';
+import './midC16TodayProfileFix.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
