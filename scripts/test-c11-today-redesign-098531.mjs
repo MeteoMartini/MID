@@ -14,7 +14,7 @@ for(const token of [
  'className="short-term-matrix"',
  'className="short-term-strip"',
  'id="short-term-selected-detail"',
- 'DwdPrecipitationTypeRadar'
+ 'DwdPrecipitationTypeDisclosure'
 ])assert.ok(shortTerm.includes(token),`Heute-Grundstruktur fehlt: ${token}`);
 for(const token of [
  '.short-term-forecast>.short-term-header',
