@@ -20,10 +20,10 @@ assert.ok(app.includes('requestedClockSelectionRef=useRef<{date:string;hour:numb
 assert.ok(app.includes('if(requestedSelection&&requestedSelection.date===selected){'),'Vorgemerkte Zieluhrzeit wird beim Tageswechsel nicht explizit priorisiert.');
 assert.ok(app.includes('if(selectedHour===nearest)requestedClockSelectionRef.current=null;'),'Vorgemerkte Zieluhrzeit wird nicht erst nach erfolgreicher Auswahl gelöscht.');
 assert.ok(app.includes('queueRequestedClockHour(targetDay.date,delta>0?0:23);'),'Stundenweiser Tageswechsel springt nicht explizit auf 00/23 Uhr.');
-assert.ok(cockpit.includes('skyBandTop=50,cloudTop=101'),'Wolkenbereich wurde nicht in den oberen Profilkopf verlegt.');
-assert.ok(cockpit.includes('tempTop=150,tempBottom=274'),'Temperaturbereich wurde nicht unter die Wolkenbänder verschoben.');
+assert.ok(cockpit.includes('skyBandTop=profileY(50),cloudTop=profileY(101)'),'Wolkenbereich wurde nicht in den oberen Profilkopf verlegt.');
+assert.ok(cockpit.includes('tempTop=profileY(150),tempBottom=profileY(274)'),'Temperaturbereich wurde nicht unter die Wolkenbänder verschoben.');
 assert.ok(cockpit.includes('height={cloudBottom-skyBandTop+18}'),'Wetterkopf-Hintergrund um Wolkenbänder wurde nicht mitgezogen.');
-assert.ok(cockpit.includes('y={78}'),'Wetterpiktogramme wurden für den neuen Wolkenkopf nicht nachverdichtet.');
+assert.ok(cockpit.includes('profileWeatherIconY=profileY(78)'),'Wetterpiktogramme wurden für den neuen Wolkenkopf nicht nachverdichtet.');
 assert.ok(styles.includes('.cockpit-weather-profile .temperature-line{stroke-width:2.75}'),'Temperaturkurve ist nicht dünner ausgelegt.');
 assert.ok(styles.includes('.cockpit-weather-profile .apparent-line{stroke-width:1.9}'),'Gefühlte Temperaturkurve ist nicht dünner ausgelegt.');
 
