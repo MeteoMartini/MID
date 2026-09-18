@@ -4,6 +4,13 @@ export type CompositeTimePhase='observation'|'nowcast'|'forecast';
 export type CompositeTimelineFrame=TimedFrame&{phase:CompositeTimePhase;source:string;live?:boolean};
 export type CompositeTimelineContract={
  source:string;
+ /**
+  * Optional source names by temporal phase. This keeps the timeline continuous
+  * while preserving provenance when a future visual product changes source,
+  * e.g. EUMETSAT satellite observations -> model-derived pseudo-satellite.
+  * No frame is synthesized by this contract; only confirmed timestamps enter.
+  */
+ phaseSources?:Partial<Record<CompositeTimePhase,string>>;
  observations?:number[];
  nowcasts?:number[];
  forecasts?:number[];
@@ -21,11 +28,13 @@ export function buildCompositeTimeline(referenceSeconds:number,stepMinutes=5){
  * Builds the interactive timeline exclusively from source-confirmed product
  * timestamps. This deliberately does not invent five-minute frames between
  * observations. Static layers (warnings, PX/HX snapshots) therefore cannot
- * accidentally turn into an animation or a forecast.
+ * accidentally turn into an animation or a forecast. Observation, nowcast and
+ * forecast may name different sources so future satellite -> pseudo-satellite
+ * transitions can remain visually continuous without hiding the source change.
  */
 export function buildAvailableCompositeTimeline(referenceSeconds:number,contract:CompositeTimelineContract,historyMinutes=60,futureMinutes=120){
  const minimum=referenceSeconds-historyMinutes*60,maximum=referenceSeconds+futureMinutes*60,rows:CompositeTimelineFrame[]=[];
- const append=(values:number[]|undefined,phase:CompositeTimePhase)=>{for(const value of values??[]){const time=Math.floor(Number(value));if(Number.isFinite(time)&&time>=minimum&&time<=maximum)rows.push({time,phase,source:contract.source})}};
+ const append=(values:number[]|undefined,phase:CompositeTimePhase)=>{for(const value of values??[]){const time=Math.floor(Number(value));if(Number.isFinite(time)&&time>=minimum&&time<=maximum)rows.push({time,phase,source:contract.phaseSources?.[phase]||contract.source})}};
  append(contract.observations,'observation');append(contract.nowcasts,'nowcast');append(contract.forecasts,'forecast');
  const priority:Record<CompositeTimePhase,number>={observation:1,nowcast:2,forecast:3},unique=[...new Map(rows.sort((a,b)=>a.time-b.time||priority[a.phase]-priority[b.phase]).map(frame=>[frame.time,frame])).values()].sort((a,b)=>a.time-b.time);
  if(!unique.length)return[];
