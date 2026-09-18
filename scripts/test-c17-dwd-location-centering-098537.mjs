@@ -10,15 +10,17 @@ const [radar,styles,main,pkgText,changelog]=await Promise.all([
  'public/CHANGELOG.md'
 ].map(path=>readFile(new URL(path,root),'utf8')));
 
+// C18 supersedes delayed C17 retries with one cancellable frame, measured image
+// geometry and a retained pan centre; geographical calibration remains unchanged.
 for(const token of [
- 'canvas.getBoundingClientRect().width',
- 'canvas.getBoundingClientRect().height',
+ 'image.getBoundingClientRect()',
+ 'viewport.clientLeft',
  'observer.observe(viewport)',
  'observer.observe(canvas)',
- 'timers.push(window.setTimeout(run,360))',
- 'const recenterLocation=()=>{scheduleCenterImagePoint(locationPoint)}',
+ 'window.cancelAnimationFrame(centerFrameRef.current)',
+ 'const recenterLocation=()=>{viewCenterRef.current=locationPoint;scheduleCenterImagePoint(locationPoint)}',
  'title="Gewählten Standort exakt zentrieren"',
- 'window.requestAnimationFrame(()=>scheduleCenterImagePoint(locationPoint))',
+ 'scheduleCenterImagePoint(viewCenterRef.current??locationPoint)',
  'className="dwd-precip-type-radar__location-pin"'
 ])assert.ok(radar.includes(token),`C17-Zentrierungsvertrag fehlt: ${token}`);
 

@@ -1,0 +1,103 @@
+/* MID-C9 / C18: shared instrument surfaces, predictable responsive navigation.
+   Weather scales and original DWD pixels are deliberately not recoloured. */
+html[data-mid-design='next']{
+ --c8-radius:20px;
+ --mid-ui-radius:14px;
+}
+html[data-mid-design='next'] :is(.top.settings-header,.forecast-cockpit,.modern-planner-hub,.modern-map-focus-shell){
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+}
+html[data-mid-design='next'] :is(.top.settings-header,.modern-forecast-horizons){background:var(--surface)!important}
+html[data-mid-design='next'] .place-title-row h1{white-space:normal!important;overflow-wrap:anywhere;line-height:1.15!important}
+html[data-mid-design='next'] .place-meta{white-space:normal!important;line-height:1.45!important}
+html[data-mid-design='next'] :is(.hero,.forecast-cockpit,.modern-planner-hub,.modern-more-drawer){font-variant-numeric:tabular-nums}
+html[data-mid-design='next'] :is(button,a,summary):focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+
+/* The 90-minute strip is a single timeline, on every screen size. */
+html[data-mid-design='next'] .cockpit-now90{
+ padding:12px!important;border:0!important;border-bottom:1px solid var(--c8-line)!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+html[data-mid-design='next'] .cockpit-now90>header{gap:8px;flex-wrap:wrap;align-items:baseline}
+html[data-mid-design='next'] .cockpit-now90-grid{
+ display:grid!important;grid-template-columns:repeat(6,minmax(112px,1fr))!important;
+ gap:0!important;overflow-x:auto!important;padding:4px 0!important;scroll-snap-type:x proximity;
+}
+html[data-mid-design='next'] .cockpit-now90-slot{
+ min-width:0!important;margin:0!important;padding:10px!important;
+ border:0!important;border-inline-end:1px solid var(--c8-line)!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;
+ scroll-snap-align:start;
+}
+html[data-mid-design='next'] .cockpit-now90-slot:last-child{border-inline-end:0!important}
+html[data-mid-design='next'] .cockpit-now90-slot.active{
+ background:color-mix(in srgb,var(--primary) 7%,var(--surface))!important;
+ box-shadow:inset 0 -3px var(--primary)!important;
+}
+html[data-mid-design='next'] .cockpit-now90-weather{white-space:normal!important;overflow:visible!important;min-height:2.5em;line-height:1.25!important}
+html[data-mid-design='next'] :is(.cockpit-now90-meta,.cockpit-now90-wind-text){white-space:nowrap!important}
+
+/* A section index with quiet rows, rather than another field of tiles. */
+html[data-mid-design='next'] .modern-more-quick-actions{
+ display:grid!important;grid-template-columns:1fr!important;gap:0!important;
+ border-block:1px solid var(--c8-line);padding:0!important;
+}
+html[data-mid-design='next'] .modern-more-quick-actions>button{
+ display:flex!important;align-items:center;gap:12px!important;padding:12px!important;
+ min-height:52px!important;border:0!important;border-bottom:1px solid var(--c8-line)!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;text-align:left;
+}
+html[data-mid-design='next'] .modern-more-quick-actions>button:last-child{border-bottom:0!important}
+html[data-mid-design='next'] .modern-more-quick-actions>button>span{display:grid;gap:3px;min-width:0}
+html[data-mid-design='next'] .modern-more-quick-actions small{white-space:normal!important;color:var(--muted)}
+html[data-mid-design='next'] .modern-more-drawer{
+ max-height:calc(100dvh - var(--mid-safe-top) - var(--mid-safe-bottom) - 16px)!important;
+ overflow-y:auto!important;overscroll-behavior:contain;border-radius:20px!important;
+}
+html[data-mid-design='next'] .modern-more-drawer>header{
+ position:sticky;top:0;z-index:2;background:var(--surface);border-bottom:1px solid var(--c8-line);
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details{border-radius:12px!important;box-shadow:none!important}
+html[data-mid-design='next'] .modern-planner-hub button{box-shadow:none!important;min-height:52px;white-space:normal}
+
+/* Tablet rail and content inset use the SAME breakpoint. Labels remain named
+   for assistive technology even when the compact visual labels are hidden. */
+@media(min-width:851px) and (max-width:1399px){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs.with-section-navigation{padding-left:100px!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{width:72px!important;left:max(12px,var(--mid-safe-left))!important;padding:8px!important;box-shadow:none!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button{justify-content:center!important;min-height:52px!important;width:100%!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button span{display:none!important}
+}
+@media(min-width:1400px){
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{width:176px!important;box-shadow:none!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button span{display:inline!important;font-size:13px!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button{justify-content:flex-start!important;min-height:52px!important}
+}
+@media(max-width:850px){
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{box-shadow:0 3px 14px rgba(0,0,0,.1)!important;background:var(--surface)!important;backdrop-filter:none!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:44px!important}
+ html[data-mid-design='next'] .cockpit-now90{padding:10px 6px!important}
+ html[data-mid-design='next'] .cockpit-now90-grid{grid-template-columns:repeat(6,minmax(108px,1fr))!important}
+ html[data-mid-design='next'] .place-title-row h1{font-size:22px!important}
+}
+@media(max-height:500px) and (orientation:landscape){
+ html[data-mid-design='next'] .top.settings-header{position:relative!important;top:auto!important}
+ html[data-mid-design='next'] .modern-forecast-horizons{position:relative!important;top:auto!important}
+
+}
+
+/* Intrinsic image extent must not inherit generic app media constraints.
+   The DWD legend is an enlarged crop of the same bitmap, not a separate image. */
+.app main .dwd-precip-type-radar__original-image,
+.app main .dwd-precip-type-radar__source-legend img{max-width:none!important;max-height:none!important}
+.dwd-precip-type-radar__original-canvas{transition:none!important;overflow-anchor:none}
+.dwd-precip-type-radar__original-viewport{scroll-behavior:auto!important;overflow-anchor:none;direction:ltr}
+.dwd-precip-type-radar__zoom-toolbar button{min-width:36px;min-height:36px}
+@media(max-height:500px) and (orientation:landscape){
+ .dwd-precip-type-radar__original-viewport{min-height:160px!important;max-height:65dvh!important}
+}
+
+@media(min-width:851px) and (max-height:500px){
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{top:8px!important;max-height:calc(100dvh - 16px)!important;overflow-y:auto}
+}
