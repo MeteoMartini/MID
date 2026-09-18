@@ -1,9 +1,10 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [main,profileFix,cockpit,dwd,pkg,changelog]=await Promise.all([
+const [main,profileFix,c15Styles,cockpit,dwd,pkg,changelog]=await Promise.all([
  readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC16TodayProfileFix.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/midC15TodayDensity.css',import.meta.url),'utf8'),
  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
@@ -40,6 +41,8 @@ for(const token of [
  'defaultOpen=false'
 ])assert.ok(dwd.includes(token),`Expliziter DWD-Disclosure fehlt: ${token}`);
 assert.ok(!dwd.includes('<details className="dwd-precip-type-disclosure"'),'Native Details-Zustandswiederherstellung darf das große DWD-Bild nicht ungefragt wieder öffnen.');
+assert.ok(c15Styles.includes('background:color-mix(in srgb,var(--surface) 94%,var(--s2) 6%)'),'DWD-Disclosure muss im Dark Mode aus den aktiven MID-Flächenfarben aufgebaut sein.');
+assert.ok(!c15Styles.includes('var(--card,#fff)'),'Der nicht definierte helle --card-Fallback darf den Dark Mode nicht auswaschen.');
 
 for(const token of [
  '.cockpit-short-term .cockpit-brief-with-tools>span:first-child>strong',
