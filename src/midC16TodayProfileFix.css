@@ -1,0 +1,101 @@
+/* MID C16 · reale iPhone-Korrektur für HEUTE.
+   Ursache der sichtbaren Überdehnung: das 24-h-Profil behielt auf schmalen
+   Viewports die Desktop-Y-Geometrie. ForecastCockpit reduziert diese Geometrie
+   nun responsiv; dieser Layer schützt zusätzlich Textfluss und Container. */
+
+html[data-mid-design='next'] .cockpit-short-term,
+html[data-mid-design='next'] .cockpit-weather-profile,
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage{
+ min-width:0!important;
+ max-width:100%!important;
+}
+
+html[data-mid-design='next'] .cockpit-short-term .cockpit-brief-with-tools>span:first-child,
+html[data-mid-design='next'] .cockpit-short-term .cockpit-brief-with-tools>span:first-child>strong{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-short-term .cockpit-brief-with-tools>span:first-child>strong{
+ display:block!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere!important;
+}
+
+html[data-mid-design='next'] .cockpit-now90>header{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .cockpit-now90>header>b,
+html[data-mid-design='next'] .cockpit-now90>header>small{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-now90>header>small{
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+}
+
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg{
+ display:block!important;
+ width:100%!important;
+ max-width:100%!important;
+ overflow:visible!important;
+}
+
+@media(max-width:850px){
+ html[data-mid-design='next'] .cockpit-short-term .cockpit-brief-with-tools{
+  gap:5px!important;
+  margin-bottom:7px!important;
+ }
+ html[data-mid-design='next'] .cockpit-short-term .cockpit-brief-with-tools>span:first-child>strong{
+  font-size:13px!important;
+  line-height:1.25!important;
+ }
+ html[data-mid-design='next'] .cockpit-now90{
+  margin-bottom:7px!important;
+  padding:7px 8px!important;
+ }
+ html[data-mid-design='next'] .cockpit-now90>header{
+  display:grid!important;
+  grid-template-columns:max-content minmax(0,1fr)!important;
+  align-items:baseline!important;
+  gap:5px 8px!important;
+  margin-bottom:6px!important;
+ }
+ html[data-mid-design='next'] .cockpit-now90>header>small{
+  justify-self:end!important;
+  font-size:8px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage{
+  overflow:hidden!important;
+ }
+}
+
+@media(max-width:430px){
+ html[data-mid-design='next'] .cockpit-short-term .cockpit-brief-with-tools>span:first-child>strong{
+  font-size:12px!important;
+ }
+ html[data-mid-design='next'] .cockpit-now90>header{
+  grid-template-columns:1fr!important;
+  gap:2px!important;
+ }
+ html[data-mid-design='next'] .cockpit-now90>header>small{
+  display:none!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__head{
+  padding-block:6px!important;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage{
+  max-height:none!important;
+ }
+}
