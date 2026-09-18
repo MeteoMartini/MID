@@ -1,0 +1,218 @@
+/* MID C15 · Heute als ruhiger Arbeitsraum.
+   Amtliche DWD-Originalbilder bleiben vollständig verfügbar, dominieren die
+   Kurzfristansicht aber erst nach bewusster Öffnung. Das 24-h-Profil behält
+   alle fachlichen Spuren und wird auf kleinen Viewports lediglich verdichtet. */
+
+.dwd-precip-type-disclosure{
+ width:100%;
+ min-width:0;
+ margin:0;
+ overflow:hidden;
+ border:1px solid color-mix(in srgb,var(--c8-line,#b7c7d8) 72%,transparent);
+ border-radius:15px;
+ background:color-mix(in srgb,var(--card,#fff) 76%,transparent);
+ box-shadow:none;
+}
+.dwd-precip-type-disclosure>summary{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ align-items:center;
+ gap:10px;
+ min-height:48px;
+ padding:8px 11px;
+ cursor:pointer;
+ list-style:none;
+ user-select:none;
+}
+.dwd-precip-type-disclosure>summary::-webkit-details-marker{display:none}
+.dwd-precip-type-disclosure>summary>span:first-child{
+ display:grid;
+ min-width:0;
+ gap:1px;
+}
+.dwd-precip-type-disclosure>summary small{
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+ color:var(--muted);
+ font-size:8px;
+ font-weight:850;
+ letter-spacing:.08em;
+ text-transform:uppercase;
+}
+.dwd-precip-type-disclosure>summary strong{
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+ color:var(--text);
+ font-size:12px;
+ line-height:1.2;
+}
+.dwd-precip-type-disclosure__action{
+ display:flex;
+ align-items:center;
+ gap:5px;
+ color:var(--muted);
+}
+.dwd-precip-type-disclosure__action em{
+ font-size:9px;
+ font-style:normal;
+ font-weight:750;
+ white-space:nowrap;
+}
+.dwd-precip-type-disclosure__action svg{transition:transform .18s ease}
+.dwd-precip-type-disclosure[open] .dwd-precip-type-disclosure__action svg{transform:rotate(180deg)}
+.dwd-precip-type-disclosure__body{
+ min-width:0;
+ padding:0 7px 7px;
+ border-top:1px solid color-mix(in srgb,var(--c8-line,#b7c7d8) 58%,transparent);
+}
+.dwd-precip-type-disclosure__body>.dwd-precip-type-radar{
+ margin:7px 0 0!important;
+}
+
+html[data-mid-design='next'] .cockpit-short-term>.dwd-precip-type-disclosure,
+html[data-mid-design='next'] .short-term-forecast>.dwd-precip-type-disclosure{
+ margin:7px 0!important;
+}
+
+html[data-mid-design='next'] .cockpit-weather-profile{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile__signals{
+ grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage,
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas,
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage{
+ overflow:hidden!important;
+}
+
+@media(max-width:850px){
+ .dwd-precip-type-disclosure{
+  border-radius:13px;
+ }
+ .dwd-precip-type-disclosure>summary{
+  min-height:44px;
+  padding:6px 8px;
+ }
+ .dwd-precip-type-disclosure>summary strong{font-size:11px}
+ .dwd-precip-type-disclosure__body{padding:0 4px 4px}
+
+ html[data-mid-design='next'] .cockpit-weather-profile{
+  gap:5px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__head{
+  min-height:0!important;
+  padding:7px 9px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__head small{
+  font-size:7px!important;
+  letter-spacing:.08em!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__head b{
+  font-size:16px!important;
+  line-height:1.08!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__signals{
+  display:flex!important;
+  gap:4px!important;
+  padding:0 1px 2px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x proximity!important;
+  overscroll-behavior-inline:contain!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__signals>span{
+  flex:0 0 min(72vw,235px)!important;
+  min-height:42px!important;
+  padding:5px 7px!important;
+  gap:1px!important;
+  scroll-snap-align:start!important;
+  border-radius:9px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__signals small{
+  font-size:7px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__signals b{
+  font-size:10px!important;
+  line-height:1.12!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__signals .signal-time,
+ html[data-mid-design='next'] .cockpit-weather-profile__signals em{
+  font-size:7px!important;
+  line-height:1.18!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__toolbar{
+  display:flex!important;
+  align-items:center!important;
+  gap:4px!important;
+  flex-wrap:wrap!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:4px 6px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__resolution{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  flex:1 1 150px!important;
+  min-width:140px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__toolbar button{
+  min-height:34px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__toggle{
+  flex:0 1 auto!important;
+  padding-inline:8px!important;
+  font-size:9px!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__icon-toggle{
+  flex:0 0 34px!important;
+  width:34px!important;
+  min-width:34px!important;
+  padding:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__info-card{
+  max-height:min(34dvh,250px)!important;
+  overflow:auto!important;
+  overscroll-behavior:contain!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+ }
+}
+
+@media(max-width:430px){
+ .dwd-precip-type-disclosure__action em{display:none}
+ .dwd-precip-type-disclosure>summary{min-height:42px}
+ html[data-mid-design='next'] .cockpit-weather-profile__signals>span{
+  flex-basis:min(78vw,220px)!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__toggle{
+  font-size:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__toggle::after{
+  content:'Legende';
+  font-size:9px;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .cockpit-weather-profile__signals>span{
+  flex-basis:min(42vw,230px)!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile__info-card{
+  max-height:42dvh!important;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ .dwd-precip-type-disclosure__action svg{transition:none}
+}
