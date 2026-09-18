@@ -10,7 +10,7 @@
  overflow:hidden;
  border:1px solid color-mix(in srgb,var(--c8-line,#b7c7d8) 72%,transparent);
  border-radius:15px;
- background:color-mix(in srgb,var(--card,#fff) 76%,transparent);
+ background:color-mix(in srgb,var(--surface) 94%,var(--s2) 6%);
  box-shadow:none;
 }
  .dwd-precip-type-disclosure__toggle{
