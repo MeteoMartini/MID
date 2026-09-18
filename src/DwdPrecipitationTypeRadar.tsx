@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useMemo,useRef,useState,type CSSProperties,type MouseEvent} from 'react';
-import {ExternalLink,Info,MapPin,RotateCcw,ZoomIn,ZoomOut} from 'lucide-react';
+import {ChevronDown,ExternalLink,Info,MapPin,RotateCcw,ZoomIn,ZoomOut} from 'lucide-react';
 import {buildWorkerUrl,fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import type {Location} from './weather';
 import {formatDisplayDateTime} from './timeDisplay';
@@ -41,6 +41,16 @@ function formatDwdSourceTimestamp(value:string|undefined){return value?formatDis
 function exactProductUrls(slot:number){return workerBaseCandidates('radar').map(base=>buildWorkerUrl(base,'dwd-precipitation-type-image',{slot}).toString())}
 function originalLegendImageStyle(){const window=DWD_ORIGINAL_LEGEND_WINDOW;return{width:`${(100/window.width).toFixed(6)}%`,left:`${(-(window.left/window.width)*100).toFixed(6)}%`,top:`${(-(window.top/window.height)*100).toFixed(6)}%`} as CSSProperties}
 function originalLegendFrameStyle(imageSize:ImageSize){const window=DWD_ORIGINAL_LEGEND_WINDOW,ratio=(window.width*Math.max(1,imageSize.width))/(window.height*Math.max(1,imageSize.height));return{aspectRatio:String(ratio)} as CSSProperties}
+
+export function DwdPrecipitationTypeDisclosure({location,enabled=true,defaultOpen=false}:{location:Location;enabled?:boolean;defaultOpen?:boolean}){
+ const covered=dwdPrecipitationTypeCoverage(location),[open,setOpen]=useState(defaultOpen);
+ useEffect(()=>{setOpen(defaultOpen)},[defaultOpen,location.latitude,location.longitude]);
+ if(!enabled||!covered)return null;
+ return <details className="dwd-precip-type-disclosure" open={open} onToggle={event=>setOpen(event.currentTarget.open)}>
+  <summary><span><small>DWD · amtliches Originalprodukt</small><strong>Wolken + Niederschlagsart</strong></span><span className="dwd-precip-type-disclosure__action"><em>{open?'Bild schließen':'Bild öffnen'}</em><ChevronDown size={16} aria-hidden="true"/></span></summary>
+  <div className="dwd-precip-type-disclosure__body"><DwdPrecipitationTypeRadar location={location} enabled={open}/></div>
+ </details>
+}
 
 export function DwdPrecipitationTypeRadar({location,enabled=true}:{location:Location;enabled?:boolean}){
  const covered=dwdPrecipitationTypeCoverage(location),[refreshSlot,setRefreshSlot]=useState(()=>Math.floor(Date.now()/300000)),[imageUrl,setImageUrl]=useState(''),[imageSize,setImageSize]=useState<ImageSize>({width:1,height:1}),[meta,setMeta]=useState<RadarMeta|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[pointInfo,setPointInfo]=useState<PointInspection|null>(null),[zoom,setZoom]=useState(1),[viewportWidth,setViewportWidth]=useState(720),viewportRef=useRef<HTMLDivElement|null>(null),canvasRef=useRef<HTMLDivElement|null>(null),urls=useMemo(()=>exactProductUrls(refreshSlot),[refreshSlot]),locationPoint=useMemo(()=>dwdPrecipitationTypeImagePosition(location),[location.latitude,location.longitude]),cropWidth=dwdLocationCropWidth(viewportWidth),canvasStyle=useMemo(()=>({width:`${((zoom/cropWidth)*100).toFixed(6)}%`}) as CSSProperties,[cropWidth,zoom]),markerStyle=useMemo(()=>({left:`${(locationPoint.x*100).toFixed(5)}%`,top:`${(locationPoint.y*100).toFixed(5)}%`}) as CSSProperties,[locationPoint.x,locationPoint.y]);
