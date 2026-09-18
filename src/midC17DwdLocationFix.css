@@ -1,0 +1,73 @@
+/* MID C17 · DWD Wolken/Niederschlagsart: standorttreue Zentrierung.
+   Der Ortsausschnitt bleibt das unveränderte amtliche Originalbild.
+   Diese Schicht stabilisiert nur Darstellung und den exakten Markeranker. */
+
+html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport{
+ scroll-behavior:auto!important;
+}
+
+html[data-mid-design='next'] .dwd-precip-type-radar__original-canvas{
+ transition:none!important;
+}
+
+html[data-mid-design='next'] .dwd-precip-type-radar__location-marker{
+ width:30px!important;
+ height:34px!important;
+ transform:translate(-50%,-100%)!important;
+ overflow:visible!important;
+ color:var(--primary)!important;
+}
+
+html[data-mid-design='next'] .dwd-precip-type-radar__location-marker::after{
+ content:"";
+ position:absolute;
+ left:50%;
+ bottom:0;
+ width:6px;
+ height:6px;
+ border:2px solid color-mix(in srgb,var(--surface) 82%,#fff 18%);
+ border-radius:50%;
+ background:var(--primary);
+ box-shadow:0 1px 5px rgba(0,0,0,.34);
+ transform:translate(-50%,50%);
+ pointer-events:none;
+}
+
+html[data-mid-design='next'] .dwd-precip-type-radar__location-pin{
+ display:block!important;
+ width:26px!important;
+ height:26px!important;
+ margin:0 auto!important;
+ color:var(--primary)!important;
+ fill:color-mix(in srgb,var(--primary) 18%,transparent)!important;
+ filter:drop-shadow(0 2px 3px rgba(0,0,0,.38))!important;
+}
+
+@media(max-width:760px){
+ html[data-mid-design='next'] .dwd-precip-type-radar__source-legend{
+  width:clamp(78px,20%,98px)!important;
+ }
+ html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport{
+  scrollbar-width:none!important;
+ }
+ html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport::-webkit-scrollbar{
+  display:none!important;
+ }
+}
+
+@media(max-width:430px){
+ html[data-mid-design='next'] .dwd-precip-type-radar__location-marker{
+  width:28px!important;
+  height:32px!important;
+  transform:translate(-50%,-100%)!important;
+ }
+ html[data-mid-design='next'] .dwd-precip-type-radar__location-pin{
+  width:24px!important;
+  height:24px!important;
+ }
+ html[data-mid-design='next'] .dwd-precip-type-radar__source-legend{
+  left:5px!important;
+  bottom:5px!important;
+  width:80px!important;
+ }
+}
