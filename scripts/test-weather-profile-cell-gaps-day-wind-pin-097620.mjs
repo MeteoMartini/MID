@@ -3,9 +3,9 @@ import {readFile} from 'node:fs/promises';
 import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [cockpit,radar,app,modern,foundation,styles,pkgRaw,baselineRaw,implementation]=await Promise.all([
+const [cockpit,radar,app,modern,foundation,styles,c17,pkgRaw,baselineRaw,implementation]=await Promise.all([
  read('src/ForecastCockpit.tsx'),read('src/DwdPrecipitationTypeRadar.tsx'),read('src/App.tsx'),
- read('src/styles-src/30-modern.css'),read('src/styles-src/00-foundation.css'),read('src/styles.css'),
+ read('src/styles-src/30-modern.css'),read('src/styles-src/00-foundation.css'),read('src/styles.css'),read('src/midC17DwdLocationFix.css'),
  read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.76.23.md')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-weather-profile-cell-gaps-day-wind-pin-097620.mjs';
@@ -40,7 +40,8 @@ assert.ok(cockpit.includes('const safeMinWidth=Math.min(minWidth,span)'),'Profil
 assert.ok(modern.includes('.cockpit-weather-profile .temperature-line{stroke-width:2.75}'),'24-h-Temperaturkurve ist nicht auf die dünnere Tagesansicht-Anmutung reduziert.');
 assert.ok(styles.includes('.cockpit-weather-profile .temperature-line{stroke-width:2.75}'),'Styles-Aggregat enthält die dünnere 24-h-Temperaturkurve nicht.');
 
-assert.ok(radar.includes('className="dwd-precip-type-radar__location-pin" aria-hidden="true">📍</span></button>'),'DWD-Ortsmarker muss mit einer echten Stecknadel gekennzeichnet sein.');
+assert.ok(radar.includes('className="dwd-precip-type-radar__location-pin" size={26} strokeWidth={2.4} aria-hidden="true"'),'DWD-Ortsmarker muss mit einem eindeutigen MapPin gekennzeichnet sein.');
+assert.ok(!radar.includes('>📍</span></button>'),'Der plattformabhängige Emoji-Pin darf nicht zurückkehren.');
 assert.ok(!radar.includes("<MapPin size={22}/><span>{location.name||'Standort'}</span>"),'DWD-Ortsmarker darf keinen Ortsnamen über das Bild legen.');
 
 for(const css of [modern,styles]){
@@ -49,10 +50,14 @@ for(const css of [modern,styles]){
  assert.ok(!css.includes('.cockpit-weather-profile .profile-axis .profile-scale-label{fill:var(--mg-muted);font:790 7.3px/1 Inter,ui-sans-serif,system-ui,sans-serif;font-variant-numeric:tabular-nums;text-anchor:start;'),'Ein globales text-anchor:start würde die linken Achsenwerte wieder verschieben.');
 }
 
-for(const css of [modern,styles]){
-  assert.ok(css.includes('.dwd-precip-type-radar__location-marker{position:absolute;z-index:6;display:grid;place-items:center;width:28px;height:34px'),'Freigestellte Stecknadel-Geometrie fehlt.');
- assert.ok(css.includes('.dwd-precip-type-radar__location-pin{display:block;font-size:26px'),'Stecknadel-Emoji-Stil fehlt.');
-}
+for(const css of [modern,styles])assert.ok(css.includes('.dwd-precip-type-radar__location-marker{position:absolute;z-index:6;display:grid;place-items:center;width:28px;height:34px'),'Historische Marker-Basisgeometrie fehlt.');
+for(const token of [
+ '.dwd-precip-type-radar__location-marker{',
+ 'transform:translate(-50%,-100%)!important',
+ '.dwd-precip-type-radar__location-marker::after{',
+ '.dwd-precip-type-radar__location-pin{',
+ 'fill:color-mix(in srgb,var(--primary) 18%,transparent)!important'
+])assert.ok(c17.includes(token),`C17-MapPin-Anker fehlt: ${token}`);
 
 assert.ok(app.includes('function WindDirectionArrow({direction,gust,className='),'Appweiter Windrichtungspfeil nimmt keine Böe zur Warnfarbenermittlung an.');
 assert.ok(app.includes('warningLevel=windDirectionWarningLevel(gust)'),'Warnstufe wird beim Tages-Windpfeil nicht aus der Böe abgeleitet.');

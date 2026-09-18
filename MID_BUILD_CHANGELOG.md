@@ -1,3 +1,15 @@
+# MID Build-Changelog · v0.9.85.37
+
+## Redesign-Stufe C17 · DWD-Ortsausschnitt wieder exakt lokalisiert
+
+- Der reale Mobil-Sichtvergleich zeigte, dass „Wolken + Niederschlagsart“ trotz unveränderter DWD-Georeferenzierung nicht in jedem Öffnungs-/Resize-Zyklus sichtbar auf dem gewählten Ort stehen blieb. Ursache war die Darstellungsfolge: der Bildcanvas konnte nach dem ersten Zentriervorgang noch seine Größe ändern beziehungsweise animieren.
+- DwdPrecipitationTypeRadar zentriert jetzt mit der tatsächlich gerenderten Canvas- und Viewportgröße. Ein zusätzlicher ResizeObserver überwacht sowohl Viewport als auch Canvas und zieht den gewählten Standort nach jeder relevanten Größenänderung wieder exakt in die Mitte.
+- Bildladen löst nach dem Layout zusätzlich eine Standortzentrierung aus. Die Wiederholungen liegen bei unmittelbarem Layout, zwei Animation Frames sowie 80/180/360 ms, damit iOS-/PWA-Layoutwechsel und aufklappende Bereiche nicht mehr in einem halbverschobenen Zustand enden.
+- Der Standortmarker ist nun ein konsistentes MID/Lucide-MapPin mit zusätzlichem 6-px-Ankerpunkt exakt auf dem georeferenzierten Originalpixel. Der bisherige Emoji-Pin entfällt.
+- src/midC17DwdLocationFix.css entfernt die Breitenanimation des Originalbild-Canvas, schützt Auto-Scroll-Zentrierung und reduziert die eingebettete Originallegende mobil leicht, ohne DWD-Inhalt oder Pixelanalyse zu verändern.
+- scripts/test-c17-dwd-location-centering-098537.mjs schützt die etablierte Kalibrierung einschließlich des realen Elsig-Sichtvergleichs (50,67° N / 6,76° E → normierter Originalbildpunkt 0,33102793 / 0,46836195) und prüft exakte Zentrierbarkeit auf 320/390/430/768 px Viewports.
+- Keine Änderung an DWD-Quelle, Originalbild, Niederschlagsartenklassifikation, Pixelanalyse, Radar-/Satellitenzeit, Nowcast-/RUC-Logik oder meteorologischen Schwellen.
+
 # MID Build-Changelog · v0.9.85.36
 
 ## Redesign-Stufe C16 · Heute-Proportionen nach realem iPhone-Sichtvergleich

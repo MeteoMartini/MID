@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [app,radar,modern,styles,pkgRaw,baselineRaw,implementation]=await Promise.all([
- read('src/App.tsx'),read('src/DwdPrecipitationTypeRadar.tsx'),read('src/styles-src/30-modern.css'),read('src/styles.css'),
+const [app,radar,modern,styles,c17,pkgRaw,baselineRaw,implementation]=await Promise.all([
+ read('src/App.tsx'),read('src/DwdPrecipitationTypeRadar.tsx'),read('src/styles-src/30-modern.css'),read('src/styles.css'),read('src/midC17DwdLocationFix.css'),
  read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.76.26.md')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-thunder-mobile-place-summary-pin-097625.mjs';
@@ -32,10 +32,11 @@ for(const css of [modern,styles])for(const token of [
  '.thunder-place-group{display:grid;gap:6px;padding:9px 10px',
  '.thunder-place-more{display:grid;gap:8px;padding:8px 9px',
  '.thunder-place-section.compact .thunder-place-group:last-of-type .thunder-place-stack>.thunder-place-row:nth-child(n+4){display:none}',
- '.dwd-precip-type-radar__location-pin{display:block;font-size:26px'
-])assert.ok(css.includes(token),`Mobile Verdichtung/Stecknadel-CSS fehlt: ${token}`);
+])assert.ok(css.includes(token),`Mobile Verdichtung fehlt: ${token}`);
+for(const token of ['.dwd-precip-type-radar__location-marker::after{','.dwd-precip-type-radar__location-pin{','transform:translate(-50%,-100%)!important'])assert.ok(c17.includes(token),`Präziser C17-Ortsmarker fehlt: ${token}`);
 
-assert.ok(radar.includes('className="dwd-precip-type-radar__location-pin" aria-hidden="true">📍</span></button>'),'Radaransicht verwendet keine echte Stecknadel.');
+assert.ok(radar.includes('className="dwd-precip-type-radar__location-pin" size={26} strokeWidth={2.4} aria-hidden="true"'),'Radaransicht verwendet keinen präzisen MapPin.');
+assert.ok(!radar.includes('>📍</span></button>'),'Der plattformabhängige Emoji-Pin darf nicht zurückkehren.');
 for(const token of ['Ortsliste','Jetzt im Zellbereich','Weitere Orte anzeigen','Stecknadel','Worker-Upload'])assert.ok(implementation.includes(token),`Umsetzungsnachweis unvollständig: ${token}`);
 
 console.log(`MID v${pkg.version}: kompaktere mobile Gewitter-Ortsdarstellung und echte DWD-Stecknadel geprüft.`);
