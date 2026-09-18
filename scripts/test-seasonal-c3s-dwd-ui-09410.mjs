@@ -13,7 +13,7 @@ for(const token of ["UI_DENSITY_STORAGE_KEY='mid:ui-density'",'readUiDensityPref
 for(const token of ['horizonScrollRef','captureHorizonScroll','switchHorizon','data-cockpit-horizontal-scroll'])need('ForecastCockpit',cockpit,token);
 if(cockpit.includes("scrollTo({top:0,left:0,behavior:'smooth'})"))failures.push('ForecastCockpit: alter Scrollreset ist noch aktiv');
 for(const token of ['useSwipeDownDismiss','section-sticky-controls','{...swipe}'])need('Ensemble mobile/sticky',ensemble,token);
-need('WeatherMaps sticky',maps,'weather-maps-toolbar section-sticky-controls');
+for(const token of ['weather-maps-advanced','className="weather-maps-toolbar"','weather-maps-meta-details'])need('WeatherMaps progressive disclosure',maps,token);
 for(const token of ['--mid-ui-touch','data-mid-density="compact"','section-sticky-controls','long-range-dwd-periods','long-range-model-overlay-chart','app-portal-gesture'])need('Styles',styles,token);
 const packageVersion=JSON.parse(pkg).version,base=JSON.parse(baseline);if(packageVersion!==base.releaseVersion)failures.push(`Versionen nicht synchron: ${packageVersion}/${base.releaseVersion}`);if(!base.requiredRegressionTests?.includes('scripts/test-seasonal-c3s-dwd-ui-09410.mjs'))failures.push('Baseline requiredRegressionTests: Schutztest fehlt');if(!base.regressionTests?.includes('scripts/test-seasonal-c3s-dwd-ui-09410.mjs'))failures.push('Baseline regressionTests: Schutztest fehlt');
 if(failures.length){console.error('MID C3S/DWD/UI-Ausbauprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
