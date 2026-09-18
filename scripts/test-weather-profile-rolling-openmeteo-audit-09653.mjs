@@ -39,13 +39,13 @@ assert.ok(!cockpit.includes('hours.slice(startIndex,startIndex+24)'),'Der alte K
 
 // Getrennte, nicht überlappende Darstellungsbahnen und astronomische Orientierung.
 for(const token of [
- 'skyBandTop=50,cloudTop=101',
+ 'skyBandTop=profileY(50),cloudTop=profileY(101)',
  'profile-window-labels',
  'profile-solar-marker',
  'sunriseEpoch',
  'sunsetEpoch',
  'className="night-band"',
- 'y={78}',
+ 'profileWeatherIconY=profileY(78)',
  'const profileXForEpoch=(epoch:number)=>',
  'profileXForEpoch(event.epoch)',
  'y1={skyBandTop}',
