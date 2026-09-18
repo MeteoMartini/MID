@@ -13,7 +13,14 @@
  background:color-mix(in srgb,var(--card,#fff) 76%,transparent);
  box-shadow:none;
 }
-.dwd-precip-type-disclosure>summary{
+ .dwd-precip-type-disclosure__toggle{
+ appearance:none;
+ width:100%;
+ border:0;
+ background:transparent;
+ color:inherit;
+ font:inherit;
+ text-align:left;
  display:grid;
  grid-template-columns:minmax(0,1fr) auto;
  align-items:center;
@@ -24,13 +31,12 @@
  list-style:none;
  user-select:none;
 }
-.dwd-precip-type-disclosure>summary::-webkit-details-marker{display:none}
-.dwd-precip-type-disclosure>summary>span:first-child{
+.dwd-precip-type-disclosure__toggle>span:first-child{
  display:grid;
  min-width:0;
  gap:1px;
 }
-.dwd-precip-type-disclosure>summary small{
+.dwd-precip-type-disclosure__toggle small{
  overflow:hidden;
  text-overflow:ellipsis;
  white-space:nowrap;
@@ -40,7 +46,7 @@
  letter-spacing:.08em;
  text-transform:uppercase;
 }
-.dwd-precip-type-disclosure>summary strong{
+.dwd-precip-type-disclosure__toggle strong{
  overflow:hidden;
  text-overflow:ellipsis;
  white-space:nowrap;
@@ -61,7 +67,7 @@
  white-space:nowrap;
 }
 .dwd-precip-type-disclosure__action svg{transition:transform .18s ease}
-.dwd-precip-type-disclosure[open] .dwd-precip-type-disclosure__action svg{transform:rotate(180deg)}
+.dwd-precip-type-disclosure.open .dwd-precip-type-disclosure__action svg{transform:rotate(180deg)}
 .dwd-precip-type-disclosure__body{
  min-width:0;
  padding:0 7px 7px;
@@ -98,11 +104,11 @@ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__st
  .dwd-precip-type-disclosure{
   border-radius:13px;
  }
- .dwd-precip-type-disclosure>summary{
+ .dwd-precip-type-disclosure__toggle{
   min-height:44px;
   padding:6px 8px;
  }
- .dwd-precip-type-disclosure>summary strong{font-size:11px}
+ .dwd-precip-type-disclosure__toggle strong{font-size:11px}
  .dwd-precip-type-disclosure__body{padding:0 4px 4px}
 
  html[data-mid-design='next'] .cockpit-weather-profile{
@@ -191,7 +197,7 @@ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__st
 
 @media(max-width:430px){
  .dwd-precip-type-disclosure__action em{display:none}
- .dwd-precip-type-disclosure>summary{min-height:42px}
+ .dwd-precip-type-disclosure__toggle{min-height:42px}
  html[data-mid-design='next'] .cockpit-weather-profile__signals>span{
   flex-basis:min(78vw,220px)!important;
  }
