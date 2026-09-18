@@ -57,8 +57,8 @@ for(const token of [
 const compactHeight=632*.72,tabletHeight=632*.86;
 assert.ok(compactHeight<460&&tabletHeight<550,'C16 muss die 24-h-Grafik auf Smartphone und Tablet sichtbar verkürzen.');
 
-const version=String(JSON.parse(pkg).version||'');
-assert.equal(version,'0.9.85.36','C16 muss als v0.9.85.36 in das Source-Gate gehen.');
-assert.ok(changelog.startsWith('# MID v0.9.85.36'),'Der öffentliche Changelog muss mit v0.9.85.36 beginnen.');
+const version=String(JSON.parse(pkg).version||''),versionMatch=version.match(/^0\.9\.85\.(\d+)$/);
+assert.ok(versionMatch&&Number(versionMatch[1])>=36,'C16 muss ab v0.9.85.36 in der 0.9.85-Releasefolge erhalten bleiben.');
+assert.ok(changelog.startsWith(`# MID v${version}`),`Der öffentliche Changelog muss mit MID v${version} beginnen.`);
 
 console.log('MID-C16: mobile 24-h-Profilgeometrie, Textfluss und explizit geschlossene DWD-Ansicht geschützt.');
