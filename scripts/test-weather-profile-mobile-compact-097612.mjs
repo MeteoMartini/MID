@@ -17,8 +17,8 @@ assert.ok(implementation.includes('kompaktere Seitenränder'),'Implementierungsn
 assert.ok(!cockpit.includes('gleitend ab {profileWindowStartLabel}'),'Der selbsterklärende Gleitfenster-Schriftzug muss entfernt bleiben.');
 assert.ok(!cockpit.includes('<em>{profileWindowStartLabel} bis {profileWindowEndLabel} Uhr</em>'),'Die überflüssige Kopf-Pille ist noch vorhanden.');
 assert.ok(!cockpit.includes('profileWindowEndLabel'),'Entfernte Ende-Pille darf keine unbenutzte TypeScript-Konstante zurücklassen.');
-assert.ok(cockpit.includes('chartPaddingLeft=compactProfile?60:chartViewportWidth<=860?70:82'),'Linker Diagrammrand wurde nicht kompakter ausgelegt.');
-assert.ok(cockpit.includes('chartPaddingRight=compactProfile?24:chartViewportWidth<=860?28:34'),'Rechter Diagrammrand wurde nicht kompakter ausgelegt.');
+assert.ok(cockpit.includes('chartPaddingLeft=compactProfile?60:mediumProfile?70:82'),'Linker Diagrammrand wurde nicht kompakter ausgelegt.');
+assert.ok(cockpit.includes('chartPaddingRight=compactProfile?24:mediumProfile?28:34'),'Rechter Diagrammrand wurde nicht kompakter ausgelegt.');
 assert.ok(cockpit.includes('className="profile-bottom-date"'),'Untere Zeitachse enthält keine ergänzende Tagesmarke.');
 assert.ok(!cockpit.includes('cockpit-meteogram-pro__overlay calendar'),'Die dominante obere Kalenderachse ist noch eingeblendet.');
 assert.ok(css.includes('.cockpit-weather-profile .cockpit-meteogram-pro__svg .night-band{pointer-events:none}'),'Nachtstunden müssen als dezente, nicht-interaktive Hintergrundfläche erhalten bleiben.');
