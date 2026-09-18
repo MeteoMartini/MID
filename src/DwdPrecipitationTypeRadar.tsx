@@ -46,10 +46,10 @@ export function DwdPrecipitationTypeDisclosure({location,enabled=true,defaultOpe
  const covered=dwdPrecipitationTypeCoverage(location),[open,setOpen]=useState(defaultOpen);
  useEffect(()=>{setOpen(defaultOpen)},[defaultOpen,location.latitude,location.longitude]);
  if(!enabled||!covered)return null;
- return <details className="dwd-precip-type-disclosure" open={open} onToggle={event=>setOpen(event.currentTarget.open)}>
-  <summary><span><small>DWD · amtliches Originalprodukt</small><strong>Wolken + Niederschlagsart</strong></span><span className="dwd-precip-type-disclosure__action"><em>{open?'Bild schließen':'Bild öffnen'}</em><ChevronDown size={16} aria-hidden="true"/></span></summary>
-  <div className="dwd-precip-type-disclosure__body"><DwdPrecipitationTypeRadar location={location} enabled={open}/></div>
- </details>
+ return <section className={`dwd-precip-type-disclosure${open?' open':''}`}>
+  <button type="button" className="dwd-precip-type-disclosure__toggle" onClick={()=>setOpen(value=>!value)} aria-expanded={open}><span><small>DWD · amtliches Originalprodukt</small><strong>Wolken + Niederschlagsart</strong></span><span className="dwd-precip-type-disclosure__action"><em>{open?'Bild schließen':'Bild öffnen'}</em><ChevronDown size={16} aria-hidden="true"/></span></button>
+  {open?<div className="dwd-precip-type-disclosure__body"><DwdPrecipitationTypeRadar location={location} enabled/></div>:null}
+ </section>
 }
 
 export function DwdPrecipitationTypeRadar({location,enabled=true}:{location:Location;enabled?:boolean}){
