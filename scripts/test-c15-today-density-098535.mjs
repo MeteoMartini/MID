@@ -17,9 +17,11 @@ assert.ok(c14Index>=0&&c15Index>c14Index,'C15 muss nach den realen C14-Viewport-
 
 for(const token of [
  'export function DwdPrecipitationTypeDisclosure',
- 'className="dwd-precip-type-disclosure"',
+ 'className={`dwd-precip-type-disclosure${open?' open':''}`}',
  'defaultOpen=false',
- 'enabled={open}',
+ 'className="dwd-precip-type-disclosure__toggle"',
+ 'aria-expanded={open}',
+ '{open?<div className="dwd-precip-type-disclosure__body"',
  "open?'Bild schließen':'Bild öffnen'",
  'dwdPrecipitationTypeCoverage(location)'
 ])assert.ok(dwd.includes(token),`C15-DWD-Disclosure fehlt: ${token}`);
