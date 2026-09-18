@@ -10,8 +10,8 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
-  'chartPaddingLeft=compactProfile?60:chartViewportWidth<=860?70:82',
-  'chartPaddingRight=compactProfile?24:chartViewportWidth<=860?28:34',
+  'chartPaddingLeft=compactProfile?60:mediumProfile?70:82',
+  'chartPaddingRight=compactProfile?24:mediumProfile?28:34',
   'className="profile-axis temperature-axis"',
   'className="profile-axis precipitation-axis"',
   'className="profile-axis wind-axis"',
