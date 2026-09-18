@@ -17,7 +17,7 @@ assert.ok(c14Index>=0&&c15Index>c14Index,'C15 muss nach den realen C14-Viewport-
 
 for(const token of [
  'export function DwdPrecipitationTypeDisclosure',
- 'className={`dwd-precip-type-disclosure${open?' open':''}`}',
+ "className={`dwd-precip-type-disclosure${open?' open':''}`}",
  'defaultOpen=false',
  'className="dwd-precip-type-disclosure__toggle"',
  'aria-expanded={open}',
