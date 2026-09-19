@@ -1,0 +1,324 @@
+/* MID Design 2.0.1 · v0.9.85.45 · screenshot-driven mobile QA
+   Final visual corrections from the v0.9.85.44 iPhone audit. Classic stays untouched. */
+
+@media(max-width:850px){
+ html[data-mid-design='next'] .navigation-bottom-tabs{
+  padding-bottom:calc(72px + var(--mid-safe-bottom))!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid{
+  padding-bottom:calc(18px + env(safe-area-inset-bottom))!important;
+ }
+
+ /* Standortkopf: Warnlage vollständig lesbar, ohne aus dem Viewport zu ragen. */
+ html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 154px!important;
+  grid-template-areas:
+   "admin warning"
+   "title warning"
+   "meta meta"!important;
+  align-items:center!important;
+  gap:2px 10px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place>div:first-child>span{grid-area:admin!important;min-width:0!important}
+ html[data-mid-design='next'] .mid-page-grid>.place .place-title-row{grid-area:title!important;min-width:0!important}
+ html[data-mid-design='next'] .mid-page-grid>.place .place-meta{grid-area:meta!important;min-width:0!important;margin-top:4px!important}
+ html[data-mid-design='next'] .mid-page-grid>.place .place-warning-status{
+  grid-area:warning!important;
+  align-self:center!important;
+  width:154px!important;
+  min-width:154px!important;
+  max-width:154px!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:7px 8px!important;
+  gap:6px!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place .place-warning-status strong{
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  font-size:9.5px!important;
+  line-height:1.08!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place .place-warning-status em{min-width:12px!important}
+
+ /* Aktuell: weniger Vertikalhöhe, bessere Datenhierarchie. */
+ html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+  min-height:116px!important;
+  padding-block:8px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+  min-height:94px!important;
+  padding-block:6px 1px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{
+  font-size:50px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>.hero-day-range{
+  min-height:26px!important;
+  margin-bottom:5px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+  min-height:48px!important;
+  padding:13px 4px 3px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread::before{top:4px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{height:31px!important}
+
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+  min-height:56px!important;
+  padding:7px 6px!important;
+  border-right:1px solid color-mix(in srgb,var(--mid-surface-line) 72%,transparent)!important;
+  border-bottom:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-child(even){border-right:1px solid color-mix(in srgb,var(--mid-surface-line) 72%,transparent)!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:last-child{border-right:0!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts small{
+  font-size:7.2px!important;
+  line-height:1.08!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts b{
+  font-size:11.5px!important;
+  line-height:1.08!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts em{
+  font-size:7.5px!important;
+  line-height:1.08!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.visibility{display:none!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.pressure{display:grid!important}
+
+ /* Niederschlagskontext ist eine kompakte Kurzfristzeile, keine zweite Hero-Karte. */
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards>aside,
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards>details{
+  padding:8px 10px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcard-heading{
+  align-items:center!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcard-heading>span>small{
+  font-size:7.5px!important;
+  letter-spacing:.07em!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcard-heading>span>strong{
+  font-size:25px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-precip-panel>span{
+  margin-top:3px!important;
+  font-size:9.5px!important;
+  line-height:1.28!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-precip-panel>em{
+  margin-top:4px!important;
+  font-size:7.5px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-compact-source{
+  min-height:46px!important;
+  padding:5px 8px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-compact-source>aside{
+  min-height:34px!important;
+  padding-block:4px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-metrics-toggle{
+  min-width:70px!important;
+  min-height:32px!important;
+  padding:5px 8px!important;
+ }
+
+ /* Zusatzwerte: keine große blaugraue Fläche und keine kollidierenden AQI/UVI-Werte. */
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:max-content!important;
+  align-items:start!important;
+  gap:6px!important;
+  margin-top:8px!important;
+  padding:0!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  min-height:70px!important;
+  padding:8px 9px!important;
+  border:1px solid color-mix(in srgb,var(--mid-surface-line) 86%,transparent)!important;
+  border-radius:14px!important;
+  background:color-mix(in srgb,var(--mid-surface-base) 97%,var(--mid-surface-raised) 3%)!important;
+  box-shadow:none!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.visibility-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.cloud-card{
+  min-height:72px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.uvi-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.air-quality-card{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+   "header value"
+   "indicator indicator"
+   "summary summary"!important;
+  align-items:center!important;
+  gap:5px 10px!important;
+  min-height:82px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.uvi-card>header,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.air-quality-card>header{grid-area:header!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.uvi-card>strong,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.air-quality-card>strong{
+  grid-area:value!important;
+  justify-self:end!important;
+  max-width:150px!important;
+  margin:0!important;
+  overflow-wrap:anywhere!important;
+  text-align:right!important;
+  font-size:15px!important;
+  line-height:1.05!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.uvi-card>.uvi-indicator,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.air-quality-card>.aqi-indicator{
+  grid-area:indicator!important;
+  width:100%!important;
+  margin:2px 0 0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.uvi-card>.current-metric-summary,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.air-quality-card>.current-metric-summary{
+  grid-area:summary!important;
+  margin:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sunshine-card{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:"header value" "summary summary"!important;
+  align-items:center!important;
+  gap:3px 10px!important;
+  min-height:60px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sunshine-card>header{grid-area:header!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sunshine-card>strong{
+  grid-area:value!important;
+  justify-self:end!important;
+  margin:0!important;
+  font-size:17px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sunshine-card>.current-metric-summary{grid-area:summary!important;margin:0!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sun-moon-card{
+  grid-column:1/-1!important;
+  grid-row:auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:"header value" "summary summary"!important;
+  align-items:center!important;
+  gap:4px 10px!important;
+  min-height:68px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sun-moon-card>header{grid-area:header!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sun-moon-card>strong{
+  grid-area:value!important;
+  justify-self:end!important;
+  margin:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sun-moon-card>.current-metric-summary{
+  grid-area:summary!important;
+  margin:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-card-value{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:9px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-time-block small{font-size:6.8px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-time-block b{font-size:13px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>header{
+  display:flex!important;
+  min-width:0!important;
+  gap:5px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>header>small{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:8.2px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>strong{
+  margin-top:6px!important;
+  font-size:17px!important;
+  line-height:1.08!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics article>.current-metric-summary{
+  font-size:7.8px!important;
+  line-height:1.22!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .mode-info>button{
+  width:22px!important;
+  min-width:22px!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .mode-info>button::before{
+  width:42px!important;
+  height:42px!important;
+ }
+
+ /* Bottom-Bar: reservierter Raum passt zur realen Höhe, kein doppelter Leerraum. */
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  bottom:max(6px,var(--mid-safe-bottom))!important;
+  padding:4px!important;
+  border-radius:21px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  min-height:46px!important;
+  grid-template-rows:18px 11px!important;
+  gap:1px!important;
+  padding:3px 2px!important;
+  border-radius:15px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:17px!important;height:17px!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:8.7px!important}
+}
+
+@media(max-width:370px){
+ html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{
+  grid-template-columns:1fr!important;
+  grid-template-areas:"admin" "title" "meta" "warning"!important;
+  gap:2px!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place .place-warning-status{
+  width:100%!important;min-width:0!important;max-width:none!important;margin-top:5px!important
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+  min-height:50px!important;
+  border-bottom:1px solid color-mix(in srgb,var(--mid-surface-line) 72%,transparent)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-child(even){border-right:0!important}
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .navigation-bottom-tabs{padding-bottom:calc(58px + var(--mid-safe-bottom))!important}
+ html[data-mid-design='next'] .mid-page-grid{padding-bottom:12px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.uvi-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.air-quality-card{grid-column:span 2!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sunshine-card{grid-column:auto!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article.sun-moon-card{grid-column:1/-1!important}
+}
