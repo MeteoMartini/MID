@@ -1,3 +1,11 @@
+# MID v0.9.85.50
+
+- Die mobile Niederschlagsfläche in „Aktuell“ ist wieder vollständig und ruhig lesbar: Beschriftung und Hauptwert stehen klar getrennt, die Zusammenfassung erhält die volle verfügbare Breite und Quellen-/Detailtext wird nicht mehr abgeschnitten.
+- Die bisherige enge 104-Pixel-Aufteilung des trockenen Niederschlagsstatus entfällt auf Smartphones; die Darstellung bleibt kompakt, ohne Text oder Werte zusammenzuquetschen.
+- Die rein dekorative helle Ecke im oberen Bereich der aktuellen Wetterkarte wird auf Smartphones entfernt. Hinter Temperatur, Beschreibung und Messwerten liegt nun eine ruhige, kontrastreiche Fläche.
+- Die 24-Stunden-Skybar bleibt vollständig stündlich und unverändert unnormalisiert. Bottom-Bar/Safe-Area, Favoriten sowie Taupunkt als primärer Feuchteparameter bleiben erhalten.
+- Replit-Sichtprüfung: 390×844 und 430×932 jeweils Light/Dark sowie Tablet hoch/quer und Desktop bestanden.
+
 # MID v0.9.85.49
 
 - Die mobile Vorhersage erhält einen eigenen, sauber begrenzten Scrollbereich oberhalb der dauerhaft sichtbaren Bottom-Bar. Tageskarten und Detailinhalte werden dadurch nicht mehr von der Navigation überdeckt.
