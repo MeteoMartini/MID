@@ -3,41 +3,41 @@
    Ziel: einheitliche Abstände, kompakter Kopf, sichere Portrait-Modale und keine
    Layout-Verbreiterung durch zoombare Wetterbilder oder Diagramme. */
 
-:root{
+html[data-mid-design='next']{
  --c14-mobile-gap:6px;
  --c14-safe-bottom:env(safe-area-inset-bottom,0px);
  --c14-safe-top:env(safe-area-inset-top,0px);
 }
 
-html,body,#root{
+html[data-mid-design='next'],html[data-mid-design='next'] body,html[data-mid-design='next'] #root{
  max-width:100%;
  overflow-x:hidden;
 }
-.app{
+html[data-mid-design='next'] .app{
  max-width:100%;
  overflow-x:clip;
 }
-.app>main,
-.app main>*{
+html[data-mid-design='next'] .app>main,
+html[data-mid-design='next'] .app main>*{
  min-width:0;
  max-width:100%;
 }
-.app main img,
-.app main canvas,
-.app main svg{
+html[data-mid-design='next'] .app main img,
+html[data-mid-design='next'] .app main canvas,
+html[data-mid-design='next'] .app main svg{
  max-width:100%;
 }
-.app.navigation-bottom-tabs>main{
+html[data-mid-design='next'] .app.navigation-bottom-tabs>main{
  min-height:0!important;
  padding-bottom:calc(92px + var(--c14-safe-bottom))!important;
  scroll-padding-bottom:calc(104px + var(--c14-safe-bottom));
 }
-.app.navigation-bottom-tabs>footer{
+html[data-mid-design='next'] .app.navigation-bottom-tabs>footer{
  margin-top:8px!important;
 }
 
 /* Impressum bleibt in jeder Orientierung vollständig schließbar. */
-.imprint-backdrop{
+html[data-mid-design='next'] .imprint-backdrop{
  position:fixed!important;
  z-index:7200!important;
  inset:0!important;
@@ -49,7 +49,7 @@ html,body,#root{
  overflow:hidden!important;
  background:rgba(2,8,17,.68)!important;
 }
-.imprint-dialog{
+html[data-mid-design='next'] .imprint-dialog{
  display:grid!important;
  grid-template-rows:auto minmax(0,1fr)!important;
  width:min(560px,100%)!important;
@@ -59,7 +59,7 @@ html,body,#root{
  overflow:hidden!important;
  border-radius:20px!important;
 }
-.imprint-dialog>header{
+html[data-mid-design='next'] .imprint-dialog>header{
  position:sticky!important;
  z-index:3!important;
  top:0!important;
@@ -72,7 +72,7 @@ html,body,#root{
  background:color-mix(in srgb,var(--surface) 96%,var(--primary) 4%)!important;
  border-bottom:1px solid var(--border)!important;
 }
-.imprint-dialog>header>button{
+html[data-mid-design='next'] .imprint-dialog>header>button{
  display:grid!important;
  place-items:center!important;
  flex:0 0 40px!important;
@@ -82,7 +82,7 @@ html,body,#root{
  min-height:40px!important;
  padding:0!important;
 }
-.imprint-dialog>.imprint-content{
+html[data-mid-design='next'] .imprint-dialog>.imprint-content{
  min-width:0!important;
  min-height:0!important;
  max-width:100%!important;
@@ -94,82 +94,82 @@ html,body,#root{
 }
 
 /* Das amtliche DWD-Original darf beim Zoomen nur IN seinem Viewport wachsen. */
-.dwd-precip-type-radar,
-.dwd-precip-type-radar>header,
-.dwd-precip-type-radar__timestamps,
-.dwd-precip-type-radar__viewport-shell,
-.dwd-precip-type-radar__original-viewport{
+html[data-mid-design='next'] .dwd-precip-type-radar,
+html[data-mid-design='next'] .dwd-precip-type-radar>header,
+html[data-mid-design='next'] .dwd-precip-type-radar__timestamps,
+html[data-mid-design='next'] .dwd-precip-type-radar__viewport-shell,
+html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport{
  min-width:0!important;
  width:100%!important;
  max-width:100%!important;
 }
-.dwd-precip-type-radar{
+html[data-mid-design='next'] .dwd-precip-type-radar{
  overflow:hidden!important;
 }
-.dwd-precip-type-radar>header{
+html[data-mid-design='next'] .dwd-precip-type-radar>header{
  flex-wrap:wrap!important;
 }
-.dwd-precip-type-radar>header>span{
+html[data-mid-design='next'] .dwd-precip-type-radar>header>span{
  min-width:0!important;
  flex:1 1 260px!important;
 }
-.dwd-precip-type-radar>header strong,
-.dwd-precip-type-radar>header em{
+html[data-mid-design='next'] .dwd-precip-type-radar>header strong,
+html[data-mid-design='next'] .dwd-precip-type-radar>header em{
  overflow-wrap:anywhere!important;
 }
-.dwd-precip-type-radar__timestamps{
+html[data-mid-design='next'] .dwd-precip-type-radar__timestamps{
  display:flex!important;
  flex-wrap:wrap!important;
  gap:5px!important;
  overflow:hidden!important;
 }
-.dwd-precip-type-radar__point-strip{
+html[data-mid-design='next'] .dwd-precip-type-radar__point-strip{
  min-width:0!important;
  max-width:100%!important;
  overflow:hidden!important;
  text-overflow:ellipsis!important;
  white-space:nowrap!important;
 }
-.dwd-precip-type-radar__zoom-toolbar{
+html[data-mid-design='next'] .dwd-precip-type-radar__zoom-toolbar{
  max-width:100%!important;
  flex-wrap:wrap!important;
 }
-.dwd-precip-type-radar__viewport-shell{
+html[data-mid-design='next'] .dwd-precip-type-radar__viewport-shell{
  position:relative!important;
  overflow:hidden!important;
  contain:layout paint!important;
 }
-.dwd-precip-type-radar__original-viewport{
+html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport{
  overflow:auto!important;
  overscroll-behavior:contain!important;
  -webkit-overflow-scrolling:touch;
 }
-.dwd-precip-type-radar__original-canvas{
+html[data-mid-design='next'] .dwd-precip-type-radar__original-canvas{
  max-width:none!important;
 }
 
 /* Breite Diagramme bleiben innerhalb ihrer eigenen Scroll-/Skalierfläche. */
-.meteogram-card,
-.meteogram-content,
-.meteogram-export-stage,
-.meteogram-block,
-.meteogram-chart-wrap,
-.meteogram-scroll,
-.short-term-forecast,
-.short-term-matrix,
-.short-term-strip,
-.forecast-cockpit,
-.forecast-cockpit-content,
-.forecast-inline-detail,
-.weather-profile,
-.weather-profile-card,
-.weather-profile-chart{
+html[data-mid-design='next'] .meteogram-card,
+html[data-mid-design='next'] .meteogram-content,
+html[data-mid-design='next'] .meteogram-export-stage,
+html[data-mid-design='next'] .meteogram-block,
+html[data-mid-design='next'] .meteogram-chart-wrap,
+html[data-mid-design='next'] .meteogram-scroll,
+html[data-mid-design='next'] .short-term-forecast,
+html[data-mid-design='next'] .short-term-matrix,
+html[data-mid-design='next'] .short-term-strip,
+html[data-mid-design='next'] .forecast-cockpit,
+html[data-mid-design='next'] .forecast-cockpit-content,
+html[data-mid-design='next'] .forecast-inline-detail,
+html[data-mid-design='next'] .weather-profile,
+html[data-mid-design='next'] .weather-profile-card,
+html[data-mid-design='next'] .weather-profile-chart{
  min-width:0!important;
  max-width:100%!important;
 }
-.meteogram-scroll,
-.meteogram-chart-wrap,
-.short-term-strip{
+html[data-mid-design='next'] .meteogram-scroll,
+html[data-mid-design='next'] .meteogram-chart-wrap,
+html[data-mid-design='next'] .short-term-strip{
  width:100%!important;
  overflow-x:auto!important;
  overflow-y:hidden!important;
@@ -329,52 +329,52 @@ html,body,#root{
   padding:6px 8px!important;
  }
 
- .dwd-precip-type-radar{
+ html[data-mid-design='next'] .dwd-precip-type-radar{
   margin-inline:0!important;
   padding-inline:0!important;
   border-radius:14px!important;
  }
- .dwd-precip-type-radar>header{
+ html[data-mid-design='next'] .dwd-precip-type-radar>header{
   gap:7px!important;
   padding-inline:9px!important;
  }
- .dwd-precip-type-radar__timestamps,
- .dwd-precip-type-radar__zoom-toolbar{
+ html[data-mid-design='next'] .dwd-precip-type-radar__timestamps,
+ html[data-mid-design='next'] .dwd-precip-type-radar__zoom-toolbar{
   margin-inline:9px!important;
  }
- .dwd-precip-type-radar__viewport-shell{
+ html[data-mid-design='next'] .dwd-precip-type-radar__viewport-shell{
   margin-inline:9px!important;
   width:calc(100% - 18px)!important;
  }
 
- .imprint-backdrop{
+ html[data-mid-design='next'] .imprint-backdrop{
   place-items:stretch!important;
   align-items:center!important;
   padding:max(8px,var(--c14-safe-top)) max(8px,env(safe-area-inset-right,0px)) max(8px,var(--c14-safe-bottom)) max(8px,env(safe-area-inset-left,0px))!important;
  }
- .imprint-dialog{
+ html[data-mid-design='next'] .imprint-dialog{
   width:100%!important;
   max-height:calc(100dvh - max(16px,var(--c14-safe-top)) - max(16px,var(--c14-safe-bottom)))!important;
   border-radius:17px!important;
  }
- .imprint-dialog>header{
+ html[data-mid-design='next'] .imprint-dialog>header{
   padding:9px 10px!important;
  }
- .imprint-dialog>header h2{
+ html[data-mid-design='next'] .imprint-dialog>header h2{
   margin:1px 0 0!important;
   font-size:19px!important;
  }
- .imprint-dialog>.imprint-content{
+ html[data-mid-design='next'] .imprint-dialog>.imprint-content{
   padding:11px!important;
  }
 
- .short-term-forecast,
- .forecast-cockpit,
- .meteogram-card{
+ html[data-mid-design='next'] .short-term-forecast,
+ html[data-mid-design='next'] .forecast-cockpit,
+ html[data-mid-design='next'] .meteogram-card{
   overflow:hidden!important;
  }
- .short-term-strip,
- .meteogram-scroll{
+ html[data-mid-design='next'] .short-term-strip,
+ html[data-mid-design='next'] .meteogram-scroll{
   scroll-padding-inline:10px!important;
  }
 }
@@ -383,21 +383,21 @@ html,body,#root{
  html[data-mid-design='next'] .top.settings-header .brand-version{font-size:10px!important}
  html[data-mid-design='next'] .hero.current-compact .current-weather-overview{grid-template-columns:58px minmax(0,1fr)!important}
  html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{font-size:43px!important}
- .dwd-precip-type-radar__timestamps>small{display:none!important}
- .dwd-precip-type-radar__point-strip{flex:1 1 100%!important}
+ html[data-mid-design='next'] .dwd-precip-type-radar__timestamps>small{display:none!important}
+ html[data-mid-design='next'] .dwd-precip-type-radar__point-strip{flex:1 1 100%!important}
 }
 
 @media(max-width:850px) and (orientation:landscape){
- .imprint-dialog{
+ html[data-mid-design='next'] .imprint-dialog{
   width:min(720px,100%)!important;
   max-height:calc(100dvh - 12px)!important;
  }
- .imprint-dialog>.imprint-content{
+ html[data-mid-design='next'] .imprint-dialog>.imprint-content{
   padding:9px 12px!important;
  }
 }
 
 @media(prefers-reduced-motion:reduce){
- .imprint-dialog,
- .dwd-precip-type-radar__original-canvas{scroll-behavior:auto!important}
+ html[data-mid-design='next'] .imprint-dialog,
+ html[data-mid-design='next'] .dwd-precip-type-radar__original-canvas{scroll-behavior:auto!important}
 }
