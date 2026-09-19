@@ -10,7 +10,6 @@ Ausgangsbasis: v0.9.85.44. Die reale iPhone-Darstellung zeigte noch mehrere sich
 - Der Warnstatus im Ortskopf kürzte selbst kurze Zustände wie „Keine Warnung“ unnötig.
 - Die Aktuell-Fläche war vertikal weiterhin zu hoch.
 - „Feuchte / Taupunkt“ setzte die relative Feuchte als Hauptwert, obwohl im MID-Design 2.0.1 der Taupunkt als meteorologisch aussagekräftigerer Feuchteindikator priorisiert werden soll.
-- „Niederschlag jetzt“ stand semantisch neben einer Zusammenfassung über die nächsten sechs Stunden.
 
 ## Korrekturvertrag
 
@@ -18,7 +17,7 @@ Ausgangsbasis: v0.9.85.44. Die reale iPhone-Darstellung zeigte noch mehrere sich
 2. Taupunkt groß in °C, relative Feuchte sekundär in %.
 3. Warnstatus 154 px breit und mit umbrechbarem Status statt Ellipse.
 4. 12-h-Wetterfaden und Istwetterkopf vertikal verdichten.
-5. Kurzfrist-Niederschlag als „Niederschlagsrisiko · 6 h“; Prozentwert über den betrachteten Kurzfristhorizont.
+5. Kurzfrist-Niederschlag bleibt fachlich unverändert; nur Dichte und Lesbarkeit werden angepasst.
 6. Zusatzwerte ohne gemeinsame farbige Leerfläche; einzelne kompakte Instrumentzeilen.
 7. UVI und EU-AQI volle Breite; Wert rechts, Skala darunter.
 8. Sonnenscheindauer und Sonne/Mond als flache Vollbreitenzeilen.
