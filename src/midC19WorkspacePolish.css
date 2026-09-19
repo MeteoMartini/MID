@@ -1,0 +1,218 @@
+/* MID C19 · Prognose- und Kartenflächen bleiben auch auf kleinen Viewports
+   zusammenhängende Instrumente. Datenumfang und meteorologische Farben bleiben gleich. */
+
+/* 7 Tage: ein durchgehendes, horizontal bedienbares Tagesband auch im Hochformat. */
+@media(max-width:900px) and (orientation:portrait){
+ html[data-mid-design='next'] .cockpit-seven-grid{
+  grid-template-columns:repeat(var(--cockpit-day-count),minmax(112px,1fr))!important;
+  grid-auto-flow:row!important;
+  overflow-x:auto!important;
+  overflow-y:visible!important;
+  overscroll-behavior-x:contain!important;
+  scroll-snap-type:x mandatory!important;
+  scrollbar-width:none!important;
+ }
+ html[data-mid-design='next'] .cockpit-seven-grid::-webkit-scrollbar{display:none!important}
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day{
+  grid-column:auto!important;
+  grid-row:auto!important;
+  width:auto!important;
+  min-width:112px!important;
+  min-height:166px!important;
+  padding:9px 8px!important;
+  border-right:1px solid var(--c8-line)!important;
+  border-bottom:0!important;
+  scroll-snap-align:start!important;
+ }
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.active{
+  box-shadow:inset 0 3px 0 var(--primary)!important;
+ }
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day-hourly-accordion{
+  position:sticky!important;
+  left:0!important;
+  grid-column:1/-1!important;
+  grid-row:auto!important;
+  justify-self:start!important;
+  width:min(calc(100dvw - 28px),760px)!important;
+  max-width:calc(100dvw - 28px)!important;
+ }
+}
+
+@media(max-width:360px) and (orientation:portrait){
+ html[data-mid-design='next'] .cockpit-seven-grid{
+  grid-template-columns:repeat(var(--cockpit-day-count),minmax(106px,1fr))!important;
+ }
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day{min-width:106px!important}
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day-hourly-accordion{
+  width:calc(100dvw - 20px)!important;
+  max-width:calc(100dvw - 20px)!important;
+ }
+}
+
+/* 14 Tage: Parameterwahl als ruhige Tab-Leiste statt drei weiterer Karten. */
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(108px,1fr))!important;
+ gap:0!important;
+ margin:0!important;
+ overflow-x:auto!important;
+ overscroll-behavior-x:contain!important;
+ border-top:1px solid var(--c8-line)!important;
+ border-bottom:1px solid var(--c8-line)!important;
+ background:var(--c8-paper)!important;
+ scrollbar-width:none!important;
+}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck::-webkit-scrollbar{display:none!important}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck>button{
+ grid-template-columns:minmax(0,1fr) 54px!important;
+ gap:7px!important;
+ min-width:108px!important;
+ min-height:60px!important;
+ margin:0!important;
+ padding:7px 9px!important;
+ border:0!important;
+ border-right:1px solid var(--c8-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ transform:none!important;
+ text-align:left!important;
+ scroll-snap-align:start!important;
+}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck>button:last-child{border-right:0!important}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck>button.active{
+ background:color-mix(in srgb,var(--primary) 8%,var(--c8-paper))!important;
+ box-shadow:inset 0 3px 0 var(--primary)!important;
+}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck b{font-size:10.5px!important}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck small{font-size:8.5px!important}
+html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-mini{height:28px!important}
+
+/* Ensemblewerte müssen auf Touch-Geräten vollständig und ohne Mikroschrift lesbar sein. */
+@media(max-width:620px){
+ .ensemble-mobile-tooltip-layer{
+  align-content:end!important;
+  padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;
+  pointer-events:none!important;
+ }
+ .ensemble-mobile-tooltip-layer .ensemble-pro-tooltip.compact-trend-tooltip{
+  width:min(360px,calc(100dvw - 16px))!important;
+  max-width:min(360px,calc(100dvw - 16px))!important;
+  max-height:min(72dvh,460px)!important;
+  padding:10px 11px!important;
+  overflow:auto!important;
+  font-size:10px!important;
+  line-height:1.3!important;
+  pointer-events:auto!important;
+ }
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-head{gap:7px!important;margin-bottom:6px!important;padding-bottom:6px!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-head strong{font-size:12px!important;line-height:1.2!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-head span{font-size:9px!important;line-height:1.25!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-matrix{
+  grid-template-columns:minmax(72px,.9fr) repeat(2,minmax(0,1fr))!important;
+  gap:4px 7px!important;
+  font-size:9.5px!important;
+  line-height:1.25!important;
+ }
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-matrix .matrix-head{font-size:8.8px!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-meta{gap:4px!important;margin-top:6px!important;padding-top:6px!important;font-size:9.5px!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-line,
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-block,
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-line.single-value{
+  grid-template-columns:72px minmax(0,1fr)!important;
+  gap:4px 7px!important;
+ }
+ .ensemble-pro-tooltip.compact-trend-tooltip :is(.tooltip-meta-line,.tooltip-meta-block)>b{font-size:8.8px!important;line-height:1.25!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-value{font-size:9.5px!important;line-height:1.25!important}
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck>button{
+  grid-template-columns:1fr!important;
+  min-height:58px!important;
+  text-align:center!important;
+ }
+ html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-mini{height:20px!important}
+ .ensemble-mobile-tooltip-layer .ensemble-pro-tooltip.compact-trend-tooltip{padding:9px!important}
+ .ensemble-pro-tooltip.compact-trend-tooltip .trend-tooltip-matrix{
+  grid-template-columns:minmax(66px,.86fr) repeat(2,minmax(0,1fr))!important;
+  gap:3px 5px!important;
+  font-size:9px!important;
+ }
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-line,
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-block,
+ .ensemble-pro-tooltip.compact-trend-tooltip .tooltip-meta-line.single-value{
+  grid-template-columns:66px minmax(0,1fr)!important;
+  gap:3px 5px!important;
+ }
+}
+
+/* Karten: Layer bleiben eine einzeilige Werkzeugleiste; die Karte nutzt flache
+   Geräte besser, ohne unter der schwebenden Navigation zu verschwinden. */
+@media(max-width:850px){
+ .composite-layer-toolbar{min-width:0!important;overflow:hidden!important}
+ .composite-layer-toolbar>header{padding-inline:2px!important}
+ .composite-layer-switches,
+ .composite-focus-layer-switches{
+  display:grid!important;
+  grid-template-columns:none!important;
+  grid-auto-flow:column!important;
+  grid-auto-columns:minmax(116px,1fr)!important;
+  gap:0!important;
+  overflow-x:auto!important;
+  overscroll-behavior-x:contain!important;
+  scroll-snap-type:x proximity!important;
+  border-block:1px solid color-mix(in srgb,var(--c8-line,#b7c7d8) 70%,transparent)!important;
+  scrollbar-width:none!important;
+ }
+ .composite-layer-switches::-webkit-scrollbar,
+ .composite-focus-layer-switches::-webkit-scrollbar{display:none!important}
+ .composite-layer-switches .composite-switch.compact,
+ .composite-focus-layer-switches .composite-switch.compact{
+  min-width:116px!important;
+  min-height:48px!important;
+  padding:6px 8px!important;
+  border:0!important;
+  border-right:1px solid color-mix(in srgb,var(--c8-line,#b7c7d8) 70%,transparent)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  scroll-snap-align:start!important;
+ }
+ .composite-layer-switches .composite-switch.compact small,
+ .composite-focus-layer-switches .composite-switch.compact small{display:none!important}
+ .composite-focus-mode .composite-maplibre,
+ .c14-map-workspace .weather-maps-map-shell{
+  height:clamp(360px,57dvh,600px)!important;
+  min-height:360px!important;
+ }
+}
+
+@media(max-width:430px){
+ .composite-focus-mode .composite-maplibre,
+ .c14-map-workspace .weather-maps-map-shell{
+  height:clamp(340px,55dvh,520px)!important;
+  min-height:340px!important;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ .composite-focus-mode .composite-maplibre,
+ .c14-map-workspace .weather-maps-map-shell{
+  height:calc(100dvh - max(82px,env(safe-area-inset-top) + 62px))!important;
+  min-height:250px!important;
+  max-height:520px!important;
+ }
+ .composite-view-tabs button{min-height:34px!important}
+ .composite-focus-mode .composite-timeline-card{padding-block:5px!important}
+}
+
+@media(any-pointer:coarse){
+ html[data-mid-design='next'] .ensemble-presentation-cockpit .ensemble-metric-deck>button,
+ .composite-layer-switches .composite-switch.compact,
+ .composite-focus-layer-switches .composite-switch.compact{min-height:44px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] :is(.cockpit-seven-grid,.ensemble-metric-deck),
+ :is(.composite-layer-switches,.composite-focus-layer-switches){scroll-behavior:auto!important}
+}
