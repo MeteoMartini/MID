@@ -9,6 +9,8 @@ const verification=readFileSync('src/ForecastVerificationPanel.tsx','utf8');
 const route=readFileSync('src/RouteWeatherPanel.tsx','utf8');
 const modulesSource=readFileSync('src/dashboardModules.ts','utf8');
 const auditMatrix=readFileSync('MID_APP_VIEW_AUDIT_0.9.84.79.md','utf8');
+const typography=readFileSync('src/midC18TypographyReadability.css','utf8');
+const main=readFileSync('src/main.tsx','utf8');
 
 const marker='MID v0.9.84.79 · appweiter Rest-Audit nach dem 17.7.23-Vertrag.';
 assert.ok(modern.includes(marker),'Appweiter Rest-Auditmarker fehlt.');
@@ -29,6 +31,19 @@ assert.match(modern,/\.local-now-disclosure>summary em\{white-space:normal!impor
 assert.match(modern,/\.settings-dialog small,[\s\S]*?font-size:var\(--mid-text-micro\)!important;/,'Einstellungen müssen die gemeinsame Mikrotext-Lesbarkeit verwenden.');
 assert.match(modern,/@media\(hover:none\),\(pointer:coarse\),\(any-pointer:coarse\)\{[\s\S]*?min-height:44px;/,'Neue Sekundärbereiche brauchen auf Touch 44-px-Ziele.');
 
+for(const token of [
+ "--mid18-text-label",
+ "--mid18-text-meta",
+ "--mid18-text-body",
+ "--mid18-text-control",
+ ".mid-data-status b",
+ ".warning-event-main strong",
+ ".water-source",
+ "@media(max-width:620px)",
+ "@media(max-width:850px) and (pointer:coarse)"
+]) assert.ok(typography.includes(token),`MID-18-Typografie-Regel fehlt: ${token}`);
+assert.ok(main.includes("import './midC18TypographyReadability.css';"),'MID-18-Typografie-Layer fehlt im Produktionsentry.');
+assert.ok(main.indexOf("import './midC18TypographyReadability.css';")>main.indexOf("import './midC18HierarchyPolish.css';"),'Typografie-Layer muss nach dem Hierarchie-Polish laden.');
 assert.ok(!app.includes('modern-today-overview'),'Verworfene Beta-Heute-Übersicht darf nicht wiederkehren.');
 for(const token of ['local-now-disclosure','warnings-responsive-shell',"case'current':return <MemoCurrent"]) assert.ok(app.includes(token),`App-Nutzung fehlt: ${token}`);
 assert.ok(sourceDiagnostics.includes('forecast-source-weight-list'),'Quellendiagnostik-Komponente fehlt.');
@@ -47,4 +62,4 @@ const modules=['00-foundation.css','10-features.css','20-ensemble-composite.css'
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');
 assert.equal(aggregate,modules,'src/styles.css muss exakt aus den fünf kanonischen Styles-Modulen erzeugt sein.');
 
-console.log('MID 17.7.24 Appweiter Rest-Audit: Heute, Istwetter, Warnungen, Quellen/Verifikation, Route, Einstellungen und Touch-Vertrag geprüft.');
+console.log('MID 18: Appweite Lesbarkeit, Typografie-Floor, Statusmetadaten, Touch-Ziele und iOS-Select-Zoomschutz geprüft.');
