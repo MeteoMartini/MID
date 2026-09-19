@@ -11,6 +11,7 @@ const modulesSource=readFileSync('src/dashboardModules.ts','utf8');
 const auditMatrix=readFileSync('MID_APP_VIEW_AUDIT_0.9.84.79.md','utf8');
 const typography=readFileSync('src/midC18TypographyReadability.css','utf8');
 const secondary=readFileSync('src/midC18SecondarySurfaceRefinement.css','utf8');
+const shellFinish=readFileSync('src/midC18ShellMobileFinish.css','utf8');
 const main=readFileSync('src/main.tsx','utf8');
 
 const marker='MID v0.9.84.79 · appweiter Rest-Audit nach dem 17.7.23-Vertrag.';
@@ -46,6 +47,17 @@ for(const token of [
 assert.ok(main.includes("import './midC18TypographyReadability.css';"),'MID-18-Typografie-Layer fehlt im Produktionsentry.');
 assert.ok(main.includes("import './midC18SecondarySurfaceRefinement.css';"),'MID-18-Sekundärflächen-Refinement fehlt im Produktionsentry.');
 assert.ok(main.indexOf("import './midC18SecondarySurfaceRefinement.css';")>main.indexOf("import './midC18TypographyReadability.css';"),'Sekundärflächen-Refinement muss nach dem Typografie-Layer laden.');
+assert.ok(main.includes("import './midC18ShellMobileFinish.css';"),'MID-18-Shell-/Mobile-Finish fehlt im Produktionsentry.');
+assert.ok(main.indexOf("import './midC18ShellMobileFinish.css';")>main.indexOf("import './midC18SecondarySurfaceRefinement.css';"),'Shell-/Mobile-Finish muss nach dem Sekundärflächen-Refinement laden.');
+for(const token of [
+ "--mid18-mobile-nav-reserve:132px",
+ ".dashboard-section-quick.dashboard-bottom-tabs::before",
+ ".header-favorites .favorite-bubbles",
+ ".water-tides>div",
+ "scroll-snap-type:x mandatory",
+ "@media(max-width:430px)",
+ "@media(max-width:390px)"
+]) assert.ok(shellFinish.includes(token),`MID-18-Shell-/Mobile-Regel fehlt: ${token}`);
 for(const token of [
  ".hero.current-compact+.metrics",
  "[data-mid-view='forecast'] .forecast-inline-detail",
@@ -73,4 +85,4 @@ const modules=['00-foundation.css','10-features.css','20-ensemble-composite.css'
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');
 assert.equal(aggregate,modules,'src/styles.css muss exakt aus den fünf kanonischen Styles-Modulen erzeugt sein.');
 
-console.log('MID 18: Appweite Lesbarkeit plus verfeinerte Sekundärflächen in Aktuell, Vorhersage und Tide/Wasser geprüft.');
+console.log('MID 18: Appweite Lesbarkeit, verfeinerte Sekundärflächen sowie Shell-/Mobile-Finish geprüft.');
