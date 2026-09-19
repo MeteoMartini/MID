@@ -1,3 +1,11 @@
+# MID v0.9.85.49
+
+- Die mobile Vorhersage erhält einen eigenen, sauber begrenzten Scrollbereich oberhalb der dauerhaft sichtbaren Bottom-Bar. Tageskarten und Detailinhalte werden dadurch nicht mehr von der Navigation überdeckt.
+- Die verfügbare Höhe wird aus der tatsächlichen Position der Bottom-Bar berechnet und bei Größen- oder Layoutänderungen neu angepasst; iOS-Safe-Area und unterschiedliche Smartphone-Höhen werden berücksichtigt.
+- Favoriten, Ortskopf und die bereits reparierte Niederschlagsdarstellung bleiben unverändert sichtbar; es entstehen keine zusätzlichen unbegründeten Leerflächen.
+- Taupunkt bleibt der primäre Feuchteparameter, die relative Feuchte nachgeordnet. Die Skybar bleibt vollständig stündlich mit 24 Positionen und wird nicht normalisiert.
+- Light/Dark und die bestehenden meteorologischen Datenpfade bleiben unverändert; die Korrektur betrifft die mobile Komposition und Scrollgrenze.
+
 # MID v0.9.85.48
 
 - MID-C9 schließt den Smartphone-Blocker aus Ortskopf und Nowcast: Standort und Warnlage konkurrieren nicht mehr mit der aktuellen Niederschlagsfläche um dieselbe Grid-Zeile; lange Ortsnamen bleiben horizontal lesbar.
