@@ -1,3 +1,13 @@
+# MID v0.9.85.55
+
+- Die mobile Bottom-Bar erhält eine ruhigere optische Abschlusszone und mehr Scroll-/Inhaltsreserve, ohne ihre Position oder Funktion zu verändern.
+- Auf schmalen Smartphones wirken lange Inhalte dadurch weniger so, als würden sie direkt unter der Navigation weiterlaufen.
+- Gezeitenereignisse werden auf kleinen Phones als horizontale Snap-Reihe dargestellt statt als gedrängtes 2×2-Raster; Werte und Zeiten bleiben vollständig lesbar.
+- Header und Favoritenleiste sind flacher und ruhiger gestaltet: weniger Schatten, keine starke äußere Karten-/Pillenfassung, dafür feine Trennlinien und eine dezente aktive Markierung.
+- Ortsname, Suche, Favoriten-Vollständigkeit, Favoritenverwaltung und Bottom-Bar-Signatur bleiben unverändert funktionsfähig.
+- Die Schutzregeln aus v0.9.85.50–54 bleiben bestehen: Niederschlagslesbarkeit, ruhiger mobiler Kartenhintergrund, Taupunkt primär, C9-Forecast-Scroll, kein horizontaler Overflow und 24-stündige nicht normalisierte Skybar.
+- Keine meteorologische Datenlogik, Tide-Zeitskala oder Warnsemantik wurde verändert.
+
 # MID v0.9.85.54
 
 - Aktuell, Vorhersage und Tide/Wasser wurden optisch weiter an die ruhigere Hierarchie von Meteogramm, Radar und Warnungen angeglichen.
