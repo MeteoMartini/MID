@@ -12,8 +12,8 @@ const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw);
 assert.equal(baseline.version,pkg.version);
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const token of [
-  "type NavigationMode='bottom-tabs'",
-  "const navigationMode:NavigationMode='bottom-tabs'",
+  "type NavigationMode='section-rail'|'bottom-tabs'",
+  "const navigationMode:NavigationMode=designMode==='mid-next'?'bottom-tabs':'section-rail'",
   "localStorage.removeItem('mid:navigationMode:v1')",
   "label:'Aktuell'",
   "label:'Heute'",
@@ -59,4 +59,4 @@ for(const token of [
 ])assert.ok(modern.includes(token),`Floating-Bar-CSS fehlt: ${token}`);
 assert.ok(styles.endsWith(modern),'styles.css muss das vollständige Modern-Modul als kanonisches Ende enthalten');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-ios-floating-bottom-bar-098489.mjs'),'Neue Pflichtregression fehlt in Baseline');
-console.log('Schwebende Bottom-Bar: fünf eindeutige Ziele, Warnstatus im Ortskopf, optional fixiert, sichere iPhone-Lage und sanftes Autohide mit sichtbarem Griff geprüft.');
+console.log('Design 2.0.1: schwebende Bottom-Bar mit fünf eindeutigen Zielen; Klassisch bleibt als getrennte Navigation erhalten.');
