@@ -93,6 +93,65 @@
  }
 }
 
+
+@media(max-width:850px){
+ /* MID 18 · aktuelle Niederschlagsfläche: lesbar statt zusammengedrückt. */
+ html[data-mid-design='next'] .hero.current-compact{
+  background:linear-gradient(145deg,var(--mid-surface-base),color-mix(in srgb,var(--mid-surface-raised) 96%,var(--mid-surface-base) 4%))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"heading" "summary" "source"!important;
+  align-items:stretch!important;
+  gap:6px!important;
+  padding:10px 12px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:100%!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading>span{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:end!important;
+  gap:10px!important;
+  width:100%!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading small{
+  min-width:0!important;
+  font-size:8.6px!important;
+  line-height:1.15!important;
+  white-space:normal!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading strong{
+  justify-self:end!important;
+  font-size:24px!important;
+  line-height:1!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel>span{
+  grid-area:summary!important;
+  min-width:0!important;
+  font-size:10.5px!important;
+  line-height:1.35!important;
+  font-weight:700!important;
+  white-space:normal!important;
+  overflow:visible!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel>em{
+  grid-area:source!important;
+  min-width:0!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  font-size:8px!important;
+  line-height:1.25!important;
+ }
+}
+
 @media(max-width:370px){
  html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{
   grid-template-columns:minmax(0,1fr)!important;
