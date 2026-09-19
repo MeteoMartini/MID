@@ -1,0 +1,583 @@
+/* MID Design 2.0.1 · Schritt 2: Aktuell / Kopf / Favoriten
+   Rein grafische Komposition. Wetterwerte, Fachfarben und Datenquellen bleiben unverändert. */
+
+html[data-mid-design='next'] .top.settings-header{
+ --d201-header-line:color-mix(in srgb,var(--mid-surface-line) 84%,transparent);
+ display:grid!important;
+ grid-template-columns:auto minmax(280px,1fr) auto!important;
+ grid-template-areas:
+  "brand search actions"
+  "favorites favorites favorites"!important;
+ align-items:center!important;
+ gap:8px 12px!important;
+ width:min(1520px,calc(100% - 24px))!important;
+ margin:10px auto 0!important;
+ padding:8px 10px 7px!important;
+ border:1px solid var(--d201-header-line)!important;
+ border-radius:22px!important;
+ background:color-mix(in srgb,var(--mid-control-surface) 94%,transparent)!important;
+ box-shadow:0 12px 28px rgba(3,28,51,.09)!important;
+}
+html[data-mid-design='next'][data-theme='dark'] .top.settings-header{box-shadow:0 14px 32px rgba(0,0,0,.24)!important}
+html[data-mid-design='next'] .top.settings-header .brand{
+ grid-area:brand!important;
+ display:flex!important;
+ align-items:center!important;
+ gap:8px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .top.settings-header .brand-picture{display:block;flex:0 0 auto;line-height:0}
+html[data-mid-design='next'] .top.settings-header .brand-logo{
+ display:block!important;
+ width:clamp(132px,15vw,220px)!important;
+ max-height:44px!important;
+ object-fit:contain!important;
+ object-position:left center!important;
+}
+html[data-mid-design='next'] .top.settings-header .brand>span{
+ display:grid!important;
+ gap:1px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .top.settings-header .brand-version{
+ display:inline-flex!important;
+ width:max-content!important;
+ padding:2px 6px!important;
+ border:1px solid var(--d201-header-line)!important;
+ border-radius:999px!important;
+ background:var(--mid-surface-raised)!important;
+ color:var(--muted)!important;
+ font-size:9px!important;
+ font-weight:800!important;
+ letter-spacing:.01em!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .top.settings-header .brand-expanded{display:none!important}
+html[data-mid-design='next'] .top.settings-header .search-stack{grid-area:search!important;min-width:0!important}
+html[data-mid-design='next'] .top.settings-header .search{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ gap:6px!important;
+}
+html[data-mid-design='next'] .top.settings-header .search-input-shell{
+ min-height:44px!important;
+ border:1px solid var(--d201-header-line)!important;
+ border-radius:14px!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .top.settings-header .secondary.locate{
+ min-width:44px!important;
+ min-height:44px!important;
+ border:1px solid var(--d201-header-line)!important;
+ border-radius:14px!important;
+ background:var(--mid-surface-raised)!important;
+}
+html[data-mid-design='next'] .top.settings-header .compact-actions{
+ grid-area:actions!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ gap:5px!important;
+}
+html[data-mid-design='next'] .top.settings-header .compact-actions>button,
+html[data-mid-design='next'] .top.settings-header .compact-actions>.pwa-install-button{
+ width:44px!important;
+ min-width:44px!important;
+ height:44px!important;
+ min-height:44px!important;
+ border:1px solid var(--d201-header-line)!important;
+ border-radius:14px!important;
+ background:var(--mid-surface-raised)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .header-favorites{
+ grid-area:favorites!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ gap:6px!important;
+ align-items:center!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:7px 0 0!important;
+ border-top:1px solid var(--d201-header-line)!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles{
+ display:flex!important;
+ gap:4px!important;
+ min-width:0!important;
+ overflow-x:auto!important;
+ padding:1px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ scrollbar-width:none!important;
+ scroll-snap-type:x proximity!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles::-webkit-scrollbar{display:none!important}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+ position:relative!important;
+ display:grid!important;
+ grid-template-columns:auto auto minmax(0,1fr) auto!important;
+ grid-template-rows:auto auto!important;
+ align-items:center!important;
+ column-gap:5px!important;
+ row-gap:0!important;
+ flex:0 0 auto!important;
+ min-width:112px!important;
+ max-width:220px!important;
+ min-height:43px!important;
+ padding:6px 9px!important;
+ border:1px solid transparent!important;
+ border-radius:13px!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ color:var(--text)!important;
+ scroll-snap-align:start!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>span:not(.favorite-quick-grip){
+ grid-column:3!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ font-size:11px!important;
+ font-weight:800!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>small{
+ grid-column:3!important;
+ grid-row:2!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ color:var(--muted)!important;
+ font-size:8px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>b{
+ grid-column:4!important;
+ grid-row:1/3!important;
+ align-self:center!important;
+ padding:2px 5px!important;
+ border-radius:999px!important;
+ background:var(--mid-surface-base)!important;
+ color:var(--muted)!important;
+ font-size:8px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button.active{
+ border-color:color-mix(in srgb,var(--accent) 40%,var(--d201-header-line))!important;
+ background:color-mix(in srgb,var(--accent) 8%,var(--mid-surface-base))!important;
+ box-shadow:inset 0 2px 0 var(--accent)!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-quick-grip{grid-column:1!important;grid-row:1/3!important;opacity:.48!important}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>svg{grid-column:2!important;grid-row:1/3!important}
+html[data-mid-design='next'] .header-favorites .favorite-profile-icons{grid-column:4!important;grid-row:2!important}
+html[data-mid-design='next'] .header-favorites .favorite-strip-manage{
+ width:40px!important;
+ min-width:40px!important;
+ height:40px!important;
+ min-height:40px!important;
+ border:1px solid var(--d201-header-line)!important;
+ border-radius:12px!important;
+ background:var(--mid-surface-raised)!important;
+}
+
+/* Standort ist Kontext: kompakt, aber vollständig lesbar. */
+html[data-mid-design='next'] .place{
+ width:min(1520px,100%)!important;
+ margin-inline:auto!important;
+ border:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .place>div:first-child{
+ padding:12px 4px 8px!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .place-title-row h1{
+ font-size:clamp(22px,2.25vw,32px)!important;
+ line-height:1.08!important;
+ letter-spacing:-.008em!important;
+}
+html[data-mid-design='next'] .place-meta{
+ font-size:11px!important;
+ line-height:1.35!important;
+}
+html[data-mid-design='next'] .place-warning-status{
+ min-height:46px!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:14px!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+
+/* Aktuelles Wetter: eine Atmosphärenfläche statt gleichgewichtiger Karten. */
+html[data-mid-design='next'] .hero.current-compact{
+ position:relative!important;
+ overflow:hidden!important;
+ border:1px solid color-mix(in srgb,var(--mid-surface-line) 82%,var(--accent))!important;
+ border-radius:24px!important;
+ background:
+  radial-gradient(circle at 13% 8%,color-mix(in srgb,var(--param-sun,#f4b73b) 11%,transparent),transparent 36%),
+  radial-gradient(circle at 88% 0%,color-mix(in srgb,var(--param-cloud,#7f96a8) 10%,transparent),transparent 42%),
+  linear-gradient(145deg,var(--mid-surface-base),color-mix(in srgb,var(--mid-surface-raised) 88%,transparent))!important;
+ box-shadow:0 16px 38px rgba(3,28,51,.09)!important;
+}
+html[data-mid-design='next'][data-theme='dark'] .hero.current-compact{box-shadow:0 18px 42px rgba(0,0,0,.25)!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+ display:grid!important;
+ grid-template-columns:112px minmax(190px,.75fr) minmax(180px,.8fr) minmax(430px,1.7fr)!important;
+ grid-template-areas:
+  "icon statement thread facts"
+  "range range range range"!important;
+ align-items:stretch!important;
+ gap:0!important;
+ width:100%!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+ grid-area:icon!important;
+ display:grid!important;
+ place-items:center!important;
+ min-height:164px!important;
+ padding:18px 10px!important;
+ border-right:1px solid var(--mid-surface-line)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 54%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon svg,
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon img{width:min(88px,100%)!important;height:auto!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+ grid-area:statement!important;
+ display:flex!important;
+ flex-direction:column!important;
+ justify-content:center!important;
+ min-width:0!important;
+ min-height:164px!important;
+ padding:18px 20px!important;
+}
+html[data-mid-design='next'] .hero.current-compact .hero-kicker-row span{
+ color:var(--muted)!important;
+ font-size:9px!important;
+ font-weight:850!important;
+ letter-spacing:.12em!important;
+ text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{
+ margin-top:3px!important;
+ font-size:clamp(58px,6vw,88px)!important;
+ line-height:.92!important;
+ letter-spacing:-.015em!important;
+ font-variant-numeric:tabular-nums!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>b{
+ margin-top:8px!important;
+ overflow:hidden!important;
+ text-overflow:ellipsis!important;
+ white-space:nowrap!important;
+ font-size:clamp(15px,1.55vw,21px)!important;
+ line-height:1.15!important;
+ letter-spacing:-.004em!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>small{
+ margin-top:5px!important;
+ color:var(--muted)!important;
+ font-size:10px!important;
+ line-height:1.35!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+ grid-area:thread!important;
+ position:relative!important;
+ display:grid!important;
+ place-items:center!important;
+ min-width:0!important;
+ min-height:164px!important;
+ padding:24px 18px!important;
+ border-left:1px solid var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread::before{
+ content:"12 h"!important;
+ position:absolute!important;
+ top:15px!important;
+ left:18px!important;
+ color:var(--muted)!important;
+ font-size:8px!important;
+ font-weight:850!important;
+ letter-spacing:.12em!important;
+ text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{
+ width:100%!important;
+ height:74px!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread path{
+ fill:none!important;
+ stroke:var(--param-temp,var(--accent))!important;
+ stroke-width:2.2!important;
+ vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread circle{fill:var(--param-temp,var(--accent))!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+ grid-area:facts!important;
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:1px!important;
+ min-width:0!important;
+ min-height:164px!important;
+ border-left:1px solid var(--mid-surface-line)!important;
+ background:var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+ display:flex!important;
+ flex-direction:column!important;
+ justify-content:center!important;
+ min-width:0!important;
+ min-height:81px!important;
+ padding:11px 13px!important;
+ border:0!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 90%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts small{
+ color:var(--muted)!important;
+ font-size:8px!important;
+ font-weight:800!important;
+ letter-spacing:.04em!important;
+ text-transform:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts b{
+ margin-top:3px!important;
+ font-size:14px!important;
+ line-height:1.15!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts em{
+ margin-top:2px!important;
+ color:var(--muted)!important;
+ font-size:9px!important;
+ line-height:1.2!important;
+}
+html[data-mid-design='next'] .hero.current-compact .hero-day-range{
+ grid-area:range!important;
+ justify-self:stretch!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ gap:10px!important;
+ min-height:44px!important;
+ margin:0!important;
+ padding:7px 14px!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+ background:color-mix(in srgb,var(--mid-surface-base) 88%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-nowcards{
+ display:grid!important;
+ grid-template-columns:repeat(auto-fit,minmax(240px,1fr))!important;
+ gap:0!important;
+ margin:0!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+ background:var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-nowcards>aside,
+html[data-mid-design='next'] .hero.current-compact .current-nowcards>details{
+ margin:0!important;
+ border:0!important;
+ border-right:1px solid var(--mid-surface-line)!important;
+ border-radius:0!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-compact-source{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:10px!important;
+ min-height:48px!important;
+ padding:7px 12px!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+ background:color-mix(in srgb,var(--mid-surface-base) 92%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-compact-source aside{
+ min-width:0!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-metrics-toggle{
+ flex:0 0 auto!important;
+ min-height:34px!important;
+ padding:6px 9px!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:10px!important;
+ background:var(--mid-surface-raised)!important;
+}
+
+/* Zusatzwerte bleiben sekundär: ruhige Instrumentzeilen statt Kartenstapel. */
+html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:1px!important;
+ margin-top:10px!important;
+ overflow:hidden!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:20px!important;
+ background:var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+ min-height:88px!important;
+ padding:12px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+
+/* Tablet hoch: Hauptaussage und Faden oben, Werte darunter. */
+@media(min-width:621px) and (max-width:900px){
+ html[data-mid-design='next'] .top.settings-header{
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  width:calc(100% - 18px)!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .brand-logo{width:clamp(122px,20vw,174px)!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:100px minmax(190px,.9fr) minmax(0,1.1fr)!important;
+  grid-template-areas:
+   "icon statement thread"
+   "facts facts facts"
+   "range range range"!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  min-height:72px!important;
+  border-left:0!important;
+  border-top:1px solid var(--mid-surface-line)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{min-height:72px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* Mobil: kompakter Kopf, Atmosphärenkarte bleibt zuerst erfassbar. */
+@media(max-width:620px){
+ html[data-mid-design='next'] .top.settings-header{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-areas:
+   "brand actions"
+   "search search"
+   "favorites favorites"!important;
+  width:calc(100% - 14px)!important;
+  gap:7px!important;
+  margin-top:6px!important;
+  padding:7px!important;
+  border-radius:18px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .brand{gap:5px!important}
+ html[data-mid-design='next'] .top.settings-header .brand-logo{
+  width:56px!important;
+  max-height:38px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .brand-version{
+  padding:2px 5px!important;
+  font-size:8px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .compact-actions{gap:3px!important}
+ html[data-mid-design='next'] .top.settings-header .compact-actions>button,
+ html[data-mid-design='next'] .top.settings-header .compact-actions>.pwa-install-button{
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  border-radius:12px!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .search{grid-template-columns:minmax(0,1fr) 42px!important}
+ html[data-mid-design='next'] .top.settings-header .search-input-shell,
+ html[data-mid-design='next'] .top.settings-header .secondary.locate{min-height:42px!important;border-radius:12px!important}
+ html[data-mid-design='next'] .top.settings-header .secondary.locate{min-width:42px!important;width:42px!important;padding:0!important}
+ html[data-mid-design='next'] .top.settings-header .secondary.locate span{display:none!important}
+ html[data-mid-design='next'] .header-favorites{padding-top:5px!important}
+ html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+  min-width:104px!important;
+  max-width:170px!important;
+  min-height:40px!important;
+  padding:5px 7px!important;
+  border-radius:11px!important;
+ }
+ html[data-mid-design='next'] .header-favorites .favorite-strip-manage{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important}
+ html[data-mid-design='next'] .place>div:first-child{padding:9px 2px 7px!important}
+ html[data-mid-design='next'] .place-title-row h1{font-size:22px!important}
+ html[data-mid-design='next'] .place-warning-status{min-height:42px!important}
+ html[data-mid-design='next'] .hero.current-compact{border-radius:20px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:84px minmax(0,1fr)!important;
+  grid-template-areas:
+   "icon statement"
+   "thread thread"
+   "facts facts"
+   "range range"!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+  min-height:126px!important;
+  padding:14px 7px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+  min-height:126px!important;
+  padding:14px 13px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{font-size:58px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>b{font-size:16px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+  min-height:76px!important;
+  padding:17px 12px 9px!important;
+  border-left:0!important;
+  border-top:1px solid var(--mid-surface-line)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread::before{top:8px!important;left:12px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{height:44px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  min-height:0!important;
+  border-left:0!important;
+  border-top:1px solid var(--mid-surface-line)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{min-height:62px!important;padding:9px 10px!important}
+ html[data-mid-design='next'] .hero.current-compact .hero-day-range{
+  min-height:40px!important;
+  padding:6px 10px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards{grid-template-columns:1fr!important}
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards>aside,
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards>details{border-right:0!important;border-bottom:1px solid var(--mid-surface-line)!important}
+ html[data-mid-design='next'] .hero.current-compact .current-compact-source{align-items:flex-start!important;padding:7px 9px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  border-radius:16px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{min-height:82px!important;padding:10px!important}
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .top.settings-header .compact-actions>button,
+ html[data-mid-design='next'] .top.settings-header .compact-actions>.pwa-install-button{
+  width:38px!important;
+  min-width:38px!important;
+  height:38px!important;
+  min-height:38px!important;
+ }
+ html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{min-width:98px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){grid-template-columns:1fr!important}
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .top.settings-header{
+  grid-template-columns:auto minmax(240px,1fr) auto!important;
+  grid-template-areas:"brand search actions" "favorites favorites favorites"!important;
+  width:calc(100% - 18px)!important;
+ }
+ html[data-mid-design='next'] .top.settings-header .brand-logo{width:112px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:88px minmax(170px,.75fr) minmax(150px,.7fr) minmax(360px,1.55fr)!important;
+  grid-template-areas:"icon statement thread facts" "range range range range"!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-icon,
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article,
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread{min-height:132px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{font-size:62px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts{min-height:132px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{min-height:65px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] .header-favorites .favorite-bubbles{scroll-behavior:auto!important}
+}

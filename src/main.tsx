@@ -19,6 +19,7 @@ import './midC16TodayProfileFix.css';
 import './midC17DwdLocationFix.css';
 import './midC18ResponsivePolish.css';
 import './midC19WorkspacePolish.css';
+import './midDesign201Current.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
