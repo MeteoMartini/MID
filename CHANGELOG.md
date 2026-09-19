@@ -1,3 +1,14 @@
+# MID v0.9.85.51
+
+- Der Redesign-Schwerpunkt liegt nun app-weit stärker auf einer klaren fachlichen Primärfläche statt auf vielen gleichgewichtigen Karten.
+- Vorhersage: Horizontwahl kompakter, aktive Tages-/Zeitraumflächen deutlicher hervorgehoben, Kontext- und Quellenbereiche optisch nachgeordnet.
+- Meteogramm: Diagramme erhalten mehr visuelles Gewicht; Steuerung, Datenquelle und einzelne Diagrammblöcke sind als zusammenhängender Analysebereich statt als Kartenstapel gestaltet.
+- Radar/Karten: Die Karte wird deutlich als Hauptarbeitsfläche priorisiert; Schnellwahl, erweiterte Layersteuerung und Legende treten optisch zurück.
+- Warnungen: Warnstatus und amtliche Warnungen stehen klar vor Zeitbahn und ergänzenden MID-Hinweisen; „Quelle nicht verfügbar“ bleibt sichtbar von „keine Warnung“ getrennt.
+- Tide/Wasser: Eignung sowie Tide-/Wasserinformation werden priorisiert; die zahlreichen Messwertkarten werden zu ruhigeren Gruppen zusammengeführt.
+- Die Schutzregeln aus v0.9.85.50 bleiben bestehen: mobile Niederschlagslesbarkeit, ruhiger Kartenhintergrund, Bottom-Bar/Safe-Area, Taupunkt primär, Favoriten, kein horizontaler Overflow und 24-stündige nicht normalisierte Skybar.
+- Keine meteorologische Datenlogik, fachliche Zeitachse oder Warnsemantik wurde verändert.
+
 # MID v0.9.85.50
 
 - Die mobile Niederschlagsfläche in „Aktuell“ ist wieder vollständig und ruhig lesbar: Beschriftung und Hauptwert stehen klar getrennt, die Zusammenfassung erhält die volle verfügbare Breite und Quellen-/Detailtext wird nicht mehr abgeschnitten.
