@@ -56,6 +56,19 @@ function stripLeadingComments(value){
   rest=next.slice(end+2);
  }
 }
+function splitSelectors(header){
+ const result=[];let start=0,round=0,square=0,quote='';
+ for(let i=0;i<header.length;i++){
+  const c=header[i];
+  if(quote){if(c==='\\'){i++;continue;}if(c===quote)quote='';continue;}
+  if(c==="'"||c==='"'){quote=c;continue;}
+  if(c==='(')round++;else if(c===')')round=Math.max(0,round-1);
+  else if(c==='[')square++;else if(c===']')square=Math.max(0,square-1);
+  else if(c===','&&round===0&&square===0){result.push(header.slice(start,i));start=i+1;}
+ }
+ result.push(header.slice(start));
+ return result;
+}
 function auditRegion(text,source,insideKeyframes=false){
  let pos=0;
  while(pos<text.length){
@@ -68,7 +81,7 @@ function auditRegion(text,source,insideKeyframes=false){
   if(/^@(media|supports|container|layer|document)\b/i.test(header))auditRegion(body,source,false);
   else if(/^@(-webkit-)?keyframes\b/i.test(header))auditRegion(body,source,true);
   else if(header&&!header.startsWith('@')&&!insideKeyframes){
-   const selectors=header.split(',').map(value=>value.trim()).filter(Boolean);
+   const selectors=splitSelectors(header).map(value=>value.trim()).filter(Boolean);
    for(const selector of selectors)assert.ok(selector.includes("html[data-mid-design='next']"),`${source}: ungekapselte Designregel: ${selector}`);
   }
   pos=close+1;
