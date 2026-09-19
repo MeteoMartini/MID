@@ -1,0 +1,209 @@
+/* MID 18 · Surface Consistency
+   Final hierarchy pass for Current, Forecast and Water/Tide.
+   Secondary information becomes instrument-like rather than a second primary card. */
+
+html[data-mid-design='next']{
+ --mid18-inset-line:color-mix(in srgb,var(--mid-surface-line) 82%,transparent);
+ --mid18-inset-bg:color-mix(in srgb,var(--mid-surface-raised) 34%,var(--mid-surface-base));
+}
+
+/* Current: the weather hero is primary; metrics and 24 h context are an inset instrument deck. */
+html[data-mid-design='next'] .hero.current-compact+.metrics{
+ margin-top:0!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-inset-line)!important;
+ border-bottom:1px solid var(--mid18-inset-line)!important;
+ border-radius:0!important;
+ background:var(--mid18-inset-line)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+ min-height:82px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid18-inset-bg)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article :is(small,em){
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article strong{
+ font-weight:780!important;
+}
+html[data-mid-design='next'] .current-compact-source{
+ border-top:1px solid var(--mid18-inset-line)!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact~.mid-short-term-signature{
+ margin-top:0!important;
+ border-inline:0!important;
+ border-radius:0!important;
+ background:var(--mid18-inset-bg)!important;
+}
+
+/* Forecast: the forecast flow/list stays primary; detail and sources are visibly inset. */
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail{
+ margin:0!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-inset-line)!important;
+ border-bottom:1px solid var(--mid18-inset-line)!important;
+ border-radius:0!important;
+ background:var(--mid18-inset-bg)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail-head{
+ padding-bottom:8px!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail-head:before{
+ opacity:.58!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail-grid{
+ gap:1px!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-inset-line)!important;
+ border-bottom:1px solid var(--mid18-inset-line)!important;
+ border-radius:0!important;
+ background:var(--mid18-inset-line)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail-row{
+ min-height:62px!important;
+ background:color-mix(in srgb,var(--mid-surface-base) 96%,var(--mid-surface-raised) 4%)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail-row.active{
+ box-shadow:inset 2px 0 0 var(--accent)!important;
+ background:color-mix(in srgb,var(--accent) 4%,var(--mid-surface-base))!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-source-diagnostics{
+ margin-top:2px!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-inset-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-source-diagnostics>summary{
+ min-height:36px!important;
+ padding:6px 9px!important;
+ border-radius:0!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-source-diagnostics[open]>summary{
+ background:var(--mid18-inset-bg)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-source-diagnostics-body{
+ padding:9px 0 0!important;
+}
+
+/* Water / Tide: tide signal becomes the dominant analytical surface. */
+html[data-mid-design='next'] .water-overview .water-flow-group{
+ border-top:2px solid color-mix(in srgb,var(--param-water,#4d9bc5) 38%,var(--mid-surface-line))!important;
+}
+html[data-mid-design='next'] .water-overview .water-flow-group>div{
+ display:grid!important;
+ grid-template-columns:repeat(auto-fit,minmax(170px,1fr))!important;
+ gap:1px!important;
+ background:var(--mid18-inset-line)!important;
+}
+html[data-mid-design='next'] .water-overview .water-flow-group .water-metric-card:not(.water-tide-card){
+ min-height:76px!important;
+ background:var(--mid18-inset-bg)!important;
+}
+html[data-mid-design='next'] .water-overview .water-tide-card{
+ grid-column:1/-1!important;
+ min-height:150px!important;
+ padding:16px!important;
+ border-top:2px solid color-mix(in srgb,var(--param-water,#4d9bc5) 42%,var(--mid-surface-line))!important;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--param-water,#4d9bc5) 7%,var(--mid-surface-base)),var(--mid-surface-base) 62%)!important;
+}
+html[data-mid-design='next'] .water-overview .water-tide-card .water-metric-copy strong{
+ font-size:20px!important;
+ letter-spacing:-.02em!important;
+}
+html[data-mid-design='next'] .water-overview .water-current-level{
+ font-size:11px!important;
+ line-height:1.35!important;
+}
+html[data-mid-design='next'] .water-overview .water-tide-sparkline{
+ width:100%!important;
+ height:64px!important;
+ margin-top:6px!important;
+}
+html[data-mid-design='next'] .water-overview .water-tides{
+ margin:0!important;
+ border-top:1px solid var(--mid18-inset-line)!important;
+ background:var(--mid18-inset-bg)!important;
+}
+html[data-mid-design='next'] .water-overview .water-tides>div{
+ gap:1px!important;
+ background:var(--mid18-inset-line)!important;
+}
+html[data-mid-design='next'] .water-overview .water-tides article{
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-overview :is(.water-wave-group,.water-weather-group)>header{
+ background:color-mix(in srgb,var(--mid-surface-raised) 30%,transparent)!important;
+}
+html[data-mid-design='next'] .water-overview :is(.water-wave-group,.water-weather-group) .water-metric-card{
+ background:color-mix(in srgb,var(--mid-surface-base) 97%,var(--mid-surface-raised) 3%)!important;
+}
+
+/* Tablet / desktop: preserve deliberate hierarchy without card-on-card styling. */
+@media(min-width:851px){
+ html[data-mid-design='next'] .hero.current-compact+.metrics{
+  border-inline:1px solid var(--mid18-inset-line)!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail{
+  margin-inline:10px!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-source-diagnostics{
+  margin-inline:10px!important;
+ }
+ html[data-mid-design='next'] .water-overview .water-tide-card{
+  min-height:168px!important;
+ }
+ html[data-mid-design='next'] .water-overview .water-tide-sparkline{
+  height:76px!important;
+ }
+}
+
+/* Smartphone: flatten edges and keep the primary surfaces visually clean. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .hero.current-compact+.metrics{
+  margin-inline:-1px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  min-height:78px!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail{
+  padding-inline:10px!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-source-diagnostics{
+  margin-inline:0!important;
+ }
+ html[data-mid-design='next'] .water-overview .water-tide-card{
+  min-height:142px!important;
+  padding:13px 11px!important;
+ }
+ html[data-mid-design='next'] .water-overview .water-tide-sparkline{
+  height:60px!important;
+ }
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .hero.current-compact+.metrics{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace .forecast-inline-detail{
+  padding-inline:8px!important;
+ }
+ html[data-mid-design='next'] .water-overview .water-flow-group>div{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] .water-overview .water-tide-card{
+  min-height:136px!important;
+ }
+}
