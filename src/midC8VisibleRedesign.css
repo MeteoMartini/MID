@@ -8,7 +8,7 @@ html[data-mid-design='next']{
  --c8-ink:color-mix(in srgb,var(--text) 95%,#071d34);
  --c8-radius:clamp(20px,2.3vw,30px);
 }
-html[data-theme='dark'][data-mid-design='next']{
+html[data-mid-design='next'][data-theme='dark'][data-mid-design='next']{
  --c8-paper:color-mix(in srgb,var(--surface) 96%,#08233a);
  --c8-raised:color-mix(in srgb,var(--s2) 91%,#0a2c46);
  --c8-line:color-mix(in srgb,var(--border) 76%,#3681af);
@@ -131,5 +131,5 @@ html[data-mid-design='next'] .modern-map-focus-shell :is(.composite-view-tabs,.c
  html[data-mid-design='next'] .dashboard-bottom-tabs button{min-height:58px!important; border-radius:16px!important}
  html[data-mid-design='next'] .dashboard-bottom-tabs button.active{background:color-mix(in srgb,var(--primary) 15%,var(--c8-paper))!important; box-shadow:inset 0 3px 0 var(--primary)!important}
 }
-@media(max-width:390px){html[data-mid-design='next'] .place-nowcards{grid-template-columns:1fr!important}.place-nowcards aside{border-left:0!important}.dashboard-bottom-tabs button span{font-size:8px!important}}
+@media(max-width:390px){html[data-mid-design='next'] .place-nowcards{grid-template-columns:1fr!important}html[data-mid-design='next'] .place-nowcards aside{border-left:0!important}html[data-mid-design='next'] .dashboard-bottom-tabs button span{font-size:8px!important}}
 @media(prefers-reduced-motion:reduce){html[data-mid-design='next'] .top.settings-header{backdrop-filter:none}}
