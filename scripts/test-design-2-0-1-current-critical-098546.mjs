@@ -44,9 +44,8 @@ assert.ok(!/letter-spacing\s*:\s*-\.(?:0[3-9]|[1-9])em/i.test(css),'Aggressive n
 assert.ok(main.includes("import './midDesign201CurrentCritical.css';"),'Critical-Polish-CSS fehlt im Produktionsentry.');
 assert.ok(main.indexOf("import './midDesign201CurrentCritical.css';")>main.indexOf("import './midDesign201MobileQa.css';"),'Critical-Polish muss nach der bisherigen iPhone-QA geladen werden.');
 
-assert.equal(pkg.version,'0.9.85.46');
-assert.equal(baseline.releaseVersion,pkg.version);
+assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles`);
 
-console.log('MID v0.9.85.46: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden mit echten Zeitankern, kompakter Dry-Nowcast und Bottom-Bar-Verhalten geprüft.');
+console.log('MID: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden mit echten Zeitankern, kompakter Dry-Nowcast und Bottom-Bar-Verhalten geprüft.');
