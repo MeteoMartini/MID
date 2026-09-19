@@ -1,16 +1,19 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [app,main,styles,hierarchy,pkg]=await Promise.all([
+const [app,main,styles,hierarchy,surfaces,pkg]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC7Redesign.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC18HierarchyRedesign.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/midC18SurfaceConsistency.css',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8')
 ]);
 
 assert.ok(main.includes("import './midC7Redesign.css';"),'Die C7-Overrides müssen nach den bestehenden Designschichten geladen werden.');
 assert.ok(main.includes("import './midC18HierarchyRedesign.css';"),'Der MID-18-Hierarchie-Layer muss geladen werden.');
+assert.ok(main.includes("import './midC18SurfaceConsistency.css';"),'Der MID-18-Surface-Consistency-Layer muss geladen werden.');
+assert.ok(main.indexOf("import './midC18SurfaceConsistency.css';")>main.indexOf("import './midC18TypographyReadability.css';"),'Surface-Consistency muss nach dem Typografie-Layer laden.');
 assert.ok(main.indexOf("import './midC18HierarchyRedesign.css';")>main.indexOf("import './midC9SmartphoneGate.css';"),'Der MID-18-Hierarchie-Layer muss nach dem C9-Schutzlayer laden.');
 assert.ok(app.includes("data-modern-workspace={modernPrimarySection(activeNavSection==='place'||activeNavSection===''?'current':activeNavSection)}"),'Die Shell muss den aktiven MID-Next-Arbeitsbereich semantisch auszeichnen.');
 assert.ok(app.includes("localStorage.getItem('mid:current-metrics-open')==='1'"),'Die Aktuell-Ansicht muss standardmäßig kompakt starten und eine explizite Detailwahl speichern.');
@@ -33,5 +36,13 @@ for(const token of [
  ".water-overview",
  "@media(max-width:620px)"
 ])assert.ok(hierarchy.includes(token),`MID-18-Hierarchie-Regel fehlt: ${token}`);
+for(const token of [
+ ".hero.current-compact+.metrics",
+ ".forecast-cockpit.modern-workspace .forecast-inline-detail",
+ ".forecast-source-diagnostics",
+ ".water-flow-group .water-tide-card",
+ ".water-tide-sparkline",
+ "@media(max-width:390px)"
+])assert.ok(surfaces.includes(token),`MID-18-Surface-Regel fehlt: ${token}`);
 assert.ok(JSON.parse(pkg).scripts['test:c7-redesign-workspaces'],'Der C7-Regressionstest muss einzeln ausführbar bleiben.');
-console.log('MID-C7/MID18: Shell, fokussierte Arbeitsbereiche und Hierarchie-Layer für Forecast, Meteogramm, Radar, Warnungen und Wasser geprüft.');
+console.log('MID-C7/MID18: Shell, Hierarchie und Surface-Consistency für Aktuell, Vorhersage und Tide/Wasser geprüft.');
