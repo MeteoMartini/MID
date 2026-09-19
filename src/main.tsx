@@ -26,6 +26,7 @@ import './midDesign201MobileQa.css';
 import './midDesign201CurrentCritical.css';
 import './midC9SmartphoneGate.css';
 import './midC18HierarchyRedesign.css';
+import './midC18HierarchyPolish.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
