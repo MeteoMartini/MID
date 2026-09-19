@@ -1,0 +1,88 @@
+/* MID-C9 · Smartphone release gate
+   Visual-only corrections transferred from the approved Replit reference.
+   Weather series, values and integrations remain on MID's canonical data paths. */
+
+@media(max-width:850px){
+ html[data-mid-design='next'],
+ html[data-mid-design='next'] body,
+ html[data-mid-design='next'] #root{max-width:100%;overflow-x:clip}
+
+ /* The location block and the nowcast block are rows, not competing columns. */
+ html[data-mid-design='next'] .mid-page-grid>.place{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:7px!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{
+  width:100%!important;
+  grid-template-columns:minmax(0,1fr) minmax(128px,154px)!important;
+  grid-template-areas:"admin warning" "title warning" "meta meta"!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place .place-title-row,
+ html[data-mid-design='next'] .mid-page-grid>.place .place-title-row h1{
+  min-width:0!important;
+  max-width:100%!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  hyphens:none!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place .place-nowcards{
+  grid-column:1/-1!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+
+ /* Taupunkt remains the lead value; humidity is explicitly secondary. */
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity small{
+  font-size:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity small::before{
+  content:"Taupunkt"!important;
+  font-size:7.2px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity em::before{content:"rel. Feuchte "}
+
+ /* Every favorite remains reachable; the management control never gets squeezed out. */
+ html[data-mid-design='next'] .settings-header>.header-favorites{min-width:0!important;overflow:hidden!important}
+ html[data-mid-design='next'] .settings-header>.header-favorites .favorite-bubbles{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+ }
+ html[data-mid-design='next'] .settings-header>.header-favorites .favorite-strip-manage{
+  flex:0 0 32px!important;
+  width:32px!important;
+  min-width:32px!important;
+ }
+
+ /* Reserve the real floating-navigation footprint including the iOS safe area. */
+ html[data-mid-design='next'] .navigation-bottom-tabs{
+  padding-bottom:calc(88px + var(--mid-safe-bottom))!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid{
+  width:100%!important;
+  min-width:0!important;
+  padding-bottom:18px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  max-width:calc(100vw - max(16px,var(--mid-safe-left)) - max(16px,var(--mid-safe-right)))!important;
+ }
+}
+
+@media(max-width:370px){
+ html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"admin" "title" "meta" "warning"!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place .place-warning-status{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin-top:4px!important;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .navigation-bottom-tabs{padding-bottom:calc(68px + var(--mid-safe-bottom))!important}
+ html[data-mid-design='next'] .mid-page-grid{padding-bottom:12px!important}
+}

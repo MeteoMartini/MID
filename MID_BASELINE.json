@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.47",
+  "releaseVersion": "0.9.85.48",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -501,7 +501,8 @@
     "scripts/test-design-2-0-1-mobile-polish-098544.mjs",
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-current-critical-098546.mjs",
-    "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs"
+    "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs",
+    "scripts/test-mid-c9-smartphone-gate-098548.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -918,7 +919,8 @@
     "scripts/test-design-2-0-1-mobile-polish-098544.mjs",
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-current-critical-098546.mjs",
-    "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs"
+    "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs",
+    "scripts/test-mid-c9-smartphone-gate-098548.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1580,7 +1582,8 @@
     "scripts/test-design-2-0-1-mobile-polish-098544.mjs",
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-current-critical-098546.mjs",
-    "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs"
+    "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs",
+    "scripts/test-mid-c9-smartphone-gate-098548.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -2121,7 +2124,7 @@
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs"
   ],
-  "version": "0.9.85.47",
+  "version": "0.9.85.48",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
