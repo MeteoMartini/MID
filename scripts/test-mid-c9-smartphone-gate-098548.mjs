@@ -28,6 +28,11 @@ for(const token of [
  "content:\"rel. Feuchte \"",
  "@media(max-width:370px)",
  "@media(max-width:850px) and (orientation:landscape)",
+ ".current-nowcards.dry .current-precip-panel",
+ "grid-template-areas:\"heading\" \"summary\" \"source\"",
+ ".current-nowcard-heading>span",
+ "font-size:10.5px!important",
+ "background:linear-gradient(145deg,var(--mid-surface-base)",
  "--mid-mobile-forecast-height",
  "overflow-y:auto!important",
  "overscroll-behavior-y:contain!important",
@@ -48,4 +53,4 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles`);
 
-console.log('MID-C9: Smartphone-Ortskopf, Favoriten, mobile Forecast-Scrollgrenze, Bottom-Safe-Area, Taupunkt-Hierarchie und datenisolierte Stundenansicht geschützt.');
+console.log('MID-C9/MID18: Smartphone-Ortskopf, Favoriten, lesbare Niederschlagsfläche, ruhiger Kartenhintergrund, mobile Forecast-Scrollgrenze, Bottom-Safe-Area, Taupunkt-Hierarchie und datenisolierte Stundenansicht geschützt.');
