@@ -1,0 +1,241 @@
+/* MID 18 · Secondary Surface Refinement
+   Aligns Aktuell, Vorhersage and Tide/Wasser with the calmer hierarchy already
+   established for Meteogramm, Radar and Warnungen. No data logic or time scales change. */
+
+html[data-mid-design='next']{
+ --mid18-section-line:color-mix(in srgb,var(--mid-surface-line) 82%,transparent);
+ --mid18-secondary-fill:color-mix(in srgb,var(--mid-surface-raised) 32%,var(--mid-surface-base));
+}
+
+/* Aktuell · primary weather hero, secondary instrument strip. */
+html[data-mid-design='next'] .hero.current-compact+.metrics{
+ display:grid!important;
+ gap:1px!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ border-radius:0!important;
+ overflow:hidden!important;
+ background:var(--mid18-section-line)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+ min-height:88px!important;
+ padding:11px 12px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid18-secondary-fill)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article>strong{
+ font-size:clamp(16px,1.65vw,22px)!important;
+ letter-spacing:-.025em!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics :is(.metric-note,.metric-sub,.metric-detail){
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics+.mid-insight,
+html[data-mid-design='next'] .hero.current-compact+.metrics+.local-now-disclosure{
+ margin-top:0!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ border-radius:0!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 24%,transparent)!important;
+ box-shadow:none!important;
+}
+
+/* Forecast · selected day and diagnostics become embedded sections, not new cards. */
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail{
+ margin:0!important;
+ padding:11px 12px 12px!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ border-radius:0!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 30%,var(--mid-surface-base))!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-head{
+ min-height:auto!important;
+ margin-bottom:8px!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-head:before{
+ font-size:9px!important;
+ letter-spacing:.045em!important;
+ opacity:.72!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-grid{
+ gap:1px!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ background:var(--mid18-section-line)!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-row{
+ min-height:58px!important;
+ padding-block:8px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid18-secondary-fill)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-row.active{
+ background:color-mix(in srgb,var(--accent) 5%,var(--mid18-secondary-fill))!important;
+ box-shadow:inset 2px 0 0 color-mix(in srgb,var(--accent) 66%,var(--mid-surface-line))!important;
+}
+html[data-mid-design='next'] .forecast-source-diagnostics{
+ margin:0!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .forecast-source-diagnostics>summary{
+ min-height:36px!important;
+ padding:6px 9px!important;
+ border-radius:0!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 24%,transparent)!important;
+}
+html[data-mid-design='next'] .forecast-source-diagnostics-body{
+ gap:8px!important;
+ padding:9px!important;
+ background:color-mix(in srgb,var(--mid-surface-base) 98%,var(--mid-surface-raised) 2%)!important;
+}
+html[data-mid-design='next'] .forecast-source-weight-list{
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+}
+
+/* Tide / water · tidal signal remains primary; metric groups flatten into one instrument panel. */
+html[data-mid-design='next'] .water-overview{
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .water-metric-group{
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-metric-group>header{
+ min-height:36px!important;
+ padding:7px 10px!important;
+ border:0!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 24%,transparent)!important;
+}
+html[data-mid-design='next'] .water-metric-group>header>span{
+ opacity:.72!important;
+}
+html[data-mid-design='next'] .water-metric-group>div{
+ display:grid!important;
+ gap:1px!important;
+ border:0!important;
+ background:var(--mid18-section-line)!important;
+}
+html[data-mid-design='next'] .water-metric-card{
+ min-height:74px!important;
+ margin:0!important;
+ padding:10px 11px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid18-secondary-fill)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-metric-card em{
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-flow-group{
+ background:transparent!important;
+}
+html[data-mid-design='next'] .water-tides{
+ position:relative;
+ margin:0!important;
+ padding:14px 13px!important;
+ border:0!important;
+ border-top:2px solid color-mix(in srgb,var(--param-water,var(--accent)) 52%,var(--mid-surface-line))!important;
+ border-radius:0!important;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--param-water,var(--accent)) 7%,var(--mid-surface-base)),var(--mid-surface-base) 72%)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-tides>header{
+ margin-bottom:10px!important;
+}
+html[data-mid-design='next'] .water-tides>header h3{
+ font-size:15px!important;
+ letter-spacing:-.015em!important;
+}
+html[data-mid-design='next'] .water-tides>div{
+ gap:1px!important;
+ border-top:1px solid var(--mid18-section-line)!important;
+ background:var(--mid18-section-line)!important;
+}
+html[data-mid-design='next'] .water-tides>div>article{
+ min-height:66px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-source{
+ border-top:1px solid var(--mid18-section-line)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 22%,transparent)!important;
+}
+
+/* Tablet/desktop: avoid card islands inside the three refined workspaces. */
+@media(min-width:851px){
+ html[data-mid-design='next'] .hero.current-compact+.metrics{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .water-metric-group>div{
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;
+ }
+ html[data-mid-design='next'] .water-tides>div{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+ }
+}
+
+/* Smartphone: keep density, but not at the cost of clipping or tiny cards. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .hero.current-compact+.metrics{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  min-height:82px!important;
+  padding:10px!important;
+ }
+ html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail{
+  padding:10px 9px 11px!important;
+ }
+ html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-grid{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] .water-metric-group>div{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html[data-mid-design='next'] .water-metric-card{
+  min-height:78px!important;
+  padding:10px!important;
+ }
+ html[data-mid-design='next'] .water-tides{
+  padding:12px 10px!important;
+ }
+ html[data-mid-design='next'] .water-tides>div{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  min-height:78px!important;
+ }
+ html[data-mid-design='next'] .water-metric-group>div{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] .water-tides>div{
+  grid-template-columns:1fr!important;
+ }
+}
