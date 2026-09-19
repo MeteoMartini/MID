@@ -18,8 +18,9 @@ export function MidDataStatus({label='Datenstand',detail,tone='neutral',classNam
 }
 
 export function MidWeatherThread({points=[],label='Temperaturverlauf',className=''}:{points:number[];label?:string;className?:string}){
- const valid=points.filter(Number.isFinite);if(valid.length<2)return null;const low=Math.min(...valid),high=Math.max(...valid),range=Math.max(.1,high-low),path=valid.map((value,index)=>`${index?'L':'M'} ${index/(valid.length-1)*100} ${100-(value-low)/range*100}`).join(' '),last=valid.at(-1)!;
- return <svg className={`mid-weather-thread${className?` ${className}`:''}`} viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}><path d={path}/><circle cx="100" cy={100-(last-low)/range*100} r="3.8"/></svg>
+ const finite=points.map((value,index)=>({value,index})).filter(item=>Number.isFinite(item.value));if(finite.length<2)return null;
+ const low=Math.min(...finite.map(item=>item.value)),high=Math.max(...finite.map(item=>item.value)),range=Math.max(.1,high-low),denominator=Math.max(1,points.length-1),x=(index:number)=>index/denominator*100,y=(value:number)=>92-(value-low)/range*84,path=finite.map((item,index)=>`${index?'L':'M'} ${x(item.index)} ${y(item.value)}`).join(' '),first=finite[0],last=finite.at(-1)!;
+ return <svg className={`mid-weather-thread${className?` ${className}`:''}`} viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}><line className="mid-weather-thread-guide" x1="0" y1="50" x2="100" y2="50"/><path d={path}/><circle className="mid-weather-thread-current" cx={x(first.index)} cy={y(first.value)} r="4.6"/><circle className="mid-weather-thread-end" cx={x(last.index)} cy={y(last.value)} r="2.8"/></svg>
 }
 
 export type MidTimelineFrame={id:string;label:string;detail?:string;phase?:'observation'|'nowcast'|'forecast';live?:boolean};

@@ -9,8 +9,8 @@ const [app,main,css,c10]=await Promise.all([
 ]);
 
 assert.ok(app.includes("import {MidWeatherThread} from './MidDesign';"),'MID-Wetterfaden muss die gemeinsame Designprimitive verwenden.');
-assert.ok(app.includes("currentThreadTemperatures=hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+12).map(hour=>Number(hour.temperature)).filter(Number.isFinite)"),'Aktuell-Wetterfaden muss reale kanonische Stundenwerte verwenden.');
-assert.ok(app.includes('<MidWeatherThread points={currentThreadTemperatures} label="Temperaturtrend der nächsten zwölf Stunden"/>'),'12-h-Wetterfaden fehlt in Aktuell.');
+assert.ok(app.includes("currentThreadSeries=hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+13).filter(hour=>Number.isFinite(Number(hour.temperature)))")&&app.includes("currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))"),'Aktuell-Wetterfaden muss reale kanonische Stundenwerte von Jetzt bis +12 h verwenden.');
+assert.ok(app.includes('<MidWeatherThread points={currentThreadTemperatures} label="Temperaturverlauf von jetzt bis plus zwölf Stunden"/>'),'12-h-Wetterfaden fehlt in Aktuell.');
 assert.ok(app.includes("horizontalBrandLogoPath=brandLogoPath.replace('-compact','-horizontal')"),'Breite Ansichten müssen die Original-Horizontalwortmarke ableiten.');
 assert.ok(app.includes('designMode===\'mid-next\'?<picture className="brand-picture">'),'Responsive Logoauswahl muss ausschließlich im Design-2.0.1-Pfad liegen.');
 assert.ok(app.includes('media="(max-width: 620px)" srcSet={brandLogoPath}'),'Schmale Ansichten müssen das Original-Compact-Logo verwenden.');

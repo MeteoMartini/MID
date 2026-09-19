@@ -1,0 +1,350 @@
+/* MID Design 2.0.1 · v0.9.85.45 · critical mobile current-view pass
+   Screenshot-driven production fixes: compact hierarchy, meaningful 12 h thread,
+   dew point priority, non-overlapping secondary metrics and safer bottom nav. */
+
+@media(max-width:850px){
+ html[data-mid-design='next'] .mid-page-grid>.place{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 136px!important;
+  align-items:start!important;
+  gap:8px!important;
+ }
+ html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{min-width:0!important}
+ html[data-mid-design='next'] .place-warning-status{
+  width:136px!important;
+  min-width:136px!important;
+  max-width:136px!important;
+  min-height:40px!important;
+  margin:2px 0 0!important;
+  padding:6px 8px!important;
+  overflow:hidden!important;
+ }
+ html[data-mid-design='next'] .place-warning-status>span{min-width:0!important}
+ html[data-mid-design='next'] .place-warning-status strong{
+  max-width:none!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:nowrap!important;
+  font-size:9px!important;
+  letter-spacing:0!important;
+ }
+ html[data-mid-design='next'] .place-warning-status small{font-size:6.5px!important;letter-spacing:.08em!important}
+
+ /* The 12 h thread must explain itself instead of showing an unlabeled decorative curve. */
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+  display:grid!important;
+  grid-template-rows:auto 34px auto!important;
+  align-items:center!important;
+  min-height:78px!important;
+  padding:6px 8px 5px!important;
+  gap:2px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread::before{display:none!important}
+ html[data-mid-design='next'] .current-weather-thread-head{
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:space-between!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-head>span{
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  width:100%!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-head small{
+  color:var(--muted)!important;
+  font-size:7px!important;
+  font-weight:850!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-head b{
+  color:var(--text)!important;
+  font-size:9px!important;
+  font-weight:800!important;
+  letter-spacing:0!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{
+  width:100%!important;
+  height:34px!important;
+  overflow:visible!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread .mid-weather-thread-guide{
+  stroke:color-mix(in srgb,var(--mid-surface-line) 78%,transparent)!important;
+  stroke-width:.8!important;
+  stroke-dasharray:2.2 3.2!important;
+  vector-effect:non-scaling-stroke!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread>path{
+  fill:none!important;
+  stroke:var(--param-temp,var(--accent))!important;
+  stroke-width:2!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+  vector-effect:non-scaling-stroke!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-current{
+  fill:var(--param-temp,var(--accent))!important;
+  stroke:var(--surface)!important;
+  stroke-width:1.4!important;
+  vector-effect:non-scaling-stroke!important;
+  filter:drop-shadow(0 0 2px color-mix(in srgb,var(--param-temp,var(--accent)) 55%,transparent))!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-end{
+  fill:var(--surface)!important;
+  stroke:var(--param-temp,var(--accent))!important;
+  stroke-width:1.2!important;
+  vector-effect:non-scaling-stroke!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-axis{
+  display:grid!important;
+  grid-template-columns:repeat(3,1fr)!important;
+  align-items:center!important;
+  gap:4px!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-axis>span{
+  display:flex!important;
+  align-items:baseline!important;
+  gap:3px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-axis>span:nth-child(2){justify-content:center!important}
+ html[data-mid-design='next'] .current-weather-thread-axis>span:last-child{justify-content:flex-end!important}
+ html[data-mid-design='next'] .current-weather-thread-axis small{
+  color:var(--muted)!important;
+  font-size:7px!important;
+  line-height:1!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-axis b{
+  color:var(--text)!important;
+  font-size:8px!important;
+  line-height:1!important;
+  font-variant-numeric:tabular-nums!important;
+ }
+
+ /* Dew point is the primary moisture quantity; relative humidity is secondary context. */
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity small::after{content:""!important}
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity b{
+  font-size:14px!important;
+  font-weight:850!important;
+  color:var(--text)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity em{
+  color:var(--muted)!important;
+  font-size:8px!important;
+ }
+
+ /* Dry nowcast becomes a compact status row rather than another hero card. */
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel{
+  display:grid!important;
+  grid-template-columns:104px minmax(0,1fr)!important;
+  grid-template-areas:"heading summary" "source source"!important;
+  align-items:center!important;
+  gap:3px 10px!important;
+  min-height:0!important;
+  padding:8px 10px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading{
+  grid-area:heading!important;
+  margin:0!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading>span{
+  display:flex!important;
+  align-items:baseline!important;
+  gap:5px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading small{
+  font-size:6.8px!important;
+  letter-spacing:.07em!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading strong{
+  font-size:20px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading .info-hint-trigger{
+  width:22px!important;
+  min-width:22px!important;
+  height:22px!important;
+  min-height:22px!important;
+  margin-left:auto!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel>span{
+  grid-area:summary!important;
+  min-width:0!important;
+  font-size:9px!important;
+  line-height:1.28!important;
+  font-weight:700!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel>em{
+  grid-area:source!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:7px!important;
+  line-height:1.15!important;
+ }
+
+ /* Secondary current values: no large blue block and no colliding category words. */
+ html[data-mid-design='next'] .hero.current-compact+.metrics:not([hidden]){
+  grid-auto-rows:auto!important;
+  align-items:start!important;
+  background:var(--mid-surface-line)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+  height:auto!important;
+  min-height:64px!important;
+  align-self:start!important;
+  align-content:start!important;
+  padding:8px 9px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>header{
+  min-height:24px!important;
+  gap:4px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>header>small{
+  display:block!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  white-space:normal!important;
+  font-size:8px!important;
+  line-height:1.08!important;
+  letter-spacing:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .mode-info>button,
+ html[data-mid-design='next'] #current-weather-metrics .info-hint-trigger{
+  width:22px!important;
+  min-width:22px!important;
+  height:22px!important;
+  min-height:22px!important;
+  padding:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .mode-info>button::before,
+ html[data-mid-design='next'] #current-weather-metrics .info-hint-trigger::before{
+  content:""!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:42px!important;
+  height:42px!important;
+  transform:translate(-50%,-50%)!important;
+  border-radius:999px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>strong,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>strong.air-quality-primary{
+  max-width:100%!important;
+  margin-top:5px!important;
+  overflow-wrap:anywhere!important;
+  font-size:16px!important;
+  line-height:1.05!important;
+  letter-spacing:-.002em!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sunshine-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sun-moon-card{
+  grid-column:1/-1!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto auto!important;
+  column-gap:10px!important;
+  min-height:70px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card>header,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card>header{grid-column:1!important;grid-row:1!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card>strong,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card>strong{
+  grid-column:2!important;
+  grid-row:1!important;
+  align-self:center!important;
+  margin:0!important;
+  text-align:right!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card>.uvi-indicator,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card>.aqi-indicator{
+  grid-column:1/-1!important;
+  grid-row:2!important;
+  width:100%!important;
+  margin:4px 0 0!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card>.current-metric-summary,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card>.current-metric-summary{
+  grid-column:1/-1!important;
+  grid-row:3!important;
+  margin-top:4px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sunshine-card{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto!important;
+  align-items:center!important;
+  min-height:58px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sunshine-card>header{grid-column:1!important;grid-row:1!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sunshine-card>strong{grid-column:2!important;grid-row:1!important;margin:0!important;white-space:nowrap!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sunshine-card>.current-metric-summary{grid-column:1/-1!important;grid-row:2!important;margin-top:3px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sun-moon-card{
+  min-height:62px!important;
+  padding-block:8px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sun-moon-card>strong{font-size:14px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-card-value{justify-content:flex-end!important;gap:8px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-time-block small{font-size:6.5px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-time-block b{font-size:13px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics .sun-moon-phase{font-size:8px!important}
+
+ /* Bottom navigation hides sooner on downward scroll and is visually shorter. */
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  padding:3px 4px!important;
+  border-radius:19px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs::before{display:none!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  min-height:44px!important;
+  grid-template-rows:17px 11px!important;
+  padding:2px!important;
+  border-radius:14px!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button svg{width:17px!important;height:17px!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-bottom-tabs button span{font-size:8.5px!important}
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+  transform:translate3d(0,calc(100% + 24px),0)!important;
+  opacity:0!important;
+  pointer-events:none!important;
+ }
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .mid-page-grid>.place{grid-template-columns:minmax(0,1fr) 124px!important}
+ html[data-mid-design='next'] .place-warning-status{width:124px!important;min-width:124px!important;max-width:124px!important}
+ html[data-mid-design='next'] .place-warning-status strong{font-size:8.5px!important}
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-precip-panel{
+  grid-template-columns:92px minmax(0,1fr)!important;
+  gap:3px 7px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-nowcards.dry .current-nowcard-heading strong{font-size:18px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>strong,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>article>strong.air-quality-primary{font-size:15px!important}
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+  grid-template-rows:auto 32px auto!important;
+  min-height:112px!important;
+  padding:8px 10px!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{height:32px!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.uvi-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.air-quality-card,
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sunshine-card{grid-column:auto!important}
+ html[data-mid-design='next'] .hero.current-compact+.metrics>.sun-moon-card{grid-column:1/-1!important}
+}
