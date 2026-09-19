@@ -1,0 +1,184 @@
+/* MID 18 · Hierarchy Polish
+   Fixes the three remaining visible redesign deviations:
+   mobile bottom-bar clearance, subordinate source metadata, and flatter secondary surfaces. */
+
+html[data-mid-design='next']{
+ --mid18-secondary-radius:12px;
+ --mid18-mobile-nav-reserve:104px;
+}
+
+/* Source / freshness metadata stays complete but visually subordinate. */
+html[data-mid-design='next'] :is(
+ .current-compact-source,
+ .forecast-source-diagnostics,
+ .meteogram-source-disclosure,
+ .water-source,
+ .cockpit-footer-info
+){
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .current-compact-source{
+ min-height:36px!important;
+ padding:6px 10px!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 46%,transparent)!important;
+}
+html[data-mid-design='next'] .forecast-source-diagnostics{
+ border-color:color-mix(in srgb,var(--mid-surface-line) 78%,transparent)!important;
+ border-radius:var(--mid18-secondary-radius)!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .forecast-source-diagnostics>summary{
+ min-height:38px!important;
+ padding:6px 9px!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 48%,transparent)!important;
+ font-size:10px!important;
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .forecast-source-diagnostics:not([open]) .mid-data-status:not(.limited):not(.pending){
+ opacity:.72;
+}
+html[data-mid-design='next'] .meteogram-source-disclosure{
+ color:var(--muted)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 34%,transparent)!important;
+}
+html[data-mid-design='next'] .meteogram-source-disclosure>summary{
+ min-height:34px!important;
+ padding:6px 9px!important;
+}
+html[data-mid-design='next'] .water-source{
+ gap:4px!important;
+ padding:8px 10px!important;
+ font-size:8px!important;
+ line-height:1.35!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 42%,transparent)!important;
+}
+html[data-mid-design='next'] .water-source>small{
+ opacity:.82;
+}
+html[data-mid-design='next'] .composite-data-state{
+ min-height:24px!important;
+ padding:3px 7px!important;
+ border-color:color-mix(in srgb,var(--mid-surface-line) 72%,transparent)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 42%,transparent)!important;
+ color:var(--muted)!important;
+ font-size:8px!important;
+}
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending){
+ opacity:.76;
+}
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending) small{
+ font-size:6.5px!important;
+}
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending) b{
+ font-size:8.5px!important;
+}
+
+/* Error / limited states remain explicit and are not visually muted. */
+html[data-mid-design='next'] :is(
+ .mid-data-status.limited,
+ .mid-data-status.pending,
+ .official-warnings.unavailable,
+ .warning-event-empty.unavailable
+){
+ opacity:1!important;
+}
+
+/* Secondary areas are structurally present but no longer compete with primaries. */
+html[data-mid-design='next'] .hero.current-compact+.metrics{
+ border-color:color-mix(in srgb,var(--mid-surface-line) 82%,transparent)!important;
+ border-radius:var(--mid18-secondary-radius)!important;
+ background:color-mix(in srgb,var(--mid-surface-line) 72%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact+.metrics>article{
+ background:color-mix(in srgb,var(--mid-surface-base) 95%,var(--mid-surface-raised) 5%)!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail{
+ border-top:1px solid color-mix(in srgb,var(--mid-surface-line) 88%,transparent)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 42%,var(--mid-surface-base))!important;
+}
+html[data-mid-design='next'] [data-mid-view='forecast'] .forecast-inline-detail-head:before{
+ opacity:.66;
+}
+html[data-mid-design='next'] .warning-event-tab{
+ border-color:color-mix(in srgb,var(--mid-surface-line) 82%,transparent)!important;
+ border-radius:var(--mid18-secondary-radius)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 44%,var(--mid-surface-base))!important;
+}
+html[data-mid-design='next'] .warning-event-row{
+ background:color-mix(in srgb,var(--mid-surface-base) 96%,var(--mid-surface-raised) 4%)!important;
+}
+html[data-mid-design='next'] .hazards-responsive-card{
+ border-color:color-mix(in srgb,var(--mid-surface-line) 88%,transparent)!important;
+}
+html[data-mid-design='next'] .water-metric-group{
+ border-top-color:color-mix(in srgb,var(--mid-surface-line) 84%,transparent)!important;
+}
+html[data-mid-design='next'] .water-metric-group>header{
+ min-height:38px!important;
+ padding:7px 10px!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 42%,transparent)!important;
+}
+html[data-mid-design='next'] .water-metric-group>header h3{
+ font-size:11px!important;
+}
+html[data-mid-design='next'] .water-metric-card{
+ min-height:80px!important;
+ background:color-mix(in srgb,var(--mid-surface-base) 96%,var(--mid-surface-raised) 4%)!important;
+}
+html[data-mid-design='next'] .composite-advanced{
+ background:color-mix(in srgb,var(--mid-surface-raised) 28%,transparent)!important;
+}
+html[data-mid-design='next'] .composite-advanced>summary{
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .meteogram-block:not(:first-of-type){
+ background:color-mix(in srgb,var(--mid-surface-base) 97%,var(--mid-surface-raised) 3%)!important;
+}
+
+/* Smartphone: the last content of every workspace must clear the floating bar. */
+@media(max-width:850px) and (orientation:portrait){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs .mid-page-grid{
+  padding-bottom:calc(var(--mid18-mobile-nav-reserve) + var(--mid-safe-bottom))!important;
+  scroll-padding-bottom:calc(var(--mid18-mobile-nav-reserve) + var(--mid-safe-bottom))!important;
+ }
+ html[data-mid-design='next'] .app.navigation-bottom-tabs .dashboard{
+  padding-bottom:0!important;
+ }
+ html[data-mid-design='next'] .app.navigation-bottom-tabs :is(
+  .hero.current-compact,
+  .forecast-cockpit.modern-workspace,
+  .water-overview,
+  .meteogram-card.open,
+  .composite-card,
+  .warnings-responsive-shell
+ ){
+  scroll-margin-bottom:calc(var(--mid18-mobile-nav-reserve) + var(--mid-safe-bottom))!important;
+ }
+ /* Forecast keeps its dedicated measured scroll area; no second internal reserve. */
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']{
+  padding-bottom:0!important;
+ }
+ html[data-mid-design='next'] .current-compact-source,
+ html[data-mid-design='next'] .water-source{
+  white-space:normal!important;
+  overflow:visible!important;
+ }
+}
+
+/* Very narrow phones keep source rows readable rather than shrinking text further. */
+@media(max-width:390px) and (orientation:portrait){
+ html[data-mid-design='next']{
+  --mid18-mobile-nav-reserve:108px;
+ }
+ html[data-mid-design='next'] .current-compact-source{
+  align-items:flex-start!important;
+  flex-direction:column!important;
+  gap:4px!important;
+ }
+ html[data-mid-design='next'] .mid-data-status b{
+  white-space:normal!important;
+ }
+ html[data-mid-design='next'] .water-source{
+  font-size:7.8px!important;
+ }
+}
