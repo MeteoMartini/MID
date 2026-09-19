@@ -9,7 +9,7 @@ const [css,main,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-mobile-polish-098544.mjs';
 
-assert.equal(pkg.version,'0.9.85.44');
+assert.equal(pkg.version,baseline.releaseVersion);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(main.includes("import './midDesign201MobilePolish.css';"));
 assert.ok(main.indexOf("import './midDesign201MobilePolish.css';")>main.indexOf("import './midDesign201Today.css';"));
@@ -53,4 +53,4 @@ auditScopedSelectors(css);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles.`);
 
-console.log('MID Design 2.0.1 v0.9.85.44: mobile Aktuell-Ansicht, Info-Controls, kompakte Detailwerte und Bottom-Bar-Sicherheitsabstand geprüft.');
+console.log(`MID Design 2.0.1 v${pkg.version}: mobile Aktuell-Ansicht, Info-Controls, kompakte Detailwerte und Bottom-Bar-Sicherheitsabstand geprüft.`);

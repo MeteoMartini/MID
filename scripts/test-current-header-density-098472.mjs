@@ -14,7 +14,7 @@ assert.match(modern,/\.navigation-bottom-tabs \.settings-header \.brand-version\
 assert.match(modern,/@media\(max-width:430px\)\{[\s\S]*grid-template-columns:max-content max-content!important;[\s\S]*justify-content:space-between!important/,'Schmaler iPhone-Header reserviert Version und Aktionen nicht getrennt');
 assert.match(modern,/@media\(max-width:360px\)\{[\s\S]*grid-template-areas:'brand brand' 'actions actions' 'search search'!important/,'Sehr schmale Geräte besitzen keinen dreizeiligen Header-Fallback');
 assert.match(modern,/\.current-weather-facts>\.humidity small\{[\s\S]*white-space:normal!important;[\s\S]*text-wrap:balance/,'Feuchte-/Taupunkt-Beschriftung darf mobil nicht umbrechen');
-assert.match(app,/className="humidity"><small>Feuchte \/ Taupunkt<\/small>/,'Feuchte-/Taupunkt-Feld fehlt');
+assert.match(app,/className="humidity"><small>Taupunkt \/ Feuchte<\/small>/,'Feuchte-/Taupunkt-Feld fehlt');
 
 assert.match(app,/const metricMore=\(detail:ReactNode,sourceInfo\?:ReactNode\)=>/,'Detail-/Info-Helfer für Istwetter-Karten fehlt');
 assert.match(app,/label:'Taupunkt',[\s\S]*?detail:`Feuchte \$\{Math\.round\(hum\)\} %`[\s\S]*?info:metricMore/,'Taupunkt-Karte ist nicht auf eine kurze sichtbare Zusammenfassung reduziert');
