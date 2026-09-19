@@ -1,3 +1,13 @@
+# MID v0.9.85.53
+
+- App-weite Typografie überarbeitet: Mikrotexte in Labels, Quellenstatus, Warnzeitbahn, Wasser-/Meteogramm-Metadaten und Bedienelementen erhalten eine höhere, konsistente Lesbarkeitsbasis.
+- Versalsatz und Zeichenabstände werden zurückgenommen, damit die Oberfläche weniger technisch und gedrängt wirkt.
+- Wichtige Status- und Wetterinformationen dürfen auf schmalen Geräten umbrechen, statt durch Ellipsen oder weitere Schriftverkleinerung verloren zu gehen.
+- Bedienelemente in Vorhersage, Radar/Karten, Meteogramm und Wasser erhalten einheitlichere Schriftgrößen und Zeilenhöhen.
+- Auf Touch-Geräten verhindern die wichtigsten Select-Felder mit 16-px-Schrift das automatische Safari-Zoomen beim Fokussieren.
+- Die Schutzregeln aus v0.9.85.50–52 bleiben bestehen: Niederschlagslesbarkeit, ruhiger mobiler Kartenhintergrund, Bottom-Bar/Safe-Area, Taupunkt primär, Favoriten, kein horizontaler Overflow und 24-stündige nicht normalisierte Skybar.
+- Keine meteorologische Datenlogik, fachliche Zeitskala oder Warnsemantik wurde verändert.
+
 # MID v0.9.85.52
 
 - Mobile Bottom-Bar-Freistellung app-weit vereinheitlicht: Der letzte Inhalt bleibt in Aktuell, Vorhersage, Tide/Wasser, Meteogramm, Radar/Karten und Warnungen oberhalb der fixierten Navigation plus Safe-Area erreichbar.
