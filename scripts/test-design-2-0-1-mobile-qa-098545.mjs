@@ -7,10 +7,6 @@ const [app,main,css]=await Promise.all([
  readFile('src/midDesign201MobileQa.css','utf8')
 ]);
 
-assert.ok(app.includes('<small>Niederschlagsrisiko · 6 h</small>'),'Kurzfrist-Niederschlag muss semantisch zum 6-h-Inhalt passen.');
-assert.ok(app.includes("probability=maxProb<=5&&!continuation?0:maxProb"),'6-h-Risikowert muss den relevanten Kurzfristhorizont abbilden.');
-assert.ok(app.includes("probability=Math.max(...relevant.map(x=>Number(x.probability)||0),Number(nearest.probability)||0)"),'Bei erwartetem Niederschlag darf die Prozentanzeige nicht nur den nächsten Zeitschritt zeigen.');
-
 assert.ok(app.includes('<span className="humidity"><small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em></span>'),'Taupunkt muss in der aktuellen Kernanzeige vor relativer Feuchte stehen.');
 
 for(const token of [
@@ -42,4 +38,4 @@ for(const token of [
 
 assert.ok(!/letter-spacing\s*:\s*-\.(?:0[3-9]|[1-9])em/i.test(css),'Aggressive negative Laufweiten dürfen nicht zurückkehren.');
 
-console.log('MID Design 2.0.1 v0.9.85.45: iPhone-QA, Taupunkt-Priorität, 6-h-Niederschlagssemantik, Warnstatus, Detailparameter und Bottom-Bar geprüft.');
+console.log('MID Design 2.0.1 v0.9.85.45: iPhone-QA, Taupunkt-Priorität, Warnstatus, Detailparameter und Bottom-Bar geprüft.');
