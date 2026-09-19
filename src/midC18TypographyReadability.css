@@ -1,0 +1,228 @@
+/* MID 18 · Typography & Readability
+   Raise micro-text to a professional readable floor while preserving compact density,
+   meteorological hierarchy and all established mobile layout contracts. */
+
+html[data-mid-design='next']{
+ --mid18-text-label:clamp(9px,.68rem,10px);
+ --mid18-text-meta:clamp(9px,.66rem,10px);
+ --mid18-text-body:clamp(10.5px,.74rem,11.5px);
+ --mid18-text-control:clamp(10px,.72rem,11px);
+ --mid18-text-subhead:clamp(13px,.9rem,15px);
+ --mid18-track-label:.045em;
+}
+
+/* Shared labels and metadata: readable, less mechanical. */
+html[data-mid-design='next'] :is(
+ .mid-metric-label,
+ .mid-data-status small,
+ .mid-insight small,
+ .forecast-date small,
+ .forecast-meta small,
+ .warnings-hybrid-head small,
+ .warning-event-tab-head small,
+ .warning-event-main small,
+ .warning-event-origin,
+ .water-profile-eyebrow,
+ .water-metric-copy small,
+ .meteogram-block>header small,
+ .composite-presets>span,
+ .cockpit-brief small,
+ .cockpit-model-run-row small
+){
+ font-size:var(--mid18-text-label)!important;
+ line-height:1.3!important;
+ letter-spacing:var(--mid18-track-label)!important;
+}
+
+html[data-mid-design='next'] :is(
+ .mid-data-status b,
+ .mid-insight footer,
+ .current-compact-source,
+ .water-source,
+ .meteogram-source-disclosure,
+ .cockpit-footer-info,
+ .forecast-source-diagnostics>summary
+){
+ font-size:var(--mid18-text-meta)!important;
+ line-height:1.35!important;
+ letter-spacing:.015em!important;
+}
+
+html[data-mid-design='next'] :is(
+ .mid-insight p,
+ .water-metric-detail,
+ .official-message,
+ .hazard-context,
+ .precip-now-info,
+ .meteogram-source-disclosure p,
+ .water-info small
+){
+ font-size:var(--mid18-text-body)!important;
+ line-height:1.42!important;
+}
+
+/* Headings: consistent optical scale across workspaces. */
+html[data-mid-design='next'] :is(
+ .forecast-entry-head strong,
+ .warnings-hybrid-head strong,
+ .water-assessment>div>strong,
+ .meteogram-block>header strong,
+ .warning-event-tab-head strong
+){
+ font-size:var(--mid18-text-subhead)!important;
+ line-height:1.22!important;
+ letter-spacing:-.012em!important;
+}
+
+html[data-mid-design='next'] .mid-insight strong{
+ font-size:13.5px!important;
+ line-height:1.25!important;
+ letter-spacing:-.008em!important;
+}
+
+/* Controls and chips: compact but not tiny. */
+html[data-mid-design='next'] :is(
+ .modern-forecast-horizons>button,
+ .mid-layer-chips button,
+ .composite-presets button,
+ .warnings-extreme-entry,
+ .dashboard-bottom-tabs button span,
+ .module-inline-segmented button,
+ .meteogram-option,
+ .water-inline-options label,
+ .detail-resolution-switch button
+){
+ font-size:var(--mid18-text-control)!important;
+ line-height:1.2!important;
+ letter-spacing:0!important;
+}
+
+html[data-mid-design='next'] :is(
+ .meteogram-controls select,
+ .water-inline-options select,
+ .composite-advanced select
+){
+ font-size:12px!important;
+ line-height:1.25!important;
+}
+
+/* Avoid important weather and status information being squeezed into ellipsis. */
+html[data-mid-design='next'] :is(
+ .mid-metric-label,
+ .mid-data-status b,
+ .water-metric-detail,
+ .water-source,
+ .current-compact-source,
+ .forecast-meta small,
+ .warnings-hybrid-head>div>span,
+ .warning-event-main small
+){
+ overflow:visible!important;
+ text-overflow:clip!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere;
+}
+
+html[data-mid-design='next'] .mid-metric>strong{
+ font-size:14.5px!important;
+ line-height:1.15!important;
+}
+
+html[data-mid-design='next'] .forecast-meta b{
+ font-size:12.5px!important;
+ line-height:1.2!important;
+}
+
+html[data-mid-design='next'] .warning-event-main strong{
+ font-size:11.5px!important;
+ line-height:1.25!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+}
+
+html[data-mid-design='next'] .official-alert-head>strong{
+ line-height:1.28!important;
+}
+
+html[data-mid-design='next'] .water-metric-copy strong{
+ line-height:1.15!important;
+}
+
+/* Reduce shouty all-caps feeling while keeping semantic eyebrows. */
+html[data-mid-design='next'] :is(
+ .mid-metric-label,
+ .mid-data-status small,
+ .mid-insight small,
+ .forecast-date small,
+ .warnings-hybrid-head small,
+ .warning-event-tab-head small,
+ .water-profile-eyebrow,
+ .composite-presets>span
+){
+ letter-spacing:var(--mid18-track-label)!important;
+}
+
+/* Mobile readability: preserve density without micro typography. */
+@media(max-width:620px){
+ html[data-mid-design='next']{
+  --mid18-text-label:9.5px;
+  --mid18-text-meta:9.5px;
+  --mid18-text-body:11px;
+  --mid18-text-control:10.5px;
+  --mid18-text-subhead:14px;
+ }
+ html[data-mid-design='next'] .dashboard-bottom-tabs button span{
+  font-size:10px!important;
+ }
+ html[data-mid-design='next'] .mid-data-status{
+  align-items:flex-start!important;
+ }
+ html[data-mid-design='next'] .mid-data-status>span{
+  gap:2px!important;
+ }
+ html[data-mid-design='next'] .mid-data-status b{
+  max-width:none!important;
+ }
+ html[data-mid-design='next'] .forecast-meta{
+  line-height:1.25!important;
+ }
+ html[data-mid-design='next'] .warning-event-row{
+  gap:7px!important;
+ }
+ html[data-mid-design='next'] .warning-event-main{
+  gap:4px!important;
+ }
+ html[data-mid-design='next'] .water-source{
+  font-size:9px!important;
+  line-height:1.38!important;
+ }
+ html[data-mid-design='next'] .current-compact-source{
+  font-size:9.5px!important;
+  line-height:1.35!important;
+ }
+}
+
+/* iOS focus: avoid Safari auto-zoom on the main responsive selectors. */
+@media(max-width:850px) and (pointer:coarse){
+ html[data-mid-design='next'] :is(
+  .meteogram-controls select,
+  .water-inline-options select,
+  .composite-advanced select
+ ){
+  font-size:16px!important;
+ }
+}
+
+/* Very narrow phones: wrap content instead of shrinking typography. */
+@media(max-width:370px){
+ html[data-mid-design='next'] .modern-forecast-horizons>button{
+  padding-inline:7px!important;
+ }
+ html[data-mid-design='next'] .warning-event-origin{
+  padding-inline:4px!important;
+ }
+ html[data-mid-design='next'] .water-metric-card{
+  min-width:0!important;
+ }
+}
