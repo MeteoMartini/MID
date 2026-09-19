@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,forecastCockpit,css,main,pkgRaw,baselineRaw]=await Promise.all([
+const [app,forecastCockpit,css,polish,main,pkgRaw,baselineRaw]=await Promise.all([
  readFile('src/App.tsx','utf8'),
  readFile('src/ForecastCockpit.tsx','utf8'),
  readFile('src/midC9SmartphoneGate.css','utf8'),
+ readFile('src/midC18HierarchyPolish.css','utf8'),
  readFile('src/main.tsx','utf8'),
  readFile('package.json','utf8'),
  readFile('MID_BASELINE.json','utf8')
@@ -43,7 +44,20 @@ assert.ok(forecastCockpit.includes(".navigation-bottom-tabs .dashboard-section-q
 assert.ok(forecastCockpit.includes("--mid-mobile-forecast-height"),'Gemessene mobile Forecast-Höhe muss als CSS-Variable gesetzt werden.');
 assert.ok(forecastCockpit.includes("ResizeObserver"),'Forecast-Höhe muss auf Layoutänderungen reagieren.');
 assert.ok(main.includes("import './midC9SmartphoneGate.css';"),'MID-C9-Smartphone-Gate fehlt im Produktionsentry.');
+assert.ok(main.includes("import './midC18HierarchyPolish.css';"),'MID-18-Hierarchie-Polish fehlt im Produktionsentry.');
+assert.ok(main.indexOf("import './midC18HierarchyPolish.css';")>main.indexOf("import './midC18HierarchyRedesign.css';"),'Der MID-18-Polish muss nach dem Hierarchie-Layer geladen werden.');
 assert.ok(main.indexOf("import './midC9SmartphoneGate.css';")>main.indexOf("import './midDesign201CurrentCritical.css';"),'MID-C9-Gate muss als letzter gezielter Design-Override geladen werden.');
+for(const token of [
+ "--mid18-mobile-nav-reserve:104px",
+ "padding-bottom:calc(var(--mid18-mobile-nav-reserve) + var(--mid-safe-bottom))",
+ "scroll-padding-bottom:calc(var(--mid18-mobile-nav-reserve) + var(--mid-safe-bottom))",
+ ".forecast-cockpit.modern-workspace[data-workspace-mode='true']",
+ ".mid-data-status:not(.limited):not(.pending)",
+ ".official-warnings.unavailable",
+ ".forecast-inline-detail",
+ ".warning-event-tab",
+ ".water-metric-group"
+])assert.ok(polish.includes(token),`MID-18-Mobile-/Hierarchie-Polish fehlt: ${token}`);
 assert.ok(app.includes('Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Kanonische echte Taupunkt-/Feuchtedaten dürfen nicht durch Demo-Daten ersetzt werden.');
 assert.ok(app.includes('displayHours={shortDisplayHours}')||app.includes('displayHours'),'Die echte stündliche Kurzfristreihe muss erhalten bleiben.');
 assert.ok(!css.includes('previewFixture'),'Replit-Vorschau-Fixtures dürfen nicht in den Produktionsstil gelangen.');
@@ -53,4 +67,4 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles`);
 
-console.log('MID-C9/MID18: Smartphone-Ortskopf, Favoriten, lesbare Niederschlagsfläche, ruhiger Kartenhintergrund, mobile Forecast-Scrollgrenze, Bottom-Safe-Area, Taupunkt-Hierarchie und datenisolierte Stundenansicht geschützt.');
+console.log('MID-C9/MID18: Smartphone-Gate plus app-weite Bottom-Bar-Reserve, nachgeordnete Quellenstatus und sekundäre Flächen geschützt.');

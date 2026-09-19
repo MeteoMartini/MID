@@ -1,3 +1,12 @@
+# MID v0.9.85.52
+
+- Mobile Bottom-Bar-Freistellung app-weit vereinheitlicht: Der letzte Inhalt bleibt in Aktuell, Vorhersage, Tide/Wasser, Meteogramm, Radar/Karten und Warnungen oberhalb der fixierten Navigation plus Safe-Area erreichbar.
+- Die bestehende C9-Scrollarchitektur der Vorhersage bleibt unverändert; die neue Reserve wird außerhalb der gemessenen Forecast-Arbeitsfläche gesetzt.
+- Quellen-, Modell- und Aktualitätsinformationen bleiben vollständig vorhanden, treten im Normalzustand aber sichtbar hinter das Wettersignal zurück. Begrenzte, ausstehende oder gestörte Quellenzustände bleiben ausdrücklich hervorgehoben.
+- Sekundärflächen werden weiter entgewichtet: 24-h-Metriken, Forecast-Detail, Warnzeitbahn, Wasser-Messwertgruppen, Meteogramm-Nebenblöcke und Radar-Zusatzsteuerungen nutzen ruhigere Hintergründe und weniger dominante Konturen.
+- Schutzregeln aus v0.9.85.50/51 bleiben bestehen: Niederschlagslesbarkeit, ruhiger mobiler Kartenhintergrund, Taupunkt primär, Favoriten, kein horizontaler Overflow und 24-stündige nicht normalisierte Skybar.
+- Keine meteorologische Datenlogik, Warnsemantik oder fachliche Zeitskala wurde verändert.
+
 # MID v0.9.85.51
 
 - Der Redesign-Schwerpunkt liegt nun app-weit stärker auf einer klaren fachlichen Primärfläche statt auf vielen gleichgewichtigen Karten.
