@@ -12,7 +12,7 @@ const [app,design,css,main,pkgRaw,baselineRaw]=await Promise.all([
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-current-critical-098546.mjs';
 
 assert.ok(app.includes("hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+13)"),'12-h-Faden muss Jetzt bis +12 h mit 13 Stundenpunkten abdecken.');
-assert.ok(app.includes('Temperatur · 12 h'),'Aussagekräftige 12-h-Beschriftung fehlt.');
+assert.ok(app.includes('Temperaturtrend · {currentThreadHorizon} h'),'Aussagekräftige dynamische 12-h-Beschriftung fehlt.');
 assert.ok(app.includes('current-weather-thread-axis'),'Zeit-/Temperaturachse für den 12-h-Faden fehlt.');
 assert.ok(app.includes('hourDisplayClock(currentThreadMid,w.timezone)'),'Mittlerer Zeitanker fehlt.');
 assert.ok(app.includes('hourDisplayClock(currentThreadEnd,w.timezone)'),'Endzeitanker fehlt.');
