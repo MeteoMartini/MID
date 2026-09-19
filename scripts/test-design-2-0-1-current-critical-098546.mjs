@@ -12,7 +12,7 @@ const [app,design,css,main,pkgRaw,baselineRaw]=await Promise.all([
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-current-critical-098546.mjs';
 
 assert.ok(app.includes("hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+13)"),'12-h-Faden muss Jetzt bis +12 h mit 13 Stundenpunkten abdecken.');
-assert.ok(app.includes('Temperatur · 12 h'),'Aussagekräftige 12-h-Beschriftung fehlt.');
+assert.ok(app.includes('Temperaturtrend · {currentThreadHorizon} h'),'Aussagekräftige dynamische 12-h-Beschriftung fehlt.');
 assert.ok(app.includes('current-weather-thread-axis'),'Zeit-/Temperaturachse für den 12-h-Faden fehlt.');
 assert.ok(app.includes('hourDisplayClock(currentThreadMid,w.timezone)'),'Mittlerer Zeitanker fehlt.');
 assert.ok(app.includes('hourDisplayClock(currentThreadEnd,w.timezone)'),'Endzeitanker fehlt.');
@@ -44,9 +44,8 @@ assert.ok(!/letter-spacing\s*:\s*-\.(?:0[3-9]|[1-9])em/i.test(css),'Aggressive n
 assert.ok(main.includes("import './midDesign201CurrentCritical.css';"),'Critical-Polish-CSS fehlt im Produktionsentry.');
 assert.ok(main.indexOf("import './midDesign201CurrentCritical.css';")>main.indexOf("import './midDesign201MobileQa.css';"),'Critical-Polish muss nach der bisherigen iPhone-QA geladen werden.');
 
-assert.equal(pkg.version,'0.9.85.46');
-assert.equal(baseline.releaseVersion,pkg.version);
+assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles`);
 
-console.log('MID v0.9.85.46: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden mit echten Zeitankern, kompakter Dry-Nowcast und Bottom-Bar-Verhalten geprüft.');
+console.log('MID: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden mit echten Zeitankern, kompakter Dry-Nowcast und Bottom-Bar-Verhalten geprüft.');
