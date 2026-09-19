@@ -10,6 +10,7 @@ const route=readFileSync('src/RouteWeatherPanel.tsx','utf8');
 const modulesSource=readFileSync('src/dashboardModules.ts','utf8');
 const auditMatrix=readFileSync('MID_APP_VIEW_AUDIT_0.9.84.79.md','utf8');
 const typography=readFileSync('src/midC18TypographyReadability.css','utf8');
+const secondary=readFileSync('src/midC18SecondarySurfaceRefinement.css','utf8');
 const main=readFileSync('src/main.tsx','utf8');
 
 const marker='MID v0.9.84.79 · appweiter Rest-Audit nach dem 17.7.23-Vertrag.';
@@ -43,6 +44,16 @@ for(const token of [
  "@media(max-width:850px) and (pointer:coarse)"
 ]) assert.ok(typography.includes(token),`MID-18-Typografie-Regel fehlt: ${token}`);
 assert.ok(main.includes("import './midC18TypographyReadability.css';"),'MID-18-Typografie-Layer fehlt im Produktionsentry.');
+assert.ok(main.includes("import './midC18SecondarySurfaceRefinement.css';"),'MID-18-Sekundärflächen-Refinement fehlt im Produktionsentry.');
+assert.ok(main.indexOf("import './midC18SecondarySurfaceRefinement.css';")>main.indexOf("import './midC18TypographyReadability.css';"),'Sekundärflächen-Refinement muss nach dem Typografie-Layer laden.');
+for(const token of [
+ ".hero.current-compact+.metrics",
+ "[data-mid-view='forecast'] .forecast-inline-detail",
+ ".forecast-source-diagnostics",
+ ".water-metric-group",
+ ".water-tides",
+ "@media(max-width:390px)"
+]) assert.ok(secondary.includes(token),`MID-18-Sekundärflächen-Regel fehlt: ${token}`);
 assert.ok(main.indexOf("import './midC18TypographyReadability.css';")>main.indexOf("import './midC18HierarchyPolish.css';"),'Typografie-Layer muss nach dem Hierarchie-Polish laden.');
 assert.ok(!app.includes('modern-today-overview'),'Verworfene Beta-Heute-Übersicht darf nicht wiederkehren.');
 for(const token of ['local-now-disclosure','warnings-responsive-shell',"case'current':return <MemoCurrent"]) assert.ok(app.includes(token),`App-Nutzung fehlt: ${token}`);
@@ -62,4 +73,4 @@ const modules=['00-foundation.css','10-features.css','20-ensemble-composite.css'
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');
 assert.equal(aggregate,modules,'src/styles.css muss exakt aus den fünf kanonischen Styles-Modulen erzeugt sein.');
 
-console.log('MID 18: Appweite Lesbarkeit, Typografie-Floor, Statusmetadaten, Touch-Ziele und iOS-Select-Zoomschutz geprüft.');
+console.log('MID 18: Appweite Lesbarkeit plus verfeinerte Sekundärflächen in Aktuell, Vorhersage und Tide/Wasser geprüft.');
