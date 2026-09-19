@@ -1,3 +1,13 @@
+# MID v0.9.85.54
+
+- Aktuell, Vorhersage und Tide/Wasser wurden optisch weiter an die ruhigere Hierarchie von Meteogramm, Radar und Warnungen angeglichen.
+- In „Aktuell“ bleibt die Wetter-Hauptfläche klar dominant; die nachgelagerten Metriken wirken nun als flacher Instrumentstreifen statt als zweite große Karte.
+- In der Vorhersage sind ausgewählter Tag, Zeitlupe und Quellen-/Diagnostikbereich als eingebettete Sekundärsektionen gestaltet und treten hinter den eigentlichen Forecast-Flow zurück.
+- Im Wasser-/Tide-Bereich werden Pegel-, Messwert- und Metadatengruppen weiter entgewichtet; Gezeitenereignisse und Wasser-/Tide-Signal bleiben visuell führend.
+- Auf Smartphone, Tablet und Desktop werden starke Zusatzkonturen, Schatten und übergroße Rundungen in diesen Sekundärbereichen reduziert, ohne Informationen auszublenden.
+- Die Schutzregeln aus v0.9.85.50–53 bleiben bestehen: mobile Niederschlagslesbarkeit, ruhiger Kartenhintergrund, Bottom-Bar/Safe-Area, Taupunkt primär, Favoriten, kein horizontaler Overflow und 24-stündige nicht normalisierte Skybar.
+- Keine meteorologische Datenlogik, fachliche Zeitskala oder Warnsemantik wurde verändert.
+
 # MID v0.9.85.53
 
 - App-weite Typografie überarbeitet: Mikrotexte in Labels, Quellenstatus, Warnzeitbahn, Wasser-/Meteogramm-Metadaten und Bedienelementen erhalten eine höhere, konsistente Lesbarkeitsbasis.
