@@ -89,13 +89,13 @@ html[data-mid-design='next'] .modern-planner-hub button{box-shadow:none!importan
 
 /* Intrinsic image extent must not inherit generic app media constraints.
    The DWD legend is an enlarged crop of the same bitmap, not a separate image. */
-.app main .dwd-precip-type-radar__original-image,
-.app main .dwd-precip-type-radar__source-legend img{max-width:none!important;max-height:none!important}
-.dwd-precip-type-radar__original-canvas{transition:none!important;overflow-anchor:none}
-.dwd-precip-type-radar__original-viewport{scroll-behavior:auto!important;overflow-anchor:none;direction:ltr}
-.dwd-precip-type-radar__zoom-toolbar button{min-width:36px;min-height:36px}
+html[data-mid-design='next'] .app main .dwd-precip-type-radar__original-image,
+html[data-mid-design='next'] .app main .dwd-precip-type-radar__source-legend img{max-width:none!important;max-height:none!important}
+html[data-mid-design='next'] .dwd-precip-type-radar__original-canvas{transition:none!important;overflow-anchor:none}
+html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport{scroll-behavior:auto!important;overflow-anchor:none;direction:ltr}
+html[data-mid-design='next'] .dwd-precip-type-radar__zoom-toolbar button{min-width:36px;min-height:36px}
 @media(max-height:500px) and (orientation:landscape){
- .dwd-precip-type-radar__original-viewport{min-height:160px!important;max-height:65dvh!important}
+ html[data-mid-design='next'] .dwd-precip-type-radar__original-viewport{min-height:160px!important;max-height:65dvh!important}
 }
 
 @media(min-width:851px) and (max-height:500px){
