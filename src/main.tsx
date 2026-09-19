@@ -29,6 +29,7 @@ import './midC18HierarchyRedesign.css';
 import './midC18HierarchyPolish.css';
 import './midC18TypographyReadability.css';
 import './midC18SecondarySurfaceRefinement.css';
+import './midC18ShellMobileFinish.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
