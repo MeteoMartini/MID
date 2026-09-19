@@ -69,6 +69,30 @@
  }
 }
 
+
+@media(max-width:850px) and (orientation:portrait){
+ /* Mobile forecast owns the vertical scroll surface above the fixed navigation.
+    Its usable height is measured against the real bottom-bar top edge. */
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']{
+  min-height:0!important;
+  max-height:var(--mid-mobile-forecast-height,calc(100dvh - 210px - var(--mid-safe-bottom)))!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch;
+  scroll-padding-bottom:12px!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']>.cockpit-body,
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']>footer{
+  min-width:0!important;
+  flex-shrink:0!important;
+ }
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true'] .cockpit-seven-grid{
+  min-width:0!important;
+  max-width:100%!important;
+ }
+}
+
 @media(max-width:370px){
  html[data-mid-design='next'] .mid-page-grid>.place>div:first-child{
   grid-template-columns:minmax(0,1fr)!important;
