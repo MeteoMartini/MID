@@ -5,7 +5,7 @@ const [app,styles,portable,radarColors,baseline]=await Promise.all([
 ]);
 for(const token of [
  "type NavigationMode='section-rail'|'bottom-tabs'","const navigationMode:NavigationMode=designMode==='mid-next'?'bottom-tabs':'section-rail'","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',
- "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'",'<span>Mehr</span>','bottomBarHidden','downDistance>=118','upDistance>=8','is-scroll-hidden','data-scroll-hidden',
+ "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'",'<span>Mehr</span>','bottomBarHidden','downDistance>=64','upDistance>=40','is-scroll-hidden','data-scroll-hidden',
  "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<details key={group.id}',"!['current','short-term','forecast','ensemble','composite'].includes(id)", 'place-warning-status'
 ])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-Vertrag fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss als Primärtab direkt erreichbar sein');
