@@ -6,7 +6,7 @@ const checks=[
  ['restorable section contract', app.includes("RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'")],
  ['progressive expert navigation', app.includes('modernMoreGroups')&&app.includes("variant==='drawer'")],
  ['modern module focus rendering', app.includes("if(navigationMode==='bottom-tabs')")&&app.includes('if(!visible)return null;')],
- ['single canonical navigation mode', app.includes("type NavigationMode='bottom-tabs'")&&!app.includes('Bottom-Leiste · Beta')],
+ ['dual presentation navigation modes', app.includes("type NavigationMode='section-rail'|'bottom-tabs'")&&app.includes("const navigationMode:NavigationMode=designMode==='mid-next'?'bottom-tabs':'section-rail'")&&!app.includes('Bottom-Leiste · Beta')],
  ['observer cannot overwrite modern focus', app.includes("if(navigationMode==='bottom-tabs'||!w||typeof IntersectionObserver==='undefined')return;")],
  ['floating mobile bar', css.includes('.navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs')&&css.includes('position:fixed!important')],
  ['landscape mobile support', css.includes('@media(max-width:850px) and (orientation:landscape)')],
