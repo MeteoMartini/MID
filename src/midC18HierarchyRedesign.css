@@ -1,0 +1,351 @@
+/* MID 18 · Hierarchy Redesign
+   Goal: one dominant professional surface per workspace, with controls and metadata
+   clearly subordinate. Meteorological logic and time scales remain untouched. */
+
+html[data-mid-design='next']{
+ --mid18-hierarchy-gap:14px;
+ --mid18-primary-line:color-mix(in srgb,var(--accent) 34%,var(--mid-surface-line));
+ --mid18-soft-surface:color-mix(in srgb,var(--mid-surface-raised) 58%,var(--mid-surface-base));
+}
+
+/* Forecast · one workspace, clear master/detail hierarchy. */
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace{
+ border-color:var(--mid18-primary-line)!important;
+ background:var(--mid-surface-base)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace>.cockpit-body{
+ gap:var(--mid18-hierarchy-gap)!important;
+}
+html[data-mid-design='next'] .modern-forecast-horizons{
+ width:max-content!important;
+ max-width:100%!important;
+ min-height:38px!important;
+ padding:3px!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:12px!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .modern-forecast-horizons>button{
+ min-height:32px!important;
+ padding:6px 11px!important;
+ border:0!important;
+ border-radius:9px!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .modern-forecast-horizons>button.active{
+ background:var(--mid-surface-base)!important;
+ box-shadow:0 1px 4px rgba(3,28,51,.08)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace :is(.cockpit-day-row,.cockpit-fourteen-day,.seven-day-band>button){
+ transition:background .16s ease,box-shadow .16s ease!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace :is(.cockpit-day-row,.cockpit-fourteen-day,.seven-day-band>button).active{
+ background:color-mix(in srgb,var(--accent) 6%,var(--mid-surface-base))!important;
+ box-shadow:inset 3px 0 0 var(--accent)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace :is(.cockpit-brief,.cockpit-brief.compact-fourteen){
+ border-color:var(--mid-surface-line)!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit.modern-workspace>footer{
+ border-top:1px solid var(--mid-surface-line)!important;
+ background:transparent!important;
+ opacity:.9;
+}
+
+/* Meteogram · charts dominate, controls and meta recede. */
+html[data-mid-design='next'] .meteogram-card.open{
+ overflow:hidden!important;
+ border:1px solid var(--mid18-primary-line)!important;
+ background:var(--mid-surface-base)!important;
+}
+html[data-mid-design='next'] .meteogram-content{
+ display:grid!important;
+ gap:0!important;
+}
+html[data-mid-design='next'] .meteogram-controls{
+ gap:8px!important;
+ padding:9px 11px!important;
+ border-bottom:1px solid var(--mid-surface-line)!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .meteogram-source-disclosure{
+ margin:0!important;
+ border:0!important;
+ border-bottom:1px solid var(--mid-surface-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .meteogram-source-disclosure>summary{
+ min-height:36px!important;
+ padding:7px 11px!important;
+ font-size:10px!important;
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .meteogram-block{
+ margin:0!important;
+ padding:15px 14px 17px!important;
+ border:0!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+ border-radius:0!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .meteogram-block:first-of-type{
+ border-top:2px solid var(--mid18-primary-line)!important;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 3%,var(--mid-surface-base)),var(--mid-surface-base) 42%)!important;
+}
+html[data-mid-design='next'] .meteogram-block>header{
+ margin-bottom:10px!important;
+}
+html[data-mid-design='next'] .meteogram-block>header strong{
+ font-size:14px!important;
+ letter-spacing:-.01em!important;
+}
+html[data-mid-design='next'] .meteogram-block>header small{
+ margin-top:2px!important;
+ color:var(--muted)!important;
+ font-size:9px!important;
+ line-height:1.35!important;
+}
+html[data-mid-design='next'] .meteogram-chart-wrap{
+ min-height:248px!important;
+}
+html[data-mid-design='next'] .meteogram-block:first-of-type .meteogram-chart-wrap{
+ min-height:300px!important;
+}
+
+/* Radar / maps · map is the primary workspace. */
+html[data-mid-design='next'] .composite-card{
+ overflow:hidden!important;
+ border:1px solid var(--mid18-primary-line)!important;
+ background:var(--mid-surface-base)!important;
+}
+html[data-mid-design='next'] .composite-title-actions{
+ gap:7px!important;
+}
+html[data-mid-design='next'] .composite-presets{
+ gap:5px!important;
+ padding:7px 9px!important;
+ border-block:1px solid var(--mid-surface-line)!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .composite-presets>span{
+ color:var(--muted)!important;
+ font-size:8px!important;
+ font-weight:850!important;
+ letter-spacing:.08em!important;
+ text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .composite-presets button{
+ min-height:30px!important;
+ padding:5px 9px!important;
+ border-radius:9px!important;
+}
+html[data-mid-design='next'] .composite-advanced{
+ margin:0!important;
+ border:0!important;
+ border-bottom:1px solid var(--mid-surface-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+}
+html[data-mid-design='next'] .composite-advanced>summary{
+ min-height:38px!important;
+ padding:7px 10px!important;
+ color:var(--muted)!important;
+}
+html[data-mid-design='next'] .radarmap{
+ min-height:clamp(420px,61vh,720px)!important;
+ border-radius:0!important;
+}
+html[data-mid-design='next'] .radarlegend.compact{
+ max-width:min(430px,calc(100% - 20px))!important;
+}
+
+/* Warnings · warning state first, event trace second. */
+html[data-mid-design='next'] .warnings-responsive-shell{
+ display:grid!important;
+ gap:10px!important;
+}
+html[data-mid-design='next'] .warnings-hybrid-head{
+ padding:13px 14px!important;
+ border:1px solid var(--mid18-primary-line)!important;
+ border-left-width:4px!important;
+ border-radius:16px!important;
+ background:linear-gradient(100deg,color-mix(in srgb,var(--param-warning,#d7922d) 8%,var(--mid-surface-base)),var(--mid-surface-base) 62%)!important;
+}
+html[data-mid-design='next'] .warnings-hybrid-head strong{
+ font-size:17px!important;
+ line-height:1.2!important;
+}
+html[data-mid-design='next'] .warning-event-tab{
+ order:3;
+ margin:0!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:14px!important;
+ background:var(--mid18-soft-surface)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .warning-event-tab-head{
+ min-height:48px!important;
+ padding:9px 11px!important;
+}
+html[data-mid-design='next'] .official-warnings{
+ order:1;
+ margin:0!important;
+ border:1px solid color-mix(in srgb,var(--param-warning,#d7922d) 46%,var(--mid-surface-line))!important;
+ border-radius:16px!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .official-warnings.compact.clear{
+ border-color:var(--mid-surface-line)!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .official-warnings.compact.unavailable{
+ border-style:dashed!important;
+}
+html[data-mid-design='next'] .hazards-responsive-card{
+ order:2;
+ margin:0!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:14px!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .hazards-responsive-head{
+ min-height:54px!important;
+}
+
+/* Tide / water · assessment and water/tide signal dominate; metric decks flatten. */
+html[data-mid-design='next'] .water-overview{
+ overflow:hidden!important;
+ border:1px solid var(--mid18-primary-line)!important;
+ background:var(--mid-surface-base)!important;
+}
+html[data-mid-design='next'] .water-panel-toolbar{
+ gap:10px!important;
+ padding:9px 11px!important;
+ border-bottom:1px solid var(--mid-surface-line)!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .water-assessment{
+ margin:0!important;
+ padding:15px 14px!important;
+ border:0!important;
+ border-bottom:2px solid var(--mid18-primary-line)!important;
+ border-radius:0!important;
+ background:linear-gradient(110deg,color-mix(in srgb,var(--param-water,#4d9bc5) 8%,var(--mid-surface-base)),var(--mid-surface-base) 66%)!important;
+}
+html[data-mid-design='next'] .water-assessment>div>strong{
+ font-size:17px!important;
+}
+html[data-mid-design='next'] .water-metric-group{
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-metric-group>header{
+ min-height:42px!important;
+ padding:9px 12px!important;
+ background:var(--mid18-soft-surface)!important;
+}
+html[data-mid-design='next'] .water-metric-group>div{
+ gap:1px!important;
+ background:var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .water-metric-card{
+ min-height:88px!important;
+ margin:0!important;
+ border:0!important;
+ border-radius:0!important;
+ background:var(--mid-surface-base)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-tides{
+ margin:0!important;
+ padding:14px!important;
+ border:0!important;
+ border-top:2px solid var(--mid18-primary-line)!important;
+ border-radius:0!important;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--param-water,#4d9bc5) 6%,var(--mid-surface-base)),var(--mid-surface-base))!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .water-source{
+ margin:0!important;
+ padding:10px 12px!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+ background:var(--mid18-soft-surface)!important;
+ color:var(--muted)!important;
+}
+
+/* Responsive composition. */
+@media(min-width:901px){
+ html[data-mid-design='next'] .meteogram-card.open{border-radius:18px!important}
+ html[data-mid-design='next'] .composite-card{border-radius:18px!important}
+ html[data-mid-design='next'] .water-overview{border-radius:18px!important}
+ html[data-mid-design='next'] .warnings-responsive-shell{gap:12px!important}
+}
+@media(max-width:900px){
+ html[data-mid-design='next'] .modern-forecast-horizons{
+  width:100%!important;
+  overflow-x:auto!important;
+  scrollbar-width:none!important;
+ }
+ html[data-mid-design='next'] .modern-forecast-horizons::-webkit-scrollbar{display:none!important}
+ html[data-mid-design='next'] .modern-forecast-horizons>button{flex:1 0 max-content!important}
+ html[data-mid-design='next'] .meteogram-block{padding:12px 10px 14px!important}
+ html[data-mid-design='next'] .meteogram-chart-wrap{min-height:224px!important}
+ html[data-mid-design='next'] .meteogram-block:first-of-type .meteogram-chart-wrap{min-height:250px!important}
+ html[data-mid-design='next'] .radarmap{min-height:clamp(390px,56dvh,620px)!important}
+ html[data-mid-design='next'] .warnings-hybrid-head{padding:11px 12px!important}
+ html[data-mid-design='next'] .water-assessment{padding:12px!important}
+}
+@media(max-width:620px){
+ html[data-mid-design='next'] .forecast-cockpit.modern-workspace>.cockpit-body{gap:10px!important}
+ html[data-mid-design='next'] .modern-forecast-horizons{min-height:36px!important}
+ html[data-mid-design='next'] .modern-forecast-horizons>button{min-height:30px!important;padding:5px 9px!important}
+ html[data-mid-design='next'] .meteogram-controls{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:end!important;
+  padding:8px 9px!important;
+ }
+ html[data-mid-design='next'] .meteogram-controls label:first-child{
+  flex:1 1 100%!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .meteogram-controls select{width:100%!important;max-width:100%!important}
+ html[data-mid-design='next'] .meteogram-chart-wrap{min-height:210px!important}
+ html[data-mid-design='next'] .meteogram-block:first-of-type .meteogram-chart-wrap{min-height:230px!important}
+ html[data-mid-design='next'] .composite-presets{
+  overflow-x:auto!important;
+  flex-wrap:nowrap!important;
+  scrollbar-width:none!important;
+ }
+ html[data-mid-design='next'] .composite-presets::-webkit-scrollbar{display:none!important}
+ html[data-mid-design='next'] .composite-presets button{flex:0 0 auto!important}
+ html[data-mid-design='next'] .radarmap{min-height:430px!important}
+ html[data-mid-design='next'] .warnings-hybrid-head{
+  grid-template-columns:auto minmax(0,1fr)!important;
+  gap:8px 10px!important;
+ }
+ html[data-mid-design='next'] .warnings-extreme-entry{
+  grid-column:1/-1!important;
+  justify-self:start!important;
+ }
+ html[data-mid-design='next'] .warning-event-tab{border-radius:12px!important}
+ html[data-mid-design='next'] .official-warnings,
+ html[data-mid-design='next'] .hazards-responsive-card{border-radius:12px!important}
+ html[data-mid-design='next'] .water-panel-toolbar{
+  align-items:stretch!important;
+  flex-direction:column!important;
+ }
+ html[data-mid-design='next'] .water-inline-options{width:100%!important}
+ html[data-mid-design='next'] .water-metric-card{min-height:82px!important}
+ html[data-mid-design='next'] .water-tides{padding:12px 10px!important}
+}
