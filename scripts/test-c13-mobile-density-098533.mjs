@@ -1,11 +1,12 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [main,styles,touch,app,pkg,publicChangelog]=await Promise.all([
+const [main,styles,touch,app,footerRhythm,pkg,publicChangelog]=await Promise.all([
  readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC13MobileDensity.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC13MobileTouch.css',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/midC18FooterRhythmAudit.css',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8')
 ]);
@@ -35,6 +36,13 @@ for(const token of [
 ])assert.ok(styles.includes(token),`C13-Dichte-/Responsive-Vertrag fehlt: ${token}`);
 assert.ok(styles.includes('background:transparent!important;\n  box-shadow:none!important'),'Nowcast-/Detailflächen müssen verschachtelte Kartenoptik abbauen.');
 assert.ok(!styles.includes('filter:blur('),'Fachliche Wetterflächen dürfen nicht dekorativ weichgezeichnet werden.');
+assert.ok(main.includes("import './midC18FooterRhythmAudit.css';"),'Finaler Footer-/Bottom-Bar-Rhythmus muss im Produktionsentry geladen werden.');
+assert.ok(main.indexOf("import './midC18FooterRhythmAudit.css';")>main.indexOf("import './midC18CurrentMoreTrendPolish.css';"),'Footer-Rhythmus muss nach den älteren Mobile-/Shell-Overrides geladen werden.');
+assert.ok(footerRhythm.includes('.app.navigation-bottom-tabs{')&&footerRhythm.includes('padding-bottom:0!important'),'Mobile Bottom-Bar-Reserve darf nicht zusätzlich im App-Container sichtbar gestapelt werden.');
+assert.ok(footerRhythm.includes(".app.navigation-bottom-tabs>main{")&&footerRhythm.includes('padding-bottom:0!important')&&footerRhythm.includes('.app.navigation-bottom-tabs .mid-page-grid')&&footerRhythm.includes('padding-bottom:12px!important'),'Hauptinhalt muss mit genau einem normalen Seitenabstand enden statt mit Navigation-Spacer.');
+assert.ok(footerRhythm.includes('scroll-padding-bottom:var(--mid18-footer-nav-clearance)!important'),'Fokus-/Scrollziele müssen weiterhin kollisionsfrei oberhalb der Bottom-Bar bleiben.');
+assert.ok(footerRhythm.includes('.app.navigation-bottom-tabs>footer')&&footerRhythm.includes('margin-bottom:var(--mid18-footer-nav-clearance)!important'),'Die einzige sichtbare Bottom-Bar-Clearance gehört hinter den Footer.');
+assert.ok(footerRhythm.includes('.forecast-cockpit.modern-workspace>footer>span:first-child')&&footerRhythm.includes('grid-column:1/-1!important')&&footerRhythm.includes('white-space:normal!important'),'Forecast-Quellenmetadaten müssen mobil vollständig umbrechen statt abgeschnitten zu werden.');
 for(const token of [
  'min-width:38px!important',
  'min-height:38px!important',
