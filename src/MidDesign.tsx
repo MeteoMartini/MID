@@ -22,8 +22,8 @@ export function MidWeatherThread({points=[],label='Temperaturverlauf',className=
  const rawLow=Math.min(...finite.map(item=>item.value)),rawHigh=Math.max(...finite.map(item=>item.value)),rawRange=Math.max(.1,rawHigh-rawLow),span=Math.max(Math.max(.1,minimumSpan),rawRange*1.18),mid=(rawLow+rawHigh)/2,low=mid-span/2,high=mid+span/2,range=high-low,denominator=Math.max(1,points.length-1),x=(index:number)=>index/denominator*100,y=(value:number)=>92-(value-low)/range*84;
  const segments:string[]=[];let segment:string[]=[];
  points.forEach((value,index)=>{if(Number.isFinite(value)){segment.push(`${segment.length?'L':'M'} ${x(index)} ${y(value)}`);return}if(segment.length){segments.push(segment.join(' '));segment=[]}});if(segment.length)segments.push(segment.join(' '));
- const first=finite[0],last=finite.at(-1)!,guideY=y(first.value);
- return <svg className={`mid-weather-thread${className?` ${className}`:''}`} viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}><line className="mid-weather-thread-guide" x1="0" y1={guideY} x2="100" y2={guideY}/>{segments.map((path,index)=><path key={index} d={path}/>)}
+ const first=finite[0],last=finite.at(-1)!,guideY=y(first.value),gridY=[8,50,92],gridX=[0,50,100];
+ return <svg className={`mid-weather-thread${className?` ${className}`:''}`} viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}><g className="mid-weather-thread-grid" aria-hidden="true">{gridY.map(value=><line key={`h-${value}`} x1="0" y1={value} x2="100" y2={value}/>)}{gridX.map(value=><line key={`v-${value}`} x1={value} y1="8" x2={value} y2="92"/>)}</g><line className="mid-weather-thread-guide" x1="0" y1={guideY} x2="100" y2={guideY}/>{segments.map((path,index)=><path key={index} d={path}/>)}
  <circle className="mid-weather-thread-current" cx={x(first.index)} cy={y(first.value)} r="4.6"/><circle className="mid-weather-thread-end" cx={x(last.index)} cy={y(last.value)} r="2.8"/></svg>
 }
 
