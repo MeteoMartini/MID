@@ -1,3 +1,11 @@
+# MID v0.9.85.57
+
+- Die 90-Minuten-Kurzfrist beginnt jetzt am nächsten runden 15-Minuten-Zeitpunkt und umfasst exakt sechs vollständige 15-Minuten-Intervalle. Ein zusätzlicher Endpunkt dient nur der zeitlichen Orientierung und fließt nicht als siebtes Intervall in die 90-Minuten-Bilanz ein.
+- Die gewählte Stundenanzeige „Skybar“ oder „Stundenquadrate“ gilt nun auch im 12-h-Trend unter „Aktuell“, im 24-h-Wetterprofil, in der 7-Tage-Kurvenübersicht und in den einzelnen Tageskarten.
+- In der 90-Minuten-Ansicht zeigt MID die Wetterzustandsentwicklung passend zur Auswahl als 15-Minuten-Wetterstreifen oder als sechs 15-Minuten-Quadrate. Sonne, Bewölkung sowie Niederschlagsart und -intensität stammen aus derselben MID-/DWD-Logik; eine zeitliche Normalisierung findet nicht statt.
+- Ortszeit und Zeitzone bleiben auf schmalen Smartphone-Breiten zusammen, sodass z. B. „GMT+2“ nicht mehr isoliert in eine neue Zeile fällt.
+- Stundenquadrate skalieren in längeren Mehrtagesansichten so, dass einzelne Zellen nicht überlappen; die reduzierte Wetterzustandsleiste bleibt auch auf schmalen Geräten kompakt.
+
 # MID v0.9.85.56
 
 - Der mobile Radar-Nowcast in „Aktuell“ wurde neu ausbalanciert: Beschreibungstexte werden nicht mehr abgeschnitten, die 5-Minuten-Grafik erhält deutlich mehr Höhe und Achsen-, Uhrzeit- sowie Quantilangaben kollidieren nicht mehr mit den Niederschlagsbalken.
