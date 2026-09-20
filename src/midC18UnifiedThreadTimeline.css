@@ -1,0 +1,120 @@
+/* MID v0.9.85.62 · gemeinsame 12-h-Zeitbasis und ECMWF-Temperaturfaden */
+
+/* Die Achse ist kein eigenes Raster mehr: ihre Marker liegen absolut auf exakt
+   denselben Plotkoordinaten wie Temperaturkurve und Skybar/Stundenquadrate. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  height:30px!important;
+  margin:0!important;
+  padding:0!important;
+  border-top:1px solid color-mix(in srgb,var(--text) 13%,transparent)!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span{
+  position:absolute!important;
+  top:0!important;
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  gap:4px!important;
+  width:max-content!important;
+  max-width:72px!important;
+  min-width:0!important;
+  padding-top:7px!important;
+  color:var(--muted)!important;
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+  transform:translateX(-50%)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span::before{
+  content:""!important;
+  position:absolute!important;
+  top:-1px!important;
+  left:50%!important;
+  width:1px!important;
+  height:6px!important;
+  background:color-mix(in srgb,var(--text) 25%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-start{
+  justify-content:flex-start!important;
+  transform:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-start::before{
+  left:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-end{
+  justify-content:flex-end!important;
+  transform:translateX(-100%)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-end::before{
+  left:auto!important;
+  right:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis small{
+  color:var(--muted)!important;
+  font-size:clamp(7.8px,1.75vw,9.4px)!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis b{
+  color:var(--text)!important;
+  font-size:clamp(8.8px,1.9vw,10.4px)!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+
+/* ECMWF-inspirierte 2-m-Temperaturpalette: die Farbe kommt aus temperatureTone.ts.
+   Keine zusätzliche Farbskala wird hier erfunden. */
+html[data-mid-design='next'] .hero.current-compact .mid-weather-thread-temperature-ecmwf line{
+  fill:none!important;
+  stroke-width:2.15!important;
+  stroke-linecap:round!important;
+  vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .hero.current-compact .mid-weather-thread-temperature-ecmwf{
+  filter:drop-shadow(0 1px 1px color-mix(in srgb,var(--text) 10%,transparent));
+}
+
+/* Die bisherigen oval verzerrten SVG-Endpunkte sind im Aktuell-Thread deaktiviert.
+   Andere MidWeatherThread-Nutzungen können ihre normalen Marker weiterhin nutzen. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-current,
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-end{
+  display:none!important;
+}
+
+/* Temperaturgraph und Wetterstreifen bleiben exakt gleich breit. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread,
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-sky,
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-sky>svg{
+  width:100%!important;
+  margin-inline:0!important;
+  box-sizing:border-box!important;
+}
+
+@media(max-width:430px){
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span{
+    gap:2px!important;
+    max-width:62px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis small{
+    font-size:7.5px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis b{
+    font-size:8.5px!important;
+  }
+}
+@media(max-width:390px){
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span{
+    gap:1.5px!important;
+    max-width:58px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis small{
+    font-size:7.2px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis b{
+    font-size:8.2px!important;
+  }
+}
