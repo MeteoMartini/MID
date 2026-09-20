@@ -1,3 +1,12 @@
+# MID v0.9.85.62
+
+- Der 12-h-Temperaturtrend und die darunterliegende Skybar/Stundenquadrate verwenden jetzt exakt dieselbe horizontale Zeitbasis und dieselben Plotränder.
+- Die Temperaturkurve nutzt die bereits vorhandene ECMWF-inspirierte 2-m-Temperaturpalette: kühlere Werte erscheinen blau/türkis, milde gelblich und wärmere orange/rot – ohne eine zweite Farbskala einzuführen.
+- Die bisher oval verzerrt wirkenden Start-/Endmarker („Linsen“) wurden im Aktuell-Trend entfernt. Sie hatten keine zusätzliche meteorologische Bedeutung.
+- Die stündlichen Hilfslinien sowie die mindestens 3-stündlichen Zeitmarken bleiben erhalten und sind nun exakt zur Skybar ausgerichtet.
+- Der in v0.9.85.61 korrigierte Footer-/Bottom-Bar-Abstand bleibt unverändert: Bottom-Bar-Clearance wird nur einmal reserviert.
+- Skybar-/Stundenquadrate-, Niederschlags-, Warnungs- und 90-Minuten-Fachlogik bleiben unverändert.
+
 # MID v0.9.85.61
 
 - Der große Leerraum zwischen dem letzten Wetterinhalt und dem App-Footer auf Smartphones wurde entfernt. Die Bottom-Bar-/Safe-Area-Reserve wird nicht mehr gleichzeitig in mehreren Layout-Ebenen sichtbar addiert.
