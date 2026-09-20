@@ -1,3 +1,13 @@
+# MID v0.9.85.66
+
+- Der in Replit vollständig geprüfte MID-18.2-Redesign-Block für Vorhersage und Karten/Radar wurde in den kanonischen MID-Build übernommen.
+- Die gemeinsame Desktop-Shell verwendet nun appweit eine maximale Breite von 1580 px; Prognose- und Kartenarbeitsräume folgen derselben Breiten- und Oberflächenlogik.
+- Dichte 7-/14-Tage- und Kurzfrist-Zeitreihen bleiben vollständig erhalten und scrollen ausschließlich innerhalb ihrer Instrumentflächen, statt die gesamte Seite horizontal zu verbreitern.
+- Karten/Radar erhalten denselben begrenzten Arbeitsraum; Layer-, Zeit-, Status- und Quellenbereiche bleiben funktional unverändert und können auf schmalen Displays nicht mehr die Seitenbreite sprengen.
+- Bottom-Bar-Safe-Area und responsive Innenränder bleiben erhalten.
+- Replit-Abnahme: 390×844, 430×932, 834×1112, 1112×834 und 1440×900 jeweils in Light/Dark; Typecheck und Produktionsbuild erfolgreich.
+- Keine Änderung an Forecast-, Radar-, Nowcast-, Layer-, Warnungs- oder Wetterdatenlogik.
+
 # MID v0.9.85.65
 
 - Der mobile Bereich „Weitere aktuelle Werte“ wurde nach dem Screenshot-Audit neu verriegelt: Überschrift/Info-Schalter, Primärwert und Detailtext liegen nun in eindeutig getrennten Zeilen und können sich auf schmalen Smartphones nicht mehr überlagern.
