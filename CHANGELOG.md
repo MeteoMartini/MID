@@ -1,3 +1,14 @@
+# MID v0.9.85.56
+
+- Der mobile Radar-Nowcast in „Aktuell“ wurde neu ausbalanciert: Beschreibungstexte werden nicht mehr abgeschnitten, die 5-Minuten-Grafik erhält deutlich mehr Höhe und Achsen-, Uhrzeit- sowie Quantilangaben kollidieren nicht mehr mit den Niederschlagsbalken.
+- Das technische Nowcast-Detailfenster nutzt auf Smartphones die verfügbare Breite besser. Begriffe und Werte wie „Standorttreffer“, „Wachstum/Zerfall“ oder die Mengenbasis brechen nicht mehr mitten im Wort um.
+- Schriftgrößen und Zeilenhöhen im Niederschlags-/Nowcast-Bereich wurden angehoben, ohne die Karte unnötig zu vergrößern.
+- Unter Einstellungen gibt es neu „Stundenanzeige“ mit den Optionen „Skybar“ und „24 Stundenquadrate“. Die bisherige Skybar bleibt Standard.
+- Die Stundenquadrate verwenden exakt dieselbe MID-/DWD-Logik für Sonne, Bewölkung, Niederschlagsphase und Intensität wie die Skybar. Jede verfügbare Einzelstunde bleibt eine eigene Zelle; es gibt keine Normalisierung oder Mehrstunden-Zusammenfassung.
+- Die ausgewählte Stunde wird in der Quadratansicht klar markiert; Light und Dark verwenden kontrastangepasste Zellränder.
+- Alle Schutzregeln aus v0.9.85.50–55 bleiben bestehen, insbesondere Taupunkt primär, Bottom-Bar/Safe-Area, Favoriten, kein horizontaler Overflow und die vollständige stündliche Wetterauflösung.
+- Keine meteorologische Datenlogik, Warnsemantik oder Niederschlagsklassifikation wurde verändert.
+
 # MID v0.9.85.55
 
 - Die mobile Bottom-Bar erhält eine ruhigere optische Abschlusszone und mehr Scroll-/Inhaltsreserve, ohne ihre Position oder Funktion zu verändern.
