@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,main,midDesign,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,favoriteLogoSquares,main,midDesign,contract,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-four-thickness-appwide-09799.mjs';
 
@@ -29,6 +29,14 @@ assert.ok(app.includes('skybarDisplayMode={forecastDisplaySettings.skybarDisplay
 assert.ok(polish.includes('.current-weather-thread-sky')&&polish.includes('.cockpit-now90-sky')&&polish.includes("@media(max-width:430px)"),'Reduzierte 12-h-/90-min-Wetterzustandsleisten müssen auf schmalen Smartphones kompakt und viewportfest bleiben.');
 assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Nowcast-/Skybar-Polish fehlt im Produktionsentry.');
 assert.ok(main.includes("import './midC18AxisLayoutFix.css';"),'Zeitachsen-/7-Tage-Fix muss zuletzt im Produktionsentry geladen werden.');
+assert.ok(main.includes("import './midC18FavoriteLogoSkySquaresFix.css';"),'Favoriten-/Logo-/Wetterquadrat-Polish muss im Produktionsentry geladen werden.');
+assert.ok(app.includes('quickTapStart')&&app.includes('quickTapEnd')&&app.includes('einmal tippen zum Auswählen'),'Favoritenleiste muss Touch-Taps getrennt von Scroll-/Drag-Gesten zuverlässig behandeln.');
+assert.ok(favoriteLogoSquares.includes('min-height:44px!important')&&favoriteLogoSquares.includes('touch-action:pan-x!important'),'Favoritenkarten brauchen ein vollwertiges Touchziel und horizontales Scrollen ohne Tap-Verlust.');
+assert.ok(favoriteLogoSquares.includes('background:transparent!important')&&favoriteLogoSquares.includes('object-fit:contain!important'),'MID-Logo muss transparent und unverzerrt eingebettet bleiben.');
+assert.ok(renderer.includes("SUN_CELL_SHADES")&&renderer.includes("CLOUD_CELL_SHADES"),'Wetterquadrate brauchen erkennbare Sonnen-/Bewölkungsabstufungen aus derselben Skybar-Stufe.');
+assert.ok(!renderer.includes("cell.state==='clear-night'&&!base&&!precip?<circle"),'Unklare Punktkodierung für klare Nacht darf nicht mehr gerendert werden.');
+assert.ok(renderer.includes("cell.state==='clear-night'&&!base&&!precip?<rect"),'Klare Nacht muss als ruhige Flächenzelle statt als rätselhafter Punkt erscheinen.');
+assert.ok(favoriteLogoSquares.includes("current-weather-thread-sky[data-skybar-display='squares']")&&favoriteLogoSquares.includes("cockpit-now90-sky[data-skybar-display='squares']"),'12-h- und 90-min-Wetterquadrate müssen visuell groß genug bleiben.');
 assert.ok(midDesign.includes('className="mid-weather-thread-grid"')&&midDesign.includes('gridY=[8,50,92]')&&midDesign.includes('gridX=[0,50,100]'),'12-h-Temperaturfaden braucht einfache horizontale und vertikale Hilfslinien.');
 assert.ok(app.includes('data-mid-time-axis="current-12h"')&&app.indexOf('data-mid-time-axis="current-12h"')<app.indexOf('className="current-weather-thread-sky"'),'12-h-Zeitachse muss direkt der Temperaturkurve folgen und vor dem Wetterstreifen liegen.');
 assert.ok(cockpit.includes('className="cockpit-now90-track" data-cockpit-horizontal-scroll="true"')&&cockpit.includes('data-mid-time-axis="now90"')&&cockpit.includes("'--now90-count':Math.max(1,now90.length)"),'90-Minuten-Wetterstreifen, Zeitachse und Karten müssen einen gemeinsamen horizontalen Raster-/Scrollraum verwenden.');
