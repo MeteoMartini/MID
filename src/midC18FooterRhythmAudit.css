@@ -13,7 +13,11 @@ html[data-mid-design='next']{
   html[data-mid-design='next'] .app.navigation-bottom-tabs{
     padding-bottom:0!important;
   }
-  html[data-mid-design='next'] .app.navigation-bottom-tabs>main,
+  html[data-mid-design='next'] .app.navigation-bottom-tabs>main{
+    min-height:0!important;
+    padding-bottom:0!important;
+    scroll-padding-bottom:var(--mid18-footer-nav-clearance)!important;
+  }
   html[data-mid-design='next'] .app.navigation-bottom-tabs .mid-page-grid{
     min-height:0!important;
     padding-bottom:12px!important;
