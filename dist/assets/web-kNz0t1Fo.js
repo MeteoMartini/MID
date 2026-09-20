@@ -1,0 +1,1 @@
+import{ot as e}from"./index-C99_QUvu.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
