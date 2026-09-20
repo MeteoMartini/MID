@@ -8,6 +8,8 @@ const ensemble=await read('src/styles-src/20-ensemble-composite.css');
 const modern=await read('src/styles-src/30-modern.css');
 const legacy=await read('src/v078.css');
 const styles=await read('src/styles.css');
+const nowcastSkybar=await read('src/midC18NowcastSkybarPolish.css');
+const main=await read('src/main.tsx');
 const pkg=JSON.parse(await read('package.json'));
 const baseline=JSON.parse(await read('MID_BASELINE.json'));
 
@@ -36,6 +38,18 @@ assert.match(modern,/@media\(any-pointer:coarse\)\{[\s\S]*\.hour-chart-tooltip>h
 assert.match(app,/className="model-run-popover"/,'Modellstand-Popover fehlt in der Anwendung');
 assert.match(app,/className="uvi-popover-content"/,'UV-Popover fehlt in der Anwendung');
 assert.match(app,/className="hour-chart-tooltip persistent"/,'Stündliches Detail-Tooltip fehlt in der Anwendung');
+assert.ok(app.includes('className="radar-nowcast-popover" width={420}'),'Radar-Nowcast-Popover muss auf Smartphones die verfügbare Breite nutzen.');
+for(const token of [
+ ".radar-nowcast-popover.app-portal-popover",
+ "grid-template-columns:minmax(0,1fr) minmax(132px,44%)",
+ "overflow-wrap:normal!important",
+ ".radar-nowcast-strip.compact .radar-nowcast-track",
+ "height:96px!important",
+ ".current-precip-panel>span",
+ "-webkit-line-clamp:unset!important"
+]) assert.ok(nowcastSkybar.includes(token),`Nowcast-Lesbarkeitsregel fehlt: ${token}`);
+assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Später Nowcast-/Skybar-Polish muss im Produktionsentry geladen werden.');
+
 assert.match(app,/module-inline-segmented mountain-season-control/,'Berg-Segmentsteuerung fehlt in der Anwendung');
 const astronomyImport=app.match(/import\s*\{([^}]*)\}\s*from '\.\/astronomy';/)?.[1]??'';
 assert.doesNotMatch(astronomyImport,/\b(?:formatDayLengthChange|formatDuration)\b/,'Nach der v0.9.84.72-Verdichtung verbleiben ungenutzte Astronomie-Imports und brechen TypeScript noUnusedLocals');
@@ -46,4 +60,4 @@ assert.ok(versionParts.length===4&&versionParts.every(Number.isFinite)&&versionP
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok((baseline[key]||[]).includes('scripts/test-secondary-detail-popover-readability-098473.mjs'),`${key} enthält den neuen Pflichtvertrag nicht`);
 const modules=await Promise.all(['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css'].map(name=>read(`src/styles-src/${name}`)));
 assert.equal(styles,modules.join(''),'styles.css ist nicht mit den kanonischen Modulen synchron');
-console.log('OK secondary detail/popover readability 098473');
+console.log('OK secondary detail/popover readability 098473 · Radar-Nowcast mobil ohne Mikroschrift, Clipping oder Wortzerstückelung');
