@@ -1,3 +1,14 @@
+# MID v0.9.85.67
+
+- Der in Replit vollständig abgenommene MID-18.2-Finish für Meteogramm, Warnungen, Wasser/Tide und „Mehr“ wurde in den kanonischen MID-Build übernommen.
+- Meteogramm: Diagramme bleiben die dominante Instrumentfläche; dichte Zeitreihen scrollen ausschließlich innerhalb des Diagramms, Quellen- und Steuerbereiche bleiben vollständig lesbar.
+- Warnungen: amtlicher Warnstatus bleibt visuell priorisiert; Ereignisspur, ergänzende MID-Hinweise, Herkunft und lange Texte können auf mobilen Geräten nicht mehr abgeschnitten oder in Ellipsen gedrückt werden.
+- Wasser/Tide: Bewertung, Tide/Pegel, Wellen, Strömung und Wetterwerte bilden eine zusammenhängende responsive Instrumentfläche; dichte Matrizen scrollen nur intern.
+- „Mehr“: Schnellzugriffe und Themenmodule sind als ruhige progressive Gruppen strukturiert; auf sehr schmalen Geräten wechselt die Schnellzugriffsebene in eine einspaltige Darstellung.
+- Bottom-Bar-Safe-Area sowie Light/Dark bleiben geschützt.
+- Replit-Abnahme: 390×844, 430×932, 834×1112, 1112×834 und 1440×900 jeweils in Light/Dark; Typecheck und Produktionsbuild erfolgreich.
+- Keine Änderung an Warnlogik, Wetterdaten, Tide-/Wasserfachlogik, Forecast, Radar oder Nowcast.
+
 # MID v0.9.85.66
 
 - Der in Replit vollständig geprüfte MID-18.2-Redesign-Block für Vorhersage und Karten/Radar wurde in den kanonischen MID-Build übernommen.
