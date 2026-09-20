@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [skybar,precipitation,renderer,app,cockpit,styles,polish,main,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/main.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,main,midDesign,contract,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-four-thickness-appwide-09799.mjs';
 
@@ -28,6 +28,11 @@ assert.ok(app.includes('currentThreadSkyCells=detailSkyBarHourCells(currentThrea
 assert.ok(app.includes('skybarDisplayMode={forecastDisplaySettings.skybarDisplayMode}'),'Globale Einstellung muss an das Prognose-Cockpit weitergereicht werden.');
 assert.ok(polish.includes('.current-weather-thread-sky')&&polish.includes('.cockpit-now90-sky')&&polish.includes("@media(max-width:430px)"),'Reduzierte 12-h-/90-min-Wetterzustandsleisten müssen auf schmalen Smartphones kompakt und viewportfest bleiben.');
 assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Nowcast-/Skybar-Polish fehlt im Produktionsentry.');
+assert.ok(main.includes("import './midC18AxisLayoutFix.css';"),'Zeitachsen-/7-Tage-Fix muss zuletzt im Produktionsentry geladen werden.');
+assert.ok(midDesign.includes('className="mid-weather-thread-grid"')&&midDesign.includes('gridY=[8,50,92]')&&midDesign.includes('gridX=[0,50,100]'),'12-h-Temperaturfaden braucht einfache horizontale und vertikale Hilfslinien.');
+assert.ok(app.includes('data-mid-time-axis="current-12h"')&&app.indexOf('data-mid-time-axis="current-12h"')<app.indexOf('className="current-weather-thread-sky"'),'12-h-Zeitachse muss direkt der Temperaturkurve folgen und vor dem Wetterstreifen liegen.');
+assert.ok(cockpit.includes('className="cockpit-now90-track" data-cockpit-horizontal-scroll="true"')&&cockpit.includes('data-mid-time-axis="now90"')&&cockpit.includes("'--now90-count':Math.max(1,now90.length)"),'90-Minuten-Wetterstreifen, Zeitachse und Karten müssen einen gemeinsamen horizontalen Raster-/Scrollraum verwenden.');
+for(const token of ['grid-template-columns:repeat(var(--now90-count),minmax(0,1fr))!important','min-width:max(100%,calc(var(--now90-count) * var(--now90-slot-width)))!important','grid-template-columns:minmax(0,1fr)!important','overflow-x:hidden!important'])assert.ok(axisFix.includes(token),`Zeitachsen-/7-Tage-Layoutvertrag fehlt: ${token}`);
 
 for(const token of ['data-mid-skybar="react"','data-mid-skybar="profile"','data-mid-skybar="seven-day"','data-mid-skybar="day-card"'])assert.ok((app+cockpit).includes(token),`Appweite Skybar-Einbindung fehlt: ${token}`);
 assert.ok((app.match(/<SkyBarSegmentsSvg/g)||[]).length>=1&&(cockpit.match(/<SkyBarSegmentsSvg/g)||[]).length>=3,'Alle sichtbaren Skybars müssen denselben zentralen Renderer nutzen.');
