@@ -1,0 +1,133 @@
+/* MID v0.9.85.59 · Favoriten-Tap, transparentes Branding und erkennbare Wetterquadrate */
+
+/* Header-Branding: Logo-Assets bleiben transparent und bekommen keine zusätzliche Kachel. */
+html[data-mid-design='next'] .settings-header .brand,
+html[data-mid-design='next'] .settings-header .brand-picture{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+html[data-mid-design='next'] .settings-header .brand-picture{
+  display:flex!important;
+  align-items:center!important;
+  min-width:0!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .settings-header .brand-logo{
+  display:block!important;
+  width:auto!important;
+  height:38px!important;
+  max-width:min(300px,34vw)!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+@media(max-width:620px){
+  html[data-mid-design='next'] .settings-header .brand-logo{
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
+    height:38px!important;
+    object-fit:contain!important;
+  }
+}
+@media(max-width:430px){
+  html[data-mid-design='next'] .settings-header .brand-logo{
+    width:34px!important;
+    min-width:34px!important;
+    max-width:34px!important;
+    height:34px!important;
+  }
+}
+
+/* Favoriten: komplette Karte ist ein verlässliches 44-px-Tapziel; horizontales Scrollen bleibt möglich. */
+html[data-mid-design='next'] .header-favorites .favorite-bubbles{
+  touch-action:pan-x!important;
+  -webkit-overflow-scrolling:touch;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+  position:relative!important;
+  min-height:44px!important;
+  touch-action:pan-x!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button:active{
+  background:color-mix(in srgb,var(--accent) 10%,var(--mid-surface-raised))!important;
+  transform:translateY(.5px);
+}
+html[data-mid-design='next'] .header-favorites .favorite-quick-grip{
+  display:grid!important;
+  place-items:center!important;
+  min-width:24px!important;
+  min-height:32px!important;
+  touch-action:none!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-strip-manage{
+  min-width:44px!important;
+  width:44px!important;
+  min-height:44px!important;
+  height:44px!important;
+  flex-basis:44px!important;
+}
+
+/* Wetterquadrate: Farbe statt rätselhafter Punktkodierung. */
+:root{
+  --mid-skycell-clear-night:#eef1f4;
+}
+:root[data-theme='dark']{
+  --mid-skycell-clear-night:#3d4652;
+  --mid-skycell-border:#c9d2dc;
+}
+
+/* 12 h und 90 min erhalten echte, visuell erkennbare Zellen. */
+html[data-mid-design='next'] .current-weather-thread-sky[data-skybar-display='squares']{
+  height:26px!important;
+  min-height:26px!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .current-weather-thread-sky[data-skybar-display='squares']>svg{
+  width:100%!important;
+  height:24px!important;
+  max-height:24px!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .current-weather-thread:has(.current-weather-thread-sky[data-skybar-display='squares']){
+  grid-template-rows:auto minmax(58px,72px) auto 26px!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-sky[data-skybar-display='squares']{
+  height:28px!important;
+  min-height:28px!important;
+  margin-bottom:2px!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-sky[data-skybar-display='squares']>svg{
+  width:100%!important;
+  height:26px!important;
+  max-height:26px!important;
+  overflow:visible!important;
+}
+
+/* Tageskarten: 24 Einzelstunden bleiben vollständig, aber als erkennbare Zellen. */
+html[data-mid-design='next'] .forecast-cockpit .cockpit-day-skybar[data-skybar-display='squares']{
+  min-height:18px!important;
+  overflow:visible!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-day-skybar[data-skybar-display='squares']>svg{
+  width:100%!important;
+  height:18px!important;
+  max-height:18px!important;
+  overflow:visible!important;
+}
+
+/* Einstellungen/Legenden: Quadratvorschau groß genug zum Erkennen. */
+html[data-mid-design='next'] .settings-skybar-preview.squares svg,
+html[data-mid-design='next'] [data-mid-skybar='squares']{
+  min-height:22px;
+}
