@@ -12,6 +12,7 @@ const auditMatrix=readFileSync('MID_APP_VIEW_AUDIT_0.9.84.79.md','utf8');
 const typography=readFileSync('src/midC18TypographyReadability.css','utf8');
 const secondary=readFileSync('src/midC18SecondarySurfaceRefinement.css','utf8');
 const shellFinish=readFileSync('src/midC18ShellMobileFinish.css','utf8');
+const controlGrammar=readFileSync('src/midC181ControlGrammar.css','utf8');
 const main=readFileSync('src/main.tsx','utf8');
 
 const marker='MID v0.9.84.79 · appweiter Rest-Audit nach dem 17.7.23-Vertrag.';
@@ -48,7 +49,19 @@ assert.ok(main.includes("import './midC18TypographyReadability.css';"),'MID-18-T
 assert.ok(main.includes("import './midC18SecondarySurfaceRefinement.css';"),'MID-18-Sekundärflächen-Refinement fehlt im Produktionsentry.');
 assert.ok(main.indexOf("import './midC18SecondarySurfaceRefinement.css';")>main.indexOf("import './midC18TypographyReadability.css';"),'Sekundärflächen-Refinement muss nach dem Typografie-Layer laden.');
 assert.ok(main.includes("import './midC18ShellMobileFinish.css';"),'MID-18-Shell-/Mobile-Finish fehlt im Produktionsentry.');
+assert.ok(main.includes("import './midC181ControlGrammar.css';"),'MID-18.1-Control-Grammar fehlt im Produktionsentry.');
+assert.ok(main.indexOf("import './midC181ControlGrammar.css';")>main.indexOf("import './midC18NowcastSkybarPolish.css';"),'Control-Grammar muss nach dem Nowcast-/Skybar-Polish laden.');
 assert.ok(main.indexOf("import './midC18ShellMobileFinish.css';")>main.indexOf("import './midC18SecondarySurfaceRefinement.css';"),'Shell-/Mobile-Finish muss nach dem Sekundärflächen-Refinement laden.');
+for(const token of [
+ "--mid181-control-height:36px",
+ ".mid-timeline",
+ ".mid-layer-chips",
+ ".composite-presets",
+ ".modern-forecast-horizons",
+ ".module-inline-segmented",
+ ".mid-data-status:not(.limited):not(.pending)",
+ "@media(max-width:850px)"
+]) assert.ok(controlGrammar.includes(token),`MID-18.1-Control-Grammar-Regel fehlt: ${token}`);
 for(const token of [
  "--mid18-mobile-nav-reserve:132px",
  ".dashboard-section-quick.dashboard-bottom-tabs::before",
@@ -85,4 +98,4 @@ const modules=['00-foundation.css','10-features.css','20-ensemble-composite.css'
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');
 assert.equal(aggregate,modules,'src/styles.css muss exakt aus den fünf kanonischen Styles-Modulen erzeugt sein.');
 
-console.log('MID 18: Appweite Lesbarkeit, verfeinerte Sekundärflächen sowie Shell-/Mobile-Finish geprüft.');
+console.log('MID 18.1: Appweite Lesbarkeit, Shell-/Mobile-Finish, Nowcast-/Skybar-Polish und einheitliche Bediengrammatik geprüft.');
