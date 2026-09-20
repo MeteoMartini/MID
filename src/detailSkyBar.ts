@@ -14,6 +14,22 @@ export type SkyBarSegment={
   title:string;
 };
 
+export type SkyBarHourVisual={
+  color:string;
+  thicknessLevel:1|2|3|4;
+  opacity:number;
+  title:string;
+};
+
+export type SkyBarHourCell={
+  key:string;
+  index:number;
+  base:SkyBarHourVisual|null;
+  precip:SkyBarHourVisual|null;
+  state:'weather'|'clear-night'|'unavailable';
+  title:string;
+};
+
 type WeatherStripLayer='base'|'precip';
 
 type WeatherStripVisual={
@@ -150,6 +166,27 @@ const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
   if(precipitation)visuals.push(precipitation);
   return visuals;
 };
+
+
+export function detailSkyBarHourCells(hours:PrecipSample[]):SkyBarHourCell[]{
+  return hours.map((hour,index)=>{
+    const intervalSeconds=sampleIntervalSeconds(hours,index);
+    const visuals=weatherStripVisuals(hour,intervalSeconds);
+    const baseVisual=visuals.find(visual=>visual.layer==='base')??null;
+    const precipVisual=visuals.find(visual=>visual.layer==='precip')??null;
+    const toHourVisual=(visual:WeatherStripVisual|null):SkyBarHourVisual|null=>visual?{
+      color:visual.color,
+      thicknessLevel:visual.thicknessLevel,
+      opacity:visual.opacity,
+      title:visual.title,
+    }:null;
+    const cloud=Number(hour.cloud),sunshine=Number(hour.sunshineDuration),precipitation=Number(hour.precipitation),snowfall=Number(hour.snowfall);
+    const hasObservedSignal=[cloud,sunshine,precipitation,snowfall].some(Number.isFinite);
+    const state:SkyBarHourCell['state']=baseVisual||precipVisual?'weather':hasObservedSignal&&!hour.isDay?'clear-night':'unavailable';
+    const title=[baseVisual?.title,precipVisual?.title].filter(Boolean).join(' · ')|| (state==='clear-night'?'Klare Nacht':'Wetterdaten für diese Stunde nicht verfügbar');
+    return{key:`hour-${index}`,index,base:toHourVisual(baseVisual),precip:toHourVisual(precipVisual),state,title};
+  });
+}
 
 function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual){
   if(x1<=x0)return;
