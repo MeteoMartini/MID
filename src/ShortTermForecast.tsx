@@ -71,7 +71,9 @@ export type ShortTermForecastPoint={
 const QUARTER_MS=15*60000;
 const HOUR_MS=60*60000;
 const SHORT_TERM_HORIZON_MS=24*HOUR_MS;
-const QUARTER_STEP_COUNT=6;
+// Ein zusätzliches Viertelstunden-Ziel hält intern den Endpunkt des abgerundeten 90-Minuten-Fensters verfügbar.
+// Sichtbar/aggregiert werden ausschließlich die sechs vollen 15-Minuten-Intervalle ab dem nächsten runden Viertelstundenstart.
+const QUARTER_STEP_COUNT=7;
 const NAVIGATION_ICON_BASE_DEGREES=45;
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
@@ -107,6 +109,14 @@ function buildTargetEpochs(now:number){
  let hourly=nextFullHourEpoch(targets[targets.length-1]??now);
  while(hourly<=end){targets.push(hourly);hourly+=HOUR_MS}
  return targets;
+}
+export function shortTermNinetyMinutePoints(points:ShortTermForecastPoint[],now:number){
+ const windowStart=nextQuarterEpoch(now),windowEnd=windowStart+6*QUARTER_MS;
+ return points.filter(point=>{
+  if(point.source!=='15-min')return false;
+  const start=Number(point.precipitationIntervalStartEpoch),end=Number(point.precipitationIntervalEndEpoch);
+  return Number.isFinite(start)&&Number.isFinite(end)&&start>=windowStart&&start<windowEnd&&end>start&&Math.abs((end-start)-QUARTER_MS)<=1000;
+ }).slice(0,6);
 }
 function windToDegrees(direction:number){return((direction+180)%360+360)%360}
 function directionArrowRotation(direction:number){return Number.isFinite(direction)?((windToDegrees(direction)-NAVIGATION_ICON_BASE_DEGREES)%360+360)%360:0}
