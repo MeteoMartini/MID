@@ -7,7 +7,7 @@ const [cockpit,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
  "relativePointTime=(point:ShortTermForecastPoint)=>`${dateOnlyFromEpoch(point.epoch,timezone)===todayDate?'heute':'morgen'} ${point.timeLabel}`",
- 'const formatProfilePointTime=relativePointTime',
+ 'formatProfilePointTime=relativePointTime',
  'formatProfilePointTime(maxFogPoint)',
  'formatProfilePointTime(maxFogPoint)',
  'maxImpactWindow=shortTermImpactWindowLabel(maxImpact,timezone)',

@@ -67,10 +67,12 @@ for(const token of [
 ])assert.ok(weather.includes(token),`Stations-Memorycache ist nicht forceFresh-fähig: ${token}`);
 for(const token of [
  'const SHORT_TERM_HORIZON_MS=24*HOUR_MS',
- 'const QUARTER_STEP_COUNT=6',
+ 'const QUARTER_STEP_COUNT=7',
  'base=interpolatedHour(hours,precipitationIntervalStartEpoch)',
  'canonicalLocal=Number(base.localAdjustment)>0',
- 'bridgeObservedTemperature(anchorTemperature,assimilatedTemperature'
+ 'bridgeObservedTemperature(anchorTemperature,assimilatedTemperature',
+ 'windowStart=nextQuarterEpoch(now),windowEnd=windowStart+6*QUARTER_MS',
+ ".slice(0,6);"
 ])assert.ok(shortTerm.includes(token),`90-min-/24-h-Temperaturpfad ist nicht kanonisch: ${token}`);
 assert.ok(contract.includes('Analysecache-Generationen'),'Der Hyperlokalvertrag muss alte Stationsanalyse-Caches bei Algorithmuswechseln ausschließen.');
 assert.ok(contract.includes('Fast-Pass')&&contract.includes('Full-Pass'),'Der Übergang zwischen Beobachtungs- und Full-Pass muss vertraglich geschützt sein.');
