@@ -26,6 +26,7 @@ assert.ok(cockpit.includes('shortTermNinetyMinutePoints(adjusted,profileNow)')&&
 assert.ok(cockpit.includes('data-skybar-display={skybarDisplayMode}')&&cockpit.includes('profileSkyBarHourCells=detailSkyBarHourCells')&&cockpit.includes('daySkyBarHourCells=detailSkyBarHourCells')&&cockpit.includes('skyBarHourCells=detailSkyBarHourCells(skyBarHours)'),'Quadratmodus muss Profil, Tageskarten und 7-Tage-Wetterstreifen aus derselben Skybar-Logik ableiten.');
 assert.ok(app.includes('currentThreadSkyCells=detailSkyBarHourCells(currentThreadSkyHours)')&&app.includes('Stündliche Wetterquadrate der nächsten zwölf Stunden'),'Aktuell muss die gewählte Stundenanzeige auch im 12-h-Trend verwenden.');
 assert.ok(app.includes('skybarDisplayMode={forecastDisplaySettings.skybarDisplayMode}'),'Globale Einstellung muss an das Prognose-Cockpit weitergereicht werden.');
+assert.ok(polish.includes('.current-weather-thread-sky')&&polish.includes('.cockpit-now90-sky')&&polish.includes("@media(max-width:430px)"),'Reduzierte 12-h-/90-min-Wetterzustandsleisten müssen auf schmalen Smartphones kompakt und viewportfest bleiben.');
 assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Nowcast-/Skybar-Polish fehlt im Produktionsentry.');
 
 for(const token of ['data-mid-skybar="react"','data-mid-skybar="profile"','data-mid-skybar="seven-day"','data-mid-skybar="day-card"'])assert.ok((app+cockpit).includes(token),`Appweite Skybar-Einbindung fehlt: ${token}`);
