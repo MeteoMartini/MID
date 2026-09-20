@@ -23,8 +23,8 @@ for(const token of [
   'bottomBarHidden',
   "window.addEventListener('scroll',onScroll,{passive:true})",
   'requestAnimationFrame',
-  'downDistance>=64',
-  'upDistance>=40',
+  'downDistance>=96',
+  'upDistance>=12',
   'y<160',
   'is-scroll-hidden',
   'data-scroll-hidden',
@@ -35,6 +35,7 @@ for(const token of [
 ])assert.ok(app.includes(token),`Floating-Bar-Logik fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder als Bottom-Bar-Tab erscheinen');
 assert.ok(app.includes("type BottomBarBehavior='auto'|'fixed'")&&app.includes('setBottomBarBehavior'), 'Fixierbare Bottom-Bar-Einstellung fehlt');
+assert.ok(app.includes("localStorage.getItem(BOTTOM_BAR_BEHAVIOR_KEY)==='auto'?'auto':'fixed'"),'Ohne explizite Auto-Wahl muss die Bottom-Bar fixiert sichtbar starten.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Beta-Bezeichnung darf nicht mehr gerendert werden');
 assert.ok(!app.includes('navigation-concept-settings'),'Alter Bedienkonzept-Einstellungsblock muss entfernt sein');
 for(const token of [
