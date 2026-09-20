@@ -17,7 +17,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: 
 const forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: unerlaubt ${token}`)};
 
 for(const token of [
- 'const QUARTER_STEP_COUNT=6;',
+ 'const QUARTER_STEP_COUNT=7;',
  'function nextQuarterEpoch(now:number)',
  'function buildTargetEpochs(now:number)',
  'targets.push(quarter);',
