@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.63",
+  "releaseVersion": "0.9.85.64",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -502,7 +502,8 @@
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-current-critical-098546.mjs",
     "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs",
-    "scripts/test-mid-c9-smartphone-gate-098548.mjs"
+    "scripts/test-mid-c9-smartphone-gate-098548.mjs",
+    "scripts/test-mid-18-2-interaction-ruc-098564.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -920,7 +921,8 @@
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-current-critical-098546.mjs",
     "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs",
-    "scripts/test-mid-c9-smartphone-gate-098548.mjs"
+    "scripts/test-mid-c9-smartphone-gate-098548.mjs",
+    "scripts/test-mid-18-2-interaction-ruc-098564.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1583,7 +1585,10 @@
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-current-critical-098546.mjs",
     "scripts/test-design-2-0-1-current-thread-scientific-098547.mjs",
-    "scripts/test-mid-c9-smartphone-gate-098548.mjs"
+    "scripts/test-mid-c9-smartphone-gate-098548.mjs",
+    "scripts/test-mid-18-2-interaction-ruc-098564.mjs",
+    "MID_RUC_SHORTTERM_AUDIT_0.9.85.64.md",
+    "src/midC18InteractionCurrentPolish.css"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1834,7 +1839,10 @@
     "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "MID_IOS_26_27_DESIGN_CONTRACT.md",
-    "MID_EVENT_RECOMMENDATION_CONTRACT.md"
+    "MID_EVENT_RECOMMENDATION_CONTRACT.md",
+    "scripts/test-mid-18-2-interaction-ruc-098564.mjs",
+    "MID_RUC_SHORTTERM_AUDIT_0.9.85.64.md",
+    "src/midC18InteractionCurrentPolish.css"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -2124,7 +2132,7 @@
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs"
   ],
-  "version": "0.9.85.63",
+  "version": "0.9.85.64",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

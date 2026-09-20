@@ -1,0 +1,115 @@
+/* MID v0.9.85.64 · Interaction/current readability polish
+   Final MID-Next layer for immediate mobile navigation, collision-free current metrics,
+   ECMWF-coloured daily range and a clearer 12-hour temperature thread. */
+
+@media(max-width:850px){
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  transition:transform .16s cubic-bezier(.2,.78,.2,1),opacity .12s ease,box-shadow .16s ease!important;
+ }
+}
+
+/* The phone metric cards keep label/actions and value in separate rows.
+   This prevents the info trigger from competing with long values such as pressure or wind/gusts. */
+@media(max-width:620px){
+ html[data-mid-design='next'] #current-weather-metrics>article{
+  grid-template-columns:minmax(0,1fr)!important;
+  align-content:start!important;
+  align-items:start!important;
+  gap:8px!important;
+  min-height:108px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header{
+  grid-column:1!important;
+  width:100%!important;
+  min-width:0!important;
+  gap:6px!important;
+  align-items:center!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>.current-metric-icon{
+  flex:0 0 auto!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>small{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  overflow-wrap:anywhere!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>.mode-info,
+ html[data-mid-design='next'] #current-weather-metrics>article>header>i{
+  flex:0 0 auto!important;
+  margin-left:auto!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>strong{
+  grid-column:1!important;
+  justify-self:start!important;
+  max-width:100%!important;
+  font-size:clamp(18px,5vw,22px)!important;
+  line-height:1.08!important;
+  text-align:left!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>.current-metric-summary{
+  grid-column:1!important;
+  width:100%!important;
+ }
+}
+@media(max-width:370px){
+ html[data-mid-design='next'] #current-weather-metrics{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article{
+  grid-column:1!important;
+ }
+}
+
+/* Tmin/Tmax use the same value-based ECMWF temperature palette as the thread. */
+html[data-mid-design='next'] .hero.current-compact .hero-day-range-values>.min,
+html[data-mid-design='next'] .hero.current-compact .hero-day-range-values>.max{
+ border-color:color-mix(in srgb,var(--mid-current-range-tone,var(--param-temperature-mean)) 44%,var(--mid-surface-line))!important;
+ background:color-mix(in srgb,var(--mid-current-range-tone,var(--param-temperature-mean)) 11%,var(--mid-surface-base))!important;
+}
+html[data-mid-design='next'] .hero.current-compact .hero-day-range-values>.min b,
+html[data-mid-design='next'] .hero.current-compact .hero-day-range-values>.max b{
+ color:var(--mid-current-range-tone,var(--text))!important;
+}
+
+/* Modernised, still meteorological: clearer grid, stronger ECMWF line and a low-opacity
+   area using the same value-based colours. No smoothing or temporal resampling is added. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{
+ height:86px!important;
+ border-radius:12px!important;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--mid-surface-raised) 56%,transparent),color-mix(in srgb,var(--mid-surface-base) 16%,transparent))!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-grid line{
+ stroke:color-mix(in srgb,var(--text) 13%,transparent)!important;
+ stroke-width:.62!important;
+ opacity:.88!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-guide{
+ stroke:color-mix(in srgb,var(--text) 24%,transparent)!important;
+ stroke-width:.72!important;
+ stroke-dasharray:2.4 2.4!important;
+ vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-temperature-area{
+ stroke:none!important;
+ pointer-events:none!important;
+}
+html[data-mid-design='next'] .hero.current-compact .mid-weather-thread-temperature-ecmwf line{
+ stroke-width:2.85!important;
+ stroke-linecap:round!important;
+ vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .hero.current-compact .mid-weather-thread-temperature-ecmwf{
+ filter:drop-shadow(0 1.5px 1.5px color-mix(in srgb,var(--text) 15%,transparent))!important;
+}
+@media(max-width:620px){
+ html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{
+  height:76px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  transition:none!important;
+ }
+}

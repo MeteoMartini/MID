@@ -36,6 +36,7 @@ import './midC18FavoriteLogoSkySquaresFix.css';
 import './midC18CurrentMoreTrendPolish.css';
 import './midC18FooterRhythmAudit.css';
 import './midC18UnifiedThreadTimeline.css';
+import './midC18InteractionCurrentPolish.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
