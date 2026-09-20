@@ -11,7 +11,7 @@ const [fetcher,builder,pack,worker,fusion,weatherTypes,shortTerm,cockpit,audit]=
  read('src/weather-src/00-types-models-search.tsfrag'),
  read('src/ShortTermForecast.tsx'),
  read('src/ForecastCockpit.tsx'),
- read('MID_RUC_SHORTTERM_AUDIT_0.9.85.64.md')
+ read('MID_RUC_SHORTTERM_AUDIT_0.9.85.67.md')
 ]);
 
 assert.ok(fetcher.includes("SPECIALIST_15M_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT')"),'Native RUC 15-min specialist list missing.');
@@ -35,6 +35,6 @@ assert.ok(cockpit.includes('maxLayer>total+20'),'Contradictory layer cloud value
 assert.ok(cockpit.includes('Schichtwerte werden jedoch ausgeblendet, wenn sie der Gesamtbewölkung klar widersprechen'),'Cloud-layer explanation must state contradiction handling.');
 assert.ok(cockpit.includes('Zustandskern inkl. Wolken 1 h bis +14 h'),'Visible RUC cadence must keep clouds hourly.');
 assert.ok(cockpit.includes('Sicht/Ceiling/Nullgrad-/Schneefallgrenze 15 min bis +6 h'),'Visible RUC cadence must expose native specialist15 data.');
-assert.ok(audit.includes('CLCT/CLCL/CLCM/CLCH bleiben stündlich'),'Audit must reject fabricated 15-min cloud cover.');
+assert.ok(audit.includes('CLCT, CLCL, CLCM und CLCH: 60 min')&&audit.includes('keine fiktive 15-min-Gesamtbewölkung'),'Audit must reject fabricated 15-min cloud cover.');
 
 console.log('MID v0.9.85.67: sky/cloud coherence and native RUC 15-minute specialist chain protected.');
