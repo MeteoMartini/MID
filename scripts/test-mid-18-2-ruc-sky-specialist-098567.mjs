@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const [fetcher,builder,pack,worker,fusion,weatherTypes,shortTerm,cockpit,audit]=await Promise.all([
+const [fetcher,builder,pack,worker,fusion,weatherTypes,shortTerm,cockpit,audit,main,css]=await Promise.all([
  read('tools/ruc/fetch_and_build_ruc.py'),
  read('tools/ruc/build_ruc_bundle.py'),
  read('tools/ruc/ruc_pack.py'),
@@ -11,7 +11,9 @@ const [fetcher,builder,pack,worker,fusion,weatherTypes,shortTerm,cockpit,audit]=
  read('src/weather-src/00-types-models-search.tsfrag'),
  read('src/ShortTermForecast.tsx'),
  read('src/ForecastCockpit.tsx'),
- read('MID_RUC_SHORTTERM_AUDIT_0.9.85.67.md')
+ read('MID_RUC_SHORTTERM_AUDIT_0.9.85.67.md'),
+ read('src/main.tsx'),
+ read('src/midC18SpecialistWorkspacePolish.css')
 ]);
 
 assert.ok(fetcher.includes("SPECIALIST_15M_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT')"),'Native RUC 15-min specialist list missing.');
@@ -36,5 +38,7 @@ assert.ok(cockpit.includes('Schichtwerte werden jedoch ausgeblendet, wenn sie de
 assert.ok(cockpit.includes('Zustandskern inkl. Wolken 1 h bis +14 h'),'Visible RUC cadence must keep clouds hourly.');
 assert.ok(cockpit.includes('Sicht/Ceiling/Nullgrad-/Schneefallgrenze 15 min bis +6 h'),'Visible RUC cadence must expose native specialist15 data.');
 assert.ok(audit.includes('CLCT, CLCL, CLCM und CLCH: 60 min')&&audit.includes('keine fiktive 15-min-Gesamtbewölkung'),'Audit must reject fabricated 15-min cloud cover.');
+assert.ok(main.includes("import './midC18SpecialistWorkspacePolish.css';"),'Specialist workspace polish must load in production.');
+for(const token of ['.cockpit-weather-profile__toolbar','.warnings-responsive-shell','.water-tides','.modern-more-drawer','overflow-wrap:anywhere'])assert.ok(css.includes(token),`Specialist workspace polish missing: ${token}`);
 
 console.log('MID v0.9.85.67: sky/cloud coherence and native RUC 15-minute specialist chain protected.');
