@@ -1,3 +1,13 @@
+# MID v0.9.85.67
+
+- Der in Replit vollständig abgenommene MID-18.2-Finish für Warnungen, Wasser/Tide und „Mehr“ wurde in den kanonischen MID-Build übernommen.
+- Warnungen behalten die amtliche Lage als höchste visuelle Priorität; lange Warntexte, Verhaltensempfehlungen, Herkunft/Quelle und Statuszeilen umbrechen vollständig statt abgeschnitten zu werden.
+- Wasser/Tide bleibt ein zusammenhängendes Instrument: Pegel/Trend, Tideereignisse, Wind/Wellen/Wassertemperatur und Quellenstatus sind gegen äußeren Seitenoverflow verriegelt; die mobile Ereignisleiste bleibt touchfreundlich horizontal bedienbar.
+- „Mehr“ ist als progressive Navigation mit klaren Gruppen, Zähler-Pills, aktiven Zuständen und vollständigen Langlabels poliert. Schnellzugriffe bleiben direkt sichtbar; auf sehr schmalen Geräten werden sie einspaltig.
+- Für Warnungen, Wasser/Tide, Meteogramm, Karten/Radar und Vorhersage wird die Bottom-Bar-Clearance lokal als Scroll-/Fokusreserve geschützt, ohne erneut sichtbaren Leerraum vor dem Footer zu erzeugen.
+- Replit-Abnahme: 390×844, 430×932, 834×1112, 1112×834 und 1440×900 jeweils Light/Dark. Warnzustände „Aktuell“, „Kommend“, „Keine Warnung“ und „Quelle gestört“ zusätzlich auf Smartphonebreite geprüft. Typecheck, Produktionsbuild und Diff-Check erfolgreich.
+- Keine Änderung an meteorologischer Fachlogik, Warnschwellen, Tide-/Wasserberechnung, Forecast-, Radar-, RUC- oder Nowcast-Daten.
+
 # MID v0.9.85.66
 
 - Der in Replit vollständig geprüfte MID-18.2-Redesign-Block für Vorhersage und Karten/Radar wurde in den kanonischen MID-Build übernommen.
