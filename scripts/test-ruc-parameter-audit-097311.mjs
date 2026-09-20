@@ -13,5 +13,5 @@ for(const token of ['capeMu','uhMax','lpiMax','echoTopM','hailGsp','shortwaveDir
 assert.ok(extreme.includes('rucUhMax')&&extreme.includes('rucLpiMax')&&extreme.includes('rucEchoTopM'),'0–6 h extreme outlook must expose organized-convection RUC support.');
 assert.ok(extreme.includes('rucGustKmh')&&extreme.includes('rucSnowlineMinM')&&extreme.includes('rucFreezingLevelMinM'),'6–14 h extreme outlook must expose scientifically useful hourly RUC state diagnostics.');
 assert.ok(!worker.includes('sunshineDuration:solarValue')&&!fusion.includes('sunshineDuration:rapid'),'RUC solar diagnostics must not bypass the Sunshine-Duration-Contract.');
-assert.ok(cockpit.includes('Zustandskern 1 h bis +14 h')&&cockpit.includes('Niederschlag 5 min bis +6 h'),'Visible model text must report the parameter-native RUC cadence.');
+assert.ok(cockpit.includes('Zustandskern inkl. Wolken 1 h bis +14 h')&&cockpit.includes('Niederschlag 5 min bis +6 h')&&cockpit.includes('Sicht/Ceiling/Nullgrad-/Schneefallgrenze 15 min bis +6 h'),'Visible model text must report the parameter-native RUC cadence.');
 console.log('RUC parameter audit contract passed: native rapid products, specialist hourly diagnostics, deferred ambiguous vertical shear layers, and Sunshine contract protection.');
