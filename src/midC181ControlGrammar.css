@@ -1,0 +1,310 @@
+/* MID 18.1 · Control Grammar
+   Harmonises controls, timelines and normal source/status presentation across
+   the six primary workspaces. Fachliche Zeitskalen und Datenlogik bleiben unverändert. */
+
+html[data-mid-design='next']{
+ --mid181-control-height:36px;
+ --mid181-control-radius:10px;
+ --mid181-control-gap:6px;
+ --mid181-control-line:color-mix(in srgb,var(--mid-surface-line) 84%,transparent);
+ --mid181-control-fill:color-mix(in srgb,var(--mid-surface-raised) 52%,var(--mid-surface-base));
+ --mid181-control-active:color-mix(in srgb,var(--accent) 8%,var(--mid-surface-base));
+}
+
+/* Gemeinsame kompakte Bedienelemente. */
+html[data-mid-design='next'] :is(
+ .modern-forecast-horizons,
+ .mid-layer-chips,
+ .composite-presets,
+ .module-inline-segmented,
+ .detail-resolution-switch,
+ .ensemble-tabs,
+ .ensemble-metric-switch
+){
+ gap:var(--mid181-control-gap)!important;
+}
+
+html[data-mid-design='next'] :is(
+ .modern-forecast-horizons>button,
+ .mid-layer-chips>button,
+ .composite-presets>button,
+ .module-inline-segmented>button,
+ .detail-resolution-switch>button,
+ .ensemble-tabs>button,
+ .ensemble-metric-switch>button
+){
+ min-height:var(--mid181-control-height)!important;
+ padding:6px 10px!important;
+ border:1px solid var(--mid181-control-line)!important;
+ border-radius:var(--mid181-control-radius)!important;
+ background:var(--mid181-control-fill)!important;
+ color:var(--muted)!important;
+ box-shadow:none!important;
+ font-size:10.5px!important;
+ line-height:1.15!important;
+ font-weight:800!important;
+ letter-spacing:0!important;
+}
+
+html[data-mid-design='next'] :is(
+ .modern-forecast-horizons>button,
+ .mid-layer-chips>button,
+ .composite-presets>button,
+ .module-inline-segmented>button,
+ .detail-resolution-switch>button,
+ .ensemble-tabs>button,
+ .ensemble-metric-switch>button
+):is(.active,[aria-pressed='true']){
+ border-color:color-mix(in srgb,var(--accent) 44%,var(--mid181-control-line))!important;
+ background:var(--mid181-control-active)!important;
+ color:var(--text)!important;
+ box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 72%,var(--mid-surface-line))!important;
+}
+
+html[data-mid-design='next'] :is(
+ .modern-forecast-horizons>button,
+ .mid-layer-chips>button,
+ .composite-presets>button,
+ .module-inline-segmented>button,
+ .detail-resolution-switch>button,
+ .ensemble-tabs>button,
+ .ensemble-metric-switch>button
+):disabled{
+ opacity:.46!important;
+}
+
+/* Timelines: gleiche visuelle Grammatik, unterschiedliche fachliche Achsen bleiben bestehen. */
+html[data-mid-design='next'] .mid-timeline{
+ display:grid!important;
+ grid-template-columns:auto minmax(0,1fr)!important;
+ gap:10px!important;
+ align-items:center!important;
+ padding:8px 10px!important;
+ border:1px solid var(--mid181-control-line)!important;
+ border-radius:12px!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 34%,var(--mid-surface-base))!important;
+ box-shadow:none!important;
+}
+
+html[data-mid-design='next'] .mid-timeline-actions{
+ gap:4px!important;
+}
+
+html[data-mid-design='next'] .mid-timeline-actions button{
+ width:34px!important;
+ height:34px!important;
+ min-width:34px!important;
+ min-height:34px!important;
+ padding:0!important;
+ border:1px solid var(--mid181-control-line)!important;
+ border-radius:9px!important;
+ background:var(--mid181-control-fill)!important;
+ color:var(--text)!important;
+ box-shadow:none!important;
+}
+
+html[data-mid-design='next'] .mid-timeline-scrubber{
+ gap:4px 10px!important;
+}
+
+html[data-mid-design='next'] .mid-timeline-scrubber>span{
+ font-size:9.5px!important;
+ line-height:1.25!important;
+ color:var(--muted)!important;
+ font-weight:750!important;
+ letter-spacing:.015em!important;
+ text-transform:none!important;
+}
+
+html[data-mid-design='next'] .mid-timeline-scrubber>b{
+ min-width:78px!important;
+ font-size:11.5px!important;
+ line-height:1.12!important;
+ font-weight:850!important;
+}
+
+html[data-mid-design='next'] .mid-timeline-scrubber small{
+ margin-top:2px!important;
+ font-size:9px!important;
+ line-height:1.2!important;
+ color:var(--muted)!important;
+ white-space:normal!important;
+}
+
+/* Map/Radar: Schnellwahl und erweiterte Ebene wie eine Werkzeugleiste, nicht wie Kartenstapel. */
+html[data-mid-design='next'] .composite-presets{
+ min-height:44px!important;
+ padding:5px 8px!important;
+ border-block:1px solid var(--mid181-control-line)!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 28%,transparent)!important;
+}
+
+html[data-mid-design='next'] .composite-presets>span{
+ align-self:center!important;
+ margin-right:2px!important;
+ font-size:9.5px!important;
+ letter-spacing:.035em!important;
+ text-transform:none!important;
+}
+
+html[data-mid-design='next'] .composite-advanced>summary{
+ min-height:38px!important;
+ padding:6px 9px!important;
+ color:var(--muted)!important;
+ font-size:10px!important;
+ line-height:1.25!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 22%,transparent)!important;
+}
+
+/* Meteogramm/Wasser: Formfelder folgen derselben ruhigen Höhe. */
+html[data-mid-design='next'] :is(
+ .meteogram-controls select,
+ .water-inline-options select,
+ .composite-advanced select
+){
+ min-height:var(--mid181-control-height)!important;
+ padding:6px 28px 6px 9px!important;
+ border:1px solid var(--mid181-control-line)!important;
+ border-radius:var(--mid181-control-radius)!important;
+ background:var(--mid181-control-fill)!important;
+ color:var(--text)!important;
+ box-shadow:none!important;
+}
+
+html[data-mid-design='next'] :is(
+ .meteogram-controls label>span,
+ .water-inline-options label>span,
+ .composite-advanced label>span
+){
+ color:var(--muted)!important;
+ font-size:9.5px!important;
+ line-height:1.25!important;
+ font-weight:750!important;
+ letter-spacing:.015em!important;
+ text-transform:none!important;
+}
+
+/* Quellen-/Aktualitätsstatus: normal ruhig, Einschränkung bleibt deutlich. */
+html[data-mid-design='next'] .mid-data-status{
+ gap:6px!important;
+}
+
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending){
+ opacity:.78!important;
+}
+
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending)>i{
+ width:6px!important;
+ height:6px!important;
+ flex-basis:6px!important;
+ box-shadow:none!important;
+}
+
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending) small{
+ font-size:9px!important;
+ letter-spacing:.025em!important;
+ text-transform:none!important;
+}
+
+html[data-mid-design='next'] .mid-data-status:not(.limited):not(.pending) b{
+ font-size:9.5px!important;
+ line-height:1.25!important;
+ font-weight:750!important;
+}
+
+html[data-mid-design='next'] :is(.mid-data-status.limited,.mid-data-status.pending){
+ opacity:1!important;
+}
+
+html[data-mid-design='next'] :is(.mid-data-status.limited,.mid-data-status.pending) small{
+ font-size:9px!important;
+}
+
+html[data-mid-design='next'] :is(.mid-data-status.limited,.mid-data-status.pending) b{
+ font-size:10px!important;
+ font-weight:850!important;
+}
+
+/* Warnungen: Zeitbahn bewusst sekundär, aber Controls konsistent. */
+html[data-mid-design='next'] .warning-event-tab-head{
+ min-height:44px!important;
+ padding:8px 11px!important;
+}
+
+html[data-mid-design='next'] .warning-event-count{
+ min-width:26px!important;
+ height:26px!important;
+ border:1px solid var(--mid181-control-line)!important;
+ background:var(--mid181-control-fill)!important;
+ box-shadow:none!important;
+}
+
+/* Mobile: horizontale Kontrollleisten bleiben vollständig bedienbar, ohne Schrift zu schrumpfen. */
+@media(max-width:850px){
+ html[data-mid-design='next'] :is(
+  .modern-forecast-horizons,
+  .mid-layer-chips,
+  .composite-presets,
+  .ensemble-tabs,
+  .ensemble-metric-switch
+ ){
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  flex-wrap:nowrap!important;
+  scroll-snap-type:x proximity;
+  overscroll-behavior-inline:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none!important;
+ }
+ html[data-mid-design='next'] :is(
+  .modern-forecast-horizons,
+  .mid-layer-chips,
+  .composite-presets,
+  .ensemble-tabs,
+  .ensemble-metric-switch
+ )::-webkit-scrollbar{
+  display:none!important;
+ }
+ html[data-mid-design='next'] :is(
+  .modern-forecast-horizons>button,
+  .mid-layer-chips>button,
+  .composite-presets>button,
+  .ensemble-tabs>button,
+  .ensemble-metric-switch>button
+ ){
+  flex:0 0 auto!important;
+  scroll-snap-align:start;
+ }
+ html[data-mid-design='next'] .mid-timeline{
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+  padding:8px 9px!important;
+ }
+ html[data-mid-design='next'] .mid-timeline-actions{
+  order:2;
+ }
+ html[data-mid-design='next'] .mid-timeline-scrubber{
+  order:1;
+ }
+ html[data-mid-design='next'] .mid-timeline-scrubber>b{
+  min-width:0!important;
+ }
+}
+
+/* Sehr schmale Phones: Controls umbrechen nicht in Mikrotypografie. */
+@media(max-width:390px){
+ html[data-mid-design='next']{
+  --mid181-control-height:35px;
+ }
+ html[data-mid-design='next'] :is(
+  .modern-forecast-horizons>button,
+  .mid-layer-chips>button,
+  .composite-presets>button,
+  .module-inline-segmented>button,
+  .detail-resolution-switch>button
+ ){
+  padding-inline:8px!important;
+  font-size:10px!important;
+ }
+}
