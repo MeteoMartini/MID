@@ -22,6 +22,10 @@ assert.ok(app.includes("allDayHours.slice(0,24)")&&app.includes('detailSkyBarHou
 assert.ok(app.includes('24 Stundenquadrate')&&app.includes('Eine gleich große Zelle je Einzelstunde'),'Persistente Einstellungsoption für die Stundenquadrate fehlt.');
 assert.ok(app.includes('data-skybar-display={skybarDisplayMode}')&&app.includes('data-mid-skybar="squares"'),'Forecast muss den gewählten Darstellungsmodus sichtbar rendern.');
 assert.ok(polish.includes("[data-skybar-display='squares'] .mid-skybar-note")&&polish.includes('.settings-skybar-preview.squares'),'Quadratmodus braucht passende Legenden-/Einstellungspolitur.');
+assert.ok(cockpit.includes('shortTermNinetyMinutePoints(adjusted,profileNow)')&&cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)'),'90-Minuten-Kurzfrist muss dieselbe Wetterzustandslogik in sechs 15-Minuten-Zellen verwenden.');
+assert.ok(cockpit.includes('data-skybar-display={skybarDisplayMode}')&&cockpit.includes('profileSkyBarHourCells=detailSkyBarHourCells')&&cockpit.includes('daySkyBarHourCells=detailSkyBarHourCells')&&cockpit.includes('skyBarHourCells=detailSkyBarHourCells(skyBarHours)'),'Quadratmodus muss Profil, Tageskarten und 7-Tage-Wetterstreifen aus derselben Skybar-Logik ableiten.');
+assert.ok(app.includes('currentThreadSkyCells=detailSkyBarHourCells(currentThreadSkyHours)')&&app.includes('Stündliche Wetterquadrate der nächsten zwölf Stunden'),'Aktuell muss die gewählte Stundenanzeige auch im 12-h-Trend verwenden.');
+assert.ok(app.includes('skybarDisplayMode={forecastDisplaySettings.skybarDisplayMode}'),'Globale Einstellung muss an das Prognose-Cockpit weitergereicht werden.');
 assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Nowcast-/Skybar-Polish fehlt im Produktionsentry.');
 
 for(const token of ['data-mid-skybar="react"','data-mid-skybar="profile"','data-mid-skybar="seven-day"','data-mid-skybar="day-card"'])assert.ok((app+cockpit).includes(token),`Appweite Skybar-Einbindung fehlt: ${token}`);
