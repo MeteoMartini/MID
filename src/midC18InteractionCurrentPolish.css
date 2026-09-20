@@ -113,3 +113,204 @@ html[data-mid-design='next'] .hero.current-compact .mid-weather-thread-temperatu
   transition:none!important;
  }
 }
+
+
+/* MID v0.9.85.65 · Current metrics visual cleanup
+   Explicit row contracts override the older special-card grid rows that could place
+   value and label in the same row on ~390–430 px phone widths. */
+@media(max-width:620px){
+ html[data-mid-design='next'] #current-weather-metrics>article{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-flow:row!important;
+  grid-auto-rows:auto!important;
+  align-items:start!important;
+  align-content:start!important;
+  row-gap:8px!important;
+  min-height:0!important;
+  padding:11px 12px 12px!important;
+  overflow:visible!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header{
+  grid-column:1!important;
+  grid-row:1!important;
+  display:flex!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:28px!important;
+  margin:0!important;
+  padding:0!important;
+  gap:6px!important;
+  overflow:visible!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>.current-metric-icon{
+  flex:0 0 24px!important;
+  width:24px!important;
+  min-width:24px!important;
+  height:24px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>small{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  margin:0!important;
+  font-size:11px!important;
+  line-height:1.18!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>.mode-info,
+ html[data-mid-design='next'] #current-weather-metrics>article>header>.info-hint-trigger{
+  flex:0 0 auto!important;
+  margin-left:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>header>i{
+  flex:0 0 8px!important;
+  margin-left:1px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>strong,
+ html[data-mid-design='next'] #current-weather-metrics>article>strong.air-quality-primary{
+  grid-column:1!important;
+  grid-row:2!important;
+  justify-self:start!important;
+  align-self:start!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  position:static!important;
+  transform:none!important;
+  font-size:clamp(20px,5.7vw,25px)!important;
+  line-height:1.05!important;
+  letter-spacing:-.012em!important;
+  text-align:left!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article>.current-metric-summary{
+  grid-column:1!important;
+  grid-row:3!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+  overflow:visible!important;
+  display:block!important;
+  -webkit-line-clamp:unset!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.uvi-card,
+ html[data-mid-design='next'] #current-weather-metrics>.air-quality-card{
+  grid-template-rows:auto auto auto auto!important;
+  row-gap:8px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.uvi-card>header,
+ html[data-mid-design='next'] #current-weather-metrics>.air-quality-card>header{
+  grid-column:1!important;
+  grid-row:1!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.uvi-card>strong,
+ html[data-mid-design='next'] #current-weather-metrics>.air-quality-card>strong,
+ html[data-mid-design='next'] #current-weather-metrics>.air-quality-card>strong.air-quality-primary{
+  grid-column:1!important;
+  grid-row:2!important;
+  justify-self:start!important;
+  align-self:start!important;
+  text-align:left!important;
+  white-space:normal!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.uvi-card>.uvi-indicator,
+ html[data-mid-design='next'] #current-weather-metrics>.air-quality-card>.aqi-indicator{
+  grid-column:1!important;
+  grid-row:3!important;
+  width:100%!important;
+  margin:1px 0 0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.uvi-card>.current-metric-summary,
+ html[data-mid-design='next'] #current-weather-metrics>.air-quality-card>.current-metric-summary{
+  grid-column:1!important;
+  grid-row:4!important;
+  margin:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sunshine-card{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+  row-gap:8px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sunshine-card>header{
+  grid-column:1!important;
+  grid-row:1!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sunshine-card>strong{
+  grid-column:1!important;
+  grid-row:2!important;
+  justify-self:start!important;
+  margin:0!important;
+  white-space:normal!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sunshine-card>.current-metric-summary{
+  grid-column:1!important;
+  grid-row:3!important;
+  margin:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+  row-gap:9px!important;
+  min-height:0!important;
+  padding-block:11px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card>header{
+  grid-column:1!important;
+  grid-row:1!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card>strong{
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%!important;
+  margin:0!important;
+  font-size:16px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .sun-moon-card-value{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr)!important;
+  align-items:end!important;
+  justify-content:stretch!important;
+  width:100%!important;
+  gap:9px!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .sun-moon-time-block small{
+  font-size:9px!important;
+  line-height:1.1!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .sun-moon-time-block b{
+  font-size:20px!important;
+  line-height:1!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card>.current-metric-summary{
+  grid-column:1!important;
+  grid-row:3!important;
+  margin:0!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics .sun-moon-phase{
+  font-size:10px!important;
+  line-height:1.2!important;
+ }
+}
+@media(min-width:391px) and (max-width:620px){
+ html[data-mid-design='next'] #current-weather-metrics{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:390px){
+ html[data-mid-design='next'] #current-weather-metrics{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] #current-weather-metrics>article{
+  grid-column:1!important;
+ }
+}
