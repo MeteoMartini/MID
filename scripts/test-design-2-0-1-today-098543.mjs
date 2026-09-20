@@ -15,9 +15,11 @@ for(const token of [
  'const chartStartEpoch=profileNow,chartEndEpoch=profileNow+PROFILE_WINDOW_MS',
  "const profileSkyBarPoints=profileStateSource.filter(point=>point.epoch>=chartStartEpoch&&point.epoch<chartEndEpoch)",
  'profileSkyBarXPositions=profileSkyBarPoints.map(point=>profileXForEpoch(point.epoch))',
- 'const profileSkyBarSegments=detailSkyBarSegments(profileSkyBarPoints,chartDataLeft,chartWidth-(chartDataLeft+chartDataWidth),chartWidth,profileSkyBarY,profileSkyBarXPositions);',
- '3 h verdichtet ausschließlich Kurven, Marker und Beschriftungen. Die Skybar bleibt in beiden Ansichten unverändert stündlich aufgelöst.',
+ 'const profileSkyBarSegments=detailSkyBarSegments(profileSkyBarPoints,chartDataLeft,chartWidth-(chartDataLeft+chartDataWidth),chartWidth,profileSkyBarY,profileSkyBarXPositions)',
+ '3 h verdichtet ausschließlich Kurven, Marker und Beschriftungen.',
+ "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben in beiden Ansichten unverändert stündlich aufgelöst.':'Die Skybar bleibt in beiden Ansichten unverändert stündlich aufgelöst.'",
  'data-mid-skybar="profile"',
+ "skybarDisplayMode==='squares'?<SkyBarHourCellsSvg cells={profileSkyBarHourCells}",
  '<SkyBarSegmentsSvg segments={profileSkyBarSegments} keyPrefix="profile"/>'
 ])assert.ok(cockpit.includes(token),`Design-2.0.1-24h-Vertrag fehlt: ${token}`);
 
