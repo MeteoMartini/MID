@@ -1,3 +1,13 @@
+# MID v0.9.85.64
+
+- Die mobile Bottom-Bar startet ohne ausdrücklich gewählten Auto-Modus fixiert sichtbar. Im Auto-Modus blendet sie erst nach einer längeren Abwärtsbewegung aus und reagiert bereits auf einen kurzen Aufwärtsscroll wieder sichtbar.
+- Taps auf die fünf Hauptziele wechseln den Arbeitsbereich unmittelbar statt mit verzögertem Smooth-Scroll.
+- „Weitere aktuelle Werte“ ordnet auf Smartphonebreiten Beschriftung/Info-Schalter und Messwert in getrennten Zeilen an. Lange Werte wie Wind/Böen oder Luftdruck können dadurch keine Beschriftungen mehr überdecken.
+- Der 12-h-Temperaturtrend besitzt eine besser erkennbare ECMWF-farbige Linie, ein dezentes farbiges Flächenband und ein klareres Hilfsraster – ohne zeitliche Glättung oder Resampling.
+- Tmin und Tmax im Aktuell-Kopf verwenden jetzt jeweils die wertbasierte ECMWF-Temperaturfarbe des tatsächlichen Werts.
+- Der ICON-D2-RUC-Kurzfristaudit bestätigt: CLCT/CLCL sowie verfügbare CLCM/CLCH/VIS/CEILING laufen bereits über die kanonische Forecast-Fusion in die Kurzfrist. Eine zweite RUC-Bewölkungsmischung wird deshalb bewusst vermieden; nativer 15-min-CEILING bleibt als gezielter +0…6-h-Ausbaukandidat dokumentiert.
+- Wetterdaten-, Warnungs-, Niederschlags-, Skybar-, Nowcast- und 90-Minuten-Fachverträge bleiben unverändert.
+
 # MID v0.9.85.63
 
 - Warnungen, Extremwetter-Ausblick und Lüftungsassistent bleiben beim Öffnen im primären Bottom-Bar-Kontext „Aktuell“; „Mehr“ wird nicht mehr irreführend als aktives Hauptziel markiert.
