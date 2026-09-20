@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,favoriteLogoSquares,currentMoreTrend,main,midDesign,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/midC18CurrentMoreTrendPolish.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,favoriteLogoSquares,currentMoreTrend,footerRhythm,unifiedThread,main,midDesign,temperatureTone,contract,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/midC18CurrentMoreTrendPolish.css'),read('src/midC18FooterRhythmAudit.css'),read('src/midC18UnifiedThreadTimeline.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('src/temperatureTone.ts'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-four-thickness-appwide-09799.mjs';
 
@@ -31,6 +31,14 @@ assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Nowcast-/S
 assert.ok(main.includes("import './midC18AxisLayoutFix.css';"),'Zeitachsen-/7-Tage-Fix muss zuletzt im Produktionsentry geladen werden.');
 assert.ok(main.includes("import './midC18FavoriteLogoSkySquaresFix.css';"),'Favoriten-/Logo-/Wetterquadrat-Polish muss im Produktionsentry geladen werden.');
 assert.ok(main.includes("import './midC18CurrentMoreTrendPolish.css';"),'Aktuell-Trend-/Mehrbereich-Polish muss im Produktionsentry geladen werden.');
+assert.ok(main.includes("import './midC18FooterRhythmAudit.css';"),'Footer-Rhythmus-Audit muss im Produktionsentry geladen werden.');
+assert.ok(main.includes("import './midC18UnifiedThreadTimeline.css';"),'Gemeinsame Temperatur-/Skybar-Zeitachse muss im Produktionsentry geladen werden.');
+assert.ok(app.includes('currentThreadPlotInset=2/120*100')&&app.includes('position:currentThreadPlotInset+(index/Math.max(1,currentThreadHorizon))*currentThreadPlotWidth'),'Temperaturgraph, Zeitachse und Skybar müssen dieselben Plotränder und Zeitpositionen verwenden.');
+assert.ok(app.includes('horizontalInset={currentThreadPlotInset}')&&app.includes('temperatureColorMode="ecmwf"')&&app.includes('markers="none"'),'Aktuell-Temperaturfaden muss auf gemeinsamer Zeitbasis ECMWF-farbig und ohne verzerrte Endpunkt-Linsen rendern.');
+assert.ok(midDesign.includes("temperatureColorMode='solid'")&&midDesign.includes("ecmwfTemperatureColor((current+next)/2)")&&midDesign.includes("markers?:'none'|'start'|'both'"),'MidWeatherThread muss die kanonische ECMWF-Temperaturfarbe segmentweise und explizite Markersteuerung unterstützen.');
+assert.ok(temperatureTone.includes('export function ecmwfTemperatureColor(value:number)'),'ECMWF-Farben müssen aus der bestehenden kanonischen Temperaturpalette kommen.');
+assert.ok(unifiedThread.includes('.mid-weather-thread-temperature-ecmwf line')&&unifiedThread.includes('position:absolute!important')&&unifiedThread.includes('transform:translateX(-50%)!important'),'Gemeinsame Achse und ECMWF-Temperaturfaden brauchen die responsive Darstellungsregeln.');
+assert.ok(footerRhythm.includes('--mid18-footer-nav-clearance')&&footerRhythm.includes('margin-bottom:var(--mid18-footer-nav-clearance)!important'),'Bottom-Bar-Clearance muss weiterhin genau einmal am Footer reserviert werden.');
 assert.ok(app.includes('verticalGridDivisions={Math.max(1,currentThreadHorizon)}'),'12-h-Temperaturtrend muss je Stunde eine vertikale Hilfslinie erhalten.');
 assert.ok(app.includes('index%3===0||index===currentThreadSeries.length-1'),'12-h-Zeitachse muss mindestens alle drei Stunden beschriftet sein.');
 assert.ok(app.includes('currentThreadDeltaRounded=Number.isFinite(currentThreadDelta)?Math.round(currentThreadDelta)'),'Temperaturtrend darf in der sichtbaren Trendangabe nur ganzzahlig erscheinen.');
