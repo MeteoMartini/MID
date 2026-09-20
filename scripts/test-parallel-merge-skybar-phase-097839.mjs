@@ -30,7 +30,7 @@ assert.ok(ensembleFragment.includes('loadEnsembleUnits(selected,6')&&ensembleFra
 assert.ok(app.includes('scheduleRetry(2_000)'),'Schnelle 2-s-Vollfusion nach Bootstrap fehlt.');
 assert.ok(cockpit.includes('RELATIVE_SUN_RAYS.map')&&cockpit.includes('className="sun-base sun-ray"'),'Vollständige unverzerrte Sonnendarstellung aus v37 fehlt.');
 assert.ok(skybar.includes('SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0]'),'Vier appweit klar unterscheidbare Skybar-Dicken fehlen.');
-assert.ok(cockpit.includes('calendarDayHours=probabilityHours')&&cockpit.includes('cockpitDaySkyBarSegments(calendarDayHours.length?calendarDayHours:dayHours)'),'24-h-Tageskarten-Skybar fehlt.');
+assert.ok(cockpit.includes('calendarDayHours=probabilityHours')&&cockpit.includes('daySkyBarSource=calendarDayHours.length?calendarDayHours:dayHours')&&cockpit.includes('daySkyBarSegments=cockpitDaySkyBarSegments(daySkyBarSource)')&&cockpit.includes('daySkyBarHourCells=detailSkyBarHourCells(daySkyBarSource.slice(0,24))'),'24-h-Tageskarten-Skybar bzw. Stundenquadrate fehlen.');
 
 // Phase-aware precipitation colours are now a single shared contract.
 for(const token of ["liquid:'var(--param-precipitation)'","snow:'var(--param-precipitation-snow)'","mixed:'var(--param-precipitation-mixed)'","storm:'var(--param-precipitation-storm)'"])assert.ok(phase.includes(token),`Phasenfarbe fehlt: ${token}`);
