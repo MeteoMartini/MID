@@ -1,0 +1,273 @@
+/* MID v0.9.85.67 · Secondary workspace finish
+   Replit-validated finish for Meteogramm, Warnungen, Wasser/Tide und Mehr.
+   Fachlogik, Warnpriorisierung und Datenauflösung bleiben unverändert. */
+
+/* Meteogramm: Instrumente dominieren, Metadaten bleiben nachgeordnet.
+   Dichte Diagramme dürfen ausschließlich innerhalb ihrer eigenen Fläche scrollen. */
+html[data-mid-design='next'] .meteogram-card.open{
+ max-width:100%!important;
+ min-width:0!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .meteogram-content,
+html[data-mid-design='next'] .meteogram-block,
+html[data-mid-design='next'] .meteogram-chart-wrap{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .meteogram-controls{
+ display:flex!important;
+ flex-wrap:wrap!important;
+ align-items:end!important;
+ gap:8px!important;
+}
+html[data-mid-design='next'] .meteogram-controls>*{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .meteogram-scroll{
+ width:100%!important;
+ max-width:100%!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ overscroll-behavior-x:contain!important;
+ -webkit-overflow-scrolling:touch;
+ touch-action:pan-x pan-y;
+ scrollbar-gutter:stable both-edges;
+}
+html[data-mid-design='next'] .meteogram-source-disclosure :is(p,small,span){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+
+/* Warnungen: amtlicher Status zuerst, Ereignisspur und ergänzende Hinweise danach.
+   Lange Texte und Herkunftsangaben dürfen nie in Ellipsen verschwinden. */
+html[data-mid-design='next'] .warnings-responsive-shell{
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .warnings-hybrid-head{
+ display:grid!important;
+ grid-template-columns:auto minmax(0,1fr) auto!important;
+ align-items:center!important;
+ gap:10px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .warnings-hybrid-head>div{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .warnings-hybrid-head :is(strong,span,small),
+html[data-mid-design='next'] .warning-event-main :is(strong,small),
+html[data-mid-design='next'] :is(.official-message,.hazard-context,.warning-event-origin){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .warning-event-tab,
+html[data-mid-design='next'] .official-warnings,
+html[data-mid-design='next'] .hazards-responsive-card{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .warning-event-track{
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ overflow-x:auto!important;
+ overscroll-behavior-x:contain!important;
+ -webkit-overflow-scrolling:touch;
+}
+html[data-mid-design='next'] .warnings-extreme-entry{
+ min-height:40px!important;
+}
+
+/* Wasser/Tide: Bewertung, Pegel/Tide und Wetter-/Wellen-/Strömungswerte
+   bilden eine zusammenhängende Instrumentfläche ohne äußeren Seitenoverflow. */
+html[data-mid-design='next'] .water-overview{
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] :is(
+ .water-assessment,
+ .water-metric-group,
+ .water-metric-group>div,
+ .water-tides,
+ .water-tide-card,
+ .water-current-level,
+ .water-source
+){
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .water-metric-group>div{
+ grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;
+}
+html[data-mid-design='next'] .water-metric-card{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .water-metric-copy :is(strong,small),
+html[data-mid-design='next'] .water-metric-detail,
+html[data-mid-design='next'] .water-source{
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .water-matrix-scroll{
+ width:100%!important;
+ max-width:100%!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ overscroll-behavior-x:contain!important;
+ -webkit-overflow-scrolling:touch;
+ touch-action:pan-x pan-y;
+ scrollbar-gutter:stable both-edges;
+}
+html[data-mid-design='next'] .water-tide-sparkline{
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .water-tides{
+ display:grid!important;
+ gap:10px!important;
+}
+
+/* Mehr: ruhige progressive Themenstruktur statt heterogener Kartenfolge. */
+html[data-mid-design='next'] .modern-more-drawer{
+ width:min(460px,calc(100dvw - max(16px,env(safe-area-inset-left)) - max(16px,env(safe-area-inset-right))))!important;
+ max-width:calc(100dvw - 16px)!important;
+ max-height:calc(100dvh - var(--mid-safe-top) - var(--mid-safe-bottom) - 16px)!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ overscroll-behavior:contain!important;
+ padding-bottom:max(12px,var(--mid-safe-bottom))!important;
+}
+html[data-mid-design='next'] .modern-more-drawer>header{
+ position:sticky!important;
+ top:0!important;
+ z-index:3!important;
+}
+html[data-mid-design='next'] .modern-more-quick-actions{
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:1px!important;
+ background:var(--mid-surface-line)!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:14px!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .modern-more-quick-actions>button{
+ min-width:0!important;
+ min-height:64px!important;
+ padding:10px!important;
+ border:0!important;
+ background:var(--mid-surface-base)!important;
+}
+html[data-mid-design='next'] .modern-more-quick-actions>button>span{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .modern-more-quick-actions :is(strong,small){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive{
+ display:grid!important;
+ gap:8px!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details{
+ overflow:hidden!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:12px!important;
+ background:var(--mid-surface-base)!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details>summary{
+ min-height:44px!important;
+ padding:9px 11px!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details>section{
+ display:grid!important;
+ gap:0!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details>section>button{
+ min-width:0!important;
+ min-height:50px!important;
+ border-radius:0!important;
+ border-bottom:1px solid var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details>section>button:last-child{
+ border-bottom:0!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details>section>button span{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .dashboard-section-nav-list.progressive details>section>button :is(b,em){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+
+@media(max-width:850px){
+ html[data-mid-design='next'] .meteogram-card.open,
+ html[data-mid-design='next'] .warnings-responsive-shell,
+ html[data-mid-design='next'] .water-overview{
+  scroll-margin-bottom:calc(86px + var(--mid-safe-bottom))!important;
+ }
+ html[data-mid-design='next'] .warnings-hybrid-head{
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:start!important;
+ }
+ html[data-mid-design='next'] .warnings-extreme-entry{
+  grid-column:1/-1!important;
+  justify-self:start!important;
+ }
+ html[data-mid-design='next'] .water-panel-toolbar{
+  align-items:stretch!important;
+ }
+ html[data-mid-design='next'] .water-inline-options{
+  width:100%!important;
+  max-width:100%!important;
+ }
+}
+
+@media(max-width:430px){
+ html[data-mid-design='next'] .modern-more-quick-actions{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] .modern-more-quick-actions>button{
+  min-height:58px!important;
+ }
+ html[data-mid-design='next'] .water-metric-group>div{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] .water-metric-card{
+  min-height:76px!important;
+ }
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .meteogram-controls{
+  align-items:stretch!important;
+ }
+ html[data-mid-design='next'] .meteogram-controls>*{
+  flex:1 1 100%!important;
+  max-width:100%!important;
+ }
+ html[data-mid-design='next'] .modern-more-drawer{
+  width:calc(100dvw - 12px)!important;
+  max-width:calc(100dvw - 12px)!important;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] :is(.meteogram-scroll,.warning-event-track,.water-matrix-scroll){
+  scroll-behavior:auto!important;
+ }
+}
