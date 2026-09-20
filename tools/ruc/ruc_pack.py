@@ -68,11 +68,14 @@ SOLAR_15M_FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec('aswdifd_s', 'W/m2', 0.1),
 )
 
-SPECIALIST_HOURLY_FIELDS: tuple[FieldSpec, ...] = (
+SPECIALIST_15M_FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec('visibility', 'm', 10.0),
     FieldSpec('ceiling', 'm', 1.0),
     FieldSpec('freezing_level_height', 'm', 1.0),
     FieldSpec('snowline_height', 'm', 1.0),
+)
+
+SPECIALIST_HOURLY_FIELDS: tuple[FieldSpec, ...] = (
     FieldSpec('cloud_cover_mid', '%', 0.1),
     FieldSpec('cloud_cover_high', '%', 0.1),
     FieldSpec('surface_temperature', '°C', 0.01),
