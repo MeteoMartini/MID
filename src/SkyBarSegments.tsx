@@ -28,7 +28,7 @@ type HourCellsProps={
 const cellOpacity=(level:1|2|3|4,base:number)=>Math.min(1,Math.max(.5,base*(.48+level*.13)));
 const SUN_CELL_SHADES=['#fff0a6','#ffe169','#ffd13b','#ffc229'] as const;
 const CLOUD_CELL_SHADES=['#e7eaed','#cfd4d8','#aeb3b9','#7f878f'] as const;
-const baseCellFill=(visual:SkyBarHourVisual)=>visual.color.toLowerCase()==='#ffc229'?SUN_CELL_SHADES[visual.thicknessLevel-1]:visual.color.toLowerCase()==='#aeb3b9'?CLOUD_CELL_SHADES[visual.thicknessLevel-1]:visual.color;
+const baseCellFill=(visual:NonNullable<SkyBarHourCell['base']>)=>visual.color.toLowerCase()==='#ffc229'?SUN_CELL_SHADES[visual.thicknessLevel-1]:visual.color.toLowerCase()==='#aeb3b9'?CLOUD_CELL_SHADES[visual.thicknessLevel-1]:visual.color;
 
 export function SkyBarHourCellsSvg({cells,left,right,chartW,centerY,selectedIndex=-1,keyPrefix='sky-cell'}:HourCellsProps){
  if(!cells.length||chartW<=0)return null;
