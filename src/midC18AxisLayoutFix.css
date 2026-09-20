@@ -1,0 +1,292 @@
+/* MID v0.9.85.58 · Zeitachsen, synchronisierte Kurzfrist und lesbare 7-Tage-Karten */
+
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+  place-items:stretch!important;
+  align-content:center!important;
+  grid-template-rows:auto minmax(58px,72px) auto 14px!important;
+  gap:3px!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{
+  width:100%!important;
+  height:64px!important;
+}
+html[data-mid-design='next'] .mid-weather-thread-grid line{
+  stroke:color-mix(in srgb,var(--text) 12%,transparent)!important;
+  stroke-width:.55!important;
+  vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .mid-weather-thread-guide{
+  stroke:color-mix(in srgb,var(--param-temp,var(--accent)) 36%,transparent)!important;
+  stroke-dasharray:2.4 2.4!important;
+  stroke-width:.7!important;
+  vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  width:100%!important;
+  margin:0!important;
+  padding:5px 0 0!important;
+  border-top:1px solid color-mix(in srgb,var(--text) 11%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span{
+  position:relative!important;
+  display:flex!important;
+  align-items:baseline!important;
+  gap:4px!important;
+  min-width:0!important;
+  color:var(--muted)!important;
+  font-variant-numeric:tabular-nums!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span::before{
+  content:""!important;
+  position:absolute!important;
+  top:-6px!important;
+  width:1px!important;
+  height:5px!important;
+  background:color-mix(in srgb,var(--text) 18%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span:first-child{justify-content:flex-start!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span:first-child::before{left:0!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span:nth-child(2){justify-content:center!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span:nth-child(2)::before{left:50%!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span:last-child{justify-content:flex-end!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span:last-child::before{right:0!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis small{
+  color:var(--muted)!important;
+  font-size:8px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis b{
+  color:var(--text)!important;
+  font-size:9px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-sky{
+  width:100%!important;
+  height:14px!important;
+  min-height:14px!important;
+  margin:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-sky>svg{
+  width:100%!important;
+  height:12px!important;
+  max-height:12px!important;
+}
+
+/* 90 Minuten: Wetterstreifen, Achse und Zeitfelder teilen exakt denselben horizontalen Scroll-/Rasterraum. */
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-track{
+  width:100%!important;
+  min-width:0!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  padding:1px 0 4px!important;
+  overscroll-behavior-x:contain!important;
+  scroll-snap-type:x proximity!important;
+  scrollbar-width:thin!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-track-inner{
+  --now90-slot-width:112px;
+  width:100%!important;
+  min-width:max(100%,calc(var(--now90-count) * var(--now90-slot-width)))!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-sky{
+  width:100%!important;
+  height:14px!important;
+  min-height:14px!important;
+  margin:0 0 1px!important;
+  padding:0!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-sky>svg{
+  display:block!important;
+  width:100%!important;
+  height:12px!important;
+  max-height:12px!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-axis,
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-grid{
+  display:grid!important;
+  grid-template-columns:repeat(var(--now90-count),minmax(0,1fr))!important;
+  column-gap:0!important;
+  width:100%!important;
+  min-width:0!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-axis{
+  position:relative!important;
+  margin:0 0 5px!important;
+  border-top:1px solid color-mix(in srgb,var(--text) 12%,transparent)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-axis>span{
+  position:relative!important;
+  display:flex!important;
+  justify-content:center!important;
+  min-width:0!important;
+  padding-top:6px!important;
+  color:var(--muted)!important;
+  font-variant-numeric:tabular-nums!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-axis>span>i{
+  position:absolute!important;
+  top:-1px!important;
+  left:50%!important;
+  width:1px!important;
+  height:5px!important;
+  background:color-mix(in srgb,var(--text) 20%,transparent)!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-axis b{
+  font-size:8px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-grid{
+  gap:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  scroll-snap-type:none!important;
+}
+html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-slot{
+  width:auto!important;
+  min-width:0!important;
+  margin:0 2.5px!important;
+  scroll-snap-align:center!important;
+}
+
+/* 7 Tage: im Hochformat keine sieben Mini-Spalten. Jeder Tag erhält eine volle, lesbare Zeile. */
+@media (orientation:portrait) and (max-width:900px){
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-seven-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:8px!important;
+    width:100%!important;
+    min-width:0!important;
+    overflow-x:hidden!important;
+    padding:0 1px 3px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day{
+    display:grid!important;
+    grid-template-columns:minmax(68px,.8fr) 48px minmax(0,1.25fr) minmax(76px,.9fr)!important;
+    grid-template-areas:
+      "date icon regime temps"
+      "date icon skybar skybar"
+      "date icon track track"
+      "rain pop wind hourly"!important;
+    align-items:center!important;
+    align-content:center!important;
+    gap:5px 8px!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:92px!important;
+    padding:9px 10px!important;
+    overflow:hidden!important;
+    border-radius:16px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-date,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-weather-pair,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-regime,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temps,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-skybar,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temp-track,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-rain,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-pop,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-wind,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-hourly-cue{
+    min-width:0!important;
+    max-width:100%!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-date b{
+    font-size:11px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-date small{font-size:8px!important}
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-weather-pair{
+    grid-area:icon!important;
+    justify-content:flex-start!important;
+    overflow:visible!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-main-icon{
+    width:34px!important;
+    height:34px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-regime{
+    grid-area:regime!important;
+    justify-self:start!important;
+    padding:3px 6px!important;
+    font-size:9px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temps{
+    grid-area:temps!important;
+    justify-content:flex-end!important;
+    flex-wrap:nowrap!important;
+    gap:5px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temps b{font-size:14px!important}
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temps strong{font-size:19px!important}
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-skybar{
+    grid-area:skybar!important;
+    width:100%!important;
+    margin:0!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-skybar>svg{
+    width:100%!important;
+    height:13px!important;
+    max-height:13px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temp-track{
+    grid-area:track!important;
+    width:100%!important;
+    height:7px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-rain{
+    grid-area:rain!important;
+    justify-content:flex-start!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-rain b{
+    font-size:9.5px!important;
+    white-space:nowrap!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-pop{
+    grid-area:pop!important;
+    font-size:7.6px!important;
+    line-height:1.12!important;
+    white-space:normal!important;
+    overflow-wrap:normal!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-wind{
+    grid-area:wind!important;
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr)!important;
+    gap:2px 4px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-wind-sustained,
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-wind small{
+    font-size:8.4px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-hourly-cue{
+    grid-area:hourly!important;
+    display:flex!important;
+    justify-content:flex-end!important;
+    gap:3px!important;
+    padding:3px 2px!important;
+    font-size:7.7px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+}
+@media(max-width:430px) and (orientation:portrait){
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day{
+    grid-template-columns:minmax(64px,.78fr) 44px minmax(0,1.18fr) minmax(72px,.9fr)!important;
+    gap:4px 6px!important;
+    padding:8px!important;
+  }
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-regime{font-size:8.4px!important;padding:2px 5px!important}
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temps b{font-size:13px!important}
+  html[data-mid-design='next'] .forecast-cockpit .cockpit-day-temps strong{font-size:18px!important}
+}

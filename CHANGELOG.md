@@ -1,3 +1,10 @@
+# MID v0.9.85.58
+
+- Der 12-h-Temperaturtrend unter „Aktuell“ besitzt jetzt eine klar erkennbare Zeitachse mit einfachen Hilfslinien; der Wetterstreifen ist bewusst flacher und ordnet sich der Temperaturkurve unter.
+- In der 90-Minuten-Kurzfrist teilen Wetterstreifen, 15-Minuten-Zeitachse und die sechs Zeitschritt-Felder denselben horizontalen Raster- und Scrollraum. Damit bleiben Zeitpositionen auch auf schmalen Smartphones exakt synchron.
+- Die sieben Tagesfelder der 7-Tage-Prognose werden im Hochformat nicht mehr in sieben Mini-Spalten gequetscht, sondern als vollständige, lesbare Tageszeilen dargestellt.
+- Die bestehende stündliche Skybar-/Stundenquadrate-Logik sowie die exakt sechs vollständigen 15-Minuten-Intervalle der Kurzfrist bleiben fachlich unverändert.
+
 # MID v0.9.85.57
 
 - Die 90-Minuten-Kurzfrist beginnt jetzt am nächsten runden 15-Minuten-Zeitpunkt und umfasst exakt sechs vollständige 15-Minuten-Intervalle. Ein zusätzlicher Endpunkt dient nur der zeitlichen Orientierung und fließt nicht als siebtes Intervall in die 90-Minuten-Bilanz ein.
