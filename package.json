@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.64",
+  "version": "0.9.85.65",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -486,7 +486,8 @@
     "test:ios-floating-bottom-bar": "node scripts/test-ios-floating-bottom-bar-098489.mjs",
     "test:synoptic-startup-ceiling": "node scripts/test-synoptic-startup-ceiling-098496.mjs",
     "test:synoptic-phase-pictogram-cleanup": "node scripts/test-synoptic-phase-pictogram-cleanup-098499.mjs",
-    "test:mid-18-2-interaction-ruc": "node scripts/test-mid-18-2-interaction-ruc-098564.mjs"
+    "test:mid-18-2-interaction-ruc": "node scripts/test-mid-18-2-interaction-ruc-098564.mjs",
+    "test:mid-18-2-current-metrics-polish": "node scripts/test-mid-18-2-current-metrics-polish-098565.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
