@@ -21,8 +21,7 @@ Der offizielle DWD-Open-Data-Baum für ICON-D2-RUC führt aktuell unter anderem 
 
 1. **Keine Doppelgewichtung von RUC-Bewölkung.** Der bestehende kanonische Pfad bleibt maßgeblich.
 2. **Keine pauschale 15-/5-Minuten-Verdichtung aller Wolkenfelder.** Temperatur, Wind, Feuchte und Bewölkung bleiben im gemeinsamen Zustandskern stündlich; feinere Felder werden nur parameter-nativ geführt.
-3. **CEILING, VIS, HZEROCL und SNOWLMT werden ab MID v0.9.85.67 zusätzlich nativ 15-minütig für +0…6 h geführt.** Der stündliche Fallback bleibt erhalten. Nutzen: Sicht-/Nebelplausibilisierung, Ceiling sowie Nullgrad- und Schneefallgrenze in der 90-Minuten-Kurzfrist.
-4. **CLCT/CLCL/CLCM/CLCH bleiben stündlich.** Laut DWD werden diese Bedeckungsfelder im ICON-D2-RUC mit 60-minütiger Ausgabe bereitgestellt; MID erzeugt daraus keine fiktive 15-Minuten-Modellauflösung.
+3. **CEILING 15 min +0…6 h bleibt sinnvollster nächster Ausbaukandidat**, wenn dafür ein kompakter kategorialer Adapter statt eines vollständigen zusätzlichen Rastercubes verwendet werden kann. Nutzen: tiefe Bewölkung/Nebel, Flugmeteorologie und Phasengrenzen.
 4. Radar, Stationsdaten und lokale Beobachtungen bleiben nachgelagert höher priorisiert als RUC.
 
 ## Schutz
