@@ -1,3 +1,11 @@
+# MID v0.9.85.61
+
+- Der große Leerraum zwischen dem letzten Wetterinhalt und dem App-Footer auf Smartphones wurde entfernt. Die Bottom-Bar-/Safe-Area-Reserve wird nicht mehr gleichzeitig in mehreren Layout-Ebenen sichtbar addiert.
+- Der letzte Inhaltsblock folgt dem Footer wieder mit normalem MID-Seitenabstand; der notwendige Sicherheitsraum für die feste Bottom-Bar liegt ausschließlich hinter dem Footer beziehungsweise als Scroll-Padding für Fokus- und Sprungziele.
+- Quellen- und Aktualitätsangaben im Prognose-Footer können auf kleinen Bildschirmen vollständig umbrechen und werden nicht mehr als abgeschnittener Einzeiler dargestellt.
+- Der globale Footer reagiert auf schmale Gerätebreiten mit einer ruhigeren mehrzeiligen Anordnung für Version, Impressum und Quellen.
+- Wetterdaten, Warnlogik, Skybar/Stundenquadrate und die 90-Minuten-Regel bleiben fachlich unverändert.
+
 # MID v0.9.85.60
 
 - Der 12-h-Temperaturtrend unter „Aktuell“ besitzt jetzt stündliche vertikale Hilfslinien und beschriftete Hauptzeitpunkte mindestens alle drei Stunden. Sichtbare Temperatur- und Trendwerte werden ganzzahlig dargestellt.
