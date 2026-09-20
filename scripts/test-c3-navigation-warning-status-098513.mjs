@@ -17,4 +17,6 @@ assert.match(app,/officialError[\s\S]*Amtliche Quelle derzeit nicht erreichbar/,
 assert.match(styles,/MID-C3 · Schritt 1/,'Der C3-Navigationsvertrag fehlt im modernen Stylesheet.');
 assert.match(styles,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'Die Bottom-Bar ist nicht auf fünf gleich breite Ziele begrenzt.');
 assert.match(contract,/Aktuell · Heute · Vorhersage · Karten · Mehr/,'Der Navigationsvertrag benennt nicht die fünf C3-Ziele.');
+assert.match(contract,/Fixiert hält alle fünf Ziele dauerhaft vollständig sichtbar/,'Der Fixiert-Vertrag muss exakt fünf Hauptziele schützen.');
+assert.ok(!contract.includes('alle sechs Ziele'),'Der kanonische Navigationsvertrag darf keine veraltete Sechs-Ziele-Formulierung enthalten.');
 console.log('MID-C3 Schritt 1: fünf Ziele und antippbarer Warnstatus im Ortskopf geschützt.');
