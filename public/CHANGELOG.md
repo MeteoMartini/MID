@@ -1,3 +1,10 @@
+# MID v0.9.85.63
+
+- Warnungen, Extremwetter-Ausblick und Lüftungsassistent bleiben beim Öffnen im primären Bottom-Bar-Kontext „Aktuell“; „Mehr“ wird nicht mehr irreführend als aktives Hauptziel markiert.
+- Die Warnlage bleibt direkt über den Ortskopf erreichbar und zusätzlich im „Mehr“-Bereich auffindbar.
+- Der kanonische Navigationsvertrag benennt nun durchgängig exakt fünf Hauptziele; die widersprüchliche Formulierung „sechs Ziele“ ist korrigiert.
+- Release-, PWA-, Worker- und iOS-Versionsmarker sind auf v0.9.85.63 synchronisiert. Wetterdaten, Skybar-, Niederschlags-, Warnfach-, Nowcast- und 90-Minuten-Logik bleiben unverändert.
+
 # MID v0.9.85.62
 
 - Der 12-h-Temperaturtrend und die darunterliegende Skybar/Stundenquadrate verwenden jetzt exakt dieselbe horizontale Zeitbasis und dieselben Plotränder.
