@@ -38,6 +38,7 @@ import './midC18FooterRhythmAudit.css';
 import './midC18UnifiedThreadTimeline.css';
 import './midC18InteractionCurrentPolish.css';
 import './midC18ForecastMapShellPolish.css';
+import './midC18SpecialistWorkspacePolish.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
