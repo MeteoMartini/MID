@@ -1,3 +1,10 @@
+# MID v0.9.85.60
+
+- Der 12-h-Temperaturtrend unter „Aktuell“ besitzt jetzt stündliche vertikale Hilfslinien und beschriftete Hauptzeitpunkte mindestens alle drei Stunden. Sichtbare Temperatur- und Trendwerte werden ganzzahlig dargestellt.
+- Der aufgeklappte „Mehr“-Bereich unter „Aktuell“ ist als kompakter, klar gegliederter Informationsbereich für Atmosphäre, Umwelt und Astronomie gestaltet. Einzelwerte, UVI, Luftqualität, Sonnenschein und Sonne/Mond erhalten konsistente Flächen, Abstände und Typografie statt einer großen grauen Restfläche.
+- Der erste Prognose-Untertab heißt jetzt „Ab jetzt“ statt „Kurzfrist“. Damit bleibt die Bottom-Bar „Heute“ das übergeordnete Ziel, während „Ab jetzt“ eindeutig die 90-Minuten-/24-h-Linse bezeichnet.
+- Skybar-/Stundenquadrate-, Niederschlags- und 90-Minuten-Verträge bleiben fachlich unverändert.
+
 # MID v0.9.85.59
 
 - Favoriten reagieren auf Smartphones jetzt zuverlässig mit einem einzelnen Tap. Horizontales Wischen zum Scrollen und Ziehen am separaten Griff bleiben davon getrennt; die gesamte Favoritenkarte ist ein ausreichend großes Touchziel.
