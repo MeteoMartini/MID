@@ -31,7 +31,7 @@ for(const token of [
 
 assert.ok(main.includes("import './midC18SecondaryWorkspaceFinish.css';"),'Secondary-workspace CSS wird nicht geladen.');
 assert.ok(main.indexOf('midC18SecondaryWorkspaceFinish.css')>main.indexOf('midC18ForecastMapShellPolish.css'),'Secondary-workspace finish muss die späteste MID-18.2-Schicht sein.');
-assert.ok(app.includes('modern-more-drawer')&&app.includes('modern-more-quick-actions')&&app.includes('dashboard-section-nav-list progressive'),'Mehr muss die progressive Themenstruktur behalten.');
+assert.ok(app.includes('modern-more-drawer')&&app.includes('modern-more-quick-actions')&&app.includes("modernDrawer?' progressive':''")&&app.includes('<details key={group.id}'),'Mehr muss die progressive Themenstruktur behalten.');
 assert.ok(app.includes('warnings-responsive-shell')&&app.includes('warning-event-tab'),'Warnungen müssen die hybride Status-/Ereignisstruktur behalten.');
 assert.ok(meteogram.includes('meteogram-scroll')&&meteogram.includes('meteogram-source-disclosure'),'Meteogramm muss innere Scroll- und Quellenflächen behalten.');
 assert.ok(water.includes('water-matrix-scroll')&&water.includes('water-tides')&&water.includes('water-source'),'Wasser/Tide muss Matrix, Tide und Quellenbereich behalten.');
