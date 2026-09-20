@@ -29,7 +29,7 @@ const cellOpacity=(level:1|2|3|4,base:number)=>Math.min(1,Math.max(.42,base*(.54
 
 export function SkyBarHourCellsSvg({cells,left,right,chartW,centerY,selectedIndex=-1,keyPrefix='sky-cell'}:HourCellsProps){
  if(!cells.length||chartW<=0)return null;
- const rightEdge=Math.max(left,chartW-right),plotWidth=Math.max(1,rightEdge-left),slot=plotWidth/cells.length,gap=Math.min(2.2,Math.max(.7,slot*.16)),size=Math.max(4,Math.min(10.5,slot-gap)),y=centerY-size/2;
+ const rightEdge=Math.max(left,chartW-right),plotWidth=Math.max(1,rightEdge-left),slot=plotWidth/cells.length,gap=Math.min(2.2,Math.max(.7,slot*.16)),size=Math.max(1.6,Math.min(10.5,slot-gap)),y=centerY-size/2;
  return <g data-mid-skybar-cells="24h">{cells.map((cell,index)=>{
   const x=left+index*slot+(slot-size)/2,base=cell.base,precip=cell.precip;
   return <g key={`${keyPrefix}-${cell.key}`} data-skybar-hour={index} data-skybar-state={cell.state}>
