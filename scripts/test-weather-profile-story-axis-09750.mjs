@@ -20,7 +20,7 @@ for(const token of [
  'className="lane-bg weather"',
  'pressureTop=profileY(498),pressureBottom=profileY(550)',
  'className="pressure-line"',
- "import {detailSkyBarSegments} from './detailSkyBar';",
+ "import {detailSkyBarHourCells,detailSkyBarSegments} from './detailSkyBar';",
  'profileSkyBarSegments=detailSkyBarSegments(',
  'data-mid-skybar="profile"',
  "key:'high'",
