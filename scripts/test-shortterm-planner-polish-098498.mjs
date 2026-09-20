@@ -5,7 +5,7 @@ const cockpit=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url)
 const modern=readFileSync(new URL('../src/styles-src/30-modern.css',import.meta.url),'utf8');
 const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 
-assert.ok(app.includes("{id:'90m',label:'Kurzfrist',module:'short-term'}"),'Obere Horizontleiste braucht einen gemeinsamen Kurzfrist-Einstieg.');
+assert.ok(app.includes("{id:'90m',label:'Ab jetzt',module:'short-term'}"),'Obere Horizontleiste braucht einen eindeutigen Ab-jetzt-Einstieg innerhalb von Heute.');
 assert.ok(!app.includes("{id:'24h',label:'24 h',module:'short-term'}"),'24 h darf nicht mehr als separater Horizont neben 90 min stehen.');
 assert.ok(app.includes("return value==='24h'?'90m'"),'Alte gespeicherte 24-h-Auswahl muss verlustfrei auf Kurzfrist migrieren.');
 assert.ok(cockpit.includes('Nächste 90 Minuten')&&cockpit.includes('24-h-Wetterprofil'),'Kurzfrist muss 90-Minuten- und 24-h-Inhalt in derselben Arbeitsansicht enthalten.');
