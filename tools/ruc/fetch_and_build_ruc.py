@@ -20,7 +20,8 @@ FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M',
 GRID_REQUIRED=('CLAT','CLON')
 RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')
 RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP','ASOB_S','ASWDIR_S','ASWDIFD_S')
-SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')
+SPECIALIST_15M_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT')
+SPECIALIST_HOURLY_OPTIONAL=('CLCM','CLCH','T_G','H_SNOW')
 REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
@@ -151,10 +152,14 @@ def build_candidate(s,run,stage_root,output,hours):
   try:
    rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid-optional'/param,hours,f'{run} optional {param}',mode='rapid15');print(f'{run} optional {param}: {len(rows)} staged GRIB files',flush=True)
   except Exception as exc: print(f'{run} optional {param}: skipped ({exc})',flush=True)
+ for param in SPECIALIST_15M_OPTIONAL:
+  try:
+   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'specialist-15m'/param,hours,f'{run} specialist15 {param}',mode='rapid15');print(f'{run} specialist15 {param}: {len(rows)} staged GRIB files',flush=True)
+  except Exception as exc: print(f'{run} specialist15 {param}: skipped ({exc})',flush=True)
  for param in SPECIALIST_HOURLY_OPTIONAL:
   try:
-   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'specialist-hourly'/param,hours,f'{run} specialist {param}',mode='hourly');print(f'{run} specialist {param}: {len(rows)} staged GRIB files',flush=True)
-  except Exception as exc: print(f'{run} specialist {param}: skipped ({exc})',flush=True)
+   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'specialist-hourly'/param,hours,f'{run} specialist-hourly {param}',mode='hourly');print(f'{run} specialist-hourly {param}: {len(rows)} staged GRIB files',flush=True)
+  except Exception as exc: print(f'{run} specialist-hourly {param}: skipped ({exc})',flush=True)
  for param in GRID_REQUIRED:
   rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
  eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC',mode='hourly');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
