@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,favoriteLogoSquares,main,midDesign,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,favoriteLogoSquares,currentMoreTrend,main,midDesign,contract,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/midC18CurrentMoreTrendPolish.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-four-thickness-appwide-09799.mjs';
 
@@ -30,6 +30,13 @@ assert.ok(polish.includes('.current-weather-thread-sky')&&polish.includes('.cock
 assert.ok(main.includes("import './midC18NowcastSkybarPolish.css';"),'Nowcast-/Skybar-Polish fehlt im Produktionsentry.');
 assert.ok(main.includes("import './midC18AxisLayoutFix.css';"),'Zeitachsen-/7-Tage-Fix muss zuletzt im Produktionsentry geladen werden.');
 assert.ok(main.includes("import './midC18FavoriteLogoSkySquaresFix.css';"),'Favoriten-/Logo-/Wetterquadrat-Polish muss im Produktionsentry geladen werden.');
+assert.ok(main.includes("import './midC18CurrentMoreTrendPolish.css';"),'Aktuell-Trend-/Mehrbereich-Polish muss im Produktionsentry geladen werden.');
+assert.ok(app.includes('verticalGridDivisions={Math.max(1,currentThreadHorizon)}'),'12-h-Temperaturtrend muss je Stunde eine vertikale Hilfslinie erhalten.');
+assert.ok(app.includes('index%3===0||index===currentThreadSeries.length-1'),'12-h-Zeitachse muss mindestens alle drei Stunden beschriftet sein.');
+assert.ok(app.includes('currentThreadDeltaRounded=Number.isFinite(currentThreadDelta)?Math.round(currentThreadDelta)'),'Temperaturtrend darf in der sichtbaren Trendangabe nur ganzzahlig erscheinen.');
+assert.ok(app.includes("label:'Ab jetzt',module:'short-term'")&&app.includes("'Ab jetzt: 90 Minuten und 24 Stunden'"),'Kurzfrist-Untertab muss gegenüber dem Bottom-Bar-Ziel Heute eindeutig als Ab-jetzt-Horizont bezeichnet sein.');
+assert.ok(app.includes('className="metrics current-more-metrics"')&&app.includes('Weitere aktuelle Werte')&&app.includes('Atmosphäre, Umwelt & Astronomie'),'Aktuell-Mehrbereich braucht eine klare visuelle Informationshierarchie.');
+assert.ok(currentMoreTrend.includes('#current-weather-metrics.current-more-metrics')&&currentMoreTrend.includes('.current-more-head')&&currentMoreTrend.includes('grid-template-columns:repeat(2,minmax(0,1fr))'),'Aktuell-Mehrbereich muss als kompakter responsiver Informationsbereich gestaltet sein.');
 assert.ok(app.includes('quickTapStart')&&app.includes('quickTapEnd')&&app.includes('einmal tippen zum Auswählen'),'Favoritenleiste muss Touch-Taps getrennt von Scroll-/Drag-Gesten zuverlässig behandeln.');
 assert.ok(favoriteLogoSquares.includes('min-height:44px!important')&&favoriteLogoSquares.includes('touch-action:pan-x!important'),'Favoritenkarten brauchen ein vollwertiges Touchziel und horizontales Scrollen ohne Tap-Verlust.');
 assert.ok(favoriteLogoSquares.includes('background:transparent!important')&&favoriteLogoSquares.includes('object-fit:contain!important'),'MID-Logo muss transparent und unverzerrt eingebettet bleiben.');
@@ -37,7 +44,7 @@ assert.ok(renderer.includes("SUN_CELL_SHADES")&&renderer.includes("CLOUD_CELL_SH
 assert.ok(!renderer.includes("cell.state==='clear-night'&&!base&&!precip?<circle"),'Unklare Punktkodierung für klare Nacht darf nicht mehr gerendert werden.');
 assert.ok(renderer.includes("cell.state==='clear-night'&&!base&&!precip?<rect"),'Klare Nacht muss als ruhige Flächenzelle statt als rätselhafter Punkt erscheinen.');
 assert.ok(favoriteLogoSquares.includes("current-weather-thread-sky[data-skybar-display='squares']")&&favoriteLogoSquares.includes("cockpit-now90-sky[data-skybar-display='squares']"),'12-h- und 90-min-Wetterquadrate müssen visuell groß genug bleiben.');
-assert.ok(midDesign.includes('className="mid-weather-thread-grid"')&&midDesign.includes('gridY=[8,50,92]')&&midDesign.includes('gridX=[0,50,100]'),'12-h-Temperaturfaden braucht einfache horizontale und vertikale Hilfslinien.');
+assert.ok(midDesign.includes('className="mid-weather-thread-grid"')&&midDesign.includes('gridY=[8,50,92]')&&midDesign.includes('verticalGridDivisions=2')&&midDesign.includes('safeVerticalDivisions'),'Temperaturfaden braucht konfigurierbare vertikale Hilfslinien.');
 assert.ok(app.includes('data-mid-time-axis="current-12h"')&&app.indexOf('data-mid-time-axis="current-12h"')<app.indexOf('className="current-weather-thread-sky"'),'12-h-Zeitachse muss direkt der Temperaturkurve folgen und vor dem Wetterstreifen liegen.');
 assert.ok(cockpit.includes('className="cockpit-now90-track" data-cockpit-horizontal-scroll="true"')&&cockpit.includes('data-mid-time-axis="now90"')&&cockpit.includes("'--now90-count':Math.max(1,now90.length)"),'90-Minuten-Wetterstreifen, Zeitachse und Karten müssen einen gemeinsamen horizontalen Raster-/Scrollraum verwenden.');
 for(const token of ['grid-template-columns:repeat(var(--now90-count),minmax(0,1fr))!important','min-width:max(100%,calc(var(--now90-count) * var(--now90-slot-width)))!important','grid-template-columns:minmax(0,1fr)!important','overflow-x:hidden!important'])assert.ok(axisFix.includes(token),`Zeitachsen-/7-Tage-Layoutvertrag fehlt: ${token}`);
