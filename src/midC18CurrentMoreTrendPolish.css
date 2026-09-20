@@ -1,0 +1,241 @@
+/* MID v0.9.85.60 · Temperaturtrend, Aktuell-Mehrbereich und klare Horizontnavigation */
+
+/* 12-h-Trend: stündliche Hilfslinien, beschriftete Hauptticks alle drei Stunden. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread-grid line{
+  stroke:color-mix(in srgb,var(--text) 10%,transparent)!important;
+  stroke-width:.5!important;
+  opacity:.82!important;
+  vector-effect:non-scaling-stroke!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis{
+  display:grid!important;
+  width:100%!important;
+  min-width:0!important;
+  padding-top:6px!important;
+  border-top:1px solid color-mix(in srgb,var(--text) 13%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span{
+  position:relative!important;
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  gap:4px!important;
+  min-width:0!important;
+  color:var(--muted)!important;
+  font-variant-numeric:tabular-nums!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span::before{
+  content:""!important;
+  position:absolute!important;
+  top:-7px!important;
+  left:50%!important;
+  width:1px!important;
+  height:6px!important;
+  background:color-mix(in srgb,var(--text) 24%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-start{
+  justify-content:flex-start!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-start::before{
+  left:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-end{
+  justify-content:flex-end!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span.axis-end::before{
+  left:auto!important;
+  right:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis small{
+  font-size:clamp(8px,1.8vw,9.5px)!important;
+  line-height:1!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis b{
+  font-size:clamp(9px,2vw,10.5px)!important;
+  line-height:1!important;
+}
+@media(max-width:390px){
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis>span{
+    gap:2px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis small{
+    font-size:7.7px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis b{
+    font-size:8.8px!important;
+  }
+}
+
+/* „Mehr“ unter Aktuelles: klare Gruppenwirkung statt großer grauer Restfläche. */
+html[data-mid-design='next'] #current-weather-metrics{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-content:start!important;
+  gap:8px!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:8px 0 0!important;
+  padding:10px!important;
+  border:1px solid var(--mid-surface-line)!important;
+  border-radius:var(--mid-content-radius,20px)!important;
+  background:color-mix(in srgb,var(--mid-surface-base,var(--surface)) 96%,var(--s2))!important;
+  box-shadow:none!important;
+}
+html[data-mid-design='next'] #current-weather-metrics[hidden]{
+  display:none!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .current-more-head{
+  grid-column:1/-1!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  min-width:0!important;
+  padding:2px 2px 8px!important;
+  border-bottom:1px solid var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .current-more-head>span{
+  display:grid!important;
+  gap:2px!important;
+  min-width:0!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .current-more-head small{
+  color:var(--accent)!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.11em!important;
+  text-transform:uppercase!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .current-more-head strong{
+  color:var(--text)!important;
+  font-size:14px!important;
+  line-height:1.15!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .current-more-head em{
+  flex:0 0 auto!important;
+  color:var(--muted)!important;
+  font-size:9px!important;
+  font-style:normal!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-content:center!important;
+  align-items:center!important;
+  gap:6px 10px!important;
+  min-width:0!important;
+  min-height:84px!important;
+  margin:0!important;
+  padding:12px!important;
+  border:1px solid color-mix(in srgb,var(--mid-surface-line) 88%,transparent)!important;
+  border-radius:15px!important;
+  background:color-mix(in srgb,var(--mid-surface-raised,var(--surface)) 94%,transparent)!important;
+  box-shadow:0 4px 14px rgba(10,36,58,.045)!important;
+  overflow:hidden!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>header{
+  grid-column:1!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  min-width:0!important;
+  padding:0!important;
+  border:0!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>header>small{
+  min-width:0!important;
+  color:var(--muted)!important;
+  font-size:10.5px!important;
+  line-height:1.2!important;
+  white-space:normal!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>strong{
+  grid-column:2!important;
+  justify-self:end!important;
+  min-width:0!important;
+  color:var(--text)!important;
+  font-size:clamp(16px,2.5vw,20px)!important;
+  line-height:1.05!important;
+  text-align:right!important;
+  white-space:normal!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>.current-metric-summary{
+  grid-column:1/-1!important;
+  margin:0!important;
+  color:var(--muted)!important;
+  font-size:10px!important;
+  line-height:1.3!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>:not(header):not(strong):not(.current-metric-summary){
+  grid-column:1/-1;
+  min-width:0;
+}
+html[data-mid-design='next'] #current-weather-metrics>.uvi-card,
+html[data-mid-design='next'] #current-weather-metrics>.air-quality-card,
+html[data-mid-design='next'] #current-weather-metrics>.sunshine-card,
+html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card{
+  grid-column:1/-1!important;
+  min-height:76px!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .uvi-card,
+html[data-mid-design='next'] #current-weather-metrics .air-quality-card{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--mid-surface-raised,var(--surface)) 96%,transparent),color-mix(in srgb,var(--s2) 50%,var(--mid-surface-raised,var(--surface))))!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .sunshine-card,
+html[data-mid-design='next'] #current-weather-metrics .sun-moon-card{
+  background:linear-gradient(180deg,color-mix(in srgb,#ffc229 4%,var(--mid-surface-raised,var(--surface))),var(--mid-surface-raised,var(--surface)))!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .sun-moon-card-value{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:9px!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .sun-moon-time-block{
+  display:grid!important;
+  gap:1px!important;
+  min-width:0!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .sun-moon-time-block small{
+  font-size:8px!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .sun-moon-time-block b{
+  font-size:15px!important;
+}
+@media(max-width:620px){
+  html[data-mid-design='next'] #current-weather-metrics{
+    gap:7px!important;
+    padding:8px!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics .current-more-head{
+    align-items:start!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics .current-more-head em{
+    display:none!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics>article{
+    min-height:76px!important;
+    padding:10px!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics>article>header>small{
+    font-size:10px!important;
+  }
+}
+@media(max-width:390px){
+  html[data-mid-design='next'] #current-weather-metrics{
+    grid-template-columns:1fr!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics>article{
+    grid-column:1!important;
+  }
+}
+
+/* Horizontnavigation: „Ab jetzt“ benennt die Kurzfrist-Linse innerhalb des Bereichs Heute eindeutig. */
+html[data-mid-design='next'] .modern-forecast-horizons button{
+  min-width:0!important;
+  white-space:nowrap!important;
+}

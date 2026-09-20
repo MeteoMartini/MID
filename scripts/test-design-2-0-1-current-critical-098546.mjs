@@ -14,8 +14,8 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test
 assert.ok(app.includes("hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+13)"),'12-h-Faden muss Jetzt bis +12 h mit 13 Stundenpunkten abdecken.');
 assert.ok(app.includes('Temperaturtrend · {currentThreadHorizon} h'),'Aussagekräftige dynamische 12-h-Beschriftung fehlt.');
 assert.ok(app.includes('current-weather-thread-axis'),'Zeit-/Temperaturachse für den 12-h-Faden fehlt.');
-assert.ok(app.includes('hourDisplayClock(currentThreadMid,w.timezone)'),'Mittlerer Zeitanker fehlt.');
-assert.ok(app.includes('hourDisplayClock(currentThreadEnd,w.timezone)'),'Endzeitanker fehlt.');
+assert.ok(app.includes('currentThreadAxisTicks=currentThreadSeries.map')&&app.includes('index%3===0||index===currentThreadSeries.length-1'),'3-stündliche Zeitanker plus Endzeit fehlen.');
+assert.ok(app.includes("tick.index===0?'Jetzt':hourDisplayClock(tick.hour,w.timezone)"),'Zeitanker müssen Jetzt sowie echte lokale Uhrzeiten verwenden.');
 assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Taupunkt muss in der Hauptansicht vor relativer Feuchte stehen.');
 assert.ok(app.includes("dryNow=probability<10&&!radarSignalDetected(radar)&&!thunderInfo&&!heavyRainInfo"),'Trockener Nowcast braucht einen kompakten Darstellungszustand.');
 assert.ok(app.includes('if(downDistance>=64){setBottomBarHidden(true);downDistance=0}'),'Bottom-Bar muss auf Abwärtsscrollen früher ausblenden.');

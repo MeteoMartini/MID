@@ -15,13 +15,13 @@ const [app,cockpit,shortTerm,longRange,modernStyles,styles,radarColors,baseline]
 for(const token of [
  "type ModernForecastHorizon='90m'|'24h'|'7d'|'14d'|'46d'|'season'",
  'function ForecastHorizonNavigation',
- "{id:'90m',label:'Kurzfrist',module:'short-term'}",
+ "{id:'90m',label:'Ab jetzt',module:'short-term'}",
  "{id:'7d',label:'7 T',module:'forecast'}",
  "{id:'14d',label:'14 T',module:'ensemble'}",
  "{id:'46d',label:'46 T',module:'long-range'}",
  "{id:'season',label:'Saison',module:'long-range'}",
  "navigationMode==='bottom-tabs'&&id===forecastWorkspaceAnchor",
- "aria-label={item.id==='90m'?'Kurzfrist: 90 Minuten und 24 Stunden':undefined}",
+ "aria-label={item.id==='90m'?'Ab jetzt: 90 Minuten und 24 Stunden':undefined}",
  "initialHorizon={navigationMode==='bottom-tabs'"
 ])assert.ok(app.includes(token),`App-Horizontvertrag fehlt: ${token}`);
 
