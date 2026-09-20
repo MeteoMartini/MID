@@ -9,7 +9,7 @@ import argparse,bz2,concurrent.futures,hashlib,json,math,os,re
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
-from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
+from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 SEVERE_PARAM_MAP={'CAPE_MU':'cape_mu','CIN_MU':'cin_mu','LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
@@ -389,6 +389,10 @@ def main():
  solar_path=None
  if solar_specs:
   solar_path=a.output/'rapid-solar-15m.bin';solar_path.write_bytes(pack_cell_major(solar_fields,solar_specs))
+ specialist15_fields,specialist15_specs=collect_optional_fields(a.staging/'specialist-15m',SPECIALIST_PARAM_MAP,rapid15_times,point_count,SPECIALIST_15M_FIELDS)
+ specialist15_path=None
+ if specialist15_specs:
+  specialist15_path=a.output/'rapid-specialist-15m.bin';specialist15_path.write_bytes(pack_cell_major(specialist15_fields,specialist15_specs))
  specialist_fields,specialist_specs=collect_optional_fields(a.staging/'specialist-hourly',SPECIALIST_PARAM_MAP,det_times,point_count,SPECIALIST_HOURLY_FIELDS)
  specialist_path=None
  if specialist_specs:
@@ -411,7 +415,7 @@ def main():
  summary_path=a.output/'eps-summary.bin';summary_path.write_bytes(pack_cell_major(eps_summary(eps),EPS_SUMMARY_FIELDS))
  run_key=re.sub(r'[^0-9A-Za-z_-]','',a.run);lookup_path=a.output/'lookup.bin'
  object_paths={'deterministic.bin':det,'eps-summary.bin':summary_path,'eps-members.bin':eps_path,'lookup.bin':lookup_path,'rapid-5m.bin':rapid5_path,'rapid-15m.bin':rapid15_path,'rapid-extreme.json':extreme_path}
- for optional_path in (dbz_path,severe_path,solar_path,specialist_path,phase_path):
+ for optional_path in (dbz_path,severe_path,solar_path,specialist15_path,specialist_path,phase_path):
   if optional_path:object_paths[optional_path.name]=optional_path
  objects={name:file_info(path) for name,path in object_paths.items()}
  det_serialized=[t.strftime('%Y-%m-%dT%H:%M') for t in det_times];eps_serialized=[t.strftime('%Y-%m-%dT%H:%M') for t in eps_times];rapid5_serialized=[t.strftime('%Y-%m-%dT%H:%M') for t in rapid5_times];rapid15_serialized=[t.strftime('%Y-%m-%dT%H:%M') for t in rapid15_times]
@@ -421,8 +425,9 @@ def main():
  if severe_path:rapid['severe15']=rapid_spec(severe_path,rapid15_serialized,severe_specs,900,6)
  if solar_path:rapid['solar15']=rapid_spec(solar_path,rapid15_serialized,solar_specs,900,6)
  if phase_path:rapid['phase15']=rapid_spec(phase_path,rapid15_serialized,PHASE_15M_FIELDS,900,6)
+ if specialist15_path:rapid['specialist15']=rapid_spec(specialist15_path,rapid15_serialized,specialist15_specs,900,6)
  if specialist_path:rapid['specialistHourly']=rapid_spec(specialist_path,det_serialized,specialist_specs,3600,14)
  rapid_extreme={'key':f'runs/{run_key}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v4','windowHours':6,'horizonHours':14}
  write_meta(a.output/'latest.json',run=a.run,times=det_serialized,point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects,deterministic_times=det_serialized,eps_summary_times=eps_serialized,eps_times=eps_serialized,rapid=rapid,rapid_extreme=rapid_extreme)
- print(json.dumps({'run':a.run,'deterministicTimes':len(det_times),'rapid5Times':len(rapid5_times),'rapid15Times':len(rapid15_times),'epsTimes':len(eps_times),'points':point_count,'members':len(members),'reflectivity15':bool(dbz_path),'severe15Fields':[x.name for x in severe_specs],'solar15Fields':[x.name for x in solar_specs],'specialistHourlyFields':[x.name for x in specialist_specs],'phase15':bool(phase_path),'detBytes':det.stat().st_size,'rapid5Bytes':rapid5_path.stat().st_size,'rapid15Bytes':rapid15_path.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
+ print(json.dumps({'run':a.run,'deterministicTimes':len(det_times),'rapid5Times':len(rapid5_times),'rapid15Times':len(rapid15_times),'epsTimes':len(eps_times),'points':point_count,'members':len(members),'reflectivity15':bool(dbz_path),'severe15Fields':[x.name for x in severe_specs],'solar15Fields':[x.name for x in solar_specs],'specialist15Fields':[x.name for x in specialist15_specs],'specialistHourlyFields':[x.name for x in specialist_specs],'phase15':bool(phase_path),'detBytes':det.stat().st_size,'rapid5Bytes':rapid5_path.stat().st_size,'rapid15Bytes':rapid15_path.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
 if __name__=='__main__':main()
