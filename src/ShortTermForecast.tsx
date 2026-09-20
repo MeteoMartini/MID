@@ -53,6 +53,9 @@ export type ShortTermForecastPoint={
  uvIndex?:number;
  sunshineDuration?:number|null;
  visibility:number;
+ ceiling?:number;
+ freezingLevel?:number;
+ snowline?:number;
  isDay:boolean;
  localAdjustment:number;
  thunderPercent?:number;
@@ -83,9 +86,11 @@ function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|
  if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;
  if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;
  if(!Number.isFinite(cover))return 2;
- if(cover>=87.5)return 3;
- if(cover>=37.5)return 2;
- if(cover>=12.5)return 1;
+ // WMO-Okta-Logik: Code 0 nur, wenn die gerundete Bedeckung 0/8 entspricht.
+ // Dadurch wird z. B. 12 % nicht mehr als vollständig klar bezeichnet.
+ if(cover>=81.25)return 3;
+ if(cover>=43.75)return 2;
+ if(cover>=6.25)return 1;
  return 0;
 }
 
@@ -132,9 +137,10 @@ function reconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,c
  const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));
  if(precipitation>=.01||(precipitationCode(raw)&&probability>=30))return raw;
  if(precipitationCode(raw)&&probability<30)return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);
- if(localAdjustment<=0)return raw;
- if(Number.isFinite(observed)&&precipitationCode(observed)&&offsetMinutes<=30)return observed;
- return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);
+ if(localAdjustment>0&&Number.isFinite(observed)&&precipitationCode(observed)&&offsetMinutes<=30)return observed;
+ // Auch ohne lokale Beobachtung muss ein trockener WMO-Zustand mit der tatsächlich
+ // verwendeten Gesamt-/Tiefbewölkung und Sicht kohärent bleiben.
+ return observedSkyCode(localAdjustment>0&&Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);
 }
 function visibilityText(value:number){if(!Number.isFinite(value))return'–';if(value>=10000)return`${Math.round(value/1000)} km`;if(value>=1000)return`${formatDecimal(value/1000,1)} km`;return`${Math.round(value)} m`}
 export function shortTermWindWarningLevel(gustKnots:number):0|1|2|3|4{
