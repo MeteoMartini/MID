@@ -10,6 +10,7 @@ const [app,styles,contract]=await Promise.all([
 
 assert.match(app,/label:'Aktuell'[\s\S]*label:'Heute'[\s\S]*label:'Vorhersage'[\s\S]*label:'Karten'/,'Die fünfteilige C3-Hauptnavigation ist nicht vollständig definiert.');
 assert.ok(!app.includes("{id:'warnings',label:'Warnungen',icon:<AlertTriangle size={21}/>,candidates:['warnings']}"),'Warnungen bleiben fälschlich ein sechstes Bottom-Bar-Ziel.');
+assert.match(app,/\{id:'current',label:'Aktuell',[\s\S]*?candidates:\['current','warnings','extreme-outlook','ventilation'\]\}/,'Warnungen und aktuelle Gefahren müssen im Hauptkontext Aktuell bleiben, statt die Bottom-Bar auf Mehr umzuschalten.');
 assert.match(app,/className=\{`place-warning-status \$\{warningStatus\.tone\}`\}/,'Der Warnlage-Status fehlt im Ortskopf.');
 assert.match(app,/onClick=\{\(\)=>navigateToDashboardSection\('warnings'\)\}/,'Der Warnlage-Status führt nicht direkt in die Warnübersicht.');
 assert.match(app,/officialError[\s\S]*Amtliche Quelle derzeit nicht erreichbar/,'Eine amtliche Quellenstörung wird im Ortskopf nicht explizit gezeigt.');
