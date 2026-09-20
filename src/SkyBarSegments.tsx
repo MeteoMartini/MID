@@ -25,19 +25,22 @@ type HourCellsProps={
  keyPrefix?:string;
 };
 
-const cellOpacity=(level:1|2|3|4,base:number)=>Math.min(1,Math.max(.42,base*(.54+level*.115)));
+const cellOpacity=(level:1|2|3|4,base:number)=>Math.min(1,Math.max(.5,base*(.48+level*.13)));
+const SUN_CELL_SHADES=['#fff0a6','#ffe169','#ffd13b','#ffc229'] as const;
+const CLOUD_CELL_SHADES=['#e7eaed','#cfd4d8','#aeb3b9','#7f878f'] as const;
+const baseCellFill=(visual:NonNullable<SkyBarHourCell['base']>)=>visual.color.toLowerCase()==='#ffc229'?SUN_CELL_SHADES[visual.thicknessLevel-1]:visual.color.toLowerCase()==='#aeb3b9'?CLOUD_CELL_SHADES[visual.thicknessLevel-1]:visual.color;
 
 export function SkyBarHourCellsSvg({cells,left,right,chartW,centerY,selectedIndex=-1,keyPrefix='sky-cell'}:HourCellsProps){
  if(!cells.length||chartW<=0)return null;
- const rightEdge=Math.max(left,chartW-right),plotWidth=Math.max(1,rightEdge-left),slot=plotWidth/cells.length,gap=Math.min(2.2,Math.max(.7,slot*.16)),size=Math.max(1.6,Math.min(10.5,slot-gap)),y=centerY-size/2;
+ const rightEdge=Math.max(left,chartW-right),plotWidth=Math.max(1,rightEdge-left),slot=plotWidth/cells.length,gap=Math.min(1.8,Math.max(.45,slot*.1)),size=Math.max(2.4,Math.min(14,slot-gap)),y=centerY-size/2;
  return <g data-mid-skybar-cells="24h">{cells.map((cell,index)=>{
   const x=left+index*slot+(slot-size)/2,base=cell.base,precip=cell.precip;
   return <g key={`${keyPrefix}-${cell.key}`} data-skybar-hour={index} data-skybar-state={cell.state}>
    <title>{cell.title}</title>
    <rect x={x} y={y} width={size} height={size} rx={Math.min(2.2,size*.22)} fill="var(--mid-skycell-empty,transparent)" stroke={index===selectedIndex?'var(--mid-skycell-selected,var(--accent))':'var(--mid-skycell-border,currentColor)'} strokeOpacity={index===selectedIndex?1:cell.state==='unavailable'?.34:.18} strokeWidth={index===selectedIndex?1.7:.8}/>
-   {base?<rect x={x+.65} y={y+.65} width={Math.max(0,size-1.3)} height={Math.max(0,size-1.3)} rx={Math.min(1.8,size*.18)} fill={base.color} opacity={cellOpacity(base.thicknessLevel,base.opacity)}/>:null}
-   {precip?<rect x={x+.65} y={y+.65} width={Math.max(0,size-1.3)} height={Math.max(0,size-1.3)} rx={Math.min(1.8,size*.18)} fill={precip.color} opacity={cellOpacity(precip.thicknessLevel,precip.opacity)}/>:null}
-   {cell.state==='clear-night'&&!base&&!precip?<circle cx={x+size/2} cy={centerY} r={Math.max(1.2,size*.13)} fill="var(--mid-skycell-night,#71809b)" opacity={.58}/>:null}
+   {base?<rect x={x+.55} y={y+.55} width={Math.max(0,size-1.1)} height={Math.max(0,size-1.1)} rx={Math.min(2.3,size*.2)} fill={baseCellFill(base)} opacity={Math.max(.9,base.opacity)}/>:null}
+   {precip?<rect x={x+.55} y={y+.55} width={Math.max(0,size-1.1)} height={Math.max(0,size-1.1)} rx={Math.min(2.3,size*.2)} fill={precip.color} opacity={cellOpacity(precip.thicknessLevel,precip.opacity)}/>:null}
+   {cell.state==='clear-night'&&!base&&!precip?<rect x={x+.55} y={y+.55} width={Math.max(0,size-1.1)} height={Math.max(0,size-1.1)} rx={Math.min(2.3,size*.2)} fill="var(--mid-skycell-clear-night,#eef1f4)" opacity={.72}/>:null}
   </g>
  })}</g>;
 }

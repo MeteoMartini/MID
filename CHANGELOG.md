@@ -1,3 +1,12 @@
+# MID v0.9.85.59
+
+- Favoriten reagieren auf Smartphones jetzt zuverlässig mit einem einzelnen Tap. Horizontales Wischen zum Scrollen und Ziehen am separaten Griff bleiben davon getrennt; die gesamte Favoritenkarte ist ein ausreichend großes Touchziel.
+- Das MID-Logo wird im App-Kopf ohne zusätzliche Hintergrundkachel oder Schatten transparent eingebettet. Auf schmalen Geräten erscheint nur das kompakte Logo, auf breiteren Flächen weiterhin die horizontale Logo-Variante aus dem LogoSet.
+- Wetterquadrate sind in den kompakten 12-h- und 90-min-Bereichen deutlich größer und klarer erkennbar.
+- Sonne und Bewölkung nutzen nun innerhalb der bestehenden Skybar-Stufen deutlich unterscheidbare Gelb-/Grautöne; Niederschlagsart und -intensität bleiben an die bestehende MID-/DWD-Skybar-Logik gekoppelt.
+- Der bisherige kleine Punkt für klare Nacht wurde entfernt. Klare Nacht wird nun als ruhige Flächenzelle dargestellt, damit keine zusätzliche, unklare Punktkodierung entsteht.
+- Die bestehenden Verträge zu Skybar/Stundenquadraten, Niederschlagsphasen und exakt sechs vollständigen 15-Minuten-Intervallen der 90-Minuten-Kurzfrist bleiben unverändert.
+
 # MID v0.9.85.58
 
 - Der 12-h-Temperaturtrend unter „Aktuell“ besitzt jetzt eine klar erkennbare Zeitachse mit einfachen Hilfslinien; der Wetterstreifen ist bewusst flacher und ordnet sich der Temperaturkurve unter.
