@@ -1,3 +1,12 @@
+# MID v0.9.85.65
+
+- Der mobile Bereich „Weitere aktuelle Werte“ wurde nach dem Screenshot-Audit neu verriegelt: Überschrift/Info-Schalter, Primärwert und Detailtext liegen nun in eindeutig getrennten Zeilen und können sich auf schmalen Smartphones nicht mehr überlagern.
+- UVI und EU-AQI nutzen eine eigene vierzeilige Hierarchie aus Kopf, Bewertung, Skala und Detailwert; Sonnenschein sowie Sonne/Mond folgen derselben konsistenten Ordnung.
+- Auf 391–620 px bleiben die kompakten Werte zweispaltig; bis 390 px wechselt der Bereich automatisch in eine einspaltige Darstellung, statt Inhalte zu quetschen.
+- Sonne/Mond erhält größere, sauber ausgerichtete Auf-/Untergangswerte und eine lesbare Mondphasenzeile.
+- Die Änderung ist auf den MID-Next-„Aktuell“-Mehrbereich begrenzt; Wetterlogik, RUC/Nowcast, Warnungen und Prognosedaten bleiben unverändert.
+- Parallel wurde das professionelle Redesign im Replit-Projekt „MID Weather Intelligence“ mit Fokus auf dieselbe responsive Kartenhierarchie fortgesetzt.
+
 # MID v0.9.85.64
 
 - Die mobile Bottom-Bar startet ohne ausdrücklich gewählten Auto-Modus fixiert sichtbar. Im Auto-Modus blendet sie erst nach einer längeren Abwärtsbewegung aus und reagiert bereits auf einen kurzen Aufwärtsscroll wieder sichtbar.
