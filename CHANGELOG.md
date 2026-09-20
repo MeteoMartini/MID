@@ -1,3 +1,13 @@
+# MID v0.9.85.67
+
+- Das 24-h-Wetterprofil verhindert nun widersprüchliche Wolkenaussagen: Schichtbewölkung wird als „n. v.“ behandelt, wenn H/M/L der Gesamtbewölkung klar widerspricht, statt z. B. „Klar“ zusammen mit 100/100/0 % als scheinbar belastbare Kombination zu zeigen.
+- Trockene Wetterzustände werden auch ohne lokale Stationskorrektur mit der tatsächlich verwendeten Gesamt-/Tiefbewölkung und Sicht abgeglichen. Die Okta-Einordnung verhindert, dass etwa 12 % Bedeckung als vollständig wolkenlos bezeichnet werden.
+- ICON-D2-RUC: VIS, CEILING, HZEROCL und SNOWLMT werden für +0…6 h zusätzlich in ihrer nativen 15-Minuten-Auflösung vorverarbeitet und in die kanonische 15-Minuten-Kurzfrist übernommen. Der bisherige stündliche Fallback bleibt erhalten.
+- Gesamt-, tiefe, mittelhohe und hohe Bewölkung (CLCT/CLCL/CLCM/CLCH) bleiben bewusst stündlich; MID erfindet keine 15-Minuten-Bewölkungsdaten.
+- Die 90-Minuten-Einzeldaten können native Sicht, Ceiling sowie Nullgrad- und Schneefallgrenze nutzen. Radar und lokale Beobachtungen behalten im Nahbereich Vorrang.
+- Meteogramm, Warnungen, Wasser/Tide und „Mehr“ erhalten den nächsten responsiven MID-18.2-Polish: vollständige Texte, begrenzte Arbeitsflächen, sichere Bottom-Bar-Abstände und robuste Light/Dark-Darstellung.
+- Keine Reduktion der stündlichen Skybar-/Wolkenauflösung und keine Änderung der Warnschwellen oder Radarpriorität.
+
 # MID v0.9.85.66
 
 - Der in Replit vollständig geprüfte MID-18.2-Redesign-Block für Vorhersage und Karten/Radar wurde in den kanonischen MID-Build übernommen.
