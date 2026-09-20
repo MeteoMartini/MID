@@ -1,0 +1,230 @@
+/* MID v0.9.85.67 · Sekundäre Arbeitsräume finalisieren
+   Replit-abgenommener MID-18.2-Finish für Warnungen, Wasser/Tide und Mehr.
+   Fachlogik, Datenquellen und Zeitauflösung bleiben unverändert. */
+
+html[data-mid-design='next']{
+ --mid18-secondary-safe-clearance:calc(var(--mid18-footer-nav-clearance,88px) + 10px);
+}
+
+/* Mobile Bottom-Bar: lokale Arbeitsräume bleiben als Scroll-/Fokusziel vollständig
+   oberhalb der fixierten Navigation erreichbar, ohne zusätzlichen sichtbaren Footer-Abstand. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs :is(
+  .warnings-responsive-shell,
+  .water-overview,
+  .meteogram-card.open,
+  .modern-map-focus-shell,
+  .forecast-cockpit.modern-workspace
+ ){
+  scroll-margin-bottom:var(--mid18-secondary-safe-clearance)!important;
+  scroll-padding-bottom:var(--mid18-secondary-safe-clearance)!important;
+  min-width:0!important;
+  max-width:100%!important;
+ }
+}
+
+/* Warnungen · amtliche Lage zuerst, aber alle langen Fachtexte vollständig lesbar. */
+html[data-mid-design='next'] .warnings-responsive-shell{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .warnings-responsive-shell :is(
+ .warnings-hybrid-head>div,
+ .warning-event-main,
+ .official-message,
+ .hazard-context,
+ .warning-event-origin,
+ .official-alert-head,
+ .mid-data-status
+){
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .warnings-responsive-shell :is(
+ .warnings-hybrid-head>div>span,
+ .warning-event-main strong,
+ .warning-event-main small,
+ .official-message,
+ .hazard-context,
+ .warning-event-origin,
+ .mid-data-status b
+){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .warnings-responsive-shell :is(
+ .official-warnings,
+ .hazards-responsive-card,
+ .warning-event-tab
+){
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .warnings-responsive-shell details[open]{
+ scroll-margin-bottom:var(--mid18-secondary-safe-clearance)!important;
+}
+@media(max-width:620px){
+ html[data-mid-design='next'] .warnings-hybrid-head{
+  align-items:start!important;
+ }
+ html[data-mid-design='next'] .warnings-extreme-entry{
+  min-height:38px!important;
+  max-width:100%!important;
+  white-space:normal!important;
+ }
+ html[data-mid-design='next'] .warning-event-row{
+  min-width:0!important;
+ }
+}
+
+/* Wasser/Tide · ein Instrument, keine Seitenüberbreite. */
+html[data-mid-design='next'] :is(
+ .water-overview,
+ .water-panel-toolbar,
+ .water-assessment,
+ .water-metric-group,
+ .water-tides,
+ .water-source
+){
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .water-metric-group>div,
+html[data-mid-design='next'] .water-tides>div{
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .water-metric-card,
+html[data-mid-design='next'] .water-tides>div>article{
+ min-width:0!important;
+}
+html[data-mid-design='next'] :is(
+ .water-metric-copy strong,
+ .water-metric-copy small,
+ .water-metric-detail,
+ .water-source
+){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+@media(max-width:430px) and (orientation:portrait){
+ html[data-mid-design='next'] .water-tides>div{
+  scroll-padding-inline:2px!important;
+  overscroll-behavior-x:contain!important;
+ }
+ html[data-mid-design='next'] .water-tides>div>article{
+  scroll-snap-stop:normal;
+ }
+}
+
+/* Mehr · klare progressive Gruppen statt langer, flacher Liste. */
+html[data-mid-design='next'] .navigation-bottom-tabs .dashboard-section-drawer.modern-more-drawer{
+ grid-template-rows:auto auto minmax(0,1fr) auto!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .modern-more-quick-actions{
+ min-width:0!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .modern-more-quick-actions>button{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .modern-more-quick-actions>button span,
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .modern-more-quick-actions :is(strong,small){
+ min-width:0!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive{
+ display:grid!important;
+ align-content:start!important;
+ gap:8px!important;
+ padding:10px 12px 14px!important;
+ overflow-y:auto!important;
+ overscroll-behavior-y:contain!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details{
+ min-width:0!important;
+ overflow:hidden!important;
+ border:1px solid var(--mid-surface-line)!important;
+ border-radius:14px!important;
+ background:color-mix(in srgb,var(--mid-surface-raised) 30%,var(--mid-surface-base))!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details>summary{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto auto!important;
+ align-items:center!important;
+ gap:8px!important;
+ min-height:44px!important;
+ padding:9px 11px!important;
+ color:var(--text)!important;
+ font-size:11px!important;
+ font-weight:850!important;
+ list-style:none!important;
+ cursor:pointer;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details>summary::-webkit-details-marker{
+ display:none;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details>summary>small{
+ display:grid!important;
+ min-width:24px!important;
+ min-height:24px!important;
+ place-items:center!important;
+ padding-inline:6px!important;
+ border-radius:999px!important;
+ background:color-mix(in srgb,var(--accent) 8%,var(--mid-surface-raised))!important;
+ color:var(--muted)!important;
+ font-size:9px!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details>summary>svg{
+ transition:transform .16s ease;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details[open]>summary>svg{
+ transform:rotate(180deg);
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details>section{
+ display:grid!important;
+ gap:3px!important;
+ padding:3px 6px 7px!important;
+ border-top:1px solid var(--mid-surface-line)!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive button{
+ min-width:0!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive button :is(b,em){
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer :is(
+ button,
+ summary
+):focus-visible{
+ outline:2px solid color-mix(in srgb,var(--accent) 78%,white)!important;
+ outline-offset:2px!important;
+}
+html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive button.active{
+ box-shadow:inset 3px 0 0 var(--accent)!important;
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .modern-more-quick-actions{
+  grid-template-columns:1fr!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .modern-more-quick-actions>button{
+  min-height:54px!important;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] .navigation-bottom-tabs .modern-more-drawer .dashboard-section-nav-list.drawer.progressive>details>summary>svg{
+  transition:none!important;
+ }
+}
