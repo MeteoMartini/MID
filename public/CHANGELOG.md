@@ -1,3 +1,14 @@
+# MID v0.9.85.56
+
+- Die wichtigsten Bedienelemente in Vorhersage, Radar/Karten, Meteogramm, Wasser/Tide und Ensemble folgen nun einer einheitlicheren visuellen Grammatik.
+- Segment-, Layer- und Schnellwahl-Schalter nutzen konsistentere Höhen, Radien, Abstände und aktive Zustände, ohne fachliche Funktionen oder Zeitachsen zu verändern.
+- Zeitachsen/Timeline-Bedienungen sind ruhiger und lesbarer aufgebaut; Play/Schrittsteuerung, aktuelle Zeit und Zusatzinfo erhalten eine klarere Gewichtung.
+- Auf Smartphones bleiben horizontale Kontrollleisten vollständig bedienbar und scrollen bei Bedarf, statt Schrift oder Touch-Ziele zu verkleinern.
+- Normale Quellen-/Aktualitätsstatus treten visuell zurück; eingeschränkte, ausstehende oder gestörte Zustände bleiben deutlich sichtbar.
+- Formfelder in Meteogramm, Wasser/Tide und Karten folgen derselben ruhigen Kontrollhöhe; auf Touch-Geräten bleibt der iOS-Zoomschutz erhalten.
+- Die Schutzregeln aus v0.9.85.50–55 bleiben bestehen: Niederschlagslesbarkeit, ruhiger mobiler Kartenhintergrund, Bottom-Bar/Safe-Area, Taupunkt primär, Favoriten, C9-Forecast-Scroll, kein horizontaler Overflow und 24-stündige nicht normalisierte Skybar.
+- Keine meteorologische Datenlogik, fachliche Zeitskala oder Warnsemantik wurde verändert.
+
 # MID v0.9.85.55
 
 - Die mobile Bottom-Bar erhält eine ruhigere optische Abschlusszone und mehr Scroll-/Inhaltsreserve, ohne ihre Position oder Funktion zu verändern.
