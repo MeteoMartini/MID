@@ -1,3 +1,14 @@
+# MID v0.9.85.77
+
+- Warnungen sind jetzt als ruhige, zeitlich sortierte Ereignis-Timeline aufgebaut: Eine „Jetzt“-Marke trennt den aktuellen Zeitpunkt klar von laufenden und kommenden Ereignissen.
+- Amtliche Warnungen bleiben fachlich führend und vollständig abrufbar; MID-Prognosehinweise sind optisch und inhaltlich klar als Ergänzung gekennzeichnet.
+- Abgelaufene Warnungen erscheinen nicht mehr als aktive Ereignisse. Aktive und kommende Meldungen werden nach ihrem Beginn sortiert.
+- Die Warnstufe wird ausschließlich über den farbigen Warnmarker codiert; bloße Hinweise erhalten keine amtliche Warnfarbe.
+- Eine Störung der amtlichen Quelle wird ausdrücklich als „Warnstatus nicht bestimmbar“ angezeigt und niemals als Entwarnung dargestellt.
+- Soweit die amtliche Meldung eine Eintrittswahrscheinlichkeit liefert, wird sie direkt am Ereignis angezeigt.
+- Warnungen sind aus dem Ortskopf direkt erreichbar; „Extremwetter“ besitzt im Warnbereich einen eigenen Einstieg.
+- Die neue Warnansicht wurde für schmale und breite Smartphones, Tablet Hoch-/Querformat sowie Desktop in Hell und Dunkel geprüft.
+
 # MID v0.9.85.76
 
 - Ein reproduzierter Veröffentlichungs-Race ist behoben: Ein bereits laufender RUC-Pages-Lauf konnte nach einem neuen App-Deploy noch den älteren `mid-stable`-App-Shell zurück auf Pages schreiben.
