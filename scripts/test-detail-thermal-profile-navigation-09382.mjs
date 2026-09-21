@@ -28,7 +28,7 @@ for(const token of [
  'const moveProfileHour=(delta:-1|1)',
  "event.key!=='ArrowLeft'&&event.key!=='ArrowRight'",
  "plot.addEventListener('wheel',wheel,{passive:false})",
- 'tabIndex={0} role="application" aria-label="24-Stunden-Wetterprofil. Pfeil links und rechts wechseln stündlich; das Mausrad wirkt nur über der Diagrammfläche."',
+ 'data-mid-profile-contract="d" data-mid-time-track="24h" tabIndex={0} role="application" aria-label="24-Stunden-Wetterprofil mit stündlichen Hilfslinien und 3-Stunden-Zeitlabels. Pfeil links und rechts wechseln stündlich; das Mausrad wirkt nur über der Diagrammfläche."',
  'className="cockpit-weather-profile__stepper"',
  'aria-label="Vorheriger Zeitpunkt"',
  'aria-label="Nächster Zeitpunkt"',
