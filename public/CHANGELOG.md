@@ -1,3 +1,14 @@
+# MID v0.9.85.80
+
+- Das Modul **Heute / 24-h-Wetterprofil** nutzt eine gemeinsame Zeitspur für Wetterstreifen, Temperatur, weitere Parameter, Auswahlmarker und Einzeldaten.
+- Vertikale Hilfslinien bleiben stündlich sichtbar; Zeitangaben werden in einem ruhigen 3-Stunden-Raster sowie an relevanten Tagesgrenzen beschriftet.
+- Skybar und optionale Stundenquadrate bleiben auch bei verdichteter Kurvendarstellung stündlich und verwenden unverändert dieselbe zentrale Sonne-/Bewölkung-/Niederschlagslogik.
+- Die Temperaturkurve nutzt die bestehende ECMWF-Farbskala und wurde bei Markern, Auswahl und Extrema visuell beruhigt.
+- Zeit-Lupe und Einzeldaten folgen exakt demselben gewählten Zeitpunkt; Wettertext und Piktogramm bleiben damit zu den angezeigten Parametern konsistent.
+- Tagesdetail und 24-h-Profil wurden für Smartphone, Tablet und Desktop sowie Light/Dark weiter verdichtet. Overlays, Legenden und Einzeldaten bleiben innerhalb des Viewports und berücksichtigen die mobile Bottom-Bar-Safe-Area.
+- Fehlende Wetterwerte werden nicht als künstliche Nullwerte ergänzt. Wetterfachlogik, Warnungen, RUC/Nowcast, Radar/Karten, Datenfusion und Wetterzwilling bleiben unverändert.
+- Replit hat das Arbeitspaket umgesetzt und geprüft; Veröffentlichung und Stable-Promotion erfolgen ausschließlich durch ChatGPT.
+
 # MID v0.9.85.79
 
 - Der überflüssig gewordene Einstellungspunkt für die dauerhaft sichtbare Bottom-Bar wurde entfernt. Die fünf Hauptziele bleiben verbindlicher Bestandteil des neuen MID-Designs.
