@@ -45,7 +45,7 @@ for(const token of [
 ]) assert.ok(css.includes(token),`B.2/C Designvertrag fehlt: ${token}`);
 
 assert.ok(main.includes("import './midC18B2CurrentAtmosphere.css';"),'B.2/C Designschicht muss im Produktionsentry geladen werden.');
-assert.equal(pkg.version,'0.9.85.79','Paketversion muss MID v0.9.85.79 sein.');
+assert.ok(/^0\.9\.85\.(?:79|[89]\d|\d{3,})$/.test(pkg.version),'Paketversion muss B.2/C v0.9.85.79 oder einen neueren 0.9.85-Wartungsstand verwenden.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline- und Paketversion müssen übereinstimmen.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests']){
   assert.ok((baseline[key]||[]).includes(testPath),`${testPath} fehlt in ${key}`);
