@@ -9,7 +9,7 @@ const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failu
 for(const token of [
  'chartHeight=profileY(632)',
  'chartCanvasHeight=chartHeight',
- 'timeLabelStepMs=(chartViewportWidth<=560?6:chartViewportWidth<=860?4:3)*3600000',
+ 'timeLabelStepMs=3*3600000','profileHourGridPoints=profileHourlyPoints.filter',
  'weatherPictogramStep=1',
  'profileWeatherIconY=profileY(78)',
  "const visibleTemperatureExtreme=(kind:'max'|'min')",
