@@ -502,7 +502,8 @@
     "test:mid-18-2-4-warning-timeline": "node scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
     "test:mid-18-2-4-bottom-favorites": "node scripts/test-mid-18-2-4-bottom-favorites-098578.mjs",
     "test:mid-18-2-4-b2-current": "node scripts/test-mid-18-2-4-b2-current-098579.mjs",
-    "test:mid-18-2-4-today-profile": "node scripts/test-mid-18-2-4-today-profile-098580.mjs"
+    "test:mid-18-2-4-today-profile": "node scripts/test-mid-18-2-4-today-profile-098580.mjs",
+    "test:mid-18-2-4-d2": "node scripts/test-mid-18-2-4-d2-trend-night-098580.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
