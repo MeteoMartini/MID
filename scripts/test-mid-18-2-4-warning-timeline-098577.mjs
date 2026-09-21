@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const [app,weather,css,main,worker,pkgRaw,baselineRaw]=await Promise.all([
+const [app,weather,weatherSource,css,main,worker,pkgRaw,baselineRaw]=await Promise.all([
  read('src/App.tsx'),
  read('src/weather.ts'),
+ read('src/weather-src/00-types-models-search.tsfrag'),
  read('src/midC18WarningTimeline.css'),
  read('src/main.tsx'),
  read('worker-src/00-core-observations.js'),
@@ -49,6 +50,7 @@ assert.ok(!css.includes('.warning-event-row.yellow{background:'),'Warnstufenfarb
 assert.ok(main.includes("import './midC18WarningTimeline.css';"),'Warnungs-Timeline-CSS wird nicht geladen.');
 assert.ok(main.indexOf('midC18WarningTimeline.css')>main.indexOf('midC18ReplitHandoffPolish.css'),'Warnungs-Timeline muss die abschließende Redesign-Schicht sein.');
 assert.ok(weather.includes('probability?:number|string'),'Amtliche Warnung muss optionale Eintrittswahrscheinlichkeit transportieren können.');
+assert.ok(weatherSource.includes('probability?:number|string'),'Weather-Source-of-Truth muss die optionale Eintrittswahrscheinlichkeit dauerhaft erhalten.');
 assert.ok(worker.includes('capWarningProbability')&&worker.includes("'PROBABILITY','PROBABILITY_VALUE','PROBABILITYVALUE','LIKELIHOOD'"),'Worker darf vorhandene amtliche Wahrscheinlichkeitsfelder nicht verlieren.');
 assert.equal(pkg.version,'0.9.85.77','Paketversion ist nicht MID v0.9.85.77.');
 assert.equal(baseline.releaseVersion,pkg.version,'Paket- und Baseline-Version müssen synchron sein.');
