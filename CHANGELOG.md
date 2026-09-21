@@ -1,3 +1,11 @@
+## MID v0.9.85.78 · 21.09.2026 · MID 18.2.4 Arbeitspaket B
+
+- Die fünf Hauptziele der Bottom-Bar bleiben jetzt dauerhaft sichtbar; die frühere Auto-Minimierung entfällt.
+- Safe-Area und Platz für die Bottom-Bar werden mobil nur noch einmal reserviert, damit keine unnötigen Leerflächen entstehen.
+- Die Favoritenleiste ist kompakter und ruhiger, Ortsnamen bleiben einzeilig lesbar und die Leiste scrollt auf schmalen Geräten intern horizontal.
+- Bottom-Bar und Favoriten folgen derselben MID-Materialität; aktiver Ort und aktiver Bereich werden klar, aber zurückhaltend markiert.
+- Wetter-, Warn-, RUC-/Nowcast-, Skybar-, Karten- und Prognoselogik bleiben unverändert.
+
 # MID v0.9.85.77
 
 - Warnungen sind jetzt als ruhige, zeitlich sortierte Ereignis-Timeline aufgebaut: Eine „Jetzt“-Marke trennt den aktuellen Zeitpunkt klar von laufenden und kommenden Ereignissen.
