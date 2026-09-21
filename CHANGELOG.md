@@ -1,3 +1,13 @@
+# MID v0.9.85.68
+
+- Der MID-18.2-Abschluss für „Ab jetzt“, 90-Minuten-Vorhersage und 24-h-Wetterprofil wurde auf die gemeinsame professionelle MID-Flächenhierarchie gebracht.
+- Status, 90-Minuten-Instrument, 24-h-Profil und kompakte 24-Stunden-Leiste bleiben vollständig erhalten, sind aber klarer voneinander gegliedert und können die Seite auf kleinen Displays nicht mehr horizontal verbreitern.
+- Das 24-h-Profil hält Toolbar, Legende, Diagramm, Auswahlzustand und Einzeldaten auch auf schmalen Geräten innerhalb ihrer Instrumentfläche; lange Labels und Detailtexte dürfen umbrechen statt abgeschnitten zu werden.
+- Mobile Safe-Area und Bottom-Bar-Abstand werden für die Kurzfrist- und Profilflächen verbindlich berücksichtigt.
+- Sichtbare Preview-/Demo-/Mockup-Entwicklungsmarker sind im produktiven Wetter-/Forecastpfad nicht vorhanden.
+- Replit-Abnahme: Wetter/Aktuell, Heute/24-h-Profil, Forecast, Radar/Karten, Warnungen, Wasser/Tide und Mehr auf 390×844, 430×932, 834×1112, 1112×834 und 1440×900 jeweils Light/Dark bestanden; Typecheck, Produktionsbuild und Diff-Prüfung grün.
+- Keine Änderung an Wetterdaten-, RUC-, Warn-, Radar-, Nowcast-, Tide- oder Forecast-Fachlogik.
+
 # MID v0.9.85.67
 
 - Der in Replit vollständig abgenommene MID-18.2-Finish für Meteogramm, Warnungen, Wasser/Tide und „Mehr“ wurde in den kanonischen MID-Build übernommen.
