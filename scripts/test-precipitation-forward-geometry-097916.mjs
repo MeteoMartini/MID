@@ -7,7 +7,7 @@ assert.ok(intervals.includes('Anzeige(S) = Rohwert(S + 60 min)')||contract.inclu
 assert.ok(sky.includes('xPositions represent interval starts'),'Skybar dokumentiert Slotstart-Geometrie nicht.');
 assert.ok(sky.includes('const rawEnd=Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;'),'Skybar endet nicht am Folgeslot.');
 assert.ok(!sky.includes('const rawX0=index===0?leftEdge:(prev+x)*0.5'),'Alte zentrierte Skybar-Geometrie ist noch aktiv.');
-assert.ok(app.includes('const xAt=(i:number)=>left+(i/Math.max(1,p.length))*plotW'),'24-h-Achse reserviert 24:00 nicht als rechte Slotkante.');
+assert.ok(app.includes('profileTrackMinutes=24*60')&&app.includes('const xClock=(minutes:number)=>left+(clamp(minutes,0,profileTrackMinutes)/profileTrackMinutes)*plotW')&&app.includes('skyBarTimelinePoints.map(point=>point.x)'),'24-h-Achse und Skybar müssen dieselbe vorwärts gerichtete Zeitspur bis 24:00 verwenden.');
 assert.ok(app.includes('slotRight=slotEndAt(i)')&&app.includes('barLeft=Math.max(left,slotLeft+barInset)'),'24-h-Niederschlagsbalken sind nicht im Vorwärtsslot verankert.');
 assert.ok(app.includes('probabilityCurvePoints=showProbability&&p.length')&&app.includes('monotoneSvgPath(probabilityCurvePoints)'),'24-h-Niederschlagswahrscheinlichkeit wird nicht aus den Vorwärtsslot-Ankern monoton geglättet.');
 assert.ok(cockpit.includes('probabilityCurvePoints=chartPoints.length')&&cockpit.includes('precipitationStartX')&&cockpit.includes('precipitationEndX')&&cockpit.includes('monotoneSvgPath(probabilityCurvePoints)'),'Wetterprofil-PoP verliert Intervallanker oder monotone Glättung.');
