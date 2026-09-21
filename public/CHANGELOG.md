@@ -1,3 +1,13 @@
+# MID v0.9.85.74
+
+- Der RUC-Pages-Fehler oberhalb der 950-MB-Sicherheitsgrenze ist behoben: Das kostenlose RUC-Profil erhält zusätzlich ein eigenes 900-MB-Datenbudget und stoppt Übergrößen künftig bereits vor Artefakt-Upload und Pages-Publish.
+- Native 15-Minuten-Zustandsdaten werden auf **Sicht und Ceiling** konzentriert. Beide können sich bei Nebel/Stratus rasch ändern und profitieren meteorologisch von der höheren Kadenz.
+- Nullgrad- und Schneefallgrenze bleiben stündlich; die eigentliche Niederschlagsphase (Regen/Schnee/Graupel) bleibt separat nativ 15-minütig. Dadurch geht keine relevante kurzfristige Phaseninformation verloren.
+- Die drei 15-Minuten-Solarvollfelder werden im kostenlosen Produktionspfad nicht mehr geladen bzw. auf Pages publiziert, weil der sichtbare MID-Kurzfristpfad sie derzeit nicht konsumiert.
+- Der reale DWD-RUC-Lauf zeigte Gesamt-/Schichtbewölkung, Temperatur, Druck und Wind für 0…+6 h weiterhin stündlich. MID behauptet dafür deshalb keine native 15-Minuten-Auflösung; die 15-Minuten-Anzeige interpoliert diese Zustände weiterhin transparent.
+- Erwartete RUC-Pages-Größe sinkt anhand des fehlerhaften Laufs von rund 1.020 MB auf rund **884 MB**; zusammen mit dem aktuellen App-Build auf rund **897 MB**.
+- Der CodeQL-Hinweis „Incomplete URL substring sanitization“ in einem reinen Dependency-Audit-Test wurde als Testmuster bereinigt; Produktions-URL-Validierung war davon nicht betroffen.
+
 # MID v0.9.85.73
 
 - Die operative RUC-Kurzfrist verwendet nun parameter-native Zeitauflösungen statt einer pauschalen Stundenauflösung.
