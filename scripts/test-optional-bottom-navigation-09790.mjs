@@ -9,11 +9,12 @@ for(const token of [
  "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<details key={group.id}',"!['current','short-term','forecast','ensemble','composite'].includes(id)", 'place-warning-status'
 ])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-Vertrag fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss als Primärtab direkt erreichbar sein');
-assert.ok(app.includes("return'fixed' as BottomBarBehavior"),'Bottom-Bar muss im obligatorischen Design fixiert sichtbar bleiben.');
+assert.ok(app.includes("type BottomBarBehavior='fixed'")&&app.includes("return'fixed'"),'Bottom-Bar muss im obligatorischen Design fixiert sichtbar bleiben.');
 assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Auto-Hide-Schwellen dürfen nicht zurückkehren.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Der alte Beta-Schalter darf nicht mehr in der App stehen.');
 assert.ok(!app.includes('<span>Bedienkonzept</span>'),'Der alte Menü-Unterpunkt Bedienkonzept muss entfernt sein.');
+assert.ok(!app.includes('bottom-bar-display-settings')&&!app.includes('setBottomBarBehavior'),'Auch der nun obsolete Bottom-Bar-Einstellungspunkt muss entfernt sein.');
 for(const token of [
  '--mid18-mobile-nav-reserve',
  '.navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs',
