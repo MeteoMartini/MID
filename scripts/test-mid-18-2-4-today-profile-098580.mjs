@@ -58,7 +58,7 @@ for(const token of [
 assert.ok(main.includes("import './midC18TodayProfile.css';"),'D-Designschicht muss produktiv geladen werden.');
 assert.ok(main.indexOf("midC18TodayProfile.css")>main.indexOf("midC18B2CurrentAtmosphere.css"),'D-Designschicht muss nach B.2/C laden.');
 
-assert.equal(pkg.version,'0.9.85.80','Paketversion muss MID v0.9.85.80 sein.');
+assert.ok(/^0\.9\.85\.(?:80|8[1-9]|9\d|\d{3,})$/.test(pkg.version),'Paketversion muss D v0.9.85.80 oder einen neueren 0.9.85-Wartungsstand verwenden.');
 assert.equal(baseline.version,pkg.version,'Baseline-Version muss Paketversion entsprechen.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline-Releaseversion muss Paketversion entsprechen.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests']){
@@ -68,4 +68,4 @@ for(const path of [testPath,'src/midC18TodayProfile.css','MID_TODAY_PROFILE_0.9.
   assert.ok((baseline.requiredFiles||[]).includes(path),`${path} fehlt in requiredFiles`);
 }
 
-console.log('MID v0.9.85.80: gemeinsames 24-h-Zeitprofil, stündliches Raster, 3-h-Labels, Skybar/Quadrate und Einzeldaten geschützt.');
+console.log(`MID v${pkg.version}: gemeinsames 24-h-Zeitprofil, stündliches Raster, 3-h-Labels, Skybar/Quadrate und Einzeldaten geschützt.`);
