@@ -101,6 +101,27 @@ export function solarDaylightWindowAt(at:Date|number,location:SolarDaylightLocat
 }
 export function astronomicalIsDayAt(at:Date|number,location:SolarDaylightLocation,fallback=false){const date=at instanceof Date?at:new Date(at),window=solarDaylightWindowAt(date,location),sunrise=window.sunrise?.getTime(),sunset=window.sunset?.getTime();return Number.isFinite(sunrise)&&Number.isFinite(sunset)&&Number(sunset)>Number(sunrise)?date.getTime()>=Number(sunrise)&&date.getTime()<Number(sunset):fallback}
 
+export type SolarTimelineEvent={kind:'sunrise'|'sunset';epoch:number};
+export type SolarNightBand={startEpoch:number;endEpoch:number;fadeIn:boolean;fadeOut:boolean};
+/** Gemeinsame minutengenaue Solar-Geometrie für Wetterprofile. */
+export function solarTimelineWindow(startEpoch:number,endEpoch:number,location:SolarDaylightLocation,fallbackIsDay=false){
+ const start=Number(startEpoch),end=Number(endEpoch),timezone=location.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
+ if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||!Number.isFinite(Number(location.latitude))||!Number.isFinite(Number(location.longitude)))return{events:[] as SolarTimelineEvent[],nightBands:[] as SolarNightBand[]};
+ const startParts=localDateParts(new Date(start),timezone),eventsByKey=new Map<string,SolarTimelineEvent>();
+ for(let dayOffset=-1;dayOffset<=3;dayOffset++){
+  const parts=shiftDate(startParts,dayOffset),times=sunTimesForDate(parts,Number(location.latitude),Number(location.longitude),Number(location.elevation)||0,timezone);
+  for(const [kind,value] of [['sunrise',times.sunrise],['sunset',times.sunset]] as const){const epoch=value?.getTime();if(!Number.isFinite(epoch)||Number(epoch)<start-36*3600000||Number(epoch)>end+36*3600000)continue;eventsByKey.set(`${kind}:${epoch}`,{kind,epoch:Number(epoch)})}
+ }
+ const events=[...eventsByKey.values()].filter(event=>event.epoch>start&&event.epoch<end).sort((a,b)=>a.epoch-b.epoch),nightBands:SolarNightBand[]=[];
+ let cursor=start,isDay=astronomicalIsDayAt(start,location,fallbackIsDay);
+ for(const event of events){
+  if(!isDay&&event.epoch>cursor)nightBands.push({startEpoch:cursor,endEpoch:event.epoch,fadeIn:cursor>start,fadeOut:event.kind==='sunrise'});
+  cursor=Math.max(cursor,event.epoch);isDay=event.kind==='sunrise';
+ }
+ if(!isDay&&end>cursor)nightBands.push({startEpoch:cursor,endEpoch:end,fadeIn:cursor>start,fadeOut:false});
+ return{events,nightBands};
+}
+
 function dayLengthSeconds(sunrise?:Date,sunset?:Date){if(!sunrise||!sunset)return Number.NaN;const seconds=(sunset.getTime()-sunrise.getTime())/1000;return seconds>0&&seconds<DAY_MS/1000?seconds:Number.NaN}
 function moonTimesForDate(parts:{year:number;month:number;day:number},lat:number,lon:number,height:number,timezone:string){
  const observer=observerFor(lat,lon,height),{start,end,limitDays}=localDayWindow(parts,timezone),moonrise=riseSetWithin(Body.Moon,observer,1,start,end,limitDays),moonset=riseSetWithin(Body.Moon,observer,-1,start,end,limitDays),altitudeAtStart=bodyAltitude(Body.Moon,new Date(start.getTime()+1000),observer,'normal'),noCrossing=!moonrise&&!moonset;
