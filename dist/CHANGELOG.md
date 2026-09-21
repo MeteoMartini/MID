@@ -1,3 +1,12 @@
+# MID v0.9.85.82
+
+- **D.2-Korrektur:** Die sichtbare Temperaturdifferenz vergleicht wieder ausschließlich die hyperlokal korrigierte Temperatur der aktuellen **vollen Stunde** mit dem ebenfalls hyperlokal korrigierten Wert exakt **+12 volle Stunden** später.
+- Minutengenaue Startpunkte und mehrphasige Trendtexte sind entfernt; angezeigt wird nur noch eine auf ganze Kelvin gerundete Differenz T(+12 h) − T(0 h).
+- Die 12-h-Zeitachse startet mit der tatsächlichen vollen Uhrzeit statt mit einem missverständlichen „Jetzt“.
+- Nachtstunden sind hinter Temperaturkurve, Skybar/Stundenquadraten und im 24-h-Profil etwas deutlicher markiert, bleiben aber transparent, theme-adaptiv und untergeordnet gegenüber den meteorologischen Farben.
+- Stündliche Skybar-Auflösung, Niederschlags-/Bewölkungs-/Sonnenlogik und die gemeinsame Sonnengeometrie bleiben unverändert.
+- Replit hat die Korrektur einschließlich Regressionen, Typecheck, Produktionsbuild sowie Light/Dark auf 360×800, 390×844, 430×932, 768×1024, 1024×768 und 1440×900 geprüft.
+
 # MID v0.9.85.81
 
 - **D.2:** Der 12-h-Temperaturtrend verwendet jetzt ausschließlich die bereits kanonisch lokal beziehungsweise hyperlokal angepasste Stundenreihe. Ein isolierter Messwert wird nicht mehr als Startwert in eine anders korrigierte Kurve gemischt.
