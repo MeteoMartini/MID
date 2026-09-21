@@ -1630,7 +1630,8 @@
     "MID_RUC_NATIVE_CADENCE_0.9.85.73.md",
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
     "MID_RUC_PAGES_BUDGET_0.9.85.74.md",
-    "scripts/test-pages-release-race-098576.mjs"
+    "scripts/test-pages-release-race-098576.mjs",
+    "MID_PAGES_RELEASE_RACE_0.9.85.76.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1902,7 +1903,8 @@
     "src/midC18EnsembleInteractionPolish.css",
     "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
     "src/midC18EnsembleSynopticPolish.css",
-    "MID_SYNOPTIC_FRONT_STYLE_0.9.85.70.md"
+    "MID_SYNOPTIC_FRONT_STYLE_0.9.85.70.md",
+    "MID_PAGES_RELEASE_RACE_0.9.85.76.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
