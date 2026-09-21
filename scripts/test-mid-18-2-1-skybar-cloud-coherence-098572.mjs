@@ -21,9 +21,10 @@ assert.ok(skybar.includes('if(cover>=87.5)return 3')===false,'Skybar darf keine 
 assert.ok(cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)')&&cockpit.includes('now90SkySegments=detailSkyBarSegments(now90,2,2,120,8)'),'90-min-Skybar muss direkt aus derselben finalisierten Kurzfristreihe stammen.');
 assert.ok(cockpit.includes('<span className="cockpit-now90-weather">{item.weatherLabel}</span>'),'90-min-Wettertext muss aus demselben Kurzfristpunkt stammen wie die Skybar.');
 assert.ok(rucFetch.includes("FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL'"),'RUC CLCT/CLCL müssen weiter im kanonischen Forecastkern liegen.');
-assert.ok(rucFetch.includes("for param in FORECAST_REQUIRED:")&&rucFetch.includes("mode='hourly'"),'RUC-Gesamt-/Tiefbewölkung wird derzeit bewusst stündlich übernommen; 15-min-Anzeige darf nicht als native CLCT-Cadence behauptet werden.');
-assert.equal(pkg.version,'0.9.85.72');
+assert.ok(rucFetch.includes("for param in FORECAST_REQUIRED:")&&rucFetch.includes("mode='hourly'"),'Der robuste stündliche RUC-Fallback muss erhalten bleiben.');
+assert.ok(rucFetch.includes("RAPID_STATE_OPTIONAL_15=")&&rucFetch.includes("'CLCT','CLCL'")&&rucFetch.includes("stage/'rapid-state'/param")&&rucFetch.includes("mode='rapid15'"),'CLCT/CLCL müssen zusätzlich parameter-nativ als 15-min-Kandidaten geprüft werden.');
+assert.match(pkg.version,/^0\.9\.85\.(?:7[3-9]|[89]\d|\d{3,})$/);
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredTests','regressionTests'])assert.ok(baseline[key]?.includes(self),`${self} fehlt in ${key}`);
 
-console.log('MID v0.9.85.72: Skybar, Wettertext und Piktogramm verwenden für trockene Kurzfrist denselben Gesamtbewölkungszustand; RUC-CLCT bleibt ehrlich als stündlicher Eingang dokumentiert.');
+console.log(`MID v${pkg.version}: Skybar, Wettertext und Piktogramm verwenden denselben Gesamtbewölkungszustand; RUC-CLCT nutzt native 15 min wenn vollständig verfügbar, sonst den ehrlichen Stundenfallback.`);
