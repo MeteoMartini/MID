@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.79",
+  "version": "0.9.85.80",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -501,7 +501,8 @@
     "test:pages-release-race": "node scripts/test-pages-release-race-098576.mjs",
     "test:mid-18-2-4-warning-timeline": "node scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
     "test:mid-18-2-4-bottom-favorites": "node scripts/test-mid-18-2-4-bottom-favorites-098578.mjs",
-    "test:mid-18-2-4-b2-current": "node scripts/test-mid-18-2-4-b2-current-098579.mjs"
+    "test:mid-18-2-4-b2-current": "node scripts/test-mid-18-2-4-b2-current-098579.mjs",
+    "test:mid-18-2-4-today-profile": "node scripts/test-mid-18-2-4-today-profile-098580.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
