@@ -18,6 +18,7 @@
     opacity:1!important;
     visibility:visible!important;
     pointer-events:auto!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
     gap:2px!important;
     padding:5px!important;
     border:1px solid color-mix(in srgb,var(--border) 88%,transparent)!important;
