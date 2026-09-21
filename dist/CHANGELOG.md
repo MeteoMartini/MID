@@ -1,3 +1,14 @@
+# MID v0.9.85.79
+
+- Der überflüssig gewordene Einstellungspunkt für die dauerhaft sichtbare Bottom-Bar wurde entfernt. Die fünf Hauptziele bleiben verbindlicher Bestandteil des neuen MID-Designs.
+- Die Favoriten-Schnellleiste dient nur noch zur Ortsauswahl. Ihre Reihenfolge lässt sich ausschließlich im Einstellungsmenü „Favoriten verwalten“ ändern.
+- Drag-Griffe und Reorder-Logik entfallen aus der Schnellleiste; dadurch werden Favoriten kompakter, bleiben einzeilig und scrollen auf schmalen Geräten intern horizontal.
+- „Aktuelles Wetter“ wurde als zusammenhängende Atmosphärenkarte weiter verdichtet: Temperatur und Wetterzustand bilden die klare Hauptaussage, Kernparameter sind als ruhige Instrumentfläche angeordnet.
+- Taupunkt ist in der Feuchtehierarchie primär; relative Feuchte bleibt sekundärer Kontext.
+- Der Bereich „mehr“ ist als gemeinsame Informationsfläche mit feinen Trennlinien statt vieler gleichgewichtiger Einzelkacheln aufgebaut. Dadurch sinken Fragmentierung und mobiler Platzverbrauch.
+- Wetterfachlogik, Datenquellen, Warnungen, RUC/Nowcast, Skybar/24-Stundenquadrate, Radar/Karten und Prognoseberechnung bleiben unverändert.
+- Replit implementiert und prüft; Veröffentlichung und Stable-Promotion erfolgen ausschließlich durch ChatGPT.
+
 # MID v0.9.85.78
 
 - Die fünf mobilen Hauptziele **Aktuell, Heute, Vorhersage, Karten und Mehr** bleiben dauerhaft sichtbar; das frühere Scroll-Auto-Hide der Bottom-Bar entfällt.
