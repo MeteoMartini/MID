@@ -46,6 +46,7 @@ import './midC18ReplitHandoffPolish.css';
 import './midC18WarningTimeline.css';
 import './midC18BottomFavorites.css';
 import './midC18B2CurrentAtmosphere.css';
+import './midC18TodayProfileD.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
