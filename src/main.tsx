@@ -43,6 +43,7 @@ import './midC18SecondaryWorkspaceFinish.css';
 import './midC18TodayReleaseFinish.css';
 import './midC18EnsembleSynopticPolish.css';
 import './midC18ReplitHandoffPolish.css';
+import './midC18WarningTimeline.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
