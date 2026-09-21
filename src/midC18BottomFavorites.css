@@ -1,0 +1,111 @@
+/* MID 18.2.4 · Arbeitspaket B · Bottom-Bar + Favoriten
+   Gemeinsame, ruhige MID-Navigation mit genau einer mobilen Safe-Area-Reserve. */
+:root{
+  --mid18-mobile-nav-reserve:calc(76px + var(--mid-safe-bottom));
+}
+@media(max-width:850px){
+  .navigation-bottom-tabs{
+    padding-bottom:var(--mid18-mobile-nav-reserve)!important;
+    scroll-padding-bottom:var(--mid18-mobile-nav-reserve)!important;
+  }
+  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs,
+  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+    position:fixed!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    right:max(8px,var(--mid-safe-right))!important;
+    bottom:max(6px,var(--mid-safe-bottom))!important;
+    left:max(8px,var(--mid-safe-left))!important;
+    width:auto!important;
+    transform:none!important;
+    opacity:1!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:2px!important;
+    padding:5px!important;
+    border:1px solid color-mix(in srgb,var(--border) 88%,transparent)!important;
+    border-radius:18px!important;
+    background:color-mix(in srgb,var(--surface) 94%,transparent)!important;
+    box-shadow:0 10px 34px rgba(1,18,33,.18),0 1px 0 rgba(255,255,255,.04) inset!important;
+    backdrop-filter:blur(22px) saturate(1.08)!important;
+    -webkit-backdrop-filter:blur(22px) saturate(1.08)!important;
+  }
+  .navigation-bottom-tabs .dashboard-bottom-tabs button{
+    min-height:48px!important;
+    min-width:0!important;
+    padding:4px 2px!important;
+    border-radius:12px!important;
+    touch-action:manipulation;
+  }
+  .navigation-bottom-tabs .dashboard-bottom-tabs button span{
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+
+  .navigation-bottom-tabs .settings-header>.header-favorites{
+    display:flex!important;
+    align-items:center!important;
+    gap:5px!important;
+    min-width:0!important;
+    margin-top:2px!important;
+    padding-top:3px!important;
+  }
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles{
+    display:flex!important;
+    flex:1 1 auto!important;
+    min-width:0!important;
+    gap:5px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-inline:contain;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+    padding:1px 0 2px!important;
+  }
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles::-webkit-scrollbar{display:none}
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{
+    flex:0 0 auto!important;
+    width:max-content!important;
+    max-width:none!important;
+    min-height:36px!important;
+    padding:5px 8px!important;
+    gap:5px!important;
+    white-space:nowrap!important;
+    scroll-snap-align:start;
+    border:1px solid color-mix(in srgb,var(--border) 88%,transparent)!important;
+    border-radius:12px!important;
+    background:color-mix(in srgb,var(--surface) 86%,transparent)!important;
+    box-shadow:none!important;
+  }
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>span:not(.favorite-quick-grip),
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>small{
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    max-width:none!important;
+  }
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button.active{
+    border-color:color-mix(in srgb,var(--primary) 42%,var(--border))!important;
+    background:color-mix(in srgb,var(--primary) 7%,var(--surface))!important;
+    box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--primary) 78%,transparent)!important;
+  }
+  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{
+    flex:0 0 36px!important;
+    width:36px!important;
+    height:36px!important;
+    min-width:36px!important;
+    min-height:36px!important;
+    border-radius:12px!important;
+  }
+}
+@media(max-width:850px) and (orientation:landscape){
+  :root{--mid18-mobile-nav-reserve:calc(64px + var(--mid-safe-bottom))}
+  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs,
+  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+    bottom:max(4px,var(--mid-safe-bottom))!important;
+    padding:3px 5px!important;
+  }
+  .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:44px!important}
+}

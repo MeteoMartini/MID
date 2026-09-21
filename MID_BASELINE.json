@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.77",
+  "releaseVersion": "0.9.85.78",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -512,7 +512,8 @@
     "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
     "scripts/test-pages-release-race-098576.mjs",
-    "scripts/test-mid-18-2-4-warning-timeline-098577.mjs"
+    "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
+    "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -944,7 +945,8 @@
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
     "scripts/test-mid-18-2-2-mandatory-design-098575.mjs",
     "scripts/test-pages-release-race-098576.mjs",
-    "scripts/test-mid-18-2-4-warning-timeline-098577.mjs"
+    "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
+    "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1636,7 +1638,10 @@
     "MID_PAGES_RELEASE_RACE_0.9.85.76.md",
     "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
     "src/midC18WarningTimeline.css",
-    "MID_WARNING_TIMELINE_0.9.85.77.md"
+    "MID_WARNING_TIMELINE_0.9.85.77.md",
+    "src/midC18BottomFavorites.css",
+    "MID_BOTTOM_FAVORITES_0.9.85.78.md",
+    "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1708,7 +1713,8 @@
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
     "scripts/test-mid-18-2-2-mandatory-design-098575.mjs",
     "scripts/test-pages-release-race-098576.mjs",
-    "scripts/test-mid-18-2-4-warning-timeline-098577.mjs"
+    "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
+    "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2209,10 +2215,11 @@
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs",
-    "scripts/test-pages-release-race-098576.mjs"
+    "scripts/test-pages-release-race-098576.mjs",
+    "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs"
   ],
-  "version": "0.9.85.77",
-  "updatedAt": "2026-09-21T14:36:00.000Z",
+  "version": "0.9.85.78",
+  "updatedAt": "2026-09-21T17:45:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",

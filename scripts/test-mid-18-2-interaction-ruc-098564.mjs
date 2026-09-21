@@ -14,8 +14,9 @@ const [app,midDesign,main,css,rucFetch,rucBuild,fusion,shortTerm,audit]=await Pr
  read('MID_RUC_SHORTTERM_AUDIT_0.9.85.64.md')
 ]);
 
-assert.ok(app.includes("localStorage.getItem(BOTTOM_BAR_BEHAVIOR_KEY)==='auto'?'auto':'fixed'"),'Bottom-Bar muss ohne explizite Auto-Wahl fixiert starten.');
-assert.ok(app.includes('downDistance>=96')&&app.includes('upDistance>=12'),'Auto-Bottom-Bar muss später ausblenden und deutlich schneller wieder erscheinen.');
+assert.ok(app.includes("return'fixed' as BottomBarBehavior"),'Bottom-Bar muss im neuen Design fixiert starten und bleiben.');
+assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
+assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Legacy-Scroll-Auto-Hide darf nicht zurückkehren.');
 assert.ok(app.includes("onNavigate={id=>navigateToDashboardSection(id,true,navigationMode==='bottom-tabs'?'auto':'smooth')}"),'Bottom-Tab-Taps müssen ohne verzögerten Smooth-Scroll navigieren.');
 assert.ok(app.includes("'--mid-current-range-tone':currentRangeMinTone.color")&&app.includes("'--mid-current-range-tone':currentRangeMaxTone.color"),'Tmin/Tmax müssen wertbasierte ECMWF-Farben erhalten.');
 
