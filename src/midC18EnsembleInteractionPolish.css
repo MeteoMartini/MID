@@ -1,0 +1,168 @@
+/* MID v0.9.85.69 · Ensemble interaction/readability polish
+   Mobile metric previews and legends stay inside their own cells; closed tooltips leave
+   no interaction residue in the plots. Weather/ensemble data and temporal resolution stay unchanged. */
+
+html[data-mid-design='next'] .ensemble-metric-deck{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .ensemble-metric-deck>button{
+ position:relative!important;
+ min-width:0!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .ensemble-metric-deck>button>span{
+ position:relative!important;
+ z-index:2!important;
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .ensemble-metric-deck>button>span>b{
+ display:block!important;
+ min-width:0!important;
+ max-width:100%!important;
+ line-height:1.12!important;
+ white-space:normal!important;
+ overflow-wrap:anywhere!important;
+}
+html[data-mid-design='next'] .ensemble-metric-mini{
+ position:relative!important;
+ z-index:1!important;
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ overflow:hidden!important;
+ isolation:isolate;
+ pointer-events:none!important;
+}
+html[data-mid-design='next'] .ensemble-metric-mini>em{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:hidden!important;
+}
+
+/* The chart legend is content, not a horizontal viewport: wrap instead of clipping labels. */
+html[data-mid-design='next'] .trend-chart-toolbar{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ gap:8px!important;
+ min-width:0!important;
+ max-width:100%!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .trend-legend{
+ display:flex!important;
+ flex-wrap:wrap!important;
+ align-items:center!important;
+ gap:7px 12px!important;
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .trend-legend>span,
+html[data-mid-design='next'] .trend-legend>button{
+ flex:0 1 auto!important;
+ min-width:0!important;
+ max-width:100%!important;
+ white-space:normal!important;
+}
+html[data-mid-design='next'] .trend-legend .quartile-toggle{
+ display:flex!important;
+ flex-wrap:wrap!important;
+ align-items:center!important;
+ gap:5px 9px!important;
+}
+html[data-mid-design='next'] .trend-legend .quartile-key{
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .sunshine-scale-legend{
+ max-width:100%!important;
+ min-width:0!important;
+}
+
+/* Plot surfaces must own their interaction graphics and not bleed into surrounding labels. */
+html[data-mid-design='next'] :is(
+ .ensemble-temperature-canvas,
+ .ensemble-rain-chart-core,
+ .ensemble-wind-chart-core
+){
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] :is(
+ .ensemble-temperature-canvas,
+ .ensemble-rain-chart-core,
+ .ensemble-wind-chart-core
+) .recharts-active-dot{
+ pointer-events:none!important;
+}
+
+/* Phone/tablet portrait: label first, preview below. No text/chart overlap. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .ensemble-metric-deck{
+  gap:6px!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-deck>button{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto 30px!important;
+  align-content:start!important;
+  align-items:stretch!important;
+  gap:6px!important;
+  padding:9px 8px!important;
+  text-align:left!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-deck>button>span{
+  grid-row:1!important;
+  align-content:start!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-mini{
+  grid-row:2!important;
+  height:30px!important;
+  align-self:end!important;
+ }
+ html[data-mid-design='next'] .trend-legend{
+  gap:6px 9px!important;
+ }
+}
+
+/* Narrow phones retain all three metric choices but allow the deck itself to pan if required. */
+@media(max-width:520px){
+ html[data-mid-design='next'] .ensemble-metric-deck{
+  grid-template-columns:repeat(3,minmax(116px,1fr))!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-x:contain!important;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
+  scrollbar-width:thin!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-deck>button{
+  scroll-snap-align:start;
+  min-height:78px!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-deck>button>span>b{
+  font-size:10px!important;
+ }
+ html[data-mid-design='next'] .trend-legend{
+  font-size:8px!important;
+  line-height:1.25!important;
+ }
+ html[data-mid-design='next'] .trend-legend .quartile-toggle{
+  width:100%!important;
+  justify-content:flex-start!important;
+ }
+}
+
+/* Extra-narrow phones wrap labels; never put the sparkline into the text row. */
+@media(max-width:390px){
+ html[data-mid-design='next'] .ensemble-metric-deck{
+  grid-template-columns:repeat(3,minmax(112px,1fr))!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-deck>button{
+  grid-template-rows:auto 28px!important;
+ }
+ html[data-mid-design='next'] .ensemble-metric-mini{
+  height:28px!important;
+ }
+}
