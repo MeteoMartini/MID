@@ -1,3 +1,11 @@
+# MID v0.9.85.72
+
+- Die 15-Minuten-Kurzfrist verwendet für trockene Wettertexte und Piktogramme jetzt dieselbe Gesamtbewölkung wie die Skybar. Eine dünne/mittlere graue Wolkenstufe kann dadurch nicht mehr gleichzeitig als „Bedeckt“ beschriftet werden.
+- Gesamtbewölkung ist für die Himmelsklassifikation primär; tiefe Bewölkung dient nur als Fallback, wenn Gesamtbewölkung fehlt. „Bedeckt“ setzt bei trockener Lage mindestens 87,5 % Gesamtbewölkung voraus.
+- Nebel- sowie Niederschlags-/Gewittercodes bleiben von der reinen Wolkenkorrektur fachlich getrennt.
+- ICON-D2-RUC CLCT/CLCL fließen weiterhin in den kanonischen stündlichen Forecastkern ein. Die 15-Minuten-Skybar interpoliert diese Zustandsfelder; sie wird nicht fälschlich als native 15-Minuten-CLCT-Ausgabe bezeichnet.
+- Ein eigener Regressionstest schützt die Kohärenz zwischen Skybar, Wettertext und Piktogramm.
+
 # MID v0.9.85.71
 
 - Lange Ortsnamen bleiben im modernen Kopf vollständig lesbar und werden nicht mehr mit einer Ellipse abgeschnitten.

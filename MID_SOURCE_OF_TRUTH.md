@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.72 · Kurzfrist-Skybar/Wettertext-Kohärenz
+
+In der finalisierten Kurzfristreihe müssen trockener Wettertext, Piktogramm und Skybar denselben Himmelszustand beschreiben. Gesamtbewölkung ist dabei primär; tiefe Bewölkung ist nur Fallback bei fehlender Gesamtbewölkung. Für trockene Lagen gilt die WMO-nahe Oktaschwelle: „Bedeckt“ ab 87,5 % Gesamtbewölkung. Nebel bleibt sicht-/feuchtebasiert separat, Niederschlags- und Gewittercodes bleiben unberührt. ICON-D2-RUC CLCT/CLCL werden aktuell stündlich in den kanonischen Forecastkern übernommen; die 15-Minuten-Kurzfrist interpoliert diese Zustandsfelder und darf nicht als native 15-Minuten-CLCT-Folge bezeichnet werden. Required Regression: `scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs`.
+
 ## v0.9.85.71 · MID 18.2.1 Replit-Handoff
 
 Der Replit-Redesignstand ist ausschließlich eine visuelle/UX-Referenz und keine alternative Wetterdaten- oder Releasebasis. Übernommen werden nur gegen `mid-stable` geprüfte Verbesserungen. Lange Ortsnamen dürfen im modernen Ortskopf nicht per Ellipse gekürzt werden. Ein expliziter Bottom-Bar-/Horizontsprung zu „Heute“ verwirft den zuvor gespeicherten internen Scrollstand des Kurzfrist-Cockpits und beginnt am Kopf der Ansicht. Die Kartenoberfläche darf verdichtet werden, ohne Radar-, Satelliten-, Nowcast-, DWD- oder Synoptikfunktionen zu entfernen oder Fixture-Daten an die Stelle produktiver Datenpfade zu setzen. Die bereits vorhandene amtliche DWD-Bodenanalyse und die getrennt gekennzeichnete MID-Modellanalyse bleiben kanonisch. Required Regression: `scripts/test-mid-18-2-1-replit-handoff-098571.mjs`.
