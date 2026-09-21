@@ -141,7 +141,7 @@ jobs:
         with:
           ref: mid-stable
           fetch-depth: 1
-      - name: RUC-Basis gegen aktuellen MID-Stable-Stand prüfen
+      - name: RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand prüfen
         id: stable_guard
         env:
           EXPECTED_STABLE_SHA: ${{ needs.prepare.outputs.stable_sha }}
@@ -158,8 +158,30 @@ jobs:
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+          stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+          main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          if [ -z "${stable_version}" ] || [ -z "${main_version}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::MID-Releaseversion konnte für den RUC-Publish nicht eindeutig bestimmt werden; Publish wird fail-closed übersprungen."
+            exit 0
+          fi
+          if [ "${main_version}" != "${stable_version}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Ein neuer MID-Release ist noch nicht nach mid-stable promotet (${stable_version} → ${main_version}). Der RUC-Publish darf die bereits laufende neue App-Shell nicht mit dem älteren Stable-Stand überschreiben."
+            {
+              echo "### RUC-Publish wegen laufendem MID-Release übersprungen"
+              echo
+              echo "mid-stable: ${stable_version}"
+              echo
+              echo "main: ${main_version}"
+              echo
+              echo "Der nächste RUC-Lauf baut nach Stable-Promotion automatisch auf der neuen App-Version auf."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           echo "allowed=true" >> "$GITHUB_OUTPUT"
-          echo "RUC-Basis unverändert: ${actual_sha}"
+          echo "RUC-Basis unverändert: ${actual_sha} · MID v${stable_version}"
       - name: Vorbereiteten RUC-Snapshot laden
         if: steps.stable_guard.outputs.allowed == 'true'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -186,22 +208,32 @@ jobs:
           fi
           test ! -e .ruc-site/ruc/eps-members.bin
           find .ruc-site/ruc -type f -name 'eps-members.bin' -print -quit | grep -q . && { echo '::error::Native EPS member cube must not be published by the free Pages profile.'; exit 1; } || true
-      - name: MID-Stable unmittelbar vor dem Pages-Publish erneut prüfen
+      - name: MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut prüfen
+        id: publish_guard
         if: steps.stable_guard.outputs.allowed == 'true'
         env:
           EXPECTED_STABLE_SHA: ${{ needs.prepare.outputs.stable_sha }}
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin mid-stable
-          actual_sha="$(git rev-parse FETCH_HEAD)"
+          git fetch --no-tags --depth=1 origin             +refs/heads/mid-stable:refs/remotes/origin/mid-stable             +refs/heads/main:refs/remotes/origin/main
+          actual_sha="$(git rev-parse refs/remotes/origin/mid-stable)"
+          stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+          main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
           if [ "${actual_sha}" != "${EXPECTED_STABLE_SHA}" ]; then
-            echo "::warning::MID-Stable änderte sich während der RUC-Publish-Vorbereitung (${EXPECTED_STABLE_SHA} → ${actual_sha}). Kein veraltetes RUC-Artefakt wird veröffentlicht."
-            exit 1
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID-Stable änderte sich während der RUC-Publish-Vorbereitung (${EXPECTED_STABLE_SHA} → ${actual_sha}). Kein veraltetes RUC-Artefakt wird veröffentlicht."
+            exit 0
           fi
-          echo "MID-Stable unmittelbar vor Publish unverändert: ${actual_sha}"
+          if [ -z "${stable_version}" ] || [ -z "${main_version}" ] || [ "${main_version}" != "${stable_version}" ]; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::MID-Releasefenster wurde unmittelbar vor dem RUC-Publish erkannt (stable=${stable_version:-?}, main=${main_version:-?}). Kein älterer App-Shell-Stand wird auf Pages veröffentlicht."
+            exit 0
+          fi
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
+          echo "MID-Stable unmittelbar vor Publish unverändert: ${actual_sha} · MID v${stable_version}"
       - name: GitHub-Pages-Artefakt hochladen
-        if: steps.stable_guard.outputs.allowed == 'true'
+        if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: mid-ruc-pages-${{ github.run_id }}
@@ -213,7 +245,7 @@ jobs:
         with:
           artifact_name: mid-ruc-pages-${{ github.run_id }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
-        if: ${{ steps.stable_guard.outputs.allowed == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
+        if: ${{ steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
         env:
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
         run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json
