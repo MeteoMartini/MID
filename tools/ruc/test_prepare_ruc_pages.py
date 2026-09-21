@@ -15,8 +15,16 @@ with tempfile.TemporaryDirectory() as td:
  severe_times=['a','b']
  severe=np.arange(points*len(severe_times)*len(severe_fields),dtype='<i2').reshape(points,len(severe_times),len(severe_fields))
  (src/'rapid-severe15.bin').write_bytes(severe.tobytes(order='C'))
+ state_fields=[{'name':name} for name in ('visibility','ceiling','freezing_level_height','snowline_height')]
+ state_times=['a','b']
+ state=np.arange(points*len(state_times)*len(state_fields),dtype='<i2').reshape(points,len(state_times),len(state_fields))
+ (src/'rapid-state-15m.bin').write_bytes(state.tobytes(order='C'))
+ solar_fields=[{'name':name} for name in ('asob_s','aswdir_s','aswdifd_s')]
+ solar_times=['a','b']
+ solar=np.arange(points*len(solar_times)*len(solar_fields),dtype='<i2').reshape(points,len(solar_times),len(solar_fields))
+ (src/'rapid-solar15.bin').write_bytes(solar.tobytes(order='C'))
  (src/'rapid-extreme.json').write_text(json.dumps({'schema':'mid.dwd.ruc.rapid-extreme.v2','run':run,'cells':[]}))
- meta={'schema':'mid.dwd.ruc.grid.v2','run':run,'times':times,'pointCount':points,'grid':{'latMin':43,'lonMin':-4,'dx':.1,'dy':.1,'nx':4,'ny':3},'lookup':{'key':f'runs/{run}/lookup.bin','dtype':'uint32-le'},'deterministic':{'key':f'runs/{run}/deterministic.bin','recordBytes':det_record,'fields':[]},'epsSummary':{'key':f'runs/{run}/eps-summary.bin','recordBytes':sum_record,'fields':[]},'eps':{'key':f'runs/{run}/eps-members.bin','recordBytes':40,'memberCount':10,'scale':.01},'rapid':{'precip5':{'key':f'runs/{run}/rapid-5m.bin','recordBytes':6,'times':['a','b','c'],'fields':[]},'convection15':{'key':f'runs/{run}/rapid-15m.bin','recordBytes':12,'times':['a','b'],'fields':[]},'severe15':{'key':f'runs/{run}/rapid-severe15.bin','recordBytes':len(severe_times)*len(severe_fields)*2,'times':severe_times,'fields':severe_fields,'dtype':'int16-le','layout':'point-time-field'}},'rapidExtreme':{'key':f'runs/{run}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v2'}}
+ meta={'schema':'mid.dwd.ruc.grid.v2','run':run,'times':times,'pointCount':points,'grid':{'latMin':43,'lonMin':-4,'dx':.1,'dy':.1,'nx':4,'ny':3},'lookup':{'key':f'runs/{run}/lookup.bin','dtype':'uint32-le'},'deterministic':{'key':f'runs/{run}/deterministic.bin','recordBytes':det_record,'fields':[]},'epsSummary':{'key':f'runs/{run}/eps-summary.bin','recordBytes':sum_record,'fields':[]},'eps':{'key':f'runs/{run}/eps-members.bin','recordBytes':40,'memberCount':10,'scale':.01},'rapid':{'precip5':{'key':f'runs/{run}/rapid-5m.bin','recordBytes':6,'times':['a','b','c'],'fields':[]},'convection15':{'key':f'runs/{run}/rapid-15m.bin','recordBytes':12,'times':['a','b'],'fields':[]},'severe15':{'key':f'runs/{run}/rapid-severe15.bin','recordBytes':len(severe_times)*len(severe_fields)*2,'times':severe_times,'fields':severe_fields,'dtype':'int16-le','layout':'point-time-field'},'state15':{'key':f'runs/{run}/rapid-state-15m.bin','recordBytes':len(state_times)*len(state_fields)*2,'times':state_times,'fields':state_fields,'dtype':'int16-le','layout':'point-time-field'},'solar15':{'key':f'runs/{run}/rapid-solar15.bin','recordBytes':len(solar_times)*len(solar_fields)*2,'times':solar_times,'fields':solar_fields,'dtype':'int16-le','layout':'point-time-field'}},'rapidExtreme':{'key':f'runs/{run}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v2'}}
  (src/'latest.json').write_text(json.dumps(meta))
  result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=5)
  assert result['storageProfile']=='pages-free-v1' and result['pages']['nativeEpsMembers'] is False
@@ -28,9 +36,21 @@ with tempfile.TemporaryDirectory() as td:
  severe_result=result['rapid']['severe15']
  assert [field['name'] for field in severe_result['fields']]==['lpi_max','uh_max','cape_ml']
  assert severe_result['recordBytes']==len(severe_times)*3*2
- assert set(result['pages']['prunedRedundantFields'])=={'lpi','uh_max_low','uh_max_med'}
- assert result['pages']['savedBytes']==points*len(severe_times)*3*2
+ assert set(result['pages']['prunedRedundantFields'])=={'lpi','uh_max_low','uh_max_med','freezing_level_height','snowline_height'}
+ assert result['pages']['prunedRapidProducts']==['solar15']
+ assert result['pages']['budgetBytes']==900_000_000 and result['pages']['publishedBytes']<result['pages']['budgetBytes']
+ severe_saved=points*len(severe_times)*3*2
+ state_saved=points*len(state_times)*2*2
+ solar_saved=solar.nbytes
+ assert result['pages']['savedBytes']==severe_saved+state_saved+solar_saved
  chunks=sorted((out/'ruc'/'runs'/run/'rapid'/'severe15').glob('*.bin'))
  projected=np.frombuffer(b''.join(path.read_bytes() for path in chunks),dtype='<i2').reshape(points,len(severe_times),3)
  np.testing.assert_array_equal(projected,severe[:,:,[1,4,5]])
- print('RUC GitHub Pages free-profile chunking + severe projection contract OK')
+ state_result=result['rapid']['state15']
+ assert [field['name'] for field in state_result['fields']]==['visibility','ceiling']
+ assert state_result['recordBytes']==len(state_times)*2*2
+ state_chunks=sorted((out/'ruc'/'runs'/run/'rapid'/'state15').glob('*.bin'))
+ state_projected=np.frombuffer(b''.join(path.read_bytes() for path in state_chunks),dtype='<i2').reshape(points,len(state_times),2)
+ np.testing.assert_array_equal(state_projected,state[:,:,[0,1]])
+ assert 'solar15' not in result['rapid'] and not list((out/'ruc').rglob('*solar15*'))
+ print('RUC GitHub Pages free-profile budget + science-prioritized projection contract OK')

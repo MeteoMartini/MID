@@ -20,6 +20,12 @@ SCHEMA='mid.dwd.ruc.grid.v2'
 PROFILE='pages-free-v1'
 DEFAULT_DATA_CHUNK_POINTS=4096
 DEFAULT_LOOKUP_CHUNK_ENTRIES=65536
+# Keep the free Pages payload comfortably below the 950 MB combined site guard.
+# The app itself currently adds ~13 MB, therefore the RUC profile gets a stricter
+# 900 MB ceiling and should normally stay well below it.
+PAGES_RUC_BUDGET_BYTES=900_000_000
+PAGES_OMIT_RAPID_PRODUCTS={'solar15'}
+PAGES_STATE15_FIELDS={'visibility','ceiling'}
 PAGES_REDUNDANT_SEVERE_FIELDS={
     'lpi_max':('lpi',),
     'uh_max':('uh_max_low','uh_max_med'),
@@ -70,6 +76,20 @@ def severe_pages_projection(spec:dict):
     keep=[index for index,name in enumerate(names) if name not in drop]
     return keep,[fields[index] for index in keep],[name for name in names if name in drop]
 
+def state_pages_projection(spec:dict):
+    """Keep only rapid state fields whose sub-hourly cadence is operationally valuable."""
+    if spec.get('dtype')!='int16-le' or spec.get('layout')!='point-time-field': return None
+    fields=list(spec.get('fields') or [])
+    names=[str(field.get('name') or '') for field in fields]
+    if not fields or not all(names): return None
+    keep=[index for index,name in enumerate(names) if name in PAGES_STATE15_FIELDS]
+    drop=[name for name in names if name not in PAGES_STATE15_FIELDS]
+    if not keep:
+        return 'omit',[],drop
+    if not drop:
+        return None
+    return keep,[fields[index] for index in keep],drop
+
 
 def write_projected_i16_chunks(source:Path,target_dir:Path,spec:dict,chunk_records:int,prefix:str,keep:list[int],fields:list[dict]):
     times=list(spec.get('times') or [])
@@ -105,7 +125,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     for name in ('deterministic.bin','eps-summary.bin','lookup.bin','rapid-5m.bin','rapid-15m.bin','rapid-extreme.json'):
         if not (source/name).is_file(): raise ValueError(f'missing {name}')
     out=target/'ruc'; shutil.rmtree(out,ignore_errors=True); (out/'runs'/run).mkdir(parents=True,exist_ok=True)
-    objects=[]; pruned_fields=[]; saved_bytes=0
+    objects=[]; pruned_fields=[]; pruned_products=[]; saved_bytes=0
 
     det=dict(meta.get('deterministic') or {}); det_record=int(det.get('recordBytes') or 0)
     det_pages,rows=write_chunks(source/'deterministic.bin',out/'runs'/run/'deterministic',det_record,data_chunk_points,f'runs/{run}/deterministic');objects+=rows
@@ -124,18 +144,25 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         spec=dict(raw_spec or {});source_name=Path(str(spec.get('key') or '')).name
         if not source_name or not (source/source_name).is_file():
             continue
+        source_path=source/source_name
+        if product_id in PAGES_OMIT_RAPID_PRODUCTS:
+            saved_bytes+=source_path.stat().st_size;pruned_products.append(product_id)
+            continue
         prefix=f'runs/{run}/rapid/{product_id}'; target_dir=out/'runs'/run/'rapid'/product_id
-        projection=severe_pages_projection(spec) if product_id=='severe15' else None
+        projection=severe_pages_projection(spec) if product_id=='severe15' else state_pages_projection(spec) if product_id=='state15' else None
+        if projection and projection[0]=='omit':
+            saved_bytes+=source_path.stat().st_size;pruned_products.append(product_id);pruned_fields+=projection[2]
+            continue
         if projection:
             keep,projected_fields,dropped=projection
-            before=(source/source_name).stat().st_size
-            pages,rows=write_projected_i16_chunks(source/source_name,target_dir,spec,data_chunk_points,prefix,keep,projected_fields)
+            before=source_path.stat().st_size
+            pages,rows=write_projected_i16_chunks(source_path,target_dir,spec,data_chunk_points,prefix,keep,projected_fields)
             after=sum(row['bytes'] for row in rows)
             saved_bytes+=before-after; pruned_fields+=dropped
             spec['fields']=projected_fields; spec['recordBytes']=pages['recordBytes']
         else:
             record=int(spec.get('recordBytes') or 0)
-            pages,rows=write_chunks(source/source_name,target_dir,record,data_chunk_points,prefix)
+            pages,rows=write_chunks(source_path,target_dir,record,data_chunk_points,prefix)
         objects+=rows;spec.pop('key',None);spec['pages']=pages;rapid[product_id]=spec
 
     rapid_extreme=dict(meta.get('rapidExtreme') or {})
@@ -148,8 +175,10 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     eps.pop('key',None);eps['available']=False;eps['storageReason']='native EPS members omitted from free GitHub Pages profile; canonical forecast uses epsSummary'
 
     total=sum(row['bytes'] for row in objects)
+    if total>=PAGES_RUC_BUDGET_BYTES:
+        raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
     result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,
-            'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'objects':objects,'prunedRedundantFields':pruned_fields,'savedBytes':saved_bytes}}
+            'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes}}
     (out/'latest.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
     return result
 
@@ -158,5 +187,5 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--source',type=Path,default=Path('.ruc-out'));p.add_argument('--output',type=Path,default=Path('.ruc-pages'))
     p.add_argument('--data-chunk-points',type=int,default=DEFAULT_DATA_CHUNK_POINTS);p.add_argument('--lookup-chunk-entries',type=int,default=DEFAULT_LOOKUP_CHUNK_ENTRIES)
     a=p.parse_args();meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
-    print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'savedBytes':meta['pages']['savedBytes']}))
+    print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'budgetBytes':meta['pages']['budgetBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'prunedRapidProducts':meta['pages']['prunedRapidProducts'],'savedBytes':meta['pages']['savedBytes']}))
 if __name__=='__main__':main()

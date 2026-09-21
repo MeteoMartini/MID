@@ -46,22 +46,11 @@ RAPID_15M_FIELDS: tuple[FieldSpec, ...] = (
 # Parameter-native 15-minute state fields for the immediate 0..6 h forecast.
 # Only fields with a complete native 15-minute sequence are packed for a run.
 RAPID_STATE_15_FIELDS: tuple[FieldSpec, ...] = (
-    FieldSpec('temperature_2m', '°C', 0.01),
-    FieldSpec('dew_point_2m', '°C', 0.01),
-    FieldSpec('relative_humidity_2m', '%', 0.1),
-    FieldSpec('pressure_msl', 'hPa', 0.1),
-    FieldSpec('wind_speed_10m', 'kn', 0.01),
-    FieldSpec('wind_direction_10m', '°', 0.1),
-    FieldSpec('wind_gusts_10m', 'kn', 0.01),
-    FieldSpec('cloud_cover', '%', 0.1),
-    FieldSpec('cloud_cover_low', '%', 0.1),
-    FieldSpec('cloud_cover_mid', '%', 0.1),
-    FieldSpec('cloud_cover_high', '%', 0.1),
+    # Sicht und Ceiling können bei Nebel/Stratus innerhalb deutlich unter einer
+    # Stunde wechseln und sind für die unmittelbare 90-min-/0..6-h-Kurzfrist
+    # der fachlich relevante native 15-min-Zustandsblock.
     FieldSpec('visibility', 'm', 10.0),
     FieldSpec('ceiling', 'm', 1.0),
-    FieldSpec('freezing_level_height', 'm', 1.0),
-    FieldSpec('snowline_height', 'm', 1.0),
-    FieldSpec('surface_temperature', '°C', 0.01),
 )
 
 REFLECTIVITY_15M_FIELDS: tuple[FieldSpec, ...] = (

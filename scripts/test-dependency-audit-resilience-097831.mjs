@@ -6,7 +6,7 @@ const audit=await readFile(new URL('./audit-production-dependencies.mjs',import.
 
 assert.equal(pkg.scripts?.['audit:dependencies'],'node scripts/audit-production-dependencies.mjs && node scripts/check-dependency-upgrade-policy.mjs','audit:dependencies muss den resilienten MID-Audit vor der Upgrade-Policy verwenden.');
 assert.ok(audit.includes('/-/npm/v1/security/advisories/bulk'),'Der offizielle npm Bulk Advisory Endpoint fehlt.');
-assert.ok(audit.includes('https://api.osv.dev/v1/querybatch'),'Der unabhängige OSV-Fallback fehlt.');
+assert.ok(audit.includes('MID_OSV_AUDIT_URL')&&audit.includes('querybatch'),'Der unabhängige OSV-Fallback fehlt.');
 assert.ok(audit.includes("severityRank")&&audit.includes("critical:4")&&audit.includes("high:3"),'HIGH/CRITICAL-Auswertung fehlt.');
 assert.ok(audit.includes("process.exit(1)")&&audit.includes('HIGH/CRITICAL-Sicherheitsbefunde'),'HIGH/CRITICAL-Befunde müssen den Release weiterhin blockieren.');
 assert.ok(audit.includes("npm',['ls','--omit=dev','--all','--json']"),'Lokale Konsistenzprüfung des installierten Produktionsbaums fehlt.');

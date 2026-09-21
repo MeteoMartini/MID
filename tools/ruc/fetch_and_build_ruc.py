@@ -19,12 +19,15 @@ EPS_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc-eps/p'
 FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
 GRID_REQUIRED=('CLAT','CLON')
 RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')
-RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP','ASOB_S','ASWDIR_S','ASWDIFD_S')
-# Zustandsgrößen der operativen Kurzfrist: native 15-min-Termine werden bis +6 h
-# genutzt, wenn der jeweilige DWD-Parameter diese Kadenz vollständig anbietet.
-# Fehlt sie, bleibt der bereits vorhandene stündliche Forecast-/Specialist-Pfad
-# maßgeblich; wir erfinden keine feinere Modellauflösung durch Resampling.
-RAPID_STATE_OPTIONAL_15=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','CLCT','CLCL','CLCM','CLCH','VIS','CEILING','HZEROCL','SNOWLMT','T_G')
+RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP')
+# Native 15-min-Zustandsgrößen werden nur dort gehalten, wo die höhere
+# Kadenz fachlich einen echten Mehrwert für die unmittelbare Kurzfrist hat.
+# Der aktuelle DWD-Feed liefert VIS/CEILING nativ viertelstündlich. Temperatur,
+# Wind, Druck und Bewölkung liegen im operativen RUC-Verzeichnis für 0..+6 h
+# dagegen stündlich vor; HZEROCL/SNOWLMT bleiben bewusst stündlich, weil ihre
+# Änderung langsamer ist und die Niederschlagsphase separat 15-minütig vorliegt.
+# Wir etikettieren keine interpolierten Stundenwerte als native 15-min-Daten.
+RAPID_STATE_OPTIONAL_15=('VIS','CEILING')
 SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')
 REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
