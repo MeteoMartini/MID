@@ -1,3 +1,12 @@
+# MID v0.9.85.69
+
+- Der 14-Tage-/Ensemble-Block wurde nach dem mobilen Screenshot-Audit weiter poliert: Die Mini-Grafiken der Umschalter „Temperatur“, „Niederschlag“ und „Wind/Böen“ liegen auf Tablet/Smartphone jetzt in einer eigenen Zeile unter dem Text und können die Bezeichnungen nicht mehr überdecken.
+- Ensemble-Legenden umbrechen innerhalb ihrer Fläche, statt rechts abgeschnitten oder in den Plot gedrückt zu werden.
+- Beim Schließen eines Temperatur-, Niederschlags- oder Wind/Böen-Tooltips werden aktive Recharts-Interaktionsmarker ausdrücklich unterdrückt. Beim nächsten Tippen werden sie regulär neu aktiviert; es bleiben keine Auswahlpunkte aus dem vorherigen Overlay stehen.
+- Nebenlinien wie ENS-Mittel und Klimamittel erzeugen keine zusätzlichen aktiven Punkte.
+- Die fachliche Ensembleberechnung, P10–P90/P25–P75-Spannen, Best-Match-Werte, Sonnenscheinband und zeitliche Auflösung bleiben unverändert.
+- Responsive Ziel: keine äußere horizontale Überbreite; dichte Metrikumschalter dürfen auf sehr schmalen Geräten ausschließlich innerhalb ihrer eigenen Leiste horizontal verschoben werden.
+
 # MID v0.9.85.68
 
 - Der MID-18.2-Abschluss für „Ab jetzt“, 90-Minuten-Vorhersage und 24-h-Wetterprofil wurde auf die gemeinsame professionelle MID-Flächenhierarchie gebracht.
