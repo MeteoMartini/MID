@@ -3,13 +3,13 @@ import {readFile} from 'node:fs/promises';
 
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
 
-assert.match(app,/type DesignMode='classic'\|'mid-next'/,'Design-Modi müssen klassisch und Design 2.0.1 getrennt bleiben.');
-assert.match(app,/type NavigationMode='section-rail'\|'bottom-tabs'/,'Klassische und neue Navigation brauchen getrennte Modi.');
-assert.match(app,/localStorage\.getItem\(DESIGN_MODE_STORAGE_KEY\)==='mid-next'\?'mid-next':'classic'/,'Ohne explizite Auswahl muss Klassisch der sichere Standard bleiben.');
-assert.match(app,/const navigationMode:NavigationMode=designMode==='mid-next'\?'bottom-tabs':'section-rail'/,'Die Navigation muss vom Designmodus abhängen.');
-assert.match(app,/const forecastCockpitEnabled=designMode==='mid-next'/,'Das neue Prognose-Cockpit darf nicht automatisch in Klassisch aktiv sein.');
-assert.match(app,/>Design 2\.0\.1</,'Die neue Oberfläche muss in den Einstellungen eindeutig benannt sein.');
-assert.match(app,/Bisherige Dashboard-Struktur und Navigation unverändert beibehalten/,'Klassisch muss als echte Rückfalloberfläche beschrieben sein.');
+assert.ok(!app.includes("type DesignMode='classic'|'mid-next'"),'Legacy-Dual-Designvertrag darf nicht mehr existieren.');
+assert.ok(app.includes("const navigationMode:NavigationMode='bottom-tabs';"),'Die neue Bottom-/Workspace-Navigation muss obligatorisch sein.');
+assert.ok(app.includes('const forecastCockpitEnabled=true;'),'Das neue Prognose-Cockpit muss obligatorisch sein.');
+assert.ok(app.includes("document.documentElement.dataset.midDesign='next'"),'Das neue MID-Design muss dauerhaft aktiv sein.');
+assert.ok(app.includes("localStorage.removeItem('mid:designMode:v1')"),'Alte gespeicherte Designauswahl muss migriert werden.');
+assert.ok(!app.includes('design-system-settings'),'Der Gesamt-Designumschalter darf in den Einstellungen nicht mehr existieren.');
+assert.ok(app.includes('Skybar-Stil')&&app.includes('24 Stundenquadrate'),'Skybar und 24 Stundenquadrate müssen als unabhängige Fachoption erhalten bleiben.');
 
 const designCss=[
   '../src/midDesign.css',
@@ -93,4 +93,4 @@ for(const relative of designCss){
  auditRegion(css,relative);
 }
 
-console.log('Design 2.0.1 und Klassisch sind strukturell getrennt; Redesign-CSS bleibt im Next-Scope.');
+console.log('MID Design 2.0.1 ist obligatorisch; Legacy-Umschalter entfernt, Redesign-CSS und Skybar/Quadrat-Option geschützt.');
