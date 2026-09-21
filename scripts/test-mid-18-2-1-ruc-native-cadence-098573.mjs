@@ -21,6 +21,7 @@ assert.ok(fetcher.includes("mode='rapid-precip' if param=='TOT_PREC' else 'rapid
 assert.ok(pack.includes('RAPID_STATE_15_FIELDS')&&pack.includes("FieldSpec('cloud_cover', '%', 0.1)")&&pack.includes("FieldSpec('ceiling', 'm', 1.0)")&&pack.includes("FieldSpec('wind_direction_10m', '°', 0.1)"),'15-minute state packing contract incomplete.');
 for(const token of ["RAPID_STATE_PARAM_MAP","rapid-state-15m.bin","rapid['state15']","rapid_state_specs=tuple","np.hypot(u15,v15)*1.94384449"])assert.ok(builder.includes(token),`Adaptive rapid-state bundle missing: ${token}`);
 assert.ok(builder.includes("if rapid_state_specs:")&&builder.includes("spec.name in rapid_state_fields"),'Only actually complete native fields may be published.');
+assert.ok(builder.includes("rapid_state_fields['wind_gusts_10m']=rapid_state_fields['wind_gusts_10m']*1.94384449"),'Native VMAX_10M must be normalized from m/s to the MID knot contract.');
 assert.ok(worker.includes("state=rapid.state15||{}")&&worker.includes("nativeStateSeconds:stateIndex===undefined?undefined:900"),'Worker must expose native 15-minute state rows.');
 assert.ok(worker.includes("['rapidState15',meta?.rapid?.state15]"),'RUC health must report native state product.');
 assert.equal(worker.includes("state=rapid.state15||{}"),sourceWorker.includes("state=rapid.state15||{}"),'Worker bundle/source RUC state path diverged.');
