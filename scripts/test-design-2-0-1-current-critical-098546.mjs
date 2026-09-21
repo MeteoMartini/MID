@@ -18,8 +18,8 @@ assert.ok(app.includes('currentThreadAxisTicks=currentThreadSeries.map')&&app.in
 assert.ok(app.includes("tick.index===0?'Jetzt':hourDisplayClock(tick.hour,w.timezone)"),'Zeitanker müssen Jetzt sowie echte lokale Uhrzeiten verwenden.');
 assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Taupunkt muss in der Hauptansicht vor relativer Feuchte stehen.');
 assert.ok(app.includes("dryNow=probability<10&&!radarSignalDetected(radar)&&!thunderInfo&&!heavyRainInfo"),'Trockener Nowcast braucht einen kompakten Darstellungszustand.');
-assert.ok(app.includes('if(downDistance>=96){setBottomBarHidden(true);downDistance=0}'),'Auto-Bottom-Bar darf erst nach einer deutlichen Abwärtsbewegung minimieren.');
-assert.ok(app.includes('if(upDistance>=12){setBottomBarHidden(false);upDistance=0}'),'Auto-Bottom-Bar muss auf einen kurzen bewussten Aufwärtsscroll schnell zurückkehren.');
+assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss im obligatorischen Design dauerhaft sichtbar gehalten werden.');
+assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Scroll-Auto-Hide darf nicht in die Bottom-Bar zurückkehren.');
 
 assert.ok(design.includes('className="mid-weather-thread-current"'),'Der markierte Messpunkt muss explizit Jetzt repräsentieren.');
 assert.ok(design.includes('cx={x(first.index)}'),'Jetzt-Markierung muss am ersten realen Stundenwert liegen.');
@@ -48,4 +48,4 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles`);
 
-console.log('MID: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden mit echten Zeitankern, kompakter Dry-Nowcast und Bottom-Bar-Verhalten geprüft.');
+console.log('MID: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden, kompakter Dry-Nowcast und dauerhaft sichtbare Bottom-Bar geprüft.');
