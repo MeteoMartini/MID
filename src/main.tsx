@@ -41,7 +41,7 @@ import './midC18ForecastMapShellPolish.css';
 import './midC18EnsembleInteractionPolish.css';
 import './midC18SecondaryWorkspaceFinish.css';
 import './midC18TodayReleaseFinish.css';
-import './midC18EnsembleSynopticPolish.css';
+import './midC18EnsembleSynopticPolish.css';\nimport './midC18ReplitHandoffPolish.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
