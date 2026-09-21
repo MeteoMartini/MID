@@ -1,3 +1,11 @@
+# MID v0.9.85.75
+
+- Das neue MID-Redesign ist jetzt die einzige produktive Gesamtoberfläche; die bisherige Auswahl zwischen „Design 2.0.1“ und „Klassisch“ wurde aus den Einstellungen entfernt.
+- Alte lokal gespeicherte Designauswahlen werden beim Start bereinigt und können die App nicht mehr auf die frühere Gesamtansicht zurückschalten.
+- Bottom-Navigation und moderner Forecast-Arbeitsraum sind damit appweit verbindlich.
+- **Unverändert erhalten bleibt die fachliche Auswahl „Skybar ↔ 24 Stundenquadrate“.** Beide Varianten nutzen weiterhin dieselben Einzelstunden und dieselbe meteorologische Logik.
+- Standard/Erweitert, Informationsdichte, Light/Dark und die übrigen fachlichen Anzeigeoptionen bleiben unabhängig davon erhalten.
+
 # MID v0.9.85.74
 
 - Der RUC-Pages-Fehler oberhalb der 950-MB-Sicherheitsgrenze ist behoben: Das kostenlose RUC-Profil erhält zusätzlich ein eigenes 900-MB-Datenbudget und stoppt Übergrößen künftig bereits vor Artefakt-Upload und Pages-Publish.

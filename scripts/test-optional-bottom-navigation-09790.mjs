@@ -4,7 +4,7 @@ const [app,styles,portable,radarColors,baseline]=await Promise.all([
  readFile('src/App.tsx','utf8'),readFile('src/styles.css','utf8'),readFile('src/portableUserData.ts','utf8'),readFile('src/radarColorTables.ts','utf8'),readFile('MID_BASELINE.json','utf8')
 ]);
 for(const token of [
- "type NavigationMode='section-rail'|'bottom-tabs'","const navigationMode:NavigationMode=designMode==='mid-next'?'bottom-tabs':'section-rail'","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',
+ "const navigationMode:NavigationMode='bottom-tabs';","document.documentElement.dataset.midDesign='next'","localStorage.removeItem('mid:designMode:v1')","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',
  "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'",'<span>Mehr</span>','bottomBarHidden','downDistance>=96','upDistance>=12','is-scroll-hidden','data-scroll-hidden',
  "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<details key={group.id}',"!['current','short-term','forecast','ensemble','composite'].includes(id)", 'place-warning-status'
 ])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-Vertrag fehlt: ${token}`);
@@ -20,4 +20,4 @@ assert.ok(!portable.includes("'mid:navigationMode:v1'"),'Veralteter Navigationss
 assert.ok(radarColors.includes('dwd-standard'),'DWD-Standard-Radarfarbvertrag fehlt');
 assert.ok(!radarColors.includes('navigation-bottom-tabs'),'Navigation darf den Radarfarbvertrag nicht verändern');
 const parsed=JSON.parse(baseline);assert.ok(parsed.requiredRegressionTests.includes('scripts/test-optional-bottom-navigation-09790.mjs'),'Baseline-Regression fehlt');
-console.log('Design 2.0.1: Bottom-Bar Aktuell/Heute/Vorhersage/Karten/Mehr; Klassisch nutzt getrennte Sektionennavigation.');
+console.log('MID 18.2.2: obligatorische Bottom-Bar Aktuell/Heute/Vorhersage/Karten/Mehr; Legacy-Designnavigation entfernt.');

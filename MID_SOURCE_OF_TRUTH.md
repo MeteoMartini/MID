@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.75 · MID 18.2.2 obligatorisches Redesign
+
+Die Umschaltung zwischen der neuen MID-Gesamtoberfläche und der bisherigen klassischen Gesamtansicht ist entfernt. Die neue Bottom-/Workspace-Navigation und der moderne Forecast-Arbeitsraum sind obligatorisch; ein alter gespeicherter `mid:designMode:v1`-Wert wird migriert und darf keinen Legacy-Pfad reaktivieren. **Die unabhängige fachliche Auswahl Skybar ↔ 24 Stundenquadrate bleibt ausdrücklich erhalten.** Required Regression: `scripts/test-mid-18-2-2-mandatory-design-098575.mjs`. Detailvertrag: `MID_MANDATORY_REDESIGN_0.9.85.75.md`.
+
 ## v0.9.85.74 · RUC-Pages-Budget und fachliche Kadenzpriorisierung
 
 Der kostenlose RUC-Pages-Pfad darf die kombinierte GitHub-Pages-Sicherheitsgrenze nicht durch Vollgitterdiagnostik ausreizen. Zusätzlich zur 950-MB-Site-Grenze gilt deshalb ein **900.000.000-Byte-RUC-Datenbudget**, das bereits in `prepare_ruc_pages.py` geprüft wird. Native 15-Minuten-Zustandsdaten werden im operativen Free-Profil auf `VIS` und `CEILING` konzentriert. `HZEROCL` und `SNOWLMT` bleiben stündlich, weil ihre Entwicklung gegenüber Sicht/Ceiling träger ist und die Niederschlagsphase bereits separat nativ 15-minütig vorliegt. Die 15-Minuten-Solarvollfelder werden im Free-Produktionspfad nicht geladen/publiziert, solange kein sichtbarer MID-Prognoseverbraucher sie nutzt. Für T/TD/RH, MSLP, Wind/Böen und CLCT/CLCL gilt weiterhin der tatsächlich vom DWD veröffentlichten Kadenzvertrag; beim geprüften Lauf waren diese Felder stündlich. Insbesondere darf CLCT nicht als native Viertelstundenfolge bezeichnet werden. Required Regression: `scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs`.
