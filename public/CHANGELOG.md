@@ -1,5 +1,8 @@
 # MID v0.9.85.80
 
+- **D.2:** Der 12-h-Temperaturtrend verwendet jetzt ausschließlich die bereits kanonisch hyperlokal angepasste Stundenreihe. Ein beobachteter Einzelwert wird nicht mehr isoliert als Startpunkt in eine anders korrigierte Kurve gemischt.
+- **D.2:** Bei einem Richtungswechsel zeigt die Kurzfassung nun die tatsächliche Entwicklung, etwa zunächst Abkühlung und danach Erholung, statt nur Endwert minus Startwert.
+- **D.2:** Nachtstunden sind in Temperaturkurve und Skybar beziehungsweise Stundenquadraten dezent mit derselben minutengenauen Sonnengeometrie hinterlegt. Die Wetterfarben und stündliche Auflösung bleiben unverändert.
 - Das Modul **Heute / 24-h-Wetterprofil** nutzt eine gemeinsame Zeitspur für Wetterstreifen, Temperatur, weitere Parameter, Auswahlmarker und Einzeldaten.
 - Vertikale Hilfslinien bleiben stündlich sichtbar; Zeitangaben werden in einem ruhigen 3-Stunden-Raster sowie an relevanten Tagesgrenzen beschriftet.
 - Skybar und optionale Stundenquadrate bleiben auch bei verdichteter Kurvendarstellung stündlich und verwenden unverändert dieselbe zentrale Sonne-/Bewölkung-/Niederschlagslogik.
