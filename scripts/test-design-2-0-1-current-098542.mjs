@@ -12,10 +12,10 @@ assert.ok(app.includes("import {MidWeatherThread} from './MidDesign';"),'MID-Wet
 assert.ok(app.includes("currentThreadSeries=hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+13)")&&app.includes("currentThreadTemperatures=currentThreadSeries.map((hour,index)=>index===0&&Number.isFinite(temp)?temp:Number(hour.temperature))"),'Aktuell-Wetterfaden muss 13 feste Stundenpositionen behalten und am angezeigten Jetzt-Wert verankert sein.');
 assert.ok(app.includes('<MidWeatherThread points={currentThreadTemperatures} minimumSpan={4} verticalGridDivisions={Math.max(1,currentThreadHorizon)} horizontalInset={currentThreadPlotInset} temperatureColorMode="ecmwf" markers="none" label={\`Temperaturtrend von jetzt bis plus \${currentThreadHorizon} Stunden · ECMWF-Farbskala\`}/>'),'Skalentreuer 12-h-Wetterfaden mit stündlicher Hilfsrasterung, gemeinsamer Plotbasis und ECMWF-Farben fehlt in Aktuell.');
 assert.ok(app.includes("horizontalBrandLogoPath=brandLogoPath.replace('-compact','-horizontal')"),'Breite Ansichten müssen die Original-Horizontalwortmarke ableiten.');
-assert.ok(app.includes('designMode===\'mid-next\'?<picture className="brand-picture">'),'Responsive Logoauswahl muss ausschließlich im Design-2.0.1-Pfad liegen.');
+assert.ok(app.includes('<div className="brand"><picture className="brand-picture">'),'Responsive Logoauswahl muss im obligatorischen MID-Design dauerhaft aktiv sein.');
 assert.ok(app.includes('media="(max-width: 620px)" srcSet={brandLogoPath}'),'Schmale Ansichten müssen das Original-Compact-Logo verwenden.');
 assert.ok(app.includes('src={horizontalBrandLogoPath} alt="MID Logo"'),'Breite Ansichten müssen das Original-Horizontal-Logo verwenden.');
-assert.ok(app.includes('brandLogoPath={brandLogoPath} designMode={designMode} unit={unit}'),'Header muss den aktiven Designmodus erhalten.');
+assert.ok(app.includes('brandLogoPath={brandLogoPath} unit={unit}'),'Header darf keinen Legacy-Designmodus mehr benötigen.');
 
 assert.ok(main.includes("import './midDesign201Current.css';"),'Design-2.0.1-Aktuell-CSS fehlt im Produktionsentry.');
 assert.ok(main.indexOf("import './midDesign201Current.css';")>main.indexOf("import './midC19WorkspacePolish.css';"),'Aktuell-Komposition muss als gezielter finaler Redesign-Override geladen werden.');
@@ -87,4 +87,4 @@ function audit(text,insideKeyframes=false){
 }
 audit(css);
 
-console.log('MID Design 2.0.1 · Aktuell/Kopf/Favoriten: Logo, Wetterfaden, Hierarchie, Lesbarkeit, Responsive- und Classic-Isolation geprüft.');
+console.log('MID Design 2.0.1 · Aktuell/Kopf/Favoriten: Logo, Wetterfaden, Hierarchie, Lesbarkeit, Responsive-Darstellung im obligatorischen MID-Design geprüft.');
