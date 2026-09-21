@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.69",
+  "releaseVersion": "0.9.85.70",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -508,7 +508,8 @@
     "scripts/test-mid-18-2-forecast-map-shell-098566.mjs",
     "scripts/test-mid-18-2-secondary-workspace-finish-098567.mjs",
     "scripts/test-mid-18-2-today-profile-release-finish-098568.mjs",
-    "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs"
+    "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
+    "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -932,7 +933,8 @@
     "scripts/test-mid-18-2-forecast-map-shell-098566.mjs",
     "scripts/test-mid-18-2-secondary-workspace-finish-098567.mjs",
     "scripts/test-mid-18-2-today-profile-release-finish-098568.mjs",
-    "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs"
+    "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
+    "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1607,7 +1609,10 @@
     "scripts/test-mid-18-2-today-profile-release-finish-098568.mjs",
     "src/midC18TodayReleaseFinish.css",
     "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
-    "src/midC18EnsembleInteractionPolish.css"
+    "src/midC18EnsembleInteractionPolish.css",
+    "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
+    "src/midC18EnsembleSynopticPolish.css",
+    "MID_SYNOPTIC_FRONT_STYLE_0.9.85.70.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1870,7 +1875,10 @@
     "scripts/test-mid-18-2-today-profile-release-finish-098568.mjs",
     "src/midC18TodayReleaseFinish.css",
     "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
-    "src/midC18EnsembleInteractionPolish.css"
+    "src/midC18EnsembleInteractionPolish.css",
+    "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
+    "src/midC18EnsembleSynopticPolish.css",
+    "MID_SYNOPTIC_FRONT_STYLE_0.9.85.70.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -2160,7 +2168,7 @@
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs"
   ],
-  "version": "0.9.85.69",
+  "version": "0.9.85.70",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

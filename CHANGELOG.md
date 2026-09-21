@@ -1,3 +1,14 @@
+# MID v0.9.85.70
+
+- Die 14-Tage-Ensemble-Auswahl auf Smartphones wurde verdichtet: Temperatur, Niederschlag und Wind/Böen bleiben einzeilig, die Mini-Grafiken sind deutlich größer und der vertikale Leerraum wurde reduziert.
+- Der Temperatur-Mini-Plot nutzt eine stärkere, weiterhin rein visuelle Skalierung der Abweichung zum Klimamittel; die Ensemble-Daten selbst bleiben unverändert.
+- Das mobile Ensemble-Detailoverlay ordnet Sekundärangaben zweispaltig statt über eine extrem schmale Labelspalte an. Begriffe wie „Sonnenscheindauer“ und „Niederschlag“ werden nicht mehr unleserlich zerbrochen; das Overlay bleibt oberhalb der Bottom-Bar und kann bei Bedarf intern scrollen.
+- Die Synoptik startet als Bodenanalyse nun mit Isobaren als Standard-Modelllinien. 500-hPa-Isohypsen bleiben optional zuschaltbar.
+- Kaltfronten werden blau mit Dreiecken, Warmfronten rot mit Halbkreisen und Okklusionen violett mit alternierenden Symbolen auf derselben Seite dargestellt. Symbolabstände orientieren sich an der tatsächlichen Frontlänge statt an Rasterpunkten.
+- Typisierte Fronten erhalten eine stärkere, aber halo-gestützte Linienführung; neutrale θe-850-Frontalzonen bleiben visuell nachgeordnet.
+- Die bestehende Frontdiagnose, θe-850-Erkennung, Isobarenberechnung, Wetterdaten und Warnlogik wurden fachlich nicht verändert.
+- Replit-Redesign wurde parallel für dieselben Ensemble-/Synoptik-Probleme und die vollständige Viewport-/Light-/Dark-Abnahme fortgesetzt.
+
 # MID v0.9.85.69
 
 - Der 14-Tage-/Ensemble-Block wurde nach dem mobilen Screenshot-Audit weiter poliert: Die Mini-Grafiken der Umschalter „Temperatur“, „Niederschlag“ und „Wind/Böen“ liegen auf Tablet/Smartphone jetzt in einer eigenen Zeile unter dem Text und können die Bezeichnungen nicht mehr überdecken.
