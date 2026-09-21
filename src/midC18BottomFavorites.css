@@ -10,6 +10,8 @@
   }
   .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs,
   .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+    position:fixed!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
     right:max(8px,var(--mid-safe-right))!important;
     bottom:max(6px,var(--mid-safe-bottom))!important;
     left:max(8px,var(--mid-safe-left))!important;
