@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.72",
+  "releaseVersion": "0.9.85.73",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -936,7 +936,8 @@
     "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
     "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
     "scripts/test-mid-18-2-1-replit-handoff-098571.mjs",
-    "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs"
+    "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
+    "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1619,7 +1620,9 @@
     "src/midC18ReplitHandoffPolish.css",
     "MID_REPLIT_HANDOFF_0.9.85.71.md",
     "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
-    "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md"
+    "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md",
+    "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs",
+    "MID_RUC_NATIVE_CADENCE_0.9.85.73.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1686,7 +1689,8 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-mid-18-2-1-replit-handoff-098571.mjs",
-    "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs"
+    "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
+    "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1930,7 +1934,8 @@
     "src/weather-src/10-observations-specialized.tsfrag",
     "src/WaterSportsPanel.tsx",
     "MID_REPLIT_HANDOFF_0.9.85.71.md",
-    "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md"
+    "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md",
+    "MID_RUC_NATIVE_CADENCE_0.9.85.73.md"
   ],
   "implementationProof": [
     "MID_IMPLEMENTATION_0.9.74.5.md",
@@ -2179,7 +2184,7 @@
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
     "scripts/test-synoptic-startup-ceiling-098496.mjs"
   ],
-  "version": "0.9.85.72",
+  "version": "0.9.85.73",
   "updatedAt": "2026-09-13T21:20:00+02:00",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -2278,7 +2283,8 @@
     "MID_IMPLEMENTATION_0.9.84.89.md",
     "MID_IMPLEMENTATION_0.9.84.91.md",
     "MID_REPLIT_HANDOFF_0.9.85.71.md",
-    "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md"
+    "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md",
+    "MID_RUC_NATIVE_CADENCE_0.9.85.73.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

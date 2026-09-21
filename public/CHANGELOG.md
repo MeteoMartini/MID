@@ -1,3 +1,12 @@
+# MID v0.9.85.73
+
+- Die operative RUC-Kurzfrist verwendet nun parameter-native Zeitauflösungen statt einer pauschalen Stundenauflösung.
+- Niederschlag bleibt im RUC-Pfad 5-minütig. Für 0…+6 Stunden werden Temperatur, Taupunkt/Feuchte, Druck, Wind/Böen, Gesamt-/Schichtbewölkung, Sicht, Ceiling sowie weitere kurzfristig relevante Zustandsgrößen automatisch in nativer 15-Minuten-Auflösung übernommen, **wenn der jeweilige DWD-Lauf diese Folge vollständig bereitstellt**.
+- Fehlt für einen Parameter eine vollständige native 15-Minuten-Folge, bleibt dessen bisheriger stündlicher Pfad aktiv. MID kennzeichnet stündliche Werte nicht künstlich als 15-Minuten-Daten.
+- 90-Minuten-Karten, Wettertext, Piktogramme und Skybar greifen gemeinsam auf den finalisierten 15-Minuten-Zustand zurück. Damit kann insbesondere native RUC-Gesamtbewölkung direkt in die Skybar einfließen, sobald sie für den Lauf in 15-Minuten-Kadenz verfügbar ist.
+- Radar/Nowcast und belastbare lokale Beobachtungen behalten in ihrem verlässlichen Zeitraum Vorrang; die RUC-Zustandsfelder ergänzen die kohärente Leitprognose mit abnehmendem Gewicht bis +6 h.
+- Der stündliche RUC-Zustandsvektor bleibt als robuster Fallback und für den längeren Kurzfristbereich erhalten.
+
 # MID v0.9.85.72
 
 - Die 15-Minuten-Kurzfrist verwendet für trockene Wettertexte und Piktogramme jetzt dieselbe Gesamtbewölkung wie die Skybar. Eine dünne/mittlere graue Wolkenstufe kann dadurch nicht mehr gleichzeitig als „Bedeckt“ beschriftet werden.

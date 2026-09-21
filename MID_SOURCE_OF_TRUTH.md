@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.73 · Parameter-native RUC-Kurzfrist
+
+Für die operative 0…+6-h-Prognose gilt die feinste tatsächlich publizierte Parameterkadenz: RUC-Niederschlag 5 min; kurzfristig relevante Zustandsfelder werden nur bei vollständiger nativer Folge als 15-min-`state15` übernommen. Dazu zählen T/TD/RH, MSLP, 10-m-Wind/Böen, CLCT/CLCL sowie – sofern nativ vollständig – CLCM/CLCH, VIS, CEILING, HZEROCL, SNOWLMT und T_G. Fehlende 15-min-Felder fallen parameterweise auf den bestehenden Stundenpfad zurück; es gibt kein künstlich als nativ etikettiertes Upsampling. Radar/Nowcast und belastbare Beobachtungen behalten im unmittelbaren Zeitraum Vorrang. `displayMinutes15`, 90-Minuten-Wettertext/Piktogramm und Skybar nutzen denselben finalisierten Zustandsvektor. Required Regression: `scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs`.
+
 ## v0.9.85.72 · Kurzfrist-Skybar/Wettertext-Kohärenz
 
 In der finalisierten Kurzfristreihe müssen trockener Wettertext, Piktogramm und Skybar denselben Himmelszustand beschreiben. Gesamtbewölkung ist dabei primär; tiefe Bewölkung ist nur Fallback bei fehlender Gesamtbewölkung. Für trockene Lagen gilt die WMO-nahe Oktaschwelle: „Bedeckt“ ab 87,5 % Gesamtbewölkung. Nebel bleibt sicht-/feuchtebasiert separat, Niederschlags- und Gewittercodes bleiben unberührt. ICON-D2-RUC CLCT/CLCL werden aktuell stündlich in den kanonischen Forecastkern übernommen; die 15-Minuten-Kurzfrist interpoliert diese Zustandsfelder und darf nicht als native 15-Minuten-CLCT-Folge bezeichnet werden. Required Regression: `scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs`.

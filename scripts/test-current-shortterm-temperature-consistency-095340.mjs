@@ -43,8 +43,8 @@ assert.ok(!app.includes('observedTemperature:currentObservedTemperature'),'Eine 
 for(const token of [
  'canonicalLocal=Number(base.localAdjustment)>0',
  'bridgeObservedTemperature(anchorTemperature,assimilatedTemperature',
- 'canonicalLocal?base.temperature',
- 'canonicalLocal?base.wind'
+ 'canonicalLocal?stateTemperature',
+ 'canonicalLocal?stateWind'
 ])assert.ok(shortTerm.includes(token),`Kurzfrist darf kanonisch lokalisierte Stunden nicht erneut assimilieren: ${token}`);
 
 for(const token of [
