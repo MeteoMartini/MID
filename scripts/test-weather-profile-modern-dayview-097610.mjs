@@ -22,7 +22,7 @@ for(const token of [
  'className="wind-warning-threshold"',
  'className="wind-warning-threshold-label"',
  'const solarWindow=solarTimelineWindow(chartStartEpoch,chartEndEpoch',
- 'const nightBandOpacity=.16,midnightBoundary=chartDayBands[1]??null,nightBands=solarWindow.nightBands.map',
+ 'const nightBandOpacity=.2,midnightBoundary=chartDayBands[1]??null,nightBands=solarWindow.nightBands.map',
  'nightBands.map(item=><linearGradient',
  'nightBands.map(item=><rect',
  '{midnightBoundary?<line className="day-separator"',

@@ -11,11 +11,11 @@ const [app,design,css,main,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-current-critical-098546.mjs';
 
-assert.ok(app.includes("hours.slice(Math.max(0,currentHourIndex),Math.max(0,currentHourIndex)+13)"),'12-h-Faden muss Jetzt bis +12 h mit 13 Stundenpunkten abdecken.');
-assert.ok(app.includes('Temperaturtrend · {currentThreadHorizon} h'),'Aussagekräftige dynamische 12-h-Beschriftung fehlt.');
+assert.ok(app.includes("currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)"),'12-h-Faden muss an der aktuellen vollen lokalen Stunde beginnen und bis exakt +12 h reichen.');
+assert.ok(app.includes('Temperaturdifferenz · +12 h'),'Eindeutige +12-h-Beschriftung der ganzstündigen Temperaturdifferenz fehlt.');
 assert.ok(app.includes('current-weather-thread-axis'),'Zeit-/Temperaturachse für den 12-h-Faden fehlt.');
 assert.ok(app.includes('currentThreadAxisTicks=currentThreadSeries.map')&&app.includes('index%3===0||index===currentThreadSeries.length-1'),'3-stündliche Zeitanker plus Endzeit fehlen.');
-assert.ok(app.includes("tick.index===0?'Jetzt':hourDisplayClock(tick.hour,w.timezone)"),'Zeitanker müssen Jetzt sowie echte lokale Uhrzeiten verwenden.');
+assert.ok(app.includes('<small>{hourDisplayClock(tick.hour,w.timezone)}</small>'),'Zeitanker müssen ausschließlich echte volle lokale Uhrzeiten verwenden.');
 assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Taupunkt muss in der Hauptansicht vor relativer Feuchte stehen.');
 assert.ok(app.includes("dryNow=probability<10&&!radarSignalDetected(radar)&&!thunderInfo&&!heavyRainInfo"),'Trockener Nowcast braucht einen kompakten Darstellungszustand.');
 assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss im obligatorischen Design dauerhaft sichtbar gehalten werden.');
@@ -48,4 +48,4 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}`);
 assert.ok(baseline.requiredFiles?.includes(test),`${test} fehlt in requiredFiles`);
 
-console.log('MID: kritische iPhone-QA, Taupunkt-Priorität, 12-h-Faden, kompakter Dry-Nowcast und dauerhaft sichtbare Bottom-Bar geprüft.');
+console.log('MID v0.9.85.82: kritische iPhone-QA, Taupunkt-Priorität, ganzstündiger +12-h-Faden, kompakter Dry-Nowcast und dauerhaft sichtbare Bottom-Bar geprüft.');

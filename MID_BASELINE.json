@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.81",
+  "releaseVersion": "0.9.85.82",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2238,8 +2238,8 @@
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs"
   ],
-  "version": "0.9.85.81",
-  "updatedAt": "2026-09-21T20:40:00.000Z",
+  "version": "0.9.85.82",
+  "updatedAt": "2026-09-21T21:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
