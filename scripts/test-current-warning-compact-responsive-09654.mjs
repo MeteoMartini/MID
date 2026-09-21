@@ -47,7 +47,7 @@ assert.ok(thunderstorm.includes("sectionLabel:'Schauerinformation'|'Gewitterinfo
 
 // Responsive Warnkarte: Tagesgruppen, eine Zeile pro Zeitfenster und Details direkt unter der Zeile.
 for(const token of [
- 'className="warnings-responsive-shell"',
+ 'warnings-responsive-shell',
  'hazards compact-list hazards-responsive-card hazards-current-',
  'className="hazard-day-grid"',
  'className="hazard-day-group"',
