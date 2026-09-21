@@ -52,9 +52,9 @@ assert.ok(main.indexOf('midC18WarningTimeline.css')>main.indexOf('midC18ReplitHa
 assert.ok(weather.includes('probability?:number|string'),'Amtliche Warnung muss optionale Eintrittswahrscheinlichkeit transportieren können.');
 assert.ok(weatherSource.includes('probability?:number|string'),'Weather-Source-of-Truth muss die optionale Eintrittswahrscheinlichkeit dauerhaft erhalten.');
 assert.ok(worker.includes('capWarningProbability')&&worker.includes("'PROBABILITY','PROBABILITY_VALUE','PROBABILITYVALUE','LIKELIHOOD'"),'Worker darf vorhandene amtliche Wahrscheinlichkeitsfelder nicht verlieren.');
-assert.equal(pkg.version,'0.9.85.77','Paketversion ist nicht MID v0.9.85.77.');
+assert.equal(pkg.version,'0.9.85.78','Paketversion ist nicht MID v0.9.85.78.');
 assert.equal(baseline.releaseVersion,pkg.version,'Paket- und Baseline-Version müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests']) assert.ok((baseline[key]||[]).includes(test),`${test} fehlt in ${key}`);
-for(const path of [test,'src/midC18WarningTimeline.css','MID_WARNING_TIMELINE_0.9.85.77.md']) assert.ok((baseline.requiredFiles||[]).includes(path),`${path} fehlt in requiredFiles.`);
+for(const path of [test,'src/midC18WarningTimeline.css','MID_WARNING_TIMELINE_0.9.85.78.md']) assert.ok((baseline.requiredFiles||[]).includes(path),`${path} fehlt in requiredFiles.`);
 
-console.log('MID v0.9.85.77: Warnungs-Timeline, Quellenstörung, Chronologie und Warnfarben geschützt.');
+console.log('MID v0.9.85.78: Warnungs-Timeline, Quellenstörung, Chronologie und Warnfarben geschützt.');
