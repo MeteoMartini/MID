@@ -216,7 +216,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin             +refs/heads/mid-stable:refs/remotes/origin/mid-stable             +refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags --depth=1 origin \
+            +refs/heads/mid-stable:refs/remotes/origin/mid-stable \
+            +refs/heads/main:refs/remotes/origin/main
           actual_sha="$(git rev-parse refs/remotes/origin/mid-stable)"
           stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
           main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
@@ -239,7 +241,7 @@ jobs:
           name: mid-ruc-pages-${{ github.run_id }}
           path: ./.ruc-site
       - name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
-        if: steps.stable_guard.outputs.allowed == 'true'
+        if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
