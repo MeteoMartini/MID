@@ -32,8 +32,9 @@ for(const token of [
   "openSettings('system')"
 ])assert.ok(app.includes(token),`Floating-Bar-Logik fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder als Bottom-Bar-Tab erscheinen');
-assert.ok(app.includes("type BottomBarBehavior='auto'|'fixed'")&&app.includes('setBottomBarBehavior'), 'Fixierbare Bottom-Bar-Einstellung fehlt');
-assert.ok(app.includes("return'fixed' as BottomBarBehavior"),'Bottom-Bar muss den fixierten Zustand dauerhaft erzwingen.');
+assert.ok(app.includes("type BottomBarBehavior='fixed'"),'Bottom-Bar muss als dauerhaft fixer Laufzeitvertrag typisiert sein.');
+assert.ok(app.includes("localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)")&&app.includes("return'fixed'"),'Bottom-Bar muss den fixierten Zustand erzwingen und den Alt-Schlüssel bereinigen.');
+assert.ok(!app.includes('setBottomBarBehavior')&&!app.includes('bottom-bar-display-settings'),'Obsoleter Bottom-Bar-Einstellungspunkt darf nicht zurückkehren.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes("window.addEventListener('scroll',onScroll,{passive:true})"),'Legacy-Auto-Hide darf nicht zurückkehren.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Beta-Bezeichnung darf nicht mehr gerendert werden');
 assert.ok(!app.includes('navigation-concept-settings'),'Alter Bedienkonzept-Einstellungsblock muss entfernt sein');

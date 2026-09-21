@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 const test='scripts/test-header-favorites-readability-098465.mjs';
 const foundation=readFileSync('src/styles-src/00-foundation.css','utf8');
 const modern=readFileSync('src/styles-src/30-modern.css','utf8');
+const b2=readFileSync('src/midC18B2CurrentAtmosphere.css','utf8');
 const legacy=readFileSync('src/v078.css','utf8');
 const aggregate=readFileSync('src/styles.css','utf8');
 const app=readFileSync('src/App.tsx','utf8');
@@ -29,13 +30,13 @@ for(const token of [
 
 assert.ok(modern.includes('.navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{\n min-height:36px;'),'Bottom-Tab-Favoriten dürfen nicht auf 30 px Bedienhöhe zurückfallen.');
 assert.ok(modern.includes('.navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{\n width:36px;'),'Bottom-Tab-Verwaltung benötigt mindestens 36 px Bedienfläche.');
-assert.ok(modern.includes('.header-favorites .favorite-bubbles>button .favorite-quick-grip{\n width:16px;'),'Favoriten-Griff bleibt sichtbar und erhält eine größere Trefferzone.');
-assert.ok(modern.includes('@media(pointer:coarse)')&&modern.includes('grid-template-columns:20px auto auto'),'Touchgeräte benötigen einen breiteren Favoriten-Griff.');
+assert.ok(b2.includes('.favorite-quick-grip{display:none!important}'),'B.2 muss historische Favoriten-Griffe in der Schnellleiste final ausblenden.');
+assert.ok(b2.includes('min-height:34px!important')&&b2.includes('overflow:hidden!important')&&b2.includes('text-overflow:ellipsis!important'),'B.2 muss die kompakte einzeilige Favoritenleiste absichern.');
 assert.ok(foundation.includes('@media(pointer:coarse){\n .search .search-input-shell>button{width:40px;'),'Suchfeldaktion benötigt auf Touchgeräten 40 px Trefferfläche.');
 assert.ok(legacy.includes('.search .poi-kind{\n font-size:var(--mid-text-micro);'),'POI-/Favoriten-Badges dürfen nicht auf 8 px zurückfallen.');
 
-// Funktionsschutz: Standort, Favoritenauswahl, Verwaltung, Ziehen und Pfeiltasten bleiben vorhanden.
-for(const token of ['className="secondary locate"','<FavoriteQuickStrip','favorite-quick-grip','onPointerDown','title="Nach oben"','title="Nach unten"']){
+// Funktionsschutz: Standort, Favoritenauswahl und Verwaltung bleiben vorhanden; Sortierung nur im Manager.
+for(const token of ['className="secondary locate"','<FavoriteQuickStrip','Reihenfolge unter Favoriten verwalten ändern','title="Nach oben"','title="Nach unten"']){
  assert.ok(app.includes(token),`Favoriten-/Suchfunktion fehlt nach UI-Audit: ${token}`);
 }
 

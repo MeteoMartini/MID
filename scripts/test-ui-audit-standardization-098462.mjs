@@ -28,7 +28,9 @@ assert.ok(css.includes('.current-weather-facts b{\n  font-size:max(12px,var(--mi
 assert.ok(css.includes('.ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{\n  width:28px;'),'14d-Infoziel muss kompakt, aber besser bedienbar sein.');
 assert.ok(css.includes('@media(pointer:coarse)')&&css.includes('min-width:36px;\n    min-height:36px;'),'Touchgeräte benötigen vergrößerte Trefferflächen.');
 assert.ok(dashboard.includes('am Griff oder mit den Pfeiltasten verschoben werden'),'Dashboard muss Drag-Alternative sichtbar erklären.');
-assert.ok(app.includes('alternativ unter Favoriten verwalten mit Pfeiltasten verschieben'),'Favoriten-Schnellleiste muss auf die vorhandene Drag-Alternative verweisen.');
+assert.ok(app.includes('Reihenfolge unter Favoriten verwalten ändern'),'Favoriten-Schnellleiste muss die exklusive Sortierung im Favoritenmanager erklären.');
+const quick=app.slice(app.indexOf('function FavoriteQuickStrip'),app.indexOf('function HeightInput'));
+assert.ok(!quick.includes('favorite-quick-grip')&&!quick.includes('pointerDrag'),'Favoriten-Schnellleiste darf keine Reorder-/Drag-Logik mehr enthalten.');
 
 const parts=['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css']
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');

@@ -1,0 +1,340 @@
+/* MID v0.9.85.79 · MID 18.2.4 B.2 + Arbeitspaket C
+   Rein visuelle Hierarchie. Wetterfachlogik und Datenquellen bleiben unverändert. */
+
+/* B.2 · Favoritenleiste: Auswahl statt Sortierfläche. Reihenfolge nur im Favoritenmanager. */
+html[data-mid-design='next'] .header-favorites .favorite-bubbles{
+  gap:5px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+  grid-template-columns:auto minmax(0,max-content) auto!important;
+  grid-template-rows:1fr!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:34px!important;
+  padding:5px 8px!important;
+  column-gap:5px!important;
+  row-gap:0!important;
+  border-radius:11px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>svg{
+  grid-column:1!important;
+  grid-row:1!important;
+  width:12px!important;
+  height:12px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>span{
+  grid-column:2!important;
+  grid-row:1!important;
+  max-width:154px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:10.5px!important;
+  line-height:1.1!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>small{
+  display:none!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>b{
+  grid-column:3!important;
+  grid-row:1!important;
+  padding:1px 4px!important;
+  font-size:7px!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-profile-icons{
+  grid-column:3!important;
+  grid-row:1!important;
+  align-self:center!important;
+  margin:0!important;
+}
+html[data-mid-design='next'] .header-favorites .favorite-strip-manage{
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  border-radius:11px!important;
+}
+html[data-mid-design='next'] .favorite-quick-grip{display:none!important}
+
+/* C · Aktuelles Wetter als eine zusammenhängende Atmosphärenkarte. */
+html[data-mid-design='next'] .hero.current-compact{
+  --mid-current-divider:color-mix(in srgb,var(--mid-surface-line) 84%,transparent);
+  border-radius:22px!important;
+  box-shadow:0 12px 30px rgba(3,28,51,.075)!important;
+}
+html[data-mid-design='next'][data-theme='dark'] .hero.current-compact{
+  box-shadow:0 16px 34px rgba(0,0,0,.22)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+  grid-template-columns:96px minmax(172px,.62fr) minmax(360px,1.5fr) minmax(330px,1.2fr)!important;
+  grid-template-areas:
+   "icon statement thread facts"
+   "range range range range"!important;
+  align-items:stretch!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+  min-height:150px!important;
+  padding:14px 8px!important;
+  border-right:1px solid var(--mid-current-divider)!important;
+  background:color-mix(in srgb,var(--mid-surface-raised) 38%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon svg,
+html[data-mid-design='next'] .hero.current-compact .current-weather-icon img{
+  width:min(76px,100%)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+  min-height:150px!important;
+  padding:15px 17px!important;
+  border-right:1px solid var(--mid-current-divider)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{
+  margin-top:4px!important;
+  font-size:clamp(60px,6.2vw,86px)!important;
+  line-height:.9!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>b{
+  margin-top:7px!important;
+  font-size:clamp(15px,1.55vw,20px)!important;
+  line-height:1.1!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>small{
+  margin-top:4px!important;
+  color:var(--muted)!important;
+  font-size:9px!important;
+  line-height:1.25!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+  padding:12px 14px 10px!important;
+  border-right:1px solid var(--mid-current-divider)!important;
+  background:transparent!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:1fr!important;
+  align-content:stretch!important;
+  min-width:0!important;
+  padding:0!important;
+  background:color-mix(in srgb,var(--mid-surface-raised) 28%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  min-width:0!important;
+  min-height:72px!important;
+  padding:10px 12px!important;
+  border:0!important;
+  border-left:1px solid var(--mid-current-divider)!important;
+  border-bottom:1px solid var(--mid-current-divider)!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-last-child(-n+2){
+  border-bottom:0!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts small{
+  color:var(--muted)!important;
+  font-size:7.8px!important;
+  font-weight:850!important;
+  letter-spacing:.055em!important;
+  text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts b{
+  margin-top:3px!important;
+  font-size:14px!important;
+  line-height:1.08!important;
+  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts em{
+  margin-top:2px!important;
+  color:var(--muted)!important;
+  font-size:8px!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+/* Taupunkt ist die primäre Feuchtegröße; relative Feuchte bleibt Kontext. */
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity{
+  order:1!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity small{
+  color:color-mix(in srgb,var(--param-dewpoint,var(--accent)) 70%,var(--muted))!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity b{
+  font-size:16px!important;
+  font-weight:900!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.humidity em{
+  font-size:7.5px!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.wind{order:2!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.precip{order:3!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.pressure{order:4!important}
+html[data-mid-design='next'] .hero.current-compact .current-weather-facts>.visibility{display:none!important}
+
+/* Tagesbereich und Datenstatus bilden ruhige Abschlusszeilen der Atmosphärenkarte. */
+html[data-mid-design='next'] .hero.current-compact .hero-day-range{
+  padding-top:6px!important;
+  padding-bottom:6px!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-compact-source{
+  min-height:44px!important;
+  padding:6px 10px!important;
+  border-top:1px solid var(--mid-current-divider)!important;
+  background:color-mix(in srgb,var(--mid-surface-raised) 24%,transparent)!important;
+}
+html[data-mid-design='next'] .hero.current-compact .current-metrics-toggle{
+  min-height:32px!important;
+  padding:4px 8px!important;
+  border-radius:10px!important;
+}
+
+/* „Mehr“: eine gemeinsame Informationsfläche statt vieler gleichgewichtiger Karten. */
+html[data-mid-design='next'] #current-weather-metrics:not([hidden]){
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:0!important;
+  margin-top:8px!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:1px solid var(--mid-surface-line)!important;
+  border-radius:18px!important;
+  background:var(--mid-surface-base)!important;
+  box-shadow:none!important;
+}
+html[data-mid-design='next'] #current-weather-metrics .current-more-head{
+  grid-column:1/-1!important;
+  min-height:54px!important;
+  padding:9px 12px!important;
+  border-bottom:1px solid var(--mid-surface-line)!important;
+  background:color-mix(in srgb,var(--mid-surface-raised) 42%,transparent)!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article{
+  min-height:68px!important;
+  margin:0!important;
+  padding:9px 11px!important;
+  border:0!important;
+  border-right:1px solid var(--mid-surface-line)!important;
+  border-bottom:1px solid var(--mid-surface-line)!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article:nth-of-type(3n){
+  border-right:0!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>header{
+  min-height:22px!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>header>small{
+  font-size:8.5px!important;
+  line-height:1.15!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>strong,
+html[data-mid-design='next'] #current-weather-metrics>article>strong.air-quality-primary{
+  font-size:15px!important;
+  line-height:1.05!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>article>.current-metric-summary{
+  margin-top:2px!important;
+  font-size:8.5px!important;
+  line-height:1.2!important;
+}
+html[data-mid-design='next'] #current-weather-metrics>.uvi-card,
+html[data-mid-design='next'] #current-weather-metrics>.air-quality-card,
+html[data-mid-design='next'] #current-weather-metrics>.sunshine-card,
+html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card{
+  grid-column:auto!important;
+  min-height:68px!important;
+  background:transparent!important;
+}
+
+/* Tablet: Hauptaussage oben, Trend und Kernparameter darunter. */
+@media(max-width:1100px){
+  html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+    grid-template-columns:88px minmax(160px,.7fr) minmax(0,1.55fr)!important;
+    grid-template-areas:
+     "icon statement facts"
+     "thread thread thread"
+     "range range range"!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+    border-top:1px solid var(--mid-current-divider)!important;
+    border-right:0!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics:not([hidden]){
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics>article:nth-of-type(3n){border-right:1px solid var(--mid-surface-line)!important}
+  html[data-mid-design='next'] #current-weather-metrics>article:nth-of-type(2n){border-right:0!important}
+}
+
+/* Mobile: Temperatur/Wetterzustand zuerst; Kernparameter kompakt in 2×2. */
+@media(max-width:700px){
+  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
+    min-height:32px!important;
+    padding:4px 7px!important;
+  }
+  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>span{
+    max-width:128px!important;
+    font-size:10px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact{
+    border-radius:18px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-overview{
+    grid-template-columns:78px minmax(0,1fr)!important;
+    grid-template-areas:
+     "icon statement"
+     "facts facts"
+     "thread thread"
+     "range range"!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-icon{
+    min-height:112px!important;
+    padding:10px 7px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-icon svg,
+  html[data-mid-design='next'] .hero.current-compact .current-weather-icon img{width:min(62px,100%)!important}
+  html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article{
+    min-height:112px!important;
+    padding:11px 12px!important;
+    border-right:0!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>strong{
+    font-size:clamp(54px,16vw,70px)!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-overview>article>b{
+    font-size:14px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-facts{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    border-top:1px solid var(--mid-current-divider)!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span{
+    min-height:58px!important;
+    padding:8px 10px!important;
+  }
+  html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-child(odd){border-left:0!important}
+  html[data-mid-design='next'] .hero.current-compact .current-weather-facts>span:nth-last-child(-n+2){border-bottom:0!important}
+  html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
+    padding:8px 9px 7px!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics .current-more-head{
+    min-height:48px!important;
+    padding:8px 9px!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics>article{
+    min-height:62px!important;
+    padding:8px 9px!important;
+  }
+}
+@media(max-width:390px){
+  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>span{max-width:112px!important}
+  html[data-mid-design='next'] #current-weather-metrics:not([hidden]){
+    grid-template-columns:1fr!important;
+  }
+  html[data-mid-design='next'] #current-weather-metrics>article{
+    border-right:0!important;
+  }
+}

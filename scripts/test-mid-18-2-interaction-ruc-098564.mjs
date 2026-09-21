@@ -14,7 +14,8 @@ const [app,midDesign,main,css,rucFetch,rucBuild,fusion,shortTerm,audit]=await Pr
  read('MID_RUC_SHORTTERM_AUDIT_0.9.85.64.md')
 ]);
 
-assert.ok(app.includes("return'fixed' as BottomBarBehavior"),'Bottom-Bar muss im neuen Design fixiert starten und bleiben.');
+assert.ok(app.includes("type BottomBarBehavior='fixed'")&&app.includes("return'fixed'"),'Bottom-Bar muss im neuen Design fixiert starten und bleiben.');
+assert.ok(!app.includes('setBottomBarBehavior')&&!app.includes('bottom-bar-display-settings'),'Bottom-Bar darf keinen obsoleten Einstellungspunkt mehr besitzen.');
 assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Legacy-Scroll-Auto-Hide darf nicht zurückkehren.');
 assert.ok(app.includes("onNavigate={id=>navigateToDashboardSection(id,true,navigationMode==='bottom-tabs'?'auto':'smooth')}"),'Bottom-Tab-Taps müssen ohne verzögerten Smooth-Scroll navigieren.');
