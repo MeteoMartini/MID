@@ -13,3 +13,7 @@ Die Synoptik orientiert sich visuell an meteorologischen Bodenanalysekarten, ohn
 
 ## Fachliche Trennung
 Die Darstellung klassifiziert keine Front neu. Fronttyp, Lage und Qualität stammen weiterhin aus der bestehenden MID-Frontdiagnose / θe-850-Frontalzone und den vorhandenen Qualitätsfiltern. Die Oberfläche verändert ausschließlich visuelle Gewichtung und Standard-Layerwahl.
+
+## Fachreferenz
+- DWD „Bodenanalysen“: Isobaren werden in der Bodenanalyse gemeinsam mit standardisierten Symbolen für Kaltfront, Warmfront, Okklusion und quasistationäre Front verwendet.
+- DWD „Frontenklassifikation“: Fronten und frontähnliche Grenzlinien werden in Analysekarten mit jeweils eigener Symbolik unterschieden.
