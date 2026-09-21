@@ -378,6 +378,7 @@ def main():
  # admitted. Hourly-only DWD parameters simply remain on the deterministic /
  # specialist fallback path.
  rapid_state_fields,_=collect_optional_fields(a.staging/'rapid-state',RAPID_STATE_PARAM_MAP,rapid15_times,point_count,RAPID_STATE_15_FIELDS)
+ if 'wind_gusts_10m' in rapid_state_fields:rapid_state_fields['wind_gusts_10m']=rapid_state_fields['wind_gusts_10m']*1.94384449
  u_rows=collect_optional_parameter(sorted((a.staging/'rapid-state'/'U_10M').glob('**/*.grib2*')),'u10',rapid15_times,point_count)
  v_rows=collect_optional_parameter(sorted((a.staging/'rapid-state'/'V_10M').glob('**/*.grib2*')),'v10',rapid15_times,point_count)
  if u_rows and v_rows:
