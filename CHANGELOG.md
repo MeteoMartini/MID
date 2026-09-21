@@ -1,3 +1,14 @@
+# MID v0.9.85.80
+
+- Das 24-h-Wetterprofil verwendet eine gemeinsame Zeitbasis für Temperatur, Skybar beziehungsweise Stundenquadrate, Niederschlag, Wind/Böen, Luftdruck, Wolken und Hazards.
+- Senkrechte Hilfslinien bleiben stündlich; sichtbare Zeitangaben folgen einem ruhigen Drei-Stunden-Raster.
+- Die wählbaren 24-Stundenquadrate liegen jetzt auf denselben realen Zeitpositionen wie die übrigen Profilspuren; Skybar und Quadrate verwenden weiterhin dieselbe fachliche Wetterlogik ohne Normalisierung.
+- Die ausgewählte Stunde wird über alle Spuren synchron markiert. Der Niederschlag wird in den Einzeldaten zusätzlich als intervallbezogene Rate in mm/h angegeben.
+- Fehlende Wolkenschichtwerte werden nicht mehr als 0 % beschrieben, sondern ausdrücklich als nicht verfügbar gekennzeichnet.
+- Auf schmalen Smartphones scrollt nur die Diagrammfläche intern horizontal; die Seite selbst bleibt viewportfest. Tablet und Desktop nutzen weiterhin die verfügbare Breite.
+- Wetterfachlogik, Datenquellen, Warnungen, Favoriten, RUC/Nowcast, Radar/Satellit/Komposit, Ensemble, Klima und Prognoseberechnung bleiben unverändert.
+- Replit hat Arbeitspaket D umgesetzt und geprüft; Veröffentlichung und Stable-Promotion erfolgen ausschließlich durch ChatGPT.
+
 # MID v0.9.85.79
 
 - Der überflüssig gewordene Einstellungspunkt für die dauerhaft sichtbare Bottom-Bar wurde entfernt. Die fünf Hauptziele bleiben verbindlicher Bestandteil des neuen MID-Designs.
