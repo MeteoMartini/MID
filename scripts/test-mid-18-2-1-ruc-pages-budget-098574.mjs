@@ -25,8 +25,8 @@ assert.ok(pages.includes("PAGES_STATE15_FIELDS={'visibility','ceiling'}"),'Pages
 assert.ok(pages.includes("raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')"),'Pages overflow must fail during preparation, before artifact upload/publish.');
 assert.ok(worker.includes("rapidSolar15:false")&&worker.includes("rapidState15:false"),'Worker health must continue treating optional rapid products as optional.');
 assert.ok(shortTerm.includes('stateCeiling=finite(quarter?.ceiling)??base.ceiling')&&shortTerm.includes('stateVisibility=finite(quarter?.visibility)??base.visibility'),'Short-term forecast must consume native 15-min visibility/ceiling when present and fall back hourly otherwise.');
-assert.equal(pkg.version,'0.9.85.76');
+assert.equal(pkg.version,'0.9.85.77');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredTests','regressionTests'])assert.ok(baseline[key]?.includes(self),`${self} missing in ${key}`);
 
-console.log('MID v0.9.85.76: RUC Pages payload prioritizes 15-min visibility/ceiling, keeps slow fields hourly and enforces a 900 MB RUC budget.');
+console.log('MID v0.9.85.77: RUC Pages payload prioritizes 15-min visibility/ceiling, keeps slow fields hourly and enforces a 900 MB RUC budget.');
