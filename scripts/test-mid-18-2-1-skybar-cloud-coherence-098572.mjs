@@ -22,9 +22,10 @@ assert.ok(cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)')&&cockpi
 assert.ok(cockpit.includes('<span className="cockpit-now90-weather">{item.weatherLabel}</span>'),'90-min-Wettertext muss aus demselben Kurzfristpunkt stammen wie die Skybar.');
 assert.ok(rucFetch.includes("FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL'"),'RUC CLCT/CLCL müssen weiter im kanonischen Forecastkern liegen.');
 assert.ok(rucFetch.includes("for param in FORECAST_REQUIRED:")&&rucFetch.includes("mode='hourly'"),'Der robuste stündliche RUC-Fallback muss erhalten bleiben.');
-assert.ok(rucFetch.includes("RAPID_STATE_OPTIONAL_15=")&&rucFetch.includes("'CLCT','CLCL'")&&rucFetch.includes("stage/'rapid-state'/param")&&rucFetch.includes("mode='rapid15'"),'CLCT/CLCL müssen zusätzlich parameter-nativ als 15-min-Kandidaten geprüft werden.');
+assert.ok(rucFetch.includes("RAPID_STATE_OPTIONAL_15=('VIS','CEILING')"),'Native 15-min-Zustandsfelder müssen auf tatsächlich hochfrequente Sicht/Ceiling-Felder begrenzt bleiben.');
+assert.ok(!rucFetch.match(/RAPID_STATE_OPTIONAL_15=.*CLCT/),'CLCT darf nicht als native 15-min-Kadenz behauptet werden, solange der operative DWD-RUC-Feed nur Stundenwerte liefert.');
 assert.match(pkg.version,/^0\.9\.85\.(?:7[3-9]|[89]\d|\d{3,})$/);
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredTests','regressionTests'])assert.ok(baseline[key]?.includes(self),`${self} fehlt in ${key}`);
 
-console.log(`MID v${pkg.version}: Skybar, Wettertext und Piktogramm verwenden denselben Gesamtbewölkungszustand; RUC-CLCT nutzt native 15 min wenn vollständig verfügbar, sonst den ehrlichen Stundenfallback.`);
+console.log(`MID v${pkg.version}: Skybar, Wettertext und Piktogramm verwenden denselben Gesamtbewölkungszustand; RUC-CLCT bleibt ehrlich stündlich und wird für 15-min-Anzeige nur interpoliert.`);
