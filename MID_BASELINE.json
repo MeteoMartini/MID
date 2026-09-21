@@ -515,7 +515,8 @@
     "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
     "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs",
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
-    "scripts/test-mid-18-2-4-today-profile-098580.mjs"
+    "scripts/test-mid-18-2-4-today-profile-098580.mjs",
+    "scripts/test-mid-18-2-4-d2-trend-night-098580.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -950,7 +951,8 @@
     "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
     "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs",
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
-    "scripts/test-mid-18-2-4-today-profile-098580.mjs"
+    "scripts/test-mid-18-2-4-today-profile-098580.mjs",
+    "scripts/test-mid-18-2-4-d2-trend-night-098580.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1651,7 +1653,8 @@
     "MID_B2_CURRENT_0.9.85.79.md",
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "src/midC18TodayProfileD.css",
-    "MID_TODAY_PROFILE_0.9.85.80.md"
+    "MID_TODAY_PROFILE_0.9.85.80.md",
+    "scripts/test-mid-18-2-4-d2-trend-night-098580.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1726,7 +1729,8 @@
     "scripts/test-mid-18-2-4-warning-timeline-098577.mjs",
     "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs",
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
-    "scripts/test-mid-18-2-4-today-profile-098580.mjs"
+    "scripts/test-mid-18-2-4-today-profile-098580.mjs",
+    "scripts/test-mid-18-2-4-d2-trend-night-098580.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2230,10 +2234,11 @@
     "scripts/test-pages-release-race-098576.mjs",
     "scripts/test-mid-18-2-4-bottom-favorites-098578.mjs",
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
-    "scripts/test-mid-18-2-4-today-profile-098580.mjs"
+    "scripts/test-mid-18-2-4-today-profile-098580.mjs",
+    "scripts/test-mid-18-2-4-d2-trend-night-098580.mjs"
   ],
   "version": "0.9.85.80",
-  "updatedAt": "2026-09-21T19:30:00.000Z",
+  "updatedAt": "2026-09-21T20:05:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
