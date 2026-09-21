@@ -1,3 +1,11 @@
+# MID v0.9.85.76
+
+- Ein reproduzierter Veröffentlichungs-Race ist behoben: Ein bereits laufender RUC-Pages-Lauf konnte nach einem neuen App-Deploy noch den älteren `mid-stable`-App-Shell zurück auf Pages schreiben.
+- RUC prüft jetzt zusätzlich, ob `main` bereits eine neuere MID-Version als `mid-stable` trägt. In diesem Releasefenster wird der RUC-Publish sicher übersprungen und erst nach Stable-Promotion mit der neuen App-Version fortgesetzt.
+- Die Prüfung erfolgt zweimal: beim Eintritt in den kurzen Pages-Publish-Lock und unmittelbar vor dem Upload. Dadurch kann auch ein während der RUC-Aufbereitung gestarteter MID-Release nicht mehr durch einen älteren App-Shell-Publish überschrieben werden.
+- Auch der manuelle Stable-Pages-Deploy wird blockiert, solange `main` und `mid-stable` unterschiedliche MID-Versionen tragen.
+- Die RUC-Datenlogik und Parameterpriorisierung bleiben unverändert.
+
 # MID v0.9.85.75
 
 - Das neue MID-Redesign ist jetzt die einzige produktive Gesamtoberfläche; die bisherige Auswahl zwischen „Design 2.0.1“ und „Klassisch“ wurde aus den Einstellungen entfernt.
