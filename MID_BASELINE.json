@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.75",
+  "releaseVersion": "0.9.85.76",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -510,7 +510,8 @@
     "scripts/test-mid-18-2-today-profile-release-finish-098568.mjs",
     "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
     "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
-    "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs"
+    "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
+    "scripts/test-pages-release-race-098576.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -940,7 +941,8 @@
     "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
     "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs",
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
-    "scripts/test-mid-18-2-2-mandatory-design-098575.mjs"
+    "scripts/test-mid-18-2-2-mandatory-design-098575.mjs",
+    "scripts/test-pages-release-race-098576.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1627,7 +1629,9 @@
     "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs",
     "MID_RUC_NATIVE_CADENCE_0.9.85.73.md",
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
-    "MID_RUC_PAGES_BUDGET_0.9.85.74.md"
+    "MID_RUC_PAGES_BUDGET_0.9.85.74.md",
+    "scripts/test-pages-release-race-098576.mjs",
+    "MID_PAGES_RELEASE_RACE_0.9.85.76.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1697,7 +1701,8 @@
     "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
     "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs",
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
-    "scripts/test-mid-18-2-2-mandatory-design-098575.mjs"
+    "scripts/test-mid-18-2-2-mandatory-design-098575.mjs",
+    "scripts/test-pages-release-race-098576.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1898,7 +1903,8 @@
     "src/midC18EnsembleInteractionPolish.css",
     "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
     "src/midC18EnsembleSynopticPolish.css",
-    "MID_SYNOPTIC_FRONT_STYLE_0.9.85.70.md"
+    "MID_SYNOPTIC_FRONT_STYLE_0.9.85.70.md",
+    "MID_PAGES_RELEASE_RACE_0.9.85.76.md"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -2190,9 +2196,10 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
-    "scripts/test-synoptic-startup-ceiling-098496.mjs"
+    "scripts/test-synoptic-startup-ceiling-098496.mjs",
+    "scripts/test-pages-release-race-098576.mjs"
   ],
-  "version": "0.9.85.75",
+  "version": "0.9.85.76",
   "updatedAt": "2026-09-21T09:08:33.076Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

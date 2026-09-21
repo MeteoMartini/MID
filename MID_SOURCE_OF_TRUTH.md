@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.76 · Pages-Release-Race-Schutz
+
+RUC- und manuelle Stable-Pages-Publisher dürfen keinen älteren App-Shell-Stand veröffentlichen, während `main` bereits eine neuere MID-Version als `mid-stable` trägt. Der RUC-Publish vergleicht deshalb beim Eintritt in den Pages-Lock und unmittelbar vor dem Upload die Releaseversionen von `main` und `mid-stable`; bei Abweichung wird der Publish fail-closed als No-op übersprungen. Required Regression: `scripts/test-pages-release-race-098576.mjs`. Detailvertrag: `MID_PAGES_RELEASE_RACE_0.9.85.76.md`.
+
 ## v0.9.85.75 · MID 18.2.2 obligatorisches Redesign
 
 Die Umschaltung zwischen der neuen MID-Gesamtoberfläche und der bisherigen klassischen Gesamtansicht ist entfernt. Die neue Bottom-/Workspace-Navigation und der moderne Forecast-Arbeitsraum sind obligatorisch; ein alter gespeicherter `mid:designMode:v1`-Wert wird migriert und darf keinen Legacy-Pfad reaktivieren. **Die unabhängige fachliche Auswahl Skybar ↔ 24 Stundenquadrate bleibt ausdrücklich erhalten.** Required Regression: `scripts/test-mid-18-2-2-mandatory-design-098575.mjs`. Detailvertrag: `MID_MANDATORY_REDESIGN_0.9.85.75.md`.
