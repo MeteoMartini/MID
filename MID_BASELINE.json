@@ -510,7 +510,8 @@
     "scripts/test-mid-18-2-today-profile-release-finish-098568.mjs",
     "scripts/test-mid-18-2-ensemble-interaction-polish-098569.mjs",
     "scripts/test-mid-18-2-ensemble-synoptic-polish-098570.mjs",
-    "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs"
+    "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
+    "scripts/test-pages-release-race-098576.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2193,7 +2194,8 @@
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-ios-floating-bottom-bar-098489.mjs",
-    "scripts/test-synoptic-startup-ceiling-098496.mjs"
+    "scripts/test-synoptic-startup-ceiling-098496.mjs",
+    "scripts/test-pages-release-race-098576.mjs"
   ],
   "version": "0.9.85.76",
   "updatedAt": "2026-09-21T09:08:33.076Z",
