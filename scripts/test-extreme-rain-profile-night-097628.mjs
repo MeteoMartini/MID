@@ -42,7 +42,8 @@ function checkRainSupport(label,text){
 checkRainSupport('Worker',worker);
 checkRainSupport('Direktausblick',direct);
 
-need('24-h-Profil',cockpit,'const nightBandOpacity=.4,midnightBoundary=chartDayBands[1]??null,nightBands=(()=>');
+need('24-h-Profil',cockpit,'const solarWindow=solarTimelineWindow(chartStartEpoch,chartEndEpoch');
+need('24-h-Profil',cockpit,'const nightBandOpacity=.16,midnightBoundary=chartDayBands[1]??null,nightBands=solarWindow.nightBands.map');
 need('24-h-Profil',cockpit,'nightBands.map(item=><linearGradient');
 need('24-h-Profil',cockpit,'{midnightBoundary?<line className="day-separator"');
 need('24-h-Profil',cockpit,'className="hour-line"');
