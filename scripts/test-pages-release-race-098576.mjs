@@ -25,8 +25,7 @@ assert.ok(ruc.includes('Kein älterer App-Shell-Stand wird auf Pages veröffentl
 assert.ok(manual.includes('Laufendes MID-Release vor manuellem Stable-Deploy ausschließen'),'Auch der manuelle Stable-Deploy muss ein offenes Releasefenster erkennen.');
 assert.ok(manual.includes('Manueller Stable-Deploy blockiert'),'Der manuelle Deploy muss eine ältere Stable-Version während eines laufenden Releases blockieren.');
 
-assert.equal(pkg.version,'0.9.85.77');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredTests','regressionTests'])assert.ok(baseline[key]?.includes(self),`${self} fehlt in ${key}`);
 
-console.log('MID v0.9.85.77: RUC- und manuelle Pages-Publisher können eine neuere laufende MID-App-Shell nicht mehr mit älterem mid-stable überschreiben.');
+console.log(`MID v${pkg.version}: RUC- und manuelle Pages-Publisher können eine neuere laufende MID-App-Shell nicht mehr mit älterem mid-stable überschreiben.`);
