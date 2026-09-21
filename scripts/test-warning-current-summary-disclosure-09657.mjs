@@ -55,8 +55,8 @@ for(const token of [
 
 // Amtliche CAP-Warnungen stehen im Hybrid-Zentrum zuerst und bleiben unverändert vollständig.
 assert.ok(app.includes('function WarningCenter('), 'Gemeinsames Hybrid-Warnzentrum fehlt.');
-assert.ok(app.includes('<MemoOfficialWarnings alerts={alerts}'), 'Amtliche Warnungen müssen im Hybrid-Zentrum zuerst erscheinen.');
-assert.ok(app.includes('<MemoHazards data={automatic}'), 'MID-Hinweise müssen nach den amtlichen Warnungen folgen.');
+assert.ok(app.includes('<MemoOfficialWarnings alerts={relevantOfficial}'), 'Amtliche Warnungen müssen im Hybrid-Zentrum zuerst erscheinen.');
+assert.ok(app.includes('<MemoHazards data={relevantAutomatic}'), 'MID-Hinweise müssen nach den amtlichen Warnungen folgen.');
 for(const token of ['<p>{a.description}</p>','a.instruction&&<p className="instruction">'])assert.ok(app.includes(token),`Amtlicher Warninhalt fehlt: ${token}`);
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-warning-current-summary-disclosure-09657.mjs';
