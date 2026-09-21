@@ -19,8 +19,8 @@ for(const forbidden of ["type DesignMode='classic'|'mid-next'","readDesignMode()
 for(const required of ['Skybar-Stil','24 Stundenquadrate',"skybarDisplayMode==='band'","skybarDisplayMode==='squares'"]){
  assert.ok(app.includes(required),`Independent Skybar/squares option must remain: ${required}`);
 }
-assert.equal(pkg.version,'0.9.85.77');
+assert.equal(pkg.version,'0.9.85.78');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredTests','regressionTests'])assert.ok(baseline[key]?.includes(self),`${self} missing in ${key}`);
 
-console.log('MID v0.9.85.77: redesigned shell is mandatory while Skybar/24-hour squares remain independently selectable.');
+console.log('MID v0.9.85.78: redesigned shell is mandatory while Skybar/24-hour squares remain independently selectable.');

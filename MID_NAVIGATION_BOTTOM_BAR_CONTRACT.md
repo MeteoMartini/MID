@@ -12,9 +12,11 @@
 
 ## iOS-/PWA-Verhalten
 
+> **MID 18.2.4 · Arbeitspaket B:** Bottom-Bar und Favoritenleiste verwenden dieselbe ruhige MID-Materialität. Die Favoriten bleiben auf schmalen Viewports einzeilig und scrollen innerhalb ihrer Leiste horizontal, ohne den Seiteninhalt zu verbreitern.
+
 - Die Bottom-Bar schwebt knapp oberhalb des iPhone-Home-Indicators und verwendet eine zurückhaltende transluzente Glass-Ebene mit Blur, Randlicht und klarer aktiver Auswahl. Die Safe Area wird intern berücksichtigt und nicht noch einmal als übergroßer Außenabstand addiert.
 - Touchziele sind im Hochformat mindestens 54 px hoch; im flachen Querformat bleibt die Leiste kompakter, aber bedienbar.
-- Unter **Einstellungen → Ansicht** kann die Bottom-Bar auf **Auto** oder **Fixiert** gestellt werden. Ohne ausdrücklich gespeicherte Auto-Wahl startet MID mit **Fixiert**, damit die fünf Hauptziele jederzeit unmittelbar erreichbar bleiben. Fixiert hält alle fünf Ziele dauerhaft vollständig sichtbar. Im Auto-Modus minimiert sie sich beim deutlichen **Abwärtsscrollen** erst nach einer größeren zusammenhängenden Scrollstrecke (derzeit 96 px). Sie verschwindet dabei nicht vollständig, sondern lässt einen sichtbaren Glass-Griff am unteren Rand stehen. Bereits ein kurzer bewusster Aufwärtsscroll (derzeit 12 px), Tap auf den Griff, Nähe zum Seitenanfang, Fokus innerhalb der Leiste oder das Öffnen von **Mehr** stellt sie vollständig wieder her. Kleine Scrollzitterbewegungen dürfen die Leiste nicht permanent umschalten.
+- Die Bottom-Bar ist ab **MID v0.9.85.78** verbindlich **fixiert** und hält alle fünf Hauptziele dauerhaft vollständig sichtbar. Die frühere Auto-Minimierung wird nicht mehr angeboten; ein gespeicherter Legacy-Wert `mid:bottom-bar-behavior:v1` wird beim Start verworfen. Damit bleibt die Navigation auch nach längerem Scrollen jederzeit direkt erreichbar und verändert ihre Lage nicht durch Scrollrichtung oder Scrollgeschwindigkeit.
 - `prefers-reduced-motion` deaktiviert die Übergangsanimationen.
 - Safe Areas links/rechts/unten, iPhone-Home-Indicator sowie Landscape werden berücksichtigt.
 

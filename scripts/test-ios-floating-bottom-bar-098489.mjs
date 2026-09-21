@@ -20,22 +20,17 @@ for(const token of [
   "label:'Vorhersage'",
   "label:'Karten'",
   "candidates:['composite']",
-  'bottomBarHidden',
-  "window.addEventListener('scroll',onScroll,{passive:true})",
-  'requestAnimationFrame',
-  'downDistance>=96',
-  'upDistance>=12',
-  'y<160',
-  'is-scroll-hidden',
-  'data-scroll-hidden',
+  'data-scroll-hidden="false"',
+  'data-fixed="true"',
   "if(bottomBarHidden)setBottomBarHidden(false)",
   "openSettings('notifications')",
   "openSettings('favorites')",
   "openSettings('system')"
 ])assert.ok(app.includes(token),`Floating-Bar-Logik fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder als Bottom-Bar-Tab erscheinen');
-assert.ok(app.includes("type BottomBarBehavior='auto'|'fixed'")&&app.includes('setBottomBarBehavior'), 'Fixierbare Bottom-Bar-Einstellung fehlt');
-assert.ok(app.includes("localStorage.getItem(BOTTOM_BAR_BEHAVIOR_KEY)==='auto'?'auto':'fixed'"),'Ohne explizite Auto-Wahl muss die Bottom-Bar fixiert sichtbar starten.');
+assert.ok(app.includes("type BottomBarBehavior='auto'|'fixed'"),'Legacy-Typ für sichere Migration fehlt.');
+assert.ok(app.includes('localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)'), 'Gespeicherte Auto-Minimierung muss beim Start verworfen werden.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('downDistance>=96')&&!app.includes("setBottomBarBehavior('auto')"),'Die Bottom-Bar darf nicht mehr scrollabhängig verschwinden oder Auto anbieten.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Beta-Bezeichnung darf nicht mehr gerendert werden');
 assert.ok(!app.includes('navigation-concept-settings'),'Alter Bedienkonzept-Einstellungsblock muss entfernt sein');
 for(const token of [
@@ -51,8 +46,8 @@ for(const token of [
   'white-space:nowrap!important',
   'word-break:keep-all!important',
   'hyphens:none!important',
-  '.dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden',
-  'transform:translate3d(0,calc(100% - 26px),0)!important',
+  'transform:none!important',
+  'opacity:1!important',
   'width:42px',
   '@media(max-width:350px)',
   '@media(max-width:850px) and (orientation:landscape)',
@@ -60,4 +55,4 @@ for(const token of [
 ])assert.ok(modern.includes(token),`Floating-Bar-CSS fehlt: ${token}`);
 assert.ok(styles.endsWith(modern),'styles.css muss das vollständige Modern-Modul als kanonisches Ende enthalten');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-ios-floating-bottom-bar-098489.mjs'),'Neue Pflichtregression fehlt in Baseline');
-console.log('MID 18.2.2: schwebende Bottom-Bar mit fünf eindeutigen Zielen ist im obligatorischen Design aktiv.');
+console.log('MID 18.2.4: schwebende Bottom-Bar mit fünf eindeutigen Zielen bleibt dauerhaft sichtbar.');
