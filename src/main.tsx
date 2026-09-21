@@ -38,6 +38,7 @@ import './midC18FooterRhythmAudit.css';
 import './midC18UnifiedThreadTimeline.css';
 import './midC18InteractionCurrentPolish.css';
 import './midC18ForecastMapShellPolish.css';
+import './midC18EnsembleInteractionPolish.css';
 import './midC18SecondaryWorkspaceFinish.css';
 import './midC18TodayReleaseFinish.css';
 import App from './App';
