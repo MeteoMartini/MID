@@ -1,0 +1,79 @@
+/* MID v0.9.85.80 · MID 18.2.4 Arbeitspaket D · Heute / 24-h-Tagesprofil
+   Gemeinsame Zeitbasis, lesbare mobile Profildichte und sichere Bottom-Bar-Abstände.
+   Rein visuelle Geometrie; Wetterfachlogik und Datenquellen bleiben unverändert. */
+
+html[data-mid-design='next'] .cockpit-weather-profile{
+  --mid-d-profile-track-min:620px;
+  scroll-margin-bottom:calc(var(--mid18-mobile-nav-reserve,76px) + 14px);
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage[data-mid-profile-axis='shared-24h']{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-inline:contain;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+}
+html[data-mid-design='next'] .cockpit-weather-profile [data-mid-profile-track='shared-24h']{
+  width:max(100%,var(--mid-d-profile-track-min))!important;
+  min-width:var(--mid-d-profile-track-min)!important;
+  max-width:none!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg,
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__overlay,
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__hitlayer{
+  min-width:100%;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__overlay.time>span{
+  min-width:22px;
+  white-space:nowrap;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .profile-bottom-time text,
+html[data-mid-design='next'] .cockpit-weather-profile .profile-window-labels text{
+  font-variant-numeric:tabular-nums;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .selected-time-values{
+  pointer-events:none;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__datafield{
+  min-width:0;
+  overflow:visible;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__tooltip-content{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .profile-detail-secondary{
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:var(--mid-text-micro,9.5px);
+  line-height:1.2;
+}
+
+/* Der Verlauf bleibt auf Tablets/Desktop ohne künstlichen Scrollbedarf vollflächig. */
+@media(min-width:700px){
+  html[data-mid-design='next'] .cockpit-weather-profile{
+    --mid-d-profile-track-min:100%;
+  }
+}
+
+/* Auf sehr schmalen Geräten bleiben 3-h-Zeitlabels und alle Profilspuren lesbar,
+   während ausschließlich die Diagrammfläche horizontal scrollt. */
+@media(max-width:430px){
+  html[data-mid-design='next'] .cockpit-weather-profile{
+    --mid-d-profile-track-min:600px;
+  }
+  html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage[data-mid-profile-axis='shared-24h']{
+    border-radius:14px;
+  }
+}
+@media(max-width:850px) and (orientation:landscape){
+  html[data-mid-design='next'] .cockpit-weather-profile{
+    --mid-d-profile-track-min:100%;
+    scroll-margin-bottom:calc(var(--mid18-mobile-nav-reserve,64px) + 10px);
+  }
+}
