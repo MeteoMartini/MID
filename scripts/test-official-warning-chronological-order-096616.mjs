@@ -32,7 +32,8 @@ try{
 
 for(const token of [
  "import {chronologicalOfficialAlerts} from './officialWarningOrder';",
- "sortedAlerts=useMemo(()=>chronologicalOfficialAlerts(alerts),[alerts])",
+ "sortedAlerts=useMemo(()=>chronologicalOfficialAlerts(alerts.filter(officialAlertIsRelevant)),[alerts])",
+ "function officialAlertIsRelevant(",
  'sortedAlerts.map(a=>'
 ])assert.ok(app.includes(token),`Chronologische CAP-Anbindung fehlt: ${token}`);
 assert.ok(!app.includes('<div className="official-list">{alerts.map(a=>'),'Unsortierte CAP-Originalreihenfolge darf nicht direkt gerendert werden.');
