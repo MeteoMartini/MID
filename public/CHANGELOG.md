@@ -1,3 +1,12 @@
+# MID v0.9.85.81
+
+- **D.2:** Der 12-h-Temperaturtrend verwendet jetzt ausschließlich die bereits kanonisch lokal beziehungsweise hyperlokal angepasste Stundenreihe. Ein isolierter Messwert wird nicht mehr als Startwert in eine anders korrigierte Kurve gemischt.
+- **D.2:** Wenn die Temperatur innerhalb des 12-h-Fensters ihre Richtung deutlich ändert, zeigt MID die Entwicklung in zwei Phasen, etwa zuerst Abkühlung und danach Erholung, statt nur Endwert minus Startwert.
+- **D.2:** Nachtstunden werden in der Temperaturkurve und in der Skybar beziehungsweise den Stundenquadraten dezent über dieselbe minutengenaue Sonnengeometrie hinterlegt.
+- Die Nachtkennzeichnung blendet an Sonnenuntergang und Sonnenaufgang weich ein beziehungsweise aus und bleibt in Light/Dark zurückhaltend.
+- Stündliche Skybar-Auflösung, Wetterfarben, Niederschlagsphase/-intensität und die zentrale Sonne-/Bewölkung-/Niederschlagslogik bleiben unverändert.
+- Replit hat D.2 einschließlich Light/Dark auf 360×800, 390×844, 430×932, 768×1024, 1024×768 und 1440×900 geprüft. Veröffentlichung und Stable-Promotion erfolgen ausschließlich durch ChatGPT.
+
 # MID v0.9.85.80
 
 - Das 24-h-Wetterprofil verwendet eine gemeinsame Zeitbasis für Temperatur, Skybar beziehungsweise Stundenquadrate, Niederschlag, Wind/Böen, Luftdruck, Wolken und Hazards.
