@@ -12,7 +12,7 @@ const [app,radar,modernStyles,styles,radarColors,contract,baseline]=await Promis
 ]);
 
 assert.ok(app.includes("focusMode={navigationMode==='bottom-tabs'}"),'Map-Focus muss ausschließlich an bottom-tabs gebunden sein');
-assert.ok(app.includes("const navigationMode:NavigationMode=designMode==='mid-next'?'bottom-tabs':'section-rail'"),'Design 2.0.1 muss den Bottom-Tab-Modus erhalten, Klassisch die Sektionennavigation.');
+assert.ok(app.includes("const navigationMode:NavigationMode='bottom-tabs';"),'Das obligatorische MID-Design muss den Bottom-Tab-Modus dauerhaft verwenden.');
 assert.ok(app.includes("dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}"),'Beta-Mehr-Menü muss seine seltenen Bereiche progressiv offenlegen.');
 assert.ok(app.includes('<details key={group.id}'),'Seltene Beta-Bereiche dürfen erst nach Aufruf sichtbar werden.');
 assert.ok(app.includes("{id:'composite',label:'Karten'"),'Karten muss als direktes Bottom-Bar-Primärziel erreichbar sein.');
@@ -56,4 +56,4 @@ assert.ok(contract.includes('keine alternative Radarfarbpalette'),'Radar-Isolati
 
 const parsed=JSON.parse(baseline);
 assert.ok(parsed.requiredRegressionTests.includes('scripts/test-modern-map-focus-09792.mjs'),'Baseline-Regression für Schritt 3 fehlt');
-console.log('Design 2.0.1: direkter Komposit-Fokus und Bottom-Bar; Klassisch bleibt getrennt, Radar-Isolation geprüft.');
+console.log('MID 18.2.2: direkter Komposit-Fokus und obligatorische Bottom-Bar; Radar-Isolation geprüft.');
