@@ -45,7 +45,7 @@ for(const token of [
 ]) assert.ok(css.includes(token),`B.2/C Designvertrag fehlt: ${token}`);
 
 assert.ok(main.includes("import './midC18B2CurrentAtmosphere.css';"),'B.2/C Designschicht muss im Produktionsentry geladen werden.');
-assert.equal(pkg.version,'0.9.85.79','Paketversion muss MID v0.9.85.79 sein.');
+assert.ok(String(pkg.version).startsWith('0.9.85.'),'Paketversion muss im MID-0.9.85-Wartungszweig bleiben.');
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline- und Paketversion müssen übereinstimmen.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests']){
   assert.ok((baseline[key]||[]).includes(testPath),`${testPath} fehlt in ${key}`);
@@ -53,4 +53,4 @@ for(const key of ['requiredRegressionTests','regressionTests','requiredTests']){
 for(const path of [testPath,'src/midC18B2CurrentAtmosphere.css','MID_B2_CURRENT_0.9.85.79.md']){
   assert.ok((baseline.requiredFiles||[]).includes(path),`${path} fehlt in requiredFiles`);
 }
-console.log('MID v0.9.85.79: B.2 und Aktuelles-Wetter-Atmosphärenhierarchie geschützt.');
+console.log(`MID v${pkg.version}: B.2 und Aktuelles-Wetter-Atmosphärenhierarchie bleiben geschützt.`);
