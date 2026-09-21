@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.71 · MID 18.2.1 Replit-Handoff
+
+Der Replit-Redesignstand ist ausschließlich eine visuelle/UX-Referenz und keine alternative Wetterdaten- oder Releasebasis. Übernommen werden nur gegen `mid-stable` geprüfte Verbesserungen. Lange Ortsnamen dürfen im modernen Ortskopf nicht per Ellipse gekürzt werden. Ein expliziter Bottom-Bar-/Horizontsprung zu „Heute“ verwirft den zuvor gespeicherten internen Scrollstand des Kurzfrist-Cockpits und beginnt am Kopf der Ansicht. Die Kartenoberfläche darf verdichtet werden, ohne Radar-, Satelliten-, Nowcast-, DWD- oder Synoptikfunktionen zu entfernen oder Fixture-Daten an die Stelle produktiver Datenpfade zu setzen. Die bereits vorhandene amtliche DWD-Bodenanalyse und die getrennt gekennzeichnete MID-Modellanalyse bleiben kanonisch. Required Regression: `scripts/test-mid-18-2-1-replit-handoff-098571.mjs`.
+
 ## v0.9.78.2 · Installer-Spiegel-Hotfix
 
 Der mit dem Professional-Release transportierte Installer-Spiegel `workflow-patches/install-mid.yml` muss bytegleich zum kanonischen Workflow `ci/github/workflows/install-mid.yml` bleiben. Abweichungen sind unzulässig, wenn dadurch Release-/Workflow-Regressionen gegen einen veralteten Vertragsstand laufen würden. Der Hotfix v0.9.78.2 enthält keine fachliche App- oder Workerlogikänderung; er repariert ausschließlich diese transportierte Workflow-Spiegeldatei und die dazugehörige Versionsfortschreibung.

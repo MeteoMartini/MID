@@ -1,3 +1,11 @@
+# MID v0.9.85.71
+
+- Lange Ortsnamen bleiben im modernen Kopf vollständig lesbar und werden nicht mehr mit einer Ellipse abgeschnitten.
+- Ein erneutes Öffnen von „Heute“ über die Bottom-Bar startet zuverlässig am Kopf der Kurzfristansicht; frühere interne Scrollpositionen werden bei dieser expliziten Navigation nicht wiederhergestellt.
+- Der moderne Radar-/Satellit-Arbeitsraum wurde weiter verdichtet: weniger Rahmenabstand, kompaktere Moduswahl und Timeline, mehr visuelles Gewicht für die eigentliche Karte.
+- Die produktive Radar-, Satelliten-, Nowcast-, DWD- und Synoptiklogik bleibt unverändert. Die bereits vorhandene amtliche DWD-Bodenanalyse und die getrennte MID-Modellanalyse werden ausdrücklich nicht durch Replit-Demodaten ersetzt.
+- Die Änderungen sind durch einen eigenen MID-18.2.1-Regressionstest geschützt und werden über den üblichen Source-PR-/Release-Gate-Pfad ausgeliefert.
+
 # MID v0.9.85.70
 
 - Die 14-Tage-Ensemble-Auswahl auf Smartphones wurde verdichtet: Temperatur, Niederschlag und Wind/Böen bleiben einzeilig, die Mini-Grafiken sind deutlich größer und der vertikale Leerraum wurde reduziert.
