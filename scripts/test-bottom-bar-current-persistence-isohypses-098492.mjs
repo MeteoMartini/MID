@@ -15,9 +15,9 @@ for(const token of [
  "!['current','short-term','forecast','ensemble','composite'].includes(id)",
  'place-warning-status',
  "const BOTTOM_BAR_BEHAVIOR_KEY='mid:bottom-bar-behavior:v1'",
- "type BottomBarBehavior='auto'|'fixed'",
+ "type BottomBarBehavior='fixed'",
+ "localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)",
  "bottomBarBehavior==='fixed'",
- "setBottomBarBehavior('fixed')",
  'data-fixed={bottomBarBehavior===\'fixed\'?\'true\':\'false\'}'
 ])assert.ok(app.includes(token),`Bottom-Bar-Vertrag fehlt: ${token}`);
 for(const token of [
@@ -44,7 +44,9 @@ for(const token of [
  "geopotential_height_500hPa"
 ])assert.ok(models.includes(token),`Beschleunigter Isohypsen-Gridpfad fehlt: ${token}`);
 assert.ok(contract.includes('Aktuell · Heute · Vorhersage · Karten · Mehr'),'Navigationsvertrag ist nicht auf die fünf C3-Ziele aktualisiert');
-assert.ok(contract.includes('**Fixiert**'),'Fixierter Bottom-Bar-Modus fehlt im Vertrag');
+assert.ok(contract.includes('**Fixiert**'),'Fixierter Bottom-Bar-Vertrag fehlt in der Dokumentation');
+assert.ok(!app.includes('setBottomBarBehavior'),'Obsoleter Bottom-Bar-Einstellsetter darf nicht zurückkehren.');
+assert.ok(!app.includes('bottom-bar-display-settings'),'Obsoleter Bottom-Bar-Einstellungspunkt darf nicht zurückkehren.');
 const baseline=JSON.parse(baselineRaw);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs'),'Pflichtregression fehlt in MID_BASELINE');
-console.log('MID-C3: fünf Ziele, Warnstatus im Ortskopf, fixierbare Bottom-Bar, robuste Kompositpersistenz und sichtbare Isohypsen geschützt.');
+console.log('MID-C3: fünf Ziele, Warnstatus im Ortskopf, dauerhaft fixierte Bottom-Bar, robuste Kompositpersistenz und sichtbare Isohypsen geschützt.');
