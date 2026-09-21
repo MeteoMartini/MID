@@ -10,7 +10,7 @@ const checks=[
  ['contract binds climatology-aware Tmin/Tmax shade families',contract.includes('Tmin verwendet ausschließlich Blautöne')&&contract.includes('Tmax ausschließlich Rottöne')],
  ['hourly temperatures stay neutral while reusing central helper',tone.includes('hourlyTemperatureTone')&&tone.includes("color:'var(--text)'")&&cockpit.includes('hourlyTemperatureTone(item.temperature')&&app.includes('hourlyTemperatureTone(hour.temperature')],
  ['daily Tmin/Tmax signed anomaly changes saturation not family',tone.includes('dailyIntensity(anomaly,kind)')&&tone.includes("const token=kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)'")],
- ['detail chart general temperature uses parameter token',app.includes('stroke="var(--param-temperature)" strokeWidth="2.2"')],
+ ['detail chart general temperature uses ECMWF value gradient',app.includes('id="detailTemperatureLineGradient"')&&app.includes('ecmwfTemperatureTone(hour.temperature).color')&&app.includes('stroke="url(#detailTemperatureLineGradient)"')],
  ['detail chart dewpoint uses parameter token',app.includes('stroke="var(--param-dewpoint)"')],
  ['detail chart pressure uses parameter token',app.includes('stroke="var(--param-pressure)"')],
  ['detail chart precipitation probability uses parameter token',app.includes('stroke="var(--param-precipitation)" strokeWidth="2.2"')],
