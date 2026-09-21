@@ -12,7 +12,7 @@ const [app,skybar,ensemble,enhancer,styles,pkgText,baselineText]=await Promise.a
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const failures=[],need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)},forbid=(area,text,token)=>{if(text.includes(token))failures.push(`${area}: veraltet ${token}`)};
-for(const token of ["import {detailSkyBarHourCells,detailSkyBarSegments} from './detailSkyBar';",'detailSkyBarSegments(p,left,right,W,skyBarY)','data-mid-skybar="react"','data-mid-sky-legend="react"', "skybarDisplayMode==='squares'"])need('Tagesdetail-Skybar',app,token);
+for(const token of ["import {detailSkyBarHourCells,detailSkyBarSegments} from './detailSkyBar';",'skyBarTimelineHours=allDayHours.slice(0,24)','detailSkyBarSegments(skyBarTimelineHours,left,right,W,skyBarY,skyBarTimelinePoints.map(point=>point.x))','data-mid-skybar="react"','data-mid-sky-legend="react"', "skybarDisplayMode==='squares'"])need('Tagesdetail-Skybar',app,token);
 for(const token of ['const weatherStripVisuals=','const baseSkyVisual=','const precipitationOverlayVisual=','precipitationPhaseColor(parts.type)','precipitationPhaseColorLabel(parts.type)','precipitationIntensityDescriptor','const sampleIntervalSeconds=','const sunVisualShare=','xPositions?:number[]','export function detailSkyBarSegments(','return [...baseSegments,...precipSegments]'])need('Gemeinsame Skybar-Logik',skybar,token);
 for(const token of ['const precipSunColor=','color-mix(in srgb'])forbid('Gemeinsame Skybar-Farbmischung',skybar,token);
 for(const token of ["layer:'sun'","layer:'cloud'",'function sunSample(','function cloudSample(','function precipitationSample(','DetailSkyBarPoint'])forbid('Gemeinsame Skybar-Altlogik',skybar,token);
