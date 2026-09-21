@@ -1,3 +1,14 @@
+# MID v0.9.85.78
+
+- Die fünf mobilen Hauptziele **Aktuell, Heute, Vorhersage, Karten und Mehr** bleiben dauerhaft sichtbar; das frühere Scroll-Auto-Hide der Bottom-Bar entfällt.
+- Navigation über die Bottom-Bar springt ohne verzögerten Smooth-Scroll direkt in den gewählten Arbeitsbereich.
+- Bottom-Bar und Favoritenleiste verwenden nun dieselbe ruhige, schwebende MID-Materialität.
+- Die Favoritenleiste bleibt einzeilig. Auf schmalen Geräten scrollt sie intern horizontal, statt Ortsnamen umzubrechen oder die Seite zu verbreitern.
+- Der aktive Favorit wird dezent über Rand, Hintergrundton und Signaturkante markiert, nicht mehr über eine überstarke Vollfläche.
+- Die mobile Safe-Area-Reserve wurde vereinheitlicht, damit Home-Indikator, Footer und Inhalte nicht doppelt Abstand reservieren oder sich überlagern.
+- Die Umsetzung wurde in Replit vorbereitet und geprüft; Veröffentlichung, Deployment und Stable-Promotion erfolgen ausschließlich durch ChatGPT über den kanonischen Releasepfad.
+- Wetter-, Warn-, RUC-/Nowcast-, Skybar-/24-Stundenquadrate-, Prognose- und Kartenfachlogik bleiben unverändert.
+
 # MID v0.9.85.77
 
 - Warnungen sind jetzt als ruhige, zeitlich sortierte Ereignis-Timeline aufgebaut: Eine „Jetzt“-Marke trennt den aktuellen Zeitpunkt klar von laufenden und kommenden Ereignissen.
