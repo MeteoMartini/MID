@@ -6526,3 +6526,129 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
  html[data-mid-design='next'] .short-term-signature{grid-template-columns:1fr;gap:6px;margin-inline:9px;padding-block:9px 7px}
  html[data-mid-design='next'] .short-term-signature .mid-weather-thread{height:26px}
 }
+
+
+/* MID v0.9.85.78 · MID 18.2.4 Arbeitspaket B: Bottom-Bar + Favoriten.
+   Eine zentrale mobile Navigationsreserve, dauerhaft sichtbare fünf Hauptziele
+   und eine ruhige, horizontal scrollende Ortspalette ohne Seiten-Overflow. */
+.bottom-bar-display-settings.fixed-only .bottom-bar-fixed-status{
+ display:grid;
+ grid-template-columns:38px minmax(0,1fr);
+ align-items:center;
+ gap:10px;
+ min-height:74px;
+ padding:11px 12px;
+ border:1px solid color-mix(in srgb,var(--primary) 20%,var(--border));
+ border-radius:var(--settings-card-radius);
+ background:color-mix(in srgb,var(--surface) 94%,var(--s2));
+}
+.bottom-bar-display-settings.fixed-only .bottom-bar-fixed-status>svg{
+ width:22px;height:22px;justify-self:center;color:var(--accent)
+}
+.bottom-bar-display-settings.fixed-only .bottom-bar-fixed-status>span{display:grid;gap:2px;min-width:0}
+.bottom-bar-display-settings.fixed-only .bottom-bar-fixed-status strong{font-size:var(--settings-copy-title);line-height:1.2}
+.bottom-bar-display-settings.fixed-only .bottom-bar-fixed-status small{color:var(--muted);font-size:var(--settings-copy-caption);line-height:1.35}
+
+@media(max-width:850px){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs{
+  --mid18-mobile-nav-reserve:calc(84px + var(--mid-safe-bottom));
+  padding-bottom:var(--mid18-mobile-nav-reserve)!important;
+ }
+ html[data-mid-design='next'] .app.navigation-bottom-tabs>.mid-page-grid{padding-bottom:0!important}
+ .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs{
+  transform:none!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  background:color-mix(in srgb,var(--surface) 86%,transparent)!important;
+  border-color:color-mix(in srgb,var(--primary) 24%,var(--border))!important;
+  box-shadow:0 12px 34px rgba(4,22,38,.20),inset 0 1px 0 rgba(255,255,255,.16)!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites{
+  display:flex;
+  align-items:stretch;
+  gap:5px;
+  min-width:0;
+  margin-top:3px;
+  padding:5px 6px 6px;
+  border:1px solid color-mix(in srgb,var(--primary) 16%,var(--border));
+  border-radius:16px;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+  backdrop-filter:blur(18px) saturate(1.15);
+  -webkit-backdrop-filter:blur(18px) saturate(1.15);
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles{
+  flex-wrap:nowrap!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-inline:contain;
+  scroll-padding-inline:4px;
+  scrollbar-width:none;
+  touch-action:pan-x;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles::-webkit-scrollbar{display:none}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{
+  flex:0 0 auto!important;
+  grid-template-columns:16px 14px minmax(72px,1fr)!important;
+  grid-template-areas:"grip icon name" "grip icon detail"!important;
+  column-gap:5px!important;
+  width:auto!important;
+  max-width:min(250px,74vw);
+  min-height:40px!important;
+  padding:5px 9px!important;
+  border-radius:13px!important;
+  background:color-mix(in srgb,var(--s2) 76%,var(--surface))!important;
+  box-shadow:none!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button.tracked-location{
+  grid-template-columns:14px minmax(82px,1fr) auto!important;
+  grid-template-areas:"icon name badge" "icon detail badge"!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>.favorite-quick-grip{
+  grid-area:grip!important;
+  align-self:stretch;
+  width:16px!important;
+  min-height:30px!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>svg{grid-area:icon!important}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>span:not(.favorite-quick-grip){
+  grid-area:name!important;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap!important;
+  word-break:keep-all!important;
+  hyphens:none!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>small{
+  grid-area:detail!important;
+  min-width:0;
+  max-width:100%!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button>b{grid-area:badge!important}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button.active{
+  border-color:color-mix(in srgb,var(--primary) 40%,var(--border))!important;
+  background:color-mix(in srgb,var(--primary) 7%,var(--surface))!important;
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--primary) 78%,transparent)!important;
+ }
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  flex:0 0 40px!important;
+  align-self:center;
+  border-radius:13px!important;
+ }
+}
+@media(max-width:430px){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs{--mid18-mobile-nav-reserve:calc(82px + var(--mid-safe-bottom))}
+ .navigation-bottom-tabs .settings-header>.header-favorites{padding-inline:5px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{max-width:min(220px,78vw);padding-inline:8px!important}
+}
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .app.navigation-bottom-tabs{--mid18-mobile-nav-reserve:calc(66px + var(--mid-safe-bottom))}
+}
