@@ -1,3 +1,10 @@
+# MID v0.9.85.88
+
+- Ensemble-Ansichten sind ruhiger aufgebaut; Legenden und Tooltips bleiben auch auf kleinen Displays vollständig lesbar.
+- Die 14 Ensemble-Tage besitzen weiterhin individuelle Tagesinformationen zu Temperatur, Niederschlag sowie Wind/Böen; die Darstellung wurde responsiv abgesichert.
+- Die Klimaansicht ordnet ihre Kennwerte auf Smartphone, Tablet und Desktop klarer und ohne unnötiges horizontales Scrollen.
+- Widget-Einstellungen und Exportflächen sind kompakter, besser lesbar und behalten die bestehenden Light-/Dark- und Exportvarianten.
+
 # MID v0.9.85.87
 
 - Die 14-Tage-Prognose ist auf Smartphones luftiger aufgebaut: Tag, Datum und Wetterzustand erhalten mehr Platz und werden nicht mehr durch die Konfidenzanzeige zusammengedrückt.

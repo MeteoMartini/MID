@@ -1,3 +1,9 @@
+## MID v0.9.85.88 · 2026-09-22 · Arbeitspaket G · Ensemble, Klima und Widgets
+
+- Replit-Abnahme vollständig grün: Typecheck, Produktionsbuild, fokussierte Regressionen sowie Light/Dark auf 360×800, 390×844, 430×932, 844×390, 768×1024, 1024×768 und 1440×900.
+- Produktintegration verwendet die bestehenden EnsemblePanel-, ClimatePanel- und AppleWidgetSettings-/Export-Verträge; Datenquellen, Schwellen und Berechnungen wurden nicht geändert.
+- Neue finale UI-Schicht midC18WorkPackageG.css schützt Umbruch, Tooltipbreite, Touchziele und Overflow; Regression test-mid-18-2-5-g-ensemble-climate-widgets-098588.mjs sichert die Verträge.
+
 ## MID v0.9.85.87 · 2026-09-22 · 14-Tage-Zeilen responsiv entzerrt
 
 - Replit-Abnahme: Light/Dark auf 360×800, 390×844, 430×932, 844×390, 768×1024, 1024×768 und 1440×900 sowie längere mobile Detailansichten grün.
