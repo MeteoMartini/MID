@@ -12,7 +12,8 @@ const [app,radar,modern,styles,models,contract,baselineRaw]=await Promise.all([
 ]);
 for(const token of [
  "{id:'current',label:'Aktuell'",
- "!['current','short-term','forecast','ensemble','composite'].includes(id)",
+ "const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps']",
+ 'candidates:MODERN_MAP_MODULES',
  'place-warning-status',
  "const BOTTOM_BAR_BEHAVIOR_KEY='mid:bottom-bar-behavior:v1'",
  "type BottomBarBehavior='fixed'",
@@ -49,4 +50,4 @@ assert.ok(!app.includes('setBottomBarBehavior'),'Obsoleter Bottom-Bar-Einstellse
 assert.ok(!app.includes('bottom-bar-display-settings'),'Obsoleter Bottom-Bar-Einstellungspunkt darf nicht zurückkehren.');
 const baseline=JSON.parse(baselineRaw);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs'),'Pflichtregression fehlt in MID_BASELINE');
-console.log('MID-C3: fünf Ziele, Warnstatus im Ortskopf, dauerhaft fixierte Bottom-Bar, robuste Kompositpersistenz und sichtbare Isohypsen geschützt.');
+console.log('MID-C3: fünf Ziele, gruppierter Karten-Workspace, Warnstatus im Ortskopf, dauerhaft fixierte Bottom-Bar, robuste Kompositpersistenz und sichtbare Isohypsen geschützt.');

@@ -56,6 +56,8 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
 ];
 
 export const DEFAULT_DASHBOARD_MODULE_ORDER:DashboardModuleId[]=DASHBOARD_MODULE_DEFINITIONS.map(item=>item.id);
+export const CORE_DASHBOARD_MODULES:DashboardModuleId[]=['current','warnings','short-term','forecast','composite'];
+export function isCoreDashboardModule(id:DashboardModuleId){return CORE_DASHBOARD_MODULES.includes(id)}
 
 function defaultEnabled(){return Object.fromEntries(DEFAULT_DASHBOARD_MODULE_ORDER.map(id=>[id,id==='weather-maps'?false:true])) as Record<DashboardModuleId,boolean>}
 
@@ -70,6 +72,7 @@ export function normalizeDashboardModuleSettings(value:unknown):DashboardModuleS
  for(const id of DEFAULT_DASHBOARD_MODULE_ORDER)if(!seen.has(id))order.push(id);
  const enabled={...defaults.enabled};
  if(raw.enabled&&typeof raw.enabled==='object')for(const id of DEFAULT_DASHBOARD_MODULE_ORDER){const current=(raw.enabled as Partial<Record<DashboardModuleId,unknown>>)[id];if(typeof current==='boolean')enabled[id]=current}
+ for(const id of CORE_DASHBOARD_MODULES)enabled[id]=true
  const updatedAt=typeof raw.updatedAt==='string'&&Number.isFinite(Date.parse(raw.updatedAt))?raw.updatedAt:undefined;
  return{order,enabled,...(updatedAt?{updatedAt}:{})};
 }

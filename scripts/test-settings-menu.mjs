@@ -5,16 +5,23 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
+const workPackageIStyles=await readFile(path.join(root,'src','midC18WorkPackageI.css'),'utf8');
 const failures=[];
-for(const token of ["type SettingsSection='view'|'appearance'|'units'|'notifications'|'favorites'|'twin'|'sync'|'system'|'legal'",'function SettingsManager','Ansichtsoptionen','Farbdesign','Einheitenauswahl','Benachrichtigungen','Lokaler Wetterzwilling','Daten & Synchronisation','System & Updates'])if(!app.includes(token))failures.push(`Einstellungsmenü fehlt: ${token}`);
+for(const token of [
+ "type SettingsSection='view'|'weather'|'navigation'|'units'|'notifications'|'favorites'|'quality'|'sync'|'system'",
+ 'function SettingsManager','Darstellung','Wetterdarstellung','Inhalte & Navigation','Einheiten & Zeit','Orte & Profile','Benachrichtigungen','Daten & Qualität','Synchronisation & Integrationen','System & Über MID'
+])if(!app.includes(token))failures.push(`Einstellungsmenü fehlt: ${token}`);
 if(!app.includes("onOpenSettings('favorites')"))failures.push('Favoritenverwaltung ist nicht aus der Suche als Einstellungs-Untermenü erreichbar.');
 if(!app.includes("section==='favorites'&&<FavoritesManager"))failures.push('Favoritenmanager ist nicht in das Einstellungsmenü eingebettet.');
-if(!app.includes("section==='twin'&&<WeatherTwinSettingsPanel advancedMode={layoutMode==='advanced'}/>"))failures.push('Lokaler Wetterzwilling besitzt keinen eigenen intuitiven Einstellungsbereich.');
-if(!app.includes("section==='sync'&&<div className=\"settings-section-stack\"")||!app.includes("<DeviceSyncSettings advancedMode={layoutMode==='advanced'}/>")||!app.includes("<ICloudBackupSettings advancedMode={layoutMode==='advanced'}/>"))failures.push('Gerätesynchronisation und Sicherheitskopie besitzen keinen gemeinsamen Einstellungsbereich.');
-if(!app.includes("section==='system'&&<SystemUpdateManager open onClose={onClose} embedded/>"))failures.push('System- und Updatebereich ist nicht separat eingebettet.');
+if(!app.includes("section==='quality'&&<div className=\"settings-section-stack\"")||!app.includes("<WeatherTwinSettingsPanel advancedMode={layoutMode==='advanced'}/>"))failures.push('Lokale Korrektur/Wetterzwilling ist nicht im Bereich Daten & Qualität eingebettet.');
+if(!app.includes('Quelle, Modell und lokale Korrektur getrennt')||!app.includes('ersetzt keine amtliche Quelle')||!app.includes('verändert keine amtlichen Warnstufen'))failures.push('Provenienz und lokale Korrektur sind fachlich nicht klar getrennt.');
+if(!app.includes("section==='sync'&&<div className=\"settings-section-stack\"")||!app.includes("<DeviceSyncSettings advancedMode={layoutMode==='advanced'}/>")||!app.includes("<ICloudBackupSettings advancedMode={layoutMode==='advanced'}/>"))failures.push('Synchronisation und Sicherheitskopie besitzen keinen gemeinsamen Einstellungsbereich.');
+if(!app.includes("section==='system'&&<div className=\"settings-section-stack\"")||!app.includes('<SystemUpdateManager open onClose={onClose} embedded/>')||!app.includes('<ImprintContent embedded/>'))failures.push('System, Update und Über-MID/Rechtliches sind nicht gemeinsam eingebettet.');
+for(const legacy of ["'appearance'","'twin'","'legal'",'Lokaler Wetterzwilling','Daten & Synchronisation','System & Updates'])if(app.includes(`valid:SettingsSection[]=[${legacy}`))failures.push(`Veralteter Settings-Pfad noch aktiv: ${legacy}`);
 const header=app.slice(app.indexOf('function Header('),app.indexOf('function sunshineDurationLabel'));
 for(const oldToken of ['desktop-view-control','mobile-view-switch','theme-mode-control','system-update-button'])if(header.includes(oldToken))failures.push(`Alter Kopfbereich-Regler noch vorhanden: ${oldToken}`);
 for(const token of ['settings-button','compact-actions'])if(!header.includes(token))failures.push(`Kompakter Kopfbereich fehlt: ${token}`);
-for(const token of ['.settings-backdrop','.settings-dialog','.settings-nav','.settings-choice-grid','.settings-unit-grid','.settings-section-stack','.favorite-modal.embedded','.system-update-dialog.embedded'])if(!styles.includes(token))failures.push(`Einstellungs-CSS fehlt: ${token}`);
+for(const token of ['.settings-backdrop','.settings-dialog','.settings-nav','.settings-choice-grid','.settings-unit-grid','.settings-section-stack','.favorite-modal.embedded','.system-update-dialog.embedded'])if(!styles.includes(token)&&!workPackageIStyles.includes(token))failures.push(`Einstellungs-CSS fehlt: ${token}`);
+for(const token of ['.settings-content{min-height:0;overflow-y:auto','@media (max-width:720px)'])if(!workPackageIStyles.includes(token))failures.push(`Responsive I-Vertrag fehlt: ${token}`);
 if(failures.length){console.error('Einstellungsmenü-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Einstellungsmenü geprüft: Ansicht/Design/Einheiten sind gebündelt; Favoriten, Wetterzwilling, Synchronisation und System/Updates besitzen intuitive getrennte Bereiche.');
+console.log('Einstellungsmenü geprüft: Arbeitspaket-I-Struktur, Provenienztrennung, Synchronisation/System und Responsive-Scrollvertrag sind konsistent.');

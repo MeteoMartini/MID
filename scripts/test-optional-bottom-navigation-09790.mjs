@@ -6,10 +6,10 @@ const [app,styles,bottomPolish,main,portable,radarColors,baseline]=await Promise
 for(const token of [
  "const navigationMode:NavigationMode='bottom-tabs';","document.documentElement.dataset.midDesign='next'","localStorage.removeItem('mid:designMode:v1')","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',
  "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'",'<span>Mehr</span>','bottomBarHidden','is-scroll-hidden','data-scroll-hidden',
- "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<details key={group.id}',"!['current','short-term','forecast','ensemble','composite'].includes(id)", 'place-warning-status'
-])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-Vertrag fehlt: ${token}`);
+ "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<section key={group.id} className="modern-more-group">',"{id:'safety',label:'Sicherheit',modules:['warnings','extreme-outlook']}",'place-warning-status',
+ "const BOTTOM_BAR_BEHAVIOR_KEY='mid:bottom-bar-behavior:v1'","type BottomBarBehavior='fixed'","localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)","return'fixed'","data-fixed={bottomBarBehavior==='fixed'?'true':'false'}"
+])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-/I-Vertrag fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss als Primärtab direkt erreichbar sein');
-assert.ok(app.includes("type BottomBarBehavior='fixed'")&&app.includes("return'fixed'"),'Bottom-Bar muss im obligatorischen Design fixiert sichtbar bleiben.');
 assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Auto-Hide-Schwellen dürfen nicht zurückkehren.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Der alte Beta-Schalter darf nicht mehr in der App stehen.');
@@ -34,4 +34,4 @@ assert.ok(!portable.includes("'mid:navigationMode:v1'"),'Veralteter Navigationss
 assert.ok(radarColors.includes('dwd-standard'),'DWD-Standard-Radarfarbvertrag fehlt');
 assert.ok(!radarColors.includes('navigation-bottom-tabs'),'Navigation darf den Radarfarbvertrag nicht verändern');
 const parsed=JSON.parse(baseline);assert.ok(parsed.requiredRegressionTests.includes('scripts/test-optional-bottom-navigation-09790.mjs'),'Baseline-Regression fehlt');
-console.log('MID 18.2.2: obligatorische Bottom-Bar Aktuell/Heute/Vorhersage/Karten/Mehr; Legacy-Designnavigation entfernt.');
+console.log('MID 18.2.2/I.1-I.5: obligatorische, dauerhaft fixierte Bottom-Bar Aktuell/Heute/Vorhersage/Karten/Mehr; Legacy-Designnavigation entfernt.');

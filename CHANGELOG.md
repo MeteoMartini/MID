@@ -379,6 +379,14 @@
 
 # MID v0.9.85.47
 
+## v0.9.85.90 · 2026-09-22
+
+- **Mehr klarer geordnet:** Das Menü folgt jetzt einer einzigen Aufgabenlogik ohne missverständliche Zähler oder doppelte Wege zu Prognose und Karten.
+- **Einstellungen neu sortiert:** Darstellung, Wetterdarstellung, Navigation, Einheiten/Zeit, Orte/Profile, Benachrichtigungen, Datenqualität, Synchronisation und System sind getrennt.
+- **Kernnavigation geschützt:** Aktuell, Warnungen, Heute, Vorhersage und Karten bleiben erreichbar, auch wenn optionale Module ausgeblendet werden.
+- **Fachbegriffe geschärft:** Warnlage und Push-Benachrichtigung, Vorhersagekonfidenz und Gefahr sowie lokale Korrektur und Datenquelle werden klar getrennt.
+- **Mobil bis Desktop geprüft:** Mehr und Einstellungen verwenden einen kontrollierten Scrollbereich und berücksichtigen Hoch-/Querformat sowie Safe Areas.
+
 ## Design 2.0.1 · 12-h-Temperaturtrend wissenschaftlich nachgeschärft
 
 - Die 12-h-Kurve unter „Aktuell“ ist nicht mehr nur beschriftet, sondern wird jetzt auch **skalentreu und zeitlich ehrlich** dargestellt.
