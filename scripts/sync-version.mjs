@@ -1,8 +1,25 @@
 import {readFile,writeFile} from 'node:fs/promises';
 
-const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
+const packageUrl=new URL('../package.json',import.meta.url);
+const pkg=JSON.parse(await readFile(packageUrl,'utf8'));
 const version=String(pkg.version||'').trim();
 if(!/^\d+\.\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$/.test(version))throw new Error(`Ungültige Paketversion: ${version}`);
+
+const canonicalRegressionRunner='node scripts/run-regressions.mjs';
+if(pkg.scripts?.['test:regressions']!==canonicalRegressionRunner){
+ pkg.scripts={...(pkg.scripts??{}),'test:regressions':canonicalRegressionRunner};
+ await writeFile(packageUrl,`${JSON.stringify(pkg,null,2)}\n`);
+}
+
+const releaseNotesUrl=new URL('../RELEASE_NOTES.md',import.meta.url);
+const releaseNotes=(await readFile(releaseNotesUrl,'utf8')).trim();
+const releaseHeading=`# MID v${version}`;
+if(!releaseNotes.startsWith(releaseHeading))throw new Error(`RELEASE_NOTES.md muss mit ${releaseHeading} beginnen.`);
+for(const relativePath of ['../CHANGELOG.md','../public/CHANGELOG.md']){
+ const changelogUrl=new URL(relativePath,import.meta.url);
+ const changelog=await readFile(changelogUrl,'utf8');
+ if(!changelog.startsWith(releaseHeading))await writeFile(changelogUrl,`${releaseNotes}\n\n${changelog.replace(/^\s+/,'')}`);
+}
 
 await writeFile(new URL('../src/version.ts',import.meta.url),`export const MID_VERSION='${version}';\n`);
 await writeFile(new URL('../public/version.json',import.meta.url),`${JSON.stringify({version},null,2)}\n`);
