@@ -12,7 +12,7 @@ const [cockpit,styles,main,pkgRaw,baselineRaw]=await Promise.all([
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 const testPath='scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs';
 
-assert.equal(pkg.version,'0.9.85.83','Arbeitspaket E muss MID v0.9.85.83 sein.');
+assert.ok(/^0\.9\.85\.(?:8[3-9]|9\d|\d{3,})$/.test(pkg.version),'Arbeitspaket E benötigt MID v0.9.85.83 oder neuer.');
 assert.ok(cockpit.includes('function MidForecastRow({active,compact,detail}')&&cockpit.match(/<MidForecastRow key=/g)?.length===2,'7- und 14-Tage müssen dieselbe MidForecastRow-Familie verwenden.');
 
 assert.ok(cockpit.includes('data-mid-forecast-list="seven"')&&cockpit.includes('data-mid-forecast-row="seven"'),'7-Tage muss die gemeinsame Forecast-Row-Struktur verwenden.');
@@ -61,4 +61,4 @@ for(const file of [testPath,'src/midC18ForecastRows.css','MID_E_FORECAST_ROWS_0.
   assert.ok((baseline.requiredFiles||[]).includes(file),`${file} fehlt in requiredFiles`);
 }
 
-console.log('MID v0.9.85.83 · Arbeitspaket E: gemeinsame responsive 7-/14-Tage-ForecastRows mit genau einer Inline-Erweiterung geschützt.');
+console.log(`MID ${pkg.version} · Arbeitspaket E: gemeinsame responsive 7-/14-Tage-ForecastRows mit genau einer Inline-Erweiterung geschützt.`);
