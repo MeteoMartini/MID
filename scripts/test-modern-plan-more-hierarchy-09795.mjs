@@ -21,10 +21,13 @@ for(const token of [
  "className={`dashboard-section-drawer${navigationMode==='bottom-tabs'?' modern-more-drawer':''}`}",
  'className="modern-more-quick-actions"',
  '<strong>Einstellungen</strong>',
- '<strong>Benachrichtigungen</strong>',
- '<strong>Favoriten & Profile</strong>',
- '<strong>Wetterzwilling</strong>',
- "!['current','short-term','forecast','ensemble','composite'].includes(id)",
+ '<small>Darstellung, Inhalte, Daten und System</small>',
+ "onClick={()=>openSettings('view')}",
+ "{id:'safety',label:'Sicherheit',modules:['warnings','extreme-outlook']}",
+ "{id:'climate',label:'Klima & Rückblick',modules:['climate','forecast-verification']}",
+ "{id:'planning',label:'Planen & Profile',modules:['event-planner','travel-planner','mountain','water']}",
+ "{id:'special',label:'Spezialwetter',modules:['flight-meteorology']}",
+ "{id:'tools',label:'Werkzeuge & Export',modules:['widget']}",
  "navigationMode==='bottom-tabs'&&id===modernPlannerAnchor?<ModernPlannerHub",
  "dashboard-planner-section${navigationMode==='bottom-tabs'?' modern-planner-section':''}"
 ])assert.ok(app.includes(token),`Planen/Mehr-Vertrag fehlt: ${token}`);
@@ -53,4 +56,4 @@ assert.ok(contract.includes('**Mehr** enthält die vertiefenden Fachmodule'),'Me
 
 const parsed=JSON.parse(baseline);
 assert.ok(parsed.requiredRegressionTests.includes('scripts/test-modern-plan-more-hierarchy-09795.mjs'),'Baseline-Regression für Schritt 6 fehlt');
-console.log('Kanonische Bottom-Bar: Planen-Hub bleibt über Mehr erreichbar, Mehr-Hierarchie, Einstellungsdirektzugriffe, iOS-Touchziele und Radar-Isolation geprüft.');
+console.log('Kanonische Bottom-Bar: Planen-Hub bleibt über „Planen & Profile“ erreichbar; I.1-I.5-Mehr-Hierarchie, Einstellungszugang, Touchziele und Radar-Isolation geprüft.');
