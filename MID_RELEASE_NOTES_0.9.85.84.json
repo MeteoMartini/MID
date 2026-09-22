@@ -1,0 +1,20 @@
+{
+  "version": "0.9.85.84",
+  "date": "2026-09-22",
+  "title": "Arbeitspaket F · Map-first Kartenarbeitsraum",
+  "external": [
+    "**Arbeitspaket F:** Radar, Satellit, Komposit, Modellkarten und Synoptik arbeiten jetzt konsequenter map-first: Die Wetterkarte erhält deutlich mehr Raum, die Bedienung tritt optisch zurück.",
+    "Radar, Satellit und Komposit verwenden eine einheitlichere Zeit- und Playback-Sprache. Bestätigte Zeitstände sowie die Trennung von Beobachtung, Nowcast und Modell bleiben unverändert.",
+    "Deckkraftregler sind visuell vereinheitlicht; die vorhandenen Werte bleiben weiterhin getrennt je Layer beziehungsweise Kartenprodukt gespeichert.",
+    "Die interaktive MID-Synoptik steht nun vor der amtlichen DWD-Referenzkarte. Das DWD-Original bleibt unverändert als klar gekennzeichnete Referenz erhalten.",
+    "Smartphone, Tablet hoch/quer und Desktop wurden für Light/Dark, Safe Areas, Bottom Bar und Overlay-Grenzen optimiert.",
+    "Meteorologische Datenquellen, Zeitauflösungen, Farbskalen, Isobaren/Isohypsen, Fronten, Warn-/Hazard-Logik sowie die unabhängige Skybar-/Stundenquadrat-Auswahl bleiben fachlich unverändert."
+  ],
+  "internal": [
+    "Replit-F-Abnahme einschließlich Transparenz-Follow-up vollständig grün.",
+    "Neuer Designlayer `src/midC18MapFirstWorkspace.css`, geladen nach Arbeitspaket E.",
+    "Produktive Fachverträge verbleiben in `RadarPanel.tsx`, `WeatherMapsPanel.tsx` und `SynopticPanel.tsx`; keine Änderung der meteorologischen Datenlogik.",
+    "Neue Regression `scripts/test-mid-18-2-5-f-map-first-098584.mjs` schützt Timeline, Playback, Jetzt, Layer-Deckkraft, Synoptik und Responsive-Komposition.",
+    "Light/Dark-Abnahme: 360×800, 390×844, 430×932, 834×1112, 1112×834 und 1440×900."
+  ]
+}
