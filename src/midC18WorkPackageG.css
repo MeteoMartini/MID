@@ -1,0 +1,266 @@
+/* MID 18.2.5 · Arbeitspaket G · Ensemble / Klima / Widgets
+   Reine Darstellungs-/Interaktionsschicht. Meteorologische Daten- und Fachlogik bleiben unangetastet. */
+
+.ensemble-panel,
+.climate-panel,
+.apple-widget-settings,
+.ensemble-pro-card,
+.ensemble-pro-chart,
+.ensemble-pro-summary-grid,
+.ensemble-pro-brief-grid,
+.climate-metrics,
+.climate-metric,
+.apple-widget-readiness-grid,
+.apple-widget-readiness-item,
+.apple-widget-feed-card {
+  min-width: 0;
+}
+
+/* Ensemble: ruhige Hierarchie, lesbare Legenden/Tooltips und stabile Touchziele. */
+.ensemble-pro-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ensemble-pro-tab,
+.ensemble-metric-deck > button {
+  min-width: 0;
+  min-height: 44px;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.ensemble-pro-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+}
+
+.ensemble-pro-legend-item,
+.ensemble-pro-brief-copy,
+.ensemble-pro-brief-value,
+.ensemble-pro-card p,
+.ensemble-pro-card small {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ensemble-pro-tooltip {
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(390px, calc(100vw - 32px));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-height: 1.38;
+}
+
+.ensemble-mobile-tooltip-layer {
+  box-sizing: border-box;
+  max-width: 100vw;
+  padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right));
+}
+
+.ensemble-metric-deck {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+.ensemble-metric-deck > button {
+  width: 100%;
+  overflow: hidden;
+}
+
+.ensemble-metric-deck > button > span,
+.ensemble-metric-deck > button > span > b,
+.ensemble-metric-deck > button > span > small {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.ensemble-metric-mini {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* Klima: drei gleichwertige Messgrößen, mobil ruhig gestapelt. */
+.climate-header,
+.climate-header-title,
+.climate-score-card,
+.climate-score-text,
+.climate-metric-head,
+.climate-metric-label,
+.climate-metric-meta,
+.climate-metric-value,
+.climate-tips {
+  min-width: 0;
+}
+
+.climate-header,
+.climate-metric-head {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.climate-header-title,
+.climate-score-text,
+.climate-metric-label,
+.climate-metric-meta,
+.climate-tips,
+.climate-status,
+.climate-error {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.climate-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+}
+
+.climate-metric {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.climate-metric-line {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.climate-score-pill,
+.climate-score-badge {
+  min-height: 32px;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+/* Widgets: Einstellungen/Status/Feed als klar getrennte, nicht überlaufende Arbeitsfläche. */
+.apple-widget-settings {
+  overflow-x: clip;
+}
+
+.apple-widget-readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.apple-widget-readiness-item,
+.apple-widget-feed-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.apple-widget-readiness-item *,
+.apple-widget-feed-card *,
+.apple-widget-feed * {
+  min-width: 0;
+}
+
+.apple-widget-settings button,
+.apple-widget-settings a,
+.apple-widget-settings select,
+.apple-widget-settings input {
+  min-height: 44px;
+}
+
+.apple-widget-feed {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .ensemble-pro-summary-grid,
+  .ensemble-pro-brief-grid,
+  .climate-metrics,
+  .apple-widget-readiness-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ensemble-metric-deck {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ensemble-pro-tooltip {
+    width: min(390px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+  }
+
+  .ensemble-pro-chart,
+  .ensemble-pro-chart-md,
+  .ensemble-pro-chart-sm {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .climate-header,
+  .climate-metric-head {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .ensemble-pro-tabs,
+  .ensemble-pro-legend {
+    gap: 6px 8px;
+  }
+
+  .ensemble-pro-tab {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .ensemble-pro-tooltip {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+  }
+
+  .climate-score-card,
+  .climate-metric,
+  .apple-widget-readiness-item,
+  .apple-widget-feed-card {
+    padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 850px) and (orientation: landscape) {
+  .ensemble-pro-summary-grid,
+  .ensemble-pro-brief-grid,
+  .climate-metrics,
+  .apple-widget-readiness-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ensemble-pro-tooltip {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ensemble-panel *,
+  .climate-panel *,
+  .apple-widget-settings * {
+    scroll-behavior: auto !important;
+  }
+}
