@@ -1,0 +1,99 @@
+/* MID v0.9.85.87 · 14-Tage-Zeilen: Datum/Wetter nicht mehr durch Konfidenz quetschen.
+   Rein visuell; Ensemble-, Konfidenz- und Wetterfachlogik bleibt unverändert. */
+
+@media(max-width:720px){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(132px,max-content)!important;
+  grid-template-areas:
+   "heading confidence"
+   "regime confidence"
+   "temps temps"!important;
+  align-items:start!important;
+  column-gap:12px!important;
+  row-gap:7px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header>*{min-width:0!important}
+ html[data-mid-design='next'] .cockpit-fourteen-heading{
+  grid-area:heading!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:8px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-heading>svg{
+  flex:0 0 auto!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-heading-copy{
+  min-width:0!important;
+  max-width:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-heading-copy b,
+ html[data-mid-design='next'] .cockpit-fourteen-heading-copy small,
+ html[data-mid-design='next'] .cockpit-fourteen-weather-label{
+  max-width:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-regime{
+  grid-area:regime!important;
+  min-width:0!important;
+  max-width:100%!important;
+  white-space:normal!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-temps{
+  grid-area:temps!important;
+  justify-self:start!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill{
+  grid-area:confidence!important;
+  min-width:132px!important;
+  max-width:100%!important;
+  align-self:start!important;
+  justify-self:end!important;
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill .confidence-display{
+  min-width:108px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row,
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-skybar{
+  min-width:0!important;
+  max-width:100%!important;
+  overflow-x:clip!important;
+ }
+}
+
+@media(max-width:390px){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
+  grid-template-columns:minmax(0,1fr) 132px!important;
+  column-gap:9px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill{
+  min-width:132px!important;
+  padding-inline:9px!important;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{min-width:0!important}
+ html[data-mid-design='next'] .cockpit-fourteen-heading-copy,
+ html[data-mid-design='next'] .cockpit-fourteen-weather-label{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill{
+  min-width:112px!important;
+  flex:0 0 auto!important;
+ }
+}
