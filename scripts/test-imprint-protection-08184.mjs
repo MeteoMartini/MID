@@ -12,7 +12,7 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
- "type SettingsSection='view'|'appearance'|'units'|'notifications'|'favorites'|'twin'|'sync'|'system'|'legal';",
+ "type SettingsSection='view'|'weather'|'navigation'|'units'|'notifications'|'favorites'|'quality'|'sync'|'system';",
  'className="footer-legal-link"',
  '>Impressum</button>',
  '<ImprintDialog open={imprintOpen}',
@@ -27,8 +27,10 @@ for(const token of [
  'Martin Molkentin',
  'Habsburgerstr. 8',
  '53859 Niederkassel',
- 'section===\'legal\'',
- "['legal','Rechtliches',<Info size={18}/>,'Impressum und Kontakt']"
+ "section==='system'&&<div className=\"settings-section-stack\">",
+ '<section className="settings-section settings-legal">',
+ '<h3>Rechtliches &amp; Kontakt</h3>',
+ '<ImprintContent embedded/>'
 ])need('Impressum-Integration',app,token);
 
 for(const token of [
@@ -57,4 +59,4 @@ await scan(new URL('../src',import.meta.url).pathname);
 need('Package-Test',pkg,'test:imprint-protection');
 need('Baseline-Test',baseline,'scripts/test-imprint-protection-08184.mjs');
 if(failures.length){console.error('Impressum-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Impressum geprüft: Footer- und Einstellungszugang, Anbieterangaben, Interaktionsfreigabe und fehlender E-Mail-Klartext im App-Quellcode.');
+console.log('Impressum geprüft: Footer- und System/Über-MID-Zugang, Anbieterangaben, Interaktionsfreigabe und fehlender E-Mail-Klartext im App-Quellcode.');
