@@ -18,7 +18,9 @@ async function prependIfMissing(file,heading,body){
  return true;
 }
 async function syncVersionedReleaseNotes(root){
- const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
+ const packageFile=path.join(root,'package.json');
+ if(!(await fileExists(packageFile)))return {synced:false};
+ const pkg=JSON.parse(await readFile(packageFile,'utf8'));
  const version=String(pkg.version||'').trim();
  if(!version)return {synced:false};
  const noteFile=path.join(root,`MID_RELEASE_NOTES_${version}.json`);
@@ -32,8 +34,9 @@ async function syncVersionedReleaseNotes(root){
  const internalHeading=`## MID v${version} · ${notes.date||new Date().toISOString().slice(0,10)} · ${notes.title||'Release'}`;
  const targets=[path.join(root,'CHANGELOG.md'),path.join(root,'public','CHANGELOG.md')];
  let changed=false;
- for(const target of targets)changed=(await prependIfMissing(target,heading,external))||changed;
- changed=(await prependIfMissing(path.join(root,'MID_BUILD_CHANGELOG.md'),internalHeading,internal))||changed;
+ for(const target of targets){if(await fileExists(target))changed=(await prependIfMissing(target,heading,external))||changed}
+ const buildChangelog=path.join(root,'MID_BUILD_CHANGELOG.md');
+ if(await fileExists(buildChangelog))changed=(await prependIfMissing(buildChangelog,internalHeading,internal))||changed;
  if(changed)console.log(`Changelog-Synchronisierung: MID v${version} wurde aus ${path.basename(noteFile)} vorangestellt.`);
  return {synced:changed};
 }
