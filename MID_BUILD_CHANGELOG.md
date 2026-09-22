@@ -1,3 +1,10 @@
+## MID v0.9.85.85 · 2026-09-22 · MID 18.2.5 · gesammelte Current-/24-h-/7-/14-Tage-Korrekturen
+
+- Beide Replit-Einschübe gemeinsam abgenommen: Typecheck, Produktionsbuild und fokussierte Regressionen grün.
+- Responsive Abnahme für Light/Dark auf Smartphone, Tablet und Desktop inklusive Hoch-/Querformat ohne offene Restpunkte.
+- Produktive Übernahme schützt Current-Windrichtungspfeil, getrennten +12-h-Header, ausschließlich stündliches 24-h-Profil, aktive 7-/14-Tabs, kollisionsfreie 7-Tage-Zeilen, lesbare Konfidenz-Pillen und ganzzahlige Haupt-Sonnenstunden.
+- Neue Regression scripts/test-mid-18-2-5-ui-fixes-098585.mjs und nach Arbeitspaket F geladener Designlayer src/midC18ResponsiveCorrections.css.
+
 ## MID v0.9.85.84 · 2026-09-22 · Arbeitspaket F · Map-first Kartenarbeitsraum
 
 - Replit-F-Abnahme einschließlich Transparenz-Follow-up vollständig grün.

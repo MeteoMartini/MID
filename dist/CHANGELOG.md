@@ -1,3 +1,13 @@
+# MID v0.9.85.85
+
+- Unter „Aktuell“ zeigt Wind/Böen nun denselben klaren Windrichtungspfeil wie die Detailansicht unter „Mehr“.
+- Die +12-h-Temperaturdifferenz ist auf Desktop, Tablet und Smartphone räumlich klar vom Titel getrennt und bleibt in Hoch-/Querformat sowie Light/Dark gut lesbar.
+- Das 24-h-Wetterprofil verwendet nur noch die stündliche Darstellung; die separate 3-h-Ansicht wurde entfernt. Auf schmalen Smartphones bleibt das Diagramm durch eine ausreichend breite, horizontal bedienbare Profilfläche lesbar.
+- Die aktiven Prognosezeiträume „7 T“ und „14 T“ bleiben auf Desktop sichtbar. Die 7-Tage-Zeilen wurden gegen Überlagerungen und ineinander verschobene Inhalte stabilisiert.
+- In der 14-Tage-Ansicht entfällt die gedoppelte zweite „24-Stunden-Wetter“-Zeile; die vorhandene Skybar bleibt die einzige Stundenübersicht.
+- Konfidenz-Pillen erhalten mehr Mindestbreite und Innenabstand. Der Hauptwert der Sonnenscheindauer wird ganzzahlig angezeigt; P10/P90- und weitere Spannendarstellungen behalten ihre nötige Dezimalgenauigkeit.
+- Meteorologische Datenquellen, Warn-/Hazard-Logik, Skybar-Fachlogik, Temperaturfarben und die hyperlokal korrigierte +12-h-Temperaturreihe bleiben fachlich unverändert.
+
 # MID v0.9.85.84
 
 - **Arbeitspaket F:** Radar, Satellit, Komposit, Modellkarten und Synoptik arbeiten jetzt konsequenter map-first: Die Wetterkarte erhält deutlich mehr Raum, die Bedienung tritt optisch zurück.
