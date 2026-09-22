@@ -11,8 +11,8 @@ need('Cockpit-Datei',cockpit,"export type ForecastPresentationMode='classic'|'co
 need('Klassischer Standard',app,"const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal',skybarDisplayMode:'band'}");
 for(const token of ['Klassisch','Cockpit · Register','Cockpit · Ribbons','Die klassische Ansicht bleibt Standard'])need('Einstellungen',app,token);
 for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble']","const forecastCockpitEnabled=true","forecastCockpitEnabled&&FORECAST_COCKPIT_MODULES.includes(id)","if(id!==forecastCockpitAnchor)return null"])need('Keine Doppelmodule',app,token);
-for(const token of ['cockpit-now90',"points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",'regularShortTermPoints','SvgProfileWindDirectionArrow','Böen bis'])need('Kurzfrist',cockpit,token);
-if(cockpit.includes('SHORT_TERM_RESOLUTION_KEY')||cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"'))failures.push('Kurzfrist: entfernter 1h/3h-Umschalter ist wieder enthalten');
+for(const token of ['cockpit-now90',"points=useMemo(()=>adjusted.filter(point=>point.source==='hourly'),[adjusted])",'regularShortTermPoints','SvgProfileWindDirectionArrow','Böen bis'])need('Kurzfrist',cockpit,token);
+if(cockpit.includes('SHORT_TERM_RESOLUTION_KEY')||cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"')||cockpit.includes('selectShortTermPoints('))failures.push('Kurzfrist: entfernter 1h/3h-Umschalter bzw. Auswahlaggregator ist wieder enthalten');
 for(const token of ['cockpit-seven-grid','temperatureRange','cockpit-day-temp-track','cockpit-day-regime','forecastRegimeLabel','7-Tage-Trend'])need('7-Tage',cockpit,token);
 for(const token of ['export function forecastDayRegime','export function forecastRegimeLabel'])need('Gemeinsamer Regimevertrag',regime,token);
 for(const token of ['cockpit-fourteen-grid','cockpit-fourteen-row','precipCombinedScore','climateMean','assessEnsembleDay','Konsistenz'])need('14-Tage',cockpit,token);
@@ -20,4 +20,4 @@ for(const token of ['ACTIVE_HORIZON_KEY','MiniRibbon','Ensemble-Analyse öffnen'
 for(const token of ['.forecast-cockpit','.cockpit-tabs','.cockpit-now90','.cockpit-seven-grid','.cockpit-fourteen-grid','@media(max-width:680px)','@media(max-width:420px)'])need('Responsive Design',css,token);
 need('Package-Skript',pkg,'test:forecast-cockpit');need('Baseline-Vertrag',baseline,'scripts/test-forecast-cockpit-0920.mjs');
 if(failures.length){console.error('Optionale Prognose-Cockpits unvollständig:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Prognose-Darstellungsoptionen und obligatorischer Design-2.0.1-Cockpitpfad geprüft.');
+console.log('Prognose-Darstellungsoptionen und obligatorischer Design-2.0.1-Cockpitpfad mit fester stündlicher Kurzfristreihe geprüft.');
