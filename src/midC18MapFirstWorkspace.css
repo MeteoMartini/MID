@@ -1,0 +1,283 @@
+/* MID 18.2.5 · Arbeitspaket F
+   Map-first für Radar, Satellit, Komposit, Modellkarten und Synoptik.
+   Diese Schicht verändert ausschließlich Komposition/Interaktion. Datenquellen,
+   Zeitschritte, meteorologische Schwellen und Layer-Fachlogik bleiben unangetastet. */
+
+html[data-mid-design='next'] :is(.composite-card,.weather-maps-panel,.synoptic-panel){
+ min-width:0!important;
+ overflow:visible!important;
+}
+
+/* Karte führt; Überschriften und Steuerung bleiben ruhige Instrumentenbänder. */
+html[data-mid-design='next'] .composite-card>.title,
+html[data-mid-design='next'] .weather-maps-head{
+ margin:0!important;
+ padding:12px 14px!important;
+ border-bottom:1px solid var(--c8-line)!important;
+ background:color-mix(in srgb,var(--c8-raised) 58%,transparent)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] :is(.composite-view-tabs,.weather-maps-primary-controls){
+ display:grid!important;
+ grid-template-columns:repeat(auto-fit,minmax(132px,1fr))!important;
+ gap:0!important;
+ width:100%!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:1px solid var(--c8-line)!important;
+ border-radius:16px!important;
+ overflow:hidden!important;
+ background:var(--c8-paper)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .composite-view-tabs>button,
+html[data-mid-design='next'] .weather-maps-primary-controls>label{
+ min-width:0!important;
+ min-height:48px!important;
+ margin:0!important;
+ padding:9px 11px!important;
+ border:0!important;
+ border-right:1px solid var(--c8-line)!important;
+ border-radius:0!important;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .composite-view-tabs>button:last-child,
+html[data-mid-design='next'] .weather-maps-primary-controls>label:last-child{border-right:0!important}
+html[data-mid-design='next'] .composite-view-tabs>button.active{
+ background:color-mix(in srgb,var(--primary) 9%,var(--c8-paper))!important;
+ box-shadow:inset 0 3px 0 var(--primary)!important;
+}
+
+/* Gemeinsame Map-Bühne mit bewusst viel Höhe. */
+html[data-mid-design='next'] .composite-card .radarmap,
+html[data-mid-design='next'] .weather-maps-map-shell,
+html[data-mid-design='next'] .synoptic-map-wrap{
+ position:relative!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:clamp(300px,56vh,620px)!important;
+ overflow:hidden!important;
+ border:1px solid var(--c8-strong-line)!important;
+ border-radius:18px!important;
+ background:var(--c8-paper)!important;
+ box-shadow:none!important;
+ isolation:isolate!important;
+}
+html[data-mid-design='next'] :is(.composite-maplibre,.weather-maps-maplibre,.synoptic-maplibre-map){
+ width:100%!important;
+ min-width:0!important;
+ min-height:inherit!important;
+ height:100%!important;
+}
+
+/* Kartenstatus/Locate/Layer bleiben klein und am Rand. */
+html[data-mid-design='next'] :is(.composite-map-status,.weather-maps-map-status,.synoptic-analysis-stamp){
+ max-width:min(68%,420px)!important;
+ border:1px solid color-mix(in srgb,var(--c8-line) 82%,transparent)!important;
+ border-radius:12px!important;
+ background:color-mix(in srgb,var(--c8-paper) 88%,transparent)!important;
+ backdrop-filter:blur(8px)!important;
+ -webkit-backdrop-filter:blur(8px)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] :is(.composite-locate-button,.composite-focus-layer-trigger){
+ border:1px solid color-mix(in srgb,var(--c8-line) 85%,transparent)!important;
+ background:color-mix(in srgb,var(--c8-paper) 90%,transparent)!important;
+ box-shadow:none!important;
+ backdrop-filter:blur(7px)!important;
+ -webkit-backdrop-filter:blur(7px)!important;
+}
+html[data-mid-design='next'] .composite-focus-layer-popover-portal{
+ max-height:min(72vh,560px)!important;
+ overflow:auto!important;
+ overscroll-behavior:contain!important;
+}
+
+/* Eine visuelle Sprache für Playback/Timeline/Jetzt. */
+html[data-mid-design='next'] :is(.composite-timeline-card,.weather-maps-controls){
+ width:100%!important;
+ min-width:0!important;
+ margin:10px 0 0!important;
+ padding:10px 12px!important;
+ border:1px solid var(--c8-line)!important;
+ border-radius:15px!important;
+ background:color-mix(in srgb,var(--c8-raised) 66%,var(--c8-paper))!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] :is(.composite-timeline-main,.weather-maps-controls){
+ display:grid!important;
+ grid-template-columns:auto auto minmax(150px,1fr) auto auto!important;
+ align-items:center!important;
+ gap:8px 10px!important;
+}
+html[data-mid-design='next'] :is(.radar-playback-buttons,.weather-maps-playback){
+ display:flex!important;
+ align-items:center!important;
+ gap:5px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] :is(.radar-playback-buttons,.weather-maps-playback)>button,
+html[data-mid-design='next'] :is(.composite-live-button,.weather-maps-live){
+ min-width:38px!important;
+ min-height:38px!important;
+ border:1px solid var(--c8-line)!important;
+ border-radius:11px!important;
+ background:var(--c8-paper)!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] :is(.composite-live-button,.weather-maps-live){
+ padding-inline:12px!important;
+ font-weight:800!important;
+}
+html[data-mid-design='next'] .composite-live-button.active{
+ color:var(--primary)!important;
+ background:color-mix(in srgb,var(--primary) 9%,var(--c8-paper))!important;
+ border-color:color-mix(in srgb,var(--primary) 36%,var(--c8-line))!important;
+}
+html[data-mid-design='next'] :is(.composite-timeline-range,.weather-maps-timeline){
+ width:100%!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] :is(.composite-timeline-range input[type='range'],.weather-maps-timeline input[type='range']){
+ width:100%!important;
+ min-width:0!important;
+ accent-color:var(--primary)!important;
+}
+html[data-mid-design='next'] .composite-playback-speed{
+ min-width:0!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .composite-playback-speed select{
+ min-height:36px!important;
+ max-width:150px!important;
+}
+
+/* Deckkraftsteuerungen: gleiche Form, fachlich weiterhin pro Layer gespeichert. */
+html[data-mid-design='next'] :is(.layer-opacity-controls,.weather-maps-opacity){
+ min-width:0!important;
+}
+html[data-mid-design='next'] .layer-opacity-controls{
+ display:grid!important;
+ grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;
+ gap:8px!important;
+}
+html[data-mid-design='next'] :is(.layer-opacity-controls>label,.weather-maps-opacity){
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ align-items:center!important;
+ gap:5px 8px!important;
+ min-width:0!important;
+ padding:8px 10px!important;
+ border:1px solid var(--c8-line)!important;
+ border-radius:12px!important;
+ background:var(--c8-paper)!important;
+}
+html[data-mid-design='next'] :is(.layer-opacity-controls>label,.weather-maps-opacity) input[type='range']{
+ grid-column:1/-1!important;
+ width:100%!important;
+ min-width:0!important;
+ accent-color:var(--primary)!important;
+}
+
+/* Sekundäre Kartenoptionen bleiben unter der Karte statt sie zu überdecken. */
+html[data-mid-design='next'] :is(.composite-advanced,.weather-maps-advanced,.weather-maps-meta-details){
+ margin-top:8px!important;
+ border:1px solid var(--c8-line)!important;
+ border-radius:14px!important;
+ background:var(--c8-paper)!important;
+ box-shadow:none!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] :is(.composite-advanced,.weather-maps-advanced,.weather-maps-meta-details)>summary{
+ min-height:44px!important;
+ padding:8px 11px!important;
+}
+
+/* Synoptik: interaktive Karte zuerst, amtliches DWD-Original als Referenz daneben/darunter. */
+html[data-mid-design='next'] .synoptic-reference-grid{
+ display:grid!important;
+ grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr)!important;
+ align-items:start!important;
+ gap:12px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .synoptic-reference-grid>.synoptic-map-panel{order:1!important;min-width:0!important}
+html[data-mid-design='next'] .synoptic-reference-grid>.official-analysis{order:2!important;min-width:0!important}
+html[data-mid-design='next'] .synoptic-map-panel,
+html[data-mid-design='next'] .official-analysis{
+ border:1px solid var(--c8-line)!important;
+ border-radius:16px!important;
+ background:var(--c8-paper)!important;
+ box-shadow:none!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .official-analysis-image img{
+ max-height:420px!important;
+ object-fit:contain!important;
+}
+html[data-mid-design='next'] .synoptic-sources{
+ min-width:0!important;
+ overflow-wrap:anywhere!important;
+}
+
+/* Tablet und Querformat: Karte bleibt dominant, Controls brechen kontrolliert um. */
+@media(max-width:1100px){
+ html[data-mid-design='next'] :is(.composite-timeline-main,.weather-maps-controls){
+  grid-template-columns:auto minmax(120px,1fr) auto!important;
+ }
+ html[data-mid-design='next'] .composite-playback-speed{grid-column:auto!important}
+ html[data-mid-design='next'] .synoptic-reference-grid{grid-template-columns:1fr!important}
+ html[data-mid-design='next'] .synoptic-reference-grid>.synoptic-map-panel{order:1!important}
+ html[data-mid-design='next'] .synoptic-reference-grid>.official-analysis{order:2!important}
+}
+
+@media(max-width:720px){
+ html[data-mid-design='next'] :is(.composite-card .radarmap,.weather-maps-map-shell,.synoptic-map-wrap){
+  min-height:clamp(270px,52vh,520px)!important;
+  border-radius:15px!important;
+ }
+ html[data-mid-design='next'] .composite-view-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html[data-mid-design='next'] .weather-maps-primary-controls{grid-template-columns:1fr!important}
+ html[data-mid-design='next'] .weather-maps-primary-controls>label{border-right:0!important;border-bottom:1px solid var(--c8-line)!important}
+ html[data-mid-design='next'] .weather-maps-primary-controls>label:last-child{border-bottom:0!important}
+ html[data-mid-design='next'] :is(.composite-timeline-main,.weather-maps-controls){
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:8px!important;
+ }
+ html[data-mid-design='next'] :is(.radar-playback-buttons,.weather-maps-playback){grid-column:1/2!important}
+ html[data-mid-design='next'] .composite-playback-speed{grid-column:2/3!important;justify-self:end!important}
+ html[data-mid-design='next'] :is(.composite-timeline-range,.weather-maps-timeline){grid-column:1/-1!important}
+ html[data-mid-design='next'] :is(.composite-live-button,.weather-maps-live){grid-column:2/3!important;justify-self:end!important}
+ html[data-mid-design='next'] :is(.composite-map-status,.weather-maps-map-status,.synoptic-analysis-stamp){max-width:calc(100% - 70px)!important}
+ html[data-mid-design='next'] .layer-opacity-controls{grid-template-columns:1fr!important}
+ html[data-mid-design='next'] .composite-focus-layer-popover-portal{width:min(360px,calc(100vw - 20px))!important;max-height:64vh!important}
+}
+
+@media(min-width:721px) and (max-width:900px) and (orientation:portrait){
+ html[data-mid-design='next'] :is(.composite-card .radarmap,.weather-maps-map-shell,.synoptic-map-wrap){min-height:520px!important}
+}
+@media(min-width:900px) and (orientation:landscape){
+ html[data-mid-design='next'] :is(.composite-card .radarmap,.weather-maps-map-shell,.synoptic-map-wrap){min-height:560px!important}
+}
+@media(min-width:1280px){
+ html[data-mid-design='next'] :is(.composite-card .radarmap,.weather-maps-map-shell,.synoptic-map-wrap){min-height:620px!important}
+}
+
+/* Bottom-Bar-/Safe-Area-Puffer ohne künstliche Leerfläche innerhalb der Karte. */
+@media(max-width:850px){
+ html[data-mid-design='next'] :is(.composite-card,.weather-maps-panel,.synoptic-panel){
+  padding-bottom:max(8px,env(safe-area-inset-bottom))!important;
+ }
+ html[data-mid-design='next'] :is(.composite-timeline-card,.weather-maps-controls){
+  margin-bottom:0!important;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] :is(.composite-card,.weather-maps-panel,.synoptic-panel,.composite-focus-layer-popover-portal){
+  scroll-behavior:auto!important;
+  transition:none!important;
+ }
+}
