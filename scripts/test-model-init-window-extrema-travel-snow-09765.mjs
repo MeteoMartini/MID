@@ -24,7 +24,8 @@ for(const token of [
  "Maximum':'Minimum'} im 24-Stunden-Fenster"
 ])assert.ok(cockpit.includes(token),`24-h-Extremvertrag fehlt: ${token}`);
 assert.ok(!cockpit.includes("label:`T${kind}"),'Tmax/Tmin-Präfix darf nicht mehr direkt an der Kurve stehen.');
-for(const token of ['rollenden 24-h-Fensters','ausschließlich der gerundete Wert','3-h-Anzeigemodus'])assert.ok(contract.includes(token),`24-h-Vertrag unvollständig: ${token}`);
+for(const token of ['rollenden 24-h-Fensters','ausschließlich der gerundete Wert','kanonische stündliche Darstellung','eine zusätzliche Darstellungsauflösung existiert nicht','vollständigen stündlichen Temperaturkurve'])assert.ok(contract.includes(token),`24-h-Vertrag unvollständig: ${token}`);
+assert.ok(!contract.includes('3-h-Anzeigemodus')&&!contract.includes('1-h- und 3-h-Modus'),'Entfernte 3-h-Darstellungsoption darf im 24-h-Vertrag nicht zurückkehren.');
 
 for(const token of [
  "snowDepthRequired=mode==='fixed'||(mode==='flexible'&&(preference==='snow'||Number.isFinite(constraints.minSnowDepthCm)))",
@@ -43,4 +44,4 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline- und Paketversion müssen übereinstimmen.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles.includes(test),`${test} fehlt in requiredFiles.`);
-console.log(`MID v${pkg.version}: Modell-Init, 24-h-Min/Max ohne Präfix und schneehöhenbasierte Reiseoptimierung geschützt.`);
+console.log(`MID v${pkg.version}: Modell-Init, ausschließlich stündliches 24-h-Min/Max ohne Präfix und schneehöhenbasierte Reiseoptimierung geschützt.`);

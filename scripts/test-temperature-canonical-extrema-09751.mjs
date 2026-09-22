@@ -22,7 +22,8 @@ for(const token of [
 for(const token of [
  'const profileTemperatureSource=profileHourlyPoints.filter',
  'profileStateSource=profileTemperatureSource.length?profileTemperatureSource:chartSourcePoints',
- "temperature:first.temperature,apparent:first.apparent,humidity:first.humidity,dewPoint:first.dewPoint,pressure:first.pressure",
+ 'return{...first,id:`profile-hour:${start}`',
+ 'profileDisplayPoints=profileHourlyPoints',
  'pressureScale=shortTermPressureScale(profileStateSource)',
  'const temperatureCurvePoints=profileStateSource.map',
  'apparentPath=buildShortTermChartPath(temperatureCurvePoints.map',
@@ -38,6 +39,7 @@ for(const token of [
  '<circle cx={extreme.item.x} cy={extreme.item.tempY}',
  '<text x={extreme.item.x}'
 ])assert.ok(cockpit.includes(token),`24-h-Tmax/Tmin-Kurvenmarkierung fehlt: ${token}`);
+assert.ok(!cockpit.includes('ProfileResolution')&&!cockpit.includes('selectShortTermPoints('),'Tmax/Tmin dürfen nicht wieder an eine 1h/3h-Darstellungsumschaltung gekoppelt werden.');
 
 for(const token of [
  'type HourlyDayFusionAdjustment=',
@@ -47,11 +49,12 @@ for(const token of [
  'temperature=next.temperature*adjustment.temperatureScale+adjustment.temperatureOffset'
 ])assert.ok(fusion.includes(token),`Stündliche Tagesfusions-Kontinuität fehlt: ${token}`);
 assert.ok(!fusion.includes('temperature=fusedCenter+(next.temperature-baseCenter)*rangeScale'),'Tageskonsens darf Stundenwerte nicht mehr mit einem harten Datumswechsel transformieren.');
-for(const token of ['24-h-Fenster','displayHours','displayDays','3-h-Anzeigemodus'])assert.ok(contract.includes(token),`24-h-Vertrag dokumentiert Temperatur-Extrema nicht vollständig: ${token}`);
+for(const token of ['24-h-Fenster','displayHours','displayDays','kanonische stündliche'])assert.ok(contract.includes(token),`24-h-Vertrag dokumentiert Temperatur-Extrema nicht vollständig: ${token}`);
+assert.ok(!contract.includes('3-h-Anzeigemodus')&&!contract.includes('1-h- und 3-h-Modus'),'Entfernte 3-h-Profilansicht darf im verbindlichen Vertrag nicht fortgeschrieben werden.');
 for(const token of ['.cockpit-weather-profile .temperature-extreme circle{','.cockpit-weather-profile .temperature-extreme.max{color:','.cockpit-weather-profile .temperature-extreme.min{color:'])assert.ok(styleSource.includes(token),`Tmax/Tmin-Stil fehlt: ${token}`);
 
 const baseline=JSON.parse(baselineText),version=JSON.parse(pkgText).version,test='scripts/test-temperature-canonical-extrema-09751.mjs';
 assert.equal(baseline.releaseVersion,version,'Baseline- und Paketversion müssen übereinstimmen.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 assert.ok(baseline.requiredFiles.includes(test),`${test} fehlt in requiredFiles.`);
-console.log(`MID v${version}: appweit kanonische Tmax/Tmin sowie konsistente stündliche Temperatur-/Luftdruckverläufe in 1-h/3-h geschützt.`);
+console.log(`MID v${version}: appweit kanonische Tmax/Tmin sowie konsistente stündliche Temperatur-/Luftdruckverläufe im ausschließlich stündlichen 24-h-Profil geschützt.`);

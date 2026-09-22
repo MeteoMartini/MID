@@ -21,7 +21,9 @@ assert.ok(app.includes('currentThreadTargetEpoch=currentThreadStartEpoch+12*3600
 assert.ok(app.includes('currentThreadTargetHour=currentThreadSeries.find(hour=>Number(hour.epoch)===currentThreadTargetEpoch)'),'Zielwert muss aus derselben hyperlokal korrigierten Stundenreihe stammen.');
 assert.ok(app.includes('currentThreadTrendLabel=currentTemperatureDeltaLabel(Number(currentThreadSeries[0]?.temperature),Number(currentThreadTargetHour?.temperature))'),'Sichtbar sein darf nur T(+12 h) minus T(0 h) aus derselben Stundenreihe.');
 assert.ok(!app.includes('function currentTemperatureTrendSummary(values:number[])')&&!app.includes('danach ↗')&&!app.includes('danach ↘')&&!app.includes('↕ wechselhaft'),'Mehrphasige Trendzusammenfassung muss entfernt bleiben.');
-assert.ok(app.includes("<small>Temperaturdifferenz · +12 h</small><b>{currentThreadTrendLabel}</b>"),'Kopfzeile muss ausschließlich die +12-h-Differenz zeigen.');
+assert.ok(app.includes('<span className="current-weather-thread-title"><small>Temperaturdifferenz · +12 h</small></span>'),'Kopfzeile muss ausschließlich die +12-h-Differenz benennen.');
+assert.ok(app.includes('<b className="current-weather-thread-delta">{currentThreadTrendLabel}</b>'),'Delta muss als eigener responsiver Wertblock erhalten bleiben.');
+assert.ok(!app.includes('currentThreadMin')&&!app.includes('currentThreadMax'),'Im +12-h-Kopf darf keine separate Temperaturspanne zurückkehren.');
 
 assert.ok(astronomy.includes('export function solarTimelineWindow'),'Zentrale minutengenaue Solar-Geometrie fehlt.');
 assert.ok(app.includes('solarTimelineWindow(currentThreadStartEpoch,currentThreadEndEpoch'),'Aktuelles Wetter muss die zentrale Solar-Geometrie verwenden.');
@@ -44,4 +46,4 @@ for(const key of ['requiredRegressionTests','regressionTests','requiredTests','a
 }
 assert.ok((baseline.requiredFiles||[]).includes(testPath),`${testPath} fehlt in requiredFiles`);
 
-console.log('MID v0.9.85.82 D.2: volle hyperlokal korrigierte Stunden, exakt +12 h und etwas deutlichere gemeinsame Nachtgeometrie geschützt.');
+console.log('MID D.2: volle hyperlokal korrigierte Stunden, exakt +12 h, responsiv getrennter Delta-Wert und gemeinsame Nachtgeometrie geschützt.');

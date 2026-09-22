@@ -18,7 +18,9 @@ assert.match(fusion,/siteIntervals=overlappingSiteIntervals/,'short-term fusion 
 assert.match(fusion,/siteFrames\.reduce\(\(sum,frame\)=>\{const calibrated=Number\(frame\.amountMm\);return sum\+\(Number\.isFinite\(calibrated\)&&calibrated>=0\?calibrated:clamp\(radarFinite\(frame\.rate\)/,'5-minute site frames must prefer calibrated amounts and retain rate integration only as fallback');
 assert.match(shortTerm,/DWD-RV-Standorttreffer/,'standalone short-term details must expose direct site hits');
 assert.match(shortTerm,/kein Standorttreffer; nur als Umfeldsignal gewichtet/,'standalone short-term details must explain nearby echoes');
-assert.match(cockpit,/radarSiteFrameCount:group\.reduce/,'cockpit aggregation must keep exact radar support metadata');
+assert.match(cockpit,/radarSiteFrameCount:sorted\.reduce/,'hourly cockpit profile aggregation must keep exact radar support metadata');
+assert.match(cockpit,/radarFrameCount:sorted\.reduce/,'hourly cockpit profile aggregation must keep exact radar frame metadata');
+assert.doesNotMatch(cockpit,/aggregateShortTermBlock\(/,'removed 3-hour display aggregation must not return');
 assert.match(weather,/currentFootprint\?:KonradFootprintPoint\[\]/,'K3D cell footprint type missing');
 assert.match(worker,/konradAreaKm2\(geometry,'covered_area'/,'official covered_area must drive cell size');
 assert.match(worker,/konradFootprint\(geometry,clat,clon\)/,'official geodetic cell footprint must be parsed');
@@ -37,4 +39,4 @@ const polygon='<geodetic_coordinates><polygon><latitude>50.00</latitude><longitu
 const xml=`<konrad3d><feature identifier="cell-a"><geometry><centroid_3d><geodetic_coordinate><latitude>50.005</latitude><longitude>7.01</longitude></geodetic_coordinate></centroid_3d><covered_area unit="km2">2.4</covered_area>${polygon}</geometry><intensity><severity>1</severity></intensity><tracking><cell_speed unit="m/s">10</cell_speed></tracking></feature></konrad3d>`;
 const cells=sandbox.__mid091512.parseKonradCells(xml,50,7,'2026-08-04T21:00:00Z');
 assert.equal(cells.length,1);assert.equal(cells[0].currentFootprint.length,4);assert.equal(cells[0].cellAreaKm2,2.4);assert.equal(cells[0].speedKmh,36);
-console.log('MID v0.9.15.12 app-wide point-nowcast and K3D placement regression passed.');
+console.log('MID app-wide point-nowcast and K3D placement regression passed with hourly-only profile support metadata.');

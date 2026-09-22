@@ -1,0 +1,127 @@
+/* MID 18.2.5 · gesammelter Responsive-/Forecast-Einschub
+   Rein visuelle Ergänzung. Meteorologische Daten- und Schwellenlogik bleibt unverändert. */
+
+/* Aktuell: derselbe Windrichtungspfeil wie in „Mehr“. */
+html[data-mid-design='next'] .current-weather-facts .wind .current-wind-inline{
+ display:inline-flex!important;
+ align-items:center!important;
+ gap:.38rem!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .current-weather-facts .wind .current-wind-inline .wind-direction-arrow{
+ flex:0 0 auto!important;
+}
+
+/* +12-h-Differenz: Titel und Delta bewusst voneinander trennen. */
+html[data-mid-design='next'] .current-weather-thread-head{
+ display:flex!important;
+ align-items:flex-end!important;
+ justify-content:space-between!important;
+ gap:clamp(1.75rem,5vw,5rem)!important;
+ width:100%!important;
+}
+html[data-mid-design='next'] .current-weather-thread-title{min-width:0!important}
+html[data-mid-design='next'] .current-weather-thread-delta{
+ flex:0 0 auto!important;
+ margin-left:auto!important;
+ white-space:nowrap!important;
+ font-variant-numeric:tabular-nums!important;
+}
+
+/* Prognose-Horizont: aktive 7-T-/14-T-Auswahl muss immer lesbar bleiben. */
+html[data-mid-design='next'] .modern-forecast-horizons button[data-active='true']{
+ color:var(--text)!important;
+ opacity:1!important;
+ visibility:visible!important;
+ background:color-mix(in srgb,var(--primary) 12%,var(--c8-paper))!important;
+ border-color:color-mix(in srgb,var(--primary) 42%,var(--c8-strong-line))!important;
+ box-shadow:inset 0 -2px 0 var(--primary),0 0 0 1px color-mix(in srgb,var(--primary) 12%,transparent)!important;
+ font-weight:800!important;
+}
+
+/* 7 Tage: Desktopzeilen mit expliziten, kollisionsfreien Bereichen. */
+@media(min-width:1101px){
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
+  grid-template-columns:92px 58px minmax(124px,.8fr) 118px 120px minmax(180px,1.35fr) 140px 90px!important;
+  grid-template-areas:
+   "date icon regime temps sky sky cue cue"
+   "date icon rain wind track track pop pop"!important;
+  align-items:start!important;
+  column-gap:14px!important;
+  row-gap:10px!important;
+  min-height:112px!important;
+  padding:12px 14px!important;
+  overflow:hidden!important;
+ }
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row>*{min-width:0!important}
+ html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-hourly-cue{align-self:start!important}
+}
+@media(min-width:721px) and (max-width:1100px){
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
+  grid-template-columns:82px 54px minmax(118px,1fr) 106px minmax(150px,1.25fr) 100px!important;
+  grid-template-areas:
+   "date icon regime temps sky cue"
+   "date icon rain wind track pop"!important;
+  align-items:start!important;
+  gap:9px 12px!important;
+  min-height:108px!important;
+  overflow:hidden!important;
+ }
+ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row>*{min-width:0!important}
+}
+
+/* 14 Tage: Konfidenzwerte nicht zusammendrücken. */
+html[data-mid-design='next'] .cockpit-consistency-pill{
+ min-width:76px!important;
+ min-height:34px!important;
+ padding:6px 10px!important;
+ flex:0 0 auto!important;
+ overflow:visible!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-consistency-pill .confidence-display{
+ min-width:54px!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:6px!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-consistency-pill .confidence-display small{
+ min-width:2ch!important;
+ display:inline-block!important;
+ font-variant-numeric:tabular-nums!important;
+ text-align:right!important;
+}
+
+/* 24-h-Profil: auf schmalem Hochformat nicht bis zur Unlesbarkeit stauchen. */
+@media(max-width:720px) and (orientation:portrait){
+ html[data-mid-design='next'] .cockpit-meteogram-pro__stage{
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  overscroll-behavior-inline:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+ }
+ html[data-mid-design='next'] .cockpit-meteogram-pro__canvas,
+ html[data-mid-design='next'] .cockpit-meteogram-pro__svg{
+  min-width:640px!important;
+ }
+}
+@media(max-width:430px) and (orientation:portrait){
+ html[data-mid-design='next'] .cockpit-meteogram-pro__canvas,
+ html[data-mid-design='next'] .cockpit-meteogram-pro__svg{min-width:640px!important}
+}
+
+@media(max-width:720px){
+ html[data-mid-design='next'] .current-weather-thread-head{
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:.35rem!important;
+ }
+ html[data-mid-design='next'] .current-weather-thread-delta{margin-left:0!important}
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .current-weather-thread-head{gap:1.5rem!important}
+ html[data-mid-design='next'] .cockpit-consistency-pill{min-width:72px!important}
+}

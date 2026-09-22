@@ -14,10 +14,12 @@ const [cockpit,ensemble,styles,app,pkg,baseline]=await Promise.all([
 assert.match(cockpit,/Nächste 90 Minuten/,'90-Minuten-Schnellblick fehlt');
 assert.match(cockpit,/Wetter · Temperatur · Niederschlag · Wind/,'90-Minuten-Bereich muss mehrere Wetterfaktoren zeigen');
 assert.match(cockpit,/WeatherPictogram code=\{item\.code\}/,'90-Minuten-Piktogramme müssen die plausibilisierte Wetterart verwenden');
-assert.match(cockpit,/points=useMemo\(\(\)=>selectShortTermPoints\(adjusted,'1h'\)/,'Kurzfristdarstellung muss fest einstündig sein');
+assert.match(cockpit,/points=useMemo\(\(\)=>adjusted\.filter\(point=>point\.source==='hourly'\),\[adjusted\]\)/,'Kurzfristdarstellung muss fest einstündig sein');
+assert.doesNotMatch(cockpit,/selectShortTermPoints\(/,'Entfernte 1h/3h-Auswahlaggregation darf nicht zurückkehren');
 assert.doesNotMatch(cockpit,/Stündlich · ein Blick/,'Entfernte Wetterprofil-Pille darf nicht zurückkehren');
 assert.match(cockpit,/className="cockpit-meteogram-pro__datafield"/,'Einzeldatenfeld des Meteogramms muss vorhanden sein');
-assert.match(cockpit,/aria-label="Zeitauflösung"[\s\S]*?>1 h<[\s\S]*?>3 h</,'Das 24-h-Wetterprofil braucht den geforderten 1h\/3h-Darstellungsschalter');
+assert.doesNotMatch(cockpit,/aria-label="Zeitauflösung"[\s\S]*?>1 h<[\s\S]*?>3 h</,'Das 24-h-Wetterprofil darf keinen 1h/3h-Darstellungsschalter mehr enthalten');
+assert.match(cockpit,/24 Stunden · 1-stündlich/,'24-h-Wetterprofil muss den verbleibenden stündlichen Vertrag sichtbar ausweisen');
 assert.match(cockpit,/24-h-Wetterprofil/,'24-h-Wetterprofil fehlt');
 assert.doesNotMatch(cockpit,/Temperatur, gefühlte Temperatur, thermisches Empfinden, Niederschlag, Wind\/Böen, Wolkenschichten und Wetter-Hazards/,'Redundanter Wetterprofil-Erklärtext darf nicht zurückkehren');
 assert.match(cockpit,/windSignalColor\(gust\)/,'Windrichtungspfeile müssen warnstufenabhängig eingefärbt werden');
@@ -44,4 +46,4 @@ const versionAtLeast=(value,minimum)=>{const left=String(value).split('.').map(N
 const packageVersion=JSON.parse(pkg).version,baselineVersion=JSON.parse(baseline).releaseVersion;
 assert.ok(versionAtLeast(packageVersion,'0.9.8.0'),`Cockpit-Usability benötigt mindestens v0.9.8.0, gefunden ${packageVersion}`);
 assert.equal(baselineVersion,packageVersion,'Baseline und Paketversion müssen synchron bleiben');
-console.log(`MID v${packageVersion} Cockpit-, Warnungs- und Ensemble-Usability geprüft.`);
+console.log(`MID v${packageVersion} Cockpit-, Warnungs- und Ensemble-Usability mit ausschließlich stündlichem 24-h-Profil geprüft.`);

@@ -17,22 +17,12 @@ gegeneinander verschoben sein.
   denselben Stundenpunkten abgeleitete X-Position.
 - Das senkrechte Stundenraster und der aktive Auswahlcursor reichen vom oberen
   Wetterband bis einschließlich Hazards.
-- 1-h- und 3-h-Modus verdichten nur die Darstellung; Zeitfenster und fachliche
-  Werte bleiben unverändert.
+- Das Profil verwendet durchgehend die kanonische stündliche Darstellung; Zeitfenster und fachliche Werte bleiben unverändert.
 
 ## Temperatur und Extrema im 24-h-Fenster
 
-- Die Temperaturkurve verwendet innerhalb des rollenden 24-h-Fensters immer die
-  finale kanonische stündliche Reihe `displayHours`; die 1-h-/3-h-Umschaltung
-  verändert nur die Interaktions- und Beschriftungsdichte, nicht den Verlauf der
-  Temperaturkurve.
-- Derselbe Grundsatz gilt für die weiteren punktbezogenen Zustandskurven im
-  Temperatur-/Druckbereich: gefühlte Temperatur, Taupunkt und Luftdruck werden
-  im 3-h-Modus nicht aus künstlichen 3-h-Mittelwerten erzeugt. Sie bleiben an
-  der kanonischen stündlichen Reihe und damit zeitlich konsistent zur
-  Temperaturkurve; die 3-h-Umschaltung verdichtet ausschließlich Darstellung
-  und Interaktion. Intervallgrößen wie Niederschlagsakkumulationen bleiben davon
-  unberührt.
+- Die Temperaturkurve verwendet innerhalb des rollenden 24-h-Fensters immer die finale kanonische stündliche Reihe `displayHours`; eine zusätzliche Darstellungsauflösung existiert nicht.
+- Derselbe Grundsatz gilt für gefühlte Temperatur, Taupunkt und Luftdruck: Sie bleiben an der kanonischen stündlichen Reihe und damit zeitlich konsistent zur Temperaturkurve. Intervallgrößen wie Niederschlagsakkumulationen bleiben davon unberührt.
 - Das sichtbare Maximum und Minimum werden direkt aus genau diesen stündlichen
   Kurvenpunkten im rollenden 24-h-Fenster bestimmt. Damit sind beide Extrema
   unabhängig von Kalendergrenzen immer an einem tatsächlich gezeichneten Punkt
@@ -42,9 +32,7 @@ gegeneinander verschoben sein.
 - Die fachliche Tageskonsistenz bleibt separat bestehen: `displayDays` wird bei
   vollständiger Stundenabdeckung weiterhin aus den Extrema derselben finalen
   `displayHours` abgeleitet.
-- Beide Extremmarken bleiben auch im 3-h-Anzeigemodus sichtbar, weil ihre Position
-  aus der vollständigen stündlichen Temperaturkurve und nicht aus dem ausgedünnten
-  3-h-Raster bestimmt wird.
+- Beide Extremmarken werden aus der vollständigen stündlichen Temperaturkurve bestimmt und bleiben deshalb an tatsächlich gezeichneten Stundenpunkten verankert.
 
 ## Wolken
 
@@ -78,7 +66,7 @@ gegeneinander verschoben sein.
 - Das Profil wird in der verfügbaren Breite gezeichnet; auf Mobilgeräten wird kein
   künstlich überbreites SVG mehr auf die Bildschirmbreite herunterskaliert.
 - Temperatur, thermisches Empfinden, Niederschlag, Wind/Böen, Luftdruck,
-  Wolken und Hazards verwenden dieselben vertikalen Stunden-/3-h-Linien.
+  Wolken und Hazards verwenden dieselben vertikalen Stundenlinien.
 - Achsen besitzen eine einheitliche linke Parameter-/Einheitenspalte und sparsame
   Skalenwerte; Wolken bleiben weiterhin ohne Prozentachse.
 - Der Windbereich zeigt die kanonischen `DWD_WIND_THRESHOLDS_KMH` aus der
@@ -127,4 +115,4 @@ Die gemeinsame Zeitachse unterscheidet ab v0.9.78.46 strikt zwischen instantanen
 - Die affine Tageskorrektur der stündlichen Temperatur (Niveau und Tagesamplitude) wird deshalb zwischen den **lokalen Tagesmitten** kontinuierlich interpoliert. Entsprechende Wind-/Böen-Skalierungen folgen demselben zeitlich stetigen Übergang.
 - Echte stündliche Änderungen der Leitprognose – beispielsweise Frontpassage, Bewölkungsänderung, Advektion oder nächtliche Durchmischung – bleiben unangetastet. MID glättet keine meteorologisch begründeten Rohsignale weg; beseitigt werden ausschließlich künstliche Gewichtungs-/Tagesgrenzen.
 - DWD ICON-D2-RUC läuft vor dem realen +14-h-Horizont mit einer kontinuierlichen Gewichtsfunktion aus. MOSMIX-Stundenbeiträge werden ebenfalls über geglättete Lead-Time-Übergänge ein-/ausgeblendet. Harte Gewichtssprünge dürfen keine Temperatur- oder Druckwende erzeugen.
-- Luftdruck bleibt ein punktbezogener stündlicher Zustandswert. Die 1-h-/3-h-Darstellung darf weder Druckmittel über 3-h-Blöcke bilden noch die Druckkurve zeitlich versetzen.
+- Luftdruck bleibt ein punktbezogener stündlicher Zustandswert. Die stündliche Darstellung verwendet keine zeitlichen Blockmittel und versetzt die Druckkurve nicht.

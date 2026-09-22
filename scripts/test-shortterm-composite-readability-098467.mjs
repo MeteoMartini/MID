@@ -6,6 +6,7 @@ const features=readFileSync('src/styles-src/10-features.css','utf8');
 const composite=readFileSync('src/styles-src/20-ensemble-composite.css','utf8');
 const modern=readFileSync('src/styles-src/30-modern.css','utf8');
 const aggregate=readFileSync('src/styles.css','utf8');
+const responsive=readFileSync('src/midC18ResponsiveCorrections.css','utf8');
 const shortTerm=readFileSync('src/ShortTermForecast.tsx','utf8');
 const radar=readFileSync('src/RadarPanel.tsx','utf8');
 const cockpit=readFileSync('src/ForecastCockpit.tsx','utf8');
@@ -69,9 +70,11 @@ for(const token of [
  'className="cockpit-now90"',
  'className="cockpit-hourly-preview-shell"',
  'className="cockpit-meteogram-pro cockpit-weather-profile"',
- 'className="cockpit-weather-profile__resolution"',
+ 'profileDisplayPoints=profileHourlyPoints',
  'className="selected-time-values"'
 ])assert.ok(cockpit.includes(token),`Forecast-/Profilfunktion fehlt nach UI-Audit: ${token}`);
+assert.ok(!cockpit.includes('cockpit-weather-profile__resolution')&&!cockpit.includes('ProfileResolution'),'Entfernte 1h/3h-Profilsteuerung darf nach dem UI-Audit nicht zurückkehren.');
+assert.ok(responsive.includes('@media(max-width:720px) and (orientation:portrait)')&&responsive.includes('min-width:640px!important'),'Mobile 24-h-Profilfläche muss im Hochformat lesbar breit bleiben.');
 
 const parts=['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css']
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');
@@ -79,4 +82,4 @@ assert.equal(aggregate,parts,'src/styles.css muss exakt aus den kanonischen Styl
 assert.equal(pkg.scripts?.['test:shortterm-composite-readability'],`node ${test}`,'package.json: Kurzfrist-/Komposit-Lesbarkeitstest fehlt.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 
-console.log(`MID v${pkg.version}: Kurzfrist, 90-Minuten, Komposit und 24-h-Profil sind lesbarer und funktionsgeschützt.`);
+console.log(`MID v${pkg.version}: Kurzfrist, 90-Minuten, Komposit und ausschließlich stündliches 24-h-Profil sind lesbarer und funktionsgeschützt.`);

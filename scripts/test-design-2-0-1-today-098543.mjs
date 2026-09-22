@@ -16,15 +16,16 @@ for(const token of [
  "const profileSkyBarPoints=profileStateSource.filter(point=>point.epoch>=chartStartEpoch&&point.epoch<chartEndEpoch)",
  'profileSkyBarXPositions=profileSkyBarPoints.map(point=>profileXForEpoch(point.epoch))',
  'const profileSkyBarSegments=detailSkyBarSegments(profileSkyBarPoints,chartDataLeft,chartWidth-(chartDataLeft+chartDataWidth),chartWidth,profileSkyBarY,profileSkyBarXPositions)',
- '3 h verdichtet ausschließlich Kurven, Marker und Beschriftungen.',
- "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben in beiden Ansichten unverändert stündlich aufgelöst.':'Die Skybar bleibt in beiden Ansichten unverändert stündlich aufgelöst.'",
+ 'Die Darstellung bleibt durchgehend stündlich und zeigt alle verfügbaren Stundenwerte.',
+ "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben unverändert stündlich aufgelöst.':'Die Skybar bleibt unverändert stündlich aufgelöst.'",
  'data-mid-skybar="profile"',
  "skybarDisplayMode==='squares'?<SkyBarHourCellsSvg cells={profileSkyBarHourCells}",
  '<SkyBarSegmentsSvg segments={profileSkyBarSegments} keyPrefix="profile"/>'
 ])assert.ok(cockpit.includes(token),`Design-2.0.1-24h-Vertrag fehlt: ${token}`);
 
-assert.ok(!cockpit.includes('const profileSkyBarSegments=detailSkyBarSegments(chartPoints.map(item=>item.point)'),'Die Skybar darf niemals aus der 1h/3h-Anzeigeausdünnung gespeist werden.');
-assert.ok(cockpit.includes('profileDisplayPoints=useMemo(()=>selectShortTermPoints(profileHourlyPoints,profileResolution)'),'1h/3h darf weiterhin ausschließlich als graphische Darstellungsdichte verfügbar sein.');
+assert.ok(!cockpit.includes('const profileSkyBarSegments=detailSkyBarSegments(chartPoints.map(item=>item.point)'),'Die Skybar darf niemals aus einer graphischen Anzeigeausdünnung gespeist werden.');
+assert.ok(cockpit.includes('profileDisplayPoints=profileHourlyPoints'),'Das 24-h-Profil muss ausschließlich die kanonische stündliche Darstellungsreihe verwenden.');
+assert.ok(!cockpit.includes('ProfileResolution')&&!cockpit.includes('profileResolution')&&!cockpit.includes('cockpit-weather-profile__resolution'),'Entfernte 1h/3h-Auflösungswahl darf nicht zurückkehren.');
 assert.ok(cockpit.includes('profileTemperatureSource=profileHourlyPoints.filter(point=>point.epoch>=profileNow&&point.epoch<=profileNow+PROFILE_WINDOW_MS)'),'Kanonische stündliche 24-h-Quelle fehlt.');
 
 assert.ok(main.includes("import './midDesign201Today.css';"),'Design-2.0.1-Heute-CSS fehlt im Produktionsentry.');
@@ -107,4 +108,4 @@ function auditRegion(text,insideKeyframes=false){
 auditRegion(css);
 
 assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron bleiben.');
-console.log('MID Design 2.0.1 · Heute/24 h: rolling 24 h, stündliche Skybar unabhängig von 1h/3h-Dichte, responsive Instrumentfläche und Classic-Isolation geprüft.');
+console.log('MID Design 2.0.1 · Heute/24 h: rolling 24 h, ausschließlich stündliche Skybar/Profilreihe, responsive Instrumentfläche und Classic-Isolation geprüft.');
