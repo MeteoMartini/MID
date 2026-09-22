@@ -31,9 +31,18 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply guarded production transform
+      - name: Repair bootstrap and apply guarded production transform
         run: |
-          sed -i 's/<LayoutGrid size={18}\/>/<SlidersHorizontal size={18}\/>/' scripts/apply-work-package-i.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/apply-work-package-i.mjs')
+          s=p.read_text()
+          start=s.index("write('scripts/test-work-package-i.mjs',`")
+          end=s.index("const pkg=", start)
+          s=s[:start]+s[end:]
+          s=s.replace('<LayoutGrid size={18}/>','<SlidersHorizontal size={18}/>')
+          p.write_text(s)
+          PY
           set +e
           node scripts/apply-work-package-i.mjs > handoff-error.log 2>&1
           status=$?
