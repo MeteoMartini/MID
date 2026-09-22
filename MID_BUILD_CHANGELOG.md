@@ -1,3 +1,11 @@
+## MID v0.9.85.84 · 2026-09-22 · Arbeitspaket F · Map-first Kartenarbeitsraum
+
+- Replit-F-Abnahme einschließlich Transparenz-Follow-up vollständig grün.
+- Neuer Designlayer `src/midC18MapFirstWorkspace.css`, geladen nach Arbeitspaket E.
+- Produktive Fachverträge verbleiben in `RadarPanel.tsx`, `WeatherMapsPanel.tsx` und `SynopticPanel.tsx`; keine Änderung der meteorologischen Datenlogik.
+- Neue Regression `scripts/test-mid-18-2-5-f-map-first-098584.mjs` schützt Timeline, Playback, Jetzt, Layer-Deckkraft, Synoptik und Responsive-Komposition.
+- Light/Dark-Abnahme: 360×800, 390×844, 430×932, 834×1112, 1112×834 und 1440×900.
+
 ## MID v0.9.85.83 · 2026-09-22 · Arbeitspaket E
 
 - ForecastCockpit: gemeinsame MidForecastRow-Familie für 7-/14-Tage.

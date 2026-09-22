@@ -1,3 +1,12 @@
+# MID v0.9.85.84
+
+- **Arbeitspaket F:** Radar, Satellit, Komposit, Modellkarten und Synoptik arbeiten jetzt konsequenter map-first: Die Wetterkarte erhält deutlich mehr Raum, die Bedienung tritt optisch zurück.
+- Radar, Satellit und Komposit verwenden eine einheitlichere Zeit- und Playback-Sprache. Bestätigte Zeitstände sowie die Trennung von Beobachtung, Nowcast und Modell bleiben unverändert.
+- Deckkraftregler sind visuell vereinheitlicht; die vorhandenen Werte bleiben weiterhin getrennt je Layer beziehungsweise Kartenprodukt gespeichert.
+- Die interaktive MID-Synoptik steht nun vor der amtlichen DWD-Referenzkarte. Das DWD-Original bleibt unverändert als klar gekennzeichnete Referenz erhalten.
+- Smartphone, Tablet hoch/quer und Desktop wurden für Light/Dark, Safe Areas, Bottom Bar und Overlay-Grenzen optimiert.
+- Meteorologische Datenquellen, Zeitauflösungen, Farbskalen, Isobaren/Isohypsen, Fronten, Warn-/Hazard-Logik sowie die unabhängige Skybar-/Stundenquadrat-Auswahl bleiben fachlich unverändert.
+
 # MID v0.9.85.83
 
 - **Arbeitspaket E:** Die 7- und 14-Tage-Prognose verwenden nun dieselbe ruhige Tageszeilen-Darstellung statt unterschiedlich aufgebauter Kartenbereiche.
