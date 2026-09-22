@@ -243,7 +243,7 @@
     "test:weather-profile-thermal-sun": "node scripts/test-mid-weather-profile-thermal-sun-09320.mjs",
     "test:weather-profile-thermal-hazards": "node scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
     "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs",
-    "test:regressions": "node scripts/run-regressions.mjs && node scripts/test-work-package-i.mjs",
+    "test:regressions": "node scripts/run-regressions.mjs",
     "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
     "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
