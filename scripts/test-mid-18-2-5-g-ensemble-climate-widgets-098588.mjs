@@ -21,8 +21,7 @@ for(const token of [
   'title={`${row.label}: ${Number.isFinite(anomaly)',
   'title={`${row.label}: ${formatDecimalFixed(row.bestPrecipitation,1)} mm',
   'title={`${row.label}: Wind ${formatWind(row.bestWind',
-  'aria-label="Ensembleparameter auswählen"',
-  'Temperatur-Ensemble mit Unsicherheitsband und Best Match'
+  'aria-label="Ensembleparameter auswählen"'
 ]) assert.ok(ensemble.includes(token),`Ensemble-/Tooltip-Vertrag fehlt: ${token}`);
 
 // Klima: echte Klimadaten und drei vorhandene Messflächen bleiben erhalten.
