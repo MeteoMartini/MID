@@ -116,7 +116,7 @@ try{
  const moved=dashboard.moveDashboardModule(defaults,'forecast','current');
  if(moved.order.indexOf('forecast')!==moved.order.indexOf('current')-1)failures.push('Dashboard-Dynamik: Verschieben eines Moduls funktioniert nicht erwartungsgemäß.');
  const normalized=dashboard.normalizeDashboardModuleSettings({order:['forecast','forecast','short-term'],enabled:{'short-term':false}});
- if(normalized.order.filter(id=>id==='forecast').length!==1||normalized.enabled['short-term']!==false||normalized.order.length!==defaults.order.length)failures.push('Dashboard-Dynamik: Migration/Normalisierung ist unvollständig.');
+ if(normalized.order.filter(id=>id==='forecast').length!==1||normalized.enabled['short-term']!==true||normalized.order.length!==defaults.order.length)failures.push('Dashboard-Dynamik: Migration/Normalisierung schützt die I.1-I.5-Kernmodule nicht vollständig.');
  const qrModule=await compile('qrCode',qr),matrix=qrModule.createQrMatrix('https://example.invalid/MID/#mid-sync=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz');
  if(matrix.length!==49||matrix.some(row=>row.length!==49)||matrix.flat().some(value=>typeof value!=='boolean'))failures.push('QR-Dynamik: 49×49-Matrix wurde nicht korrekt erzeugt.');
  const svg=qrModule.createQrSvg('https://example.invalid/MID/#mid-sync=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz');
@@ -124,4 +124,4 @@ try{
 }finally{await rm(dir,{recursive:true,force:true})}
 
 if(failures.length){console.error('Kurzfrist-/Modul-/QR-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Kurzfristvorhersage, modulare Dashboard-Reihenfolge, ausgewählte Windeinheit in Gewitterangaben und lokaler QR-Synchronisationstransfer geprüft.');
+console.log('Kurzfristvorhersage, I.1-I.5-geschützte Dashboard-Kernmodule, ausgewählte Windeinheit in Gewitterangaben und lokaler QR-Synchronisationstransfer geprüft.');
