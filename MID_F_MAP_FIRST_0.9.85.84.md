@@ -12,4 +12,6 @@ Die eigenständige Synoptik erhält keine künstliche Playback-Zeitachse und kei
 
 Die neue Designschicht schützt Smartphone hoch/quer, Tablet hoch/quer und Desktop vor horizontalem Seitenoverflow, hält Kartenstatus und Overlays an den Rändern und berücksichtigt Safe Areas sowie die bestehende Bottom-Bar. Replit hat den F-Entwurf einschließlich Typecheck, Produktionsbuild, fokussierter Regression und Light/Dark auf 360×800, 390×844, 430×932, 834×1112, 1112×834 und 1440×900 abgenommen.
 
+Die externen und internen Release-Notizen liegen versioniert in `MID_RELEASE_NOTES_0.9.85.84.json`; die bestehende Release-Vorbereitung stellt sie idempotent dem App-Changelog und dem internen Build-Changelog voran, bevor Versionsdateien synchronisiert und Regressionen ausgeführt werden.
+
 Unverändert bleiben meteorologische Datenquellen, Radar-/Satelliten-/Komposit-Fachlogik, Zeitauflösungen, Farbskalen, Isobaren/Isohypsen, Fronten, Warn-/Hazard-Daten und die unabhängige Skybar-/Stundenquadrat-Auswahl.
