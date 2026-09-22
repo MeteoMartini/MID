@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.88",
+  "date": "2026-09-22",
+  "title": "Arbeitspaket G · Ensemble, Klima und Widgets",
+  "external": [
+    "Ensemble-Ansichten sind ruhiger aufgebaut; Legenden und Tooltips bleiben auch auf kleinen Displays vollständig lesbar.",
+    "Die 14 Ensemble-Tage besitzen weiterhin individuelle Tagesinformationen zu Temperatur, Niederschlag sowie Wind/Böen; die Darstellung wurde responsiv abgesichert.",
+    "Die Klimaansicht ordnet ihre Kennwerte auf Smartphone, Tablet und Desktop klarer und ohne unnötiges horizontales Scrollen.",
+    "Widget-Einstellungen und Exportflächen sind kompakter, besser lesbar und behalten die bestehenden Light-/Dark- und Exportvarianten."
+  ],
+  "internal": [
+    "Replit-Abnahme vollständig grün: Typecheck, Produktionsbuild, fokussierte Regressionen sowie Light/Dark auf 360×800, 390×844, 430×932, 844×390, 768×1024, 1024×768 und 1440×900.",
+    "Produktintegration verwendet die bestehenden EnsemblePanel-, ClimatePanel- und AppleWidgetSettings-/Export-Verträge; Datenquellen, Schwellen und Berechnungen wurden nicht geändert.",
+    "Neue finale UI-Schicht midC18WorkPackageG.css schützt Umbruch, Tooltipbreite, Touchziele und Overflow; Regression test-mid-18-2-5-g-ensemble-climate-widgets-098588.mjs sichert die Verträge."
+  ]
+}
