@@ -12,7 +12,7 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 
 for(const token of [
-  "points=useMemo(()=>selectShortTermPoints(adjusted,'1h')",
+  "points=useMemo(()=>adjusted.filter(point=>point.source==='hourly'),[adjusted])",
   'className="cockpit-short-insight-grid premium"',
   "cockpit-hourly-preview${hourlyExpanded",
   'shortTermCompactWeatherLabel(point.weatherLabel)',
@@ -20,6 +20,7 @@ for(const token of [
   '<small>Wärmster Zeitpunkt</small>',
   '<small>Niederschlagsspitze</small>'
 ])need('Cockpit-Shortterm-Insight',cockpit,token);
+reject('Entfernte 1h/3h-Kurzfristaggregation',cockpit,'selectShortTermPoints(');
 reject('Kurzfristkompass',cockpit,'Kurzfristkompass');
 reject('Trendhelfer',cockpit,'shortTermTrendLabel(previewPoints)');
 reject('Redundanter 14-Tage-Streuungstext',cockpit,'<strong>{uncertaintySummary(series,scenarios)}</strong>');
@@ -40,4 +41,4 @@ if(failures.length){
   console.error('Kurzfrist-Insight-Cockpit fehlgeschlagen:\n- '+failures.join('\n- '));
   process.exit(1);
 }
-console.log('Kurzfrist-Cockpit ohne separaten Kompass, mit Spotlights und 24-Stunden-Vorschau erfolgreich geprüft.');
+console.log('Kurzfrist-Cockpit ohne separaten Kompass, mit Spotlights, stündlicher 24-Stunden-Vorschau und ohne 3-h-Auswahl erfolgreich geprüft.');
