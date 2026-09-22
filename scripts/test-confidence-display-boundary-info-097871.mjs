@@ -5,7 +5,8 @@ const read=relative=>readFileSync(new URL(`../${relative}`,import.meta.url),'utf
 const app=read('src/App.tsx'),cockpit=read('src/ForecastCockpit.tsx'),ensemble=read('src/EnsemblePanel.tsx'),display=read('src/confidenceDisplay.tsx'),confidence=read('src/ForecastConfidence.tsx'),ensembleSource=read('src/weather-src/30-ensemble-climate-hazards.tsfrag'),workerSource=read('worker-src/00-core-observations.js'),styles=read('src/styles-src/30-modern.css');
 
 for(const token of ["export type ConfidenceDisplayMode='signal'|'traffic-light'|'text'","return value==='traffic-light'||value==='text'||value==='signal'?value:'signal'",'confidence-signal-bars','confidence-traffic-dots'])assert.ok(display.includes(token),`Konfidenz-Darstellung fehlt: ${token}`);
-for(const token of ["confidenceDisplayMode:'signal'",'normalizeConfidenceDisplayMode(parsed?.confidenceDisplayMode)',"confidenceDisplayMode:'traffic-light'","confidenceDisplayMode:'text'",'confidenceDisplayMode={forecastDisplaySettings.confidenceDisplayMode}'])assert.ok(app.includes(token),`Konfidenz-Einstellung/Wiring fehlt: ${token}`);
+for(const token of ["confidenceDisplayMode:'signal'",'normalizeConfidenceDisplayMode(parsed?.confidenceDisplayMode)',"confidenceDisplayMode:'text'",'confidenceDisplayMode={forecastDisplaySettings.confidenceDisplayMode}','<strong>Signalbalken</strong>','<strong>Text</strong>'])assert.ok(app.includes(token),`Konfidenz-Einstellung/Wiring fehlt: ${token}`);
+assert.ok(!app.includes("confidenceDisplayMode:'traffic-light'"),'Rot/Gelb/Grün darf im I.1-I.5-Einstellungsangebot nicht mehr auswählbar sein.');
 assert.ok(cockpit.includes('mode={confidenceDisplayMode}'),'14d-Cockpit übernimmt Darstellungsoption nicht.');
 assert.ok(ensemble.includes('mode={confidenceDisplayMode}'),'Ensemble-Konsistenzanzeige übernimmt Darstellungsoption nicht.');
 assert.ok(confidence.includes('<AppInfoHint label="Parameter und weitere Zeiträume"'),'Parameter/Zeitfenster liegen nicht hinter dem Info-Button.');
@@ -13,4 +14,4 @@ assert.ok(!confidence.includes('<summary style={{minHeight:40,cursor:\'pointer\'
 for(const token of ['Math.min(15,Math.ceil(forecastDays))','Math.min(15,model.maxDays)','Math.min(15,definition.maxDays)'])assert.ok(ensembleSource.includes(token),`15-Tage-Randabruf fehlt: ${token}`);
 assert.ok(workerSource.includes("Math.min(15,Math.ceil(number(url.searchParams.get('forecast_days'))||14))"),'Worker-Proxy schneidet den 15. Ensemble-Randtag noch ab.');
 for(const token of ['MID v0.9.78.77 · Konfidenzsignal: mehr Abstand, fünf Empfangsstufen und kontinuierliche Score-Farbe.','settings-confidence-preview.signal','.cockpit-consistency-pill.mode-signal','.confidence-traffic-dots'])assert.ok(styles.includes(token),`CSS-Vertrag fehlt: ${token}`);
-console.log('MID v0.9.78.72+: Konfidenzdarstellung, Info-Button und 15-Tage-Randabruf geprüft.');
+console.log('MID v0.9.78.72+/I.1-I.5: Konfidenzdarstellung, UI ohne Ampelauswahl, Info-Button und 15-Tage-Randabruf geprüft.');
