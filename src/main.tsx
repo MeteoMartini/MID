@@ -52,6 +52,7 @@ import './midC18MapFirstWorkspace.css';
 import './midC18ResponsiveCorrections.css';
 import './midC18WorkPackageG.css';
 import './midC18WorkPackageH.css';
+import './midC18WorkPackageI.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';

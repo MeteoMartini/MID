@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.89",
+  "version": "0.9.85.90",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -243,7 +243,7 @@
     "test:weather-profile-thermal-sun": "node scripts/test-mid-weather-profile-thermal-sun-09320.mjs",
     "test:weather-profile-thermal-hazards": "node scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
     "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs",
-    "test:regressions": "node scripts/run-regressions.mjs",
+    "test:regressions": "node scripts/run-regressions.mjs && node scripts/test-work-package-i.mjs",
     "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
     "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
@@ -506,7 +506,8 @@
     "test:mid-18-2-4-d2": "node scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
     "test:mid-18-2-5-e-forecast-rows": "node scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "test:mid-18-2-5-f-map-first": "node scripts/test-mid-18-2-5-f-map-first-098584.mjs",
-    "test:mid-18-2-5-ui-fixes": "node scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
+    "test:mid-18-2-5-ui-fixes": "node scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "test:work-package-i": "node scripts/test-work-package-i.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

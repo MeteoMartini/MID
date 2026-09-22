@@ -1,0 +1,40 @@
+/* MID 18.2.6 · Arbeitspaket I: konsistente Mehr-/Einstellungsarchitektur */
+.modern-more-drawer{display:flex;flex-direction:column;max-height:min(92dvh,920px);overflow:hidden}
+.modern-more-drawer>header{flex:0 0 auto}
+.modern-more-drawer>.modern-more-quick-actions{flex:0 0 auto}
+.modern-more-drawer>.dashboard-section-nav-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:8px}
+.modern-more-drawer>.dashboard-section-config{flex:0 0 auto;margin-bottom:max(10px,env(safe-area-inset-bottom))}
+.dashboard-section-nav-list.progressive .modern-more-group{display:block;border-top:1px solid var(--mid-border,rgba(110,150,180,.24));padding:10px 0}
+.dashboard-section-nav-list.progressive .modern-more-group>h3{margin:0 16px 7px;font-size:.76rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted,#8ca0b3)}
+.dashboard-section-nav-list.progressive .modern-more-group>div{display:grid;gap:2px}
+.dashboard-section-nav-list.progressive .modern-more-group button{width:100%}
+.modern-more-quick-actions{display:grid!important;grid-template-columns:1fr!important}
+.modern-more-quick-actions>button{min-height:58px}
+.settings-dialog{display:flex;flex-direction:column;max-height:min(94dvh,980px);overflow:hidden}
+.settings-dialog>.settings-titlebar{flex:0 0 auto}
+.settings-layout{flex:1 1 auto;min-height:0;overflow:hidden}
+.settings-nav{overscroll-behavior:contain}
+.settings-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:max(18px,env(safe-area-inset-bottom))}
+.settings-split-view>.dashboard-module-settings,.settings-split-view>.time-display-settings,.settings-split-view>.settings-units-section{display:none!important}
+.settings-split-view>.settings-section:first-child .forecast-presentation-settings,.settings-split-view>.settings-section:first-child .confidence-display-settings,.settings-split-view>.settings-section:first-child .skybar-display-settings,.settings-split-view>.settings-section:first-child .settings-option-list,.settings-split-view>.settings-section:first-child .advanced-feature-settings{display:none!important}
+.settings-split-weather>.settings-section:not(:first-child),.settings-split-weather>.dashboard-module-settings{display:none!important}
+.settings-split-weather>.settings-section:first-child>.layout-mode-settings-grid,.settings-split-weather>.settings-section:first-child>.ui-density-settings,.settings-split-weather>.settings-section:first-child>.favorite-strip-display-settings{display:none!important}
+.settings-split-navigation>.settings-section,.settings-split-navigation>.time-display-settings,.settings-split-navigation>.settings-units-section{display:none!important}
+.settings-split-navigation>.dashboard-module-settings{display:block!important}
+.settings-split-units>.settings-section:first-child,.settings-split-units>.dashboard-module-settings,.settings-split-units>.settings-theme-section,.settings-split-units>.settings-branding-section{display:none!important}
+.settings-split-units>.time-display-settings,.settings-split-units>.settings-units-section{display:block!important}
+.settings-data-quality-intro p{max-width:72ch}
+.dashboard-module-item input[disabled]{opacity:.7;cursor:not-allowed}
+@media (max-width:720px){
+ .modern-more-drawer{max-height:calc(100dvh - max(10px,env(safe-area-inset-top)));border-radius:24px 24px 0 0}
+ .settings-dialog{width:100%;max-width:none;height:100dvh;max-height:100dvh;border-radius:0}
+ .settings-layout{display:flex;flex-direction:column}
+ .settings-nav{flex:0 0 auto;display:flex;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:8px 12px}
+ .settings-nav::-webkit-scrollbar{display:none}
+ .settings-nav button{flex:0 0 min(72vw,290px)}
+ .settings-content{flex:1 1 auto;overflow-y:auto}
+}
+@media (orientation:landscape) and (max-height:520px){
+ .modern-more-drawer,.settings-dialog{max-height:100dvh}
+ .modern-more-drawer>header,.settings-titlebar{position:sticky;top:0;z-index:4}
+}
