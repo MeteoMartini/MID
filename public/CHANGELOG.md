@@ -1,3 +1,12 @@
+# MID v0.9.85.83
+
+- **Arbeitspaket E:** Die 7- und 14-Tage-Prognose verwenden nun dieselbe ruhige Tageszeilen-Darstellung statt unterschiedlich aufgebauter Kartenbereiche.
+- Pro Tag bleiben Wochentag/Datum, Wetterzeichen, Tmin/Tmax mit ECMWF-Farben, Wetterstreifen, Niederschlag sowie Wind/Böen direkt erfassbar.
+- Nur der ausgewählte Tag öffnet sich unmittelbar unter seiner Zeile; alle übrigen Tage bleiben kompakt.
+- Die 7-Tage-Stundenansicht besitzt keinen zusätzlichen unabhängigen Öffnungszustand mehr. In 14 Tagen ist die bisher getrennte Detailkarte der ausgewählten Tageszeile zugeordnet.
+- Die bestehende Wetter-, Warn-, Ensemble-, Niederschlags-, Wind- und Skybar-Fachlogik sowie die Datenquellen bleiben unverändert.
+- Smartphone, Tablet hoch/quer und Desktop verwenden dieselbe Informationsstruktur mit angepasster Anordnung; horizontales Seitenoverflow wird vermieden.
+
 # MID v0.9.85.82
 
 - **D.2-Korrektur:** Die sichtbare Temperaturdifferenz vergleicht wieder ausschließlich die hyperlokal korrigierte Temperatur der aktuellen **vollen Stunde** mit dem ebenfalls hyperlokal korrigierten Wert exakt **+12 volle Stunden** später.

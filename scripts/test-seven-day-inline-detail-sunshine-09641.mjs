@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
-const [cockpit,sourceStyles,builtStyles,pkgText,baselineText,implementation]=await Promise.all([
+const [cockpit,sourceStyles,builtStyles,rowStyles,pkgText,baselineText,implementation]=await Promise.all([
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
  readFile(new URL('src/styles-src/30-modern.css',root),'utf8'),
  readFile(new URL('src/styles.css',root),'utf8'),
+ readFile(new URL('src/midC18ForecastRows.css',root),'utf8'),
  readFile(new URL('package.json',root),'utf8'),
  readFile(new URL('MID_BASELINE.json',root),'utf8'),
  readFile(new URL('MID_IMPLEMENTATION_0.9.64.1.md',root),'utf8')
@@ -14,13 +15,23 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 
 for(const token of [
  'visible.map((day,index)=>',
- '<Fragment key={day.date}><button',
+ 'function MidForecastRow({active,compact,detail}',
+ 'const compact=<button type="button" className={\`cockpit-day mid-forecast-row',
  "style={{'--cockpit-day-column':index+1} as CSSProperties}",
- '</button>{isExpanded?<section className="cockpit-day-hourly-accordion"',
+ 'isExpanded=Boolean(hourlyDetail&&selected.date===day.date)',
+ 'data-mid-forecast-detail="seven"',
  'Math.max(0,Math.round(Number(day.sunshineDuration)/3600))',
  'className="cockpit-day-sun"',
  'Sonnenscheindauer ${sunshineHours} h'
 ])assert.ok(cockpit.includes(token),`Direktes Tagesdetail oder Sonnenstunden fehlen: ${token}`);
+assert.ok(!cockpit.includes('expandedDate')&&!cockpit.includes('setExpandedDate'),'Arbeitspaket E darf keinen unabhängigen 7-Tage-Detailzustand mehr besitzen.');
+
+for(const token of [
+ '.cockpit-seven-grid>.cockpit-day.mid-forecast-row',
+ '.cockpit-day-hourly-accordion.mid-forecast-row-detail',
+ 'grid-template-columns:minmax(0,1fr)!important',
+ '@media(max-width:720px)'
+])assert.ok(rowStyles.includes(token),`E-7-Tage-Zeilenvertrag fehlt: ${token}`);
 
 const marker='/* MID v0.9.64.1 · Tagesdetail folgt dem gewählten Tag; Sonnenscheindauer nutzt den vorhandenen Metadatenplatz. */';
 for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyles]]){
@@ -56,4 +67,4 @@ assert.ok(baseline.regressionTests?.includes(test),'Regressionskatalog enthält 
 assert.ok(baseline.requiredFiles?.includes('MID_IMPLEMENTATION_0.9.64.1.md'),'Implementierungsvertrag ist nicht als Pflichtdatei geschützt.');
 for(const token of ['unmittelbar','darunter','Zuklappen','☀ x h','volle Stunden','Worker'])assert.ok(implementation.includes(token),`Implementierungsnotiz unvollständig: ${token}`);
 
-console.log(`${pkg.version}: Tagesdetail folgt dem gewählten Tag; Sonnenstunden bleiben gerundet und platzneutral.`);
+console.log(`${pkg.version}: 7-Tage-Detail folgt ausschließlich dem ausgewählten ForecastRow-Tag; Sonnenstunden bleiben gerundet und platzneutral.`);

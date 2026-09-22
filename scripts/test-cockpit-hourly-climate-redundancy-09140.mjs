@@ -35,7 +35,7 @@ for(const token of [
  'climate={climate}',
  'hourlyDetail={cockpitDetails?.sevenDay}',
  'className="cockpit-day-hourly-cue"',
- 'className="cockpit-day-hourly-accordion"',
+ 'className="cockpit-day-hourly-accordion mid-forecast-row-detail"',
  'Stündlicher Tagesverlauf',
  'compactGustLabel(day.gust,unit)',
  'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',

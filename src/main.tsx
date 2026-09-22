@@ -47,6 +47,7 @@ import './midC18WarningTimeline.css';
 import './midC18BottomFavorites.css';
 import './midC18B2CurrentAtmosphere.css';
 import './midC18TodayProfile.css';
+import './midC18ForecastRows.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';

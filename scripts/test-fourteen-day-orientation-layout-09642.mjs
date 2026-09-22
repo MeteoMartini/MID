@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [cockpit,sourceStyles,builtStyles,pkgText,baselineText,implementation]=await Promise.all([
- read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/styles.css'),read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.78.9.md')
+const [cockpit,sourceStyles,builtStyles,rowStyles,pkgText,baselineText,implementation]=await Promise.all([
+ read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/styles.css'),read('src/midC18ForecastRows.css'),read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.78.9.md')
 ]);
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-fourteen-day-orientation-layout-09642.mjs';
 
 for(const token of [
- 'data-cockpit-horizontal-scroll="true"',
- 'className={`cockpit-fourteen-card regime-${item.regime}',
+ 'data-cockpit-horizontal-scroll="false"',
+ 'className={`cockpit-fourteen-card mid-forecast-row regime-${item.regime}',
  'data-regime={item.regimeText}',
  'className={`cockpit-fourteen-regime ${item.regime}`}',
  'className="cockpit-fourteen-row temperature"',
@@ -20,6 +20,17 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),`14-Tage-Datenintegration unvollständig: ${token}`);
 
 const desktopMarker='/* MID v0.9.78.9 · Desktop-Lock: lesbare 14-Tage-Karten statt Tablet-Mikrolayout. */';
+for(const token of [
+ '.cockpit-fourteen-card.mid-forecast-row',
+ '.cockpit-fourteen-skybar',
+ '.cockpit-fourteen-temp-track',
+ '.cockpit-focus-card.fourteen.mid-forecast-row-detail',
+ 'grid-auto-flow:row!important',
+ '@media(max-width:1100px)',
+ '@media(max-width:720px)'
+])assert.ok(rowStyles.includes(token),`E-14-Tage-Zeilenvertrag fehlt: ${token}`);
+assert.ok(!rowStyles.includes('grid-auto-flow:column!important'),'E darf das alte horizontale Kartenkarussell nicht fortschreiben.');
+
 for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyles]]){
  const tabletStart=styles.indexOf('@media (orientation:landscape) and (max-width:1024px)');
  assert.ok(tabletStart>=0,`${name}: 7×2-Tablet-Querformat bis 1024 px fehlt.`);
@@ -52,4 +63,4 @@ assert.ok(baseline.regressionTests?.includes(test),'Regressionskatalog enthält 
 assert.ok(baseline.requiredFiles?.includes('MID_IMPLEMENTATION_0.9.78.9.md'),'Aktueller Desktop-/Icon-Umsetzungsnachweis ist nicht geschützt.');
 for(const token of ['Weather Icon System 2.0','224 px','1024','horizontal','Desktop','visueller Form-Lock'])assert.ok(implementation.includes(token),`Implementierungsnotiz unvollständig: ${token}`);
 
-console.log(`${pkg.version}: 14-Tage-Tablet-7×2 und saubere Desktopkarten ab 1025 px geschützt.`);
+console.log(`${pkg.version}: historischer 14-Tage-Layoutvertrag erhalten; Arbeitspaket E übersteuert ihn mit responsiven Prognosezeilen.`);
