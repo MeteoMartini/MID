@@ -3,10 +3,14 @@ const app=fs.readFileSync('src/App.tsx','utf8');
 const mods=fs.readFileSync('src/dashboardModules.ts','utf8');
 const panel=fs.readFileSync('src/DashboardModuleSettings.tsx','utf8');
 const css=fs.readFileSync('src/midC18WorkPackageI.css','utf8');
+const groupsStart=app.indexOf('const DASHBOARD_NAV_GROUPS:DashboardNavGroup[]=');
+const groupsEnd=groupsStart>=0?app.indexOf('];',groupsStart):-1;
+const groupBlock=groupsStart>=0&&groupsEnd>groupsStart?app.slice(groupsStart,groupsEnd+2):'';
 const checks=[
- ['Mehr ohne Zähler',!app.includes('group.modules.length}</small>')],
- ['14d+ nicht in Mehr-Gruppen',!app.match(/DASHBOARD_NAV_GROUPS[\s\S]{0,900}long-range/)],
- ['Wetterkarten nicht in Mehr-Gruppen',!app.match(/DASHBOARD_NAV_GROUPS[\s\S]{0,900}weather-maps/)],
+ ['Mehr-Gruppen gefunden',Boolean(groupBlock)],
+ ['Mehr ohne Zähler',!app.includes('<small>{group.modules.length}</small>')],
+ ['14d+ nicht in Mehr-Gruppen',!groupBlock.includes('long-range')&&!groupBlock.includes('ensemble')],
+ ['Wetterkarten nicht in Mehr-Gruppen',!groupBlock.includes('weather-maps')&&!groupBlock.includes('composite')],
  ['Karten-Workspace vollständig',app.includes("label:'Karten',icon:<Monitor size={21}/>,candidates:MODERN_MAP_MODULES")],
  ['Settings Darstellung',app.includes("['view','Darstellung'")],
  ['Settings Wetterdarstellung',app.includes("['weather','Wetterdarstellung'")],
