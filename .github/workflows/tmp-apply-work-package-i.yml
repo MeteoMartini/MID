@@ -6,6 +6,7 @@ on:
       - chatgpt/mid-0.9.85.90-i
     paths:
       - scripts/apply-work-package-i.mjs
+      - scripts/test-work-package-i.mjs
       - .github/workflows/tmp-apply-work-package-i.yml
 
 permissions:
@@ -44,32 +45,46 @@ jobs:
           p.write_text(s)
           PY
           set +e
-          node scripts/apply-work-package-i.mjs > handoff-error.log 2>&1
+          node scripts/apply-work-package-i.mjs > validation-error.log 2>&1
           status=$?
           set -e
-          cat handoff-error.log
+          cat validation-error.log
           if [ "$status" -ne 0 ]; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add handoff-error.log
-            git commit -m 'chore: capture I handoff marker failure'
+            git add validation-error.log
+            git commit -m 'chore: capture I handoff transform failure'
             git push origin HEAD:chatgpt/mid-0.9.85.90-i
             exit "$status"
           fi
-          rm -f handoff-error.log
       - name: Install dependencies
         run: npm ci
-      - name: Verify work package I contract
-        run: npm run test:work-package-i
-      - name: Typecheck and production build
-        run: npm run build
-      - name: Focused navigation regressions
-        run: npm run test:settings && npm run test:ui-regressions && npm run test:navigation-favorites
+      - name: Validate transformed source
+        run: |
+          set +e
+          : > validation-error.log
+          npm run test:work-package-i >> validation-error.log 2>&1
+          status=$?
+          if [ "$status" -eq 0 ]; then npm run build >> validation-error.log 2>&1; status=$?; fi
+          if [ "$status" -eq 0 ]; then npm run test:settings >> validation-error.log 2>&1; status=$?; fi
+          if [ "$status" -eq 0 ]; then npm run test:ui-regressions >> validation-error.log 2>&1; status=$?; fi
+          if [ "$status" -eq 0 ]; then npm run test:navigation-favorites >> validation-error.log 2>&1; status=$?; fi
+          set -e
+          cat validation-error.log
+          if [ "$status" -ne 0 ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add validation-error.log
+            git commit -m 'chore: capture I handoff validation failure'
+            git push origin HEAD:chatgpt/mid-0.9.85.90-i
+            exit "$status"
+          fi
+          rm -f validation-error.log
       - name: Remove temporary handoff machinery
         run: |
           rm -f scripts/apply-work-package-i.mjs
           rm -f .github/workflows/tmp-apply-work-package-i.yml
-          rm -f handoff-error.log
+          rm -f handoff-error.log validation-error.log
       - name: Commit verified source handoff
         run: |
           git config user.name 'github-actions[bot]'
