@@ -17,7 +17,8 @@ reject('Favoritenverwaltung ändert weiterhin Push-Regeln',favoritesBlock,"patch
 need('Favoritenverwaltung verweist zentral auf Benachrichtigungen',favoritesBlock,'Benachrichtigungen werden ausschließlich im gleichnamigen Einstellungsbereich verwaltet.');
 
 need('I.1-I.5-Einstellungsstruktur',app,"type SettingsSection='view'|'weather'|'navigation'|'units'|'notifications'|'favorites'|'quality'|'sync'|'system';");
-for(const section of ['view','weather','navigation','units','notifications','favorites','quality','sync','system'])need(`Einstellungssektion ${section}`,app,`section==='${section}'`);
+need('Gemeinsame Darstellung/Wetter/Navigation/Einheiten-Shell',app,"(['view','weather','navigation','units'] as SettingsSection[]).includes(section)");
+for(const section of ['notifications','favorites','quality','sync','system'])need(`Einstellungssektion ${section}`,app,`section==='${section}'`);
 need('Ansicht verweist auf zentralen Benachrichtigungsbereich',app,'Benachrichtigungen zu Modelllaufänderungen werden ausschließlich unter „Benachrichtigungen“ verwaltet.');
 need('Modelländerungs-Benachrichtigung zentral im Push-Menü',pushPanel,'onModelChangeNotificationChange');
 need('Modelländerungs-Benachrichtigung zentral im Push-Menü',pushPanel,'Bei materieller Änderung benachrichtigen');
@@ -62,4 +63,4 @@ for(const token of [
 ])need('Vereinheitlichtes Einstellungsdesign',styles,token);
 
 if(failures.length){console.error('Standardmodus-/Designbereinigung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('I.1-I.5-Einstellungen geprüft: Benachrichtigungen, Datenqualität, Synchronisation und System fachlich getrennt; technische Inhalte im Standardmodus reduziert.');
+console.log('I.1-I.5-Einstellungen geprüft: gemeinsame Darstellungs-/Wetter-/Navigations-/Einheiten-Shell sowie Benachrichtigungen, Datenqualität, Synchronisation und System fachlich getrennt; technische Inhalte im Standardmodus reduziert.');
