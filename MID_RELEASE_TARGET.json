@@ -1,4 +1,4 @@
 {
-  "version": "0.9.85.88",
-  "releaseNote": "Arbeitspaket G: Ensemble, Klima und Widgets responsiv vereinheitlicht; Tooltips, Legenden, Klimakarten und Widget-Oberflächen auf allen Zielgrößen besser lesbar, ohne Änderung der meteorologischen Fachlogik."
+  "fromVersion": "0.9.85.87",
+  "toVersion": "0.9.85.88"
 }
