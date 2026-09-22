@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.89",
+  "date": "2026-09-22",
+  "title": "Arbeitspaket H · Responsive Gesamtabnahme und 7-Tage-Korrektur",
+  "external": [
+    "Die 7-Tage-Prognose ist auf Desktop wieder als kompakte, untereinander angeordnete Tagesliste aufgebaut; der große ungenutzte Leerbereich entfällt.",
+    "Die ausgewählte Tagesansicht erscheint nach allen sieben Tageszeilen als gemeinsame Detailfläche und verdrängt die übrigen Tage nicht mehr.",
+    "Meteogramm-, Wasser- und Gezeitenflächen bleiben auf Smartphone, Tablet und Desktop innerhalb des Viewports; notwendige Tabellen-/Zeitachsenbereiche scrollen nur lokal.",
+    "Touchziele, Umbrüche und Querformatdarstellung wurden für die H-Responsive-Abnahme zusätzlich abgesichert."
+  ],
+  "internal": [
+    "Replit-Abnahme: 7-Tage-Fix sowie H.1/H.2a/H.2b/H.2c umgesetzt; H.1 und H.2c jeweils mit vollständiger Light/Dark-Viewportmatrix grün, Typecheck/Produktionsbuild/Regressionen ohne Befund.",
+    "Produktive Übernahme erfolgt bewusst als Mapping auf ForecastCockpit, MeteogramPanel und WaterSportsPanel statt durch Kopieren des Mockup-Sandbox-Codes.",
+    "Neue finale UI-Schicht midC18WorkPackageH.css erzwingt die vertikale 7-Tage-Tagesliste unabhängig vom früheren Orientierungsvertrag, ordnet die aktive Detailfläche hinter allen sieben Zeilen an und schützt H.2c-Overflow-/Touchverträge.",
+    "Regression test-mid-18-2-6-h-responsive-handoff-098589.mjs schützt die produktiven 7-Tage-, Meteogramm- und Tide-Verträge; meteorologische Daten-, Warn-, Schwellen-, Modellfusions- und Skybar-Fachlogik bleiben unverändert."
+  ]
+}

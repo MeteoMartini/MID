@@ -1,0 +1,192 @@
+/* MID 18.2.6 · Arbeitspaket H · produktive Übernahme der Replit-Responsive-Verträge
+   Rein visuelle/ergonomische Absicherung. Meteorologische Daten, Schwellen,
+   Warnlogik, Skybar-Fachlogik und Modellfusion bleiben unverändert. */
+
+/* 7 Tage: immer sieben kompakte Tageszeilen untereinander.
+   Die geöffnete Tagesansicht wird im DOM zwar weiterhin beim aktiven Tag erzeugt,
+   visuell aber als gemeinsame Detailfläche NACH allen sieben Zeilen angeordnet. */
+.cockpit-seven-grid[data-mid-forecast-list='seven']{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-auto-flow:row!important;
+ grid-auto-columns:unset!important;
+ align-items:start!important;
+ align-content:start!important;
+ width:100%!important;
+ min-width:0!important;
+ gap:0!important;
+ overflow:visible!important;
+ scroll-snap-type:none!important;
+}
+.cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
+ order:1!important;
+ align-self:start!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:0!important;
+ height:auto!important;
+ margin:0!important;
+ border-radius:0!important;
+ border-bottom:1px solid var(--c8-line)!important;
+ overflow:hidden!important;
+}
+.cockpit-seven-grid[data-mid-forecast-list='seven']>.mid-forecast-row-detail{
+ order:2!important;
+ grid-column:1/-1!important;
+ align-self:start!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:0!important;
+ height:auto!important;
+ margin:0!important;
+ overflow:visible!important;
+}
+.cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row:last-of-type{
+ border-bottom:1px solid var(--c8-line)!important;
+}
+.cockpit-seven-grid[data-mid-forecast-list='seven'] .cockpit-day-hourly-content{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow-x:clip!important;
+}
+
+@media(min-width:1101px){
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
+  display:grid!important;
+  grid-template-columns:94px 58px minmax(118px,.8fr) 112px minmax(170px,1.35fr) 104px minmax(150px,1fr) 126px 90px!important;
+  grid-template-areas:
+   "date icon regime temps sky rain wind pop cue"
+   "date icon regime track track rain wind pop cue"!important;
+  align-items:center!important;
+  gap:5px 10px!important;
+  padding:8px 12px!important;
+ }
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row>*{min-width:0!important}
+}
+
+@media(min-width:721px) and (max-width:1100px){
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
+  display:grid!important;
+  grid-template-columns:84px 54px minmax(115px,1fr) 104px minmax(145px,1.25fr) 94px!important;
+  grid-template-areas:
+   "date icon regime temps sky cue"
+   "date icon rain wind track pop pop"!important;
+  align-items:center!important;
+  gap:7px 10px!important;
+  padding:8px 10px!important;
+ }
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row>*{min-width:0!important}
+}
+
+@media(max-width:720px){
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
+  display:grid!important;
+  grid-template-columns:68px 50px minmax(0,1fr) auto!important;
+  grid-template-areas:
+   "date icon regime temps"
+   "date icon sky sky"
+   "date icon track track"
+   "rain rain wind cue"
+   "pop pop pop pop"!important;
+  align-items:center!important;
+  gap:6px 8px!important;
+  padding:9px 10px!important;
+ }
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row>*{min-width:0!important}
+ .cockpit-seven-grid[data-mid-forecast-list='seven'] .cockpit-day-rain,
+ .cockpit-seven-grid[data-mid-forecast-list='seven'] .cockpit-day-wind,
+ .cockpit-seven-grid[data-mid-forecast-list='seven'] .cockpit-day-pop{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+ }
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.mid-forecast-row-detail{
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:clip!important;
+ }
+}
+
+@media(max-width:430px){
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
+  grid-template-columns:62px 46px minmax(0,1fr) auto!important;
+  padding-inline:8px!important;
+ }
+}
+
+/* H.1/H.2c: Produktionsflächen dürfen den Viewport nicht durch eigene Mindestbreiten
+   verbreitern. Interne Fachgrafiken behalten ihren vorgesehenen lokalen Scrollkontext. */
+.meteogram-card,
+.meteogram-content,
+.meteogram-controls,
+.meteogram-export-stage,
+.water-sports,
+.water-overview,
+.water-forecast-matrix,
+.water-matrix-content,
+.water-matrix-day,
+.water-matrix-level{
+ box-sizing:border-box!important;
+ min-width:0!important;
+ max-width:100%!important;
+}
+.meteogram-card,
+.water-sports,
+.water-overview{
+ overflow-x:clip!important;
+}
+.meteogram-controls{
+ display:flex!important;
+ flex-wrap:wrap!important;
+ align-items:center!important;
+ gap:8px!important;
+}
+.meteogram-controls>*{
+ min-width:0!important;
+ max-width:100%!important;
+}
+.water-matrix-scroll{
+ min-width:0!important;
+ max-width:100%!important;
+ overflow-x:auto!important;
+ overscroll-behavior-inline:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+}
+.water-matrix-summary,
+.water-matrix-controls{
+ min-width:0!important;
+ max-width:100%!important;
+}
+
+@media(max-width:720px){
+ .meteogram-controls{
+  align-items:stretch!important;
+ }
+ .meteogram-controls label,
+ .meteogram-controls button{
+  min-height:44px!important;
+ }
+ .water-matrix-summary{
+  min-height:44px!important;
+ }
+}
+
+@media(max-width:850px) and (orientation:landscape){
+ .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
+  padding-block:7px!important;
+ }
+ .meteogram-controls,
+ .water-matrix-controls{
+  gap:6px!important;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ .cockpit-seven-grid[data-mid-forecast-list='seven'] *,
+ .meteogram-card *,
+ .water-sports *{
+  scroll-behavior:auto!important;
+ }
+}
