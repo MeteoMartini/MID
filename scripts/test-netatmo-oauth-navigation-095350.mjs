@@ -22,5 +22,6 @@ need(navigation,"url.searchParams.get('mid_station')",'OAuth-Rückkehrdaten werd
 need(navigation,'pendingNetatmoCallback=callback','OAuth-Rückkehr wird vor dem Öffnen der Einstellungen nicht flüchtig zwischengespeichert.');
 need(settings,'takePendingMidNetatmoOAuthCallback()','Einstellungsbereich übernimmt den flüchtigen OAuth-Rücksprung nicht.');
 if(navigation.includes('sessionStorage.setItem')||navigation.includes('localStorage.setItem'))throw new Error('OAuth-Rückkehrdaten dürfen nicht im Browser-Speicher persistiert werden.');
-need(app,"setSettingsSection('twin');setSettingsOpen(true)",'OAuth-Rückkehr öffnet den Wetterzwilling/Stationsbereich nicht.');
-console.log('Netatmo OAuth-Direktnavigation, Fehlerdiagnose und flüchtige Rückkehr in die Einstellungen geprüft.');
+need(app,"setSettingsSection('quality')",'OAuth-Rückkehr öffnet den I.1-I.5-Bereich Daten & Qualität nicht.');
+need(app,'setSettingsOpen(true)','OAuth-Rückkehr öffnet die Einstellungen nicht.');
+console.log('Netatmo OAuth-Direktnavigation, Fehlerdiagnose und flüchtige Rückkehr in Daten & Qualität geprüft.');
