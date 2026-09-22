@@ -94,22 +94,92 @@ html[data-mid-design='next'] .cockpit-consistency-pill .confidence-display small
  text-align:right!important;
 }
 
-/* 24-h-Profil: auf schmalem Hochformat nicht bis zur Unlesbarkeit stauchen. */
+/* Heute-Arbeitsbereich: normale Seiten-Vertikalbewegung, kein äußerer Horizontal-Scrollkontext. */
+html[data-mid-design='next'] .modern-forecast-section,
+html[data-mid-design='next'] .cockpit-short-term,
+html[data-mid-design='next'] .cockpit-weather-profile{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .modern-forecast-section{
+ overflow-x:clip!important;
+ overflow-y:visible!important;
+}
+html[data-mid-design='next'] .cockpit-now90,
+html[data-mid-design='next'] .cockpit-now90-track{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-now90{overflow:hidden!important}
+
+/* 24-h-Profil: die stündliche Darstellung passt immer in die vorhandene Inhaltsbreite.
+   Die künstliche 600/640-px-Mindestbreite und der daraus resultierende Profil-Scroll entfallen. */
+html[data-mid-design='next'] .cockpit-weather-profile{
+ --mid-d-profile-track-min:100%!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage[data-mid-profile-axis='shared-24h']{
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ overflow-x:clip!important;
+ overflow-y:visible!important;
+ overscroll-behavior-inline:auto!important;
+ scrollbar-width:none!important;
+ -webkit-overflow-scrolling:auto!important;
+ touch-action:pan-y!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage[data-mid-profile-axis='shared-24h']::-webkit-scrollbar{display:none!important}
+html[data-mid-design='next'] .cockpit-weather-profile [data-mid-profile-track='shared-24h'],
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas,
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg{
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas{
+ box-sizing:content-box!important;
+ padding-bottom:clamp(18px,2.4vw,28px)!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg{
+ display:block!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .cockpit-weather-profile .profile-bottom-time,
+html[data-mid-design='next'] .cockpit-weather-profile .profile-time-axis.bottom{
+ overflow:visible!important;
+}
+
 @media(max-width:720px) and (orientation:portrait){
- html[data-mid-design='next'] .cockpit-meteogram-pro__stage{
-  overflow-x:auto!important;
-  overflow-y:hidden!important;
-  overscroll-behavior-inline:contain!important;
-  -webkit-overflow-scrolling:touch!important;
+ html[data-mid-design='next'] .cockpit-weather-profile{
+  --mid-d-profile-track-min:100%!important;
  }
- html[data-mid-design='next'] .cockpit-meteogram-pro__canvas,
- html[data-mid-design='next'] .cockpit-meteogram-pro__svg{
-  min-width:640px!important;
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage[data-mid-profile-axis='shared-24h']{
+  overflow-x:clip!important;
+  overflow-y:visible!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas,
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas{
+  padding-bottom:24px!important;
  }
 }
 @media(max-width:430px) and (orientation:portrait){
- html[data-mid-design='next'] .cockpit-meteogram-pro__canvas,
- html[data-mid-design='next'] .cockpit-meteogram-pro__svg{min-width:640px!important}
+ html[data-mid-design='next'] .cockpit-weather-profile{
+  --mid-d-profile-track-min:100%!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas,
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__svg{
+  min-width:0!important;
+  max-width:100%!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas{
+  padding-bottom:26px!important;
+ }
 }
 
 @media(max-width:720px){
@@ -124,4 +194,12 @@ html[data-mid-design='next'] .cockpit-consistency-pill .confidence-display small
 @media(max-width:850px) and (orientation:landscape){
  html[data-mid-design='next'] .current-weather-thread-head{gap:1.5rem!important}
  html[data-mid-design='next'] .cockpit-consistency-pill{min-width:72px!important}
+ html[data-mid-design='next'] .modern-forecast-section{overflow-x:clip!important}
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__stage[data-mid-profile-axis='shared-24h']{
+  overflow-x:clip!important;
+  overflow-y:visible!important;
+ }
+ html[data-mid-design='next'] .cockpit-weather-profile .cockpit-meteogram-pro__canvas{
+  padding-bottom:22px!important;
+ }
 }
