@@ -10,12 +10,11 @@ const failures=[];
 const need=(source,label,token)=>{if(!source.includes(token))failures.push(`${label} fehlt: ${token}`)};
 for(const token of [
  'const DASHBOARD_NAV_GROUPS:DashboardNavGroup[]=',
- "label:'Überblick'",
- "label:'Analyse & Trend'",
- "label:'Profile'",
- "label:'Planer'",
- "label:'Profi'",
- "label:'Werkzeuge'",
+ "{id:'safety',label:'Sicherheit',modules:['warnings','extreme-outlook']}",
+ "{id:'climate',label:'Klima & Rückblick',modules:['climate','forecast-verification']}",
+ "{id:'planning',label:'Planen & Profile',modules:['event-planner','travel-planner','mountain','water']}",
+ "{id:'special',label:'Spezialwetter',modules:['flight-meteorology']}",
+ "{id:'tools',label:'Werkzeuge & Export',modules:['widget']}",
  'function DashboardSectionNavigation(',
  'className="dashboard-section-quick"',
  'className={`dashboard-section-rail${expanded?\' expanded\':\'\'}`}',
@@ -48,4 +47,4 @@ const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 const parts=pv.split('.').map(Number),minimum=[0,9,36,1];const atLeast=parts.some((value,index)=>value>minimum[index])||parts.every((value,index)=>value===minimum[index]);if(!atLeast)failures.push(`Erwartet mindestens v0.9.36.1, erhalten ${pv}`);
 if(failures.length){console.error(`MID Navigation/24-h-Inset-Regressionsprüfung fehlgeschlagen:\n- ${failures.join('\n- ')}`);process.exit(1)}
-console.log(`MID ${pv}: Sektionen-Drawer/Seitenleiste, Hash-Navigation, Auto-Expand und 24-h-Datenabstand geprüft.`);
+console.log(`MID ${pv}: I.1-I.5-Themengruppen, Sektionsnavigation/Hash-Navigation und 24-h-Datenabstand geprüft.`);
