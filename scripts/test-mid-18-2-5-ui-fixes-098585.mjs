@@ -7,8 +7,8 @@ const [app,cockpit,styles,main,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 const testPath='scripts/test-mid-18-2-5-ui-fixes-098585.mjs';
-
-assert.equal(pkg.version,'0.9.85.85','Gesammelter UI-Einschub muss MID v0.9.85.85 sein.');
+const patch=Number(String(pkg.version).split('.').at(-1));
+assert.ok(Number.isFinite(patch)&&patch>=85,'Gesammelter UI-Einschub muss ab MID v0.9.85.85 erhalten bleiben.');
 
 assert.ok(app.includes('className="current-wind-inline"')&&app.includes('<WindDirectionArrow direction={windDirection} gust={displayWindGust}/>'),'Aktuell/Wind muss denselben Windrichtungspfeil wie „Mehr“ verwenden.');
 assert.ok(app.includes('className="current-weather-thread-title"')&&app.includes('className="current-weather-thread-delta"'),'Der +12-h-Header braucht getrennte Titel- und Delta-Bereiche.');
@@ -30,10 +30,11 @@ for(const token of [
  '.cockpit-seven-grid>.cockpit-day.mid-forecast-row',
  '.cockpit-consistency-pill',
  '.cockpit-meteogram-pro__canvas',
- 'min-width:640px!important',
  '.current-weather-thread-delta'
 ])assert.ok(styles.includes(token),`Responsive Korrektur fehlt: ${token}`);
 assert.ok(styles.includes('@media(min-width:1101px)')&&styles.includes('@media(max-width:720px) and (orientation:portrait)'),'Desktop- und Smartphone-Hochformatverträge fehlen.');
+assert.ok(!styles.includes('min-width:640px!important'),'Der alte erzwungene 640-px-Profilscroll darf nicht zurückkehren.');
+assert.ok(styles.includes("--mid-d-profile-track-min:100%!important")&&styles.includes('overflow-x:clip!important'),'Der neue viewport-füllende Profilvertrag muss erhalten bleiben.');
 assert.ok(main.includes("import './midC18ResponsiveCorrections.css';"),'Responsive Korrekturschicht muss geladen werden.');
 assert.ok(main.indexOf("import './midC18ResponsiveCorrections.css';")>main.indexOf("import './midC18MapFirstWorkspace.css';"),'Gesammelter Korrekturlayer muss nach Arbeitspaket F geladen werden.');
 
@@ -44,4 +45,4 @@ for(const file of [testPath,'src/midC18ResponsiveCorrections.css','MID_RELEASE_N
  assert.ok((baseline.requiredFiles||[]).includes(file),`${file} fehlt in requiredFiles`);
 }
 
-console.log('MID v0.9.85.85: Windpfeil, +12-h-Layout, 24-h-Profil sowie 7-/14-Tage-Responsive-Fixes geschützt.');
+console.log(`${pkg.version}: Windpfeil, +12-h-Layout, stündliches 24-h-Profil sowie 7-/14-Tage-Responsive-Fixes geschützt.`);
