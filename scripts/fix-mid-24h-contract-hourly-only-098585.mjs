@@ -11,6 +11,8 @@ text=text.replace(/Stunden-\/3-h-Linien/g,'Stundenlinien');
 text=text.replace(/1-h-\/3-h-Umschaltung/g,'stündliche Darstellung');
 text=text.replace(/1-h-\/3-h/g,'stündlichen');
 text=text.replace(/1 h\/3 h/g,'stündlich');
+text=text.replace(/- Luftdruck bleibt ein punktbezogener stündlicher Zustandswert\. Die stündlichen-Darstellung darf weder Druckmittel über 3-h-Blöcke bilden noch die Druckkurve zeitlich versetzen\./,
+`- Luftdruck bleibt ein punktbezogener stündlicher Zustandswert. Die stündliche Darstellung verwendet keine zeitlichen Blockmittel und versetzt die Druckkurve nicht.`);
 if(/\b3-h(?:-|\b)|\b3 h\b/.test(text)){
  const matches=text.split('\n').filter(line=>/\b3-h(?:-|\b)|\b3 h\b/.test(line));
  throw new Error(`Verwaiste 3-h-Vertragsstellen:\n${matches.join('\n')}`);
