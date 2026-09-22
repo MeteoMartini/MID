@@ -17,7 +17,7 @@ const [cockpit,styles,dwdWarnings,app,weatherTypes,weatherSpecialized,weatherMap
  read('MID_BASELINE.json')
 ]);
 
-// Das Profil ist ein gleitendes Zeitfenster, kein Kalenderstunden-Ausschnitt.
+// Das Profil ist ein gleitendes, ausschließlich stündliches Zeitfenster, kein Kalenderstunden-Ausschnitt.
 for(const token of [
  "const HOUR_MS=60*60*1000",
  "const PROFILE_WINDOW_MS=24*HOUR_MS",
@@ -29,13 +29,12 @@ for(const token of [
  'chartStartEpoch=profileNow',
  'chartEndEpoch=profileNow+PROFILE_WINDOW_MS',
  'window.setInterval(()=>setProfileNow(Date.now()),30000)',
- "type ProfileResolution='1h'|'3h'",
- "return localStorage.getItem(PROFILE_RESOLUTION_KEY)==='3h'?'3h':'1h'",
- 'localStorage.setItem(PROFILE_RESOLUTION_KEY,profileResolution)',
- "profileResolution==='3h'",
- "intervalLabel:'3 h'"
-])assert.ok(cockpit.includes(token),`Gleitender 24-h-/Auflösungsvertrag fehlt: ${token}`);
+ 'profileDisplayPoints=profileHourlyPoints',
+ '24 Stunden · 1-stündlich'
+])assert.ok(cockpit.includes(token),`Gleitender stündlicher 24-h-Vertrag fehlt: ${token}`);
 assert.ok(!cockpit.includes('hours.slice(startIndex,startIndex+24)'),'Der alte Kalenderstunden-Ausschnitt darf nicht zurückkehren.');
+assert.ok(!cockpit.includes('ProfileResolution')&&!cockpit.includes('PROFILE_RESOLUTION_KEY')&&!cockpit.includes('profileResolution')&&!cockpit.includes('selectShortTermPoints('),'Entfernte 1h/3h-Auflösungslogik darf nicht zurückkehren.');
+assert.ok(!cockpit.includes('cockpit-weather-profile__resolution'),'Entfernter 1h/3h-Umschalter darf nicht zurückkehren.');
 
 // Getrennte, nicht überlappende Darstellungsbahnen und astronomische Orientierung.
 for(const token of [
@@ -106,4 +105,4 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 assert.ok(baseline.requiredRegressionTests.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss im Baseline-Vertrag stehen.');
 assert.ok(baseline.regressionTests.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss im Release-Testlauf stehen.');
 assert.ok(baseline.requiredFiles.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss als Pflichtdatei geschützt sein.');
-console.log(`MID v${pkg.version}: gleitendes 24-h-Profil, responsive Kollisionsfreiheit, DWD-Farben und Open-Meteo-Auditverträge geprüft.`);
+console.log(`MID v${pkg.version}: gleitendes ausschließlich stündliches 24-h-Profil, responsive Kollisionsfreiheit, DWD-Farben und Open-Meteo-Auditverträge geprüft.`);
