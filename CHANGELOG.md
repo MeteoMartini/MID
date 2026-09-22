@@ -1,3 +1,10 @@
+# MID v0.9.85.87
+
+- Die 14-Tage-Prognose ist auf Smartphones luftiger aufgebaut: Tag, Datum und Wetterzustand erhalten mehr Platz und werden nicht mehr durch die Konfidenzanzeige zusammengedrückt.
+- Die Konfidenzpille bleibt vollständig lesbar und klar als sekundäre Information getrennt.
+- Wesentliche Wettertexte dürfen umbrechen statt abgeschnitten zu werden; horizontales Scrollen der Tageszeilen bleibt ausgeschlossen.
+- Ensemble-, Konfidenz-, Wetter-, Skybar- und Tagesdatenlogik bleiben unverändert.
+
 # MID v0.9.85.86
 
 - Die Heute-Ansicht erzeugt auf Smartphones keinen zusätzlichen horizontalen Außen-Scrollbereich mehr.

@@ -1,3 +1,10 @@
+## MID v0.9.85.87 · 2026-09-22 · 14-Tage-Zeilen responsiv entzerrt
+
+- Replit-Abnahme: Light/Dark auf 360×800, 390×844, 430×932, 844×390, 768×1024, 1024×768 und 1440×900 sowie längere mobile Detailansichten grün.
+- Mobiler 14-Tage-Header nutzt flexiblen Textbereich plus getrennte Konfidenzspalte mit mindestens 132 px; verschachtelte Elemente erhalten min-width:0 und wesentliche Texte keinen Truncate-Vertrag.
+- Neuer Regressionstest schützt ForecastRow-Struktur, Konfidenzpille, Umbruch und Overflow-Vertrag.
+- Der v0.9.85.86-Heute-/24-h-Viewport-Regressionsvertrag ist vorwärtskompatibel auf 0.9.85.86 oder neuer fortgeschrieben; seine fachlichen Viewport-Assertions bleiben unverändert.
+
 ## MID v0.9.85.86 · 2026-09-22 · Heute-/24-h-Viewport-Fix
 
 - Replit-Abnahme für Smartphone, Tablet und Desktop in Light/Dark vollständig grün.
