@@ -1,0 +1,137 @@
+
+> open-meteo-weather-dashboard@0.9.85.90 test:work-package-i
+> node scripts/test-work-package-i.mjs
+
+✓ Mehr-Gruppen gefunden
+✓ Mehr ohne Zähler
+✓ 14d+ nicht in Mehr-Gruppen
+✓ Wetterkarten nicht in Mehr-Gruppen
+✓ Karten-Workspace vollständig
+✓ Settings Darstellung
+✓ Settings Wetterdarstellung
+✓ Settings Inhalte Navigation
+✓ Settings Einheiten Zeit
+✓ Settings Daten Qualität
+✓ Keine Ampel-Konfidenzauswahl
+✓ Warnungen Kernmodul
+✓ Kernmodule erzwungen
+✓ Kernmodule UI geschützt
+✓ Ein Scroll-Owner Mehr
+✓ Settings Responsive
+Arbeitspaket I: 16/16 Verträge erfüllt.
+
+> open-meteo-weather-dashboard@0.9.85.90 prebuild
+> npm run prepare:release-repository && npm run sync-version
+
+
+> open-meteo-weather-dashboard@0.9.85.90 prepare:release-repository
+> node scripts/prepare-release-repository.mjs
+
+Repository-Hygiene: node_modules ist aus dem Git-Index entfernt und bleibt über .gitignore lokal.
+Repository-Hygiene: .github bleibt im automatischen Release-Lauf unverändert; Workflow-Synchronisierung ist ausschließlich explizit.
+
+> open-meteo-weather-dashboard@0.9.85.90 sync-version
+> node scripts/sync-version.mjs
+
+
+> open-meteo-weather-dashboard@0.9.85.90 build
+> npm run verify:types && npm run verify:vite
+
+
+> open-meteo-weather-dashboard@0.9.85.90 preverify:types
+> npm run maintain:aggregates
+
+
+> open-meteo-weather-dashboard@0.9.85.90 maintain:aggregates
+> node scripts/build-maintenance-aggregates.mjs
+
+Maintenance aggregates synchronized: styles 1246827 chars, weather 337201 chars, worker 810446 chars, direct outlook 53688 chars.
+
+> open-meteo-weather-dashboard@0.9.85.90 verify:types
+> tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
+
+
+> open-meteo-weather-dashboard@0.9.85.90 verify:vite
+> node --max-old-space-size=4096 node_modules/vite/bin/vite.js build
+
+[36mvite v8.2.2 [32mbuilding client environment for production...[36m[39m
+transforming...
+✓ 2653 modules transformed.
+rendering chunks...
+dist/index.html                                         10.73 kB
+dist/assets/maplibre-gl-worker-BpFS9Yd5.js             486.25 kB
+dist/assets/MapLibreCore-oIprFGRJ.css                   82.97 kB
+dist/assets/index-DjHWR6jS.css                       1,682.45 kB
+dist/assets/web-BpmiUZOn.js                              0.12 kB
+dist/assets/activity-DL46kVpb.js                         0.23 kB
+dist/assets/compass-Eo8sOKLH.js                          0.25 kB
+dist/assets/esm-CWDyB9oi.js                              0.25 kB
+dist/assets/zap-CnXcvXCj.js                              0.27 kB
+dist/assets/pencil-CRRFX13B.js                           0.27 kB
+dist/assets/plane-CI4Rn_ip.js                            0.30 kB
+dist/assets/play-DKMpik3Z.js                             0.34 kB
+dist/assets/web-DUsuvlg4.js                              0.36 kB
+dist/assets/web-CiDxh6GH.js                              0.36 kB
+dist/assets/map-pinned-BH3KvTyK.js                       0.39 kB
+dist/assets/fetchDeadline-BLBY3yQm.js                    0.41 kB
+dist/assets/layers-BH76PTm_.js                           0.42 kB
+dist/assets/synapse-D5y-aojA.js                          0.62 kB
+dist/assets/esm-B95ZwYLJ.js                              0.66 kB
+dist/assets/esm-DAMaI6pU.js                              0.67 kB
+dist/assets/esm-ut3caJWS.js                              0.67 kB
+dist/assets/esm-BTdwGg49.js                              0.69 kB
+dist/assets/rolldown-runtime-hePW80VL.js                 0.71 kB
+dist/assets/esm-Ce-VW5MQ.js                              0.73 kB
+dist/assets/web-DeBbecAZ.js                              0.84 kB
+dist/assets/esm-C_SROFuG.js                              1.15 kB
+dist/assets/preload-helper-HclGiUj8.js                   1.21 kB
+dist/assets/createLucideIcon-BfudD4Qo.js                 1.42 kB
+dist/assets/web-J9E3y26i.js                              2.08 kB
+dist/assets/OperaRasterOverlay-C0fdW0Ak.js               2.57 kB
+dist/assets/timeDisplay-Bq5SYrNQ.js                      2.57 kB
+dist/assets/FlightMeteorologyPanel-D5JfE1wc.js           2.67 kB
+dist/assets/qrCode-DAZpr4VB.js                           3.19 kB
+dist/assets/openMeteoGuard-DrgPgy7x.js                   4.63 kB
+dist/assets/workerClient-CUT54vQq.js                     5.13 kB
+dist/assets/web-YVMgMN0R.js                              8.48 kB
+dist/assets/Px250Overlay-Dpa_xwzs.js                     9.80 kB
+dist/assets/RadarModelPrecipTypeOverlay-Drr195af.js     10.22 kB
+dist/assets/es-DJOnHq5m.js                              12.86 kB
+dist/assets/WeatherMapsData-DWONtwNi.js                 13.05 kB
+dist/assets/WeatherMapsPanel-CGUHgh1c.js                15.73 kB
+dist/assets/ClimatePanel-Cc1BUEin.js                    16.45 kB
+dist/assets/travelPlanner-BQ0UljAA.js                   17.33 kB
+dist/assets/seasonalForecast-p17QA3nM.js                22.02 kB
+dist/assets/ForecastVerificationPanel-zfFORz5C.js       23.27 kB
+dist/assets/CrossSectionPanel-CuVBB_ze.js               30.27 kB
+dist/assets/WaterSportsPanel-Dw8v8mEF.js                32.16 kB
+dist/assets/ExtremeWeatherOutlookPanel-BNh1gLFQ.js      40.78 kB
+dist/assets/MeteogramPanel-BSAe_pVQ.js                  41.39 kB
+dist/assets/EventPlannerPanel-BqhCOtnB.js               44.12 kB
+dist/assets/TravelPlannerPanel-3VTchn4-.js              48.59 kB
+dist/assets/LongRangePanel-CDTB7Oyu.js                  54.55 kB
+dist/assets/esm-ulmvclef.js                             80.63 kB
+dist/assets/EnsemblePanel-BraoX1HM.js                  112.08 kB
+dist/assets/RadarPanel-CukWXkS7.js                     125.67 kB
+dist/assets/ReactVendor-DDgtSfW5.js                    378.32 kB
+dist/assets/ChartsVendor-CXHGPpAG.js                   413.21 kB
+dist/assets/MapLibreCore-rxCBKvki.js                   996.82 kB
+dist/assets/index-SG_k-9LR.js                        1,422.54 kB
+
+[32m✓ built in 1.45s[39m
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 900 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+
+> open-meteo-weather-dashboard@0.9.85.90 test:settings
+> node scripts/test-settings-menu.mjs
+
+Einstellungsmenü-Prüfung fehlgeschlagen:
+- Einstellungsmenü fehlt: type SettingsSection='view'|'appearance'|'units'|'notifications'|'favorites'|'twin'|'sync'|'system'|'legal'
+- Einstellungsmenü fehlt: Lokaler Wetterzwilling
+- Einstellungsmenü fehlt: Daten & Synchronisation
+- Einstellungsmenü fehlt: System & Updates
+- Lokaler Wetterzwilling besitzt keinen eigenen intuitiven Einstellungsbereich.
+- System- und Updatebereich ist nicht separat eingebettet.
