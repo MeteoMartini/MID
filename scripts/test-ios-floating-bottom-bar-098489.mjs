@@ -21,16 +21,19 @@ for(const token of [
   "label:'Heute'",
   "label:'Vorhersage'",
   "label:'Karten'",
-  "candidates:['composite']",
+  "const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps']",
+  'candidates:MODERN_MAP_MODULES',
   'bottomBarHidden',
   "useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])",
   'is-scroll-hidden',
   'data-scroll-hidden',
   "if(bottomBarHidden)setBottomBarHidden(false)",
-  "openSettings('notifications')",
-  "openSettings('favorites')",
-  "openSettings('system')"
-])assert.ok(app.includes(token),`Floating-Bar-Logik fehlt: ${token}`);
+  'className="modern-more-quick-actions"',
+  "onClick={()=>openSettings('view')}",
+  '<strong>Einstellungen</strong>',
+  "{id:'safety',label:'Sicherheit',modules:['warnings','extreme-outlook']}",
+  "{id:'planning',label:'Planen & Profile',modules:['event-planner','travel-planner','mountain','water']}"
+])assert.ok(app.includes(token),`Floating-Bar-/I-Navigationslogik fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder als Bottom-Bar-Tab erscheinen');
 assert.ok(app.includes("type BottomBarBehavior='fixed'"),'Bottom-Bar muss als dauerhaft fixer Laufzeitvertrag typisiert sein.');
 assert.ok(app.includes("localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)")&&app.includes("return'fixed'"),'Bottom-Bar muss den fixierten Zustand erzwingen und den Alt-Schlüssel bereinigen.');
@@ -51,4 +54,4 @@ assert.ok(main.includes("import './midC18BottomFavorites.css';"),'Finaler B-Poli
 assert.ok(main.indexOf('midC18BottomFavorites.css')>main.indexOf('midC18WarningTimeline.css'),'B-Polish muss nach der Warnungs-Timeline geladen werden.');
 assert.ok(styles.endsWith(modern),'styles.css muss das vollständige Modern-Modul als kanonisches Ende enthalten');
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-ios-floating-bottom-bar-098489.mjs'),'Neue Pflichtregression fehlt in Baseline');
-console.log('MID 18.2.2: schwebende Bottom-Bar mit fünf eindeutigen Zielen ist im obligatorischen Design aktiv.');
+console.log('MID 18.2.2/I.1-I.5: schwebende Bottom-Bar mit fünf eindeutigen Zielen, gruppiertem Karten-Workspace und aufgabenbezogenem Mehr ist geschützt.');
