@@ -1,3 +1,12 @@
+## MID v0.9.85.83 · 2026-09-22 · Arbeitspaket E
+
+- ForecastCockpit: gemeinsame MidForecastRow-Familie für 7-/14-Tage.
+- 7 Tage: selectedDate ist alleiniger Inline-Detailzustand; unabhängiges expandedDate entfernt.
+- 14 Tage: bisherige Fokuskarte direkt unter die aktive Tageszeile verschoben; kompakte Skybar und Tmin/Tmax-Faden aus bestehenden Daten ergänzt.
+- Neuer zuletzt geladener Designlayer für Desktop, Tablet hoch/quer und Smartphone.
+- Neuer Regressionstest schützt gemeinsame Row-Struktur, genau eine Inline-Erweiterung, vorhandene Datenquellen und Responsive-Vertrag.
+- Replit-Vorprüfung: Typecheck/Produktionsbuild und Light/Dark-Viewportmatrix grün; kanonischer GitHub-Gate bleibt maßgeblich.
+
 # MID v0.9.85.39
 
 ## MID-C9 · Mobile Layoutkorrektur nach Screenshots
