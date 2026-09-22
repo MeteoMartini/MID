@@ -7,6 +7,7 @@ on:
     paths:
       - scripts/apply-work-package-i.mjs
       - scripts/test-work-package-i.mjs
+      - scripts/test-settings-menu.mjs
       - .github/workflows/tmp-apply-work-package-i.yml
 
 permissions:
