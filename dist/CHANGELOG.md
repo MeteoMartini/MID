@@ -1,3 +1,10 @@
+# MID v0.9.85.86
+
+- Die Heute-Ansicht erzeugt auf Smartphones keinen zusätzlichen horizontalen Außen-Scrollbereich mehr.
+- Das 24-h-Wetterprofil passt im Hochformat vollständig in die verfügbare Breite und muss nicht mehr horizontal verschoben werden.
+- Die untere Zeitachse mit ihren Beschriftungen bleibt im Hoch- und Querformat vollständig sichtbar.
+- Bottom Bar und Safe Areas überdecken das Wetterprofil nicht.
+
 # MID v0.9.85.85
 
 - Unter „Aktuell“ zeigt Wind/Böen nun denselben klaren Windrichtungspfeil wie die Detailansicht unter „Mehr“.

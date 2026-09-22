@@ -1,3 +1,11 @@
+## MID v0.9.85.86 · 2026-09-22 · Heute-/24-h-Viewport-Fix
+
+- Replit-Abnahme für Smartphone, Tablet und Desktop in Light/Dark vollständig grün.
+- Künstliche 600/640-px-Mindestbreiten des 24-h-Profils entfernt; der Profiltrack bleibt durchgehend stündlich.
+- Außencontainer der Heute-Arbeitsfläche gegen horizontalen Overflow abgesichert; der bewusste 90-Minuten-Innenscroll bleibt lokal begrenzt.
+- Untere Profilachse erhält sicheren Rendering- und Padding-Raum; meteorologische Fachlogik und Daten bleiben unverändert.
+- Neue Regression test-mid-18-2-5-today-viewport-098586 schützt den Responsive-Vertrag.
+
 ## MID v0.9.85.85 · 2026-09-22 · MID 18.2.5 · gesammelte Current-/24-h-/7-/14-Tage-Korrekturen
 
 - Beide Replit-Einschübe gemeinsam abgenommen: Typecheck, Produktionsbuild und fokussierte Regressionen grün.
