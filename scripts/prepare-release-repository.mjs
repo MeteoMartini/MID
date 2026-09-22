@@ -1,4 +1,5 @@
 import {spawnSync} from 'node:child_process';
+import {access,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -7,6 +8,34 @@ const defaultRoot=path.resolve(path.dirname(modulePath),'..');
 
 function defaultGitCleanup(root){
  return spawnSync('git',['rm','-r','-q','--cached','--ignore-unmatch','node_modules'],{cwd:root,stdio:'inherit'});
+}
+
+async function fileExists(file){try{await access(file);return true}catch{return false}}
+async function prependIfMissing(file,heading,body){
+ const current=await readFile(file,'utf8');
+ if(current.startsWith(heading))return false;
+ await writeFile(file,`${heading}\n\n${body.trim()}\n\n${current}`,'utf8');
+ return true;
+}
+async function syncVersionedReleaseNotes(root){
+ const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
+ const version=String(pkg.version||'').trim();
+ if(!version)return {synced:false};
+ const noteFile=path.join(root,`MID_RELEASE_NOTES_${version}.json`);
+ if(!(await fileExists(noteFile)))return {synced:false};
+ const notes=JSON.parse(await readFile(noteFile,'utf8'));
+ if(String(notes.version)!==version)throw new Error(`Release-Notiz ${path.basename(noteFile)} trägt nicht die Paketversion ${version}.`);
+ const external=(Array.isArray(notes.external)?notes.external:[]).map(item=>`- ${String(item)}`).join('\n');
+ const internal=(Array.isArray(notes.internal)?notes.internal:[]).map(item=>`- ${String(item)}`).join('\n');
+ if(!external||!internal)throw new Error(`Release-Notiz ${path.basename(noteFile)} muss externe und interne Einträge enthalten.`);
+ const heading=`# MID v${version}`;
+ const internalHeading=`## MID v${version} · ${notes.date||new Date().toISOString().slice(0,10)} · ${notes.title||'Release'}`;
+ const targets=[path.join(root,'CHANGELOG.md'),path.join(root,'public','CHANGELOG.md')];
+ let changed=false;
+ for(const target of targets)changed=(await prependIfMissing(target,heading,external))||changed;
+ changed=(await prependIfMissing(path.join(root,'MID_BUILD_CHANGELOG.md'),internalHeading,internal))||changed;
+ if(changed)console.log(`Changelog-Synchronisierung: MID v${version} wurde aus ${path.basename(noteFile)} vorangestellt.`);
+ return {synced:changed};
 }
 
 /**
@@ -23,6 +52,7 @@ export async function prepareReleaseRepository({
  githubActions=process.env.GITHUB_ACTIONS==='true',
  runGitCleanup=defaultGitCleanup
 }={}){
+ await syncVersionedReleaseNotes(root);
  if(!githubActions)return {nodeModulesUntracked:false};
  const result=runGitCleanup(root);
  if(result?.error)throw result.error;
