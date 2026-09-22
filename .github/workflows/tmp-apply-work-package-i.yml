@@ -34,7 +34,20 @@ jobs:
       - name: Apply guarded production transform
         run: |
           sed -i 's/<LayoutGrid size={18}\/>/<SlidersHorizontal size={18}\/>/' scripts/apply-work-package-i.mjs
-          node scripts/apply-work-package-i.mjs
+          set +e
+          node scripts/apply-work-package-i.mjs > handoff-error.log 2>&1
+          status=$?
+          set -e
+          cat handoff-error.log
+          if [ "$status" -ne 0 ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add handoff-error.log
+            git commit -m 'chore: capture I handoff marker failure'
+            git push origin HEAD:chatgpt/mid-0.9.85.90-i
+            exit "$status"
+          fi
+          rm -f handoff-error.log
       - name: Install dependencies
         run: npm ci
       - name: Verify work package I contract
@@ -47,6 +60,7 @@ jobs:
         run: |
           rm -f scripts/apply-work-package-i.mjs
           rm -f .github/workflows/tmp-apply-work-package-i.yml
+          rm -f handoff-error.log
       - name: Commit verified source handoff
         run: |
           git config user.name 'github-actions[bot]'
