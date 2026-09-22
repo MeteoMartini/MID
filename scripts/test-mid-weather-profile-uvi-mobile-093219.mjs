@@ -11,8 +11,9 @@ for(const token of [
  "import {formatDecimalFixed,formatUvi} from './format';",
  'Wolken gesamt / hoch / mittel / tief + UVI',
  'formatUvi(Number(selectedPoint.uvIndex))',
- "uvIndex:mean('uvIndex')"
+ 'return{...first,id:`profile-hour:${start}`'
 ]) if(!cockpit.includes(token)) failures.push(`ForecastCockpit fehlt: ${token}`);
+if(cockpit.includes("uvIndex:mean('uvIndex')")||cockpit.includes('aggregateShortTermBlock('))failures.push('Entfernte 3-h-UVI-/Kurzfristaggregation darf nicht zurückkehren');
 for(const token of ['uvIndex?:number;','uvIndex:base.uvIndex']) if(!shortTerm.includes(token)) failures.push(`ShortTermForecast fehlt: ${token}`);
 for(const token of [
  '/* MID v0.9.32.19 · flachere 24-h-Leiste auf Handydisplays */',
@@ -25,4 +26,4 @@ for(const token of ['point.probability','point.precipitation','point.wind','poin
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;
 if(pv!==bv) failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID UVI-/Mobile-24h-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('MID: UVI in Einzeldaten und flachere mobile 24-h-Leiste ohne Parameterverlust geprüft.');
+console.log('MID: UVI bleibt über die kanonische Stundenprobe in den Einzeldaten erhalten; mobile 24-h-Leiste ohne Parameterverlust geprüft.');
