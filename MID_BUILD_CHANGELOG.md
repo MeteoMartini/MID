@@ -1,3 +1,10 @@
+## MID v0.9.85.89 · 2026-09-22 · Arbeitspaket H · Responsive Gesamtabnahme und 7-Tage-Korrektur
+
+- Replit-Abnahme: 7-Tage-Fix sowie H.1/H.2a/H.2b/H.2c umgesetzt; H.1 und H.2c jeweils mit vollständiger Light/Dark-Viewportmatrix grün, Typecheck/Produktionsbuild/Regressionen ohne Befund.
+- Produktive Übernahme erfolgt bewusst als Mapping auf ForecastCockpit, MeteogramPanel und WaterSportsPanel statt durch Kopieren des Mockup-Sandbox-Codes.
+- Neue finale UI-Schicht midC18WorkPackageH.css erzwingt die vertikale 7-Tage-Tagesliste unabhängig vom früheren Orientierungsvertrag, ordnet die aktive Detailfläche hinter allen sieben Zeilen an und schützt H.2c-Overflow-/Touchverträge.
+- Regression test-mid-18-2-6-h-responsive-handoff-098589.mjs schützt die produktiven 7-Tage-, Meteogramm- und Tide-Verträge; meteorologische Daten-, Warn-, Schwellen-, Modellfusions- und Skybar-Fachlogik bleiben unverändert.
+
 ## MID v0.9.85.88 · 2026-09-22 · Arbeitspaket G · Ensemble, Klima und Widgets
 
 - Replit-Abnahme vollständig grün: Typecheck, Produktionsbuild, fokussierte Regressionen sowie Light/Dark auf 360×800, 390×844, 430×932, 844×390, 768×1024, 1024×768 und 1440×900.

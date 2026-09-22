@@ -1,3 +1,10 @@
+# MID v0.9.85.89
+
+- Die 7-Tage-Prognose ist auf Desktop wieder als kompakte, untereinander angeordnete Tagesliste aufgebaut; der große ungenutzte Leerbereich entfällt.
+- Die ausgewählte Tagesansicht erscheint nach allen sieben Tageszeilen als gemeinsame Detailfläche und verdrängt die übrigen Tage nicht mehr.
+- Meteogramm-, Wasser- und Gezeitenflächen bleiben auf Smartphone, Tablet und Desktop innerhalb des Viewports; notwendige Tabellen-/Zeitachsenbereiche scrollen nur lokal.
+- Touchziele, Umbrüche und Querformatdarstellung wurden für die H-Responsive-Abnahme zusätzlich abgesichert.
+
 # MID v0.9.85.88
 
 - Ensemble-Ansichten sind ruhiger aufgebaut; Legenden und Tooltips bleiben auch auf kleinen Displays vollständig lesbar.
