@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.84",
+  "releaseVersion": "0.9.85.85",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -517,7 +517,8 @@
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
-    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs"
+    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -954,7 +955,8 @@
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
-    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs"
+    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1660,7 +1662,10 @@
     "MID_D2_TREND_NIGHT_0.9.85.81.md",
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "src/midC18ForecastRows.css",
-    "MID_E_FORECAST_ROWS_0.9.85.83.md"
+    "MID_E_FORECAST_ROWS_0.9.85.83.md",
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "src/midC18ResponsiveCorrections.css",
+    "MID_RELEASE_NOTES_0.9.85.85.json"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1737,7 +1742,8 @@
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
-    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs"
+    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1944,7 +1950,9 @@
     "src/midC18WarningTimeline.css",
     "MID_WARNING_TIMELINE_0.9.85.77.md",
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
-    "src/midC18ForecastRows.css"
+    "src/midC18ForecastRows.css",
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "src/midC18ResponsiveCorrections.css"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -2245,10 +2253,11 @@
     "scripts/test-mid-18-2-4-b2-current-098579.mjs",
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
-    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs"
+    "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
   ],
-  "version": "0.9.85.84",
-  "updatedAt": "2026-09-22T04:10:00.000Z",
+  "version": "0.9.85.85",
+  "updatedAt": "2026-09-22T06:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
