@@ -8,10 +8,16 @@
 .ensemble-pro-chart,
 .ensemble-pro-summary-grid,
 .ensemble-pro-brief-grid,
-.climate-metrics,
-.climate-metric,
+.climate-head,
+.climate-controls,
+.climate-summary,
+.climate-cloud-card,
+.climate-visual-grid,
+.climate-main-chart,
+.climate-wind-card,
+.climate-month-grid,
 .apple-widget-readiness-grid,
-.apple-widget-readiness-item,
+.apple-widget-readiness-grid > article,
 .apple-widget-feed-card {
   min-width: 0;
 }
@@ -94,60 +100,118 @@
   overflow: visible;
 }
 
-/* Klima: drei gleichwertige Messgrößen, mobil ruhig gestapelt. */
-.climate-header,
-.climate-header-title,
-.climate-score-card,
-.climate-score-text,
-.climate-metric-head,
-.climate-metric-label,
-.climate-metric-meta,
-.climate-metric-value,
-.climate-tips {
+/* Klima: bestehende Produktionsinstrumente ruhiger und responsiv staffeln. */
+.climate-head,
+.climate-controls,
+.climate-main-chart > header,
+.climate-wind-card > header,
+.climate-cloud-card > header,
+.climate-month-grid article > header {
   min-width: 0;
-}
-
-.climate-header,
-.climate-metric-head {
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.climate-header-title,
-.climate-score-text,
-.climate-metric-label,
-.climate-metric-meta,
-.climate-tips,
-.climate-status,
-.climate-error {
+.climate-head > div,
+.climate-controls > *,
+.climate-summary > article,
+.climate-main-chart > header > *,
+.climate-wind-card > header > *,
+.climate-cloud-card > header > *,
+.climate-month-grid article,
+.climate-month-grid article > header > *,
+.climate-windrose,
+.climate-cloud-shares,
+.climate-cloud-legend,
+.climate-legend,
+.climate-insight,
+.climate-panel footer {
+  min-width: 0;
+}
+
+.climate-head p,
+.climate-state,
+.climate-summary small,
+.climate-summary-detail,
+.climate-main-chart small,
+.climate-wind-card small,
+.climate-cloud-card small,
+.climate-month-grid small,
+.climate-cloud-legend span,
+.climate-wind-legend span,
+.climate-panel footer,
+.climate-favorite-name span {
   white-space: normal;
   overflow-wrap: anywhere;
 }
 
-.climate-metrics {
+.climate-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+}
+
+.climate-summary > article {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.climate-visual-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(250px, .75fr);
   align-items: stretch;
   gap: 12px;
 }
 
-.climate-metric {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-}
-
-.climate-metric-line {
-  min-width: 0;
+.climate-main-chart,
+.climate-wind-card,
+.climate-cloud-card {
+  box-sizing: border-box;
+  max-width: 100%;
   overflow: hidden;
 }
 
-.climate-score-pill,
-.climate-score-badge {
-  min-height: 32px;
+.climate-chart,
+.climate-windrose svg {
+  display: block;
+  width: 100%;
   max-width: 100%;
-  white-space: normal;
-  text-align: center;
+  height: auto;
+}
+
+.climate-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.climate-month-grid > article {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.climate-month-picker,
+.climate-presets,
+.climate-wind-switch,
+.climate-cloud-legend,
+.climate-wind-legend,
+.climate-legend {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.climate-month-picker button,
+.climate-presets button,
+.climate-wind-switch button {
+  min-height: 44px;
+}
+
+.climate-value-overlay text {
+  pointer-events: none;
 }
 
 /* Widgets: Einstellungen/Status/Feed als klar getrennte, nicht überlaufende Arbeitsfläche. */
@@ -157,11 +221,11 @@
 
 .apple-widget-readiness-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.apple-widget-readiness-item,
+.apple-widget-readiness-grid > article,
 .apple-widget-feed-card {
   box-sizing: border-box;
   width: 100%;
@@ -169,10 +233,35 @@
   overflow: hidden;
 }
 
-.apple-widget-readiness-item *,
+.apple-widget-readiness-grid > article *,
 .apple-widget-feed-card *,
-.apple-widget-feed * {
+.apple-widget-note {
   min-width: 0;
+}
+
+.apple-widget-readiness-grid small,
+.apple-widget-feed-card small,
+.apple-widget-note,
+.apple-widget-feed-card code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.apple-widget-feed-card header {
+  min-width: 0;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.apple-widget-feed-card header > span,
+.apple-widget-feed-card header > div {
+  min-width: 0;
+}
+
+.apple-widget-feed-card code {
+  display: block;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 .apple-widget-settings button,
@@ -182,16 +271,26 @@
   min-height: 44px;
 }
 
-.apple-widget-feed {
-  max-width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
+@media (max-width: 900px) {
+  .climate-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .climate-visual-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .climate-month-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
   .ensemble-pro-summary-grid,
   .ensemble-pro-brief-grid,
-  .climate-metrics,
+  .climate-summary,
+  .climate-visual-grid,
+  .climate-month-grid,
   .apple-widget-readiness-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -213,9 +312,17 @@
     overflow-x: clip;
   }
 
-  .climate-header,
-  .climate-metric-head {
+  .climate-head,
+  .climate-controls,
+  .climate-main-chart > header,
+  .climate-wind-card > header,
+  .climate-cloud-card > header {
     align-items: flex-start;
+  }
+
+  .climate-month-picker,
+  .climate-presets {
+    width: 100%;
   }
 }
 
@@ -234,9 +341,12 @@
     max-width: calc(100vw - 20px);
   }
 
-  .climate-score-card,
-  .climate-metric,
-  .apple-widget-readiness-item,
+  .climate-summary > article,
+  .climate-main-chart,
+  .climate-wind-card,
+  .climate-cloud-card,
+  .climate-month-grid > article,
+  .apple-widget-readiness-grid > article,
   .apple-widget-feed-card {
     padding-inline: max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-right));
   }
@@ -245,9 +355,14 @@
 @media (max-width: 850px) and (orientation: landscape) {
   .ensemble-pro-summary-grid,
   .ensemble-pro-brief-grid,
-  .climate-metrics,
+  .climate-summary,
+  .climate-month-grid,
   .apple-widget-readiness-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .climate-visual-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(230px, .65fr);
   }
 
   .ensemble-pro-tooltip {
