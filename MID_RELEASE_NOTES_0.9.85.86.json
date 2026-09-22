@@ -1,0 +1,18 @@
+{
+  "version": "0.9.85.86",
+  "date": "2026-09-22",
+  "title": "Heute-/24-h-Viewport-Fix",
+  "external": [
+    "Die Heute-Ansicht erzeugt auf Smartphones keinen zusätzlichen horizontalen Außen-Scrollbereich mehr.",
+    "Das 24-h-Wetterprofil passt im Hochformat vollständig in die verfügbare Breite und muss nicht mehr horizontal verschoben werden.",
+    "Die untere Zeitachse mit ihren Beschriftungen bleibt im Hoch- und Querformat vollständig sichtbar.",
+    "Bottom Bar und Safe Areas überdecken das Wetterprofil nicht."
+  ],
+  "internal": [
+    "Replit-Abnahme für Smartphone, Tablet und Desktop in Light/Dark vollständig grün.",
+    "Künstliche 600/640-px-Mindestbreiten des 24-h-Profils entfernt; der Profiltrack bleibt durchgehend stündlich.",
+    "Außencontainer der Heute-Arbeitsfläche gegen horizontalen Overflow abgesichert; der bewusste 90-Minuten-Innenscroll bleibt lokal begrenzt.",
+    "Untere Profilachse erhält sicheren Rendering- und Padding-Raum; meteorologische Fachlogik und Daten bleiben unverändert.",
+    "Neue Regression test-mid-18-2-5-today-viewport-098586 schützt den Responsive-Vertrag."
+  ]
+}
