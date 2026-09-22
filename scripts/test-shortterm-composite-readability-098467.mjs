@@ -74,7 +74,13 @@ for(const token of [
  'className="selected-time-values"'
 ])assert.ok(cockpit.includes(token),`Forecast-/Profilfunktion fehlt nach UI-Audit: ${token}`);
 assert.ok(!cockpit.includes('cockpit-weather-profile__resolution')&&!cockpit.includes('ProfileResolution'),'Entfernte 1h/3h-Profilsteuerung darf nach dem UI-Audit nicht zurückkehren.');
-assert.ok(responsive.includes('@media(max-width:720px) and (orientation:portrait)')&&responsive.includes('min-width:640px!important'),'Mobile 24-h-Profilfläche muss im Hochformat lesbar breit bleiben.');
+assert.ok(
+ responsive.includes('@media(max-width:720px) and (orientation:portrait)')&&
+ responsive.includes('--mid-d-profile-track-min:100%!important')&&
+ responsive.includes('overflow-x:clip!important')&&
+ !responsive.includes('min-width:640px!important'),
+ 'Mobile 24-h-Profilfläche muss im Hochformat viewportfüllend, lesbar und ohne erzwungenen Horizontal-Scroll bleiben.'
+);
 
 const parts=['00-foundation.css','10-features.css','20-ensemble-composite.css','25-extreme-outlook.css','30-modern.css']
  .map(name=>readFileSync(`src/styles-src/${name}`,'utf8')).join('');

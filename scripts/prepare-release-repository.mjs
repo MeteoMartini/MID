@@ -1,5 +1,5 @@
 import {spawnSync} from 'node:child_process';
-import {access,readFile,writeFile} from 'node:fs/promises';
+import {access,readFile,unlink,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -11,6 +11,23 @@ function defaultGitCleanup(root){
 }
 
 async function fileExists(file){try{await access(file);return true}catch{return false}}
+async function applyOneShotReleaseTarget(root){
+ const targetFile=path.join(root,'MID_RELEASE_TARGET.json');
+ if(!(await fileExists(targetFile)))return {applied:false};
+ const packageFile=path.join(root,'package.json');
+ if(!(await fileExists(packageFile)))throw new Error('MID_RELEASE_TARGET.json vorhanden, aber package.json fehlt.');
+ const target=JSON.parse(await readFile(targetFile,'utf8'));
+ const fromVersion=String(target.fromVersion||'').trim(),toVersion=String(target.toVersion||'').trim();
+ if(!/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(fromVersion)||!/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(toVersion))throw new Error('MID_RELEASE_TARGET.json enthält keine gültigen Versionsangaben.');
+ const noteFile=path.join(root,`MID_RELEASE_NOTES_${toVersion}.json`);
+ if(!(await fileExists(noteFile)))throw new Error(`Release-Ziel ${toVersion} besitzt keine passende Release-Notiz.`);
+ const pkg=JSON.parse(await readFile(packageFile,'utf8')),current=String(pkg.version||'').trim();
+ if(current!==fromVersion&&current!==toVersion)throw new Error(`Release-Ziel erwartet ${fromVersion} oder ${toVersion}, package.json enthält aber ${current||'keine Version'}.`);
+ if(current===fromVersion){pkg.version=toVersion;await writeFile(packageFile,`${JSON.stringify(pkg,null,2)}\n`,'utf8');console.log(`Einmaliges Release-Ziel: ${fromVersion} → ${toVersion}.`)}
+ await unlink(targetFile);
+ console.log(`Einmaliges Release-Ziel ${toVersion} wurde nach Anwendung entfernt.`);
+ return {applied:current===fromVersion,version:toVersion};
+}
 async function prependIfMissing(file,heading,body){
  const current=await readFile(file,'utf8');
  if(current.startsWith(heading))return false;
@@ -55,6 +72,7 @@ export async function prepareReleaseRepository({
  githubActions=process.env.GITHUB_ACTIONS==='true',
  runGitCleanup=defaultGitCleanup
 }={}){
+ await applyOneShotReleaseTarget(root);
  await syncVersionedReleaseNotes(root);
  if(!githubActions)return {nodeModulesUntracked:false};
  const result=runGitCleanup(root);
