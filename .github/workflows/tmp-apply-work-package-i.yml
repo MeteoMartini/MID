@@ -1,0 +1,57 @@
+name: Temporary Work Package I Handoff
+
+on:
+  push:
+    branches:
+      - chatgpt/mid-0.9.85.90-i
+    paths:
+      - scripts/apply-work-package-i.mjs
+      - .github/workflows/tmp-apply-work-package-i.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mid-work-package-i-handoff
+  cancel-in-progress: false
+
+jobs:
+  apply-and-verify:
+    if: ${{ !contains(github.event.head_commit.message, '[I-HANDOFF-DONE]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/mid-0.9.85.90-i
+          fetch-depth: 0
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply guarded production transform
+        run: |
+          sed -i 's/<LayoutGrid size={18}\/>/<SlidersHorizontal size={18}\/>/' scripts/apply-work-package-i.mjs
+          node scripts/apply-work-package-i.mjs
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify work package I contract
+        run: npm run test:work-package-i
+      - name: Typecheck and production build
+        run: npm run build
+      - name: Focused navigation regressions
+        run: npm run test:settings && npm run test:ui-regressions && npm run test:navigation-favorites
+      - name: Remove temporary handoff machinery
+        run: |
+          rm -f scripts/apply-work-package-i.mjs
+          rm -f .github/workflows/tmp-apply-work-package-i.yml
+      - name: Commit verified source handoff
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'feat: MID v0.9.85.90 work package I [I-HANDOFF-DONE]'
+          git push origin HEAD:chatgpt/mid-0.9.85.90-i
