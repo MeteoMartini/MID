@@ -15,7 +15,7 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),self='scripts/test
 assert.ok(shortTerm.includes('cover=Number.isFinite(total)?total:low'),'Trockene Himmelsklassifikation muss Gesamtbewölkung priorisieren; tiefe Bewölkung ist nur Fallback.');
 assert.ok(!shortTerm.includes('covers.length?Math.max(...covers):Number.NaN'),'Tiefe Bewölkung darf Gesamtbewölkung nicht künstlich zu „Bedeckt“ hochstufen.');
 assert.ok(!shortTerm.includes('if(localAdjustment<=0)return raw;'),'Trockene 15-min-/Stunden-Texte dürfen keinen veralteten Roh-Wettercode an interpolierter Gesamtbewölkung vorbeiführen.');
-assert.ok(shortTerm.includes('return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);'),'Trockene Wettercodes müssen aus derselben Wolken-/Sichtlage kohärentisiert werden.');
+assert.ok(shortTerm.includes('return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature,dewPoint);'),'Trockene Wettercodes müssen aus derselben Wolken-/Sichtlage kohärentisiert werden.');
 assert.ok(skybar.includes('const cloud=hour.cloud===null||hour.cloud===undefined?NaN:clamp(Number(hour.cloud),0,100);')&&skybar.includes('if(cloudKnown){'),'Skybar muss weiterhin dieselbe Gesamtbewölkung als primären Himmelswert nutzen.');
 assert.ok(skybar.includes('if(cover>=87.5)return 3')===false,'Skybar darf keine getrennte Textklassifikation enthalten; Schwellen bleiben im Kurzfristcode.');
 assert.ok(cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)')&&cockpit.includes('now90SkySegments=detailSkyBarSegments(now90,2,2,120,8)'),'90-min-Skybar muss direkt aus derselben finalisierten Kurzfristreihe stammen.');
