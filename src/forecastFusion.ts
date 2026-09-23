@@ -480,7 +480,6 @@ export function applyHyperlocalForecastHours(hours:Hour[],anchor:ForecastLocalAn
 
 function rapidStateFinite(value:unknown){return value!==null&&value!==undefined&&Number.isFinite(Number(value))}
 function rapidStateBlend(base:unknown,rapid:unknown,weight:number,cap:number,minimum=-Infinity,maximum=Infinity){const a=Number(base),b=Number(rapid);if(!rapidStateFinite(rapid))return rapidStateFinite(base)?a:undefined;if(!rapidStateFinite(base))return clamp(b,minimum,maximum);return clamp(a+clamp(b-a,-cap,cap)*weight,minimum,maximum)}
-function rapidStateDirection(base:unknown,rapid:unknown,weight:number){if(!rapidStateFinite(rapid))return rapidStateFinite(base)?((Number(base)%360)+360)%360:undefined;if(!rapidStateFinite(base))return((Number(rapid)%360)+360)%360;const a=((Number(base)%360)+360)%360,b=((Number(rapid)%360)+360)%360,delta=((b-a+540)%360)-180;return(a+delta*weight+360)%360}
 
 export type ForecastMinute15FinalizationOptions={radar?:RadarNowcast|null;localAnchor?:ForecastLocalAnchor;now?:number;rucRapidMinutes15?:ForecastFusionRapidMinute15[]};
 /**
