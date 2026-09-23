@@ -525,7 +525,8 @@
     "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
-    "scripts/test-dependency-review-098595.mjs"
+    "scripts/test-dependency-review-098595.mjs",
+    "scripts/test-metar-trend-observation-boundary-098596.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -969,7 +970,8 @@
     "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
-    "scripts/test-dependency-review-098595.mjs"
+    "scripts/test-dependency-review-098595.mjs",
+    "scripts/test-metar-trend-observation-boundary-098596.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1687,7 +1689,8 @@
     "scripts/test-dependency-review-098595.mjs",
     "tools/ruc/native_cadence.py",
     "MID_IMPLEMENTATION_0.9.85.95.md",
-    "MID_RELEASE_NOTES_0.9.85.95.json"
+    "MID_RELEASE_NOTES_0.9.85.95.json",
+    "scripts/test-metar-trend-observation-boundary-098596.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1769,7 +1772,8 @@
     "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
-    "scripts/test-dependency-review-098595.mjs"
+    "scripts/test-dependency-review-098595.mjs",
+    "scripts/test-metar-trend-observation-boundary-098596.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2289,7 +2293,8 @@
     "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
-    "scripts/test-dependency-review-098595.mjs"
+    "scripts/test-dependency-review-098595.mjs",
+    "scripts/test-metar-trend-observation-boundary-098596.mjs"
   ],
   "version": "0.9.85.95",
   "updatedAt": "2026-09-22T06:35:00.000Z",
