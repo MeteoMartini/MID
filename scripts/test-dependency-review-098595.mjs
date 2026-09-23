@@ -8,5 +8,5 @@ for(const [name,version] of [['maplibre-gl','6.7.0'],['react','19.2.8'],['react-
 for(const [name,version] of [['@capacitor/core','8.5.1'],['@capacitor/ios','8.5.1']]){assert.equal(pkg.dependencies?.[name],version);assert.equal(lock.packages?.[`node_modules/${name}`]?.version,version)}
 assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.1');assert.equal(lock.packages?.['node_modules/@capacitor/cli']?.version,'8.5.1');
 assert.equal(pkg.devDependencies?.vite,'8.2.2');assert.equal(lock.packages?.['node_modules/vite']?.version,'8.2.2');
-for(const token of ['MapLibre GL JS 6.11.1','Capacitor Core / iOS / CLI 8.5.2','Vite 8.3.0','React 19.3.0','kein package.json-only-Aktualisierung'])assert.ok(policy.includes(token),`Wartungsreview fehlt: ${token}`);
+for(const token of ['MapLibre GL JS 6.11.1','Capacitor Core / iOS / CLI 8.5.2','Vite 8.3.0','React 19.3.0','keine package.json-only-Aktualisierung'])assert.ok(policy.includes(token),`Wartungsreview fehlt: ${token}`);
 console.log('MID J.5 Dependency-Review: neuere Kandidaten dokumentiert, Stable-Lockfile bleibt ohne partielle Migration reproduzierbar.');
