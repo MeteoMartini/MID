@@ -518,7 +518,8 @@
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
-    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "scripts/test-mid-18-2-7-responsive-ia-098590.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -956,7 +957,8 @@
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
-    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "scripts/test-mid-18-2-7-responsive-ia-098590.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1665,7 +1667,8 @@
     "MID_E_FORECAST_ROWS_0.9.85.83.md",
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
     "src/midC18ResponsiveCorrections.css",
-    "MID_RELEASE_NOTES_0.9.85.85.json"
+    "MID_RELEASE_NOTES_0.9.85.85.json",
+    "scripts/test-mid-18-2-7-responsive-ia-098590.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
