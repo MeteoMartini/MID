@@ -1,3 +1,11 @@
+## MID v0.9.85.97 · 2026-09-24 · MID 18.2.10 · Replit-Audit: Cache, Fokus und lokale Zeitbasis
+
+- Forecast-Core-Cachevertrag Frontend v4 und Worker-Edge v3 dimensionieren Koordinaten, gerundete Höhe und effektive IANA-Zeitzone; unsichere Legacy-Einträge werden nicht migriert.
+- Forecast-Fusion-Localcache v10 trennt Höhenstände; Lead-Time-Reconciliation und Tagesfusion nutzen reale lokale Stunden-Epochen.
+- forecastPeriods.addForecastDays verwendet reine gregorianische Kalenderarithmetik ohne UTC-Date-Mutation; SevenDayForecastSummary nutzt diesen Vertrag für die Folgenacht.
+- AppPortalPopover stellt den gemeinsamen verschachtelbaren Fokusstack bereit; Mehr-Drawer, Event-Center, Impressum und Einstellungen sind angeschlossen.
+- Neue Regression test-mid-18-2-10-replit-audit-098597 schützt Cache-Dimensionen, Fokusvertrag, DST-/Datumsgrenzen und Release-Version.
+
 ## MID v0.9.85.97 · 2026-09-24 · MID 18.2.10 · Replit-Audit-Fixes
 
 - Forecast-Core-Cache Frontend v4 und Worker-Edge v3 trennen Koordinaten, Höhe und effektive Ortszeitzone; unsichere Legacy-Caches werden nicht mehr als frischer Stand migriert.
