@@ -40,6 +40,9 @@ reject('Kein separater Sonnenscheinblock im Default',fourteen,'cockpit-fourteen-
 reject('Keine separate Temperaturspur im Default',fourteen,'cockpit-fourteen-temp-track');
 reject('Keine separate Regime-Pille im Default',fourteen,'cockpit-fourteen-regime');
 
+need('Details starten geschlossen',fourteen,"const [expandedDate,setExpandedDate]=useState<string|null>(null)");
+need('Details werden nur per Tap umgeschaltet',fourteen,"setExpandedDate(current=>current===item.date?null:item.date)");
+reject('Global selectedDate darf Details nicht automatisch öffnen',fourteen,"isActive=selected?.date===item.date");
 need('Inline-Details nur sekundär',fourteen,'Sonnenscheindauer');
 need('Inline-Details mit Temperaturabweichung',fourteen,'Temperaturabweichung');
 need('Inline-Details mit Prognosekonfidenz',fourteen,'Prognosekonfidenz');
