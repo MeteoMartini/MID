@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-23T18:22:00Z",
-  "releaseVersion": "0.9.85.94",
+  "updatedAt": "2026-09-23T19:40:00Z",
+  "releaseVersion": "0.9.85.95",
   "sourceBaseline": {
     "professionalVersion": "0.9.77.26",
     "workerVersion": "0.9.77.26",
@@ -130,7 +130,8 @@
     "skybar-sunshine-time-alignment-merged-with-buffered-satellite-playback-0.9.78.82",
     "climate-hazard-widget-contract-0.9.80.4",
     "shared-widget-pop-climate-readability-0.9.80.6",
-    "react19-vite8-toolchain-compatibility-migration-0.9.83.0"
+    "react19-vite8-toolchain-compatibility-migration-0.9.83.0",
+    "j1-j5-science-performance-hardening-0.9.85.95"
   ],
   "nextMilestone": "macos-xcode-simulator-quality-assurance",
   "validation": {
