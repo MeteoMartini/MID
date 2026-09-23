@@ -30,7 +30,7 @@ for(const token of [
  'const trigger=',
  'const stronglyCapped=',
  'function thunderSignalScore(',
- 'percent:thunderSignalScore(' 
+ 'signalScore:thunderSignalScore(' 
 ])need('Gewitterrisiko',thunder,token);
 for(const token of [
  "precipVisualSize:'small'|'large';",
@@ -66,7 +66,7 @@ else{
   ['Direktes Gewitter-Signal',risk({code:95,cape:300,probability:20}), [65,82]],
   ['Mehrindex-hoch-Signal',risk({code:80,cape:1800,liftedIndex:-5,convectiveInhibition:30,temperature:24,dewPoint:18,humidity:70,columnWaterVapour:35,probability:65,showers:.5}), [72,88]]
  ];
- for(const [label,value,[min,max]] of signalCases){const actual=value?.percent??null;if(actual===null||actual<min||actual>max)failures.push(`${label}: erwarteter Signalbereich ${min}-${max}, erhalten ${actual}`)}
+ for(const [label,value,[min,max]] of signalCases){const actual=value?.signalScore??null;if(actual===null||actual<min||actual>max)failures.push(`${label}: erwarteter Signalbereich ${min}-${max}, erhalten ${actual}`)}
 }
 
 if(failures.length){console.error('Detail-Gewitter/Ensemble-Niederschlag-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
