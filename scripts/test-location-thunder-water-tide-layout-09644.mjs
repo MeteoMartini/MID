@@ -44,12 +44,12 @@ for(const token of [
  'const locationThunderRisk=useMemo(',
  'thunderRisk={locationThunderRisk}',
  "label:'Niederschlag'",
- 'thunderRiskInline=thunderRisk&&thunderRisk.percent>=30',
+ 'thunderSignalScore=detailThunderSignalScore(thunderRisk),thunderRiskInline=thunderRisk&&thunderSignalScore>=30',
  'Schauer-/Gewittersignal',
  'metric-inline-pill',
  'function mountainHourlyThunderRisk(',
  'function mountainRapidThunderRisk(',
- 'function mountainCombinedThunderPercent(',
+ 'function mountainCombinedThunderSignalScore(',
  'score-=mountainConvectivePenalty(convectiveRisk)',
  "risks.push(ruc?'Gewitter-/Konvektionssignal · Höhenmodell + ICON-D2-RUC':'Gewitter-/Konvektionssignal aus Mehrparameteranalyse')",
  '<MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/>'
@@ -62,9 +62,9 @@ assert.ok(!app.includes("risks.push('erhöhte konvektive Instabilität')"),'Die 
 
 for(const token of [
  'thunderRisk:PeriodThunderRisk|null',
- 'const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]),currentHour=precipitationDisplayHours[currentIndex(precipitationDisplayHours)]??precipitationDisplayHours[0],effectiveThunderPercent=Math.max(thunderRisk?.percent??0,rapidThunderRisk?.percent??0)',
+ 'const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]),currentHour=precipitationDisplayHours[currentIndex(precipitationDisplayHours)]??precipitationDisplayHours[0],effectiveThunderSignal=Math.max(thunderRisk?.percent??0,rapidThunderRisk?.signalScore??rapidThunderRisk?.percent??0)',
  'function completeTideRange(',
- "label=\"Gewitterrisiko\"",
+ "label=\"Gewittersignal\"",
  'Tidenhub · vollständige Tide',
  'Wasserstand aktuell',
  'function TideSparkline(',
