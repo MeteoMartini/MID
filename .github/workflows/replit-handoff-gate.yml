@@ -1,0 +1,160 @@
+name: MID Replit Handoff Gate
+run-name: Replit-Handoff sicher prüfen
+
+on:
+  push:
+    branches:
+      - 'replit/**'
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-replit-handoff-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate_handoff:
+    name: Replit-Handoff read-only prüfen
+    if: >-
+      github.event_name != 'pull_request' ||
+      startsWith(github.head_ref, 'replit/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Replit-Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Vergleichsbasis bestimmen
+        id: base
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          if [ "$EVENT_NAME" = "pull_request" ] && [ -n "${PR_BASE_SHA:-}" ]; then
+            base_sha="$PR_BASE_SHA"
+          else
+            base_sha="$(git merge-base HEAD origin/main)"
+          fi
+          echo "sha=$base_sha" >> "$GITHUB_OUTPUT"
+          echo "Vergleichsbasis: $base_sha"
+
+      - name: Geschützte Pfade und Releasegrenze prüfen
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mapfile -d '' changed < <(git diff --name-only -z "$BASE_SHA" HEAD)
+          if [ "${#changed[@]}" -eq 0 ]; then
+            echo "::error::Der Replit-Handoff enthält keine Änderungen gegenüber main."
+            exit 1
+          fi
+
+          blocked=()
+          for path in "${changed[@]}"; do
+            case "$path" in
+              .github/*|worker/*|ios/*|tools/*|MID_BASELINE.json|MID_SOURCE_OF_TRUTH.md|MID_COST_GOVERNANCE_CONTRACT.md|MID-professional-replacement.zip|package.json|package-lock.json|src/version.ts|public/version.json|public/manifest.webmanifest|capacitor.config.*|vite.config.*|wrangler*|.env|.env.*)
+                blocked+=("$path")
+                ;;
+            esac
+          done
+
+          if [ "${#blocked[@]}" -gt 0 ]; then
+            echo "::error::Replit darf release-, runtime-, native- oder governancekritische Dateien nicht direkt übergeben."
+            printf 'Blockierter Pfad: %s\n' "${blocked[@]}"
+            exit 1
+          fi
+
+          echo "Geänderte Dateien: ${#changed[@]}"
+          printf 'Handoff-Datei: %s\n' "${changed[@]}"
+
+      - name: Direkten Replit-PR nach main blockieren
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          echo "::error::replit/* ist ausschließlich ein Handoff-Bereich. Promotion erfolgt nach ChatGPT-Prüfung über einen chatgpt/*-Branch und den bestehenden Source-PR-Gate."
+          exit 1
+
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --loglevel=notice; then
+              installed=true
+              break
+            fi
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          if [ "$installed" != true ]; then
+            echo "::error::npm ci konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
+            exit 1
+          fi
+
+      - name: Produktionsabhängigkeiten prüfen
+        shell: bash
+        timeout-minutes: 5
+        run: npm run audit:dependencies
+
+      - name: Produktionsbuild und Regressionen prüfen
+        shell: bash
+        timeout-minutes: 15
+        env:
+          CI: 'true'
+        run: npm run verify
+
+      - name: Gemeinsame Web-/iOS-Hülle prüfen
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/cap copy ios
+          node scripts/test-cross-platform-ios-shell-09670.mjs
+          node scripts/test-runtime-lifecycle-offline-resume-09701.mjs
+
+      - name: Handoffstatus dokumentieren
+        shell: bash
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+        run: |
+          {
+            echo "### Replit-Handoff geprüft"
+            echo
+            echo "- Branch: \`${GITHUB_REF_NAME}\`"
+            echo "- Head: \`${GITHUB_SHA}\`"
+            echo "- Basis: \`${BASE_SHA}\`"
+            echo "- Berechtigungen: read-only"
+            echo "- Keine Secrets oder Deploy-Berechtigungen"
+            echo "- Keine automatische Promotion oder Veröffentlichung"
+            echo
+            echo "Nächster Schritt: ChatGPT prüft Diff und Provenienz und übernimmt den freigegebenen Stand in einen \`chatgpt/*\`-Integrationsbranch."
+          } >> "$GITHUB_STEP_SUMMARY"
