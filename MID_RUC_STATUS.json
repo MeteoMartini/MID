@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-09-23T18:22:00Z",
-  "releaseVersion": "0.9.85.94",
+  "updatedAt": "2026-09-23T19:40:00Z",
+  "releaseVersion": "0.9.85.95",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -48,8 +48,6 @@
       },
       "severe15m": {
         "optional": [
-          "CAPE_MU",
-          "CIN_MU",
           "LPI",
           "LPI_MAX",
           "UH_MAX",
@@ -85,6 +83,8 @@
       },
       "specialistHourly": {
         "optional": [
+          "CIN_MU",
+          "CAPE_MU",
           "VIS",
           "CEILING",
           "HZEROCL",
@@ -95,7 +95,17 @@
           "H_SNOW"
         ],
         "resolutionSeconds": 3600,
-        "forecastHours": 14
+        "forecastHours": 14,
+        "role": "MU-CAPE/CIN retain native hourly valid times; other hourly specialist diagnostics remain unchanged"
+      },
+      "state15m": {
+        "optional": [
+          "VIS",
+          "CEILING"
+        ],
+        "resolutionSeconds": 900,
+        "forecastHours": 6,
+        "role": "field-specific native state; no 15-minute temperature, wind, pressure or cloud interpolation"
       }
     }
   },
@@ -210,7 +220,8 @@
     "releaseRun770RegressionMitigation": "targeted-single-stale-ruc-workflow-equality-test-pass-v0.9.74.6",
     "releaseRun771RegressionMitigation": "state-bound-ruc-workflow-sync-contract-pass-v0.9.74.7",
     "nativeCadenceContract": "source-verified-v0.9.85.94",
-    "thunderSignalPresentation": "diagnostic-score-not-probability-v0.9.85.94"
+    "thunderSignalPresentation": "signalScore-only-no-pseudo-probability-v0.9.85.95",
+    "thunderIngredientValidTime": "MU-CAPE/CIN accepted only within 35 min of target valid time; ML-CAPE/CIN remain native 15 min"
   },
   "notes": "v0.9.74.7 behebt ausschließlich die letzte inkonsistente Run-#771-Regressionsannahme. Die Release-vor-Admin-Sync-Ausnahme ist nun zentral und zustandsgebunden: nur exakter Legacy-.github-Zustand plus vollständiger kanonischer :11/:41-Catch-up-Vertrag werden toleriert; jede unbekannte Drift bleibt fail-closed. RUC-Fachdaten, Fusion, Pages-Free-Projektion, 950-MB-Grenze, Catch-up-Guard und Worker-Runtime bleiben unverändert.",
   "releaseNote": "Run #771: npm ci, Audit, TypeScript und Vite grün; 576/577 Regressionen grün. Einziger Fehler: test-ruc-dwd-pipeline-09690.mjs hatte noch ein v0.9.74.5-only Workflow-Übergangsfenster. v0.9.74.7 ersetzt alle drei RUC-Sync-Ausnahmen durch einen gemeinsamen state-bound Vertrag.",
