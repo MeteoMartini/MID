@@ -19,7 +19,7 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test
 assert.ok(skybar.includes('if(cloudKnown){')&&skybar.includes('const cloudWidth=cloudBandWidth(boundedCloud);')&&skybar.includes('if(daylight&&sunshineDirect){'),'Bekannte Gesamtbewölkung muss das graue Band ab 50 % schützen, ohne direkte Sonnenscheindauer darunter umzudeuten.');
 assert.ok(skybar.includes('if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);'),'Direkte Sonnenscheindauer bleibt als eigenständiger WMO-Parameter erhalten.');
 assert.ok(skybar.includes('if(daylight&&!sunshineDirect)')&&skybar.includes('const openSkyShare=clamp01(1-boundedCloud/100)')&&skybar.includes('title:`Wolkenlücken'),'Nur bei fehlender direkter Sonnenscheindauer darf der komplementäre Himmelsanteil als expliziter Wolkenlücken-Fallback dienen.');
-assert.ok(skybar.includes('const width=cloudBandWidth(boundedCloud);')&&skybar.includes("color:'#aeb3b9'"),'Ab 50 % Gesamtbewölkung muss das Grundband grau sein.');
+assert.ok(skybar.includes('const cloudWidth=cloudBandWidth(boundedCloud);')&&skybar.includes("color:'#aeb3b9'"),'Ab 50 % Gesamtbewölkung muss das Grundband grau sein.');
 assert.ok(app.includes('direkt verfügbare Sonnenscheindauer')&&app.includes('Dieser Fallback ist keine Sonnenscheindauer'),'UI-Vertrag muss direkte Sonnenscheindauer vom Wolkenlücken-Fallback trennen.');
 
 // Shower situations: precipitation is a separate, later SVG layer on the same centre line.
