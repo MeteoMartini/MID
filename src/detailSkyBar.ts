@@ -51,10 +51,6 @@ const sunVisualShare=(sunshineShare:number|null,cloudCover:number)=>{
   // itself is classified separately in baseSkyVisual(), where known total cloud
   // cover has priority by design.
   if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);
-  if(Number.isFinite(cloudCover)){
-    const cloud=clamp(cloudCover,0,100);
-    return clamp01(1-cloud/100);
-  }
   return NaN;
 };
 
@@ -93,65 +89,73 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
 const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):WeatherStripVisual|null=>{
   const cloudKnown=Number.isFinite(cloud),sunshineDirect=sunshineShare!==null&&Number.isFinite(sunshineShare);
 
-  // Total cloud cover is the primary sky-state signal whenever it is available.
-  // Daytime sun and cloud are complementary: <50 % cloud -> yellow clear/sun share,
-  // >=50 % cloud -> grey cloud share. This keeps 69 % cloud grey even if an
-  // aggregated sunshine-duration field happens to report a very high value.
+  // Gesamtbewölkung und Sonnenscheindauer bleiben getrennte physikalische Größen.
+  // Bekannte starke Bewölkung trägt das graue Grundband. Bei geringer Bewölkung
+  // darf Gelb nur eine direkt gelieferte Sonnenscheindauer oder – klar benannt –
+  // den unbedeckten Himmelsanteil darstellen; 1-cloud ist niemals Sonnenscheindauer.
   if(cloudKnown){
     const boundedCloud=clamp(cloud,0,100);
-    if(daylight&&boundedCloud<50){
-      const visualSunshine=clamp01(1-boundedCloud/100),level=skybarAboveHalfLevel(visualSunshine),width=sunBandWidth(visualSunshine);
-      if(width>0)return {
+    const cloudWidth=cloudBandWidth(boundedCloud);
+    if(cloudWidth>0){const level=skybarAboveHalfLevel(boundedCloud/100);return {
+      layer:'base',
+      color:'#aeb3b9',
+      strokeWidth:cloudWidth,
+      thicknessLevel:skybarThicknessLevel(level),
+      opacity:0.96,
+      title:`Gesamtbewölkung${daylight?'':' Nacht'} · ${boundedCloud.toFixed(0)} %`,
+    };}
+    if(daylight&&sunshineDirect){
+      const directSunshine=clamp01(Number(sunshineShare)),width=sunBandWidth(directSunshine);
+      if(width>0){const level=skybarAboveHalfLevel(directSunshine);return {
         layer:'base',
         color:'#ffc229',
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
         opacity:0.98,
-        title:`Sonnenanteil · ${(visualSunshine*100).toFixed(0)} % · komplementär zu ${boundedCloud.toFixed(0)} % Gesamtbewölkung`,
-      };
+        title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % der betrachteten Zeit · Gesamtbewölkung ${boundedCloud.toFixed(0)} %`,
+      };}
     }
-    const width=cloudBandWidth(boundedCloud);
-    if(width>0){const level=skybarAboveHalfLevel(boundedCloud/100);return {
-      layer:'base',
-      color:'#aeb3b9',
-      strokeWidth:width,
-      thicknessLevel:skybarThicknessLevel(level),
-      opacity:0.96,
-      title:`Gesamtbewölkung${daylight?'':' Nacht'} · ${boundedCloud.toFixed(0)} %`,
-    };}
+    if(daylight&&!sunshineDirect){
+      const openSkyShare=clamp01(1-boundedCloud/100),width=sunBandWidth(openSkyShare);
+      if(width>0){const level=skybarAboveHalfLevel(openSkyShare);return {
+        layer:'base',
+        color:'#ffc229',
+        strokeWidth:width,
+        thicknessLevel:skybarThicknessLevel(level),
+        opacity:0.78,
+        title:`Wolkenlücken · ${(openSkyShare*100).toFixed(0)} % unbedeckter Himmelsanteil · Sonnenscheindauer nicht verfügbar`,
+      };}
+    }
     return null;
   }
 
-  // If total cloud cover is missing, relative sunshine duration may still supply a
-  // daytime fallback. It must never be used to override a known cloud-cover value.
   if(daylight&&sunshineDirect){
-    const visualSunshine=clamp01(Number(sunshineShare)),width=sunBandWidth(visualSunshine);
-    if(width>0){const level=skybarAboveHalfLevel(visualSunshine);return {
+    const directSunshine=clamp01(Number(sunshineShare)),width=sunBandWidth(directSunshine);
+    if(width>0){const level=skybarAboveHalfLevel(directSunshine);return {
       layer:'base',
       color:'#ffc229',
       strokeWidth:width,
       thicknessLevel:skybarThicknessLevel(level),
       opacity:0.98,
-      title:`Sonnenschein · ${(visualSunshine*100).toFixed(0)} % der betrachteten Zeit · Bewölkung unbekannt`,
+      title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % der betrachteten Zeit · Bewölkung unbekannt`,
     };}
   }
   return null;
 };
-
 const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{
   const amount=Math.max(0,Number(hour.precipitation??0));
   const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour),snowfall=Math.max(0,Number(hour.snowfall??0)),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
   if(!intensity)return null;
   const {level:rawLevel,label:intensityLabel,basis:intensityBasis}=intensity,level=(rawLevel-1) as SkyBarThicknessIndex,width=skybarThickness(level);
   const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
-  const hasSunshineBase=!!hour.isDay&&(Number.isFinite(cloud)?clamp(cloud,0,100)<50:sunVisualShare(sunshineShare,cloud)>.5);
+  const hasSunshineBase=!!hour.isDay&&sunshineShare!==null&&Number.isFinite(sunshineShare)&&sunshineShare>.5;
   return {
     layer:'precip',
     color:precipitationPhaseColor(parts.type),
     strokeWidth:width,
     thicknessLevel:skybarThicknessLevel(level),
     opacity:1,
-    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='sleetShowers'&&parts.type!=='snowShowers'&&parts.type!=='graupelShowers'&&parts.type!=='hailShowers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf sonnigem Grundband':''}`,
+    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='sleetShowers'&&parts.type!=='snowShowers'&&parts.type!=='graupelShowers'&&parts.type!=='hailShowers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf Sonnenscheindauer-Grundband':''}`,
   };
 };
 
