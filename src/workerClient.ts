@@ -8,6 +8,7 @@ type WorkerCacheEntry={at:number;data:WorkerPayload};
 type WorkerEndpointHealth={failures:number;blockedUntil:number};
 const workerResponseCache=new Map<string,WorkerCacheEntry>();
 const workerEndpointHealth=new Map<string,WorkerEndpointHealth>();
+const workerInflightRequests=new Map<string,Promise<WorkerPayload>>();
 const WORKER_CACHE_LIMIT=36;
 class WorkerRequestError extends Error{constructor(message:string,readonly status=0){super(message);this.name='WorkerRequestError'}}
 
@@ -98,7 +99,7 @@ function parseWorkerPayload<T extends WorkerPayload>(response:Response,text:stri
  return data as T;
 }
 
-export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,params:Record<string,string|number|undefined>={},options:WorkerFetchOptions={}):Promise<T>{
+async function fetchWorkerJsonUncoalesced<T extends WorkerPayload>(mode:string,params:Record<string,string|number|undefined>={},options:WorkerFetchOptions={}):Promise<T>{
  const purpose=options.purpose??'general',candidates=workerBaseCandidates(purpose),cacheKey=stableWorkerCacheKey(purpose,mode,params,options.cacheKey),maxAgeMs=Math.max(0,Number(options.maxAgeMs)||0),staleIfErrorMs=Math.max(maxAgeMs,Number(options.staleIfErrorMs)||0);
  if(maxAgeMs>0){const cached=cachedWorkerPayload<T>(cacheKey,maxAgeMs);if(cached)return cached}
  if(!candidates.length){const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;throw new Error(`Der MID-Datendienst v${MID_VERSION} ist nicht konfiguriert.`)}
@@ -122,4 +123,22 @@ export async function fetchWorkerJson<T extends WorkerPayload>(mode:string,param
  const stale=staleIfErrorMs>0?staleWorkerPayload<T>(cacheKey,staleIfErrorMs):undefined;if(stale)return stale;
  const detail=failures.slice(-3).join(' · ');
  throw new Error(`Der MID-Datendienst ist über ${attempts.length} Verbindung${attempts.length===1?'':'en'} nicht erreichbar${detail?`: ${detail}`:''}. Bitte Netzwerk oder Inhaltsfilter prüfen.`);
+}
+
+
+/**
+ * Coalesce identical foreground worker reads that start before the shared
+ * response cache can be populated. Requests with caller-owned AbortSignals are
+ * intentionally excluded so one consumer can never cancel another consumer.
+ */
+export function fetchWorkerJson<T extends WorkerPayload>(mode:string,params:Record<string,string|number|undefined>={},options:WorkerFetchOptions={}):Promise<T>{
+ if(options.signal)return fetchWorkerJsonUncoalesced<T>(mode,params,options);
+ const purpose=options.purpose??'general',cacheKey=stableWorkerCacheKey(purpose,mode,params,options.cacheKey);
+ const inflightKey=[cacheKey,options.timeoutMs??9000,options.cache??'no-store',Math.max(0,Number(options.maxAgeMs)||0),Math.max(0,Number(options.staleIfErrorMs)||0)].join('|');
+ const existing=workerInflightRequests.get(inflightKey);
+ if(existing)return existing as Promise<T>;
+ const request=fetchWorkerJsonUncoalesced<T>(mode,params,options);
+ workerInflightRequests.set(inflightKey,request as Promise<WorkerPayload>);
+ void request.finally(()=>{if(workerInflightRequests.get(inflightKey)===request)workerInflightRequests.delete(inflightKey)}).catch(()=>undefined);
+ return request;
 }
