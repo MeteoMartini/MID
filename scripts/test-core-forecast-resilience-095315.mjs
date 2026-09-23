@@ -7,15 +7,15 @@ const versionAtLeast=(value,minimum)=>{const a=String(value).split('.').map(Numb
 assert.ok(versionAtLeast(pkg.version,'0.9.53.17'));
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-core-forecast-resilience-095315.mjs'));
-assert.match(weather,/FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v3:'/);
-assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v2:','mid:forecast-core:v1:'\]/);
+assert.match(weather,/FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v4:'/);
+assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v3:','mid:forecast-core:v2:','mid:forecast-core:v1:'\]/);
 assert.match(weather,/FORECAST_CORE_NEARBY_FALLBACK_M=2500/);
 assert.match(weather,/primaryCoreForecast\(value:unknown\)/);
 assert.match(weather,/meta\?\.fallback!==true&&!\/MET Norway\/i/);
 assert.match(weather,/workerForecastCore/);
 assert.match(weather,/fetchWorkerJson<Weather&\{error\?:string\}>\('forecast-core'/);
 assert.match(weather,/const useDirectFirst=priority==='foreground'/);
-assert.match(weather,/directOpenMeteoCoreForecast\(lat,lon,signal,priority\)/);
+assert.match(weather,/directOpenMeteoCoreForecast\(lat,lon,signal,priority,options\)/);
 assert.match(weather,/guardedOpenMeteoJson<Weather>\(url,\{signal:request\.signal,cache:'no-store'\},\{priority,maxRetries:/);
 assert.match(worker,/async function openMeteoCoreForecast\(url\)/);
 assert.match(worker,/CORE_FORECAST_EDGE_FRESH_MS=2\*60\*1000/);
