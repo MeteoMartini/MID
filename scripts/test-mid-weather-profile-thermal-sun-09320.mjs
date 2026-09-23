@@ -52,7 +52,8 @@ for(const token of [
 ])need('24-h-Wetterprofil',cockpit,token);
 for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*','cockpit-meteogram-pro__overlay calendar',' K</dd>'])reject('24-h-Wetterprofil',cockpit,token);
 need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult');
-need('Nebelrisiko',fogRisk,'if(point.isDay&&!explicitFog&&!restrictedVisibility)score=Math.min(score,14)');
+need('Sichtphänomene',fogRisk,"kind:'fog'|'mist'|'haze'|'restricted-visibility'|'fog-risk'|'none'");
+need('Nebelrisiko',fogRisk,"reason='Nebelrisiko'");
 
 need('Kurzfristdaten',shortTerm,'sunshineDuration?:number|null;');
 need('Kurzfristdaten',shortTerm,'const rawSunshineDuration=isQuarterInterval?');
