@@ -96,7 +96,7 @@ function reportFitsVisibility(report:ReportedVisibilityPhenomenon,visibility:num
 }
 
 export function classifyVisibilityPhenomenon(input:VisibilityPhenomenonInput):VisibilityPhenomenonResult{
- const visibility=finite(input.visibility),humidity=effectiveVisibilityHumidity(input),code=Math.round(finite(input.weatherCode)??-1),modelFog=code>=40&&code<=49,modelFreezingFog=code===48||code===49;
+ const visibility=finite(input.visibility),humidity=effectiveVisibilityHumidity(input),code=Math.round(finite(input.weatherCode)??-1),modelFog=code>=42&&code<=49,modelFreezingFog=code===48||code===49;
  const report=input.trustPresentWeather?parseReportedVisibilityPhenomenon(input.presentWeather):undefined;
  let visibilityConflict=false;
  if(report){
