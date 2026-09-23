@@ -1,9 +1,9 @@
-# MID v0.9.85.91
+# MID v0.9.85.92
 
-- Die 14-Tage-Ansicht bleibt auf Smartphones lesbar: Tageskarten haben wieder eine stabile Breite und lassen sich horizontal durchblättern.
-- „Klima“ hat in Menüs und Navigation wieder ein eindeutiges, einheitliches Symbol.
-- Die amtliche DWD-Bodenanalyse ist im Kartenbereich unter „Synoptik · DWD-Bodenanalyse“ direkt auffindbar und klar von Modellkarten getrennt.
-- Für Favoriten mit aktiviertem Berg- oder Wasserprofil erscheinen dezente Direktzugänge am Ortsbereich.
-- Die mobile Einstellungsnavigation ist kompakter. Helles und dunkles MID-Logo werden in passenden Vorschauflächen sichtbar unterschieden.
-- Darstellung, Wetterdarstellung, Inhalte & Navigation sowie Einheiten & Zeit zeigen wieder jeweils die zugehörigen Einstellungen.
-- Die wirkungslosen Auswahlmöglichkeiten „Klassisch“, „Cockpit · Register“ und „Cockpit · Ribbons“ wurden entfernt; die aktuelle Vorhersageansicht bleibt eindeutig.
+- Nebel wird in der Vorhersage und im aktuellen Wetter grundsätzlich nur noch bei einer Sichtweite unter 1.000 m angezeigt.
+- Sichtweiten von 1 bis 8 km werden bei feuchter Luft als feuchter Dunst, Sichtweiten von 1 bis 5 km bei trockener Luft als trockener Dunst unterschieden.
+- Bodennebel, Nebelbänke, partieller Nebel und Nebel in der Umgebung werden nur übernommen, wenn eine geeignete vertrauenswürdige lokale Wetterbeobachtung dies ausdrücklich meldet.
+- Ein Modell-Nebelcode kann eine belastbare Sichtweite über 1.000 m nicht mehr überstimmen.
+- Temperaturen unter 0 °C machen aus normalem Nebel nicht automatisch Reif- oder gefrierenden Nebel.
+- Aktuelles Wetter, Kurzfrist, 24-Stunden-Profil und die daraus abgeleiteten Tagesansichten verwenden denselben Sicht- und Nebelvertrag.
+- Der Hinweisbereich heißt nun neutral „Sichttrübung“ und unterscheidet vorhandenen Dunst/Nebel von einem erst prognostizierten Nebelrisiko.

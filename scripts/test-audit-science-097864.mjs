@@ -18,8 +18,9 @@ const warning=load('src/weather-src/30-ensemble-climate-hazards.tsfrag',['warnin
 for(const value of [null,undefined,'',' '])assert.ok(Number.isNaN(warning.warningEnsembleValue({hourly:{temperature_2m:[value]}},'temperature_2m','',0)));
 assert.equal(warning.warningEnsembleValue({hourly:{temperature_2m:[0]}},'temperature_2m','',0),0);
 const intervalSky=load('src/precipitationIntervals.ts',['precipitationCode','drySkyCode']);
-const shortTermSky=load('src/ShortTermForecast.tsx',['observedSkyCode']);
-const anchorSky=load('src/forecastLocalAnchor.ts',['observedSkyCode']);
+const visibility=load('src/visibilityPhenomena.ts',['finite','clamp','derivedHumidity','effectiveVisibilityHumidity','fromWw','parseReportedVisibilityPhenomenon','reportFitsVisibility','classifyVisibilityPhenomenon']);
+const shortTermSky=load('src/ShortTermForecast.tsx',['observedSkyCode'],{classifyVisibilityPhenomenon:visibility.classifyVisibilityPhenomenon});
+const anchorSky=load('src/forecastLocalAnchor.ts',['observedSkyCode'],{classifyVisibilityPhenomenon:visibility.classifyVisibilityPhenomenon});
 const fusionSky=load('src/forecastFusion.ts',['localObservedSkyCode','drySkyCode']);
 assert.equal(intervalSky.drySkyCode({code:61,cloud:null,visibility:10000,humidity:50,temperature:18}),2,'Eine fehlende Wolkenbeobachtung darf im Vorwärtsslot nicht als klarer Himmel erscheinen.');
 for(const sky of [shortTermSky,anchorSky,fusionSky])assert.equal(sky.observedSkyCode?sky.observedSkyCode(61,null,null,10000,50,18):sky.localObservedSkyCode(61,null,null,10000,50,18),2,'Ohne Wolkendaten muss die kurzfristige Trockenableitung neutral bleiben.');

@@ -18,7 +18,7 @@ export type WeatherPictogramCloudProfile={
 
 export type SynopticPhenomenonCode=
  'DZ'|'FZDZ'|'RA'|'FZRA'|'SHRA'|'SN'|'SG'|'SHSN'|'RASN'|'SHRASN'|'SHGS'|'SHGR'|'IC'|'PL'|'GS'|'GR'|
- 'TS'|'TSRA'|'TSSN'|'TSGR'|'TSGS'|'BR'|'FG'|'FZFG'|'HZ'|'FU'|'DU'|'SA'|'SQ'|'FC';
+ 'TS'|'TSRA'|'TSSN'|'TSGR'|'TSGS'|'BR'|'FG'|'FZFG'|'MIFG'|'BCFG'|'PRFG'|'VCFG'|'HZ'|'FU'|'DU'|'SA'|'SQ'|'FC';
 
 export type WeatherPictogramSpec={kind:WeatherPictogramKind;intensity:WeatherPictogramIntensity;phenomenon?:string};
 
@@ -59,6 +59,9 @@ export function weatherPictogramKind(code:number):WeatherPictogramKind{
  if(c===1)return'mostly-clear';
  if(c===2)return'partly-cloudy';
  if(c===3)return'cloudy';
+ if(c===5)return'haze';
+ if(c===10)return'mist';
+ if(c===11||c===12)return'fog';
  if(c>=40&&c<=47)return'fog';
  if([48,49].includes(c))return'rime-fog';
  if([50,51,52,53,54,55].includes(c))return'drizzle';
@@ -99,6 +102,7 @@ export function synopticPhenomenonPictogram(value:string):WeatherPictogramSpec|n
  else if(has('TS')&&has('GR'))kind='thunder-hail';
  else if(has('TS'))kind='thunder';
  else if(has('FZFG'))kind='rime-fog';
+ else if(has('MIFG')||has('BCFG')||has('PRFG')||has('VCFG'))kind='fog';
  else if(has('FG'))kind='fog';
  else if(has('BR'))kind='mist';
  else if(has('HZ')||has('FU')||has('DU')||has('SA'))kind='haze';
@@ -136,6 +140,10 @@ export function synopticPhenomenonDescription(value:string):string{
   return`${strength}Gewitter`.trim();
  }
  if(has('FZFG'))return'Gefrierender Nebel';
+ if(has('MIFG'))return'Bodennebel';
+ if(has('BCFG'))return'Nebelbänke';
+ if(has('PRFG'))return'Partieller Nebel';
+ if(has('VCFG'))return'Nebel in der Umgebung';
  if(has('FG'))return'Nebel';
  if(has('BR'))return'Feuchter Dunst';
  if(has('HZ'))return'Trockener Dunst';

@@ -30,7 +30,8 @@ for(const [code,label] of [
  [89,'Leichter Hagelschauer'],[90,'Mäßiger bis starker Hagelschauer']
 ])assert.ok(weather.includes(`${code}:'${label}'`),`DWD/WMO-ww ${code} muss fachlich/grammatisch ${label} heißen.`);
 
-assert.ok(app.includes("currentObservedWeatherCode=currentObservedRaw&&/^\\d{1,2}$/.test(currentObservedRaw)?Number(currentObservedRaw):undefined"),'Numerisches DWD-SYNOP-ww muss als Wettercode erkannt werden.');
+assert.ok(app.includes('currentVisibilityReport=currentObservedRaw?parseReportedVisibilityPhenomenon(currentObservedRaw):undefined'),'Sichtbezogene DWD-/METAR-Meldungen müssen vor allgemeinen Wettercodes fachlich klassifiziert werden.');
+assert.ok(app.includes("currentObservedWeatherCode=currentObservedRaw&&!currentVisibilityReport&&/^\\d{1,2}$/.test(currentObservedRaw)?Number(currentObservedRaw):undefined"),'Numerisches DWD-SYNOP-ww außerhalb der Sichtcodes muss weiter als Wettercode erkannt werden.');
 assert.ok(app.includes('currentWeatherLabel=label(currentObservedWeatherCode)'),'Numerisches DWD-SYNOP-ww muss den zentralen deutschen DWD/WMO-Text verwenden.');
 assert.ok(app.includes('weatherPictogramIntensity(currentObservedWeatherCode)'),'Numerisches SYNOP-ww muss auch die passende Piktogrammintensität setzen.');
 

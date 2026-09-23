@@ -44,7 +44,7 @@ const cold=precipitationModule.reconcileForecastPrecipitation({...base,temperatu
 assert.equal(cold.code,85,'Plausibler Schneeschauer im Frostbereich wurde fälschlich umklassifiziert.');
 assert.equal(cold.snowfall,1,'Plausibler Schneefallwert ging verloren.');
 
-for(const token of ['temperature:n(w.hourly.temperature_2m[i],NaN)','temperature:n(w.daily.temperature_2m_min[i],NaN)','phaseAdjusted=true'])assert.ok(weatherFragment.includes(token)||precipitation.includes(token),`Zentraler Phasenvertrag fehlt: ${token}`);
+for(const token of ['temperature=n(w.hourly.temperature_2m[i],NaN)','temperature:n(w.daily.temperature_2m_min[i],NaN)','phaseAdjusted=true'])assert.ok(weatherFragment.includes(token)||precipitation.includes(token),`Zentraler Phasenvertrag fehlt: ${token}`);
 assert.ok(weatherBuilt.includes('temperature:n(w.daily.temperature_2m_min[i],NaN)'),'Wetteraggregat enthält die Tages-Phasenprüfung nicht.');
 for(const token of ['language?:string','Originaltext: ${language}'])assert.ok(weatherBuilt.includes(token)||app.includes(token),`Warntext-/Sprachvertrag fehlt: ${token}`);
 const coverageView=await readFile(new URL('src/ForecastConfidence.tsx',root),'utf8');

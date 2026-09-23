@@ -18,7 +18,7 @@ const dataEnd=cockpit.indexOf('</div></div>',dataStart);
 const dataBlock=cockpit.slice(dataStart,dataEnd);
 assert.ok(dataStart>=0&&dataEnd>dataStart,'Einzeldatenblock nicht gefunden.');
 assert.ok(!dataBlock.includes('Δ gefühlt'),'Redundante Deltatemperatur wird in den Einzeldaten noch angezeigt.');
-for(const token of ['Temperatur / gefühlt / Taupunkt','Thermisches Empfinden','Sichtweite + Nebelrisiko','Wolken gesamt / hoch / mittel / tief + UVI'])assert.ok(cockpit.includes(token),`Fachbegriff fehlt weiterhin: ${token}`);
+for(const token of ['Temperatur / gefühlt / Taupunkt','Thermisches Empfinden','Sichtweite + Sichttrübung','Wolken gesamt / hoch / mittel / tief + UVI'])assert.ok(cockpit.includes(token),`Fachbegriff fehlt weiterhin: ${token}`);
 assert.match(styles,/profile-detail-label-short\{display:none\}/,'Responsive Kurzlabel-Strategie fehlt.');
 assert.match(confidence,/Robuste meteorologische Ensembleübereinstimmung/,'Fachliche Konfidenzaussage wurde bei der Verdichtung entfernt.');
 console.log(`MID v${pkg.version} Viewport-/Textflussvertrag: Header, Bottom-Navigation, Prognose-Kompass, 24-h-Einzeldaten und Pegelzugang geschützt.`);

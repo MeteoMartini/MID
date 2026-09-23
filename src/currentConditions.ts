@@ -1,3 +1,4 @@
+import {classifyVisibilityPhenomenon} from './visibilityPhenomena';
 export type HyperlocalSkyCondition={code:number;label:string;cloudOktas?:number};
 
 type HyperlocalSkyInput={
@@ -6,6 +7,7 @@ type HyperlocalSkyInput={
  visibility?:number;
  humidity?:number;
  temperature?:number;
+ dewPoint?:number;
  cloudObserved:boolean;
  visibilityObserved:boolean;
 };
@@ -20,8 +22,8 @@ function skyLabelFromOktas(oktas:number){if(oktas===0)return'Wolkenlos';if(oktas
  * den reinen Bewölkungszustand übersteuern.
  */
 export function hyperlocalSkyCondition(input:HyperlocalSkyInput):HyperlocalSkyCondition|undefined{
- const fallbackCode=Math.round(Number(input.fallbackCode)||0),cloud=finite(input.cloudCover),visibility=finite(input.visibility),humidity=finite(input.humidity),temperature=finite(input.temperature);
- if(input.visibilityObserved&&visibility!==undefined&&visibility<=1000&&humidity!==undefined&&humidity>=92){const code=temperature!==undefined&&temperature<=0?48:45;return{code,label:code===48?'Reifnebel':'Nebel'}}
+ const fallbackCode=Math.round(Number(input.fallbackCode)||0),cloud=finite(input.cloudCover),visibility=finite(input.visibility),humidity=finite(input.humidity),temperature=finite(input.temperature),dewPoint=finite(input.dewPoint);
+ if(input.visibilityObserved&&visibility!==undefined){const phenomenon=classifyVisibilityPhenomenon({weatherCode:fallbackCode,visibility,humidity,temperature,dewPoint});if(phenomenon.displayCode!==undefined)return{code:phenomenon.displayCode,label:phenomenon.label}}
  if(!input.cloudObserved||cloud===undefined)return undefined;
  const oktas=Math.max(0,Math.min(8,Math.round(cloud/12.5))),code=oktas===0?0:oktas<=2?1:oktas<=4?2:3;
  return{code:Number.isFinite(code)?code:fallbackCode,label:skyLabelFromOktas(oktas),cloudOktas:oktas};
