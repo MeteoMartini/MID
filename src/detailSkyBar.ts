@@ -44,7 +44,7 @@ type WeatherStripVisual={
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 const clamp01=(value:number)=>clamp(value,0,1);
 
-const sunVisualShare=(sunshineShare:number|null,cloudCover:number)=>{
+const sunVisualShare=(sunshineShare:number|null,_cloudCover?:number)=>{
   // Keep the physical sunshine-duration helper independent from the sky-state
   // classification. If a direct sunshine share exists it remains authoritative
   // for that parameter; cloud complement is only its fallback. The Skybar base
