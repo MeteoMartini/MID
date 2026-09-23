@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.94",
+  "releaseVersion": "0.9.85.95",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -521,7 +521,11 @@
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
     "scripts/test-mid-18-2-7-responsive-ia-098590.mjs",
     "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs",
-    "scripts/test-fourteen-day-replit-fluid-grid-098593.mjs"
+    "scripts/test-fourteen-day-replit-fluid-grid-098593.mjs",
+    "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
+    "scripts/test-feature-chunk-budget-098595.mjs",
+    "scripts/test-aggregate-source-of-truth-098595.mjs",
+    "scripts/test-dependency-review-098595.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -961,7 +965,11 @@
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
     "scripts/test-mid-18-2-7-responsive-ia-098590.mjs",
-    "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs"
+    "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs",
+    "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
+    "scripts/test-feature-chunk-budget-098595.mjs",
+    "scripts/test-aggregate-source-of-truth-098595.mjs",
+    "scripts/test-dependency-review-098595.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1672,7 +1680,14 @@
     "src/midC18ResponsiveCorrections.css",
     "MID_RELEASE_NOTES_0.9.85.85.json",
     "scripts/test-mid-18-2-7-responsive-ia-098590.mjs",
-    "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs"
+    "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs",
+    "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
+    "scripts/test-feature-chunk-budget-098595.mjs",
+    "scripts/test-aggregate-source-of-truth-098595.mjs",
+    "scripts/test-dependency-review-098595.mjs",
+    "tools/ruc/native_cadence.py",
+    "MID_IMPLEMENTATION_0.9.85.95.md",
+    "MID_RELEASE_NOTES_0.9.85.95.json"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1750,7 +1765,11 @@
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
-    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
+    "scripts/test-feature-chunk-budget-098595.mjs",
+    "scripts/test-aggregate-source-of-truth-098595.mjs",
+    "scripts/test-dependency-review-098595.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -1959,7 +1978,12 @@
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "src/midC18ForecastRows.css",
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
-    "src/midC18ResponsiveCorrections.css"
+    "src/midC18ResponsiveCorrections.css",
+    "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
+    "scripts/test-feature-chunk-budget-098595.mjs",
+    "scripts/test-aggregate-source-of-truth-098595.mjs",
+    "scripts/test-dependency-review-098595.mjs",
+    "tools/ruc/native_cadence.py"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -2261,9 +2285,13 @@
     "scripts/test-mid-18-2-4-today-profile-098580.mjs",
     "scripts/test-mid-18-2-4-d2-trend-night-098581.mjs",
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
-    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
+    "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
+    "scripts/test-mid-18-2-8-j1-j5-098595.mjs",
+    "scripts/test-feature-chunk-budget-098595.mjs",
+    "scripts/test-aggregate-source-of-truth-098595.mjs",
+    "scripts/test-dependency-review-098595.mjs"
   ],
-  "version": "0.9.85.94",
+  "version": "0.9.85.95",
   "updatedAt": "2026-09-22T06:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
@@ -2365,7 +2393,9 @@
     "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md",
     "MID_RUC_NATIVE_CADENCE_0.9.85.73.md",
     "MID_RUC_PAGES_BUDGET_0.9.85.74.md",
-    "MID_E_FORECAST_ROWS_0.9.85.83.md"
+    "MID_E_FORECAST_ROWS_0.9.85.83.md",
+    "MID_IMPLEMENTATION_0.9.85.95.md",
+    "MID_RELEASE_NOTES_0.9.85.95.json"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

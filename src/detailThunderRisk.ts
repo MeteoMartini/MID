@@ -1,7 +1,7 @@
 export type DetailThunderRiskLevel='elevated'|'high';
 export const DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD=30;
-export type DetailThunderRisk={level:DetailThunderRiskLevel;shortLabel:string;label:string;score:number;/** Legacy diagnostic 0–100 score; not a calibrated event probability. */percent:number;signals:string[]};
-export function detailThunderSignalScore(risk:Pick<DetailThunderRisk,'percent'>|null|undefined){return Math.max(0,Math.min(100,Math.round(Number(risk?.percent)||0)))}
+export type DetailThunderRisk={level:DetailThunderRiskLevel;shortLabel:string;label:string;score:number;/** Diagnostic signal strength 0–100; never an event probability. */signalScore:number;signals:string[]};
+export function detailThunderSignalScore(risk:Pick<DetailThunderRisk,'signalScore'>|null|undefined){return Math.max(0,Math.min(100,Math.round(Number(risk?.signalScore)||0)))}
 export type DetailThunderRiskSample={
  code?:number;
  cape?:number;
@@ -89,14 +89,14 @@ export function significantHourlyThunderRisk(sample:DetailThunderRiskSample):Det
  if(moisture>=2)signals.push('Feuchte');
  if(trigger>=2)signals.push('Schauer/Trigger');
 
- if(hailThunder){const normalizedScore=Math.max(score,10);return{level:'high',shortLabel:'hoch',label:'Hohes Gewitterrisiko – direktes numerisches Gewittersignal mit Graupel oder Hagel',score:normalizedScore,percent:thunderSignalScore('high',normalizedScore,true,true),signals:['WMO-Gewittercode',...signals]};}
- if(code===97){const normalizedScore=Math.max(score,9);return{level:'high',shortLabel:'hoch',label:'Hohes Gewitterrisiko – direktes numerisches Gewittersignal',score:normalizedScore,percent:thunderSignalScore('high',normalizedScore,true,false),signals:['WMO-Gewittercode',...signals]};}
- if(code===95&&((instability>=3.5&&moisture>=1)||score>=7)){const normalizedScore=Math.max(score,8);return{level:'high',shortLabel:'hoch',label:'Hohes Gewitterrisiko – Gewittersignal durch mehrere Modellindizes gestützt',score:normalizedScore,percent:thunderSignalScore('high',normalizedScore,true,false),signals:['WMO-Gewittercode',...signals]};}
- if(directThunder){const normalizedScore=Math.max(score,6);return{level:'elevated',shortLabel:'erhöht',label:'Erhöhtes Gewitterrisiko – direktes numerisches Gewittersignal',score:normalizedScore,percent:thunderSignalScore('elevated',normalizedScore,true,false),signals:['WMO-Gewittercode',...signals]};}
+ if(hailThunder){const normalizedScore=Math.max(score,10);return{level:'high',shortLabel:'hoch',label:'Hohes Gewittersignal – direktes numerisches Gewittersignal mit Graupel oder Hagel',score:normalizedScore,signalScore:thunderSignalScore('high',normalizedScore,true,true),signals:['WMO-Gewittercode',...signals]};}
+ if(code===97){const normalizedScore=Math.max(score,9);return{level:'high',shortLabel:'hoch',label:'Hohes Gewittersignal – direktes numerisches Gewittersignal',score:normalizedScore,signalScore:thunderSignalScore('high',normalizedScore,true,false),signals:['WMO-Gewittercode',...signals]};}
+ if(code===95&&((instability>=3.5&&moisture>=1)||score>=7)){const normalizedScore=Math.max(score,8);return{level:'high',shortLabel:'hoch',label:'Hohes Gewittersignal – Gewittersignal durch mehrere Modellindizes gestützt',score:normalizedScore,signalScore:thunderSignalScore('high',normalizedScore,true,false),signals:['WMO-Gewittercode',...signals]};}
+ if(directThunder){const normalizedScore=Math.max(score,6);return{level:'elevated',shortLabel:'erhöht',label:'Erhöhtes Gewittersignal – direktes numerisches Gewittersignal',score:normalizedScore,signalScore:thunderSignalScore('elevated',normalizedScore,true,false),signals:['WMO-Gewittercode',...signals]};}
 
- if(!stronglyCapped&&instability>=4.5&&moisture>=2&&trigger>=2&&score>=8)return{level:'high',shortLabel:'hoch',label:'Hohes Gewitterrisiko aus CAPE, Lifted Index, CIN sowie Feuchte- und Schauersignalen',score,percent:thunderSignalScore('high',score,false,false),signals};
- if(!stronglyCapped&&instability>=2.5&&moisture>=1&&trigger>=1&&score>=5.5)return{level:'elevated',shortLabel:'erhöht',label:'Erhöhtes Gewitterrisiko aus mehreren Stabilitäts-, Feuchte- und Auslöseparametern der kanonischen Prognose',score,percent:thunderSignalScore('elevated',score,false,false),signals};
- if(!stronglyCapped&&instability>=1.5&&moisture>=1&&trigger>=1&&score>=2.8){const percent=thunderSignalScore('elevated',score,false,false);if(percent>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD)return{level:'elevated',shortLabel:'möglich',label:'Modelliertes Gewitterrisiko aus kombinierter Instabilität, Feuchte und Auslösung',score,percent,signals};}
+ if(!stronglyCapped&&instability>=4.5&&moisture>=2&&trigger>=2&&score>=8)return{level:'high',shortLabel:'hoch',label:'Hohes Gewittersignal aus CAPE, Lifted Index, CIN sowie Feuchte- und Schauersignalen',score,signalScore:thunderSignalScore('high',score,false,false),signals};
+ if(!stronglyCapped&&instability>=2.5&&moisture>=1&&trigger>=1&&score>=5.5)return{level:'elevated',shortLabel:'erhöht',label:'Erhöhtes Gewittersignal aus mehreren Stabilitäts-, Feuchte- und Auslöseparametern der kanonischen Prognose',score,signalScore:thunderSignalScore('elevated',score,false,false),signals};
+ if(!stronglyCapped&&instability>=1.5&&moisture>=1&&trigger>=1&&score>=2.8){const signalScore=thunderSignalScore('elevated',score,false,false);if(signalScore>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD)return{level:'elevated',shortLabel:'möglich',label:'Modelliertes Gewittersignal aus kombinierter Instabilität, Feuchte und Auslösung',score,signalScore,signals};}
  return null;
 }
 
@@ -108,7 +108,7 @@ export function significantHourlyThunderRisk(sample:DetailThunderRiskSample):Det
 export function significantPeriodThunderRisk(samples:TimedDetailThunderRiskSample[],horizonHours=6):PeriodThunderRisk|null{
  const evaluated=samples.map((sample,index)=>({sample,index,risk:significantHourlyThunderRisk(sample)})).filter((row):row is typeof row&{risk:DetailThunderRisk}=>Boolean(row.risk));
  if(!evaluated.length)return null;
- const strongest=evaluated.reduce((best,row)=>row.risk.percent>best.risk.percent||(row.risk.percent===best.risk.percent&&row.risk.score>best.risk.score)?row:best,evaluated[0]);
+ const strongest=evaluated.reduce((best,row)=>row.risk.signalScore>best.risk.signalScore||(row.risk.signalScore===best.risk.signalScore&&row.risk.score>best.risk.score)?row:best,evaluated[0]);
  const directThunder=samples.some(sample=>[95,96,97,98,99].includes(Math.round(finite(sample.code,-1))));
  return{...strongest.risk,horizonHours:Math.max(1,Math.round(finite(horizonHours,6))),peakIndex:strongest.index,peakTime:strongest.sample.time,peakEpoch:Number.isFinite(strongest.sample.epoch)?Number(strongest.sample.epoch):undefined,directThunder};
 }

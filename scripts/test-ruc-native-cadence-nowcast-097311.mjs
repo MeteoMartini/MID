@@ -8,7 +8,7 @@ for(const token of ["RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')","mode=='rap
 assert.ok(cadence.includes('"CAPE_MU": 3600')&&cadence.includes('"CIN_MU": 3600')&&cadence.includes('"CAPE_ML": 900')&&cadence.includes('"VIS": 900')&&cadence.includes('"CEILING": 900'),'Machine-readable native cadence contract is incomplete.');
 assert.ok(!fetcher.match(/RAPID_OPTIONAL_15=.*CAPE_MU/)&&!fetcher.match(/RAPID_OPTIONAL_15=.*CIN_MU/),'Hourly MU-CAPE/CIN must stay out of the 15-minute path.');
 assert.ok(!fetcher.match(/RAPID_OPTIONAL_15=.*ASOB_S/),'Unused solar full-grid fields must stay out of the free rapid fetch path.');
-assert.ok(fetcher.includes("SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')"),'Specialist hourly RUC products must be staged without becoming hard requirements.');
+assert.ok(fetcher.includes("SPECIALIST_HOURLY_OPTIONAL=('CAPE_MU','CIN_MU','VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')"),'Specialist hourly RUC products must be staged without becoming hard requirements.');
 assert.ok(!fetcher.includes("'SRH','WSHEAR_U','WSHEAR_V'"),'SRH/WSHEAR must not be auto-staged before their DWD lvt1 layer semantics are explicitly selected.');
 for(const token of ["rapid5_times=rapid_targets(a.run,5,6)","rapid15_times=rapid_targets(a.run,15,6)","rapid-5m.bin","rapid-15m.bin","rapid-extreme.json","rapid-reflectivity-15m.bin","rapid-severe-15m.bin","rapid-solar-15m.bin","specialist-hourly.bin","rapid-phase-15m.bin"])assert.ok(builder.includes(token),`Builder rapid contract missing: ${token}`);
 for(const token of ['RAPID_5M_FIELDS','RAPID_15M_FIELDS','REFLECTIVITY_15M_FIELDS','SEVERE_15M_FIELDS','SOLAR_15M_FIELDS','SPECIALIST_HOURLY_FIELDS','PHASE_15M_FIELDS'])assert.ok(pack.includes(token),`Wire spec missing: ${token}`);
@@ -20,5 +20,5 @@ assert.ok(app.includes('rucRapidMinutes15:forecastFusion?.rapidMinutes15'),'Cano
 assert.ok(extreme.includes('dachExtremeApplyRucSupport')&&extreme.includes('dachExtremeRucPeriodForOutlook')&&extreme.includes('subthreshold RUC-Werte erzeugen keine höhere I-Stufe'),'Extreme outlook must use threshold-gated RUC support across the available 0–14 h model run.');
 assert.ok(builder.includes("'schema':'mid.dwd.ruc.rapid-extreme.v4'")&&builder.includes("('6-12',6,12)")&&builder.includes("('12-14',12,14)"),'RUC extreme summary must expose 0–6, 6–12 and 12–14 support periods.');
 assert.ok(cockpit.includes('Niederschlag 5 min bis +6 h')&&cockpit.includes('Konvektion/Reflektivität 15 min bis +6 h'),'Model text must expose parameter-native cadence.');
-assert.ok(weather.includes('fehlende Temperatur-, Wind-, Druck- oder Wolkenzwischenwerte werden nicht interpoliert'),'Model text must reject fabricated high-frequency state fields.');
+assert.ok(weather.includes('fehlende Temperatur-, Wind-, Druck- oder Wolkenzwischenwerte werden nicht als native Viertelstundenwerte ausgegeben'),'Model text must reject fabricated high-frequency state fields.');
 console.log('RUC native cadence/nowcast contract passed: native 5/15-min products through +6 h, hourly state core through +14 h, radar priority and threshold-gated full-run extreme support.');

@@ -15,7 +15,7 @@ from native_cadence import is_native_at
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 SEVERE_PARAM_MAP={'LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
 SOLAR_PARAM_MAP={'ASOB_S':'asob_s','ASWDIR_S':'aswdir_s','ASWDIFD_S':'aswdifd_s'}
-SPECIALIST_PARAM_MAP={'VIS':'visibility','CEILING':'ceiling','HZEROCL':'freezing_level_height','SNOWLMT':'snowline_height','CLCM':'cloud_cover_mid','CLCH':'cloud_cover_high','T_G':'surface_temperature','H_SNOW':'snow_depth'}
+SPECIALIST_PARAM_MAP={'CAPE_MU':'cape_mu','CIN_MU':'cin_mu','VIS':'visibility','CEILING':'ceiling','HZEROCL':'freezing_level_height','SNOWLMT':'snowline_height','CLCM':'cloud_cover_mid','CLCH':'cloud_cover_high','T_G':'surface_temperature','H_SNOW':'snow_depth'}
 RAPID_STATE_PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','VMAX_10M':'wind_gusts_10m','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CLCM':'cloud_cover_mid','CLCH':'cloud_cover_high','VIS':'visibility','CEILING':'ceiling','HZEROCL':'freezing_level_height','SNOWLMT':'snowline_height','T_G':'surface_temperature'}
 RUC_BBOX=(-3.85,43.18,20.22,58.05)
 if not is_native_at('CAPE_ML',900) or not is_native_at('CIN_ML',900): raise RuntimeError('RUC CAPE_ML/CIN_ML cadence contract mismatch')
@@ -142,7 +142,7 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
     tree=cKDTree(xyz(np.asarray(lats,dtype=np.float64),np.asarray(lons,dtype=np.float64)));cells=[]
     severe_fields=severe_fields or {};deterministic_fields=deterministic_fields or {};specialist_fields=specialist_fields or {};phase_fields=phase_fields or {};eps_period_summary=eps_period_summary or {}
     total6=np.nansum(rapid15_precip[1:],axis=0);max15=np.nanmax(rapid15_precip,axis=0);peak5=np.nanmax(rapid5_precip*12,axis=0);max1h_rapid=_max_rolling_sum(rapid5_precip,12,1);maxcape=np.nanmax(rapid15_cape,axis=0);mincin=np.nanmin(rapid15_cin,axis=0)
-    maxdbz=np.nanmax(severe_fields['dbz_cmax'],axis=0) if 'dbz_cmax' in severe_fields else None;maxuh=np.nanmax(severe_fields['uh_max'],axis=0) if 'uh_max' in severe_fields else None;maxlpi=np.nanmax(severe_fields['lpi_max'],axis=0) if 'lpi_max' in severe_fields else (np.nanmax(severe_fields['lpi'],axis=0) if 'lpi' in severe_fields else None);maxecho=np.nanmax(severe_fields['echo_top_m'],axis=0) if 'echo_top_m' in severe_fields else None;maxhail=np.nanmax(severe_fields['hail_gsp'],axis=0) if 'hail_gsp' in severe_fields else None;maxcape_mu=np.nanmax(severe_fields['cape_mu'],axis=0) if 'cape_mu' in severe_fields else None;mincin_mu=np.nanmin(severe_fields['cin_mu'],axis=0) if 'cin_mu' in severe_fields else None
+    maxdbz=np.nanmax(severe_fields['dbz_cmax'],axis=0) if 'dbz_cmax' in severe_fields else None;maxuh=np.nanmax(severe_fields['uh_max'],axis=0) if 'uh_max' in severe_fields else None;maxlpi=np.nanmax(severe_fields['lpi_max'],axis=0) if 'lpi_max' in severe_fields else (np.nanmax(severe_fields['lpi'],axis=0) if 'lpi' in severe_fields else None);maxecho=np.nanmax(severe_fields['echo_top_m'],axis=0) if 'echo_top_m' in severe_fields else None;maxhail=np.nanmax(severe_fields['hail_gsp'],axis=0) if 'hail_gsp' in severe_fields else None
     rapid_rain=np.nansum(phase_fields.get('rain',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_snow=np.nansum(phase_fields.get('snowfall_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_graupel=np.nansum(phase_fields.get('graupel_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None
     base_time=datetime.fromisoformat(run.replace('Z','+00:00')).astimezone(timezone.utc);deterministic_times=list(deterministic_times or [])
     leads=[(value-base_time).total_seconds()/3600 for value in deterministic_times]
@@ -175,6 +175,10 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
        'freezingLevelMinM':stat(specialist_fields.get('freezing_level_height'),state,'min'),
        'snowlineMinM':stat(specialist_fields.get('snowline_height'),state,'min'),
       }
+    # MU-CAPE/CIN stay on their native hourly valid times; only the 15-minute ML fields supersede the hourly core.
+    _,rapid_state=period_arrays(0,6)
+    maxcape_mu=stat(specialist_fields.get('cape_mu'),rapid_state,'max')
+    mincin_mu=stat(specialist_fields.get('cin_mu'),rapid_state,'min')
     # Native rapid data supersedes the coarser hourly precipitation/convection diagnostics only in +0–6 h.
     period_cubes['0-6'].update({'precipitationMm':total6,'max1hMm':max1h_rapid,'max15mMm':max15,'peak5mRateMmh':peak5,'cape':maxcape,'cin':mincin,'nativeRapid':True,'dbzCmax':maxdbz,'uhMax':maxuh,'lpiMax':maxlpi,'echoTopM':maxecho,'hailGspMax':maxhail,'capeMu':maxcape_mu,'cinMu':mincin_mu,'rainPhaseMm':rapid_rain,'snowPhaseWaterEquivalentMm':rapid_snow,'graupelPhaseWaterEquivalentMm':rapid_graupel})
     def value_at(values,index,digits=1):

@@ -12,7 +12,7 @@ const rapid=compile(fusion,'forecastFusion.ts'),thunder=compile(thunderSource,'t
 const strongSample={time:'2026-08-31T20:15',epoch:Date.now()+30*60000,precipitation:1.4,peakRateMmh:31,cape:1500,capeMu:1900,convectiveInhibition:35,cinMu:20,dbzCmax:53,lpiMax:380,uhMax:145,echoTopM:11200,updraftMax:16};
 const strong=rapid.rapidThunderRisk(strongSample);
 assert.ok(strong&&['likely','high'].includes(strong.level),`Stark gestützte Rapid-Konvektion erzeugt kein Gewitterrisiko: ${JSON.stringify(strong)}`);
-assert.ok(strong.percent>=60,'Stark gestützte Rapid-Konvektion bleibt unter der Wahrscheinlichkeitsstufe.');
+assert.ok(strong.signalScore>=60,'Stark gestützte Rapid-Konvektion bleibt unter der Wahrscheinlichkeitsstufe.');
 assert.equal(rapid.rapidThunderForecastCode(82,strong),95,'Mehrparameter-Rapid-Diagnose erzeugt keinen prognostischen WMO-95-Code.');
 assert.equal(rapid.rapidThunderForecastCode(95,null),95,'Bestehender numerischer Gewittercode wird ohne Rapid unzulässig herabgestuft.');
 const loneLpi=rapid.rapidThunderRisk({epoch:Date.now()+15*60000,lpiMax:1200,cape:0,capeMu:0,convectiveInhibition:20,precipitation:0,peakRateMmh:0,dbzCmax:10});
@@ -20,7 +20,7 @@ assert.equal(loneLpi,null,'Ein einzelnes LPI-Signal darf ohne Instabilität und 
 
 const cell={id:'K3D-SHOWER',latitude:50.8,longitude:7.1,currentDistanceKm:12,siteBearingDeg:270,relevanceDistanceKm:10,forecastDistanceKm:8,forecastEffectiveDistanceKm:7,forecastUncertaintyKm:3,forecastTime:'2026-08-31T20:40:00Z',forecastLatitude:50.81,forecastLongitude:7.2,motionDirectionDeg:90,arrivalMinutes:25,isApproaching:true,severity:2,severityPrecise:2.2,trend:1,hailFlag:0,heavyRainFlag:1,gustFlag:1,lightningRate:0,areaHail:0,areaLargeHail:0,speedKmh:38,vilKgM2:45,maxReflectivityDbz:62,echoTopKm:9};
 const nowcast={available:true,coverage:true,provider:'DWD KONRAD3D',observedAt:'2026-08-31T20:00:00Z',ageMinutes:5,cellsFound:1,nearbyCells:[cell],nearest:cell,summary:'Starke Radarzelle'};
-const rapidContext={level:strong.level,percent:strong.percent,signals:strong.signals,peakTime:strong.peakTime,peakEpoch:strong.peakEpoch,diagnostics:strong.diagnostics};
+const rapidContext={level:strong.level,signalScore:strong.signalScore,support:strong.support,signals:strong.signals,peakTime:strong.peakTime,peakEpoch:strong.peakEpoch,sample:strong.sample,diagnostics:strong.diagnostics};
 const observed=thunder.combineThunderstormInformation(nowcast,[],null,null,'Niederkassel',{rapidRisk:rapidContext});
 assert.equal(observed?.phenomenon,'strong-shower','Blitzlose aktuelle KONRAD3D-Zelle wurde fälschlich als beobachtetes Gewitter umbenannt.');
 assert.equal(observed?.sectionLabel,'Schauerinformation');

@@ -58,8 +58,6 @@ REFLECTIVITY_15M_FIELDS: tuple[FieldSpec, ...] = (
 )
 
 SEVERE_15M_FIELDS: tuple[FieldSpec, ...] = (
-    FieldSpec('cape_mu', 'J/kg', 0.1),
-    FieldSpec('cin_mu', 'J/kg', 0.1),
     FieldSpec('lpi', 'J/kg', 0.1),
     FieldSpec('lpi_max', 'J/kg', 0.1),
     FieldSpec('uh_max', 'm2/s2', 0.1),
@@ -79,6 +77,8 @@ SOLAR_15M_FIELDS: tuple[FieldSpec, ...] = (
 )
 
 SPECIALIST_HOURLY_FIELDS: tuple[FieldSpec, ...] = (
+    FieldSpec('cape_mu', 'J/kg', 0.1),
+    FieldSpec('cin_mu', 'J/kg', 0.1),
     FieldSpec('visibility', 'm', 10.0),
     FieldSpec('ceiling', 'm', 1.0),
     FieldSpec('freezing_level_height', 'm', 1.0),

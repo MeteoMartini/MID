@@ -17,5 +17,5 @@ assert.ok(builder.includes('targets=[base+timedelta(hours=h)'),'Stundenachse 0..
 assert.ok(!builder.includes('range(0,rapid_limit+1,15)'),'Der gemeinsame Mehrvariablenkern darf keine nicht gemeinsam verfügbaren 15-min-Ziele erzwingen.');
 assert.ok(worker.includes('temporalResolutionSeconds:300'),'RUC-Modellmetadaten müssen die feinste produktiv genutzte native RUC-Auflösung ausweisen.');
 assert.ok(cockpit.includes('Zustandskern 1 h bis +14 h')&&cockpit.includes('Niederschlag 5 min bis +6 h')&&cockpit.includes('Konvektion/Reflektivität 15 min bis +6 h'),'UI muss den parameterabhängigen RUC-Zeitvertrag korrekt benennen.');
-assert.ok(weather.includes('fehlende Temperatur-, Wind-, Druck- oder Wolkenzwischenwerte werden nicht interpoliert'),'UI/Vertrag muss künstliche 15-min-Interpolation ausdrücklich ausschließen.');
+assert.ok(weather.includes('fehlende Temperatur-, Wind-, Druck- oder Wolkenzwischenwerte werden nicht als native Viertelstundenwerte ausgegeben'),'UI/Vertrag muss künstliche 15-min-Interpolation ausdrücklich ausschließen.');
 console.log('RUC parameter-native cadence regression passed: hourly state core plus native 5/15-minute rapid products.');

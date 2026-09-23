@@ -36,7 +36,7 @@ for _parameter in RAPID_STATE_OPTIONAL_15:
     if not is_native_at(_parameter,900): raise RuntimeError(f'{_parameter}: RUC cadence contract is not 15 min')
 for _parameter in ('CAPE_MU','CIN_MU','T_2M','U_10M','V_10M','VMAX_10M','CLCT','CLCL'):
     if not is_native_at(_parameter,3600): raise RuntimeError(f'{_parameter}: RUC cadence contract is not hourly')
-SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')
+SPECIALIST_HOURLY_OPTIONAL=('CAPE_MU','CIN_MU','VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')
 REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
