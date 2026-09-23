@@ -485,9 +485,25 @@ function stationProviderWeight(provider=''){
 function isPrivateNetwork(provider=''){const p=provider.toLowerCase();return p.includes('weather underground')||p.includes('netatmo')||p.includes('synoptic')||p.includes('xweather')||p.includes('opensensemap')||p.includes('sensebox')||p.includes('pws')}
 function isCitizenNetwork(provider=''){const p=provider.toLowerCase();return p.includes('opensensemap')||p.includes('sensebox')}
 function stationAgeMinutes(timestamp?:string,now=Date.now()){if(!timestamp)return 120;const normalized=normalizeStationTimestamp(timestamp),t=normalized?new Date(normalized).getTime():NaN;return Number.isFinite(t)?Math.max(0,(now-t)/60000):120}
+function visibilityPresentWeather(value:unknown){
+ const raw=String(value??'').trim().toUpperCase(),ww=/^WW(\d{1,2})$/.exec(raw),code=ww?Number(ww[1]):NaN;
+ return [5,10,11,12,40,41,42,43,44,45,46,47,48,49].includes(code)||/(?:MIFG|BCFG|PRFG|VCFG|FZFG|(?:^|[^A-Z])FG(?:$|[^A-Z])|(?:^|[^A-Z])BR(?:$|[^A-Z])|(?:^|[^A-Z])HZ(?:$|[^A-Z]))/.test(raw);
+}
+function visibilityPresentWeatherLimitMeters(value:unknown){
+ const raw=String(value??'').trim().toUpperCase(),ww=/^WW(\d{1,2})$/.exec(raw),code=ww?Number(ww[1]):NaN;
+ if([11,12,40,41].includes(code)||/(?:MIFG|BCFG|PRFG|VCFG)/.test(raw))return 15000;
+ if((code>=42&&code<=49)||/(?:FZFG|(?:^|[^A-Z])FG(?:$|[^A-Z]))/.test(raw))return 20000;
+ return 25000;
+}
 function representativePresentWeather(stations:Station[]){
- return stations.filter(station=>Boolean(station.presentWeather)&&stationAgeMinutes(station.timestamp)<=120).sort((left,right)=>{
-  const quality=(station:Station)=>(station.networkClass==='official'?4:station.networkClass==='professional'?3:station.networkClass==='pws'?1:2)+(Number(station.trustFactor)||0)/100;
+ const eligible=stations.filter(station=>Boolean(station.presentWeather)&&stationAgeMinutes(station.timestamp)<=120).filter(station=>{
+  if(!visibilityPresentWeather(station.presentWeather))return true;
+  const trusted=station.networkClass==='official'||station.networkClass==='professional'||/dwd|metar|aviationweather|wmo|geosphere|meteoswiss|knmi/i.test(String(station.provider||'')),distance=Number(station.distance);
+  return trusted&&Number.isFinite(distance)&&distance<=visibilityPresentWeatherLimitMeters(station.presentWeather);
+ });
+ return eligible.sort((left,right)=>{
+  const leftVis=visibilityPresentWeather(left.presentWeather),rightVis=visibilityPresentWeather(right.presentWeather),quality=(station:Station)=>(station.networkClass==='official'?4:station.networkClass==='professional'?3:station.networkClass==='pws'?1:2)+(Number(station.trustFactor)||0)/100;
+  if(leftVis&&rightVis){const locality=Number(left.distance??Infinity)-Number(right.distance??Infinity);if(Math.abs(locality)>1000)return locality}
   return quality(right)-quality(left)||stationAgeMinutes(left.timestamp)-stationAgeMinutes(right.timestamp)||Number(left.distance??Infinity)-Number(right.distance??Infinity);
  })[0]?.presentWeather;
 }
@@ -699,11 +715,14 @@ function metarCloudBaseHft(row:any):number|undefined{
  return clampNumber(Math.round(feet/100),0,500);
 }
 function metarPresentWeather(row:any):string|undefined{
- const direct=[row?.wxString,row?.wx,row?.presentWeather,row?.present_weather,row?.weatherString,row?.weather].flatMap(value=>Array.isArray(value)?value:[value]).filter(value=>typeof value==='string').join(' ');
+ const directValues=[row?.wxString,row?.wx,row?.presentWeather,row?.present_weather,row?.weatherString,row?.weather].flatMap(value=>Array.isArray(value)?value:[value]);
+ const numericVisibility=directValues.map(value=>typeof value==='number'?value:typeof value==='string'&&/^\s*\d{1,2}\s*$/.test(value)?Number(value):NaN).find(value=>Number.isFinite(value)&&[5,10,11,12,40,41,42,43,44,45,46,47,48,49].includes(Number(value)));
+ if(Number.isFinite(numericVisibility))return`WW${String(Math.round(Number(numericVisibility))).padStart(2,'0')}`;
+ const direct=directValues.filter(value=>typeof value==='string').join(' ');
  const raw=[direct,row?.rawOb,row?.raw_text,row?.rawText,row?.metar].filter(value=>typeof value==='string').join(' ').toUpperCase();
  if(!raw)return undefined;
- const tokens=raw.match(/(?:^|\s)([-+]?)(VC)?(TS|SH|FZ)?(DZ|RA|SN|SG|IC|PL|GR|GS|BR|FG|HZ|FU|DU|SA|SQ|FC|RASN|SHRASN|TSRASN)(?=\s|$)/g)??[];
- const normalized=tokens.map(token=>token.trim().replace(/^VC/,'')).filter(Boolean);
+ const tokens=raw.match(/(?:^|\s)([-+]?)(VC)?(TS|SH|FZ|MI|BC|PR)?(DZ|RA|SN|SG|IC|PL|GR|GS|BR|FG|HZ|FU|DU|SA|SQ|FC|RASN|SHRASN|TSRASN)(?=\s|$)/g)??[];
+ const normalized=tokens.map(token=>token.trim()).filter(Boolean);
  if(!normalized.length)return undefined;
  const score=(token:string)=>{
   const code=token.replace(/^[-+]/,'');
