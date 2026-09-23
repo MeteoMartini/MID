@@ -1,0 +1,171 @@
+/* MID 18.2.7 · final responsive/IA corrections after work package I */
+
+/* I. Climate/menu/profile affordances */
+.place-profile-shortcuts{
+ display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;align-items:center
+}
+.place-profile-shortcuts button{
+ display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:5px 9px;
+ border:1px solid color-mix(in srgb,var(--border) 88%,transparent);
+ border-radius:999px;background:color-mix(in srgb,var(--surface) 88%,transparent);
+ color:var(--muted);font:inherit;font-size:11px;font-weight:750;line-height:1;cursor:pointer
+}
+.place-profile-shortcuts button:hover,.place-profile-shortcuts button:focus-visible{
+ color:var(--text);border-color:color-mix(in srgb,var(--primary) 45%,var(--border));
+ background:color-mix(in srgb,var(--primary) 7%,var(--surface));outline:none
+}
+.place-profile-shortcuts svg{color:color-mix(in srgb,var(--primary) 70%,var(--muted))}
+
+/* II. 14-day forecast: compact screens scroll by readable day cards, never micro-columns. */
+@media(max-width:700px){
+ .cockpit-fourteen-day{min-width:0!important;max-width:100%!important;overflow:hidden!important}
+ .cockpit-fourteen-grid{
+  display:grid!important;grid-template-columns:none!important;grid-auto-flow:column!important;
+  grid-auto-columns:clamp(236px,78vw,300px)!important;width:100%!important;max-width:100%!important;
+  gap:10px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  padding:4px 4px 10px!important;scroll-padding-inline:4px!important;
+  scroll-snap-type:x proximity!important;overscroll-behavior-x:contain!important;
+  -webkit-overflow-scrolling:touch!important;scrollbar-width:thin
+ }
+ .cockpit-fourteen-card{
+  width:auto!important;min-width:0!important;max-width:none!important;align-self:stretch!important;
+  padding:10px!important;gap:8px!important;scroll-snap-align:start!important;overflow:hidden!important
+ }
+ .cockpit-fourteen-card :where(b,strong,small,label,span,em){
+  word-break:normal!important;overflow-wrap:normal!important;hyphens:auto
+ }
+ .cockpit-fourteen-heading-copy{min-width:0!important}
+ .cockpit-fourteen-heading-copy>b,.cockpit-fourteen-heading-copy>small,
+ .cockpit-fourteen-heading-copy>.cockpit-fourteen-weather-label{
+  white-space:normal!important;line-height:1.2!important
+ }
+ .cockpit-fourteen-card>header{min-width:0!important;grid-template-columns:minmax(0,1fr) auto!important}
+ .cockpit-fourteen-temps,.cockpit-fourteen-card>header>.cockpit-consistency-pill{white-space:nowrap!important}
+}
+@media(min-width:701px) and (max-width:1024px){
+ .cockpit-fourteen-grid{
+  display:grid!important;grid-template-columns:none!important;grid-auto-flow:column!important;
+  grid-auto-columns:minmax(260px,30vw)!important;overflow-x:auto!important;overflow-y:hidden!important;
+  gap:10px!important;scroll-snap-type:x proximity!important;overscroll-behavior-x:contain!important
+ }
+ .cockpit-fourteen-card{width:auto!important;min-width:0!important;scroll-snap-align:start!important}
+ .cockpit-fourteen-card :where(b,strong,small,label,span,em){word-break:normal!important;overflow-wrap:normal!important}
+}
+
+/* III. Official DWD surface analysis is a secondary synoptic instrument, not a primary app tab. */
+.dwd-surface-analysis-card{
+ margin:10px 0 12px;border:1px solid var(--border);border-radius:16px;
+ background:color-mix(in srgb,var(--surface) 94%,transparent);overflow:hidden
+}
+.dwd-surface-analysis-card>summary{
+ list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
+ gap:9px;min-height:48px;padding:9px 12px;cursor:pointer;color:var(--text)
+}
+.dwd-surface-analysis-card>summary::-webkit-details-marker{display:none}
+.dwd-surface-analysis-card>summary>svg:first-child{color:var(--primary)}
+.dwd-surface-analysis-card>summary>span{display:grid;gap:2px;min-width:0}
+.dwd-surface-analysis-card>summary b{font-size:12px;line-height:1.2}
+.dwd-surface-analysis-card>summary small{color:var(--muted);font-size:10px;line-height:1.25;white-space:normal}
+.dwd-surface-analysis-card[open]>summary>svg:last-child{transform:rotate(180deg)}
+.dwd-surface-analysis-content{display:grid;gap:9px;padding:0 12px 12px;border-top:1px solid var(--border)}
+.dwd-surface-analysis-content>img{
+ display:block;width:100%;height:auto;max-height:min(72vh,780px);object-fit:contain;margin-top:10px;
+ border:1px solid var(--border);border-radius:12px;background:#fff
+}
+.dwd-surface-analysis-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding-top:10px}
+.dwd-surface-analysis-meta span{display:grid;gap:2px;color:var(--muted);font-size:10px}
+.dwd-surface-analysis-meta b{color:var(--text);font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.dwd-surface-analysis-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.dwd-surface-analysis-actions a{color:var(--primary);font-weight:800;font-size:11px}
+.dwd-surface-analysis-actions small,.dwd-surface-analysis-loading{color:var(--muted);font-size:10px}
+.dwd-surface-analysis-loading{display:flex;align-items:center;gap:7px;padding-top:10px}
+
+/* V/VI. Settings sections are real sections, not four labels for the same long surface. */
+.settings-split-view>.dashboard-module-settings,
+.settings-split-view>.time-display-settings,
+.settings-split-view>.settings-units-section,
+.settings-split-view>.settings-primary-options>.confidence-display-settings,
+.settings-split-view>.settings-primary-options>.skybar-display-settings,
+.settings-split-view>.settings-primary-options>.settings-option-list,
+.settings-split-view>.settings-primary-options>.advanced-feature-settings{display:none!important}
+
+.settings-split-weather>.settings-primary-options>.layout-mode-settings-grid,
+.settings-split-weather>.settings-primary-options>.ui-density-settings,
+.settings-split-weather>.settings-primary-options>.favorite-strip-display-settings,
+.settings-split-weather>.dashboard-module-settings,
+.settings-split-weather>.settings-theme-section,
+.settings-split-weather>.settings-branding-section,
+.settings-split-weather>.time-display-settings,
+.settings-split-weather>.settings-units-section{display:none!important}
+
+.settings-split-navigation>.settings-primary-options,
+.settings-split-navigation>.settings-theme-section,
+.settings-split-navigation>.settings-branding-section,
+.settings-split-navigation>.time-display-settings,
+.settings-split-navigation>.settings-units-section{display:none!important}
+
+.settings-split-units>.settings-primary-options,
+.settings-split-units>.dashboard-module-settings,
+.settings-split-units>.settings-theme-section,
+.settings-split-units>.settings-branding-section{display:none!important}
+
+.brand-logo-grid .brand-logo-option{align-items:center!important}
+.brand-logo-grid .brand-logo-preview{
+ width:64px!important;height:64px!important;flex:0 0 64px!important;object-fit:contain!important;
+ padding:7px!important;border-radius:15px!important;border:1px solid color-mix(in srgb,var(--border) 80%,transparent)!important;
+ box-shadow:inset 0 0 0 1px rgba(127,160,190,.08)
+}
+.brand-logo-grid .brand-logo-preview.preview-light{background:#edf5fb!important}
+.brand-logo-grid .brand-logo-preview.preview-dark{background:#071321!important}
+.brand-logo-grid .logo-auto .brand-logo-preview.preview-light{background:linear-gradient(135deg,#edf5fb 0 50%,#071321 50% 100%)!important}
+.brand-logo-grid .logo-auto .brand-logo-preview.preview-dark{background:linear-gradient(135deg,#071321 0 50%,#edf5fb 50% 100%)!important}
+
+@media(max-width:720px){
+ .settings-dialog{max-height:100dvh!important;border-radius:0!important}
+ .settings-titlebar{
+  min-height:0!important;padding:calc(9px + env(safe-area-inset-top,0px)) 12px 8px!important;
+  gap:8px!important
+ }
+ .settings-titlebar>div{gap:1px!important}
+ .settings-titlebar>div>span{font-size:9px!important;letter-spacing:.14em!important}
+ .settings-titlebar h2{font-size:24px!important;line-height:1.05!important}
+ .settings-titlebar>button{
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;border-radius:13px!important
+ }
+ .settings-layout{grid-template-columns:minmax(0,1fr)!important;min-height:0!important}
+ .settings-nav{
+  display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:5px!important;
+  width:100%!important;max-width:100%!important;min-height:0!important;height:auto!important;
+  padding:6px max(8px,env(safe-area-inset-right,0px)) 6px max(8px,env(safe-area-inset-left,0px))!important;
+  overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;overscroll-behavior-x:contain!important;
+  border-bottom:1px solid var(--border)!important
+ }
+ .settings-nav::-webkit-scrollbar{display:none!important}
+ .settings-nav button{
+  flex:0 0 auto!important;display:inline-flex!important;grid-template-columns:none!important;align-items:center!important;
+  width:auto!important;min-width:max-content!important;max-width:none!important;min-height:42px!important;height:42px!important;
+  gap:6px!important;padding:6px 9px!important;border-radius:12px!important
+ }
+ .settings-nav button>svg{width:17px!important;height:17px!important;flex:0 0 17px!important}
+ .settings-nav button>span{display:block!important;min-width:0!important}
+ .settings-nav button>span>strong{font-size:11px!important;line-height:1!important;white-space:nowrap!important}
+ .settings-nav button>span>small{display:none!important}
+ .settings-content{
+  padding:12px max(12px,env(safe-area-inset-right,0px)) calc(92px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))!important
+ }
+ .brand-logo-grid{grid-template-columns:1fr!important}
+ .brand-logo-grid .brand-logo-option{
+  display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;text-align:left!important;column-gap:12px!important
+ }
+ .brand-logo-grid .brand-logo-preview{grid-row:1/3!important;justify-self:center!important}
+ .brand-logo-grid .brand-logo-option>strong,.brand-logo-grid .brand-logo-option>small{min-width:0!important}
+ .dwd-surface-analysis-meta{grid-template-columns:1fr!important}
+ .place-profile-shortcuts{margin-top:6px}
+}
+@media(max-width:390px){
+ .settings-titlebar h2{font-size:22px!important}
+ .settings-nav button{padding-inline:8px!important}
+ .settings-nav button>span>strong{font-size:10.5px!important}
+ .cockpit-fourteen-grid{grid-auto-columns:clamp(232px,80vw,280px)!important}
+}
