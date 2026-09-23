@@ -10,7 +10,7 @@ function trustedPresentWeather(station:Station|null|undefined,now:number){
  const report=parseReportedVisibilityPhenomenon(station?.presentWeather);if(!report)return false;
  const network=station?.networkClass,provider=String(station?.provider||''),trusted=network==='official'||network==='professional'||/dwd|metar|aviationweather|wmo|geosphere|meteoswiss|knmi|hyperlokalanalyse/i.test(provider);
  const observedAt=Date.parse(String(station?.timestamp||'')),ageMinutes=Number.isFinite(observedAt)?Math.max(0,(now-observedAt)/60000):Infinity,distanceM=Number(station?.distance),distanceKm=Number.isFinite(distanceM)?Math.max(0,distanceM/1000):Infinity,localLimitKm=report.geometryException?15:report.kind==='fog'||report.kind==='freezing-fog'?20:25;
- return trusted&&ageMinutes<=120&&distanceKm<=localLimitKm;
+ return trusted&&ageMinutes<=120&&(!Number.isFinite(distanceM)||distanceKm<=localLimitKm);
 }
 function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined,dewPoint:number|undefined,presentWeather:string|undefined,trustPresentWeather:boolean){
  const covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN,visibilityState=classifyVisibilityPhenomenon({weatherCode:fallback,visibility,humidity,temperature,dewPoint,presentWeather,trustPresentWeather});
