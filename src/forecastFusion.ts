@@ -192,7 +192,7 @@ export type ForecastFusionResult={
  cached?:boolean;
 };
 
-const CACHE_PREFIX='mid:forecast-fusion:v9:';
+const CACHE_PREFIX='mid:forecast-fusion:v10:';
 const FRESH_MS=35*60*1000;
 const STALE_MS=8*60*60*1000;
 
@@ -516,6 +516,12 @@ function dateKeyInTimezone(epoch:number,timezone:string){
  return new Date(epoch).toISOString().slice(0,10);
 }
 
+function fusionLocalClockMinutes(value:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):Number.NaN}
+export function localForecastDayReferenceEpoch(hours:Hour[]){
+ const candidates=hours.filter(hour=>Number.isFinite(Number(hour.epoch)));if(!candidates.length)return Number.NaN;
+ return candidates.reduce((best,hour)=>{const bestClock=fusionLocalClockMinutes(best.time),clock=fusionLocalClockMinutes(hour.time),bestDistance=Number.isFinite(bestClock)?Math.abs(bestClock-720):Number.POSITIVE_INFINITY,distance=Number.isFinite(clock)?Math.abs(clock-720):Number.POSITIVE_INFINITY;return distance<bestDistance||distance===bestDistance&&hour.epoch<best.epoch?hour:best}).epoch;
+}
+
 /**
  * Assimiliert einen frischen Current-Wert als weiche Brücke in die kanonische
  * Stundenreihe. Der frühere Einpunkt-Ersatz erzeugte bei Beobachtungszeiten
@@ -562,39 +568,41 @@ export function finalizeForecastHours(hours:Hour[],days:Day[],options:ForecastHo
  const reconciledHours=reconcileForecastHoursWithDays(observationHours,days);
  return{hours:reconciledHours,radarApplied,thunderApplied,observationApplied,reconciled:reconciledHours!==observationHours};
 }
-function cacheKey(lat:number,lon:number){return`${CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}`}
-function readCache(lat:number,lon:number,maxAge=STALE_MS){
- try{const value=readStoredJsonCache<ForecastFusionResult>(localStorage,cacheKey(lat,lon),maxAge);return value?{...value,cached:true} satisfies ForecastFusionResult:null}catch{return null}
+function cacheElevationKey(elevation?:number){const value=Number(elevation);return Number.isFinite(value)?String(Math.max(-500,Math.min(9000,Math.round(value)))):'auto'}
+function cacheKey(lat:number,lon:number,elevation?:number){return`${CACHE_PREFIX}${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}:e${cacheElevationKey(elevation)}`}
+function readCache(lat:number,lon:number,elevation:number|undefined,maxAge=STALE_MS){
+ try{const value=readStoredJsonCache<ForecastFusionResult>(localStorage,cacheKey(lat,lon,elevation),maxAge);return value?{...value,cached:true} satisfies ForecastFusionResult:null}catch{return null}
 }
-function writeCache(lat:number,lon:number,value:ForecastFusionResult){try{writeStoredJsonCache(localStorage,cacheKey(lat,lon),value,[CACHE_PREFIX],12,STALE_MS)}catch{}}
+function writeCache(lat:number,lon:number,elevation:number|undefined,value:ForecastFusionResult){try{writeStoredJsonCache(localStorage,cacheKey(lat,lon,elevation),value,[CACHE_PREFIX,'mid:forecast-fusion:v9:'],12,STALE_MS)}catch{}}
 
 export async function loadForecastFusion(lat:number,lon:number,country:string|undefined,elevation:number|undefined,signal?:AbortSignal,forceRefresh=false):Promise<ForecastFusionResult|null>{
- const fresh=forceRefresh?null:readCache(lat,lon,FRESH_MS);if(fresh)return fresh;
+ const fresh=forceRefresh?null:readCache(lat,lon,elevation,FRESH_MS);if(fresh)return fresh;
  try{
-  const value=await fetchWorkerJson<ForecastFusionResult>('forecast-fusion',{lat,lon,country,elevation:Number.isFinite(elevation)?Math.round(Number(elevation)):undefined,refresh:forceRefresh?1:undefined},{purpose:'general',signal,timeoutMs:24000,cache:forceRefresh?'no-store':'default',maxAgeMs:forceRefresh?0:FRESH_MS,staleIfErrorMs:STALE_MS,cacheKey:`forecast-fusion:${cacheKey(lat,lon)}`});
+  const value=await fetchWorkerJson<ForecastFusionResult>('forecast-fusion',{lat,lon,country,elevation:Number.isFinite(elevation)?Math.round(Number(elevation)):undefined,refresh:forceRefresh?1:undefined},{purpose:'general',signal,timeoutMs:24000,cache:forceRefresh?'no-store':'default',maxAgeMs:forceRefresh?0:FRESH_MS,staleIfErrorMs:STALE_MS,cacheKey:`forecast-fusion:${cacheKey(lat,lon,elevation)}`});
   if(value.schema!=='mid.forecast-fusion.v1'||!Array.isArray(value.days)||Number(value.version)<1)throw new Error('Ungültige Mehrquellen-Prognose.');
-  writeCache(lat,lon,value);return value;
+  writeCache(lat,lon,elevation,value);return value;
  }catch(error){
   if(signal?.aborted)throw error;
-  return readCache(lat,lon,STALE_MS);
+  return readCache(lat,lon,elevation,STALE_MS);
  }
 }
 
-function applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|undefined,active:boolean){
+function applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|undefined,active:boolean,hours:Hour[]=[]){
  if(!active||!rows?.length)return baseDays;
  const byDate=new Map(rows.map(day=>[day.date,day]));let changed=false;
  const result=baseDays.map(day=>{
   const fused=byDate.get(day.date);if(!fused?.applied||fused.confidence<48)return day;
+  const localReference=localForecastDayReferenceEpoch(hours.filter(hour=>hour.time.startsWith(day.date))),leadHours=Number.isFinite(localReference)?(localReference-Date.now())/3600000:undefined;
   const max=Number(fused.max),min=Number(fused.min),precipitation=Number(fused.precipitation),wind=Number(fused.wind),gust=Number(fused.gust);
   if(![max,min,precipitation].every(Number.isFinite)||max<min)return day;
-  const fusedCode=Number.isFinite(Number(fused.code))?Math.round(Number(fused.code)):day.code,leadHours=(Date.parse(`${day.date}T12:00:00Z`)-Date.now())/3600000,precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),rain:Number.isFinite(Number(fused.rain))?Math.max(0,Number(fused.rain)):day.rain,showers:Number.isFinite(Number(fused.showers))?Math.max(0,Number(fused.showers)):day.showers,snowfall:Number.isFinite(Number(fused.snowfall))?Math.max(0,Number(fused.snowfall)):day.snowfall,probability:day.probability,code:fusedCode,leadHours});
+  const fusedCode=Number.isFinite(Number(fused.code))?Math.round(Number(fused.code)):day.code,precipitationSignal=reconcileForecastPrecipitation({precipitation:Math.max(0,precipitation),rain:Number.isFinite(Number(fused.rain))?Math.max(0,Number(fused.rain)):day.rain,showers:Number.isFinite(Number(fused.showers))?Math.max(0,Number(fused.showers)):day.showers,snowfall:Number.isFinite(Number(fused.snowfall))?Math.max(0,Number(fused.snowfall)):day.snowfall,probability:day.probability,code:fusedCode,leadHours});
   changed=true;
   return{...day,max,min,precipitation:precipitationSignal.precipitation,rain:precipitationSignal.rain,showers:precipitationSignal.showers,snowfall:precipitationSignal.snowfall,precipitationHours:Number.isFinite(Number(fused.precipitationHours))?Math.max(0,Number(fused.precipitationHours)):day.precipitationHours,probability:day.probability,probabilitySource:day.probabilitySource,probabilityMemberCount:day.probabilityMemberCount,probabilityWindows:day.probabilityWindows,probabilitySignificant:day.probabilitySignificant,code:precipitationSignal.code,wind:Number.isFinite(wind)?Math.max(0,wind):day.wind,gust:Number.isFinite(gust)?Math.max(Number.isFinite(wind)?wind:day.wind,gust):day.gust,sunshineDuration:day.sunshineDuration,sunshineDurationMeta:day.sunshineDurationMeta,weatherSourceId:fused.weatherSourceId??day.weatherSourceId,weatherSourceLabel:fused.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:baseDays;
 }
-export function applyForecastFusionDays(baseDays:Day[],fusion:ForecastFusionResult|null|undefined){return applyForecastFusionDayRows(baseDays,fusion?.days,Boolean(fusion?.active))}
-export function applyForecastFusionModelDays(baseDays:Day[],fusion:ForecastFusionResult|null|undefined){return applyForecastFusionDayRows(baseDays,fusion?.modelDays,Boolean(fusion?.active))}
+export function applyForecastFusionDays(baseDays:Day[],fusion:ForecastFusionResult|null|undefined,hours:Hour[]=[]){return applyForecastFusionDayRows(baseDays,fusion?.days,Boolean(fusion?.active),hours)}
+export function applyForecastFusionModelDays(baseDays:Day[],fusion:ForecastFusionResult|null|undefined,hours:Hour[]=[]){return applyForecastFusionDayRows(baseDays,fusion?.modelDays,Boolean(fusion?.active),hours)}
 
 function precipitationParts(hour:Hour,target:number){
  const precipitation=Math.max(0,target),current=Math.max(0,hour.precipitation),sum=Math.max(0,hour.rain)+Math.max(0,hour.showers)+Math.max(0,hour.snowfall);
@@ -775,7 +783,7 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
   // Temperaturvertrag: Bei vollständiger lokaler Tagesabdeckung sind Tmax/Tmin exakt die Extrema der finalen displayHours. Daily-Rohwerte bleiben nur Fallback für unvollständige Tage.
   const max=completeCoverage&&Number.isFinite(hourlyMax)?hourlyMax:Number.isFinite(hourlyMax)?Math.max(day.max,hourlyMax):day.max,min=completeCoverage&&Number.isFinite(hourlyMin)?hourlyMin:Number.isFinite(hourlyMin)?Math.min(day.min,hourlyMin):day.min,hourlyPrecipitation=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0)*precipitationFraction(hour),0),hourlyProbability=Math.max(0,...precipitationHours.map(hour=>clamp(Number(hour.probability)||0,0,100))),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100),precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=day.probabilitySource==='ensemble-members-dwd'?dayProbability:nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),hourlyCode=nearTerm||completeCoverage?dailyWeatherCodeFromHours(precipitationHours):day.code,dailySunshineReference=day.sunshineDurationMeta?day.sunshineDurationMeta.dailyReferenceSeconds:day.sunshineDuration,daylightSeconds=day.sunshineDurationMeta?.daylightSeconds??daylightSecondsFromLocalTimes(day.sunrise,day.sunset),sunshineDurationMeta=canonicalSunshineDaySeconds({hourValues:relevant.map(hour=>hour.sunshineDuration),dailyValue:dailySunshineReference,daylightSeconds}),sunshineDuration=sunshineDurationMeta.valueSeconds;
   // Der Sunshine-Contract aggregiert jeden lokalen Kalendertag immer aus der vollständigen finalen Stundenreihe. Daily bleibt ausschließlich Fallback und Qualitätsreferenz.
-  const hourlyRain=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.rain)||0)*precipitationFraction(hour),0),hourlyShowers=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.showers)||0)*precipitationFraction(hour),0),hourlySnowfall=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0)*precipitationFraction(hour),0),rain=nearTerm||completeCoverage?hourlyRain:Math.max(Math.max(0,Number(day.rain)||0),hourlyRain),showers=nearTerm||completeCoverage?hourlyShowers:Math.max(Math.max(0,Number(day.showers)||0),hourlyShowers),snowfall=nearTerm||completeCoverage?hourlySnowfall:Math.max(Math.max(0,Number(day.snowfall)||0),hourlySnowfall),signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code:hourlyCode,leadHours:(Date.parse(`${day.date}T12:00:00Z`)-now)/3600000}),sunshineUnchanged=sunshineDuration===day.sunshineDuration||sunshineDuration!==null&&day.sunshineDuration!==null&&Math.abs(sunshineDuration-day.sunshineDuration)<1;
+  const hourlyRain=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.rain)||0)*precipitationFraction(hour),0),hourlyShowers=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.showers)||0)*precipitationFraction(hour),0),hourlySnowfall=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0)*precipitationFraction(hour),0),rain=nearTerm||completeCoverage?hourlyRain:Math.max(Math.max(0,Number(day.rain)||0),hourlyRain),showers=nearTerm||completeCoverage?hourlyShowers:Math.max(Math.max(0,Number(day.showers)||0),hourlyShowers),snowfall=nearTerm||completeCoverage?hourlySnowfall:Math.max(Math.max(0,Number(day.snowfall)||0),hourlySnowfall),signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code:hourlyCode,leadHours:(localForecastDayReferenceEpoch(relevant)-now)/3600000}),sunshineUnchanged=sunshineDuration===day.sunshineDuration||sunshineDuration!==null&&day.sunshineDuration!==null&&Math.abs(sunshineDuration-day.sunshineDuration)<1;
   if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code&&sunshineUnchanged&&JSON.stringify(sunshineDurationMeta)===JSON.stringify(day.sunshineDurationMeta))return day;
   changed=true;return{...day,max,min,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,sunshineDuration,sunshineDurationMeta,weatherSourceId:relevant.find(hour=>hour.weatherSourceId)?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:relevant.find(hour=>hour.weatherSourceLabel)?.weatherSourceLabel??day.weatherSourceLabel};
  });
