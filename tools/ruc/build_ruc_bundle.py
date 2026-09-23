@@ -10,13 +10,16 @@ from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
 from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,RAPID_STATE_15_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
+from native_cadence import is_native_at
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
-SEVERE_PARAM_MAP={'CAPE_MU':'cape_mu','CIN_MU':'cin_mu','LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
+SEVERE_PARAM_MAP={'LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
 SOLAR_PARAM_MAP={'ASOB_S':'asob_s','ASWDIR_S':'aswdir_s','ASWDIFD_S':'aswdifd_s'}
 SPECIALIST_PARAM_MAP={'VIS':'visibility','CEILING':'ceiling','HZEROCL':'freezing_level_height','SNOWLMT':'snowline_height','CLCM':'cloud_cover_mid','CLCH':'cloud_cover_high','T_G':'surface_temperature','H_SNOW':'snow_depth'}
 RAPID_STATE_PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','VMAX_10M':'wind_gusts_10m','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CLCM':'cloud_cover_mid','CLCH':'cloud_cover_high','VIS':'visibility','CEILING':'ceiling','HZEROCL':'freezing_level_height','SNOWLMT':'snowline_height','T_G':'surface_temperature'}
 RUC_BBOX=(-3.85,43.18,20.22,58.05)
+if not is_native_at('CAPE_ML',900) or not is_native_at('CIN_ML',900): raise RuntimeError('RUC CAPE_ML/CIN_ML cadence contract mismatch')
+if is_native_at('CAPE_MU',900) or is_native_at('CIN_MU',900): raise RuntimeError('RUC CAPE_MU/CIN_MU must not enter the 15-minute severe path')
 
 def read_messages(path:Path,ensemble=False):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release
