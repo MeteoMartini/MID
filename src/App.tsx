@@ -2,7 +2,8 @@ import {Fragment,lazy,memo,Suspense,useCallback,useEffect,useLayoutEffect,useMem
 import {AlertTriangle,BadgeCheck,Bell,CalendarDays,CalendarRange,ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Cloud,CloudFog,CloudLightning,CloudRain,CloudSun,ClipboardCopy,Clock3,Download,Droplets,Eye,FileDown,Gauge,GripVertical,Info,LocateFixed,Menu,MountainSnow,Monitor,Moon,Navigation,RefreshCw,Search,Settings2,SlidersHorizontal,Snowflake,Star,Sun,Thermometer,Trash2,Upload,Waves,WifiOff,Wind,X} from 'lucide-react';
 import {createPortal} from 'react-dom';
 import {AppInfoHint as InfoHint} from './AppInfoPopover';
-import {AppPortalPopover as PortalPopover,useAppLayerFocus} from './AppPortalPopover';
+import {AppPortalPopover as PortalPopover} from './AppPortalPopover';
+import {useAppLayerFocus} from './AppPortalPopover';
 import {MID_VERSION as VERSION} from './version';
 import {formatDecimal,formatDecimalFixed,formatUvi} from './format';
 import {sunshineHoursLabel,sunshineMinutesLabel,sunshineWholeHoursLabel} from './sunshineDuration';
