@@ -133,6 +133,9 @@ function reconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,c
  if(precipitation>=.01||(precipitationCode(raw)&&probability>=30))return raw;
  if(precipitationCode(raw)&&probability<30)return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature,dewPoint);
  if(Number.isFinite(observed)&&precipitationCode(observed)&&offsetMinutes<=30)return observed;
+ // Codes 11/12/40/41 entstehen im MID-Anker nur aus einer vertrauenswürdigen lokalen Meldung.
+ // Sie dürfen kurz weiterwirken, obwohl die vorherrschende Sicht >1 km sein kann.
+ if([11,12,40,41].includes(observed)&&offsetMinutes<=30)return observed;
  return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature,dewPoint);
 }
 function visibilityText(value:number){if(!Number.isFinite(value))return'–';if(value>=10000)return`${Math.round(value/1000)} km`;if(value>=1000)return`${formatDecimal(value/1000,1)} km`;return`${Math.round(value)} m`}
