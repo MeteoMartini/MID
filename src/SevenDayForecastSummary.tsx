@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import {dayPrecipitationAssessment,dayWeatherCharacter,precipitationPeriodAssessment,type ClimateDay,type Day,type Hour} from './weather';
 import {summarizeDwdWarnings} from './dwdWarnings';
 import {followingNightIsTropical} from './forecastNight';
-import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
+import {addForecastDays,dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 import {DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,significantHourlyThunderRisk} from './detailThunderRisk';
 import {precipitationPresentationHours} from './precipitationIntervals';
 
@@ -102,7 +102,7 @@ function sevenDayHazardClause(points:SevenDayWeatherPoint[]){
 }
 function sevenDayFollowingNightClause(points:SevenDayWeatherPoint[]){
  const candidate=points.find(point=>point.followingNightDominant&&point.followingNightFamily!=='none'&&point.followingNightDurationHours>=.5);if(!candidate)return'';
- const event=candidate.followingNightFamily==='thunder'?'Gewitter':candidate.followingNightFamily==='showers'?'Schauer':candidate.followingNightFamily==='snow'?'Schnee':candidate.followingNightFamily==='drizzle'?'Sprühregen':'Regen',plural=candidate.followingNightFamily==='thunder'||candidate.followingNightFamily==='showers',nextDate=new Date(`${candidate.day.date}T12:00:00Z`);nextDate.setUTCDate(nextDate.getUTCDate()+1);const nextWeekday=new Intl.DateTimeFormat('de-DE',{weekday:'long',timeZone:'UTC'}).format(nextDate),prefix=candidate.index===0?'In der kommenden Nacht':`In der Nacht zum ${nextWeekday}`;
+ const event=candidate.followingNightFamily==='thunder'?'Gewitter':candidate.followingNightFamily==='showers'?'Schauer':candidate.followingNightFamily==='snow'?'Schnee':candidate.followingNightFamily==='drizzle'?'Sprühregen':'Regen',plural=candidate.followingNightFamily==='thunder'||candidate.followingNightFamily==='showers',nextDate=addForecastDays(candidate.day.date,1),nextWeekday=formatDateOnly(nextDate,{weekday:'long'}),prefix=candidate.index===0?'In der kommenden Nacht':`In der Nacht zum ${nextWeekday}`;
  return`${prefix} ${plural?'sind':'ist'} ${event} möglich`;
 }
 export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:ClimateDay[]=[],elevation=0){
