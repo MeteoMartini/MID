@@ -9,11 +9,16 @@ function clockHour(hour:Hour){
  return Number.isFinite(value)?value:Number.NaN;
 }
 
+function leapYear(year:number){return year%4===0&&(year%100!==0||year%400===0)}
+function daysInMonth(year:number,month:number){return[31,leapYear(year)?29:28,31,30,31,30,31,31,30,31,30,31][month-1]??0}
 export function addForecastDays(date:string,days:number){
- const base=new Date(`${date}T12:00:00Z`);
- if(Number.isNaN(base.getTime()))return date;
- base.setUTCDate(base.getUTCDate()+days);
- return base.toISOString().slice(0,10);
+ const match=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/),offset=Math.trunc(Number(days));
+ if(!match||!Number.isFinite(offset))return date;
+ let year=Number(match[1]),month=Number(match[2]),day=Number(match[3]);
+ if(month<1||month>12||day<1||day>daysInMonth(year,month))return date;
+ const step=offset<0?-1:1;
+ for(let remaining=Math.abs(offset);remaining>0;remaining--){day+=step;if(step>0&&day>daysInMonth(year,month)){day=1;month++;if(month>12){month=1;year++}}else if(step<0&&day<1){month--;if(month<1){month=12;year--}day=daysInMonth(year,month)}}
+ return `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
 
 /**
