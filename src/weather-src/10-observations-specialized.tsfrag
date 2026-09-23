@@ -283,6 +283,12 @@ function metarVisibilityMeters(row:any):number|undefined{
  if(unit.includes('sm')||unit.includes('mile')||'visib'in row||value<=50)return clampNumber(value*1609.344,0,100000);
  return clampNumber(value,0,100000);
 }
+function metarObservationCoreText(...values:unknown[]){
+ const raw=values.filter(value=>typeof value==='string').join(' ').trim().toUpperCase();
+ if(!raw)return'';
+ const marker=raw.match(/(?:^|\s)(?:TEMPO|BECMG|NOSIG|INTER|PROB(?:30|40)|FM\d{4,6}|RMK)(?=\s|$)/);
+ return marker?.index===undefined?raw:raw.slice(0,marker.index).trim();
+}
 function metarCloudLayers(row:any):any[]{
  const source=Array.isArray(row.clouds)?row.clouds:Array.isArray(row.cloudLayers)?row.cloudLayers:Array.isArray(row.skyCondition)?row.skyCondition:[];
  if(source.length)return source;
