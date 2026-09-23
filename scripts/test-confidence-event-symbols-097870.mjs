@@ -16,7 +16,7 @@ for(const token of ['Hohe Prognosekonfidenz','Index ${minimum}–${maximum}/100'
 assert.ok(!forecast.includes('Noch kein durchgehend hohes Konfidenzfenster'));
 
 const cockpit=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
-for(const token of ['<ConfidenceDisplay assessment={assessment} mode={mode} partialBoundary={partialBoundary} compact/>','trailingUnknownCoverageDate','className="sr-only">Temperaturabweichung','className="sr-only">Niederschlag','className="sr-only">Wind und Böen'])assert.ok(cockpit.includes(token),`14d-Kompaktvertrag fehlt: ${token}`);
+for(const token of ['<ConfidenceDisplay assessment={assessment} mode={mode} partialBoundary={partialBoundary} compact/>','trailingUnknownCoverageDate','cockpit-fourteen-compact-meta','className="precipitation"','className={`wind warning-','Temperaturabweichung'])assert.ok(cockpit.includes(token),`14d-Kompaktvertrag fehlt: ${token}`);
 
 const event=readFileSync(new URL('../src/eventWeatherEngine.ts',import.meta.url),'utf8');
 for(const token of ['eventIntervalHasPrecipitation','intervalCode=hasIntervalPrecipitation?hour.code:eventIntervalSkyCode','weather_code is instantaneous at the timestamp','Accumulations lead'])assert.ok(event.includes(token),`Event-Intervallsemantik fehlt: ${token}`);

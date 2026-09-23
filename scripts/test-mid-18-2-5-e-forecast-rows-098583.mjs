@@ -16,12 +16,12 @@ assert.ok(/^0\.9\.85\.(?:8[3-9]|9\d|\d{3,})$/.test(pkg.version),'Arbeitspaket E 
 assert.ok(cockpit.includes('function MidForecastRow({active,compact,detail}')&&cockpit.match(/<MidForecastRow key=/g)?.length===2,'7- und 14-Tage müssen dieselbe MidForecastRow-Familie verwenden.');
 
 assert.ok(cockpit.includes('data-mid-forecast-list="seven"')&&cockpit.includes('data-mid-forecast-row="seven"'),'7-Tage muss die gemeinsame Forecast-Row-Struktur verwenden.');
-assert.ok(!cockpit.includes('expandedDate')&&!cockpit.includes('setExpandedDate'),'7-Tage darf keinen unabhängigen Stunden-/Detailöffnungszustand mehr besitzen.');
+const sevenStart=cockpit.indexOf('function SevenDayBand');const sevenEnd=cockpit.indexOf('function FourteenDayHorizon',sevenStart);const sevenSection=cockpit.slice(sevenStart,sevenEnd);assert.ok(!sevenSection.includes('expandedDate')&&!sevenSection.includes('setExpandedDate'),'7-Tage darf keinen unabhängigen Stunden-/Detailöffnungszustand mehr besitzen.');
 assert.ok(cockpit.includes('isExpanded=Boolean(hourlyDetail&&selected.date===day.date)'),'Nur der ausgewählte 7-Tage-Tag darf inline erweitert sein.');
 assert.ok(cockpit.includes('data-mid-forecast-detail="seven"'),'7-Tage-Detail muss direkt inline unter der ausgewählten Zeile liegen.');
 
 assert.ok(cockpit.includes('data-mid-forecast-list="fourteen"')&&cockpit.includes('data-mid-forecast-row="fourteen"'),'14-Tage muss dieselbe Forecast-Row-Familie verwenden.');
-assert.ok(cockpit.includes('isActive=selected?.date===item.date'),'14-Tage darf nur die ausgewählte Zeile erweitern.');
+assert.ok(cockpit.includes('isActive=expandedDate===item.date')&&cockpit.includes("setExpandedDate(current=>current===item.date?null:item.date)"),'14-Tage darf Details nur für die explizit angetippte Zeile erweitern.');
 assert.ok(cockpit.includes('data-mid-forecast-detail="fourteen"'),'14-Tage-Detail muss direkt inline unter der ausgewählten Zeile liegen.');
 assert.ok(!cockpit.includes('{selected?<div className="cockpit-focus-card fourteen">'),'Separates 14-Tage-Detailpanel außerhalb der Zeile muss entfernt bleiben.');
 
@@ -30,11 +30,12 @@ for(const token of [
   'cockpit-day-skybar',
   'cockpit-day-rain',
   'cockpit-day-wind',
-  'cockpit-fourteen-temp-track',
   'cockpit-fourteen-skybar',
-  'cockpit-fourteen-row precipitation',
-  'cockpit-fourteen-row wind'
+  'cockpit-fourteen-compact-meta',
+  'className="precipitation"',
+  'className={`wind warning-'
 ]) assert.ok(cockpit.includes(token),`Forecast-Row-Inhalt fehlt: ${token}`);
+assert.equal((cockpit.slice(cockpit.indexOf('function FourteenDayHorizon'),cockpit.indexOf('function MiniRibbon')).match(/data-mid-skybar="fourteen-row"/g)||[]).length,1,'14-Tage darf genau eine Skybar je Tageszeile definieren.');
 
 assert.ok(cockpit.includes("skybarDisplayMode={skybarDisplayMode}"),'7-/14-Tage müssen denselben Skybar-Anzeigemodus respektieren.');
 assert.ok(cockpit.includes("displayHours.filter(hour=>hour.time.startsWith(item.date)).slice(0,24)"),'14-Tage-Skybar muss bestehende kanonische Stundenwerte ohne neue Datenquelle verwenden.');

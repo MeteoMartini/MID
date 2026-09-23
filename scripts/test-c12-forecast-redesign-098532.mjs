@@ -18,7 +18,7 @@ for(const token of [
  'className="cockpit-day-hourly-accordion mid-forecast-row-detail"',
  'className="cockpit-fourteen-grid"',
  'className={`cockpit-fourteen-card mid-forecast-row regime-${item.regime}',
- 'className="cockpit-focus-card fourteen mid-forecast-row-detail"',
+ 'className="cockpit-focus-card fourteen mid-forecast-row-detail compact"',
  'data-cockpit-horizontal-scroll="true"'
 ])assert.ok(cockpit.includes(token),`Vorhersage-Grundstruktur fehlt: ${token}`);
 

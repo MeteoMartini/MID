@@ -50,7 +50,7 @@ const contracts=[
  ['src/weather-src/20-mapping-day-character.tsfrag',['canonicalSunshineHourSeconds','canonicalSunshineDaySeconds','weatherDaylightSeconds']],
  ['src/forecastFusion.ts',['vollständigen finalen Stundenreihe','dailySunshineReference','sunshineDurationMeta']],
  ['src/ShortTermForecast.tsx',['sunshineMinutesLabel','Bewölkung / Sicht / Sonnenscheindauer']],
- ['src/ForecastCockpit.tsx',['cockpit-fourteen-sunshine','RelativeSunshineIcon','relativeSunshineShare','possibleSunshineDuration','P10–P90','sunshineHoursLabel','bestSunshineDuration=bestDay?.sunshineDuration!=null']],
+ ['src/ForecastCockpit.tsx',['mid-forecast-row-detail compact','RelativeSunshineIcon','relativeSunshineShare','possibleSunshineDuration','P10–P90','sunshineHoursLabel','sunshineWholeHoursLabel','bestSunshineDuration=bestDay?.sunshineDuration!=null']],
  ['src/EnsemblePanel.tsx',['Sonnenscheindauer','formatSunshineHours']],
  ['src/EventPlannerPanel.tsx',['eventSunshineLabel','Sonnenscheindauer']],
  ['src/App.tsx',['showSunshine','widgetmeta-sun','sunshineHoursLabel']],

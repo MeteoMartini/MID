@@ -1,3 +1,12 @@
+## MID v0.9.85.96 · 2026-09-23 · MID 18.2.9 · METAR-Beobachtung und kompakte 14-Tage-Ansicht
+
+- METAR-Current-Auswertung endet vor Trend-/Remark-Gruppen wie TEMPO, BECMG, NOSIG, INTER, PROB30/40, FM-Zeitgruppen und RMK.
+- Der reproduzierende EDDG-Fall `... Q1020 TEMPO SHRA BKN025TCU` kann Current Weather nicht mehr fälschlich auf Regenschauer/Trendbewölkung setzen.
+- 14 Tage: Default je Tag nur Wetterkopf, Tmin/Tmax, eine Skybar, Niederschlag, Wind/Böen und Konfidenz; Sekundärwerte ausschließlich im ausgewählten Inline-Detail.
+- Doppelte 24-h-Detail-Skybar sowie separate Defaultblöcke für Sonnenscheindauer, Temperaturabweichung und Regime wurden entfernt.
+- Replit vor Designänderung auf mid-stable v0.9.85.95 synchronisiert; Veröffentlichung weiterhin ausschließlich über den kanonischen GitHub-Releaseweg.
+- Regressionen: `test-metar-trend-observation-boundary-098596.mjs` plus aktualisierter `test-fourteen-day-replit-fluid-grid-098593.mjs`.
+
 ## MID v0.9.85.95 · 2026-09-23 · MID 18.2.9 · Gewitter-, RUC-, Skybar- und Performance-Härtung
 
 - J.1: signalScore-only-Vertrag für Detail-/Rapid-Gewitterdiagnose; Legacy-percent-Pfade aus UI und Spezialmodulen entfernt.
