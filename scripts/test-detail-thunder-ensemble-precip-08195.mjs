@@ -15,12 +15,12 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 
 for(const token of [
- "import {significantHourlyThunderRisk} from './detailThunderRisk';",
+ "import {detailThunderSignalScore,significantHourlyThunderRisk} from './detailThunderRisk';",
  'currentThunderRisk=significantHourlyThunderRisk(currentHour)',
  'className="hour-tooltip-precipitation"',
  'className={`hourly-thunder-risk ${currentThunderRisk.level}`}',
- '<CloudLightning size={11}/>Gewitterrisiko {Math.round(currentThunderRisk.percent)} %',
- 'Math.round(currentThunderRisk.percent)} %'
+ '<CloudLightning size={11}/>Gewittersignal {detailThunderSignalScore(currentThunderRisk)}/100',
+ 'detailThunderSignalScore(currentThunderRisk)}/100'
 ])need('Tagesdetail',app,token);
 for(const token of [
  "const directThunder=[95,96,97,98,99].includes(code)",
@@ -29,8 +29,8 @@ for(const token of [
  'const moisture=',
  'const trigger=',
  'const stronglyCapped=',
- 'function thunderRiskPercent(',
- 'percent:thunderRiskPercent(' 
+ 'function thunderSignalScore(',
+ 'percent:thunderSignalScore(' 
 ])need('Gewitterrisiko',thunder,token);
 for(const token of [
  "precipVisualSize:'small'|'large';",
@@ -62,12 +62,12 @@ else{
   ['nicht-signifikant',risk({code:3,cape:900,probability:15,precipitation:0}), null]
  ];
  for(const [label,value,expected] of cases){const actual=value?.level??null;if(actual!==expected)failures.push(`${label}: erwartet ${expected}, erhalten ${actual}`)}
- const percentCases=[
-  ['Direktes Gewitter-Prozent',risk({code:95,cape:300,probability:20}), [65,82]],
-  ['Mehrindex-hoch-Prozent',risk({code:80,cape:1800,liftedIndex:-5,convectiveInhibition:30,temperature:24,dewPoint:18,humidity:70,columnWaterVapour:35,probability:65,showers:.5}), [72,88]]
+ const signalCases=[
+  ['Direktes Gewitter-Signal',risk({code:95,cape:300,probability:20}), [65,82]],
+  ['Mehrindex-hoch-Signal',risk({code:80,cape:1800,liftedIndex:-5,convectiveInhibition:30,temperature:24,dewPoint:18,humidity:70,columnWaterVapour:35,probability:65,showers:.5}), [72,88]]
  ];
- for(const [label,value,[min,max]] of percentCases){const actual=value?.percent??null;if(actual===null||actual<min||actual>max)failures.push(`${label}: erwarteter Prozentbereich ${min}-${max}, erhalten ${actual}`)}
+ for(const [label,value,[min,max]] of signalCases){const actual=value?.percent??null;if(actual===null||actual<min||actual>max)failures.push(`${label}: erwarteter Signalbereich ${min}-${max}, erhalten ${actual}`)}
 }
 
 if(failures.length){console.error('Detail-Gewitter/Ensemble-Niederschlag-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Tagesdetail-Gewitterrisiko und vereinfachte Ensemble-Niederschlagssymbolik geprüft.');
+console.log('Tagesdetail-Gewittersignal und vereinfachte Ensemble-Niederschlagssymbolik geprüft.');
