@@ -10,7 +10,7 @@ for(const token of [
  "cockpit-local-badge",
  "<WeatherPictogram code={item.weatherCode}",
  "<InlineWindArrow direction={item.direction}",
- 'className="cockpit-fourteen-selected-wind"'
+ 'className={`wind warning-'
 ]) if(!cockpit.includes(token))failures.push(`Forecast-Cockpit-Vertrag fehlt: ${token}`);
 for(const token of [
  "shortTermAnchor=useMemo(()=>w?shortTermAnchorFromCurrent(st,w.current,Date.now(),w.elevation??loc?.elevation):undefined",
