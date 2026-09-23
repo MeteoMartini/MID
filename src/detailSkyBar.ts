@@ -44,7 +44,7 @@ type WeatherStripVisual={
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 const clamp01=(value:number)=>clamp(value,0,1);
 
-const sunVisualShare=(sunshineShare:number|null,_cloudCover?:number)=>{
+export const sunVisualShare=(sunshineShare:number|null,_cloudCover?:number)=>{
   // Keep the physical sunshine-duration helper independent from the sky-state
   // classification. If a direct sunshine share exists it remains authoritative
   // for that parameter; cloud complement is only its fallback. The Skybar base
@@ -142,7 +142,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
   }
   return null;
 };
-const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{
+const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):WeatherStripVisual|null=>{
   const amount=Math.max(0,Number(hour.precipitation??0));
   const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour),snowfall=Math.max(0,Number(hour.snowfall??0)),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
   if(!intensity)return null;
@@ -166,7 +166,7 @@ const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
   const visuals:WeatherStripVisual[]=[];
   const base=baseSkyVisual(cloud,daylight,sunshineShare);
   if(base)visuals.push(base);
-  const precipitation=precipitationOverlayVisual(hour,intervalSeconds,cloud);
+  const precipitation=precipitationOverlayVisual(hour,intervalSeconds);
   if(precipitation)visuals.push(precipitation);
   return visuals;
 };
