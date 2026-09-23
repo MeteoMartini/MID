@@ -1690,7 +1690,9 @@
     "tools/ruc/native_cadence.py",
     "MID_IMPLEMENTATION_0.9.85.95.md",
     "MID_RELEASE_NOTES_0.9.85.95.json",
-    "scripts/test-metar-trend-observation-boundary-098596.mjs"
+    "scripts/test-metar-trend-observation-boundary-098596.mjs",
+    "MID_RELEASE_NOTES_0.9.85.96.json",
+    "MID_IMPLEMENTATION_0.9.85.96.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
