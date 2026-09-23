@@ -292,7 +292,7 @@ function metarObservationCoreText(...values:unknown[]){
 function metarCloudLayers(row:any):any[]{
  const source=Array.isArray(row.clouds)?row.clouds:Array.isArray(row.cloudLayers)?row.cloudLayers:Array.isArray(row.skyCondition)?row.skyCondition:[];
  if(source.length)return source;
- const text=[typeof row.clouds==='string'?row.clouds:'',typeof row.rawOb==='string'?row.rawOb:'',typeof row.raw_text==='string'?row.raw_text:''].filter(Boolean).join(' ');
+ const text=metarObservationCoreText(typeof row.clouds==='string'?row.clouds:'',row.rawOb,row.raw_text,row.rawText,row.metar);
  return[...text.matchAll(/\b(SKC|CLR|NSC|NCD|FEW|SCT|BKN|OVC|VV)(\d{3}|\/\/\/)?(?:CB|TCU)?\b/gi)].map(match=>({cover:match[1].toUpperCase(),base:match[2]&&match[2]!=='///'?Number(match[2])*100:undefined}));
 }
 function metarLayerCover(layer:any){return String(typeof layer==='string'?layer:layer?.cover??layer?.amount??layer?.code??'').toUpperCase().slice(0,3)}
@@ -304,7 +304,7 @@ function metarLayerBaseFeet(layer:any):number|undefined{
  return generic;
 }
 function metarCloudObservation(row:any):CloudObservation|undefined{
- const raw=[row?.rawOb,row?.raw_text,row?.rawText,row?.metar].filter(value=>typeof value==='string').join(' ').toUpperCase();
+ const raw=metarObservationCoreText(row?.rawOb,row?.raw_text,row?.rawText,row?.metar);
  if(/\bCAVOK\b/.test(raw))return'cavok';
  const covers=metarCloudLayers(row).map(metarLayerCover).filter(Boolean);
  if(covers.some(code=>['BKN','OVC','VV','FEW','SCT'].includes(code)))return'layers';
@@ -336,7 +336,7 @@ function metarPresentWeather(row:any):string|undefined{
  const numericVisibility=directValues.map(value=>typeof value==='number'?value:typeof value==='string'&&/^\s*\d{1,2}\s*$/.test(value)?Number(value):NaN).find(value=>Number.isFinite(value)&&[5,10,11,12,40,41,42,43,44,45,46,47,48,49].includes(Number(value)));
  if(Number.isFinite(numericVisibility))return`WW${String(Math.round(Number(numericVisibility))).padStart(2,'0')}`;
  const direct=directValues.filter(value=>typeof value==='string').join(' ');
- const raw=[direct,row?.rawOb,row?.raw_text,row?.rawText,row?.metar].filter(value=>typeof value==='string').join(' ').toUpperCase();
+ const raw=metarObservationCoreText(direct,row?.rawOb,row?.raw_text,row?.rawText,row?.metar);
  if(!raw)return undefined;
  const tokens=raw.match(/(?:^|\s)([-+]?)(VC)?(TS|SH|FZ|MI|BC|PR)?(DZ|RA|SN|SG|IC|PL|GR|GS|BR|FG|HZ|FU|DU|SA|SQ|FC|RASN|SHRASN|TSRASN)(?=\s|$)/g)??[];
  const normalized=tokens.map(token=>token.trim()).filter(Boolean);
