@@ -572,7 +572,7 @@ function RelativeSunshineIcon({share,size=12}:{share:number|null;size?:number}){
  </svg>;
 }
 
-function FourteenDayHorizon({ensemble,days,hours,scenarios,climate,selectedDate,onSelectedDate,loading,error,unit,advancedMode,modelRuns,confidenceCalibration,confidenceDisplayMode,skybarDisplayMode='band'}:{ensemble:EnsembleDay[];days:Day[];hours:Hour[];scenarios:EnsembleScenarioCluster[];climate:ClimateDay[];selectedDate:string;onSelectedDate:(date:string)=>void;loading:boolean;error?:string;unit:WindUnit;advancedMode:boolean;modelRuns?:ModelRunMeta[];confidenceCalibration?:EnsembleConfidenceCalibration;confidenceDisplayMode:ConfidenceDisplayMode;skybarDisplayMode?:SkybarDisplayMode}){
+function FourteenDayHorizon({ensemble,days,hours,scenarios,climate,onSelectedDate,loading,error,unit,advancedMode,modelRuns,confidenceCalibration,confidenceDisplayMode,skybarDisplayMode='band'}:{ensemble:EnsembleDay[];days:Day[];hours:Hour[];scenarios:EnsembleScenarioCluster[];climate:ClimateDay[];selectedDate:string;onSelectedDate:(date:string)=>void;loading:boolean;error?:string;unit:WindUnit;advancedMode:boolean;modelRuns?:ModelRunMeta[];confidenceCalibration?:EnsembleConfidenceCalibration;confidenceDisplayMode:ConfidenceDisplayMode;skybarDisplayMode?:SkybarDisplayMode}){
  const assessmentTime=useEnsembleAssessmentTime();
  const [expandedDate,setExpandedDate]=useState<string|null>(null);
  const displayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]);
