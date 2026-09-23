@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "updatedAt": "2026-08-30T07:40:18Z",
-  "releaseVersion": "0.9.74.7",
+  "updatedAt": "2026-09-23T18:22:00Z",
+  "releaseVersion": "0.9.85.94",
   "source": "DWD Open Data ICON-D2-RUC / ICON-D2-RUC-EPS",
   "deterministic": {
     "coverageBbox": [
@@ -16,7 +16,7 @@
     "workerMode": "free GitHub Pages pages-free-v1 static point adapter; optional private R2 fallback remains disabled",
     "ready": true,
     "temporalResolutionSeconds": 3600,
-    "timeAxis": "parameter-native: common state hourly 0..14h; precipitation 5 min 0..6h; convection/reflectivity/phase/solar 15 min 0..6h; specialist diagnostics hourly 0..14h",
+    "timeAxis": "parameter-native: common state hourly 0..14h; precipitation 5 min 0..6h; CAPE_ML/CIN_ML, VIS/CEILING and verified rapid diagnostics 15 min 0..6h; CAPE_MU/CIN_MU hourly when used; specialist diagnostics hourly 0..14h",
     "rapidProducts": {
       "precipitation5m": {
         "parameter": "TOT_PREC",
@@ -141,7 +141,7 @@
     "downloadForecastHoursOnly": true,
     "downloadWorkers": 8,
     "downloadProgressLogging": true,
-    "downloadTimeAxis": "parameter-native: common state/EPS hourly 0..14h; TOT_PREC 5 min 0..6h; supported rapid diagnostics 15 min 0..6h",
+    "downloadTimeAxis": "parameter-native: common state/EPS hourly 0..14h; TOT_PREC 5 min 0..6h; CAPE_ML/CIN_ML, VIS/CEILING and verified rapid diagnostics 15 min 0..6h; no fabricated quarter-hour state fields",
     "postPublishHealthConvergenceAttempts": 7,
     "postPublishHealthRetryInitialSeconds": 8,
     "postPublishHealthRetryMaxSeconds": 30,
@@ -169,7 +169,8 @@
     "parameterNativeCadence": true,
     "observedRadarLightningKonradPriorityOverModelRapid": true,
     "rucSolarDoesNotBypassSunshineDurationContract": true,
-    "srhShearLayerAuditRequiredBeforeActivation": true
+    "srhShearLayerAuditRequiredBeforeActivation": true,
+    "nativeCadenceSourceOfTruth": true
   },
   "liveSourceVerification": {
     "directoryStructureVerified": true,
@@ -207,9 +208,12 @@
     "rucScheduleCatchup": "passed-v0.9.74.6-transition-regressions",
     "releaseRun769RegressionMitigation": "targeted-two-stale-keyless-basemap-tests-pass-v0.9.74.5",
     "releaseRun770RegressionMitigation": "targeted-single-stale-ruc-workflow-equality-test-pass-v0.9.74.6",
-    "releaseRun771RegressionMitigation": "state-bound-ruc-workflow-sync-contract-pass-v0.9.74.7"
+    "releaseRun771RegressionMitigation": "state-bound-ruc-workflow-sync-contract-pass-v0.9.74.7",
+    "nativeCadenceContract": "source-verified-v0.9.85.94",
+    "thunderSignalPresentation": "diagnostic-score-not-probability-v0.9.85.94"
   },
   "notes": "v0.9.74.7 behebt ausschließlich die letzte inkonsistente Run-#771-Regressionsannahme. Die Release-vor-Admin-Sync-Ausnahme ist nun zentral und zustandsgebunden: nur exakter Legacy-.github-Zustand plus vollständiger kanonischer :11/:41-Catch-up-Vertrag werden toleriert; jede unbekannte Drift bleibt fail-closed. RUC-Fachdaten, Fusion, Pages-Free-Projektion, 950-MB-Grenze, Catch-up-Guard und Worker-Runtime bleiben unverändert.",
   "releaseNote": "Run #771: npm ci, Audit, TypeScript und Vite grün; 576/577 Regressionen grün. Einziger Fehler: test-ruc-dwd-pipeline-09690.mjs hatte noch ein v0.9.74.5-only Workflow-Übergangsfenster. v0.9.74.7 ersetzt alle drei RUC-Sync-Ausnahmen durch einen gemeinsamen state-bound Vertrag.",
-  "validationNote": "Targeted Run-#770 regression mitigation passes locally; complete npm run verify remains the definitive GitHub release gate. After green release, explicit workflow sync on main and mid-stable is required."
+  "validationNote": "Targeted Run-#770 regression mitigation passes locally; complete npm run verify remains the definitive GitHub release gate. After green release, explicit workflow sync on main and mid-stable is required.",
+  "cadenceContract": "tools/ruc/native_cadence.py"
 }
