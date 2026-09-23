@@ -1,6 +1,6 @@
 # MID Dependency Upgrade Policy
 
-Stand: MID 18.2.8 Wartungsreview 23.09.2026 / Ziel v0.9.85.95
+Stand: MID 18.2.9 Wartungsreview 23.09.2026 / Ziel v0.9.85.95
 
 Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zusammenhängend geprüfte Verträge. Für v0.9.83.0 gilt:
 
