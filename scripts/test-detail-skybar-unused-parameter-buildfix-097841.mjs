@@ -6,9 +6,9 @@ const [source,pkg,baseline]=await Promise.all([
   readFile(new URL('../package.json',import.meta.url),'utf8').then(JSON.parse),
   readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8').then(JSON.parse),
 ]);
-assert.ok(source.includes('const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number):WeatherStripVisual|null=>{'),'Skybar-Precip-Helper muss ohne ungenutzten sunshineShare-Parameter definiert sein.');
-assert.ok(source.includes('const precipitation=precipitationOverlayVisual(hour,intervalSeconds,cloud);'),'Skybar-Precip-Helper muss ohne sunshineShare-Argument aufgerufen werden.');
-assert.ok(!source.includes('precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number,sunshineShare:number)'),'TS6133-Regression: ungenutzter sunshineShare-Parameter darf nicht zurückkehren.');
+assert.ok(source.includes('const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):WeatherStripVisual|null=>{'),'Skybar-Precip-Helper muss ohne ungenutzten sunshineShare-Parameter definiert sein.');
+assert.ok(source.includes('const precipitation=precipitationOverlayVisual(hour,intervalSeconds);'),'Skybar-Precip-Helper muss ohne sunshineShare-Argument aufgerufen werden.');
+assert.ok(!source.includes('precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number,cloud:number')&&!source.includes('sunshineShare:number):WeatherStripVisual|null'),'TS6133-Regression: ungenutzte Cloud-/Sunshine-Parameter dürfen nicht zurückkehren.');
 const test='scripts/test-detail-skybar-unused-parameter-buildfix-097841.mjs';
 assert.ok(baseline.regressionTests?.includes(test),'Regressionstest fehlt in MID_BASELINE.json (regressionTests).');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Regressionstest fehlt in MID_BASELINE.json (requiredRegressionTests).');
