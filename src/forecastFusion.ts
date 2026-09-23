@@ -231,6 +231,9 @@ export type RapidThunderSample={
 export type RapidThunderRiskLevel='possible'|'likely'|'high';
 export type RapidThunderRisk={
  level:RapidThunderRiskLevel;
+ /** Diagnostic signal strength (0–100), not a calibrated event probability. */
+ signalScore:number;
+ /** Legacy internal alias retained for ranking/backward compatibility; never present as a probability in UI. */
  percent:number;
  support:number;
  signals:string[];
@@ -297,7 +300,7 @@ export function rapidThunderRisk(sample:RapidThunderSample):RapidThunderRisk|nul
  if(Number.isFinite(uh)&&uhSupport>=.08)signals.push(`UH ${Math.round(uh)} m²/s²`);
  if(echoTop>=4500)signals.push(`EchoTop ${Math.round(echoTop/100)/10} km`);
  if(updraft>=3)signals.push(`Aufwind ${Math.round(updraft*10)/10} m/s`);
- return{level,percent,support:Number(support.toFixed(3)),signals,peakTime:sample.time,peakEpoch:Number.isFinite(rapidThunderFinite(sample.epoch))?rapidThunderFinite(sample.epoch):undefined,sample,diagnostics:{capeMu,cin:effectiveCin,dbzCmax:Number.isFinite(dbz)?dbz:undefined,peakRateMmh:peakRate,lpi:Number.isFinite(lpi)?lpi:undefined,uhMax:Number.isFinite(uh)?uh:undefined,echoTopM:echoTop||undefined,updraftMax:updraft||undefined,instabilitySupport:Number(instabilitySupport.toFixed(3)),triggerSupport:Number(triggerSupport.toFixed(3)),electricalSupport:Number(electricalSupport.toFixed(3)),organizationSupport:Number(organizationSupport.toFixed(3))}};
+ return{level,signalScore:percent,percent,support:Number(support.toFixed(3)),signals,peakTime:sample.time,peakEpoch:Number.isFinite(rapidThunderFinite(sample.epoch))?rapidThunderFinite(sample.epoch):undefined,sample,diagnostics:{capeMu,cin:effectiveCin,dbzCmax:Number.isFinite(dbz)?dbz:undefined,peakRateMmh:peakRate,lpi:Number.isFinite(lpi)?lpi:undefined,uhMax:Number.isFinite(uh)?uh:undefined,echoTopM:echoTop||undefined,updraftMax:updraft||undefined,instabilitySupport:Number(instabilitySupport.toFixed(3)),triggerSupport:Number(triggerSupport.toFixed(3)),electricalSupport:Number(electricalSupport.toFixed(3)),organizationSupport:Number(organizationSupport.toFixed(3))}};
 }
 
 export function significantRapidThunderRisk(samples:RapidThunderSample[]|undefined,now=Date.now(),horizonHours=3):RapidThunderRisk|null{

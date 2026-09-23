@@ -20,13 +20,13 @@ for(const token of [
  '&&score>=28',
  'Temperatur / gefühlt / Taupunkt',
  "{selectedThermal.sultry?' · schwül':''}",
- "replace('kein signifikantes Risiko','kein Risiko')",
+ 'kein signifikantes Signal',
  "'keine Wettergefahren'"
 ])need('Schwüle-/Einzeldatenvertrag',cockpit,token);
 for(const token of ['sultry=Number(point.dewPoint)>=17',"'Schwülegrenze erreicht'","'nicht schwül'"])reject('Altvertrag',cockpit,token);
 const start=cockpit.indexOf('<div className="cockpit-meteogram-pro__datafield"'),end=cockpit.indexOf('</section>',start),datafield=start>=0&&end>start?cockpit.slice(start,end):'';
 if(!datafield)failures.push('Einzeldatenblock nicht gefunden');
-if(datafield.includes('kein signifikantes Risiko')&&!datafield.includes("replace('kein signifikantes Risiko','kein Risiko')"))failures.push('Einzeldaten zeigen weiterhin „signifikant“');
+if(datafield.includes('kein signifikantes Risiko'))failures.push('Einzeldaten verwenden noch den alten Gewitterrisiko-Text');
 if(datafield.includes('keine signifikanten Wettergefahren'))failures.push('Einzeldaten zeigen weiterhin „signifikanten Wettergefahren“');
 const pv=JSON.parse(pkg).version,bv=JSON.parse(baseline).releaseVersion;if(pv!==bv)failures.push(`Versionen nicht synchron: ${pv}/${bv}`);
 if(failures.length){console.error('MID v0.9.32.5 Schwüle-/Einzeldatenprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}

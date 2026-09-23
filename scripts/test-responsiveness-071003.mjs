@@ -12,8 +12,10 @@ requireToken(app,'function LocalClock(','isolierte Ortszeit fehlt');
 requireToken(app,'const MemoCurrent=memo(Current);','Hauptkarten-Memoisierung fehlt');
 requireToken(app,'const MemoForecast=memo(Forecast);','Vorhersage-Memoisierung fehlt');
 requireToken(app,'const MemoLazyRadar=memo(LazyRadar);','Radar-Memoisierung fehlt');
-requireToken(app,"now-lastRun<45000",'Radar-Fokusabrufe werden nicht entdoppelt');
-requireToken(app,"now-lastRun<60000",'Starkregen-Abrufe werden nicht entdoppelt');
+requireToken(app,"subscribeRefreshChannel({key:`radar-analysis:",'Radar-Fokusabrufe verwenden nicht den gemeinsamen Refresh-Broker');
+requireToken(app,"minGapMs:45*1000",'Radar-Refresh hat keine Deduplizierungsgrenze');
+requireToken(app,"subscribeRefreshChannel({key:`heavy-rain-analysis:",'Starkregen-Abrufe verwenden nicht den gemeinsamen Refresh-Broker');
+requireToken(app,"minGapMs:60*1000",'Starkregen-Refresh hat keine Deduplizierungsgrenze');
 if(app.includes('setClockTick')||app.includes('setInterval(()=>setClockTick'))failures.push('Die gesamte App wird weiterhin durch einen globalen Uhrentakt neu gerendert.');
 
 requireToken(radar,'preferCanvas','Leaflet-Canvasrenderer fehlt');

@@ -12,6 +12,7 @@ import argparse,concurrent.futures,html.parser,os,re,shutil,subprocess,sys
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
 import requests
+from native_cadence import is_native_at
 
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
@@ -19,7 +20,10 @@ EPS_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc-eps/p'
 FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
 GRID_REQUIRED=('CLAT','CLON')
 RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')
-RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP')
+# Keep 15-minute ingestion limited to fields whose native DWD cadence is
+# actually 15 minutes. CAPE_MU/CIN_MU are hourly in ICON-D2-RUC and therefore
+# must never be requested through this path.
+RAPID_OPTIONAL_15=('DBZ_CMAX','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP')
 # Native 15-min-Zustandsgrößen werden nur dort gehalten, wo die höhere
 # Kadenz fachlich einen echten Mehrwert für die unmittelbare Kurzfrist hat.
 # Der aktuelle DWD-Feed liefert VIS/CEILING nativ viertelstündlich. Temperatur,
@@ -28,6 +32,10 @@ RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MA
 # Änderung langsamer ist und die Niederschlagsphase separat 15-minütig vorliegt.
 # Wir etikettieren keine interpolierten Stundenwerte als native 15-min-Daten.
 RAPID_STATE_OPTIONAL_15=('VIS','CEILING')
+for _parameter in RAPID_STATE_OPTIONAL_15:
+    if not is_native_at(_parameter,900): raise RuntimeError(f'{_parameter}: RUC cadence contract is not 15 min')
+for _parameter in ('CAPE_MU','CIN_MU','T_2M','U_10M','V_10M','VMAX_10M','CLCT','CLCL'):
+    if not is_native_at(_parameter,3600): raise RuntimeError(f'{_parameter}: RUC cadence contract is not hourly')
 SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')
 REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')

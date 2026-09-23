@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL(`../${p}`,import.meta.url),'utf8');
-const [fetcher,builder,pack,pages,worker,fusion,app,extreme,weather,cockpit]=await Promise.all([
- read('tools/ruc/fetch_and_build_ruc.py'),read('tools/ruc/build_ruc_bundle.py'),read('tools/ruc/ruc_pack.py'),read('tools/ruc/prepare_ruc_pages.py'),read('worker-src/00-core-observations.js'),read('src/forecastFusion.ts'),read('src/App.tsx'),read('worker-src/25-dach-extreme-outlook.js'),read('src/weather-src/00-types-models-search.tsfrag'),read('src/ForecastCockpit.tsx')
+const [cadence,fetcher,builder,pack,pages,worker,fusion,app,extreme,weather,cockpit]=await Promise.all([
+ read('tools/ruc/native_cadence.py'),read('tools/ruc/fetch_and_build_ruc.py'),read('tools/ruc/build_ruc_bundle.py'),read('tools/ruc/ruc_pack.py'),read('tools/ruc/prepare_ruc_pages.py'),read('worker-src/00-core-observations.js'),read('src/forecastFusion.ts'),read('src/App.tsx'),read('worker-src/25-dach-extreme-outlook.js'),read('src/weather-src/00-types-models-search.tsfrag'),read('src/ForecastCockpit.tsx')
 ]);
-for(const token of ["RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')","mode=='rapid-precip'","lead<=rapid_limit and lead%5==0","mode=='rapid15'","lead<=rapid_limit and lead%15==0","RAPID_OPTIONAL_15=('DBZ_CMAX','CAPE_MU','CIN_MU','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP')","RAPID_STATE_OPTIONAL_15=('VIS','CEILING')"])assert.ok(fetcher.includes(token),`Fetcher native-cadence contract missing: ${token}`);
+for(const token of ["RAPID_REQUIRED=('TOT_PREC','CAPE_ML','CIN_ML')","mode=='rapid-precip'","lead<=rapid_limit and lead%5==0","mode=='rapid15'","lead<=rapid_limit and lead%15==0","RAPID_OPTIONAL_15=('DBZ_CMAX','LPI','LPI_MAX','UH_MAX','UH_MAX_LOW','UH_MAX_MED','ECHOTOPinM','HAIL_GSP','LAPSE_RATE','W_CTMAX','VORW_CTMAX','RAIN_GSP','SNOW_GSP','GRAU_GSP')","RAPID_STATE_OPTIONAL_15=('VIS','CEILING')"])assert.ok(fetcher.includes(token),`Fetcher native-cadence contract missing: ${token}`);
+assert.ok(cadence.includes('"CAPE_MU": 3600')&&cadence.includes('"CIN_MU": 3600')&&cadence.includes('"CAPE_ML": 900')&&cadence.includes('"VIS": 900')&&cadence.includes('"CEILING": 900'),'Machine-readable native cadence contract is incomplete.');
+assert.ok(!fetcher.match(/RAPID_OPTIONAL_15=.*CAPE_MU/)&&!fetcher.match(/RAPID_OPTIONAL_15=.*CIN_MU/),'Hourly MU-CAPE/CIN must stay out of the 15-minute path.');
 assert.ok(!fetcher.match(/RAPID_OPTIONAL_15=.*ASOB_S/),'Unused solar full-grid fields must stay out of the free rapid fetch path.');
 assert.ok(fetcher.includes("SPECIALIST_HOURLY_OPTIONAL=('VIS','CEILING','HZEROCL','SNOWLMT','CLCM','CLCH','T_G','H_SNOW')"),'Specialist hourly RUC products must be staged without becoming hard requirements.');
 assert.ok(!fetcher.includes("'SRH','WSHEAR_U','WSHEAR_V'"),'SRH/WSHEAR must not be auto-staged before their DWD lvt1 layer semantics are explicitly selected.');
