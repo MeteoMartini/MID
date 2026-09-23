@@ -1,9 +1,9 @@
-# MID v0.9.85.93
+# MID v0.9.85.94
 
-- Die 14-Tage-Ansicht bleibt eine vertikale Liste aus 14 Tageskarten; der bisherige horizontale Karten-Scroll auf Smartphone und Tablet entfällt.
-- Innerhalb jeder Tageskarte passt sich die Informationsanordnung nun fluid an: eine Spalte auf Smartphones, zwei auf Tablets und vier auf Desktop.
-- Wochentag, Datum und Wetterbeschreibung werden nicht mehr zeichenweise gequetscht; Temperaturfaden, Skybar, Niederschlag, Wind/Böen und Sonnenscheindauer nutzen die verfügbare Breite.
-- Jede Tageskarte behält eine sichtbare Details-Steuerung.
-- Geöffnete Tagesdetails enthalten zusätzlich eine interaktive „Skybar · 24 Einzelstunden“ mit 00–23 Lokalzeit, auswählbaren Stunden und Wetterinformation zur gewählten Stunde.
-- 7-/14-Tage-Datenlogik, Ensemble-/Konfidenzberechnung, Warnlogik und meteorologische Schwellen bleiben unverändert.
-- Der Replit-Stand wurde dort bereits für Mobil, Tablet und Desktop sowie Light/Dark, Overflow, Tagesdetails und Bottom-Bar-Abstand geprüft; eine zusätzliche MID-Regression schützt den übernommenen Vertrag.
+- MID behandelt die native Zeitauflösung von ICON-D2-RUC jetzt eindeutig und nachvollziehbar: 5-Minuten-Niederschlag, 15-Minuten-Felder nur dort, wo der DWD sie tatsächlich so liefert, und stündliche Felder bleiben stündlich.
+- CAPE_MU und CIN_MU werden nicht mehr fälschlich als 15-Minuten-Rapidfelder angefordert. Dadurch sinkt unnötiger RUC-Aufwand und die Datenherkunft bleibt fachlich korrekt.
+- Gewitter-Mehrparameterdiagnosen werden nicht mehr wie kalibrierte Prozentwahrscheinlichkeiten dargestellt. Sichtbar ist jetzt eine klar bezeichnete Signalstärke; amtliche und echte probabilistische Angaben bleiben davon getrennt.
+- Trockene Wetterpiktogramme werden zusätzlich gegen die finalisierte Gesamtbewölkung plausibilisiert, damit „stark bewölkt“, „bedeckt“, Skybar und Symbolik nicht durch einen zu groben Wettercode auseinanderlaufen.
+- Radar-, Gewitter- und Starkregen-Aktualisierungen teilen sich einen gemeinsamen Vordergrund-Refresh-Broker. Fokus-, Sichtbarkeits- und Online-Wechsel lösen dadurch weniger doppelte Arbeit aus.
+- Identische gleichzeitige Worker-Abfragen ohne eigenen Abbruchkontext werden zusammengeführt, bevor der gemeinsame Cache greift.
+- Ein automatisches Bundle-Budget schützt den bereits großen Haupt-JavaScript- und Haupt-CSS-Pfad vor weiterem unbeabsichtigtem Wachstum. Eine tiefere CSS-Konsolidierung bleibt dadurch messbar und regressionsgeschützt.
