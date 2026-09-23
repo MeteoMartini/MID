@@ -19,6 +19,7 @@ import {loadHxBoundaryCheck} from './HxRadarPointSource';
 import {finalizeRadarNowcastCalibration,needsHxBoundaryCheck,type RadarRainStationCalibration} from './RadarNowcastCalibration';
 import {astronomicalIsDayAt,solarDaylightWindowAt} from './astronomy';
 import {boundedSunshineSeconds,canonicalSunshineDaySeconds,canonicalSunshineHourSeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes,reconcileSunshineDuration,type SunshineDurationDiagnostic} from './sunshineDuration';
+import {classifyVisibilityPhenomenon} from './visibilityPhenomena';
 export type WindUnit='kn'|'kmh'|'ms'|'mph';
 export type UrbanClass='urban'|'suburban'|'rural'|'unknown';
 export type CloudObservation='cavok'|'clear'|'layers';
