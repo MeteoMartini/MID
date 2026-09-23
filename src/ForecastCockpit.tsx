@@ -1,5 +1,5 @@
 import {Fragment,useCallback,useEffect,useId,useLayoutEffect,useMemo,useRef,useState,type CSSProperties,type ReactNode} from 'react';
-import {ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,Droplets,Info,SlidersHorizontal,Sun,ThermometerSun,Wind} from 'lucide-react';
+import {ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,Droplets,Info,SlidersHorizontal,Sun,ThermometerSun} from 'lucide-react';
 import {DWD_THERMAL_FEEL_COLORS,DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,dwdWindWarningLevelKt} from './dwdWarnings';
 import {formatDecimalFixed,formatUvi} from './format';
 import {WeatherPictogram,weatherPictogramKind} from './WeatherPictogram';
