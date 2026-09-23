@@ -1,3 +1,12 @@
+## MID v0.9.85.97 · 2026-09-24 · MID 18.2.10 · Replit-Audit-Fixes
+
+- Forecast-Core-Cache Frontend v4 und Worker-Edge v3 trennen Koordinaten, Höhe und effektive Ortszeitzone; unsichere Legacy-Caches werden nicht mehr als frischer Stand migriert.
+- Direktabruf und Worker-Pfad reichen Höhe und Zeitzone konsistent an Open-Meteo weiter; der explizite Worker-Request-Key enthält dieselben Dimensionen.
+- Forecast-Fusion-Cache v10 trennt Höhenstände; Tages-Lead-Time basiert auf realen lokalen Stunden-Epochen statt auf festem 12:00Z.
+- Gemeinsamer Fokusstack für Dialoge/Popover/Sheets mit Initialfokus, Tab-/Shift-Tab-Fang, Escape nur auf oberster Ebene und Fokus-Rückgabe; Mehr, Event-Center, Impressum und Einstellungen angeschlossen.
+- Zivile Kalenderarithmetik für Folgenächte arbeitet ohne UTC-Date-Mutation und ist für CET/CEST, Datums-/Jahresgrenzen sowie weit entfernte IANA-Zeitzonen regressionsgeschützt.
+- Neue Regression: `scripts/test-mid-18-2-10-replit-audit-098597.mjs`.
+
 ## MID v0.9.85.96 · 2026-09-23 · MID 18.2.9 · METAR-Beobachtung und kompakte 14-Tage-Ansicht
 
 - METAR-Current-Auswertung endet vor Trend-/Remark-Gruppen wie TEMPO, BECMG, NOSIG, INTER, PROB30/40, FM-Zeitgruppen und RMK.
