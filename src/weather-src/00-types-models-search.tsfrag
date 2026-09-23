@@ -87,7 +87,7 @@ export function countryCodeFromLocation(value?:string){
  const key=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');return COUNTRY_CODE_ALIASES[key]||'';
 }
 
-type EnsembleModel={id:string;label:string;metaId:string;family:string;independenceGroup:string;resolutionKm:number;updateHours:number;maxDays:number;maxHours?:number;shortRangeOnly?:boolean;bbox?:[number,number,number,number];distributionMode?:'members'|'mean-spread';variantGroup?:string};
+type EnsembleModel={id:string;label:string;metaId:string;family:string;independenceGroup:string;resolutionKm:number;updateHours:number;maxDays:number;maxHours?:number;shortRangeOnly?:boolean;bbox?:[number,number,number,number];distributionMode?:'members'|'mean-spread';variantGroup?:string;nativeTemporalHours?:number;interpolatedHourly?:boolean};
 const EUROPE_ENSEMBLE_BBOX:[number,number,number,number]=[-11,33,37,71];
 const ensembleModels:EnsembleModel[]=[
  {id:'icon_seamless_eps',label:'DWD ICON EPS Seamless',metaId:'dwd_icon_eps',family:'dwd-icon-eps',independenceGroup:'dwd-ensemble',resolutionKm:8,updateHours:3,maxDays:7.5,bbox:[-25,30,45,72]},
@@ -111,7 +111,7 @@ const ensembleModels:EnsembleModel[]=[
  {id:'ukmo_uk_ensemble_2km',label:'UKMO UK Ensemble',metaId:'ukmo_uk_ensemble_2km',family:'ukmo-ens',independenceGroup:'ukmo-ensemble',resolutionKm:2,updateHours:1,maxDays:5,bbox:[-12,48,4,62]},
  {id:'meteoswiss_icon_ch1_ensemble',label:'MeteoSwiss ICON CH1',metaId:'meteoswiss_icon_ch1_ensemble',family:'meteoswiss-icon-ens',independenceGroup:'meteoswiss-ensemble',resolutionKm:1,updateHours:3,maxDays:1.4,bbox:[3,43,18,50]},
  {id:'meteoswiss_icon_ch2_ensemble',label:'MeteoSwiss ICON CH2',metaId:'meteoswiss_icon_ch2_ensemble',family:'meteoswiss-icon-ens',independenceGroup:'meteoswiss-ensemble',resolutionKm:2,updateHours:6,maxDays:5,bbox:[3,43,18,50]},
- {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:15}
+ {id:'google_weathernext2_ensemble',label:'Google WeatherNext 2',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:15,nativeTemporalHours:6,interpolatedHourly:true}
 ];
 type EnsembleMeanModel=EnsembleModel;
 const ensemblePriority=['ukmo_uk_ensemble_2km','icon_d2_ruc_eps','icon_d2_eps','knmi_harmonie_arome_cy43_eps','icon_eu_eps','icon_seamless_eps','ecmwf_ifs_europe_ensemble','ecmwf_aifs_europe_ensemble','ecmwf_ifs025_ensemble','ecmwf_aifs025_ensemble','ncep_gefs05','eccc_reps','gem_global_ensemble','google_weathernext2_ensemble'];
@@ -136,7 +136,7 @@ const meanModels:EnsembleMeanModel[]=[
  {id:'ecmwf_aifs025_ensemble_mean',label:'ECMWF AIFS ENS Mittel',metaId:'ecmwf_aifs025_ensemble',family:'ecmwf-aifs-ens',independenceGroup:'ecmwf-ensemble',variantGroup:'ecmwf-aifs-ens-native-global',resolutionKm:25,updateHours:6,maxDays:14},
  {id:'cmc_gem_geps_ensemble_mean',label:'GEM GEPS Mittel',metaId:'cmc_gem_geps',family:'cmc-geps',independenceGroup:'cmc-ensemble',resolutionKm:25,updateHours:12,maxDays:14},
  {id:'bom_access_global_ensemble_mean',label:'BOM ACCESS ENS Mittel/Spread',metaId:'bom_access_global_ensemble',family:'bom-access-ens',independenceGroup:'bom-ensemble',resolutionKm:40,updateHours:6,maxDays:10},
- {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:14}
+ {id:'google_weathernext2_ensemble_mean',label:'Google WeatherNext 2 Mittel',metaId:'google_weathernext2_ensemble',family:'google-weathernext2',independenceGroup:'google-weathernext2',resolutionKm:25,updateHours:12,maxDays:14,nativeTemporalHours:6,interpolatedHourly:true}
 ];
 const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v17:';
 const ENSEMBLE_FRESH_CACHE_MS=60*60*1000;
@@ -151,7 +151,7 @@ function selectedFullEnsembleModels(lat:number,lon:number){return orderedModels(
 function selectedMeanModels(lat:number,lon:number){return orderedModels(meanModels.filter(model=>modelApplies(model,lat,lon)),meanPriority)}
 function eventLeadDayIndex(date:string){const target=Date.parse(`${date}T12:00:00Z`),now=new Date(),today=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),12);return Number.isFinite(target)?Math.max(0,Math.floor((target-today)/86400000)):0}
 function eventLeadHours(date:string,startTime='00:00'){const time=/^\d{2}:\d{2}$/.test(startTime)?startTime:'00:00',target=Date.parse(`${date}T${time}:00Z`);return Number.isFinite(target)?Math.max(0,(target-Date.now())/3600000):Number.POSITIVE_INFINITY}
-function selectedEnsembleModelsForEvent(lat:number,lon:number,date:string,startTime='00:00'){const lead=eventLeadDayIndex(date),leadHours=eventLeadHours(date,startTime),applicable=ensembleModels.filter(model=>modelApplies(model,lat,lon)&&model.maxDays>=lead+.5&&(!model.shortRangeOnly||leadHours<=Math.max(0,model.maxHours||0)));return orderedModels(applicable,ensemblePriority)}
+function selectedEnsembleModelsForEvent(lat:number,lon:number,date:string,startTime='00:00'){const lead=eventLeadDayIndex(date),leadHours=eventLeadHours(date,startTime),applicable=ensembleModels.filter(model=>modelApplies(model,lat,lon)&&model.maxDays>=lead+.5&&(!model.shortRangeOnly||leadHours<=Math.max(0,model.maxHours||0))&&(model.nativeTemporalHours??1)<=1);return orderedModels(applicable,ensemblePriority)}
 type EnsembleRequestUnit={models:EnsembleModel[]};
 type EnsembleLoadAttempt<T>={model:EnsembleModel;status:'active'|'fallback'|'unavailable'|'adapter-not-configured'|'reserve';value?:T;error?:unknown};
 function ensembleRequestUnits(models:EnsembleModel[]){const units:EnsembleRequestUnit[]=[],byGroup=new Map<string,EnsembleRequestUnit>();for(const model of models){if(model.variantGroup){const existing=byGroup.get(model.variantGroup);if(existing){existing.models.push(model);continue}const unit={models:[model]};byGroup.set(model.variantGroup,unit);units.push(unit)}else units.push({models:[model]})}return units}
@@ -262,7 +262,7 @@ async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal
 function modelRunCandidate(model:EnsembleModel):ModelMetaCandidate{return{id:model.id,label:model.label,kind:'ensemble',metaIds:[model.metaId],rapidUpdate:model.updateHours<=1,resolutionKm:model.resolutionKm,forecastHorizonHours:model.maxDays*24}}
 async function ensembleModelRunMetas(attempts:EnsembleLoadAttempt<unknown>[],allModels:EnsembleModel[],signal?:AbortSignal){
  const successful=attempts.filter(attempt=>attempt.status==='active'||attempt.status==='fallback'),rows:ModelRunMeta[]=[];
- for(const attempt of successful){const candidate=modelRunCandidate(attempt.model),meta=await modelRunMeta(candidate,signal);rows.push({...candidate,...(meta??{}),id:candidate.id,label:candidate.label,kind:'ensemble',usageStatus:attempt.status,metadataUnavailable:!meta,statusNote:meta?undefined:'Modell aktiv · Laufmetadaten derzeit nicht abrufbar'})}
+ for(const attempt of successful){const candidate=modelRunCandidate(attempt.model),meta=await modelRunMeta(candidate,signal);rows.push({...candidate,...(meta??{}),id:candidate.id,label:candidate.label,kind:'ensemble',temporalResolutionSeconds:meta?.temporalResolutionSeconds??(attempt.model.nativeTemporalHours?attempt.model.nativeTemporalHours*3600:undefined),usageStatus:attempt.status,metadataUnavailable:!meta,statusNote:meta?undefined:'Modell aktiv · Laufmetadaten derzeit nicht abrufbar'})}
  const failed=attempts.filter(attempt=>attempt.status==='unavailable'||attempt.status==='adapter-not-configured');for(const attempt of failed.slice(0,6)){const candidate=modelRunCandidate(attempt.model);rows.push({...candidate,usageStatus:attempt.status,statusNote:attempt.status==='adapter-not-configured'?'Optionaler Punktadapter nicht konfiguriert':'Abruf in diesem Lauf nicht erfolgreich'})}
  const requestedReserve=attempts.filter(attempt=>attempt.status==='reserve').slice(0,2);for(const attempt of requestedReserve){const candidate=modelRunCandidate(attempt.model);rows.push({...candidate,usageStatus:'reserve',statusNote:'Reserve · erfolgreich geladen, wegen bereits erfüllter Modellquote nicht gewichtet'})}
  const attemptedIds=new Set(attempts.map(attempt=>attempt.model.id)),reserve=allModels.filter(model=>!attemptedIds.has(model.id)).slice(0,4);for(const model of reserve){const candidate=modelRunCandidate(model);rows.push({...candidate,usageStatus:'reserve',statusNote:'Reserve · wegen ausreichender erfolgreicher Modellbasis nicht abgefragt'})}
