@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.96",
+  "releaseVersion": "0.9.85.97",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -526,7 +526,8 @@
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-dependency-review-098595.mjs",
-    "scripts/test-metar-trend-observation-boundary-098596.mjs"
+    "scripts/test-metar-trend-observation-boundary-098596.mjs",
+    "scripts/test-mid-18-2-10-replit-audit-098597.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -971,7 +972,8 @@
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-dependency-review-098595.mjs",
-    "scripts/test-metar-trend-observation-boundary-098596.mjs"
+    "scripts/test-metar-trend-observation-boundary-098596.mjs",
+    "scripts/test-mid-18-2-10-replit-audit-098597.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1692,7 +1694,10 @@
     "MID_RELEASE_NOTES_0.9.85.95.json",
     "scripts/test-metar-trend-observation-boundary-098596.mjs",
     "MID_RELEASE_NOTES_0.9.85.96.json",
-    "MID_IMPLEMENTATION_0.9.85.96.md"
+    "MID_IMPLEMENTATION_0.9.85.96.md",
+    "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
+    "MID_IMPLEMENTATION_0.9.85.97.md",
+    "MID_RELEASE_NOTES_0.9.85.97.json"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1775,7 +1780,8 @@
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-dependency-review-098595.mjs",
-    "scripts/test-metar-trend-observation-boundary-098596.mjs"
+    "scripts/test-metar-trend-observation-boundary-098596.mjs",
+    "scripts/test-mid-18-2-10-replit-audit-098597.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2296,10 +2302,11 @@
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-dependency-review-098595.mjs",
-    "scripts/test-metar-trend-observation-boundary-098596.mjs"
+    "scripts/test-metar-trend-observation-boundary-098596.mjs",
+    "scripts/test-mid-18-2-10-replit-audit-098597.mjs"
   ],
-  "version": "0.9.85.96",
-  "updatedAt": "2026-09-22T06:35:00.000Z",
+  "version": "0.9.85.97",
+  "updatedAt": "2026-09-24T00:00:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
@@ -2402,7 +2409,8 @@
     "MID_RUC_PAGES_BUDGET_0.9.85.74.md",
     "MID_E_FORECAST_ROWS_0.9.85.83.md",
     "MID_IMPLEMENTATION_0.9.85.95.md",
-    "MID_RELEASE_NOTES_0.9.85.95.json"
+    "MID_RELEASE_NOTES_0.9.85.95.json",
+    "MID_IMPLEMENTATION_0.9.85.97.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
