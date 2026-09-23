@@ -9,5 +9,5 @@ assert.notEqual(end,-1,'Niederschlagskachel konnte nicht vollständig abgegrenzt
 const block=source.slice(start,end);
 assert.match(block,/Gewitterrisiko \{Math\.round\(currentThunderRisk\.percent\)\} %/,'Gewitterrisiko muss ganzzahlig in der Niederschlagskachel sichtbar sein.');
 assert.doesNotMatch(block,/\{currentPrecip\.label\}/,'Die bereits im Stundenkopf sichtbare Niederschlagsart darf in der Niederschlagskachel nicht wiederholt werden.');
-assert.match(block,/\{currentThunderRisk&&<em/,'Die Zusatzzeile darf nur bei vorhandenem Gewitterrisiko erscheinen.');
-console.log('Detail-Niederschlagskachel: keine doppelte Niederschlagsart, Gewitterrisiko sichtbar.');
+assert.match(block,/\{currentThunderRisk&&<em/,'Die Zusatzzeile darf nur bei vorhandenem Gewittersignal erscheinen.');
+console.log('Detail-Niederschlagskachel: keine doppelte Niederschlagsart, Gewittersignal sichtbar.');
