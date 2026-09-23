@@ -31,7 +31,7 @@ assert.ok(worker.includes("query.set('elevation',String(elevation))"),'Worker re
 assert.ok(fusion.includes("mid:forecast-fusion:v10:"),'Forecast-Fusion-Cache wurde nicht nach Höhe getrennt.');
 assert.ok(fusion.includes('cacheKey(lat,lon,elevation)'),'Forecast-Fusion-Key enthält die Höhe nicht.');
 assert.ok(fusion.includes('localForecastDayReferenceEpoch(relevant)-now'),'Tages-Reconciliation verwendet keine reale lokale Stundenepoche.');
-assert.ok(fusion.includes('applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|undefined,active:boolean,hours:Hour[]=[]')),'Tagesfusion erhält keine lokalen Stundenepochen.');
+assert.ok(fusion.includes('applyForecastFusionDayRows(baseDays:Day[],rows:ForecastFusionDay[]|undefined,active:boolean,hours:Hour[]=[]'),'Tagesfusion erhält keine lokalen Stundenepochen.');
 assert.ok(!fusion.includes('Date.parse(\`\${day.date}T12:00:00Z\`)'),'Forecast-Fusion enthält weiterhin einen festen UTC-Mittagsanker.');
 assert.ok(!periods.includes('setUTCDate(')&&!periods.includes('T12:00:00Z'),'Zivile Prognosedatumsarithmetik hängt weiterhin von UTC-Date-Arithmetik ab.');
 assert.ok(seven.includes('addForecastDays(candidate.day.date,1)'),'7-Tage-Folgenacht nutzt nicht die gemeinsame lokale Kalenderarithmetik.');
