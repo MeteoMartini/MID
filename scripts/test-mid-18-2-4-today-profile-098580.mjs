@@ -36,8 +36,8 @@ for(const token of [
 ]) assert.ok(renderer.includes(token),`Stundenquadrate teilen die Profilachse nicht: ${token}`);
 
 for(const token of [
-  'Total cloud cover is the primary sky-state signal',
-  'if(cloudKnown)',
+  'Gesamtbewölkung und Sonnenscheindauer bleiben getrennte physikalische Größen.',
+  'if(cloudKnown){',
   'const precipitation=precipitationOverlayVisual',
   'SKYBAR_THICKNESS_STEPS=[2.4,3.6,4.8,6.0]'
 ]) assert.ok(skybar.includes(token),`Kanonischer Skybar-Vertrag fehlt: ${token}`);
