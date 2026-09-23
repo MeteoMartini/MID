@@ -2,9 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
-const [cockpit,skybar,layout,main]=await Promise.all([
+const [cockpit,layout,main]=await Promise.all([
  read('src/ForecastCockpit.tsx'),
- read('src/SkyBarSegments.tsx'),
  read('src/midC18FourteenReplitFluidGrid.css'),
  read('src/main.tsx')
 ]);
@@ -19,37 +18,38 @@ const fourteen=cockpit.slice(start,end);
 
 need('14d kein Horizontal-Scroll',fourteen,'data-cockpit-horizontal-scroll="false"');
 reject('14d alter Horizontal-Scroll entfernt',fourteen,'data-cockpit-horizontal-scroll="true"');
-need('14d zeigt die vollständige Serie',fourteen,'{series.map(item=>');
-reject('14d darf im Hauptgrid nicht auf sieben Tage gekürzt werden',fourteen,'series.slice(0,7)');
+need('14d zeigt vollständige Serie',fourteen,'{series.map(item=>');
+reject('14d darf nicht auf sieben Tage gekürzt werden',fourteen,'series.slice(0,7)');
 
 need('Replit-CSS zuletzt geladen',main,"import './midC18FourteenReplitFluidGrid.css';");
-assert.ok(main.indexOf("import './midC18FourteenReplitFluidGrid.css';")>main.indexOf("import './midC18I7ResponsiveFixes.css';"),'Replit-14d-CSS muss nach dem alten I.7-Horizontalscroll geladen werden.');
+assert.ok(main.indexOf("import './midC18FourteenReplitFluidGrid.css';")>main.indexOf("import './midC18I7ResponsiveFixes.css';"),'14d-CSS muss als letzte Prognosekorrektur geladen werden.');
 
-need('14 Tage bleiben eine vertikale Liste',layout,"grid-template-columns:minmax(0,1fr)!important");
-need('Desktop vier interne Spalten',layout,'grid-template-columns:repeat(4,minmax(0,1fr))!important');
-need('Tablet zwei interne Spalten',layout,'grid-template-columns:repeat(2,minmax(0,1fr))!important');
-need('Smartphone eine interne Spalte',layout,'grid-template-columns:minmax(0,1fr)!important');
-need('Smartphone ohne Karten-Snap',layout,'scroll-snap-align:none!important');
-need('Text darf nicht zeichenweise brechen',layout,'word-break:normal!important');
-need('Keine starre Karten-Mindestbreite',layout,'min-width:0!important');
-need('Details-Steuerung sichtbar',fourteen,"cockpit-fourteen-inline-cue");
-need('Sonnenscheindauer in Tageskarte',fourteen,"cockpit-fourteen-sunshine");
-need('Wind und Böen gemeinsam',fourteen,"cockpit-fourteen-wind-meta");
+need('Vertikale Tagesliste',layout,"grid-template-columns:minmax(0,1fr)!important");
+need('Keine horizontale Kartenreihe',layout,'grid-auto-flow:row!important');
+need('Kompakter Tageskopf',layout,'grid-template-areas:"heading temps confidence"!important');
+need('Kompakte Metazeile',fourteen,'cockpit-fourteen-compact-meta');
+need('Niederschlag direkt in Metazeile',fourteen,'className="precipitation"');
+need('Wind/Böen direkt in Metazeile',fourteen,'className={`wind warning-');
+need('Konfidenz bleibt im Tageskopf',fourteen,'<CockpitConsistencyPill');
+need('Genau eine Skybar im 14d-Rendering',fourteen,'data-mid-skybar="fourteen-row"');
+assert.equal((fourteen.match(/data-mid-skybar="fourteen-row"/g)||[]).length,1,'14d darf nur einen Skybar-Renderer je Tageszeile definieren.');
+reject('Keine zweite Detail-Skybar',fourteen,'cockpit-fourteen-detail-skybar');
+reject('Keine 24h-Doppelskybar',fourteen,'Skybar · 24 Einzelstunden');
+reject('Keine interaktive Doppel-Skybar',fourteen,'setSelectedDetailHour');
+reject('Kein separater Sonnenscheinblock im Default',fourteen,'cockpit-fourteen-sunshine');
+reject('Keine separate Temperaturspur im Default',fourteen,'cockpit-fourteen-temp-track');
+reject('Keine separate Regime-Pille im Default',fourteen,'cockpit-fourteen-regime');
 
-need('24h Detail-Skybar vorhanden',fourteen,'Skybar · 24 Einzelstunden');
-need('Lokale 00-23-Achse vorhanden',fourteen,'00–23 Lokalzeit');
-need('24h Detailzellen auswählbar',fourteen,'interactive onSelectIndex=');
-need('Auswahlzustand pro Datum',fourteen,'setSelectedDetailHour({date:item.date,index})');
-need('Ausgewählte Wetterlage sichtbar',fourteen,'detailHourWeatherLabel');
-need('Stunden-Tooltip enthält Uhrzeit',fourteen,'dayDetailCells=daySkyBarHourCells.map');
-need('Skybar-Komponente unterstützt Interaktion',skybar,'interactive?:boolean');
-need('Skybar-Komponente unterstützt Auswahlcallback',skybar,'onSelectIndex?:(index:number)=>void');
-need('Tastatur Enter/Leertaste',skybar,"event.key==='Enter'||event.key===' '");
-need('ARIA pressed für Stundenzellen',skybar,'aria-pressed={interactive?index===selectedIndex:undefined}');
+need('Inline-Details nur sekundär',fourteen,'Sonnenscheindauer');
+need('Inline-Details mit Temperaturabweichung',fourteen,'Temperaturabweichung');
+need('Inline-Details mit Prognosekonfidenz',fourteen,'Prognosekonfidenz');
+need('Kompaktes Inline-Detail',fourteen,'mid-forecast-row-detail compact');
+need('Detail ohne zweite Skybar',layout,'keine zweite Skybar');
+need('Smartphone bleibt vertikal',layout,'@media(max-width:720px)');
+need('Smartphone kompakter Header',layout,'grid-template-areas:');
+need('Schmale Geräte ohne Überlauf',layout,'@media(max-width:390px)');
+need('Light/Dark über Theme-Variablen',layout,'var(--text)');
+reject('Kein fixer Light-Hintergrund',layout,'background:#fff');
+reject('Kein fixer Dark-Hintergrund',layout,'background:#000');
 
-need('Detail-Skybar kein Überlauf',layout,'.cockpit-fourteen-detail-skybar');
-need('Light/Dark nur via Theme-Variablen',layout,'var(--text)');
-reject('Kein fixer Light-Hintergrund im neuen Layout',layout,'background:#fff');
-reject('Kein fixer Dark-Hintergrund im neuen Layout',layout,'background:#000');
-
-console.log('Replit-14d-Vertrag geprüft: 14 vertikale Tageskarten; intern 1/2/4-spaltig; kein Horizontal-Scroll; interaktive 24h-Detail-Skybar.');
+console.log('MID 18.2.9: 14 Tage als kompakte vertikale Tagesliste mit genau einer Skybar, Primärwerten im Default und sekundären Inline-Details geprüft.');
