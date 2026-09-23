@@ -8,8 +8,9 @@ const pkg=readFileSync(new URL('../package.json',import.meta.url),'utf8');
 const baseline=readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8');
 const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)};
 need('Cockpit-Datei',cockpit,"export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons'");
-need('Klassischer Standard',app,"const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal',skybarDisplayMode:'band'}");
-for(const token of ['Klassisch','Cockpit · Register','Cockpit · Ribbons','Die klassische Ansicht bleibt Standard'])need('Einstellungen',app,token);
+need('Eindeutiger Standard',app,"const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal',skybarDisplayMode:'band'}");
+need('Obligatorischer Workspace-Modus',app,'mode="cockpit-tabs"');
+for(const token of ['forecast-presentation-settings','Cockpit · Register','Cockpit · Ribbons','Die klassische Ansicht bleibt Standard'])if(app.includes(token))failures.push(`Einstellungen: obsolete Prognose-Scheinoption weiterhin enthalten: ${token}`);
 for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble']","const forecastCockpitEnabled=true","forecastCockpitEnabled&&FORECAST_COCKPIT_MODULES.includes(id)","if(id!==forecastCockpitAnchor)return null"])need('Keine Doppelmodule',app,token);
 for(const token of ['cockpit-now90',"points=useMemo(()=>adjusted.filter(point=>point.source==='hourly'),[adjusted])",'regularShortTermPoints','SvgProfileWindDirectionArrow','Böen bis'])need('Kurzfrist',cockpit,token);
 if(cockpit.includes('SHORT_TERM_RESOLUTION_KEY')||cockpit.includes('aria-label="Auflösung der Kurzfristvorhersage"')||cockpit.includes('selectShortTermPoints('))failures.push('Kurzfrist: entfernter 1h/3h-Umschalter bzw. Auswahlaggregator ist wieder enthalten');
@@ -20,4 +21,4 @@ for(const token of ['ACTIVE_HORIZON_KEY','MiniRibbon','Ensemble-Analyse öffnen'
 for(const token of ['.forecast-cockpit','.cockpit-tabs','.cockpit-now90','.cockpit-seven-grid','.cockpit-fourteen-grid','@media(max-width:680px)','@media(max-width:420px)'])need('Responsive Design',css,token);
 need('Package-Skript',pkg,'test:forecast-cockpit');need('Baseline-Vertrag',baseline,'scripts/test-forecast-cockpit-0920.mjs');
 if(failures.length){console.error('Optionale Prognose-Cockpits unvollständig:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Prognose-Darstellungsoptionen und obligatorischer Design-2.0.1-Cockpitpfad mit fester stündlicher Kurzfristreihe geprüft.');
+console.log('Obligatorischer Prognose-Workspace ohne Scheinoptionen sowie feste stündliche Kurzfristreihe geprüft.');
