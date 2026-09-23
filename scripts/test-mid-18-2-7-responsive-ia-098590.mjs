@@ -39,13 +39,14 @@ for(const token of [
  '@media(max-width:390px)'
 ])assert.ok(css.includes(token),'MID-18.2.7-Responsivevertrag fehlt: '+token);
 for(const token of [
- 'grid-template-columns:repeat(4,minmax(0,1fr))!important',
- 'grid-template-columns:repeat(2,minmax(0,1fr))!important',
  'grid-template-columns:minmax(0,1fr)!important',
  'grid-auto-flow:row!important',
  'scroll-snap-align:none!important',
- 'word-break:normal!important'
-])assert.ok(finalFourteenCss.includes(token),'Finaler Replit-14d-Vertrag fehlt: '+token);
+ 'grid-template-areas:"head" "sky" "meta"!important',
+ '.cockpit-fourteen-compact-meta',
+ '@media(max-width:720px)'
+])assert.ok(finalFourteenCss.includes(token),'Finaler kompakter Replit-14d-Vertrag fehlt: '+token);
+assert.ok(!finalFourteenCss.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important'),'14d darf nicht wieder in großflächige vier interne Primärspalten zurückfallen.');
 
 assert.ok(radar.includes('className="dwd-surface-analysis-card"'),'DWD-Bodenanalyse ist im Synoptik-Workspace nicht sichtbar erreichbar.');
 assert.ok(radar.includes('Synoptik · DWD-Bodenanalyse'),'Eindeutige Benennung des amtlichen DWD-Zugangs fehlt.');
