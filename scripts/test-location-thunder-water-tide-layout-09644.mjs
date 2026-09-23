@@ -62,7 +62,7 @@ assert.ok(!app.includes("risks.push('erhöhte konvektive Instabilität')"),'Die 
 
 for(const token of [
  'thunderRisk:PeriodThunderRisk|null',
- 'const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]),currentHour=precipitationDisplayHours[currentIndex(precipitationDisplayHours)]??precipitationDisplayHours[0],effectiveThunderSignal=Math.max(thunderRisk?.percent??0,rapidThunderRisk?.signalScore??rapidThunderRisk?.percent??0)',
+ 'const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]),currentHour=precipitationDisplayHours[currentIndex(precipitationDisplayHours)]??precipitationDisplayHours[0],effectiveThunderSignal=Math.max(thunderRisk?.signalScore??0,rapidThunderRisk?.signalScore??0)',
  'function completeTideRange(',
  "label=\"Gewittersignal\"",
  'Tidenhub · vollständige Tide',
