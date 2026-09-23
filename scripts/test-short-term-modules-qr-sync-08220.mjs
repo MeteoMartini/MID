@@ -22,7 +22,7 @@ for(const token of [
  "isQuarterInterval?nearest(minutes15,target,12*60000):undefined",
  'className="short-term-strip"',
  'className="short-term-detail"',
- 'Number(point.thunderPercent)>=30',
+ 'Number(point.thunderSignalScore)>=30',
  'Best Match'
 ])need('Kurzfristvorhersage',shortTerm,token);
 forbid('Kurzfristvorhersage',shortTerm,'fetch(');
