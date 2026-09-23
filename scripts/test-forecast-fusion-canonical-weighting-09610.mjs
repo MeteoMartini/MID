@@ -14,7 +14,7 @@ for(const token of ["id:'icon_d2_ruc'","id:'icon_d2'","independenceGroup:'dwd-ic
 for(const token of ["id:'knmi_harmonie_europe'","id:'knmi_harmonie'","id:'dmi_harmonie'"])assert.match(worker,new RegExp(`${token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}[^\n]+independenceGroup:'uwc-west-harmonie'`),`UWC-West-HARMONIE muss ein gemeinsames Unabhängigkeitsbudget teilen: ${token}`);
 assert.ok(worker.includes("localSkillStage:'weather-twin-on-device'"),'Lokale tatsächliche Prognosegüte muss als eigene nachgelagerte Stufe ausgewiesen sein.');
 for(const token of ['regularizedWeights','modelPredictionIsLearnable','validation.days<6','applyLocalTwinHours'])assert.ok(twin.includes(token),`Gütegewichtung fehlt: ${token}`);
-assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v9:'"),'Geänderte Fusionsdiagnose muss den alten Cache invalidieren.');
+assert.ok(fusion.includes("const CACHE_PREFIX='mid:forecast-fusion:v10:'"),'Geänderte Fusionsdiagnose muss den alten Cache invalidieren.');
 
 const order=['applyForecastFusionHours(','applyLocalTwinHours(','finalizeForecastHours(','applyHyperlocalForecastHours(','finalizeForecastMinute15(','reconcileForecastDaysWithHours('].map(token=>app.indexOf(token));
 assert.ok(order.every(index=>index>=0)&&order.every((index,i)=>i===0||index>order[i-1]),'Kanonische Fusions-/Nowcast-Reihenfolge wurde verändert.');

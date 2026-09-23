@@ -34,7 +34,7 @@ for(const token of [
  "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'repairedHours',
  'multiModelSuffixes',
- "const CACHE_PREFIX='mid:forecast-fusion:v9:'"
+ "const CACHE_PREFIX='mid:forecast-fusion:v10:'"
 ])assert.ok(fusionSource.includes(token),`Sonnenstunden-/Bündelvertrag fehlt im Frontend: ${token}`);
 assert.ok(app.includes('Best Match · geprüft und lokal nachkorrigiert'),'7-Tage-Ansicht muss Best Match als Primärprognose benennen');
 for(const token of [

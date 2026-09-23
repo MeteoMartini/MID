@@ -1,6 +1,6 @@
-# MID v0.9.85.96
+# MID v0.9.85.97
 
-- Aktuelle METAR-Beobachtungen werden strikt vom nachfolgenden Trendteil getrennt. TEMPO-/BECMG-/FM-Angaben können dadurch kein aktuelles Wetterphänomen oder aktuelle Bewölkung mehr vortäuschen.
-- Ein trockener METAR mit nachfolgendem `TEMPO SHRA` führt nicht mehr zu einem aktuellen Regenschauer in MID.
-- Die 14-Tage-Ansicht ist auf Smartphones deutlich kompakter: pro Tag eine Tageszeile mit Datum, Wetter, Tmin/Tmax, genau einer Skybar, Niederschlag, Wind/Böen und Konfidenz.
-- Sonnenscheindauer, Temperaturabweichung und erweiterte Konfidenz erscheinen nur noch nach Antippen des jeweiligen Tages; eine zweite Skybar entfällt.
+- Forecasts für denselben Ort unterscheiden Cache-Stände jetzt zuverlässig nach Höhe und Ortszeitzone. Ein Wechsel zwischen Tal und Gipfel oder zwischen Zeitzonen kann deshalb keinen unpassenden alten Kernforecast mehr übernehmen.
+- Direkte und Worker-basierte Kernprognosen verwenden dieselbe angeforderte Höhe und Zeitzone.
+- Dialoge, Popover und Sheets besitzen eine gemeinsame Tastatur-Fokusführung: Tab bleibt in der geöffneten Ebene, Escape schließt nur die oberste Ebene und der Fokus kehrt anschließend zum auslösenden Bedienelement zurück.
+- Tages- und Folgenachtlogik orientiert sich an lokalen Kalendertagen und realen Prognose-Epochen statt an einem festen UTC-Mittag; dies schützt insbesondere Mitternacht, Sommerzeitwechsel und weit von UTC entfernte Zeitzonen.

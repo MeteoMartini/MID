@@ -34,7 +34,7 @@ for(const token of [
  'AIR_QUALITY_STALE_MS=2*3600000',
  'const fresh=cachedEeaStation(lat,lon,7*86400000,5000)',
  'maxAgeMs:24*3600000',
- "FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v3:'",
+ "FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v4:'",
  'FORECAST_CORE_FRESH_MS=8*60*1000'
 ])need(weather,token,'Quellen-Cache-Vertrag fehlt');
 
