@@ -11,7 +11,7 @@ function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const d
 
 type SevenDayWeatherRegime='sunny'|'mixed'|'cloudy'|'wet'|'storm'|'snow';
 type SevenDayThermalClass='extreme-hot'|'very-hot'|'hot'|'summer'|'ice'|'frost'|'above-normal'|'below-normal'|'neutral';
-type SevenDayWeatherPoint={index:number;day:Day;regime:SevenDayWeatherRegime;sunHours:number;sunShare:number;dayPrecipitation:number;dayProbability:number;precipitationDurationHours:number;showery:boolean;thunderRiskPercent:number;thunderDirect:boolean;followingNightFamily:ReturnType<typeof precipitationPeriodAssessment>['family'];followingNightDurationHours:number;followingNightProbability:number;followingNightDominant:boolean;thermal:SevenDayThermalClass;climateDelta:number;tropicalNight:boolean;hazards:ReturnType<typeof summarizeDwdWarnings>};
+type SevenDayWeatherPoint={index:number;day:Day;regime:SevenDayWeatherRegime;sunHours:number;sunShare:number;dayPrecipitation:number;dayProbability:number;precipitationDurationHours:number;showery:boolean;thunderSignalScore:number;thunderDirect:boolean;followingNightFamily:ReturnType<typeof precipitationPeriodAssessment>['family'];followingNightDurationHours:number;followingNightProbability:number;followingNightDominant:boolean;thermal:SevenDayThermalClass;climateDelta:number;tropicalNight:boolean;hazards:ReturnType<typeof summarizeDwdWarnings>};
 type SevenDayWeatherSegment={regime:SevenDayWeatherRegime;start:number;end:number;points:SevenDayWeatherPoint[]};
 // DWD-Kenntage: Sommertag ab 25 °C, Heißer Tag ab 30 °C, sehr heiß ab 35 °C, extrem heiß ab 40 °C, Tropennacht ab Tmin 20 °C und Eistag bei Tmax < 0 °C.
 const SEVEN_DAY_TREND_WEIGHTS=[1.8,1.5,1.25,1,.82,.68,.55] as const;
