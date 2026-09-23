@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.95",
+  "releaseVersion": "0.9.85.96",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2296,7 +2296,7 @@
     "scripts/test-dependency-review-098595.mjs",
     "scripts/test-metar-trend-observation-boundary-098596.mjs"
   ],
-  "version": "0.9.85.95",
+  "version": "0.9.85.96",
   "updatedAt": "2026-09-22T06:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
