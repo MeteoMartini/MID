@@ -12,8 +12,9 @@ const need=(label,source,token)=>{if(!source.includes(token))failures.push(`${la
 for(const token of ['className="cockpit-tab-icon"','className="cockpit-tab-copy"','title={`${horizonTitle(horizon)}: ${summary}`}'])need('Semantische Registerstruktur',component,token);
 for(const token of ['.cockpit-tabs.tabs-1','both']){}
 for(const token of ['.cockpit-tabs.tabs-1','.cockpit-tabs.tabs-2','.cockpit-tabs.tabs-3','grid-template-areas:"icon copy" "ribbon ribbon"','.cockpit-tabs>button>.cockpit-tab-copy>b','white-space:nowrap','.cockpit-tabs>button>.cockpit-mini-ribbon','grid-area:ribbon','@media (min-width:681px) and (max-width:980px)','@media (max-width:680px)','overflow-x:auto'])need('Responsive CSS-Vertrag',css,token);
-need('Klassische Ansicht bleibt verfügbar',component,"export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons'");
-need('Cockpit nur optional',app,"forecastPresentationMode==='classic'");
+need('Interner Cockpitvertrag bleibt typisiert',component,"export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons'");
+need('Eindeutiger obligatorischer Cockpitmodus',app,'mode="cockpit-tabs"');
+if(app.includes('forecastPresentationMode')||app.includes('forecast-presentation-settings'))failures.push('Wirkungslose Prognose-Darstellungswahl darf im obligatorischen Workspace nicht zurückkehren.');
 const overrideIndex=css.lastIndexOf('MID v0.9.9.0 · Prognose-Cockpit responsive register repair');
 const legacyIndex=css.indexOf('.cockpit-tabs>button{');
 if(overrideIndex<0||overrideIndex<=legacyIndex)failures.push('Responsive Reparatur muss nach älteren Cockpit-Regeln stehen.');

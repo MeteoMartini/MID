@@ -1,8 +1,9 @@
-# MID v0.9.85.90
+# MID v0.9.85.91
 
-- Das Menü „Mehr“ ist jetzt nach Aufgaben geordnet und zeigt keine doppelten oder missverständlich mehrfach einsortierten Bereiche mehr.
-- 14-Tage-Prognose und Ensemble bleiben gemeinsam im Vorhersagebereich; Wetter- und Modellkarten sind im Kartenbereich gebündelt.
-- Die Einstellungen sind klarer nach Darstellung, Wetterdarstellung, Navigation, Einheiten, Orten, Benachrichtigungen, Datenqualität, Synchronisation und System gegliedert.
-- Zentrale Wetter- und Warnbereiche bleiben zuverlässig erreichbar und können nicht versehentlich aus der Kernnavigation entfernt werden.
-- Warnlage und Benachrichtigungen, Prognosekonfidenz und Gefahr sowie lokale Korrektur und Datenquelle sind klarer voneinander getrennt. Die missverständliche Rot-/Gelb-/Grün-Auswahl für Prognosekonfidenz entfällt.
-- „Mehr“ und Einstellungen wurden für Smartphone, Tablet im Hoch- und Querformat sowie Desktop mit sicheren Abständen, kontrolliertem Scrollen und stabilen Bedienelementen abgesichert.
+- Die 14-Tage-Ansicht bleibt auf Smartphones lesbar: Tageskarten haben wieder eine stabile Breite und lassen sich horizontal durchblättern.
+- „Klima“ hat in Menüs und Navigation wieder ein eindeutiges, einheitliches Symbol.
+- Die amtliche DWD-Bodenanalyse ist im Kartenbereich unter „Synoptik · DWD-Bodenanalyse“ direkt auffindbar und klar von Modellkarten getrennt.
+- Für Favoriten mit aktiviertem Berg- oder Wasserprofil erscheinen dezente Direktzugänge am Ortsbereich.
+- Die mobile Einstellungsnavigation ist kompakter. Helles und dunkles MID-Logo werden in passenden Vorschauflächen sichtbar unterschieden.
+- Darstellung, Wetterdarstellung, Inhalte & Navigation sowie Einheiten & Zeit zeigen wieder jeweils die zugehörigen Einstellungen.
+- Die wirkungslosen Auswahlmöglichkeiten „Klassisch“, „Cockpit · Register“ und „Cockpit · Ribbons“ wurden entfernt; die aktuelle Vorhersageansicht bleibt eindeutig.
