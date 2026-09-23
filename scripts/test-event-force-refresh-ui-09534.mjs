@@ -24,7 +24,7 @@ assert.doesNotMatch(refresh,/const forcedTimer=/,'Automatische Eventpflege darf 
 assert.match(refresh,/isManualReason\(reason:EventWeatherRefreshReason\)/,'Manuelle Reload-Ursachen sind nicht explizit geschützt.');
 
 // Fusion und Event-Ensemble müssen ihre Client-Caches bei explizitem Reload umgehen.
-assert.match(fusion,/forceRefresh\?null:readCache\(lat,lon,FRESH_MS\)/,'Forecast-Fusion umgeht den lokalen Fresh-Cache nicht.');
+assert.match(fusion,/forceRefresh\?null:readCache\(lat,lon,elevation,FRESH_MS\)/,'Forecast-Fusion umgeht den lokalen Fresh-Cache nicht.');
 assert.match(fusion,/refresh:forceRefresh\?1:undefined/,'Forecast-Fusion signalisiert dem Worker keinen Fresh-Reload.');
 assert.match(fusion,/cache:forceRefresh\?'no-store':'default'/,'Forecast-Fusion nutzt bei Fresh-Reload nicht no-store.');
 assert.match(weather,/forceRefresh\?null:readEventEnsembleCache\(lat,lon,date,startTime,endTime,ENSEMBLE_FRESH_CACHE_MS\)/,'Event-Ensemble verwendet bei Fresh-Reload weiterhin den lokalen Cache.');
