@@ -11,13 +11,15 @@ for(const token of [
  'data-cockpit-horizontal-scroll="false"',
  'className={`cockpit-fourteen-card mid-forecast-row regime-${item.regime}',
  'data-regime={item.regimeText}',
- 'className={`cockpit-fourteen-regime ${item.regime}`}',
- 'className="cockpit-fourteen-row temperature"',
- 'className="cockpit-fourteen-row precipitation"',
- 'className="cockpit-fourteen-row wind"',
  '<WeatherPictogram code={item.weatherCode}',
- '<RelativeSunshineIcon share={item.sunshineShare} size={12}/>'
+ 'cockpit-fourteen-skybar',
+ 'cockpit-fourteen-compact-meta',
+ '<CockpitConsistencyPill',
+ 'mid-forecast-row-detail compact'
 ])assert.ok(cockpit.includes(token),`14-Tage-Datenintegration unvollständig: ${token}`);
+const fourteen=cockpit.slice(cockpit.indexOf('function FourteenDayHorizon'),cockpit.indexOf('function MiniRibbon'));
+assert.equal((fourteen.match(/data-mid-skybar="fourteen-row"/g)||[]).length,1,'Aktueller 14-Tage-Vertrag muss genau eine Skybar je Tageszeile verwenden.');
+assert.ok(!fourteen.includes('cockpit-fourteen-detail-skybar'),'Aktueller 14-Tage-Vertrag darf keine zweite Detail-Skybar enthalten.');
 
 const desktopMarker='/* MID v0.9.78.9 · Desktop-Lock: lesbare 14-Tage-Karten statt Tablet-Mikrolayout. */';
 for(const token of [
