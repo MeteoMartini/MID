@@ -1,0 +1,18 @@
+{
+  "version": "0.9.85.97",
+  "date": "2026-09-24",
+  "title": "MID 18.2.10 · Replit-Audit: Cache, Fokus und lokale Zeitbasis",
+  "external": [
+    "Forecasts für denselben Ort unterscheiden Cache-Stände jetzt zuverlässig nach Höhe und Ortszeitzone. Ein Wechsel zwischen Tal und Gipfel oder zwischen Zeitzonen kann deshalb keinen unpassenden alten Kernforecast mehr übernehmen.",
+    "Direkte und Worker-basierte Kernprognosen verwenden dieselbe angeforderte Höhe und Zeitzone.",
+    "Dialoge, Popover und Sheets besitzen eine gemeinsame Tastatur-Fokusführung: Tab bleibt in der geöffneten Ebene, Escape schließt nur die oberste Ebene und der Fokus kehrt anschließend zum auslösenden Bedienelement zurück.",
+    "Tages- und Folgenachtlogik orientiert sich an lokalen Kalendertagen und realen Prognose-Epochen statt an einem festen UTC-Mittag; dies schützt insbesondere Mitternacht, Sommerzeitwechsel und weit von UTC entfernte Zeitzonen."
+  ],
+  "internal": [
+    "Forecast-Core-Cachevertrag Frontend v4 und Worker-Edge v3 dimensionieren Koordinaten, gerundete Höhe und effektive IANA-Zeitzone; unsichere Legacy-Einträge werden nicht migriert.",
+    "Forecast-Fusion-Localcache v10 trennt Höhenstände; Lead-Time-Reconciliation und Tagesfusion nutzen reale lokale Stunden-Epochen.",
+    "forecastPeriods.addForecastDays verwendet reine gregorianische Kalenderarithmetik ohne UTC-Date-Mutation; SevenDayForecastSummary nutzt diesen Vertrag für die Folgenacht.",
+    "AppPortalPopover stellt den gemeinsamen verschachtelbaren Fokusstack bereit; Mehr-Drawer, Event-Center, Impressum und Einstellungen sind angeschlossen.",
+    "Neue Regression test-mid-18-2-10-replit-audit-098597 schützt Cache-Dimensionen, Fokusvertrag, DST-/Datumsgrenzen und Release-Version."
+  ]
+}
