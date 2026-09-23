@@ -24,7 +24,8 @@ for(const token of [
  'className="cockpit-day-sun"',
  'Sonnenscheindauer ${sunshineHours} h'
 ])assert.ok(cockpit.includes(token),`Direktes Tagesdetail oder Sonnenstunden fehlen: ${token}`);
-assert.ok(!cockpit.includes('expandedDate')&&!cockpit.includes('setExpandedDate'),'Arbeitspaket E darf keinen unabhängigen 7-Tage-Detailzustand mehr besitzen.');
+const sevenStart=cockpit.indexOf('function SevenDayBand'),sevenEnd=cockpit.indexOf('function RelativeSunshineIcon',sevenStart),sevenSection=cockpit.slice(sevenStart,sevenEnd>sevenStart?sevenEnd:undefined);
+assert.ok(!sevenSection.includes('expandedDate')&&!sevenSection.includes('setExpandedDate'),'Arbeitspaket E darf im 7-Tage-Bereich keinen unabhängigen Detailzustand besitzen; der 14-Tage-Bereich darf seinen eigenen Tap-Zustand führen.');
 
 for(const token of [
  '.cockpit-seven-grid>.cockpit-day.mid-forecast-row',
