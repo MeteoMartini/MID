@@ -2262,7 +2262,7 @@
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
   ],
-  "version": "0.9.85.91",
+  "version": "0.9.85.92",
   "updatedAt": "2026-09-22T06:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",
