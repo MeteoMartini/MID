@@ -233,8 +233,6 @@ export type RapidThunderRisk={
  level:RapidThunderRiskLevel;
  /** Diagnostic signal strength (0–100), not a calibrated event probability. */
  signalScore:number;
- /** Legacy internal alias retained for ranking/backward compatibility; never present as a probability in UI. */
- percent:number;
  support:number;
  signals:string[];
  peakTime?:string;
@@ -291,7 +289,7 @@ export function rapidThunderRisk(sample:RapidThunderSample):RapidThunderRisk|nul
  else if(support>=.24)level='possible';
  if(!level)return null;
 
- const percent=level==='high'?rapidThunderClamp(Math.round(73+support*22),80,94):level==='likely'?rapidThunderClamp(Math.round(48+support*34),60,82):rapidThunderClamp(Math.round(24+support*38),30,59),signals:string[]=[];
+ const signalScore=level==='high'?rapidThunderClamp(Math.round(73+support*22),80,94):level==='likely'?rapidThunderClamp(Math.round(48+support*34),60,82):rapidThunderClamp(Math.round(24+support*38),30,59),signals:string[]=[];
  if(instabilitySupport>=.2)signals.push(`MU-CAPE ${Math.round(capeMu)} J/kg`);
  if(Number.isFinite(cin))signals.push(`CIN ${Math.round(effectiveCin)} J/kg`);
  if(Number.isFinite(dbz)&&reflectivitySupport>=.15)signals.push(`modellierte Reflektivität ${Math.round(dbz)} dBZ`);
@@ -300,14 +298,14 @@ export function rapidThunderRisk(sample:RapidThunderSample):RapidThunderRisk|nul
  if(Number.isFinite(uh)&&uhSupport>=.08)signals.push(`UH ${Math.round(uh)} m²/s²`);
  if(echoTop>=4500)signals.push(`EchoTop ${Math.round(echoTop/100)/10} km`);
  if(updraft>=3)signals.push(`Aufwind ${Math.round(updraft*10)/10} m/s`);
- return{level,signalScore:percent,percent,support:Number(support.toFixed(3)),signals,peakTime:sample.time,peakEpoch:Number.isFinite(rapidThunderFinite(sample.epoch))?rapidThunderFinite(sample.epoch):undefined,sample,diagnostics:{capeMu,cin:effectiveCin,dbzCmax:Number.isFinite(dbz)?dbz:undefined,peakRateMmh:peakRate,lpi:Number.isFinite(lpi)?lpi:undefined,uhMax:Number.isFinite(uh)?uh:undefined,echoTopM:echoTop||undefined,updraftMax:updraft||undefined,instabilitySupport:Number(instabilitySupport.toFixed(3)),triggerSupport:Number(triggerSupport.toFixed(3)),electricalSupport:Number(electricalSupport.toFixed(3)),organizationSupport:Number(organizationSupport.toFixed(3))}};
+ return{level,signalScore,support:Number(support.toFixed(3)),signals,peakTime:sample.time,peakEpoch:Number.isFinite(rapidThunderFinite(sample.epoch))?rapidThunderFinite(sample.epoch):undefined,sample,diagnostics:{capeMu,cin:effectiveCin,dbzCmax:Number.isFinite(dbz)?dbz:undefined,peakRateMmh:peakRate,lpi:Number.isFinite(lpi)?lpi:undefined,uhMax:Number.isFinite(uh)?uh:undefined,echoTopM:echoTop||undefined,updraftMax:updraft||undefined,instabilitySupport:Number(instabilitySupport.toFixed(3)),triggerSupport:Number(triggerSupport.toFixed(3)),electricalSupport:Number(electricalSupport.toFixed(3)),organizationSupport:Number(organizationSupport.toFixed(3))}};
 }
 
 export function significantRapidThunderRisk(samples:RapidThunderSample[]|undefined,now=Date.now(),horizonHours=3):RapidThunderRisk|null{
  if(!Array.isArray(samples)||!samples.length)return null;
  const end=now+Math.max(1,horizonHours)*3600000,rows=samples.filter(sample=>{const epoch=rapidThunderFinite(sample.epoch);return Number.isFinite(epoch)&&epoch>=now-10*60000&&epoch<=end}).map(sample=>rapidThunderRisk(sample)).filter((risk):risk is RapidThunderRisk=>Boolean(risk));
  if(!rows.length)return null;
- return rows.reduce((best,row)=>row.percent>best.percent||(row.percent===best.percent&&row.support>best.support)?row:best,rows[0]);
+ return rows.reduce((best,row)=>row.signalScore>best.signalScore||(row.signalScore===best.signalScore&&row.support>best.support)?row:best,rows[0]);
 }
 
 /**
