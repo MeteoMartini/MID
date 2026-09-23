@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.92",
+  "releaseVersion": "0.9.85.93",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -520,7 +520,8 @@
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
     "scripts/test-mid-18-2-7-responsive-ia-098590.mjs",
-    "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs"
+    "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs",
+    "scripts/test-fourteen-day-replit-fluid-grid-098593.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2262,7 +2263,7 @@
     "scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "scripts/test-mid-18-2-5-ui-fixes-098585.mjs"
   ],
-  "version": "0.9.85.92",
+  "version": "0.9.85.93",
   "updatedAt": "2026-09-22T06:35:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

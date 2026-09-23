@@ -1,9 +1,9 @@
-# MID v0.9.85.92
+# MID v0.9.85.93
 
-- Nebel wird in der Vorhersage und im aktuellen Wetter grundsätzlich nur noch bei einer Sichtweite unter 1.000 m angezeigt.
-- Sichtweiten von 1 bis 8 km werden bei feuchter Luft als feuchter Dunst, Sichtweiten von 1 bis 5 km bei trockener Luft als trockener Dunst unterschieden.
-- Bodennebel, Nebelbänke, partieller Nebel und Nebel in der Umgebung werden nur übernommen, wenn eine geeignete vertrauenswürdige lokale Wetterbeobachtung dies ausdrücklich meldet.
-- Ein Modell-Nebelcode kann eine belastbare Sichtweite über 1.000 m nicht mehr überstimmen.
-- Temperaturen unter 0 °C machen aus normalem Nebel nicht automatisch Reif- oder gefrierenden Nebel.
-- Aktuelles Wetter, Kurzfrist, 24-Stunden-Profil und die daraus abgeleiteten Tagesansichten verwenden denselben Sicht- und Nebelvertrag.
-- Der Hinweisbereich heißt nun neutral „Sichttrübung“ und unterscheidet vorhandenen Dunst/Nebel von einem erst prognostizierten Nebelrisiko.
+- Die 14-Tage-Ansicht bleibt eine vertikale Liste aus 14 Tageskarten; der bisherige horizontale Karten-Scroll auf Smartphone und Tablet entfällt.
+- Innerhalb jeder Tageskarte passt sich die Informationsanordnung nun fluid an: eine Spalte auf Smartphones, zwei auf Tablets und vier auf Desktop.
+- Wochentag, Datum und Wetterbeschreibung werden nicht mehr zeichenweise gequetscht; Temperaturfaden, Skybar, Niederschlag, Wind/Böen und Sonnenscheindauer nutzen die verfügbare Breite.
+- Jede Tageskarte behält eine sichtbare Details-Steuerung.
+- Geöffnete Tagesdetails enthalten zusätzlich eine interaktive „Skybar · 24 Einzelstunden“ mit 00–23 Lokalzeit, auswählbaren Stunden und Wetterinformation zur gewählten Stunde.
+- 7-/14-Tage-Datenlogik, Ensemble-/Konfidenzberechnung, Warnlogik und meteorologische Schwellen bleiben unverändert.
+- Der Replit-Stand wurde dort bereits für Mobil, Tablet und Desktop sowie Light/Dark, Overflow, Tagesdetails und Bottom-Bar-Abstand geprüft; eine zusätzliche MID-Regression schützt den übernommenen Vertrag.

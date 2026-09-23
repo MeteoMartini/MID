@@ -21,7 +21,7 @@ assert.ok(cockpit.includes('24 Stunden · 1-stündlich'),'Einzeldaten müssen de
 assert.ok(cockpit.includes('profileDisplayPoints=profileHourlyPoints'),'24-h-Profil muss die kanonische stündliche Reihe direkt verwenden.');
 
 assert.ok(!cockpit.includes('<small>24-Stunden-Wetter</small>'),'Gedoppelte 14-Tage-Zeile „24-Stunden-Wetter“ muss entfernt sein.');
-assert.ok(!cockpit.includes('className="cockpit-fourteen-detail-skybar"'),'14-Tage-Detail darf keine zweite Skybar unter der bereits sichtbaren Tages-Skybar führen.');
+assert.ok(cockpit.includes('className="cockpit-fourteen-detail-skybar"')&&cockpit.includes('Skybar · 24 Einzelstunden')&&cockpit.includes('00–23 Lokalzeit'),'14-Tage-Detail muss ab v0.9.85.93 die Replit-24-h-Einzelstunden-Skybar zusätzlich zur kompakten Tages-Skybar führen.');
 assert.ok(cockpit.includes('sunshineWholeHoursLabel(item.bestSunshineDuration)'),'Hauptwert der Sonnenstunden muss ganzzahlig formatiert werden.');
 assert.ok(cockpit.includes('sunshineHoursLabel(item.sunshineDurationLow)')&&cockpit.includes('sunshineHoursLabel(item.sunshineDurationHigh)'),'P10/P90-Spannen dürfen ihre Dezimaldarstellung behalten.');
 
@@ -45,4 +45,4 @@ for(const file of [testPath,'src/midC18ResponsiveCorrections.css','MID_RELEASE_N
  assert.ok((baseline.requiredFiles||[]).includes(file),`${file} fehlt in requiredFiles`);
 }
 
-console.log(`${pkg.version}: Windpfeil, +12-h-Layout, stündliches 24-h-Profil sowie 7-/14-Tage-Responsive-Fixes geschützt.`);
+console.log(`${pkg.version}: Windpfeil, +12-h-Layout, stündliches 24-h-Profil, Replit-14d-Detail-Skybar sowie 7-/14-Tage-Responsive-Fixes geschützt.`);

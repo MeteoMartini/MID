@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
-const [app,cockpit,radar,css,main,workerSource,workerRouter,pkgRaw,baselineRaw]=await Promise.all([
+const [app,cockpit,radar,css,finalFourteenCss,main,workerSource,workerRouter,pkgRaw,baselineRaw]=await Promise.all([
  read('src/App.tsx'),
  read('src/ForecastCockpit.tsx'),
  read('src/RadarPanel.tsx'),
  read('src/midC18I7ResponsiveFixes.css'),
+ read('src/midC18FourteenReplitFluidGrid.css'),
  read('src/main.tsx'),
  read('worker-src/30-push-events.js'),
  read('worker-src/40-aviation-router.js'),
@@ -25,9 +26,8 @@ assert.ok(app.includes('mode="cockpit-tabs"'),'Obligatorischer Forecast-Workspac
 assert.ok(app.includes('settings-split-')&&app.includes('settings-primary-options'),'Die vier Einstellungsbereiche müssen auf getrennte Inhalte abbilden.');
 assert.ok(app.includes('brand-logo-option logo-auto')&&app.includes('preview-light')&&app.includes('preview-dark'),'Logo-Auswahl muss Auto/Light/Dark visuell unterscheidbar verdrahten.');
 
-assert.ok(cockpit.includes('className="cockpit-fourteen-grid" data-cockpit-horizontal-scroll="true"'),'14-Tage-Übersicht muss ihren horizontalen Mobilscroll explizit anmelden.');
+assert.ok(cockpit.includes('className="cockpit-fourteen-grid" data-cockpit-horizontal-scroll="false"'),'14-Tage-Übersicht muss ab v0.9.85.93 den vertikalen, scrollfreien Replit-Vertrag explizit anmelden.');
 for(const token of [
- 'grid-auto-columns:clamp(236px,78vw,300px)!important',
  'word-break:normal!important',
  '.settings-split-weather>.settings-primary-options>.layout-mode-settings-grid',
  '.settings-split-navigation>.settings-primary-options',
@@ -38,6 +38,14 @@ for(const token of [
  '.dwd-surface-analysis-card',
  '@media(max-width:390px)'
 ])assert.ok(css.includes(token),'MID-18.2.7-Responsivevertrag fehlt: '+token);
+for(const token of [
+ 'grid-template-columns:repeat(4,minmax(0,1fr))!important',
+ 'grid-template-columns:repeat(2,minmax(0,1fr))!important',
+ 'grid-template-columns:minmax(0,1fr)!important',
+ 'grid-auto-flow:row!important',
+ 'scroll-snap-align:none!important',
+ 'word-break:normal!important'
+])assert.ok(finalFourteenCss.includes(token),'Finaler Replit-14d-Vertrag fehlt: '+token);
 
 assert.ok(radar.includes('className="dwd-surface-analysis-card"'),'DWD-Bodenanalyse ist im Synoptik-Workspace nicht sichtbar erreichbar.');
 assert.ok(radar.includes('Synoptik · DWD-Bodenanalyse'),'Eindeutige Benennung des amtlichen DWD-Zugangs fehlt.');
@@ -47,8 +55,9 @@ assert.ok(workerRouter.includes("mode==='dwd-surface-analysis-image'"),'Proxyrou
 
 assert.ok(main.includes("import './midC18I7ResponsiveFixes.css';"),'Finaler MID-18.2.7-CSS-Layer wird nicht geladen.');
 assert.ok(main.indexOf('midC18I7ResponsiveFixes.css')>main.indexOf('midC18WorkPackageI.css'),'MID-18.2.7-Korrekturen müssen nach Arbeitspaket I geladen werden.');
+assert.ok(main.includes("import './midC18FourteenReplitFluidGrid.css';")&&main.indexOf('midC18FourteenReplitFluidGrid.css')>main.indexOf('midC18I7ResponsiveFixes.css'),'Replit-14d-Finallayer muss nach dem früheren horizontalen I.7-Fallback geladen werden.');
 assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok((baseline[key]||[]).includes(thisTest),thisTest+' fehlt in '+key);
 assert.ok((baseline.requiredFiles||[]).includes(thisTest),thisTest+' fehlt in requiredFiles');
 
-console.log('MID v'+pkg.version+': Klima-Icon, 14-Tage-Mobile-Scroll, DWD-Bodenanalyse, Favoritenprofile, Settings-Split, Logo-Vorschau und bereinigter Forecast-Einstieg geschützt.');
+console.log('MID v'+pkg.version+': Klima-Icon, vertikaler Replit-14d-Vertrag, DWD-Bodenanalyse, Favoritenprofile, Settings-Split, Logo-Vorschau und bereinigter Forecast-Einstieg geschützt.');

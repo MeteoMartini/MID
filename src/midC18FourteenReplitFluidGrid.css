@@ -1,0 +1,369 @@
+/* MID 18.2.7 · v0.9.85.93 · Replit-Handoff 14-Tage
+   14 separate Tageskarten bleiben vertikal untereinander.
+   Ausschließlich das Innenraster jeder Karte wird responsiv: 1 / 2 / 4 Spalten.
+   Fachlogik, Ensemble-/Konfidenzdaten, Skybar-Prioritäten und WMO/DWD-Verträge
+   bleiben unverändert. */
+
+html[data-mid-design='next'] .cockpit-fourteen-day{
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ overflow-x:clip!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-grid[data-mid-forecast-list='fourteen']{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-auto-flow:row!important;
+ grid-auto-columns:unset!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ gap:0!important;
+ padding:0!important;
+ overflow:visible!important;
+ scroll-snap-type:none!important;
+ overscroll-behavior-x:auto!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-grid[data-mid-forecast-list='fourteen']>.cockpit-fourteen-card.mid-forecast-row{
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ margin:0!important;
+ align-self:stretch!important;
+ scroll-snap-align:none!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>*{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row :where(b,strong,small,label,span,em){
+ word-break:normal!important;
+ overflow-wrap:break-word!important;
+ hyphens:auto;
+}
+html[data-mid-design='next'] .cockpit-fourteen-heading-copy,
+html[data-mid-design='next'] .cockpit-fourteen-heading-copy>b,
+html[data-mid-design='next'] .cockpit-fourteen-heading-copy>small,
+html[data-mid-design='next'] .cockpit-fourteen-weather-label{
+ min-width:0!important;
+ max-width:100%!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ word-break:normal!important;
+ overflow-wrap:break-word!important;
+ line-height:1.18!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-heading{
+ display:grid!important;
+ grid-template-columns:auto minmax(0,1fr)!important;
+ align-items:start!important;
+ gap:8px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-heading>svg{flex:0 0 auto!important}
+html[data-mid-design='next'] .cockpit-fourteen-temps{
+ white-space:nowrap!important;
+ align-self:start!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill{
+ min-width:0!important;
+ max-width:100%!important;
+ width:max-content!important;
+ justify-self:start!important;
+ align-self:start!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill .confidence-display{
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-skybar,
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temp-track,
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row,
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-sunshine{
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row>small,
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-sunshine>small,
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-wind-meta{
+ min-width:0!important;
+ max-width:100%!important;
+ white-space:normal!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ word-break:normal!important;
+ overflow-wrap:break-word!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-inline-cue{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ gap:4px!important;
+ min-width:0!important;
+ white-space:nowrap!important;
+}
+
+/* Desktop: vier interne Informationsspalten innerhalb EINER Tageskarte. */
+@media(min-width:1101px){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-areas:
+   "head head head cue"
+   "sky sky sky sky"
+   "track track track track"
+   "anomaly precip wind sunshine"!important;
+  align-items:center!important;
+  gap:8px 12px!important;
+  min-height:0!important;
+  padding:10px 12px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
+  grid-area:head!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.45fr) minmax(0,.85fr) auto minmax(0,1fr)!important;
+  grid-template-areas:"heading regime temps confidence"!important;
+  align-items:start!important;
+  gap:8px 12px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading{grid-area:heading!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-regime{grid-area:regime!important;min-width:0!important;white-space:normal!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temps{grid-area:temps!important;justify-self:start!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill,
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-ensemble-badge{grid-area:confidence!important;justify-self:start!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-skybar{grid-area:sky!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temp-track{grid-area:track!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.temperature{grid-area:anomaly!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.precipitation{grid-area:precip!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.wind{grid-area:wind!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-sunshine{grid-area:sunshine!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-inline-cue{grid-area:cue!important;align-self:start!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-weekday-long{display:inline!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-weekday-short{display:none!important}
+}
+
+/* Tablet: zwei interne Informationsspalten. */
+@media(min-width:721px) and (max-width:1100px){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-areas:
+   "head head"
+   "sky sky"
+   "track track"
+   "precip wind"
+   "anomaly sunshine"
+   "cue cue"!important;
+  align-items:start!important;
+  gap:8px 12px!important;
+  min-height:0!important;
+  padding:10px 12px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
+  grid-area:head!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  grid-template-areas:
+   "heading temps"
+   "regime confidence"!important;
+  align-items:start!important;
+  gap:7px 12px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading{grid-area:heading!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-regime{grid-area:regime!important;min-width:0!important;white-space:normal!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temps{grid-area:temps!important;justify-self:end!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill,
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-ensemble-badge{grid-area:confidence!important;justify-self:end!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-skybar{grid-area:sky!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temp-track{grid-area:track!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.precipitation{grid-area:precip!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.wind{grid-area:wind!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.temperature{grid-area:anomaly!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-sunshine{grid-area:sunshine!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-inline-cue{grid-area:cue!important}
+}
+
+/* Smartphone: eine interne Informationsspalte, keinerlei horizontale Kartenzeile. */
+@media(max-width:720px){
+ html[data-mid-design='next'] .cockpit-fourteen-grid[data-mid-forecast-list='fourteen']{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-flow:row!important;
+  grid-auto-columns:unset!important;
+  overflow:visible!important;
+  padding:0!important;
+  scroll-padding-inline:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:
+   "head"
+   "sky"
+   "track"
+   "precip"
+   "wind"
+   "sunshine"
+   "anomaly"
+   "cue"!important;
+  align-items:start!important;
+  gap:8px!important;
+  min-height:0!important;
+  padding:10px!important;
+  scroll-snap-align:none!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row>header{
+  grid-area:head!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:
+   "heading"
+   "temps"
+   "regime"
+   "confidence"!important;
+  align-items:start!important;
+  gap:7px!important;
+  min-width:0!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading{grid-area:heading!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temps{grid-area:temps!important;justify-self:start!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-regime{grid-area:regime!important;min-width:0!important;white-space:normal!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-consistency-pill,
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-ensemble-badge{
+  grid-area:confidence!important;
+  justify-self:start!important;
+  min-width:0!important;
+  max-width:100%!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-skybar{grid-area:sky!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-temp-track{grid-area:track!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.precipitation{grid-area:precip!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.wind{grid-area:wind!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-sunshine{grid-area:sunshine!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-row.temperature{grid-area:anomaly!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-inline-cue{
+  grid-area:cue!important;
+  justify-self:end!important;
+  font-size:9px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-weekday-long{display:inline!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-weekday-short{display:none!important}
+ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail{
+  grid-template-columns:minmax(0,1fr)!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:clip!important;
+ }
+ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail>span{
+  min-width:0!important;
+  max-width:100%!important;
+  border-right:0!important;
+  border-bottom:1px solid var(--c8-line)!important;
+ }
+}
+@media(max-width:390px){
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row{padding-inline:9px!important}
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading{
+  grid-template-columns:28px minmax(0,1fr)!important;
+  gap:7px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fourteen-heading>svg{width:28px!important;height:28px!important}
+}
+
+/* Replit-Detail: eigene interaktive Skybar mit 24 auswählbaren Einzelstunden. */
+html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail>.cockpit-fourteen-detail-skybar{
+ grid-column:1/-1!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-areas:
+  "detail-head detail-selection"
+  "detail-chart detail-chart"!important;
+ gap:7px 12px!important;
+ align-items:center!important;
+ min-width:0!important;
+ max-width:100%!important;
+ padding:10px 12px!important;
+ border-top:1px solid var(--c8-line)!important;
+ border-right:0!important;
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-skybar-head{
+ grid-area:detail-head!important;
+ display:flex!important;
+ align-items:baseline!important;
+ flex-wrap:wrap!important;
+ gap:5px 8px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-skybar-head>b{
+ color:var(--text)!important;
+ font-size:10px!important;
+ font-weight:850!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-skybar-head>small{
+ color:var(--muted)!important;
+ font-size:8.5px!important;
+ font-weight:750!important;
+ letter-spacing:.04em!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-selection{
+ grid-area:detail-selection!important;
+ display:flex!important;
+ align-items:baseline!important;
+ justify-content:flex-end!important;
+ flex-wrap:wrap!important;
+ gap:4px 7px!important;
+ min-width:0!important;
+ text-align:right!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-selection>b{
+ color:var(--text)!important;
+ font-size:10px!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-selection>small{
+ color:var(--muted)!important;
+ font-size:9px!important;
+ white-space:normal!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-skybar>svg{
+ grid-area:detail-chart!important;
+ display:block!important;
+ width:100%!important;
+ min-width:0!important;
+ height:30px!important;
+ overflow:visible!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-skybar svg [data-skybar-interactive='true'] g[role='button']{
+ cursor:pointer!important;
+ outline:none!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-detail-skybar svg [data-skybar-interactive='true'] g[role='button']:focus-visible>rect:first-of-type{
+ stroke:var(--primary)!important;
+ stroke-width:2!important;
+ stroke-opacity:1!important;
+}
+@media(max-width:720px){
+ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail>.cockpit-fourteen-detail-skybar{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:
+   "detail-head"
+   "detail-chart"
+   "detail-selection"!important;
+  gap:7px!important;
+  padding:10px!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-detail-selection{
+  justify-content:flex-start!important;
+  text-align:left!important;
+ }
+ html[data-mid-design='next'] .cockpit-fourteen-detail-skybar>svg{height:34px!important}
+}
