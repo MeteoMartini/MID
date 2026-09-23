@@ -1,6 +1,6 @@
 # MID Dependency Upgrade Policy
 
-Stand: MID Toolchain-Kompatibilitätsmigration 08.09.2026 / v0.9.83.0
+Stand: MID 18.2.8 Wartungsreview 23.09.2026 / Ziel v0.9.85.95
 
 Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zusammenhängend geprüfte Verträge. Für v0.9.83.0 gilt:
 
@@ -37,3 +37,15 @@ Recharts-Minor-/Patch-Upgrades bleiben an vollständigen Build sowie Ensemble-/T
 MapLibre GL JS 6.7.0 bleibt der qualifizierte Kartenstand. Die Karten-, Radar-, Komposit-, GeoJSON-, Worker- und Lazy-Load-Verträge dürfen durch Toolchain-Wartung nicht verändert werden.
 
 Die Installationswarnung `uuid@7.0.3` stammt ausschließlich aus dem Dev-/iOS-Werkzeugpfad `@capacitor/cli 8.5.1 -> xcode 3.0.1 -> uuid ^7.0.3`. MID erzwingt kein inkompatibles UUID-Override; der Pfad wird bei einem kompatiblen Upstream-Update erneut bewertet.
+
+
+## Wartungsreview 23.09.2026
+
+Der veröffentlichte Stable-Vertrag bleibt für diesen fachlichen Härtungsrelease bewusst reproduzierbar gepinnt. Aktuell geprüft wurden folgende Upstream-Kandidaten:
+
+- MapLibre GL JS 6.11.1 statt 6.7.0: sinnvoller nächster isolierter Karten-/Radar-Meilenstein. Die Aktualisierung verändert transitive Kartenpakete und benötigt daher ein neu erzeugtes Lockfile sowie vollständige Worker-, GeoJSON-, Radar-, Komposit- und mobile Langzeittests.
+- Capacitor Core / iOS / CLI 8.5.2 statt 8.5.1: sinnvoller isolierter iOS-Lifecycle-/Safe-Area-Patchkandidat. Er wird nur gemeinsam für Core, iOS und CLI übernommen.
+- Vite 8.3.0 statt 8.2.2: sinnvoller nachgelagerter Build-Performance-Patchkandidat. Vite und plugin-react bleiben ein gekoppelter Buildvertrag.
+- React 19.3.0 ist ein separater Kompatibilitätsmeilenstein und ausdrücklich **kein** Patch dieses Releases. React, React DOM, react-is, Typen und Recharts werden erst gemeinsam nach eigenem UI-/Tooltip-/Ref-/Responsive-Gate aktualisiert.
+
+Für v0.9.85.95 gilt: keine package.json-only-Aktualisierung und kein manuell erfundener Lockfile-Hash. Ohne reproduzierbar neu erzeugtes npm-Lockfile bleibt der bereits grüne Stable-Pin bestehen. Damit hat Reproduzierbarkeit Vorrang vor einem nominell neueren Paketstand.
