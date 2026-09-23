@@ -1,3 +1,11 @@
+## MID v0.9.85.95 · 2026-09-23 · MID 18.2.9 · Gewitter-, RUC-, Skybar- und Performance-Härtung
+
+- J.1: signalScore-only-Vertrag für Detail-/Rapid-Gewitterdiagnose; Legacy-percent-Pfade aus UI und Spezialmodulen entfernt.
+- J.2: MU-CAPE/CIN in nativen stündlichen Specialist-Pfad verschoben, Valid-Time-Grenze 35 min eingeführt; VIS/CEILING feldspezifisch als native 15-min-Zustände gekennzeichnet.
+- J.3: Skybar trennt direkte Sonnenscheindauer von Wolkenkomplement; alter Komplement-Vertrag und Wissenschaftstest aktualisiert.
+- J.4: WeatherNext 2 mit nativeTemporalHours=6/interpolatedHourly markiert, aus stündlichen Warn-/Event-Ensembles ausgeschlossen und in Tagesgewichtung konservativ berücksichtigt.
+- J.5: Feature-Chunk-Budgets, Aggregate-Source-of-Truth, Entfernung von weather.tsfrag und dokumentierter Dependency-Review ohne partielle Lockfile-Migration.
+
 ## MID v0.9.85.95 · 2026-09-23 · MID 18.2.8 · J.1–J.5 Härtung
 
 - J.1: signalScore-only-Vertrag für Detail-/Rapid-Gewitterdiagnose; Legacy-percent-Pfade aus UI und Spezialmodulen entfernt.
