@@ -7,7 +7,7 @@ import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const ts=require('typescript-strada');
 const root=new URL('../',import.meta.url);
-const [weather,fusion,periods,seven,portal,app,worker,versionSource,pkgSource]=await Promise.all([
+const [weather,fusion,periods,seven,portal,app,worker,versionSource,pkgSource,baselineSource]=await Promise.all([
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/forecastFusion.ts',root),'utf8'),
  readFile(new URL('src/forecastPeriods.ts',root),'utf8'),
@@ -16,7 +16,8 @@ const [weather,fusion,periods,seven,portal,app,worker,versionSource,pkgSource]=a
  readFile(new URL('src/App.tsx',root),'utf8'),
  readFile(new URL('worker-src/00-core-observations.js',root),'utf8'),
  readFile(new URL('src/version.ts',root),'utf8'),
- readFile(new URL('package.json',root),'utf8')
+ readFile(new URL('package.json',root),'utf8'),
+ readFile(new URL('MID_BASELINE.json',root),'utf8')
 ]);
 assert.ok(weather.includes("mid:forecast-core:v4:"),'Forecast-Core-Cachevertrag wurde nicht versioniert.');
 assert.ok(weather.includes('forecastCoreDimensionSuffix(options)'),'Frontend-Cache enthält keine Höhen-/Zeitzonendimension.');
@@ -42,8 +43,9 @@ assert.ok(portal.includes('trigger?.isConnected'),'Fokus-Rückgabe zum Trigger f
 assert.ok(portal.includes('appLayerIsTop(layer)'),'Verschachtelte Ebenen sind nicht top-layer-gebunden.');
 for(const token of ['useAppLayerFocus(drawerOpen','useAppLayerFocus(open,popoverRef','useAppLayerFocus(open,dialogRef'])assert.ok(app.includes(token),`Direkter App-Dialog fehlt im Fokusvertrag: ${token}`);
 assert.ok(app.includes('applyForecastFusionDays(days,forecastFusion,hours)'),'App übergibt Tagesfusion keine lokalen Stundenepochen.');
-assert.equal(JSON.parse(pkgSource).version,'0.9.85.97');
-assert.ok(versionSource.includes('0.9.85.97'));
+const packageVersion=JSON.parse(pkgSource).version,baselineVersion=JSON.parse(baselineSource).releaseVersion;
+assert.equal(packageVersion,baselineVersion,'package.json und MID_BASELINE.releaseVersion müssen übereinstimmen.');
+assert.ok(versionSource.includes(`'${packageVersion}'`),`src/version.ts muss die Releaseversion ${packageVersion} enthalten.`);
 const dir=await mkdtemp(join(tmpdir(),'mid-098597-'));
 try{
  const source=periods.replace(/^import .*;\n/gm,'');
