@@ -9,9 +9,7 @@ on:
       - completed
 
 permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+  contents: read
 
 concurrency:
   group: mid-agent-source-release
@@ -27,11 +25,21 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: MID Release Bot Token erzeugen
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-actions: write
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Geprüften PR robust identifizieren
         id: pr
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
@@ -77,7 +85,7 @@ jobs:
         id: merge
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           EXPECTED_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
         run: |
@@ -96,15 +104,21 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen
         if: steps.pr.outputs.eligible == 'true'
         id: package
         shell: bash
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          RELEASE_BOT_SLUG: ${{ steps.release_app_token.outputs.app-slug }}
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bot_user_id="$(gh api "/users/${RELEASE_BOT_SLUG}[bot]" --jq .id)"
+          git config user.name "${RELEASE_BOT_SLUG}[bot]"
+          git config user.email "${bot_user_id}+${RELEASE_BOT_SLUG}[bot]@users.noreply.github.com"
+          gh auth setup-git
           make_zip() {
             rm -f MID-professional-replacement.zip
             python3 <<'PY'
@@ -169,7 +183,7 @@ jobs:
         if: steps.pr.outputs.eligible == 'true'
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
           gh workflow run install-mid.yml --ref main

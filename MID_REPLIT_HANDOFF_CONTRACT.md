@@ -63,6 +63,14 @@ Replit erhält nur den für Git-Handoff erforderlichen Repository-Zugriff. Es er
 
 Bevor Replit Schreibzugriff erhält, muss GitHub die vertrauenswürdigen Branch-Namensräume absichern. Insbesondere dürfen `chatgpt/**` und `codex/**` nicht durch den Replit-Zugang erstellt oder aktualisiert werden können. Diese Einschränkung wird als GitHub Ruleset administrativ außerhalb des Repository-Codes erzwungen.
 
+## Produktionsfreigabe und MID Release Bot
+
+Schreibzugriffe auf `main` und `mid-stable` erfolgen nach erfolgreicher Migration ausschließlich mit dem repository-spezifisch installierten GitHub App-Akteur `MID Release Bot MeteoMartini`. Die App ist nur für `MeteoMartini/MID` installiert und erhält nur die für Merge, Repository-Inhalte, Actions-Dispatch und Commit-Status erforderlichen Rechte.
+
+Der normale `GITHUB_TOKEN` bleibt in den Release-Workflows auf lesende Aufgaben beschränkt. Kurzlebige Installationstoken des Release-Bots werden nur in den tatsächlich schreibenden Jobs erzeugt und am Jobende automatisch widerrufen.
+
+Replit erhält keinen Bypass für Produktionsbranches. Ein späterer Production-Branch-Guard darf ausschließlich den dedizierten MID Release Bot für Updates auf `main` und `mid-stable` freistellen.
+
 ## Fail-closed
 
 Bei unklarer Provenienz, veraltetem Ausgangsstand, geschütztem Dateipfad, fehlgeschlagenem Test, Divergenz oder nicht verifizierbarer GitHub-Berechtigung erfolgt keine Promotion. Der Replit-Stand bleibt als Handoff erhalten, bis die Ursache geklärt ist.

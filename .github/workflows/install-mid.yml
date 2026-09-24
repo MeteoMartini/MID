@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Repository laden
@@ -35,6 +35,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Release-ZIP sicher entpacken
         shell: bash
@@ -270,15 +271,28 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: MID Release Bot Token für main erzeugen
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Neue MID-Version committen
         id: commit
         shell: bash
         timeout-minutes: 5
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          RELEASE_BOT_SLUG: ${{ steps.release_app_token.outputs.app-slug }}
         run: |
           set -euo pipefail
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bot_user_id="$(gh api "/users/${RELEASE_BOT_SLUG}[bot]" --jq .id)"
+          git config user.name "${RELEASE_BOT_SLUG}[bot]"
+          git config user.email "${bot_user_id}+${RELEASE_BOT_SLUG}[bot]@users.noreply.github.com"
+          gh auth setup-git
 
           # Ein laufender GitHub-Actions-App-Token darf keine Workflowdateien
           # selbst aktualisieren. .github bleibt deshalb grundsätzlich außerhalb
@@ -858,8 +872,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     permissions:
-      contents: write
-      statuses: write
+      contents: read
     # Stable-Promotion und RUC-Publish dürfen sich nicht zwischen der
     # Stable-SHA-Prüfung und dem eigentlichen Pages-Deployment überholen.
     # Der Lock bleibt auf den kurzen Abschluss beschränkt; Build, Audit,
@@ -870,10 +883,19 @@ jobs:
       cancel-in-progress: false
 
     steps:
+      - name: MID Release Bot Token für Stable-Promotion erzeugen
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-statuses: write
+
       - name: Erfolgreichen Release-Commit ohne Checkout-Action laden
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
         run: |
           set -euo pipefail
@@ -890,7 +912,7 @@ jobs:
       - name: Release-Kandidatenstatus vor Stable-Promotion setzen
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
           candidate_sha="$(git rev-parse HEAD)"
@@ -932,7 +954,7 @@ jobs:
       - name: Geprüften Release ausschließlich per Fast-Forward nach mid-stable promoten
         shell: bash
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         run: |
           set -euo pipefail
           auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
@@ -954,7 +976,7 @@ jobs:
 
       - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
         shell: bash
         run: |
           set -euo pipefail
