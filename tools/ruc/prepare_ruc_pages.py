@@ -24,7 +24,7 @@ DEFAULT_LOOKUP_CHUNK_ENTRIES=65536
 # The app itself currently adds ~13 MB, therefore the RUC profile gets a stricter
 # 900 MB ceiling and should normally stay well below it.
 PAGES_RUC_BUDGET_BYTES=900_000_000
-PAGES_OMIT_RAPID_PRODUCTS={'solar15'}
+PAGES_OMIT_RAPID_PRODUCTS={'solar15','state15'}
 PAGES_STATE15_FIELDS={'visibility','ceiling'}
 PAGES_REDUNDANT_SEVERE_FIELDS={
     'lpi_max':('lpi',),
