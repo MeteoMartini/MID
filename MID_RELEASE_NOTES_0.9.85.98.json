@@ -1,0 +1,15 @@
+{
+  "version": "0.9.85.98",
+  "date": "2026-09-24",
+  "title": "MID 18.2.10 · 90‑Minuten-Skybar mit Nachtkennzeichnung",
+  "external": [
+    "Die 90‑Minuten‑Skybar unter „Heute / Ab jetzt“ kennzeichnet Nachtstunden jetzt genauso dezent wie die Skybar unter „Aktuell“.",
+    "Die Nachtfläche wird minutengenau aus der gemeinsamen Sonnenauf‑/untergangslogik abgeleitet und liegt hinter den Wettersegmenten, sodass Niederschlags-, Bewölkungs- und Sonnenfarben unverändert lesbar bleiben.",
+    "Übergänge an Sonnenaufgang und Sonnenuntergang blenden weich ein bzw. aus; vollständig nächtliche und teilweise nächtliche 90‑Minuten‑Fenster werden korrekt dargestellt."
+  ],
+  "internal": [
+    "ForecastCockpit.ShortTermRibbon leitet now90StartEpoch/now90EndEpoch aus den realen 15‑Minuten-Intervallen ab und nutzt solarTimelineWindow gemeinsam mit Aktuell/24 h.",
+    "now90NightBands werden auf die 120×16-Skybar-Geometrie projiziert und vor SkyBarSegmentsSvg/SkyBarHourCellsSvg gerendert; MID-Nachtfarbe und 14/86-%-Fade entsprechen Aktuell.",
+    "Neue Regression scripts/test-mid-18-2-10-now90-night-098598.mjs schützt Solarquelle, Layer-Reihenfolge, Fade, Farbe und Baseline-Vertrag."
+  ]
+}

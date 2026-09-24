@@ -1,3 +1,10 @@
+## MID v0.9.85.98 · 2026-09-24 · MID 18.2.10 · 90‑Minuten-Skybar-Nachtkennzeichnung
+
+- 90‑Minuten-Skybar „Heute / Ab jetzt“ nutzt dieselbe zentrale Solar-Geometrie wie „Aktuell“ und das 24‑h‑Profil.
+- Nachtbereiche werden aus den realen 15‑Minuten-Intervallen auf die Skybar-Geometrie projiziert und hinter Wettersegmenten bzw. Stundenquadraten gerendert.
+- MID-Nachtfarbe und weiche 14/86-%-Fade-Geometrie entsprechen „Aktuell“; Niederschlag, Bewölkung und Sonne behalten ihre bestehende Fachlogik.
+- Regression: `scripts/test-mid-18-2-10-now90-night-098598.mjs`.
+
 ## MID v0.9.85.97 · 2026-09-24 · MID 18.2.10 · Replit-Audit: Cache, Fokus und lokale Zeitbasis
 
 - Forecast-Core-Cachevertrag Frontend v4 und Worker-Edge v3 dimensionieren Koordinaten, gerundete Höhe und effektive IANA-Zeitzone; unsichere Legacy-Einträge werden nicht migriert.
