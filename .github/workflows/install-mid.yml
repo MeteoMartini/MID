@@ -13,7 +13,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: mid-install-${{ github.ref }}
+  # Interne Release-Bot-Pushes werden vom Job ohnehin übersprungen und dürfen
+  # einen ausdrücklich gestarteten Installerlauf nicht per Concurrency abbrechen.
+  group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}
   cancel-in-progress: true
 
 jobs:
