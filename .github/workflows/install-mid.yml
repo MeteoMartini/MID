@@ -23,7 +23,7 @@ jobs:
       version: ${{ steps.release_meta.outputs.version }}
       worker_changed: ${{ steps.worker_diff.outputs.changed }}
     name: MID installieren, prüfen und bauen
-    if: github.actor != 'github-actions[bot]' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || (github.actor != 'github-actions[bot]' && github.actor != 'mid-release-bot-meteomartini[bot]')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
