@@ -36,21 +36,16 @@ with tempfile.TemporaryDirectory() as td:
  severe_result=result['rapid']['severe15']
  assert [field['name'] for field in severe_result['fields']]==['lpi_max','uh_max','cape_ml']
  assert severe_result['recordBytes']==len(severe_times)*3*2
- assert set(result['pages']['prunedRedundantFields'])=={'lpi','uh_max_low','uh_max_med','freezing_level_height','snowline_height'}
- assert result['pages']['prunedRapidProducts']==['solar15']
+ assert set(result['pages']['prunedRedundantFields'])=={'lpi','uh_max_low','uh_max_med'}
+ assert result['pages']['prunedRapidProducts']==['state15','solar15']
  assert result['pages']['budgetBytes']==900_000_000 and result['pages']['publishedBytes']<result['pages']['budgetBytes']
  severe_saved=points*len(severe_times)*3*2
- state_saved=points*len(state_times)*2*2
+ state_saved=state.nbytes
  solar_saved=solar.nbytes
  assert result['pages']['savedBytes']==severe_saved+state_saved+solar_saved
  chunks=sorted((out/'ruc'/'runs'/run/'rapid'/'severe15').glob('*.bin'))
  projected=np.frombuffer(b''.join(path.read_bytes() for path in chunks),dtype='<i2').reshape(points,len(severe_times),3)
  np.testing.assert_array_equal(projected,severe[:,:,[1,4,5]])
- state_result=result['rapid']['state15']
- assert [field['name'] for field in state_result['fields']]==['visibility','ceiling']
- assert state_result['recordBytes']==len(state_times)*2*2
- state_chunks=sorted((out/'ruc'/'runs'/run/'rapid'/'state15').glob('*.bin'))
- state_projected=np.frombuffer(b''.join(path.read_bytes() for path in state_chunks),dtype='<i2').reshape(points,len(state_times),2)
- np.testing.assert_array_equal(state_projected,state[:,:,[0,1]])
+ assert 'state15' not in result['rapid'] and not list((out/'ruc').rglob('*state15*'))
  assert 'solar15' not in result['rapid'] and not list((out/'ruc').rglob('*solar15*'))
  print('RUC GitHub Pages free-profile budget + science-prioritized projection contract OK')

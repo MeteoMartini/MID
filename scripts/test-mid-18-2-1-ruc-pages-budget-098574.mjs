@@ -20,12 +20,12 @@ assert.ok(pack.includes("FieldSpec('visibility', 'm', 10.0)")&&pack.includes("Fi
 const stateBlock=pack.slice(pack.indexOf('RAPID_STATE_15_FIELDS'),pack.indexOf('REFLECTIVITY_15M_FIELDS'));
 for(const forbidden of ['freezing_level_height','snowline_height','cloud_cover','temperature_2m'])assert.ok(!stateBlock.includes(forbidden),'Slow/hourly field leaked into rapid state pack: '+forbidden);
 assert.ok(pages.includes("PAGES_RUC_BUDGET_BYTES=900_000_000"),'Pages-free RUC budget must fail before the 950 MB combined-site guard.');
-assert.ok(pages.includes("PAGES_OMIT_RAPID_PRODUCTS={'solar15'}"),'Unused solar15 full-grid product must be omitted from Pages.');
-assert.ok(pages.includes("PAGES_STATE15_FIELDS={'visibility','ceiling'}"),'Pages state15 projection must keep only visibility and ceiling.');
+assert.ok(pages.includes("PAGES_OMIT_RAPID_PRODUCTS={'solar15','state15'}"),'Pages-free profile must omit unused solar15 and the optional 15-min visibility/ceiling duplicate.');
+assert.ok(pages.includes("PAGES_STATE15_FIELDS={'visibility','ceiling'}"),'If state15 is re-enabled in another storage profile, its projection must remain restricted to visibility and ceiling.');
 assert.ok(pages.includes("raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')"),'Pages overflow must fail during preparation, before artifact upload/publish.');
 assert.ok(worker.includes("rapidSolar15:false")&&worker.includes("rapidState15:false"),'Worker health must continue treating optional rapid products as optional.');
 assert.ok(shortTerm.includes('stateCeiling=finite(quarter?.ceiling)??base.ceiling')&&shortTerm.includes('stateVisibility=finite(quarter?.visibility)??base.visibility'),'Short-term forecast must consume native 15-min visibility/ceiling when present and fall back hourly otherwise.');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredTests','regressionTests'])assert.ok(baseline[key]?.includes(self),`${self} missing in ${key}`);
 
-console.log(`MID v${pkg.version}: RUC Pages payload prioritizes 15-min visibility/ceiling, keeps slow fields hourly and enforces a 900 MB RUC budget.`);
+console.log(`MID v${pkg.version}: RUC Pages payload omits the optional 15-min visibility/ceiling duplicate, keeps hourly fallback and enforces a 900 MB RUC budget.`);
