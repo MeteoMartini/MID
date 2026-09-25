@@ -1,3 +1,11 @@
+## MID v0.9.85.99 · 2026-09-25 · MID 18.2.11 · Forecast-Horizontnavigation responsive stabilisiert
+
+- Replit-Handoff aus geprüftem SHA `dcdfc8c18b1fcc84c19547a8f4d85c163ce07960` übernommen; Handoff-Gate vollständig grün.
+- Bottom-Tab-Forecastnavigation scrollt bei Prognosemodulen auf die unmittelbar zugehörige Horizontleiste statt den darunterliegenden Modulcontainer, sodass die Leiste nicht oberhalb des Viewports verschwindet.
+- Mobiler/Querformat-Abstand und Scroll-Margin berücksichtigen Safe Areas; keine Sticky-/Fixed-Navigation eingeführt.
+- Neue Regression `scripts/test-modern-forecast-horizon-viewport.mjs`; vorhandener MID-18.2.7-Responsive-Test und Produktionsbuild grün.
+- Reale Sichtprüfung 360×800 Light bestätigt; weitere Zielgrößen sind zusätzlich regressionsgeschützt, die Replit-Browserautomation war dort nicht zuverlässig genug für eine behauptete Sichtabnahme.
+
 ## MID v0.9.85.98 · 2026-09-24 · MID 18.2.10 · 90‑Minuten-Skybar mit Nachtkennzeichnung
 
 - ForecastCockpit.ShortTermRibbon leitet now90StartEpoch/now90EndEpoch aus den realen 15‑Minuten-Intervallen ab und nutzt solarTimelineWindow gemeinsam mit Aktuell/24 h.
