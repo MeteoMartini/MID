@@ -37,8 +37,10 @@ for(const token of [
 for(const token of [
   "const baseCloudSource=advancedMode&&fieldFresh('cloudCover')&&st?.cloudAnalysisMethod?",
   "cloudSource=ceilingFromModel?`${baseCloudSource} · Ceiling ${currentForecastHour?.ceilingSourceLabel||'DWD ICON-D2-RUC · CEILING'}`:baseCloudSource",
-  'info:metricMore(`${cloudBaseDetail}${cloudCompactDetail} · ${cloudSource}`',
-  "fieldSourceInfo([{label:'Bedeckung',fields:['cloudCover']},{label:'Untergrenze / Ceiling',fields:['cloudBaseHft','ceilingHft']}])"
+  'info:metricMore(`${cloudBaseDetail}${cloudCompactDetail} · ${cloudSource} · Himmelszustand: ${cloudObservationTrace}`',
+  "fieldSourceInfo([{label:'Bedeckung',fields:['cloudCover']},{label:'Untergrenze / Ceiling',fields:['cloudBaseHft','ceilingHft']}])",
+  'cloudObservationTrace=currentCloudObserved?',
+  'Modellfallback'
 ])need('Transparente Bewölkungsquelle im (i)-Popover',app,token);
 
 if(panel.includes("[windMode,setWindMode]=useState<WindChartMode>('wind')"))failures.push('Die Wind-/Böenauswahl startet weiterhin bei jedem Öffnen starr mit Wind.');
