@@ -1,3 +1,11 @@
+# MID v0.9.85.103
+
+- Berg-/Wintersportwetter erhält eine klare Höhenwahl für Tal-, Mittel- und Bergstation mit jeweils eigenen aktuellen Bedingungen.
+- Die neue 7-Tage-Übersicht zeigt pro Tag Wetter, Temperatur, Schneefallgrenze, Wind/Böen, Schnee/Niederschlagswahrscheinlichkeit und Sonnenscheindauer; Tage starten geschlossen und lassen sich einzeln öffnen.
+- Geöffnete Tage zeigen kompakte 3-Stunden-Werte einschließlich Nachtstunden mit MID-Piktogrammen, Windpfeilen und Niederschlags-/Schneemengen aus den jeweiligen Zeiträumen.
+- Die Höhenprognose reicht nun über sieben Tage; fehlende Schneefalldaten werden nicht mehr fälschlich als 0 cm dargestellt.
+- Winter- und Sommeransicht priorisieren jeweils die für Berg- bzw. Wintersport wichtigsten Parameter.
+
 # MID v0.9.85.102
 
 - „Heute“ bleibt nach dem Antippen zuverlässig im Kurzfristbereich und springt nicht mehr auf „Vorhersage“ zurück.
