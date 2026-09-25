@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.102",
+  "date": "2026-09-25",
+  "title": "Bottom-Bar-Tippverhalten und Forecast-Horizont stabilisiert",
+  "external": [
+    "„Heute“ bleibt nach dem Antippen zuverlässig im Kurzfristbereich und springt nicht mehr auf „Vorhersage“ zurück.",
+    "Die Bottom-Bar bleibt auf Smartphone und Querformat mit den bestehenden Safe-Area- und Touchzielregeln responsiv."
+  ],
+  "internal": [
+    "Der explizite Forecast-Horizont wird deklarativ aus activeNavSection an ForecastCockpit übergeben und beim Mount vor localStorage priorisiert.",
+    "ForecastCockpit synchronisiert navigationHorizon auch nach dem Mount ohne Timeout- oder Delay-Hacks.",
+    "Neue Regression scripts/test-bottom-bar-forecast-horizon-race-0985102.mjs schützt Mount/Remount und Bottom-Bar-Responsive-Verträge."
+  ]
+}
