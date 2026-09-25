@@ -20,7 +20,7 @@ function isAndroidDevice(){return typeof navigator!=='undefined'&&/android/i.tes
 function storedHintDismissed(){try{return localStorage.getItem(PWA_HINT_DISMISSED_KEY)==='1'}catch{return false}}
 function storeHintDismissed(){try{localStorage.setItem(PWA_HINT_DISMISSED_KEY,'1')}catch{}}
 
-function BrowserPwaInstallButton(){
+function BrowserPwaInstallButton({suppressHint=false}:{suppressHint?:boolean}){
  const[open,setOpen]=useState(false),[installPrompt,setInstallPrompt]=useState<BeforeInstallPromptEvent|null>(null),[installed,setInstalled]=useState(runsStandalone),[message,setMessage]=useState(''),[hintDismissed,setHintDismissed]=useState(storedHintDismissed),[hintReady,setHintReady]=useState(false);
  const ios=useMemo(isIosDevice,[]),android=useMemo(isAndroidDevice,[]);
 
@@ -42,9 +42,10 @@ function BrowserPwaInstallButton(){
  useEffect(()=>{
   if(installed){setHintDismissed(true);storeHintDismissed();return}
   if(hintDismissed)return;
+   if(suppressHint){setHintReady(false);return}
   const timer=window.setTimeout(()=>setHintReady(true),1400);
   return()=>window.clearTimeout(timer);
- },[hintDismissed,installed]);
+  },[hintDismissed,installed,suppressHint]);
 
  useEffect(()=>{
   if(!open)return;
@@ -77,7 +78,7 @@ function BrowserPwaInstallButton(){
   <button type="button" className={`header-install-button${installed?' installed':''}`} onClick={openDialog} aria-haspopup="dialog" aria-expanded={open} title={installed?'MID-App installiert':'MID als App nutzen'} aria-label={installed?'MID-App installiert':'MID als App nutzen'}>
    {installed?<BadgeCheck size={16}/>:<Smartphone size={16}/>}<span>App</span>
   </button>
-  {hintReady&&!hintDismissed&&!installed&&!open&&<aside className="pwa-install-hint" role="status" aria-label="Hinweis zur Installation als App">
+   {hintReady&&!hintDismissed&&!installed&&!open&&!suppressHint&&<aside className="pwa-install-hint" role="status" aria-label="Hinweis zur Installation als App">
    <button type="button" className="pwa-install-hint-main" onClick={openDialog} aria-label="Installationshinweise öffnen"><Download size={19}/><span>{hintText}</span></button>
    <button type="button" className="pwa-install-hint-close" onClick={dismissHint} aria-label="Installationshinweis dauerhaft schließen"><X size={18}/></button>
   </aside>}
@@ -96,4 +97,4 @@ function BrowserPwaInstallButton(){
  </>;
 }
 
-export function PwaInstallButton(){return isMidNativeRuntime()?null:<BrowserPwaInstallButton/>}
+export function PwaInstallButton({suppressHint=false}:{suppressHint?:boolean}){return isMidNativeRuntime()?null:<BrowserPwaInstallButton suppressHint={suppressHint}/>}
