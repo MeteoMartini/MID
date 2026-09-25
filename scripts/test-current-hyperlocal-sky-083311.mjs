@@ -9,7 +9,9 @@ const failures=[];
 for(const token of [
  "import {hyperlocalSkyCondition} from './currentConditions';",
  "reconciledCurrentPrecip.type==='none'?hyperlocalSkyCondition({",
- "cloudObserved:fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)",
+ "currentCloudObserved=fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)",
+ "cloudCover:currentSkyCloud",
+ "cloudObserved:currentCloudObserved",
  "if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}"
 ])if(!app.includes(token))failures.push('App-Anbindung fehlt: '+token);
 if(!pkg.includes('test:current-hyperlocal-sky'))failures.push('Package-Test fehlt.');
