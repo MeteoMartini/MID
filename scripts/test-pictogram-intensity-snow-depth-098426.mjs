@@ -52,7 +52,7 @@ assert.ok(meteogram.includes('step=Math.max(1,niceNumber'),'Schneehöhenachse da
 assert.ok(travelPanel.includes('step="1"')&&travelPanel.includes('Math.round(Number(snowDepthLimit))'),'Schneehöhenbedingung muss in ganzen cm erfasst werden.');
 assert.ok(travelPanel.includes('number(Number(active.summary.snowDepthMean),0)')&&travelPanel.includes('number(Number(point.snowDepthMean),0)'),'Reiseplaner muss mittlere/tägliche Schneehöhen in ganzen cm anzeigen.');
 assert.ok(travel.includes('mittlere Schneehöhe unter ${Math.round(Number(constraints.minSnowDepthCm))} cm')&&travel.includes('Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm'),'Reiseplaner-Texte müssen Schneehöhen ganzzahlig formulieren.');
-assert.ok(app.includes('Neuschnee −24 h {formatDecimalFixed(level.pastSnow24Cm,1)} cm'),'Neuschneeakkumulation darf als von Schneehöhe getrennte Größe ihre Dezimalpräzision behalten.');
+assert.ok(app.includes("label:'Neuschnee',value:mountainNewSnowLabel(selected.pastSnow24Cm),meta:'letzte 24 h'")&&app.includes('function mountainNewSnowLabel(value:number){return Number.isFinite(value)?`${formatDecimalFixed(Math.max(0,value),1)} cm`'), 'Neuschneeakkumulation muss von Schneehöhe getrennt bleiben und ihre Dezimalpräzision behalten.');
 assert.ok(!/snowDepth(?:Mean|Cm)?[^\n]{0,80}(?:toFixed\(|formatDecimalFixed\([^\n]*,1\)|number\([^\n]*,1\))/.test([app,meteogram,travelPanel,travel].join('\n')),'Schneehöhe darf sichtbar nicht mit einer Dezimalstelle formatiert werden.');
 
 // Aggregate ohne belastbare Intervallintensität dürfen keine Scheingenauigkeit erzeugen.
