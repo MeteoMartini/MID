@@ -1,3 +1,11 @@
+## MID v0.9.85.101 · 2026-09-25 · MID 18.2.13 · Sky-Kohärenz, Nacht-Skybars und Kartenfokus
+
+- Numerische DWD-SYNOP-ww-Codes 0–3 werden nicht als Open-Meteo weather_code 0–3 übernommen; ww=3 kann nicht mehr allein Bedeckt setzen.
+- Frische fieldFresh(cloudCover)-Beobachtung steuert aktuellen Code/Label und das Hauptpiktogramm gemeinsam; Modell-Wolkenschichten werden dann nicht in den beobachteten Sky-Visual gemischt.
+- 7d day-card und 14d fourteen-row projizieren solarTimelineWindow mit MID-Nachtfarbe und weichen 14/86-Prozent-Fades hinter Band/Squares.
+- PwaInstallButton erhält einen transienten, nicht persistenten Kartenfokus-Unterdrückungsvertrag; der manuelle App-Button bleibt aktiv.
+- Neue Regression scripts/test-mid-18-2-13-sky-coherence-night-skybars-install.mjs.
+
 ## MID v0.9.85.101 · 2026-09-25 · MID 18.2.13 · Aktuelles Wetter, Nacht-Skybars und Kartenfokus
 
 - Aktuelles Wetter nutzt für Zustandslabel und Hauptpiktogramm denselben kanonischen Bewölkungsstand: frische beobachtete Gesamtbewölkung gewinnt gemeinsam; ohne frische Beobachtung greifen Text und Symbol gemeinsam auf den Modellhintergrund zurück.

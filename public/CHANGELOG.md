@@ -1,3 +1,9 @@
+# MID v0.9.85.101
+
+- Aktuelles Wetter verwendet für Himmelszustand und großes Wettersymbol konsequent dieselbe aktuelle Bewölkungsquelle.
+- Nachtstunden werden auch in den Skybars der 7- und 14-Tage-Tageszeilen dezent astronomisch markiert.
+- Im Kartenbereich verdeckt der automatische App-Installationshinweis keine Karte oder Kartenbedienelemente mehr.
+
 # MID v0.9.85.100
 
 - Der aktive Bereich der mobilen Einstellungen bleibt auf kleinen Smartphones vollständig sichtbar.
