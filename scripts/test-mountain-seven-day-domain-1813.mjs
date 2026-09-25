@@ -9,6 +9,9 @@ assert.match(source,/function completeSnowfallWindowSum/,'Neuschnee braucht eine
 assert.doesNotMatch(source,/Number\(snow\[index\]\)\|\|0/,'Fehlende Schneefallstunden dürfen niemals als 0 cm behandelt werden.');
 assert.match(source,/function currentValue\(weather:MountainPointWeather,key:string\)\{const current=numeric/,'Nullwerte in aktuellen Höhenparametern dürfen nicht zu künstlichen 0-Werten werden.');
 assert.match(source,/export function mountainDailySummaries\(level:MountainLevelForecast\)/,'Tageswerte müssen zentral aus exakt einer gewählten Höhenstufen-Zeitreihe ableitbar sein.');
+assert.match(source,/export function mountainSevenDaySummaries\(level:MountainLevelForecast,now=Date\.now\(\)\)/,'Die UI braucht genau sieben lokale Kalendertage aus der gewählten Höhenzeitreihe.');
+assert.match(source,/\.filter\(day=>day\.date>=start\)\.slice\(0,7\)/,'Die Bergwetter-Übersicht muss auf genau sieben aktuelle lokale Tage begrenzt sein.');
+assert.match(source,/key!==['"]sunshine_duration['"]/,'Sonnenscheindauer darf als Stundenintervall geladen, aber nicht fälschlich als Current-Momentanwert angefordert werden.');
 assert.match(source,/role:level\.role,elevation:level\.elevation,date/,'Tageswerte müssen Höhenrolle und Höhe explizit mitführen.');
 assert.match(source,/mountainIntervalValue\(weather,'precipitation',index\)/,'Niederschlag muss als Intervallwert aggregiert werden.');
 assert.match(source,/mountainIntervalValue\(weather,'snowfall',index\)/,'Schneefall muss als Intervallwert aggregiert werden.');
