@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.99",
+  "date": "2026-09-25",
+  "title": "MID 18.2.11 · Responsive Forecast-Horizontnavigation",
+  "external": [
+    "Die Prognose-Zeithorizonte bleiben auf kleinen Smartphones und im schmalen Querformat nach dem Navigationssprung vollständig sichtbar.",
+    "Die Horizontleiste überdeckt weder Prognosekopf noch erste Tageszeile und berücksichtigt die obere Safe Area.",
+    "Wetterdaten, Modellfusion, Schwellen, Parameterfarben sowie die 7-/14-Tage-Fachlogik bleiben unverändert."
+  ],
+  "internal": [
+    "Geprüfter Replit-Handoff dcdfc8c18b1fcc84c19547a8f4d85c163ce07960 über den read-only Handoff-Gate übernommen.",
+    "navigateToDashboardSection verwendet bei modernen Forecast-Modulen die unmittelbar vor dem Modul liegende Horizontnavigation als Scrollziel.",
+    "Mobile Forecast-Horizontnavigation erhält Safe-Area-Scroll-Margin und Abstand zum nachfolgenden Forecast-Modul.",
+    "Neue Regression scripts/test-modern-forecast-horizon-viewport.mjs; Handoff-Build und Web-/iOS-Hüllenprüfung grün."
+  ]
+}
