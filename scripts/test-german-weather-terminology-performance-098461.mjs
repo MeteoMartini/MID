@@ -31,9 +31,9 @@ for(const [code,label] of [
 ])assert.ok(weather.includes(`${code}:'${label}'`),`DWD/WMO-ww ${code} muss fachlich/grammatisch ${label} heißen.`);
 
 assert.ok(app.includes('currentVisibilityReport=currentObservedRaw?parseReportedVisibilityPhenomenon(currentObservedRaw):undefined'),'Sichtbezogene DWD-/METAR-Meldungen müssen vor allgemeinen Wettercodes fachlich klassifiziert werden.');
-assert.ok(app.includes("currentObservedWeatherCode=currentObservedRaw&&!currentVisibilityReport&&/^\\d{1,2}$/.test(currentObservedRaw)?Number(currentObservedRaw):undefined"),'Numerisches DWD-SYNOP-ww außerhalb der Sichtcodes muss weiter als Wettercode erkannt werden.');
-assert.ok(app.includes('currentWeatherLabel=label(currentObservedWeatherCode)'),'Numerisches DWD-SYNOP-ww muss den zentralen deutschen DWD/WMO-Text verwenden.');
-assert.ok(app.includes('weatherPictogramIntensity(currentObservedWeatherCode)'),'Numerisches SYNOP-ww muss auch die passende Piktogrammintensität setzen.');
+assert.ok(app.includes('currentSynopObservation=resolvePresentWeatherObservation(currentWeatherCode,currentObservedRaw)'),'Numerisches DWD-SYNOP-ww muss über den getrennten Beobachtungscodepfad laufen.');
+assert.ok(app.includes('currentSynopWeatherNumber=currentSynopObservation.synopWw'),'Numerisches DWD-SYNOP-ww muss als eigener SYNOP-Code erhalten bleiben.');
+assert.ok(!app.includes('currentObservedWeatherCode=')&&!app.includes('label(currentObservedWeatherCode)'),'Numerisches DWD-SYNOP-ww darf nicht direkt als Open-Meteo-/Forecast-Wettercode behandelt werden.');
 
 assert.ok(preload.includes('await delay(35)'),'Fast-Observation muss beim Start priorisiert werden.');
 assert.ok(preload.includes('await delay(constrained?650:440)'),'Ensemble-Start muss hinter den kritischen Istwetter-/Radar-Pfad rücken und Data-Saver respektieren.');
