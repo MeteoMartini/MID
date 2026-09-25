@@ -7,7 +7,7 @@ const [cockpit,baseline]=await Promise.all([
 ]);
 const start=cockpit.indexOf('function SevenDayCurveOverview(');
 const end=cockpit.indexOf(`
-function cockpitDaySkyBarSegments(`);
+function cockpitSolarNightDefs(`);
 assert.ok(start>=0&&end>start,'SevenDayCurveOverview konnte nicht isoliert werden.');
 const curve=cockpit.slice(start,end);
 for(const token of [

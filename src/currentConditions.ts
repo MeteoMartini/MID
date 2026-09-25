@@ -1,5 +1,7 @@
 import {classifyVisibilityPhenomenon} from './visibilityPhenomena';
 export type HyperlocalSkyCondition={code:number;label:string;cloudOktas?:number};
+export type PresentWeatherResolution={weatherCode:number;synopWw?:number;phenomenon?:string};
+export type CurrentSkyDisplay={code:number;label:string;source:'observation'|'model'|'weather'};
 
 type HyperlocalSkyInput={
  fallbackCode:number;
@@ -70,6 +72,15 @@ export function synopPresentWeatherPhenomenon(value:unknown):string|undefined{
  return undefined;
 }
 
+/** A numeric SYNOP ww report is never an Open-Meteo weather_code. */
+export function resolvePresentWeatherObservation(fallbackWeatherCode:unknown,presentWeather:unknown):PresentWeatherResolution{
+ const parsedFallback=finite(fallbackWeatherCode),weatherCode=parsedFallback??0,raw=String(presentWeather??'').trim();
+ if(!raw)return{weatherCode};
+ const synopWw=synopPresentWeatherNumber(raw);
+ if(synopWw!==undefined)return{weatherCode,synopWw,phenomenon:synopPresentWeatherPhenomenon(synopWw)};
+ return{weatherCode,phenomenon:raw};
+}
+
 /**
  * Leitet den sichtbaren aktuellen Himmelszustand ausschließlich aus frischen
  * lokal analysierten Beobachtungsfeldern ab. Niederschlag wird außerhalb
@@ -81,4 +92,33 @@ export function hyperlocalSkyCondition(input:HyperlocalSkyInput):HyperlocalSkyCo
  if(input.visibilityObserved&&visibility!==undefined){const phenomenon=classifyVisibilityPhenomenon({weatherCode:fallbackCode,visibility,humidity,temperature,dewPoint});if(phenomenon.displayCode!==undefined)return{code:phenomenon.displayCode,label:phenomenon.label}}
  if(!input.cloudObserved||cloud===undefined)return undefined;
  return cloudCoverSkyCondition(cloud);
+}
+
+export function currentDrySkyDisplay(input:{
+ fallbackCode:number;
+ fallbackLabel:string;
+ modelCloudCover?:number;
+ observedCloudCover?:number;
+ observedCloudFresh:boolean;
+ visibility?:number;
+ humidity?:number;
+ temperature?:number;
+ dewPoint?:number;
+ visibilityObserved:boolean;
+}):CurrentSkyDisplay{
+ const cloudCover=input.observedCloudFresh?input.observedCloudCover:input.modelCloudCover;
+ const observed=hyperlocalSkyCondition({
+  fallbackCode:input.fallbackCode,
+  cloudCover,
+  visibility:input.visibility,
+  humidity:input.humidity,
+  temperature:input.temperature,
+  dewPoint:input.dewPoint,
+  cloudObserved:input.observedCloudFresh,
+  visibilityObserved:input.visibilityObserved,
+ });
+ if(observed)return{...observed,source:'observation'};
+ const model=modelCloudSkyCondition(input.fallbackCode,input.modelCloudCover);
+ if(model)return{...model,source:'model'};
+ return{code:Math.round(Number(input.fallbackCode)||0),label:input.fallbackLabel,source:'weather'};
 }

@@ -62,6 +62,18 @@ function zonedDateToUtc(year:number,month:number,day:number,hour:number,minute:n
 function localDateParts(date:Date,timezone:string){const parts=zonedParts(date,timezone);return{year:parts.year,month:parts.month,day:parts.day}}
 function shiftDate(parts:{year:number;month:number;day:number},days:number){const date=new Date(Date.UTC(parts.year,parts.month-1,parts.day+days));return{year:date.getUTCFullYear(),month:date.getUTCMonth()+1,day:date.getUTCDate()}}
 function localDayWindow(parts:{year:number;month:number;day:number},timezone:string){const next=shiftDate(parts,1),start=zonedDateToUtc(parts.year,parts.month,parts.day,0,0,0,timezone),end=zonedDateToUtc(next.year,next.month,next.day,0,0,0,timezone);return{start,end,limitDays:Math.max(1,(end.getTime()-start.getTime())/DAY_MS+.08)}}
+export type LocalCalendarDayWindow={date:string;timezone:string;startEpoch:number;endEpoch:number;durationHours:number};
+export function localCalendarDayWindow(date:string,timezone:string):LocalCalendarDayWindow|undefined{
+ const match=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!match)return undefined;
+ const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),calendarDate=new Date(Date.UTC(year,month-1,day));
+ if(calendarDate.getUTCFullYear()!==year||calendarDate.getUTCMonth()+1!==month||calendarDate.getUTCDate()!==day)return undefined;
+ const zone=String(timezone||'UTC');
+ try{
+  const start=zonedDateToUtc(year,month,day,0,0,0,zone),next=shiftDate({year,month,day},1),end=zonedDateToUtc(next.year,next.month,next.day,0,0,0,zone),startEpoch=start.getTime(),endEpoch=end.getTime();
+  if(!Number.isFinite(startEpoch)||!Number.isFinite(endEpoch)||endEpoch<=startEpoch)return undefined;
+  return{date,timezone:zone,startEpoch,endEpoch,durationHours:(endEpoch-startEpoch)/3600000};
+ }catch{return undefined}
+}
 function inWindow(value:Date|undefined,start:Date,end:Date){return value&&value.getTime()>=start.getTime()&&value.getTime()<end.getTime()?value:undefined}
 function observerFor(lat:number,lon:number,height:number){return new Observer(lat,lon,Number.isFinite(height)?height:0)}
 function bodyAltitude(body:Body,date:Date,observer:Observer,refraction:'normal'|null='normal'){

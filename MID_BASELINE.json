@@ -530,6 +530,8 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-skybar-dst-23-25-hour-contract.mjs",
+    "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
     "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
     "scripts/test-pwa-map-hint-handoff.mjs",
     "scripts/test-preview-watch-port-contract.mjs"
@@ -981,6 +983,7 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-skybar-dst-23-25-hour-contract.mjs",
     "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
     "scripts/test-pwa-map-hint-handoff.mjs",
     "scripts/test-preview-watch-port-contract.mjs"
@@ -1666,6 +1669,7 @@
     "src/midC18ReplitHandoffPolish.css",
     "MID_REPLIT_HANDOFF_0.9.85.71.md",
     "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
+    "scripts/test-seven-day-curve-night-band-097841.mjs",
     "MID_SKYBAR_CLOUD_COHERENCE_0.9.85.72.md",
     "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs",
     "MID_RUC_NATIVE_CADENCE_0.9.85.73.md",
@@ -1712,7 +1716,11 @@
     "MID_IMPLEMENTATION_0.9.85.98.md",
     "MID_RELEASE_NOTES_0.9.85.98.json",
     "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-skybar-dst-23-25-hour-contract.mjs",
     "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
+    "src/forecastDaySkyBar.ts",
+    "src/currentConditions.ts",
+    "src/astronomy.ts",
     "scripts/test-pwa-map-hint-handoff.mjs",
     "scripts/test-preview-watch-port-contract.mjs"
   ],
@@ -1782,6 +1790,7 @@
     "scripts/test-weather-pictogram-appwide-contract-098441.mjs",
     "scripts/test-mid-18-2-1-replit-handoff-098571.mjs",
     "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
+    "scripts/test-seven-day-curve-night-band-097841.mjs",
     "scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs",
     "scripts/test-mid-18-2-1-ruc-pages-budget-098574.mjs",
     "scripts/test-mid-18-2-2-mandatory-design-098575.mjs",
@@ -1801,6 +1810,9 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-skybar-dst-23-25-hour-contract.mjs",
+    "scripts/test-mid-18-2-1-skybar-cloud-coherence-098572.mjs",
+    "scripts/test-seven-day-curve-night-band-097841.mjs",
     "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
     "scripts/test-pwa-map-hint-handoff.mjs",
     "scripts/test-preview-watch-port-contract.mjs"
@@ -2328,6 +2340,7 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-skybar-dst-23-25-hour-contract.mjs",
     "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
     "scripts/test-pwa-map-hint-handoff.mjs",
     "scripts/test-preview-watch-port-contract.mjs"

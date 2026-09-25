@@ -7,17 +7,17 @@ const [app,pkg]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- "import {hyperlocalSkyCondition,modelCloudSkyCondition,synopPresentWeatherNumber,synopPresentWeatherPhenomenon} from './currentConditions';",
- "reconciledCurrentPrecip.type==='none'?hyperlocalSkyCondition({",
- "cloudObserved:currentCloudObservationFresh",
- "if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}",
- "else if(modelDryCloudSky){currentWeatherCode=modelDryCloudSky.code;currentWeatherLabel=modelDryCloudSky.label}",
- "currentSynopWeatherNumber=synopPresentWeatherNumber(currentObservedRaw)",
- "currentSynopWeatherNumber!==undefined?synopPresentWeatherPhenomenon(currentObservedRaw):currentObservedRaw",
+ "import {currentDrySkyDisplay,resolvePresentWeatherObservation} from './currentConditions';",
+ "currentSynopObservation=resolvePresentWeatherObservation(currentWeatherCode,currentObservedRaw)",
+ "currentWeatherCode=currentSynopObservation.weatherCode",
+ "currentDrySkyDisplay({fallbackCode:currentWeatherCode,fallbackLabel:currentWeatherLabel",
+ "currentWeatherCode=currentSkyDisplay.code;currentWeatherLabel=currentSkyDisplay.label",
  "cloud={currentCloudObservationFresh?currentCloudObservation:Number(c.cloud_cover)}",
  "lowCloud={currentCloudObservationFresh?undefined:Number(c.cloud_cover_low)}",
  "midCloud={currentCloudObservationFresh?undefined:Number(c.cloud_cover_mid)}",
  "highCloud={currentCloudObservationFresh?undefined:Number(c.cloud_cover_high)}",
+ "code={currentWeatherCode}",
+ "title={currentWeatherLabel}",
  "Verwendete Bewölkungsquelle",
  "cloudSourceStatus"
 ])if(!app.includes(token))failures.push('App-Anbindung fehlt: '+token);
@@ -28,7 +28,7 @@ const bundled=await build({
  bundle:true,platform:'node',format:'esm',target:'node22',write:false,logLevel:'silent'
 });
 const moduleUrl='data:text/javascript;base64,'+Buffer.from(bundled.outputFiles[0].text).toString('base64');
-const {hyperlocalSkyCondition,cloudCoverSkyCondition,modelCloudSkyCondition,synopPresentWeatherNumber,synopPresentWeatherPhenomenon}=await import(moduleUrl);
+const {hyperlocalSkyCondition,cloudCoverSkyCondition,modelCloudSkyCondition,synopPresentWeatherNumber,synopPresentWeatherPhenomenon,resolvePresentWeatherObservation,currentDrySkyDisplay}=await import(moduleUrl);
 
 const strong=hyperlocalSkyCondition({fallbackCode:3,cloudCover:87.5,visibility:7600,humidity:41,temperature:26,dewPoint:10,cloudObserved:true,visibilityObserved:true});
 if(strong?.code!==3||strong?.label!=='Stark bewölkt'||strong?.cloudOktas!==7)failures.push('7/8 wird nicht konsistent als stark bewölkt klassifiziert: '+JSON.stringify(strong));
@@ -56,14 +56,26 @@ if(modelOvercast?.code!==3||modelOvercast?.label!=='Bedeckt')failures.push('Mode
 if(modelRainCloud!==undefined)failures.push('Bewölkungsfallback darf einen echten Niederschlagszustand nicht überschreiben.');
 if(cloudCoverSkyCondition(-1)!==undefined||cloudCoverSkyCondition(101)!==undefined)failures.push('Ungültige Gesamtbewölkung darf nicht als Beobachtung gelten.');
 
+const observedSky=currentDrySkyDisplay({fallbackCode:3,fallbackLabel:'Stark bewölkt',modelCloudCover:87.5,observedCloudCover:12.5,observedCloudFresh:true,visibility:10000,humidity:50,temperature:12,dewPoint:2,visibilityObserved:false});
+if(observedSky.code!==1||observedSky.label!=='Gering bewölkt'||observedSky.source!=='observation')failures.push('Frische Gesamtbewölkung muss Zustandslabel und Piktogrammcode gemeinsam aus der Beobachtung ableiten: '+JSON.stringify(observedSky));
+const staleSky=currentDrySkyDisplay({fallbackCode:3,fallbackLabel:'Stark bewölkt',modelCloudCover:87.5,observedCloudCover:12.5,observedCloudFresh:false,visibility:10000,humidity:50,temperature:12,dewPoint:2,visibilityObserved:false});
+if(staleSky.code!==3||staleSky.label!=='Stark bewölkt'||staleSky.source!=='model')failures.push('Veraltete Bewölkung muss Label und Piktogrammcode gemeinsam auf Modellfallback setzen: '+JSON.stringify(staleSky));
+
+for(const ww of [0,1,2,3,4,6,13,17,45,50,56,61,68,71,80,95,99]){
+ const modelCode=[95,61,3,2].find(code=>code!==ww);
+ for(const report of [String(ww),`WW=${ww}`]){
+  const resolved=resolvePresentWeatherObservation(modelCode,report);
+  if(synopPresentWeatherNumber(report)!==ww||resolved.synopWw!==ww||resolved.weatherCode!==modelCode||resolved.weatherCode===ww)failures.push(`Numerisches SYNOP-ww=${report} wurde als Open-Meteo-weather_code durchgereicht: ${JSON.stringify(resolved)}`);
+ }
+}
 for(const ww of [0,1,2,3,'WW=3']){
  if(synopPresentWeatherNumber(ww)!==Number(String(ww).replace(/^WW=/i,''))||synopPresentWeatherPhenomenon(ww)!==undefined)failures.push(`Trockener SYNOP-ww=${ww} wurde als Open-Meteo-Wettercode interpretiert.`);
 }
 for(const [ww,phenomenon] of [[4,'FU'],[50,'DZ'],[56,'FZDZ'],[61,'RA'],[68,'RASN'],[71,'SN'],[80,'SHRA'],[95,'TSRA']]){
  if(synopPresentWeatherPhenomenon(ww)!==phenomenon)failures.push(`SYNOP-ww=${ww} wurde nicht in die SYNOP-Phänomenfamilie ${phenomenon} überführt.`);
 }
-if(app.includes('currentObservedWeatherCode')||app.includes('label(currentObservedRaw)'))failures.push('Numerischer SYNOP-present_weather darf nie direkt als Open-Meteo-Code gelabelt werden.');
-if(!app.includes('<WeatherPictogram code={currentWeatherCode}')||!app.includes('title={currentWeatherLabel}'))failures.push('Hauptpiktogramm und sichtbares Zustandslabel teilen nicht dieselbe fachliche Quelle.');
+if(app.includes('label(currentObservedRaw)')||app.includes('weather_code:currentSynopWeatherNumber'))failures.push('Numerischer SYNOP-present_weather darf nie direkt als Open-Meteo-Code gelabelt werden.');
+if(!app.includes('const currentSkyDisplay=')||!app.includes('currentWeatherCode=currentSkyDisplay.code;currentWeatherLabel=currentSkyDisplay.label')||!app.includes('<WeatherPictogram code={currentWeatherCode}')||!app.includes('title={currentWeatherLabel}')||!app.includes('<b>{currentWeatherLabel}</b>'))failures.push('Frische Beobachtung und Modellfallback müssen Code, Piktogramm und sichtbares Zustandslabel gemeinsam versorgen.');
 if(!app.includes('· frisch')||!app.includes('· nicht mehr frisch; ')||!app.includes('Modellfallback ·'))failures.push('Bewölkungsquelle und Aktualitäts-/Fallbackstatus werden nicht transparent gezeigt.');
 
 if(failures.length){console.error('Hyperlokale aktuelle Himmelszustandsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
