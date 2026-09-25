@@ -11,7 +11,7 @@ const [app,mountain,worker,push,radar,weather,analytics,persistence,modelChanges
 const failures=[];
 const requireTokens=(label,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`)};
 requireTokens('Berg-/Wintersport-Schema',mountain,[
- 'schemaVersion:2','season:\'auto\'','middleEnabled:false','normalizeMountainConfig','mountainProfile','station','lift','configuredPoints','config.valleyLatitude','config.valleyLongitude',"models:'best_match'",'past_hours:\'24\'','forecast_hours:\'72\'','modelSnowDepthCm','measuredSnowDepthCm','pastSnow24Cm','newSnow24Cm','newSnow48Cm','uv_index','visibility','wind_gusts_10m','cape'
+ 'schemaVersion:2','season:\'auto\'','middleEnabled:false','normalizeMountainConfig','mountainProfile','station','lift','configuredPoints','config.valleyLatitude','config.valleyLongitude',"models:'best_match'",'past_hours:\'24\'','forecast_hours:\'168\'','modelSnowDepthCm','measuredSnowDepthCm','pastSnow24Cm','newSnow24Cm','newSnow48Cm','uv_index','visibility','wind_gusts_10m','cape'
 ]);
 requireTokens('Editierbare Bergstationen',app,['valleyName','middleName','summitName','valleyElevation','middleElevation','summitElevation','Mittelstation verwenden','Automatisch bestimmen']);
 requireTokens('GeoSphere-Schneemessung',worker,['mode===\'geosphere-snow\'','geoSphereSnowMeasurement','distanceM<=25000','Math.abs(st.elevation-targetElevation)<=350','ageMs>3*3600000','GeoSphere Austria / TAWES']);
