@@ -1,5 +1,5 @@
-# MID v0.9.85.100
+# MID v0.9.85.101
 
-- In den mobilen Einstellungen bleibt der aktive Bereich – insbesondere „Inhalte & Navigation“ – auf kleinen Smartphones vollständig sichtbar.
-- Die einzeilige Tab-Leiste scrollt den gewählten Bereich automatisch ins Sichtfeld und zeigt dezent an, wenn links oder rechts weitere Einstellungsbereiche verfügbar sind.
-- Touchziele, Safe Areas sowie Light-/Dark-Darstellung wurden für 360×800 und 390×844 geprüft; Wetter- und Prognoselogik bleiben unverändert.
+- „Aktuelles Wetter“ verwendet für Himmelszustand und großes Wettersymbol jetzt konsequent dieselbe aktuelle Bewölkungsquelle. Veraltete oder anders codierte Stationsmeldungen können den Zustand nicht mehr widersprüchlich überschreiben.
+- Nachtstunden werden nun auch in den Skybars der 7- und 14-Tage-Tageszeilen dezent astronomisch markiert; Wetterfarben und Intensitäten bleiben im Vordergrund.
+- Im Kartenbereich verdeckt der automatische Hinweis zur App-Installation keine Karte oder Kartenbedienelemente mehr. Der manuelle „App“-Knopf bleibt verfügbar.

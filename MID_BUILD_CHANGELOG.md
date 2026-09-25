@@ -1,3 +1,12 @@
+## MID v0.9.85.101 · 2026-09-25 · MID 18.2.13 · Aktuelles Wetter, Nacht-Skybars und Kartenfokus
+
+- Aktuelles Wetter nutzt für Zustandslabel und Hauptpiktogramm denselben kanonischen Bewölkungsstand: frische beobachtete Gesamtbewölkung gewinnt gemeinsam; ohne frische Beobachtung greifen Text und Symbol gemeinsam auf den Modellhintergrund zurück.
+- Numerische DWD-SYNOP-Wettermeldungen ww=0–3 werden nicht mehr als Open-Meteo-Wettercodes 0–3 interpretiert; insbesondere kann ww=3 nicht fälschlich „Bedeckt“ erzwingen.
+- Die Bewölkungs-Info weist verwendete Quelle, Beobachtungsstand/Alter und Modellfallback nachvollziehbar aus.
+- 7-Tage-Tageskarten und 14-Tage-Zeilen erhalten astronomisch berechnete Nachtflächen aus der zentralen solarTimelineWindow-Geometrie; Band- und Quadratdarstellung teilen dieselbe Nachtgeometrie.
+- Der transiente PWA-Installationshinweis wird im Karten-/Komposit-Fokus temporär unterdrückt, ohne den manuellen „App“-Knopf oder den Installationsstatus zu verändern.
+- Neue Regression `scripts/test-mid-18-2-13-sky-coherence-night-skybars-install.mjs`; vollständiger Source-Gate prüft Build, Regressionen und Web-/iOS-Hülle vor Veröffentlichung.
+
 ## MID v0.9.85.100 · 2026-09-25 · MID 18.2.12 · Mobile Einstellungsnavigation
 
 - Geprüfter Replit-Handoff `e05bca0aa305a938c886b77e5062ca1c635d4994` vom Branch `replit/settings-mobile-tabs-098599`; read-only Handoff-Gate vollständig grün.

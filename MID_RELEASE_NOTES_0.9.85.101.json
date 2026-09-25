@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.101",
+  "date": "2026-09-25",
+  "title": "MID 18.2.13 · Sky-Kohärenz, Nacht-Skybars und Kartenfokus",
+  "external": [
+    "Aktuelles Wetter verwendet für Himmelszustand und großes Wettersymbol konsequent dieselbe aktuelle Bewölkungsquelle.",
+    "Nachtstunden werden auch in den Skybars der 7- und 14-Tage-Tageszeilen dezent astronomisch markiert.",
+    "Im Kartenbereich verdeckt der automatische App-Installationshinweis keine Karte oder Kartenbedienelemente mehr."
+  ],
+  "internal": [
+    "Numerische DWD-SYNOP-ww-Codes 0–3 werden nicht als Open-Meteo weather_code 0–3 übernommen; ww=3 kann nicht mehr allein Bedeckt setzen.",
+    "Frische fieldFresh(cloudCover)-Beobachtung steuert aktuellen Code/Label und das Hauptpiktogramm gemeinsam; Modell-Wolkenschichten werden dann nicht in den beobachteten Sky-Visual gemischt.",
+    "7d day-card und 14d fourteen-row projizieren solarTimelineWindow mit MID-Nachtfarbe und weichen 14/86-Prozent-Fades hinter Band/Squares.",
+    "PwaInstallButton erhält einen transienten, nicht persistenten Kartenfokus-Unterdrückungsvertrag; der manuelle App-Button bleibt aktiv.",
+    "Neue Regression scripts/test-mid-18-2-13-sky-coherence-night-skybars-install.mjs."
+  ]
+}
