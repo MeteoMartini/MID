@@ -278,3 +278,14 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
   justify-self:end!important;
  }
 }
+
+/* Keep forecast navigation inside the safe viewport and separate from its first heading. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .navigation-bottom-tabs .modern-forecast-horizons{
+  scroll-margin-top:calc(max(var(--mid-safe-top),env(safe-area-inset-top,0px)) + 12px)!important;
+ }
+ html[data-mid-design='next'] .navigation-bottom-tabs .modern-forecast-horizons + .modern-forecast-section{
+  margin-top:16px!important;
+  scroll-margin-top:calc(max(var(--mid-safe-top),env(safe-area-inset-top,0px)) + 12px)!important;
+ }
+}
