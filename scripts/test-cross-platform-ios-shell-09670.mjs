@@ -18,7 +18,7 @@ for(const [key,value] of Object.entries({appId:'app.midwx.weather',appName:'MID 
 if('server' in capacitorConfig)failures.push('Die Produktions-App darf keinen entfernten Server statt des gebündelten dist-Builds laden.');
 for(const token of ['Capacitor.isNativePlatform()','document.documentElement.dataset.midRuntime=platform',"App.addListener('appStateChange'","App.addListener('appUrlOpen'",'StatusBar.setOverlaysWebView({overlay:false})','SplashScreen.hide()'])need('Native Laufzeitbrücke',runtime,token);
 need('PWA-Isolation',pwa,'isMidNativeRuntime()');
-need('PWA-Installationsschutz',install,'isMidNativeRuntime()?null:<BrowserPwaInstallButton/>');
+need('PWA-Installationsschutz',install,'isMidNativeRuntime()?null:<BrowserPwaInstallButton suppressTransientHint={suppressTransientHint}/>');
 for(const token of ['prepareMidRuntimeDocument()','startMidNativeRuntimeBridge()','markMidNativeRuntimeReady()'])need('App-Start',main,token);
 for(const token of ['data-mid-runtime=ios','safe-area-inset-top','safe-area-inset-bottom'])need('Native Safe Area',styles,token);
 for(const token of ['Browser-/PWA-App und als native iOS-App parallel','keinen separaten iOS-Fachfork','unversionierte Professional-ZIP'])need('Cross-Platform-Vertrag',contract,token);
