@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.100",
+  "date": "2026-09-25",
+  "title": "MID 18.2.12 · Mobile Einstellungsnavigation",
+  "external": [
+    "Der aktive Bereich der mobilen Einstellungen bleibt auf kleinen Smartphones vollständig sichtbar.",
+    "Die einzeilige Tab-Leiste führt den gewählten Bereich automatisch ins Sichtfeld und zeigt dezent weitere Inhalte links oder rechts an.",
+    "Touchziele, Safe Areas und Light-/Dark-Darstellung wurden für 360×800 und 390×844 geprüft; Wetter- und Prognoselogik bleiben unverändert."
+  ],
+  "internal": [
+    "Geprüfter Replit-Handoff e05bca0aa305a938c886b77e5062ca1c635d4994 über den read-only Handoff-Gate übernommen.",
+    "SettingsDialog synchronisiert den aktiven aria-current=page-Tab beim Öffnen, Bereichswechsel und Resize mit dem horizontalen Scrollfeld.",
+    "data-scroll-left/data-scroll-right steuern dezente Fortsetzungshinweise; mobile Tabs bleiben einzeilig mit 44-px-Touchziel und Safe-Area-Abständen.",
+    "Neue Regression scripts/test-settings-mobile-horizontal-tabs.mjs; bestehender MID-18.2.7-Responsive-Test sowie Handoff-Build/Web-/iOS-Hülle grün."
+  ]
+}
