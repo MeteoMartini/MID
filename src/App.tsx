@@ -44,7 +44,7 @@ import {ShortTermForecast,shortTermAnchorFromCurrent} from './ShortTermForecast'
 import {hyperlocalSkyCondition} from './currentConditions';
 import {classifyVisibilityPhenomenon,parseReportedVisibilityPhenomenon} from './visibilityPhenomena';
 import {parseObservedPresentWeather} from './observationPresentWeather';
-import {WeatherPictogram,synopticPhenomenonDescription,synopticPhenomenonPictogram,weatherPictogramIntensity,weatherPictogramKind} from './WeatherPictogram';
+import {WeatherPictogram,synopticPhenomenonDescription,synopticPhenomenonPictogram,weatherPictogramKind} from './WeatherPictogram';
 import {DashboardModuleSettingsPanel,type DashboardModuleSettingsUpdater} from './DashboardModuleSettings';
 import {DASHBOARD_MODULE_DEFINITIONS,readDashboardModuleSettings,writeDashboardModuleSettings,type DashboardModuleId,type DashboardModuleSettings} from './dashboardModules';
 import {consumeDeviceSyncTransferFromLocation} from './deviceSync';
