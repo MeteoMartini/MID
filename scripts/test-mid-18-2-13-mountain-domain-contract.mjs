@@ -19,6 +19,7 @@ assert.match(source,/next48=completeHourlyAccumulation/,'48-h-Neuschnee muss den
 assert.match(source,/export type MountainDaySummary=/,'Zentrale Tageszusammenfassung für Bergwetter fehlt.');
 assert.match(source,/export function mountainDayDates\(level:MountainLevelForecast\)/,'Zentrale lokale Tagesauswahl fehlt.');
 assert.match(source,/\.slice\(0,7\)/,'Die Bergübersicht muss auf genau sieben lokale Tage begrenzt sein.');
+assert.match(source,/date>=today/,'Vergangene Rückblicktage dürfen die sieben Prognosetage nicht verdrängen.');
 assert.match(source,/function intervalIndicesForDate/,'Intervallgrößen müssen getrennt von Punktwerten einem lokalen Tag zugeordnet werden.');
 assert.match(source,/String\(times\[index-1\].*slice\(0,10\)!==date/s,'Niederschlags-/Schneeintervalle müssen über den Intervallbeginn dem lokalen Tag zugeordnet werden.');
 assert.match(source,/temperatureMin:temperatures\.min/,'Tagesminimum muss aus derselben Höhen-Zeitreihe abgeleitet werden.');
