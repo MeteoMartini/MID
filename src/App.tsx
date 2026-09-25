@@ -1198,7 +1198,7 @@ function MountainWeatherOverview({data,unit}:{data:MountainSportsForecast;unit:W
   {id:'temperature',icon:<Thermometer/>,label:'Temperatur',value:Number.isFinite(temp)?`${Math.round(temp)} °C`:'–',meta:'jetzt'},
   {id:'apparent',icon:<Wind/>,label:'Gefühlt',value:Number.isFinite(apparent)?`${Math.round(apparent)} °C`:'–',meta:'jetzt'},
   {id:'wind',icon:<Wind/>,label:'Wind',value:Number.isFinite(windPair.wind)?wind(windPair.wind,unit):'–',meta:Number.isFinite(windPair.gust)?`Böen ${wind(windPair.gust,unit)}`:'Böen –'},
-  {id:'new-snow',icon:<Snowflake/>,label:'Neuschnee',value:mountainNewSnowLabel(selected.newSnow24Cm),meta:'nächste 24 h'},
+  {id:'new-snow',icon:<Snowflake/>,label:'Neuschnee',value:mountainNewSnowLabel(selected.pastSnow24Cm),meta:'letzte 24 h'},
   {id:'snow-depth',icon:<MountainSnow/>,label:'Schneehöhe',value:Number.isFinite(currentSnow)?`${Math.round(currentSnow)} cm`:Number.isFinite(selected.modelSnowDepthCm)?`${Math.round(selected.modelSnowDepthCm)} cm`:'–',meta:mountainSnowText(selected)},
   {id:'visibility',icon:<Eye/>,label:'Sicht',value:Number.isFinite(visibility)?visibility>=10000?`${Math.round(visibility/1000)} km`:`${formatDecimal(visibility/1000,1,1)} km`:'–',meta:'aktuell'},
   {id:'precip',icon:<CloudRain/>,label:'Niederschlag',value:Number.isFinite(today?.precipitationProbabilityMax)?`${Math.round(today.precipitationProbabilityMax)} %`:'–',meta:Number.isFinite(precipNow)?`${formatDecimal(precipNow,1,1)} mm · ${mountainPrecipitationLabel(selected.weather.current,selected.elevation,selectedSnowLine)}`:mountainPrecipitationLabel(selected.weather.current,selected.elevation,selectedSnowLine)}
