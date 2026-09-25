@@ -38,7 +38,7 @@ for(const token of [
 assert.equal((cockpit.slice(cockpit.indexOf('function FourteenDayHorizon'),cockpit.indexOf('function MiniRibbon')).match(/data-mid-skybar="fourteen-row"/g)||[]).length,1,'14-Tage darf genau eine Skybar je Tageszeile definieren.');
 
 assert.ok(cockpit.includes("skybarDisplayMode={skybarDisplayMode}"),'7-/14-Tage müssen denselben Skybar-Anzeigemodus respektieren.');
-assert.ok(cockpit.includes("displayHours.filter(hour=>hour.time.startsWith(item.date)).slice(0,24)"),'14-Tage-Skybar muss bestehende kanonische Stundenwerte ohne neue Datenquelle verwenden.');
+assert.ok(cockpit.includes('forecastLocalDaySkyBar(displayHours,item.date,location')&&!cockpit.includes("displayHours.filter(hour=>hour.time.startsWith(item.date)).slice(0,24)"),'14-Tage-Skybar muss die kanonischen Stunden des vollständigen lokalen Kalendertags einschließlich DST verwenden.');
 
 for(const token of [
   '.mid-forecast-row',
