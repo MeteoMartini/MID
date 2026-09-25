@@ -1,3 +1,11 @@
+## MID v0.9.85.102 · 2026-09-25 · Bottom-Bar-/Forecast-Horizon-Stabilisierung
+
+- Bottom-Bar „Heute“ übergibt den gewünschten Kurzfrist-Horizont deklarativ an das Forecast-Cockpit.
+- Explizite Navigation gewinnt beim Mount/Remount vor `mid:forecastCockpit:activeHorizon`; der gespeicherte Wert bleibt nur Wiedereinstiegs-Fallback.
+- Bereits gemountete Forecast-Cockpits synchronisieren den Navigationshorizont ohne Timeout-/Delay-Hacks.
+- Neue Regression `scripts/test-bottom-bar-forecast-horizon-race-0985102.mjs` schützt Vorhersage→Aktuell→Heute, Heute→Karten→Vorhersage sowie Safe-Area-/Touchzielverträge.
+- Wetterdaten, Modellfusion, Warnlogik, Worker und fachliche Prognosewerte werden nicht verändert.
+
 ## MID v0.9.85.101 · 2026-09-25 · MID 18.2.13 · Sky-Kohärenz, Nacht-Skybars und Kartenfokus
 
 - Numerische DWD-SYNOP-ww-Codes 0–3 werden nicht als Open-Meteo weather_code 0–3 übernommen; ww=3 kann nicht mehr allein Bedeckt setzen.
