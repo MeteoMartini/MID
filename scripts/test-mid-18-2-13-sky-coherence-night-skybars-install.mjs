@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import ts from 'typescript';
+import {transform} from 'esbuild';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const [app,pwa,cockpit,astronomy,presentWeatherSource,dayTimelineSource]=await Promise.all([
@@ -13,13 +13,10 @@ const [app,pwa,cockpit,astronomy,presentWeatherSource,dayTimelineSource]=await P
   read('src/daySkybarTimeline.ts')
 ]);
 
-function loadTsModule(source,filename){
-  const output=ts.transpileModule(source,{
-    fileName:filename,
-    compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,strict:true}
-  }).outputText;
+async function loadTsModule(source,filename){
+  const {code}=await transform(source,{loader:'ts',format:'cjs',target:'es2022',sourcefile:filename});
   const module={exports:{}};
-  vm.runInNewContext(output,{module,exports:module.exports},{filename});
+  vm.runInNewContext(code,{module,exports:module.exports},{filename});
   return module.exports;
 }
 
@@ -30,7 +27,7 @@ assert.ok(app.includes('suppressPwaInstallHint={MODERN_MAP_MODULES.includes(acti
 assert.ok(app.includes('<PwaInstallButton suppressTransientHint={suppressPwaInstallHint}/>'),'Der manuelle App-Button bleibt bestehen und erhält nur den Hinweis-Unterdrückungsstatus.');
 
 // B: Numerische SYNOP-ww-Werte bleiben vollständig in ihrer eigenen Codetabelle.
-const presentWeather=loadTsModule(presentWeatherSource,'observationPresentWeather.ts');
+const presentWeather=await loadTsModule(presentWeatherSource,'observationPresentWeather.ts');
 for(const value of ['0','3','61','95','99']){
   const parsed=presentWeather.parseObservedPresentWeather(value,false);
   assert.equal(parsed.numericSynopWw,Number(value),`SYNOP ww=${value} muss als numerischer SYNOP-Code erkannt werden.`);
@@ -63,7 +60,7 @@ assert.ok(cockpit.includes('<CockpitSkybarNightBandsSvg bands={daySkyBarNightBan
 assert.ok(cockpit.includes('<CockpitSkybarNightBandsSvg bands={daySkyBarNightBands} height={14}/>'),'14-Tage-Skybar muss den Nachtlayer rendern.');
 assert.ok(cockpit.includes("skybarDisplayMode==='squares'?<SkyBarHourCellsSvg"),'Band/Squares müssen dieselbe Nachtgeometrie teilen.');
 
-const timeline=loadTsModule(dayTimelineSource,'daySkybarTimeline.ts');
+const timeline=await loadTsModule(dayTimelineSource,'daySkybarTimeline.ts');
 const springStart=Date.parse('2026-03-29T00:00:00+01:00');
 const autumnStart=Date.parse('2026-10-25T00:00:00+02:00');
 const springSamples=Array.from({length:23},(_,index)=>({epoch:springStart+index*3600000}));
