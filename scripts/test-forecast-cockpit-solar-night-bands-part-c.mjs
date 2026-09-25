@@ -16,6 +16,8 @@ assert.ok(cockpit.includes('var(--mg-night,#5b667c)'),'Nachtfarbe muss den MID-V
 assert.ok(cockpit.includes('<stop offset="14%"')&&cockpit.includes('<stop offset="86%"'),'Nachtübergang muss weich sein');
 assert.ok(cockpit.includes("skybarDisplayMode==='squares'?"),'Squares-Modus fehlt');
 assert.ok(cockpit.includes('data-skybar-display={skybarDisplayMode}'),'Band/Squares-Modus muss an beiden Tagesachsen sichtbar bleiben');
+assert.ok(cockpit.includes('className="cockpit-day-night-band"')&&cockpit.includes('className="cockpit-fourteen-night-band"'),'7-/14-Tage-Nachtbandflächen fehlen.');
+assert.ok(cockpit.includes('nightBands.map(band=>')&&cockpit.includes('dayNightBands.map(band=>'),'Nachtbänder müssen in beiden Tagesachsen vor den Skybar-Segmenten liegen.');
 assert.ok(cockpit.includes('SevenDayCurveOverview days={visible} hours={hours}')&&cockpit.includes('location={location}'),'7-Tage-Kurvenübersicht erhält Standortdaten');
 assert.equal((cockpit.match(/function cockpitSolarNightBands\(/g)||[]).length,1,'Solar-Nachtgeometrie darf nicht dupliziert werden');
 console.log('Part C geprüft: 7d/14d, Band/Squares, zentrale Solargrenzen und weiche Nachtübergänge.');
