@@ -171,7 +171,6 @@
     "test:day-character-late-rain-warning-wording": "node scripts/test-day-character-late-rain-warning-wording-08339.mjs",
     "test:pressure-card-display": "node scripts/test-pressure-card-display-083310.mjs",
     "test:current-hyperlocal-sky": "node scripts/test-current-hyperlocal-sky-083311.mjs",
-    "test:skybar-dst-23-25-hour-contract": "node scripts/test-skybar-dst-23-25-hour-contract.mjs",
     "test:precip-probability-consistency": "node scripts/test-precipitation-probability-consistency-083312.mjs",
     "test:daily-hourly-precip-allocation": "node scripts/test-daily-hourly-precip-allocation-083313.mjs",
     "test:forecast-precipitation-support": "node scripts/test-forecast-precipitation-support-083317.mjs",

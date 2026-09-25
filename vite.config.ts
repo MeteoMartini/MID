@@ -7,11 +7,6 @@ const chartsVendorPattern=/[\\/]node_modules[\\/](?:recharts|victory-vendor|reac
 export default defineConfig({
   plugins:[react()],
   base:'./',
-  server:{
-    port:5000,
-    strictPort:true,
-    watch:{ignored:['**/.git/**','**/node_modules/**','**/.local/**','**/.agents/**','**/dist/**']},
-  },
   build:{
     target:'es2020',
     cssCodeSplit:true,
