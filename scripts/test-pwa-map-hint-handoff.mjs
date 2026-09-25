@@ -16,8 +16,11 @@ assert.ok(install.includes('!suppressHint&&<aside className="pwa-install-hint"')
  'Die transiente Einblendung darf über aktiven Karten-/Kompositflächen nicht gerendert werden.');
 assert.ok(install.includes('<button type="button" className={`header-install-button'),
  'Der dauerhafte App-Kopfzeilenbutton muss trotz unterdrückter Einblendung verfügbar bleiben.');
-assert.equal((install.match(/storeHintDismissed\(\)/g)||[]).length,3,
- 'Unterdrücken darf die persistente Ablehnung nicht setzen; Speicherung bleibt auf Installation/Schließen beschränkt.');
+assert.equal((install.match(/storeHintDismissed\(\)/g)||[]).length,4,
+ 'Speicherfunktion darf nur durch Definition, Installation oder explizites Schließen auftauchen.');
+const suppressBranch=install.match(/if\(suppressHint\)\{[^}]+\}/)?.[0]||'';
+assert.ok(suppressBranch&&!suppressBranch.includes('storeHintDismissed'),
+ 'Unterdrücken darf keine persistente Ablehnung setzen.');
 assert.ok(install.includes('[hintDismissed,installed,suppressHint]'),
  'Navigation muss den Timerzustand aktualisieren und beim Verlassen des Bereichs wieder aktivieren können.');
 

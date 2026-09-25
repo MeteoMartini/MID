@@ -528,7 +528,11 @@
     "scripts/test-dependency-review-098595.mjs",
     "scripts/test-metar-trend-observation-boundary-098596.mjs",
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
-    "scripts/test-mid-18-2-10-now90-night-098598.mjs"
+    "scripts/test-mid-18-2-10-now90-night-098598.mjs",
+    "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
+    "scripts/test-pwa-map-hint-handoff.mjs",
+    "scripts/test-preview-watch-port-contract.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -975,7 +979,11 @@
     "scripts/test-dependency-review-098595.mjs",
     "scripts/test-metar-trend-observation-boundary-098596.mjs",
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
-    "scripts/test-mid-18-2-10-now90-night-098598.mjs"
+    "scripts/test-mid-18-2-10-now90-night-098598.mjs",
+    "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
+    "scripts/test-pwa-map-hint-handoff.mjs",
+    "scripts/test-preview-watch-port-contract.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -1702,7 +1710,11 @@
     "MID_RELEASE_NOTES_0.9.85.97.json",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "MID_IMPLEMENTATION_0.9.85.98.md",
-    "MID_RELEASE_NOTES_0.9.85.98.json"
+    "MID_RELEASE_NOTES_0.9.85.98.json",
+    "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
+    "scripts/test-pwa-map-hint-handoff.mjs",
+    "scripts/test-preview-watch-port-contract.mjs"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1787,7 +1799,11 @@
     "scripts/test-dependency-review-098595.mjs",
     "scripts/test-metar-trend-observation-boundary-098596.mjs",
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
-    "scripts/test-mid-18-2-10-now90-night-098598.mjs"
+    "scripts/test-mid-18-2-10-now90-night-098598.mjs",
+    "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
+    "scripts/test-pwa-map-hint-handoff.mjs",
+    "scripts/test-preview-watch-port-contract.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2310,7 +2326,11 @@
     "scripts/test-dependency-review-098595.mjs",
     "scripts/test-metar-trend-observation-boundary-098596.mjs",
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
-    "scripts/test-mid-18-2-10-now90-night-098598.mjs"
+    "scripts/test-mid-18-2-10-now90-night-098598.mjs",
+    "scripts/test-current-hyperlocal-sky-083311.mjs",
+    "scripts/test-forecast-cockpit-solar-night-bands-part-c.mjs",
+    "scripts/test-pwa-map-hint-handoff.mjs",
+    "scripts/test-preview-watch-port-contract.mjs"
   ],
   "version": "0.9.85.100",
   "updatedAt": "2026-09-24T04:50:00.000Z",
