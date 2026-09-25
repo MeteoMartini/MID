@@ -811,6 +811,34 @@ function SettingsManager({open,section,setSection,onClose,favorites,setFavorites
  const resolvedBrandLogoVariant=resolveBrandLogoVariant(brandLogoVariant,themeMode==='dark'||(themeMode==='auto'&&systemPrefersDark())),dialogRef=useRef<HTMLElement>(null);useAppLayerFocus(open,dialogRef,onClose);
  const[contentReady,setContentReady]=useState(false);
  useEffect(()=>{if(!open){setContentReady(false);return}let first=0,second=0;first=window.requestAnimationFrame(()=>{second=window.requestAnimationFrame(()=>setContentReady(true))});return()=>{window.cancelAnimationFrame(first);window.cancelAnimationFrame(second)}},[open,section]);
+ useEffect(()=>{
+  if(!open)return;
+  const nav=dialogRef.current?.querySelector<HTMLElement>('.settings-nav');
+  if(!nav)return;
+  const updateOverflow=()=>{
+   const maxScroll=Math.max(0,nav.scrollWidth-nav.clientWidth);
+   nav.dataset.scrollLeft=String(nav.scrollLeft>1);
+   nav.dataset.scrollRight=String(nav.scrollLeft<maxScroll-1);
+  };
+  const revealActive=()=>{
+   const active=nav.querySelector<HTMLElement>('button[aria-current="page"]');
+   if(!active)return;
+   const navRect=nav.getBoundingClientRect(),activeRect=active.getBoundingClientRect();
+   const maxScroll=Math.max(0,nav.scrollWidth-nav.clientWidth);
+   const centered=nav.scrollLeft+activeRect.left-navRect.left-(nav.clientWidth-activeRect.width)/2;
+   const target=Math.max(0,Math.min(maxScroll,centered));
+   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+   nav.scrollTo({left:target,behavior:reduceMotion?'auto':'smooth'});
+  };
+  const onResize=()=>{revealActive();updateOverflow()};
+  nav.addEventListener('scroll',updateOverflow,{passive:true});
+  window.addEventListener('resize',onResize);
+  const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(onResize);
+  observer?.observe(nav);
+  for(const child of Array.from(nav.children))observer?.observe(child);
+  const frame=window.requestAnimationFrame(onResize);
+  return()=>{window.cancelAnimationFrame(frame);nav.removeEventListener('scroll',updateOverflow);window.removeEventListener('resize',onResize);observer?.disconnect()};
+ },[open,section]);
  useEffect(()=>{if(!open)return;let frame=window.requestAnimationFrame(()=>document.documentElement.classList.add('mid-settings-open'));return()=>{window.cancelAnimationFrame(frame);document.documentElement.classList.remove('mid-settings-open')}},[open]);
  if(!open)return null;
  const patchPushRule=(id:string,key:'precipitationStart'|'thunderstormApproach',value:boolean)=>setFavorites(current=>current.map(item=>item.id===id?{...item,rules:{...item.rules,[key]:value}}:item));

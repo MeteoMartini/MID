@@ -1,5 +1,5 @@
-# MID v0.9.85.99
+# MID v0.9.85.100
 
-- Die Prognose-Zeithorizonte „Ab jetzt“, „7 T“, „14 T“, „46 T“ und „Saison“ bleiben auf kleinen Smartphones und im schmalen Querformat nach dem Navigationssprung vollständig sichtbar.
-- Die Horizontleiste überdeckt weder den Prognosekopf noch die erste Tageszeile; zwischen Navigation und Prognoseinhalt bleibt ein klarer, Safe-Area-tauglicher Abstand.
-- Wetterdaten, Modellfusion, Schwellen, Parameterfarben sowie die 7-/14-Tage-Fachlogik bleiben unverändert.
+- In den mobilen Einstellungen bleibt der aktive Bereich – insbesondere „Inhalte & Navigation“ – auf kleinen Smartphones vollständig sichtbar.
+- Die einzeilige Tab-Leiste scrollt den gewählten Bereich automatisch ins Sichtfeld und zeigt dezent an, wenn links oder rechts weitere Einstellungsbereiche verfügbar sind.
+- Touchziele, Safe Areas sowie Light-/Dark-Darstellung wurden für 360×800 und 390×844 geprüft; Wetter- und Prognoselogik bleiben unverändert.

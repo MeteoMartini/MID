@@ -1,3 +1,12 @@
+## MID v0.9.85.100 · 2026-09-25 · MID 18.2.12 · Mobile Einstellungsnavigation
+
+- Geprüfter Replit-Handoff `e05bca0aa305a938c886b77e5062ca1c635d4994` vom Branch `replit/settings-mobile-tabs-098599`; read-only Handoff-Gate vollständig grün.
+- Die mobile Einstellungsnavigation bleibt einzeilig horizontal scrollbar und führt den aktiven Bereich automatisch vollständig ins sichtbare Scrollfeld.
+- Dezente linke/rechte Fortsetzungshinweise zeigen nur dann weitere Tabs an, wenn tatsächlich zusätzlicher Inhalt vorhanden ist; permanente Scrollbars entfallen.
+- 44-px-Touchziele und Safe-Area-Abstände bleiben auf 360×800 und 390×844 erhalten; Light/Dark visuell geprüft.
+- Neue Regression `scripts/test-settings-mobile-horizontal-tabs.mjs`; bestehender MID-18.2.7-Responsive-Test sowie Handoff-Build/Web-/iOS-Hüllenprüfung grün.
+- Keine Änderung an Wetterdaten, Modellfusion, Warnlogik, Schwellen, Parameterfarben, Worker- oder iOS-Fachlogik.
+
 ## MID v0.9.85.99 · 2026-09-25 · MID 18.2.11 · Responsive Forecast-Horizontnavigation
 
 - Geprüfter Replit-Handoff dcdfc8c18b1fcc84c19547a8f4d85c163ce07960 über den read-only Handoff-Gate übernommen.

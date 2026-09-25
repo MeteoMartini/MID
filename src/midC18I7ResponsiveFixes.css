@@ -169,3 +169,40 @@
  .settings-nav button>span>strong{font-size:10.5px!important}
  .cockpit-fourteen-grid{grid-auto-columns:clamp(232px,80vw,280px)!important}
 }
+
+/* Mobile settings tabs: keep the active section visible and hint at overflow. */
+@media(max-width:700px){
+ .settings-dialog .settings-layout{position:relative!important;min-width:0!important}
+ .settings-dialog .settings-nav{
+  flex-flow:row nowrap!important;align-items:center!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  padding:6px max(38px,calc(env(safe-area-inset-right,0px) + 30px)) 6px max(8px,env(safe-area-inset-left,0px))!important;
+  overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;-ms-overflow-style:none!important;
+  scroll-padding-inline-start:max(16px,env(safe-area-inset-left,0px));scroll-padding-inline-end:max(40px,calc(env(safe-area-inset-right,0px) + 32px));
+  scroll-snap-type:x proximity;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain!important;touch-action:pan-x!important
+ }
+ .settings-dialog .settings-nav::-webkit-scrollbar{display:none!important}
+ .settings-dialog .settings-nav button{
+  flex:0 0 auto!important;min-height:44px!important;height:44px!important;min-width:max-content!important;max-width:none!important;
+  overflow:visible!important;scroll-snap-align:center
+ }
+ .settings-dialog .settings-nav button>span{min-width:max-content!important;overflow:visible!important}
+ .settings-dialog .settings-nav button>span>strong{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
+ .settings-dialog .settings-layout::before,.settings-dialog .settings-layout::after{
+  position:absolute;top:0;z-index:5;display:grid;place-items:center;width:36px;height:58px;opacity:0;pointer-events:none;
+  color:var(--muted);font-size:17px;font-weight:800;line-height:1;transition:opacity .16s ease
+ }
+ .settings-dialog .settings-layout::before{
+  left:max(0px,env(safe-area-inset-left,0px));border-radius:0 12px 12px 0;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--surface) 98%,transparent),transparent)
+ }
+ .settings-dialog .settings-layout::after{
+  right:max(0px,env(safe-area-inset-right,0px));border-radius:12px 0 0 12px;
+  background:linear-gradient(270deg,color-mix(in srgb,var(--surface) 98%,transparent),transparent)
+ }
+ .settings-dialog .settings-layout:has(.settings-nav[data-scroll-left="true"])::before{content:"‹";opacity:1}
+ .settings-dialog .settings-layout:has(.settings-nav[data-scroll-right="true"])::after{content:"›";opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+ .settings-dialog .settings-nav{scroll-behavior:auto!important}
+ .settings-dialog .settings-layout::before,.settings-dialog .settings-layout::after{transition:none!important}
+}
