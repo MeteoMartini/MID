@@ -184,7 +184,7 @@ jobs:
           echo "RUC-Basis unverändert: ${actual_sha} · MID v${stable_version}"
       - name: Vorbereiteten RUC-Snapshot laden
         if: steps.stable_guard.outputs.allowed == 'true'
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: mid-ruc-data-${{ github.run_id }}
           path: ./.ruc-pages/ruc
