@@ -75,6 +75,7 @@ type ForecastCockpitProps={
  shortTermFocusWindow?:'90m'|'24h';
  warningEnsemble?:WarningEnsembleSupport|null;
  skybarDisplayMode?:SkybarDisplayMode;
+ navigationHorizon?:ForecastHorizon;
  workspaceMode?:boolean;
 };
 
@@ -634,14 +635,15 @@ function summaryByHorizon(horizon:ForecastHorizon,{hours,days,timezone,unit,seve
 function AnalysisReveal({open,onToggle,label='Ensemble-Analyse öffnen',children}:{open:boolean;onToggle:()=>void;label?:string;children?:ReactNode}){if(!children)return null;return <div className={`cockpit-analysis${open?' open':''}`}><button type="button" className="cockpit-analysis-toggle" onClick={onToggle} aria-expanded={open}><span><SlidersHorizontal size={18}/><strong>{label}</strong></span>{open?<ChevronUp size={18}/>:<ChevronDown size={18}/>}</button>{open?<div className="cockpit-analysis-panel">{children}</div>:null}</div>}
 
 
-export function ForecastCockpit({mode,hours,minutes15,days,ensemble,scenarios,climate,timezone,unit,selectedDate,onSelectedDate,availability,sourceLabel,updatedLabel,ensembleLoading,ensembleError,onFourteenDayRequested,cockpitDetails,sevenDaySummary,shortTermAnchor,radarNowcast,location,showDwdPrecipitationTypeRadar,advancedMode,bestMatchModelInfo,ensembleRuns,fusion,confidenceCalibration,confidenceDisplayMode,shortTermFocusWindow,warningEnsemble,skybarDisplayMode='band',workspaceMode=false}:ForecastCockpitProps){
+export function ForecastCockpit({mode,hours,minutes15,days,ensemble,scenarios,climate,timezone,unit,selectedDate,onSelectedDate,availability,sourceLabel,updatedLabel,ensembleLoading,ensembleError,onFourteenDayRequested,cockpitDetails,sevenDaySummary,shortTermAnchor,radarNowcast,location,showDwdPrecipitationTypeRadar,advancedMode,bestMatchModelInfo,ensembleRuns,fusion,confidenceCalibration,confidenceDisplayMode,shortTermFocusWindow,warningEnsemble,skybarDisplayMode='band',navigationHorizon,workspaceMode=false}:ForecastCockpitProps){
  const availableHorizons=HORIZONS.filter(horizon=>horizonAvailable(horizon,availability));
- const [activeHorizon,setActiveHorizon]=useState<ForecastHorizon>(()=>readActiveHorizon(availability));
+ const [activeHorizon,setActiveHorizon]=useState<ForecastHorizon>(()=>navigationHorizon&&horizonAvailable(navigationHorizon,availability)?navigationHorizon:readActiveHorizon(availability));
  const [analysisOpen,setAnalysisOpen]=useState(false);
  const shortPoints=useMemo(()=>buildShortTermForecast(minutes15,hours,timezone,Date.now(),shortTermAnchor,radarNowcast),[minutes15,hours,timezone,shortTermAnchor,radarNowcast]);
  const wrapRef=useRef<HTMLDivElement|null>(null),horizonScrollRef=useRef<Partial<Record<ForecastHorizon,{top:number;left:number;strips:number[]}>>>({});
  const captureHorizonScroll=useCallback((horizon:ForecastHorizon)=>{const node=wrapRef.current;if(!node)return;horizonScrollRef.current[horizon]={top:node.scrollTop,left:node.scrollLeft,strips:Array.from(node.querySelectorAll<HTMLElement>('[data-cockpit-horizontal-scroll="true"]')).map(element=>element.scrollLeft)}},[]);
  const switchHorizon=useCallback((next:ForecastHorizon)=>{if(next==='fourteen-day')onFourteenDayRequested?.();if(next===activeHorizon)return;captureHorizonScroll(activeHorizon);setActiveHorizon(next)},[activeHorizon,captureHorizonScroll,onFourteenDayRequested]);
+ useEffect(()=>{if(!navigationHorizon||!horizonAvailable(navigationHorizon,availability)||navigationHorizon===activeHorizon)return;switchHorizon(navigationHorizon)},[navigationHorizon,availability,activeHorizon,switchHorizon]);
  useEffect(()=>{if(!horizonAvailable(activeHorizon,availability))switchHorizon(readActiveHorizon(availability))},[activeHorizon,availability,switchHorizon]);
  useEffect(()=>{const navigate=(event:Event)=>{const detail=(event as CustomEvent<{horizon?:ForecastHorizon;resetScroll?:boolean}>).detail,horizon=detail?.horizon;if(!horizon||!horizonAvailable(horizon,availability))return;if(detail?.resetScroll)delete horizonScrollRef.current[horizon];switchHorizon(horizon);if(detail?.resetScroll){window.requestAnimationFrame(()=>{const node=wrapRef.current;if(!node)return;node.scrollTo({top:0,left:0,behavior:'auto'});node.querySelectorAll<HTMLElement>('[data-cockpit-horizontal-scroll=\"true\"]').forEach(element=>{element.scrollLeft=0})})}};window.addEventListener('mid:navigate-forecast-horizon',navigate);return()=>window.removeEventListener('mid:navigate-forecast-horizon',navigate)},[availability,switchHorizon]);
  useEffect(()=>{try{localStorage.setItem(ACTIVE_HORIZON_KEY,activeHorizon)}catch{}window.dispatchEvent(new CustomEvent('mid:forecast-horizon-active',{detail:{horizon:activeHorizon}}))},[activeHorizon]);
