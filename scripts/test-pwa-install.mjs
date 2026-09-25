@@ -8,7 +8,8 @@ const [app,component,manifest,index,styles]=await Promise.all([
  readFile(new URL('../src/styles.css',import.meta.url),'utf8')
 ]);
 const failures=[];
-for(const token of ["import {PwaInstallButton} from './PwaInstallButton';",'<PwaInstallButton/>'])if(!app.includes(token))failures.push(`App-Einbindung fehlt: ${token}`);
+for(const token of ["import {PwaInstallButton} from './PwaInstallButton';",'<PwaInstallButton suppressHint={suppressInstallHint}/>'])if(!app.includes(token))failures.push(`App-Einbindung fehlt: ${token}`);
+if(!app.includes("suppressInstallHint={activeNavSection==='composite'||activeNavSection==='weather-maps'}"))failures.push('Karten-/Kompositbereiche unterdrücken den transienten Installationshinweis nicht.');
 for(const token of ['beforeinstallprompt','appinstalled',"(display-mode: standalone)",'navigator as NavigatorWithStandalone','MID als App nutzen','MID jetzt installieren','Zu Home-Bildschirm hinzufügen','Als Web-App öffnen'])if(!component.includes(token))failures.push(`Installationslogik/-hinweis fehlt: ${token}`);
 const parsed=JSON.parse(manifest);
 if(parsed.display!=='standalone')failures.push('Manifest ist nicht als standalone konfiguriert.');
