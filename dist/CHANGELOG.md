@@ -1,3 +1,9 @@
+# MID v0.9.85.100
+
+- Der aktive Bereich der mobilen Einstellungen bleibt auf kleinen Smartphones vollständig sichtbar.
+- Die einzeilige Tab-Leiste führt den gewählten Bereich automatisch ins Sichtfeld und zeigt dezent weitere Inhalte links oder rechts an.
+- Touchziele, Safe Areas und Light-/Dark-Darstellung wurden für 360×800 und 390×844 geprüft; Wetter- und Prognoselogik bleiben unverändert.
+
 # MID v0.9.85.99
 
 - Die Prognose-Zeithorizonte bleiben auf kleinen Smartphones und im schmalen Querformat nach dem Navigationssprung vollständig sichtbar.
