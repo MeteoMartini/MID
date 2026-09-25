@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.98",
+  "releaseVersion": "0.9.85.99",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2312,7 +2312,7 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs"
   ],
-  "version": "0.9.85.98",
+  "version": "0.9.85.99",
   "updatedAt": "2026-09-24T04:50:00.000Z",
   "implementationFiles": [
     "MID_IMPLEMENTATION_0.9.77.23.md",

@@ -1,3 +1,9 @@
+# MID v0.9.85.99
+
+- Die Prognose-Zeithorizonte bleiben auf kleinen Smartphones und im schmalen Querformat nach dem Navigationssprung vollständig sichtbar.
+- Die Horizontleiste überdeckt weder Prognosekopf noch erste Tageszeile und berücksichtigt die obere Safe Area.
+- Wetterdaten, Modellfusion, Schwellen, Parameterfarben sowie die 7-/14-Tage-Fachlogik bleiben unverändert.
+
 # MID v0.9.85.98
 
 - Die 90‑Minuten‑Skybar unter „Heute / Ab jetzt“ kennzeichnet Nachtstunden jetzt genauso dezent wie die Skybar unter „Aktuell“.

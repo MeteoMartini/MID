@@ -1,3 +1,10 @@
+## MID v0.9.85.99 · 2026-09-25 · MID 18.2.11 · Responsive Forecast-Horizontnavigation
+
+- Geprüfter Replit-Handoff dcdfc8c18b1fcc84c19547a8f4d85c163ce07960 über den read-only Handoff-Gate übernommen.
+- navigateToDashboardSection verwendet bei modernen Forecast-Modulen die unmittelbar vor dem Modul liegende Horizontnavigation als Scrollziel.
+- Mobile Forecast-Horizontnavigation erhält Safe-Area-Scroll-Margin und Abstand zum nachfolgenden Forecast-Modul.
+- Neue Regression scripts/test-modern-forecast-horizon-viewport.mjs; Handoff-Build und Web-/iOS-Hüllenprüfung grün.
+
 ## MID v0.9.85.99 · 2026-09-25 · MID 18.2.11 · Forecast-Horizontnavigation responsive stabilisiert
 
 - Replit-Handoff aus geprüftem SHA `dcdfc8c18b1fcc84c19547a8f4d85c163ce07960` übernommen; Handoff-Gate vollständig grün.
