@@ -1,3 +1,9 @@
+## MID v0.9.85.102 · 2026-09-25 · Bottom-Bar-Tippverhalten und Forecast-Horizont stabilisiert
+
+- Der explizite Forecast-Horizont wird deklarativ aus activeNavSection an ForecastCockpit übergeben und beim Mount vor localStorage priorisiert.
+- ForecastCockpit synchronisiert navigationHorizon auch nach dem Mount ohne Timeout- oder Delay-Hacks.
+- Neue Regression scripts/test-bottom-bar-forecast-horizon-race-0985102.mjs schützt Mount/Remount und Bottom-Bar-Responsive-Verträge.
+
 ## MID v0.9.85.102 · 2026-09-25 · Bottom-Bar-/Forecast-Horizon-Stabilisierung
 
 - Bottom-Bar „Heute“ übergibt den gewünschten Kurzfrist-Horizont deklarativ an das Forecast-Cockpit.

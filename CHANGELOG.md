@@ -1,3 +1,8 @@
+# MID v0.9.85.102
+
+- „Heute“ bleibt nach dem Antippen zuverlässig im Kurzfristbereich und springt nicht mehr auf „Vorhersage“ zurück.
+- Die Bottom-Bar bleibt auf Smartphone und Querformat mit den bestehenden Safe-Area- und Touchzielregeln responsiv.
+
 # MID v0.9.85.101
 
 - Aktuelles Wetter verwendet für Himmelszustand und großes Wettersymbol konsequent dieselbe aktuelle Bewölkungsquelle.
