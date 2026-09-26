@@ -44,7 +44,7 @@ export type MountainForecastEnrichment='mountain-diagnostics'|'snow-measurements
 export type MountainForecastUpdate=
  | {type:'cache';hit:boolean;ageMs:number}
  | {type:'enrichment';enrichment:MountainForecastEnrichment;status:'loading'|'ready'|'unavailable';forecast?:MountainSportsForecast};
-type CachedMountainForecast={forecast:MountainSportsForecast;cachedAt:number;diagnosticsResolved:boolean;snowMeasurementsResolved:boolean;snowLineEnsembleResolved:boolean};
+type CachedMountainForecast={forecast:MountainSportsForecast;cachedAt:number;diagnosticsStatus:'loading'|'ready'|'unavailable';snowMeasurementsResolved:boolean;snowLineEnsembleResolved:boolean};
 const MOUNTAIN_FORECAST_CACHE_TTL_MS=3*60*1000;
 const MOUNTAIN_FORECAST_CACHE_LIMIT=16;
 const mountainForecastCache=new Map<string,CachedMountainForecast>();
@@ -267,18 +267,18 @@ export async function mountainSportsForecast(loc:Location,config:MountainConfig,
  if(cached){mountainForecastCache.delete(cacheKey);mountainForecastCache.set(cacheKey,cached);onUpdate?.({type:'cache',hit:true,ageMs:now-cached.cachedAt})}
  else onUpdate?.({type:'cache',hit:false,ageMs:0});
  const enrich=(entry:CachedMountainForecast)=>{
-  const diagnosticsStatus=entry.diagnosticsResolved?'ready':'loading',measurementStatus=entry.snowMeasurementsResolved?(entry.forecast.levels.some(level=>level.snowMeasurement)?'ready':'unavailable'):'loading',ensembleStatus=entry.snowLineEnsembleResolved?(entry.forecast.snowLineEnsemble?'ready':'unavailable'):'loading';
+   const diagnosticsStatus=entry.diagnosticsStatus,measurementStatus=entry.snowMeasurementsResolved?(entry.forecast.levels.some(level=>level.snowMeasurement)?'ready':'unavailable'):'loading',ensembleStatus=entry.snowLineEnsembleResolved?(entry.forecast.snowLineEnsemble?'ready':'unavailable'):'loading';
   onUpdate?.({type:'enrichment',enrichment:'mountain-diagnostics',status:diagnosticsStatus});
   onUpdate?.({type:'enrichment',enrichment:'snow-measurements',status:measurementStatus});
   onUpdate?.({type:'enrichment',enrichment:'snow-line-ensemble',status:ensembleStatus});
-  if(!entry.diagnosticsResolved)void fetchMountainDiagnostics(points,signal).then(diagnosticRows=>{
+   if(entry.diagnosticsStatus==='loading')void fetchMountainDiagnostics(points,signal).then(diagnosticRows=>{
    if(signal?.aborted)return;
    const current=mountainForecastCache.get(cacheKey);if(current&&current!==entry)return;
    const target=current??entry;
    target.forecast={...target.forecast,levels:target.forecast.levels.map((level,index)=>({...level,weather:mergeMountainDiagnostics(level.weather,diagnosticRows[index])}))};
-   target.diagnosticsResolved=true;
+    target.diagnosticsStatus='ready';
    onUpdate?.({type:'enrichment',enrichment:'mountain-diagnostics',status:'ready',forecast:target.forecast});
-  }).catch(()=>{if(!signal?.aborted){entry.diagnosticsResolved=true;onUpdate?.({type:'enrichment',enrichment:'mountain-diagnostics',status:'unavailable'})}});
+   }).catch(()=>{if(!signal?.aborted){const current=mountainForecastCache.get(cacheKey);if(current&&current!==entry)return;const target=current??entry;target.diagnosticsStatus='unavailable';onUpdate?.({type:'enrichment',enrichment:'mountain-diagnostics',status:'unavailable'})}});
   if(!entry.snowMeasurementsResolved)void Promise.all(entry.forecast.levels.map(level=>geoSphereSnowMeasurement(level,signal))).then(measurements=>{
    if(signal?.aborted)return;
    const current=mountainForecastCache.get(cacheKey);if(current&&current!==entry)return;
@@ -302,7 +302,7 @@ export async function mountainSportsForecast(loc:Location,config:MountainConfig,
  const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
  if(rows.length!==points.length)throw new Error('Die Höhenprognose lieferte nicht alle konfigurierten Niveaus.');
  const levels=points.map((point,index)=>{const weather=rows[index],snowfall=snowfallSums(weather),depth=currentValue(weather,'snow_depth');return{...point,weather,modelSnowDepthCm:Number.isFinite(depth)?Math.max(0,depth*100):NaN,measuredSnowDepthCm:NaN,pastSnow24Cm:snowfall.past24,newSnow24Cm:snowfall.next24,newSnow48Cm:snowfall.next48} satisfies MountainLevelForecast}),season=config.season==='auto'?(autoWinter(loc.latitude,levels)?'winter':'summer'):config.season,forecast:MountainSportsForecast={levels,season,source:'Open-Meteo Best Match · DWD-Schneefallgrenzenverfahren aus 850 hPa · höhenbezogene Koordinaten und Höhen · GeoSphere-Schneemessung bei strenger Nähe-/Höhen-/Aktualitätsprüfung'};
- cached={forecast,cachedAt:now,diagnosticsResolved:false,snowMeasurementsResolved:false,snowLineEnsembleResolved:false};mountainForecastCache.set(cacheKey,cached);
+  cached={forecast,cachedAt:now,diagnosticsStatus:'loading',snowMeasurementsResolved:false,snowLineEnsembleResolved:false};mountainForecastCache.set(cacheKey,cached);
  while(mountainForecastCache.size>MOUNTAIN_FORECAST_CACHE_LIMIT)mountainForecastCache.delete(mountainForecastCache.keys().next().value!);
  enrich(cached);
  return forecast;

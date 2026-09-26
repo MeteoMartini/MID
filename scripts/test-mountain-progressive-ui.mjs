@@ -19,6 +19,11 @@ assert.match(app,/className="mountain-methodology"/,'safety and methodology copy
 assert.match(app,/const zones=open\?mountainZoneAssessments\(data,daylight,rapidMinutes15\):\[\]/,'zone assessment work must remain deferred until the panel opens');
 assert.match(mountain,/priority:'background'/,'mountain diagnostics must use background request priority');
 assert.match(mountain,/void fetchMountainDiagnostics\(points,signal\)/,'diagnostics must not block the core forecast result');
+assert.match(mountain,/diagnosticsStatus:'loading'\|'ready'\|'unavailable'/,'diagnostics cache must retain its three-state enrichment status');
+assert.match(mountain,/const diagnosticsStatus=entry\.diagnosticsStatus/,'cached diagnostics status must be replayed when the mountain view is reopened');
+assert.match(mountain,/target\.diagnosticsStatus='ready'/,'diagnostics status becomes ready only after a successful merge');
+assert.match(mountain,/target\.diagnosticsStatus='unavailable'/,'a diagnostics failure must remain unavailable in the cache');
+assert.doesNotMatch(mountain,/diagnosticsResolved/,'a resolved boolean must not map failed diagnostics to ready after cache reuse');
 assert.match(mountain,/void Promise\.all\(entry\.forecast\.levels\.map\(level=>geoSphereSnowMeasurement/,'station measurements must enrich the core forecast asynchronously');
 assert.match(mountain,/void mountainSnowLineEnsemble\(loc,signal\)/,'the snow-line ensemble must enrich the core forecast asynchronously');
 
@@ -31,5 +36,7 @@ assert.match(fluidGrid,/\.cockpit-fourteen-compact-meta\{[\s\S]*?grid-template-c
 assert.match(fluidGrid,/\.cockpit-fourteen-sun-uvi\{[\s\S]*?white-space:nowrap/,'sunshine/UVI must remain inline rather than add a card row');
 assert.match(styles,/\.mountain-loading\{[^}]*padding:6px 0/,'the initial mountain loading indicator must be compact');
 assert.match(styles,/\.mountain-enrichment-disclosure>summary\{[^}]*min-height:44px/,'the closed enrichment disclosure summary must preserve a 44px touch target');
+assert.match(styles,/\.mountain-enrichment-content\{display:grid;gap:5px;padding:6px 8px 2px\}/,'opened enrichment statuses must use a compact grid');
+assert.match(styles,/\.mountain-enrichment-content>\.mountain-cache-status\{[^}]*font-size:7px/,'cache details must stay visually secondary and compact');
 
 console.log('Progressive mountain loading, deferred disclosures, and shared 7d/14d sunshine/UVI metadata contracts passed.');
