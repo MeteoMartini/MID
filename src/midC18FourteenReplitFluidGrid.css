@@ -131,9 +131,9 @@ html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row .cockpit-fo
 html[data-mid-design='next'] .cockpit-fourteen-compact-meta{
  grid-area:meta!important;
  display:grid!important;
- grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) auto!important;
+ grid-template-columns:minmax(0,1.85fr) minmax(0,1.2fr) auto!important;
  align-items:center!important;
- gap:7px 12px!important;
+ gap:5px 7px!important;
  min-width:0!important;
  color:var(--muted)!important;
 }
@@ -144,6 +144,37 @@ html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind{
  gap:5px!important;
  min-width:0!important;
  white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.precipitation{
+ overflow:hidden!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-precip-values{
+ display:grid!important;
+ min-width:0!important;
+ line-height:1.02!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-precip-values>b{
+ overflow:hidden!important;
+ font-size:8.5px!important;
+ text-overflow:ellipsis!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-precip-values>small{
+ font-size:7.5px!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-sun-uvi{
+ display:inline-flex!important;
+ align-items:center!important;
+ gap:2px!important;
+ min-width:0!important;
+ white-space:nowrap!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>b,
+html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{
+ font-size:8px!important;
+ line-height:1!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{
+ color:var(--muted)!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-compact-meta svg{
  flex:0 0 auto!important;
@@ -165,7 +196,7 @@ html[data-mid-design='next'] .cockpit-fourteen-inline-cue{
  gap:4px!important;
  min-width:0!important;
  color:var(--muted)!important;
- font-size:9.5px!important;
+ font-size:8.5px!important;
  font-weight:750!important;
  white-space:nowrap!important;
 }
