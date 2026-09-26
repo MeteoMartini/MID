@@ -471,7 +471,7 @@ try{
     if(viewport.width<=900)assert.ok(periodPresentation.scrollWidth<=periodPresentation.clientWidth+1&&periodPresentation.tableWidth<=periodPresentation.tableClientWidth+1,`${viewport.label} · ${theme}: Mobile 3-Stunden-Details benötigen horizontales Scrollen: ${JSON.stringify(periodPresentation)}.`);
    await clickIfClosed('.mountain-snowline-summary');
    await waitForValue('Schneefallgrenzen-Zeiträume je Test-Viewport',`document.querySelectorAll('.mountain-snowline-horizons button').length`,value=>value>0);
-   const controls=await measureControls('.mountain-season-control button,.mountain-level-picker button,.mountain-day-toggle:not(:disabled),.mountain-forecast-summary,.mountain-matrix-controls button,.mountain-snowline-summary,.mountain-snowline-horizons button');
+    const controls=await measureControls('.mountain-season-control button,.mountain-level-picker button,.mountain-day-toggle:not(:disabled),.mountain-forecast-summary,.mountain-matrix-controls button,.mountain-snowline-summary,.mountain-snowline-horizons button,.mountain-enrichment-disclosure>summary');
    assert.ok(controls.length>=15,`${viewport.label} · ${theme}: Vergleichbare Berg-/Forecast-Controls fehlen (${controls.length}).`);
    for(const control of controls){
     if(viewport.width<=850)assert.ok(control.width>=44&&control.height>=44,`${viewport.label} · ${theme}: „${control.label}“ ist ${control.width.toFixed(1)}×${control.height.toFixed(1)} statt mindestens 44×44 CSS-Pixel.`);
