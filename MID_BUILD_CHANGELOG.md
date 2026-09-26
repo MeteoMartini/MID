@@ -1,3 +1,12 @@
+## MID v0.9.85.103 · 2026-09-25 · MID 18.2.13 · Berg-/Wintersportwetter
+
+- Höhenbezogene Bergprognose auf 168 Stunden erweitert; Tal/Mitte/Berg bleiben getrennte Punktprognosen.
+- Zentrale 7-Tage-Aggregation leitet Temperatur, Wind/Böen, Niederschlag, Schnee, Sonnenschein sowie Nullgrad-/Schneefallgrenze aus derselben gewählten Höhenzeitreihe ab.
+- Fehlende Schneefallintervalle erzeugen keinen künstlichen Nullwert mehr.
+- Neue mobile-first Oberfläche mit Höhenwahl, horizontaler Istwert-Leiste, sieben geschlossenen Tageszeilen und maximal einem geöffneten 3-Stunden-Detail.
+- Bestehende MID-Wetterpiktogramme, Windpfeile und DWD-Warnschwellen werden wiederverwendet; Winter-/Sommerpriorisierung ist getrennt.
+- Replit-Abnahme: fokussierte Bergwetter-Regressionen, Typecheck, Produktionsbuild und Light/Dark-Viewportmatrix grün; finaler lokaler Design-Handoff 09c3358cfe39f348f866b8f547d91183daebfca7. Übernahme erfolgt in den geschützten GitHub-Sourceweg, nicht per Replit-Publish.
+
 ## MID v0.9.85.102 · 2026-09-25 · Bottom-Bar-Tippverhalten und Forecast-Horizont stabilisiert
 
 - Der explizite Forecast-Horizont wird deklarativ aus activeNavSection an ForecastCockpit übergeben und beim Mount vor localStorage priorisiert.
