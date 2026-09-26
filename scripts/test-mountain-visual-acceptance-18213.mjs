@@ -27,6 +27,10 @@ const viewports=[
 const themes=['light','dark'];
 const mountainOnly=process.env.MID_MOUNTAIN_ONLY==='1';
 const twoStations=process.env.MID_MOUNTAIN_TWO_STATIONS==='1';
+const enrichmentMode=process.env.MID_MOUNTAIN_ENRICHMENT_MODE||'';
+const enrichmentOnly=process.env.MID_MOUNTAIN_ENRICHMENT_ONLY==='1';
+if(!['','delayed','failure'].includes(enrichmentMode))throw new Error(`Unbekannter Zusatzdaten-Testmodus: ${enrichmentMode}`);
+if(enrichmentOnly&&!enrichmentMode)throw new Error('MID_MOUNTAIN_ENRICHMENT_ONLY benötigt MID_MOUNTAIN_ENRICHMENT_MODE.');
 const profile=await mkdtemp(path.join(os.tmpdir(),'mid-mountain-cdp-'));
 const visualDir=process.env.MID_MOUNTAIN_VISUAL_DIR?path.resolve(root,process.env.MID_MOUNTAIN_VISUAL_DIR):null;
 const screenshotDir=visualDir?path.join(visualDir,'screenshots'):null;
@@ -168,9 +172,9 @@ async function snapshotWindAndWeather(){
   })
  })()`);
 }
-function browserPrelude(favorite,location,mountain){
+function browserPrelude(favorite,location,mountain,diagnosticMode){
  return `(()=>{
-  const favorite=${JSON.stringify(favorite)},fixtureLocation=${JSON.stringify(location)},mountain=${JSON.stringify(mountain)};
+   const favorite=${JSON.stringify(favorite)},fixtureLocation=${JSON.stringify(location)},mountain=${JSON.stringify(mountain)},diagnosticMode=${JSON.stringify(diagnosticMode)};
   const favs=JSON.stringify([favorite]),hourMs=3600000,now=Date.now(),start=Math.floor(now/hourMs)*hourMs-24*hourMs;
   const berlinParts=epoch=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)).map(part=>[part.type,part.value]));
   const localIso=epoch=>{const p=berlinParts(epoch);return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute};
@@ -222,6 +226,9 @@ function browserPrelude(favorite,location,mountain){
    const raw=typeof input==='string'?input:input?.url||String(input),url=new URL(raw,window.location.href);
    window.__mountainFixtureRequests.push(url.href);
    if(url.hostname==='api.open-meteo.com'&&url.pathname==='/v1/forecast'){
+     const diagnosticRequest=(url.searchParams.get('hourly')||'').split(',').includes('lifted_index');
+     if(diagnosticRequest&&diagnosticMode==='delayed')await new Promise(resolve=>setTimeout(resolve,6000));
+     if(diagnosticRequest&&diagnosticMode==='failure')return json({reason:'Deterministischer Diagnostikfehler'},503);
     const latitudes=(url.searchParams.get('latitude')||'47.2692').split(','),longitudes=(url.searchParams.get('longitude')||'11.4041').split(','),elevations=(url.searchParams.get('elevation')||'574').split(',');
      const requested=latitudes.map((latitude,index)=>{
       const elevation=Number(elevations[index]||elevations[0]),role=levels.reduce((best,point)=>Math.abs(point.elevation-elevation)<Math.abs(levels[best].elevation-elevation)?point.role:best,0);
@@ -256,6 +263,26 @@ function browserPrelude(favorite,location,mountain){
   localStorage.setItem('mid:layoutMode','advanced');
   localStorage.setItem('metarProxyUrl','https://mountain-fixture.invalid/worker');
  })();`;
+}
+async function verifyEnrichmentScenario(mode){
+ if(mode==='delayed'){
+  const state=JSON.parse(await evaluate(`(()=>{const row=[...document.querySelectorAll('.mountain-enrichment-content>span')].find(node=>node.firstElementChild?.textContent.includes('Bergdiagnostik'));return JSON.stringify({core:Boolean(document.querySelector('.mountain-current-source')),status:row?.lastElementChild?.textContent.trim()||'',summary:document.querySelector('.mountain-enrichment-disclosure>summary')?.textContent||''})})()`));
+  assert.ok(state.core,'Die Kernprognose muss trotz verzögerter Zusatzdiagnostik gerendert sein.');
+  assert.equal(state.status,'Wird ergänzt','Verzögerte Bergdiagnostik muss während des Kern-Renderings als ausstehend erscheinen.');
+  assert.ok(state.summary.includes('Zusatzdaten werden ergänzt'),'Die Statusübersicht muss während der Verzögerung den Zusatzdaten-Ladezustand zeigen.');
+  return;
+ }
+ if(mode!=='failure')return;
+ const unavailableExpression=`(()=>{const row=[...document.querySelectorAll('.mountain-enrichment-content>span')].find(node=>node.firstElementChild?.textContent.includes('Bergdiagnostik'));return row?.lastElementChild?.textContent.trim()||''})()`;
+ await waitForValue('Fehlgeschlagene Bergdiagnostik',unavailableExpression,value=>value==='Nicht verfügbar',30000);
+ const requestsBefore=JSON.parse(await evaluate(`JSON.stringify({diagnostics:(window.__mountainFixtureRequests||[]).filter(raw=>{const url=new URL(raw);return(url.searchParams.get('hourly')||'').split(',').includes('lifted_index')}).length,cache:document.querySelector('.mountain-cache-status')?.textContent||''})`));
+ assert.ok(requestsBefore.diagnostics>0,'Der Fehlerlauf muss die optionale Diagnostik tatsächlich abrufen.');
+ await navigateToForecast();
+ await navigateToMountain();
+ await waitForValue('Cache-Wiederöffnung mit gespeichertem Diagnosefehler',`(()=>{const row=[...document.querySelectorAll('.mountain-enrichment-content>span')].find(node=>node.firstElementChild?.textContent.includes('Bergdiagnostik'));return row?.lastElementChild?.textContent.trim()==='Nicht verfügbar'&&(document.querySelector('.mountain-cache-status')?.textContent||'').includes('Kurzzeitspeicher')})()`,Boolean);
+ const requestsAfter=JSON.parse(await evaluate(`JSON.stringify({diagnostics:(window.__mountainFixtureRequests||[]).filter(raw=>{const url=new URL(raw);return(url.searchParams.get('hourly')||'').split(',').includes('lifted_index')}).length,cache:document.querySelector('.mountain-cache-status')?.textContent||''})`));
+ assert.equal(requestsAfter.diagnostics,requestsBefore.diagnostics,'Die Cache-Wiederöffnung darf vor Ablauf der drei Minuten fehlgeschlagene Diagnostik nicht still erneut starten.');
+ assert.ok(requestsAfter.cache.includes('Kurzzeitspeicher'),'Die Bergansicht muss beim Wiederöffnen den Cache-Treffer anzeigen.');
 }
 
 try{
@@ -303,8 +330,8 @@ try{
   valleyLatitude:47.30,valleyLongitude:11.35,middleLatitude:47.28,middleLongitude:11.38,summitLatitude:47.25,summitLongitude:11.40,
   profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00.000Z',
  };
- const favorite={id:'mid-18-2-13-visual-fixture',location,alias:'MID 18.2.13 Winter-Testprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
- await cdp('Page.addScriptToEvaluateOnNewDocument',{source:browserPrelude(favorite,location,mountain)});
+  const favorite={id:'mid-18-2-14-visual-fixture',location,alias:'MID 18.2.14 Winter-Testprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
+  await cdp('Page.addScriptToEvaluateOnNewDocument',{source:browserPrelude(favorite,location,mountain,enrichmentMode)});
  await cdp('Page.navigate',{url:`${baseUrl}/#mid-section-mountain`});
  await waitForValue('MID-Oberfläche',`Boolean(document.querySelector('.dashboard-bottom-tabs'))`,Boolean);
   try{
@@ -315,6 +342,10 @@ try{
    console.error(`Bergwetter-Browserdiagnose: ${diagnostic}\nBrowserfehler: ${JSON.stringify(browserErrors.slice(-20))}`);
   throw error;
  }
+  if(enrichmentMode)await verifyEnrichmentScenario(enrichmentMode);
+  if(enrichmentOnly){
+   console.log(`Berg-Zusatzdaten: ${enrichmentMode==='delayed'?'Kernprognose vor verzögerter Diagnostik':'Diagnosefehler und Cache-Wiederöffnung'} geprüft.`);
+  }else{
 
    const seasonalPriority={
     winter:{
@@ -528,13 +559,14 @@ try{
   }).join('\n');
   const screenshots=results.map(result=>`### ${result.viewport.label} · ${result.theme==='light'?'Light':'Dark'} (${result.viewport.width}×${result.viewport.height})\n\n![${result.viewport.label} · ${result.theme}](screenshots/mountain-${result.viewport.id}-${result.theme}.jpg)`).join('\n\n');
   const runScope=mountainOnly?'Mountain-only; allgemeine Forecast-Navigation und deren Touch-Target-Prüfung übersprungen.':'Standardlauf einschließlich allgemeiner Forecast-Navigation und Touch-Target-Prüfung.';
-  const report=`# MID 18.2.13 · Berg-/Wintersport Visual Acceptance\n\nDeterministischer Browserlauf der echten App-Komponenten mit kontrollierten Open-Meteo-, GeoSphere- und Ensemble-Antworten. Die Fixture-Daten sind Testdaten, keine aktuelle Wetterlage. Erstellt: ${new Date().toISOString()}.\n\n**Laufumfang:** ${runScope}\n\n## Matrix\n\n| Gerät | Viewport | Theme | Forecast-Ziele | Bergziele | kleinste Hitbox-Kantenlänge | Dokument-/Viewportbreite | Aktuell-Schiene (Inhalt/Ansicht) | Surface | Screenshot |\n|---|---:|---|---:|---:|---:|---:|---:|---:|---|\n${rows}\n\n## Geprüfte Zustände\n\n- 6 Viewports × Light/Dark; kein horizontaler Dokumentüberlauf; Theme-Oberflächen unterscheiden sich je Viewport.\n- Saisonwahl, saisonale Reihenfolge aktueller Kennzahlen und der Bergstationswerte, Höhenstufen, Tageszeilen und Schneefallgrenzen-Zeiträume: mittiger Trefferpunkt nicht überdeckt; bei Viewports bis 850 px mindestens 44×44 CSS-Pixel. Mobile Bottom-Bar, Safe-Area-Inset und Inhaltsabstand werden geprüft.\n- Tal/Mitte/Berg zeigen unterschiedliche, fixture-eigene Temperaturen. Tagesprognose und geöffnete Stundenansicht nennen die ausgewählte Station samt Höhe. Sieben Tage starten geschlossen; beim Öffnen bleibt höchstens ein Tag erweitert. Fehlender Mittelstationsniederschlag wird als „–“ gezeigt.\n- Geöffnete Stundenkarten summieren die Niederschlagsmengen der zugrunde liegenden stündlichen Fixture-Werte für das dargestellte 1–3-h-Intervall. Tages-/Nacht-Piktogramme und Regen-/Schneeintensität sind enthalten.\n- Windwechsel in den MID-Einstellungen (kn → km/h) ändert aktuelle, Tages- und Intervallwerte, aber nicht Temperatur oder Niederschlag. Richtungspfeile und DWD-Warnfarbe werden in aktuellen, Tages- und Intervallwerten geprüft.\n\n## Offenes Daten-/UI-Mapping\n\nDie zusätzliche Höhenmatrix mit 1-h/3-h-Steuerung und matrixspezifischer Warnfläche ist im gültigen Drei-Höhenstufen-Datensatz nicht sichtbar: Der Fallback auf diese Matrix greift nur bei leerer Höhenstufenliste, während die Matrix selbst die erste Höhenstufe benötigt. Daher sind deren Bedienelemente und Warnflächenfarbe nicht als visuell abgenommen ausgewiesen.\n\n## Datenabdeckung und Grenzen\n\nDie kontrollierten Fixture-Antworten decken drei Höhenpunkte, aktuelle/tägliche/stündliche Werte und ein vollständiges Testintervall ab; sie sind keine Live-Provider-Prüfung. Optionale Open-Meteo-Felder, reale GeoSphere-Verfügbarkeit und Ensemble-Verfügbarkeit bleiben providerabhängig. Die UI-Assertions prüfen Darstellung, Zuordnung und Einheitenverhalten, nicht die Richtigkeit einer aktuellen Wetterlage.\n\n## Screenshots\n\n${screenshots}\n`;
+    const report=`# MID 18.2.14 · Berg-/Wintersport Visual Acceptance\n\nDeterministischer Browserlauf der echten App-Komponenten mit kontrollierten Open-Meteo-, GeoSphere- und Ensemble-Antworten. Die Fixture-Daten sind Testdaten, keine aktuelle Wetterlage. Erstellt: ${new Date().toISOString()}.\n\n**Laufumfang:** ${runScope}\n\n## Matrix\n\n| Gerät | Viewport | Theme | Forecast-Ziele | Bergziele | kleinste Hitbox-Kantenlänge | Dokument-/Viewportbreite | Aktuell-Schiene (Inhalt/Ansicht) | Surface | Screenshot |\n|---|---:|---|---:|---:|---:|---:|---:|---:|---|\n${rows}\n\n## Geprüfte Zustände\n\n- 6 Viewports × Light/Dark; kein horizontaler Dokumentüberlauf; Theme-Oberflächen unterscheiden sich je Viewport.\n- Saisonwahl, saisonale Reihenfolge aktueller Kennzahlen und der Bergstationswerte, Höhenstufen, Tageszeilen und Schneefallgrenzen-Zeiträume: mittiger Trefferpunkt nicht überdeckt; bei Viewports bis 850 px mindestens 44×44 CSS-Pixel. Mobile Bottom-Bar, Safe-Area-Inset und Inhaltsabstand werden geprüft.\n- Tal/Mitte/Berg zeigen unterschiedliche, fixture-eigene Temperaturen. Tagesprognose und geöffnete Stundenansicht nennen die ausgewählte Station samt Höhe. Sieben Tage starten geschlossen; beim Öffnen bleibt höchstens ein Tag erweitert. Fehlender Mittelstationsniederschlag wird als „–“ gezeigt.\n- Geöffnete Stundenkarten summieren die Niederschlagsmengen der zugrunde liegenden stündlichen Fixture-Werte für das dargestellte 1–3-h-Intervall. Tages-/Nacht-Piktogramme und Regen-/Schneeintensität sind enthalten.\n- Windwechsel in den MID-Einstellungen (kn → km/h) ändert aktuelle, Tages- und Intervallwerte, aber nicht Temperatur oder Niederschlag. Richtungspfeile und DWD-Warnfarbe werden in aktuellen, Tages- und Intervallwerten geprüft.\n\n## Offenes Daten-/UI-Mapping\n\nDie zusätzliche Höhenmatrix mit 1-h/3-h-Steuerung und matrixspezifischer Warnfläche ist im gültigen Drei-Höhenstufen-Datensatz nicht sichtbar: Der Fallback auf diese Matrix greift nur bei leerer Höhenstufenliste, während die Matrix selbst die erste Höhenstufe benötigt. Daher sind deren Bedienelemente und Warnflächenfarbe nicht als visuell abgenommen ausgewiesen.\n\n## Datenabdeckung und Grenzen\n\nDie kontrollierten Fixture-Antworten decken drei Höhenpunkte, aktuelle/tägliche/stündliche Werte und ein vollständiges Testintervall ab; sie sind keine Live-Provider-Prüfung. Optionale Open-Meteo-Felder, reale GeoSphere-Verfügbarkeit und Ensemble-Verfügbarkeit bleiben providerabhängig. Die UI-Assertions prüfen Darstellung, Zuordnung und Einheitenverhalten, nicht die Richtigkeit einer aktuellen Wetterlage.\n\n## Screenshots\n\n${screenshots}\n`;
    const acceptedReport=report
     .replace('## Offenes Daten-/UI-Mapping\n\nDie zusätzliche Höhenmatrix mit 1-h/3-h-Steuerung und matrixspezifischer Warnfläche ist im gültigen Drei-Höhenstufen-Datensatz nicht sichtbar: Der Fallback auf diese Matrix greift nur bei leerer Höhenstufenliste, während die Matrix selbst die erste Höhenstufe benötigt. Daher sind deren Bedienelemente und Warnflächenfarbe nicht als visuell abgenommen ausgewiesen.','## Höhenvergleich\n\nDer standardmäßig geschlossene Höhenvergleich folgt direkt auf die Sieben-Tage-Ansicht. 1-h-/3-h-Umschaltung, Rollenbeschriftungen, Windrichtungspfeile, Warnzellen und interner horizontaler Overflow wurden in beiden Themes über sechs Viewports geprüft.')
     .replace('Die kontrollierten Fixture-Antworten decken drei Höhenpunkte',`Die kontrollierten Fixture-Antworten decken ${twoStations?'zwei':'drei'} Höhenpunkte`);
    await writeFile(path.join(visualDir,'MID_18.2.13_mountain_visual_acceptance.md'),acceptedReport);
  }
-  console.log(`Berg-/Wintersport: echter App-Render, saisonale Kennzahlenpriorität, Stationshöhen, Hitboxen, Einheiten und Tag/Nacht geprüft: ${viewports.length} Viewports × ${themes.length} Themes.${mountainOnly?' Forecast-Navigation/-Touch-Target ausgelassen.':''}${screenshotDir?` Screenshots und Matrix: ${path.relative(root,visualDir)}.`:''}`);
+   console.log(`Berg-/Wintersport: echter App-Render, saisonale Kennzahlenpriorität, Stationshöhen, Hitboxen, Einheiten und Tag/Nacht geprüft: ${viewports.length} Viewports × ${themes.length} Themes.${mountainOnly?' Forecast-Navigation/-Touch-Target ausgelassen.':''}${screenshotDir?` Screenshots und Matrix: ${path.relative(root,visualDir)}.`:''}`);
+  }
 }finally{
  for(const request of pending.values())request.reject(new Error('CDP-Verbindung beendet.'));
  socket?.close();
