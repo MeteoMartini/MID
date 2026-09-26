@@ -52,7 +52,7 @@ assert.ok(meteogram.includes('step=Math.max(1,niceNumber'),'Schneehöhenachse da
 assert.ok(travelPanel.includes('step="1"')&&travelPanel.includes('Math.round(Number(snowDepthLimit))'),'Schneehöhenbedingung muss in ganzen cm erfasst werden.');
 assert.ok(travelPanel.includes('number(Number(active.summary.snowDepthMean),0)')&&travelPanel.includes('number(Number(point.snowDepthMean),0)'),'Reiseplaner muss mittlere/tägliche Schneehöhen in ganzen cm anzeigen.');
 assert.ok(travel.includes('mittlere Schneehöhe unter ${Math.round(Number(constraints.minSnowDepthCm))} cm')&&travel.includes('Schneehöhe liegt bei rund ${Math.round(Number(summary.snowDepthMean))} cm'),'Reiseplaner-Texte müssen Schneehöhen ganzzahlig formulieren.');
-assert.match(app,/function mountainNewSnowLabel\\(value:number\\)\\{return mountainSnowfallLabel\\(value\\)\\}/,'Neuschnee muss appweit denselben 0 cm / <1 cm / – Formatvertrag verwenden.');
+assert.match(app,/function mountainNewSnowLabel\(value:number\)\{return mountainSnowfallLabel\(value\)\}/,'Neuschnee muss appweit denselben 0 cm / <1 cm / – Formatvertrag verwenden.');
 assert.ok(app.includes('<MidMetric className="mountain-metric-new-snow" label="Neuschnee letzte 24 h" value={mountainNewSnowLabel(level.pastSnow24Cm)}'),'Der rückblickende Neuschnee muss in der aktuellen Höhenleiste über den gemeinsamen Schneeformat-Helfer angezeigt werden.');
 assert.ok(!/snowDepth(?:Mean|Cm)?[^\n]{0,80}(?:toFixed\(|formatDecimalFixed\([^\n]*,1\)|number\([^\n]*,1\))/.test([app,meteogram,travelPanel,travel].join('\n')),'Schneehöhe darf sichtbar nicht mit einer Dezimalstelle formatiert werden.');
 
