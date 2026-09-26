@@ -1,3 +1,10 @@
+# MID v0.9.85.103
+
+- Berg-/Wintersportwetter zeigt Tal-, Mittel- und Bergstation als klare Höhenwahl mit jeweils eigenen aktuellen Bedingungen.
+- Die 7-Tage-Übersicht ist kompakt, standardmäßig geschlossen und pro Tag einzeln aufklappbar.
+- Geöffnete Tage zeigen 3-stündliche Tag-/Nachtwerte mit MID-Piktogrammen, Wind/Böen sowie Niederschlags- und Schneemengen.
+- Die Höhenprognose umfasst sieben Tage; fehlende Schneefalldaten werden nicht als 0 cm ausgegeben.
+
 # MID v0.9.85.102
 
 - „Heute“ bleibt nach dem Antippen zuverlässig im Kurzfristbereich und springt nicht mehr auf „Vorhersage“ zurück.
