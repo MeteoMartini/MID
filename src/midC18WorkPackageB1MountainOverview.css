@@ -1,0 +1,519 @@
+/* MID mountain overview — compact, instrument-panel treatment.
+   Precipitation and snowfall remain independently class-driven. */
+
+.mountain-ski .mountain-forecast-overview .mountain-seven-day-list {
+  gap: 5px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-seven-day-row {
+  overflow: hidden;
+  border-radius: 9px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-toggle {
+  grid-template-columns:
+    minmax(76px, 0.88fr) 32px minmax(72px, 0.84fr)
+    minmax(96px, 1.05fr) minmax(142px, 1.48fr)
+    minmax(82px, 0.82fr) minmax(104px, 1.02fr) 20px;
+  gap: 7px;
+  min-height: 59px;
+  padding: 7px 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-date,
+.mountain-ski .mountain-forecast-overview .mountain-day-weather,
+.mountain-ski .mountain-forecast-overview .mountain-day-temperature,
+.mountain-ski .mountain-forecast-overview .mountain-day-wind,
+.mountain-ski .mountain-forecast-overview .mountain-day-precip,
+.mountain-ski .mountain-forecast-overview .mountain-day-snowline,
+.mountain-ski .mountain-forecast-overview .mountain-day-sunshine {
+  min-width: 0;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-date {
+  gap: 2px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-date > b {
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-date > small,
+.mountain-ski .mountain-forecast-overview .mountain-day-temperature > small,
+.mountain-ski .mountain-forecast-overview .mountain-day-wind > small,
+.mountain-ski .mountain-forecast-overview .mountain-day-precip > small,
+.mountain-ski .mountain-forecast-overview .mountain-day-snowline > small,
+.mountain-ski .mountain-forecast-overview .mountain-day-sunshine > small {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+  line-height: 1.15;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-weather {
+  justify-items: center;
+  gap: 1px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-weather .weather-pictogram,
+.mountain-ski .mountain-forecast-overview .mountain-day-weather > svg {
+  display: block;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-weather > small {
+  max-width: 100%;
+  font-size: 6.5px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-temperature,
+.mountain-ski .mountain-forecast-overview .mountain-day-precip,
+.mountain-ski .mountain-forecast-overview .mountain-day-sunshine {
+  border-left: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  padding-left: 8px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-temperature > b,
+.mountain-ski .mountain-forecast-overview .mountain-day-wind > b {
+  gap: 2px;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-temperature em {
+  font-variant-numeric: tabular-nums;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-precip {
+  gap: 2px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-precip > b {
+  gap: 2px;
+  font-size: 8px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-precip-rain,
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value > strong {
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value {
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value > small {
+  font-size: 7px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-precip > em {
+  gap: 2px 4px;
+  font-size: 7px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-precip > em > strong,
+.mountain-ski .mountain-forecast-overview .mountain-day-snowline > b,
+.mountain-ski .mountain-forecast-overview .mountain-day-sunshine > b {
+  font-size: 9px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-expand {
+  min-width: 20px;
+  min-height: 28px;
+  border-left: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+/* Snow uses a separate muted glacier-slate scale; rain colors stay on
+   mountain-precip-* hooks only. */
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value.mountain-snow-trace,
+.mountain-ski .mountain-forecast-overview .mountain-period-snow-value.mountain-snow-trace {
+  color: #536c7d;
+  background: color-mix(in srgb, #dbe5ec 72%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #a9bbc8 44%, var(--border));
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value.mountain-snow-light,
+.mountain-ski .mountain-forecast-overview .mountain-period-snow-value.mountain-snow-light {
+  color: #405e73;
+  background: color-mix(in srgb, #c0d2df 76%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #91aabd 58%, var(--border));
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value.mountain-snow-moderate,
+.mountain-ski .mountain-forecast-overview .mountain-period-snow-value.mountain-snow-moderate {
+  color: #314f65;
+  background: color-mix(in srgb, #a8bfce 80%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #7f9bad 68%, var(--border));
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-snow-value.mountain-snow-heavy,
+.mountain-ski .mountain-forecast-overview .mountain-period-snow-value.mountain-snow-heavy {
+  color: #f5f8fa;
+  background: color-mix(in srgb, #526f83 82%, var(--surface));
+  box-shadow: inset 0 0 0 1px #435f72;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 6px 0 2px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 30%, var(--border)) transparent;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid {
+  display: table;
+  width: 100%;
+  min-width: 680px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 9px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s2, var(--surface));
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(1) { width: 82px; }
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(2) { width: 116px; }
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(3) { width: 92px; }
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(4) { width: 76px; }
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(5) { width: 106px; }
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(6) { width: 102px; }
+.mountain-ski .mountain-forecast-overview .mountain-period-grid th:nth-child(7) { width: 90px; }
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid td {
+  padding: 4px 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  vertical-align: middle;
+  overflow-wrap: normal;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-time time {
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather {
+  min-width: 0;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather > .weather-pictogram,
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather > svg {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather > small {
+  display: inline-block;
+  max-width: calc(100% - 27px);
+  margin: 0 0 0 3px;
+  vertical-align: middle;
+  font-size: 7px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-temperature > strong {
+  font-size: 10px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-temperature > small {
+  margin-top: 1px;
+  font-size: 7px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-apparent,
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-snow {
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-wind {
+  gap: 3px;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-precip {
+  gap: 2px;
+  padding: 3px 4px;
+  font-size: 8px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-precip > small {
+  font-size: 7px;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-snow-value {
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mountain-ski .mountain-forecast-overview .mountain-day-detail-level {
+  margin-top: 7px;
+  padding: 5px 7px;
+  font-size: 8px;
+}
+
+@media (max-width: 980px) {
+  .mountain-ski .mountain-forecast-overview .mountain-day-toggle {
+    grid-template-columns: minmax(76px, 0.92fr) 32px minmax(88px, 1fr) 22px;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+      "date weather temperature expand"
+      "wind wind precip precip"
+      "snowline snowline sunshine sunshine";
+    gap: 5px 8px;
+    min-height: 0;
+    padding: 7px 9px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-date { grid-area: date; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-weather { grid-area: weather; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-temperature { grid-area: temperature; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-wind { grid-area: wind; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-precip { grid-area: precip; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-snowline { grid-area: snowline; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-sunshine { grid-area: sunshine; }
+  .mountain-ski .mountain-forecast-overview .mountain-day-expand { grid-area: expand; }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-temperature,
+  .mountain-ski .mountain-forecast-overview .mountain-day-precip,
+  .mountain-ski .mountain-forecast-overview .mountain-day-sunshine {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-wind,
+  .mountain-ski .mountain-forecast-overview .mountain-day-precip,
+  .mountain-ski .mountain-forecast-overview .mountain-day-snowline,
+  .mountain-ski .mountain-forecast-overview .mountain-day-sunshine {
+    align-self: center;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-weather .weather-pictogram,
+  .mountain-ski .mountain-forecast-overview .mountain-day-weather > svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-temperature > b,
+  .mountain-ski .mountain-forecast-overview .mountain-day-wind > b {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 620px) {
+  .mountain-ski .mountain-forecast-overview .mountain-seven-day-list {
+    gap: 4px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-seven-day-row {
+    border-radius: 8px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-toggle {
+    grid-template-columns: minmax(62px, 0.72fr) 30px minmax(0, 1fr) 20px;
+    gap: 5px 6px;
+    padding: 7px 8px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-date > b {
+    font-size: 9px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-date > small,
+  .mountain-ski .mountain-forecast-overview .mountain-day-temperature > small,
+  .mountain-ski .mountain-forecast-overview .mountain-day-wind > small,
+  .mountain-ski .mountain-forecast-overview .mountain-day-precip > small,
+  .mountain-ski .mountain-forecast-overview .mountain-day-snowline > small,
+  .mountain-ski .mountain-forecast-overview .mountain-day-sunshine > small {
+    font-size: 7px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-weather > small {
+    display: none;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-weather .weather-pictogram,
+  .mountain-ski .mountain-forecast-overview .mountain-day-weather > svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-temperature > b,
+  .mountain-ski .mountain-forecast-overview .mountain-day-wind > b {
+    font-size: 8px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-precip > b {
+    gap: 2px;
+    font-size: 8px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-precip > em {
+    flex-wrap: nowrap;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-snowline,
+  .mountain-ski .mountain-forecast-overview .mountain-day-sunshine {
+    padding-top: 3px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-snowline > b,
+  .mountain-ski .mountain-forecast-overview .mountain-day-sunshine > b {
+    font-size: 8px;
+    overflow-wrap: anywhere;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-table-scroll {
+    padding-top: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid {
+    display: table;
+    width: 680px;
+    min-width: 680px;
+    font-size: 8px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid thead {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border: 0;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid tbody {
+    display: table-row-group;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid tbody tr {
+    display: table-row;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid td {
+    display: table-cell;
+    min-width: 0;
+    padding: 4px 5px;
+    overflow-wrap: normal;
+    vertical-align: middle;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid td[data-label]::before {
+    content: none;
+    display: none;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-time {
+    grid-column: auto;
+    padding-bottom: 4px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-time time {
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather {
+    min-width: 0;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather > .weather-pictogram,
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather > svg {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-weather > small {
+    display: inline-block;
+    max-width: calc(100% - 24px);
+    font-size: 7px;
+    overflow-wrap: anywhere;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-wind {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    font-size: 7px;
+    overflow-wrap: normal;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-precip {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding: 2px 3px;
+    font-size: 7px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-period-grid .mountain-period-precip > small {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 360px) {
+  .mountain-ski .mountain-forecast-overview .mountain-day-toggle {
+    grid-template-columns: minmax(58px, 0.68fr) 28px minmax(0, 1fr) 20px;
+    gap: 4px 5px;
+    padding: 6px 7px;
+  }
+
+  .mountain-ski .mountain-forecast-overview .mountain-day-temperature > b,
+  .mountain-ski .mountain-forecast-overview .mountain-day-wind > b {
+    font-size: 7.5px;
+  }
+}
