@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const [cockpit,styles,main,pkgRaw,baselineRaw]=await Promise.all([
+const [cockpit,styles,packageAStyles,main,pkgRaw,baselineRaw]=await Promise.all([
   read('src/ForecastCockpit.tsx'),
   read('src/midC18ForecastRows.css'),
+  read('src/midC18WorkPackageAForecastRows.css'),
   read('src/main.tsx'),
   read('package.json'),
   read('MID_BASELINE.json')
@@ -54,6 +55,18 @@ for(const token of [
 
 assert.ok(styles.includes('grid-auto-flow:row!important')&&styles.includes('overflow:visible!important'),'Forecast-Listen dürfen nicht als horizontale Kartenkarussells fortbestehen.');
 assert.ok(main.indexOf("import './midC18ForecastRows.css';")>main.indexOf("import './midC18TodayProfile.css';"),'E-Designlayer muss nach dem D/D.2-Profil-Layer geladen werden.');
+assert.ok(main.indexOf("import './midC18WorkPackageAForecastRows.css';")>main.indexOf("import './midC18FourteenReplitFluidGrid.css';"),'Paket-A-Fit-Layer muss nach allen vorhandenen Forecast-Overrides geladen werden.');
+for(const token of [
+  'min-height:94px!important',
+  'grid-template-columns:56px 72px minmax(0,1fr) auto!important',
+  'width:100%!important',
+  'justify-self:stretch!important',
+  'font-size:10.5px!important',
+  'cockpit-day-night-icon',
+  'cockpit-fourteen-sun-uvi',
+  'cockpit-fourteen-inline-cue',
+  '@media(max-width:430px)'
+]) assert.ok(packageAStyles.includes(token),`MID 18.2.15 responsive fit rule missing: ${token}`);
 
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite']){
   assert.ok((baseline[key]||[]).includes(testPath),`${testPath} fehlt in ${key}`);
