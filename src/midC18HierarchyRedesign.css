@@ -297,7 +297,7 @@ html[data-mid-design='next'] .water-source{
   scrollbar-width:none!important;
  }
  html[data-mid-design='next'] .modern-forecast-horizons::-webkit-scrollbar{display:none!important}
- html[data-mid-design='next'] .modern-forecast-horizons>button{flex:1 0 max-content!important}
+ html[data-mid-design='next'] .modern-forecast-horizons>button{flex:1 0 max-content!important;min-height:44px!important}
  html[data-mid-design='next'] .meteogram-block{padding:12px 10px 14px!important}
  html[data-mid-design='next'] .meteogram-chart-wrap{min-height:224px!important}
  html[data-mid-design='next'] .meteogram-block:first-of-type .meteogram-chart-wrap{min-height:250px!important}
@@ -307,8 +307,8 @@ html[data-mid-design='next'] .water-source{
 }
 @media(max-width:620px){
  html[data-mid-design='next'] .forecast-cockpit.modern-workspace>.cockpit-body{gap:10px!important}
- html[data-mid-design='next'] .modern-forecast-horizons{min-height:36px!important}
- html[data-mid-design='next'] .modern-forecast-horizons>button{min-height:30px!important;padding:5px 9px!important}
+ html[data-mid-design='next'] .modern-forecast-horizons{min-height:44px!important}
+ html[data-mid-design='next'] .modern-forecast-horizons>button{min-height:44px!important;padding:5px 9px!important}
  html[data-mid-design='next'] .meteogram-controls{
   display:flex!important;
   flex-wrap:wrap!important;

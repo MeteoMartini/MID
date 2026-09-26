@@ -289,3 +289,20 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
   scroll-margin-top:calc(max(var(--mid-safe-top),env(safe-area-inset-top,0px)) + 12px)!important;
  }
 }
+
+/* MID mountain forecast controls retain usable touch targets on narrow screens. */
+@media(max-width:850px){
+ html[data-mid-design='next'] .mountain-ski :is(
+  .mountain-season-control button,
+  .mountain-level-picker button,
+  .mountain-day-toggle,
+  .mountain-forecast-summary,
+  .mountain-matrix-controls button,
+  .mountain-snowline-summary,
+  .mountain-snowline-horizons button
+ ){
+  box-sizing:border-box!important;
+  min-width:44px!important;
+  min-height:44px!important;
+ }
+}

@@ -11,10 +11,13 @@ assert.match(persistence,/if\(INCLUDED_KEYS\(key\)\)schedulePersist\(\)/,'dauerh
 assert.match(app,/fallback&&value\.mountain\.profileSource==='osm-dem'&&value\.mountain\.profileUpdatedAt/,'vorhandenes automatisches Profil wird bei temporärem Abruffehler nicht geschützt');
 assert.match(app,/dauerhaft gespeichert/,'Erfolgsstatus der automatischen Profilsuche bestätigt die Speicherung nicht');
 assert.match(mountain,/for\(let round=0;round<2;round\+\+\)/,'Overpass-Abruf besitzt keinen zweiten Versuch');
-assert.match(app,/className="mountain-level-meta"/,'Wind- und Schneedaten besitzen keinen getrennten Metabereich');
-assert.match(app,/className="mountain-wind-values"/,'eigene Windzeile fehlt');
-assert.match(app,/className="mountain-snow-values"/,'eigene Schneezeile fehlt');
-assert.match(css,/\.mountain-level-meta\{display:grid;gap:8px/,'räumliche Trennung der Berg-Metadaten fehlt');
+assert.match(app,/className="mountain-current-rail"/,'horizontale Leiste für aktuelle höhenbezogene Werte fehlt');
+assert.match(app,/<MidMetric className="mountain-metric-wind" label="Wind \/ Böen"/,'Wind- und Böendaten fehlen als eigene Kennzahl');
+assert.match(app,/<MidMetric className="mountain-metric-new-snow" label="Neuschnee letzte 24 h" value={mountainNewSnowLabel\(level\.pastSnow24Cm\)}/,'rückblickender Neuschnee fehlt als eigene Kennzahl');
+assert.match(app,/<MidMetric className="mountain-metric-snow-depth" label="Schneedecke"/,'Schneedecke muss vom Neuschnee getrennt bleiben');
+assert.match(app,/mountain-day-detail-level">Stundenwerte: <strong>\{level\.name\|\|mountainLevelLabel\(level\.role\)\} · \{Math\.round\(level\.elevation\)\} m ü\. NHN<\/strong>/,'geöffnete Stundenprognose muss die ausgewählte Station und Höhe nennen');
+assert.match(app,/Die nächsten 7 Tage · \{level\.name\|\|mountainLevelLabel\(level\.role\)\} · \{Math\.round\(level\.elevation\)\} m ü\. NHN/,'Tagesprognose muss die ausgewählte Station und Höhe nennen');
+assert.match(css,/\.mountain-current-rail\{display:flex;gap:8px;min-width:0;overflow-x:auto/,'aktuelle Werte müssen in der Leiste horizontal scrollen');
 assert.match(app,/<em>Heute<\/em><span className="hero-day-range-values"><span className="min"[^>]*><small>Tmin<\/small>/,'Tages-Min/Max-Karte besitzt keine Heute-Kennzeichnung');
 assert.match(legacy,/@media\(min-width:851px\)[\s\S]*?\.hero-day-range\{display:grid;grid-template-columns:auto auto 48px auto/,'hochwertige Desktop-Darstellung für Tmin/Tmax fehlt');
 console.log('Bergprofil-Persistenz, getrennte Wind-/Schneedaten und Desktop-Tagesbereich geprüft.');

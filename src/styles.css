@@ -2913,7 +2913,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 /* v0.8.8.0 – kompakter Höhenwetter-Verlauf und lesbarer 7-Tage-Szenariovergleich */
 .mountain-profile-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 8px}.mountain-profile-summary>span{display:flex;align-items:center;gap:7px;min-width:0}.mountain-profile-summary b{font-size:12px;white-space:nowrap}.mountain-profile-summary small{color:var(--muted);font-size:9px;line-height:1.3}
 .mountain-forecast-matrix{display:grid;margin-top:12px;border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border));border-radius:15px;background:color-mix(in srgb,var(--primary) 4%,var(--surface));overflow:hidden}.mountain-forecast-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}.mountain-forecast-summary>span{display:grid;gap:2px;min-width:0}.mountain-forecast-summary small{color:var(--primary);font-size:8px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.mountain-forecast-summary strong{font-size:12px}.mountain-forecast-summary em{color:var(--muted);font-size:8px;font-style:normal;font-weight:650}.mountain-forecast-summary>svg{flex:0 0 auto;color:var(--muted)}.mountain-forecast-matrix.open .mountain-forecast-summary{border-bottom:1px solid color-mix(in srgb,var(--border) 80%,transparent)}.mountain-forecast-content{display:grid;gap:10px;padding:12px}.mountain-forecast-content>header{display:flex;align-items:flex-start;justify-content:flex-end;gap:12px}.mountain-forecast-content>p{margin:0;color:var(--muted);font-size:8.5px;line-height:1.4}.mountain-matrix-controls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.mountain-matrix-controls>div{display:flex;padding:2px;border:1px solid var(--border);border-radius:999px;background:var(--surface)}.mountain-matrix-controls button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:30px;padding:5px 9px;border:0;border-radius:999px;background:transparent;color:var(--muted);font:inherit;font-size:8px;font-weight:800;cursor:pointer}.mountain-matrix-controls button.active{background:var(--primary);color:#fff}.mountain-matrix-controls .mountain-matrix-expand{border:1px solid var(--border);background:var(--surface);color:var(--text)}
-.mountain-matrix-day{display:grid;gap:7px;padding:9px;border:1px solid var(--border);border-radius:13px;background:var(--surface)}.mountain-matrix-day>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 2px}.mountain-matrix-day>header span{display:grid;gap:1px}.mountain-matrix-day>header b{font-size:10px}.mountain-matrix-day>header small{color:var(--muted);font-size:7px}.mountain-matrix-day>header em{color:var(--muted);font-size:8px;font-style:normal;font-weight:750;white-space:nowrap}.mountain-matrix-scroll{display:grid;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:3px}.mountain-matrix-level{display:grid;gap:0;min-width:max-content;border:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-radius:11px;overflow:hidden;background:var(--surface)}.mountain-matrix-level>header{position:sticky;left:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:100%;padding:7px 9px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--primary) 7%,var(--surface))}.mountain-matrix-level>header b{font-size:9px}.mountain-matrix-level>header span{color:var(--muted);font-size:7px;font-weight:750}.mountain-matrix-row{display:grid;grid-template-columns:108px repeat(var(--mountain-columns),minmax(74px,1fr));border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent)}.mountain-matrix-row:last-child{border-bottom:0}.mountain-matrix-row>b{position:sticky;left:0;z-index:2;display:flex;align-items:center;padding:6px 8px;border-right:1px solid var(--border);background:var(--s2);font-size:7.5px;white-space:nowrap}.mountain-matrix-row>span{display:flex;align-items:center;justify-content:center;min-width:0;padding:5px 4px;border-right:1px solid color-mix(in srgb,var(--border) 58%,transparent);font-size:7.5px;line-height:1.25;text-align:center}.mountain-matrix-row>span:last-child{border-right:0}.mountain-matrix-row time{font-size:8px;font-weight:850}.mountain-matrix-row strong{font-size:9px}.mountain-matrix-row small{display:block;color:var(--muted);font-size:6.2px;line-height:1.2}.mountain-matrix-weather{display:grid!important;place-items:center;gap:1px}.mountain-matrix-weather i{font-size:16px;font-style:normal;line-height:1}.mountain-matrix-weather small{max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mountain-matrix-nowrap{white-space:nowrap}
+.mountain-matrix-day{display:grid;gap:7px;padding:9px;border:1px solid var(--border);border-radius:13px;background:var(--surface)}.mountain-matrix-day>header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 2px}.mountain-matrix-day>header span{display:grid;gap:1px}.mountain-matrix-day>header b{font-size:10px}.mountain-matrix-day>header small{color:var(--muted);font-size:7px}.mountain-matrix-day>header em{color:var(--muted);font-size:8px;font-style:normal;font-weight:750;white-space:nowrap}.mountain-matrix-scroll{display:grid;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:3px}.mountain-matrix-level{display:grid;gap:0;min-width:max-content;border:1px solid color-mix(in srgb,var(--border) 82%,transparent);border-radius:11px;overflow:hidden;background:var(--surface)}.mountain-matrix-level>header{position:sticky;left:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:100%;padding:7px 9px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--primary) 7%,var(--surface))}.mountain-matrix-level>header b{font-size:9px}.mountain-matrix-level>header span{color:var(--muted);font-size:7px;font-weight:750}.mountain-matrix-row{display:grid;grid-template-columns:108px repeat(var(--mountain-columns),minmax(74px,1fr));border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent)}.mountain-matrix-row:last-child{border-bottom:0}.mountain-matrix-row>b{position:sticky;left:0;z-index:2;display:flex;align-items:center;padding:6px 8px;border-right:1px solid var(--border);background:var(--s2);font-size:7.5px;white-space:nowrap}.mountain-matrix-row>span{display:flex;align-items:center;justify-content:center;min-width:0;padding:5px 4px;border-right:1px solid color-mix(in srgb,var(--border) 58%,transparent);font-size:7.5px;line-height:1.25;text-align:center}.mountain-matrix-row>span:last-child{border-right:0}.mountain-matrix-row time{font-size:8px;font-weight:850}.mountain-matrix-row strong{font-size:9px}.mountain-matrix-row small{display:block;color:var(--muted);font-size:6.2px;line-height:1.2}.mountain-matrix-weather{display:grid!important;place-items:center;gap:1px}.mountain-matrix-weather i{font-size:16px;font-style:normal;line-height:1}.mountain-matrix-weather small{max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mountain-matrix-nowrap{white-space:nowrap}.mountain-matrix-wind{display:flex;align-items:center;justify-content:center;gap:2px}.mountain-matrix-wind-arrow{font-size:10px;line-height:1}
 .ensemble-scenario-days-label{display:flex!important;align-items:baseline;justify-content:space-between;gap:8px}.ensemble-scenario-days-label b{color:var(--muted);font-size:6.8px;letter-spacing:.04em;text-transform:uppercase}.ensemble-scenario-days-label small{color:var(--muted);font-size:6.3px}.ensemble-scenario-days{display:grid!important;grid-template-columns:repeat(7,minmax(74px,1fr));gap:5px;overflow-x:auto;padding-bottom:2px}.ensemble-scenario-day{display:grid;gap:5px;min-width:74px;padding:7px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}.ensemble-scenario-day>header{display:flex;align-items:baseline;justify-content:space-between;gap:4px}.ensemble-scenario-day>header b{font-size:8px}.ensemble-scenario-day>header small{color:var(--muted);font-size:6px}.ensemble-scenario-day>strong{font-size:9px}.ensemble-scenario-day>span{display:flex;align-items:baseline;justify-content:space-between;gap:4px}.ensemble-scenario-day>span small{color:var(--muted)!important;font-size:5.8px!important}.ensemble-scenario-day>span b{font-size:7px}.ensemble-scenario-deltas{display:grid!important;gap:2px;min-height:18px}.ensemble-scenario-deltas em{padding:2px 4px;border-radius:6px;background:color-mix(in srgb,var(--muted) 8%,transparent);color:var(--muted);font-size:5.6px;font-style:normal;line-height:1.2}.ensemble-scenario-day.wetter{border-color:color-mix(in srgb,#2688ff 48%,var(--border));background:color-mix(in srgb,#2688ff 8%,var(--surface))}.ensemble-scenario-day.trockener{border-color:color-mix(in srgb,#d7a900 45%,var(--border));background:color-mix(in srgb,#ffd84a 10%,var(--surface))}.ensemble-scenario-day.waermer{border-color:color-mix(in srgb,#ff7452 48%,var(--border));background:color-mix(in srgb,#ff7452 8%,var(--surface))}.ensemble-scenario-day.kuehler{border-color:color-mix(in srgb,#45a6ff 48%,var(--border));background:color-mix(in srgb,#45a6ff 8%,var(--surface))}.ensemble-scenario-day.windiger{border-color:color-mix(in srgb,#8d5cff 48%,var(--border));background:color-mix(in srgb,#8d5cff 8%,var(--surface))}.ensemble-scenario-day.ruhiger{border-color:color-mix(in srgb,#45b88a 42%,var(--border));background:color-mix(in srgb,#45b88a 7%,var(--surface))}.ensemble-scenario-day.referenz{background:color-mix(in srgb,var(--primary) 4%,var(--surface))}
 @media(max-width:620px){.mountain-profile-summary{align-items:flex-start}.mountain-profile-summary>span{align-items:flex-start;flex-wrap:wrap}.mountain-profile-summary small{flex-basis:100%;padding-left:23px}.mountain-forecast-summary{padding:10px}.mountain-forecast-summary strong{font-size:11px}.mountain-forecast-content{padding:10px}.mountain-forecast-content>header{justify-content:flex-start}.mountain-matrix-controls{justify-content:flex-start}.mountain-matrix-row{grid-template-columns:94px repeat(var(--mountain-columns),minmax(68px,1fr))}.mountain-matrix-row>b{font-size:7px}.ensemble-scenario-days{grid-template-columns:repeat(7,78px)}.ensemble-scenario-days-label{display:grid!important;gap:1px}.ensemble-scenario-days-label small{font-size:6px}}
 
@@ -3467,6 +3467,225 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .push-settings-group>header>small,.push-interval-setting small{font-size:var(--mid-text-micro);line-height:1.45}
 @media(any-pointer:coarse){
  .advanced-feature-group>summary,.advanced-feature-inline select,.push-interval-setting select{min-height:44px}
+}
+
+/* MID mountain forecast: selectable height, compact present conditions and seven local days. */
+.mountain-forecast-overview,.mountain-current-panel,.mountain-seven-day,.mountain-seven-day-list,.mountain-seven-day-row,.mountain-day-detail{min-width:0;max-width:100%}
+.mountain-forecast-overview{display:grid;gap:14px;margin:10px 0 14px}
+.mountain-current-panel{display:grid;gap:10px;padding:12px}
+.mountain-current-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.mountain-current-heading>div:first-child{display:grid;gap:3px;min-width:0}
+.mountain-current-heading>div:first-child>span,.mountain-seven-day-heading>span>small{color:var(--muted);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.mountain-current-heading>div:first-child>strong{font-size:14px;line-height:1.25}
+.mountain-level-picker{display:flex;justify-content:flex-end;min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;border:1px solid var(--border);border-radius:12px;background:var(--surface);scrollbar-width:thin}
+.mountain-level-picker button{display:grid;align-content:center;justify-items:center;gap:3px;flex:1 1 0;min-width:0;min-height:48px;padding:6px 9px;border:0;border-right:1px solid var(--border);border-radius:0;background:transparent;color:var(--text);font:inherit;font-size:10px;font-weight:850;text-align:center;cursor:pointer}
+.mountain-level-picker button:last-child{border-right:0}
+.mountain-level-picker button>span{overflow-wrap:anywhere;line-height:1.15}
+.mountain-level-picker button small{color:var(--muted);font-size:8px;font-weight:700;line-height:1.2}
+.mountain-level-picker button:focus-visible,.mountain-day-toggle:focus-visible{position:relative;z-index:1;outline:2px solid var(--primary);outline-offset:-2px}
+.mountain-level-picker button.active{background:color-mix(in srgb,var(--primary) 10%,var(--surface));color:var(--primary);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 16%,transparent)}
+.mountain-current-content{display:grid;gap:9px;min-width:0}
+.mountain-current-weather{display:flex;align-items:center;gap:10px;min-width:0}
+.mountain-current-weather>span{display:grid;gap:2px;min-width:0}
+.mountain-current-weather>span>small{color:var(--muted);font-size:10px}
+.mountain-current-weather>span>strong{font-size:22px;line-height:1.05}
+.mountain-current-rail{display:flex;gap:8px;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;padding:1px 1px 7px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.mountain-current-rail>.mid-metric{display:grid;align-content:start;gap:4px;flex:0 0 clamp(116px,14vw,132px);min-width:0;min-height:72px;padding:8px;border:1px solid var(--border);border-radius:12px;background:var(--surface);scroll-snap-align:start}
+.mountain-current-rail[data-season]>.mid-metric{order:50}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-temperature{order:0}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-feel{order:1}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-wind{order:2}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-new-snow{order:3}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-snow-depth{order:4}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-visibility{order:5}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-low-cloud{order:6}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-precipitation{order:7}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-snowline{order:8}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-sunshine{order:9}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-uv{order:10}
+.mountain-current-rail[data-season="winter"]>.mountain-metric-thunder{order:11}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-temperature{order:0}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-wind{order:1}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-thunder{order:2}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-precipitation{order:3}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-visibility{order:4}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-low-cloud{order:5}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-uv{order:6}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-feel{order:7}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-sunshine{order:8}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-new-snow{order:9}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-snow-depth{order:10}
+.mountain-current-rail[data-season="summer"]>.mountain-metric-snowline{order:11}
+.mountain-current-rail .mid-metric-label{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:9px;font-weight:800}
+.mountain-current-rail .mid-metric>strong{min-width:0;font-size:15px;line-height:1.2;overflow-wrap:anywhere}
+.mountain-current-rail .mid-metric>small{color:var(--muted);font-size:8px;line-height:1.3}
+.mountain-current-pages{display:flex;justify-content:center;align-items:center;gap:6px;min-height:7px}
+.mountain-current-pages i{width:6px;height:6px;border-radius:999px;background:color-mix(in srgb,var(--primary) 23%,var(--border));transition:width .18s ease,background-color .18s ease}
+.mountain-current-pages i.active{width:8px;height:8px;background:var(--primary)}
+.mountain-wind-value{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.mountain-current-source{min-width:0}
+.mountain-current-source b{overflow-wrap:anywhere}
+.mountain-seven-day{display:grid;gap:9px}
+.mountain-seven-day-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-width:0;padding:0 2px}
+.mountain-seven-day-heading>span{display:grid;gap:2px;min-width:0}
+.mountain-seven-day-heading>span>strong{font-size:14px}
+.mountain-seven-day-heading>small{color:var(--muted);font-size:9px;text-align:right}
+.mountain-seven-day-list{display:grid;gap:7px}
+.mountain-seven-day-row{display:grid;gap:0;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.mountain-seven-day-row.open{border-color:color-mix(in srgb,var(--primary) 38%,var(--border))}
+.mountain-seven-day-row.open{background:color-mix(in srgb,var(--primary) 3%,var(--surface))}
+.mountain-day-toggle{display:grid;grid-template-columns:minmax(80px,1.05fr) 38px minmax(92px,1fr) minmax(105px,1.05fr) minmax(142px,1.4fr) minmax(88px,.9fr) minmax(70px,.72fr) 24px;align-items:center;gap:8px;width:100%;min-height:68px;padding:9px 10px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.mountain-day-toggle:disabled{cursor:default;opacity:.72}
+.mountain-day-toggle:not(:disabled):hover{background:color-mix(in srgb,var(--primary) 4%,transparent)}
+.mountain-day-date,.mountain-day-weather,.mountain-day-temperature,.mountain-day-wind,.mountain-day-precip,.mountain-day-snowline,.mountain-day-sunshine{display:grid;align-content:center;gap:3px;min-width:0}
+.mountain-day-date>b{font-size:11px;line-height:1.2;overflow-wrap:normal;hyphens:none}
+.mountain-day-date>small,.mountain-day-temperature>small,.mountain-day-wind>small,.mountain-day-precip>small,.mountain-day-snowline>small,.mountain-day-sunshine>small{color:var(--muted);font-size:8px;line-height:1.2}
+.mountain-day-weather{justify-items:center;gap:2px}
+.mountain-day-weather>small{max-width:100%;overflow:hidden;color:var(--muted);font-size:7px;text-overflow:ellipsis;white-space:nowrap}
+.mountain-day-temperature>b,.mountain-day-wind>b{display:flex;align-items:center;gap:2px;min-width:0;font-size:10px;white-space:nowrap}
+.mountain-day-temperature em{color:var(--mountain-temp-tone,var(--text));font-style:normal}
+.mountain-day-temperature i,.mountain-day-wind i{color:var(--muted);font-size:8px;font-style:normal}
+.mountain-day-wind .wind-direction-arrow{flex:0 0 auto}
+.mountain-day-precip>b{display:grid;gap:3px;font-size:9px;line-height:1.2}
+.mountain-day-precip-rain{font-size:9px;font-variant-numeric:tabular-nums}
+.mountain-day-snow-value{display:flex;align-items:baseline;gap:4px;min-width:0}
+.mountain-day-snow-value>small{color:var(--muted);font-size:8px;font-weight:700}
+.mountain-day-snow-value>strong{font-size:9px;font-variant-numeric:tabular-nums}
+.mountain-day-precip>em{display:flex;flex-wrap:wrap;gap:2px 4px;color:var(--muted);font-size:7px;font-style:normal;line-height:1.2}
+.mountain-day-precip>em>strong{color:var(--text);font-size:8px}
+.mountain-day-snowline>b,.mountain-day-sunshine>b{font-size:10px;line-height:1.2}
+.mountain-day-expand{display:grid;place-items:center;color:var(--muted)}
+.mountain-seven-day-row.open .mountain-day-expand{color:var(--primary)}
+.mountain-weather-missing{display:grid;place-items:center;min-width:22px;min-height:24px;color:var(--muted);font-size:16px;font-weight:800}
+.mountain-day-detail{padding:0 10px 10px;border-top:1px solid var(--border)}
+.mountain-period-table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding-top:8px;scrollbar-width:thin}
+.mountain-period-grid{width:100%;min-width:820px;border-collapse:separate;border-spacing:0;font-size:9px}
+.mountain-period-grid th{position:sticky;top:0;padding:7px 8px;border-bottom:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:8px;font-weight:850;text-align:left;white-space:nowrap}
+.mountain-period-grid td{padding:6px 8px;border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);vertical-align:middle}
+.mountain-period-grid tbody tr:last-child td{border-bottom:0}
+.mountain-period-grid .mountain-period-time time{font-size:9px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mountain-period-weather{min-width:108px}
+.mountain-period-weather>.weather-pictogram,.mountain-period-weather>svg{display:block;width:28px;height:28px}
+.mountain-period-weather>small,.mountain-period-temperature>small{display:block;margin-top:2px;color:var(--muted);font-size:7px;line-height:1.2}
+.mountain-period-weather>small{max-width:112px;overflow-wrap:anywhere}
+.mountain-period-temperature>strong{font-size:12px;line-height:1.1}
+.mountain-period-apparent,.mountain-period-snow{font-weight:800;white-space:nowrap}
+.mountain-period-snow{color:var(--primary)}
+.mountain-period-snowline{white-space:nowrap}
+.mountain-period-card:hover td{background:color-mix(in srgb,var(--primary) 3%,transparent)}
+.mountain-period-wind,.mountain-period-precip{display:flex;align-items:center;gap:5px;min-width:0;font-size:9px;line-height:1.25}
+.mountain-period-precip{align-items:flex-start;flex-direction:column;gap:2px;padding:4px 5px;border-radius:7px}
+.mountain-period-precip>small{color:var(--muted);font-size:7px}
+.mountain-period-precip.mountain-precip-trace{background:color-mix(in srgb,#65b9ff 10%,var(--surface))}
+.mountain-period-precip.mountain-precip-light{background:color-mix(in srgb,#3b9df5 20%,var(--surface))}
+.mountain-period-precip.mountain-precip-moderate{background:color-mix(in srgb,#1675c8 28%,var(--surface))}
+.mountain-period-precip.mountain-precip-heavy{background:color-mix(in srgb,#0b4f91 72%,var(--surface));color:#fff}
+.mountain-period-precip.mountain-precip-heavy>small{color:rgba(255,255,255,.88)}
+.mountain-day-no-data,.mountain-seven-day-note{margin:0;color:var(--muted);font-size:9px;line-height:1.4}
+.mountain-seven-day-note{padding:0 2px}
+.mountain-day-detail-level{margin:9px 0 0;padding:7px 8px;border-radius:8px;background:color-mix(in srgb,var(--primary) 7%,var(--surface));color:var(--muted);font-size:9px;line-height:1.35}
+.mountain-day-detail-level strong{color:var(--text)}
+.mountain-peak-indicators::before{content:"Weitere Kennwerte · Bergstation";grid-column:1/-1;order:-1;color:var(--muted);font-size:9px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}
+.mountain-peak-indicators[data-season] article{order:50}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-snowline{order:0}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-new-snow{order:1}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-visibility{order:2}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-low-cloud{order:3}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-thunder{order:4}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-windchill{order:5}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-cloud-base{order:6}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-freezing{order:7}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-daylight{order:8}
+.mountain-peak-indicators[data-season="winter"]>.mountain-indicator-uv{order:9}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-visibility{order:0}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-low-cloud{order:1}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-thunder{order:2}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-windchill{order:3}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-cloud-base{order:4}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-freezing{order:5}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-daylight{order:6}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-snowline{order:7}
+.mountain-peak-indicators[data-season="summer"]>.mountain-indicator-uv{order:8}
+.mountain-winter-guidance{display:grid;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.mountain-winter-guidance>header{display:flex;align-items:flex-start;gap:9px}
+.mountain-winter-guidance>header>svg{flex:0 0 auto;color:var(--primary)}
+.mountain-winter-guidance>header>span{display:grid;gap:3px;min-width:0}
+.mountain-winter-guidance>header strong{font-size:13px}
+.mountain-winter-guidance>header small,.mountain-winter-source-note{color:var(--muted);font-size:9px;line-height:1.4}
+.mountain-winter-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mountain-winter-source{display:grid;align-content:start;gap:7px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:11px;background:var(--s2)}
+.mountain-winter-source>div{display:grid;gap:3px}
+.mountain-winter-source>div>small{color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.07em}
+.mountain-winter-source>div>strong{font-size:11px}
+.mountain-winter-source-note,.mountain-warning-state{margin:0}
+.mountain-winter-source ul{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.mountain-winter-source li{display:grid;gap:3px;padding-top:7px;border-top:1px solid var(--border)}
+.mountain-winter-source li>strong{font-size:10px}
+.mountain-winter-source li>small{color:var(--muted);font-size:8px;line-height:1.35}
+.mountain-winter-source li>p{margin:2px 0 0;color:var(--muted);font-size:9px;line-height:1.4}
+.mountain-warning-state{color:var(--muted);font-size:9px;line-height:1.4}
+.mountain-warning-state.unavailable{color:var(--warning,#b7791f)}
+.mountain-zone-rapid-note{margin:0;padding:8px 9px;border-left:3px solid var(--primary);border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--primary) 6%,var(--surface));color:var(--muted);font-size:9px;line-height:1.4}
+@media(max-width:980px){
+ .mountain-day-toggle{grid-template-columns:minmax(76px,1.05fr) minmax(32px,.42fr) minmax(84px,1.1fr) 24px;grid-template-rows:auto auto auto;grid-template-areas:"date weather temperature expand" "wind wind precip precip" "snowline snowline sunshine sunshine";align-items:center;gap:8px;min-height:0;padding:10px}
+ .mountain-day-date{grid-area:date}.mountain-day-weather{grid-area:weather}.mountain-day-temperature{grid-area:temperature}.mountain-day-wind{grid-area:wind}.mountain-day-precip{grid-area:precip}.mountain-day-snowline{grid-area:snowline}.mountain-day-sunshine{grid-area:sunshine}.mountain-day-expand{grid-area:expand}
+ .mountain-day-date>b{font-size:11px;white-space:normal;text-overflow:clip}
+ .mountain-day-date>small{font-size:8px}
+ .mountain-day-weather>small{display:none}
+ .mountain-day-weather .weather-pictogram,.mountain-day-weather>svg{width:25px;height:25px}
+ .mountain-day-temperature,.mountain-day-wind,.mountain-day-precip,.mountain-day-snowline,.mountain-day-sunshine{align-self:stretch}
+ .mountain-day-temperature>b,.mountain-day-wind>b{flex-wrap:wrap;white-space:normal;font-size:9px;line-height:1.25}
+ .mountain-day-temperature>small,.mountain-day-wind>small,.mountain-day-precip>small,.mountain-day-snowline>small,.mountain-day-sunshine>small{font-size:8px}
+ .mountain-day-precip>b{font-size:8px}
+ .mountain-day-precip-rain,.mountain-day-snow-value>strong{font-size:9px}
+ .mountain-day-precip>em{font-size:8px}
+ .mountain-day-precip>em>strong{font-size:9px}
+ .mountain-day-snowline{border-right:1px solid color-mix(in srgb,var(--border) 72%,transparent);padding-right:8px}
+ .mountain-day-sunshine{border-left:1px solid color-mix(in srgb,var(--border) 72%,transparent);padding-left:8px}
+ .mountain-day-snowline>b,.mountain-day-sunshine>b{font-size:10px}
+}
+@media(max-width:620px){
+ .mountain-forecast-overview{gap:10px;margin:8px 0 11px}.mountain-current-panel{padding:10px}
+  .mountain-winter-sources{grid-template-columns:1fr}
+  .mountain-winter-guidance{padding:10px}
+  .mountain-current-heading{align-items:stretch;flex-direction:column;gap:0}.mountain-current-heading>div:first-child,.mountain-current-weather{display:none}
+  .mountain-level-picker{justify-content:stretch;width:100%}.mountain-level-picker button{flex:1 1 0;min-width:0;padding:7px 4px;font-size:9px}.mountain-level-picker button small{font-size:8px}
+  .mountain-current-weather>span>strong{font-size:20px}.mountain-current-rail>.mid-metric{flex-basis:84px;min-height:76px;padding:7px 6px}.mountain-current-rail .mid-metric-label{font-size:8px;line-height:1.2}.mountain-current-rail .mid-metric>strong{font-size:13px}.mountain-current-rail .mid-metric>small{font-size:7px}
+ .mountain-seven-day-heading{align-items:flex-start;flex-direction:column;gap:4px}.mountain-seven-day-heading>small{text-align:left}
+  .mountain-day-toggle{gap:7px 6px;padding:9px}
+  .mountain-day-date>b{font-size:11px}.mountain-day-date>small{font-size:8px}
+  .mountain-day-temperature,.mountain-day-snowline{gap:3px}.mountain-day-temperature>small,.mountain-day-snowline>small,.mountain-day-sunshine>small,.mountain-day-wind>small,.mountain-day-precip>small{font-size:7.5px}
+  .mountain-day-temperature>b,.mountain-day-wind>b{font-size:8.5px}.mountain-day-snowline>b,.mountain-day-sunshine>b{font-size:9px}.mountain-day-precip>b{font-size:8px}.mountain-day-precip>em{font-size:7.5px}
+}
+@media(max-width:850px){
+ .mountain-season-control button,.mountain-snowline-summary,.mountain-snowline-horizons button,.mountain-forecast-summary,.mountain-matrix-controls button{min-height:44px}
+ .mountain-snowline-horizons button{min-width:44px}
+}
+@media(max-width:360px){
+  .mountain-current-rail>.mid-metric{flex-basis:78px}
+   .mountain-day-toggle{grid-template-columns:minmax(70px,1.05fr) minmax(30px,.42fr) minmax(76px,1.1fr) 22px;gap:6px 5px;padding:8px}
+   .mountain-day-temperature>b,.mountain-day-wind>b{font-size:8px}.mountain-day-precip>b{font-size:7.5px}
+}
+@media(max-width:900px){
+ .mountain-period-table-scroll{overflow-x:visible;padding-top:7px}
+ .mountain-period-grid{display:block;width:100%;min-width:0;border-spacing:0;font-size:9px}
+ .mountain-period-grid thead{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ .mountain-period-grid tbody{display:grid;gap:8px}
+ .mountain-period-grid tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px;min-width:0;padding:9px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}
+ .mountain-period-grid td{display:block;min-width:0;padding:0;border:0;overflow-wrap:anywhere;vertical-align:top}
+ .mountain-period-grid td[data-label]::before{display:block;margin-bottom:2px;color:var(--muted);font-size:7px;font-weight:850;line-height:1.2}
+ .mountain-period-grid .mountain-period-time{grid-column:1/-1;padding-bottom:6px;border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+ .mountain-period-grid .mountain-period-time::before{content:none}
+ .mountain-period-grid .mountain-period-time time{font-size:9px;white-space:normal}
+ .mountain-period-grid .mountain-period-weather{min-width:0}
+ .mountain-period-grid .mountain-period-weather>.weather-pictogram,.mountain-period-grid .mountain-period-weather>svg{display:inline-block;width:24px;height:24px;vertical-align:middle}
+ .mountain-period-grid .mountain-period-weather>small,.mountain-period-grid .mountain-period-temperature>small{font-size:8px;line-height:1.25}
+ .mountain-period-grid .mountain-period-weather>small{display:block;max-width:none}
+ .mountain-period-grid .mountain-period-temperature>strong{font-size:12px}
+ .mountain-period-grid .mountain-period-apparent,.mountain-period-grid .mountain-period-snow{font-size:10px;white-space:normal}
+ .mountain-period-grid .mountain-period-wind{display:flex;flex-wrap:wrap;gap:3px;min-width:0;font-size:9px;line-height:1.3;overflow-wrap:anywhere}
+ .mountain-period-grid .mountain-period-precip{display:flex;align-items:flex-start;flex-direction:column;gap:2px;min-width:0;padding:0;border-radius:0;font-size:9px}
+ .mountain-period-grid .mountain-period-precip>small{font-size:8px}
 }
 /* MID v0.8.25.1 · Kompositbild: Standort, Blitzpunkte, Modelllinien und dezente Zugpfeile */
 .maplibre-mid-lightning-points-pane{z-index:710!important;pointer-events:auto!important}
