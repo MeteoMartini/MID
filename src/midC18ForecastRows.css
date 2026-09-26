@@ -254,3 +254,39 @@ html[data-mid-design='next'] .cockpit-fourteen-detail-skybar>small{
  html[data-mid-design='next'] .mid-forecast-row,
  html[data-mid-design='next'] .mid-forecast-row-detail{scroll-behavior:auto!important;transition:none!important}
 }
+
+/* Readable sunshine and UV metrics in the existing 7-day metadata cell. */
+html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row .cockpit-day-pop{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(84px,auto)!important;
+ align-items:center!important;
+ gap:3px 8px!important;
+ min-width:0!important;
+ font-size:10.5px!important;
+ line-height:1.2!important;
+ white-space:normal!important;
+}
+html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row .cockpit-day-pop>span:first-child{
+ min-width:0!important;
+ font-size:10.5px!important;
+ line-height:1.2!important;
+ white-space:normal!important;
+}
+html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row .cockpit-day-sun{
+ display:inline-flex!important;
+ flex-wrap:wrap!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:2px 4px!important;
+ min-width:0!important;
+ max-width:100%!important;
+ font-size:10.5px!important;
+ line-height:1.2!important;
+ white-space:normal!important;
+}
+html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row .cockpit-day-sun>b,
+html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row .cockpit-day-sun>small{
+ font-size:10.5px!important;
+ line-height:1.2!important;
+ white-space:normal!important;
+}

@@ -603,8 +603,9 @@ function FourteenDayHorizon({ensemble,days,hours,scenarios,climate,onSelectedDat
      {item.ensembleAvailable?<CockpitConsistencyPill date={item.date} assessment={item.assessment} mode={confidenceDisplayMode} partialBoundary={Boolean(trailingCoverageDate&&item.date>=trailingCoverageDate&&item.assessment.agreement==='unknown')}/>:<span className="cockpit-fourteen-ensemble-badge">Ensemble lädt</span>}
     </header>
     {daySkyBarSegments.length?<span className="cockpit-fourteen-skybar" data-mid-skybar="fourteen-row" data-skybar-display={skybarDisplayMode} aria-hidden="true"><svg viewBox="0 0 100 14" preserveAspectRatio="none" focusable="false"><CockpitSkybarNightBandsSvg bands={daySkyBarNightBands} height={14}/><rect className="cockpit-day-skybar-rail" x="1" y="6.4" width="98" height="1.2" rx="0.6"/>{skybarDisplayMode==='squares'?<SkyBarHourCellsSvg cells={daySkyBarHourCells} left={1} right={1} chartW={100} centerY={7} keyPrefix={`fourteen-hour-${item.date}`}/>:<SkyBarSegmentsSvg segments={daySkyBarSegments} keyPrefix={`fourteen-${item.date}`}/>}</svg></span>:null}
-    <span className="cockpit-fourteen-compact-meta">
-      <span className="precipitation"><Droplets size={13}/><span className="cockpit-fourteen-precip-values"><b>{formatDecimalFixed(item.bestPrecipitation,1)} mm</b><small>{Math.round(item.bestPrecipitationProbability)} %</small></span><FourteenDaySunUvi date={item.date} days={days} sunshineSeconds={item.bestSunshineDuration}/></span>
+     <span className="cockpit-fourteen-compact-meta">
+       <span className="precipitation"><Droplets size={13}/><span className="cockpit-fourteen-precip-values"><b>{formatDecimalFixed(item.bestPrecipitation,1)} mm</b><small>{Math.round(item.bestPrecipitationProbability)} %</small></span></span>
+      <FourteenDaySunUvi date={item.date} days={days} sunshineSeconds={item.bestSunshineDuration}/>
      <span className={`wind warning-${warning} ${windTone}`}><InlineWindArrow direction={item.direction} gust={item.bestGust} size={15}/><b>{cardinal(item.direction)} {wind(item.bestWind,unit)}</b><small>{compactGustLabel(item.bestGust,unit)}</small></span>
       <span className="cockpit-fourteen-inline-cue" title={isActive?'Details schließen':'Details öffnen'} aria-hidden="true"><Clock3 size={12}/>{isActive?<ChevronUp size={12}/>:<ChevronDown size={12}/>}</span>
     </span>
