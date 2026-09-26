@@ -246,7 +246,7 @@ async function geoSphereSnowMeasurement(point:{latitude:number;longitude:number;
 }
 
 async function fetchMountainDiagnostics(points:MountainProfileLevel[],signal?:AbortSignal):Promise<MountainPointWeather[]>{
- const variables=['lifted_index','convective_inhibition','total_column_integrated_water_vapour',...MOUNTAIN_CLOUD_PROFILE_LEVELS.flatMap(level=>[`cloud_cover_${level}hPa`,`geopotential_height_${level}hPa`]),'temperature_850hPa'],params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:'168',models:'best_match',wind_speed_unit:'kn',hourly:variables.join(',')}),response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'low'});
+ const variables=['lifted_index','convective_inhibition','total_column_integrated_water_vapour',...MOUNTAIN_CLOUD_PROFILE_LEVELS.flatMap(level=>[`cloud_cover_${level}hPa`,`geopotential_height_${level}hPa`]),'temperature_850hPa'],params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:'168',models:'best_match',wind_speed_unit:'kn',hourly:variables.join(',')}),response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'background'});
  if(!response.ok)throw new Error(`Bergdiagnostik HTTP ${response.status}`);
  const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
  if(rows.length!==points.length||rows.some(row=>!Array.isArray(row.hourly?.time)))throw new Error('Bergdiagnostik lieferte keine vollständigen Stundenachsen.');
@@ -256,7 +256,7 @@ function mergeMountainDiagnostics(base:MountainPointWeather,diagnostics:Mountain
  const baseTimes=(base.hourly.time??[]) as string[],diagnosticTimes=(diagnostics.hourly.time??[]) as string[];
  if(!baseTimes.length||!diagnosticTimes.length)throw new Error('Stundenachse für Bergdiagnostik fehlt.');
  const diagnosticIndex=new Map(diagnosticTimes.map((time,index)=>[time,index])),hourly={...base.hourly};
- for(const[key,values]of Object.entries(diagnostics.hourly)){if(key==='time'||!Array.isArray(values))continue;hourly[key]=baseTimes.map((time,index)=>{const sourceIndex=diagnosticIndex.get(time);return sourceIndex===undefined?null:values[sourceIndex]??null})}
+ for(const[key,values]of Object.entries(diagnostics.hourly)){if(key==='time'||!Array.isArray(values))continue;hourly[key]=baseTimes.map(time=>{const sourceIndex=diagnosticIndex.get(time);return sourceIndex===undefined?null:values[sourceIndex]??null})}
  return{...base,hourly};
 }
 
