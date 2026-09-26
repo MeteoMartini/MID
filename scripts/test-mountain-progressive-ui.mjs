@@ -30,6 +30,6 @@ assert.match(forecast,/<FourteenDaySunUvi date={item\.date} days={days} sunshine
 assert.match(fluidGrid,/\.cockpit-fourteen-compact-meta\{[\s\S]*?grid-template-columns/,'14-day metadata must stay in its compact grid');
 assert.match(fluidGrid,/\.cockpit-fourteen-sun-uvi\{[\s\S]*?white-space:nowrap/,'sunshine/UVI must remain inline rather than add a card row');
 assert.match(styles,/\.mountain-loading\{[^}]*padding:6px 0/,'the initial mountain loading indicator must be compact');
-assert.match(styles,/\.mountain-enrichment-disclosure>summary\{[^}]*min-height:25px/,'the closed enrichment disclosure must fit a short summary row');
+assert.match(styles,/\.mountain-enrichment-disclosure>summary\{[^}]*min-height:44px/,'the closed enrichment disclosure summary must preserve a 44px touch target');
 
 console.log('Progressive mountain loading, deferred disclosures, and shared 7d/14d sunshine/UVI metadata contracts passed.');
