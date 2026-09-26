@@ -83,16 +83,15 @@
 @media(max-width:720px){
  .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
   display:grid!important;
-  grid-template-columns:68px 50px minmax(0,1fr) auto!important;
+   grid-template-columns:minmax(0,1fr)!important;
   grid-template-areas:
-   "date icon regime temps"
-   "date icon sky sky"
-   "date icon track track"
-   "rain rain wind cue"
-   "pop pop pop pop"!important;
+    "header"
+    "visual"
+    "metrics"!important;
   align-items:center!important;
-  gap:6px 8px!important;
-  padding:9px 10px!important;
+   row-gap:3px!important;
+   column-gap:8px!important;
+   padding:8px 9px!important;
  }
  .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row>*{min-width:0!important}
  .cockpit-seven-grid[data-mid-forecast-list='seven'] .cockpit-day-rain,
@@ -111,8 +110,8 @@
 
 @media(max-width:430px){
  .cockpit-seven-grid[data-mid-forecast-list='seven']>.cockpit-day.mid-forecast-row{
-  grid-template-columns:62px 46px minmax(0,1fr) auto!important;
-  padding-inline:8px!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  padding-inline:9px!important;
  }
 }
 
