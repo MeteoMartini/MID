@@ -1,3 +1,11 @@
+## MID v0.9.85.105 · 2026-09-26 · Bergwetter kompakter und progressiv geladen
+
+- Finaler Replit-Handoff `9d166f7a083aac991f11856608fa0b93178e6aec` aus `replit/mid-18-2-14-v0-9-85-105-handoff-20260926` selektiv auf den aktuellen Stable-Quellstand übertragen; Replit-Metadaten, Anhänge und vorgebaute dist-Artefakte wurden nicht übernommen.
+- Berg-/Wintersportwetter zeigt Kernprognose und 7-Tage-Werte vor GeoSphere-, Ensemble- und Diagnose-Enrichments; verzögerte oder fehlerhafte Zusatzdaten blockieren die Kernansicht nicht.
+- Die Hauptansicht ist weiter verdichtet; redundante Analyse-/Methodikblöcke liegen in kompakten Disclosures. Sonnenstunden und Tages-Max-UVI bleiben in 7-/14-Tage-Zeilen kompakt sichtbar.
+- Replit-Abnahme: 872/872 Regressionen, Typecheck und Produktionsbuild grün; reale 6-Viewport-×-Light/Dark-Matrix sowie verzögerte/fehlerhafte Enrichment-Szenarien geprüft.
+- Veröffentlichung ausschließlich über Source-PR-Gate → Auto-Merge → Release-ZIP → Installer/Pages → Stable-Promotion.
+
 ## MID v0.9.85.104 · 2026-09-26 · Berg-/Wintersportwetter responsiv nachgeschärft
 
 - Finaler Replit-Handoff fe80b066739f40b1ede633a1124b3f18d9d366b4 wurde als Remote-Snapshot 155cd7aa11915cdc60229bd1b380d35a9939cd33 verifiziert und selektiv auf den aktuellen Stable-Quellstand übertragen.
