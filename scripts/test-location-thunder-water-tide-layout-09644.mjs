@@ -51,7 +51,7 @@ for(const token of [
  'function mountainRapidThunderRisk(',
  'function mountainCombinedThunderSignalScore(',
  'score-=mountainConvectivePenalty(convectiveRisk)',
- "risks.push(ruc?'Gewitter-/Konvektionssignal · Höhenmodell + ICON-D2-RUC':'Gewitter-/Konvektionssignal aus Mehrparameteranalyse')",
+ "risks.push(ruc?'Gewitter-/Konvektionssignal · Höhenmodell + standortbezogenes ICON-D2-RUC':'Gewitter-/Konvektionssignal aus Mehrparameteranalyse')",
  '<MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/>'
 ])assert.ok(app.includes(token),`App-Vertrag fehlt: ${token}`);
 assert.equal((app.match(/thunderRisk=\{locationThunderRisk\}/g)||[]).length,2,'Aktuell und Wassersport müssen exakt dasselbe 6-h-Risiko erhalten.');

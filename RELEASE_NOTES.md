@@ -1,3 +1,11 @@
+# MID v0.9.85.104
+
+- Berg-/Wintersportwetter ist auf schmalen Smartphones deutlich kompakter und besser lesbar.
+- Wochentage bleiben vollständig sichtbar; Schnee-, Sonnen- und Windwerte überlagern sich nicht mehr.
+- Schneemengen werden einheitlich als „0 cm“, „<1 cm“ oder „–“ dargestellt, wenn keine belastbare Angabe vorliegt.
+- Die aktuellen Bergwerte erscheinen als kompakte horizontal scrollbare Instrumentleiste; die 7-Tage-Übersicht bleibt ohne horizontales Scrollen der Tageszeilen bedienbar.
+- Geöffnete 3-Stunden-Details sind für kleine Displays neu ausbalanciert; weiterhin kann höchstens ein Tag gleichzeitig geöffnet sein.
+
 # MID v0.9.85.103
 
 - Berg-/Wintersportwetter erhält eine klare Höhenwahl für Tal-, Mittel- und Bergstation mit jeweils eigenen aktuellen Bedingungen.
