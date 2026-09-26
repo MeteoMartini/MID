@@ -226,7 +226,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode){
    const raw=typeof input==='string'?input:input?.url||String(input),url=new URL(raw,window.location.href);
    window.__mountainFixtureRequests.push(url.href);
    if(url.hostname==='api.open-meteo.com'&&url.pathname==='/v1/forecast'){
-     const diagnosticRequest=(url.searchParams.get('hourly')||'').split(',').includes('lifted_index');
+     const diagnosticVariables=(url.searchParams.get('hourly')||'').split(','),diagnosticRequest=diagnosticVariables.includes('lifted_index')&&diagnosticVariables.includes('cloud_cover_1000hPa');
      if(diagnosticRequest&&diagnosticMode==='delayed')await new Promise(resolve=>setTimeout(resolve,6000));
      if(diagnosticRequest&&diagnosticMode==='failure')return json({reason:'Deterministischer Diagnostikfehler'},503);
     const latitudes=(url.searchParams.get('latitude')||'47.2692').split(','),longitudes=(url.searchParams.get('longitude')||'11.4041').split(','),elevations=(url.searchParams.get('elevation')||'574').split(',');
@@ -275,12 +275,12 @@ async function verifyEnrichmentScenario(mode){
  if(mode!=='failure')return;
  const unavailableExpression=`(()=>{const row=[...document.querySelectorAll('.mountain-enrichment-content>span')].find(node=>node.firstElementChild?.textContent.includes('Bergdiagnostik'));return row?.lastElementChild?.textContent.trim()||''})()`;
  await waitForValue('Fehlgeschlagene Bergdiagnostik',unavailableExpression,value=>value==='Nicht verfügbar',30000);
- const requestsBefore=JSON.parse(await evaluate(`JSON.stringify({diagnostics:(window.__mountainFixtureRequests||[]).filter(raw=>{const url=new URL(raw);return(url.searchParams.get('hourly')||'').split(',').includes('lifted_index')}).length,cache:document.querySelector('.mountain-cache-status')?.textContent||''})`));
+ const requestsBefore=JSON.parse(await evaluate(`JSON.stringify({diagnostics:(window.__mountainFixtureRequests||[]).filter(raw=>{const url=new URL(raw),variables=(url.searchParams.get('hourly')||'').split(',');return variables.includes('lifted_index')&&variables.includes('cloud_cover_1000hPa')}).length,cache:document.querySelector('.mountain-cache-status')?.textContent||''})`));
  assert.ok(requestsBefore.diagnostics>0,'Der Fehlerlauf muss die optionale Diagnostik tatsächlich abrufen.');
  await navigateToForecast();
  await navigateToMountain();
  await waitForValue('Cache-Wiederöffnung mit gespeichertem Diagnosefehler',`(()=>{const row=[...document.querySelectorAll('.mountain-enrichment-content>span')].find(node=>node.firstElementChild?.textContent.includes('Bergdiagnostik'));return row?.lastElementChild?.textContent.trim()==='Nicht verfügbar'&&(document.querySelector('.mountain-cache-status')?.textContent||'').includes('Kurzzeitspeicher')})()`,Boolean);
- const requestsAfter=JSON.parse(await evaluate(`JSON.stringify({diagnostics:(window.__mountainFixtureRequests||[]).filter(raw=>{const url=new URL(raw);return(url.searchParams.get('hourly')||'').split(',').includes('lifted_index')}).length,cache:document.querySelector('.mountain-cache-status')?.textContent||''})`));
+ const requestsAfter=JSON.parse(await evaluate(`JSON.stringify({diagnostics:(window.__mountainFixtureRequests||[]).filter(raw=>{const url=new URL(raw),variables=(url.searchParams.get('hourly')||'').split(',');return variables.includes('lifted_index')&&variables.includes('cloud_cover_1000hPa')}).length,cache:document.querySelector('.mountain-cache-status')?.textContent||''})`));
  assert.equal(requestsAfter.diagnostics,requestsBefore.diagnostics,'Die Cache-Wiederöffnung darf vor Ablauf der drei Minuten fehlgeschlagene Diagnostik nicht still erneut starten.');
  assert.ok(requestsAfter.cache.includes('Kurzzeitspeicher'),'Die Bergansicht muss beim Wiederöffnen den Cache-Treffer anzeigen.');
 }
