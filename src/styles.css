@@ -2941,14 +2941,22 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-matrix-row>span.mountain-wind-warning-105{--wind-warning-color:#e74a4a}
 .mountain-matrix-row>span.mountain-wind-warning-120{--wind-warning-color:#c93434}
 .mountain-matrix-row>span.mountain-wind-warning-140{--wind-warning-color:#9b59c6}
-.mountain-matrix-row>span.mountain-precip-trace{background:color-mix(in srgb,#65b9ff 10%,var(--surface))}
-.mountain-matrix-row>span.mountain-precip-light{background:color-mix(in srgb,#3b9df5 20%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,#3b9df5 38%,var(--border))}
-.mountain-matrix-row>span.mountain-precip-moderate{background:color-mix(in srgb,#1675c8 42%,var(--surface));color:color-mix(in srgb,#061522 84%,var(--text));font-weight:800}
-.mountain-matrix-row>span.mountain-precip-moderate small{color:color-mix(in srgb,#061522 70%,var(--muted))}
-.mountain-matrix-row>span.mountain-precip-heavy{background:#0b4f91;color:#fff;font-weight:850;box-shadow:inset 0 0 0 1px #073a6d}
-.mountain-matrix-row>span.mountain-precip-heavy small{color:rgba(255,255,255,.86)}
-[data-theme="dark"] .mountain-matrix-row>span.mountain-precip-moderate{color:#f3f8fc}
-[data-theme="dark"] .mountain-matrix-row>span.mountain-precip-moderate small{color:rgba(243,248,252,.82)}
+.mountain-matrix-precip{display:grid;justify-items:center;gap:3px}
+.mountain-day-precip-rain,.mountain-matrix-precip-rain{border-radius:5px}
+.mountain-day-precip-rain{width:max-content;padding:2px 4px}
+.mountain-matrix-precip-rain{display:grid;justify-items:center;gap:1px;min-width:48px;padding:3px 4px;font-size:7px;font-weight:800;font-variant-numeric:tabular-nums}
+.mountain-day-precip-rain.mountain-precip-trace,.mountain-matrix-precip-rain.mountain-precip-trace{background:color-mix(in srgb,#65b9ff 10%,var(--surface))}
+.mountain-day-precip-rain.mountain-precip-light,.mountain-matrix-precip-rain.mountain-precip-light{background:color-mix(in srgb,#3b9df5 20%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,#3b9df5 38%,var(--border))}
+.mountain-day-precip-rain.mountain-precip-moderate,.mountain-matrix-precip-rain.mountain-precip-moderate{background:color-mix(in srgb,#1675c8 34%,var(--surface));font-weight:800}
+.mountain-day-precip-rain.mountain-precip-heavy,.mountain-matrix-precip-rain.mountain-precip-heavy{background:color-mix(in srgb,#0b4f91 72%,var(--surface));color:#fff;font-weight:850;box-shadow:inset 0 0 0 1px #073a6d}
+.mountain-matrix-precip-rain.mountain-precip-heavy small{color:rgba(255,255,255,.86)}
+.mountain-snow-trace{background:color-mix(in srgb,#83bdcf 9%,var(--surface))}
+.mountain-snow-light{background:color-mix(in srgb,#83bdcf 16%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,#83bdcf 26%,var(--border))}
+.mountain-snow-moderate{background:color-mix(in srgb,#64aabd 24%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,#64aabd 34%,var(--border));font-weight:800}
+.mountain-snow-heavy{background:color-mix(in srgb,#4a8fa5 34%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,#4a8fa5 46%,var(--border));font-weight:850}
+.mountain-matrix-precip-snow{padding:3px 5px;border-radius:5px;font-size:7px;font-variant-numeric:tabular-nums;white-space:nowrap}
+[data-theme="dark"] .mountain-matrix-precip-rain.mountain-precip-moderate{color:#f3f8fc}
+[data-theme="dark"] .mountain-matrix-precip-rain.mountain-precip-moderate small{color:rgba(243,248,252,.82)}
 
 /* MID v0.8.10.0 – randbasierte Favoritennavigation in der mobilen Appansicht */
 @media(max-width:900px){html,body{overscroll-behavior-x:none}}
@@ -3582,6 +3590,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-period-temperature>strong{font-size:12px;line-height:1.1}
 .mountain-period-apparent,.mountain-period-snow{font-weight:800;white-space:nowrap}
 .mountain-period-snow{color:var(--primary)}
+.mountain-period-snow-value{display:inline-block;padding:3px 5px;border-radius:6px;font-variant-numeric:tabular-nums}
 .mountain-period-snowline{white-space:nowrap}
 .mountain-period-card:hover td{background:color-mix(in srgb,var(--primary) 3%,transparent)}
 .mountain-period-wind,.mountain-period-precip{display:flex;align-items:center;gap:5px;min-width:0;font-size:9px;line-height:1.25}
