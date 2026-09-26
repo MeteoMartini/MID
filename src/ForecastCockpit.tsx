@@ -512,7 +512,7 @@ function SevenDayBand({days,hours,minutes15,climate,unit,selectedDate,onSelected
     <span className="cockpit-day-temp-track"><u aria-hidden="true"/><i style={{left:`${left}%`,width:`${width}%`,background:`linear-gradient(90deg,${minTone.color},${maxTone.color})`}}/></span>
     <span className="cockpit-day-rain" title={`${precipitationAmountLabel(day)} · ${dailyPrecipitationProbabilityTitle(day,probabilityHours)} · Dauer ${precipitationDuration}`}><Droplets className="cockpit-day-rain-icon" size={13}/><b>{precipitationAmountLabel(day)}</b></span>
     <span className={`cockpit-day-wind warning-${warning}`} title={`Wind aus ${cardinal(day.direction)} · ${wind(day.wind,unit)}, Böen ${wind(day.gust,unit)}`}><InlineWindArrow direction={day.direction} gust={day.gust} size={17}/><b className="cockpit-day-wind-sustained">{cardinal(day.direction)} {wind(day.wind,unit)}</b><small className={windAlertClass(day.gust)}>{compactGustLabel(day.gust,unit)}</small></span>
-    <small className="cockpit-day-pop" title={`${dailyPrecipitationProbabilityTitle(day,probabilityHours)}${precipitationDurationCompact?` · Niederschlagsdauer ${precipitationDuration}`:''} · Sonnenscheindauer ${sunshineLabel}`}><span>{precipitationCompactMeta}</span><span className="cockpit-day-sun"><Sun size={10} aria-hidden="true"/><b>{sunshineLabel}</b></span></small>
+     <small className="cockpit-day-pop" title={`${dailyPrecipitationProbabilityTitle(day,probabilityHours)}${precipitationDurationCompact?` · Niederschlagsdauer ${precipitationDuration}`:''} · Sonnenscheindauer ${sunshineLabel} · Tagesmaximum UVI ${Number.isFinite(day.uvMax)?formatUvi(day.uvMax):'–'}`}><span>{precipitationCompactMeta}</span><span className="cockpit-day-sun"><Sun size={10} aria-hidden="true"/><b>{sunshineLabel}</b><small>UVI {Number.isFinite(day.uvMax)?formatUvi(day.uvMax):'–'}</small></span></small>
     {hourlyDetail?<span className="cockpit-day-hourly-cue"><Clock3 size={12}/>{isExpanded?'Tagesansicht':'Details'}{isExpanded?<ChevronUp size={12}/>:<ChevronDown size={12}/>}</span>:null}
    </button>;
    const detail=<section className="cockpit-day-hourly-accordion mid-forecast-row-detail" data-mid-forecast-detail="seven" aria-label={`Stündlicher Verlauf für ${formatDate(day.date,{weekday:'long',day:'2-digit',month:'2-digit'})}`}><header><span><Clock3 size={17}/><span><strong>{formatDate(day.date,{weekday:'long',day:'2-digit',month:'2-digit'})}</strong><small>Stündlicher Tagesverlauf · ausgewählter Tag</small></span></span><small className="cockpit-day-inline-state"><ChevronUp size={14}/> inline geöffnet</small></header><div className="cockpit-day-hourly-content">{hourlyDetail}</div></section>;
@@ -570,6 +570,10 @@ function daylightSecondsForFourteenDay(day?:Day){
 function relativeSunshineShare(duration:number|null|undefined,daylightSeconds:number|null){
  return duration!=null&&Number.isFinite(duration)&&daylightSeconds!=null&&Number.isFinite(daylightSeconds)&&daylightSeconds>0?clamp(duration/daylightSeconds,0,1):null;
 }
+function FourteenDaySunUvi({date,days,sunshineSeconds}:{date:string;days:Day[];sunshineSeconds:number|null|undefined}){
+ const bestMatchDay=days.find(day=>day.date===date),sunshine=sunshineWholeHoursLabel(sunshineSeconds),uvi=Number.isFinite(bestMatchDay?.uvMax)?formatUvi(bestMatchDay!.uvMax):'–';
+ return <span className="cockpit-fourteen-sun-uvi" title={`Sonnenscheindauer ${sunshine} · Tagesmaximum UVI ${uvi}`}><Sun size={11} aria-hidden="true"/><b>{sunshine}</b><small>UV {uvi}</small></span>;
+}
 function RelativeSunshineIcon({share,size=12}:{share:number|null;size?:number}){
  const ratio=share==null?0:clamp(share,0,1),intensity=.42+ratio*.58;
  return <svg className="cockpit-relative-sun" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -600,9 +604,9 @@ function FourteenDayHorizon({ensemble,days,hours,scenarios,climate,onSelectedDat
     </header>
     {daySkyBarSegments.length?<span className="cockpit-fourteen-skybar" data-mid-skybar="fourteen-row" data-skybar-display={skybarDisplayMode} aria-hidden="true"><svg viewBox="0 0 100 14" preserveAspectRatio="none" focusable="false"><CockpitSkybarNightBandsSvg bands={daySkyBarNightBands} height={14}/><rect className="cockpit-day-skybar-rail" x="1" y="6.4" width="98" height="1.2" rx="0.6"/>{skybarDisplayMode==='squares'?<SkyBarHourCellsSvg cells={daySkyBarHourCells} left={1} right={1} chartW={100} centerY={7} keyPrefix={`fourteen-hour-${item.date}`}/>:<SkyBarSegmentsSvg segments={daySkyBarSegments} keyPrefix={`fourteen-${item.date}`}/>}</svg></span>:null}
     <span className="cockpit-fourteen-compact-meta">
-     <span className="precipitation"><Droplets size={13}/><b>{formatDecimalFixed(item.bestPrecipitation,1)} mm</b><small>{Math.round(item.bestPrecipitationProbability)} %</small></span>
+      <span className="precipitation"><Droplets size={13}/><span className="cockpit-fourteen-precip-values"><b>{formatDecimalFixed(item.bestPrecipitation,1)} mm</b><small>{Math.round(item.bestPrecipitationProbability)} %</small></span><FourteenDaySunUvi date={item.date} days={days} sunshineSeconds={item.bestSunshineDuration}/></span>
      <span className={`wind warning-${warning} ${windTone}`}><InlineWindArrow direction={item.direction} gust={item.bestGust} size={15}/><b>{cardinal(item.direction)} {wind(item.bestWind,unit)}</b><small>{compactGustLabel(item.bestGust,unit)}</small></span>
-     <span className="cockpit-fourteen-inline-cue"><Clock3 size={12}/>{isActive?'Details schließen':'Details'}{isActive?<ChevronUp size={12}/>:<ChevronDown size={12}/>}</span>
+      <span className="cockpit-fourteen-inline-cue" title={isActive?'Details schließen':'Details öffnen'} aria-hidden="true"><Clock3 size={12}/>{isActive?<ChevronUp size={12}/>:<ChevronDown size={12}/>}</span>
     </span>
    </article>;
    const detail=<div className="cockpit-focus-card fourteen mid-forecast-row-detail compact" data-mid-forecast-detail="fourteen">

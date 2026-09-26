@@ -77,7 +77,10 @@ for(const token of [
 assert.ok(!water.includes('hour.cape>=800')&&!water.includes('point.cape>=800'),'Wassersport enthält noch einen CAPE-Sonderweg.');
 assert.ok(!water.includes('Spanne 24 h'),'Ein angebrochener 24-h-Ausschnitt darf nicht mehr als Tidenhub erscheinen.');
 
-for(const token of ["thunderVariables=['lifted_index','convective_inhibition','total_column_integrated_water_vapour']",'...thunderVariables'])assert.ok(mountain.includes(token),`Höhen-Gewitterparameter fehlen: ${token}`);
+const diagnosticsStart=mountain.indexOf('async function fetchMountainDiagnostics('),diagnosticsEnd=mountain.indexOf('function mergeMountainDiagnostics(',diagnosticsStart),diagnosticsSource=mountain.slice(diagnosticsStart,diagnosticsEnd);
+assert.ok(diagnosticsStart>=0&&diagnosticsEnd>diagnosticsStart,'Bergdiagnostik-Enrichment muss isolierbar sein.');
+for(const variable of ['cape','lifted_index','convective_inhibition','total_column_integrated_water_vapour'])assert.ok(diagnosticsSource.includes(`'${variable}'`),`Bergdiagnostik-Enrichment fordert ${variable} nicht an.`);
+assert.ok(diagnosticsSource.includes("hourly:variables.join(',')"),'Die Höhen-Gewitterparameter müssen Teil des stündlichen Background-Enrichment-Requests sein.');
 const marker='/* MID v0.9.64.4 · gruppierte Wassersport-Übersicht, einheitliches Gewitterrisiko und vollständiger Tidenhub. */';
 for(const [name,styles] of [['Quell-CSS',sourceStyles],['Aggregat-CSS',builtStyles]]){
  const section=styles.slice(styles.lastIndexOf(marker));assert.ok(section.startsWith(marker),`${name}: v0.9.64.4-Layoutregeln fehlen.`);
