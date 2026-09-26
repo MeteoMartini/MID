@@ -70,3 +70,45 @@ mtime_ms = 1790428056463
 storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/01070b72-12fe-435e-a19f-f4fb5b5eba32/27fc54c5-31ef-4c76-83e2-ff0e21db1861"
 storage_version_token = "1790428059967429"
 content_type = "image/png"
+
+[[outputs]]
+id = "hK4uScoDrXi8eBz2_Ypyr"
+uri = "file://attached_assets/generated_images/bergwetter-responsive-smartphone-390x844.png"
+type = "image"
+title = "Bergwetter · Smartphone · 390×844"
+description = "Responsive Hochkantansicht mit kompakten Kennwerten, Stundenverlauf und Tagesübersicht."
+logical_id = "195bbb94-307d-4c9a-97c7-ca68bf8ed003"
+content_hash = "sha256:7c5df05a567e98ca8c4b64b8e97c7f02b274ff8606b0d9ed39c601a4a148696d"
+size = 77097
+mtime_ms = 1790428940127
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/195bbb94-307d-4c9a-97c7-ca68bf8ed003/413f1806-9431-4391-9c9f-5136b7b90080"
+storage_version_token = "1790430597464281"
+content_type = "image/png"
+
+[[outputs]]
+id = "OrS7miBZ0qM4pwqRTMb7H"
+uri = "file://attached_assets/generated_images/bergwetter-responsive-tablet-834x1112.png"
+type = "image"
+title = "Bergwetter · Tablet · 834×1112"
+description = "Responsive Tablet-Hochkantansicht mit dreispaltigen Kennwerten, 7-Tage-Prognose und Stunden-Detail."
+logical_id = "f324659c-c49b-4647-bc6f-c7e6752b327c"
+content_hash = "sha256:2c9228a964429a8cfc719400b585438f0f7937a3658957fbce72eb5ca068805a"
+size = 135845
+mtime_ms = 1790428941650
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/f324659c-c49b-4647-bc6f-c7e6752b327c/b3d002c3-81be-4758-883c-500650074b5a"
+storage_version_token = "1790430598411148"
+content_type = "image/png"
+
+[[outputs]]
+id = "a1fYzpKvu9C3PUZ4Nam7q"
+uri = "file://attached_assets/generated_images/bergwetter-responsive-desktop-1440x900.png"
+type = "image"
+title = "Bergwetter · Desktop · 1440×900"
+description = "Responsive Querformat-Dashboard mit Kennwerten, 7-Tage-Prognose und Stunden-Detail nebeneinander."
+logical_id = "3312260a-fda1-4ff6-9a2f-6094b05f9f59"
+content_hash = "sha256:3ccae358da3f86ca4e28a878b823c572ff5832a62aac856ec7290428bfe48f75"
+size = 153790
+mtime_ms = 1790428943202
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/3312260a-fda1-4ff6-9a2f-6094b05f9f59/42c19679-e755-4ba0-97f4-942a8fc8f3a3"
+storage_version_token = "1790430599251451"
+content_type = "image/png"
