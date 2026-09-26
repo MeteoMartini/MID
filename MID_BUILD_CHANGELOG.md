@@ -1,3 +1,10 @@
+## MID v0.9.85.104 · 2026-09-26 · Berg-/Wintersportwetter responsiv nachgeschärft
+
+- Finaler Replit-Handoff fe80b066739f40b1ede633a1124b3f18d9d366b4 wurde als Remote-Snapshot 155cd7aa11915cdc60229bd1b380d35a9939cd33 verifiziert und selektiv auf den aktuellen Stable-Quellstand übertragen.
+- Neue Format- und Schneeabdeckungsregressionen schützen 0 cm, Spurenmengen unter 1 cm und fehlende Daten.
+- Die Bergwetter-Visualmatrix prüft iPhone schmal/breit, Android-Breite, iPad hoch/quer und Desktop in Light/Dark sowie Expand/Collapse.
+- Meteorologische Datenlogik, Einheitenwahl und Worker-Fachlogik bleiben unverändert.
+
 ## MID v0.9.85.103 · 2026-09-25 · Berg-/Wintersportwetter neu strukturiert
 
 - Höhenprognose auf 168 Stunden erweitert; Tagesaggregate stammen aus derselben Höhenzeitreihe wie die geöffneten Details.
