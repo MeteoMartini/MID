@@ -1166,13 +1166,13 @@ function MountainMatrixVisibilityCell({point}:{point:MountainMatrixPoint}){if(po
 function MountainMatrixCloudBaseCell({point}:{point:MountainMatrixPoint}){if(!Number.isFinite(point.cloudBase))return <span>–</span>;return <span className="mountain-matrix-cloudbase"><strong>ca. {Math.round(point.cloudBase/50)*50} m</strong><small>ü. NHN{Number.isFinite(point.cloudBaseAgl)?` · ${Math.round(point.cloudBaseAgl/50)*50} m ü. Grund`:''}</small>{point.insideCloud&&Number.isFinite(point.cloudTop)?<small>in Schicht bis ca. {Math.round(point.cloudTop/50)*50} m</small>:null}</span>}
 function MountainMatrixRow({label:rowLabel,points,render,cellClass,cellTitle}:{label:string;points:MountainMatrixPoint[];render:(point:MountainMatrixPoint,index:number)=>ReactNode;cellClass?:(point:MountainMatrixPoint,index:number)=>string;cellTitle?:(point:MountainMatrixPoint,index:number)=>string|undefined}){return <div className="mountain-matrix-row" style={{'--mountain-columns':points.length,minWidth:`${108+points.length*74}px`} as CSSProperties}><b>{rowLabel}</b>{points.map((point,index)=><span key={`${point.time}:${index}`} className={cellClass?.(point,index)||undefined} title={cellTitle?.(point,index)}>{render(point,index)}</span>)}</div>}
 function mountainMatrixRoleLabel(role:MountainLevelForecast['role']){return role==='valley'?'Talstation':role==='middle'?'Mittelstation':'Bergstation'}
-function MountainForecastMatrix({data,days,unit}:{data:MountainSportsForecast;days:Day[];unit:WindUnit}){
+export function MountainForecastMatrix({data,days,unit}:{data:MountainSportsForecast;days:Day[];unit:WindUnit}){
  const[open,setOpen]=useState(false),[resolution,setResolution]=useState<1|3>(3),[expanded,setExpanded]=useState(false),weather=data.levels[0]?.weather,windows=useMemo(()=>weather?mountainForecastWindows(days,weather):[],[days,weather]),visibleWindows=expanded?windows:windows.slice(0,1),title=data.season==='winter'?'Winterprofil nach Höhenzone':'Bergwetter nach Höhenzone';
  useEffect(()=>{setOpen(false);setExpanded(false)},[data.season]);
  if(!weather||!windows.length)return null;
  return <section className={`mountain-forecast-matrix${open?' open':''}`} aria-label="Höhenvergleich">
   <button type="button" className="mountain-forecast-summary" onClick={()=>setOpen((value:boolean)=>!value)} aria-expanded={open}>
-   <span><small>Höhenwetter-Verlauf</small><strong>Höhenvergleich · {title}</strong><em>{open?'Höhenwetter schließen':'Höhenwetter öffnen'}</em></span>
+   <span><strong>Höhenvergleich · {title}</strong><em>{open?'Höhenwetter schließen':'Höhenwetter öffnen'}</em></span>
    {open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}
   </button>
   {open&&<div className="mountain-forecast-content">
@@ -1333,7 +1333,7 @@ function MountainForecastOverview({data,days,unit,snowLine}:{data:MountainSports
  useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);
  useEffect(()=>{setExpandedDate(null)},[selectedRole]);
  const dateKeys=useMemo(()=>level?mountainForecastDateKeys(level,days):[],[level,days]),todayKey=level?mountainLocalDateKey(Date.now(),level.weather.timezone||'UTC'):'',rows=useMemo(()=>level?dateKeys.map((date,index)=>mountainForecastDay(level,date,index===0&&date===todayKey?'Heute':index===1?'Morgen':formatDateOnly(date,{weekday:'long'}))):[],[level,dateKeys,todayKey]),today=rows.find(row=>row.date===todayKey),currentSnowLine=level?dwdSnowfallLimit({temperature850:mountainCurrentValue(level,'temperature_850hPa'),geopotentialHeight850:mountainCurrentValue(level,'geopotential_height_850hPa'),freezingLevelHeight:mountainCurrentValue(level,'freezing_level_height')}):snowLine,currentTime=level?String(level.weather.current.time??''):'',currentClock=level&&currentTime?formatLocalIsoDisplayTime(currentTime,level.weather.timezone):'';
- if(!levels.length||!level)return <MountainForecastMatrix data={data} days={days} unit={unit}/>;
+  if(!levels.length||!level)return null;
  return <section className="mountain-forecast-overview" aria-label="Höhenwetter nach ausgewählter Höhenstufe">
   <MidSurface level="raised" className="mountain-current-panel">
     <header className="mountain-current-heading"><div><span>Aktuelle Bedingungen</span><strong>{level.name||mountainLevelLabel(level.role)} · {Math.round(level.elevation)} m ü. NHN</strong></div><div className="mountain-level-picker" role="tablist" aria-label="Höhenstufe auswählen">{levels.map(item=>{const stationLabel=item.role==='valley'?'Talstation':item.role==='middle'?'Mittelstation':'Bergstation';return <button key={item.role} type="button" role="tab" aria-label={`${item.name||stationLabel}, ${Math.round(item.elevation)} Meter ü. NHN`} title={item.name||stationLabel} aria-selected={item.role===level.role} className={item.role===level.role?'active':''} onClick={()=>setSelectedRole(item.role)}><span>{stationLabel}</span><small>{Math.round(item.elevation)} m ü. NHN</small></button>})}</div></header>
@@ -1344,7 +1344,6 @@ function MountainForecastOverview({data,days,unit,snowLine}:{data:MountainSports
     <div className="mountain-seven-day-list">{rows.map(row=><MountainForecastDayRow key={`${level.role}:${row.date}`} day={row} level={level} unit={unit} season={data.season} open={expandedDate===row.date} onToggle={()=>setExpandedDate(current=>current===row.date?null:row.date)}/>)}</div>
    <p className="mountain-seven-day-note">Stundenwerte stammen aus der gewählten Höhenstufe. Niederschlag und Neuschnee werden aus Stundenintervallen summiert, die Wahrscheinlichkeit zeigt den höchsten verfügbaren Intervallwert. Fehlende Höhenwerte bleiben als „–“ gekennzeichnet und werden nicht aus einer anderen Stufe ergänzt.</p>
   </section>
-   <MountainForecastMatrix data={data} days={days} unit={unit}/>
  </section>;
 }
 function MountainLevel({level,unit,snowLine,todaySunshine,season}:{level:MountainLevelForecast;unit:WindUnit;snowLine:number;todaySunshine?:number;season:Exclude<MountainSeason,'auto'>}){
