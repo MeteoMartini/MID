@@ -460,7 +460,7 @@ try{
     assert.ok(summaryPresentation.weekdays>=5,`${viewport.label} · ${theme}: Vollständige Wochentagsnamen fehlen (${summaryPresentation.weekdays}).`);
     assert.ok(summaryPresentation.rowInfo.every(row=>!row.horizontalOverflow&&!row.weekdayOverflow&&!row.ellipsis&&!row.overlaps),`${viewport.label} · ${theme}: Geschlossene Tageszeile ist abgeschnitten, horizontal breiter als ihr Container oder überlappt: ${JSON.stringify(summaryPresentation.rowInfo)}.`);
     assert.ok(summaryPresentation.snow.every(value=>/^(?:0 cm|<1 cm|\d+ cm|–)$/.test(value)),`${viewport.label} · ${theme}: Schneemengen haben nicht das vereinbarte Format: ${summaryPresentation.snow.join(', ')}.`);
-    assert.ok(summaryPresentation.sun.every(value=>/^(?:\d+ h|–)$/.test(value)),`${viewport.label} · ${theme}: Sonnenscheindauer ist nicht auf ganze Stunden gerundet: ${summaryPresentation.sun.join(', ')}.`);
+    assert.ok(summaryPresentation.sun.every(value=>/^(?:\d+ h|–) · UV (?:\d+(?:,\d+)?|–)$/.test(value)),`${viewport.label} · ${theme}: Sonnenscheindauer/UVI haben kein gültiges Stunden-/Tagesmaximum-Format: ${summaryPresentation.sun.join(', ')}.`);
    await clickIfClosed('.mountain-day-toggle:not(:disabled)');
    await waitForValue('Stundenkarten je Test-Viewport',`document.querySelectorAll('.mountain-period-card').length`,value=>value>0);
     const periodPresentation=JSON.parse(await evaluate(`(()=>{
