@@ -1,3 +1,10 @@
+## MID v0.9.85.103 · 2026-09-25 · Berg-/Wintersportwetter neu strukturiert
+
+- Höhenprognose auf 168 Stunden erweitert; Tagesaggregate stammen aus derselben Höhenzeitreihe wie die geöffneten Details.
+- Punktwerte und Intervallsummen bleiben fachlich getrennt; Missing-Snow-Fenster liefern NaN statt künstlichem Nullwert.
+- Neue Regression scripts/test-mountain-seven-day-domain-1813.mjs schützt 7-Tage-, Höhen-, Niederschlags- und Schnee-Verträge.
+- Replit-Designabnahme 09c3358cfe39f348f866b8f547d91183daebfca7 wurde in den geschützten Sourceweg übertragen.
+
 ## MID v0.9.85.103 · 2026-09-25 · MID 18.2.13 · Berg-/Wintersportwetter
 
 - Höhenbezogene Bergprognose auf 168 Stunden erweitert; Tal/Mitte/Berg bleiben getrennte Punktprognosen.
