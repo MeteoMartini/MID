@@ -1,3 +1,10 @@
+## MID v0.9.85.105 · 2026-09-26 · Bergwetter kompakter und schneller
+
+- Finaler Replit-Handoff 9d166f7a083aac991f11856608fa0b93178e6aec aus replit/mid-18-2-14-v0-9-85-105-handoff-20260926 selektiv auf den Stable-Quellstand übernommen.
+- Kernprognose und 7-Tage-Werte rendern vor GeoSphere-, Schneefallgrenzen-Ensemble- und Diagnose-Enrichments; Fehler und Verzögerungen der Zusatzdaten bleiben isoliert.
+- 872/872 Regressionen, Typecheck und Produktionsbuild grün; 6 Viewports × Light/Dark sowie verzögerte und fehlerhafte Enrichment-Szenarien geprüft.
+- Replit-Metadaten, Anhänge und vorgebaute dist-Artefakte wurden nicht in den vertrauenswürdigen Source-Branch übernommen.
+
 ## MID v0.9.85.105 · 2026-09-26 · Bergwetter kompakter und progressiv geladen
 
 - Finaler Replit-Handoff `9d166f7a083aac991f11856608fa0b93178e6aec` aus `replit/mid-18-2-14-v0-9-85-105-handoff-20260926` selektiv auf den aktuellen Stable-Quellstand übertragen; Replit-Metadaten, Anhänge und vorgebaute dist-Artefakte wurden nicht übernommen.
