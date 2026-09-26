@@ -28,3 +28,45 @@ mtime_ms = 1790427813010
 storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/be1354f7-5765-4a79-beeb-9eb67a64157f/105131c0-ab16-4ba4-9f70-2f025a3cbeca"
 storage_version_token = "1790427814772992"
 content_type = "image/png"
+
+[[outputs]]
+id = "NsvLhw_ezDOXRleEsZtnE"
+uri = "file://attached_assets/generated_images/bergwetter-responsive-smartphone.png"
+type = "image"
+title = "Bergwetter · Smartphone · 390×844"
+description = "Responsive Konzeptansicht für smartphone: Höhenwahl, Bergkennwerte und kompakter Forecast nach den gelieferten Vorbildern."
+logical_id = "afe80f7b-b49b-41b4-bb12-f5261066580f"
+content_hash = "sha256:3edfdb227c5e31459a23028bfd66d6d84db2520275b8e2f1d5748cf6a883194c"
+size = 1064073
+mtime_ms = 1790428054543
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/afe80f7b-b49b-41b4-bb12-f5261066580f/2baff688-08b1-4c83-9325-4afd4cb0124f"
+storage_version_token = "1790428058198247"
+content_type = "image/png"
+
+[[outputs]]
+id = "95gQqFhOzPgIou0Aokyvd"
+uri = "file://attached_assets/generated_images/bergwetter-responsive-tablet.png"
+type = "image"
+title = "Bergwetter · Tablet · 834×1112"
+description = "Responsive Konzeptansicht für tablet: Höhenwahl, Bergkennwerte und kompakter Forecast nach den gelieferten Vorbildern."
+logical_id = "3197f025-bba1-49fe-a7c4-806615785c7a"
+content_hash = "sha256:54079dab9608f3390961214f4cf99ad09b037c474da27f4d42fed84d1ea26dbb"
+size = 1070415
+mtime_ms = 1790428057380
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/3197f025-bba1-49fe-a7c4-806615785c7a/1667bda6-a7d2-4df9-a668-39a96b85f36e"
+storage_version_token = "1790428059088467"
+content_type = "image/png"
+
+[[outputs]]
+id = "wyWaHWNwy3HwgUNFIDCNh"
+uri = "file://attached_assets/generated_images/bergwetter-responsive-desktop.png"
+type = "image"
+title = "Bergwetter · Desktop · 1440×900"
+description = "Responsive Konzeptansicht für desktop: Höhenwahl, Bergkennwerte und kompakter Forecast nach den gelieferten Vorbildern."
+logical_id = "01070b72-12fe-435e-a19f-f4fb5b5eba32"
+content_hash = "sha256:3aa99f133849e7e32ec39634561e429d89bf4378a7797bbae99e20f373eac218"
+size = 916605
+mtime_ms = 1790428056463
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/01070b72-12fe-435e-a19f-f4fb5b5eba32/27fc54c5-31ef-4c76-83e2-ff0e21db1861"
+storage_version_token = "1790428059967429"
+content_type = "image/png"
