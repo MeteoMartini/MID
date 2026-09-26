@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "OdaEPDXX2dGBI5509RBF8"
+uri = "file://attached_assets/generated_images/bergwetter-konzept-uebersicht.png"
+type = "image"
+title = "Konzept 1 · Bergwetter-Übersicht"
+description = "Mobile Übersicht mit Höhenwahl, Kennwerten und kompaktem 7-Tage-Ausblick nach den gelieferten Vorbildern."
+logical_id = "e339b5f2-8c2c-4b03-abf7-d83382238f81"
+content_hash = "sha256:1d1ba1fca0937dad5fcf9c641371c65a1c6cae373624c5586702ad7b366537e4"
+size = 1098638
+mtime_ms = 1790427809092
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/e339b5f2-8c2c-4b03-abf7-d83382238f81/4490361d-9913-439a-9c6a-0a1dd0e4206f"
+storage_version_token = "1790427813827183"
+content_type = "image/png"
+
+[[outputs]]
+id = "tPKtjEZuh-lpM6sRHaOhH"
+uri = "file://attached_assets/generated_images/bergwetter-konzept-stunden.png"
+type = "image"
+title = "Konzept 2 · Stundenprognose"
+description = "Mobile Detailansicht mit geöffneter Stundenprognose, Wetter-/Windspalten und kompakten Tageszeilen nach den gelieferten Vorbildern."
+logical_id = "be1354f7-5765-4a79-beeb-9eb67a64157f"
+content_hash = "sha256:6fa0f7fcafadc4e90c27c5a25cb805d1cc56a119c7639b992ccf3c09964995f9"
+size = 987921
+mtime_ms = 1790427813010
+storage_uri = "gcs://replit-rams-assets-kira/rams/assets/repl:7034331d-b3d4-4f2d-bd98-52435f4f7cb1/be1354f7-5765-4a79-beeb-9eb67a64157f/105131c0-ab16-4ba4-9f70-2f025a3cbeca"
+storage_version_token = "1790427814772992"
+content_type = "image/png"
