@@ -1299,7 +1299,6 @@ function MountainSki({loc,days,ensembleDays,rapidMinutes15,alerts,automaticHazar
   </>}
  </section>;
 }
-}
 
 function MountainWinterGuidance({alerts,automaticHazards,loading,error,provider,timezone,unit}:{alerts:OfficialAlert[];automaticHazards:AutomaticHazard[];loading:boolean;error:string;provider:string;timezone?:string;unit:WindUnit}){
  const isWinterKind=(kind:DwdWarningKind|undefined)=>kind==='snow'||kind==='snowdrift'||kind==='ice'||kind==='frost',official=chronologicalOfficialAlerts(alerts.filter(alert=>officialAlertIsRelevant(alert)&&isWinterKind(officialAlertKind(alert)))),mid=automaticHazards.filter(item=>automaticHazardIsRelevant(item)&&isWinterKind(item.kind));
