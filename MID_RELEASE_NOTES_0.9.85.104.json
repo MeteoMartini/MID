@@ -1,0 +1,18 @@
+{
+  "version": "0.9.85.104",
+  "date": "2026-09-26",
+  "title": "Berg-/Wintersportwetter responsiv nachgeschärft",
+  "external": [
+    "Berg-/Wintersportwetter ist auf schmalen Smartphones kompakter und besser lesbar.",
+    "Wochentage bleiben vollständig sichtbar; Schnee-, Sonnen- und Windwerte überlagern sich nicht mehr.",
+    "Schneemengen werden einheitlich als „0 cm“, „<1 cm“ oder „–“ dargestellt.",
+    "Aktuelle Bergwerte erscheinen als kompakte horizontale Instrumentleiste; die 7-Tage-Zeilen bleiben ohne horizontales Scrollen bedienbar.",
+    "Die 3-Stunden-Detailansicht ist für kleine Displays neu ausbalanciert."
+  ],
+  "internal": [
+    "Finaler Replit-Handoff fe80b066739f40b1ede633a1124b3f18d9d366b4 wurde als Remote-Snapshot 155cd7aa11915cdc60229bd1b380d35a9939cd33 verifiziert und selektiv auf den aktuellen Stable-Quellstand übertragen.",
+    "Neue Format- und Schneeabdeckungsregressionen schützen 0 cm, Spurenmengen unter 1 cm und fehlende Daten.",
+    "Die Bergwetter-Visualmatrix prüft iPhone schmal/breit, Android-Breite, iPad hoch/quer und Desktop in Light/Dark sowie Expand/Collapse.",
+    "Meteorologische Datenlogik, Einheitenwahl und Worker-Fachlogik bleiben unverändert."
+  ]
+}
