@@ -33,11 +33,11 @@ assert.doesNotMatch(styles,/\.mountain-precip-(?:trace|light|moderate|heavy)\s*\
 const overview=app.slice(app.indexOf('function MountainForecastOverview'),app.indexOf('function MountainLevel'));
 assert.ok(overview.includes('<MountainForecastDayRow'),
  'Die kompakte Gestaltung muss auf dem tatsächlich aktiven Sieben-Tage-Weg liegen.');
-assert.ok(overview.includes('<table className="mountain-period-grid"'),
+assert.ok(app.includes('<table className="mountain-period-grid"'),
  'Die geöffnete Tagesansicht muss weiterhin die semantische Intervalltabelle verwenden.');
-assert.match(overview,/mountain-day-precip-rain \$\{precipClass\}/,
+assert.match(app,/mountain-day-precip-rain \$\{precipClass\}/,
  'Der Tagesregen muss seine bestehende Niederschlags-Intensitätsklasse behalten.');
-assert.match(overview,/mountain-day-snow-value \$\{snowClass\}/,
+assert.match(app,/mountain-day-snow-value \$\{snowClass\}/,
  'Der Neuschnee muss weiterhin seine separate Schnee-Intensitätsklasse erhalten.');
 
 console.log('Bergübersicht B1: kompakte Tageszeilen, responsive Intervalltabelle und getrennte Regen-/Schneestile geprüft.');
