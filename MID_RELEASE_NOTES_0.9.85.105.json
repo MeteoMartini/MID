@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.105",
+  "date": "2026-09-26",
+  "title": "Bergwetter kompakter und schneller",
+  "external": [
+    "Berg-/Wintersportwetter ist kompakter aufgebaut und zeigt die wichtigsten Höhen- und Tageswerte schneller.",
+    "Zusatzanalysen werden nachgeladen, ohne Temperatur, Wind, Wetter oder die 7-Tage-Grundprognose zu blockieren.",
+    "Sonnenstunden und Tages-Max-UVI bleiben in den 7-/14-Tage-Übersichten kompakt sichtbar.",
+    "Analyse- und Quelleninformationen sind schlanker zusammengefasst und bei Bedarf aufklappbar."
+  ],
+  "internal": [
+    "Finaler Replit-Handoff 9d166f7a083aac991f11856608fa0b93178e6aec aus replit/mid-18-2-14-v0-9-85-105-handoff-20260926 selektiv auf den Stable-Quellstand übernommen.",
+    "Kernprognose und 7-Tage-Werte rendern vor GeoSphere-, Schneefallgrenzen-Ensemble- und Diagnose-Enrichments; Fehler und Verzögerungen der Zusatzdaten bleiben isoliert.",
+    "872/872 Regressionen, Typecheck und Produktionsbuild grün; 6 Viewports × Light/Dark sowie verzögerte und fehlerhafte Enrichment-Szenarien geprüft.",
+    "Replit-Metadaten, Anhänge und vorgebaute dist-Artefakte wurden nicht in den vertrauenswürdigen Source-Branch übernommen."
+  ]
+}
