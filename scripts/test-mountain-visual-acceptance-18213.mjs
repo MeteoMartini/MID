@@ -29,6 +29,7 @@ const mountainOnly=process.env.MID_MOUNTAIN_ONLY==='1';
 const twoStations=process.env.MID_MOUNTAIN_TWO_STATIONS==='1';
 const enrichmentMode=process.env.MID_MOUNTAIN_ENRICHMENT_MODE||'';
 const enrichmentOnly=process.env.MID_MOUNTAIN_ENRICHMENT_ONLY==='1';
+const soeldenFixture=process.env.MID_MOUNTAIN_FIXTURE_LOCATION==='soelden';
 if(!['','delayed','failure'].includes(enrichmentMode))throw new Error(`Unbekannter Zusatzdaten-Testmodus: ${enrichmentMode}`);
 if(enrichmentOnly&&!enrichmentMode)throw new Error('MID_MOUNTAIN_ENRICHMENT_ONLY benötigt MID_MOUNTAIN_ENRICHMENT_MODE.');
 const profile=await mkdtemp(path.join(os.tmpdir(),'mid-mountain-cdp-'));
@@ -121,6 +122,55 @@ async function setViewport(width,height,theme){
 async function scrollMountainToTop(){
  await evaluate(`(()=>{const e=document.querySelector('.mountain-ski');if(e)window.scrollTo(0,Math.max(0,e.getBoundingClientRect().top+window.scrollY-8))})()`);
 }
+async function scrollMountainSafetyToTop(){
+ await evaluate(`(()=>{const e=document.querySelector('.mountain-winter-guidance');if(e)window.scrollTo(0,Math.max(0,e.getBoundingClientRect().top+window.scrollY-8))})()`);
+}
+async function verifyMountainSafetySurfaces(label){
+ const state=JSON.parse(await evaluate(`(()=>{
+  const root=document.querySelector('.mountain-ski'),location=JSON.parse(localStorage.getItem('mid:lastLocation')||'{}');
+  const guidance=root?.querySelector('.mountain-winter-guidance'),official=guidance?.querySelector('.official-row'),details=official?.querySelector('.mountain-warning-details');
+  const avalanche=root?.querySelector('.mountain-avalanche-status'),methodology=root?.querySelector('.mountain-methodology');
+  return JSON.stringify({
+   location:location.name||'',season:root?.querySelector('.mountain-season-control button[aria-pressed="true"]')?.textContent.trim()||'',
+   title:official?.querySelector('.mountain-warning-row-heading>strong')?.textContent.trim()||'',
+   level:official?.querySelector('.mountain-warning-level')?.textContent.trim()||'',
+   metadata:official?.querySelector('.mountain-warning-metadata')?.innerText||'',
+   source:official?.querySelector('.mountain-warning-source')?.textContent.trim()||'',
+   availability:guidance?.querySelector('.official .mountain-source-availability>b')?.textContent.trim()||'',
+   descriptionClosed:Boolean(details&&!details.open&&details.querySelector('p')?.getClientRects().length===0),
+   rowHeight:official?.getBoundingClientRect().height||0,
+   avalancheSource:avalanche?.querySelector('.mountain-avalanche-metadata')?.innerText||'',
+   avalancheLink:avalanche?.querySelector('a')?.href||'',
+   methodologyClosed:Boolean(methodology&&!methodology.open),
+   methodologyRows:methodology?.querySelectorAll('.mountain-methodology-rows>div').length||0,
+   documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth
+  });
+ })()`));
+ assert.equal(state.location,'Sölden',`${label}: Sölden ist nicht als isolierter Beispielort geladen.`);
+ assert.equal(state.season,'Winter',`${label}: Das Winter-Bergprofil ist nicht aktiviert.`);
+ assert.ok(state.title.includes('Schneefallwarnung'),`${label}: Die offizielle Testwarnung fehlt (${state.title}).`);
+ assert.ok(state.level.includes('Orange'),`${label}: Die amtlich gelieferte Stufe fehlt (${state.level}).`);
+ assert.ok(state.metadata.includes('Schneefall')&&state.metadata.includes('Zeitraum')&&state.metadata.includes('Sölden'),`${label}: Warnart, Zeitraum oder Gebiet fehlen (${state.metadata}).`);
+ assert.ok(state.source.includes('DWD')&&state.availability==='Abruf erfolgreich',`${label}: Amtliche Quelle oder Verfügbarkeit fehlen (${state.source}; ${state.availability}).`);
+ assert.ok(state.descriptionClosed,`${label}: Der amtliche Langtext ist im geschlossenen Zustand sichtbar oder das Disclosure fehlt.`);
+ assert.ok(state.rowHeight>0&&state.rowHeight<240,`${label}: Die Warnungszeile ist nicht kompakt (${state.rowHeight}px).`);
+ assert.ok(state.avalancheSource.includes('Lawinen.report')&&state.avalancheSource.includes('Stand / Aktualität')&&state.avalancheSource.includes('Verfügbarkeit'),`${label}: Lawinenquelle, Aktualität oder Verfügbarkeit fehlen.`);
+ assert.ok(state.avalancheLink.startsWith('https://avalanche.report/'),`${label}: Der separate offizielle Lawinenlink fehlt (${state.avalancheLink}).`);
+ assert.ok(state.methodologyClosed&&state.methodologyRows===4,`${label}: Die Methodikdetails fehlen oder sind nicht gegliedert.`);
+ assert.ok(state.documentWidth<=state.viewportWidth+1,`${label}: Sicherheitsflächen verursachen horizontalen Überlauf.`);
+ await clickAt('.mountain-warning-details>summary');
+ await waitForValue(`${label}: Amtlicher Meldungstext geöffnet`,`Boolean(document.querySelector('.mountain-warning-details')?.open)`,Boolean);
+ const detailText=await evaluate(`document.querySelector('.mountain-warning-details')?.innerText||''`);
+ assert.ok(detailText.includes('zeitweise eingeschränkte Sicht')&&detailText.includes('örtliche Anweisungen'),`${label}: Beschreibung oder Verhalten fehlen in den Details.`);
+ await clickAt('.mountain-warning-details>summary');
+ await waitForValue(`${label}: Amtlicher Meldungstext geschlossen`,`!document.querySelector('.mountain-warning-details')?.open`,Boolean);
+ await clickAt('.mountain-methodology>summary');
+ await waitForValue(`${label}: Methodikdetails geöffnet`,`Boolean(document.querySelector('.mountain-methodology')?.open)`,Boolean);
+ await waitForValue(`${label}: Vier Methodikzeilen sichtbar`,`document.querySelectorAll('.mountain-methodology-rows>div').length`,value=>value===4);
+ await clickAt('.mountain-methodology>summary');
+ await waitForValue(`${label}: Methodikdetails geschlossen`,`!document.querySelector('.mountain-methodology')?.open`,Boolean);
+ return state;
+}
 async function closeOpenMountainDays(){
  const open=await evaluate(`document.querySelector('.mountain-day-toggle[aria-expanded="true"]')?1:0`);
  if(open)await clickAt('.mountain-day-toggle[aria-expanded="true"]');
@@ -172,9 +222,9 @@ async function snapshotWindAndWeather(){
   })
  })()`);
 }
-function browserPrelude(favorite,location,mountain,diagnosticMode){
+function browserPrelude(favorite,location,mountain,diagnosticMode,withSnowWarning){
  return `(()=>{
-   const favorite=${JSON.stringify(favorite)},fixtureLocation=${JSON.stringify(location)},mountain=${JSON.stringify(mountain)},diagnosticMode=${JSON.stringify(diagnosticMode)};
+    const favorite=${JSON.stringify(favorite)},fixtureLocation=${JSON.stringify(location)},mountain=${JSON.stringify(mountain)},diagnosticMode=${JSON.stringify(diagnosticMode)},withSnowWarning=${JSON.stringify(withSnowWarning)},mountainStorageKey=${JSON.stringify(`mid:mountain:${location.latitude.toFixed(5)}:${location.longitude.toFixed(5)}`)};
   const favs=JSON.stringify([favorite]),hourMs=3600000,now=Date.now(),start=Math.floor(now/hourMs)*hourMs-24*hourMs;
   const berlinParts=epoch=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)).map(part=>[part.type,part.value]));
   const localIso=epoch=>{const p=berlinParts(epoch);return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute};
@@ -244,7 +294,10 @@ function browserPrelude(favorite,location,mountain,diagnosticMode){
     return json({timezone:'Europe/Vienna',utc_offset_seconds:7200,hourly});
    }
    if(url.searchParams.get('mode')==='geosphere-snow')return json({available:true,valueCm:136,stationName:'Hochgebirgs-Schneemessstation Kitzbüheler Alpen · Teststation mit langem Namen',stationId:'MID-VISUAL-01',stationElevation:pointElevation(url.searchParams.get('elevation')),distanceKm:4.2,heightDifferenceM:28,observedAt:new Date().toISOString(),provider:'GeoSphere Austria'});
-   if(url.hostname.endsWith('.invalid'))return json({available:false,error:'Deterministischer Testadapter'});
+    if(url.hostname.endsWith('.invalid')){
+     if(withSnowWarning&&url.searchParams.get('mode')==='alerts')return json({provider:'DWD',coverage:'Sölden / Ötztal · isolierte Testfixture',alerts:[{id:'b2-soelden-official-snow',headline:'Schneefallwarnung',description:'Schneefall im Warngebiet; zeitweise eingeschränkte Sicht.',instruction:'Amtliche Hinweise und örtliche Anweisungen beachten.',language:'de',level:'orange',severity:'Moderate',event:'Schneefall',source:'DWD',area:'Sölden / Ötztal',effective:new Date(now-15*60000).toISOString(),onset:new Date(now-15*60000).toISOString(),expires:new Date(now+6*hourMs).toISOString(),updatedAt:new Date(now-5*60000).toISOString()}]});
+     return json({available:false,error:'Deterministischer Testadapter'});
+    }
    if(url.hostname.startsWith('overpass.'))return json({elements:[]});
    return originalFetch(input,init);
   };
@@ -255,7 +308,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode){
   localStorage.setItem('mid:favorites:shadow:v1',favs);
   localStorage.setItem('mid:favorites:updated-at',new Date().toISOString());
   localStorage.setItem('mid:favorites:order:v1',JSON.stringify({ids:[favorite.id],updatedAt:new Date().toISOString()}));
-  localStorage.setItem('mid:mountain:47.26920:11.40410',JSON.stringify(mountain));
+   localStorage.setItem(mountainStorageKey,JSON.stringify(mountain));
   localStorage.setItem('mid:lastLocation',JSON.stringify(fixtureLocation));
   localStorage.setItem('mid:last-dashboard-section:v1','mountain');
   localStorage.setItem('mid:module-open-contract:v6','1');
@@ -320,18 +373,28 @@ try{
  await cdp('Runtime.enable');
  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844,screenOrientation:{type:'portraitPrimary',angle:0}});
 
- const location={id:'innsbruck-visual-fixture',name:'Innsbruck',latitude:47.2692,longitude:11.4041,elevation:574,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
- const mountain={
-  schemaVersion:2,enabled:true,season:'winter',middleEnabled:!twoStations,
-  valleyElevation:1100,middleElevation:2200,summitElevation:3300,
-  valleyName:'Talstation Sonnwies · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  middleName:'Mittelstation Panoramaalm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  summitName:'Bergstation Hahnenkamm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  valleyLatitude:47.30,valleyLongitude:11.35,middleLatitude:47.28,middleLongitude:11.38,summitLatitude:47.25,summitLongitude:11.40,
-  profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00.000Z',
- };
-  const favorite={id:'mid-18-2-14-visual-fixture',location,alias:'MID 18.2.14 Winter-Testprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
-  await cdp('Page.addScriptToEvaluateOnNewDocument',{source:browserPrelude(favorite,location,mountain,enrichmentMode)});
+  const location=soeldenFixture
+   ?{id:'soelden-visual-fixture',name:'Sölden',latitude:46.9693,longitude:11.0072,elevation:1377,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'}
+   :{id:'innsbruck-visual-fixture',name:'Innsbruck',latitude:47.2692,longitude:11.4041,elevation:574,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
+  const mountain=soeldenFixture?{
+   schemaVersion:2,enabled:true,season:'winter',middleEnabled:!twoStations,
+   valleyElevation:1380,middleElevation:2500,summitElevation:3340,
+   valleyName:'Talstation Giggijoch · Sölden, Testprofil mit langem Stationsnamen',
+   middleName:'Mittelstation Giggijoch · Sölden, Testprofil mit langem Stationsnamen',
+   summitName:'Bergstation Gaislachkogl · Sölden, Testprofil mit langem Stationsnamen',
+   valleyLatitude:46.9700,valleyLongitude:11.0030,middleLatitude:46.9693,middleLongitude:11.0072,summitLatitude:46.9650,summitLongitude:11.0100,
+   profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00.000Z',
+  }:{
+   schemaVersion:2,enabled:true,season:'winter',middleEnabled:!twoStations,
+   valleyElevation:1100,middleElevation:2200,summitElevation:3300,
+   valleyName:'Talstation Sonnwies · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
+   middleName:'Mittelstation Panoramaalm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
+   summitName:'Bergstation Hahnenkamm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
+   valleyLatitude:47.30,valleyLongitude:11.35,middleLatitude:47.28,middleLongitude:11.38,summitLatitude:47.25,summitLongitude:11.40,
+   profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00.000Z',
+  };
+   const favorite={id:soeldenFixture?'soelden-b2-visual-fixture':'mid-18-2-14-visual-fixture',location,alias:soeldenFixture?'MID 18.2.15 Sölden-Winterprofil':'MID 18.2.14 Winter-Testprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
+   await cdp('Page.addScriptToEvaluateOnNewDocument',{source:browserPrelude(favorite,location,mountain,enrichmentMode,soeldenFixture)});
  await cdp('Page.navigate',{url:`${baseUrl}/#mid-section-mountain`});
  await waitForValue('MID-Oberfläche',`Boolean(document.querySelector('.dashboard-bottom-tabs'))`,Boolean);
   try{
@@ -453,7 +516,7 @@ try{
     await waitForValue('Sichtbare Forecast-Horizonte',`[...document.querySelectorAll('.modern-forecast-horizons button')].filter(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0).length`,value=>value>0);
    }
 
- const results=[],surfaces=new Map();
+  const results=[],safetyResults=[],surfaces=new Map();
  for(const viewport of viewports){
   for(const theme of themes){
    if(!mountainOnly)await navigateToForecast();
@@ -470,6 +533,7 @@ try{
    }
    await navigateToMountain();
    await waitForValue(`${viewport.label} · ${theme}: Aktive Bergansicht`,`document.querySelector('.mountain-ski')?.getBoundingClientRect().width||0`,value=>value>0,60000);
+    if(soeldenFixture)safetyResults.push({viewport:viewport.label,theme,...await verifyMountainSafetySurfaces(`Sölden · ${viewport.label} · ${theme}`)});
     await closeOpenMountainDays();
      await verifyMountainMatrix(`${twoStations?'Zwei':'Drei'} Stationen · ${viewport.label} · ${theme}`);
    const dayState=JSON.parse(await evaluate(`JSON.stringify({rows:document.querySelectorAll('.mountain-day-toggle:not(:disabled)').length,expanded:[...document.querySelectorAll('.mountain-day-toggle')].filter(button=>button.getAttribute('aria-expanded')==='true').length,periodCards:document.querySelectorAll('.mountain-period-card').length})`));
@@ -539,6 +603,12 @@ try{
    const key=`${viewport.width}x${viewport.height}`;
    if(surfaces.has(key))assert.notEqual(geometry.surface,surfaces.get(key),`${key}: Light und Dark verwenden dieselbe Oberflächenfarbe.`);
    else surfaces.set(key,geometry.surface);
+    if(soeldenFixture&&screenshotDir){
+     await scrollMountainSafetyToTop();
+     await evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`);
+     const safetyImage=await cdp('Page.captureScreenshot',{format:'jpeg',quality:84,fromSurface:true,captureBeyondViewport:false});
+     await writeFile(path.join(screenshotDir,`mountain-safety-${viewport.id}-${theme}.jpg`),Buffer.from(safetyImage.result.data,'base64'));
+    }
    await scrollMountainToTop();
    if(screenshotDir){
     const image=await cdp('Page.captureScreenshot',{format:'jpeg',quality:78,fromSurface:true,captureBeyondViewport:false});
@@ -565,7 +635,11 @@ try{
     .replace('Die kontrollierten Fixture-Antworten decken drei Höhenpunkte',`Die kontrollierten Fixture-Antworten decken ${twoStations?'zwei':'drei'} Höhenpunkte`);
    await writeFile(path.join(visualDir,'MID_18.2.13_mountain_visual_acceptance.md'),acceptedReport);
  }
-   console.log(`Berg-/Wintersport: echter App-Render, saisonale Kennzahlenpriorität, Stationshöhen, Hitboxen, Einheiten und Tag/Nacht geprüft: ${viewports.length} Viewports × ${themes.length} Themes.${mountainOnly?' Forecast-Navigation/-Touch-Target ausgelassen.':''}${screenshotDir?` Screenshots und Matrix: ${path.relative(root,visualDir)}.`:''}`);
+    if(soeldenFixture&&visualDir){
+     const safetyRows=safetyResults.map(row=>`| ${row.viewport} · ${row.theme} | ${row.location} | ${row.season} | ${row.level} | ${Math.round(row.rowHeight)} px | ${row.availability} |`).join('\n');
+     await writeFile(path.join(visualDir,'MID_18.2.15_B2_soelden_safety_matrix.md'),`# MID 18.2.15 B2 · Sölden Sicherheitsflächen\n\nIsolierter Browserkontext mit aktiviertem Winter-Bergprofil und einer amtlichen Warnungsfixture. Die Wetter- und Warnungsfixture ist Testmaterial, keine aktuelle Gefahrenlage.\n\n| Viewport · Theme | Ort | Saisonprofil | Warnstufe | Warnzeilenhöhe | Quellenstatus |\n|---|---|---|---|---:|---|\n${safetyRows}\n\nJeweils geprüft: Quelle, Warnart, Zeitraum, Verfügbarkeit, eingeklappter Langtext mit funktionierender Detailöffnung, Lawinenquelle/Stand/Verfügbarkeit/Direktlink, vier Methodikzeilen und kein horizontaler Dokumentüberlauf. Screenshots liegen unter \`screenshots/mountain-safety-*.jpg\`.\n`);
+    }
+    console.log(`Berg-/Wintersport: echter App-Render, saisonale Kennzahlenpriorität, Stationshöhen, Hitboxen, Einheiten und Tag/Nacht geprüft: ${viewports.length} Viewports × ${themes.length} Themes.${soeldenFixture?` Sölden-Winterprofil und amtliche Warnungs-/Lawinen-/Methodikflächen: ${safetyResults.length} Viewport-/Theme-Kombinationen.`:''}${mountainOnly?' Forecast-Navigation/-Touch-Target ausgelassen.':''}${screenshotDir?` Screenshots und Matrix: ${path.relative(root,visualDir)}.`:''}`);
   }
 }finally{
  for(const request of pending.values())request.reject(new Error('CDP-Verbindung beendet.'));
