@@ -2,16 +2,22 @@
 
 ## Zweck
 
-Replit ist die bevorzugte UI-/Design-Werkbank für MID. GitHub bleibt die alleinige Source of Truth und der einzige Veröffentlichungsweg. Replit darf Änderungen komfortabel in dasselbe Repository übergeben, aber niemals selbst einen produktiven MID-Release autorisieren.
+Replit ist die bevorzugte UI-/Design-Werkbank für MID. ChatGPT ist die alleinige Instanz, die MID-Arbeitsaufträge an Replit erteilt, deren Umfang festlegt und Ergebnisse zur Integration freigibt. GitHub bleibt die alleinige Source of Truth und der einzige Veröffentlichungsweg. Replit darf Änderungen komfortabel in dasselbe Repository übergeben, aber niemals selbst einen produktiven MID-Release autorisieren.
 
 ## Vertrauenszonen
 
 - `main` und `mid-stable`: produktive, geschützte Quellstände.
 - `replit/*`: ausschließlich unprivilegierte Handoff-Branches aus Replit.
 - `chatgpt/*` und `codex/*`: geprüfte Integrationsbranches für den bestehenden MID Source-PR-Gate.
-- Releasepfad: Source-PR-Gate → kontrollierter Merge → Release-ZIP → Installer → Worker/Pages → Stable-Promotion.
+- Releasepfad: Source-PR-Gate → kontrollierter Merge → serverseitiges Release-ZIP → Installer → Worker/Pages → Stable-Promotion.
 
 Ein `replit/*`-Branch darf niemals direkt nach `main` oder `mid-stable` promoted werden.
+
+## Persistente Replit-Steuerung
+
+Replit beginnt keine eigenständigen MID-Arbeitspakete. Jeder konkrete Design-/UI-Auftrag kommt von ChatGPT; Replit darf innerhalb dieses Rahmens technische Designvarianten ausarbeiten, übergibt sie aber immer zurück an ChatGPT. Die projektbezogenen Dauerregeln stehen in `replit.md` und dem versionierten Skill `.agents/skills/mid-handoff/SKILL.md`. Replit muss sie vor jedem MID-Arbeitspaket anwenden.
+
+Diese Dateien sowie `AGENTS.md`, dieser Vertrag, der Agent-Release-Vertrag, Source-of-Truth/Baseline und CI-/Release-Konfiguration sind Governance. Replit darf sie weder im eigenen Handoff ändern noch lokal als vermeintliche Problemlösung abschwächen. Änderungsbedarf wird im Handoff gemeldet und ausschließlich in einem geprüften `chatgpt/*`-/`codex/*`-Branch umgesetzt.
 
 ## Start eines Replit-Arbeitspakets
 
@@ -27,9 +33,17 @@ Vor Synchronisation oder Reset ist ein vorhandener lokaler Replit-Arbeitsstand a
 
 Replit darf insbesondere UI, Layout, Responsive-Verhalten, Theme-/Design-Komponenten, visuelle Assets und dazugehörige Regressionen bearbeiten.
 
-Der automatisierte Handoff-Gate blockiert direkte Änderungen an sicherheits-, release-, runtime- und governancekritischen Bereichen. Dazu gehören insbesondere GitHub Actions, Worker, native iOS-Dateien, Tooling, Baseline/Source-of-Truth, Releasepakete, Package-/Lockfile, Versionsdateien, zentrale Build-/Deploy-Konfiguration und Umgebungsdateien.
+Der automatisierte Handoff-Gate blockiert direkte Änderungen an sicherheits-, release-, runtime- und governancekritischen Bereichen. Dazu gehören insbesondere GitHub Actions und deren kanonische Quellen, zentrale Workflow-Synchronisation/-Runner, Worker, native iOS-Dateien, Tooling, Baseline/Source-of-Truth, Agent-/Governance-Regeln, Releasepakete, Package-/Lockfile, Versionsdateien, zentrale Build-/Deploy-Konfiguration und Umgebungsdateien.
 
-Wenn ein Replit-Arbeitspaket eine solche Änderung fachlich benötigt, wird sie nach dem Handoff separat durch ChatGPT im geprüften Integrationsbranch vorgenommen.
+Wenn ein Replit-Arbeitspaket eine solche Änderung fachlich benötigt, wird sie im Handoff ausdrücklich benannt und nach dem Handoff separat durch ChatGPT im geprüften Integrationsbranch vorgenommen.
+
+## Git-Transport und Authentifizierung
+
+Ein schreibender SSH-Deploy-Key ist für den MID-Replit-Handoff nicht erforderlich. Der Normalweg verwendet die bereits verbundene GitHub-Integration/API ausschließlich für `replit/*`.
+
+Fehlt der lokal konfigurierte SSH-Key, darf Replit weder einen neuen Schreib-Deploy-Key erzeugen noch die SSH-Hostprüfung lockern oder Secrets in Repository/Logs ablegen. Der fehlende SSH-Pfad ist als nicht benötigter Transportweg zu behandeln.
+
+Vor dem Schreiben eines Handoff-Refs müssen aktuelle `main`-/`mid-stable`-SHA, Basis-/Parent-SHA und der erzeugte Commit-SHA überprüft werden. Nach dem Ref-Write wird der Remote-Ref erneut gelesen; nur eine exakte SHA-Übereinstimmung gilt als erfolgreicher Handoff. Unklare Provenienz oder Berechtigungen führen fail-closed zum Abbruch.
 
 ## Replit Handoff Gate
 
@@ -45,6 +59,18 @@ Der Gate:
 6. verwendet keine Repository-Secrets und keine Deploy-Berechtigungen,
 7. erzeugt weder Release noch Deployment,
 8. blockiert direkte Pull Requests von `replit/*` nach `main`.
+
+## Verbindlicher Handoff-Beleg
+
+Replit meldet für jedes Arbeitspaket mindestens:
+- Branchname,
+- verifizierte Basis-SHA,
+- Head-/Commit-SHA,
+- geänderte Pfade,
+- ausgeführte Tests und Ergebnis,
+- Handoff-Gate-Status,
+- geschützte/fachliche Änderungen, die ChatGPT separat übernehmen muss,
+- Bestätigung, dass weder Promotion noch Release/Deployment erfolgt ist.
 
 ## Promotion durch ChatGPT
 
@@ -63,13 +89,15 @@ Replit erhält nur den für Git-Handoff erforderlichen Repository-Zugriff. Es er
 
 Bevor Replit Schreibzugriff erhält, muss GitHub die vertrauenswürdigen Branch-Namensräume absichern. Insbesondere dürfen `chatgpt/**` und `codex/**` nicht durch den Replit-Zugang erstellt oder aktualisiert werden können. Diese Einschränkung wird als GitHub Ruleset administrativ außerhalb des Repository-Codes erzwungen.
 
+Breite Rollen-/Admin-Bypässe für die Trusted-Agent-Namespaces sind mit diesem Ziel nicht vereinbar. Vor Entfernung oder Änderung eines bestehenden Bypass-Akteurs muss dessen Identität eindeutig verifiziert werden; unbekannte Integration-IDs werden niemals auf Verdacht entfernt.
+
 ## Produktionsfreigabe und MID Release Bot
 
 Schreibzugriffe auf `main` und `mid-stable` erfolgen nach erfolgreicher Migration ausschließlich mit dem repository-spezifisch installierten GitHub App-Akteur `MID Release Bot MeteoMartini`. Die App ist nur für `MeteoMartini/MID` installiert und erhält nur die für Merge, Repository-Inhalte, Actions-Dispatch und Commit-Status erforderlichen Rechte.
 
 Der normale `GITHUB_TOKEN` bleibt in den Release-Workflows auf lesende Aufgaben beschränkt. Kurzlebige Installationstoken des Release-Bots werden nur in den tatsächlich schreibenden Jobs erzeugt und am Jobende automatisch widerrufen.
 
-Replit erhält keinen Bypass für Produktionsbranches. Ein späterer Production-Branch-Guard darf ausschließlich den dedizierten MID Release Bot für Updates auf `main` und `mid-stable` freistellen.
+Replit erhält keinen Bypass für Produktionsbranches. Ein Production-Branch-Guard darf ausschließlich den dedizierten MID Release Bot für Updates auf `main` und `mid-stable` freistellen.
 
 ## Fail-closed
 

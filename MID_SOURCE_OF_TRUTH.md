@@ -19,6 +19,11 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.106 · ChatGPT↔Replit Collaboration Hardening
+
+ChatGPT ist die alleinige Auftrags-, Prüf- und Integrationsinstanz für MID-Arbeit, die an Replit delegiert wird. Replit bleibt gezielt UI-/Design-Werkbank und beginnt keine eigenständigen MID-Arbeitspakete. Jeder Replit-Stand wird ausschließlich als unprivilegierter `replit/*`-Handoff mit verifizierter Basis-, Commit- und Remote-Ref-SHA übergeben; direkte Änderungen an `main`, `mid-stable`, `chatgpt/*` oder `codex/*` sind unzulässig. Ein fehlender lokaler SSH-Deploy-Key wird nicht durch neue Schreibschlüssel oder gelockerte Hostprüfung ersetzt. Persistente Regeln liegen in `replit.md` und `.agents/skills/mid-handoff/SKILL.md`; Governance-, CI-/Release-, Worker-, iOS-, Versions- und zentrale Build-/Deploy-Dateien sind im Replit-Handoff-Gate geschützt. Veröffentlichung bleibt ausschließlich Source-PR-Gate → kontrollierter Merge → serverseitiges Release-ZIP → Installer → Worker/Pages → Stable-Promotion. Required Regression: `scripts/test-mid-collaboration-hardening-0985106.mjs`. Detailvertrag: `MID_REPLIT_HANDOFF_CONTRACT.md`.
+
+
 ## v0.9.85.76 · Pages-Release-Race-Schutz
 
 RUC- und manuelle Stable-Pages-Publisher dürfen keinen älteren App-Shell-Stand veröffentlichen, während `main` bereits eine neuere MID-Version als `mid-stable` trägt. Der RUC-Publish vergleicht deshalb beim Eintritt in den Pages-Lock und unmittelbar vor dem Upload die Releaseversionen von `main` und `mid-stable`; bei Abweichung wird der Publish fail-closed als No-op übersprungen. Required Regression: `scripts/test-pages-release-race-098576.mjs`. Detailvertrag: `MID_PAGES_RELEASE_RACE_0.9.85.76.md`.
