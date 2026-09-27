@@ -1379,7 +1379,7 @@ function mountainForecastDateKeys(level:MountainLevelForecast,days:Day[]){const 
  useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);
  useEffect(()=>{setExpandedDate(null)},[selectedRole]);
   const dateKeys=useMemo(()=>level?mountainForecastDateKeys(level,days):[],[level,days]),todayKey=level?mountainLocalDateKey(Date.now(),level.weather.timezone||'UTC'):'',rows=useMemo(()=>level?dateKeys.map((date,index)=>mountainForecastDay(level,date,index===0&&date===todayKey?'Heute':index===1?'Morgen':formatDateOnly(date,{weekday:'long'}))):[],[level,dateKeys,todayKey]),currentTime=level?String(level.weather.current.time??''):'',currentClock=level&&currentTime?formatLocalIsoDisplayTime(currentTime,level.weather.timezone):'';
-  if(!levels.length||!level)return <p className="mountain-forecast-empty" role="status">Für dieses Profil sind aktuell keine Höhenstufen verfügbar.</p>;
+  if(!levels.length||!level)return <><MountainForecastMatrix data={data} days={days} unit={unit}/><p className="mountain-forecast-empty" role="status">Für dieses Profil sind aktuell keine Höhenstufen verfügbar.</p></>;
  return <section className="mountain-forecast-overview" aria-label="Höhenwetter nach ausgewählter Höhenstufe">
    <MidSurface level="raised" className="mountain-hourly-panel">
     <header className="mountain-hourly-heading">
