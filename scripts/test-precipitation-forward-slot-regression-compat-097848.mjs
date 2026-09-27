@@ -21,7 +21,7 @@ assert.ok(shortTerm.includes('base=interpolatedHour(hours,precipitationIntervalS
 assert.ok(shortTerm.includes('timeLabel:clock(precipitationIntervalStartEpoch,timezone)'),'Sichtbare Kurzfristzeit muss der Beginn des Zukunftsintervalls sein.');
 assert.ok(cockpit.includes('precipitationPresentationHours(hours).filter(hour=>hour.epoch<windowEnd&&hour.epoch+HOUR_MS>now)'),'24-h-Profil muss die vorwärts gerichteten sichtbaren Niederschlagsslots verwenden.');
 assert.ok(water.includes('const precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours])'),'Wassersport muss denselben sichtbaren Slotvertrag verwenden.');
-assert.ok(app.includes('isDay:astronomicalIsDayAt(slotStart.epoch'),'Höhenwetter muss den astronomischen Status am sichtbaren Slotbeginn bestimmen.');
+assert.ok(app.includes('isDay:astronomicalIsDayAt(row.epoch'),'Stündliches Höhenwetter muss den astronomischen Status am sichtbaren Slotbeginn bestimmen.');
 
 // Alte Regressionen transpilierten forecastFusion.ts isoliert. Seit der zentrale
 // Präsentationsadapter ausgelagert ist, müssen solche Harnesses diesen Import
