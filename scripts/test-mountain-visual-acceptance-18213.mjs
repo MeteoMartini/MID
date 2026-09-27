@@ -135,7 +135,7 @@ async function verifyMountainHourlyAccess(label){
   return JSON.stringify({panel:Boolean(panel),legacy:Boolean(root?.querySelector('.mountain-forecast-matrix,.mountain-forecast-summary')),tabCount:tabs.length,activeTabs:active.length,clientWidth:scroll?.clientWidth||0,scrollWidth:scroll?.scrollWidth||0,overflowX:style?.overflowX||'',touchAction:style?.touchAction||'',tableWidth:table?.scrollWidth||0,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth});
  })()`));
  assert.ok(state.panel,`${label}: stündliches Höhenprognose-Panel fehlt.`);
- assert.equal(state.legacy,false,`${label}: der abgelöste Stundenraster ist noch sichtbar.`);
+ assert.equal(state.legacy,false,`${label}: der abgelöste Höhenvergleich ist noch sichtbar.`);
  assert.ok(state.tabCount>=(twoStations?2:3)&&state.activeTabs===1,`${label}: Höhenstufen-Tabs sind unvollständig oder uneindeutig (${JSON.stringify(state)}).`);
  assert.ok(state.clientWidth>0&&state.tableWidth>0,`${label}: stündliches Höhenraster ist nicht messbar.`);
  if(state.scrollWidth>state.clientWidth+1){
@@ -171,7 +171,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode){
   const localIso=epoch=>{const p=berlinParts(epoch);return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute};
    const currentLocalHour=Number(localIso(now).slice(11,13));
    const times=Array.from({length:193},(_,index)=>localIso(start+index*hourMs));
-  const dayKeys=[...new Set(times.map(value=>value.slice(0,10)))].slice(1,9);
+  const todayKey=localIso(now).slice(0,10),dayKeys=[...new Set(times.map(value=>value.slice(0,10)))].filter(date=>date>=todayKey).slice(0,8);
   const levels=[
    {latitude:mountain.valleyLatitude,longitude:mountain.valleyLongitude,elevation:mountain.valleyElevation,role:0,temp:-2,wind:27,gust:40,name:mountain.valleyName},
    {latitude:mountain.middleLatitude,longitude:mountain.middleLongitude,elevation:mountain.middleElevation,role:1,temp:-7,wind:42,gust:59,name:mountain.middleName},
