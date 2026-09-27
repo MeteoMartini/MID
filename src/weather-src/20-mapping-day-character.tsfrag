@@ -100,7 +100,7 @@ export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|
 export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}
 export function cloudOktasText(percent:number){
  const octas=cloudOktas(percent);
- const description=octas===0?'wolkenlos':octas<=2?'gering bewölkt':octas<=4?'aufgelockert bewölkt':octas<=7?'stark bewölkt':'bedeckt';
+ const description=octas===0?'wolkenlos':octas<=3?'leicht bewölkt':octas<=6?'wolkig':octas===7?'stark bewölkt':'bedeckt';
  return`${octas}/8 · ${description}`;
 }
 export type DayWeatherCharacter={code:number;label:string;secondary:string;cloudOktas:number;precipitationDominant:boolean};
@@ -126,18 +126,10 @@ function daylightDurationSeconds(day:Day){
 }
 function skyFromCloud(percent:number,sunshineFraction?:number){
  const octas=cloudOktas(percent),sun=Number.isFinite(sunshineFraction)?Math.max(0,Math.min(1,Number(sunshineFraction))):NaN;
- if(Number.isFinite(sun)){
-  if(sun>=.72)return{code:octas<=3?0:1,label:'Heiter'};
-  if(sun>=.50)return{code:1,label:'Wolkig, oft sonnig'};
-  if(sun>=.28)return{code:2,label:'Sonne und Wolken'};
-  if(sun>=.10)return{code:3,label:'Meist bewölkt'};
-  if(octas>=8)return{code:3,label:'Bedeckt'};
-  return{code:3,label:'Stark bewölkt'};
- }
- if(octas<=1)return{code:0,label:'Klar'};
- if(octas<=3)return{code:1,label:'Überwiegend klar'};
- if(octas<=5)return{code:2,label:'Teilweise bewölkt'};
- if(octas<=7)return{code:3,label:'Stark bewölkt'};
+ if(octas===0)return{code:0,label:'Klar'};
+ if(octas<=3)return Number.isFinite(sun)&&sun>=.5?{code:0,label:'Heiter'}:{code:1,label:'Leicht bewölkt'};
+ if(octas<=6)return Number.isFinite(sun)&&sun>=.5?{code:1,label:'Wolkig, oft sonnig'}:{code:2,label:'Wolkig'};
+ if(octas===7)return{code:3,label:'Stark bewölkt'};
  return{code:3,label:'Bedeckt'};
 }
 function plausiblePrecipFamily(h:Hour){
@@ -194,10 +186,11 @@ function representativePrecipCode(hours:Hour[]){
  return{family,code,...row,averageProbability:row.probabilitySum/Math.max(1,row.probabilitySamples)};
 }
 function conciseSkyLabel(cloud:number){
- if(cloud<=18)return'Sonnig';
- if(cloud<=38)return'Heiter';
- if(cloud<=62)return'Wolkig';
- if(cloud<=82)return'Stark bewölkt';
+ const octas=cloudOktas(cloud);
+ if(octas===0)return'Sonnig';
+ if(octas<=3)return'Heiter';
+ if(octas<=6)return'Wolkig';
+ if(octas===7)return'Stark bewölkt';
  return'Bedeckt';
 }
 function partCloud(hours:Hour[],from:number,to:number){
