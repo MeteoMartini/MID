@@ -13,14 +13,13 @@ need(app,'function mountainCloudLayerAssessment','Wolkenschicht-Auswertung fehlt
 need(app,'cloud.cover>62.5','5/8-Plausibilitätsgrenze fehlt.');
 need(app,'Math.min(raw,1000)','Sicht wird innerhalb dichter Wolkenschichten nicht konservativ begrenzt.');
 need(app,'zeitweise innerhalb einer Wolkenschicht: Sicht stark reduziert','Höhenzonenrisiko für Wolkensicht fehlt.');
-need(app,'Wolkenbasis (NHN)','Bezugsniveau der Wolkenbasis ist nicht ausgewiesen.');
-need(app,'m ü. Grund','relative Wolkenbasishöhe über dem Stationsniveau fehlt.');
-need(app,'mountainWindWarningMeta','Wind-Warnstufenklasse fehlt.');
-need(app,'mountainPrecipitationClass','Niederschlagsintensitätsklasse fehlt.');
-need(styles,'mountain-wind-warning-50','schwache Einfärbung der ersten Windwarnstufe fehlt.');
-need(styles,'mountain-wind-warning-140','Einfärbung der höchsten Windwarnstufe fehlt.');
-need(styles,'mountain-precip-trace','blasse Niederschlagseinfärbung fehlt.');
-need(styles,'mountain-precip-heavy','dunkelblaue Niederschlagseinfärbung fehlt.');
-need(styles,'.mountain-matrix-row>span.mountain-precip-heavy small{color:rgba(255,255,255,.86)}','Textkontrast bei starkem Niederschlag ist nicht abgesichert.');
-if(failures.length){console.error('Höhenwetter-Farb-/Wolkenplausibilitätsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Höhenwetter geprüft: Windwarnfarben, Niederschlagsintensität, NHN-Bezug und Sichtkorrektur in dichter Wolkenschicht.');
+need(app,'<tr><th scope="row">Sicht</th>','Sicht fehlt in der stündlichen Höhenprognose.');
+need(app,'<tr><th scope="row">Tiefe Wolken</th>','Tiefe Wolken fehlen als sekundärer stündlicher Fachwert.');
+need(app,'const pair=validateWindPair(row.wind,row.gust)','Stündliche Wind-/Böenwerte werden nicht plausibilisiert.');
+need(app,'<WindDirectionArrow direction={row.direction} gust={pair.gust}/>','Windrichtung und plausibilisierte Böe werden nicht gemeinsam dargestellt.');
+need(app,'mountainPrecipitationClass(row.precipitation)','Stündlicher Niederschlag verliert seine Intensitätsklasse.');
+need(styles,'.mountain-hourly-precip.mountain-precip-trace','blasse stündliche Niederschlagseinfärbung fehlt.');
+need(styles,'.mountain-hourly-precip.mountain-precip-heavy','starke stündliche Niederschlagseinfärbung fehlt.');
+need(styles,'.mountain-hourly-precip.mountain-precip-heavy>small{color:rgba(255,255,255,.88)}','Textkontrast bei starkem Niederschlag ist nicht abgesichert.');
+if(failures.length){console.error('Höhenwetter-Stundenansicht/Wolkenplausibilität fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
+console.log('Höhenwetter geprüft: Wolkenprofil/Sichtkorrektur, plausibilisierte Wind/Böen und Niederschlagsdarstellung der stündlichen Höhenansicht.');

@@ -1,7 +1,8 @@
-# MID v0.9.85.107
+# MID v0.9.85.108
 
-- Die 7- und 14-Tage-Übersichten sind kompakter aufgebaut; Sonnenstunden und UVI bleiben auch auf kleinen Displays gut lesbar.
-- Nachtpiktogramme erhalten ausreichend Platz und werden in den kompakten Tageszeilen nicht abgeschnitten.
-- Das Berg-/Wintersportprofil ist dichter und tabellarischer aufgebaut. Schnee und Flüssigniederschlag werden getrennt dargestellt; die Schneeflächen skalieren ausschließlich die dargestellte Schneemenge und sind keine amtlichen Warnstufen.
-- Schnee-/Eiswarnungen, amtliche Lawinenquelle und Methodik sind kompakter strukturiert. Lange Warntexte bleiben über Details zugänglich.
-- Der ChatGPT/GitHub-Vertrag entspricht jetzt dem geschützten Source-first-Veröffentlichungsweg; Release-ZIPs werden nicht mehr im normalen Agent-PR transportiert.
+- Berg-/Wintersport zeigt für die gewählte Höhenstufe jetzt eine stündliche Prognose statt der bisherigen Kennwert-Kacheln.
+- Die 7-Tage-Höhenprognose ist deutlich kompakter; ein Tag lässt sich weiterhin für die Stundenwerte öffnen.
+- Beim Laden erscheint sofort eine strukturierte Vorschau, während Zusatzdaten im Hintergrund ergänzt werden.
+- Der bisherige separate „Höhenvergleich“ entfällt. Weitere Kennwerte, Schnee-/Eishinweise, Schneefallgrenzen, Lawinenquelle und Methodik sind ruhiger in das MID-Design eingeordnet.
+- Aktuelle hyperlokal analysierte Bewölkung wird knapp unter vollständiger Bedeckung nicht mehr allein durch Rundung als „Bedeckt“ ausgegeben.
+- Open-Meteo liefert für Sonne/Mond zusätzlich Mondaufgang, Monduntergang und Mondphase; MID nutzt diese Tageswerte vorrangig und behält die lokale Astronomieberechnung als robusten Fallback.

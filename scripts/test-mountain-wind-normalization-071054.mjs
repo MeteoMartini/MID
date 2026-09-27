@@ -13,6 +13,8 @@ assert.match(weather,/const adjusted=!Number\.isFinite\(gustValue\)\|\|gustValue
 assert.match(weather,/return\{wind:base,gust:adjusted\?base:gustValue,adjusted\};/,'unplausible Böen müssen punktweise auf Windniveau angeglichen werden, ohne den Windwert zu verändern');
 assert.match(weather,/windPair=validateWindPair\(n\(w\.hourly\.wind_speed_10m\[i\],0\),n\(w\.hourly\.wind_gusts_10m\[i\],0\)\)/,'Stundenmapping muss Wind/Böen plausibilisieren');
 assert.match(app,/const currentWindPair=validateWindPair\(windSpeed,windGust\),displayWindSpeed=currentWindPair\.wind,displayWindGust=currentWindPair\.gust;/,'Aktuelle Windkachel muss plausible Wind-/Böenwerte nutzen');
-assert.match(app,/windPair=validateWindPair\(windSpeed,gust\)/,'Bergstufen müssen Wind/Böen plausibilisieren');
+assert.match(app,/validateWindPair\(row\.wind,row\.gust\)/,'Stündliche Bergstufen müssen Wind/Böen plausibilisieren');
+assert.match(app,/windPair=validateWindPair\(day\.wind,day\.gust\)/,'Tageszeilen der Bergstufen müssen Wind/Böen plausibilisieren');
+assert.match(app,/validateWindPair\(period\.wind,period\.gust\)/,'Geöffnete Berg-Zeitintervalle müssen Wind/Böen plausibilisieren');
 assert.match(css,/\.mountain-indicators\{display:grid;grid-template-columns:repeat\(auto-fit,minmax\(118px,1fr\)\)/,'Bergindikatoren müssen für zusätzliche Kacheln flexibel umbrechen');
 console.log('Berg-/Wintersport und Wind/Böen-Plausibilisierung geprüft: Wind bleibt unverändert, Böen werden nur punktweise bei fehlenden oder kleineren Werten angeglichen.');

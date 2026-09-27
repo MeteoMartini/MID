@@ -26,7 +26,7 @@ for(const token of [
  '<b>{currentWeatherLabel}</b>',
  'function mountainPrecipitationParts',
  'parts=mountainPrecipitationParts(source)',
- 'code:part.displayCode',
+ 'mountainHourlyPresentationParts(level,row.index)',
  'summarizeDwdWarningsForDay(hours,day.date,elevation)',
  'hz=dailyHazards(d,hours,elevation,unit,1)',
  'hz:strongestDailyHazards(widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone))'

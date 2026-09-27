@@ -1,0 +1,29 @@
+/* MID v0.9.85.108 · iPad-Hochformat: Bergwetter-Tageszeilen ohne horizontalen Overflow.
+   Zwischen Tablet- und Mobilbreiten dürfen die Inhalts-Spalten unter ihre Desktop-Minima schrumpfen;
+   Werte bleiben lesbar und umbrechen statt den Forecast-Container zu verbreitern. */
+@media (min-width:621px) and (max-width:980px){
+ .mountain-day-toggle{
+  grid-template-columns:minmax(0,1.05fr) minmax(28px,.42fr) minmax(0,1.1fr) 24px;
+ }
+ .mountain-day-toggle>span{
+  min-width:0;
+  max-width:100%;
+ }
+ .mountain-day-temperature>b,
+ .mountain-day-wind>b,
+ .mountain-day-precip>b,
+ .mountain-day-snowline>b,
+ .mountain-day-sunshine>b{
+  min-width:0;
+  max-width:100%;
+ }
+ .mountain-day-sunshine>b{
+  white-space:normal;
+  overflow-wrap:anywhere;
+ }
+ .mountain-day-precip>em>span,
+ .mountain-day-snow-value{
+  min-width:0;
+  overflow-wrap:anywhere;
+ }
+}

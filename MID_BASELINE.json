@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.107",
+  "releaseVersion": "0.9.85.108",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,8 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-open-meteo-lunar-daily-0985108.mjs",
+    "scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs",
     "scripts/test-mountain-visual-acceptance-18213.mjs",
     "scripts/test-chatgpt-github-write-contract-098510.mjs",
     "scripts/test-mid-collaboration-hardening-0985106.mjs",
@@ -535,6 +537,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-open-meteo-lunar-daily-0985108.mjs",
     "scripts/test-thunder-unused-parameter-buildfix-081911.mjs",
     "scripts/test-thunder-place-compact-capitalization-081912.mjs",
     "scripts/test-hyperlocal-quality-audit-08200.mjs",
@@ -981,6 +984,10 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs"
   ],
   "requiredFiles": [
+    "scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs",
+    "scripts/test-open-meteo-lunar-daily-0985108.mjs",
+    "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
+    "MID_OPEN_METEO_WATCH_0.9.85.108.md",
     ".github/workflows/install-mid.yml",
     ".github/workflows/mid-ruc-cloudflare-bootstrap.yml",
     ".github/workflows/mid-ruc-preprocess.yml",
@@ -2315,9 +2322,11 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs"
   ],
-  "version": "0.9.85.107",
-  "updatedAt": "2026-09-24T04:50:00.000Z",
+  "version": "0.9.85.108",
+  "updatedAt": "2026-09-27T21:30:00.000Z",
   "implementationFiles": [
+    "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
+    "MID_OPEN_METEO_WATCH_0.9.85.108.md",
     "MID_IMPLEMENTATION_0.9.85.106.md",
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",

@@ -17,7 +17,8 @@ const need=(label,text,token)=>assert.ok(text.includes(token),`${label}: ${token
 need('Kanonischer DWD-Grenzvertrag',dwd,"export function dwdWindThresholdExceededKmh(kmh:number,threshold:number){return threshold===50||threshold===140?kmh>threshold:kmh>=threshold}");
 need('Kanonische Böenstufe',dwd,'export function dwdWindWarningLevelKt');
 need('App nutzt zentrale Böenstufe',app,'function windDirectionWarningLevel(gust?:number){return dwdWindWarningLevelKt(Number(gust))}');
-need('Bergwetter nutzt zentrale Schwellen',app,'dwdWindThresholdExceededKmh(kmh,item.threshold)');
+need('Bergwetter plausibilisiert sichtbaren Wind und Böen',app,'const pair=validateWindPair(row.wind,row.gust)');
+need('Bergwetter reicht plausibilisierte Böe an den zentralen Windpfeil',app,'<WindDirectionArrow direction={row.direction} gust={pair.gust}/>');
 need('Widget bestimmt den letzten tatsächlich ausgewählten Hinweistag',app,'widgetHazardThroughDate=days[Math.max(0,Math.min(n,days.length)-1)]?.date');
 need('Widget nutzt automatische MID-Hinweise für den vollständigen ausgewählten Zeitraum',app,'automaticWidgetHazards=useMemo(()=>hazards(hours,undefined,elevation??0,unit,undefined,widgetHazardThroughDate)');
 need('Widget-Hinweishorizont ist vom gewählten Zeitraum abhängig',app,'[hours,elevation,unit,widgetHazardThroughDate]');
