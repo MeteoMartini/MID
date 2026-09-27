@@ -984,6 +984,10 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs"
   ],
   "requiredFiles": [
+    "scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs",
+    "scripts/test-open-meteo-lunar-daily-0985108.mjs",
+    "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
+    "MID_OPEN_METEO_WATCH_0.9.85.108.md",
     ".github/workflows/install-mid.yml",
     ".github/workflows/mid-ruc-cloudflare-bootstrap.yml",
     ".github/workflows/mid-ruc-preprocess.yml",
@@ -2321,6 +2325,8 @@
   "version": "0.9.85.108",
   "updatedAt": "2026-09-27T21:30:00.000Z",
   "implementationFiles": [
+    "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
+    "MID_OPEN_METEO_WATCH_0.9.85.108.md",
     "MID_IMPLEMENTATION_0.9.85.106.md",
     "MID_IMPLEMENTATION_0.9.77.23.md",
     "MID_IMPLEMENTATION_0.9.77.27.md",
