@@ -70,7 +70,7 @@ jobs:
           blocked=()
           for path in "${changed[@]}"; do
             case "$path" in
-              .github/*|worker/*|ios/*|tools/*|MID_BASELINE.json|MID_SOURCE_OF_TRUTH.md|MID_COST_GOVERNANCE_CONTRACT.md|MID-professional-replacement.zip|package.json|package-lock.json|src/version.ts|public/version.json|public/manifest.webmanifest|capacitor.config.*|vite.config.*|wrangler*|.env|.env.*)
+              .github/*|ci/*|.agents/*|replit.md|AGENTS.md|MID_*CONTRACT.md|MID_BASELINE.json|MID_SOURCE_OF_TRUTH.md|MID-professional-replacement.zip|worker/*|worker-src/*|worker.js|ios/*|tools/*|workflow-patches/*|scripts/sync-github-workflows.mjs|scripts/sync-version.mjs|scripts/run-regressions.mjs|scripts/audit-production-dependencies.mjs|scripts/check-dependency-upgrade-policy.mjs|package.json|package-lock.json|src/version.ts|public/version.json|public/manifest.webmanifest|capacitor.config.*|vite.config.*|wrangler*|.env|.env.*)
                 blocked+=("$path")
                 ;;
             esac
