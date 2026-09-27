@@ -30,6 +30,7 @@ const twoStations=process.env.MID_MOUNTAIN_TWO_STATIONS==='1';
 const enrichmentMode=process.env.MID_MOUNTAIN_ENRICHMENT_MODE||'';
 const enrichmentOnly=process.env.MID_MOUNTAIN_ENRICHMENT_ONLY==='1';
 const soeldenFixture=process.env.MID_MOUNTAIN_FIXTURE_LOCATION==='soelden';
+const safetyOnly=process.env.MID_MOUNTAIN_SAFETY_ONLY==='1';
 if(!['','delayed','failure'].includes(enrichmentMode))throw new Error(`Unbekannter Zusatzdaten-Testmodus: ${enrichmentMode}`);
 if(enrichmentOnly&&!enrichmentMode)throw new Error('MID_MOUNTAIN_ENRICHMENT_ONLY benötigt MID_MOUNTAIN_ENRICHMENT_MODE.');
 const profile=await mkdtemp(path.join(os.tmpdir(),'mid-mountain-cdp-'));
@@ -172,6 +173,35 @@ async function verifyMountainSafetySurfaces(label){
  await clickAt('.mountain-methodology>summary');
  await waitForValue(`${label}: Methodikdetails geschlossen`,`!document.querySelector('.mountain-methodology')?.open`,Boolean);
  return state;
+}
+async function captureMountainScreenshot(filename){
+ await evaluate(`new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))`);
+ const image=await cdp('Page.captureScreenshot',{format:'jpeg',quality:84,fromSurface:true,captureBeyondViewport:false});
+ await writeFile(path.join(screenshotDir,filename),Buffer.from(image.result.data,'base64'));
+}
+async function verifySoeldenSafetyMatrix(){
+ assert.ok(soeldenFixture,'MID_MOUNTAIN_SAFETY_ONLY benötigt die isolierte Sölden-Testfixture.');
+ const safetyResults=[];
+ for(const viewport of viewports)for(const theme of themes){
+  await setViewport(viewport.width,viewport.height,theme);
+  await navigateToMountain();
+  await waitForValue(`${viewport.label} · ${theme}: aktive Bergansicht`,`document.querySelector('.mountain-ski')?.getBoundingClientRect().width||0`,value=>value>0,60000);
+  await clickButtonContaining('.mountain-season-control button','Winter');
+  await waitForValue(`${viewport.label} · ${theme}: Sölden-Winterprofil aktiv`,`document.querySelector('.mountain-current-rail')?.getAttribute('data-season')||''`,value=>value==='winter');
+  await waitForValue(`${viewport.label} · ${theme}: Amtliche Sölden-Warnung`,`document.querySelector('.mountain-winter-guidance .official-row .mountain-warning-row-heading>strong')?.textContent||''`,value=>value.includes('Schneefallwarnung'),30000);
+  safetyResults.push({viewport:viewport.label,theme,...await verifyMountainSafetySurfaces(`Sölden · ${viewport.label} · ${theme}`)});
+  if(screenshotDir){
+   await scrollMountainSafetyToTop();
+   await captureMountainScreenshot(`mountain-safety-${viewport.id}-${theme}.jpg`);
+   await evaluate(`(()=>{const e=document.querySelector('.mountain-methodology');if(e)window.scrollTo({top:Math.max(0,e.getBoundingClientRect().top+scrollY-8),behavior:'instant'})})()`);
+   await captureMountainScreenshot(`mountain-methodology-${viewport.id}-${theme}.jpg`);
+  }
+ }
+ if(visualDir){
+  const rows=safetyResults.map(row=>`| ${row.viewport} · ${row.theme} | ${row.location} | ${row.season} | ${row.level} | ${Math.round(row.rowHeight)} px | ${row.availability} |`).join('\n');
+  await writeFile(path.join(visualDir,'MID_18.2.15_B2_soelden_safety_matrix.md'),`# MID 18.2.15 B2 · Sölden Sicherheitsflächen\n\nIsolierter Browserkontext mit aktiviertem Winter-Bergprofil und einer amtlichen Warnungsfixture. Wetter- und Warnungsdaten sind Testmaterial, keine aktuelle Gefahrenlage.\n\n| Viewport · Theme | Ort | Saisonprofil | Warnstufe | Warnzeilenhöhe | Quellenstatus |\n|---|---|---|---|---:|---|\n${rows}\n\nJeweils geprüft: Quelle, Warnart, Zeitraum, Verfügbarkeit, geschlossener Langtext mit funktionierender Detailöffnung, Lawinenquelle/Stand/Verfügbarkeit/Direktlink, vier Methodikzeilen und kein horizontaler Dokumentüberlauf. Warnungs-/Lawinen-Screenshots: \`screenshots/mountain-safety-*.jpg\`; Methodik-Screenshots: \`screenshots/mountain-methodology-*.jpg\`.\n`);
+ }
+ console.log(`MID 18.2.15 B2: Sölden-Winterprofil, amtliche Warnung, Lawinenstatus und Methodik in ${safetyResults.length} Viewport-/Theme-Kombinationen geprüft.${screenshotDir?` Screenshots und Matrix: ${path.relative(root,visualDir)}.`:''}`);
 }
 async function closeOpenMountainDays(){
  const open=await evaluate(`document.querySelector('.mountain-day-toggle[aria-expanded="true"]')?1:0`);
@@ -407,8 +437,10 @@ try{
    console.error(`Bergwetter-Browserdiagnose: ${diagnostic}\nBrowserfehler: ${JSON.stringify(browserErrors.slice(-20))}`);
   throw error;
  }
-  if(enrichmentMode)await verifyEnrichmentScenario(enrichmentMode);
-  if(enrichmentOnly){
+   if(enrichmentMode&&!safetyOnly)await verifyEnrichmentScenario(enrichmentMode);
+   if(safetyOnly){
+    await verifySoeldenSafetyMatrix();
+   }else if(enrichmentOnly){
    console.log(`Berg-Zusatzdaten: ${enrichmentMode==='delayed'?'Kernprognose vor verzögerter Diagnostik':'Diagnosefehler und Cache-Wiederöffnung'} geprüft.`);
   }else{
 
