@@ -2,6 +2,7 @@ name: MID Replit Handoff Gate
 run-name: Replit-Handoff sicher prüfen
 
 on:
+  create:
   push:
     branches:
       - 'replit/**'
@@ -26,8 +27,10 @@ jobs:
   validate_handoff:
     name: Replit-Handoff read-only prüfen
     if: >-
-      github.event_name != 'pull_request' ||
-      startsWith(github.head_ref, 'replit/')
+      (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'replit/')) ||
+      (github.event_name == 'push' && startsWith(github.ref_name, 'replit/')) ||
+      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'replit/')) ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -35,6 +38,7 @@ jobs:
       - name: Replit-Quellstand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event_name == 'create' && github.event.ref || github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
