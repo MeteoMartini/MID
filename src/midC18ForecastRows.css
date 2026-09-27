@@ -94,6 +94,13 @@ html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-sun{disp
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-sun>b{font-size:11px!important;line-height:1.15!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-sun>small{font-size:10px!important;line-height:1.15!important}
 
+/* 14 Tage werden vollständig durch midC18FourteenReplitFluidGrid.css komponiert.
+   Diese schlanken Verträge halten die gemeinsame Forecast-Row-Familie und historische Regressionen stabil. */
+html[data-mid-design='next'] .cockpit-fourteen-card.mid-forecast-row{min-width:0!important}
+html[data-mid-design='next'] .cockpit-fourteen-skybar{min-width:0!important}
+html[data-mid-design='next'] .cockpit-fourteen-temp-track{display:none!important}
+html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detail{min-width:0!important}
+
 /* Tablet: Informationsgruppen bewusst auf zwei Zeilen verteilen. */
 @media(max-width:1100px){
  html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
