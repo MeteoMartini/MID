@@ -11,7 +11,7 @@ const [activeGate,canonicalGate,replit,contract,skill]=await Promise.all([
 ]);
 
 assert.equal(activeGate,canonicalGate,'Aktiver und kanonischer Replit-Handoff-Gate müssen bytegleich sein.');
-assert.ok(/on:\\n\\s+create:/m.test(activeGate),'Replit-Handoff-Gate muss auf Branch-Create reagieren.');
+assert.ok(activeGate.includes('on:\n  create:'),'Replit-Handoff-Gate muss auf Branch-Create reagieren.');
 assert.ok(activeGate.includes("github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'replit/')"),'Create-Event muss ausschließlich fertige replit/*-Branches aktiv prüfen.');
 assert.ok(activeGate.includes("ref: ${{ github.event_name == 'create' && github.event.ref || github.sha }}"),'Checkout muss beim Create-Event den neu angelegten Handoff-Branch laden.');
 assert.ok(activeGate.includes("github.event_name == 'push' && startsWith(github.ref_name, 'replit/')"),'Klassische replit/*-Pushes müssen weiterhin geprüft werden.');
