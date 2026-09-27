@@ -27,9 +27,11 @@ Der sichtbare Höhen-Kernforecast hat Vorrang vor optionalen Open-Meteo-Anreiche
 
 Für das aktuelle Wetter wird ein kontinuierlicher hyperlokal analysierter Bewölkungs-Prozentwert nicht mehr durch einfache Rundung zu einer scheinbar diskreten 8/8-Beobachtung. Bei dieser analysierten Prozentdarstellung ist 8/8 „Bedeckt“ vollständiger Bedeckung von 100 % vorbehalten; darunter bleibt die Textklassifikation höchstens 7/8. Direkte diskrete amtliche Beobachtungen werden dadurch nicht umgedeutet.
 
+Der Open-Meteo-Watch vom 27.09.2026 ist in diesen Stand integriert: Der Daily-Kernforecast fordert zusätzlich `moonrise`, `moonset` und `moon_phase` an. Diese Werte werden für den lokalen Kalendertag primär verwendet; die bestehende lokale Astronomieberechnung bleibt als Fallback und für Beleuchtung, Mondalter, Phasenbezeichnung, Neu-/Vollmondabstand und Finsternisse erhalten. Der Worker-Core-Cache trägt deshalb Schema `v4`. Für die heute geprüften DMI-HARMONIE- und CMC/GEM-Pfade wurde kein belastbarer Breaking Change gefunden; Modellkennungen werden nicht auf Verdacht geändert. Detailvertrag: `MID_OPEN_METEO_WATCH_0.9.85.108.md`.
+
 Responsive Zielmatrix: 390×844, 430×932, 412×915, 834×1194, 1194×834 und 1440×900, jeweils Light/Dark. Das stündliche Höhenraster darf intern horizontal scrollen, aber die Dokumentbreite nicht erweitern. Mobile interaktive Ziele bleiben mindestens 44 CSS-Pixel groß.
 
-Required Regressions: `scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs`, `scripts/test-current-hyperlocal-sky-083311.mjs`, `scripts/test-mountain-progressive-ui.mjs`, `scripts/test-mountain-visual-acceptance-18213.mjs`, `scripts/test-mountain-persistence-layout-071063.mjs`, `scripts/test-mountain-wind-normalization-071054.mjs`, `scripts/test-pictogram-intensity-snow-depth-098426.mjs`, `scripts/test-mountain-forecast-collapse-08153.mjs`. Detailvertrag: `MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md`.
+Required Regressions: `scripts/test-open-meteo-lunar-daily-0985108.mjs`, `scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs`, `scripts/test-current-hyperlocal-sky-083311.mjs`, `scripts/test-mountain-progressive-ui.mjs`, `scripts/test-mountain-visual-acceptance-18213.mjs`, `scripts/test-mountain-persistence-layout-071063.mjs`, `scripts/test-mountain-wind-normalization-071054.mjs`, `scripts/test-pictogram-intensity-snow-depth-098426.mjs`, `scripts/test-mountain-forecast-collapse-08153.mjs`. Detailvertrag: `MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md`.
 
 ## v0.9.85.107 · MID 18.2.15 kompakte Vorhersage- und Bergwetteransichten
 
