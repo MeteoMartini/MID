@@ -10,6 +10,8 @@ Die Rulesets für `chatgpt/*` und `codex/*` bleiben aktiv. Wenn der ChatGPT-GitH
 
 Replit verwendet diesen Broker nicht; Replit bleibt ausschließlich im `replit/*`-Handoff-Bereich.
 
+Nach abgeschlossenem Bootstrap enthält der Ruleset `MID Trusted Agent Branches` keinen RepositoryRole-/Admin- und keinen dauerhaften Benutzer-Bypass. Als dauerhafte Bypass-Akteure sind nur die dafür vorgesehenen Apps zulässig: `ChatGPT Codex Connector · openai` und `MID Release Bot MeteoMartini`. Der Release Bot nutzt diese zusätzliche Agent-Ref-Berechtigung ausschließlich über den vorstehenden Broker; sein Production-Branch-Vertrag bleibt unverändert.
+
 ## Verbindlicher Ablauf
 
 1. Agent ändert ausschließlich den Quellstand auf Basis des aktuellen `mid-stable`-Stands.
