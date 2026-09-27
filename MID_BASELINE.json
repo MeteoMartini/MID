@@ -14,6 +14,8 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-mountain-visual-acceptance-18213.mjs",
+    "scripts/test-chatgpt-github-write-contract-098510.mjs",
     "scripts/test-mid-collaboration-hardening-0985106.mjs",
     "scripts/test-baseline-079526-contract.mjs",
     "scripts/test-popover-regression.mjs",
