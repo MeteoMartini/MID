@@ -155,7 +155,7 @@ async function verifyMountainSafetySurfaces(label){
  assert.ok(state.source.includes('DWD')&&state.availability==='Abruf erfolgreich',`${label}: Amtliche Quelle oder Verfügbarkeit fehlen (${state.source}; ${state.availability}).`);
  assert.ok(state.descriptionClosed&&state.detailParagraphCount>0,`${label}: Der amtliche Langtext ist im geschlossenen Zustand sichtbar oder das Disclosure fehlt (${JSON.stringify(state)}).`);
  assert.ok(state.rowHeight>0&&state.rowHeight<240,`${label}: Die Warnungszeile ist nicht kompakt (${state.rowHeight}px).`);
- assert.ok(state.avalancheSource.includes('Lawinen.report')&&state.avalancheSource.includes('Stand / Aktualität')&&state.avalancheSource.includes('Verfügbarkeit'),`${label}: Lawinenquelle, Aktualität oder Verfügbarkeit fehlen.`);
+ assert.ok(state.avalancheSource.includes('Lawinen.report')&&state.avalancheSource.includes('Stand / Aktualität')&&state.avalancheSource.includes('Verfügbarkeit'),`${label}: Lawinenquelle, Aktualität oder Verfügbarkeit fehlen (${JSON.stringify({avalancheSource:state.avalancheSource,avalancheLink:state.avalancheLink})}).`);
  assert.ok(state.avalancheLink.startsWith('https://avalanche.report/'),`${label}: Der separate offizielle Lawinenlink fehlt (${state.avalancheLink}).`);
  assert.ok(state.methodologyClosed&&state.methodologyRows===4,`${label}: Die Methodikdetails fehlen oder sind nicht gegliedert.`);
  assert.ok(state.documentWidth<=state.viewportWidth+1,`${label}: Sicherheitsflächen verursachen horizontalen Überlauf.`);
