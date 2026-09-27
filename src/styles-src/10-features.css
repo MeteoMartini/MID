@@ -889,6 +889,10 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-matrix-row>span.mountain-precip-moderate small{color:color-mix(in srgb,#061522 70%,var(--muted))}
 .mountain-matrix-row>span.mountain-precip-heavy{background:#0b4f91;color:#fff;font-weight:850;box-shadow:inset 0 0 0 1px #073a6d}
 .mountain-matrix-row>span.mountain-precip-heavy small{color:rgba(255,255,255,.86)}
+.mountain-matrix-row>span.mountain-snowfall-trace{background:color-mix(in srgb,var(--param-precipitation-snow) 10%,var(--surface))}
+.mountain-matrix-row>span.mountain-snowfall-light{background:color-mix(in srgb,var(--param-precipitation-snow) 20%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--param-precipitation-snow) 38%,var(--border))}
+.mountain-matrix-row>span.mountain-snowfall-moderate{background:color-mix(in srgb,var(--param-precipitation-snow) 34%,var(--surface));color:var(--text);font-weight:800}
+.mountain-matrix-row>span.mountain-snowfall-heavy{background:color-mix(in srgb,var(--param-precipitation-snow) 52%,var(--surface));color:var(--text);font-weight:850;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--param-precipitation-snow) 62%,var(--border))}
 [data-theme="dark"] .mountain-matrix-row>span.mountain-precip-moderate{color:#f3f8fc}
 [data-theme="dark"] .mountain-matrix-row>span.mountain-precip-moderate small{color:rgba(243,248,252,.82)}
 
@@ -1559,24 +1563,27 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-peak-indicators[data-season="summer"]>.mountain-indicator-daylight{order:6}
 .mountain-peak-indicators[data-season="summer"]>.mountain-indicator-snowline{order:7}
 .mountain-peak-indicators[data-season="summer"]>.mountain-indicator-uv{order:8}
-.mountain-winter-guidance{display:grid;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.mountain-winter-guidance{display:grid;gap:7px;margin:9px 0;padding:9px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
 .mountain-winter-guidance>header{display:flex;align-items:flex-start;gap:9px}
 .mountain-winter-guidance>header>svg{flex:0 0 auto;color:var(--primary)}
 .mountain-winter-guidance>header>span{display:grid;gap:3px;min-width:0}
-.mountain-winter-guidance>header strong{font-size:13px}
-.mountain-winter-guidance>header small,.mountain-winter-source-note{color:var(--muted);font-size:9px;line-height:1.4}
+.mountain-winter-guidance>header strong{font-size:11px}
+.mountain-winter-guidance>header small,.mountain-winter-source-note{color:var(--muted);font-size:8px;line-height:1.35}
 .mountain-winter-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.mountain-winter-source{display:grid;align-content:start;gap:7px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:11px;background:var(--s2)}
-.mountain-winter-source>div{display:grid;gap:3px}
+.mountain-winter-source{display:grid;align-content:start;gap:5px;min-width:0;padding:8px;border:1px solid var(--border);border-radius:11px;background:var(--s2)}
+.mountain-winter-source>div{display:grid;gap:2px}
 .mountain-winter-source>div>small{color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.07em}
-.mountain-winter-source>div>strong{font-size:11px}
+.mountain-winter-source>div>strong{font-size:10px}
 .mountain-winter-source-note,.mountain-warning-state{margin:0}
-.mountain-winter-source ul{display:grid;gap:7px;margin:0;padding:0;list-style:none}
-.mountain-winter-source li{display:grid;gap:3px;padding-top:7px;border-top:1px solid var(--border)}
-.mountain-winter-source li>strong{font-size:10px}
-.mountain-winter-source li>small{color:var(--muted);font-size:8px;line-height:1.35}
-.mountain-winter-source li>p{margin:2px 0 0;color:var(--muted);font-size:9px;line-height:1.4}
-.mountain-warning-state{color:var(--muted);font-size:9px;line-height:1.4}
+.mountain-winter-source ul{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.mountain-winter-source li{display:grid;gap:2px;padding-top:5px;border-top:1px solid var(--border)}
+.mountain-winter-source li>strong{font-size:9px}
+.mountain-winter-source li>small{color:var(--muted);font-size:7.5px;line-height:1.3}
+.mountain-winter-source li>p,.mountain-warning-details p{margin:2px 0 0;color:var(--muted);font-size:8px;line-height:1.35}
+.mountain-warning-details{min-width:0}
+.mountain-warning-details>summary{display:flex;align-items:center;min-height:30px;color:var(--primary);font-size:8px;font-weight:750;cursor:pointer}
+.mountain-warning-details p>b{color:var(--text)}
+.mountain-warning-state{color:var(--muted);font-size:8px;line-height:1.35}
 .mountain-warning-state.unavailable{color:var(--warning,#b7791f)}
 .mountain-zone-rapid-note{margin:0;padding:8px 9px;border-left:3px solid var(--primary);border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--primary) 6%,var(--surface));color:var(--muted);font-size:9px;line-height:1.4}
 @media(max-width:980px){
@@ -1664,7 +1671,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-period-grid th,.mountain-period-grid td{padding:5px 6px}
 .mountain-winter-guidance{gap:8px;margin:9px 0;padding:9px}
 .mountain-winter-guidance>header{gap:7px}
-.mountain-winter-guidance>header strong{font-size:12px}
+.mountain-winter-guidance>header strong{font-size:11px}
 .mountain-winter-guidance>header small,.mountain-winter-source-note{font-size:8px;line-height:1.35}
 .mountain-winter-sources{gap:7px}
 .mountain-winter-source{gap:5px;padding:8px}
@@ -1676,11 +1683,16 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-zone-analysis{gap:7px;margin-top:8px;padding:9px}
 .mountain-zone-analysis article{gap:5px;padding:8px}
 .mountain-links{display:flex;align-items:stretch;flex-wrap:wrap;gap:6px;margin-top:8px}
-.mountain-links>a,.mountain-methodology{min-width:0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.mountain-links>a,.mountain-methodology,.mountain-avalanche-source{min-width:0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
 .mountain-links>a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 9px;font-size:9px}
+.mountain-avalanche-source{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1 1 280px;padding:7px 9px}
+.mountain-avalanche-source>div{display:grid;gap:2px;min-width:0}
+.mountain-avalanche-source>div>strong{font-size:9px}
+.mountain-avalanche-source>div>small{color:var(--muted);font-size:7.5px;line-height:1.3}
+.mountain-avalanche-source>a{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;min-height:34px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:8px;font-weight:750;text-decoration:none}
 .mountain-methodology{flex:1 1 240px}
 .mountain-methodology>summary{display:flex;align-items:center;min-height:36px;padding:7px 9px;font-size:9px;font-weight:800;cursor:pointer}
-.mountain-methodology>p{margin:0;padding:0 9px 9px;color:var(--muted);font-size:8px;line-height:1.4}
+.mountain-methodology-list{display:grid;gap:4px;margin:0;padding:0 10px 9px 25px;color:var(--muted);font-size:8px;line-height:1.35}
 @media(max-width:980px){
  .mountain-day-toggle{gap:6px 5px;padding:8px}
 }
@@ -1692,8 +1704,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .mountain-winter-guidance{gap:7px;margin:8px 0;padding:8px}
  .mountain-winter-sources{gap:6px}
  .mountain-winter-source{padding:7px}
- .mountain-links>a,.mountain-methodology>summary{min-height:44px}
+  .mountain-links>a,.mountain-methodology>summary,.mountain-avalanche-source>a,.mountain-warning-details>summary{min-height:44px}
  .mountain-methodology{flex-basis:100%}
+  .mountain-avalanche-source{flex-basis:100%}
  .mountain-period-grid tbody{gap:6px}
  .mountain-period-grid tbody tr{gap:5px 8px;padding:8px}
  .mountain-period-grid td[data-label]::before{font-size:7.5px}

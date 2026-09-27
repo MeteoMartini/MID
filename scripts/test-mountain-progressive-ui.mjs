@@ -16,6 +16,15 @@ const [app,mountain,forecast,fluidGrid,styles]=await Promise.all([
 assert.match(app,/className="mountain-enrichment-disclosure"/,'additional-data status must be a disclosure');
 assert.doesNotMatch(app,/mountain-enrichment-status/,'individual enrichment results must not remain permanently visible');
 assert.match(app,/className="mountain-methodology"/,'safety and methodology copy must remain available in a closed disclosure');
+assert.match(app,/className="mountain-methodology-list"/,'mountain methodology must be split into short factual points');
+assert.match(app,/className="mountain-avalanche-source"/,'the official avalanche source must have a compact source/status block');
+assert.match(app,/aktuelle Einstufung direkt bei der Quelle prüfen/,'avalanche status must point to the external authority without inventing a local level');
+assert.match(app,/className="mountain-warning-details"/,'long official warning text must be hidden in a disclosure');
+assert.match(app,/className="mountain-warning-details automatic"/,'long automatic MID hint text must be separate from its compact metadata');
+assert.match(app,/Warnstufe \$\{mountainWarningLevelLabel\(alert\.level\)\}/,'the official warning level must remain visible');
+assert.match(app,/mountainWinterKindLabel\(item\.kind\),`Warnstufe \$\{mountainWarningLevelLabel\(item\.level\)\}`/,'automatic hint kind, level, and period must remain in compact metadata');
+const winterGuidance=app.slice(app.indexOf('function MountainWinterGuidance'),app.indexOf('function MountainRapidDataNotice'));
+assert.doesNotMatch(winterGuidance,/ChatGPT|Agent|Prompt|agent|prompt/,'winter warning copy must not contain agent or prompt metadata');
 assert.match(app,/const zones=open\?mountainZoneAssessments\(data,daylight,rapidMinutes15\):\[\]/,'zone assessment work must remain deferred until the panel opens');
 assert.match(mountain,/priority:'background'/,'mountain diagnostics must use background request priority');
 assert.match(mountain,/void fetchMountainDiagnostics\(points,signal\)/,'diagnostics must not block the core forecast result');
@@ -38,6 +47,8 @@ assert.match(forecast,/Number\.isFinite\(bestMatchDay\?\.uvMax\)\?formatUvi\(bes
 assert.match(forecast,/<FourteenDaySunUvi date={item\.date} days={days} sunshineSeconds={item\.bestSunshineDuration}\/>/,'14-day sunshine and UVI must share the existing compact metadata group');
 assert.match(fluidGrid,/\.cockpit-fourteen-compact-meta\{[\s\S]*?grid-template-columns/,'14-day metadata must stay in its compact grid');
 assert.match(fluidGrid,/\.cockpit-fourteen-sun-uvi\{[\s\S]*?white-space:nowrap/,'sunshine/UVI must remain inline rather than add a card row');
+assert.match(fluidGrid,/\.cockpit-fourteen-sun-uvi>b\{font-size:10px!important/,'the actual 14-day sunshine value must be large enough to read on mobile');
+assert.match(fluidGrid,/\.cockpit-fourteen-sun-uvi>small\{font-size:9px!important/,'the actual 14-day UVI value must not use legacy microtext sizing');
 assert.match(styles,/\.mountain-loading\{[^}]*padding:6px 0/,'the initial mountain loading indicator must be compact');
 assert.match(styles,/\.mountain-enrichment-disclosure>summary\{[^}]*min-height:44px/,'the closed enrichment disclosure summary must preserve a 44px touch target');
 assert.match(styles,/\.mountain-enrichment-content\{display:grid;gap:5px;padding:6px 8px 2px\}/,'opened enrichment statuses must use a compact grid');

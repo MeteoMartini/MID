@@ -17,10 +17,15 @@ need(app,'Wolkenbasis (NHN)','Bezugsniveau der Wolkenbasis ist nicht ausgewiesen
 need(app,'m ü. Grund','relative Wolkenbasishöhe über dem Stationsniveau fehlt.');
 need(app,'mountainWindWarningMeta','Wind-Warnstufenklasse fehlt.');
 need(app,'mountainPrecipitationClass','Niederschlagsintensitätsklasse fehlt.');
+need(app,'function mountainSnowfallClass','eigene, nach Schneemenge gestaffelte Schneefallklasse fehlt.');
+need(app,'cellClass={point=>mountainSnowfallClass(point.snow)}','Schneefallzellen verwenden nicht ihre eigene Intensitätsklasse.');
+need(app,'className="mountain-matrix-snowfall"','Schneefallmenge fehlt in der Matrixzelle.');
 need(styles,'mountain-wind-warning-50','schwache Einfärbung der ersten Windwarnstufe fehlt.');
 need(styles,'mountain-wind-warning-140','Einfärbung der höchsten Windwarnstufe fehlt.');
 need(styles,'mountain-precip-trace','blasse Niederschlagseinfärbung fehlt.');
 need(styles,'mountain-precip-heavy','dunkelblaue Niederschlagseinfärbung fehlt.');
 need(styles,'.mountain-matrix-row>span.mountain-precip-heavy small{color:rgba(255,255,255,.86)}','Textkontrast bei starkem Niederschlag ist nicht abgesichert.');
+for(const intensity of ['trace','light','moderate','heavy'])need(styles,`mountain-snowfall-${intensity}`,`MID-Schneefallfarbe für Intensität ${intensity} fehlt.`);
+need(styles,'mountain-snowfall-trace{background:color-mix(in srgb,var(--param-precipitation-snow)','Schneefallfarbe muss aus dem MID-Schneeparameter stammen.');
 if(failures.length){console.error('Höhenwetter-Farb-/Wolkenplausibilitätsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Höhenwetter geprüft: Windwarnfarben, Niederschlagsintensität, NHN-Bezug und Sichtkorrektur in dichter Wolkenschicht.');
+console.log('Höhenwetter geprüft: Windwarnfarben, getrennte Regen-/Schneefallintensitäten, NHN-Bezug und Sichtkorrektur in dichter Wolkenschicht.');

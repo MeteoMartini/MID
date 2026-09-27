@@ -179,6 +179,11 @@ async function verifyMountainMatrix(label){
  for(const [role,station] of [['valley','Talstation'],['middle','Mittelstation'],['summit','Bergstation']])if(expectedRoles.includes(role))assert.ok(visible.headers[expectedRoles.indexOf(role)].startsWith(station),`${label}: Rollenlabel ${station} fehlt (${visible.headers.join(' | ')}).`);
  assert.ok(visible.windArrows>0,`${label}: Matrix-Windrichtungspfeile fehlen.`);
  assert.ok(visible.windWarningCells>0,`${label}: Warnfarben für starke Matrix-Böen fehlen.`);
+ const snowfallCells=JSON.parse(await evaluate(`(()=>{const rows=[...document.querySelectorAll('.mountain-matrix-row')].filter(node=>node.querySelector(':scope > b')?.textContent.trim()==='Schneefall');return JSON.stringify(rows.flatMap(row=>[...(row.querySelectorAll(':scope > span')||[])].map(cell=>({className:cell.className,background:getComputedStyle(cell).backgroundColor,text:cell.textContent.trim()}))))})()`));
+ const coloredSnowfall=snowfallCells.filter(cell=>String(cell.className).includes('mountain-snowfall-'));
+ assert.ok(coloredSnowfall.length>0,`${label}: visual fixture contains no snowfall cell with its own amount class (${JSON.stringify(snowfallCells)}).`);
+ assert.ok(coloredSnowfall.every(cell=>!cell.className.includes('mountain-precip-')&&cell.background!=='rgba(0, 0, 0, 0)'),`${label}: snowfall must have a visible snow-specific area color, separate from liquid precipitation.`);
+ assert.ok(coloredSnowfall.some(cell=>cell.className==='mountain-snowfall-light'),`${label}: the 3-h snowfall total must use its light snow-specific intensity class (${JSON.stringify(coloredSnowfall)}).`);
  assert.ok(visible.timeCells>0&&visible.threeHourSelected==='3 h',`${label}: 3-h-Ansicht ist nicht initial ausgewählt.`);
   assert.ok(visible.scroll&&['auto','scroll'].includes(visible.scroll.overflowX),`${label}: Höhenvergleich besitzt keinen eigenen horizontalen Scrollbereich.`);
   assert.notEqual(visible.scroll.touchAction,'none',`${label}: Touch-Panning im Höhenvergleich ist deaktiviert.`);
@@ -187,6 +192,8 @@ async function verifyMountainMatrix(label){
  await clickButtonContaining('.mountain-matrix-controls button','1 h');
  const oneHourCells=await waitForValue(`${label}: 1-h-Auflösung`,`document.querySelector('.mountain-matrix-level .mountain-matrix-row')?.querySelectorAll(':scope > span').length||0`,value=>value>threeHourCells);
  assert.ok(oneHourCells>threeHourCells,`${label}: 1-h-Auflösung zeigt nicht mehr Zeitpunkte als 3 h (${oneHourCells}/${threeHourCells}).`);
+ const oneHourSnowfall=JSON.parse(await evaluate(`(()=>{const rows=[...document.querySelectorAll('.mountain-matrix-row')].filter(node=>node.querySelector(':scope > b')?.textContent.trim()==='Schneefall');return JSON.stringify(rows.flatMap(row=>[...(row.querySelectorAll(':scope > span')||[])].map(cell=>({className:cell.className,text:cell.textContent.trim()}))))})()`));
+ assert.ok(oneHourSnowfall.some(cell=>cell.className==='mountain-snowfall-trace'),`${label}: 1-h snowfall must use the distinct trace class for its smaller amount (${JSON.stringify(oneHourSnowfall)}).`);
  await clickButtonContaining('.mountain-matrix-controls button','3 h');
  await waitForValue(`${label}: 3-h-Auflösung wiederhergestellt`,`document.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||''`,value=>value==='3 h');
   if(visible.viewportWidth<=850)await verifyMatrixTouchAccess(label);
@@ -228,7 +235,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode){
    for(const pressure of [1000,950,925,900,850,800,700,600])keys.push('cloud_cover_'+pressure+'hPa','geopotential_height_'+pressure+'hPa');
    for(const key of keys)hourly[key]=times.map((time,i)=>{
     const localHour=Number(time.slice(11,13)),isDay=localHour>=7&&localHour<19?1:0,hoursFromNow=(localHour-currentLocalHour+24)%24,wet=hoursFromNow<=3||(localHour>=8&&localHour<=13);
-    const snow=wet&&point.role>0?.65:0,precip=wet?(point.role===0?1.2:2.3):0;
+    const snow=point.role>0&&isDay?0.35:0,precip=wet?(point.role===0?1.2:2.3):0;
     const values={
      temperature_2m:point.temp+Math.sin(i/8)*2,apparent_temperature:point.temp-5,
      relative_humidity_2m:wet?94:70,dew_point_2m:point.temp-3,
