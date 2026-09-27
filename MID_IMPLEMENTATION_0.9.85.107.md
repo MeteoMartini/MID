@@ -18,4 +18,8 @@ Der sichere Replit-Handoff arbeitet mit vollständig erzeugten Git-Objekten und 
 
 Der gesicherte historische Replit-Arbeitsstand `replit/mid-18-2-15-progressive-mountain-weather` wurde korrekt über Git-Objekte und einen finalen Ref übertragen. Da der bisherige Workflow nur auf `push` lauschte, entstand bei diesem sicheren API-Handoff kein automatischer Gate-Lauf. v0.9.85.107 schließt genau diese Trigger-Lücke, ohne SSH-Schlüssel, künstliche Trigger-Commits oder weitergehende Replit-Rechte einzuführen.
 
-Required Regression: `scripts/test-replit-create-event-gate-0985107.mjs`.
+## Geschützter ChatGPT/Codex-Ref-Broker
+
+Die Trusted-Agent-Rulesets bleiben geschlossen. ChatGPT/Codex dürfen Git-Blobs, Trees und Commits ohne Ref-Änderung vorbereiten. Der feste Broker-Kanal Issue #176 akzeptiert ausschließlich eng formatierte Aufträge des Repository-Eigentümers für `chatgpt/*` oder `codex/*`. Der Broker validiert vollständige SHAs, eine identische aktuelle `main`-/`mid-stable`-Basis, Stable-Abstammung sowie bei bestehenden Branches einen echten Fast-Forward. Nur der dedizierte MID Release Bot erhält das kurzlebige Contents-Write-Token für den eigentlichen Ref-Write. `main`, `mid-stable`, Replit-Handoffs, Force-Updates, PRs, Releases und Deployments sind nicht Teil dieses Brokers.
+
+Required Regressions: `scripts/test-replit-create-event-gate-0985107.mjs`, `scripts/test-agent-ref-broker-0985107.mjs`.
