@@ -7,8 +7,9 @@ const [app,pkg]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- "import {hyperlocalSkyCondition} from './currentConditions';",
+ "import {analysedCloudOktas,hyperlocalSkyCondition} from './currentConditions';",
  "reconciledCurrentPrecip.type==='none'?hyperlocalSkyCondition({",
+ "cloudOktasValue=fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)?analysedCloudOktas(cloud):cloudOktas(cloud)",
  "currentCloudObserved=fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)",
  "cloudCover:currentSkyCloud",
  "cloudObserved:currentCloudObserved",
@@ -28,6 +29,9 @@ if(strong?.code!==3||strong?.label!=='Stark bewölkt'||strong?.cloudOktas!==7)fa
 
 const almostOvercast=hyperlocalSkyCondition({fallbackCode:3,cloudCover:94,visibility:10000,humidity:80,temperature:20,dewPoint:16,cloudObserved:true,visibilityObserved:true});
 if(almostOvercast?.label!=='Stark bewölkt'||almostOvercast?.cloudOktas!==7)failures.push('Kontinuierliche Fusionswerte unter 100 % dürfen nicht zu diskretem 8/8 aufgerundet werden: '+JSON.stringify(almostOvercast));
+
+const nearlyClosed=hyperlocalSkyCondition({fallbackCode:3,cloudCover:99,visibility:10000,humidity:80,temperature:20,dewPoint:16,cloudObserved:true,visibilityObserved:true});
+if(nearlyClosed?.label!=='Stark bewölkt'||nearlyClosed?.cloudOktas!==7)failures.push('Kontinuierliche Fusionswerte unter vollständiger Bedeckung dürfen nicht als 8/8 erscheinen: '+JSON.stringify(nearlyClosed));
 
 const overcast=hyperlocalSkyCondition({fallbackCode:2,cloudCover:100,visibility:10000,humidity:80,temperature:20,dewPoint:16,cloudObserved:true,visibilityObserved:true});
 if(overcast?.label!=='Bedeckt'||overcast?.cloudOktas!==8)failures.push('8/8 wird nicht als bedeckt klassifiziert: '+JSON.stringify(overcast));
