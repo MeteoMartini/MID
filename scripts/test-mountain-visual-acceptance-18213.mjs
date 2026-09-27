@@ -535,7 +535,12 @@ try{
    }
    await navigateToMountain();
    await waitForValue(`${viewport.label} · ${theme}: Aktive Bergansicht`,`document.querySelector('.mountain-ski')?.getBoundingClientRect().width||0`,value=>value>0,60000);
-    if(soeldenFixture)safetyResults.push({viewport:viewport.label,theme,...await verifyMountainSafetySurfaces(`Sölden · ${viewport.label} · ${theme}`)});
+    if(soeldenFixture){
+     await clickButtonContaining('.mountain-season-control button','Winter');
+     await waitForValue(`${viewport.label} · ${theme}: Sölden-Winterprofil aktiv`,`document.querySelector('.mountain-current-rail')?.getAttribute('data-season')||''`,value=>value==='winter');
+     await waitForValue(`${viewport.label} · ${theme}: Amtliche Sölden-Warnung`,`document.querySelector('.mountain-winter-guidance .official-row .mountain-warning-row-heading>strong')?.textContent||''`,value=>value.includes('Schneefallwarnung'),30000);
+     safetyResults.push({viewport:viewport.label,theme,...await verifyMountainSafetySurfaces(`Sölden · ${viewport.label} · ${theme}`)});
+    }
     await closeOpenMountainDays();
      await verifyMountainMatrix(`${twoStations?'Zwei':'Drei'} Stationen · ${viewport.label} · ${theme}`);
    const dayState=JSON.parse(await evaluate(`JSON.stringify({rows:document.querySelectorAll('.mountain-day-toggle:not(:disabled)').length,expanded:[...document.querySelectorAll('.mountain-day-toggle')].filter(button=>button.getAttribute('aria-expanded')==='true').length,periodCards:document.querySelectorAll('.mountain-period-card').length})`));
