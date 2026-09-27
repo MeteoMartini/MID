@@ -30,7 +30,7 @@ Der normale Handoff verwendet die verbundene GitHub-Integration/API und benötig
 - keine Secrets in Dateien oder Logs schreiben,
 - stattdessen ausschließlich die vorhandene GitHub-Integration für den `replit/*`-Ref verwenden.
 
-Vor dem Ref-Write sind Basis-SHA, Parent-SHA und Commit-SHA zu prüfen. Nach dem Write muss der Remote-Ref erneut gelesen werden und exakt auf den erwarteten Commit zeigen. Bei jeder Abweichung stoppen.
+Der finale Handoff-Commit wird vollständig erzeugt und verifiziert, bevor der Branch-Ref erstmals angelegt wird. Pro abgeschlossenem Handoff wird ein neuer `replit/*`-Branch verwendet; ein bereits geprüfter Handoff-Ref wird nicht nachträglich weitergeschoben. Vor dem Ref-Write sind Basis-SHA, Parent-SHA und Commit-SHA zu prüfen. Nach dem einmaligen Ref-Write muss der Remote-Ref erneut gelesen werden und exakt auf den erwarteten Commit zeigen. Das Anlegen des fertigen `replit/*`-Refs löst den read-only MID Replit Handoff Gate aus. Bei jeder Abweichung stoppen.
 
 ## Handoff an ChatGPT
 Am Ende jedes Arbeitspakets exakt melden:
