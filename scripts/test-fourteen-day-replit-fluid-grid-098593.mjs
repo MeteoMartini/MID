@@ -28,6 +28,10 @@ need('Vertikale Tagesliste',layout,"grid-template-columns:minmax(0,1fr)!importan
 need('Keine horizontale Kartenreihe',layout,'grid-auto-flow:row!important');
 need('Kompakter Tageskopf',layout,'grid-template-areas:"heading temps confidence"!important');
 need('Kompakte Metazeile',fourteen,'cockpit-fourteen-compact-meta');
+need('Sonne/UVI bleibt in der Metazeile',fourteen,'cockpit-fourteen-sun-uvi');
+need('Sonne/UVI nutzt lesbare Desktopgröße',layout,".cockpit-fourteen-sun-uvi>b{\n font-size:10px!important;");
+need('UVI nutzt lesbare Größe',layout,".cockpit-fourteen-sun-uvi>small{\n font-size:9.5px!important;");
+need('Sonne/UVI reserviert Breite statt Quetschung',layout,'min-width:max-content!important');
 need('Niederschlag direkt in Metazeile',fourteen,'className="precipitation"');
 need('Wind/Böen direkt in Metazeile',fourteen,'className={`wind warning-');
 need('Konfidenz bleibt im Tageskopf',fourteen,'<CockpitConsistencyPill');
