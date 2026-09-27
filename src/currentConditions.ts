@@ -13,7 +13,7 @@ type HyperlocalSkyInput={
 };
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
-function skyLabelFromOktas(oktas:number){if(oktas===0)return'Wolkenlos';if(oktas<=2)return'Gering bewölkt';if(oktas<=4)return'Aufgelockert bewölkt';if(oktas<=7)return'Stark bewölkt';return'Bedeckt'}\nfunction analysedCloudOktas(percent:number){const bounded=Math.max(0,Math.min(100,percent));if(bounded<=0)return 0;if(bounded>=99.5)return 8;return Math.max(1,Math.min(7,Math.round(bounded/12.5)))}
+function skyLabelFromOktas(oktas:number){if(oktas===0)return'Wolkenlos';if(oktas<=2)return'Gering bewölkt';if(oktas<=4)return'Aufgelockert bewölkt';if(oktas<=7)return'Stark bewölkt';return'Bedeckt'}\nexport function analysedCloudOktas(percent:number){const bounded=Math.max(0,Math.min(100,percent));if(bounded<=0)return 0;if(bounded>=99.95)return 8;return Math.max(1,Math.min(7,Math.round(bounded/12.5)))}
 
 /**
  * Leitet den sichtbaren aktuellen Himmelszustand ausschließlich aus frischen
