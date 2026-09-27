@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Replit ist die bevorzugte UI-/Design-Werkbank für MID. GitHub bleibt die alleinige Source of Truth und der einzige Veröffentlichungsweg. Replit darf Änderungen komfortabel in dasselbe Repository übergeben, aber niemals selbst einen produktiven MID-Release autorisieren.
+Replit ist die bevorzugte UI-/Design-Werkbank für MID. ChatGPT ist die alleinige Instanz, die MID-Arbeitsaufträge an Replit erteilt, deren Umfang festlegt und Ergebnisse zur Integration freigibt. GitHub bleibt die alleinige Source of Truth und der einzige Veröffentlichungsweg. Replit darf Änderungen komfortabel in dasselbe Repository übergeben, aber niemals selbst einen produktiven MID-Release autorisieren.
 
 ## Vertrauenszonen
 
@@ -15,7 +15,7 @@ Ein `replit/*`-Branch darf niemals direkt nach `main` oder `mid-stable` promoted
 
 ## Persistente Replit-Steuerung
 
-Die projektbezogenen Dauerregeln stehen in `replit.md` und dem versionierten Skill `.agents/skills/mid-handoff/SKILL.md`. Replit muss sie vor jedem MID-Arbeitspaket anwenden.
+Replit beginnt keine eigenständigen MID-Arbeitspakete. Jeder konkrete Design-/UI-Auftrag kommt von ChatGPT; Replit darf innerhalb dieses Rahmens technische Designvarianten ausarbeiten, übergibt sie aber immer zurück an ChatGPT. Die projektbezogenen Dauerregeln stehen in `replit.md` und dem versionierten Skill `.agents/skills/mid-handoff/SKILL.md`. Replit muss sie vor jedem MID-Arbeitspaket anwenden.
 
 Diese Dateien sowie `AGENTS.md`, dieser Vertrag, der Agent-Release-Vertrag, Source-of-Truth/Baseline und CI-/Release-Konfiguration sind Governance. Replit darf sie weder im eigenen Handoff ändern noch lokal als vermeintliche Problemlösung abschwächen. Änderungsbedarf wird im Handoff gemeldet und ausschließlich in einem geprüften `chatgpt/*`-/`codex/*`-Branch umgesetzt.
 
