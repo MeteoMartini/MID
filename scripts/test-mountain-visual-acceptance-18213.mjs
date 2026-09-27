@@ -437,7 +437,8 @@ try{
   assert.equal(initialDays.periodCards,0,'Stundenintervalle dürfen vor Öffnen eines Tages nicht sichtbar sein.');
    const selectedStations=[];
     const fixtureStationNames=soeldenFixture?['Talstation Giggijoch','Mittelstation Giggijoch','Bergstation Gaislachkogl']:['Talstation Sonnwies','Mittelstation Panoramaalm','Bergstation Hahnenkamm'];
-    const stationCases=twoStations?[['Tal',fixtureStationNames[0],'-2'],['Berg',fixtureStationNames[2],'-12']]:[['Tal',fixtureStationNames[0],'-2'],['Mitte',fixtureStationNames[1],'-7'],['Berg',fixtureStationNames[2],'-12']];
+     const fixtureStationElevations=soeldenFixture?['1380','2500','3340']:['1100','2200','3300'];
+     const stationCases=twoStations?[['Tal',fixtureStationNames[0],'-2'],['Berg',fixtureStationNames[2],'-12']]:[['Tal',fixtureStationNames[0],'-2'],['Mitte',fixtureStationNames[1],'-7'],['Berg',fixtureStationNames[2],'-12']];
    for(const [label,station,temp] of stationCases){
    await clickButtonContaining('.mountain-level-picker button',label);
    await waitForValue(`Stufenwechsel ${label}`,`document.querySelector('.mountain-current-heading strong')?.textContent||''`,value=>value.includes(station));
@@ -453,7 +454,7 @@ try{
       hourly:document.querySelector('.mountain-day-detail[role="region"]')?.getAttribute('aria-label')||'',
       hourlyHeading:document.querySelector('.mountain-day-detail-level')?.textContent.trim()||''
      })`));
-     for(const [view,labelText] of Object.entries(stationLabels))assert.ok(labelText.includes(station)&&labelText.includes('2200 m ü. NHN'),`Mittelstation/Höhe fehlt in der ${view}-Ansicht: ${JSON.stringify(stationLabels)}.`);
+     for(const [view,labelText] of Object.entries(stationLabels))assert.ok(labelText.includes(station)&&labelText.includes(`${fixtureStationElevations[1]} m ü. NHN`),`Mittelstation/Höhe fehlt in der ${view}-Ansicht: ${JSON.stringify(stationLabels)}.`);
     const missing=JSON.parse(await evaluate(`JSON.stringify({day:document.querySelector('.mountain-day-precip b')?.childNodes[0]?.textContent.trim()||'',period:document.querySelector('.mountain-period-precip b')?.textContent.trim()||''})`));
     assert.equal(missing.day,'–','Fehlender Tagesniederschlag muss als „–“ statt als 0 dargestellt werden.');
     assert.equal(missing.period,'–','Fehlender Intervallniederschlag muss als „–“ statt als 0 dargestellt werden.');
