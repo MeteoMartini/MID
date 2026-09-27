@@ -137,7 +137,8 @@ async function verifyMountainSafetySurfaces(label){
    metadata:official?.querySelector('.mountain-warning-metadata')?.innerText||'',
    source:official?.querySelector('.mountain-warning-source')?.textContent.trim()||'',
    availability:guidance?.querySelector('.official .mountain-source-availability>b')?.textContent.trim()||'',
-   descriptionClosed:Boolean(details&&!details.open&&details.querySelector('p')?.getClientRects().length===0),
+    descriptionClosed:Boolean(details&&!details.open),
+    detailParagraphCount:details?.querySelectorAll('p').length||0,
    rowHeight:official?.getBoundingClientRect().height||0,
    avalancheSource:avalanche?.querySelector('.mountain-avalanche-metadata')?.innerText||'',
    avalancheLink:avalanche?.querySelector('a')?.href||'',
@@ -152,7 +153,7 @@ async function verifyMountainSafetySurfaces(label){
  assert.ok(state.level.includes('Orange'),`${label}: Die amtlich gelieferte Stufe fehlt (${state.level}).`);
  assert.ok(state.metadata.includes('Schneefall')&&state.metadata.includes('Zeitraum')&&state.metadata.includes('Sölden'),`${label}: Warnart, Zeitraum oder Gebiet fehlen (${state.metadata}).`);
  assert.ok(state.source.includes('DWD')&&state.availability==='Abruf erfolgreich',`${label}: Amtliche Quelle oder Verfügbarkeit fehlen (${state.source}; ${state.availability}).`);
- assert.ok(state.descriptionClosed,`${label}: Der amtliche Langtext ist im geschlossenen Zustand sichtbar oder das Disclosure fehlt.`);
+ assert.ok(state.descriptionClosed&&state.detailParagraphCount>0,`${label}: Der amtliche Langtext ist im geschlossenen Zustand sichtbar oder das Disclosure fehlt (${JSON.stringify(state)}).`);
  assert.ok(state.rowHeight>0&&state.rowHeight<240,`${label}: Die Warnungszeile ist nicht kompakt (${state.rowHeight}px).`);
  assert.ok(state.avalancheSource.includes('Lawinen.report')&&state.avalancheSource.includes('Stand / Aktualität')&&state.avalancheSource.includes('Verfügbarkeit'),`${label}: Lawinenquelle, Aktualität oder Verfügbarkeit fehlen.`);
  assert.ok(state.avalancheLink.startsWith('https://avalanche.report/'),`${label}: Der separate offizielle Lawinenlink fehlt (${state.avalancheLink}).`);
