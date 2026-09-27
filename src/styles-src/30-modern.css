@@ -6526,3 +6526,18 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
  html[data-mid-design='next'] .short-term-signature{grid-template-columns:1fr;gap:6px;margin-inline:9px;padding-block:9px 7px}
  html[data-mid-design='next'] .short-term-signature .mid-weather-thread{height:26px}
 }
+
+/* MID 18.2.15 · kompaktere 7-/14-Tage-Zeilen mit sichtbaren Nachticons */
+.cockpit-seven-grid{gap:5px;padding-bottom:2px}
+.cockpit-day{gap:4px;padding:7px;border-radius:14px}
+.cockpit-day>.mid-weather-pictogram,.cockpit-fourteen-heading>.mid-weather-pictogram{overflow:visible!important;clip-path:none}
+.cockpit-day>.mid-weather-pictogram svg,.cockpit-fourteen-heading>.mid-weather-pictogram svg{overflow:visible!important}
+.cockpit-day-pop{min-width:0;gap:4px;line-height:1.2}
+.cockpit-day-sun{gap:3px;color:var(--param-sunshine);font-size:clamp(8px,.78vw,10px);line-height:1.2}
+.cockpit-day-sun>b{color:inherit;font-variant-numeric:tabular-nums}
+.cockpit-fourteen-grid{gap:5px}
+.cockpit-fourteen-card{gap:4px;padding:7px 8px 6px 10px}
+.cockpit-fourteen-card>header{gap:4px 6px}
+.cockpit-fourteen-row{gap:2px 5px}
+.cockpit-fourteen-heading>.mid-weather-pictogram{overflow:visible!important;clip-path:none}
+.cockpit-fourteen-heading>.mid-weather-pictogram svg{overflow:visible!important}

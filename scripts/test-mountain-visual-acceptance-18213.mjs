@@ -83,10 +83,10 @@ async function clickIfClosed(selector){
  if(expanded!=='true')await clickAt(selector);
 }
 async function navigateToForecast(){
- const visible=await evaluate(`Boolean([...document.querySelectorAll('.modern-forecast-horizons>button')].some(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0))`);
+  const visible=await evaluate(`Boolean([...document.querySelectorAll('.modern-forecast-horizons>button')].some(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0))`);
  if(visible)return;
  await clickButtonContaining('.dashboard-bottom-tabs button','Vorhersage');
- await waitForValue('Aktive Forecast-Ansicht',`Boolean([...document.querySelectorAll('.modern-forecast-horizons>button')].some(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0))`,Boolean);
+  await waitForValue('Aktive Forecast-Ansicht',`Boolean([...document.querySelectorAll('.modern-forecast-horizons>button')].some(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0))`,Boolean);
 }
 async function navigateToMountain(){
  const readyExpression=`(()=>{const root=[...document.querySelectorAll('.mountain-ski')].find(node=>node.getClientRects().length>0&&node.getBoundingClientRect().width>0);return Boolean(root?.querySelector('.mountain-current-source')&&root.querySelector('.mountain-seven-day'))})()`;
@@ -116,6 +116,7 @@ async function setViewport(width,height,theme){
   screenWidth:width,screenHeight:height,
   screenOrientation:{type:width>height?'landscapePrimary':'portraitPrimary',angle:width>height?90:0},
  });
+  await cdp('Emulation.setTouchEmulationEnabled',width<=850?{enabled:true,maxTouchPoints:1}:{enabled:false});
  await evaluate(`(()=>{document.documentElement.dataset.theme=${JSON.stringify(theme)};localStorage.setItem('theme',${JSON.stringify(theme)});return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))})()`);
 }
 async function scrollMountainToTop(){
@@ -125,6 +126,37 @@ async function closeOpenMountainDays(){
  const open=await evaluate(`document.querySelector('.mountain-day-toggle[aria-expanded="true"]')?1:0`);
  if(open)await clickAt('.mountain-day-toggle[aria-expanded="true"]');
  await waitForValue('Geschlossene Berg-Tagesdetails',`[...document.querySelectorAll('.mountain-day-toggle')].every(button=>button.getAttribute('aria-expanded')!=='true')`,Boolean);
+}
+async function verifyMatrixTouchAccess(label){
+ const target=JSON.parse(await evaluate(`(()=>{
+  const scroll=document.querySelector('.mountain-matrix-scroll'),rect=scroll?.getBoundingClientRect(),style=scroll?getComputedStyle(scroll):null;
+  if(!scroll||!rect)return JSON.stringify(null);
+  scroll.scrollIntoView({block:'center',inline:'nearest'});
+  const visibleRect=scroll.getBoundingClientRect();
+  return JSON.stringify({xStart:Math.round(visibleRect.right-18),xEnd:Math.round(visibleRect.left+18),y:Math.round(visibleRect.top+visibleRect.height/2),width:visibleRect.width,overflowX:style?.overflowX||'',touchAction:style?.touchAction||'',clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth});
+ })()`));
+ assert.ok(target&&target.width>80,`${label}: mobiler Höhenvergleich hat keine ausreichend breite Scrollfläche.`);
+ assert.ok(['auto','scroll'].includes(target.overflowX),`${label}: Höhenvergleich ist nicht horizontal scrollbar (${target.overflowX}).`);
+ assert.notEqual(target.touchAction,'none',`${label}: Touch-Panning des Höhenvergleichs ist deaktiviert.`);
+ if(target.scrollWidth>target.clientWidth+1){
+  await cdp('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.xStart,y:target.y}]});
+  await cdp('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:target.xEnd,y:target.y}]});
+  await cdp('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  const moved=await waitForValue(`${label}: Touch-Scroll im Höhenvergleich`,`document.querySelector('.mountain-matrix-scroll')?.scrollLeft||0`,value=>value>1,5000);
+  assert.ok(moved>1,`${label}: Touch-Geste scrollt den Höhenvergleich nicht horizontal.`);
+ }
+ const endpoints=JSON.parse(await evaluate(`JSON.stringify((()=>{
+  const scroll=document.querySelector('.mountain-matrix-scroll'),row=scroll?.querySelector('.mountain-matrix-level .mountain-matrix-row'),cells=[...(row?.querySelectorAll(':scope > span')||[])],first=cells[0],last=cells.at(-1);
+  if(!scroll||!first||!last)return{firstVisible:false,lastVisible:false};
+  const rect=scroll.getBoundingClientRect();
+  scroll.scrollLeft=0;
+  const firstRect=first.getBoundingClientRect(),firstVisible=firstRect.left>=rect.left-1&&firstRect.right<=rect.right+1;
+  scroll.scrollLeft=scroll.scrollWidth;
+  const lastRect=last.getBoundingClientRect(),lastVisible=lastRect.left>=rect.left-1&&lastRect.right<=rect.right+1;
+  scroll.scrollLeft=0;
+  return{firstVisible,lastVisible};
+ })())`));
+ assert.ok(endpoints.firstVisible&&endpoints.lastVisible,`${label}: erste und letzte Matrixspalte sind über den internen Scroll nicht vollständig erreichbar (${JSON.stringify(endpoints)}).`);
 }
 async function verifyMountainMatrix(label){
  const initial=JSON.parse(await evaluate(`(()=>{
@@ -139,15 +171,21 @@ async function verifyMountainMatrix(label){
  await waitForValue(`${label}: Höhenvergleich geöffnet`,`document.querySelector('.mountain-forecast-summary')?.getAttribute('aria-expanded')||''`,value=>value==='true');
  const visible=JSON.parse(await evaluate(`(()=>{
   const matrix=document.querySelector('.mountain-forecast-matrix'),levels=[...matrix.querySelectorAll('.mountain-matrix-level')],timeRow=matrix.querySelector('.mountain-matrix-level .mountain-matrix-row'),scroll=matrix.querySelector('.mountain-matrix-scroll');
-  return JSON.stringify({roles:levels.map(node=>node.dataset.levelRole),headers:levels.map(node=>node.querySelector(':scope > header b')?.textContent.trim()||''),windArrows:matrix.querySelectorAll('.mountain-matrix-wind-arrow[role="img"][aria-label]').length,windWarningCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-wind-warning-"]').length,timeCells:timeRow?.querySelectorAll(':scope > span').length||0,threeHourSelected:matrix.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||'',scroll:scroll?{clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth}:null,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth})
+   const scrollStyle=scroll?getComputedStyle(scroll):null;
+   return JSON.stringify({roles:levels.map(node=>node.dataset.levelRole),headers:levels.map(node=>node.querySelector(':scope > header b')?.textContent.trim()||''),windArrows:matrix.querySelectorAll('.mountain-matrix-wind-arrow[role="img"][aria-label]').length,windWarningCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-wind-warning-"]').length,snowAmountCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-snow-amount-"]').length,timeCells:timeRow?.querySelectorAll(':scope > span').length||0,threeHourSelected:matrix.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||'',scroll:scroll?{clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth,overflowX:scrollStyle?.overflowX||'',touchAction:scrollStyle?.touchAction||''}:null,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth})
  })()`));
  const expectedRoles=twoStations?['valley','summit']:['valley','middle','summit'];
  assert.deepEqual(visible.roles,expectedRoles,`${label}: Höhenvergleich muss nur vorhandene Tal-/Mitte-/Bergstationen zeigen.`);
  for(const [role,station] of [['valley','Talstation'],['middle','Mittelstation'],['summit','Bergstation']])if(expectedRoles.includes(role))assert.ok(visible.headers[expectedRoles.indexOf(role)].startsWith(station),`${label}: Rollenlabel ${station} fehlt (${visible.headers.join(' | ')}).`);
  assert.ok(visible.windArrows>0,`${label}: Matrix-Windrichtungspfeile fehlen.`);
  assert.ok(visible.windWarningCells>0,`${label}: Warnfarben für starke Matrix-Böen fehlen.`);
+ assert.ok(visible.snowAmountCells>0,`${label}: eigenständige semantische Schneeflächen fehlen.`);
  assert.ok(visible.timeCells>0&&visible.threeHourSelected==='3 h',`${label}: 3-h-Ansicht ist nicht initial ausgewählt.`);
- assert.ok(visible.scroll&&visible.scroll.scrollWidth>=visible.scroll.clientWidth,`${label}: Matrix besitzt keinen eigenen horizontalen Overflowbereich.`);
+ assert.ok(visible.scroll,`${label}: Höhenvergleich besitzt keinen Matrix-Scrollcontainer.`);
+ if(visible.scroll.scrollWidth>visible.scroll.clientWidth+1){
+  assert.ok(['auto','scroll'].includes(visible.scroll.overflowX),`${label}: überbreite Höhenmatrix besitzt keinen eigenen horizontalen Scrollbereich.`);
+  assert.notEqual(visible.scroll.touchAction,'none',`${label}: Touch-Panning im Höhenvergleich ist deaktiviert.`);
+ }
  assert.ok(visible.documentWidth<=visible.viewportWidth+1,`${label}: geöffnete Matrix erweitert die Dokumentbreite (${visible.documentWidth}/${visible.viewportWidth}).`);
  const threeHourCells=visible.timeCells;
  await clickButtonContaining('.mountain-matrix-controls button','1 h');
@@ -155,6 +193,7 @@ async function verifyMountainMatrix(label){
  assert.ok(oneHourCells>threeHourCells,`${label}: 1-h-Auflösung zeigt nicht mehr Zeitpunkte als 3 h (${oneHourCells}/${threeHourCells}).`);
  await clickButtonContaining('.mountain-matrix-controls button','3 h');
  await waitForValue(`${label}: 3-h-Auflösung wiederhergestellt`,`document.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||''`,value=>value==='3 h');
+  if(visible.viewportWidth<=850)await verifyMatrixTouchAccess(label);
  await clickAt('.mountain-forecast-summary');
  await waitForValue(`${label}: Höhenvergleich wieder geschlossen`,`document.querySelector('.mountain-forecast-summary')?.getAttribute('aria-expanded')||''`,value=>value==='false');
 }
@@ -320,17 +359,17 @@ try{
  await cdp('Runtime.enable');
  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844,screenOrientation:{type:'portraitPrimary',angle:0}});
 
- const location={id:'innsbruck-visual-fixture',name:'Innsbruck',latitude:47.2692,longitude:11.4041,elevation:574,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
+ const location={id:'soelden-visual-fixture',name:'Sölden',latitude:46.9699,longitude:11.0076,elevation:1368,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
  const mountain={
   schemaVersion:2,enabled:true,season:'winter',middleEnabled:!twoStations,
-  valleyElevation:1100,middleElevation:2200,summitElevation:3300,
-  valleyName:'Talstation Sonnwies · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  middleName:'Mittelstation Panoramaalm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  summitName:'Bergstation Hahnenkamm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  valleyLatitude:47.30,valleyLongitude:11.35,middleLatitude:47.28,middleLongitude:11.38,summitLatitude:47.25,summitLongitude:11.40,
+  valleyElevation:1368,middleElevation:2500,summitElevation:3250,
+  valleyName:'Talstation Gaislachkoglbahn · Sölden, Testprofil mit langem Stationsnamen',
+  middleName:'Mittelstation Gaislachkogl · Sölden, Testprofil mit langem Stationsnamen',
+  summitName:'Bergstation Rettenbachferner · Sölden, Testprofil mit langem Stationsnamen',
+  valleyLatitude:46.9699,valleyLongitude:11.0076,middleLatitude:46.9550,middleLongitude:10.9840,summitLatitude:46.9280,summitLongitude:10.9400,
   profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00.000Z',
  };
-  const favorite={id:'mid-18-2-14-visual-fixture',location,alias:'MID 18.2.14 Winter-Testprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
+ const favorite={id:'mid-18-2-15-visual-fixture',location,alias:'MID 18.2.15 Sölden-Winterprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
   await cdp('Page.addScriptToEvaluateOnNewDocument',{source:browserPrelude(favorite,location,mountain,enrichmentMode)});
  await cdp('Page.navigate',{url:`${baseUrl}/#mid-section-mountain`});
  await waitForValue('MID-Oberfläche',`Boolean(document.querySelector('.dashboard-bottom-tabs'))`,Boolean);
@@ -342,6 +381,10 @@ try{
    console.error(`Bergwetter-Browserdiagnose: ${diagnostic}\nBrowserfehler: ${JSON.stringify(browserErrors.slice(-20))}`);
   throw error;
  }
+  const safetySurfaces=JSON.parse(await evaluate(`JSON.stringify({avalanche:!!document.querySelector('.mountain-avalanche-status'),methodology:!!document.querySelector('.mountain-methodology-grid'),obsolete:[...document.querySelectorAll('.mountain-ski *')].some(node=>node.textContent?.trim()==='Höhenwetter-Verlauf')})`));
+  assert.ok(safetySurfaces.avalanche,'Amtlicher Lawinen-Statusblock fehlt.');
+  assert.ok(safetySurfaces.methodology,'Gegliederte Methodik-/Sicherheitsfläche fehlt.');
+  assert.equal(safetySurfaces.obsolete,false,'Redundante Bezeichnung „Höhenwetter-Verlauf“ ist sichtbar.');
   if(enrichmentMode)await verifyEnrichmentScenario(enrichmentMode);
   if(enrichmentOnly){
    console.log(`Berg-Zusatzdaten: ${enrichmentMode==='delayed'?'Kernprognose vor verzögerter Diagnostik':'Diagnosefehler und Cache-Wiederöffnung'} geprüft.`);
@@ -373,7 +416,7 @@ try{
   assert.equal(initialDays.expanded,0,'Forecast-Tagesdetails müssen zunächst geschlossen sein.');
   assert.equal(initialDays.periodCards,0,'Stundenintervalle dürfen vor Öffnen eines Tages nicht sichtbar sein.');
    const selectedStations=[];
-   const stationCases=twoStations?[['Tal','Talstation Sonnwies','-2'],['Berg','Bergstation Hahnenkamm','-12']]:[['Tal','Talstation Sonnwies','-2'],['Mitte','Mittelstation Panoramaalm','-7'],['Berg','Bergstation Hahnenkamm','-12']];
+    const stationCases=twoStations?[['Tal','Talstation Gaislachkoglbahn','-2'],['Berg','Bergstation Rettenbachferner','-12']]:[['Tal','Talstation Gaislachkoglbahn','-2'],['Mitte','Mittelstation Gaislachkogl','-7'],['Berg','Bergstation Rettenbachferner','-12']];
    for(const [label,station,temp] of stationCases){
    await clickButtonContaining('.mountain-level-picker button',label);
    await waitForValue(`Stufenwechsel ${label}`,`document.querySelector('.mountain-current-heading strong')?.textContent||''`,value=>value.includes(station));
@@ -389,7 +432,8 @@ try{
       hourly:document.querySelector('.mountain-day-detail[role="region"]')?.getAttribute('aria-label')||'',
       hourlyHeading:document.querySelector('.mountain-day-detail-level')?.textContent.trim()||''
      })`));
-     for(const [view,labelText] of Object.entries(stationLabels))assert.ok(labelText.includes(station)&&labelText.includes('2200 m ü. NHN'),`Mittelstation/Höhe fehlt in der ${view}-Ansicht: ${JSON.stringify(stationLabels)}.`);
+      const expectedElevation=`${mountain.middleElevation} m ü. NHN`;
+      for(const [view,labelText] of Object.entries(stationLabels))assert.ok(labelText.includes(station)&&labelText.includes(expectedElevation),`Mittelstation/Höhe fehlt in der ${view}-Ansicht: ${JSON.stringify(stationLabels)}.`);
     const missing=JSON.parse(await evaluate(`JSON.stringify({day:document.querySelector('.mountain-day-precip b')?.childNodes[0]?.textContent.trim()||'',period:document.querySelector('.mountain-period-precip b')?.textContent.trim()||''})`));
     assert.equal(missing.day,'–','Fehlender Tagesniederschlag muss als „–“ statt als 0 dargestellt werden.');
     assert.equal(missing.period,'–','Fehlender Intervallniederschlag muss als „–“ statt als 0 dargestellt werden.');
@@ -448,10 +492,9 @@ try{
  assert.equal(unitAfter.periodPrecipitation,unitBefore.periodPrecipitation,'Niederschlagsmengen dürfen durch den Wind-Einheitenwechsel nicht verändert werden.');
   await clickAt('.settings-dialog button[aria-label="Einstellungen schließen"]');
   await waitForValue('Geschlossene Einstellungen',`!document.querySelector('.settings-dialog')`,Boolean);
-   if(!mountainOnly){
-    await clickButtonContaining('.dashboard-bottom-tabs button','Vorhersage');
-    await waitForValue('Sichtbare Forecast-Horizonte',`[...document.querySelectorAll('.modern-forecast-horizons button')].filter(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0).length`,value=>value>0);
-   }
+    await clickButtonContaining('.mountain-season-control button','Winter');
+    await waitForValue('Sölden-Winterprofil für die Viewport-Matrix',`document.querySelector('.mountain-current-rail')?.getAttribute('data-season')||''`,value=>value==='winter');
+   if(!mountainOnly)await navigateToForecast();
 
  const results=[],surfaces=new Map();
  for(const viewport of viewports){
@@ -460,8 +503,8 @@ try{
    await setViewport(viewport.width,viewport.height,theme);
    let forecastControls=[];
    if(!mountainOnly){
-    await waitForValue(`${viewport.label} · ${theme}: Sichtbare Forecast-Horizonte`,`[...document.querySelectorAll('.modern-forecast-horizons>button')].filter(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0).length`,value=>value>0);
-    forecastControls=await measureControls('.modern-forecast-horizons>button');
+     await waitForValue(`${viewport.label} · ${theme}: Sichtbare Forecast-Zeithorizonte`,`[...document.querySelectorAll('.modern-forecast-horizons>button')].filter(button=>button.getClientRects().length&&button.getBoundingClientRect().width>0&&button.getBoundingClientRect().height>0).length`,value=>value>0);
+     forecastControls=await measureControls('.modern-forecast-horizons>button');
     assert.ok(forecastControls.length>0,`${viewport.label} · ${theme}: Keine aktiven Forecast-Horizontziele messbar.`);
     for(const control of forecastControls){
      if(viewport.width<=850)assert.ok(control.width>=44&&control.height>=44,`${viewport.label} · ${theme}: Forecast „${control.label}“ ist ${control.width.toFixed(1)}×${control.height.toFixed(1)} statt mindestens 44×44 CSS-Pixel.`);
@@ -495,11 +538,14 @@ try{
    await clickIfClosed('.mountain-day-toggle:not(:disabled)');
    await waitForValue('Stundenkarten je Test-Viewport',`document.querySelectorAll('.mountain-period-card').length`,value=>value>0);
     const periodPresentation=JSON.parse(await evaluate(`(()=>{
-     const scroll=document.querySelector('.mountain-period-table-scroll'),table=document.querySelector('.mountain-period-grid'),snow=[...document.querySelectorAll('.mountain-period-snow')].map(node=>node.textContent.trim());
-     return JSON.stringify({scrollWidth:scroll?.scrollWidth||0,clientWidth:scroll?.clientWidth||0,tableWidth:table?.scrollWidth||0,tableClientWidth:table?.clientWidth||0,snow});
+      const scroll=document.querySelector('.mountain-period-table-scroll'),table=document.querySelector('.mountain-period-grid'),snow=[...document.querySelectorAll('.mountain-period-snow')].map(node=>node.textContent.trim()),visible=node=>node.getClientRects().length>0,cells=[...(table?.querySelectorAll('td')||[])].filter(visible),content=cells.flatMap(cell=>[cell,...cell.querySelectorAll('*')]).filter(visible),outside=content.filter(node=>{const r=node.getBoundingClientRect();return r.left < -1||r.right>innerWidth+1}),clipped=content.filter(node=>{const style=getComputedStyle(node);return ['hidden','clip'].includes(style.overflowX)&&node.scrollWidth>node.clientWidth+1});
+      return JSON.stringify({scrollWidth:scroll?.scrollWidth||0,clientWidth:scroll?.clientWidth||0,tableWidth:table?.scrollWidth||0,tableClientWidth:table?.clientWidth||0,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,outsideCount:outside.length,clippedCount:clipped.length,snow});
     })()`));
     assert.ok(periodPresentation.snow.every(value=>/^(?:0 cm|<1 cm|\d+ cm|–)$/.test(value)),`${viewport.label} · ${theme}: Intervall-Neuschnee nicht im vereinbarten Format: ${periodPresentation.snow.join(', ')}.`);
-    if(viewport.width<=900)assert.ok(periodPresentation.scrollWidth<=periodPresentation.clientWidth+1&&periodPresentation.tableWidth<=periodPresentation.tableClientWidth+1,`${viewport.label} · ${theme}: Mobile 3-Stunden-Details benötigen horizontales Scrollen: ${JSON.stringify(periodPresentation)}.`);
+    assert.ok(periodPresentation.documentWidth<=periodPresentation.viewportWidth+1,`${viewport.label} · ${theme}: 3-h-Details erweitern die Dokumentbreite (${periodPresentation.documentWidth}/${periodPresentation.viewportWidth}).`);
+    assert.equal(periodPresentation.outsideCount,0,`${viewport.label} · ${theme}: sichtbare 3-h-Tabelleninhalte liegen außerhalb des Viewports.`);
+    assert.equal(periodPresentation.clippedCount,0,`${viewport.label} · ${theme}: sichtbare 3-h-Tabelleninhalte werden innerhalb ihrer Zellen abgeschnitten.`);
+    if(viewport.width<=900)assert.ok(periodPresentation.scrollWidth<=periodPresentation.clientWidth+1&&periodPresentation.tableWidth<=periodPresentation.tableClientWidth+1,`${viewport.label} · ${theme}: nur der eigene Höhenvergleich darf mobil intern horizontal scrollen; 3-h-Karten müssen vollständig sichtbar sein (${JSON.stringify(periodPresentation)}).`);
    await clickIfClosed('.mountain-snowline-summary');
    await waitForValue('Schneefallgrenzen-Zeiträume je Test-Viewport',`document.querySelectorAll('.mountain-snowline-horizons button').length`,value=>value>0);
     const controls=await measureControls('.mountain-season-control button,.mountain-level-picker button,.mountain-day-toggle:not(:disabled),.mountain-forecast-summary,.mountain-matrix-controls button,.mountain-snowline-summary,.mountain-snowline-horizons button,.mountain-enrichment-disclosure>summary');
@@ -560,10 +606,12 @@ try{
   const screenshots=results.map(result=>`### ${result.viewport.label} · ${result.theme==='light'?'Light':'Dark'} (${result.viewport.width}×${result.viewport.height})\n\n![${result.viewport.label} · ${result.theme}](screenshots/mountain-${result.viewport.id}-${result.theme}.jpg)`).join('\n\n');
   const runScope=mountainOnly?'Mountain-only; allgemeine Forecast-Navigation und deren Touch-Target-Prüfung übersprungen.':'Standardlauf einschließlich allgemeiner Forecast-Navigation und Touch-Target-Prüfung.';
     const report=`# MID 18.2.14 · Berg-/Wintersport Visual Acceptance\n\nDeterministischer Browserlauf der echten App-Komponenten mit kontrollierten Open-Meteo-, GeoSphere- und Ensemble-Antworten. Die Fixture-Daten sind Testdaten, keine aktuelle Wetterlage. Erstellt: ${new Date().toISOString()}.\n\n**Laufumfang:** ${runScope}\n\n## Matrix\n\n| Gerät | Viewport | Theme | Forecast-Ziele | Bergziele | kleinste Hitbox-Kantenlänge | Dokument-/Viewportbreite | Aktuell-Schiene (Inhalt/Ansicht) | Surface | Screenshot |\n|---|---:|---|---:|---:|---:|---:|---:|---:|---|\n${rows}\n\n## Geprüfte Zustände\n\n- 6 Viewports × Light/Dark; kein horizontaler Dokumentüberlauf; Theme-Oberflächen unterscheiden sich je Viewport.\n- Saisonwahl, saisonale Reihenfolge aktueller Kennzahlen und der Bergstationswerte, Höhenstufen, Tageszeilen und Schneefallgrenzen-Zeiträume: mittiger Trefferpunkt nicht überdeckt; bei Viewports bis 850 px mindestens 44×44 CSS-Pixel. Mobile Bottom-Bar, Safe-Area-Inset und Inhaltsabstand werden geprüft.\n- Tal/Mitte/Berg zeigen unterschiedliche, fixture-eigene Temperaturen. Tagesprognose und geöffnete Stundenansicht nennen die ausgewählte Station samt Höhe. Sieben Tage starten geschlossen; beim Öffnen bleibt höchstens ein Tag erweitert. Fehlender Mittelstationsniederschlag wird als „–“ gezeigt.\n- Geöffnete Stundenkarten summieren die Niederschlagsmengen der zugrunde liegenden stündlichen Fixture-Werte für das dargestellte 1–3-h-Intervall. Tages-/Nacht-Piktogramme und Regen-/Schneeintensität sind enthalten.\n- Windwechsel in den MID-Einstellungen (kn → km/h) ändert aktuelle, Tages- und Intervallwerte, aber nicht Temperatur oder Niederschlag. Richtungspfeile und DWD-Warnfarbe werden in aktuellen, Tages- und Intervallwerten geprüft.\n\n## Offenes Daten-/UI-Mapping\n\nDie zusätzliche Höhenmatrix mit 1-h/3-h-Steuerung und matrixspezifischer Warnfläche ist im gültigen Drei-Höhenstufen-Datensatz nicht sichtbar: Der Fallback auf diese Matrix greift nur bei leerer Höhenstufenliste, während die Matrix selbst die erste Höhenstufe benötigt. Daher sind deren Bedienelemente und Warnflächenfarbe nicht als visuell abgenommen ausgewiesen.\n\n## Datenabdeckung und Grenzen\n\nDie kontrollierten Fixture-Antworten decken drei Höhenpunkte, aktuelle/tägliche/stündliche Werte und ein vollständiges Testintervall ab; sie sind keine Live-Provider-Prüfung. Optionale Open-Meteo-Felder, reale GeoSphere-Verfügbarkeit und Ensemble-Verfügbarkeit bleiben providerabhängig. Die UI-Assertions prüfen Darstellung, Zuordnung und Einheitenverhalten, nicht die Richtigkeit einer aktuellen Wetterlage.\n\n## Screenshots\n\n${screenshots}\n`;
-   const acceptedReport=report
+    const acceptedReport=report
+     .replace('# MID 18.2.14 · Berg-/Wintersport Visual Acceptance','# MID 18.2.15 · Berg-/Wintersport Visual Acceptance')
     .replace('## Offenes Daten-/UI-Mapping\n\nDie zusätzliche Höhenmatrix mit 1-h/3-h-Steuerung und matrixspezifischer Warnfläche ist im gültigen Drei-Höhenstufen-Datensatz nicht sichtbar: Der Fallback auf diese Matrix greift nur bei leerer Höhenstufenliste, während die Matrix selbst die erste Höhenstufe benötigt. Daher sind deren Bedienelemente und Warnflächenfarbe nicht als visuell abgenommen ausgewiesen.','## Höhenvergleich\n\nDer standardmäßig geschlossene Höhenvergleich folgt direkt auf die Sieben-Tage-Ansicht. 1-h-/3-h-Umschaltung, Rollenbeschriftungen, Windrichtungspfeile, Warnzellen und interner horizontaler Overflow wurden in beiden Themes über sechs Viewports geprüft.')
     .replace('Die kontrollierten Fixture-Antworten decken drei Höhenpunkte',`Die kontrollierten Fixture-Antworten decken ${twoStations?'zwei':'drei'} Höhenpunkte`);
-   await writeFile(path.join(visualDir,'MID_18.2.13_mountain_visual_acceptance.md'),acceptedReport);
+    const preciseReport=acceptedReport.replace('interner horizontaler Overflow wurden in beiden Themes über sechs Viewports geprüft.','Horizontaler Scroll wird nur bei tatsächlichem Matrix-Overflow verlangt und bleibt auf die Matrix begrenzt; andernfalls sind erste und letzte Spalte ohne Scroll sichtbar. Die Dokumentbreite bleibt innerhalb des Viewports, und bei Overflow werden Touch-Scroll sowie Zugriff auf beide Randspalten geprüft.');
+    await writeFile(path.join(visualDir,'MID_18.2.15_mountain_visual_acceptance.md'),preciseReport);
  }
    console.log(`Berg-/Wintersport: echter App-Render, saisonale Kennzahlenpriorität, Stationshöhen, Hitboxen, Einheiten und Tag/Nacht geprüft: ${viewports.length} Viewports × ${themes.length} Themes.${mountainOnly?' Forecast-Navigation/-Touch-Target ausgelassen.':''}${screenshotDir?` Screenshots und Matrix: ${path.relative(root,visualDir)}.`:''}`);
   }

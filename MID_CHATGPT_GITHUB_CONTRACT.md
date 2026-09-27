@@ -1,28 +1,44 @@
 # MID – ChatGPT / GitHub write contract
 
 ## Purpose
-This contract makes AI-assisted MID changes durable in GitHub without allowing an assistant to bypass the existing fail-closed release process.
+This contract makes AI-assisted MID changes durable in GitHub without bypassing the fail-closed source, release, security, and stable-promotion process. GitHub is the source of truth; `mid-stable` is the released codebase after successful promotion.
 
-## Product limitation and executor
-The standard ChatGPT GitHub connection is used for repository and CI read access. Direct repository writes are executed through a coding environment with GitHub write capability (for example Codex) or by the repository owner. ChatGPT may prepare the change, tests and release artifact, but the canonical repository write must follow the branch/PR flow below.
+## Roles and write boundaries
+- Before every change, read and compare current `main`, `mid-stable`, the MID version, and the applicable contracts.
+- Continue only from a verified current base. If provenance, SHA lineage, or permissions are unclear, stop fail-closed.
+- ChatGPT/Codex integration work uses short-lived `chatgpt/*` or `codex/*` branches created from the verified current `mid-stable`.
+- Never write directly to `main` or `mid-stable` from an agent branch.
+- Replit is an unprivileged UI/UX design workbench. It may hand off only through `replit/*` and may not change governance, release, Worker, native iOS, version, central build/deploy, `main`, `mid-stable`, `chatgpt/*`, or `codex/*`.
+- Existing rulesets, least-privilege permissions, signed contracts, release gates, and secrets must not be weakened to make a change pass.
 
-## Branch and PR flow
-1. Read current `main` and `mid-stable`; use the latest validated state as the base.
-2. Create `codex/<topic>` or `chatgpt/<topic>`; never write directly to `mid-stable`.
-3. Implement and test the change on that branch.
-4. Build the canonical unversioned `MID-professional-replacement.zip`.
-5. Open a pull request to `main` containing the release ZIP (and only intentional repository-maintenance files when explicitly required).
-6. The `MID ChatGPT/Codex Release-PR Gate` extracts and validates the ZIP before merge.
-7. Merge only after the PR gate is green.
-8. The existing `install-mid.yml` processes the ZIP on `main`, runs the authoritative install/build/regression gates, deploys the app/worker where required, and only then promotes the validated commit to `mid-stable`.
+## Normal source-first agent release
+1. Develop and test from the verified current `mid-stable` on an authorized `chatgpt/*` or `codex/*` branch.
+2. Open a non-draft source pull request against `main`.
+3. Do **not** commit or transport `MID-professional-replacement.zip` in the normal agent pull request.
+4. The `MID ChatGPT/Codex Source-PR Gate` validates repository structure, lockfile/dependency integrity, production dependencies, production build, full regressions, the shared Web/iOS shell, and server-side packaging readiness.
+5. Only after the required source gate is green may the established SHA-bound release automation perform the controlled merge.
+6. GitHub Actions creates the canonical unversioned `MID-professional-replacement.zip` server-side from the merged `main` source.
+7. `install-mid.yml` remains the release authority for re-verification, Installer processing, Worker/Pages decisions where affected, deployment checks, and fast-forward promotion to `mid-stable`.
+8. No force update and no manual direct stable promotion. The browser/manual ZIP path is only the documented emergency fallback.
 
 ## Failure handling
-- A failed PR or installer run is fixed on a new commit/branch candidate; do not force-promote a failed state.
-- A stale static regression may be updated only if the production architecture intentionally changed and the replacement assertion still protects the intended behavior.
-- A real regression must be fixed in production code.
+- Deterministic code, type, build, regression, dependency/security, provenance, or unknown failures block release.
+- A failing product regression is fixed in production code.
+- A regression test may change only when the product contract intentionally changes and the replacement assertion preserves at least the same protection.
+- Temporary infrastructure failures may be retried only under the existing bounded self-heal rules.
+- Never weaken a gate, ruleset, host verification, or credential boundary as a workaround.
+
+## Replit handoff integration
+- Replit work is accepted only from a verified `replit/*` remote ref whose base SHA, head SHA, changed paths, tests, responsive checks, and read-only Replit Handoff Gate are verified.
+- ChatGPT reviews diff and provenance before selectively integrating the approved UI changes into an authorized `chatgpt/*` or `codex/*` branch.
+- A green Replit Handoff Gate is necessary but not sufficient for release; source integration must still pass the normal Source-PR and release gates.
 
 ## Permissions
-The PR validation workflow is read-only (`contents: read`). It does not merge, deploy or modify branches. Release/deploy permissions remain exclusively in the established MID release workflows.
+- Read-only validation workflows remain read-only unless the specific established release workflow requires more.
+- Release/deploy permissions remain confined to the established MID release actors and workflows.
+- Trusted-agent branch bypasses are limited to explicitly identified authorized actors. Replit receives no bypass for `chatgpt/*`, `codex/*`, `main`, or `mid-stable`.
 
-## Workflow synchronization
-Canonical GitHub workflow sources are stored in `ci/github/workflows/`. Run `npm run sync:github-workflows` only as an explicit repository-maintenance change to mirror them into `.github/workflows/`.
+## Workflow and governance synchronization
+- Canonical GitHub workflow sources live under `ci/github/workflows/`; mirrors under `.github/workflows/` are synchronized only as an explicit trusted repository-maintenance change.
+- Persistent governance changes use an authorized trusted-agent integration branch and the normal source review path.
+- Replit may not modify or weaken governance contracts or workflow policy.

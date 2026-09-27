@@ -1,7 +1,7 @@
-# MID v0.9.85.106
+# MID v0.9.85.107
 
-- Replit bleibt die gezielte MID-Werkbank für Design- und UI-Anpassungen; konkrete MID-Arbeitsaufträge an Replit werden ausschließlich von ChatGPT erteilt.
-- Replit übergibt Änderungen nur über geprüfte `replit/*`-Handoffs. Prüfung, Integration und Veröffentlichung bleiben bei ChatGPT und dem geschützten GitHub-Releasepfad.
-- Ein fehlender lokaler SSH-Deploy-Key wird nicht durch einen neuen Schreibschlüssel oder gelockerte Hostprüfung ersetzt; der vorhandene GitHub-Integrationsweg nutzt SHA-Verifikation vor und nach dem Handoff.
-- Persistente Replit-Regeln und ein projektgebundener MID-Handoff-Skill machen den Ablauf auch nach neuen Replit-/ChatGPT-Sitzungen reproduzierbar.
-- Das Replit-Handoff-Gate schützt zusätzlich Governance-, Agent-, CI-/Release-, Worker-, iOS-, Versions- und zentrale Build-/Deploy-Dateien vor direkten Replit-Änderungen.
+- Die 7- und 14-Tage-Übersichten sind kompakter aufgebaut; Sonnenstunden und UVI bleiben auch auf kleinen Displays gut lesbar.
+- Nachtpiktogramme erhalten ausreichend Platz und werden in den kompakten Tageszeilen nicht abgeschnitten.
+- Das Berg-/Wintersportprofil ist dichter und tabellarischer aufgebaut. Schnee und Flüssigniederschlag werden getrennt dargestellt; die Schneeflächen skalieren ausschließlich die dargestellte Schneemenge und sind keine amtlichen Warnstufen.
+- Schnee-/Eiswarnungen, amtliche Lawinenquelle und Methodik sind kompakter strukturiert. Lange Warntexte bleiben über Details zugänglich.
+- Der ChatGPT/GitHub-Vertrag entspricht jetzt dem geschützten Source-first-Veröffentlichungsweg; Release-ZIPs werden nicht mehr im normalen Agent-PR transportiert.
