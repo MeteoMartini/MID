@@ -40,7 +40,7 @@ assert.match(cockpit,/WeatherPictogram code=\{point\.code\}[^>]*day=\{point\.isD
 assert.match(cockpit,/WeatherPictogram code=\{point\.code\}[^>]*intensity=\{point\.pictogramIntensity\}/,'Stündliches Cockpit verliert die Niederschlagsintensität.');
 assert.match(app,/currentIsDay=astronomicalIsDayAt\(solarNow/,'Aktuelles Hauptpiktogramm verwendet nicht die zentrale Sonnenstandsentscheidung.');
 assert.match(app,/isDay=\{astronomicalIsDayAt\(Date\.now\(\)/,'Aktuelle Komposit-/Bergdarstellung ist nicht an den astronomischen Sonnenstand gebunden.');
-assert.match(app,/isDay:astronomicalIsDayAt\(slotStart\.epoch/,'Höhenwetter-Zeitpunkte verwenden nicht den astronomischen Status am sichtbaren Slotbeginn.');
+assert.match(app,/isDay:astronomicalIsDayAt\(row\.epoch/,'Stündliche Höhenwetter-Zeitpunkte verwenden nicht den astronomischen Status am sichtbaren Slotbeginn.');
 assert.doesNotMatch(app,/WeatherPictogram[^\n]*day=\{Number\([^\n]*is_day/,'Sichtbares Piktogramm darf Provider-is_day nicht direkt als Tag/Nachtentscheidung verwenden.');
 
 assert.match(worker,/function widgetAstronomicalIsDay\(/,'Native Widget-Sonnenstandsentscheidung fehlt.');
