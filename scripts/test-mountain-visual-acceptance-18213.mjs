@@ -436,7 +436,8 @@ try{
   assert.equal(initialDays.expanded,0,'Forecast-Tagesdetails müssen zunächst geschlossen sein.');
   assert.equal(initialDays.periodCards,0,'Stundenintervalle dürfen vor Öffnen eines Tages nicht sichtbar sein.');
    const selectedStations=[];
-   const stationCases=twoStations?[['Tal','Talstation Sonnwies','-2'],['Berg','Bergstation Hahnenkamm','-12']]:[['Tal','Talstation Sonnwies','-2'],['Mitte','Mittelstation Panoramaalm','-7'],['Berg','Bergstation Hahnenkamm','-12']];
+    const fixtureStationNames=soeldenFixture?['Talstation Giggijoch','Mittelstation Giggijoch','Bergstation Gaislachkogl']:['Talstation Sonnwies','Mittelstation Panoramaalm','Bergstation Hahnenkamm'];
+    const stationCases=twoStations?[['Tal',fixtureStationNames[0],'-2'],['Berg',fixtureStationNames[2],'-12']]:[['Tal',fixtureStationNames[0],'-2'],['Mitte',fixtureStationNames[1],'-7'],['Berg',fixtureStationNames[2],'-12']];
    for(const [label,station,temp] of stationCases){
    await clickButtonContaining('.mountain-level-picker button',label);
    await waitForValue(`Stufenwechsel ${label}`,`document.querySelector('.mountain-current-heading strong')?.textContent||''`,value=>value.includes(station));
