@@ -3698,6 +3698,79 @@ button,input,select,[role="button"]{touch-action:manipulation}
  .mountain-period-grid .mountain-period-precip{display:flex;align-items:flex-start;flex-direction:column;gap:2px;min-width:0;padding:0;border-radius:0;font-size:9px}
  .mountain-period-grid .mountain-period-precip>small{font-size:8px}
 }
+
+/* MID 18.2.15 · kompakte, weiterhin lesbare Bergprognose */
+.mountain-forecast-overview{gap:10px}
+.mountain-seven-day-list{gap:5px}
+.mountain-seven-day-row{border-radius:12px}
+.mountain-day-toggle{gap:6px;min-height:60px;padding:7px 9px}
+.mountain-day-date,.mountain-day-weather,.mountain-day-temperature,.mountain-day-wind,.mountain-day-precip,.mountain-day-snowline,.mountain-day-sunshine{gap:2px}
+.mountain-day-weather .weather-pictogram,.mountain-day-weather>svg{display:block;width:28px;height:28px;overflow:visible;flex:0 0 auto}
+.mountain-day-sunshine{min-width:0}
+.mountain-day-sunshine>b{font-size:11px;font-weight:850;font-variant-numeric:tabular-nums;line-height:1.15;white-space:nowrap}
+.mountain-day-sunshine>small{font-size:8px;line-height:1.2}
+.mountain-forecast-matrix{margin-top:9px}
+.mountain-forecast-summary{padding:9px 11px}
+.mountain-forecast-content{gap:8px;padding:10px}
+.mountain-matrix-day{gap:5px;padding:7px}
+.mountain-matrix-scroll{gap:6px}
+.mountain-matrix-row{grid-template-columns:100px repeat(var(--mountain-columns),minmax(66px,1fr))}
+.mountain-matrix-row>span{padding:4px 3px;line-height:1.2}
+.mountain-matrix-row .mountain-matrix-snowfall{font-size:8px;font-weight:800;font-variant-numeric:tabular-nums}
+.mountain-matrix-row>span.mountain-snow-amount-1{background:color-mix(in srgb,var(--param-snow) 10%,var(--surface))}
+.mountain-matrix-row>span.mountain-snow-amount-2{background:color-mix(in srgb,var(--param-snow) 22%,var(--surface));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--param-snow) 32%,var(--border))}
+.mountain-matrix-row>span.mountain-snow-amount-3{background:color-mix(in srgb,var(--param-snow) 42%,var(--surface));font-weight:800}
+.mountain-matrix-row>span.mountain-snow-amount-4{background:color-mix(in srgb,var(--param-snow) 72%,#24536d);color:#fff;font-weight:850;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--param-snow) 80%,#14384d)}
+.mountain-period-table-scroll{padding-top:6px}
+@media(min-width:901px){.mountain-period-grid{min-width:760px}}
+.mountain-period-grid th,.mountain-period-grid td{padding:5px 6px}
+.mountain-winter-guidance{gap:8px;margin:9px 0;padding:9px}
+.mountain-winter-guidance>header{gap:7px}
+.mountain-winter-guidance>header strong{font-size:12px}
+.mountain-winter-guidance>header small,.mountain-winter-source-note{font-size:8px;line-height:1.35}
+.mountain-winter-sources{gap:7px}
+.mountain-winter-source{gap:5px;padding:8px}
+.mountain-winter-source ul{gap:5px}
+.mountain-winter-source li{gap:2px;padding-top:5px}
+.mountain-winter-source li>p{margin-top:1px;font-size:8px;line-height:1.35}
+.mountain-winter-source li[class^="level-"]{border-left:3px solid var(--muted);padding-left:6px}
+.mountain-winter-source li.level-yellow{border-left-color:#d6a500}.mountain-winter-source li.level-orange{border-left-color:#d97824}.mountain-winter-source li.level-red{border-left-color:#d94a45}.mountain-winter-source li.level-purple{border-left-color:#8c63c7}
+.mountain-warning-detail{margin-top:2px}.mountain-warning-detail>summary{cursor:pointer;color:var(--primary);font-size:8px;font-weight:800}.mountain-warning-detail>p{margin:4px 0 0;color:var(--muted);font-size:8.5px;line-height:1.35}.mountain-warning-detail>p>b{color:var(--text)}
+.mountain-warning-state{font-size:8px;line-height:1.35}
+.mountain-zone-rapid-note{padding:6px 8px;font-size:8px}
+.mountain-zone-analysis{gap:7px;margin-top:8px;padding:9px}
+.mountain-zone-analysis article{gap:5px;padding:8px}
+.mountain-links{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(240px,.75fr);align-items:stretch;gap:6px;margin-top:8px}
+.mountain-avalanche-status,.mountain-methodology{min-width:0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.mountain-avalanche-status{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:7px 8px;border-color:color-mix(in srgb,#e39a27 38%,var(--border));background:color-mix(in srgb,#e39a27 6%,var(--surface))}
+.mountain-avalanche-status>span{display:grid;gap:1px;min-width:0}.mountain-avalanche-status small{color:#c7821c;font-size:7px;font-weight:850;letter-spacing:.04em}.mountain-avalanche-status strong{font-size:10px}.mountain-avalanche-status em{color:var(--muted);font-size:7.5px;font-style:normal;line-height:1.25}
+.mountain-avalanche-status>a{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:6px 8px;border:1px solid color-mix(in srgb,#e39a27 46%,var(--border));border-radius:8px;color:var(--text);font-size:8px;font-weight:800;text-decoration:none;white-space:nowrap}
+.mountain-methodology>summary{display:flex;align-items:center;min-height:36px;padding:7px 9px;font-size:9px;font-weight:800;cursor:pointer}
+.mountain-methodology-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--border)}
+.mountain-methodology-grid>span{display:grid;gap:2px;min-width:0;padding:6px 8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}.mountain-methodology-grid>span:nth-child(2n){border-right:0}.mountain-methodology-grid>span:nth-last-child(-n+2){border-bottom:0}
+.mountain-methodology-grid b{font-size:8px}.mountain-methodology-grid small{color:var(--muted);font-size:7.3px;line-height:1.3}
+@media(max-width:980px){
+ .mountain-day-toggle{gap:6px 5px;padding:8px}
+}
+@media(max-width:620px){
+ .mountain-forecast-overview{gap:8px}
+ .mountain-day-toggle{gap:6px 5px;padding:7px}
+ .mountain-day-sunshine>b{font-size:9.5px}
+ .mountain-day-sunshine>small{font-size:8px}
+ .mountain-winter-guidance{gap:7px;margin:8px 0;padding:8px}
+ .mountain-winter-sources{gap:6px}
+ .mountain-winter-source{padding:7px}
+ .mountain-links{grid-template-columns:1fr}
+ .mountain-avalanche-status{align-items:flex-start;flex-direction:column}
+ .mountain-avalanche-status>a,.mountain-methodology>summary{width:100%;min-height:44px}
+ .mountain-methodology-grid{grid-template-columns:1fr}
+ .mountain-methodology-grid>span{border-right:0}
+ .mountain-methodology-grid>span:nth-last-child(2){border-bottom:1px solid var(--border)}
+ .mountain-period-grid tbody{gap:6px}
+ .mountain-period-grid tbody tr{gap:5px 8px;padding:8px}
+ .mountain-period-grid td[data-label]::before{font-size:7.5px}
+ .mountain-matrix-row{grid-template-columns:90px repeat(var(--mountain-columns),minmax(64px,1fr))}
+}
 /* MID v0.8.25.1 · Kompositbild: Standort, Blitzpunkte, Modelllinien und dezente Zugpfeile */
 .maplibre-mid-lightning-points-pane{z-index:710!important;pointer-events:auto!important}
 .maplibre-mid-motion-arrows-pane{z-index:525!important;pointer-events:none!important}
@@ -11985,3 +12058,18 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
  html[data-mid-design='next'] .short-term-signature{grid-template-columns:1fr;gap:6px;margin-inline:9px;padding-block:9px 7px}
  html[data-mid-design='next'] .short-term-signature .mid-weather-thread{height:26px}
 }
+
+/* MID 18.2.15 · kompaktere 7-/14-Tage-Zeilen mit sichtbaren Nachticons */
+.cockpit-seven-grid{gap:5px;padding-bottom:2px}
+.cockpit-day{gap:4px;padding:7px;border-radius:14px}
+.cockpit-day>.mid-weather-pictogram,.cockpit-fourteen-heading>.mid-weather-pictogram{overflow:visible!important;clip-path:none}
+.cockpit-day>.mid-weather-pictogram svg,.cockpit-fourteen-heading>.mid-weather-pictogram svg{overflow:visible!important}
+.cockpit-day-pop{min-width:0;gap:4px;line-height:1.2}
+.cockpit-day-sun{gap:3px;color:var(--param-sunshine);font-size:clamp(8px,.78vw,10px);line-height:1.2}
+.cockpit-day-sun>b{color:inherit;font-variant-numeric:tabular-nums}
+.cockpit-fourteen-grid{gap:5px}
+.cockpit-fourteen-card{gap:4px;padding:7px 8px 6px 10px}
+.cockpit-fourteen-card>header{gap:4px 6px}
+.cockpit-fourteen-row{gap:2px 5px}
+.cockpit-fourteen-heading>.mid-weather-pictogram{overflow:visible!important;clip-path:none}
+.cockpit-fourteen-heading>.mid-weather-pictogram svg{overflow:visible!important}
