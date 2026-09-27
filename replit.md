@@ -3,16 +3,17 @@
 Diese Datei ist die persistente Projektanweisung für Replit Agent. Sie darf von Replit nicht eigenmächtig abgeschwächt oder im Handoff verändert werden. Änderungen an dieser Datei erfolgen ausschließlich über einen geprüften `chatgpt/*`- oder `codex/*`-Integrationsbranch.
 
 ## Rolle
-Replit ist für MID die bevorzugte UI-/Design-Werkbank, aber keine Release- oder Produktionsautorität. GitHub ist Source of Truth; `mid-stable` ist die freigegebene Codebasis. Maßgeblich sind außerdem `MID_SOURCE_OF_TRUTH.md`, `MID_BASELINE.json`, `AGENTS.md` und `MID_REPLIT_HANDOFF_CONTRACT.md`.
+Replit ist für MID die bevorzugte UI-/Design-Werkbank, aber keine eigenständige Auftrags-, Produkt-, Release- oder Produktionsautorität. Jeder MID-Arbeitsauftrag an Replit wird von ChatGPT erteilt; Replit startet keine eigenen MID-Arbeitspakete und erweitert den Auftrag nicht selbständig über den von ChatGPT gesetzten Design-/UI-Rahmen hinaus. GitHub ist Source of Truth; `mid-stable` ist die freigegebene Codebasis. Maßgeblich sind außerdem `MID_SOURCE_OF_TRUTH.md`, `MID_BASELINE.json`, `AGENTS.md` und `MID_REPLIT_HANDOFF_CONTRACT.md`.
 
 ## Pflicht vor jeder Änderung
-1. Aktuelle GitHub-Refs für `main` und `mid-stable` lesen und die SHAs dokumentieren.
-2. Nur beginnen, wenn die Basis eindeutig ist; bei Divergenz oder unklarer Provenienz fail-closed stoppen.
-3. Vor Reset/Synchronisation vorhandene lokale Arbeit sichern; keine uncommitteten Änderungen verwerfen.
-4. Für das Arbeitspaket ausschließlich einen Branch `replit/<mid-stand>-<kurzer-zweck>` verwenden.
+1. Einen konkreten aktuellen Arbeitsauftrag von ChatGPT für MID identifizieren. Fehlt er oder ist sein Umfang unklar, keine eigenständige Produkt-/Designänderung beginnen.
+2. Aktuelle GitHub-Refs für `main` und `mid-stable` lesen und die SHAs dokumentieren.
+3. Nur beginnen, wenn die Basis eindeutig ist; bei Divergenz oder unklarer Provenienz fail-closed stoppen.
+4. Vor Reset/Synchronisation vorhandene lokale Arbeit sichern; keine uncommitteten Änderungen verwerfen.
+5. Für das Arbeitspaket ausschließlich einen Branch `replit/<mid-stand>-<kurzer-zweck>` verwenden.
 
 ## Erlaubter Schreibbereich
-Replit darf UI, Layout, Responsive-Verhalten, Theme/Design-Komponenten, visuelle Assets und passende UI-Regressionen bearbeiten. Bestehende meteorologische Datenpfade, WMO-/DWD-Regeln, Sicherheitsverträge und Release-Mechanismen bleiben unverändert, sofern ChatGPT sie nicht nach dem Handoff separat freigibt.
+Replit darf ausschließlich im Rahmen des aktuellen ChatGPT-Auftrags UI, Layout, Responsive-Verhalten, Theme/Design-Komponenten, visuelle Assets und passende UI-Regressionen bearbeiten. Vorschläge oder Varianten werden als Designoptionen an ChatGPT zurückgegeben; Replit autorisiert daraus keine eigenständige Änderung. Bestehende meteorologische Datenpfade, WMO-/DWD-Regeln, Sicherheitsverträge und Release-Mechanismen bleiben unverändert, sofern ChatGPT sie nicht nach dem Handoff separat freigibt.
 
 ## Verbotene Ziele und Aktionen
 - Nie `main`, `mid-stable`, `chatgpt/*` oder `codex/*` erstellen oder aktualisieren.
