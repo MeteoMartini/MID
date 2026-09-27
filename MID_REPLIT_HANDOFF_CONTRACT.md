@@ -43,11 +43,11 @@ Ein schreibender SSH-Deploy-Key ist für den MID-Replit-Handoff nicht erforderli
 
 Fehlt der lokal konfigurierte SSH-Key, darf Replit weder einen neuen Schreib-Deploy-Key erzeugen noch die SSH-Hostprüfung lockern oder Secrets in Repository/Logs ablegen. Der fehlende SSH-Pfad ist als nicht benötigter Transportweg zu behandeln.
 
-Vor dem Schreiben eines Handoff-Refs müssen aktuelle `main`-/`mid-stable`-SHA, Basis-/Parent-SHA und der erzeugte Commit-SHA überprüft werden. Nach dem Ref-Write wird der Remote-Ref erneut gelesen; nur eine exakte SHA-Übereinstimmung gilt als erfolgreicher Handoff. Unklare Provenienz oder Berechtigungen führen fail-closed zum Abbruch.
+Vor dem Schreiben eines Handoff-Refs müssen aktuelle `main`-/`mid-stable`-SHA, Basis-/Parent-SHA und der vollständig erzeugte Commit-SHA überprüft werden. Der fertige Handoff erhält einen neuen `replit/*`-Branch-Ref, der erst nach vollständigem Objekttransfer einmalig angelegt wird. Ein bereits geprüfter Handoff-Ref wird nicht für weitere Änderungen fortgeschrieben; Nacharbeit erhält einen neuen Handoff-Branch. Nach dem Ref-Write wird der Remote-Ref erneut gelesen; nur eine exakte SHA-Übereinstimmung gilt als erfolgreicher Handoff. Unklare Provenienz oder Berechtigungen führen fail-closed zum Abbruch.
 
 ## Replit Handoff Gate
 
-Jeder Push auf `replit/**` löst einen read-only GitHub-Actions-Check aus.
+Sowohl ein klassischer Push auf `replit/**` als auch das finale erstmalige Anlegen eines fertigen `replit/*`-Branch-Refs löst einen read-only GitHub-Actions-Check aus. Dadurch bleibt der Gate auch beim sicheren Git-Objekt/API-Handoff wirksam.
 
 Der Gate:
 
