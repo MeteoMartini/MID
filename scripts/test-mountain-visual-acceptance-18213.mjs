@@ -360,8 +360,8 @@ try{
     const stationCases=twoStations?[['Tal','Talstation Gaislachkoglbahn','-2'],['Berg','Bergstation Rettenbachferner','-12']]:[['Tal','Talstation Gaislachkoglbahn','-2'],['Mitte','Mittelstation Gaislachkogl','-7'],['Berg','Bergstation Rettenbachferner','-12']];
    for(const [label,station,temp] of stationCases){
    await clickButtonContaining('.mountain-level-picker button',label);
-   await waitForValue(`Stufenwechsel ${label}`,`document.querySelector('.mountain-current-heading strong')?.textContent||''`,value=>value.includes(station));
-   const selected=JSON.parse(await evaluate(`(()=>{const metric=[...document.querySelectorAll('.mountain-current-rail .mid-metric')].find(item=>item.querySelector('.mid-metric-label')?.textContent.trim()==='Temperatur');return JSON.stringify({name:document.querySelector('.mountain-current-heading strong')?.textContent.trim()||'',temperature:metric?.querySelector('strong')?.textContent.trim()||''})})()`));
+   await waitForValue(`Stufenwechsel ${label}`,`document.querySelector('.mountain-hourly-heading>span>strong')?.textContent||''`,value=>value.includes(station));
+   const selected=JSON.parse(await evaluate(`JSON.stringify({name:document.querySelector('.mountain-hourly-heading>span>strong')?.textContent.trim()||'',temperature:document.querySelector('.mountain-hourly-temperature-row td strong')?.textContent.trim()||''})`));
    assert.ok(selected.temperature.includes(temp),`${label}: erwartete eigene Fixture-Temperatur mit ${temp} °C, erhalten ${JSON.stringify(selected)}.`);
    selectedStations.push(selected);
    if(label==='Mitte'){
@@ -498,7 +498,7 @@ try{
     await evaluate(`new Promise(resolve=>{window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'});requestAnimationFrame(()=>requestAnimationFrame(resolve))})`);
     const geometry=JSON.parse(await evaluate(`(()=>{
      const root=document.querySelector('.mountain-ski'),r=root.getBoundingClientRect(),surface=getComputedStyle(document.documentElement).getPropertyValue('--surface').trim();
-     const heading=root.querySelector('.mountain-current-heading strong'),day=root.querySelector('.mountain-day-toggle'),rail=root.querySelector('.mountain-current-rail'),railRect=rail?.getBoundingClientRect(),railStyle=rail?getComputedStyle(rail):null;
+     const heading=root.querySelector('.mountain-hourly-heading>span>strong'),day=root.querySelector('.mountain-day-toggle'),rail=root.querySelector('.mountain-current-rail'),railRect=rail?.getBoundingClientRect(),railStyle=rail?getComputedStyle(rail):null;
      const app=document.querySelector('.app'),main=app?.querySelector(':scope > main'),footer=app?.querySelector(':scope > footer'),bar=document.querySelector('.dashboard-bottom-tabs');
      const mainRect=main?.getBoundingClientRect(),footerRect=footer?.getBoundingClientRect(),barRect=bar?.getBoundingClientRect(),barStyle=bar?getComputedStyle(bar):null;
      const safeBottomCss=getComputedStyle(document.documentElement).getPropertyValue('--mid-safe-bottom').trim(),safeBottom=parseFloat(safeBottomCss)||0,maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
