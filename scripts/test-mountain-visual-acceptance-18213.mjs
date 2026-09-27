@@ -286,7 +286,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode,withSnowWarnin
      });
     return json(requested.length===1?requested[0]:requested);
    }
-   if(url.hostname==='api.open-meteo.com'&&url.pathname==='/v1/elevation')return json({elevation:[1100,2200,3300]});
+   if(url.hostname==='api.open-meteo.com'&&url.pathname==='/v1/elevation')return json({elevation:[mountain.valleyElevation,mountain.middleElevation,mountain.summitElevation]});
    if(url.hostname==='ensemble-api.open-meteo.com'){
     const count=Math.max(25,Math.min(361,Number(url.searchParams.get('forecast_days')||7)*24+1));
     const ensembleTimes=Array.from({length:count},(_,i)=>localIso(Math.floor(now/hourMs)*hourMs+i*hourMs)),hourly={time:ensembleTimes};
@@ -301,7 +301,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode,withSnowWarnin
    if(url.hostname.startsWith('overpass.'))return json({elements:[]});
    return originalFetch(input,init);
   };
-  function pointElevation(value){const number=Number(value);return Number.isFinite(number)?number:2200}
+   function pointElevation(value){const number=Number(value);return Number.isFinite(number)?number:mountain.middleElevation}
   localStorage.setItem('theme','light');
   localStorage.setItem('windUnit','kn');
   localStorage.setItem('mid:favorites',favs);
