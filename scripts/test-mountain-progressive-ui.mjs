@@ -23,6 +23,7 @@ const diagnosticsStart=mountain.indexOf('async function fetchMountainDiagnostics
 assert.ok(diagnosticsRequest.includes("'cape'")&&diagnosticsRequest.includes("hourly:variables.join(',')"),'CAPE must be fetched with the hourly mountain diagnostics enrichment');
 assert.ok(coreRequestStart>=0&&coreRequestEnd>coreRequestStart,'core mountain request must remain separately identifiable');
 assert.doesNotMatch(coreRequest,/'cape'/,'CAPE must stay out of the initial core request');
+assert.match(coreRequest,/priority:'foreground'/,'the user-visible mountain core forecast must outrank background Open-Meteo work');
 assert.match(mountain,/diagnosticsStatus:'loading'\|'ready'\|'unavailable'/,'diagnostics cache must retain its three-state enrichment status');
 assert.match(mountain,/const diagnosticsStatus=entry\.diagnosticsStatus/,'cached diagnostics status must be replayed when the mountain view is reopened');
 assert.match(mountain,/target\.diagnosticsStatus='ready'/,'diagnostics status becomes ready only after a successful merge');
