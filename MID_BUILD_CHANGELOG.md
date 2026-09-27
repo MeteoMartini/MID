@@ -1,3 +1,11 @@
+## MID v0.9.85.107 · 2026-09-27 · Kompakte Vorhersage- und Bergwetteransichten
+
+- Basis und Source of Truth: mid-stable 17e5fa60e9bee26ec2485a08b33b4ebdc2bfe77e (v0.9.85.106).
+- Verifizierter Replit-Handoff: replit/mid-18-2-15-compact-forecast-mountain@59f74d0715e3012ef166030aed21a8718d35ddf8; Handoff-Gate #107 grün mit 873 Regressionen sowie Web-/iOS-Hülle.
+- ChatGPT hat den Handoff selektiv in chatgpt/mid-18-2-15-v0985107 integriert und die Diff-Audit-Funde korrigiert: aktive cockpit-fourteen-sun-uvi-Klasse, semantische Schneemengenflächen, kompakte Warn-/Lawinen-/Methodikflächen und bedingungsabhängiger Matrix-Scroll.
+- Die Schneemengen-Flächenstaffelung ist reine UI-Skalierung und ausdrücklich keine WMO-/DWD-Warn- oder Intensitätsschwelle.
+- MID_CHATGPT_GITHUB_CONTRACT.md wurde auf Source-PR-Gate → kontrollierten Merge → serverseitiges Release-ZIP → Installer → Worker/Pages → Stable-Promotion umgestellt; ZIP-im-PR ist regressionsgeschützt ausgeschlossen.
+
 ## MID v0.9.85.105 · 2026-09-26 · Bergwetter kompakter und schneller
 
 - Finaler Replit-Handoff 9d166f7a083aac991f11856608fa0b93178e6aec aus replit/mid-18-2-14-v0-9-85-105-handoff-20260926 selektiv auf den Stable-Quellstand übernommen.
