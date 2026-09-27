@@ -19,6 +19,16 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.107 · MID 18.2.15 kompakte Vorhersage- und Bergwetteransichten
+
+MID 18.2.15 übernimmt ausschließlich den gegen `mid-stable` geprüften Replit-Handoff für UI/UX und integriert ihn selektiv über ChatGPT. 7- und 14-Tage-Zeilen werden vertikal verdichtet; Nachtpiktogramme bleiben vollständig sichtbar. In der 14-Tage-Ansicht ist die kanonische `head / sky / meta`-Struktur verbindlich; Sonnenstunden und UVI verwenden die tatsächlich aktive Klasse `cockpit-fourteen-sun-uvi` und dürfen auf kleinen Displays nicht auf Mikrotypografie zusammengedrückt werden.
+
+Im Berg-/Wintersportprofil bleiben Tal-/Mittel-/Bergstufen und meteorologische Berechnung unverändert. Flüssigniederschlag und Schneefall werden visuell getrennt. Die Schneefall-Flächenstaffelung skaliert ausschließlich die dargestellte 3-h-Schneemenge und ist ausdrücklich **keine** amtliche WMO-/DWD-Warn- oder Intensitätsschwelle. Amtliche Warnungen bleiben klar von automatischen MID-Hinweisen getrennt; lange Beschreibungen werden sekundär über Details angeboten. Die amtliche Lawinenlage wird nur als Quellen-/Statusblock verlinkt; MID erfindet keine Gefahrenstufe. `Höhenwetter-Verlauf` bleibt entfernt, `Höhenvergleich` ist die kanonische Bezeichnung.
+
+Der ChatGPT/GitHub-Vertrag ist auf den aktuellen Source-first-Veröffentlichungsweg harmonisiert: normaler Agentweg = Source-PR-Gate → kontrollierter Merge → serverseitiges `MID-professional-replacement.zip` → Installer → Worker/Pages-Prüfung → Stable-Promotion. Ein Release-ZIP im normalen Agent-PR ist unzulässig.
+
+Required Regressions: `scripts/test-chatgpt-github-write-contract-098510.mjs`, `scripts/test-fourteen-day-replit-fluid-grid-098593.mjs`, `scripts/test-mountain-visual-acceptance-18213.mjs`, `scripts/test-mid-collaboration-hardening-0985106.mjs`.
+
 ## v0.9.85.106 · ChatGPT↔Replit Collaboration Hardening
 
 ChatGPT ist die alleinige Auftrags-, Prüf- und Integrationsinstanz für MID-Arbeit, die an Replit delegiert wird. Replit bleibt gezielt UI-/Design-Werkbank und beginnt keine eigenständigen MID-Arbeitspakete. Jeder Replit-Stand wird ausschließlich als unprivilegierter `replit/*`-Handoff mit verifizierter Basis-, Commit- und Remote-Ref-SHA übergeben; direkte Änderungen an `main`, `mid-stable`, `chatgpt/*` oder `codex/*` sind unzulässig. Ein fehlender lokaler SSH-Deploy-Key wird nicht durch neue Schreibschlüssel oder gelockerte Hostprüfung ersetzt. Persistente Regeln liegen in `replit.md` und `.agents/skills/mid-handoff/SKILL.md`; Governance-, CI-/Release-, Worker-, iOS-, Versions- und zentrale Build-/Deploy-Dateien sind im Replit-Handoff-Gate geschützt. Veröffentlichung bleibt ausschließlich Source-PR-Gate → kontrollierter Merge → serverseitiges Release-ZIP → Installer → Worker/Pages → Stable-Promotion. Required Regression: `scripts/test-mid-collaboration-hardening-0985106.mjs`. Detailvertrag: `MID_REPLIT_HANDOFF_CONTRACT.md`.
