@@ -28,6 +28,10 @@ for(const text of [agents,replit,contract]){
  assert.ok(text.includes('main'),'Persistenter Vertrag muss main als Produktionsgrenze benennen.');
  assert.ok(text.includes('mid-stable'),'Persistenter Vertrag muss mid-stable als Stable-Grenze benennen.');
 }
+assert.ok(replit.includes('Jeder MID-Arbeitsauftrag an Replit wird von ChatGPT erteilt'),'replit.md muss ChatGPT als alleinige Replit-Auftragsinstanz festlegen.');
+assert.ok(contract.includes('ChatGPT ist die alleinige Instanz, die MID-Arbeitsaufträge an Replit erteilt'),'Handoff-Vertrag muss ChatGPT als alleinige Auftragsinstanz festlegen.');
+assert.ok(skill.includes('Require a concrete current MID task issued by ChatGPT'),'Replit-Skill muss einen konkreten ChatGPT-Auftrag voraussetzen.');
+assert.ok(agents.includes('ChatGPT is the sole tasking authority for MID work sent to Replit'),'AGENTS.md muss ChatGPT als alleinige Replit-Auftragsinstanz festlegen.');
 assert.ok(replit.includes('keinen schreibenden SSH-Deploy-Key'),'replit.md muss den automatischen Schreib-Deploy-Key-Fallback verbieten.');
 assert.ok(replit.includes('Remote-Ref erneut gelesen'),'replit.md muss Post-Write-SHA-Verifikation verlangen.');
 assert.ok(skill.includes('no-release/no-production'),'MID-Handoff-Skill muss die No-Release-Rolle eindeutig beschreiben.');
