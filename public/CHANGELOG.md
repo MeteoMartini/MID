@@ -5,6 +5,7 @@
 - Beim Laden erscheint sofort eine strukturierte Vorschau, während Zusatzdaten im Hintergrund ergänzt werden.
 - Der bisherige separate „Höhenvergleich“ entfällt. Weitere Kennwerte, Schnee-/Eishinweise, Schneefallgrenzen, Lawinenquelle und Methodik sind ruhiger in das MID-Design eingeordnet.
 - Aktuelle hyperlokal analysierte Bewölkung wird knapp unter vollständiger Bedeckung nicht mehr allein durch Rundung als „Bedeckt“ ausgegeben.
+- Open-Meteo liefert für Sonne/Mond zusätzlich Mondaufgang, Monduntergang und Mondphase; MID nutzt diese Tageswerte vorrangig und behält die lokale Astronomieberechnung als robusten Fallback.
 
 # MID v0.9.85.107
 
