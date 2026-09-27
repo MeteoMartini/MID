@@ -1,7 +1,6 @@
-# MID v0.9.85.106
+# MID v0.9.85.107
 
-- Replit bleibt die gezielte MID-Werkbank für Design- und UI-Anpassungen; konkrete MID-Arbeitsaufträge an Replit werden ausschließlich von ChatGPT erteilt.
-- Replit übergibt Änderungen nur über geprüfte `replit/*`-Handoffs. Prüfung, Integration und Veröffentlichung bleiben bei ChatGPT und dem geschützten GitHub-Releasepfad.
-- Ein fehlender lokaler SSH-Deploy-Key wird nicht durch einen neuen Schreibschlüssel oder gelockerte Hostprüfung ersetzt; der vorhandene GitHub-Integrationsweg nutzt SHA-Verifikation vor und nach dem Handoff.
-- Persistente Replit-Regeln und ein projektgebundener MID-Handoff-Skill machen den Ablauf auch nach neuen Replit-/ChatGPT-Sitzungen reproduzierbar.
-- Das Replit-Handoff-Gate schützt zusätzlich Governance-, Agent-, CI-/Release-, Worker-, iOS-, Versions- und zentrale Build-/Deploy-Dateien vor direkten Replit-Änderungen.
+- Replit-Handoffs werden künftig auch dann automatisch geprüft, wenn der fertige `replit/*`-Branch erst nach vollständigem Git-Objekttransfer angelegt wird.
+- Jeder abgeschlossene Replit-Handoff verwendet einen neuen Branch; bereits geprüfte Handoff-Refs werden nicht nachträglich weitergeschoben.
+- Der bestehende read-only Handoff-Gate bleibt ohne Secrets und Deploy-Rechte und blockiert weiterhin Governance-, Release-, Worker-, iOS- und zentrale Build-/Deploy-Dateien.
+- Der sichere Handoff benötigt weiterhin keinen schreibenden SSH-Deploy-Key und keine künstlichen Trigger-Commits.
