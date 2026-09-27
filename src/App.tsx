@@ -1278,7 +1278,7 @@ function MountainSki({loc,days,ensembleDays,rapidMinutes15,alerts,automaticHazar
   <div className="mountain-profile-summary"><span><MountainSnow size={16}/><b>{mountainSeasonLabel(data?.season??config.season)}</b><small>{mountainProfileCaption(config)}</small></span></div>
    {!data&&!error?<MountainForecastLoading/>:error?<div className="error" role="alert">{error}</div>:data&&<>
    <MountainEnrichmentDisclosure cacheInfo={cacheInfo} statuses={enrichments}/>
-   <MountainForecastOverview data={data} days={days} unit={unit} snowLine={snowLine}/>
+    <MountainForecastOverview data={data} days={days} unit={unit}/>
    <details className="mountain-extra-indicators">
     <summary><span>Weitere Kennwerte · Bergstation</span><small>Sicht, Wolken, Windchill, UVI und Tageslicht</small></summary>
     <div className={`mountain-indicators mountain-peak-indicators${winter?' winter':' summer'}`} data-season={winter?'winter':'summer'} aria-label="Weitere Kennwerte der Bergstation">
@@ -1374,11 +1374,11 @@ function mountainForecastDateKeys(level:MountainLevelForecast,days:Day[]){const 
    </table>
   </div>;
  }
- function MountainForecastOverview({data,days,unit,snowLine}:{data:MountainSportsForecast;days:Day[];unit:WindUnit;snowLine:number}){
+ function MountainForecastOverview({data,days,unit}:{data:MountainSportsForecast;days:Day[];unit:WindUnit}){
  const [selectedRole,setSelectedRole]=useState<MountainLevelRole>('summit'),[expandedDate,setExpandedDate]=useState<string|null>(null),levels=data.levels,level=levels.find(item=>item.role===selectedRole)??[...levels].sort((a,b)=>b.elevation-a.elevation)[0];
  useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);
  useEffect(()=>{setExpandedDate(null)},[selectedRole]);
- const dateKeys=useMemo(()=>level?mountainForecastDateKeys(level,days):[],[level,days]),todayKey=level?mountainLocalDateKey(Date.now(),level.weather.timezone||'UTC'):'',rows=useMemo(()=>level?dateKeys.map((date,index)=>mountainForecastDay(level,date,index===0&&date===todayKey?'Heute':index===1?'Morgen':formatDateOnly(date,{weekday:'long'}))):[],[level,dateKeys,todayKey]),today=rows.find(row=>row.date===todayKey),currentSnowLine=level?dwdSnowfallLimit({temperature850:mountainCurrentValue(level,'temperature_850hPa'),geopotentialHeight850:mountainCurrentValue(level,'geopotential_height_850hPa'),freezingLevelHeight:mountainCurrentValue(level,'freezing_level_height')}):snowLine,currentTime=level?String(level.weather.current.time??''):'',currentClock=level&&currentTime?formatLocalIsoDisplayTime(currentTime,level.weather.timezone):'';
+  const dateKeys=useMemo(()=>level?mountainForecastDateKeys(level,days):[],[level,days]),todayKey=level?mountainLocalDateKey(Date.now(),level.weather.timezone||'UTC'):'',rows=useMemo(()=>level?dateKeys.map((date,index)=>mountainForecastDay(level,date,index===0&&date===todayKey?'Heute':index===1?'Morgen':formatDateOnly(date,{weekday:'long'}))):[],[level,dateKeys,todayKey]),currentTime=level?String(level.weather.current.time??''):'',currentClock=level&&currentTime?formatLocalIsoDisplayTime(currentTime,level.weather.timezone):'';
  if(!levels.length||!level)return <MountainForecastMatrix data={data} days={days} unit={unit}/>;
  return <section className="mountain-forecast-overview" aria-label="Höhenwetter nach ausgewählter Höhenstufe">
   <MidSurface level="raised" className="mountain-current-panel">
