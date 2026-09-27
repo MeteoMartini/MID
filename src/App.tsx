@@ -1172,7 +1172,7 @@ function MountainForecastMatrix({data,days,unit}:{data:MountainSportsForecast;da
  if(!weather||!windows.length)return null;
  return <section className={`mountain-forecast-matrix${open?' open':''}`} aria-label="Höhenvergleich">
   <button type="button" className="mountain-forecast-summary" onClick={()=>setOpen((value:boolean)=>!value)} aria-expanded={open}>
-   <span><small>Höhenwetter-Verlauf</small><strong>Höhenvergleich · {title}</strong><em>{open?'Höhenwetter schließen':'Höhenwetter öffnen'}</em></span>
+    <span><strong>Höhenvergleich · {title}</strong><em>{open?'Höhenwetter schließen':'Höhenwetter öffnen'}</em></span>
    {open?<ChevronUp size={17}/>:<ChevronDown size={17}/>}
   </button>
   {open&&<div className="mountain-forecast-content">
@@ -1191,7 +1191,8 @@ function MountainForecastMatrix({data,days,unit}:{data:MountainSportsForecast;da
       <MountainMatrixRow label="Sicht" points={points} render={point=><MountainMatrixVisibilityCell point={point}/>}/>
       <MountainMatrixRow label="Wolkenbasis (NHN)" points={points} render={point=><MountainMatrixCloudBaseCell point={point}/>}/>
       <MountainMatrixRow label="Wind / Böen" points={points} cellClass={point=>mountainWindWarningMeta(point.gust)?.className||''} cellTitle={point=>mountainWindWarningMeta(point.gust)?.label} render={point=><span className="mountain-matrix-nowrap mountain-matrix-wind"><WindDirectionArrow direction={point.direction} gust={point.gust} className="mountain-matrix-wind-arrow"/>{wind(point.wind,unit)} / {wind(point.gust,unit)}</span>}/>
-      <MountainMatrixRow label="Niederschlag" points={points} cellClass={point=>mountainPrecipitationClass(point.precipitation)} render={point=><span>{formatDecimal(point.precipitation,1,1)} mm{Number.isFinite(point.probability)?<small>{Math.round(point.probability)} %</small>:null}{point.snow>.01?<small>{formatDecimalFixed(point.snow,1)} cm Schnee</small>:null}</span>}/>
+       <MountainMatrixRow label="Niederschlag" points={points} cellClass={point=>mountainPrecipitationClass(point.precipitation)} render={point=><span>{formatDecimal(point.precipitation,1,1)} mm{Number.isFinite(point.probability)?<small>{Math.round(point.probability)} %</small>:null}</span>}/>
+       <MountainMatrixRow label="Schneefall" points={points} render={point=><span className="mountain-matrix-snowfall">{mountainSnowfallLabel(point.snow)}</span>}/>
       <MountainMatrixRow label="Schneefallgrenze" points={points} render={point=>Number.isFinite(point.snowLine)?`ca. ${Math.round(point.snowLine/50)*50} m`:'–'}/>
      </section>
     })}</div>
