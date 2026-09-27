@@ -133,19 +133,21 @@ async function verifyMountainMatrix(label){
  })()`));
  assert.ok(initial.afterSevenDays,`${label}: Höhenvergleich folgt nicht direkt auf die Sieben-Tage-Ansicht (${JSON.stringify(initial)}).`);
  assert.ok(initial.label.includes('Höhenvergleich'),`${label}: sichtbare Bezeichnung „Höhenvergleich“ fehlt (${initial.label}).`);
+ assert.ok(!initial.label.includes('Höhenwetter-Verlauf'),`${label}: redundante Bezeichnung „Höhenwetter-Verlauf“ ist weiterhin sichtbar (${initial.label}).`);
  assert.equal(initial.expanded,'false',`${label}: Höhenvergleich muss standardmäßig geschlossen sein.`);
  assert.ok(initial.hiddenContent,`${label}: geschlossener Höhenvergleich rendert bereits Matrix-Inhalt.`);
  await clickAt('.mountain-forecast-summary');
  await waitForValue(`${label}: Höhenvergleich geöffnet`,`document.querySelector('.mountain-forecast-summary')?.getAttribute('aria-expanded')||''`,value=>value==='true');
  const visible=JSON.parse(await evaluate(`(()=>{
   const matrix=document.querySelector('.mountain-forecast-matrix'),levels=[...matrix.querySelectorAll('.mountain-matrix-level')],timeRow=matrix.querySelector('.mountain-matrix-level .mountain-matrix-row'),scroll=matrix.querySelector('.mountain-matrix-scroll');
-  return JSON.stringify({roles:levels.map(node=>node.dataset.levelRole),headers:levels.map(node=>node.querySelector(':scope > header b')?.textContent.trim()||''),windArrows:matrix.querySelectorAll('.mountain-matrix-wind-arrow[role="img"][aria-label]').length,windWarningCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-wind-warning-"]').length,timeCells:timeRow?.querySelectorAll(':scope > span').length||0,threeHourSelected:matrix.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||'',scroll:scroll?{clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth}:null,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth})
+  return JSON.stringify({roles:levels.map(node=>node.dataset.levelRole),headers:levels.map(node=>node.querySelector(':scope > header b')?.textContent.trim()||''),windArrows:matrix.querySelectorAll('.mountain-matrix-wind-arrow[role="img"][aria-label]').length,windWarningCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-wind-warning-"]').length,snowCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-snow-"]').length,snowRows:[...matrix.querySelectorAll('.mountain-matrix-row>b')].filter(node=>node.textContent.trim()==='Schnee').length,timeCells:timeRow?.querySelectorAll(':scope > span').length||0,threeHourSelected:matrix.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||'',scroll:scroll?{clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth}:null,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth})
  })()`));
  const expectedRoles=twoStations?['valley','summit']:['valley','middle','summit'];
  assert.deepEqual(visible.roles,expectedRoles,`${label}: Höhenvergleich muss nur vorhandene Tal-/Mitte-/Bergstationen zeigen.`);
  for(const [role,station] of [['valley','Talstation'],['middle','Mittelstation'],['summit','Bergstation']])if(expectedRoles.includes(role))assert.ok(visible.headers[expectedRoles.indexOf(role)].startsWith(station),`${label}: Rollenlabel ${station} fehlt (${visible.headers.join(' | ')}).`);
  assert.ok(visible.windArrows>0,`${label}: Matrix-Windrichtungspfeile fehlen.`);
  assert.ok(visible.windWarningCells>0,`${label}: Warnfarben für starke Matrix-Böen fehlen.`);
+ assert.ok(visible.snowRows>0&&visible.snowCells>0,`${label}: eigenständige semantische Schneeflächen fehlen (${visible.snowRows}/${visible.snowCells}).`);
  assert.ok(visible.timeCells>0&&visible.threeHourSelected==='3 h',`${label}: 3-h-Ansicht ist nicht initial ausgewählt.`);
  assert.ok(visible.scroll&&visible.scroll.scrollWidth>=visible.scroll.clientWidth,`${label}: Matrix besitzt keinen eigenen horizontalen Overflowbereich.`);
  assert.ok(visible.documentWidth<=visible.viewportWidth+1,`${label}: geöffnete Matrix erweitert die Dokumentbreite (${visible.documentWidth}/${visible.viewportWidth}).`);
@@ -255,7 +257,7 @@ function browserPrelude(favorite,location,mountain,diagnosticMode){
   localStorage.setItem('mid:favorites:shadow:v1',favs);
   localStorage.setItem('mid:favorites:updated-at',new Date().toISOString());
   localStorage.setItem('mid:favorites:order:v1',JSON.stringify({ids:[favorite.id],updatedAt:new Date().toISOString()}));
-  localStorage.setItem('mid:mountain:47.26920:11.40410',JSON.stringify(mountain));
+  localStorage.setItem('mid:mountain:46.96900:11.01000',JSON.stringify(mountain));
   localStorage.setItem('mid:lastLocation',JSON.stringify(fixtureLocation));
   localStorage.setItem('mid:last-dashboard-section:v1','mountain');
   localStorage.setItem('mid:module-open-contract:v6','1');
@@ -320,17 +322,15 @@ try{
  await cdp('Runtime.enable');
  await cdp('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844,screenOrientation:{type:'portraitPrimary',angle:0}});
 
- const location={id:'innsbruck-visual-fixture',name:'Innsbruck',latitude:47.2692,longitude:11.4041,elevation:574,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
+ const location={id:'soelden-visual-fixture',name:'Sölden',latitude:46.969,longitude:11.01,elevation:1368,country:'Österreich',country_code:'AT',timezone:'Europe/Vienna'};
  const mountain={
   schemaVersion:2,enabled:true,season:'winter',middleEnabled:!twoStations,
-  valleyElevation:1100,middleElevation:2200,summitElevation:3300,
-  valleyName:'Talstation Sonnwies · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  middleName:'Mittelstation Panoramaalm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  summitName:'Bergstation Hahnenkamm · Kitzbüheler Alpen, Testprofil mit langem Stationsnamen',
-  valleyLatitude:47.30,valleyLongitude:11.35,middleLatitude:47.28,middleLongitude:11.38,summitLatitude:47.25,summitLongitude:11.40,
-  profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-25T12:00:00.000Z',
+  valleyElevation:1368,middleElevation:2284,summitElevation:3040,
+  valleyName:'Sölden Tal',middleName:'Giggijoch',summitName:'Sölden Berg',
+  valleyLatitude:46.969,valleyLongitude:11.010,middleLatitude:46.977,middleLongitude:11.008,summitLatitude:46.943,summitLongitude:10.948,
+  profileSource:'manual',profileConfidence:'high',profileUpdatedAt:'2026-09-27T06:30:00.000Z',
  };
-  const favorite={id:'mid-18-2-14-visual-fixture',location,alias:'MID 18.2.14 Winter-Testprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
+  const favorite={id:'mid-18-2-15-soelden-visual-fixture',location,alias:'Sölden · Bergprofil',group:'Visualtests',isDefault:true,rules:{enabled:false},mountain,water:{enabled:false,waterType:'auto',activity:'general',maxWaveHeight:1.5,maxGustKt:28,minWaterTemperature:15}};
   await cdp('Page.addScriptToEvaluateOnNewDocument',{source:browserPrelude(favorite,location,mountain,enrichmentMode)});
  await cdp('Page.navigate',{url:`${baseUrl}/#mid-section-mountain`});
  await waitForValue('MID-Oberfläche',`Boolean(document.querySelector('.dashboard-bottom-tabs'))`,Boolean);
