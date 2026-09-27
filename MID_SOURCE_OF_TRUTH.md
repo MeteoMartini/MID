@@ -19,6 +19,18 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.108 · MID 18.2.16 stündliche Höhenprognose und aktuelle Bewölkungssemantik
+
+Dieser Stand ersetzt für Berg-/Wintersport den sichtbaren bisherigen `Höhenvergleich` der v0.9.85.107 durch die ausgewählte Höhenstufe als kanonische Prognoseperspektive. Verbindlich sind eine sofortige Skeleton-Vorschau, Tal-/Mitte-/Berg-Auswahl, eine stündliche Prognose der nächsten rund 24 Stunden und kompakte 7-Tage-Zeilen mit höchstens einem inline geöffneten Tagesdetail. Die Formulierung in v0.9.85.107, wonach `Höhenvergleich` die kanonische sichtbare Bezeichnung sei, ist damit für die aktuelle UI ausdrücklich abgelöst.
+
+Der sichtbare Höhen-Kernforecast hat Vorrang vor optionalen Open-Meteo-Anreicherungen; Diagnostik, GeoSphere-Schneemessung und Schneefallgrenzen-Ensemble bleiben progressiv. Wind/Böen, Schnee-/Messungspriorität, DWD-Schneefallgrenzenverfahren sowie die Trennung amtlicher Warnungen von automatischen MID-Hinweisen bleiben fachlich erhalten. Die unteren Berg-/Winterbereiche werden in die ruhige MID-Flächenhierarchie überführt; eine amtliche Lawinenquelle erhält ohne reale Gefahrenstufe keine erfundene Warnfarbe.
+
+Für das aktuelle Wetter wird ein kontinuierlicher hyperlokal analysierter Bewölkungs-Prozentwert nicht mehr durch einfache Rundung zu einer scheinbar diskreten 8/8-Beobachtung. Bei dieser analysierten Prozentdarstellung ist 8/8 „Bedeckt“ vollständiger Bedeckung von 100 % vorbehalten; darunter bleibt die Textklassifikation höchstens 7/8. Direkte diskrete amtliche Beobachtungen werden dadurch nicht umgedeutet.
+
+Responsive Zielmatrix: 390×844, 430×932, 412×915, 834×1194, 1194×834 und 1440×900, jeweils Light/Dark. Das stündliche Höhenraster darf intern horizontal scrollen, aber die Dokumentbreite nicht erweitern. Mobile interaktive Ziele bleiben mindestens 44 CSS-Pixel groß.
+
+Required Regressions: `scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs`, `scripts/test-current-hyperlocal-sky-083311.mjs`, `scripts/test-mountain-progressive-ui.mjs`, `scripts/test-mountain-visual-acceptance-18213.mjs`, `scripts/test-mountain-persistence-layout-071063.mjs`, `scripts/test-mountain-wind-normalization-071054.mjs`, `scripts/test-pictogram-intensity-snow-depth-098426.mjs`, `scripts/test-mountain-forecast-collapse-08153.mjs`. Detailvertrag: `MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md`.
+
 ## v0.9.85.107 · MID 18.2.15 kompakte Vorhersage- und Bergwetteransichten
 
 MID 18.2.15 übernimmt ausschließlich den gegen `mid-stable` geprüften Replit-Handoff für UI/UX und integriert ihn selektiv über ChatGPT. 7- und 14-Tage-Zeilen werden vertikal verdichtet; Nachtpiktogramme bleiben vollständig sichtbar. In der 14-Tage-Ansicht ist die kanonische `head / sky / meta`-Struktur verbindlich; Sonnenstunden und UVI verwenden die tatsächlich aktive Klasse `cockpit-fourteen-sun-uvi` und dürfen auf kleinen Displays nicht auf Mikrotypografie zusammengedrückt werden.
