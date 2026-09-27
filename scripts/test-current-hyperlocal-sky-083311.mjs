@@ -26,6 +26,9 @@ const {hyperlocalSkyCondition}=await import(moduleUrl);
 const strong=hyperlocalSkyCondition({fallbackCode:3,cloudCover:87.5,visibility:7600,humidity:41,temperature:26,dewPoint:10,cloudObserved:true,visibilityObserved:true});
 if(strong?.code!==3||strong?.label!=='Stark bewölkt'||strong?.cloudOktas!==7)failures.push('7/8 wird nicht konsistent als stark bewölkt klassifiziert: '+JSON.stringify(strong));
 
+const almostOvercast=hyperlocalSkyCondition({fallbackCode:3,cloudCover:94,visibility:10000,humidity:80,temperature:20,dewPoint:16,cloudObserved:true,visibilityObserved:true});
+if(almostOvercast?.label!=='Stark bewölkt'||almostOvercast?.cloudOktas!==7)failures.push('Kontinuierliche Fusionswerte unter 100 % dürfen nicht zu diskretem 8/8 aufgerundet werden: '+JSON.stringify(almostOvercast));
+
 const overcast=hyperlocalSkyCondition({fallbackCode:2,cloudCover:100,visibility:10000,humidity:80,temperature:20,dewPoint:16,cloudObserved:true,visibilityObserved:true});
 if(overcast?.label!=='Bedeckt'||overcast?.cloudOktas!==8)failures.push('8/8 wird nicht als bedeckt klassifiziert: '+JSON.stringify(overcast));
 
