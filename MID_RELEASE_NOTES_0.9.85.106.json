@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.106",
+  "date": "2026-09-27",
+  "title": "Kompakte Vorhersage- und Bergwetteransichten",
+  "external": [
+    "Die 7- und 14-Tage-Übersichten sind kompakter aufgebaut; Sonnenstunden und UVI bleiben dabei gut lesbar.",
+    "Nachtpiktogramme erhalten ausreichend Platz und werden in den kompakten Tageszeilen nicht mehr angeschnitten.",
+    "Das Berg-/Wintersportprofil ist dichter und tabellarischer gegliedert; Schnee und Flüssigniederschlag sind getrennt farbcodiert.",
+    "Warnungen, Lawinenhinweis und Methodik sind kompakter strukturiert; der redundante Hinweis „Höhenwetter-Verlauf“ entfällt."
+  ],
+  "internal": [
+    "MID 18.2.15 basiert auf Stable v0.9.85.105 und übernimmt die in Replit mit Sölden/Tirol spezifizierte Zielrichtung selektiv in einen geschützten Source-PR.",
+    "Veraltete 14-Tage-Layoutregeln wurden aus midC18ForecastRows.css entfernt; die kanonische head/sky/meta-Struktur in midC18FourteenReplitFluidGrid.css bleibt maßgeblich und reduziert zugleich das CSS-Budget.",
+    "Der Berg-Höhenvergleich trennt Schneefall und Flüssigniederschlag semantisch, verdichtet Warn-/Sicherheitsflächen und verwendet Sölden mit aktiviertem Winter-Bergprofil als Browser-Abnahmefixture.",
+    "Veröffentlichung ausschließlich über Source-PR-Gate → Auto-Merge → Release-ZIP → Installer/Pages → Stable-Promotion."
+  ]
+}
