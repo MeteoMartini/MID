@@ -1379,7 +1379,7 @@ function mountainForecastDateKeys(level:MountainLevelForecast,days:Day[]){const 
  useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);
  useEffect(()=>{setExpandedDate(null)},[selectedRole]);
   const dateKeys=useMemo(()=>level?mountainForecastDateKeys(level,days):[],[level,days]),todayKey=level?mountainLocalDateKey(Date.now(),level.weather.timezone||'UTC'):'',rows=useMemo(()=>level?dateKeys.map((date,index)=>mountainForecastDay(level,date,index===0&&date===todayKey?'Heute':index===1?'Morgen':formatDateOnly(date,{weekday:'long'}))):[],[level,dateKeys,todayKey]),currentTime=level?String(level.weather.current.time??''):'',currentClock=level&&currentTime?formatLocalIsoDisplayTime(currentTime,level.weather.timezone):'';
- if(!levels.length||!level)return <MountainForecastMatrix data={data} days={days} unit={unit}/>;
+  if(!levels.length||!level)return <p className="mountain-forecast-empty" role="status">Für dieses Profil sind aktuell keine Höhenstufen verfügbar.</p>;
  return <section className="mountain-forecast-overview" aria-label="Höhenwetter nach ausgewählter Höhenstufe">
    <MidSurface level="raised" className="mountain-hourly-panel">
     <header className="mountain-hourly-heading">
@@ -1410,7 +1410,11 @@ function MountainForecastDayRow({day,level,unit,season,open,onToggle}:{day:Mount
     <span className="mountain-day-expand" aria-hidden="true">{open?<ChevronUp size={18}/>:<ChevronDown size={18}/>}</span>
    </button>
    {open&&<div id={id} className="mountain-day-detail" role="region" aria-label={`${day.label} Stundenprognose für ${level.name||mountainLevelLabel(level.role)}, ${Math.round(level.elevation)} m ü. NHN`}>
-    <p className="mountain-day-detail-level">Stundenwerte: <strong>{level.name||mountainLevelLabel(level.role)} · {Math.round(level.elevation)} m ü. NHN</strong></p>
+     <p className="mountain-day-detail-level">Stundenwerte: <strong>{level.name||mountainLevelLabel(level.role)} · {Math.round(level.elevation)} m ü. NHN</strong></p>
+     <div className="mountain-day-extra-summary" aria-label="Zusätzliche Tageswerte">
+      <span><small>Schneefallgrenze</small><b>{Number.isFinite(day.snowLine)?`${Math.round(day.snowLine/50)*50} m`:'–'}</b></span>
+      <span><small>Sonnenschein · UVI</small><b>{sunshineWholeHoursLabel(day.sunshine)} · UV {Number.isFinite(dailyUvMax)?formatUvi(dailyUvMax):'–'}</b></span>
+     </div>
     <div className="mountain-period-table-scroll"><table className="mountain-period-grid" aria-label="Prognose in Dreistundenintervallen" role="table">
      <thead role="rowgroup"><tr role="row"><th scope="col" role="columnheader">Zeit</th><th scope="col" role="columnheader">Wetter</th><th scope="col" role="columnheader">Temperatur</th><th scope="col" role="columnheader">Gefühlt</th><th scope="col" role="columnheader">Wind / Böen</th><th scope="col" role="columnheader">Niederschlag</th><th scope="col" role="columnheader">Neuschnee</th></tr></thead>
      <tbody role="rowgroup">{day.periods.map(period=>{const periodPrecipClass=mountainPrecipitationClass(period.precipitation),windValues=validateWindPair(period.wind,period.gust);return <tr className="mountain-period-card" role="row" key={`${period.epoch}:${period.endEpoch}`}>
