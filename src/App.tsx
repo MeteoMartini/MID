@@ -1276,7 +1276,7 @@ function MountainSki({loc,days,ensembleDays,rapidMinutes15,alerts,automaticHazar
    <div className="mountain-title-actions"><span className="mountain-favorite-note"><Star size={13} fill="currentColor"/>Favoritenprofil</span><div className="module-inline-segmented mountain-season-control" role="group" aria-label="Saisonprofil"><span>Modus</span>{(['auto','summer','winter'] as MountainSeason[]).map(value=><button key={value} type="button" className={config.season===value?'active':''} aria-pressed={config.season===value} onClick={()=>onConfigChange({season:value})}>{value==='auto'?'Auto':value==='summer'?'Sommer':'Winter'}</button>)}</div></div>
   </Title>
   <div className="mountain-profile-summary"><span><MountainSnow size={16}/><b>{mountainSeasonLabel(data?.season??config.season)}</b><small>{mountainProfileCaption(config)}</small></span></div>
-  {loading&&!data?<div className="mountain-loading" role="status"><RefreshCw className="spin" size={16}/>Höhenprognose wird geladen …</div>:error?<div className="error" role="alert">{error}</div>:data&&<>
+   {!data&&!error?<MountainForecastLoading/>:error?<div className="error" role="alert">{error}</div>:data&&<>
    <MountainEnrichmentDisclosure cacheInfo={cacheInfo} statuses={enrichments}/>
    <MountainForecastOverview data={data} days={days} unit={unit} snowLine={snowLine}/>
    <details className="mountain-extra-indicators">
@@ -1332,7 +1332,49 @@ function mountainForecastDay(level:MountainLevelForecast,date:string,labelText:s
   return{date,label:labelText,temperatureMin:temperatures.length?Math.min(...temperatures):NaN,temperatureMax:temperatures.length?Math.max(...temperatures):NaN,wind:windPair.wind,gust:windPair.gust,direction:peak?mountainForecastHourlyValue(level,'wind_direction_10m',peak.row.index):NaN,precipitation:completeTotal('precipitation',precipitationValues),probability:probabilities.length?Math.max(...probabilities):NaN,snow:completeTotal('snow',snowValues),snowLine:snowLines.length?snowLines[Math.floor(snowLines.length/2)]:NaN,sunshine,code:representative?.code??NaN,intensity:representative?.intensity,phenomenon:representative?.phenomenon,weatherLabel:representative?.weatherLabel??'Wetterdaten nicht verfügbar',isDay:representative?.isDay??true,periods,available:futureIndices.some(row=>mountainForecastHasHourlyData(level,row.index))};
 }
 function mountainForecastDateKeys(level:MountainLevelForecast,days:Day[]){const timezone=level.weather.timezone||'UTC',today=mountainLocalDateKey(Date.now(),timezone),hourly=(level.weather.hourly.time??[]) as string[],heightDates=[...new Set(hourly.map(time=>time.slice(0,10)).filter(date=>date>=today))],dailyDates=days.map(day=>String(day.date)).filter(date=>date>=today);return[...new Set([...heightDates,...dailyDates])].sort().slice(0,7)}
-function MountainForecastOverview({data,days,unit,snowLine}:{data:MountainSportsForecast;days:Day[];unit:WindUnit;snowLine:number}){
+ function MountainForecastLoading(){
+  return <section className="mountain-loading-skeleton" role="status" aria-label="Höhenprognose wird geladen" aria-busy="true">
+   <span className="sr-only">Höhenprognose wird geladen …</span>
+   <div className="mountain-skeleton-heading"><i/><i/><i/></div>
+   <div className="mountain-skeleton-levels" aria-hidden="true"><i/><i/><i/></div>
+   <div className="mountain-skeleton-hourly" aria-hidden="true">{Array.from({length:8},(_,index)=><div className="mountain-skeleton-hour" key={index}><i/><b/><span/><span/></div>)}</div>
+   <div className="mountain-skeleton-days" aria-hidden="true">{Array.from({length:4},(_,index)=><i key={index}/>)}</div>
+   <div className="mountain-loading"><RefreshCw className="spin" size={14}/>Höhenprognose wird geladen …</div>
+  </section>;
+ }
+ type MountainHourlyForecastHour={time:string;epoch:number;localDate:string;code:number;intensity?:PrecipitationParts['intensity'];phenomenon?:string;weatherLabel:string;isDay:boolean;temperature:number;apparent:number;wind:number;gust:number;direction:number;precipitation:number;probability:number;snow:number;snowLine:number;visibility:number;lowCloud:number};
+ function mountainHourlyForecastHours(level:MountainLevelForecast,now=Date.now()):MountainHourlyForecastHour[]{
+  const times=(level.weather.hourly.time??[]) as string[],from=now-60*60000,to=now+24*3600000;
+  return times.map((time,index)=>({time,index,epoch:mountainTimeEpoch(level.weather,time)})).filter(row=>Number.isFinite(row.epoch)&&row.epoch>=from&&row.epoch<to&&mountainForecastHasHourlyData(level,row.index)).slice(0,24).map(row=>{
+   const weather=mountainHourlyPresentationParts(level,row.index),weatherAvailable=mountainForecastHasWeatherSignal(level,row.index),codeAvailable=Number.isFinite(mountainForecastHourlyValue(level,'weather_code',row.index))||Number.isFinite(mountainForecastHourlyValue(level,'weather_code',row.index+1)),temperature=mountainForecastHourlyValue(level,'temperature_2m',row.index),freezing=mountainForecastHourlyValue(level,'freezing_level_height',row.index),temperature850=mountainForecastHourlyValue(level,'temperature_850hPa',row.index),height850=mountainForecastHourlyValue(level,'geopotential_height_850hPa',row.index),isDayValue=mountainForecastHourlyValue(level,'is_day',row.index);
+   return{time:row.time,epoch:row.epoch,localDate:mountainLocalDateKey(row.epoch,level.weather.timezone),code:codeAvailable?weather.displayCode:NaN,intensity:weather.intensity,phenomenon:weather.phenomenon,weatherLabel:!weatherAvailable?'Wetterdaten nicht verfügbar':weather.type==='none'?label(weather.displayCode):weather.weatherLabel,isDay:astronomicalIsDayAt(row.epoch,{latitude:level.latitude,longitude:level.longitude,elevation:level.elevation,timezone:level.weather.timezone},isDayValue>=.5),temperature,apparent:mountainForecastHourlyValue(level,'apparent_temperature',row.index),wind:mountainForecastHourlyValue(level,'wind_speed_10m',row.index),gust:mountainForecastHourlyValue(level,'wind_gusts_10m',row.index),direction:mountainForecastHourlyValue(level,'wind_direction_10m',row.index),precipitation:mountainHourlyPrecipitationValue(level,'precipitation',row.index),probability:mountainHourlyPrecipitationValue(level,'precipitation_probability',row.index),snow:mountainHourlyPrecipitationValue(level,'snowfall',row.index),snowLine:dwdSnowfallLimit({temperature850,geopotentialHeight850:height850,freezingLevelHeight:freezing}),visibility:mountainForecastHourlyValue(level,'visibility',row.index),lowCloud:mountainForecastHourlyValue(level,'cloud_cover_low',row.index)};
+  });
+ }
+ function MountainHourlyForecast({level,unit,season}:{level:MountainLevelForecast;unit:WindUnit;season:Exclude<MountainSeason,'auto'>}){
+  const rows=useMemo(()=>mountainHourlyForecastHours(level),[level]),timezone=level.weather.timezone;
+  if(!rows.length)return <p className="mountain-day-no-data">Für diese Höhenstufe sind aktuell keine stündlichen Werte verfügbar.</p>;
+  const renderValue=(value:number,format:(value:number)=>string)=>Number.isFinite(value)?format(value):'–';
+  return <div className="mountain-hourly-scroll" role="region" aria-label={`Stundenprognose für ${level.name||mountainLevelLabel(level.role)}, ${Math.round(level.elevation)} m ü. NHN`} tabIndex={0}>
+   <table className="mountain-hourly-grid">
+    <caption className="sr-only">Stündliche Bergwetterprognose in Ortszeit für die ausgewählte Höhenstufe</caption>
+    <thead><tr><th scope="col">Ortszeit</th>{rows.map(row=><th scope="col" key={row.time}><time dateTime={row.time}>{formatLocalIsoDisplayTime(row.time,timezone)}</time><small>{formatDateOnly(row.localDate,{weekday:'short'})}</small></th>)}</tr></thead>
+    <tbody>
+     <tr className="mountain-hourly-weather-row"><th scope="row">Wetter</th>{rows.map(row=><td key={row.time} title={row.weatherLabel}><span className="mountain-hourly-weather">{Number.isFinite(row.code)?<WeatherPictogram code={row.code} intensity={row.intensity} phenomenon={row.phenomenon} day={row.isDay} title={row.weatherLabel}/>:<span className="mountain-weather-missing" aria-label="Wetterdaten nicht verfügbar">–</span>}<small>{row.weatherLabel}</small></span></td>)}</tr>
+     <tr className="mountain-hourly-temperature-row"><th scope="row">Temperatur</th>{rows.map(row=>{const tone=Number.isFinite(row.temperature)?ecmwfTemperatureTone(row.temperature):undefined;return <td key={row.time}><strong style={tone?{'--mountain-temp-tone':tone.color} as CSSProperties:undefined}>{renderValue(row.temperature,value=>`${Math.round(value)} °C`)}</strong></td>})}</tr>
+     <tr><th scope="row">Wind / Böen</th>{rows.map(row=>{const pair=validateWindPair(row.wind,row.gust);return <td key={row.time}><span className="mountain-hourly-wind">{Number.isFinite(row.direction)?<WindDirectionArrow direction={row.direction} gust={pair.gust}/>:null}<b>{renderValue(pair.wind,value=>wind(value,unit))}</b><small>{renderValue(pair.gust,value=>wind(value,unit))}</small></span></td>})}</tr>
+     <tr><th scope="row">Niederschlag</th>{rows.map(row=><td key={row.time}><span className={`mountain-hourly-precip ${mountainPrecipitationClass(row.precipitation)}`}><b>{renderValue(row.precipitation,value=>`${formatDecimal(value,1,1)} mm`)}</b><small>{renderValue(row.probability,value=>`${Math.round(value)} %`)}</small></span></td>)}</tr>
+     {season==='winter'&&<tr className="mountain-hourly-winter-row"><th scope="row">Neuschnee</th>{rows.map(row=><td key={row.time}><strong>{mountainSnowfallLabel(row.snow)}</strong></td>)}</tr>}
+     {season==='winter'&&<tr className="mountain-hourly-winter-row"><th scope="row">Schneefallgrenze</th>{rows.map(row=><td key={row.time}><strong>{Number.isFinite(row.snowLine)?`${Math.round(row.snowLine/50)*50} m`:'–'}</strong></td>)}</tr>}
+    </tbody>
+    <tbody className="mountain-hourly-secondary">
+     <tr><th scope="row">Gefühlt</th>{rows.map(row=><td key={row.time}>{renderValue(row.apparent,value=>`${Math.round(value)} °C`)}</td>)}</tr>
+     <tr><th scope="row">Sicht</th>{rows.map(row=><td key={row.time}>{renderValue(row.visibility,visibilityLabel)}</td>)}</tr>
+     <tr><th scope="row">Tiefe Wolken</th>{rows.map(row=><td key={row.time}>{renderValue(row.lowCloud,value=>`${Math.round(value)} %`)}</td>)}</tr>
+    </tbody>
+   </table>
+  </div>;
+ }
+ function MountainForecastOverview({data,days,unit,snowLine}:{data:MountainSportsForecast;days:Day[];unit:WindUnit;snowLine:number}){
  const [selectedRole,setSelectedRole]=useState<MountainLevelRole>('summit'),[expandedDate,setExpandedDate]=useState<string|null>(null),levels=data.levels,level=levels.find(item=>item.role===selectedRole)??[...levels].sort((a,b)=>b.elevation-a.elevation)[0];
  useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);
  useEffect(()=>{setExpandedDate(null)},[selectedRole]);
