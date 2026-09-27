@@ -38,8 +38,8 @@ assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v
 assert.match(weather,/meta\?\.fallback!==true&&!\/MET Norway\/i/);
 assert.match(weather,/if\(!primaryCoreForecast\(value\)\)return/);
 
-// Worker is only an Open-Meteo Best Match resilience/cache path for the core forecast.
-assert.match(worker,/CORE_FORECAST_EDGE_CACHE_VERSION='v3'/);
+// Worker is only an Open-Meteo Best Match resilience/cache path for the core forecast. Schema v4 additionally carries moonrise/moonset/moon_phase.
+assert.match(worker,/CORE_FORECAST_EDGE_CACHE_VERSION='v4'/,'Worker-Core-Cache muss nach der Erweiterung des Daily-Schemas um Mondfelder auf v4 invalidiert sein.');
 assert.match(worker,/coreForecastCacheRequest\(lat,lon,elevation,timeZone/);
 assert.match(worker,/elevation=coreForecastElevation\(url\.searchParams\.get\('elevation'\)\),timeZone=coreForecastTimeZone\(url\.searchParams\.get\('timezone'\)\)/);
 const core=worker.slice(worker.indexOf('async function openMeteoCoreForecast'),worker.indexOf('async function openMeteoEnsembleProxy'));
