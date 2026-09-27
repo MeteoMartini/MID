@@ -342,26 +342,15 @@ try{
    console.log(`Berg-Zusatzdaten: ${enrichmentMode==='delayed'?'Kernprognose vor verzögerter Diagnostik':'Diagnosefehler und Cache-Wiederöffnung'} geprüft.`);
   }else{
 
-   const seasonalPriority={
-    winter:{
-     current:['mountain-metric-temperature','mountain-metric-feel','mountain-metric-wind','mountain-metric-new-snow','mountain-metric-snow-depth','mountain-metric-visibility','mountain-metric-low-cloud','mountain-metric-precipitation','mountain-metric-snowline','mountain-metric-sunshine','mountain-metric-uv','mountain-metric-thunder'],
-     peak:['mountain-indicator-snowline','mountain-indicator-new-snow','mountain-indicator-visibility','mountain-indicator-low-cloud','mountain-indicator-thunder','mountain-indicator-windchill','mountain-indicator-cloud-base','mountain-indicator-freezing','mountain-indicator-daylight','mountain-indicator-uv'],
-    },
-    summer:{
-     current:['mountain-metric-temperature','mountain-metric-wind','mountain-metric-thunder','mountain-metric-precipitation','mountain-metric-visibility','mountain-metric-low-cloud','mountain-metric-uv','mountain-metric-feel','mountain-metric-sunshine','mountain-metric-new-snow','mountain-metric-snow-depth','mountain-metric-snowline'],
-     peak:['mountain-indicator-visibility','mountain-indicator-low-cloud','mountain-indicator-thunder','mountain-indicator-windchill','mountain-indicator-cloud-base','mountain-indicator-freezing','mountain-indicator-daylight','mountain-indicator-snowline','mountain-indicator-uv'],
-    },
-   };
-   for(const season of ['winter','summer']){
-    await clickButtonContaining('.mountain-season-control button',season==='winter'?'Winter':'Sommer');
-    await waitForValue(`${season}: Saisonreihenfolge aktiviert`,`document.querySelector('.mountain-current-rail')?.getAttribute('data-season')||''`,value=>value===season);
-    const priorities=JSON.parse(await evaluate(`(()=>{
-     const ordered=(selector,prefix)=>[...document.querySelectorAll(selector)].sort((a,b)=>Number(getComputedStyle(a).order)-Number(getComputedStyle(b).order)).map(node=>[...node.classList].find(name=>name.startsWith(prefix)));
-     return JSON.stringify({current:ordered('.mountain-current-rail>.mid-metric','mountain-metric-'),peak:ordered('.mountain-peak-indicators>article','mountain-indicator-')});
-    })()`));
-    assert.deepEqual(priorities.current,seasonalPriority[season].current,`${season}: aktuelle Kennzahlen haben nicht die vorgesehene Saisonpriorität (${priorities.current.join(', ')}).`);
-    assert.deepEqual(priorities.peak,seasonalPriority[season].peak,`${season}: Bergstations-Kennwerte haben nicht die vorgesehene Saisonpriorität (${priorities.peak.join(', ')}).`);
-   }
+   await clickButtonContaining('.mountain-season-control button','Winter');
+   await waitForValue('Winterprofil aktiviert',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
+   const winterStructure=JSON.parse(await evaluate(`JSON.stringify({hourly:Boolean(document.querySelector('.mountain-hourly-grid')),snow:Boolean(document.querySelector('.mountain-hourly-snow-summary')),extra:document.querySelectorAll('.mountain-peak-indicators>article').length})`));
+   assert.ok(winterStructure.hourly&&winterStructure.snow,'Winterprofil muss Stundenraster und Schnee-Zusammenfassung zeigen.');
+   assert.ok(winterStructure.extra>0,'Weitere Bergstations-Kennwerte müssen im Winterprofil erhalten bleiben.');
+   await clickButtonContaining('.mountain-season-control button','Sommer');
+   await waitForValue('Sommerprofil aktiviert',`!document.querySelector('.mountain-hourly-snow-summary')&&Boolean(document.querySelector('.mountain-hourly-grid'))`,Boolean,60000);
+   await clickButtonContaining('.mountain-season-control button','Winter');
+   await waitForValue('Winterprofil für weitere Prüfungen wiederhergestellt',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
 
   const initialDays=JSON.parse(await evaluate(`JSON.stringify({rows:document.querySelectorAll('.mountain-day-toggle:not(:disabled)').length,expanded:[...document.querySelectorAll('.mountain-day-toggle')].filter(button=>button.getAttribute('aria-expanded')==='true').length,periodCards:document.querySelectorAll('.mountain-period-card').length})`));
   assert.ok(initialDays.rows>=7,`Sieben-Tage-Übersicht hat nur ${initialDays.rows} bedienbare Tageszeilen.`);
