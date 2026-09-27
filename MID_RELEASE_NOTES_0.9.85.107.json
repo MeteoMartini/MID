@@ -1,0 +1,19 @@
+{
+  "version": "0.9.85.107",
+  "date": "2026-09-27",
+  "title": "Kompakte Vorhersage- und Bergwetteransichten",
+  "external": [
+    "Die 7- und 14-Tage-Übersichten sind kompakter aufgebaut; Sonnenstunden und UVI bleiben auch auf kleinen Displays gut lesbar.",
+    "Nachtpiktogramme erhalten ausreichend Platz und werden in den kompakten Tageszeilen nicht abgeschnitten.",
+    "Das Berg-/Wintersportprofil ist dichter und tabellarischer aufgebaut. Schnee und Flüssigniederschlag werden getrennt dargestellt; die Schneeflächen skalieren ausschließlich die dargestellte Schneemenge und sind keine amtlichen Warnstufen.",
+    "Schnee-/Eiswarnungen, amtliche Lawinenquelle und Methodik sind kompakter strukturiert. Lange Warntexte bleiben über Details zugänglich.",
+    "Der ChatGPT/GitHub-Vertrag entspricht jetzt dem geschützten Source-first-Veröffentlichungsweg."
+  ],
+  "internal": [
+    "Basis und Source of Truth: mid-stable 17e5fa60e9bee26ec2485a08b33b4ebdc2bfe77e (v0.9.85.106).",
+    "Verifizierter Replit-Handoff: replit/mid-18-2-15-compact-forecast-mountain@59f74d0715e3012ef166030aed21a8718d35ddf8; Handoff-Gate #107 grün mit 873 Regressionen sowie Web-/iOS-Hülle.",
+    "ChatGPT hat den Handoff selektiv in chatgpt/mid-18-2-15-v0985107 integriert und die Diff-Audit-Funde korrigiert: aktive cockpit-fourteen-sun-uvi-Klasse, semantische Schneemengenflächen, kompakte Warn-/Lawinen-/Methodikflächen und bedingungsabhängiger Matrix-Scroll.",
+    "Die Schneemengen-Flächenstaffelung ist reine UI-Skalierung und ausdrücklich keine WMO-/DWD-Warn- oder Intensitätsschwelle.",
+    "MID_CHATGPT_GITHUB_CONTRACT.md wurde auf Source-PR-Gate → kontrollierten Merge → serverseitiges Release-ZIP → Installer → Worker/Pages → Stable-Promotion umgestellt; ZIP-im-PR ist regressionsgeschützt ausgeschlossen."
+  ]
+}
