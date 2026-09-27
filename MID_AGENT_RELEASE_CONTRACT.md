@@ -4,6 +4,12 @@
 
 Agentenänderungen werden nicht mehr als manuell hochzuladendes Release-ZIP übergeben. Der Normalweg ist ein Quellcode-PR aus einem `chatgpt/*`- oder `codex/*`-Branch desselben Repositories.
 
+## Geschützte Agent-Refs
+
+Die Rulesets für `chatgpt/*` und `codex/*` bleiben aktiv. Wenn der ChatGPT-GitHub-Schreibconnector selbst keinen Bypass für diese Refs besitzt, werden Git-Blobs, Trees und Commits zunächst ohne Ref-Änderung erzeugt. Der feste Broker-Kanal ist Issue #176 (`MID Agent Ref Broker`). Nur ein dort streng formatierter Auftrag des Repository-Eigentümers darf den read-only validierenden Broker-Workflow starten. Dieser prüft Branch-Namespace, vollständige SHAs, `main == mid-stable`, Stable-Abstammung und Fast-Forward-Eigenschaft. Erst danach darf der dedizierte MID Release Bot den Agent-Ref neu anlegen oder fast-forward aktualisieren. Der Broker akzeptiert niemals `main`, `mid-stable`, Replit-Handoffs, Force-Pushes, Releases oder Deployments.
+
+Replit verwendet diesen Broker nicht; Replit bleibt ausschließlich im `replit/*`-Handoff-Bereich.
+
 ## Verbindlicher Ablauf
 
 1. Agent ändert ausschließlich den Quellstand auf Basis des aktuellen `mid-stable`-Stands.
