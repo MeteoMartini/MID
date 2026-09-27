@@ -172,16 +172,20 @@ async function verifyMountainMatrix(label){
  const visible=JSON.parse(await evaluate(`(()=>{
   const matrix=document.querySelector('.mountain-forecast-matrix'),levels=[...matrix.querySelectorAll('.mountain-matrix-level')],timeRow=matrix.querySelector('.mountain-matrix-level .mountain-matrix-row'),scroll=matrix.querySelector('.mountain-matrix-scroll');
    const scrollStyle=scroll?getComputedStyle(scroll):null;
-   return JSON.stringify({roles:levels.map(node=>node.dataset.levelRole),headers:levels.map(node=>node.querySelector(':scope > header b')?.textContent.trim()||''),windArrows:matrix.querySelectorAll('.mountain-matrix-wind-arrow[role="img"][aria-label]').length,windWarningCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-wind-warning-"]').length,timeCells:timeRow?.querySelectorAll(':scope > span').length||0,threeHourSelected:matrix.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||'',scroll:scroll?{clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth,overflowX:scrollStyle?.overflowX||'',touchAction:scrollStyle?.touchAction||''}:null,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth})
+   return JSON.stringify({roles:levels.map(node=>node.dataset.levelRole),headers:levels.map(node=>node.querySelector(':scope > header b')?.textContent.trim()||''),windArrows:matrix.querySelectorAll('.mountain-matrix-wind-arrow[role="img"][aria-label]').length,windWarningCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-wind-warning-"]').length,snowAmountCells:matrix.querySelectorAll('.mountain-matrix-row>span[class*="mountain-snow-amount-"]').length,timeCells:timeRow?.querySelectorAll(':scope > span').length||0,threeHourSelected:matrix.querySelector('.mountain-matrix-controls button[aria-pressed="true"]')?.textContent.trim()||'',scroll:scroll?{clientWidth:scroll.clientWidth,scrollWidth:scroll.scrollWidth,overflowX:scrollStyle?.overflowX||'',touchAction:scrollStyle?.touchAction||''}:null,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth})
  })()`));
  const expectedRoles=twoStations?['valley','summit']:['valley','middle','summit'];
  assert.deepEqual(visible.roles,expectedRoles,`${label}: Höhenvergleich muss nur vorhandene Tal-/Mitte-/Bergstationen zeigen.`);
  for(const [role,station] of [['valley','Talstation'],['middle','Mittelstation'],['summit','Bergstation']])if(expectedRoles.includes(role))assert.ok(visible.headers[expectedRoles.indexOf(role)].startsWith(station),`${label}: Rollenlabel ${station} fehlt (${visible.headers.join(' | ')}).`);
  assert.ok(visible.windArrows>0,`${label}: Matrix-Windrichtungspfeile fehlen.`);
  assert.ok(visible.windWarningCells>0,`${label}: Warnfarben für starke Matrix-Böen fehlen.`);
+ assert.ok(visible.snowAmountCells>0,`${label}: eigenständige semantische Schneeflächen fehlen.`);
  assert.ok(visible.timeCells>0&&visible.threeHourSelected==='3 h',`${label}: 3-h-Ansicht ist nicht initial ausgewählt.`);
-  assert.ok(visible.scroll&&['auto','scroll'].includes(visible.scroll.overflowX),`${label}: Höhenvergleich besitzt keinen eigenen horizontalen Scrollbereich.`);
+ assert.ok(visible.scroll,`${label}: Höhenvergleich besitzt keinen Matrix-Scrollcontainer.`);
+ if(visible.scroll.scrollWidth>visible.scroll.clientWidth+1){
+  assert.ok(['auto','scroll'].includes(visible.scroll.overflowX),`${label}: überbreite Höhenmatrix besitzt keinen eigenen horizontalen Scrollbereich.`);
   assert.notEqual(visible.scroll.touchAction,'none',`${label}: Touch-Panning im Höhenvergleich ist deaktiviert.`);
+ }
  assert.ok(visible.documentWidth<=visible.viewportWidth+1,`${label}: geöffnete Matrix erweitert die Dokumentbreite (${visible.documentWidth}/${visible.viewportWidth}).`);
  const threeHourCells=visible.timeCells;
  await clickButtonContaining('.mountain-matrix-controls button','1 h');
@@ -377,6 +381,10 @@ try{
    console.error(`Bergwetter-Browserdiagnose: ${diagnostic}\nBrowserfehler: ${JSON.stringify(browserErrors.slice(-20))}`);
   throw error;
  }
+  const safetySurfaces=JSON.parse(await evaluate(`JSON.stringify({avalanche:!!document.querySelector('.mountain-avalanche-status'),methodology:!!document.querySelector('.mountain-methodology-grid'),obsolete:[...document.querySelectorAll('.mountain-ski *')].some(node=>node.textContent?.trim()==='Höhenwetter-Verlauf')})`));
+  assert.ok(safetySurfaces.avalanche,'Amtlicher Lawinen-Statusblock fehlt.');
+  assert.ok(safetySurfaces.methodology,'Gegliederte Methodik-/Sicherheitsfläche fehlt.');
+  assert.equal(safetySurfaces.obsolete,false,'Redundante Bezeichnung „Höhenwetter-Verlauf“ ist sichtbar.');
   if(enrichmentMode)await verifyEnrichmentScenario(enrichmentMode);
   if(enrichmentOnly){
    console.log(`Berg-Zusatzdaten: ${enrichmentMode==='delayed'?'Kernprognose vor verzögerter Diagnostik':'Diagnosefehler und Cache-Wiederöffnung'} geprüft.`);
