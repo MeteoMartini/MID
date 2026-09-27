@@ -13,7 +13,7 @@ type HyperlocalSkyInput={
 };
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
-function skyLabelFromOktas(oktas:number){if(oktas===0)return'Wolkenlos';if(oktas<=2)return'Gering bewölkt';if(oktas<=4)return'Aufgelockert bewölkt';if(oktas<=7)return'Stark bewölkt';return'Bedeckt'}
+export function skyConditionFromOktas(oktas:number):HyperlocalSkyCondition{const value=Math.max(0,Math.min(8,Math.round(oktas)));const label=value===0?'Wolkenlos':value<=3?'Leicht bewölkt':value<=6?'Wolkig':value===7?'Stark bewölkt':'Bedeckt',code=value===0?0:value<=3?1:value<=6?2:3;return{code,label,cloudOktas:value}}
 export function analysedCloudOktas(percent:number){const bounded=Math.max(0,Math.min(100,percent));if(bounded<=0)return 0;if(bounded>=100)return 8;return Math.max(1,Math.min(7,Math.round(bounded/12.5)))}
 
 /**
@@ -29,6 +29,6 @@ export function hyperlocalSkyCondition(input:HyperlocalSkyInput):HyperlocalSkyCo
  // Der hyperlokale Wert kann ein kontinuierlicher Modell-/Stations-Fusionswert sein.
  // DWD 8/8 bedeutet eine vollständig geschlossene Wolkendecke; ein Wert knapp unter
  // 100 % darf deshalb nicht durch Rundung als diskrete 8/8-Beobachtung erscheinen.
- const oktas=analysedCloudOktas(cloud),code=oktas===0?0:oktas<=2?1:oktas<=4?2:3;
- return{code:Number.isFinite(code)?code:fallbackCode,label:skyLabelFromOktas(oktas),cloudOktas:oktas};
+ const oktas=analysedCloudOktas(cloud),sky=skyConditionFromOktas(oktas);
+ return{...sky,code:Number.isFinite(sky.code)?sky.code:fallbackCode};
 }
