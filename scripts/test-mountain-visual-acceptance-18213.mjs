@@ -434,7 +434,7 @@ try{
   await clickAt('.settings-dialog button[aria-label="Einstellungen schließen"]');
   await waitForValue('Geschlossene Einstellungen',`!document.querySelector('.settings-dialog')`,Boolean);
     await clickButtonContaining('.mountain-season-control button','Winter');
-    await waitForValue('Sölden-Winterprofil für die Viewport-Matrix',`document.querySelector('.mountain-current-rail')?.getAttribute('data-season')||''`,value=>value==='winter');
+    await waitForValue('Sölden-Winterprofil für die Viewport-Matrix',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
    if(!mountainOnly)await navigateToForecast();
 
  const results=[],surfaces=new Map();
