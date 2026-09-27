@@ -508,7 +508,8 @@
     "test:mid-18-2-5-e-forecast-rows": "node scripts/test-mid-18-2-5-e-forecast-rows-098583.mjs",
     "test:mid-18-2-5-f-map-first": "node scripts/test-mid-18-2-5-f-map-first-098584.mjs",
     "test:mid-18-2-5-ui-fixes": "node scripts/test-mid-18-2-5-ui-fixes-098585.mjs",
-    "test:work-package-i": "node scripts/test-work-package-i.mjs"
+    "test:work-package-i": "node scripts/test-work-package-i.mjs",
+    "test:open-meteo-lunar-daily": "node scripts/test-open-meteo-lunar-daily-0985108.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
