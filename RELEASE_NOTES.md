@@ -4,3 +4,4 @@
 - Jeder abgeschlossene Replit-Handoff verwendet einen neuen Branch; bereits geprüfte Handoff-Refs werden nicht nachträglich weitergeschoben.
 - Der bestehende read-only Handoff-Gate bleibt ohne Secrets und Deploy-Rechte und blockiert weiterhin Governance-, Release-, Worker-, iOS- und zentrale Build-/Deploy-Dateien.
 - Der sichere Handoff benötigt weiterhin keinen schreibenden SSH-Deploy-Key und keine künstlichen Trigger-Commits.
+- ChatGPT/Codex benötigen für geschützte Agent-Branches künftig keinen dauerhaften Benutzer-/Admin-Bypass: ein eng begrenzter Ref-Broker validiert Stable-Abstammung und Fast-Forward und lässt nur den MID Release Bot den Agent-Ref schreiben.
