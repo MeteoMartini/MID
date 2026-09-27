@@ -19,6 +19,11 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.107 · Replit Final-Ref Gate
+
+Replit erzeugt für jeden abgeschlossenen Handoff einen neuen `replit/*`-Branch und legt dessen Ref erst einmalig an, nachdem alle Git-Objekte sowie Basis-, Parent- und Commit-SHA vollständig verifiziert wurden. Der read-only MID Replit Handoff Gate reagiert deshalb zusätzlich zum klassischen Push auf das Branch-Create-Ereignis eines fertigen `replit/*`-Refs. Bereits geprüfte Handoff-Refs werden nicht nachträglich weitergeschoben; Nacharbeit erhält einen neuen Branch. Dadurch bleibt die automatische Prüfung auch beim sicheren Git-Objekt/API-Handoff wirksam, ohne SSH-Schlüssel, Trigger-Commits oder zusätzliche Deploy-Rechte einzuführen. Required Regression: `scripts/test-replit-create-event-gate-0985107.mjs`.
+
+
 ## v0.9.85.106 · ChatGPT↔Replit Collaboration Hardening
 
 ChatGPT ist die alleinige Auftrags-, Prüf- und Integrationsinstanz für MID-Arbeit, die an Replit delegiert wird. Replit bleibt gezielt UI-/Design-Werkbank und beginnt keine eigenständigen MID-Arbeitspakete. Jeder Replit-Stand wird ausschließlich als unprivilegierter `replit/*`-Handoff mit verifizierter Basis-, Commit- und Remote-Ref-SHA übergeben; direkte Änderungen an `main`, `mid-stable`, `chatgpt/*` oder `codex/*` sind unzulässig. Ein fehlender lokaler SSH-Deploy-Key wird nicht durch neue Schreibschlüssel oder gelockerte Hostprüfung ersetzt. Persistente Regeln liegen in `replit.md` und `.agents/skills/mid-handoff/SKILL.md`; Governance-, CI-/Release-, Worker-, iOS-, Versions- und zentrale Build-/Deploy-Dateien sind im Replit-Handoff-Gate geschützt. Veröffentlichung bleibt ausschließlich Source-PR-Gate → kontrollierter Merge → serverseitiges Release-ZIP → Installer → Worker/Pages → Stable-Promotion. Required Regression: `scripts/test-mid-collaboration-hardening-0985106.mjs`. Detailvertrag: `MID_REPLIT_HANDOFF_CONTRACT.md`.
