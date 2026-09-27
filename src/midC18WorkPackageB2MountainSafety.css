@@ -1,0 +1,358 @@
+/* MID mountain safety surfaces — compact status rows and neutral information panels. */
+
+.mountain-ski .mountain-winter-guidance {
+  gap: 7px;
+  margin: 8px 0;
+  padding: 9px;
+  border-radius: 11px;
+}
+
+.mountain-ski .mountain-winter-heading {
+  align-items: center;
+  gap: 7px;
+}
+
+.mountain-ski .mountain-winter-heading > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.mountain-ski .mountain-winter-heading > span {
+  gap: 1px;
+}
+
+.mountain-ski .mountain-winter-heading strong {
+  font-size: 11px;
+}
+
+.mountain-ski .mountain-winter-heading small {
+  font-size: 8px;
+}
+
+.mountain-ski .mountain-winter-sources {
+  align-items: start;
+  gap: 7px;
+}
+
+.mountain-ski .mountain-winter-source {
+  gap: 6px;
+  padding: 8px;
+  border-radius: 9px;
+  background: var(--surface);
+}
+
+.mountain-ski .mountain-safety-source-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mountain-ski .mountain-safety-source-heading > span:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mountain-ski .mountain-safety-source-heading > span:first-child > small,
+.mountain-ski .mountain-source-availability > small {
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.mountain-ski .mountain-safety-source-heading > span:first-child > strong {
+  font-size: 9px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.mountain-ski .mountain-source-availability {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 2px;
+  justify-items: end;
+  max-width: 48%;
+  text-align: right;
+}
+
+.mountain-ski .mountain-source-availability > b {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.mountain-ski .mountain-source-availability.available > b {
+  color: var(--status-ok, #32805c);
+}
+
+.mountain-ski .mountain-source-availability.unavailable > b {
+  color: var(--warning, #b7791f);
+}
+
+.mountain-ski .mountain-source-availability.pending > b {
+  color: var(--muted);
+}
+
+.mountain-ski .mountain-winter-source-note,
+.mountain-ski .mountain-warning-state {
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.mountain-ski .mountain-winter-source ul {
+  gap: 5px;
+}
+
+.mountain-ski .mountain-winter-source li.mountain-warning-row {
+  gap: 5px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--s2);
+}
+
+.mountain-ski .mountain-warning-row-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 7px;
+  min-width: 0;
+}
+
+.mountain-ski .mountain-warning-row-heading > strong {
+  min-width: 0;
+  color: var(--text);
+  font-size: 9px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.mountain-ski .mountain-warning-level {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: right;
+}
+
+.mountain-ski .mountain-warning-level[data-level="yellow"] { color: #9a7900; }
+.mountain-ski .mountain-warning-level[data-level="orange"] { color: #b66716; }
+.mountain-ski .mountain-warning-level[data-level="red"] { color: #c43d3d; }
+.mountain-ski .mountain-warning-level[data-level="purple"] { color: #8354a4; }
+
+.mountain-ski .mountain-warning-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 9px;
+  min-width: 0;
+}
+
+.mountain-ski .mountain-warning-metadata > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 7px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.mountain-ski .mountain-warning-metadata > span > b {
+  color: var(--text);
+  font-size: 7px;
+  font-weight: 750;
+}
+
+.mountain-ski .mountain-warning-source {
+  color: var(--muted);
+  font-size: 7px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.mountain-ski .mountain-warning-details {
+  min-width: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+}
+
+.mountain-ski .mountain-warning-details > summary {
+  min-height: 36px;
+  padding: 8px 0 1px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.mountain-ski .mountain-warning-details > p {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 8px;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.mountain-ski .mountain-avalanche-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 8px 0;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--s2);
+}
+
+.mountain-ski .mountain-avalanche-overview {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.mountain-ski .mountain-avalanche-overview > span {
+  display: grid;
+  gap: 1px;
+}
+
+.mountain-ski .mountain-avalanche-overview > span > small,
+.mountain-ski .mountain-avalanche-metadata > span > b {
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.mountain-ski .mountain-avalanche-overview > span > strong {
+  font-size: 10px;
+}
+
+.mountain-ski .mountain-avalanche-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.mountain-ski .mountain-avalanche-metadata > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text);
+  font-size: 8px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.mountain-ski .mountain-avalanche-status > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+}
+
+.mountain-ski .mountain-avalanche-status > a:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.mountain-ski .mountain-avalanche-status > a > svg {
+  flex: 0 0 auto;
+}
+
+.mountain-ski .mountain-methodology {
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--s2);
+}
+
+.mountain-ski .mountain-methodology > summary {
+  min-height: 40px;
+  padding: 10px 11px;
+  color: var(--text);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.mountain-ski .mountain-methodology-rows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 12px;
+  margin: 0;
+  padding: 0 11px 10px;
+}
+
+.mountain-ski .mountain-methodology-rows > div {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.45fr) minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  padding-top: 5px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.mountain-ski .mountain-methodology-rows dt {
+  color: var(--text);
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.mountain-ski .mountain-methodology-rows dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+@media (max-width: 850px) {
+  .mountain-ski .mountain-warning-details > summary,
+  .mountain-ski .mountain-avalanche-status > a,
+  .mountain-ski .mountain-methodology > summary {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 620px) {
+  .mountain-ski .mountain-winter-sources {
+    grid-template-columns: 1fr;
+  }
+
+  .mountain-ski .mountain-avalanche-status {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .mountain-ski .mountain-avalanche-status > a {
+    justify-self: start;
+    width: 100%;
+  }
+
+  .mountain-ski .mountain-methodology-rows {
+    grid-template-columns: 1fr;
+  }
+}

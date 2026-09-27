@@ -1058,6 +1058,9 @@ function localMinutesBefore(value:string|undefined,minutes:number){const match=S
 function mountainPrecipitationParts(source:Record<string,any>){return precipitationParts({precipitation:metricNumber(source,'precipitation')||0,rain:metricNumber(source,'rain')||0,showers:metricNumber(source,'showers')||0,snowfall:metricNumber(source,'snowfall')||0,probability:metricNumber(source,'precipitation_probability')||0,code:metricNumber(source,'weather_code')||0,temperature:metricNumber(source,'temperature_2m'),dewPoint:metricNumber(source,'dew_point_2m'),humidity:metricNumber(source,'relative_humidity_2m'),cloud:metricNumber(source,'cloud_cover'),lowCloud:metricNumber(source,'cloud_cover_low')})}
 function mountainPrecipitationLabel(current:Record<string,any>,elevation:number,snowLine:number){if(!['weather_code','precipitation','rain','showers','snowfall'].some(key=>Number.isFinite(metricNumber(current,key))))return'Wetterdaten nicht verfügbar';const part=mountainPrecipitationParts(current),precip=metricNumber(current,'precipitation');if(part.type!=='none')return part.weatherLabel;if(Number.isFinite(snowLine)&&elevation>=snowLine&&precip>.01)return'Schnee/Schneeregen';return'kein Niederschlag'}
 function mountainAvalancheUrl(loc:Location){const code=countryCodeFromLocation(loc.country_code)||countryCodeFromLocation(loc.country);if((code==='AT'||code==='IT')&&loc.latitude>=45.4&&loc.latitude<=47.8&&loc.longitude>=9.5&&loc.longitude<=13.9)return'https://avalanche.report/';return'https://www.avalanches.org/'}
+function mountainAvalancheSourceName(url:string){const host=new URL(url).hostname.replace(/^www\./,'');return host==='avalanche.report'?'Lawinen.report':host}
+function mountainOfficialWarningType(alert:OfficialAlert){const kind=officialAlertKind(alert),labels:Partial<Record<DwdWarningKind,string>>={snow:'Schneefall',snowdrift:'Schneeverwehung',ice:'Glätte / Eis',frost:'Frost'};return alert.event?.trim()||(kind?labels[kind]:undefined)||'Schnee- oder Eiswarnung'}
+function mountainOfficialLevelLabel(level:OfficialAlert['level']){return({yellow:'Gelb',orange:'Orange',red:'Rot',purple:'Violett',unknown:'Unbekannt'} as const)[level]??'Unbekannt'}
 function mountainSnowText(level:MountainLevelForecast){const measured=Number.isFinite(level.measuredSnowDepthCm)?`${Math.round(level.measuredSnowDepthCm)} cm Messung`:'Messung –',model=Number.isFinite(level.modelSnowDepthCm)?`${Math.round(level.modelSnowDepthCm)} cm Modell`:'Modell –';return`${measured} · ${model}`}
 function mountainSnowMeasurementTitle(level:MountainLevelForecast){const measurement=level.snowMeasurement;if(!measurement)return'Keine GeoSphere-Messstation innerhalb 25 km, ±350 m und maximal 3 Stunden Alter.';const observed=formatDisplayDateTime(measurement.observedAt,level.weather.timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});return`${measurement.stationName} · ${measurement.distanceKm.toFixed(1).replace('.',',')} km · Höhendifferenz ${Math.round(measurement.heightDifferenceM)} m · Stand ${observed}`}
 function mountainProfileCaption(config:MountainConfig){const season=config.season==='auto'?'Saison automatisch erkannt':'Saison manuell gewählt',profile=config.profileSource==='manual'?'Profil manuell angepasst':config.profileSource==='osm-dem'?`Profil automatisch abgeleitet · ${config.profileConfidence==='high'?'hohe':config.profileConfidence==='medium'?'mittlere':'geringe'} Sicherheit`:'Profil aus abgeleiteten Ausgangswerten';return`${season} · ${profile}`}
@@ -1249,7 +1252,7 @@ function MountainEnrichmentDisclosure({cacheInfo,statuses}:{cacheInfo:string;sta
   </div>
  </details>;
 }
-function MountainMethodologyDisclosure(){return <details className="mountain-methodology"><summary>Methodik &amp; Sicherheit</summary><p>Schneefallgrenze (DWD-Näherung: +2 °C, 0,65 K/100 m) und Wolkenuntergrenze sind meteorologische Näherungen. Die Tageslichtzeit liegt 45 Minuten vor Sonnenuntergang und ist keine Sicherheitsfreigabe. Geöffnete Pisten- und Liftinformationen sowie die amtliche Lawinenlage haben Vorrang.</p></details>}
+ function MountainMethodologyDisclosure(){return <details className="mountain-methodology"><summary>Methodik &amp; Sicherheit</summary><dl className="mountain-methodology-rows"><div><dt>Schneefallgrenze</dt><dd>DWD-Näherung bis +2 °C; feuchtadiabatisch 0,65 K je 100 m.</dd></div><div><dt>Wolkenuntergrenze</dt><dd>Meteorologische Näherung, keine lokale Messung.</dd></div><div><dt>Tageslicht</dt><dd>Orientierung 45 Minuten vor Sonnenuntergang; keine Sicherheitsfreigabe.</dd></div><div><dt>Betrieb &amp; Sicherheit</dt><dd>Geöffnete Pisten und Lifte sowie die amtliche Lawinenlage sind maßgeblich.</dd></div></dl></details>}
 function MountainSki({loc,days,ensembleDays,rapidMinutes15,alerts,automaticHazards,officialLoading,officialError,officialProvider,unit,config,onConfigChange}:{loc:Location;days:Day[];ensembleDays:EnsembleDay[];rapidMinutes15?:ForecastFusionRapidMinute15[];alerts:OfficialAlert[];automaticHazards:AutomaticHazard[];officialLoading:boolean;officialError:string;officialProvider:string;unit:WindUnit;config:MountainConfig;onConfigChange:(change:Partial<MountainConfig>)=>void}){
  const[data,setData]=useState<MountainSportsForecast|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[cacheInfo,setCacheInfo]=useState(''),[enrichments,setEnrichments]=useState<{mountainDiagnostics:'loading'|'ready'|'unavailable';snowMeasurements:'loading'|'ready'|'unavailable';snowLineEnsemble:'loading'|'ready'|'unavailable'}>({mountainDiagnostics:'loading',snowMeasurements:'loading',snowLineEnsemble:'loading'});
  useEffect(()=>{
@@ -1292,17 +1295,50 @@ function MountainSki({loc,days,ensembleDays,rapidMinutes15,alerts,automaticHazar
     </div>
    </details>
    {(drift||whiteout)&&<div className="mountain-conditions">{drift&&<span className="warning"><Wind size={15}/>Schneeverfrachtung möglich</span>}{whiteout&&<span className="warning"><CloudFog size={15}/>Whiteout-Risiko</span>}</div>}
-   {winter&&<MountainWinterGuidance alerts={alerts} automaticHazards={automaticHazards} loading={officialLoading} error={officialError} provider={officialProvider} timezone={summit?.weather.timezone} unit={unit}/>}
+    {winter&&<><MountainWinterGuidance alerts={alerts} automaticHazards={automaticHazards} loading={officialLoading} error={officialError} provider={officialProvider} timezone={summit?.weather.timezone} unit={unit}/><MountainAvalancheStatus loc={loc}/></>}
    <MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/>
    <MountainSnowLineTrend data={data} ensembleDays={ensembleDays}/>
-   <div className="mountain-links"><a href={mountainAvalancheUrl(loc)} target="_blank" rel="noreferrer"><AlertTriangle size={15}/>Amtliche Lawinenlage öffnen</a><MountainMethodologyDisclosure/></div>
+    <MountainMethodologyDisclosure/>
   </>}
  </section>;
 }
 
 function MountainWinterGuidance({alerts,automaticHazards,loading,error,provider,timezone,unit}:{alerts:OfficialAlert[];automaticHazards:AutomaticHazard[];loading:boolean;error:string;provider:string;timezone?:string;unit:WindUnit}){
  const isWinterKind=(kind:DwdWarningKind|undefined)=>kind==='snow'||kind==='snowdrift'||kind==='ice'||kind==='frost',official=chronologicalOfficialAlerts(alerts.filter(alert=>officialAlertIsRelevant(alert)&&isWinterKind(officialAlertKind(alert)))),mid=automaticHazards.filter(item=>automaticHazardIsRelevant(item)&&isWinterKind(item.kind));
- return <section className="mountain-winter-guidance" aria-label="Amtliche und automatische Schnee- und Eiswarnungen"><header><MountainSnow/><span><strong>Schnee- und Eishinweise</strong><small>Warnungen und Hinweise beziehen sich auf den ausgewählten Ort, nicht auf eine einzelne Höhenstufe.</small></span></header><div className="mountain-winter-sources"><article className="mountain-winter-source official"><div><small>AMTLICH{provider?` · ${provider}`:''}</small><strong>Offizielle Warnungen</strong></div>{loading?<p className="mountain-warning-state">Amtliche Warnlage wird geprüft …</p>:error?<p className="mountain-warning-state unavailable">Amtlicher Warnstatus nicht bestimmbar: {error}</p>:official.length?<ul>{official.map(alert=><li key={alert.id}><strong>{alert.headline}</strong><small>{[officialAlertValidity(alert,timezone),alert.area,officialAlertMetric(alert,unit),alert.source].filter(Boolean).join(' · ')}</small>{alert.description&&<p>{alert.description}</p>}{alert.instruction&&<p>{alert.instruction}</p>}</li>)}</ul>:<p className="mountain-warning-state">Keine amtlichen Schnee- oder Eiswarnungen für den ausgewählten Ort.</p>}</article><article className="mountain-winter-source mid"><div><small>MID · AUTOMATISCH</small><strong>Prognosehinweise</strong></div><p className="mountain-winter-source-note">Automatische MID-Hinweise sind modellbasierte Prognoseinformationen und keine amtlichen Warnungen.</p>{mid.length?<ul>{mid.map((item,index)=><li key={`${item.kind}:${item.title}:${item.validFrom??''}:${index}`}><strong>{item.title}</strong><small>{[hazardValidityLabel(item.validFrom,item.validTo,timezone),item.scopeLabel,item.precisionLabel,item.displayMetric||item.metric].filter(Boolean).join(' · ')}</small>{(item.displayText||item.text)&&<p>{item.displayText||item.text}</p>}</li>)}</ul>:<p className="mountain-warning-state">Keine automatischen MID-Schnee- oder Eishinweise.</p>}</article></div></section>
+  const availability=loading?'Abfrage läuft':error?'Nicht verfügbar':'Abruf erfolgreich',officialSource=provider||'Amtliche Warnquelle';
+  return <section className="mountain-winter-guidance" aria-label="Amtliche und modellbasierte Schnee- und Eiswarnungen">
+   <header className="mountain-winter-heading"><MountainSnow/><span><strong>Schnee- und Eishinweise</strong><small>Gültigkeit für den ausgewählten Ort, nicht für eine einzelne Höhenstufe.</small></span></header>
+   <div className="mountain-winter-sources">
+    <article className="mountain-winter-source official">
+     <header className="mountain-safety-source-heading"><span><small>AMTLICHE QUELLE</small><strong>{officialSource}</strong></span><span className={`mountain-source-availability${loading?' pending':error?' unavailable':' available'}`} role={error?'alert':'status'}><small>Verfügbarkeit</small><b>{availability}</b></span></header>
+     {loading?<p className="mountain-warning-state">Amtliche Warnlage wird geprüft.</p>:error?<p className="mountain-warning-state unavailable">Amtlicher Warnstatus nicht bestimmbar: {error}</p>:official.length?<ul>{official.map(alert=>{
+      const source=[alert.source,provider&&provider!==alert.source?provider:''].filter(Boolean).join(' · ')||'Amtliche Warnquelle',updatedAt=alert.updatedAt?`Stand ${alertTime(alert.updatedAt,timezone)}`:'';
+      return <li className="mountain-warning-row official-row" data-level={alert.level} key={alert.id}>
+       <div className="mountain-warning-row-heading"><strong>{alert.headline}</strong><span className="mountain-warning-level" data-level={alert.level}>Warnstufe {mountainOfficialLevelLabel(alert.level)}</span></div>
+       <div className="mountain-warning-metadata"><span><b>Warnart</b>{mountainOfficialWarningType(alert)}</span><span><b>Zeitraum</b>{officialAlertValidity(alert,timezone)}</span>{alert.area&&<span><b>Gebiet</b>{alert.area}</span>}{officialAlertMetric(alert,unit)&&<span><b>Messgröße</b>{officialAlertMetric(alert,unit)}</span>}</div>
+       <small className="mountain-warning-source">Quelle: {source}{updatedAt?` · ${updatedAt}`:''}</small>
+       {(alert.description||alert.instruction)&&<details className="mountain-warning-details"><summary>Meldungstext und Verhalten</summary>{alert.description&&<p>{alert.description}</p>}{alert.instruction&&<p>{alert.instruction}</p>}</details>}
+      </li>
+     })}</ul>:<p className="mountain-warning-state">Keine amtlichen Schnee- oder Eiswarnungen für den ausgewählten Ort.</p>}
+    </article>
+    <article className="mountain-winter-source mid">
+     <header className="mountain-safety-source-heading"><span><small>MID · MODELLBASIERT</small><strong>Automatische Prognosehinweise</strong></span><span className="mountain-source-availability available"><small>Verfügbarkeit</small><b>{mid.length?'Hinweise verfügbar':'Prüfung abgeschlossen'}</b></span></header>
+     <p className="mountain-winter-source-note">Modellbasierte Prognoseinformationen; keine amtlichen Warnungen.</p>
+     {mid.length?<ul>{mid.map((item,index)=><li className="mountain-warning-row mid-row" data-level={item.level} key={`${item.kind}:${item.title}:${item.validFrom??''}:${index}`}>
+      <div className="mountain-warning-row-heading"><strong>{item.title}</strong><span className="mountain-warning-level" data-level={item.level}>MID · {item.level==='yellow'?'Gelb':item.level==='orange'?'Orange':item.level==='red'?'Rot':'Violett'}</span></div>
+      <div className="mountain-warning-metadata"><span><b>Zeitraum</b>{hazardValidityLabel(item.validFrom,item.validTo,timezone)||'Zeitraum nicht angegeben'}</span>{item.scopeLabel&&<span><b>Bezugsraum</b>{item.scopeLabel}</span>}{item.precisionLabel&&<span><b>Auflösung</b>{item.precisionLabel}</span>}{(item.displayMetric||item.metric)&&<span><b>Messgröße</b>{item.displayMetric||item.metric}</span>}</div>
+      {(item.displayText||item.text)&&<details className="mountain-warning-details"><summary>Prognosehinweis im Detail</summary><p>{item.displayText||item.text}</p></details>}
+     </li>)}</ul>:<p className="mountain-warning-state">Keine automatischen MID-Schnee- oder Eishinweise.</p>}
+    </article>
+   </div>
+  </section>
+}
+function MountainAvalancheStatus({loc}:{loc:Location}){
+ const url=mountainAvalancheUrl(loc),source=mountainAvalancheSourceName(url);
+ return <section className="mountain-avalanche-status" aria-label="Amtliche Lawinenlage">
+  <div className="mountain-avalanche-overview"><span><small>AMTLICHE QUELLE</small><strong>Lawinenlage</strong></span><div className="mountain-avalanche-metadata"><span><b>Quelle</b>{source}</span><span><b>Stand / Aktualität</b>Im amtlichen Lagebericht ausgewiesen</span><span><b>Verfügbarkeit</b>Externe Seite; hier nicht separat geprüft</span></div></div>
+  <a href={url} target="_blank" rel="noreferrer"><AlertTriangle size={15}/>Amtlichen Lawinenlagebericht öffnen</a>
+ </section>
 }
 function MountainRapidDataNotice({rapidMinutes15}:{rapidMinutes15?:ForecastFusionRapidMinute15[]}){
  if(!rapidMinutes15?.length)return null;

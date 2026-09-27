@@ -57,6 +57,7 @@ import './midC18I7ResponsiveFixes.css';
 import './midC18FourteenReplitFluidGrid.css';
 import './midC18WorkPackageAForecastRows.css';
 import './midC18WorkPackageB1MountainOverview.css';
+import './midC18WorkPackageB2MountainSafety.css';
 import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
