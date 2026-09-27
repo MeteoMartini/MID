@@ -21,8 +21,10 @@ assert.match(app,/Number\.isFinite\(level\.measuredSnowDepthCm\).*Number\.isFini
 assert.match(mountain,/priority:'foreground'/,'Die sichtbare Höhen-Kernprognose muss Vordergrundpriorität besitzen.');
 assert.match(mountain,/priority:'background'/,'Optionale Bergdiagnostik muss im Hintergrund bleiben.');
 assert.match(styles,/\.mountain-hourly-scroll\{[^}]*overflow:auto/,'Das Stundenraster muss intern scrollen statt die Seite zu verbreitern.');
-assert.match(styles,/MID 18\.2\.16 · ruhige Berg-\/Winter-Hierarchie/,'Die vereinheitlichte untere Berg-/Winter-Hierarchie fehlt.');
-assert.match(styles,/\.mountain-avalanche-status>a\{[^}]*var\(--primary\)/,'Die amtliche Lawinenquelle darf ohne reale Gefahrenstufe keine künstliche Warnfarbe erzwingen.');
+assert.match(styles,/\.mountain-secondary-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Die vereinheitlichte untere Berg-/Winter-Hierarchie fehlt.');
+assert.match(styles,/\.mountain-extra-indicators>summary\{[^}]*min-height:48px/,'Weitere Kennwerte brauchen eine klar bedienbare Disclosure-Hierarchie.');
+assert.match(styles,/\.mountain-avalanche-status>a\{[^}]*border:1px solid var\(--border\)[^}]*background:var\(--s2\)[^}]*color:var\(--text\)/,'Die amtliche Lawinenquelle muss ohne reale Gefahrenstufe neutral bleiben.');
+assert.match(styles,/\.mountain-warning-state\.unavailable\{color:var\(--muted\)\}/,'Nicht verfügbare amtliche Warninformationen dürfen keine künstliche Warnfarbe erhalten.');
 assert.match(conditions,/export function analysedCloudOktas\(percent:number\)/,'Die Semantik für kontinuierliche analysierte Bewölkung fehlt.');
 assert.match(conditions,/if\(bounded>=100\)return 8/,'8\/8 muss bei analysierter Prozentbewölkung vollständiger Bedeckung vorbehalten bleiben.');
 
