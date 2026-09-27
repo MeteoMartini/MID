@@ -36,7 +36,7 @@ const avalanche=app.slice(avalancheStart,avalancheEnd);
 assert.match(avalanche,/mountainAvalancheUrl\(loc\)/,'Der bestehende ortsabhängige amtliche Link muss weiterverwendet werden.');
 assert.match(avalanche,/mountainAvalancheSourceName\(url\)/,'Die konkrete externe Lawinenquelle muss benannt werden.');
 assert.match(avalanche,/Stand \/ Aktualität/,'Der Hinweis auf den Stand im amtlichen Lagebericht muss sichtbar sein.');
-assert.match(avalanche,/hier nicht separat geprüft/,'Eine nicht vorhandene lokale Liveprüfung darf nicht vorgetäuscht werden.');
+assert.match(avalanche,/Abruf nicht lokal geprüft; Direktlink verfügbar/,'Eine nicht vorhandene lokale Liveprüfung darf nicht vorgetäuscht werden.');
 assert.match(avalanche,/Amtlichen Lawinenlagebericht öffnen/,'Der separate Link zur amtlichen Lawinenlage muss klar beschriftet sein.');
 assert.doesNotMatch(avalanche,/Lawinenstufe|Gefahrenstufe|Avalanche Level/i,'Ohne Datenquelle darf keine Lawinenstufe angezeigt werden.');
 

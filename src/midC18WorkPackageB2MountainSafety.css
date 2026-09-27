@@ -147,6 +147,13 @@
 .mountain-ski .mountain-warning-level[data-level="red"] { color: #c43d3d; }
 .mountain-ski .mountain-warning-level[data-level="purple"] { color: #8354a4; }
 
+:root[data-theme="dark"] .mountain-ski .mountain-warning-level[data-level="yellow"] { color: #e4c554; }
+:root[data-theme="dark"] .mountain-ski .mountain-warning-level[data-level="orange"] { color: #ffb36b; }
+:root[data-theme="dark"] .mountain-ski .mountain-warning-level[data-level="red"] { color: #ff8282; }
+:root[data-theme="dark"] .mountain-ski .mountain-warning-level[data-level="purple"] { color: #c19ae1; }
+:root[data-theme="dark"] .mountain-ski .mountain-source-availability.available > b { color: #81d5a2; }
+:root[data-theme="dark"] .mountain-ski .mountain-source-availability.unavailable > b { color: #e6bd67; }
+
 .mountain-ski .mountain-warning-metadata {
   display: flex;
   flex-wrap: wrap;

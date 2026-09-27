@@ -1337,7 +1337,7 @@ function MountainWinterGuidance({alerts,automaticHazards,loading,error,provider,
 function MountainAvalancheStatus({loc}:{loc:Location}){
  const url=mountainAvalancheUrl(loc),source=mountainAvalancheSourceName(url);
  return <section className="mountain-avalanche-status" aria-label="Amtliche Lawinenlage">
-  <div className="mountain-avalanche-overview"><span><small>AMTLICHE QUELLE</small><strong>Lawinenlage</strong></span><div className="mountain-avalanche-metadata"><span><b>Quelle</b>{source}</span><span><b>Stand / Aktualität</b>Im amtlichen Lagebericht ausgewiesen</span><span><b>Verfügbarkeit</b>Externe Seite; hier nicht separat geprüft</span></div></div>
+  <div className="mountain-avalanche-overview"><span><small>AMTLICHE QUELLE</small><strong>Lawinenlage</strong></span><div className="mountain-avalanche-metadata"><span><b>Quelle</b>{source}</span><span><b>Stand / Aktualität</b>Im amtlichen Lagebericht ausgewiesen</span><span><b>Verfügbarkeit</b>Abruf nicht lokal geprüft; Direktlink verfügbar</span></div></div>
   <a href={url} target="_blank" rel="noreferrer"><AlertTriangle size={15}/>Amtlichen Lawinenlagebericht öffnen</a>
  </section>
 }
