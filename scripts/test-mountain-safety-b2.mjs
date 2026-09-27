@@ -46,7 +46,7 @@ const methodology=app.slice(methodologyStart,methodologyEnd);
 assert.match(methodology,/mountain-methodology-rows/,'Methodik und Sicherheit müssen in kurze Zeilen gegliedert sein.');
 for(const label of ['Schneefallgrenze','Wolkenuntergrenze','Tageslicht','Betrieb &amp; Sicherheit'])assert.ok(methodology.includes(label),`Methodik-Zeile fehlt: ${label}`);
 assert.doesNotMatch(methodology,/<p>/,'Die Methodik darf nicht wieder als einzelner langer Absatz erscheinen.');
-assert.match(app,/winter&&<><MountainWinterGuidance[\s\S]*?<MountainAvalancheStatus loc=\{loc\}/,'Warnungen und Lawinenstatus müssen im aktiven Winterprofil erscheinen.');
+assert.match(app,/\{winter&&<MountainWinterGuidance[\s\S]*?<MountainAvalancheStatus loc=\{loc\}/,'Warnungen und Lawinenstatus müssen im aktiven Bergprofil erscheinen.');
 
 assert.match(entry,/midC18WorkPackageB2MountainSafety\.css/,'Die B2-Oberflächenregeln müssen tatsächlich geladen werden.');
 assert.match(styles,/\.mountain-ski \.mountain-winter-source li\.mountain-warning-row/,'Warnmeldungen müssen kompakt in neutralen Statuszeilen liegen.');

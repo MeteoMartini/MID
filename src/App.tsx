@@ -1295,7 +1295,8 @@ function MountainSki({loc,days,ensembleDays,rapidMinutes15,alerts,automaticHazar
     </div>
    </details>
    {(drift||whiteout)&&<div className="mountain-conditions">{drift&&<span className="warning"><Wind size={15}/>Schneeverfrachtung möglich</span>}{whiteout&&<span className="warning"><CloudFog size={15}/>Whiteout-Risiko</span>}</div>}
-    {winter&&<><MountainWinterGuidance alerts={alerts} automaticHazards={automaticHazards} loading={officialLoading} error={officialError} provider={officialProvider} timezone={summit?.weather.timezone} unit={unit}/><MountainAvalancheStatus loc={loc}/></>}
+    {winter&&<MountainWinterGuidance alerts={alerts} automaticHazards={automaticHazards} loading={officialLoading} error={officialError} provider={officialProvider} timezone={summit?.weather.timezone} unit={unit}/>}
+    <MountainAvalancheStatus loc={loc}/>
    <MountainZoneAnalysis data={data} days={days} rapidMinutes15={rapidMinutes15}/>
    <MountainSnowLineTrend data={data} ensembleDays={ensembleDays}/>
     <MountainMethodologyDisclosure/>
