@@ -1,0 +1,71 @@
+name: Bug report
+description: Melde einen Fehler in der MID-Wetter-App
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für die Meldung. Bitte fülle die Felder unten aus.
+  - type: textarea
+    id: description
+    attributes:
+      label: Fehlerbeschreibung
+      description: Was ist passiert? Was wurde erwartet?
+    validations:
+      required: true
+  - type: dropdown
+    id: section
+    attributes:
+      label: Betroffener Bereich
+      options:
+        - Aktuell / Heute
+        - Vorhersage (7T/14T/46T/Saison)
+        - Karten
+        - Warnungen
+        - Klima
+        - Reiseplaner
+        - Einstellungen
+        - Datenanalyse
+        - Widget
+        - Push-Benachrichtigungen
+        - Cloudflare Worker / API
+        - Sonstiges
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Ort / Koordinaten
+      description: Welcher Ort war ausgewählt?
+      placeholder: z.B. Münster, 51.96°N 7.63°E
+    validations:
+      required: false
+  - type: dropdown
+    id: device
+    attributes:
+      label: Gerät / Plattform
+      options:
+        - iPhone (iOS)
+        - iPad (iPadOS)
+        - Android-Smartphone
+        - Desktop (Windows)
+        - Desktop (macOS)
+        - Desktop (Linux)
+        - Sonstiges
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: MID-Version
+      description: Steht in Einstellungen → Über MID
+      placeholder: z.B. v0.9.85.116
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Optional – ziehe Bilder hierher
+    validations:
+      required: false

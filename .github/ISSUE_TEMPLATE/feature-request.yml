@@ -1,0 +1,41 @@
+name: Feature request
+description: Schlage eine neue Funktion oder Verbesserung vor
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Welches Problem soll gelöst werden?
+      description: Beschreibe den Anwendungsfall oder die Lücke in der aktuellen App.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Vorgeschlagene Lösung
+      description: Was sollte die App tun? Welche Datenquelle oder welcher Standard (WMO/DWD) ist relevant?
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Kategorie
+      options:
+        - Vorhersage / Daten
+        - Warnungen / Sicherheit
+        - Karten / Visualisierung
+        - Barrierefreiheit / Design
+        - Push / Benachrichtigungen
+        - Neue Datenquelle
+        - UI/UX-Verbesserung
+        - Sonstiges
+    validations:
+      required: true
+  - type: textarea
+    id: scientific_basis
+    attributes:
+      label: Fachliche Grundlage
+      description: WMO/DWD-Standard, wissenschaftliche Quelle oder Studie
+      placeholder: z.B. WMO No. 1192, DWD Wetterwarnungen, ERA5-Land
+    validations:
+      required: false
