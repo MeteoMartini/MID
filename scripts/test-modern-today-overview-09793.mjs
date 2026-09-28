@@ -4,7 +4,7 @@ const [app,radarColors,contract,baseline]=await Promise.all([readFile('src/App.t
 assert.ok(!app.includes('function ModernTodayOverview'),'Verworfene Beta-Heute-Übersicht darf nicht mehr gerendert/mitgeführt werden');
 assert.ok(!app.includes('mid-modern-today-overview'),'Beta-Heute-DOM darf nicht mehr existieren');
 assert.ok(!app.includes('modernTodayDetailsOpen'),'Beta-Detailszustand darf nicht mehr existieren');
-assert.ok(app.includes("case'current':return <MemoCurrent"),'Aktuelles Wetter muss wieder direkt die kanonische Current-Ansicht rendern');
+assert.ok(app.includes("case'current':return <><MemoCurrent"),'Aktuelles Wetter muss wieder direkt die kanonische Current-Ansicht rendern');
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder Bottom-Bar-Primärziel sein');
 assert.ok(!app.includes("modules:['current'"),'Aktuelles Wetter darf nicht zusätzlich im Mehr-Menü dupliziert werden');
 assert.ok(app.includes("{id:'safety',label:'Sicherheit'"),'Sicherheitsgruppe im Mehr-Menü fehlt.');
