@@ -68,7 +68,7 @@ for(const token of [
 ]) assert.ok(secondary.includes(token),`MID-18-Sekundärflächen-Regel fehlt: ${token}`);
 assert.ok(main.indexOf("import './midC18TypographyReadability.css';")>main.indexOf("import './midC18HierarchyPolish.css';"),'Typografie-Layer muss nach dem Hierarchie-Polish laden.');
 assert.ok(!app.includes('modern-today-overview'),'Verworfene Beta-Heute-Übersicht darf nicht wiederkehren.');
-for(const token of ['local-now-disclosure','warnings-responsive-shell',"case'current':return <MemoCurrent"]) assert.ok(app.includes(token),`App-Nutzung fehlt: ${token}`);
+for(const token of ['local-now-disclosure','warnings-responsive-shell',"case'current':return <><MemoCurrent"]) assert.ok(app.includes(token),`App-Nutzung fehlt: ${token}`);
 assert.ok(sourceDiagnostics.includes('forecast-source-weight-list'),'Quellendiagnostik-Komponente fehlt.');
 assert.ok(verification.includes('forecast-verification'),'Verifikationskomponente fehlt.');
 assert.ok(route.includes('route-weather-card'),'Routenwetter-Komponente fehlt.');
