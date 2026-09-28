@@ -35,8 +35,12 @@ need('Widget zeigt Hinweise nur bei warnwürdigen Ereignissen',app,'showHazards&
 need('Widget behandelt leeren Hinweiszustand layoutseitig wie ohne Hazards',app,'hasWidgetHazards=showHazards&&previewDays.some(day=>day.hz.length>0)');
 assert.ok(!app.includes('keine MID-Hinweise'),'Widget enthält weiterhin eine Entwarnungs-Pille ohne warnwürdiges Ereignis.');
 need('Winter Dezember bis Februar',climate,'Winter Dez–Feb');
-need('Bedeckungsklassen 1/8-nah',climate,"label:'Mittel · 4–5/8',max:62.5");
+need('Bedeckung 0/8 separat',climate,"label:'Wolkenlos · 0/8',max:6.25");
+need('Bedeckung 1–3/8 DWD-konform',climate,"label:'Leicht bewölkt · 1–3/8',max:43.75");
+need('Bedeckung 4–6/8 DWD-konform',climate,"label:'Wolkig · 4–6/8',max:81.25");
+need('Bedeckung 7/8 DWD-konform',climate,"label:'Stark bewölkt · 7/8',max:93.75");
 need('Bedeckung 8/8 separat',climate,"label:'Bedeckt · 8/8',max:Infinity");
+need('Bedeckungsklassenindex DWD-konform',climate,"return oktas===0?0:oktas<=3?1:oktas<=6?2:oktas===7?3:4");
 need('Schneefalltage aus Tagesreihe',travel,'snowProbability:bucket.snowfall.length?bucket.snow/bucket.snowfall.length*100:NaN');
 need('Schneefalltag-Schwelle transparent',travel,'snowfall>=.1');
 need('Klima-Cache wegen Schemaänderung erneuert',travel,"mid:travel-climate:1991-2020:v7:");
