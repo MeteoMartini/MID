@@ -1,8 +1,8 @@
-# MID v0.9.85.109
+# MID v0.9.85.110
 
-- Aktuelles Wetter, Wetterpiktogramm und Bewölkungskarte verwenden jetzt denselben kanonischen Bewölkungszustand; widersprüchliche Kombinationen wie „Bedeckt“ bei 6/8 werden vermieden.
-- Die sichtbaren Bewölkungsbezeichnungen folgen app-weit der DWD-Oktas-Systematik: 0/8 wolkenlos, 1–3/8 leicht bewölkt, 4–6/8 wolkig, 7/8 stark bewölkt und 8/8 bedeckt.
-- Auch ohne frische lokale Wolkenmessung wird ein trockener Best-Match-Wettercode mit der tatsächlich dargestellten Gesamtbewölkung abgeglichen.
-- Auch Kurzfrist-, Piktogramm-, Bergwetter- und Forecast-Fusion-Fallbacks verwenden dieselben aus Oktas abgeleiteten Bewölkungsgrenzen; vierstufige Wettercodes bleiben dabei nur Symbol-/Kompatibilitätsträger.
-- Eventplanung, Routenwetter, Wasserwetter sowie Perioden- und Nachtpiktogramme verwenden bei trockenem Wetter ebenfalls die kanonische Oktas-Bezeichnung.
-- Die Kurzbezeichnung des UV-Index ist in den sichtbaren Wetteransichten einheitlich „UVI“, unter anderem in 7-/14-Tage-, Bergwetter- und Eventdarstellungen.
+- Berg-/Wintersport nutzt im Kurzfristbereich nach Möglichkeit ein einheitliches hochaufgelöstes Regionalmodell für alle Höhenstufen; Best Match bleibt die vollständige 7-Tage-Basis und der robuste Fallback.
+- Die tatsächlich verwendete Höhenprognosequelle wird sichtbar benannt. DWD ICON-D2-RUC wird als ergänzendes standortbezogenes 15-Minuten-Signal klar von getrennten Tal-/Mitte-/Berg-Reihen abgegrenzt.
+- Tagespiktogramme der Höhenprognose verwenden keine Mond-Darstellung mehr; geöffnete Stunden- und 3-Stunden-Werte behalten weiterhin die astronomisch korrekte Tag-/Nacht-Darstellung.
+- Neuschnee wird im Tagesüberblick ausdrücklich als „Neuschnee“ bezeichnet. In der Sommerdarstellung entfällt ein redundantes „0 cm“, positive Mengen bleiben sichtbar; im Winter bleibt ein echter Nullwert erhalten.
+- Räumlich versetzte Höhenpunkte werden transparent gekennzeichnet: Niederschlagsunterschiede können neben der Höhe durch Exposition und Luv-/Lee-Effekte entstehen. Eine künstliche monotone Niederschlagskorrektur nach Höhe findet nicht statt.
+- Die Höhenzonenanalyse wird typografisch und farblich an die übrige Berg-/Wintersportsektion angeglichen.

@@ -19,6 +19,18 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.110 · MID 18.2.18 Bergwetter-Datenqualität und Höhenquellen
+
+Die Berg-/Wintersportsektion verwendet Open-Meteo Best Match weiterhin als vollständige 7-Tage-Basis. Für den kurzfristigen Höhenvergleich wird dort, wo ein belastbares hochaufgelöstes Regionalmodell verfügbar ist, ein einziges Regionalmodell für alle konfigurierten Höhenpunkte verwendet. Dadurch werden Tal-/Mitte-/Berg-Unterschiede nicht durch unbeabsichtigte Modellwechsel zwischen den Höhenstufen erzeugt. In Österreich gilt GeoSphere AROME Austria als bevorzugter Kurzfristpfad, in Deutschland DWD ICON-D2, in der Schweiz MeteoSwiss ICON-CH1 und in Frankreich Météo-France AROME HD. Fehlende Regionalmodellfelder fallen feldweise auf die Best-Match-Basis zurück.
+
+DWD ICON-D2-RUC bleibt im Bergmodul ein standortbezogenes 15-Minuten-Kurzfristsignal für die Höhenzonenanalyse. Solange keine getrennten RUC-Reihen für Tal, Mitte und Berg vorliegen, darf RUC nicht als höhenaufgelöster Wert ausgegeben oder auf die einzelnen Niveaus kopiert werden.
+
+Niederschlag wird nicht künstlich mit der Höhe skaliert. Räumlich getrennte Höhenpunkte können aufgrund von Anströmung, Luv/Lee, Konvektion und Modellorographie unterschiedliche oder sogar im Tal höhere Mengen zeigen. Bei merklich horizontal versetzten Profilpunkten wird dieser Sachverhalt in der UI erklärt. Neuschnee bleibt eine eigenständige Intervallgröße; fehlende Werte werden nicht als 0 cm erfunden.
+
+Tageszeilen der Höhenprognose sind Tageszusammenfassungen und verwenden daher ausschließlich Tagespiktogramme. Der repräsentative Zustand wird bevorzugt aus Tageslichtperioden gewählt; die geöffneten 3-Stunden-/Stundenwerte behalten astronomisch korrekte Tag-/Nacht-Symbole. In der Sommerdarstellung wird ein redundantes tägliches 0-cm-Neuschneefeld ausgeblendet.
+
+Required Regressions: `scripts/test-mountain-data-quality-0985110.mjs`, `scripts/test-mountain-visual-acceptance-18213.mjs`, `scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs`, `scripts/test-mountain-seven-day-domain-1813.mjs`. Detailvertrag: `MID_MOUNTAIN_DATA_QUALITY_0.9.85.110.md`.
+
 ## v0.9.85.109 · MID 18.2.17 Bewölkungs- und UVI-Konsistenz
 
 Der aktuelle trockene Himmelszustand besitzt nur noch eine kanonische Bewölkungsklasse. Hauptzustand, Wetterpiktogramm und Bewölkungskarte werden auf denselben dargestellten Oktas-Wert zurückgeführt; ein trockener Modell-Wettercode darf daher nicht mehr „Bedeckt“ anzeigen, wenn die gleichzeitig dargestellte Gesamtbewölkung beispielsweise 6/8 ergibt. Belastbare Sicht-/Nebel- oder Niederschlagsphänomene dürfen die reine Bewölkung weiterhin fachlich übersteuern.

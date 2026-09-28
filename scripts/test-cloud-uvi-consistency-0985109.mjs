@@ -21,7 +21,8 @@ const [pkgRaw,app,conditions,weather,climate,forecast,pictogram,intervals,fusion
 ]);
 const pkg=JSON.parse(pkgRaw);
 
-assert.equal(pkg.version,'0.9.85.109','Bewölkungs-/UVI-Konsistenz gehört zu MID v0.9.85.109.');
+const versionParts=String(pkg.version).split('.').map(value=>Number.parseInt(value,10));
+assert.ok(versionParts.length>=4&&versionParts.every(Number.isFinite)&&(versionParts[0]>0||versionParts[1]>9||versionParts[1]===9&&(versionParts[2]>85||versionParts[2]===85&&versionParts[3]>=109)),'Bewölkungs-/UVI-Konsistenz gilt ab MID v0.9.85.109.');
 
 assert.match(conditions,/value<=3\?'Leicht bewölkt':value<=6\?'Wolkig':value===7\?'Stark bewölkt':'Bedeckt'/,'Aktueller Himmelszustand folgt nicht den DWD-Oktas 1–3/4–6/7/8.');
 assert.match(conditions,/code=value===0\?0:value<=3\?1:value<=6\?2:3/,'Aktuelles Trockenwetter-Piktogramm folgt nicht derselben Oktas-Klassifikation.');
@@ -62,4 +63,4 @@ for(const stale of [
 assert.ok(app.includes('/>UVI {eventCenterMetricNumber(summary.uvMax)}</span>'),'Eventdarstellung verwendet nicht UVI.');
 assert.ok(app.includes(' · UVI {Number.isFinite(dailyUvMax)?formatUvi(dailyUvMax)'),'Bergwetter verwendet nicht UVI.');
 
-console.log('MID v0.9.85.109: DWD-konforme Oktas-Semantik und sichtbare UVI-Kurzlabels sind app-weit konsistent.');
+console.log(`MID v${pkg.version}: DWD-konforme Oktas-Semantik und sichtbare UVI-Kurzlabels bleiben seit v0.9.85.109 app-weit konsistent.`);

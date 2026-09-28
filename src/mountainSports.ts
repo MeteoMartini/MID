@@ -39,7 +39,8 @@ export type MountainSnowLineModelPoint={epoch:number;time:string;mean:number;spr
 export type MountainSnowLineModel={id:string;label:string;provider:string;independenceGroup:string;members:number;maxDays:number;points:MountainSnowLineModelPoint[]};
 export type MountainSnowLineEnsemblePoint={epoch:number;time:string;median:number;p25:number;p75:number;p10:number;p90:number;modelCount:number;memberEquivalent:number};
 export type MountainSnowLineEnsemble={models:MountainSnowLineModel[];points:MountainSnowLineEnsemblePoint[];source:string};
-export type MountainSportsForecast={levels:MountainLevelForecast[];season:Exclude<MountainSeason,'auto'>;source:string;snowLineEnsemble?:MountainSnowLineEnsemble};
+export type MountainForecastCoreSource={id:string;label:string;provider:string;resolutionKm?:number;updateHours?:number;horizonHours?:number;used:boolean;usage:string};
+export type MountainSportsForecast={levels:MountainLevelForecast[];season:Exclude<MountainSeason,'auto'>;source:string;coreSources:MountainForecastCoreSource[];horizontalSpanKm:number;snowLineEnsemble?:MountainSnowLineEnsemble};
 export type MountainForecastEnrichment='mountain-diagnostics'|'snow-measurements'|'snow-line-ensemble';
 export type MountainForecastUpdate=
  | {type:'cache';hit:boolean;ageMs:number}
@@ -73,6 +74,24 @@ const PROFILE_CLUSTER_LINK_M=2600;
 const PROFILE_MAX_SPAN_M=18000;
 const PROFILE_MIN_GAIN_M=250;
 const PROFILE_MAX_GAIN_M=2200;
+
+type MountainRegionalModelPlan={id:string;label:string;provider:string;resolutionKm:number;updateHours:number;horizonHours:number;countries:string[];bbox?:readonly[number,number,number,number]};
+const MOUNTAIN_REGIONAL_MODELS:MountainRegionalModelPlan[]=[
+ {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',provider:'GeoSphere Austria',resolutionKm:2.5,updateHours:3,horizonHours:60,countries:['AT'],bbox:[8,45,18,50]},
+ {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',provider:'MeteoSwiss',resolutionKm:1,updateHours:3,horizonHours:33,countries:['CH'],bbox:[3,43,18,50]},
+ {id:'icon_d2',label:'DWD ICON-D2',provider:'DWD',resolutionKm:2,updateHours:3,horizonHours:48,countries:['DE'],bbox:[-6,43,26,58]},
+ {id:'meteofrance_arome_france_hd',label:'Météo-France AROME HD',provider:'Météo-France',resolutionKm:1.5,updateHours:3,horizonHours:48,countries:['FR'],bbox:[-6,41,11,52]},
+ {id:'italia_meteo_arpae_icon_2i',label:'ItaliaMeteo ICON-2I',provider:'ItaliaMeteo/ARPAE',resolutionKm:2,updateHours:12,horizonHours:72,countries:['IT'],bbox:[5,35,20,49]},
+ {id:'chmi_aladin_cz_1km',label:'CHMI ALADIN CZ',provider:'CHMI',resolutionKm:1,updateHours:6,horizonHours:72,countries:['CZ'],bbox:[11,47,20,52]},
+ {id:'knmi_harmonie_arome_netherlands',label:'KNMI HARMONIE-AROME',provider:'KNMI',resolutionKm:2,updateHours:1,horizonHours:60,countries:['NL','BE','LU'],bbox:[-2,48,12,56]},
+ {id:'dmi_harmonie_arome_europe',label:'DMI HARMONIE-AROME',provider:'DMI',resolutionKm:2,updateHours:3,horizonHours:60,countries:['DK'],bbox:[-15,35,32,72]},
+ {id:'metno_nordic',label:'MET Nordic',provider:'MET Norway',resolutionKm:1,updateHours:1,horizonHours:60,countries:['NO','SE','FI'],bbox:[0,53,32,72]},
+ {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV',provider:'UK Met Office',resolutionKm:2,updateHours:1,horizonHours:48,countries:['GB','IE'],bbox:[-12,48,4,62]}
+];
+function mountainCountryCode(loc:Location){const value=String(loc.country_code||loc.country||'').trim().toUpperCase();if(value==='GERMANY'||value==='DEUTSCHLAND')return'DE';if(value==='AUSTRIA'||value==='ÖSTERREICH'||value==='OSTERREICH')return'AT';if(value==='SWITZERLAND'||value==='SCHWEIZ')return'CH';if(value==='FRANCE'||value==='FRANKREICH')return'FR';if(value==='ITALY'||value==='ITALIEN'||value==='ITALIA')return'IT';if(value==='CZECHIA'||value==='TSCHECHIEN')return'CZ';if(value==='NETHERLANDS'||value==='NIEDERLANDE')return'NL';if(value==='BELGIUM'||value==='BELGIEN')return'BE';if(value==='LUXEMBOURG'||value==='LUXEMBURG')return'LU';if(value==='DENMARK'||value==='DÄNEMARK'||value==='DANEMARK')return'DK';if(value==='NORWAY'||value==='NORWEGEN')return'NO';if(value==='SWEDEN'||value==='SCHWEDEN')return'SE';if(value==='FINLAND'||value==='FINNLAND')return'FI';if(value==='UNITED KINGDOM'||value==='GROSSBRITANNIEN'||value==='UK')return'GB';if(value==='IRELAND'||value==='IRLAND')return'IE';return/^[A-Z]{2}$/.test(value)?value:''}
+function mountainRegionalModel(loc:Location){const country=mountainCountryCode(loc);return MOUNTAIN_REGIONAL_MODELS.find(model=>model.countries.includes(country)&&(!model.bbox||(loc.longitude>=model.bbox[0]&&loc.latitude>=model.bbox[1]&&loc.longitude<=model.bbox[2]&&loc.latitude<=model.bbox[3])))}
+function mountainProfileHorizontalSpanKm(points:{latitude:number;longitude:number}[]){let max=0;for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)max=Math.max(max,distanceMeters(points[i].latitude,points[i].longitude,points[j].latitude,points[j].longitude)/1000);return Number(max.toFixed(1))}
+
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
 const finite=(value:unknown)=>Number.isFinite(Number(value));
 const numeric=(value:unknown)=>{if(value===null||value===undefined||value==='')return undefined;const number=Number(value);return Number.isFinite(number)?number:undefined};
@@ -245,6 +264,27 @@ async function geoSphereSnowMeasurement(point:{latitude:number;longitude:number;
  }catch{return undefined}
 }
 
+const MOUNTAIN_SURFACE_VARIABLES=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','rain','showers','snowfall','snowfall_height','snow_depth','weather_code','cloud_cover','cloud_cover_low','visibility','freezing_level_height','wet_bulb_temperature_2m','wind_speed_10m','wind_gusts_10m','wind_direction_10m','uv_index','sunshine_duration','is_day'] as const;
+const MOUNTAIN_REGIONAL_PRIMARY_VARIABLES=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation','rain','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','wet_bulb_temperature_2m','wind_speed_10m','wind_gusts_10m','wind_direction_10m','sunshine_duration','is_day'] as const;
+const MOUNTAIN_REGIONAL_ESSENTIAL_VARIABLES=['temperature_2m','relative_humidity_2m','dew_point_2m','precipitation','snowfall','weather_code','cloud_cover','wind_speed_10m','wind_gusts_10m','wind_direction_10m','is_day'] as const;
+async function fetchMountainRegionalForecast(points:MountainProfileLevel[],plan:MountainRegionalModelPlan,signal?:AbortSignal):Promise<MountainPointWeather[]>{
+ const request=async(variables:readonly string[])=>{
+  const params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:String(plan.horizonHours),models:plan.id,wind_speed_unit:'kn',current:variables.filter(key=>key!=='sunshine_duration').join(','),hourly:variables.join(',')});
+  const response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'});
+  if(!response.ok)return undefined;
+  const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
+  return rows.length===points.length&&rows.every(row=>Array.isArray(row.hourly?.time))?rows:undefined;
+ };
+ const primary=await request(MOUNTAIN_REGIONAL_PRIMARY_VARIABLES);if(primary)return primary;
+ const essential=await request(MOUNTAIN_REGIONAL_ESSENTIAL_VARIABLES);if(essential)return essential;
+ throw new Error(`${plan.label} lieferte keine vollständige einheitliche Höhenprognose.`);
+}
+function mergeMountainRegionalForecast(base:MountainPointWeather,regional:MountainPointWeather){
+ const baseTimes=(base.hourly.time??[]) as string[],regionalTimes=(regional.hourly.time??[]) as string[],indexByTime=new Map(regionalTimes.map((time,index)=>[time,index])),hourly={...base.hourly};
+ for(const[key,baseValues]of Object.entries(base.hourly)){if(key==='time'||!Array.isArray(baseValues))continue;const regionalValues=regional.hourly[key];if(!Array.isArray(regionalValues))continue;hourly[key]=baseTimes.map((time,index)=>{const regionalIndex=indexByTime.get(time),value=regionalIndex===undefined?undefined:regionalValues[regionalIndex];return value===null||value===undefined||value===''?baseValues[index]??null:value})}
+ const current={...base.current};for(const[key,value]of Object.entries(regional.current??{}))if(value!==null&&value!==undefined&&value!=='')current[key]=value;
+ return{...base,current,hourly};
+}
 async function fetchMountainDiagnostics(points:MountainProfileLevel[],signal?:AbortSignal):Promise<MountainPointWeather[]>{
  const thunderVariables=['lifted_index','convective_inhibition','total_column_integrated_water_vapour'],variables=['cape',...thunderVariables,...MOUNTAIN_CLOUD_PROFILE_LEVELS.flatMap(level=>[`cloud_cover_${level}hPa`,`geopotential_height_${level}hPa`]),'temperature_850hPa'],params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:'168',models:'best_match',wind_speed_unit:'kn',hourly:variables.join(',')}),response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'background'});
  if(!response.ok)throw new Error(`Bergdiagnostik HTTP ${response.status}`);
@@ -261,7 +301,7 @@ function mergeMountainDiagnostics(base:MountainPointWeather,diagnostics:Mountain
 }
 
 export async function mountainSportsForecast(loc:Location,config:MountainConfig,signal?:AbortSignal,onUpdate?:(update:MountainForecastUpdate)=>void):Promise<MountainSportsForecast>{
- const points=configuredPoints(loc,config),cacheKey=JSON.stringify([loc.latitude,loc.longitude,config.season,points.map(({role,name,latitude,longitude,elevation})=>[role,name,latitude,longitude,elevation])]),now=Date.now();
+ const points=configuredPoints(loc,config),cacheKey=JSON.stringify([loc.latitude,loc.longitude,mountainCountryCode(loc),config.season,points.map(({role,name,latitude,longitude,elevation})=>[role,name,latitude,longitude,elevation])]),now=Date.now();
  for(const[key,value]of mountainForecastCache)if(now-value.cachedAt>=MOUNTAIN_FORECAST_CACHE_TTL_MS)mountainForecastCache.delete(key);
  let cached=mountainForecastCache.get(cacheKey);
  if(cached){mountainForecastCache.delete(cacheKey);mountainForecastCache.set(cacheKey,cached);onUpdate?.({type:'cache',hit:true,ageMs:now-cached.cachedAt})}
@@ -297,11 +337,11 @@ export async function mountainSportsForecast(loc:Location,config:MountainConfig,
   }).catch(()=>{if(!signal?.aborted)onUpdate?.({type:'enrichment',enrichment:'snow-line-ensemble',status:'unavailable'})});
  };
  if(cached){enrich(cached);return cached.forecast}
- const latitudes=points.map(point=>point.latitude).join(','),longitudes=points.map(point=>point.longitude).join(','),elevations=points.map(point=>point.elevation).join(','),surfaceVariables=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','rain','showers','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','visibility','freezing_level_height','wet_bulb_temperature_2m','wind_speed_10m','wind_gusts_10m','wind_direction_10m','uv_index','sunshine_duration','is_day'],params=new URLSearchParams({latitude:latitudes,longitude:longitudes,elevation:elevations,timezone:'auto',forecast_hours:'168',past_hours:'24',models:'best_match',wind_speed_unit:'kn',current:surfaceVariables.filter(key=>key!=='precipitation_probability'&&key!=='sunshine_duration').join(','),hourly:surfaceVariables.join(',')}),response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'});
+ const latitudes=points.map(point=>point.latitude).join(','),longitudes=points.map(point=>point.longitude).join(','),elevations=points.map(point=>point.elevation).join(','),regionalPlan=mountainRegionalModel(loc),params=new URLSearchParams({latitude:latitudes,longitude:longitudes,elevation:elevations,timezone:'auto',forecast_hours:'168',past_hours:'24',models:'best_match',wind_speed_unit:'kn',current:MOUNTAIN_SURFACE_VARIABLES.filter(key=>key!=='precipitation_probability'&&key!=='sunshine_duration'&&key!=='snowfall_height').join(','),hourly:MOUNTAIN_SURFACE_VARIABLES.join(',')}),basePromise=guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'}),regionalPromise=regionalPlan?fetchMountainRegionalForecast(points,regionalPlan,signal).catch(()=>undefined):Promise.resolve(undefined),[response,regionalRows]=await Promise.all([basePromise,regionalPromise]);
  if(!response.ok)throw new Error(`Höhenprognose HTTP ${response.status}`);
- const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
- if(rows.length!==points.length)throw new Error('Die Höhenprognose lieferte nicht alle konfigurierten Niveaus.');
- const levels=points.map((point,index)=>{const weather=rows[index],snowfall=snowfallSums(weather),depth=currentValue(weather,'snow_depth');return{...point,weather,modelSnowDepthCm:Number.isFinite(depth)?Math.max(0,depth*100):NaN,measuredSnowDepthCm:NaN,pastSnow24Cm:snowfall.past24,newSnow24Cm:snowfall.next24,newSnow48Cm:snowfall.next48} satisfies MountainLevelForecast}),season=config.season==='auto'?(autoWinter(loc.latitude,levels)?'winter':'summer'):config.season,forecast:MountainSportsForecast={levels,season,source:'Open-Meteo Best Match · DWD-Schneefallgrenzenverfahren aus 850 hPa · höhenbezogene Koordinaten und Höhen · GeoSphere-Schneemessung bei strenger Nähe-/Höhen-/Aktualitätsprüfung'};
+ const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,baseRows=Array.isArray(raw)?raw:[raw];
+ if(baseRows.length!==points.length)throw new Error('Die Höhenprognose lieferte nicht alle konfigurierten Niveaus.');
+ const regionalUsable=Boolean(regionalPlan&&regionalRows&&regionalRows.length===points.length),rows=regionalUsable?baseRows.map((row,index)=>mergeMountainRegionalForecast(row,regionalRows![index])):baseRows,levels=points.map((point,index)=>{const weather=rows[index],snowfall=snowfallSums(weather),depth=currentValue(weather,'snow_depth');return{...point,weather,modelSnowDepthCm:Number.isFinite(depth)?Math.max(0,depth*100):NaN,measuredSnowDepthCm:NaN,pastSnow24Cm:snowfall.past24,newSnow24Cm:snowfall.next24,newSnow48Cm:snowfall.next48} satisfies MountainLevelForecast}),season=config.season==='auto'?(autoWinter(loc.latitude,levels)?'winter':'summer'):config.season,coreSources:MountainForecastCoreSource[]=[{id:'best_match',label:'Open-Meteo Best Match',provider:'Open-Meteo',used:true,usage:regionalUsable&&regionalPlan?`7-Tage-Basis und Fallback nach +${regionalPlan.horizonHours} h`:'7-Tage-Hauptprognose' },...(regionalPlan?[{id:regionalPlan.id,label:regionalPlan.label,provider:regionalPlan.provider,resolutionKm:regionalPlan.resolutionKm,updateHours:regionalPlan.updateHours,horizonHours:regionalPlan.horizonHours,used:regionalUsable,usage:regionalUsable?`einheitliche hochaufgelöste Höhenprognose bis +${regionalPlan.horizonHours} h`:'aktuell nicht verfügbar · Best Match bleibt vollständig erhalten'}]:[])],source=[regionalUsable&&regionalPlan?`${regionalPlan.label} (${regionalPlan.resolutionKm} km · Aktualisierung alle ${regionalPlan.updateHours} h · bis +${regionalPlan.horizonHours} h)`:'Open-Meteo Best Match',regionalUsable&&regionalPlan?'danach Open-Meteo Best Match':'', 'DWD-Schneefallgrenzenverfahren aus 850 hPa','höhenbezogene Koordinaten und Höhen','GeoSphere-Schneemessung bei strenger Nähe-/Höhen-/Aktualitätsprüfung'].filter(Boolean).join(' · '),forecast:MountainSportsForecast={levels,season,source,coreSources,horizontalSpanKm:mountainProfileHorizontalSpanKm(points)};
   cached={forecast,cachedAt:now,diagnosticsStatus:'loading',snowMeasurementsResolved:false,snowLineEnsembleResolved:false};mountainForecastCache.set(cacheKey,cached);
  while(mountainForecastCache.size>MOUNTAIN_FORECAST_CACHE_LIMIT)mountainForecastCache.delete(mountainForecastCache.keys().next().value!);
  enrich(cached);

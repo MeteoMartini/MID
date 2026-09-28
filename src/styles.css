@@ -3656,6 +3656,42 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-zone-rapid-note{padding:6px 8px;font-size:8px}
 .mountain-zone-analysis{gap:7px;margin-top:8px;padding:9px}
 .mountain-zone-analysis article{gap:5px;padding:8px}
+.mountain-zone-analysis{min-width:0;gap:8px;padding:10px;border-color:color-mix(in srgb,var(--primary) 20%,var(--border));background:var(--surface)}
+.mountain-zone-analysis>.mountain-zone-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0;min-height:48px;padding:0;border:0;border-radius:9px;background:transparent;box-shadow:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.mountain-zone-analysis>.mountain-zone-summary:hover{background:color-mix(in srgb,var(--primary) 4%,transparent);color:var(--text)}
+.mountain-zone-analysis>.mountain-zone-summary:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+.mountain-zone-analysis>.mountain-zone-summary>span{display:grid;flex:1 1 auto;gap:3px;min-width:0}
+.mountain-zone-analysis>.mountain-zone-summary>span>small{color:var(--primary);font-size:9px;font-weight:800;letter-spacing:.075em;line-height:1.3;text-transform:uppercase}
+.mountain-zone-analysis>.mountain-zone-summary>span>strong{min-width:0;font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.mountain-zone-analysis>.mountain-zone-summary>svg{width:18px;height:18px;flex:0 0 18px;color:var(--muted)}
+.mountain-zone-analysis.open>.mountain-zone-summary{padding-bottom:8px;border-bottom:1px solid var(--border);border-radius:0}
+.mountain-zone-analysis>.mountain-zone-content{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.mountain-zone-content>header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0;padding:10px 11px;border:1px solid color-mix(in srgb,var(--primary) 20%,var(--border));border-radius:10px;background:color-mix(in srgb,var(--primary) 5%,var(--surface))}
+.mountain-zone-content>header>div{display:grid;gap:3px;min-width:0}
+.mountain-zone-content>header span{color:var(--primary);font-size:8.5px;font-weight:800;letter-spacing:.035em;line-height:1.3}
+.mountain-zone-content>header strong{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+.mountain-zone-content>header em{flex:0 0 auto;padding:5px 8px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text);font-size:9px;font-style:normal;font-weight:750;line-height:1.2;white-space:nowrap}
+.mountain-zone-content>p{min-width:0;margin:0;color:var(--muted);font-size:9px;line-height:1.45;overflow-wrap:anywhere}
+.mountain-zone-content>p>b{color:var(--text)}
+.mountain-zone-analysis>.mountain-zone-content>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));align-items:stretch;gap:8px;min-width:0}
+.mountain-zone-analysis article{min-width:0;gap:7px;padding:9px;border-radius:11px}
+.mountain-zone-analysis article.best{border-color:color-mix(in srgb,var(--primary) 42%,var(--border));background:color-mix(in srgb,var(--primary) 5%,var(--surface));box-shadow:none}
+.mountain-zone-analysis article>header{align-items:center;gap:8px}
+.mountain-zone-analysis article>header span{min-width:0}
+.mountain-zone-analysis article>header b{font-size:11px;line-height:1.3;overflow-wrap:anywhere}
+.mountain-zone-analysis article>header small{color:var(--muted);font-size:8px;line-height:1.3}
+.mountain-zone-analysis article>header em{flex:0 0 auto;font-size:11px}
+.mountain-zone-analysis article>strong{font-size:10px;line-height:1.35}
+.mountain-zone-analysis article>p{color:var(--muted);font-size:9px;line-height:1.4;overflow-wrap:anywhere}
+.mountain-zone-analysis article>small{color:var(--muted);font-size:8px;line-height:1.35}
+@media(max-width:620px){
+ .mountain-zone-analysis>.mountain-zone-summary{gap:9px;min-height:48px}
+ .mountain-zone-analysis>.mountain-zone-summary>span>strong{font-size:12.5px}
+ .mountain-zone-content>header{display:grid;gap:7px;padding:9px}
+ .mountain-zone-content>header>em{justify-self:start}
+ .mountain-zone-analysis>.mountain-zone-content>div{grid-template-columns:minmax(0,1fr)}
+ .mountain-zone-analysis article{padding:9px}
+}
 .mountain-secondary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px;margin-top:10px}
 .mountain-secondary-grid>.mountain-extra-indicators,.mountain-secondary-grid>.mountain-conditions,.mountain-secondary-grid>.mountain-winter-guidance,.mountain-secondary-grid>.mountain-links{grid-column:1/-1;min-width:0}
 .mountain-secondary-grid>.mountain-zone-analysis,.mountain-secondary-grid>.mountain-snowline-trend{min-width:0;margin:0}
