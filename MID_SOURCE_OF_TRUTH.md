@@ -19,6 +19,16 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.112 · MID 18.2.17 Kartenbedienung und Desktop-7-Tage-Layout
+
+Der moderne Karten-Fokusarbeitsraum verwendet für Zoom +/−, Standort und Ebenen/Einstellungen eine gemeinsame 44-px-Controlfamilie mit identischer rechter Flucht, konsistenten vertikalen Abständen und Safe-Area-Berücksichtigung. Die native zusätzliche MapLibre-Control-Marge wird im Fokusarbeitsraum aufgehoben; Attribution und Quellenanzeige am unteren Kartenrand bleiben unverändert.
+
+Für die 7-Tage-Ansicht bleibt der mit Arbeitspaket E eingeführte Forecast-Row-Vertrag verbindlich: eine vertikale, volle Desktop-Liste ohne horizontales Kartenkarussell. Eine ältere explizite `grid-column: 1…7`-Zuordnung der Tageskarten wird für `mid-forecast-row` jetzt appweit überschrieben, damit das einspaltige Parent-Grid keine impliziten Zusatzspalten erzeugt. Das Inline-Stundendetail bleibt im normalen Zeilenfluss direkt hinter dem ausgewählten Tag.
+
+Dieser Build ist rein visuell/responsiv. Meteorologische Datenquellen, Schwellen, Modellfusion und Kartenlayer bleiben unverändert.
+
+Required Regression: `scripts/test-mid-18-2-17-map-desktop-ui-0985112.mjs`. Detailvertrag: `MID_MAP_DESKTOP_UI_0.9.85.112.md`.
+
 ## v0.9.85.111 · MID 18.2.19 robuste API-Vertragsrevision
 
 Die automatische Revision bleibt für kritische externe Datenverträge fail-closed, wiederholt jedoch ausschließlich eindeutig transiente Abruffehler begrenzt. Transportfehler sowie HTTP 408, 425, 429 und 5xx dürfen bis zu dreimal mit begrenztem Backoff erneut versucht werden. Erfolgreiche 2xx-Antworten werden inhaltlich nur einmal bewertet; ein fachlich ungültiger Payload wird nicht durch Wiederholung kaschiert. Nicht-transiente 4xx werden nicht erneut angefordert.
