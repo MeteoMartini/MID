@@ -9,7 +9,7 @@ const CHECKOUT_V7_SHA='3d3c42e5aac5ba805825da76410c181273ba90b1';
 const SETUP_NODE_V7_SHA='820762786026740c76f36085b0efc47a31fe5020';
 const UPLOAD_ARTIFACT_V7_SHA='043fb46d1a93c77aae656e7c1c64a875d1fc6a0a';
 const SETUP_PYTHON_V7_SHA='5fda3b95a4ea91299a34e894583c3862153e4b97';
-const CODEQL_V4_SHA='cdf488f595d80d6e07e03d4674febd5ab45fa938';
+const CODEQL_V4_SHA='2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2';
 const DEPLOY_PAGES_V5_SHA='368f82528645a54fb793d4d04e342629a3f51346';
 function pinApprovedActions(source){
  return source
@@ -17,7 +17,7 @@ function pinApprovedActions(source){
   .replace(/actions\/setup-node@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-node@${SETUP_NODE_V7_SHA} # v7.0.0`)
   .replace(/actions\/upload-artifact@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/upload-artifact@${UPLOAD_ARTIFACT_V7_SHA} # v7.0.1`)
   .replace(/actions\/setup-python@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/setup-python@${SETUP_PYTHON_V7_SHA} # v7.0.0`)
-  .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.37.9`)
+  .replace(/github\/codeql-action\/(init|analyze)@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,(_match,action)=>`github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.38.2`)
   .replace(/actions\/deploy-pages@[^\s#]+(?:\s*#\s*v[^\n]*)?/g,`actions/deploy-pages@${DEPLOY_PAGES_V5_SHA} # v5.0.1`);
 }
 
