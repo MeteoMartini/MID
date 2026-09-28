@@ -7,13 +7,14 @@ const [app,pkg]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- "import {analysedCloudOktas,hyperlocalSkyCondition} from './currentConditions';",
+ "import {analysedCloudOktas,hyperlocalSkyCondition,skyConditionFromOktas} from './currentConditions';",
  "reconciledCurrentPrecip.type==='none'?hyperlocalSkyCondition({",
  "cloudOktasValue=fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)?analysedCloudOktas(cloud):cloudOktas(cloud)",
  "currentCloudObserved=fieldFresh('cloudCover')&&Number.isFinite(st?.cloudCover)",
  "cloudCover:currentSkyCloud",
  "cloudObserved:currentCloudObserved",
- "if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}"
+ "if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}",
+ "else if(reconciledCurrentPrecip.type==='none'&&Number.isFinite(currentSkyCloud)){const fallbackSky=skyConditionFromOktas(cloudOktasValue);currentWeatherCode=fallbackSky.code;currentWeatherLabel=fallbackSky.label}"
 ])if(!app.includes(token))failures.push('App-Anbindung fehlt: '+token);
 if(!pkg.includes('test:current-hyperlocal-sky'))failures.push('Package-Test fehlt.');
 
@@ -22,7 +23,10 @@ const bundled=await build({
  bundle:true,platform:'node',format:'esm',target:'node22',write:false,logLevel:'silent'
 });
 const moduleUrl='data:text/javascript;base64,'+Buffer.from(bundled.outputFiles[0].text).toString('base64');
-const {hyperlocalSkyCondition}=await import(moduleUrl);
+const {hyperlocalSkyCondition,skyConditionFromOktas}=await import(moduleUrl);
+
+const sixOktas=skyConditionFromOktas(6);
+if(sixOktas?.code!==2||sixOktas?.label!=='Wolkig'||sixOktas?.cloudOktas!==6)failures.push('DWD 6/8 muss app-weit als wolkig klassifiziert werden: '+JSON.stringify(sixOktas));
 
 const strong=hyperlocalSkyCondition({fallbackCode:3,cloudCover:87.5,visibility:7600,humidity:41,temperature:26,dewPoint:10,cloudObserved:true,visibilityObserved:true});
 if(strong?.code!==3||strong?.label!=='Stark bewölkt'||strong?.cloudOktas!==7)failures.push('7/8 wird nicht konsistent als stark bewölkt klassifiziert: '+JSON.stringify(strong));

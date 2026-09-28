@@ -26,9 +26,11 @@ function drySkyCode(hour:Hour){
  // Bewölkungs-Code verhindert, dass ein trockener Intervallschutz die Lage
  // gleichzeitig als "klar" behauptet.
  if(!Number.isFinite(cloud))return 2;
- if(cloud<12.5)return 0;
- if(cloud<37.5)return 1;
- if(cloud<75)return 2;
+ // Trockenwettercodes bleiben vierstufig; die Grenzen werden aus den gerundeten
+ // DWD-Oktas abgeleitet: 0/8 -> 0, 1–3/8 -> 1, 4–6/8 -> 2, 7–8/8 -> 3.
+ if(cloud<6.25)return 0;
+ if(cloud<43.75)return 1;
+ if(cloud<81.25)return 2;
  return 3;
 }
 

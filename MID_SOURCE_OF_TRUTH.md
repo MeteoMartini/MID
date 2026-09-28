@@ -19,6 +19,16 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.109 · MID 18.2.17 Bewölkungs- und UVI-Konsistenz
+
+Der aktuelle trockene Himmelszustand besitzt nur noch eine kanonische Bewölkungsklasse. Hauptzustand, Wetterpiktogramm und Bewölkungskarte werden auf denselben dargestellten Oktas-Wert zurückgeführt; ein trockener Modell-Wettercode darf daher nicht mehr „Bedeckt“ anzeigen, wenn die gleichzeitig dargestellte Gesamtbewölkung beispielsweise 6/8 ergibt. Belastbare Sicht-/Nebel- oder Niederschlagsphänomene dürfen die reine Bewölkung weiterhin fachlich übersteuern.
+
+Für direkte Bewölkungsbezeichnungen gilt app-weit die DWD-Systematik: 0/8 wolkenlos, 1–3/8 leicht bewölkt bzw. tagsüber heiter, 4–6/8 wolkig, 7/8 stark bewölkt, 8/8 bedeckt. Die bestehende Schutzregel für kontinuierlich hyperlokal analysierte Prozentwerte bleibt erhalten: 8/8 wird dort erst bei vollständiger Bedeckung von 100 % gesetzt.
+
+Die sichtbare Kurzbezeichnung des UV-Index lautet einheitlich `UVI`. Ausgeschriebene fachliche Begriffe wie „UV-Index“, „UV-Schutz“ oder „UV-Gefahrenindex“ bleiben in Erläuterungen unverändert korrekt.
+
+Required Regressions: `scripts/test-cloud-uvi-consistency-0985109.mjs`, `scripts/test-current-hyperlocal-sky-083311.mjs`, `scripts/test-mountain-visual-acceptance-18213.mjs`. Detailvertrag: `MID_CLOUD_UVI_CONSISTENCY_0.9.85.109.md`.
+
 ## v0.9.85.108 · MID 18.2.16 stündliche Höhenprognose und aktuelle Bewölkungssemantik
 
 Dieser Stand ersetzt für Berg-/Wintersport den sichtbaren bisherigen `Höhenvergleich` der v0.9.85.107 durch die ausgewählte Höhenstufe als kanonische Prognoseperspektive. Verbindlich sind eine sofortige Skeleton-Vorschau, Tal-/Mitte-/Berg-Auswahl, eine stündliche Prognose der nächsten rund 24 Stunden und kompakte 7-Tage-Zeilen mit höchstens einem inline geöffneten Tagesdetail. Die Formulierung in v0.9.85.107, wonach `Höhenvergleich` die kanonische sichtbare Bezeichnung sei, ist damit für die aktuelle UI ausdrücklich abgelöst.

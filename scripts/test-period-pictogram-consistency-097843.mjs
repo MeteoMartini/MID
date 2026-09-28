@@ -8,7 +8,8 @@ const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw),test='scripts/test
 assert.ok(period.includes("function displayCode(hour:Hour){return precipitationParts(hour).displayCode}"),'Periodenpiktogramme müssen die kanonische Niederschlagsphase nutzen.');
 assert.ok(period.includes("const exact=hours.filter(hour=>hour.isDay===dayPeriod)"),'Tag- und Nachtstunden müssen für Periodenicons getrennt ausgewertet werden.');
 assert.ok(period.includes('precipitationDominant=active.length>=Math.max(2,Math.ceil(pool.length*.25))||totalAmount>=.8||maxProbability>=70||thunder'),'Ein kurzes Einzelstundenereignis darf die gesamte Nacht-/Periode nicht ohne Relevanzschwelle dominieren.');
-assert.ok(period.includes("if(Number(cloud)<=12)return 0")&&period.includes("if(Number(cloud)<=35)return 1")&&period.includes("if(Number(cloud)<=72)return 2"),'Trockene Perioden müssen über mittlere Bewölkung konsistent in Sky-Codes überführt werden.');
+assert.ok(period.includes("if(Number(cloud)<6.25)return 0")&&period.includes("if(Number(cloud)<43.75)return 1")&&period.includes("if(Number(cloud)<81.25)return 2"),'Trockene Perioden müssen über gerundete DWD-Oktas konsistent in die vier Sky-Codes überführt werden.');
+assert.ok(period.includes("drySky&&Number.isFinite(cloud)?cloudOktasLabel(Number(cloud))"),'Trockene Periodentitel müssen die fünfstufige kanonische Oktas-Bezeichnung verwenden.');
 assert.ok(period.includes('options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool)'),'Tagescharakter muss als autoritatives Aggregat für Tagespiktogramme verwendbar sein.');
 assert.ok(period.includes('bestSampleScore'),'Phasenwahl innerhalb einer dominanten Wetterart muss den stärksten Einzelbeleg getrennt von der kumulierten Artbewertung halten.');
 assert.ok(app.includes("import {periodWeatherVisual,type PeriodWeatherVisual} from './periodWeatherVisual'"),'Klassische 7d-/Detail-/Widgetdarstellung muss den zentralen Periodenaggregator nutzen.');

@@ -572,7 +572,7 @@ function relativeSunshineShare(duration:number|null|undefined,daylightSeconds:nu
 }
 function FourteenDaySunUvi({date,days,sunshineSeconds}:{date:string;days:Day[];sunshineSeconds:number|null|undefined}){
  const bestMatchDay=days.find(day=>day.date===date),sunshine=sunshineWholeHoursLabel(sunshineSeconds),uvi=Number.isFinite(bestMatchDay?.uvMax)?formatUvi(bestMatchDay!.uvMax):'–';
- return <span className="cockpit-fourteen-sun-uvi" title={`Sonnenscheindauer ${sunshine} · Tagesmaximum UVI ${uvi}`}><Sun size={11} aria-hidden="true"/><b>{sunshine}</b><small>UV {uvi}</small></span>;
+ return <span className="cockpit-fourteen-sun-uvi" title={`Sonnenscheindauer ${sunshine} · Tagesmaximum UVI ${uvi}`}><Sun size={11} aria-hidden="true"/><b>{sunshine}</b><small>UVI {uvi}</small></span>;
 }
 function RelativeSunshineIcon({share,size=12}:{share:number|null;size?:number}){
  const ratio=share==null?0:clamp(share,0,1),intensity=.42+ratio*.58;

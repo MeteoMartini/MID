@@ -450,7 +450,7 @@ function localAssimilatedValue(observed:number|undefined,modelNow:number|undefin
 function localAssimilatedDirection(observed:number|undefined,modelNow:number|undefined,base:number,offsetMinutes:number){const anchor=Number(observed),model=Number(modelNow);if(!Number.isFinite(anchor)||!Number.isFinite(model)||!Number.isFinite(base))return((Number(base)||0)%360+360)%360;const correction=((anchor-model+540)%360)-180;return((base+correction*localAdjustmentWeight(offsetMinutes,90))%360+360)%360}
 function localPrecipitationCode(code:number){const rounded=Math.round(Number(code)||0);return rounded>=51&&rounded<=99}
 function localObservedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined){
- const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN;if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;if(!Number.isFinite(cover))return 2;if(cover>=87.5)return 3;if(cover>=37.5)return 2;if(cover>=12.5)return 1;return 0
+ const code=Math.round(Number(fallback)||0),vis=Number(visibility),hum=Number(humidity),temp=Number(temperature),covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN;if(Number.isFinite(vis)&&vis<=1000&&Number.isFinite(hum)&&hum>=92)return Number.isFinite(temp)&&temp<=0?48:45;if((code===45||code===48)&&Number.isFinite(vis)&&vis<=2500)return code;if(!Number.isFinite(cover))return 2;if(cover>=81.25)return 3;if(cover>=43.75)return 2;if(cover>=6.25)return 1;return 0
 }
 function localReconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,cloud:number,lowCloud:number,visibility:number,humidity:number,temperature:number,precipitation:number,probability:number,offsetMinutes:number,localAdjustment:number){
  const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));if(raw===98)return raw;if([95,96,97,99].includes(raw)&&probability>=30)return raw;if(precipitation>=.01||(localPrecipitationCode(raw)&&probability>=30))return raw;if(localPrecipitationCode(raw)&&probability<30)return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature);if(localAdjustment<=0)return raw;if(Number.isFinite(observed)&&localPrecipitationCode(observed)&&offsetMinutes<=30)return observed;return localObservedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature)
@@ -624,13 +624,13 @@ function forecastIntervalDaylightSeconds(epoch:number,intervalSeconds:number,sun
 function drySkyCode(hour:Hour){
  const code=Math.round(Number(hour.code));if([45,48].includes(code))return code;
  const cloudValue=hour.cloud,cloud=cloudValue===null||cloudValue===undefined||String(cloudValue).trim()===''?Number.NaN:Number(cloudValue);if(!Number.isFinite(cloud))return hour.isDay?2:1;
- if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
+ if(cloud<6.25)return 0;if(cloud<43.75)return 1;if(cloud<81.25)return 2;return 3;
 }
 function dryMinute15SkyCode(row:Minute15,reference:Hour|undefined){
  const code=Math.round(Number(reference?.code??row.code));if([45,48].includes(code))return code;
  const cloudValue=reference?.cloud,cloud=cloudValue===null||cloudValue===undefined||String(cloudValue).trim()===''?Number.NaN:Number(cloudValue),isDay=row.isDay??reference?.isDay??true;
  if(!Number.isFinite(cloud))return isDay?2:1;
- if(cloud<=15)return 0;if(cloud<=45)return 1;if(cloud<=80)return 2;return 3;
+ if(cloud<6.25)return 0;if(cloud<43.75)return 1;if(cloud<81.25)return 2;return 3;
 }
 
 const DAY_HOURLY_FULL_COVERAGE_MIN_HOURS=18;
@@ -770,7 +770,7 @@ function dailyWeatherCodeFromHours(hours:Hour[]){
   return[...wet].sort((a,b)=>{const sa=severity(a.code),sb=severity(b.code);if(sa!==sb)return(sa<0?999:sa)-(sb<0?999:sb);return(b.probability+b.precipitation*8)-(a.probability+a.precipitation*8)})[0].code;
  }
  const daylight=hours.filter(hour=>hour.isDay),sample=daylight.length?daylight:hours,clouds=sample.map(hour=>Number(hour.cloud)).filter(Number.isFinite),meanCloud=clouds.length?clouds.reduce((sum,value)=>sum+value,0)/clouds.length:Number.NaN;
- if(!Number.isFinite(meanCloud))return 3;if(meanCloud<=15)return 0;if(meanCloud<=45)return 1;if(meanCloud<=80)return 2;return 3;
+ if(!Number.isFinite(meanCloud))return 3;if(meanCloud<6.25)return 0;if(meanCloud<43.75)return 1;if(meanCloud<81.25)return 2;return 3;
 }
 
 export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){

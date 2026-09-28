@@ -1,4 +1,4 @@
-import {label,type Hour} from './weather';
+import {cloudOktasLabel,label,type Hour} from './weather';
 import {precipitationParts,type PrecipitationVisualIntensity} from './precipitation';
 import {weatherPictogramKind,type WeatherPictogramCloudProfile,type WeatherPictogramKind} from './WeatherPictogram';
 
@@ -31,9 +31,9 @@ function sampleProbability(hour:Hour){return Math.max(0,Math.min(100,Number(hour
 function skyCodeForPool(pool:Hour[]){
  const cloud=meanLayer(pool,'cloud');
  if(Number.isFinite(cloud)){
-  if(Number(cloud)<=12)return 0;
-  if(Number(cloud)<=35)return 1;
-  if(Number(cloud)<=72)return 2;
+  if(Number(cloud)<6.25)return 0;
+  if(Number(cloud)<43.75)return 1;
+  if(Number(cloud)<81.25)return 2;
   return 3;
  }
  const counts=new Map<number,number>();
@@ -101,6 +101,6 @@ function dominantPeriodCode(pool:Hour[]){
 export function periodWeatherVisual(hours:Hour[],dayPeriod:boolean,fallbackCode:number,fallbackTitle:string,options:PeriodWeatherVisualOptions={}):PeriodWeatherVisual{
  const pool=periodPool(hours,dayPeriod),periodLabel=dayPeriod?'Tagsüber':'Nachts';
  if(!pool.length)return{code:fallbackCode,title:`${periodLabel}: ${fallbackTitle}`,available:false};
- const code=options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool),baseTitle=options.preferFallbackCode?fallbackTitle:label(code)||fallbackTitle,intensity=representativePeriodIntensity(pool,code),phenomenon=representativePeriodPhenomenon(pool,code);
- return{code,title:`${periodLabel}: ${baseTitle}`,available:true,intensity,phenomenon,cloud:meanLayer(pool,'cloud'),lowCloud:meanLayer(pool,'lowCloud'),midCloud:meanLayer(pool,'midCloud'),highCloud:meanLayer(pool,'highCloud')};
+ const cloud=meanLayer(pool,'cloud'),code=options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool),drySky=weatherPictogramKind(code)==='clear'||weatherPictogramKind(code)==='mostly-clear'||weatherPictogramKind(code)==='partly-cloudy'||weatherPictogramKind(code)==='cloudy',baseTitle=options.preferFallbackCode?fallbackTitle:drySky&&Number.isFinite(cloud)?cloudOktasLabel(Number(cloud)):label(code)||fallbackTitle,intensity=representativePeriodIntensity(pool,code),phenomenon=representativePeriodPhenomenon(pool,code);
+ return{code,title:`${periodLabel}: ${baseTitle}`,available:true,intensity,phenomenon,cloud,lowCloud:meanLayer(pool,'lowCloud'),midCloud:meanLayer(pool,'midCloud'),highCloud:meanLayer(pool,'highCloud')};
 }
