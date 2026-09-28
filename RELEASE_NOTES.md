@@ -1,6 +1,6 @@
-# MID v0.9.85.111
+# MID v0.9.85.112
 
-- Die automatische MID-Revision behandelt kurzzeitige Netzwerk- und Providerfehler robuster, ohne den fachlichen Fail-Closed-Schutz zu lockern.
-- Kritische API-Verträge erhalten höchstens drei begrenzte Abrufversuche bei Transportfehlern, HTTP 408/425/429 oder 5xx.
-- Inhaltlich ungültige Antworten und nicht-transiente 4xx bleiben sofort echte Vertragsfehler; nach dem letzten erfolglosen Versuch bleibt die Revision rot.
-- Die Änderung betrifft ausschließlich die Prüfautomatik. Wetterlogik, Berg-/Wintersportdaten, Worker-Fachlogik und sichtbare App-Funktionen bleiben unverändert.
+- Die Kartensteuerung ist auf Smartphone und Touch-Geräten ruhiger und einheitlicher angeordnet: Zoom, Positionszentrierung und Layersteuerung besitzen konsistente Größen, Abstände und eine gemeinsame rechte Ausrichtung.
+- Die Bedienelemente berücksichtigen weiterhin Safe Areas und ausreichend große Touch-Ziele.
+- In der 7-Tage-Kurvenübersicht sind die sieben Tagesbereiche auf Desktop wieder vollständig sichtbar und sauber an der gemeinsamen Zeitachse ausgerichtet.
+- Meteorologische Berechnungen, Datenquellen und Warnlogik bleiben unverändert.
