@@ -295,7 +295,7 @@ function mergeMountainDiagnostics(base:MountainPointWeather,diagnostics:Mountain
 }
 
 export async function mountainSportsForecast(loc:Location,config:MountainConfig,signal?:AbortSignal,onUpdate?:(update:MountainForecastUpdate)=>void):Promise<MountainSportsForecast>{
- const points=configuredPoints(loc,config),cacheKey=JSON.stringify([loc.latitude,loc.longitude,config.season,points.map(({role,name,latitude,longitude,elevation})=>[role,name,latitude,longitude,elevation])]),now=Date.now();
+ const points=configuredPoints(loc,config),cacheKey=JSON.stringify([loc.latitude,loc.longitude,mountainCountryCode(loc),config.season,points.map(({role,name,latitude,longitude,elevation})=>[role,name,latitude,longitude,elevation])]),now=Date.now();
  for(const[key,value]of mountainForecastCache)if(now-value.cachedAt>=MOUNTAIN_FORECAST_CACHE_TTL_MS)mountainForecastCache.delete(key);
  let cached=mountainForecastCache.get(cacheKey);
  if(cached){mountainForecastCache.delete(cacheKey);mountainForecastCache.set(cacheKey,cached);onUpdate?.({type:'cache',hit:true,ageMs:now-cached.cachedAt})}
