@@ -71,3 +71,20 @@ Die daraus resultierende aktuelle Temperatur bleibt derselbe kanonische Stations
 Temperaturspezifische Diagnosehinweise wie `Messkonsens aktiv`, `ΔT` oder ein direkter Messkonsens dürfen nur erscheinen, wenn die Temperatur selbst feldbezogen aktuell und als Beobachtungsanker verwendbar ist. Sind nur andere Messfelder frisch, muss die Oberfläche für die Temperatur ausdrücklich den Best-Match-Fallback kennzeichnen und darf keine alte Temperaturkorrektur als aktuell darstellen.
 
 Required Regression: `scripts/test-current-temperature-cache-transition-095339.mjs`.
+
+
+## 13. Zeitkohärente Temperatur-Bias-Rückführung (ab v0.9.85.115)
+
+Eine frische hyperlokale Temperaturbeobachtung darf die kanonische Stundenreihe nicht durch die zeitliche Rücknahme ihrer Korrektur in einen Trend zwingen, den die zugrunde liegende Modellreihe nicht trägt. Insbesondere darf das Ausblenden eines negativen Temperatur-Bias keinen künstlichen Stundenanstieg erzeugen, wenn der belastbare Modelltrend gleichzeitig fällt.
+
+Für die 2-m-Temperatur gilt deshalb zusätzlich:
+
+- Der feldspezifische Temperatur-Beobachtungszeitpunkt wird zusammen mit dem Anker transportiert. `fieldObservedAt.temperature` bzw. die Feldprovenienz haben Vorrang vor einem globalen Stationszeitstempel.
+- Der Modellwert am echten Beobachtungszeitpunkt wird aus den umgebenden Stunden interpoliert. Die Bias-Bestimmung darf nicht von der zufällig nächstgelegenen Vollstunde abhängen.
+- Die lokale Temperaturabweichung bleibt zunächst vollständig wirksam und wird danach glatt statt linear-abrupt zurückgeführt.
+- Die reine Bias-Rückführung darf sich höchstens mit 0,5 K pro Stunde ändern. In der unmittelbaren Assimilationsphase darf sie einen belastbaren fallenden bzw. steigenden Modell-Stundentrend nicht in die Gegenrichtung drehen.
+- Die Regel gilt in der zentralen `applyHyperlocalForecastHours`-Stufe. Einzelne Ansichten dürfen weder eine zweite Temperaturkorrektur noch einen rein grafischen Glättungsersatz hinzufügen.
+
+Die Korrektur schützt damit die physikalische Form des kurzfristigen Temperaturverlaufs, ohne eine beliebige monotone Kurve zu erzwingen: Ein tatsächlicher, im kanonischen Modell-/Fusionssignal vorhandener Trendwechsel darf weiterhin sichtbar bleiben.
+
+Required Regression: `scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs`.
