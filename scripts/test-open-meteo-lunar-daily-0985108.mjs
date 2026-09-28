@@ -32,8 +32,8 @@ assert.match(astronomy,/Illumination\(Body\.Moon,at\)/,'Lokale Mondbeleuchtung m
 assert.match(astronomy,/previousNewMoon\(at\)/,'Lokales Mondalter muss erhalten bleiben.');
 assert.match(astronomy,/nextEclipseForLocation\(/,'Lokale Finsternisberechnung muss erhalten bleiben.');
 
-const test='scripts/test-open-meteo-lunar-daily-0985108.mjs';
-assert.equal(pkg.version,'0.9.85.108','Open-Meteo-Watch-Integration gehört zu MID v0.9.85.108.');
+const test='scripts/test-open-meteo-lunar-daily-0985108.mjs',versionParts=String(pkg.version).split('.').map(value=>Number.parseInt(value,10)||0),minimum=[0,9,85,108],versionAtLeast=versionParts.some((value,index)=>value>minimum[index]&&versionParts.slice(0,index).every((part,partIndex)=>part===minimum[partIndex]))||versionParts.every((value,index)=>value>=minimum[index]&&(index===0||versionParts.slice(0,index).every((part,partIndex)=>part===minimum[partIndex])));
+assert.ok(versionAtLeast,'Open-Meteo-Watch-Mondintegration darf ab MID v0.9.85.108 in späteren Releases nicht verloren gehen.');
 assert.ok(baseline.requiredRegressionTests.includes(test),'Mond-Daily-Regression fehlt in requiredRegressionTests.');
 assert.ok(baseline.regressionTests.includes(test),'Mond-Daily-Regression fehlt in regressionTests.');
-console.log('MID v0.9.85.108: Open-Meteo moonrise/moonset/moon_phase primär, lokale Astronomie als robuster Fallback geschützt.');
+console.log(`MID v${pkg.version}: Open-Meteo moonrise/moonset/moon_phase primär, lokale Astronomie als robuster Fallback seit v0.9.85.108 geschützt.`);
