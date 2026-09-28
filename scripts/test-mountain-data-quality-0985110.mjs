@@ -37,5 +37,6 @@ assert.match(app,/eye="Höhenbezogene Modellprognose"/,'Bergwetter behauptet wei
 
 for(const token of ['Niederschlag darf **nicht** künstlich monoton mit der Höhe skaliert werden','Tageszeilen sind Tageszusammenfassungen','DWD ICON-D2-RUC bleibt ein standortbezogenes 15-Minuten-Kurzfristsignal'])assert.ok(contract.includes(token),`Vertrag unvollständig: ${token}`);
 
-assert.equal(pkg.version,'0.9.85.110','Mountain-Data-Quality-Release muss v0.9.85.110 sein.');
+const versionAtLeast=(value,minimum)=>{const left=String(value).split(/[+-]/,1)[0].split('.').map(Number),right=String(minimum).split('.').map(Number);for(let index=0;index<Math.max(left.length,right.length);index++){const a=left[index]??0,b=right[index]??0;if(a!==b)return a>b}return true};
+assert.ok(versionAtLeast(pkg.version,'0.9.85.110'),'Mountain-Data-Quality-Vertrag benötigt mindestens MID v0.9.85.110.');
 console.log('MID v0.9.85.110: regionale Höhenquellen, orographisch neutrale Niederschlagslogik, Tagespiktogramme, Neuschnee und RUC-Abgrenzung geschützt.');
