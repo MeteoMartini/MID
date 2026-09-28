@@ -1,6 +1,7 @@
 import {precipitationParts} from './precipitation';
 import {stationFieldObservationUsable,type Station,type Weather} from './weather';
 import type {ForecastLocalAnchor,ForecastLocalAnchorField} from './forecastFusion';
+import type {StationAnalysisField} from './sourceQuality';
 import {classifyVisibilityPhenomenon,parseReportedVisibilityPhenomenon} from './visibilityPhenomena';
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
