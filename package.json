@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.111",
+  "version": "0.9.85.112",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -511,7 +511,8 @@
     "test:work-package-i": "node scripts/test-work-package-i.mjs",
     "test:open-meteo-lunar-daily": "node scripts/test-open-meteo-lunar-daily-0985108.mjs",
     "test:mountain-data-quality": "node scripts/test-mountain-data-quality-0985110.mjs",
-    "test:api-contract-retry": "node scripts/test-api-contract-retry-0985111.mjs"
+    "test:api-contract-retry": "node scripts/test-api-contract-retry-0985111.mjs",
+    "test:mid-18-2-20-map-seven-day-alignment": "node scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
