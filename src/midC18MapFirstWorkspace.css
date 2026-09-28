@@ -95,6 +95,54 @@ html[data-mid-design='next'] .composite-focus-layer-popover-portal{
  overscroll-behavior:contain!important;
 }
 
+/* MID 18.2.17 · einheitliche Karten-Controlfamilie im Fokusarbeitsraum. */
+html[data-mid-design='next'] .composite-focus-mode .maplibregl-ctrl-top-right{
+ top:12px!important;
+ right:max(12px,env(safe-area-inset-right))!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .maplibregl-ctrl-top-right>.maplibregl-ctrl{
+ margin:0!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .maplibregl-ctrl-group{
+ border-radius:12px!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .maplibregl-ctrl-group button{
+ width:44px!important;
+ min-width:44px!important;
+ height:44px!important;
+ min-height:44px!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .composite-locate-button{
+ top:110px!important;
+ right:max(12px,env(safe-area-inset-right))!important;
+ width:44px!important;
+ min-width:44px!important;
+ height:44px!important;
+ min-height:44px!important;
+ padding:0!important;
+ border-radius:12px!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .composite-focus-layer-control{
+ top:164px!important;
+ right:max(12px,env(safe-area-inset-right))!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .composite-focus-layer-trigger{
+ width:44px!important;
+ min-width:44px!important;
+ height:44px!important;
+ min-height:44px!important;
+ padding:0!important;
+ border-radius:12px!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .composite-focus-layer-trigger span{
+ display:none!important;
+}
+html[data-mid-design='next'] .composite-focus-mode .composite-focus-layer-trigger svg{
+ width:18px!important;
+ height:18px!important;
+}
+
 /* Eine visuelle Sprache für Playback/Timeline/Jetzt. */
 html[data-mid-design='next'] :is(.composite-timeline-card,.weather-maps-controls){
  width:100%!important;
