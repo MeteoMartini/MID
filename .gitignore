@@ -2,3 +2,23 @@ node_modules/
 .*-test/
 *.tsbuildinfo
 artifacts/
+# Build outputs
+dist/
+.vite/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Temporary
+*.tmp
+*.bak
