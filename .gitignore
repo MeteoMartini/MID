@@ -2,3 +2,18 @@ node_modules/
 .*-test/
 *.tsbuildinfo
 artifacts/
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Temporary
+*.tmp
+*.bak

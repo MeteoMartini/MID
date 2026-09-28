@@ -1,0 +1,101 @@
+name: Branch Cleanup
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Nur anzeigen, nicht löschen (dry-run)'
+        type: boolean
+        default: true
+      max-age-days:
+        description: 'Maximales Alter in Tagen (default 14)'
+        type: string
+        default: '14'
+
+jobs:
+  report-stale-branches:
+    name: Verwaiste Branches melden
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+
+    steps:
+      - name: Stale Branches identifizieren
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event.inputs.dry-run || 'true' }}
+          MAX_AGE_DAYS: ${{ github.event.inputs.max-age-days || '14' }}
+        run: |
+          echo "=== Branch Report (dry-run: $DRY_RUN, max-age: $MAX_AGE_DAYS days) ==="
+          echo ""
+          
+          # Get all branches with open PRs
+          OPEN_PR_BRANCHES=$(gh pr list --repo ${{ github.repository }} --state open --json headRefName --jq '.[].headRefName')
+          
+          # Get all branches
+          BRANCHES=$(gh api repos/${{ github.repository }}/branches --paginate --jq '.[].name')
+          
+          STALE=0
+          ACTIVE=0
+          PROTECTED=0
+          CUTOFF=$(date -u -d "$MAX_AGE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)
+          
+          echo "Cutoff date: $CUTOFF"
+          echo ""
+          echo "STALE BRANCHES (no open PR, older than $MAX_AGE_DAYS days):"
+          echo "---"
+          
+          while IFS= read -r branch; do
+            # Skip core branches
+            if [ "$branch" = "main" ] || [ "$branch" = "mid-stable" ]; then
+              continue
+            fi
+            
+            # Skip branches with open PRs
+            if echo "$OPEN_PR_BRANCHES" | grep -qx "$branch"; then
+              ACTIVE=$((ACTIVE + 1))
+              continue
+            fi
+            
+            # Get branch last activity
+            LAST_PUSH=$(gh api "repos/${{ github.repository }}/branches/$branch" --jq '.commit.commit.author.date' 2>/dev/null || echo "")
+            
+            if [ -z "$LAST_PUSH" ]; then
+              continue
+            fi
+            
+            # Check if branch is older than cutoff
+            if [[ "$LAST_PUSH" < "$CUTOFF" ]]; then
+              echo "  $branch (last push: $LAST_PUSH)"
+              STALE=$((STALE + 1))
+            else
+              ACTIVE=$((ACTIVE + 1))
+            fi
+          done <<< "$BRANCHES"
+          
+          echo ""
+          echo "=== Summary ==="
+          echo "Stale branches: $STALE"
+          echo "Active branches: $ACTIVE"
+          
+          # Create issue if stale branches found
+          if [ "$STALE" -gt 0 ] && [ "$DRY_RUN" = "true" ]; then
+            echo ""
+            echo "Creating issue to track cleanup..."
+            gh issue create --repo ${{ github.repository }} \
+              --title "[Branch Cleanup] $STALE verwaiste Branches gefunden" \
+              --body "Der wöchentliche Branch-Cleanup-Check hat $STALE verwaiste Branches gefunden (älter als $MAX_AGE_DAYS Tage, ohne offene PRs).
+
+          Diese Branches können manuell gelöscht oder per Workflow-Dispatch mit dry-run=false bereinigt werden.
+
+          \`\`\`
+          $STALE stale branches found
+          $ACTIVE active branches
+          \`\`\`
+          " \
+              --label "branch-cleanup" || echo "Issue creation skipped"
+          fi
