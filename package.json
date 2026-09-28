@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.115",
+  "version": "0.9.85.116",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -513,7 +513,8 @@
     "test:mountain-data-quality": "node scripts/test-mountain-data-quality-0985110.mjs",
     "test:api-contract-retry": "node scripts/test-api-contract-retry-0985111.mjs",
     "test:mid-18-2-20-map-seven-day-alignment": "node scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
-    "test:mid-18-2-23-temperature-trend-mountain-12h": "node scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs"
+    "test:mid-18-2-23-temperature-trend-mountain-12h": "node scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
+    "test:mid-18-2-24-dark-night-band": "node scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

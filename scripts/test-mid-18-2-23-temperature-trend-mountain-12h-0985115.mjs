@@ -66,7 +66,8 @@ assert.ok(!app.includes('Stundenprognose · nächste 24 Stunden'),'Die sichtbare
 assert.ok(contract.includes('synthetische Erwärmung')&&contract.includes('12 Stunden'),'Implementierungsvertrag muss Ursache und neue Berg-Horizontgrenze dokumentieren.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs';
-assert.equal(pkg.version,'0.9.85.115');
+const maintenance=Number(String(pkg.version).split('.').at(-1));
+assert.ok(Number.isFinite(maintenance)&&maintenance>=115,'Temperaturtrend-/Bergstundenvertrag muss ab v0.9.85.115 erhalten bleiben.');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite'])assert.ok((baseline[key]||[]).includes(test),`${test} fehlt in ${key}`);
 for(const file of [test,'MID_TEMPERATURE_TREND_MOUNTAIN_0.9.85.115.md'])assert.ok((baseline.requiredFiles||[]).includes(file),`${file} fehlt in requiredFiles`);

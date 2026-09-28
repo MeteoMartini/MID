@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.115",
+  "releaseVersion": "0.9.85.116",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -538,7 +538,8 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
-    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs"
+    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -990,7 +991,8 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
-    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs"
+    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
   ],
   "requiredFiles": [
     "scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs",
@@ -1728,7 +1730,9 @@
     "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
     "MID_TEMPERATURE_TREND_MOUNTAIN_0.9.85.115.md",
     "src/forecastFusion.ts",
-    "src/forecastLocalAnchor.ts"
+    "src/forecastLocalAnchor.ts",
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
+    "MID_DARK_NIGHT_BANDS_0.9.85.116.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1815,7 +1819,8 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
-    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs"
+    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2340,10 +2345,11 @@
     "scripts/test-mid-18-2-10-replit-audit-098597.mjs",
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
-    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs"
+    "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
   ],
-  "version": "0.9.85.115",
-  "updatedAt": "2026-09-28T19:28:00.000Z",
+  "version": "0.9.85.116",
+  "updatedAt": "2026-09-28T20:20:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",
@@ -2461,7 +2467,11 @@
     "src/forecastFusion.ts",
     "src/forecastLocalAnchor.ts",
     "src/App.tsx",
-    "MID_TEMPERATURE_TREND_MOUNTAIN_0.9.85.115.md"
+    "MID_TEMPERATURE_TREND_MOUNTAIN_0.9.85.115.md",
+    "src/midDesign.css",
+    "src/MidDesign.tsx",
+    "src/ForecastCockpit.tsx",
+    "MID_DARK_NIGHT_BANDS_0.9.85.116.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
