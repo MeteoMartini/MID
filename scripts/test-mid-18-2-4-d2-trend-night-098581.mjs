@@ -28,7 +28,7 @@ assert.ok(!app.includes('currentThreadMin')&&!app.includes('currentThreadMax'),'
 assert.ok(astronomy.includes('export function solarTimelineWindow'),'Zentrale minutengenaue Solar-Geometrie fehlt.');
 assert.ok(app.includes('solarTimelineWindow(currentThreadStartEpoch,currentThreadEndEpoch'),'Aktuelles Wetter muss die zentrale Solar-Geometrie verwenden.');
 assert.ok(cockpit.includes('solarTimelineWindow(chartStartEpoch,chartEndEpoch'),'24-h-Profil muss dieselbe Solar-Geometrie verwenden.');
-assert.ok(cockpit.includes('nightBandOpacity=.2'),'Nachtfläche im 24-h-Profil muss etwas deutlicher, aber weiterhin dezent bleiben.');
+assert.ok(cockpit.includes("nightBandOpacity='var(--mid-night-band-opacity,.2)'"),'Nachtfläche im 24-h-Profil muss den gemeinsamen Theme-Vertrag verwenden und weiterhin dezent bleiben.');
 
 for(const token of [
   'export type MidWeatherThreadNightBand',
