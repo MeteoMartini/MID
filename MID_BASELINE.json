@@ -1732,7 +1732,7 @@
     "src/forecastFusion.ts",
     "src/forecastLocalAnchor.ts",
     "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
-    "MID_DARK_NIGHT_BANDS_0.9.85.116.md"
+    "MID_DARK_NIGHT_BANDS_0.9.85.119.md"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -2471,7 +2471,7 @@
     "src/midDesign.css",
     "src/MidDesign.tsx",
     "src/ForecastCockpit.tsx",
-    "MID_DARK_NIGHT_BANDS_0.9.85.116.md"
+    "MID_DARK_NIGHT_BANDS_0.9.85.119.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
