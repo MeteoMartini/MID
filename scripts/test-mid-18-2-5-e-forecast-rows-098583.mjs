@@ -53,6 +53,7 @@ for(const token of [
 ]) assert.ok(styles.includes(token),`Responsive E-Designregel fehlt: ${token}`);
 
 assert.ok(styles.includes('grid-auto-flow:row!important')&&styles.includes('overflow:visible!important'),'Forecast-Listen dürfen nicht als horizontale Kartenkarussells fortbestehen.');
+assert.match(styles,/\.cockpit-seven-grid>\.cockpit-day\.mid-forecast-row\{[\s\S]*?grid-column:1!important;[\s\S]*?grid-row:auto!important;/,'7-Tage-ForecastRows müssen die ältere explizite Tages-Spaltenzuweisung auch auf Desktop zurücksetzen.');
 assert.ok(main.indexOf("import './midC18ForecastRows.css';")>main.indexOf("import './midC18TodayProfile.css';"),'E-Designlayer muss nach dem D/D.2-Profil-Layer geladen werden.');
 
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite']){
