@@ -12,6 +12,8 @@ Die aktuelle Wetterübersicht konnte einen trockenen Best-Match-Wettercode wie �
 - Niederschlag sowie belastbare Sicht-/Nebelphänomene behalten fachlich Vorrang vor einer reinen Bewölkungsbeschreibung.
 - Für kontinuierlich hyperlokal analysierte Prozentwerte bleibt 8/8 vollständiger Bedeckung von 100 % vorbehalten; diskrete amtliche Beobachtungen werden nicht umgedeutet.
 - Klima- und direkte Bewölkungslegenden verwenden dieselben DWD-Klassen.
+- Interne trockene Wettercodes 0–3 bleiben vierstufige WMO/Open-Meteo-Träger für Symbolik und Datenkompatibilität. Ihre Prozentgrenzen werden aus den gerundeten Oktas abgeleitet (0/8 → 0, 1–3/8 → 1, 4–6/8 → 2, 7–8/8 → 3), ersetzen aber **nicht** die fünf sichtbaren DWD-Textklassen. Wo Gesamtbewölkung vorhanden ist, stammt der sichtbare Text direkt aus der Oktas-Klasse.
+- Die Tagesheuristiken `heavyCloudShare` und `overcastShare` sind ausschließlich Aggregationssignale für den Tagescharakter. Schwellen wie 75 % oder 90 % sind keine direkte DWD-Klassifikation eines Einzelzeitpunkts und dürfen nicht als solche beschriftet werden.
 
 ## UVI-Vertrag
 
