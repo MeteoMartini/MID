@@ -19,6 +19,14 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.111 · MID 18.2.19 robuste API-Vertragsrevision
+
+Die automatische Revision bleibt für kritische externe Datenverträge fail-closed, wiederholt jedoch ausschließlich eindeutig transiente Abruffehler begrenzt. Transportfehler sowie HTTP 408, 425, 429 und 5xx dürfen bis zu dreimal mit begrenztem Backoff erneut versucht werden. Erfolgreiche 2xx-Antworten werden inhaltlich nur einmal bewertet; ein fachlich ungültiger Payload wird nicht durch Wiederholung kaschiert. Nicht-transiente 4xx werden nicht erneut angefordert.
+
+Hintergrund ist der wiederholte gleichzeitige `fetch failed`-Befund der automatischen Revision nach v0.9.85.110, obwohl vollständige Regression, Dependency-Audit und Build-Budget bestanden. Die Härtung betrifft ausschließlich die Prüfautomatik und ändert keine Wetter-, Berg-, Worker- oder UI-Fachlogik.
+
+Required Regression: `scripts/test-api-contract-retry-0985111.mjs`. Detailvertrag: `MID_API_CONTRACT_RETRY_0.9.85.111.md`.
+
 ## v0.9.85.110 · MID 18.2.18 Bergwetter-Datenqualität und Höhenquellen
 
 Die Berg-/Wintersportsektion verwendet Open-Meteo Best Match weiterhin als vollständige 7-Tage-Basis. Für den kurzfristigen Höhenvergleich wird dort, wo ein belastbares hochaufgelöstes Regionalmodell verfügbar ist, ein einziges Regionalmodell für alle konfigurierten Höhenpunkte verwendet. Dadurch werden Tal-/Mitte-/Berg-Unterschiede nicht durch unbeabsichtigte Modellwechsel zwischen den Höhenstufen erzeugt. In Österreich gilt GeoSphere AROME Austria als bevorzugter Kurzfristpfad, in Deutschland DWD ICON-D2, in der Schweiz MeteoSwiss ICON-CH1 und in Frankreich Météo-France AROME HD. Fehlende Regionalmodellfelder fallen feldweise auf die Best-Match-Basis zurück.
