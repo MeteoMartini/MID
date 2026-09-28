@@ -1,6 +1,6 @@
-# MID v0.9.85.114
+# MID v0.9.85.115
 
-- Der Trendtext der mobilen 7-Tage-Ansicht kann vollständig umbrechen; Modellstand und Legende erhalten eine eigene Zeile.
-- Die Kopfzeilen von Komposit- und Wetterkarten ordnen Titel und Status auf schmalen Ansichten untereinander an.
-- Bei ausgewähltem Standort erscheint kein fester PWA-Installationshinweis mehr über dem Wetterinhalt. Die Installation bleibt über die Kopfzeile erreichbar.
-- Die Korrekturen betreffen ausschließlich Darstellung und Bedienung; Wetter- und Warnlogik bleiben unverändert.
+- Der kurzfristige Temperaturverlauf übernimmt lokale Messkorrekturen jetzt zeitgenau und ohne künstliche Gegenbewegung durch ein zu schnelles Ausblenden des Temperatur-Bias.
+- Dadurch wird insbesondere ein unplausibler Stundenanstieg vermieden, der allein aus der Rückführung einer starken hyperlokalen Temperaturkorrektur entstehen konnte.
+- Die +12-h-Temperaturkurve bleibt an dieselbe kanonische, hyperlokal finalisierte Stundenreihe gebunden; es gibt keine separate grafische Glättung.
+- Im Berg-/Wintersportbereich zeigt die horizontale Stundenprognose jetzt die nächsten 12 statt 24 Stunden. Die 7-Tage-Ansicht und eigenständige 24-h-Schneeangaben bleiben erhalten.
