@@ -68,8 +68,55 @@ export type MidGeoLayer={id:string;type:'line'|'fill'|'circle'|'symbol';paint?:R
 export type MidVectorTileLayer={id:string;type:'line'|'fill'|'circle'|'symbol';sourceLayer:string;minzoom?:number;maxzoom?:number;paint?:Record<string,unknown>;layout?:Record<string,unknown>;filter?:unknown};
 export function VectorTileLayers({id,url,layers,zIndex=0,glyphsUrl}:{id:string;url:string;layers:MidVectorTileLayer[];zIndex?:number;glyphsUrl?:string}){const map=useMidMap(),sourceId=`${safeId(id)}-source`;
  useEffect(()=>{if(!map||!url)return;const layerIds=layers.map(spec=>`${safeId(id)}-${safeId(spec.id)}`);try{if(glyphsUrl&&map.getGlyphs()!==glyphsUrl)map.setGlyphs(glyphsUrl);if(!map.getSource(sourceId))map.addSource(sourceId,{type:'vector',url});for(const spec of layers){const layerId=`${safeId(id)}-${safeId(spec.id)}`;if(map.getLayer(layerId))map.removeLayer(layerId);map.addLayer({id:layerId,type:spec.type,source:sourceId,'source-layer':spec.sourceLayer,minzoom:spec.minzoom,maxzoom:spec.maxzoom,paint:spec.paint as any,layout:spec.layout as any,filter:spec.filter as any} as maplibregl.AddLayerObject);registerMapLayerOrder(map,layerId,zIndex+layers.indexOf(spec)/1000)}}catch{}return()=>{try{layerIds.forEach(layerId=>{unregisterMapLayerOrder(map,layerId);if(map.getLayer(layerId))map.removeLayer(layerId)});if(map.getSource(sourceId))map.removeSource(sourceId)}catch{}}},[map,id,sourceId,url,JSON.stringify(layers),zIndex,glyphsUrl]);return null}
-export function GeoJsonLayers({id,data,layers,hoverProperty,zIndex=0}:{id:string;data:any;layers:MidGeoLayer[];hoverProperty?:string;zIndex?:number}){const map=useMidMap(),sourceId=`${safeId(id)}-source`;
- useEffect(()=>{if(!map)return;const layerIds=layers.map(spec=>`${safeId(id)}-${safeId(spec.id)}`),popup=hoverProperty?new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:8,maxWidth:'320px'}):null,moveHandlers:Array<(event:maplibregl.MapLayerMouseEvent)=>void>=[],leaveHandlers:Array<()=>void>=[];try{if(!map.getSource(sourceId))map.addSource(sourceId,{type:'geojson',data});else(map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data);for(const spec of layers){const layerId=`${safeId(id)}-${safeId(spec.id)}`;if(map.getLayer(layerId))map.removeLayer(layerId);map.addLayer({id:layerId,type:spec.type,source:sourceId,paint:spec.paint as any,layout:spec.layout as any,filter:spec.filter as any} as maplibregl.AddLayerObject);registerMapLayerOrder(map,layerId,zIndex+layers.indexOf(spec)/1000);if(popup){const move=(event:maplibregl.MapLayerMouseEvent)=>{const value=event.features?.[0]?.properties?.[hoverProperty!];if(value===undefined||value===null)return;map.getCanvas().style.cursor='pointer';popup.setLngLat(event.lngLat).setHTML(String(value)).addTo(map)},leave=()=>{map.getCanvas().style.cursor='';popup.remove()};map.on('mousemove',layerId,move);map.on('mouseleave',layerId,leave);moveHandlers.push(move);leaveHandlers.push(leave)}}}catch{}return()=>{popup?.remove();try{layerIds.forEach((layerId,index)=>{if(moveHandlers[index])map.off('mousemove',layerId,moveHandlers[index]);if(leaveHandlers[index])map.off('mouseleave',layerId,leaveHandlers[index]);unregisterMapLayerOrder(map,layerId);if(map.getLayer(layerId))map.removeLayer(layerId)});if(map.getSource(sourceId))map.removeSource(sourceId)}catch{}}},[map,id,sourceId,data,JSON.stringify(layers),hoverProperty,zIndex]);return null}
+export function GeoJsonLayers({id,data,layers,hoverProperty,zIndex=0}:{id:string;data:any;layers:MidGeoLayer[];hoverProperty?:string;zIndex?:number}){
+ const map=useMidMap(),sourceId=`${safeId(id)}-source`;
+ useEffect(()=>{
+  if(!map)return;
+  const layerIds=layers.map(spec=>`${safeId(id)}-${safeId(spec.id)}`);
+  const popup=hoverProperty?new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:8,maxWidth:'320px'}):null;
+  const handlers:Array<{layerId:string;move:(event:maplibregl.MapLayerMouseEvent)=>void;leave:()=>void;click:(event:maplibregl.MapLayerMouseEvent)=>void}>=[];
+  let pinned=false;
+  const onPopupClose=()=>{pinned=false};
+  popup?.on('close',onPopupClose);
+  try{
+   if(!map.getSource(sourceId))map.addSource(sourceId,{type:'geojson',data});
+   else(map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(data);
+   for(const spec of layers){
+    const layerId=`${safeId(id)}-${safeId(spec.id)}`;
+    if(map.getLayer(layerId))map.removeLayer(layerId);
+    map.addLayer({id:layerId,type:spec.type,source:sourceId,paint:spec.paint as any,layout:spec.layout as any,filter:spec.filter as any} as maplibregl.AddLayerObject);
+    registerMapLayerOrder(map,layerId,zIndex+layers.indexOf(spec)/1000);
+    if(!popup)continue;
+    const show=(event:maplibregl.MapLayerMouseEvent)=>{
+     const value=event.features?.[0]?.properties?.[hoverProperty!];
+     if(value===undefined||value===null)return;
+     popup.setLngLat(event.lngLat).setHTML(String(value)).addTo(map);
+    };
+    const move=(event:maplibregl.MapLayerMouseEvent)=>{if(pinned)return;map.getCanvas().style.cursor='pointer';show(event)};
+    const leave=()=>{map.getCanvas().style.cursor='';if(!pinned)popup.remove()};
+    const click=(event:maplibregl.MapLayerMouseEvent)=>{show(event);pinned=popup.isOpen()};
+    map.on('mousemove',layerId,move);
+    map.on('mouseleave',layerId,leave);
+    map.on('click',layerId,click);
+    handlers.push({layerId,move,leave,click});
+   }
+  }catch{}
+  return()=>{
+   popup?.off('close',onPopupClose);
+   popup?.remove();
+   for(const {layerId,move,leave,click} of handlers){
+    map.off('mousemove',layerId,move);
+    map.off('mouseleave',layerId,leave);
+    map.off('click',layerId,click);
+   }
+   try{
+    for(const layerId of layerIds){unregisterMapLayerOrder(map,layerId);if(map.getLayer(layerId))map.removeLayer(layerId)}
+    if(map.getSource(sourceId))map.removeSource(sourceId);
+   }catch{}
+  };
+ },[map,id,sourceId,data,JSON.stringify(layers),hoverProperty,zIndex]);
+ return null;
+}
 
 export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom',offset=[0,0],popupHtml,onClick,zIndex}:{latitude:number;longitude:number;html:string;className?:string;anchor?:maplibregl.PositionAnchor;offset?:[number,number];popupHtml?:string;onClick?:()=>void;zIndex?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const el=document.createElement('div');el.className=className;el.innerHTML=html;if(zIndex!==undefined)el.style.zIndex=String(zIndex);if(onClick)el.addEventListener('click',onClick);const marker=new maplibregl.Marker({element:el,anchor,offset}).setLngLat([longitude,latitude]);if(popupHtml)marker.setPopup(new maplibregl.Popup({offset:12,maxWidth:'330px'}).setHTML(popupHtml));marker.addTo(map);return()=>{if(onClick)el.removeEventListener('click',onClick);marker.remove()}},[map,latitude,longitude,html,className,anchor,offset[0],offset[1],popupHtml,onClick,zIndex]);return null}
 

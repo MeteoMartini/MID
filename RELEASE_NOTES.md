@@ -1,6 +1,7 @@
-# MID v0.9.85.112
+# MID v0.9.85.113
 
-- Die Kartensteuerung ist auf Smartphone und Touch-Geräten ruhiger und einheitlicher angeordnet: Zoom, Positionszentrierung und Layersteuerung besitzen konsistente Größen, Abstände und eine gemeinsame rechte Ausrichtung.
-- Die Bedienelemente berücksichtigen weiterhin Safe Areas und ausreichend große Touch-Ziele.
-- In der 7-Tage-Kurvenübersicht sind die sieben Tagesbereiche auf Desktop wieder vollständig sichtbar und sauber an der gemeinsamen Zeitachse ausgerichtet.
-- Meteorologische Berechnungen, Datenquellen und Warnlogik bleiben unverändert.
+- In der Kurzfristvorhersage ist das Detail nach Auswahl eines Zeitpunkts wieder sichtbar.
+- Wetterkarten-Playback, „Jetzt“ und „Neu laden“ besitzen auf Touch-Ansichten mindestens 44 × 44 px große Ziele. Standort-Popups öffnen auch durch Tippen; der gewählte Standort ist zusätzlich per Tastatur aufrufbar.
+- Die Szenarioübersicht der 14-Tage-Ansicht zeigt ihre Kurzlabels lesbar und ohne Abschneiden auf schmalen Displays.
+- Die untere Hauptnavigation ist für Screenreader als Navigation ausgezeichnet.
+- Meteorologische Berechnungen, Datenquellen und Warnstufen bleiben unverändert.
