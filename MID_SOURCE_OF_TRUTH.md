@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.114 · MID 18.2.22 responsiver Audit-Nachgang
+
+Ausgangsbasis ist der erfolgreich promotete `mid-stable`-Commit `6371acec8458234283f8a31e29744bb222a7f9a2`. Der mobile 7-Tage-Trend darf vollständig umbrechen; die mobilen Kartenkopfzeilen ordnen Titel und Status in getrennte Zeilen; der automatische PWA-Hinweis erscheint bei ausgewähltem Wetterstandort nicht über dem Inhalt. Die Installationsaktion im Kopf bleibt verfügbar. Fachlogik bleibt unverändert. Detailvertrag: `MID_MOBILE_LAYOUT_0.9.85.114.md`.
+
 ## v0.9.85.113 · MID 18.2.21 Auditkorrekturen für Bedienbarkeit
 
 Der Ausgangspunkt ist `mid-stable` `dc1975c3ccf99e9b749393874a48147618f6e73e`. Die gezielte Auditkorrektur stellt das Kurzfristdetail im obligatorischen Next-Design wieder her, vergrößert die Touch-Ziele der Wetterkartensteuerung, verbessert die Lesbarkeit der Szenario-Kurzlabels und macht Karten-Standortinformationen auf Touchgeräten und per Tastatur verfügbar. Die Hauptnavigation wird als Landmark ausgezeichnet. Meteorologische Fachlogik und Warnstufen bleiben unverändert. Detailvertrag: `MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md`.

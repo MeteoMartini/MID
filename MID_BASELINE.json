@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.113",
+  "releaseVersion": "0.9.85.114",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2334,8 +2334,8 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs"
   ],
-  "version": "0.9.85.113",
-  "updatedAt": "2026-09-28T18:10:00.000Z",
+  "version": "0.9.85.114",
+  "updatedAt": "2026-09-28T18:40:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",
@@ -2447,7 +2447,9 @@
     "MID_RELEASE_NOTES_0.9.85.98.json",
     "src/midC18MapAndSevenDayAlignment.css",
     "MID_MAP_SEVEN_DAY_ALIGNMENT_0.9.85.112.md",
-    "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md"
+    "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
+    "MID_MOBILE_LAYOUT_0.9.85.114.md",
+    "src/midC18AuditFollowup.css"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

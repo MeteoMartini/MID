@@ -20,10 +20,10 @@ async function loadTsModule(source,filename){
   return module.exports;
 }
 
-// A: Der automatische Install-Hinweis darf Karten/Komposit nicht überlagern.
+// A: Der automatische Install-Hinweis darf Ansichten mit ausgewähltem Ort nicht überlagern.
 assert.ok(pwa.includes('suppressTransientHint=false'),'PWA-Button braucht einen nicht-persistenten Unterdrückungsvertrag.');
 assert.ok(pwa.includes('!suppressTransientHint&&<aside className="pwa-install-hint"'),'Nur der transiente Install-Hinweis muss unterdrückbar sein.');
-assert.ok(app.includes('suppressPwaInstallHint={MODERN_MAP_MODULES.includes(activeNavSection as DashboardModuleId)}'),'Kartenmodule müssen den transienten Install-Hinweis über den Appzustand unterdrücken.');
+assert.ok(app.includes('suppressPwaInstallHint={!!loc}'),'Alle Ortsansichten einschließlich Karten müssen den transienten Install-Hinweis unterdrücken.');
 assert.ok(app.includes('<PwaInstallButton suppressTransientHint={suppressPwaInstallHint}/>'),'Der manuelle App-Button bleibt bestehen und erhält nur den Hinweis-Unterdrückungsstatus.');
 
 // B: Numerische SYNOP-ww-Werte bleiben vollständig in ihrer eigenen Codetabelle.
