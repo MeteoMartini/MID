@@ -4,6 +4,7 @@
 - Die sichtbaren Bewölkungsbezeichnungen folgen app-weit der DWD-Oktas-Systematik: 0/8 wolkenlos, 1–3/8 leicht bewölkt, 4–6/8 wolkig, 7/8 stark bewölkt und 8/8 bedeckt.
 - Auch ohne frische lokale Wolkenmessung wird ein trockener Best-Match-Wettercode mit der tatsächlich dargestellten Gesamtbewölkung abgeglichen.
 - Kurzfrist-, Piktogramm-, Bergwetter- und Forecast-Fusion-Fallbacks verwenden dieselben aus Oktas abgeleiteten Bewölkungsgrenzen.
+- Event-, Routen-, Wasser- und Periodenansichten verwenden bei trockenem Wetter dieselben kanonischen Bewölkungsbezeichnungen.
 - Die Kurzbezeichnung des UV-Index ist in den sichtbaren Wetteransichten einheitlich „UVI“, unter anderem in 7-/14-Tage-, Bergwetter- und Eventdarstellungen.
 
 # MID v0.9.85.108
