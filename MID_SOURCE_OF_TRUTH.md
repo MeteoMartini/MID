@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.113 · MID 18.2.21 Auditkorrekturen für Bedienbarkeit
+
+Der Ausgangspunkt ist `mid-stable` `dc1975c3ccf99e9b749393874a48147618f6e73e`. Die gezielte Auditkorrektur stellt das Kurzfristdetail im obligatorischen Next-Design wieder her, vergrößert die Touch-Ziele der Wetterkartensteuerung, verbessert die Lesbarkeit der Szenario-Kurzlabels und macht Karten-Standortinformationen auf Touchgeräten und per Tastatur verfügbar. Die Hauptnavigation wird als Landmark ausgezeichnet. Meteorologische Fachlogik und Warnstufen bleiben unverändert. Detailvertrag: `MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md`.
+
 ## v0.9.85.112 · MID 18.2.20 Kartensteuerung und 7-Tage-Desktopausrichtung
 
 Der gegen die verifizierte Basis `a6afde4ce9e38965ea484a0c9c81b95bdd3dc2af` geprüfte Replit-Handoff `3148e8f3a66b433746bfe37452c786f01bec6499` vereinheitlicht ausschließlich die sichtbare Kartensteuerung und korrigiert die Desktopgeometrie der 7-Tage-Kurvenübersicht. Zoom, Position und Layersteuerung verwenden auf mobilen/touchbasierten Layouts konsistente Touch-Ziele, Abstände und eine gemeinsame rechte Kante. Die sieben Tagesbereiche unter der Kurve werden auf Desktop gleichmäßig und entlang derselben Plotgrenzen wie die gemeinsame Zeitachse angeordnet.
