@@ -1,17 +1,20 @@
+import {fetchJsonWithRetry} from './api-contract-request.mjs';
+
 const failures=[],warnings=[],checks=[];
 
 async function jsonCheck(name,url,validate,{required=true}={}){
  try{
-  const response=await fetch(url,{headers:{Accept:'application/json'}}),payload=await response.json().catch(()=>null),valid=response.ok&&validate(payload);
-  checks.push({name,status:response.status,ok:valid,required});
+  const {response,payload,attemptsUsed}=await fetchJsonWithRetry(url),valid=response.ok&&validate(payload);
+  checks.push({name,status:response.status,ok:valid,required,attemptsUsed});
   if(!valid){
-   const message=`${name}: Vertrag ungültig (HTTP ${response.status})`;
+   const suffix=attemptsUsed>1?` nach ${attemptsUsed} Abrufversuchen`:'';
+   const message=`${name}: Vertrag ungültig (HTTP ${response.status})${suffix}`;
    (required?failures:warnings).push(message);
   }
   return valid;
  }catch(error){
-  const message=`${name}: ${error instanceof Error?error.message:String(error)}`;
-  checks.push({name,status:0,ok:false,required});
+  const message=`${name}: ${error instanceof Error?error.message:String(error)} nach 3 Abrufversuchen`;
+  checks.push({name,status:0,ok:false,required,attemptsUsed:3});
   (required?failures:warnings).push(message);
   return false;
  }
