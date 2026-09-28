@@ -1,10 +1,16 @@
 import {precipitationParts} from './precipitation';
 import {stationFieldObservationUsable,type Station,type Weather} from './weather';
 import type {ForecastLocalAnchor,ForecastLocalAnchorField} from './forecastFusion';
+import type {StationAnalysisField} from './sourceQuality';
 import {classifyVisibilityPhenomenon,parseReportedVisibilityPhenomenon} from './visibilityPhenomena';
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
 function currentNumber(current:Weather['current'],key:string){return finite(current[key])}
+function stationFieldObservedEpoch(station:Station|null|undefined,field:StationAnalysisField){
+ const candidates=[station?.fieldObservedAt?.[field],station?.fieldSources?.[field]?.[0]?.observedAt,station?.timestamp];
+ for(const candidate of candidates){const epoch=Date.parse(String(candidate||''));if(Number.isFinite(epoch))return epoch}
+ return undefined
+}
 function stationWindKnots(value:number|undefined,unit:Station['windUnit']){const number=finite(value);return number===undefined?undefined:unit==='kmh'?number/1.852:number}
 function trustedPresentWeather(station:Station|null|undefined,now:number){
  const report=parseReportedVisibilityPhenomenon(station?.presentWeather);if(!report)return false;
@@ -40,5 +46,6 @@ export function forecastLocalAnchorFromCurrent(station:Station|null|undefined,cu
  const parts=precipitationParts({precipitation:precipitation??0,rain,showers,snowfall,probability:0,code:baseCode,temperature,dewPoint,humidity,cloud,lowCloud,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined}),code=parts.type==='none'?observedSkyCode(parts.displayCode,cloud,lowCloud,visibility,humidity,temperature,dewPoint,station?.presentWeather,trustedPresentWeather(station,now)):parts.displayCode;
  observed.code=Boolean(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation);
  const active=Object.entries(observed).some(([field,value])=>field!=='apparent'&&value),ownStation=Boolean(station?.provider?.startsWith('Eigene ')||station?.analysisMethod?.startsWith('Eigene ')),sourceLabel=active?(ownStation?'Eigene Station · lokal angepasst':station?.analysisMethod?'Hyperlokal angepasst':'Stationsgestützt angepasst'):'Best Match';
- return{active,sourceLabel,observed,temperature,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation,precipitationMinutes,rain,showers,snowfall,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined,code,isDay:Number(current.is_day)===1};
+ const temperatureObservedAt=stationTemperature!==undefined?stationFieldObservedEpoch(station,'temperature'):undefined;
+ return{active,sourceLabel,observed,temperature,temperatureObservedAt,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation,precipitationMinutes,rain,showers,snowfall,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined,code,isDay:Number(current.is_day)===1};
 }

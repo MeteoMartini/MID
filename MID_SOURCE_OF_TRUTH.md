@@ -19,6 +19,14 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.115 · MID 18.2.23 Temperaturtrend-Kohärenz und Bergstunden 12 h
+
+Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `9e81bcb21f3dbcdedc8d76fffc038a5e0b1a7ae2` (v0.9.85.114). Die hyperlokale Temperaturassimilation verwendet nun den feldspezifischen Beobachtungszeitpunkt und bestimmt den Modellwert am Messzeitpunkt durch Interpolation zwischen den benachbarten Stunden. Eine lokale Temperaturabweichung wird danach glatt und begrenzt zurückgeführt; das Ausblenden der Korrektur darf in der unmittelbaren Assimilationsphase einen belastbaren Modell-Stundentrend nicht allein in die Gegenrichtung drehen. Damit wird insbesondere eine durch die frühere lineare 120-Minuten-Rückführung mögliche synthetische Erwärmung zwischen benachbarten Stunden vermieden. Die sichtbare +12-h-Karte bleibt reiner Verbraucher derselben kanonischen finalisierten Stundenreihe.
+
+Im Berg-/Wintersportmodul zeigt die horizontale stündliche Höhenprognose ab diesem Stand ausschließlich die nächsten **12 Stunden** und höchstens zwölf Stundenwerte. Die 7-Tage-Prognose sowie eigenständige 24-h-Schneeakkumulationen bleiben unverändert. Damit ist die in v0.9.85.108 definierte sichtbare 24-h-Stundenleiste für die aktuelle UI ausdrücklich abgelöst.
+
+Required Regression: `scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs`. Detailvertrag: `MID_TEMPERATURE_TREND_MOUNTAIN_0.9.85.115.md`.
+
 ## v0.9.85.114 · MID 18.2.22 responsiver Audit-Nachgang
 
 Ausgangsbasis ist der erfolgreich promotete `mid-stable`-Commit `6371acec8458234283f8a31e29744bb222a7f9a2`. Der mobile 7-Tage-Trend darf vollständig umbrechen; die mobilen Kartenkopfzeilen ordnen Titel und Status in getrennte Zeilen; der automatische PWA-Hinweis erscheint bei ausgewähltem Wetterstandort nicht über dem Inhalt. Die Installationsaktion im Kopf bleibt verfügbar. Fachlogik bleibt unverändert. Detailvertrag: `MID_MOBILE_LAYOUT_0.9.85.114.md`.

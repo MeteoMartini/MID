@@ -6,7 +6,7 @@ const [app,ensemble,styles]=await Promise.all([
 ]);
 const failures=[];
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
-for(const token of ['function MountainHourlyForecast','Stundenprognose · nächste 24 Stunden','className="mountain-level-picker"','className="mountain-hourly-grid"','7-Tage-Überblick','Schneefallgrenze'])need(app,token,`Neue höhenbezogene Bergprognose unvollständig: ${token}`);
+for(const token of ['function MountainHourlyForecast','Stundenprognose · nächste 12 Stunden','className="mountain-level-picker"','className="mountain-hourly-grid"','7-Tage-Überblick','Schneefallgrenze'])need(app,token,`Neue höhenbezogene Bergprognose unvollständig: ${token}`);
 if(app.includes('function MountainForecastMatrix')||app.includes('Höhenvergleich · Winterprofil nach Höhenzone')||app.includes('Höhenvergleich · Bergwetter nach Höhenzone'))failures.push('Der abgelöste sichtbare Höhenvergleich ist noch im Produktpfad vorhanden.');
 need(app,'Saison automatisch erkannt','Saison-Automatik wird im Profil nicht verständlich gekennzeichnet.');
 need(app,'Profil automatisch abgeleitet','Profilquelle/-sicherheit wird nicht verständlich getrennt.');
