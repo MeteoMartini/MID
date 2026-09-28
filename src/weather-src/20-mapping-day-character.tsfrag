@@ -98,10 +98,13 @@ export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|
 }
 
 export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}
+export function cloudOktasLabel(percent:number){
+ const octas=cloudOktas(percent);
+ return octas===0?'Wolkenlos':octas<=3?'Leicht bewölkt':octas<=6?'Wolkig':octas===7?'Stark bewölkt':'Bedeckt';
+}
 export function cloudOktasText(percent:number){
  const octas=cloudOktas(percent);
- const description=octas===0?'wolkenlos':octas<=3?'leicht bewölkt':octas<=6?'wolkig':octas===7?'stark bewölkt':'bedeckt';
- return`${octas}/8 · ${description}`;
+ return`${octas}/8 · ${cloudOktasLabel(percent).toLocaleLowerCase('de-DE')}`;
 }
 export type DayWeatherCharacter={code:number;label:string;secondary:string;cloudOktas:number;precipitationDominant:boolean};
 export function dayWeatherCharacterText(character:DayWeatherCharacter){const secondary=String(character.secondary||'').trim();return secondary?`${character.label}, ${secondary.charAt(0).toLocaleLowerCase('de-DE')}${secondary.slice(1)}`:character.label}
