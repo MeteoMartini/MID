@@ -127,6 +127,35 @@ async function closeOpenMountainDays(){
  if(open)await clickAt('.mountain-day-toggle[aria-expanded="true"]');
  await waitForValue('Geschlossene Berg-Tagesdetails',`[...document.querySelectorAll('.mountain-day-toggle')].every(button=>button.getAttribute('aria-expanded')!=='true')`,Boolean);
 }
+async function verifyMountainZoneAnalysis(label,viewport,theme){
+ await waitForValue(`${label}: Höhenzonen-Disclosure`,`Boolean(document.querySelector('.mountain-zone-summary')&&document.querySelector('.mountain-zone-summary').getBoundingClientRect().width>0)`,Boolean,30000);
+ await clickIfClosed('.mountain-zone-summary');
+ await waitForValue(`${label}: geöffnete Höhenzonen-Analyse`,`Boolean(document.querySelector('.mountain-zone-analysis.open .mountain-zone-content'))`,Boolean,30000);
+ const layout=JSON.parse(await evaluate(`(()=>{
+  const root=document.querySelector('.mountain-zone-analysis'),button=root?.querySelector('.mountain-zone-summary'),content=root?.querySelector('.mountain-zone-content'),cardGrid=content?.querySelector(':scope > div'),cards=[...(cardGrid?.querySelectorAll(':scope > article')||[])],visible=node=>node&&node.getClientRects().length>0,rect=node=>{const r=node.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width}},children=[...(content?.children||[])].filter(visible).map(rect),kicker=button?.querySelector('small'),heading=button?.querySelector('strong'),period=content?.querySelector('.mountain-zone-period'),cardText=cardGrid?.querySelector('article>p'),template=cardGrid?getComputedStyle(cardGrid).gridTemplateColumns:'';
+  const singleColumn=children.length>0&&children.every(item=>Math.abs(item.left-children[0].left)<=1)&&children.every((item,index)=>index===0||children[index-1].bottom<=item.top+1);
+  return JSON.stringify({button:Boolean(button),expanded:button?.getAttribute('aria-expanded')||'',buttonWidth:button?.clientWidth||0,buttonHeight:button?.getBoundingClientRect().height||0,buttonOverflow:button?button.scrollWidth>button.clientWidth+1:true,headingFont:heading?parseFloat(getComputedStyle(heading).fontSize):0,kickerFont:kicker?parseFloat(getComputedStyle(kicker).fontSize):0,periodFont:period?parseFloat(getComputedStyle(period).fontSize):0,cardFont:cardText?parseFloat(getComputedStyle(cardText).fontSize):0,contentWidth:content?.clientWidth||0,contentOverflow:content?content.scrollWidth>content.clientWidth+1:true,contentChildCount:children.length,singleColumn,cardCount:cards.length,cardOverflow:cardGrid?cardGrid.scrollWidth>cardGrid.clientWidth+1:true,template,documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth});
+ })()`));
+ assert.ok(layout.button&&layout.expanded==='true',`${label}: Höhenzonen-Analyse ließ sich nicht öffnen (${JSON.stringify(layout)}).`);
+ assert.ok(layout.buttonWidth>0&&layout.buttonHeight>=44,`${label}: Disclosure-Schaltfläche ist kein gut bedienbares Ziel (${JSON.stringify(layout)}).`);
+ assert.equal(layout.buttonOverflow,false,`${label}: Kicker oder Überschrift laufen aus der Disclosure-Schaltfläche.`);
+ assert.ok(layout.headingFont>=12&&layout.headingFont<=16&&layout.kickerFont>=8&&layout.periodFont>=8.5&&layout.cardFont>=8.5,`${label}: Analyse-Typografie ist zu klein oder überdimensioniert (${JSON.stringify(layout)}).`);
+ assert.ok(layout.contentWidth>0&&layout.contentChildCount>=4&&layout.singleColumn,`${label}: Textbereiche des geöffneten Panels bilden keine saubere Einspalten-Hierarchie (${JSON.stringify(layout)}).`);
+ assert.equal(layout.contentOverflow,false,`${label}: geöffneter Analyseinhalt läuft horizontal über.`);
+ assert.ok(layout.cardCount>0&&!layout.cardOverflow,`${label}: Höhenzonen-Karten fehlen oder laufen über (${JSON.stringify(layout)}).`);
+ assert.ok(layout.documentWidth<=layout.viewportWidth+1,`${label}: Höhenzonen-Analyse verbreitert das Dokument (${layout.documentWidth}/${layout.viewportWidth}).`);
+ const control=await measureControls('.mountain-zone-summary');
+ assert.equal(control.length,1,`${label}: Höhenzonen-Disclosure ist nicht eindeutig messbar.`);
+ assert.ok(control[0].hit,`${label}: Höhenzonen-Disclosure ist an der Trefferfläche überdeckt (${control[0].hitTarget}).`);
+ if(viewport.width<=850)assert.ok(control[0].width>=44&&control[0].height>=44,`${label}: Höhenzonen-Disclosure unterschreitet 44×44 CSS-Pixel (${control[0].width.toFixed(1)}×${control[0].height.toFixed(1)}).`);
+ if(screenshotDir){
+  await evaluate(`new Promise(resolve=>{document.querySelector('.mountain-zone-analysis')?.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});requestAnimationFrame(()=>requestAnimationFrame(resolve))})`);
+  const image=await cdp('Page.captureScreenshot',{format:'jpeg',quality:86,fromSurface:true,captureBeyondViewport:false});
+  await writeFile(path.join(screenshotDir,`mountain-zone-${viewport.id}-${theme}.jpg`),Buffer.from(image.result.data,'base64'));
+ }
+ await clickAt('.mountain-zone-summary');
+ await waitForValue(`${label}: geschlossene Höhenzonen-Analyse`,`document.querySelector('.mountain-zone-summary')?.getAttribute('aria-expanded')||''`,value=>value==='false');
+}
 async function verifyMountainHourlyAccess(label){
  const state=JSON.parse(await evaluate(`(()=>{
   const root=[...document.querySelectorAll('.mountain-ski')].find(node=>node.getClientRects().length>0&&node.getBoundingClientRect().width>0);
@@ -456,6 +485,7 @@ try{
    await waitForValue(`${viewport.label} · ${theme}: Aktive Bergansicht`,`document.querySelector('.mountain-ski')?.getBoundingClientRect().width||0`,value=>value>0,60000);
     await closeOpenMountainDays();
      await verifyMountainHourlyAccess(`${twoStations?'Zwei':'Drei'} Stationen · ${viewport.label} · ${theme}`);
+   await verifyMountainZoneAnalysis(`${viewport.label} · ${theme}`,viewport,theme);
    const dayState=JSON.parse(await evaluate(`JSON.stringify({rows:document.querySelectorAll('.mountain-day-toggle:not(:disabled)').length,expanded:[...document.querySelectorAll('.mountain-day-toggle')].filter(button=>button.getAttribute('aria-expanded')==='true').length,periodCards:document.querySelectorAll('.mountain-period-card').length})`));
    assert.ok(dayState.rows>=7,`${viewport.label} · ${theme}: Es fehlen 7-Tage-Zeilen (${dayState.rows}).`);
    assert.equal(dayState.expanded,0,`${viewport.label} · ${theme}: Tagesdetails müssen beim Einstieg geschlossen sein.`);
@@ -489,7 +519,7 @@ try{
     if(viewport.width<=900)assert.ok(periodPresentation.scrollWidth<=periodPresentation.clientWidth+1&&periodPresentation.tableWidth<=periodPresentation.tableClientWidth+1,`${viewport.label} · ${theme}: das primäre Stundenraster darf intern horizontal scrollen; geöffnete 3-h-Tagesdetails müssen vollständig sichtbar bleiben (${JSON.stringify(periodPresentation)}).`);
    await clickIfClosed('.mountain-snowline-summary');
    await waitForValue('Schneefallgrenzen-Zeiträume je Test-Viewport',`document.querySelectorAll('.mountain-snowline-horizons button').length`,value=>value>0);
-    const controls=await measureControls('.mountain-season-control button,.mountain-level-picker button,.mountain-day-toggle:not(:disabled),.mountain-snowline-summary,.mountain-snowline-horizons button,.mountain-enrichment-disclosure>summary');
+    const controls=await measureControls('.mountain-season-control button,.mountain-level-picker button,.mountain-day-toggle:not(:disabled),.mountain-snowline-summary,.mountain-zone-summary,.mountain-snowline-horizons button,.mountain-enrichment-disclosure>summary');
    assert.ok(controls.length>=15,`${viewport.label} · ${theme}: Vergleichbare Berg-/Forecast-Controls fehlen (${controls.length}).`);
    for(const control of controls){
     if(viewport.width<=850)assert.ok(control.width>=44&&control.height>=44,`${viewport.label} · ${theme}: „${control.label}“ ist ${control.width.toFixed(1)}×${control.height.toFixed(1)} statt mindestens 44×44 CSS-Pixel.`);
