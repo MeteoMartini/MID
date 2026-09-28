@@ -17,7 +17,7 @@ Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zus
 - MapLibre GL JS: 6.7.0.
 - Capacitor Core / iOS / CLI: 8.5.1.
 - GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`), setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), setup-python 7.0.0 (`5fda3b95a4ea91299a34e894583c3862153e4b97`), upload-artifact 7.0.1 (`043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`) und deploy-pages 5.0.1 (`368f82528645a54fb793d4d04e342629a3f51346`), jeweils SHA-gepinnt.
-- CodeQL: 4.37.9 (`cdf488f595d80d6e07e03d4674febd5ab45fa938`), SHA-gepinnt und für `init`/`analyze` zwingend identisch.
+- CodeQL: 4.38.2 (`2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2`), SHA-gepinnt und für `init`/`analyze` zwingend identisch.
 - Workflow-Aktivierung: Der Release-Installer verändert `.github` nicht selbst. Die kanonischen Quellen unter `ci/github` und `workflow-patches` sowie `npm run sync:github-workflows` halten die administrativ zu aktivierenden Pins synchron.
 
 ## Kopplungsverträge
