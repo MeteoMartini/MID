@@ -19,6 +19,12 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.116 · MID 18.2.24 deutlichere Nachtstunden im Dark-Design
+
+Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `218e6d40960c78672dd975159f9eb49973f65ddc` (v0.9.85.115). Die gemeinsame Nachtstundenkennzeichnung verwendet nun eine Theme-spezifische Deckkraft: Light bleibt bei 0,20, Dark wird auf 0,32 angehoben. Die Änderung gilt konsistent für 12-h-Temperaturtrend/Skybar, Now90-Skybar und 24-h-Wetterprofil. Sonnengeometrie, weiche Dämmerungsübergänge, Wetterfarben, meteorologische Schwellen und Datenquellen bleiben unverändert.
+
+Required Regression: `scripts/test-mid-18-2-24-dark-night-band-0985116.mjs`. Detailvertrag: `MID_DARK_NIGHT_BANDS_0.9.85.116.md`.
+
 ## v0.9.85.115 · MID 18.2.23 Temperaturtrend-Kohärenz und Bergstunden 12 h
 
 Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `9e81bcb21f3dbcdedc8d76fffc038a5e0b1a7ae2` (v0.9.85.114). Die hyperlokale Temperaturassimilation verwendet nun den feldspezifischen Beobachtungszeitpunkt und bestimmt den Modellwert am Messzeitpunkt durch Interpolation zwischen den benachbarten Stunden. Eine lokale Temperaturabweichung wird danach glatt und begrenzt zurückgeführt; das Ausblenden der Korrektur darf in der unmittelbaren Assimilationsphase einen belastbaren Modell-Stundentrend nicht allein in die Gegenrichtung drehen. Damit wird insbesondere eine durch die frühere lineare 120-Minuten-Rückführung mögliche synthetische Erwärmung zwischen benachbarten Stunden vermieden. Die sichtbare +12-h-Karte bleibt reiner Verbraucher derselben kanonischen finalisierten Stundenreihe.
