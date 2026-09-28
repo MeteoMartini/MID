@@ -19,6 +19,12 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.112 · MID 18.2.20 Kartensteuerung und 7-Tage-Desktopausrichtung
+
+Der gegen die verifizierte Basis `a6afde4ce9e38965ea484a0c9c81b95bdd3dc2af` geprüfte Replit-Handoff `3148e8f3a66b433746bfe37452c786f01bec6499` vereinheitlicht ausschließlich die sichtbare Kartensteuerung und korrigiert die Desktopgeometrie der 7-Tage-Kurvenübersicht. Zoom, Position und Layersteuerung verwenden auf mobilen/touchbasierten Layouts konsistente Touch-Ziele, Abstände und eine gemeinsame rechte Kante. Die sieben Tagesbereiche unter der Kurve werden auf Desktop gleichmäßig und entlang derselben Plotgrenzen wie die gemeinsame Zeitachse angeordnet.
+
+Meteorologische Logik, Datenquellen, Warnschwellen und fachliche Forecastverträge bleiben unverändert. Responsive Zielmatrix: 390×844, 430×932, 412×915, 834×1194, 1194×834 und 1440×900, jeweils Light/Dark. Required Regression: `scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs`. Detailvertrag: `MID_MAP_SEVEN_DAY_ALIGNMENT_0.9.85.112.md`.
+
 ## v0.9.85.111 · MID 18.2.19 robuste API-Vertragsrevision
 
 Die automatische Revision bleibt für kritische externe Datenverträge fail-closed, wiederholt jedoch ausschließlich eindeutig transiente Abruffehler begrenzt. Transportfehler sowie HTTP 408, 425, 429 und 5xx dürfen bis zu dreimal mit begrenztem Backoff erneut versucht werden. Erfolgreiche 2xx-Antworten werden inhaltlich nur einmal bewertet; ein fachlich ungültiger Payload wird nicht durch Wiederholung kaschiert. Nicht-transiente 4xx werden nicht erneut angefordert.
