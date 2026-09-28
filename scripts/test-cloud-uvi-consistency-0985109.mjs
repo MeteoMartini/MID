@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
-const [pkgRaw,app,conditions,weather,climate,forecast]=await Promise.all([
+const [pkgRaw,app,conditions,weather,climate,forecast,pictogram,intervals,fusion,shortTerm]=await Promise.all([
  readFile(new URL('package.json',root),'utf8'),
  readFile(new URL('src/App.tsx',root),'utf8'),
  readFile(new URL('src/currentConditions.ts',root),'utf8'),
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/ClimatePanel.tsx',root),'utf8'),
- readFile(new URL('src/ForecastCockpit.tsx',root),'utf8')
+ readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
+ readFile(new URL('src/WeatherPictogram.tsx',root),'utf8'),
+ readFile(new URL('src/precipitationIntervals.ts',root),'utf8'),
+ readFile(new URL('src/forecastFusion.ts',root),'utf8'),
+ readFile(new URL('src/ShortTermForecast.tsx',root),'utf8')
 ]);
 const pkg=JSON.parse(pkgRaw);
 
@@ -25,6 +29,16 @@ assert.match(climate,/Leicht bewölkt · 1–3\/8/);
 assert.match(climate,/Wolkig · 4–6\/8/);
 assert.match(climate,/Stark bewölkt · 7\/8/);
 assert.match(climate,/Bedeckt · 8\/8/);
+
+assert.match(pictogram,/if\(oktas<=3\)return'mostly-clear';[\s\S]*if\(oktas<=6\)return'partly-cloudy';[\s\S]*return'cloudy';/,'Piktogramm-Gruppierung trennt 4–6/8 nicht von 7–8/8.');
+assert.match(pictogram,/oktas===0\?'wolkenlos':oktas<=3\?'leicht bewölkt':oktas<=6\?'wolkig':oktas===7\?'stark bewölkt':'bedeckt'/,'Piktogramm-Zugänglichkeitsbeschreibung folgt nicht der DWD-Oktas-Semantik.');
+assert.match(intervals,/if\(cloud<6\.25\)return 0;[\s\S]*if\(cloud<43\.75\)return 1;[\s\S]*if\(cloud<81\.25\)return 2;[\s\S]*return 3;/,'Niederschlagsintervall-Fallback verwendet noch alte Bewölkungsgrenzen.');
+assert.match(fusion,/if\(cover>=81\.25\)return 3;if\(cover>=43\.75\)return 2;if\(cover>=6\.25\)return 1;return 0/,'Hyperlokaler Forecast-Fusion-Fallback verwendet noch alte Bewölkungsgrenzen.');
+assert.equal((fusion.match(/if\(cloud<6\.25\)return 0;if\(cloud<43\.75\)return 1;if\(cloud<81\.25\)return 2;return 3;/g)||[]).length,2,'Stündlicher und 15-minütiger Forecast-Fusion-Fallback müssen dieselben Oktas-Grenzen verwenden.');
+assert.match(fusion,/if\(!Number\.isFinite\(meanCloud\)\)return 3;if\(meanCloud<6\.25\)return 0;if\(meanCloud<43\.75\)return 1;if\(meanCloud<81\.25\)return 2;return 3/,'Tagescode-Fallback verwendet noch alte Bewölkungsgrenzen.');
+assert.match(shortTerm,/weatherLabel:parts\.type==='none'\?\(\(\)=>\{const text=cloudOktasText\(cloud\)/,'Kurzfrist zeigt trockene Wettercodes weiterhin ohne kanonische Bewölkungsbezeichnung.');
+assert.match(app,/mountainHourlyDryWeatherCode[\s\S]*cloud<6\.25[\s\S]*cloud<43\.75[\s\S]*cloud<81\.25/,'Bergwetter-Dry-Code verwendet noch alte Bewölkungsgrenzen.');
+assert.match(app,/weather\.type==='none'\?skyConditionFromOktas\(cloudOktas\(mountainForecastHourlyValue\(level,'cloud_cover',row\.index\)\)\)\.label/,'Bergwetter-Trockenlabel wird nicht direkt aus dem kanonischen Bedeckungsgrad gebildet.');
 
 assert.ok(forecast.includes('<small>UVI {uvi}</small>'),'14-Tage-Vorhersage verwendet nicht UVI.');
 assert.ok(!forecast.includes('<small>UV {uvi}</small>'),'14-Tage-Vorhersage enthält weiterhin das alte Kurzlabel UV.');
