@@ -23,7 +23,7 @@ for(const token of ['eventIntervalHasPrecipitation','intervalCode=hasIntervalPre
 const semanticsSource=readFileSync(new URL('../src/eventIntervalSemantics.ts',import.meta.url),'utf8'),semanticsCode=stripTypeScriptTypes(semanticsSource,{mode:'transform'}),semantics=await import('data:text/javascript;base64,'+Buffer.from(semanticsCode).toString('base64'));
 assert.equal(semantics.eventIntervalHasPrecipitation(0,0,0,0),false);
 assert.equal(semantics.eventIntervalHasPrecipitation(.02,0,0,0),true);
-assert.equal(semantics.eventIntervalSkyCode({cloud:8,code:61,isDay:true},3600,3600),0,'Voller Sonnenschein + trockene Intervallsumme darf nicht durch einen Regen-Code am Intervallende rückwirkend als Regen erscheinen.');
+assert.equal(semantics.eventIntervalSkyCode({cloud:8,code:61,isDay:true},3600,3600),1,'8 % Gesamtbewölkung entspricht gerundet 1/8: trockene Intervallsumme darf nicht als Regen erscheinen, die vorhandene Bewölkung aber auch nicht als 0/8 wegdefiniert werden.');
 assert.equal(semantics.eventIntervalSkyCode({cloud:96,code:61,isDay:true},0,3600),3);
 
 const eventUi=readFileSync(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8');
