@@ -51,6 +51,8 @@ html[data-mid-design='next'] .mid-forecast-row-detail{
 /* 7 Tage: ruhige kompakte Tageszeile, Detail direkt darunter. */
 html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
  display:grid!important;
+ grid-column:1!important;
+ grid-row:auto!important;
  grid-template-columns:94px 62px minmax(130px,.85fr) 110px minmax(180px,1.35fr) 104px minmax(160px,1fr) 132px 96px!important;
  grid-template-areas:
   "date icon regime temps sky rain wind pop cue"
@@ -74,6 +76,8 @@ html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-hourly-c
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-weekday-long{display:inline!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-weekday-short{display:none!important}
 html[data-mid-design='next'] .cockpit-day-hourly-accordion.mid-forecast-row-detail{
+ grid-column:1!important;
+ grid-row:auto!important;
  border-top:0!important;
  border-bottom:1px solid var(--c8-strong-line)!important;
 }
