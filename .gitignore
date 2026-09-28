@@ -2,11 +2,6 @@ node_modules/
 .*-test/
 *.tsbuildinfo
 artifacts/
-# Build outputs
-dist/
-.vite/
-coverage/
-
 # IDE
 .vscode/
 .idea/

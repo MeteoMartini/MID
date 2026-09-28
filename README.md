@@ -106,8 +106,8 @@ Direkte Änderungen an `main` oder `mid-stable` sind nicht zulässig. Siehe [AGE
 
 ## Versionsschema
 
-- **Funktionsrelease** (`0.x.y.0`): Neue eigenständige Funktionen
-- **Wartungsrelease** (`0.x.y.z` mit `z ≥ 1`): Korrekturen und inkrementelle Weiterentwicklung
+- Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`) für neue eigenständige Funktionen.
+- Wartungsrelease (`0.7.x.y` mit `y ≥ 1`) für Korrekturen und inkrementelle Weiterentwicklung eines Funktionsstands.
 
 ## Lizenz
 
