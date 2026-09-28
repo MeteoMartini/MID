@@ -1,0 +1,23 @@
+# MID – Code Review Ownership
+
+# Default: Repository owner reviews all changes
+* @MeteoMartini
+
+# CI/CD workflows and release infrastructure
+/.github/workflows/ @MeteoMartini
+/ci/ @MeteoMartini
+
+# Cloudflare Worker source
+/worker-src/ @MeteoMartini
+/worker/ @MeteoMartini
+
+# Core application source
+/src/ @MeteoMartini
+
+# Build and tooling
+/tools/ @MeteoMartini
+
+# Baseline and contracts
+/MID_BASELINE.json @MeteoMartini
+/MID_SOURCE_OF_TRUTH.md @MeteoMartini
+/AGENTS.md @MeteoMartini
