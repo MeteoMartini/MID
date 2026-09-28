@@ -265,13 +265,19 @@ async function geoSphereSnowMeasurement(point:{latitude:number;longitude:number;
 }
 
 const MOUNTAIN_SURFACE_VARIABLES=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','rain','showers','snowfall','snowfall_height','snow_depth','weather_code','cloud_cover','cloud_cover_low','visibility','freezing_level_height','wet_bulb_temperature_2m','wind_speed_10m','wind_gusts_10m','wind_direction_10m','uv_index','sunshine_duration','is_day'] as const;
+const MOUNTAIN_REGIONAL_PRIMARY_VARIABLES=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation','rain','snowfall','snow_depth','weather_code','cloud_cover','cloud_cover_low','wet_bulb_temperature_2m','wind_speed_10m','wind_gusts_10m','wind_direction_10m','sunshine_duration','is_day'] as const;
+const MOUNTAIN_REGIONAL_ESSENTIAL_VARIABLES=['temperature_2m','relative_humidity_2m','dew_point_2m','precipitation','snowfall','weather_code','cloud_cover','wind_speed_10m','wind_gusts_10m','wind_direction_10m','is_day'] as const;
 async function fetchMountainRegionalForecast(points:MountainProfileLevel[],plan:MountainRegionalModelPlan,signal?:AbortSignal):Promise<MountainPointWeather[]>{
- const params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:String(plan.horizonHours),models:plan.id,wind_speed_unit:'kn',current:MOUNTAIN_SURFACE_VARIABLES.filter(key=>key!=='precipitation_probability'&&key!=='sunshine_duration'&&key!=='snowfall_height').join(','),hourly:MOUNTAIN_SURFACE_VARIABLES.join(',')});
- const response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'});
- if(!response.ok)throw new Error(`${plan.label} HTTP ${response.status}`);
- const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
- if(rows.length!==points.length||rows.some(row=>!Array.isArray(row.hourly?.time)))throw new Error(`${plan.label} lieferte nicht alle Höhenpunkte.`);
- return rows;
+ const request=async(variables:readonly string[])=>{
+  const params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:String(plan.horizonHours),models:plan.id,wind_speed_unit:'kn',current:variables.filter(key=>key!=='sunshine_duration').join(','),hourly:variables.join(',')});
+  const response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'});
+  if(!response.ok)return undefined;
+  const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
+  return rows.length===points.length&&rows.every(row=>Array.isArray(row.hourly?.time))?rows:undefined;
+ };
+ const primary=await request(MOUNTAIN_REGIONAL_PRIMARY_VARIABLES);if(primary)return primary;
+ const essential=await request(MOUNTAIN_REGIONAL_ESSENTIAL_VARIABLES);if(essential)return essential;
+ throw new Error(`${plan.label} lieferte keine vollständige einheitliche Höhenprognose.`);
 }
 function mergeMountainRegionalForecast(base:MountainPointWeather,regional:MountainPointWeather){
  const baseTimes=(base.hourly.time??[]) as string[],regionalTimes=(regional.hourly.time??[]) as string[],indexByTime=new Map(regionalTimes.map((time,index)=>[time,index])),hourly={...base.hourly};
