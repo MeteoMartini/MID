@@ -23,3 +23,7 @@ Damit bleibt Light visuell stabil, während Nachtstunden im Dark-Design schnelle
 Die bestehende Zielmatrix bleibt verbindlich: 390×844, 430×932, 412×915, 834×1194, 1194×834 und 1440×900. Die Änderung ist Theme-basiert und erzeugt keine neue Geometrie oder Dokumentbreite.
 
 Required Regression: `scripts/test-mid-18-2-24-dark-night-band-0985116.mjs`.
+
+## Regression-Pflege
+
+Bestehende Regressionen, die den alten Implementierungswert `nightBandOpacity=.2` beziehungsweise die exakte Vorversion `0.9.85.115` hart codierten, wurden ausschließlich auf den neuen Theme-Vertrag bzw. eine Vorwärtskompatibilitätsprüfung ab v0.9.85.115 umgestellt. Ihre fachlichen Aussagen zu Nachtgeometrie, Temperaturtrend und 12-h-Bergstunden bleiben unverändert.
