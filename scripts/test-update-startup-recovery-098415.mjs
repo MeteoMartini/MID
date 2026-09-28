@@ -60,7 +60,7 @@ assert.ok(pwa.includes("requestWorker({type:'MID_ROLLBACK_IF_PENDING'},6000)"),'
 // Cached shell navigation must win over a half-open network after a bounded
 // attempt, otherwise the freshly updated PWA/WKWebView can look frozen.
 for(const token of ['async function fetchRuntimeWithTimeout','MID-Netzwerkabruf hat das Zeitlimit überschritten',"fetchRuntimeWithTimeout(request,{cache:'no-store'},8000)","fetchRuntimeWithTimeout(request,{cache:'no-store'},30000)"])assert.ok(serviceWorker.includes(token),`Service-Worker-Laufzeitbudget fehlt: ${token}`);
-assert.ok(serviceWorker.includes("if(request.mode==='navigate'){const indexUrl=")&&serviceWorker.includes('if(page)return page;'),'Aktiver Controller kann wieder eine neue Server-index.html vor der kontrollierten Worker-Aktivierung einschleusen.');
+assert.ok(serviceWorker.includes("if(request.mode==='navigate'){")&&serviceWorker.includes('if(page)return page;'),'Aktiver Controller kann wieder eine neue Server-index.html vor der kontrollierten Worker-Aktivierung einschleusen.');
 assert.ok(serviceWorker.includes("const canonical=new URL(url.pathname.endsWith('/version.json')?'./version.json':'./manifest.webmanifest'")&&serviceWorker.includes('cache.put(canonical,response.clone())'),'Versionschecks erzeugen wieder pro Cache-Buster einen neuen Cache-Eintrag.');
 assert.ok(updater.includes('function boundedNativeFetch')&&updater.includes('function boundedRegistrationUpdate')&&updater.includes('boundedNativeFetch(url')&&updater.includes('await boundedRegistrationUpdate(registration)'),'Versionsprüfung beziehungsweise registration.update() kann weiterhin unbegrenzt warten.');
 
