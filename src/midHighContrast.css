@@ -1,0 +1,133 @@
+/* MID High Contrast Mode – WCAG 2.1 AA */
+/* Based on dark theme but with maximized contrast ratios (>= 4.5:1 for text, >= 3:1 for UI) */
+
+:root[data-theme="high-contrast"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --s2: #141414;
+  --s3: #1e1e1e;
+  --text: #ffffff;
+  --muted: #d4d4d4;
+  --border: rgba(255, 255, 255, 0.4);
+  --primary: #5ab8ff;
+  --accent: #5ab8ff;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+
+  /* Parameter colors – brightened for maximum contrast on black */
+  --param-temperature: #ff6b5b;
+  --param-temperature-min: #5b9eff;
+  --param-temperature-max: #ff6b5b;
+  --param-temperature-max-climate: var(--param-temperature-max);
+  --param-temperature-mean-climate: #f3f6fa;
+  --param-temperature-min-climate: #6ba8ff;
+  --param-precipitation: #3ba3ff;
+  --param-precipitation-snow: #8de0ff;
+  --param-precipitation-mixed: #c89bff;
+  --param-precipitation-storm: #9d8eff;
+  --param-pressure: #a98ce6;
+  --param-wind: #4dd6a0;
+  --param-gust: #b8d06a;
+  --param-cloud: #a0b0c0;
+  --param-sunshine: #ffd93d;
+  --param-humidity: #4dd6c8;
+  --param-dewpoint: #7dba87;
+  --param-snow: #9bc8e0;
+
+  /* Weather regimes – brightened */
+  --weather-regime-wet: #3ba3ff;
+  --weather-regime-showery: #4dbfff;
+  --weather-regime-sunny: #ffd93d;
+  --weather-regime-windy: #4dd6a0;
+  --weather-regime-warm: #ff8c5a;
+  --weather-regime-quiet: var(--muted);
+
+  /* Model series – brightened */
+  --model-series-1: #5ab8ff;
+  --model-series-2: #ffa080;
+  --model-series-3: #7ddbb8;
+  --model-series-4: #d0a8ff;
+  --model-series-5: #ffd97a;
+  --model-series-6: #8ad8ec;
+  --model-series-7: #ffa0c8;
+  --model-series-8: #b8e08a;
+  --model-series-9: #ccb890;
+  --model-series-10: #aab8ff;
+  --model-series-11: #e8b888;
+  --model-series-12: #8ad8c8;
+
+  /* Apparent temperature line */
+  --apparent-line: #ff9a3d;
+}
+
+/* High contrast body overrides */
+:root[data-theme="high-contrast"] body {
+  background: var(--bg);
+}
+
+/* Ensure all text meets 4.5:1 on black background */
+:root[data-theme="high-contrast"] .hero aside small,
+:root[data-theme="high-contrast"] .place p,
+:root[data-theme="high-contrast"] .metrics article > small,
+:root[data-theme="high-contrast"] .hours small,
+:root[data-theme="high-contrast"] .days button > small,
+:root[data-theme="high-contrast"] .days button > i,
+:root[data-theme="high-contrast"] .source,
+:root[data-theme="high-contrast"] .chips span,
+:root[data-theme="high-contrast"] footer,
+:root[data-theme="high-contrast"] .brand small,
+:root[data-theme="high-contrast"] .ensemble h3 {
+  color: #c0c0c0;
+}
+
+/* Strong focus indicators for keyboard navigation */
+:root[data-theme="high-contrast"] button:focus-visible,
+:root[data-theme="high-contrast"] input:focus-visible,
+:root[data-theme="high-contrast"] select:focus-visible,
+:root[data-theme="high-contrast"] a:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Ensure borders are highly visible */
+:root[data-theme="high-contrast"] .top,
+:root[data-theme="high-contrast"] .hero,
+:root[data-theme="high-contrast"] .card,
+:root[data-theme="high-contrast"] .metrics article,
+:root[data-theme="high-contrast"] .hours article,
+:root[data-theme="high-contrast"] .days > button,
+:root[data-theme="high-contrast"] .settings-dialog,
+:root[data-theme="high-contrast"] .settings-section,
+:root[data-theme="high-contrast"] .radarimage {
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Ensure interactive elements have visible backgrounds */
+:root[data-theme="high-contrast"] .days > button:hover,
+:root[data-theme="high-contrast"] .days > button.active {
+  border-color: #5ab8ff;
+  background: rgba(90, 184, 255, 0.2);
+}
+
+/* Weather widget high contrast */
+:root[data-theme="high-contrast"] .weatherwidget {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Update notice high contrast */
+:root[data-theme="high-contrast"] .mid-update-notice {
+  background: #1a1a1a;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+/* Official warnings – ensure text contrast */
+:root[data-theme="high-contrast"] .official-warnings,
+:root[data-theme="high-contrast"] .official-alert {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Spinner and loading states */
+:root[data-theme="high-contrast"] .loading {
+  color: #ffffff;
+}
