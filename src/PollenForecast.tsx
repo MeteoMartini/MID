@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState,useEffect} from 'react';
 import {fetchWorkerJson} from './workerClient';
 import {CloudSun,ChevronDown} from 'lucide-react';
 
@@ -39,12 +39,13 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const [error,setError]=useState<string|null>(null);
   const [expanded,setExpanded]=useState(false);
   const [loading,setLoading]=useState(false);
-  const didFetchRef=useState({done:false})[0];
+  const fetchedRef=useState({done:false})[0];
 
   if(!enabled)return null;
 
-  if(!didFetchRef.done&&!loading&&!data&&!error){
-    didFetchRef.done=true;
+  useEffect(()=>{
+    if(!enabled||fetchedRef.done||loading||data||error)return;
+    fetchedRef.done=true;
     setLoading(true);
     const url=`https://mid-data-proxy.midwx.workers.dev/?mode=dwd-pollen`;
     fetchWorkerJson<PollenResponse>(url)
@@ -54,7 +55,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
       })
       .catch(err=>{setError(err?.message||'Pollenflug-Daten konnten nicht geladen werden');setData(null);})
       .finally(()=>setLoading(false));
-  }
+  },[enabled]);
 
   if(loading){
     return(

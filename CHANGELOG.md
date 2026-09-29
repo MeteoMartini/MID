@@ -1,3 +1,8 @@
+# MID v0.9.85.125
+
+- App-Absturz beim Start behoben: PollenForecast-Komponente führte Datenabruf während der Render-Phase durch (React-Side-Effect) statt in useEffect. Dies konnte zu Endlos-Schleifen und Abstürzen führen.
+- UTCI-Windgeschwindigkeits-Übergabe abgesichert: Math.max(0.5, NaN) gab NaN zurück statt 0.5. Jetzt mit Number.isFinite-Prüfung.
+
 # MID v0.9.85.124
 
 - UTCI (Universal Thermal Climate Index) ersetzt die gefühlte Temperatur in der Aktuell-Ansicht. Korrekte Polynom-Koeffizienten nach Brode et al. (2012). Keine separate Sektion mehr — UTCI-Wert und Belastungskategorie direkt in der aktuellen Wetteranzeige.
