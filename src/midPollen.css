@@ -1,10 +1,75 @@
 /* MID Pollenflug-Vorhersage – DWD Pollen Forecast Component
-   Aligned with MID design system: uses forecast-entry-head pattern,
-   card surface, parameter colors, and consistent spacing. */
+   Compact chip-based layout with expandable details. */
 
 .pollen-forecast {
   display: flex;
   flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Compact mode */
+.pollen-compact {
+  gap: 0.3rem;
+}
+
+.pollen-compact .pollen-loading {
+  padding: 0.3rem 0;
+}
+
+.pollen-compact .pollen-loading small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+/* Chips */
+.pollen-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.pollen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.5rem;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.pollen-chip b {
+  font-weight: 600;
+  font-size: 0.68rem;
+}
+
+.pollen-expand-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0.15rem;
+  margin-left: auto;
+}
+
+.pollen-expand-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.pollen-expand-toggle svg.rotated {
+  transform: rotate(180deg);
+}
+
+.pollen-compact .pollen-source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 

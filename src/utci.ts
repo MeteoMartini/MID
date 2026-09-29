@@ -1,35 +1,30 @@
 /**
  * UTCI (Universal Thermal Climate Index) calculation
- * Based on the reference polynomial from Brode et al. (2012) / ISB Commission 6.
- *
- * UTCI = Ta + offset(Ta, Tmrt, va, pa)
+ * Reference polynomial from Brode et al. (2012), as implemented in
+ * pythermalcomfort (Center for the Built Environment, UC Berkeley).
  *
  * Variables:
  * - Ta: air temperature at 2m [°C]
  * - Tmrt: mean radiant temperature [°C]
  * - va: wind speed at 10m [m/s]
- * - pa: water vapor pressure [hPa]
+ * - pa: water vapor pressure [kPa]
  *
- * Tmrt is estimated from cloud cover, UV index, and solar elevation
- * when direct radiation measurements are unavailable.
+ * The polynomial uses delta_t_tr = Tmrt - Ta (not Tmrt directly).
  */
 
-/** Calculate water vapor pressure (hPa) from temperature and relative humidity */
-export function vaporPressure(taC: number, rhPercent: number): number {
-  if (!Number.isFinite(taC) || !Number.isFinite(rhPercent)) return 10;
+/** Calculate water vapor pressure in kPa from temperature [°C] and relative humidity [%] */
+export function vaporPressureKpa(taC: number, rhPercent: number): number {
+  if (!Number.isFinite(taC) || !Number.isFinite(rhPercent)) return 1.0;
   const clampedRh = Math.max(0, Math.min(100, rhPercent));
-  return (clampedRh / 100) * 6.105 * Math.exp((17.27 * taC) / (237.7 + taC));
+  // Tetens formula: saturation vapor pressure in hPa
+  const es_hpa = 6.105 * Math.exp((17.27 * taC) / (237.7 + taC));
+  // Actual vapor pressure in hPa, then convert to kPa
+  return (clampedRh / 100) * es_hpa / 10;
 }
 
 /**
  * Estimate mean radiant temperature (Tmrt) from available weather data.
- *
- * Uses a simplified approach based on cloud cover (oktas) and UV index:
- * - Day: solar radiation increases Tmrt above Ta, scaled by UV and cloud cover
- * - Night: clear sky radiative cooling decreases Tmrt below Ta
- *
- * This is an approximation. For precise Tmrt, direct shortwave/longwave
- * radiation measurements and solar elevation angle would be needed.
+ * Simplified approach using cloud cover, UV index, and solar elevation.
  */
 export function estimateTmrt(
   taC: number,
@@ -39,31 +34,22 @@ export function estimateTmrt(
   elevationM: number = 0
 ): number {
   if (!Number.isFinite(taC)) return taC;
-
   const cloudFraction = Math.max(0, Math.min(1, (cloudOktas ?? 4) / 8));
   const uv = Math.max(0, uvIndex ?? 0);
-  const altFactor = 1 + Math.min(0.15, elevationM / 3000); // elevation boost
+  const altFactor = 1 + Math.min(0.15, (elevationM ?? 0) / 3000);
 
   if (isDay && uv > 0.5) {
-    // Daytime with solar radiation
-    // Clear-sky solar contribution: up to ~30°C above Ta at high UV
     const solarGain = Math.min(35, uv * 2.8 * (1 - cloudFraction * 0.7)) * altFactor;
     return taC + solarGain;
   }
-
-  // Nighttime or very low UV: radiative cooling
-  // Clear sky can cool surfaces 5-15°C below air temperature
   const radiativeCooling = (1 - cloudFraction) * 8;
   return taC - radiativeCooling;
 }
 
 /**
  * Calculate UTCI using the reference polynomial.
- *
- * Reference: Brode, P., Fiala, D., Blazejczyk, K., Holmér, I., Jendritzky, G.,
- * Kampmann, B., Kunert, A., Psikuta, A. (2012). Deriving the operational
- * procedure for the Universal Thermal Climate Index (UTCI).
- * International Journal of Biometeorology, 56(3), 481-492.
+ * Coefficients from pythermalcomfort.models.utci._utci_optimized
+ * (Brode et al., 2012; Blanchi et al. implementation).
  */
 export function calculateUtci(
   taC: number,
@@ -75,334 +61,224 @@ export function calculateUtci(
     return NaN;
   }
 
-  const Ta = taC;
-  const Tmrt = tmrtC;
-  const va = Math.max(0.5, Math.min(17, vaMs)); // clamp to valid range
-  const e = vaporPressure(Ta, rhPercent);
+  const tdb = taC;
+  const v = Math.max(0.5, Math.min(17, vaMs)); // clamp to valid range
+  const delta_t_tr = tmrtC - taC;
+  const pa = vaporPressureKpa(taC, rhPercent);
 
-  // UTCI polynomial (reference implementation)
-  const utci =
-    Ta +
-    3.314 +
-    0.726 * e -
-    0.056 * Ta * e +
-    // Tmrt terms
-    (-8.622e-6) * Ta ** 3 * Tmrt -
-    6.043e-7 * Ta ** 4 * Tmrt +
-    4.345e-4 * Ta ** 2 * Tmrt -
-    1.568e-3 * Ta * Tmrt +
-    2.289e-3 * Tmrt +
-    // va terms
-    3.125e-3 * Ta ** 2 * va -
-    1.188e-3 * Ta * va +
-    5.106e-3 * va +
-    // Tmrt*va cross terms
-    3.477e-4 * Tmrt * va -
-    1.693e-4 * Ta * Tmrt * va -
-    8.021e-5 * Ta ** 2 * va +
-    // va^2 terms
-    (-2.843e-3) * Tmrt * va ** 2 +
-    6.141e-4 * Ta * va ** 2 -
-    1.176e-2 * va ** 2 +
-    // Higher order Ta*va terms
-    (-1.457e-4) * Ta ** 3 * va +
-    2.842e-5 * Ta ** 4 * va +
-    5.897e-6 * Tmrt ** 2 * va -
-    1.249e-5 * Ta * Tmrt ** 2 * va -
-    2.221e-5 * Ta ** 2 * Tmrt ** 2 * va +
-    4.427e-6 * Ta ** 3 * Tmrt ** 2 * va -
-    3.674e-7 * Ta ** 4 * Tmrt ** 2 * va +
-    // Ta*Tmrt*va^2 terms
-    2.758e-4 * Ta * Tmrt * va ** 2 -
-    2.557e-4 * Tmrt * Ta * va ** 2 -
-    3.294e-6 * Ta * Tmrt ** 2 * va ** 2 +
-    2.762e-5 * Ta ** 2 * Tmrt * va ** 2 -
-    1.067e-6 * Ta ** 3 * Tmrt * va ** 2 +
-    8.363e-8 * Ta ** 4 * Tmrt * va ** 2 +
-    // Ta*va^3 terms
-    (-1.726e-4) * Ta * va ** 3 +
-    2.067e-5 * Ta ** 2 * va ** 3 -
-    1.388e-6 * Ta ** 3 * va ** 3 +
-    4.044e-8 * Ta ** 4 * va ** 3 +
-    // Tmrt^2*va^2 terms
-    (-1.333e-4) * Tmrt ** 2 * va ** 2 +
-    1.575e-5 * Ta * Tmrt ** 2 * va ** 2 -
-    1.010e-6 * Ta ** 2 * Tmrt ** 2 * va ** 2 +
-    2.436e-7 * Ta ** 3 * Tmrt ** 2 * va ** 2 -
-    1.885e-8 * Ta ** 4 * Tmrt ** 2 * va ** 2 +
-    // Tmrt*va^3 terms
-    3.187e-5 * Tmrt * va ** 3 -
-    3.560e-6 * Ta * Tmrt * va ** 3 +
-    2.295e-7 * Ta ** 2 * Tmrt * va ** 3 -
-    7.438e-9 * Ta ** 3 * Tmrt * va ** 3 +
-    1.728e-9 * Ta ** 4 * Tmrt * va ** 3 +
-    // Tmrt^3*va terms
-    (-2.481e-7) * Tmrt ** 3 * va +
-    4.289e-8 * Ta * Tmrt ** 3 * va -
-    2.970e-9 * Ta ** 2 * Tmrt ** 3 * va +
-    9.551e-11 * Ta ** 3 * Tmrt ** 3 * va -
-    2.266e-12 * Ta ** 4 * Tmrt ** 3 * va +
-    // v^3*Tmrt terms
-    (-4.759e-7) * va ** 3 * Tmrt +
-    5.521e-8 * Ta * va ** 3 * Tmrt -
-    3.860e-9 * Ta ** 2 * va ** 3 * Tmrt +
-    1.279e-10 * Ta ** 3 * va ** 3 * Tmrt -
-    2.969e-12 * Ta ** 4 * va ** 3 * Tmrt +
-    // Tmrt^3 standalone
-    1.504e-4 * Tmrt ** 3 -
-    2.004e-5 * Ta * Tmrt ** 3 +
-    1.368e-6 * Ta ** 2 * Tmrt ** 3 -
-    4.361e-8 * Ta ** 3 * Tmrt ** 3 +
-    1.002e-9 * Ta ** 4 * Tmrt ** 3 +
-    // Tmrt^4 terms
-    (-2.701e-5) * Tmrt ** 4 +
-    3.429e-6 * Ta * Tmrt ** 4 -
-    2.298e-7 * Ta ** 2 * Tmrt ** 4 +
-    7.411e-9 * Ta ** 3 * Tmrt ** 4 -
-    1.663e-10 * Ta ** 4 * Tmrt ** 4 +
-    // Tmrt^5 terms
-    2.506e-6 * Tmrt ** 5 -
-    3.130e-7 * Ta * Tmrt ** 5 +
-    2.080e-8 * Ta ** 2 * Tmrt ** 5 -
-    6.683e-10 * Ta ** 3 * Tmrt ** 5 +
-    1.491e-11 * Ta ** 4 * Tmrt ** 5 +
-    // Tmrt^6 terms
-    (-8.839e-8) * Tmrt ** 6 +
-    1.095e-8 * Ta * Tmrt ** 6 -
-    7.267e-10 * Ta ** 2 * Tmrt ** 6 +
-    2.338e-11 * Ta ** 3 * Tmrt ** 6 -
-    5.220e-13 * Ta ** 4 * Tmrt ** 6 +
-    // Tmrt^4*va terms
-    (-1.135e-5) * Tmrt ** 4 * va +
-    1.404e-6 * Ta * Tmrt ** 4 * va -
-    9.383e-8 * Ta ** 2 * Tmrt ** 4 * va +
-    3.025e-9 * Ta ** 3 * Tmrt ** 4 * va -
-    6.757e-11 * Ta ** 4 * Tmrt ** 4 * va +
-    // Tmrt^5*va terms
-    (-2.184e-6) * Tmrt ** 5 * va +
-    2.684e-7 * Ta * Tmrt ** 5 * va -
-    1.790e-8 * Ta ** 2 * Tmrt ** 5 * va +
-    5.771e-10 * Ta ** 3 * Tmrt ** 5 * va -
-    1.291e-11 * Ta ** 4 * Tmrt ** 5 * va +
-    // Tmrt^6*va terms
-    4.043e-7 * Tmrt ** 6 * va -
-    4.972e-8 * Ta * Tmrt ** 6 * va +
-    3.314e-9 * Ta ** 2 * Tmrt ** 6 * va -
-    1.069e-10 * Ta ** 3 * Tmrt ** 6 * va +
-    2.392e-12 * Ta ** 4 * Tmrt ** 6 * va +
-    // Tmrt^4*va^2 terms
-    (-3.103e-7) * Tmrt ** 4 * va ** 2 +
-    3.817e-8 * Ta * Tmrt ** 4 * va ** 2 -
-    2.543e-9 * Ta ** 2 * Tmrt ** 4 * va ** 2 +
-    8.201e-11 * Ta ** 3 * Tmrt ** 4 * va ** 2 -
-    1.837e-12 * Ta ** 4 * Tmrt ** 4 * va ** 2 +
-    // Tmrt^5*va^2 terms
-    6.565e-8 * Tmrt ** 5 * va ** 2 -
-    8.064e-9 * Ta * Tmrt ** 5 * va ** 2 +
-    5.371e-10 * Ta ** 2 * Tmrt ** 5 * va ** 2 -
-    1.732e-11 * Ta ** 3 * Tmrt ** 5 * va ** 2 +
-    3.879e-13 * Ta ** 4 * Tmrt ** 5 * va ** 2 +
-    // Tmrt^6*va^2 terms
-    (-1.216e-8) * Tmrt ** 6 * va ** 2 +
-    1.494e-9 * Ta * Tmrt ** 6 * va ** 2 -
-    9.957e-11 * Ta ** 2 * Tmrt ** 6 * va ** 2 +
-    3.212e-12 * Ta ** 3 * Tmrt ** 6 * va ** 2 -
-    7.198e-14 * Ta ** 4 * Tmrt ** 6 * va ** 2 +
-    // Tmrt^4*va^3 terms
-    1.958e-7 * Tmrt ** 4 * va ** 3 -
-    2.408e-8 * Ta * Tmrt ** 4 * va ** 3 +
-    1.605e-9 * Ta ** 2 * Tmrt ** 4 * va ** 3 -
-    5.173e-11 * Ta ** 3 * Tmrt ** 4 * va ** 3 +
-    1.159e-12 * Ta ** 4 * Tmrt ** 4 * va ** 3 +
-    // Tmrt^5*va^3 terms
-    (-4.135e-8) * Tmrt ** 5 * va ** 3 +
-    5.081e-9 * Ta * Tmrt ** 5 * va ** 3 -
-    3.386e-10 * Ta ** 2 * Tmrt ** 5 * va ** 3 +
-    1.092e-11 * Ta ** 3 * Tmrt ** 5 * va ** 3 -
-    2.446e-13 * Ta ** 4 * Tmrt ** 5 * va ** 3 +
-    // Tmrt^6*va^3 terms
-    7.678e-9 * Tmrt ** 6 * va ** 3 -
-    9.428e-10 * Ta * Tmrt ** 6 * va ** 3 +
-    6.286e-11 * Ta ** 2 * Tmrt ** 6 * va ** 3 -
-    2.028e-12 * Ta ** 3 * Tmrt ** 6 * va ** 3 +
-    4.541e-14 * Ta ** 4 * Tmrt ** 6 * va ** 3 +
-    // Tmrt^2*va terms
-    (-4.252e-3) * Tmrt ** 2 * va +
-    5.225e-4 * Ta * Tmrt ** 2 * va -
-    3.480e-5 * Ta ** 2 * Tmrt ** 2 * va +
-    1.121e-6 * Ta ** 3 * Tmrt ** 2 * va -
-    2.510e-8 * Ta ** 4 * Tmrt ** 2 * va +
-    // Tmrt^3*va terms
-    5.396e-3 * Tmrt ** 3 * va -
-    6.640e-4 * Ta * Tmrt ** 3 * va +
-    4.427e-5 * Ta ** 2 * Tmrt ** 3 * va -
-    1.428e-6 * Ta ** 3 * Tmrt ** 3 * va +
-    3.196e-8 * Ta ** 4 * Tmrt ** 3 * va +
-    // Tmrt^2*va^2 terms
-    (-2.843e-3) * Tmrt ** 2 * va ** 2 +
-    3.495e-4 * Ta * Tmrt ** 2 * va ** 2 -
-    2.329e-5 * Ta ** 2 * Tmrt ** 2 * va ** 2 +
-    7.513e-7 * Ta ** 3 * Tmrt ** 2 * va ** 2 -
-    1.683e-8 * Ta ** 4 * Tmrt ** 2 * va ** 2 +
-    // Tmrt^3*va^2 terms
-    3.801e-3 * Tmrt ** 3 * va ** 2 -
-    4.676e-4 * Ta * Tmrt ** 3 * va ** 2 +
-    3.117e-5 * Ta ** 2 * Tmrt ** 3 * va ** 2 -
-    1.005e-6 * Ta ** 3 * Tmrt ** 3 * va ** 2 +
-    2.250e-8 * Ta ** 4 * Tmrt ** 3 * va ** 2 +
-    // Tmrt^2*va^3 terms
-    (-1.656e-3) * Tmrt ** 2 * va ** 3 +
-    2.037e-4 * Ta * Tmrt ** 2 * va ** 3 -
-    1.358e-5 * Ta ** 2 * Tmrt ** 2 * va ** 3 +
-    4.378e-7 * Ta ** 3 * Tmrt ** 2 * va ** 3 -
-    9.800e-9 * Ta ** 4 * Tmrt ** 2 * va ** 3 +
-    // Tmrt^3*va^3 terms
-    2.214e-3 * Tmrt ** 3 * va ** 3 -
-    2.724e-4 * Ta * Tmrt ** 3 * va ** 3 +
-    1.816e-5 * Ta ** 2 * Tmrt ** 3 * va ** 3 -
-    5.856e-7 * Ta ** 3 * Tmrt ** 3 * va ** 3 +
-    1.311e-8 * Ta ** 4 * Tmrt ** 3 * va ** 3 +
-    // v*Tmrt terms
-    (-7.060e-3) * va * Tmrt +
-    8.684e-4 * Ta * va * Tmrt -
-    5.783e-5 * Ta ** 2 * va * Tmrt +
-    1.864e-6 * Ta ** 3 * va * Tmrt -
-    4.174e-8 * Ta ** 4 * va * Tmrt +
-    // v*Tmrt^2 terms
-    9.383e-3 * va * Tmrt ** 2 -
-    1.153e-3 * Ta * va * Tmrt ** 2 +
-    7.686e-5 * Ta ** 2 * va * Tmrt ** 2 -
-    2.479e-6 * Ta ** 3 * va * Tmrt ** 2 +
-    5.548e-8 * Ta ** 4 * va * Tmrt ** 2 +
-    // v^2*Tmrt terms
-    (-4.483e-3) * va ** 2 * Tmrt +
-    5.512e-4 * Ta * va ** 2 * Tmrt -
-    3.674e-5 * Ta ** 2 * va ** 2 * Tmrt +
-    1.185e-6 * Ta ** 3 * va ** 2 * Tmrt -
-    2.653e-8 * Ta ** 4 * va ** 2 * Tmrt +
-    // v^2*Tmrt^2 terms
-    5.970e-3 * va ** 2 * Tmrt ** 2 -
-    7.338e-4 * Ta * va ** 2 * Tmrt ** 2 +
-    4.889e-5 * Ta ** 2 * va ** 2 * Tmrt ** 2 -
-    1.577e-6 * Ta ** 3 * va ** 2 * Tmrt ** 2 +
-    3.532e-8 * Ta ** 4 * va ** 2 * Tmrt ** 2 +
-    // v^3*Tmrt terms
-    (-2.826e-3) * va ** 3 * Tmrt +
-    3.474e-4 * Ta * va ** 3 * Tmrt -
-    2.316e-5 * Ta ** 2 * va ** 3 * Tmrt +
-    7.468e-7 * Ta ** 3 * va ** 3 * Tmrt -
-    1.672e-8 * Ta ** 4 * va ** 3 * Tmrt +
-    // v^3*Tmrt^2 terms
-    3.767e-3 * va ** 3 * Tmrt ** 2 -
-    4.630e-4 * Ta * va ** 3 * Tmrt ** 2 +
-    3.087e-5 * Ta ** 2 * va ** 3 * Tmrt ** 2 -
-    9.956e-7 * Ta ** 3 * va ** 3 * Tmrt ** 2 +
-    2.231e-8 * Ta ** 4 * va ** 3 * Tmrt ** 2 +
-    // Tmrt^2 standalone
-    1.304e-3 * Tmrt ** 2 -
-    1.603e-4 * Ta * Tmrt ** 2 +
-    1.068e-5 * Ta ** 2 * Tmrt ** 2 -
-    3.445e-7 * Ta ** 3 * Tmrt ** 2 +
-    7.716e-9 * Ta ** 4 * Tmrt ** 2 +
-    // Tmrt^3 standalone
-    (-2.057e-3) * Tmrt ** 3 +
-    2.529e-4 * Ta * Tmrt ** 3 -
-    1.686e-5 * Ta ** 2 * Tmrt ** 3 +
-    5.439e-7 * Ta ** 3 * Tmrt ** 3 -
-    1.217e-8 * Ta ** 4 * Tmrt ** 3 +
-    // Tmrt^4 standalone
-    1.387e-3 * Tmrt ** 4 -
-    1.705e-4 * Ta * Tmrt ** 4 +
-    1.136e-5 * Ta ** 2 * Tmrt ** 4 -
-    3.665e-7 * Ta ** 3 * Tmrt ** 4 +
-    8.203e-9 * Ta ** 4 * Tmrt ** 4 +
-    // Tmrt^5 standalone
-    (-5.772e-4) * Tmrt ** 5 +
-    7.090e-5 * Ta * Tmrt ** 5 -
-    4.724e-6 * Ta ** 2 * Tmrt ** 5 +
-    1.523e-7 * Ta ** 3 * Tmrt ** 5 -
-    3.410e-9 * Ta ** 4 * Tmrt ** 5 +
-    // Tmrt^6 standalone
-    1.200e-4 * Tmrt ** 6 -
-    1.475e-5 * Ta * Tmrt ** 6 +
-    9.823e-7 * Ta ** 2 * Tmrt ** 6 -
-    3.168e-8 * Ta ** 3 * Tmrt ** 6 +
-    7.096e-10 * Ta ** 4 * Tmrt ** 6 +
-    // va standalone terms
-    (-2.581e-3) * va +
-    3.170e-4 * Ta * va -
-    2.112e-5 * Ta ** 2 * va +
-    6.815e-7 * Ta ** 3 * va -
-    1.526e-8 * Ta ** 4 * va +
-    // va^2 standalone
-    3.437e-3 * va ** 2 -
-    4.224e-4 * Ta * va ** 2 +
-    2.816e-5 * Ta ** 2 * va ** 2 -
-    9.083e-7 * Ta ** 3 * va ** 2 +
-    2.034e-8 * Ta ** 4 * va ** 2 +
-    // va^3 standalone
-    (-1.824e-3) * va ** 3 +
-    2.241e-4 * Ta * va ** 3 -
-    1.495e-5 * Ta ** 2 * va ** 3 +
-    4.823e-7 * Ta ** 3 * va ** 3 -
-    1.080e-8 * Ta ** 4 * va ** 3 +
-    // va^4 standalone
-    4.831e-4 * va ** 4 -
-    5.937e-5 * Ta * va ** 4 +
-    3.959e-6 * Ta ** 2 * va ** 4 -
-    1.277e-7 * Ta ** 3 * va ** 4 +
-    2.860e-9 * Ta ** 4 * va ** 4 +
-    // va^5 standalone
-    (-5.454e-5) * va ** 5 +
-    6.704e-6 * Ta * va ** 5 -
-    4.472e-7 * Ta ** 2 * va ** 5 +
-    1.442e-8 * Ta ** 3 * va ** 5 -
-    3.229e-10 * Ta ** 4 * va ** 5 +
-    // va^6 standalone
-    2.630e-6 * va ** 6 -
-    3.233e-7 * Ta * va ** 6 +
-    2.156e-8 * Ta ** 2 * va ** 6 -
-    6.953e-10 * Ta ** 3 * va ** 6 +
-    1.558e-11 * Ta ** 4 * va ** 6 +
-    // Tmrt standalone
-    (-1.467e-3) * Tmrt +
-    1.802e-4 * Ta * Tmrt -
-    1.201e-5 * Ta ** 2 * Tmrt +
-    3.873e-7 * Ta ** 3 * Tmrt -
-    8.674e-9 * Ta ** 4 * Tmrt +
-    // Large Tmrt/va terms
-    (-5.289e-1) * va +
-    6.497e-2 * Ta * va -
-    4.330e-3 * Ta ** 2 * va +
-    1.396e-4 * Ta ** 3 * va -
-    3.127e-6 * Ta ** 4 * va +
-    7.066e-1 * va ** 2 -
-    8.681e-2 * Ta * va ** 2 +
-    5.788e-3 * Ta ** 2 * va ** 2 -
-    1.866e-4 * Ta ** 3 * va ** 2 +
-    4.180e-6 * Ta ** 4 * va ** 2 +
-    (-3.755e-1) * va ** 3 +
-    4.615e-2 * Ta * va ** 3 -
-    3.077e-3 * Ta ** 2 * va ** 3 +
-    9.929e-5 * Ta ** 3 * va ** 3 -
-    2.224e-6 * Ta ** 4 * va ** 3 +
-    9.958e-2 * va ** 4 -
-    1.223e-2 * Ta * va ** 4 +
-    8.153e-4 * Ta ** 2 * va ** 4 -
-    2.629e-5 * Ta ** 3 * va ** 4 +
-    5.885e-7 * Ta ** 4 * va ** 4 +
-    (-1.128e-2) * va ** 5 +
-    1.385e-3 * Ta * va ** 5 -
-    9.237e-5 * Ta ** 2 * va ** 5 +
-    2.978e-6 * Ta ** 3 * va ** 5 -
-    6.670e-8 * Ta ** 4 * va ** 5 +
-    5.449e-4 * va ** 6 -
-    6.696e-5 * Ta * va ** 6 +
-    4.468e-6 * Ta ** 2 * va ** 6 -
-    1.441e-7 * Ta ** 3 * va ** 6 +
-    3.228e-9 * Ta ** 4 * va ** 6;
-
-  return utci;
+  return (
+    tdb
+    + 0.607562052
+    + (-0.0227712343) * tdb
+    + 8.06470249e-4 * tdb * tdb
+    + (-1.54271372e-4) * tdb ** 3
+    + (-3.24651735e-6) * tdb ** 4
+    + 7.32602852e-8 * tdb ** 5
+    + 1.35959073e-9 * tdb ** 6
+    + (-2.25836520) * v
+    + 0.0880326035 * tdb * v
+    + 0.00216844454 * tdb ** 2 * v
+    + (-1.53347087e-5) * tdb ** 3 * v
+    + (-5.72983704e-7) * tdb ** 4 * v
+    + (-2.55090145e-9) * tdb ** 5 * v
+    + (-0.751269505) * v ** 2
+    + (-0.00408350271) * tdb * v ** 2
+    + (-5.21670675e-5) * tdb ** 2 * v ** 2
+    + 1.94544667e-6 * tdb ** 3 * v ** 2
+    + 1.14099531e-8 * tdb ** 4 * v ** 2
+    + 0.158137256 * v ** 3
+    + (-6.57263143e-5) * tdb * v ** 3
+    + 2.22697524e-7 * tdb ** 2 * v ** 3
+    + (-4.16117031e-8) * tdb ** 3 * v ** 3
+    + (-0.0127762753) * v ** 4
+    + 9.66891875e-6 * tdb * v ** 4
+    + 2.52785852e-9 * tdb ** 2 * v ** 4
+    + 4.56306672e-4 * v ** 5
+    + (-1.74202546e-7) * tdb * v ** 5
+    + (-5.91491269e-6) * v ** 6
+    + 0.398374029 * delta_t_tr
+    + 1.83945314e-4 * tdb * delta_t_tr
+    + (-1.73754510e-4) * tdb ** 2 * delta_t_tr
+    + (-7.60781159e-7) * tdb ** 3 * delta_t_tr
+    + 3.77830287e-8 * tdb ** 4 * delta_t_tr
+    + 5.43079673e-10 * tdb ** 5 * delta_t_tr
+    + (-0.0200518269) * v * delta_t_tr
+    + 8.92859837e-4 * tdb * v * delta_t_tr
+    + 3.45433048e-6 * tdb ** 2 * v * delta_t_tr
+    + (-3.77925774e-7) * tdb ** 3 * v * delta_t_tr
+    + (-1.69699377e-9) * tdb ** 4 * v * delta_t_tr
+    + 1.69992415e-4 * v ** 2 * delta_t_tr
+    + (-4.99204314e-5) * tdb * v ** 2 * delta_t_tr
+    + 2.47417178e-7 * tdb ** 2 * v ** 2 * delta_t_tr
+    + 1.07596466e-8 * tdb ** 3 * v ** 2 * delta_t_tr
+    + 8.49242932e-5 * v ** 3 * delta_t_tr
+    + 1.35191328e-6 * tdb * v ** 3 * delta_t_tr
+    + (-6.21531254e-9) * tdb ** 2 * v ** 3 * delta_t_tr
+    + (-4.99410301e-6) * v ** 4 * delta_t_tr
+    + (-1.89489258e-8) * tdb * v ** 4 * delta_t_tr
+    + 8.15300114e-8 * v ** 5 * delta_t_tr
+    + 7.55043090e-4 * delta_t_tr ** 2
+    + (-5.65095215e-5) * tdb * delta_t_tr ** 2
+    + (-4.52166564e-7) * tdb ** 2 * delta_t_tr ** 2
+    + 2.46688878e-8 * tdb ** 3 * delta_t_tr ** 2
+    + 2.42674348e-10 * tdb ** 4 * delta_t_tr ** 2
+    + 1.54547250e-4 * v * delta_t_tr ** 2
+    + 5.24110970e-6 * tdb * v * delta_t_tr ** 2
+    + (-8.75874982e-8) * tdb ** 2 * v * delta_t_tr ** 2
+    + (-1.50743064e-9) * tdb ** 3 * v * delta_t_tr ** 2
+    + (-1.56236307e-5) * v ** 2 * delta_t_tr ** 2
+    + (-1.33895614e-7) * tdb * v ** 2 * delta_t_tr ** 2
+    + 2.49709824e-9 * tdb ** 2 * v ** 2 * delta_t_tr ** 2
+    + 6.51711721e-7 * v ** 3 * delta_t_tr ** 2
+    + 1.94960053e-9 * tdb * v ** 3 * delta_t_tr ** 2
+    + (-1.00361113e-8) * v ** 4 * delta_t_tr ** 2
+    + (-1.21206673e-5) * delta_t_tr ** 3
+    + (-2.18203660e-7) * tdb * delta_t_tr ** 3
+    + 7.51269482e-9 * tdb ** 2 * delta_t_tr ** 3
+    + 9.79063848e-11 * tdb ** 3 * delta_t_tr ** 3
+    + 1.25006734e-6 * v * delta_t_tr ** 3
+    + (-1.81584736e-9) * tdb * v * delta_t_tr ** 3
+    + (-3.52197671e-10) * tdb ** 2 * v * delta_t_tr ** 3
+    + (-3.36514630e-8) * v ** 2 * delta_t_tr ** 3
+    + 1.35908359e-10 * tdb * v ** 2 * delta_t_tr ** 3
+    + 4.17032620e-10 * v ** 3 * delta_t_tr ** 3
+    + (-1.30369025e-9) * delta_t_tr ** 4
+    + 4.13908461e-10 * tdb * delta_t_tr ** 4
+    + 9.22652254e-12 * tdb ** 2 * delta_t_tr ** 4
+    + (-5.08220384e-9) * v * delta_t_tr ** 4
+    + (-2.24730961e-11) * tdb * v * delta_t_tr ** 4
+    + 1.17139133e-10 * v ** 2 * delta_t_tr ** 4
+    + 6.62154879e-10 * delta_t_tr ** 5
+    + 4.03863260e-13 * tdb * delta_t_tr ** 5
+    + 1.95087203e-12 * v * delta_t_tr ** 5
+    + (-4.73602469e-12) * delta_t_tr ** 6
+    + 5.12733497 * pa
+    + (-0.312788561) * tdb * pa
+    + (-0.0196701861) * tdb ** 2 * pa
+    + 9.99690870e-4 * tdb ** 3 * pa
+    + 9.51738512e-6 * tdb ** 4 * pa
+    + (-4.66426341e-7) * tdb ** 5 * pa
+    + 0.548050612 * v * pa
+    + (-0.00330552823) * tdb * v * pa
+    + (-0.00164119440) * tdb ** 2 * v * pa
+    + (-5.16670694e-6) * tdb ** 3 * v * pa
+    + 9.52692432e-7 * tdb ** 4 * v * pa
+    + (-0.0429223622) * v ** 2 * pa
+    + 0.00500845667 * tdb * v ** 2 * pa
+    + 1.00601257e-6 * tdb ** 2 * v ** 2 * pa
+    + (-1.81748644e-6) * tdb ** 3 * v ** 2 * pa
+    + (-1.25813502e-3) * v ** 3 * pa
+    + (-1.79330391e-4) * tdb * v ** 3 * pa
+    + 2.34994441e-6 * tdb ** 2 * v ** 3 * pa
+    + 1.29735808e-4 * v ** 4 * pa
+    + 1.29064870e-6 * tdb * v ** 4 * pa
+    + (-2.28558686e-6) * v ** 5 * pa
+    + (-0.0369476348) * delta_t_tr * pa
+    + 0.00162325322 * tdb * delta_t_tr * pa
+    + (-3.14279680e-5) * tdb ** 2 * delta_t_tr * pa
+    + 2.59835559e-6 * tdb ** 3 * delta_t_tr * pa
+    + (-4.77136523e-8) * tdb ** 4 * delta_t_tr * pa
+    + 8.64203390e-3 * v * delta_t_tr * pa
+    + (-6.87405181e-4) * tdb * v * delta_t_tr * pa
+    + (-9.13863872e-6) * tdb ** 2 * v * delta_t_tr * pa
+    + 5.15916806e-7 * tdb ** 3 * v * delta_t_tr * pa
+    + (-3.59217476e-5) * v ** 2 * delta_t_tr * pa
+    + 3.28696511e-5 * tdb * v ** 2 * delta_t_tr * pa
+    + (-7.10542454e-7) * tdb ** 2 * v ** 2 * delta_t_tr * pa
+    + (-1.24382300e-5) * v ** 3 * delta_t_tr * pa
+    + (-7.38584400e-9) * tdb * v ** 3 * delta_t_tr * pa
+    + 2.20609296e-7 * v ** 4 * delta_t_tr * pa
+    + (-7.32469180e-4) * delta_t_tr ** 2 * pa
+    + (-1.87381964e-5) * tdb * delta_t_tr ** 2 * pa
+    + 4.80925239e-6 * tdb ** 2 * delta_t_tr ** 2 * pa
+    + (-8.75492040e-8) * tdb ** 3 * delta_t_tr ** 2 * pa
+    + 2.77862930e-5 * v * delta_t_tr ** 2 * pa
+    + (-5.06004592e-6) * tdb * v * delta_t_tr ** 2 * pa
+    + 1.14325367e-7 * tdb ** 2 * v * delta_t_tr ** 2 * pa
+    + 2.53016723e-6 * v ** 2 * delta_t_tr ** 2 * pa
+    + (-1.72857035e-8) * tdb * v ** 2 * delta_t_tr ** 2 * pa
+    + (-3.95079398e-8) * v ** 3 * delta_t_tr ** 2 * pa
+    + (-3.59413173e-7) * delta_t_tr ** 3 * pa
+    + 7.04388046e-7 * tdb * delta_t_tr ** 3 * pa
+    + (-1.89309167e-8) * tdb ** 2 * delta_t_tr ** 3 * pa
+    + (-4.79768731e-7) * v * delta_t_tr ** 3 * pa
+    + 7.96079978e-9 * tdb * v * delta_t_tr ** 3 * pa
+    + 1.62897058e-9 * v ** 2 * delta_t_tr ** 3 * pa
+    + 3.94367674e-8 * delta_t_tr ** 4 * pa
+    + (-1.18566247e-9) * tdb * delta_t_tr ** 4 * pa
+    + 3.34678041e-10 * v * delta_t_tr ** 4 * pa
+    + (-1.15606447e-10) * delta_t_tr ** 5 * pa
+    + (-2.80626406) * pa ** 2
+    + 0.548712484 * tdb * pa ** 2
+    + (-0.00399428410) * tdb ** 2 * pa ** 2
+    + (-9.54009191e-4) * tdb ** 3 * pa ** 2
+    + 1.93090978e-5 * tdb ** 4 * pa ** 2
+    + (-0.308806365) * v * pa ** 2
+    + 0.0116952364 * tdb * v * pa ** 2
+    + 4.95271903e-4 * tdb ** 2 * v * pa ** 2
+    + (-1.90710882e-5) * tdb ** 3 * v * pa ** 2
+    + 0.00210787756 * v ** 2 * pa ** 2
+    + (-6.98445738e-4) * tdb * v ** 2 * pa ** 2
+    + 2.30109073e-5 * tdb ** 2 * v ** 2 * pa ** 2
+    + 4.17856590e-4 * v ** 3 * pa ** 2
+    + (-1.27043871e-5) * tdb * v ** 3 * pa ** 2
+    + (-3.04620472e-6) * v ** 4 * pa ** 2
+    + 0.0514507424 * delta_t_tr * pa ** 2
+    + (-0.00432510997) * tdb * delta_t_tr * pa ** 2
+    + 8.99281156e-5 * tdb ** 2 * delta_t_tr * pa ** 2
+    + (-7.14663943e-7) * tdb ** 3 * delta_t_tr * pa ** 2
+    + (-2.66016305e-4) * v * delta_t_tr * pa ** 2
+    + 2.63789586e-4 * tdb * v * delta_t_tr * pa ** 2
+    + (-7.01199003e-6) * tdb ** 2 * v * delta_t_tr * pa ** 2
+    + (-1.06823306e-4) * v ** 2 * delta_t_tr * pa ** 2
+    + 3.61341136e-6 * tdb * v ** 2 * delta_t_tr * pa ** 2
+    + 2.29748967e-7 * v ** 3 * delta_t_tr * pa ** 2
+    + 3.04788893e-4 * delta_t_tr ** 2 * pa ** 2
+    + (-6.42070836e-5) * tdb * delta_t_tr ** 2 * pa ** 2
+    + 1.16257971e-6 * tdb ** 2 * delta_t_tr ** 2 * pa ** 2
+    + 7.68023384e-6 * v * delta_t_tr ** 2 * pa ** 2
+    + (-5.47446896e-7) * tdb * v * delta_t_tr ** 2 * pa ** 2
+    + (-3.59937910e-8) * v ** 2 * delta_t_tr ** 2 * pa ** 2
+    + (-4.36497725e-6) * delta_t_tr ** 3 * pa ** 2
+    + 1.68737969e-7 * tdb * delta_t_tr ** 3 * pa ** 2
+    + 2.67489271e-8 * v * delta_t_tr ** 3 * pa ** 2
+    + 3.23926897e-9 * delta_t_tr ** 4 * pa ** 2
+    + (-0.0353874123) * pa ** 3
+    + (-0.221201190) * tdb * pa ** 3
+    + 0.0155126038 * tdb ** 2 * pa ** 3
+    + (-2.63917279e-4) * tdb ** 3 * pa ** 3
+    + 0.0453433455 * v * pa ** 3
+    + (-0.00432943862) * tdb * v * pa ** 3
+    + 1.45389826e-4 * tdb ** 2 * v * pa ** 3
+    + 2.17508610e-4 * v ** 2 * pa ** 3
+    + (-6.66724702e-5) * tdb * v ** 2 * pa ** 3
+    + 3.33217140e-5 * v ** 3 * pa ** 3
+    + (-0.00226921615) * delta_t_tr * pa ** 3
+    + 3.80261982e-4 * tdb * delta_t_tr * pa ** 3
+    + (-5.45314314e-9) * tdb ** 2 * delta_t_tr * pa ** 3
+    + (-7.96355448e-4) * v * delta_t_tr * pa ** 3
+    + 2.53458034e-5 * tdb * v * delta_t_tr * pa ** 3
+    + (-6.31223658e-6) * v ** 2 * delta_t_tr * pa ** 3
+    + 3.02122035e-4 * delta_t_tr ** 2 * pa ** 3
+    + (-4.77403547e-6) * tdb * delta_t_tr ** 2 * pa ** 3
+    + 1.73825715e-6 * v * delta_t_tr ** 2 * pa ** 3
+    + (-4.09087898e-7) * delta_t_tr ** 3 * pa ** 3
+    + 0.614155345 * pa ** 4
+    + (-0.0616755931) * tdb * pa ** 4
+    + 0.00133374846 * tdb ** 2 * pa ** 4
+    + 0.00355375387 * v * pa ** 4
+    + (-5.13027851e-4) * tdb * v * pa ** 4
+    + 1.02449757e-4 * v ** 2 * pa ** 4
+    + (-0.00148526421) * delta_t_tr * pa ** 4
+    + (-4.11469183e-5) * tdb * delta_t_tr * pa ** 4
+    + (-6.80434415e-6) * v * delta_t_tr * pa ** 4
+    + (-9.77675906e-6) * delta_t_tr ** 2 * pa ** 4
+    + 0.0882773108 * pa ** 5
+    + (-0.00301859306) * tdb * pa ** 5
+    + 0.00104452989 * v * pa ** 5
+    + 2.47090539e-4 * delta_t_tr * pa ** 5
+    + 0.00148348065 * pa ** 6
+  );
 }
 
 /** UTCI thermal stress categories (WMO/ISB standard) */
@@ -428,17 +304,14 @@ export const UTCI_CATEGORIES: UtciCategory[] = [
 ];
 
 export function utciCategory(utciC: number): UtciCategory {
-  if (!Number.isFinite(utciC)) return UTCI_CATEGORIES[5]; // default: no stress
+  if (!Number.isFinite(utciC)) return UTCI_CATEGORIES[5];
   for (let i = UTCI_CATEGORIES.length - 1; i >= 0; i--) {
     if (utciC >= UTCI_CATEGORIES[i].minC) return UTCI_CATEGORIES[i];
   }
   return UTCI_CATEGORIES[0];
 }
 
-/**
- * Convenience: calculate UTCI from Hour-like data.
- * Returns { utci, category, tmrt } or null if insufficient data.
- */
+/** Convenience: calculate UTCI from Hour-like data */
 export function utciFromHour(
   temperatureC: number,
   windMs: number,

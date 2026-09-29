@@ -1,3 +1,9 @@
+# MID v0.9.85.124
+
+- UTCI (Universal Thermal Climate Index) ersetzt die gefühlte Temperatur in der Aktuell-Ansicht. Korrekte Polynom-Koeffizienten nach Brode et al. (2012). Keine separate Sektion mehr — UTCI-Wert und Belastungskategorie direkt in der aktuellen Wetteranzeige.
+- Pollenflug-Vorhersage kompakter: Chip-basierte Anzeige statt großer Tabelle. Details aufklappbar.
+- UtciBadge-Komponente und midUtci.css entfernt (UTCI ist jetzt in der Hero-Anzeige integriert).
+
 # MID v0.9.85.123
 
 - UTCI (Universal Thermal Climate Index) als gefühlte Temperatur in der Aktuell-Ansicht: wissenschaftlich fundiertes thermisches Komfortmodell nach WMO/ISB mit 10 Belastungskategorien.
