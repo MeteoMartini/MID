@@ -55,8 +55,8 @@ for(const token of [
  "localTemperatureCorrectionSignificant=temperatureFresh&&",
  "temperatureObservationConstraintSignificant=temperatureFresh&&",
  "<span>Temperatur · Best Match</span>",
- "currentApparentTemperature=Number.isFinite(modelApparentTemperature)",
- "Gefühlt {Math.round(currentApparentTemperature)} °C"
+ "currentApparentTemperature=utciResult?utciResult.utci:modelApparentTemperature",
+ "UTCI {Math.round(currentApparentTemperature)} °C"
 ])assert.ok(app.includes(token),`Current-/Cache-/Forecast-Konsistenzpfad fehlt: ${token}`);
 for(const token of [
  'fast=false,forceFresh=false',
