@@ -1,3 +1,9 @@
+# MID v0.9.85.123
+
+- UTCI (Universal Thermal Climate Index) als gefühlte Temperatur in der Aktuell-Ansicht: wissenschaftlich fundiertes thermisches Komfortmodell nach WMO/ISB mit 10 Belastungskategorien.
+- Pollenflug-Einstellung und weitere Inhaltsmodule unter "Inhalte & Navigation" umgruppiert (zuvor in allen Einstellungsbereichen sichtbar).
+- Pollenflug-Einstellung dauerhaft gespeichert (gerätelokal, nicht von Gerätesynchronisation überschrieben).
+
 # MID v0.9.85.122
 
 - Fehler behoben: Pollenflug-Einstellung wurde beim App-Neustart nicht dauerhaft gespeichert (Gerätesynchronisation hat Schlüssel entfernt).
