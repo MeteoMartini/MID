@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.119",
+  "releaseVersion": "0.9.85.120",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2348,7 +2348,7 @@
     "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
     "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
   ],
-  "version": "0.9.85.119",
+  "version": "0.9.85.120",
   "updatedAt": "2026-09-28T20:20:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
