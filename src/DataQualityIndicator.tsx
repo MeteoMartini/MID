@@ -31,7 +31,7 @@ function ageLabel(minutes?:number){
   return rem>0?`vor ${h} Std ${rem} Min`:`vor ${h} Std`;
 }
 
-export function DataQualityIndicator({station,modelInfo,radarNowcast,forecastFusionActive,updatedLabel,advancedMode}:{station:Station|null;modelInfo:BestMatchModelInfo|null;radarNowcast:RadarNowcast|null;forecastFusionActive:boolean;updatedLabel:string;timezone?:string;advancedMode:boolean}){
+export function DataQualityIndicator({station,modelInfo,radarData,forecastFusionActive,updatedLabel,advancedMode}:{station:Station|null;modelInfo:BestMatchModelInfo|null;radarData:RadarNowcast|null;forecastFusionActive:boolean;updatedLabel:string;timezone?:string;advancedMode:boolean}){
   const[expanded,setExpanded]=useState<string|null>(null);
 
   const parameters=useMemo(()=>{
@@ -61,13 +61,13 @@ export function DataQualityIndicator({station,modelInfo,radarNowcast,forecastFus
     });
 
     // Precipitation
-    const radarQuality=radarNowcast?.quality;
+    const radarQuality=radarData?.quality;
     params.push({
       label:'Niederschlag',
-      source:radarNowcast?'radar':'model',
+      source:radarData?'radar':'model',
       quality:radarQuality==='high'?'high':radarQuality==='medium'?'medium':'low',
-      detail:radarNowcast?`${radarNowcast.provider}${radarNowcast.observedAt?` · ${ageLabel((now-new Date(radarNowcast.observedAt).getTime())/60000)}`:''}`:'Modellvorhersage',
-      ageMinutes:radarNowcast?.observedAt?(now-new Date(radarNowcast.observedAt).getTime())/60000:undefined
+      detail:radarData?`${radarData.provider}${radarData.observedAt?` · ${ageLabel((now-new Date(radarData.observedAt).getTime())/60000)}`:''}`:'Modellvorhersage',
+      ageMinutes:radarData?.observedAt?(now-new Date(radarData.observedAt).getTime())/60000:undefined
     });
 
     // Humidity
@@ -93,7 +93,7 @@ export function DataQualityIndicator({station,modelInfo,radarNowcast,forecastFus
     });
 
     return params;
-  },[station,modelInfo,radarNowcast]);
+  },[station,modelInfo,radarData]);
 
   const overallQuality=useMemo(()=>{
     const highCount=parameters.filter((p:ParameterQuality)=>p.quality==='high').length;
