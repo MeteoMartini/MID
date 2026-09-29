@@ -1,0 +1,120 @@
+/* MID UTCI Badge – Universal Thermal Climate Index
+   Aligned with MID design system: forecast-entry-head, card surface, parameter colors. */
+
+.utci-badge-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.utci-badge-card .forecast-entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.utci-badge-card .forecast-entry-head span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.utci-badge-card .forecast-entry-head small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.utci-badge-card .forecast-entry-head strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.utci-badge-card .forecast-entry-head em {
+  font-style: normal;
+  font-size: 0.68rem;
+  color: var(--muted);
+  background: var(--s2);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm, 0.25rem);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.utci-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.utci-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.utci-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.utci-unit {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.utci-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.utci-category-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.utci-comparison {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.utci-description {
+  text-align: left;
+}
+
+.utci-description small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+/* High contrast mode */
+:root[data-theme="high-contrast"] .utci-badge-card {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+:root[data-theme="high-contrast"] .utci-value {
+  color: #fff !important;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .utci-value {
+    font-size: 1.6rem;
+  }
+  .utci-badge-card .forecast-entry-head strong {
+    font-size: 0.85rem;
+  }
+}
