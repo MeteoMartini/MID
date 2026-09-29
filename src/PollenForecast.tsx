@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react';
 import {fetchWorkerJson} from './workerClient';
-import {CloudSun} from 'lucide-react';
+import {CloudSun,RefreshCw} from 'lucide-react';
 
 type PollenRegion={id:number,name:string,geometry:{type:string,coordinates:any[]}|null};
 type PollenForecastEntry={regionId:number,regionName:string,pollenType:string,pollenValue:string,pollenInt:number,forecastDate:string,expires:string,effective:string};
@@ -8,10 +8,9 @@ type PollenResponse={regions:PollenRegion[],pollenTypes:string[],forecasts:Polle
 
 const POLLEN_LABELS:Record<string,string>={Hasel:'Hasel',Erle:'Erle',Esche:'Esche',Birke:'Birke','Gräser':'Gräser',Roggen:'Roggen',Beifuss:'Beifuß',Ambrosia:'Ambrosia'};
 const POLLEN_VALUE_LABELS:Record<string,string>={'keine':'keine','schwach':'schwach','mäßig':'mäßig','stark':'stark'};
-const POLLEN_VALUE_COLORS:Record<string,string>={'keine':'var(--param-wind)','schwach':'var(--param-sunshine)','mäßig':'var(--param-temperature-max)','stark':'var(--param-precipitation-storm)'};
+const POLLEN_VALUE_INT:Record<string,number>={'keine':0,'schwach':1,'mäßig':2,'stark':3};
 
 function pointInPolygon(lat:number,lon:number,coordinates:any[]):boolean{
-  // Coordinates can be [[[lon,lat],...]] for Polygon or [[[[lon,lat],...]],...] for MultiPolygon
   const rings=Array.isArray(coordinates[0])&&Array.isArray(coordinates[0][0])?coordinates:[coordinates];
   for(const ring of rings){
     let inside=false;
@@ -35,6 +34,8 @@ function findPollenRegion(lat:number,lon:number,regions:PollenRegion[]):PollenRe
   return null;
 }
 
+const POLLEN_LEVEL_COLORS=['var(--param-wind)','var(--param-sunshine)','var(--param-temperature-max)','var(--param-precipitation-storm)'];
+
 export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:boolean}){
   const[data,setData]=useState<PollenResponse|null>(null);
   const[loading,setLoading]=useState(false);
@@ -57,31 +58,32 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   },[lat,lon,enabled]);
 
   if(!enabled)return null;
+
+  const header=<header className="pollen-header forecast-entry-head forecast-entry-head-pollen"><span><CloudSun size={16}/><small>Gesundheitswetter</small><strong>Pollenflug-Vorhersage</strong></span><em>DWD</em></header>;
+
   if(loading)return(
     <section className="card pollen-forecast" data-mid-view="pollen">
-      <header><span><small>Gesundheitswetter</small><strong>Pollenflug-Vorhersage</strong></span></header>
-      <div className="pollen-loading">DWD-Pollendaten werden geladen …</div>
+      {header}
+      <div className="pollen-loading"><RefreshCw size={16} className="spin"/><span>DWD-Pollendaten werden geladen …</span></div>
     </section>
   );
   if(error||!data)return(
     <section className="card pollen-forecast" data-mid-view="pollen">
-      <header><span><small>Gesundheitswetter</small><strong>Pollenflug-Vorhersage</strong></span></header>
-      <div className="pollen-error">{error||'Keine Pollendaten verfügbar'}</div>
+      {header}
+      <div className="pollen-error"><span>{error||'Keine Pollendaten verfügbar'}</span></div>
     </section>
   );
 
   const region=findPollenRegion(lat,lon,data.regions);
   if(!region){
-    // Location outside Germany - show general info
     return(
       <section className="card pollen-forecast" data-mid-view="pollen">
-        <header><span><small>Gesundheitswetter</small><strong>Pollenflug-Vorhersage</strong></span><em>DWD</em></header>
+        {header}
         <p className="pollen-outside-coverage">Pollenflug-Vorhersagen des DWD decken nur Deutschland ab. Für den gewählten Standort sind keine Pollendaten verfügbar.</p>
       </section>
     );
   }
 
-  // Group forecasts by pollen type for this region
   const regionForecasts=data.forecasts.filter(f=>f.regionId===region.id);
   const byPollenType=new Map<string,PollenForecastEntry[]>();
   for(const f of regionForecasts){
@@ -90,13 +92,11 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
     byPollenType.set(f.pollenType,list);
   }
 
-  // Sort by canonical pollen type order
   const sortedTypes=Array.from(byPollenType.keys()).sort((a,b)=>{
     const ia=data.pollenTypes.indexOf(a),ib=data.pollenTypes.indexOf(b);
     return ia===-1?99:ia-(ib===-1?99:ib);
   });
 
-  // Get forecast dates
   const allDates=[...new Set(regionForecasts.map(f=>f.forecastDate))].sort();
   const dateLabels=allDates.map(d=>{
     const dt=new Date(d);
@@ -111,10 +111,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
 
   return(
     <section className="card pollen-forecast" data-mid-view="pollen">
-      <header>
-        <span><CloudSun size={18}/><small>Gesundheitswetter</small><strong>Pollenflug-Vorhersage</strong></span>
-        <em>DWD</em>
-      </header>
+      {header}
       <div className="pollen-region-info">
         <small>Pollenfluggebiet</small>
         <strong>{region.name}</strong>
@@ -133,11 +130,11 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
               {sortedEntries.map((entry,i)=>{
                 if(!entry)return<span key={i} role="cell" className="pollen-value pollen-na">–</span>;
                 const valueLower=entry.pollenValue.toLowerCase();
-                const color=POLLEN_VALUE_COLORS[valueLower]||'var(--muted)';
+                const intLevel=POLLEN_VALUE_INT[valueLower]??0;
                 const label=POLLEN_VALUE_LABELS[valueLower]||entry.pollenValue;
                 return(
-                  <span key={i} role="cell" className="pollen-value" style={{'--pollen-color':color}as React.CSSProperties}>
-                    <span className="pollen-dot" style={{background:color}}/>
+                  <span key={i} role="cell" className={`pollen-value pollen-level-${intLevel}`}>
+                    <span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[intLevel]}}/>
                     {label}
                   </span>
                 );

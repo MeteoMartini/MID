@@ -1,3 +1,8 @@
+# MID v0.9.85.120
+
+- Pollenflug-Vorhersage kann in den Einstellungen ein- und ausgeschaltet werden.
+- Pollenflug-Komponente an das MID-Designsystem angeglichen (forecast-entry-head, Card-Oberfläche, Parameter-Farben).
+
 # MID v0.9.85.119
 
 - Pollenflug-Vorhersage für Deutschland: DWD-Pollendaten (8 Allergene, 27 Regionen, 3 Tage) in der Aktuell-Ansicht.
