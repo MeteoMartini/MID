@@ -6,6 +6,7 @@ import './midDesign.css';
 import './v078';
 import './midHighContrast.css';
 import './midPollen.css';
+import './midDataQuality.css';
 import './midC7Redesign.css';
 import './midC7Composition.css';
 import './midC8VisibleRedesign.css';

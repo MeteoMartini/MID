@@ -1,3 +1,8 @@
+# MID v0.9.85.121
+
+- Pro-Parameter Datenqualitätsindikator in der Aktuell-Ansicht: kompakte Qualitäts-Badges für Temperatur, Wind, Niederschlag, Feuchte und Luftdruck mit Quellen- und Altersangabe.
+- Erweiterte Ansicht zeigt aktive Modellläufe mit Initialisierungszeit, Auflösung und Vorhersagehorizont.
+
 # MID v0.9.85.120
 
 - Pollenflug-Vorhersage kann in den Einstellungen ein- und ausgeschaltet werden.
