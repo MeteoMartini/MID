@@ -1,3 +1,9 @@
+# MID v0.9.85.126
+
+- Behoben: „Aktuell"-Ansicht sprang nach Wetterdaten-Laden automatisch auf „Vorhersage" zurück, wenn die zuletzt gespeicherte Ansicht „Vorhersage" war und der Nutzer zuvor auf „Aktuell" getippt hatte.
+- Ursache: Der Startup-Restore-Effekt lief nach dem Laden der Wetterdaten und überschrieb die explizite Nutzer-Navigation mit der gespeicherten Sektion.
+- Fix: Ein `userNavigatedRef` verfolgt, ob der Nutzer bereits aktiv navigiert hat. Der Startup-Restore wird übersprungen, wenn der Nutzer vorher eine andere Ansicht gewählt hat.
+
 # MID v0.9.85.125
 
 - App-Absturz beim Start behoben: PollenForecast-Komponente führte Datenabruf während der Render-Phase durch (React-Side-Effect) statt in useEffect. Dies konnte zu Endlos-Schleifen und Abstürzen führen.
