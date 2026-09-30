@@ -135,8 +135,10 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
     .filter(item=>item.severity>0)
     .sort((a,b)=>b.severity-a.severity||sortedTypes.indexOf(a.type)-sortedTypes.indexOf(b.type));
   const visibleTodayEntries=rankedTodayEntries.slice(0,3),hiddenActiveCount=Math.max(0,rankedTodayEntries.length-visibleTodayEntries.length);
-  const relevantTypes=sortedTypes.filter(type=>(byPollenType.get(type)||[]).some(entry=>forecastDates.includes(entry.forecastDate)&&pollenSeverity(entry)>0));
-  const detailTypes=showAll?sortedTypes:relevantTypes;
+  const maxTypeSeverity=(type:string)=>Math.max(0,...forecastDates.map(date=>pollenSeverity((byPollenType.get(type)||[]).find(entry=>entry.forecastDate===date))));
+  const relevantTypes=sortedTypes.filter(type=>maxTypeSeverity(type)>0).sort((a,b)=>maxTypeSeverity(b)-maxTypeSeverity(a)||sortedTypes.indexOf(a)-sortedTypes.indexOf(b));
+  const primaryTypes=relevantTypes.slice(0,4);
+  const detailTypes=showAll?sortedTypes:primaryTypes;
   const strongestToday=rankedTodayEntries[0],todayStatus=strongestToday?pollenLabel(strongestToday.entry):'keine Belastung';
   const statusLevel=strongestToday?pollenLevel(strongestToday.entry):0;
   const detailId='pollen-forecast-detail',allToggleId='pollen-forecast-all';
@@ -151,13 +153,13 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
         <span className={`pollen-status pollen-level-${statusLevel}`}>Heute · {todayStatus}</span>
         <ChevronDown size={17} className={expanded?'rotated':''} aria-hidden="true"/>
       </button>
-      <div className="pollen-meta"><span className="pollen-region" title={region.name}>{region.name}</span><span>DWD · Stand {checkedLabel}</span></div>
+      <div className="pollen-meta"><span className="pollen-region" title={region.name} aria-label={`Pollenregion ${region.name}`}>{region.name}</span><span>DWD · Stand {checkedLabel}</span></div>
       {rankedTodayEntries.length>0&&<div className="pollen-chips" aria-label="Aktive Pollenbelastung heute">
         {visibleTodayEntries.map(({type,label,entry,severity})=><span key={type} className={`pollen-chip pollen-level-${Math.ceil(severity)}`} title={`${label}: ${pollenLabel(entry)}`}><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[Math.ceil(severity)]}} aria-hidden="true"/>{label}<b>{pollenLabel(entry)}</b></span>)}
         {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount}</span>}
       </div>}
       {expanded&&<div id={detailId} className="pollen-detail">
-        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{relevantTypes.length?relevantTypes.length===1?'1 relevante Pollenart':`${relevantTypes.length} relevante Pollenarten`:'keine Belastung'}</small></header>
+        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{relevantTypes.length?(relevantTypes.length>primaryTypes.length?`${relevantTypes.length} relevant · ${primaryTypes.length} angezeigt`:relevantTypes.length===1?'1 relevante Pollenart':`${relevantTypes.length} relevante Pollenarten`):'keine Belastung'}</small></header>
         {detailTypes.length>0?(
           <div className="pollen-grid" role="table" aria-label="Pollenflug-Vorhersage für heute, morgen und übermorgen">
             <div className="pollen-grid-header" role="row"><span role="columnheader">Pollenart</span>{forecastDates.map((date,i)=><span key={date} role="columnheader">{dateLabels[allDates.indexOf(date)]||`Tag ${i+1}`}</span>)}</div>
@@ -167,7 +169,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
             })}
           </div>
         ):<div className="pollen-three-day-clear">In den nächsten drei Tagen keine Pollenbelastung.</div>}
-        {sortedTypes.length>relevantTypes.length&&<button id={allToggleId} type="button" className="pollen-all-toggle" onClick={()=>setShowAll(value=>!value)} aria-pressed={showAll}>{showAll?'Nur relevante Pollenarten':'Alle 8 Pollenarten anzeigen'}</button>}
+        {sortedTypes.length>primaryTypes.length&&<button id={allToggleId} type="button" className="pollen-all-toggle" onClick={()=>setShowAll(value=>!value)} aria-pressed={showAll}>{showAll?'Weniger anzeigen':'Alle 8 Pollenarten anzeigen'}</button>}
       </div>}
     </section>
   );
