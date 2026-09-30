@@ -35,3 +35,7 @@ Keine Änderung an DWD-Pollendaten, Warnungen, Wettermodellen, Worker-Fachlogik 
 
 ## CSS-Kaskadennachgang
 Die erste Quellprüfung identifizierte zusätzlich eine spätere Override-Regel in `midC18I7ResponsiveFixes.css`, die `.settings-primary-options` im Navigation-Split erneut ausblendete. Diese Regel wird ebenfalls korrigiert. Die Regression liest deshalb beide CSS-Schichten und schützt die effektive Kaskade, nicht nur die frühere WorkPackage-I-Datei.
+
+
+## Finaler Kaskaden-/Budget-Fix
+Statt zwei bestehende CSS-Splitverträge gegeneinander zu überschreiben, werden Gesundheitswetter und optionale Inhaltsmodule als direkte Kinder des Navigation-Stacks außerhalb von `.settings-primary-options` gerendert. Dadurch bleiben die seit MID 18.2.6 beabsichtigten Ausblendregeln für Darstellungsoptionen unverändert, während Gesundheitswetter und Moduloptionen sichtbar vor der Modulreihenfolge stehen. Beide zuvor geänderten CSS-Dateien entsprechen wieder exakt dem v0.9.85.129-Stable-Stand; das CSS-Budget wird nicht erhöht.

@@ -7,7 +7,7 @@
 - „Mehr“ kann beim App-Neustart wieder geöffnet werden; bewusstes Schließen stellt den darunter aktiven Hauptbereich als letzten Bereich wieder her.
 - Der alte Startpfad entfernt `#mid-section-…` nicht mehr; explizite Deep-Links behalten damit Vorrang.
 - Keine Änderung an meteorologischer Logik, Datenquellen, Warnungen oder Worker-Fachlogik.
-- CSS-Kaskadennachgang: auch die später geladene `midC18I7ResponsiveFixes.css` blendet die navigationseigene Primärsektion nicht mehr erneut aus.
+- CSS-/Budget-Nachgang: Gesundheitswetter und optionale Inhaltsmodule liegen nun als eigene Navigationselemente außerhalb des bewusst ausgeblendeten Darstellungscontainers. Die bestehenden CSS-Splitregeln bleiben unverändert; es entsteht kein zusätzliches CSS-Budget.
 - Regression: `scripts/test-health-settings-primary-navigation-0985130.mjs`.
 
 ## v0.9.85.129 · 2026-09-30 · Gesundheitswetter/Pollen kompakt

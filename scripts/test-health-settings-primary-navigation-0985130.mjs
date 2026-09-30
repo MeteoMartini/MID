@@ -23,11 +23,12 @@ for(const token of [
  'setPollenDisplaySettings(current=>({...current,showPollenForecast:event.target.checked}))',
  "localStorage.setItem(POLLEN_DISPLAY_SETTINGS_KEY,JSON.stringify(pollenDisplaySettings))"
 ])assert.ok(app.includes(token),'Gesundheitswetter-/Pollenvertrag fehlt: '+token);
-assert.ok(settingsCss.includes('.settings-split-navigation>.settings-primary-options,.settings-split-navigation>.dashboard-module-settings{display:block!important}'),'Navigation muss Gesundheits-/Inhaltsoptionen und Modulreihenfolge gemeinsam zeigen.');
-assert.ok(settingsCss.includes('.settings-option-list:not(.settings-content-modules):not(.settings-health-weather)'),'Nur generische Optionliste darf im Navigation-Split verborgen werden.');
-assert.ok(!settingsCss.includes('.settings-split-navigation>.settings-section,.settings-split-navigation>.time-display-settings'),'Navigation darf nicht mehr sämtliche Settings-Sections pauschal ausblenden.');
-assert.ok(!responsiveCss.includes('.settings-split-navigation>.settings-primary-options,'),'Später geladene Responsive-CSS darf Gesundheitswetter nicht erneut ausblenden.');
-assert.ok(app.indexOf('settings-health-weather')<app.indexOf('settings-content-modules'),'Gesundheitswetter muss vor den übrigen optionalen Inhaltsmodulen stehen.');
+assert.ok(settingsCss.includes('.settings-split-navigation>.settings-section,.settings-split-navigation>.time-display-settings'),'Bestehender Settings-Split darf Darstellungsoptionen weiterhin ausblenden.');
+assert.ok(responsiveCss.includes('.settings-split-navigation>.settings-primary-options,'),'Responsive Split darf den Darstellungscontainer weiterhin ausblenden.');
+const primaryEnd=app.indexOf('</section>{section===\'navigation\'&&<><div className="settings-option-list settings-health-weather">');
+const moduleSettings=app.indexOf('<DashboardModuleSettingsPanel settings={dashboardModuleSettings}');
+assert.ok(primaryEnd>0&&moduleSettings>primaryEnd,'Gesundheitswetter/Inhaltsmodule müssen außerhalb des ausgeblendeten Primary-Containers und vor der Modulreihenfolge liegen.');
+assert.ok(app.indexOf('settings-health-weather',primaryEnd)<app.indexOf('settings-content-modules',primaryEnd),'Gesundheitswetter muss vor den übrigen optionalen Inhaltsmodulen stehen.');
 
 // Primärnavigation: explizit und unabhängig vom Untermodul persistieren.
 for(const token of [
