@@ -1,6 +1,7 @@
 import {useState,useMemo} from 'react';
 import {Info} from 'lucide-react';
-import type {Station,BestMatchModelInfo,RadarNowcast,StationAnalysisField} from './weather';
+import type {Station,BestMatchModelInfo,RadarNowcast} from './weather';
+import type {StationAnalysisField} from './sourceQuality';
 import {stationFieldObservationUsable} from './weather';
 
 export type ParameterQuality={
