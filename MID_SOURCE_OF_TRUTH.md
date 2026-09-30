@@ -19,6 +19,17 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.130 · Gesundheitswetter-Sichtbarkeit und Primärnavigation
+
+Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == c1db743f987cdf7ced34f9ff8c65b7c87d69fc5e` (v0.9.85.129).
+
+Der reale Smartphone-Screenshot zeigte, dass „Gesundheitswetter“ trotz vorhandener React-Struktur nicht sichtbar war. Ursache war ein CSS-Split-Vertrag aus Arbeitspaket I: Für `settings-split-navigation` wurde die gesamte `.settings-section` ausgeblendet und ausschließlich die Modulreihenfolge eingeblendet. Damit verschwanden sowohl `settings-health-weather` als auch die navigationseigenen optionalen Inhaltsmodule. v0.9.85.130 zeigt im Navigation-Tab gezielt nur diese navigationseigenen Optionslisten und anschließend die Modulreihenfolge. Pollenflug bleibt separat und persistent ein-/ausschaltbar.
+
+Für die Bottom-Bar wird die bestehende Untermodul-Persistenz um einen expliziten Primärbereich ergänzt: Aktuell, Heute, Vorhersage, Karten und Mehr. Das ist besonders für „Mehr“ erforderlich, weil ein Drawer kein DashboardModuleId besitzt und durch `mid:last-dashboard-section:v1` allein nicht wiederhergestellt werden konnte. Explizite `#mid-section-…`-Deep-Links werden beim Start nicht mehr durch die Modul-Initialisierung entfernt und behalten Vorrang vor dem gerätelokal gespeicherten Bereich.
+
+Required Regression: `scripts/test-health-settings-primary-navigation-0985130.mjs`.
+Implementierungsnachweis: `docs/implementation/MID_HEALTH_SETTINGS_PRIMARY_NAV_0.9.85.130.md`.
+
 ## v0.9.85.129 · Gesundheitswetter/Pollen kompakt
 
 Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == 0007f5e4b0e155308950f8b098aeac0bffd9ceee` (v0.9.85.128).

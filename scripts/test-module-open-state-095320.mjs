@@ -11,6 +11,7 @@ assert.match(app,/const\[open,setOpen\]=useState\(\(\)=>storedModuleOpen\(id,def
 assert.match(app,/persistModuleOpen\(id,resolved\)/,'CollapsibleModule muss Änderungen synchron im zentralen State-Übergang speichern');
 assert.match(app,/window\.addEventListener\('storage',sync\)/,'Modulzustand soll tabübergreifend konsistent bleiben');
 assert.doesNotMatch(app,/if\(w&&location\.hash\)window\.setTimeout\(handleHistory,80\)/,'Ein alter URL-Hash darf beim App-Neustart kein Modul erneut aufklappen');
-assert.match(app,/history\.replaceState\(null,'',`\$\{location\.pathname\}\$\{location\.search\}`\)/,'Stale Dashboard-Hash muss bei jedem Bootstrap entfernt werden');
+assert.doesNotMatch(app,/function initializeModuleOpenContract\(\)\{[^}]*location\.hash/,'Der Modul-Offenvertrag darf explizite Dashboard-Deep-Links nicht mehr beim Bootstrap löschen');
+assert.match(app,/hashId&&DASHBOARD_MODULE_DEFINITIONS\.some\(item=>item\.id===hashId\)\?hashId:/,'Explizite Dashboard-Deep-Links müssen beim Startup-Restore Vorrang haben');
 for(const id of ['mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget']) assert.match(app,new RegExp(`id=\\"${id}\\"[\\s\\S]{0,180}defaultOpen=\\{false\\}`),`${id} muss denselben standardmäßig geschlossenen Hauptmodulvertrag verwenden`);
 console.log('Einheitliches persistentes Öffnen/Schließen großer Dashboard-Module geprüft.');
