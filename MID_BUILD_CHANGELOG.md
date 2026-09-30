@@ -1,3 +1,13 @@
+## v0.9.85.129 · 2026-09-30 · Gesundheitswetter/Pollen kompakt
+
+- Reales iPhone-Screenshot-Follow-up: mehrspaltiger Pollen-Kopf entfernt; Region/Quelle/Aktualität als kompakte Metazeile; Defaultzustand auf heutige Relevanz reduziert.
+- 3-Tage-Progressive-Disclosure: erste Detailstufe maximal vier relevante Pollenarten, nach höchster 3-Tage-Stufe priorisiert; vollständige 8-Arten-Matrix erst nach explizitem „Alle anzeigen“.
+- DWD-Fachkorrektur: siebenstufige Belastungssemantik 0 / 0–1 / 1 / 1–2 / 2 / 2–3 / 3 wird robust aus den gelieferten Text-/Codewerten abgeleitet. „keine bis gering“ ist nicht mehr gleich 0.
+- Responsive: keine 420-px-Mindestbreite der Pollentabelle; vier Spalten passen in mobile Karten, Detailblock erhält Bottom-Bar-Scrollabstand.
+- DWD-WFS, Regionen, Vorhersagewerte und Worker-Datenlogik bleiben unverändert.
+- Replit-Follow-up: zweiter Detailschalter auf ≥44 px angehoben; erste Detailstufe bleibt auch bei acht relevanten Arten auf maximal vier Zeilen begrenzt.
+- Source-Gate-Nachgang: CSS-Budget ohne Grenzerhöhung korrigiert; nur nicht notwendige Scrollbar-/Overscroll- und Metazeilen-Deklarationen entfernt.\n- Regression: `scripts/test-pollen-compact-dwd-levels-0985129.mjs`.
+
 ## v0.9.85.128 · 2026-09-30 · Screenshot-/Security-Nachgang und Gesundheitswetter
 
 - CodeQL #92–#98: unkontrollierte Textausgabe und dynamische Browser-Testausdrücke entfernt; CDP-Argumente werden strukturiert übergeben und der lokale Chromium-Port wird nicht mehr aus einer Datei in eine Netzwerkadresse übernommen.

@@ -19,6 +19,19 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.129 · Gesundheitswetter/Pollen kompakt
+
+Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == 0007f5e4b0e155308950f8b098aeac0bffd9ceee` (v0.9.85.128).
+
+Der reale Smartphone-Sichtvergleich zeigte zwei voneinander getrennte Probleme: Die Pollenkarte war durch den großen Kopf und die vollständige 8×3-Tabelle unverhältnismäßig hoch; gleichzeitig wurde die amtliche DWD-Zwischenstufe „keine bis gering“ in der kompakten Zusammenfassung fälschlich wie „keine Belastung“ behandelt. Ursache war eine UI-Zuordnung, die nur vier Textstufen kannte, obwohl der DWD-Pollenflug-Gefahrenindex sieben Legendenstufen 0, 0–1, 1, 1–2, 2, 2–3 und 3 verwendet.
+
+v0.9.85.129 führt daher eine progressive Informationshierarchie ein: Standardzustand mit heutiger Belastung, Region und DWD-Stand; erste Detailstufe mit maximal vier in den nächsten drei Tagen relevanten Pollenarten, nach höchster 3-Tage-Stufe priorisiert; vollständige acht Arten erst nach expliziter Nutzeraktion. Die DWD-WFS-Datenquelle, die 27 Gebiete, die acht Pollenarten und die gelieferten Vorhersagewerte werden nicht verändert.
+
+Die fachliche Auswertung erkennt die DWD-Zwischenstufen einschließlich sprachlicher Varianten und nutzt `POLLENINT` nur als defensiven Fallback. Damit wird „keine bis gering“ als Zwischenstufe > 0 priorisiert, ohne amtliche Werte neu zu berechnen.
+
+Required Regression: `scripts/test-pollen-compact-dwd-levels-0985129.mjs`.
+Implementierungsnachweis: `docs/implementation/MID_POLLEN_COMPACT_DWD_LEVELS_0.9.85.129.md`.
+
 ## v0.9.85.128 · MID 18.2.20 Screenshot-/Security-Nachgang und Gesundheitswetter
 
 Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `479d6d55322dc33f03aad868e35f2d6ee0f9197f` (v0.9.85.127). Dieser Wartungsbuild löst die im GitHub-Audit sichtbaren CodeQL-/Dependency-/Action-Befunde soweit kompatibel und fail-closed auf und ordnet Pollenflug als eigenes optionales Gesundheitswetter-Modul ein.
