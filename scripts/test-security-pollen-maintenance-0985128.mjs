@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,pollen,pollenCss,visual,lockRaw,canonicalWorkflow,activeWorkflow,policy,pkgRaw,baselineRaw]=await Promise.all([
+const [app,pollen,pollenCss,visual,lockRaw,canonicalWorkflow,activeWorkflow,workflowSync,policy,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/PollenForecast.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midPollen.css',import.meta.url),'utf8'),
@@ -9,6 +9,7 @@ const [app,pollen,pollenCss,visual,lockRaw,canonicalWorkflow,activeWorkflow,poli
  readFile(new URL('../package-lock.json',import.meta.url),'utf8'),
  readFile(new URL('../ci/github/workflows/mid-ruc-preprocess.yml',import.meta.url),'utf8'),
  readFile(new URL('../.github/workflows/mid-ruc-preprocess.yml',import.meta.url),'utf8'),
+ readFile(new URL('./sync-github-workflows.mjs',import.meta.url),'utf8'),
  readFile(new URL('../MID_DEPENDENCY_UPGRADE_POLICY.md',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
@@ -34,6 +35,7 @@ assert.match(brace?.resolved||'',/brace-expansion-5\.0\.12\.tgz$/);
 const actionPin='actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1';
 assert.ok(canonicalWorkflow.includes(actionPin),'Kanonischer RUC-Workflow muss download-artifact v8.0.1 SHA-gepinnt verwenden.');
 assert.equal(activeWorkflow,canonicalWorkflow,'Aktiver und kanonischer RUC-Workflow müssen identisch bleiben.');
+assert.ok(workflowSync.includes("DOWNLOAD_ARTIFACT_V8_SHA='3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'"),'Expliziter Workflow-Sync muss download-artifact v8 dauerhaft pinnen.');
 assert.ok(policy.includes('Wartungsreview 30.09.2026 · v0.9.85.128'));
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 assert.equal(pkg.version,'0.9.85.128');
