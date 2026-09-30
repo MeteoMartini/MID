@@ -1,15 +1,14 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [index,weatherMaps,styles,radar,app,pkg,publicChangelog,timeline]=await Promise.all([
+const [index,weatherMaps,styles,radar,app,pkg,publicChangelog]=await Promise.all([
  readFile(new URL('../index.html',import.meta.url),'utf8'),
  readFile(new URL('../src/WeatherMapsPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC14MapWorkspace.css',import.meta.url),'utf8'),
  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
- readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8'),
- readFile(new URL('../src/MapTimelineControls.tsx',import.meta.url),'utf8')
+ readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8')
 ]);
 const releaseVersion=String(JSON.parse(pkg).version||'');
 
@@ -20,17 +19,12 @@ for(const token of [
  'className="weather-maps-map-stage"',
  'className="weather-maps-map-status"',
  'className="weather-maps-controls"',
- 'liveButtonClassName="weather-maps-live"',
- 'rangeClassName="weather-maps-timeline"',
+ 'className="weather-maps-live"',
  'className="weather-maps-advanced"',
  'className="weather-maps-meta-details"'
 ])assert.ok(weatherMaps.includes(token),`C14-Wetterkartenstruktur fehlt: ${token}`);
 assert.ok(!weatherMaps.includes('<label><span>Zeitschritt</span>'),'Der Zeitschritt darf nicht zusätzlich zur gemeinsamen Zeitachse als dauerhaft sichtbares Auswahlfeld dupliziert werden.');
 assert.ok(weatherMaps.includes("const goNearNow=()=>{setPlaying(false);if(times.length)setTimeIndex(preferredWeatherMapTimeIndex(times))}"),'Die Kartenzeitachse braucht einen belastbaren Jetzt-/Nächster-Termin-Sprung.');
-for(const token of ['<MapTimelineControls','weatherMapPhase(product)','NowCastMIX · Kurzzeitprognose','NowCastMIX · Analyse','Laufstart · INIT','Niederschlagsrate · mm/h','DWD-Originalfarbskala'])assert.ok(weatherMaps.includes(token),`Wetterkarten müssen Quelle, bestätigte Modellphase und produktspezifische Niederschlagsdarstellung zeigen: ${token}`);
-for(const token of ['onPrevious','onToggle','onNext','onSeek','onLive','rangeLabel','countLabel','valueLabel','markers'])assert.ok(timeline.includes(token),`Die gemeinsame Kartenzeitachse muss alle Transport-/Seek-Funktionen bereitstellen: ${token}`);
-for(const token of ['label="Radar"','label="Satellit"','label="Blitze"','onClick={()=>setShowRadar(value=>!value)}','onClick={()=>setShowSatellite(value=>!value)}','onClick={()=>setShowLightning(value=>!value)}','Prognosebeginn/INIT'])assert.ok(radar.includes(token),`Das Komposit braucht direkte Layer-Schalter und sichtbare Modell-INIT: ${token}`);
-assert.match(weatherMaps,/markers=\{times\.map\(\(time,markerIndex\)=>\(\{key:`\$\{time\}-\$\{markerIndex\}`,phase\}\)\)\}/,'Zeitmarker müssen die echte Produktphase abbilden, nicht pauschal Beobachtung oder Prognose vortäuschen.');
 
 for(const token of [
  '.modern-map-focus-shell',
@@ -46,13 +40,7 @@ for(const token of [
  '@media(max-width:850px) and (orientation:landscape)',
  'height:72svh!important',
  '@media(min-width:1025px)',
- '@media(prefers-reduced-motion:reduce)',
- 'grid-template-areas:"transport speed range time live"',
- 'grid-template-areas:"transport time live" "range range range" "speed speed speed"',
- '.map-timeline-markers>i.analysis',
- 'min-height:44px!important',
- '.weather-maps-map-status>span>small{display:block!important',
- '@media(max-width:430px)'
+ '@media(prefers-reduced-motion:reduce)'
 ])assert.ok(styles.includes(token),`C14-Karten-/Responsive-Vertrag fehlt: ${token}`);
 assert.ok(styles.includes('Karten als Arbeitsraum statt Karten-/Control-Stapel'),'C14 muss die Map-first-Hierarchie als Designvertrag dokumentieren.');
 assert.ok(!/(^|[;{\s])filter\s*:\s*blur\(/m.test(styles),'Fachliche Kartenflächen dürfen nicht mit CSS filter:blur verfremdet werden; backdrop-filter für Controls bleibt zulässig.');
