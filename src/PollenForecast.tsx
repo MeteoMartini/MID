@@ -7,9 +7,28 @@ type PollenForecastEntry={regionId:number,regionName:string,pollenType:string,po
 type PollenResponse={regions:PollenRegion[],pollenTypes:string[],forecasts:PollenForecastEntry[],provider?:string,source?:string,version?:string,checkedAt?:string,error?:string};
 
 const POLLEN_LABELS:Record<string,string>={Hasel:'Hasel',Erle:'Erle',Esche:'Esche',Birke:'Birke','Gräser':'Gräser',Roggen:'Roggen',Beifuss:'Beifuß',Ambrosia:'Ambrosia'};
-const POLLEN_VALUE_LABELS:Record<string,string>={'keine':'keine','schwach':'schwach','mäßig':'mäßig','stark':'stark'};
-const POLLEN_VALUE_INT:Record<string,number>={'keine':0,'schwach':1,'mäßig':2,'stark':3};
+const POLLEN_CODE_LABELS:Record<string,string>={'0':'keine','0-1':'keine bis gering','1':'gering','1-2':'gering bis mittel','2':'mittel','2-3':'mittel bis hoch','3':'hoch'};
 const POLLEN_LEVEL_COLORS:string[]=['var(--param-wind)','var(--param-sunshine)','var(--param-temperature-max)','var(--param-precipitation-storm)'];
+function pollenSeverity(entry:PollenForecastEntry|undefined):number{
+  if(!entry)return-1;
+  const raw=String(entry.pollenValue||'').trim().toLocaleLowerCase('de-DE').replace(/[–—]/g,'-').replace(/\s+/g,' ');
+  if(raw==='-1')return-1;
+  if(raw==='0'||raw==='keine'||raw==='keine belastung')return 0;
+  if(raw==='0-1'||raw.includes('keine bis gering'))return.5;
+  if(raw==='1'||raw==='schwach'||raw==='gering'||raw==='geringe belastung')return 1;
+  if(raw==='1-2'||raw.includes('gering bis mittel')||raw.includes('geringe bis mittlere'))return 1.5;
+  if(raw==='2'||raw==='mäßig'||raw==='maessig'||raw==='mittel'||raw==='mittlere belastung')return 2;
+  if(raw==='2-3'||raw.includes('mittel bis hoch')||raw.includes('mittlere bis hohe'))return 2.5;
+  if(raw==='3'||raw==='stark'||raw==='hoch'||raw==='hohe belastung')return 3;
+  const numeric=Number(entry.pollenInt);
+  return Number.isFinite(numeric)?Math.max(0,Math.min(3,numeric)):0;
+}
+function pollenLabel(entry:PollenForecastEntry|undefined):string{
+  if(!entry)return'–';
+  const raw=String(entry.pollenValue||'').trim();
+  return POLLEN_CODE_LABELS[raw]||raw||'–';
+}
+function pollenLevel(entry:PollenForecastEntry|undefined):number{return Math.max(0,Math.min(3,Math.ceil(pollenSeverity(entry))))}
 
 function pointInPolygon(lat:number,lon:number,coordinates:any[]):boolean{
   const rings=Array.isArray(coordinates[0])&&Array.isArray(coordinates[0][0])?coordinates:[coordinates];
@@ -38,6 +57,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const [data,setData]=useState<PollenResponse|null>(null);
   const [error,setError]=useState<string|null>(null);
   const [expanded,setExpanded]=useState(false);
+  const [showAll,setShowAll]=useState(false);
   const [loading,setLoading]=useState(false);
   const fetchedRef=useState({done:false})[0];
 
@@ -64,10 +84,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   if(loading){
     return(
       <section className="card pollen-forecast pollen-compact" data-mid-view="pollen">
-        <header className="forecast-entry-head forecast-entry-head-pollen">
-          <span><CloudSun size={16}/><small>Gesundheitswetter</small><strong>Pollenflug</strong></span>
-          <em>DWD</em>
-        </header>
+        <div className="pollen-summary pollen-summary-static"><span className="pollen-summary-title"><CloudSun size={17}/><span><small>Gesundheitswetter</small><strong>Pollenflug</strong></span></span><span className="pollen-status">DWD</span></div>
         <div className="pollen-loading"><small>Pollenflug-Daten werden geladen …</small></div>
       </section>
     );
@@ -107,76 +124,51 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
     return dt.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
   });
 
-  const todayDate=allDates[0];
+  const forecastDates=allDates.slice(0,3);
+  const todayDate=forecastDates[0];
   const todayEntries=sortedTypes.map(pt=>{
     const entries=byPollenType.get(pt)||[];
     return{type:pt,label:POLLEN_LABELS[pt]||pt,entry:entries.find(e=>e.forecastDate===todayDate)};
   }).filter(x=>x.entry);
 
-  const rankedTodayEntries=todayEntries.map(item=>({...item,level:POLLEN_VALUE_INT[item.entry!.pollenValue.toLowerCase()]??0}))
-    .filter(item=>item.level>0)
-    .sort((a,b)=>b.level-a.level||sortedTypes.indexOf(a.type)-sortedTypes.indexOf(b.type));
-  const hasActive=rankedTodayEntries.length>0;
-  const visibleTodayEntries=rankedTodayEntries.slice(0,4),hiddenActiveCount=Math.max(0,rankedTodayEntries.length-visibleTodayEntries.length);
-  const detailId='pollen-forecast-detail';
+  const rankedTodayEntries=todayEntries.map(item=>({...item,severity:pollenSeverity(item.entry)}))
+    .filter(item=>item.severity>0)
+    .sort((a,b)=>b.severity-a.severity||sortedTypes.indexOf(a.type)-sortedTypes.indexOf(b.type));
+  const visibleTodayEntries=rankedTodayEntries.slice(0,3),hiddenActiveCount=Math.max(0,rankedTodayEntries.length-visibleTodayEntries.length);
+  const relevantTypes=sortedTypes.filter(type=>(byPollenType.get(type)||[]).some(entry=>forecastDates.includes(entry.forecastDate)&&pollenSeverity(entry)>0));
+  const detailTypes=showAll?sortedTypes:relevantTypes;
+  const strongestToday=rankedTodayEntries[0],todayStatus=strongestToday?pollenLabel(strongestToday.entry):'keine Belastung';
+  const statusLevel=strongestToday?pollenLevel(strongestToday.entry):0;
+  const detailId='pollen-forecast-detail',allToggleId='pollen-forecast-all';
+  const checkedAt=data.checkedAt?new Date(data.checkedAt):null;
+  const checkedLabel=checkedAt&&!Number.isNaN(checkedAt.getTime())?checkedAt.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'unbekannt';
+  const toggleExpanded=()=>setExpanded(current=>{if(current)setShowAll(false);return!current});
 
   return(
     <section className={`card pollen-forecast pollen-compact${expanded?' expanded':''}`} data-mid-view="pollen">
-      <button type="button" className="forecast-entry-head forecast-entry-head-pollen pollen-disclosure" onClick={()=>setExpanded(e=>!e)} aria-expanded={expanded} aria-controls={detailId}>
-        <span><CloudSun size={16}/><small>Gesundheitswetter</small><strong>Pollenflug</strong></span>
-        <em>{region.name}{hasActive?'':' · keine Belastung'}</em>
+      <button type="button" className="pollen-summary pollen-disclosure" onClick={toggleExpanded} aria-expanded={expanded} aria-controls={detailId}>
+        <span className="pollen-summary-title"><CloudSun size={17}/><span><small>Gesundheitswetter</small><strong>Pollenflug</strong></span></span>
+        <span className={`pollen-status pollen-level-${statusLevel}`}>Heute · {todayStatus}</span>
         <ChevronDown size={17} className={expanded?'rotated':''} aria-hidden="true"/>
       </button>
-      {hasActive?(
-        <div className="pollen-chips" aria-label="Aktive Pollenbelastung heute">
-          {visibleTodayEntries.map(({type,label,entry,level})=>{
-            const valueLower=entry!.pollenValue.toLowerCase(),valLabel=POLLEN_VALUE_LABELS[valueLower]||entry!.pollenValue;
-            return(
-              <span key={type} className={`pollen-chip pollen-level-${level}`} title={`${label}: ${valLabel}`}>
-                <span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[level]}} aria-hidden="true"/>
-                {label}<b>{valLabel}</b>
-              </span>
-            );
-          })}
-          {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount} weitere</span>}
-        </div>
-      ):(
-        <div className="pollen-chips pollen-clear-summary" aria-label="Heute keine Pollenbelastung">
-          <span className="pollen-chip pollen-level-0"><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[0]}} aria-hidden="true"/><b>Heute</b><span>keine Belastung</span></span>
-        </div>
-      )}
-      {expanded&&(
-        <div id={detailId} className="pollen-grid" role="table" aria-label="Pollenflug-Vorhersage für heute, morgen und übermorgen">
-          <div className="pollen-grid-header" role="row">
-            <span role="columnheader">Pollenart</span>
-            {dateLabels.map((label,i)=><span key={i} role="columnheader">{label}</span>)}
+      <div className="pollen-meta"><span className="pollen-region" title={region.name}>{region.name}</span><span>DWD · Stand {checkedLabel}</span></div>
+      {rankedTodayEntries.length>0&&<div className="pollen-chips" aria-label="Aktive Pollenbelastung heute">
+        {visibleTodayEntries.map(({type,label,entry,severity})=><span key={type} className={`pollen-chip pollen-level-${Math.ceil(severity)}`} title={`${label}: ${pollenLabel(entry)}`}><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[Math.ceil(severity)]}} aria-hidden="true"/>{label}<b>{pollenLabel(entry)}</b></span>)}
+        {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount}</span>}
+      </div>}
+      {expanded&&<div id={detailId} className="pollen-detail">
+        <header className="pollen-detail-head"><strong>3-Tage-Ausblick</strong><small>{relevantTypes.length?relevantTypes.length===1?'1 relevante Pollenart':`${relevantTypes.length} relevante Pollenarten`:'keine Belastung'}</small></header>
+        {detailTypes.length>0?(
+          <div className="pollen-grid" role="table" aria-label="Pollenflug-Vorhersage für heute, morgen und übermorgen">
+            <div className="pollen-grid-header" role="row"><span role="columnheader">Pollenart</span>{forecastDates.map((date,i)=><span key={date} role="columnheader">{dateLabels[allDates.indexOf(date)]||`Tag ${i+1}`}</span>)}</div>
+            {detailTypes.map(pollenType=>{
+              const entries=byPollenType.get(pollenType)||[],sortedEntries=forecastDates.map(date=>entries.find(e=>e.forecastDate===date));
+              return <div key={pollenType} className="pollen-grid-row" role="row"><span role="rowheader" className="pollen-type-label">{POLLEN_LABELS[pollenType]||pollenType}</span>{sortedEntries.map((entry,i)=>entry?<span key={i} role="cell" className={`pollen-value pollen-level-${pollenLevel(entry)}`} title={pollenLabel(entry)}><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[pollenLevel(entry)]}} aria-hidden="true"/><span>{pollenLabel(entry)}</span></span>:<span key={i} role="cell" className="pollen-value pollen-na">–</span>)}</div>;
+            })}
           </div>
-          {sortedTypes.map(pollenType=>{
-            const entries=byPollenType.get(pollenType)||[];
-            const sortedEntries=allDates.map(date=>entries.find(e=>e.forecastDate===date));
-            return(
-              <div key={pollenType} className="pollen-grid-row" role="row">
-                <span role="rowheader" className="pollen-type-label">{POLLEN_LABELS[pollenType]||pollenType}</span>
-                {sortedEntries.map((entry,i)=>{
-                  if(!entry)return<span key={i} role="cell" className="pollen-value pollen-na">–</span>;
-                  const valueLower=entry.pollenValue.toLowerCase();
-                  const intLevel=POLLEN_VALUE_INT[valueLower]??0;
-                  const label=POLLEN_VALUE_LABELS[valueLower]||entry.pollenValue;
-                  return(
-                    <span key={i} role="cell" className={`pollen-value pollen-level-${intLevel}`}>
-                      <span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[intLevel]}}/>
-                      {label}
-                    </span>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
-      )}
-      <footer className="pollen-source">
-        <small>Quelle: {data.provider||'DWD'} · Stand {data.checkedAt?new Date(data.checkedAt).toLocaleString('de-DE'):'unbekannt'}</small>
-      </footer>
+        ):<div className="pollen-three-day-clear">In den nächsten drei Tagen keine Pollenbelastung.</div>}
+        {sortedTypes.length>relevantTypes.length&&<button id={allToggleId} type="button" className="pollen-all-toggle" onClick={()=>setShowAll(value=>!value)} aria-pressed={showAll}>{showAll?'Nur relevante Pollenarten':'Alle 8 Pollenarten anzeigen'}</button>}
+      </div>}
     </section>
   );
 }
