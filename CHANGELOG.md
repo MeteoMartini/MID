@@ -2,7 +2,7 @@
 
 ## Gesundheitswetter kompakter
 - Pollenflug erscheint im Standardzustand jetzt als sehr kompakter Gesundheitswetter-Block mit heutiger Belastung, Region und DWD-Stand.
-- Direkt sichtbar sind nur Pollenarten mit tatsächlicher heutiger Belastung. Die erste geöffnete Detailstufe zeigt nur Pollenarten, die in den nächsten drei Tagen relevant werden.
+- Direkt sichtbar sind nur Pollenarten mit tatsächlicher heutiger Belastung. Die erste geöffnete Detailstufe zeigt höchstens vier Pollenarten mit der höchsten relevanten 3‑Tage-Belastung.
 - Die vollständige Übersicht aller acht DWD-Pollenarten wird erst nach „Alle 8 Pollenarten anzeigen“ eingeblendet.
 - Die mobile 3-Tage-Ansicht passt ohne abgeschnittene dritte Spalte oder erzwungene horizontale Mindestbreite in die Karte.
 

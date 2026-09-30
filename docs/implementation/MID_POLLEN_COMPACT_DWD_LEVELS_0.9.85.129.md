@@ -15,8 +15,8 @@ Die MID-WFS-Anbindung bleibt unverändert. Die UI wertet vorhandene `PARAMETER_V
 
 ## UI-Vertrag
 1. Standardzustand ca. 80–120 px: Titel, heutige höchste Stufe, Region, DWD-Stand; nur heute relevante Pollen als kleine Chips.
-2. Erste Öffnung: 3-Tage-Tabelle nur für Pollenarten mit einer Stufe > 0 in mindestens einem der drei Tage.
-3. Zweite bewusste Aktion „Alle 8 Pollenarten anzeigen“: vollständige DWD-Matrix.
+2. Erste Öffnung: maximal vier Pollenarten mit einer Stufe > 0 in mindestens einem der drei Tage, priorisiert nach höchster 3-Tage-Stufe.
+3. Zweite bewusste Aktion „Alle 8 Pollenarten anzeigen“: vollständige DWD-Matrix; das Touchziel bleibt ≥44 px.
 4. Mobile Tabelle ohne künstliche 420-px-Mindestbreite; vier Spalten werden innerhalb der Karte verteilt.
 5. Haupt-Disclosure ≥44 px, Tastaturfokus, aria-expanded/aria-controls; Scrollabstand zur festen Bottom-Bar.
 6. Light/Dark/High-Contrast verwenden bestehende MID-Flächen/Parameterfarben; keine neue Farblogik.
@@ -31,3 +31,7 @@ Die MID-WFS-Anbindung bleibt unverändert. Die UI wertet vorhandene `PARAMETER_V
 
 ## Abgrenzung
 Keine Änderung an DWD-WFS, Worker-Pollenabruf, Regionen, Vorhersagewerten, Warnlogik oder anderen Wettermodulen.
+
+
+## Replit-Review-Follow-up
+Der erste read-only Replit-Check auf Commit 5ab0b636… bestätigte die statischen DWD-/Rasterverträge, meldete aber zwei P1-Punkte: der zweite Detailschalter war nur 36 px hoch und bei acht relevanten Arten hätte die erste Detailstufe bereits alle acht Zeilen gezeigt. Commit d4a3943c… behebt beides ohne Änderung der DWD-Datenlogik: ≥44 px Touchziel und maximale Vierer-Auswahl vor der vollständigen Matrix.
