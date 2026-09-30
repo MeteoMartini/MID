@@ -546,7 +546,8 @@
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-security-pollen-maintenance-0985128.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
-    "scripts/test-health-weather-settings-visible-0985130.mjs"
+    "scripts/test-health-weather-settings-visible-0985130.mjs",
+    "scripts/test-last-primary-navigation-persistence-0985130.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1006,7 +1007,8 @@
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-security-pollen-maintenance-0985128.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
-    "scripts/test-health-weather-settings-visible-0985130.mjs"
+    "scripts/test-health-weather-settings-visible-0985130.mjs",
+    "scripts/test-last-primary-navigation-persistence-0985130.mjs"
   ],
   "requiredFiles": [
     "scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs",
@@ -1857,7 +1859,8 @@
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-security-pollen-maintenance-0985128.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
-    "scripts/test-health-weather-settings-visible-0985130.mjs"
+    "scripts/test-health-weather-settings-visible-0985130.mjs",
+    "scripts/test-last-primary-navigation-persistence-0985130.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2399,7 +2402,8 @@
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-security-pollen-maintenance-0985128.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
-    "scripts/test-health-weather-settings-visible-0985130.mjs"
+    "scripts/test-health-weather-settings-visible-0985130.mjs",
+    "scripts/test-last-primary-navigation-persistence-0985130.mjs"
   ],
   "version": "0.9.85.130",
   "updatedAt": "2026-09-30T12:45:00.000Z",
