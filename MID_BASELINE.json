@@ -1754,7 +1754,9 @@
     "docs/handoffs/MID-0.9.84.1-UEBERGABE.md",
     "docs/implementation/MID_IMPLEMENTATION_0.9.76.33.md",
     "docs/implementation/MID_IMPLEMENTATION_0.9.84.62.md",
-    "docs/audits/MID_QUALITY_AUDIT_0.8.20.0.md"
+    "docs/audits/MID_QUALITY_AUDIT_0.8.20.0.md",
+    "ci/github/workflows/unit-coverage.yml",
+    ".github/workflows/unit-coverage.yml"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -2068,7 +2070,8 @@
     "scripts/test-branch-cleanup-safety-0985127.mjs",
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "ci/github/workflows/branch-cleanup.yml",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "ci/github/workflows/unit-coverage.yml"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",

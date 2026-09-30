@@ -12,3 +12,7 @@ Basis: `mid-stable@81d2bfb9d872ba97f4e2a3fec82e92a6f8aefab0` (formal v0.9.85.126
 - Vitest/V8-Coverage wird ergänzend eingeführt, ohne die bestehende Regression-Suite zu ersetzen.
 
 Meteorologische Fachlogik, Warnschwellen, Modellfusion und Datenquellen werden nicht verändert.
+
+## Vitest-/Coverage-Pilot
+
+Vitest 5.0.2 und @vitest/coverage-v8 5.0.2 werden zunächst exakt versioniert über `npm exec --package` ausschließlich für die neue Unit-/Coverage-CI-Schicht geladen. Sie werden bewusst noch nicht als Root-DevDependencies in den produktiven Lockfilepfad aufgenommen, solange dafür kein reproduzierbar erzeugter und vollständig geprüfter Lockfile-Diff vorliegt. Der bestehende `npm ci`-/Regression-/Build-Gate bleibt unverändert fail-closed. Als erste Unit-Fläche wird die reine UTCI-Fachfunktion geprüft; bestehende .mjs-Regressionen werden nicht ersetzt.

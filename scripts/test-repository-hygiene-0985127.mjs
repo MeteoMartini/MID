@@ -4,7 +4,7 @@ const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'
 const baseline=JSON.parse(await readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 assert.equal(pkg.version,'0.9.85.127');
 assert.equal(baseline.releaseVersion,pkg.version);
-assert.equal(baseline.version,pkg.version);
+assert.equal(baseline.version,pkg.version);\nassert.match(pkg.scripts['test:unit']||'',/vitest@5\.0\.2/);\nassert.match(pkg.scripts['test:coverage']||'',/@vitest\/coverage-v8@5\.0\.2/);
 for(const path of ['docs/handoffs/MID-0.9.84.1-UEBERGABE.md','docs/implementation/MID_IMPLEMENTATION_0.9.76.33.md','docs/implementation/MID_IMPLEMENTATION_0.9.84.62.md','docs/audits/MID_QUALITY_AUDIT_0.8.20.0.md'])await access(new URL('../'+path,import.meta.url));
 const rootNames=await readdir(new URL('../',import.meta.url));
 for(const stale of ['MID-0.9.84.1-UEBERGABE.md','MID_IMPLEMENTATION_0.9.76.33.md','MID_IMPLEMENTATION_0.9.84.62.md','MID_QUALITY_AUDIT_0.8.20.0.md'])assert.ok(!rootNames.includes(stale),stale+' darf nicht im Root verbleiben.');

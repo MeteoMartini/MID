@@ -1,0 +1,53 @@
+name: MID Unit Coverage
+run-name: Vitest Unit-/Coverage-Pilot
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-unit-coverage-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-coverage:
+    name: Vitest 5 + V8 Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: MID-Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+
+      - name: Vitest-Unit-Pilot ausführen
+        shell: bash
+        run: npm run test:unit
+
+      - name: V8-Coverage erzeugen
+        shell: bash
+        run: npm run test:coverage
+
+      - name: Coverage-Bericht sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-vitest-coverage
+          path: coverage/
+          if-no-files-found: warn
+          retention-days: 14
