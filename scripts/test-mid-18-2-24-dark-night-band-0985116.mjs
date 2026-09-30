@@ -23,8 +23,8 @@ assert.ok(!app.includes('stopOpacity=".2"'),'Aktuell-Skybar darf Nachtband-Deckk
 assert.ok(cockpit.includes("const nightBandOpacity='var(--mid-night-band-opacity,.2)'"),'ForecastCockpit muss denselben Theme-Vertrag für Now90 und 24-h-Profil verwenden.');
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
-assert.equal(pkg.version,'0.9.85.126');
 assert.equal(baseline.releaseVersion,pkg.version);
+assert.equal(baseline.version,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite']){
  assert.ok((baseline[key]||[]).includes('scripts/test-mid-18-2-24-dark-night-band-0985116.mjs'),`scripts/test-mid-18-2-24-dark-night-band-0985116.mjs fehlt in ${key}`);
 }

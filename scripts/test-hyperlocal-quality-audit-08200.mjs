@@ -8,7 +8,7 @@ const [weather,app,pkg,baseline,audit]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8'),
- readFile(new URL('../MID_QUALITY_AUDIT_0.8.20.0.md',import.meta.url),'utf8')
+ readFile(new URL('../docs/audits/MID_QUALITY_AUDIT_0.8.20.0.md',import.meta.url),'utf8')
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};

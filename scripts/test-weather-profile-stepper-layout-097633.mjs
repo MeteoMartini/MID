@@ -10,7 +10,7 @@ const styles=read('src/styles.css');
 const pkg=JSON.parse(read('package.json'));
 const baseline=JSON.parse(read('MID_BASELINE.json'));
 const changelog=read('CHANGELOG.md');
-const implementation=read('MID_IMPLEMENTATION_0.9.76.33.md');
+const implementation=read('docs/implementation/MID_IMPLEMENTATION_0.9.76.33.md');
 
 assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron bleiben.');
 assert.ok(changelog.includes('# v0.9.76.33'),'Changelog-Eintrag v0.9.76.33 fehlt.');

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.126",
+  "releaseVersion": "0.9.85.127",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -539,7 +539,11 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
     "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
-    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
+    "scripts/test-repository-hygiene-0985127.mjs",
+    "scripts/test-contract-registry-0985127.mjs",
+    "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-knmi-workflow-consolidation-0985127.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -992,7 +996,11 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
     "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
-    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
+    "scripts/test-repository-hygiene-0985127.mjs",
+    "scripts/test-contract-registry-0985127.mjs",
+    "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-knmi-workflow-consolidation-0985127.mjs"
   ],
   "requiredFiles": [
     "scripts/test-mid-18-2-16-mountain-redesign-0985108.mjs",
@@ -1732,7 +1740,23 @@
     "src/forecastFusion.ts",
     "src/forecastLocalAnchor.ts",
     "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
-    "MID_DARK_NIGHT_BANDS_0.9.85.126.md"
+    "MID_DARK_NIGHT_BANDS_0.9.85.126.md",
+    "docs/implementation/MID_REPOSITORY_MAINTENANCE_0.9.85.127.md",
+    "contracts/index.json",
+    "contracts/registry.schema.json",
+    "contracts/README.md",
+    "scripts/test-repository-hygiene-0985127.mjs",
+    "scripts/test-contract-registry-0985127.mjs",
+    "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-knmi-workflow-consolidation-0985127.mjs",
+    "tests/unit/utci.test.ts",
+    "vitest.config.ts",
+    "docs/handoffs/MID-0.9.84.1-UEBERGABE.md",
+    "docs/implementation/MID_IMPLEMENTATION_0.9.76.33.md",
+    "docs/implementation/MID_IMPLEMENTATION_0.9.84.62.md",
+    "docs/audits/MID_QUALITY_AUDIT_0.8.20.0.md",
+    "ci/github/workflows/unit-coverage.yml",
+    ".github/workflows/unit-coverage.yml"
   ],
   "requiredTests": [
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -1820,7 +1844,11 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
     "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
-    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
+    "scripts/test-repository-hygiene-0985127.mjs",
+    "scripts/test-contract-registry-0985127.mjs",
+    "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-knmi-workflow-consolidation-0985127.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -2034,7 +2062,16 @@
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-dependency-review-098595.mjs",
-    "tools/ruc/native_cadence.py"
+    "tools/ruc/native_cadence.py",
+    "contracts/index.json",
+    "contracts/registry.schema.json",
+    "scripts/test-repository-hygiene-0985127.mjs",
+    "scripts/test-contract-registry-0985127.mjs",
+    "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-knmi-workflow-consolidation-0985127.mjs",
+    "ci/github/workflows/branch-cleanup.yml",
+    "vitest.config.ts",
+    "ci/github/workflows/unit-coverage.yml"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -2346,10 +2383,14 @@
     "scripts/test-mid-18-2-10-now90-night-098598.mjs",
     "scripts/test-mid-18-2-20-map-seven-day-alignment-0985112.mjs",
     "scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
-    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs"
+    "scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
+    "scripts/test-repository-hygiene-0985127.mjs",
+    "scripts/test-contract-registry-0985127.mjs",
+    "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-knmi-workflow-consolidation-0985127.mjs"
   ],
-  "version": "0.9.85.126",
-  "updatedAt": "2026-09-28T20:20:00.000Z",
+  "version": "0.9.85.127",
+  "updatedAt": "2026-09-30T00:00:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",
@@ -2471,7 +2512,12 @@
     "src/midDesign.css",
     "src/MidDesign.tsx",
     "src/ForecastCockpit.tsx",
-    "MID_DARK_NIGHT_BANDS_0.9.85.126.md"
+    "MID_DARK_NIGHT_BANDS_0.9.85.126.md",
+    "docs/implementation/MID_REPOSITORY_MAINTENANCE_0.9.85.127.md",
+    "contracts/index.json",
+    "ci/github/workflows/branch-cleanup.yml",
+    "scripts/sync-github-workflows.mjs",
+    "vitest.config.ts"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

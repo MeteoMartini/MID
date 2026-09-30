@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.midwx.app/contracts/registry.schema.json",
+  "title": "MID Contract Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "registryVersion",
+    "releaseVersion",
+    "normativeFormat",
+    "policy",
+    "contracts"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mid.contract-registry.v1"
+    },
+    "registryVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "releaseVersion": {
+      "type": "string",
+      "pattern": "^0\\.9\\.\\d+\\.\\d+$"
+    },
+    "normativeFormat": {
+      "const": "markdown"
+    },
+    "policy": {
+      "type": "string",
+      "minLength": 20
+    },
+    "contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path",
+          "status",
+          "format"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^MID_.*CONTRACT.*\\.md$"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "historical"
+            ]
+          },
+          "format": {
+            "const": "markdown"
+          }
+        }
+      }
+    }
+  }
+}

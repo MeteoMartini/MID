@@ -19,6 +19,12 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.127 · Repository-Hygiene und Versionssynchronisierung
+
+Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `81d2bfb9d872ba97f4e2a3fec82e92a6f8aefab0` (formal v0.9.85.126). Die in PR #208 integrierten Pollen-/Hook-/Qualitätsindikator-Korrekturen sind dort bereits enthalten, die Versionsspiegel waren jedoch nicht auf v0.9.85.127 angehoben. Dieser Build synchronisiert Version, Baseline, README und Changelogs und ergänzt Repository-/Governance-Härtungen. Meteorologische Fachlogik, Warnschwellen, Modellfusion und Datenquellen bleiben unverändert.
+
+Required Regressions: `scripts/test-repository-hygiene-0985127.mjs`, `scripts/test-contract-registry-0985127.mjs`, `scripts/test-branch-cleanup-safety-0985127.mjs`, `scripts/test-knmi-workflow-consolidation-0985127.mjs`. Detaildokument: `docs/implementation/MID_REPOSITORY_MAINTENANCE_0.9.85.127.md`.
+
 ## v0.9.85.116 · MID 18.2.24 deutlichere Nachtstunden im Dark-Design
 
 Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `218e6d40960c78672dd975159f9eb49973f65ddc` (v0.9.85.115). Die gemeinsame Nachtstundenkennzeichnung verwendet nun eine Theme-spezifische Deckkraft: Light bleibt bei 0,20, Dark wird auf 0,32 angehoben. Die Änderung gilt konsistent für 12-h-Temperaturtrend/Skybar, Now90-Skybar und 24-h-Wetterprofil. Sonnengeometrie, weiche Dämmerungsübergänge, Wetterfarben, meteorologische Schwellen und Datenquellen bleiben unverändert.
