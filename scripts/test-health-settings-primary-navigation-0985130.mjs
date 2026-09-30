@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,settingsCss,pkgRaw,baselineRaw]=await Promise.all([
+const [app,settingsCss,responsiveCss,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC18WorkPackageI.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/midC18I7ResponsiveFixes.css',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
@@ -25,6 +26,8 @@ for(const token of [
 assert.ok(settingsCss.includes('.settings-split-navigation>.settings-primary-options,.settings-split-navigation>.dashboard-module-settings{display:block!important}'),'Navigation muss Gesundheits-/Inhaltsoptionen und Modulreihenfolge gemeinsam zeigen.');
 assert.ok(settingsCss.includes('.settings-option-list:not(.settings-content-modules):not(.settings-health-weather)'),'Nur generische Optionliste darf im Navigation-Split verborgen werden.');
 assert.ok(!settingsCss.includes('.settings-split-navigation>.settings-section,.settings-split-navigation>.time-display-settings'),'Navigation darf nicht mehr sämtliche Settings-Sections pauschal ausblenden.');
+assert.ok(!responsiveCss.includes('.settings-split-navigation>.settings-primary-options,'),'Später geladene Responsive-CSS darf Gesundheitswetter nicht erneut ausblenden.');
+assert.ok(app.indexOf('settings-health-weather')<app.indexOf('settings-content-modules'),'Gesundheitswetter muss vor den übrigen optionalen Inhaltsmodulen stehen.');
 
 // Primärnavigation: explizit und unabhängig vom Untermodul persistieren.
 for(const token of [

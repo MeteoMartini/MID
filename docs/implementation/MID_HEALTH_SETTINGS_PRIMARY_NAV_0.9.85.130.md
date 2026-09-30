@@ -31,3 +31,7 @@ v0.9.85.130 ergänzt `mid:last-primary-navigation-area:v1` für `current|today|f
 
 ## Abgrenzung
 Keine Änderung an DWD-Pollendaten, Warnungen, Wettermodellen, Worker-Fachlogik oder Datenquellen.
+
+
+## CSS-Kaskadennachgang
+Die erste Quellprüfung identifizierte zusätzlich eine spätere Override-Regel in `midC18I7ResponsiveFixes.css`, die `.settings-primary-options` im Navigation-Split erneut ausblendete. Diese Regel wird ebenfalls korrigiert. Die Regression liest deshalb beide CSS-Schichten und schützt die effektive Kaskade, nicht nur die frühere WorkPackage-I-Datei.
