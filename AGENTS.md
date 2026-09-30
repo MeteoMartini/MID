@@ -9,11 +9,11 @@ These rules are binding for repository changes.
 
 ## Trust zones and safe write workflow
 - Never push agent changes directly to `main` or `mid-stable`.
-- ChatGPT/Codex integration work uses only short-lived `chatgpt/<topic>` or `codex/<topic>` branches from the verified stable base.
-- Replit is an unprivileged UI/design workbench. ChatGPT is the sole tasking authority for MID work sent to Replit; Replit must not originate MID product/design work or broaden a ChatGPT-issued task independently. Replit handoffs use only `replit/<topic>` branches and must follow `replit.md` and `MID_REPLIT_HANDOFF_CONTRACT.md`.
+- ChatGPT/Codex integration work uses only short-lived `chatgpt/v<version>-<topic>` or `codex/v<version>-<topic>` branches from the verified stable base.
+- Replit is an unprivileged UI/design workbench. ChatGPT is the sole tasking authority for MID work sent to Replit; Replit must not originate MID product/design work or broaden a ChatGPT-issued task independently. Replit handoffs use only `replit/v<version>-<topic>` branches and must follow `replit.md` and `MID_REPLIT_HANDOFF_CONTRACT.md`.
 - Replit must never create or update `chatgpt/*`, `codex/*`, `main` or `mid-stable`, open a direct production PR, merge a PR, publish, deploy, or promote a release.
 - Persistent agent/governance instructions and release/CI configuration are maintained only through a trusted ChatGPT/Codex integration branch, never through a Replit handoff.
-- Preserve all existing release, WMO/DWD, responsive-design, provenance and security contracts unless the requested change explicitly updates them.
+- Before starting overlapping work, inspect open PRs and relevant agent/Replit branches; do not create parallel duplicate implementations.\n- Preserve all existing release, WMO/DWD, responsive-design, provenance and security contracts unless the requested change explicitly updates them.
 - Do not weaken a valid regression merely to make CI green. Update stale tests only when the production contract has intentionally changed and document why.
 
 ## Replit Git transport

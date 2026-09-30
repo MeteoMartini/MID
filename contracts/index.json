@@ -1,0 +1,231 @@
+{
+  "schema": "mid.contract-registry.v1",
+  "registryVersion": 1,
+  "releaseVersion": "0.9.85.127",
+  "normativeFormat": "markdown",
+  "policy": "Markdown contracts remain normative; this registry is the machine-readable index and must cover every root MID_*CONTRACT*.md file.",
+  "contracts": [
+    {
+      "id": "MID_24H_PROFILE_STORY_AXIS_CONTRACT",
+      "path": "MID_24H_PROFILE_STORY_AXIS_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_APPLE_PRIVACY_PERMISSION_CONTRACT",
+      "path": "MID_APPLE_PRIVACY_PERMISSION_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_APPLE_PUSH_BACKGROUND_CONTRACT",
+      "path": "MID_APPLE_PUSH_BACKGROUND_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_CHATGPT_GITHUB_CONTRACT",
+      "path": "MID_CHATGPT_GITHUB_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_COST_GOVERNANCE_CONTRACT",
+      "path": "MID_COST_GOVERNANCE_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_CROSS_PLATFORM_CONTRACT",
+      "path": "MID_CROSS_PLATFORM_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_DWD_RUC_PIPELINE_CONTRACT",
+      "path": "MID_DWD_RUC_PIPELINE_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_EVENT_LIFECYCLE_STARTUP_CONTRACT",
+      "path": "MID_EVENT_LIFECYCLE_STARTUP_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_EVENT_RECOMMENDATION_CONTRACT",
+      "path": "MID_EVENT_RECOMMENDATION_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_FORECAST_CONSISTENCY_CONTRACT",
+      "path": "MID_FORECAST_CONSISTENCY_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_HYPERLOCAL_ANALYSIS_CONTRACT",
+      "path": "MID_HYPERLOCAL_ANALYSIS_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_HYPERLOCAL_DOWNSCALING_CONTRACT",
+      "path": "MID_HYPERLOCAL_DOWNSCALING_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_IOS_26_27_DESIGN_CONTRACT",
+      "path": "MID_IOS_26_27_DESIGN_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_IOS_RESUME_LOCATION_CONTRACT",
+      "path": "MID_IOS_RESUME_LOCATION_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT",
+      "path": "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_KNMI_HARMONIE_EPS_DECODER_CONTRACT",
+      "path": "MID_KNMI_HARMONIE_EPS_DECODER_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT",
+      "path": "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_LOGO_ASSET_CONTRACT",
+      "path": "MID_LOGO_ASSET_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_MODEL_SOURCE_CONTRACT",
+      "path": "MID_MODEL_SOURCE_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_MOSMIX_FRESHNESS_CONTRACT",
+      "path": "MID_MOSMIX_FRESHNESS_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_NAVIGATION_BOTTOM_BAR_CONTRACT",
+      "path": "MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_NOTIFICATION_RELIABILITY_CONTRACT",
+      "path": "MID_NOTIFICATION_RELIABILITY_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_PARAMETER_COLOR_CONTRACT",
+      "path": "MID_PARAMETER_COLOR_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_PRECIPITATION_INTERVAL_CONTRACT",
+      "path": "MID_PRECIPITATION_INTERVAL_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT",
+      "path": "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_REPLIT_HANDOFF_CONTRACT",
+      "path": "MID_REPLIT_HANDOFF_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT",
+      "path": "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_SOLAR_SYMBOL_CONTRACT",
+      "path": "MID_SOLAR_SYMBOL_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_SOURCE_AUDIT_CONTRACT_0.9.84.75",
+      "path": "MID_SOURCE_AUDIT_CONTRACT_0.9.84.75.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_STATE_INTEGRITY_CONTRACT",
+      "path": "MID_STATE_INTEGRITY_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_TRAVEL_CENTER_FORECAST_FUSION_CONTRACT",
+      "path": "MID_TRAVEL_CENTER_FORECAST_FUSION_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_TYPESCRIPT_7_COMPATIBILITY_CONTRACT",
+      "path": "MID_TYPESCRIPT_7_COMPATIBILITY_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_UI_ARCHITECTURE_CONTRACT",
+      "path": "MID_UI_ARCHITECTURE_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_UPDATE_STARTUP_RECOVERY_CONTRACT",
+      "path": "MID_UPDATE_STARTUP_RECOVERY_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_WARNING_HYBRID_CONTRACT",
+      "path": "MID_WARNING_HYBRID_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_WEATHER_REGIME_COLOR_CONTRACT",
+      "path": "MID_WEATHER_REGIME_COLOR_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_WORKER_AUTO_DEPLOY_CONTRACT",
+      "path": "MID_WORKER_AUTO_DEPLOY_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    }
+  ]
+}

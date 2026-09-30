@@ -6,13 +6,13 @@ This contract makes AI-assisted MID changes durable in GitHub without bypassing 
 ## Roles and write boundaries
 - Before every change, read and compare current `main`, `mid-stable`, the MID version, and the applicable contracts.
 - Continue only from a verified current base. If provenance, SHA lineage, or permissions are unclear, stop fail-closed.
-- ChatGPT/Codex integration work uses short-lived `chatgpt/*` or `codex/*` branches created from the verified current `mid-stable`.
+- ChatGPT/Codex integration work uses short-lived `chatgpt/v<version>-<topic>` or `codex/v<version>-<topic>` branches created from the verified current `mid-stable`.
 - Never write directly to `main` or `mid-stable` from an agent branch.
 - Replit is an unprivileged UI/UX design workbench. It may hand off only through `replit/*` and may not change governance, release, Worker, native iOS, version, central build/deploy, `main`, `mid-stable`, `chatgpt/*`, or `codex/*`.
 - Existing rulesets, least-privilege permissions, signed contracts, release gates, and secrets must not be weakened to make a change pass.
 
 ## Normal source-first agent release
-1. Develop and test from the verified current `mid-stable` on an authorized `chatgpt/*` or `codex/*` branch.
+1. Check open PRs/relevant branches for overlapping work, then develop and test from the verified current `mid-stable` on an authorized `chatgpt/v<version>-<topic>` or `codex/v<version>-<topic>` branch.
 2. Open a non-draft source pull request against `main`.
 3. Do **not** commit or transport `MID-professional-replacement.zip` in the normal agent pull request.
 4. The `MID ChatGPT/Codex Source-PR Gate` validates repository structure, lockfile/dependency integrity, production dependencies, production build, full regressions, the shared Web/iOS shell, and server-side packaging readiness.

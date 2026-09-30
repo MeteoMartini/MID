@@ -6,96 +6,131 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: 'Nur anzeigen, nicht löschen (dry-run)'
+        description: 'Nur anzeigen, nicht löschen'
         type: boolean
         default: true
       max-age-days:
-        description: 'Maximales Alter in Tagen (default 14)'
+        description: 'Mindestalter in Tagen'
         type: string
         default: '14'
 
+permissions:
+  contents: write
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: mid-branch-cleanup
+  cancel-in-progress: false
+
 jobs:
-  report-stale-branches:
-    name: Verwaiste Branches melden
+  cleanup:
+    name: Sicher zusammengeführte Alt-Branches bereinigen
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-      issues: write
+    timeout-minutes: 15
 
     steps:
-      - name: Stale Branches identifizieren
+      - name: Repository mit vollständiger Historie laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Alte Branches sicher prüfen und bereinigen
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ github.event.inputs.dry-run || 'true' }}
-          MAX_AGE_DAYS: ${{ github.event.inputs.max-age-days || '14' }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_DRY_RUN: ${{ inputs.dry-run || 'true' }}
+          MAX_AGE_DAYS: ${{ inputs.max-age-days || '14' }}
+        shell: bash
         run: |
-          echo "=== Branch Report (dry-run: $DRY_RUN, max-age: $MAX_AGE_DAYS days) ==="
-          echo ""
-          
-          # Get all branches with open PRs
-          OPEN_PR_BRANCHES=$(gh pr list --repo ${{ github.repository }} --state open --json headRefName --jq '.[].headRefName')
-          
-          # Get all branches
-          BRANCHES=$(gh api repos/${{ github.repository }}/branches --paginate --jq '.[].name')
-          
-          STALE=0
-          ACTIVE=0
-          PROTECTED=0
-          CUTOFF=$(date -u -d "$MAX_AGE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)
-          
-          echo "Cutoff date: $CUTOFF"
-          echo ""
-          echo "STALE BRANCHES (no open PR, older than $MAX_AGE_DAYS days):"
-          echo "---"
-          
-          while IFS= read -r branch; do
-            # Skip core branches
-            if [ "$branch" = "main" ] || [ "$branch" = "mid-stable" ]; then
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "schedule" ]; then
+            DRY_RUN=false
+          else
+            DRY_RUN="$INPUT_DRY_RUN"
+          fi
+          if ! [[ "$MAX_AGE_DAYS" =~ ^[0-9]+$ ]] || [ "$MAX_AGE_DAYS" -lt 7 ]; then
+            echo "::error::max-age-days muss eine ganze Zahl >= 7 sein."
+            exit 1
+          fi
+          CUTOFF="$(date -u -d "$MAX_AGE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ)"
+          git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*' --prune
+
+          deleted=0
+          candidates=0
+          protected_count=0
+          open_pr_count=0
+          recent=0
+          unique=0
+
+          while IFS= read -r branch_name; do
+            [ -n "$branch_name" ] || continue
+            case "$branch_name" in main|mid-stable) continue ;; esac
+
+            encoded="$(jq -rn --arg v "$branch_name" '$v|@uri')"
+            info="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${encoded}")"
+            is_protected="$(jq -r '.protected' <<<"$info")"
+            last_push="$(jq -r '.commit.commit.author.date // empty' <<<"$info")"
+
+            if [ "$is_protected" = "true" ]; then
+              protected_count=$((protected_count+1))
+              echo "PROTECTED  $branch_name"
               continue
             fi
-            
-            # Skip branches with open PRs
-            if echo "$OPEN_PR_BRANCHES" | grep -qx "$branch"; then
-              ACTIVE=$((ACTIVE + 1))
+
+            if [ "$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$branch_name" --json number --jq 'length')" -gt 0 ]; then
+              open_pr_count=$((open_pr_count+1))
+              echo "OPEN-PR    $branch_name"
               continue
             fi
-            
-            # Get branch last activity
-            LAST_PUSH=$(gh api "repos/${{ github.repository }}/branches/$branch" --jq '.commit.commit.author.date' 2>/dev/null || echo "")
-            
-            if [ -z "$LAST_PUSH" ]; then
+
+            if [ -z "$last_push" ] || [[ "$last_push" > "$CUTOFF" ]]; then
+              recent=$((recent+1))
               continue
             fi
-            
-            # Check if branch is older than cutoff
-            if [[ "$LAST_PUSH" < "$CUTOFF" ]]; then
-              echo "  $branch (last push: $LAST_PUSH)"
-              STALE=$((STALE + 1))
+
+            remote_ref="refs/remotes/origin/$branch_name"
+            if ! git show-ref --verify --quiet "$remote_ref"; then
+              echo "SKIP        $branch_name · Remote-Ref nicht lokal verfügbar"
+              continue
+            fi
+
+            if git merge-base --is-ancestor "$remote_ref" origin/main || git merge-base --is-ancestor "$remote_ref" origin/mid-stable; then
+              candidates=$((candidates+1))
+              echo "CANDIDATE   $branch_name · letzter Commit $last_push"
+              if [ "$DRY_RUN" != "true" ]; then
+                gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/$branch_name"
+                deleted=$((deleted+1))
+                echo "DELETED     $branch_name"
+              fi
             else
-              ACTIVE=$((ACTIVE + 1))
+              unique=$((unique+1))
+              echo "UNMERGED    $branch_name · einzigartige Commits bleiben erhalten"
             fi
-          done <<< "$BRANCHES"
-          
-          echo ""
-          echo "=== Summary ==="
-          echo "Stale branches: $STALE"
-          echo "Active branches: $ACTIVE"
-          
-          # Create issue if stale branches found
-          if [ "$STALE" -gt 0 ] && [ "$DRY_RUN" = "true" ]; then
-            echo ""
-            echo "Creating issue to track cleanup..."
-            gh issue create --repo ${{ github.repository }} \
-              --title "[Branch Cleanup] $STALE verwaiste Branches gefunden" \
-              --body "Der wöchentliche Branch-Cleanup-Check hat $STALE verwaiste Branches gefunden (älter als $MAX_AGE_DAYS Tage, ohne offene PRs).
+          done < <(gh api "repos/${GITHUB_REPOSITORY}/branches" --paginate --jq '.[].name')
 
-          Diese Branches können manuell gelöscht oder per Workflow-Dispatch mit dry-run=false bereinigt werden.
+          {
+            echo "### Branch Cleanup"
+            echo
+            echo "- Modus: `$([ "$DRY_RUN" = "true" ] && echo dry-run || echo cleanup)`"
+            echo "- Altersschwelle: $MAX_AGE_DAYS Tage"
+            echo "- sichere Löschkandidaten: $candidates"
+            echo "- tatsächlich gelöscht: $deleted"
+            echo "- geschützt und nur gemeldet: $protected_count"
+            echo "- mit offenem PR: $open_pr_count"
+            echo "- noch zu jung: $recent"
+            echo "- ungemergte/einzigartige Arbeit: $unique"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-          \`\`\`
-          $STALE stale branches found
-          $ACTIVE active branches
-          \`\`\`
-          " \
-              --label "branch-cleanup" || echo "Issue creation skipped"
+          if [ "$unique" -gt 0 ]; then
+            title="[Branch Cleanup] $unique alte Branches mit einzigartigen Commits"
+            existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search '"[Branch Cleanup]" in:title' --json number --jq '.[0].number // empty')"
+            body="Der sichere Branch-Cleanup hat $unique alte, ungeschützte Branches ohne offenen PR gefunden, deren Head nicht vollständig in main oder mid-stable enthalten ist. Sie wurden nicht gelöscht. Geschützte Agent-/Replit-Branches werden grundsätzlich nur gemeldet. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+            else
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+            fi
           fi
