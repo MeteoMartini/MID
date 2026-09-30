@@ -1,3 +1,13 @@
+## v0.9.85.130 · 2026-09-30 · Gesundheitswetter sichtbar + letzte Hauptansicht wiederherstellen
+
+- Screenshot-Nachgang „Inhalte & Navigation“: Gesundheitswetter war im JSX vorhanden, wurde aber durch die Split-View-CSS-Regel des Navigationsbereichs ausgeblendet. Der Bereich ist nun eine eigenständige sichtbare Settings-Sektion.
+- Pollenflug bleibt über einen einzigen Schalter unter Gesundheitswetter optional und gerätelokal persistent.
+- Hauptnavigation: exaktes letztes Dashboard-Modul plus primäre Bottom-Bar-Gruppe (Aktuell/Heute/Vorhersage/Karten/Mehr) werden gemeinsam gesichert; Reload/PWA-Neustart können auf die primäre Gruppe zurückfallen.
+- Lifecycle: beim `pagehide` und beim Wechsel auf `visibilityState=hidden` wird die aktuell sichtbare Auswahl nochmals persistiert.
+- Gerätesynchronisation: der neue primäre Navigationsschlüssel bleibt ausdrücklich gerätelokal und wird nicht auf andere Geräte übertragen.
+- Required Regressions: `scripts/test-health-weather-settings-visible-0985130.mjs`, `scripts/test-last-primary-navigation-persistence-0985130.mjs`.
+- Keine Änderung an meteorologischen Datenquellen, DWD-Pollenwerten, Warnschwellen oder Prognoselogik.
+
 ## v0.9.85.129 · 2026-09-30 · Gesundheitswetter/Pollen kompakt
 
 - Reales iPhone-Screenshot-Follow-up: mehrspaltiger Pollen-Kopf entfernt; Region/Quelle/Aktualität als kompakte Metazeile; Defaultzustand auf heutige Relevanz reduziert.

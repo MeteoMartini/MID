@@ -1,15 +1,15 @@
-# MID v0.9.85.129
+# MID v0.9.85.130
 
-## Gesundheitswetter kompakter
-- Pollenflug erscheint im Standardzustand jetzt als sehr kompakter Gesundheitswetter-Block mit heutiger Belastung, Region und DWD-Stand.
-- Direkt sichtbar sind nur Pollenarten mit tatsächlicher heutiger Belastung. Die erste geöffnete Detailstufe zeigt höchstens vier Pollenarten mit der höchsten relevanten 3‑Tage-Belastung.
-- Die vollständige Übersicht aller acht DWD-Pollenarten wird erst nach „Alle 8 Pollenarten anzeigen“ eingeblendet.
-- Die mobile 3-Tage-Ansicht passt ohne abgeschnittene dritte Spalte oder erzwungene horizontale Mindestbreite in die Karte.
+## Einstellungen
+- Unter „Inhalte & Navigation“ ist **Gesundheitswetter** jetzt als eigener, sichtbar getrennter Bereich angeordnet.
+- **Pollenflug** kann dort direkt ein- oder ausgeschaltet werden. Der Zustand bleibt gerätelokal gespeichert.
+- Der bisherige, durch die Navigations-Split-Ansicht verdeckte Pollen-Schalter ist entfernt; es gibt nur noch einen eindeutigen Einstellort.
 
-## Fachliche Korrektur
-- DWD-Zwischenstufen wie „keine bis gering“, „gering bis mittel“ und „mittel bis hoch“ werden nicht mehr fälschlich als „keine Belastung“ behandelt.
-- Grundlage bleiben die sieben Belastungsstufen des amtlichen DWD-Pollenflug-Gefahrenindex; DWD-Datenquelle, Regionen und Vorhersagewerte bleiben unverändert.
+## Navigation
+- MID öffnet beim nächsten App-Aufruf wieder den zuletzt verwendeten Hauptbereich wie „Aktuell“, „Heute“, „Vorhersage“ oder „Karten“.
+- Neben dem exakten letzten Modul wird die primäre Bottom-Bar-Auswahl gerätelokal gespeichert. Beim Wechsel in den Hintergrund bzw. beim Schließen wird die sichtbare Auswahl nochmals gesichert.
+- Bei alten oder fehlenden Navigationswerten fällt MID kontrolliert auf „Aktuell“ zurück.
 
-## Bedienung
-- Der Hauptschalter bleibt mindestens 44 px hoch, tastaturbedienbar und mit aria-expanded/aria-controls versehen.
-- Region und Aktualitätsstand werden platzsparend dargestellt; geöffnete Details erhalten sicheren Abstand zur festen Bottom-Bar.
+## Unverändert
+- DWD-Pollenquelle, Pollenstufen, Wetterdaten, Warnlogik und Prognoseberechnung bleiben unverändert.
+- Es handelt sich um eine UI-/Persistenzkorrektur; eine reine Worker-Versionsspiegelung löst keinen fachlichen Worker-Deploy aus.

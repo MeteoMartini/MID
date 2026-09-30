@@ -19,6 +19,17 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.130 · MID 18.2.20 Gesundheitswetter sichtbar und Navigation persistent
+
+Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == c1db743f987cdf7ced34f9ff8c65b7c87d69fc5e` (v0.9.85.129).
+
+Der reale Smartphone-Screenshot zeigte, dass der bereits vorhandene Gesundheitswetter-/Pollen-Schalter unter „Inhalte & Navigation“ nicht sichtbar war. Ursache war keine fehlende Einstellung, sondern die Navigations-Split-View-CSS-Regel: Sie blendete generische nachgelagerte Settings-Sektionen aus. v0.9.85.130 macht Gesundheitswetter zu einer explizit von dieser Regel ausgenommenen, eigenständigen Settings-Sektion. Der alte verschachtelte Block wird entfernt, sodass Pollenflug genau einmal und eindeutig ein-/ausschaltbar ist.
+
+Parallel wird die frühere Wiedereinstiegssemantik der Hauptnavigation wieder abgesichert. `mid:last-dashboard-section:v1` bleibt die exakte Modulreferenz; zusätzlich speichert `mid:last-primary-navigation:v1` die sichtbare Hauptgruppe Aktuell/Heute/Vorhersage/Karten/Mehr. Bei fehlendem oder künftig ungültigem exaktem Modul kann MID damit auf die zuletzt gewählte primäre Ansicht zurückfallen. Beide Werte sind gerätelokal. Vor Suspend bzw. Schließen wird die aktuell sichtbare Auswahl erneut geschrieben.
+
+Required Regressions: `scripts/test-health-weather-settings-visible-0985130.mjs`, `scripts/test-last-primary-navigation-persistence-0985130.mjs`.
+Implementierungsnachweis: `docs/implementation/MID_HEALTH_WEATHER_NAVIGATION_PERSISTENCE_0.9.85.130.md`.
+
 ## v0.9.85.129 · Gesundheitswetter/Pollen kompakt
 
 Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == 0007f5e4b0e155308950f8b098aeac0bffd9ceee` (v0.9.85.128).
