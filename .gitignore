@@ -18,3 +18,8 @@ Thumbs.db
 *.tmp
 *.bak
 __pycache__/
+
+# Generated build/test output
+MID-professional-replacement.zip
+.vite/
+coverage/

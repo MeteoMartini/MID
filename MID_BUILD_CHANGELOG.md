@@ -1,3 +1,11 @@
+## MID v0.9.85.127 · 2026-09-30 · Repository-Hygiene, Versionssynchronisierung und Governance
+
+- Verifizierte Basis: `mid-stable/main 81d2bfb9d872ba97f4e2a3fec82e92a6f8aefab0`.
+- PR #208 war funktional bereits integriert, obwohl alle Versionsspiegel auf v0.9.85.126 verblieben; v0.9.85.127 synchronisiert den tatsächlichen Stand.
+- Historische, nicht mehr baselinegebundene Root-Dokumente werden nach `docs/` verschoben; eine Regression verhindert neues Root-Wachstum ab diesem Build.
+- Branch-Cleanup, Vertragsregistry, KNMI-Workflow-Audit sowie Vitest-/Coverage-Bootstrap werden im selben Wartungsstand regressionsgeschützt.
+- Keine Änderung an Wetterdaten, Warnschwellen oder meteorologischer Fachlogik.
+
 ## MID v0.9.85.107 · 2026-09-27 · Kompakte Vorhersage- und Bergwetteransichten
 
 - Basis und Source of Truth: mid-stable 17e5fa60e9bee26ec2485a08b33b4ebdc2bfe77e (v0.9.85.106).

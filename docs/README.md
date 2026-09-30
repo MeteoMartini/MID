@@ -42,3 +42,7 @@ wurden bewusst im Root belassen, um CI-Regressionen zu vermeiden.
 Eine schrittweise Migration der verbleibenden Dateien ist in späteren Releases geplant,
 erfordert jedoch die Aktualisierung der entsprechenden Baseline-Array-Einträge und
 Test-Skript-Referenzen im selben PR.
+
+## Root-Policy ab v0.9.85.127
+
+Neue versionsbezogene Implementierungs-, Audit-, Handoff- und Release-Artefakte werden direkt unter `docs/` angelegt. Bestehende Root-Dateien werden nur verschoben, wenn alle Baseline-/Test-/Workflow-Referenzen im selben PR atomar angepasst oder nachweislich nicht vorhanden sind. Ein automatisches nachträgliches Verschieben durch GitHub Actions findet bewusst nicht statt.
