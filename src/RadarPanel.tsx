@@ -28,7 +28,7 @@ import {
  type WmsProvider
 } from './CompositeData';
 import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,clamp,dominantBlendFrame,nearestAvailableFrameIndex,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
-import MapTimelineControls from './MapTimelineControls';
+import MapTimelineControls,{MapTimelineLiveButton,MapTimelineSpeedControl,MapTimelineTransport} from './MapTimelineControls';
 import {DEFAULT_RADAR_COLOR_TABLE,PRECIPITATION_TYPE_LEGEND,radarColorTable,type RadarColorTableId} from './radarColorTables';
 import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
 import {COMPOSITE_BASEMAPS as BASEMAPS,MODEL_LINE_MODES,readCompositeSettings as storedSettings,writeCompositeSettings,type BasemapId,type CompositeSettings,type CompositeViewMode,type ModelLineColor,type ModelLineMode,type ModelLineTone,type MotionTimeMode} from './compositeSettings';
@@ -333,8 +333,12 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  const selectedRadarTimeline=activeSource==='dwd'?dwdTimeline:activeSource==='opera'?operaTimeline:radarFrames,radarObservationTimes=selectedRadarTimeline.filter(frame=>frame.time<=referenceSeconds+90&&!('future'in frame&&frame.future===true)).map(frame=>frame.time),radarNowcastTimes=selectedRadarTimeline.filter(frame=>frame.time>referenceSeconds+90||('future'in frame&&frame.future===true)).map(frame=>frame.time),satelliteObservationTimes=(satelliteProduct?.latestOnly?[Math.floor(epochMs(satelliteProduct?.latestTime)/1000)]:satelliteTimeline.map(frame=>frame.time)).filter(time=>Number.isFinite(time)&&time<=referenceSeconds+90),modelForecastTimes=modelTimeline.map(frame=>frame.time);
   const satelliteTimelineSource=`${satelliteProvider==='dwd'?'DWD':'EUMETSAT'} · ${satelliteName}`,modelTimelineSource=modelData.provider||modelData.model||'MID-Modellkonturen';
   const timelineContract=useMemo(()=>{
-   const phaseSources={forecast:`${modelTimelineSource} · Modellprognose`};
-    if(viewMode==='satellite'||(viewMode==='radar'&&showSatellite&&!highResolution))return{phaseSources:{...phaseSources,observation:satelliteTimelineSource},source:viewMode==='radar'?'Radar + Satellit':'Satellit',observations:satelliteObservationTimes,forecasts:modelForecastTimes};
+    const phaseSources={forecast:`${modelTimelineSource} · Modellprognose`},radarTimelineSource=highResolution?'DWD Radar 250 m':activeSource==='dwd'?'DWD Radar':activeSource==='opera'?'OPERA Radar':'RainViewer Radar',satelliteTimelineContract={source:viewMode==='radar'?'Radar + Satellit':'Satellit',observations:satelliteObservationTimes};
+     if(viewMode==='satellite')return{phaseSources:{...phaseSources,observation:satelliteTimelineSource},source:satelliteTimelineContract.source,observations:showSatellite?satelliteTimelineContract.observations:[],forecasts:modelForecastTimes};
+    if(viewMode==='radar'&&showSatellite){
+      const radarObservations=showRadar?(highResolution?(pxFresh&&Number.isFinite(pxObservedMs)?[Math.floor(pxObservedMs/1000)]:[]):radarObservationTimes):[],radarNowcasts=showRadar&&!highResolution?radarNowcastTimes:[],observations=[...new Set([...radarObservations,...satelliteTimelineContract.observations])].sort((a,b)=>a-b),hasRadarFrames=radarObservations.length>0||radarNowcasts.length>0;
+      return{phaseSources:{...phaseSources,observation:hasRadarFrames?`${radarTimelineSource} + ${satelliteTimelineSource}`:satelliteTimelineSource,...(radarNowcasts.length?{nowcast:`${radarTimelineSource} · Nowcast`}:{})},source:hasRadarFrames?satelliteTimelineContract.source:'Satellit',observations,nowcasts:radarNowcasts,forecasts:modelForecastTimes};
+    }
    if(viewMode==='synoptic')return{source:modelTimelineSource,phaseSources,forecasts:modelForecastTimes};
    return{source:highResolution?'Radar 250 m':activeSource==='dwd'?'DWD Radar':activeSource==='opera'?'OPERA Radar':'RainViewer Radar',phaseSources,observations:highResolution&&Number.isFinite(pxObservedMs)?[Math.floor(pxObservedMs/1000)]:radarObservationTimes,nowcasts:highResolution?[]:radarNowcastTimes,forecasts:modelForecastTimes};
   },[viewMode,showSatellite,highResolution,activeSource,pxObservedMs,radarObservationTimes.join('|'),radarNowcastTimes.join('|'),satelliteObservationTimes.join('|'),modelForecastTimes.join('|'),satelliteTimelineSource,modelTimelineSource]);
@@ -451,7 +455,7 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
    <div className="composite-timeline-card" aria-label="Zeitleiste des Kompositbilds">
     <header><div><strong>Produktzeiten</strong></div><div className="composite-time-kinds"><span className="observation"><i/>Beobachtung {observationCount}</span>{nowcastCount>0&&<span className="projection"><i/>Nowcast {nowcastCount}</span>}{forecastCount>0&&<span className="forecast"><i/>Modell {forecastCount}</span>}</div></header>
     <MapTimelineControls
-     className="composite-timeline-controls"
+     className="composite-timeline-main composite-timeline-controls"
      transportClassName="radar-playback-buttons"
      stepButtonClassName="secondary"
      playButtonClassName="secondary play"
@@ -474,14 +478,17 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
      onSeek={nextIndex=>{setPlaying(false);setLiveFollow(false);setIndex(nextIndex)}}
      onLive={goLive}
      rangeLabel="Verfügbaren Produktstand auswählen"
-     countLabel={frames.length?`${index+1} / ${frames.length} bestätigte Zeitstände`:'Keine bestätigten Zeitstände'}
+     countLabel={null}
      valueLabel={relative}
-      detailLabel={<>{formatInZone(targetMs,timezone,{hour:'2-digit',minute:'2-digit'})} · {phaseLabel}{selectedFrame?.source?` · ${selectedFrame.source}`:''}{selectedFrame?.phase==='forecast'?` · Prognosebeginn/INIT ${modelData.wms?.referenceTime&&Number.isFinite(Date.parse(modelData.wms.referenceTime))?formatInZone(Date.parse(modelData.wms.referenceTime),timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'nicht verfügbar'}`:''}</>}
+      detailLabel={<>{frames.length?`${index+1} / ${frames.length} · `:''}{formatInZone(targetMs,timezone,{hour:'2-digit',minute:'2-digit'})} · {phaseLabel}{selectedFrame?.source?` · ${selectedFrame.source}`:''}{selectedFrame?.phase==='forecast'?` · Prognosebeginn/INIT ${modelData.wms?.referenceTime&&Number.isFinite(Date.parse(modelData.wms.referenceTime))?formatInZone(Date.parse(modelData.wms.referenceTime),timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'nicht verfügbar'}`:''}</>}
      liveLabel="Jetzt"
      playLabel="Komposit-Animation starten"
      pauseLabel="Komposit-Animation pausieren"
      markers={frames.map((frame,frameIndex)=>({key:`${frame.time}-${frameIndex}`,phase:frame.phase}))}
      future={future}
+     transportControl={<MapTimelineTransport className="radar-playback-buttons" stepButtonClassName="secondary" playButtonClassName="secondary play" index={index} count={frames.length} playing={playing} canAnimate={canAnimate} onPrevious={()=>step(-1)} onToggle={togglePlay} onNext={()=>step(1)} playLabel="Komposit-Animation starten" pauseLabel="Komposit-Animation pausieren"/>}
+     speedControl={<MapTimelineSpeedControl className="composite-playback-speed" playbackSeconds={playbackSeconds} onPlaybackSecondsChange={setPlaybackSeconds} options={[{value:4.8,label:'Langsam · 4,8 s'},{value:2.4,label:'Normal · 2,4 s'},{value:1.2,label:'Schnell · 1,2 s'}]}/>}
+     liveControl={<MapTimelineLiveButton className={`composite-live-button${liveFollow?' active':''}`} active={liveFollow} onClick={goLive} disabled={!frames.length} label="Jetzt"/>}
     />
    </div>
   {(playbackMessage||(playing&&!playbackReady))&&<p className="source composite-playback-status" role="status">{playbackMessage||'Bild wird geladen – Wiedergabe wartet.'}</p>}
