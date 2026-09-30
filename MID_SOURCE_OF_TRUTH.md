@@ -19,6 +19,16 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.128 · MID 18.2.20 Screenshot-/Security-Nachgang und Gesundheitswetter
+
+Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `479d6d55322dc33f03aad868e35f2d6ee0f9197f` (v0.9.85.127). Dieser Wartungsbuild löst die im GitHub-Audit sichtbaren CodeQL-/Dependency-/Action-Befunde soweit kompatibel und fail-closed auf und ordnet Pollenflug als eigenes optionales Gesundheitswetter-Modul ein.
+
+Die DWD-Pollenquelle, Pollenarten, Belastungsbegriffe und Vorhersagewerte werden fachlich nicht verändert. In der kompakten Aktuell-Ansicht werden lediglich vorhandene aktive Belastungen nach bestehender Stufe priorisiert; bei ausschließlich `keine` wird eine neutrale Zusammenfassung gezeigt. Die Detailansicht bleibt eine Drei-Tage-Darstellung der bereits gelieferten Werte. Amtliche Wetterwarnlogik, Modellfusion und übrige meteorologische Datenquellen bleiben unverändert.
+
+Sicherheitsseitig wird eine nichtnumerische externe Warnwahrscheinlichkeit nicht mehr ungeprüft sichtbar weitergereicht. Der visuelle Bergwetter-Test übergibt Selektoren und Theme-Werte strukturiert an CDP statt sie in ausführbaren Seitencode einzubauen; der Chromium-Debug-Port wird lokal reserviert statt aus `DevToolsActivePort` in eine URL übernommen. `brace-expansion` wird innerhalb der bestehenden kompatiblen 5.x-Transitivreihe auf 5.0.12 angehoben. Der getrennte `uuid@7.0.3`-Tooling-Befund wird nicht per inkompatiblem Override erzwungen.
+
+Required Regression: `scripts/test-security-pollen-maintenance-0985128.mjs`. Detaildokument: `docs/implementation/MID_SECURITY_POLLEN_MAINTENANCE_0.9.85.128.md`.
+
 ## v0.9.85.127 · Repository-Hygiene und Versionssynchronisierung
 
 Ausgangsbasis ist der vollständig veröffentlichte `mid-stable`-Commit `81d2bfb9d872ba97f4e2a3fec82e92a6f8aefab0` (formal v0.9.85.126). Die in PR #208 integrierten Pollen-/Hook-/Qualitätsindikator-Korrekturen sind dort bereits enthalten, die Versionsspiegel waren jedoch nicht auf v0.9.85.127 angehoben. Dieser Build synchronisiert Version, Baseline, README und Changelogs und ergänzt Repository-/Governance-Härtungen. Meteorologische Fachlogik, Warnschwellen, Modellfusion und Datenquellen bleiben unverändert.

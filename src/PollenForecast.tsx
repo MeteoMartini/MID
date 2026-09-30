@@ -113,31 +113,40 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
     return{type:pt,label:POLLEN_LABELS[pt]||pt,entry:entries.find(e=>e.forecastDate===todayDate)};
   }).filter(x=>x.entry);
 
-  const hasActive=todayEntries.some(x=>{if(!x.entry)return false;const v=POLLEN_VALUE_INT[x.entry.pollenValue.toLowerCase()]??0;return v>0;});
+  const rankedTodayEntries=todayEntries.map(item=>({...item,level:POLLEN_VALUE_INT[item.entry!.pollenValue.toLowerCase()]??0}))
+    .filter(item=>item.level>0)
+    .sort((a,b)=>b.level-a.level||sortedTypes.indexOf(a.type)-sortedTypes.indexOf(b.type));
+  const hasActive=rankedTodayEntries.length>0;
+  const visibleTodayEntries=rankedTodayEntries.slice(0,4),hiddenActiveCount=Math.max(0,rankedTodayEntries.length-visibleTodayEntries.length);
+  const detailId='pollen-forecast-detail';
 
   return(
     <section className={`card pollen-forecast pollen-compact${expanded?' expanded':''}`} data-mid-view="pollen">
-      <header className="forecast-entry-head forecast-entry-head-pollen" onClick={()=>setExpanded(e=>!e)} style={{cursor:'pointer'}}>
+      <button type="button" className="forecast-entry-head forecast-entry-head-pollen pollen-disclosure" onClick={()=>setExpanded(e=>!e)} aria-expanded={expanded} aria-controls={detailId}>
         <span><CloudSun size={16}/><small>Gesundheitswetter</small><strong>Pollenflug</strong></span>
         <em>{region.name}{hasActive?'':' · keine Belastung'}</em>
-      </header>
-      <div className="pollen-chips">
-        {todayEntries.map(({type,label,entry})=>{
-          if(!entry)return null;
-          const valueLower=entry.pollenValue.toLowerCase();
-          const intLevel=POLLEN_VALUE_INT[valueLower]??0;
-          const valLabel=POLLEN_VALUE_LABELS[valueLower]||entry.pollenValue;
-          return(
-            <span key={type} className={`pollen-chip pollen-level-${intLevel}`} title={`${label}: ${valLabel}`}>
-              <span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[intLevel]}}/>
-              {label}
-              {intLevel>0&&<b>{valLabel}</b>}
-            </span>
-          );
-        })}
-      </div>
+        <ChevronDown size={17} className={expanded?'rotated':''} aria-hidden="true"/>
+      </button>
+      {hasActive?(
+        <div className="pollen-chips" aria-label="Aktive Pollenbelastung heute">
+          {visibleTodayEntries.map(({type,label,entry,level})=>{
+            const valueLower=entry!.pollenValue.toLowerCase(),valLabel=POLLEN_VALUE_LABELS[valueLower]||entry!.pollenValue;
+            return(
+              <span key={type} className={`pollen-chip pollen-level-${level}`} title={`${label}: ${valLabel}`}>
+                <span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[level]}} aria-hidden="true"/>
+                {label}<b>{valLabel}</b>
+              </span>
+            );
+          })}
+          {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount} weitere</span>}
+        </div>
+      ):(
+        <div className="pollen-chips pollen-clear-summary" aria-label="Heute keine Pollenbelastung">
+          <span className="pollen-chip pollen-level-0"><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[0]}} aria-hidden="true"/><b>Heute</b><span>keine Belastung</span></span>
+        </div>
+      )}
       {expanded&&(
-        <div className="pollen-grid" role="table" aria-label="Pollenflug-Vorhersage">
+        <div id={detailId} className="pollen-grid" role="table" aria-label="Pollenflug-Vorhersage für heute, morgen und übermorgen">
           <div className="pollen-grid-header" role="row">
             <span role="columnheader">Pollenart</span>
             {dateLabels.map((label,i)=><span key={i} role="columnheader">{label}</span>)}
@@ -166,10 +175,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
         </div>
       )}
       <footer className="pollen-source">
-        <small>Quelle: {data.provider||'DWD'} · {data.checkedAt?new Date(data.checkedAt).toLocaleString('de-DE'):'unbekannt'}</small>
-        <button type="button" className="pollen-expand-toggle" onClick={()=>setExpanded(e=>!e)} aria-expanded={expanded}>
-          <ChevronDown size={14} className={expanded?'rotated':''}/>
-        </button>
+        <small>Quelle: {data.provider||'DWD'} · Stand {data.checkedAt?new Date(data.checkedAt).toLocaleString('de-DE'):'unbekannt'}</small>
       </footer>
     </section>
   );

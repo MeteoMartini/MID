@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.127",
+  "version": "0.9.85.128",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -516,7 +516,8 @@
     "test:mid-18-2-23-temperature-trend-mountain-12h": "node scripts/test-mid-18-2-23-temperature-trend-mountain-12h-0985115.mjs",
     "test:mid-18-2-24-dark-night-band": "node scripts/test-mid-18-2-24-dark-night-band-0985116.mjs",
     "test:unit": "npm exec --yes --package=vitest@5.0.2 -- vitest run --config vitest.config.ts",
-    "test:coverage": "npm exec --yes --package=vitest@5.0.2 --package=@vitest/coverage-v8@5.0.2 -- vitest run --config vitest.config.ts --coverage"
+    "test:coverage": "npm exec --yes --package=vitest@5.0.2 --package=@vitest/coverage-v8@5.0.2 -- vitest run --config vitest.config.ts --coverage",
+    "test:security-pollen-maintenance": "node scripts/test-security-pollen-maintenance-0985128.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

@@ -4,6 +4,7 @@ import {once} from 'node:events';
 import {access,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import {createServer} from 'node:net';
 import {fileURLToPath} from 'node:url';
 import {preview} from 'vite';
 
@@ -58,6 +59,24 @@ async function evaluate(expression){
  if(response.result.exceptionDetails)throw new Error(response.result.exceptionDetails.text||'Browser-Ausdruck fehlgeschlagen.');
  return response.result.result?.value;
 }
+async function callPageFunction(functionDeclaration,args=[]){
+ const globalResponse=await cdp('Runtime.evaluate',{expression:'globalThis'});
+ const objectId=globalResponse.result.result?.objectId;
+ if(!objectId)throw new Error('Browser-Kontext ist nicht verfügbar.');
+ const response=await cdp('Runtime.callFunctionOn',{objectId,functionDeclaration,arguments:args.map(value=>({value})),returnByValue:true,awaitPromise:true});
+ if(response.result.exceptionDetails)throw new Error(response.result.exceptionDetails.text||'Browser-Funktion fehlgeschlagen.');
+ return response.result.result?.value;
+}
+async function reserveLoopbackPort(){
+ return new Promise((resolve,reject)=>{
+  const listener=createServer();
+  listener.once('error',reject);
+  listener.listen(0,'127.0.0.1',()=>{
+   const address=listener.address(),port=typeof address==='object'&&address?address.port:null;
+   listener.close(error=>error?reject(error):port?resolve(port):reject(new Error('Kein lokaler Debug-Port verfügbar.')));
+  });
+ });
+}
 async function waitForValue(label,expression,predicate,timeout=45000){
  return waitFor(label,async()=>{
   const value=await evaluate(expression);
@@ -65,21 +84,21 @@ async function waitForValue(label,expression,predicate,timeout=45000){
  },timeout);
 }
 async function clickAt(selector,index=0){
- const point=await evaluate(`(()=>{const e=[...document.querySelectorAll(${JSON.stringify(selector)})][${index}];if(!e||e.disabled)return null;e.scrollIntoView({block:'center',inline:'center',behavior:'instant'});const r=e.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+ const point=await callPageFunction(`function(selector,index){const e=[...document.querySelectorAll(selector)][index];if(!e||e.disabled)return null;e.scrollIntoView({block:'center',inline:'center',behavior:'instant'});const r=e.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}`,[selector,index]);
  assert.ok(point,`Interaktionsziel fehlt oder ist deaktiviert: ${selector}[${index}]`);
  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0,clickCount:1});
 }
 async function clickButtonContaining(selector,text){
- const point=await evaluate(`(()=>{const e=[...document.querySelectorAll(${JSON.stringify(selector)})].find(button=>button.textContent.includes(${JSON.stringify(text)}));if(!e||e.disabled)return null;e.scrollIntoView({block:'center',inline:'center',behavior:'instant'});const r=e.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()`);
+ const point=await callPageFunction(`function(selector,text){const e=[...document.querySelectorAll(selector)].find(button=>button.textContent.includes(text));if(!e||e.disabled)return null;e.scrollIntoView({block:'center',inline:'center',behavior:'instant'});const r=e.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}`,[selector,text]);
  assert.ok(point,`Schaltfläche mit "${text}" fehlt oder ist deaktiviert.`);
  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0,clickCount:1});
 }
 async function clickIfClosed(selector){
- const expanded=await evaluate(`document.querySelector(${JSON.stringify(selector)})?.getAttribute('aria-expanded')||''`);
+ const expanded=await callPageFunction(`function(selector){return document.querySelector(selector)?.getAttribute('aria-expanded')||''}`,[selector]);
  if(expanded!=='true')await clickAt(selector);
 }
 async function navigateToForecast(){
@@ -100,14 +119,14 @@ async function navigateToMountain(){
  await waitForValue('Bereit gerenderte Bergansicht',readyExpression,Boolean,60000);
 }
 async function measureControls(selector){
- const measurement=await evaluate(`(()=>{
-  const selector=${JSON.stringify(selector)},visible=node=>{const r=node.getBoundingClientRect(),style=getComputedStyle(node);return node.getClientRects().length>0&&r.width>0&&r.height>0&&style.display!=='none'&&style.visibility!=='hidden'&&style.visibility!=='collapse'};
+ const measurement=await callPageFunction(`function(selector){
+  const visible=node=>{const r=node.getBoundingClientRect(),style=getComputedStyle(node);return node.getClientRects().length>0&&r.width>0&&r.height>0&&style.display!=='none'&&style.visibility!=='hidden'&&style.visibility!=='collapse'};
   return JSON.stringify([...document.querySelectorAll(selector)].filter(visible).map(node=>{
    node.scrollIntoView({block:'center',inline:'center',behavior:'instant'});
    const r=node.getBoundingClientRect(),hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
-   return{label:(node.innerText||node.getAttribute('aria-label')||node.className||'control').trim().replace(/\\\\s+/g,' ').slice(0,48),width:r.width,height:r.height,left:r.left,top:r.top,hit:hit===node||node.contains(hit),hitTarget:hit?hit.tagName.toLowerCase()+'.'+String(hit.className?.baseVal??hit.className??'').replace(/\\\\s+/g,'.'):'none'};
+   return{label:(node.innerText||node.getAttribute('aria-label')||node.className||'control').trim().replace(/\\s+/g,' ').slice(0,48),width:r.width,height:r.height,left:r.left,top:r.top,hit:hit===node||node.contains(hit),hitTarget:hit?hit.tagName.toLowerCase()+'.'+String(hit.className?.baseVal??hit.className??'').replace(/\\s+/g,'.'):'none'};
   }));
- })()`);
+ }`,[selector]);
  return JSON.parse(measurement);
 }
 async function setViewport(width,height,theme){
@@ -117,7 +136,7 @@ async function setViewport(width,height,theme){
   screenOrientation:{type:width>height?'landscapePrimary':'portraitPrimary',angle:width>height?90:0},
  });
   await cdp('Emulation.setTouchEmulationEnabled',width<=850?{enabled:true,maxTouchPoints:1}:{enabled:false});
- await evaluate(`(()=>{document.documentElement.dataset.theme=${JSON.stringify(theme)};localStorage.setItem('theme',${JSON.stringify(theme)});return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))})()`);
+ await callPageFunction(`function(theme){document.documentElement.dataset.theme=theme;localStorage.setItem('theme',theme);return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))) }`,[theme]);
 }
 async function scrollMountainToTop(){
  await evaluate(`(()=>{const e=document.querySelector('.mountain-ski');if(e)window.scrollTo(0,Math.max(0,e.getBoundingClientRect().top+window.scrollY-8))})()`);
@@ -311,13 +330,12 @@ try{
  const address=server.httpServer.address(),baseUrl=`http://127.0.0.1:${address.port}`;
  await waitFor('Vite-Produktionsvorschau',async()=>{const response=await fetch(baseUrl);return response.ok});
 
+ const remotePort=await reserveLoopbackPort();
  chrome=spawn(chromiumPath,[
   '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-  '--remote-debugging-port=0','--remote-allow-origins=*',`--user-data-dir=${profile}`,'about:blank',
+  `--remote-debugging-port=${remotePort}`,'--remote-allow-origins=*',`--user-data-dir=${profile}`,'about:blank',
  ],{stdio:'ignore'});
- const activePortPath=path.join(profile,'DevToolsActivePort');
- const remotePort=await waitFor('Chromium-CDP-Port',async()=>{try{return(await readFile(activePortPath,'utf8')).split('\n')[0]}catch{return null}});
- const browserInfo=await fetch(`http://127.0.0.1:${remotePort}/json/version`).then(response=>response.json());
+ const browserInfo=await waitFor('Chromium-CDP-Port',async()=>{try{const response=await fetch(`http://127.0.0.1:${remotePort}/json/version`);return response.ok?response.json():null}catch{return null}});
  socket=new WebSocket(browserInfo.webSocketDebuggerUrl);
  socket.addEventListener('message',event=>{
   let packet;
