@@ -46,3 +46,11 @@ Vor dem finalen Source-Gate wurde der Primärbereich zusätzlich gegen iOS/PWA-S
 - Fehlt oder ist `mid:last-dashboard-section:v1` ungültig, dient der gespeicherte Primärbereich als deterministischer Fallback für Aktuell / Heute / Vorhersage / Karten.
 - Der zuletzt sichtbare exakte Bereich wird bei `pagehide` und beim Wechsel in `visibilityState=hidden` erneut geschrieben.
 - `mid:last-primary-navigation-area:v1` ist explizit gerätelokal und wird nicht über den MID-Geräteabgleich auf andere Geräte übertragen.
+
+
+## Source-Gate-Nachgang
+Der erste vollständige Gate-Lauf fand drei veraltete Testannahmen:
+- zwei frühere State-Tests verlangten noch das pauschale Entfernen von `#mid-section-…`; dies widerspricht dem neuen, expliziten Deep-Link-Vorrang und wurde auf den strengeren Navigationsvertrag umgestellt;
+- der Pollenvertrag aus v0.9.85.129 war unnötig auf exakt diese Versionsnummer festgenagelt und wird nun vorwärtskompatibel ab v0.9.85.129 geprüft.
+
+Die Änderungen schwächen keine Produktprüfung ab: Modul-Offenzustand bleibt gerätelokal/default-closed, während ein expliziter Navigations-Deep-Link ausschließlich die Zielsektion bestimmt.
