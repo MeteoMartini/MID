@@ -6,6 +6,7 @@
 - Lifecycle: beim `pagehide` und beim Wechsel auf `visibilityState=hidden` wird die aktuell sichtbare Auswahl nochmals persistiert.
 - Gerätesynchronisation: der neue primäre Navigationsschlüssel bleibt ausdrücklich gerätelokal und wird nicht auf andere Geräte übertragen.
 - Required Regressions: `scripts/test-health-weather-settings-visible-0985130.mjs`, `scripts/test-last-primary-navigation-persistence-0985130.mjs`.
+- Source-Gate-Nachgang: CSS-Budget ohne Grenzerhöhung eingehalten; redundante explizite Sichtbarkeitsregel entfernt. Die v0.9.85.129-Pollenregression wurde als dauerhafter „ab .129“-Vertrag vorwärtskompatibel gemacht.
 - Keine Änderung an meteorologischen Datenquellen, DWD-Pollenwerten, Warnschwellen oder Prognoselogik.
 
 ## v0.9.85.129 · 2026-09-30 · Gesundheitswetter/Pollen kompakt
