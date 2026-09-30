@@ -9,7 +9,7 @@ const app=readFileSync('src/App.tsx','utf8');
 const pkg=JSON.parse(readFileSync('package.json','utf8'));
 const baseline=JSON.parse(readFileSync('MID_BASELINE.json','utf8'));
 const changelog=readFileSync('CHANGELOG.md','utf8');
-const implementation=readFileSync('MID_IMPLEMENTATION_0.9.84.62.md','utf8');
+const implementation=readFileSync('docs/implementation/MID_IMPLEMENTATION_0.9.84.62.md','utf8');
 
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);

@@ -6,7 +6,7 @@ const contract=readFileSync(new URL('../MID_CHATGPT_GITHUB_CONTRACT.md',import.m
 const workflow=readFileSync(new URL('../ci/github/workflows/chatgpt-pr-gate.yml',import.meta.url),'utf8');
 const sync=readFileSync(new URL('./sync-github-workflows.mjs',import.meta.url),'utf8');
 
-for(const token of ['mid-stable','codex/<topic>','MID-professional-replacement.zip','install-mid.yml'])assert.ok(agents.includes(token),`AGENTS.md muss ${token} absichern.`);
+for(const token of ['mid-stable','chatgpt/v<version>-<topic>','codex/v<version>-<topic>','MID-professional-replacement.zip','install-mid.yml'])assert.ok(agents.includes(token),`AGENTS.md muss ${token} absichern.`);
 assert.ok(contract.includes('Never write directly to `main` or `mid-stable`'),'Contract muss direkte Main-/Stable-Schreibzugriffe ausschließen.');
 assert.ok(contract.includes('source pull request against `main`'),'Contract muss den Source-PR-Weg festschreiben.');
 assert.ok(contract.includes('Do **not** commit or transport `MID-professional-replacement.zip`'),'Contract muss ZIP-im-PR im normalen Agentweg verbieten.');

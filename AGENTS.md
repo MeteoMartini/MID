@@ -13,7 +13,8 @@ These rules are binding for repository changes.
 - Replit is an unprivileged UI/design workbench. ChatGPT is the sole tasking authority for MID work sent to Replit; Replit must not originate MID product/design work or broaden a ChatGPT-issued task independently. Replit handoffs use only `replit/v<version>-<topic>` branches and must follow `replit.md` and `MID_REPLIT_HANDOFF_CONTRACT.md`.
 - Replit must never create or update `chatgpt/*`, `codex/*`, `main` or `mid-stable`, open a direct production PR, merge a PR, publish, deploy, or promote a release.
 - Persistent agent/governance instructions and release/CI configuration are maintained only through a trusted ChatGPT/Codex integration branch, never through a Replit handoff.
-- Before starting overlapping work, inspect open PRs and relevant agent/Replit branches; do not create parallel duplicate implementations.\n- Preserve all existing release, WMO/DWD, responsive-design, provenance and security contracts unless the requested change explicitly updates them.
+- Before starting overlapping work, inspect open PRs and relevant agent/Replit branches; do not create parallel duplicate implementations.
+- Preserve all existing release, WMO/DWD, responsive-design, provenance and security contracts unless the requested change explicitly updates them.
 - Do not weaken a valid regression merely to make CI green. Update stale tests only when the production contract has intentionally changed and document why.
 
 ## Replit Git transport
