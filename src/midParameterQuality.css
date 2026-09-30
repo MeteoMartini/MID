@@ -1,0 +1,82 @@
+/* Parameter-Qualitätsindikatoren – dezent am jeweiligen Parameter (P1 v0.9.85.127)
+   Ersetzt die separate DataQualityIndicator-Sektion auf «Aktuell». */
+
+.parameter-quality-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+  position: relative;
+  line-height: 1;
+  opacity: 0.72;
+  transition: opacity 0.15s;
+}
+.parameter-quality-indicator:hover,
+.parameter-quality-indicator:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+.parameter-quality-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.parameter-quality-source {
+  font-size: 0.67rem;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary, #8a9bb0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 72px;
+}
+
+/* Kleine Displays: nur Dot sichtbar; Beschriftung bleibt über title/aria-label zugänglich */
+@media (max-width: 480px) {
+  .parameter-quality-indicator > span.parameter-quality-source {
+    display: none;
+  }
+}
+
+.parameter-quality-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 320;
+  background: var(--surface-elevated, #1a2740);
+  border: 1px solid var(--border-subtle, #2a3a54);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 160px;
+  max-width: min(260px, 90vw);
+  box-shadow: 0 4px 16px rgba(0,0,0,.28);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-primary, #dde6f0);
+  pointer-events: none;
+  white-space: normal;
+}
+.parameter-quality-popover strong {
+  font-size: 0.78rem;
+}
+
+/* Eintrag in der Parameterzeile */
+.mid-param-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mid-param-row .parameter-quality-indicator {
+  margin-left: 4px;
+}
