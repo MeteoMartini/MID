@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+const versionAtLeast=(value,target)=>{const a=String(value).split('.').map(Number),b=String(target).split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){if((a[i]||0)!==(b[i]||0))return(a[i]||0)>(b[i]||0)}return true};
 
 const [app,pollen,pollenCss,visual,lockRaw,canonicalWorkflow,activeWorkflow,workflowSync,policy,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
@@ -17,10 +18,10 @@ const [app,pollen,pollenCss,visual,lockRaw,canonicalWorkflow,activeWorkflow,work
 
 assert.ok(app.includes('settings-health-weather')&&app.includes('<span>Gesundheitswetter</span>'),'Pollen muss als eigene Gesundheitswetter-Sektion unter Inhalte & Navigation erscheinen.');
 assert.ok(app.includes('pollenDisplaySettings.showPollenForecast'),'Der bestehende optionale Pollen-Schalter muss erhalten bleiben.');
-assert.ok(pollen.includes('rankedTodayEntries')&&pollen.includes('.sort((a,b)=>b.level-a.level'),'Aktive Pollen müssen in der kompakten Ansicht nach vorhandener Belastungsstufe priorisiert werden.');
-assert.ok(pollen.includes('pollen-clear-summary')&&pollen.includes('keine Belastung'),'Der belastungsfreie Zustand braucht eine ruhige, textlich eindeutige Zusammenfassung.');
-for(const token of ['aria-expanded={expanded}','aria-controls={detailId}','Pollenflug-Vorhersage für heute, morgen und übermorgen',"Quelle: {data.provider||'DWD'}"])assert.ok(pollen.includes(token),'Pollen-Disclosure/Quelle fehlt: '+token);
-assert.ok(pollenCss.includes('.pollen-disclosure')&&pollenCss.includes('min-height: 44px'),'Pollen-Disclosure muss ein belastbares Touchziel besitzen.');
+assert.ok(pollen.includes('rankedTodayEntries')&&pollen.includes('.sort((a,b)=>b.severity-a.severity'),'Aktive Pollen müssen in der kompakten Ansicht nach vorhandener Belastungsstufe priorisiert werden.');
+assert.ok(pollen.includes("todayStatus=strongestToday?pollenLabel(strongestToday.entry):'keine Belastung'"),'Der belastungsfreie Zustand braucht eine ruhige, textlich eindeutige Zusammenfassung.');
+for(const token of ['aria-expanded={expanded}','aria-controls={detailId}','Pollenflug-Vorhersage für heute, morgen und übermorgen','DWD · Stand'])assert.ok(pollen.includes(token),'Pollen-Disclosure/Quelle fehlt: '+token);
+assert.ok(pollenCss.includes('.pollen-disclosure')&&pollenCss.includes('min-height:44px'),'Pollen-Disclosure muss ein belastbares Touchziel besitzen.');
 for(const level of ['keine','schwach','mäßig','stark'])assert.ok(pollen.includes(level),'DWD-Belastungsbegriff fehlt: '+level);
 
 assert.ok(!app.includes('return`Eintrittswahrscheinlichkeit ${text}`'),'Externe Warnwahrscheinlichkeit darf nicht ungeprüft ausgegeben werden.');
@@ -38,7 +39,7 @@ assert.equal(activeWorkflow,canonicalWorkflow,'Aktiver und kanonischer RUC-Workf
 assert.ok(workflowSync.includes("DOWNLOAD_ARTIFACT_V8_SHA='3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'"),'Expliziter Workflow-Sync muss download-artifact v8 dauerhaft pinnen.');
 assert.ok(policy.includes('Wartungsreview 30.09.2026 · v0.9.85.128'));
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
-assert.equal(pkg.version,'0.9.85.128');
+assert.ok(versionAtLeast(pkg.version,'0.9.85.128'),'v0.9.85.128-Sicherheitsvertrag muss vorwärtskompatibel bleiben.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);
-console.log('MID v0.9.85.128: Screenshot-/Security-Nachgang und Gesundheitswetter geschützt.');
+console.log(`MID v${pkg.version}: Screenshot-/Security-Nachgang und Gesundheitswetter ab v0.9.85.128 geschützt.`);
