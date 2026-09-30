@@ -1,6 +1,4 @@
-import {defineConfig} from 'vitest/config';
-
-export default defineConfig({
+export default {
   test:{
     include:['tests/unit/**/*.test.ts'],
     environment:'node',
@@ -13,4 +11,4 @@ export default defineConfig({
       include:['src/utci.ts']
     }
   }
-});
+};
