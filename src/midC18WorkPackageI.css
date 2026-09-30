@@ -19,8 +19,10 @@
 .settings-split-view>.settings-section:first-child .forecast-presentation-settings,.settings-split-view>.settings-section:first-child .confidence-display-settings,.settings-split-view>.settings-section:first-child .skybar-display-settings,.settings-split-view>.settings-section:first-child .settings-option-list,.settings-split-view>.settings-section:first-child .advanced-feature-settings{display:none!important}
 .settings-split-weather>.settings-section:not(:first-child),.settings-split-weather>.dashboard-module-settings{display:none!important}
 .settings-split-weather>.settings-section:first-child>.layout-mode-settings-grid,.settings-split-weather>.settings-section:first-child>.ui-density-settings,.settings-split-weather>.settings-section:first-child>.favorite-strip-display-settings{display:none!important}
-.settings-split-navigation>.settings-section,.settings-split-navigation>.time-display-settings,.settings-split-navigation>.settings-units-section{display:none!important}
-.settings-split-navigation>.dashboard-module-settings{display:block!important}
+.settings-split-navigation>.settings-section:not(.settings-primary-options),.settings-split-navigation>.time-display-settings,.settings-split-navigation>.settings-units-section{display:none!important}
+.settings-split-navigation>.settings-primary-options,.settings-split-navigation>.dashboard-module-settings{display:block!important}
+.settings-split-navigation>.settings-primary-options>header,.settings-split-navigation>.settings-primary-options>.layout-mode-settings-grid,.settings-split-navigation>.settings-primary-options>.ui-density-settings,.settings-split-navigation>.settings-primary-options>.confidence-display-settings,.settings-split-navigation>.settings-primary-options>.skybar-display-settings,.settings-split-navigation>.settings-primary-options>.favorite-strip-display-settings,.settings-split-navigation>.settings-primary-options>.settings-option-list:not(.settings-content-modules):not(.settings-health-weather),.settings-split-navigation>.settings-primary-options>.advanced-feature-settings{display:none!important}
+.settings-split-navigation>.settings-primary-options{gap:12px!important}
 .settings-split-units>.settings-section:first-child,.settings-split-units>.dashboard-module-settings,.settings-split-units>.settings-theme-section,.settings-split-units>.settings-branding-section{display:none!important}
 .settings-split-units>.time-display-settings,.settings-split-units>.settings-units-section{display:block!important}
 .settings-data-quality-intro p{max-width:72ch}
