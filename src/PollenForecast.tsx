@@ -9,7 +9,7 @@ type PollenResponse={regions:PollenRegion[],pollenTypes:string[],forecasts:Polle
 const POLLEN_LABELS:Record<string,string>={Hasel:'Hasel',Erle:'Erle',Esche:'Esche',Birke:'Birke','Gräser':'Gräser',Roggen:'Roggen',Beifuss:'Beifuß',Ambrosia:'Ambrosia'};
 const POLLEN_VALUE_LABELS:Record<string,string>={'keine':'keine','schwach':'schwach','mäßig':'mäßig','stark':'stark'};
 const POLLEN_VALUE_INT:Record<string,number>={'keine':0,'schwach':1,'mäßig':2,'stark':3};
-const POLLEN_LEVEL_COLORS:string[]=['var(--pollen-level-none)','var(--pollen-level-weak)','var(--pollen-level-moderate)','var(--pollen-level-strong)'];
+const POLLEN_LEVEL_COLORS:string[]=['var(--param-wind)','var(--param-sunshine)','var(--param-temperature-max)','var(--param-precipitation-storm)'];
 
 function pointInPolygon(lat:number,lon:number,coordinates:any[]):boolean{
   const rings=Array.isArray(coordinates[0])&&Array.isArray(coordinates[0][0])?coordinates:[coordinates];
@@ -141,8 +141,8 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
           {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount} weitere</span>}
         </div>
       ):(
-        <div className="pollen-clear-summary" aria-label="Heute keine Pollenbelastung">
-          <span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[0]}} aria-hidden="true"/><strong>Heute</strong><span>keine Belastung</span>
+        <div className="pollen-chips pollen-clear-summary" aria-label="Heute keine Pollenbelastung">
+          <span className="pollen-chip pollen-level-0"><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[0]}} aria-hidden="true"/><b>Heute</b><span>keine Belastung</span></span>
         </div>
       )}
       {expanded&&(

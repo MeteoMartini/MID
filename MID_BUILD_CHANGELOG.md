@@ -5,6 +5,7 @@
 - GitHub Actions: `download-artifact` v4.3.0 → v8.0.1, SHA-gepinnt, kanonischer und aktiver RUC-Workflow identisch.
 - Gesundheitswetter: eigener Einstellungsblock; Pollen bleibt gerätelokal optional. Aktive DWD-Pollen werden nach vorhandener Belastungsstufe priorisiert; keine Änderung der DWD-Datenlogik.
 - Replit wurde auf Stable v0.9.85.127 synchronisiert und für die Designprüfung eingesetzt; Integration und Release bleiben bei ChatGPT/GitHub.
+- Source-Gate-Nachgang: vorbestehenden RUC-Workflow-Drift zugunsten der neueren Release-Race-Sicherung kanonisiert; veraltete Versions-/Action-Assertions aktualisiert; CSS-Budget ohne Grenzerhöhung durch Entfernung ungenutzter Pollen-Legacyregeln korrigiert.
 - Required Regression: `scripts/test-security-pollen-maintenance-0985128.mjs`.
 
 ## MID v0.9.85.127 · 2026-09-30 · Repository-Hygiene, Versionssynchronisierung und Governance

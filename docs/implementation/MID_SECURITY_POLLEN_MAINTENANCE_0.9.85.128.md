@@ -22,3 +22,10 @@ Die Integration setzt genau diese Punkte um. Persistenz, Standardzustand, DWD-Da
 Fokussierte Regression: `scripts/test-security-pollen-maintenance-0985128.mjs`.
 
 Zusätzlich müssen im normalen Source-PR-Gate mindestens `npm ci`, Dependency-Audit, Typecheck/Produktionsbuild, vollständige Regressionen, Workflow-Synchronität, Web/iOS-Shell sowie CodeQL bestehen. Danach gilt ausschließlich der etablierte Source-PR → kontrollierter Merge → serverseitiges Release-ZIP → Installer → Pages/Worker-Prüfung → Stable-Promotion-Pfad.
+
+
+## Source-Gate-Nachgang
+
+Der erste Source-PR-Lauf zeigte fünf absichtlich fail-closed greifende Regressionen. Vier waren veraltete Spiegel-/Versionsannahmen: die Vertragsregistry stand noch auf .127, die Repository-Hygiene war unnötig exakt auf .127 festgenagelt, der RUC-Fachtest erwartete den alten download-artifact-v4-Pin und der kanonische RUC-Workflow lag hinter dem aktiven, bereits release-race-gehärteten Workflow zurück. Der neuere aktive RUC-Schutz wird deshalb in die kanonische Quelle übernommen; die Tests werden auf den strengeren Vertrag aktualisiert und nicht abgeschwächt.
+
+Das CSS-Budget wird nicht angehoben. Stattdessen entfallen nicht mehr verwendete Pollen-Legacyregeln; die belastungsfreie Darstellung nutzt vorhandene Chip-Primitiven.
