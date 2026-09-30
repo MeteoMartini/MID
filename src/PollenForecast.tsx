@@ -41,14 +41,16 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const [loading,setLoading]=useState(false);
   const fetchedRef=useState({done:false})[0];
 
-  if(!enabled)return null;
-
+  // WICHTIG: useEffect muss bedingungslos vor jedem Early-Return stehen.
+  // Ein if(!enabled)return null *vor* useEffect würde die Hook-Anzahl
+  // beim Aktivieren/Deaktivieren ändern und einen React-Invariant-Absturz
+  // auf der «Aktuell»-Seite verursachen. (P0-Fix v0.9.85.127)
   useEffect(()=>{
-    if(!enabled||fetchedRef.done||loading||data||error)return;
+    if(!enabled)return;
+    if(fetchedRef.done||loading||data||error)return;
     fetchedRef.done=true;
     setLoading(true);
-    const url=`https://mid-data-proxy.midwx.workers.dev/?mode=dwd-pollen`;
-    fetchWorkerJson<PollenResponse>(url)
+    fetchWorkerJson<PollenResponse>('dwd-pollen',{},{purpose:'general',maxAgeMs:30*60*1000,staleIfErrorMs:12*60*60*1000})
       .then(d=>{
         if(d.error){setError(d.error);setData(null);}
         else{setData(d);setError(null);}
@@ -56,6 +58,8 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
       .catch(err=>{setError(err?.message||'Pollenflug-Daten konnten nicht geladen werden');setData(null);})
       .finally(()=>setLoading(false));
   },[enabled]);
+
+  if(!enabled)return null;
 
   if(loading){
     return(
@@ -103,7 +107,6 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
     return dt.toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
   });
 
-  // For compact view: show only today's values as chips
   const todayDate=allDates[0];
   const todayEntries=sortedTypes.map(pt=>{
     const entries=byPollenType.get(pt)||[];
