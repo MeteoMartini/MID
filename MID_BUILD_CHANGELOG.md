@@ -1,3 +1,14 @@
+## v0.9.85.130 · 2026-09-30 · Gesundheitswetter sichtbar und Hauptnavigation wiederhergestellt
+
+- Screenshot-Befund reproduziert: `.settings-split-navigation` blendete die gemeinsame Optionssektion vollständig aus; dadurch waren die bereits implementierten Bereiche „Gesundheitswetter“ und „Inhaltsmodule“ unsichtbar.
+- CSS-Vertrag korrigiert: Im Navigation-Tab bleiben ausschließlich die navigationseigenen Optionslisten plus Modulreihenfolge sichtbar; Darstellungs-/Wetteroptionen bleiben ausgeblendet.
+- Gesundheitswetter steht vor den übrigen optionalen Inhaltsmodulen; Pollenflug bleibt über `mid:pollenDisplaySettings` persistent schaltbar.
+- Primärnavigation erhält einen eigenen gerätelokalen Schlüssel für Aktuell / Heute / Vorhersage / Karten / Mehr. Untermodul- und Forecast-Horizon-Zustand bleiben zusätzlich erhalten.
+- „Mehr“ kann beim App-Neustart wieder geöffnet werden; bewusstes Schließen stellt den darunter aktiven Hauptbereich als letzten Bereich wieder her.
+- Der alte Startpfad entfernt `#mid-section-…` nicht mehr; explizite Deep-Links behalten damit Vorrang.
+- Keine Änderung an meteorologischer Logik, Datenquellen, Warnungen oder Worker-Fachlogik.
+- Regression: `scripts/test-health-settings-primary-navigation-0985130.mjs`.
+
 ## v0.9.85.129 · 2026-09-30 · Gesundheitswetter/Pollen kompakt
 
 - Reales iPhone-Screenshot-Follow-up: mehrspaltiger Pollen-Kopf entfernt; Region/Quelle/Aktualität als kompakte Metazeile; Defaultzustand auf heutige Relevanz reduziert.
