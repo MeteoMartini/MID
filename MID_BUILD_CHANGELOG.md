@@ -6,7 +6,7 @@
 - Responsive: keine 420-px-Mindestbreite der Pollentabelle; vier Spalten passen in mobile Karten, Detailblock erhält Bottom-Bar-Scrollabstand.
 - DWD-WFS, Regionen, Vorhersagewerte und Worker-Datenlogik bleiben unverändert.
 - Replit-Follow-up: zweiter Detailschalter auf ≥44 px angehoben; erste Detailstufe bleibt auch bei acht relevanten Arten auf maximal vier Zeilen begrenzt.
-- Regression: `scripts/test-pollen-compact-dwd-levels-0985129.mjs`.
+- Source-Gate-Nachgang: CSS-Budget ohne Grenzerhöhung korrigiert; nur nicht notwendige Scrollbar-/Overscroll- und Metazeilen-Deklarationen entfernt.\n- Regression: `scripts/test-pollen-compact-dwd-levels-0985129.mjs`.
 
 ## v0.9.85.128 · 2026-09-30 · Screenshot-/Security-Nachgang und Gesundheitswetter
 
