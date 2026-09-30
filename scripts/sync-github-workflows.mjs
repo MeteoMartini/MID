@@ -44,7 +44,7 @@ export const managedFiles=[
  ['workflows/agent-source-release.yml','workflows/agent-source-release.yml'],
  ['workflows/release-self-heal.yml','workflows/release-self-heal.yml'],
  ['workflows/deploy.yml','workflows/deploy.yml'],
- ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],\n ['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml'],
+ ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],\n ['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml'],\n ['workflows/mid-knmi-eps-rolling-manifest.yml','workflows/mid-knmi-eps-rolling-manifest.yml'],\n ['workflows/mid-knmi-eps-rolling-offset-smoke.yml','workflows/mid-knmi-eps-rolling-offset-smoke.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
  ['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml'],
  ['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml'],
