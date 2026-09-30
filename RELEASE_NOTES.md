@@ -1,12 +1,15 @@
-# MID v0.9.85.128
+# MID v0.9.85.129
 
-## Sichtbar
-- „Pollenflug“ steht unter „Inhalte & Navigation“ jetzt in einer eigenen Sektion „Gesundheitswetter“ und bleibt vollständig optional.
-- Die kompakte Pollenvorhersage priorisiert heute tatsächlich belastende Pollenarten; bei keiner Belastung erscheint eine ruhige Zusammenfassung. Die Drei-Tage-Details bleiben aufklappbar und sind besser per Touch und Tastatur bedienbar.
-- DWD-Quelle, Aktualitätsstand und die bestehenden Belastungsbegriffe bleiben sichtbar und unverändert.
+## Gesundheitswetter kompakter
+- Pollenflug erscheint im Standardzustand jetzt als sehr kompakter Gesundheitswetter-Block mit heutiger Belastung, Region und DWD-Stand.
+- Direkt sichtbar sind nur Pollenarten mit tatsächlicher heutiger Belastung. Die erste geöffnete Detailstufe zeigt nur Pollenarten, die in den nächsten drei Tagen relevant werden.
+- Die vollständige Übersicht aller acht DWD-Pollenarten wird erst nach „Alle 8 Pollenarten anzeigen“ eingeblendet.
+- Die mobile 3-Tage-Ansicht passt ohne abgeschnittene dritte Spalte oder erzwungene horizontale Mindestbreite in die Karte.
 
-## Technisch
-- CodeQL-Eingabepfade für amtliche Warnwahrscheinlichkeiten und den Bergwetter-Browsertest wurden gehärtet.
-- Der aktuelle High-Severity-`brace-expansion`-Befund wird innerhalb des kompatiblen 5.x-Pfads geschlossen; der bekannte `uuid`-Dev-/iOS-Werkzeugpfad wird nicht mit einem inkompatiblen Force-Upgrade umgangen.
-- `actions/download-artifact` ist im RUC-Publishpfad auf v8.0.1 und einen vollständigen Commit-SHA aktualisiert.
-- Meteorologische Prognose-, Warn-, DWD-Pollen- und Worker-Datenlogik bleiben unverändert.
+## Fachliche Korrektur
+- DWD-Zwischenstufen wie „keine bis gering“, „gering bis mittel“ und „mittel bis hoch“ werden nicht mehr fälschlich als „keine Belastung“ behandelt.
+- Grundlage bleiben die sieben Belastungsstufen des amtlichen DWD-Pollenflug-Gefahrenindex; DWD-Datenquelle, Regionen und Vorhersagewerte bleiben unverändert.
+
+## Bedienung
+- Der Hauptschalter bleibt mindestens 44 px hoch, tastaturbedienbar und mit aria-expanded/aria-controls versehen.
+- Region und Aktualitätsstand werden platzsparend dargestellt; geöffnete Details erhalten sicheren Abstand zur festen Bottom-Bar.
