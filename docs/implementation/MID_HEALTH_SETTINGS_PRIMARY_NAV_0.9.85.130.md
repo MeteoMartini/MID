@@ -39,3 +39,10 @@ Die erste Quellprüfung identifizierte zusätzlich eine spätere Override-Regel 
 
 ## Finaler Kaskaden-/Budget-Fix
 Statt zwei bestehende CSS-Splitverträge gegeneinander zu überschreiben, werden Gesundheitswetter und optionale Inhaltsmodule als direkte Kinder des Navigation-Stacks außerhalb von `.settings-primary-options` gerendert. Dadurch bleiben die seit MID 18.2.6 beabsichtigten Ausblendregeln für Darstellungsoptionen unverändert, während Gesundheitswetter und Moduloptionen sichtbar vor der Modulreihenfolge stehen. Beide zuvor geänderten CSS-Dateien entsprechen wieder exakt dem v0.9.85.129-Stable-Stand; das CSS-Budget wird nicht erhöht.
+
+
+## Persistenz-Härtung vor Release
+Vor dem finalen Source-Gate wurde der Primärbereich zusätzlich gegen iOS/PWA-Suspend gehärtet:
+- Fehlt oder ist `mid:last-dashboard-section:v1` ungültig, dient der gespeicherte Primärbereich als deterministischer Fallback für Aktuell / Heute / Vorhersage / Karten.
+- Der zuletzt sichtbare exakte Bereich wird bei `pagehide` und beim Wechsel in `visibilityState=hidden` erneut geschrieben.
+- `mid:last-primary-navigation-area:v1` ist explizit gerätelokal und wird nicht über den MID-Geräteabgleich auf andere Geräte übertragen.

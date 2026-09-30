@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,settingsCss,responsiveCss,pkgRaw,baselineRaw]=await Promise.all([
+const [app,settingsCss,responsiveCss,portable,pkgRaw,baselineRaw]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC18WorkPackageI.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC18I7ResponsiveFixes.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/portableUserData.ts',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
@@ -46,5 +47,9 @@ assert.ok(app.includes("!/^#mid-section-[a-z-]+$/.test(location.hash)&&readLastP
 assert.ok(!app.includes("if(/^#mid-section-[a-z-]+$/.test(location.hash))history.replaceState(null,'',`${location.pathname}${location.search}`)"),'Explizite #mid-section-Deep-Links dürfen beim Start nicht mehr gelöscht werden.');
 assert.ok(app.includes("hashId&&DASHBOARD_MODULE_DEFINITIONS.some(item=>item.id===hashId)?hashId:stored==='place'?undefined:stored"),'Expliziter Section-Deep-Link muss vor dem gespeicherten Bereich Vorrang behalten.');
 assert.ok(app.includes("closeDrawer=()=>{if(activeId&&activeId!=='place')persistLastPrimaryNavigationArea(primaryNavigationAreaForSection(activeId as DashboardModuleId));else persistLastPrimaryNavigationArea('current');onDrawerOpen(false)}"),'Manuelles Schließen von Mehr muss zum darunter aktiven Bereich zurückpersistieren.');
+assert.ok(app.includes("readStoredDashboardSection()??primaryNavigationFallback(readStoredPrimaryNavigationArea())"),'Primärer Hauptbereich muss als Fallback dienen, wenn der exakte Modulwert fehlt oder ungültig ist.');
+assert.ok(app.includes("lastDashboardSectionRef=useRef<DashboardModuleId|'place'|''>(activeNavSection)"),'Aktive Navigation braucht einen Lifecycle-Ref.');
+assert.ok(app.includes("window.addEventListener('pagehide',flushNavigation)")&&app.includes("document.visibilityState==='hidden'"),'Die zuletzt sichtbare Auswahl muss vor Suspend/Schließen nochmals gesichert werden.');
+assert.ok(portable.includes("'mid:last-primary-navigation-area:v1'"),'Primäre Navigation muss gerätelokal bleiben und darf nicht auf andere Geräte synchronisiert werden.');
 
 console.log('MID v0.9.85.130: Gesundheitswetter-Sichtbarkeit, Pollen-Schalter und Primärnavigation inkl. Mehr geschützt.');

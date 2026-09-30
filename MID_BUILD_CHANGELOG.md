@@ -8,7 +8,7 @@
 - Der alte Startpfad entfernt `#mid-section-…` nicht mehr; explizite Deep-Links behalten damit Vorrang.
 - Keine Änderung an meteorologischer Logik, Datenquellen, Warnungen oder Worker-Fachlogik.
 - CSS-/Budget-Nachgang: Gesundheitswetter und optionale Inhaltsmodule liegen nun als eigene Navigationselemente außerhalb des bewusst ausgeblendeten Darstellungscontainers. Die bestehenden CSS-Splitregeln bleiben unverändert; es entsteht kein zusätzliches CSS-Budget.
-- Regression: `scripts/test-health-settings-primary-navigation-0985130.mjs`.
+- Persistenz-Härtung: Primärbereich dient als Fallback bei fehlendem/ungültigem Modulwert, wird vor Suspend/Schließen erneut gesichert und bleibt gerätelokal.\n- Regression: `scripts/test-health-settings-primary-navigation-0985130.mjs`.
 
 ## v0.9.85.129 · 2026-09-30 · Gesundheitswetter/Pollen kompakt
 
