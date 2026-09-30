@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.129",
+  "version": "0.9.85.130",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -518,7 +518,8 @@
     "test:unit": "npm exec --yes --package=vitest@5.0.2 -- vitest run --config vitest.config.ts",
     "test:coverage": "npm exec --yes --package=vitest@5.0.2 --package=@vitest/coverage-v8@5.0.2 -- vitest run --config vitest.config.ts --coverage",
     "test:security-pollen-maintenance": "node scripts/test-security-pollen-maintenance-0985128.mjs",
-    "test:pollen-compact-dwd-levels": "node scripts/test-pollen-compact-dwd-levels-0985129.mjs"
+    "test:pollen-compact-dwd-levels": "node scripts/test-pollen-compact-dwd-levels-0985129.mjs",
+    "test:health-settings-primary-navigation": "node scripts/test-health-settings-primary-navigation-0985130.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
