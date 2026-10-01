@@ -18,7 +18,7 @@ const failures=[];
 const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: ${token}`)};
 const forbid=(area,text,pattern,label)=>{if(pattern.test(text))failures.push(`${area}: ${label}`)};
 
-need('Kurzfrist-PoP',shortTerm,'const shownProbability=clampValue(Number(signal.probability)||0,0,100);');
+need('Kurzfrist-PoP',shortTerm,'const shownProbability=clampValue(Number(signal.probability)||0,0,100),utci=utciFromOutdoorState(');
 forbid('Kurzfrist-PoP',shortTerm,/normalized\s*>\s*0\s*&&\s*normalized\s*<\s*5\s*\?\s*5/,'künstliche 5-%-Untergrenze noch aktiv');
 forbid('Kurzfrist-PoP',shortTerm,/function\s+displayProbability\s*\(/,'separate Anzeige-Floor-Funktion noch aktiv');
 need('Cockpit-Wortlaut',cockpit,"import {precipitationOutlookText} from './forecastWording';");
