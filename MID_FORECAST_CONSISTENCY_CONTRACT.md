@@ -111,6 +111,8 @@ Lokale Parallelberechnungen sind nur zulässig, wenn sie eine bewusst andere fac
 
 Der Required-Test `scripts/test-forecast-consistency-contract-095326.mjs` schützt die kanonischen Stunden-/15-Minuten-Pfade, die app-weite Verwendung und das Verbot eines erneuten UI-seitigen Hyperlokal-/Radar-Blends.
 
+Zusätzlich schützt `scripts/test-precipitation-radar-pollen-navigation-0985133.mjs` ab v0.9.85.133 die Unterscheidung Radar-Datenlücke/Trockenphase sowie die Provenienz und den kurzfristigen Vorrang einer frischen beobachteten Niederschlagsart.
+
 ## 12. Widget-Hinweislage folgt dem ausgewählten Zeitraum
 
 Die automatische **MID-Hinweislage in Widgets** muss den vollständigen vom Nutzer ausgewählten Widget-Zeitraum abdecken. Bei einer Auswahl von 3, 4, 5, 6 oder 7 Tagen dürfen neue warnwürdige Ereignisse an jedem dieser ausgewählten lokalen Kalendertage erkannt und angezeigt werden. Ein pauschales Abschneiden nach 24 Stunden ist im Widget unzulässig.
