@@ -311,6 +311,17 @@ export function utciCategory(utciC: number): UtciCategory {
   return UTCI_CATEGORIES[0];
 }
 
+/** Symmetric 0–100 display severity derived strictly from UTCI stress bands. */
+export function utciStressScore(utciC:number):number{
+  if (!Number.isFinite(utciC)) return 0;
+  if (utciC < -40 || utciC >= 46) return 100;
+  if (utciC < -27 || utciC >= 38) return 86;
+  if (utciC < -13 || utciC >= 32) return 72;
+  if (utciC < 0 || utciC >= 26) return 55;
+  if (utciC < 9) return 30;
+  return 8;
+}
+
 /** Convenience: calculate UTCI from Hour-like data */
 export function utciFromHour(
   temperatureC: number,
