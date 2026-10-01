@@ -10,7 +10,7 @@ import {sunshineHoursLabel,sunshineMinutesLabel,sunshineWholeHoursLabel} from '.
 import {airQuality,airQualityStation,applyEnsembleDailyPrecipitationProbability,bestMatchModelInfo,climatology,cloudOktas,countryCodeFromLocation,cloudOktasText,currentIndex,dayPrecipitationAssessment,dayWeatherCharacter,dayWeatherCharacterText,dailyPrecipitationProbabilityCompact,dailyPrecipitationProbabilityTitle,ensembles,forecast,hazards,label,localIsoEpoch,mapDays,mapHours,mapMinutely15,precipitationDurationDayOverviewCompactLabel,precipitationDurationDayOverviewLabel,precipitationDurationLabel,recentSunshineDuration,validateWindPair,officialWarnings,radarNowcast,thunderstormNowcast,searchLocations,reverseLocation,station,stationFieldObservationUsable,uvAltitudeFactor,warningEnsembleNeighborhood,wind,type BestMatchModelInfo,type ClimateDay,type Day,type EnsembleDay,type EnsembleScenarioCluster,type Hour,type Location,type Minute15,type ModelRunMeta,type OfficialAlert,type RadarNowcast,type Station,type StationFieldSource,type ThunderstormNowcast,type WarningEnsembleSupport,type Weather,type WindUnit} from './weather';
 import {chronologicalOfficialAlerts} from './officialWarningOrder';
 import {precipitationAmountLabel,precipitationIntensityDescriptor,precipitationParts,presentPrecipTypes,type PrecipitationParts,type PrecipSample,type PrecipType} from './precipitation';
-import {precipitationPresentationHours,precipitationPresentationMinutes15,precipitationSlotLabel} from './precipitationIntervals';
+import {canonicalPrecipitationTimeline,precipitationPresentationHours,precipitationPresentationMinutes15,precipitationSlotLabel,type CanonicalPrecipitationTimeline} from './precipitationIntervals';
 import {precipitationPhaseColor} from './precipitationPhaseColor';
 import type {StationAnalysisField} from './sourceQuality';
 import {representativeDetailPictograms} from './detailPictograms';
@@ -1568,34 +1568,22 @@ function localTimeLabel(value:number,timezone?:string){return formatInZone(value
 function hourDisplayClock(hour:Hour,timezone?:string,withMinutes=true){const epoch=Number(hour.epoch);if(Number.isFinite(epoch))return formatInZone(epoch,timezone,{hour:'2-digit',...(withMinutes?{minute:'2-digit'}:{}),hourCycle:'h23'});return formatLocalIsoDisplayTime(hour.time,timezone,{hour:'2-digit',...(withMinutes?{minute:'2-digit'}:{}),hourCycle:'h23'})}
 function clockMinutes(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);if(!match)return null;const hours=Number(match[1]),minutes=Number(match[2]);return Number.isFinite(hours)&&Number.isFinite(minutes)?hours*60+minutes:null}
 function clockLabel(value?:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?`${match[1]}:${match[2]}`:''}
-function precipitationBeyondTwoHours(hours:Hour[],timezone?:string){
- const now=Date.now(),boundary=now+2*3600000,end=now+6*3600000,wet=(hour:Hour)=>{const parts=precipitationParts(hour);return parts.type!=='none'&&(parts.total>=.05||Number(hour.probability)>=55)};
- const after=hours.filter(hour=>Number(hour.epoch)>boundary&&Number(hour.epoch)<=end&&wet(hour)).sort((a,b)=>a.epoch-b.epoch);if(!after.length)return'';
- const groups:Hour[][]=[];for(const hour of after){const last=groups.at(-1);if(last&&hour.epoch-last.at(-1)!.epoch<=90*60000)last.push(hour);else groups.push([hour])}const first=groups[0],start=first[0].epoch,endEpoch=first.at(-1)!.epoch+3600000,nearBoundary=hours.some(hour=>hour.epoch>=boundary-75*60000&&hour.epoch<=boundary+15*60000&&wet(hour));
- if(nearBoundary&&start<=boundary+75*60000)return`Über das +2-h-Fenster hinaus ist weiterer Niederschlag voraussichtlich bis etwa ${localTimeLabel(endEpoch,timezone)} Uhr zu erwarten.`;
- return`Nach dem +2-h-Fenster ist ab etwa ${localTimeLabel(start,timezone)} Uhr erneut Niederschlag möglich.`;
+function precipitationBeyondTwoHours(timeline:CanonicalPrecipitationTimeline,timezone?:string,now=Date.now()){
+ const boundary=now+2*3600000,period=timeline.periods.find(item=>item.endEpoch>boundary&&item.startEpoch<timeline.horizonEndEpoch);if(!period)return'';
+ if(period.startEpoch<=boundary&&period.endEpoch>boundary)return`Über das +2-h-Fenster hinaus ist weiterer Niederschlag voraussichtlich bis etwa ${localTimeLabel(period.endEpoch,timezone)} Uhr zu erwarten.`;
+ return`Nach dem +2-h-Fenster ist von etwa ${localTimeLabel(period.startEpoch,timezone)} bis ${localTimeLabel(period.endEpoch,timezone)} Uhr erneut Niederschlag möglich.`;
 }
 function precipitationNowSummary(minutes:Minute15[],hours:Hour[],timezone?:string){
- const now=Date.now();
- const hourlySource=hours[currentIndex(hours)]?.weatherSourceLabel||'Open-Meteo Best Match',source=minutes.length?'15-Minuten-Best-Match':`stündlich · ${hourlySource}`;
- const samples:PrecipSample[]=minutes.length?minutes:hours.slice(currentIndex(hours),currentIndex(hours)+7);
- if(!samples.length)return{probability:0,summary:'Keine Kurzfristdaten verfügbar.',source,continuation:precipitationBeyondTwoHours(hours,timezone)};
- const timed=samples.map(x=>({...x,ts:Number.isFinite(x.epoch)?Number(x.epoch):Date.parse(`${String(x.time)}Z`)})).filter(x=>Number.isFinite(x.ts)).sort((a,b)=>a.ts-b.ts);
- const nearest=timed.reduce((best,x)=>Math.abs(x.ts-now)<Math.abs(best.ts-now)?x:best,timed[0]);
- const stepMs=minutes.length?15*60000:60*60000;
- const horizonEnd=now+6*3600000;
- const relevant=timed.filter(x=>x.ts>=now-stepMs&&x.ts<=horizonEnd);
- const wet=(x:typeof relevant[number])=>{const p=precipitationParts(x);return p.type!=='none'&&(p.total>=.01||x.snowfall>=.01)};
- const groups:{items:typeof relevant}[]=[];
- for(const item of relevant){if(!wet(item))continue;const last=groups.at(-1);if(last&&item.ts-last.items.at(-1)!.ts<=stepMs*1.6)last.items.push(item);else groups.push({items:[item]})}
- const active=groups.find(g=>g.items[0].ts-stepMs<=now&&g.items.at(-1)!.ts>=now);
- const event=active??groups.find(g=>g.items[0].ts>=now);
- if(!event){const maxProb=Math.max(...relevant.map(x=>Number(x.probability)||0),0),continuation=precipitationBeyondTwoHours(hours,timezone),base=maxProb>=30?`Bis zu ${Math.round(maxProb)} % Risiko im betrachteten Kurzfristfenster; noch kein messbarer Niederschlag darin.`:continuation?'Im betrachteten +2-h-Fenster kein messbarer Niederschlag erwartet.':'Kein messbarer Niederschlag in den nächsten 6 Stunden erwartet.',probability=maxProb<=5&&!continuation?0:Number(nearest.probability)||0;return{probability,summary:[base,continuation].filter(Boolean).join(' '),source,continuation}}
- const start=event.items[0].ts-stepMs,end=event.items.at(-1)!.ts;
- const types=[...new Set(event.items.map(x=>precipitationParts(x).type).filter(t=>t!=='none'))] as Exclude<PrecipType,'none'>[];
- const typeText=types.map(t=>precipMeta[t].label).join(' → ');
- const summary=active?`Aktuell ${typeText}; voraussichtlich bis ${localTimeLabel(end,timezone)} Uhr.`:`${typeText} voraussichtlich ab ${localTimeLabel(start,timezone)} bis ${localTimeLabel(end,timezone)} Uhr.`;
- const continuation=precipitationBeyondTwoHours(hours,timezone);return{probability:Number(nearest.probability)||0,summary:[summary,continuation].filter(Boolean).join(' '),source,continuation};
+ const now=Date.now(),timeline=canonicalPrecipitationTimeline(minutes,hours,now,6);
+ const hourlySource=hours[currentIndex(hours)]?.weatherSourceLabel||'Open-Meteo Best Match',source=timeline.source==='15-min'?'15-Minuten-Kurzfristfusion':`stündlich · ${hourlySource}`;
+ if(!timeline.slots.length)return{probability:0,summary:'Keine Kurzfristdaten verfügbar.',source,continuation:''};
+ const containing=timeline.slots.find(slot=>slot.startEpoch<=now&&slot.endEpoch>now),nearestSlot=containing??timeline.slots.reduce((best,slot)=>Math.abs(slot.startEpoch-now)<Math.abs(best.startEpoch-now)?slot:best,timeline.slots[0]),nearest=nearestSlot.sample;
+ const active=timeline.periods.find(period=>period.startEpoch<=now&&period.endEpoch>now),event=active??timeline.periods.find(period=>period.startEpoch>=now),continuation=precipitationBeyondTwoHours(timeline,timezone,now);
+ if(!event){const maxProb=Math.max(...timeline.slots.map(slot=>Number(slot.sample.probability)||0),0),base=maxProb>=30?`Bis zu ${Math.round(maxProb)} % Risiko im betrachteten Kurzfristfenster; noch kein messbarer Niederschlag darin.`:'Kein messbarer Niederschlag in den nächsten 6 Stunden erwartet.',probability=maxProb<=5?0:Number(nearest.probability)||0;return{probability,summary:base,source,continuation}}
+ const types=[...new Set(event.samples.map(sample=>precipitationParts(sample).type).filter(type=>type!=='none'))] as Exclude<PrecipType,'none'>[];
+ const typeText=types.map(type=>precipMeta[type].label).join(' → ');
+ const summary=active?`Aktuell ${typeText}; voraussichtlich bis ${localTimeLabel(event.endEpoch,timezone)} Uhr.`:`${typeText} voraussichtlich ab ${localTimeLabel(event.startEpoch,timezone)} bis ${localTimeLabel(event.endEpoch,timezone)} Uhr.`;
+ return{probability:Number(nearest.probability)||0,summary,source,continuation};
 }
 
 type PrecipNowResult={probability:number;summary:string;source:string;continuation?:string};

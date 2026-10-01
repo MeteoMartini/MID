@@ -66,6 +66,59 @@ export function precipitationPresentationMinutes15(minutes:Minute15[]):Minute15[
  return minutes.map(sample=>mapped.get(sample.epoch)??sample);
 }
 
+export type CanonicalPrecipitationTimelineSlot={
+ startEpoch:number;
+ endEpoch:number;
+ sample:Hour|Minute15;
+};
+export type CanonicalPrecipitationTimelinePeriod={
+ startEpoch:number;
+ endEpoch:number;
+ samples:(Hour|Minute15)[];
+};
+export type CanonicalPrecipitationTimeline={
+ source:'15-min'|'hourly';
+ resolutionMinutes:15|60;
+ slots:CanonicalPrecipitationTimelineSlot[];
+ periods:CanonicalPrecipitationTimelinePeriod[];
+ horizonEndEpoch:number;
+};
+
+/**
+ * Gemeinsame Kurzfrist-Zeitsemantik für alle sichtbaren Niederschlagsaussagen.
+ *
+ * Open-Meteo liefert Akkumulationen am Intervallende. Für die Darstellung werden
+ * sie zuerst mit denselben Presentation-Helpern auf den sichtbaren Vorwärtsslot
+ * gelegt, die auch 24-h-Profil, Widgets und Prognose verwenden. Ein fehlender
+ * Wert oder eine reine Wahrscheinlichkeit erzeugt dabei ausdrücklich keine
+ * künstliche Niederschlagsdauer.
+ *
+ * Wenn die finalisierte 15-Minuten-Reihe den gesamten gewünschten Horizont
+ * abdeckt, ist sie kanonisch. Andernfalls wird vollständig auf die ebenfalls
+ * normalisierte Stundenreihe zurückgefallen; Auflösungen werden nicht innerhalb
+ * eines einzelnen Zeitraums vermischt.
+ */
+export function canonicalPrecipitationTimeline(minutes15:Minute15[],hours:Hour[],now=Date.now(),horizonHours=6):CanonicalPrecipitationTimeline{
+ const safeHorizonHours=Math.max(1,Math.min(24,Number(horizonHours)||6)),horizonEndEpoch=now+safeHorizonHours*HOUR_MS;
+ const finiteSorted=<T extends Hour|Minute15>(values:T[])=>[...values].filter(value=>Number.isFinite(Number(value.epoch))).sort((left,right)=>Number(left.epoch)-Number(right.epoch));
+ const rawMinutes=finiteSorted(minutes15),rawHours=finiteSorted(hours),minuteCoverageEnd=rawMinutes.length?Number(rawMinutes.at(-1)!.epoch):Number.NaN,minuteCoverageStart=rawMinutes.length?Number(rawMinutes[0]!.epoch)-15*60000:Number.NaN;
+ const useMinutes=rawMinutes.length>=2&&Number.isFinite(minuteCoverageStart)&&minuteCoverageStart<=now&&minuteCoverageEnd>=horizonEndEpoch;
+ const source:'15-min'|'hourly'=useMinutes?'15-min':'hourly',resolutionMinutes:15|60=useMinutes?15:60,stepMs=resolutionMinutes*60000,raw=useMinutes?rawMinutes:rawHours,presented=useMinutes?precipitationPresentationMinutes15(rawMinutes):precipitationPresentationHours(rawHours),coverageEnd=raw.length?Number(raw.at(-1)!.epoch):Number.NaN;
+ const slots:CanonicalPrecipitationTimelineSlot[]=presented
+  .filter(sample=>{const start=Number(sample.epoch),end=start+stepMs;return Number.isFinite(start)&&end>now-stepMs&&start<horizonEndEpoch&&(!Number.isFinite(coverageEnd)||end<=coverageEnd+1000)})
+  .sort((left,right)=>Number(left.epoch)-Number(right.epoch))
+  .map(sample=>({startEpoch:Number(sample.epoch),endEpoch:Number(sample.epoch)+stepMs,sample}));
+ const isWet=(sample:Hour|Minute15)=>{const parts=precipitationParts(sample);return parts.type!=='none'&&(parts.total>=.01||Math.max(0,Number(sample.snowfall)||0)>=.01)};
+ const periods:CanonicalPrecipitationTimelinePeriod[]=[];
+ for(const slot of slots){
+  if(!isWet(slot.sample))continue;
+  const previous=periods.at(-1),tolerance=Math.max(1000,stepMs*.1);
+  if(previous&&slot.startEpoch<=previous.endEpoch+tolerance){previous.endEpoch=Math.max(previous.endEpoch,slot.endEpoch);previous.samples.push(slot.sample)}
+  else periods.push({startEpoch:slot.startEpoch,endEpoch:slot.endEpoch,samples:[slot.sample]});
+ }
+ return{source,resolutionMinutes,slots,periods,horizonEndEpoch};
+}
+
 export function precipitationSlotEndEpoch(hour:Pick<Hour,'epoch'>){return Number(hour.epoch)+HOUR_MS}
 
 export function precipitationSlotLabel(hour:Pick<Hour,'time'>){
