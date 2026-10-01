@@ -1,0 +1,81 @@
+html[data-mid-design='next'] .weather-maps-view-switch{display:flex;gap:4px;align-self:flex-start;width:max-content;max-width:100%;padding:4px;border:1px solid color-mix(in srgb,var(--border,#b7c7d8) 72%,transparent);border-radius:14px;background:color-mix(in srgb,var(--card,#fff) 78%,transparent)}
+html[data-mid-design='next'] .weather-maps-view-switch button{min-height:40px;padding:7px 12px;border:0;border-radius:10px;background:transparent;color:var(--muted,#53677a);font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+html[data-mid-design='next'] .weather-maps-view-switch button.active{background:color-mix(in srgb,var(--accent,#1675d1) 15%,var(--card,#fff));color:var(--text,#172536)}
+html[data-mid-design='next'] .weather-maps-view-switch button:focus-visible,html[data-mid-design='next'] .weather-precipitation-totals button:focus-visible,html[data-mid-design='next'] .weather-precipitation-totals select:focus-visible{outline:3px solid color-mix(in srgb,var(--accent,#1675d1) 56%,transparent);outline-offset:2px}
+html[data-mid-design='next'] .weather-precipitation-totals{display:grid;gap:10px;min-width:0;color:var(--text,#172536)}
+html[data-mid-design='next'] .weather-precipitation-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:2px 1px}
+html[data-mid-design='next'] .weather-precipitation-heading>div{min-width:0}
+html[data-mid-design='next'] .weather-precipitation-heading>div>small,html[data-mid-design='next'] .weather-precipitation-favorites>header small,html[data-mid-design='next'] .weather-precipitation-section-heading small{display:block;color:var(--muted,#627386);font-size:9px;font-weight:800;letter-spacing:.1em}
+html[data-mid-design='next'] .weather-precipitation-heading h3{margin:3px 0;font-size:20px;line-height:1.1}
+html[data-mid-design='next'] .weather-precipitation-heading p{margin:0;color:var(--muted,#627386);font-size:11px}
+html[data-mid-design='next'] .weather-precipitation-heading label{display:grid;gap:4px;min-width:150px;color:var(--muted,#627386);font-size:10px;font-weight:700}
+html[data-mid-design='next'] .weather-precipitation-heading select{min-height:38px;padding:6px 9px;border:1px solid var(--border,#cbd5df);border-radius:10px;background:var(--card,#fff);color:var(--text,#172536);font:inherit}
+html[data-mid-design='next'] .weather-precipitation-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,.75fr);gap:10px;align-items:start}
+html[data-mid-design='next'] .weather-precipitation-map-column,html[data-mid-design='next'] .weather-precipitation-summary,html[data-mid-design='next'] .weather-precipitation-favorites{min-width:0}
+html[data-mid-design='next'] .weather-precipitation-map-shell{position:relative;height:clamp(360px,57svh,660px);min-height:350px;overflow:hidden;border:1px solid var(--border,#cbd5df);border-radius:17px;background:color-mix(in srgb,var(--card,#fff) 88%,#b8cad8)}
+html[data-mid-design='next'] .weather-precipitation-map{width:100%;height:100%}
+html[data-mid-design='next'] .weather-precipitation-data-state{position:absolute;z-index:5;top:12px;left:12px;right:64px;display:flex;align-items:flex-start;gap:9px;max-width:620px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--border,#b7c7d8) 84%,transparent);border-radius:13px;background:color-mix(in srgb,var(--card,#fff) 94%,transparent);box-shadow:0 4px 16px rgba(20,38,60,.12);pointer-events:none}
+html[data-mid-design='next'] .weather-precipitation-data-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:11px;background:color-mix(in srgb,var(--accent,#1675d1) 13%,var(--card,#fff));color:var(--accent,#1675d1)}
+html[data-mid-design='next'] .weather-precipitation-data-state>span:last-child{display:grid;gap:3px}
+html[data-mid-design='next'] .weather-precipitation-data-state strong{font-size:12px;line-height:1.2}
+html[data-mid-design='next'] .weather-precipitation-data-state small{color:var(--muted,#627386);font-size:10px;line-height:1.35}
+html[data-mid-design='next'] .weather-precipitation-legend-placeholder{position:absolute;z-index:4;left:12px;bottom:12px;max-width:calc(100% - 24px);padding:6px 9px;border:1px solid color-mix(in srgb,var(--border,#b7c7d8) 76%,transparent);border-radius:9px;background:color-mix(in srgb,var(--card,#fff) 92%,transparent);color:var(--muted,#627386);font-size:9px;font-weight:700}
+html[data-mid-design='next'] .weather-precipitation-attribution{margin:5px 2px 0;color:var(--muted,#627386);font-size:9px;line-height:1.35}
+html[data-mid-design='next'] .weather-precipitation-attribution a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+html[data-mid-design='next'] .weather-precipitation-summary{display:grid;gap:8px}
+html[data-mid-design='next'] .weather-precipitation-period,html[data-mid-design='next'] .weather-precipitation-meta,html[data-mid-design='next'] .weather-precipitation-exports,html[data-mid-design='next'] .weather-precipitation-favorites{padding:10px;border:1px solid color-mix(in srgb,var(--border,#b7c7d8) 72%,transparent);border-radius:14px;background:color-mix(in srgb,var(--card,#fff) 86%,transparent)}
+html[data-mid-design='next'] .weather-precipitation-section-heading h4,html[data-mid-design='next'] .weather-precipitation-favorites h4{margin:3px 0 0;font-size:14px}
+html[data-mid-design='next'] .weather-precipitation-period p{margin:7px 0 0;color:var(--muted,#627386);font-size:10px;line-height:1.4}
+html[data-mid-design='next'] .weather-precipitation-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin:0}
+html[data-mid-design='next'] .weather-precipitation-meta>div{min-width:0;padding:7px;border-bottom:1px solid color-mix(in srgb,var(--border,#b7c7d8) 54%,transparent)}
+html[data-mid-design='next'] .weather-precipitation-meta>div:nth-last-child(-n+2){border-bottom:0}
+html[data-mid-design='next'] .weather-precipitation-meta dt{color:var(--muted,#627386);font-size:9px;font-weight:700}
+html[data-mid-design='next'] .weather-precipitation-meta dd{margin:4px 0 0;font-size:11px;font-weight:750;overflow-wrap:anywhere}
+html[data-mid-design='next'] .weather-precipitation-exports{display:flex;flex-wrap:wrap;gap:6px}
+html[data-mid-design='next'] .weather-precipitation-exports button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:7px 10px;border:1px solid var(--border,#cbd5df);border-radius:10px;background:color-mix(in srgb,var(--card,#fff) 90%,transparent);color:var(--muted,#627386);font:inherit;font-size:10px;font-weight:750}
+html[data-mid-design='next'] .weather-precipitation-exports button:disabled{opacity:.56;cursor:not-allowed}
+html[data-mid-design='next'] .weather-precipitation-favorites{grid-column:1/-1}
+html[data-mid-design='next'] .weather-precipitation-favorites>header{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:7px}
+html[data-mid-design='next'] .weather-precipitation-favorites>header>span{color:var(--muted,#627386);font-size:9px;text-align:right}
+html[data-mid-design='next'] .weather-precipitation-table-wrap{overflow-x:auto}
+html[data-mid-design='next'] .weather-precipitation-favorites table{width:100%;border-collapse:collapse;text-align:left}
+html[data-mid-design='next'] .weather-precipitation-favorites th,html[data-mid-design='next'] .weather-precipitation-favorites td{padding:7px 9px;border-top:1px solid color-mix(in srgb,var(--border,#b7c7d8) 58%,transparent);font-size:10px}
+html[data-mid-design='next'] .weather-precipitation-favorites thead th{color:var(--muted,#627386);font-size:9px;font-weight:750}
+html[data-mid-design='next'] .weather-precipitation-favorites tbody th{font-weight:700}
+html[data-mid-design='next'] .weather-precipitation-favorites tbody th button{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:3px 5px;border:0;border-radius:8px;background:transparent;color:var(--text,#172536);font:inherit;font-weight:700;text-align:left;cursor:pointer}
+html[data-mid-design='next'] .weather-precipitation-favorites tbody th button.selected{background:color-mix(in srgb,var(--accent,#1675d1) 13%,transparent);color:var(--accent,#1675d1)}
+html[data-mid-design='next'] .weather-precipitation-favorites tbody td{color:var(--muted,#627386)}
+html[data-mid-design='next'] .weather-precipitation-place-outside{color:var(--muted,#627386)}
+html[data-mid-design='next'] .weather-precipitation-no-favorites{text-align:center;color:var(--muted,#627386)!important}
+html[data-mid-design='next'] .weather-precipitation-disclaimer{margin:0;padding:7px 9px;border-radius:10px;background:color-mix(in srgb,var(--accent,#1675d1) 7%,var(--card,#fff));color:var(--muted,#627386);font-size:10px;font-weight:700}
+@media(max-width:850px){
+ html[data-mid-design='next'] .weather-precipitation-layout{grid-template-columns:minmax(0,1fr)}
+ html[data-mid-design='next'] .weather-precipitation-map-shell{height:56svh;min-height:340px;max-height:620px}
+ html[data-mid-design='next'] .weather-precipitation-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html[data-mid-design='next'] .weather-precipitation-period,html[data-mid-design='next'] .weather-precipitation-exports{grid-column:1/-1}
+ html[data-mid-design='next'] .weather-precipitation-meta{align-self:stretch}
+}
+@media(max-width:520px){
+ html[data-mid-design='next'] .weather-maps-view-switch{width:100%;display:grid;grid-template-columns:1fr 1fr}
+ html[data-mid-design='next'] .weather-maps-view-switch button{min-height:44px;padding:6px 7px;font-size:11px}
+ html[data-mid-design='next'] .weather-precipitation-heading{align-items:stretch;flex-direction:column}
+ html[data-mid-design='next'] .weather-precipitation-heading label{min-width:0;max-width:220px}
+ html[data-mid-design='next'] .weather-precipitation-heading h3{font-size:17px}
+ html[data-mid-design='next'] .weather-precipitation-map-shell{height:52svh;min-height:320px;max-height:520px;border-radius:13px}
+ html[data-mid-design='next'] .weather-precipitation-data-state{top:8px;left:8px;right:52px;padding:8px}
+ html[data-mid-design='next'] .weather-precipitation-data-state strong{font-size:11px}
+ html[data-mid-design='next'] .weather-precipitation-data-state small{font-size:9px}
+ html[data-mid-design='next'] .weather-precipitation-summary{grid-template-columns:minmax(0,1fr)}
+ html[data-mid-design='next'] .weather-precipitation-period,html[data-mid-design='next'] .weather-precipitation-exports{grid-column:auto}
+ html[data-mid-design='next'] .weather-precipitation-favorites{padding:8px}
+ html[data-mid-design='next'] .weather-precipitation-favorites>header{align-items:flex-start;flex-direction:column}
+ html[data-mid-design='next'] .weather-precipitation-favorites>header>span{text-align:left}
+ html[data-mid-design='next'] .weather-precipitation-favorites th,html[data-mid-design='next'] .weather-precipitation-favorites td{padding:6px;font-size:9px}
+ html[data-mid-design='next'] .weather-precipitation-favorites thead th{font-size:8px}
+}
+@media(max-width:850px) and (orientation:landscape){
+ html[data-mid-design='next'] .weather-precipitation-map-shell{height:70svh;min-height:300px;max-height:none}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-mid-design='next'] .weather-maps-view-switch button,html[data-mid-design='next'] .weather-precipitation-favorites tbody th button{transition:none!important}
+}

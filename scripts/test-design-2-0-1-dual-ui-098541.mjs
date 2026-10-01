@@ -18,7 +18,8 @@ const designCss=[
   '../src/midC14ViewportFixes.css',
   '../src/midC15TodayDensity.css',
   '../src/midC18ResponsivePolish.css',
-  '../src/midC19WorkspacePolish.css'
+  '../src/midC19WorkspacePolish.css',
+  '../src/weatherMapsTotals.css'
 ];
 
 function nextBrace(text,start){

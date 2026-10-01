@@ -1,14 +1,16 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
-const [index,weatherMaps,styles,radar,app,pkg,publicChangelog]=await Promise.all([
+const [index,weatherMaps,styles,radar,app,pkg,publicChangelog,precipitationTotals,totalsStyles]=await Promise.all([
  readFile(new URL('../index.html',import.meta.url),'utf8'),
  readFile(new URL('../src/WeatherMapsPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/midC14MapWorkspace.css',import.meta.url),'utf8'),
  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
- readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8')
+ readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8'),
+ readFile(new URL('../src/PrecipitationTotalsMap.tsx',import.meta.url),'utf8'),
+ readFile(new URL('../src/weatherMapsTotals.css',import.meta.url),'utf8')
 ]);
 const releaseVersion=String(JSON.parse(pkg).version||'');
 
@@ -48,7 +50,23 @@ assert.ok(radar.includes('className={`card composite-card${focusMode?\' composit
 assert.ok(radar.includes('className="composite-timeline-card"'),'Radar, Satellit, Nowcast und Modelltermine müssen die bestehende gemeinsame Kartenzeitachse behalten.');
 assert.ok(radar.includes('<details className="composite-advanced">'),'Erweiterte Kartenlayer müssen im Fokusmodus einklappbar bleiben.');
 assert.ok(app.includes("const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps'];"),'Komposit und Wetterkarten müssen weiterhin derselben Karten-Navigation zugeordnet sein.');
+assert.ok(weatherMaps.includes('className="weather-maps-view-switch"')&&weatherMaps.includes('<PrecipitationTotalsMap'),'Die Niederschlagssummenkarte muss ausschließlich als eigene Ansicht im Wetterkartenmodul erscheinen.');
+assert.ok(app.includes('favorites={favorites.map(favorite=>({id:favorite.id,name:favoriteLabel(favorite),latitude:favorite.location.latitude,longitude:favorite.location.longitude}))}'),'Die Summenkarte muss vorhandene Favoritenkoordinaten erhalten.');
+for(const token of [
+ 'className="weather-precipitation-layout"',
+ 'Keine verifizierte Summenkarte verfügbar',
+ '6, 12, 24 und 48 Stunden',
+ 'className="weather-precipitation-favorites"',
+ "localeCompare(b.name,'de-DE'",
+ 'OpenStreetMap-Mitwirkende',
+ 'Modellprognose, keine amtliche Warnung.',
+ 'disabled title="PNG-Export ist erst mit einem verifizierten Datensatz verfügbar."',
+ 'disabled title="SVG-Export ist erst mit einem verifizierten Datensatz verfügbar."'
+])assert.ok(precipitationTotals.includes(token),`Summenkarten-Sicherheitsvertrag fehlt: ${token}`);
+assert.ok(!precipitationTotals.includes('loadWeatherMapGrid'),'Eine standortzentrierte Rasterprobe darf nicht als deutschlandweite Niederschlagssumme ausgegeben werden.');
+assert.ok(!radar.includes('PrecipitationTotalsMap'),'Die Summenkarte darf nicht in die Kompositbildsektion gelangen.');
+for(const token of ['.weather-precipitation-map-shell','@media(max-width:520px)','@media(max-width:850px)','grid-template-columns:minmax(0,1fr)'])assert.ok(totalsStyles.includes(token),`Responsive Summenkartenoberfläche fehlt: ${token}`);
 assert.match(releaseVersion,/^0\.9\.85\.\d+$/,'C14 muss innerhalb der 0.9.85-Releasefolge gebaut werden.');
 assert.ok(publicChangelog.startsWith(`# MID v${releaseVersion}`),`Der ausgelieferte Changelog muss mit der aktuellen Releaseversion v${releaseVersion} beginnen.`);
 
-console.log(`MID-C14: Karten als map-first Arbeitsraum, eine Zeitachse, eingeklappte Sekundärsteuerung und Smartphone-/Tablet-/Desktop-Dichte für v${releaseVersion} geprüft.`);
+console.log(`MID-C14: bestehende Kartenzeitachse und responsive Summenkarten-Ansicht für v${releaseVersion} geprüft.`);
