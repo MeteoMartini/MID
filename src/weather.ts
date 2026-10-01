@@ -16,7 +16,7 @@ import {dayPeriodHoursForDate} from './forecastPeriods';
 import {loadAndSampleRadolan} from './RadolanRasterSource';
 import {loadDwdRsCalibration} from './DwdRsSource';
 import {loadHxBoundaryCheck} from './HxRadarPointSource';
-import {finalizeRadarNowcastCalibration,needsHxBoundaryCheck,type RadarRainStationCalibration} from './RadarNowcastCalibration';
+import type {RadarRainStationCalibration} from './RadarNowcastCalibration';
 import {astronomicalIsDayAt,solarDaylightWindowAt} from './astronomy';
 import {boundedSunshineSeconds,canonicalSunshineDaySeconds,canonicalSunshineHourSeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes,reconcileSunshineDuration,type SunshineDurationDiagnostic} from './sunshineDuration';
 import {classifyVisibilityPhenomenon} from './visibilityPhenomena';
@@ -885,7 +885,7 @@ export async function radarNowcast(lat:number,lon:number,country?:string,signal?
  if(fast&&dwdExpected){const dwdResult=normaliseRadarNowcast(await requestRadarStage(params,'dwd',signal,true));if(dwdResult?.source==='dwd')return dwdResult}
  const[dwdSettled,operaSettled,nativeSettled,rsSettled,stationSettled]=await Promise.allSettled([dwdExpected?requestRadarStage(params,'dwd',signal,false):Promise.resolve(null),operaExpected?operaNowcast(lat,lon,signal):Promise.resolve(null),dwdExpected?nativeRadolanCurrentPoint(lat,lon,signal):Promise.resolve(null),dwdExpected?loadDwdRsCalibration(lat,lon,signal):Promise.resolve(null),dwdExpected?nativeRainStationCalibration(lat,lon,signal):Promise.resolve(null)]);abortError(signal);
  let dwdResult=dwdSettled.status==='fulfilled'?normaliseRadarNowcast(dwdSettled.value):null;const operaResult=operaSettled.status==='fulfilled'?operaSettled.value:null,native=nativeSettled.status==='fulfilled'?nativeSettled.value:null,rs=rsSettled.status==='fulfilled'?rsSettled.value:null,station=stationSettled.status==='fulfilled'?stationSettled.value:null;
- if(dwdResult?.source==='dwd'){let calibrated=applyNativeObservation(dwdResult,native);let hx=null;if(needsHxBoundaryCheck(calibrated)){try{hx=await loadHxBoundaryCheck(lat,lon,Number(calibrated.siteEchoThreshold)||.05,signal)}catch(error){abortError(signal);void error}}calibrated=finalizeRadarNowcastCalibration(calibrated,{rs,hx,station});return operaResult?.source==='opera'?mergeDwdOperaNowcast(calibrated,operaResult):calibrated}
+ if(dwdResult?.source==='dwd'){const{finalizeRadarNowcastCalibration,needsHxBoundaryCheck}=await import('./RadarNowcastCalibration');let calibrated=applyNativeObservation(dwdResult,native);let hx=null;if(needsHxBoundaryCheck(calibrated)){try{hx=await loadHxBoundaryCheck(lat,lon,Number(calibrated.siteEchoThreshold)||.05,signal)}catch(error){abortError(signal);void error}}calibrated=finalizeRadarNowcastCalibration(calibrated,{rs,hx,station});return operaResult?.source==='opera'?mergeDwdOperaNowcast(calibrated,operaResult):calibrated}
  if(operaResult?.source==='opera')return operaResult;
  const fallback=normaliseRadarNowcast(await requestRadarStage({...params,_ts:Date.now()},'rainviewer',signal,false));return fallback?.source==='opera'?null:fallback;
 }
