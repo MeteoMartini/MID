@@ -1,0 +1,21 @@
+export type TotalsFrame={hours:number;validTo:string;maximum:number;values:number[]};
+export type TotalsData={schema:'mid.icon-d2.totals.v1';run:string;generatedAt:string;source:string;license:string;attribution:string;grid:string;scale:number;lats:number[];lons:number[];frames:TotalsFrame[]};
+// Same discrete scale in map, favorite rows, legend and exports. Water equivalent, mm.
+export const TOTALS_COLORS:[number,string][]=[[.1,'#b9ddfc'],[1,'#83bef5'],[3,'#429be9'],[5,'#197ecc'],[7,'#1768af'],[10,'#145a91'],[15,'#099d45'],[20,'#19c32c'],[25,'#56de11'],[30,'#b4ee13'],[40,'#ffed18'],[50,'#ffbd48'],[60,'#ff892c'],[70,'#fb5140'],[80,'#f53677'],[90,'#dc245d'],[100,'#b9183c'],[125,'#941127']];
+export function totalsColor(value:number){let color='transparent';for(const [threshold,next] of TOTALS_COLORS){if(value<threshold)break;color=next}return color}
+function axisValid(axis:number[]){return Array.isArray(axis)&&axis.length>1&&axis.length<2000&&axis.every((v,i)=>Number.isFinite(v)&&(!i||v>axis[i-1]))&&axis.every((v,i)=>!i||Math.abs((v-axis[i-1])-(axis[1]-axis[0]))<1e-5)}
+export function validateTotals(raw:unknown):TotalsData{
+ const data=raw as TotalsData,stamp=Date.parse(data?.run),age=Date.now()-stamp;
+ if(data?.schema!=='mid.icon-d2.totals.v1'||!Number.isFinite(stamp)||age< -3600000||age>24*3600000||data.scale!==.1||!axisValid(data.lats)||!axisValid(data.lons)||data.lats[0]>47.03||data.lats.at(-1)!<55.17||data.lons[0]>5.53||data.lons.at(-1)!<15.57)throw new Error('Kein aktuelles, vollständiges Deutschlandraster verfügbar.');
+ if(!Array.isArray(data.frames)||!data.frames.length||new Set(data.frames.map(f=>f.hours)).size!==data.frames.length)throw new Error('Ungültige Zeitfenster.');
+ for(const f of data.frames){if(![6,12,24,48].includes(f.hours)||Date.parse(f.validTo)!==stamp+f.hours*3600000||f.values.length!==data.lats.length*data.lons.length||!f.values.every(v=>Number.isInteger(v)&&v>=0&&v<=65000))throw new Error('Summenraster oder Laufzeit ungültig.');let max=0;for(const v of f.values)max=Math.max(max,v);if(Math.abs(max*data.scale-f.maximum)>.051)throw new Error('Maximum passt nicht zum Raster.');}
+ return data;
+}
+export async function loadTotals(signal:AbortSignal){const metaResponse=await fetch('/ruc/latest.json',{signal,cache:'no-cache'});if(!metaResponse.ok)throw new Error('DWD-Kartenprodukt derzeit nicht verfügbar.');const meta=await metaResponse.json(),key=meta.precipitationTotals?.key;if(typeof key!=='string'||!/^runs\/[a-zA-Z0-9_-]+\/precipitation-totals\.json$/.test(key))throw new Error('DWD-Summenkarte wird vorbereitet.');const response=await fetch(`/ruc/${key}`,{signal});if(!response.ok)throw new Error('Summenraster konnte nicht geladen werden.');return validateTotals(await response.json());}
+export function totalsAt(data:TotalsData,frame:TotalsFrame,lat:number,lon:number){if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<data.lats[0]||lat>data.lats.at(-1)!||lon<data.lons[0]||lon>data.lons.at(-1)!)return null;const row=Math.round((lat-data.lats[0])/(data.lats[1]-data.lats[0])),col=Math.round((lon-data.lons[0])/(data.lons[1]-data.lons[0]));return frame.values[row*data.lons.length+col]*data.scale}
+export function mercatorY(lat:number){return Math.log(Math.tan(Math.PI/4+lat*Math.PI/360))}
+export function totalsRaster(data:TotalsData,frame:TotalsFrame){
+ const canvas=document.createElement('canvas');canvas.width=data.lons.length;canvas.height=data.lats.length;const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Bilddarstellung nicht verfügbar.');const image=ctx.createImageData(canvas.width,canvas.height),north=mercatorY(data.lats.at(-1)!),south=mercatorY(data.lats[0]);
+ for(let y=0;y<canvas.height;y++){const latitude=(2*Math.atan(Math.exp(north-(y+.5)/canvas.height*(north-south)))-Math.PI/2)*180/Math.PI,row=Math.min(data.lats.length-1,Math.max(0,Math.round((latitude-data.lats[0])/(data.lats[1]-data.lats[0]))));for(let x=0;x<canvas.width;x++){const color=totalsColor(frame.values[row*canvas.width+x]*data.scale);if(color==='transparent')continue;const i=(y*canvas.width+x)*4;image.data[i]=parseInt(color.slice(1,3),16);image.data[i+1]=parseInt(color.slice(3,5),16);image.data[i+2]=parseInt(color.slice(5,7),16);image.data[i+3]=215;}}
+ ctx.putImageData(image,0,0);return canvas.toDataURL('image/png');
+}

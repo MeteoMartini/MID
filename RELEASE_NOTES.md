@@ -1,16 +1,14 @@
-# MID v0.9.85.133
+# MID v0.9.85.134
 
-## Niederschlag und Kurzfrist
-- Radar-Zeitschritte, die technisch nicht ausgewertet werden konnten, werden nicht mehr als trockene 5-Minuten-Phasen dargestellt.
-- Die Niederschlagsaussage oberhalb des Radar-Nowcasts berücksichtigt nun den gesamten 24-h-Prognoseverlauf und mehrere Niederschlagsphasen statt nur des ersten zusammenhängenden Abschnitts.
-- Niederschlagsart und -intensität werden intervallgerecht bewertet: 15-Minuten-Mengen werden auf ihre tatsächliche Dauer bezogen. Ein hoher 15-Minuten-Wert kann deshalb nicht mehr als „leichter Sprühregen“ erscheinen.
-- Frische lokale Niederschlagsbeobachtungen können die Niederschlagsart in der unmittelbaren Kurzfrist stützen, damit beobachtete Schauer nicht sofort durch einen widersprüchlichen Modellcode verdrängt werden.
+## Gemeinsamer Kartenbereich und echte DWD-Niederschlagssummen
 
-## Pollenflug
-- „Heute“ wird jetzt über das tatsächliche lokale Datum bestimmt; gestrige DWD-Zeilen können nicht mehr als heutige Prognose erscheinen.
-- Angezeigt wird nach Möglichkeit der fachliche DWD-Produktstand statt lediglich der technischen Abrufzeit.
-- Der Pollenabruf wird rund um Produktaktualisierungen schneller erneuert und bei längeren PWA-Sitzungen bzw. nach Rückkehr in die App automatisch aktualisiert; ein kurzfristiger Aktualisierungsfehler entfernt einen bereits geladenen verwertbaren Stand nicht.
+- „Karte“ bündelt Radar/Satellit/Blitz, Modellkarten und Niederschlagssummen. Bestehende Wetterkarten-Einstiege öffnen weiterhin die Modellkarten; Radartimeline und Echo-/ETA-Markierungen bleiben erhalten.
+- Direkte kostenfreie DWD-ICON-D2-TOT_PREC-Raster für 6/12/24/48 Stunden ab Laufstart, geprüft auf denselben Lauf, Einheiten, Rasterabdeckung und akkumulierte Endfelder. Keine Verlängerung der 14-Stunden-RUC-Daten.
+- Deutschlandausschnitt, einheitliche mm-Farbskala, Favoritenwerte am nächsten DWD-Rasterpunkt, Kartenmaximum und tatsächlicher Gültigkeitszeitraum. PNG-/SVG-Download mit Legende, Favoriten, Quellen- und Lizenzangaben; auf unterstützten Mobilgeräten als Datei teilbar.
+- Der vorhandene kostenlose DWD-/Pages-Prozess veröffentlicht die zusätzlichen Raster als geprüfte unveränderliche Objekte; App-Releases erhalten sie über den bestehenden Snapshot-Restore.
+- Veraltete, unvollständige oder fehlende Raster werden nicht angezeigt oder exportiert. Die zusätzliche Karte wird erst nach erfolgreicher DWD-Aufbereitung freigegeben.
+- Redundante Standort-Kartenbox entfernt. Die Änderungen und Zeitsteuerungen der veröffentlichten v0.9.85.131–.133 bleiben erhalten.
 
-## Navigation
-- Beim Neustart ist der zuletzt gewählte Hauptbereich maßgeblich. Ein veralteter Unterbereich darf ihn nicht mehr auf „Vorhersage“ zurücksetzen.
-- Forecast-Horizon-Ereignisse dürfen nur innerhalb des tatsächlich aktiven Prognosebereichs persistieren.
+## Quellen und Kosten
+
+DWD Open Data (CC BY 4.0), OpenStreetMap (ODbL 1.0), Natural Earth (Public Domain). Kein kostenpflichtiger Kartenanbieter, kein zusätzlicher API-Key und keine Bright-Sky-Abhängigkeit. Bright Sky ist eine kostenlose DWD-API, ersetzt jedoch keine vollständige ICON-D2-GRIB-Rasterschnittstelle; unbegrenzte Verfügbarkeit wird nicht zugesichert.

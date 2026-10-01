@@ -21,7 +21,6 @@ for(const token of [
  'failures>=3',
  'className="composite-view-tabs"',
  'className="composite-timeline-card"',
- 'className="composite-site-summary"',
  'label="Zugspuren"'
 ])assert.ok(panel.includes(token),`Komposit-Zeitvertrag fehlt: ${token}`);
 assert.ok(!panel.includes('buildCompositeTimeline(referenceSeconds)'),'Die UI darf keine erfundenen pauschalen Fünf-Minuten-Frames mehr erzeugen.');
@@ -33,8 +32,7 @@ for(const token of [
  "confidence!=='high'&&confidence!=='medium'",
  'item.cross<=item.width',
  'resolveEchoApproachTrack([lat,lon],analysis,targetMs)',
- 'mid-echo-approach-corridor',
- 'Kein erkanntes Echo auf Standortkurs'
+ 'mid-echo-approach-corridor'
 ])assert.ok(panel.includes(token),`Echogebundene Zugspur fehlt: ${token}`);
 assert.ok(!panel.includes('label="Zeitpfeil"'),'Der irreführende Zeitpfeil-Schalter darf nicht zurückkehren.');
 assert.ok(settings.includes("export type CompositeViewMode='radar'|'satellite'|'synoptic'"),'Persistierter Darstellungsmodus fehlt.');

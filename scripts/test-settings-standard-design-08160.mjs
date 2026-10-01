@@ -47,7 +47,7 @@ need('Apple-Werkzeuge nur im Erweiterten Modus',app,"layoutMode==='advanced'?<Ap
 for(const token of [
  'data-settings-mode={layoutMode}',
  'className="settings-option-list"',
- "summary={layoutMode==='advanced'?'Radar, Satellit, Blitz und Modellkonturen':'Radar und aktuelle Wetterbeobachtungen'}",
+ "summary={layoutMode==='advanced'?'Radar, Satellit, Blitz, Modellkarten und Niederschlagssummen':'Wetterkarten und aktuelle Beobachtungen'}",
  "summary={layoutMode==='advanced'?'Unsicherheit, Konsistenz, Quartile und Klimavergleich':'Mögliche Entwicklung der nächsten 14 Tage'}",
  "available?'mit Messwert geprüft':'Vorhersage'",
  "airCard&&<AirQualityExplanation result={airClassification} station={airStation} advanced={advancedMode}/>"

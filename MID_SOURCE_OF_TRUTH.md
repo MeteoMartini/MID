@@ -19,6 +19,12 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.134 · DWD-Niederschlagssummen im gemeinsamen Kartenbereich
+
+Basis: verifizierter Stable-Stand v0.9.85.133, `main == mid-stable == 33cae56be8740c7bae3fed3754f6d4467c7655a4`. Selektiver Replit-Handoff `54a16f4c1aef264f4416db667a0217039075818b` für Navigation/Darstellung, ergänzt um den geprüften DWD-Datenpfad und Exporte.
+
+Direkte ICON-D2-Open-Data-GRIBs: TOT_PREC ab T+0 desselben Laufs für 6/12/24/48 h. Bestehender RUC-/Pages-Snapshotpfad erhält das unabhängige Kartenprodukt. Keine Punkt-API-Interpolation und keine Verlängerung des RUC-Horizonts. Bright Sky ist kein vollständiger ICON-D2-Rasterersatz.
+
 ## v0.9.85.133 · Niederschlags-, Pollen- und Navigationskonsistenz
 
 Basis: verifizierter Stable-Stand v0.9.85.132, `main == mid-stable == 3816a4332f90be6b73fd04b33bfa46e7918ac66b`.

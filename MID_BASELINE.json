@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.133",
+  "releaseVersion": "0.9.85.134",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -549,7 +549,9 @@
     "scripts/test-health-settings-primary-navigation-0985130.mjs",
     "scripts/test-radar-startup-fastpath-0985131.mjs",
     "scripts/test-precipitation-timing-consistency-0985132.mjs",
-    "scripts/test-precipitation-radar-pollen-navigation-0985133.mjs"
+    "scripts/test-precipitation-radar-pollen-navigation-0985133.mjs",
+    "scripts/test-map-workspace-handoff.mjs",
+    "scripts/test-precipitation-totals-0985134.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2405,7 +2407,7 @@
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-health-settings-primary-navigation-0985130.mjs"
   ],
-  "version": "0.9.85.133",
+  "version": "0.9.85.134",
   "updatedAt": "2026-10-01T08:20:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

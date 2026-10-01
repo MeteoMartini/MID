@@ -82,3 +82,9 @@ try{
 }catch(error){
  if(error?.code!=='ENOENT')throw error;
 }
+
+// Contract registry is a release-version mirror as well.
+const registryUrl=new URL('../contracts/index.json',import.meta.url);
+const registry=JSON.parse(await readFile(registryUrl,'utf8'));
+registry.releaseVersion=version;
+await writeFile(registryUrl,JSON.stringify(registry,null,2)+'\n');
