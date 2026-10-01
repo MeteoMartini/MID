@@ -15,7 +15,7 @@ const urls=[],sandbox={URL,Date,Number,fetch:async url=>{urls.push(url);return{o
 const point=vm.runInNewContext(worker.slice(begin,finish)+';dwdPointRate',sandbox),base=Date.UTC(2026,9,1,13),iso=epoch=>new Date(epoch).toISOString();
 for(let lead=-60;lead<=120;lead+=5){const epoch=base+lead*60000,row=await point('https://maps.dwd.de/geoserver/wms','dwd:Radar_rv_product_1x1km_ger',50.8,7.15,epoch);assert.equal(row.rate,.24);assert.equal(row.intervalStartAt,iso(epoch-300000));assert.equal(row.intervalEndAt,iso(epoch))}
 assert.equal(urls.length,37);assert.ok(urls.every(url=>new URL(url).searchParams.get('time').endsWith('Z')));
-const cal=await load(read('src/RadarNowcastCalibration.ts').replace(/^import type .*?;\n/gm,''));
+const coverage=read('src/radarCoverage.ts').replace(/^import type .*?;\n/gm,''),calibration=read('src/RadarNowcastCalibration.ts').replace(/^import type .*?;\n/gm,'').replace(/^import \{radarForecastCoverage,radarFrameAvailable\} from '.\/radarCoverage';\n/m,'').replace(/^export \{radarForecastCoverage,radarFrameAvailable\} from '.\/radarCoverage';\n/m,'');const cal=await load(coverage+'\n'+calibration);
 const frames=Array.from({length:24},(_,i)=>({time:iso(base+(i+1)*300000),intervalStartAt:iso(base+i*300000),intervalEndAt:iso(base+(i+1)*300000),rate:1.2,amountMm:.1,future:true,hitClass:'site',siteSupport:1,dataAvailable:true}));
 const radar={source:'dwd',observedAt:iso(base),quality:'high',currentRate:1.2,coverage:true,nowcastSeries:frames};
 assert.deepEqual(cal.radarForecastCoverage(radar),{complete:true,availableSlots:24,expectedSlots:24,availableMinutes:120,partialAmountMm:2.4,startAt:iso(base),endAt:iso(base+7200000)});
