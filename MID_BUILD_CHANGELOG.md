@@ -1,3 +1,16 @@
+## v0.9.85.131 · 2026-10-01 · C11-Kartensteuerung und schneller, korrekter Radar-Nowcast
+
+- Verifizierte Basis: `main == mid-stable == 0daf09160c8f9de514d3fbb3d78c03df275604d1` (v0.9.85.130).
+- Verifizierter C11-Replit-Handoff: `37e726c7be865402f4ee348c8b732233e98430fb`, 3 Commits vor Stable und 0 zurück.
+- Radar-Preload startet auf normalen Verbindungen nach 20 ms statt 85 ms; Data-Saver/2G bleibt vorsichtiger gestaffelt.
+- Der Fast-Path verwendet die bereits geladene DWD-Rasterprobe und vermeidet zusätzliche GetFeatureInfo-Runden pro grobem Schnellzeitschritt.
+- Fast-Resultate werden 45 s kurz zwischengespeichert; bei kurzem Upstream-Hänger darf maximal 120 s auf den letzten Fast-Stand zurückgegriffen werden.
+- Die vollständige 5-Minuten-Punktserie startet nach dem Fast-Signal nach 40 ms (statt 240 ms) und lädt exakte Punktwerte in 12er- statt 6er-Paketen.
+- Fehlerkorrektur: Ausgelassene Fast-Zeitschritte werden nicht länger als künstliche 5-Minuten-Trockenphasen visualisiert. Die periodische Folge „drei Balken, eine Lücke“ war ein Samplingartefakt.
+- Echte Trockenphasen des vollständigen DWD-Punktpfads bleiben unverändert erhalten.
+- Echo-Gate unverändert: Radar-Nowcast bleibt unter „Aktuell“ verborgen, wenn kein relevantes Standort- oder Umfeldecho vorliegt.
+- Regression: `scripts/test-radar-startup-fastpath-0985131.mjs`.
+
 ## v0.9.85.130 · 2026-09-30 · Gesundheitswetter sichtbar und Hauptnavigation wiederhergestellt
 
 - Screenshot-Befund reproduziert: `.settings-split-navigation` blendete die gemeinsame Optionssektion vollständig aus; dadurch waren die bereits implementierten Bereiche „Gesundheitswetter“ und „Inhaltsmodule“ unsichtbar.
