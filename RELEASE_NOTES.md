@@ -1,14 +1,9 @@
-# MID v0.9.85.134
+# MID v0.9.85.135
 
-## Gemeinsamer Kartenbereich und echte DWD-Niederschlagssummen
+## Unveränderliche DWD-Karten-Snapshots
 
-- „Karte“ bündelt Radar/Satellit/Blitz, Modellkarten und Niederschlagssummen. Bestehende Wetterkarten-Einstiege öffnen weiterhin die Modellkarten; Radartimeline und Echo-/ETA-Markierungen bleiben erhalten.
-- Direkte kostenfreie DWD-ICON-D2-TOT_PREC-Raster für 6/12/24/48 Stunden ab Laufstart, geprüft auf denselben Lauf, Einheiten, Rasterabdeckung und akkumulierte Endfelder. Keine Verlängerung der 14-Stunden-RUC-Daten.
-- Deutschlandausschnitt, einheitliche mm-Farbskala, Favoritenwerte am nächsten DWD-Rasterpunkt, Kartenmaximum und tatsächlicher Gültigkeitszeitraum. PNG-/SVG-Download mit Legende, Favoriten, Quellen- und Lizenzangaben; auf unterstützten Mobilgeräten als Datei teilbar.
-- Der vorhandene kostenlose DWD-/Pages-Prozess veröffentlicht die zusätzlichen Raster als geprüfte unveränderliche Objekte; App-Releases erhalten sie über den bestehenden Snapshot-Restore.
-- Veraltete, unvollständige oder fehlende Raster werden nicht angezeigt oder exportiert. Die zusätzliche Karte wird erst nach erfolgreicher DWD-Aufbereitung freigegeben.
-- Redundante Standort-Kartenbox entfernt. Die Änderungen und Zeitsteuerungen der veröffentlichten v0.9.85.131–.133 bleiben erhalten.
-
-## Quellen und Kosten
-
-DWD Open Data (CC BY 4.0), OpenStreetMap (ODbL 1.0), Natural Earth (Public Domain). Kein kostenpflichtiger Kartenanbieter, kein zusätzlicher API-Key und keine Bright-Sky-Abhängigkeit. Bright Sky ist eine kostenlose DWD-API, ersetzt jedoch keine vollständige ICON-D2-GRIB-Rasterschnittstelle; unbegrenzte Verfügbarkeit wird nicht zugesichert.
+- Niederschlagssummen aus ICON-D2 erhalten eine eigene, vom tatsächlichen Datei-Hash abgeleitete Objektadresse innerhalb des bestehenden RUC-/Pages-Manifests.
+- Ein neuer ICON-D2-Lauf oder eine Wiederholung der Aufbereitung kann dadurch keine bereits gecachte Raster-URL überschreiben, auch wenn der RUC-Lauf unverändert bleibt.
+- Die Auswahl des aktuellen Kartenobjekts lädt das DWD-Manifest mit einer frischen Anfrage, damit ein Browser-/CDN-Cache keinen alten Lauf festhält.
+- Snapshot-Erhalt, Kartenansicht, Favoriten, PNG-/SVG-Downloads und alle Änderungen aus v0.9.85.134 bleiben erhalten. Kein zusätzlicher Anbieter oder Workflow; bestehende kostenlose DWD-Pipeline.
+- Regression prüft zwei unterschiedliche ICON-D2-Läufe bei identischem RUC-Lauf und verschiedene unveränderliche Objektadressen.
