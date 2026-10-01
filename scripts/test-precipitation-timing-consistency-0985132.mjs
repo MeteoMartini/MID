@@ -23,9 +23,9 @@ const transpiled=ts.transpileModule(executable,{compilerOptions:{target:ts.Scrip
 const temp=mkdtempSync(join(tmpdir(),'mid-precip-timing-')),modulePath=join(temp,'intervals.mjs');writeFileSync(modulePath,transpiled);
 try{
  const mod=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);
- const HOUR=3600000,QUARTER=15*60000,now=Date.UTC(2026,9,1,6,30);
+ const HOUR=3600000,QUARTER=15*60000,now=Date.UTC(2026,9,1,6,30),hourGridStart=Date.UTC(2026,9,1,3,0);
  const hour=(epoch,wet=false,probability=wet?80:5)=>({epoch,time:new Date(epoch).toISOString().slice(0,16),precipitation:wet?.8:0,rain:wet?.8:0,showers:0,snowfall:0,probability,code:wet?61:3,visibility:10000,humidity:80,temperature:10,cloud:80});
- const hours=[];for(let epoch=now-3*HOUR;epoch<=now+8*HOUR;epoch+=HOUR){const wet=epoch===Date.UTC(2026,9,1,9,0)||epoch===Date.UTC(2026,9,1,10,0);hours.push(hour(epoch,wet))}
+ const hours=[];for(let epoch=hourGridStart;epoch<=Date.UTC(2026,9,1,15,0);epoch+=HOUR){const wet=epoch===Date.UTC(2026,9,1,9,0)||epoch===Date.UTC(2026,9,1,10,0);hours.push(hour(epoch,wet))}
  const hourlyTimeline=mod.canonicalPrecipitationTimeline([],hours,now,6);
  assert.equal(hourlyTimeline.source,'hourly');
  assert.equal(hourlyTimeline.periods.length,1);

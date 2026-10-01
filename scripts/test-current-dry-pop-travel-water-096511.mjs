@@ -11,7 +11,8 @@ const [app,fusion,panel,travel,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 
 // Aktuelle Niederschlagswahrscheinlichkeit: kein synthetischer 5-%-Boden.
-assert.ok(app.includes("probability=maxProb<=5&&!continuation?0:Number(nearest.probability)||0"),'Trockene aktuelle Kurzfristlage wird nicht auf 0 % zurückgeführt.');
+assert.ok(app.includes("probability=maxProb<=5?0:Number(nearest.probability)||0"),'Trockene aktuelle Kurzfristlage wird nicht auf 0 % zurückgeführt.');
+assert.ok(app.includes("canonicalPrecipitationTimeline(minutes,hours,now,6)"),'Trockenkonsens muss auf der kanonischen Kurzfrist-Zeitreihe basieren.');
 assert.ok(fusion.includes('safeModelProbability<=5&&radarProbability<=5?0:'),'Radar-/Modell-Trockenkonsens bis 5 % wird nicht auf 0 % gesetzt.');
 assert.ok(fusion.includes('probability=safeModelProbability<=5?0:blendedProbability'),'Vollständig trockene Radarabdeckung behält einen künstlichen Restwert.');
 
