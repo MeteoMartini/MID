@@ -17,7 +17,7 @@ need('Persistenz',app,"mid:pushPrecipitationAlert:v1");
 need('2h-Fortsetzung',app,'Über das +2-h-Fenster hinaus ist weiterer Niederschlag');
 need('2h-Neubeginn',app,'Nach dem +2-h-Fenster ist von etwa');
 need('2h-Ende',app,'bis ${localTimeLabel(period.endEpoch,timezone)} Uhr erneut Niederschlag möglich.');
-need('Kanonische Zeitreihe',app,'canonicalPrecipitationTimeline(minutes,hours,now,6)');
+need('Kanonische Zeitreihe',app,'canonicalPrecipitationTimeline(minutes,hours,now,24)');
 need('Worker-Vorlauf',worker,'PUSH_PRECIPITATION_LEADS=[15,30,45,60,90,120]');
 need('Worker-Mengen',worker,'PUSH_PRECIPITATION_AMOUNTS=[.1,.2,.5,1,2,5]');
 need('Worker-Dauer',worker,'PUSH_PRECIPITATION_DURATIONS=[0,15,30,60,120,180]');
