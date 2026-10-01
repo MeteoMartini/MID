@@ -252,8 +252,14 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   font-size:8.5px!important;
   line-height:1!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b{top:4px!important}
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span{top:39px!important}
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b,
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span,
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis i{
+  top:auto!important;
+  transform:translateY(50%)!important;
+ }
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b{bottom:72px!important}
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span{bottom:48px!important}
  html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis i{bottom:24px!important}
  html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis em{
   right:0!important;
@@ -266,8 +272,11 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   height:96px!important;
   margin:0 2px!important;
  }
+ html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.top{
+  bottom:72px!important;
+ }
  html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.half{
-  bottom:50px!important;
+  bottom:48px!important;
  }
  html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-axis{
   bottom:24px!important;
@@ -365,6 +374,10 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   .current-weather-thread-sky[data-skybar-display='band']>svg,
   .cockpit-now90-sky:not([data-skybar-display='squares'])>svg{width:100%;max-height:17px}
 }
+
+/* MID v0.9.85.138 · gleichmäßig gerasterte Radar-Nowcast-y-Achse */
+html[data-mid-design='next'] .radar-nowcast-grid.top{bottom:64px}
+html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-grid.top{bottom:50px}
 
 /* MID v0.9.85.133 · Radar-Datenlücken sind keine Trockenphasen */
 html[data-mid-design='next'] .radar-nowcast-wet.radar-nowcast-missing{height:8px!important;min-height:8px!important;border:1px dashed currentColor!important;opacity:.52!important;background:repeating-linear-gradient(135deg,transparent 0 3px,currentColor 3px 4px)!important}
