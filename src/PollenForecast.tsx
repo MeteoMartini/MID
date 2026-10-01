@@ -99,7 +99,10 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
     );
   }
 
-  if(error||!data){
+  // Ein vorübergehender Refresh-Fehler darf einen bereits geladenen, noch
+  // plausiblen DWD-Produktstand nicht aus der Oberfläche entfernen. Ohne
+  // verwertbaren Datensatz bleibt das Modul dagegen weiterhin verborgen.
+  if(!data){
     return null;
   }
 
