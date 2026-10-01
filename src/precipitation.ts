@@ -224,11 +224,11 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  const evidence=classifyPrecipitationCharacter({...input,rain,showers,code}),cloud=Number(input.cloud),lowCloud=Number(input.lowCloud),humidity=Number(input.humidity),rawSunshine=Number(input.sunshineDuration),sunshine=Number.isFinite(rawSunshine)?Math.max(0,rawSunshine):Number.NaN,daylight=input.isDay!==false;
  const stratiformSupport=evidence.character==='stratiform'||(Number.isFinite(cloud)&&cloud>=82)||(Number.isFinite(lowCloud)&&lowCloud>=65)||(Number.isFinite(humidity)&&humidity>=92)||(daylight&&Number.isFinite(sunshine)&&sunshine<=600);
  const convectiveSupport=evidence.character==='convective';
- if(stratiformCode(code)&&convectiveSupport&&![56,57,66,67].includes(code)){
+ if(!input.observed&&stratiformCode(code)&&convectiveSupport&&![56,57,66,67].includes(code)){
   const total=Math.max(precipitation,rain+showers,snowfall),nextCode=showerEquivalentCode(code,total,snowfall,input.intervalSeconds);
   if(![83,84,85,86].includes(nextCode)&&snowfall<.05){showers=Math.max(showers,precipitation);rain=0}
   code=nextCode;phaseAdjusted=true;
- }else if(showerCode(code)&&evidence.character==='stratiform'&&![87,88,89,90,91,92,95,96,97,99].includes(code)){
+ }else if(!input.observed&&showerCode(code)&&evidence.character==='stratiform'&&![87,88,89,90,91,92,95,96,97,99].includes(code)){
   const total=Math.max(precipitation,rain+showers,snowfall),nextCode=stratiformEquivalentCode(code,total,snowfall,input.intervalSeconds);
   if(![68,69,71,73,75].includes(nextCode)&&snowfall<.05){rain=Math.max(rain,precipitation);showers=0}
   code=nextCode;phaseAdjusted=true;
