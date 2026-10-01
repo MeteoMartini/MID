@@ -35,7 +35,7 @@ const ENVIRONMENT_OPTIONS:{id:EventEnvironment;label:string;detail:string}[]=[
 const ACTIVITY_OPTIONS:{id:EventActivity;label:string;detail:string}[]=[
  {id:'general',label:'Allgemein',detail:'ohne besondere Schwerpunktsetzung'},
  {id:'running',label:'Laufen',detail:'Temperatur, Regen, Wind und Untergrund'},
- {id:'cycling',label:'Radfahren',detail:'Wind, Nässe und gefühlte Temperatur'},
+ {id:'cycling',label:'Radfahren',detail:'Wind, Nässe und UTCIe Temperatur'},
  {id:'hiking',label:'Wandern',detail:'Regen, Sicht und Wind beachten'},
  {id:'skiing',label:'Skifahren',detail:'Kälte, Wind und winterliche Bedingungen'},
  {id:'climbing',label:'Klettern',detail:'Wind, Niederschlag und Felsfeuchte'},
@@ -384,7 +384,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
    </div>
 
    <div className="event-metrics-grid">
-    <article><Thermometer size={17}/><small>Temperatur</small><strong>{formatNumber(plan.summary.temperatureAvg)} °C</strong><span>{formatNumber(plan.summary.temperatureMin)}–{formatNumber(plan.summary.temperatureMax)} °C · gefühlt Ø {formatNumber(plan.summary.apparentAvg)} °C</span></article>
+    <article><Thermometer size={17}/><small>Temperatur</small><strong>{formatNumber(plan.summary.temperatureAvg)} °C</strong><span>{formatNumber(plan.summary.temperatureMin)}–{formatNumber(plan.summary.temperatureMax)} °C · UTCI Ø {formatNumber(plan.summary.apparentAvg)} °C</span></article>
     <article><EventSummaryPrecipitationIcon summary={plan.summary} size={17}/><small>Niederschlag</small><strong><span className="event-precip-detail-symbol" title={eventPrecipLabel(plan.summary)} aria-label={eventPrecipLabel(plan.summary)}><EventSummaryPrecipitationIcon summary={plan.summary}/></span> {formatNumber(eventPrecipProbability(plan.summary))} %</strong><span>{formatNumber(plan.summary.precipitationTotal,1)} mm{plan.summary.precipitationProbabilitySource==='hourly-window-average-fallback'?' · Stunden-PoP-Mittel':plan.summary.precipitationProbabilitySource==='ensemble-members-dwd-event'&&plan.summary.precipitationProbabilitySignificant!=null?` · >5 mm ${formatNumber(plan.summary.precipitationProbabilitySignificant)} %`:''}</span></article>
     <article><Wind size={17}/><small>Wind</small><strong>{wind(plan.summary.windMax??Number.NaN,unit)}</strong><span>Böen {wind(plan.summary.gustMax??Number.NaN,unit)}</span></article>
     {plan.activity==='flight'?<article><Plane size={17}/><small>Sicht / Wolkenuntergrenze</small><strong>Sicht {aviationVisibility(renderedFlightHazards?.visibilityMinM??plan.summary.visibilityMin)}</strong><span>Wolkenuntergrenze {aviationCeiling(renderedFlightHazards?.ceilingMinFt)}</span></article>:<article><Sun size={17}/><small>UVI / Sicht / Sonnenscheindauer</small><strong>UVI {formatUvi(plan.summary.uvMax??Number.NaN)} · <span title="Sonnenscheindauer" aria-label={`Sonnenscheindauer ${eventSunshineLabel(plan.summary.sunshineDurationTotal)}`}><Sun size={13} aria-hidden="true"/> {eventSunshineLabel(plan.summary.sunshineDurationTotal)}</span></strong><span>Sicht min. {plan.summary.visibilityMin!=null?`${formatNumber(plan.summary.visibilityMin/1000,1)} km`:'–'}</span></article>}

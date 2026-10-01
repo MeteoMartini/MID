@@ -311,6 +311,17 @@ export function utciCategory(utciC: number): UtciCategory {
   return UTCI_CATEGORIES[0];
 }
 
+/** Symmetric 0–100 display severity derived strictly from UTCI stress bands. */
+export function utciStressScore(utciC:number):number{
+  if (!Number.isFinite(utciC)) return 0;
+  if (utciC < -40 || utciC >= 46) return 100;
+  if (utciC < -27 || utciC >= 38) return 86;
+  if (utciC < -13 || utciC >= 32) return 72;
+  if (utciC < 0 || utciC >= 26) return 55;
+  if (utciC < 9) return 30;
+  return 8;
+}
+
 /** Convenience: calculate UTCI from Hour-like data */
 export function utciFromHour(
   temperatureC: number,
@@ -328,4 +339,35 @@ export function utciFromHour(
   const utci = calculateUtci(temperatureC, tmrt, windMs, humidityPercent);
   if (!Number.isFinite(utci)) return null;
   return { utci, category: utciCategory(utci), tmrt };
+}
+
+
+export type UtciOutdoorState={
+  temperatureC:number;
+  windKnots:number;
+  humidityPercent:number;
+  cloudPercent:number;
+  uvIndex:number;
+  isDay:boolean;
+  elevationM?:number;
+};
+
+/**
+ * Appweiter MID-Vertrag für UTCI aus den kanonischen Außenwetterfeldern.
+ * Wind wird in MID überwiegend in kt geführt und hier auf den UTCI-10-m-Wind
+ * in m/s normiert. Die eigentliche UTCI-Approximation begrenzt den Wind auf
+ * ihren veröffentlichten Gültigkeitsbereich von 0,5 bis 17 m/s.
+ */
+export function utciFromOutdoorState(state:UtciOutdoorState){
+  const cloudOktas=Math.max(0,Math.min(8,Math.round((Number(state.cloudPercent)||0)/12.5)));
+  const windMs=Math.max(0.5,(Number(state.windKnots)||0)*0.514444);
+  return utciFromHour(
+    Number(state.temperatureC),
+    windMs,
+    Number(state.humidityPercent),
+    cloudOktas,
+    Math.max(0,Number(state.uvIndex)||0),
+    Boolean(state.isDay),
+    Number(state.elevationM)||0
+  );
 }

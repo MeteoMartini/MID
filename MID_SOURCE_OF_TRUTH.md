@@ -19,6 +19,14 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.138 · Radarintensität, Niederschlagsstufen und UTCI appweit
+
+Ausgangsbasis ist der vollständig veröffentlichte Stable-Stand `main == mid-stable == b013e6664966111fa2c466ba8cabb3520421b435` (v0.9.85.137). Die Radar-Nowcast-Grafik verwendet für ihre `mm/5 min`-Balken die native Zeitschrittintensität; die separate final kalibrierte Mengenreihe bleibt für vollständige/partielle 120-Minuten-Summen maßgeblich. Niederschlagsintensitätstexte werden aus `precipitationIntensityDescriptor` abgeleitet, sodass sichtbare Rate und Textstufe denselben Intervallvertrag verwenden.
+
+UTCI ist der kanonische appweite Außenkomfortindex. Stündliche Reihen werden nach lokalen Forecast-Korrekturen neu berechnet; Kurzfrist, Profil/Cockpit, Event, Wasser und Bergwetter konsumieren denselben UTCI-Pfad. Tmrt wird bei fehlendem Direktfeld aus UVI, Bewölkung, Tageszeit und Höhe geschätzt; Standard-UTCI-Stressgrenzen bleiben in `src/utci.ts` zentral.
+
+Required Regression: `scripts/test-radar-utci-consistency-0985138.mjs`. Implementierungsnachweis: `docs/implementation/MID_RADAR_UTCI_CONSISTENCY_0.9.85.138.md`.
+
 ## v0.9.85.137 · Radar-Fünfminutenwerte und gemeinsame Modellkarten
 
 Basis: `main == mid-stable == 82fe63ea483afe74c264c15b6978726f9cb47143` (veröffentlichte v0.9.85.136). Aktive Agent-/Replit-PRs vor Beginn abgeglichen. Direkter DWD-RV-Pfad korrigiert, keine neue kostenpflichtige Quelle. Die ausdrücklich beauftragte Zusammenführung ersetzt drei Kartenreiter durch zwei und macht Summen zum ICON-D2-Kartenprodukt. Rechen-/Zeitintervall- und Geografieverträge: `docs/implementation/MID_C11_RADAR_MODEL_MAPS_0.9.85.137.md`. Die betroffenen historischen UI-Tests wurden an diesen neuen Vertrag angepasst; das vollständige Regressioninventar bleibt verbindlich.

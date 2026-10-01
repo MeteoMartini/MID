@@ -22,7 +22,7 @@ for(const token of [
  'function radarAmountScale(',
  'radar-nowcast-yaxis',
  '<em>mm/5 min</em>',
- 'height:radarBarHeight(segment.amount,scale,segment.nearby)',
+ 'height:radarBarHeight(radarChartAmount(segment.rate,segment.nearby),scale,segment.nearby)',
  '5-Minuten-Menge',
  '<PortalPopover anchorRef={anchorRef}'
 ])if(!app.includes(token))failures.push(`Nowcast-Leiste: ${token}`);
@@ -60,4 +60,4 @@ try{
 }catch(error){failures.push(`Funktionaler Modelllauf-Test nicht ausführbar: ${error instanceof Error?error.message:String(error)}`)}
 
 if(failures.length){console.error('Radar-/Modelllauf-Konsistenzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Radar-/Modelllauf-Konsistenz geprüft: Ankunftsfenster, 5-Minuten-Mengenhöhen, PX250-Georeferenz, Mehrframe-Zugrichtung und alter/neuer Niederschlagsbeginn sind geschützt.');
+console.log('Radar-/Modelllauf-Konsistenz geprüft: Ankunftsfenster, 5-Minuten-Intensitätshöhen, PX250-Georeferenz, Mehrframe-Zugrichtung und alter/neuer Niederschlagsbeginn sind geschützt.');

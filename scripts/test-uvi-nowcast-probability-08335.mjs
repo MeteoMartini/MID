@@ -5,6 +5,7 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
+import {inlineUtciRegressionStub} from './utci-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const formatSource=fs.readFileSync(path.join(root,'src','format.ts'),'utf8');
@@ -41,7 +42,7 @@ try{
  assert.equal(formatCompiled.module.formatUvi(Number.NaN),'–');
 }finally{fs.rmSync(formatCompiled.dir,{recursive:true,force:true})}
 
-const fusionCompiled=compile(inlineSunshineDurationContract(fusionSource),'forecastFusion.ts',[
+const fusionCompiled=compile(inlineUtciRegressionStub(inlineSunshineDurationContract(fusionSource)),'forecastFusion.ts',[
  ["import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used in regression')};"],
  ["import {reconcileForecastPrecipitation} from './precipitation';","const reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});"],
  ["import {precipitationPresentationHours} from './precipitationIntervals';","const precipitationPresentationHours=hours=>hours;"],

@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {inlineUtciRegressionStub} from './utci-regression-helper.mjs';
 const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [mountainSource,changesSource,app,ensemble,worker,sw,legacySw,styles]=await Promise.all([
@@ -27,8 +28,8 @@ for(const token of [
 ])requireToken('Skigebietsprofil',mountainSource,token);
 
 // This profile-selection test doesn't call snowfallSums; its dedicated unit test
-// exercises the real helper. Keep the isolated data-URL module loader dependency-free.
-const mountainJs=ts.transpileModule(mountainSource.replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>({});").replace("import {guardedOpenMeteoFetch,guardedOpenMeteoJson} from './openMeteoGuard';","const guardedOpenMeteoFetch=async()=>new Response('{}',{status:200}); const guardedOpenMeteoJson=async()=>({});").replace("import {sumMountainSnowfallWindows} from './mountainSnowfall';","const sumMountainSnowfallWindows=()=>({past24:NaN,next24:NaN,next48:NaN});"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+// exercises the real helper. UTCI has dedicated unit coverage; the shared shim keeps this isolated data-URL module loader dependency-free.
+const mountainJs=ts.transpileModule(inlineUtciRegressionStub(mountainSource).replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>({});").replace("import {guardedOpenMeteoFetch,guardedOpenMeteoJson} from './openMeteoGuard';","const guardedOpenMeteoFetch=async()=>new Response('{}',{status:200}); const guardedOpenMeteoJson=async()=>({});").replace("import {sumMountainSnowfallWindows} from './mountainSnowfall';","const sumMountainSnowfallWindows=()=>({past24:NaN,next24:NaN,next48:NaN});"),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
 const mountain=await import(`data:text/javascript;base64,${Buffer.from(mountainJs).toString('base64')}`);
 const loc={id:1,name:'Sölden',latitude:46.969,longitude:11.010,elevation:1377};
 const candidate=(name,elevation,latitude,longitude,distanceM,kind='lift-end',role=undefined,liftId=undefined)=>({name,elevation,latitude,longitude,distanceM,kind,role,liftId,source:'Test'});
