@@ -3,7 +3,7 @@ import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClien
 export type WeatherMapModelId='icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix';
 export type WeatherMapCategory='surface'|'upper-air'|'ensemble'|'significant';
 export type WeatherMapLevelKind='pressure'|'height';
-export type WeatherMapSource='wms'|'grid';
+export type WeatherMapSource='wms'|'grid'|'totals';
 export type WeatherMapGridKind='pressure-thetae'|'pressure-sigwx'|'pressure-precip';
 
 export type WeatherMapProduct={
@@ -30,6 +30,7 @@ const PRESSURE_LEVELS=[1000,925,850,700,500,400,300,250,200];
 const HEIGHT_LEVELS=[2,50,100,150,200,250,300,350,400,450,500];
 
 export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
+ {id:'icon-d2-precipitation-totals',modelId:'icon-d2',category:'surface',label:'Niederschlagssummen · 6 / 12 / 24 / 48 h',detail:'Deutschland · Gesamtniederschlag ab demselben Modelllaufstart · Favoriten und PNG-/SVG-Download',layer:'mid:icon-d2:tot-prec',source:'totals',timeDependent:true,forecast:true,defaultZoom:5.25,opacity:85},
  // ICON-D2 – aktueller Rasterpfad aus DWD ICON-D2 via Open-Meteo; kein nicht verfügbarer DWD-WMS-Layer
  {id:'icon-d2-pressure-thetae',modelId:'icon-d2',category:'upper-air',label:'Bodendruck + ThetaE 850 hPa',detail:'MSL-Druckkonturen mit äquivalentpotenzieller Temperatur in 850 hPa · ICON-D2',layer:'mid:grid:icon-d2:pressure-thetae',source:'grid',gridKind:'pressure-thetae',timeDependent:true,forecast:true,defaultZoom:7,opacity:82,disclaimer:'DWD ICON-D2-Modellfelder über den aktuellen Open-Meteo-DWD-Datenpfad. ThetaE 850 hPa wird aus Temperatur und relativer Feuchte berechnet; MSL-Druck als Isobaren.'},
  {id:'icon-d2-pressure-sigwx',modelId:'icon-d2',category:'significant',label:'Bodendruck + SIGWX',detail:'MSL-Druckkonturen mit modelliertem signifikantem Wetter · ICON-D2',layer:'mid:grid:icon-d2:pressure-sigwx',source:'grid',gridKind:'pressure-sigwx',timeDependent:true,forecast:true,defaultZoom:7,opacity:84,disclaimer:'SIGWX wird aus dem ICON-D2-Wettercodefeld dargestellt; MSL-Druckkonturen dienen der synoptischen Einordnung.'},
@@ -91,3 +92,11 @@ export function preferredWeatherMapTimeIndex(times:string[],reference=Date.now()
 export async function loadWeatherMapGrid(modelId:WeatherMapModelId,lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<WeatherMapGridData>('weather-map-grid',{model:modelId,lat,lon},{purpose:'radar',signal,timeoutMs:24000,maxAgeMs:10*60000,staleIfErrorMs:30*60000,cacheKey:`weather-map-grid:${modelId}:${lat.toFixed(2)}:${lon.toFixed(2)}`})}
 const lastWeatherPhaseGrid=new Map<string,WeatherPhaseGridData>();
 export async function loadWeatherPhaseGrid(lat:number,lon:number,targetTime:string,signal?:AbortSignal){const parsed=Date.parse(targetTime),quarter=15*60000,normalizedTarget=Number.isFinite(parsed)?new Date(Math.round(parsed/quarter)*quarter).toISOString():targetTime,locationKey=`${(Math.round(lat*20)/20).toFixed(2)}:${(Math.round(lon*20)/20).toFixed(2)}`;try{const data=await fetchWorkerJson<WeatherPhaseGridData>('precipitation-phase-grid',{lat,lon,target:normalizedTarget},{purpose:'radar',signal,timeoutMs:28000,maxAgeMs:10*60000,staleIfErrorMs:20*60000,cacheKey:`precipitation-phase-grid:${locationKey}:${normalizedTarget.slice(0,16)}`});if(!data.error)lastWeatherPhaseGrid.set(locationKey,data);return data}catch(error){const message=error instanceof Error?error.message:String(error),cached=lastWeatherPhaseGrid.get(locationKey),cachedMs=Date.parse(cached?.frame?.time||''),targetMs=Date.parse(normalizedTarget);if(/(?:request|rate|minute|minutes|429).*limit|limit.*(?:request|rate|minute|minutes)|too many requests/i.test(message)&&cached&&Number.isFinite(cachedMs)&&Number.isFinite(targetMs)&&Math.abs(cachedMs-targetMs)<=45*60000)return{...cached,targetTime:normalizedTarget,stale:true,fallbackReason:'Open-Meteo-Minutenlimit: letztes lokal vorhandenes Phasenfeld wird vorübergehend weiterverwendet.'};throw error}}
+
+export function weatherMapProductFamily(product:WeatherMapProduct){
+ if(/rain|precip/.test(product.id))return 'Niederschlag';
+ if(/temperature|t2m/.test(product.id))return 'Temperatur';
+ if(/wind|gust/.test(product.id))return 'Wind';
+ if(/qff|pmsl|pressure|gh|omega/.test(product.id))return 'Druck & Höhen';
+ return 'Weitere Wetterfelder';
+}

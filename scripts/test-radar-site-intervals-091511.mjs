@@ -8,7 +8,7 @@ for(const [name,ok] of [
  ['exakte 5-Minuten-Punktserie',worker.includes('exactPointFrames')&&worker.includes("source!=='feature-info'" )],
  ['mehrphasige Standortintervalle',worker.includes('radarSiteIntervals')&&worker.includes('interruptionMinutes')],
  ['Nahbereich ist kein Standorttreffer',worker.includes('im direkten DWD-RV-Punkt-Nowcast kein Standorttreffer')&&app.includes('Echo nur im Umfeld, kein direkter Standorttreffer')],
- ['2-h-Summe nur Standort',app.includes('!segment.nearby&&segment.end>now')],
+ ['2-h-Summe nur Standort',app.includes('forecastAmount=amountCoverage.partialAmountMm')],
  ['Unterbrechungswortlaut',app.includes('nach kurzer Unterbrechung erneut')&&app.includes('mit Unterbrechungen bis')],
  ['RADOLAN-YW-Punktbeobachtung',weather.includes('nativeRadolanCurrentPoint')&&weather.includes('loadAndSampleRadolan')&&raster.includes('nearestWetKm')],
  ['OPERA nur Kontrollabgleich',weather.includes('OPERA CIRRUS-Kontrollabgleich')&&weather.includes('kein Ersatz für den DWD-Standortpunkt')],

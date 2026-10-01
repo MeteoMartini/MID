@@ -16,9 +16,9 @@ for(const token of [
  "for(const level of[.02,.05,.1,.2,.5,1,2,4,6,10])",
  "function radarAmountScale(maxAmount:number)",
  "function radarAxisLabel(value:number)",
- "rawForecastAmount=timelineSegments.filter(segment=>!segment.nearby&&segment.end>now).reduce",
- "forecastAmount=Number.isFinite(Number(radar.ensemble?.totalMedian))",
- "<small>2-h-Summe</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>",
+ "amountCoverage=radarForecastCoverage(radar)",
+ "forecastAmount=amountCoverage.partialAmountMm",
+ "<small>{amountCoverage.complete?'2-h-Summe':'Teilsumme'}</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>",
  "{radarAxisLabel(scale/2)}",
  "<em>mm/5 min</em>",
  "height:radarBarHeight(segment.amount,scale,segment.nearby)"

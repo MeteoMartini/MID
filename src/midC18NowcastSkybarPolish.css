@@ -368,3 +368,5 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
 
 /* MID v0.9.85.133 · Radar-Datenlücken sind keine Trockenphasen */
 html[data-mid-design='next'] .radar-nowcast-wet.radar-nowcast-missing{height:8px!important;min-height:8px!important;border:1px dashed currentColor!important;opacity:.52!important;background:repeating-linear-gradient(135deg,transparent 0 3px,currentColor 3px 4px)!important}
+
+.radar-nowcast-coverage-note{margin:6px 0 10px;font-size:12px;line-height:1.4;color:var(--muted)}

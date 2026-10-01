@@ -1,8 +1,10 @@
-# MID v0.9.85.136
+# MID v0.9.85.137
 
-## ICON-D2-Abgrenzung und konsolidierte Regressionen
+## DWD-Radar im Fünfminutentakt und gemeinsame Modellkarten
 
-- Extremwetter-Ausblick: Außenbereich der gekrümmten ICON-D2-Modellabdeckung dunkel eingefärbt; Grenzpolygon entspricht exakt der bestehenden Analyse. Dunkler Bereich in der Kartenlegende erklärt, unabhängig von Hazard-Auswahl, Zeitraum und temporären Datenlücken.
-- Alle 894 Regressionen bleiben unverändert wirksam. Automatische Dateierkennung und beide Baseline-Pflichtlisten werden jetzt als vollständige identische Inventare geprüft; fehlende, veraltete und doppelte Registrierungen brechen die Suite ab.
-- Ein gemeinsamer Runner meldet Fortschritt, Gesamtdauer und langsamste Prüfungen; Fehler enthalten weiter die vollständige Ausgabe. MID_REGRESSION_VERBOSE=1 zeigt auch erfolgreiche Einzelausgaben. Ausführung bleibt isoliert und seriell, damit gemeinsam verwendete Artefakte keine Rennen verursachen.
-- Neue Regression schützt die identische Modellgeometrie sowie positive und negative Fälle der Testregistrierung. Keine bestehenden Assertions entfernt, keine zusätzlichen Kosten oder Datenquellen.
+- DWD GetFeatureInfo wertet RV_ANALYSIS, RV_FORECAST und RV_PREDICTION als native mm/5 min aus und normalisiert korrekt nach mm/h. Die bisher nicht erkannten numerischen Bandwerte verursachten Lücken zwischen den ausgedünnten Kartenbildern. Der bestehende kostenlose DWD-Pfad bleibt erhalten.
+- Native Fünfminutenintervalle erhalten explizite Start-/Endzeiten. Die Forecast-Fusion zählt bei 15 Minuten genau drei native Intervalle. Lücken werden weder verbreitert noch als trocken interpretiert oder über RS-Mengenanker aufgefüllt.
+- Die sichtbare Summe verwendet die tatsächlich verfügbaren zentralen, final kalibrierten Mengen eines ausdrücklich angegebenen 120-Minuten-Fensters. Nur 24 gültige Schritte ergeben eine vollständige Zweistundensumme und Ensemble-Spanne; ansonsten stehen Teilsumme, auswertbare Minuten und Datenlückenhinweis im Vordergrund. Frühere Summen bei Lücken sind nicht als vollständige Zweistundensummen belastbar.
+- Unter Karte bleiben zwei Einstiege: Radar/Satellit/Blitz und Modellkarten. Niederschlagssummen sind ein ICON-D2-Kartenprodukt innerhalb der gemeinsamen, nach Wetterparameter gruppierten Auswahl. Alte Summen-Einstiege und gespeicherte Auswahl werden migriert; Favoriten, Zeitfenster und PNG-/SVG-Downloads bleiben erhalten.
+- Kostenlose Natural-Earth-Grenzen (Public Domain) liegen über sämtlichen Modellfeldern. Ländergrenzen immer, Bundesländer ab Zoom 4,8 und kollisionsgeprüfte Ortsnamen ab Zoom 5,7. Bundeslandgrenzen sind auch im PNG-/SVG-Export sichtbar. Auf Smartphones sind die Auswahlfelder mindestens 44 px hoch.
+- Neue funktionale Regression prüft Datenfeld/Einheit, 37 Fünfminutenabfragen, Intervallgrenzen, vollständige/partielle Mengen, RS-Lückenschutz, Intervallfusion, Navigationmigration und Zoomstufen. Betroffene historische Oberflächentests werden wegen der ausdrücklich gewünschten Zusammenführung und korrigierten Summenbasis angepasst; alle übrigen Assertions bleiben erhalten.
