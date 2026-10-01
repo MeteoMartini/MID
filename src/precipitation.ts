@@ -26,6 +26,7 @@ export type PrecipSample={
  convectiveInhibition?:number;
  sunshineDuration?:number|null;
  isDay?:boolean;
+ precipitationPhenomenonObserved?:boolean;
 };
 
 export type PrecipitationVisualIntensity='none'|'light'|'moderate'|'heavy'|'very-heavy';
@@ -428,7 +429,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const rawSnowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
  const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseProtected=[76,77,78,79,87,88,89,90,93,94,96,99].includes(code),warmPhaseAdjusted=frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsFrozenPhase(h),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase,precipitationSampleIntervalSeconds(h)):code,snowCm=warmPhaseAdjusted?0:rawSnowCm;
- const codedType=WMO_PRECIP_TYPE[effectiveCode];
+ const codedType=WMO_PRECIP_TYPE[effectiveCode],observedCharacter=Boolean(h.precipitationPhenomenonObserved);
  const hasRain=rainValue>=.05;
  const hasShowers=showerValue>=.05;
  const hasSnow=snowCm>=.05;
@@ -437,17 +438,17 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const character=classifyPrecipitationCharacter(h);
  const convectiveLean=character.character==='convective'||hasShowers||Math.max(0,Number(h.showers)||0)>=.02||((Number(h.cape)||0)>=200&&(Number(h.lowCloud)||0)<75&&total>=.1);
  if(codedType==='drizzle'){
-  type=drizzlePlausible(h,total)?'drizzle':convectiveLean?'showers':'rain';
+  type=observedCharacter?'drizzle':drizzlePlausible(h,total)?'drizzle':convectiveLean?'showers':'rain';
  }else if(codedType==='freezingDrizzle'){
-  type=drizzlePlausible(h,total)?'freezingDrizzle':'freezingRain';
+  type=observedCharacter?'freezingDrizzle':drizzlePlausible(h,total)?'freezingDrizzle':'freezingRain';
  }else if(codedType==='snowGrains'){
-  type=snowGrainsPlausible(h,total)?'snowGrains':convectiveLean?'snowShowers':'snow';
- }else if(codedType==='rain')type=convectiveLean?'showers':'rain';
- else if(codedType==='showers')type=[91,92].includes(effectiveCode)?'showers':character.character==='stratiform'?'rain':'showers';
- else if(codedType==='snow')type=character.character==='convective'?'snowShowers':'snow';
- else if(codedType==='snowShowers')type=character.character==='stratiform'?'snow':'snowShowers';
- else if(codedType==='sleet')type=character.character==='convective'?'sleetShowers':'sleet';
- else if(codedType==='sleetShowers')type=character.character==='stratiform'?'sleet':'sleetShowers';
+  type=observedCharacter?'snowGrains':snowGrainsPlausible(h,total)?'snowGrains':convectiveLean?'snowShowers':'snow';
+ }else if(codedType==='rain')type=observedCharacter?'rain':convectiveLean?'showers':'rain';
+ else if(codedType==='showers')type=observedCharacter||[91,92].includes(effectiveCode)?'showers':character.character==='stratiform'?'rain':'showers';
+ else if(codedType==='snow')type=observedCharacter?'snow':character.character==='convective'?'snowShowers':'snow';
+ else if(codedType==='snowShowers')type=observedCharacter?'snowShowers':character.character==='stratiform'?'snow':'snowShowers';
+ else if(codedType==='sleet')type=observedCharacter?'sleet':character.character==='convective'?'sleetShowers':'sleet';
+ else if(codedType==='sleetShowers')type=observedCharacter?'sleetShowers':character.character==='stratiform'?'sleet':'sleetShowers';
  else if(codedType){
   // Flüssig, gefrierend, gemischt oder fest bleibt phasentreu. Lediglich der
   // objektiv gestützte Charakter Schauer versus großräumig wird korrigiert.
