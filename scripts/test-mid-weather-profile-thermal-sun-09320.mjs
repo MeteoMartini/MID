@@ -13,15 +13,12 @@ const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label
 
 for(const token of [
   'function shortTermThermalFeel(point:ShortTermForecastPoint)',
-  "if(felt>38){label='sehr heiß'",
-  "else if(felt>=32){label='heiß'",
-  "else if(felt>=26){label='warm'",
-  "else if(felt>=20){label='leicht warm'",
-  "else if(felt>=0){label='behaglich'",
-  "else if(felt>=-13){label='leicht kühl'",
-  "else if(felt>=-26){label='kühl'",
-  "else if(felt>=-39){label='kalt'",
-  "label='sehr kalt'",
+  "import {utciCategory,utciStressScore} from './utci';",
+  'category=utciCategory(felt)',
+  'score:utciStressScore(felt)',
+  'label:category.shortLabel',
+  'burden:category.label',
+  'color:category.color',
   "import {shortTermFogRisk} from './shortTermFogRisk';",
   'className="selected-time-line"',
   "className={item.showDateMarker?'major':''}",
@@ -36,10 +33,10 @@ for(const token of [
   "className:'low'",
   'className={`cloud-opacity-band ${row.className}`}',
   'Thermisches Empfinden',
-  'Temperatur / gefühlt / Taupunkt',
+  'Temperatur / UTCI / Taupunkt',
   'className="profile-temperature-values"',
   '<small>Luft</small>',
-  '<small>gefühlt</small>',
+  '<small>UTCI</small>',
   '<small>Taupunkt</small>',
   'Schwüle',
   'Wolken gesamt / hoch / mittel / tief + UVI',
@@ -48,7 +45,7 @@ for(const token of [
   "label:'Mittelhohe Wolken'",
   "label:'Tiefe Wolken'",
   'Wetter-Hazards',
-  'Thermische Einordnung nach den DWD-Klassen der Gefühlten Temperatur'
+  'Thermische Einordnung nach UTCI-Klassen (Universal Thermal Climate Index).'
 ])need('24-h-Wetterprofil',cockpit,token);
 for(const token of ['shortTermCloudBaseApprox','Wolkenbasis*','cockpit-meteogram-pro__overlay calendar',' K</dd>'])reject('24-h-Wetterprofil',cockpit,token);
 need('Nebelrisiko',fogRisk,'export function shortTermFogRisk(point:ShortTermFogRiskPoint):ShortTermFogRiskResult');
