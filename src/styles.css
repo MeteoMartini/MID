@@ -5496,6 +5496,8 @@ body,#root{
  .extreme-map-method-trigger>button{width:40px;height:40px;min-width:40px}
  .extreme-region-list>button{min-height:48px}
 }
+
+.extreme-map-legend .extreme-coverage-key{grid-column:1/-1;white-space:normal}.extreme-map-legend .extreme-coverage-key i{background:#101923;border:1px solid #64748b}
 /* v0.9.15.0 · klassische Stundenübersicht */
 .forecast-inline-detail-weather{position:relative;min-height:62px;outline:none;overflow:visible}
 .forecast-inline-detail-weather>svg,.forecast-inline-detail-weather .weather-pictogram{width:52px!important;height:52px!important;max-width:none}
