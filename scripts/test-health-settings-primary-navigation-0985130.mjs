@@ -10,7 +10,7 @@ const [app,settingsCss,responsiveCss,portable,pkgRaw,baselineRaw]=await Promise.
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),self='scripts/test-health-settings-primary-navigation-0985130.mjs';
-assert.equal(pkg.version,'0.9.85.130');
+const versionParts=String(pkg.version).split('.').map(Number);assert.deepEqual(versionParts.slice(0,3),[0,9,85]);assert.ok((versionParts[3]??0)>=130,'Der v0.9.85.130-Vertrag muss in 0.9.85.130+ fortbestehen.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(self),self+' fehlt in '+key);
@@ -52,4 +52,4 @@ assert.ok(app.includes("lastDashboardSectionRef=useRef<DashboardModuleId|'place'
 assert.ok(app.includes("window.addEventListener('pagehide',flushNavigation)")&&app.includes("document.visibilityState==='hidden'"),'Die zuletzt sichtbare Auswahl muss vor Suspend/Schließen nochmals gesichert werden.');
 assert.ok(portable.includes("'mid:last-primary-navigation-area:v1'"),'Primäre Navigation muss gerätelokal bleiben und darf nicht auf andere Geräte synchronisiert werden.');
 
-console.log('MID v0.9.85.130: Gesundheitswetter-Sichtbarkeit, Pollen-Schalter und Primärnavigation inkl. Mehr geschützt.');
+console.log(`MID v${pkg.version}: Gesundheitswetter-Sichtbarkeit, Pollen-Schalter und Primärnavigation inkl. Mehr seit v0.9.85.130 geschützt.`);
