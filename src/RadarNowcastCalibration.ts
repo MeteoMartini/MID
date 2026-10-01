@@ -1,4 +1,6 @@
 import type {RadarNowcast,RadarNowcastFrame} from './weather';
+import {radarForecastCoverage,radarFrameAvailable} from './radarCoverage';
+export {radarForecastCoverage,radarFrameAvailable} from './radarCoverage';
 import type {DwdRsCalibration} from './DwdRsSource';
 import type {HxBoundaryCheck} from './HxRadarPointSource';
 
@@ -9,13 +11,6 @@ function numeric(value:unknown,fallback=0){const result=Number(value);return Num
 function observedEpoch(radar:RadarNowcast,now=Date.now()){const parsed=Date.parse(radar.observedAt||'');return Number.isFinite(parsed)?parsed:now}
 function frameEpoch(frame:RadarNowcastFrame){return Date.parse(frame.time)}
 function rawFrameAmount(frames:RadarNowcastFrame[],index:number){if(!radarFrameAvailable(frames[index]))return 0;const existing=Number(frames[index].amountMm);if(Number.isFinite(existing)&&existing>=0)return existing;return Math.max(0,numeric(frames[index].rate))*5/60}
-export function radarFrameAvailable(frame:RadarNowcastFrame){const rate=Number(frame.rate);return frame.dataAvailable!==false&&frame.hitClass!=='missing'&&Number.isFinite(rate)&&rate>=0}
-export function radarForecastCoverage(radar:RadarNowcast,minutes=120){
- const base=observedEpoch(radar),frames=radar.nowcastSeries??[],expectedSlots=minutes/5,byTime=new Map(frames.map(frame=>[frameEpoch(frame),frame]));
- let availableSlots=0,partialAmountMm=0;
- for(let slot=1;slot<=expectedSlots;slot++){const frame=byTime.get(base+slot*300000);if(!frame||!radarFrameAvailable(frame))continue;availableSlots++;partialAmountMm+=rawFrameAmount([frame],0)}
- return{complete:availableSlots===expectedSlots,availableSlots,expectedSlots,availableMinutes:availableSlots*5,partialAmountMm:+partialAmountMm.toFixed(3),startAt:new Date(base).toISOString(),endAt:new Date(base+minutes*60000).toISOString()};
-}
 function quantile(values:number[],p:number){if(!values.length)return 0;const sorted=[...values].sort((a,b)=>a-b),position=(sorted.length-1)*clamp(p,0,1),lower=Math.floor(position),upper=Math.ceil(position);if(lower===upper)return sorted[lower];const weight=position-lower;return sorted[lower]*(1-weight)+sorted[upper]*weight}
 function growthFactor(radar:RadarNowcast,leadMinutes:number){const rate=clamp(numeric(radar.growthRatePerHour),-.9,.45),leadHours=Math.max(0,leadMinutes)/60;if(Math.abs(rate)<.02)return 1;const raw=Math.exp(rate*leadHours*.62);return rate>0?clamp(raw,1,1.14):clamp(raw,.52,1)}
 
