@@ -178,7 +178,7 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   line-height:1.38!important;
  }
 
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact{
   display:grid!important;
   gap:8px!important;
   margin-top:9px!important;
@@ -186,13 +186,13 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   overflow:hidden!important;
   border-radius:13px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-title{
   display:grid!important;
   grid-template-columns:minmax(0,1fr)!important;
   align-items:start!important;
   gap:7px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title>b{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-title>b{
   font-size:11px!important;
   line-height:1.2!important;
   letter-spacing:.055em!important;
@@ -242,69 +242,67 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   word-break:normal!important;
  }
 
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-chart{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-chart{
   grid-template-columns:42px minmax(0,1fr)!important;
   gap:7px!important;
   align-items:stretch!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-yaxis{
   height:96px!important;
   font-size:8.5px!important;
   line-height:1!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b,
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span,
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis i{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-yaxis :is(b,span,i){
   top:auto!important;
   transform:translateY(50%)!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b{bottom:72px!important}
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span{bottom:48px!important}
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis i{bottom:24px!important}
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis em{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-yaxis b{bottom:72px!important}
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-yaxis span{bottom:48px!important}
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-yaxis i{bottom:24px!important}
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-yaxis em{
   right:0!important;
   bottom:2px!important;
   font-size:7.5px!important;
   line-height:1!important;
   white-space:nowrap!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-track{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-track{
   height:96px!important;
   margin:0 2px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.top{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-grid.top{
   bottom:72px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.half{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-grid.half{
   bottom:48px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-axis{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-axis{
   bottom:24px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-wet{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-wet{
   bottom:25px!important;
   min-width:3px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-tick{
   top:4px!important;
   bottom:0!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick>i{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-tick>i{
   bottom:18px!important;
   height:11px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick>b{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-tick>b{
   top:auto!important;
   bottom:1px!important;
   left:4px!important;
   font-size:8.5px!important;
   line-height:1!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-now{
   top:5px!important;
   bottom:20px!important;
  }
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now>b{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-now>b{
   top:0!important;
   font-size:8.5px!important;
   line-height:1.15!important;
@@ -319,7 +317,7 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
 }
 
 @media(max-width:390px){
- html[data-mid-design='next'] .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-chart{
+ html[data-mid-design='next'] .radar-nowcast-strip.compact .radar-nowcast-chart{
   grid-template-columns:39px minmax(0,1fr)!important;
   gap:5px!important;
  }
