@@ -1393,7 +1393,7 @@ function brightSkyRvFrames(data,now=Date.now()){
  return [...frames.values()].sort((a,b)=>a.time-b.time);
 }
 async function brightSkyRvPointSeries(lat,lon,now=Date.now()){
- const u=new URL('https://api.brightsky.dev/radar');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('distance','1000');u.searchParams.set('format','plain');u.searchParams.set('date',new Date(now-90*60000).toISOString());u.searchParams.set('last_date',new Date(now+125*60000).toISOString());
+ const bucket=Math.floor(now/300000)*300000,u=new URL('https://api.brightsky.dev/radar');u.searchParams.set('lat',String(lat));u.searchParams.set('lon',String(lon));u.searchParams.set('distance','1000');u.searchParams.set('format','plain');u.searchParams.set('date',new Date(bucket-90*60000).toISOString());u.searchParams.set('last_date',new Date(bucket+125*60000).toISOString());
  const response=await fetchWithDeadline(u.toString(),{headers:{Accept:'application/json','Accept-Encoding':'gzip'},cf:{cacheTtl:60,cacheEverything:true}},7000);
  if(!response.ok)throw new Error(`Bright Sky RV HTTP ${response.status}`);
  const frames=brightSkyRvFrames(await response.json(),now);if(!frames.some(frame=>!frame.future&&frame.dataAvailable)||!frames.some(frame=>frame.future&&frame.dataAvailable))throw new Error('Bright Sky RV ohne frische Beobachtungs-/Prognosereihe');return frames;
