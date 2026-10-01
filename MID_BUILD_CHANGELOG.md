@@ -1,3 +1,10 @@
+## v0.9.85.133 · 2026-10-01 · Konsistenzfix Radar/Niederschlag/Pollen/Startnavigation
+
+- Reproduziert anhand der Nutzer-Screenshots aus Stable v0.9.85.132.
+- Neue Regression `scripts/test-precipitation-radar-pollen-navigation-0985133.mjs` deckt DWD-RV-Datenlücken, 24-h-Phasen, 15-min-Intensität, Pollen-Datum und Navigations-Race ab.
+- Worker betroffen: DWD-Radar-Nowcast und DWD-Pollenroute müssen im Release-Gate geprüft/promoviert werden.
+- Gesundheitswetter-Platzierung bewusst nicht in diesem funktionalen Patch geändert; Replit-IA-Review bleibt separater kontrollierter Handoff.
+
 ## v0.9.85.132 · 2026-10-01 · Niederschlags-Endzeiten appweit vereinheitlicht
 
 - Verifizierte Basis: `main == mid-stable == eb1f8e5bd4dce82a1af18c762a054d5184e51806` (v0.9.85.131), Release- und Stable-Quality jeweils grün.

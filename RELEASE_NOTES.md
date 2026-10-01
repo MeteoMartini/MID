@@ -1,12 +1,16 @@
-# MID v0.9.85.132
+# MID v0.9.85.133
 
-## Niederschlag · einheitliche Zeitangaben
-- Aussagen wie „Niederschlag voraussichtlich bis …“ verwenden jetzt dieselbe Intervallzeit wie die sichtbaren Niederschlagsdiagramme.
-- Die bisher mögliche stündliche Verschiebung der Endzeit um eine zusätzliche Stunde wurde entfernt.
-- Innerhalb der Kurzfrist wird die finalisierte 15-Minuten-Reihe bevorzugt; sie enthält bereits die operative RUC-/Radar-/Modellfusion. Nur bei fehlender vollständiger 15-Minuten-Abdeckung wird auf die intervallkorrigierte Stundenreihe zurückgefallen.
-- Reine Niederschlagswahrscheinlichkeit ohne dargestellte messbare Niederschlagsmenge verlängert keine vermeintliche Niederschlagsdauer mehr.
-- Niederschlagsphasen hinter dem +2-Stunden-Radarfenster werden aus derselben kanonischen Zeitreihe abgeleitet wie Kurzfrist, 24-h-Profil und weitere Prognosedarstellungen.
+## Niederschlag und Kurzfrist
+- Radar-Zeitschritte, die technisch nicht ausgewertet werden konnten, werden nicht mehr als trockene 5-Minuten-Phasen dargestellt.
+- Die Niederschlagsaussage oberhalb des Radar-Nowcasts berücksichtigt nun den gesamten 24-h-Prognoseverlauf und mehrere Niederschlagsphasen statt nur des ersten zusammenhängenden Abschnitts.
+- Niederschlagsart und -intensität werden intervallgerecht bewertet: 15-Minuten-Mengen werden auf ihre tatsächliche Dauer bezogen. Ein hoher 15-Minuten-Wert kann deshalb nicht mehr als „leichter Sprühregen“ erscheinen.
+- Frische lokale Niederschlagsbeobachtungen können die Niederschlagsart in der unmittelbaren Kurzfrist stützen, damit beobachtete Schauer nicht sofort durch einen widersprüchlichen Modellcode verdrängt werden.
 
-## Konsistenz
-- Open-Meteo-Akkumulationen am Intervallende werden vor sichtbaren Zeitaussagen auf den zugehörigen Vorwärtsslot normalisiert.
-- Die Endzeit eines letzten nassen Stundenintervalls wird dadurch nicht mehr pauschal um eine weitere Stunde verlängert.
+## Pollenflug
+- „Heute“ wird jetzt über das tatsächliche lokale Datum bestimmt; gestrige DWD-Zeilen können nicht mehr als heutige Prognose erscheinen.
+- Angezeigt wird nach Möglichkeit der fachliche DWD-Produktstand statt lediglich der technischen Abrufzeit.
+- Der Pollenabruf wird rund um Produktaktualisierungen schneller erneuert.
+
+## Navigation
+- Beim Neustart ist der zuletzt gewählte Hauptbereich maßgeblich. Ein veralteter Unterbereich darf ihn nicht mehr auf „Vorhersage“ zurücksetzen.
+- Forecast-Horizon-Ereignisse dürfen nur innerhalb des tatsächlich aktiven Prognosebereichs persistieren.
