@@ -130,6 +130,7 @@ function assimilatedDirection(observed:number|undefined,modelNow:number|undefine
 function precipitationCode(code:number){const rounded=Math.round(Number(code)||0);return rounded>=51&&rounded<=99}
 function reconciledWeatherCode(forecastCode:number,anchorCode:number|undefined,cloud:number,lowCloud:number,visibility:number,humidity:number,temperature:number,dewPoint:number,precipitation:number,probability:number,offsetMinutes:number,_localAdjustment:number){
  const raw=Math.round(Number(forecastCode)||0),observed=Math.round(Number(anchorCode));
+ if(Number.isFinite(observed)&&precipitationCode(observed)&&offsetMinutes<=45&&precipitation>=.01)return observed;
  if(precipitation>=.01||(precipitationCode(raw)&&probability>=30))return raw;
  if(precipitationCode(raw)&&probability<30)return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature,dewPoint);
  if(Number.isFinite(observed)&&precipitationCode(observed)&&offsetMinutes<=30)return observed;

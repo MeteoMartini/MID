@@ -288,7 +288,10 @@ function lowStratusSignal(h:PrecipSample,{humidityMinimum,lowCloudMinimum}:{humi
 }
 
 function drizzlePlausible(h:PrecipSample,total:number){
- const weakStratiformRate=total<=.6&&Math.max(0,Number(h.showers)||0)<.02;
+ const intervalHours=precipitationSampleIntervalSeconds(h)/3600,rate=Math.max(0,total)/Math.max(1/60,intervalHours),showerRate=Math.max(0,Number(h.showers)||0)/Math.max(1/60,intervalHours);
+ // DWD/WMO: Sprühregen ist kleintropfiger, schwacher stratiformer Niederschlag.
+ // Eine 15-min-Menge darf deshalb nie wie eine Stundenmenge bewertet werden.
+ const weakStratiformRate=rate<=.5&&showerRate<.08;
  return lowStratusSignal(h,{humidityMinimum:93,lowCloudMinimum:84})&&weakStratiformRate;
 }
 
@@ -328,9 +331,10 @@ export function precipitationIntensityDescriptor(type:PrecipType,amount:number,s
  const seconds=Math.min(6*3600,Math.max(60,Number(intervalSeconds)||3600)),hours=seconds/3600,rateMmh=Math.max(0,Number(amount)||0)/hours,snowRateCmh=Math.max(0,Number(snowfall)||0)/hours,tenMinuteMm=rateMmh/6,code=Math.round(Number(sourceCode)||0);
  const result=(level:PrecipitationIntensityLevel,label:PrecipitationIntensityDescriptor['label'],basis:string):PrecipitationIntensityDescriptor=>({level,label,rateMmh,snowRateCmh,tenMinuteMm,basis});
  if(type==='drizzle'||type==='freezingDrizzle'){
-  if(type==='drizzle'&&[50,51,52,53,54,55].includes(code))return [54,55].includes(code)?result(3,'stark',`WMO/DWD-Code ${code}`):[52,53].includes(code)?result(2,'mäßig',`WMO/DWD-Code ${code}`):result(1,'leicht',`WMO/DWD-Code ${code}`);
-  if(type==='freezingDrizzle'&&[56,57].includes(code))return code===57?result(rateMmh>=.5?3:2,rateMmh>=.5?'stark':'mäßig',`WMO/DWD-Code ${code}`):result(1,'leicht',`WMO/DWD-Code ${code}`);
-  return rateMmh>=.5?result(3,'stark',`${rateMmh.toFixed(rateMmh>=10?0:1)} mm/h`):rateMmh>=.1?result(2,'mäßig',`${rateMmh.toFixed(1)} mm/h`):result(1,'leicht',`${rateMmh.toFixed(1)} mm/h`);
+  const amountLevel:PrecipitationIntensityLevel=rateMmh>.5?3:rateMmh>=.1?2:1;
+  if(type==='drizzle'&&[50,51,52,53,54,55].includes(code)){const codeLevel:PrecipitationIntensityLevel=[54,55].includes(code)?3:[52,53].includes(code)?2:1,level=Math.max(amountLevel,codeLevel) as PrecipitationIntensityLevel,label:PrecipitationIntensityDescriptor['label']=level>=3?'stark':level>=2?'mäßig':'leicht';return result(level,label,`WMO/DWD-Code ${code} · ${rateMmh.toFixed(rateMmh>=10?0:1)} mm/h`)}
+  if(type==='freezingDrizzle'&&[56,57].includes(code)){const codeLevel:PrecipitationIntensityLevel=code===57?2:1,level=Math.max(amountLevel,codeLevel) as PrecipitationIntensityLevel,label:PrecipitationIntensityDescriptor['label']=level>=3?'stark':level>=2?'mäßig':'leicht';return result(level,label,`WMO/DWD-Code ${code} · ${rateMmh.toFixed(rateMmh>=10?0:1)} mm/h`)}
+  return rateMmh>.5?result(3,'stark',`${rateMmh.toFixed(rateMmh>=10?0:1)} mm/h`):rateMmh>=.1?result(2,'mäßig',`${rateMmh.toFixed(1)} mm/h`):result(1,'leicht',`${rateMmh.toFixed(1)} mm/h`);
  }
  if(type==='graupelShowers'||type==='hailShowers'){
   // WMO 87/89 = leicht; 88/90 bündeln mäßig und stark. Ohne explizite

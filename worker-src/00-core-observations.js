@@ -1146,5 +1146,5 @@ for(const feature of features){const props=feature?.properties||{};
 const cellId=Number(props.CELL_ID),regionName=String(props.GEN||''),pollenType=String(props.PARAMETER_NAME||''),pollenValue=String(props.PARAMETER_VALUE||''),pollenInt=Number(props.POLLENINT||0),forecastDate=String(props.FORECAST_DATE||''),expires=String(props.EXPIRES||''),effective=String(props.EFFECTIVE||'');
 if(!regionsMap.has(cellId))regionsMap.set(cellId,{id:cellId,name:regionName,geometry:feature?.geometry||null});
 forecasts.push({regionId:cellId,regionName,pollenType,pollenValue,pollenInt,forecastDate,expires,effective});}
-const regions=[...regionsMap.values()].sort((a,b)=>a.id-b.id);
-return{regions,pollenTypes:POLLEN_TYPES,forecasts,provider:'Deutscher Wetterdienst',source:'DWD Geoserver WFS - dwd:Pollenflug'}}
+const regions=[...regionsMap.values()].sort((a,b)=>a.id-b.id),effectiveTimes=forecasts.map(row=>Date.parse(row.effective)).filter(Number.isFinite),expiresTimes=forecasts.map(row=>Date.parse(row.expires)).filter(Number.isFinite),productUpdatedAt=effectiveTimes.length?new Date(Math.max(...effectiveTimes)).toISOString():undefined,productExpiresAt=expiresTimes.length?new Date(Math.max(...expiresTimes)).toISOString():undefined;
+return{regions,pollenTypes:POLLEN_TYPES,forecasts,provider:'Deutscher Wetterdienst',source:'DWD Geoserver WFS - dwd:Pollenflug',productUpdatedAt,productExpiresAt}}
