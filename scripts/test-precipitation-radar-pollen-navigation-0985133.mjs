@@ -1,0 +1,70 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createRequire} from 'node:module';
+
+const precipitationSource=readFileSync(new URL('../src/precipitation.ts',import.meta.url),'utf8');
+const appSource=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const pollenSource=readFileSync(new URL('../src/PollenForecast.tsx',import.meta.url),'utf8');
+const radarWorker=readFileSync(new URL('../worker-src/10-radar-nowcast.js',import.meta.url),'utf8');
+const workerCore=readFileSync(new URL('../worker-src/00-core-observations.js',import.meta.url),'utf8');
+const forecastFusionSource=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
+const shortTermSource=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
+const anchorSource=readFileSync(new URL('../src/forecastLocalAnchor.ts',import.meta.url),'utf8');
+const observedWeatherSource=readFileSync(new URL('../src/observationPresentWeather.ts',import.meta.url),'utf8');
+const weatherSource=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
+
+assert.ok(precipitationSource.includes('precipitationSampleIntervalSeconds(h)/3600'),'Sprühregen-Plausibilität muss die tatsächliche Intervalllänge berücksichtigen.');
+assert.ok(precipitationSource.includes("rate<=.5&&showerRate<.08"),'Sprühregen darf nur bei schwachem stratiformem Niederschlag bestehen bleiben.');
+assert.ok(appSource.includes('canonicalPrecipitationTimeline(minutes,hours,now,24)'),'Aktuell und 24-h-Profil brauchen denselben 24-h-Niederschlagshorizont.');
+assert.ok(appSource.includes('periods=timeline.periods.filter')&&appSource.includes('last=periods.at(-1)!'),'Fortsetzungstext muss alle relevanten Niederschlagsphasen statt nur der ersten berücksichtigen.');
+assert.ok(radarWorker.includes("rateSource:'missing',dataAvailable:false"),'Fehlende DWD-RV-Zeitschritte müssen explizit als Datenlücke erhalten bleiben.');
+assert.ok(radarWorker.includes("hitClass:!available?'missing'"),'Radar-Datenlücke darf nicht als trocken klassifiziert werden.');
+assert.ok(appSource.includes("DWD-RV-Datenlücke · keine Trockenmeldung")&&appSource.includes('radar-nowcast-missing'),'Die sichtbare Radar-Zeitachse muss Datenlücken von Trockenphasen unterscheiden.');
+assert.ok(forecastFusionSource.includes("type RadarFrameEvidenceClass=RadarHitClass|'missing'"),'Fusion braucht einen eigenen Evidence-Typ für Datenlücken.');
+assert.ok(forecastFusionSource.includes("availableFrames=frames.filter((_,index)=>classes[index]!=='missing')"),'Fehlende Radarframes dürfen nicht als auswertbare Evidenz zählen.');
+assert.ok(forecastFusionSource.includes("dryFrames.length===availableFrames.length"),'Nur tatsächlich ausgewertete trockene Frames dürfen den Modellniederschlag als trocken korrigieren.');
+assert.ok(!forecastFusionSource.includes("dryFrames.length===frames.length"),'Datenlücken dürfen den dry-Radar-Pfad niemals auslösen.');
+assert.ok(precipitationSource.includes("!input.observed&&stratiformCode(code)")&&precipitationSource.includes("!input.observed&&showerCode(code)"),'Beobachtete Niederschlagsart darf nicht von nachgelagerter Modell-Charakterheuristik überschrieben werden.');
+assert.ok(anchorSource.includes("observedPrecipitationCode=trustedPrecipitationPresentWeather")&&anchorSource.includes("precipitationPhenomenonObserved:observedPrecipitationCode!==undefined"),'Frische vertrauenswürdige Stationsmeldungen müssen als Niederschlagsart-Evidenz in den lokalen Prognoseanker eingehen.');
+assert.ok(forecastFusionSource.includes("precipitationPhenomenonObserved:observedPrecipitationCode")&&forecastFusionSource.includes("observed:observedPrecipitationCode"),'Kanonische Stunden- und 15-Minuten-Reihen müssen die Beobachtungsherkunft durchreichen.');
+assert.ok(shortTermSource.includes("observed:observedPrecipitationCode")&&shortTermSource.includes("precipitationPhenomenonObserved:observedPrecipitationCode"),'Kurzfristdarstellung muss denselben Beobachtungsvertrag verwenden.');
+assert.ok(pollenSource.includes("allDates.filter(date=>date>=todayKey).slice(0,3)"),'Pollenflug darf gestrige DWD-Zeilen nicht als heutige Prognose verwenden.');
+assert.ok(pollenSource.includes("todayDate=forecastDates.find(date=>date===todayKey)"),'Heute muss kalendarisch bestimmt werden, nicht über den ersten WFS-Datensatz.');
+assert.ok(pollenSource.includes("productUpdatedAt")&&workerCore.includes("productUpdatedAt"),'Pollenanzeige muss den DWD-Produktstand statt nur den Abrufzeitpunkt ausweisen können.');
+assert.ok(pollenSource.includes("window.setInterval")&&pollenSource.includes("visibilitychange")&&!pollenSource.includes("fetchedRef.done"),'Pollenflug muss nach App-Resume und während langer PWA-Sitzungen neu geladen werden können.');
+assert.ok(pollenSource.includes("if(!data)")&&!pollenSource.includes("if(error||!data)"),'Ein temporärer Pollen-Refreshfehler darf einen bereits geladenen Produktstand nicht ausblenden.');
+assert.ok(anchorSource.includes("ageMinutes<=40")&&anchorSource.includes("distanceKm<=20"),'Beobachtete Niederschlagsart muss auf den strengen lokalen Kurzfristanker begrenzt bleiben.');
+assert.ok(weatherSource.includes("presentWeatherObservedAt")&&weatherSource.includes("presentWeatherDistance")&&weatherSource.includes("presentWeatherProvider"),'Hyperlokale Aggregation muss Provenienz der beobachteten Wettererscheinung erhalten.');
+assert.ok(weatherSource.includes("age<=40")&&weatherSource.includes("meta.distance<=20000"),'Schon die Auswahl der repräsentativen Niederschlagsmeldung muss veraltete oder zu entfernte Meldungen ausschließen.');
+assert.ok(appSource.includes("section&&(!area||primaryNavigationAreaForSection(section)===area)"),'Primärbereich muss beim Neustart einen widersprüchlichen alten Untermodulwert überstimmen.');
+assert.ok(appSource.includes("!MODERN_FORECAST_MODULES.includes(active as DashboardModuleId)"),'Späte Forecast-Horizon-Ereignisse dürfen Aktuell/Karten/Mehr nicht überschreiben.');
+
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
+const transpiled=ts.transpileModule(precipitationSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},fileName:'precipitation.ts'}).outputText;
+const temp=mkdtempSync(join(tmpdir(),'mid-precip-character-')),modulePath=join(temp,'precipitation.mjs');writeFileSync(modulePath,transpiled);
+try{
+ const mod=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);
+ const start=Date.UTC(2026,9,1,7,30),end=start+15*60*1000;
+ const base={epoch:start,time:'2026-10-01T09:30',precipitationIntervalStartEpoch:start,precipitationIntervalEndEpoch:end,precipitation:.6,rain:.6,showers:0,snowfall:0,probability:98,code:51,temperature:18,dewPoint:17,humidity:97,cloud:100,lowCloud:100,isDay:true};
+ const stratiform=mod.precipitationParts(base);
+ assert.notEqual(stratiform.type,'drizzle','0,6 mm in 15 min (=2,4 mm/h) darf nicht als Sprühregen fortgeschrieben werden.');
+ assert.notEqual(stratiform.intensity,'light','2,4 mm/h darf nicht als leichter Niederschlag klassifiziert werden.');
+ const showery=mod.precipitationParts({...base,rain:0,showers:.6,code:51});
+ assert.equal(showery.type,'showers','Expliziter Schaueranteil muss einen widersprüchlichen schwachen Sprühregen-Code überstimmen.');
+ const observedSignal=mod.reconcileForecastPrecipitation({...base,code:81,rain:.6,showers:0,observed:true,intervalSeconds:15*60});
+ assert.equal(observedSignal.code,81,'Beobachteter Schauercode darf trotz älterem stratiformem Modellanteil nicht zu Regen umklassifiziert werden.');
+ const observedParts=mod.precipitationParts({...base,code:observedSignal.code,rain:observedSignal.rain,showers:observedSignal.showers,precipitationPhenomenonObserved:true});
+ assert.equal(observedParts.type,'showers','Beobachtete Schauerart muss auch in Piktogramm/Text erhalten bleiben.');
+ const observedTranspiled=ts.transpileModule(observedWeatherSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},fileName:'observationPresentWeather.ts'}).outputText,observedPath=join(temp,'observationPresentWeather.mjs');
+ writeFileSync(observedPath,observedTranspiled);
+ const observed=await import(`${pathToFileURL(observedPath).href}?v=${Date.now()}`);
+ assert.equal(observed.observedPrecipitationForecastCode('-SHRA'),80,'Leichter beobachteter Regenschauer muss auf ww 80 abgebildet werden.');
+ assert.equal(observed.observedPrecipitationForecastCode('SHRA'),81,'Beobachteter Regenschauer muss auf ww 81 abgebildet werden.');
+ assert.equal(observed.observedPrecipitationForecastCode('+SHRA'),82,'Starker beobachteter Regenschauer muss auf ww 82 abgebildet werden.');
+ assert.equal(observed.observedPrecipitationForecastCode('WW53'),53,'Expliziter SYNOP-ww-Wert muss kontrolliert in den kanonischen Prognosecode übersetzt werden.');
+}finally{rmSync(temp,{recursive:true,force:true})}
+
+console.log('MID v0.9.85.133: Radar-Datenlücken, 24-h-Niederschlagsphasen, Intervallintensität, Pollen-Datum und Startnavigation konsistent.');

@@ -1,3 +1,15 @@
+## v0.9.85.133 · 2026-10-01 · Konsistenzfix Radar/Niederschlag/Pollen/Startnavigation
+
+- Verifizierte Ausgangsbasis: `main == mid-stable == 3816a4332f90be6b73fd04b33bfa46e7918ac66b` (v0.9.85.132). Die Nutzer-Screenshots zeigen ausdrücklich noch diesen Stable-Stand.
+- DWD-RV: Die vollständige 5-Minuten-Zeitachse wird gegen die tatsächlich verfügbaren RV-Zeitpunkte vervollständigt. Technisch nicht auswertbare GetFeatureInfo-Zeitschritte bleiben explizite Datenlücken (`dataAvailable=false` / `hitClass=missing`) und zählen weder im Renderer noch in der Forecast-Fusion als trockene Evidenz.
+- Niederschlagsdauer: `Aktuell` verwendet dieselbe kanonische 24-h-Niederschlagszeitreihe wie die übrigen Prognosedarstellungen und wertet alle relevanten Phasen aus. Wahrscheinlichkeit allein verlängert keine sichtbare Niederschlagsphase.
+- Niederschlagsart/-intensität: 15-Minuten-Mengen werden auf die tatsächliche Intervalllänge normiert. Zusätzlich wird eine frische, vertrauenswürdige lokale SYNOP-/METAR-Niederschlagsart kontrolliert in die kanonischen WMO-Prognosecodes übersetzt und mit expliziter Provenienz durch Stunden-, 15-Minuten- und Kurzfristpfad geführt. Nachgelagerte Modell-`rain/showers`-Heuristiken dürfen diese beobachtete Art im unmittelbaren Zeitfenster nicht zurücküberschreiben.
+- Lokalitätsgrenze der beobachteten Niederschlagsart: maximal 40 min alt und maximal 20 km entfernt; die genaue Beobachtungszeit, Entfernung und Quelle werden auch durch die hyperlokale Stationsaggregation erhalten. Diese Grenze ist als MID-Assimilationsregel im Prognosekonsistenzvertrag dokumentiert.
+- Pollenflug: Kalender-`Heute` wird vom lokalen Datum abgeleitet, DWD-`EFFECTIVE` als Produktstand ausgewiesen, Worker-Cache verkürzt. Die PWA lädt das Produkt zusätzlich alle 10 min und nach Rückkehr in den Vordergrund neu; ein temporärer Refreshfehler entfernt einen bereits geladenen verwertbaren Produktstand nicht.
+- Regression `scripts/test-precipitation-radar-pollen-navigation-0985133.mjs` deckt DWD-RV-Datenlücken, 24-h-Phasen, 15-min-Intensität, beobachteten Schauercharakter, Pollen-Datum/-Refresh und Navigations-Race ab. Der bestehende Hyperlokal-Testharness wurde auf den neuen Beobachtungsvertrag angepasst.
+- Worker betroffen: DWD-Radar-Nowcast und DWD-Pollenroute müssen im Release-Gate geprüft/promoviert werden.
+- Gesundheitswetter-Platzierung bewusst nicht in diesem funktionalen Patch geändert. Read-only-Replit-IA-Review empfiehlt anschließend `Mehr → Gesundheitswetter` als erweiterbaren Unterbereich; in `Aktuell` höchstens kompakter Tagesstatus/Deep-Link. Umsetzung erst als separater SHA-verifizierter Replit-Handoff auf dem dann freigegebenen Stable-Stand.
+
 ## v0.9.85.132 · 2026-10-01 · Niederschlags-Endzeiten appweit vereinheitlicht
 
 - Verifizierte Basis: `main == mid-stable == eb1f8e5bd4dce82a1af18c762a054d5184e51806` (v0.9.85.131), Release- und Stable-Quality jeweils grün.

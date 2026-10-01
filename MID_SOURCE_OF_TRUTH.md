@@ -19,6 +19,17 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.133 · Niederschlags-, Pollen- und Navigationskonsistenz
+
+Basis: verifizierter Stable-Stand v0.9.85.132, `main == mid-stable == 3816a4332f90be6b73fd04b33bfa46e7918ac66b`.
+
+- Radar: fehlende DWD-RV-Zeitschritte sind explizite Datenlücken und keine Trockenmeldung.
+- Niederschlagsdauer: die sichtbare Fortsetzung hinter +2 h wird aus der kanonischen 24-h-Zeitreihe einschließlich mehrerer Phasen abgeleitet.
+- Niederschlagsart: Intervallmengen werden mit ihrer tatsächlichen Dauer bewertet; aktuelle lokale Niederschlagsart darf die unmittelbare Kurzfrist stützen.
+- Pollen: lokales Kalenderdatum und DWD-Produktzeit sind maßgeblich.
+- Navigation: gespeicherter Primärbereich ist beim Start autoritativ; Untermodul und Forecast-Horizon dürfen ihm nicht widersprechen.
+- Die Informationsarchitektur des Gesundheitswetters bleibt für einen separaten Replit-Design-Handoff offen und wird in diesem funktionalen Build nicht eigenmächtig verschoben.
+
 ## v0.9.85.132 · Kanonische Niederschlags-Zeitsemantik
 
 Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stable-Stand `main == mid-stable == eb1f8e5bd4dce82a1af18c762a054d5184e51806` (v0.9.85.131).

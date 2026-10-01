@@ -23,8 +23,8 @@ for(const token of [
 ])assert.ok(ensemble.includes(token),`Referenz der bestehenden 14-Tage-Ensemblelogik fehlt: ${token}`);
 for(const token of [
  'drizzlePlausible(h,total)',
- "type=drizzlePlausible(h,total)?'drizzle':convectiveLean?'showers':'rain'",
- "else if(codedType==='rain')type=convectiveLean?'showers':'rain'"
+ "type=observedCharacter?'drizzle':drizzlePlausible(h,total)?'drizzle':convectiveLean?'showers':'rain'",
+ "else if(codedType==='rain')type=observedCharacter?'rain':convectiveLean?'showers':'rain'"
 ])assert.ok(precipitation.includes(token),`Zentrale Sprühregen-/Konvektivlogik fehlt: ${token}`);
 assert.ok(!cockpit.includes('<Droplets size={12}/> Regen</label>'),'14-Tage-Cockpit verwendet weiterhin die irreführende pauschale Bezeichnung „Regen“.');
 console.log('14-Tage-Cockpit nutzt Tagescharakter, Sprühregen-Plausibilisierung und Konvektivniederschlagslogik appweit konsistent.');

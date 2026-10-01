@@ -365,3 +365,6 @@ html[data-mid-design='next'] [data-mid-skybar='squares']{
   .current-weather-thread-sky[data-skybar-display='band']>svg,
   .cockpit-now90-sky:not([data-skybar-display='squares'])>svg{width:100%;max-height:17px}
 }
+
+/* MID v0.9.85.133 · Radar-Datenlücken sind keine Trockenphasen */
+html[data-mid-design='next'] .radar-nowcast-wet.radar-nowcast-missing{height:8px!important;min-height:8px!important;border:1px dashed currentColor!important;opacity:.52!important;background:repeating-linear-gradient(135deg,transparent 0 3px,currentColor 3px 4px)!important}

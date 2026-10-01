@@ -15,7 +15,7 @@ for(const token of [
 for(const token of [
  'forecastLocalAnchorFromCurrent(',
  "stationFieldObservationUsable(station,field,now,elevation)",
- "observed.code=Boolean(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation)"
+ "observed.code=Boolean(observedPrecipitationCode!==undefined||observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation)"
 ])need(anchor,token,'gemeinsamer hyperlokaler Beobachtungsanker');
 for(const token of [
  'finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature,observedAt:finalizationObservedAt})',
