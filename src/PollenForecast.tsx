@@ -141,7 +141,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const relevantTypes=sortedTypes.filter(type=>maxTypeSeverity(type)>0).sort((a,b)=>maxTypeSeverity(b)-maxTypeSeverity(a)||sortedTypes.indexOf(a)-sortedTypes.indexOf(b));
   const primaryTypes=relevantTypes.slice(0,4);
   const detailTypes=showAll?sortedTypes:primaryTypes;
-  const strongestToday=rankedTodayEntries[0],todayAvailable=Boolean(todayDate),todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?pollenLabel(strongestToday.entry):'keine';
+  const strongestToday=rankedTodayEntries[0],todayAvailable=Boolean(todayDate),todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?pollenLabel(strongestToday.entry):'keine Belastung';
   const statusLevel=strongestToday?pollenLevel(strongestToday.entry):0;
   const detailId='pollen-forecast-detail',allToggleId='pollen-forecast-all';
   const productUpdatedAt=data.productUpdatedAt?new Date(data.productUpdatedAt):null,checkedAt=data.checkedAt?new Date(data.checkedAt):null,displayUpdatedAt=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?productUpdatedAt:checkedAt,checkedLabel=displayUpdatedAt&&!Number.isNaN(displayUpdatedAt.getTime())?displayUpdatedAt.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'unbekannt',freshnessLabel=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?'DWD · Produktstand':'DWD · Abruf',refreshStatus=error?' · Aktualisierung ausstehend':'';
