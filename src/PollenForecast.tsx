@@ -144,7 +144,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const strongestToday=rankedTodayEntries[0],todayAvailable=Boolean(todayDate),todayStatus=!todayAvailable?'DWD-Aktualisierung ausstehend':strongestToday?pollenLabel(strongestToday.entry):'keine';
   const statusLevel=strongestToday?pollenLevel(strongestToday.entry):0;
   const detailId='pollen-forecast-detail',allToggleId='pollen-forecast-all';
-  const productUpdatedAt=data.productUpdatedAt?new Date(data.productUpdatedAt):null,checkedAt=data.checkedAt?new Date(data.checkedAt):null,displayUpdatedAt=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?productUpdatedAt:checkedAt,checkedLabel=displayUpdatedAt&&!Number.isNaN(displayUpdatedAt.getTime())?displayUpdatedAt.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'unbekannt',freshnessLabel=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?'DWD · Produktstand':'DWD · Abruf';
+  const productUpdatedAt=data.productUpdatedAt?new Date(data.productUpdatedAt):null,checkedAt=data.checkedAt?new Date(data.checkedAt):null,displayUpdatedAt=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?productUpdatedAt:checkedAt,checkedLabel=displayUpdatedAt&&!Number.isNaN(displayUpdatedAt.getTime())?displayUpdatedAt.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'unbekannt',freshnessLabel=productUpdatedAt&&!Number.isNaN(productUpdatedAt.getTime())?'DWD · Produktstand':'DWD · Abruf',refreshStatus=error?' · Aktualisierung ausstehend':'';
   const toggleExpanded=()=>setExpanded(current=>{if(current)setShowAll(false);return!current});
 
   return(
@@ -154,7 +154,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
         <span className={`pollen-status pollen-level-${statusLevel}`}>{todayAvailable?'Heute':'Aktualisierung'} · {todayStatus}</span>
         <ChevronDown size={17} className={expanded?'rotated':''} aria-hidden="true"/>
       </button>
-      <div className="pollen-meta"><span className="pollen-region" title={region.name} aria-label={`Pollenregion ${region.name}`}>{region.name}</span><span>{freshnessLabel} {checkedLabel}</span></div>
+      <div className="pollen-meta"><span className="pollen-region" title={region.name} aria-label={`Pollenregion ${region.name}`}>{region.name}</span><span title={error??undefined}>{freshnessLabel} {checkedLabel}{refreshStatus}</span></div>
       {rankedTodayEntries.length>0&&<div className="pollen-chips" aria-label="Aktive Pollenbelastung heute">
         {visibleTodayEntries.map(({type,label,entry,severity})=><span key={type} className={`pollen-chip pollen-level-${Math.ceil(severity)}`} title={`${label}: ${pollenLabel(entry)}`}><span className="pollen-dot" style={{background:POLLEN_LEVEL_COLORS[Math.ceil(severity)]}} aria-hidden="true"/>{label}<b>{pollenLabel(entry)}</b></span>)}
         {hiddenActiveCount>0&&<span className="pollen-chip pollen-chip-more">+{hiddenActiveCount}</span>}
