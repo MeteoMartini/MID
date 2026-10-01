@@ -32,7 +32,7 @@ try{
  assert.equal(hourlyTimeline.periods[0].startEpoch,Date.UTC(2026,9,1,8,0),'Rohwert 09:00 muss als Intervall 08:00–09:00 erscheinen.');
  assert.equal(hourlyTimeline.periods[0].endEpoch,Date.UTC(2026,9,1,10,0),'Letzter nasser Rohwert 10:00 endet um 10:00 und darf nicht pauschal bis 11:00 verlängert werden.');
 
- const minutes=[];for(let epoch=now-2*HOUR;epoch<=now+7*HOUR;epoch+=QUARTER){const wet=epoch>Date.UTC(2026,9,1,8,30)&&epoch<=Date.UTC(2026,9,1,10,0);minutes.push({epoch,time:new Date(epoch).toISOString().slice(0,16),precipitation:wet?.2:0,rain:wet?.2:0,showers:0,snowfall:0,probability:wet?80:5,code:wet?61:3})}
+ const minutes=[];for(let epoch=now-2*HOUR;epoch<=now+9*HOUR;epoch+=QUARTER){const wet=epoch>Date.UTC(2026,9,1,8,30)&&epoch<=Date.UTC(2026,9,1,10,0);minutes.push({epoch,time:new Date(epoch).toISOString().slice(0,16),precipitation:wet?.2:0,rain:wet?.2:0,showers:0,snowfall:0,probability:wet?80:5,code:wet?61:3})}
  const minuteTimeline=mod.canonicalPrecipitationTimeline(minutes,hours,Date.UTC(2026,9,1,8,30),6);
  assert.equal(minuteTimeline.source,'15-min','Bei vollständiger 15-Minuten-Abdeckung muss die feinere finalisierte Reihe kanonisch sein.');
  assert.equal(minuteTimeline.periods.length,1);
