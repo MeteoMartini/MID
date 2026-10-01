@@ -3,6 +3,7 @@ import {stationFieldObservationUsable,type Station,type Weather} from './weather
 import type {ForecastLocalAnchor,ForecastLocalAnchorField} from './forecastFusion';
 import type {StationAnalysisField} from './sourceQuality';
 import {classifyVisibilityPhenomenon,parseReportedVisibilityPhenomenon} from './visibilityPhenomena';
+import {observedPrecipitationForecastCode} from './observationPresentWeather';
 
 function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
 function currentNumber(current:Weather['current'],key:string){return finite(current[key])}
@@ -17,6 +18,12 @@ function trustedPresentWeather(station:Station|null|undefined,now:number){
  const network=station?.networkClass,provider=String(station?.provider||''),trusted=network==='official'||network==='professional'||/dwd|metar|aviationweather|wmo|geosphere|meteoswiss|knmi|hyperlokalanalyse/i.test(provider);
  const observedAt=Date.parse(String(station?.timestamp||'')),ageMinutes=Number.isFinite(observedAt)?Math.max(0,(now-observedAt)/60000):Infinity,distanceM=Number(station?.distance),distanceKm=Number.isFinite(distanceM)?Math.max(0,distanceM/1000):Infinity,localLimitKm=report.geometryException?15:report.kind==='fog'||report.kind==='freezing-fog'?20:25;
  return trusted&&ageMinutes<=120&&(!Number.isFinite(distanceM)||distanceKm<=localLimitKm);
+}
+function trustedPrecipitationPresentWeather(station:Station|null|undefined,now:number){
+ const code=observedPrecipitationForecastCode(station?.presentWeather);if(code===undefined)return undefined;
+ const network=station?.networkClass,provider=String(station?.provider||''),trusted=network==='official'||network==='professional'||provider.startsWith('Eigene ')||/dwd|metar|aviationweather|wmo|geosphere|meteoswiss|knmi|hyperlokalanalyse/i.test(provider);
+ const observedAt=Date.parse(String(station?.timestamp||'')),ageMinutes=Number.isFinite(observedAt)?Math.max(0,(now-observedAt)/60000):Infinity,distanceM=Number(station?.distance),distanceKm=Number.isFinite(distanceM)?Math.max(0,distanceM/1000):Infinity;
+ return trusted&&ageMinutes<=75&&(!Number.isFinite(distanceM)||distanceKm<=20)?code:undefined;
 }
 function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined,dewPoint:number|undefined,presentWeather:string|undefined,trustPresentWeather:boolean){
  const covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN,visibilityState=classifyVisibilityPhenomenon({weatherCode:fallback,visibility,humidity,temperature,dewPoint,presentWeather,trustPresentWeather});
@@ -42,10 +49,10 @@ export function forecastLocalAnchorFromCurrent(station:Station|null|undefined,cu
  const stationCloud=useStation('cloud','cloudCover',station?.cloudCover),cloud=stationCloud??currentNumber(current,'cloud_cover'),modelLowCloud=currentNumber(current,'cloud_cover_low'),ceilingUsable=usable('ceilingHft'),cloudBaseUsable=usable('cloudBaseHft'),lowLayerObserved=Boolean(stationCloud!==undefined&&((ceilingUsable&&Number(station?.ceilingHft)<=30)||(cloudBaseUsable&&Number(station?.cloudBaseHft)<=30)||(Number(humidity)>=92&&Number(cloud)>=87.5))),lowCloud=lowLayerObserved?Math.max(Number(stationCloud),Number(modelLowCloud)||0):modelLowCloud;observed.lowCloud=lowLayerObserved;
  const stationVisibility=useStation('visibility','visibility',station?.visibility),visibility=stationVisibility??currentNumber(current,'visibility');
  const stationPrecipitation=useStation('precipitation','precipitation',station?.precipitation),precipitation=stationPrecipitation??currentNumber(current,'precipitation'),precipitationMinutes=stationPrecipitation!==undefined?Math.max(1,Number(station?.precipitationMinutes)||60):60;
- const rain=currentNumber(current,'rain')??0,showers=currentNumber(current,'showers')??0,snowfall=currentNumber(current,'snowfall')??0,baseCode=currentNumber(current,'weather_code')??0;
- const parts=precipitationParts({precipitation:precipitation??0,rain,showers,snowfall,probability:0,code:baseCode,temperature,dewPoint,humidity,cloud,lowCloud,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined}),code=parts.type==='none'?observedSkyCode(parts.displayCode,cloud,lowCloud,visibility,humidity,temperature,dewPoint,station?.presentWeather,trustedPresentWeather(station,now)):parts.displayCode;
- observed.code=Boolean(observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation);
+ const rain=currentNumber(current,'rain')??0,showers=currentNumber(current,'showers')??0,snowfall=currentNumber(current,'snowfall')??0,baseCode=currentNumber(current,'weather_code')??0,observedPrecipitationCode=trustedPrecipitationPresentWeather(station,now);
+ const parts=precipitationParts({precipitation:precipitation??0,rain,showers,snowfall,probability:0,code:baseCode,temperature,dewPoint,humidity,cloud,lowCloud,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined}),code=observedPrecipitationCode??(parts.type==='none'?observedSkyCode(parts.displayCode,cloud,lowCloud,visibility,humidity,temperature,dewPoint,station?.presentWeather,trustedPresentWeather(station,now)):parts.displayCode);
+ observed.code=Boolean(observedPrecipitationCode!==undefined||observed.cloud||observed.lowCloud||observed.visibility||observed.precipitation);
  const active=Object.entries(observed).some(([field,value])=>field!=='apparent'&&value),ownStation=Boolean(station?.provider?.startsWith('Eigene ')||station?.analysisMethod?.startsWith('Eigene ')),sourceLabel=active?(ownStation?'Eigene Station · lokal angepasst':station?.analysisMethod?'Hyperlokal angepasst':'Stationsgestützt angepasst'):'Best Match';
  const temperatureObservedAt=stationTemperature!==undefined?stationFieldObservedEpoch(station,'temperature'):undefined;
- return{active,sourceLabel,observed,temperature,temperatureObservedAt,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation,precipitationMinutes,rain,showers,snowfall,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined,code,isDay:Number(current.is_day)===1};
+ return{active,sourceLabel,observed,temperature,temperatureObservedAt,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation,precipitationMinutes,rain,showers,snowfall,cloudBaseHft:cloudBaseUsable?finite(station?.cloudBaseHft):undefined,ceilingHft:ceilingUsable?finite(station?.ceilingHft):undefined,code,precipitationPhenomenonObserved:observedPrecipitationCode!==undefined,isDay:Number(current.is_day)===1};
 }
