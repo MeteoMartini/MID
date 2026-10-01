@@ -5,6 +5,7 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {inlineSunshineDurationContract} from './sunshine-duration-regression-helper.mjs';
+import {inlineUtciRegressionStub} from './utci-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
@@ -23,7 +24,7 @@ assert.ok(source.includes('reconcileForecastHoursWithDays(observationHours,days)
 assert.ok(app.includes('reconcileForecastDaysWithHours(baseDisplayDays,displayHours)'), 'Tageskopf muss aus finalen Stunden abgeleitet werden');
 
 const require=createRequire(import.meta.url);const ts=require('typescript-strada')
-const executable=inlineSunshineDurationContract(source)
+const executable=inlineUtciRegressionStub(inlineSunshineDurationContract(source))
  .replace("import {fetchWorkerJson} from './workerClient';","const fetchWorkerJson=async()=>{throw new Error('not used')};")
  .replace("import {reconcileForecastPrecipitation} from './precipitation';",`const reconcileForecastPrecipitation=input=>{const precipitation=Math.max(0,Number(input.precipitation)||0),rain=Math.max(0,Number(input.rain)||0),showers=Math.max(0,Number(input.showers)||0),snowfall=Math.max(0,Number(input.snowfall)||0),probability=Math.max(0,Math.min(100,Number(input.probability)||0)),code=Math.round(Number(input.code)||0),wet=[51,53,55,56,57,61,63,65,66,67,68,69,71,73,75,77,80,81,82,83,84,85,86,95,96,97,99].includes(code),lead=Math.max(0,Number(input.leadHours)||0),min=lead<=24?10:lead<=72?15:20,suppress=(wet||precipitation>=.01||rain>=.01||showers>=.01||snowfall>=.01)&&(probability<=5||Math.max(precipitation,rain,showers,snowfall)<=.35&&probability<min);return suppress?{precipitation:0,rain:0,showers:0,snowfall:0,probability,code:3,traceSuppressed:true}:{precipitation,rain,showers,snowfall,probability,code,traceSuppressed:false}};`)
  .replace("import {precipitationPresentationHours} from './precipitationIntervals';","const precipitationPresentationHours=hours=>hours;")
