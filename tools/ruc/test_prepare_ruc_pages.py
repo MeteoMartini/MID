@@ -26,6 +26,7 @@ with tempfile.TemporaryDirectory() as td:
  (src/'rapid-extreme.json').write_text(json.dumps({'schema':'mid.dwd.ruc.rapid-extreme.v2','run':run,'cells':[]}))
  meta={'schema':'mid.dwd.ruc.grid.v2','run':run,'times':times,'pointCount':points,'grid':{'latMin':43,'lonMin':-4,'dx':.1,'dy':.1,'nx':4,'ny':3},'lookup':{'key':f'runs/{run}/lookup.bin','dtype':'uint32-le'},'deterministic':{'key':f'runs/{run}/deterministic.bin','recordBytes':det_record,'fields':[]},'epsSummary':{'key':f'runs/{run}/eps-summary.bin','recordBytes':sum_record,'fields':[]},'eps':{'key':f'runs/{run}/eps-members.bin','recordBytes':40,'memberCount':10,'scale':.01},'rapid':{'precip5':{'key':f'runs/{run}/rapid-5m.bin','recordBytes':6,'times':['a','b','c'],'fields':[]},'convection15':{'key':f'runs/{run}/rapid-15m.bin','recordBytes':12,'times':['a','b'],'fields':[]},'severe15':{'key':f'runs/{run}/rapid-severe15.bin','recordBytes':len(severe_times)*len(severe_fields)*2,'times':severe_times,'fields':severe_fields,'dtype':'int16-le','layout':'point-time-field'},'state15':{'key':f'runs/{run}/rapid-state-15m.bin','recordBytes':len(state_times)*len(state_fields)*2,'times':state_times,'fields':state_fields,'dtype':'int16-le','layout':'point-time-field'},'solar15':{'key':f'runs/{run}/rapid-solar15.bin','recordBytes':len(solar_times)*len(solar_fields)*2,'times':solar_times,'fields':solar_fields,'dtype':'int16-le','layout':'point-time-field'}},'rapidExtreme':{'key':f'runs/{run}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v2'}}
  (src/'latest.json').write_text(json.dumps(meta))
+ (src/'precipitation-totals.json').write_text(json.dumps({'schema':'mid.icon-d2.totals.v1','run':'2026-10-01T09:00:00+00:00'}))
  result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=5)
  assert result['storageProfile']=='pages-free-v1' and result['pages']['nativeEpsMembers'] is False
  assert result['deterministic']['pages']['chunkCount']==3 and result['epsSummary']['pages']['chunkCount']==3 and result['lookup']['pages']['chunkCount']==3
@@ -48,4 +49,7 @@ with tempfile.TemporaryDirectory() as td:
  np.testing.assert_array_equal(projected,severe[:,:,[1,4,5]])
  assert 'state15' not in result['rapid'] and not list((out/'ruc').rglob('*state15*'))
  assert 'solar15' not in result['rapid'] and not list((out/'ruc').rglob('*solar15*'))
+ totals_key=result['precipitationTotals']['key']
+ assert (out/'ruc'/totals_key).is_file()
+ assert any(row['key']==totals_key for row in result['pages']['objects'])
  print('RUC GitHub Pages free-profile budget + science-prioritized projection contract OK')

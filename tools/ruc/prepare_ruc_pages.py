@@ -174,10 +174,21 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     eps=dict(meta.get('eps') or {})
     eps.pop('key',None);eps['available']=False;eps['storageReason']='native EPS members omitted from free GitHub Pages profile; canonical forecast uses epsSummary'
 
+    # Optional independent 48-hour ICON-D2 product shares the existing immutable
+    # object manifest, so installer restores and periodic RUC publishes preserve it.
+    totals=None
+    totals_source=source/'precipitation-totals.json'
+    if totals_source.is_file():
+        totals_payload=json.loads(totals_source.read_text())
+        if totals_payload.get('schema')!='mid.icon-d2.totals.v1':raise ValueError('invalid ICON-D2 totals schema')
+        totals_key=f'runs/{run}/precipitation-totals.json'
+        totals_target=out/totals_key;shutil.copy2(totals_source,totals_target)
+        objects.append({'key':totals_key,'bytes':totals_target.stat().st_size,'sha256':digest(totals_target)})
+        totals={'key':totals_key,'run':totals_payload['run'],'schema':totals_payload['schema']}
     total=sum(row['bytes'] for row in objects)
     if total>=PAGES_RUC_BUDGET_BYTES:
         raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
-    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,
+    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,
             'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes}}
     (out/'latest.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
     return result
@@ -186,6 +197,17 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
 def main():
     p=argparse.ArgumentParser();p.add_argument('--source',type=Path,default=Path('.ruc-out'));p.add_argument('--output',type=Path,default=Path('.ruc-pages'))
     p.add_argument('--data-chunk-points',type=int,default=DEFAULT_DATA_CHUNK_POINTS);p.add_argument('--lookup-chunk-entries',type=int,default=DEFAULT_LOOKUP_CHUNK_ENTRIES)
-    a=p.parse_args();meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
+    a=p.parse_args()
+    # The established workflow (including recovery reruns) already invokes this
+    # CLI. Keep totals orchestration here instead of adding another paid service
+    # or an additional workflow/permission surface.
+    from build_precipitation_totals import build as build_totals
+    try:build_totals(a.source/'precipitation-totals.json')
+    except RuntimeError as error:
+        # A missing independent 48-hour product must not block the canonical
+        # short-range RUC forecast. The map then stays explicitly unavailable.
+        (a.source/'precipitation-totals.json').unlink(missing_ok=True)
+        print(f'::warning::ICON-D2 totals unavailable: {error}',flush=True)
+    meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
     print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'budgetBytes':meta['pages']['budgetBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'prunedRapidProducts':meta['pages']['prunedRapidProducts'],'savedBytes':meta['pages']['savedBytes']}))
 if __name__=='__main__':main()

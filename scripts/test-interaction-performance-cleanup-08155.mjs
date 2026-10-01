@@ -2,13 +2,14 @@ import {readFile,readdir} from 'node:fs/promises';
 import {resolve,dirname,extname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const [app,portal,styles,stationClient,routePanel,radarPanel]=await Promise.all([
+const [app,portal,styles,stationClient,routePanel,radarPanel,mapWorkspace]=await Promise.all([
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/AppPortalPopover.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
   readFile(new URL('../src/connectedStation.ts',import.meta.url),'utf8'),
   readFile(new URL('../src/RouteWeatherPanel.tsx',import.meta.url),'utf8'),
-  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8')
+  readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
+  readFile(new URL('../src/MapWorkspacePanel.tsx',import.meta.url),'utf8')
 ]);
 const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
@@ -72,7 +73,7 @@ const expectedDormant=new Set(['RouteWeatherPanel.tsx','routeWeather.ts','Synopt
 
 if(!reachable.has(join(srcDir,'CrossSectionPanel.tsx')))failures.push('Das reaktivierte Flug-Streckenbriefing CrossSectionPanel.tsx ist nicht im aktiven Flugmeteorologiepfad erreichbar.');
 if(!app.includes("lazy(()=>import('./FlightMeteorologyPanel'))"))failures.push('Flugmeteorologie wird nicht mehr über die vorgesehene Lazy-Grenze geladen.');
-if(!app.includes("const LazyRadar=lazy(()=>import('./RadarPanel'))"))failures.push('Radar/Komposit muss weiterhin hinter der Lazy-Grenze geladen werden.');
+if(!mapWorkspace.includes("const LazyRadarPanel=lazy(()=>import('./RadarPanel'))")||!mapWorkspace.includes('const MemoLazyRadarPanel=memo(LazyRadarPanel)'))failures.push('Radar/Komposit muss im gemeinsamen Kartenarbeitsraum lazy und memoisiert bleiben.');
 if(!radarPanel.includes("from './synoptic'"))failures.push('Die reaktivierte Synoptik ist nicht mehr ausschließlich über den lazy geladenen Radar-/Kompositpfad verdrahtet.');
 if(!reachable.has(join(srcDir,'synoptic.ts')))failures.push('Die bewusst reaktivierte Komposit-Synoptik ist im Lazy-Radar-Pfad nicht erreichbar.');
 if(reachable.has(join(srcDir,'SynopticPanel.tsx')))failures.push('Das separate alte SynopticPanel.tsx darf trotz reaktiviertem synoptic.ts nicht in den aktiven Bundlepfad zurückkehren.');

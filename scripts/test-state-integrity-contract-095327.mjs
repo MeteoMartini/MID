@@ -46,9 +46,11 @@ assert.match(app,/const MODULE_OPEN_CONTRACT_KEY='mid:module-open-contract:v6'/,
 assert.match(app,/MODULES_DEFAULT_CLOSED=\['ventilation','mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget'\]/,'Hauptsektionen sind nicht einheitlich default-closed.');
 assert.doesNotMatch(app,/function initializeModuleOpenContract\(\)\{[^}]*location\.hash/,'Der Hauptsektions-Vertrag darf explizite Dashboard-Deep-Links nicht als Öffnungszustand löschen.');
 assert.match(app,/hashId&&DASHBOARD_MODULE_DEFINITIONS\.some\(item=>item\.id===hashId\)\?hashId:/,'Explizite Dashboard-Deep-Links müssen vom Navigations-Restore ausgewertet werden, ohne den Modul-Offenzustand zu verändern.');
-for(const id of ['mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','weather-maps','widget']){
+for(const id of ['mountain','water','composite','ensemble','long-range','climate','forecast-verification','travel-planner','event-planner','flight-meteorology','widget']){
  assert.match(app,new RegExp(`id="${id}"[\\s\\S]{0,220}defaultOpen=\\{false\\}`),`${id} folgt nicht dem gemeinsamen Default-closed-Vertrag.`);
 }
+assert.match(app,/function dashboardSectionAlias\(id:DashboardModuleId\):DashboardModuleId\{return id==='weather-maps'\?'composite':id\}/,'Der alte weather-maps-Einstieg muss auf die gemeinsame Kartenfläche zeigen.');
+assert.ok(app.includes("case'weather-maps':return null;"),'Der alte weather-maps-Einstieg darf kein separates Hauptmodul rendern.');
 assert.match(portable,/if\(\/\^mid:module:\[\^:\]\+:open\$\/\.test\(key\)\)return false/,'Hauptmodul-Offenzustände müssen gerätelokal bleiben.');
 
 // Dauerhafte Dokumentation + Required Regression.

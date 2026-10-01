@@ -1,9 +1,10 @@
 import {readFile} from 'node:fs/promises';
 
-const [app,radar,css]=await Promise.all([
+const [app,radar,css,mapWorkspace]=await Promise.all([
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'utf8'),
-  readFile(new URL('../src/styles.css',import.meta.url),'utf8')
+  readFile(new URL('../src/styles.css',import.meta.url),'utf8'),
+  readFile(new URL('../src/MapWorkspacePanel.tsx',import.meta.url),'utf8')
 ]);
 const failures=[];
 const requireToken=(source,token,label)=>{if(!source.includes(token))failures.push(`${label}: ${token}`)};
@@ -11,7 +12,8 @@ const requireToken=(source,token,label)=>{if(!source.includes(token))failures.pu
 requireToken(app,'function LocalClock(','isolierte Ortszeit fehlt');
 requireToken(app,'const MemoCurrent=memo(Current);','Hauptkarten-Memoisierung fehlt');
 requireToken(app,'const MemoForecast=memo(Forecast);','Vorhersage-Memoisierung fehlt');
-requireToken(app,'const MemoLazyRadar=memo(LazyRadar);','Radar-Memoisierung fehlt');
+requireToken(mapWorkspace,'const LazyRadarPanel=lazy(()=>import(\'./RadarPanel\'))','Radar-Lazygrenze fehlt');
+requireToken(mapWorkspace,'const MemoLazyRadarPanel=memo(LazyRadarPanel);','Radar-Memoisierung fehlt');
 requireToken(app,"subscribeRefreshChannel({key:`radar-analysis:",'Radar-Fokusabrufe verwenden nicht den gemeinsamen Refresh-Broker');
 requireToken(app,"minGapMs:45*1000",'Radar-Refresh hat keine Deduplizierungsgrenze');
 requireToken(app,"subscribeRefreshChannel({key:`heavy-rain-analysis:",'Starkregen-Abrufe verwenden nicht den gemeinsamen Refresh-Broker');
