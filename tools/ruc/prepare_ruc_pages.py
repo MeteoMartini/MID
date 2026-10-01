@@ -181,8 +181,10 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     if totals_source.is_file():
         totals_payload=json.loads(totals_source.read_text())
         if totals_payload.get('schema')!='mid.icon-d2.totals.v1':raise ValueError('invalid ICON-D2 totals schema')
-        totals_key=f'runs/{run}/precipitation-totals.json'
-        totals_target=out/totals_key;shutil.copy2(totals_source,totals_target)
+        # ICON-D2 and RUC have independent cycles. Include the actual object
+        # digest so a rerun/new ICON cycle cannot mutate an already cached URL.
+        totals_key=f'runs/{run}__totals_{digest(totals_source)[:16]}/precipitation-totals.json'
+        totals_target=out/totals_key;totals_target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(totals_source,totals_target)
         objects.append({'key':totals_key,'bytes':totals_target.stat().st_size,'sha256':digest(totals_target)})
         totals={'key':totals_key,'run':totals_payload['run'],'schema':totals_payload['schema']}
     total=sum(row['bytes'] for row in objects)

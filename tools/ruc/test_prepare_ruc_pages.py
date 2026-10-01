@@ -52,4 +52,8 @@ with tempfile.TemporaryDirectory() as td:
  totals_key=result['precipitationTotals']['key']
  assert (out/'ruc'/totals_key).is_file()
  assert any(row['key']==totals_key for row in result['pages']['objects'])
+ previous_key=totals_key
+ (src/'precipitation-totals.json').write_text(json.dumps({'schema':'mid.icon-d2.totals.v1','run':'2026-10-01T12:00:00+00:00'}))
+ next_result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=4)
+ assert next_result['precipitationTotals']['key']!=previous_key, 'independent ICON cycle must receive a new immutable URL even with identical RUC run'
  print('RUC GitHub Pages free-profile budget + science-prioritized projection contract OK')
