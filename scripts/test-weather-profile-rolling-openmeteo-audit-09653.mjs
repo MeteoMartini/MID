@@ -87,10 +87,10 @@ assert.ok(!cockpit.includes('selected-cloud-values'),'Im Wolkenplot darf keine r
 assert.ok(!cockpit.includes('Wolken (%)'),'Die Wolkendarstellung bleibt ohne Prozentachse.');
 assert.ok(!cockpit.includes("rows=[{key:'total',className:'total',y:cloudTop"),'Das alte Gesamtbewölkungs-Grauband darf nicht parallel zur gemeinsamen Skybar bestehen.');
 
-// Die appweite DWD-Thermikpalette besitzt genau eine Quelle für Current und Cockpit.
-for(const token of ['veryCold','cold','cool','slightlyCool','comfortable','slightlyWarm','warm','hot','veryHot'])assert.ok(dwdWarnings.includes(token),`DWD-Thermikfarbe fehlt: ${token}`);
-assert.ok(app.includes("import {DWD_THERMAL_FEEL_COLORS"),'Current muss die zentrale DWD-Thermikpalette verwenden.');
-assert.ok(cockpit.includes("import {DWD_THERMAL_FEEL_COLORS"),'Wetterprofil muss die zentrale DWD-Thermikpalette verwenden.');
+// Die appweite thermische Einordnung besitzt mit UTCI genau eine fachliche Quelle für Current und Cockpit.
+assert.ok(app.includes("import {utciFromHour,utciCategory,utciStressScore} from './utci';"),'Current muss den zentralen UTCI-Vertrag verwenden.');
+assert.ok(cockpit.includes("import {utciCategory,utciStressScore} from './utci';"),'Wetterprofil muss den zentralen UTCI-Vertrag verwenden.');
+for(const token of ['category=utciCategory(felt)','score:utciStressScore(felt)','label:category.shortLabel','burden:category.label','color:category.color'])assert.ok(cockpit.includes(token),`Wetterprofil-UTCI-Vertrag fehlt: ${token}`);
 
 // Open-Meteo-Audit: kanonische Felder und aktuelle Modell-Fallbacks bleiben erhalten.
 for(const field of ['precipitation_probability','precipitation','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','is_day','sunshine_duration'])assert.ok(weatherTypes.includes(field),`Open-Meteo-Stundenfeld fehlt: ${field}`);
@@ -105,4 +105,4 @@ assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version m�
 assert.ok(baseline.requiredRegressionTests.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss im Baseline-Vertrag stehen.');
 assert.ok(baseline.regressionTests.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss im Release-Testlauf stehen.');
 assert.ok(baseline.requiredFiles.includes(test),'Neue Profil-/Open-Meteo-Prüfung muss als Pflichtdatei geschützt sein.');
-console.log(`MID v${pkg.version}: gleitendes ausschließlich stündliches 24-h-Profil, responsive Kollisionsfreiheit, DWD-Farben und Open-Meteo-Auditverträge geprüft.`);
+console.log(`MID v${pkg.version}: gleitendes ausschließlich stündliches 24-h-Profil, responsive Kollisionsfreiheit, UTCI-Klassen und Open-Meteo-Auditverträge geprüft.`);
