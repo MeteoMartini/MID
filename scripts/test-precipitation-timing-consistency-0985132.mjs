@@ -9,7 +9,7 @@ const intervalsSource=readFileSync(new URL('../src/precipitationIntervals.ts',im
 const appSource=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 
 assert.ok(intervalsSource.includes('export function canonicalPrecipitationTimeline'),'Kanonische Niederschlags-Zeitlogik fehlt.');
-assert.ok(appSource.includes('canonicalPrecipitationTimeline(minutes,hours,now,6)'),'Aktuell-Zusammenfassung muss dieselbe intervallbewusste Zeitlogik verwenden.');
+assert.ok(appSource.includes('canonicalPrecipitationTimeline(minutes,hours,now,24)'),'Aktuell-Zusammenfassung muss dieselbe intervallbewusste 24-h-Zeitlogik wie das Wetterprofil verwenden.');
 assert.ok(!appSource.includes("first.at(-1)!.epoch+3600000"),'Der alte pauschale +1-h-Endzeitversatz darf nicht zurückkehren.');
 assert.ok(!appSource.includes("parts.total>=.05||Number(hour.probability)>=55"),'Reine Wahrscheinlichkeit darf keine künstliche Niederschlagsdauer erzeugen.');
 assert.ok(appSource.includes("case'short-term':return <ShortTermForecast key={id} minutes15={displayMinutes15} hours={displayHours}"),'Kurzfrist muss weiterhin dieselben finalisierten Niederschlagsdaten erhalten.');
