@@ -11,7 +11,8 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const forbid=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: verbotener Altstand ${token}`)};
 
 need('Niederschlagstyp-Export',precipitation,'export type PrecipitationParts={');
-need('App-Typimport',app,"type PrecipitationParts,type PrecipSample,type PrecipType");
+need('App-Typimport',app,"type PrecipitationParts,type PrecipType");
+forbid('App-Typimport',app,'type PrecipSample,type PrecipType');
 need('Detailhelfer',app,"function detailListWeatherLabel(parts:PrecipitationParts){return parts.type==='none'?label(parts.displayCode):parts.weatherLabel}");
 need('Parts-Aufruf',app,'weatherLabel:detailListWeatherLabel(parts)');
 forbid('Detailhelfer',app,'function detailListWeatherLabel(parts:PrecipSample)');
