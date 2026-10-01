@@ -27,7 +27,7 @@ assert.ok(!pollen.includes('forecast-entry-head-pollen'),'Der alte mehrspaltige 
 assert.ok(css.includes('grid-template-columns:minmax(0,1fr) auto auto'),'Der kompakte Kopf braucht eine kontrollierte Rasterhierarchie.');
 assert.ok(css.includes('min-height:44px'),'Das Haupt-Disclosure muss mindestens 44 px hoch bleiben.');
 assert.ok(css.includes('.pollen-all-toggle{justify-self:start;min-height:44px'),'Auch die zweite Detailstufe braucht ein 44-px-Touchziel.');
-assert.ok(css.includes('grid-template-columns:minmax(76px,1.12fr) repeat(3,minmax(0,1fr))'),'Die 3-Tage-Tabelle muss ohne künstliche 420-px-Mindestbreite in mobile Karten passen.');
+assert.ok(css.includes('grid-template-columns:minmax(76px,1.12fr) repeat(var(--pollen-days,3),minmax(0,1fr))'),'Die 3-Tage-Tabelle muss ohne künstliche 420-px-Mindestbreite in mobile Karten passen.');
 assert.ok(!css.includes('min-width:420px'),'Die mobile Pollenmatrix darf keine horizontale Mindestbreite erzwingen.');
 assert.ok(css.includes('scroll-margin-bottom:calc(5.5rem + env(safe-area-inset-bottom))'),'Geöffnete Pollendetails brauchen Abstand zur festen Bottom-Bar.');
 console.log(`MID v${pkg.version}: kompakte Pollenhierarchie und siebenstufige DWD-Zwischenwerte ab v0.9.85.129 geschützt.`);
