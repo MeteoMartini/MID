@@ -19,6 +19,14 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.131 · C11-Kartenstand und Radar-Nowcast-Startpfad
+
+Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == 0daf09160c8f9de514d3fbb3d78c03df275604d1` (v0.9.85.130) plus der SHA-verifizierte Replit-Handoff `replit/v0.9.85.131-map-timeline-Handoff@37e726c7be865402f4ee348c8b732233e98430fb`.
+
+Der C11-Handoff vereinheitlicht die responsive Zeitsteuerung der Kartenansichten. Zusätzlich wird der Startpfad der Radar-Nowcast-Auswertung beschleunigt. Eine ausgedünnte Schnellserie darf fehlende 5-Minuten-Zeitschritte nicht als trockene Radarwerte interpretieren. Die vollständige Darstellung bleibt an die exakte DWD-5-Minuten-Punktserie gebunden; echte Trockenphasen werden ausschließlich aus tatsächlich trockenen Zeitschritten abgeleitet. Die Sichtbarkeitsregel bleibt unverändert: Die Radar-Nowcast-Grafik erscheint nur bei relevantem Niederschlagsecho am Standort oder im Umfeld.
+
+Implementierungsnachweis: `docs/implementation/MID_C11_RADAR_STARTUP_0.9.85.131.md`.
+
 ## v0.9.85.130 · Gesundheitswetter-Sichtbarkeit und Primärnavigation
 
 Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == c1db743f987cdf7ced34f9ff8c65b7c87d69fc5e` (v0.9.85.129).

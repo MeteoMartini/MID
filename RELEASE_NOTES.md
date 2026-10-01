@@ -1,15 +1,15 @@
-# MID v0.9.85.130
+# MID v0.9.85.131
 
-## Einstellungen
-- Unter „Inhalte & Navigation“ ist **Gesundheitswetter** jetzt tatsächlich sichtbar und steht vor den übrigen optionalen Inhaltsmodulen.
-- **Pollenflug** kann dort separat ein- oder ausgeschaltet werden. Die Auswahl bleibt gerätelokal gespeichert.
-- Die Modulreihenfolge bleibt darunter separat konfigurierbar.
+## Aktuell · Radar-Nowcast
+- Die Radar-Nowcast-Auswertung startet früher und verwendet für die erste Echoentscheidung einen schlanken DWD-Rasterpfad; die vollständige 5-Minuten-Punktserie wird unmittelbar danach nachgeladen.
+- Die Grafik erscheint weiterhin nur, wenn am Standort oder im relevanten Umfeld ein Niederschlagsecho erkannt wird.
+- Regelmäßige scheinbare „Trockenphasen“ aus der ausgedünnten Schnellserie werden nicht mehr als 0-Niederschlag dargestellt. Eine unvollständige Schnellserie wird transparent als noch zu vervollständigende 5-Minuten-Auswertung behandelt.
+- Echte trockene 5-Minuten-Abschnitte bleiben sichtbar, wenn der vollständige DWD-Punktpfad für den jeweiligen Zeitschritt tatsächlich kein relevantes Echo liefert.
 
-## Navigation
-- MID merkt sich wieder den zuletzt verwendeten Hauptbereich: **Aktuell**, **Heute**, **Vorhersage**, **Karten** oder **Mehr**.
-- „Mehr“ wird nach einem erneuten App-Aufruf wieder geöffnet, wenn die App dort beendet wurde.
-- Wird „Mehr“ bewusst geschlossen, gilt wieder der darunter aktive Hauptbereich.
-- Explizite MID-Deep-Links haben beim Start weiterhin Vorrang vor dem gespeicherten Bereich.
+## Wetterkarten
+- Der MID-C11-Handoff vereinheitlicht und verdichtet die Zeitsteuerung in den Kartenansichten.
+- Ausgewählte Zeitpunkte und Navigationskontrollen bleiben auf Smartphone, Tablet und Desktop klarer lesbar und beanspruchen weniger Kartenfläche.
 
-## Fachlichkeit
-- DWD-Pollendaten, Belastungsstufen, Regionen und Vorhersagewerte bleiben unverändert.
+## Fachlichkeit und Leistung
+- DWD-Radarquelle, saisonale Echoprofile und bestehende Niederschlagsschwellen bleiben unverändert.
+- Kurzer Radar-Kurzcache, früherer Preload und größere parallele Pakete für die exakten 5-Minuten-Punktwerte reduzieren unnötige Wiederholungs- und Wartezeiten.

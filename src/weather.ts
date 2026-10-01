@@ -836,7 +836,7 @@ function radarRetryDelay(signal?:AbortSignal){
  return new Promise<void>((resolve,reject)=>{let settled=false;const finish=(error?:unknown)=>{if(settled)return;settled=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);error===undefined?resolve():reject(error)},abort=()=>finish(signal?.reason??new DOMException('Vorgang abgebrochen.','AbortError')),timer=setTimeout(()=>finish(),700);signal?.addEventListener('abort',abort,{once:true})});
 }
 async function requestRadarStage(params:{lat:number;lon:number;country:string;_ts:number},stage:'dwd'|'rainviewer',signal?:AbortSignal,fast=false){
- try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?4500:14000):16000})}
+ try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0},{purpose:'radar',signal,timeoutMs:stage==='dwd'?(fast?4500:14000):16000,maxAgeMs:fast?45000:0,staleIfErrorMs:fast?120000:0,cacheKey:fast?`radar-nowcast-fast:${stage}:${params.lat.toFixed(3)}:${params.lon.toFixed(3)}:${params.country}`:undefined})}
  catch(firstError){abortError(signal);if(fast){void firstError;return null}await radarRetryDelay(signal);try{return await fetchWorkerJson<RadarNowcast&{error?:string}>('radar-nowcast',{...params,stage,fast:fast?1:0,_ts:Date.now()},{purpose:'radar',signal,timeoutMs:stage==='dwd'?18000:20000})}catch(secondError){abortError(signal);void firstError;void secondError;return null}}
 }
 

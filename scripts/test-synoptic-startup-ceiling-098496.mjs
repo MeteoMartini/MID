@@ -10,9 +10,10 @@ assert.ok(radar.includes('function IsoheightCanvasFallback(')&&radar.includes('f
 assert.ok(radar.includes('function RegionalFrontalZones(')&&radar.includes('candidate.score>=68')&&radar.includes('zone.score>=58'),'Fronten dürfen nur aus ausreichend starken geglätteten θe-Frontalzonen mit belastbarer Typisierung dargestellt werden.');
 
 // Startup: gleiche Daten/Algorithmen, nur früher parallel gestartet; Data-Saver/2G bleibt konservativ.
-for(const token of ['startupStationEnrichmentForLocation','startupRadarForLocation','constrainedStartupNetwork()','constrained?210:85','await delay(70)','constrained?650:440'])assert.ok(startup.includes(token),`Startup-Parallelisierung fehlt: ${token}`);
+for(const token of ['startupStationEnrichmentForLocation','startupRadarForLocation','constrainedStartupNetwork()','await delay(70)','constrained?650:440'])assert.ok(startup.includes(token),`Startup-Parallelisierung fehlt: ${token}`);
+const radarStartupDelay=startup.match(/radarRequest=.*?await delay\(constrained\?(\d+):(\d+)\)/s);assert.ok(radarStartupDelay,'Radar-Startverzögerung muss explizit netzabhängig bleiben.');assert.ok(Number(radarStartupDelay[1])<=210&&Number(radarStartupDelay[2])<=85,`Radar-Preload darf gegenüber dem geschützten Parallelstand nicht später werden: ${radarStartupDelay.slice(1).join('/')}`);
 assert.ok(app.includes('preloadedStationEnrichmentPromise')&&app.includes('preloadedRadarPromise'),'App muss vorgezogene Hyperlokal-/Radar-Ergebnisse konsumieren.');
-assert.ok(app.includes('constrainedNetwork?700:240'),'Vollständiger Radar-/Niederschlagsabgleich muss auf normalen Netzen früher starten, Data-Saver aber schonen.');
+const radarEnrichmentDelay=app.match(/scheduleRadarEnrichment=.*?constrainedNetwork\?(\d+):(\d+)\)\};/s);assert.ok(radarEnrichmentDelay,'Radar-Vollanalyse muss weiterhin netzabhängig gestaffelt sein.');assert.ok(Number(radarEnrichmentDelay[1])<=700&&Number(radarEnrichmentDelay[2])<=240,`Radar-Vollanalyse darf gegenüber dem geschützten Parallelstand nicht später werden: ${radarEnrichmentDelay.slice(1).join('/')}`);
 assert.ok(app.includes('constrained?650:140')&&app.includes('constrained?2200:850'),'Forecast-Fusion muss auf normalen Netzen früher geplant werden, ohne den sparsamen Netzpfad zu verschärfen.');
 assert.ok(app.includes('let fallbackStarted=false')&&app.includes('runFullStationAnalysis(false)'),'Fehlschlag der Start-Vollanalyse muss sauber in die normale Hyperlokal-Analyse zurückfallen, ohne Loading vorzeitig zu beenden.');
 
