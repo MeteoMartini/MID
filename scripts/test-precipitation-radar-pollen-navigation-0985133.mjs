@@ -11,6 +11,9 @@ const pollenSource=readFileSync(new URL('../src/PollenForecast.tsx',import.meta.
 const radarWorker=readFileSync(new URL('../worker-src/10-radar-nowcast.js',import.meta.url),'utf8');
 const workerCore=readFileSync(new URL('../worker-src/00-core-observations.js',import.meta.url),'utf8');
 const forecastFusionSource=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
+const shortTermSource=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
+const anchorSource=readFileSync(new URL('../src/forecastLocalAnchor.ts',import.meta.url),'utf8');
+const observedWeatherSource=readFileSync(new URL('../src/observationPresentWeather.ts',import.meta.url),'utf8');
 
 assert.ok(precipitationSource.includes('precipitationSampleIntervalSeconds(h)/3600'),'Sprühregen-Plausibilität muss die tatsächliche Intervalllänge berücksichtigen.');
 assert.ok(precipitationSource.includes("rate<=.5&&showerRate<.08"),'Sprühregen darf nur bei schwachem stratiformem Niederschlag bestehen bleiben.');
@@ -23,6 +26,10 @@ assert.ok(forecastFusionSource.includes("type RadarFrameEvidenceClass=RadarHitCl
 assert.ok(forecastFusionSource.includes("availableFrames=frames.filter((_,index)=>classes[index]!=='missing')"),'Fehlende Radarframes dürfen nicht als auswertbare Evidenz zählen.');
 assert.ok(forecastFusionSource.includes("dryFrames.length===availableFrames.length"),'Nur tatsächlich ausgewertete trockene Frames dürfen den Modellniederschlag als trocken korrigieren.');
 assert.ok(!forecastFusionSource.includes("dryFrames.length===frames.length"),'Datenlücken dürfen den dry-Radar-Pfad niemals auslösen.');
+assert.ok(precipitationSource.includes("!input.observed&&stratiformCode(code)")&&precipitationSource.includes("!input.observed&&showerCode(code)"),'Beobachtete Niederschlagsart darf nicht von nachgelagerter Modell-Charakterheuristik überschrieben werden.');
+assert.ok(anchorSource.includes("observedPrecipitationCode=trustedPrecipitationPresentWeather")&&anchorSource.includes("precipitationPhenomenonObserved:observedPrecipitationCode!==undefined"),'Frische vertrauenswürdige Stationsmeldungen müssen als Niederschlagsart-Evidenz in den lokalen Prognoseanker eingehen.');
+assert.ok(forecastFusionSource.includes("precipitationPhenomenonObserved:observedPrecipitationCode")&&forecastFusionSource.includes("observed:observedPrecipitationCode"),'Kanonische Stunden- und 15-Minuten-Reihen müssen die Beobachtungsherkunft durchreichen.');
+assert.ok(shortTermSource.includes("observed:observedPrecipitationCode")&&shortTermSource.includes("precipitationPhenomenonObserved:observedPrecipitationCode"),'Kurzfristdarstellung muss denselben Beobachtungsvertrag verwenden.');
 assert.ok(pollenSource.includes("allDates.filter(date=>date>=todayKey).slice(0,3)"),'Pollenflug darf gestrige DWD-Zeilen nicht als heutige Prognose verwenden.');
 assert.ok(pollenSource.includes("todayDate=forecastDates.find(date=>date===todayKey)"),'Heute muss kalendarisch bestimmt werden, nicht über den ersten WFS-Datensatz.');
 assert.ok(pollenSource.includes("productUpdatedAt")&&workerCore.includes("productUpdatedAt"),'Pollenanzeige muss den DWD-Produktstand statt nur den Abrufzeitpunkt ausweisen können.');
@@ -41,6 +48,17 @@ try{
  assert.notEqual(stratiform.intensity,'light','2,4 mm/h darf nicht als leichter Niederschlag klassifiziert werden.');
  const showery=mod.precipitationParts({...base,rain:0,showers:.6,code:51});
  assert.equal(showery.type,'showers','Expliziter Schaueranteil muss einen widersprüchlichen schwachen Sprühregen-Code überstimmen.');
+ const observedSignal=mod.reconcileForecastPrecipitation({...base,code:81,rain:.6,showers:0,observed:true,intervalSeconds:15*60});
+ assert.equal(observedSignal.code,81,'Beobachteter Schauercode darf trotz älterem stratiformem Modellanteil nicht zu Regen umklassifiziert werden.');
+ const observedParts=mod.precipitationParts({...base,code:observedSignal.code,rain:observedSignal.rain,showers:observedSignal.showers,precipitationPhenomenonObserved:true});
+ assert.equal(observedParts.type,'showers','Beobachtete Schauerart muss auch in Piktogramm/Text erhalten bleiben.');
+ const observedTranspiled=ts.transpileModule(observedWeatherSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},fileName:'observationPresentWeather.ts'}).outputText,observedPath=join(temp,'observationPresentWeather.mjs');
+ writeFileSync(observedPath,observedTranspiled);
+ const observed=await import(`${pathToFileURL(observedPath).href}?v=${Date.now()}`);
+ assert.equal(observed.observedPrecipitationForecastCode('-SHRA'),80,'Leichter beobachteter Regenschauer muss auf ww 80 abgebildet werden.');
+ assert.equal(observed.observedPrecipitationForecastCode('SHRA'),81,'Beobachteter Regenschauer muss auf ww 81 abgebildet werden.');
+ assert.equal(observed.observedPrecipitationForecastCode('+SHRA'),82,'Starker beobachteter Regenschauer muss auf ww 82 abgebildet werden.');
+ assert.equal(observed.observedPrecipitationForecastCode('WW53'),53,'Expliziter SYNOP-ww-Wert muss kontrolliert in den kanonischen Prognosecode übersetzt werden.');
 }finally{rmSync(temp,{recursive:true,force:true})}
 
 console.log('MID v0.9.85.133: Radar-Datenlücken, 24-h-Niederschlagsphasen, Intervallintensität, Pollen-Datum und Startnavigation konsistent.');
