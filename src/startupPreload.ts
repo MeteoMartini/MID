@@ -49,7 +49,7 @@ export function beginStartupDashboardPreload(){
  // Radar-/Niederschlagsabgleich ist unabhängig von der vollständigen Prognose und darf
  // deshalb bereits während deren Aufbau beginnen. Das verkürzt ausschließlich die
  // Wartezeit; Quelle, Auswertealgorithmus und Qualitätsregeln bleiben unverändert.
- const radarRequest=startupRequest(STARTUP_PRELOAD_RADAR_TIMEOUT_MS,async signal=>{await delay(constrained?210:85);if(signal.aborted)throw signal.reason;return radarNowcast(location.latitude,location.longitude,location.country_code||location.country,signal,true)});
+ const radarRequest=startupRequest(STARTUP_PRELOAD_RADAR_TIMEOUT_MS,async signal=>{await delay(constrained?120:20);if(signal.aborted)throw signal.reason;return radarNowcast(location.latitude,location.longitude,location.country_code||location.country,signal,true)});
  // Die vollständige hyperlokale Analyse startet nach dem schnellen Stationspfad schon
  // parallel zur Prognose. Auf Data-Saver/2G bleibt der bisherige sparsame Pfad erhalten.
  const stationEnrichmentRequest=!constrained?startupRequest(STARTUP_PRELOAD_STATION_ENRICHMENT_TIMEOUT_MS,async signal=>{await stationRequest.promise;await delay(70);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,false,false)}):null;
