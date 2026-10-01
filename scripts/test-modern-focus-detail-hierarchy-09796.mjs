@@ -1,10 +1,11 @@
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const [app,radar,compositeSettings,radarColors,eventPolicy,contract,baseline]=await Promise.all([
- readFile('src/App.tsx','utf8'),readFile('src/RadarPanel.tsx','utf8'),readFile('src/compositeSettings.ts','utf8'),readFile('src/radarColorTables.ts','utf8'),readFile('src/eventRecommendationPolicy.ts','utf8'),readFile('MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md','utf8'),readFile('MID_BASELINE.json','utf8')
+const [app,radar,compositeSettings,radarColors,eventPolicy,contract,baseline,workspace]=await Promise.all([
+ readFile('src/App.tsx','utf8'),readFile('src/RadarPanel.tsx','utf8'),readFile('src/compositeSettings.ts','utf8'),readFile('src/radarColorTables.ts','utf8'),readFile('src/eventRecommendationPolicy.ts','utf8'),readFile('MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md','utf8'),readFile('MID_BASELINE.json','utf8'),readFile('src/MapWorkspacePanel.tsx','utf8')
 ]);
 assert.ok(!app.includes('ModernTodayOverview'),'Verworfener Heute-Beta-Fokus darf nicht zurückkehren');
-for(const token of ['className="modern-map-focus-shell"',"navigationMode==='bottom-tabs'?<section key={`composite-focus:${layoutMode}:${layoutRevision}`}","focusMode={navigationMode==='bottom-tabs'}",'title="Kompositbild"',"label:'Karten'","const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps']",'candidates:MODERN_MAP_MODULES'])assert.ok(app.includes(token),`Gruppierter Kartenfokus fehlt: ${token}`);
+for(const token of ['className="modern-map-focus-shell"',"navigationMode==='bottom-tabs'?<section key={`composite-focus:${layoutMode}:${layoutRevision}`}","focusMode={navigationMode==='bottom-tabs'}",'title="Karten"',"label:'Karten'","const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps']",'candidates:MODERN_MAP_MODULES'])assert.ok(app.includes(token),`Gruppierter Kartenfokus fehlt: ${token}`);
+assert.ok(workspace.includes('map-workspace-shell')&&workspace.includes("label:'Radar · Satellit · Blitz'"),'Der gemeinsame Kartenarbeitsraum muss Radar, Satellit und Blitz enthalten.');
 for(const token of ['modelLineTone','isobarLineColor','isoheightLineColor'])assert.ok(compositeSettings.includes(token),`Synoptik-Persistenzvertrag fehlt: ${token}`);
 assert.ok(compositeSettings.includes("mid:composite-settings:v3"),'Stabiler Composite-v3-Speicherschlüssel fehlt');
 assert.ok(!radar.includes('smoothFactor'),'Ungültige smoothFactor-Option darf nicht zurückkehren');

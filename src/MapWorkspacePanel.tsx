@@ -1,4 +1,4 @@
-import {lazy,Suspense,useEffect,useState} from 'react';
+import {lazy,memo,Suspense,useEffect,useState} from 'react';
 import {CloudRain,Layers3,Satellite} from 'lucide-react';
 import PrecipitationTotalsMap,{type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import {readMapWorkspaceView,saveMapWorkspaceView,type MapWorkspaceView} from './mapWorkspaceState';
@@ -6,6 +6,7 @@ import type {RadarNowcast,ThunderstormNowcast} from './weather';
 import './MapWorkspace.css';
 
 const LazyRadarPanel=lazy(()=>import('./RadarPanel'));
+const MemoLazyRadarPanel=memo(LazyRadarPanel);
 const LazyWeatherMapsPanel=lazy(()=>import('./WeatherMapsPanel'));
 
 type MapWorkspacePanelProps={
@@ -44,7 +45,7 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
    {MAP_VIEWS.map(item=>{const Icon=item.icon,active=view===item.id;return <button key={item.id} type="button" className={active?'active':''} aria-pressed={active} onClick={()=>chooseView(item.id)}><Icon size={16}/><span>{item.label}</span></button>})}
   </div>
   <div className="map-workspace-view" aria-live="polite" aria-label={viewLabel(view)}>
-   {view==='radar'?<Suspense fallback={<LoadingMapPanel/>}><LazyRadarPanel lat={props.lat} lon={props.lon} timezone={props.timezone} analysis={props.analysis} thunder={props.thunder} isDay={props.isDay} actualLocation={props.actualLocation} focusMode={props.focusMode}/></Suspense>:null}
+   {view==='radar'?<Suspense fallback={<LoadingMapPanel/>}><MemoLazyRadarPanel lat={props.lat} lon={props.lon} timezone={props.timezone} analysis={props.analysis} thunder={props.thunder} isDay={props.isDay} actualLocation={props.actualLocation} focusMode={props.focusMode}/></Suspense>:null}
    {view==='models'?<Suspense fallback={<LoadingMapPanel/>}><LazyWeatherMapsPanel latitude={props.lat} longitude={props.lon} timezone={props.timezone} locationName={props.locationName}/></Suspense>:null}
    {view==='totals'?<PrecipitationTotalsMap favorites={props.favorites}/>:null}
   </div>
