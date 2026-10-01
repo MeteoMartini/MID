@@ -471,3 +471,8 @@ Feste Widget-URLs verwenden eine zentral gepflegte Ortsliste und erzeugen je Ort
 
 `MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md` ist in seiner ab v0.9.84.89 überschreibenden Fassung verbindlich. Die bisherige optionale Auswahl `classic | bottom-tabs`, der Einstellungs-Unterpunkt **Bedienkonzept** und **Bottom-Leiste · Beta** sind aufgehoben. Auf kompakten Web-/PWA-Viewports lautet die Hauptnavigation **Aktuell · Kurzfrist · 7 Tage · 14 Tage · Mehr**; Beschriftungen bleiben einzeilig. Die Leiste schwebt safe-area-konform über dem Inhalt, minimiert bei deutlichem Abwärtsscrollen und kehrt bei Aufwärtsscrollen/Seitenanfang/Fokus zurück. Weitere Fachmodule einschließlich Karten und Planer bleiben über **Mehr** erreichbar. Desktop-Sektionsleiste und sämtliche meteorologischen Daten-/Radar-/Warn-/Farbverträge bleiben unverändert. Required Regression: `scripts/test-ios-floating-bottom-bar-098489.mjs`.
 
+
+
+## v0.9.85.139 · Radar-Grafikmarkierungen und Ensemble-Spannen
+
+Radar-Balken und Auswahlanker sind keine Buttons; der gesamte Scrubber bildet das bedienbare Touch-/Tastaturziel. Native DWD-RV-Werte via Bright Sky werden als 0,01 mm/5 min dekodiert und mit expliziten Intervallgrenzen versehen. Der Forecast-Referenzlauf und maximal 20 Minuten Beobachtungsalter sind verbindlich; fehlende und negative Pixel bleiben ausgeschlossen. Direkter DWD-Abruf bleibt Reserve. 7-/14-Tage-Ansichten verwenden vorhandene gewichtete Ensemble-Quantile und kennzeichnen fehlende Spannen. P10–P90 ist kein kalibrierter Eintrittsbereich. Pflichtprüfung: scripts/test-radar-forecast-readability-0985139.mjs einschließlich echter CI-Browserprüfung.
