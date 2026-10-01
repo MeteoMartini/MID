@@ -19,6 +19,14 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.132 · Kanonische Niederschlags-Zeitsemantik
+
+Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stable-Stand `main == mid-stable == eb1f8e5bd4dce82a1af18c762a054d5184e51806` (v0.9.85.131).
+
+Niederschlagsaussagen mit Beginn/Ende werden aus einer gemeinsamen intervallbewussten Zeitreihe abgeleitet. Open-Meteo-Akkumulationen bleiben im Rechenkern am Intervallende, werden für sichtbare Aussagen jedoch über die bestehenden `precipitationPresentation*`-Verträge auf den Vorwärtsslot gelegt. Die finalisierte 15-Minuten-Reihe hat Vorrang, sofern sie den gesamten Kurzfristhorizont abdeckt; andernfalls wird vollständig auf die normalisierte Stundenreihe zurückgefallen. Wahrscheinlichkeiten ohne messbare Menge definieren keine sichere Niederschlagsdauer.
+
+Implementierungsnachweis: `docs/implementation/MID_PRECIPITATION_TIMING_0.9.85.132.md`.
+
 ## v0.9.85.131 · C11-Kartenstand und Radar-Nowcast-Startpfad
 
 Ausgangsbasis ist der vollständig veröffentlichte und verifizierte Stand `main == mid-stable == 0daf09160c8f9de514d3fbb3d78c03df275604d1` (v0.9.85.130) plus der SHA-verifizierte Replit-Handoff `replit/v0.9.85.131-map-timeline-Handoff@37e726c7be865402f4ee348c8b732233e98430fb`.

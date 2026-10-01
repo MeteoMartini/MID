@@ -1,3 +1,13 @@
+## v0.9.85.132 · 2026-10-01 · Niederschlags-Endzeiten appweit vereinheitlicht
+
+- Verifizierte Basis: `main == mid-stable == eb1f8e5bd4dce82a1af18c762a054d5184e51806` (v0.9.85.131), Release- und Stable-Quality jeweils grün.
+- Fehlerursache: `precipitationBeyondTwoHours` wertete rohe stündliche Akkumulationswerte aus und addierte auf den letzten nassen Zeitstempel nochmals pauschal eine Stunde. Da die Providerwerte bereits das Ende des vorangegangenen Intervalls markieren, konnte die Aussage bei jedem Stundenwechsel um eine Stunde nach hinten wandern.
+- Neue kanonische Funktion: `canonicalPrecipitationTimeline` in `src/precipitationIntervals.ts`.
+- Bevorzugte Kurzfristbasis: finalisierte 15-Minuten-Reihe inklusive RUC-/Radar-/Modellfusion; bei unvollständiger Abdeckung vollständiger Fallback auf normalisierte Stundenwerte.
+- Sichtbare Dauer wird nur aus messbarem Niederschlag gebildet; Wahrscheinlichkeit allein erzeugt keine künstliche Phase.
+- Bestehende `precipitationPresentationHours`/`precipitationPresentationMinutes15` bleiben die gemeinsame Intervallnormalisierung für Aktuell, Prognose, 24-h-Profil und Widgets.
+- Regression: `scripts/test-precipitation-timing-consistency-0985132.mjs` schützt insbesondere den früheren +1-h-Endzeitversatz.
+
 ## v0.9.85.131 · 2026-10-01 · C11-Kartensteuerung und schneller, korrekter Radar-Nowcast
 
 - Verifizierte Basis: `main == mid-stable == 0daf09160c8f9de514d3fbb3d78c03df275604d1` (v0.9.85.130).
