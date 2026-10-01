@@ -19,6 +19,12 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.140 · MID-C11 Radar kompakt und native RV-Daten
+
+Verifizierte Ausgangsbasis: `main == mid-stable == fe87c0f296be0475153fb1326977d9a23df74025` (veröffentlichte .139). Keine überlappende offene Agent-PR. Live-Bright-Sky-RV nutzt `RADARCOMP::RV`; .139 verwarf diese Kennung. Beide gültigen RV-Kennungen werden akzeptiert. Vollständige native 24-Schritt-Prognosen benötigen keine WMS-Diagnostik; Zusatzbeobachtungen dürfen ihre Mengen und Referenzzeit nicht überschreiben.
+
+Die globale `.top`-Headerregel erzeugte auf der oberen Radar-Rasterlinie eine leere Pille. Der isolierte Chart setzt Rasterlinien auf Höhe 0, ohne Hintergrund/Padding. Browser-QA enthält nun das echte CurrentNowcards-Umfeld und prüft explizit Rasterliniengeometrie, Notizen, Summen, Balken und Scrubberanker in 24 Varianten. Wortlautregressionen wurden auf die beauftragte kompakte Phasenform angepasst; Zeitintervalle und Datenlückenverträge bleiben geprüft.
+
 ## v0.9.85.138 · Radarintensität, Niederschlagsstufen und UTCI appweit
 
 Ausgangsbasis ist der vollständig veröffentlichte Stable-Stand `main == mid-stable == b013e6664966111fa2c466ba8cabb3520421b435` (v0.9.85.137). Die Radar-Nowcast-Grafik verwendet für ihre `mm/5 min`-Balken die native Zeitschrittintensität; die separate final kalibrierte Mengenreihe bleibt für vollständige/partielle 120-Minuten-Summen maßgeblich. Niederschlagsintensitätstexte werden aus `precipitationIntensityDescriptor` abgeleitet, sodass sichtbare Rate und Textstufe denselben Intervallvertrag verwenden.

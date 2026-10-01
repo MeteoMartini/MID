@@ -1,3 +1,12 @@
+## MID v0.9.85.140 · 2026-10-01 · MID-C11 Radar kompakt
+
+- Ursache der leeren Pille: globale `.top`-Headerregeln auf `.radar-nowcast-grid.top`; Gridlines explizit auf Höhe 0 und transparenten Hintergrund zurückgesetzt, Browsertest prüft diese Geometrie.
+- Bright-Sky-Livekennung `RADARCOMP::RV` zusätzlich zur historischen `RADOLAN::RV` akzeptiert; Liveabruf Berlin liefert 24/24 verfügbare Prognoseschritte.
+- Chart mit eigener ID gegen alte Layoutregeln isoliert; Summenpille entfernt, Phasentext verkürzt.
+- Vollständige native RV-Reihen im schnellen und ausführlichen Pfad unmittelbar nutzen; keine WMS-Abhängigkeit für deren Mengen.
+- Native Kontrollbeobachtung darf RV-Zeitschritte und Referenzzeit nicht ersetzen. Kein Auffüllen fehlender Werte mit Null.
+- Browserfixture um tatsächliches CurrentNowcards-Umfeld erweitert. Historischer Wortlauttest auf ausdrücklich gewünschten kompakten Phasenvertrag aktualisiert.
+
 # MID v0.9.85.139
 
 ## Radar-Nowcast und sichtbare Vorhersagespannen
