@@ -4,14 +4,13 @@ import {GeoJsonLayers,MapCenter,MidMapLibre,RasterTileLayer,WmsTileLayer} from '
 import {loadWeatherMapGrid,loadWeatherMapMetadata,preferredWeatherMapTimeIndex,weatherMapModel,weatherMapProductsForModel,weatherMapProduct,weatherMapWmsProxy,WEATHER_MAP_MODELS,type WeatherMapGridData,type WeatherMapMetadata,type WeatherMapModelId,type WeatherMapProduct} from './WeatherMapsData';
 import WeatherMapGridOverlay from './WeatherMapGridOverlay';
 import MapTimelineControls,{MapTimelineLiveButton,MapTimelineRange,MapTimelineTransport} from './MapTimelineControls';
+import {WEATHER_MAP_BASEMAPS,type WeatherMapBasemapId} from './weatherMapBasemaps';
 
 function escapeHtml(value:string){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]||char))}
 const SETTINGS_KEY='mid:weather-maps:v2';
-type BasemapId='light'|'osm'|'dark';
+type BasemapId=WeatherMapBasemapId;
 type WeatherMapSettings={modelId:WeatherMapModelId;productId:string;level:number;opacity:number;basemap:BasemapId};
-type BasemapTone={saturation?:number;contrast?:number;brightnessMin?:number;brightnessMax?:number};
-const OSM_TILE_URL='https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const BASEMAPS:Record<BasemapId,{label:string;url:string;attribution:string;tone?:BasemapTone}>={light:{label:'Schlicht hell',url:OSM_TILE_URL,attribution:'© OpenStreetMap-Mitwirkende',tone:{saturation:-.9,contrast:-.08,brightnessMin:.18,brightnessMax:1}},osm:{label:'OpenStreetMap',url:OSM_TILE_URL,attribution:'© OpenStreetMap-Mitwirkende'},dark:{label:'Schlicht dunkel',url:OSM_TILE_URL,attribution:'© OpenStreetMap-Mitwirkende',tone:{saturation:-1,contrast:.2,brightnessMin:0,brightnessMax:.48}}};
+const BASEMAPS=WEATHER_MAP_BASEMAPS;
 function storedSettings():WeatherMapSettings{const fallbackProduct=weatherMapProduct('icon-eu-qff'),fallback:WeatherMapSettings={modelId:fallbackProduct.modelId,productId:fallbackProduct.id,level:fallbackProduct.defaultLevel??500,opacity:fallbackProduct.opacity??76,basemap:'light'};try{const parsed=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}') as Partial<WeatherMapSettings>,product=weatherMapProduct(String(parsed.productId||fallback.productId)),modelId=WEATHER_MAP_MODELS.some(item=>item.id===parsed.modelId)?parsed.modelId as WeatherMapModelId:product.modelId,validProduct=product.modelId===modelId?product:weatherMapProductsForModel(modelId)[0]??fallbackProduct,basemap=parsed.basemap&&BASEMAPS[parsed.basemap]?parsed.basemap:fallback.basemap,level=Number.isFinite(Number(parsed.level))?Number(parsed.level):validProduct.defaultLevel??fallback.level,opacity=Math.max(20,Math.min(100,Number(parsed.opacity)||validProduct.opacity||fallback.opacity));return{modelId,productId:validProduct.id,level,opacity,basemap}}catch{return fallback}}
 function formatMapTime(value:string,timezone:string){const stamp=Date.parse(value);if(!Number.isFinite(stamp))return value;try{return new Intl.DateTimeFormat('de-DE',{timeZone:timezone,weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(stamp))}catch{return new Date(stamp).toLocaleString('de-DE')}}
 function relativeMapTime(value:string){const stamp=Date.parse(value);if(!Number.isFinite(stamp))return'';const hours=Math.round((stamp-Date.now())/3600000);if(Math.abs(hours)<1)return'nahe jetzt';return hours>0?`+${hours} h`:`−${Math.abs(hours)} h`}
