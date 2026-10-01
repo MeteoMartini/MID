@@ -33,6 +33,7 @@ assert.ok(shortTermSource.includes("observed:observedPrecipitationCode")&&shortT
 assert.ok(pollenSource.includes("allDates.filter(date=>date>=todayKey).slice(0,3)"),'Pollenflug darf gestrige DWD-Zeilen nicht als heutige Prognose verwenden.');
 assert.ok(pollenSource.includes("todayDate=forecastDates.find(date=>date===todayKey)"),'Heute muss kalendarisch bestimmt werden, nicht über den ersten WFS-Datensatz.');
 assert.ok(pollenSource.includes("productUpdatedAt")&&workerCore.includes("productUpdatedAt"),'Pollenanzeige muss den DWD-Produktstand statt nur den Abrufzeitpunkt ausweisen können.');
+assert.ok(pollenSource.includes("window.setInterval")&&pollenSource.includes("visibilitychange")&&!pollenSource.includes("fetchedRef.done"),'Pollenflug muss nach App-Resume und während langer PWA-Sitzungen neu geladen werden können.');
 assert.ok(appSource.includes("section&&(!area||primaryNavigationAreaForSection(section)===area)"),'Primärbereich muss beim Neustart einen widersprüchlichen alten Untermodulwert überstimmen.');
 assert.ok(appSource.includes("!MODERN_FORECAST_MODULES.includes(active as DashboardModuleId)"),'Späte Forecast-Horizon-Ereignisse dürfen Aktuell/Karten/Mehr nicht überschreiben.');
 
