@@ -1,35 +1,35 @@
 /* Last, narrowly scoped layout contract. The chart is one accessible scrubber;
    visual marks and the invisible popover anchor are not touch-sized buttons. */
-html .hero.current-compact .radar-nowcast-strip.compact{
+html #mid-radar-nowcast.radar-nowcast-strip.compact{
  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;min-width:0!important;padding:12px!important;overflow:visible!important;
 }
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-title>b{font-size:14px!important;line-height:1.3!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-total{position:static!important;display:grid!important;width:100%!important;max-width:100%!important;padding:10px!important;box-sizing:border-box!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-total-main{display:flex!important;flex-wrap:wrap!important;justify-content:space-between!important;align-items:center!important;gap:6px 12px!important;width:auto!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-total-main small{font-size:12px!important;line-height:1.4!important;letter-spacing:.04em!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-total-main strong{font-size:clamp(24px,6vw,32px)!important;line-height:1.15!important;white-space:nowrap!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-total>em{font-size:12px!important;line-height:1.4!important;white-space:normal!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-coverage-note{position:static!important;display:block!important;margin:0!important;padding:0!important;min-height:0!important;height:auto!important;font-size:12px!important;line-height:1.45!important;white-space:normal!important;overflow-wrap:anywhere!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-chart{display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;gap:6px!important;margin-top:10px!important;min-width:0!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis,
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-track{position:relative!important;height:104px!important;min-height:0!important;margin:0!important;min-width:0!important;overflow:visible!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis :is(b,span,i){top:auto!important;right:4px!important;font-size:11px!important;line-height:1!important;transform:translateY(50%)!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b{bottom:80px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span{bottom:56px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis i{bottom:32px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis em{position:absolute!important;display:block!important;left:0!important;right:0!important;width:auto!important;min-width:0!important;max-width:56px!important;margin:0!important;padding:0!important;transform:none!important;font-size:10px!important;line-height:1.2!important;bottom:0!important;white-space:nowrap!important;text-align:left!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.top{bottom:80px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.half{bottom:56px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-axis{bottom:32px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-wet{position:absolute!important;display:block!important;height:var(--radar-bar-height,0px)!important;bottom:32px!important;min-height:0!important;max-height:none!important;min-width:1px!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;pointer-events:none!important;box-shadow:none!important;border-radius:2px 2px 0 0!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-wet.radar-nowcast-missing{height:5px!important;min-height:0!important;opacity:.6!important;background:var(--muted)!important;border:0!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-scrub-anchor{position:absolute!important;display:block!important;width:1px!important;min-width:0!important;max-width:1px!important;height:1px!important;min-height:0!important;max-height:1px!important;bottom:32px!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;box-shadow:none!important;opacity:0!important;pointer-events:none!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick{top:0!important;bottom:0!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick>i{bottom:27px!important;height:5px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-tick>b{top:auto!important;bottom:8px!important;left:0!important;transform:translateX(-50%)!important;font-size:11px!important;line-height:1!important;white-space:nowrap!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now{top:4px!important;bottom:30px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now>b{top:0!important;font-size:11px!important;line-height:1.2!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-title{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-title>b{font-size:14px!important;line-height:1.3!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total{position:static!important;display:grid!important;width:100%!important;max-width:100%!important;padding:10px!important;box-sizing:border-box!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total-main{display:flex!important;flex-wrap:wrap!important;justify-content:space-between!important;align-items:center!important;gap:6px 12px!important;width:auto!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total-main small{font-size:12px!important;line-height:1.4!important;letter-spacing:.04em!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total-main strong{font-size:clamp(24px,6vw,32px)!important;line-height:1.15!important;white-space:nowrap!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total>em{font-size:12px!important;line-height:1.4!important;white-space:normal!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-coverage-note{position:static!important;display:block!important;margin:0!important;padding:0!important;min-height:0!important;height:auto!important;font-size:12px!important;line-height:1.45!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-chart{display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;gap:6px!important;margin-top:10px!important;min-width:0!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-yaxis,
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-track{position:relative!important;height:104px!important;min-height:0!important;margin:0!important;min-width:0!important;overflow:visible!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-yaxis :is(b,span,i){top:auto!important;right:4px!important;font-size:11px!important;line-height:1!important;transform:translateY(50%)!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-yaxis b{bottom:80px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-yaxis span{bottom:56px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-yaxis i{bottom:32px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-yaxis em{position:absolute!important;display:block!important;left:0!important;right:0!important;width:auto!important;min-width:0!important;max-width:56px!important;margin:0!important;padding:0!important;transform:none!important;font-size:10px!important;line-height:1.2!important;bottom:0!important;white-space:nowrap!important;text-align:left!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-grid.top{bottom:80px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-grid.half{bottom:56px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-axis{bottom:32px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet{position:absolute!important;display:block!important;height:var(--radar-bar-height,0px)!important;bottom:32px!important;min-height:0!important;max-height:none!important;min-width:1px!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;pointer-events:none!important;box-shadow:none!important;border-radius:2px 2px 0 0!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.radar-nowcast-missing{height:5px!important;min-height:0!important;opacity:.6!important;background:var(--muted)!important;border:0!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-scrub-anchor{position:absolute!important;display:block!important;width:1px!important;min-width:0!important;max-width:1px!important;height:1px!important;min-height:0!important;max-height:1px!important;bottom:32px!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;box-shadow:none!important;opacity:0!important;pointer-events:none!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-tick{top:0!important;bottom:0!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-tick>i{bottom:27px!important;height:5px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-tick>b{top:auto!important;bottom:8px!important;left:0!important;transform:translateX(-50%)!important;font-size:11px!important;line-height:1!important;white-space:nowrap!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-now{top:4px!important;bottom:30px!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-now>b{top:0!important;font-size:11px!important;line-height:1.2!important}
 .forecast-range-guide{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0;color:var(--text);font-size:12px;line-height:1.4;text-align:left}
 .forecast-range-value{display:flex;flex-wrap:wrap;justify-content:space-between;gap:3px 8px}.forecast-range-value>b{font-variant-numeric:tabular-nums;white-space:nowrap}.forecast-range-value>span,.forecast-range-guide>small{color:var(--muted);font-size:11px}
 .forecast-range-track{position:relative;display:block;height:12px;margin:2px 4px;background:color-mix(in srgb,var(--muted) 10%,transparent);border-radius:5px}
@@ -37,3 +37,13 @@ html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-now>b{top
 .forecast-range-legend{padding:10px 12px;margin:8px 0;border:1px solid var(--border);border-radius:10px;font-size:12px;line-height:1.5;color:var(--muted)}.forecast-range-legend>summary{min-height:24px;cursor:pointer;color:var(--text);font-weight:700}.forecast-range-pending{display:block;font-size:11px;line-height:1.4;color:var(--muted)}
 html .cockpit-day.mid-forecast-row>.forecast-range-guide,html .cockpit-day.mid-forecast-row>.forecast-range-pending{grid-column:1/-1!important;grid-row:auto!important;width:auto!important;height:auto!important;margin:6px 0!important;padding:8px 0!important;border-top:1px solid var(--border)}
 html .cockpit-fourteen-card.mid-forecast-row>.forecast-range-guide,html .cockpit-fourteen-card.mid-forecast-row>.forecast-range-pending{grid-column:1/-1!important;width:100%!important;margin:6px 0!important}
+
+/* MID-C11: keep summary and source outside the chart, with no inherited pills. */
+html #mid-radar-nowcast .radar-nowcast-total{border:0!important;background:transparent!important;border-radius:0!important;padding:0!important;box-shadow:none!important}
+html #mid-radar-nowcast .radar-nowcast-total-main strong{font-size:26px!important}
+html .hero.current-compact .current-precip-panel>span{font-size:13px!important;line-height:1.5!important;letter-spacing:normal!important;overflow-wrap:anywhere!important}
+html .hero.current-compact .current-precip-panel>em{font-size:11px!important;line-height:1.4!important;letter-spacing:normal!important}
+/* The generic .top app header must never style a chart gridline. */
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-grid,
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-axis{position:absolute!important;display:block!important;left:0!important;right:0!important;top:auto!important;width:auto!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;border-top:1px dashed color-mix(in srgb,var(--muted) 28%,transparent)!important;border-radius:0!important;box-shadow:none!important;transform:none!important;pointer-events:none!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total{padding:0!important}
