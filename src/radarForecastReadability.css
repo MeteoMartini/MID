@@ -18,7 +18,7 @@ html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis :is
 html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis b{bottom:80px!important}
 html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis span{bottom:56px!important}
 html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis i{bottom:32px!important}
-html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis em{font-size:10px!important;line-height:1.2!important;right:0!important;bottom:0!important;white-space:nowrap!important}
+html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-yaxis em{position:absolute!important;display:block!important;left:0!important;right:0!important;width:auto!important;min-width:0!important;max-width:56px!important;margin:0!important;padding:0!important;transform:none!important;font-size:10px!important;line-height:1.2!important;bottom:0!important;white-space:nowrap!important;text-align:left!important}
 html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.top{bottom:80px!important}
 html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-grid.half{bottom:56px!important}
 html .hero.current-compact .radar-nowcast-strip.compact .radar-nowcast-axis{bottom:32px!important}
