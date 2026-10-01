@@ -18,7 +18,7 @@ for(const token of [
  'borderlineMoisture=vaporPressure>=17.8',
  'windSuppressed=!strongMoisture&&windMs>=7',
  '&&score>=28',
- 'Temperatur / gefühlt / Taupunkt',
+ 'Temperatur / UTCI / Taupunkt',
  "{selectedThermal.sultry?' · schwül':''}",
  'kein signifikantes Signal',
  "'keine Wettergefahren'"
