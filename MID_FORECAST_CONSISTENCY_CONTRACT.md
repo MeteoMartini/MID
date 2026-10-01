@@ -63,6 +63,19 @@ Ist ICON-D2-RUC verfügbar, wird ein neu abgeleitetes Rapid-Gewittersignal nicht
 
 Radar-/KONRAD3D-Größen wie VIL, VIL-Dichte, DWD-Severity, EchoTop oder Reflektivität dürfen die aktuelle Zell- und Nowcast-Evidenz verstärken. Ohne Blitz dürfen sie die aktuell beobachtete Zelle dennoch nicht rückwirkend als bereits bestätigte Gewitterzelle umbenennen.
 
+### 5b. Beobachtete Niederschlagsart ist kurzfristige Evidenz
+
+Ab MID v0.9.85.133 wird eine **frische, räumlich hinreichend lokale und vertrauenswürdige Stationsmeldung der Niederschlagsart** als eigene Evidenz geführt. Sie darf im unmittelbaren Kurzfristfenster nicht durch ältere Modellanteile wie `rain`/`showers` oder durch eine nachgelagerte Piktogrammheuristik wieder in eine andere Niederschlagsart umklassifiziert werden.
+
+Verbindlich gilt:
+
+- SYNOP-/METAR-Beobachtungen werden kontrolliert auf die von MID verwendeten WMO-Niederschlagsklassen abgebildet; rohe Beobachtungscodes werden nicht ungeprüft als Prognosecodes weitergereicht.
+- Die Beobachtungsherkunft wird in den kanonischen Stunden-, 15-Minuten- und Kurzfristdaten explizit als Provenienz erhalten.
+- Für den Niederschlagscharakter gilt eine bewusst strenge MID-Lokalitätsregel: nur vertrauenswürdige Beobachtungen bis höchstens 40 Minuten Alter und höchstens 20 km Entfernung dürfen den unmittelbaren Charakter stützen. Das ist eine dokumentierte MID-Assimilationsregel und keine amtliche DWD-/WMO-Schwelle.
+- Die Beobachtung stützt nur den **Charakter/Typ** im unmittelbaren Zeitfenster. Menge, Intensität, Wahrscheinlichkeit und Dauer bleiben aus der jeweils kanonischen Radar-/RUC-/Modell- und Intervalllogik bestimmt.
+- Radar-Datenlücken sind keine Trockenbeobachtung. Ein fehlender DWD-RV-Zeitschritt darf weder einen trockenen Slot erzeugen noch eine beobachtete Niederschlagsart widerlegen.
+- Nach Ablauf des kurzen Beobachtungsfensters kehrt die Prognose kontrolliert zur kanonischen Modell-/Nowcast-Evidenz zurück; eine Stationsmeldung wird nicht über Stunden fortgeschrieben.
+
 ## 6. Keine doppelte Assimilation
 
 Radar, Konvektion, Stationsanker, Wetterzwilling oder andere lokale Korrekturen dürfen in einer UI-Komponente nicht erneut auf bereits finalisierte Werte angewendet werden. Darstellungskomponenten erhalten finale Werte und visualisieren sie lediglich.
