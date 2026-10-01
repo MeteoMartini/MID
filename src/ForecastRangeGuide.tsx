@@ -1,6 +1,7 @@
 import type {CSSProperties} from 'react';
 import type {EnsembleDay} from './weather';
 import {formatDecimalFixed} from './format';
+import './radarForecastReadability.css';
 
 export function forecastRangeValues(day:EnsembleDay|undefined){
  if(!day||!(day.memberCount>=2||day.modelCount>=2))return null;

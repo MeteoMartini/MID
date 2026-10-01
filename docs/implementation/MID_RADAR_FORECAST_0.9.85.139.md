@@ -16,3 +16,7 @@
 - UTCI-, Quellen-, Niederschlagsintervall- und gemeinsame Modellkartenänderungen aus .138 bleiben erhalten.
 
 Native Quelle: https://github.com/jdemaeyer/brightsky/issues/144 und https://github.com/jdemaeyer/brightsky/blob/master/brightsky/query.py. Pixelwerte sind 0,01 mm/5 min; Prognosen werden nur aus dem neuesten frischen RV-Referenzlauf übernommen. Die verwendete öffentliche API benötigt keinen kostenpflichtigen Schlüssel. DWD-Daten und Bright-Sky-Bereitstellung werden in der Herkunft getrennt angegeben.
+
+## Regressionen und Ladebudget
+
+Die historischen Ref-/Responsive-Tests erwarten ab .139 den gemeinsamen Scrubber und den separaten unsichtbaren Span-Anker, statt pro Balken einen Button als Anker zu fordern. Touch- und Tastaturverträge bleiben geprüft. Die neue Bereichs-CSS wird gemeinsam mit Radar/Modellspannen bedarfsgerecht geladen; die Grafik erscheint erst nach dem Stylesheet. Das bestehende Haupt-CSS-Budget bleibt unverändert. Die Browser-Fixierung verwendet dieselbe automatische React-JSX-Transformation wie der Produktivbuild.

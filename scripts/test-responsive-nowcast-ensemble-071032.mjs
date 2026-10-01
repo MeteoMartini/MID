@@ -6,7 +6,7 @@ const [app,radar,ensemble,styles]=await Promise.all([
  readFile(new URL('../src/styles.css',import.meta.url),'utf8')
 ]);
 const failures=[];
-for(const token of ['const FIVE_MINUTES=5*60000','Radar-Nowcast mit 5-Minuten-Balken','5-Minuten-Menge','<PortalPopover anchorRef={anchorRef}','onPointerUp={event=>selectSegment(event,segment)}'])if(!app.includes(token))failures.push(`5-Minuten-Nowcast fehlt: ${token}`);
+for(const token of ['const FIVE_MINUTES=5*60000','Radar-Nowcast mit 5-Minuten-Balken','5-Minuten-Menge','<PortalPopover anchorRef={anchorRef}','onPointerUp={pointerEnd}'])if(!app.includes(token))failures.push(`5-Minuten-Nowcast fehlt: ${token}`);
 for(const forbidden of ['5–15-minütig','Die y-Achse und Balkenhöhe zeigen die Intensität','radar-nowcast-events'])if(app.includes(forbidden))failures.push(`Veralteter Nowcast-Inhalt noch vorhanden: ${forbidden}`);
 for(const token of ['iconSize:[19,27]','iconAnchor:[10,18]','popupAnchor:[0,-18]'])if(!radar.includes(token))failures.push(`Halbierter Standortmarker fehlt: ${token}`);
 for(const token of ['function useCompactEnsembleChart()','function professionalEnsembleLayout(','leftAxisWidth:compact?42:54','rightAxisWidth:compact?34:44','professionalEnsembleLayout(compactTrendTooltip,exporting)','professionalEnsembleLayout(compact,exporting)','professionalEnsembleLayout(compactChart,exportingKind===\'precipitation\')'])if(!ensemble.includes(token))failures.push(`Responsive Ensemble-Logik fehlt: ${token}`);

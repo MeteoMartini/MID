@@ -60,6 +60,7 @@ import {detailSkyBarHourCells,detailSkyBarSegments} from './detailSkyBar';
 import {SkyBarHourCellsSvg,SkyBarSegmentsSvg} from './SkyBarSegments';
 import {applyForecastFusionDays,applyForecastFusionHours,applyForecastFusionModelDays,applyHyperlocalForecastHours,dryRadarNowcastProbability,finalizeForecastHours,finalizeForecastMinute15,reconcileForecastDaysWithHours,forecastFusionLabel,loadForecastFusion,rapidThunderRisk,significantRapidThunderRisk,type ForecastFusionRapidMinute15,type ForecastFusionResult,type RapidThunderRisk} from './forecastFusion';
 import {ForecastCockpit,SevenDayCurveOverview} from './ForecastCockpit';
+const LazyRadarForecastStyleGate=lazy(()=>import('./RadarForecastStyleGate'));
 import {normalizeConfidenceDisplayMode,type ConfidenceDisplayMode} from './confidenceDisplay';
 import {nicePressureAxis} from './pressureAxis';
 import {compactSevenDayConditionLabel} from './forecastDayLabel';
@@ -1609,7 +1610,7 @@ function radarSignalDetected(radar:RadarNowcast|null){return radarSiteSignalDete
 function scaleNearbyMarker(rate:number){return Math.max(.10,Math.min(.35,.10+Math.log1p(Math.max(0,rate))*.06))}
 function RadarNowcastTimeline({radar,timezone}:{radar:RadarNowcast;timezone?:string}){
  const fastPreview=Boolean((radar.diagnostics as any)?.fast);if(fastPreview)return <div className="radar-nowcast-strip compact" aria-label="Radar-Nowcast wird vervollständigt"><div className="radar-nowcast-title"><b>Radar-Nowcast</b><span className="radar-nowcast-total"><small>5-Minuten-Auswertung wird vervollständigt …</small></span></div></div>;
- return <RadarNowcastChart radar={radar} timezone={timezone}/>;
+ return <Suspense fallback={<span>Radar-Darstellung wird geladen …</span>}><LazyRadarForecastStyleGate><RadarNowcastChart radar={radar} timezone={timezone}/></LazyRadarForecastStyleGate></Suspense>;
 }
 function RadarNowcastChart({radar,timezone}:{radar:RadarNowcast;timezone?:string}){
  const FIVE_MINUTES=5*60000,now=Date.now(),siteThreshold=radarSiteThreshold(radar),nearbyThreshold=radarNearbyThreshold(radar),start=Math.floor(((Date.parse(radar.observedAt||'')||now)-60*60000)/FIVE_MINUTES)*FIVE_MINUTES,end=start+180*60000,range=end-start,series=(radar.nowcastSeries??[]).map(frame=>({...frame,epoch:Date.parse(frame.intervalStartAt||frame.time)})).filter(frame=>Number.isFinite(frame.epoch)&&frame.epoch>=start-15*60000&&frame.epoch<=end+15*60000).sort((a,b)=>a.epoch-b.epoch),position=(epoch:number)=>Math.max(0,Math.min(100,(epoch-start)/range*100));
