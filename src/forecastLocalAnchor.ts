@@ -21,9 +21,12 @@ function trustedPresentWeather(station:Station|null|undefined,now:number){
 }
 function trustedPrecipitationPresentWeather(station:Station|null|undefined,now:number){
  const code=observedPrecipitationForecastCode(station?.presentWeather);if(code===undefined)return undefined;
- const network=station?.networkClass,provider=String(station?.provider||''),trusted=network==='official'||network==='professional'||provider.startsWith('Eigene ')||/dwd|metar|aviationweather|wmo|geosphere|meteoswiss|knmi|hyperlokalanalyse/i.test(provider);
- const observedAt=Date.parse(String(station?.timestamp||'')),ageMinutes=Number.isFinite(observedAt)?Math.max(0,(now-observedAt)/60000):Infinity,distanceM=Number(station?.distance),distanceKm=Number.isFinite(distanceM)?Math.max(0,distanceM/1000):Infinity;
- return trusted&&ageMinutes<=75&&(!Number.isFinite(distanceM)||distanceKm<=20)?code:undefined;
+ const network=station?.networkClass,provider=String(station?.presentWeatherProvider??station?.provider??''),trusted=network==='official'||network==='professional'||provider.startsWith('Eigene ')||/dwd|metar|aviationweather|wmo|geosphere|meteoswiss|knmi/i.test(provider);
+ const observedAt=Date.parse(String(station?.presentWeatherObservedAt??station?.timestamp??'')),ageMinutes=Number.isFinite(observedAt)?Math.max(0,(now-observedAt)/60000):Infinity,distanceM=Number(station?.presentWeatherDistance??station?.distance),distanceKm=Number.isFinite(distanceM)?Math.max(0,distanceM/1000):Infinity;
+ // Niederschlagscharakter ist deutlich lokaler/kurzlebiger als Sicht oder Bewölkung.
+ // Die Grenzen entsprechen bewusst dem strengen MID-Niederschlagsanker statt
+ // einer pauschalen Stationsfrische: max. 40 min und max. 20 km.
+ return trusted&&ageMinutes<=40&&Number.isFinite(distanceM)&&distanceKm<=20?code:undefined;
 }
 function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined,dewPoint:number|undefined,presentWeather:string|undefined,trustPresentWeather:boolean){
  const covers=[cloud,lowCloud].map(value=>value===null||value===undefined||String(value).trim()===''?Number.NaN:Number(value)).filter(Number.isFinite),cover=covers.length?Math.max(...covers):Number.NaN,visibilityState=classifyVisibilityPhenomenon({weatherCode:fallback,visibility,humidity,temperature,dewPoint,presentWeather,trustPresentWeather});
