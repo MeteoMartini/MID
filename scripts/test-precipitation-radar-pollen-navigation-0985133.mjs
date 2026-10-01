@@ -10,6 +10,7 @@ const appSource=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const pollenSource=readFileSync(new URL('../src/PollenForecast.tsx',import.meta.url),'utf8');
 const radarWorker=readFileSync(new URL('../worker-src/10-radar-nowcast.js',import.meta.url),'utf8');
 const workerCore=readFileSync(new URL('../worker-src/00-core-observations.js',import.meta.url),'utf8');
+const forecastFusionSource=readFileSync(new URL('../src/forecastFusion.ts',import.meta.url),'utf8');
 
 assert.ok(precipitationSource.includes('precipitationSampleIntervalSeconds(h)/3600'),'Sprühregen-Plausibilität muss die tatsächliche Intervalllänge berücksichtigen.');
 assert.ok(precipitationSource.includes("rate<=.5&&showerRate<.08"),'Sprühregen darf nur bei schwachem stratiformem Niederschlag bestehen bleiben.');
@@ -18,6 +19,10 @@ assert.ok(appSource.includes('periods=timeline.periods.filter')&&appSource.inclu
 assert.ok(radarWorker.includes("rateSource:'missing',dataAvailable:false"),'Fehlende DWD-RV-Zeitschritte müssen explizit als Datenlücke erhalten bleiben.');
 assert.ok(radarWorker.includes("hitClass:!available?'missing'"),'Radar-Datenlücke darf nicht als trocken klassifiziert werden.');
 assert.ok(appSource.includes("DWD-RV-Datenlücke · keine Trockenmeldung")&&appSource.includes('radar-nowcast-missing'),'Die sichtbare Radar-Zeitachse muss Datenlücken von Trockenphasen unterscheiden.');
+assert.ok(forecastFusionSource.includes("type RadarFrameEvidenceClass=RadarHitClass|'missing'"),'Fusion braucht einen eigenen Evidence-Typ für Datenlücken.');
+assert.ok(forecastFusionSource.includes("availableFrames=frames.filter((_,index)=>classes[index]!=='missing')"),'Fehlende Radarframes dürfen nicht als auswertbare Evidenz zählen.');
+assert.ok(forecastFusionSource.includes("dryFrames.length===availableFrames.length"),'Nur tatsächlich ausgewertete trockene Frames dürfen den Modellniederschlag als trocken korrigieren.');
+assert.ok(!forecastFusionSource.includes("dryFrames.length===frames.length"),'Datenlücken dürfen den dry-Radar-Pfad niemals auslösen.');
 assert.ok(pollenSource.includes("allDates.filter(date=>date>=todayKey).slice(0,3)"),'Pollenflug darf gestrige DWD-Zeilen nicht als heutige Prognose verwenden.');
 assert.ok(pollenSource.includes("todayDate=forecastDates.find(date=>date===todayKey)"),'Heute muss kalendarisch bestimmt werden, nicht über den ersten WFS-Datensatz.');
 assert.ok(pollenSource.includes("productUpdatedAt")&&workerCore.includes("productUpdatedAt"),'Pollenanzeige muss den DWD-Produktstand statt nur den Abrufzeitpunkt ausweisen können.');
