@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.136 · Modellabdeckung und Regressionen
+
+Basis: `main == mid-stable == f5bcc165012597bb2320d211f43e6a6f75573096` (v0.9.85.135). Die Außenmaske übernimmt das gekrümmte rotierte ICON-D2-Grenzpolygon der bestehenden Analyse. Alle 894 automatisch erkannten Regressionen bleiben erhalten; beide Baseline-Listen werden auf das vollständige Inventar konsolidiert und im Runner auf Drift geprüft. Keine Assertions gestrichen.
+
 ## v0.9.85.135 · Unveränderliche ICON-D2-Kartenobjekte
 
 Basis: veröffentlichte v0.9.85.134, `main == mid-stable == 5260c83caf82ccf2cf73c68973f4ca411f086639`. Die unabhängigen ICON-D2-Summen verwenden im bestehenden Pages-Manifest zusätzlich ihren Datei-Hash im Objektpfad. Dadurch kann ein neuer ICON-Lauf bei gleichem RUC-Lauf keine ältere Karten-URL mutieren. Alle Kartenfunktionen und Quellen bleiben erhalten.

@@ -1,9 +1,8 @@
-# MID v0.9.85.135
+# MID v0.9.85.136
 
-## Unveränderliche DWD-Karten-Snapshots
+## ICON-D2-Abgrenzung und konsolidierte Regressionen
 
-- Niederschlagssummen aus ICON-D2 erhalten eine eigene, vom tatsächlichen Datei-Hash abgeleitete Objektadresse innerhalb des bestehenden RUC-/Pages-Manifests.
-- Ein neuer ICON-D2-Lauf oder eine Wiederholung der Aufbereitung kann dadurch keine bereits gecachte Raster-URL überschreiben, auch wenn der RUC-Lauf unverändert bleibt.
-- Die Auswahl des aktuellen Kartenobjekts lädt das DWD-Manifest mit einer frischen Anfrage, damit ein Browser-/CDN-Cache keinen alten Lauf festhält.
-- Snapshot-Erhalt, Kartenansicht, Favoriten, PNG-/SVG-Downloads und alle Änderungen aus v0.9.85.134 bleiben erhalten. Kein zusätzlicher Anbieter oder Workflow; bestehende kostenlose DWD-Pipeline.
-- Regression prüft zwei unterschiedliche ICON-D2-Läufe bei identischem RUC-Lauf und verschiedene unveränderliche Objektadressen.
+- Extremwetter-Ausblick: Außenbereich der gekrümmten ICON-D2-Modellabdeckung dunkel eingefärbt; Grenzpolygon entspricht exakt der bestehenden Analyse. Dunkler Bereich in der Kartenlegende erklärt, unabhängig von Hazard-Auswahl, Zeitraum und temporären Datenlücken.
+- Alle 894 Regressionen bleiben unverändert wirksam. Automatische Dateierkennung und beide Baseline-Pflichtlisten werden jetzt als vollständige identische Inventare geprüft; fehlende, veraltete und doppelte Registrierungen brechen die Suite ab.
+- Ein gemeinsamer Runner meldet Fortschritt, Gesamtdauer und langsamste Prüfungen; Fehler enthalten weiter die vollständige Ausgabe. MID_REGRESSION_VERBOSE=1 zeigt auch erfolgreiche Einzelausgaben. Ausführung bleibt isoliert und seriell, damit gemeinsam verwendete Artefakte keine Rennen verursachen.
+- Neue Regression schützt die identische Modellgeometrie sowie positive und negative Fälle der Testregistrierung. Keine bestehenden Assertions entfernt, keine zusätzlichen Kosten oder Datenquellen.
