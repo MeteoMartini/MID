@@ -59,24 +59,33 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const [expanded,setExpanded]=useState(false);
   const [showAll,setShowAll]=useState(false);
   const [loading,setLoading]=useState(false);
-  const fetchedRef=useState({done:false})[0];
 
-  // WICHTIG: useEffect muss bedingungslos vor jedem Early-Return stehen.
-  // Ein if(!enabled)return null *vor* useEffect würde die Hook-Anzahl
-  // beim Aktivieren/Deaktivieren ändern und einen React-Invariant-Absturz
-  // auf der «Aktuell»-Seite verursachen. (P0-Fix v0.9.85.127)
+  // Der Pollenstand ist ein täglich aktualisiertes DWD-Produkt. Eine PWA kann
+  // über den Aktualisierungstermin hinweg im Speicher bleiben; deshalb reicht
+  // "einmal pro Mount" nicht. Wir laden initial, zyklisch und nach Rückkehr in
+  // den Vordergrund neu. Der Worker-/Client-Cache begrenzt die Netzlast.
   useEffect(()=>{
     if(!enabled)return;
-    if(fetchedRef.done||loading||data||error)return;
-    fetchedRef.done=true;
-    setLoading(true);
-    fetchWorkerJson<PollenResponse>('dwd-pollen',{},{purpose:'general',maxAgeMs:10*60*1000,staleIfErrorMs:2*60*60*1000})
-      .then(d=>{
-        if(d.error){setError(d.error);setData(null);}
+    let disposed=false,requestActive=false,firstRequest=true,lastRequestAt=0;
+    const load=async()=>{
+      if(requestActive||disposed)return;
+      requestActive=true;lastRequestAt=Date.now();if(firstRequest)setLoading(true);
+      try{
+        const d=await fetchWorkerJson<PollenResponse>('dwd-pollen',{},{purpose:'general',maxAgeMs:10*60*1000,staleIfErrorMs:2*60*60*1000});
+        if(disposed)return;
+        if(d.error){setError(d.error);if(firstRequest)setData(null);}
         else{setData(d);setError(null);}
-      })
-      .catch(err=>{setError(err?.message||'Pollenflug-Daten konnten nicht geladen werden');setData(null);})
-      .finally(()=>setLoading(false));
+      }catch(err:any){
+        if(!disposed){setError(err?.message||'Pollenflug-Daten konnten nicht geladen werden');if(firstRequest)setData(null);}
+      }finally{
+        if(!disposed&&firstRequest)setLoading(false);firstRequest=false;requestActive=false;
+      }
+    };
+    void load();
+    const timer=window.setInterval(()=>{void load()},10*60*1000);
+    const onVisibility=()=>{if(document.visibilityState==='visible'&&Date.now()-lastRequestAt>=5*60*1000)void load()};
+    document.addEventListener('visibilitychange',onVisibility);
+    return()=>{disposed=true;window.clearInterval(timer);document.removeEventListener('visibilitychange',onVisibility)};
   },[enabled]);
 
   if(!enabled)return null;
