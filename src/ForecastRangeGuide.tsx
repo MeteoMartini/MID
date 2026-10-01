@@ -10,10 +10,10 @@ export function forecastRangeValues(day:EnsembleDay|undefined){
  return temperature&&rain?{temperature,rain}:null;
 }
 
-export function ForecastRangeGuide({day,days,temperature,compact=false}:{day?:EnsembleDay;days:EnsembleDay[];temperature:number;compact?:boolean}){
+export function ForecastRangeGuide({day,days,temperature,temperatures=[],compact=false}:{day?:EnsembleDay;days:EnsembleDay[];temperature:number;temperatures?:number[];compact?:boolean}){
  const ranges=forecastRangeValues(day);
  if(!ranges)return <span className="forecast-range-pending">Modellspanne noch nicht verfügbar</span>;
- const valid=days.map(forecastRangeValues).filter((value):value is NonNullable<ReturnType<typeof forecastRangeValues>>=>Boolean(value)),low=Math.min(...valid.map(value=>value.temperature.low),ranges.temperature.low,temperature),high=Math.max(...valid.map(value=>value.temperature.high),ranges.temperature.high,temperature),span=Math.max(1,high-low),percent=(value:number)=>(value-low)/span*100,t=ranges.temperature;
+ const valid=days.map(forecastRangeValues).filter((value):value is NonNullable<ReturnType<typeof forecastRangeValues>>=>Boolean(value)),low=Math.min(...valid.map(value=>value.temperature.low),ranges.temperature.low,...temperatures.filter(Number.isFinite)),high=Math.max(...valid.map(value=>value.temperature.high),ranges.temperature.high,...temperatures.filter(Number.isFinite)),span=Math.max(1,high-low),percent=(value:number)=>(value-low)/span*100,t=ranges.temperature;
  const style={'--range-start':`${percent(t.low)}%`,'--range-width':`${Math.max(.8,(t.high-t.low)/span*100)}%`,'--range-core-start':`${percent(t.q25)}%`,'--range-core-width':`${Math.max(.8,(t.q75-t.q25)/span*100)}%`,'--range-point':`${percent(temperature)}%`} as CSSProperties;
  return <span className={`forecast-range-guide${compact?' compact':''}`} aria-label={`Modellspanne P10 bis P90: Tageshöchsttemperatur ${Math.round(t.low)} bis ${Math.round(t.high)} Grad; Niederschlag ${formatDecimalFixed(ranges.rain.low,1)} bis ${formatDecimalFixed(ranges.rain.high,1)} Millimeter`}>
   <span className="forecast-range-value"><span>Tageshöchstwert</span><b>{Math.round(t.low)}–{Math.round(t.high)}°</b></span>
