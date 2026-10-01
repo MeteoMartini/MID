@@ -4,8 +4,16 @@ import {precipitationPresentationHours} from './precipitationIntervals';
 import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';
 import type {Day,Hour,Minute15,RadarNowcast,RadarNowcastFrame,RadarNowcastInterval,ThunderstormNowcast} from './weather';
 import {boundedSunshineSeconds,canonicalSunshineDaySeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes} from './sunshineDuration';
+import {utciFromOutdoorState} from './utci';
 
 export type ForecastFusionTier=1|2|3|4;
+
+function withCanonicalUtci(hour:Hour):Hour{
+ const result=utciFromOutdoorState({temperatureC:Number(hour.temperature),windKnots:Number(hour.wind),humidityPercent:Number(hour.humidity),cloudPercent:Number(hour.cloud),uvIndex:Number(hour.uvIndex)||0,isDay:Boolean(hour.isDay),elevationM:Number(hour.elevation)||0});
+ return result?{...hour,apparent:result.utci,apparentKind:'utci'}:hour;
+}
+
+
 export type ForecastFusionConfidence='high'|'medium'|'low';
 export type ForecastFusionSource={
  id:string;
@@ -512,7 +520,7 @@ export function applyHyperlocalForecastHours(hours:Hour[],anchor:ForecastLocalAn
   const apparent=Number.isFinite(hour.apparent)?hour.apparent+temperatureShift:temperature,humidity=stateWindow?localAssimilatedValue(anchorHumidity,modelNow.humidity,hour.humidity,Math.max(0,offsetMinutes),120,0,100,45):hour.humidity,dewPoint=stateWindow?localAssimilatedValue(anchorDewPoint,modelNow.dewPoint,hour.dewPoint,Math.max(0,offsetMinutes),120,-90,50,10):hour.dewPoint,pressure=stateWindow?localAssimilatedValue(anchorPressure,modelNow.pressure,hour.pressure,Math.max(0,offsetMinutes),180,850,1100,15):hour.pressure,wind=stateWindow?localAssimilatedValue(anchorWind,modelNow.wind,hour.wind,Math.max(0,offsetMinutes),90,0,180,35):hour.wind,gustRaw=stateWindow?localAssimilatedValue(anchorGust,modelNow.gust,hour.gust,Math.max(0,offsetMinutes),90,0,220,45):hour.gust,gust=Math.max(wind,gustRaw),direction=stateWindow?localAssimilatedDirection(anchorDirection,modelNow.direction,hour.direction,Math.max(0,offsetMinutes)):hour.direction,cloud=stateWindow?localAssimilatedValue(anchorCloud,modelNow.cloud,hour.cloud,Math.max(0,offsetMinutes),90,0,100,100):hour.cloud,lowCloud=stateWindow?localAssimilatedValue(anchorLowCloud,modelNow.lowCloud,hour.lowCloud,Math.max(0,offsetMinutes),90,0,100,100):hour.lowCloud,visibility=stateWindow?localAssimilatedValue(anchorVisibility,modelNow.visibility,hour.visibility,Math.max(0,offsetMinutes),90,50,100000,80000):hour.visibility,observedRate=Number(anchorPrecipitation)*60/Math.max(1,Number(anchor.precipitationMinutes)||60),observedHourAmount=Number.isFinite(observedRate)?Math.max(0,observedRate):undefined,precipitation=stateWindow?localAssimilatedValue(observedHourAmount,modelNowPrecipitation?.precipitation,hour.precipitation,Math.max(0,offsetMinutes),45,0,250,50):hour.precipitation,probability=stateWindow&&Number(anchorPrecipitation)>.01?Math.max(hour.probability,90*localAdjustmentWeight(Math.max(0,offsetMinutes),45)):hour.probability,stateAdjustment=stateWindow?Math.max(localAdjustmentWeight(Math.max(0,offsetMinutes),90)*([anchorCloud,anchorVisibility,anchorWind,anchorDirection].some(value=>value!==undefined)?1:0),localAdjustmentWeight(Math.max(0,offsetMinutes),45)*(anchorPrecipitation!==undefined?1:0),localAdjustmentWeight(Math.max(0,offsetMinutes),30)*(anchor.precipitationPhenomenonObserved?1:0),localAdjustmentWeight(Math.max(0,offsetMinutes),120)*([anchorHumidity,anchorDewPoint].some(value=>value!==undefined)?1:0),localAdjustmentWeight(Math.max(0,offsetMinutes),180)*(anchorPressure!==undefined?1:0)):0,localAdjustment=Math.max(temperatureAdjustment,stateAdjustment);
   if(localAdjustment<=0)return hour;
   const ratio=hour.precipitation>.001?precipitation/hour.precipitation:1,rawRain=Math.max(0,hour.rain)*ratio,rawShowers=Math.max(0,hour.showers)*ratio,rawSnowfall=Math.max(0,hour.snowfall)*ratio,observedPrecipitationCode=Boolean(stateWindow&&Math.max(0,offsetMinutes)<=30&&localPrecipitationCode(Number(anchorCode))&&(anchor.precipitationPhenomenonObserved||anchor.observed?.precipitation)),code=stateWindow?localReconciledWeatherCode(hour.code,anchorCode,cloud,lowCloud,visibility,humidity,temperature,precipitation,probability,Math.max(0,offsetMinutes),localAdjustment,observedPrecipitationCode):hour.code,signal=reconcileForecastPrecipitation({precipitation,rain:rawRain,showers:rawShowers,snowfall:rawSnowfall,probability,code,cloud,lowCloud,humidity,cape:hour.cape,liftedIndex:hour.liftedIndex,convectiveInhibition:hour.convectiveInhibition,sunshineDuration:hour.sunshineDuration,isDay:hour.isDay,leadHours:(hour.epoch-now)/3600000,observed:observedPrecipitationCode});
-  const next={...hour,temperature,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,precipitationPhenomenonObserved:observedPrecipitationCode,localAdjustment,localAdjustmentSourceLabel:sourceLabel};
+  const next=withCanonicalUtci({...hour,temperature,apparent,humidity,dewPoint,pressure,wind,gust,direction,cloud,lowCloud,visibility,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,precipitationPhenomenonObserved:observedPrecipitationCode,localAdjustment,localAdjustmentSourceLabel:sourceLabel});
   if(Math.abs(next.temperature-hour.temperature)<.01&&Math.abs(next.probability-hour.probability)<.1&&Math.abs(next.precipitation-hour.precipitation)<.001&&Math.abs(next.wind-hour.wind)<.01&&Math.abs(next.cloud-hour.cloud)<.1&&Math.abs(next.visibility-hour.visibility)<1)return hour;changed=true;return next
  });
  return changed?result:hours
@@ -586,7 +594,7 @@ export function reconcileCurrentTemperatureObservation(hours:Hour[],temperature:
  left=left&&observedAt-left.epoch<=90*60000?left:nearest;right=right&&right.epoch-observedAt<=90*60000?right:nearest;
  const leftEpoch=left.epoch,rightEpoch=right.epoch,leftTemperature=Number(left.hour.temperature),rightTemperature=Number(right.hour.temperature);if(!Number.isFinite(leftTemperature)||!Number.isFinite(rightTemperature))return hours;
  const span=Math.max(0,rightEpoch-leftEpoch),fraction=span>0?clamp((observedAt-leftEpoch)/span,0,1):0,modelAtObservation=leftTemperature+(rightTemperature-leftTemperature)*fraction,correction=temperature-modelAtObservation;if(Math.abs(correction)<.05)return hours;
- let changed=false;const result=hours.map(hour=>{const epoch=Number(hour.epoch);if(!Number.isFinite(epoch))return hour;const weight=currentTemperatureBridgeWeight(epoch,leftEpoch,rightEpoch);if(weight<=0)return hour;const shift=correction*weight,nextTemperature=Number(hour.temperature)+shift;if(!Number.isFinite(nextTemperature))return hour;changed=true;return{...hour,temperature:nextTemperature,apparent:Number.isFinite(Number(hour.apparent))?Number(hour.apparent)+shift:hour.apparent}});return changed?result:hours;
+ let changed=false;const result=hours.map(hour=>{const epoch=Number(hour.epoch);if(!Number.isFinite(epoch))return hour;const weight=currentTemperatureBridgeWeight(epoch,leftEpoch,rightEpoch);if(weight<=0)return hour;const shift=correction*weight,nextTemperature=Number(hour.temperature)+shift;if(!Number.isFinite(nextTemperature))return hour;changed=true;return withCanonicalUtci({...hour,temperature:nextTemperature,apparent:Number.isFinite(Number(hour.apparent))?Number(hour.apparent)+shift:hour.apparent})});return changed?result:hours;
 }
 
 export type ForecastHourFinalizationOptions={
@@ -761,13 +769,13 @@ export function applyForecastFusionHours(hours:Hour[],baseDays:Day[],fusedDays:D
    // Tageskorrektur wird deshalb zwischen den lokalen Tagesmitten kontinuierlich
    // interpoliert; echte synoptische Änderungen der stündlichen Leitprognose bleiben erhalten.
    const adjustment=temporalDayFusionAdjustment(hour.time,date,orderedAdjustmentDates,dayAdjustments);
-   if(adjustment){const temperature=next.temperature*adjustment.temperatureScale+adjustment.temperatureOffset,temperatureDelta=temperature-next.temperature,wind=Math.max(0,next.wind*adjustment.windScale),gust=Math.max(wind,next.gust*adjustment.gustScale);next={...next,temperature,apparent:next.apparent+temperatureDelta,wind,gust};changed=true}
+   if(adjustment){const temperature=next.temperature*adjustment.temperatureScale+adjustment.temperatureOffset,temperatureDelta=temperature-next.temperature,wind=Math.max(0,next.wind*adjustment.windScale),gust=Math.max(wind,next.gust*adjustment.gustScale);next=withCanonicalUtci({...next,temperature,apparent:next.apparent+temperatureDelta,wind,gust});changed=true}
   }
   if(!mosmixUsable)return next;
   const mosmix=nearestFusionHour(mosmixHours,hour.epoch);if(!mosmix)return next;
   const leadHours=(hour.epoch-now)/3600000;if(leadHours<-.5||leadHours>168)return next;
   const leadStrength=mosmixHourlyLeadStrength(leadHours),temperatureStrength=leadStrength*mosmixQuality,temperature=blendToward(next.temperature,mosmix.temperature,temperatureStrength,3),temperatureDelta=temperature-next.temperature,rawDewPoint=blendToward(next.dewPoint,mosmix.dewPoint,leadStrength*mosmixQuality*.7,4),dewPoint=Math.min(temperature,rawDewPoint),derivedHumidity=relativeHumidityFromTemperatureDewPoint(temperature,dewPoint),humidity=Number.isFinite(derivedHumidity)?derivedHumidity:blendToward(next.humidity,mosmix.humidity,leadStrength*mosmixQuality*.55,18),pressure=blendToward(next.pressure,mosmix.pressure,leadStrength*mosmixQuality*.35,5),wind=Math.max(0,blendToward(next.wind,mosmix.wind,leadStrength*mosmixQuality*.58,7)),gust=Math.max(wind,blendToward(next.gust,mosmix.gust,leadStrength*mosmixQuality*.58,10));
-  changed=true;return{...next,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,wind,gust};
+  changed=true;return withCanonicalUtci({...next,temperature,apparent:next.apparent+temperatureDelta,humidity,dewPoint,pressure,wind,gust});
  });
  return changed?result:hours;
 }
