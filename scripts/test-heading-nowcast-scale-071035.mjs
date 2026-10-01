@@ -21,7 +21,9 @@ for(const token of [
  "<small>{amountCoverage.complete?'2-h-Summe':'Teilsumme'}</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>",
  "{radarAxisLabel(scale/2)}",
  "<em>mm/5 min</em>",
- "height:radarBarHeight(segment.amount,scale,segment.nearby)"
+ "function radarChartAmount(rate:number,nearby=false)",
+ "<div className=\"radar-nowcast-grid top\"/>",
+ "height:radarBarHeight(radarChartAmount(segment.rate,segment.nearby),scale,segment.nearby)"
 ])if(!app.includes(token))failures.push(`Nowcast-Skala/Summe fehlt: ${token}`);
 for(const token of [
  '.radar-heading-marker{overflow:visible!important}',
