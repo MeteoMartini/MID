@@ -9,7 +9,7 @@
 ## Pollenflug
 - „Heute“ wird jetzt über das tatsächliche lokale Datum bestimmt; gestrige DWD-Zeilen können nicht mehr als heutige Prognose erscheinen.
 - Angezeigt wird nach Möglichkeit der fachliche DWD-Produktstand statt lediglich der technischen Abrufzeit.
-- Der Pollenabruf wird rund um Produktaktualisierungen schneller erneuert.
+- Der Pollenabruf wird rund um Produktaktualisierungen schneller erneuert und bei längeren PWA-Sitzungen bzw. nach Rückkehr in die App automatisch aktualisiert; ein kurzfristiger Aktualisierungsfehler entfernt einen bereits geladenen verwertbaren Stand nicht.
 
 ## Navigation
 - Beim Neustart ist der zuletzt gewählte Hauptbereich maßgeblich. Ein veralteter Unterbereich darf ihn nicht mehr auf „Vorhersage“ zurücksetzen.
