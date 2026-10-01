@@ -9,11 +9,11 @@ const [app,cockpit,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 for(const token of [
  'function detailThermalFeel(hour:Hour):DetailThermalFeel',
- "if(felt>38){label='sehr heiß'",
- "else if(felt>=32){label='heiß'",
- "else if(felt>=26){label='warm'",
- "else if(felt>=20){label='leicht warm'",
- "else if(felt>=0){label='behaglich'",
+ 'category=utciCategory(felt)',
+ 'score:utciStressScore(felt)',
+ 'label:category.shortLabel',
+ 'burden:category.label',
+ 'color:category.color',
  'thermalFeelHeight=narrowChart?10:12',
  'const thermalFeelTop=sectionCursor,thermalFeelBottom=thermalFeelTop+thermalFeelHeight',
  'className="detail-thermal-feel-bg"',
