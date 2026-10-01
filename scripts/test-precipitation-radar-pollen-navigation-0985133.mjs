@@ -14,6 +14,7 @@ const forecastFusionSource=readFileSync(new URL('../src/forecastFusion.ts',impor
 const shortTermSource=readFileSync(new URL('../src/ShortTermForecast.tsx',import.meta.url),'utf8');
 const anchorSource=readFileSync(new URL('../src/forecastLocalAnchor.ts',import.meta.url),'utf8');
 const observedWeatherSource=readFileSync(new URL('../src/observationPresentWeather.ts',import.meta.url),'utf8');
+const weatherSource=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
 
 assert.ok(precipitationSource.includes('precipitationSampleIntervalSeconds(h)/3600'),'Sprühregen-Plausibilität muss die tatsächliche Intervalllänge berücksichtigen.');
 assert.ok(precipitationSource.includes("rate<=.5&&showerRate<.08"),'Sprühregen darf nur bei schwachem stratiformem Niederschlag bestehen bleiben.');
@@ -34,6 +35,10 @@ assert.ok(pollenSource.includes("allDates.filter(date=>date>=todayKey).slice(0,3
 assert.ok(pollenSource.includes("todayDate=forecastDates.find(date=>date===todayKey)"),'Heute muss kalendarisch bestimmt werden, nicht über den ersten WFS-Datensatz.');
 assert.ok(pollenSource.includes("productUpdatedAt")&&workerCore.includes("productUpdatedAt"),'Pollenanzeige muss den DWD-Produktstand statt nur den Abrufzeitpunkt ausweisen können.');
 assert.ok(pollenSource.includes("window.setInterval")&&pollenSource.includes("visibilitychange")&&!pollenSource.includes("fetchedRef.done"),'Pollenflug muss nach App-Resume und während langer PWA-Sitzungen neu geladen werden können.');
+assert.ok(pollenSource.includes("if(!data)")&&!pollenSource.includes("if(error||!data)"),'Ein temporärer Pollen-Refreshfehler darf einen bereits geladenen Produktstand nicht ausblenden.');
+assert.ok(anchorSource.includes("ageMinutes<=40")&&anchorSource.includes("distanceKm<=20"),'Beobachtete Niederschlagsart muss auf den strengen lokalen Kurzfristanker begrenzt bleiben.');
+assert.ok(weatherSource.includes("presentWeatherObservedAt")&&weatherSource.includes("presentWeatherDistance")&&weatherSource.includes("presentWeatherProvider"),'Hyperlokale Aggregation muss Provenienz der beobachteten Wettererscheinung erhalten.');
+assert.ok(weatherSource.includes("age<=40")&&weatherSource.includes("meta.distance<=20000"),'Schon die Auswahl der repräsentativen Niederschlagsmeldung muss veraltete oder zu entfernte Meldungen ausschließen.');
 assert.ok(appSource.includes("section&&(!area||primaryNavigationAreaForSection(section)===area)"),'Primärbereich muss beim Neustart einen widersprüchlichen alten Untermodulwert überstimmen.');
 assert.ok(appSource.includes("!MODERN_FORECAST_MODULES.includes(active as DashboardModuleId)"),'Späte Forecast-Horizon-Ereignisse dürfen Aktuell/Karten/Mehr nicht überschreiben.');
 
