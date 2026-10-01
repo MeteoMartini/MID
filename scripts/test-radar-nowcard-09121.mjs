@@ -10,7 +10,7 @@ assert(app.includes('nach kurzer Unterbrechung erneut')&&app.includes('mit Unter
 assert(app.includes('im direkten DWD-RV-Punkt-Nowcast bis +2 Stunden derzeit kein Standorttreffer'), 'Umfeldechos müssen klar vom Standorttreffer getrennt werden.');
 assert(app.includes('className="precip-now-source-row"'), 'Die kompakte sichtbare Radarquelle fehlt.');
 assert(app.includes('Technische Radardetails anzeigen'), 'Technische Radardetails müssen hinter einem Info-Element liegen.');
-assert(app.includes('<small>2-h-Summe</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>'), 'Die hervorgehobene 2-h-Summe fehlt.');
+assert(app.includes("<small>{amountCoverage.complete?'2-h-Summe':'Teilsumme'}</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>"), 'Die hervorgehobene 2-h-Summe fehlt.');
 assert(styles.includes('.precip-now-source-row'), 'Styles für die kompakte Radarquelle fehlen.');
 assert(styles.includes('.radar-nowcast-title .radar-nowcast-total'), 'Styles für die hervorgehobene 2-h-Summe fehlen.');
 

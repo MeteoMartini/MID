@@ -7,6 +7,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const calibrationSource=fs.readFileSync(path.join(root,'src','RadarNowcastCalibration.ts'),'utf8');
+const coverageSource=fs.readFileSync(path.join(root,'src','radarCoverage.ts'),'utf8');
 const weatherSource=fs.readFileSync(path.join(root,'src','weather.ts'),'utf8');
 const fusionSource=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
 const workerSource=fs.readFileSync(path.join(root,'worker','metar-proxy.js'),'utf8');
@@ -29,10 +30,13 @@ assert.ok(hxSource.includes("meta.product!=='hx'"),'HX-Grenzprüfung muss auf da
 }
 
 const require=createRequire(import.meta.url);const ts=require('typescript-strada')
-const executable=calibrationSource
+const executable=coverageSource
+ .replace("import type {RadarNowcast,RadarNowcastFrame} from './weather';",'')+'\n'+calibrationSource
  .replace("import type {RadarNowcast,RadarNowcastFrame} from './weather';",'')
  .replace("import type {DwdRsCalibration} from './DwdRsSource';",'')
- .replace("import type {HxBoundaryCheck} from './HxRadarPointSource';",'');
+ .replace("import type {HxBoundaryCheck} from './HxRadarPointSource';",'')
+ .replace("import {radarForecastCoverage,radarFrameAvailable} from './radarCoverage';",'')
+ .replace("export {radarForecastCoverage,radarFrameAvailable} from './radarCoverage';",'');
 const transpiled=ts.transpileModule(executable,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext},reportDiagnostics:true,fileName:'RadarNowcastCalibration.ts'});
 const diagnostics=(transpiled.diagnostics||[]).filter(item=>item.category===ts.DiagnosticCategory.Error);assert.equal(diagnostics.length,0,diagnostics.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'mid-radar-cal-')),modulePath=path.join(temp,'cal.mjs');fs.writeFileSync(modulePath,transpiled.outputText);const mod=await import(`${pathToFileURL(modulePath).href}?v=${Date.now()}`);

@@ -11,10 +11,11 @@ const [app,workspace,state,totals,radar,styles,weatherMaps]=await Promise.all([
  readFile(new URL('../src/WeatherMapsPanel.tsx',import.meta.url),'utf8')
 ]);
 
-for(const label of ['Radar · Satellit · Blitz','Modellkarten','Niederschlagssummen']){
+for(const label of ['Radar · Satellit · Blitz','Modellkarten']){
  assert.ok(workspace.includes(`label:'${label}'`),`Gemeinsamer Kartenschalter fehlt: ${label}`);
 }
-assert.ok(workspace.includes("view==='radar'")&&workspace.includes("view==='models'")&&workspace.includes("view==='totals'"),'Alle Kartenansichten müssen separat auswählbar sein.');
+assert.ok(workspace.includes("view==='radar'")&&workspace.includes("view==='models'")&&!workspace.includes("view==='totals'"),'Radar und alle Modellkarten müssen in zwei gemeinsamen Ansichten auswählbar sein.');
+assert.ok(weatherMaps.includes('<PrecipitationTotalsMap')&&weatherMaps.includes('isTotals?'),'Summenkarten müssen innerhalb der Modellkartenauswahl dargestellt werden.');
 assert.ok(state.includes("mid:map-workspace-view:v1")&&state.includes('readMapWorkspaceView')&&state.includes('saveMapWorkspaceView'),'Die Auswahl muss sitzungsübergreifend gespeichert werden.');
 assert.ok(app.includes("function dashboardSectionAlias(id:DashboardModuleId):DashboardModuleId{return id==='weather-maps'?'composite':id}"),'Der alte Wetterkarten-Einstieg muss als Alias zur gemeinsamen Kartenansicht funktionieren.');
 assert.ok(app.includes("if(id==='weather-maps'){saveMapWorkspaceView('models')"),'Der alte Einstieg muss Modellkarten direkt öffnen.');

@@ -362,7 +362,7 @@ const DIRECT_RADAR_HORIZON_MINUTES=120;
 const TRANSITION_RADAR_HORIZON_MINUTES=180;
 
 function radarFinite(value:unknown,fallback=0){const numeric=Number(value);return Number.isFinite(numeric)?numeric:fallback}
-function frameEpoch(frame:RadarNowcastFrame){return Date.parse(frame.time)}
+function frameEpoch(frame:RadarNowcastFrame){return Date.parse(frame.intervalStartAt||frame.time)}
 function siteThreshold(radar:RadarNowcast){return Math.max(.02,radarFinite(radar.siteEchoThreshold,.05))}
 function nearbyThreshold(radar:RadarNowcast){return Math.max(siteThreshold(radar),radarFinite(radar.nearbyEchoThreshold,Math.max(.08,siteThreshold(radar)*1.8)))}
 function qualityBase(radar:RadarNowcast){return radar.quality==='high'?.92:radar.quality==='medium'?.76:.52}
@@ -395,7 +395,7 @@ function rateProbability(rate:number,threshold:number,nearbyOnly:boolean){
 // Instantane Felder (T, Td, Wind, Druck ...) bleiben dagegen punktbezogen.
 function intervalBounds(targetEpoch:number,intervalMinutes:number){const span=Math.max(1,intervalMinutes)*60000;return{start:targetEpoch-span,end:targetEpoch}}
 function radarFrames(radar:RadarNowcast){return(radar.nowcastSeries??[]).map(frame=>({...frame,epoch:frameEpoch(frame)})).filter(frame=>Number.isFinite(frame.epoch)).sort((a,b)=>a.epoch-b.epoch)}
-function framesForInterval(radar:RadarNowcast,targetEpoch:number,intervalMinutes:number){const bounds=intervalBounds(targetEpoch,intervalMinutes),padding=2.6*60000;return radarFrames(radar).filter(frame=>frame.epoch>=bounds.start-padding&&frame.epoch<=bounds.end+padding)}
+function framesForInterval(radar:RadarNowcast,targetEpoch:number,intervalMinutes:number){const bounds=intervalBounds(targetEpoch,intervalMinutes),padding=2.6*60000;return radarFrames(radar).filter(frame=>{const begin=Date.parse(frame.intervalStartAt||''),end=Date.parse(frame.intervalEndAt||'');return Number.isFinite(begin)&&Number.isFinite(end)?begin<bounds.end&&end>bounds.start:frame.epoch>=bounds.start-padding&&frame.epoch<=bounds.end+padding})}
 function radarFrameClass(frame:RadarNowcastFrame,radar:RadarNowcast):RadarFrameEvidenceClass{if(frame.dataAvailable===false||frame.hitClass==='missing')return'missing';if(frame.hitClass==='site'||frame.hitClass==='nearby'||frame.hitClass==='dry')return frame.hitClass;const siteRate=Math.max(0,radarFinite(frame.rate)),nearbyRate=Math.max(siteRate,radarFinite(frame.nearbyRate));return siteRate>=siteThreshold(radar)?'site':nearbyRate>=nearbyThreshold(radar)?'nearby':'dry'}
 function median(values:number[]){if(!values.length)return 5;const rows=[...values].sort((a,b)=>a-b),middle=Math.floor(rows.length/2);return rows.length%2?rows[middle]:(rows[middle-1]+rows[middle])/2}
 function sampleMinutes(frames:Array<RadarNowcastFrame&{epoch:number}>){const differences=frames.slice(1).map((frame,index)=>(frame.epoch-frames[index].epoch)/60000).filter(value=>value>=2&&value<=15);return clamp(median(differences),2.5,10)}

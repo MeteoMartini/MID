@@ -1,6 +1,6 @@
 import {lazy,memo,Suspense,useEffect,useState} from 'react';
-import {CloudRain,Layers3,Satellite} from 'lucide-react';
-import PrecipitationTotalsMap,{type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
+import {CloudRain,Layers3} from 'lucide-react';
+import {type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import {readMapWorkspaceView,saveMapWorkspaceView,type MapWorkspaceView} from './mapWorkspaceState';
 import type {RadarNowcast,ThunderstormNowcast} from './weather';
 import './MapWorkspace.css';
@@ -24,18 +24,17 @@ type MapWorkspacePanelProps={
 
 const MAP_VIEWS:{id:MapWorkspaceView;label:string;icon:typeof CloudRain}[]=[
  {id:'radar',label:'Radar · Satellit · Blitz',icon:CloudRain},
- {id:'models',label:'Modellkarten',icon:Layers3},
- {id:'totals',label:'Niederschlagssummen',icon:Satellite}
+ {id:'models',label:'Modellkarten',icon:Layers3}
 ];
 
 function viewLabel(view:MapWorkspaceView){return MAP_VIEWS.find(item=>item.id===view)?.label||'Karten'}
 function LoadingMapPanel(){return <section className="lazy-placeholder inner"><span>Kartenprodukt wird geladen …</span></section>}
 
 export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
- const[view,setView]=useState<MapWorkspaceView>(readMapWorkspaceView);
+ const[view,setView]=useState<MapWorkspaceView>(readMapWorkspaceView),[requestedProductId,setRequestedProductId]=useState<string>();
  const chooseView=(next:MapWorkspaceView)=>{setView(next);saveMapWorkspaceView(next)};
  useEffect(()=>{
-  const handleChange=(event:Event)=>{const next=(event as CustomEvent<{view?:MapWorkspaceView}>).detail?.view;if(next&&MAP_VIEWS.some(item=>item.id===next)){setView(next);saveMapWorkspaceView(next)}};
+  const handleChange=(event:Event)=>{const next=(event as CustomEvent<{view?:MapWorkspaceView|'totals'}>).detail?.view;if(next==='totals'){saveMapWorkspaceView('totals');setRequestedProductId('icon-d2-precipitation-totals');setView('models');return}if(next&&MAP_VIEWS.some(item=>item.id===next)){setView(next);saveMapWorkspaceView(next)}};
   window.addEventListener('mid:map-workspace-view',handleChange);
   return()=>window.removeEventListener('mid:map-workspace-view',handleChange);
  },[]);
@@ -46,8 +45,7 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
   </div>
   <div className="map-workspace-view" aria-live="polite" aria-label={viewLabel(view)}>
    {view==='radar'?<Suspense fallback={<LoadingMapPanel/>}><MemoLazyRadarPanel lat={props.lat} lon={props.lon} timezone={props.timezone} analysis={props.analysis} thunder={props.thunder} isDay={props.isDay} actualLocation={props.actualLocation} focusMode={props.focusMode}/></Suspense>:null}
-   {view==='models'?<Suspense fallback={<LoadingMapPanel/>}><LazyWeatherMapsPanel latitude={props.lat} longitude={props.lon} timezone={props.timezone} locationName={props.locationName}/></Suspense>:null}
-   {view==='totals'?<PrecipitationTotalsMap favorites={props.favorites}/>:null}
+   {view==='models'?<Suspense fallback={<LoadingMapPanel/>}><LazyWeatherMapsPanel latitude={props.lat} longitude={props.lon} timezone={props.timezone} locationName={props.locationName} favorites={props.favorites} requestedProductId={requestedProductId}/></Suspense>:null}
   </div>
  </section>
 }

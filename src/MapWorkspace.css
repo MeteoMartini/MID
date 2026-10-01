@@ -20,3 +20,23 @@ html[data-mid-design='next'] .map-workspace-tabs button.active{background:color-
 @media(prefers-reduced-motion:reduce){
  .map-workspace-tabs button{scroll-behavior:auto;transition:none}
 }
+.map-workspace-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+.weather-maps-primary-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start;padding:12px 0}
+.weather-maps-primary-controls label{display:grid;gap:5px;min-width:0}
+.weather-maps-primary-controls select{width:100%;min-width:0;min-height:44px;font:inherit;font-size:14px;padding:8px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text)}
+.weather-maps-primary-controls small{font-size:11px;line-height:1.4;overflow-wrap:anywhere;color:var(--muted)}
+.model-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.model-map-main,.model-map-settings{min-width:0}.model-map-settings{display:grid;gap:12px}.model-map-settings .map-timeline-controls{width:100%}.model-map-settings .map-timeline-controls label{min-width:0}
+.model-map-geography-credit{font-size:11px;color:var(--muted);line-height:1.4}
+@media(max-width:900px){.model-map-layout{grid-template-columns:minmax(0,1fr)}.weather-maps-primary-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.weather-maps-primary-controls label:last-child{grid-column:1/-1}}
+@media(max-width:480px){.weather-maps-primary-controls{grid-template-columns:minmax(0,1fr);gap:10px}.weather-maps-primary-controls label:last-child{grid-column:auto}
+.map-workspace-tabs button span{white-space:normal}.weather-maps-primary-controls select{font-size:16px}}
+
+html[data-mid-design='next'] .map-workspace-shell .weather-maps-primary-controls{grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:none!important}
+html[data-mid-design='next'] .map-workspace-shell .weather-maps-primary-controls select{min-height:44px!important;font-size:14px!important}
+html[data-mid-design='next'] .map-workspace-shell .model-map-settings .weather-maps-controls{display:flex!important;flex-direction:column!important;align-items:stretch!important}
+html[data-mid-design='next'] .map-workspace-shell .model-map-settings .weather-maps-playback{justify-content:center!important}
+@media(max-width:900px){html[data-mid-design='next'] .map-workspace-shell .weather-maps-primary-controls{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:480px){html[data-mid-design='next'] .map-workspace-shell .weather-maps-primary-controls{grid-template-columns:minmax(0,1fr)!important}html[data-mid-design='next'] .map-workspace-shell .weather-maps-primary-controls select{font-size:16px!important}}
+
+html[data-mid-design='next'] .map-workspace-shell .weather-maps-map-status>span,html[data-mid-design='next'] .map-workspace-shell .weather-maps-controls{background:var(--c8-paper,var(--surface))!important;color:var(--text)!important}
