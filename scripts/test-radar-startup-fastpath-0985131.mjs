@@ -16,3 +16,8 @@ assert.match(worker,/if\(fast\)\{precise=\{rate:validRadarRate\(sample\.center\)
 assert.match(app,/showProbabilityTimeline&&radar&&radarSignalDetected\(radar\)&&<RadarNowcastTimeline/,'Die Radar-Nowcast-Grafik darf weiterhin nur bei erkanntem Radar-/Umfeldsignal erscheinen.');
 
 console.log('Radar-Startpfad v0.9.85.131: Fast-Rasterpfad, Kurzcache und Echo-Gate verifiziert.');
+
+assert.match(app,/const fastPreview=Boolean\(\(radar\.diagnostics as any\)\?\.fast\);if\(fastPreview\)return/,'Eine unvollständige Schnellserie darf nicht als vollständige 5-Minuten-Radarreihe gezeichnet werden.');
+assert.match(app,/5-Minuten-Auswertung wird vervollständigt/,'Die Schnellansicht muss den noch unvollständigen Radarstatus transparent benennen.');
+assert.match(app,/constrainedNetwork\?180:40/,'Die Vollanalyse muss unmittelbar nach dem Fast-Signal nachgeladen werden.');
+assert.match(worker,/offset\+=12\).*missing\.slice\(offset,offset\+12\)/s,'Exakte 5-Minuten-Punktwerte sollen in größeren parallelen Paketen nachgeladen werden.');
