@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.138",
+  "releaseVersion": "0.9.85.139",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -638,6 +638,7 @@
     "scripts/test-pwa-waiting-update-098524.mjs",
     "scripts/test-radar-colortables-09404.mjs",
     "scripts/test-radar-consistency-079802.mjs",
+    "scripts/test-radar-forecast-readability-0985139.mjs",
     "scripts/test-radar-interval-seamless-blend-09120.mjs",
     "scripts/test-radar-meta-buildfix-09122.mjs",
     "scripts/test-radar-model-map-contract-0985137.mjs",
@@ -1537,6 +1538,7 @@
     "scripts/test-pwa-waiting-update-098524.mjs",
     "scripts/test-radar-colortables-09404.mjs",
     "scripts/test-radar-consistency-079802.mjs",
+    "scripts/test-radar-forecast-readability-0985139.mjs",
     "scripts/test-radar-interval-seamless-blend-09120.mjs",
     "scripts/test-radar-meta-buildfix-09122.mjs",
     "scripts/test-radar-model-map-contract-0985137.mjs",
@@ -3207,7 +3209,7 @@
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-health-settings-primary-navigation-0985130.mjs"
   ],
-  "version": "0.9.85.138",
+  "version": "0.9.85.139",
   "updatedAt": "2026-10-01T15:51:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

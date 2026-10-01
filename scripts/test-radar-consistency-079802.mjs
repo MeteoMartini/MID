@@ -32,7 +32,7 @@ for(const token of ['function projectedBounds(',"projectionFrom(where)",'inverse
 const metadataStart=worker.indexOf('async function px250Metadata(request,lat,lon){'),metadataEnd=worker.indexOf('async function px250FileResponse',metadataStart),metadata=worker.slice(metadataStart,metadataEnd);
 const hxIndex=metadata.indexOf("productName:'DWD HX 250-m-Deutschlandkomposit'"),localFallbackIndex=metadata.indexOf("productName:'DWD PX250 Standortradar · Fallback'");
 if(hxIndex<0||localFallbackIndex<0||hxIndex>localFallbackIndex)failures.push('Amtliches HX-Deutschlandkomposit wird nicht vor dem lokalen PX250-Fallback bevorzugt.');
-for(const token of ["motionSource:'multi-frame-grid-correlation'","motionDirectionConvention:'towards'",'observedMotionTimes=',"method:'DWD RV GetFeatureInfo am exakten Standort in allen verfügbaren 5-Minuten-Schritten; GetMap nur für Umfeld, lokale/regional gekoppelte Bewegungsdiagnostik und Wachstum/Zerfall'"])if(!worker.includes(token))failures.push(`Mehrframe-Zugrichtung: ${token}`);
+for(const token of ["motionSource:'multi-frame-grid-correlation'","motionDirectionConvention:'towards'",'observedMotionTimes=',"'Native DWD-RV-Fünfminutenwerte via Bright Sky; DWD GetMap für Umfeld und Bewegungsdiagnostik'",'method:nativeFrames.length?',"'DWD RV GetFeatureInfo am exakten Standort in allen verfügbaren 5-Minuten-Schritten; GetMap nur für Umfeld, lokale/regional gekoppelte Bewegungsdiagnostik und Wachstum/Zerfall'"])if(!worker.includes(token))failures.push(`Mehrframe-Zugrichtung: ${token}`);
 for(const token of ["motionAvailable=showRadar&&Boolean(approachTrack)","showMotion=showMotionOverlay&&motionAvailable",'motionLabel=approachTrack?`Echo-Zugspur ${Math.round(approachTrack.direction)}°','Kein tatsächlich erkanntes Echo auf Standortkurs'])if(!radar.includes(token))failures.push(`Zugrichtungsbeschriftung: ${token}`);
 for(const token of ['secondaryDetail?:string',"detail:`${onsetClock(previous.precipitationOnset)} → ${onsetClock(current.precipitationOnset)}`","secondaryDetail:`${Math.abs(Math.round(onsetDelta))} h ${later?'später':'früher'}`"])if(!changes.includes(token))failures.push(`Modelllauf-Zeitvergleich: ${token}`);
 if(!ensemble.includes('item.secondaryDetail&&<small className="model-change-secondary">'))failures.push('Getrennte zweite Zeile für Zeitverschiebung fehlt.');
@@ -61,3 +61,4 @@ try{
 
 if(failures.length){console.error('Radar-/Modelllauf-Konsistenzprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Radar-/Modelllauf-Konsistenz geprüft: Ankunftsfenster, 5-Minuten-Intensitätshöhen, PX250-Georeferenz, Mehrframe-Zugrichtung und alter/neuer Niederschlagsbeginn sind geschützt.');
+
