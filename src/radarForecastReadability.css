@@ -78,3 +78,6 @@ html .forecast-range-guide[data-range-layout="fourteen-day-detail"] .forecast-ra
 
 /* Keep both captions above their values inside the shared 7d frame. */
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps>.climate-tone-daily{display:inline-grid!important;grid-template-columns:1fr!important;justify-items:center;height:auto!important;width:auto!important}
+
+/* Tablet/mobile rows must not inherit classic per-day column placement. */
+@media(max-width:1100px){html[data-mid-design='next'] .forecast-cockpit.modern-workspace .cockpit-seven-grid>.cockpit-day.mid-forecast-row{grid-column:1!important;grid-row:auto!important}}
