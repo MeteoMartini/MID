@@ -21,6 +21,10 @@ assert.match(app,/Number\.isFinite\(level\.measuredSnowDepthCm\).*Number\.isFini
 assert.match(mountain,/priority:'foreground'/,'Die sichtbare Höhen-Kernprognose muss Vordergrundpriorität besitzen.');
 assert.match(mountain,/priority:'background'/,'Optionale Bergdiagnostik muss im Hintergrund bleiben.');
 assert.match(styles,/\.mountain-hourly-scroll\{[^}]*overflow:auto/,'Das Stundenraster muss intern scrollen statt die Seite zu verbreitern.');
+assert.match(styles,/\.mountain-hourly-grid\{[^}]*width:max-content;[^}]*min-width:0/,'Das Stundenraster darf wenige verfügbare Uhrzeitspalten nicht künstlich auf eine große Mindestbreite strecken.');
+assert.match(styles,/\.mountain-hourly-grid th,\.mountain-hourly-grid td\{[^}]*width:72px/,'Die Stundenwerte brauchen eine kompakte feste Spaltenbreite.');
+assert.match(styles,/\.mountain-hourly-grid thead th:first-child,\.mountain-hourly-grid tbody th\{[^}]*width:104px/,'Die Beschriftungsspalte darf keinen übergroßen Leerraum vor der ersten Uhrzeit erzeugen.');
+assert.doesNotMatch(styles,/\.mountain-hourly-grid\{[^}]*min-width:1180px/,'Die alte pauschale 1180-px-Mindestbreite darf nicht zurückkehren.');
 assert.match(styles,/\.mountain-secondary-grid\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,'Die vereinheitlichte untere Berg-/Winter-Hierarchie fehlt.');
 assert.match(styles,/\.mountain-extra-indicators>summary\{[^}]*min-height:48px/,'Weitere Kennwerte brauchen eine klar bedienbare Disclosure-Hierarchie.');
 assert.match(styles,/\.mountain-avalanche-status>a\{[^}]*border:1px solid var\(--border\)[^}]*background:var\(--s2\)[^}]*color:var\(--text\)/,'Die amtliche Lawinenquelle muss ohne reale Gefahrenstufe neutral bleiben.');

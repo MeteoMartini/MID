@@ -2945,9 +2945,9 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .metrics .sun-moon-card header>.mode-info>button{width:22px;height:22px}
 .metrics .sun-moon-card>strong{display:block;margin-top:6px;font-size:clamp(13px,.95vw,16px);line-height:1.04;white-space:normal}
 .metrics .sun-moon-card>small{display:grid;gap:2px;margin-top:4px}
-.sun-moon-card-value{display:grid;grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);align-items:end;gap:6px;min-width:0}
+.sun-moon-card-value{display:grid;grid-template-columns:minmax(0,.9fr) 1px minmax(0,1.1fr);align-items:end;gap:6px;min-width:0}
 .sun-moon-time-block{display:grid;gap:1px;min-width:0;text-align:left}
-.sun-moon-time-block small{color:var(--muted);font-size:6.4px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;line-height:1.05}
+.sun-moon-time-block small{color:var(--muted);font-size:6.2px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;line-height:1.05;white-space:nowrap}
 .sun-moon-time-block b{display:block;color:var(--text);font:inherit;font-weight:780;font-variant-numeric:tabular-nums;line-height:1}
 .sun-moon-card-divider{display:block;width:1px;height:28px;align-self:center;border-radius:999px;background:color-mix(in srgb,var(--border) 92%,transparent)}
 .sun-moon-detail{display:grid;gap:2px;min-width:0;line-height:1.18}
@@ -2967,7 +2967,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .astronomy-moon-detail,.astronomy-polar-note{display:block;padding:7px 8px;border-radius:9px;background:var(--s2);font-size:9px;line-height:1.35}
 .astronomy-popover-content>small{color:var(--muted);font-size:8px;line-height:1.4}
 @media(max-width:760px){.metrics .sun-moon-card>strong{font-size:14px}.sun-moon-card-value{gap:5px}.sun-moon-card-divider{height:25px}}
-@media(max-width:620px){.metrics .sun-moon-card>strong{margin-top:5px;font-size:13.5px}.sun-moon-time-block small{font-size:6.2px}.sun-moon-phase b{font-size:7.8px}.astronomy-event-list b{font-size:10px}.astronomy-event-list time{font-size:11px}.astronomy-popover-content>small{font-size:9px}}
+@media(max-width:620px){.metrics .sun-moon-card>strong{margin-top:5px;font-size:13.5px}.sun-moon-phase b{font-size:7.8px}.astronomy-event-list b{font-size:10px}.astronomy-event-list time{font-size:11px}.astronomy-popover-content>small{font-size:9px}}
 @media(max-width:420px){.metrics .sun-moon-card>strong{font-size:13px}.sun-moon-card-value{gap:4px}.sun-moon-card-divider{height:23px}.sun-moon-phase{gap:3px}.sun-moon-phase em{display:inline}}
 /* MID v0.8.15.0 – Luftdruck im Tagesdetail und einklappbare Legende */
 .detail-legend-shell{margin:2px 0 8px}
@@ -12067,10 +12067,10 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
 .mountain-hourly-heading>span>strong{font-size:clamp(14px,1.4vw,18px);line-height:1.25}
 .mountain-hourly-heading .mountain-level-picker{width:100%;border-radius:13px}
 .mountain-hourly-scroll{width:100%;max-width:100%;overflow:auto;overscroll-behavior-inline:contain;border:1px solid var(--border);border-radius:13px;background:var(--surface);scrollbar-width:thin}
-.mountain-hourly-grid{width:100%;min-width:1180px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:10px}
-.mountain-hourly-grid th,.mountain-hourly-grid td{width:45px;padding:6px 4px;border-bottom:1px solid color-mix(in srgb,var(--border) 72%,transparent);text-align:center;vertical-align:middle}
+.mountain-hourly-grid{width:max-content;min-width:0;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:10px}
+.mountain-hourly-grid th,.mountain-hourly-grid td{width:72px;padding:6px 4px;border-bottom:1px solid color-mix(in srgb,var(--border) 72%,transparent);text-align:center;vertical-align:middle}
 .mountain-hourly-grid thead th{position:sticky;top:0;z-index:2;background:var(--s2);color:var(--muted);font-size:9px;font-weight:800;font-variant-numeric:tabular-nums}
-.mountain-hourly-grid thead th:first-child,.mountain-hourly-grid tbody th{position:sticky;left:0;z-index:3;width:112px;background:var(--s2);text-align:left}
+.mountain-hourly-grid thead th:first-child,.mountain-hourly-grid tbody th{position:sticky;left:0;z-index:3;width:104px;background:var(--s2);text-align:left}
 .mountain-hourly-grid thead th:first-child{z-index:4}
 .mountain-hourly-grid thead small{display:block;margin-top:3px;color:var(--muted);font-size:8px;font-weight:650}
 .mountain-hourly-grid tbody th{color:var(--text);font-size:9px;font-weight:800}

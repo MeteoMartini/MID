@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.145",
+  "releaseVersion": "0.9.85.146",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -3213,8 +3213,8 @@
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-health-settings-primary-navigation-0985130.mjs"
   ],
-  "version": "0.9.85.145",
-  "updatedAt": "2026-10-01T15:51:00.000Z",
+  "version": "0.9.85.146",
+  "updatedAt": "2026-10-02T17:39:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",
@@ -3344,7 +3344,8 @@
     "vitest.config.ts",
     "docs/implementation/MID_POLLEN_COMPACT_DWD_LEVELS_0.9.85.129.md",
     "docs/implementation/MID_HEALTH_SETTINGS_PRIMARY_NAV_0.9.85.130.md",
-    "docs/implementation/MID_RADAR_UTCI_CONSISTENCY_0.9.85.138.md"
+    "docs/implementation/MID_RADAR_UTCI_CONSISTENCY_0.9.85.138.md",
+    "docs/implementation/MID_RESPONSIVE_SPACING_0.9.85.146.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
