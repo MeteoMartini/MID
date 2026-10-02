@@ -75,3 +75,6 @@ html .forecast-range-guide[data-range-layout="fourteen-day-detail"] .forecast-ra
 html .forecast-range-guide[data-range-layout="fourteen-day-detail"] .forecast-range-bounds{grid-area:bounds!important;font-size:10.5px!important}
 .forecast-parameter-range.parameter-temperature{--param-temperature:#d66b31}
 .forecast-parameter-range.parameter-minimum{--param-temperature:#3684bc}
+
+/* Keep both captions above their values inside the shared 7d frame. */
+html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps>.climate-tone-daily{display:inline-grid!important;grid-template-columns:1fr!important;justify-items:center;height:auto!important;width:auto!important}
