@@ -94,6 +94,12 @@ export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.
 export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MODELS.find(model=>model.id===modelId)??WEATHER_MAP_MODELS[0]}
 export function weatherMapWmsProxy(){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider:'dwd'}).toString()}
 export async function loadWeatherMapMetadata(layer:string,signal?:AbortSignal){return fetchWorkerJson<WeatherMapMetadata>('weather-map-metadata',{layer},{purpose:'radar',signal,timeoutMs:12000,maxAgeMs:5*60000,staleIfErrorMs:30*60000,cacheKey:layer})}
+// A rolling accumulation cannot exist before its full window within the selected run.
+export function weatherMapAvailableTimes(product:WeatherMapProduct,metadata:WeatherMapMetadata|null){
+ const times=metadata?.times??[],reference=Date.parse(metadata?.referenceTimes?.at(-1)??''),window=Number(product.id.match(/rain-(\d+)h/)?.[1]??0);
+ if(!Number.isFinite(reference))return times;
+ return times.filter(time=>{const epoch=Date.parse(time);return Number.isFinite(epoch)&&epoch>=reference+window*3600000});
+}
 export function preferredWeatherMapTimeIndex(times:string[],reference=Date.now()){if(!times.length)return 0;const parsed=times.map(value=>Date.parse(value)),firstCurrent=parsed.findIndex(value=>Number.isFinite(value)&&value>=reference-15*60000);if(firstCurrent>=0)return firstCurrent;let best=0,distance=Infinity;parsed.forEach((value,index)=>{const next=Math.abs(value-reference);if(Number.isFinite(next)&&next<distance){distance=next;best=index}});return best}
 
 export async function loadWeatherMapGrid(modelId:WeatherMapModelId,lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<WeatherMapGridData>('weather-map-grid',{model:modelId,lat,lon},{purpose:'radar',signal,timeoutMs:24000,maxAgeMs:10*60000,staleIfErrorMs:30*60000,cacheKey:`weather-map-grid:${modelId}:${lat.toFixed(2)}:${lon.toFixed(2)}`})}

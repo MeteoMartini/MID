@@ -1,3 +1,12 @@
+## MID v0.9.85.144 · 2026-10-02 · Wochenunsicherheit, Trend und Karten
+
+- Tatsächliche stündliche P25/P50/P75-Mitgliederquantile in bestehendem Ensemblebundle; eigenständige Familien-/Frischegewichtung, keine Pseudomitglieder oder Extrapolation, Cachegeneration v18.
+- Wetterabschnittsauswahl erhält Niederschlagsbeginn trotz reserviertem Nacht-/Hazardsatz; ausführbare Mittwoch-/Donnerstag-Fixture.
+- GRIB-RELHUM-Supersättigung getrennt von CLCT-Grenzen; echter GRIB-Regressionsnachweis und 48 Live-Kartenfelder erfolgreich.
+- WMS-Terminwahl berücksichtigt das vollständige Akkumulationsfenster des gewählten Modelllaufs.
+- Replit-UI-Handoff für kompakte numerische P25–P75-Grenzen; Integration SHA-verifiziert vor Release.
+- 899 CI-Regressionen; zusätzliche responsive Wochenband-/Balkenprüfung, aktuelle DWD-Katalog-/PNG-Verifikation.
+
 ## MID v0.9.85.143 · 2026-10-02 · MID-C11 kompakte Unsicherheit
 
 - Basis .142 4282232533fc70545d9b64676a9de1b4839f1b2e. Kein überlappender Produkt-PR.

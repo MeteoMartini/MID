@@ -4,10 +4,24 @@ from datetime import datetime,timezone
 from pathlib import Path
 import numpy as np
 from build_observed_precipitation import decode_rw,sum_complete,sample_indices
-from build_model_map_fields import theta_e,contours
+from build_model_map_fields import theta_e,contours,read_field
+from eccodes import codes_grib_new_from_samples,codes_set,codes_set_values,codes_get_message,codes_release
 from prepare_ruc_pages import prepare
 
 class MapProductsTest(unittest.TestCase):
+    def test_native_relative_humidity_supersaturation_not_cloud_fraction(self):
+        def grib(param,level_type,level,value):
+            g=codes_grib_new_from_samples('regular_ll_sfc_grib2')
+            try:
+                for key,val in [('Ni',3),('Nj',3),('latitudeOfFirstGridPointInDegrees',55),('latitudeOfLastGridPointInDegrees',47),('longitudeOfFirstGridPointInDegrees',6),('longitudeOfLastGridPointInDegrees',14),('iDirectionIncrementInDegrees',4),('jDirectionIncrementInDegrees',4),('dataDate',20261002),('dataTime',900),('forecastTime',1),('typeOfLevel',level_type),('level',level),('paramId',param)]:codes_set(g,key,val)
+                codes_set_values(g,np.full(9,value))
+                return bz2.compress(codes_get_message(g))
+            finally:codes_release(g)
+        humidity=grib(157,'isobaricInhPa',850,100.2)
+        _,_,values,_=read_field(humidity,'2026100209',1,'relhum')
+        self.assertTrue(np.all(values>100));self.assertTrue(np.isfinite(theta_e(np.full((3,3),280),values)).all())
+        with self.assertRaises(ValueError):read_field(grib(164,'surface',0,100.2),'2026100209',1,'clct')
+        with self.assertRaises(ValueError):read_field(grib(157,'isobaricInhPa',850,9999),'2026100209',1,'relhum')
     def test_rw_flags_units_timestamp(self):
         values=np.zeros(900*900,dtype='<u2');values[:5]=[12,0x2000,0x4000,0x8000,0x1000|12]
         payload=bz2.compress(b'RW020250100001026BY1620019VS 3SW 2.13PR E-01INT 60GP 900x 900\x03'+values.tobytes())
