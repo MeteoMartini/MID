@@ -1,5 +1,5 @@
-# MID v0.9.85.145
+# MID v0.9.85.146
 
-- Kleine Niederschlagsmengen wie <0,1 mm bleiben in den 7-/14-Tage-Ansichten vollständig lesbar.
-- Dezente Spannengrenzen erscheinen ohne P25/P75-Kürzel vor den Zahlen; Einheiten und echte Ensemble-Mediane bleiben erhalten.
-- 7 Tage verbindet Tmin/Tmax in einer kompakten gemeinsamen Temperaturdarstellung; 14 Tage betont langfristige Ensemble-Spannen und Trends.
+- „Untergang“ bleibt in der Sonne-/Mond-Kachel auch auf schmalen Displays vollständig in einer Zeile.
+- Die Bergwetter-Stundentabelle passt ihre Breite an die tatsächlich verfügbaren Uhrzeitspalten an; große Leerflächen zwischen Feldnamen und erster Uhrzeit entfallen.
+- Auf Smartphones werden Beschriftungs- und Stundenwerte kompakter angeordnet, ohne Touch- oder Scrollverhalten zu verändern.
