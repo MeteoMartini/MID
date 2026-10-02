@@ -14,13 +14,13 @@ type ParameterRange={key:string;label:string;low:number;high:number;q25:number;q
 export function adaptiveForecastRanges(day:EnsembleDay|undefined):ParameterRange[]{
  if(!day||!(day.memberCount>=2||day.modelCount>=2))return [];
  const entries:ParameterRange[]=[
-  {key:'temperature',label:'Tmax',low:day.maxLow,high:day.maxHigh,q25:day.maxQ25,q75:day.maxQ75,point:day.maxMedian,unit:'°'},
-  {key:'minimum',label:'Tmin',low:day.minLow,high:day.minHigh,q25:day.minQ25,q75:day.minQ75,point:day.minMedian,unit:'°'},
+  {key:'temperature',label:'Tmax',low:day.maxLow,high:day.maxHigh,q25:day.maxQ25,q75:day.maxQ75,point:day.maxMedian,unit:'°C'},
+  {key:'minimum',label:'Tmin',low:day.minLow,high:day.minHigh,q25:day.minQ25,q75:day.minQ75,point:day.minMedian,unit:'°C'},
   {key:'rain',label:'Regen',low:day.precipitationLow,high:day.precipitationHigh,q25:day.precipitationQ25,q75:day.precipitationQ75,point:day.precipitationMedian,unit:'mm'},
   {key:'wind',label:'Maximaler Mittelwind',low:day.windLow,high:day.windHigh,q25:day.windQ25,q75:day.windQ75,point:day.windMedian,unit:'kt'},
   {key:'gust',label:'Böen',low:day.gustLow,high:day.gustHigh,q25:day.gustQ25,q75:day.gustQ75,point:day.gustMedian,unit:'kt'},
  ];
- return entries.filter(r=>[r.low,r.high,r.q25,r.q75].every(Number.isFinite)&&r.low<=r.q25&&r.q25<=r.q75&&r.q75<=r.high&&(r.unit==='°'||r.low>=0));
+ return entries.filter(r=>[r.low,r.high,r.q25,r.q75].every(Number.isFinite)&&r.low<=r.q25&&r.q25<=r.q75&&r.q75<=r.high&&(r.unit==='°C'||r.low>=0));
 }
 
 export function ForecastRangeGuide({day,days,compact=false,unit='kn'}:{day?:EnsembleDay;days:EnsembleDay[];temperature:number;temperatures?:number[];compact?:boolean;unit?:WindUnit}){
