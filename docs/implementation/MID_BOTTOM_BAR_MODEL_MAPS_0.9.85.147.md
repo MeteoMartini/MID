@@ -14,8 +14,8 @@
 
 ## Modellkarten
 
-- Die bestehenden DWD-WMS-/Rasterkarten erhalten eine klare Produktidentität mit Produktfamilie, Modell, Datenquelle und Analyse-/Vorhersagestatus.
-- Modell, Kartenprodukt und Kartenbasis bleiben dieselben fachlichen Auswahlen; die Produktauswahl wird visuell priorisiert.
+- Die bestehenden DWD-WMS-/Rasterkarten erhalten mit den bereits vorhandenen Kartenkomponenten eine klare Produktidentität aus Produktfamilie, Modell, Datenquelle und Analyse-/Vorhersagestatus.
+- Kartenprodukt steht in der Bedienreihenfolge vor Modell und Kartenbasis; die bereits etablierten Map-first-Flächen und Source-Badges werden wiederverwendet, statt eine zusätzliche CSS-Schicht aufzubauen.
 - Karte, Zeitachse, INIT/Gültig, Druckfläche/Höhe, Deckkraft und Quelleninformationen bleiben unverändert funktional.
 - Die neue Gestaltung ist responsiv für Smartphone, Tablet und Desktop und verändert keine meteorologischen Parameter, Quellen, Schwellen oder Zeitschritte.
 - Niederschlagssummenkarten und native Direktkarten bleiben fachlich getrennte Darstellungen; die ältere Kartenfamilie wird lediglich gestalterisch an deren Qualitätsniveau angenähert.
@@ -23,4 +23,4 @@
 ## Regression
 
 - Bestehende Bottom-Bar-Regression schützt nun ausdrücklich gegen die Rückkehr eines scrollabhängigen Hidden-State sowie gegen compositor-sensitive Transform-/Blur-Regeln.
-- Bestehende Wetterkarten-Regression schützt Produktkopf, priorisierte Produktauswahl, Classic-Layout und den neuen späten CSS-Polish-Layer.
+- Bestehende Wetterkarten-Regression schützt Produktkopf, Quellenstatus und priorisierte Produktauswahl. Das CSS-Budget bleibt unverändert; es wurde bewusst kein zusätzlicher Karten-Stylesheet eingeführt.
