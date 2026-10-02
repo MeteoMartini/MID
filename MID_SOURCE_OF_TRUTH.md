@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.145 · MID-C12 Unterscheidbare Prognoseansichten
+
+Basis main = mid-stable = 3951e8ce58239634ed48b4f13e5a58ee23c73c91. Spurenmengen vollständig lesbar, sichtbare Grenzwerte ohne P25/P75-Präfix, kombinierte 7d-Temperaturdarstellung und eigenständige 14d-Ensemble-Hierarchie. Details: docs/implementation/MID_FORECAST_VIEWS_0.9.85.145.md.
+
 ## v0.9.85.144 · MID-C12 Wochenunsicherheit, Trend und Karten
 
 Basis main = mid-stable = 8e511937458ce06808f0487ce1c61441e87fe360. Tatsächliche stündliche Mitglieder aus den bestehenden Ensembleabrufen, keine Tagesinterpolation. Niederschlagsbeginn am Tag bleibt im Trendtext. Direkte DWD-Kartenaufbereitung unterscheidet relative Feuchte und Bedeckungsgrad. Details: docs/implementation/MID_WEEKLY_UNCERTAINTY_0.9.85.144.md.

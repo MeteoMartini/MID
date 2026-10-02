@@ -1,3 +1,7 @@
+## v0.9.85.145 · MID-C12 Unterscheidbare Prognoseansichten
+
+Basis .144, main = mid-stable = 3951e8ce58239634ed48b4f13e5a58ee23c73c91. Nutzerkorrektur: Spurenmengen ohne Abschneiden, keine Quantil-Kürzel vor sichtbaren Werten, 7d mit gemeinsamem Tmin/Tmax, 14d mit eigener Ensemble-Hierarchie. Meteorologische Werte und Median-/Quantilverträge bleiben erhalten. UI-Handoff und Browser-Verifikation werden vor Integration dokumentiert.
+
 ## MID v0.9.85.144 · 2026-10-02 · Wochenunsicherheit, Trend und Karten
 
 - Tatsächliche stündliche P25/P50/P75-Mitgliederquantile in bestehendem Ensemblebundle; eigenständige Familien-/Frischegewichtung, keine Pseudomitglieder oder Extrapolation, Cachegeneration v18.
