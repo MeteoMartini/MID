@@ -39,7 +39,7 @@ try {
   assert.match(await page.locator('#active-guide .parameter-temperature').getAttribute('aria-label'),/Median 16/);
   const compactText=async selector=>(await page.locator(selector).textContent()).replaceAll(' ','').replaceAll(String.fromCharCode(10),'');
   assert.equal(await compactText('#active-guide .parameter-temperature .forecast-range-bounds'),'P2514°CP7518°C');
-  assert.equal(await compactText('#active-guide .parameter-rain .forecast-range-bounds'),'P250mmP752mm');
+  assert.equal(await compactText('#active-guide .parameter-rain .forecast-range-bounds'),'P250mmP752,0mm');
   assert.equal(await compactText('#active-guide .parameter-gust .forecast-range-bounds'),'P2526km/hP7537km/h');
   assert.equal(await page.locator('#missing-check .parameter-rain').count(),0);
   assert.equal(await page.locator('#missing-check .parameter-gust').count(),0);
