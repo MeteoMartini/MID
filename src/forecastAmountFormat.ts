@@ -1,0 +1,1 @@
+export {compactPrecipitationAmount} from './precipitation';

@@ -57,3 +57,8 @@ with tempfile.TemporaryDirectory() as td:
  next_result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=4)
  assert next_result['precipitationTotals']['key']!=previous_key, 'independent ICON cycle must receive a new immutable URL even with identical RUC run'
  print('RUC GitHub Pages free-profile budget + science-prioritized projection contract OK')
+
+import unittest
+from test_native_map_products import MapProductsTest
+suite=unittest.defaultTestLoader.loadTestsFromTestCase(MapProductsTest)
+if not unittest.TextTestRunner().run(suite).wasSuccessful():raise SystemExit(1)
