@@ -23,11 +23,8 @@ for(const token of [
   "label:'Karten'",
   "const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps']",
   'candidates:MODERN_MAP_MODULES',
-  'bottomBarHidden',
-  "useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])",
-  'is-scroll-hidden',
-  'data-scroll-hidden',
-  "if(bottomBarHidden)setBottomBarHidden(false)",
+  'data-scroll-hidden="false"',
+  "data-fixed={bottomBarBehavior==='fixed'?'true':'false'}",
   'className="modern-more-quick-actions"',
   "onClick={()=>openSettings('view')}",
   '<strong>Einstellungen</strong>',
@@ -38,6 +35,7 @@ assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss wieder als
 assert.ok(app.includes("type BottomBarBehavior='fixed'"),'Bottom-Bar muss als dauerhaft fixer Laufzeitvertrag typisiert sein.');
 assert.ok(app.includes("localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)")&&app.includes("return'fixed'"),'Bottom-Bar muss den fixierten Zustand erzwingen und den Alt-Schlüssel bereinigen.');
 assert.ok(!app.includes('setBottomBarBehavior')&&!app.includes('bottom-bar-display-settings'),'Obsoleter Bottom-Bar-Einstellungspunkt darf nicht zurückkehren.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Scrollabhängiger Floating-Bar-State darf nicht zurückkehren.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes("window.addEventListener('scroll',onScroll,{passive:true})"),'Legacy-Auto-Hide darf nicht zurückkehren.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Beta-Bezeichnung darf nicht mehr gerendert werden');
 assert.ok(!app.includes('navigation-concept-settings'),'Alter Bedienkonzept-Einstellungsblock muss entfernt sein');
