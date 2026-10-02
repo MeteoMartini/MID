@@ -51,7 +51,7 @@ html[data-mid-design='next'] .mid-forecast-row-detail{
 /* 7 Tage: ruhige kompakte Tageszeile, Detail direkt darunter. */
 html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
  display:grid!important;
- grid-template-columns:94px 62px minmax(130px,.85fr) 110px minmax(180px,1.35fr) 104px minmax(160px,1fr) 132px 96px!important;
+ grid-template-columns:90px 62px minmax(130px,.85fr) 114px minmax(180px,1.35fr) 104px minmax(160px,1fr) 132px 96px!important;
  grid-template-areas:
   "date icon regime temps sky rain wind pop cue"
   "date icon regime track track rain wind pop cue"!important;
@@ -161,7 +161,7 @@ html[data-mid-design='next'] .cockpit-fourteen-detail-skybar>small{
 /* Tablet: Informationsgruppen bewusst auf zwei Zeilen verteilen. */
 @media(max-width:1100px){
  html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
-  grid-template-columns:74px 64px minmax(100px,1fr) 86px minmax(120px,1.2fr) 78px 106px!important;
+  grid-template-columns:74px 64px minmax(100px,1fr) 114px minmax(120px,1.2fr) 78px 106px!important;
   grid-template-areas:
    "date icon regime temps sky rain cue"
    "date icon track track track wind pop"!important;

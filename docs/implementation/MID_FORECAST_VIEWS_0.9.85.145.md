@@ -28,6 +28,10 @@ In den vorhandenen CI-Browserpfad eingebunden, ohne Regressionskatalog oder sein
 
 Zwischenstand 9e3176f wurde wegen realer Tablet-Beschneidung, CSS-Budgetüberschreitung und zwei stale Klassenpins nicht promoted. Kein korrekter Grenzwert oder Test abgeschwächt.
 
+## Zusätzliche Source-Prüfung
+
+Source-Gate 37032094709 führte den vollständigen Browservertrag aus und blockierte korrekt: bei 1024 px wurde ein Temperaturfeld in der 7d-Tageskarte abgeschnitten. Im vertrauenswürdigen Integrationsstand reserviert die Tablet-Spalte deshalb 114 statt 86 px für das gemeinsame Wertepaar. Die Desktop-Temperaturspalte erhält ebenfalls 114 px; ihre zusätzliche Breite wird innerhalb der bestehenden Gesamtsumme aus der Datumsspalte übertragen. Keine Werte, Einheiten, Mediane oder Budget-/Clipping-Grenzen geändert. Die Browserprüfung meldet bei Fehlern zusätzlich Ansicht/Theme/Windeinheit und konkretes Feld; alle 96 Fälle bleiben verpflichtend. Erneute Source-Freigabe erforderlich.
+
 ## Veröffentlichung
 
 Vertrauenswürdiger Integrationsbranch codex/v0.9.85.145-distinct-forecast-layouts, PR #229. Ausschließlich Source-PR-Gate → kontrollierter Release Bot → serverseitiges Releasepaket → Installer/Worker/Pages → geprüfte Stable-Promotion. Kein lokaler ZIP-/dist-Transport und keine direkte Produktions-/Stable-Promotion.
