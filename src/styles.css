@@ -2947,7 +2947,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .metrics .sun-moon-card>small{display:grid;gap:2px;margin-top:4px}
 .sun-moon-card-value{display:grid;grid-template-columns:minmax(0,.9fr) 1px minmax(0,1.1fr);align-items:end;gap:6px;min-width:0}
 .sun-moon-time-block{display:grid;gap:1px;min-width:0;text-align:left}
-.sun-moon-time-block small{color:var(--muted);font-size:clamp(5.8px,1.65vw,6.4px);font-weight:850;letter-spacing:.07em;text-transform:uppercase;line-height:1.05;white-space:nowrap;overflow-wrap:normal;word-break:keep-all}
+.sun-moon-time-block small{color:var(--muted);font-size:clamp(5.8px,1.65vw,6.4px);font-weight:850;letter-spacing:.07em;text-transform:uppercase;line-height:1.05;white-space:nowrap}
 .sun-moon-time-block b{display:block;color:var(--text);font:inherit;font-weight:780;font-variant-numeric:tabular-nums;line-height:1}
 .sun-moon-card-divider{display:block;width:1px;height:28px;align-self:center;border-radius:999px;background:color-mix(in srgb,var(--border) 92%,transparent)}
 .sun-moon-detail{display:grid;gap:2px;min-width:0;line-height:1.18}
@@ -12130,8 +12130,6 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
  .mountain-snowline-content{padding-inline:9px}
 }
 @media(max-width:620px){
- .mountain-hourly-grid th,.mountain-hourly-grid td{width:68px;padding-inline:3px}
- .mountain-hourly-grid thead th:first-child,.mountain-hourly-grid tbody th{width:94px}
  .mountain-skeleton-hourly{grid-template-columns:repeat(4,minmax(0,1fr))}
  .mountain-skeleton-hour:nth-child(n+5){display:none}
  .mountain-skeleton-days{grid-template-columns:repeat(4,minmax(0,1fr))}
