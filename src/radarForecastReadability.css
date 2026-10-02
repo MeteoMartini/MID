@@ -54,3 +54,10 @@ html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total{padding
 .forecast-range-guide.adaptive .forecast-range-track{height:8px;margin:1px 4px}
 .forecast-range-guide.adaptive .forecast-range-track>i{height:4px}
 .forecast-range-guide.adaptive .forecast-range-track>.point{height:10px}
+/* Slim parameter rows: values remain accessible without repeating card numbers. */
+html .forecast-range-guide.adaptive.slim{gap:3px!important;margin:4px 0!important;padding:5px 0!important;font-size:11px!important;line-height:1.2!important}
+html .forecast-range-guide.slim .forecast-parameter-range{display:grid!important;grid-template-columns:42px minmax(0,1fr)!important;align-items:center!important;gap:6px!important;min-height:15px!important}
+html .forecast-range-guide.slim .forecast-range-label{font-size:11px!important;color:var(--muted)!important;white-space:nowrap!important}
+html .forecast-range-guide.slim .forecast-range-track{height:8px!important;margin:0 2px!important;min-width:0!important}
+.forecast-parameter-range.parameter-temperature{--param-temperature:#d66b31}
+.forecast-parameter-range.parameter-minimum{--param-temperature:#3684bc}

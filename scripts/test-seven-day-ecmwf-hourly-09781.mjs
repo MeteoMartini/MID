@@ -12,7 +12,7 @@ for(const token of [
  'amount:Math.max(parts.total,direct,components)',
  'halfDayTicks=Array.from({length:visible.length*2+1}',
  "{hour%24===12?'12':'00'}",
- 'seven-day-curve-temperature-halo',
+ 'seven-day-temperature-quantiles',
  "stopColor={ecmwfTemperatureColors?ecmwfTemperatureColor(point.value):'var(--param-temperature)'}",
  'ecmwfTemperatureColors=true',
  'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
@@ -33,5 +33,5 @@ assert.equal(pkg.scripts?.['test:seven-day-ecmwf-hourly'],`node ${test}`,'Packag
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'7-Tage-ECMWF-Stundenkurve fehlt in Baseline.');
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('<small>Min</small>')&&!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('<small>Max</small>'),'7-Tage-Cockpit zeigt keine zusätzlichen Min/Max-Labels.');
 const curve=cockpit.slice(cockpit.indexOf('function SevenDayCurveOverview('),cockpit.indexOf('\nfunction cockpitDaySkyBarSegments('));
-assert.ok(!curve.includes('seven-day-curve-temperature-band')&&!curve.includes('P25–P75'),'7-Tage-Kurve darf kein P25–P75-Band mehr enthalten.');
+assert.ok(!curve.includes('seven-day-curve-temperature-band')&&curve.includes('row.epoch===hour.epoch')&&curve.includes('quantilePaths.map')&&curve.includes('P25–P75'),'7-Tage-Kurve verwendet nur echte zeitgleiche stündliche P25–P75-Quantile, keine erfundenen Tagesbänder.');
 console.log(`MID v${pkg.version}: 7-Tage-Kurve mit Stundenachse, themefester Nachtmarkierung, Wetterstreifen, stündlichem Niederschlag und lesbaren ECMWF-Farben geschützt.`);

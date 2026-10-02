@@ -1,3 +1,10 @@
+## MID v0.9.85.143 · 2026-10-02 · MID-C11 kompakte Unsicherheit
+
+- Basis .142 4282232533fc70545d9b64676a9de1b4839f1b2e. Kein überlappender Produkt-PR.
+- Kurze Tmax/Tmin/Regen/Böen-Bänder, echte gewichtete P50-Marker, keine Mittelwindzeile. Fehlende P50 nicht ersetzt.
+- Echte stündliche P25–P75-Polygone nur im vorhandenen Warnungsensemble-Horizont. Kein künstlicher Halo und keine Tagesquantil-Interpolation. Historische Halo-Tokenprüfung absichtlich migriert.
+- Umsetzung und Quellen: docs/implementation/MID_COMPACT_UNCERTAINTY_0.9.85.143.md.
+
 ## MID v0.9.85.142 · 2026-10-02 · MID-C11 Verlustfreies Kartenbudget
 
 - Basis: vollständig veröffentlichte .141, main = mid-stable = ff2e310d107a745468d788fcec678693d507a68d.

@@ -1,3 +1,9 @@
+# MID v0.9.85.143
+
+- Kurzfrist-Hinweis entfernt; Unsicherheitsbänder deutlich kompakter.
+- Echte Ensemble-Mediane statt gemischter Einzelwert-/Mittelwertmarker; Böen statt Mittelwind, Tmax/Tmin getrennt gefärbt.
+- Stündliches Temperatur-P25–P75-Band nur mit verfügbaren echten Quantilen; künstlicher Halo entfällt. Niederschlagsnullwert als 0.
+
 # MID v0.9.85.142
 
 - Vollständige neue ICON-D2-Kartenraster verlustfrei verdichtet: deutlich weniger Speicher und Downloadvolumen bei unveränderten Werten und unveränderter Auflösung.
