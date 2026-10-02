@@ -51,7 +51,7 @@ html[data-mid-design='next'] .mid-forecast-row-detail{
 /* 7 Tage: ruhige kompakte Tageszeile, Detail direkt darunter. */
 html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
  display:grid!important;
- grid-template-columns:94px 62px minmax(130px,.85fr) 110px minmax(180px,1.35fr) 104px minmax(160px,1fr) 132px 96px!important;
+ grid-template-columns:90px 62px minmax(130px,.85fr) 114px minmax(180px,1.35fr) 104px minmax(160px,1fr) 132px 96px!important;
  grid-template-areas:
   "date icon regime temps sky rain wind pop cue"
   "date icon regime track track rain wind pop cue"!important;
@@ -65,6 +65,12 @@ html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-date{gri
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-weather-pair{grid-area:icon!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-regime{grid-area:regime!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps{grid-area:temps!important}
+html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps{
+ width:max-content;
+ padding:3px;
+ border:1px solid var(--c8-line);
+ border-radius:999px;
+}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-skybar{grid-area:sky!important;width:100%!important;min-width:0!important;margin:0!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temp-track{grid-area:track!important;width:100%!important;min-width:0!important;margin:0!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-rain{grid-area:rain!important;justify-self:start!important}
@@ -155,7 +161,7 @@ html[data-mid-design='next'] .cockpit-fourteen-detail-skybar>small{
 /* Tablet: Informationsgruppen bewusst auf zwei Zeilen verteilen. */
 @media(max-width:1100px){
  html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
-  grid-template-columns:86px 58px minmax(120px,1fr) 104px minmax(150px,1.2fr) 90px 132px!important;
+  grid-template-columns:74px 64px minmax(100px,1fr) 114px minmax(120px,1.2fr) 78px 106px!important;
   grid-template-areas:
    "date icon regime temps sky rain cue"
    "date icon track track track wind pop"!important;
@@ -187,8 +193,8 @@ html[data-mid-design='next'] .cockpit-fourteen-detail-skybar>small{
    "date icon regime temps"
    "date icon sky sky"
    "date icon track track"
-   "rain rain wind cue"
-   "pop pop pop pop"!important;
+   "rain rain wind wind"
+   "pop pop pop cue"!important;
   min-height:0!important;
   padding:9px 10px!important;
   gap:6px 8px!important;

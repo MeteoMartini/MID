@@ -32,4 +32,8 @@ try{
  const panel=read('src/WeatherMapsPanel.tsx'),prepare=read('tools/ruc/prepare_ruc_pages.py'),observedBuilder=read('tools/ruc/build_observed_precipitation.py');assert.ok(panel.includes('<NativeModelMap')&&panel.includes("'observed-totals'"));assert.ok(prepare.includes("'modelFields':model_fields")&&prepare.includes("'observedPrecipitation':observed"));assert.ok(observedBuilder.includes('stamp.minute==50')&&observedBuilder.includes('values[~valid]=-1'));assert.ok(read('src/precipitationTotalsExport.ts').includes('totalsStartAt(data,frame)'));
  console.log('MID141: independent parameter ranges, zero/trace amounts, non-overlapping observations, missing-cell semantics, native raster/time integrity and SHA256 verified.');
 }finally{rmSync(temp,{recursive:true,force:true})}
-if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){await import('./verify-native-model-browser-0985141.mjs');await import('./verify-compact-ensemble-browser-0985143.mjs');}
+if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){
+ await import('./verify-native-model-browser-0985141.mjs');
+ await import('./verify-compact-ensemble-browser-0985143.mjs');
+ await import('./verify-forecast-views-browser-0985145.mjs');
+}
