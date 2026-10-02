@@ -24,7 +24,7 @@ export function adaptiveForecastRanges(day:EnsembleDay|undefined):ParameterRange
 }
 
 export function ForecastRangeGuide({day,days,compact=false,unit='kn'}:{day?:EnsembleDay;days:EnsembleDay[];temperature:number;temperatures?:number[];compact?:boolean;unit?:WindUnit}){
- const ranges=adaptiveForecastRanges(day).filter(r=>r.key!=='wind'&&(!compact||r.key!=='minimum'));
+ const ranges=adaptiveForecastRanges(day).filter(r=>r.key!=='wind');
  if(!ranges.length)return null;
  const reference=days.flatMap(adaptiveForecastRanges);
  return <span className={`forecast-range-guide adaptive slim${compact?' compact':''}`} aria-label="Parameterbezogene Modellspannen P10–P90">
