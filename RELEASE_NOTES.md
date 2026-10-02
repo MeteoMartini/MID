@@ -1,3 +1,11 @@
+# MID v0.9.85.141
+
+- Wetterkarten: gefallener Niederschlag aus DWD RADOLAN RW für vollständige 1-/6-/12-/24-/48-h-Fenster; fehlende Messzellen bleiben grau und unbekannt.
+- Direkte ICON-D2-Raster für Temperatur, Wind, Böen, Bewölkung, Druck, ThetaE, Wettercode und einstündlichen Niederschlag: bestätigte Modelltermine, Favoritenwerte, PNG-/SVG-Export.
+- Parameterweise P10–P90-/P25–P75-Bänder in 7-/14-Tage-Prognosen, mit vergleichbaren Skalen und ausgewählter Windeinheit. Keine erfundenen Stunden- oder Parameterintervalle.
+- Niederschlagsnull kompakt als 0; kleine positive Mengen bleiben als Spurenwerte erkennbar.
+- Drei nicht mehr im DWD-WMS-Katalog verfügbare Wettercodekarten werden nicht mehr angeboten. Andere regionale/globale WMS-Karten bleiben erhalten.
+
 # MID v0.9.85.140
 
 - Niederschlagsphasen kompakt mit Zeitspannen, Radar und Modellfortsetzung klar gekennzeichnet.

@@ -1,14 +1,14 @@
 import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClient';
 
-export type WeatherMapModelId='icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix';
+export type WeatherMapModelId='icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix'|'observations';
 export type WeatherMapCategory='surface'|'upper-air'|'ensemble'|'significant';
 export type WeatherMapLevelKind='pressure'|'height';
-export type WeatherMapSource='wms'|'grid'|'totals';
+export type WeatherMapSource='wms'|'grid'|'totals'|'observed-totals'|'native';
 export type WeatherMapGridKind='pressure-thetae'|'pressure-sigwx'|'pressure-precip';
 
 export type WeatherMapProduct={
  id:string;modelId:WeatherMapModelId;category:WeatherMapCategory;label:string;detail:string;layer:string;
- source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
+ nativeKind?:import('./nativeModelFields').NativeFieldKind;source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
 };
 export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];provider?:string;checkedAt?:string;error?:string};
 export type WeatherMapGridContour={level:number;paths:[number,number][][]};
@@ -18,6 +18,7 @@ export type WeatherPhaseGridFrame={time:string;temperature2m:number[];relativeHu
 export type WeatherPhaseGridData={modelId:string;modelLabel:string;targetTime:string;referenceTime?:string;lats:number[];lons:number[];frame:WeatherPhaseGridFrame;provider?:string;phaseSource?:string;checkedAt?:string;gridSpacingKm?:number;coverage?:string;stale?:boolean;fallbackReason?:string;rapidUpdate?:boolean;native15?:boolean;updateIntervalSeconds?:number;modelAgeHours?:number;selectionScore?:number;candidateModels?:Array<{id:string;label:string;rapidUpdate?:boolean;resolutionKm?:number;score?:number}>;requestBudget?:{locations:number;batches:number;variables:number};error?:string};
 
 export const WEATHER_MAP_MODELS:{id:WeatherMapModelId;label:string;detail:string}[]=[
+ {id:'observations',label:'DWD RADOLAN · Messanalyse',detail:'Bereits gefallener Niederschlag · stationsangeeichte Radaranalyse'},
  {id:'icon-d2',label:'DWD ICON-D2',detail:'Deutschland · ca. 2 km · Kurzfrist bis rund +48 h'},
  {id:'icon-eu',label:'DWD ICON-EU',detail:'Europa · 0,0625° · Modellläufe 00/06/12/18 UTC'},
  {id:'icon',label:'DWD ICON Global',detail:'Global · Boden- und Druckflächen'},
@@ -31,10 +32,13 @@ const HEIGHT_LEVELS=[2,50,100,150,200,250,300,350,400,450,500];
 
 export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
  {id:'icon-d2-precipitation-totals',modelId:'icon-d2',category:'surface',label:'Niederschlagssummen · 6 / 12 / 24 / 48 h',detail:'Deutschland · Gesamtniederschlag ab demselben Modelllaufstart · Favoriten und PNG-/SVG-Download',layer:'mid:icon-d2:tot-prec',source:'totals',timeDependent:true,forecast:true,defaultZoom:5.25,opacity:85},
- // ICON-D2 – aktueller Rasterpfad aus DWD ICON-D2 via Open-Meteo; kein nicht verfügbarer DWD-WMS-Layer
- {id:'icon-d2-pressure-thetae',modelId:'icon-d2',category:'upper-air',label:'Bodendruck + ThetaE 850 hPa',detail:'MSL-Druckkonturen mit äquivalentpotenzieller Temperatur in 850 hPa · ICON-D2',layer:'mid:grid:icon-d2:pressure-thetae',source:'grid',gridKind:'pressure-thetae',timeDependent:true,forecast:true,defaultZoom:7,opacity:82,disclaimer:'DWD ICON-D2-Modellfelder über den aktuellen Open-Meteo-DWD-Datenpfad. ThetaE 850 hPa wird aus Temperatur und relativer Feuchte berechnet; MSL-Druck als Isobaren.'},
- {id:'icon-d2-pressure-sigwx',modelId:'icon-d2',category:'significant',label:'Bodendruck + SIGWX',detail:'MSL-Druckkonturen mit modelliertem signifikantem Wetter · ICON-D2',layer:'mid:grid:icon-d2:pressure-sigwx',source:'grid',gridKind:'pressure-sigwx',timeDependent:true,forecast:true,defaultZoom:7,opacity:84,disclaimer:'SIGWX wird aus dem ICON-D2-Wettercodefeld dargestellt; MSL-Druckkonturen dienen der synoptischen Einordnung.'},
- {id:'icon-d2-pressure-precip',modelId:'icon-d2',category:'surface',label:'Bodendruck + Niederschlag',detail:'MSL-Druckkonturen mit stündlichem Niederschlag · ICON-D2',layer:'mid:grid:icon-d2:pressure-precip',source:'grid',gridKind:'pressure-precip',timeDependent:true,forecast:true,defaultZoom:7,opacity:80},
+ {id:'radolan-observed-precipitation',modelId:'observations',category:'surface',label:'Gefallener Niederschlag · 1 / 6 / 12 / 24 / 48 h',detail:'Verifizierte Messstunden · fehlende Rasterwerte bleiben unbekannt · Ortswerte und PNG/SVG',layer:'mid:radolan:observed',source:'observed-totals',timeDependent:true,forecast:false,defaultZoom:5.25,opacity:85},
+ // ICON-D2 – echte, verifizierte GRIB2-Raster aus derselben freien Publikationsstrecke wie Summenkarten
+ {id:'icon-d2-pressure-thetae',modelId:'icon-d2',category:'upper-air',label:'Bodendruck + ThetaE 850 hPa',detail:'MSL-Druckkonturen mit äquivalentpotenzieller Temperatur in 850 hPa · ICON-D2',layer:'mid:grid:icon-d2:pressure-thetae',source:'native',nativeKind:'thetae',gridKind:'pressure-thetae',timeDependent:true,forecast:true,defaultZoom:7,opacity:82,disclaimer:'Direkte verifizierte DWD ICON-D2-GRIB2-Raster. ThetaE 850 hPa wird aus Temperatur und relativer Feuchte berechnet; MSL-Druck als Isobaren.'},
+ {id:'icon-d2-pressure-sigwx',modelId:'icon-d2',category:'significant',label:'Bodendruck + SIGWX',detail:'MSL-Druckkonturen mit modelliertem signifikantem Wetter · ICON-D2',layer:'mid:grid:icon-d2:pressure-sigwx',source:'native',nativeKind:'sigwx',gridKind:'pressure-sigwx',timeDependent:true,forecast:true,defaultZoom:7,opacity:84,disclaimer:'SIGWX wird aus dem ICON-D2-Wettercodefeld dargestellt; MSL-Druckkonturen dienen der synoptischen Einordnung.'},
+ {id:'icon-d2-pressure-precip',modelId:'icon-d2',category:'surface',label:'Bodendruck + Niederschlag',detail:'MSL-Druckkonturen mit stündlichem Niederschlag · ICON-D2',layer:'mid:grid:icon-d2:pressure-precip',source:'native',nativeKind:'precipitation',gridKind:'pressure-precip',timeDependent:true,forecast:true,defaultZoom:7,opacity:80},
+
+ ...(['temperature','wind','gust','cloud','pressure'] as const).map((nativeKind,index)=>({id:`icon-d2-native-${nativeKind}`,modelId:'icon-d2' as const,category:'surface' as const,label:['Temperatur · 2 Meter','Wind · 10 Meter','Böen · 10 Meter','Gesamtbewölkung','Bodendruck / MSL'][index],detail:'Deutschland · vollständiges DWD-Raster · Ortswerte und PNG-/SVG-Download',layer:`mid:native:${nativeKind}`,source:'native' as const,nativeKind,timeDependent:true,forecast:true,defaultZoom:5.25,opacity:85})),
 
  // ICON-EU – komplette auf dem offenen DWD-WMS veröffentlichte ICON-EU-Serie
  {id:'icon-eu-qff',modelId:'icon-eu',category:'surface',label:'Bodendruck / QFF',detail:'Auf Meereshöhe reduzierter Luftdruck',layer:'dwd:Icon-eu_reg00625_fd_sl_QFF',timeDependent:true,forecast:true,defaultZoom:5,opacity:78},
@@ -82,8 +86,11 @@ export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
  {id:'significant-lightning',modelId:'nowcastmix',category:'significant',label:'Blitz-Kurzzeitvorhersage · 0 bis +2 h',detail:'NowCastELEC-Polygone für detektierte und prognostizierte Blitze',layer:'dwd:NCEW_EU',timeDependent:true,forecast:true,defaultZoom:6,opacity:90}
 ];
 
-export function weatherMapProductsForModel(modelId:WeatherMapModelId){return WEATHER_MAP_PRODUCTS.filter(product=>product.modelId===modelId)}
-export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.find(product=>product.id===productId)??WEATHER_MAP_PRODUCTS[0]}
+// Not advertised by the verified DWD GetCapabilities catalog. Keep legacy IDs
+// recognizable in source, but never offer a broken WMS product to the user.
+const UNAVAILABLE_WMS_LAYERS=new Set(['dwd:Icon-eu_reg00625_fd_sl_WW','dwd:Icon_reg025_fd_sl_WW','dwd:Aicon_reg025_fd_sl_WW']);
+export function weatherMapProductsForModel(modelId:WeatherMapModelId){return WEATHER_MAP_PRODUCTS.filter(product=>product.modelId===modelId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))}
+export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.find(product=>product.id===productId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))??WEATHER_MAP_PRODUCTS[0]}
 export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MODELS.find(model=>model.id===modelId)??WEATHER_MAP_MODELS[0]}
 export function weatherMapWmsProxy(){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider:'dwd'}).toString()}
 export async function loadWeatherMapMetadata(layer:string,signal?:AbortSignal){return fetchWorkerJson<WeatherMapMetadata>('weather-map-metadata',{layer},{purpose:'radar',signal,timeoutMs:12000,maxAgeMs:5*60000,staleIfErrorMs:30*60000,cacheKey:layer})}

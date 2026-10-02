@@ -12,7 +12,7 @@ redundant high-frequency severe-diagnostic variants when their canonical
 maximum field is present. The complete preprocessing bundle remains untouched.
 """
 from __future__ import annotations
-import argparse,hashlib,json,shutil
+import argparse,hashlib,json,re,shutil
 from pathlib import Path
 import numpy as np
 
@@ -187,10 +187,37 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         totals_target=out/totals_key;totals_target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(totals_source,totals_target)
         objects.append({'key':totals_key,'bytes':totals_target.stat().st_size,'sha256':digest(totals_target)})
         totals={'key':totals_key,'run':totals_payload['run'],'schema':totals_payload['schema']}
+    observed=None
+    observed_source=source/'observed-precipitation.json'
+    if observed_source.is_file():
+        payload=json.loads(observed_source.read_text())
+        if payload.get('schema')!='mid.radolan.observed.v1' or payload.get('kind')!='observed':raise ValueError('invalid observed precipitation schema')
+        key=f'runs/{run}__observed_{digest(observed_source)[:16]}/observed-precipitation.json'
+        target_file=out/key;target_file.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(observed_source,target_file)
+        objects.append({'key':key,'bytes':target_file.stat().st_size,'sha256':digest(target_file)})
+        observed={'key':key,'run':payload['run'],'schema':payload['schema']}
+    model_fields=None
+    fields_dir=source/'model-fields';fields_index=fields_dir/'index.json'
+    if fields_index.is_file():
+        payload=json.loads(fields_index.read_text())
+        if payload.get('schema')!='mid.icon-d2.fields.v1':raise ValueError('invalid native map index')
+        prefix=f'runs/{run}__fields_{digest(fields_index)[:16]}/model-fields/'
+        files=[fields_index]
+        for kind,product in payload['products'].items():
+            for frame in product['frames']:
+                name=frame['file']
+                if not re.fullmatch(r'[a-z]+-\d{3}\.json',name):raise ValueError('unsafe native map filename')
+                file=fields_dir/name
+                if digest(file)!=frame['sha256'] or file.stat().st_size!=frame['bytes']:raise ValueError('native map digest mismatch')
+                files.append(file)
+        for file in files:
+            key=prefix+file.name;destination=out/key;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
+            objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
+        model_fields={'key':prefix+'index.json','run':payload['run'],'schema':payload['schema']}
     total=sum(row['bytes'] for row in objects)
     if total>=PAGES_RUC_BUDGET_BYTES:
         raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
-    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,
+    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,
             'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes}}
     (out/'latest.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
     return result
@@ -210,6 +237,20 @@ def main():
         # short-range RUC forecast. The map then stays explicitly unavailable.
         (a.source/'precipitation-totals.json').unlink(missing_ok=True)
         print(f'::warning::ICON-D2 totals unavailable: {error}',flush=True)
+    from build_observed_precipitation import build as build_observed
+    try:build_observed(a.source/'observed-precipitation.json')
+    except (RuntimeError,ValueError,OSError) as error:
+        (a.source/'observed-precipitation.json').unlink(missing_ok=True)
+        print(f'::warning::RADOLAN sums unavailable: {error}',flush=True)
+    from build_model_map_fields import build as build_fields
+    fields_dir=a.source/'model-fields'
+    if fields_dir.exists():shutil.rmtree(fields_dir)
+    try:
+        totals_path=a.source/'precipitation-totals.json'
+        if totals_path.is_file():build_fields(fields_dir,json.loads(totals_path.read_text()))
+    except (RuntimeError,ValueError,OSError) as error:
+        if fields_dir.exists():shutil.rmtree(fields_dir)
+        print(f'::warning::ICON-D2 native maps unavailable: {error}',flush=True)
     meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
     print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'budgetBytes':meta['pages']['budgetBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'prunedRapidProducts':meta['pages']['prunedRapidProducts'],'savedBytes':meta['pages']['savedBytes']}))
 if __name__=='__main__':main()

@@ -1,3 +1,13 @@
+## MID v0.9.85.141 · 2026-10-02 · MID-C11 Adaptive Prognosen und native Karten
+
+- Basis main/mid-stable 87875585c773edf5fcb508cbe3466c7f98c08481, keine überlappende Produkt-PR.
+- Parameterunabhängige Tages-Quantilbänder, kanonische Windumrechnung, echte Null kompakt ohne Spurenwerte zu nullen; Kurzfristgrenzen explizit.
+- RADOLAN RW :50-Stunden ohne Rollingsummen-Doppelzählung; fehlende Zellen bleiben -1/grau, fehlende Stunden sperren Fenster.
+- Acht native ICON-D2-Felder × sechs verifizierte Termine, nur gewähltes SHA256-geprüftes Raster im Browser. Gleiche Karten-/Favoriten-/Downloadergonomie; Bestandsschutz anderer WMS-Modelle.
+- Neue Inhalte über bestehendes immutable Pages-Objektmanifest und unverändertes kostenloses Budget, keine neue API-/Schlüssel-/Bezahlabhängigkeit.
+- 898 Pflichtregressionen, zusätzliche Python-Decoder-/Publikationstests und Browser-QA. Zwei historische Testauslese-/Formatverträge bewusst auf neue Typstruktur bzw. kompakte Zahlendarstellung migriert, meteorologische Assertions erhalten.
+- Einzelheiten und Grenzen: docs/implementation/MID_ADAPTIVE_NATIVE_MAPS_0.9.85.141.md.
+
 ## MID v0.9.85.140 · 2026-10-01 · MID-C11 Radar kompakt
 
 - Ursache der leeren Pille: globale `.top`-Headerregeln auf `.radar-nowcast-grid.top`; Gridlines explizit auf Höhe 0 und transparenten Hintergrund zurückgesetzt, Browsertest prüft diese Geometrie.

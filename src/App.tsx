@@ -1598,7 +1598,7 @@ function radarRateText(rate:number|undefined,approximate=false,uncertain=false){
 function radarIntensity(rate:number|undefined){const value=Number(rate);if(!Number.isFinite(value)||value<.01)return'';return precipitationIntensityDescriptor('rain',value,0,3600,61)?.label??''}
 function radarAmountScale(maxAmount:number){const value=Math.max(.005,Number(maxAmount)||.005);for(const level of[.02,.05,.1,.2,.5,1,2,4,6,10])if(value<=level)return level;return Math.ceil(value*2)/2}
 function radarAxisLabel(value:number){const numeric=Math.max(0,Number(value)||0);if(numeric>=1)return formatDecimalFixed(numeric,1).replace(/,0$/,'');if(numeric>=.1)return formatDecimalFixed(numeric,2);return formatDecimalFixed(numeric,3).replace(/0$/,'').replace(/,$/,'')}
-function radarAmountLabel(value:number){const numeric=Math.max(0,Number(value)||0);return numeric>=10?String(Math.round(numeric)):numeric>=1?formatDecimalFixed(numeric,1):formatDecimalFixed(numeric,2)}
+function radarAmountLabel(value:number){const numeric=Math.max(0,Number(value)||0);return numeric===0?'0':numeric>=10?String(Math.round(numeric)):numeric>=1?formatDecimalFixed(numeric,1):formatDecimalFixed(numeric,2)}
 function radarBarHeight(amount:number,scale:number,nearby=false){const safeScale=Math.max(.01,scale),ratio=Math.max(0,Math.min(1,(Number(amount)||0)/safeScale));if(ratio<=0)return nearby?6:3;return Math.max(3,Math.min(48,48*ratio))}
 function radarIntervalAmount(rate:number,minutes:number){return Math.max(0,Number(rate)||0)*Math.max(1,minutes)/60}
 function radarChartAmount(rate:number,nearby=false){return nearby?0:radarIntervalAmount(rate,5)}

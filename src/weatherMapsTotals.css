@@ -78,3 +78,6 @@ html[data-mid-design='next'] .weather-precipitation-totals button:focus-visible,
 html[data-mid-design='next'] .weather-precipitation-legend-placeholder{bottom:28px}html[data-mid-design='next'] .weather-precipitation-totals>.weather-maps-reload{min-height:40px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);font:inherit;cursor:pointer}
 
 .precipitation-favorite-marker span{display:block;width:7px;height:7px;background:#fff;border:1px solid #263f59;border-radius:50%;box-shadow:0 1px 4px #263f5944}.precipitation-favorite-marker span.selected{width:11px;height:11px;background:#1675d1;border:2px solid #fff}html[data-mid-design='next'] .weather-precipitation-window-options button{min-height:40px}
+.weather-precipitation-period>button{min-height:40px;margin-top:4px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-weight:600;cursor:pointer}
+.weather-precipitation-period>button[aria-pressed="true"]{border-color:#168aa7;background:color-mix(in srgb,#168aa7 16%,var(--surface))}
+.weather-precipitation-period>button:disabled{opacity:.5;cursor:default}

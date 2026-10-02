@@ -47,3 +47,10 @@ html .hero.current-compact .current-precip-panel>em{font-size:11px!important;lin
 html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-grid,
 html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-axis{position:absolute!important;display:block!important;left:0!important;right:0!important;top:auto!important;width:auto!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;border-top:1px dashed color-mix(in srgb,var(--muted) 28%,transparent)!important;border-radius:0!important;box-shadow:none!important;transform:none!important;pointer-events:none!important}
 html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-total{padding:0!important}
+.forecast-parameter-range{display:grid;gap:2px;min-width:0}
+.forecast-parameter-range.parameter-rain{--param-temperature:var(--param-precipitation,#23cbd3)}
+.forecast-parameter-range:is(.parameter-wind,.parameter-gust){--param-temperature:var(--param-wind,#ae8af3)}
+.forecast-range-guide.adaptive{gap:6px}
+.forecast-range-guide.adaptive .forecast-range-track{height:8px;margin:1px 4px}
+.forecast-range-guide.adaptive .forecast-range-track>i{height:4px}
+.forecast-range-guide.adaptive .forecast-range-track>.point{height:10px}

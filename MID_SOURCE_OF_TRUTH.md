@@ -19,6 +19,12 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.141 · MID-C11 Adaptive Prognosen und native Wetterkarten
+
+Verifizierte .140-Basis main = mid-stable = 87875585c773edf5fcb508cbe3466c7f98c08481. Parameterbezogene Quantilbänder, keine aus Tageswerten erfundenen Stundenintervalle. Gefallener Niederschlag aus nicht überlappenden RADOLAN RW-Stunden; unbekannte Zellen bleiben grau/unbekannt. ICON-D2-Kombinationen wechseln vom groben API-Punktraster zu direkten vollen DWD-GRIB2-Feldern, ergänzt um Temperatur/Wind/Böen/Bewölkung/Druck. Gemeinsame Quellen-/Zeit-/Ortswert-/Exportverträge. Andere Modelle bleiben WMS; nicht gelistete WW-Karten werden nicht angeboten. Kostenlose bestehende Pages-Pipeline, immutable SHA256-Objekte, kein manueller Stable-Push. Neue Datensätze benötigen eine erfolgreiche reguläre RUC-Aufbereitung nach Release.
+
+Required regression: scripts/test-adaptive-native-maps-0985141.mjs; Details: docs/implementation/MID_ADAPTIVE_NATIVE_MAPS_0.9.85.141.md.
+
 ## v0.9.85.140 · MID-C11 Radar kompakt und native RV-Daten
 
 Verifizierte Ausgangsbasis: `main == mid-stable == fe87c0f296be0475153fb1326977d9a23df74025` (veröffentlichte .139). Keine überlappende offene Agent-PR. Live-Bright-Sky-RV nutzt `RADARCOMP::RV`; .139 verwarf diese Kennung. Beide gültigen RV-Kennungen werden akzeptiert. Vollständige native 24-Schritt-Prognosen benötigen keine WMS-Diagnostik; Zusatzbeobachtungen dürfen ihre Mengen und Referenzzeit nicht überschreiben.

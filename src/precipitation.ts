@@ -1,3 +1,11 @@
+/** Display precision must never turn a positive amount into dry weather. */
+export function compactPrecipitationAmount(value:number,digits=1){
+ if(!Number.isFinite(value)||value<0)return '–';
+ if(value===0)return '0';
+ const precision=Math.max(0,Math.min(3,Math.floor(digits))),threshold=10**-precision;
+ if(value<threshold)return `<${formatDecimalFixed(threshold,precision)}`;
+ return formatDecimalFixed(value,precision);
+}
 function formatDecimalFixed(value:number,fractionDigits=1){return new Intl.NumberFormat('de-DE',{useGrouping:false,minimumFractionDigits:fractionDigits,maximumFractionDigits:fractionDigits}).format(value)}
 
 export type PrecipType='none'|'drizzle'|'freezingDrizzle'|'rain'|'freezingRain'|'showers'|'snow'|'snowGrains'|'snowStars'|'iceCrystals'|'icePellets'|'snowShowers'|'sleet'|'sleetShowers'|'graupelShowers'|'hailShowers'|'wintryAfterThunder'|'thunderstorm'|'thunderstormHail';
@@ -505,7 +513,7 @@ export function presentPrecipTypes(series:{type:PrecipType}[]){
 }
 
 export function precipitationAmountLabel(input:{precipitation?:number;snowfall?:number},{snowSymbol=true}:{snowSymbol?:boolean}={}){
- const precipitation=Math.max(0,Number(input.precipitation)||0),snowfall=Math.max(0,Number(input.snowfall)||0),base=`${formatDecimalFixed(precipitation,1)} mm`;
+ const precipitation=Math.max(0,Number(input.precipitation)||0),snowfall=Math.max(0,Number(input.snowfall)||0),base=`${compactPrecipitationAmount(precipitation)} mm`;
  return snowfall>=.05?`${base} · ${snowSymbol?'❄ ':''}${formatDecimalFixed(snowfall,1)} cm`:base;
 }
 
