@@ -27,16 +27,19 @@ export function ForecastRangeGuide({day,days,compact=false,unit='kn'}:{day?:Ense
  const ranges=adaptiveForecastRanges(day).filter(r=>r.key!=='wind');
  if(!ranges.length)return null;
  const reference=days.flatMap(adaptiveForecastRanges);
- return <span className={`forecast-range-guide adaptive slim${compact?' compact':''}`} aria-label="Parameterbezogene Modellspannen P10–P90">
-  {ranges.map(r=>{
-   const peers=reference.filter(p=>r.unit==='°C'?p.unit==='°C':p.key===r.key),low=Math.min(r.low,...peers.map(p=>p.low)),high=Math.max(r.high,...peers.map(p=>p.high)),span=Math.max(r.unit==='°C'?1:.1,high-low),percent=(v:number)=>Math.max(0,Math.min(100,(v-low)/span*100)),point=typeof r.point==='number'&&Number.isFinite(r.point)&&r.point>=r.low&&r.point<=r.high?r.point:null,style={'--range-start':`${percent(r.low)}%`,'--range-width':`${percent(r.high)-percent(r.low)}%`,'--range-core-start':`${percent(r.q25)}%`,'--range-core-width':`${percent(r.q75)-percent(r.q25)}%`,'--range-point':`${percent(point??r.q25)}%`} as CSSProperties,format=(v:number)=>r.key==='rain'?compactPrecipitationAmount(v):String(Math.round(v));
-   const isWind=r.unit==='kt',factor=!isWind?1:unit==='kmh'?1.852:unit==='ms'?.514444:unit==='mph'?1.15078:1,unitLabel=!isWind?r.unit:unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt',formatBound=(v:number)=>`${format(v*factor)}${r.unit==='°C'?'':' '}${unitLabel}`,boundsTitle=`P25 ${formatBound(r.q25)} · P75 ${formatBound(r.q75)}`;
-   return <span key={r.key} className={`forecast-parameter-range parameter-${r.key}`} role="img" aria-label={`${r.label}: P10–P90 ${format(r.low*factor)}–${format(r.high*factor)} ${unitLabel}; P25–P75 ${format(r.q25*factor)}–${format(r.q75*factor)} ${unitLabel}${point===null?'':`; Median ${format(point*factor)} ${unitLabel}`}`}>
-    <span className="forecast-range-label" title={`P10–P90: ${format(r.low*factor)}–${format(r.high*factor)} ${unitLabel}`}>{r.label}</span>
-    <span className="forecast-range-track" style={style} aria-hidden="true"><i className="outer"/><i className="core"/>{point!==null?<i className="point"/>:null}</span>
-    <span className="forecast-range-bounds" title={boundsTitle} aria-hidden="true"><span><small>P25</small>{formatBound(r.q25)}</span><span><small>P75</small>{formatBound(r.q75)}</span></span>
-   </span>
-  })}
+ const referenceTemperatures=reference.filter(r=>r.unit==='°C'),temperatureRanges=['minimum','temperature'].map(key=>ranges.find(r=>r.key===key)).filter((r):r is ParameterRange=>Boolean(r)),otherRanges=ranges.filter(r=>r.unit!=='°C');
+ const renderRange=(r:ParameterRange)=>{
+  const peers=r.unit==='°C'?referenceTemperatures:reference.filter(p=>p.key===r.key),low=Math.min(r.low,...peers.map(p=>p.low)),high=Math.max(r.high,...peers.map(p=>p.high)),span=Math.max(r.unit==='°C'?1:.1,high-low),percent=(v:number)=>Math.max(0,Math.min(100,(v-low)/span*100)),point=typeof r.point==='number'&&Number.isFinite(r.point)&&r.point>=r.low&&r.point<=r.high?r.point:null,style={'--range-start':`${percent(r.low)}%`,'--range-width':`${percent(r.high)-percent(r.low)}%`,'--range-core-start':`${percent(r.q25)}%`,'--range-core-width':`${percent(r.q75)-percent(r.q25)}%`,'--range-point':`${percent(point??r.q25)}%`} as CSSProperties,format=(v:number)=>r.key==='rain'?compactPrecipitationAmount(v):String(Math.round(v));
+  const isWind=r.unit==='kt',factor=!isWind?1:unit==='kmh'?1.852:unit==='ms'?.514444:unit==='mph'?1.15078:1,unitLabel=!isWind?r.unit:unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt',formatBound=(v:number)=>`${format(v*factor)}${r.unit==='°C'?'':' '}${unitLabel}`,q25=format(r.q25*factor),q75=format(r.q75*factor),boundsTitle=`P25 ${formatBound(r.q25)} · P75 ${formatBound(r.q75)}`,boundsText=`${q25===q75?q25:`${q25}–${q75}`} ${unitLabel}`;
+  return <span key={r.key} className={`forecast-parameter-range parameter-${r.key}`} role="img" aria-label={`${r.label}: P10–P90 ${format(r.low*factor)}–${format(r.high*factor)} ${unitLabel}; P25–P75 ${q25}–${q75} ${unitLabel}${point===null?'':`; Median ${format(point*factor)} ${unitLabel}`}`}>
+   <span className="forecast-range-label" title={`P10–P90: ${format(r.low*factor)}–${format(r.high*factor)} ${unitLabel}`}>{r.label}</span>
+   <span className="forecast-range-track" style={style} aria-hidden="true"><i className="outer"/><i className="core"/>{point!==null?<i className="point"/>:null}</span>
+   <span className="forecast-range-bounds" title={boundsTitle} aria-hidden="true"><span>{boundsText}</span></span>
+  </span>;
+ };
+ return <span className={`forecast-range-guide adaptive slim${compact?' compact':''}`} data-range-layout={compact?'seven-day-compact':'fourteen-day-detail'} aria-label="Parameterbezogene Modellspannen P10–P90">
+  {temperatureRanges.length?<span className="forecast-temperature-pair" data-temperature-pair="shared-scale">{temperatureRanges.map(renderRange)}</span>:null}
+  {otherRanges.map(renderRange)}
  </span>;
 }
 

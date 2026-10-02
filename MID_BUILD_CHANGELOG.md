@@ -1,6 +1,6 @@
 ## v0.9.85.145 · MID-C12 Unterscheidbare Prognoseansichten
 
-Basis .144, main = mid-stable = 3951e8ce58239634ed48b4f13e5a58ee23c73c91. Nutzerkorrektur: Spurenmengen ohne Abschneiden, keine Quantil-Kürzel vor sichtbaren Werten, 7d mit gemeinsamem Tmin/Tmax, 14d mit eigener Ensemble-Hierarchie. Meteorologische Werte und Median-/Quantilverträge bleiben erhalten. UI-Handoff und Browser-Verifikation werden vor Integration dokumentiert.
+Basis .144, main = mid-stable = 3951e8ce58239634ed48b4f13e5a58ee23c73c91. Nutzerkorrektur: Spurenmengen ohne Abschneiden, keine Quantil-Kürzel vor sichtbaren Werten, 7d mit gemeinsamem Tmin/Tmax, 14d mit eigener Ensemble-Hierarchie. Meteorologische Werte und Median-/Quantilverträge bleiben erhalten. UI-Handoff ccb4800f3d015313dcf3224270dc934f4f640140 auf exakter Stable-Basis und read-only Gate 37030686168 verifiziert: Build/Types, 899 Regressionen, unveränderte Budgets und Web-/iOS-Hülle grün. Vollständige 96 Kartenfälle mit sichtbaren Tmin/Tmax-Feldern und unbeschnittenen Spurenwerten sind zusätzlich in der Source-Freigabe verpflichtend; Details im Implementierungsbeleg.
 
 ## MID v0.9.85.144 · 2026-10-02 · Wochenunsicherheit, Trend und Karten
 
