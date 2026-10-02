@@ -27,11 +27,13 @@ try {
    overflow:document.documentElement.scrollWidth>innerWidth+1,
    prefixes:[...document.querySelectorAll('.forecast-range-bounds')].filter(e=>/P(?:25|75)/i.test(e.textContent)).length,
    bounds:[...document.querySelectorAll('.forecast-range-bounds')].map(e=>({text:e.textContent.trim(),clipped:clipped(e)})),
+   temperaturePairs:[...document.querySelectorAll('.cockpit-day-temperature-pair')].map(e=>({label:e.getAttribute('aria-label'),fields:[...e.querySelectorAll(':scope>.climate-tone-daily>small,:scope>.climate-tone-daily>span')].map(v=>({text:v.textContent,visible:v.getBoundingClientRect().width>0,clipped:clipped(v)}))})),
    amounts:[...document.querySelectorAll(mode==='fourteen'?'.cockpit-fourteen-precip-values>b':'.cockpit-day-rain>b')].map(e=>({text:e.textContent.replace(/\s/g,''),clipped:clipped(e),ellipsis:getComputedStyle(e).textOverflow==='ellipsis'}))
   });},mode);
   assert.equal(metrics.overflow,false,`${mode} ${width}px ${theme} ${unit}: horizontal overflow`);
   assert.equal(metrics.prefixes,0,`${mode}: visible P25/P75 prefixes`);
   assert.ok(metrics.amounts.length>0,`${mode}: primary rain values missing`);
+  if(mode==='seven'){assert.equal(metrics.temperaturePairs.length,7,'seven: combined daily temperature pairs missing');for(const pair of metrics.temperaturePairs){assert.equal(pair.label,'Tmin und Tmax');assert.deepEqual(pair.fields.map(f=>f.text),['Tmin','10°','Tmax','20°']);for(const field of pair.fields){assert.equal(field.visible,true,`${mode} ${width}px: temperature label/value hidden`);assert.equal(field.clipped,false,`${mode} ${width}px: temperature label/value clipped`);}}}
   for(const amount of metrics.amounts){assert.equal(amount.text,'<0,1mm');assert.equal(amount.clipped,false,`${mode} ${width}px: trace amount clipped`);}
   for(const bound of metrics.bounds)assert.equal(bound.clipped,false,`${mode} ${width}px: bounds clipped`);
   if(unit==='kmh')await page.screenshot({path:join(out,`${mode}-${width}-${theme}.png`)});
