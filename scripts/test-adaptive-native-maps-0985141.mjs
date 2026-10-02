@@ -15,7 +15,7 @@ try{
  assert.equal(adaptiveForecastRanges(day).find(r=>r.key==='temperature').point,undefined,'Legacy mean must not masquerade as P50');
  assert.equal(adaptiveForecastRanges({...day,maxMedian:14,maxMean:99}).find(r=>r.key==='temperature').point,14,'True P50 independent of mean');
  const rangesSource=read('src/ForecastRangeGuide.tsx'),cockpitSource=read('src/ForecastCockpit.tsx'),ensembleSource=read('src/weather-src/30-ensemble-climate-hazards.tsfrag');
- assert.ok(rangesSource.includes("r.key!=='wind'")&&rangesSource.includes("r.key!=='minimum'"),'Compact mode retains gust and suppresses mean wind');
+ assert.ok(rangesSource.includes("adaptiveForecastRanges(day).filter(r=>r.key!=='wind')")&&!rangesSource.includes("(!compact||r.key!=='minimum')"),'Compact and full views retain Tmax, Tmin, rain and gust while suppressing mean wind');
  assert.ok(!rangesSource.includes('point=r.key===\'temperature\'?temperature'),'Best Match must not replace ensemble P50');
  for(const field of ['maxVals','minVals','rainVals','gustVals'])assert.ok(ensembleSource.includes('weightedQuantile('+field+',.5)'));
  assert.ok(!cockpitSource.includes('Kurzfrist: Radarspannen'));
