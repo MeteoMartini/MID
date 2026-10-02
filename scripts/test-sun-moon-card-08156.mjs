@@ -23,7 +23,7 @@ for(const token of [
   '.metrics .sun-moon-card{min-height:0}',
   '.metrics .sun-moon-card>strong{display:block;margin-top:6px;font-size:clamp(13px,.95vw,16px);line-height:1.04;white-space:normal}',
   '.sun-moon-card-value{display:grid;grid-template-columns:minmax(0,.9fr) 1px minmax(0,1.1fr);align-items:end;gap:6px;min-width:0}',
-  '.sun-moon-time-block small{color:var(--muted);font-size:clamp(5.8px,1.65vw,6.4px);font-weight:850;letter-spacing:.07em;text-transform:uppercase;line-height:1.05;white-space:nowrap;overflow-wrap:normal;word-break:keep-all}',
+  '.sun-moon-time-block small{color:var(--muted);font-size:6.2px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;line-height:1.05;white-space:nowrap}',
   '.sun-moon-time-block b{display:block;color:var(--text);font:inherit;font-weight:780;font-variant-numeric:tabular-nums;line-height:1}',
   '@media(max-width:760px){.metrics .sun-moon-card>strong{font-size:14px}.sun-moon-card-value{gap:5px}.sun-moon-card-divider{height:25px}}',
   '@media(max-width:420px){.metrics .sun-moon-card>strong{font-size:13px}.sun-moon-card-value{gap:4px}.sun-moon-card-divider{height:23px}.sun-moon-phase{gap:3px}.sun-moon-phase em{display:inline}}'
