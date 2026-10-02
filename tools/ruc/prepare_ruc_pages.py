@@ -206,7 +206,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         for kind,product in payload['products'].items():
             for frame in product['frames']:
                 name=frame['file']
-                if not re.fullmatch(r'[a-z]+-\d{3}\.json',name):raise ValueError('unsafe native map filename')
+                if not re.fullmatch(r'[a-z]+-\d{3}\.(json|bin)',name):raise ValueError('unsafe native map filename')
                 file=fields_dir/name
                 if digest(file)!=frame['sha256'] or file.stat().st_size!=frame['bytes']:raise ValueError('native map digest mismatch')
                 files.append(file)
