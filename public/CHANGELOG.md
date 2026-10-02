@@ -1,3 +1,9 @@
+# MID v0.9.85.142
+
+- Vollständige neue ICON-D2-Kartenraster verlustfrei verdichtet: deutlich weniger Speicher und Downloadvolumen bei unveränderten Werten und unveränderter Auflösung.
+- Das kostenlose 900-MB-Datenbudget bleibt verbindlich. Größen- und SHA256-Prüfung erfolgen auch für komprimierte Felder; ältere Safari/WebViews erhalten einen kompatiblen Decoder.
+- Enthält die Wetterkarten-, Messsummen- und parameterbezogenen Prognosespannen aus .141.
+
 # MID v0.9.85.141
 
 - Wetterkarten: gefallener Niederschlag aus DWD RADOLAN RW für vollständige 1-/6-/12-/24-/48-h-Fenster; fehlende Messzellen bleiben grau und unbekannt.

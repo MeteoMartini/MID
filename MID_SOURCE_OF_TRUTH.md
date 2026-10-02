@@ -19,6 +19,10 @@ Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable`
 > Nutze ausschließlich `MeteoMartini/MID`, Branch `mid-stable`, als Codebasis. Lies zuerst `MID_BASELINE.json` und `package.json`. Verwende weder ältere Uploads noch aus Chats rekonstruierte App-Stände. Brich ab, wenn die Basis nicht eindeutig verifiziert ist.
 
 
+## v0.9.85.142 · MID-C11 Verlustfreies Kartenbudget
+
+Ausgangsbasis: veröffentlichte .141, main = mid-stable = ff2e310d107a745468d788fcec678693d507a68d. Native ICON-D2-Felder werden verlustfrei als gzip-JSON .bin-Objekte publiziert; Index deklariert encoding, komprimierte und entpackte Bytezahlen sowie SHA256. Client prüft Hash und Größen vor/nach begrenzter Inflation, mit nativem Stream oder Lazy-pako-Fallback. Legacy-JSON bleibt kompatibel. Das bestehende 900-MB-Limit wird nicht erhöht. Dieselbe Pflichtregression testet zusätzlich beide Decoder, Integrität und komprimierte Browserdarstellung. Datenprodukte erscheinen mit erfolgreicher regulärer RUC-Aufbereitung.
+
 ## v0.9.85.141 · MID-C11 Adaptive Prognosen und native Wetterkarten
 
 Verifizierte .140-Basis main = mid-stable = 87875585c773edf5fcb508cbe3466c7f98c08481. Parameterbezogene Quantilbänder, keine aus Tageswerten erfundenen Stundenintervalle. Gefallener Niederschlag aus nicht überlappenden RADOLAN RW-Stunden; unbekannte Zellen bleiben grau/unbekannt. ICON-D2-Kombinationen wechseln vom groben API-Punktraster zu direkten vollen DWD-GRIB2-Feldern, ergänzt um Temperatur/Wind/Böen/Bewölkung/Druck. Gemeinsame Quellen-/Zeit-/Ortswert-/Exportverträge. Andere Modelle bleiben WMS; nicht gelistete WW-Karten werden nicht angeboten. Kostenlose bestehende Pages-Pipeline, immutable SHA256-Objekte, kein manueller Stable-Push. Neue Datensätze benötigen eine erfolgreiche reguläre RUC-Aufbereitung nach Release.

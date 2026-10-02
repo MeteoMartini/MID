@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Immutable, same-run full ICON-D2 regular-grid map fields, not point-API samples."""
-import bz2,hashlib,json,re,tempfile
+import bz2,gzip,hashlib,json,re,tempfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
@@ -94,10 +94,11 @@ def build(output,totals):
         pressure=get('pmsl')/100;isobars=contours(pressure,lats,lons)
         fields={'temperature':get('t_2m')-273.15,'pressure':pressure,'wind':np.hypot(get('u_10m'),get('v_10m'))*3.6,'gust':get('vmax_10m')*3.6,'cloud':get('clct'),'thetae':theta_e(get('t'),get('relhum')),'sigwx':get('ww'),'precipitation':difference(get('tot_prec',hour-1),get('tot_prec'))/10}
         for key,values in fields.items():
-            values=np.rint(values*10).astype(np.int32);name=f'{key}-{hour:03d}.json';time=(run_time+timedelta(hours=hour)).isoformat()
+            values=np.rint(values*10).astype(np.int32);name=f'{key}-{hour:03d}.bin';time=(run_time+timedelta(hours=hour)).isoformat()
             payload={'schema':'mid.icon-d2.field.v1','run':run_time.isoformat(),'time':time,'kind':key,'unit':products[key]['unit'],'scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'values':values.ravel().tolist(),'isobars':isobars if key in ('pressure','thetae','sigwx','precipitation') else []}
-            file=output/name;file.write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n');digest=hashlib.sha256(file.read_bytes()).hexdigest()
-            products[key]['frames'].append({'hour':hour,'time':time,'file':name,'sha256':digest,'bytes':file.stat().st_size,'intervalHours':hour-data[(hour,'vmax_10m',hour)][1] if key=='gust' else 1 if key=='precipitation' else 0})
+            raw=(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode('utf-8')
+            file=output/name;file.write_bytes(gzip.compress(raw,compresslevel=6,mtime=0));digest=hashlib.sha256(file.read_bytes()).hexdigest()
+            products[key]['frames'].append({'hour':hour,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'sha256':digest,'bytes':file.stat().st_size,'intervalHours':hour-data[(hour,'vmax_10m',hour)][1] if key=='gust' else 1 if key=='precipitation' else 0})
     manifest={'schema':'mid.icon-d2.fields.v1','run':run_time.isoformat(),'generatedAt':datetime.now(timezone.utc).isoformat(),'source':'DWD ICON-D2 · direkte GRIB2-Raster','license':'CC BY 4.0','grid':'DWD regular lat/lon remapping · kein Punkt-API-Raster','products':products,'origins':origins}
     (output/'index.json').write_text(json.dumps(manifest,separators=(',',':'),ensure_ascii=False)+'\n')
     return manifest

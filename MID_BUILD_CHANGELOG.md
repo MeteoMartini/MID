@@ -1,3 +1,11 @@
+## MID v0.9.85.142 · 2026-10-02 · MID-C11 Verlustfreies Kartenbudget
+
+- Basis: vollständig veröffentlichte .141, main = mid-stable = ff2e310d107a745468d788fcec678693d507a68d.
+- Live-Snapshot belegt bereits ca. 864,4 MB; unkomprimierte neue Raster würden das bestehende 900-MB-Budget überschreiten. Native Feldobjekte deshalb gzip-JSON in immutable .bin-Objekten, ca. 5,8 MB statt 39,5 MB; keine Auflösungs-/Wertreduktion.
+- SHA256/Bytezahl vor Inflation, deklarierte entpackte Größe mit laufender Obergrenze; Legacy-JSON bleibt lesbar. Stream-Decoder bevorzugt, vorhandenes pako 2.2.0 explizit gepinnt als Lazy-Fallback für ältere Safari/WebViews.
+- Pflichtregressionen um native/fallback gzip-, Größen-, Truncation- und Hash-Prüfungen erweitert. Browser prüft komprimierte Niederschlags- und Legacy-Temperaturfelder sowie PNG/SVG.
+- Lokale Typ-, Decoder-/Python- und Browserprüfungen bestanden. Vollständige Suite bis mindestens 500/898 ohne Fehler protokolliert; lokale Ausführungsumgebung beim Abschluss ausgefallen. Verbindliches Source-PR-Gate muss den vollständigen Stand vor Veröffentlichung erneut prüfen.
+
 ## MID v0.9.85.141 · 2026-10-02 · MID-C11 Adaptive Prognosen und native Karten
 
 - Basis main/mid-stable 87875585c773edf5fcb508cbe3466c7f98c08481, keine überlappende Produkt-PR.

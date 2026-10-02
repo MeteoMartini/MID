@@ -1,5 +1,5 @@
 """Deterministic decoder, accumulation and immutable publication contracts."""
-import bz2,hashlib,json,tempfile,unittest
+import bz2,gzip,hashlib,json,tempfile,unittest
 from datetime import datetime,timezone
 from pathlib import Path
 import numpy as np
@@ -29,7 +29,7 @@ class MapProductsTest(unittest.TestCase):
             for name in ['deterministic.bin','eps-summary.bin','rapid-5m.bin','rapid-15m.bin']:(source/name).write_bytes(b'\0\0')
             (source/'lookup.bin').write_bytes(b'\0'*4);(source/'rapid-extreme.json').write_text('{}')
             (source/'observed-precipitation.json').write_text(json.dumps({'schema':'mid.radolan.observed.v1','kind':'observed','run':'2026-10-02T02:50:00Z'}))
-            fields=source/'model-fields';fields.mkdir();file=fields/'temperature-001.json';file.write_text('{}')
+            fields=source/'model-fields';fields.mkdir();file=fields/'temperature-001.bin';raw=b'{"values":[-100,0,100]}';file.write_bytes(gzip.compress(raw,mtime=0));self.assertEqual(gzip.decompress(file.read_bytes()),raw)
             index={'schema':'mid.icon-d2.fields.v1','run':'2026-10-02T00:00:00Z','products':{'temperature':{'frames':[{'file':file.name,'sha256':hashlib.sha256(file.read_bytes()).hexdigest(),'bytes':file.stat().st_size}]}}}
             (fields/'index.json').write_text(json.dumps(index));result=prepare(source,target)
             self.assertIn('__fields_',result['modelFields']['key']);self.assertIn('__observed_',result['observedPrecipitation']['key'])

@@ -25,3 +25,7 @@ Ein Release bewahrt den vorhandenen RUC-Snapshot; neue Produkte erscheinen mit d
 - Browser-Radarprüfung mit vollständigen Ensemble-Mittelwerten im Fixture; 24 Geräte/Theme/Coverage-Varianten. Native Karten erhalten ergänzende Browserprüfung.
 
 Release nur Source-PR-Gate → Agent Source Release → Installer/Worker/Pages → verified mid-stable. Keine manuelle Promotion.
+
+## Nachtrag .142: kostenloses Live-Budget
+
+Live-Abgleich: ca. 864,4 MB bestehende Kernprodukte; 39,5 MB neue unkomprimierte Raster würden das 900-MB-Limit überschreiten. Native Felder werden daher ohne Werte-/Auflösungsreduktion als gzip-JSON .bin gespeichert (ca. 5,8 MB). Index encoding/decodedBytes, SHA256 vor begrenzter Inflation, deklarierte entpackte Größe, Legacy-JSON weiter lesbar. Natives DecompressionStream plus bereits vorhandenes pako 2.2.0 als gepinnter Lazy-Fallback für ältere Safari/WebViews. Pflichtregression testet native/fallback Decoder, Truncation, Größenlimit, Hash und komprimierte Browserdarstellung. Lokale Umgebung vor Abschluss der vollen Suite ausgefallen; GitHub Source-PR Gate bleibt verbindlich. .141 ist vollständig veröffentlicht; .142 startet separat auf verifizierter .141-Basis.

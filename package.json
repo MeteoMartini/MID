@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.141",
+  "version": "0.9.85.142",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -539,7 +539,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-is": "19.2.8",
-    "recharts": "3.10.1"
+    "recharts": "3.10.1",
+    "pako": "2.2.0"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.1",
