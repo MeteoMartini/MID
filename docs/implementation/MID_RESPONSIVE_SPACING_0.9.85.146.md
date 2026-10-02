@@ -7,9 +7,9 @@
 
 ## Änderungen
 
-- Sonne/Mond: längere Ereignislabels werden nicht mehr innerhalb des Wortes umgebrochen; die rechte Ereignisspalte erhält geringfügig mehr Platz und die Typografie skaliert auf sehr schmalen Ansichten leicht mit.
+- Sonne/Mond: längere Ereignislabels werden nicht mehr innerhalb des Wortes umgebrochen; die rechte Ereignisspalte erhält geringfügig mehr Platz und eine kompakte, feste Labeltypografie.
 - Bergwetter-Stundenraster: die starre Mindestbreite von 1180 px wurde entfernt. Die Tabelle nimmt nur noch die tatsächlich benötigte Inhaltsbreite ein; Beschriftungs- und Stunden-Spalten besitzen definierte kompakte Breiten.
-- Mobil bis 620 px werden die Beschriftungs- und Stunden-Spalten zusätzlich moderat verdichtet. Der horizontale Scrollcontainer bleibt unverändert bestehen, sobald die tatsächliche Tabellenbreite den Viewport überschreitet.
+- Der horizontale Scrollcontainer bleibt unverändert bestehen, sobald die tatsächliche Tabellenbreite den Viewport überschreitet; ohne tatsächlichen Overflow wird die Tabelle nicht künstlich gestreckt.
 
 ## Regressionen
 
