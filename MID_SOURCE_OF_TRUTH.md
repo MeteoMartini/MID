@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.143 · kompakte Unsicherheit
+
+Basis .142: 4282232533fc70545d9b64676a9de1b4839f1b2e. Details: docs/implementation/MID_COMPACT_UNCERTAINTY_0.9.85.143.md. Echter P50 derselben gewichteten Verteilung statt Einzelwert/Mittelwert; fehlende P50 bleiben ohne Marker. Böen, kompakte Bänder, Tmax/Tmin-Farbtrennung. Stündliches P25–P75 nur aus tatsächlichen zeitgleichen Warnungsensemble-Quantilen, keine Tagesquantil-Interpolation.
+
 ## Technischer Ausgangspunkt
 
 Für jede weitere Entwicklung gilt ausschließlich der GitHub-Zweig `mid-stable` im Repository `MeteoMartini/MID` als Codebasis. Dieser Zweig wird vom Release-Workflow erst aktualisiert, nachdem Build, sämtliche Regressionstests und das GitHub-Pages-Deployment erfolgreich waren.
