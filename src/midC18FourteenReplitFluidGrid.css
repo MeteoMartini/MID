@@ -141,22 +141,31 @@ html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.precipitation,
 html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind{
  display:inline-flex!important;
  align-items:center!important;
+ flex-wrap:wrap!important;
  gap:5px!important;
  min-width:0!important;
- white-space:nowrap!important;
+ max-width:100%!important;
+ white-space:normal!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.precipitation{
- overflow:hidden!important;
+ overflow:visible!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-precip-values{
  display:grid!important;
- min-width:0!important;
+ min-width:max-content!important;
  line-height:1.02!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-precip-values>b{
- overflow:hidden!important;
+ overflow:visible!important;
  font-size:8.5px!important;
- text-overflow:ellipsis!important;
+ line-height:1.15!important;
+ white-space:nowrap!important;
+ text-overflow:clip!important;
+}
+html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind>b,
+html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind>small{
+ flex:0 0 auto!important;
+ white-space:nowrap!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-precip-values>small{
  font-size:7.5px!important;
