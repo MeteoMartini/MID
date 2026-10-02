@@ -8,6 +8,8 @@ const files=Object.fromEntries(await Promise.all([
  ['data','../src/WeatherMapsData.ts'],
  ['styles','../src/styles.css'],
  ['c14styles','../src/midC14MapWorkspace.css'],
+ ['polish','../src/midC18ModelMapsPolish.css'],
+ ['main','../src/main.tsx'],
  ['worker','../worker/metar-proxy.js'],
  ['index','../index.html'],
  ['pkg','../package.json'],
@@ -49,13 +51,28 @@ for(const token of [
  'className="weather-maps-meta-details"',
  '<b>INIT</b>',
  '<b>Gültig</b>',
- 'formatMapTime(selectedTime,timezone)'
+ 'formatMapTime(selectedTime,timezone)',
+ 'className="weather-maps-product-identity"',
+ 'className="weather-maps-control-product"',
+ 'model-map-layout weather-maps-classic-layout',
+ 'data-map-source={product.source??\'wms\'}',
+ 'weatherMapSourceBadge(product,isGrid)'
 ])need('Kartenoberfläche',files.panel,token);
 reject('Keine zweite dauerhafte Zeitschrittauswahl',files.panel,'<label><span>Zeitschritt</span>');
 reject('Keine alte separate Gültigkeitsbox',files.panel,'className="weather-maps-validity"');
 
 need('Responsive CSS',files.styles,'.weather-maps-panel');
 for(const token of ['.weather-maps-panel.c14-map-workspace','.c14-map-workspace .weather-maps-controls','.weather-maps-meta-details','grid-template-columns:repeat(4,minmax(0,1fr))'])need('C14 Karten-CSS',files.c14styles,token);
+for(const token of [
+ '.weather-maps-product-identity',
+ '.weather-maps-product-flags',
+ '.weather-maps-control-product',
+ '.weather-maps-classic-layout',
+ 'grid-template-columns:minmax(160px,.86fr) minmax(230px,1.4fr) minmax(150px,.74fr)!important',
+ '@media(max-width:900px)',
+ '@media(max-width:560px)'
+])need('Modellkarten-Polish',files.polish,token);
+need('Modellkarten-Polish Import',files.main,"import './midC18ModelMapsPolish.css';");
 
 need('Worker Allowlist',files.worker,'WEATHER_MAP_LAYER_CONFIG');
 need('Worker WMS',files.worker,"mode==='weather-map-wms'");
