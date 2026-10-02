@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.144 · MID-C12 Wochenunsicherheit, Trend und Karten
+
+Basis main = mid-stable = 8e511937458ce06808f0487ce1c61441e87fe360. Tatsächliche stündliche Mitglieder aus den bestehenden Ensembleabrufen, keine Tagesinterpolation. Niederschlagsbeginn am Tag bleibt im Trendtext. Direkte DWD-Kartenaufbereitung unterscheidet relative Feuchte und Bedeckungsgrad. Details: docs/implementation/MID_WEEKLY_UNCERTAINTY_0.9.85.144.md.
+
 ## v0.9.85.143 · kompakte Unsicherheit
 
 Basis .142: 4282232533fc70545d9b64676a9de1b4839f1b2e. Details: docs/implementation/MID_COMPACT_UNCERTAINTY_0.9.85.143.md. Echter P50 derselben gewichteten Verteilung statt Einzelwert/Mittelwert; fehlende P50 bleiben ohne Marker. Böen, kompakte Bänder, Tmax/Tmin-Farbtrennung. Stündliches P25–P75 nur aus tatsächlichen zeitgleichen Warnungsensemble-Quantilen, keine Tagesquantil-Interpolation.

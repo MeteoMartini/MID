@@ -40,7 +40,9 @@ def read_field(payload,run,hour,field):
             elif field in ('clct','relhum'):
                 if unit=='1':values=values*100
                 elif unit!='%':raise ValueError('unexpected fraction units')
-                if np.any(values<0) or np.any(values>100.01):raise ValueError('invalid percentage')
+                # Relative humidity may exceed saturation; cloud fraction cannot.
+                upper=150 if field=='relhum' else 100.01
+                if np.any(values<0) or np.any(values>upper):raise ValueError(f'invalid {field} percentage: {values.min()}..{values.max()}')
             elif field=='ww':
                 if np.any(values<0) or np.any(values>99) or not np.allclose(values,np.rint(values)):raise ValueError('invalid weather code')
             if field=='vmax_10m' and (get('stepType')!='max' or int(get('startStep'))>=hour or np.any(values<0)):raise ValueError('invalid gust interval')
@@ -48,7 +50,7 @@ def read_field(payload,run,hour,field):
         finally:codes_release(gid)
 
 def theta_e(t,rh):
-    c=t-273.15;e=np.clip(rh,0.01,100)/100*6.112*np.exp(17.67*c/(c+243.5));mix=.622*e/np.maximum(1,850-e)
+    c=t-273.15;e=np.clip(rh,0.01,150)/100*6.112*np.exp(17.67*c/(c+243.5));mix=.622*e/np.maximum(1,850-e)
     dew=243.5*np.log(e/6.112)/(17.67-np.log(e/6.112))+273.15
     tl=1/(1/(dew-56)+np.log(t/dew)/800)+56
     return t*(1000/(850-e))**(.2854*(1-.28*mix))*np.exp((3376/tl-2.54)*mix*(1+.81*mix))

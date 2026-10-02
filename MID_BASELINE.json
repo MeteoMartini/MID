@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.143",
+  "releaseVersion": "0.9.85.144",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -893,6 +893,7 @@
     "scripts/test-weatherband-shortterm-exclusive-08301.mjs",
     "scripts/test-web-analytics.mjs",
     "scripts/test-webarchive-shortterm-twin-snowline-097872.mjs",
+    "scripts/test-weekly-uncertainty-trend-0985144.mjs",
     "scripts/test-widget-curve-overview-09845.mjs",
     "scripts/test-widget-ensemble-climate-alias-09849.mjs",
     "scripts/test-widget-ensemble-selector-098414.mjs",
@@ -1794,6 +1795,7 @@
     "scripts/test-weatherband-shortterm-exclusive-08301.mjs",
     "scripts/test-web-analytics.mjs",
     "scripts/test-webarchive-shortterm-twin-snowline-097872.mjs",
+    "scripts/test-weekly-uncertainty-trend-0985144.mjs",
     "scripts/test-widget-curve-overview-09845.mjs",
     "scripts/test-widget-ensemble-climate-alias-09849.mjs",
     "scripts/test-widget-ensemble-selector-098414.mjs",
@@ -3211,7 +3213,7 @@
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-health-settings-primary-navigation-0985130.mjs"
   ],
-  "version": "0.9.85.143",
+  "version": "0.9.85.144",
   "updatedAt": "2026-10-01T15:51:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
