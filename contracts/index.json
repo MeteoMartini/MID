@@ -1,7 +1,7 @@
 {
   "schema": "mid.contract-registry.v1",
   "registryVersion": 1,
-  "releaseVersion": "0.9.85.145",
+  "releaseVersion": "0.9.85.146",
   "normativeFormat": "markdown",
   "policy": "Markdown contracts remain normative; this registry is the machine-readable index and must cover every root MID_*CONTRACT*.md file.",
   "contracts": [
