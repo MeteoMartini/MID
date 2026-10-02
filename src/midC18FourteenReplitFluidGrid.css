@@ -137,34 +137,29 @@ html[data-mid-design='next'] .cockpit-fourteen-compact-meta{
  min-width:0!important;
  color:var(--muted)!important;
 }
-html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.precipitation,
-html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind{
+.cockpit-fourteen-compact-meta>.precipitation,
+.cockpit-fourteen-compact-meta>.wind{
  display:inline-flex!important;
  align-items:center!important;
  flex-wrap:wrap!important;
  gap:5px!important;
  min-width:0!important;
- max-width:100%!important;
  white-space:normal!important;
 }
-html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.precipitation{
+.cockpit-fourteen-compact-meta>.precipitation{
  overflow:visible!important;
 }
-html[data-mid-design='next'] .cockpit-fourteen-precip-values{
+.cockpit-fourteen-precip-values{
  display:grid!important;
  min-width:max-content!important;
  line-height:1.02!important;
 }
-html[data-mid-design='next'] .cockpit-fourteen-precip-values>b{
+.cockpit-fourteen-precip-values>b{
  overflow:visible!important;
  font-size:8.5px!important;
- line-height:1.15!important;
  white-space:nowrap!important;
- text-overflow:clip!important;
 }
-html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind>b,
-html[data-mid-design='next'] .cockpit-fourteen-compact-meta>.wind>small{
- flex:0 0 auto!important;
+.cockpit-fourteen-compact-meta>.wind{
  white-space:nowrap!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-precip-values>small{
