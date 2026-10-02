@@ -6630,8 +6630,6 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
  .mountain-snowline-content{padding-inline:9px}
 }
 @media(max-width:620px){
- .mountain-hourly-grid th,.mountain-hourly-grid td{width:68px;padding-inline:3px}
- .mountain-hourly-grid thead th:first-child,.mountain-hourly-grid tbody th{width:94px}
  .mountain-skeleton-hourly{grid-template-columns:repeat(4,minmax(0,1fr))}
  .mountain-skeleton-hour:nth-child(n+5){display:none}
  .mountain-skeleton-days{grid-template-columns:repeat(4,minmax(0,1fr))}
