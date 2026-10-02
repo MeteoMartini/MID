@@ -15,12 +15,13 @@ const testPath='scripts/test-mid-18-2-4-bottom-favorites-098578.mjs';
 for(const token of [
   "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'","aria-label=\"Mehr\"",
   "behavior:ScrollBehavior='auto'",
-  "useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])",
+  'data-scroll-hidden="false"',
   "type BottomBarBehavior='fixed'",
   "localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)"
 ]) assert.ok(app.includes(token),`Bottom-Bar-Vertrag fehlt: ${token}`);
 
 assert.ok(!app.includes("downDistance>=96"),'Bottom-Bar darf nicht mehr durch Scroll-Distanz ausgeblendet werden.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Bottom-Bar darf keinen scrollabhängigen Hidden-State mehr besitzen.');
 assert.ok(!app.includes("Beim Scrollen platzsparend minimieren"),'Auto-Hide darf nicht mehr als Bedienoption angeboten werden.');
 assert.ok(!app.includes('Dauerhaft verfügbar')&&!app.includes('bottom-bar-display-settings')&&!app.includes('setBottomBarBehavior'),'Der obsolete Bottom-Bar-Einstellungspunkt muss vollständig entfernt sein.');
 
