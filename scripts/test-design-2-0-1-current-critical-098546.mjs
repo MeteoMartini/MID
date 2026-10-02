@@ -18,7 +18,8 @@ assert.ok(app.includes('currentThreadAxisTicks=currentThreadSeries.map')&&app.in
 assert.ok(app.includes('<small>{hourDisplayClock(tick.hour,w.timezone)}</small>'),'Zeitanker müssen ausschließlich echte volle lokale Uhrzeiten verwenden.');
 assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Taupunkt muss in der Hauptansicht vor relativer Feuchte stehen.');
 assert.ok(app.includes("dryNow=probability<10&&!radarSignalDetected(radar)&&!thunderInfo&&!heavyRainInfo"),'Trockener Nowcast braucht einen kompakten Darstellungszustand.');
-assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss im obligatorischen Design dauerhaft sichtbar gehalten werden.');
+assert.ok(app.includes('data-scroll-hidden="false"'),'Bottom-Bar muss im obligatorischen Design dauerhaft sichtbar gehalten werden.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Scrollabhängiger Bottom-Bar-State darf nicht zurückkehren.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Scroll-Auto-Hide darf nicht in die Bottom-Bar zurückkehren.');
 
 assert.ok(design.includes('className="mid-weather-thread-current"'),'Der markierte Messpunkt muss explizit Jetzt repräsentieren.');
