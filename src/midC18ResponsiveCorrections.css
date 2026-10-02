@@ -60,15 +60,17 @@ html[data-mid-design='next'] .modern-forecast-horizons button[data-active='true'
 }
 @media(min-width:721px) and (max-width:1100px){
  html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row{
-  grid-template-columns:82px 54px minmax(118px,1fr) 106px minmax(150px,1.25fr) 100px!important;
+  grid-template-columns:82px 54px 1fr 112px 1.2fr 128px 90px!important;
   grid-template-areas:
-   "date icon regime temps sky cue"
-   "date icon rain wind track pop"!important;
+   "date icon regime temps sky rain cue"
+   "date icon track track track wind pop"!important;
   align-items:start!important;
-  gap:9px 12px!important;
+  gap:7px 8px!important;
+  grid-column:1!important;
+  width:100%!important;
   min-height:108px!important;
-  overflow:hidden!important;
  }
+ html[data-mid-design='next'] .cockpit-seven-grid{grid-template-columns:1fr!important}
  html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row>*{min-width:0!important}
 }
 
