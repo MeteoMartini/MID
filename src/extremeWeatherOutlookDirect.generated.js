@@ -75,7 +75,7 @@ function dachExtremeAttachThresholdEvidence(assessment,kind){if(!assessment?.sig
 function dachExtremeWindVector(speedKmh,directionDeg){if(!Number.isFinite(speedKmh)||!Number.isFinite(directionDeg))return{u:NaN,v:NaN};const radians=directionDeg*Math.PI/180,speed=speedKmh/3.6;return{u:-speed*Math.sin(radians),v:-speed*Math.cos(radians)}}
 function dachExtremeShear(speed850,direction850,speed500,direction500){const low=dachExtremeWindVector(speed850,direction850),high=dachExtremeWindVector(speed500,direction500);return Number.isFinite(low.u)&&Number.isFinite(high.u)?Math.hypot(high.u-low.u,high.v-low.v):NaN}
 function dachExtremeModelRows(payload,expected,label){const rows=openMeteoRows(payload);if(rows.length!==expected)throw new Error(`${label}: ${rows.length} statt ${expected} Rasterpunkte.`);return rows}
-async function dachExtremeFetchJson(url,label){const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:600,cacheEverything:true}},22000),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(!response.ok||payload?.error)throw new Error(payload?.reason||payload?.error||`${label} HTTP ${response.status}`);return payload}
+async function dachExtremeFetchJson(url,label,cacheTtl=600){const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl,cacheEverything:true}},22000),body=await response.text();let payload={};try{payload=JSON.parse(body)}catch{}if(!response.ok||payload?.error)throw new Error(payload?.reason||payload?.error||`${label} HTTP ${response.status}`);return payload}
 async function dachExtremeFetchBatch(points){
  const latitudes=points.map(point=>point.lat.toFixed(4)).join(','),longitudes=points.map(point=>point.lon.toFixed(4)).join(','),ensembleUrl=new URL(OPEN_METEO_ENSEMBLE),diagnosticUrl=new URL('https://api.open-meteo.com/v1/dwd-icon');
  for(const url of[ensembleUrl,diagnosticUrl]){url.searchParams.set('latitude',latitudes);url.searchParams.set('longitude',longitudes);url.searchParams.set('forecast_hours','49');url.searchParams.set('timezone','GMT');url.searchParams.set('cell_selection','nearest');url.searchParams.set('temperature_unit','celsius');url.searchParams.set('wind_speed_unit','kmh');url.searchParams.set('precipitation_unit','mm')}
@@ -152,10 +152,10 @@ async function dachExtremeOutlookData(profile='full',env={}){
 
 /* Coarse regional potential beyond ICON-D2. No convective/icing inference. */
 async function dachExtendedExtremeOutlookData(){
- const key='extended-v1',cached=dachExtremeOutlookCache.get(key);if(cached&&Date.now()-cached.storedAt<1800000)return cached.data;
+ const key='extended-v2',cached=dachExtremeOutlookCache.get(key);if(cached&&Date.now()-cached.storedAt<6*60*60*1000)return cached.data;
  const grid=dachExtremeGrid('fallback'),points=grid.points.filter(point=>point.row%2===0&&point.col%2===0),byId=new Map();
  for(let i=0;i<points.length;i+=16){const batch=points.slice(i,i+16),url=new URL(OPEN_METEO_ENSEMBLE);for(const[k,v]of Object.entries({latitude:batch.map(p=>p.lat).join(','),longitude:batch.map(p=>p.lon).join(','),models:'dwd_icon_eps_ensemble_mean',hourly:'rain,rain_spread,wind_gusts_10m,wind_gusts_10m_spread,snowfall,snowfall_spread',forecast_hours:'169',timezone:'GMT',wind_speed_unit:'kmh',precipitation_unit:'mm',cell_selection:'nearest'}))url.searchParams.set(k,v);
-  try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ICON-EPS Langfrist'),batch.length,'ICON-EPS');batch.forEach((p,j)=>byId.set(p.id,{...rows[j],hourly:{...rows[j].hourly,precipitation:rows[j].hourly?.rain,precipitation_spread:rows[j].hourly?.rain_spread}}))}catch(error){if(byId.size===0&&i+16>=points.length)throw error}
+  try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ICON-EPS Langfrist',6*60*60),batch.length,'ICON-EPS');batch.forEach((p,j)=>byId.set(p.id,{...rows[j],hourly:{...rows[j].hourly,precipitation:rows[j].hourly?.rain,precipitation_spread:rows[j].hourly?.rain_spread}}))}catch(error){if(byId.size===0&&i+16>=points.length)throw error}
  }
  if(byId.size<points.length*.65)throw new Error('Regionaler Langfristausblick: zu geringe Datenabdeckung.');
  const first=[...byId.values()][0],times=first.hourly?.time||[],startEpoch=Date.parse(`${times[0]}Z`),specs=[{id:'48-72',label:'+48–72 h',startHour:48,endHour:72},{id:'72-96',label:'+72–96 h',startHour:72,endHour:96},{id:'96-120',label:'+96–120 h',startHour:96,endHour:120},{id:'120-144',label:'Tag 6',startHour:120,endHour:144},{id:'144-168',label:'Tag 7',startHour:144,endHour:168}];
@@ -172,4 +172,9 @@ export async function loadDirectDachExtremeOutlook(signal){
  if(signal?.aborted)throw directAbortReason(signal);
  directRequestSignal=signal;
  try{return{...await dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
+}
+export async function loadDirectDachExtendedExtremeOutlook(signal){
+ if(signal?.aborted)throw directAbortReason(signal);
+ directRequestSignal=signal;
+ try{return{...await dachExtendedExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
 }
