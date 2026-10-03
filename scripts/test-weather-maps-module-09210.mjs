@@ -8,6 +8,7 @@ const files=Object.fromEntries(await Promise.all([
  ['data','../src/WeatherMapsData.ts'],
  ['styles','../src/styles.css'],
  ['c14styles','../src/midC14MapWorkspace.css'],
+ ['mapFirstStyles','../src/midC18MapFirstWorkspace.css'],
  ['worker','../worker/metar-proxy.js'],
  ['index','../index.html'],
  ['pkg','../package.json'],
@@ -67,7 +68,8 @@ need('Modellkarten-Produktkopf',files.panel,'<small>{productFamily} · {model.la
 need('Modellkarten-Quellenstatus',files.panel,'<b>{phaseLabel}</b><small>{productSourceBadge}');
 const productControl=files.panel.indexOf('<label><span>Kartenprodukt</span>'),modelControl=files.panel.indexOf('<label><span>Modell</span>');
 if(productControl<0||modelControl<0||productControl>modelControl)failures.push('Kartenprodukt muss vor der Modellauswahl stehen und damit die primäre Bedienentscheidung bilden.');
-for(const token of ['.weather-maps-head','.weather-maps-source','.weather-maps-primary-controls'])need('Bestehende Karten-Hierarchie',files.styles,token);
+for(const token of ['.weather-maps-head','.weather-maps-source','.weather-maps-primary-controls'])need('Bestehende Karten-Hierarchie',files.mapFirstStyles,token);
+need('Modellkarten-Quellenbadge',files.mapFirstStyles,"grid-template-areas:'icon phase' 'icon source'");
 
 need('Worker Allowlist',files.worker,'WEATHER_MAP_LAYER_CONFIG');
 need('Worker WMS',files.worker,"mode==='weather-map-wms'");
