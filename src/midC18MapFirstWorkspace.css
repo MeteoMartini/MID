@@ -17,6 +17,58 @@ html[data-mid-design='next'] .weather-maps-head{
  background:color-mix(in srgb,var(--c8-raised) 58%,transparent)!important;
  box-shadow:none!important;
 }
+html[data-mid-design='next'] .weather-maps-head{
+ display:flex!important;
+ align-items:flex-start!important;
+ justify-content:space-between!important;
+ gap:12px!important;
+}
+html[data-mid-design='next'] .weather-maps-head>span:first-child{
+ display:grid!important;
+ gap:3px!important;
+ min-width:0!important;
+}
+html[data-mid-design='next'] .weather-maps-head>span:first-child>small{
+ color:var(--accent)!important;
+ font-size:9px!important;
+ font-weight:900!important;
+ letter-spacing:.09em!important;
+ text-transform:uppercase!important;
+}
+html[data-mid-design='next'] .weather-maps-head h2{
+ margin:0!important;
+ font-size:clamp(18px,2vw,23px)!important;
+ line-height:1.08!important;
+ letter-spacing:-.025em!important;
+}
+html[data-mid-design='next'] .weather-maps-head p{
+ margin:1px 0 0!important;
+ max-width:68ch!important;
+ color:var(--muted)!important;
+ font-size:10px!important;
+ line-height:1.35!important;
+}
+html[data-mid-design='next'] .weather-maps-source{
+ display:grid!important;
+ grid-template-columns:auto minmax(0,1fr)!important;
+ grid-template-areas:'icon phase' 'icon source'!important;
+ align-items:center!important;
+ gap:2px 7px!important;
+ flex:0 0 auto!important;
+ min-width:min(220px,42%)!important;
+ padding:8px 10px!important;
+ border:1px solid color-mix(in srgb,var(--primary) 25%,var(--c8-line))!important;
+ border-radius:12px!important;
+ background:color-mix(in srgb,var(--primary) 6%,var(--c8-paper))!important;
+ box-shadow:none!important;
+}
+html[data-mid-design='next'] .weather-maps-source>svg{grid-area:icon;color:var(--primary)!important}
+html[data-mid-design='next'] .weather-maps-source>b{grid-area:phase;font-size:10px!important;line-height:1.2!important}
+html[data-mid-design='next'] .weather-maps-source>small{grid-area:source;color:var(--muted)!important;font-size:8px!important;line-height:1.25!important}
+@media(max-width:620px){
+ html[data-mid-design='next'] .weather-maps-head{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+ html[data-mid-design='next'] .weather-maps-source{width:100%!important;min-width:0!important}
+}
 html[data-mid-design='next'] :is(.composite-view-tabs,.weather-maps-primary-controls){
  display:grid!important;
  grid-template-columns:repeat(auto-fit,minmax(132px,1fr))!important;
