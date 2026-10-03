@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.151 · Warnhorizonte
+
+Basis main = mid-stable = 0d9205720c177243a2dec3f4f8169216cc620162 (.150). Bestehende Karten-/Bottom-Bar-Änderungen bleiben erhalten. Gestaffelte Hinweise und separater regionaler ICON-EPS-Ausblick 48–168 h. Details: docs/implementation/MID_WARNING_HORIZONS_0.9.85.151.md.
+
 ## v0.9.85.150 · iOS Bottom-Bar-Verankerung
 
 Basis main = mid-stable = e6386ca6ed8fbab563261e7b78a96ea15e015c17 (.149). Karten-/Einheiten-/Ortswertänderungen bleiben vollständig erhalten. Nur schmale iOS-Flächen erhalten einen rAF-geführten Dokumentanker gegen WebKit-Fixed-Layer-Versatz. Desktop/Tablet behalten die bestehende feste Navigation. Details: docs/implementation/MID_BOTTOM_BAR_ANCHOR_0.9.85.150.md.

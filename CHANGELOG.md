@@ -1,3 +1,9 @@
+# MID v0.9.85.151
+
+- MID-Prognosehinweise im Warnzentrum bis sieben Tage; ab 48 Stunden Vorhinweise, ab Tag 6 Gefahrenausblick.
+- Extremwetter: zusätzliche Auswahl Tag 3–7 mit regionalem ICON-EPS-Potenzial für Regen, Sturm und Schnee.
+- Amtliche Vorabinformationen bleiben kenntlich; fehlende Langfristdaten werden nicht als Entwarnung dargestellt.
+
 # MID v0.9.85.150
 
 - Die mobile Hauptnavigation erhält auf iPhone/iPad eine gesonderte Verankerung am sichtbaren unteren Bildschirmrand, damit sie nach Scroll- und Tastaturänderungen nicht in die Seitenmitte wandert.
