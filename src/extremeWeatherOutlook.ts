@@ -1,5 +1,4 @@
 import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';
-import {loadDirectDachExtremeOutlook} from './extremeWeatherOutlookDirect.generated.js';
 import {fetchWorkerJson} from './workerClient';
 
 export type ExtremeHazardKind='thunderstorm'|'rain'|'wind'|'snow'|'ice';
@@ -118,7 +117,7 @@ export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<Ext
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
  }
  try{
-  const direct=await loadDirectDachExtremeOutlook(signal);throwIfAborted(signal);if(!validOutlook(direct))throw new Error('Der Direktabruf lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
+  const {loadDirectDachExtremeOutlook}=await import('./extremeWeatherOutlookDirect.generated.js'),direct=await loadDirectDachExtremeOutlook(signal);throwIfAborted(signal);if(!validOutlook(direct))throw new Error('Der Direktabruf lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
   const result={...direct,delivery:'browser-direct' as const,fallbackReason:directFallbackReason(workerError,workerSkipped)};writeOutlookCache(result);return result;
  }catch(directError){
   throwIfAborted(signal);const stale=readOutlookCache(OUTLOOK_STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Die aktuellen Datenwege sind vorübergehend nicht erreichbar; der letzte lokal gesicherte Ausblick wird weiter angezeigt.'};

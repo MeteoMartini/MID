@@ -7,7 +7,7 @@ Der in der App sichtbare Fehler wurde gegen den produktiven Worker reproduziert.
 ## Umsetzung
 
 1. **Worker zuerst:** Der reguläre, zentral kontrollierte MID-Datenweg bleibt bevorzugt.
-2. **Browser-Direktpfad:** Scheitert der Worker, führt der Client die bereits kanonisch im Worker definierte `dachExtendedExtremeOutlookData`-Berechnung direkt aus. Der Generator `scripts/build-maintenance-aggregates.mjs` erzeugt den Export reproduzierbar; die neue Resilienzlogik liegt in einem Lazy-Chunk und belastet damit nicht das harte Main-JS-Budget.
+2. **Browser-Direktpfad:** Scheitert der Worker, führt der Client die bereits kanonisch im Worker definierte `dachExtendedExtremeOutlookData`-Berechnung direkt aus. Der Generator `scripts/build-maintenance-aggregates.mjs` erzeugt den Export reproduzierbar; Resilienzlogik und die große kanonische Direktberechnung werden lazy geladen und bleiben damit außerhalb des harten Main-JS-Budgets.
 3. **Persistenter Stale-Fallback:** Vollständige Tag-3–7-Daten werden getrennt gespeichert; 3 Stunden gelten als frisch, bis 24 Stunden dürfen bei einer Störung als ausdrücklich veralteter Stand weiter angezeigt werden.
 4. **Tageslimit merken:** Erkennt MID das zentrale Open-Meteo-Tageslimit, werden weitere aussichtslose Worker-Versuche bis zum nächsten UTC-Tag vermieden.
 5. **Abruflast senken:** Langfrist-Fachcache und der Cloudflare-Upstreamcache für die regionalen ICON-EPS-Mean/Spread-Felder halten nun 6 Stunden statt 30 bzw. 10 Minuten. Das passt zur deutlich langsameren Langfriständerung und reduziert die zentrale Abruflast erheblich.
