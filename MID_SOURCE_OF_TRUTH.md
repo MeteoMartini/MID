@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.152 · MID-C13 Skybar-Intervallkonsistenz
+
+Basis main = mid-stable = d6d7e0e5d5f6fb20a0e3dbaaf2351ed93c1857bc (.151). Der kontinuierliche Profilstreifen verwendet dieselben finalisierten Viertelstunden wie 90 min, statt deren Bewölkung vorher stündlich zu mitteln. Stundenquadrate bleiben aggregiert. Fehlende Kurzfristzustände sind keine Nullwerte. Details: docs/implementation/MID_SKYBAR_INTERVALS_0.9.85.152.md.
+
 ## v0.9.85.151 · Warnhorizonte
 
 Basis main = mid-stable = 0d9205720c177243a2dec3f4f8169216cc620162 (.150). Bestehende Karten-/Bottom-Bar-Änderungen bleiben erhalten. Gestaffelte Hinweise und separater regionaler ICON-EPS-Ausblick 48–168 h. Details: docs/implementation/MID_WARNING_HORIZONS_0.9.85.151.md.
