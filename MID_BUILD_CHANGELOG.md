@@ -1,3 +1,11 @@
+## MID v0.9.85.153 · 2026-10-03 · Warnungsseite und Extremwetter-Langfristpfad
+
+- Verifizierte Basis: `main == mid-stable == 1cceaf812fa1491c687d8552a69762a1d263bdb3` (v0.9.85.152).
+- Warnzentrum: redundanten, großflächigen Warnhorizont-Absatz entfernt; vorhandene Warn-/Hinweisstruktur unverändert.
+- Extremwetter: Range-Router korrigiert (`u.searchParams` statt nicht definiertem `url`); produktive Worker-Aggregate aus den kanonischen Worker-Fragmenten neu erzeugt.
+- Erweiterter Bereich maskiert interne Laufzeitfehler und liefert bei echtem Ausfall nur eine nutzergeeignete Meldung. Abbruchsemantik bleibt erhalten.
+- Neue Regression: `scripts/test-warning-extreme-regression-0985153.mjs`; Schwellen, meteorologische Logik und Warnklassifikation unverändert.
+
 ## MID v0.9.85.152 · 2026-10-03 · MID-C13 Skybar-Intervallkonsistenz
 
 - Basis main = mid-stable = d6d7e0e5d5f6fb20a0e3dbaaf2351ed93c1857bc. Kontinuierliche 24h-Skybar erhält dieselben Viertelstunden wie 90 min; stündliche Diagramme/Quadrate bleiben.
