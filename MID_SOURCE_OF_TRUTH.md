@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.148 · Einheiten und kontinuierliche Kartenfarben
+
+Basis main = mid-stable = e28fdd42a3e68decf4b2671d3cd71751a3e711af (.147). Die parallel veröffentlichten .146/.147-Änderungen an Sonnen-/Mondzeilen, Bergwettertabelle, unterer Navigation und Kartenbereich bleiben erhalten. Der unveröffentlichte Parallelstand e3d9f7ac2567b66bfbd0f769ffc5fa5d415eb5fb ist gezielt abgeglichen; die Navigation bleibt über ein Portal und ihren bisherigen CSS-Namensraum fest am Viewport. Wind-/Böen-Ortswerte, Legenden und PNG/SVG folgen der bestehenden Einstellung über den kanonischen Windformatter. Native numerische Raster und Niederschlagssummen verwenden eine gemeinsam berechnete stufenlose Wertebereich-/Festskala; Animationen bleiben fest skaliert. Wettercodes, Datenlücken und Trockenheit werden nicht numerisch umgefärbt. Details: docs/implementation/MID_MODEL_MAP_UNITS_COLORS_0.9.85.148.md.
+
 ## v0.9.85.145 · MID-C12 Unterscheidbare Prognoseansichten
 
 Basis main = mid-stable = 3951e8ce58239634ed48b4f13e5a58ee23c73c91. Spurenmengen vollständig lesbar, sichtbare Grenzwerte ohne P25/P75-Präfix, kombinierte 7d-Temperaturdarstellung und eigenständige 14d-Ensemble-Hierarchie. Details: docs/implementation/MID_FORECAST_VIEWS_0.9.85.145.md.

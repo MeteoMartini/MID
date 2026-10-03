@@ -3,8 +3,10 @@ import {CloudRain,Download,MapPinned} from 'lucide-react';
 import {HtmlMarker,ImageQuadLayer,MapCenter,MapFitBounds,MidMapLibre,RasterTileLayer} from './MapLibreCore';
 import {WEATHER_MAP_BASEMAPS,type WeatherMapBasemapId} from './weatherMapBasemaps';
 import './weatherMapsTotals.css';
-import {loadTotals,totalsStartAt,TOTALS_COLORS,totalsAt,totalsColor,totalsRaster,type TotalsData} from './precipitationTotals';
+import {loadTotals,totalsStartAt,totalsAt,totalsMapScale,totalsRaster,type TotalsData} from './precipitationTotals';
 import {compactPrecipitationAmount} from './forecastAmountFormat';
+import {mapColorAt,type MapColorMode} from './modelMapColorScale';
+import ModelMapScaleLegend from './ModelMapScaleLegend';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
 import {exportTotals} from './precipitationTotalsExport';
 function stamp(value:string){return new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC'}
@@ -19,8 +21,9 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
  const[selectedFavoriteId,setSelectedFavoriteId]=useState(''),[basemapId,setBasemapId]=useState<WeatherMapBasemapId>('light'),selectedFavorite=sortedFavorites.find(place=>place.id===selectedFavoriteId&&isGermanyLocation(place)),activeBasemapId=controlledBasemap??basemapId,activeBasemap=WEATHER_MAP_BASEMAPS[activeBasemapId];
  const[data,setData]=useState<TotalsData|null>(null),[hours,setHours]=useState(24),[error,setError]=useState(''),[exporting,setExporting]=useState(false),[revision,setRevision]=useState(0);
  useEffect(()=>{const controller=new AbortController();setData(null);setError('');void loadTotals(controller.signal,kind).then(result=>{setData(result);setHours(current=>result.frames.some(frame=>frame.hours===current)?current:result.frames[0].hours)}).catch(reason=>{if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Kartendaten nicht verfügbar.')});return()=>controller.abort()},[revision,kind]);
- const frame=data?.frames.find(item=>item.hours===hours),raster=useMemo(()=>data&&frame?totalsRaster(data,frame):'',[data,frame]);
- const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await exportTotals(data,frame,raster,sortedFavorites,kind)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
+ const[colorMode,setColorMode]=useState<MapColorMode>('field');
+ const frame=data?.frames.find(item=>item.hours===hours),rangeScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'field'):null,[data,frame]),fixedScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'absolute'):null,[data,frame]),colorScale=colorMode==='field'?rangeScale:fixedScale,raster=useMemo(()=>data&&frame&&colorScale?totalsRaster(data,frame,colorScale):'',[data,frame,colorScale]);
+ const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await exportTotals(data,frame,raster,sortedFavorites,kind,colorScale??undefined)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
  const center:[number,number]=selectedFavorite?[selectedFavorite.latitude,selectedFavorite.longitude]:[51.05,10.45],zoom=selectedFavorite?6.8:5.25;
 
 
@@ -43,8 +46,8 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
       <span className="weather-precipitation-data-icon"><CloudRain size={20}/></span>
       <span><strong>Keine verifizierte Summenkarte verfügbar</strong><small>{error||'DWD-Summenraster wird geladen …'}</small></span>
      </div>:null}
-     <div className="weather-precipitation-legend-placeholder">{frame?TOTALS_COLORS.map(([value,color],i)=><span key={value}><i style={{background:color}}/>{value}{i===TOTALS_COLORS.length-1?'+':''}</span>):'Farblegende · mm · erst mit vollständig geprüften Rasterwerten'}</div>
     </div>
+    {colorScale&&rangeScale&&fixedScale?<ModelMapScaleLegend label="Niederschlagssumme" unit="mm" scale={colorScale} range={rangeScale} format={value=>compactPrecipitationAmount(value)} onModeChange={setColorMode}/>:<div className="weather-precipitation-legend-placeholder">Farblegende · mm · erst mit vollständig geprüften Rasterwerten</div>}
     <p className="weather-precipitation-attribution">Kartengrundlage: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap-Mitwirkende</a>, ODbL 1.0. Summen: DWD Open Data · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>, bearbeitet durch MID. {data?.grid||'DWD-Lat/Lon-Raster'}, Ortswerte vom nächsten dargestellten Rasterpunkt. Grenzen und Ortsnamen: Natural Earth (Public Domain), zoomabhängig über dem Modellfeld.</p>
    </section>
    <aside className="weather-precipitation-summary">
@@ -72,7 +75,7 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
      <thead><tr><th scope="col">Ort</th><th scope="col">Summe</th><th scope="col">Datenstatus</th></tr></thead>
      <tbody>{sortedFavorites.length?sortedFavorites.map(place=><tr key={place.id}>
       <th scope="row">{isGermanyLocation(place)?<button type="button" className={place.id===selectedFavoriteId?'selected':''} onClick={()=>setSelectedFavoriteId(current=>current===place.id?'':place.id)}><MapPinned size={14}/>{place.name}</button>:<span className="weather-precipitation-place-outside">{place.name}</span>}</th>
-      <td style={{borderLeft:`4px solid ${data&&frame?totalsColor(totalsAt(data,frame,place.latitude,place.longitude)??0):'transparent'}`}}>{data&&frame&&totalsAt(data,frame,place.latitude,place.longitude)!==null?`${compactPrecipitationAmount(totalsAt(data,frame,place.latitude,place.longitude)!)} mm`:'–'}</td>
+      <td style={{borderLeft:`4px solid ${data&&frame&&colorScale?mapColorAt(colorScale,totalsAt(data,frame,place.latitude,place.longitude)??NaN):'transparent'}`}}>{data&&frame&&totalsAt(data,frame,place.latitude,place.longitude)!==null?`${compactPrecipitationAmount(totalsAt(data,frame,place.latitude,place.longitude)!)} mm`:'–'}</td>
       <td>{data&&frame&&totalsAt(data,frame,place.latitude,place.longitude)!==null?'DWD-Rasterpunkt':isGermanyLocation(place)?'kein verifiziertes Raster':'außerhalb des Kartenausschnitts'}</td>
      </tr>):<tr><td colSpan={3} className="weather-precipitation-no-favorites">Noch keine Favoriten gespeichert.</td></tr>}</tbody>
     </table></div>

@@ -2,7 +2,7 @@ import {lazy,memo,Suspense,useEffect,useState} from 'react';
 import {CloudRain,Layers3} from 'lucide-react';
 import {type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import {readMapWorkspaceView,saveMapWorkspaceView,type MapWorkspaceView} from './mapWorkspaceState';
-import type {RadarNowcast,ThunderstormNowcast} from './weather';
+import type {RadarNowcast,ThunderstormNowcast,WindUnit} from './weather';
 import './MapWorkspace.css';
 
 const LazyRadarPanel=lazy(()=>import('./RadarPanel'));
@@ -20,6 +20,7 @@ type MapWorkspacePanelProps={
  actualLocation:boolean;
  focusMode:boolean;
  favorites:WeatherMapFavoriteLocation[];
+ unit?:WindUnit;
 };
 
 const MAP_VIEWS:{id:MapWorkspaceView;label:string;icon:typeof CloudRain}[]=[
@@ -45,7 +46,7 @@ export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
   </div>
   <div className="map-workspace-view" aria-live="polite" aria-label={viewLabel(view)}>
    {view==='radar'?<Suspense fallback={<LoadingMapPanel/>}><MemoLazyRadarPanel lat={props.lat} lon={props.lon} timezone={props.timezone} analysis={props.analysis} thunder={props.thunder} isDay={props.isDay} actualLocation={props.actualLocation} focusMode={props.focusMode}/></Suspense>:null}
-   {view==='models'?<Suspense fallback={<LoadingMapPanel/>}><LazyWeatherMapsPanel latitude={props.lat} longitude={props.lon} timezone={props.timezone} locationName={props.locationName} favorites={props.favorites} requestedProductId={requestedProductId}/></Suspense>:null}
+   {view==='models'?<Suspense fallback={<LoadingMapPanel/>}><LazyWeatherMapsPanel latitude={props.lat} longitude={props.lon} timezone={props.timezone} locationName={props.locationName} favorites={props.favorites} requestedProductId={requestedProductId} unit={props.unit}/></Suspense>:null}
   </div>
  </section>
 }

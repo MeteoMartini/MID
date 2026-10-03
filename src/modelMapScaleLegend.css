@@ -1,0 +1,20 @@
+/* Lazy-loaded numeric raster legend. UI colors remain app-wide theme tokens. */
+.mid-model-map-legend{min-width:0;display:grid;gap:8px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text)}
+.mid-model-map-legend__header{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.mid-model-map-legend__identity{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0}
+.mid-model-map-legend__title{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.mid-model-map-legend__unit{font-size:10.5px;line-height:1.4;color:var(--muted);overflow-wrap:anywhere}
+.mid-model-map-legend__unit-value{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+.mid-model-map-legend__modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;flex:0 0 220px;min-width:0;padding:3px;border:1px solid var(--border);border-radius:11px;background:var(--s2)}
+.mid-model-map-legend__mode{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px!important;padding:6px 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:11px;font-weight:750;line-height:1.3;white-space:nowrap;touch-action:manipulation;cursor:pointer}
+.mid-model-map-legend__mode[aria-pressed='true']{background:var(--surface);border-color:var(--primary);color:var(--text);box-shadow:inset 0 -2px var(--primary)}
+.mid-model-map-legend__mode:disabled{cursor:default}
+.mid-model-map-legend__mode[aria-pressed='false']:disabled{color:var(--muted);opacity:.8}
+.mid-model-map-legend__mode:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.mid-model-map-legend__gradient{height:12px;min-width:0;border-radius:6px;border:1px solid var(--border);background-size:100% 100%}
+.mid-model-map-legend__ticks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;min-width:0;color:var(--text);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.4}
+.mid-model-map-legend__tick{min-width:0;white-space:nowrap}
+.mid-model-map-legend__tick:nth-child(2){text-align:center}
+.mid-model-map-legend__tick:last-child{text-align:right}
+.mid-model-map-legend__note{margin:0;color:var(--muted);font-size:10.5px;line-height:1.45;overflow-wrap:anywhere}
+@media(max-width:560px){.mid-model-map-legend__header{flex-direction:column;align-items:stretch;gap:8px}.mid-model-map-legend__modes{flex:0 0 auto;width:100%}}
