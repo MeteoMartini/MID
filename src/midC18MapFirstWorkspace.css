@@ -17,8 +17,6 @@ html[data-mid-design='next'] .weather-maps-head{
  background:color-mix(in srgb,var(--c8-raised) 58%,transparent)!important;
  box-shadow:none!important;
 }
-html[data-mid-design='next'] .weather-maps-head>span:first-child>small{color:var(--accent)!important;text-transform:uppercase!important;letter-spacing:.09em!important}
-html[data-mid-design='next'] .weather-maps-source{border-color:color-mix(in srgb,var(--primary) 25%,var(--c8-line))!important;background:color-mix(in srgb,var(--primary) 6%,var(--c8-paper))!important}
 html[data-mid-design='next'] :is(.composite-view-tabs,.weather-maps-primary-controls){
  display:grid!important;
  grid-template-columns:repeat(auto-fit,minmax(132px,1fr))!important;
