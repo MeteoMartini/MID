@@ -15,9 +15,9 @@ for(const token of [
  'const chartStartEpoch=profileNow,chartEndEpoch=profileNow+PROFILE_WINDOW_MS',
  "const profileSkyBarPoints=profileStateSource.filter(point=>point.epoch>=chartStartEpoch&&point.epoch<chartEndEpoch)",
  'profileSkyBarXPositions=profileSkyBarPoints.map(point=>profileXForEpoch(point.epoch))',
- 'const profileSkyBarSegments=detailSkyBarSegments(profileSkyBarPoints,chartDataLeft,chartWidth-(chartDataLeft+chartDataWidth),chartWidth,profileSkyBarY,profileSkyBarXPositions)',
- 'Die Darstellung bleibt durchgehend stündlich und zeigt alle verfügbaren Stundenwerte.',
- "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben unverändert stündlich aufgelöst.':'Die Skybar bleibt unverändert stündlich aufgelöst.'",
+ 'const profileSkyBarSegments=detailSkyBarSegments(profileSkyBarBandPoints,chartDataLeft,chartWidth-(chartDataLeft+chartDataWidth),chartWidth,profileSkyBarY,profileSkyBarBandPoints.map(point=>profileXForEpoch(point.epoch)))',
+ 'Die Diagramme zeigen alle verfügbaren Stundenwerte.',
+ "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben unverändert stündlich aufgelöst.':'Die Skybar behält in der Kurzfrist dieselben Viertelstunden wie die 90-min-Ansicht; danach folgt sie den Stundenintervallen.'",
  'data-mid-skybar="profile"',
  "skybarDisplayMode==='squares'?<SkyBarHourCellsSvg cells={profileSkyBarHourCells}",
  '<SkyBarSegmentsSvg segments={profileSkyBarSegments} keyPrefix="profile"/>'
@@ -108,4 +108,4 @@ function auditRegion(text,insideKeyframes=false){
 auditRegion(css);
 
 assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron bleiben.');
-console.log('MID Design 2.0.1 · Heute/24 h: rolling 24 h, ausschließlich stündliche Skybar/Profilreihe, responsive Instrumentfläche und Classic-Isolation geprüft.');
+console.log('MID Design 2.0.1 · Heute/24 h: rolling 24 h, stündliche Diagramme/Quadrate und intervalltreue kontinuierliche Skybar, responsive Instrumentfläche und Classic-Isolation geprüft.');

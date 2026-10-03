@@ -80,7 +80,7 @@ const SHORT_TERM_HORIZON_MS=24*HOUR_MS;
 const QUARTER_STEP_COUNT=7;
 const NAVIGATION_ICON_BASE_DEGREES=45;
 
-function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
+function finite(value:unknown){if(value===null||value===undefined||String(value).trim()==='')return undefined;const number=Number(value);return Number.isFinite(number)?number:undefined}
 function clampValue(value:number,minimum:number,maximum:number){return Math.min(maximum,Math.max(minimum,value))}
 function observedSkyCode(fallback:number,cloud:number|undefined,lowCloud:number|undefined,visibility:number|undefined,humidity:number|undefined,temperature:number|undefined,dewPoint:number|undefined){
  const total=cloud===null||cloud===undefined||String(cloud).trim()===''?Number.NaN:Number(cloud),low=lowCloud===null||lowCloud===undefined||String(lowCloud).trim()===''?Number.NaN:Number(lowCloud),cover=Number.isFinite(total)?total:low,visibilityState=classifyVisibilityPhenomenon({weatherCode:fallback,visibility,humidity,temperature,dewPoint});

@@ -1,5 +1,9 @@
 # MID – 24-h-Wetterprofil: Story-Axis-Vertrag
 
+## Kontinuierliche Skybar ab v0.9.85.152
+
+Der kontinuierliche Wetterstreifen nutzt die finalisierte Kurzfristreihe mit ihren tatsächlichen Viertelstundenintervallen und derselben Klassifikation wie die 90-min-Skybar. Danach folgen die verfügbaren Stundenintervalle. Keine vorherige Stundenmittelung der Bewölkung für diesen Streifen: sie kann über eine Farbschwelle hinweg einen abweichenden Himmelszustand erzeugen. Die gemeinsame Zeitabbildung bleibt verbindlich. Kurven, übrige Profilspuren und optionale Stundenquadrate bleiben stündlich. Dieser Abschnitt ersetzt ältere Aussagen einer ausschließlich stündlichen kontinuierlichen Skybar; die Stundenquadrat-Regeln bleiben bestehen.
+
 ## Zweck
 
 Das 24-h-Wetterprofil erzählt den gesamten Verlauf auf genau einer gemeinsamen

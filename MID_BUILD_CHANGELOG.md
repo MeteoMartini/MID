@@ -1,3 +1,9 @@
+## MID v0.9.85.152 · 2026-10-03 · MID-C13 Skybar-Intervallkonsistenz
+
+- Basis main = mid-stable = d6d7e0e5d5f6fb20a0e3dbaaf2351ed93c1857bc. Kontinuierliche 24h-Skybar erhält dieselben Viertelstunden wie 90 min; stündliche Diagramme/Quadrate bleiben.
+- Null-/Leerzustände sind keine Nullwerte. Ausführbare Regression prüft Farben/Dicken und echte Nullwerte; historische Stundentokenassertion an explizit geänderten Streifenvertrag angepasst.
+- Replit-Bestandsabfrage Timeout; kein ungeprüfter Import. Keine Änderungen an Schwellen, Kalibrierung, CI oder Worker-Fachlogik.
+
 ## MID v0.9.85.151 · 2026-10-03 · Gestaffelte Warnhorizonte und regionaler Langfristausblick
 
 - Basis main = mid-stable = 0d9205720c177243a2dec3f4f8169216cc620162 (.150); keine Überschneidung mit offener Agent-PR.

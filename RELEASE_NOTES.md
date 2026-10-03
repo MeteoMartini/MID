@@ -1,5 +1,5 @@
-# MID v0.9.85.151
+# MID v0.9.85.152
 
-- Gestaffelte MID-Prognosehinweise bis sieben Tage.
-- Regionaler Extremwetterausblick für Tag 3–7, getrennt von der detaillierten Kurzfrist.
-- Amtliche Vorabinformationen und unsichere Langfristsignale verständlich eingeordnet.
+- Der Wetterstreifen im 24-h-Profil behält die Viertelstunden der Kurzfrist bei, damit wechselnde Bewölkung und Sonne zur 90-min-Ansicht passen.
+- Fehlende Kurzfristwerte fallen auf die Stundenprognose zurück und werden nicht mehr als Nullwerte behandelt.
+- Die optionalen Stundenquadrate behalten ihre stündliche Auflösung.
