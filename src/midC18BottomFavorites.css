@@ -8,8 +8,8 @@
     padding-bottom:var(--mid18-mobile-nav-reserve)!important;
     scroll-padding-bottom:var(--mid18-mobile-nav-reserve)!important;
   }
-  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs,
-  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+  .mid-bottom-nav-fixed,
+  .mid-bottom-nav-fixed.is-scroll-hidden{
     position:fixed!important;
     grid-template-columns:repeat(5,minmax(0,1fr))!important;
     right:max(8px,var(--mid-safe-right))!important;
@@ -34,14 +34,14 @@
     contain:layout paint;
     translate:none!important;
   }
-  .navigation-bottom-tabs .dashboard-bottom-tabs button{
+  .mid-bottom-nav-fixed button{
     min-height:48px!important;
     min-width:0!important;
     padding:4px 2px!important;
     border-radius:12px!important;
     touch-action:manipulation;
   }
-  .navigation-bottom-tabs .dashboard-bottom-tabs button span{
+  .mid-bottom-nav-fixed button span{
     white-space:nowrap!important;
     overflow:visible!important;
     text-overflow:clip!important;
@@ -106,10 +106,10 @@
 }
 @media(max-width:850px) and (orientation:landscape){
   :root{--mid18-mobile-nav-reserve:calc(64px + var(--mid-safe-bottom))}
-  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs,
-  .navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs.is-scroll-hidden{
+  .mid-bottom-nav-fixed,
+  .mid-bottom-nav-fixed.is-scroll-hidden{
     bottom:max(4px,var(--mid-safe-bottom))!important;
     padding:3px 5px!important;
   }
-  .navigation-bottom-tabs .dashboard-bottom-tabs button{min-height:44px!important}
+  .mid-bottom-nav-fixed button{min-height:44px!important}
 }
