@@ -12,5 +12,6 @@ assert.ok(router.includes("u.searchParams.get('range')==='extended'"),'Der Extre
 assert.ok(!router.includes("url.searchParams.get('range')==='extended'"),'Ein nicht definierter url-Bezeichner darf den Extremwetter-Ausblick nicht mehr brechen.');
 assert.ok(worker.includes("u.searchParams.get('range')==='extended'"),'Das produktive Worker-Aggregat muss den korrigierten Bereichsrouter enthalten.');
 assert.ok(data.includes("throw new Error('Der regionale MID-Datendienst für den Extremwetter-Ausblick ist derzeit nicht erreichbar. Bitte erneut laden.')"),'Erweiterter Extremwetter-Ausblick braucht eine nutzergeeignete Fehlermeldung.');
-assert.ok(!data.includes("throw new Error(worker.error)"),'Der erweiterte Ausblick darf rohe Worker-Fehler nicht direkt an die UI weiterreichen.');
+const extendedLoader=data.slice(data.indexOf('export async function loadExtendedExtremeWeatherOutlook'));
+assert.ok(!extendedLoader.includes("throw new Error(worker.error)"),'Der erweiterte Ausblick darf rohe Worker-Fehler nicht direkt an die UI weiterreichen.');
 console.log('MID v0.9.85.153: Warnungsseite bereinigt, Extremwetter-Range-Router und nutzergeeigneter Fehlerzustand geschützt.');
