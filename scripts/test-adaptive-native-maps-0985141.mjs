@@ -33,6 +33,7 @@ try{
  console.log('MID141: independent parameter ranges, zero/trace amounts, non-overlapping observations, missing-cell semantics, native raster/time integrity and SHA256 verified.');
 }finally{rmSync(temp,{recursive:true,force:true})}
 await import('./verify-model-map-presentation-0985148.mjs');
+await import('./verify-model-map-point-0985149.mjs');
 if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){
  await import('./verify-native-model-browser-0985141.mjs');
  await import('./verify-compact-ensemble-browser-0985143.mjs');

@@ -1,6 +1,8 @@
 import {decodeNativeMapGzip} from './nativeMapCompression';
 import {mercatorY,totalsColor} from './precipitationTotals';
-import {createMapColorScale,mapColorAt,type MapColorMode,type MapColorScale} from './modelMapColorScale';
+import {createMapColorScale,roundMapScale,mapColorAt,type MapColorMode,type MapColorScale} from './modelMapColorScale';
+import {modelMapDisplayFactor} from './modelMapUnits';
+import type {WindUnit} from './weather';
 import {ecmwfTemperatureColor} from './temperatureTone';
 export type NativeFieldKind='temperature'|'pressure'|'wind'|'gust'|'cloud'|'thetae'|'sigwx'|'precipitation';
 export type NativeField={schema:'mid.icon-d2.field.v1';run:string;time:string;kind:NativeFieldKind;unit:string;scale:number;lats:number[];lons:number[];values:number[];isobars:{level:number;paths:number[][][]}[]};
@@ -17,9 +19,9 @@ export const NATIVE_LEGENDS:Record<NativeFieldKind,[number,string][]>={
  precipitation:[[.1,'#b9ddfc'],[1,'#83bef5'],[3,'#429be9'],[5,'#197ecc'],[10,'#145a91'],[15,'#099d45'],[20,'#19c32c'],[30,'#b4ee13'],[40,'#ffed18'],[50,'#ffbd48'],[70,'#fb5140'],[100,'#b9183c']]
 };
 export function nativeColor(kind:NativeFieldKind,value:number){if(kind==='precipitation')return totalsColor(value);let color=NATIVE_LEGENDS[kind][0][1];for(const [threshold,next] of NATIVE_LEGENDS[kind]){if(value<threshold)break;color=next}return color}
-export function nativeMapScale(data:NativeField,mode:MapColorMode){
+export function nativeMapScale(data:NativeField,mode:MapColorMode,unit:WindUnit='kmh'){
  const values={*[Symbol.iterator](){for(const value of data.values)yield value*data.scale}};
- return createMapColorScale(NATIVE_LEGENDS[data.kind],values,mode,{categorical:data.kind==='sigwx',transparentBelow:data.kind==='precipitation'?.1:undefined,nonnegative:['wind','gust','cloud','precipitation'].includes(data.kind),minimumSpan:data.kind==='precipitation'?.1:1});
+ return roundMapScale(createMapColorScale(NATIVE_LEGENDS[data.kind],values,mode,{categorical:data.kind==='sigwx',transparentBelow:data.kind==='precipitation'?.1:undefined,nonnegative:['wind','gust','cloud','precipitation'].includes(data.kind),minimumSpan:data.kind==='precipitation'?.1:1}),modelMapDisplayFactor(data.kind,unit),data.kind==='precipitation'?.1:1);
 }
 export function nativeAt(data:NativeField,lat:number,lon:number){if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<data.lats[0]||lat>data.lats.at(-1)!||lon<data.lons[0]||lon>data.lons.at(-1)!)return null;const row=Math.round((lat-data.lats[0])/(data.lats[1]-data.lats[0])),col=Math.round((lon-data.lons[0])/(data.lons[1]-data.lons[0]));return data.values[row*data.lons.length+col]*data.scale}
 export function validateNativeField(raw:unknown,index:NativeIndex,ref:NativeFrameRef,kind:NativeFieldKind):NativeField{

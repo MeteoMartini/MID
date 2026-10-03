@@ -1,3 +1,7 @@
+# v0.9.85.149 · Runde Kartenskalen und temporäre Ortswerte
+
+Verifizierte .148-Basis c578a947e02a6d06638870d5d762c16ecb9be8bf. Runde Grenzen in der ausgewählten Einheit, gemeinsam für Raster/Legende/Export. Temporäre geografische Portal-Abfrage schließt nach sechs Sekunden oder bewusster Außen-/Karteninteraktion; keine dauerhaften Ortswert-Popups. Favoritenzustand und Exportfortschritt vereinheitlicht. Details: docs/implementation/MID_MODEL_MAP_PROBE_0.9.85.149.md.
+
 ## v0.9.85.148 · MID-C12 Modellkarten-Einheiten und Wertebereich
 
 - Verifizierte Ausgangsbasis .147: main = mid-stable = e28fdd42a3e68decf4b2671d3cd71751a3e711af. Paralleländerungen .146/.147 erhalten; Abhängigkeiten, Budgets, CI- und Datenpublikationsregeln unverändert.

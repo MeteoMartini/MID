@@ -2,6 +2,10 @@ import {wind,type WindUnit} from './weather';
 import {formatDecimal} from './format';
 import {compactPrecipitationAmount} from './forecastAmountFormat';
 import type {NativeFieldKind} from './nativeModelFields';
+// Same physical conversions as canonical wind(), before display rounding.
+export function modelMapDisplayFactor(kind:NativeFieldKind,unit:WindUnit){
+ return kind==='wind'||kind==='gust'?{kn:1/1.852,kmh:1,ms:.514444/1.852,mph:1.15078/1.852}[unit]:1;
+}
 export function modelMapUnit(kind:NativeFieldKind,rawUnit:string,unit:WindUnit){
  return kind==='wind'||kind==='gust'?wind(0,unit).split(' ').at(-1)!:rawUnit;
 }

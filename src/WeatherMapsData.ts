@@ -10,7 +10,7 @@ export type WeatherMapProduct={
  id:string;modelId:WeatherMapModelId;category:WeatherMapCategory;label:string;detail:string;layer:string;
  nativeKind?:import('./nativeModelFields').NativeFieldKind;source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
 };
-export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];provider?:string;checkedAt?:string;error?:string};
+export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];pointUnit?:string;provider?:string;checkedAt?:string;error?:string};
 export type WeatherMapGridContour={level:number;paths:[number,number][][]};
 export type WeatherMapGridFrame={time:string;thetaE:number[];temperature2m?:number[];relativeHumidity2m?:number[];weatherCode:number[];precipitation:number[];snowfall?:number[];isobars:WeatherMapGridContour[]};
 export type WeatherMapGridData={modelId:WeatherMapModelId;modelLabel:string;times:string[];referenceTime?:string;lats:number[];lons:number[];frames:WeatherMapGridFrame[];provider?:string;checkedAt?:string;error?:string};
@@ -94,6 +94,12 @@ export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.
 export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MODELS.find(model=>model.id===modelId)??WEATHER_MAP_MODELS[0]}
 export function weatherMapWmsProxy(){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider:'dwd'}).toString()}
 export async function loadWeatherMapMetadata(layer:string,signal?:AbortSignal){return fetchWorkerJson<WeatherMapMetadata>('weather-map-metadata',{layer},{purpose:'radar',signal,timeoutMs:12000,maxAgeMs:5*60000,staleIfErrorMs:30*60000,cacheKey:layer})}
+export async function loadWeatherMapPoint(layer:string,latitude:number,longitude:number,time:string,referenceTime:string,elevation:number|undefined,unit:string,signal:AbortSignal){
+ const data=await fetchWorkerJson<{error?:string;available:boolean;value:number|null;unit?:string;layer?:string;time?:string;referenceTime?:string;latitude?:number;longitude?:number;elevation?:number}>('weather-map-point',{layer,lat:latitude,lon:longitude,time,reference_time:referenceTime,elevation},{purpose:'radar',signal,timeoutMs:9000,maxAgeMs:0,staleIfErrorMs:0});
+ if(!data.available)return null;
+ if(typeof data.value!=='number'||!Number.isFinite(data.value)||data.unit!==unit||data.layer!==layer||data.latitude!==latitude||data.longitude!==longitude||Date.parse(data.time||'')!==Date.parse(time)||Date.parse(data.referenceTime||'')!==Date.parse(referenceTime)||data.elevation!==elevation)throw new Error('Punktwert passt nicht zur Karte.');
+ return data.value;
+}
 // A rolling accumulation cannot exist before its full window within the selected run.
 export function weatherMapAvailableTimes(product:WeatherMapProduct,metadata:WeatherMapMetadata|null){
  const times=metadata?.times??[],reference=Date.parse(metadata?.referenceTimes?.at(-1)??''),window=Number(product.id.match(/rain-(\d+)h/)?.[1]??0);

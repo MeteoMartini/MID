@@ -12,8 +12,8 @@
 .mid-model-map-legend__mode[aria-pressed='false']:disabled{color:var(--muted);opacity:.8}
 .mid-model-map-legend__mode:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .mid-model-map-legend__gradient{height:12px;min-width:0;border-radius:6px;border:1px solid var(--border);background-size:100% 100%}
-.mid-model-map-legend__ticks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;min-width:0;color:var(--text);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.4}
-.mid-model-map-legend__tick{min-width:0;white-space:nowrap}
+.mid-model-map-legend__ticks{position:relative;min-height:16px;min-width:0;color:var(--text);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.4}
+.mid-model-map-legend__tick{position:absolute;min-width:0;white-space:nowrap}
 .mid-model-map-legend__tick:nth-child(2){text-align:center}
 .mid-model-map-legend__tick:last-child{text-align:right}
 .mid-model-map-legend__note{margin:0;color:var(--muted);font-size:10.5px;line-height:1.45;overflow-wrap:anywhere}

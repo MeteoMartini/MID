@@ -1,6 +1,7 @@
-# MID v0.9.85.148
+# MID v0.9.85.149
 
-- Modellkarten verwenden die gewählte Windeinheit konsistent in Ortswerten, Farblegenden und PNG-/SVG-Exporten.
-- Direkte DWD-Karten und Niederschlagssummen erhalten kontinuierliche Farbverläufe und eine an den tatsächlichen Wertebereich angepasste Kontrastdarstellung.
-- Eine feste Vergleichsskala bleibt auswählbar und wird für Animationen verwendet; Wettercodes sowie fehlende und trockene Rasterpunkte behalten ihre eigene Bedeutung.
-- Die parallel vorbereitete Navigation bleibt auch innerhalb transformierter Dashboard-Flächen fest am Viewport; Smartphone-, Tablet- und Desktop-Stile bleiben erhalten.
+- Beide Karten-Farbskalen verwenden gut lesbare, nach außen gerundete Grenzen in der ausgewählten Einheit; Raster, Legende und Export bleiben deckungsgleich.
+- Antippen einer direkten Modell- oder Niederschlagskarte zeigt den geprüften Rasterwert kurzzeitig an. Die Anzeige schließt automatisch, beim Bewegen der Karte, per Außenklick, Escape oder Schließen.
+- Unterstützte DWD-WMS-Karten liefern geprüfte Ortswerte für den gewählten Termin, Modelllauf und die gewählte Höhe; nicht verfügbare Werte werden nicht geschätzt.
+- Eine zusätzliche Mittelpunkt-Abfrage ermöglicht die Bedienung per Tastatur; Datenlücken bleiben ausdrücklich ohne Wert.
+- Favoriten-Auswahl und Export-Rückmeldung sind in den Kartenansichten vereinheitlicht.
