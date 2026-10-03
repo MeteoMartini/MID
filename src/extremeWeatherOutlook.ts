@@ -159,5 +159,7 @@ export function strongestExtremeRegions(data:ExtremeWeatherOutlook,periodId:stri
 }
 
 export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
- const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:1800000,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v1'});if(!validOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht verfügbar.');return data;
+ throwIfAborted(signal);
+ try{const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:1800000,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v1'});if(!validOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht verfügbar.');return data}
+ catch(error){throwIfAborted(signal);void error;throw new Error('Der regionale MID-Datendienst für den Extremwetter-Ausblick ist derzeit nicht erreichbar. Bitte erneut laden.')}
 }
