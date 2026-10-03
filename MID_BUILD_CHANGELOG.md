@@ -1,3 +1,7 @@
+# v0.9.85.150 · iOS Bottom-Bar-Verankerung
+
+Aus veröffentlichter .149, e6386ca6ed8fbab563261e7b78a96ea15e015c17. Narrow-iOS-Dokumentanker hält die bestehende Body-Portal-Navigation am sichtbaren unteren Rand; stale VisualViewport.offsetTop wird geometrisch begrenzt. Safe-Area und Desktop-/Tablet-Regeln unverändert. Browsermatrix ergänzt echten Bottom-Gap sowie Scroll-/Resize-/Keyboard-Rückkehr. Keine meteorologische Logik oder empirische Kalibrierung verändert. Details: docs/implementation/MID_BOTTOM_BAR_ANCHOR_0.9.85.150.md.
+
 # v0.9.85.149 · Runde Kartenskalen und temporäre Ortswerte
 
 Verifizierte .148-Basis c578a947e02a6d06638870d5d762c16ecb9be8bf. Runde Grenzen in der ausgewählten Einheit, gemeinsam für Raster/Legende/Export. Temporäre geografische Portal-Abfrage schließt nach sechs Sekunden oder bewusster Außen-/Karteninteraktion; keine dauerhaften Ortswert-Popups. Favoritenzustand und Exportfortschritt vereinheitlicht. Details: docs/implementation/MID_MODEL_MAP_PROBE_0.9.85.149.md.

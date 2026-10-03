@@ -1,7 +1,5 @@
-# MID v0.9.85.149
+# MID v0.9.85.150
 
-- Beide Karten-Farbskalen verwenden gut lesbare, nach außen gerundete Grenzen in der ausgewählten Einheit; Raster, Legende und Export bleiben deckungsgleich.
-- Antippen einer direkten Modell- oder Niederschlagskarte zeigt den geprüften Rasterwert kurzzeitig an. Die Anzeige schließt automatisch, beim Bewegen der Karte, per Außenklick, Escape oder Schließen.
-- Unterstützte DWD-WMS-Karten liefern geprüfte Ortswerte für den gewählten Termin, Modelllauf und die gewählte Höhe; nicht verfügbare Werte werden nicht geschätzt.
-- Eine zusätzliche Mittelpunkt-Abfrage ermöglicht die Bedienung per Tastatur; Datenlücken bleiben ausdrücklich ohne Wert.
-- Favoriten-Auswahl und Export-Rückmeldung sind in den Kartenansichten vereinheitlicht.
+- Die mobile Hauptnavigation erhält auf iPhone/iPad eine gesonderte Verankerung am sichtbaren unteren Bildschirmrand, damit sie nach Scroll- und Tastaturänderungen nicht in die Seitenmitte wandert.
+- Safe-Area-Abstand, fünf Navigationstasten und die bisherige Tablet-/Desktop-Navigation bleiben erhalten.
+- Browserprüfungen kontrollieren zusätzlich den tatsächlichen unteren Rand, Scroll-Rückkehr, Größenänderungen und veraltete iOS-Viewport-Offsets.
