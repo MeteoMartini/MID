@@ -1,6 +1,6 @@
 # MID – verbindlicher Parameter-Farbvertrag
 
-Stand: v0.9.84.35
+Stand: v0.9.85.148
 
 Dieser Vertrag ist appweit verbindlich. Er gilt für Browser/PWA und den gemeinsamen iOS-/Capacitor-Fachkern, auf Desktop, Tablet und Smartphone sowie im Hoch- und Querformat. Ein meteorologischer Parameter behält in Karten, Diagrammen, Tageswerten, Legenden, Tooltips, Selektoren und kompakten Übersichten dieselbe visuelle Grundidentität.
 
@@ -80,3 +80,13 @@ Required Regression: `scripts/test-seven-day-ecmwf-hourly-09781.mjs`.
 - Die gestrichelte Niederschlagswahrscheinlichkeitskurve bleibt unabhängig von der Niederschlagsphase in `--param-precipitation`, damit Wahrscheinlichkeit und beobachtete/erwartete Phase nicht miteinander verwechselt werden.
 
 Required Regression: `scripts/test-day-precipitation-color-contract-098435.mjs`.
+
+## Zusatzvertrag v0.9.85.148 – quantitative Rasterkarten
+
+- Native DWD-Modellfelder und Niederschlagssummen dürfen als ausdrücklich beschriftete **relative Farbskala (Wertebereich)** ihre vorhandenen zentralen Paletten kontinuierlich über die gültigen Werte des vollständigen dargestellten Rasterfelds verteilen. Keine Quantilabschneidung, keine künstlichen Unterschiede bei konstanten Feldern. Dies ist keine Warnstufencodierung und ändert keine Parameterfarben in Prognosen oder Diagrammen.
+- **Feste Skala** behält die absoluten Wert-Farb-Anker; Temperatur verwendet dafür die kanonische ECMWF-inspirierte Temperaturskala. Animationen verwenden verbindlich die feste Skala, damit gleiche Farben zwischen Terminen gleiche Werte bedeuten.
+- Raster, sichtbare Legende und PNG-/SVG-Export verwenden dieselbe Skala und dieselbe kontinuierliche sRGB-Interpolation. Eine Änderung der ausgewählten Windeinheit ändert nur die Zahlen und Beschriftungen, nicht die Feldwerte oder deren Farben.
+- Kategoriale Wettercodes bleiben diskret. Trockene Niederschlagszellen bleiben transparent; fehlende Beobachtungszellen bleiben grau und dürfen weder den Wertebereich beeinflussen noch als trocken erscheinen.
+- Originale WMS-Bilder behalten ihre Anbieterpalette, sofern keine verifizierten numerischen Rasterwerte vorliegen. Meteorologische Windfiedern behalten ihre standardisierte Symbolbedeutung; die erklärenden Zahlen folgen der gewählten Windeinheit.
+
+Required Regression: `scripts/test-adaptive-native-maps-0985141.mjs` einschließlich der eingebundenen Einheiten-/Skalen- und Browserprüfung.

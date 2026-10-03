@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url),ts=require('typescript-strada');
+import {build} from 'esbuild';
 const source=await readFile(new URL('../src/precipitationTotals.ts',import.meta.url),'utf8');
-const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+// The production module now imports the shared map scale. Bundle dependencies
+// instead of single-file transpiling into an unresolvable data: URL.
+const compiled=(await build({entryPoints:['src/precipitationTotals.ts'],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'})).outputFiles[0].text;
 const {validateTotals,totalsAt,totalsColor,loadTotals}=await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
 function fixture(){const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString();return {schema:'mid.icon-d2.totals.v1',run,scale:.1,lats:[47,51.1,55.2],lons:[5.5,10.55,15.6],frames:[{hours:24,validTo:new Date(Date.parse(run)+86400000).toISOString(),maximum:12,values:[0,1,10,20,120,40,50,60,70]}]}}
 const data=validateTotals(fixture());assert.equal(totalsAt(data,data.frames[0],51.11,10.56),12);assert.equal(totalsAt(data,data.frames[0],60,10),null);assert.equal(totalsColor(12),'#145a91');assert.equal(totalsColor(0),'transparent');assert.ok(source.includes('mid_totals=${Date.now()}')&&source.includes("cache:'no-store'"),'Manifest refresh must avoid stale browser/CDN selection.');assert.equal(data.frames.find(f=>f.hours===48),undefined);
