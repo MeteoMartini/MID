@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.153",
+  "releaseVersion": "0.9.85.154",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -319,6 +319,7 @@
     "scripts/test-extreme-outlook-area-rendering-09662.mjs",
     "scripts/test-extreme-outlook-compact-legend-096610.mjs",
     "scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs",
+    "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "scripts/test-extreme-outlook-field-contours-09666.mjs",
     "scripts/test-extreme-outlook-geodata-096614.mjs",
     "scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs",
@@ -1224,6 +1225,7 @@
     "scripts/test-extreme-outlook-area-rendering-09662.mjs",
     "scripts/test-extreme-outlook-compact-legend-096610.mjs",
     "scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs",
+    "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "scripts/test-extreme-outlook-field-contours-09666.mjs",
     "scripts/test-extreme-outlook-geodata-096614.mjs",
     "scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs",
@@ -2581,7 +2583,10 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
+    "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
+    "src/extremeWeatherOutlookExtendedFallback.ts"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3099,7 +3104,9 @@
     "MID_TEST_REPORT_0.9.84.26.md",
     "MID_TEST_REPORT_0.9.84.81.md",
     "MID_TEST_REPORT_0.9.84.89.md",
-    "MID_RUC_PARAMETER_AUDIT_0.9.84.91.md"
+    "MID_RUC_PARAMETER_AUDIT_0.9.84.91.md",
+    "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
+    "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3145,7 +3152,9 @@
     "MID_TEST_REPORT_0.9.84.0.md",
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
     "MID_TEST_REPORT_0.9.84.81.md",
-    "MID_TEST_REPORT_0.9.84.89.md"
+    "MID_TEST_REPORT_0.9.84.89.md",
+    "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
+    "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3163,6 +3172,7 @@
     "scripts/test-ensemble-deadline-watchdog-097835.mjs",
     "scripts/test-ensemble-fast-availability-097836.mjs",
     "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
@@ -3222,8 +3232,8 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.153",
-  "updatedAt": "2026-10-03T15:25:00.000Z",
+  "version": "0.9.85.154",
+  "updatedAt": "2026-10-03T16:24:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",
@@ -3356,7 +3366,8 @@
     "docs/implementation/MID_RADAR_UTCI_CONSISTENCY_0.9.85.138.md",
     "docs/implementation/MID_RESPONSIVE_SPACING_0.9.85.146.md",
     "docs/implementation/MID_BOTTOM_BAR_MODEL_MAPS_0.9.85.147.md",
-    "docs/implementation/MID_WARNING_EXTREME_FIX_0.9.85.153.md"
+    "docs/implementation/MID_WARNING_EXTREME_FIX_0.9.85.153.md",
+    "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

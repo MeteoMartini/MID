@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.153",
+  "version": "0.9.85.154",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -520,7 +520,8 @@
     "test:security-pollen-maintenance": "node scripts/test-security-pollen-maintenance-0985128.mjs",
     "test:pollen-compact-dwd-levels": "node scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "test:health-settings-primary-navigation": "node scripts/test-health-settings-primary-navigation-0985130.mjs",
-    "test:weekly-uncertainty-trend": "node scripts/test-weekly-uncertainty-trend-0985144.mjs"
+    "test:weekly-uncertainty-trend": "node scripts/test-weekly-uncertainty-trend-0985144.mjs",
+    "test:extreme-outlook-extended-resilience": "node scripts/test-extreme-outlook-extended-resilience-0985154.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

@@ -1,5 +1,4 @@
 import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';
-import {loadDirectDachExtremeOutlook} from './extremeWeatherOutlookDirect.generated.js';
 import {fetchWorkerJson} from './workerClient';
 
 export type ExtremeHazardKind='thunderstorm'|'rain'|'wind'|'snow'|'ice';
@@ -118,7 +117,7 @@ export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<Ext
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
  }
  try{
-  const direct=await loadDirectDachExtremeOutlook(signal);throwIfAborted(signal);if(!validOutlook(direct))throw new Error('Der Direktabruf lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
+  const {loadDirectDachExtremeOutlook}=await import('./extremeWeatherOutlookDirect.generated.js'),direct=await loadDirectDachExtremeOutlook(signal);throwIfAborted(signal);if(!validOutlook(direct))throw new Error('Der Direktabruf lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
   const result={...direct,delivery:'browser-direct' as const,fallbackReason:directFallbackReason(workerError,workerSkipped)};writeOutlookCache(result);return result;
  }catch(directError){
   throwIfAborted(signal);const stale=readOutlookCache(OUTLOOK_STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Die aktuellen Datenwege sind vorübergehend nicht erreichbar; der letzte lokal gesicherte Ausblick wird weiter angezeigt.'};
@@ -159,7 +158,5 @@ export function strongestExtremeRegions(data:ExtremeWeatherOutlook,periodId:stri
 }
 
 export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
- throwIfAborted(signal);
- try{const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:1800000,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v1'});if(!validOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht verfügbar.');return data}
- catch(error){throwIfAborted(signal);void error;throw new Error('Der regionale MID-Datendienst für den Extremwetter-Ausblick ist derzeit nicht erreichbar. Bitte erneut laden.')}
+ return (await import('./extremeWeatherOutlookExtendedFallback')).loadExtendedExtremeWeatherOutlookFallback(signal)
 }

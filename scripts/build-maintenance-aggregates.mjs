@@ -32,6 +32,11 @@ export async function loadDirectDachExtremeOutlook(signal){
  directRequestSignal=signal;
  try{return{...await dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
 }
+export async function loadDirectDachExtendedExtremeOutlook(signal){
+ if(signal?.aborted)throw directAbortReason(signal);
+ directRequestSignal=signal;
+ try{return{...await dachExtendedExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
+}
 `;
 const directModule=directPrelude+extremeOutlookSource+directEpilogue;
 await writeFile(new URL('src/extremeWeatherOutlookDirect.generated.js',root),directModule);
