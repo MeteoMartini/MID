@@ -31,7 +31,7 @@ const assertions=[
   [app.includes('precipitationPhaseColor(parts.type)'),'Die Tagesansicht nutzt die Niederschlagsphasenfarbe nicht.'],
   [app.includes('className={`detail-precip-bar detail-precip-${type}`}'),'Die Tagesansicht versieht die Niederschlagsbalken nicht mit dem gemeinsamen Detailvertrag.'],
   [forecast.includes('function curveRainBarStyle(hour:Hour,amount:number):CSSProperties'),'Die Niederschlagsbalken-Logik im 7-Tage-Kurvenüberblick fehlt.'],
-  [forecast.includes('const type=precipitationParts(hour).type,base=precipitationPhaseColor(type)'), 'Die 7-Tage-Niederschlagsfarbe muss aus precipitationParts(hour).type statt aus dominantPrecipitationForm(hour) abgeleitet werden.'],
+  [forecast.includes('const base=precipitationColor(hour)'), 'Die 7-Tage-Niederschlagsfarbe muss den gemeinsamen plausibilisierten 24h-Phasenfarbhelfer verwenden.'],
   [!forecast.includes('dominantPrecipitationForm(hour)'), 'dominantPrecipitationForm darf nicht mit einer einzelnen Hour aufgerufen werden.'],
   [forecast.includes("return{'--curve-rain-fill':base,'--curve-rain-stroke':base,opacity:.34+Math.max(intensity,probability/100)*.64} as CSSProperties"), 'CSS-Custom-Properties der Niederschlagsbalken müssen als CSSProperties typisiert werden.'],
   [forecast.includes('className="cockpit-header forecast-entry-head forecast-entry-head-seven-day"'),'Das Prognose-Cockpit nutzt nicht den gemeinsamen Headerstil.'],

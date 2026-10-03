@@ -1,5 +1,6 @@
-# MID v0.9.85.155
+# MID v0.9.85.156
 
-- Der Extremwetter-Ausblick „Vorhinweise · Tag 3–7“ wertet jetzt die tatsächlich verfügbaren ICON-EPS-Ensemblemitglieder aus. Leere Streuungsfelder blockieren den gesamten Ausblick nicht mehr.
-- Regen und Schnee bleiben über vollständige Tagesfenster auswertbar. Böen werden ausschließlich für Zeiträume mit vollständigen Modelldaten bewertet; fehlende Böenwerte erscheinen ausdrücklich als Datenlücke.
-- Die Änderungen aus den parallel veröffentlichten Versionen .153 und .154 bleiben erhalten.
+- Vorhinweise bleiben auf Tag 3–7 begrenzt. Böen erhalten hinter dem kürzeren ICON-Horizont eine getrennte ECMWF-Ensembleergänzung, sofern ein vollständiges Tagesfenster verfügbar ist.
+- Fertig berechnete regionale Ausblicke werden auch nach einem Neustart des Datendienstes wiederverwendet. Bei einem Ausfall bleibt ein höchstens 24 Stunden alter Stand ausdrücklich als veraltet gekennzeichnet.
+- Die Fehlermeldung unterscheidet ein ausgeschöpftes Tageskontingent von einem nicht verfügbaren Ersatzabruf.
+- Die 7-Tage-Diagramme übernehmen das Farbkonzept der 24-Stunden-Ansicht.

@@ -18,7 +18,7 @@ for(const token of ['seven-day-temperature-gradient','ecmwfTemperatureTone(day.m
 for(const token of ['const touches=','Math.abs(a.x2-b.x1)<=0.75','const radius=Math.min(segment.strokeWidth/2,width/2)','joinedLeft=touches','joinedRight=touches','<circle cx={segment.x1+radius}','<circle cx={segment.x2-radius}'])assert.ok(skyBar.includes(token),`Gemeinsamer kantenloser Skybar-Renderer unvollständig: ${token}`);
 const curve=cockpit.slice(cockpit.indexOf('function SevenDayCurveOverview('),cockpit.indexOf('\nfunction cockpitDaySkyBarSegments('));
 assert.ok(!curve.includes('seven-day-curve-temperature-band')&&curve.includes('row.epoch===hour.epoch')&&curve.includes('quantilePaths.map')&&!curve.includes('interpolateTemperatureBand(')&&!curve.includes('smoothBandPath('),'P25–P75 nur mit echten Stundenquantilen; Tagesinterpolation bleibt ausgeschlossen.');
-for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','.seven-day-curve-night-band{',':root[data-theme=light] .seven-day-curve-night-band{','@media(max-width:390px)']){
+for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-day-curve-temperature-line','.seven-day-curve-rainbar','.seven-day-curve-night-band{',':root[data-theme=light] .cockpit-meteogram-pro,:root[data-theme=light] .seven-day-curve-overview{','@media(max-width:390px)']){
  assert.ok(styleSource.includes(token),`Responsive Designquelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`Style-Aggregat fehlt: ${token}`);
 }
 
