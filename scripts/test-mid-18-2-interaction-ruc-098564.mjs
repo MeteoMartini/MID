@@ -16,7 +16,8 @@ const [app,midDesign,main,css,rucFetch,rucBuild,fusion,shortTerm,audit]=await Pr
 
 assert.ok(app.includes("type BottomBarBehavior='fixed'")&&app.includes("return'fixed'"),'Bottom-Bar muss im neuen Design fixiert starten und bleiben.');
 assert.ok(!app.includes('setBottomBarBehavior')&&!app.includes('bottom-bar-display-settings'),'Bottom-Bar darf keinen obsoleten Einstellungspunkt mehr besitzen.');
-assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
+assert.ok(app.includes('data-scroll-hidden="false"'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Scrollabhängiger Bottom-Bar-State darf nicht zurückkehren.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Legacy-Scroll-Auto-Hide darf nicht zurückkehren.');
 assert.ok(app.includes("onNavigate={id=>navigateToDashboardSection(id,true,navigationMode==='bottom-tabs'?'auto':'smooth')}"),'Bottom-Tab-Taps müssen ohne verzögerten Smooth-Scroll navigieren.');
 assert.ok(app.includes("'--mid-current-range-tone':currentRangeMinTone.color")&&app.includes("'--mid-current-range-tone':currentRangeMaxTone.color"),'Tmin/Tmax müssen wertbasierte ECMWF-Farben erhalten.');

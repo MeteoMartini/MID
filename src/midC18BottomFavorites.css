@@ -25,10 +25,14 @@
     padding:5px!important;
     border:1px solid color-mix(in srgb,var(--border) 88%,transparent)!important;
     border-radius:18px!important;
-    background:color-mix(in srgb,var(--surface) 94%,transparent)!important;
+    background:color-mix(in srgb,var(--surface) 98%,transparent)!important;
     box-shadow:0 10px 34px rgba(1,18,33,.18),0 1px 0 rgba(255,255,255,.04) inset!important;
-    backdrop-filter:blur(22px) saturate(1.08)!important;
-    -webkit-backdrop-filter:blur(22px) saturate(1.08)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    transition:none!important;
+    will-change:auto!important;
+    contain:layout paint;
+    translate:none!important;
   }
   .navigation-bottom-tabs .dashboard-bottom-tabs button{
     min-height:48px!important;

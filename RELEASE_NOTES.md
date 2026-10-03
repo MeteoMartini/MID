@@ -1,5 +1,5 @@
-# MID v0.9.85.146
+# MID v0.9.85.147
 
-- „Untergang“ bleibt in der Sonne-/Mond-Kachel auch auf schmalen Displays vollständig in einer Zeile.
-- Die Bergwetter-Stundentabelle passt ihre Breite an die tatsächlich verfügbaren Uhrzeitspalten an; große Leerflächen zwischen Feldnamen und erster Uhrzeit entfallen.
-- Das Stundenraster bleibt bei tatsächlichem Überlauf horizontal scrollbar; ohne Überlauf wird kein künstlicher Leerraum erzeugt.
+- Die mobile Bottom-Bar bleibt beim Scrollen stabil an ihrer Position und wechselt nicht mehr in einen scrollabhängigen Verschiebezustand.
+- Die Modellkarten zeigen Modell, Produktfamilie, Quelle und Analyse-/Vorhersagestatus in einer klareren Kopfzeile.
+- Ältere DWD-WMS-/Rasterkarten erhalten dieselbe ruhige, responsive Bedienhierarchie wie die neueren Niederschlags- und Direktkarten.

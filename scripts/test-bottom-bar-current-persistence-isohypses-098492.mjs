@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,radar,modern,styles,models,contract,baselineRaw]=await Promise.all([
+const [app,radar,modern,styles,bottomBar,models,contract,baselineRaw]=await Promise.all([
  readFile('src/App.tsx','utf8'),
  readFile('src/RadarPanel.tsx','utf8'),
  readFile('src/styles-src/30-modern.css','utf8'),
  readFile('src/styles.css','utf8'),
+ readFile('src/midC18BottomFavorites.css','utf8'),
  readFile('worker-src/20-composite-models.js','utf8'),
  readFile('MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md','utf8'),
  readFile('MID_BASELINE.json','utf8')
@@ -28,6 +29,16 @@ for(const token of [
  'white-space:nowrap!important'
 ])assert.ok(modern.includes(token),`Bottom-Bar-CSS fehlt: ${token}`);
 assert.ok(styles.endsWith(modern),'styles.css muss das vollständige Modern-Modul enthalten');
+for(const token of [
+ 'position:fixed!important',
+ 'transform:none!important',
+ 'translate:none!important',
+ 'transition:none!important',
+ 'will-change:auto!important',
+ 'backdrop-filter:none!important'
+])assert.ok(bottomBar.includes(token),`Finaler Bottom-Bar-Fix fehlt: ${token}`);
+assert.ok(app.includes('data-scroll-hidden="false"'),'Fixierte Bottom-Bar darf keinen scrollabhängigen Hidden-Zustand mehr ausgeben.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Scrollabhängiger Bottom-Bar-State darf nicht zurückkehren.');
 for(const token of [
  'const compositeSettingsRef=useRef<CompositeSettings>(initial)',
  'flushCompositeSettings',

@@ -5,12 +5,12 @@ const [app,styles,bottomPolish,main,portable,radarColors,baseline]=await Promise
 ]);
 for(const token of [
  "const navigationMode:NavigationMode='bottom-tabs';","document.documentElement.dataset.midDesign='next'","localStorage.removeItem('mid:designMode:v1')","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',
- "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'",'<span>Mehr</span>','bottomBarHidden','is-scroll-hidden','data-scroll-hidden',
+ "label:'Aktuell'","label:'Heute'","label:'Vorhersage'","label:'Karten'",'<span>Mehr</span>','data-scroll-hidden="false"',
  "dashboard-section-nav-list ${variant}${modernDrawer?' progressive':''}",'<section key={group.id} className="modern-more-group">',"{id:'safety',label:'Sicherheit',modules:['warnings','extreme-outlook']}",'place-warning-status',
  "const BOTTOM_BAR_BEHAVIOR_KEY='mid:bottom-bar-behavior:v1'","type BottomBarBehavior='fixed'","localStorage.removeItem(BOTTOM_BAR_BEHAVIOR_KEY)","return'fixed'","data-fixed={bottomBarBehavior==='fixed'?'true':'false'}"
 ])assert.ok(app.includes(token),`Kanonischer Bottom-Bar-/I-Vertrag fehlt: ${token}`);
 assert.ok(app.includes("{id:'current',label:'Aktuell'"),'Aktuell muss als Primärtab direkt erreichbar sein');
-assert.ok(app.includes('useEffect(()=>{setBottomBarHidden(false)},[navigationMode,drawerOpen,bottomBarBehavior])'),'Bottom-Bar muss unabhängig vom Scrollzustand sichtbar bleiben.');
+assert.ok(!app.includes('bottomBarHidden')&&!app.includes('setBottomBarHidden'),'Bottom-Bar muss ohne scrollabhängigen Hidden-State dauerhaft sichtbar bleiben.');
 assert.ok(!app.includes('downDistance>=96')&&!app.includes('upDistance>=12'),'Auto-Hide-Schwellen dürfen nicht zurückkehren.');
 assert.ok(!app.includes('Bottom-Leiste · Beta'),'Der alte Beta-Schalter darf nicht mehr in der App stehen.');
 assert.ok(!app.includes('<span>Bedienkonzept</span>'),'Der alte Menü-Unterpunkt Bedienkonzept muss entfernt sein.');
