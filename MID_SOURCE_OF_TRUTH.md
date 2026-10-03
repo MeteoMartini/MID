@@ -1,5 +1,10 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.156 · MID-C14 Vorhinweise bis Tag 7 und Diagrammfarben
+
+Basis main = mid-stable = 49d169f04b52ba9dc0a33750d621a1522b837487 (.155). Fachlich abgesicherte Regen-/Schnee-/Böenbewertung ausschließlich bis +168 h. Getrennte ECMWF-Böenergänzung, Ergebnis-Cache über Worker-Neustarts und vereinheitlichte 24h/7d-Farben. Details: docs/implementation/MID_C14_SEVEN_DAY_OUTLOOK_COLORS_0.9.85.156.md.
+
+
 ## v0.9.85.155 · MID-C13 reale Langfrist-Ensemblefelder
 
 Basis main = mid-stable = 2b380aefc25239b86838e9f4afb83865b11b90f6 (.154). Parallelkorrekturen .153/.154 vollständig erhalten. Reale ICON-EPS-Mitglieder statt leerer Mean/Spread-Felder; pro Gefahr vollständige Tagesabdeckung, fehlende Böen ausdrücklich keine Entwarnung. Details: docs/implementation/MID_EXTREME_MEMBERS_0.9.85.155.md.

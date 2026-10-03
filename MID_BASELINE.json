@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.155",
+  "releaseVersion": "0.9.85.156",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -327,6 +327,7 @@
     "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
     "scripts/test-extreme-outlook-modelled-areas-096618.mjs",
     "scripts/test-extreme-outlook-readability-098466.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs",
     "scripts/test-extreme-outlook-smooth-contours-09663.mjs",
     "scripts/test-extreme-outlook-spacing-09779.mjs",
     "scripts/test-extreme-outlook-startup-format-09661.mjs",
@@ -735,6 +736,7 @@
     "scripts/test-seven-day-landscape-density-09632.mjs",
     "scripts/test-seven-day-night-rain-coherence-08253.mjs",
     "scripts/test-seven-day-orientation-layout-09640.mjs",
+    "scripts/test-seven-day-outlook-ifs-cache-0985156.mjs",
     "scripts/test-seven-day-today-precipitation-09554.mjs",
     "scripts/test-seven-day-trend-weighting-071056.mjs",
     "scripts/test-short-term-anchor-narrowing-buildfix-082615.mjs",
@@ -916,8 +918,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs",
-    "scripts/test-extreme-outlook-real-members-0985155.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1234,6 +1235,7 @@
     "scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs",
     "scripts/test-extreme-outlook-modelled-areas-096618.mjs",
     "scripts/test-extreme-outlook-readability-098466.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs",
     "scripts/test-extreme-outlook-smooth-contours-09663.mjs",
     "scripts/test-extreme-outlook-spacing-09779.mjs",
     "scripts/test-extreme-outlook-startup-format-09661.mjs",
@@ -1642,6 +1644,7 @@
     "scripts/test-seven-day-landscape-density-09632.mjs",
     "scripts/test-seven-day-night-rain-coherence-08253.mjs",
     "scripts/test-seven-day-orientation-layout-09640.mjs",
+    "scripts/test-seven-day-outlook-ifs-cache-0985156.mjs",
     "scripts/test-seven-day-today-precipitation-09554.mjs",
     "scripts/test-seven-day-trend-weighting-071056.mjs",
     "scripts/test-short-term-anchor-narrowing-buildfix-082615.mjs",
@@ -1823,8 +1826,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs",
-    "scripts/test-extreme-outlook-real-members-0985155.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2592,7 +2594,10 @@
     "scripts/test-extreme-outlook-real-members-0985155.mjs",
     "scripts/fixtures/icon-eps-seamless-20261003.json",
     "docs/implementation/MID_EXTREME_MEMBERS_0.9.85.155.md",
-    "scripts/verify-extreme-members-browser-0985155.mjs"
+    "scripts/verify-extreme-members-browser-0985155.mjs",
+    "docs/implementation/MID_C14_SEVEN_DAY_OUTLOOK_COLORS_0.9.85.156.md",
+    "scripts/fixtures/icon-seamless-outlook-20261003-20.json",
+    "scripts/fixtures/ecmwf-ifs-gust-20261003-20.json"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3240,7 +3245,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
-  "version": "0.9.85.155",
+  "version": "0.9.85.156",
   "updatedAt": "2026-10-03T19:27:47.667536Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

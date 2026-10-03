@@ -13,7 +13,7 @@ for(const token of [
  'halfDayTicks=Array.from({length:visible.length*2+1}',
  "{hour%24===12?'12':'00'}",
  'seven-day-temperature-quantiles',
- "stopColor={ecmwfTemperatureColors?ecmwfTemperatureColor(point.value):'var(--param-temperature)'}",
+ "stopColor={ecmwfTemperatureLineColor(point.value)}",
  'ecmwfTemperatureColors=true',
  'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
  'Temperaturfarben: ECMWF-Skala',
@@ -26,7 +26,7 @@ const forecastRows=app.slice(app.indexOf('const forecastRowContents='),app.index
 assert.ok(forecastRows.includes('minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max)'),'Klassische 7-Tage-Karten müssen ECMWF-Farbton verwenden.');
 assert.ok(!forecastRows.includes('<small>Min</small>')&&!forecastRows.includes('<small>Max</small>'),'Klassische 7-Tage-Karten zeigen seit v0.9.78.4 nur noch die Tmin/Tmax-Werte ohne zusätzliche Min/Max-Labels.');
 assert.ok(!forecastRows.includes('dailyTemperatureAnomalyLabel'),'Klassische 7-Tage-Karten dürfen keine Klimadelta-Beschriftung anzeigen.');
-for(const token of ['.seven-day-curve-temperature-halo','.seven-day-curve-time-label','.seven-day-curve-day-label','.seven-day-curve-night-band{',':root[data-theme=light] .seven-day-curve-night-band{','min-height:0!important']){assert.ok(styleSource.includes(token),`7-Tage-Stylequelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`7-Tage-Styleaggregat fehlt: ${token}`)}
+for(const token of ['.seven-day-curve-temperature-halo','.seven-day-curve-time-label','.seven-day-curve-day-label','.seven-day-curve-night-band{',':root[data-theme=light] .cockpit-meteogram-pro,:root[data-theme=light] .seven-day-curve-overview{','min-height:0!important']){assert.ok(styleSource.includes(token),`7-Tage-Stylequelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`7-Tage-Styleaggregat fehlt: ${token}`)}
 for(const token of ['ersetzt für die 7-Tage-Ansicht','keine Abweichungen zum Klimamittel','absoluten 2-m-Temperatur','gemeinsame Stundenachse'])assert.ok(colorContract.includes(token),`Farbvertrag unvollständig: ${token}`);
 assert.ok(sourceOfTruth.includes('7-Tage-Stundenkurve')&&sourceOfTruth.includes('Die 14-Tage-Klimaabweichungslogik bleibt bestehen.'),'Source of Truth muss die 7d-Supersession und den 14d-Erhalt festschreiben.');
 assert.equal(pkg.scripts?.['test:seven-day-ecmwf-hourly'],`node ${test}`,'Package-Testeintrag fehlt.');

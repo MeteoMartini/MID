@@ -25,5 +25,5 @@ context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',
 vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
 await assert.rejects(vm.runInContext('dachExtendedExtremeOutlookData()',context),/nicht bestimmbar/);
 const panel=fs.readFileSync('src/ExtremeWeatherOutlookPanel.tsx','utf8');assert.ok(panel.includes('assessmentAvailable'));assert.ok(panel.includes('Wettergefahr derzeit nicht auswertbar'));assert.ok(panel.includes('Keine Entwarnung'));
-assert.ok(source.includes("key='extended-v3'"));
+assert.ok(source.includes("key='extended-v4'"));
 console.log('Real ICON-EPS member fixture: five days, exact mean/spread, >=32 members, missing gusts and empty payload fail closed.');

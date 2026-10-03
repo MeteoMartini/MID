@@ -35,7 +35,7 @@ need('Kurvenansicht trägt tägliche Hazards',cockpit,'className="seven-day-curv
 need('Kurvenansicht übernimmt normalisierte Widgetstunden verlustfrei',cockpit,'presentationReady?hours:precipitationPresentationHours(hours)');
 need('Präsentationswidget markiert den ersten Tag nicht künstlich als aktiv',cockpit,"className={!presentationReady&&selectedDate===day.date?'active':''}");
 need('Präsentationswidget entfernt eine eventuell verbleibende Aktiv-Hinterlegung auch per CSS',foundation,'.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-days>button.active{background:transparent;box-shadow:none}');
-need('ECMWF-Kurvenfarbe bleibt an die Option gebunden',cockpit,"stopColor={ecmwfTemperatureColors?ecmwfTemperatureColor(point.value):'var(--param-temperature)'}");
+need('Kurvenfarbe folgt dem gemeinsamen 24h-Farbvertrag',cockpit,"stopColor={ecmwfTemperatureLineColor(point.value)}");
 need('ECMWF-Badgefarben bleiben an die Option gebunden',cockpit,'ecmwfTemperatureColors?{color:minTone.color,background:minTone.background,borderColor:minTone.border}:undefined');
 need('Niederschlagsmenge hat robusten Komponentenfallback',cockpit,'Math.max(parts.total,direct,components)');
 need('Widget-Kurvenansicht folgt dem Referenzdesign',foundation,'.weatherwidget.modern.compact.widget-view-curve');

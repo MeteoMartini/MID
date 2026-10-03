@@ -44,7 +44,7 @@ assert.ok(curveStart>=0&&curveEnd>curveStart,'7-Tage-Kurvenübersicht konnte nic
 const curve=cockpit.slice(curveStart,curveEnd);
 assert.ok(curve.includes('nightBands=(()=>{')&&curve.includes('seven-day-curve-night-band'),'Die 7-Tage-Kurvenübersicht muss zusammenhängende Nachtbereiche rendern.');
 assert.ok(!curve.includes('seven-day-curve-temperature-band')&&curve.includes('row.epoch===hour.epoch')&&curve.includes('quantilePaths.map')&&!curve.includes('smoothBandPath')&&!curve.includes('interpolateTemperatureBand'),'P25–P75 nur mit echten Stundenquantilen; Tagesinterpolation bleibt ausgeschlossen.');
-assert.ok(styles.includes('.seven-day-curve-night-band{fill:rgba(164,181,199,.14)!important')&&styles.includes(':root[data-theme=light] .seven-day-curve-night-band{fill:rgba(73,92,113,.08)!important'),'Nachtstunden müssen in dunklem und hellem Design explizit sichtbar sein.');
+assert.ok(styles.includes('.cockpit-meteogram-pro,.seven-day-curve-overview{--mg-night:rgba(1,8,18,.22)}')&&styles.includes(':root[data-theme=light] .cockpit-meteogram-pro,:root[data-theme=light] .seven-day-curve-overview{--mg-night:rgba(91,106,133,.1)}')&&styles.includes('.seven-day-curve-night-band{fill:var(--mg-night,#5b667c)!important;fill-opacity:var(--mid-night-band-opacity,.2)!important}'),'Nachtstunden müssen in dunklem und hellem Design explizit sichtbar sein.');
 
 for(const token of ['Regen/Sprühregen/Schauer blau, Schnee/Eis hellblau, Misch-/gefrierende Phase violett, Gewitter/Graupel/Hagel purpur','50 % Gesamtbewölkung','vier Dickenstufen','einheitlichen Grauton','Nachtstunden wieder als zusammenhängende','P25–P75-Band um die Temperaturkurve ist ersatzlos entfernt']){
   assert.ok(contract.includes(token),`24h-Profil-Vertrag unvollständig: ${token}`);

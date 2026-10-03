@@ -10,5 +10,5 @@ assert.match(app,/try\{const\{toBlob\}=await import\('html-to-image'\);return aw
 assert.match(helper,/querySelectorAll<SVGElement>\('svg, svg \*'\)/,'All SVG descendants must be covered by the export paint freeze.');
 assert.match(helper,/'fill',[\s\S]*?'stroke',[\s\S]*?'stop-color'/,'Fill, stroke and gradient stop paints must be frozen.');
 assert.doesNotMatch(cockpit,/seven-day-curve-night-band[^>]*fill="var\(--mg-night\)"/,'Seven-day curve night bands must not depend on a CSS variable in the SVG fill attribute.');
-assert.match(cockpit,/seven-day-curve-night-band[^>]*fill="#495c71"[^>]*fillOpacity=\{0\.08\}/,'Night bands need an explicit export-safe neutral fallback paint.');
+assert.match(cockpit,/seven-day-curve-night-band[^>]*fill="#5b667c"[^>]*fillOpacity="var\(--mid-night-band-opacity,\.2\)"/,'Night bands need an explicit export-safe neutral fallback paint.');
 console.log('Widget SVG export paint hardening v0.9.84.41: OK');
