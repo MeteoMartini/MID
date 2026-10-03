@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.154",
+  "releaseVersion": "0.9.85.155",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -916,7 +916,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1822,7 +1823,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2586,7 +2588,11 @@
     "worker-src/40-aviation-router.js",
     "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
-    "src/extremeWeatherOutlookExtendedFallback.ts"
+    "src/extremeWeatherOutlookExtendedFallback.ts",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs",
+    "scripts/fixtures/icon-eps-seamless-20261003.json",
+    "docs/implementation/MID_EXTREME_MEMBERS_0.9.85.155.md",
+    "scripts/verify-extreme-members-browser-0985155.mjs"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -2682,7 +2688,8 @@
     "scripts/test-widget-url-exports-098413.mjs",
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
-    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
+    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
   "protectedFiles": [
     "scripts/test-travel-planner-era5-seamless-units-09652.mjs",
@@ -3230,10 +3237,11 @@
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
+    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
-  "version": "0.9.85.154",
-  "updatedAt": "2026-10-03T16:24:00.000Z",
+  "version": "0.9.85.155",
+  "updatedAt": "2026-10-03T19:27:47.667536Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",

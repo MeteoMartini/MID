@@ -1,3 +1,11 @@
+## MID v0.9.85.155 · 2026-10-03 · Reale ICON-EPS-Mitglieder für Tag 3–7
+
+- Live nachgewiesen: HTTP 200 ist kein Nachweis auswertbarer Daten. Globales Mean-Modell liefert rain_spread, gust/spread und snowfall_spread vollständig null. Seamless-Mean liefert ebenfalls keinen rain_spread.
+- Kanonischer Worker-/Browserpfad fordert 40 tatsächliche ICON-EPS-Seamless-Mitglieder an; Mittel und Populationsstreuung werden nur aus mindestens 32 endlichen Mitgliedern berechnet. Keine Übernahme von null als Nullwert.
+- Tagesperioden bleiben erhalten, wenn mindestens eine Wettergefahr mindestens 65 % des Rasters vollständig abdeckt. Jede Gefahr erfordert separat denselben vollständigen 24-h-/Rastervertrag. Fehlende Böen werden ausdrücklich als Datenlücke dargestellt; Karte und Entwarnung sind dann ausgeblendet.
+- Historische .151/.154-Regressionen an bewusst korrigierten Request-/Fixturevertrag angepasst; alle Schwellen-, Cache-, Abbruch-, Provenienz- und Fehlerassertionen erhalten. .154-Versionprüfung gilt ab ihrer Einführung auch für Wartungsreleases.
+- Neue Regression mit realer API-Antwort als Fixture sowie Mitgliedsminimum und fehlenden Zeitfenstern. Keine CI-/Releasekonfiguration geändert.
+
 ## MID v0.9.85.154 · 2026-10-03 · Extremwetter-Langfristpfad gegen API-Tageslimit gehärtet
 
 - Live-Reproduktion des Screenshots: produktiver `dach-extreme-outlook?range=extended`-Pfad lieferte HTTP 502 mit `Daily API request limit exceeded`; die verwendete ICON-EPS-Mean-Anfrage selbst wurde separat mit HTTP 200 verifiziert.
