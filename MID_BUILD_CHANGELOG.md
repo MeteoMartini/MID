@@ -1,3 +1,11 @@
+## MID v0.9.85.154 · 2026-10-03 · Extremwetter-Langfristpfad gegen API-Tageslimit gehärtet
+
+- Live-Reproduktion des Screenshots: produktiver `dach-extreme-outlook?range=extended`-Pfad lieferte HTTP 502 mit `Daily API request limit exceeded`; die verwendete ICON-EPS-Mean-Anfrage selbst wurde separat mit HTTP 200 verifiziert.
+- Worker bleibt der bevorzugte Datenweg. Bei Worker-/Open-Meteo-Ausfall nutzt Tag 3–7 nun dieselbe kanonische `dachExtendedExtremeOutlookData`-Logik als Browser-Direktpfad.
+- Separater persistenter Langfristcache: 3 h frisch, bis 24 h als Stale-Fallback. Ein erkanntes zentrales Tageslimit wird bis zum nächsten UTC-Tag gemerkt, um Wiederholungsfehler zu vermeiden.
+- Worker-Fachcache und Cloudflare-Upstreamcache für die ICON-EPS-Langfristfelder auf 6 h angehoben; die DWD-ICON-EPS-Schwellen-, Zeitfenster- und Gefahrenlogik bleibt unverändert.
+- Neue Regression `scripts/test-extreme-outlook-extended-resilience-0985154.mjs` prüft Quell-/Aggregatgleichheit, Cachevertrag, Fallback-Reihenfolge sowie die vollständige direkte Tag-3–7-Berechnung mit 169 Stunden Mean/Spread.
+
 ## MID v0.9.85.153 · 2026-10-03 · Warnungsseite und Extremwetter-Langfristpfad
 
 - Verifizierte Basis: `main == mid-stable == 1cceaf812fa1491c687d8552a69762a1d263bdb3` (v0.9.85.152).
