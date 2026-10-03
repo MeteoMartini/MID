@@ -5,7 +5,7 @@ import type {ExtremeWeatherOutlook} from './extremeWeatherOutlook';
 
 const PREFIX='mid:extreme-outlook:';
 const PAYLOAD_PREFIX=`${PREFIX}extended-payload:`;
-const CACHE_KEY=`${PAYLOAD_PREFIX}v2`;
+const CACHE_KEY=`${PAYLOAD_PREFIX}v3`;
 const WORKER_LIMIT_KEY=`${PREFIX}worker-limit-until:v1`;
 const FRESH_MS=3*60*60*1000;
 const STALE_MS=24*60*60*1000;
@@ -27,13 +27,13 @@ export async function loadExtendedExtremeWeatherOutlookFallback(signal?:AbortSig
  const fresh=read(FRESH_MS);if(fresh)return{...fresh,delivery:'local-cache'};
  const skipped=limitUntil()>Date.now();let workerError:unknown=skipped?new Error('Zentraler Open-Meteo-Tagesrahmen vorübergehend ausgeschöpft.'):undefined;
  if(!skipped)try{
-  const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v2'});
+  const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v3'});
   if(!valid(data))throw new Error('Regionaler Langfristausblick derzeit nicht verfügbar.');
   const result={...data,delivery:'worker' as const};clearLimit();write(result);return result
  }catch(error){aborted(signal);workerError=error;if(dailyLimit(error))rememberLimit()}
  try{
   const direct=await loadDirectDachExtendedExtremeOutlook(signal) as ExtremeWeatherOutlook;aborted(signal);if(!valid(direct))throw new Error('Direkt berechneter Langfristausblick ist unvollständig.');
-  const result={...direct,delivery:'browser-direct' as const,fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus DWD ICON-EPS Mean/Spread berechnet.'};write(result);return result
+  const result={...direct,delivery:'browser-direct' as const,fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus den tatsächlichen DWD ICON-EPS-Mitgliedern berechnet.'};write(result);return result
  }catch(directError){
   aborted(signal);const stale=read(STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Live-Aktualisierung derzeit nicht möglich; letzter vollständiger Langfristausblick wird weiter angezeigt.'};
   void workerError;void directError;throw new Error('Der regionale MID-Datendienst für den Extremwetter-Ausblick ist derzeit nicht erreichbar. Bitte erneut laden.')

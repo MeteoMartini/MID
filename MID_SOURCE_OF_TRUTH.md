@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.155 · MID-C13 reale Langfrist-Ensemblefelder
+
+Basis main = mid-stable = 2b380aefc25239b86838e9f4afb83865b11b90f6 (.154). Parallelkorrekturen .153/.154 vollständig erhalten. Reale ICON-EPS-Mitglieder statt leerer Mean/Spread-Felder; pro Gefahr vollständige Tagesabdeckung, fehlende Böen ausdrücklich keine Entwarnung. Details: docs/implementation/MID_EXTREME_MEMBERS_0.9.85.155.md.
+
 ## v0.9.85.152 · MID-C13 Skybar-Intervallkonsistenz
 
 Basis main = mid-stable = d6d7e0e5d5f6fb20a0e3dbaaf2351ed93c1857bc (.151). Der kontinuierliche Profilstreifen verwendet dieselben finalisierten Viertelstunden wie 90 min, statt deren Bewölkung vorher stündlich zu mitteln. Stundenquadrate bleiben aggregiert. Fehlende Kurzfristzustände sind keine Nullwerte. Details: docs/implementation/MID_SKYBAR_INTERVALS_0.9.85.152.md.
