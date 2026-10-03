@@ -1,0 +1,1 @@
+import{lt as e}from"./index-BCzt-zVw.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
