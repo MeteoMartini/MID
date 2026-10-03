@@ -2585,7 +2585,8 @@
     "worker-src/30-push-events.js",
     "worker-src/40-aviation-router.js",
     "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
-    "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md"
+    "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
+    "src/extremeWeatherOutlookExtendedFallback.ts"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",

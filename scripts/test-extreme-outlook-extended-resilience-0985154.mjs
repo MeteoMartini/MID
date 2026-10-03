@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [client,direct,workerSource,aggregate,proxy,generator,pkgRaw,baselineRaw]=await Promise.all([
- read('src/extremeWeatherOutlook.ts'),read('src/extremeWeatherOutlookDirect.generated.js'),read('worker-src/25-dach-extreme-outlook.js'),read('worker.js'),read('worker/metar-proxy.js'),read('scripts/build-maintenance-aggregates.mjs'),read('package.json'),read('MID_BASELINE.json')
+const [client,fallback,direct,workerSource,aggregate,proxy,generator,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/extremeWeatherOutlook.ts'),read('src/extremeWeatherOutlookExtendedFallback.ts'),read('src/extremeWeatherOutlookDirect.generated.js'),read('worker-src/25-dach-extreme-outlook.js'),read('worker.js'),read('worker/metar-proxy.js'),read('scripts/build-maintenance-aggregates.mjs'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-extended-resilience-0985154.mjs';
 assert.equal(pkg.version,'0.9.85.154');
@@ -16,9 +16,10 @@ for(const source of [workerSource,aggregate,proxy,direct]){
 }
 assert.ok(direct.includes(workerSource.trim()),'Direktpfad muss die kanonische Worker-Fachlogik enthalten.');
 assert.ok(generator.includes('export async function loadDirectDachExtendedExtremeOutlook(signal)'),'Generator muss den Langfrist-Direktexport reproduzierbar erzeugen.');
-for(const token of ['loadDirectDachExtendedExtremeOutlook','EXTENDED_OUTLOOK_FRESH_MS=3*60*60*1000','EXTENDED_OUTLOOK_STALE_MS=24*60*60*1000',"cacheKey:'dach-extreme-outlook:extended:v2'",'readExtendedOutlookCache(EXTENDED_OUTLOOK_STALE_MS)','writeExtendedOutlookCache(result)','if(dailyWorkerLimit(error))rememberWorkerLimit()'])assert.ok(client.includes(token),'Langfrist-Resilienzvertrag fehlt: '+token);
-assert.ok(client.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}")<client.indexOf('loadDirectDachExtendedExtremeOutlook(signal)'),'Worker muss vor Browser-Direktabruf versucht werden.');
-assert.ok(client.includes('Der regionale MID-Datendienst für den Extremwetter-Ausblick ist derzeit nicht erreichbar. Bitte erneut laden.'),'Fail-closed-Endzustand fehlt.');
+assert.ok(client.includes("import('./extremeWeatherOutlookExtendedFallback')"),'Langfrist-Resilienz muss lazy geladen werden, damit das Main-Bundle im Budget bleibt.');
+for(const token of ['loadDirectDachExtendedExtremeOutlook','FRESH_MS=3*60*60*1000','STALE_MS=24*60*60*1000',"cacheKey:'dach-extreme-outlook:extended:v2'",'const fresh=read(FRESH_MS)','const stale=read(STALE_MS)','if(dailyLimit(error))rememberLimit()'])assert.ok(fallback.includes(token),'Langfrist-Resilienzvertrag fehlt: '+token);
+assert.ok(fallback.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}")<fallback.indexOf('loadDirectDachExtendedExtremeOutlook(signal)'),'Worker muss vor Browser-Direktabruf versucht werden.');
+assert.ok(fallback.includes('Der regionale MID-Datendienst für den Extremwetter-Ausblick ist derzeit nicht erreichbar. Bitte erneut laden.'),'Fail-closed-Endzustand fehlt.');
 
 const hours=Array.from({length:169},(_,index)=>new Date(Date.UTC(2026,9,3,16+index)).toISOString().slice(0,16));
 const values=value=>Array(169).fill(value);
