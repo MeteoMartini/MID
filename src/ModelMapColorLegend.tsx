@@ -7,15 +7,21 @@ export type ModelMapLegendTick={
   label:string;
 };
 
+export type ModelMapLegendStop={
+  label:string;
+  color:string;
+};
+
 export type ModelMapLegendTicks=
   |readonly [ModelMapLegendTick,ModelMapLegendTick]
   |readonly [ModelMapLegendTick,ModelMapLegendTick,ModelMapLegendTick];
 
 export type ModelMapLegendScale={
-  /** Precomputed by the caller; this component does not derive color values. */
-  gradient:string;
-  /** Two or three already-formatted numeric labels, ordered from low to high. */
-  ticks:ModelMapLegendTicks;
+  /** Optional caller-provided gradient and ticks for modes that have a verified scale. */
+  gradient?:string;
+  ticks?:ModelMapLegendTicks;
+  /** Optional exact color thresholds for fixed palettes. */
+  stops?:readonly ModelMapLegendStop[];
 };
 
 export type ModelMapColorLegendProps={
@@ -24,6 +30,8 @@ export type ModelMapColorLegendProps={
   mode:ModelMapLegendMode;
   scales:Record<ModelMapLegendMode,ModelMapLegendScale>;
   onModeChange:(mode:ModelMapLegendMode)=>void;
+  disabled?:boolean;
+  disabledModes?:readonly ModelMapLegendMode[];
 };
 
 const modeLabels:Record<ModelMapLegendMode,string>={
@@ -38,10 +46,10 @@ function tickAlignment(position:number){
 }
 
 /**
- * A continuous numeric map legend. Categorical weather-code legends stay separate.
+ * A numeric map legend. Categorical weather-code legends stay separate.
  * The caller owns color calculation, scale limits, tick formatting and unit conversion.
  */
-export default function ModelMapColorLegend({label,unit,mode,scales,onModeChange}:ModelMapColorLegendProps){
+export default function ModelMapColorLegend({label,unit,mode,scales,onModeChange,disabled=false,disabledModes=[]}:ModelMapColorLegendProps){
   const scale=scales[mode];
   return <section className="mid-model-map-legend" aria-label={`${label} Farblegende`}>
     <header className="mid-model-map-legend__header">
@@ -57,6 +65,7 @@ export default function ModelMapColorLegend({label,unit,mode,scales,onModeChange
           key={option}
           type="button"
           className="mid-model-map-legend__mode"
+          disabled={disabled||disabledModes.includes(option)}
           aria-pressed={mode===option}
           onClick={()=>onModeChange(option)}
         >
@@ -67,19 +76,25 @@ export default function ModelMapColorLegend({label,unit,mode,scales,onModeChange
       </div>
     </header>
     <div className="mid-model-map-legend__scale">
-      <div
+      {scale.gradient?<div
         className="mid-model-map-legend__gradient"
         role="img"
-        aria-label={`Kontinuierlicher Farbverlauf für ${label}; Einheit ${unit}`}
+        aria-label={`Farbverlauf für ${label}; Einheit ${unit}`}
         style={{backgroundImage:scale.gradient}}
-      />
-      <ol className="mid-model-map-legend__ticks" aria-label={`Werte in ${unit}`}>
+      />:null}
+      {scale.ticks?<ol className="mid-model-map-legend__ticks" aria-label={`Werte in ${unit}`}>
         {scale.ticks.map(tick=><li
           key={`${tick.position}-${tick.label}`}
           className={`mid-model-map-legend__tick mid-model-map-legend__tick--${tickAlignment(tick.position)}`}
           style={{left:`${tick.position}%`}}
         >{tick.label}</li>)}
-      </ol>
+      </ol>:null}
+      {scale.stops?.length?<ol className="mid-model-map-legend__stops" aria-label={`Feste Farbstufen in ${unit}`}>
+        {scale.stops.map((stop,index)=><li key={`${stop.label}-${index}`}>
+          <i aria-hidden="true" style={{background:stop.color}}/>
+          <span>{stop.label}</span>
+        </li>)}
+      </ol>:null}
     </div>
   </section>;
 }
