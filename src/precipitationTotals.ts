@@ -1,4 +1,4 @@
-import {createMapColorScale,mapColorAt,type MapColorMode,type MapColorScale} from './modelMapColorScale';
+import {createMapColorScale,roundMapScale,mapColorAt,type MapColorMode,type MapColorScale} from './modelMapColorScale';
 export type TotalsFrame={hours:number;validFrom?:string;validTo:string;maximum:number;values:number[]};
 export type TotalsData={schema:'mid.icon-d2.totals.v1'|'mid.radolan.observed.v1';kind?:'observed';run:string;generatedAt:string;source:string;license:string;attribution:string;grid:string;scale:number;lats:number[];lons:number[];frames:TotalsFrame[]};
 export function totalsStartAt(data:TotalsData,frame:TotalsFrame){return data.kind==='observed'?frame.validFrom!:data.run}
@@ -7,7 +7,7 @@ export const TOTALS_COLORS:[number,string][]=[[.1,'#b9ddfc'],[1,'#83bef5'],[3,'#
 export function totalsColor(value:number){let color='transparent';for(const [threshold,next] of TOTALS_COLORS){if(value<threshold)break;color=next}return color}
 export function totalsMapScale(data:TotalsData,frame:TotalsFrame,mode:MapColorMode){
  const values={*[Symbol.iterator](){for(const value of frame.values)if(value>=0)yield value*data.scale}};
- return createMapColorScale(TOTALS_COLORS,values,mode,{transparentBelow:.1,minimumSpan:.1,nonnegative:true});
+ return roundMapScale(createMapColorScale(TOTALS_COLORS,values,mode,{transparentBelow:.1,minimumSpan:.1,nonnegative:true}),1,.1);
 }
 function axisValid(axis:number[]){return Array.isArray(axis)&&axis.length>1&&axis.length<2000&&axis.every((v,i)=>Number.isFinite(v)&&(!i||v>axis[i-1]))&&axis.every((v,i)=>!i||Math.abs((v-axis[i-1])-(axis[1]-axis[0]))<1e-5)}
 export function validateTotals(raw:unknown):TotalsData{

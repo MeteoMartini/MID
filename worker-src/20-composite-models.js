@@ -486,7 +486,41 @@ async function weatherMapMetadata(request){
  const url=new URL(request.url),layer=String(url.searchParams.get('layer')||'').trim(),config=WEATHER_MAP_LAYER_CONFIG.get(layer);if(!config)throw new Error('Nicht freigegebener Wetterkarten-Layer');
  const xml=await firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Wetterkarten');if(!hasWmsLayer(xml,layer))throw new Error(`DWD-WMS-Layer derzeit nicht verfügbar: ${layer}`);
  const times=limitedWeatherMapTimes(dwdTimesFromCapabilities(xml,layer),config),referenceTimes=dwdDimensionTimesFromCapabilities(xml,layer,'reference_time').filter(value=>value>=Date.now()-96*3600000&&value<=Date.now()+12*3600000).slice(-12),elevations=config.elevation?dwdElevationsFromCapabilities(xml,layer):[];
- return{layer,times:times.map(value=>new Date(value).toISOString()),referenceTimes:referenceTimes.map(value=>new Date(value).toISOString()),elevations,provider:'Deutscher Wetterdienst · WMS',checkedAt:new Date().toISOString()}
+ const pointSpec=weatherMapPointSpec(layer),queryable=/^<Layer\b[^>]*\bqueryable=["']1["']/i.test((xmlLayerBlock(xml,layer)||xmlLayerBlock(xml,layer.replace(/^dwd:/,''))).trim());
+ return{layer,times:times.map(value=>new Date(value).toISOString()),referenceTimes:referenceTimes.map(value=>new Date(value).toISOString()),elevations,...(queryable&&pointSpec?{pointUnit:pointSpec.unit}:{}),provider:'Deutscher Wetterdienst · WMS',checkedAt:new Date().toISOString()}
+}
+// Scalar fields verified against DWD GetFeatureInfo and provider legends.
+// Wind vectors, probabilities and categorical/symbol images are not guessed.
+function weatherMapPointSpec(layer){
+ if(!WEATHER_MAP_LAYER_CONFIG.has(layer))return null;
+ if(/_(?:T2M|T)$/.test(layer))return{unit:'°C',property:/^Temperature_(?:height_level_above_ground|isobaric_level)$/,minimum:-100,maximum:70};
+ if(/_(?:QFF|PMSL)$/.test(layer))return{unit:'hPa',property:/^Pressure_reduced_to_MSL_mean_sea_level$/,minimum:800,maximum:1100};
+ if(/_TOTPREC(?:\d\dH)?$/.test(layer))return{unit:'mm',property:/^Total_precipitation(?:-\d+h)?_ground_or_water_surface$/,minimum:0,maximum:6500};
+ return null;
+}
+async function weatherMapPointResponse(request){
+ const url=new URL(request.url),layer=url.searchParams.get('layer')||'',spec=weatherMapPointSpec(layer),config=WEATHER_MAP_LAYER_CONFIG.get(layer),lat=Number(url.searchParams.get('lat')),lon=Number(url.searchParams.get('lon')),time=url.searchParams.get('time'),reference=url.searchParams.get('reference_time'),elevation=url.searchParams.get('elevation'),now=Date.now();
+ const unavailable=(status=200)=>json({available:false,value:null,version:WORKER_VERSION},status,{'cache-control':'no-store'});
+ if(!spec||!url.searchParams.has('lat')||!url.searchParams.has('lon')||!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>85||Math.abs(lon)>180)return unavailable(400);
+ const timeMs=Date.parse(time||''),referenceMs=Date.parse(reference||'');
+ if(!Number.isFinite(timeMs)||timeMs<now-48*3600000||timeMs>now+204*3600000||!Number.isFinite(referenceMs)||referenceMs<now-120*3600000||referenceMs>now+12*3600000||timeMs<referenceMs)return unavailable(400);
+ if((config?.elevation&&(elevation===null||!Number.isFinite(Number(elevation))||Number(elevation)<0||Number(elevation)>1200))||(!config?.elevation&&elevation!==null))return unavailable(400);
+ const attempt=async base=>{
+  const upstream=new URL(base),name=dwdLayerForEndpoint(layer,base);
+  const params={service:'WMS',request:'GetFeatureInfo',version:'1.1.1',layers:name,query_layers:name,styles:'',srs:'EPSG:4326',bbox:`${lon-.01},${lat-.01},${lon+.01},${lat+.01}`,width:'101',height:'101',x:'50',y:'50',format:'image/png',info_format:'application/json',feature_count:'1',time,dim_reference_time:reference,...(elevation!==null?{elevation}:{})};
+  for(const[key,value]of Object.entries(params))upstream.searchParams.set(key,value);
+  const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'application/json'},cache:'no-store'},6000);
+  if(!response.ok||!String(response.headers.get('content-type')||'').includes('json')){await response.body?.cancel();throw new Error('Punktwert nicht verfügbar')}
+  const reader=response.body?.getReader();if(!reader)throw new Error('Leerer Punktwert');let size=0;const chunks=[],timer=setTimeout(()=>reader.cancel().catch(()=>{}),6000);
+  try{for(;;){const{done,value}=await reader.read();if(done)break;size+=value.length;if(size>65536){await reader.cancel();throw new Error('Zu große Punktantwort')}chunks.push(value)}}finally{clearTimeout(timer);reader.releaseLock()}
+  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length}
+  const body=JSON.parse(new TextDecoder().decode(bytes)),properties=body.features?.length===1?body.features[0]?.properties:null;
+  if(!properties||Date.parse(properties.TIME)!==timeMs||Date.parse(properties.REFERENCE_TIME)!==referenceMs||(elevation!==null&&Number(properties.ELEVATION)!==Number(elevation)))throw new Error('Punktwert gehört nicht zum gewählten Termin/Lauf');
+  const values=Object.entries(properties).filter(([key,value])=>spec.property.test(key)&&typeof value==='number'&&Number.isFinite(value)&&value>=spec.minimum&&value<=spec.maximum);
+  if(values.length!==1)throw new Error('Kein verifizierter Skalarwert');
+  return{available:true,value:values[0][1],unit:spec.unit,layer,time,referenceTime:reference,elevation:elevation===null?undefined:Number(elevation),latitude:lat,longitude:lon};
+ };
+ try{return json({...await Promise.any(DWD_RADAR_WMS_BASES.map(attempt)),version:WORKER_VERSION},200,{'cache-control':'no-store'})}catch{return unavailable()}
 }
 async function weatherMapWmsResponse(request){
  const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'dwd').toLowerCase();if(provider!=='dwd')return json({error:'Ungültiger Wetterkarten-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});

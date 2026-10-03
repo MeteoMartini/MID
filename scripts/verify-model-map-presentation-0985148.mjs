@@ -14,9 +14,12 @@ try{
   const data={...raw,kind},suffix=m.modelMapUnit(kind,data.unit,unit),text=m.modelMapValue(kind,37,data.unit,unit);
   assert.equal(`${text} ${suffix}`,m.wind(37/1.852,unit),'Use canonical MID formatter, not a second conversion');
   for(const mode of ['field','absolute']){
-   const scale=m.nativeMapScale(data,mode),svg=m.nativeFieldSvg(data,'Windkarte','data:image/png;base64,AA==',place,1,unit,scale);
+   const scale=m.nativeMapScale(data,mode,unit),svg=m.nativeFieldSvg(data,'Windkarte','data:image/png;base64,AA==',place,1,unit,scale);
    assert.ok(svg.includes(`${text} ${suffix}`),'Export favorites must match the map value');
    assert.ok(svg.includes(suffix)&&svg.includes('linearGradient'));
+   const factor=m.modelMapDisplayFactor(kind,unit);for(const [tick] of m.mapScaleTicks(scale))assert.ok(Math.abs(tick*factor-Math.round(tick*factor))<1e-8,'All selected-unit wind ticks are round integers');
+   if(mode==='field')assert.ok(scale.minimum<=18.5&&scale.maximum>=50,'Rounded ranges cover the full field');
+   else for(const [value] of m.NATIVE_LEGENDS[kind])assert.equal(m.mapColorAt(scale,value),m.mapColorAt(m.createMapColorScale(m.NATIVE_LEGENDS[kind],[],'absolute'),value),'Absolute physical color anchors survive display-unit rounding');
    assert.ok(svg.includes('Testort &lt;&amp;&gt;'),'Escape provider/user content');
    assert.ok(svg.includes(mode==='field'?'Wertebereich · relative Farbskala':'Feste Skala'));
    for(const [value] of m.mapScaleTicks(scale))assert.ok(svg.includes(m.modelMapValue(kind,value,data.unit,unit)));
@@ -44,6 +47,7 @@ try{
   for(let i=1;i<scale.stops.length;i++){
    const threshold=scale.stops[i][0],epsilon=(scale.maximum-scale.minimum)*1e-7;
    const channels=c=>c.match(/[a-f0-9]{2}/gi).map(x=>parseInt(x,16));
+   if(scale.transparentBelow!==undefined&&threshold<=scale.transparentBelow)continue;
    const a=channels(m.mapColorAt(scale,threshold-epsilon)),b=channels(m.mapColorAt(scale,threshold));
    assert.ok(a.every((v,j)=>Math.abs(v-b[j])<=1),`${kind}: no jump at palette anchor`);
   }
@@ -54,7 +58,7 @@ try{
   assert.equal(m.mapColorAt(fixed,value),hex,'Fixed temperature scale remains canonical ECMWF-inspired MID scale');
  }
  const totals={kind:'observed',scale:.1,lats:raw.lats,lons:raw.lons,run:raw.run},frame={hours:1,validFrom:'2026-10-02T23:00:00Z',validTo:raw.run,values:[-1,0,1,2,3,5,7,9,12],maximum:1.2};
- const scale=m.totalsMapScale(totals,frame,'field');assert.equal(scale.minimum,.1);assert.ok(Math.abs(scale.maximum-1.2)<1e-12);
+ const scale=m.totalsMapScale(totals,frame,'field');assert.ok(scale.minimum<=.1&&scale.maximum>=1.2,'Rounded bounds still cover all verified values');
  assert.equal(m.mapColorAt(scale,0),'transparent');assert.equal(m.mapColorAt(scale,NaN),'transparent');
  assert.equal(m.totalsAt(totals,frame,47,5.5),null);
  const wet=m.totalsMapScale(totals,{...frame,values:[1000,1001,1002,1003,1004,1005,1006,1007,1010]},'field');
@@ -76,6 +80,7 @@ try{
   assert.deepEqual([...pixels.slice(16,20)],[...expected,215],'Actual raster uses the same numeric scale as legends/exports');
  }finally{if(originalDocument===undefined)delete globalThis.document;else globalThis.document=originalDocument}
  for(const values of [[],[0,0],[-1,-1]]){const result=m.createMapColorScale(m.TOTALS_COLORS,values,'field',{nonnegative:true,transparentBelow:.1});assert.equal(result.mode,'absolute');assert.ok(result.stops.every(([v])=>Number.isFinite(v)))}
+ for(const [a,b] of [[.1,.2],[.2,.3],[14.1,14.2],[-6.7,12.3],[990.1,1006.7],[100,101]]){const input=m.createMapColorScale([[a,'#001122'],[b,'#aabbcc']],[a,b],'field');const rounded=m.roundMapScale(input,1,a>=0&&b<1?.1:1);assert.ok(rounded.minimum<=a&&rounded.maximum>=b,'Outward bounds never clip extrema');assert.ok(m.mapScaleTicks(rounded).every(([v])=>v>=rounded.minimum&&v<=rounded.maximum));}
  const constant=m.nativeMapScale({...raw,values:Array(9).fill(200)},'field');assert.equal(constant.mode,'absolute','Uniform fields do not invent spatial contrast');
  const source=path=>readFileSync(path,'utf8');
  assert.match(source('src/App.tsx'),/<MemoLazyMapWorkspacePanel[^>]*unit=\{unit\}/);

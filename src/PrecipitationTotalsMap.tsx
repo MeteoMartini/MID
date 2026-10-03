@@ -7,13 +7,13 @@ import {loadTotals,totalsStartAt,totalsAt,totalsMapScale,totalsRaster,type Total
 import {compactPrecipitationAmount} from './forecastAmountFormat';
 import {mapColorAt,type MapColorMode} from './modelMapColorScale';
 import ModelMapScaleLegend from './ModelMapScaleLegend';
+import ModelMapProbe from './ModelMapProbe';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
 import {exportTotals} from './precipitationTotalsExport';
 function stamp(value:string){return new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC'}
 
 export type WeatherMapFavoriteLocation={id:string;name:string;latitude:number;longitude:number};
 
-function escapeHtml(value:string){return value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]||char))}
 function isGermanyLocation(place:WeatherMapFavoriteLocation){return place.latitude>=47&&place.latitude<=55.2&&place.longitude>=5.5&&place.longitude<=15.6}
 
 export default function PrecipitationTotalsMap({favorites,embedded=false,basemap:controlledBasemap,kind='forecast'}:{favorites:WeatherMapFavoriteLocation[];embedded?:boolean;basemap?:WeatherMapBasemapId;kind?:'forecast'|'observed'}){
@@ -40,7 +40,8 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
       <RasterTileLayer id={`weather-precipitation-basemap-${activeBasemapId}`} url={activeBasemap.url} tone={activeBasemap.tone} attribution={activeBasemap.attribution}/>
       {data&&frame&&raster?<ImageQuadLayer id={`precipitation-totals-${data.run}-${hours}`} url={raster} bounds={[[data.lats[0],data.lons[0]],[data.lats.at(-1)!,data.lons.at(-1)!]]} opacity={.85}/>:null}
       <ModelMapContextOverlay/>
-      {sortedFavorites.filter(isGermanyLocation).map(place=><HtmlMarker key={place.id} latitude={place.latitude} longitude={place.longitude} zIndex={2} anchor="center" className="precipitation-favorite-marker" html={`<span class="${place.id===selectedFavoriteId?'selected':''}"></span>`} popupHtml={`<strong>${escapeHtml(place.name)}</strong>${data&&frame?`<br/>${compactPrecipitationAmount(totalsAt(data,frame,place.latitude,place.longitude)??NaN)} mm`:''}`} onClick={()=>setSelectedFavoriteId(place.id)}/>)}
+      <ModelMapProbe label="Niederschlagssumme" unit="mm" source={kind==='observed'?'DWD RADOLAN · stationsangeeichte Messanalyse':'DWD ICON-D2 · nächster dargestellter Rasterpunkt'} enabled={Boolean(data&&frame)} contextKey={`${data?.run}-${hours}-${kind}`} sample={(lat,lon)=>data&&frame?totalsAt(data,frame,lat,lon):null} format={value=>value===null?'–':compactPrecipitationAmount(value)}/>
+      {sortedFavorites.filter(isGermanyLocation).map(place=><HtmlMarker key={place.id} latitude={place.latitude} longitude={place.longitude} zIndex={2} anchor="center" className="precipitation-favorite-marker" html={`<span class="${place.id===selectedFavoriteId?'selected':''}"></span>`} onClick={()=>setSelectedFavoriteId(place.id)}/>)}
      </MidMapLibre>
      {!frame?<div className="weather-precipitation-data-state" role="status" data-product-status="unavailable">
       <span className="weather-precipitation-data-icon"><CloudRain size={20}/></span>
@@ -48,7 +49,7 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
      </div>:null}
     </div>
     {colorScale&&rangeScale&&fixedScale?<ModelMapScaleLegend label="Niederschlagssumme" unit="mm" scale={colorScale} range={rangeScale} format={value=>compactPrecipitationAmount(value)} onModeChange={setColorMode}/>:<div className="weather-precipitation-legend-placeholder">Farblegende · mm · erst mit vollständig geprüften Rasterwerten</div>}
-    <p className="weather-precipitation-attribution">Kartengrundlage: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap-Mitwirkende</a>, ODbL 1.0. Summen: DWD Open Data · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>, bearbeitet durch MID. {data?.grid||'DWD-Lat/Lon-Raster'}, Ortswerte vom nächsten dargestellten Rasterpunkt. Grenzen und Ortsnamen: Natural Earth (Public Domain), zoomabhängig über dem Modellfeld.</p>
+    <p className="weather-precipitation-attribution">Karte antippen für einen Ortswert. Kartengrundlage: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap-Mitwirkende</a>, ODbL 1.0. Summen: DWD Open Data · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>, bearbeitet durch MID. {data?.grid||'DWD-Lat/Lon-Raster'}, Ortswerte vom nächsten dargestellten Rasterpunkt. Grenzen und Ortsnamen: Natural Earth (Public Domain), zoomabhängig über dem Modellfeld.</p>
    </section>
    <aside className="weather-precipitation-summary">
     <section className="weather-precipitation-period" aria-labelledby="weather-precipitation-period-title">
@@ -64,9 +65,10 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
      <div><dt>Maximum</dt><dd>{frame?`${compactPrecipitationAmount(frame.maximum)} mm · Kartenausschnitt`:'– mm'}</dd></div>
      <div><dt>Quelle</dt><dd>{data?data.source:'kein verifiziertes Raster'}</dd></div>
     </dl>
-    <div className="weather-precipitation-exports" aria-label="Kartenexport">
+    <div className="weather-precipitation-exports" aria-label="Kartenexport" aria-busy={exporting}>
      <button type="button" disabled={!frame||exporting} onClick={()=>void download('png')}><Download size={15}/>PNG herunterladen</button>
      <button type="button" disabled={!frame||exporting} onClick={()=>void download('svg')}><Download size={15}/>SVG herunterladen</button>
+     {exporting?<span className="mid-map-export-status" role="status">Export wird erstellt …</span>:null}
     </div>
    </aside>
    <section className="weather-precipitation-favorites" aria-labelledby="weather-precipitation-favorites-title">
@@ -74,7 +76,7 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
     <div className="weather-precipitation-table-wrap"><table>
      <thead><tr><th scope="col">Ort</th><th scope="col">Summe</th><th scope="col">Datenstatus</th></tr></thead>
      <tbody>{sortedFavorites.length?sortedFavorites.map(place=><tr key={place.id}>
-      <th scope="row">{isGermanyLocation(place)?<button type="button" className={place.id===selectedFavoriteId?'selected':''} onClick={()=>setSelectedFavoriteId(current=>current===place.id?'':place.id)}><MapPinned size={14}/>{place.name}</button>:<span className="weather-precipitation-place-outside">{place.name}</span>}</th>
+      <th scope="row">{isGermanyLocation(place)?<button type="button" className={place.id===selectedFavoriteId?'selected':''} aria-pressed={place.id===selectedFavoriteId} onClick={()=>setSelectedFavoriteId(current=>current===place.id?'':place.id)}><MapPinned size={14}/>{place.name}</button>:<span className="weather-precipitation-place-outside">{place.name}</span>}</th>
       <td style={{borderLeft:`4px solid ${data&&frame&&colorScale?mapColorAt(colorScale,totalsAt(data,frame,place.latitude,place.longitude)??NaN):'transparent'}`}}>{data&&frame&&totalsAt(data,frame,place.latitude,place.longitude)!==null?`${compactPrecipitationAmount(totalsAt(data,frame,place.latitude,place.longitude)!)} mm`:'–'}</td>
       <td>{data&&frame&&totalsAt(data,frame,place.latitude,place.longitude)!==null?'DWD-Rasterpunkt':isGermanyLocation(place)?'kein verifiziertes Raster':'außerhalb des Kartenausschnitts'}</td>
      </tr>):<tr><td colSpan={3} className="weather-precipitation-no-favorites">Noch keine Favoriten gespeichert.</td></tr>}</tbody>

@@ -1,5 +1,9 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.149 · Runde Kartenskalen und temporäre Ortswerte
+
+Basis main = mid-stable = c578a947e02a6d06638870d5d762c16ecb9be8bf (.148). Gerundete Skalen umfassen alle Werte; feste absolute Anker bleiben unverändert. Einheitenbewusste Grenzen, echte Skalenpositionen für beschriftete Zwischenwerte und temporäre Kartenabfrage nutzen die kanonischen Raster- und Formatfunktionen. Portal, Außenklick und Escape bleiben in AppPortalPopover. Details: docs/implementation/MID_MODEL_MAP_PROBE_0.9.85.149.md.
+
 ## v0.9.85.148 · Einheiten und kontinuierliche Kartenfarben
 
 Basis main = mid-stable = e28fdd42a3e68decf4b2671d3cd71751a3e711af (.147). Die parallel veröffentlichten .146/.147-Änderungen an Sonnen-/Mondzeilen, Bergwettertabelle, unterer Navigation und Kartenbereich bleiben erhalten. Der unveröffentlichte Parallelstand e3d9f7ac2567b66bfbd0f769ffc5fa5d415eb5fb ist gezielt abgeglichen; die Navigation bleibt über ein Portal und ihren bisherigen CSS-Namensraum fest am Viewport. Wind-/Böen-Ortswerte, Legenden und PNG/SVG folgen der bestehenden Einstellung über den kanonischen Windformatter. Native numerische Raster und Niederschlagssummen verwenden eine gemeinsam berechnete stufenlose Wertebereich-/Festskala; Animationen bleiben fest skaliert. Wettercodes, Datenlücken und Trockenheit werden nicht numerisch umgefärbt. Details: docs/implementation/MID_MODEL_MAP_UNITS_COLORS_0.9.85.148.md.
