@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.151",
+  "date": "2026-10-03",
+  "title": "Gestaffelte Warnhorizonte und regionaler Langfristausblick",
+  "external": [
+    "MID-Prognosehinweise im Warnzentrum bis sieben Tage; ab 48 Stunden Vorhinweise, ab Tag 6 Gefahrenausblick.",
+    "Extremwetter: zusätzliche Auswahl Tag 3–7 mit regionalem ICON-EPS-Potenzial für Regen, Sturm und Schnee.",
+    "Amtliche Vorabinformationen bleiben kenntlich; fehlende Langfristdaten werden nicht als Entwarnung dargestellt."
+  ],
+  "internal": [
+    "Basis main = mid-stable = 0d9205720c177243a2dec3f4f8169216cc620162 (.150); keine Überschneidung mit offener Agent-PR.",
+    "Gemeinsame Vorlaufbezeichnung für Warnzentrum, Tagesansichten und Ensemble; bestehender Stundenauflösungs-Schutz bleibt erhalten.",
+    "Separater Worker-Langfristcache und grobes Raster; Regen/Schnee ausschließlich vollständige 24-h-Summen. EPS-Prozentwerte unkalibrierte Näherungen. Keine langfristige Konvektions-/Eisregendiagnostik.",
+    "Neue Laufzeitregression prüft 48–168 h, Schwellenfenster, Herkunft und Fehlerzustand bei fehlenden Feldern. Historische 24-h-Erwartungen bewusst auf neuen beauftragten Vertrag angepasst."
+  ]
+}

@@ -258,3 +258,5 @@ export function summarizeDwdWarningsForDay(samples:DwdWarningSample[],date:strin
  const extended=samples.slice(start,start+dayCount+72),daySamples=extended.slice(0,dayCount);
  return summarizeDwdWarnings(extended,elevation,dayCount).filter(signal=>dailyWarningHasMatchingPrecipitation(signal,daySamples));
 }
+
+export function warningLeadLabel(validFrom:string|undefined,now=Date.now()){const lead=(Date.parse(String(validFrom??''))-now)/3600000;return lead>=120?'Gefahrenausblick':lead>=48?'Vorhinweis':'Prognosehinweis'}

@@ -157,3 +157,7 @@ export function strongestExtremeRegions(data:ExtremeWeatherOutlook,periodId:stri
  for(const cell of data.cells){const signal=extremeSignalForCell(cell,periodId,hazard);if(!extremeSignalVisible(signal,hazard,data.thresholds)||!signal)continue;const current=regions.get(cell.region);if(!current||signal.intensity>current.signal.intensity||signal.intensity===current.signal.intensity&&signal.probability>current.signal.probability)regions.set(cell.region,{cell,signal})}
  return [...regions.values()].sort((a,b)=>b.signal.intensity-a.signal.intensity||b.signal.probability-a.signal.probability).slice(0,limit);
 }
+
+export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
+ const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:1800000,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v1'});if(!validOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht verfügbar.');return data;
+}

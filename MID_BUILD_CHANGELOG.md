@@ -1,3 +1,10 @@
+## MID v0.9.85.151 · 2026-10-03 · Gestaffelte Warnhorizonte und regionaler Langfristausblick
+
+- Basis main = mid-stable = 0d9205720c177243a2dec3f4f8169216cc620162 (.150); keine Überschneidung mit offener Agent-PR.
+- Gemeinsame Vorlaufbezeichnung für Warnzentrum, Tagesansichten und Ensemble; bestehender Stundenauflösungs-Schutz bleibt erhalten.
+- Separater Worker-Langfristcache und grobes Raster; Regen/Schnee ausschließlich vollständige 24-h-Summen. EPS-Prozentwerte unkalibrierte Näherungen. Keine langfristige Konvektions-/Eisregendiagnostik.
+- Neue Laufzeitregression prüft 48–168 h, Schwellenfenster, Herkunft und Fehlerzustand bei fehlenden Feldern. Historische 24-h-Erwartungen bewusst auf neuen beauftragten Vertrag angepasst.
+
 # v0.9.85.150 · iOS Bottom-Bar-Verankerung
 
 Aus veröffentlichter .149, e6386ca6ed8fbab563261e7b78a96ea15e015c17. Narrow-iOS-Dokumentanker hält die bestehende Body-Portal-Navigation am sichtbaren unteren Rand; stale VisualViewport.offsetTop wird geometrisch begrenzt. Safe-Area und Desktop-/Tablet-Regeln unverändert. Browsermatrix ergänzt echten Bottom-Gap sowie Scroll-/Resize-/Keyboard-Rückkehr. Keine meteorologische Logik oder empirische Kalibrierung verändert. Details: docs/implementation/MID_BOTTOM_BAR_ANCHOR_0.9.85.150.md.

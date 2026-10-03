@@ -48,7 +48,7 @@ for(const token of [
 ])need('Hazard-Datenvertrag',weather,token);
 for(const token of [
  '<span>{x.displayText||x.text}</span>',
- "detail:[formatDwdWarningDetail(signal,unit),formatDwdWarningDirection(signal)].filter(Boolean).join(' ')"
+ "detail:[warningLeadLabel(signal.validFrom),formatDwdWarningDetail(signal,unit),formatDwdWarningDirection(signal)].filter(Boolean).join(' ')"
 ])need('Warnrichtungs-Darstellung',app,token);
 for(const forbidden of ['className="hazard-wind-direction"','Modellierte Windrichtung im Warnzeitraum'])if(app.includes(forbidden))failures.push(`Separate Windrichtungs-Kapsel ist weiterhin aktiv: ${forbidden}`);
 need('Ensemble-Hazard',ensemble,"formatDwdWarningDirection(signal)");

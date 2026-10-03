@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.150",
+  "releaseVersion": "0.9.85.151",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -849,6 +849,7 @@
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "scripts/test-warning-eps-neighborhood-097853.mjs",
     "scripts/test-warning-event-tab-098511.mjs",
+    "scripts/test-warning-horizons-0985151.mjs",
     "scripts/test-warning-hybrid-probabilistic-097850.mjs",
     "scripts/test-warning-hybrid-uncertainty-097849.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
@@ -1751,6 +1752,7 @@
     "scripts/test-warning-current-summary-disclosure-09657.mjs",
     "scripts/test-warning-eps-neighborhood-097853.mjs",
     "scripts/test-warning-event-tab-098511.mjs",
+    "scripts/test-warning-horizons-0985151.mjs",
     "scripts/test-warning-hybrid-probabilistic-097850.mjs",
     "scripts/test-warning-hybrid-uncertainty-097849.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
@@ -3213,7 +3215,7 @@
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-health-settings-primary-navigation-0985130.mjs"
   ],
-  "version": "0.9.85.150",
+  "version": "0.9.85.151",
   "updatedAt": "2026-10-02T19:30:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
