@@ -1,6 +1,14 @@
 # MID – verbindlicher Parameter-Farbvertrag
 
-Stand: v0.9.85.148
+Stand: v0.9.85.160
+
+## Vorrangiger Zusatzvertrag v0.9.85.160
+
+Die in Einstellungen gespeicherte Option ECMWF-Temperaturfarben gilt für 7d-Tageswerte, Wertebereich und stündliche Temperaturkurve. Ausgeschaltet: Tmin blau, Tmax rot, Kurve Temperaturrot aus den 24h-Parametertokens. Eingeschaltet: dieselbe zentrale wertbasierte ECMWF-Palette für Werte und Kurve; keine Klimadelta-Beschriftung. Widget und URL/PNG behalten ihren expliziten Farbschalter und verwenden denselben Renderer. 14d bleibt unverändert.
+
+Der zentrale Linienvertrag src/parameterLineStyle.ts bestimmt bei 24h-Profil und aufgeklapptem 7d-Tagesdetail Farbe, Strichmuster, Linienstärke, Rundung und Deckkraft. Die temperaturbezogene ECMWF-Option färbt keine anderen Parameter um. Quantilband, Skybar und astronomische Nachtflächen bleiben unabhängig von der Farboption erhalten.
+
+UTCI behält den vor MID-C15 vorhandenen 24h-Goldton (#d6c7a4 dunkel, #8a6d3d hell) über den gemeinsamen --apparent-line-Token. Dies korrigiert die unbeabsichtigte Temperatur-/Textmischung aus .157; die ältere Aussage „Keine Gold-Ersatzpalette“ ist hiermit ersetzt. Linie, Auswahlpunkt und Legende konsumieren denselben Token.
 
 Dieser Vertrag ist appweit verbindlich. Er gilt für Browser/PWA und den gemeinsamen iOS-/Capacitor-Fachkern, auf Desktop, Tablet und Smartphone sowie im Hoch- und Querformat. Ein meteorologischer Parameter behält in Karten, Diagrammen, Tageswerten, Legenden, Tooltips, Selektoren und kompakten Übersichten dieselbe visuelle Grundidentität.
 

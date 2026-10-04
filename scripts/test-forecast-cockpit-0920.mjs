@@ -8,7 +8,7 @@ const pkg=readFileSync(new URL('../package.json',import.meta.url),'utf8');
 const baseline=readFileSync(new URL('../MID_BASELINE.json',import.meta.url),'utf8');
 const failures=[];const need=(area,text,token)=>{if(!text.includes(token))failures.push(`${area}: fehlt ${token}`)};
 need('Cockpit-Datei',cockpit,"export type ForecastPresentationMode='classic'|'cockpit-tabs'|'cockpit-ribbons'");
-need('Eindeutiger Standard',app,"const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal',skybarDisplayMode:'band'}");
+need('Eindeutiger Standard',app,"const DEFAULT_FORECAST_DISPLAY_SETTINGS:ForecastDisplaySettings={ecmwfTemperatureColors:false,showSevenDaySummary:true,showDwdPrecipitationTypeRadar:true,confidenceDisplayMode:'signal',skybarDisplayMode:'band'}");
 need('Obligatorischer Workspace-Modus',app,'mode="cockpit-tabs"');
 for(const token of ['forecast-presentation-settings','Cockpit · Register','Cockpit · Ribbons','Die klassische Ansicht bleibt Standard'])if(app.includes(token))failures.push(`Einstellungen: obsolete Prognose-Scheinoption weiterhin enthalten: ${token}`);
 for(const token of ["const FORECAST_COCKPIT_MODULES:DashboardModuleId[]=['short-term','forecast','ensemble']","const forecastCockpitEnabled=true","forecastCockpitEnabled&&FORECAST_COCKPIT_MODULES.includes(id)","if(id!==forecastCockpitAnchor)return null"])need('Keine Doppelmodule',app,token);

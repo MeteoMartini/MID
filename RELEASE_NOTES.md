@@ -1,3 +1,9 @@
+# MID v0.9.85.160
+
+MID-C15: ECMWF-Temperaturfarben sind in Einstellungen wieder optional für 7d-Tageswerte und die stündliche 7d-Kurve verfügbar; Standard bleibt die 24h-Parameterpalette. Widget und PNG verwenden denselben Renderer mit ihrem vorhandenen Farbschalter. Eindeutige Gradienten-IDs verhindern Wechselwirkungen zwischen gleichzeitig sichtbaren Diagrammen.
+
+24h-Profil und aufgeklapptes 7d-Tagesdetail verwenden einen gemeinsamen Linienvertrag für Farbe, Stärke, Strichmuster, Deckkraft und Rundung aller sieben Parameter. Der ursprüngliche 24h-Goldton für UTCI ist auch im Tagesdetail wiederhergestellt. Coverage-Pilot installiert Vite, Vitest und Coverage gemeinsam in einem isolierten Verzeichnis, ohne MID-Lockfile oder Release-Gates zu verändern.
+
 # MID v0.9.85.159
 
 MID-C15: Widget-Kurvenübersicht mit echtem stündlichem Temperaturensemble P25–P75 wie in der App. Gemeinsame astronomische Nachtflächen einschließlich Skybar, gemeinsame Skybar-Einstellung auch im Widget und URL-Export. Abruf beim Öffnen der Kurvenansicht; URL-Export wartet auf den Ensembleabruf. Fehlende Mitglieder erzeugen kein künstliches Band.

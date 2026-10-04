@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {sourceUsesExactHttpsUrl,sourceUsesHttpsHost} from './source-url-contract.mjs';
 import {versionAtLeast} from './version-regression-helper.mjs';
+import {localCdpEndpoint} from './local-cdp-endpoint.mjs';
+
+assert.equal(localCdpEndpoint('ws://127.0.0.1:9222/devtools/browser/abc-123',9222),'ws://127.0.0.1:9222/devtools/browser/abc-123');
+for(const endpoint of ['ws://127.0.0.1.evil.example:9222/devtools/browser/abc-123','wss://127.0.0.1:9222/devtools/browser/abc-123','ws://127.0.0.1:9223/devtools/browser/abc-123','ws://user:secret@127.0.0.1:9222/devtools/browser/abc-123','ws://127.0.0.1:9222/devtools/browser/abc-123?redirect=external','ws://127.0.0.1:9222/devtools/page/abc-123'])assert.throws(()=>localCdpEndpoint(endpoint,9222),'Fixture/data transport must remain on the launched loopback browser.');
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const urlTests=['scripts/test-widgetkit-xcode-structure-09710.mjs','scripts/test-keyless-basemap-contract-09743.mjs','scripts/test-extreme-outlook-mitteleuropa-recovery-096697.mjs','scripts/test-extreme-outlook-labels-layout-persistence-09668.mjs','scripts/test-extreme-outlook-dwd-scale-dashboard-persistence-09669.mjs','scripts/test-extreme-outlook-compact-legend-096610.mjs'];

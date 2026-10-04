@@ -7,6 +7,7 @@ import path from 'node:path';
 import {createServer} from 'node:net';
 import {fileURLToPath} from 'node:url';
 import {preview} from 'vite';
+import {localCdpEndpoint} from './local-cdp-endpoint.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const chromiumCandidates=[process.env.CHROMIUM_PATH,'/repl/tools/bin/chromium','/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome'].filter(Boolean);
@@ -333,10 +334,10 @@ try{
  const remotePort=await reserveLoopbackPort();
  chrome=spawn(chromiumPath,[
   '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-  `--remote-debugging-port=${remotePort}`,'--remote-allow-origins=*',`--user-data-dir=${profile}`,'about:blank',
+  `--remote-debugging-port=${remotePort}`,'--remote-debugging-address=127.0.0.1',`--user-data-dir=${profile}`,'about:blank',
  ],{stdio:'ignore'});
  const browserInfo=await waitFor('Chromium-CDP-Port',async()=>{try{const response=await fetch(`http://127.0.0.1:${remotePort}/json/version`);return response.ok?response.json():null}catch{return null}});
- socket=new WebSocket(browserInfo.webSocketDebuggerUrl);
+ socket=new WebSocket(localCdpEndpoint(browserInfo.webSocketDebuggerUrl,remotePort));
  socket.addEventListener('message',event=>{
   let packet;
   try{packet=JSON.parse(typeof event.data==='string'?event.data:Buffer.from(event.data).toString())}catch{return}
