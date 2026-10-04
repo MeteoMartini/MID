@@ -1,0 +1,1 @@
+import{mt as e}from"./index-BJFMN2SV.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
