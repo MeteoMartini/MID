@@ -16,7 +16,7 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 const need=(label,text,token)=>assert.ok(text.includes(token),`${label}: ${token}`);
 
 need('Widget bietet das 14-Tage-Ensemble an',app,'<option value="ensemble">14-Tage-Ensemble</option>');
-need('Widget lädt Ensemble erst bei Auswahl',app,"if(view==='ensemble')onEnsembleRequested()");
+need('Widget lädt Ensemble erst bei Auswahl',app,"if(view==='ensemble'||view==='curve')onEnsembleRequested()");
 need('Widget nutzt den vollständigen bestehenden Ensemble-Renderer',app,'presentation="widget"');
 need('Widget zeigt einen festen 14-Tage-Zeitraum',app,'className="widget-fixed-days">14 Tage');
 need('Ensemble kennt die Widget-Präsentation',ensemble,"type EnsemblePresentation='full'|'cockpit'|'widget'");

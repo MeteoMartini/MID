@@ -14,5 +14,5 @@ assert.ok(panel.includes("signal.kind==='heavyRain'&&Number(signal.windowHours??
 assert.ok(panel.includes("signal.kind==='continuousRain'&&Number(signal.windowHours??24)>=24"), 'Dauerregen darf die passende P90-Tagesmenge nutzen.');
 assert.ok(panel.includes("Math.round(Number(day.precipitationProbability)/5)*5"), 'Niederschlagswahrscheinlichkeit muss auf robuste 5-%-Schritte gerundet werden.');
 assert.ok(panel.includes("Bei diesem Vorlauf wird keine künstliche lokale Umfeldschärfung erzeugt"), 'Lange Vorläufe müssen die Grenze der Umfeldschärfung transparent machen.');
-assert.equal((app.match(/warningEnsemble=\{warningEnsemble\}/g)??[]).length,4,'Kurzfrist-Cockpit, 14d-Cockpit, Ensemblemodul und Widget-Ensemble müssen denselben Umfeldkontext erhalten.');
+assert.equal((app.match(/warningEnsemble=\{warningEnsemble\}/g)??[]).length,7,'Kurzfrist-Cockpit, 14d-Cockpit, Ensemblemodul und Widget-Ensemble müssen denselben Umfeldkontext erhalten.');
 console.log('14d ensemble hazard neighborhood/rounding contract: OK');
