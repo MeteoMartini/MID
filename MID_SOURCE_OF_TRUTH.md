@@ -1,3 +1,6 @@
+## v0.9.85.165 · MID-C16 kompakte Prognoseansichten
+Verifizierte veröffentlichte Basis main = mid-stable = 27285d13c94f0da54d878b09a1d3f5953ff2627a (.164); www.midwx.app/version.json bestätigt .164. Fachlicher .164-Vertrag bleibt unverändert. Kurze 14d-Phasen, aufklappbarer Wochenvergleich und Quellen-/Methodikansichten; alle Saisonmonate ohne horizontales Scrollen, konkrete Kalenderdaten im Witterungstrend, gemeinsame Texthierarchie. Details: docs/implementation/MID_C16_COMPACT_UI_0.9.85.165.md. Release ausschließlich nach geprüftem Handoff und Source-PR-Gate.
+
 ## v0.9.85.164 · MID-C16 Prognoseanomalien und RUC-Nachladung
 Basis main = mid-stable = 7a9066bbb0b6babc03fc44dff93bcd6f815cddfe (.163). Fachlicher Vertrag: docs/implementation/MID_C16_OUTLOOKS_RUC_0.9.85.164.md. Himmelsdelta vor Fusion; Niederschlagsdelta unverändert nach Fusion. Saisonprozente nur gegen eigene Modellreferenz, echte Mitgliedsanomalien und alle Monatslabels. Keine erfundenen Referenzen oder Kalibrierung.
 

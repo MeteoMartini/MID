@@ -3,7 +3,7 @@ import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} fr
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
 import {AppPortalPopover} from './AppPortalPopover';
 import {formatDecimalFixed} from './format';
-import {HorizonSignalChart,type SignalSeries} from './HorizonSignalChart';
+import {HorizonSignalChart,useSignalChartWidth,type SignalSeries} from './HorizonSignalChart';
 import type {Location,WindUnit} from './weather';
 
 type RawMetricKey='temperature_max'|'temperature_min'|'precipitation'|'pressure'|'cloud'|'wind';
@@ -522,7 +522,7 @@ function pointsForMetric(weeks:TrendWeek[],climateWeeks:ClimateWeek[],metric:Raw
     return {
       week,
       index,
-      x:margin.left+(weeks.length===1?usableWidth/2:(usableWidth*Math.max(0,index))/Math.max(1,weeks.length-1)),
+      x:margin.left+(index+.5)*usableWidth/Math.max(1,weeks.length),
       mean:y(valueToDisplay(value?.mean??Number.NaN,metric,windUnit)),
       p10:y(valueToDisplay(value?.p10??Number.NaN,metric,windUnit)),
       p25:y(valueToDisplay(value?.p25??Number.NaN,metric,windUnit)),
@@ -570,7 +570,7 @@ function CombinedTrendChart({weeks,climateWeeks,series,windUnit,ariaLabel}:{week
   const activeAnchorRef=useRef<HTMLButtonElement|null>(null);
   const [activeIndex,setActiveIndex]=useState<number|null>(null);
   useEffect(()=>{setActiveIndex(null);},[series.map(item=>item.id).join('|'),weeks.map(week=>week.id).join('|')]);
-  const width=640,height=244,margin={top:12,right:16,bottom:40,left:46};
+  const [chartRef,width]=useSignalChartWidth(),height=244,margin={top:12,right:16,bottom:48,left:46};
   const usableHeight=height-margin.top-margin.bottom;
   const primaryMetric=series[0]?.id??'temperature_max';
   const range=buildRange(weeks,climateWeeks,series.map(item=>item.id),windUnit);
@@ -593,7 +593,7 @@ function CombinedTrendChart({weeks,climateWeeks,series,windUnit,ariaLabel}:{week
     return <polygon className={className} points={polygonFromBands(top,bottom)} style={{fill:color,fillOpacity:inner?0.28:0.11,stroke:color,strokeOpacity:inner?0.34:0.18,strokeWidth:inner?1.15:.8}} />;
   };
 
-  return <div className="subseasonal-chart" onClick={event=>{if(event.target===event.currentTarget)setActiveIndex(null);}}>
+  return <div ref={chartRef} className="subseasonal-chart" onClick={event=>{if(event.target===event.currentTarget)setActiveIndex(null);}}>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel}>
       {range.ticks.map(tick=>{
         const y=scaleY(tick);
@@ -617,8 +617,8 @@ function CombinedTrendChart({weeks,climateWeeks,series,windUnit,ariaLabel}:{week
       })}
       {seriesPoints.map(entry=>entry.points.filter(point=>Number.isFinite(point.mean)).map(point=><circle key={`dot-${entry.definition.id}-${point.week.id}`} cx={point.x} cy={point.mean} r={4} fill={entry.definition.color} className="trend-point"/>))}
       {xReference.map(point=><g key={`label-${point.week.id}`}>
-        <text x={point.x} y={height-18} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.75">{point.week.label}</text>
-        <text x={point.x} y={height-8} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.55">{formatDate(point.week.startDate)}</text>
+        <text x={point.x} y={height-26} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.75">{formatDate(point.week.startDate).replace(/\.$/,'')}</text>
+        <text x={point.x} y={height-8} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.55">{formatDate(point.week.endDate).replace(/\.$/,'')}</text>
       </g>)}
     </svg>
     {xReference.map((point,index)=>seriesPoints.some(entry=>Number.isFinite(entry.points[index]?.mean))?<button
@@ -645,7 +645,7 @@ function ScalarTrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[
   const activeAnchorRef=useRef<HTMLButtonElement|null>(null);
   const [activeIndex,setActiveIndex]=useState<number|null>(null);
   useEffect(()=>{setActiveIndex(null);},[metric,weeks.map(week=>week.id).join('|')]);
-  const width=640,height=244,margin={top:12,right:16,bottom:40,left:46};
+  const [chartRef,width]=useSignalChartWidth(),height=244,margin={top:12,right:16,bottom:48,left:46};
   const usableHeight=height-margin.top-margin.bottom;
   const range=buildRange(weeks,climateWeeks,[metric],windUnit);
   const scaleY=(value:number)=>margin.top+usableHeight-((value-range.min)/(range.max-range.min||1))*usableHeight;
@@ -657,7 +657,7 @@ function ScalarTrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[
   const meanPoints=points.filter(point=>Number.isFinite(point.mean)).map(point=>({x:point.x,y:point.mean}));
   const climatePoints=points.filter(point=>Number.isFinite(point.climate)).map(point=>({x:point.x,y:point.climate}));
   const activePoint=activeIndex===null?null:points[activeIndex]??null;
-  return <div className="subseasonal-chart" onClick={event=>{if(event.target===event.currentTarget)setActiveIndex(null);}}>
+  return <div ref={chartRef} className="subseasonal-chart" onClick={event=>{if(event.target===event.currentTarget)setActiveIndex(null);}}>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Witterungstrend ${rawMetricDefinition(metric).label}`}>
       {range.ticks.map(tick=>{
         const y=scaleY(tick);
@@ -673,8 +673,8 @@ function ScalarTrendChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[
       {meanPoints.length>1?<path className="anomaly-mean-line" fill="none" d={pathFromPoints(meanPoints)} />:null}
       {meanPoints.map((point,index)=><circle key={`dot-${index}`} cx={point.x} cy={point.y} r={4} fill="currentColor" className="trend-point" />)}
       {points.map(point=><g key={`label-${point.week.id}`}>
-        <text x={point.x} y={height-18} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.75">{point.week.label}</text>
-        <text x={point.x} y={height-8} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.55">{formatDate(point.week.startDate)}</text>
+        <text x={point.x} y={height-26} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.75">{formatDate(point.week.startDate).replace(/\.$/,'')}</text>
+        <text x={point.x} y={height-8} textAnchor="middle" className="month-label" fill="currentColor" opacity="0.55">{formatDate(point.week.endDate).replace(/\.$/,'')}</text>
       </g>)}
     </svg>
     {points.map(point=>Number.isFinite(point.mean)?<button
@@ -708,8 +708,8 @@ function renderComparisonArticle(metric:ViewMetric,week:TrendWeek,models:TrendMo
     const climateMax=climateNumber(climateWeeks,week.id,'temperature_max');
     const climateMin=climateNumber(climateWeeks,week.id,'temperature_min');
     return <article key={week.id}>
-      <strong>{week.label}</strong>
-      <small>{formatDate(week.startDate)} – {formatDate(week.endDate)}</small>
+      <strong>{formatDate(week.startDate)} – {formatDate(week.endDate)}</strong>
+      <small>{week.label}</small>
       {models.map(model=>{
         const maxValue=model.weeks.find(row=>row.id===week.id)?.values.temperature_max;
         const minValue=model.weeks.find(row=>row.id===week.id)?.values.temperature_min;
@@ -723,8 +723,8 @@ function renderComparisonArticle(metric:ViewMetric,week:TrendWeek,models:TrendMo
   if(metric==='wind'){
     const climateWind=climateNumber(climateWeeks,week.id,'wind');
     return <article key={week.id}>
-      <strong>{week.label}</strong>
-      <small>{formatDate(week.startDate)} – {formatDate(week.endDate)}</small>
+      <strong>{formatDate(week.startDate)} – {formatDate(week.endDate)}</strong>
+      <small>{week.label}</small>
       {models.map(model=>{const windValue=model.weeks.find(row=>row.id===week.id)?.values.wind;if(!windValue)return null;return <span key={model.id}>{model.family}: Wind {formatMetric(windValue.mean,'wind',windUnit)}<small> · P10–P90 {formatMetric(windValue.p10,'wind',windUnit)} – {formatMetric(windValue.p90,'wind',windUnit)}</small></span>})}
       {combinedWeek.values.wind?<em>Multi: Wind {formatMetric(combinedWeek.values.wind.mean,'wind',windUnit)} · {combinedWeek.values.wind.modelCount} Modellfamilie{combinedWeek.values.wind.modelCount===1?'':'n'}</em>:null}
       {Number.isFinite(climateWind)?<small className="climate-value">Klimamittel 1991–2020: Wind {formatMetric(climateWind,'wind',windUnit)}</small>:null}
@@ -733,8 +733,8 @@ function renderComparisonArticle(metric:ViewMetric,week:TrendWeek,models:TrendMo
   const rawMetric=metricRawKeys(metric)[0];
   const climate=climateNumber(climateWeeks,week.id,rawMetric);
   return <article key={week.id}>
-    <strong>{week.label}</strong>
-    <small>{formatDate(week.startDate)} – {formatDate(week.endDate)}</small>
+    <strong>{formatDate(week.startDate)} – {formatDate(week.endDate)}</strong>
+    <small>{week.label}</small>
     {models.map(model=>{
       const value=model.weeks.find(row=>row.id===week.id)?.values[rawMetric];
       return value?<span key={model.id}>{model.family}: {formatMetric(value.mean,rawMetric,windUnit)}<small> · P10–P90 {formatMetric(value.p10,rawMetric,windUnit)} – {formatMetric(value.p90,rawMetric,windUnit)}</small></span>:null;
@@ -745,10 +745,10 @@ function renderComparisonArticle(metric:ViewMetric,week:TrendWeek,models:TrendMo
 }
 
 function WeeklyAnomalyChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[];climateWeeks:ClimateWeek[];metric:ViewMetric;windUnit:WindUnit}){
- const keys=metricRawKeys(metric),unit=metric==='temperature'?'K':metric==='cloud'?'Prozentpunkte':metric==='precipitation'?'mm/Woche':metric==='pressure'?'hPa':windUnitLabel(windUnit),series:SignalSeries[]=keys.map(key=>({id:key,label:key==='temperature_max'?'Tmax-Abweichung':key==='temperature_min'?'Tmin-Abweichung':VIEW_METRICS.find(item=>item.id===metric)?.label??metric,color:key==='temperature_min'?'var(--param-temperature-min)':key==='temperature_max'?'var(--param-temperature-max)':metric==='precipitation'?'var(--param-precipitation)':'var(--accent)',points:weeks.map(week=>{const value=week.values[key],climate=climateNumber(climateWeeks,week.id,key),difference=(raw:number|undefined)=>raw!==undefined&&Number.isFinite(raw)&&Number.isFinite(climate)?valueToDisplay(raw-climate,key,windUnit):null,mean=difference(value?.mean),q25=difference(value?.p25),q75=difference(value?.p75);return{id:week.id,label:week.label,mean,low:difference(value?.p10),high:difference(value?.p90),q25,q75,detail:`${formatDate(week.startDate)} – ${formatDate(week.endDate)} · ${value?.modelCount??0} Modellfamilien · ${q25!==null&&q75!==null&&q25<=0&&q75>=0?'mittlere Bandbreite umfasst Klimamittel':'Richtung im mittleren Ensemblebereich'}`}})}));
+ const keys=metricRawKeys(metric),unit=metric==='temperature'?'K':metric==='cloud'?'Prozentpunkte':metric==='precipitation'?'mm/Woche':metric==='pressure'?'hPa':windUnitLabel(windUnit),series:SignalSeries[]=keys.map(key=>({id:key,label:key==='temperature_max'?'Tmax-Abweichung':key==='temperature_min'?'Tmin-Abweichung':VIEW_METRICS.find(item=>item.id===metric)?.label??metric,color:key==='temperature_min'?'var(--param-temperature-min)':key==='temperature_max'?'var(--param-temperature-max)':metric==='precipitation'?'var(--param-precipitation)':'var(--accent)',points:weeks.map(week=>{const value=week.values[key],climate=climateNumber(climateWeeks,week.id,key),difference=(raw:number|undefined)=>raw!==undefined&&Number.isFinite(raw)&&Number.isFinite(climate)?valueToDisplay(raw-climate,key,windUnit):null,mean=difference(value?.mean),q25=difference(value?.p25),q75=difference(value?.p75);return{id:week.id,label:formatDate(week.startDate).replace(/\.$/,''),labelEnd:formatDate(week.endDate).replace(/\.$/,''),mean,low:difference(value?.p10),high:difference(value?.p90),q25,q75,detail:`${formatDate(week.startDate)} – ${formatDate(week.endDate)} · ${value?.modelCount??0} Modellfamilien · ${q25!==null&&q75!==null&&q25<=0&&q75>=0?'mittlere Bandbreite umfasst Klimamittel':'Richtung im mittleren Ensemblebereich'}`}})}));
  return <><HorizonSignalChart series={series} unit={unit} label={`Wochenabweichungen ${metric} gegenüber ERA5 1991–2020 mit Unsicherheit`}/><div className="long-range-info"><p>Null = ERA5-Klimamittel 1991–2020. Dies sind unbereinigte Modellabweichungen zur Reanalyse, keine hindcastkalibrierten Wahrscheinlichkeiten. Ein Intervall über Null lässt die Richtung offen. Fehlende Klimawerte erzeugen keine Null-Anomalie.</p></div></>;
 }
-export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMode=false}:{location:Location;windUnit?:WindUnit;advancedMode?:boolean}){
+export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location:Location;windUnit?:WindUnit}){
   const [data,setData]=useState<TrendBundle|null>(null);
   const [loading,setLoading]=useState(true);
   const [refreshing,setRefreshing]=useState(false);
@@ -803,13 +803,13 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
   return <section className={`section-panel long-range-panel subseasonal-trend ${def.colorClass}`}>
     <header className="section-head long-range-head subseasonal-head">
       <div>
-        <h3>Tag 15–46 · Wochenentwicklung</h3>
-        <p>Wochenblöcke statt scheinpräziser Tageswerte · ECMWF EC46 + NOAA GEFS bis Tag 35</p>
+        <h3>Wochenentwicklung</h3>
+        {selectedWeeks.length?<p className="subseasonal-date-range">{formatDate(selectedWeeks[0].startDate)}{selectedWeeks[0].startDate.slice(0,4)} – {formatDate(selectedWeeks[selectedWeeks.length-1].endDate)}{selectedWeeks[selectedWeeks.length-1].endDate.slice(0,4)}</p>:null}
         {data?<small className="long-range-cache-state">Datenabruf {formatDateTime(data.fetchedAt)} UTC{cacheLabel?` · ${cacheLabel}`:''}</small>:null}
       </div>
       <div className="long-range-head-actions">
         <button type="button" onClick={()=>load(true)} aria-label="Witterungstrend aktualisieren" disabled={refreshing}>{refreshing?<RefreshCw size={18} className="spin"/>:<RefreshCw size={18}/>}</button>
-        <button type="button" onClick={()=>setInfoOpen(open=>!open)} aria-expanded={infoOpen} aria-label="Methodik anzeigen"><Info size={18}/></button>
+        <button type="button" onClick={()=>setInfoOpen(open=>!open)} aria-expanded={infoOpen} aria-controls="subseasonal-method-details" aria-label="Methodik und Quellen anzeigen"><Info size={18}/></button>
       </div>
     </header>
 
@@ -817,10 +817,6 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
     {!loading&&error?<p className="section-status error">{error}</p>:null}
 
     {!loading&&models.length?<>
-      <div className="long-range-family-chips subseasonal-families">
-        {models.map(model=><span key={model.id}>{model.family}<small>{model.members||'–'} Member · bis Tag {model.horizonDays} · {model.gridLabel}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small></span>)}
-      </div>
-
       <div className="long-range-controls subseasonal-controls">
         <div className="long-range-model-selector subseasonal-model-selector">
           <button type="button" className={view==='combined'?'active':''} onClick={()=>setView('combined')}>
@@ -829,7 +825,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
           </button>
           {models.map(model=><button key={model.id} type="button" className={view===model.id?'active':''} onClick={()=>setView(model.id)}>
             <b>{model.family}</b>
-            <small>{model.members} Member · bis Tag {model.horizonDays}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small>
+            <small>{model.members} Mitglieder{model.weeks.length?` · bis ${formatDate(model.weeks[model.weeks.length-1].endDate)}`:''}</small>
           </button>)}
         </div>
         <div className="long-range-model-selector subseasonal-metric-selector">
@@ -840,12 +836,13 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
         </div>
       </div>
 
-      {infoOpen?<div className="long-range-method">
+      {infoOpen?<div className="long-range-method subseasonal-method-details" id="subseasonal-method-details">
         <b>Methodik & Hinweise</b>
         <p>ECMWF EC46 liefert 51 Ensemblemitglieder bis Tag 46, NOAA GEFS 31 Ensemblemitglieder bis Tag 35. MID verdichtet beide Quellen auf Wochenblöcke ab Tag 15 und gewichtet Modellfamilien im Multi-Modell unabhängig von der Memberzahl 1:1.</p>
         <p>Temperatur wird konsistent als kombinierte Tmax/Tmin-Grafik gezeigt; Mittelkurven und Unsicherheitsbereiche folgen demselben Farbkonzept wie im 14-Tage-Ensemble. Wind wird als Wochenmittel geführt; nicht belastbar gelieferte Zusatzgrößen werden nicht als eigener Parameter angezeigt.</p>
         <p>Das Klimamittel wird wie im 14-Tage-Ensemble aus der ERA5-Seamless-Reanalyse 1991–2020 am Ort abgeleitet: ERA5-Land für die Landtemperatur, ERA5 für Niederschlag, Luftdruck, Bewölkung und Wind. Alle Größen werden kalendergleich für jeden Wochenblock aggregiert.</p>
         <p>Ab Tag 36 steht derzeit nur EC46 zur Verfügung; der Multi-Modell-Pfad reduziert sich dort automatisch auf die verbleibende Modellfamilie.</p>
+        <div className="subseasonal-source-list">{models.map(model=><div key={model.id}><b>{model.family}</b><small>{model.members} Mitglieder{model.weeks.length?` · bis ${formatDate(model.weeks[model.weeks.length-1].endDate)}`:''} · {model.gridLabel}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small></div>)}</div>
       </div>:null}
 
       <div className="long-range-grid" style={{gridTemplateColumns:'1fr'}}>
@@ -879,18 +876,15 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
         </article>
       </div>
 
-      <section className="long-range-models subseasonal-comparison">
-        <header>
-          <div>
-            <span>ENSEMBLE-VERGLEICH</span>
-            <h4>{def.label} je Wochenblock</h4>
+      <details className="long-range-models subseasonal-comparison">
+        <summary className="subseasonal-comparison-summary"><strong>Wochenvergleich nach Modell</strong><small>{combined.length} Wochenblöcke · Einzelwerte öffnen</small></summary>
+        <div className="subseasonal-comparison-content">
+          <header className="subseasonal-comparison-heading"><h4>{def.label} je Wochenblock</h4></header>
+          <div className="long-range-model-strip">
+            {combined.map(week=>renderComparisonArticle(metric,week,models,week,climateWeeks,windUnit))}
           </div>
-        </header>
-        <div className="long-range-model-strip">
-          {combined.map(week=>renderComparisonArticle(metric,week,models,week,climateWeeks,windUnit))}
         </div>
-        {advancedMode?<div className="long-range-method"><b>Quellen und Reichweite</b><p>ECMWF EC46: 36-km-Subseasonal-Ensemble bis 46 Tage. NOAA GEFS 0,5°: Ensemble bis 35 Tage. MID verdichtet beide auf identische Wochenblöcke und hält die Inter-Modell-Gewichtung unabhängig von der Memberzahl bei 1:1. Klimareferenz: ERA5-Seamless 1991–2020; Temperatur aus ERA5-Land, atmosphärische Größen aus ERA5, kalendergleich aggregiert.</p></div>:null}
-      </section>
+      </details>
     </>:null}
   </section>;
 }
