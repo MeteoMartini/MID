@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.163",
+  "releaseVersion": "0.9.85.164",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -70,6 +70,7 @@
     "scripts/test-c14-real-screenshot-contract-098534.mjs",
     "scripts/test-c14-viewport-fixes-098534.mjs",
     "scripts/test-c15-today-density-098535.mjs",
+    "scripts/test-c16-seasonal-ruc-0985164.mjs",
     "scripts/test-c16-today-profile-density-098536.mjs",
     "scripts/test-c17-dwd-location-centering-098537.mjs",
     "scripts/test-c18-responsive-image-098538.mjs",
@@ -980,6 +981,7 @@
     "scripts/test-c14-real-screenshot-contract-098534.mjs",
     "scripts/test-c14-viewport-fixes-098534.mjs",
     "scripts/test-c15-today-density-098535.mjs",
+    "scripts/test-c16-seasonal-ruc-0985164.mjs",
     "scripts/test-c16-today-profile-density-098536.mjs",
     "scripts/test-c17-dwd-location-centering-098537.mjs",
     "scripts/test-c18-responsive-image-098538.mjs",
@@ -3249,7 +3251,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
-  "version": "0.9.85.163",
+  "version": "0.9.85.164",
   "updatedAt": "2026-10-03T19:27:47.667536Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

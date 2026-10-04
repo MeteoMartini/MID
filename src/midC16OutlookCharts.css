@@ -1,0 +1,5 @@
+/* All calendar months remain available without scaling labels below screen size. */
+.long-range-panel .long-range-chart{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+.long-range-panel .long-range-chart svg{max-width:none}
+.long-range-panel .long-range-chart>span{display:block;font-size:12px;line-height:1.5;color:var(--muted);padding:8px 12px}
+.long-range-panel .long-range-chart .month-label{font-size:12px}

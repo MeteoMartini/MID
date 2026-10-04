@@ -20,7 +20,7 @@ for(const token of [
 for(const token of [
  'finalizeForecastHours(twinHours,baseDisplayDays,{radar:radarAnalysis,thunder:thunderAnalysis,observedTemperature:finalizationObservedTemperature,observedAt:finalizationObservedAt})',
  'applyHyperlocalForecastHours(core.hours,shortTermAnchor,Date.now(),twinHours)',
- 'displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor,rucRapidMinutes15:forecastFusion?.rapidMinutes15})',
+ 'displayMinutes15=useMemo(()=>finalizeForecastMinute15(minutes15,twinHours,displayHours,{radar:radarAnalysis,localAnchor:shortTermAnchor,skyBaseHours:hours,rucRapidMinutes15:forecastFusion?.rapidMinutes15})',
  'precipitationNowSummary(displayMinutes15,displayHours,displayTimezone)',
  'hours={displayHours} minutes15={displayMinutes15}',
  '<ShortTermForecast key={id} minutes15={displayMinutes15} hours={displayHours}',
