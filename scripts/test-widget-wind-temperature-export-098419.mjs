@@ -14,7 +14,7 @@ assert.match(app,/ecmwfTemperatureColors:true}:stored/,'Feste Standard-Export-UR
 assert.match(app,/temperature-colors-ecmwf/,'Exportfläche trägt keine eindeutige ECMWF-Farbklasse.');
 assert.match(app,/widget-temp-ecmwf/,'Kompakte Tageskarten wenden die ECMWF-Farbe nicht auf Tmin\/Tmax an.');
 assert.match(app,/ecmwfTemperatureColors=\{ecmwfTemperatureColors\}/,'Kurvenexport erhält die Temperaturfarben-Auswahl nicht.');
-assert.match(cockpit,/ecmwfTemperatureColors=true/,'Kurvenübersicht schützt das bisherige ECMWF-Farbverhalten nicht als Standard.');
+assert.match(cockpit,/ecmwfTemperatureColors=false/,'App-Kurve verwendet Parameterfarben, während das Widget seine explizite ECMWF-Option übergibt.');
 assert.match(cockpit,/stopColor="var\(--param-temperature\)"/,'Kurvenlinie muss dem gemeinsamen 24h-Farbvertrag folgen; die Option steuert weiterhin die Werte-Badges.');
 assert.match(css,/\.weatherwidget\.modern\.compact \.widgetmeta-wind>b\{flex-wrap:nowrap!important;white-space:nowrap/,'Windzeile kann weiterhin umbrechen.');
 assert.match(css,/\.weatherwidget\.modern\.compact \.widgetmeta-wind>small\{flex-wrap:nowrap!important;white-space:nowrap/,'Böenzeile kann weiterhin umbrechen.');

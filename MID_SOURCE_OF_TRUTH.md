@@ -1,3 +1,6 @@
+## v0.9.85.160 · MID-C15 optionale ECMWF-Palette und gemeinsamer Linienvertrag
+Basis main = mid-stable = 6133022f71dffade571c8e94909ec4b2298462ca (.159), live www.midwx.app/version.json geprüft. Gespeicherte 7d-ECMWF-Option für Tageskarten und Stundenkurve, unabhängige Gradienten-IDs. src/parameterLineStyle.ts ist autoritativ für tatsächlich gerenderte 24h-/7d-Linien. Frühere statische Strich-/Breitenvorgaben dürfen diesen gemeinsamen Vertrag nicht überschreiben.
+
 ## v0.9.85.159 · MID-C15 gemeinsame Widget- und Skybar-Darstellung
 Basis main = mid-stable = 992712a32d10009e27e83aa04e114134e7b1e4ec (.158). Shared Renderer für echte Temperaturquartile und astronomische Nachtflächen in App und Widget; gleiche Daten-/Einstellungseingänge, Exportbereitschaft nach abgeschlossenem Ensembleabruf. 90-Minuten-Skybar ohne vertikale 12/16-Stauchung: vier Stufen wie im 24h-Profil.
 

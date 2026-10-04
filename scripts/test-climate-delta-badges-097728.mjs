@@ -6,10 +6,10 @@ const tone=fs.readFileSync(new URL('../src/temperatureTone.ts',import.meta.url),
 const weather=fs.readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
 const css=fs.readFileSync(new URL('../src/styles-src/30-modern.css',import.meta.url),'utf8');
 assert.ok(app.includes('const climateRequested=dashboardModuleSettings.enabled.forecast||ensembleRequested||weatherTwinSettings.useAsMainForecast;'),'Klimatologie darf nicht von der optionalen 7-Tage-Zusammenfassung abhängen.');
-assert.ok(app.includes("minTone=parameterTemperatureTone(d.min,'min'),maxTone=parameterTemperatureTone(d.max,'max')"),'Klassische 7-Tage-Übersicht muss seit v0.9.78.1 die absolute ECMWF-Temperaturskala nutzen.');
+assert.ok(app.includes("minTone=parameterTemperatureTone(d.min,'min',ecmwfTemperatureColors),maxTone=parameterTemperatureTone(d.max,'max',ecmwfTemperatureColors)"),'Klassische 7-Tage-Übersicht muss seit v0.9.78.1 die absolute ECMWF-Temperaturskala nutzen.');
 assert.ok(!app.includes('<small>Min</small>')&&!app.includes('<small>Max</small>'),'Klassische 7-Tage-Übersicht zeigt seit v0.9.78.4 weder ±K-Klimadeltas noch zusätzliche Min/Max-Labels.');
 assert.ok(cockpit.includes('cockpit-fourteen-temps')&&cockpit.includes('minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)')&&!cockpit.includes("dailyTemperatureAnomalyLabel(minTone.anomaly)")&&!cockpit.includes("dailyTemperatureAnomalyLabel(maxTone.anomaly)"),'14-Tage-Cockpit muss Tmin/Tmax nun in ECMWF-Farben ohne Klimadelta-Zeilen rendern.');
-assert.ok(cockpit.includes("minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')")&&cockpit.includes('cockpit-legend-inline">Tmin blau · Tmax rot'),'7-Tage-Cockpit muss absolute ECMWF-Farben strukturell verwenden.');
+assert.ok(cockpit.includes("minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')")&&cockpit.includes('Tmin blau · Tmax rot'),'7-Tage-Cockpit muss absolute ECMWF-Farben strukturell verwenden.');
 assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen'),'Technische Supersession-/Prompt-Texte dürfen nicht sichtbar werden.');
 assert.ok(tone.includes('export function dailyTemperatureAnomalyLabel'),'Zentrale Delta-Beschriftung fehlt.');
 assert.ok(weather.includes('staleCache=climateFromCache(key,Number.POSITIVE_INFINITY)'),'Stale-Klimacache-Fallback fehlt.');

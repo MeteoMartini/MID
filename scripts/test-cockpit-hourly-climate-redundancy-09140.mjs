@@ -39,7 +39,7 @@ for(const token of [
  'Stündlicher Tagesverlauf',
  'compactGustLabel(day.gust,unit)',
  "minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')",
- 'cockpit-legend-inline">Tmin blau · Tmax rot',
+ 'Tmin blau · Tmax rot',
  'minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)',
  "activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined"
 ])need('Cockpit',cockpit,token);
@@ -61,7 +61,7 @@ for(const token of [
  'compactMode={false}',
  "!hourlyDetailOnly&&<div className=\"forecastrows\"",
  "hourlyDetailOnly||(!inlineAccordionMode&&detailsOpen)",
- "minTone=parameterTemperatureTone(d.min,'min'),maxTone=parameterTemperatureTone(d.max,'max')"
+ "minTone=parameterTemperatureTone(d.min,'min',ecmwfTemperatureColors),maxTone=parameterTemperatureTone(d.max,'max',ecmwfTemperatureColors)"
 ])need('App',app,token);
 forbid('App',app,"dailyTemperatureTone(d.max,climateDay?.maxMean,'max')");
 forbid('App',app,"dailyTemperatureTone(d.min,climateDay?.minMean,'min')");

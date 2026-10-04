@@ -14,7 +14,7 @@ assert.ok(tone.includes('backgroundShare=Math.round(5+bounded*11)')&&tone.includ
 assert.ok(tone.includes('background:`color-mix(in srgb,${token} ${backgroundShare}%,transparent)`'),'Tmin/Tmax benötigen wieder kleine farbige Kästchen.');
 assert.ok(tone.includes('border:`color-mix(in srgb,${token} ${borderShare}%,var(--border))`'),'Die Kästchen benötigen eine parametergleiche Kontur.');
 assert.ok(cockpit.includes('minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)'),'Die 14-Tage-Ansicht muss Tmin/Tmax nun ebenfalls mit absoluten ECMWF-Farben rendern.');
-assert.ok(cockpit.includes("minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')")&&cockpit.includes('cockpit-legend-inline">Tmin blau · Tmax rot'),'7-Tage-Ansicht muss die absolute ECMWF-Farbskala strukturell verwenden.');
+assert.ok(cockpit.includes("minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')")&&cockpit.includes('Tmin blau · Tmax rot'),'7-Tage-Ansicht muss die absolute ECMWF-Farbskala strukturell verwenden.');
 assert.ok(!cockpit.includes('in 7 Tagen keine Klimaabweichungen'),'Technischer Prompt-/Supersession-Text darf nicht wieder eingeführt werden.');
 assert.ok(tone.includes('background:`color-mix(in srgb,${color} 10%,transparent)`'),'7-Tage-ECMWF-Tmin/Tmax benötigen den bewusst abgeschwächten Hintergrund aus v0.9.78.4.');
 assert.ok(!cockpit.includes('<small>Min</small>')&&!cockpit.includes('<small>Max</small>'),'7-Tage-Cockpit darf die Zusatzlabels Min/Max nicht wieder einführen.');
