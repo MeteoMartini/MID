@@ -96,6 +96,16 @@ export async function syncGithubConfiguration({root=defaultRoot,sourceRoot=path.
   await writeFile(targetPath,next);
   if(!updated.includes(targetRelative))updated.push(targetRelative);
  }
+ // Existing legacy transport copies are mirrors, never independent sources.
+ for(const name of ['install-mid.yml','deploy.yml']){
+  const targetPath=path.join(root,'workflow-patches',name);
+  let current;
+  try{current=await readFile(targetPath,'utf8')}catch(error){if(error.code==='ENOENT')continue;throw error}
+  const source=pinApprovedActions(await readFile(path.join(sourceRoot,'workflows',name),'utf8'));
+  if(current===source)continue;
+  await writeFile(targetPath,source);
+  updated.push(`../workflow-patches/${name}`);
+ }
  return updated;
 }
 

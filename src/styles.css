@@ -640,8 +640,8 @@ footer a:hover{opacity:1;color:var(--accent)}
 
 
 /* v0.5.6: Kontrast im hellen Layout */
-:root{--apparent-line:#ffd08a}
-:root[data-theme=light]{--apparent-line:#9a5200}
+:root{--apparent-line:color-mix(in srgb,var(--param-temperature) 58%,var(--text))}
+
 .detaillegend .apparent{border-top-color:var(--apparent-line)!important}
 .detaillegend i.apparent{background:var(--apparent-line)!important}
 
@@ -8206,6 +8206,7 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 
 /* MID v0.9.77.11 · verbindlicher Parameter-Farbvertrag: 24-h-Profil + 7-Tage-Ansichten */
 .cockpit-weather-profile{
+  --mg-apparent:var(--apparent-line);
   --profile-dew:var(--param-dewpoint);
   --profile-wind:var(--param-wind);
   --profile-gust:var(--param-gust);
@@ -8216,7 +8217,7 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 :root[data-theme=light] .cockpit-weather-profile{--profile-cloud:var(--param-cloud);--profile-pressure:var(--param-pressure)}
 .cockpit-weather-profile .profile-wind-direction-arrow{color:var(--param-wind)}
 .cockpit-weather-profile .temperature-line{stroke:var(--param-temperature)}
-.cockpit-weather-profile .apparent-line{stroke:color-mix(in srgb,var(--param-temperature) 58%,var(--text));stroke-dasharray:5 4}
+.cockpit-weather-profile .apparent-line{stroke:var(--apparent-line);stroke-dasharray:5 4}
 .cockpit-weather-profile .dewpoint-line{stroke:var(--param-dewpoint)}
 .cockpit-weather-profile .probability-column,.cockpit-weather-profile .probability-point{fill:var(--param-precipitation)}
 .cockpit-weather-profile .probability-line{stroke:var(--param-precipitation)}
