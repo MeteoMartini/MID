@@ -1,3 +1,9 @@
+# MID v0.9.85.162
+
+MID-C15: Eigenständige Horizonte. 14 Tage mit Entwicklungsabschnitten und Tages-Temperaturbandbreite statt wiederholtem 7d-Kalender; Entwicklung, Konfidenz und Ensemble-Grafiken bleiben erhalten, Tagesdetails aufklappbar. 46d standardmäßig mit Wochenabweichungen und Unsicherheit um Null; absolute Wochenwerte bleiben umschaltbar.
+
+Saison: zusätzliche echte SEAS5-Einzelmitgliedskurven für vollständige Kalendermonate, reale P10–P90/P25–P75-Bänder. Alle numerisch geladenen unabhängigen Saisonmodelle zusätzlich als Linien in den Haupt-Anomaliegrafiken. Keine Rauchfahnenbehauptung aus bloßen Mittelwerten. Monatsniederschlag korrekt nach tatsächlicher Monatslänge in mm/Tag normalisiert; Cache aktualisiert. Modellstreuung, Roh-Mitglieder und Klimareferenz bleiben fachlich getrennt.
+
 # MID v0.9.85.161
 
 MID-C15: Nachtstunden der 7d-Kurve sind wieder deutlich sichtbar, auch im Widget und PNG. Gemeinsame opake Nachtfarbe mit einmaliger Deckkraft statt unbeabsichtigter doppelter Transparenz; astronomische Grenzen und sanfte Übergänge bleiben erhalten. Dieselbe Korrektur erreicht die übrigen SVG-Nachtflächen.

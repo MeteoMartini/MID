@@ -2,6 +2,7 @@ import {Suspense,lazy,Fragment,useCallback,useEffect,useId,useLayoutEffect,useMe
 import {ChevronDown,ChevronLeft,ChevronRight,ChevronUp,Clock3,Droplets,Info,SlidersHorizontal,Sun,ThermometerSun} from 'lucide-react';
 import {DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,dwdWindWarningLevelKt} from './dwdWarnings';
 import {formatDecimalFixed,formatUvi} from './format';
+import {FourteenDayDevelopment} from './FourteenDayDevelopment';
 import {WeatherPictogram,weatherPictogramKind} from './WeatherPictogram';
 import {shortTermFogRisk} from './shortTermFogRisk';
 import {buildShortTermForecast,shortTermNinetyMinutePoints,type ShortTermAnchor,type ShortTermForecastPoint} from './ShortTermForecast';
@@ -610,6 +611,8 @@ function FourteenDayHorizon({ensemble,days,hours,scenarios,climate,onSelectedDat
   <div className="cockpit-brief compact-fourteen"><span><small>14-Tage-Übersicht</small><strong>{!hasEnsemble?'Best Match sofort verfügbar · Ensemble wird ergänzt':loading?'Weitere Modellläufe werden ergänzt.':'Alle Tageswerte vollständig in der Übersicht'}</strong></span><span className="cockpit-brief-tools"><CockpitModelRunDetails kind="ensemble" runs={modelRuns} timezone="UTC"/><ForecastConfidenceInfoHint assessments={series.map(row=>row.assessment)} advancedMode={advancedMode} className="cockpit-confidence-info"/></span></div>
   {hasEnsemble?<CockpitForecastGuide data={series} scenarios={scenarios} advancedMode={advancedMode}/>:<div className={`cockpit-fourteen-ensemble-pending${error?' has-error':''}`}><strong>14-Tage-Best-Match geladen</strong><small>{error?`Ensemble-Nachladung wird erneut versucht · ${error}`:'Die Ensemble-Konsistenz und P10–P90-Spannen werden unabhängig nachgeladen.'}</small></div>}
   <Suspense fallback={null}><ForecastRangeLegend/></Suspense>
+  <FourteenDayDevelopment series={series}/>
+  <details data-fourteen-daily-details="true"><summary>Alle 14 Tageswerte und Wetterdetails öffnen</summary>
   <div className="cockpit-fourteen-grid" data-cockpit-horizontal-scroll="false" data-mid-forecast-list="fourteen" style={{'--cockpit-fourteen-count':series.length} as CSSProperties}>{series.map(item=>{const warning=windWarningLevel(item.bestGust),windTone=windAlertClass(item.bestGust),minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax),dateLabel=formatDate(item.date,{weekday:'long',day:'2-digit',month:'2-digit'}),isActive=expandedDate===item.date,dayHours=displayHours.filter(hour=>hour.time.startsWith(item.date)),daySkyBarSegments=cockpitDaySkyBarSegments(dayHours),daySkyBarHourCells=detailSkyBarHourCells(dayHours),daySkyBarNightBands=cockpitDaySkybarNightBands(dayHours,location,timezone,`fourteen-${item.date}`);
    const compact=<article className={`cockpit-fourteen-card mid-forecast-row regime-${item.regime}${isActive?' active':''}`} data-regime={item.regimeText} data-mid-forecast-row="fourteen" data-mid-expanded={isActive?'true':'false'} role="button" tabIndex={0} title={`${dateLabel} · ${item.weatherLabel}`} onClick={()=>{onSelectedDate(item.date);setExpandedDate(current=>current===item.date?null:item.date)}} onKeyDown={event=>{if(event.target!==event.currentTarget)return;if(event.key==='Enter'||event.key===' '){event.preventDefault();onSelectedDate(item.date);setExpandedDate(current=>current===item.date?null:item.date)}}} aria-label={`${dateLabel}: ${item.weatherLabel}. ${Math.round(item.bestMin)} bis ${Math.round(item.bestMax)} Grad. ${assessmentSummary(item.assessment)}.`} aria-pressed={isActive} aria-expanded={isActive}>
     <header>
@@ -631,7 +634,7 @@ function FourteenDayHorizon({ensemble,days,hours,scenarios,climate,onSelectedDat
     <span><small>Prognosekonfidenz</small><b>{assessmentSummary(item.assessment)}</b><em>{item.ensembleAvailable?'Ensemblebasiert':'Best Match · Ensemble wird ergänzt'}</em></span>
    </div>;
    return <MidForecastRow key={item.date} active={isActive} compact={compact} detail={detail}/>;
-  })}</div>
+  })}</div></details>
  </div>
 }
 
