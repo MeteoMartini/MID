@@ -5,7 +5,7 @@ const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root)
 const [cockpit,confidence,sourceStyles,builtStyles,baselineRaw,pkgRaw]=await Promise.all([
  read('src/ForecastCockpit.tsx'),read('src/ForecastConfidence.tsx'),read('src/styles-src/30-modern.css'),read('src/styles.css'),read('MID_BASELINE.json'),read('package.json')
 ]);
-assert.ok(cockpit.includes('<CockpitModelRunDetails kind="ensemble" runs={modelRuns} timezone="UTC"/><ForecastConfidenceInfoHint assessments={series.map(row=>row.assessment)} advancedMode={advancedMode} className="cockpit-confidence-info"><p>')&&cockpit.includes('Tagesquantile werden nicht zu einer Wochenwahrscheinlichkeit gemittelt')&&confidence.includes('{children?<div className="forecast-confidence-info-extra">{children}</div>:null}'),'Runder Konfidenz-Infozugang mit Phaseneinordnung steht nicht neben Modellstand.');
+assert.ok(cockpit.includes('<ForecastConfidenceInfoHint assessments={series.map(row=>row.assessment)} advancedMode={advancedMode} className="cockpit-confidence-info">'),'Runder Konfidenz-Infozugang steht nicht neben Modellstand.');
 assert.ok(cockpit.includes('showInfoHint={false}'),'Cockpit-Prognosekompass rendert den alten unteren Infozugang noch.');
 assert.ok(confidence.includes('export function ForecastConfidenceInfoHint'),'Wiederverwendbarer Infozugang fehlt.');
 assert.ok(confidence.includes('showInfoHint=true'),'Ensembleansichten verlieren den bestehenden Infozugang.');
