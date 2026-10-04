@@ -16,7 +16,7 @@
 [data-fourteen-development] .long-range-dwd-periods>article{gap:5px;padding:10px;align-content:start}
 [data-fourteen-development] .long-range-dwd-periods>article>b{font-size:13px;line-height:1.35}
 [data-fourteen-development] .long-range-dwd-periods>article>p{margin:0;font-size:12px;line-height:1.4;color:var(--muted)}
-[data-fourteen-development] .long-range-dwd-periods>article>small{font-size:11px;line-height:1.4}
+[data-fourteen-development] .long-range-dwd-periods>article>small{font-size:12px;line-height:1.4}
 [data-horizon-signal]>p[role=status]{margin:8px 12px 12px;font-size:12px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
 .long-range-method-info p,.subseasonal-method-details p{margin:6px 0;font-size:13px;line-height:1.5}
 @media(max-width:620px){[data-fourteen-development] .long-range-dwd-periods{grid-template-columns:1fr}}
@@ -41,3 +41,22 @@
  .subseasonal-comparison-summary{align-items:flex-start;padding-inline:9px}
  .subseasonal-comparison-content{padding-inline:6px}
 }
+
+/* Shared hierarchy for 14d, weekly and seasonal forecast surfaces. */
+.long-range-panel :is(.long-range-overview,.long-range-grid>article,.long-range-model-overlay)>header strong{font-size:15px;line-height:1.35}
+.long-range-panel :is(.long-range-overview,.long-range-grid>article,.long-range-model-overlay)>header small{font-size:12px;line-height:1.5}
+.long-range-panel :is(.long-range-subsection-head,.long-range-models>header) h4,[data-fourteen-development] h4{font-size:17px;line-height:1.35;margin:0}
+.long-range-panel .subseasonal-head h3{font-size:17px;line-height:1.35;margin:0}
+.long-range-panel .subseasonal-date-range{font-size:13px;line-height:1.5;margin:4px 0;color:var(--muted)}
+.long-range-panel :is(.long-range-info,.long-range-chart-notes,.long-range-source-list small,.subseasonal-source-list small){font-size:12px;line-height:1.5}
+.long-range-panel :is(.long-range-subsection-head,.long-range-head,.long-range-models>header){min-width:0;flex-wrap:wrap}
+.long-range-panel :is(h3,h4,strong,small,p),[data-fourteen-development] :is(h4,strong,small,p){overflow-wrap:anywhere}
+
+.subseasonal-chart :is(.axis-label,.month-label){font-size:12px;line-height:1.35}
+
+.long-range-panel :is(.long-range-reference-note,.long-range-grid>article>footer){font-size:12px;line-height:1.5;color:var(--muted)}
+
+[data-fourteen-development]>header strong{font-size:15px;line-height:1.35}
+[data-fourteen-development]>header small,[data-fourteen-development] .long-range-dwd-periods article>header small{font-size:12px!important;line-height:1.5!important}
+.subseasonal-main-chart>.long-range-model-selector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+.subseasonal-main-chart>.long-range-model-selector>button{min-width:0;white-space:normal;overflow-wrap:normal;line-height:1.35;min-height:44px}
