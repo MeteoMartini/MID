@@ -9,4 +9,5 @@ export function niceChartScale(values:number[],includeZero=false){
  let decimals=0;while(decimals<6&&Math.abs(step*10**decimals-Math.round(step*10**decimals))>1e-8)decimals++;
  return{low,high,step,ticks,decimals};
 }
+export function calendarMonthLabel(date:string,compact=true){return compact?`${date.slice(5,7)}/${date.slice(2,4)}`:new Intl.DateTimeFormat('de-DE',{month:'short',year:'2-digit',timeZone:'UTC'}).format(new Date(`${date.slice(0,7)}-15T12:00:00Z`))}
 export function chartLabelVisible(index:number,count:number,plotWidth:number,labelWidth=64){const stride=Math.max(1,Math.ceil(count*labelWidth/Math.max(1,plotWidth)));return index%stride===0}
