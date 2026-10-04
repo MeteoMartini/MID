@@ -1,5 +1,6 @@
-/* All calendar months remain available without scaling labels below screen size. */
-.long-range-panel .long-range-chart{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
-.long-range-panel .long-range-chart svg{max-width:none}
+/* Every month fits the viewport; narrow axes stack month and year. */
+.long-range-panel .long-range-chart{overflow-x:visible;min-width:0}
+.long-range-panel .long-range-chart svg{width:100%;max-width:100%;min-width:0}
 .long-range-panel .long-range-chart>span{display:block;font-size:12px;line-height:1.5;color:var(--muted);padding:8px 12px}
 .long-range-panel .long-range-chart .month-label{font-size:12px}
+.long-range-panel .long-range-scale{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:5px;padding-inline:6px;font-size:11px}
