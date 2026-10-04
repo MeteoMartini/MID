@@ -3,5 +3,5 @@
 - Die Skybar bleibt nach nachgeladenen RUC-/Modellkorrekturen mit der Viertelstundenprognose konsistent.
 - Saison-Niederschlagsabweichungen erscheinen in Prozent zum zugehörigen Monatsmittel; Temperatur-Mitgliedskurven zeigen Abweichungen in K.
 - Alle Monate bleiben auf den Zeitachsen sichtbar; kurze Monatslabels und bei Bedarf horizontales Scrollen erhalten die Lesbarkeit.
-- Die 14d-, 46d- und Saisonansichten werden kompakter und einheitlicher gestaltet. Fachliche Details bleiben erreichbar.
+- Saisoninstrumente verwenden lesbare Monatslabels und passende Einheiten; Modellvergleiche behalten auch Quellen ohne Prozentreferenz.
 - Die gespeicherte ECMWF-Farbwahl bleibt bei einem Neustart erhalten.
