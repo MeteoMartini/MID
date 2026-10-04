@@ -1,0 +1,13 @@
+/* Shared forecast instruments: labels keep screen size and headers stack naturally. */
+.long-range-chart .axis-label,.long-range-chart .month-label{font-size:12px;fill:var(--text);font-weight:650}
+.long-range-grid>article>header{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.long-range-grid>article>header>strong,.long-range-grid>article>header>small{flex-basis:100%;min-width:0}
+.long-range-grid>article>header>small{font-size:12px;line-height:1.5;color:var(--muted)}
+.long-range-overview>header small{display:block;margin-top:6px;line-height:1.5}
+.long-range-chart{padding-top:8px}
+.long-range-model-line-legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:8px 12px;font-size:12px}
+.long-range-scale{font-size:11px;gap:8px;padding:8px 12px}
+[data-fourteen-development]{border-top:1px solid var(--border);padding:16px 0}
+[data-fourteen-development] h4{margin:0 0 8px;font-size:17px}
+[data-fourteen-development] p{line-height:1.5}
+[data-fourteen-daily-details]>summary{padding:14px 8px;cursor:pointer;color:var(--accent);font-weight:700}

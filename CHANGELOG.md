@@ -1,3 +1,9 @@
+# MID v0.9.85.163
+
+- Skybar und Wetter übernehmen lokale Bewölkungskorrekturen auch in der Viertelstundenreihe. Alte Modell-Sonnenscheinwerte werden bei deutlich geändertem Himmel verworfen.
+- 14d-, 46d- und Saisoninstrumente mit einheitlicher Gestaltung und runden Achsenwerten.
+- Saisonmonate bleiben auf kleinen Displays lesbar; beide Rauchfahnen messen ihre eigene Diagrammbreite.
+
 # MID v0.9.85.162
 
 MID-C15: Eigenständige Horizonte. 14 Tage mit Entwicklungsabschnitten und Tages-Temperaturbandbreite statt wiederholtem 7d-Kalender; Entwicklung, Konfidenz und Ensemble-Grafiken bleiben erhalten, Tagesdetails aufklappbar. 46d standardmäßig mit Wochenabweichungen und Unsicherheit um Null; absolute Wochenwerte bleiben umschaltbar.

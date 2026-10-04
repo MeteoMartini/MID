@@ -110,3 +110,11 @@ export function sunshineHoursValue(seconds:unknown){const value=finiteSunshineSe
 export function sunshineHoursLabel(seconds:unknown){const value=sunshineHoursValue(seconds);return value==='–'?value:`${value} h`}
 export function sunshineWholeHoursValue(seconds:unknown){const value=finiteSunshineSeconds(seconds);return value===null?'–':String(Math.max(0,Math.round(value/SUNSHINE_HOUR_SECONDS)))}
 export function sunshineWholeHoursLabel(seconds:unknown){const value=sunshineWholeHoursValue(seconds);return value==='–'?value:`${value} h`}
+
+/** Model sunshine belongs to its original sky state. Local sky changes invalidate it,
+ * rather than inventing observed sunshine from a cloud complement. One okta is
+ * the tolerance; untouched model durations remain independent of cloud cover. */
+export function sunshineAfterSkyCorrection(value:unknown,modelCloud:unknown,finalCloud:unknown){
+ const original=finiteSunshineSeconds(modelCloud),corrected=finiteSunshineSeconds(finalCloud);
+ return original!==null&&corrected!==null&&Math.abs(original-corrected)>=12.5?null:finiteSunshineSeconds(value);
+}

@@ -12160,3 +12160,6 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
 @media(prefers-reduced-motion:reduce){
  .mountain-skeleton-heading i,.mountain-skeleton-levels i,.mountain-skeleton-hour i,.mountain-skeleton-hour b,.mountain-skeleton-hour span,.mountain-skeleton-days i{animation:none}
 }
+
+
+.long-range-chart .axis-label,.long-range-chart .month-label{font-size:12px}
