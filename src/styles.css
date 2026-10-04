@@ -12163,3 +12163,31 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
 
 
 .long-range-chart .axis-label,.long-range-chart .month-label{font-size:12px}
+
+/* MID C16: keep long-range explanations available in explicit, responsive disclosures. */
+.long-range-method-info{display:grid;gap:9px;min-width:0;max-width:100%;overflow-wrap:anywhere}
+.long-range-method-info>section{display:grid;gap:5px;min-width:0}
+.long-range-method-info>section+section{padding-top:8px;border-top:1px solid var(--border)}
+.long-range-method-info>section>p{margin:0;max-width:78ch}
+.long-range-source-list,.subseasonal-source-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:7px;min-width:0}
+.long-range-source-list>div,.subseasonal-source-list>div{display:grid;gap:3px;min-width:0;padding:8px 9px;border:1px solid var(--border);border-radius:9px;overflow-wrap:anywhere}
+.long-range-source-list small,.subseasonal-source-list small{color:var(--muted);line-height:1.35}
+.subseasonal-method-details{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.subseasonal-method-details>p{margin:5px 0}
+.subseasonal-comparison{min-width:0;max-width:100%;overflow:hidden}
+.subseasonal-comparison-summary{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-height:44px;padding:9px 12px;cursor:pointer;list-style:none;overflow-wrap:anywhere}
+.subseasonal-comparison-summary::-webkit-details-marker{display:none}
+.subseasonal-comparison-summary::after{content:"+";margin-left:auto;color:var(--muted);font-size:18px}
+.subseasonal-comparison[open]>.subseasonal-comparison-summary::after{content:"−"}
+.subseasonal-comparison-summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.subseasonal-comparison-summary>small{color:var(--muted)}
+.subseasonal-comparison-content{min-width:0;max-width:100%;padding:0 10px 10px;overflow:hidden}
+.subseasonal-comparison-content>.long-range-model-strip{min-width:0;max-width:100%}
+.forecast-confidence-info-extra{max-width:100%;overflow-wrap:anywhere}
+.forecast-confidence-info-extra>p{margin:8px 0 0;padding-top:8px;border-top:1px solid var(--border)}
+@media(max-width:620px){
+ .long-range-source-list,.subseasonal-source-list{grid-template-columns:minmax(0,1fr)}
+ .subseasonal-comparison-summary{align-items:flex-start;padding-inline:9px}
+ .subseasonal-comparison-summary::after{align-self:center}
+ .subseasonal-comparison-content{padding-inline:6px}
+}
