@@ -1,3 +1,6 @@
+## v0.9.85.158 · MID-C15 sichtbare Tagesfarben
+Basis main = mid-stable = b651d589886ac967a13ce4571a3259dbef9b03d6 (.157). 7d-Kurve, Legende und Tmin/Tmax verwenden die tatsächlich gerenderten 24h-Parameterfarben. Der bisherige Stopps-Vergleich erkannte die CSS-Übersteuerung im Referenzdiagramm nicht.
+
 # MID – verbindliche Codebasis
 
 ## v0.9.85.157 · MID-C15 Tagesdiagrammfarben und Wartungsprüfung

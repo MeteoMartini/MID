@@ -13,20 +13,20 @@ for(const token of [
  'halfDayTicks=Array.from({length:visible.length*2+1}',
  "{hour%24===12?'12':'00'}",
  'seven-day-temperature-quantiles',
- "stopColor={ecmwfTemperatureLineColor(point.value)}",
+ 'stopColor="var(--param-temperature)"',
  'ecmwfTemperatureColors=true',
- 'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
- 'Temperaturfarben: ECMWF-Skala',
+ "minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')",
+ 'Tmin blau · Tmax rot',
  'nightBands=(()=>{',
  'seven-day-curve-night-band'
 ])assert.ok(cockpit.includes(token),`7-Tage-Kurvenkonzept unvollständig: ${token}`);
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(minTone.anomaly)'),'7-Tage-Cockpit darf keine Tmin-Klimaabweichung mehr anzeigen.');
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(maxTone.anomaly)'),'7-Tage-Cockpit darf keine Tmax-Klimaabweichung mehr anzeigen.');
 const forecastRows=app.slice(app.indexOf('const forecastRowContents='),app.indexOf(' useEffect(()=>',app.indexOf('const forecastRowContents=')));
-assert.ok(forecastRows.includes('minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max)'),'Klassische 7-Tage-Karten müssen ECMWF-Farbton verwenden.');
+assert.ok(forecastRows.includes("minTone=parameterTemperatureTone(d.min,'min'),maxTone=parameterTemperatureTone(d.max,'max')"),'Klassische 7-Tage-Karten müssen ECMWF-Farbton verwenden.');
 assert.ok(!forecastRows.includes('<small>Min</small>')&&!forecastRows.includes('<small>Max</small>'),'Klassische 7-Tage-Karten zeigen seit v0.9.78.4 nur noch die Tmin/Tmax-Werte ohne zusätzliche Min/Max-Labels.');
 assert.ok(!forecastRows.includes('dailyTemperatureAnomalyLabel'),'Klassische 7-Tage-Karten dürfen keine Klimadelta-Beschriftung anzeigen.');
-for(const token of ['.seven-day-curve-temperature-halo','.seven-day-curve-time-label','.seven-day-curve-day-label','.seven-day-curve-night-band{',':root[data-theme=light] .cockpit-meteogram-pro,:root[data-theme=light] .seven-day-curve-overview{','min-height:0!important']){assert.ok(styleSource.includes(token),`7-Tage-Stylequelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`7-Tage-Styleaggregat fehlt: ${token}`)}
+for(const token of ['.cockpit-day-wind small.calm','.seven-day-curve-time-label','.seven-day-curve-day-label','.seven-day-curve-night-band{',':root[data-theme=light] .cockpit-meteogram-pro,:root[data-theme=light] .seven-day-curve-overview{','min-height:0!important']){assert.ok(styleSource.includes(token),`7-Tage-Stylequelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`7-Tage-Styleaggregat fehlt: ${token}`)}
 for(const token of ['ersetzt für die 7-Tage-Ansicht','keine Abweichungen zum Klimamittel','absoluten 2-m-Temperatur','gemeinsame Stundenachse'])assert.ok(colorContract.includes(token),`Farbvertrag unvollständig: ${token}`);
 assert.ok(sourceOfTruth.includes('7-Tage-Stundenkurve')&&sourceOfTruth.includes('Die 14-Tage-Klimaabweichungslogik bleibt bestehen.'),'Source of Truth muss die 7d-Supersession und den 14d-Erhalt festschreiben.');
 assert.equal(pkg.scripts?.['test:seven-day-ecmwf-hourly'],`node ${test}`,'Package-Testeintrag fehlt.');

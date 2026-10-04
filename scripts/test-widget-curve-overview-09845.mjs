@@ -27,7 +27,7 @@ need('Kurvenoption ist eigenständig',app,"view==='ensemble'?ensemblePanel:view=
 need('Kurvenkomponente ist wiederverwendbar',cockpit,'export function SevenDayCurveOverview');
 need('Kurvenkopf passt sich der Tageszahl an',cockpit,'dayCountLabel=visible.length===1?');
 need('Kurvenansicht trägt Tageskopf und Piktogramme',cockpit,'seven-day-curve-days');
-need('Kurvenansicht trägt Temperaturwerte',cockpit,'ecmwfTemperatureTone(day.min)');
+need('Kurvenansicht trägt Temperaturwerte',cockpit,"parameterTemperatureTone(day.min,'min')");
 need('Kurvenansicht trägt Skybar',cockpit,'SkyBarSegmentsSvg segments={skyBarSegments}');
 need('Kurvenansicht trägt Niederschlagssäulen',cockpit,'showRain&&rainItems.map');
 need('Kurvenansicht trägt kompakte Tageswerte für Wind und Böen',cockpit,'className="seven-day-curve-wind-row"');
@@ -35,8 +35,8 @@ need('Kurvenansicht trägt tägliche Hazards',cockpit,'className="seven-day-curv
 need('Kurvenansicht übernimmt normalisierte Widgetstunden verlustfrei',cockpit,'presentationReady?hours:precipitationPresentationHours(hours)');
 need('Präsentationswidget markiert den ersten Tag nicht künstlich als aktiv',cockpit,"className={!presentationReady&&selectedDate===day.date?'active':''}");
 need('Präsentationswidget entfernt eine eventuell verbleibende Aktiv-Hinterlegung auch per CSS',foundation,'.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-days>button.active{background:transparent;box-shadow:none}');
-need('Kurvenfarbe folgt dem gemeinsamen 24h-Farbvertrag',cockpit,"stopColor={ecmwfTemperatureLineColor(point.value)}");
-need('ECMWF-Badgefarben bleiben an die Option gebunden',cockpit,'ecmwfTemperatureColors?{color:minTone.color,background:minTone.background,borderColor:minTone.border}:undefined');
+need('Kurvenfarbe folgt dem gemeinsamen 24h-Farbvertrag',cockpit,'stopColor="var(--param-temperature)"');
+need('ECMWF-Badgefarben bleiben an die Option gebunden',cockpit,'ecmwfTemperatureColors?{color:exportMinTone.color,background:exportMinTone.background,borderColor:exportMinTone.border}:undefined');
 need('Niederschlagsmenge hat robusten Komponentenfallback',cockpit,'Math.max(parts.total,direct,components)');
 need('Widget-Kurvenansicht folgt dem Referenzdesign',foundation,'.weatherwidget.modern.compact.widget-view-curve');
 need('Widget-Kurvenansicht nutzt die dunkle Referenzfläche',foundation,'background:#081a2b');

@@ -38,8 +38,8 @@ for(const token of [
  'className="cockpit-day-hourly-accordion mid-forecast-row-detail"',
  'Stündlicher Tagesverlauf',
  'compactGustLabel(day.gust,unit)',
- 'minTone=ecmwfTemperatureTone(day.min),maxTone=ecmwfTemperatureTone(day.max)',
- 'cockpit-legend-inline">Temperaturfarben: ECMWF-Skala',
+ "minTone=parameterTemperatureTone(day.min,'min'),maxTone=parameterTemperatureTone(day.max,'max')",
+ 'cockpit-legend-inline">Tmin blau · Tmax rot',
  'minTone=ecmwfTemperatureTone(item.bestMin),maxTone=ecmwfTemperatureTone(item.bestMax)',
  "activeHorizon==='fourteen-day'?cockpitDetails?.fourteenDay:undefined"
 ])need('Cockpit',cockpit,token);
@@ -61,7 +61,7 @@ for(const token of [
  'compactMode={false}',
  "!hourlyDetailOnly&&<div className=\"forecastrows\"",
  "hourlyDetailOnly||(!inlineAccordionMode&&detailsOpen)",
- 'minTone=ecmwfTemperatureTone(d.min),maxTone=ecmwfTemperatureTone(d.max)'
+ "minTone=parameterTemperatureTone(d.min,'min'),maxTone=parameterTemperatureTone(d.max,'max')"
 ])need('App',app,token);
 forbid('App',app,"dailyTemperatureTone(d.max,climateDay?.maxMean,'max')");
 forbid('App',app,"dailyTemperatureTone(d.min,climateDay?.minMean,'min')");
