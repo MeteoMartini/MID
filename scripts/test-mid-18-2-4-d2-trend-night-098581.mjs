@@ -34,7 +34,7 @@ for(const token of [
   'export type MidWeatherThreadNightBand',
   'nightBands=[]',
   'mid-weather-thread-night-bands',
-  'var(--mg-night,#5b667c)'
+  'var(--mid-night-band-color,#5b667c)'
 ]) assert.ok(design.includes(token),`Nachtband-Vertrag fehlt: ${token}`);
 
 assert.ok(app.includes('nightBands={currentThreadNightBands}'),'12-h-Temperaturkurve muss Nachtbereiche erhalten.');

@@ -21,7 +21,7 @@ assert.ok(cockpit.includes('solarTimelineWindow(now90StartEpoch,now90EndEpoch'),
 assert.ok(cockpit.includes('now90NightBands=now90Solar.nightBands.map'),'Nachtbereiche müssen aus der gemeinsamen Solar-Geometrie abgeleitet werden.');
 assert.ok(cockpit.includes('mid-now90-night-${meteogramId}'),'Nachtverlauf benötigt eindeutige SVG-Verläufe.');
 assert.ok(cockpit.includes('className="cockpit-now90-night-band"'),'90-Minuten-Skybar muss sichtbare Nachtflächen rendern.');
-assert.ok(cockpit.includes('stopColor="var(--mg-night,#5b667c)"'),'Nachtfläche muss denselben MID-Nachtfarbvertrag wie Aktuell verwenden.');
+assert.ok(cockpit.includes('stopColor="var(--mid-night-band-color,#5b667c)"'),'Nachtfläche muss denselben MID-Nachtfarbvertrag wie Aktuell verwenden.');
 assert.ok(cockpit.includes('<stop offset="14%"')&&cockpit.includes('<stop offset="86%"'),'Nachtfläche muss dieselbe weiche Ein-/Ausblendung wie Aktuell verwenden.');
 const nightIndex=cockpit.indexOf('className="cockpit-now90-night-band"'),skyIndex=cockpit.indexOf('keyPrefix="now90-quarter"',nightIndex);
 assert.ok(nightIndex>=0&&skyIndex>nightIndex,'Nachtfläche muss hinter den Skybar-/Quadratsegmenten liegen.');

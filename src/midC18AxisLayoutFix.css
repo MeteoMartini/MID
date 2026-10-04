@@ -3,7 +3,7 @@
 html[data-mid-design='next'] .hero.current-compact .current-weather-thread{
   place-items:stretch!important;
   align-content:center!important;
-  grid-template-rows:auto minmax(58px,72px) auto 14px!important;
+  grid-template-rows:auto minmax(58px,72px) auto 18px!important;
   gap:3px!important;
 }
 html[data-mid-design='next'] .hero.current-compact .current-weather-thread .mid-weather-thread{
@@ -67,14 +67,14 @@ html[data-mid-design='next'] .hero.current-compact .current-weather-thread-axis 
 }
 html[data-mid-design='next'] .hero.current-compact .current-weather-thread-sky{
   width:100%!important;
-  height:14px!important;
-  min-height:14px!important;
+  height:18px!important;
+  min-height:18px!important;
   margin:0!important;
 }
 html[data-mid-design='next'] .hero.current-compact .current-weather-thread-sky>svg{
   width:100%!important;
-  height:12px!important;
-  max-height:12px!important;
+  height:16px!important;
+  max-height:16px!important;
 }
 
 /* 90 Minuten: Wetterstreifen, Achse und Zeitfelder teilen exakt denselben horizontalen Scroll-/Rasterraum. */
