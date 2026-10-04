@@ -35,11 +35,8 @@ jobs:
         shell: bash
         run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
 
-      - name: Vitest-Unit-Pilot ausführen
-        shell: bash
-        run: npm run test:unit
-
-      - name: V8-Coverage erzeugen
+      # Coverage executes the same unit suite and fails on assertion errors.
+      - name: Unit-Tests einmal mit V8-Coverage ausführen
         shell: bash
         run: npm run test:coverage
 

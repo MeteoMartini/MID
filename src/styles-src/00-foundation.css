@@ -640,8 +640,8 @@ footer a:hover{opacity:1;color:var(--accent)}
 
 
 /* v0.5.6: Kontrast im hellen Layout */
-:root{--apparent-line:#ffd08a}
-:root[data-theme=light]{--apparent-line:#9a5200}
+:root{--apparent-line:color-mix(in srgb,var(--param-temperature) 58%,var(--text))}
+
 .detaillegend .apparent{border-top-color:var(--apparent-line)!important}
 .detaillegend i.apparent{background:var(--apparent-line)!important}
 

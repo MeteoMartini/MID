@@ -29,8 +29,10 @@ try{
  await mkdir(path.join(temp,'.github','workflows'),{recursive:true});
  await writeFile(path.join(temp,'.github','workflows','install-mid.yml'),'name: veraltet\n');
  await writeFile(path.join(temp,'.github','workflows','custom.yml'),'name: benutzerdefiniert\n');
+ await mkdir(path.join(temp,'workflow-patches'),{recursive:true});
+ for(const name of ['install-mid.yml','deploy.yml'])await writeFile(path.join(temp,'workflow-patches',name),'name: veralteter Transport\n');
  const first=await syncGithubConfiguration({root:temp});
- if(first.length!==managed.length)failures.push(`Explizite Synchronisierung aktualisierte ${first.length} statt ${managed.length} verwalteter Dateien.`);
+ if(first.length!==managed.length+2)failures.push(`Explizite Synchronisierung aktualisierte ${first.length} statt ${managed.length+2} verwalteter Dateien/Transportspiegel.`);
  for(const relative of managed){
   const canonical=await readFile(path.join(temp,'ci','github',relative),'utf8');
   const installed=await readFile(path.join(temp,'.github',relative),'utf8');
@@ -38,6 +40,11 @@ try{
  }
  const custom=await readFile(path.join(temp,'.github','workflows','custom.yml'),'utf8').catch(()=>null);
  if(custom!=='name: benutzerdefiniert\n')failures.push('Explizite Synchronisierung hat einen nicht von MID verwalteten Workflow verändert oder entfernt.');
+ for(const name of ['install-mid.yml','deploy.yml']){
+  const canonical=await readFile(path.join(temp,'ci','github','workflows',name),'utf8');
+  const transport=await readFile(path.join(temp,'workflow-patches',name),'utf8');
+  if(canonical!==transport)failures.push(`Transportspiegel ${name} nicht synchronisiert.`);
+ }
  const second=await syncGithubConfiguration({root:temp});
  if(second.length!==0)failures.push('Explizite Synchronisierung ist nicht idempotent.');
 }finally{await rm(temp,{recursive:true,force:true})}

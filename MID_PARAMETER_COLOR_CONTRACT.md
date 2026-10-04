@@ -90,3 +90,7 @@ Required Regression: `scripts/test-day-precipitation-color-contract-098435.mjs`.
 - Originale WMS-Bilder behalten ihre Anbieterpalette, sofern keine verifizierten numerischen Rasterwerte vorliegen. Meteorologische Windfiedern behalten ihre standardisierte Symbolbedeutung; die erklärenden Zahlen folgen der gewählten Windeinheit.
 
 Required Regression: `scripts/test-adaptive-native-maps-0985141.mjs` einschließlich der eingebundenen Einheiten-/Skalen- und Browserprüfung.
+
+## Zusatzvertrag v0.9.85.157 – aufgeklappte 7d-Tagesdetails
+
+Die gefühlte Temperatur/UTCI verwendet in 24h-Profil, Tagesdetail, Auswahlpunkt und Legende denselben zentralen `--apparent-line`-Token, abgeleitet aus Temperatur und Theme-Textfarbe. Keine lokale Gold-/Orange-Ersatzpalette, auch nicht im Kontrastmodus. Temperatur, Taupunkt, Druck, Niederschlagswahrscheinlichkeit, Wind und Böen behalten ihre vorhandenen kanonischen Tokens.

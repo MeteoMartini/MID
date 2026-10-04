@@ -1,5 +1,10 @@
 # MID – verbindliche Codebasis
 
+## v0.9.85.157 · MID-C15 Tagesdiagrammfarben und Wartungsprüfung
+
+Basis main = mid-stable = 922a78191d9ff50f3858d857f00ef3f811ac96f1 (.156). Gemeinsamer UTCI-Farbtoken im tatsächlichen Tagesdetail und 24h-Profil; Unit-Tests im Coverage-Workflow einmal statt zweimal. Keine Gate- oder Regressionsstreichung. Prüfung: docs/implementation/MID_C15_MAINTENANCE_0.9.85.157.md.
+
+
 ## v0.9.85.156 · MID-C14 Vorhinweise bis Tag 7 und Diagrammfarben
 
 Basis main = mid-stable = 49d169f04b52ba9dc0a33750d621a1522b837487 (.155). Fachlich abgesicherte Regen-/Schnee-/Böenbewertung ausschließlich bis +168 h. Getrennte ECMWF-Böenergänzung, Ergebnis-Cache über Worker-Neustarts und vereinheitlichte 24h/7d-Farben. Details: docs/implementation/MID_C14_SEVEN_DAY_OUTLOOK_COLORS_0.9.85.156.md.

@@ -23,7 +23,7 @@ for(const workflow of [installCanonical,installActive]){
   assert.equal(blocks.length,4,'Installer muss drei Pages-Deployversuche plus den kurzen Stable-/Pages-Abschluss-Lock koordinieren.');
   assert.ok(blocks.every(match=>match[1]==='max'),'Installer muss wartende Pages-Publikationen verlustfrei per queue:max halten.');
   assert.ok(blocks.every(match=>match[2]==='false'),'Installer darf laufende RUC-/Pages-Publikation nicht abbrechen.');
-  assert.ok(workflow.includes('group: mid-install-${{ github.ref }}\n  cancel-in-progress: true'),'Release-Run-Supersession muss erhalten bleiben.');
+  assert.ok(workflow.includes("group: mid-install-${{ github.ref }}-${{ github.event_name == 'push' && github.actor == 'mid-release-bot-meteomartini[bot]' && 'internal-bot-push' || 'release' }}\n  cancel-in-progress: true"),'Release-Supersession bleibt aktiv; interne Bot-Pushes dürfen den laufenden Installer nicht abbrechen.');
 }
 for(const workflow of [rucCanonical,rucActive]){
   assert.ok(workflow.includes("- cron: '11 * * * *'"));
