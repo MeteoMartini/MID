@@ -86,3 +86,9 @@ export function hourlyTemperatureTone(value:number,climateMin:number|undefined,c
  const tone=neutralHourlyTone();
  return{...tone,anomaly:null,title:Number.isFinite(value)?`Temperatur · ${Math.round(value)} °C`:'Temperatur'};
 }
+
+// Tagesübersichten verwenden dieselben Tmin/Tmax-Rollen wie das 24h-Profil.
+export function parameterTemperatureTone(value:number,kind:DailyTemperatureKind):EcmwfTemperatureTone{
+ const color=kind==='min'?'var(--param-temperature-min)':'var(--param-temperature-max)';
+ return{color,background:`color-mix(in srgb,${color} 10%,transparent)`,border:`color-mix(in srgb,${color} 46%,var(--border))`,title:`${kind==='min'?'Tmin':'Tmax'} ${Number.isFinite(value)?Math.round(value)+' °C':'–'}`};
+}

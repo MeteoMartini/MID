@@ -94,3 +94,8 @@ Required Regression: `scripts/test-adaptive-native-maps-0985141.mjs` einschließ
 ## Zusatzvertrag v0.9.85.157 – aufgeklappte 7d-Tagesdetails
 
 Die gefühlte Temperatur/UTCI verwendet in 24h-Profil, Tagesdetail, Auswahlpunkt und Legende denselben zentralen `--apparent-line`-Token, abgeleitet aus Temperatur und Theme-Textfarbe. Keine lokale Gold-/Orange-Ersatzpalette, auch nicht im Kontrastmodus. Temperatur, Taupunkt, Druck, Niederschlagswahrscheinlichkeit, Wind und Böen behalten ihre vorhandenen kanonischen Tokens.
+
+## v0.9.85.158 · sichtbarer 7d-/24h-Farbabgleich
+Der ausdrückliche MID-C15-Auftrag ersetzt die ältere ECMWF-Sonderpalette der 7d-Tagesübersicht: Temperaturkurve und Legende verwenden --param-temperature, Tmin --param-temperature-min, Tmax --param-temperature-max. Tageskarten, klassische Liste und Kurvenkopf verwenden diese Rollen unabhängig vom Zahlenwert. Kartenprodukte und 14d-Farbkonventionen bleiben bestehen. Historische Strukturprüfungen werden auf diesen bewusst geänderten Vertrag aktualisiert; der Browservergleich prüft tatsächlich berechnete Farben, nicht nur SVG-Stopps.
+
+7d-Tageszeilen: mittlerer Wind --param-wind; Böen ohne Warnstufe --param-gust; Niederschlagssymbol, -menge und Wahrscheinlichkeit --param-precipitation. DWD-Warnstufen behalten ihre semantischen Warnfarben. Die nicht gerenderte Wochenkurven-Halo-Regel entfällt; Bundle-Budgets bleiben unverändert. Die explizite ECMWF-Badgeoption des Präsentationsexports bleibt erhalten.
