@@ -16,7 +16,7 @@ const need=(label,text,token)=>assert.ok(text.includes(token),`${label}: ${token
 need('Widget speichert die unabhängige Auswahl',app,"type WidgetView='cards'|'curve'|'ensemble'");
 need('Widget bietet 3 bis 7 Tage',app,'WIDGET_DAY_OPTIONS=[3,4,5,6,7] as const');
 need('Widget rendert alle gewählten Tage',app,'WIDGET_DAY_OPTIONS.map(x=><option key={x}>{x}</option>)');
-need('Widget nutzt die kanonische Kurvenübersicht',app,'<SevenDayCurveOverview days={previewDays} hours={precipitationDisplayHours} presentationReady');
+need('Widget nutzt die kanonische Kurvenübersicht',app,'<SevenDayCurveOverview days={previewDays} hours={precipitationDisplayHours} ensemble={ensemble} warningEnsemble={warningEnsemble} location={loc} timezone={timezone} skybarDisplayMode={skybarDisplayMode} presentationReady');
 need('Kurvenansicht steuert Niederschlag',app,'showRain={showRain}');
 need('Kurvenansicht steuert Sonnenschein',app,'showSunshine={showSunshine}');
 need('Kurvenansicht steuert Wind',app,'showWind={showWind}');
@@ -49,3 +49,6 @@ need('Heller Windpfeil hat einen kontrastreichen Kreis',foundation,'.widget-view
 assert.equal(pkg.scripts?.['test:widget-curve-overview'],'node scripts/test-widget-curve-overview-09845.mjs','Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Baseline schützt den Widget-Kurvenvertrag nicht.');
 console.log(`MID v${pkg.version}: eigenständige 3-/4-/5-/6-/7-Tage-Widget-Kurvenübersicht mit Tageskopf, Piktogrammen, Skybar, Temperaturkurve und Niederschlagssäulen geprüft.`);
+
+need('URL-Kurvenexport wartet auf den Ensembleabruf',app,"if(view==='curve'&&ensembleLoading)return;");
+need('Gemeinsamer Nachtflächenrenderer statt Widget-Sonderdarstellung',cockpit,'location?<CockpitSkybarNightBandsSvg');

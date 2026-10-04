@@ -95,16 +95,16 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-track-inner{
 }
 html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-sky{
   width:100%!important;
-  height:14px!important;
-  min-height:14px!important;
+  height:18px!important;
+  min-height:18px!important;
   margin:0 0 1px!important;
   padding:0!important;
 }
 html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-sky>svg{
   display:block!important;
   width:100%!important;
-  height:12px!important;
-  max-height:12px!important;
+  height:16px!important;
+  max-height:16px!important;
 }
 html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-axis,
 html[data-mid-design='next'] .forecast-cockpit .cockpit-now90-grid{

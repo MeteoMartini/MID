@@ -43,3 +43,5 @@ These rules are binding for repository changes.
 - Follow WMO and relevant national-weather-service conventions, especially DWD for German products.
 - Keep parameter colors, weather pictograms and responsive behavior consistent across mobile portrait/landscape, tablet and desktop.
 - Prefer the newest validated implementation already in the repository over recreating older code from conversation history.
+
+- Changes to shared UI elements must reach every consumer, including widgets and URL/PNG exports: reuse the common renderer and pass the same canonical data/settings. Verify all consumers rather than maintaining parallel implementations.
