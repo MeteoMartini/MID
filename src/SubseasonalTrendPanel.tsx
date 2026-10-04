@@ -748,7 +748,7 @@ function WeeklyAnomalyChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWee
  const keys=metricRawKeys(metric),unit=metric==='temperature'?'K':metric==='cloud'?'Prozentpunkte':metric==='precipitation'?'mm/Woche':metric==='pressure'?'hPa':windUnitLabel(windUnit),series:SignalSeries[]=keys.map(key=>({id:key,label:key==='temperature_max'?'Tmax-Abweichung':key==='temperature_min'?'Tmin-Abweichung':VIEW_METRICS.find(item=>item.id===metric)?.label??metric,color:key==='temperature_min'?'var(--param-temperature-min)':key==='temperature_max'?'var(--param-temperature-max)':metric==='precipitation'?'var(--param-precipitation)':'var(--accent)',points:weeks.map(week=>{const value=week.values[key],climate=climateNumber(climateWeeks,week.id,key),difference=(raw:number|undefined)=>raw!==undefined&&Number.isFinite(raw)&&Number.isFinite(climate)?valueToDisplay(raw-climate,key,windUnit):null,mean=difference(value?.mean),q25=difference(value?.p25),q75=difference(value?.p75);return{id:week.id,label:week.label,mean,low:difference(value?.p10),high:difference(value?.p90),q25,q75,detail:`${formatDate(week.startDate)} – ${formatDate(week.endDate)} · ${value?.modelCount??0} Modellfamilien · ${q25!==null&&q75!==null&&q25<=0&&q75>=0?'mittlere Bandbreite umfasst Klimamittel':'Richtung im mittleren Ensemblebereich'}`}})}));
  return <><HorizonSignalChart series={series} unit={unit} label={`Wochenabweichungen ${metric} gegenüber ERA5 1991–2020 mit Unsicherheit`}/><div className="long-range-info"><p>Null = ERA5-Klimamittel 1991–2020. Dies sind unbereinigte Modellabweichungen zur Reanalyse, keine hindcastkalibrierten Wahrscheinlichkeiten. Ein Intervall über Null lässt die Richtung offen. Fehlende Klimawerte erzeugen keine Null-Anomalie.</p></div></>;
 }
-export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMode=false}:{location:Location;windUnit?:WindUnit;advancedMode?:boolean}){
+export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location:Location;windUnit?:WindUnit}){
   const [data,setData]=useState<TrendBundle|null>(null);
   const [loading,setLoading]=useState(true);
   const [refreshing,setRefreshing]=useState(false);
@@ -804,12 +804,11 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
     <header className="section-head long-range-head subseasonal-head">
       <div>
         <h3>Tag 15–46 · Wochenentwicklung</h3>
-        <p>Wochenblöcke statt scheinpräziser Tageswerte · ECMWF EC46 + NOAA GEFS bis Tag 35</p>
         {data?<small className="long-range-cache-state">Datenabruf {formatDateTime(data.fetchedAt)} UTC{cacheLabel?` · ${cacheLabel}`:''}</small>:null}
       </div>
       <div className="long-range-head-actions">
         <button type="button" onClick={()=>load(true)} aria-label="Witterungstrend aktualisieren" disabled={refreshing}>{refreshing?<RefreshCw size={18} className="spin"/>:<RefreshCw size={18}/>}</button>
-        <button type="button" onClick={()=>setInfoOpen(open=>!open)} aria-expanded={infoOpen} aria-label="Methodik anzeigen"><Info size={18}/></button>
+        <button type="button" onClick={()=>setInfoOpen(open=>!open)} aria-expanded={infoOpen} aria-controls="subseasonal-method-details" aria-label="Methodik und Quellen anzeigen"><Info size={18}/></button>
       </div>
     </header>
 
@@ -817,10 +816,6 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
     {!loading&&error?<p className="section-status error">{error}</p>:null}
 
     {!loading&&models.length?<>
-      <div className="long-range-family-chips subseasonal-families">
-        {models.map(model=><span key={model.id}>{model.family}<small>{model.members||'–'} Member · bis Tag {model.horizonDays} · {model.gridLabel}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small></span>)}
-      </div>
-
       <div className="long-range-controls subseasonal-controls">
         <div className="long-range-model-selector subseasonal-model-selector">
           <button type="button" className={view==='combined'?'active':''} onClick={()=>setView('combined')}>
@@ -829,7 +824,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
           </button>
           {models.map(model=><button key={model.id} type="button" className={view===model.id?'active':''} onClick={()=>setView(model.id)}>
             <b>{model.family}</b>
-            <small>{model.members} Member · bis Tag {model.horizonDays}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small>
+            <small>{model.members} Mitglieder · bis Tag {model.horizonDays}</small>
           </button>)}
         </div>
         <div className="long-range-model-selector subseasonal-metric-selector">
@@ -840,12 +835,13 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
         </div>
       </div>
 
-      {infoOpen?<div className="long-range-method">
+      {infoOpen?<div className="long-range-method subseasonal-method-details" id="subseasonal-method-details">
         <b>Methodik & Hinweise</b>
         <p>ECMWF EC46 liefert 51 Ensemblemitglieder bis Tag 46, NOAA GEFS 31 Ensemblemitglieder bis Tag 35. MID verdichtet beide Quellen auf Wochenblöcke ab Tag 15 und gewichtet Modellfamilien im Multi-Modell unabhängig von der Memberzahl 1:1.</p>
         <p>Temperatur wird konsistent als kombinierte Tmax/Tmin-Grafik gezeigt; Mittelkurven und Unsicherheitsbereiche folgen demselben Farbkonzept wie im 14-Tage-Ensemble. Wind wird als Wochenmittel geführt; nicht belastbar gelieferte Zusatzgrößen werden nicht als eigener Parameter angezeigt.</p>
         <p>Das Klimamittel wird wie im 14-Tage-Ensemble aus der ERA5-Seamless-Reanalyse 1991–2020 am Ort abgeleitet: ERA5-Land für die Landtemperatur, ERA5 für Niederschlag, Luftdruck, Bewölkung und Wind. Alle Größen werden kalendergleich für jeden Wochenblock aggregiert.</p>
         <p>Ab Tag 36 steht derzeit nur EC46 zur Verfügung; der Multi-Modell-Pfad reduziert sich dort automatisch auf die verbleibende Modellfamilie.</p>
+        <div className="subseasonal-source-list">{models.map(model=><div key={model.id}><b>{model.family}</b><small>{model.members} Mitglieder · bis Tag {model.horizonDays} · {model.gridLabel}{formatModelRun(model.runInitialisationTime)?` · Lauf ${formatModelRun(model.runInitialisationTime)} UTC`:''}</small></div>)}</div>
       </div>:null}
 
       <div className="long-range-grid" style={{gridTemplateColumns:'1fr'}}>
@@ -879,18 +875,15 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
         </article>
       </div>
 
-      <section className="long-range-models subseasonal-comparison">
-        <header>
-          <div>
-            <span>ENSEMBLE-VERGLEICH</span>
-            <h4>{def.label} je Wochenblock</h4>
+      <details className="long-range-models subseasonal-comparison">
+        <summary className="subseasonal-comparison-summary"><strong>Wochenvergleich nach Modell</strong><small>{combined.length} Wochenblöcke · Einzelwerte öffnen</small></summary>
+        <div className="subseasonal-comparison-content">
+          <header className="subseasonal-comparison-heading"><h4>{def.label} je Wochenblock</h4></header>
+          <div className="long-range-model-strip">
+            {combined.map(week=>renderComparisonArticle(metric,week,models,week,climateWeeks,windUnit))}
           </div>
-        </header>
-        <div className="long-range-model-strip">
-          {combined.map(week=>renderComparisonArticle(metric,week,models,week,climateWeeks,windUnit))}
         </div>
-        {advancedMode?<div className="long-range-method"><b>Quellen und Reichweite</b><p>ECMWF EC46: 36-km-Subseasonal-Ensemble bis 46 Tage. NOAA GEFS 0,5°: Ensemble bis 35 Tage. MID verdichtet beide auf identische Wochenblöcke und hält die Inter-Modell-Gewichtung unabhängig von der Memberzahl bei 1:1. Klimareferenz: ERA5-Seamless 1991–2020; Temperatur aus ERA5-Land, atmosphärische Größen aus ERA5, kalendergleich aggregiert.</p></div>:null}
-      </section>
+      </details>
     </>:null}
   </section>;
 }

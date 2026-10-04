@@ -1,7 +1,7 @@
-# MID v0.9.85.164
+# MID v0.9.85.165
 
-- Die Skybar bleibt nach nachgeladenen RUC-/Modellkorrekturen mit der Viertelstundenprognose konsistent.
-- Saison-Niederschlagsabweichungen erscheinen in Prozent zum zugehörigen Monatsmittel; Temperatur-Mitgliedskurven zeigen Abweichungen in K.
-- Alle Monate bleiben auf den Zeitachsen sichtbar; kurze Monatslabels und bei Bedarf horizontales Scrollen erhalten die Lesbarkeit.
-- Saisoninstrumente verwenden lesbare Monatslabels und passende Einheiten; Modellvergleiche behalten auch Quellen ohne Prozentreferenz.
-- Die gespeicherte ECMWF-Farbwahl bleibt bei einem Neustart erhalten.
+## MID-C16 · kompakte Prognoseansichten
+- 14-Tage-Entwicklung mit drei kurzen Phasen; fachliche Einordnung bleibt im Infohinweis verfügbar.
+- Wochenvergleich für Tag 15–46 startet eingeklappt. Methodik, Modellläufe, Mitgliederzahlen und Quellen bleiben erreichbar.
+- Saisonübersicht mit kürzeren Texten und zentraler Quellenansicht. Mitgliedsanomalien in K/% und vollständig lesbare Monatsachsen aus .164 bleiben erhalten.
+- Responsive Gestaltung der Detailansichten in der gepflegten CSS-Quelle; keine Änderung der Prognosedaten oder Ensemblegewichtung.
