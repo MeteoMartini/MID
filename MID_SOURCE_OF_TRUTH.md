@@ -1,3 +1,6 @@
+## v0.9.85.161 · MID-C15 sichtbare Nachtstunden und 12h-Skybar
+Basis main = mid-stable = 248987161638f06f7d315882aff988fd95e0de71 (.160), live www.midwx.app/version.json geprüft. Gemeinsamer SVG-Nachtfarbtoken --mid-night-band-color mit opakem Fallback und einmaliger Deckkraft. Der 12h-Wetterstreifen erhält die volle 16-px-SVG-Höhe wie 90 min.
+
 ## v0.9.85.160 · MID-C15 optionale ECMWF-Palette und gemeinsamer Linienvertrag
 Basis main = mid-stable = 6133022f71dffade571c8e94909ec4b2298462ca (.159), live www.midwx.app/version.json geprüft. Gespeicherte 7d-ECMWF-Option für Tageskarten und Stundenkurve, unabhängige Gradienten-IDs. src/parameterLineStyle.ts ist autoritativ für tatsächlich gerenderte 24h-/7d-Linien. Frühere statische Strich-/Breitenvorgaben dürfen diesen gemeinsamen Vertrag nicht überschreiben.
 

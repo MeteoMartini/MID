@@ -1,3 +1,9 @@
+# MID v0.9.85.161
+
+MID-C15: Nachtstunden der 7d-Kurve sind wieder deutlich sichtbar, auch im Widget und PNG. Gemeinsame opake Nachtfarbe mit einmaliger Deckkraft statt unbeabsichtigter doppelter Transparenz; astronomische Grenzen und sanfte Übergänge bleiben erhalten. Dieselbe Korrektur erreicht die übrigen SVG-Nachtflächen.
+
+Der Wetterstreifen im 12h-Diagramm unter Aktuell verwendet die volle SVG-Höhe von 16 px, wie die 90-Minuten-Ansicht. Die vier Bedeckungsstufen werden nicht mehr vertikal gestaucht; gemeinsame Zeitachse, Niederschlagszustände und Quadrateinstellung bleiben erhalten.
+
 # MID v0.9.85.160
 
 MID-C15: ECMWF-Temperaturfarben sind in Einstellungen wieder optional für 7d-Tageswerte und die stündliche 7d-Kurve verfügbar; Standard bleibt die 24h-Parameterpalette. Widget und PNG verwenden denselben Renderer mit ihrem vorhandenen Farbschalter. Eindeutige Gradienten-IDs verhindern Wechselwirkungen zwischen gleichzeitig sichtbaren Diagrammen.

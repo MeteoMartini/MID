@@ -2932,7 +2932,7 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 .cockpit-day-skybar>svg{display:block;width:100%;height:16px;overflow:visible}
 .cockpit-day-skybar-rail{fill:color-mix(in srgb,var(--text) 7%,transparent)}
 .cockpit-day-skybar rect{shape-rendering:geometricPrecision}
-.seven-day-curve-night-band{fill:var(--mg-night,#5b667c)!important;fill-opacity:var(--mid-night-band-opacity,.2)!important}
+.seven-day-curve-night-band{fill:var(--mid-night-band-color,#5b667c)!important;fill-opacity:var(--mid-night-band-opacity,.2)!important}
 .seven-day-curve-footer .weather-strip{position:relative;background:transparent!important}
 .seven-day-curve-footer .weather-strip::before{content:"";position:absolute;left:0;right:0;top:50%;height:4px;border-radius:999px;transform:translateY(-50%);background:linear-gradient(90deg,#aeb3b9 0 34%,#ffc229 34% 100%)}
 .seven-day-curve-footer .weather-strip::after{content:"";position:absolute;top:50%;left:56%;width:26%;height:2.6px;border-radius:999px;transform:translateY(-50%);background:var(--param-precipitation)}
