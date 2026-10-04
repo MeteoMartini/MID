@@ -1,3 +1,6 @@
+## v0.9.85.162 · MID-C15 Horizonte und echte Saisonmitglieder
+Basis main = mid-stable = c8c2a4f98892b97a104c43575dedbecd23af439f (.161). Entwicklung/Unsicherheit statt identischer Horizontkalender, echte SEAS5-Mitgliedsmonate und Einheitenkorrektur. Fachlicher Vertrag: docs/implementation/MID_C15_HORIZON_CONCEPT_0.9.85.162.md. Keine kalibrierten Wahrscheinlichkeiten aus Modellstreuung oder ERA5-Differenzen behaupten.
+
 ## v0.9.85.161 · MID-C15 sichtbare Nachtstunden und 12h-Skybar
 Basis main = mid-stable = 248987161638f06f7d315882aff988fd95e0de71 (.160), live www.midwx.app/version.json geprüft. Gemeinsamer SVG-Nachtfarbtoken --mid-night-band-color mit opakem Fallback und einmaliger Deckkraft. Der 12h-Wetterstreifen erhält die volle 16-px-SVG-Höhe wie 90 min.
 

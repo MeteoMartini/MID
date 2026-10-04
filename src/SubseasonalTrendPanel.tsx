@@ -3,6 +3,7 @@ import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} fr
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
 import {AppPortalPopover} from './AppPortalPopover';
 import {formatDecimalFixed} from './format';
+import {HorizonSignalChart,type SignalSeries} from './HorizonSignalChart';
 import type {Location,WindUnit} from './weather';
 
 type RawMetricKey='temperature_max'|'temperature_min'|'precipitation'|'pressure'|'cloud'|'wind';
@@ -743,6 +744,10 @@ function renderComparisonArticle(metric:ViewMetric,week:TrendWeek,models:TrendMo
   </article>;
 }
 
+function WeeklyAnomalyChart({weeks,climateWeeks,metric,windUnit}:{weeks:TrendWeek[];climateWeeks:ClimateWeek[];metric:ViewMetric;windUnit:WindUnit}){
+ const keys=metricRawKeys(metric),unit=metric==='temperature'?'K':metric==='cloud'?'Prozentpunkte':metric==='precipitation'?'mm/Woche':metric==='pressure'?'hPa':windUnitLabel(windUnit),series:SignalSeries[]=keys.map(key=>({id:key,label:key==='temperature_max'?'Tmax-Abweichung':key==='temperature_min'?'Tmin-Abweichung':VIEW_METRICS.find(item=>item.id===metric)?.label??metric,color:key==='temperature_min'?'var(--param-temperature-min)':key==='temperature_max'?'var(--param-temperature-max)':metric==='precipitation'?'var(--param-precipitation)':'var(--accent)',points:weeks.map(week=>{const value=week.values[key],climate=climateNumber(climateWeeks,week.id,key),difference=(raw:number|undefined)=>raw!==undefined&&Number.isFinite(raw)&&Number.isFinite(climate)?valueToDisplay(raw-climate,key,windUnit):null,mean=difference(value?.mean),q25=difference(value?.p25),q75=difference(value?.p75);return{id:week.id,label:week.label,mean,low:difference(value?.p10),high:difference(value?.p90),q25,q75,detail:`${formatDate(week.startDate)} – ${formatDate(week.endDate)} · ${value?.modelCount??0} Modellfamilien · ${q25!==null&&q75!==null&&q25<=0&&q75>=0?'mittlere Bandbreite umfasst Klimamittel':'Richtung im mittleren Ensemblebereich'}`}})}));
+ return <><HorizonSignalChart series={series} unit={unit} label={`Wochenabweichungen ${metric} gegenüber ERA5 1991–2020 mit Unsicherheit`}/><div className="long-range-info"><p>Null = ERA5-Klimamittel 1991–2020. Dies sind unbereinigte Modellabweichungen zur Reanalyse, keine hindcastkalibrierten Wahrscheinlichkeiten. Ein Intervall über Null lässt die Richtung offen. Fehlende Klimawerte erzeugen keine Null-Anomalie.</p></div></>;
+}
 export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMode=false}:{location:Location;windUnit?:WindUnit;advancedMode?:boolean}){
   const [data,setData]=useState<TrendBundle|null>(null);
   const [loading,setLoading]=useState(true);
@@ -758,6 +763,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
     }catch{return 'combined';}
   });
   const [infoOpen,setInfoOpen]=useState(false);
+  const [anomalyMode,setAnomalyMode]=useState(true);
   const controllerRef=useRef<AbortController|null>(null);
 
   const load=useCallback(async(refresh=false)=>{
@@ -851,7 +857,8 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
               <small>{trendDescription(selectedWeeks,climateWeeks,metric,windUnit)}</small>
             </div>
           </header>
-          <div className="subseasonal-chart-legend">
+          <div className="long-range-model-selector"><button type="button" className={anomalyMode?'active':''} aria-pressed={anomalyMode} onClick={()=>setAnomalyMode(true)}>Abweichung & Unsicherheit</button><button type="button" className={!anomalyMode?'active':''} aria-pressed={!anomalyMode} onClick={()=>setAnomalyMode(false)}>Absolute Wochenwerte</button></div>
+          {!anomalyMode&&<div className="subseasonal-chart-legend">
             {metric==='temperature'?<>
               <LegendLine label={view==='combined'?'Multi-Modell-Mittel Tmax':'Ensemble-Mittel Tmax'} color="var(--param-temperature-max)"/>
               <LegendLine label={view==='combined'?'Multi-Modell-Mittel Tmin':'Ensemble-Mittel Tmin'} color="var(--param-temperature-min)"/>
@@ -863,8 +870,8 @@ export default function SubseasonalTrendPanel({location,windUnit='kn',advancedMo
               <LegendLine label="Klimamittel 1991–2020" color="currentColor" dashed/>
               <SpreadLegend/>
             </>}
-          </div>
-          {metric==='temperature'?<CombinedTrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} series={TEMPERATURE_SERIES} windUnit={windUnit} ariaLabel="Witterungstrend Temperatur mit Tmax und Tmin"/>:<ScalarTrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metricRawKeys(metric)[0]} windUnit={windUnit}/>}          
+          </div>}
+          {anomalyMode?<WeeklyAnomalyChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metric} windUnit={windUnit}/>:metric==='temperature'?<CombinedTrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} series={TEMPERATURE_SERIES} windUnit={windUnit} ariaLabel="Witterungstrend Temperatur mit Tmax und Tmin"/>:<ScalarTrendChart weeks={selectedWeeks} climateWeeks={climateWeeks} metric={metricRawKeys(metric)[0]} windUnit={windUnit}/>}
           <footer>
             <span>Außen P10–P90 · innen P25–P75</span>
             <span>{view==='combined'?'Modellfamilien gleich gewichtet':'Ensemblemitglieder des gewählten Modells'}</span>
