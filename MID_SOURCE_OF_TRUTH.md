@@ -1,3 +1,6 @@
+## v0.9.85.163 · Skybar-Kohärenz und Prognoseinstrumente
+Basis main = mid-stable = 0f8f871d5a69d0c8293445894f0f759e653bcce5 (.162). Lokale Wolkendeltas auf native Viertelstunden übertragen; Modell-Sonnenschein bei Änderung ab einem Okta als fehlend kennzeichnen. Keine Wolkenkomplement-Sonnenscheindauer. Gemeinsame runde Skalen und platzabhängige Monatslabels.
+
 ## v0.9.85.162 · MID-C15 Horizonte und echte Saisonmitglieder
 Basis main = mid-stable = c8c2a4f98892b97a104c43575dedbecd23af439f (.161). Entwicklung/Unsicherheit statt identischer Horizontkalender, echte SEAS5-Mitgliedsmonate und Einheitenkorrektur. Fachlicher Vertrag: docs/implementation/MID_C15_HORIZON_CONCEPT_0.9.85.162.md. Keine kalibrierten Wahrscheinlichkeiten aus Modellstreuung oder ERA5-Differenzen behaupten.
 

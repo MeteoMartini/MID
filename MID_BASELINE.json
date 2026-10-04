@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.162",
+  "releaseVersion": "0.9.85.163",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -756,6 +756,7 @@
     "scripts/test-shortterm-selected-line-values-097710.mjs",
     "scripts/test-skybar-daylight-no-gaps-097913.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
+    "scripts/test-skybar-horizon-coherence-0985163.mjs",
     "scripts/test-skybar-quarter-consistency-0985152.mjs",
     "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
     "scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
@@ -1665,6 +1666,7 @@
     "scripts/test-shortterm-selected-line-values-097710.mjs",
     "scripts/test-skybar-daylight-no-gaps-097913.mjs",
     "scripts/test-skybar-four-thickness-appwide-09799.mjs",
+    "scripts/test-skybar-horizon-coherence-0985163.mjs",
     "scripts/test-skybar-quarter-consistency-0985152.mjs",
     "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
     "scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
@@ -3247,7 +3249,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-extreme-outlook-real-members-0985155.mjs"
   ],
-  "version": "0.9.85.162",
+  "version": "0.9.85.163",
   "updatedAt": "2026-10-03T19:27:47.667536Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
