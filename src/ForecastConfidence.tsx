@@ -1,4 +1,4 @@
-import {useEffect,useState} from 'react';
+import {type ReactNode,useEffect,useState} from 'react';
 import {AppInfoHint} from './AppInfoPopover';
 import {AGREEMENT_COLOR,AGREEMENT_LABEL,DATA_QUALITY_LABEL,agreementWindows,assessmentSummary,firstAgreementChange,trailingUnknownCoverageDate,type DayAssessment,type EnsembleParameter} from './ensembleAssessment';
 
@@ -24,7 +24,7 @@ export function EnsembleAssessmentDetails({assessment}:{assessment:DayAssessment
  </div>;
 }
 
-export function ForecastConfidenceInfoHint({assessments,advancedMode=false,className=''}:{assessments:DayAssessment[];advancedMode?:boolean;className?:string}){
+export function ForecastConfidenceInfoHint({assessments,advancedMode=false,className='',children}:{assessments:DayAssessment[];advancedMode?:boolean;className?:string;children?:ReactNode}){
  const ordered=[...assessments].sort((a,b)=>a.date.localeCompare(b.date)),windows=agreementWindows(ordered),firstEvaluable=ordered.find(day=>day.agreement!=='unknown');
  return <AppInfoHint label="Parameter und weitere Zeiträume" width={430} showClose className={className}>
   <strong>Parameter und weitere Zeiträume</strong>
@@ -32,6 +32,7 @@ export function ForecastConfidenceInfoHint({assessments,advancedMode=false,class
   {firstEvaluable?.parameters.map(parameter=>{const periods=agreementWindows(ordered,parameter.key);return <p key={parameter.key}><b>{parameter.label}:</b> {periods.length?periods.map(window=>`${windowLabel(window)} · ${scoreRangeLabel(window,ordered,parameter.key)}`).join(' · '):'kein bewertbares Fenster mit hoher Parameterkonfidenz'}</p>})}
   <p>Der 0–100-Wert ist ein Konfidenzindex und bewusst kein Prozentwert: Er beschreibt Ensembleübereinstimmung, Vorlauf und gedämpfte lokale Güte, nicht die Wahrscheinlichkeit, dass eine konkrete Vorhersage „eintrifft“. Datenqualität und unvollständige Randtage werden separat ausgewiesen und dürfen eine meteorologisch hohe Konfidenz nicht künstlich auf „mittel“ setzen.</p>
   {advancedMode&&<p>Die Spreads werden mit dem Vorlauf normalisiert. Wo genügend lokale Rückblicksdaten vorhanden sind, fließen Brier-/Fehlerwerte mit starker Schrumpfung als kleine Skill-Korrektur ein; ein nur teilweise abgedeckter letzter Kalendertag bleibt „nicht bewertbar“, bis genügend vollständige Ensemblewerte vorliegen.</p>}
+   {children?<div className="forecast-confidence-info-extra">{children}</div>:null}
  </AppInfoHint>;
 }
 
