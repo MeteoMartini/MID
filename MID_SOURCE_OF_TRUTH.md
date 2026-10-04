@@ -1,3 +1,6 @@
+## v0.9.85.164 · MID-C16 Prognoseanomalien und RUC-Nachladung
+Basis main = mid-stable = 7a9066bbb0b6babc03fc44dff93bcd6f815cddfe (.163). Fachlicher Vertrag: docs/implementation/MID_C16_OUTLOOKS_RUC_0.9.85.164.md. Himmelsdelta vor Fusion; Niederschlagsdelta unverändert nach Fusion. Saisonprozente nur gegen eigene Modellreferenz, echte Mitgliedsanomalien und alle Monatslabels. Keine erfundenen Referenzen oder Kalibrierung.
+
 ## v0.9.85.163 · Skybar-Kohärenz und Prognoseinstrumente
 Basis main = mid-stable = 0f8f871d5a69d0c8293445894f0f759e653bcce5 (.162). Lokale Wolkendeltas auf native Viertelstunden übertragen; Modell-Sonnenschein bei Änderung ab einem Okta als fehlend kennzeichnen. Keine Wolkenkomplement-Sonnenscheindauer. Gemeinsame runde Skalen und platzabhängige Monatslabels.
 

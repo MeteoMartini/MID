@@ -22,7 +22,7 @@ for(const token of ['.seven-day-curve-overview','.seven-day-curve-days','.seven-
  assert.ok(styleSource.includes(token),`Responsive Designquelle fehlt: ${token}`);assert.ok(styleAggregate.includes(token),`Style-Aggregat fehlt: ${token}`);
 }
 
-assert.ok(longRange.includes('keine EPS-Mitglieder zwingend')&&longRange.includes('Einzellauf / deterministisch')&&longRange.includes('DWD Subseasonal EPISODES'),'Nicht-EPS-/DWD-Langfristvertrag fehlt in der UI-Methodik.');
+assert.ok(longRange.includes('EPS-Mitglieder sind keine Voraussetzung')&&longRange.includes('Einzellauf / deterministisch')&&longRange.includes('DWD Subseasonal EPISODES'),'Nicht-EPS-/DWD-Langfristvertrag fehlt in der UI-Methodik.');
 assert.ok(seasonal.includes('Ensemblemitglieder sind dafür nicht zwingend')&&seasonal.includes('regionaler Downscaling-/Qualitätsanker'),'Nicht-EPS-/DWD-Langfristvertrag fehlt im Datenvertrag.');
 for(const token of ['kein EPS','DWD Subseasonal EPISODES','keine zweite EC46-Stimme','DWD GCFS2.2 = unabhängige saisonale DWD-Linie','WMO Lead Centre','APCC'])assert.ok(audit.includes(token),`Langfrist-Quellenaudit unvollständig: ${token}`);
 

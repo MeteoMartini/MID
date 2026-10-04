@@ -3,7 +3,7 @@ const [seasonal,panel,mountain,app,worker,styles]=await Promise.all([readFile(ne
 const failures=[],need=(scope,text,token)=>{if(!text.includes(token))failures.push(`${scope}: fehlt ${token}`)};
 for(const token of ["id:'ecmwf-seasonal',modelKey:'ecmwf-seas5-51'","id:'noaa-cfsv2',modelKey:'ncep-cfsv2'",'fetchCfsv2','Das Poor-Man’s-Ensemble gewichtet jedes tatsächlich numerisch verfügbare unabhängige Modellsystem exakt einmal'])need('seasonal',seasonal,token);
 if(seasonal.includes("apiModel:'ecmwf_seas5'")||seasonal.includes("apiModel:'ecmwf_ec46'"))failures.push('seasonal: ECMWF-Varianten werden weiterhin als separate Multi-Modell-Familien behandelt');
-for(const token of ['Poor-Man’s-Ensemble','models.map((item:SeasonalPointModel)=>item.family)','buildCombinedMonths','gleichgewichteten Poor-Man’s-Ensemble-Mittel'])need('panel',panel,token);
+for(const token of ['Poor-Man’s-Ensemble','className="long-range-source-list"','models.map((item:SeasonalPointModel)=>','<b>{item.family}</b>','modelContributionLabel(item)','buildCombinedMonths','gleichgewichteten Poor-Man’s-Ensemble-Mittel'])need('panel',panel,token);
 for(const token of ['snowfall_height_spread','freezing_level_height_spread','SNOWLINE_ENSEMBLE_MODELS','combineSnowLineModels','memberEquivalent'])need('mountain',mountain,token);
 for(const token of ['MountainSnowLineHorizon','1,3,7,14','mountain-snowline-selected','mountain-snowline-selection','Ensemble · Multi-Modell'])need('app',app,token);
 for(const token of ['glbT2mMon.nc','glbPrecMon.nc','dataInd1','dataInd2','dataInd3','parseNetcdfClassic'])need('worker',worker,token);

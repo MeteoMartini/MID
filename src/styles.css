@@ -12191,3 +12191,18 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
  .subseasonal-comparison-summary::after{align-self:center}
  .subseasonal-comparison-content{padding-inline:6px}
 }
+
+/* Keep the 14-day phase summary compact without narrowing its three short cards on phones. */
+.long-range-overview[data-fourteen-development]{gap:7px;padding:8px}
+.long-range-overview[data-fourteen-development] .long-range-dwd-periods{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article{min-width:0;gap:4px;padding:7px}
+.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>header{align-items:flex-start;flex-direction:column;gap:2px}
+.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>header strong{font-size:10px;line-height:1.2}
+.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>header small,.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>small,.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>p{font-size:8px;line-height:1.3;overflow-wrap:anywhere}
+.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>b{font-size:9px;line-height:1.25;overflow-wrap:anywhere}
+@media(max-width:520px){
+ .long-range-overview[data-fourteen-development] .long-range-dwd-periods{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ .long-range-overview[data-fourteen-development] .long-range-dwd-periods>article{gap:3px;padding:6px}
+ .long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>header strong{font-size:9px}
+ .long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>header small,.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>small,.long-range-overview[data-fourteen-development] .long-range-dwd-periods>article>p{font-size:7.5px}
+}
