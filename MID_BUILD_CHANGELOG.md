@@ -1,3 +1,10 @@
+## MID v0.9.85.172 · 2026-10-05 · Konsolidierung und RUC-Downloadrobustheit
+
+- Stable .170 und vollständig geprüfte .171-Source-Gate-Aufteilung mit RUC-PR #262 zusammengeführt.
+- Vier begrenzte Netzwerkversuche; atomare Streambereinigung; frühe GRIB-Gültigkeitsprüfung; Offline-Tests vor RUC-Ingestion.
+- Keine meteorologische Fachänderung und kein fachlicher Worker-Deploy erforderlich.
+- Release bleibt bis zur erfolgreichen Vorgänger-Promotion gesperrt.
+
 ## MID v0.9.85.171 · 2026-10-05 · Heavy-Regressionen im Source-Gate isoliert parallelisiert
 
 - Vollständiges automatisch entdecktes Testinventar bleibt erhalten und wird exakt einmal auf Core + drei Heavy-Shards verteilt.

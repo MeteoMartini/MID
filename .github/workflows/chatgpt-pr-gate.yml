@@ -110,6 +110,20 @@ jobs:
         timeout-minutes: 5
         run: npm run audit:dependencies
 
+      - name: Python für echte RUC-GRIB-Regressionen einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+
+      - name: RUC-Download und komprimierte GRIB-Dateien offline prüfen
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python tools/ruc/test_fetch_resilience.py
+
       - name: Produktionsbuild und Regressionen prüfen
         shell: bash
         timeout-minutes: 15

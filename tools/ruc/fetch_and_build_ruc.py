@@ -8,11 +8,13 @@ The downloader is deliberately fail-safe:
 - publish nothing here; CI uploads immutable objects and latest.json separately/last.
 """
 from __future__ import annotations
-import argparse,concurrent.futures,html.parser,os,re,shutil,subprocess,sys
+import argparse,concurrent.futures,html.parser,os,random,re,shutil,subprocess,sys,time
+from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
 import requests
 from native_cadence import is_native_at
+from grib_stream import open_grib_stream
 
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
@@ -42,6 +44,20 @@ RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
 LEAD_RE=re.compile(r'PT(?P<hours>\d{3})H(?P<minutes>\d{2})M',re.I)
 DEFAULT_DOWNLOAD_WORKERS=8
+NETWORK_ATTEMPTS=4
+
+def retry_network(operation,label):
+ for attempt in range(NETWORK_ATTEMPTS):
+  try:return operation()
+  except (requests.ConnectionError,requests.Timeout,requests.exceptions.ChunkedEncodingError,requests.HTTPError) as exc:
+   status=exc.response.status_code if isinstance(exc,requests.HTTPError) and exc.response is not None else None
+   if status is not None and status not in (408,429,500,502,503,504):raise
+   # Certificate failures are not transient: never weaken TLS verification.
+   if isinstance(exc,requests.exceptions.SSLError):raise
+   if attempt+1==NETWORK_ATTEMPTS:raise
+   delay=min(16,2**(attempt+1))+random.uniform(0,.5)
+   print(f'{label}: transient {type(exc).__name__}; retry {attempt+2}/{NETWORK_ATTEMPTS} in {delay:.1f}s',flush=True)
+   time.sleep(delay)
 
 class Links(html.parser.HTMLParser):
  def __init__(self):super().__init__();self.href=[]
@@ -54,7 +70,10 @@ def session():
  s=requests.Session();s.headers.update({'User-Agent':UA,'Accept':'text/html,application/octet-stream;q=0.9,*/*;q=0.5'});return s
 
 def index(s,url):
- r=s.get(url,timeout=25);r.raise_for_status();p=Links();p.feed(r.text);return p.href
+ def request():
+  with s.get(url,timeout=25) as r:
+   r.raise_for_status();p=Links();p.feed(r.text);return p.href
+ return retry_network(request,'DWD directory')
 
 def runs(s,base,param):
  out=set()
@@ -112,13 +131,37 @@ def download_one(url,target):
  target.parent.mkdir(parents=True,exist_ok=True)
  if target.exists() and target.stat().st_size>100:return
  tmp=target.with_suffix(target.suffix+'.part')
- with requests.get(url,headers={'User-Agent':UA},stream=True,timeout=90) as r:
-  r.raise_for_status()
-  with tmp.open('wb') as f:
-   for chunk in r.iter_content(1024*1024):
-    if chunk:f.write(chunk)
- if not tmp.exists() or tmp.stat().st_size<80:raise RuntimeError(f'suspiciously small DWD file {url}')
- tmp.replace(target)
+ def request():
+  try:
+   with requests.get(url,headers={'User-Agent':UA},stream=True,timeout=90) as r:
+    r.raise_for_status()
+    with tmp.open('wb') as f:
+     for chunk in r.iter_content(1024*1024):
+      if chunk:f.write(chunk)
+   if not tmp.exists() or tmp.stat().st_size<80:raise RuntimeError(f'suspiciously small DWD file {url}')
+   tmp.replace(target)
+  finally:
+   # A failed stream must never become a reusable completed GRIB.
+   tmp.unlink(missing_ok=True)
+ retry_network(request,'DWD GRIB download')
+
+def grib_valid_times(path):
+ from eccodes import codes_grib_new_from_file,codes_get,codes_release
+ with open_grib_stream(path) as f:
+  while True:
+   gid=codes_grib_new_from_file(f)
+   if gid is None:break
+   try:
+    yield datetime.strptime(f"{int(codes_get(gid,'validityDate')):08d}{int(codes_get(gid,'validityTime')):04d}",'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
+   finally:codes_release(gid)
+
+def validate_hourly_coverage(paths,run,hours,param):
+ base=datetime.fromisoformat(run.replace('Z','+00:00'))
+ if base.tzinfo is None:base=base.replace(tzinfo=timezone.utc)
+ targets={base+timedelta(hours=h) for h in range(hours+1)}
+ actual={valid for path in paths for valid in grib_valid_times(path)}
+ missing=sorted(targets-actual)
+ if missing:raise RuntimeError(f'data-incomplete: {param}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
 
 def stage_tree(s,url,target,hours,label,*,mode='hourly'):
  discovered=crawl_files(s,url)
@@ -160,6 +203,9 @@ def build_candidate(s,run,stage_root,output,hours):
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
  for param in FORECAST_REQUIRED:
   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}',mode='hourly');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
+  # Read headers only, before expensive optional/EPS downloads. The builder
+  # still performs its full grid/value/member checks independently.
+  validate_hourly_coverage([stage/'deterministic'/param/row for row in rows],run,hours,param)
  for param in RAPID_REQUIRED:
   mode='rapid-precip' if param=='TOT_PREC' else 'rapid15'
   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid'/param,hours,f'{run} rapid {param}',mode=mode);print(f'{run} rapid {param}: {len(rows)} staged GRIB files',flush=True)
@@ -194,6 +240,7 @@ def main():
   try:
    selected=build_candidate(s,run,a.stage,a.output,a.hours);print(f'Selected complete DWD RUC/RUC-EPS run: {selected}',flush=True);return
   except Exception as exc:
-   errors.append(f'{run}: {type(exc).__name__}: {exc}');print(f'Candidate {run} incomplete/unusable: {exc}',file=sys.stderr,flush=True)
+   category='download-failed' if isinstance(exc,requests.RequestException) else 'data-or-build-failed'
+   errors.append(f'{run}: {type(exc).__name__}: {exc}');print(f'Candidate {run} incomplete/unusable [{category}]: {exc}',file=sys.stderr,flush=True)
  raise SystemExit('No complete buildable RUC/RUC-EPS run. '+' | '.join(errors))
 if __name__=='__main__':main()

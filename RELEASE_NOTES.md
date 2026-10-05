@@ -1,5 +1,6 @@
-# MID v0.9.85.171
+# MID v0.9.85.172
 
-- Veröffentlichungen werden weiter beschleunigt, ohne Regressionen wegzulassen: besonders zeitintensive Karten- und Bergdarstellungsprüfungen laufen im Quell-Gate nun voneinander isoliert parallel.
-- Die vollständige Testabdeckung bleibt verbindlich. Der Freigabecheck wird nur grün, wenn der Kern und alle drei schweren Prüfläufe erfolgreich abgeschlossen sind.
-- Produktfunktionen, Wetterlogik und Darstellung wurden mit diesem Build nicht verändert.
+- Die Wetterdaten-Aufbereitung wiederholt vorübergehende DWD-Verbindungsfehler gezielt und verwirft unvollständige Modellläufe früher.
+- Komprimierte DWD-Modelldateien werden über einen vereinheitlichten, speicherschonenden Leseweg verarbeitet.
+- Unterbrochene Downloads können keine unvollständigen Dateien als fertige Daten hinterlassen.
+- Die bereits eingeführten Verbesserungen für Bergwetter, Widgets, Karten und schnellere Freigabeprüfungen bleiben erhalten.
