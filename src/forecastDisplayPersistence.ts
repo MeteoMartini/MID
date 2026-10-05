@@ -14,6 +14,7 @@ export function persistForecastDisplaySettings<T extends object>(settings:T){
  const previous=forecastDisplayRevision(readForecastDisplaySettingsRaw());
  const raw=JSON.stringify({...settings,updatedAt:Math.max(Date.now(),previous+1)});
  writeDurableStorageValue(FORECAST_DISPLAY_SETTINGS_KEY,raw);
+ if(typeof window!=='undefined')window.dispatchEvent(new Event('mid:forecast-display-settings-changed'));
  return settings;
 }
 
