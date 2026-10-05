@@ -90,6 +90,9 @@ jobs:
             requirements='tools/ruc/requirements.txt'
           fi
           python -m pip install --disable-pip-version-check -r "$requirements"
+      - name: RUC-Downloadfehler und frühe Vollständigkeitsprüfung offline testen
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        run: python tools/ruc/test_fetch_resilience.py
       - name: Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         env:

@@ -32,8 +32,10 @@ dependency installed. Covers retry limits, permanent errors, directory failures,
 stream interruptions, atomic cleanup, completed-file reuse and early missing-hour rejection.
 Focused existing cadence, scheduler and free-storage contracts are also required.
 
-Before release: reconcile newest stable/main; register the new Python regression
-in the normal CI test path with its dependency explicitly provisioned; choose the
+The new Python regression runs in canonical/active RUC CI immediately after the
+existing production dependency installation and before network ingestion.
+
+Before release: reconcile newest stable/main; choose the
 next free version and synchronize mirrors/changelogs; full mandated checks and
 source/installer gates. Confirm a real subsequent RUC prepare and publish separately.
 Do not claim operational recovery based only on mocked network tests.
