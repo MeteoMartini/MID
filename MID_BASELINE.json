@@ -366,6 +366,7 @@
     "scripts/test-forecast-confidence-layout-090505.mjs",
     "scripts/test-forecast-consistency-contract-095326.mjs",
     "scripts/test-forecast-desktop-layout-071052.mjs",
+    "scripts/test-forecast-display-persistence-0985166.mjs",
     "scripts/test-forecast-entry-consistency-098430.mjs",
     "scripts/test-forecast-fusion-canonical-weighting-09610.mjs",
     "scripts/test-forecast-highest-hazard-per-kind-081812.mjs",
@@ -674,6 +675,7 @@
     "scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
     "scripts/test-regional-model-domain-fusion-097714.mjs",
     "scripts/test-regression-continuity.mjs",
+    "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/test-regression-runner-local-bin-09365.mjs",
     "scripts/test-release-activation-event-precip-096672.mjs",
     "scripts/test-release-archive-cleanliness-08201.mjs",
@@ -836,6 +838,7 @@
     "scripts/test-ui-polish-night-icons-09145.mjs",
     "scripts/test-ui-regressions.mjs",
     "scripts/test-ui-standardization-095338.mjs",
+    "scripts/test-unified-map-layers-0985167.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-updater.mjs",
@@ -921,9 +924,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs",
-    "scripts/test-forecast-display-persistence-0985166.mjs",
-    "scripts/test-unified-map-layers-0985167.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1279,6 +1280,7 @@
     "scripts/test-forecast-confidence-layout-090505.mjs",
     "scripts/test-forecast-consistency-contract-095326.mjs",
     "scripts/test-forecast-desktop-layout-071052.mjs",
+    "scripts/test-forecast-display-persistence-0985166.mjs",
     "scripts/test-forecast-entry-consistency-098430.mjs",
     "scripts/test-forecast-fusion-canonical-weighting-09610.mjs",
     "scripts/test-forecast-highest-hazard-per-kind-081812.mjs",
@@ -1587,6 +1589,7 @@
     "scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
     "scripts/test-regional-model-domain-fusion-097714.mjs",
     "scripts/test-regression-continuity.mjs",
+    "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/test-regression-runner-local-bin-09365.mjs",
     "scripts/test-release-activation-event-precip-096672.mjs",
     "scripts/test-release-archive-cleanliness-08201.mjs",
@@ -1749,6 +1752,7 @@
     "scripts/test-ui-polish-night-icons-09145.mjs",
     "scripts/test-ui-regressions.mjs",
     "scripts/test-ui-standardization-095338.mjs",
+    "scripts/test-unified-map-layers-0985167.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-updater.mjs",
@@ -1834,9 +1838,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs",
-    "scripts/test-forecast-display-persistence-0985166.mjs",
-    "scripts/test-unified-map-layers-0985167.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2607,7 +2609,9 @@
     "scripts/verify-extreme-members-browser-0985155.mjs",
     "docs/implementation/MID_C14_SEVEN_DAY_OUTLOOK_COLORS_0.9.85.156.md",
     "scripts/fixtures/icon-seamless-outlook-20261003-20.json",
-    "scripts/fixtures/ecmwf-ifs-gust-20261003-20.json"
+    "scripts/fixtures/ecmwf-ifs-gust-20261003-20.json",
+    "scripts/test-regression-parallel-execution-0985168.mjs",
+    "scripts/regression-execution.mjs"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3195,6 +3199,7 @@
     "scripts/test-ensemble-fast-availability-097836.mjs",
     "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
     "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
@@ -3227,6 +3232,7 @@
     "scripts/test-parameter-colors-trend14plus-09771.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/test-repository-hygiene-0985127.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
@@ -3252,8 +3258,7 @@
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-extreme-outlook-real-members-0985155.mjs"
+    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
   "version": "0.9.85.167",
   "updatedAt": "2026-10-03T19:27:47.667536Z",

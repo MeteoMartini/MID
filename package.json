@@ -521,7 +521,8 @@
     "test:pollen-compact-dwd-levels": "node scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "test:health-settings-primary-navigation": "node scripts/test-health-settings-primary-navigation-0985130.mjs",
     "test:weekly-uncertainty-trend": "node scripts/test-weekly-uncertainty-trend-0985144.mjs",
-    "test:extreme-outlook-extended-resilience": "node scripts/test-extreme-outlook-extended-resilience-0985154.mjs"
+    "test:extreme-outlook-extended-resilience": "node scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
+    "test:regression-parallel-execution": "node scripts/test-regression-parallel-execution-0985168.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
