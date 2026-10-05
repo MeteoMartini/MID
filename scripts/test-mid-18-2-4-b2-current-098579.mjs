@@ -30,7 +30,7 @@ assert.ok(app.includes('Reihenfolge hier per Ziehen oder Pfeiltasten ändern. Di
 for(const token of [
   '.header-favorites .favorite-bubbles>button',
   'grid-template-columns:auto minmax(0,max-content) auto',
-  'min-height:34px',
+  'min-height:44px',
   '.favorite-quick-grip{display:none',
   '.hero.current-compact .current-weather-overview',
   '"icon statement thread facts"',

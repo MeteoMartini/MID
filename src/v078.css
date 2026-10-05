@@ -15,8 +15,7 @@
 .title{position:relative;align-items:flex-start;gap:10px}
 .title-tools{display:flex;flex:0 0 auto;align-items:flex-start;justify-content:flex-end}
 .model-run-details{position:relative;font-size:11px}
-.model-run-details>button{font:inherit;cursor:pointer}
-.model-run-details>button{display:inline-flex;align-items:center;min-height:29px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-weight:750;white-space:nowrap;list-style:none;cursor:pointer;user-select:none}
+.model-run-details>button{font:inherit;cursor:pointer;display:inline-flex;align-items:center;min-height:29px;padding:5px 9px;border:1px solid var(--border);border-radius:999px;background:var(--s2);color:var(--muted);font-weight:750;white-space:nowrap;list-style:none;cursor:pointer;user-select:none;}
 .model-run-details.open>button,.model-run-details>button:hover{border-color:color-mix(in srgb,var(--primary) 50%,var(--border));color:var(--text)}
 .model-run-popover{position:absolute;z-index:1800;top:calc(100% + 7px);right:0;width:min(430px,calc(100vw - 34px));padding:12px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 96%,transparent);box-shadow:var(--shadow);backdrop-filter:blur(18px);color:var(--text)}
 .model-run-popover>strong{display:block;margin-bottom:4px;font-size:12px}

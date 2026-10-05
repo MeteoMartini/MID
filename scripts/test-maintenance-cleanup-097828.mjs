@@ -31,8 +31,8 @@ assert.match(packer,/"artifacts"/,'Professional-Packer schließt generierte Prü
 
 assert.equal(pkg.dependencies?.['maplibre-gl'],'6.7.0');
 assert.equal(lock.packages?.['node_modules/maplibre-gl']?.version,'6.7.0');
-for(const name of ['@capacitor/core','@capacitor/ios'])assert.equal(pkg.dependencies?.[name],'8.5.1');
-assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.1');
+for(const name of ['@capacitor/core','@capacitor/ios'])assert.equal(pkg.dependencies?.[name],'8.5.2');
+assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.2');
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 for(const token of ['33 exakt redundante CSS-Regeln','MapLibre GL JS 6.7.0','Capacitor 8.5.1','Branch-Schutz','keine fachliche Workeränderung'])assert.ok(implementation.includes(token),`Implementierungsnachweis fehlt: ${token}`);
 console.log(`MID v${pkg.version}: Wartungsbereinigung, Astronomie-CPU-Pfad, iPhone-Touchziele und kompatible Plattform-/Kartenpatches geprüft.`);

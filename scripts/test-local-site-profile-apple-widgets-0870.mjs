@@ -16,7 +16,7 @@ need(panel,'<strong>Lokales Standortprofil</strong>','Neue Bezeichnung „Lokale
 need(panel,'weather-twin-site-summary-values','Ausgewählte Profilwerte fehlen in der eingeklappten Zusammenfassung.');
 need(panel,"localStorage.setItem('mid:twin-site-profile-open'",'Öffnungszustand des Standortprofils wird nicht gespeichert.');
 if(panel.includes('Lokaler Standortfingerabdruck'))failures.push('Alte Bezeichnung „Lokaler Standortfingerabdruck“ ist noch vorhanden.');
-need(app,"import {AppleWidgetSettings} from './AppleWidgetSettings';",'Apple-Widget-Einstellungen sind nicht in App.tsx eingebunden.');
+need(app,"const LazyAppleWidgetSettings=lazy(()=>import('./AppleWidgetSettings')",'Apple-Widget-Einstellungen sind nicht in App.tsx eingebunden.');
 need(app,'<AppleWidgetSettings location={currentLocation} unit={unit}/>','Apple-Widget-Vorbereitung fehlt im Bereich Daten & Synchronisation.');
 need(nativeClient,"NATIVE_WIDGET_SCHEMA='mid.native.widget.v1'",'Versionierter nativer Widget-Datenvertrag fehlt.');
 need(nativeClient,"'accessoryInline','accessoryCircular','accessoryRectangular','accessoryCorner'",'watchOS-Komplikationsfamilien fehlen im Frontendvertrag.');

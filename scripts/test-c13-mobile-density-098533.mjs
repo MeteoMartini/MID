@@ -44,9 +44,9 @@ assert.ok(footerRhythm.includes('scroll-padding-bottom:var(--mid18-footer-nav-cl
 assert.ok(footerRhythm.includes('.app.navigation-bottom-tabs>footer')&&footerRhythm.includes('margin-bottom:var(--mid18-footer-nav-clearance)!important'),'Die einzige sichtbare Bottom-Bar-Clearance gehört hinter den Footer.');
 assert.ok(footerRhythm.includes('.forecast-cockpit.modern-workspace>footer>span:first-child')&&footerRhythm.includes('grid-column:1/-1!important')&&footerRhythm.includes('white-space:normal!important'),'Forecast-Quellenmetadaten müssen mobil vollständig umbrechen statt abgeschnitten zu werden.');
 for(const token of [
- 'min-width:38px!important',
- 'min-height:38px!important',
- 'min-height:36px!important',
+ 'min-width:44px!important',
+ 'min-height:44px!important',
+ 'min-height:44px!important',
  'nth-last-child(1){display:grid!important}',
  'nth-last-child(2){display:grid!important}'
 ])assert.ok(touch.includes(token),`C13 darf kompakte Controls nicht unbedienbar machen: ${token}`);

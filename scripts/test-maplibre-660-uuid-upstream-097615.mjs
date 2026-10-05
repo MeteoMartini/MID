@@ -13,12 +13,12 @@ assert.equal(pkg.dependencies?.['maplibre-gl'],'6.7.0');
 assert.equal(lock.packages?.['node_modules/maplibre-gl']?.version,'6.7.0');
 assert.equal(lock.packages?.['node_modules/@maplibre/maplibre-gl-style-spec']?.version,'26.4.1');
 assert.equal(lock.packages?.['node_modules/maplibre-gl']?.dependencies?.['@maplibre/maplibre-gl-style-spec'],'^26.4.1');
-assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.1');
+assert.equal(pkg.devDependencies?.['@capacitor/cli'],'8.5.2');
 assert.equal(lock.packages?.['node_modules/@capacitor/cli']?.dependencies?.xcode,'^3.0.1');
 assert.equal(lock.packages?.['node_modules/xcode']?.version,'3.0.1');
 assert.equal(lock.packages?.['node_modules/xcode']?.dependencies?.uuid,'^7.0.3');
 assert.equal(lock.packages?.['node_modules/uuid']?.version,'7.0.3');
-assert.ok(policy.includes('@capacitor/cli 8.5.1 -> xcode 3.0.1 -> uuid ^7.0.3'));
+assert.ok(policy.includes('@capacitor/cli 8.5.2 -> xcode 3.0.1 -> uuid ^7.0.3'));
 assert.ok(policy.includes('kein')&&policy.includes('inkompatibles UUID-Override'));
 assert.equal(branch.target,'mid-stable');
 if(versionAtLeast(pkg.version,'0.9.76.20')){

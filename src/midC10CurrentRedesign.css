@@ -20,7 +20,7 @@ html[data-mid-design='next'] .header-favorites{
  padding-top:6px!important;
 }
 html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
- min-height:40px!important;
+ min-height:44px!important;
 }
 
 /* The location belongs before the weather statement and is context, not content. */
@@ -168,11 +168,11 @@ html[data-mid-design='next'] .hero.current-compact+.metrics>article:nth-child(10
  }
  html[data-mid-design='next'] .top.settings-header .secondary.locate,
  html[data-mid-design='next'] .top.settings-header .compact-actions>button{
-  min-width:42px!important;
-  min-height:42px!important;
+  min-width:44px!important;
+  min-height:44px!important;
  }
  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
-  min-height:38px!important;
+  min-height:44px!important;
  }
  html[data-mid-design='next'] .mid-page-grid{
   padding-bottom:calc(116px + env(safe-area-inset-bottom))!important;

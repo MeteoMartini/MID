@@ -180,8 +180,6 @@ html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>b{
 html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{
  font-size:9.5px!important;
  line-height:1.1!important;
-}
-html[data-mid-design='next'] .cockpit-fourteen-sun-uvi>small{
  color:var(--muted)!important;
 }
 html[data-mid-design='next'] .cockpit-fourteen-compact-meta svg{

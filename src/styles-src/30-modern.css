@@ -1388,7 +1388,7 @@ html[data-mid-density="comfortable"]{
 }
 @media(max-width:430px){
  .event-workspace-nav button>small{display:none}.event-workspace-nav button{min-height:36px;text-align:center}.event-workspace-nav button>span{font-size:9px}
- .event-center-actions{grid-template-columns:auto minmax(0,1fr) auto auto!important}.event-center-actions>.event-app-info{display:none}.event-center-actions>.secondary{min-width:32px}.event-center-actions>.secondary{font-size:0}.event-center-actions>.secondary svg{margin:0}.event-center-sort select{font-size:9px}
+ .event-center-actions{grid-template-columns:auto minmax(0,1fr) auto auto!important}.event-center-actions>.event-app-info{display:none}.event-center-actions>.secondary{min-width:32px;font-size:0;}.event-center-actions>.secondary svg{margin:0}.event-center-sort select{font-size:9px}
  .event-selected-destination.compact{grid-template-columns:14px minmax(0,1fr)}.event-location-actions{grid-column:1/-1;padding-left:23px}.event-location-actions .secondary:first-child{flex:1;justify-content:center}.travel-location-search.compact{grid-template-columns:1fr}.travel-location-search.compact>.secondary{width:100%}.travel-location-search.compact input{font-size:16px}.event-location-search-panel .travel-search-results{grid-template-columns:1fr;max-height:min(42dvh,320px)}
  .event-form-grid.compact{grid-template-columns:repeat(3,minmax(0,1fr))}.event-form-grid.compact .event-title-field{grid-column:1/-1}.event-form-grid.compact input{font-size:10.5px}.event-editor-head>div>strong{font-size:11px}.event-plan-actions.compact{grid-template-columns:1fr}.event-plan-actions.compact .travel-analyse{width:100%!important}.event-auto-update-note{justify-content:center}
  .event-guide-tags{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.event-guide-pill{justify-content:center}.event-guide-pill:last-child{grid-column:1/-1}.event-guide-topbar{display:grid}.event-guide-status-wrap{justify-items:start}.event-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.event-metrics-grid strong{font-size:14px}.event-metrics-grid span{font-size:8px}.event-guide-quickstats span{width:auto!important;justify-content:flex-start!important}.event-flight-hazard-grid{grid-template-columns:1fr}
@@ -3323,8 +3323,8 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .navigation-bottom-tabs .compact-actions .header-install-button span{display:none!important}
  .navigation-bottom-tabs .settings-header>.header-favorites{margin-top:1px;padding-top:4px;gap:4px}
  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles{gap:4px}
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:30px;padding-top:3px;padding-bottom:3px}
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:30px;height:30px;flex-basis:30px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:44px;padding-top:3px;padding-bottom:3px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:44px;height:44px;flex-basis:44px}
  .navigation-bottom-tabs .place{padding-top:12px;padding-bottom:10px;gap:10px}
  .navigation-bottom-tabs .place h1{font-size:clamp(27px,8vw,35px)}
  .navigation-bottom-tabs .place p{margin-top:4px;font-size:10px;line-height:1.35}
@@ -4395,16 +4395,16 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 
 /* MID v0.9.84.65 · optionales Bottom-Tab-Layout behält dieselben Mindestbediengrößen wie der Standardkopf */
 .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{
- min-height:36px;
+ min-height:44px;
  padding-top:5px;
  padding-bottom:5px;
 }
 .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{
- width:36px;
- min-width:36px;
- height:36px;
- min-height:36px;
- flex-basis:36px;
+ width:44px;
+ min-width:44px;
+ height:44px;
+ min-height:44px;
+ flex-basis:44px;
 }
 .header-favorites .favorite-bubbles>button .favorite-quick-grip{
  width:16px;
@@ -4415,8 +4415,8 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  grid-template-columns:16px auto auto;
 }
 @media(pointer:coarse){
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:40px}
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:40px;min-width:40px;height:40px;min-height:40px;flex-basis:40px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:44px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:44px;min-width:44px;height:44px;min-height:44px;flex-basis:44px}
  .header-favorites .favorite-bubbles>button .favorite-quick-grip{width:20px;min-width:20px;min-height:36px}
  .header-favorites .favorite-bubbles>button{grid-template-columns:20px auto auto}
 }

@@ -855,7 +855,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .favorite-strip>div button small{grid-area:group;color:var(--muted);font-size:9px}
 .favorite-strip>div button b{grid-column:3;grid-row:1/-1;padding:2px 5px;border-radius:999px;background:rgba(244,185,40,.13);color:#dca31b;font-size:7px;letter-spacing:.05em;text-transform:uppercase}
 .favorite-strip>div button.active{border-color:color-mix(in srgb,var(--primary) 48%,var(--border));background:color-mix(in srgb,var(--primary) 10%,var(--surface));box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 8%,transparent)}
-.favorite-strip-manage{display:grid;width:42px;flex:0 0 42px;place-items:center;border-radius:14px}
+.favorite-strip-manage{display:grid;width:44px;flex:0 0 42px;place-items:center;border-radius:14px}
 .favorite-rule-notice{display:flex;align-items:flex-start;gap:10px;margin:-4px 0 14px;padding:10px 13px;border:1px solid rgba(244,185,40,.3);border-radius:15px;background:rgba(244,185,40,.08);color:var(--text)}
 .favorite-rule-notice>svg{flex:0 0 auto;margin-top:1px;color:#e2a91f}
 .favorite-rule-notice strong,.favorite-rule-notice span{display:block}.favorite-rule-notice strong{font-size:12px}.favorite-rule-notice span{margin-top:2px;color:var(--muted);font-size:11px}
@@ -910,7 +910,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 
 @media(max-width:1050px){.mountain-indicators{grid-template-columns:repeat(3,minmax(0,1fr))}.mountain-timeline{grid-template-columns:repeat(6,112px)}}
 @media(max-width:700px){.favorite-modal-backdrop{padding:0}.favorite-modal{width:100%;height:100%;max-height:none;border-radius:0}.favorite-manager-actions{flex-wrap:wrap}.favorite-manager-actions small{width:100%;margin:0;text-align:left}.favorite-manager-list{padding:10px}.favorite-manager-list>article{grid-template-columns:30px minmax(0,1fr)}.favorite-row-actions{grid-column:2;display:flex}.favorite-fields{grid-template-columns:1fr}.favorite-fields>small,.favorite-fields details{grid-column:1}.favorite-rules{grid-template-columns:1fr}.mountain-levels{grid-template-columns:1fr}.mountain-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}.mountain-links{align-items:flex-start;flex-direction:column}.mountain-controls>small{width:100%;margin:0}}
-@media(max-width:520px){.favorite-strip{margin-top:-8px}.favorite-strip>div button{padding:7px 9px}.favorite-strip-manage{width:38px;flex-basis:38px}.mountain-controls label input{width:112px}.mountain-indicators{grid-template-columns:1fr 1fr}.mountain-indicators article{padding:8px}.mountain-timeline{grid-template-columns:repeat(6,104px)}}
+@media(max-width:520px){.favorite-strip{margin-top:-8px}.favorite-strip>div button{padding:7px 9px}.favorite-strip-manage{width:44px;flex-basis:44px}.mountain-controls label input{width:112px}.mountain-indicators{grid-template-columns:1fr 1fr}.mountain-indicators article{padding:8px}.mountain-timeline{grid-template-columns:repeat(6,104px)}}
 
 /* v0.7.16 – Standort als erster Schnellzugriff, gruppierte Favoriten und Ski-Konfiguration im Favoritenmenü */
 .search-stack{min-width:0}
@@ -925,7 +925,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .header-favorites .favorite-group button em{position:absolute;top:-5px;right:-4px;display:grid;width:18px;height:18px;place-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-style:normal}
 .header-favorites .tracked-location button svg{color:var(--primary)}
 .header-favorites .tracked-location button b{color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent)}
-.header-favorites .favorite-strip-manage{width:38px;flex-basis:38px;border-radius:11px}
+.header-favorites .favorite-strip-manage{width:44px;flex-basis:44px;border-radius:11px}
 .current-location-label{color:var(--primary)}
 .favorite-result-location{color:var(--primary)}
 .search-favorite-group+.search-favorite-group{border-top:1px solid var(--border)}
@@ -989,7 +989,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .header-favorites .favorite-bubbles>button b{grid-column:3;grid-row:1/-1;padding:2px 5px;border-radius:999px;background:rgba(244,185,40,.13);color:#dca31b;font-size:7px;letter-spacing:.04em;text-transform:uppercase}
 .header-favorites .favorite-bubbles>button.tracked-location b{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
 .header-favorites .favorite-bubbles>button em{position:absolute;top:-4px;right:-3px;display:grid;width:17px;height:17px;place-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-style:normal}
-.header-favorites .favorite-strip-manage{width:38px;flex-basis:38px;border-radius:999px}
+.header-favorites .favorite-strip-manage{width:44px;flex-basis:44px;border-radius:999px}
 @media(max-width:850px){
  .search-stack{grid-column:1/-1;grid-row:2;width:100%;min-width:0}
  .header-favorites{margin-top:6px}
@@ -1000,7 +1000,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .header-favorites{width:100%;margin-top:6px;padding:0}
  .header-favorites .favorite-bubbles{gap:6px}
  .header-favorites .favorite-bubbles>button{padding:7px 9px}
- .header-favorites .favorite-strip-manage{width:36px;flex-basis:36px}
+ .header-favorites .favorite-strip-manage{width:44px;flex-basis:44px}
 }
 
 /* v0.7.18 – verzögertes Laden und dynamischer Jetzt-Zeitpunkt */
@@ -1525,9 +1525,9 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 /* MID v0.7.74 – kompakte Favoriten-Schnellleiste unter der Kopfleiste */
 .settings-header>.header-favorites{grid-column:1/-1;width:100%;min-width:0;margin:0;padding:6px 0 0;border-top:1px solid var(--border);gap:6px;align-items:center}
 .settings-header>.header-favorites .favorite-bubbles{gap:6px;padding:0 2px 2px}
-.settings-header>.header-favorites .favorite-bubbles>button{min-height:34px;padding-top:5px;padding-bottom:5px}
-.settings-header>.header-favorites .favorite-strip-manage{width:34px;height:34px;flex-basis:34px}
-@media(max-width:700px){.settings-header>.header-favorites{padding-top:5px}.settings-header>.header-favorites .favorite-bubbles>button{min-height:32px;padding-top:4px;padding-bottom:4px}.settings-header>.header-favorites .favorite-strip-manage{width:32px;height:32px;flex-basis:32px}}
+.settings-header>.header-favorites .favorite-bubbles>button{min-height:44px;padding-top:5px;padding-bottom:5px}
+.settings-header>.header-favorites .favorite-strip-manage{width:44px;height:44px;flex-basis:44px}
+@media(max-width:700px){.settings-header>.header-favorites{padding-top:5px}.settings-header>.header-favorites .favorite-bubbles>button{min-height:44px;padding-top:4px;padding-bottom:4px}.settings-header>.header-favorites .favorite-strip-manage{width:44px;height:44px;flex-basis:44px}}
 
 /* MID v0.7.76 – Standard-/Erweiterter Modus und kontextuelle Erklärungen */
 .mode-info{position:relative;display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;vertical-align:middle}
@@ -2020,7 +2020,7 @@ button,input,select,textarea{font:inherit}
  min-height:36px;
 }
 .header-favorites .favorite-bubbles>button{
- min-height:40px;
+ min-height:44px;
  padding-top:6px;
  padding-bottom:6px;
 }
@@ -2029,11 +2029,11 @@ button,input,select,textarea{font:inherit}
 .header-favorites .favorite-bubbles>button b{font-size:var(--mid-text-micro);line-height:1.1}
 .favorite-group>small{font-size:var(--mid-text-micro);line-height:1.15}
 .header-favorites .favorite-strip-manage{
- width:40px;
- min-width:40px;
- height:40px;
- min-height:40px;
- flex-basis:40px;
+ width:44px;
+ min-width:44px;
+ height:44px;
+ min-height:44px;
+ flex-basis:44px;
 }
 .favorite-toggle{width:40px;height:40px;flex-basis:40px}
 .favorite-fields>label,
@@ -2052,7 +2052,7 @@ button,input,select,textarea{font:inherit}
 }
 @media(pointer:coarse){
  .search .search-input-shell>button{width:40px;min-width:40px;height:40px;min-height:40px}
- .header-favorites .favorite-bubbles>button{min-height:40px}
- .header-favorites .favorite-strip-manage{width:40px;min-width:40px;height:40px;min-height:40px;flex-basis:40px}
+ .header-favorites .favorite-bubbles>button{min-height:44px}
+ .header-favorites .favorite-strip-manage{width:44px;min-width:44px;height:44px;min-height:44px;flex-basis:44px}
  .favorite-toggle{width:40px;height:40px;flex-basis:40px}
 }

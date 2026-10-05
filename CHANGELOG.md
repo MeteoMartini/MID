@@ -1,3 +1,10 @@
+# MID v0.9.85.169
+
+- Häufige Kopfzeilen- und Favoritenaktionen auf kleinen Displays sind leichter zu treffen.
+- Optionale Ansichtseinstellungen und Apple-Widget-Einstellungen laden erst beim Öffnen.
+- Redundante Stilblöcke und eine ungenutzte temporäre iOS-Datei entfernt.
+- Kompatible kleinere Updates für die iOS-Anbindung und den HDF5-Datenleser.
+
 # MID v0.9.85.168
 
 - Veröffentlichungen werden schneller, ohne Prüfungen auszulassen: sicher als read-only erkannte Regressionen können parallel laufen, risikobehaftete Prüfungen bleiben seriell.
