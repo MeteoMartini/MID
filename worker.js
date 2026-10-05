@@ -1148,6 +1148,7 @@ if(!regionsMap.has(cellId))regionsMap.set(cellId,{id:cellId,name:regionName,geom
 forecasts.push({regionId:cellId,regionName,pollenType,pollenValue,pollenInt,forecastDate,expires,effective});}
 const regions=[...regionsMap.values()].sort((a,b)=>a.id-b.id),effectiveTimes=forecasts.map(row=>Date.parse(row.effective)).filter(Number.isFinite),expiresTimes=forecasts.map(row=>Date.parse(row.expires)).filter(Number.isFinite),productUpdatedAt=effectiveTimes.length?new Date(Math.max(...effectiveTimes)).toISOString():undefined,productExpiresAt=expiresTimes.length?new Date(Math.max(...expiresTimes)).toISOString():undefined;
 return{regions,pollenTypes:POLLEN_TYPES,forecasts,provider:'Deutscher Wetterdienst',source:'DWD Geoserver WFS - dwd:Pollenflug',productUpdatedAt,productExpiresAt}}
+
 const KNMI_EPS_TAR_INDEX_SCHEMA='mid.knmi.harmonie-eps.tar-index.v1';
 const KNMI_EPS_TAR_CACHE_PREFIX='cache:knmi-eps:tar-index:v1:';
 const KNMI_EPS_TAR_INDEX_TTL_SECONDS=72*60*60;
@@ -3052,4 +3053,3 @@ export default{async fetch(request,env){
 };
 export {pushThunderState,thunderPushBody};
 export {synopticUpstreamBearing};
-

@@ -1,3 +1,9 @@
+# MID v0.9.85.166
+
+- Die ECMWF-Farbwahl der 7-Tage-Vorhersage wird unmittelbar gespeichert und bei Neustarts zuverlässig wiederhergestellt.
+- Ältere Speicher- und Gerätestände überschreiben eine neuere Farbwahl nicht mehr.
+- Die kompakten 14-/46-Tage- und Saisonansichten aus dem vorherigen Update bleiben unverändert erhalten.
+
 # MID v0.9.85.165
 
 ## MID-C16 · kompakte Prognoseansichten
@@ -1502,3 +1508,4 @@ DWD Open Data (CC BY 4.0), OpenStreetMap (ODbL 1.0), Natural Earth (Public Domai
 ---
 
 Der Changelog beschreibt bewusst die sichtbaren Änderungen für Anwendende. Meteorologische Fachlogik, Datenquellen und Warnschwellen werden nur genannt, wenn sie sich tatsächlich geändert haben.
+
