@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 const sevenDay=readFileSync(new URL('../src/SevenDayForecastSummary.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
-assert.match(app,/FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings'/,'eigener persistenter Einstellungsbereich fehlt');
+const persistence=readFileSync(new URL('../src/forecastDisplayPersistence.ts',import.meta.url),'utf8');
+assert.match(persistence,/FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings'/,'eigener persistenter Einstellungsbereich fehlt');
+assert.match(app,/JSON.parse\(readForecastDisplaySettingsRaw\(\)/,'App muss den dauerhaften Einstellungsbereich lesen');
+assert.match(persistence,/readDurableStorageValue\(FORECAST_DISPLAY_SETTINGS_KEY\)/,'Dauerhafter Reader muss denselben Schlüssel verwenden');
 assert.match(app,/showSevenDaySummary:parsed\?\.showSevenDaySummary!==false/,'Kurzinterpretation muss standardmäßig aktiv sein');
 assert.match(app,/7-Tage-Kurzinterpretation/,'Schalter in den Einstellungen fehlt');
 assert.match(sevenDay,/function buildSevenDayForecastSummary/,'Auswertungsfunktion fehlt');
@@ -24,3 +27,4 @@ assert.match(app,/showAllDetailMarkers=narrowChart\|\|compactLandscape\|\|portra
 assert.match(app,/if\(showAllDetailMarkers\)\{iconPoints\.length=0;iconPoints\.push\(\.\.\.representativeDetailPictograms\(p\.map/,'alle Wetterpiktogramme müssen im Querformat erhalten bleiben');
 assert.match(app,/directionStep=showAllDetailMarkers\?1/,'alle Windrichtungspfeile müssen im Querformat erhalten bleiben');
 console.log('7-Tage-Kurzinterpretation sowie vollständige Marker in Querformat und Tablet-Hochformat geprüft.');
+

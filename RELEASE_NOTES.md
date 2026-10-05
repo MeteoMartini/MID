@@ -1,7 +1,5 @@
-# MID v0.9.85.165
+# MID v0.9.85.166
 
-## MID-C16 · kompakte Prognoseansichten
-- 14-Tage-Entwicklung mit drei kurzen Phasen; fachliche Einordnung bleibt im Infohinweis verfügbar.
-- Wochenvergleich für Tag 15–46 startet eingeklappt. Methodik, Modellläufe, Mitgliederzahlen und Quellen bleiben erreichbar.
-- Saisonübersicht mit kürzeren Texten und zentraler Quellenansicht. Mitgliedsanomalien in K/% und vollständig lesbare Monatsachsen aus .164 bleiben erhalten.
-- Responsive Gestaltung der Detailansichten in der gepflegten CSS-Quelle; keine Änderung der Prognosedaten oder Ensemblegewichtung.
+- Die ECMWF-Farbwahl der 7-Tage-Vorhersage wird unmittelbar gespeichert und bei Neustarts zuverlässig wiederhergestellt.
+- Ältere Speicher- und Gerätestände überschreiben eine neuere Farbwahl nicht mehr.
+- Die kompakten 14-/46-Tage- und Saisonansichten aus dem vorherigen Update bleiben unverändert erhalten.

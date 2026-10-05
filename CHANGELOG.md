@@ -1,3 +1,9 @@
+# MID v0.9.85.166
+
+- Die ECMWF-Farbwahl der 7-Tage-Vorhersage wird unmittelbar gespeichert und bei Neustarts zuverlässig wiederhergestellt.
+- Ältere Speicher- und Gerätestände überschreiben eine neuere Farbwahl nicht mehr.
+- Die kompakten 14-/46-Tage- und Saisonansichten aus dem vorherigen Update bleiben unverändert erhalten.
+
 # MID v0.9.85.165
 
 ## MID-C16 · kompakte Prognoseansichten
@@ -8528,3 +8534,4 @@ Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellit
 - Kartenansicht, Radar-/Satelliten-/Blitz-/Zell-/Warn-/Synoptik-Layer, Deckkräfte, Kartenbasis, Bewegungszeitmodus und Wiedergabetempo werden gemeinsam dauerhaft wiederhergestellt. Ein gespeicherter 250-m-Modus wird nicht mehr vor Abschluss der Verfügbarkeitsprüfung verworfen.
 - Isohypsen erhalten vor der begrenzten Chaikin-Kurvenglättung einen zweistufigen symmetrischen Binomialfilter; Isobaren bleiben bewusst etwas detailreicher. So werden Gittertreppen reduziert, ohne synoptische Strukturen Windy-artig zu überglätten.
 - Das optionale Beta-Bedienkonzept zeigt weiterhin nur fünf Hauptziele. Seltenere Analyse-, Profil-, Profi- und Werkzeugbereiche liegen nun eingeklappt im Mehr-Menü und erscheinen erst nach Aufruf.
+

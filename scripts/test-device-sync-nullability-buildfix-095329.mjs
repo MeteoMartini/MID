@@ -18,6 +18,8 @@ need('mergedFavorites=mergeFavoriteSnapshots(remoteFavorites,localFavorites,','D
 const dir=await mkdtemp(join(tmpdir(),'mid-device-sync-nullability-'));
 try{
  await writeFile(join(dir,'deviceSync.ts'),source);
+ await writeFile(join(dir,'forecastDisplayPersistence.ts'),await readFile(new URL('../src/forecastDisplayPersistence.ts',import.meta.url),'utf8'));
+ await writeFile(join(dir,'storageSafety.ts'),`export function readDurableStorageValue(_key:string):string|null{return null}\nexport function writeDurableStorageValue(_key:string,_value:string):boolean{return true}\n`);
  await writeFile(join(dir,'forecastVerification.ts'),`export type ForecastVerificationArchiveStats={locations:number;captures:number;references:number;observations:number;updatedAt:string};\ntype Store={version:number;captures:unknown[];references:unknown[];observations:unknown[]};
 export type ForecastVerificationArchiveBundle={schema:'mid-weather-twin-archive';version:1;updatedAt:string;locations:Record<string,Store>;counts:{locations:number;captures:number;references:number;observations:number}};\nexport async function exportForecastVerificationArchive():Promise<ForecastVerificationArchiveBundle>{throw new Error()}\nexport async function importForecastVerificationArchive(_bundle:ForecastVerificationArchiveBundle):Promise<ForecastVerificationArchiveStats>{throw new Error()}\n`);
  await writeFile(join(dir,'workerClient.ts'),`export function buildWorkerUrl(base:string,mode:string){return base+mode}\nexport function workerBaseCandidates(_kind:string):string[]{return[]}\n`);
@@ -31,3 +33,4 @@ export type ForecastVerificationArchiveBundle={schema:'mid-weather-twin-archive'
 
 if(failures.length){console.error('Geräte-Sync-Nullability-Buildfix fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Geräte-Sync-Nullability geprüft: der vollständige deviceSync.ts-Pfad kompiliert im Strict-Modus mit typisierten Schnittstellenstubs; fehlende Favoritensnapshots bleiben verlustfrei und null-sicher.');
+
