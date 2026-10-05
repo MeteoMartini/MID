@@ -1,3 +1,13 @@
+## MID v0.9.85.170 · 2026-10-05 · Widget/Bergwetter und CSS-Konsolidierung
+
+- Basis main = mid-stable = 9b917ed7054903df6da983ed79fe20561af45ab9 (.169).
+- 74 Bergwetter-, 7 Widget- und 36 gemeinsame Darstellungsdeklarationen aus App.tsx ausgelagert; 117 Definitionen byteidentisch zur .169-Basis.
+- Lokale Suspense-Adapter und typisierte Props; Memo-, Standort-, Abbruch-, Persistenz- und Widget-URL-Verträge bleiben bestehen.
+- 65 geordnete CSS-Quellen mit rekursiv aufgelöstem Import werden zu einer globalen Ausgabe. 1122 frühere identische Deklarationen konsolidiert; Selektoren, Werte, Importance, Bedingungen und Kaskadenreihenfolge erhalten.
+- Statische Feature- und CSS-Ladereihenfolgetests lesen die kanonischen Modul-/Manifestquellen; fachliche Assertions bleiben erhalten. Neue Integritäts-, Lazy- und Browserprüfungen ergänzen die Suite.
+- PostCSS 8.5.28 als bereits vorhandene Vite-Parser-Version direkt und exakt für den Aggregate-Builder deklariert; keine Laufzeit- oder Framework-Upgrades.
+- App-/Wetterkern als unverändert eager geladenes index-Bundle; WidgetGenerator und MountainWeather bleiben separate Lazy-Chunks. Haupt-JS-Budget zählt nun sämtliche index-Chunks, Grenzen unverändert.
+
 ## MID v0.9.85.169 · 2026-10-05 · Schonende Wartung und bessere Touch-Bedienung
 
 - Basis main = mid-stable = 9fc04b670047ebe00f61ef4e6e376e4a69972b55 (v0.9.85.168); Releasepfad-Beschleunigung, gemeinsame Karte und geschützte Altmodule erhalten.

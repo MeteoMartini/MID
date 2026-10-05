@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -7,7 +8,7 @@ const [astronomy,weather,shortTerm,fusion,app,cockpit,worker,contract,uiContract
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/ShortTermForecast.tsx',root),'utf8'),
  readFile(new URL('src/forecastFusion.ts',root),'utf8'),
- readFile(new URL('src/App.tsx',root),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
  readFile(new URL('worker/metar-proxy.js',root),'utf8'),
  readFile(new URL('MID_SOLAR_SYMBOL_CONTRACT.md',root),'utf8'),

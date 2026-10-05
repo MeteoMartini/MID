@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -6,7 +7,7 @@ const ts=createRequire(import.meta.url)('typescript-strada');
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,name),'utf8');
 const [app,mountain,worker,push,radar,weather,analytics,persistence,modelChanges,styles,sw]=await Promise.all([
- read('src/App.tsx'),read('src/mountainSports.ts'),read('worker/metar-proxy.js'),read('src/PushSettingsPanel.tsx'),read('src/RadarPanel.tsx'),read('src/weather.ts'),read('src/webAnalytics.ts'),read('src/persistence.ts'),read('src/modelRunChanges.ts'),read('src/styles.css'),read('public/service-worker.js')
+ readAppFeatureSources(),read('src/mountainSports.ts'),read('worker/metar-proxy.js'),read('src/PushSettingsPanel.tsx'),read('src/RadarPanel.tsx'),read('src/weather.ts'),read('src/webAnalytics.ts'),read('src/persistence.ts'),read('src/modelRunChanges.ts'),read('src/styles.css'),read('public/service-worker.js')
 ]);
 const failures=[];
 const requireTokens=(label,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${label}: ${token}`)};

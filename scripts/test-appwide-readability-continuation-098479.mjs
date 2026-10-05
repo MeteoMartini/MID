@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 
@@ -12,7 +13,7 @@ const auditMatrix=readFileSync('MID_APP_VIEW_AUDIT_0.9.84.79.md','utf8');
 const typography=readFileSync('src/midC18TypographyReadability.css','utf8');
 const secondary=readFileSync('src/midC18SecondarySurfaceRefinement.css','utf8');
 const shellFinish=readFileSync('src/midC18ShellMobileFinish.css','utf8');
-const main=readFileSync('src/main.tsx','utf8');
+const main=readPresentationEntrySources();
 
 const marker='MID v0.9.84.79 · appweiter Rest-Audit nach dem 17.7.23-Vertrag.';
 assert.ok(modern.includes(marker),'Appweiter Rest-Auditmarker fehlt.');

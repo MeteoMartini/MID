@@ -1,9 +1,10 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const [weather,app,cockpit,ensemble]=await Promise.all([
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8')
 ]);

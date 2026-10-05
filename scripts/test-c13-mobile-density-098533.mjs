@@ -1,11 +1,13 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const [main,styles,touch,app,footerRhythm,pkg,publicChangelog]=await Promise.all([
- readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
+ readPresentationEntrySources(),
  readFile(new URL('../src/midC13MobileDensity.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC13MobileTouch.css',import.meta.url),'utf8'),
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('../src/midC18FooterRhythmAudit.css',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../public/CHANGELOG.md',import.meta.url),'utf8')

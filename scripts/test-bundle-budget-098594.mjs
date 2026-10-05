@@ -7,7 +7,8 @@ if(!fs.existsSync(assets)){
  process.exit(0);
 }
 const files=fs.readdirSync(assets).map(name=>({name,size:fs.statSync(path.join(assets,name)).size}));
-const mainJs=files.filter(item=>/^index-.*\.js$/.test(item.name)).sort((a,b)=>b.size-a.size)[0];
+const mainChunks=files.filter(item=>/^index-.*\.js$/.test(item.name));
+const mainJs=mainChunks.length?{size:mainChunks.reduce((total,item)=>total+item.size,0)}:undefined;
 const mainCss=files.filter(item=>/^index-.*\.css$/.test(item.name)).sort((a,b)=>b.size-a.size)[0];
 const budgets={js:1_500_000,css:1_760_000};
 const failures=[];

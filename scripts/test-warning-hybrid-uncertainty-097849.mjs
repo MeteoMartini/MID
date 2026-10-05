@@ -1,6 +1,7 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import fs from 'node:fs';
 
-const appSource = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const appSource = readAppFeatureSources();
 const weatherSource = fs.readFileSync(new URL('../src/weather.ts', import.meta.url), 'utf8');
 
 const checks = [

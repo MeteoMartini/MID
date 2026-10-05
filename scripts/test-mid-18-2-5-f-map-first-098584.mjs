@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -7,7 +8,7 @@ const [radar,maps,synoptic,styles,main]=await Promise.all([
  read('src/WeatherMapsPanel.tsx'),
  read('src/SynopticPanel.tsx'),
  read('src/midC18MapFirstWorkspace.css'),
- read('src/main.tsx')
+ readPresentationEntrySources()
 ]);
 
 // Radar/Satellit/Komposit: vorhandener gemeinsamer fachlicher Zeitvertrag bleibt unverändert.

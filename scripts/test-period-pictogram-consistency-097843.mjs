@@ -1,8 +1,9 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [period,app,cockpit,ensemble,contract,baselineRaw,pkgRaw]=await Promise.all([
- read('src/periodWeatherVisual.ts'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/EnsemblePanel.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('MID_BASELINE.json'),read('package.json')
+ read('src/periodWeatherVisual.ts'),readAppFeatureSources(),read('src/ForecastCockpit.tsx'),read('src/EnsemblePanel.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('MID_BASELINE.json'),read('package.json')
 ]);
 const baseline=JSON.parse(baselineRaw),pkg=JSON.parse(pkgRaw),test='scripts/test-period-pictogram-consistency-097843.mjs';
 assert.ok(period.includes("function displayCode(hour:Hour){return precipitationParts(hour).displayCode}"),'Periodenpiktogramme müssen die kanonische Niederschlagsphase nutzen.');
@@ -12,7 +13,8 @@ assert.ok(period.includes("if(Number(cloud)<6.25)return 0")&&period.includes("if
 assert.ok(period.includes("drySky&&Number.isFinite(cloud)?cloudOktasLabel(Number(cloud))"),'Trockene Periodentitel müssen die fünfstufige kanonische Oktas-Bezeichnung verwenden.');
 assert.ok(period.includes('options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool)'),'Tagescharakter muss als autoritatives Aggregat für Tagespiktogramme verwendbar sein.');
 assert.ok(period.includes('bestSampleScore'),'Phasenwahl innerhalb einer dominanten Wetterart muss den stärksten Einzelbeleg getrennt von der kumulierten Artbewertung halten.');
-assert.ok(app.includes("import {periodWeatherVisual,type PeriodWeatherVisual} from './periodWeatherVisual'"),'Klassische 7d-/Detail-/Widgetdarstellung muss den zentralen Periodenaggregator nutzen.');
+assert.match(app,/import \{periodWeatherVisual\} from '\.\/periodWeatherVisual'/,'Klassische 7d-/Detail-/Widgetdarstellung muss den zentralen Periodenaggregator nutzen.');
+assert.match(app,/import \{type PeriodWeatherVisual\} from '\.\/periodWeatherVisual'/,'Gemeinsame Renderer müssen den zentralen Perioden-Datentyp nutzen.');
 assert.ok(cockpit.includes("import {periodWeatherVisual} from './periodWeatherVisual'"),'Cockpit muss den zentralen Periodenaggregator nutzen.');
 assert.ok(!app.includes('function periodWeatherVisual(')&&!cockpit.includes('function cockpitPeriodVisual('),'Lokale konkurrierende Perioden-Icon-Selektoren dürfen nicht wieder eingeführt werden.');
 const dayLock=(source)=>source.includes('{preferFallbackCode:true}');

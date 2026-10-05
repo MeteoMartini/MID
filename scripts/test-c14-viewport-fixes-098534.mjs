@@ -1,10 +1,12 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const [main,fixes,app,dwd,timeline,pkg,publicChangelog]=await Promise.all([
- readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
+ readPresentationEntrySources(),
  readFile(new URL('../src/midC14ViewportFixes.css',import.meta.url),'utf8'),
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('../src/DwdPrecipitationTypeRadar.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/CompositeTimeline.ts',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),

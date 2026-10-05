@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -9,7 +10,7 @@ const [ensemble,climate,widgetSettings,widgetImage,widgetUrls,styles,main]=await
   read('src/widgetImageExport.ts'),
   read('src/widgetUrlExports.ts'),
   read('src/midC18WorkPackageG.css'),
-  read('src/main.tsx'),
+  readPresentationEntrySources(),
 ]);
 
 // Ensemble: bestehende 14-Tage-Fachlogik bleibt erhalten; jeder Mini-Datenpunkt besitzt

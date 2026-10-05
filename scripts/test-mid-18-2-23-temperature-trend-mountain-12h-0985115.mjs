@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {stripTypeScriptTypes} from 'node:module';
@@ -6,7 +7,7 @@ const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [fusion,anchor,app,pkgRaw,baselineRaw,contract]=await Promise.all([
  read('src/forecastFusion.ts'),
  read('src/forecastLocalAnchor.ts'),
- read('src/App.tsx'),
+ readAppFeatureSources(),
  read('package.json'),
  read('MID_BASELINE.json'),
  read('MID_TEMPERATURE_TREND_MOUNTAIN_0.9.85.115.md')

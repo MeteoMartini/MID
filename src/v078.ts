@@ -1,5 +1,4 @@
 import {formatDisplayDateTime} from './timeDisplay';
-import './v078.css';
 import {MID_VERSION as VERSION} from './version';
 
 type ChartToggleKey='tempMaxBand'|'tempMinBand'|'bestMax'|'bestMin'|'rainBest'|'rainLow'|'rainHigh';

@@ -1,5 +1,6 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import fs from 'node:fs';
-const app=fs.readFileSync('src/App.tsx','utf8');
+const app=readAppFeatureSources();
 const required=[
  'function WindDirectionArrow',
  'function SvgWindDirectionArrow',

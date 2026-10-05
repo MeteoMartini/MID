@@ -1,9 +1,10 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [app,weather,dwd,travel,thunder,extreme,contract]=await Promise.all([
-  read('src/App.tsx'),read('src/weather.ts'),read('src/dwdWarnings.ts'),read('src/TravelPlannerPanel.tsx'),read('src/thunderstorm.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('MID_WARNING_HYBRID_CONTRACT.md')
+  readAppFeatureSources(),read('src/weather.ts'),read('src/dwdWarnings.ts'),read('src/TravelPlannerPanel.tsx'),read('src/thunderstorm.ts'),read('src/ExtremeWeatherOutlookPanel.tsx'),read('MID_WARNING_HYBRID_CONTRACT.md')
 ]);
 
 // Interner Open-Meteo/API-Key darf weiterhin "kn" heißen; sichtbare MID-Ausgabe muss "kt" heißen.

@@ -1,6 +1,7 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const [weather,app,cockpit]=await Promise.all([readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8')]);
+const [weather,app,cockpit]=await Promise.all([readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),readAppFeatureSources(),readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8')]);
 assert.match(weather,/function fallbackHourlyProbabilityWindow\(hours:Hour\[\]\)/);
 assert.match(weather,/Math\.floor\(clock\/6\)/);
 assert.match(weather,/highest-second>=15&&highest-restMean>=20/);

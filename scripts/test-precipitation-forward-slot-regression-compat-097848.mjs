@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readdir,readFile} from 'node:fs/promises';
 
@@ -9,7 +10,7 @@ const [pkg,baseline,intervals,shortTerm,cockpit,water,app]=await Promise.all([
  readFile(new URL('src/ShortTermForecast.tsx',root),'utf8'),
  readFile(new URL('src/ForecastCockpit.tsx',root),'utf8'),
  readFile(new URL('src/WaterSportsPanel.tsx',root),'utf8'),
- readFile(new URL('src/App.tsx',root),'utf8'),
+ readAppFeatureSources(),
 ]);
 
 assert.equal(pkg.version,baseline.releaseVersion,'Package und Baseline müssen synchron sein.');

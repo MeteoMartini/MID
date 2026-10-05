@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -8,7 +9,7 @@ const [app,cockpit,radar,css,finalFourteenCss,main,workerSource,workerRouter,pkg
  read('src/RadarPanel.tsx'),
  read('src/midC18I7ResponsiveFixes.css'),
  read('src/midC18FourteenReplitFluidGrid.css'),
- read('src/main.tsx'),
+ readPresentationEntrySources(),
  read('worker-src/30-push-events.js'),
  read('worker-src/40-aviation-router.js'),
  read('package.json'),

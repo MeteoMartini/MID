@@ -1,8 +1,9 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const [main,profileFix,c15Styles,cockpit,dwd,pkg,changelog]=await Promise.all([
- readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
+ readPresentationEntrySources(),
  readFile(new URL('../src/midC16TodayProfileFix.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC15TodayDensity.css',import.meta.url),'utf8'),
  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),

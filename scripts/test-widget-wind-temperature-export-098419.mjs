@@ -1,7 +1,8 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=await readAppFeatureSources();
 const cockpit=await readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
 const css=await readFile(new URL('../src/styles-src/00-foundation.css',import.meta.url),'utf8');
 const tone=await readFile(new URL('../src/temperatureTone.ts',import.meta.url),'utf8');

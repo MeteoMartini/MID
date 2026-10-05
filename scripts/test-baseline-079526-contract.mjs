@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -5,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>readFile(path.join(root,relative),'utf8');
 const [app,portal,ensemble,styles,v078,worker,serviceWorker,astronomy,mountain,push,pushPanel,modelChanges,analytics,deviceSync,forecastVerification]=await Promise.all([
- read('src/App.tsx'),read('src/AppPortalPopover.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('src/v078.css'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('src/deviceSync.ts'),read('src/forecastVerification.ts')
+ readAppFeatureSources(),read('src/AppPortalPopover.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('src/v078.css'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('src/deviceSync.ts'),read('src/forecastVerification.ts')
 ]);
 const failures=[];
 const requireTokens=(name,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${name}: ${token}`)};

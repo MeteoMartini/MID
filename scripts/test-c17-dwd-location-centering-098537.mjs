@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 
 const root=new URL('../',import.meta.url);
 const [radar,styles,main,pkgText,changelog]=await Promise.all([
@@ -8,7 +9,7 @@ const [radar,styles,main,pkgText,changelog]=await Promise.all([
  'src/main.tsx',
  'package.json',
  'public/CHANGELOG.md'
-].map(path=>readFile(new URL(path,root),'utf8')));
+].map(path=>path==='src/main.tsx'?readPresentationEntrySources():readFile(new URL(path,root),'utf8')));
 
 // C18 supersedes delayed C17 retries with one cancellable frame, measured image
 // geometry and a retained pan centre; geographical calibration remains unchanged.

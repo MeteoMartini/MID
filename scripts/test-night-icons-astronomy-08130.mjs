@@ -1,6 +1,7 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 const [app,weather,pictogram,astronomy,styles]=await Promise.all([
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/WeatherPictogram.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/astronomy.ts',import.meta.url),'utf8'),

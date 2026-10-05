@@ -1,8 +1,9 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const cockpit=fs.readFileSync('src/ForecastCockpit.tsx','utf8');
 const twin=fs.readFileSync('src/ForecastVerificationPanel.tsx','utf8');
-const app=fs.readFileSync('src/App.tsx','utf8');
+const app=readAppFeatureSources();
 assert.ok(cockpit.includes('now90=useMemo(()=>shortTermNinetyMinutePoints(adjusted,profileNow)'),'90-min strip must use the canonical six full quarter-hour intervals after the next rounded quarter-hour');
 assert.ok(twin.includes('function displayLocalWeights')&&twin.includes("const key=`${weight.independenceGroup||''}::${weight.label.trim().toLowerCase()}`"),'twin display must merge duplicate model labels within one independence group');
 assert.ok(twin.includes('displayLocalWeights(item.weights).slice(0,4)'),'twin UI must render normalized display weights');

@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile,rm} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL,fileURLToPath} from 'node:url';
@@ -5,7 +6,7 @@ import path from 'node:path';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [app,weather,route,meteogram,pictograms,worker,ensemble]=await Promise.all([
- readFile(path.join(root,'src','App.tsx'),'utf8'),
+ readAppFeatureSources(),
  readFile(path.join(root,'src','weather.ts'),'utf8'),
  readFile(path.join(root,'src','routeWeather.ts'),'utf8'),
  readFile(path.join(root,'src','MeteogramPanel.tsx'),'utf8'),

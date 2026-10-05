@@ -1,6 +1,7 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=readAppFeatureSources();
 const mountain=readFileSync(new URL('../src/mountainSports.ts',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const legacy=readFileSync(new URL('../src/v078.css',import.meta.url),'utf8');

@@ -1,10 +1,11 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {versionAtLeast} from './version-regression-helper.mjs';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [cockpit,radar,app,modern,foundation,styles,c17,pkgRaw,baselineRaw,implementation]=await Promise.all([
- read('src/ForecastCockpit.tsx'),read('src/DwdPrecipitationTypeRadar.tsx'),read('src/App.tsx'),
+ read('src/ForecastCockpit.tsx'),read('src/DwdPrecipitationTypeRadar.tsx'),readAppFeatureSources(),
  read('src/styles-src/30-modern.css'),read('src/styles-src/00-foundation.css'),read('src/styles.css'),read('src/midC17DwdLocationFix.css'),
  read('package.json'),read('MID_BASELINE.json'),read('MID_IMPLEMENTATION_0.9.76.23.md')
 ]);

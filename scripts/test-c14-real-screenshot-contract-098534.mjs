@@ -1,8 +1,9 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const css=await readFile(new URL('../src/midC14ViewportFixes.css',import.meta.url),'utf8');
-const main=await readFile(new URL('../src/main.tsx',import.meta.url),'utf8');
+const main=await readPresentationEntrySources();
 
 assert.ok(main.indexOf("import './v078';")<main.indexOf("import './midC7Redesign.css';"),'Legacy-CSS muss vor dem sichtbaren Redesign liegen.');
 for(const token of [

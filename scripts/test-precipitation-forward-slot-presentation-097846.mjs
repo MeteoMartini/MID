@@ -1,9 +1,10 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [intervals,shortTerm,cockpit,app,sevenDay,ensemble,water,meteogram,fusion,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/precipitationIntervals.ts'),read('src/ShortTermForecast.tsx'),read('src/ForecastCockpit.tsx'),read('src/App.tsx'),read('src/SevenDayForecastSummary.tsx'),read('src/EnsemblePanel.tsx'),read('src/WaterSportsPanel.tsx'),read('src/MeteogramPanel.tsx'),read('src/forecastFusion.ts'),read('MID_PRECIPITATION_INTERVAL_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+ read('src/precipitationIntervals.ts'),read('src/ShortTermForecast.tsx'),read('src/ForecastCockpit.tsx'),readAppFeatureSources(),read('src/SevenDayForecastSummary.tsx'),read('src/EnsemblePanel.tsx'),read('src/WaterSportsPanel.tsx'),read('src/MeteogramPanel.tsx'),read('src/forecastFusion.ts'),read('MID_PRECIPITATION_INTERVAL_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-precipitation-forward-slot-presentation-097846.mjs';
 

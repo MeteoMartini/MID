@@ -1,10 +1,11 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const [app,styles,main]=await Promise.all([
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/midC18I7ResponsiveFixes.css',import.meta.url),'utf8'),
-  readFile(new URL('../src/main.tsx',import.meta.url),'utf8')
+  readPresentationEntrySources()
 ]);
 
 for(const viewport of [[360,800],[390,844]]){

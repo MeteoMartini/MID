@@ -1,7 +1,8 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=await readAppFeatureSources();
 const exportsSource=await readFile(new URL('../src/widgetUrlExports.ts',import.meta.url),'utf8');
 const capture=await readFile(new URL('../tools/widget-export/capture-widget.mjs',import.meta.url),'utf8');
 const powershell=await readFile(new URL('../tools/widget-export/Update-MID-Widgets.ps1',import.meta.url),'utf8');

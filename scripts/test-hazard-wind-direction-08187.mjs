@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {rm,readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL,fileURLToPath} from 'node:url';
@@ -12,7 +13,7 @@ const {summarizeDwdWarnings,formatDwdWarningDirection,formatDwdWarningDetailWith
 const [warnings,weather,app,ensemble,styles,pkg,baseline]=await Promise.all([
  readFile(path.join(root,'src','dwdWarnings.ts'),'utf8'),
  readFile(path.join(root,'src','weather.ts'),'utf8'),
- readFile(path.join(root,'src','App.tsx'),'utf8'),
+ readAppFeatureSources(),
  readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8'),
  readFile(path.join(root,'src','styles.css'),'utf8'),
  readFile(path.join(root,'package.json'),'utf8'),

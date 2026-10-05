@@ -1,7 +1,8 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const panel=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
-const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=readAppFeatureSources();
 assert.ok(panel.includes('ensembleHazardDetail(signal,x,x.date,unit,warningEnsemble??undefined)')&&panel.includes('ensembleHazardContext(signal,day,date,unit,support)'), '14d-Ensemble-Hinweise müssen den gemeinsamen Ensemble-/Umfeldkontext über den typsicheren Detail-Helfer erhalten.');
 assert.ok(panel.includes('ensembleHazardDisplayValue(signal,unit)'), 'Sichtbare 14d-Hinweiswerte müssen aus dem kanonischen Punkt-/Best-Match-Signal gerundet werden.');
 assert.ok(panel.includes('<b>MID-Hinweise</b>')&&panel.includes('hazard.detail&&<InfoHint')&&panel.includes('probabilistischen Kontext anzeigen'), 'Umfeld-/P10-P90-Kontext muss kompakt hinter einem Info-Zugang liegen.');

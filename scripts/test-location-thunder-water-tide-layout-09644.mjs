@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -9,7 +10,7 @@ const root=new URL('../',import.meta.url),require=createRequire(import.meta.url)
 const [riskSource,water,app,mountain,sourceStyles,builtStyles,pkgText,baselineText,implementation]=await Promise.all([
  readFile(new URL('src/detailThunderRisk.ts',root),'utf8'),
  readFile(new URL('src/WaterSportsPanel.tsx',root),'utf8'),
- readFile(new URL('src/App.tsx',root),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('src/mountainSports.ts',root),'utf8'),
  readFile(new URL('src/styles-src/30-modern.css',root),'utf8'),
  readFile(new URL('src/styles.css',root),'utf8'),

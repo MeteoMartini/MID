@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
@@ -30,7 +31,7 @@ const eventUi=readFileSync(new URL('../src/EventPlannerPanel.tsx',import.meta.ur
 assert.ok(eventUi.includes('className="event-timeline-compact-metrics"'));
 assert.ok(eventUi.includes('title="Sonnenscheindauer"'));
 assert.ok(!eventUi.includes('· Sonnenschein {sunshineMinutesLabel(point.sunshineDuration'));
-const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=readAppFeatureSources();
 assert.ok(app.includes('className="widgetmeta-sun"'));
 assert.ok(!app.includes('<small>Sonnenscheindauer</small>'),'Redundantes Widget-Wort soll durch eindeutiges Sonnensymbol entfallen.');
 

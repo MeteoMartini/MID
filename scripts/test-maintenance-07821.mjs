@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -5,7 +6,7 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>readFile(path.join(root,relative),'utf8');
 const [app,ensemble,styles,serviceWorker,legacyWorker]=await Promise.all([
- read('src/App.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('public/service-worker.js'),read('public/sw.js')
+ readAppFeatureSources(),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('public/service-worker.js'),read('public/sw.js')
 ]);
 const failures=[];
 for(const token of ['className="brand-expanded"','<b>M</b>eteorological <b>I</b>nformation <b>D</b>ashboard','.brand-expanded b'])if(!(app+styles).includes(token))failures.push(`MID-Initialenformatierung fehlt: ${token}`);

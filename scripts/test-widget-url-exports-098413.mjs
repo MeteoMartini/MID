@@ -1,8 +1,9 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
-const configPath=new URL('../src/widgetUrlExports.ts',import.meta.url),app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),css=await readFile(new URL('../src/styles-src/00-foundation.css',import.meta.url),'utf8');
+const configPath=new URL('../src/widgetUrlExports.ts',import.meta.url),app=await readAppFeatureSources(),css=await readFile(new URL('../src/styles-src/00-foundation.css',import.meta.url),'utf8');
 const probe=`import {readWidgetUrlExportRequest,widgetUrlExportVariants} from ${JSON.stringify(pathToFileURL(configPath.pathname).href)};const variants=widgetUrlExportVariants('https://www.midwx.app/');console.log(JSON.stringify({variants,parsed:variants.map(item=>readWidgetUrlExportRequest(item.url))}))`;
 const run=spawnSync(process.execPath,['--experimental-strip-types','--input-type=module','-e',probe],{encoding:'utf8'});assert.equal(run.status,0,run.stderr||'Widget-URL-Konfiguration konnte nicht geladen werden.');
 const{variants,parsed}=JSON.parse(run.stdout);assert.equal(variants.length,12,'Drei Orte × zwei Ansichten × zwei Zeiträume müssen zwölf URLs ergeben.');

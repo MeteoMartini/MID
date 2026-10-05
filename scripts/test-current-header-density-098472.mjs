@@ -1,8 +1,9 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const app=await read('src/App.tsx');
+const app=await readAppFeatureSources();
 const modern=await read('src/styles-src/30-modern.css');
 const midNext=await read('src/midNext.css');
 const styles=await read('src/styles.css');
