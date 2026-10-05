@@ -17,9 +17,9 @@ for(const value of [-15,0,10,25,40])for(const kind of ['min','max']){
 const storedSource=app.match(/^function storedForecastDisplaySettings.*$/m)?.[0];
 assert.ok(storedSource,'Persisted forecast settings parser exists.');
 const parser=(await transform(storedSource,{loader:'ts'})).code;
-const readStored=new Function('localStorage','DEFAULT_FORECAST_DISPLAY_SETTINGS','normalizeConfidenceDisplayMode','FORECAST_DISPLAY_SETTINGS_KEY',parser+';return storedForecastDisplaySettings()');
+const readStored=new Function('readForecastDisplaySettingsRaw','DEFAULT_FORECAST_DISPLAY_SETTINGS','normalizeConfidenceDisplayMode',parser+';return storedForecastDisplaySettings()');
 for(const value of [undefined,false,true,'true',1]){
- const restored=readStored({getItem:()=>JSON.stringify({ecmwfTemperatureColors:value})},{ecmwfTemperatureColors:false},()=> 'signal','test');
+ const restored=readStored(()=>JSON.stringify({ecmwfTemperatureColors:value}),{ecmwfTemperatureColors:false},()=> 'signal');
  assert.equal(restored.ecmwfTemperatureColors,value===true,'Only the explicit saved boolean enables ECMWF.');
 }
 assert.ok(app.includes('checked={forecastDisplaySettings.ecmwfTemperatureColors}'),'The saved option is user-selectable.');
@@ -61,3 +61,4 @@ assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.index
 const curve=cockpit.slice(cockpit.indexOf('function SevenDayCurveOverview('),cockpit.indexOf('\nfunction cockpitDaySkyBarSegments('));
 assert.ok(!curve.includes('seven-day-curve-temperature-band')&&curve.includes('row.epoch===hour.epoch')&&curve.includes('quantilePaths.map')&&curve.includes('P25–P75'),'7-Tage-Kurve verwendet nur echte zeitgleiche stündliche P25–P75-Quantile, keine erfundenen Tagesbänder.');
 console.log(`MID v${pkg.version}: 7-Tage-Kurve mit Stundenachse, themefester Nachtmarkierung, Wetterstreifen, stündlichem Niederschlag und lesbaren ECMWF-Farben geschützt.`);
+
