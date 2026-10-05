@@ -3,12 +3,15 @@
   "date": "2026-10-05",
   "title": "Konsolidierung und robuste RUC-Aufbereitung",
   "external": [
-    "- Die Wetterdaten-Aufbereitung wiederholt vorübergehende DWD-Verbindungsfehler gezielt und verwirft unvollständige Modellläufe früher.",
-    "- Unterbrochene Downloads können keine unvollständigen Dateien als fertige Daten hinterlassen.",
-    "- Die bereits eingeführten Verbesserungen für Bergwetter, Widgets, Karten und schnellere Freigabeprüfungen bleiben erhalten."
+    "Die Wetterdaten-Aufbereitung wiederholt vorübergehende DWD-Verbindungsfehler gezielt und verwirft unvollständige Modellläufe früher.",
+    "Komprimierte DWD-Modelldateien werden über einen vereinheitlichten, speicherschonenden Leseweg verarbeitet.",
+    "Unterbrochene Downloads können keine unvollständigen Dateien als fertige Daten hinterlassen.",
+    "Die bereits eingeführten Verbesserungen für Bergwetter, Widgets, Karten und schnellere Freigabeprüfungen bleiben erhalten."
   ],
   "internal": [
     "Four bounded transient retries; atomic partial cleanup; early GRIB validity coverage; production RUC offline CI step.",
-    "Preserves .170 UI/CSS and .171 fail-closed source sharding."
+    "Preserves .170 UI/CSS and .171 fail-closed source sharding.",
+    "Shared seekable ecCodes stream for bzip2 header, forecast/EPS and grid readers; eight offline tests including real GRIB messages and truncated bzip2, gated before source auto-release.",
+    "No-op worker jobs skipped only after explicit semantic false diff; failed, cancelled or unknown states block all downstream publication gates."
   ]
 }

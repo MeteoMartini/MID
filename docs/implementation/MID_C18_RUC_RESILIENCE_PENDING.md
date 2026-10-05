@@ -1,3 +1,5 @@
+> Historischer Checkpoint vor der Konsolidierung. Für den aktuellen Kandidaten v0.9.85.172 und dessen zusätzliche Decoder-/Workflow-Korrekturen gilt `MID_C18_CONSOLIDATION_0.9.85.172.md`. Die damaligen Aussagen zu ausstehenden Versionsspiegeln und fehlenden Workflow-Änderungen beschreiben ausschließlich diesen früheren Checkpoint.
+
 # MID-C18 – RUC download resilience (integration pending)
 
 Verified released base: v0.9.85.170, `53671910a16d5bd0d6cf9fe47945891789bb0dff`.
