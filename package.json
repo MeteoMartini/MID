@@ -538,11 +538,11 @@
     "html-to-image": "^1.11.13",
     "jsfive": "0.4.2",
     "lucide-react": "^1.40.0",
-    "maplibre-gl": "6.7.0",
+    "maplibre-gl": "6.11.2",
     "pako": "2.2.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "react-is": "19.2.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-is": "19.3.0",
     "recharts": "3.10.1"
   },
   "devDependencies": {
@@ -553,7 +553,7 @@
     "esbuild": "0.28.2",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "8.2.2"
+    "vite": "8.3.2"
   },
   "packageManager": "npm@10.9.2",
   "engines": {
