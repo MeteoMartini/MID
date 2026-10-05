@@ -444,7 +444,7 @@ jobs:
       - name: Neue Worker-Version nur hochladen, noch nicht live schalten
         if: needs.install_build.outputs.worker_changed == 'true'
         id: worker_upload
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -471,7 +471,7 @@ jobs:
       - name: Neue Version mit 0 Prozent neben dem bisherigen Worker bereitstellen
         if: needs.install_build.outputs.worker_changed == 'true'
         id: staged_worker
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -499,7 +499,7 @@ jobs:
       - name: Geprüfte Worker-Version auf 100 Prozent promoten
         if: needs.install_build.outputs.worker_changed == 'true'
         id: promoted_worker
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -527,7 +527,7 @@ jobs:
       - name: Bei fehlgeschlagenem Smoke automatisch auf vorherige Version zurückschalten
         if: failure() && needs.install_build.outputs.worker_changed == 'true' && steps.staged_worker.conclusion == 'success'
         id: rollback_worker
-        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
