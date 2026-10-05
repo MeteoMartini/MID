@@ -1,3 +1,6 @@
+## v0.9.85.166 · MID-C17 dauerhafte 7d-Farbwahl
+Basis main = mid-stable = d5db6da50fba9684d5584ed9f3cf26afa931f81b (.165). ForecastDisplay wird synchron über den bestehenden dauerhaften Speicherpfad gespeichert, mit monotoner semantischer Revision und Schutz vor veralteten Remote-Snapshots. Keine Meteorologie-/Layoutänderung. Details: docs/implementation/MID_C17_SETTINGS_0.9.85.166.md. Browser-Neustartprüfung ist Teil der neuen Pflichtregression unter GitHub Actions; Release nur nach erfolgreichem Source-/Installer-Gate.
+
 ## v0.9.85.165 · MID-C16 kompakte Prognoseansichten
 Verifizierte veröffentlichte Basis main = mid-stable = 27285d13c94f0da54d878b09a1d3f5953ff2627a (.164); www.midwx.app/version.json bestätigt .164. Fachlicher .164-Vertrag bleibt unverändert. Kurze 14d-Phasen, aufklappbarer Wochenvergleich und Quellen-/Methodikansichten; alle Saisonmonate ohne horizontales Scrollen, konkrete Kalenderdaten im Witterungstrend, gemeinsame Texthierarchie. Details: docs/implementation/MID_C16_COMPACT_UI_0.9.85.165.md. Release ausschließlich nach geprüftem Handoff und Source-PR-Gate.
 

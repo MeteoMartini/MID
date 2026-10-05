@@ -1,4 +1,4 @@
-const CACHE='mid-shell-v0.9.85.165';
+const CACHE='mid-shell-v0.9.85.166';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
@@ -75,3 +75,4 @@ self.addEventListener('fetch',event=>{
   return fetchRuntimeWithTimeout(request,shellAsset?{}:{cache:'no-store'},shellAsset?20000:30000).then(response=>{if(response.ok&&shellAsset)event.waitUntil(cache.put(request,response.clone()));return response});
  })())
 });
+
