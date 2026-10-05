@@ -12,6 +12,11 @@ assert.equal(all.length,tests.length);assert.equal(new Set(all).size,tests.lengt
 assert.ok(plan.parallel.length>0);assert.ok(plan.serial.length>0);
 for(const name of ['test-mountain-visual-acceptance-18213.mjs','test-worker-auto-deploy-09693.mjs','test-github-actions-v7-sync-09570.mjs'])assert.ok(plan.serial.includes(name),name+' muss seriell bleiben.');
 const source=await readFile(path.join(root,'scripts','run-regressions.mjs'),'utf8');
+const [gateCanonical,gateActive,autoCanonical,autoActive,installCanonical,installActive,installPatch]=await Promise.all([
+ 'ci/github/workflows/chatgpt-pr-gate.yml','.github/workflows/chatgpt-pr-gate.yml','ci/github/workflows/agent-source-release.yml','.github/workflows/agent-source-release.yml','ci/github/workflows/install-mid.yml','.github/workflows/install-mid.yml','workflow-patches/install-mid.yml'
+].map(file=>readFile(path.join(root,file),'utf8')));
+assert.equal(gateCanonical,gateActive);assert.equal(autoCanonical,autoActive);assert.equal(installCanonical,installActive);assert.equal(installCanonical,installPatch);
+for(const token of ['fetch-depth: 1','prepare_pages_artifact:','git fetch --unshallow --no-tags origin','compare/${stable_before}...${release_sha}','-F force=false'])assert.ok((gateCanonical+autoCanonical+installCanonical).includes(token),'Release-Optimierungsvertrag fehlt: '+token);
 for(const token of ['regressionExecutionPlan','MID_REGRESSION_JOBS','availableParallelism','Promise.all','for(const name of plan.serial)'])assert.ok(source.includes(token),'Runner-Vertrag fehlt: '+token);
 assert.ok(!source.includes('spawnSync('));
 console.log('Regressionen bleiben vollständig; '+plan.parallel.length+' parallel-sicher, '+plan.serial.length+' seriell.');
