@@ -1,3 +1,11 @@
+## MID v0.9.85.169 · 2026-10-05 · Schonende Wartung und bessere Touch-Bedienung
+
+- Basis main = mid-stable = 9fc04b670047ebe00f61ef4e6e376e4a69972b55 (v0.9.85.168); Releasepfad-Beschleunigung, gemeinsame Karte und geschützte Altmodule erhalten.
+- Nur unmittelbar aufeinanderfolgende identische Selektoren innerhalb desselben CSS-Kontexts zusammengeführt; Deklarationsreihenfolge bleibt identisch.
+- AppleWidgetSettings und DashboardModuleSettingsPanel mit lokalen Suspense-Grenzen lazy geladen; Typimporte bleiben ohne Laufzeitkante.
+- Capacitor Core/iOS/CLI 8.5.2, Share 8.0.2 und jsfive 0.4.2; keine Major-/Framework-Updates oder Security-Overrides.
+- Statische Apple-Widget-Importprüfung an beauftragte Lazy-Architektur angepasst; Rendering-/Feed-/Native-Verträge unverändert.
+
 ## MID v0.9.85.168 · 2026-10-05 · Releasepfad ohne Gate-Abstriche beschleunigt
 
 - Vollständige Regression-Suite bleibt erhalten; konservativ read-only erkannte Tests laufen mit begrenzter Parallelität, alle risikobehafteten Tests seriell.

@@ -855,7 +855,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .favorite-strip>div button small{grid-area:group;color:var(--muted);font-size:9px}
 .favorite-strip>div button b{grid-column:3;grid-row:1/-1;padding:2px 5px;border-radius:999px;background:rgba(244,185,40,.13);color:#dca31b;font-size:7px;letter-spacing:.05em;text-transform:uppercase}
 .favorite-strip>div button.active{border-color:color-mix(in srgb,var(--primary) 48%,var(--border));background:color-mix(in srgb,var(--primary) 10%,var(--surface));box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 8%,transparent)}
-.favorite-strip-manage{display:grid;width:42px;flex:0 0 42px;place-items:center;border-radius:14px}
+.favorite-strip-manage{display:grid;width:44px;flex:0 0 42px;place-items:center;border-radius:14px}
 .favorite-rule-notice{display:flex;align-items:flex-start;gap:10px;margin:-4px 0 14px;padding:10px 13px;border:1px solid rgba(244,185,40,.3);border-radius:15px;background:rgba(244,185,40,.08);color:var(--text)}
 .favorite-rule-notice>svg{flex:0 0 auto;margin-top:1px;color:#e2a91f}
 .favorite-rule-notice strong,.favorite-rule-notice span{display:block}.favorite-rule-notice strong{font-size:12px}.favorite-rule-notice span{margin-top:2px;color:var(--muted);font-size:11px}
@@ -910,7 +910,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 
 @media(max-width:1050px){.mountain-indicators{grid-template-columns:repeat(3,minmax(0,1fr))}.mountain-timeline{grid-template-columns:repeat(6,112px)}}
 @media(max-width:700px){.favorite-modal-backdrop{padding:0}.favorite-modal{width:100%;height:100%;max-height:none;border-radius:0}.favorite-manager-actions{flex-wrap:wrap}.favorite-manager-actions small{width:100%;margin:0;text-align:left}.favorite-manager-list{padding:10px}.favorite-manager-list>article{grid-template-columns:30px minmax(0,1fr)}.favorite-row-actions{grid-column:2;display:flex}.favorite-fields{grid-template-columns:1fr}.favorite-fields>small,.favorite-fields details{grid-column:1}.favorite-rules{grid-template-columns:1fr}.mountain-levels{grid-template-columns:1fr}.mountain-indicators{grid-template-columns:repeat(2,minmax(0,1fr))}.mountain-links{align-items:flex-start;flex-direction:column}.mountain-controls>small{width:100%;margin:0}}
-@media(max-width:520px){.favorite-strip{margin-top:-8px}.favorite-strip>div button{padding:7px 9px}.favorite-strip-manage{width:38px;flex-basis:38px}.mountain-controls label input{width:112px}.mountain-indicators{grid-template-columns:1fr 1fr}.mountain-indicators article{padding:8px}.mountain-timeline{grid-template-columns:repeat(6,104px)}}
+@media(max-width:520px){.favorite-strip{margin-top:-8px}.favorite-strip>div button{padding:7px 9px}.favorite-strip-manage{width:44px;flex-basis:44px}.mountain-controls label input{width:112px}.mountain-indicators{grid-template-columns:1fr 1fr}.mountain-indicators article{padding:8px}.mountain-timeline{grid-template-columns:repeat(6,104px)}}
 
 /* v0.7.16 – Standort als erster Schnellzugriff, gruppierte Favoriten und Ski-Konfiguration im Favoritenmenü */
 .search-stack{min-width:0}
@@ -925,7 +925,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .header-favorites .favorite-group button em{position:absolute;top:-5px;right:-4px;display:grid;width:18px;height:18px;place-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-style:normal}
 .header-favorites .tracked-location button svg{color:var(--primary)}
 .header-favorites .tracked-location button b{color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent)}
-.header-favorites .favorite-strip-manage{width:38px;flex-basis:38px;border-radius:11px}
+.header-favorites .favorite-strip-manage{width:44px;flex-basis:44px;border-radius:11px}
 .current-location-label{color:var(--primary)}
 .favorite-result-location{color:var(--primary)}
 .search-favorite-group+.search-favorite-group{border-top:1px solid var(--border)}
@@ -989,7 +989,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 .header-favorites .favorite-bubbles>button b{grid-column:3;grid-row:1/-1;padding:2px 5px;border-radius:999px;background:rgba(244,185,40,.13);color:#dca31b;font-size:7px;letter-spacing:.04em;text-transform:uppercase}
 .header-favorites .favorite-bubbles>button.tracked-location b{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary)}
 .header-favorites .favorite-bubbles>button em{position:absolute;top:-4px;right:-3px;display:grid;width:17px;height:17px;place-items:center;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-style:normal}
-.header-favorites .favorite-strip-manage{width:38px;flex-basis:38px;border-radius:999px}
+.header-favorites .favorite-strip-manage{width:44px;flex-basis:44px;border-radius:999px}
 @media(max-width:850px){
  .search-stack{grid-column:1/-1;grid-row:2;width:100%;min-width:0}
  .header-favorites{margin-top:6px}
@@ -1000,7 +1000,7 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
  .header-favorites{width:100%;margin-top:6px;padding:0}
  .header-favorites .favorite-bubbles{gap:6px}
  .header-favorites .favorite-bubbles>button{padding:7px 9px}
- .header-favorites .favorite-strip-manage{width:36px;flex-basis:36px}
+ .header-favorites .favorite-strip-manage{width:44px;flex-basis:44px}
 }
 
 /* v0.7.18 – verzögertes Laden und dynamischer Jetzt-Zeitpunkt */
@@ -1525,9 +1525,9 @@ footer .data-disclaimer{grid-column:1/-1;display:block;margin-top:5px;color:var(
 /* MID v0.7.74 – kompakte Favoriten-Schnellleiste unter der Kopfleiste */
 .settings-header>.header-favorites{grid-column:1/-1;width:100%;min-width:0;margin:0;padding:6px 0 0;border-top:1px solid var(--border);gap:6px;align-items:center}
 .settings-header>.header-favorites .favorite-bubbles{gap:6px;padding:0 2px 2px}
-.settings-header>.header-favorites .favorite-bubbles>button{min-height:34px;padding-top:5px;padding-bottom:5px}
-.settings-header>.header-favorites .favorite-strip-manage{width:34px;height:34px;flex-basis:34px}
-@media(max-width:700px){.settings-header>.header-favorites{padding-top:5px}.settings-header>.header-favorites .favorite-bubbles>button{min-height:32px;padding-top:4px;padding-bottom:4px}.settings-header>.header-favorites .favorite-strip-manage{width:32px;height:32px;flex-basis:32px}}
+.settings-header>.header-favorites .favorite-bubbles>button{min-height:44px;padding-top:5px;padding-bottom:5px}
+.settings-header>.header-favorites .favorite-strip-manage{width:44px;height:44px;flex-basis:44px}
+@media(max-width:700px){.settings-header>.header-favorites{padding-top:5px}.settings-header>.header-favorites .favorite-bubbles>button{min-height:44px;padding-top:4px;padding-bottom:4px}.settings-header>.header-favorites .favorite-strip-manage{width:44px;height:44px;flex-basis:44px}}
 
 /* MID v0.7.76 – Standard-/Erweiterter Modus und kontextuelle Erklärungen */
 .mode-info{position:relative;display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;vertical-align:middle}
@@ -2020,7 +2020,7 @@ button,input,select,textarea{font:inherit}
  min-height:36px;
 }
 .header-favorites .favorite-bubbles>button{
- min-height:40px;
+ min-height:44px;
  padding-top:6px;
  padding-bottom:6px;
 }
@@ -2029,11 +2029,11 @@ button,input,select,textarea{font:inherit}
 .header-favorites .favorite-bubbles>button b{font-size:var(--mid-text-micro);line-height:1.1}
 .favorite-group>small{font-size:var(--mid-text-micro);line-height:1.15}
 .header-favorites .favorite-strip-manage{
- width:40px;
- min-width:40px;
- height:40px;
- min-height:40px;
- flex-basis:40px;
+ width:44px;
+ min-width:44px;
+ height:44px;
+ min-height:44px;
+ flex-basis:44px;
 }
 .favorite-toggle{width:40px;height:40px;flex-basis:40px}
 .favorite-fields>label,
@@ -2052,8 +2052,8 @@ button,input,select,textarea{font:inherit}
 }
 @media(pointer:coarse){
  .search .search-input-shell>button{width:40px;min-width:40px;height:40px;min-height:40px}
- .header-favorites .favorite-bubbles>button{min-height:40px}
- .header-favorites .favorite-strip-manage{width:40px;min-width:40px;height:40px;min-height:40px;flex-basis:40px}
+ .header-favorites .favorite-bubbles>button{min-height:44px}
+ .header-favorites .favorite-strip-manage{width:44px;min-width:44px;height:44px;min-height:44px;flex-basis:44px}
  .favorite-toggle{width:40px;height:40px;flex-basis:40px}
 }
 /* MID v0.8.17.2 – offizieller UV-Gefahrenindex in den aktuellen Daten */
@@ -2865,8 +2865,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
   .weather-twin-model-badge{max-width:50vw;font-size:6.8px}
 }
 @media(max-width:480px){
-  .weather-twin-model-badge{max-width:42vw}
-  .weather-twin-model-badge{font-size:0}
+  .weather-twin-model-badge{max-width:42vw;font-size:0;}
   .weather-twin-model-badge:after{content:"Lokaler Modellmix";font-size:7px}
 }
 
@@ -3475,8 +3474,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-seven-day-heading>small{color:var(--muted);font-size:9px;text-align:right}
 .mountain-seven-day-list{display:grid;gap:7px}
 .mountain-seven-day-row{display:grid;gap:0;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
-.mountain-seven-day-row.open{border-color:color-mix(in srgb,var(--primary) 38%,var(--border))}
-.mountain-seven-day-row.open{background:color-mix(in srgb,var(--primary) 3%,var(--surface))}
+.mountain-seven-day-row.open{border-color:color-mix(in srgb,var(--primary) 38%,var(--border));background:color-mix(in srgb,var(--primary) 3%,var(--surface));}
 .mountain-day-toggle{display:grid;grid-template-columns:minmax(80px,1.05fr) 38px minmax(92px,1fr) minmax(105px,1.05fr) minmax(142px,1.4fr) minmax(88px,.9fr) minmax(70px,.72fr) 24px;align-items:center;gap:8px;width:100%;min-height:68px;padding:9px 10px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}
 .mountain-day-toggle:disabled{cursor:default;opacity:.72}
 .mountain-day-toggle:not(:disabled):hover{background:color-mix(in srgb,var(--primary) 4%,transparent)}
@@ -4865,7 +4863,7 @@ body,#root{
 .forecast-cockpit-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 15px;border-top:1px solid var(--border);color:var(--muted);font-size:7.5px}
 .forecast-ribbon-stack{display:grid;gap:7px;padding:10px 12px 12px}.forecast-ribbon-section{overflow:hidden;border:1px solid var(--border);border-radius:16px;background:color-mix(in srgb,var(--s2) 62%,transparent)}.forecast-ribbon-section.open{border-color:color-mix(in srgb,var(--accent) 46%,var(--border));background:color-mix(in srgb,var(--accent) 4%,var(--surface))}.forecast-ribbon-summary{display:grid;width:100%;grid-template-columns:auto minmax(120px,.8fr) minmax(160px,1.35fr) auto;align-items:center;gap:9px;padding:9px 11px;border:0;background:transparent;color:var(--text);text-align:left}.forecast-ribbon-summary>svg:first-child{color:var(--accent)}.forecast-ribbon-summary>span:nth-child(2){display:grid;min-width:0;gap:1px}.forecast-ribbon-summary b{font-size:10px}.forecast-ribbon-summary small{overflow:hidden;color:var(--muted);font-size:7.5px;text-overflow:ellipsis;white-space:nowrap}.forecast-ribbon-content{padding:10px;border-top:1px solid var(--border)}.cockpit-mini-ribbon{display:flex;height:31px;align-items:flex-end;gap:3px;min-width:0;padding:4px 6px;border-radius:10px;background:color-mix(in srgb,var(--surface) 70%,transparent)}.cockpit-mini-ribbon i{display:block;flex:1;min-width:2px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--accent),var(--primary));opacity:.78}.cockpit-mini-ribbon.seven i{height:72%;background:var(--weather-regime-quiet)}.cockpit-mini-ribbon.seven i.wet{height:94%;background:var(--weather-regime-wet)}.cockpit-mini-ribbon.seven i.showery{height:94%;background:var(--weather-regime-showery)}.cockpit-mini-ribbon.seven i.sunny{height:56%;background:var(--weather-regime-sunny)}.cockpit-mini-ribbon.seven i.warm{height:56%;background:var(--weather-regime-warm)}.cockpit-mini-ribbon.seven i.windy{height:82%;background:var(--weather-regime-windy)}.cockpit-mini-ribbon.seven i.quiet{background:var(--weather-regime-quiet)}.cockpit-mini-ribbon.fourteen i{background:linear-gradient(180deg,var(--param-temperature-max),color-mix(in srgb,var(--param-temperature-max) 58%,var(--param-sunshine)))}
 @media(max-width:900px){.cockpit-focus-card{grid-template-columns:1fr auto 1fr}.cockpit-focus-card>span:last-child{grid-column:1/-1}.cockpit-scenarios{grid-template-columns:1fr}.cockpit-scenarios>strong{margin-bottom:1px}.forecast-ribbon-summary{grid-template-columns:auto minmax(100px,.75fr) minmax(130px,1.1fr) auto}}
-@media(max-width:680px){.forecast-cockpit-header{padding:14px 13px 10px}.forecast-cockpit-header>span{max-width:44%}.forecast-cockpit-tabs{gap:5px;padding:8px 8px 0}.forecast-cockpit-tabs>button{grid-template-columns:1fr;justify-items:center;min-height:59px;padding:7px 5px;text-align:center}.forecast-cockpit-tabs small{max-width:100%}.forecast-cockpit-stage{padding:9px}.cockpit-brief{align-items:flex-start;flex-direction:column;gap:3px}.cockpit-brief>strong+span{text-align:left}.cockpit-short-chart{min-width:650px}.cockpit-focus-card{grid-template-columns:1fr auto;gap:7px}.cockpit-focus-card>span:nth-child(3),.cockpit-focus-card>span:last-child{grid-column:1/-1}.cockpit-seven-grid{grid-template-columns:repeat(var(--cockpit-day-count),minmax(82px,1fr))}.cockpit-phase-line b{font-size:7px}.cockpit-metric-tabs button{padding:7px 5px;text-align:center}.cockpit-metric-tabs button{grid-template-columns:1fr}.cockpit-metric-tabs small{display:none}.cockpit-metric-preview{height:18px}.forecast-ribbon-summary{grid-template-columns:auto minmax(0,1fr) auto}.forecast-ribbon-summary>.cockpit-mini-ribbon{grid-column:1/-1;width:100%;height:25px}.forecast-ribbon-content{padding:8px}.forecast-cockpit-footer{align-items:flex-start;flex-direction:column;gap:2px}.forecast-presentation-grid{grid-template-columns:1fr!important}}
+@media(max-width:680px){.forecast-cockpit-header{padding:14px 13px 10px}.forecast-cockpit-header>span{max-width:44%}.forecast-cockpit-tabs{gap:5px;padding:8px 8px 0}.forecast-cockpit-tabs>button{grid-template-columns:1fr;justify-items:center;min-height:59px;padding:7px 5px;text-align:center}.forecast-cockpit-tabs small{max-width:100%}.forecast-cockpit-stage{padding:9px}.cockpit-brief{align-items:flex-start;flex-direction:column;gap:3px}.cockpit-brief>strong+span{text-align:left}.cockpit-short-chart{min-width:650px}.cockpit-focus-card{grid-template-columns:1fr auto;gap:7px}.cockpit-focus-card>span:nth-child(3),.cockpit-focus-card>span:last-child{grid-column:1/-1}.cockpit-seven-grid{grid-template-columns:repeat(var(--cockpit-day-count),minmax(82px,1fr))}.cockpit-phase-line b{font-size:7px}.cockpit-metric-tabs button{padding:7px 5px;text-align:center;grid-template-columns:1fr;}.cockpit-metric-tabs small{display:none}.cockpit-metric-preview{height:18px}.forecast-ribbon-summary{grid-template-columns:auto minmax(0,1fr) auto}.forecast-ribbon-summary>.cockpit-mini-ribbon{grid-column:1/-1;width:100%;height:25px}.forecast-ribbon-content{padding:8px}.forecast-cockpit-footer{align-items:flex-start;flex-direction:column;gap:2px}.forecast-presentation-grid{grid-template-columns:1fr!important}}
 @media(max-width:420px){.forecast-cockpit-header>span{display:none}.forecast-cockpit-tabs>button>svg{display:none}.forecast-cockpit-tabs b{font-size:9px}.forecast-cockpit-tabs small{font-size:6.8px}.cockpit-short-chart{min-width:600px}.cockpit-focus-card>strong{font-size:15px}.cockpit-day{min-width:78px;padding-inline:6px}.cockpit-phase-line>span{padding-inline:4px}.cockpit-phase-line small{display:none}.cockpit-ensemble-chart{min-width:560px}.cockpit-fourteen-day{overflow-x:auto}.cockpit-fourteen-day>.cockpit-brief,.cockpit-fourteen-day>.cockpit-metric-tabs,.cockpit-fourteen-day>.cockpit-scenarios{position:sticky;left:0;width:calc(100vw - 54px)}.forecast-ribbon-summary{padding:8px}.forecast-ribbon-summary small{font-size:7px}}
 @media(prefers-reduced-motion:reduce){.forecast-cockpit-tabs>button,.cockpit-day{transition:none}}
 
@@ -6888,7 +6886,7 @@ html[data-mid-density="comfortable"]{
 }
 @media(max-width:430px){
  .event-workspace-nav button>small{display:none}.event-workspace-nav button{min-height:36px;text-align:center}.event-workspace-nav button>span{font-size:9px}
- .event-center-actions{grid-template-columns:auto minmax(0,1fr) auto auto!important}.event-center-actions>.event-app-info{display:none}.event-center-actions>.secondary{min-width:32px}.event-center-actions>.secondary{font-size:0}.event-center-actions>.secondary svg{margin:0}.event-center-sort select{font-size:9px}
+ .event-center-actions{grid-template-columns:auto minmax(0,1fr) auto auto!important}.event-center-actions>.event-app-info{display:none}.event-center-actions>.secondary{min-width:32px;font-size:0;}.event-center-actions>.secondary svg{margin:0}.event-center-sort select{font-size:9px}
  .event-selected-destination.compact{grid-template-columns:14px minmax(0,1fr)}.event-location-actions{grid-column:1/-1;padding-left:23px}.event-location-actions .secondary:first-child{flex:1;justify-content:center}.travel-location-search.compact{grid-template-columns:1fr}.travel-location-search.compact>.secondary{width:100%}.travel-location-search.compact input{font-size:16px}.event-location-search-panel .travel-search-results{grid-template-columns:1fr;max-height:min(42dvh,320px)}
  .event-form-grid.compact{grid-template-columns:repeat(3,minmax(0,1fr))}.event-form-grid.compact .event-title-field{grid-column:1/-1}.event-form-grid.compact input{font-size:10.5px}.event-editor-head>div>strong{font-size:11px}.event-plan-actions.compact{grid-template-columns:1fr}.event-plan-actions.compact .travel-analyse{width:100%!important}.event-auto-update-note{justify-content:center}
  .event-guide-tags{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.event-guide-pill{justify-content:center}.event-guide-pill:last-child{grid-column:1/-1}.event-guide-topbar{display:grid}.event-guide-status-wrap{justify-items:start}.event-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.event-metrics-grid strong{font-size:14px}.event-metrics-grid span{font-size:8px}.event-guide-quickstats span{width:auto!important;justify-content:flex-start!important}.event-flight-hazard-grid{grid-template-columns:1fr}
@@ -8823,8 +8821,8 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  .navigation-bottom-tabs .compact-actions .header-install-button span{display:none!important}
  .navigation-bottom-tabs .settings-header>.header-favorites{margin-top:1px;padding-top:4px;gap:4px}
  .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles{gap:4px}
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:30px;padding-top:3px;padding-bottom:3px}
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:30px;height:30px;flex-basis:30px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:44px;padding-top:3px;padding-bottom:3px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:44px;height:44px;flex-basis:44px}
  .navigation-bottom-tabs .place{padding-top:12px;padding-bottom:10px;gap:10px}
  .navigation-bottom-tabs .place h1{font-size:clamp(27px,8vw,35px)}
  .navigation-bottom-tabs .place p{margin-top:4px;font-size:10px;line-height:1.35}
@@ -9895,16 +9893,16 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 
 /* MID v0.9.84.65 · optionales Bottom-Tab-Layout behält dieselben Mindestbediengrößen wie der Standardkopf */
 .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{
- min-height:36px;
+ min-height:44px;
  padding-top:5px;
  padding-bottom:5px;
 }
 .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{
- width:36px;
- min-width:36px;
- height:36px;
- min-height:36px;
- flex-basis:36px;
+ width:44px;
+ min-width:44px;
+ height:44px;
+ min-height:44px;
+ flex-basis:44px;
 }
 .header-favorites .favorite-bubbles>button .favorite-quick-grip{
  width:16px;
@@ -9915,8 +9913,8 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
  grid-template-columns:16px auto auto;
 }
 @media(pointer:coarse){
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:40px}
- .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:40px;min-width:40px;height:40px;min-height:40px;flex-basis:40px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{min-height:44px}
+ .navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{width:44px;min-width:44px;height:44px;min-height:44px;flex-basis:44px}
  .header-favorites .favorite-bubbles>button .favorite-quick-grip{width:20px;min-width:20px;min-height:36px}
  .header-favorites .favorite-bubbles>button{grid-template-columns:20px auto auto}
 }

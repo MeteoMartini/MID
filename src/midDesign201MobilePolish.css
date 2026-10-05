@@ -21,12 +21,12 @@
  html[data-mid-design='next'] .top.settings-header .compact-actions{gap:4px!important}
  html[data-mid-design='next'] .top.settings-header .compact-actions>button,
  html[data-mid-design='next'] .top.settings-header .compact-actions>.pwa-install-button{
-  width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;border-radius:13px!important
+  width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;border-radius:13px!important
  }
  html[data-mid-design='next'] .top.settings-header .search{grid-template-columns:minmax(0,1fr) 40px!important;gap:5px!important}
  html[data-mid-design='next'] .top.settings-header .search-input-shell,
  html[data-mid-design='next'] .top.settings-header .secondary.locate{min-height:40px!important;border-radius:13px!important}
- html[data-mid-design='next'] .top.settings-header .secondary.locate{width:40px!important;min-width:40px!important}
+ html[data-mid-design='next'] .top.settings-header .secondary.locate{width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important}
 
  html[data-mid-design='next'] .header-favorites{
   gap:5px!important;
@@ -36,13 +36,13 @@
  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
   min-width:0!important;
   max-width:188px!important;
-  min-height:38px!important;
+  min-height:44px!important;
   padding:5px 8px!important;
   border-radius:13px!important;
  }
  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>span:not(.favorite-quick-grip){font-size:10px!important}
  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>small{font-size:7.5px!important}
- html[data-mid-design='next'] .header-favorites .favorite-strip-manage{width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important;border-radius:12px!important}
+ html[data-mid-design='next'] .header-favorites .favorite-strip-manage{width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;border-radius:12px!important}
 
  html[data-mid-design='next'] .mid-page-grid>.place{
   gap:8px!important;

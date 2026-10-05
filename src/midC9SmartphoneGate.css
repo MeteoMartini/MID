@@ -51,8 +51,8 @@
  }
  html[data-mid-design='next'] .settings-header>.header-favorites .favorite-strip-manage{
   flex:0 0 32px!important;
-  width:32px!important;
-  min-width:32px!important;
+  width:44px!important;
+  min-width:44px!important;
  }
 
  /* Reserve the real floating-navigation footprint including the iOS safe area. */

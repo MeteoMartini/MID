@@ -35,7 +35,8 @@ import {WeatherTwinSettings as WeatherTwinSettingsPanel} from './WeatherTwinSett
 import {VentilationAssistantPanel} from './VentilationAssistantPanel';
 import {fetchConnectedStation,readConnectedStationConfig,type ConnectedStationObservation} from './connectedStation';
 import {readVentilationAssistantSettings,ventilationPushConfig,type VentilationAssistantSettings} from './ventilationAssistant';
-import {AppleWidgetSettings} from './AppleWidgetSettings';
+const LazyAppleWidgetSettings=lazy(()=>import('./AppleWidgetSettings').then(module=>({default:module.AppleWidgetSettings})));
+function AppleWidgetSettings(props:Parameters<typeof import('./AppleWidgetSettings').AppleWidgetSettings>[0]){return <Suspense fallback={<span role="status">Widget-Einstellungen werden geladen …</span>}><LazyAppleWidgetSettings {...props}/></Suspense>}
 import {applyLocalTwinForecastFromReport,applyLocalTwinHours,buildForecastVerificationReport,ensembleConfidenceCalibrationFromReport,readWeatherTwinSettings,recordForecastCapture,recordLiveTwinObservation,refreshForecastReferences,restoreForecastVerificationArchive,writeWeatherTwinSettings,type ForecastVerificationReport,type TwinMainForecastStatus,type WeatherTwinSettings} from './forecastVerification';
 import {classifyEuropeanAirQuality,describeEuropeanAqiPollutantScale,EUROPEAN_AQI_BANDS,stationClassLabel,type AirQualityStationMeta,type EuropeanAqiPollutantResult,type EuropeanAirQualityResult} from './airQuality';
 import {learnWeatherTwinsForFavorites} from './twinBackgroundLearning';
@@ -52,7 +53,9 @@ import {analysedCloudOktas,hyperlocalSkyCondition,skyConditionFromOktas} from '.
 import {classifyVisibilityPhenomenon,parseReportedVisibilityPhenomenon} from './visibilityPhenomena';
 import {parseObservedPresentWeather} from './observationPresentWeather';
 import {WeatherPictogram,synopticPhenomenonDescription,synopticPhenomenonPictogram,weatherPictogramKind} from './WeatherPictogram';
-import {DashboardModuleSettingsPanel,type DashboardModuleSettingsUpdater} from './DashboardModuleSettings';
+import type {DashboardModuleSettingsUpdater} from './DashboardModuleSettings';
+const LazyDashboardModuleSettingsPanel=lazy(()=>import('./DashboardModuleSettings').then(module=>({default:module.DashboardModuleSettingsPanel})));
+function DashboardModuleSettingsPanel(props:Parameters<typeof import('./DashboardModuleSettings').DashboardModuleSettingsPanel>[0]){return <Suspense fallback={<span role="status">Ansichtseinstellungen werden geladen …</span>}><LazyDashboardModuleSettingsPanel {...props}/></Suspense>}
 import {DASHBOARD_MODULE_DEFINITIONS,readDashboardModuleSettings,writeDashboardModuleSettings,type DashboardModuleId,type DashboardModuleSettings} from './dashboardModules';
 import {saveMapWorkspaceView} from './mapWorkspaceState';
 import {consumeDeviceSyncTransferFromLocation} from './deviceSync';

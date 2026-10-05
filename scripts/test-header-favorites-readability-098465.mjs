@@ -20,7 +20,7 @@ assert.ok(legacy.includes(legacyMarker),'Suchergebnis-Badge-Korrektur fehlt in v
 
 for(const token of [
  '.search .search-input-shell>button{\n width:36px;',
- '.header-favorites .favorite-bubbles>button{\n min-height:40px;',
+ '.header-favorites .favorite-bubbles>button{\n min-height:44px;',
  '.header-favorites .favorite-bubbles>button small{font-size:var(--mid-text-micro);line-height:1.15}',
  '.header-favorites .favorite-bubbles>button b{font-size:var(--mid-text-micro);line-height:1.1}',
  '.favorite-group>small{font-size:var(--mid-text-micro);line-height:1.15}',
@@ -28,10 +28,10 @@ for(const token of [
  '.favorite-mountain-toggle small{font-size:var(--mid-text-xs);line-height:1.35}'
 ])assert.ok(foundation.includes(token),`Kopf-/Favoriten-Lesbarkeit fehlt: ${token}`);
 
-assert.ok(modern.includes('.navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{\n min-height:36px;'),'Bottom-Tab-Favoriten dürfen nicht auf 30 px Bedienhöhe zurückfallen.');
-assert.ok(modern.includes('.navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{\n width:36px;'),'Bottom-Tab-Verwaltung benötigt mindestens 36 px Bedienfläche.');
+assert.ok(modern.includes('.navigation-bottom-tabs .settings-header>.header-favorites .favorite-bubbles>button{\n min-height:44px;'),'Bottom-Tab-Favoriten dürfen nicht auf 30 px Bedienhöhe zurückfallen.');
+assert.ok(modern.includes('.navigation-bottom-tabs .settings-header>.header-favorites .favorite-strip-manage{\n width:44px;'),'Bottom-Tab-Verwaltung benötigt mindestens 44 px Bedienfläche.');
 assert.ok(b2.includes('.favorite-quick-grip{display:none!important}'),'B.2 muss historische Favoriten-Griffe in der Schnellleiste final ausblenden.');
-assert.ok(b2.includes('min-height:34px!important')&&b2.includes('overflow:hidden!important')&&b2.includes('text-overflow:ellipsis!important'),'B.2 muss die kompakte einzeilige Favoritenleiste absichern.');
+assert.ok(b2.includes('min-height:44px!important')&&b2.includes('overflow:hidden!important')&&b2.includes('text-overflow:ellipsis!important'),'B.2 muss die kompakte einzeilige Favoritenleiste absichern.');
 assert.ok(foundation.includes('@media(pointer:coarse){\n .search .search-input-shell>button{width:40px;'),'Suchfeldaktion benötigt auf Touchgeräten 40 px Trefferfläche.');
 assert.ok(legacy.includes('.search .poi-kind{\n font-size:var(--mid-text-micro);'),'POI-/Favoriten-Badges dürfen nicht auf 8 px zurückfallen.');
 

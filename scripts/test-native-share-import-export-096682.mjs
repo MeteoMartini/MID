@@ -9,7 +9,7 @@ const[adapter,backup,backupUi,app,pkgRaw,baselineRaw,statusRaw,roadmap,implement
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),status=JSON.parse(statusRaw),test='scripts/test-native-share-import-export-096682.mjs';
 
 assert.ok(versionAtLeast(pkg.version,'0.9.68.2'));
-assert.equal(pkg.dependencies?.['@capacitor/share'],'8.0.1');
+assert.equal(pkg.dependencies?.['@capacitor/share'],'8.0.2');
 assert.equal(pkg.dependencies?.['@capacitor/filesystem'],'8.1.3');
 assert.equal(pkg.scripts?.['test:native-share-import-export'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);

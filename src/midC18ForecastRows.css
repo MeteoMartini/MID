@@ -64,13 +64,11 @@ html[data-mid-design='next'] .cockpit-seven-grid>.cockpit-day.mid-forecast-row:l
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-date{grid-area:date!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-weather-pair{grid-area:icon!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-regime{grid-area:regime!important}
-html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps{grid-area:temps!important}
-html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps{
+html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps{grid-area:temps!important;
  width:max-content;
  padding:3px;
  border:1px solid var(--c8-line);
- border-radius:999px;
-}
+ border-radius:999px;}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-skybar{grid-area:sky!important;width:100%!important;min-width:0!important;margin:0!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temp-track{grid-area:track!important;width:100%!important;min-width:0!important;margin:0!important}
 html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-rain{grid-area:rain!important;justify-self:start!important}

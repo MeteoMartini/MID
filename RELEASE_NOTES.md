@@ -1,6 +1,6 @@
-# MID v0.9.85.168
+# MID v0.9.85.169
 
-- Veröffentlichungen werden schneller, ohne Prüfungen auszulassen: sicher als read-only erkannte Regressionen können parallel laufen, risikobehaftete Prüfungen bleiben seriell.
-- Unnötige vollständige Git-Historien werden im normalen Releasepfad vermieden; bei einem parallelen main-Update wird weiterhin automatisch auf die vollständige Race-Prüfung eskaliert.
-- Das Pages-Paket wird bereits während der Worker-Prüfung vorbereitet, aber weiterhin erst nach erfolgreichem Worker-Gate veröffentlicht.
-- Die Stable-Freigabe bleibt ein verifizierter Fast-Forward ohne Force-Update und prüft den finalen SHA weiterhin ausdrücklich.
+- Häufige Kopfzeilen- und Favoritenaktionen auf kleinen Displays sind leichter zu treffen.
+- Optionale Ansichtseinstellungen und Apple-Widget-Einstellungen laden erst beim Öffnen.
+- Redundante Stilblöcke und eine ungenutzte temporäre iOS-Datei entfernt.
+- Kompatible kleinere Updates für die iOS-Anbindung und den HDF5-Datenleser.

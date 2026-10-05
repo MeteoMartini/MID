@@ -10,7 +10,7 @@ html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
   grid-template-rows:1fr!important;
   min-width:0!important;
   max-width:none!important;
-  min-height:34px!important;
+  min-height:44px!important;
   padding:5px 8px!important;
   column-gap:5px!important;
   row-gap:0!important;
@@ -48,10 +48,10 @@ html[data-mid-design='next'] .header-favorites .favorite-profile-icons{
   margin:0!important;
 }
 html[data-mid-design='next'] .header-favorites .favorite-strip-manage{
-  width:36px!important;
-  min-width:36px!important;
-  height:36px!important;
-  min-height:36px!important;
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
   border-radius:11px!important;
 }
 html[data-mid-design='next'] .favorite-quick-grip{display:none!important}
@@ -272,7 +272,7 @@ html[data-mid-design='next'] #current-weather-metrics>.sun-moon-card{
 /* Mobile: Temperatur/Wetterzustand zuerst; Kernparameter kompakt in 2×2. */
 @media(max-width:700px){
   html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
-    min-height:32px!important;
+    min-height:44px!important;
     padding:4px 7px!important;
   }
   html[data-mid-design='next'] .header-favorites .favorite-bubbles>button>span{

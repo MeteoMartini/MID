@@ -807,8 +807,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
   .weather-twin-model-badge{max-width:50vw;font-size:6.8px}
 }
 @media(max-width:480px){
-  .weather-twin-model-badge{max-width:42vw}
-  .weather-twin-model-badge{font-size:0}
+  .weather-twin-model-badge{max-width:42vw;font-size:0;}
   .weather-twin-model-badge:after{content:"Lokaler Modellmix";font-size:7px}
 }
 
@@ -1417,8 +1416,7 @@ button,input,select,[role="button"]{touch-action:manipulation}
 .mountain-seven-day-heading>small{color:var(--muted);font-size:9px;text-align:right}
 .mountain-seven-day-list{display:grid;gap:7px}
 .mountain-seven-day-row{display:grid;gap:0;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
-.mountain-seven-day-row.open{border-color:color-mix(in srgb,var(--primary) 38%,var(--border))}
-.mountain-seven-day-row.open{background:color-mix(in srgb,var(--primary) 3%,var(--surface))}
+.mountain-seven-day-row.open{border-color:color-mix(in srgb,var(--primary) 38%,var(--border));background:color-mix(in srgb,var(--primary) 3%,var(--surface));}
 .mountain-day-toggle{display:grid;grid-template-columns:minmax(80px,1.05fr) 38px minmax(92px,1fr) minmax(105px,1.05fr) minmax(142px,1.4fr) minmax(88px,.9fr) minmax(70px,.72fr) 24px;align-items:center;gap:8px;width:100%;min-height:68px;padding:9px 10px;border:0;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer}
 .mountain-day-toggle:disabled{cursor:default;opacity:.72}
 .mountain-day-toggle:not(:disabled):hover{background:color-mix(in srgb,var(--primary) 4%,transparent)}

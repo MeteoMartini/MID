@@ -35,7 +35,7 @@ html[data-mid-design='next'] .header-favorites .favorite-bubbles{
  box-shadow:none!important;
 }
 html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
- min-height:34px!important;
+ min-height:44px!important;
  border:0!important;
  border-radius:10px!important;
  background:transparent!important;
@@ -125,7 +125,7 @@ html[data-mid-design='next'] .header-favorites .favorite-strip-manage{
   --mid18-mobile-nav-reserve:136px;
  }
  html[data-mid-design='next'] .header-favorites .favorite-bubbles>button{
-  min-height:33px!important;
+  min-height:44px!important;
   padding-inline:8px!important;
  }
  html[data-mid-design='next'] .water-tides>div>article{
