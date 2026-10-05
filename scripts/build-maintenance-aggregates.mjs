@@ -1,8 +1,12 @@
 import {readFile,writeFile} from 'node:fs/promises';
+import {loadCssCascade,consolidateCssCascade,renderConsolidatedCss} from './lib/cssCascade.mjs';
 const root=new URL('../',import.meta.url);
 const concat=async(paths)=>{const parts=await Promise.all(paths.map(path=>readFile(new URL(path,root),'utf8')));return parts.join('')};
 const styles=await concat(['src/styles-src/00-foundation.css','src/styles-src/10-features.css','src/styles-src/20-ensemble-composite.css','src/styles-src/25-extreme-outlook.css','src/styles-src/30-modern.css']);
 await writeFile(new URL('src/styles.css',root),styles);
+const presentationSources=loadCssCascade(root),redundantCss=consolidateCssCascade(presentationSources);
+await writeFile(new URL('src/midPresentation.css',root),renderConsolidatedCss(presentationSources));
+console.log(`Presentation CSS: ${presentationSources.length} ordered sources; ${redundantCss.length} earlier identical declarations consolidated.`);
 const weather=await concat(['src/weather-src/00-types-models-search.tsfrag','src/weather-src/10-observations-specialized.tsfrag','src/weather-src/20-mapping-day-character.tsfrag','src/weather-src/30-ensemble-climate-hazards.tsfrag']);
 await writeFile(new URL('src/weather.ts',root),weather);
 const extremeOutlookSource=await readFile(new URL('worker-src/25-dach-extreme-outlook.js',root),'utf8');

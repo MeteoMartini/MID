@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.169",
+  "version": "0.9.85.170",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -522,7 +522,9 @@
     "test:health-settings-primary-navigation": "node scripts/test-health-settings-primary-navigation-0985130.mjs",
     "test:weekly-uncertainty-trend": "node scripts/test-weekly-uncertainty-trend-0985144.mjs",
     "test:extreme-outlook-extended-resilience": "node scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
-    "test:regression-parallel-execution": "node scripts/test-regression-parallel-execution-0985168.mjs"
+    "test:regression-parallel-execution": "node scripts/test-regression-parallel-execution-0985168.mjs",
+    "test:module-css-consolidation": "node scripts/test-module-css-consolidation-0985170.mjs",
+    "check:css-consolidation": "node scripts/consolidate-css.mjs --check"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
@@ -553,7 +555,8 @@
     "esbuild": "0.28.2",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "8.2.2"
+    "vite": "8.2.2",
+    "postcss": "8.5.28"
   },
   "packageManager": "npm@10.9.2",
   "engines": {

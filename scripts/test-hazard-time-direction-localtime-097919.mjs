@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -6,7 +7,7 @@ const [warnings,weatherFragment,weather,cockpit,app,timeDisplay,settingsTest,pkg
   readFile('src/weather-src/30-ensemble-climate-hazards.tsfrag','utf8'),
   readFile('src/weather.ts','utf8'),
   readFile('src/ForecastCockpit.tsx','utf8'),
-  readFile('src/App.tsx','utf8'),
+  readAppFeatureSources(),
   readFile('src/timeDisplay.ts','utf8'),
   readFile('scripts/test-settings-navigation-polish-097917.mjs','utf8'),
   readFile('package.json','utf8'),

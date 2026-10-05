@@ -1,7 +1,8 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const app=fs.readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=readAppFeatureSources();
 const cockpit=fs.readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
 const helper=fs.readFileSync(new URL('../src/widgetImageExport.ts',import.meta.url),'utf8');
 

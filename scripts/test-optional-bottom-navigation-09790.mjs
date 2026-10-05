@@ -1,7 +1,8 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const [app,styles,bottomPolish,main,portable,radarColors,baseline]=await Promise.all([
- readFile('src/App.tsx','utf8'),readFile('src/styles.css','utf8'),readFile('src/midC18BottomFavorites.css','utf8'),readFile('src/main.tsx','utf8'),readFile('src/portableUserData.ts','utf8'),readFile('src/radarColorTables.ts','utf8'),readFile('MID_BASELINE.json','utf8')
+ readFile('src/App.tsx','utf8'),readFile('src/styles.css','utf8'),readFile('src/midC18BottomFavorites.css','utf8'),readPresentationEntrySources(),readFile('src/portableUserData.ts','utf8'),readFile('src/radarColorTables.ts','utf8'),readFile('MID_BASELINE.json','utf8')
 ]);
 for(const token of [
  "const navigationMode:NavigationMode='bottom-tabs';","document.documentElement.dataset.midDesign='next'","localStorage.removeItem('mid:designMode:v1')","localStorage.removeItem('mid:navigationMode:v1')",'data-navigation-mode={navigationMode}',

@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import ts from 'typescript-strada';
+import {execFileSync} from 'node:child_process';
+import {activeCssSources,loadCssCascade,consolidateCssCascade,cssCascadeFingerprint,renderConsolidatedCss,parseCssOutput} from './lib/cssCascade.mjs';
+const root=new URL('../',import.meta.url),read=file=>readFileSync(new URL(file,root),'utf8');
+const baseline=JSON.parse(read('scripts/fixtures/module-css-baseline-0985170.json'));
+function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}
+const files=new Map;
+for(const item of baseline.declarations){if(!files.has(item.file))files.set(item.file,declarations(item.file));const source=files.get(item.file).get(item.name);assert.ok(source,`Extracted implementation missing: ${item.name}`);assert.equal(createHash('sha256').update(source).digest('hex'),item.sha256,`${item.name}: refactor changed the .169 implementation`);}
+const app=read('src/App.tsx');
+for(const name of ['MountainWeather','WidgetGenerator'])assert.ok(app.includes(`lazy(()=>import('./${name}')`),`${name} must load on demand`);
+assert.ok(!app.includes('function mountainZoneAssessments('),'Mountain implementation must be outside App');
+assert.ok(!app.includes('function storedWidgetSettings('),'Widget implementation must be outside App');
+for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/App['"]\)/.test(read(file)),`${file}: forbidden reverse dependency into App`);
+assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
+assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
+assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
+assert.deepEqual(activeCssSources(root),baseline.cssSources,'Established stylesheet precedence changed');
+const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
+assert.equal(removed.length,baseline.removedIdenticalCssDeclarations);
+assert.equal(cssCascadeFingerprint(entries),baseline.cssCascadeSha256,'Canonical CSS cascade diverged from .169');
+const output=read('src/midPresentation.css');
+assert.equal(output,renderConsolidatedCss(entries),'Generated CSS does not match canonical ordered sources');
+assert.equal(cssCascadeFingerprint(parseCssOutput(output)),baseline.cssCascadeSha256,'Published stylesheet changed CSS semantics/order');
+const main=read('src/main.tsx'),eager=[...main.matchAll(/^import '\.\/(.*\.css)';/gm)].map(m=>m[1]);
+assert.deepEqual(eager,['midPresentation.css'],'Eager CSS must have one consolidated entry');
+assert.ok(!read('src/v078.ts').includes("import './v078.css'"),'Legacy CSS must not load a second time');
+console.log(`Module/CSS consolidation: ${baseline.declarations.length} byte-identical extracted declarations, ${removed.length} covered CSS duplicates, order-sensitive .169 cascade equality.`);
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-module-css-browser-0985170.mjs'],{cwd:root,stdio:'inherit',timeout:360000});

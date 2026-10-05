@@ -1,9 +1,10 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [app,cockpit,styles,main,pkgRaw,baselineRaw]=await Promise.all([
- read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/midC18ResponsiveCorrections.css'),read('src/main.tsx'),read('package.json'),read('MID_BASELINE.json')
+ read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/midC18ResponsiveCorrections.css'),readPresentationEntrySources(),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 const testPath='scripts/test-mid-18-2-5-ui-fixes-098585.mjs';

@@ -1,10 +1,12 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
 const [skybar,precipitation,renderer,app,cockpit,styles,polish,axisFix,favoriteLogoSquares,currentMoreTrend,footerRhythm,unifiedThread,main,midDesign,temperatureTone,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/midC18CurrentMoreTrendPolish.css'),read('src/midC18FooterRhythmAudit.css'),read('src/midC18UnifiedThreadTimeline.css'),read('src/main.tsx'),read('src/MidDesign.tsx'),read('src/temperatureTone.ts'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
+ read('src/detailSkyBar.ts'),read('src/precipitation.ts'),read('src/SkyBarSegments.tsx'),readAppFeatureSources(),read('src/ForecastCockpit.tsx'),read('src/styles-src/30-modern.css'),read('src/midC18NowcastSkybarPolish.css'),read('src/midC18AxisLayoutFix.css'),read('src/midC18FavoriteLogoSkySquaresFix.css'),read('src/midC18CurrentMoreTrendPolish.css'),read('src/midC18FooterRhythmAudit.css'),read('src/midC18UnifiedThreadTimeline.css'),readPresentationEntrySources(),read('src/MidDesign.tsx'),read('src/temperatureTone.ts'),read('MID_24H_PROFILE_STORY_AXIS_CONTRACT.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-four-thickness-appwide-09799.mjs';
 

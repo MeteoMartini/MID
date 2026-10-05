@@ -1,6 +1,6 @@
-# MID v0.9.85.169
+# MID v0.9.85.170
 
-- Häufige Kopfzeilen- und Favoritenaktionen auf kleinen Displays sind leichter zu treffen.
-- Optionale Ansichtseinstellungen und Apple-Widget-Einstellungen laden erst beim Öffnen.
-- Redundante Stilblöcke und eine ungenutzte temporäre iOS-Datei entfernt.
-- Kompatible kleinere Updates für die iOS-Anbindung und den HDF5-Datenleser.
+- Bergwetter und Widget-/PNG-Generator laden erst beim Öffnen der jeweiligen Ansicht.
+- Gemeinsame Wetterdarstellung, Einstellungen und PNG-Ausgabe bleiben über alle Ansichten hinweg erhalten.
+- Globale Styles werden aus einer geordneten Quelle konsolidiert geladen; redundante Deklarationen entfallen aus der Laufzeitausgabe.
+- Startpaket und Stylesheet verkleinert, ohne Wetterparameter oder Bedienfunktionen zu entfernen.

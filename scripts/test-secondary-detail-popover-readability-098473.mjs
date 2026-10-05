@@ -1,15 +1,17 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const app=await read('src/App.tsx');
+const app=await readAppFeatureSources();
 const features=await read('src/styles-src/10-features.css');
 const ensemble=await read('src/styles-src/20-ensemble-composite.css');
 const modern=await read('src/styles-src/30-modern.css');
 const legacy=await read('src/v078.css');
 const styles=await read('src/styles.css');
 const nowcastSkybar=await read('src/midC18NowcastSkybarPolish.css');
-const main=await read('src/main.tsx');
+const main=await readPresentationEntrySources();
 const pkg=JSON.parse(await read('package.json'));
 const baseline=JSON.parse(await read('MID_BASELINE.json'));
 

@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -5,7 +6,7 @@ const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const [cockpit,layout,main]=await Promise.all([
  read('src/ForecastCockpit.tsx'),
  read('src/midC18FourteenReplitFluidGrid.css'),
- read('src/main.tsx')
+ readPresentationEntrySources()
 ]);
 
 const need=(name,text,token)=>assert.ok(text.includes(token),name+': '+token);

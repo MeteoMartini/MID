@@ -1,9 +1,10 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const [app,main,css]=await Promise.all([
  readFile('src/App.tsx','utf8'),
- readFile('src/main.tsx','utf8'),
+ readPresentationEntrySources(),
  readFile('src/midDesign201MobileQa.css','utf8')
 ]);
 

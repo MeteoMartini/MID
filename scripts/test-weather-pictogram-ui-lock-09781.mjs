@@ -1,8 +1,9 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
 const [pictogram,features,app,cockpit,periodVisual,ensemble,shortTerm,event,travel,route,water,contract,pkgRaw,baselineRaw]=await Promise.all([
- read('src/WeatherPictogram.tsx'),read('src/styles-src/10-features.css'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/periodWeatherVisual.ts'),read('src/EnsemblePanel.tsx'),read('src/ShortTermForecast.tsx'),read('src/EventPlannerPanel.tsx'),read('src/TravelPlannerPanel.tsx'),read('src/RouteWeatherPanel.tsx'),read('src/WaterSportsPanel.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('package.json'),read('MID_BASELINE.json')
+ read('src/WeatherPictogram.tsx'),read('src/styles-src/10-features.css'),readAppFeatureSources(),read('src/ForecastCockpit.tsx'),read('src/periodWeatherVisual.ts'),read('src/EnsemblePanel.tsx'),read('src/ShortTermForecast.tsx'),read('src/EventPlannerPanel.tsx'),read('src/TravelPlannerPanel.tsx'),read('src/RouteWeatherPanel.tsx'),read('src/WaterSportsPanel.tsx'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-weather-pictogram-ui-lock-09781.mjs';
 assert.ok(pictogram.includes('compact=false,plain=true,phenomenon,intensity'), 'WeatherPictogram muss standalone/plain als Default rendern.');
@@ -17,7 +18,8 @@ assert.ok(!pictogram.includes('<CloudShape form={form}'), 'Diagnostische Wolkenh
 assert.ok(periodVisual.includes("function displayCode(hour:Hour){return precipitationParts(hour).displayCode}"),'Zusammengefasste Forecast-Piktogramme müssen zentral die kanonische Niederschlagsphase verwenden.');
 assert.ok(periodVisual.includes('options.preferFallbackCode?fallbackCode:dominantPeriodCode(pool)'),'Der fachlich bereits aggregierte Tagescharakter muss für Tagespiktogramme autoritativ nutzbar sein.');
 assert.ok(periodVisual.includes('precipitationDominant=active.length>=Math.max(2,Math.ceil(pool.length*.25))'),'Nacht-/Periodenpiktogramme dürfen nicht nach einem einzelnen ungünstigen Stundenwert gewählt werden.');
-assert.ok(app.includes("import {periodWeatherVisual,type PeriodWeatherVisual} from './periodWeatherVisual'"),'Klassische Forecast-Darstellungen müssen den zentralen Perioden-Piktogrammvertrag verwenden.');
+assert.match(app,/import \{periodWeatherVisual\} from '\.\/periodWeatherVisual'/,'Klassische Forecast-Darstellungen müssen den zentralen Perioden-Piktogrammvertrag verwenden.');
+assert.match(app,/import \{type PeriodWeatherVisual\} from '\.\/periodWeatherVisual'/,'Gemeinsame Forecast-Renderer müssen den zentralen Perioden-Datentyp verwenden.');
 assert.ok(cockpit.includes("import {periodWeatherVisual} from './periodWeatherVisual'"),'Cockpit-Darstellungen müssen den zentralen Perioden-Piktogrammvertrag verwenden.');
 for(const source of [app,cockpit]){
  assert.ok(source.includes('{preferFallbackCode:true}'),'Tagespiktogramm muss mit dem bereits aus dem Tagesverlauf abgeleiteten Tagescharakter synchronisiert werden.');

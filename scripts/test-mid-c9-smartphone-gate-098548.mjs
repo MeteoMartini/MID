@@ -1,12 +1,14 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const [app,forecastCockpit,css,polish,main,pkgRaw,baselineRaw]=await Promise.all([
- readFile('src/App.tsx','utf8'),
+ readAppFeatureSources(),
  readFile('src/ForecastCockpit.tsx','utf8'),
  readFile('src/midC9SmartphoneGate.css','utf8'),
  readFile('src/midC18HierarchyPolish.css','utf8'),
- readFile('src/main.tsx','utf8'),
+ readPresentationEntrySources(),
  readFile('package.json','utf8'),
  readFile('MID_BASELINE.json','utf8')
 ]);

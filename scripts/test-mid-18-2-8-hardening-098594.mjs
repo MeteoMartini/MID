@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import fs from 'node:fs';
 
 const read=path=>fs.readFileSync(path,'utf8');
@@ -6,7 +7,7 @@ const fetcher=read('tools/ruc/fetch_and_build_ruc.py');
 const builder=read('tools/ruc/build_ruc_bundle.py');
 const fusion=read('src/forecastFusion.ts');
 const detail=read('src/detailThunderRisk.ts');
-const app=read('src/App.tsx');
+const app=readAppFeatureSources();
 const short=read('src/ShortTermForecast.tsx');
 const cockpit=read('src/ForecastCockpit.tsx');
 const pictogram=read('src/WeatherPictogram.tsx');

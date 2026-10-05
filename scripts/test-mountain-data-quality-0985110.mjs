@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -5,7 +6,7 @@ const root=new URL('../',import.meta.url);
 const [pkgRaw,mountain,app,contract]=await Promise.all([
  readFile(new URL('package.json',root),'utf8'),
  readFile(new URL('src/mountainSports.ts',root),'utf8'),
- readFile(new URL('src/App.tsx',root),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('MID_MOUNTAIN_DATA_QUALITY_0.9.85.110.md',root),'utf8')
 ]);
 const pkg=JSON.parse(pkgRaw);

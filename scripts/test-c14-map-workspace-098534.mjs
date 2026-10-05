@@ -12,7 +12,9 @@ const [index,weatherMaps,styles,radar,app,pkg,publicChangelog]=await Promise.all
 ]);
 const releaseVersion=String(JSON.parse(pkg).version||'');
 
-assert.ok(index.includes('<link rel="stylesheet" href="/src/midC14MapWorkspace.css">'),'C14 muss sein Karten-Layout global laden, damit Komposit und Wetterkarten denselben Arbeitsraum nutzen.');
+const presentationOrder=JSON.parse(await readFile(new URL('../src/styles-src/presentation-order.json',import.meta.url),'utf8'));
+assert.ok(presentationOrder.sources.includes('src/midC14MapWorkspace.css'),'C14 muss sein Karten-Layout global über die konsolidierte Kaskade laden.');
+assert.ok(!index.includes('<link rel="stylesheet" href="/src/midC14MapWorkspace.css">'),'C14 darf nicht zusätzlich vor der gemeinsamen Kaskade geladen werden.');
 for(const token of [
  'className="weather-maps-panel c14-map-workspace"',
  'className="weather-maps-primary-controls"',

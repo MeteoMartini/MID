@@ -1,0 +1,661 @@
+{
+  "schema": 1,
+  "baselineCommit": "9b917ed7054903df6da983ed79fe20561af45ab9",
+  "baselineVersion": "0.9.85.169",
+  "cssCascadeSha256": "d6ac5656ee252a9ec45a4883828007e32945047b2da455e837376dd64afaa7c2",
+  "cssSources": [
+    "src/styles-src/00-foundation.css",
+    "src/styles-src/10-features.css",
+    "src/styles-src/20-ensemble-composite.css",
+    "src/styles-src/25-extreme-outlook.css",
+    "src/styles-src/30-modern.css",
+    "src/midNext.css",
+    "src/midDesign.css",
+    "src/v078.css",
+    "src/midHighContrast.css",
+    "src/midPollen.css",
+    "src/midDataQuality.css",
+    "src/midC7Redesign.css",
+    "src/midC7Composition.css",
+    "src/midC8VisibleRedesign.css",
+    "src/midC10CurrentRedesign.css",
+    "src/midC11TodayRedesign.css",
+    "src/midC12ForecastRedesign.css",
+    "src/midC13MobileDensity.css",
+    "src/midC13MobileTouch.css",
+    "src/midC14MapWorkspace.css",
+    "src/midC14ViewportFixes.css",
+    "src/midC15TodayDensity.css",
+    "src/midC16TodayProfileFix.css",
+    "src/midC17DwdLocationFix.css",
+    "src/midC18ResponsivePolish.css",
+    "src/midC19WorkspacePolish.css",
+    "src/midDesign201Current.css",
+    "src/midDesign201Today.css",
+    "src/midDesign201MobilePolish.css",
+    "src/midDesign201MobileQa.css",
+    "src/midDesign201CurrentCritical.css",
+    "src/midC9SmartphoneGate.css",
+    "src/midC18HierarchyRedesign.css",
+    "src/midC18HierarchyPolish.css",
+    "src/midC18TypographyReadability.css",
+    "src/midC18SecondarySurfaceRefinement.css",
+    "src/midC18ShellMobileFinish.css",
+    "src/midC18NowcastSkybarPolish.css",
+    "src/midC18AxisLayoutFix.css",
+    "src/midC18FavoriteLogoSkySquaresFix.css",
+    "src/midC18CurrentMoreTrendPolish.css",
+    "src/midC18FooterRhythmAudit.css",
+    "src/midC18UnifiedThreadTimeline.css",
+    "src/midC18InteractionCurrentPolish.css",
+    "src/midC18ForecastMapShellPolish.css",
+    "src/midC18EnsembleInteractionPolish.css",
+    "src/midC18SecondaryWorkspaceFinish.css",
+    "src/midC18TodayReleaseFinish.css",
+    "src/midC18EnsembleSynopticPolish.css",
+    "src/midC18ReplitHandoffPolish.css",
+    "src/midC18WarningTimeline.css",
+    "src/midC18BottomFavorites.css",
+    "src/midC18B2CurrentAtmosphere.css",
+    "src/midC18TodayProfile.css",
+    "src/midC18ForecastRows.css",
+    "src/midC18MapFirstWorkspace.css",
+    "src/midC18ResponsiveCorrections.css",
+    "src/midC18WorkPackageG.css",
+    "src/midC18WorkPackageH.css",
+    "src/midC18WorkPackageI.css",
+    "src/midC18I7ResponsiveFixes.css",
+    "src/midC18FourteenReplitFluidGrid.css",
+    "src/midC18MountainResponsiveFix.css",
+    "src/midC18MapAndSevenDayAlignment.css",
+    "src/midC18AuditFollowup.css"
+  ],
+  "removedIdenticalCssDeclarations": 1122,
+  "declarations": [
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "metricNumber",
+      "sha256": "03cef6f2dc7115c216b94a5dbc28374d95ae9a218d293b32a5ac3b301905e0ed"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "windChill",
+      "sha256": "83207e074b5776b720e0222de658e74c6863b3e9e968242ee251de6bb2bccfce"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "cloudBase",
+      "sha256": "36ecd000f0b7b60e1b86f73990b5c8a5fb86a41aedc64e3da9c00cec38411a5d"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "localMinutesBefore",
+      "sha256": "e0fa913d6201df907363a6dfea7c297e59ed67d1d87137130814fbf54f87e9c3"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainPrecipitationParts",
+      "sha256": "6923e73da8e12d0efd73c30b00710047a624570118764110506133e34f44e02b"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainAvalancheUrl",
+      "sha256": "9f58d454668485d7167a6638ef70d3f4543596f6c42fa1a392233551cdd2cf3d"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSnowMeasurementTitle",
+      "sha256": "a16aa3c647419b073ee0ecd893e36abfd9b815228cf63cea103d8fe584c87112"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainProfileCaption",
+      "sha256": "d90f395f86c60cd6063585eab15323164ac5b55017c116244a7f2346922de4db"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainNewSnowLabel",
+      "sha256": "15c383fa93c4830a7f1fa96e11379544a23ac8295179bcaf8ef05ce523d3331c"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainZoneRow",
+      "sha256": "010b74203354505afd06c2fe7f7560814d7eba26fd3202f20c912e49a392132e"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainZoneAssessment",
+      "sha256": "f4ed0be8de53fd41e373621854d49723a6b5faa654da546c7e57097b75a826e4"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainDaylightWindow",
+      "sha256": "204213d6b5922b99f57f10b4fe07d03d9731820fa242f498dfea24a71463ff70"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainHourlyValue",
+      "sha256": "5ed86163a624679e8debba56b59fc0af5e712e1907c4f20b8f6ac2a90a063755"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainHourlyPrecipitationValue",
+      "sha256": "f58484f338ddf5ac7c633f9d3e256a4f256af3a5cd492bcef5b447847391f6ac"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainHourlyDryWeatherCode",
+      "sha256": "402c9957c82cce54f82fcb778a5b967df84b1f452c6c9f58a4f76a8ae69d8046"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainHourlyPresentationParts",
+      "sha256": "3cba4d0e670859ec48ab2d892ed2b8954e5cc65a4a7488f306aefbe58073e42e"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainThunderRisk",
+      "sha256": "c312e768b46babb80a57b6214c8f71edabe19dbe6a72105665d53fcdc3e22eed"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainLevelThunderRisk",
+      "sha256": "1db2dffb6d313f93d9c07f4f333bf2f8a260ecd731ee568b264a7b2268b6f290"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainThunderRisk",
+      "sha256": "bae97b8075528125553fc841580d96d597cda830ae8613fbc9e1f3c527b659ba"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainCloudLayerAssessment",
+      "sha256": "65baa0a56ac64e744589fdf09971df1489773cef554e3d189aa9a2f8963334aa"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainVisibilityAssessment",
+      "sha256": "f7c003e0ee7328adbe48c1ff4e4879eb5ec04ba8629908ab1e54aacbcd90dd74"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainCloudLayerAssessment",
+      "sha256": "0ee5ae7f30029b61ab3d723ba50627069531625ee687bf57e4af9da1bb0ed987"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainVisibilityAssessment",
+      "sha256": "023ed52c57a510fdb5ea404f8633fb42fdb1457035d920e5f94d92ba9643619e"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainPrecipitationClass",
+      "sha256": "a13356fe9d5d46e67d1ac9a7ec5723dc3e5bd8fcccfff372c900e8423f0ce728"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainZoneBounds",
+      "sha256": "90cfcd1331081d356d1a788b1397b1dd4257310b8a0c89cd01226b1be1fc7619"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainAssessmentRating",
+      "sha256": "4b6f92d1bd58412fbb140cfe04d30609757ebd39c87ed5048088c325f1792045"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSnowQuality",
+      "sha256": "c6df27af4a3a006e332901c7da677c5ae5bf4ac84e8d76a99098fb4f00cabb55"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "contiguousMountainWindow",
+      "sha256": "a7c3ae1a0f766ee443e9785df3129a3deaf03577582c662bdf776badbb7d295a"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainLocalEpoch",
+      "sha256": "378a5596f75057b41315fd3bc46a3b2949c589b77a239d979330d52dfb84ac57"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainDaylightWindow",
+      "sha256": "1303cd9730178347bad219c143069443d9265e4ade342d00d514917c313dfebe"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainHourlyThunderRisk",
+      "sha256": "fb939159832da43b46516ec3ac1ee5ad3809c72ce6c9a686449526f713d5d456"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainRapidThunderRisk",
+      "sha256": "cb8bf0ec4b7bacf07ab3915aea97be0bb483a2fb23685b2f882793b28a48f539"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainCombinedThunderSignalScore",
+      "sha256": "a4e1813c772a2363b1ef7789e0062e4496a6619c12e02613a1993337a8936a96"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainConvectivePenalty",
+      "sha256": "f8ce3e022a07f39dd3f5f561f584fae623fe2168cad09a3d2efb5eb9c9809448"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainRapidLabel",
+      "sha256": "d3fef2d983977517d8e773db65481fd4f2d1b0110f476bba498eb3383b85b186"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainZoneAssessments",
+      "sha256": "07ce9fee82a872be205feebee086debd7d9d167dec7feb0e385cef1fe8497551"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainZoneLabel",
+      "sha256": "f0862b9e2445c73408d00d4f9658f1f730d09e326bb391b7f850d5f5c91cf383"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainTransitionReason",
+      "sha256": "aa3a1be054da3b8dff7e3490c4c3871cd174501ced953403f3e48201d4c0f379"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainDaySegments",
+      "sha256": "15ae884a988c9e756169330e1d102a6e61d76e64acc8ba6691589a9bc36ac0ab"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainClock",
+      "sha256": "acb7cec9b18b086f707ccfc4806f0c7b71f4e73924ee74e982a55e0a7064e57e"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainZoneAnalysis",
+      "sha256": "fd8167944642ccfe77fc2061811460b341793b6c637c3dca037aa66f007924de"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainSnowLineHorizon",
+      "sha256": "a274dc7aa26f6a6e4452cfaa30aa6c7b2435944200e3442140c7bb87a0ad7148"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainSnowLineDisplayPoint",
+      "sha256": "52f459bfec2cc19c3ec65cf6278ef71bb7af7b4a9ff4e1d480f7e030b09793e8"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSvgLine",
+      "sha256": "ff0cf3935195e3edbdaa93dee0e6e10bf145e277f05d3b9c119c0da12f4c653d"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSvgBand",
+      "sha256": "7c76c3da77526965ea1b10d9fce32345894a45ea1f1016e1d7d68aee16ba758c"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSnowZonePath",
+      "sha256": "38801b6b7725e59d8f501d2f65ad1355b6ec1e1ab83d1c742a75e41ef0538192"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainRainZonePath",
+      "sha256": "e3f879f9b142e7e684608f3867b8e0f4443e4fb29943a12c8699f524b6a534df"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainSnowLinePrecipSignal",
+      "sha256": "082239ef378833cfe87d59918cf574c540cc8b40b684a16ad53e154e18b9a0af"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainLocalDateKey",
+      "sha256": "b26a461cfeeeac4d98c11d21ffd3bcdae21adbdebf61a4d321ebbb5852c30912"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainLocalHour",
+      "sha256": "f04ca86e7dbb5ab64d7e48ff66d46148bf585676874fdf01713e6f67fe24600c"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSnowLinePrecipSignal",
+      "sha256": "eb587c12a3bc0ce56e7a777ed1cd8dcb822fd1118945cc04d9df50876502464a"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainSnowLinePrecipPeriods",
+      "sha256": "4c52b856580c714a94c517e265303d26bdb496498246782f81acc9aab33885e9"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainSnowLineTrend",
+      "sha256": "5a3a30737c363f5a5b3d5ce6ec1a6c985136acaff3d9ca13ae8d7762c6ea61ed"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainEnrichmentStatuses",
+      "sha256": "e2f6f8efca04a2e9a51d2f3ee7988b260d1bef5952d9c114ae4bfca56134aa95"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainEnrichmentDisclosure",
+      "sha256": "711bee879566f358010f4cde01d349ad1beac62a966f60d49a1697d3f064df27"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainMethodologyDisclosure",
+      "sha256": "b72ebd46fd33e050865015371ff4401fb56d4b7060705d312ade35f81a78c0a7"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainSki",
+      "sha256": "17f07d327f138c675c2f5a6071bd7430e754fc50cc54678d3d09547018881211"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainWinterGuidance",
+      "sha256": "d5b298b169e0151161279ece3f34f8cf869b02336fc9ffa9542d6790b3cf9cbf"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainRapidDataNotice",
+      "sha256": "a0638aa9ca9b4b01b1f579c02197d84b3e073969a5269ccafeeb7d29b0b8534b"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainForecastPeriod",
+      "sha256": "dad673199687c04ad0540f67d41af398908d30e4d8786693e11ce78df37287b2"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainForecastDay",
+      "sha256": "5baaae827759182c405b0db694b91f3cd49b805e01c5254f6650ef4525d52266"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastHourlyValue",
+      "sha256": "5a1f216642857402714b80d0f6fef8b36144be9001d5efd826a5f16890bfead9"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastImpact",
+      "sha256": "b72e6d2996e34d2fde7986b65c91671150c78f94b63207000fbe3478c5df7004"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastHasWeatherSignal",
+      "sha256": "21df820abcc4a0313c4d52b11cf32eb055b4e7fcca8931ddbecde18c237db012"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastHasHourlyData",
+      "sha256": "7e3326384095ec607e6482b7eb02f8ec288de17ed3f4786a3a23577cd1a99495"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastPeriods",
+      "sha256": "f392817234bd41f5b5babcdb750f68d3a1e453eb79d17ade58e0a17ad82c288f"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastDay",
+      "sha256": "8726a24901c09f5441e554870fc3695c94577ee127ed1a5ea92e7884198ac40d"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainForecastDateKeys",
+      "sha256": "e732e12208bc744574a7a37f62a53511512decdcb4f5e01040c77cf6a4a8c5b3"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainForecastLoading",
+      "sha256": "b725a14d671b5a9788537ec814e8cdf31780ff28b25ef1c1c7b9eaaae87eff3b"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainHourlyForecastHour",
+      "sha256": "08e9f472fec8a8ff4e326c37568e8887b661b40cbca8037e3f5b55dc839da423"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "mountainHourlyForecastHours",
+      "sha256": "71bad377d795a3228eb656bfd09dbaf3d2be6f7ac915655451f8a2f494996e8e"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainHourlyForecast",
+      "sha256": "b6d893c78eb86e63c23cd8037ed1037412b39436cfb89da1832b50094de56dbc"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainForecastOverview",
+      "sha256": "7fc62fec5e13ccde00906635cddaafc5d5352f8daff108dac63ea8aed6f982b6"
+    },
+    {
+      "file": "src/MountainWeather.tsx",
+      "name": "MountainForecastDayRow",
+      "sha256": "58b78eefc11383c335402f88397175fccb78199150f6dc130ae06c74ba7f9ed5"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "WidgetDayCount",
+      "sha256": "b427fcd65ec307a32246c7c564dd7ca8fc29092b4b2d1c9113d1115e56758eba"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "WidgetView",
+      "sha256": "fbdce98fd16fdf2c3dca9a979cad50646d51540a17d75f1b78761f9eb562e07d"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "WidgetStoredSettings",
+      "sha256": "7dfbfc92cad8ccf70a8e8f73073fe7db3ce2f37d0c032a941b07830122ab8a73"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "WIDGET_SETTINGS_STORAGE_KEY",
+      "sha256": "5cd3ccfa432711f0b6e565a0fdaf25beeea3513bfc5e4b3fbd263f7bda5e1b99"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "WIDGET_DAY_OPTIONS",
+      "sha256": "5cd3ccfa432711f0b6e565a0fdaf25beeea3513bfc5e4b3fbd263f7bda5e1b99"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "storedWidgetSettings",
+      "sha256": "da93753f2134e1e66dc63c946d01fe66f6ce71d366e642ae6c2bd953479b0a04"
+    },
+    {
+      "file": "src/WidgetGenerator.tsx",
+      "name": "Widget",
+      "sha256": "30e46a991ea0408db8367e4a9d28c350301639e24bb6df67d33aeb881662536c"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "SkybarDisplayMode",
+      "sha256": "072d0ae9b31d08a193f87b57901b5e41150fd876171754b4e15a29d6ed660d48"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "dateOnlyUtc",
+      "sha256": "9c7767cc21b00dfc72239309d642a54261a4fc1395881eee8a3956f92ddb2f73"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "formatDateOnly",
+      "sha256": "b11ad7a0f9643365c13a3cce572cb94a13d1389b0d7bcd188f97534ead6a2d7a"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "formatRawInZone",
+      "sha256": "9bd607f5f60ecb8751bbadff30ecd35259942b8d733309c801118f940dfd0179"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "formatInZone",
+      "sha256": "87257095a06f1f235d17488d7b93ba325f64bcabb53450822702c601499e237e"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "localDateInZone",
+      "sha256": "80bf98ea02bfb7feb5f82b9c4cade3b1da5eb786960af513a06da575e7e886b1"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "visibilityLabel",
+      "sha256": "34c9c7295e9b463fcb10c4ec1578f307e4960246bc4135b337d63628592683d4"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "hazardValidityLabel",
+      "sha256": "443e36b4e03b7685e81f718f91c11ccce41144e4d5923c7f6bff488ab8b41148"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "warningKindFromText",
+      "sha256": "9e13269ff55651d2831914280591e1e0478b66a9262557f8349245dba1010932"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "officialAlertKind",
+      "sha256": "0488371b30921589b03ac4b24fdcec59fd68cc6228562020a3e408ca51e54b30"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "uniqueNumbers",
+      "sha256": "6316b90dc0a38d78a9495ca8f7d0476688cc655f0bd7aa9f824e9e199808d505"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "officialAlertMetric",
+      "sha256": "6319e9cd31b46137049542e937f17365fdc45b6b9fed0e0a3440fcd0be6aadd1"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "AutomaticHazard",
+      "sha256": "e33cc45b4afb55ffdd0274622c8a0cf753cd1605ff34665ffae7a06de9374bc7"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "AutomaticHazardLevel",
+      "sha256": "7c670d3cc96d268fcb54c15484c09c3467cbbf0ad21fa0e39d72a43d46414dcc"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "AUTOMATIC_HAZARD_LEVEL_RANK",
+      "sha256": "a29a8976e4a9a725c781152f16772061e6b5b820aafdcc485d6e367d57de7679"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "alertTime",
+      "sha256": "5f3fc82b73d733b8ec29d43524408ee0a341ed389e26301576ad0de1d1f6abf5"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "officialAlertValidity",
+      "sha256": "b387b81a874aecbbcf299112c8009dbf21b6b1fa8ec89ebf71fc06b67333d2e4"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "officialAlertIsRelevant",
+      "sha256": "0ea4d7a62daa46e5fcfaa12912bce9262bc1b065cb79ff52265196283c845fa8"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "automaticHazardIsRelevant",
+      "sha256": "e3d0c344054392715d97081d288546a269db9257b07040c15ec721c9213d34bd"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "HazardBadgeLevel",
+      "sha256": "f67cbc5ef690bb5ffbf6d065c09bf1abb9c953b2e106cbbcad0d63b585116e3d"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "KMH_PER_KT",
+      "sha256": "6bdd63696cf9721740850a6d77f3e6581e9aad22571148937de1f4fee181fcff"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "hazardLevelClass",
+      "sha256": "d13357c354a07abb28f1ca50e37da65ef6e665d4f31a8f613ed848493424246f"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "dailyHazards",
+      "sha256": "94761f0c8768ce5dd367a416890a8d3e4f374c0c141f881f35540f0ef63fcb89"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "DailyHazardBadge",
+      "sha256": "9815e5a3b5005b6e8857087d76f87f4e1193078cff51308eba47aa68e9713a5b"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "highestDailyHazardsByKind",
+      "sha256": "66aa0021411fa6fafd48580499c341fa22f1a08e2c1341aa1c58f18c09e94181"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "strongestDailyHazards",
+      "sha256": "b77796a1d07fa7af60c1345c82703ac6ed2e66d80afda7488b0d9e4adc317acd"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "automaticHazardSymbol",
+      "sha256": "ce46e17a0d309c782f3d79d070136d12752e999aeeb98fd6e704482a31de30ca"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "automaticHazardOverlapsDay",
+      "sha256": "8ac57bf6caaca70ec84d3d6676cf66a8d0f3d9f8a7e5afdf51eec8a26d98f50f"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "widgetAutomaticHazardsForDay",
+      "sha256": "af9961010d8de4ad88acb12cafa9b039464754c684494fe5a6f634668df63112"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "normalizeDegrees",
+      "sha256": "712b8ee0d57e4176bba4fd07f03f383db990ec949e4ef7b34e842ac25aa4a819"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "windToDegrees",
+      "sha256": "738cbfac8a62187c81a6d5b82d06cb53e8d89403a17f9134bebdac6b26115e4f"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "windDirectionDescription",
+      "sha256": "bfe421b8a0feffe42b0408fc7b8088b0cb971198dcecd9550729f00e1fd4e45c"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "windDirectionWarningLevel",
+      "sha256": "e7fedca9c0c7042f08eded7e0eb05595ce27452c8af06a3285f80cf372da270c"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "WindDirectionArrow",
+      "sha256": "354c627da11b32416e5390becf365656bbe078d12107c032ccf2d8a8cf171f9c"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "WeatherPeriodIcons",
+      "sha256": "72cc96c6f045bafc1884b74b64257666194b5602123e1a7efd20f00f8c05ea0a"
+    },
+    {
+      "file": "src/ForecastDisplayPrimitives.tsx",
+      "name": "Title",
+      "sha256": "d71682de9317b051ef61375ca98cb86948127ee357beefa12b29a059ba46b4c8"
+    }
+  ]
+}

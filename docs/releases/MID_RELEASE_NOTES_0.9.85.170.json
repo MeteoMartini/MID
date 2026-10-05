@@ -1,0 +1,20 @@
+{
+  "version": "0.9.85.170",
+  "date": "2026-10-05",
+  "title": "Widget/Bergwetter und CSS-Konsolidierung",
+  "external": [
+    "Bergwetter und Widget-/PNG-Generator laden erst beim Öffnen der jeweiligen Ansicht.",
+    "Gemeinsame Wetterdarstellung, Einstellungen und PNG-Ausgabe bleiben über alle Ansichten hinweg erhalten.",
+    "Globale Styles werden aus einer geordneten Quelle konsolidiert geladen; redundante Deklarationen entfallen aus der Laufzeitausgabe.",
+    "Startpaket und Stylesheet verkleinert, ohne Wetterparameter oder Bedienfunktionen zu entfernen."
+  ],
+  "internal": [
+    "Basis main = mid-stable = 9b917ed7054903df6da983ed79fe20561af45ab9 (.169).",
+    "74 Bergwetter-, 7 Widget- und 36 gemeinsame Darstellungsdeklarationen aus App.tsx ausgelagert; 117 Definitionen byteidentisch zur .169-Basis.",
+    "Lokale Suspense-Adapter und typisierte Props; Memo-, Standort-, Abbruch-, Persistenz- und Widget-URL-Verträge bleiben bestehen.",
+    "65 geordnete CSS-Quellen mit rekursiv aufgelöstem Import werden zu einer globalen Ausgabe. 1122 frühere identische Deklarationen konsolidiert; Selektoren, Werte, Importance, Bedingungen und Kaskadenreihenfolge erhalten.",
+    "Statische Feature- und CSS-Ladereihenfolgetests lesen die kanonischen Modul-/Manifestquellen; fachliche Assertions bleiben erhalten. Neue Integritäts-, Lazy- und Browserprüfungen ergänzen die Suite.",
+    "PostCSS 8.5.28 als bereits vorhandene Vite-Parser-Version direkt und exakt für den Aggregate-Builder deklariert; keine Laufzeit- oder Framework-Upgrades.",
+    "App-/Wetterkern als unverändert eager geladenes index-Bundle; WidgetGenerator und MountainWeather bleiben separate Lazy-Chunks. Haupt-JS-Budget zählt nun sämtliche index-Chunks, Grenzen unverändert."
+  ]
+}

@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -7,7 +8,7 @@ const [app,weather,weatherSource,css,main,worker,pkgRaw,baselineRaw]=await Promi
  read('src/weather.ts'),
  read('src/weather-src/00-types-models-search.tsfrag'),
  read('src/midC18WarningTimeline.css'),
- read('src/main.tsx'),
+ readPresentationEntrySources(),
  read('worker-src/00-core-observations.js'),
  read('package.json'),
  read('MID_BASELINE.json')

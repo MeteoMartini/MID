@@ -61,3 +61,7 @@ Für v0.9.85.95 gilt: keine package.json-only-Aktualisierung und kein manuell er
 ## Wartungsfreigabe 05.10.2026 · v0.9.85.169
 
 Capacitor Core/iOS/CLI 8.5.2, Share 8.0.2 und jsfive 0.4.2 sind gemeinsam mit Lockfile und nativen Referenzen geprüft. Die früher gelistete Capacitor-Patch-Empfehlung ist damit umgesetzt. Framework-/Karten-Major- und größere Minorupdates bleiben eigenständige Prüfvorhaben. Produktionsaudit: 0 bekannte Befunde; drei moderate Dev-/iOS-Werkzeugbefunde bleiben upstream, ohne inkompatible Overrides.
+
+## v0.9.85.170 · CSS-Aggregate-Parser
+
+PostCSS 8.5.28 (bereits transitiv durch Vite vorhanden) wird direkt und exakt als Entwicklungsabhängigkeit für die auditierte CSS-Kaskadenkonsolidierung deklariert. Keine Änderung an Produktionsabhängigkeiten oder Framework-Versionen.

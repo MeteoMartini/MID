@@ -1,7 +1,8 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=await readAppFeatureSources();
 const css=await readFile(new URL('../src/styles.css',import.meta.url),'utf8');
 
 assert.doesNotMatch(app,/function MountainForecastMatrix\b/,'Der abgelöste Höhenvergleich darf nicht als tote sichtbare UI-Komponente erhalten bleiben.');

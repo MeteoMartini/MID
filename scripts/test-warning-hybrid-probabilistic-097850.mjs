@@ -1,6 +1,7 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import fs from 'node:fs';
 
-const app = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const app = readAppFeatureSources();
 const weather = fs.readFileSync(new URL('../src/weather.ts', import.meta.url), 'utf8');
 
 const assert = (condition, message) => {

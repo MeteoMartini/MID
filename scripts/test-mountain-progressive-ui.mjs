@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -6,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(file)=>readFile(path.join(root,file),'utf8');
 const [app,mountain,forecast,fluidGrid,styles]=await Promise.all([
- read('src/App.tsx'),
+ readAppFeatureSources(),
  read('src/mountainSports.ts'),
  read('src/ForecastCockpit.tsx'),
  read('src/midC18FourteenReplitFluidGrid.css'),

@@ -1,10 +1,11 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
 const [pictogram,precipitation,app,meteogram,travelPanel,travel,periodVisual,cockpit,route,event,water,shortTerm,phaseColor,standard,radarPhase,thunderRisk,eventEngine,flightBriefing,ensemble,pkgRaw,baselineRaw]=await Promise.all([
- read('src/WeatherPictogram.tsx'),read('src/precipitation.ts'),read('src/App.tsx'),read('src/MeteogramPanel.tsx'),read('src/TravelPlannerPanel.tsx'),read('src/travelPlanner.ts'),read('src/periodWeatherVisual.ts'),read('src/ForecastCockpit.tsx'),read('src/routeWeather.ts'),read('src/EventPlannerPanel.tsx'),read('src/WaterSportsPanel.tsx'),read('src/ShortTermForecast.tsx'),read('src/precipitationPhaseColor.ts'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('src/RadarModelPrecipTypeOverlay.tsx'),read('src/detailThunderRisk.ts'),read('src/eventWeatherEngine.ts'),read('src/flightRouteBriefing.ts'),read('src/EnsemblePanel.tsx'),read('package.json'),read('MID_BASELINE.json')
+ read('src/WeatherPictogram.tsx'),read('src/precipitation.ts'),readAppFeatureSources(),read('src/MeteogramPanel.tsx'),read('src/TravelPlannerPanel.tsx'),read('src/travelPlanner.ts'),read('src/periodWeatherVisual.ts'),read('src/ForecastCockpit.tsx'),read('src/routeWeather.ts'),read('src/EventPlannerPanel.tsx'),read('src/WaterSportsPanel.tsx'),read('src/ShortTermForecast.tsx'),read('src/precipitationPhaseColor.ts'),read('MID_WEATHER_PICTOGRAM_STANDARD.md'),read('src/RadarModelPrecipTypeOverlay.tsx'),read('src/detailThunderRisk.ts'),read('src/eventWeatherEngine.ts'),read('src/flightRouteBriefing.ts'),read('src/EnsemblePanel.tsx'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-pictogram-intensity-snow-depth-098426.mjs';
 

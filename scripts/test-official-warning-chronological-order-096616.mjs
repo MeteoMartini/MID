@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -8,7 +9,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const require=createRequire(import.meta.url),ts=require('typescript-strada');
 const source=fs.readFileSync(path.join(root,'src','officialWarningOrder.ts'),'utf8');
-const app=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
+const app=readAppFeatureSources();
 const output=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022},fileName:'officialWarningOrder.ts',reportDiagnostics:true});
 const errors=(output.diagnostics??[]).filter(item=>item.category===ts.DiagnosticCategory.Error);
 assert.equal(errors.length,0,errors.map(item=>ts.flattenDiagnosticMessageText(item.messageText,' ')).join('\n'));

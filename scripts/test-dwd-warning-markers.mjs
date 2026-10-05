@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {rm,readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL,fileURLToPath} from 'node:url';
@@ -9,7 +10,7 @@ await rm(outDir,{recursive:true,force:true});
 const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.dwd-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
 const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
-const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
+const app=await readAppFeatureSources();
 const ensemble=await readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const failures=[];

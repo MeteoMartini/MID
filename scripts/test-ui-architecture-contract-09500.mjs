@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile,readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -5,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>readFile(path.join(root,relative),'utf8');
 const [portal,info,app,cockpit,event,styles,contract]=await Promise.all([
- read('src/AppPortalPopover.tsx'),read('src/AppInfoPopover.tsx'),read('src/App.tsx'),read('src/ForecastCockpit.tsx'),read('src/EventPlannerPanel.tsx'),read('src/styles.css'),read('MID_UI_ARCHITECTURE_CONTRACT.md')
+ read('src/AppPortalPopover.tsx'),read('src/AppInfoPopover.tsx'),readAppFeatureSources(),read('src/ForecastCockpit.tsx'),read('src/EventPlannerPanel.tsx'),read('src/styles.css'),read('MID_UI_ARCHITECTURE_CONTRACT.md')
 ]);
 const failures=[];
 for(const token of [

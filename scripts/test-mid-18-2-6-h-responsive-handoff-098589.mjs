@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -7,7 +8,7 @@ const [forecast,meteogram,water,styles,main]=await Promise.all([
   read('src/MeteogramPanel.tsx'),
   read('src/WaterSportsPanel.tsx'),
   read('src/midC18WorkPackageH.css'),
-  read('src/main.tsx'),
+  readPresentationEntrySources(),
 ]);
 
 // 7-Tage-Produktion: echte Tagesbuttons bleiben bedienbar; die Detailfläche wird

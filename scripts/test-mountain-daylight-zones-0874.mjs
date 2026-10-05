@@ -1,5 +1,6 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
-const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=await readAppFeatureSources();
 const failures=[];
 const need=(token,message)=>{if(!app.includes(token))failures.push(message)};
 need('function mountainDaylightWindow(','Tageslichtfenster für die Höhenzonenanalyse fehlt.');

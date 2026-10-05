@@ -29,6 +29,13 @@ export default defineConfig({
               test:chartsVendorPattern,
               priority:10,
             },
+            {
+              // Keep the established eager dashboard/weather core together.
+              // Optional WidgetGenerator/MountainWeather are not part of this group.
+              name:'index',
+              test:/[\\/]src[\\/](?:main|App|weather|ForecastDisplayPrimitives)\.tsx?$/,
+              priority:5,
+            },
           ],
         },
       },

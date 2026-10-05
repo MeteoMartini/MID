@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -5,7 +6,7 @@ const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [app,midDesign,main,css,rucFetch,rucBuild,fusion,shortTerm,audit]=await Promise.all([
  read('src/App.tsx'),
  read('src/MidDesign.tsx'),
- read('src/main.tsx'),
+ readPresentationEntrySources(),
  read('src/midC18InteractionCurrentPolish.css'),
  read('tools/ruc/fetch_and_build_ruc.py'),
  read('tools/ruc/build_ruc_bundle.py'),

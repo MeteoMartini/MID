@@ -1,6 +1,7 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
-const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const app=readAppFeatureSources();
 const weather=readFileSync(new URL('../src/weather.ts',import.meta.url),'utf8');
 const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 assert.match(app,/title="Berg-\/Wintersport"/,'Bergmodul muss auf „Berg-/Wintersport“ umbenannt sein');

@@ -1,10 +1,11 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
 const [app,ensemble,climate,cockpit,foundation,pkgText,baselineText]=await Promise.all([
- read('src/App.tsx'),
+ readAppFeatureSources(),
  read('src/EnsemblePanel.tsx'),
  read('src/ClimatePanel.tsx'),
  read('src/ForecastCockpit.tsx'),

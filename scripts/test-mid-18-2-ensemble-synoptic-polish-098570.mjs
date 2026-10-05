@@ -1,3 +1,4 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -6,7 +7,7 @@ const [ensemble,radar,css,main,pkgRaw,baselineRaw]=await Promise.all([
  read('src/EnsemblePanel.tsx'),
  read('src/RadarPanel.tsx'),
  read('src/midC18EnsembleSynopticPolish.css'),
- read('src/main.tsx'),
+ readPresentationEntrySources(),
  read('package.json'),
  read('MID_BASELINE.json')
 ]);

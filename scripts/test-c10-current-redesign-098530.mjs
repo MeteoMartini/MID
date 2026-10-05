@@ -1,10 +1,12 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const [main,styles,app]=await Promise.all([
- readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
+ readPresentationEntrySources(),
  readFile(new URL('../src/midC10CurrentRedesign.css',import.meta.url),'utf8'),
- readFile(new URL('../src/App.tsx',import.meta.url),'utf8')
+ readAppFeatureSources()
 ]);
 
 assert.ok(main.includes("import './midC8VisibleRedesign.css';\nimport './midC10CurrentRedesign.css';"),'C10 muss nach der C8-Kompositionsschicht geladen werden.');

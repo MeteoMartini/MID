@@ -1,9 +1,10 @@
+import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const [app,main,styles,hierarchy,pkg]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
- readFile(new URL('../src/main.tsx',import.meta.url),'utf8'),
+ readPresentationEntrySources(),
  readFile(new URL('../src/midC7Redesign.css',import.meta.url),'utf8'),
  readFile(new URL('../src/midC18HierarchyRedesign.css',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8')

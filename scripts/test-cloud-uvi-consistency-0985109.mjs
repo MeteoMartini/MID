@@ -1,10 +1,11 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const [pkgRaw,app,conditions,weather,climate,forecast,pictogram,intervals,fusion,shortTerm,eventEngine,routeWeather,waterWeather,periodVisual,eventInterval]=await Promise.all([
  readFile(new URL('package.json',root),'utf8'),
- readFile(new URL('src/App.tsx',root),'utf8'),
+ readAppFeatureSources(),
  readFile(new URL('src/currentConditions.ts',root),'utf8'),
  readFile(new URL('src/weather.ts',root),'utf8'),
  readFile(new URL('src/ClimatePanel.tsx',root),'utf8'),

@@ -1,3 +1,6 @@
+## v0.9.85.170 · Widget/Bergwetter und gemeinsame CSS-Kaskade
+Basis main = mid-stable = 9b917ed7054903df6da983ed79fe20561af45ab9 (.169). Die Fach-, Karten-, Persistenz- und Exportverträge bleiben erhalten. Details: docs/implementation/MID_MODULE_CSS_0.9.85.170.md. Veröffentlichung ausschließlich durch Source-/Installer-Gates.
+
 ## v0.9.85.169 · Wartung und Touch-Bedienung
 Basis main = mid-stable = 9fc04b670047ebe00f61ef4e6e376e4a69972b55 (.168). Releasebeschleunigung und Fach-, Karten- und Exportverträge bleiben bestehen. Details: docs/implementation/MID_MAINTENANCE_0.9.85.169.md. Veröffentlichung ausschließlich durch Source-/Installer-Gates.
 

@@ -1,3 +1,4 @@
+import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -10,7 +11,7 @@ import {inlineUtciRegressionStub} from './utci-regression-helper.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const formatSource=fs.readFileSync(path.join(root,'src','format.ts'),'utf8');
 const fusionSource=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
-const appSource=fs.readFileSync(path.join(root,'src','App.tsx'),'utf8');
+const appSource=readAppFeatureSources();
 const waterSource=fs.readFileSync(path.join(root,'src','WaterSportsPanel.tsx'),'utf8');
 
 assert.ok(formatSource.includes('export function formatUvi(value:number)'), 'zentrale ganzzahlige UVI-Formatierung fehlt');
