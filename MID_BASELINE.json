@@ -2613,7 +2613,7 @@
     "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/regression-execution.mjs",
     "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
-    "MID_RELEASE_NOTES_0.9.85.168.json"
+    "docs/releases/MID_RELEASE_NOTES_0.9.85.168.json"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
