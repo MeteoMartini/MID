@@ -133,8 +133,7 @@ export async function pullDeviceSync(config=readDeviceSyncConfig(),apply=true){
   if(!reply.blob||!reply.updatedAt)return{found:false,applied:false};
   const snapshot=await decryptSnapshot(reply.blob,config.syncKey),remoteTime=Date.parse(reply.updatedAt||snapshot.updatedAt),latestConfig=readDeviceSyncConfig(),localPending=Date.parse(latestConfig.pendingChangedAt||config.pendingChangedAt||''),lastSync=Date.parse(latestConfig.lastSyncAt||config.lastSyncAt||'');
   if(Number.isFinite(localPending)&&localPending>Math.max(lastSync||0,remoteTime||0)){
-   const favoritesMerged=mergeRemoteFavoriteStateIntoLocal(snapshot);
-   await pushDeviceSync(latestConfig);
+   const favoritesMerged=mergeRemoteFavoriteStateIntoLocal(snapshot);await pushDeviceSync(latestConfig);
    if(favoritesMerged)try{window.dispatchEvent(new CustomEvent('mid:device-sync-applied',{detail:{updatedAt:reply.updatedAt,favoritesMerged:true}}))}catch{}
    return{found:true,applied:favoritesMerged};
   }

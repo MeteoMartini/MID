@@ -55,7 +55,7 @@ import {DashboardModuleSettingsPanel,type DashboardModuleSettingsUpdater} from '
 import {DASHBOARD_MODULE_DEFINITIONS,readDashboardModuleSettings,writeDashboardModuleSettings,type DashboardModuleId,type DashboardModuleSettings} from './dashboardModules';
 import {saveMapWorkspaceView} from './mapWorkspaceState';
 import {consumeDeviceSyncTransferFromLocation} from './deviceSync';
-import {commitForecastDisplaySettings,FORECAST_DISPLAY_SETTINGS_KEY} from './forecastDisplaySettings';
+import {commitForecastDisplaySettings} from './forecastDisplaySettings';
 import {SevenDayForecastSummary,buildSevenDayForecastSummary} from './SevenDayForecastSummary';
 import {dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 import {detailSkyBarHourCells,detailSkyBarSegments} from './detailSkyBar';
@@ -120,6 +120,7 @@ const LAYOUT_MODE_STORAGE_KEY='mid:layoutMode';
 const STANDARD_LAYOUT_INITIALIZED_KEY='mid:standardLayoutInitialized';
 const MODEL_CHANGE_SETTINGS_KEY='mid:modelChangeSettings';
 const RADAR_DISPLAY_SETTINGS_KEY='mid:radarDisplaySettings';
+const FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings';
 const LOCAL_HAZARD_DISPLAY_SETTINGS_KEY='mid:localHazardDisplaySettings';
 const POLLEN_DISPLAY_SETTINGS_KEY='mid:pollenDisplaySettings';
 const FAVORITE_STRIP_MODE_KEY='mid:favorite-strip-mode:v1';
