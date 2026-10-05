@@ -8,12 +8,13 @@ The downloader is deliberately fail-safe:
 - publish nothing here; CI uploads immutable objects and latest.json separately/last.
 """
 from __future__ import annotations
-import argparse,bz2,concurrent.futures,html.parser,os,random,re,shutil,subprocess,sys,time
+import argparse,concurrent.futures,html.parser,os,random,re,shutil,subprocess,sys,time
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
 import requests
 from native_cadence import is_native_at
+from grib_stream import open_grib_stream
 
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
@@ -146,8 +147,7 @@ def download_one(url,target):
 
 def grib_valid_times(path):
  from eccodes import codes_grib_new_from_file,codes_get,codes_release
- opener=bz2.open if path.suffix=='.bz2' else open
- with opener(path,'rb') as f:
+ with open_grib_stream(path) as f:
   while True:
    gid=codes_grib_new_from_file(f)
    if gid is None:break

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Offline regressions: retries, atomic staging and early GRIB coverage."""
+import bz2
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -10,6 +11,41 @@ import fetch_and_build_ruc as fetch
 
 
 class FetchResilience(unittest.TestCase):
+    def test_real_grib_headers_and_builder_with_bzip2(self):
+        from eccodes import codes_grib_new_from_samples, codes_set, codes_get_message, codes_release
+        from build_ruc_bundle import read_messages, read_first_values
+        import numpy as np
+        base = datetime(2026, 10, 5, 18, tzinfo=timezone.utc)
+        payload = bytearray()
+        for hour in range(3):
+            gid = codes_grib_new_from_samples('regular_ll_sfc_grib2')
+            try:
+                codes_set(gid, 'dataDate', 20261005)
+                codes_set(gid, 'dataTime', 1800)
+                codes_set(gid, 'step', hour)
+                payload.extend(codes_get_message(gid))
+            finally:
+                codes_release(gid)
+        expected = [base + timedelta(hours=h) for h in range(3)]
+        with tempfile.TemporaryDirectory() as directory:
+            plain = Path(directory) / 'fixture.grib2'
+            compressed = Path(directory) / 'fixture.grib2.bz2'
+            plain.write_bytes(payload)
+            compressed.write_bytes(bz2.compress(payload))
+            for path in (plain, compressed):
+                self.assertEqual(list(fetch.grib_valid_times(path)), expected)
+                fetch.validate_hourly_coverage([path], '2026-10-05T18:00', 2, 'T_2M')
+                self.assertEqual([row[0] for row in read_messages(path)], expected)
+            np.testing.assert_array_equal(read_first_values(plain), read_first_values(compressed))
+            plain_rows = list(read_messages(plain, ensemble=True))
+            compressed_rows = list(read_messages(compressed, ensemble=True))
+            for left, right in zip(plain_rows, compressed_rows):
+                self.assertEqual(left[:2], right[:2])
+                np.testing.assert_array_equal(left[2], right[2])
+            compressed.write_bytes(bz2.compress(payload)[:-12])
+            with self.assertRaises((EOFError, OSError)):
+                list(fetch.grib_valid_times(compressed))
+
     def test_transient_errors_retry_then_succeed(self):
         operation = Mock(side_effect=[requests.Timeout(), requests.ConnectionError(), 'ok'])
         with patch.object(fetch.time, 'sleep') as sleep:

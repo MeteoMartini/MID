@@ -28,3 +28,8 @@ Versuch 4: Worker inzwischen erfolgreich; Pages-Job wartet auf Runner. Dies best
 Die jüngsten fehlgeschlagenen RUC-Runs 37370145395 (20:30 UTC, Job 111965182799) und 37368066555 (20:10 UTC, Job 111959899141) haben dieselbe GitHub-Annotation: `The job was not acquired by Runner of type hosted even after multiple attempts`. Die Vorbereitung war cancelled, der Publisher skipped; fehlende Joblogs passen zum Nichtstart. Diese beiden Ausfälle dürfen nicht als DWD-Download-/Decoderfehler bezeichnet werden. Lauf 37371180426 startete dagegen und erreichte die DWD-Ingestion. Die Python-Resilienz adressiert die separat beobachteten Netzwerk-/Vollständigkeitsfehler; sie behebt keine Hosted-Runner-Verfügbarkeitsprobleme.
 
 Alle drei Installer-Kopien (kanonisch, aktiv und workflow-patches-Transport) werden gemeinsam aktualisiert. Die volle Regression prüft diese Gleichheit.
+
+## Realer Decoderbefund und Korrektur
+Ein echter ecCodes-Test mit drei gültigen GRIB2-Nachrichten reproduziert beim bzip2-Wrapper `AttributeError: BZ2File object has no attribute mode`. Dies betrifft Header-Vorprüfung, Forecast-/EPS-Bundle-Reader und Koordinatenreader. `grib_stream.open_grib_stream` übergibt ecCodes für bzip2 einen normalen seekbaren temporären Dateihandle; die Dekompression erfolgt in 1-MiB-Blöcken auf Disk, ohne komplette EPS-Dateien im RAM zu halten. Temporäre Dateien werden auch bei Fehlern geschlossen.
+
+Acht Offline-Tests prüfen jetzt zusätzlich echte ecCodes-Nachrichten in GRIB2 und GRIB2.bz2: tatsächliche Gültigkeitszeiten, Builder-Werte, EPS-Lesepfad und Koordinatenreader. Abgeschnittenes bzip2 wird weiterhin verworfen. Diese Tests sind sowohl im Source-PR-Gate vor Auto-Release als auch vor der operativen RUC-Ingestion integriert.

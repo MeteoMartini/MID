@@ -5,12 +5,13 @@ The builder is fail-closed: mixed grids, missing hourly targets, missing EPS mem
 or spatially implausible lookups abort publication before latest.json exists.
 """
 from __future__ import annotations
-import argparse,bz2,concurrent.futures,hashlib,json,math,os,re
+import argparse,concurrent.futures,hashlib,json,math,os,re
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
 from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,RAPID_STATE_15_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
 from native_cadence import is_native_at
+from grib_stream import open_grib_stream
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 SEVERE_PARAM_MAP={'LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
@@ -24,8 +25,7 @@ if is_native_at('CAPE_MU',900) or is_native_at('CIN_MU',900): raise RuntimeError
 def read_messages(path:Path,ensemble=False):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
-    opener=bz2.open if path.suffix=='.bz2' else open
-    with opener(path,'rb') as f:
+    with open_grib_stream(path) as f:
       while True:
         gid=codes_grib_new_from_file(f)
         if gid is None: break
@@ -54,8 +54,7 @@ def decode_file_batch(payload):
 def read_first_values(path:Path):
     try: from eccodes import codes_grib_new_from_file,codes_get_array,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
-    opener=bz2.open if path.suffix=='.bz2' else open
-    with opener(path,'rb') as f:
+    with open_grib_stream(path) as f:
       gid=codes_grib_new_from_file(f)
       if gid is None:raise SystemExit(f'empty coordinate GRIB: {path}')
       try:return np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
