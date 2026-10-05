@@ -1,6 +1,5 @@
-# MID v0.9.85.170
+# MID v0.9.85.172
 
-- Bergwetter und Widget-/PNG-Generator laden erst beim Öffnen der jeweiligen Ansicht.
-- Gemeinsame Wetterdarstellung, Einstellungen und PNG-Ausgabe bleiben über alle Ansichten hinweg erhalten.
-- Globale Styles werden aus einer geordneten Quelle konsolidiert geladen; redundante Deklarationen entfallen aus der Laufzeitausgabe.
-- Startpaket und Stylesheet verkleinert, ohne Wetterparameter oder Bedienfunktionen zu entfernen.
+- Die Wetterdaten-Aufbereitung wiederholt vorübergehende DWD-Verbindungsfehler gezielt und verwirft unvollständige Modellläufe früher.
+- Unterbrochene Downloads können keine unvollständigen Dateien als fertige Daten hinterlassen.
+- Die bereits eingeführten Verbesserungen für Bergwetter, Widgets, Karten und schnellere Freigabeprüfungen bleiben erhalten.

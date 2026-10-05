@@ -16,7 +16,7 @@ assert.ok(!contract.includes('Open a pull request to `main` containing the relea
 assert.ok(!contract.includes('Build the canonical unversioned `MID-professional-replacement.zip`'),'Agent darf das Release-ZIP nicht vor dem Source-PR bauen müssen.');
 assert.ok(workflow.includes('permissions:\n  contents: read'),'PR-Gate muss global read-only bleiben.');
 assert.ok(workflow.includes("startsWith(github.head_ref, 'chatgpt/')")&&workflow.includes("startsWith(github.head_ref, 'codex/')"),'PR-Gate muss auf Agent-Branches begrenzt sein.');
-assert.ok(workflow.includes('npm run verify'),'PR-Gate muss den vollständigen MID-Verifikationspfad ausführen.');
+for(const token of ['source_core:','heavy_regressions:','validate_source:','MID_REGRESSION_SHARD=core','heavy-native-map','heavy-unified-map','heavy-mountain-visual','needs.source_core.result','needs.heavy_regressions.result'])assert.ok(workflow.includes(token),'PR-Gate muss den vollständigen geshardeten MID-Verifikationspfad enthalten: '+token);
 assert.ok(workflow.includes('fetch-depth: 1'),'PR-Gate muss ohne unnötige Vollhistorie prüfen.');
 assert.ok(workflow.includes('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'),'Checkout muss auf vollständige SHA gepinnt sein.');
 assert.ok(workflow.includes('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020'),'Setup-Node muss auf vollständige SHA gepinnt sein.');

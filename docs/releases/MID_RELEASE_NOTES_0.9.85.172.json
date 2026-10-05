@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.172",
+  "date": "2026-10-05",
+  "title": "Konsolidierung und robuste RUC-Aufbereitung",
+  "external": [
+    "- Die Wetterdaten-Aufbereitung wiederholt vorübergehende DWD-Verbindungsfehler gezielt und verwirft unvollständige Modellläufe früher.",
+    "- Unterbrochene Downloads können keine unvollständigen Dateien als fertige Daten hinterlassen.",
+    "- Die bereits eingeführten Verbesserungen für Bergwetter, Widgets, Karten und schnellere Freigabeprüfungen bleiben erhalten."
+  ],
+  "internal": [
+    "Four bounded transient retries; atomic partial cleanup; early GRIB validity coverage; production RUC offline CI step.",
+    "Preserves .170 UI/CSS and .171 fail-closed source sharding."
+  ]
+}

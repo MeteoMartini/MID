@@ -51,3 +51,10 @@ This contract makes AI-assisted MID changes durable in GitHub without bypassing 
 - Stable promotion may use the GitHub Compare/Refs API instead of downloading repository history, but only after exact Release-SHA verification, an explicit ancestor/fast-forward proof, a non-force ref update (`force=false`), and exact post-update SHA verification.
 - The separate Source-Gate and Installer verification stages remain in place. Replacing the second full verification with attestations is a distinct future governance change and is not authorized by this optimization.
 
+## Isolated Source-Gate regression shards (v0.9.85.171)
+- Full Source-PR regression coverage may be distributed across isolated GitHub jobs only when a versioned shard manifest proves that the automatically discovered regression inventory is a lossless one-to-one partition.
+- Heavy browser/map regressions run on the same pull-request merge SHA as the core gate, in separate workspaces with independent dependency installation and production builds. A test may not appear in more than one shard.
+- The established required check name `Agent-Quellstand vollständig prüfen` remains a final fail-closed aggregator. It must not succeed unless the core result and the complete heavy matrix result are both `success`.
+- Matrix `fail-fast` remains disabled so one failing heavy shard cannot hide the result of another shard.
+- This optimization applies only to the Source-PR Gate in v0.9.85.171. The Installer continues its complete independent verification until a separately versioned and proven equivalent installer-sharding or attestation contract is approved.
+

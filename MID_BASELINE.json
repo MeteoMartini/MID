@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.170",
+  "releaseVersion": "0.9.85.172",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -679,6 +679,7 @@
     "scripts/test-regression-continuity.mjs",
     "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/test-regression-runner-local-bin-09365.mjs",
+    "scripts/test-regression-sharding-0985171.mjs",
     "scripts/test-release-activation-event-precip-096672.mjs",
     "scripts/test-release-archive-cleanliness-08201.mjs",
     "scripts/test-release-gate-architecture-098484.mjs",
@@ -1595,6 +1596,7 @@
     "scripts/test-regression-continuity.mjs",
     "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/test-regression-runner-local-bin-09365.mjs",
+    "scripts/test-regression-sharding-0985171.mjs",
     "scripts/test-release-activation-event-precip-096672.mjs",
     "scripts/test-release-archive-cleanliness-08201.mjs",
     "scripts/test-release-gate-architecture-098484.mjs",
@@ -2633,7 +2635,11 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "scripts/regression-shards.mjs",
+    "scripts/test-regression-sharding-0985171.mjs",
+    "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md",
+    "docs/releases/MID_RELEASE_NOTES_0.9.85.171.json"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3172,7 +3178,9 @@
     "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
     "scripts/test-regression-parallel-execution-0985168.mjs",
-    "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md"
+    "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
+    "scripts/test-regression-sharding-0985171.mjs",
+    "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3222,7 +3230,9 @@
     "scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
     "scripts/test-regression-parallel-execution-0985168.mjs",
-    "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md"
+    "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
+    "scripts/test-regression-sharding-0985171.mjs",
+    "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md"
   ],
   "activeRegressionSuite": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3275,6 +3285,7 @@
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-precipitation-forward-geometry-097916.mjs",
     "scripts/test-regression-parallel-execution-0985168.mjs",
+    "scripts/test-regression-sharding-0985171.mjs",
     "scripts/test-repository-hygiene-0985127.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
@@ -3302,8 +3313,8 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.170",
-  "updatedAt": "2026-10-05T13:26:55.978Z",
+  "version": "0.9.85.172",
+  "updatedAt": "2026-10-05T18:50:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",
@@ -3438,7 +3449,8 @@
     "docs/implementation/MID_BOTTOM_BAR_MODEL_MAPS_0.9.85.147.md",
     "docs/implementation/MID_WARNING_EXTREME_FIX_0.9.85.153.md",
     "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
-    "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md"
+    "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
+    "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate_source:
-    name: Agent-Quellstand vollständig prüfen
+  source_core:
+    name: Source-Kern vollständig prüfen
     if: >-
       (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -120,7 +120,11 @@ jobs:
           VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
           VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
-        run: npm run verify
+        run: |
+          set -euo pipefail
+          npm run build
+          node --check worker/metar-proxy.js
+          MID_REGRESSION_SHARD=core npm run test:regressions
 
       - name: Geprüften Web-Build in die iOS-Hülle übernehmen und prüfen
         shell: bash
@@ -178,3 +182,106 @@ jobs:
                   raise SystemExit(f'Beschädigter ZIP-Eintrag: {corrupt}')
           print(f'Release-Paketierung vorgeprüft: {out.stat().st_size} Byte')
           PY
+  heavy_regressions:
+    name: Heavy-Regression · ${{ matrix.shard }}
+    if: >-
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - heavy-native-map
+          - heavy-unified-map
+          - heavy-mountain-visual
+
+    steps:
+      - name: PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --loglevel=notice; then
+              installed=true
+              break
+            fi
+            echo "::warning::npm ci für ${{ matrix.shard }} fehlgeschlagen (Versuch ${attempt}/3)."
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          [ "$installed" = true ] || { echo "::error::npm ci konnte nicht erfolgreich abgeschlossen werden."; exit 1; }
+
+      - name: SHA-identischen Produktionsbuild für Heavy-Regression erzeugen
+        shell: bash
+        timeout-minutes: 6
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: npm run build
+
+      - name: Isolierten Heavy-Regression-Shard vollständig ausführen
+        shell: bash
+        timeout-minutes: 8
+        env:
+          MID_REGRESSION_SHARD: ${{ matrix.shard }}
+          MID_REGRESSION_JOBS: '1'
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run test:regressions
+
+  validate_source:
+    name: Agent-Quellstand vollständig prüfen
+    needs:
+      - source_core
+      - heavy_regressions
+    if: >-
+      always() &&
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - name: Vollständige Shard-Gate-Ergebnisse fail-closed zusammenführen
+        shell: bash
+        env:
+          CORE_RESULT: ${{ needs.source_core.result }}
+          HEAVY_RESULT: ${{ needs.heavy_regressions.result }}
+        run: |
+          set -euo pipefail
+          if [ "$CORE_RESULT" != success ] || [ "$HEAVY_RESULT" != success ]; then
+            echo "::error::MID-Source-Gate unvollständig: core=${CORE_RESULT}, heavy=${HEAVY_RESULT}."
+            exit 1
+          fi
+          echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."
+
