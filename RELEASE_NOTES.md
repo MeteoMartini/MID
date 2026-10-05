@@ -1,6 +1,5 @@
-# MID v0.9.85.170
+# MID v0.9.85.171
 
-- Bergwetter und Widget-/PNG-Generator laden erst beim Öffnen der jeweiligen Ansicht.
-- Gemeinsame Wetterdarstellung, Einstellungen und PNG-Ausgabe bleiben über alle Ansichten hinweg erhalten.
-- Globale Styles werden aus einer geordneten Quelle konsolidiert geladen; redundante Deklarationen entfallen aus der Laufzeitausgabe.
-- Startpaket und Stylesheet verkleinert, ohne Wetterparameter oder Bedienfunktionen zu entfernen.
+- Veröffentlichungen werden weiter beschleunigt, ohne Regressionen wegzulassen: besonders zeitintensive Karten- und Bergdarstellungsprüfungen laufen im Quell-Gate nun voneinander isoliert parallel.
+- Die vollständige Testabdeckung bleibt verbindlich. Der Freigabecheck wird nur grün, wenn der Kern und alle drei schweren Prüfläufe erfolgreich abgeschlossen sind.
+- Produktfunktionen, Wetterlogik und Darstellung wurden mit diesem Build nicht verändert.

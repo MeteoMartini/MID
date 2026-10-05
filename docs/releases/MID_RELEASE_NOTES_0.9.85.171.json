@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.171",
+  "date": "2026-10-05",
+  "title": "Source-Gate mit isolierten Heavy-Regressionen",
+  "external": [
+    "Veröffentlichungen werden weiter beschleunigt, ohne Regressionen wegzulassen: besonders zeitintensive Karten- und Bergdarstellungsprüfungen laufen im Quell-Gate nun voneinander isoliert parallel.",
+    "Die vollständige Testabdeckung bleibt verbindlich. Der Freigabecheck wird nur grün, wenn Kern und alle schweren Prüfläufe erfolgreich sind.",
+    "Produktfunktionen, Wetterlogik und Darstellung wurden nicht verändert."
+  ],
+  "internal": [
+    "Regression inventory is partitioned one-to-one into core, heavy-native-map, heavy-unified-map and heavy-mountain-visual.",
+    "Every heavy shard checks out the same PR merge SHA, performs an independent npm ci and production build, and runs with MID_REGRESSION_JOBS=1.",
+    "The established required check name is preserved as a final aggregator depending on source_core and the complete heavy matrix.",
+    "Installer verification remains unchanged and complete in this build."
+  ]
+}

@@ -1,3 +1,7 @@
+## v0.9.85.171 · Source-Gate Heavy-Regressionen isoliert parallelisiert
+
+Basis: `main = mid-stable = 53671910a16d5bd0d6cf9fe47945891789bb0dff` (v0.9.85.170). Das automatisch entdeckte Regressionsinventar wird im Source-PR-Gate verlustfrei in einen Core-Shard und drei isolierte Heavy-Shards für Native-Map-, Unified-Map- und Berg-Visual-QA aufgeteilt. Die drei Heavy-Shards arbeiten auf demselben PR-Merge-SHA, erzeugen jeweils einen eigenen Produktionsbuild und teilen weder Arbeitsverzeichnis noch Browserzustand. Der bekannte Required-Check `Agent-Quellstand vollständig prüfen` ist nun ein fail-closed Abschlussjob und wird nur grün, wenn Core **und alle** Heavy-Shards erfolgreich waren. Installer, Worker-/Pages-Gates und Stable-Promotion bleiben unverändert. Details: docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md.
+
 ## v0.9.85.170 · Widget/Bergwetter und gemeinsame CSS-Kaskade
 Basis main = mid-stable = 9b917ed7054903df6da983ed79fe20561af45ab9 (.169). Die Fach-, Karten-, Persistenz- und Exportverträge bleiben erhalten. Details: docs/implementation/MID_MODULE_CSS_0.9.85.170.md. Veröffentlichung ausschließlich durch Source-/Installer-Gates.
 
