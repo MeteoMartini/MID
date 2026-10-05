@@ -12,8 +12,8 @@ const requireToken=(source,token,label)=>{if(!source.includes(token))failures.pu
 requireToken(app,'function LocalClock(','isolierte Ortszeit fehlt');
 requireToken(app,'const MemoCurrent=memo(Current);','Hauptkarten-Memoisierung fehlt');
 requireToken(app,'const MemoForecast=memo(Forecast);','Vorhersage-Memoisierung fehlt');
-requireToken(mapWorkspace,'const LazyRadarPanel=lazy(()=>import(\'./RadarPanel\'))','Radar-Lazygrenze fehlt');
-requireToken(mapWorkspace,'const MemoLazyRadarPanel=memo(LazyRadarPanel);','Radar-Memoisierung fehlt');
+requireToken(mapWorkspace,'const LazyUnifiedWeatherMap=lazy(()=>import(\'./UnifiedWeatherMap\'))','Gemeinsame Karten-Lazygrenze fehlt');
+requireToken(mapWorkspace,'const MemoLazyUnifiedWeatherMap=memo(LazyUnifiedWeatherMap);','Radar-Memoisierung fehlt');
 requireToken(app,"subscribeRefreshChannel({key:`radar-analysis:",'Radar-Fokusabrufe verwenden nicht den gemeinsamen Refresh-Broker');
 requireToken(app,"minGapMs:45*1000",'Radar-Refresh hat keine Deduplizierungsgrenze');
 requireToken(app,"subscribeRefreshChannel({key:`heavy-rain-analysis:",'Starkregen-Abrufe verwenden nicht den gemeinsamen Refresh-Broker');

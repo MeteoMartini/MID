@@ -2,6 +2,11 @@ import {createMapColorScale,roundMapScale,mapColorAt,type MapColorMode,type MapC
 export type TotalsFrame={hours:number;validFrom?:string;validTo:string;maximum:number;values:number[]};
 export type TotalsData={schema:'mid.icon-d2.totals.v1'|'mid.radolan.observed.v1';kind?:'observed';run:string;generatedAt:string;source:string;license:string;attribution:string;grid:string;scale:number;lats:number[];lons:number[];frames:TotalsFrame[]};
 export function totalsStartAt(data:TotalsData,frame:TotalsFrame){return data.kind==='observed'?frame.validFrom!:data.run}
+/** Lightweight publication discovery. The payload is still strictly validated by loadTotals on selection. */
+export async function loadTotalsAvailability(signal:AbortSignal){
+ const response=await fetch('/ruc/latest.json',{signal,cache:'no-store'});if(!response.ok)throw new Error('Summenkatalog derzeit nicht verfügbar.');const meta=await response.json();
+ return {forecast:typeof meta.precipitationTotals?.key==='string'&&/^runs\/[a-zA-Z0-9_-]+\/precipitation-totals\.json$/.test(meta.precipitationTotals.key),observed:typeof meta.observedPrecipitation?.key==='string'&&/^runs\/[a-zA-Z0-9_-]+\/observed-precipitation\.json$/.test(meta.observedPrecipitation.key)};
+}
 // Central absolute palette anchors. Numeric rasters/legends/exports share a continuous map scale; water equivalent, mm.
 export const TOTALS_COLORS:[number,string][]=[[.1,'#b9ddfc'],[1,'#83bef5'],[3,'#429be9'],[5,'#197ecc'],[7,'#1768af'],[10,'#145a91'],[15,'#099d45'],[20,'#19c32c'],[25,'#56de11'],[30,'#b4ee13'],[40,'#ffed18'],[50,'#ffbd48'],[60,'#ff892c'],[70,'#fb5140'],[80,'#f53677'],[90,'#dc245d'],[100,'#b9183c'],[125,'#941127']];
 export function totalsColor(value:number){let color='transparent';for(const [threshold,next] of TOTALS_COLORS){if(value<threshold)break;color=next}return color}

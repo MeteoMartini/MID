@@ -1,3 +1,6 @@
+## v0.9.85.167 · MID-C17 gemeinsame Wetterkarte
+Basis main = mid-stable = a40e2fbc12ea4c24b206e4904c3f03a3293fadc6 (.166). Gemeinsame Vektorkarte, unabhängige Layer, native Raster aus der Summen-Publikationsstrecke, bidirektionale fachliche Modell-/Parametermatrix und bestätigte Produktzeiten. Details: docs/implementation/MID_C17_UNIFIED_MAP_0.9.85.167.md. Bestehende Prognose-/Einstellungskorrekturen bleiben erhalten; Release nur über bestehende Source-/Installer-Gates.
+
 ## v0.9.85.166 · MID-C17 dauerhafte 7d-Farbwahl
 Basis main = mid-stable = d5db6da50fba9684d5584ed9f3cf26afa931f81b (.165). ForecastDisplay wird synchron über den bestehenden dauerhaften Speicherpfad gespeichert, mit monotoner semantischer Revision und Schutz vor veralteten Remote-Snapshots. Keine Meteorologie-/Layoutänderung. Details: docs/implementation/MID_C17_SETTINGS_0.9.85.166.md. Browser-Neustartprüfung ist Teil der neuen Pflichtregression unter GitHub Actions; Release nur nach erfolgreichem Source-/Installer-Gate.
 

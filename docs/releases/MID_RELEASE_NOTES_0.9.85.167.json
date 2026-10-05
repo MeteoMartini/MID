@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.167",
+  "date": "2026-10-05",
+  "title": "MID-C17 gemeinsame Wetterkarte",
+  "external": [
+    "Eine moderne Vektorkarte für Radar, Satellit, Modelle und Messsummen; keine getrennten Kartenbereiche mehr.",
+    "Fachlich getrennte Parameter, passende Modellquellen, echte Produktzeiten und dauerhaft gespeicherte Layerauswahl.",
+    "Ortsdaten, Warnungen, Zugspuren, Messrasterabfrage und Rasterexport bleiben erhalten; alte RainViewer- und grobe Satelliten-Fallbacks sind im neuen Kartenpfad ausgeschlossen."
+  ],
+  "internal": [
+    "Basis main = mid-stable = a40e2fbc12ea4c24b206e4904c3f03a3293fadc6 (.166); keine Replit-, Workflow- oder Governance-Änderung.",
+    "Ein lazy/memoisiertes MapWorkspace mit unabhängigen Rasterlayern; shared MapLibre lässt optionale leere Stilfelder weg und bündelt Canvas-Repaints ohne Render-Starvation.",
+    "Native Felder behalten SHA256-, Größen-, Lauf-, Raster- und Einheitenschutz. Summen werden auf Anfrage validiert; WMS nur aus freigegebenem Katalog mit bestätigtem Termin, Lauf und Druckfläche.",
+    "Historische Trennungs-/Importassertionen werden durch Ein-Karten-Verträge ersetzt; numerische, Export- und Zeitwahrheitsprüfungen bleiben erhalten. Neue Pflichtregression mit zwölf echten Browser-Viewport-/Themefällen."
+  ]
+}

@@ -1,3 +1,10 @@
+## MID v0.9.85.167 · 2026-10-05 · MID-C17 gemeinsame Wetterkarte
+
+- Basis main = mid-stable = a40e2fbc12ea4c24b206e4904c3f03a3293fadc6 (.166); keine Replit-, Workflow- oder Governance-Änderung.
+- Ein lazy/memoisiertes MapWorkspace mit unabhängigen Rasterlayern; shared MapLibre lässt optionale leere Stilfelder weg und bündelt Canvas-Repaints ohne Render-Starvation.
+- Native Felder behalten SHA256-, Größen-, Lauf-, Raster- und Einheitenschutz. Summen werden auf Anfrage validiert; WMS nur aus freigegebenem Katalog mit bestätigtem Termin, Lauf und Druckfläche.
+- Historische Trennungs-/Importassertionen werden durch Ein-Karten-Verträge ersetzt; numerische, Export- und Zeitwahrheitsprüfungen bleiben erhalten. Neue Pflichtregression mit zwölf echten Browser-Viewport-/Themefällen.
+
 ## MID v0.9.85.155 · 2026-10-03 · Reale ICON-EPS-Mitglieder für Tag 3–7
 
 - Live nachgewiesen: HTTP 200 ist kein Nachweis auswertbarer Daten. Globales Mean-Modell liefert rain_spread, gust/spread und snowfall_spread vollständig null. Seamless-Mean liefert ebenfalls keinen rain_spread.

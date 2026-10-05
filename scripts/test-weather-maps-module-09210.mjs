@@ -24,7 +24,7 @@ need('Splashscreen Theme-Asset',files.index,'./mid-logo-light-horizontal.png');
 need('Splashscreen Bildformat',files.index,'width="512" height="200"');
 need('Splashscreen Theme',files.index,':root[data-theme=dark] #mid-boot-shell');
 need('Splashscreen prominent',files.index,'width:min(86vw,520px)');
-need('Gemeinsamer Kartenarbeitsraum Lazy Import',files.workspace,"lazy(()=>import('./WeatherMapsPanel'))");
+need('Gemeinsamer Kartenarbeitsraum Lazy Import',files.workspace,"lazy(()=>import('./UnifiedWeatherMap'))");
 need('Weather-maps Modellkartenalias',files.app,"if(id==='weather-maps'){saveMapWorkspaceView('models')");
 need('App Modul',files.app,"case'weather-maps'");
 need('Dashboard Definition',files.modules,"{id:'weather-maps',label:'Wetterkarten'");

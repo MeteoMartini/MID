@@ -6,8 +6,8 @@ const source=await readFile(new URL('../src/RadarPanel.tsx',import.meta.url),'ut
 for(const token of [
  "forecasts:modelForecastTimes",
  "modelAtSelectedTime=selectedFrame?.phase==='forecast'",
- "visibleModelLines=modelLines==='off'&&modelAtSelectedTime?'both':modelLines",
- "phaseLabel=selectedFrame?.phase==='nowcast'?'Nowcast':selectedFrame?.phase==='forecast'?'Modell · Synoptik':'Beobachtung'",
+ "visibleModelLines:ModelLineMode=unified?'off':modelLines==='off'&&modelAtSelectedTime?'both':modelLines",
+ "phaseLabel=selectedFrame?.phase==='nowcast'?'Nowcast':selectedFrame?.phase==='forecast'?(unified?'Modellprognose':'Modell · Synoptik'):'Beobachtung'",
  "visibleModelLines!=='off'&&usesNativeModelLines",
  "visibleModelLines!=='off'&&(dominantModelFrame||vectorIsoheightFrame||hasGridCenters)"
 ])assert.ok(source.includes(token),`MID-C9-Zeitkettenregel fehlt: ${token}`);
