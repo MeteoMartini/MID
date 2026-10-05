@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.168",
+  "date": "2026-10-05",
+  "title": "Sicher beschleunigter Veröffentlichungsweg",
+  "external": [
+    "Veröffentlichungen werden schneller, ohne Prüfungen auszulassen: sicher als read-only erkannte Regressionen können parallel laufen, risikobehaftete Prüfungen bleiben seriell.",
+    "Unnötige vollständige Git-Historien werden im normalen Releasepfad vermieden; bei einem parallelen main-Update wird weiterhin automatisch auf die vollständige Race-Prüfung eskaliert.",
+    "Das Pages-Paket wird bereits während der Worker-Prüfung vorbereitet, aber weiterhin erst nach erfolgreichem Worker-Gate veröffentlicht.",
+    "Die Stable-Freigabe bleibt ein verifizierter Fast-Forward ohne Force-Update und prüft den finalen SHA weiterhin ausdrücklich."
+  ],
+  "internal": [
+    "Regression-Runner: konservative rekursive Read-only-Klassifikation, maximal vier parallele Prozesse, vollständige 1:1-Inventarprüfung und serielle Fail-closed-Lane.",
+    "Source-Gate und Auto-Release verwenden flache Snapshots; Installer lädt vollständige Historie nur bei erkanntem main-Race nach.",
+    "Pages-Artefaktvorbereitung wurde vom eigentlichen Pages-Deployment getrennt und kann parallel zum Worker-Gate laufen; Deploy bleibt vom Worker-Erfolg abhängig.",
+    "Stable-Promotion nutzt GitHub Compare/Refs API mit exakter Release-SHA-Prüfung, force=false und Post-Promotion-SHA-Verifikation; keine Rechte oder Gates erweitert."
+  ]
+}

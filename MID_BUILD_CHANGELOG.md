@@ -1,3 +1,11 @@
+## MID v0.9.85.168 · 2026-10-05 · Releasepfad ohne Gate-Abstriche beschleunigt
+
+- Vollständige Regression-Suite bleibt erhalten; konservativ read-only erkannte Tests laufen mit begrenzter Parallelität, alle risikobehafteten Tests seriell.
+- Gate/Auto-Release/Installer verwenden flache Snapshots; nur ein echter main-Race lädt im Installer die vollständige Historie nach.
+- Pages-Artefakt wird parallel zum Worker-Gate vorbereitet; Veröffentlichung selbst bleibt strikt nach grünem Worker-Gate.
+- Stable-Promotion verwendet SHA-genaue GitHub Compare/Refs-API, `force=false` und finale Ref-Verifikation statt eines vollständigen Git-Checkouts.
+- Keine meteorologische Fachlogik, UI-Funktion oder Sicherheitsfreigabe wurde reduziert.
+
 ## MID v0.9.85.167 · 2026-10-05 · MID-C17 gemeinsame Wetterkarte
 
 - Basis main = mid-stable = a40e2fbc12ea4c24b206e4904c3f03a3293fadc6 (.166); keine Replit-, Workflow- oder Governance-Änderung.

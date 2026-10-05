@@ -42,3 +42,12 @@ This contract makes AI-assisted MID changes durable in GitHub without bypassing 
 - Canonical GitHub workflow sources live under `ci/github/workflows/`; mirrors under `.github/workflows/` are synchronized only as an explicit trusted repository-maintenance change.
 - Persistent governance changes use an authorized trusted-agent integration branch and the normal source review path.
 - Replit may not modify or weaken governance contracts or workflow policy.
+
+## Release performance without weaker gates (v0.9.85.168)
+- The Source-PR Gate and Installer continue to execute the complete MID verification path; no regression, dependency/security check, iOS-shell check, Worker smoke, Pages gate, or Stable SHA verification may be skipped for speed.
+- Regression execution may parallelize only tests conservatively classified as read-only. Any test or recursively imported local helper that writes files, launches child processes/browser automation, opens servers/listeners, performs fetches, mutates process-global state, or cannot be classified safely remains serial. The execution plan must be a lossless one-to-one partition of the complete discovered regression inventory.
+- Git checkouts use shallow snapshots where history is not part of the proof. If the Installer detects that `main` advanced during the long verification window, it must fetch full history before applying the existing race/ancestry check; uncertainty remains fail-closed.
+- A Pages artifact may be prepared and uploaded in parallel with the Worker gate because this does not publish it. The actual GitHub Pages deployment remains blocked until the Worker job succeeds.
+- Stable promotion may use the GitHub Compare/Refs API instead of downloading repository history, but only after exact Release-SHA verification, an explicit ancestor/fast-forward proof, a non-force ref update (`force=false`), and exact post-update SHA verification.
+- The separate Source-Gate and Installer verification stages remain in place. Replacing the second full verification with attestations is a distinct future governance change and is not authorized by this optimization.
+
