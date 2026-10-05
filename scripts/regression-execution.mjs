@@ -28,7 +28,7 @@ async function scanModule(file,seen,reasons){
  const absolute=path.resolve(file);if(seen.has(absolute))return;seen.add(absolute);
  let source;try{source=await readFile(absolute,'utf8')}catch{reasons.add('unreadable-local-module');return}
  for(const reason of regressionRiskReasons(source))reasons.add(reason);
- for(const specifier of localSpecifiers(source)){const resolved=await resolveLocalModule(absolute,specifier);if(resolved)await scanModule(resolved,seen,reasons)}
+ for(const specifier of localSpecifiers(source)){const resolved=await resolveLocalModule(absolute,specifier);if(resolved)await scanModule(resolved,seen,reasons);else reasons.add('unresolved-local-module')}
 }
 export async function classifyRegression(root,name){
  const reasons=new Set(),seen=new Set();await scanModule(path.join(root,'scripts',name),seen,reasons);

@@ -7,6 +7,7 @@ import {regressionExecutionPlan,regressionRiskReasons} from './regression-execut
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 assert.deepEqual(regressionRiskReasons("import {readFile} from 'node:fs/promises';"),[]);
 for(const sample of ["import {writeFile} from 'node:fs/promises';","import {spawn} from 'node:child_process';","import http from 'node:http'; const server=http.createServer(()=>{});","process.env.TEST='1';","await fetch('https://example.invalid/')","const moduleName='x'; await import(moduleName)"])assert.ok(regressionRiskReasons(sample).length>0,'Gefährliche Parallelprobe wurde nicht seriell klassifiziert: '+sample);
+assert.ok((await import('./regression-execution.mjs')).classifyRegression,'Klassifizierer muss explizit exportiert bleiben.');
 const tests=await regressionSuite(root),plan=await regressionExecutionPlan(root,tests),all=[...plan.parallel,...plan.serial];
 assert.equal(all.length,tests.length);assert.equal(new Set(all).size,tests.length);assert.ok(tests.every(name=>all.includes(name)));
 assert.ok(plan.parallel.length>0);assert.ok(plan.serial.length>0);
