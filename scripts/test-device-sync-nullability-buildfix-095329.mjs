@@ -23,6 +23,7 @@ export type ForecastVerificationArchiveBundle={schema:'mid-weather-twin-archive'
  await writeFile(join(dir,'workerClient.ts'),`export function buildWorkerUrl(base:string,mode:string){return base+mode}\nexport function workerBaseCandidates(_kind:string):string[]{return[]}\n`);
  await writeFile(join(dir,'portableUserData.ts'),`export function collectPortableUserData():{values:Record<string,string>}{return{values:{}}}\nexport function isPortableUserDataKey(_key:string):boolean{return true}\nexport function replacePortableUserData(_values:Record<string,string>,_storage:Storage,_v2:boolean):boolean{return false}\n`);
  await writeFile(join(dir,'eventFavoriteState.ts'),`export function eventFavoriteRevision(_value:unknown):number{return 0}\n`);
+ await writeFile(join(dir,'forecastDisplaySettings.ts'),`export const FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings';\nexport function preserveLegacyForecastDisplaySettings(values:Record<string,string>,_localRaw:string|null):{values:Record<string,string>;preservedLocal:boolean}{return{values,preservedLocal:false}}\n`);
  const options={strict:true,noEmit:true,target:ts.ScriptTarget.ES2023,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,skipLibCheck:true,types:[],lib:['lib.es2023.d.ts','lib.dom.d.ts','lib.dom.iterable.d.ts']};
  const program=ts.createProgram([join(dir,'deviceSync.ts')],options);
  const diagnostics=ts.getPreEmitDiagnostics(program).filter(item=>item.file?.fileName.startsWith(dir));
