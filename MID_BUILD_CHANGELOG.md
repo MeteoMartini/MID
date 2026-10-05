@@ -1,3 +1,11 @@
+## MID v0.9.85.171 · 2026-10-05 · Heavy-Regressionen im Source-Gate isoliert parallelisiert
+
+- Vollständiges automatisch entdecktes Testinventar bleibt erhalten und wird exakt einmal auf Core + drei Heavy-Shards verteilt.
+- Native-Map-, Unified-Map- und Berg-Visual-QA laufen in eigenen GitHub-Runnern auf demselben PR-Merge-SHA mit eigenem Produktionsbuild.
+- Der bestehende Required-Check ist ein fail-closed Abschlussjob; nur Core + vollständige Heavy-Matrix gemeinsam können die Freigabe erteilen.
+- Installer und Deployment-Gates bleiben in diesem Build unverändert.
+- Keine meteorologische Fachlogik, UI-Funktion oder Sicherheitsregel verändert.
+
 ## MID v0.9.85.170 · 2026-10-05 · Widget/Bergwetter und CSS-Konsolidierung
 
 - Basis main = mid-stable = 9b917ed7054903df6da983ed79fe20561af45ab9 (.169).

@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.170",
+  "version": "0.9.85.171",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -524,7 +524,8 @@
     "test:extreme-outlook-extended-resilience": "node scripts/test-extreme-outlook-extended-resilience-0985154.mjs",
     "test:regression-parallel-execution": "node scripts/test-regression-parallel-execution-0985168.mjs",
     "test:module-css-consolidation": "node scripts/test-module-css-consolidation-0985170.mjs",
-    "check:css-consolidation": "node scripts/consolidate-css.mjs --check"
+    "check:css-consolidation": "node scripts/consolidate-css.mjs --check",
+    "test:regression-sharding": "node scripts/test-regression-sharding-0985171.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
