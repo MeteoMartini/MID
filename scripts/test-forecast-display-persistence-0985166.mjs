@@ -10,7 +10,7 @@ const source=read('src/forecastDisplayPersistence.ts');
 const values=new Map();
 const writes=[];
 const context=vm.createContext({Date,Number,JSON,readDurableStorageValue:key=>values.get(key)??null,writeDurableStorageValue:(key,value)=>{values.set(key,value);writes.push([key,value])}});
-vm.runInContext(transpile(source.replace(/^import .*;\n/m,'').replace(/export /g,''))+';globalThis.api={readForecastDisplaySettingsRaw,persistForecastDisplaySettings,mergeForecastDisplaySettings,forecastDisplayRevision};',context);
+vm.runInContext(transpile(source.replace(/^import .*;\n/m,'').replace(/export /g,''))+';globalThis.api={readForecastDisplaySettingsRaw,applyForecastDisplaySettingsRaw,persistForecastDisplaySettings,mergeForecastDisplaySettings,forecastDisplayRevision};',context);
 const api=context.api,key='mid:forecastDisplaySettings';
 for(const enabled of [true,false,true,false]){
  const settings={ecmwfTemperatureColors:enabled,showSevenDaySummary:false,skybarDisplayMode:'squares'};
@@ -27,11 +27,14 @@ assert.equal(api.mergeForecastDisplaySettings(JSON.stringify({updatedAt:revision
 const newer=JSON.stringify({updatedAt:revision+1,ecmwfTemperatureColors:true});
 assert.equal(api.mergeForecastDisplaySettings(newer,local),newer,'explicit newer remote choice still syncs');
 assert.equal(api.mergeForecastDisplaySettings(newer,null),newer);
+api.applyForecastDisplaySettingsRaw(newer);
+assert.equal(api.readForecastDisplaySettingsRaw(),newer,'remote apply updates durable fallback and native value without inventing a local revision');
 assert.equal(api.forecastDisplayRevision('invalid'),0);
 const app=read('src/App.tsx');
 assert.ok(app.includes('JSON.parse(readForecastDisplaySettingsRaw()'));
 assert.ok(app.includes('persistForecastDisplaySettings(next);forecastDisplaySettingsRef.current=next;setForecastDisplaySettingsState(next)'));
 assert.ok(!app.includes('localStorage.setItem(FORECAST_DISPLAY_SETTINGS_KEY,JSON.stringify(forecastDisplaySettings))'),'mount/effect cannot overwrite recovered preference');
 assert.ok(read('src/deviceSync.ts').includes('mergeForecastDisplaySettings(values[FORECAST_DISPLAY_SETTINGS_KEY],readForecastDisplaySettingsRaw())'));
+assert.ok(read('src/deviceSync.ts').includes('applyForecastDisplaySettingsRaw(forecastSettings)'));
 console.log('Forecast settings: synchronous durable on/off writes, monotonic recovery revision, legacy compatibility and stale/new remote snapshots passed.');
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-c17-settings-restart-browser.mjs'],{cwd:new URL('../',import.meta.url),stdio:'inherit',timeout:360000});

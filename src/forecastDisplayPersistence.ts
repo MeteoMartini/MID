@@ -4,6 +4,7 @@ export const FORECAST_DISPLAY_SETTINGS_KEY='mid:forecastDisplaySettings';
 
 /** Explicit durable access also works when a browser rejects Storage method overrides. */
 export function readForecastDisplaySettingsRaw(){return readDurableStorageValue(FORECAST_DISPLAY_SETTINGS_KEY)}
+export function applyForecastDisplaySettingsRaw(raw:string){return writeDurableStorageValue(FORECAST_DISPLAY_SETTINGS_KEY,raw)}
 
 export function forecastDisplayRevision(raw:string|null){
  try{const value=Number(JSON.parse(raw||'{}').updatedAt);return Number.isFinite(value)&&value>0?value:0}catch{return 0}
@@ -13,7 +14,7 @@ export function forecastDisplayRevision(raw:string|null){
 export function persistForecastDisplaySettings<T extends object>(settings:T){
  const previous=forecastDisplayRevision(readForecastDisplaySettingsRaw());
  const raw=JSON.stringify({...settings,updatedAt:Math.max(Date.now(),previous+1)});
- writeDurableStorageValue(FORECAST_DISPLAY_SETTINGS_KEY,raw);
+ applyForecastDisplaySettingsRaw(raw);
  if(typeof window!=='undefined')window.dispatchEvent(new Event('mid:forecast-display-settings-changed'));
  return settings;
 }
