@@ -11,8 +11,8 @@ const failures=[];
 for(const module of ['EnsemblePanel','WaterSportsPanel','FlightMeteorologyPanel']){
  if(!app.includes(`lazy(()=>import('./${module}'))`))failures.push(`${module} wird nicht lazy geladen`);
 }
-if(!mapWorkspace.includes("const LazyRadarPanel=lazy(()=>import('./RadarPanel'))")||!mapWorkspace.includes('const MemoLazyRadarPanel=memo(LazyRadarPanel)'))failures.push('RadarPanel bleibt nicht lazy und memoisiert im gemeinsamen Kartenarbeitsraum');
-if(!mapWorkspace.includes("lazy(()=>import('./WeatherMapsPanel'))"))failures.push('WeatherMapsPanel wird im gemeinsamen Kartenarbeitsraum nicht lazy geladen');
+if(!mapWorkspace.includes("const LazyUnifiedWeatherMap=lazy(()=>import('./UnifiedWeatherMap'))")||!mapWorkspace.includes('const MemoLazyUnifiedWeatherMap=memo(LazyUnifiedWeatherMap)'))failures.push('RadarPanel bleibt nicht lazy und memoisiert im gemeinsamen Kartenarbeitsraum');
+if(!mapWorkspace.includes("lazy(()=>import('./UnifiedWeatherMap'))"))failures.push('WeatherMapsPanel wird im gemeinsamen Kartenarbeitsraum nicht lazy geladen');
 if(!flight.includes("lazy(()=>import('./MeteogramPanel'))"))failures.push('MeteogramPanel wird innerhalb der Flugmeteorologie nicht lazy geladen');
 for(const token of ["target:'es2020'","cssCodeSplit:true","sourcemap:false","reportCompressedSize:false"]){
  if(!vite.includes(token))failures.push(`Sichere Vite-Optimierung fehlt: ${token}`);

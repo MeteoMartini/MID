@@ -84,8 +84,8 @@ try{
  const constant=m.nativeMapScale({...raw,values:Array(9).fill(200)},'field');assert.equal(constant.mode,'absolute','Uniform fields do not invent spatial contrast');
  const source=path=>readFileSync(path,'utf8');
  assert.match(source('src/App.tsx'),/<MemoLazyMapWorkspacePanel[^>]*unit=\{unit\}/);
- assert.match(source('src/MapWorkspacePanel.tsx'),/<LazyWeatherMapsPanel[^>]*unit=\{props.unit\}/);
- assert.match(source('src/WeatherMapsPanel.tsx'),/<NativeModelMap[^>]*unit=\{unit\}/);
+ assert.match(source('src/MapWorkspacePanel.tsx'),/<MemoLazyUnifiedWeatherMap[^>]*\.\.\.props/);
+ assert.ok(source('src/UnifiedWeatherMap.tsx').includes("unit=props.unit??'kn'"));
  assert.ok(source('src/NativeModelMap.tsx').includes("playing?'absolute':colorMode"),'Animation retains value/color comparability');
  console.log('MID148: all four wind units, native point/legend/export parity, continuous full-range colors, canonical fixed temperature scale, categorical weather codes, missing/dry semantics, uniform fields and settings wiring verified.');
 }finally{rmSync(temp,{recursive:true,force:true})}

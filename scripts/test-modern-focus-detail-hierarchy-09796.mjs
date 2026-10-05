@@ -5,7 +5,7 @@ const [app,radar,compositeSettings,radarColors,eventPolicy,contract,baseline,wor
 ]);
 assert.ok(!app.includes('ModernTodayOverview'),'Verworfener Heute-Beta-Fokus darf nicht zurückkehren');
 for(const token of ['className="modern-map-focus-shell"',"navigationMode==='bottom-tabs'?<section key={`composite-focus:${layoutMode}:${layoutRevision}`}","focusMode={navigationMode==='bottom-tabs'}",'title="Karten"',"label:'Karten'","const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps']",'candidates:MODERN_MAP_MODULES'])assert.ok(app.includes(token),`Gruppierter Kartenfokus fehlt: ${token}`);
-assert.ok(workspace.includes('map-workspace-shell')&&workspace.includes("label:'Radar · Satellit · Blitz'"),'Der gemeinsame Kartenarbeitsraum muss Radar, Satellit und Blitz enthalten.');
+assert.ok(workspace.includes('map-workspace-shell')&&workspace.includes("MemoLazyUnifiedWeatherMap"),'Der gemeinsame Kartenarbeitsraum muss Radar, Satellit und Blitz enthalten.');
 for(const token of ['modelLineTone','isobarLineColor','isoheightLineColor'])assert.ok(compositeSettings.includes(token),`Synoptik-Persistenzvertrag fehlt: ${token}`);
 assert.ok(compositeSettings.includes("mid:composite-settings:v3"),'Stabiler Composite-v3-Speicherschlüssel fehlt');
 assert.ok(!radar.includes('smoothFactor'),'Ungültige smoothFactor-Option darf nicht zurückkehren');
