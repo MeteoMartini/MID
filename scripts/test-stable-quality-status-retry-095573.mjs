@@ -11,7 +11,7 @@ for(const token of [
   'if [ "$status_written" != true ]; then',
   'der Release bleibt gültig',
   'Finalen Stable-SHA verifizieren und Qualitätsstatus setzen',
-  'ls-remote --heads origin refs/heads/mid-stable'
+  'gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable"'
 ]) if(!install.includes(token))failures.push(token);
 if(!install.includes('nicht-temporären GitHub-API-Fehlers')||!install.includes('exit 1'))failures.push('Nicht-temporäre API-Fehler müssen weiterhin hart fehlschlagen.');
 if(!install.includes('mid-stable zeigt auf ${remote_sha:-<leer>} statt auf den geprüften Release'))failures.push('Stable-SHA-Abweichung muss weiterhin hart fehlschlagen.');

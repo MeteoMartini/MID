@@ -103,7 +103,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
-          fetch-depth: 0
+          # Paketierung benötigt nur den aktuellen main-Snapshot.
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Release-ZIP aus dem aktuellen main-Quellstand erzeugen und committen
@@ -160,7 +161,7 @@ jobs:
           }
           pushed=false
           for attempt in 1 2 3; do
-            git fetch --no-tags origin main
+            git fetch --no-tags --depth=1 origin "+refs/heads/main:refs/remotes/origin/main"
             git reset --hard origin/main
             make_zip
             git add -f MID-professional-replacement.zip

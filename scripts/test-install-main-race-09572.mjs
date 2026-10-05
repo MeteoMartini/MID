@@ -11,7 +11,9 @@ for(const [name,workflow] of [['kanonisch',canonical],['patch',patch]]){
   for(const token of [
     'ref: ${{ github.sha }}',
     'install_base_sha="$GITHUB_SHA"',
-    'git fetch --no-tags origin main',
+    'fetch-depth: 1',
+    'git fetch --no-tags --depth=1 origin "+refs/heads/main:refs/remotes/origin/main"',
+    'git fetch --unshallow --no-tags origin "+refs/heads/main:refs/remotes/origin/main"',
     'git merge-base --is-ancestor "$remote_sha" HEAD',
     "grep -Ev '^\\.github/'",
     'git rebase origin/main',

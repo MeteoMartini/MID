@@ -17,15 +17,17 @@ for(const [area,text] of [['Installer',install],['Manueller Deploy',deploy]]){
  if((text.match(/actions\/upload-pages-artifact@/g)||[]).length!==3)failures.push(`${area}: genau drei abgesicherte Uploadpfade müssen als Fallback erhalten bleiben.`);
  if(!text.includes("if: steps.artifact_plan.outputs.needs_upload == 'true'"))failures.push(`${area}: Retry 2/3 muss einen bereits erfolgreichen Pages-Upload wiederverwenden.`);
 }
-const buildPart=install.split('  deploy_pages_1:')[0];
+for(const token of ['prepare_pages_artifact:','GitHub-Pages-Artefakt parallel vorbereiten'])need('Installer',install,token);
+const buildPart=install.split('  prepare_pages_artifact:')[0];
 if(/^dist\/?$/m.test(gitignore))failures.push('dist ist wieder gitignored; die vom Build erzeugten Pages-Dateien könnten den entkoppelten Deploy-Jobs fehlen.');
 for(const token of ["git add -A -- . ':(exclude).github/**'",'test -f dist/index.html'])need('Release-Artefakt-Übergabe',install,token);
 if(buildPart.includes('actions/upload-pages-artifact@')||buildPart.includes('actions/deploy-pages@')||buildPart.includes('actions/configure-pages@'))failures.push('Installer-Buildjob lädt weiterhin Pages-Actions beim Job-Setup; Codeload-429 könnte den geprüften Release vor dem Commit abbrechen.');
-const pagesPart=(install.split('  deploy_pages_1:')[1] ?? '').split('  finalize_release:')[0];
+const pagesPart=(install.split('  prepare_pages_artifact:')[1] ?? '').split('  finalize_release:')[0];
 const shallowReleaseFetches=[...pagesPart.matchAll(/fetch --no-tags --depth=1 origin "\$RELEASE_SHA"/g)];
-if(shallowReleaseFetches.length!==3)failures.push(`Installer-Pages lädt nicht in allen drei Versuchen ausschließlich den flachen Release-SHA (erkannt: ${shallowReleaseFetches.length}/3).`);
+if(shallowReleaseFetches.length!==3)failures.push(`Installer-Pages lädt für Vorbereitung sowie Retry 2/3 ausschließlich den flachen Release-SHA (erkannt: ${shallowReleaseFetches.length}/3).`);
+if(!pagesPart.includes("needs.prepare_pages_artifact.outputs.artifact_ready == 'true'"))failures.push('Pages-Versuch 1 muss das parallel vorbereitete Artefakt nutzen.');
 if(pagesPart.includes('"+refs/heads/main:refs/remotes/origin/main"')||pagesPart.includes('"+refs/heads/mid-stable:refs/remotes/origin/mid-stable"'))failures.push('Installer-Pages lädt weiterhin vollständige Branch-Historien; das erhöht die Wartezeit bei jedem Versuch.');
-for(const token of ["needs.deploy_pages_1.outputs.deployed == 'true'","needs.deploy_pages_2.outputs.deployed == 'true'","needs.deploy_pages_3.outputs.deployed == 'true'",'continue-on-error: true','finalize_release:',"context': 'MID / release-candidate-quality'",'git merge-base --is-ancestor "$stable_before" "$release_sha"','push origin "${release_sha}:refs/heads/mid-stable"'])need('Installer-Finalisierung',install,token);
+for(const token of ["needs.deploy_pages_1.outputs.deployed == 'true'","needs.deploy_pages_2.outputs.deployed == 'true'","needs.deploy_pages_3.outputs.deployed == 'true'",'continue-on-error: true','finalize_release:',"context': 'MID / release-candidate-quality'",'compare/${stable_before}...${release_sha}','git/refs/heads/mid-stable','-F force=false'])need('Installer-Finalisierung',install,token);
 if(install.includes('push --force origin HEAD:refs/heads/mid-stable'))failures.push('Installer-Finalisierung darf Stable nicht mehr per Force-Push überschreiben.');
 const baseline=JSON.parse(baselineText),pkg=JSON.parse(pkgText),test='scripts/test-pages-codeload-resilience-09580.mjs';
 if(!baseline.requiredRegressionTests?.includes(test)||!baseline.regressionTests?.includes(test))failures.push('Pages-Codeload-Pflichtregression fehlt im Baseline-Vertrag.');

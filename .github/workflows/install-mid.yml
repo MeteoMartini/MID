@@ -36,7 +36,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
+          # Normalpfad: nur der eventgebundene Release-Snapshot; Historie wird bei einem echten main-Race gezielt nachgeladen.
+          fetch-depth: 1
           persist-credentials: false
 
       - name: Release-ZIP sicher entpacken
@@ -266,7 +267,7 @@ jobs:
         timeout-minutes: 2
         run: |
           set -euo pipefail
-          if git fetch --no-tags origin mid-stable && git show origin/mid-stable:worker/metar-proxy.js > /tmp/mid-worker-stable.js; then
+          if git fetch --no-tags --depth=1 origin "+refs/heads/mid-stable:refs/remotes/origin/mid-stable" && git show origin/mid-stable:worker/metar-proxy.js > /tmp/mid-worker-stable.js; then
             node tools/cloudflare/worker_semantic_diff.mjs /tmp/mid-worker-stable.js worker/metar-proxy.js
           else
             echo "::warning::Letzter stabiler Worker konnte nicht gelesen werden; fail-safe wird ein Worker-Deploy verlangt."
@@ -323,8 +324,14 @@ jobs:
           # Lauf sicher ab, damit nie ein neuerer Release-Stand überschrieben wird.
           pushed=false
           for attempt in 1 2 3; do
-            git fetch --no-tags origin main
+            git fetch --no-tags --depth=1 origin "+refs/heads/main:refs/remotes/origin/main"
             remote_sha="$(git rev-parse origin/main)"
+
+            if [ "$remote_sha" != "$install_base_sha" ] && [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              echo "main wurde während des langen Prüflaufs weitergeführt; für die bestehende Race-Prüfung wird die Historie jetzt vollständig nachgeladen."
+              git fetch --unshallow --no-tags origin "+refs/heads/main:refs/remotes/origin/main"
+              remote_sha="$(git rev-parse origin/main)"
+            fi
 
             if ! git merge-base --is-ancestor "$remote_sha" HEAD; then
               changed="$(git diff --name-only "$install_base_sha..$remote_sha" || true)"
@@ -539,32 +546,19 @@ jobs:
             --message "Automatischer MID-Rollback nach fehlgeschlagenem Worker-Smoke"
             -y
 
-  deploy_pages_1:
+  prepare_pages_artifact:
     outputs:
-      deployed: ${{ steps.mark_deployed.outputs.deployed }}
       artifact_ready: ${{ steps.artifact_state.outputs.ready }}
       artifact_name: ${{ steps.artifact_state.outputs.name }}
-    name: MID auf GitHub Pages veröffentlichen · Versuch 1
-    needs:
-      - install_build
-      - deploy_worker
-    if: needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
+    name: GitHub-Pages-Artefakt parallel vorbereiten
+    needs: install_build
+    if: needs.install_build.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 12
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    concurrency:
-      group: mid-pages
-      queue: max
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Geprüften Release-Baum ohne Checkout-Action laden
+      - name: Geprüften Release-Baum für Pages-Artefakt laden
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -578,8 +572,7 @@ jobs:
           git checkout --detach "$RELEASE_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
           test -f dist/index.html
-
-      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot erhalten
+      - name: Bereits veröffentlichten kostenfreien RUC-Snapshot für Artefakt erhalten
         shell: bash
         env:
           MID_RUC_PIPELINE_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
@@ -590,16 +583,14 @@ jobs:
           args=(--base "$base" --target dist/ruc --workers 16)
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
-
-      - name: Pages-Artefakt hochladen · Versuch 1
+      - name: Pages-Artefakt vor Worker-Abschluss hochladen
         id: upload_artifact
         continue-on-error: true
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: github-pages-${{ github.run_id }}-1
           path: ./dist
-
-      - name: Pages-Artefaktstatus festhalten · Versuch 1
+      - name: Vorbereiteten Pages-Artefaktstatus festhalten
         id: artifact_state
         if: always()
         shell: bash
@@ -614,14 +605,38 @@ jobs:
             echo 'name=' >> "$GITHUB_OUTPUT"
           fi
 
+  deploy_pages_1:
+    outputs:
+      deployed: ${{ steps.mark_deployed.outputs.deployed }}
+      artifact_ready: ${{ needs.prepare_pages_artifact.outputs.artifact_ready }}
+      artifact_name: ${{ needs.prepare_pages_artifact.outputs.artifact_name }}
+    name: MID auf GitHub Pages veröffentlichen · Versuch 1
+    needs:
+      - install_build
+      - deploy_worker
+      - prepare_pages_artifact
+    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: mid-pages
+      queue: max
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: GitHub-Pages-Deployment · Versuch 1
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true'
+        if: needs.prepare_pages_artifact.outputs.artifact_ready == 'true'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
-          artifact_name: ${{ steps.artifact_state.outputs.name }}
-
+          artifact_name: ${{ needs.prepare_pages_artifact.outputs.artifact_name }}
       - name: Erfolgreichen Pages-Versuch markieren
         id: mark_deployed
         if: steps.deployment.outcome == 'success'
@@ -894,30 +909,41 @@ jobs:
           permission-contents: write
           permission-statuses: write
 
-      - name: Erfolgreichen Release-Commit ohne Checkout-Action laden
+      - name: Release-SHA und Fast-Forward-Voraussetzung per GitHub-API verifizieren
+        id: stable_guard
         shell: bash
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
           RELEASE_SHA: ${{ needs.install_build.outputs.commit_sha }}
         run: |
           set -euo pipefail
-          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          git init .
-          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
-            "+refs/heads/main:refs/remotes/origin/main" \
-            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin "$RELEASE_SHA"
-          git checkout --detach "$RELEASE_SHA"
-          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          release_sha="$RELEASE_SHA"
+          if [[ ! "$release_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Ungültiger Release-SHA: $release_sha"
+            exit 1
+          fi
+          commit_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/commits/${release_sha}" --jq .sha)"
+          if [ "$commit_sha" != "$release_sha" ]; then
+            echo "::error::Release-Commit konnte nicht SHA-genau verifiziert werden."
+            exit 1
+          fi
+          stable_before="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
+          compare_status="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${stable_before}...${release_sha}" --jq .status)"
+          if [ "$stable_before" != "$release_sha" ] && [ "$compare_status" != "ahead" ]; then
+            echo "::error::mid-stable ${stable_before} ist kein Vorfahr des geprüften Release ${release_sha} (Compare: ${compare_status})."
+            exit 1
+          fi
+          echo "release_sha=${release_sha}" >> "$GITHUB_OUTPUT"
+          echo "stable_before=${stable_before}" >> "$GITHUB_OUTPUT"
 
       - name: Release-Kandidatenstatus vor Stable-Promotion setzen
         shell: bash
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          CANDIDATE_SHA: ${{ steps.stable_guard.outputs.release_sha }}
         run: |
           set -euo pipefail
-          candidate_sha="$(git rev-parse HEAD)"
+          candidate_sha="$CANDIDATE_SHA"
           status_payload="$(python3 - <<PY
           import json, os
           print(json.dumps({
@@ -953,43 +979,47 @@ jobs:
           echo "::error::Release-Kandidatenstatus konnte nach fünf Versuchen nicht gesetzt werden; Stable-Promotion wird fail-closed abgebrochen."
           exit 1
 
-      - name: Geprüften Release ausschließlich per Fast-Forward nach mid-stable promoten
+      - name: Geprüften Release ausschließlich per API-Fast-Forward nach mid-stable promoten
         shell: bash
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          RELEASE_SHA: ${{ steps.stable_guard.outputs.release_sha }}
         run: |
           set -euo pipefail
-          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
-          release_sha="$(git rev-parse HEAD)"
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags origin \
-            "+refs/heads/mid-stable:refs/remotes/origin/mid-stable"
-          stable_before="$(git rev-parse refs/remotes/origin/mid-stable)"
+          release_sha="$RELEASE_SHA"
+          stable_before="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
           if [ "$stable_before" = "$release_sha" ]; then
             echo "mid-stable zeigt bereits auf den geprüften Release ${release_sha}."
             exit 0
           fi
-          # Stable-Promotion bleibt eine Fast-Forward-Freigabe des geprüften Release-HEADs nach refs/heads/mid-stable.
-          # Referenzanker für Regressionen: HEAD:refs/heads/mid-stable
-          if ! git merge-base --is-ancestor "$stable_before" "$release_sha"; then
+          compare_status="$(gh api "repos/${GITHUB_REPOSITORY}/compare/${stable_before}...${release_sha}" --jq .status)"
+          if [ "$compare_status" != "ahead" ]; then
             echo "::error::mid-stable ${stable_before} ist kein Vorfahr des geprüften Release ${release_sha}; keine Historie wird überschrieben."
             exit 1
           fi
-          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" push origin "${release_sha}:refs/heads/mid-stable"
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/heads/mid-stable"             -f sha="$release_sha" -F force=false >/tmp/mid-stable-promotion.json
+          promoted="$(jq -r '.object.sha' /tmp/mid-stable-promotion.json)"
+          if [ "$promoted" != "$release_sha" ]; then
+            echo "::error::GitHub bestätigte nach Fast-Forward nicht den erwarteten Release-SHA."
+            cat /tmp/mid-stable-promotion.json
+            exit 1
+          fi
+          echo "mid-stable wurde ohne Force auf ${release_sha} fast-forward-promoviert."
 
       - name: Finalen Stable-SHA verifizieren und Qualitätsstatus setzen
         env:
           GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          STABLE_SHA: ${{ steps.stable_guard.outputs.release_sha }}
         shell: bash
         run: |
           set -euo pipefail
-          stable_sha="$(git rev-parse HEAD)"
-          auth="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          stable_sha="$STABLE_SHA"
 
           remote_sha=''
           for attempt in 1 2 3 4; do
-            remote_sha="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" ls-remote --heads origin refs/heads/mid-stable 2>/tmp/mid-stable-lsremote.err | awk '{print $1}')" && [ -n "$remote_sha" ] && break
+            remote_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha 2>/tmp/mid-stable-ref.err)" && [ -n "$remote_sha" ] && break
             echo "::warning::mid-stable konnte temporär nicht gelesen werden (Versuch ${attempt}/4)."
-            cat /tmp/mid-stable-lsremote.err || true
+            cat /tmp/mid-stable-ref.err || true
             sleep $((attempt * 2))
           done
           if [ "$remote_sha" != "$stable_sha" ]; then
