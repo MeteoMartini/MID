@@ -18,3 +18,13 @@ Installer 37360821392 Versuch 3: Workerjob 111966273776 wurde von keinem Hosted 
 
 ## Freigabe
 Erst .171 regulär Worker/Pages/Stable abschließen; danach jüngste SHAs erneut lesen und Kandidat prüfen. Kein manueller Stable-Push und kein Gate-Bypass. Die Kandidatenprüfungen gelten nicht als Produktionsveröffentlichung.
+
+## Nachhaltige Runner-Entlastung
+Der Cloudflare-Deployjob wird nur bei `worker_changed == true` gestartet. Alle nachgelagerten Pages-/Stable-Gates akzeptieren einen übersprungenen Workerjob ausschließlich zusammen mit explizitem `worker_changed == false` und erfolgreichem Build. Fehlende Diff-Outputs, fehlgeschlagene oder abgebrochene Deploys bleiben blockiert. Die bestehenden 0%-Smoke-, Promotion- und Rollback-Prüfungen bleiben für fachliche Änderungen vollständig erhalten. Der Worker-Vertragstest vergleicht nun tatsächlich aktiven und kanonischen Workflow und prüft die sichere Skip-Bedingung aller nachgelagerten Gates.
+
+Versuch 4: Worker inzwischen erfolgreich; Pages-Job wartet auf Runner. Dies bestätigt die Infrastrukturdiagnose. Der Vorgänger-Installer wird nicht verändert oder ersetzt.
+
+## Erneute Ursachenprüfung 2026-10-05
+Die jüngsten fehlgeschlagenen RUC-Runs 37370145395 (20:30 UTC, Job 111965182799) und 37368066555 (20:10 UTC, Job 111959899141) haben dieselbe GitHub-Annotation: `The job was not acquired by Runner of type hosted even after multiple attempts`. Die Vorbereitung war cancelled, der Publisher skipped; fehlende Joblogs passen zum Nichtstart. Diese beiden Ausfälle dürfen nicht als DWD-Download-/Decoderfehler bezeichnet werden. Lauf 37371180426 startete dagegen und erreichte die DWD-Ingestion. Die Python-Resilienz adressiert die separat beobachteten Netzwerk-/Vollständigkeitsfehler; sie behebt keine Hosted-Runner-Verfügbarkeitsprobleme.
+
+Alle drei Installer-Kopien (kanonisch, aktiv und workflow-patches-Transport) werden gemeinsam aktualisiert. Die volle Regression prüft diese Gleichheit.

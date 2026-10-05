@@ -364,7 +364,8 @@ jobs:
   deploy_worker:
     name: Geprüften MID-Worker sicher automatisch veröffentlichen
     needs: install_build
-    if: needs.install_build.result == 'success'
+    # A semantic no-op requires no hosted runner; missing diff output fails closed.
+    if: needs.install_build.result == 'success' && needs.install_build.outputs.worker_changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -615,7 +616,7 @@ jobs:
       - install_build
       - deploy_worker
       - prepare_pages_artifact
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success'
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_worker.result == 'success' || (needs.deploy_worker.result == 'skipped' && needs.install_build.outputs.worker_changed == 'false'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -649,7 +650,7 @@ jobs:
       - install_build
       - deploy_worker
       - deploy_pages_1
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true'
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_worker.result == 'success' || (needs.deploy_worker.result == 'skipped' && needs.install_build.outputs.worker_changed == 'false')) && needs.deploy_pages_1.outputs.deployed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -670,7 +671,7 @@ jobs:
       - deploy_worker
       - deploy_pages_1
       - pages_cooldown_1
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_worker.result == 'success' || (needs.deploy_worker.result == 'skipped' && needs.install_build.outputs.worker_changed == 'false')) && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 18
     permissions:
@@ -778,7 +779,7 @@ jobs:
       - deploy_worker
       - deploy_pages_1
       - deploy_pages_2
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true'
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_worker.result == 'success' || (needs.deploy_worker.result == 'skipped' && needs.install_build.outputs.worker_changed == 'false')) && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -798,7 +799,7 @@ jobs:
       - deploy_pages_1
       - deploy_pages_2
       - pages_cooldown_2
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true' && needs.pages_cooldown_2.result == 'success'
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_worker.result == 'success' || (needs.deploy_worker.result == 'skipped' && needs.install_build.outputs.worker_changed == 'false')) && needs.deploy_pages_1.outputs.deployed != 'true' && needs.deploy_pages_2.outputs.deployed != 'true' && needs.pages_cooldown_2.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 18
     permissions:
@@ -885,7 +886,7 @@ jobs:
       - deploy_pages_1
       - deploy_pages_2
       - deploy_pages_3
-    if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && (needs.deploy_pages_1.outputs.deployed == 'true' || needs.deploy_pages_2.outputs.deployed == 'true' || needs.deploy_pages_3.outputs.deployed == 'true')
+    if: always() && needs.install_build.result == 'success' && (needs.deploy_worker.result == 'success' || (needs.deploy_worker.result == 'skipped' && needs.install_build.outputs.worker_changed == 'false')) && (needs.deploy_pages_1.outputs.deployed == 'true' || needs.deploy_pages_2.outputs.deployed == 'true' || needs.deploy_pages_3.outputs.deployed == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 8
     permissions:
