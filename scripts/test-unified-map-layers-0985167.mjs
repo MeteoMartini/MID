@@ -16,6 +16,8 @@ assert.equal(c.unifiedSources('observed',index,true,true)[0].id,'radolan');
 const terms=[{time:'2026-10-05T00:00:00Z'},{time:'2026-10-05T03:00:00Z'}];
 assert.equal(c.nearestUnifiedFrame(terms,Date.parse('2026-10-05T04:30:00Z')),terms[1]);
 assert.equal(c.nearestUnifiedFrame(terms,Date.parse('2026-10-05T04:31:00Z')),undefined,'No model frame beyond its permitted nearest-term tolerance');
+assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T03:25:00Z')),terms[1].time,'Live five-minute radar time uses a real hourly model term, not an empty exact-match lookup');
+assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T04:31:00Z')),undefined);
 globalThis.localStorage={getItem:()=>JSON.stringify({enabled:true,parameter:'gust',modelId:'icon-d2',opacity:200,hours:9,selectionMode:'model'})};
 assert.deepEqual(c.readUnifiedMapSettings(),{enabled:true,parameter:'gust',modelId:'icon-d2',opacity:100,hours:24,isobars:false,level:500,selectionMode:'model'});delete globalThis.localStorage;
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');

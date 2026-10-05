@@ -25,6 +25,11 @@ export function unifiedSources(parameter:string,index:NativeIndex|null,hasTotals
  return [...new Map([...(native?[native]:[]),...unifiedWmsChoices().filter(c=>c.parameter===parameter).map(c=>({id:c.model.id,label:c.model.label}))].map(c=>[c.id,c])).values()];
 }
 /** Never manufacture an interpolated model frame. The actual term is always labelled. */
+export function nearestUnifiedTime(times:string[],target:number){
+ if(!Number.isFinite(target))return undefined;
+ const nearest=times.filter(time=>Number.isFinite(Date.parse(time))).reduce<string|undefined>((best,time)=>!best||Math.abs(Date.parse(time)-target)<Math.abs(Date.parse(best)-target)?time:best,undefined);
+ return nearest&&Math.abs(Date.parse(nearest)-target)<=90*60000?nearest:undefined;
+}
 export function nearestUnifiedFrame(frames:NativeFrameRef[],target:number){
  if(!Number.isFinite(target))return undefined;
  const nearest=frames.reduce<NativeFrameRef|undefined>((best,next)=>!best||Math.abs(Date.parse(next.time)-target)<Math.abs(Date.parse(best.time)-target)?next:best,undefined);
