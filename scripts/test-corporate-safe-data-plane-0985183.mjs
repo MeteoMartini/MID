@@ -1,0 +1,29 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const workerClient=read('src/workerClient.ts'),composite=read('src/CompositeData.ts'),radar=read('src/RadarPanel.tsx'),basemap=read('src/UnifiedVectorBasemap.tsx'),mapCore=read('src/MapLibreCore.tsx'),workerSource=read('worker-src/10-radar-nowcast.js'),router=read('worker-src/40-aviation-router.js'),routeGate=read('tools/cloudflare/ensure_same_origin_route.mjs'),install=read('.github/workflows/install-mid.yml'),installMirror=read('ci/github/workflows/install-mid.yml'),deploy=read('.github/workflows/deploy.yml'),deployMirror=read('ci/github/workflows/deploy.yml'),diagnostics=read('src/DataConnectionDiagnostics.tsx'),serviceWorker=read('public/service-worker.js');
+assert.match(workerClient,/MID_PRODUCTION_WEB_HOST='www\.midwx\.app'/);
+assert.match(workerClient,/MID_SAME_ORIGIN_WORKER_PATH='\/api\/mid-worker'/);
+assert.match(workerClient,/if\(productiveMidWebRuntime\(\)\)return uniqueUrls\(\[sameOriginWorkerBase\(\)\]\)/);
+assert.match(workerClient,/browserExternalWeatherFallbackAllowed/);
+for(const mode of ['rainviewer-tile','basemap-vector-tile','basemap-glyph'])assert.ok(composite.includes(mode),'Clientproxy fehlt: '+mode);
+assert.ok(radar.includes("if(!browserExternalWeatherFallbackAllowed())return''"),'DWD/EUMETSAT-Direktfallback muss im produktiven Web gesperrt sein.');
+assert.ok(radar.includes('rainViewerTileProxy(frame.time)')&&radar.includes('browserExternalWeatherFallbackAllowed()&&host&&frame.path'),'RainViewer darf produktiv nur durch MID laufen.');
+assert.ok(basemap.includes('openFreeMapVectorTileProxy()')&&basemap.includes('openFreeMapGlyphProxy()')&&basemap.includes('browserExternalWeatherFallbackAllowed()'),'Kartenbasis braucht produktiven MID-Proxy.');
+assert.match(mapCore,/tiles:\[url\]/);
+assert.match(workerSource,/safeRainViewerHost/);
+assert.match(workerSource,/host==='rainviewer\.com'\|\|host\.endsWith\('\.rainviewer\.com'\)/);
+assert.match(workerSource,/safeRainViewerPath/);
+assert.match(workerSource,/OPENFREEMAP_VECTOR_ROOT='https:\/\/tiles\.openfreemap\.org\/planet\/latest\/'/);
+assert.match(workerSource,/tileCoordinates\(url,14\)/);
+for(const mode of ['rainviewer-tile','basemap-vector-tile','basemap-glyph'])assert.ok(router.includes("mode==='"+mode+"'"),'Workerrouter fehlt: '+mode);
+assert.match(routeGate,/pattern='www\.midwx\.app\/api\/mid-worker\*'/);
+assert.match(routeGate,/zeigt bereits auf einen anderen Worker/);
+assert.ok(!routeGate.includes('/dns_records'),'Same-Origin-Gate darf DNS nicht verändern.');
+for(const workflow of [install,installMirror]){assert.ok(workflow.includes("VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}"));assert.ok(workflow.includes('ensure_same_origin_route.mjs'));assert.ok(workflow.includes('--url "https://www.midwx.app/api/mid-worker"'));assert.ok(workflow.indexOf('ensure_same_origin_route.mjs')<workflow.indexOf('prepare_pages_artifact:'),'Route-Gate muss vor Pages liegen.');}
+for(const workflow of [deploy,deployMirror]){assert.ok(workflow.includes("VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}"));assert.ok(workflow.includes('Produktiven Same-Origin-Datendienst prüfen'));assert.ok(workflow.includes('https://www.midwx.app/api/mid-worker'));}
+assert.equal(install,installMirror,'Aktiver und kanonischer Installer-Workflow müssen identisch sein.');
+assert.equal(deploy,deployMirror,'Aktiver und kanonischer Pages-Workflow müssen identisch sein.');
+for(const mode of ['health','alerts','ruc-health','rapid-model-meta','composite-times'])assert.ok(diagnostics.includes("'"+mode+"'"),'Diagnose fehlt: '+mode);
+assert.match(serviceWorker,/\/api\/mid-worker/);
+console.log('MID Corporate-safe Same-Origin Data Plane: produktiver Webpfad, Kartenproxies, Diagnose und Release-Gates verifiziert.');
