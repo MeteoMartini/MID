@@ -51,6 +51,7 @@ export const managedFiles=[
  ['workflows/mid-knmi-eps-rolling-manifest.yml','workflows/mid-knmi-eps-rolling-manifest.yml'],
  ['workflows/mid-knmi-eps-rolling-offset-smoke.yml','workflows/mid-knmi-eps-rolling-offset-smoke.yml'],
  ['workflows/unit-coverage.yml','workflows/unit-coverage.yml'],
+ ['workflows/widget-export.yml','workflows/widget-export.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
  ['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml'],
  ['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml'],

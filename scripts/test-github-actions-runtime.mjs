@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const workflowsDir=path.join(root,'ci','github','workflows');
-const requiredWorkflowNames=['install-mid.yml','deploy.yml','dependency-audit.yml'];
+const requiredWorkflowNames=['install-mid.yml','deploy.yml','dependency-audit.yml','widget-export.yml'];
 const availableNames=(await readdir(workflowsDir)).filter(name=>/\.ya?ml$/i.test(name));
 const workflows={};
 const failures=[];

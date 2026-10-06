@@ -9,7 +9,7 @@ const baseline=JSON.parse(await readFile(new URL('../MID_BASELINE.json',import.m
 const failures=[];
 if(maintenance.includes("spawnSync('npm'")||maintenance.includes('npm install --package-lock-only'))failures.push('Wartungsregression startet weiterhin einen umgebungsabhängigen Offline-npm-Unterprozess.');
 if(runtime.includes("#\\s*v${major}")||runtime.includes('action=(name,major)'))failures.push('Actions-Regression hängt weiterhin von unverbindlichen Versionskommentaren ab.');
-if(!runtime.includes("requiredWorkflowNames=['install-mid.yml','deploy.yml','dependency-audit.yml']"))failures.push('Actions-Regression begrenzt sich nicht eindeutig auf die verbindlichen MID-Workflows.');
+if(!runtime.includes("requiredWorkflowNames=['install-mid.yml','deploy.yml','dependency-audit.yml','widget-export.yml']"))failures.push('Actions-Regression begrenzt sich nicht eindeutig auf die verbindlichen MID-Workflows.');
 if(!maintenance.includes('lock.lockfileVersion!==3')||!maintenance.includes('Lockfile-Wurzel'))failures.push('Deterministische Lockfile-Strukturprüfung fehlt.');
 for(const [label,source] of [['Flugbriefing',flightBriefing],['Wartungsverträge',maintenanceContracts]]){
  if(/import\(new URL\(['"]\.\.\/src\/[^'"]+\.ts/.test(source))failures.push(`${label}: TypeScript-Direktimport ist mit dem gepinnten Node.js 22.16.0 nicht kompatibel.`);

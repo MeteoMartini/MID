@@ -1,0 +1,205 @@
+name: MID Widget PNG Export
+run-name: MID-Widgets serverseitig aktualisieren
+
+on:
+  workflow_run:
+    workflows:
+      - MID-Release aus ZIP installieren und veröffentlichen
+    types:
+      - completed
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-widget-png-export
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: Zwölf MID-Widget-PNGs aus mid-stable rendern
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      stable_sha: ${{ steps.source.outputs.sha }}
+      version: ${{ steps.source.outputs.version }}
+      public_version: ${{ steps.public.outputs.version }}
+
+    steps:
+      - name: Freigegebenen Stable-Stand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+
+      - name: Stable-SHA und Versionsspiegel fail-closed prüfen
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          stable_sha="$(git rev-parse HEAD)"
+          version="$(node -p "require('./package.json').version")"
+          baseline="$(node -p "require('./MID_BASELINE.json').releaseVersion")"
+          public_mirror="$(node -p "require('./public/version.json').version")"
+          if [ "$version" != "$baseline" ] || [ "$version" != "$public_mirror" ]; then
+            echo "::error::Versionspiegel sind nicht synchron: package=${version}, baseline=${baseline}, public=${public_mirror}."
+            exit 1
+          fi
+          echo "sha=${stable_sha}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Öffentliche MID-Version gegen mid-stable verifizieren
+        id: public
+        shell: bash
+        env:
+          EXPECTED_VERSION: ${{ steps.source.outputs.version }}
+        run: |
+          set -euo pipefail
+          matched=false
+          for attempt in 1 2 3 4 5 6 7 8; do
+            check_url="https://www.midwx.app/version.json?_mid_widget_check=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${attempt}"
+            if body="$(curl --fail --silent --show-error --location --connect-timeout 10 --max-time 20 -H 'Cache-Control: no-cache' "$check_url")"; then
+              public_version="$(BODY="$body" node -e "const value=JSON.parse(process.env.BODY||'{}').version; if(typeof value!=='string') process.exit(2); process.stdout.write(value)")" || public_version=""
+              if [ "$public_version" = "$EXPECTED_VERSION" ]; then
+                matched=true
+                echo "version=${public_version}" >> "$GITHUB_OUTPUT"
+                break
+              fi
+              echo "::warning::www.midwx.app meldet ${public_version:-unbekannt}, erwartet wird ${EXPECTED_VERSION} (Versuch ${attempt}/8)."
+            else
+              echo "::warning::version.json konnte nicht geladen werden (Versuch ${attempt}/8)."
+            fi
+            sleep 15
+          done
+          if [ "$matched" != true ]; then
+            echo "::error::Öffentliche MID-Version und mid-stable sind nicht nachweislich identisch; Widget-Publikation wird abgebrochen."
+            exit 1
+          fi
+
+      - name: Aktuelle Widget-Matrix rendern und validieren
+        shell: bash
+        env:
+          MID_STABLE_SHA: ${{ steps.source.outputs.sha }}
+          MID_PUBLIC_VERSION: ${{ steps.public.outputs.version }}
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/mid-widget-export"
+          node --experimental-strip-types tools/widget-export/render-widget-matrix.mjs \
+            --output "$RUNNER_TEMP/mid-widget-export"
+
+      - name: Reproduzierbares Widget-Paket bauen
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SOURCE_DIR="$RUNNER_TEMP/mid-widget-export"
+          export ZIP_PATH="$RUNNER_TEMP/mid-widget-export-latest.zip"
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile
+          source=Path(os.environ['SOURCE_DIR'])
+          target=Path(os.environ['ZIP_PATH'])
+          files=sorted(path for path in source.iterdir() if path.is_file())
+          with ZipFile(target,'w',ZIP_DEFLATED,compresslevel=9) as archive:
+              for path in files:
+                  archive.write(path,path.name)
+          print(f'{target}: {target.stat().st_size} Byte, {len(files)} Dateien')
+          PY
+          sha256sum "$RUNNER_TEMP/mid-widget-export-latest.zip" > "$RUNNER_TEMP/mid-widget-export-latest.zip.sha256"
+
+      - name: Laufartefakt sichern
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-widget-export-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/mid-widget-export/
+            ${{ runner.temp }}/mid-widget-export-latest.zip
+            ${{ runner.temp }}/mid-widget-export-latest.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Rollierendes Widget-Paket veröffentlichen
+    needs:
+      - render
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+
+    steps:
+      - name: MID Release Bot Token für Widget-Publikation erzeugen
+        id: release_app_token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Geprüftes Render-Artefakt laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-widget-export-${{ github.run_id }}-${{ github.run_attempt }}
+          path: bundle
+
+      - name: Rollierenden, nicht als App-Release markierten Download aktualisieren
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.release_app_token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          STABLE_SHA: ${{ needs.render.outputs.stable_sha }}
+          MID_VERSION: ${{ needs.render.outputs.version }}
+        run: |
+          set -euo pipefail
+          tag="widget-latest"
+          cat > "$RUNNER_TEMP/widget-release-notes.md" <<EOF
+          Automatisch erzeugte MID-Widget-PNGs aus dem verifizierten Stable-Stand v${MID_VERSION} (${STABLE_SHA}).
+
+          Kanonischer Download für die Intranet-Übernahme:
+          https://github.com/${GITHUB_REPOSITORY}/releases/download/widget-latest/mid-widget-export-latest.zip
+
+          Das ZIP enthält genau 12 PNGs für Malatya, Kürecik und Ämari sowie manifest.json und SHA256SUMS.txt.
+          EOF
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" \
+              --title "MID Widget Export · rolling" \
+              --notes-file "$RUNNER_TEMP/widget-release-notes.md" \
+              --prerelease
+          else
+            gh release create "$tag" \
+              --target "$STABLE_SHA" \
+              --title "MID Widget Export · rolling" \
+              --notes-file "$RUNNER_TEMP/widget-release-notes.md" \
+              --prerelease
+          fi
+
+          gh release upload "$tag" \
+            bundle/mid-widget-export-latest.zip \
+            bundle/mid-widget-export-latest.zip.sha256 \
+            bundle/mid-widget-export/manifest.json \
+            bundle/mid-widget-export/SHA256SUMS.txt \
+            --clobber
+
+          {
+            echo "### MID Widget Export aktualisiert"
+            echo
+            echo "- MID: v${MID_VERSION}"
+            echo "- Stable-SHA: ${STABLE_SHA}"
+            echo "- PNGs: 12"
+            echo "- Rollierendes ZIP: https://github.com/${GITHUB_REPOSITORY}/releases/download/widget-latest/mid-widget-export-latest.zip"
+          } >> "$GITHUB_STEP_SUMMARY"
