@@ -230,7 +230,7 @@ jobs:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
           VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
           VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
         run: |
@@ -408,7 +408,6 @@ jobs:
           done
 
       - name: Geprüften Release-Commit laden
-        if: needs.install_build.outputs.worker_changed == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.install_build.outputs.commit_sha }}
@@ -528,6 +527,27 @@ jobs:
         run: |
           set -euo pipefail
           args=(--url "$MID_WORKER_HEALTH_URL" --expected-version "${{ needs.install_build.outputs.version }}" --retries 6)
+          if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
+          node tools/cloudflare/check_worker_health.mjs "${args[@]}"
+
+      - name: Same-Origin-Route für produktives Web fail-closed verifizieren
+        id: same_origin_route
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MID_CLOUDFLARE_WORKER_NAME: ${{ vars.MID_CLOUDFLARE_WORKER_NAME }}
+          MID_CLOUDFLARE_ZONE_ID: ${{ vars.MID_CLOUDFLARE_ZONE_ID }}
+        run: |
+          set -euo pipefail
+          node tools/cloudflare/ensure_same_origin_route.mjs
+
+      - name: Same-Origin-Datendienst vor Pages und Stable prüfen
+        shell: bash
+        env:
+          REQUIRE_RUC: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+        run: |
+          set -euo pipefail
+          args=(--url "https://www.midwx.app/api/mid-worker" --expected-version "${{ needs.install_build.outputs.version }}" --retries 6)
           if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
           node tools/cloudflare/check_worker_health.mjs "${args[@]}"
 
