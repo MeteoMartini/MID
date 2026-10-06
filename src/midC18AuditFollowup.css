@@ -56,3 +56,24 @@
   overflow-wrap:anywhere!important;
  }
 }
+
+/* MID .178: only actionable profile signals, no empty pressure tile. */
+.cockpit-weather-profile__signals,
+html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ overflow:visible!important;
+ align-items:start!important;
+ background:transparent!important;
+}
+.cockpit-weather-profile__signals>span,
+html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals>span{
+ min-width:0!important;min-height:0!important;height:auto!important;
+}
+.cockpit-weather-profile__signals small,
+.cockpit-weather-profile__signals b,
+.cockpit-weather-profile__signals .signal-time,
+.cockpit-weather-profile__signals em{
+ max-width:100%;white-space:normal!important;overflow:visible!important;
+ overflow-wrap:anywhere;word-break:normal!important;text-overflow:clip!important;
+}

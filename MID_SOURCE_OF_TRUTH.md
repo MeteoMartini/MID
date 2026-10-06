@@ -1,3 +1,13 @@
+## MID v0.9.85.180
+
+- Profilkopf kompakt: redundante Drucktrend-Karte entfernt, relevante Hinweise vollbreit und umbrechend. RUC zeigt Kandidat und tatsächlich aufbereiteten Lauf mit Datum/HHMMZ im Log und der Ergebnisübersicht.
+
+- Stark-/Dauerregenhinweise markieren die tatsächlich nasse Phase statt trockener Vor- und Nachlaufstunden rollierender Summenfenster.
+- Regenhinweise nennen die Standort-Modellsumme und DWD-Schwellen; unbelegte Ensemble-Bestätigung und erfundene Wahrscheinlichkeitsbereiche entfallen.
+- Zeitlücken und Mehrstundenwerte dürfen keine Stunden-Warnschwellen vortäuschen. Amtliche Warnungen und Extremwettervorschau behalten ihre eigenen Quellen und Kriterien.
+
+Details: docs/implementation/MID_C18_RAIN_EVIDENCE_0.9.85.180.md. Normaler SHA-gebundener Source-/Installer-Release.
+
 ## MID v0.9.85.179 · Deterministischer Widget-Export nach Stable-Promotion
 
 Basis: `main = mid-stable = 16c007b264599c7162bd174d03179b2a4363d7e2` (v0.9.85.178). Der in v0.9.85.178 eingeführte Widget-Workflow erhält zusätzlich einen direkten `push`-Trigger für `mid-stable`, damit jede reguläre Stable-Promotion unmittelbar einen Renderlauf erzeugt. `workflow_run`, Stundenplan und `workflow_dispatch` bleiben als redundante Startwege bestehen. Die Render-/Publikationslogik selbst bleibt unverändert und weiterhin fail-closed. Details: `docs/implementation/MID_WIDGET_EXPORT_TRIGGER_0.9.85.179.md`.
