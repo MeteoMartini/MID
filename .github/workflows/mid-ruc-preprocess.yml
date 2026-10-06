@@ -118,7 +118,11 @@ jobs:
           compression-level: 0
       - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
         if: ${{ steps.freshness.outputs.should_run != 'true' }}
-        run: echo "RUC-Neubau nicht erforderlich · ${{ steps.freshness.outputs.reason }}"
+        run: echo "RUC-Ergebnis: bereits aktuell · ${{ steps.freshness.outputs.reason }}" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Erfolgreiche Aufbereitung zusammenfassen
+        if: steps.freshness.outputs.should_run == 'true'
+        run: echo 'RUC-Ergebnis: neu aufbereitet; Veröffentlichung folgt separat' >> "$GITHUB_STEP_SUMMARY"
 
   publish:
     name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
@@ -250,7 +254,23 @@ jobs:
         with:
           artifact_name: mid-ruc-pages-${{ github.run_id }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
+        id: worker_health
         if: ${{ steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
         env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
-        run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json
+        run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json --pages-base "${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
+
+      - name: RUC-Ergebnis eindeutig zusammenfassen
+        if: always()
+        env:
+          PREPARED: ${{ needs.prepare.outputs.should_run }}
+          STABLE_ALLOWED: ${{ steps.stable_guard.outputs.allowed }}
+          PUBLISH_ALLOWED: ${{ steps.publish_guard.outputs.allowed }}
+          DEPLOYED: ${{ steps.deployment.outcome }}
+          WORKER_HEALTH: ${{ steps.worker_health.outcome }}
+        run: |
+          if [ "$DEPLOYED" = success ]; then result=veröffentlicht;
+          elif [ "$STABLE_ALLOWED" = false ] || [ "$PUBLISH_ALLOWED" = false ]; then result='aufbereitet, wegen Releasewechsel übersprungen';
+          else result='nicht veröffentlicht; vorherige Schritte prüfen'; fi
+          echo "RUC-Ergebnis: $result · Worker-Übernahme: ${WORKER_HEALTH:-nicht geprüft}" >> "$GITHUB_STEP_SUMMARY"

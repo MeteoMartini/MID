@@ -85,6 +85,25 @@ def fetch_payload(url: str, timeout: float) -> dict:
     return payload
 
 
+def probe_pages(base: str, run: str, *, attempts=7, fetcher=fetch_payload, sleeper=time.sleep) -> int:
+    """Prove public Pages convergence separately from Worker adoption."""
+    url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
+    last_error = None
+    for attempt in range(1, max(1, attempts) + 1):
+        try:
+            meta = fetcher(probe_url(url, run, attempt), 15)
+            if meta.get('schema') != 'mid.dwd.ruc.grid.v2' or meta.get('storageProfile') != 'pages-free-v1':
+                raise RuntimeError('Pages RUC metadata schema/profile is invalid')
+            if meta.get('run') != run:
+                raise RuntimeError(f'Pages RUC run {meta.get("run")!r} does not match {run!r}')
+            return attempt
+        except Exception as error:
+            last_error = error
+            if attempt < max(1, attempts):
+                sleeper(min(30, 8 * 1.5 ** (attempt - 1)))
+    raise RuntimeError(f'pages-publication: public RUC metadata did not converge: {last_error}')
+
+
 def probe_until_ready(
     url: str,
     run: str,
@@ -125,6 +144,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument('--url', required=True)
     p.add_argument('--meta', default='.ruc-out/latest.json')
+    p.add_argument('--pages-base', help='Verify public Pages pointer before probing Worker adoption')
     p.add_argument('--timeout', type=float, default=15)
     p.add_argument('--attempts', type=int, default=7)
     p.add_argument('--retry-delay', type=float, default=8)
@@ -132,6 +152,9 @@ def main() -> int:
     a = p.parse_args()
     run = expected_run(a.meta)
     url = health_url(a.url)
+    if a.pages_base:
+        page_attempt = probe_pages(a.pages_base, run, attempts=a.attempts)
+        print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
     payload, attempt = probe_until_ready(
         url,
         run,

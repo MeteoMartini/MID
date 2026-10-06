@@ -50,7 +50,7 @@ const objects=new Map([
  [`https://midwx.app/ruc/runs/${runKey}/rapid/convection15/0000.bin`,i16([0,100,50,1,200,40,2,300,30,3,400,20])],
  [`https://midwx.app/ruc/runs/${runKey}/rapid-extreme.json`,new TextEncoder().encode(JSON.stringify({schema:'mid.dwd.ruc.rapid-extreme.v2',run,cells:[]}))]
 ]);
-const requests=[];const fakeFetch=async(input,init={})=>{const url=String(input);requests.push({url,init});const bytes=objects.get(url);if(!bytes)return new Response('not found',{status:404});return new Response(bytes,{status:200,headers:{'content-type':url.endsWith('.json')?'application/json':'application/octet-stream'}})};
+const requests=[];const fakeFetch=async(input,init={})=>{const url=String(input);requests.push({url,init});const parsed=new URL(url);const fixtureKey=parsed.pathname.endsWith('/latest.json')&&parsed.searchParams.has('mid_ruc_health_probe')?parsed.origin+parsed.pathname:url;const bytes=objects.get(fixtureKey);if(!bytes)return new Response('not found',{status:404});return new Response(bytes,{status:200,headers:{'content-type':url.endsWith('.json')?'application/json':'application/octet-stream'}})};
 const context=vm.createContext({console,URL,URLSearchParams,Headers,Request,Response,AbortController,DOMException,TextDecoder,TextEncoder,DataView,Uint8Array,ArrayBuffer,crypto,setTimeout,clearTimeout,fetch:fakeFetch});
 vm.runInContext(raw,context,{timeout:5000,filename:'worker/metar-proxy.js'});
 context.__health=await vm.runInContext('dwdRucStorageHealth({})',context,{timeout:5000});

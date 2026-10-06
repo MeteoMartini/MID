@@ -550,6 +550,7 @@ jobs:
     outputs:
       artifact_ready: ${{ steps.artifact_state.outputs.ready }}
       artifact_name: ${{ steps.artifact_state.outputs.name }}
+      ruc_run: ${{ steps.ruc_snapshot.outputs.run }}
     name: GitHub-Pages-Artefakt parallel vorbereiten
     needs: install_build
     if: needs.install_build.result == 'success'
@@ -583,6 +584,17 @@ jobs:
           args=(--base "$base" --target dist/ruc --workers 16)
           if [ "$MID_RUC_PIPELINE_ENABLED" = "true" ]; then args+=(--required); fi
           python tools/ruc/restore_ruc_pages_snapshot.py "${args[@]}"
+      - name: Enthaltenen RUC-Lauf für späte Aktualitätsprüfung festhalten
+        id: ruc_snapshot
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          import json,os
+          from pathlib import Path
+          p=Path('dist/ruc/latest.json')
+          run=json.loads(p.read_text()).get('run','') if p.exists() else ''
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write(f'run={run}\n')
+          PYTHON
       - name: Pages-Artefakt vor Worker-Abschluss hochladen
         id: upload_artifact
         continue-on-error: true
@@ -608,7 +620,7 @@ jobs:
   deploy_pages_1:
     outputs:
       deployed: ${{ steps.mark_deployed.outputs.deployed }}
-      artifact_ready: ${{ needs.prepare_pages_artifact.outputs.artifact_ready }}
+      artifact_ready: ${{ needs.prepare_pages_artifact.outputs.artifact_ready == 'true' && steps.ruc_guard.outputs.current == 'true' }}
       artifact_name: ${{ needs.prepare_pages_artifact.outputs.artifact_name }}
     name: MID auf GitHub Pages veröffentlichen · Versuch 1
     needs:
@@ -630,9 +642,22 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Geprüften Release für späte RUC-Prüfung laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.install_build.outputs.commit_sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: RUC-Snapshot innerhalb der Pages-Sperre auf Aktualität prüfen
+        id: ruc_guard
+        env:
+          RUC_BASE: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+          RUC_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          RUC_EXPECTED: ${{ needs.prepare_pages_artifact.outputs.ruc_run }}
+        run: python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
       - name: GitHub-Pages-Deployment · Versuch 1
         id: deployment
-        if: needs.prepare_pages_artifact.outputs.artifact_ready == 'true'
+        if: needs.prepare_pages_artifact.outputs.artifact_ready == 'true' && steps.ruc_guard.outputs.current == 'true'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -662,14 +687,16 @@ jobs:
   deploy_pages_2:
     outputs:
       deployed: ${{ steps.mark_deployed.outputs.deployed }}
-      artifact_ready: ${{ steps.artifact_state.outputs.ready }}
+      artifact_ready: ${{ steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true' }}
       artifact_name: ${{ steps.artifact_state.outputs.name }}
+      ruc_run: ${{ steps.ruc_guard.outputs.run }}
     name: MID auf GitHub Pages veröffentlichen · Versuch 2
     needs:
       - install_build
       - deploy_worker
       - deploy_pages_1
       - pages_cooldown_1
+      - prepare_pages_artifact
     if: always() && needs.install_build.result == 'success' && needs.deploy_worker.result == 'success' && needs.deploy_pages_1.outputs.deployed != 'true' && needs.pages_cooldown_1.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -703,7 +730,6 @@ jobs:
           fi
 
       - name: Geprüften Release-Baum nur bei fehlendem Artefakt neu laden
-        if: steps.artifact_plan.outputs.needs_upload == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -757,9 +783,23 @@ jobs:
             echo 'name=' >> "$GITHUB_OUTPUT"
           fi
 
+      - name: RUC-Snapshot unmittelbar vor Deployment erneut prüfen
+        id: ruc_guard
+        env:
+          RUC_BASE: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+          RUC_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          RUC_EXPECTED: ${{ needs.prepare_pages_artifact.outputs.ruc_run }}
+          NEEDS_UPLOAD: ${{ steps.artifact_plan.outputs.needs_upload }}
+        shell: bash
+        run: |
+          if [ "$NEEDS_UPLOAD" = true ] && [ "$RUC_ENABLED" = true ]; then
+            RUC_EXPECTED="$(python3 -c 'import json; print(json.load(open("dist/ruc/latest.json"))["run"])')"
+          fi
+          python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
+
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true'
+        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outputs.current == 'true'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -831,7 +871,6 @@ jobs:
           fi
 
       - name: Geprüften Release-Baum nur bei weiterhin fehlendem Artefakt neu laden
-        if: steps.artifact_plan.outputs.needs_upload == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -866,7 +905,22 @@ jobs:
           name: ${{ steps.artifact_plan.outputs.name }}
           path: ./dist
 
+      - name: RUC-Snapshot unmittelbar vor Deployment erneut prüfen
+        id: ruc_guard
+        env:
+          RUC_BASE: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+          RUC_ENABLED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          RUC_EXPECTED: ${{ needs.deploy_pages_2.outputs.ruc_run }}
+          NEEDS_UPLOAD: ${{ steps.artifact_plan.outputs.needs_upload }}
+        shell: bash
+        run: |
+          if [ "$NEEDS_UPLOAD" = true ] && [ "$RUC_ENABLED" = true ]; then
+            RUC_EXPECTED="$(python3 -c 'import json; print(json.load(open("dist/ruc/latest.json"))["run"])')"
+          fi
+          python3 tools/ruc/check_ruc_snapshot_current.py --base "$RUC_BASE" --enabled "$RUC_ENABLED" --expected "$RUC_EXPECTED"
+
       - name: GitHub-Pages-Deployment · Versuch 3
+        if: steps.ruc_guard.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -874,6 +928,7 @@ jobs:
 
       - name: Erfolgreichen Pages-Versuch markieren
         id: mark_deployed
+        if: steps.deployment.outcome == 'success'
         shell: bash
         run: echo 'deployed=true' >> "$GITHUB_OUTPUT"
 

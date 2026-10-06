@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.173",
+  "date": "2026-10-06",
+  "title": "RUC-Workflow-Koordination",
+  "external": [
+    "Pages-Veröffentlichung und Worker-Übernahme getrennt prüfen.",
+    "RUC-Datenstand beim App-Release schützen."
+  ],
+  "internal": [
+    "Health-only upstream pointer probe; strict separate Pages check; late snapshot invalidation within existing Pages lock; explicit result summaries."
+  ]
+}

@@ -1,3 +1,7 @@
+## v0.9.85.173 · RUC-Workflow-Koordination
+
+Entwicklungsbasis: main = mid-stable = 4d6fd8543868bb2c187f8326cb4efe4b973d2a67 (.172). Reguläre Workflow-Koordination, unabhängig von externer GitHub-Störung.
+
 ## v0.9.85.172 · Konsolidierung und RUC-Robustheit
 
 Verifizierte freigegebene Basis .170; geprüfter .171-Parallelstand erhalten. Details: docs/implementation/MID_C18_CONSOLIDATION_0.9.85.172.md. Bis erfolgreicher Vorgänger-Promotion nur Entwicklungskandidat; Release ausschließlich über bestehende Gates.

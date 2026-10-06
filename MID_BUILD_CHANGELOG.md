@@ -1,3 +1,7 @@
+## v0.9.85.173 · RUC-Workflow-Koordination
+
+Pages-/Worker-Konvergenz getrennt; Health-only Upstream-Probe; später Snapshot-Guard innerhalb bestehender Pages-Sperre; eindeutige Ergebnis-Summaries. Keine Änderungen an Sperrgruppen, Zeitplänen, fachlichen Daten oder Retry-Budgets.
+
 ## MID v0.9.85.172 · 2026-10-05 · Konsolidierung und RUC-Downloadrobustheit
 
 - Stable .170 und vollständig geprüfte .171-Source-Gate-Aufteilung mit RUC-PR #262 zusammengeführt.

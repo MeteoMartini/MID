@@ -1,0 +1,7 @@
+# MID-C18 · RUC-Workflow-Koordination .173
+
+Basis .172 SHA 4d6fd8543868bb2c187f8326cb4efe4b973d2a67. Befund: Run 37406434687 veröffentlichte Pages erfolgreich, Worker blieb während sieben Proben auf dem vorherigen RUC-Lauf. Das ist kein belegter Decoderfehler. Health liest bereits ohne Speichercache; Health-only Upstream-Query isoliert den veränderlichen CDN-Zeiger, während immutable Objekte und normale Forecast-Caches unverändert bleiben.
+
+Pages-Pointer-Konvergenz wird vor Worker-Übernahme separat streng geprüft. Keine Akzeptanz eines älteren Laufs und keine Vergrößerung des Retry-Budgets. Snapshot-Guard beim ersten Installer-Pages-Deploy vergleicht unter bestehendem mid-pages-Lock den vorbereiteten RUC-Lauf mit dem öffentlichen Zeiger. Bei Abweichung/Unklarheit wird das vorgefertigte Artefakt nicht veröffentlicht und als nicht wiederverwendbar markiert. Vorhandener zweiter Installer-Versuch stellt unter derselben Sperre den aktuellen Snapshot mit bestehenden Hash-/Größenprüfungen wieder her. Kein neuer konkurrierender Installer.
+
+Workflow-Ergebnisse unterscheiden aktuell und veröffentlicht sowie nach Aufbereitung wegen Releasewechsel übersprungen. Nicht erfolgreiche Schritte bleiben im GitHub-Schrittstatus sichtbar. Bestehende Zeitpläne, Concurrency-Gruppen, Watchdog-Cooldowns, SHA-/Versionsguards und Kostenverträge bleiben erhalten. Veröffentlichung über Source-Gate/Releasebot/Installer.
