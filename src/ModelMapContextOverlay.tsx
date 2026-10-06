@@ -1,10 +1,10 @@
-import {memo,useEffect} from 'react';
+import {memo,useCallback,useEffect} from 'react';
 import {CanvasOverlay,useMidMap,type MidMap} from './MapLibreCore';
 import {getModelMapGeography,loadModelMapGeography} from './modelMapGeography';
 import germany from './precipitationGermany.json';
 
 export const MODEL_MAP_CONTEXT_ZOOMS={states:4.8,places:5.7};
-export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZoom'|'getCenter'>,canvas:HTMLCanvasElement){
+export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZoom'|'getCenter'>,canvas:HTMLCanvasElement,labels=true){
  const base=map.getCanvas(),width=base.clientWidth,height=base.clientHeight;if(!width||!height)return;
  const ratio=Math.max(1,Math.min(2,globalThis.devicePixelRatio||1));
  const w=Math.round(width*ratio),h=Math.round(height*ratio);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;canvas.style.width=`${width}px`;canvas.style.height=`${height}px`}
@@ -18,7 +18,7 @@ export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZo
  if(geography)drawRings(geography.countries,zoom>=5?2.8:2.1,zoom>=5?1.1:.8,'#263f59');
  drawRings(germany.geometry.coordinates.flat(),3,1.15,'#263f59');
  if(geography&&zoom>=MODEL_MAP_CONTEXT_ZOOMS.states)for(const state of geography.states)drawRings(state.rings,2,.75,'#42566d');
- if(!geography||zoom<MODEL_MAP_CONTEXT_ZOOMS.places)return;
+ if(!labels||!geography||zoom<MODEL_MAP_CONTEXT_ZOOMS.places)return;
  context.font=`600 ${zoom>=7?12:11}px system-ui,sans-serif`;context.textBaseline='middle';
  const boxes:Array<{x:number;y:number;width:number}>=[];
  for(const place of geography.places){if(zoom<place.minZoom)continue;const point=map.project([place.lon+offset,place.lat]),textWidth=context.measureText(place.name).width+10,x=point.x+5,y=point.y;
@@ -27,5 +27,5 @@ export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZo
   context.beginPath();context.arc(point.x,point.y,1.7,0,Math.PI*2);context.fill();
  }
 }
-function ModelMapContextOverlay(){const map=useMidMap();useEffect(()=>{if(!map)return;let active=true;void loadModelMapGeography().then(()=>{if(active)map.triggerRepaint()}).catch(()=>{});return()=>{active=false}},[map]);return <CanvasOverlay id="model-map-context" zIndex={1} render={drawModelMapContext} events={['render','resize']}/>}
+function ModelMapContextOverlay({labels=true}:{labels?:boolean}){const map=useMidMap();const render=useCallback((map:MidMap,canvas:HTMLCanvasElement)=>drawModelMapContext(map,canvas,labels),[labels]);useEffect(()=>{if(!map)return;let active=true;void loadModelMapGeography().then(()=>{if(active)map.triggerRepaint()}).catch(()=>{});return()=>{active=false}},[map]);return <CanvasOverlay id="model-map-context" zIndex={1} render={render} events={['render','resize']}/>}
 export default memo(ModelMapContextOverlay);

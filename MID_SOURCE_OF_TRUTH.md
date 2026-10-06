@@ -1,3 +1,7 @@
+## MID v0.9.85.186 · Karten-Layer mit verlässlichen Linien
+
+Basis: `main = mid-stable = c33588bd76a7a169cbaad0bf98539f3c99080471` (v0.9.85.185). Radar und Satellit lassen sich unabhängig vollständig abwählen. Automatische Modell-Darstellung bevorzugt darüber geprüfte Linien; Flächen bleiben optional. Responsive Layer-Schalter, einmalige Ortsbeschriftung und kompakte Favoriten vermeiden Überlappungen und irreführende Nichtverfügbarkeitsmeldungen. Native Isobaren und bestätigte DWD-WMS-Stile benötigen kein Flächenraster. Paralleländerungen .181–.185 bleiben erhalten. Details: `docs/implementation/MID_C18_MAP_LINES_0.9.85.186.md`.
+
 ## MID v0.9.85.185 · Getrennter DNS-Credential-Pfad
 
 Basis: `main = v0.9.85.184 @ d35659371f48099676409f93add33c4599bf07ec`, `mid-stable = v0.9.85.182 @ 34d41442de1bb8e984dedca0e786dabb5b9f5ee1`. Der erneute .184-Installerlauf bestätigte Worker-Staging, 0-%-/100-%-Smoke und RUC, scheiterte aber erneut beim DNS-Lesen mit HTTP 403, weil der DNS-Schritt weiterhin den Worker-CI-Token verwendete. v0.9.85.185 trennt die Berechtigungen: Nur der Schritt für den bestehenden `www.midwx.app`-CNAME erhält `secrets.CLOUDFLARE_DNS_API_TOKEN`; Worker-Deploy und Workers Route behalten `secrets.CLOUDFLARE_API_TOKEN`. Fehlt der separate DNS-Token oder ist er unzureichend berechtigt, bleibt der Release fail-closed vor Pages und Stable. Details: `docs/implementation/MID_DNS_TOKEN_SPLIT_0.9.85.185.md`.

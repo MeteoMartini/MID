@@ -11,7 +11,7 @@ const workflows=[
 ];
 const self='scripts/test-www-proxy-dns-token-0985185.mjs';
 
-assert.equal(pkg.version,'0.9.85.185');
+assert.match(pkg.version,/^0\.9\.85\.\d+$/);
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);
 assert.equal(pkg.scripts?.['test:www-proxy-dns-token'],`node ${self}`);
@@ -32,4 +32,4 @@ for(const workflow of workflows){
 assert.equal(workflows[0],workflows[1],'Aktiver und kanonischer Installer müssen bytegleich sein.');
 assert.equal(workflows[1],workflows[2],'Kanonischer Installer und Transportspiegel müssen bytegleich sein.');
 
-console.log('MID v0.9.85.185: DNS-Proxy und Worker/Route verwenden getrennte Least-Privilege-Tokens.');
+console.log(`MID v${pkg.version}: DNS-Proxy und Worker/Route verwenden getrennte Least-Privilege-Tokens.`);

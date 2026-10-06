@@ -1,3 +1,10 @@
+# MID v0.9.85.186 · 06.10.2026 · Karten-Layer
+
+- Radar und Satellit bevorzugen Modelllinien; Flächen bleiben ausdrücklich optional auswählbar.
+- Isobaren werden unabhängig von einem Flächenraster gezeichnet. DWD-Linien und Windfiedern verwenden die tatsächlich angebotenen Katalogstile.
+- Kartenebenen mit klareren aktiven Zuständen, gut erreichbaren Schaltern und vollständigen Quell- und Terminangaben.
+- Mobile Layer-Auswahl ohne Überlappung, Radar und Satellit komplett abwählbar; einzelne Ortsbeschriftung und kompakte Favoriten bei reiner Ortsauswahl.
+
 # MID v0.9.85.185
 
 - Das Same-Origin-DNS-Gate verwendet jetzt ausschließlich das separate Repository Secret `CLOUDFLARE_DNS_API_TOKEN` für den bestehenden `www.midwx.app`-CNAME.

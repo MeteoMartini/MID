@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.185';
+const WORKER_VERSION='0.9.85.186';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -2039,12 +2039,19 @@ const WMS_ALLOWED_LAYERS={
 };
 
 function limitedWeatherMapTimes(times,config,now=Date.now()){const minimum=now-(config?.observed?18:36)*3600000,maximum=now+(config?.shortRange?3:config?.forecast?200:2)*3600000,filtered=[...new Set((times||[]).filter(Number.isFinite).filter(value=>value>=minimum&&value<=maximum))].sort((a,b)=>a-b);if(filtered.length<=260)return filtered;const step=Math.ceil(filtered.length/260),sampled=filtered.filter((_,index)=>index%step===0);if(sampled.at(-1)!==filtered.at(-1))sampled.push(filtered.at(-1));return sampled.slice(-260)}
+function weatherMapStylesFromCapabilities(xml,layer){
+ const block=xmlLayerBlock(xml,layer)||xmlLayerBlock(xml,layer.replace(/^dwd:/,''));
+ return [...block.matchAll(/<Style\b[^>]*>([\s\S]*?)<\/Style>/gi)].flatMap(match=>{
+  const name=match[1].match(/<Name>\s*([^<]+)\s*<\/Name>/i)?.[1]?.trim(),title=match[1].match(/<Title>\s*([^<]+)\s*<\/Title>/i)?.[1]?.trim();
+  return name&&/^[a-zA-Z0-9_:.-]{1,180}$/.test(name)?[{name,title:title||name}]:[];
+ });
+}
 async function weatherMapMetadata(request){
  const url=new URL(request.url),layer=String(url.searchParams.get('layer')||'').trim(),config=WEATHER_MAP_LAYER_CONFIG.get(layer);if(!config)throw new Error('Nicht freigegebener Wetterkarten-Layer');
  const xml=await firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Wetterkarten');if(!hasWmsLayer(xml,layer))throw new Error(`DWD-WMS-Layer derzeit nicht verfügbar: ${layer}`);
  const times=limitedWeatherMapTimes(dwdTimesFromCapabilities(xml,layer),config),referenceTimes=dwdDimensionTimesFromCapabilities(xml,layer,'reference_time').filter(value=>value>=Date.now()-96*3600000&&value<=Date.now()+12*3600000).slice(-12),elevations=config.elevation?dwdElevationsFromCapabilities(xml,layer):[];
  const pointSpec=weatherMapPointSpec(layer),queryable=/^<Layer\b[^>]*\bqueryable=["']1["']/i.test((xmlLayerBlock(xml,layer)||xmlLayerBlock(xml,layer.replace(/^dwd:/,''))).trim());
- return{layer,times:times.map(value=>new Date(value).toISOString()),referenceTimes:referenceTimes.map(value=>new Date(value).toISOString()),elevations,...(queryable&&pointSpec?{pointUnit:pointSpec.unit}:{}),provider:'Deutscher Wetterdienst · WMS',checkedAt:new Date().toISOString()}
+ return{layer,styles:weatherMapStylesFromCapabilities(xml,layer),times:times.map(value=>new Date(value).toISOString()),referenceTimes:referenceTimes.map(value=>new Date(value).toISOString()),elevations,...(queryable&&pointSpec?{pointUnit:pointSpec.unit}:{}),provider:'Deutscher Wetterdienst · WMS',checkedAt:new Date().toISOString()}
 }
 // Scalar fields verified against DWD GetFeatureInfo and provider legends.
 // Wind vectors, probabilities and categorical/symbol images are not guessed.
