@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.182",
+  "date": "2026-10-06",
+  "title": "Widget-Export gegen kurzzeitige Datenfehler gehärtet",
+  "external": [
+    "Die automatischen MID-Widgetbilder werden bei kurzzeitigen Ladeproblemen kontrolliert erneut erzeugt.",
+    "Widget-Inhalte und die bestehenden zwölf Varianten bleiben unverändert."
+  ],
+  "internal": [
+    "Three bounded per-variant render attempts, 180-second capture timeout, partial-file cleanup, bounded backoff and 45-minute workflow envelope; fail-closed remains after the third failure."
+  ]
+}
