@@ -11,7 +11,7 @@ assert.match(app,/type WidgetStoredSettings=\{schema:5;[^}]*ecmwfTemperatureColo
 assert.match(app,/ecmwfTemperatureColors:true,view:'cards'/,'ECMWF-Farben sollen bei neuen Standard-Exporten aktiv sein.');
 assert.match(app,/ECMWF-Temperaturfarben/,'ECMWF-Farben sind nicht in der sichtbaren Exportliste auswählbar.');
 assert.match(app,/setEcmwfTemperatureColors/,'ECMWF-Farbauswahl ist nicht interaktiv.');
-assert.match(app,/ecmwfTemperatureColors:true}:stored/,'Feste Standard-Export-URLs müssen die ECMWF-Temperaturfarben ebenfalls verwenden.');
+assert.match(app,/ecmwfTemperatureColors:urlExport\.temperatureColors==='ecmwf'}:stored/,'Feste Standard-Export-URLs müssen die ECMWF-Temperaturfarben explizit aus dem URL-Vertrag übernehmen.');
 assert.match(app,/temperature-colors-ecmwf/,'Exportfläche trägt keine eindeutige ECMWF-Farbklasse.');
 assert.match(app,/widget-temp-ecmwf/,'Kompakte Tageskarten wenden die ECMWF-Farbe nicht auf Tmin\/Tmax an.');
 assert.match(app,/ecmwfTemperatureColors=\{ecmwfTemperatureColors\}/,'Kurvenexport erhält die Temperaturfarben-Auswahl nicht.');
@@ -26,4 +26,4 @@ assert.match(css,/\.weatherwidget\.modern\.compact\.widget-view-cards \.widgetme
 assert.match(css,/\.weatherwidget\.modern\.compact\.widget-view-cards \.widgetmeta>span\{[^}]*height:42px;min-height:42px/s,'Widget-Parameterpillen können zwischen Tagen in der Höhe verrutschen.');
 assert.match(tone,/const ECMWF_TEMPERATURE_STOPS/,'Zentrale wertbasierte ECMWF-Temperaturpalette fehlt.');
 
-console.log('MID v0.9.84.23: Widget-Wind bleibt exakt zweizeilig; Tagesparameter sind vertikal verriegelt und ECMWF-Temperaturfarben bleiben optional, persistent, kontrastiert und in Standard-Exporten aktiv.');
+console.log('MID v0.9.85.175: Widget-Wind bleibt exakt zweizeilig; Tagesparameter sind vertikal verriegelt und ECMWF-Temperaturfarben bleiben optional, persistent, kontrastiert und in Standard-Exporten aktiv.');
