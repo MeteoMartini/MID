@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.178",
+  "date": "2026-10-06",
+  "title": "Automatische Bereitstellung der MID-Widgets",
+  "external": [
+    "Die festen Widgets für Malatya, Kürecik und Ämari werden automatisch aktuell gehalten.",
+    "Ein festes geprüftes ZIP steht für die Übernahme in die Intranet-Umgebung bereit."
+  ],
+  "internal": [
+    "Read-only Stable-Renderer, öffentliche Versionskonvergenz, 12-PNG-Manifest/SHA-256, rollierendes widget-latest-Prerelease über Least-Privilege MID Release Bot."
+  ]
+}
