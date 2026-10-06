@@ -8,7 +8,7 @@ const root=new URL('../',import.meta.url),read=file=>readFileSync(new URL(file,r
 const baseline=JSON.parse(read('scripts/fixtures/module-css-baseline-0985170.json'));
 function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}
 const files=new Map;
-for(const item of baseline.declarations){if(!files.has(item.file))files.set(item.file,declarations(item.file));const source=files.get(item.file).get(item.name);assert.ok(source,`Extracted implementation missing: ${item.name}`);assert.equal(createHash('sha256').update(source).digest('hex'),item.sha256,`${item.name}: refactor changed the .169 implementation`);}
+for(const item of baseline.declarations){if(!files.has(item.file))files.set(item.file,declarations(item.file));const source=files.get(item.file).get(item.name);assert.ok(source,`Extracted implementation missing: ${item.name}`);assert.equal(createHash('sha256').update(source).digest('hex'),item.sha256,`${item.name}: implementation differs from the approved ${baseline.baselineVersion} golden`);}
 const app=read('src/App.tsx');
 for(const name of ['MountainWeather','WidgetGenerator'])assert.ok(app.includes(`lazy(()=>import('./${name}')`),`${name} must load on demand`);
 assert.ok(!app.includes('function mountainZoneAssessments('),'Mountain implementation must be outside App');
@@ -27,5 +27,5 @@ assert.equal(cssCascadeFingerprint(parseCssOutput(output)),baseline.cssCascadeSh
 const main=read('src/main.tsx'),eager=[...main.matchAll(/^import '\.\/(.*\.css)';/gm)].map(m=>m[1]);
 assert.deepEqual(eager,['midPresentation.css'],'Eager CSS must have one consolidated entry');
 assert.ok(!read('src/v078.ts').includes("import './v078.css'"),'Legacy CSS must not load a second time');
-console.log(`Module/CSS consolidation: ${baseline.declarations.length} byte-identical extracted declarations, ${removed.length} covered CSS duplicates, order-sensitive .169 cascade equality.`);
+console.log(`Module/CSS consolidation: ${baseline.declarations.length} approved extracted declarations, ${removed.length} covered CSS duplicates, order-sensitive .169 CSS cascade equality.`);
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-module-css-browser-0985170.mjs'],{cwd:root,stdio:'inherit',timeout:360000});

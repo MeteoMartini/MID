@@ -13,19 +13,38 @@ if (-not $node) {
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 
 $locations = @(
-    @{ Slug = "wiesbaden"; Name = "Wiesbaden" },
+    @{ Slug = "malatya"; Name = "Malatya" },
     @{ Slug = "kuerecik"; Name = "Kürecik" },
-    @{ Slug = "malatya"; Name = "Malatya" }
+    @{ Slug = "amari"; Name = "Ämari" }
 )
-$views = @("kompakt", "kurve")
-$days = @(5, 7)
+
+$profiles = @(
+    @{
+        View = "kurve"
+        Days = 7
+        Wind = 1
+        Rain = 1
+        Sunshine = 1
+        Hazards = 0
+    },
+    @{
+        View = "kompakt"
+        Days = 5
+        Wind = 1
+        Rain = 0
+        Sunshine = 0
+        Hazards = 0
+    }
+)
+
+$themes = @("light", "dark")
 
 foreach ($location in $locations) {
-    foreach ($view in $views) {
-        foreach ($dayCount in $days) {
-            $fileName = "$($location.Slug)-$view-${dayCount}d-light.png"
+    foreach ($profile in $profiles) {
+        foreach ($theme in $themes) {
+            $fileName = "$($location.Slug)-$($profile.View)-$($profile.Days)d-$theme.png"
             $outputPath = Join-Path $OutputDirectory $fileName
-            $url = "https://www.midwx.app/?widget=$($location.Slug)&ansicht=$view&tage=$dayCount&design=light&farben=ecmwf"
+            $url = "https://www.midwx.app/?widget=$($location.Slug)&ansicht=$($profile.View)&tage=$($profile.Days)&design=$theme&farben=ecmwf&wind=$($profile.Wind)&regen=$($profile.Rain)&sonne=$($profile.Sunshine)&hazards=$($profile.Hazards)"
 
             Write-Host "Erzeuge $fileName …"
             & $node.Source $captureScript `
@@ -42,4 +61,4 @@ foreach ($location in $locations) {
     }
 }
 
-Write-Host "Alle MID-Widgets wurden mit ECMWF-Temperaturfarben aktualisiert."
+Write-Host "Alle 12 MID-Widgets für Malatya, Kürecik und Ämari wurden in Hell/Dunkel mit den festgelegten Profilen aktualisiert."

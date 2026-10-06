@@ -1,3 +1,14 @@
+## MID v0.9.85.175 · 2026-10-06 · Widget-Exportprofile Malatya, Kürecik und Ämari
+
+- Basis: main v0.9.85.174, Commit c5bcdc09ae97072ec3c6b7c9fca75d8debd248a5; keine offenen PRs und keine Widget-Differenz zu mid-stable v0.9.85.173.
+- Feste Exportorte: Malatya, Kürecik und neu Ämari (59,26°N, 24,20°E); Wiesbaden entfällt aus dem kanonischen Batch.
+- Kanonische Profile: 7d Kurve = Wind + Niederschlag + Sonne + ECMWF; 5d Kompakt = Wind + ECMWF. Hazards sind in diesen SharePoint-Exports deaktiviert.
+- Beide Profile werden in Light und Dark erzeugt: 3 Orte × 2 Profile × 2 Themes = 12 PNGs.
+- Sichtbarkeiten werden explizit über die Widget-URL übertragen und können nicht durch lokale Widget-Einstellungen verfälscht werden.
+- Alte direkte 5-/7-Tage-Kompakt-/Kurven-URLs bleiben lesbar; außerhalb der neuen kanonischen Profile gilt ihr bisheriges vollständiges Sichtbarkeitsverhalten weiter.
+- Der bestehende CDP-Exporter wartet weiterhin auf `midWidgetReady=ready` und erfasst ausschließlich die aktuelle `.weatherwidget`-Fläche von www.midwx.app.
+- Keine meteorologische Prognose-, Warn-, RUC-, Karten- oder Worker-Fachlogik geändert.
+
 ## MID v0.9.85.174
 
 Nebel-/Dunsttexte bleiben mit den Wetterpiktogrammen konsistent. Bergwetter verwendet vorhandene Modell-Schneefallgrenzen vor der vereinfachten Höhenableitung. Temperatur und Taupunkt erreichen die bestehende Kurzfrist-Phasenprüfung.

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "baselineCommit": "9b917ed7054903df6da983ed79fe20561af45ab9",
-  "baselineVersion": "0.9.85.169",
+  "baselineCommit": "36c64a4eeec6df60d9141ea4b444e3aae550bb56",
+  "baselineVersion": "0.9.85.175",
   "cssCascadeSha256": "d6ac5656ee252a9ec45a4883828007e32945047b2da455e837376dd64afaa7c2",
   "cssSources": [
     "src/styles-src/00-foundation.css",
@@ -475,7 +475,7 @@
     {
       "file": "src/WidgetGenerator.tsx",
       "name": "Widget",
-      "sha256": "30e46a991ea0408db8367e4a9d28c350301639e24bb6df67d33aeb881662536c"
+      "sha256": "691fbed3c86a8e51e593beeebad3d84119837a764741f50560f48f5c2d3dd193"
     },
     {
       "file": "src/ForecastDisplayPrimitives.tsx",
