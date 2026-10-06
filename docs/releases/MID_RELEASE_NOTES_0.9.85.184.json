@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.184",
+  "date": "2026-10-06",
+  "title": "Same-Origin-DNS-Hotfix",
+  "external": [
+    "Der bestehende MID-Webhost wird kontrolliert über Cloudflare proxied, damit Warnungen, RUC sowie Radar-/Satellitendaten über dieselbe MID-Domain erreichbar sind.",
+    "Die Veröffentlichung bleibt fail-closed, falls der bestehende DNS-Record oder die nötige Cloudflare-Berechtigung nicht eindeutig ist."
+  ],
+  "internal": [
+    "Installer Run 37480541081 proved Worker .183 healthy but Same-Origin health returned 404 after route creation. v0.9.85.184 toggles only the existing www.midwx.app CNAME to proxied=true, preserves name/type/content, forbids POST/PUT/TLS changes and keeps route/health/RUC/Pages/Stable gates intact."
+  ]
+}
