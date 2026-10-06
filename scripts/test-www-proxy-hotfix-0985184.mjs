@@ -10,7 +10,6 @@ const install=read('.github/workflows/install-mid.yml');
 const canonical=read('ci/github/workflows/install-mid.yml');
 const patch=read('workflow-patches/install-mid.yml');
 
-assert.equal(pkg.version,'0.9.85.184');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);
 
@@ -38,4 +37,4 @@ for(const workflow of [install,canonical,patch]){
 assert.equal(install,canonical,'Aktiver und kanonischer Installer müssen bytegleich sein.');
 assert.equal(canonical,patch,'Kanonischer Installer und Transportspiegel müssen bytegleich sein.');
 
-console.log('MID v0.9.85.184: bestehender www-CNAME wird ausschließlich auf proxied=true gesetzt; Ziel, Typ, Name, TLS und andere DNS-Einträge bleiben geschützt.');
+console.log(`MID v${pkg.version}: bestehender www-CNAME wird ausschließlich auf proxied=true gesetzt; Ziel, Typ, Name, TLS und andere DNS-Einträge bleiben geschützt.`);
