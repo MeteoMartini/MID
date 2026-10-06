@@ -1,3 +1,14 @@
+## MID v0.9.85.184 · 2026-10-06 · www.midwx.app für Same-Origin-Workerpfad sicher proxied
+
+- Basis: main v0.9.85.183 @ `61fc2634651b865e571496da6eaf3dd0378c760b`; mid-stable weiterhin v0.9.85.182 @ `34d41442de1bb8e984dedca0e786dabb5b9f5ee1`.
+- Befund aus Installer Run `37480541081`: Worker v0.9.85.183 bestand 0-%-Smoke, 100-%-Smoke und RUC ready/fresh; die Workers Route `www.midwx.app/api/mid-worker*` wurde bestätigt, der anschließende Same-Origin-Health-Check erhielt jedoch HTTP 404.
+- Ursache: Die Route war vorhanden, aber der bestehende `www.midwx.app`-DNS-Record lief noch nicht durch den Cloudflare-Proxy; deshalb erreichte der Browserpfad weiterhin GitHub Pages statt der Workers Route.
+- Neuer fail-closed Schritt `ensure_www_proxy.mjs`: exakt ein bestehender CNAME `www.midwx.app`, keine parallelen A/AAAA-Records, nur `proxied=true` per PATCH. Name, Typ und Zielwert werden vor/nachher verglichen.
+- Kein neuer DNS-Record, kein Record-Ersatz, keine TLS-/Zone-Settings-Änderung, keine Änderung anderer DNS-Einträge.
+- Reihenfolge: bestehender www-CNAME proxied -> exakte Worker-Route -> Same-Origin-Health/RUC -> Pages -> Stable.
+- Benötigte zusätzliche Cloudflare-Berechtigung: Zone:DNS Edit ausschließlich für die Zone `midwx.app`.
+- Meteorologische Fachlogik unverändert.
+
 ## MID v0.9.85.183 · 2026-10-06 · Corporate-safe Same-Origin Data Plane
 
 - Basis: main = mid-stable = v0.9.85.182 @ `34d41442de1bb8e984dedca0e786dabb5b9f5ee1`.
