@@ -116,6 +116,8 @@ def write_github_outputs(path:str|None,rows:Iterable[tuple[str,str]])->None:
             clean=str(value).replace('\r',' ').replace('\n',' ')
             handle.write(f'{key}={clean}\n')
 
+from run_progress import report_run
+
 def main()->int:
     parser=argparse.ArgumentParser()
     parser.add_argument('--pages-base',default=os.getenv('MID_RUC_PAGES_BASE_URL','https://midwx.app/ruc/'))
@@ -134,7 +136,9 @@ def main()->int:
         should_run,reason,dwd,published=decide(dwd,meta,max_age_minutes=args.max_age_minutes)
     print(f'RUC schedule guard: should_run={str(should_run).lower()} · {reason}')
     if dwd:print(f'Newest common DWD run: {dwd}')
-    if published:print(f'Published Pages run: {published}')
+    if published:
+        print(f'Published Pages run: {published}')
+        report_run('bereits auf Pages veröffentlicht',published)
     write_github_outputs(args.github_output,[
         ('should_run','true' if should_run else 'false'),
         ('reason',reason),

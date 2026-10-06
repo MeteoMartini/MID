@@ -3,6 +3,8 @@ export type DwdWarningKind='wind'|'thunderstorm'|'heavyRain'|'continuousRain'|'s
 export type DwdWarningSample={
  time?:string;
  epoch?:number;
+ precipitationIntervalStartEpoch?:number;
+ precipitationIntervalEndEpoch?:number;
  temperature?:number;
  apparent?:number;
  precipitation?:number;
@@ -103,7 +105,7 @@ export function formatDwdWarningDetail(signal:DwdWarningSignal,unit:DwdDisplayWi
 }
 function finite(value:unknown,fallback=0){const number=Number(value);return Number.isFinite(number)?number:fallback}
 function forwardValues(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const count=Math.max(1,Math.round(hours));return samples.slice(index,index+count).map(selector)}
-function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector);return values.length>=hours?values.reduce((sum,value)=>sum+Math.max(0,finite(value)),0):Number.NaN}
+function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector),epochs=rows.map(warningSampleEpoch),timed=epochs.some(Number.isFinite);if(values.length<hours||timed&&(!epochs.every(Number.isFinite)||epochs.some((epoch,i)=>i>0&&Math.abs(epoch-epochs[i-1]-3600000)>5*60000)))return Number.NaN;return values.reduce((sum,value)=>sum+Math.max(0,finite(value)),0)}
 function forwardMax(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length?Math.max(...values):Number.NaN}
 function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length>=hours?Math.min(...values):Number.NaN}
 function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const values=forwardValues(samples,index,hours,sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return values.length>=hours&&values.every(value=>value<threshold)}
@@ -180,9 +182,16 @@ export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elev
 
 type WarningOccurrence={signal:DwdWarningSignal;index:number;start:number;end:number};
 type WarningInterval={start:number;end:number;members:WarningOccurrence[]};
-function warningSampleEpoch(sample:DwdWarningSample){const raw=Number(sample.epoch);if(Number.isFinite(raw))return raw<1e12?raw*1000:raw;const parsed=Date.parse(String(sample.time??''));return Number.isFinite(parsed)?parsed:Number.NaN}
+function warningSampleEpoch(sample:DwdWarningSample){const raw=sample.epoch===null||sample.epoch===undefined?NaN:Number(sample.epoch);if(Number.isFinite(raw))return raw<1e12?raw*1000:raw;const parsed=Date.parse(String(sample.time??''));return Number.isFinite(parsed)?parsed:Number.NaN}
 export function warningCurrentStartIndex(samples:DwdWarningSample[],now=Date.now()){let currentIndex=-1,currentEpoch=Number.NEGATIVE_INFINITY,futureIndex=-1,futureEpoch=Number.POSITIVE_INFINITY;for(let index=0;index<samples.length;index++){const epoch=warningSampleEpoch(samples[index]);if(!Number.isFinite(epoch))continue;if(epoch<=now&&epoch>currentEpoch){currentEpoch=epoch;currentIndex=index}else if(epoch>now&&epoch<futureEpoch){futureEpoch=epoch;futureIndex=index}}return currentIndex>=0?currentIndex:futureIndex>=0?futureIndex:0}
-function warningOccurrence(signal:DwdWarningSignal,index:number,sample:DwdWarningSample):WarningOccurrence{const start=warningSampleEpoch(sample),durationHours=Math.max(1,Math.round(Number(signal.windowHours)||1));return{signal,index,start,end:Number.isFinite(start)?start+durationHours*3600000:Number.NaN}}
+function warningOccurrence(signal:DwdWarningSignal,index:number,sample:DwdWarningSample,samples:DwdWarningSample[]):WarningOccurrence{
+ const start=warningSampleEpoch(sample),durationHours=Math.max(1,Math.round(Number(signal.windowHours)||1));
+ if(signal.kind==='heavyRain'||signal.kind==='continuousRain'){
+  const wet=samples.slice(index,index+durationHours).filter(row=>liquidPrecipitation(row)>=.05),first=wet[0],last=wet.at(-1),from=first?(Number.isFinite(first.precipitationIntervalStartEpoch)?Number(first.precipitationIntervalStartEpoch):warningSampleEpoch(first)):NaN,to=last?(Number.isFinite(last.precipitationIntervalEndEpoch)?Number(last.precipitationIntervalEndEpoch):warningSampleEpoch(last)+3600000):NaN;
+  return{signal,index,start:from,end:to};
+ }
+ return{signal,index,start,end:Number.isFinite(start)?start+durationHours*3600000:Number.NaN};
+}
 function warningIntervals(occurrences:WarningOccurrence[]){
  const timed=occurrences.filter(item=>Number.isFinite(item.start)&&Number.isFinite(item.end)).sort((a,b)=>a.start-b.start);const merged:WarningInterval[]=[];
  for(const item of timed){const current=merged.at(-1);if(current&&item.start<=current.end+5*60000){current.end=Math.max(current.end,item.end);current.members.push(item)}else merged.push({start:item.start,end:item.end,members:[item]})}
@@ -226,7 +235,7 @@ function mergeInterruptedLowerWarnings(signals:DwdWarningSignal[]){
 }
 export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,startLimit=samples.length){
  const occurrences=new Map<string,WarningOccurrence[]>(),limit=Math.min(samples.length,Math.max(0,startLimit));
- for(let index=0;index<limit;index++)for(const signal of dwdWarningSignalsAt(samples,index,elevation)){const occurrence=warningOccurrence(signal,index,samples[index]),key=warningStageKey(signal),rows=occurrences.get(key)??[];rows.push(occurrence);occurrences.set(key,rows)}
+ for(let index=0;index<limit;index++)for(const signal of dwdWarningSignalsAt(samples,index,elevation)){const occurrence=warningOccurrence(signal,index,samples[index],samples),key=warningStageKey(signal),rows=occurrences.get(key)??[];rows.push(occurrence);occurrences.set(key,rows)}
  const summarized:DwdWarningSignal[]=[];
  for(const rows of occurrences.values()){const intervals=warningIntervals(rows),untimed=rows.filter(item=>!Number.isFinite(item.start)||!Number.isFinite(item.end));for(const interval of intervals){const selected=strongestWarningOccurrence(interval.members);summarized.push({...selected.signal,...warningValidity(interval.members,selected)})}if(untimed.length)summarized.push({...strongestWarningOccurrence(untimed).signal})}
  const consolidated=mergeInterruptedLowerWarnings(summarized);

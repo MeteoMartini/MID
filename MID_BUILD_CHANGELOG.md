@@ -1,3 +1,7 @@
+## MID v0.9.85.178 · Regenhinweise und Quellenbeleg
+
+Regen-Gültigkeit an nasse Beiträge gebunden; unbewiesene Ensemble-Randpadding und probabilistische Beschreibung entfernt. DWD-Summen verlangen bei Zeitstempeln lückenlose Stunden; kanonisches Weather-Fragment und Aggregat synchron.
+
 ## MID v0.9.85.177 · Atmosphärische Höhengrenzen
 
 Geografisch feste Zellwahl in Höhenabrufen einschließlich Legacy-Pfad; freie Diagnostik ohne Oberflächen-Downscaling und mit Modellgeländehöhe. Unterste Wolkenbasis getrennt von lokaler Wolkenschicht-/Sichtprüfung und lokalem LCL. Fehlende DWD-Eingaben/Profilkoordinaten bleiben unbekannt.
