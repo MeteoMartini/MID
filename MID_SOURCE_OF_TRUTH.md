@@ -1,3 +1,7 @@
+## MID v0.9.85.175 · Widget-Exportprofile Malatya, Kürecik und Ämari
+
+Basis: main v0.9.85.174 (`c5bcdc09ae97072ec3c6b7c9fca75d8debd248a5`). Der kanonische feste Widget-Export umfasst Malatya, Kürecik und Ämari (59,26°N, 24,20°E) mit genau zwei Profilen: 7 Tage Kurve mit Wind/Niederschlag/Sonne/ECMWF und 5 Tage Kompakt mit Wind/ECMWF; beide jeweils Light/Dark. Hazards sind in diesen SharePoint-Exportprofilen aus. Alte direkte Widget-URLs bleiben rückwärtsverträglich lesbar. Rendering und PNG-Erfassung verwenden weiterhin den aktuellen veröffentlichten WidgetGenerator und das bestehende `midWidgetReady`-/CDP-Verfahren. Details: docs/implementation/MID_WIDGET_EXPORT_PROFILES_0.9.85.175.md. Release ausschließlich über Source-PR-Gate, Installer und Stable-Promotion.
+
 ## MID v0.9.85.174
 
 Nebel-/Dunsttexte bleiben mit den Wetterpiktogrammen konsistent. Bergwetter verwendet vorhandene Modell-Schneefallgrenzen vor der vereinfachten Höhenableitung. Temperatur und Taupunkt erreichen die bestehende Kurzfrist-Phasenprüfung.
