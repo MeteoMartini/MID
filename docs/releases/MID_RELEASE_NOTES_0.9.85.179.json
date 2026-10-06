@@ -1,0 +1,11 @@
+{
+  "version": "0.9.85.179",
+  "date": "2026-10-06",
+  "title": "Deterministischer Stable-Trigger für den Widget-Export",
+  "external": [
+    "Die festen MID-Widgets werden nach jedem neuen Stable-Build unmittelbar neu erzeugt."
+  ],
+  "internal": [
+    "Zusätzlicher push-Trigger auf mid-stable; workflow_run, schedule und workflow_dispatch bleiben redundant erhalten."
+  ]
+}

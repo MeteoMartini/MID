@@ -7,6 +7,9 @@ on:
       - MID-Release aus ZIP installieren und veröffentlichen
     types:
       - completed
+  push:
+    branches:
+      - mid-stable
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:

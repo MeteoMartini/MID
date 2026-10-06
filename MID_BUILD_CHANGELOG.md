@@ -1,3 +1,12 @@
+## MID v0.9.85.179 · 2026-10-06 · Widget-Trigger gehärtet
+
+- Basis: main = mid-stable = v0.9.85.178 @ `16c007b264599c7162bd174d03179b2a4363d7e2`.
+- Befund nach .178: App-Release vollständig grün, der neu eingeführte Widget-Workflow war jedoch weder nach dem Installer noch beim ersten Stundenfenster als Lauf sichtbar.
+- Ergänzt: deterministischer `push`-Trigger auf `mid-stable`.
+- Beibehalten: `workflow_run` nach erfolgreichem Installer, stündlicher Cron und manueller Start.
+- Neuer Regressionstest `test-widget-export-stable-trigger-0985179.mjs` schützt den Triggervertrag.
+- Keine Änderung an Meteorologie, UI, RUC, Workerlogik oder Widgetprofilen.
+
 ## MID v0.9.85.178 · 2026-10-06 · Serverautomatisierung der festen Widget-PNGs
 
 - Basis: main = mid-stable = v0.9.85.177 @ `d771d9cfaec65f6c13538a143f2c52b620c997c0`; keine offenen PRs beim Start.

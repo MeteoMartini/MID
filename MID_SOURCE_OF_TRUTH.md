@@ -1,3 +1,7 @@
+## MID v0.9.85.179 · Deterministischer Widget-Export nach Stable-Promotion
+
+Basis: `main = mid-stable = 16c007b264599c7162bd174d03179b2a4363d7e2` (v0.9.85.178). Der in v0.9.85.178 eingeführte Widget-Workflow erhält zusätzlich einen direkten `push`-Trigger für `mid-stable`, damit jede reguläre Stable-Promotion unmittelbar einen Renderlauf erzeugt. `workflow_run`, Stundenplan und `workflow_dispatch` bleiben als redundante Startwege bestehen. Die Render-/Publikationslogik selbst bleibt unverändert und weiterhin fail-closed. Details: `docs/implementation/MID_WIDGET_EXPORT_TRIGGER_0.9.85.179.md`.
+
 ## MID v0.9.85.178 · Automatischer Widget-Bildtransport
 
 Basis: `main = mid-stable = d771d9cfaec65f6c13538a143f2c52b620c997c0` (v0.9.85.177). Die in v0.9.85.175 festgelegten zwölf Widgetprofile werden ab dieser Version serverseitig und reproduzierbar erzeugt. Der Workflow arbeitet ausschließlich gegen `mid-stable`, verifiziert vor jedem Lauf die lokale Stable-Version gegen die öffentlich ausgelieferte `www.midwx.app/version.json` und publiziert nur bei nachgewiesener Gleichheit. Rendering und Validierung sind read-only; die rollierenden Release-Assets werden ausschließlich mit einem kurzlebigen, auf `contents: write` begrenzten MID-Release-Bot-Token ersetzt. Kanonischer Transfergegenstand ist `mid-widget-export-latest.zip` mit Manifest und SHA-256. Ein adminfreier PowerShell-Downloader übernimmt Download, Integritätsprüfung und lokale Bereitstellung. Details: `docs/implementation/MID_WIDGET_EXPORT_AUTOMATION_0.9.85.178.md`.
