@@ -51,7 +51,7 @@ Der Push-Scheduler bleibt auf `sub:`-Listenabfragen beschränkt; der KNMI-Cache 
 
 Nach einer erforderlichen Worker-Promotion und auch bei fachlich unverändertem Worker muss vor Pages/Stable die exakte Route `www.midwx.app/api/mid-worker*` auf den konfigurierten MID-Worker bestätigt sein. Die Route wird idempotent angelegt, sofern sie fehlt. Zeigt dasselbe exakte Pattern bereits auf einen anderen Worker, wird es nicht überschrieben; der Release bricht fail-closed ab.
 
-Der Same-Origin-Endpunkt `https://www.midwx.app/api/mid-worker` muss anschließend `mode=health` mit der erwarteten Releaseversion bestehen. Bei aktiver RUC-Pipeline gilt zusätzlich der bestehende RUC-Health-Vertrag. DNS, TLS und fremde Routes sind außerhalb dieses Gates und werden nicht automatisch verändert.
+Der Same-Origin-Endpunkt `https://www.midwx.app/api/mid-worker` muss anschließend `mode=health` bestehen. Nach fachlicher Worker-Änderung ist die neue Releaseversion zwingend; bei fachlich unverändertem Worker wird die bereits aktive plausible Worker-Version akzeptiert. Bei aktiver RUC-Pipeline gilt zusätzlich der bestehende RUC-Health-Vertrag. DNS, TLS und fremde Routes sind außerhalb dieses Gates und werden nicht automatisch verändert.
 
 Im produktiven Browser ist dieser Same-Origin-Endpunkt der alleinige Worker-Kandidat. Direkte DWD-/EUMETSAT-/RainViewer-/OpenFreeMap-Abrufe kritischer Kartenpfade werden dort nicht als Netzfilter-Fallback benutzt. Native und lokale Entwicklungsumgebungen behalten ihre explizit konfigurierten Plattformpfade.
 
