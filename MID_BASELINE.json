@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.180",
+  "releaseVersion": "0.9.85.181",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -676,6 +676,7 @@
     "scripts/test-radar-weathermaps-followups-09230.mjs",
     "scripts/test-radar.mjs",
     "scripts/test-rain-errorbars.mjs",
+    "scripts/test-rain-warning-evidence-0985178.mjs",
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
     "scripts/test-regional-model-domain-fusion-097714.mjs",
@@ -917,6 +918,7 @@
     "scripts/test-widget-ensemble-climate-alias-09849.mjs",
     "scripts/test-widget-ensemble-selector-098414.mjs",
     "scripts/test-widget-export-automation-0985178.mjs",
+    "scripts/test-widget-export-browser-runtime-0985181.mjs",
     "scripts/test-widget-export-stable-trigger-0985179.mjs",
     "scripts/test-widget-render-readiness-098424.mjs",
     "scripts/test-widget-svg-export-paints-098441.mjs",
@@ -933,8 +935,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs",
-    "scripts/test-rain-warning-evidence-0985178.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1600,6 +1601,7 @@
     "scripts/test-radar-weathermaps-followups-09230.mjs",
     "scripts/test-radar.mjs",
     "scripts/test-rain-errorbars.mjs",
+    "scripts/test-rain-warning-evidence-0985178.mjs",
     "scripts/test-react19-ref-climate-colors-09832.mjs",
     "scripts/test-recharts3-reference-dot-buildfix-08261.mjs",
     "scripts/test-regional-model-domain-fusion-097714.mjs",
@@ -1841,6 +1843,7 @@
     "scripts/test-widget-ensemble-climate-alias-09849.mjs",
     "scripts/test-widget-ensemble-selector-098414.mjs",
     "scripts/test-widget-export-automation-0985178.mjs",
+    "scripts/test-widget-export-browser-runtime-0985181.mjs",
     "scripts/test-widget-export-stable-trigger-0985179.mjs",
     "scripts/test-widget-render-readiness-098424.mjs",
     "scripts/test-widget-svg-export-paints-098441.mjs",
@@ -1857,8 +1860,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs",
-    "scripts/test-rain-warning-evidence-0985178.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2241,6 +2243,7 @@
     "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md",
     "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
     "docs/implementation/MID_REPOSITORY_MAINTENANCE_0.9.85.127.md",
+    "docs/implementation/MID_WIDGET_BROWSER_RUNTIME_0.9.85.181.md",
     "docs/implementation/MID_WIDGET_EXPORT_AUTOMATION_0.9.85.178.md",
     "docs/implementation/MID_WIDGET_EXPORT_TRIGGER_0.9.85.179.md",
     "docs/releases/MID_RELEASE_NOTES_0.9.85.168.json",
@@ -2248,6 +2251,7 @@
     "docs/releases/MID_RELEASE_NOTES_0.9.85.171.json",
     "docs/releases/MID_RELEASE_NOTES_0.9.85.178.json",
     "docs/releases/MID_RELEASE_NOTES_0.9.85.179.json",
+    "docs/releases/MID_RELEASE_NOTES_0.9.85.181.json",
     "ios/App/App.xcodeproj/project.pbxproj",
     "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark-1024.png",
     "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Light-1024.png",
@@ -2533,6 +2537,7 @@
     "scripts/test-widget-ensemble-climate-alias-09849.mjs",
     "scripts/test-widget-ensemble-selector-098414.mjs",
     "scripts/test-widget-export-automation-0985178.mjs",
+    "scripts/test-widget-export-browser-runtime-0985181.mjs",
     "scripts/test-widget-export-stable-trigger-0985179.mjs",
     "scripts/test-widget-url-exports-098413.mjs",
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
@@ -2655,6 +2660,7 @@
     "tools/ruc/test_ruc_schedule_guard.py",
     "tools/widget-export/Download-MID-Widgets.ps1",
     "tools/widget-export/README.md",
+    "tools/widget-export/capture-widget.mjs",
     "tools/widget-export/render-widget-matrix.mjs",
     "vitest.config.ts",
     "worker-src/00-core-observations.js",
@@ -2960,6 +2966,7 @@
     "scripts/test-weather-profile-rolling-openmeteo-audit-09653.mjs",
     "scripts/test-weather-profile-story-axis-09750.mjs",
     "scripts/test-widget-export-automation-0985178.mjs",
+    "scripts/test-widget-export-browser-runtime-0985181.mjs",
     "scripts/test-widget-export-stable-trigger-0985179.mjs",
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
@@ -3002,6 +3009,7 @@
     "tools/ruc/test_publish_ruc_r2.py",
     "tools/ruc/test_ruc_health_check.py",
     "tools/widget-export/Download-MID-Widgets.ps1",
+    "tools/widget-export/capture-widget.mjs",
     "tools/widget-export/render-widget-matrix.mjs",
     "vitest.config.ts",
     "worker-src/05-knmi-eps-cache.js"
@@ -3342,7 +3350,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.180",
+  "version": "0.9.85.181",
   "updatedAt": "2026-10-05T18:50:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
