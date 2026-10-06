@@ -1023,6 +1023,11 @@ export function dailyPrecipitationProbabilityCompact(day:Pick<Day,'probability'|
 }
 
 export function cloudOktas(percent:number){return Math.max(0,Math.min(8,Math.round((Number.isFinite(percent)?percent:0)/12.5)))}
+/** Sky labels must not overwrite dry phenomena such as fog or haze. */
+export function dryWeatherLabel(code:number,cloud?:number|null){
+ const sky=Number.isInteger(code)&&code>=0&&code<=3;
+ return sky&&cloud!=null&&Number.isFinite(cloud)?cloudOktasLabel(cloud):label(code);
+}
 export function cloudOktasLabel(percent:number){
  const octas=cloudOktas(percent);
  return octas===0?'Wolkenlos':octas<=3?'Leicht bewölkt':octas<=6?'Wolkig':octas===7?'Stark bewölkt':'Bedeckt';

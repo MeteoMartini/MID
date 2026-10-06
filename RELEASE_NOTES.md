@@ -1,5 +1,3 @@
-# MID v0.9.85.173
+# MID v0.9.85.174
 
-- Wetterdaten-Veröffentlichung und Worker-Übernahme werden getrennt geprüft.
-- App-Updates schützen vor einem zwischenzeitlich veralteten RUC-Datenstand.
-- Automatische Wetterdatenläufe zeigen eindeutiger an, ob Daten aktuell, aufbereitet oder veröffentlicht wurden.
+Nebel-/Dunsttexte bleiben mit den Wetterpiktogrammen konsistent. Bergwetter verwendet vorhandene Modell-Schneefallgrenzen vor der vereinfachten Höhenableitung. Temperatur und Taupunkt erreichen die bestehende Kurzfrist-Phasenprüfung.

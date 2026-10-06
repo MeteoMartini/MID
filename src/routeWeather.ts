@@ -1,4 +1,4 @@
-import {cloudOktasLabel,forecast,label,mapHours,type Hour,type Location} from './weather';
+import {dryWeatherLabel,forecast,mapHours,type Hour,type Location} from './weather';
 import {precipitationParts,type PrecipType,type PrecipitationVisualIntensity} from './precipitation';
 
 export type RouteProfile='car'|'bike'|'foot';
@@ -111,7 +111,7 @@ function assessCheckpoint(hour:Hour){
   lowCloud:hour.lowCloud
  });
  const displayCode=precipitation.displayCode;
- const displayLabel=precipitation.type==='none'&&Number.isFinite(Number(hour.cloud))?cloudOktasLabel(Number(hour.cloud)):precipitation.type==='none'?label(displayCode):precipitation.weatherLabel;
+ const displayLabel=precipitation.type==='none'?dryWeatherLabel(displayCode,hour.cloud):precipitation.weatherLabel;
  const reasons:string[]=[];
  let score=0;
 

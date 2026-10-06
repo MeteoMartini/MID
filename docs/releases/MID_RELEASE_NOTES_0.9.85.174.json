@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.174",
+  "date": "2026-10-06",
+  "title": "Nebel und Phasenkonsistenz",
+  "external": [
+    "Nebeltexte mit Symbolen vereinheitlicht.",
+    "Modell-Schneefallgrenzen im Bergwetter priorisiert."
+  ],
+  "internal": [
+    "Feuchte-/Temperaturzustand zur vorhandenen Phasenprüfung weitergereicht; keine pauschale Talabsenkung."
+  ]
+}
