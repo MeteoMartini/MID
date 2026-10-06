@@ -1,0 +1,15 @@
+{
+  "version": "0.9.85.180",
+  "date": "2026-10-06",
+  "title": "Regenhinweise mit belegtem Ort und Zeitraum",
+  "external": [
+    "- Stark-/Dauerregenhinweise markieren die tatsächlich nasse Phase statt trockener Vor- und Nachlaufstunden rollierender Summenfenster.",
+    "- Regenhinweise nennen die Standort-Modellsumme und DWD-Schwellen; unbelegte Ensemble-Bestätigung und erfundene Wahrscheinlichkeitsbereiche entfallen.",
+    "- Zeitlücken und Mehrstundenwerte dürfen keine Stunden-Warnschwellen vortäuschen. Amtliche Warnungen und Extremwettervorschau behalten ihre eigenen Quellen und Kriterien.",
+    "Profilkopf ohne redundante Drucktrend-Karte; RUC-Läufe mit Datum und UTC-Kennung im Log und der Ergebnisübersicht."
+  ],
+  "internal": [
+    "Nasse Beiträge bestimmen Regenhinweis-Gültigkeit, kein marginales EPS-Summenpadding oder unbewiesene Bestätigung.",
+    "Echte Standort-Modellsumme statt heuristischer Wahrscheinlichkeitsbereich; lückenlose Stundenachsen schützen Niederschlags-/Schneesummen."
+  ]
+}

@@ -13,6 +13,7 @@ from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
 import requests
+from run_progress import report_run
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
 
@@ -236,10 +237,11 @@ def main():
  if not candidates:raise SystemExit('No common DWD RUC/RUC-EPS run directories found')
  errors=[]
  for run in candidates:
-  print(f'Trying DWD common RUC/RUC-EPS run: {run}',flush=True)
+  report_run('wird geprüft und aufbereitet',run);print(f'Trying DWD common RUC/RUC-EPS run: {run}',flush=True)
   try:
-   selected=build_candidate(s,run,a.stage,a.output,a.hours);print(f'Selected complete DWD RUC/RUC-EPS run: {selected}',flush=True);return
+   selected=build_candidate(s,run,a.stage,a.output,a.hours);print(f'Selected complete DWD RUC/RUC-EPS run: {selected}',flush=True);report_run('vollständig aufbereitet · noch nicht veröffentlicht',selected);return
   except Exception as exc:
+   report_run('Kandidat verworfen',run)
    category='download-failed' if isinstance(exc,requests.RequestException) else 'data-or-build-failed'
    errors.append(f'{run}: {type(exc).__name__}: {exc}');print(f'Candidate {run} incomplete/unusable [{category}]: {exc}',file=sys.stderr,flush=True)
  raise SystemExit('No complete buildable RUC/RUC-EPS run. '+' | '.join(errors))

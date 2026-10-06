@@ -1,3 +1,13 @@
+## MID v0.9.85.180
+
+- Profilkopf kompakt: redundante Drucktrend-Karte entfernt, relevante Hinweise vollbreit und umbrechend. RUC zeigt Kandidat und tatsächlich aufbereiteten Lauf mit Datum/HHMMZ im Log und der Ergebnisübersicht.
+
+- Stark-/Dauerregenhinweise markieren die tatsächlich nasse Phase statt trockener Vor- und Nachlaufstunden rollierender Summenfenster.
+- Regenhinweise nennen die Standort-Modellsumme und DWD-Schwellen; unbelegte Ensemble-Bestätigung und erfundene Wahrscheinlichkeitsbereiche entfallen.
+- Zeitlücken und Mehrstundenwerte dürfen keine Stunden-Warnschwellen vortäuschen. Amtliche Warnungen und Extremwettervorschau behalten ihre eigenen Quellen und Kriterien.
+
+Details: docs/implementation/MID_C18_RAIN_EVIDENCE_0.9.85.180.md. Normaler SHA-gebundener Source-/Installer-Release.
+
 ## MID v0.9.85.178 · Automatischer Widget-Bildtransport
 
 Basis: `main = mid-stable = d771d9cfaec65f6c13538a143f2c52b620c997c0` (v0.9.85.177). Die in v0.9.85.175 festgelegten zwölf Widgetprofile werden ab dieser Version serverseitig und reproduzierbar erzeugt. Der Workflow arbeitet ausschließlich gegen `mid-stable`, verifiziert vor jedem Lauf die lokale Stable-Version gegen die öffentlich ausgelieferte `www.midwx.app/version.json` und publiziert nur bei nachgewiesener Gleichheit. Rendering und Validierung sind read-only; die rollierenden Release-Assets werden ausschließlich mit einem kurzlebigen, auf `contents: write` begrenzten MID-Release-Bot-Token ersetzt. Kanonischer Transfergegenstand ist `mid-widget-export-latest.zip` mit Manifest und SHA-256. Ein adminfreier PowerShell-Downloader übernimmt Download, Integritätsprüfung und lokale Bereitstellung. Details: `docs/implementation/MID_WIDGET_EXPORT_AUTOMATION_0.9.85.178.md`.

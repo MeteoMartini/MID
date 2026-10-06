@@ -11,7 +11,7 @@ for(const token of [
  'hazards,label as weatherCodeLabel',
  'type HazardItem',
  "function shortTermHazardSignals(hours:Hour[],elevation=0,unit:WindUnit='kn'){return hazards(hours,undefined,elevation,unit)}",
- 'function shortTermImpactForInterval(signals:HazardItem[],startEpoch:number,endEpoch:number)',
+ 'function shortTermImpactForInterval(signals:HazardItem[],startEpoch:number,endEpoch:number,point?:ShortTermForecastPoint)',
  'color=DWD_WARNING_COLORS[level]',
  "label:'Stärkste Einschränkung'",
  "className:`impact-level-${maxImpact.level}`",
