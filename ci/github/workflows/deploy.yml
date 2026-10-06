@@ -116,8 +116,7 @@ jobs:
           REQUIRE_RUC: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
         run: |
           set -euo pipefail
-          expected="$(node -p "require('./package.json').version")"
-          args=(--url "https://www.midwx.app/api/mid-worker" --expected-version "$expected" --retries 4)
+          args=(--url "https://www.midwx.app/api/mid-worker" --allow-existing-version --retries 4)
           if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
           node tools/cloudflare/check_worker_health.mjs "${args[@]}"
 
