@@ -24,7 +24,7 @@ Die exakte Cloudflare Workers Route lautet:
 
 `tools/cloudflare/ensure_same_origin_route.mjs` darf ausschließlich diese Route anlegen oder bestätigen. Eine vorhandene Route desselben Patterns auf einen anderen Worker blockiert fail-closed. Das Skript verändert weder DNS noch TLS noch andere Routes. Die Zone wird aus `MID_CLOUDFLARE_ZONE_ID` oder eindeutig per aktiver Zone `midwx.app` ermittelt.
 
-Nach Worker-Promotion wird der Same-Origin-Endpunkt mit dem erwarteten MID-Versionsstand geprüft; bei aktiver RUC-Pipeline zusätzlich mit dem bestehenden RUC-Health-Gate. Erst danach dürfen Pages und Stable fortfahren.
+Nach einer fachlichen Worker-Promotion wird der Same-Origin-Endpunkt mit dem erwarteten MID-Versionsstand geprüft. Bei fachlich unverändertem Worker wird dessen bestehende plausible Version akzeptiert, solange `health.ok=true` gilt. Bei aktiver RUC-Pipeline kommt in beiden Fällen das bestehende RUC-Health-Gate hinzu. Erst danach dürfen Pages und Stable fortfahren.
 
 Voraussetzung außerhalb des Codes: `www.midwx.app` muss bereits durch die Cloudflare-Zone geroutet/proxied sein und der bestehende CI-Token muss Workers-Routes-Schreibzugriff besitzen. Fehlt dies, wird nicht auf DNS-Schreibrechte, `workers.dev`, abgeschaltete TLS-Prüfung oder andere unsichere Fallbacks ausgewichen; der Release stoppt.
 
