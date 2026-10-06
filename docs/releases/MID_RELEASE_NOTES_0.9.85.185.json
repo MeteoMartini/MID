@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.185",
+  "date": "2026-10-06",
+  "title": "Getrennter Cloudflare-DNS-Token",
+  "external": [
+    "Der Same-Origin-Datenpfad wird mit getrennten Cloudflare-Berechtigungen abgesichert.",
+    "Die Veröffentlichung bleibt fail-closed, wenn der eng begrenzte DNS-Credential-Pfad nicht verfügbar oder nicht ausreichend berechtigt ist."
+  ],
+  "internal": [
+    "Installer Run 37489510896 attempt 2 reconfirmed Worker .184 health but the DNS read/proxy step failed HTTP 403 while still using CLOUDFLARE_API_TOKEN. v0.9.85.185 wires only the DNS proxy step to secrets.CLOUDFLARE_DNS_API_TOKEN; Worker upload/promotion and route remain on secrets.CLOUDFLARE_API_TOKEN, with no fallback."
+  ]
+}
