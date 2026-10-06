@@ -103,12 +103,23 @@ jobs:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
           VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
-          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
           VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
         run: |
           set -euo pipefail
           npm run verify
+
+      - name: Produktiven Same-Origin-Datendienst prüfen
+        shell: bash
+        env:
+          REQUIRE_RUC: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+        run: |
+          set -euo pipefail
+          expected="$(node -p "require('./package.json').version")"
+          args=(--url "https://www.midwx.app/api/mid-worker" --expected-version "$expected" --retries 4)
+          if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
+          node tools/cloudflare/check_worker_health.mjs "${args[@]}"
 
   deploy_pages_1:
     outputs:
