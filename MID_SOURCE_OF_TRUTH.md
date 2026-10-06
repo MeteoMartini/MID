@@ -1,3 +1,7 @@
+## MID v0.9.85.185 · Getrennter DNS-Credential-Pfad
+
+Basis: `main = v0.9.85.184 @ d35659371f48099676409f93add33c4599bf07ec`, `mid-stable = v0.9.85.182 @ 34d41442de1bb8e984dedca0e786dabb5b9f5ee1`. Der erneute .184-Installerlauf bestätigte Worker-Staging, 0-%-/100-%-Smoke und RUC, scheiterte aber erneut beim DNS-Lesen mit HTTP 403, weil der DNS-Schritt weiterhin den Worker-CI-Token verwendete. v0.9.85.185 trennt die Berechtigungen: Nur der Schritt für den bestehenden `www.midwx.app`-CNAME erhält `secrets.CLOUDFLARE_DNS_API_TOKEN`; Worker-Deploy und Workers Route behalten `secrets.CLOUDFLARE_API_TOKEN`. Fehlt der separate DNS-Token oder ist er unzureichend berechtigt, bleibt der Release fail-closed vor Pages und Stable. Details: `docs/implementation/MID_DNS_TOKEN_SPLIT_0.9.85.185.md`.
+
 ## MID v0.9.85.184 · Same-Origin-DNS-Hotfix
 
 Basis: `main = v0.9.85.183 @ 61fc2634651b865e571496da6eaf3dd0378c760b`, `mid-stable = v0.9.85.182 @ 34d41442de1bb8e984dedca0e786dabb5b9f5ee1`. Der .183-Worker selbst war gesund, die bestätigte Route `www.midwx.app/api/mid-worker*` blieb jedoch öffentlich 404, weil `www.midwx.app` noch nicht durch den Cloudflare-Proxy lief. v0.9.85.184 ergänzt deshalb ausschließlich ein fail-closed DNS-Gate, das beim vorhandenen eindeutigen CNAME nur `proxied=true` aktiviert und Ziel, Typ, Name, TLS sowie alle anderen Records unangetastet lässt. Danach bleiben Route- und Same-Origin-Health-Gates unverändert verbindlich. Details: `docs/implementation/MID_WWW_PROXY_HOTFIX_0.9.85.184.md`.
