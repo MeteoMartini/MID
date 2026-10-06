@@ -1,3 +1,12 @@
+## MID v0.9.85.185 · 2026-10-06 · DNS- und Worker-Berechtigungen strikt getrennt
+
+- Basis: main v0.9.85.184 @ `d35659371f48099676409f93add33c4599bf07ec`; mid-stable weiterhin v0.9.85.182 @ `34d41442de1bb8e984dedca0e786dabb5b9f5ee1`.
+- Installer Run `37489510896`, Versuch 2: Worker v0.9.85.184 bestand Versionsoverride-Smoke und produktiven Smoke; der DNS-Schritt erhielt erneut HTTP 403 und rollte den Worker danach korrekt zurück.
+- Ursache im Workflow: Der DNS-Proxy-Schritt verwendete noch `secrets.CLOUDFLARE_API_TOKEN` statt des separat vorgesehenen DNS-Credentials.
+- Korrektur: ausschließlich der DNS-Proxy-Schritt liest `secrets.CLOUDFLARE_DNS_API_TOKEN`; Worker-Upload, Worker-Promotion und Same-Origin-Route bleiben auf `secrets.CLOUDFLARE_API_TOKEN`.
+- Die drei Installer-Spiegel bleiben bytegleich und eine Regression schützt die Credential-Trennung.
+- Kein Credential-Fallback, keine Erweiterung des Worker-Tokens und keine meteorologische Fachänderung.
+
 ## MID v0.9.85.184 · 2026-10-06 · www.midwx.app für Same-Origin-Workerpfad sicher proxied
 
 - Basis: main v0.9.85.183 @ `61fc2634651b865e571496da6eaf3dd0378c760b`; mid-stable weiterhin v0.9.85.182 @ `34d41442de1bb8e984dedca0e786dabb5b9f5ee1`.
