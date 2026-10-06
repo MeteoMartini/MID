@@ -1,3 +1,7 @@
+## MID v0.9.85.181 · Cross-Platform-CDP für Widget-PNGs
+
+Basis: `main = mid-stable = 3fe968e5127a34d2e820e0d2e367d9cfb388ca35` (v0.9.85.180). Der serverseitige Widget-Workflow war fachlich korrekt getriggert, scheiterte jedoch reproduzierbar auf GitHub Ubuntu, weil der bestehende Capture-Renderer den CDP-Browserpfad noch auf Edge ausgerichtet hatte. Ab v0.9.85.181 erkennt der Renderer Edge/Chrome/Chromium plattformübergreifend, akzeptiert `MID_WIDGET_BROWSER`/`--browser`, überwacht Browserstart und -exit fail-fast und verwendet auf Linux die CI-tauglichen Headless-Flags. Der Workflow führt zusätzlich einen expliziten Browser-Preflight durch. Widgetprofile, MID-Daten und Wetterlogik bleiben unverändert. Details: `docs/implementation/MID_WIDGET_BROWSER_RUNTIME_0.9.85.181.md`.
+
 ## MID v0.9.85.180
 
 - Profilkopf kompakt: redundante Drucktrend-Karte entfernt, relevante Hinweise vollbreit und umbrechend. RUC zeigt Kandidat und tatsächlich aufbereiteten Lauf mit Datum/HHMMZ im Log und der Ergebnisübersicht.

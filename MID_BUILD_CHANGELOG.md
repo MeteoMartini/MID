@@ -1,3 +1,14 @@
+## MID v0.9.85.181 · 2026-10-06 · Widget-Renderer auf GitHub-Linux lauffähig
+
+- Basis: main = mid-stable = v0.9.85.180 @ `3fe968e5127a34d2e820e0d2e367d9cfb388ca35`; keine offenen PRs beim Start.
+- Reproduzierter Betriebsfehler: Widget-Workflow Run `37456137572` startete korrekt auf der Stable-Promotion und verifizierte v0.9.85.180 öffentlich gegen mid-stable, scheiterte aber beim ersten PNG an `Edge-Debuggingport wurde nicht bereitgestellt`.
+- Ursache: `capture-widget.mjs` erwartete effektiv Windows-Edge; der Ubuntu-GitHub-Runner verwendet Chrome/Chromium.
+- Renderer unterstützt jetzt explizites `MID_WIDGET_BROWSER`/`--browser` sowie Edge/Chrome/Chromium auf Windows, macOS und Linux.
+- Linux nutzt zusätzlich `--no-sandbox` und `--disable-dev-shm-usage`; Browserstart/-exit wird überwacht und Fehler werden sofort statt erst nach Timeout gemeldet.
+- Widget-Workflow führt vor dem Rendern einen fail-closed Chrome/Chromium-Preflight durch und übergibt den gefundenen absoluten Browserpfad.
+- Neue Required Regression `test-widget-export-browser-runtime-0985181.mjs` schützt den plattformübergreifenden CDP-Vertrag.
+- Keine Änderung an meteorologischer Fachlogik, Widget-Inhalten, Ortsmatrix, Warnungen, RUC, Karten oder Worker-Funktion.
+
 ## MID v0.9.85.179 · 2026-10-06 · Widget-Trigger gehärtet
 
 - Basis: main = mid-stable = v0.9.85.178 @ `16c007b264599c7162bd174d03179b2a4363d7e2`.

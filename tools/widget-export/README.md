@@ -1,6 +1,6 @@
 # MID Widget Export
 
-## Kanonischer Betrieb ab MID v0.9.85.178
+## Kanonischer Betrieb ab MID v0.9.85.181
 
 Die zwölf festen MID-Widget-PNGs werden serverseitig in GitHub Actions erzeugt. Lokale Browser-, Node- oder OneDrive-Installationen sind für den regulären Betrieb nicht erforderlich.
 
@@ -43,3 +43,7 @@ Ein optionaler Zielordner kann über `-OutputDirectory` angegeben werden. Erst n
 ## Lokaler Renderer als Fallback
 
 `Update-MID-Widgets.ps1` und `capture-widget.mjs` bleiben für Diagnose-/Fallback-Zwecke bestehen. Der reguläre SharePoint-Transfer soll jedoch das serverseitig erzeugte und kryptografisch geprüfte rollierende Paket verwenden.
+
+## Browser-Laufzeit auf GitHub
+
+Der serverseitige Renderer verwendet auf GitHub Ubuntu den vorinstallierten Google-Chrome-/Chromium-Browser. Der Workflow prüft den Browser vor dem Rendern und übergibt seinen absoluten Pfad über `MID_WIDGET_BROWSER`. `capture-widget.mjs` bleibt zugleich lokal auf Windows/macOS/Linux nutzbar und unterstützt Edge, Chrome sowie Chromium. Fehlt ein kompatibler Browser oder beendet er sich vorzeitig, bricht der Export fail-closed mit einer konkreten Diagnose ab.
