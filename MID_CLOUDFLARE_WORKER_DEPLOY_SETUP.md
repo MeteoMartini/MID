@@ -19,7 +19,7 @@ Wenn der private RUC-Bucket bereits existiert, können zusätzlich `MID_RUC_R2_B
 
 ## Produktive Same-Origin-Route ab v0.9.85.183
 
-Für das produktive Web ist die exakte Route `www.midwx.app/api/mid-worker* -> <MID_CLOUDFLARE_WORKER_NAME>` verbindlich. Der Installer ruft `tools/cloudflare/ensure_same_origin_route.mjs` auf und prüft anschließend `https://www.midwx.app/api/mid-worker?mode=health` mit der erwarteten Releaseversion; bei aktiver RUC-Pipeline zusätzlich den bestehenden RUC-Health-Vertrag.
+Für das produktive Web ist die exakte Route `www.midwx.app/api/mid-worker* -> <MID_CLOUDFLARE_WORKER_NAME>` verbindlich. Der Installer ruft `tools/cloudflare/ensure_same_origin_route.mjs` auf und prüft anschließend `https://www.midwx.app/api/mid-worker?mode=health`. Bei fachlicher Worker-Änderung muss die erwartete Releaseversion gemeldet werden; bei unverändertem Worker genügt die bereits aktive plausible Worker-Version. Bei aktiver RUC-Pipeline wird zusätzlich der bestehende RUC-Health-Vertrag geprüft.
 
 Der vorhandene CI-Token muss Workers-Routes-Schreibzugriff für die Zone `midwx.app` besitzen. `MID_CLOUDFLARE_ZONE_ID` kann als Repository-Variable gesetzt werden; fehlt sie, wird genau eine aktive Zone namens `midwx.app` ermittelt. Das Skript verändert **keine DNS-Einträge, TLS-Einstellungen oder andere Routes**. Eine kollidierende exakte Route auf einen anderen Worker stoppt fail-closed.
 
