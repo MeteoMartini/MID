@@ -1,3 +1,12 @@
+## MID v0.9.85.182 · 2026-10-06 · Widget-Rendering gegen transiente Daten-Timeouts gehärtet
+
+- Basis: main = mid-stable = v0.9.85.181 @ `a855f418c3fa00af40da8ccedcd2b1a7c05b02b9`.
+- Reproduzierter Fehler: Widget-Workflow Run `37464695591` erzeugte acht PNGs erfolgreich und scheiterte danach bei `kuerecik-kompakt-5d-light.png` an `Wetterabruf hat das Zeitlimit überschritten`.
+- Pro Widgetvariante maximal drei Render-Versuche, Capture-Zeitfenster 180 s, kurzer Backoff und Entfernung partieller Zieldateien vor jedem Retry.
+- Der Job-Zeitrahmen steigt kontrolliert von 30 auf 45 Minuten; nach dem dritten Variantenfehler bleibt die gesamte Veröffentlichung fail-closed.
+- Regressionstest schützt Retryzahl, Zeitfenster, Cleanup und kanonisch/aktive Workflow-Synchronität.
+- Keine Änderung an Meteorologie, Widgetprofilen, Orten, UI, Karten, RUC oder SharePoint-Uploadlogik.
+
 ## MID v0.9.85.181 · 2026-10-06 · Widget-Renderer auf GitHub-Linux lauffähig
 
 - Basis: main = mid-stable = v0.9.85.180 @ `3fe968e5127a34d2e820e0d2e367d9cfb388ca35`; keine offenen PRs beim Start.
