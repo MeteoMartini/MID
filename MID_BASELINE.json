@@ -1080,6 +1080,7 @@
     "scripts/test-core-forecast-independent-fallback-095316.mjs",
     "scripts/test-core-forecast-resilience-095315.mjs",
     "scripts/test-core-forecast-restoration-095317.mjs",
+    "scripts/test-corporate-safe-data-plane-0985183.mjs",
     "scripts/test-cost-governance-contract-095337.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "scripts/test-current-cards-favorites-navigation-08152.mjs",
