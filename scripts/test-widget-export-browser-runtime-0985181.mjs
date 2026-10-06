@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [capture,canonical,active,pkgRaw,baselineRaw]=await Promise.all([
@@ -10,6 +12,10 @@ const [capture,canonical,active,pkgRaw,baselineRaw]=await Promise.all([
  read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),self='scripts/test-widget-export-browser-runtime-0985181.mjs';
+
+const capturePath=fileURLToPath(new URL('../tools/widget-export/capture-widget.mjs',import.meta.url));
+const syntax=spawnSync(process.execPath,['--check',capturePath],{encoding:'utf8'});
+assert.equal(syntax.status,0,syntax.stderr||'capture-widget.mjs ist syntaktisch ungültig.');
 
 assert.equal(active,canonical,'Aktiver und kanonischer Widget-Workflow müssen bytegleich sein.');
 for(const token of [
