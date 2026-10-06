@@ -35,7 +35,7 @@ def sha(data:bytes)->str:return hashlib.sha256(data).hexdigest()
 
 def restore(base:str,target:Path,required=False,workers=16):
     base=base.rstrip('/')+'/'
-    try:meta_bytes=fetch(urllib.parse.urljoin(base,'latest.json'),15)
+    try:meta_bytes=fetch(urllib.parse.urljoin(base,'latest.json')+'?mid_ruc_restore='+str(time.time_ns()),15)
     except urllib.error.HTTPError as e:
         if e.code == 404:
             print('No deployed RUC snapshot yet (HTTP 404); continuing with bootstrap release without ruc/.')
