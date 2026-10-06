@@ -46,3 +46,12 @@ Optional für den bereits vorbereiteten privaten RUC-R2-Pfad:
 Der produktive KNMI-HARMONIE-EPS-TAR-Indexcache verwendet das bereits vorhandene KV-Binding `MID_PUSH_SUBSCRIPTIONS` mit dem strikt getrennten Präfix `cache:knmi-eps:tar-index:v1:`. Für diesen Cache darf der Auto-Deploy **kein neues KV-Namespace und keine sonstige Cloudflare-Ressource** provisionieren. Die vorhandene Remote-KV-Bindung wird wie bisher verlustfrei gespiegelt.
 
 Der Push-Scheduler bleibt auf `sub:`-Listenabfragen beschränkt; der KNMI-Cache selbst verwendet kein `KV.list()`. Fachliche Worker-Änderungen am Cache lösen den bestehenden gestagten Worker-Deploy aus. Verbindliche Fachreferenz: `MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md`. Required Regression: `scripts/test-knmi-eps-productive-cache-097718.mjs`.
+
+## Corporate-safe Same-Origin-Gate ab v0.9.85.183
+
+Nach einer erforderlichen Worker-Promotion und auch bei fachlich unverändertem Worker muss vor Pages/Stable die exakte Route `www.midwx.app/api/mid-worker*` auf den konfigurierten MID-Worker bestätigt sein. Die Route wird idempotent angelegt, sofern sie fehlt. Zeigt dasselbe exakte Pattern bereits auf einen anderen Worker, wird es nicht überschrieben; der Release bricht fail-closed ab.
+
+Der Same-Origin-Endpunkt `https://www.midwx.app/api/mid-worker` muss anschließend `mode=health` mit der erwarteten Releaseversion bestehen. Bei aktiver RUC-Pipeline gilt zusätzlich der bestehende RUC-Health-Vertrag. DNS, TLS und fremde Routes sind außerhalb dieses Gates und werden nicht automatisch verändert.
+
+Im produktiven Browser ist dieser Same-Origin-Endpunkt der alleinige Worker-Kandidat. Direkte DWD-/EUMETSAT-/RainViewer-/OpenFreeMap-Abrufe kritischer Kartenpfade werden dort nicht als Netzfilter-Fallback benutzt. Native und lokale Entwicklungsumgebungen behalten ihre explizit konfigurierten Plattformpfade.
+
