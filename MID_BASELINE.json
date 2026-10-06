@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.175",
+  "releaseVersion": "0.9.85.176",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -575,6 +575,7 @@
     "scripts/test-mountain-progressive-ui.mjs",
     "scripts/test-mountain-seven-day-domain-1813.mjs",
     "scripts/test-mountain-visual-acceptance-18213.mjs",
+    "scripts/test-mountain-warm-rain-ui-0985176.mjs",
     "scripts/test-mountain-wind-normalization-071054.mjs",
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
@@ -1494,6 +1495,7 @@
     "scripts/test-mountain-progressive-ui.mjs",
     "scripts/test-mountain-seven-day-domain-1813.mjs",
     "scripts/test-mountain-visual-acceptance-18213.mjs",
+    "scripts/test-mountain-warm-rain-ui-0985176.mjs",
     "scripts/test-mountain-wind-normalization-071054.mjs",
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
@@ -3317,7 +3319,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.175",
+  "version": "0.9.85.176",
   "updatedAt": "2026-10-05T18:50:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

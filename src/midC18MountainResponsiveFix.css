@@ -27,3 +27,22 @@
   overflow-wrap:anywhere;
  }
 }
+
+/* MID-C18: equal-width metric columns avoid the 24px sunshine track on tablets. */
+@media (min-width:621px) and (max-width:1280px){
+ .mountain-day-toggle{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-areas:"date weather temperature expand" "wind precip snowline sunshine";grid-template-rows:auto auto;gap:8px 12px}
+ .mountain-day-date{grid-area:date}.mountain-day-weather{grid-area:weather}.mountain-day-temperature{grid-area:temperature}.mountain-day-expand{grid-area:expand}
+ .mountain-day-wind{grid-area:wind}.mountain-day-precip{grid-area:precip}.mountain-day-snowline{grid-area:snowline}.mountain-day-sunshine{grid-area:sunshine}
+ .mountain-day-expand{justify-self:end}
+ .mountain-day-sunshine{display:grid;border-left:0;padding-left:0}
+ .mountain-day-sunshine>b{overflow-wrap:normal;white-space:normal;line-height:1.4}
+}
+.mountain-hourly-weather>small{max-width:90px;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:normal;line-height:1.35}
+.mountain-day-wind,.mountain-day-snow-value,.mountain-hourly-wind,.mountain-period-wind,.mountain-snow-amount{border-radius:8px;padding:4px 6px}
+.mountain-wind-light{background:color-mix(in srgb,#e4b94d 10%,var(--surface))}
+.mountain-wind-moderate{background:color-mix(in srgb,#ed9b42 15%,var(--surface))}
+.mountain-wind-heavy{background:color-mix(in srgb,#de6a64 20%,var(--surface))}
+.mountain-snow-trace{background:color-mix(in srgb,#70b9d9 5%,var(--surface))}
+.mountain-snow-light{background:color-mix(in srgb,#70b9d9 10%,var(--surface))}
+.mountain-snow-moderate{background:color-mix(in srgb,#70a6dc 16%,var(--surface))}
+.mountain-snow-heavy{background:color-mix(in srgb,#7f8cdb 22%,var(--surface))}

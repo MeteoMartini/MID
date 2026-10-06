@@ -23,6 +23,7 @@ export type PrecipSample={
  probability:number;
  code:number;
  temperature?:number;
+ surfaceTemperature?:number;
  dewPoint?:number;
  humidity?:number;
  cloud?:number;
@@ -79,6 +80,7 @@ export type ForecastPrecipitationConsistencyInput={
  probability:number;
  code:number;
  temperature?:number;
+ surfaceTemperature?:number;
  dewPoint?:number;
  cloud?:number;
  lowCloud?:number;
@@ -161,6 +163,20 @@ function approximateWetBulbTemperature(input:Pick<ForecastPrecipitationConsisten
  return temperature*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(temperature+humidity)-Math.atan(humidity-1.676331)+.00391838*humidity**1.5*Math.atan(.023101*humidity)-4.686035;
 }
 function warmSurfaceRejectsFrozenPhase(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'>){const temperature=finiteNumber(input.temperature);if(!Number.isFinite(temperature))return false;const wetBulb=approximateWetBulbTemperature(input);return temperature>=12||(Number.isFinite(wetBulb)?wetBulb>=4:temperature>=8)}
+/** Forecast-only check for a clearly warm freezing-rain signal. Cold surfaces and
+ * dry-air evaporative cooling retain the original hazard; no snow is inferred. */
+function warmSurfaceRejectsFreezingRain(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'|'surfaceTemperature'>,code:number){
+ if(![56,57,66,67].includes(code))return false;
+ const temperature=finiteNumber(input.temperature),wetBulb=approximateWetBulbTemperature(input);
+ const surface=input.surfaceTemperature==null?NaN:finiteNumber(input.surfaceTemperature);
+ if(Number.isFinite(surface)&&surface<=.5)return false;
+ return Number.isFinite(temperature)&&temperature>=4&&Number.isFinite(wetBulb)&&wetBulb>=2;
+}
+function warmSurfaceRejectsPrecipitationPhase(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'|'surfaceTemperature'>,code:number){
+ const surface=input.surfaceTemperature==null?NaN:finiteNumber(input.surfaceTemperature);
+ if([56,57,66,67].includes(code)&&Number.isFinite(surface)&&surface<=.5)return false;
+ return warmSurfaceRejectsFrozenPhase(input)||warmSurfaceRejectsFreezingRain(input,code);
+}
 function warmLiquidEquivalentCode(code:number,total:number,showery:boolean,intervalSeconds=3600){const rate=Math.max(0,total)/normalizedIntervalHours(intervalSeconds);if(showery)return showerCodeForAmount(total,intervalSeconds);if([56,57].includes(code))return rate>=.5?55:rate>=.1?53:51;return rainCodeForAmount(total,intervalSeconds)}
 
 /**
@@ -224,7 +240,7 @@ export function reconcileForecastPrecipitation(input:ForecastPrecipitationConsis
  let phaseAdjusted=false;
  const frozenCode=[56,57,66,67,68,69,71,73,75,77,83,84,85,86].includes(code),frozenSignal=frozenCode||snowfall>=.05;
  const warmPhaseProtected=[76,77,78,79,87,88,89,90,93,94,96,99].includes(code);
- if(!input.observed&&frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsFrozenPhase(input)){
+ if(!input.observed&&frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsPrecipitationPhase(input,code)){
   const total=Math.max(precipitation,rain+showers),showery=[83,84,85,86].includes(code)||showers>Math.max(.02,rain);
   code=warmLiquidEquivalentCode(code,total,showery,input.intervalSeconds);snowfall=0;
   if(showery){showers=Math.max(showers,precipitation);rain=0}else{rain=Math.max(rain,precipitation);showers=0}
@@ -436,7 +452,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const showerValue=Math.max(0,Number(h.showers)||0);
  const rawSnowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
- const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseProtected=[76,77,78,79,87,88,89,90,93,94,96,99].includes(code),warmPhaseAdjusted=frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsFrozenPhase(h),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase,precipitationSampleIntervalSeconds(h)):code,snowCm=warmPhaseAdjusted?0:rawSnowCm;
+ const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseProtected=[76,77,78,79,87,88,89,90,93,94,96,99].includes(code),warmPhaseAdjusted=!h.precipitationPhenomenonObserved&&frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsPrecipitationPhase(h,code),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase,precipitationSampleIntervalSeconds(h)):code,snowCm=warmPhaseAdjusted?0:rawSnowCm;
  const codedType=WMO_PRECIP_TYPE[effectiveCode],observedCharacter=Boolean(h.precipitationPhenomenonObserved);
  const hasRain=rainValue>=.05;
  const hasShowers=showerValue>=.05;
