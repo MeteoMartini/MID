@@ -4,6 +4,8 @@ Zusätzlicher Responsive-Vertrag: Die alte mobile `display:flex!important`-Scrol
 
 Nach dieser Responsive-Ergänzung erneut 921/921 lokale Regressionen und Produktionsbuild/Typecheck grün (06.10.2026, 10:58 UTC). Chromium ist lokal nicht installiert; die tatsächlichen zwölf Browserfälle sind deshalb ausdrücklich Bestandteil der serverseitigen Pflichtregression und noch kein lokaler Live-/Browserbeleg.
 
+Source-Gate 37453438903 stoppte beim neuen Browservergleich 844/light; alle drei Heavy-Shards bestanden. Der Vergleich verwendete clientWidth einschließlich des etablierten horizontalen Container-Paddings (2 px), obwohl die Rasterkarte korrekt nur den Inhaltsbereich füllen soll. Die Messung zieht nun die tatsächlich berechneten Innenabstände ab und protokolliert bei Fehlern alle Geometriewerte. Volles einspaltiges Raster, Textüberlauf, vertikaler Überlauf und Seitenüberlauf bleiben unverändert Pflicht; keine Toleranz oder Produktionslogik wurde gelockert. Der neue Kopf benötigt ein vollständig neues grünes Source-Gate.
+
 Integrierter Freigabekandidat auf .179: 921/921 Regressionen, Produktionsbuild/Typecheck, Worker-Syntax und Capacitor-Copy/iOS-Shell grün (06.10.2026, 10:50 UTC). Widget-Automation und sämtliche kanonischen/aktiven Workflows gegenüber der .179-Basis unverändert. Veröffentlichung nur über den normalen Source-PR-/Installer-Pfad. Der ältere Entwurf PR271 wird durch den Source-PR auf dieser frisch freigegebenen Basis ersetzt; keine Historie wird überschrieben.
 
 Releasebasis: main = mid-stable = `519f28fe5637c28c91032cf75e29768c7e7a9c5a` (0.9.85.179), regulärer Installer und öffentliche Versionsprüfung erfolgreich. Beide parallelen Widget-Erweiterungen bleiben unverändert enthalten.

@@ -14,11 +14,11 @@ try{
   await page.setContent(`<html data-mid-design="next" data-theme="${theme}"><body><div class="forecast-cockpit" style="width:calc(100vw - 32px);max-width:100%;margin:0 auto"><section class="cockpit-weather-profile"><div class="cockpit-weather-profile__signals"><span class="impact-level-2"><small>Stärkste Einschränkung</small><b>Dauerregen</b><span class="signal-time">Stufe 2 · 07.10. 03:00–08.10. 09:00</span><em>Standortprognose: 48 mm / 48 h. Markiert ist die Regenphase des Summenfensters. MID-Hinweis nach DWD-Schwellen; keine amtliche Warnung.</em></span></div></section></div></body></html>`);
   await page.addStyleTag({content:readFileSync('src/midPresentation.css','utf8')});
   const result=await page.evaluate(()=>{
-   const signals=document.querySelector('.cockpit-weather-profile__signals'),card=signals.firstElementChild;
-   return {display:getComputedStyle(signals).display,available:signals.clientWidth,width:card.getBoundingClientRect().width,overflow:signals.scrollWidth>signals.clientWidth+1||signals.scrollHeight>signals.clientHeight+1,textOverflow:[...card.children].some(e=>e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+1),pageOverflow:document.documentElement.scrollWidth>innerWidth+1};
+   const signals=document.querySelector('.cockpit-weather-profile__signals'),card=signals.firstElementChild,style=getComputedStyle(signals),padding=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight);
+   return {display:style.display,available:signals.clientWidth-padding,padding,width:card.getBoundingClientRect().width,overflow:signals.scrollWidth>signals.clientWidth+1||signals.scrollHeight>signals.clientHeight+1,textOverflow:[...card.children].some(e=>e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+1),pageOverflow:document.documentElement.scrollWidth>innerWidth+1};
   });
   assert.equal(result.display,'grid',`${width}/${theme}: legacy mobile flex still active`);
-  assert.ok(result.width>=result.available-2,`${width}/${theme}: signal not full width`);
+  assert.ok(result.width>=result.available-2,`${width}/${theme}: signal not full content width ${JSON.stringify(result)}`);
   assert.equal(result.overflow,false,`${width}/${theme}: signal overflow`);
   assert.equal(result.textOverflow,false,`${width}/${theme}: text clipped`);
   assert.equal(result.pageOverflow,false,`${width}/${theme}: horizontal page overflow`);
