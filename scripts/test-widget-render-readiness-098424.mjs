@@ -12,10 +12,15 @@ assert.match(app,/document\.fonts\?\.ready/,'Webfonts werden vor Freigabe des Sc
 assert.match(app,/requestAnimationFrame\(\(\)=>requestAnimationFrame/,'Zwei abgeschlossene Layout-/Paint-Zyklen fehlen.');
 assert.match(app,/dataset\.midWidgetReady='ready'/,'Stabil gerendertes Widget wird nicht freigegeben.');
 assert.match(exportsSource,/searchParams\.set\('farben','ecmwf'\)/,'Kanonische Export-URLs fordern ECMWF-Farben nicht explizit an.');
+assert.match(exportsSource,/WIDGET_URL_THEMES:readonly WidgetUrlTheme\[\]=\['light','dark'\]/,'Hell/Dunkel-Katalog fehlt.');
+assert.match(exportsSource,/slug:'amari',name:'Ämari',latitude:59\.26,longitude:24\.20/,'Ämari ist nicht mit den beauftragten Koordinaten hinterlegt.');
 assert.match(capture,/midWidgetReady==='ready'/,'Automatischer Export wartet nicht auf das MID-Bereitschaftssignal.');
 assert.match(capture,/Page\.captureScreenshot/,'Automatischer Export erfasst die Widgetfläche nicht über CDP.');
 assert.match(capture,/url\.hostname='www\.midwx\.app'/,'Automatischer Export verwendet nicht den kanonischen Host.');
 assert.match(powershell,/farben=ecmwf/,'PowerShell-Stapel verwendet ECMWF-Farben nicht explizit.');
-assert.match(powershell,/wiesbaden[\s\S]*kuerecik[\s\S]*malatya/,'Ortsliste der PowerShell-Ausgabe ist unvollständig.');
+assert.match(powershell,/malatya[\s\S]*kuerecik[\s\S]*amari/,'Ortsliste der PowerShell-Ausgabe ist unvollständig.');
+assert.match(powershell,/View = "kurve"[\s\S]*Days = 7[\s\S]*Wind = 1[\s\S]*Rain = 1[\s\S]*Sunshine = 1[\s\S]*Hazards = 0/,'7-Tage-Kurvenprofil ist nicht vollständig.');
+assert.match(powershell,/View = "kompakt"[\s\S]*Days = 5[\s\S]*Wind = 1[\s\S]*Rain = 0[\s\S]*Sunshine = 0[\s\S]*Hazards = 0/,'5-Tage-Kompaktprofil ist nicht vollständig.');
+assert.match(powershell,/\$themes = @\("light", "dark"\)/,'PowerShell-Stapel erzeugt nicht beide Themes.');
 
-console.log('MID v0.9.84.24: öffentliche Widget-URLs signalisieren den fertigen Renderzustand; CDP-Export wartet darauf und erzeugt zwölf Light-PNGs mit ECMWF-Farben.');
+console.log('MID v0.9.85.175: öffentliche Widget-URLs warten auf fertiges Rendering; der CDP-Export erzeugt exakt zwölf Ziel-PNGs in Hell/Dunkel.');
