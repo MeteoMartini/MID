@@ -4,10 +4,7 @@
 
 Die zwölf festen MID-Widget-PNGs werden serverseitig in GitHub Actions erzeugt. Lokale Browser-, Node- oder OneDrive-Installationen sind für den regulären Betrieb nicht erforderlich.
 
-Der Workflow `.github/workflows/widget-export.yml` läuft:
-- nach jedem erfolgreich abgeschlossenen MID-Release,
-- zusätzlich stündlich um Minute 17,
-- sowie manuell per `workflow_dispatch`.
+Der Workflow `.github/workflows/widget-export.yml` läuft automatisch genau viermal täglich im 6-Stunden-Abstand: um 00:17, 06:17, 12:17 und 18:17 UTC. Zusätzliche automatische Starts nach Releases oder `mid-stable`-Pushes entfallen. Für bewusste Diagnose-/Notfallläufe bleibt `workflow_dispatch` erhalten.
 
 Er lädt ausschließlich `mid-stable`, verifiziert die Versionsspiegel und veröffentlicht nur dann neue Bilder, wenn `https://www.midwx.app/version.json` dieselbe MID-Version meldet. Danach rendert `render-widget-matrix.mjs` die kanonische Matrix aus `src/widgetUrlExports.ts`, prüft PNG-Signatur, Abmessungen und SHA-256 und erzeugt `manifest.json` sowie `SHA256SUMS.txt`.
 
