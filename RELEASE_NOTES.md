@@ -1,7 +1,6 @@
-# MID v0.9.85.176
+# MID v0.9.85.177
 
-- Bergwetter: getrennte Tagesmaxima für Wind und Böen; fehlende Werte bleiben unbekannt.
-- Dezente Wind- und Neuschneefarben in Tages-, Stunden- und Periodenansichten.
-- Gleichmäßige Tablet-Spalten für Sonnenstunden; vollständige Wettertexte.
-- Gemeinsame Prüfung klar warmer Gefrierregen-Prognosen mit Feuchte; kalte Böden, Beobachtungen und Grenzlagen bleiben geschützt.
-- Neuschnee-Methodik transparent: Modell-Schneewasser und feste Anbieterumrechnung, getrennt von der Schneedecke.
+- MID erzeugt die zwölf festen Widgets für Malatya, Kürecik und Ämari jetzt automatisch serverseitig.
+- Die Widget-PNGs werden nach erfolgreichen MID-Releases und zusätzlich stündlich aus dem verifizierten Stable-Stand neu gerendert.
+- Ein festes, rollierendes ZIP stellt immer den zuletzt vollständig geprüften Bildsatz mit Manifest und SHA-256-Prüfsummen bereit.
+- Für Windows steht ein Downloader ohne Administratorrechte, OneDrive oder lokale Node-Installation bereit.
