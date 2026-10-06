@@ -14,7 +14,7 @@ for(const token of [
  "cloudCover:currentSkyCloud",
  "cloudObserved:currentCloudObserved",
  "if(localSky){currentWeatherCode=localSky.code;currentWeatherLabel=localSky.label}",
- "else if(reconciledCurrentPrecip.type==='none'&&Number.isFinite(currentSkyCloud)){const fallbackSky=skyConditionFromOktas(cloudOktasValue);currentWeatherCode=fallbackSky.code;currentWeatherLabel=fallbackSky.label}"
+ "else if(reconciledCurrentPrecip.type==='none'&&currentWeatherCode>=0&&currentWeatherCode<=3&&Number.isFinite(currentSkyCloud)){const fallbackSky=skyConditionFromOktas(cloudOktasValue);currentWeatherCode=fallbackSky.code;currentWeatherLabel=fallbackSky.label}"
 ])if(!app.includes(token))failures.push('App-Anbindung fehlt: '+token);
 if(!pkg.includes('test:current-hyperlocal-sky'))failures.push('Package-Test fehlt.');
 

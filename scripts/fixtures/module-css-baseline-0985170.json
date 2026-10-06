@@ -350,12 +350,12 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainMethodologyDisclosure",
-      "sha256": "b72ebd46fd33e050865015371ff4401fb56d4b7060705d312ade35f81a78c0a7"
+      "sha256": "135655e8da603925484346dccdf9cc555f5784350ee8d3f67b2d45f7d95b2646"
     },
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainSki",
-      "sha256": "17f07d327f138c675c2f5a6071bd7430e754fc50cc54678d3d09547018881211"
+      "sha256": "6f36e95ad05cfd1814bc41bdd891cdd02a06f4edf64a60bff98c3eac74cbe289"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -400,7 +400,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainForecastPeriods",
-      "sha256": "f392817234bd41f5b5babcdb750f68d3a1e453eb79d17ade58e0a17ad82c288f"
+      "sha256": "725a31e98da64eebb5bc718e47e1e4493ffc967e73480c3867a508f4ea41b8f2"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -425,7 +425,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainHourlyForecastHours",
-      "sha256": "71bad377d795a3228eb656bfd09dbaf3d2be6f7ac915655451f8a2f494996e8e"
+      "sha256": "f56ea2f12129524cc986b42e74277446ae4c3d1d8b0de4c97055f411cb25b140"
     },
     {
       "file": "src/MountainWeather.tsx",

@@ -1,3 +1,7 @@
+## MID v0.9.85.174
+
+Nebel-/Dunsttexte bleiben mit den Wetterpiktogrammen konsistent. Bergwetter verwendet vorhandene Modell-Schneefallgrenzen vor der vereinfachten Höhenableitung. Temperatur und Taupunkt erreichen die bestehende Kurzfrist-Phasenprüfung.
+
 ## v0.9.85.173 · RUC-Workflow-Koordination
 
 Entwicklungsbasis: main = mid-stable = 4d6fd8543868bb2c187f8326cb4efe4b973d2a67 (.172). Reguläre Workflow-Koordination, unabhängig von externer GitHub-Störung.

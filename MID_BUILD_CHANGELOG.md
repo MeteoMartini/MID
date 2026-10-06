@@ -1,3 +1,7 @@
+## MID v0.9.85.174
+
+Nebel-/Dunsttexte bleiben mit den Wetterpiktogrammen konsistent. Bergwetter verwendet vorhandene Modell-Schneefallgrenzen vor der vereinfachten Höhenableitung. Temperatur und Taupunkt erreichen die bestehende Kurzfrist-Phasenprüfung.
+
 ## v0.9.85.173 · RUC-Workflow-Koordination
 
 Pages-/Worker-Konvergenz getrennt; Health-only Upstream-Probe; später Snapshot-Guard innerhalb bestehender Pages-Sperre; eindeutige Ergebnis-Summaries. Keine Änderungen an Sperrgruppen, Zeitplänen, fachlichen Daten oder Retry-Budgets.
