@@ -43,6 +43,15 @@ assert.match(renderer,/widgetUrlExportVariants\('https:\/\/www\.midwx\.app\/'\)/
 assert.match(renderer,/variants\.length!==12/,'Renderer erzwingt nicht exakt zwölf Varianten.');
 for(const name of ['malatya-kurve-7d-light.png','kuerecik-kompakt-5d-dark.png','amari-kurve-7d-dark.png'])assert.ok(renderer.includes(name),`Renderer-Vertrag kennt ${name} nicht.`);
 for(const token of ['createHash','sha256','PNG-IHDR','manifest.json','SHA256SUMS.txt','MID_STABLE_SHA','MID_PUBLIC_VERSION'])assert.ok(renderer.includes(token),`Renderer-Validierung fehlt: ${token}`);
+for(const token of [
+ 'const captureAttempts=3',
+ 'const captureTimeoutSeconds=180',
+ 'for(let attempt=1;attempt<=captureAttempts;attempt++)',
+ "await rm(target,{force:true})",
+ "await rm(`${target}.part.png`,{force:true})",
+ 'Widget-Rendering endgültig fehlgeschlagen'
+])assert.ok(renderer.includes(token),`Renderer-Retryvertrag fehlt: ${token}`);
+assert.ok(canonical.includes('timeout-minutes: 45'),'Widget-Workflow lässt den begrenzten Retryspielraum nicht zu.');
 
 assert.ok(downloader.includes('releases/download/widget-latest/mid-widget-export-latest.zip'),'Windows-Downloader nutzt nicht den festen rollierenden Download.');
 for(const token of ['Get-FileHash','Expand-Archive','Manifest.count -ne 12','ConvertFrom-Json','USERPROFILE'])assert.ok(downloader.includes(token),`Windows-Downloader fehlt: ${token}`);
