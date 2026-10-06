@@ -1,3 +1,7 @@
+## MID v0.9.85.184 · Same-Origin-DNS-Hotfix
+
+Basis: `main = v0.9.85.183 @ 61fc2634651b865e571496da6eaf3dd0378c760b`, `mid-stable = v0.9.85.182 @ 34d41442de1bb8e984dedca0e786dabb5b9f5ee1`. Der .183-Worker selbst war gesund, die bestätigte Route `www.midwx.app/api/mid-worker*` blieb jedoch öffentlich 404, weil `www.midwx.app` noch nicht durch den Cloudflare-Proxy lief. v0.9.85.184 ergänzt deshalb ausschließlich ein fail-closed DNS-Gate, das beim vorhandenen eindeutigen CNAME nur `proxied=true` aktiviert und Ziel, Typ, Name, TLS sowie alle anderen Records unangetastet lässt. Danach bleiben Route- und Same-Origin-Health-Gates unverändert verbindlich. Details: `docs/implementation/MID_WWW_PROXY_HOTFIX_0.9.85.184.md`.
+
 ## MID v0.9.85.183 · Corporate-safe Same-Origin Data Plane
 
 Basis: `main = mid-stable = 34d41442de1bb8e984dedca0e786dabb5b9f5ee1` (v0.9.85.182). Im produktiven Web ist `https://www.midwx.app/api/mid-worker` der kanonische und einzige Browserpfad für Warnungen, ICON-D2-RUC/RUC-EPS sowie Radar-/Satelliten- und moderne Kartenbasisdaten. Geschlossene Worker-Proxys ersetzen direkte Drittanbieterabrufe; die exakte Cloudflare-Route wird vor Pages/Stable fail-closed geprüft und der Same-Origin-Endpunkt versionsgenau gesmoked. Eine neue Verbindungsdiagnose trennt „keine Wetterinformation“ von 403/Netzwerkfilter/Timeout. Details: `docs/implementation/MID_CORPORATE_SAFE_DATA_PLANE_0.9.85.183.md`.
