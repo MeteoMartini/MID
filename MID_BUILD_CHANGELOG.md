@@ -1,3 +1,13 @@
+## MID v0.9.85.188 · 2026-10-07 · Widget-Export auf vier automatische Läufe pro Tag begrenzt
+
+- Basis: main = mid-stable = v0.9.85.187 @ `2a8370734e98f2c9c1d6da30ad30d9ee5a87aa34`.
+- Bisher: stündlicher Cron plus automatischer Release-Abschluss-Trigger plus `mid-stable`-Push-Trigger; dadurch konnten zusätzliche bzw. doppelte Renderläufe entstehen.
+- Neu: genau ein automatischer Cron `17 0,6,12,18 * * *`, also 00:17/06:17/12:17/18:17 UTC.
+- Automatische `workflow_run`- und `mid-stable`-Push-Trigger entfernt.
+- `workflow_dispatch` bleibt für bewusste manuelle Diagnose-/Notfallläufe erhalten.
+- Aktiver und kanonischer Workflow bleiben bytegleich; Regressionen schützen die Viermal-pro-Tag-Taktung und das Verbot der entfernten Zusatztrigger.
+- Widgetprofile, Renderlogik, Datenlogik, Integritätsprüfung und rollierendes Downloadpaket unverändert.
+
 ## MID v0.9.85.186 · 2026-10-06 · Karten-Layer
 
 - Native Linien ohne Flächenraster; tatsächliche WMS-Stile, responsive Layer-Auswahl und unabhängige Beobachtungsschalter.
