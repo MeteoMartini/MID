@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.181",
+  "releaseVersion": "0.9.85.182",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2669,7 +2669,9 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "docs/implementation/MID_WIDGET_RENDER_RETRY_0.9.85.182.md",
+    "docs/releases/MID_RELEASE_NOTES_0.9.85.182.json"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3350,8 +3352,8 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.181",
-  "updatedAt": "2026-10-05T18:50:00.000Z",
+  "version": "0.9.85.182",
+  "updatedAt": "2026-10-06T12:58:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",

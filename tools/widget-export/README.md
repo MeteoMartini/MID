@@ -47,3 +47,8 @@ Ein optionaler Zielordner kann über `-OutputDirectory` angegeben werden. Erst n
 ## Browser-Laufzeit auf GitHub
 
 Der serverseitige Renderer verwendet auf GitHub Ubuntu den vorinstallierten Google-Chrome-/Chromium-Browser. Der Workflow prüft den Browser vor dem Rendern und übergibt seinen absoluten Pfad über `MID_WIDGET_BROWSER`. `capture-widget.mjs` bleibt zugleich lokal auf Windows/macOS/Linux nutzbar und unterstützt Edge, Chrome sowie Chromium. Fehlt ein kompatibler Browser oder beendet er sich vorzeitig, bricht der Export fail-closed mit einer konkreten Diagnose ab.
+
+
+## Resilienz bei transienten Datenfehlern
+
+Seit MID v0.9.85.182 wird jede der zwölf Varianten bei einem einzelnen Capture-/Wetterabruf-Fehler begrenzt erneut gerendert. Pro Variante sind maximal drei Versuche mit jeweils 180 Sekunden vorgesehen. Vor einem Wiederholungsversuch werden partielle PNG-Dateien entfernt. Erst wenn auch der dritte Versuch fehlschlägt, stoppt der Export weiterhin fail-closed und veröffentlicht kein unvollständiges Paket.
