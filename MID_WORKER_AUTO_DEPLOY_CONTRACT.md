@@ -47,6 +47,12 @@ Der produktive KNMI-HARMONIE-EPS-TAR-Indexcache verwendet das bereits vorhandene
 
 Der Push-Scheduler bleibt auf `sub:`-Listenabfragen beschränkt; der KNMI-Cache selbst verwendet kein `KV.list()`. Fachliche Worker-Änderungen am Cache lösen den bestehenden gestagten Worker-Deploy aus. Verbindliche Fachreferenz: `MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md`. Required Regression: `scripts/test-knmi-eps-productive-cache-097718.mjs`.
 
+## www.midwx.app Proxy-Gate ab v0.9.85.184
+
+Vor der Same-Origin-Workers-Route muss der bestehende `www.midwx.app`-CNAME über Cloudflare proxied sein. Das Release-Gate darf ausschließlich `proxied=true` für genau diesen bestehenden Record setzen. CNAME-Ziel, Name, Typ, TLS-/SSL-Einstellungen und sämtliche anderen DNS-Records bleiben unverändert. Mehrdeutige oder nicht proxyfähige DNS-Konfigurationen blockieren den Release.
+
+Die hierfür erforderliche CI-Berechtigung ist `Zone:DNS Edit`, auf `midwx.app` begrenzt. Ein fehlendes Recht darf nicht durch einen globalen DNS-Token oder andere Least-Privilege-Abweichungen ersetzt werden.
+
 ## Corporate-safe Same-Origin-Gate ab v0.9.85.183
 
 Nach einer erforderlichen Worker-Promotion und auch bei fachlich unverändertem Worker muss vor Pages/Stable die exakte Route `www.midwx.app/api/mid-worker*` auf den konfigurierten MID-Worker bestätigt sein. Die Route wird idempotent angelegt, sofern sie fehlt. Zeigt dasselbe exakte Pattern bereits auf einen anderen Worker, wird es nicht überschrieben; der Release bricht fail-closed ab.

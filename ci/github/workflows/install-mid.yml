@@ -530,6 +530,16 @@ jobs:
           if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
           node tools/cloudflare/check_worker_health.mjs "${args[@]}"
 
+      - name: Bestehenden www-CNAME für Same-Origin sicher über Cloudflare proxien
+        id: same_origin_dns
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MID_CLOUDFLARE_ZONE_ID: ${{ vars.MID_CLOUDFLARE_ZONE_ID }}
+        run: |
+          set -euo pipefail
+          node tools/cloudflare/ensure_www_proxy.mjs
+
       - name: Same-Origin-Route für produktives Web fail-closed verifizieren
         id: same_origin_route
         shell: bash
