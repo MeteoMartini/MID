@@ -2,7 +2,7 @@
   "schema": 1,
   "baselineCommit": "36c64a4eeec6df60d9141ea4b444e3aae550bb56",
   "baselineVersion": "0.9.85.175",
-  "cssCascadeSha256": "2775b36a6004b1146c3380aef0129cd43094c089ff7b1c8710e713d733d81fb2",
+  "cssCascadeSha256": "f1ab16f36fb0aa1c4630f56cb637a7c7fa3c6e16e0e2a2e88fe8ca8014cab190",
   "cssSources": [
     "src/styles-src/00-foundation.css",
     "src/styles-src/10-features.css",

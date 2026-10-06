@@ -1,3 +1,11 @@
+# MID v0.9.85.180
+
+- Profilkopf kompakt: redundante Drucktrend-Karte entfernt, relevante Hinweise vollbreit und umbrechend. RUC zeigt Kandidat und tatsächlich aufbereiteten Lauf mit Datum/HHMMZ im Log und der Ergebnisübersicht.
+
+- Stark-/Dauerregenhinweise markieren die tatsächlich nasse Phase statt trockener Vor- und Nachlaufstunden rollierender Summenfenster.
+- Regenhinweise nennen die Standort-Modellsumme und DWD-Schwellen; unbelegte Ensemble-Bestätigung und erfundene Wahrscheinlichkeitsbereiche entfallen.
+- Zeitlücken und Mehrstundenwerte dürfen keine Stunden-Warnschwellen vortäuschen. Amtliche Warnungen und Extremwettervorschau behalten ihre eigenen Quellen und Kriterien.
+
 # MID v0.9.85.179
 
 - Der automatische Widget-Export startet jetzt zusätzlich direkt bei jeder erfolgreichen Promotion auf `mid-stable`.
