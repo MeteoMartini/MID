@@ -545,9 +545,15 @@ jobs:
         shell: bash
         env:
           REQUIRE_RUC: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          WORKER_CHANGED: ${{ needs.install_build.outputs.worker_changed }}
         run: |
           set -euo pipefail
-          args=(--url "https://www.midwx.app/api/mid-worker" --expected-version "${{ needs.install_build.outputs.version }}" --retries 6)
+          args=(--url "https://www.midwx.app/api/mid-worker" --retries 6)
+          if [ "$WORKER_CHANGED" = "true" ]; then
+            args+=(--expected-version "${{ needs.install_build.outputs.version }}")
+          else
+            args+=(--allow-existing-version)
+          fi
           if [ "$REQUIRE_RUC" = "true" ]; then args+=(--require-ruc-ready); fi
           node tools/cloudflare/check_worker_health.mjs "${args[@]}"
 
