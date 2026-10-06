@@ -87,7 +87,7 @@ export function extremeProbabilityBand(probability:number):ExtremeOutlookSignal[
 
 const OUTLOOK_CACHE_PREFIX='mid:extreme-outlook:';
 const OUTLOOK_PAYLOAD_PREFIX=`${OUTLOOK_CACHE_PREFIX}payload:`;
-const OUTLOOK_CACHE_KEY=`${OUTLOOK_PAYLOAD_PREFIX}v5`;
+const OUTLOOK_CACHE_KEY=`${OUTLOOK_PAYLOAD_PREFIX}v6`;
 const WORKER_LIMIT_KEY=`${OUTLOOK_CACHE_PREFIX}worker-limit-until:v1`;
 const OUTLOOK_FRESH_MS=20*60*1000;
 const OUTLOOK_STALE_MS=12*60*60*1000;
@@ -111,7 +111,7 @@ export async function loadExtremeWeatherOutlook(signal?:AbortSignal):Promise<Ext
  const workerSkipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=workerSkipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
  if(!workerSkipped){
   try{
-   const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{}, {purpose:'general',signal,timeoutMs:48000,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v5'});
+   const worker=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{phase_schema:'freezing-liquid-v1'}, {purpose:'general',signal,timeoutMs:48000,maxAgeMs:30*60*1000,staleIfErrorMs:6*60*60*1000,cacheKey:'dach-extreme-outlook:v6'});
    if(worker.error)throw new Error(worker.error);if(!validOutlook(worker))throw new Error('Der MID-Datendienst lieferte keinen vollständigen Mitteleuropa-Ausblick über das ICON-D2-Gebiet.');
    const result={...worker,delivery:'worker' as const};clearWorkerLimit();writeOutlookCache(result);return result;
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}

@@ -118,7 +118,8 @@ function assessCheckpoint(hour:Hour){
  if(precipitation.type==='thunderstorm'||precipitation.type==='thunderstormHail'){score=Math.max(score,4);reasons.push('Gewitterrisiko');}
  if(['snow','snowShowers','snowGrains','snowStars','iceCrystals','icePellets','graupelShowers'].includes(precipitation.type)){score=Math.max(score,3);reasons.push('Fester Niederschlag / winterliche Fahrbahnbedingungen');}
  if(precipitation.type==='hailShowers'){score=Math.max(score,4);reasons.push('Hagelschauer / erhöhte Rutsch- und Sichtgefahr');}
- if(precipitation.type==='sleet'||precipitation.type==='sleetShowers'||precipitation.type==='wintryAfterThunder'||precipitation.type==='freezingRain'||precipitation.type==='freezingDrizzle'){score=Math.max(score,4);reasons.push('Glättegefahr durch gefrierenden oder gemischten Niederschlag');}
+ if(precipitation.type==='freezingRain'||precipitation.type==='freezingDrizzle'){score=Math.max(score,4);reasons.push('Gefrierender Niederschlag / Glatteisgefahr');}
+ if(precipitation.type==='sleet'||precipitation.type==='sleetShowers'||precipitation.type==='wintryAfterThunder'){score=Math.max(score,3);reasons.push('Gemischter winterlicher Niederschlag / eingeschränkte Sicht');if(hour.temperature<=1||(Number.isFinite(hour.surfaceTemperature)&&hour.surfaceTemperature!<=.5)){score=Math.max(score,4);reasons.push('Glättegefahr');}}
  if(hour.precipitation>=8){score=Math.max(score,3);reasons.push('kräftiger Niederschlag');}
  else if(hour.precipitation>=2){score=Math.max(score,2);reasons.push('nasser Fahrbahnabschnitt');}
  else if(hour.precipitation>=0.2||hour.probability>=70){score=Math.max(score,1);reasons.push('mögliche Niederschläge');}

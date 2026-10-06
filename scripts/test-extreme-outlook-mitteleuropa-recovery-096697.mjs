@@ -33,7 +33,7 @@ for(const region of ['Südostengland','Dänemark','Niederlande','Belgien','Nordf
 
 assert.ok(data.includes("scope:'Mitteleuropa';"));
 assert.ok(data.includes('bounds.west<=-3.84&&bounds.east>=20.2&&bounds.south<=43.2&&bounds.north>=57.99'));
-assert.ok(data.includes("cacheKey:'dach-extreme-outlook:v5'"));
+assert.ok(data.includes("cacheKey:'dach-extreme-outlook:v6'"));
 assert.ok(direct.includes("scope:'Mitteleuropa'"),'Browser-Direktpfad muss aus derselben Mitteleuropa-Quelle generiert sein.');
 assert.ok(direct.includes('Südostengland')&&direct.includes('Venetien/Friaul'),'Direktpfad darf nicht auf den alten DACH-Ausschnitt zurückfallen.');
 assert.ok(router.includes("scope:'Mitteleuropa'"));
