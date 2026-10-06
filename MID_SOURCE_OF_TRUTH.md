@@ -1,3 +1,7 @@
+## MID v0.9.85.182 · Resilienter serverseitiger Widget-Export
+
+Basis: `main = mid-stable = a855f418c3fa00af40da8ccedcd2b1a7c05b02b9` (v0.9.85.181). Der Widget-Workflow erzeugte acht PNGs erfolgreich und brach anschließend bei einem transienten Wetterabruf-Timeout für eine einzelne Kürecik-Variante ab. Ab v0.9.85.182 darf jede einzelne Variante höchstens drei kontrollierte Render-Versuche mit 180-s-Zeitfenster durchführen; partielle Dateien werden vor jedem Retry entfernt. Erst nach drei Fehlschlägen wird weiterhin fail-closed abgebrochen. Matrix, Datenlogik, URLs und SharePoint-Übergabe bleiben unverändert. Details: `docs/implementation/MID_WIDGET_RENDER_RETRY_0.9.85.182.md`.
+
 ## MID v0.9.85.181 · Cross-Platform-CDP für Widget-PNGs
 
 Basis: `main = mid-stable = 3fe968e5127a34d2e820e0d2e367d9cfb388ca35` (v0.9.85.180). Der serverseitige Widget-Workflow war fachlich korrekt getriggert, scheiterte jedoch reproduzierbar auf GitHub Ubuntu, weil der bestehende Capture-Renderer den CDP-Browserpfad noch auf Edge ausgerichtet hatte. Ab v0.9.85.181 erkennt der Renderer Edge/Chrome/Chromium plattformübergreifend, akzeptiert `MID_WIDGET_BROWSER`/`--browser`, überwacht Browserstart und -exit fail-fast und verwendet auf Linux die CI-tauglichen Headless-Flags. Der Workflow führt zusätzlich einen expliziten Browser-Preflight durch. Widgetprofile, MID-Daten und Wetterlogik bleiben unverändert. Details: `docs/implementation/MID_WIDGET_BROWSER_RUNTIME_0.9.85.181.md`.
