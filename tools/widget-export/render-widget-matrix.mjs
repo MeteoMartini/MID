@@ -40,12 +40,32 @@ function pngMetadata(bytes){
  if(width<100||height<100||width>10000||height>10000)throw new Error(`Unplausible PNG-Abmessungen ${width}×${height}.`);
  return{width,height};
 }
-function runCapture(url,target){
+const captureAttempts=3;
+const captureTimeoutSeconds=180;
+const sleep=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
+function runCaptureOnce(url,target){
  return new Promise((resolve,reject)=>{
-  const child=spawn(process.execPath,[capture,'--url',url,'--output',target,'--width','1500','--height','1200','--timeout','120'],{stdio:'inherit'});
+  const child=spawn(process.execPath,[capture,'--url',url,'--output',target,'--width','1500','--height','1200','--timeout',String(captureTimeoutSeconds)],{stdio:'inherit'});
   child.once('error',reject);
   child.once('exit',code=>code===0?resolve():reject(new Error(`capture-widget.mjs endete mit Exit-Code ${code}.`)));
  });
+}
+async function runCapture(url,target){
+ let lastError;
+ for(let attempt=1;attempt<=captureAttempts;attempt++){
+  await rm(target,{force:true});
+  await rm(`${target}.part.png`,{force:true});
+  if(attempt>1)await sleep(Math.min(5000,attempt*1500));
+  console.log(`Widget-Render ${path.basename(target)}: Versuch ${attempt}/${captureAttempts} …`);
+  try{
+   await runCaptureOnce(url,target);
+   return;
+  }catch(error){
+   lastError=error;
+   if(attempt<captureAttempts)console.warn(`Widget-Render ${path.basename(target)} fehlgeschlagen; erneuter Versuch folgt: ${error?.message||error}`);
+  }
+ }
+ throw new Error(`Widget-Rendering endgültig fehlgeschlagen nach ${captureAttempts} Versuchen: ${path.basename(target)} (${lastError?.message||lastError||'unbekannter Fehler'})`,{cause:lastError});
 }
 
 await rm(output,{recursive:true,force:true});
