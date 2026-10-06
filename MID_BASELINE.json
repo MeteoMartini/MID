@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.182",
+  "releaseVersion": "0.9.85.183",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -154,6 +154,7 @@
     "scripts/test-core-forecast-independent-fallback-095316.mjs",
     "scripts/test-core-forecast-resilience-095315.mjs",
     "scripts/test-core-forecast-restoration-095317.mjs",
+    "scripts/test-corporate-safe-data-plane-0985183.mjs",
     "scripts/test-cost-governance-contract-095337.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "scripts/test-current-cards-favorites-navigation-08152.mjs",
@@ -1079,6 +1080,7 @@
     "scripts/test-core-forecast-independent-fallback-095316.mjs",
     "scripts/test-core-forecast-resilience-095315.mjs",
     "scripts/test-core-forecast-restoration-095317.mjs",
+    "scripts/test-corporate-safe-data-plane-0985183.mjs",
     "scripts/test-cost-governance-contract-095337.mjs",
     "scripts/test-cross-platform-ios-shell-09670.mjs",
     "scripts/test-current-cards-favorites-navigation-08152.mjs",
@@ -3352,7 +3354,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.182",
+  "version": "0.9.85.183",
   "updatedAt": "2026-10-06T12:58:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

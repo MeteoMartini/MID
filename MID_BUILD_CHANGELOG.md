@@ -1,3 +1,13 @@
+## MID v0.9.85.183 · 2026-10-06 · Corporate-safe Same-Origin Data Plane
+
+- Basis: main = mid-stable = v0.9.85.182 @ `34d41442de1bb8e984dedca0e786dabb5b9f5ee1`.
+- Produktives `www.midwx.app` verwendet für Worker-Daten ausschließlich `/api/mid-worker`; Browser-Fallbacks auf externe Worker-Adressen sind dort gesperrt.
+- DWD-/EUMETSAT-WMS, RainViewer-Tiles sowie OpenFreeMap-Vektortiles/Glyphen werden über eng validierte MID-Worker-Endpunkte ausgeliefert; kein frei adressierbarer Proxy.
+- Cloudflare-Route `www.midwx.app/api/mid-worker*` wird idempotent auf den bestehenden MID-Worker geprüft/angelegt; Konflikte blockieren fail-closed, DNS/TLS/andere Routes bleiben unberührt.
+- Same-Origin-Health und bei aktivem RUC zusätzlich RUC-Health sind vor Pages/Stable verpflichtend.
+- Neue In-App-Verbindungsdiagnose für Datendienst, Warnungen, RUC-Health, RUC-Lauf und Radar/Satellit.
+- Keine Änderung an meteorologischen Schwellen, Warnstufen oder RUC-/Radar-/Satelliten-Fachlogik.
+
 ## MID v0.9.85.182 · 2026-10-06 · Widget-Rendering gegen transiente Daten-Timeouts gehärtet
 
 - Basis: main = mid-stable = v0.9.85.181 @ `a855f418c3fa00af40da8ccedcd2b1a7c05b02b9`.

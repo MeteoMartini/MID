@@ -1,3 +1,7 @@
+## MID v0.9.85.183 · Corporate-safe Same-Origin Data Plane
+
+Basis: `main = mid-stable = 34d41442de1bb8e984dedca0e786dabb5b9f5ee1` (v0.9.85.182). Im produktiven Web ist `https://www.midwx.app/api/mid-worker` der kanonische und einzige Browserpfad für Warnungen, ICON-D2-RUC/RUC-EPS sowie Radar-/Satelliten- und moderne Kartenbasisdaten. Geschlossene Worker-Proxys ersetzen direkte Drittanbieterabrufe; die exakte Cloudflare-Route wird vor Pages/Stable fail-closed geprüft und der Same-Origin-Endpunkt versionsgenau gesmoked. Eine neue Verbindungsdiagnose trennt „keine Wetterinformation“ von 403/Netzwerkfilter/Timeout. Details: `docs/implementation/MID_CORPORATE_SAFE_DATA_PLANE_0.9.85.183.md`.
+
 ## MID v0.9.85.182 · Resilienter serverseitiger Widget-Export
 
 Basis: `main = mid-stable = a855f418c3fa00af40da8ccedcd2b1a7c05b02b9` (v0.9.85.181). Der Widget-Workflow erzeugte acht PNGs erfolgreich und brach anschließend bei einem transienten Wetterabruf-Timeout für eine einzelne Kürecik-Variante ab. Ab v0.9.85.182 darf jede einzelne Variante höchstens drei kontrollierte Render-Versuche mit 180-s-Zeitfenster durchführen; partielle Dateien werden vor jedem Retry entfernt. Erst nach drei Fehlschlägen wird weiterhin fail-closed abgebrochen. Matrix, Datenlogik, URLs und SharePoint-Übergabe bleiben unverändert. Details: `docs/implementation/MID_WIDGET_RENDER_RETRY_0.9.85.182.md`.

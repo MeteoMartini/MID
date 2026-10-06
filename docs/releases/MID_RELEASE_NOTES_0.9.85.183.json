@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.183",
+  "date": "2026-10-06",
+  "title": "Corporate-safe Same-Origin Data Plane",
+  "external": [
+    "Warnungen, ICON-D2-RUC, Radar und Satellit werden im produktiven Web über denselben MID-Host geladen.",
+    "Eine neue Verbindungsdiagnose zeigt blockierte oder eingeschränkte Datenpfade getrennt an."
+  ],
+  "internal": [
+    "Production web worker candidates are locked to /api/mid-worker; strict RainViewer/OpenFreeMap proxies and DWD/EUMETSAT WMS proxying remove critical browser third-party dependencies; Cloudflare route and same-origin health are fail-closed release gates."
+  ]
+}

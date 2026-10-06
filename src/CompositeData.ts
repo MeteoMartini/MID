@@ -41,6 +41,10 @@ export function compositeWmsProxy(provider:WmsProvider){
  if(!configured)return'';
  return buildWorkerUrl(configured,'composite-wms',{provider}).toString();
 }
+function workerTileTemplate(mode:string,params:Record<string,string|number|undefined>,placeholders:string){const configured=configuredDataProxy();if(!configured)return'';return buildWorkerUrl(configured,mode,params).toString()+placeholders}
+export function rainViewerTileProxy(time:number){return workerTileTemplate('rainviewer-tile',{time:Math.round(time)},'&z={z}&x={x}&y={y}')}
+export function openFreeMapVectorTileProxy(){return workerTileTemplate('basemap-vector-tile',{},'&z={z}&x={x}&y={y}')}
+export function openFreeMapGlyphProxy(){return workerTileTemplate('basemap-glyph',{},'&fontstack={fontstack}&range={range}')}
 export async function loadOperaRaster(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<OperaRasterResponse>('opera-raster-meta',{lat,lon},{purpose:'radar',signal,timeoutMs:12000})}
 export async function loadLightningPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('lightning-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}
 export async function loadNowcastMixPoints(lat:number,lon:number,signal?:AbortSignal){return fetchWorkerJson<LightningPointResponse>('nowcastmix-points',{lat,lon},{purpose:'radar',signal,timeoutMs:10000})}

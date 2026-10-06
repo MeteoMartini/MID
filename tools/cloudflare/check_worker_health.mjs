@@ -1,6 +1,6 @@
 const args=process.argv.slice(2),get=name=>{const i=args.indexOf(name);return i>=0?args[i+1]:''},has=name=>args.includes(name);
-const base=get('--url'),expected=get('--expected-version'),worker=get('--worker'),versionId=get('--version-id'),retries=Math.max(1,Number(get('--retries')||6)),requireRuc=has('--require-ruc-ready');
-if(!base||!expected)throw new Error('--url und --expected-version sind erforderlich');
+const base=get('--url'),expected=get('--expected-version'),worker=get('--worker'),versionId=get('--version-id'),retries=Math.max(1,Number(get('--retries')||6)),requireRuc=has('--require-ruc-ready'),allowExistingVersion=has('--allow-existing-version');
+if(!base||(!expected&&!allowExistingVersion))throw new Error('--url und entweder --expected-version oder --allow-existing-version sind erforderlich');
 const headers={Accept:'application/json'};if(worker&&versionId)headers['Cloudflare-Workers-Version-Overrides']=`${worker}="${versionId}"`;
 async function probe(mode){const url=new URL(base);url.searchParams.set('mode',mode);const response=await fetch(url,{headers,cache:'no-store'}),payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(`${mode}: HTTP ${response.status}`);return payload}
 function rucSmokeMode(ruc){
@@ -16,9 +16,9 @@ function rucSmokeMode(ruc){
 }
 let last;for(let attempt=1;attempt<=retries;attempt++){
  try{
-  const health=await probe('health');if(health?.ok!==true||String(health?.version)!==expected)throw new Error(`health meldet ${health?.version||'<keine Version>'} statt ${expected}`);
+  const health=await probe('health');if(health?.ok!==true)throw new Error('health meldet nicht ok=true');if(!allowExistingVersion&&String(health?.version)!==expected)throw new Error(`health meldet ${health?.version||'<keine Version>'} statt ${expected}`);if(allowExistingVersion&&!String(health?.version||'').match(/^\d+\.\d+\.\d+(?:\.\d+)?$/))throw new Error(`health meldet keine plausible Worker-Version: ${health?.version||'<leer>'}`);
   let rucMode='';if(requireRuc){const ruc=await probe('ruc-health');rucMode=rucSmokeMode(ruc);if(!rucMode)throw new Error(`ruc-health nicht deployment-sicher: ${JSON.stringify({configured:ruc?.configured,ready:ruc?.ready,fresh:ruc?.fresh,schemaValid:ruc?.schemaValid,backend:ruc?.backend,run:ruc?.run,pointCount:ruc?.pointCount,timeCount:ruc?.timeCount,epsMemberCount:ruc?.epsMemberCount,reason:ruc?.reason})}`);if(rucMode==='stale-bootstrap-safe')console.warn(`RUC-Snapshot ist stale, aber strukturell gültig; Worker-Promotion bleibt bootstrap-sicher und RUC-Runtime fail-closed. run=${ruc?.run} ageHours=${ruc?.ageHours??'?'}`)}
-  console.log(`Worker-Smoke OK · ${expected}${versionId?' · Versions-Override '+versionId:''}${requireRuc?' · RUC '+rucMode:''}`);process.exit(0)
+  console.log(`Worker-Smoke OK · ${allowExistingVersion?'bestehende Worker-Version '+String(health?.version||'?'):expected}${versionId?' · Versions-Override '+versionId:''}${requireRuc?' · RUC '+rucMode:''}`);process.exit(0)
  }catch(error){last=error;if(attempt<retries)await new Promise(r=>setTimeout(r,Math.min(10000,1500*attempt)))}
 }
 throw last||new Error('Worker-Smoke fehlgeschlagen');
