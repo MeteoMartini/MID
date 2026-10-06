@@ -32,7 +32,7 @@ export type MountainConfig={
 
 export type MountainProfileLevel={role:MountainLevelRole;name:string;latitude:number;longitude:number;elevation:number;source?:string};
 export type MountainProfileResult={levels:MountainProfileLevel[];source:string;confidence:MountainProfileConfidence;checkedAt?:string;diagnostics?:Record<string,unknown>};
-export type MountainPointWeather={latitude:number;longitude:number;elevation:number;timezone:string;timezone_abbreviation?:string;utc_offset_seconds?:number;current:Record<string,number|string|null>;hourly:Record<string,(number|string|null)[]>};
+export type MountainPointWeather={latitude:number;longitude:number;elevation:number;columnElevation?:number;timezone:string;timezone_abbreviation?:string;utc_offset_seconds?:number;current:Record<string,number|string|null>;hourly:Record<string,(number|string|null)[]>};
 export type MountainSnowMeasurement={valueCm:number;stationName:string;stationId?:string;stationElevation?:number;distanceKm:number;heightDifferenceM:number;observedAt:string;provider:string};
 export type MountainLevelForecast={role:MountainLevelRole;name:string;latitude:number;longitude:number;elevation:number;weather:MountainPointWeather;modelSnowDepthCm:number;measuredSnowDepthCm:number;snowMeasurement?:MountainSnowMeasurement;pastSnow24Cm:number;newSnow24Cm:number;newSnow48Cm:number};
 export type MountainDailySummary={role:MountainLevelRole;elevation:number;date:string;temperatureMinC:number;temperatureMaxC:number;apparentMinC:number;apparentMaxC:number;windMaxKt:number;gustMaxKt:number;windDirectionDeg:number;precipitationMm:number;precipitationProbabilityMax:number;snowfallCm:number;sunshineHours:number;freezingLevelMedianM:number;snowfallLimitMedianM:number;completePrecipitation:boolean;completeSnowfall:boolean;completeSunshine:boolean};
@@ -94,7 +94,7 @@ function mountainRegionalModel(loc:Location){const country=mountainCountryCode(l
 function mountainProfileHorizontalSpanKm(points:{latitude:number;longitude:number}[]){let max=0;for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)max=Math.max(max,distanceMeters(points[i].latitude,points[i].longitude,points[j].latitude,points[j].longitude)/1000);return Number(max.toFixed(1))}
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));
-const finite=(value:unknown)=>Number.isFinite(Number(value));
+const finite=(value:unknown)=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value));
 const numeric=(value:unknown)=>{if(value===null||value===undefined||value==='')return undefined;const number=Number(value);return Number.isFinite(number)?number:undefined};
 const toRad=(value:number)=>value*Math.PI/180;
 export const DWD_SNOWFALL_LIMIT_GRADIENT_K_PER_100M=.65;
@@ -103,7 +103,7 @@ export type DwdSnowfallLimitInput={temperature850?:number|null;geopotentialHeigh
 /** DWD-Näherung: aus Temperatur + Geopotential in 850 hPa wird mit 0,65 K/100 m
  * die Höhe der üblichen +2-°C-Schneefallgrenze berechnet. Der 850-hPa-Geopotentialwert
  * ist zwingend variabel; eine feste 1500-m-Höhe wird bewusst nicht angenommen. */
-export function dwdSnowfallLimit(input:DwdSnowfallLimitInput){const t850=Number(input.temperature850),z850=Number(input.geopotentialHeight850),freezing=Number(input.freezingLevelHeight),gradient=DWD_SNOWFALL_LIMIT_GRADIENT_K_PER_100M/100;if(Number.isFinite(t850)&&Number.isFinite(z850)&&z850>-500&&z850<7000){const value=z850+(t850-DWD_SNOWFALL_LIMIT_TEMPERATURE_C)/gradient;return clamp(value,0,8000)}if(Number.isFinite(freezing)){const value=freezing-DWD_SNOWFALL_LIMIT_TEMPERATURE_C/gradient;return clamp(value,0,8000)}return NaN}
+export function dwdSnowfallLimit(input:DwdSnowfallLimitInput){const t850=numeric(input.temperature850)??NaN,z850=numeric(input.geopotentialHeight850)??NaN,freezing=numeric(input.freezingLevelHeight)??NaN,gradient=DWD_SNOWFALL_LIMIT_GRADIENT_K_PER_100M/100;if(Number.isFinite(t850)&&Number.isFinite(z850)&&z850>-500&&z850<7000){const value=z850+(t850-DWD_SNOWFALL_LIMIT_TEMPERATURE_C)/gradient;return clamp(value,0,8000)}if(Number.isFinite(freezing)){const value=freezing-DWD_SNOWFALL_LIMIT_TEMPERATURE_C/gradient;return clamp(value,0,8000)}return NaN}
 
 /** Native model snow limit first; no second precipitation-cooling correction. */
 export function preferredSnowfallLimit(input:DwdSnowfallLimitInput&{snowfallHeight?:number|null}){
@@ -281,7 +281,7 @@ const MOUNTAIN_REGIONAL_PRIMARY_VARIABLES=['temperature_2m','apparent_temperatur
 const MOUNTAIN_REGIONAL_ESSENTIAL_VARIABLES=['temperature_2m','relative_humidity_2m','dew_point_2m','precipitation','snowfall','weather_code','cloud_cover','wind_speed_10m','wind_gusts_10m','wind_direction_10m','is_day'] as const;
 async function fetchMountainRegionalForecast(points:MountainProfileLevel[],plan:MountainRegionalModelPlan,signal?:AbortSignal):Promise<MountainPointWeather[]>{
  const request=async(variables:readonly string[])=>{
-  const params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:String(plan.horizonHours),models:plan.id,wind_speed_unit:'kn',current:variables.filter(key=>key!=='sunshine_duration').join(','),hourly:variables.join(',')});
+  const params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),cell_selection:'nearest',timezone:'auto',forecast_hours:String(plan.horizonHours),models:plan.id,wind_speed_unit:'kn',current:variables.filter(key=>key!=='sunshine_duration').join(','),hourly:variables.join(',')});
   const response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'});
   if(!response.ok)return undefined;
   const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
@@ -298,7 +298,7 @@ function mergeMountainRegionalForecast(base:MountainPointWeather,regional:Mounta
  return{...base,current,hourly};
 }
 async function fetchMountainDiagnostics(points:MountainProfileLevel[],signal?:AbortSignal):Promise<MountainPointWeather[]>{
- const thunderVariables=['lifted_index','convective_inhibition','total_column_integrated_water_vapour'],variables=['cape',...thunderVariables,...MOUNTAIN_CLOUD_PROFILE_LEVELS.flatMap(level=>[`cloud_cover_${level}hPa`,`geopotential_height_${level}hPa`]),'temperature_850hPa'],params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:points.map(point=>point.elevation).join(','),timezone:'auto',forecast_hours:'168',models:'best_match',wind_speed_unit:'kn',hourly:variables.join(',')}),response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'background'});
+ const thunderVariables=['lifted_index','convective_inhibition','total_column_integrated_water_vapour'],variables=['cape',...thunderVariables,...MOUNTAIN_CLOUD_PROFILE_LEVELS.flatMap(level=>[`cloud_cover_${level}hPa`,`geopotential_height_${level}hPa`]),'temperature_850hPa'],params=new URLSearchParams({latitude:points.map(point=>point.latitude).join(','),longitude:points.map(point=>point.longitude).join(','),elevation:'nan',cell_selection:'nearest',timezone:'auto',forecast_hours:'168',models:'best_match',wind_speed_unit:'kn',hourly:variables.join(',')}),response=await guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'background'});
  if(!response.ok)throw new Error(`Bergdiagnostik HTTP ${response.status}`);
  const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,rows=Array.isArray(raw)?raw:[raw];
  if(rows.length!==points.length||rows.some(row=>!Array.isArray(row.hourly?.time)))throw new Error('Bergdiagnostik lieferte keine vollständigen Stundenachsen.');
@@ -309,7 +309,7 @@ function mergeMountainDiagnostics(base:MountainPointWeather,diagnostics:Mountain
  if(!baseTimes.length||!diagnosticTimes.length)throw new Error('Stundenachse für Bergdiagnostik fehlt.');
  const diagnosticIndex=new Map(diagnosticTimes.map((time,index)=>[time,index])),hourly={...base.hourly};
  for(const[key,values]of Object.entries(diagnostics.hourly)){if(key==='time'||!Array.isArray(values))continue;hourly[key]=baseTimes.map(time=>{const sourceIndex=diagnosticIndex.get(time);return sourceIndex===undefined?null:values[sourceIndex]??null})}
- return{...base,hourly};
+ return{...base,columnElevation:numeric(diagnostics.elevation),hourly};
 }
 
 export async function mountainSportsForecast(loc:Location,config:MountainConfig,signal?:AbortSignal,onUpdate?:(update:MountainForecastUpdate)=>void):Promise<MountainSportsForecast>{
@@ -349,7 +349,7 @@ export async function mountainSportsForecast(loc:Location,config:MountainConfig,
   }).catch(()=>{if(!signal?.aborted)onUpdate?.({type:'enrichment',enrichment:'snow-line-ensemble',status:'unavailable'})});
  };
  if(cached){enrich(cached);return cached.forecast}
- const latitudes=points.map(point=>point.latitude).join(','),longitudes=points.map(point=>point.longitude).join(','),elevations=points.map(point=>point.elevation).join(','),regionalPlan=mountainRegionalModel(loc),params=new URLSearchParams({latitude:latitudes,longitude:longitudes,elevation:elevations,timezone:'auto',forecast_hours:'168',past_hours:'24',models:'best_match',wind_speed_unit:'kn',current:MOUNTAIN_SURFACE_VARIABLES.filter(key=>key!=='precipitation_probability'&&key!=='sunshine_duration'&&key!=='snowfall_height').join(','),hourly:MOUNTAIN_SURFACE_VARIABLES.join(',')}),basePromise=guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'}),regionalPromise=regionalPlan?fetchMountainRegionalForecast(points,regionalPlan,signal).catch(()=>undefined):Promise.resolve(undefined),[response,regionalRows]=await Promise.all([basePromise,regionalPromise]);
+ const latitudes=points.map(point=>point.latitude).join(','),longitudes=points.map(point=>point.longitude).join(','),elevations=points.map(point=>point.elevation).join(','),regionalPlan=mountainRegionalModel(loc),params=new URLSearchParams({latitude:latitudes,longitude:longitudes,elevation:elevations,cell_selection:'nearest',timezone:'auto',forecast_hours:'168',past_hours:'24',models:'best_match',wind_speed_unit:'kn',current:MOUNTAIN_SURFACE_VARIABLES.filter(key=>key!=='precipitation_probability'&&key!=='sunshine_duration'&&key!=='snowfall_height').join(','),hourly:MOUNTAIN_SURFACE_VARIABLES.join(',')}),basePromise=guardedOpenMeteoFetch(`${FORECAST_ENDPOINT}?${params}`,{signal,cache:'no-store'},{priority:'foreground'}),regionalPromise=regionalPlan?fetchMountainRegionalForecast(points,regionalPlan,signal).catch(()=>undefined):Promise.resolve(undefined),[response,regionalRows]=await Promise.all([basePromise,regionalPromise]);
  if(!response.ok)throw new Error(`Höhenprognose HTTP ${response.status}`);
  const raw=await response.json() as MountainPointWeather[]|MountainPointWeather,baseRows=Array.isArray(raw)?raw:[raw];
  if(baseRows.length!==points.length)throw new Error('Die Höhenprognose lieferte nicht alle konfigurierten Niveaus.');

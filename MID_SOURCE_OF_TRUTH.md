@@ -1,3 +1,11 @@
+## MID v0.9.85.177
+
+- Bergwetter: Die Höhenwahl allein verändert keine geografische Modellzelle mehr; Nullgrad- und Schneefallgrenzen bleiben für dieselbe atmosphärische Säule konsistent.
+- Wolkenuntergrenze und lokale Kondensationshöhe werden fachlich getrennt; tiefer liegende Wolkenschichten bleiben auch bei gewählter Bergstation erhalten.
+- Räumliche Unterschiede und mehrere Wolkenschichten bleiben erhalten. Fehlende Grenzhöhen und Koordinaten werden nicht zu künstlichen Nullwerten.
+
+Details: docs/implementation/MID_C18_ATMOSPHERIC_COLUMN_0.9.85.177.md. Veröffentlichung ausschließlich über die bestehenden Source-/Installer-/Worker-/Pages-/Stable-Gates.
+
 ## MID v0.9.85.176
 
 - Bergwetter: getrennte Tagesmaxima für Wind und Böen; fehlende Werte bleiben unbekannt.

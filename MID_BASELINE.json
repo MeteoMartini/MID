@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.176",
+  "releaseVersion": "0.9.85.177",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -930,7 +930,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs",
+    "scripts/test-mountain-column-consistency-0985177.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1850,7 +1851,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-worker-kv-operations-budget-09631.mjs",
     "scripts/test-worker-live-fallbacks.mjs",
-    "scripts/test-worker-precipitation-character-0960.mjs"
+    "scripts/test-worker-precipitation-character-0960.mjs",
+    "scripts/test-mountain-column-consistency-0985177.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -3319,7 +3321,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.176",
+  "version": "0.9.85.177",
   "updatedAt": "2026-10-05T18:50:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

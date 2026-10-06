@@ -389,7 +389,7 @@ export async function airQualityStation(lat:number,lon:number,signal?:AbortSigna
 export async function mountainForecast(lat:number,lon:number,valleyElevation:number,summitElevation:number,signal?:AbortSignal):Promise<MountainForecast>{
  const elevations=[Math.max(0,Math.round(valleyElevation)),Math.max(1,Math.round(summitElevation))];
  const vars=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','visibility','freezing_level_height','wet_bulb_temperature_2m','wind_speed_10m','wind_gusts_10m','wind_direction_10m','is_day'];
- const p=new URLSearchParams({latitude:`${lat},${lat}`,longitude:`${lon},${lon}`,elevation:elevations.join(','),timezone:'auto',forecast_hours:'48',models:'best_match',wind_speed_unit:'kn',current:vars.join(','),hourly:vars.join(',')});
+ const p=new URLSearchParams({latitude:`${lat},${lat}`,longitude:`${lon},${lon}`,elevation:elevations.join(','),cell_selection:'nearest',timezone:'auto',forecast_hours:'48',models:'best_match',wind_speed_unit:'kn',current:vars.join(','),hourly:vars.join(',')});
  const result=await j<MountainWeather[]|MountainWeather>(`https://api.open-meteo.com/v1/forecast?${p}`,signal),rows=Array.isArray(result)?result:[result];
  if(rows.length<2)throw new Error('Höhenvergleich konnte nicht geladen werden.');
  return{valley:rows[0],summit:rows[1]};

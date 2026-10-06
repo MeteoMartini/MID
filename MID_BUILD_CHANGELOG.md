@@ -1,3 +1,7 @@
+## MID v0.9.85.177 · Atmosphärische Höhengrenzen
+
+Geografisch feste Zellwahl in Höhenabrufen einschließlich Legacy-Pfad; freie Diagnostik ohne Oberflächen-Downscaling und mit Modellgeländehöhe. Unterste Wolkenbasis getrennt von lokaler Wolkenschicht-/Sichtprüfung und lokalem LCL. Fehlende DWD-Eingaben/Profilkoordinaten bleiben unbekannt.
+
 ## MID v0.9.85.176
 
 - Bergwetter: getrennte Tagesmaxima für Wind und Böen; fehlende Werte bleiben unbekannt.
