@@ -14,6 +14,8 @@ class WorkerRequestError extends Error{constructor(message:string,readonly statu
 
 const LAST_GOOD_KEY='mid:worker:lastGood';
 const LAST_GOOD_MAX_AGE=36*60*60*1000;
+const MID_PRODUCTION_WEB_HOST='www.midwx.app';
+const MID_SAME_ORIGIN_WORKER_PATH='/api/mid-worker';
 
 function storageGet(key:string){try{return localStorage.getItem(key)||''}catch{return''}}
 function splitUrls(value:unknown){return String(value||'').split(/[\s,;]+/).map(item=>item.trim()).filter(Boolean)}
@@ -37,9 +39,14 @@ function purposeSpecificStorage(purpose:WorkerPurpose){
  if(purpose==='radar'||purpose==='meteogram')return storageGet('radarProxyUrl');
  return storageGet('metarProxyUrl');
 }
+function currentWebLocation(){try{return typeof location!=='undefined'?location:null}catch{return null}}
+export function productiveMidWebRuntime(){const current=currentWebLocation();return Boolean(current&&current.protocol==='https:'&&current.hostname.toLowerCase()===MID_PRODUCTION_WEB_HOST)}
+export function browserExternalWeatherFallbackAllowed(){return !productiveMidWebRuntime()}
+export function sameOriginWorkerBase(){const current=currentWebLocation();if(!current)return MID_SAME_ORIGIN_WORKER_PATH;return new URL(MID_SAME_ORIGIN_WORKER_PATH,current.origin).toString()}
 
 export function workerBaseCandidates(purpose:WorkerPurpose='general'){
  const env=import.meta.env;
+ if(productiveMidWebRuntime())return uniqueUrls([sameOriginWorkerBase()]);
  return uniqueUrls([
   String(env.VITE_WORKER_SAME_ORIGIN_PATH||''),
   purposeSpecificEnv(purpose,env),
