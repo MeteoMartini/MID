@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.175",
+  "date": "2026-10-06",
+  "title": "Aktualisierte MID-Widget-Exporte",
+  "external": [
+    "Feste Widget-Exporte für Malatya, Kürecik und neu Ämari.",
+    "7-Tage-Kurve und 5-Tage-Kompakt werden jeweils in Hell und Dunkel erzeugt."
+  ],
+  "internal": [
+    "Kanonische Exportprofile übertragen Sichtbarkeiten explizit; zwölf PNGs, ECMWF-Farben, bestehender midWidgetReady-/CDP-Renderer."
+  ]
+}
