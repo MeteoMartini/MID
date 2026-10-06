@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.182",
+  "version": "0.9.85.183",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -529,7 +529,8 @@
     "widgets:render": "node --experimental-strip-types tools/widget-export/render-widget-matrix.mjs",
     "test:widget-export-automation": "node scripts/test-widget-export-automation-0985178.mjs",
     "test:widget-export-stable-trigger": "node scripts/test-widget-export-stable-trigger-0985179.mjs",
-    "test:widget-export-browser-runtime": "node scripts/test-widget-export-browser-runtime-0985181.mjs"
+    "test:widget-export-browser-runtime": "node scripts/test-widget-export-browser-runtime-0985181.mjs",
+    "test:corporate-safe-data-plane": "node scripts/test-corporate-safe-data-plane-0985183.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
