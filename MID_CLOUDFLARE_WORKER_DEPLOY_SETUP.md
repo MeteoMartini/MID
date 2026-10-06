@@ -17,6 +17,12 @@ Wenn der private RUC-Bucket bereits existiert, können zusätzlich `MID_RUC_R2_B
 ## Freigabezustand
 `MID_RUC_PIPELINE_ENABLED` bleibt vom Worker-Deploy getrennt. Solange die RUC-Pipeline nicht aktiviert ist, muss der Worker lediglich `?mode=health` mit der erwarteten Releaseversion bestehen. Nach aktivierter RUC-Pipeline wird zusätzlich `?mode=ruc-health` zwingend geprüft.
 
+## Separater DNS-Token ab v0.9.85.185
+
+Das Repository Secret `CLOUDFLARE_DNS_API_TOKEN` ist der einzige Credential-Pfad für die Prüfung bzw. das Setzen von `proxied=true` am bestehenden `www.midwx.app`-CNAME. Es soll ausschließlich die erforderliche DNS-Schreibberechtigung für die Zone `midwx.app` besitzen.
+
+Der bestehende `CLOUDFLARE_API_TOKEN` bleibt unverändert für Worker-Upload/-Promotion und die Workers Route zuständig. Der Installer verwendet keinen der beiden Tokens als Fallback für den jeweils anderen Zweck. Ist `CLOUDFLARE_DNS_API_TOKEN` in GitHub nicht hinterlegt oder unzureichend berechtigt, muss der Release vor Pages und Stable-Promotion abbrechen.
+
 ## Cloudflare-Proxy für www.midwx.app ab v0.9.85.184
 
 Die Workers Route greift nur, wenn der bestehende DNS-Verkehr für `www.midwx.app` die Cloudflare-Zone tatsächlich durchläuft. Deshalb prüft der Installer vor der Route den vorhandenen `www.midwx.app`-CNAME und aktiviert ausschließlich dessen `proxied=true`-Flag. Name, Typ und Zielwert müssen unverändert bleiben; neue DNS-Records, parallele A/AAAA-Records, TLS-/Zone-Settings-Änderungen oder Record-Ersetzungen sind unzulässig und blockieren fail-closed.

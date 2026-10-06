@@ -47,6 +47,12 @@ Der produktive KNMI-HARMONIE-EPS-TAR-Indexcache verwendet das bereits vorhandene
 
 Der Push-Scheduler bleibt auf `sub:`-Listenabfragen beschränkt; der KNMI-Cache selbst verwendet kein `KV.list()`. Fachliche Worker-Änderungen am Cache lösen den bestehenden gestagten Worker-Deploy aus. Verbindliche Fachreferenz: `MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md`. Required Regression: `scripts/test-knmi-eps-productive-cache-097718.mjs`.
 
+## Getrennte DNS-/Worker-Credentials ab v0.9.85.185
+
+Für das Proxy-Gate des bestehenden `www.midwx.app`-CNAME ist ausschließlich das Repository Secret `CLOUDFLARE_DNS_API_TOKEN` zulässig. Dieser Token ist auf die für den DNS-Record erforderliche Zone-/DNS-Berechtigung für `midwx.app` zu begrenzen.
+
+`CLOUDFLARE_API_TOKEN` bleibt ausschließlich der bestehende Worker-/Route-Credential-Pfad. Der DNS-Schritt darf ihn nicht als Fallback verwenden; umgekehrt darf `CLOUDFLARE_DNS_API_TOKEN` nicht für Worker-Upload, Worker-Promotion oder Workers-Route eingesetzt werden. Ein fehlendes, leeres oder unzureichend berechtigtes DNS-Secret blockiert den Release fail-closed vor Pages und `mid-stable`.
+
 ## www.midwx.app Proxy-Gate ab v0.9.85.184
 
 Vor der Same-Origin-Workers-Route muss der bestehende `www.midwx.app`-CNAME über Cloudflare proxied sein. Das Release-Gate darf ausschließlich `proxied=true` für genau diesen bestehenden Record setzen. CNAME-Ziel, Name, Typ, TLS-/SSL-Einstellungen und sämtliche anderen DNS-Records bleiben unverändert. Mehrdeutige oder nicht proxyfähige DNS-Konfigurationen blockieren den Release.
