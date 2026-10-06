@@ -21,7 +21,8 @@ export function precipitationPhaseColor(type:PrecipType){return PRECIPITATION_PH
 export function precipitationPhaseColorLabel(type:PrecipType){
   const kind=precipitationPhaseVisualKind(type);
   if(kind==='snow')return'Schnee/Graupel · hellblau';
-  if(kind==='mixed')return'Misch-/gefrierende Phase · violett';
+  if(type==='freezingRain'||type==='freezingDrizzle')return'Gefrierender flüssiger Niederschlag · violett';
+  if(kind==='mixed')return'Schneeregen / gemischter Niederschlag · violett';
   if(kind==='storm')return'Gewitter/Graupel/Hagel · purpur';
   return'Regen/Sprühregen/Schauer · blau';
 }

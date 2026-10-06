@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "baselineCommit": "36c64a4eeec6df60d9141ea4b444e3aae550bb56",
-  "baselineVersion": "0.9.85.175",
+  "baselineVersion": "0.9.85.187",
   "cssCascadeSha256": "b088148a5dd085117f338efe26fa46d38e5a2c3ed2682c6039792b0aaec7c9f5",
   "cssSources": [
     "src/styles-src/00-foundation.css",
@@ -95,7 +95,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainPrecipitationParts",
-      "sha256": "6923e73da8e12d0efd73c30b00710047a624570118764110506133e34f44e02b"
+      "sha256": "e2e38e954322e081916e3f46975e768dfcf85527c8b6b987b60c3d25cde08ae4"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -150,7 +150,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainHourlyPresentationParts",
-      "sha256": "a1af6f96deab944c3d176a653b72feacddd3a5a2b1d37d601d4d117cf7bb6ba0"
+      "sha256": "362e28aa5638abbab0aa5c8015e96ca2c9542547fec35690062172e425b1dc91"
     },
     {
       "file": "src/MountainWeather.tsx",

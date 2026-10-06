@@ -1,3 +1,7 @@
+## MID v0.9.85.187 · Phasenprüfung und Karten-Kontrast
+
+Basis: main = mid-stable = 251718eec0e792c4fd47eb59610a1fdaec62157c (.186). Fachlich getrennte gefrierende und gemischte Niederschlagsphasen; keine Eisregenableitung aus kaltem Schneeniederschlag. Kartenbedienung und kompakte zeitgebundene Ortswerte in allen Designs. Details docs/implementation/MID_C18_PHASE_MAP_0.9.85.187.md.
+
 ## MID v0.9.85.186 · Karten-Layer mit verlässlichen Linien
 
 Basis: `main = mid-stable = c33588bd76a7a169cbaad0bf98539f3c99080471` (v0.9.85.185). Radar und Satellit lassen sich unabhängig vollständig abwählen. Automatische Modell-Darstellung bevorzugt darüber geprüfte Linien; Flächen bleiben optional. Responsive Layer-Schalter, einmalige Ortsbeschriftung und kompakte Favoriten vermeiden Überlappungen und irreführende Nichtverfügbarkeitsmeldungen. Native Isobaren und bestätigte DWD-WMS-Stile benötigen kein Flächenraster. Paralleländerungen .181–.185 bleiben erhalten. Details: `docs/implementation/MID_C18_MAP_LINES_0.9.85.186.md`.
