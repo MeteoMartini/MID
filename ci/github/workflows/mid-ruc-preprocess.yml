@@ -118,11 +118,13 @@ jobs:
           compression-level: 0
       - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
         if: ${{ steps.freshness.outputs.should_run != 'true' }}
-        run: echo "RUC-Ergebnis: bereits aktuell · ${{ steps.freshness.outputs.reason }}" | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "RUC-Ergebnis: bereits aktuell · ${{ steps.freshness.outputs.reason }}" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Erfolgreiche Aufbereitung zusammenfassen
         if: steps.freshness.outputs.should_run == 'true'
-        run: echo 'RUC-Ergebnis: neu aufbereitet; Veröffentlichung folgt separat' >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo 'RUC-Ergebnis: neu aufbereitet; Veröffentlichung folgt separat' >> "$GITHUB_STEP_SUMMARY"
 
   publish:
     name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
