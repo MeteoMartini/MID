@@ -49,6 +49,18 @@ jobs:
         with:
           node-version: 22.16.0
 
+      - name: Chromium-Browser für CDP-Renderer festlegen
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$browser" ]; then
+            echo "::error::Auf diesem GitHub-Runner wurde kein Chrome/Chromium-Browser gefunden."
+            exit 1
+          fi
+          "$browser" --version
+          echo "MID_WIDGET_BROWSER=$browser" >> "$GITHUB_ENV"
+
       - name: Stable-SHA und Versionsspiegel fail-closed prüfen
         id: source
         shell: bash
