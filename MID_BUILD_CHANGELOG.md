@@ -1,3 +1,11 @@
+## MID v0.9.85.176
+
+- Bergwetter: getrennte Tagesmaxima für Wind und Böen; fehlende Werte bleiben unbekannt.
+- Dezente Wind- und Neuschneefarben in Tages-, Stunden- und Periodenansichten.
+- Gleichmäßige Tablet-Spalten für Sonnenstunden; vollständige Wettertexte.
+- Gemeinsame Prüfung klar warmer Gefrierregen-Prognosen mit Feuchte; kalte Böden, Beobachtungen und Grenzlagen bleiben geschützt.
+- Neuschnee-Methodik transparent: Modell-Schneewasser und feste Anbieterumrechnung, getrennt von der Schneedecke.
+
 ## MID v0.9.85.175 · 2026-10-06 · Widget-Exportprofile Malatya, Kürecik und Ämari
 
 - Basis: main v0.9.85.174, Commit c5bcdc09ae97072ec3c6b7c9fca75d8debd248a5; keine offenen PRs und keine Widget-Differenz zu mid-stable v0.9.85.173.

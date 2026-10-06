@@ -2,7 +2,7 @@
   "schema": 1,
   "baselineCommit": "36c64a4eeec6df60d9141ea4b444e3aae550bb56",
   "baselineVersion": "0.9.85.175",
-  "cssCascadeSha256": "d6ac5656ee252a9ec45a4883828007e32945047b2da455e837376dd64afaa7c2",
+  "cssCascadeSha256": "2775b36a6004b1146c3380aef0129cd43094c089ff7b1c8710e713d733d81fb2",
   "cssSources": [
     "src/styles-src/00-foundation.css",
     "src/styles-src/10-features.css",
@@ -150,7 +150,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainHourlyPresentationParts",
-      "sha256": "3cba4d0e670859ec48ab2d892ed2b8954e5cc65a4a7488f306aefbe58073e42e"
+      "sha256": "a1af6f96deab944c3d176a653b72feacddd3a5a2b1d37d601d4d117cf7bb6ba0"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -350,7 +350,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainMethodologyDisclosure",
-      "sha256": "135655e8da603925484346dccdf9cc555f5784350ee8d3f67b2d45f7d95b2646"
+      "sha256": "f1fc6f68e9df3d0698f462e0304f26ddd0c92bda0fc8dc8d1065da799312a11d"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -405,7 +405,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainForecastDay",
-      "sha256": "8726a24901c09f5441e554870fc3695c94577ee127ed1a5ea92e7884198ac40d"
+      "sha256": "2ae7f52ff657b22a475fdd4adb999f544ff4882269ff6a19828b9cb126ab3b81"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -430,17 +430,17 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainHourlyForecast",
-      "sha256": "b6d893c78eb86e63c23cd8037ed1037412b39436cfb89da1832b50094de56dbc"
+      "sha256": "20430a114eb2d74d400309173ec0b51d0ce3b8ca1a81b57719c4dc95312a401e"
     },
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainForecastOverview",
-      "sha256": "7fc62fec5e13ccde00906635cddaafc5d5352f8daff108dac63ea8aed6f982b6"
+      "sha256": "4510740be77fe19bcc04f26b2ad6443bd501ed15d5059fee35bfb05987cac6af"
     },
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainForecastDayRow",
-      "sha256": "58b78eefc11383c335402f88397175fccb78199150f6dc130ae06c74ba7f9ed5"
+      "sha256": "8f2670c8003454bbe3fc06fb2699b5e57b8001c6b4a10454eb05864a9692277e"
     },
     {
       "file": "src/WidgetGenerator.tsx",
