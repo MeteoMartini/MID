@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.185",
+  "version": "0.9.85.186",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -532,7 +532,8 @@
     "test:widget-export-browser-runtime": "node scripts/test-widget-export-browser-runtime-0985181.mjs",
     "test:corporate-safe-data-plane": "node scripts/test-corporate-safe-data-plane-0985183.mjs",
     "test:www-proxy-hotfix": "node scripts/test-www-proxy-hotfix-0985184.mjs",
-    "test:www-proxy-dns-token": "node scripts/test-www-proxy-dns-token-0985185.mjs"
+    "test:www-proxy-dns-token": "node scripts/test-www-proxy-dns-token-0985185.mjs",
+    "test:unified-map-lines": "node scripts/test-unified-map-lines-0985186.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

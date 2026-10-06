@@ -1,3 +1,9 @@
+## MID v0.9.85.186 · 2026-10-06 · Karten-Layer
+
+- Native Linien ohne Flächenraster; tatsächliche WMS-Stile, responsive Layer-Auswahl und unabhängige Beobachtungsschalter.
+- Nativer Bild-Lifecycle: direkte dekodierte Bilder statt erneutem Data-URL-fetch; verspätete Bilder nach Layer-Abwahl werden verworfen.
+- Paralleländerungen .181–.185 erhalten; DNS-Token-Regression wartungsversionstauglich bei unveränderten Gate-/Least-Privilege-Prüfungen.
+
 ## MID v0.9.85.185 · 2026-10-06 · DNS- und Worker-Berechtigungen strikt getrennt
 
 - Basis: main v0.9.85.184 @ `d35659371f48099676409f93add33c4599bf07ec`; mid-stable weiterhin v0.9.85.182 @ `34d41442de1bb8e984dedca0e786dabb5b9f5ee1`.

@@ -36,8 +36,8 @@ export function nearestUnifiedFrame(frames:NativeFrameRef[],target:number){
  return nearest&&Math.abs(Date.parse(nearest.time)-target)<=90*60000?nearest:undefined;
 }
 export const UNIFIED_MAP_SETTINGS_KEY='mid:unified-map:v1';
-export type UnifiedMapSettings={enabled:boolean;parameter:UnifiedParameter;opacity:number;isobars:boolean;hours:number;modelId:string;level:number;selectionMode:'parameter'|'model'};
+export type UnifiedMapSettings={enabled:boolean;parameter:UnifiedParameter;opacity:number;isobars:boolean;hours:number;modelId:string;level:number;selectionMode:'parameter'|'model';presentation:'auto'|'lines'|'fill'};
 export function readUnifiedMapSettings():UnifiedMapSettings{
- const defaults:UnifiedMapSettings={enabled:false,parameter:'temperature',opacity:68,isobars:false,hours:24,modelId:'icon-d2',level:500,selectionMode:'parameter'};
- try{const d=JSON.parse(localStorage.getItem(UNIFIED_MAP_SETTINGS_KEY)||'null');if(!d)return defaults;return{enabled:d.enabled===true,parameter:UNIFIED_MAP_PARAMETERS.some(p=>p.id===d.parameter)?d.parameter:defaults.parameter,opacity:Number.isFinite(d.opacity)?Math.min(100,Math.max(15,d.opacity)):68,isobars:d.isobars===true,hours:[1,6,12,24,48].includes(d.hours)?d.hours:24,modelId:['icon-d2','icon-eu','icon','icon-eps','aicon','radolan'].includes(d.modelId)?d.modelId:'icon-d2',level:Number.isFinite(d.level)?d.level:500,selectionMode:d.selectionMode==='model'?'model':'parameter'}}catch{return defaults}
+ const defaults:UnifiedMapSettings={enabled:true,parameter:'pressure',opacity:68,isobars:false,hours:24,modelId:'icon-d2',level:500,selectionMode:'parameter',presentation:'auto'};
+ try{const d=JSON.parse(localStorage.getItem(UNIFIED_MAP_SETTINGS_KEY)||'null');if(!d)return defaults;return{enabled:d.enabled===true,parameter:UNIFIED_MAP_PARAMETERS.some(p=>p.id===d.parameter)?d.parameter:defaults.parameter,opacity:Number.isFinite(d.opacity)?Math.min(100,Math.max(15,d.opacity)):68,isobars:d.isobars===true,hours:[1,6,12,24,48].includes(d.hours)?d.hours:24,modelId:['icon-d2','icon-eu','icon','icon-eps','aicon','radolan'].includes(d.modelId)?d.modelId:'icon-d2',level:Number.isFinite(d.level)?d.level:500,selectionMode:d.selectionMode==='model'?'model':'parameter',presentation:['auto','lines','fill'].includes(d.presentation)?d.presentation:'auto'}}catch{return defaults}
 }

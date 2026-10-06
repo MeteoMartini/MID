@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.185",
+  "releaseVersion": "0.9.85.186",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -848,6 +848,7 @@
     "scripts/test-ui-regressions.mjs",
     "scripts/test-ui-standardization-095338.mjs",
     "scripts/test-unified-map-layers-0985167.mjs",
+    "scripts/test-unified-map-lines-0985186.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-updater.mjs",
@@ -1776,6 +1777,7 @@
     "scripts/test-ui-regressions.mjs",
     "scripts/test-ui-standardization-095338.mjs",
     "scripts/test-unified-map-layers-0985167.mjs",
+    "scripts/test-unified-map-lines-0985186.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-updater.mjs",
@@ -3358,8 +3360,8 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.185",
-  "updatedAt": "2026-10-06T17:30:00.000Z",
+  "version": "0.9.85.186",
+  "updatedAt": "2026-10-06T20:45:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
     "MID_OPEN_METEO_WATCH_0.9.85.108.md",

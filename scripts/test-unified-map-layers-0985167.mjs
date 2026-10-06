@@ -19,7 +19,7 @@ assert.equal(c.nearestUnifiedFrame(terms,Date.parse('2026-10-05T04:31:00Z')),und
 assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T03:25:00Z')),terms[1].time,'Live five-minute radar time uses a real hourly model term, not an empty exact-match lookup');
 assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T04:31:00Z')),undefined);
 globalThis.localStorage={getItem:()=>JSON.stringify({enabled:true,parameter:'gust',modelId:'icon-d2',opacity:200,hours:9,selectionMode:'model'})};
-assert.deepEqual(c.readUnifiedMapSettings(),{enabled:true,parameter:'gust',modelId:'icon-d2',opacity:100,hours:24,isobars:false,level:500,selectionMode:'model'});delete globalThis.localStorage;
+assert.deepEqual(c.readUnifiedMapSettings(),{enabled:true,parameter:'gust',modelId:'icon-d2',opacity:100,hours:24,isobars:false,level:500,selectionMode:'model',presentation:'auto'});delete globalThis.localStorage;
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
 for(const token of ['loadNativeField','loadTotals','ModelMapProbe','ModelMapContextOverlay','exportNativeField','exportTotals','writeDurableStorageValue','fieldCache.current.size>8'])assert.ok(panel.includes(token),token);

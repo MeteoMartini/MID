@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+const ts=createRequire(import.meta.url)('typescript-strada');
+const read=p=>readFileSync(p,'utf8');
+const source=read('src/unifiedMapPresentation.ts').replace(/^import .*;\n/gm,'');
+const js=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const p=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+for(const observations of [false,true]){
+ assert.equal(p.unifiedMapPresentation({presentation:'lines'},observations),'lines');
+ assert.equal(p.unifiedMapPresentation({presentation:'fill'},observations),'fill','Explicit optional areas survive observation switches');
+ assert.equal(p.unifiedMapPresentation({presentation:'auto'},observations),observations?'lines':'fill');
+}
+assert.equal(p.unifiedWmsLineStyle(null,500),undefined);
+assert.equal(p.unifiedWmsLineStyle({styles:[{name:'t2m_isoarea'}]},500),undefined,'Never invent contours from a filled image');
+assert.equal(p.unifiedWmsLineStyle({styles:[{name:'pmsl_spread_isoarea'},{name:'pmsl_isoline_label'}]},undefined),'pmsl_isoline_label','Never substitute EPS spread for mean pressure');
+assert.equal(p.unifiedWmsLineStyle({styles:[{name:'wind_250_isoline'},{name:'wind_850_isoline'}]},500),undefined);
+assert.equal(p.unifiedWmsLineStyle({styles:[{name:'wind_250_isoline'},{name:'wind_850_isoline'}]},850),'wind_850_isoline');
+assert.equal(p.unifiedWmsLineStyle({styles:[{name:'uv_windbarbs'}]},300),'uv_windbarbs');
+assert.equal(p.unifiedWmsFillStyle({styles:[{name:'pmsl_isoline_label'}]}),undefined);
+assert.equal(p.unifiedWmsFillStyle({styles:[{name:'pmsl_spread_isoarea'}]}),undefined,'EPS spread is a different quantity and cannot substitute for a pressure field');
+const features=p.nativeIsobarFeatures([{level:1016,paths:[[[50,7],[51,8]],[[52,9]]]}]);
+assert.equal(features.features.length,1,'Published native two-point contour segments are valid lines');
+assert.deepEqual(features.features[0].geometry.coordinates,[[7,50],[8,51]],'GeoJSON order is longitude, latitude');
+assert.equal(features.features[0].properties.label,'1016 hPa');
+const worker=read('worker/metar-proxy.js'),extract=(start,end)=>worker.slice(worker.indexOf(start),worker.indexOf(end,worker.indexOf(start)));
+const styles=new Function(`${extract('function xmlLayerBlock(', 'function wmsLayerNameMatches(')}${extract('function weatherMapStylesFromCapabilities(', 'async function weatherMapMetadata(')}return weatherMapStylesFromCapabilities;`)();
+const xml='<Layer><Name>dwd:root</Name><Style><Name>parent_isoarea</Name></Style><Layer><Name>dwd:PMSL</Name><Style><Name>pmsl_isoline_label</Name><Title>Pressure</Title></Style><Style><Name>invalid&lt;name</Name></Style></Layer><Layer><Name>dwd:T2M</Name><Style><Name>t2m_isoarea</Name></Style></Layer></Layer>';
+assert.deepEqual(styles(xml,'dwd:PMSL'),[{name:'pmsl_isoline_label',title:'Pressure'}]);
+assert.deepEqual(styles(xml,'dwd:missing'),[]);
+console.log('Map lines: auto/manual persistence semantics, advertised WMS styles, pressure versus EPS spread, level restrictions and native two-point GeoJSON contours passed.');

@@ -10,7 +10,7 @@ export type WeatherMapProduct={
  id:string;modelId:WeatherMapModelId;category:WeatherMapCategory;label:string;detail:string;layer:string;
  nativeKind?:import('./nativeModelFields').NativeFieldKind;source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
 };
-export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];pointUnit?:string;provider?:string;checkedAt?:string;error?:string};
+export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];styles?:{name:string;title:string}[];pointUnit?:string;provider?:string;checkedAt?:string;error?:string};
 export type WeatherMapGridContour={level:number;paths:[number,number][][]};
 export type WeatherMapGridFrame={time:string;thetaE:number[];temperature2m?:number[];relativeHumidity2m?:number[];weatherCode:number[];precipitation:number[];snowfall?:number[];isobars:WeatherMapGridContour[]};
 export type WeatherMapGridData={modelId:WeatherMapModelId;modelLabel:string;times:string[];referenceTime?:string;lats:number[];lons:number[];frames:WeatherMapGridFrame[];provider?:string;checkedAt?:string;error?:string};
