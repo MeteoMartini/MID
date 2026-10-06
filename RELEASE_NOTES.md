@@ -1,6 +1,5 @@
-# MID v0.9.85.178
+# MID v0.9.85.179
 
-- MID erzeugt die zwölf festen Widgets für Malatya, Kürecik und Ämari jetzt automatisch serverseitig.
-- Die Widget-PNGs werden nach erfolgreichen MID-Releases und zusätzlich stündlich aus dem verifizierten Stable-Stand neu gerendert.
-- Ein festes, rollierendes ZIP stellt immer den zuletzt vollständig geprüften Bildsatz mit Manifest und SHA-256-Prüfsummen bereit.
-- Für Windows steht ein Downloader ohne Administratorrechte, OneDrive oder lokale Node-Installation bereit.
+- Der automatische Widget-Export startet jetzt zusätzlich direkt bei jeder erfolgreichen Promotion auf `mid-stable`.
+- Dadurch werden die zwölf festen PNGs unmittelbar nach einem neuen Stable-Build neu erzeugt; Stundenplan, Release-Folge und manueller Start bleiben als Redundanz erhalten.
+- Keine meteorologische Fachlogik und keine Widgetdarstellung wurden verändert.
