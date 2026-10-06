@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.181",
+  "date": "2026-10-06",
+  "title": "Widget-Export auf GitHub-Linux stabilisiert",
+  "external": [
+    "Die automatischen MID-Widgetbilder können nun auch auf den GitHub-Linux-Runnern zuverlässig erzeugt werden.",
+    "Die zwölf bestehenden Widgetvarianten bleiben inhaltlich unverändert."
+  ],
+  "internal": [
+    "Cross-platform Chromium CDP discovery, Linux headless flags, fail-fast browser process monitoring and workflow browser preflight."
+  ]
+}
