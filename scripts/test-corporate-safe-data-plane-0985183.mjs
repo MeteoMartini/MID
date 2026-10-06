@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const read=path=>fs.readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const workerClient=read('src/workerClient.ts'),composite=read('src/CompositeData.ts'),radar=read('src/RadarPanel.tsx'),basemap=read('src/UnifiedVectorBasemap.tsx'),mapCore=read('src/MapLibreCore.tsx'),workerSource=read('worker-src/10-radar-nowcast.js'),router=read('worker-src/40-aviation-router.js'),routeGate=read('tools/cloudflare/ensure_same_origin_route.mjs'),install=read('.github/workflows/install-mid.yml'),installMirror=read('ci/github/workflows/install-mid.yml'),deploy=read('.github/workflows/deploy.yml'),deployMirror=read('ci/github/workflows/deploy.yml'),diagnostics=read('src/DataConnectionDiagnostics.tsx'),serviceWorker=read('public/service-worker.js');
+const workerClient=read('src/workerClient.ts'),composite=read('src/CompositeData.ts'),radar=read('src/RadarPanel.tsx'),basemap=read('src/UnifiedVectorBasemap.tsx'),mapCore=read('src/MapLibreCore.tsx'),workerSource=read('worker-src/10-radar-nowcast.js'),router=read('worker-src/40-aviation-router.js'),routeGate=read('tools/cloudflare/ensure_same_origin_route.mjs'),install=read('.github/workflows/install-mid.yml'),installMirror=read('ci/github/workflows/install-mid.yml'),installPatch=read('workflow-patches/install-mid.yml'),deploy=read('.github/workflows/deploy.yml'),deployMirror=read('ci/github/workflows/deploy.yml'),deployPatch=read('workflow-patches/deploy.yml'),diagnostics=read('src/DataConnectionDiagnostics.tsx'),serviceWorker=read('public/service-worker.js');
 assert.match(workerClient,/MID_PRODUCTION_WEB_HOST='www\.midwx\.app'/);
 assert.match(workerClient,/MID_SAME_ORIGIN_WORKER_PATH='\/api\/mid-worker'/);
 assert.match(workerClient,/if\(productiveMidWebRuntime\(\)\)return uniqueUrls\(\[sameOriginWorkerBase\(\)\]\)/);
@@ -22,9 +22,9 @@ assert.match(routeGate,/zeigt bereits auf einen anderen Worker/);
 assert.ok(!routeGate.includes('/dns_records'),'Same-Origin-Gate darf DNS nicht verändern.');
 for(const workflow of [install,installMirror]){assert.ok(workflow.includes("VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}"));assert.ok(workflow.includes('ensure_same_origin_route.mjs'));assert.ok(workflow.includes('--url "https://www.midwx.app/api/mid-worker"'));assert.ok(workflow.includes('--allow-existing-version'));assert.ok(workflow.includes('WORKER_CHANGED'));assert.ok(workflow.indexOf('ensure_same_origin_route.mjs')<workflow.indexOf('prepare_pages_artifact:'),'Route-Gate muss vor Pages liegen.');}
 for(const workflow of [deploy,deployMirror]){assert.ok(workflow.includes("VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}"));assert.ok(workflow.includes('Produktiven Same-Origin-Datendienst prüfen'));assert.ok(workflow.includes('https://www.midwx.app/api/mid-worker'));assert.ok(workflow.includes('--allow-existing-version'));}
-assert.equal(install,installMirror,'Aktiver und kanonischer Installer-Workflow müssen identisch sein.');
-assert.equal(deploy,deployMirror,'Aktiver und kanonischer Pages-Workflow müssen identisch sein.');
+assert.equal(install,installMirror,'Aktiver und kanonischer Installer-Workflow müssen identisch sein.');assert.equal(installMirror,installPatch,'Kanonischer Installer und Transportspiegel müssen identisch sein.');
+assert.equal(deploy,deployMirror,'Aktiver und kanonischer Pages-Workflow müssen identisch sein.');assert.equal(deployMirror,deployPatch,'Kanonischer Pages-Workflow und Transportspiegel müssen identisch sein.');
 for(const mode of ['health','alerts','ruc-health','rapid-model-meta','composite-times'])assert.ok(diagnostics.includes("'"+mode+"'"),'Diagnose fehlt: '+mode);
 const health=read('tools/cloudflare/check_worker_health.mjs');assert.ok(health.includes("--allow-existing-version"));assert.match(health,/plausible Worker-Version/);
-assert.match(serviceWorker,/\/api\/mid-worker/);
+assert.ok(serviceWorker.includes('mid-worker'),'Service Worker muss Same-Origin-Workerrequests als dynamische Netzwerkanfragen behandeln.');
 console.log('MID Corporate-safe Same-Origin Data Plane: produktiver Webpfad, Kartenproxies, Diagnose und Release-Gates verifiziert.');
