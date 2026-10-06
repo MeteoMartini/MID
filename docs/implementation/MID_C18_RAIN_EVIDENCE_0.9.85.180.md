@@ -1,5 +1,9 @@
 # MID C18 · Stark-/Dauerregenhinweise · 0.9.85.180
 
+Zusätzlicher Responsive-Vertrag: Die alte mobile `display:flex!important`-Scrollerregel wird ausdrücklich durch `display:grid!important` überschrieben. Die Pflichtregression prüft unter CI zwölf echte Chromium-Viewport-/Theme-Fälle (Telefon, Querformat, Tablet, Desktop) mit der vollständigen kanonischen CSS-Kaskade: Kartenbreite, Textüberlauf und Seitenüberlauf. Der PR blieb während dieser Nachprüfung Entwurf; neue SHA-Prüfungen werden nicht aus dem alten Kopf übernommen.
+
+Nach dieser Responsive-Ergänzung erneut 921/921 lokale Regressionen und Produktionsbuild/Typecheck grün (06.10.2026, 10:58 UTC). Chromium ist lokal nicht installiert; die tatsächlichen zwölf Browserfälle sind deshalb ausdrücklich Bestandteil der serverseitigen Pflichtregression und noch kein lokaler Live-/Browserbeleg.
+
 Integrierter Freigabekandidat auf .179: 921/921 Regressionen, Produktionsbuild/Typecheck, Worker-Syntax und Capacitor-Copy/iOS-Shell grün (06.10.2026, 10:50 UTC). Widget-Automation und sämtliche kanonischen/aktiven Workflows gegenüber der .179-Basis unverändert. Veröffentlichung nur über den normalen Source-PR-/Installer-Pfad. Der ältere Entwurf PR271 wird durch den Source-PR auf dieser frisch freigegebenen Basis ersetzt; keine Historie wird überschrieben.
 
 Releasebasis: main = mid-stable = `519f28fe5637c28c91032cf75e29768c7e7a9c5a` (0.9.85.179), regulärer Installer und öffentliche Versionsprüfung erfolgreich. Beide parallelen Widget-Erweiterungen bleiben unverändert enthalten.

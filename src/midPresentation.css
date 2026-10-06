@@ -25704,6 +25704,7 @@ html[data-mid-design='next'] .cockpit-focus-card.fourteen.mid-forecast-row-detai
 /* MID .178: only actionable profile signals, no empty pressure tile. */
 .cockpit-weather-profile__signals,
 html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals{
+ display:grid!important;
  grid-template-columns:minmax(0,1fr)!important;
  overflow:visible!important;
  align-items:start!important;

@@ -34,5 +34,7 @@ assert.equal(cc.shortTermImpactForInterval([shown],start+72*3600000,start+73*360
 assert.ok(!cockpit.includes("key:'pressure',label:'Drucktrend'"),'Pressure already has a chart lane; do not reserve a permanent tile');
 assert.ok(cockpit.includes('signalCards.length?'),'Empty signals must disappear');
 const signalCss=fs.readFileSync('src/midC18AuditFollowup.css','utf8');assert.ok(signalCss.includes('grid-template-columns:minmax(0,1fr)!important'));assert.ok(signalCss.includes('overflow-wrap:anywhere'));
+assert.ok(signalCss.includes('display:grid!important'),'Mobile legacy flex/scroller must not leave the signal tile narrow');
 
 execFileSync('python',['tools/ruc/test_run_progress.py'],{stdio:'inherit'});
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-profile-signals-browser-0985180.mjs'],{stdio:'inherit',timeout:360000});
