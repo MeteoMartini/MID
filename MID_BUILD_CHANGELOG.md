@@ -1,3 +1,17 @@
+## MID v0.9.85.177 · 2026-10-06 · Serverautomatisierung der festen Widget-PNGs
+
+- Basis: main = mid-stable = v0.9.85.176 @ `eab656d060e6dc093db1f98195ffa7ff65d17c72`; keine offenen PRs beim Start.
+- Neuer kanonischer Workflow `widget-export.yml`: Trigger nach erfolgreichem Installer-Release, stündlich Minute 17 und manuell.
+- Render-Job strikt read-only; Checkout ausschließlich `mid-stable`.
+- Fail-closed vor Rendering: package.json, MID_BASELINE und public/version.json müssen übereinstimmen; zusätzlich muss `www.midwx.app/version.json` dieselbe Version melden.
+- `render-widget-matrix.mjs` bezieht die Matrix ausschließlich aus `src/widgetUrlExports.ts`, erzwingt exakt zwölf Varianten und validiert PNG-Signatur, IHDR-Abmessungen und SHA-256.
+- Ergebnis enthält zwölf PNGs, `manifest.json` und `SHA256SUMS.txt`; zusätzlich wird ein reproduzierbares `mid-widget-export-latest.zip` samt eigener SHA-256 erzeugt.
+- Actions-Laufartefakte werden 14 Tage aufbewahrt.
+- Rollierende Veröffentlichung erfolgt als Prerelease `widget-latest`; Schreibzugriff ausschließlich über den etablierten MID Release Bot mit kurzlebigem `contents: write`-Token.
+- Fester Download: `https://github.com/MeteoMartini/MID/releases/download/widget-latest/mid-widget-export-latest.zip`.
+- Neuer `Download-MID-Widgets.ps1`: reine Windows-/PowerShell-Bordmittel, Benutzerverzeichnis als Standardziel, ZIP- und Einzeldateiprüfsummen werden vor Überschreiben validiert.
+- Keine Änderung an meteorologischer Prognose-, Warn-, RUC-, Karten-, Worker- oder Widgetdarstellungslogik.
+
 ## MID v0.9.85.176
 
 - Bergwetter: getrennte Tagesmaxima für Wind und Böen; fehlende Werte bleiben unbekannt.
