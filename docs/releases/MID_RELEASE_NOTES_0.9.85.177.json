@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.177",
+  "date": "2026-10-06",
+  "title": "Atmosphärische Grenzen im Bergwetter",
+  "external": [
+    "- Bergwetter: Die Höhenwahl allein verändert keine geografische Modellzelle mehr; Nullgrad- und Schneefallgrenzen bleiben für dieselbe atmosphärische Säule konsistent.",
+    "- Wolkenuntergrenze und lokale Kondensationshöhe werden fachlich getrennt; tiefer liegende Wolkenschichten bleiben auch bei gewählter Bergstation erhalten.",
+    "- Räumliche Unterschiede und mehrere Wolkenschichten bleiben erhalten. Fehlende Grenzhöhen und Koordinaten werden nicht zu künstlichen Nullwerten."
+  ],
+  "internal": [
+    "Geografisch feste Modellzellen, freie Profil-Diagnostik und Modellterrain; Lowest-Cloud-Base separat von lokalen Risikoschichten.",
+    "App-weite Prüfung von NHN/AGL, Legacy-Höhenvergleich, Flug-/Routen-/Meteogramm-/Karten-/RUC-Verbrauchern; Ensemble-Methodik unverändert."
+  ]
+}
