@@ -4,9 +4,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$BaseUrl = "https://github.com/MeteoMartini/MID/releases/download/widget-latest"
-$ZipUrl = "$BaseUrl/mid-widget-export-latest.zip"
-$ChecksumUrl = "$BaseUrl/mid-widget-export-latest.zip.sha256"
+$ZipUrl = "https://github.com/MeteoMartini/MID/releases/download/widget-latest/mid-widget-export-latest.zip"
+$ChecksumUrl = "https://github.com/MeteoMartini/MID/releases/download/widget-latest/mid-widget-export-latest.zip.sha256"
 $TempRoot = Join-Path $env:TEMP ("MID-Widgets-" + [Guid]::NewGuid().ToString("N"))
 $ZipFile = Join-Path $TempRoot "mid-widget-export-latest.zip"
 $ChecksumFile = Join-Path $TempRoot "mid-widget-export-latest.zip.sha256"
