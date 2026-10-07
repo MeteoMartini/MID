@@ -1,3 +1,9 @@
+# MID v0.9.85.189
+
+- Ortswechsel bleiben auch bei einem vollen oder gesperrten Browserspeicher bedienbar. Der vorhandene dauerhafte Speicher-Fallback wird direkt genutzt.
+- Die Favoritenleiste unterdrückt nur das doppelte Folgeereignis desselben Touch-Taps; neue Maus-/Touch-Gesten und Tastaturaktivierungen bleiben erreichbar.
+- Horizontales Wischen löst keinen Ortswechsel aus. Ein Fehler kann keine dauerhafte Klicksperre mehr hinterlassen.
+
 # MID v0.9.85.188
 
 - Die serverseitigen MID-Widgetbilder werden automatisch nur noch viermal täglich aktualisiert statt stündlich und zusätzlich nach Releases.
@@ -1659,4 +1665,3 @@ DWD Open Data (CC BY 4.0), OpenStreetMap (ODbL 1.0), Natural Earth (Public Domai
 ---
 
 Der Changelog beschreibt bewusst die sichtbaren Änderungen für Anwendende. Meteorologische Fachlogik, Datenquellen und Warnschwellen werden nur genannt, wenn sie sich tatsächlich geändert haben.
-

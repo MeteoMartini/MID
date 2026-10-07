@@ -1,6 +1,6 @@
-# MID v0.9.85.188
+# MID v0.9.85.189
 
-- Die serverseitigen MID-Widgetbilder werden automatisch nur noch viermal täglich aktualisiert statt stündlich und zusätzlich nach Releases.
-- Die vier automatischen Läufe liegen gleichmäßig sechs Stunden auseinander; die geprüften Widgetprofile und das rollierende Downloadpaket bleiben unverändert.
-- Ein manueller Start bleibt für Diagnose- oder Notfallzwecke verfügbar.
-- Wetterdaten, Prognoselogik und Darstellung in der MID-App bleiben unverändert.
+- Robuster Ortswechsel über Favoriten auch bei Speicherfehlern.
+- Keine dauerhaft blockierte Favoritenleiste nach einer fehlgeschlagenen Auswahl.
+- Touch-Doppelereignisse werden gezielt abgefangen; Maus, Tastatur und neue Taps bleiben erreichbar. Wischen verändert den Ort nicht.
+- Wetterlogik und Widget-Zeitplan bleiben unverändert.
