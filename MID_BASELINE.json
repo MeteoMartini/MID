@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.195",
+  "releaseVersion": "0.9.85.196",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2707,7 +2707,9 @@
     "scripts/test-warning-center-disclosure-0985191.mjs",
     "scripts/test-widget-curve-label-spacing-0985191.mjs",
     "scripts/test-widget-location-header-0985192.mjs",
-    "scripts/test-installer-sharding-0985193.mjs"
+    "scripts/test-installer-sharding-0985193.mjs",
+    "docs/implementation/MID_C21_HANDOFF_TIME_BUDGET_0.9.85.196.md",
+    "docs/releases/MID_RELEASE_NOTES_0.9.85.196.json"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3388,7 +3390,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.195",
+  "version": "0.9.85.196",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

@@ -1,3 +1,7 @@
+## MID v0.9.85.196 · MID-C21 vollständiger Handoff
+
+Verifizierte Basis: main = mid-stable = `cd3f88d3852591a6375fb46701f11708d118b6f1` (.195). Der read-only Handoff-Gate erhält für den unveränderten vollständigen Verify-Aufruf 25 statt 15 Minuten innerhalb des bestehenden 30-Minuten-Jobrahmens. Grund: Run 37683018228 meldete bis 900/938 Tests null Fehler und wurde am Zeitlimit beendet. UI-Übernahme folgt erst nach erneut grünem Handoff auf aktueller Stable-Basis. Details: `docs/implementation/MID_C21_HANDOFF_TIME_BUDGET_0.9.85.196.md`. Sämtliche Berechtigungen, Prüfungen und Releasegrenzen unverändert.
+
 ## MID v0.9.85.194 · MID-C20 Windereignisse statt redundanter Hinweise
 
 Verifizierte Basis: main = mid-stable = b228e682cb8ea71979b8e296a30aaf8d5ee6fd0d (.193). Inhaltlich gleiche Windhinweise werden nach der probabilistischen Fensterbildung bei zeitlicher Überlappung kanonisch zusammengeführt. Unsicherheit bleibt sichtbar; amtliche Warnungen, verschiedene Stufen/Richtungen/konvektive Risiken und kumulative Niederschlagsfenster bleiben getrennt. Der separate Stundenkurven-Screenshot ist ohne Ort/Modell/Originalstand noch nicht reproduziert und wird nicht pauschal geglättet. Details: docs/implementation/MID_C20_WARNING_EPISODES_0.9.85.194.md. Alle bestehenden Releasegates unverändert.

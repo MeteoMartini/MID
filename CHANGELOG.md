@@ -1,3 +1,8 @@
+# MID v0.9.85.196
+
+- Die vollständige Replit-Übergabeprüfung erhält ausreichend Zeit für alle bestehenden Browser- und Regressionstests.
+- Die geplante MID-C21-Wetterkartenanpassung wird erst nach erneut erfolgreicher Übergabeprüfung freigegeben.
+
 # MID v0.9.85.195
 
 - Karten: dezente Verwaltungsgrenzen statt heller Doppelkonturen; Parameter in sechs fachlichen Kategorien.
