@@ -1,6 +1,9 @@
-# MID v0.9.85.188
+# MID v0.9.85.189
 
-- Die serverseitigen MID-Widgetbilder werden automatisch nur noch viermal täglich aktualisiert statt stündlich und zusätzlich nach Releases.
-- Die vier automatischen Läufe liegen gleichmäßig sechs Stunden auseinander; die geprüften Widgetprofile und das rollierende Downloadpaket bleiben unverändert.
-- Ein manueller Start bleibt für Diagnose- oder Notfallzwecke verfügbar.
-- Wetterdaten, Prognoselogik und Darstellung in der MID-App bleiben unverändert.
+- Robuster Ortswechsel über Favoriten auch bei Speicherfehlern.
+- Keine dauerhaft blockierte Favoritenleiste nach einer fehlgeschlagenen Auswahl.
+- Touch-Doppelereignisse werden gezielt abgefangen; Maus, Tastatur und neue Taps bleiben erreichbar. Wischen verändert den Ort nicht.
+- 14 Tage: Tmin ergänzt; Tmax/Tmin zeigen P10–P90 und P25–P75 aus den vorhandenen gewichteten Tagesverteilungen. Fehlende Ensemblewerte bleiben Lücken.
+- Die drei Phasenfelder sind auf Telefon und Tablet kompakter; Intervallangaben sind auch per Tastatur abrufbar.
+- Saison und 46 Tage sind unabhängig: keine automatische Saisonöffnung oder Saisonabfrage beim Öffnen von 46 Tagen.
+- Ensemble-Methodik, Wetterlogik und Widget-Zeitplan bleiben unverändert.
