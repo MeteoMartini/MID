@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.193",
+  "releaseVersion": "0.9.85.194",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -395,6 +395,7 @@
     "scripts/test-github-workflow-bootstrap-08263.mjs",
     "scripts/test-global-metar.mjs",
     "scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
+    "scripts/test-hazard-episodes-0985194.mjs",
     "scripts/test-hazard-hour-direction-08189.mjs",
     "scripts/test-hazard-interrupted-lower-stage-081814.mjs",
     "scripts/test-hazard-lower-intensity-081810.mjs",
@@ -1333,6 +1334,7 @@
     "scripts/test-github-workflow-bootstrap-08263.mjs",
     "scripts/test-global-metar.mjs",
     "scripts/test-greece-coordinate-warnings-kv-isolation-09646.mjs",
+    "scripts/test-hazard-episodes-0985194.mjs",
     "scripts/test-hazard-hour-direction-08189.mjs",
     "scripts/test-hazard-interrupted-lower-stage-081814.mjs",
     "scripts/test-hazard-lower-intensity-081810.mjs",
@@ -3382,7 +3384,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.193",
+  "version": "0.9.85.194",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
