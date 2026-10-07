@@ -40,3 +40,14 @@ Die bestehenden Widget-Automationsregressionen wurden an den bewusst geänderten
 - weiterhin vorhandenes `workflow_dispatch`.
 
 Meteorologische Logik und Widgetdarstellung bleiben unverändert.
+
+## Source-Gate-Laufzeitkorrektur
+
+Beim SHA-gebundenen Source-Gate bestand der Unified-Map-Heavy-Test in drei Läufen jeweils die ersten 20 responsiven Kartenfälle, wurde jedoch jedes Mal exakt durch das bisherige 360-s-Unterprozesslimit beendet, bevor die vier 1440-px-Fälle abgeschlossen werden konnten. Die Testabdeckung und sämtliche Assertions bleiben unverändert; ausschließlich das Zeitbudget wird an den vollständigen 24-Fälle-Vertrag angepasst:
+
+- Browser-Unterprozess: 480 s statt 360 s.
+- Heavy-Regression-Schritt: 10 min statt 8 min.
+- Heavy-Regression-Job: 15 min statt 12 min.
+
+Damit wird das Gate nicht abgeschwächt: Es bleibt fail-closed und verlangt weiterhin das erfolgreiche Durchlaufen aller 24 Kombinationen aus sechs Breiten, Light/Dark und Next/Classic.
+
