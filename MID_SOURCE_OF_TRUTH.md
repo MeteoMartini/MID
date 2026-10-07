@@ -1,3 +1,7 @@
+## MID v0.9.85.190 · Installer-Zeitbudget und RUC-Wiederaufnahme
+
+Verifizierte Stable-Basis: `6dd6205ab53b2f1aa4d543acb120e51cce1775da` (.188). Der vollständig bekannte .189-Quellstand aus PR #281 (`0dc39b21f8e2c3f1a98f43f241583f144b5fabca`) wird erhalten. Main steht auf dem serverseitigen .189-Release-Commit `e1d00aa04f09b956bd122a78a4c1efb4e8ccb805`; .189 ist wegen Installer-Timeout nicht freigegeben. Details: `docs/implementation/MID_C19_RUC_RELEASE_0.9.85.190.md`. Kein manueller Merge/Dispatch/Stable-Update, kein Entfernen von Release- oder RUC-Snapshot-Gates.
+
 ## MID v0.9.85.189 · Robuste Favoriten-Ortsauswahl und getrennte Prognosehorizonte
 
 Basis: `main = mid-stable = 6dd6205ab53b2f1aa4d543acb120e51cce1775da` (.188), nach erfolgreichem Installer/Worker/Pages/Stable-Abschluss. Die gemeinsame Ortsauswahl nutzt die direkten dauerhaften Speicherfunktionen und lässt Speicherfehler nicht mehr die aktive Auswahl abbrechen. Die Favoritenleiste besitzt statt einer timerabhängigen globalen Sperre einen gesten- und favoritengebundenen, selbst ablaufenden Duplicate-Token. Details: `docs/implementation/MID_FAVORITE_RESILIENCE_0.9.85.189.md`.

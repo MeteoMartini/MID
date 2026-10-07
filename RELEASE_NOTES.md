@@ -1,9 +1,6 @@
-# MID v0.9.85.189
+# MID v0.9.85.190
 
-- Robuster Ortswechsel über Favoriten auch bei Speicherfehlern.
-- Keine dauerhaft blockierte Favoritenleiste nach einer fehlgeschlagenen Auswahl.
-- Touch-Doppelereignisse werden gezielt abgefangen; Maus, Tastatur und neue Taps bleiben erreichbar. Wischen verändert den Ort nicht.
-- 14 Tage: Tmin ergänzt; Tmax/Tmin zeigen P10–P90 und P25–P75 aus den vorhandenen gewichteten Tagesverteilungen. Fehlende Ensemblewerte bleiben Lücken.
-- Die drei Phasenfelder sind auf Telefon und Tablet kompakter; Intervallangaben sind auch per Tastatur abrufbar.
-- Saison und 46 Tage sind unabhängig: keine automatische Saisonöffnung oder Saisonabfrage beim Öffnen von 46 Tagen.
-- Ensemble-Methodik, Wetterlogik und Widget-Zeitplan bleiben unverändert.
+- Die Veröffentlichung erhält ausreichend Zeit für die vollständige Prüfung. Ein Zeitabbruch nach bereits bestandenen Tests blockiert dadurch nicht mehr die Freigabe und nachfolgende RUC-Aktualisierungen.
+- Enthält die jüngsten Favoritenkorrekturen, Tmin und beide Unsicherheitsbereiche im 14-Tage-Diagramm sowie kompaktere Phasenfelder.
+- Die Saisonvorhersage öffnet und lädt ausschließlich nach ausdrücklicher Auswahl, unabhängig von der 46-Tage-Ansicht.
+- Alle Sicherheits-, Wetterdaten- und Veröffentlichungsgates bleiben verbindlich.
