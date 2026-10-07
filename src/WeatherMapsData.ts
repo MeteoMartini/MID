@@ -1,6 +1,6 @@
 import {buildWorkerUrl,configuredWorkerBase,fetchWorkerJson} from './workerClient';
 
-export type WeatherMapModelId='icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix'|'observations';
+export type WeatherMapModelId='gdps'|'icon-d2'|'icon-eu'|'icon'|'icon-eps'|'aicon'|'nowcastmix'|'observations';
 export type WeatherMapCategory='surface'|'upper-air'|'ensemble'|'significant';
 export type WeatherMapLevelKind='pressure'|'height';
 export type WeatherMapSource='wms'|'grid'|'totals'|'observed-totals'|'native';
@@ -8,9 +8,9 @@ export type WeatherMapGridKind='pressure-thetae'|'pressure-sigwx'|'pressure-prec
 
 export type WeatherMapProduct={
  id:string;modelId:WeatherMapModelId;category:WeatherMapCategory;label:string;detail:string;layer:string;
- nativeKind?:import('./nativeModelFields').NativeFieldKind;source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
+ provider?:'dwd'|'geomet';nativeKind?:import('./nativeModelFields').NativeFieldKind;source?:WeatherMapSource;gridKind?:WeatherMapGridKind;levels?:number[];defaultLevel?:number;levelKind?:WeatherMapLevelKind;timeDependent?:boolean;forecast?:boolean;defaultZoom:number;opacity?:number;disclaimer?:string;
 };
-export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];styles?:{name:string;title:string}[];pointUnit?:string;provider?:string;checkedAt?:string;error?:string};
+export type WeatherMapMetadata={layer:string;times:string[];referenceTimes:string[];elevations:number[];styles?:{name:string;title:string;rendering?:'fill'|'lines'}[];pointUnit?:string;provider?:string;checkedAt?:string;error?:string};
 export type WeatherMapGridContour={level:number;paths:[number,number][][]};
 export type WeatherMapGridFrame={time:string;thetaE:number[];temperature2m?:number[];relativeHumidity2m?:number[];weatherCode:number[];precipitation:number[];snowfall?:number[];isobars:WeatherMapGridContour[]};
 export type WeatherMapGridData={modelId:WeatherMapModelId;modelLabel:string;times:string[];referenceTime?:string;lats:number[];lons:number[];frames:WeatherMapGridFrame[];provider?:string;checkedAt?:string;error?:string};
@@ -18,6 +18,7 @@ export type WeatherPhaseGridFrame={time:string;temperature2m:number[];relativeHu
 export type WeatherPhaseGridData={modelId:string;modelLabel:string;targetTime:string;referenceTime?:string;lats:number[];lons:number[];frame:WeatherPhaseGridFrame;provider?:string;phaseSource?:string;checkedAt?:string;gridSpacingKm?:number;coverage?:string;stale?:boolean;fallbackReason?:string;rapidUpdate?:boolean;native15?:boolean;updateIntervalSeconds?:number;modelAgeHours?:number;selectionScore?:number;candidateModels?:Array<{id:string;label:string;rapidUpdate?:boolean;resolutionKm?:number;score?:number}>;requestBudget?:{locations:number;batches:number;variables:number};error?:string};
 
 export const WEATHER_MAP_MODELS:{id:WeatherMapModelId;label:string;detail:string}[]=[
+ {id:'gdps',label:'ECCC GDPS Global',detail:'Kanadisches Globalmodell · rund 15 km · freie GeoMet-Karten'},
  {id:'observations',label:'DWD RADOLAN · Messanalyse',detail:'Bereits gefallener Niederschlag · stationsangeeichte Radaranalyse'},
  {id:'icon-d2',label:'DWD ICON-D2',detail:'Deutschland · ca. 2 km · Kurzfrist bis rund +48 h'},
  {id:'icon-eu',label:'DWD ICON-EU',detail:'Europa · 0,0625° · Modellläufe 00/06/12/18 UTC'},
@@ -31,6 +32,7 @@ const PRESSURE_LEVELS=[1000,925,850,700,500,400,300,250,200];
 const HEIGHT_LEVELS=[2,50,100,150,200,250,300,350,400,450,500];
 
 export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
+ {id:'gdps-cloud',modelId:'gdps',provider:'geomet',category:'surface',label:'Gesamtbewölkung',detail:'Gesamtbedeckungsgrad · ECCC GDPS · eigener Modelllauf',layer:'GDPS_15km_TotalCloudCover',timeDependent:true,forecast:true,defaultZoom:4,opacity:78},
  {id:'icon-d2-precipitation-totals',modelId:'icon-d2',category:'surface',label:'Niederschlagssummen · 6 / 12 / 24 / 48 h',detail:'Deutschland · Gesamtniederschlag ab demselben Modelllaufstart · Favoriten und PNG-/SVG-Download',layer:'mid:icon-d2:tot-prec',source:'totals',timeDependent:true,forecast:true,defaultZoom:5.25,opacity:85},
  {id:'radolan-observed-precipitation',modelId:'observations',category:'surface',label:'Gefallener Niederschlag · 1 / 6 / 12 / 24 / 48 h',detail:'Verifizierte Messstunden · fehlende Rasterwerte bleiben unbekannt · Ortswerte und PNG/SVG',layer:'mid:radolan:observed',source:'observed-totals',timeDependent:true,forecast:false,defaultZoom:5.25,opacity:85},
  // ICON-D2 – echte, verifizierte GRIB2-Raster aus derselben freien Publikationsstrecke wie Summenkarten
@@ -46,6 +48,9 @@ export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
  {id:'icon-eu-rain-1h',modelId:'icon-eu',category:'surface',label:'Niederschlag · 1 Stunde',detail:'Stündliche Niederschlagsmenge · bis etwa +78 h',layer:'dwd:Icon-eu_reg00625_fd_sl_TOTPREC01H',timeDependent:true,forecast:true,defaultZoom:6,opacity:74},
  {id:'icon-eu-rain-3h',modelId:'icon-eu',category:'surface',label:'Niederschlag · 3 Stunden',detail:'Dreistündliche Niederschlagsmenge · bis +120 h',layer:'dwd:Icon-eu_reg00625_fd_sl_TOTPREC03H',timeDependent:true,forecast:true,defaultZoom:5,opacity:74},
  {id:'icon-eu-sigwx',modelId:'icon-eu',category:'significant',label:'SIGWX / Wettercode',detail:'Modelliertes signifikantes Wetter bzw. Wettercode · ICON-EU',layer:'dwd:Icon-eu_reg00625_fd_sl_WW',timeDependent:true,forecast:true,defaultZoom:5,opacity:84,disclaimer:'Modelliertes signifikantes Wetter bzw. Wettercode des ICON-EU-Laufs. Je nach WMS-Verfügbarkeit kann der DWD diese Karte zeitweise nicht bereitstellen.'},
+
+ {id:'icon-eu-rain-12h',modelId:'icon-eu',category:'surface',label:'Niederschlag · 12 Stunden',detail:'Rollende 12-h-Summe',layer:'dwd:Icon-eu_reg00625_fd_sl_TOTPREC12H',timeDependent:true,forecast:true,defaultZoom:5,opacity:74},
+ {id:'icon-rain-12h',modelId:'icon',category:'surface',label:'Niederschlag · 12 Stunden',detail:'Rollende 12-h-Summe',layer:'dwd:Icon_reg025_fd_sl_TOTPREC12H',timeDependent:true,forecast:true,defaultZoom:4,opacity:74},
 
  // ICON Global – komplette auf dem offenen DWD-WMS veröffentlichte ICON-Serie
  {id:'icon-pmsl',modelId:'icon',category:'surface',label:'Bodendruck / MSL',detail:'Globales Luftdruckfeld am Boden',layer:'dwd:Icon_reg025_fd_sl_PMSL',timeDependent:true,forecast:true,defaultZoom:4,opacity:78},
@@ -92,7 +97,7 @@ const UNAVAILABLE_WMS_LAYERS=new Set(['dwd:Icon-eu_reg00625_fd_sl_WW','dwd:Icon_
 export function weatherMapProductsForModel(modelId:WeatherMapModelId){return WEATHER_MAP_PRODUCTS.filter(product=>product.modelId===modelId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))}
 export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.find(product=>product.id===productId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))??WEATHER_MAP_PRODUCTS[0]}
 export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MODELS.find(model=>model.id===modelId)??WEATHER_MAP_MODELS[0]}
-export function weatherMapWmsProxy(){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider:'dwd'}).toString()}
+export function weatherMapWmsProxy(provider:'dwd'|'geomet'='dwd'){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider}).toString()}
 export async function loadWeatherMapMetadata(layer:string,signal?:AbortSignal){return fetchWorkerJson<WeatherMapMetadata>('weather-map-metadata',{layer},{purpose:'radar',signal,timeoutMs:12000,maxAgeMs:5*60000,staleIfErrorMs:30*60000,cacheKey:layer})}
 export async function loadWeatherMapPoint(layer:string,latitude:number,longitude:number,time:string,referenceTime:string,elevation:number|undefined,unit:string,signal:AbortSignal){
  const data=await fetchWorkerJson<{error?:string;available:boolean;value:number|null;unit?:string;layer?:string;time?:string;referenceTime?:string;latitude?:number;longitude?:number;elevation?:number}>('weather-map-point',{layer,lat:latitude,lon:longitude,time,reference_time:referenceTime,elevation},{purpose:'radar',signal,timeoutMs:9000,maxAgeMs:0,staleIfErrorMs:0});

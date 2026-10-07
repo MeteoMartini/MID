@@ -20,6 +20,12 @@ export function nativeIsobarFeatures(contours:{level:number;paths:number[][][]}[
  })))};
 }
 
-export function unifiedWmsFillStyle(metadata:WeatherMapMetadata|null){
- return metadata?.styles?.find(style=>/(?:isoarea|lawa)/i.test(style.name)&&!/spread/i.test(style.name))?.name;
+export function unifiedWmsFillStyle(metadata:WeatherMapMetadata|null,level?:number){
+ return metadata?.styles?.find(style=>{
+  if(!(style.rendering==='fill'||/(?:isoarea|lawa)/i.test(style.name))||/spread/i.test(style.name))return false;
+  if(level===undefined)return true;
+  if(/below500hPa/i.test(style.name))return level>500;
+  const restricted=style.name.match(/_(250|500|850)hPa_/i);
+  return !restricted||Number(restricted[1])===level;
+ })?.name;
 }

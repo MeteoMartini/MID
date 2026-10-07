@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.194';
+const WORKER_VERSION='0.9.85.195';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -1992,7 +1992,9 @@ async function modelContours(lat,lon,forceGrid=false){
   return await synopticMetadataCache.pending;
  }catch(error){const data=await modelContoursFallback(lat,lon);return{...data,fallback:{from:'DWD WMS',to:data.model,reason:error instanceof Error?error.message:String(error)}}}
 }
+const GEOMET_WEATHER_WMS='https://geo.weather.gc.ca/geomet';
 const WEATHER_MAP_LAYER_CONFIG=new Map([
+ ['GDPS_15km_TotalCloudCover',{forecast:true,provider:'geomet',fillStyles:['CLOUD','CLOUD-50','CloudCover_50-100Pct_Dis']}],
  ['dwd:Icon-d2_reg002_fd_sl_QFF',{forecast:true}],
  ['dwd:Icon-d2_reg002_fd_gl_T',{forecast:true,elevation:true}],
  ['dwd:Icon-d2_reg002_fd_sl_TOTPREC01H',{forecast:true}],
@@ -2003,11 +2005,13 @@ const WEATHER_MAP_LAYER_CONFIG=new Map([
  ['dwd:Icon-eu_reg00625_fd_gl_T',{forecast:true,elevation:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_TOTPREC01H',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_TOTPREC03H',{forecast:true}],
+ ['dwd:Icon-eu_reg00625_fd_sl_TOTPREC12H',{forecast:true}],
  ['dwd:Icon-eu_reg00625_fd_sl_WW',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_PMSL',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_T2M',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_TOTPREC',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_TOTPREC06H',{forecast:true}],
+ ['dwd:Icon_reg025_fd_sl_TOTPREC12H',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_TOTPREC24H',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_UV10M',{forecast:true}],
  ['dwd:Icon_reg025_fd_sl_WW',{forecast:true}],
@@ -2036,7 +2040,7 @@ const WEATHER_MAP_LAYER_CONFIG=new Map([
  ['dwd:NCEW_EU',{forecast:true,shortRange:true}]
 ]);
 const WMS_ALLOWED_LAYERS={
- dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt',...WEATHER_MAP_LAYER_CONFIG.keys(),...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
+ dwd:new Set([...DWD_RADAR_LAYERS,'dwd:Blitzdichte','dwd:NCEW_EU','dwd:Warnungen_Gemeinden_vereinigt',...[...WEATHER_MAP_LAYER_CONFIG.keys()].filter(layer=>WEATHER_MAP_LAYER_CONFIG.get(layer).provider!=='geomet'),...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='dwd').map(item=>item.layer)]),
  eumetsat:new Set(['mtg_fd:li_afa',...SATELLITE_DAY_CANDIDATES.filter(item=>item.provider==='eumetsat').map(item=>item.layer),...SATELLITE_IR_CANDIDATES.filter(item=>item.provider==='eumetsat').map(item=>item.layer),...SATELLITE_PRECIP_CANDIDATES.map(item=>item.layer)])
 };
 
@@ -2050,10 +2054,10 @@ function weatherMapStylesFromCapabilities(xml,layer){
 }
 async function weatherMapMetadata(request){
  const url=new URL(request.url),layer=String(url.searchParams.get('layer')||'').trim(),config=WEATHER_MAP_LAYER_CONFIG.get(layer);if(!config)throw new Error('Nicht freigegebener Wetterkarten-Layer');
- const xml=await firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Wetterkarten');if(!hasWmsLayer(xml,layer))throw new Error(`DWD-WMS-Layer derzeit nicht verfügbar: ${layer}`);
+ const xml=config.provider==='geomet'?await fetchWithDeadline(`${GEOMET_WEATHER_WMS}?service=WMS&version=1.3.0&request=GetCapabilities&layer=${encodeURIComponent(layer)}`,{headers:{Accept:'application/xml,text/xml'}},12000).then(async response=>{if(!response.ok)throw new Error('GeoMet-Katalog nicht erreichbar');const text=await response.text();if(text.length>2000000)throw new Error('GeoMet-Katalog zu groß');return text}):await firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Wetterkarten');if(!hasWmsLayer(xml,layer))throw new Error(`DWD-WMS-Layer derzeit nicht verfügbar: ${layer}`);
  const times=limitedWeatherMapTimes(dwdTimesFromCapabilities(xml,layer),config),referenceTimes=dwdDimensionTimesFromCapabilities(xml,layer,'reference_time').filter(value=>value>=Date.now()-96*3600000&&value<=Date.now()+12*3600000).slice(-12),elevations=config.elevation?dwdElevationsFromCapabilities(xml,layer):[];
  const pointSpec=weatherMapPointSpec(layer),queryable=/^<Layer\b[^>]*\bqueryable=["']1["']/i.test((xmlLayerBlock(xml,layer)||xmlLayerBlock(xml,layer.replace(/^dwd:/,''))).trim());
- return{layer,styles:weatherMapStylesFromCapabilities(xml,layer),times:times.map(value=>new Date(value).toISOString()),referenceTimes:referenceTimes.map(value=>new Date(value).toISOString()),elevations,...(queryable&&pointSpec?{pointUnit:pointSpec.unit}:{}),provider:'Deutscher Wetterdienst · WMS',checkedAt:new Date().toISOString()}
+ return{layer,styles:weatherMapStylesFromCapabilities(xml,layer).map(style=>config.provider==='geomet'&&config.fillStyles?.includes(style.name)?{...style,rendering:'fill'}:style),times:times.map(value=>new Date(value).toISOString()),referenceTimes:referenceTimes.map(value=>new Date(value).toISOString()),elevations,...(queryable&&pointSpec?{pointUnit:pointSpec.unit}:{}),provider:config.provider==='geomet'?'ECCC · GeoMet':'Deutscher Wetterdienst · WMS',checkedAt:new Date().toISOString()}
 }
 // Scalar fields verified against DWD GetFeatureInfo and provider legends.
 // Wind vectors, probabilities and categorical/symbol images are not guessed.
@@ -2089,14 +2093,14 @@ async function weatherMapPointResponse(request){
  try{return json({...await Promise.any(DWD_RADAR_WMS_BASES.map(attempt)),version:WORKER_VERSION},200,{'cache-control':'no-store'})}catch{return unavailable()}
 }
 async function weatherMapWmsResponse(request){
- const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'dwd').toLowerCase();if(provider!=='dwd')return json({error:'Ungültiger Wetterkarten-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});
- const layers=String(url.searchParams.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean);if(layers.length!==1||!WEATHER_MAP_LAYER_CONFIG.has(layers[0]))return json({error:'Nicht freigegebener Wetterkarten-Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});const config=WEATHER_MAP_LAYER_CONFIG.get(layers[0]);
+ const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'dwd').toLowerCase();if(!['dwd','geomet'].includes(provider))return json({error:'Ungültiger Wetterkarten-Provider',version:WORKER_VERSION},400,{'cache-control':'no-store'});
+ const layers=String(url.searchParams.get('layers')||'').split(',').map(value=>value.trim()).filter(Boolean);if(layers.length!==1||!WEATHER_MAP_LAYER_CONFIG.has(layers[0]))return json({error:'Nicht freigegebener Wetterkarten-Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});const config=WEATHER_MAP_LAYER_CONFIG.get(layers[0]);if((config.provider||'dwd')!==provider)return json({error:'Provider passt nicht zum freigegebenen Layer',version:WORKER_VERSION},400,{'cache-control':'no-store'});
  const requestedTime=url.searchParams.get('time'),requestedMs=requestedTime?Date.parse(requestedTime):NaN;if(requestedTime&&!Number.isFinite(requestedMs))return json({error:'Ungültiger Wetterkarten-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'});if(Number.isFinite(requestedMs)){const now=Date.now(),minimum=now-(config?.observed?24:48)*3600000,maximum=now+(config?.shortRange?4:config?.forecast?204:3)*3600000;if(requestedMs<minimum||requestedMs>maximum)return json({error:'Der Wetterkarten-Zeitpunkt liegt außerhalb des zulässigen Produktfensters.',version:WORKER_VERSION},409,{'cache-control':'no-store'})}
  const elevation=url.searchParams.get('elevation');if(elevation!==null&&(!config?.elevation||!Number.isFinite(Number(elevation))||Number(elevation)<0||Number(elevation)>1200))return json({error:'Ungültige Druckfläche',version:WORKER_VERSION},400,{'cache-control':'no-store'});
  const reference=url.searchParams.get('dim_reference_time');if(reference){const referenceMs=Date.parse(reference);if(!Number.isFinite(referenceMs)||referenceMs<Date.now()-120*3600000||referenceMs>Date.now()+12*3600000)return json({error:'Ungültiger Modelllauf-Zeitpunkt',version:WORKER_VERSION},400,{'cache-control':'no-store'})}
  const allowed=new Set(['service','request','version','layers','styles','format','transparent','crs','srs','bbox','width','height','time','elevation','dim_reference_time','exceptions','bgcolor','tiled']);
- const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):value;upstream.searchParams.set(normalized,outgoing)}if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},9000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
- try{const{response,type,base}=await Promise.any(DWD_RADAR_WMS_BASES.map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120, stale-while-revalidate=300','x-mid-wms-provider':'dwd','x-mid-wms-layer':layers[0],'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('Wetterkarte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})}
+ const attempt=async base=>{const upstream=new URL(base);for(const[key,value]of url.searchParams){const normalized=key.toLowerCase();if(!allowed.has(normalized))continue;const outgoing=normalized==='layers'?String(value).split(',').map(layer=>dwdLayerForEndpoint(layer,base)).join(','):value;upstream.searchParams.set(normalized,outgoing)}if(provider==='geomet')upstream.searchParams.set('interpolation','true');if(!upstream.searchParams.has('service'))upstream.searchParams.set('service','WMS');if(!upstream.searchParams.has('request'))upstream.searchParams.set('request','GetMap');if(String(upstream.searchParams.get('request')).toLowerCase()==='getlegendgraphic'){upstream.searchParams.set('layer',dwdLayerForEndpoint(layers[0],base));upstream.searchParams.set('style',url.searchParams.get('styles')||'');upstream.searchParams.delete('layers');upstream.searchParams.delete('styles')}const response=await fetchWithDeadline(upstream.toString(),{headers:{Accept:'image/png,image/webp,image/jpeg,*/*','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`,'Cache-Control':'no-cache'},cache:'no-store'},9000),type=String(response.headers.get('content-type')||'').toLowerCase();if(!response.ok)throw new Error(`${new URL(base).hostname}${new URL(base).pathname} HTTP ${response.status}`);if(!type.startsWith('image/')){await response.body?.cancel().catch(()=>undefined);throw new Error(`WMS_UPSTREAM_CONTENT_TYPE_${response.status}`)}return{response,type,base}};
+ try{const{response,type,base}=await Promise.any((provider==='geomet'?[GEOMET_WEATHER_WMS]:DWD_RADAR_WMS_BASES).map(attempt));return new Response(response.body,{status:200,headers:{'content-type':type,'access-control-allow-origin':'*','cache-control':'public, max-age=120, stale-while-revalidate=300','x-mid-wms-provider':provider,'x-mid-wms-layer':layers[0],'x-mid-wms-endpoint':new URL(base).pathname,'x-mid-worker-version':WORKER_VERSION}})}catch{return new Response('Wetterkarte derzeit nicht verfügbar.',{status:502,headers:{'content-type':'text/plain; charset=utf-8','access-control-allow-origin':'*','cache-control':'no-store','x-mid-worker-version':WORKER_VERSION}})}
 }
 async function compositeWmsResponse(request){
  const url=new URL(request.url),provider=String(url.searchParams.get('provider')||'').toLowerCase(),bases=provider==='dwd'?DWD_RADAR_WMS_BASES:provider==='eumetsat'?[EUMETSAT_WMS]:[];
