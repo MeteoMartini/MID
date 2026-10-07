@@ -27,7 +27,7 @@ jobs:
     name: MID installieren, prüfen und bauen
     if: github.event_name == 'workflow_dispatch' || (github.actor != 'github-actions[bot]' && github.actor != 'mid-release-bot-meteomartini[bot]')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     permissions:
       contents: read
 
@@ -225,7 +225,9 @@ jobs:
 
       - name: Produktionsbuild und Regressionstests ausführen
         shell: bash
-        timeout-minutes: 15
+        # Vollständiger Installerlauf: 930 Tests brauchten auf dem Hosted Runner 895,8 s, plus Build.
+        # Begrenztes Budget mit Reserve; keine Tests oder nachfolgenden Gates entfallen.
+        timeout-minutes: 25
         env:
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}

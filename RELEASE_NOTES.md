@@ -1,6 +1,6 @@
-# MID v0.9.85.188
+# MID v0.9.85.190
 
-- Die serverseitigen MID-Widgetbilder werden automatisch nur noch viermal täglich aktualisiert statt stündlich und zusätzlich nach Releases.
-- Die vier automatischen Läufe liegen gleichmäßig sechs Stunden auseinander; die geprüften Widgetprofile und das rollierende Downloadpaket bleiben unverändert.
-- Ein manueller Start bleibt für Diagnose- oder Notfallzwecke verfügbar.
-- Wetterdaten, Prognoselogik und Darstellung in der MID-App bleiben unverändert.
+- Die Veröffentlichung erhält ausreichend Zeit für die vollständige Prüfung. Ein Zeitabbruch nach bereits bestandenen Tests blockiert dadurch nicht mehr die Freigabe und nachfolgende RUC-Aktualisierungen.
+- Enthält die jüngsten Favoritenkorrekturen, Tmin und beide Unsicherheitsbereiche im 14-Tage-Diagramm sowie kompaktere Phasenfelder.
+- Die Saisonvorhersage öffnet und lädt ausschließlich nach ausdrücklicher Auswahl, unabhängig von der 46-Tage-Ansicht.
+- Alle Sicherheits-, Wetterdaten- und Veröffentlichungsgates bleiben verbindlich.

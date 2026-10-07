@@ -1,3 +1,18 @@
+# MID v0.9.85.190
+
+- Die Veröffentlichung erhält ausreichend Zeit für die vollständige Prüfung. Ein Zeitabbruch nach bereits bestandenen Tests blockiert dadurch nicht mehr die Freigabe und nachfolgende RUC-Aktualisierungen.
+- Enthält die jüngsten Favoritenkorrekturen, Tmin und beide Unsicherheitsbereiche im 14-Tage-Diagramm sowie kompaktere Phasenfelder.
+- Die Saisonvorhersage öffnet und lädt ausschließlich nach ausdrücklicher Auswahl, unabhängig von der 46-Tage-Ansicht.
+- Alle Sicherheits-, Wetterdaten- und Veröffentlichungsgates bleiben verbindlich.
+
+# MID v0.9.85.189
+
+- 14 Tage: Tmax und Tmin mit echten P10–P90- und P25–P75-Ensembleintervallen, kompakter Phasenübersicht und vollständigen Intervall-Details.
+- 46 Tage und Saison öffnen und laden unabhängig. Saisonmodelle werden erst bei ausdrücklicher Auswahl abgerufen; beim Wechsel zurück werden laufende Abrufe abgebrochen.
+- Ortswechsel bleiben auch bei einem vollen oder gesperrten Browserspeicher bedienbar. Der vorhandene dauerhafte Speicher-Fallback wird direkt genutzt.
+- Die Favoritenleiste unterdrückt nur das doppelte Folgeereignis desselben Touch-Taps; neue Maus-/Touch-Gesten und Tastaturaktivierungen bleiben erreichbar.
+- Horizontales Wischen löst keinen Ortswechsel aus. Ein Fehler kann keine dauerhafte Klicksperre mehr hinterlassen.
+
 # MID v0.9.85.188
 
 - Die serverseitigen MID-Widgetbilder werden automatisch nur noch viermal täglich aktualisiert statt stündlich und zusätzlich nach Releases.
@@ -8681,4 +8696,3 @@ Kompositbild: direkte Kartenbedienung mit gemeinsamen +/- Tasten, reale Satellit
 - Kartenansicht, Radar-/Satelliten-/Blitz-/Zell-/Warn-/Synoptik-Layer, Deckkräfte, Kartenbasis, Bewegungszeitmodus und Wiedergabetempo werden gemeinsam dauerhaft wiederhergestellt. Ein gespeicherter 250-m-Modus wird nicht mehr vor Abschluss der Verfügbarkeitsprüfung verworfen.
 - Isohypsen erhalten vor der begrenzten Chaikin-Kurvenglättung einen zweistufigen symmetrischen Binomialfilter; Isobaren bleiben bewusst etwas detailreicher. So werden Gittertreppen reduziert, ohne synoptische Strukturen Windy-artig zu überglätten.
 - Das optionale Beta-Bedienkonzept zeigt weiterhin nur fünf Hauptziele. Seltenere Analyse-, Profil-, Profi- und Werkzeugbereiche liegen nun eingeklappt im Mehr-Menü und erscheinen erst nach Aufruf.
-
