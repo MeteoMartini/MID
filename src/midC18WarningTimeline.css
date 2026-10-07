@@ -259,3 +259,10 @@ html[data-mid-design='next'] .official-alert :is(strong,.official-alert-meta,.of
 @media(prefers-reduced-motion:reduce){
  html[data-mid-design='next'] .warning-event-row{scroll-behavior:auto!important}
 }
+
+/* MID-C20: keep the complete event cards readable on narrow warning-center views. */
+@media(max-width:640px){
+ html[data-mid-design='next'] .warnings-responsive-shell .warning-event-tab.event-timeline{display:block!important}
+ html[data-mid-design='next'] .warnings-responsive-shell .warning-event-timeline{margin-top:16px!important;min-width:0!important}
+ html[data-mid-design='next'] .warnings-responsive-shell .warning-event-main strong{overflow-wrap:normal!important;word-break:normal!important}
+}

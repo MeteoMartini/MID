@@ -4,7 +4,8 @@ import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
 
 const assetsDir=path.resolve('dist/assets');
 if(!fs.existsSync(assetsDir)){console.log('Feature-Chunk-Budget: dist/assets fehlt; Prüfung wird nach dem Vite-Build aktiv.');process.exit(0)}
-const files=fs.readdirSync(assetsDir).filter(name=>/\.(?:js|css)$/.test(name)).map(name=>{const data=fs.readFileSync(path.join(assetsDir,name));return{name,bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,brotliBytes:brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).length}});
+// Every asset still participates in every raw-byte budget; compression is diagnostic only.
+const files=fs.readdirSync(assetsDir).filter(name=>/\.(?:js|css)$/.test(name)).map(name=>({name,bytes:fs.statSync(path.join(assetsDir,name)).size}));
 const rules=[
  ['MapLibreCore JS',/^MapLibreCore-.*\.js$/,1_050_000],
  ['MapLibre Worker',/^maplibre-gl-worker-.*\.js$/,520_000],
@@ -20,7 +21,7 @@ for(const [label,pattern,maxBytes] of rules){const matches=files.filter(item=>pa
 const excluded=/^(?:index-|MapLibreCore-|maplibre-gl-worker-|ChartsVendor-|ReactVendor-|esm-|web-|rolldown-runtime-|preload-helper-)/;
 const featureJs=files.filter(item=>item.name.endsWith('.js')&&!excluded.test(item.name));
 for(const item of featureJs)if(item.bytes>180_000)failures.push(`Feature-Chunk ${item.name}: ${item.bytes} B > 180000 B`);
-const report=files.sort((a,b)=>b.bytes-a.bytes).slice(0,18);
+const report=files.sort((a,b)=>b.bytes-a.bytes).slice(0,18).map(item=>{const data=fs.readFileSync(path.join(assetsDir,item.name));return{...item,gzipBytes:gzipSync(data,{level:9}).length,brotliBytes:brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:11}}).length}});
 console.log('Feature-Chunk-Budget (Bytes · gzip · brotli):');
 for(const item of report)console.log(`- ${item.name}: ${item.bytes} · ${item.gzipBytes} · ${item.brotliBytes}`);
 if(failures.length){for(const failure of failures)console.error('✗ '+failure);process.exit(1)}

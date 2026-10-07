@@ -1944,6 +1944,10 @@ button,input,select,textarea{font:inherit}
 .weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow{background:#fff;border-width:2px;box-shadow:none;filter:none;text-shadow:none}.weatherwidget.modern.compact.widget-view-curve.light .seven-day-curve-wind .cockpit-inline-wind-arrow>span{filter:none;text-shadow:none}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind b{font-size:10px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-wind small{font-size:8px}
+/* MID-C20: separate the actual wind and gust text rows in the shared curve header. */
+.seven-day-curve-wind>span:not(.cockpit-inline-wind-arrow){display:flex!important;flex-direction:column!important;gap:2px!important;min-width:0}
+.seven-day-curve-wind b,.seven-day-curve-wind small{line-height:1.25!important;margin:0!important;position:static!important}
+
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazard-row{display:grid;grid-template-columns:repeat(var(--seven-day-curve-count),minmax(0,1fr));gap:3px;padding-left:var(--seven-day-curve-left-pad);padding-right:var(--seven-day-curve-right-pad);margin-top:3px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards{display:flex;align-items:center;justify-content:center;gap:2px;min-width:0;min-height:19px}
 .weatherwidget.modern.compact.widget-view-curve .seven-day-curve-hazards i{display:block;max-width:100%;padding:2px 4px;border:1px solid currentColor;border-radius:999px;background:color-mix(in srgb,currentColor 10%,transparent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f0cf36;font-size:8px;font-style:normal;font-weight:900;line-height:1.1}
