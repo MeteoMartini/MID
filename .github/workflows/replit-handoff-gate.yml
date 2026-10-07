@@ -127,7 +127,7 @@ jobs:
 
       - name: Produktionsbuild und Regressionen prüfen
         shell: bash
-        timeout-minutes: 15
+        timeout-minutes: 25
         env:
           CI: 'true'
         run: npm run verify

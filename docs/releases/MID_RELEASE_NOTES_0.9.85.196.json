@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.196",
+  "date": "2026-10-07",
+  "title": "MID-C21 Handoff-Zeitbudget",
+  "external": [
+    "Die vollständige Replit-Übergabeprüfung erhält ausreichend Zeit für alle bestehenden Browser- und Regressionstests.",
+    "Die geplante MID-C21-Wetterkartenanpassung wird erst nach erneut erfolgreicher Übergabeprüfung freigegeben."
+  ],
+  "internal": [
+    "Verifizierte Basis: main = mid-stable = cd3f88d3852591a6375fb46701f11708d118b6f1 (.195).",
+    "Handoff Run 37683018228 für Head 3a30e125417d990a3764df73781ca1141426360a brach nach 15 Minuten ab. Bis 900/938 Prüfungen waren null Fehler gemeldet; Build, Dependencies und geschützte Pfade bestanden.",
+    "Ausschließlich das Zeitbudget des vollständigen npm run verify im kanonischen und aktiven read-only Handoff-Gate steigt von 15 auf 25 Minuten; der Jobrahmen bleibt 30 Minuten.",
+    "Keine Prüfungen ausgelassen, keine Schwellen angehoben, keine Tokens/Rechte/Actions-Pins/Releasegrenzen geändert. Die bestehende Collaboration-Regression schützt nun zusätzlich den vollständigen Verify-Aufruf und das Zeitbudget.",
+    "Die UI-Integration bleibt bis zum grünen Handoff getrennt. Danach erneute Prüfung gegen die freigegebene Stable-Basis und normaler Source-/Installer-/Worker-/Pages-/Stable-Pfad."
+  ]
+}

@@ -12,6 +12,8 @@ const [agents,replit,skill,contract,activeGate,canonicalGate,sync]=await Promise
  read('scripts/sync-github-workflows.mjs')
 ]);
 
+assert.match(activeGate,/name: Produktionsbuild und Regressionen prüfen\s+shell: bash\s+timeout-minutes: 25\s+env:[\s\S]*?run: npm run verify/,'Handoff must retain the complete verification within its observed 25-minute budget');
+assert.match(activeGate,/timeout-minutes: 30/,'Job must leave room for verification and the iOS shell check');
 assert.equal(activeGate,canonicalGate,'Aktiver und kanonischer Replit-Handoff-Gate müssen bytegleich sein.');
 assert.ok(sync.includes("['workflows/replit-handoff-gate.yml','workflows/replit-handoff-gate.yml']"),'Replit-Handoff-Gate muss kanonisch gespiegelt werden.');
 
