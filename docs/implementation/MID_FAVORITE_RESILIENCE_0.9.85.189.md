@@ -2,7 +2,7 @@
 
 ## Verified base and scope
 
-Stable base: `6dd6205ab53b2f1aa4d543acb120e51cce1775da` (.188), verified equal to main after the regular installer, Worker, Pages and Stable gates. The .188 widget cadence changes are retained. No meteorological logic, CSS layout, user profiles, favorites or settings are changed/deleted.
+Stable base: `6dd6205ab53b2f1aa4d543acb120e51cce1775da` (.188), verified equal to main after the regular installer, Worker, Pages and Stable gates. The .188 widget cadence changes are retained. No meteorological computation, user profiles, favorites or settings are changed/deleted. The additional explicitly requested 14d/46d/season presentation improvements are included below.
 
 ## Findings and limitations
 
@@ -19,6 +19,13 @@ Stable base: `6dd6205ab53b2f1aa4d543acb120e51cce1775da` (.188), verified equal t
 - A moved touch and its compatibility click do not select; pointer cancellation remains non-selecting.
 
 ## Validation
+
+- 14d development now passes existing weighted daily Tmin/Tmax P10/P25/P75/P90 through the shared interval renderer. No synthetic quartiles, averaging of quantiles or weight changes; unavailable ensemble bounds remain null. Best Match dots retain their existing source. Both interval levels are included in selected and native-title details.
+- The phase cards use short labelled daily-mean values and compact two-column mobile rows; all three phases and their coverage stay visible without tall empty cards.
+- The 46d and season sections are mutually exclusive, including seasonal network activation and request cancellation. Classic defaults to 46d and offers an explicit season button; modern uses its existing external horizon selection. Switching away aborts seasonal requests and clears seasonal display state; delayed aborted results cannot reopen season.
+- New behavioral mapping/null/scale contract regression plus 24 real-Chromium cases test the production 14d panel/chart/CSS and production long-range horizon logic with controlled child-data adapters. They test explicit modern and classic activation, request cancellation and delayed responses; these mocks are not live seasonal-source proof.
+- Existing .097825 summary-text assertion is intentionally updated from Tmax-only to the requested Tmax/Tmin contract; all source, methodological and responsive assertions remain mandatory.
+- Existing .09330 header assertion now requires the independently selected season/46d title instead of the combined title, while retaining all meteorological, source and version assertions.
 
 - Behavioral regression executes the current TypeScript functions after esbuild transpilation: 100 rapid alternating selections with blocked persistence, actual selected state and request invalidation, quota/security failure, preserved readable start location, keyboard, mouse, different favorite, compatibility click, cancellation, movement and injected callback exception recovery.
 - Real Chromium harness extracts the current `FavoriteQuickStrip` and active-item reveal helpers, imports the complete production CSS, and exercises repeated touch selection after other button interactions plus keyboard/mouse at 320/390/412/844/1024/1440 px, Light/Dark, Next/Classic (24 cases). Persistence is deliberately blocked. This is component QA, not a reproduction on the reporter's device nor a full-dashboard journey.

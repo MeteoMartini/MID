@@ -1,5 +1,7 @@
 # MID v0.9.85.189
 
+- 14 Tage: Tmax und Tmin mit echten P10–P90- und P25–P75-Ensembleintervallen, kompakter Phasenübersicht und vollständigen Intervall-Details.
+- 46 Tage und Saison öffnen und laden unabhängig. Saisonmodelle werden erst bei ausdrücklicher Auswahl abgerufen; beim Wechsel zurück werden laufende Abrufe abgebrochen.
 - Ortswechsel bleiben auch bei einem vollen oder gesperrten Browserspeicher bedienbar. Der vorhandene dauerhafte Speicher-Fallback wird direkt genutzt.
 - Die Favoritenleiste unterdrückt nur das doppelte Folgeereignis desselben Touch-Taps; neue Maus-/Touch-Gesten und Tastaturaktivierungen bleiben erreichbar.
 - Horizontales Wischen löst keinen Ortswechsel aus. Ein Fehler kann keine dauerhafte Klicksperre mehr hinterlassen.

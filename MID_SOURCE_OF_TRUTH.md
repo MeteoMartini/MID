@@ -1,6 +1,8 @@
-## MID v0.9.85.189 · Robuste Favoriten-Ortsauswahl
+## MID v0.9.85.189 · Robuste Favoriten-Ortsauswahl und getrennte Prognosehorizonte
 
 Basis: `main = mid-stable = 6dd6205ab53b2f1aa4d543acb120e51cce1775da` (.188), nach erfolgreichem Installer/Worker/Pages/Stable-Abschluss. Die gemeinsame Ortsauswahl nutzt die direkten dauerhaften Speicherfunktionen und lässt Speicherfehler nicht mehr die aktive Auswahl abbrechen. Die Favoritenleiste besitzt statt einer timerabhängigen globalen Sperre einen gesten- und favoritengebundenen, selbst ablaufenden Duplicate-Token. Details: `docs/implementation/MID_FAVORITE_RESILIENCE_0.9.85.189.md`.
+
+Das 14-Tage-Entwicklungsdiagramm reicht die vorhandenen gewichteten Tagesquantile für Tmax und Tmin vollständig weiter (P10/P25/P75/P90), ohne Ensemble-Methodik oder Gewichte zu verändern. Best-Match-Fallback erzeugt keine künstlichen Intervalle. Die Phasenübersicht ist kompakter. 46d und Saison besitzen gegenseitig exklusive Darstellung und Datenaktivierung; Saisonabrufe starten erst bei ausdrücklicher Auswahl und werden beim Verlassen abgebrochen. Classic erhält eine explizite Horizontwahl. Der alte Texttest .097825 wurde dem ausdrücklich erweiterten Tmax/Tmin-Vertrag angepasst, nicht gelockert.
 
 ## MID v0.9.85.188 · Widget-Export viermal täglich
 

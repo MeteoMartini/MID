@@ -19,7 +19,15 @@
 [data-fourteen-development] .long-range-dwd-periods>article>small{font-size:12px;line-height:1.4}
 [data-horizon-signal]>p[role=status]{margin:8px 12px 12px;font-size:12px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
 .long-range-method-info p,.subseasonal-method-details p{margin:6px 0;font-size:13px;line-height:1.5}
-@media(max-width:620px){[data-fourteen-development] .long-range-dwd-periods{grid-template-columns:1fr}}
+/* The three phases remain compact rows on phones, not tall stacked cards. */
+[data-fourteen-development] .fourteen-phase-summary>article{gap:4px!important;padding:9px!important;min-height:0!important}
+[data-fourteen-development] .fourteen-phase-summary>article>p{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:var(--mid-text-xs,12px)!important}
+[data-fourteen-development] .fourteen-phase-summary>article>p strong{color:var(--text);font-size:var(--mid-text-sm,13px)!important}
+[data-fourteen-development] .fourteen-phase-summary>article>small{font-size:var(--mid-text-xs,12px)!important;color:var(--muted)}
+.long-range-horizon-selection{display:flex;gap:6px;flex-wrap:wrap}
+.long-range-horizon-selection>button{min-height:44px;padding:8px 14px;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:10px}
+.long-range-horizon-selection>button[aria-pressed='true']{background:color-mix(in srgb,var(--accent) 15%,var(--panel));border-color:var(--accent)}
+@media(max-width:620px){[data-fourteen-development] .fourteen-phase-summary{grid-template-columns:1fr!important;gap:5px!important}[data-fourteen-development] .fourteen-phase-summary>article{display:grid!important;grid-template-columns:minmax(82px,.8fr) minmax(0,1fr);gap:2px 8px!important}[data-fourteen-development] .fourteen-phase-summary>article>header{grid-row:1/3;align-content:center}[data-fourteen-development] .fourteen-phase-summary>article>b{font-size:var(--mid-text-xs,12px)!important}[data-fourteen-development] .fourteen-phase-summary>article>small{grid-column:2}[data-fourteen-development] .fourteen-phase-summary>article>p{grid-column:2}}
 
 /* MID C16: keep long-range explanations available in explicit, responsive disclosures. */
 .long-range-method-info{display:grid;gap:9px;min-width:0;max-width:100%;overflow-wrap:anywhere}
