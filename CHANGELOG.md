@@ -1,3 +1,9 @@
+# MID v0.9.85.192
+
+- Kurven-Widgets zeigen denselben Ortskopf wie Tageskarten: Ortsname, Koordinaten, Höhe und Ortszeit.
+- Ein gemeinsamer Kopf innerhalb der Exportfläche hält Vorschau, URL-Widget, PNG und Zwischenablage konsistent; Ensemble bleibt unverändert.
+- Zusätzliche Render- und Browserprüfungen sichern beide Profile, alle drei festen Orte und beide Themes. Release- und Sicherheitsgates bleiben unverändert.
+
 # MID v0.9.85.191
 
 - Warnungscenter: Amtliche Warntexte und MID-Hinweise sind beim Öffnen sofort sichtbar und bleiben einzeln einklappbar. Beim erneuten Öffnen werden beide Gruppen wieder aufgeklappt.

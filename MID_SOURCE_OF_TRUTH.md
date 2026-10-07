@@ -1,3 +1,7 @@
+## MID v0.9.85.192 · MID-C20 Kurvenwidget-Ortskopf
+
+Verifizierte Basis: main = mid-stable = df7df09c167b7c482e31c27e64aefa77148bc5ad (.191). Tageskarten und Kurvenwidget besitzen einen gemeinsamen Ortskopf innerhalb der Exportfläche. Ortsname, Koordinaten, Höhe und Ortszeit stimmen damit in Vorschau, URL-Widget, PNG und Zwischenablage überein. Ensemble und sämtliche Sicherheits-/Releasegates bleiben unverändert. Details: docs/implementation/MID_C20_WIDGET_LOCATION_0.9.85.192.md.
+
 ## MID v0.9.85.191 · MID-C20 Warnungscenter und Regressionslaufzeit
 
 Verifizierte Basis: `main = mid-stable = 118b0fe24a66205d5d9624716719dd6b562ee0d3` (v0.9.85.190). Aktuelle und anstehende Hinweise werden explizit getrennt. Amtliche und MID-Details öffnen beim Einstieg und erneuter Warnungsnavigation; manuelles Einklappen bleibt möglich. Budgetprüfungen erfassen weiterhin sämtliche Dateien mit unveränderten Grenzen; Kompression wird nur für die ohnehin ausgegebenen 18 größten Dateien berechnet. Details: `docs/implementation/MID_C20_WARNINGS_PERFORMANCE_0.9.85.191.md`. Bestehender Source-/Installer-/Worker-/Pages-/Stable-Pfad unverändert.

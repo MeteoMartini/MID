@@ -475,7 +475,9 @@
     {
       "file": "src/WidgetGenerator.tsx",
       "name": "Widget",
-      "sha256": "691fbed3c86a8e51e593beeebad3d84119837a764741f50560f48f5c2d3dd193"
+      "sha256": "f57c6a248e2b61d1346e414a5547acadc5ae5543f6c38537fe4b4fe521a1b720",
+      "approvedVersion": "0.9.85.192",
+      "approvedReason": "Requested common location header for cards and curves inside the unchanged export target."
     },
     {
       "file": "src/ForecastDisplayPrimitives.tsx",
