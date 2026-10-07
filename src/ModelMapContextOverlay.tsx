@@ -11,13 +11,15 @@ export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZo
  const context=canvas.getContext('2d');if(!context)return;
  context.setTransform(ratio,0,0,ratio,0,0);context.clearRect(0,0,width,height);context.lineJoin='round';context.lineCap='round';
  const geography=getModelMapGeography(),zoom=map.getZoom(),offset=Math.round(map.getCenter().lng/360)*360;
- const drawRings=(rings:number[][][],casing:number,line:number,color:string)=>{
+ const drawRings=(rings:number[][][],line:number,dash:number[])=>{
   context.beginPath();for(const ring of rings){const points=ring.map(([lon,lat])=>map.project([lon+offset,lat]));if(!points.some((point,index)=>{const next=points[(index+1)%points.length];return Math.max(point.x,next.x)>-100&&Math.min(point.x,next.x)<width+100&&Math.max(point.y,next.y)>-100&&Math.min(point.y,next.y)<height+100}))continue;points.forEach((point,index)=>{if(index)context.lineTo(point.x,point.y);else context.moveTo(point.x,point.y)});context.closePath()}
-  context.strokeStyle='rgba(255,255,255,.94)';context.lineWidth=casing;context.stroke();context.strokeStyle=color;context.lineWidth=line;context.stroke();
+  // Administrative boundaries stay subordinate to meteorological contours.
+  const dark=typeof document!=='undefined'&&document.documentElement.dataset.theme==='dark';
+  context.strokeStyle=dark?'rgba(165,181,193,.58)':'rgba(62,83,99,.52)';context.lineWidth=line;context.setLineDash(dash);context.stroke();context.setLineDash([]);
  };
- if(geography)drawRings(geography.countries,zoom>=5?2.8:2.1,zoom>=5?1.1:.8,'#263f59');
- drawRings(germany.geometry.coordinates.flat(),3,1.15,'#263f59');
- if(geography&&zoom>=MODEL_MAP_CONTEXT_ZOOMS.states)for(const state of geography.states)drawRings(state.rings,2,.75,'#42566d');
+ if(geography)drawRings(geography.countries,zoom>=5?1.1:.8,[3,2]);
+ if(!geography)drawRings(germany.geometry.coordinates.flat(),1.15,[3,2]);
+ if(geography&&zoom>=MODEL_MAP_CONTEXT_ZOOMS.states)for(const state of geography.states)drawRings(state.rings,.75,[1,2]);
  if(!labels||!geography||zoom<MODEL_MAP_CONTEXT_ZOOMS.places)return;
  context.font=`600 ${zoom>=7?12:11}px system-ui,sans-serif`;context.textBaseline='middle';
  const boxes:Array<{x:number;y:number;width:number}>=[];

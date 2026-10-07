@@ -2,7 +2,7 @@
   "schema": 1,
   "baselineCommit": "36c64a4eeec6df60d9141ea4b444e3aae550bb56",
   "baselineVersion": "0.9.85.187",
-  "cssCascadeSha256": "7895ca6eb6dfcd649452e667400075020c9dad105707c8cb29ad9b918ef260c9",
+  "cssCascadeSha256": "93f4ae9c7471e38b04056389ad1086a8a6eca4302618abdc1077299d14522f5e",
   "cssSources": [
     "src/styles-src/00-foundation.css",
     "src/styles-src/10-features.css",
@@ -660,6 +660,6 @@
       "sha256": "d71682de9317b051ef61375ca98cb86948127ee357beefa12b29a059ba46b4c8"
     }
   ],
-  "cssBaselineVersion": "0.9.85.191",
-  "cssBaselineReason": "MID-C20: requested separate wind/gust rows in the shared curve header; source precedence and extracted implementation goldens unchanged."
+  "cssBaselineVersion": "0.9.85.195",
+  "cssBaselineReason": "MID-C20: requested full-width warning timeline and timezone-aware day rail in Classic/Next; fixes horizontal event-timeline grid collision. Source precedence, 1122 duplicate removals and extracted implementation goldens unchanged."
 }

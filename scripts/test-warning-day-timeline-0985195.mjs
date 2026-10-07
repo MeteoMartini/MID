@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {build} from 'esbuild';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {createElement} from 'react';
+import {execFileSync} from 'node:child_process';
+const app=await readFile('src/App.tsx','utf8'),temp=await mkdtemp(path.resolve('.mid-warning-days-'));
+const clock=Date.now;Date.now=()=>Date.parse('2026-10-07T16:00:00Z');
+try{
+ const imports=app.split('\n').filter(line=>line.startsWith('import ')&&["from './ForecastDisplayPrimitives'","from 'react'","from 'lucide-react'","from './weather'","from './officialWarningOrder'"].some(token=>line.includes(token))).join('\n');
+ const functions=app.slice(app.indexOf('function hazardSortEpoch('),app.indexOf('const WIND_WARNING_BANDS='));
+ await build({stdin:{contents:imports+'\n'+functions+'\nexport {WarningEventTab};',resolveDir:path.resolve('src'),loader:'tsx'},outfile:path.join(temp,'probe.mjs'),bundle:true,platform:'node',format:'esm',packages:'external',jsx:'automatic',logLevel:'silent'});
+ const {WarningEventTab}=await import(pathToFileURL(path.join(temp,'probe.mjs')));
+ const hazard=(title,from,to)=>({title,kind:'wind',level:'medium',text:'Prognosehinweis',validFrom:from,validTo:to,metric:'bis zu 35 kt'});
+ const automatic=[hazard('A','2026-10-24T22:30:00Z','2026-10-25T02:00:00Z'),hazard('B','2026-10-25T00:30:00Z','2026-10-25T03:00:00Z'),hazard('C','2026-10-25T23:30:00Z','2026-10-26T04:00:00Z')];
+ const props={automatic,alerts:[],loading:false,error:'',provider:'DWD',unit:'kn'};
+ const berlin=renderToStaticMarkup(createElement(WarningEventTab,{...props,timezone:'Europe/Berlin'}));
+ assert.equal((berlin.match(/class="warning-timeline-day"/g)||[]).length,2,'same local day across DST must share a group');
+ assert.ok(berlin.includes('Sonntag')&&berlin.includes('25.10.2026')&&berlin.includes('Montag')&&berlin.includes('26.10.2026'));
+ assert.ok(berlin.includes('2 Ereignisse'));
+ assert.ok(berlin.indexOf('>A</strong>')<berlin.indexOf('>B</strong>')&&berlin.indexOf('>B</strong>')<berlin.indexOf('>C</strong>'));
+ const utc=renderToStaticMarkup(createElement(WarningEventTab,{...props,timezone:'UTC'}));
+ assert.ok(utc.includes('24.10.2026')&&!utc.includes('26.10.2026</time>'),'calendar groups must follow selected timezone');
+ assert.ok(berlin.includes('07.10.')&&berlin.includes('18:00'),'now marker needs local date and clock');
+ const unavailable=renderToStaticMarkup(createElement(WarningEventTab,{...props,automatic:[],error:'offline',timezone:'Europe/Berlin'}));
+ assert.match(unavailable,/Quellenstörung wird nicht als Entwarnung/);
+ const empty=renderToStaticMarkup(createElement(WarningEventTab,{...props,automatic:[],timezone:'Europe/Berlin'}));
+ assert.match(empty,/Keine laufenden oder erwarteten/);
+ console.log('Warning day rail: local calendar, weekday, DST, event counts/order, cross-midnight windows, source failure and empty state verified.');
+}finally{Date.now=clock;await rm(temp,{recursive:true,force:true})}
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-warning-day-timeline-browser-0985195.mjs'],{stdio:'inherit',timeout:240000});

@@ -29,4 +29,9 @@ for(const token of [
 ])assert.ok(canonical.includes(token),'Source-Gate-Shardingvertrag fehlt: '+token);
 assert.ok(canonical.indexOf('source_core:')<canonical.indexOf('validate_source:'),'Required gate must remain the final aggregator.');
 assert.ok(canonical.includes('npm run build'),'Jeder Heavy-Shard braucht denselben Produktionsbuild als Browser-QA-Basis.');
+const heavy=canonical.split('  heavy_regressions:')[1].split('  validate_source:')[0];
+assert.equal((heavy.match(/shard: heavy-unified-map/g)||[]).length,3,'All three disjoint map groups must run before source release.');
+for(const group of ['1/3','2/3','3/3'])assert.ok(heavy.includes("map_group: '"+group+"'"));
+assert.ok(heavy.includes('MID_MAP_QA_SHARD: ${'+'{ matrix.map_group }}'));
+assert.ok(!heavy.includes('continue-on-error')&&!heavy.includes('secrets.'),'Source matrix remains read-only and fail-closed.');
 console.log('MID v0.9.85.171: Regressionsinventar verlustfrei in Core plus drei isolierte Heavy-Shards partitioniert.');
