@@ -2,6 +2,7 @@ import {regressionSuite} from './regression-suite.mjs';
 import {regressionExecutionPlan} from './regression-execution.mjs';
 import {regressionShard} from './regression-shards.mjs';
 import {spawn} from 'node:child_process';
+import {writeFile,appendFile} from 'node:fs/promises';
 import {availableParallelism} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -20,6 +21,12 @@ console.log('Regression-Shard: '+shardName+' · '+tests.length+'/'+completeTests
 console.log('Regression-Plan: '+plan.parallel.length+' parallel-sicher · '+plan.serial.length+' seriell · maximal '+jobs+' parallele Prozesse.');
 await runParallel(plan.parallel,jobs);
 for(const name of plan.serial)record(await runOne(name));
-console.log('Suite: '+((performance.now()-started)/1000).toFixed(1)+' s; langsamste Prüfungen: '+timings.sort((a,b)=>b.ms-a.ms).slice(0,5).map(row=>row.name+' '+(row.ms/1000).toFixed(1)+' s').join('; '));
+const elapsedMs=performance.now()-started;
+console.log('Suite: '+(elapsedMs/1000).toFixed(1)+' s; langsamste Prüfungen: '+timings.sort((a,b)=>b.ms-a.ms).slice(0,5).map(row=>row.name+' '+(row.ms/1000).toFixed(1)+' s').join('; '));
+if(process.env.GITHUB_ACTIONS==='true'){
+ const report={schema:1,eventSha:process.env.GITHUB_SHA,shard:shardName,mapGroup:process.env.MID_MAP_QA_SHARD||'',tests:tests.length,failures:failures.length,elapsedMs,timings};
+ await writeFile('/tmp/mid-regression-timings.json',JSON.stringify(report,null,2)+'\n');
+ if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,`\n### Regressionen: ${shardName} ${report.mapGroup}\n\n${tests.length} Tests · ${failures.length} Fehler · ${(elapsedMs/1000).toFixed(1)} s\n\n| Test | Sekunden |\n|---|---:|\n${timings.slice(0,10).map(r=>`| ${r.name} | ${(r.ms/1000).toFixed(1)} |`).join('\n')}\n`);
+}
 if(failures.length){const order=new Map(tests.map((name,index)=>[name,index]));failures.sort((a,b)=>(order.get(a)??0)-(order.get(b)??0));console.error('\n'+failures.length+' von '+tests.length+' Regressionstests fehlgeschlagen: '+failures.join(', '));process.exit(1)}
 console.log('\nAlle '+tests.length+' Tests des Shards '+shardName+' bestanden.');
