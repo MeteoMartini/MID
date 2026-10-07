@@ -1,3 +1,7 @@
+## MID v0.9.85.193 · MID-C20 vollständige parallele Installerprüfung
+
+Verifizierte Basis: main = mid-stable = 9998db3dd5358101717ecd16482f7f88e4983ebb (.192). Der Installer verteilt das vollständige Regressionsinventar auf Core und isolierte Heavy-Jobs; die Unified-Map-Matrix behält alle 24 Fälle in drei disjunkten Gruppen. Ein eventgebundener Snapshot mit Manifest-/Archiv-/Datei-Hashes wird an jedem Jobübergang vollständig geprüft. Commit und Deployment benötigen den Erfolg des Core und der ganzen Heavy-Matrix. Laufzeitberichte dienen ausschließlich der Diagnose, niemals als Prüfergebnis-Cache. Alle nachfolgenden Worker-/RUC-/Pages-/Stable- und main-Race-Gates bleiben unverändert. Details: docs/implementation/MID_C20_INSTALLER_SHARDING_0.9.85.193.md.
+
 ## MID v0.9.85.192 · MID-C20 Kurvenwidget-Ortskopf
 
 Verifizierte Basis: main = mid-stable = df7df09c167b7c482e31c27e64aefa77148bc5ad (.191). Tageskarten und Kurvenwidget besitzen einen gemeinsamen Ortskopf innerhalb der Exportfläche. Ortsname, Koordinaten, Höhe und Ortszeit stimmen damit in Vorschau, URL-Widget, PNG und Zwischenablage überein. Ensemble und sämtliche Sicherheits-/Releasegates bleiben unverändert. Details: docs/implementation/MID_C20_WIDGET_LOCATION_0.9.85.192.md.

@@ -19,18 +19,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  install_build:
-    outputs:
-      commit_sha: ${{ steps.commit.outputs.commit_sha }}
-      version: ${{ steps.release_meta.outputs.version }}
-      worker_changed: ${{ steps.worker_diff.outputs.changed }}
-    name: MID installieren, prüfen und bauen
+  prepare_release:
+    name: Release-ZIP prüfen und immutable Snapshot vorbereiten
     if: github.event_name == 'workflow_dispatch' || (github.actor != 'github-actions[bot]' && github.actor != 'mid-release-bot-meteomartini[bot]')
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 10
     permissions:
       contents: read
-
+    outputs:
+      snapshot_sha: ${{ steps.snapshot.outputs.snapshot_sha }}
     steps:
       - name: Repository laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -135,6 +132,44 @@ jobs:
           echo "MID-Projektdateien wurden inhaltlich vollständig ersetzt."
 
 
+      - name: SHA-gebundenen Snapshot packen
+        id: snapshot
+        shell: bash
+        run: node tools/ci/release-snapshot.mjs pack /tmp/mid-snapshot
+      - name: Unveränderlichen Snapshot übertragen
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-snapshot/
+          if-no-files-found: error
+          retention-days: 1
+
+  verify_core:
+    name: Release-Core, Build, Audit und iOS prüfen
+    needs: prepare_release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      snapshot_sha: ${{ steps.snapshot.outputs.snapshot_sha }}
+    steps:
+      - name: Eventgebundenen Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Snapshot dieses Laufs laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-snapshot
+      - name: Event, Manifest, Archiv und alle Dateien verifizieren
+        shell: bash
+        env:
+          MID_SNAPSHOT_SHA: ${{ needs.prepare_release.outputs.snapshot_sha }}
+        run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -225,10 +260,10 @@ jobs:
 
       - name: Produktionsbuild und Regressionstests ausführen
         shell: bash
-        # Vollständiger Installerlauf: 930 Tests brauchten auf dem Hosted Runner 895,8 s, plus Build.
-        # Begrenztes Budget mit Reserve; keine Tests oder nachfolgenden Gates entfallen.
+        # Core plus vollständige isolierte Heavy-Matrix bilden zusammen das gesamte Inventar.
         timeout-minutes: 25
         env:
+          MID_REGRESSION_SHARD: core
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
           VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
@@ -255,6 +290,192 @@ jobs:
             exit 1
           fi
 
+      - name: Laufzeitbericht ohne Freigabewirkung speichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-timings-core-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-regression-timings.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: SHA-gebundenen Snapshot packen
+        id: snapshot
+        shell: bash
+        run: node tools/ci/release-snapshot.mjs pack /tmp/mid-snapshot
+      - name: Unveränderlichen Snapshot übertragen
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-built-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-snapshot/
+          if-no-files-found: error
+          retention-days: 1
+
+  verify_heavy:
+    name: Release-Heavy · ${{ matrix.shard }} · ${{ matrix.map_group }}
+    needs: prepare_release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: heavy-native-map
+            map_group: ''
+          - shard: heavy-mountain-visual
+            map_group: ''
+          - shard: heavy-unified-map
+            map_group: '1/3'
+          - shard: heavy-unified-map
+            map_group: '2/3'
+          - shard: heavy-unified-map
+            map_group: '3/3'
+    steps:
+      - name: Eventgebundenen Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Snapshot dieses Laufs laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-snapshot
+      - name: Event, Manifest, Archiv und alle Dateien verifizieren
+        shell: bash
+        env:
+          MID_SNAPSHOT_SHA: ${{ needs.prepare_release.outputs.snapshot_sha }}
+        run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Lockfile und npm-Registry prüfen
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 2
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 3000
+          npm config set fetch-retry-maxtimeout 15000
+          npm config set fetch-timeout 60000
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const invalid = [];
+          for (const [name, entry] of Object.entries(lock.packages ?? {})) {
+            const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
+            if (typeof resolved !== 'string') continue;
+            if (/internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i.test(resolved)) {
+              invalid.push(`${name || '(root)'}: ${resolved}`);
+            }
+          }
+          if (invalid.length) {
+            console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
+            process.exit(1);
+          }
+          console.log('Lockfile enthält keine internen oder lokalen Paket-URLs.');
+          NODE
+
+          echo "Node: $(node --version)"
+          echo "npm: $(npm --version)"
+          echo "Registry: $(npm config get registry)"
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci \
+              --no-audit \
+              --no-fund \
+              --prefer-offline \
+              --legacy-peer-deps \
+              --loglevel=notice; then
+              installed=true
+              break
+            fi
+            echo "::warning::npm ci fehlgeschlagen (Versuch ${attempt}/3). Bereinige node_modules und prüfe den Cache vor erneutem Versuch."
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          if [ "$installed" != true ]; then
+            echo "::error::npm ci konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
+            exit 1
+          fi
+
+
+      - name: Vollständigen Heavy-Anteil des gleichen Releases prüfen
+        shell: bash
+        timeout-minutes: 15
+        env:
+          MID_REGRESSION_SHARD: ${{ matrix.shard }}
+          MID_MAP_QA_SHARD: ${{ matrix.map_group }}
+          MID_REGRESSION_VERBOSE: '1'
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm run build
+          npm run test:regressions
+      - name: Laufzeitbericht ohne Freigabewirkung speichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-timings-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-regression-timings.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  install_build:
+    name: Vollständig geprüften Release sammeln und committen
+    needs: [prepare_release, verify_core, verify_heavy]
+    if: needs.prepare_release.result == 'success' && needs.verify_core.result == 'success' && needs.verify_heavy.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    outputs:
+      commit_sha: ${{ steps.commit.outputs.commit_sha }}
+      version: ${{ steps.release_meta.outputs.version }}
+      worker_changed: ${{ steps.worker_diff.outputs.changed }}
+    steps:
+      - name: Eventgebundenen Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Snapshot dieses Laufs laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-built-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/mid-snapshot
+      - name: Event, Manifest, Archiv und alle Dateien verifizieren
+        shell: bash
+        env:
+          MID_SNAPSHOT_SHA: ${{ needs.verify_core.outputs.snapshot_sha }}
+        run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
       - name: Release- und Worker-Änderungsmetadaten ermitteln
         id: release_meta
         shell: bash
