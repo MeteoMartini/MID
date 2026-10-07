@@ -1,3 +1,7 @@
+## MID v0.9.85.194 · MID-C20 Windereignisse statt redundanter Hinweise
+
+Verifizierte Basis: main = mid-stable = b228e682cb8ea71979b8e296a30aaf8d5ee6fd0d (.193). Inhaltlich gleiche Windhinweise werden nach der probabilistischen Fensterbildung bei zeitlicher Überlappung kanonisch zusammengeführt. Unsicherheit bleibt sichtbar; amtliche Warnungen, verschiedene Stufen/Richtungen/konvektive Risiken und kumulative Niederschlagsfenster bleiben getrennt. Der separate Stundenkurven-Screenshot ist ohne Ort/Modell/Originalstand noch nicht reproduziert und wird nicht pauschal geglättet. Details: docs/implementation/MID_C20_WARNING_EPISODES_0.9.85.194.md. Alle bestehenden Releasegates unverändert.
+
 ## MID v0.9.85.193 · MID-C20 vollständige parallele Installerprüfung
 
 Verifizierte Basis: main = mid-stable = 9998db3dd5358101717ecd16482f7f88e4983ebb (.192). Der Installer verteilt das vollständige Regressionsinventar auf Core und isolierte Heavy-Jobs; die Unified-Map-Matrix behält alle 24 Fälle in drei disjunkten Gruppen. Ein eventgebundener Snapshot mit Manifest-/Archiv-/Datei-Hashes wird an jedem Jobübergang vollständig geprüft. Commit und Deployment benötigen den Erfolg des Core und der ganzen Heavy-Matrix. Laufzeitberichte dienen ausschließlich der Diagnose, niemals als Prüfergebnis-Cache. Alle nachfolgenden Worker-/RUC-/Pages-/Stable- und main-Race-Gates bleiben unverändert. Details: docs/implementation/MID_C20_INSTALLER_SHARDING_0.9.85.193.md.

@@ -1,5 +1,6 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {fetchWithDeadline} from './fetchDeadline';
+import {mergeHazardEpisodes} from './hazardEpisodes';
 import {buildEnsembleEvidence,type EnsembleEvidence,type EvidenceContribution,type EnsembleParameter} from './ensembleAssessment';import {writeBoundedStorage} from './cachePolicy';
 import {guardedOpenMeteoJson,isOpenMeteoRateLimitError,openMeteoCooldownRetryAt,registerOpenMeteoCooldown,OpenMeteoRateLimitError,type OpenMeteoPriority} from './openMeteoGuard';
 import {formatDecimal} from './format';

@@ -1,3 +1,8 @@
+# MID v0.9.85.194
+
+- Inhaltlich gleiche, überlappende MID-Windhinweise werden nach der probabilistischen Fensterbildung als ein zusammenhängendes Ereignis dargestellt. Unsicherheit und längerer Prognosehorizont bleiben kenntlich.
+- Unterschiedliche Warnstufen, Windrichtungen, konvektive Risiken und getrennte Ereignisse bleiben erhalten. Amtliche Warnungen und Niederschlagssummen werden nicht zusammengeführt.
+
 # MID v0.9.85.193
 
 - Der Installer prüft Core und Heavy-Regressionen parallel auf getrennten Runnern, ohne Tests auszulassen.

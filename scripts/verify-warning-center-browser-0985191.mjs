@@ -11,13 +11,16 @@ const app=await readFile('src/App.tsx','utf8'),imports=app.split('\n').filter(li
 const functions=app.slice(app.indexOf('function hazardSortEpoch('),app.indexOf('const WIND_WARNING_BANDS='));
 const now=Date.now(),iso=h=>new Date(now+h*3600000).toISOString();
 const props={automatic:[{kind:'wind',title:'Windböen',level:'medium',validFrom:iso(48),validTo:iso(57),text:'Böenhinweis für die Zukunft',metric:'bis zu 35 kt'}],alerts:[{id:'dwd-1',headline:'Amtliche Windwarnung',description:'Amtlicher vollständiger Text',instruction:'Amtliche Handlungsanweisung',level:'yellow',source:'DWD',onset:iso(1),expires:iso(5)}],loading:false,error:'',provider:'DWD',timezone:'Europe/Berlin',unit:'kn'};
-const entry=imports+"\nimport {createRoot} from 'react-dom/client'; const warmExtremeWeatherOutlook=()=>{};const MemoOfficialWarnings=memo(OfficialWarnings),MemoHazards=memo(Hazards);\n"+functions+`\ncreateRoot(document.getElementById('root')).render(<WarningCenter {...${JSON.stringify(props)}}/>);`;
+const episode=props.automatic[0];
+props.automatic=[{...episode,displayMetric:episode.metric,displayText:episode.text},...[[53,62],[57,65]].map(([from,to])=>({...episode,displayMetric:episode.metric,displayText:episode.text,validFrom:iso(from),validTo:iso(to)}))];
+const entry=imports+"\nimport {mergeHazardEpisodes} from './hazardEpisodes';\nimport {createRoot} from 'react-dom/client'; const warmExtremeWeatherOutlook=()=>{};const MemoOfficialWarnings=memo(OfficialWarnings),MemoHazards=memo(Hazards);\n"+functions+`\nconst props=${JSON.stringify(props)};createRoot(document.getElementById('root')).render(<WarningCenter {...props} automatic={mergeHazardEpisodes(props.automatic)}/>);`;
 const result=await build({stdin:{contents:entry,resolveDir:path.resolve('src'),loader:'tsx'},bundle:true,platform:'browser',format:'iife',jsx:'automatic',write:false,logLevel:'silent'});
 let css=await readFile('src/midPresentation.css','utf8');const browser=await chromium.launch({...(process.env.MID_WARNING_QA_BROWSER?{executablePath:process.env.MID_WARNING_QA_BROWSER}:{}),headless:true,args:['--no-sandbox']});
 try{const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 for(const [width,height] of [[393,852],[852,393],[768,1024],[1024,768],[360,800],[1440,900]])for(const theme of ['light','dark']){
 await page.setViewportSize({width,height});await page.setContent(`<html data-mid-design="next" data-theme="${theme}"><head><style>${css}</style></head><body><div class="app"><main><div id="root"></div></main></div></body></html>`);await page.addScriptTag({content:result.outputFiles[0].text});await page.waitForSelector('.hazard-body');
 if(!await page.locator('.official-message').isVisible())throw Error('Official detail hidden');
+if(await page.locator('.hazard-toggle').count()!==1)throw Error('Overlapping wind episodes duplicated in warning center');
 const status=await page.locator('.hazards-responsive-summary>div>span').innerText();if(!status.includes('1 Hinweis anstehend'))throw Error('Upcoming count missing');
 const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);if(overflow)throw Error(`Overflow ${width} ${theme}`);
 await page.locator('.hazard-toggle').click();if(await page.locator('.hazard-body').count())throw Error('MID collapse failed');
