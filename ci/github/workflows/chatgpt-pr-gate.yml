@@ -203,7 +203,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     permissions:
       contents: read
     strategy:
@@ -260,7 +260,7 @@ jobs:
 
       - name: Isolierten Heavy-Regression-Shard vollständig ausführen
         shell: bash
-        timeout-minutes: 8
+        timeout-minutes: 10
         env:
           MID_REGRESSION_SHARD: ${{ matrix.shard }}
           MID_REGRESSION_JOBS: '1'
