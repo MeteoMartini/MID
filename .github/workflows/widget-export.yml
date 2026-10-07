@@ -2,16 +2,8 @@ name: MID Widget PNG Export
 run-name: MID-Widgets serverseitig aktualisieren
 
 on:
-  workflow_run:
-    workflows:
-      - MID-Release aus ZIP installieren und veröffentlichen
-    types:
-      - completed
-  push:
-    branches:
-      - mid-stable
   schedule:
-    - cron: '17 * * * *'
+    - cron: '17 0,6,12,18 * * *'
   workflow_dispatch:
 
 permissions:
@@ -24,9 +16,6 @@ concurrency:
 jobs:
   render:
     name: Zwölf MID-Widget-PNGs aus mid-stable rendern
-    if: >-
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:

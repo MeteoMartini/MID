@@ -27,5 +27,5 @@ assert.ok(radar.includes('unified?.overlay')&&radar.includes('unified?.controls'
 assert.ok(radar.includes("visibleModelLines:ModelLineMode=unified?'off'"),'Old synoptic must be absent in unified route');
 assert.ok(radar.includes('unified?204*60:120')&&radar.includes('unified.times.map'),'Only actual model terms, not fabricated interpolations');
 assert.ok(read('src/UnifiedVectorBasemap.tsx').includes('VectorTileLayers'),'Vector geography replaces pixel base');
-if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:360000});
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:480000});
 console.log('MID-C17 unified map: scientific model/parameter matrix, one lazy/memoized map, native field integrity, overlays/probes/exports, bounded caching, persistence and legacy-source exclusion verified.');

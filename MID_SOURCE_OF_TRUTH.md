@@ -1,3 +1,7 @@
+## MID v0.9.85.188 · Widget-Export viermal täglich
+
+Basis: `main = mid-stable = 2a8370734e98f2c9c1d6da30ad30d9ee5a87aa34` (v0.9.85.187). Der serverseitige Export der zwölf festen MID-Widget-PNGs wird automatisch ausschließlich viermal täglich im 6-Stunden-Abstand ausgeführt: 00:17, 06:17, 12:17 und 18:17 UTC. Die bisherigen automatischen Zusatztrigger nach erfolgreichem MID-Release und bei `mid-stable`-Push entfallen, damit keine redundanten Renderläufe entstehen. `workflow_dispatch` bleibt als bewusster manueller Diagnose-/Notfallstart erhalten. Renderer, Profile, Validierung, Retry-Logik und das rollierende `widget-latest`-Paket bleiben unverändert. Details: `docs/implementation/MID_WIDGET_CADENCE_0.9.85.188.md`.
+
 ## MID v0.9.85.187 · Phasenprüfung und Karten-Kontrast
 
 Basis: main = mid-stable = 251718eec0e792c4fd47eb59610a1fdaec62157c (.186). Fachlich getrennte gefrierende und gemischte Niederschlagsphasen; keine Eisregenableitung aus kaltem Schneeniederschlag. Kartenbedienung und kompakte zeitgebundene Ortswerte in allen Designs. Details docs/implementation/MID_C18_PHASE_MAP_0.9.85.187.md.

@@ -16,9 +16,7 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test
 
 assert.equal(active,canonical,'Aktiver und kanonischer Widget-Workflow müssen bytegleich sein.');
 for(const token of [
- 'workflow_run:',
- 'MID-Release aus ZIP installieren und veröffentlichen',
- "cron: '17 * * * *'",
+ "cron: '17 0,6,12,18 * * *'",
  'workflow_dispatch:',
  'permissions:\n  contents: read',
  'ref: mid-stable',
@@ -31,6 +29,9 @@ for(const token of [
  'MID_RELEASE_APP_CLIENT_ID',
  '--clobber'
 ])assert.ok(canonical.includes(token),`Widget-Workflow fehlt: ${token}`);
+assert.ok(!canonical.includes('workflow_run:'),'Widget-Workflow darf nicht mehr automatisch nach Releases laufen.');
+assert.ok(!canonical.includes('push:\n    branches:\n      - mid-stable'),'Widget-Workflow darf nicht mehr automatisch bei mid-stable-Push laufen.');
+assert.equal((canonical.match(/cron:/g)||[]).length,1,'Widget-Workflow darf genau einen automatischen Zeitplan besitzen.');
 for(const sha of [
  'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
  'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020',

@@ -1,0 +1,12 @@
+{
+  "version": "0.9.85.188",
+  "date": "2026-10-07",
+  "title": "Widget-Export viermal täglich",
+  "external": [
+    "Die serverseitigen MID-Widgetbilder werden automatisch viermal täglich aktualisiert.",
+    "Widgetprofile, Darstellung und Downloadpaket bleiben unverändert."
+  ],
+  "internal": [
+    "widget-export.yml uses only cron 17 0,6,12,18 * * * for automatic starts; workflow_run and mid-stable push triggers removed; workflow_dispatch retained for manual diagnostics."
+  ]
+}

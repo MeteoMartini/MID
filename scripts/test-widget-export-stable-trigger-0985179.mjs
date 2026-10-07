@@ -10,14 +10,15 @@ const [canonical,active,baseline,pkg]=await Promise.all([
 ]);
 assert.equal(active,canonical,'Aktiver und kanonischer Widget-Workflow müssen bytegleich sein.');
 for(const token of [
- 'workflow_run:',
- 'push:\n    branches:\n      - mid-stable',
- "cron: '17 * * * *'",
+ "cron: '17 0,6,12,18 * * *'",
  'workflow_dispatch:',
- 'ref: mid-stable',
- 'github.event_name != \'workflow_run\''
-])assert.ok(canonical.includes(token),`Widget-Stable-Trigger fehlt: ${token}`);
+ 'ref: mid-stable'
+])assert.ok(canonical.includes(token),`Widget-Zeitplan fehlt: ${token}`);
+assert.ok(!canonical.includes('workflow_run:'),'Widget-Export darf nicht mehr automatisch an Release-Abschlüsse gekoppelt sein.');
+assert.ok(!canonical.includes('push:\n    branches:\n      - mid-stable'),'Widget-Export darf nicht mehr automatisch an mid-stable-Pushes gekoppelt sein.');
+assert.ok(!canonical.includes("github.event_name != 'workflow_run'"),'Veralteter Workflow-Run-Guard muss entfernt sein.');
+assert.equal((canonical.match(/cron:/g)||[]).length,1,'Widget-Export muss genau einen Cron-Ausdruck besitzen.');
 const parsedBaseline=JSON.parse(baseline),parsedPackage=JSON.parse(pkg),self='scripts/test-widget-export-stable-trigger-0985179.mjs';
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(parsedBaseline[key]?.includes(self),`${self} fehlt in ${key}.`);
 assert.equal(parsedPackage.scripts?.['test:widget-export-stable-trigger'],`node ${self}`);
-console.log(`MID v${parsedPackage.version}: Widget-Export startet deterministisch bei jeder mid-stable-Promotion und behält Workflow-Run, Stundenplan sowie manuellen Start als Redundanz.`);
+console.log(`MID v${parsedPackage.version}: Widget-Export läuft automatisch ausschließlich viermal täglich im 6-Stunden-Abstand; manueller Start bleibt erhalten.`);
