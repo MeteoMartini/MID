@@ -17,7 +17,7 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);
 const test='scripts/test-mid-18-2-4-warning-timeline-098577.mjs';
 
 for(const token of [
- 'AMTLICHE WARNUNGEN · EREIGNIS-TIMELINE',
+ 'WARNUNGEN & MID-HINWEISE · EREIGNIS-TIMELINE',
  'Priorisiert und folgend',
  'Warnstatus nicht bestimmbar',
  'Eine Quellenstörung wird nicht als Entwarnung gewertet.',

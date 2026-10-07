@@ -10,27 +10,27 @@ const [app,styleSource,styles,pkgRaw,baselineRaw]=await Promise.all([
  read('MID_BASELINE.json')
 ]);
 
-// Geschlossen wird ausschließlich der aktuelle automatische Warnzustand gezeigt.
+// Der Kopf trennt aktuelle und anstehende Hinweise; Inhalte öffnen standardmäßig (C20).
 for(const token of [
- "const[open,setOpen]=useState<string>(''),[expanded,setExpanded]=useState(false)",
+ "const[closed,setClosed]=useState<Set<string>>(()=>new Set()),[expanded,setExpanded]=useState(true)",
  'hazardCurrentItems(sortedData)',
  'hazardCurrentLevel(current)',
  'summaryData=current.length?current:sortedData',
  'className="hazards-responsive-head hazards-responsive-summary"',
  'onClick={()=>setExpanded(value=>!value)}',
  'aria-expanded={expanded}',
- "return'Derzeit kein MID-Hinweis aktiv'",
- 'return`Aktuell: ${state}`',
+ "return`Aktuell kein MID-Hinweis${future}`",
+ 'return`Aktuell: ${state}${future}`',
  "if(item.kind==='heat')return/^Extreme\\b/i.test(title)?'extrem':/^Starke\\b/i.test(title)?'stark':'erhöht'"
 ])assert.ok(app.includes(token),`Aktueller Warnzustandsvertrag fehlt: ${token}`);
 assert.ok(!app.includes("'Nächstes Signal'"),'Die kompakte Warnkarte darf keinen zukünftigen Zustand als aktuellen Zustand ausgeben.');
 assert.ok(!app.includes("<em>{data.length} {data.length===1?'Zeitfenster':'Zeitfenster'}</em>"),'Zeitfensteranzahl darf im geschlossenen Warnkopf nicht mehr erscheinen.');
 
-// Erst nach dem Aufklappen erscheinen Tages-/Zeitfensterkarten und Erläuterung.
+// Inhalte sind standardmäßig offen und weiterhin manuell einklappbar.
 for(const token of [
  '{expanded&&<div className="hazard-day-grid">',
  'className="hazard-day-group"',
- 'itemExpanded=open===id',
+ 'itemExpanded=!closed.has(id)',
  'itemExpanded&&<div className="hazard-body"',
  'className={`hazard-origin-badge${supplement?\' supplement\':\'\'}`}',
  'MID · PROGNOSEHINWEIS'
@@ -55,8 +55,8 @@ for(const token of [
 
 // Amtliche CAP-Warnungen stehen im Hybrid-Zentrum zuerst und bleiben unverändert vollständig.
 assert.ok(app.includes('function WarningCenter('), 'Gemeinsames Hybrid-Warnzentrum fehlt.');
-assert.ok(app.includes('<MemoOfficialWarnings alerts={relevantOfficial}'), 'Amtliche Warnungen müssen im Hybrid-Zentrum zuerst erscheinen.');
-assert.ok(app.includes('<MemoHazards data={relevantAutomatic}'), 'MID-Hinweise müssen nach den amtlichen Warnungen folgen.');
+assert.ok(app.includes('<MemoOfficialWarnings key={`official:${disclosureRevision}`} alerts={relevantOfficial}'), 'Amtliche Warnungen müssen im Hybrid-Zentrum zuerst erscheinen.');
+assert.ok(app.includes('<MemoHazards key={`mid:${disclosureRevision}`} data={relevantAutomatic}'), 'MID-Hinweise müssen nach den amtlichen Warnungen folgen.');
 for(const token of ['<p>{a.description}</p>','a.instruction&&<p className="instruction">'])assert.ok(app.includes(token),`Amtlicher Warninhalt fehlt: ${token}`);
 
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-warning-current-summary-disclosure-09657.mjs';
