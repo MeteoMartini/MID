@@ -13,6 +13,8 @@ Die .192-Installer-Suite dauerte 802,7 Sekunden: Unified Map 333,2 s, Native Map
 
 Keine Tests erhalten Schreibcredentials. Snapshots enthalten weder Git-Metadaten noch node_modules oder Release-ZIP; Artefakte sind run-/attempt-spezifisch und nur einen Tag aufbewahrt. Diagnoseberichte werden nie für Freigaben gelesen.
 
+Downloads verwenden die unveränderliche Artefakt-ID aus dem erfolgreichen Produzenten-Job, nicht einen neu berechneten Attempt-Namen. Dadurch bleibt die Bindung auch beim automatischen Wiederholen ausschließlich fehlgeschlagener Jobs erhalten. Fehlende IDs und Action-Digest-Abweichungen schlagen vor Ausführung fehl; Manifest-, Event-, Archiv- und Datei-Hashes werden zusätzlich unverändert geprüft.
+
 ## Prüfvertrag
 
 Die frühere .190-Prüfung verlangte ein monolithisches `npm run verify` ohne Shard. Sie wird gezielt auf den ausdrücklich gewünschten vollständigen Core-plus-Heavy-Vertrag erweitert: Budgets und Mirrors bleiben streng, alle Heavy-Anteile und die abschließenden Abhängigkeiten werden geprüft. Zusätzliche reale Negativtests prüfen falsche Manifest-Hashes, Event-SHA und beschädigte Archive sowie Git-Erhalt und exakte Wiederherstellung.
