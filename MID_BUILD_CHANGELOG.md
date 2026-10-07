@@ -7,6 +7,7 @@
 - `workflow_dispatch` bleibt für bewusste manuelle Diagnose-/Notfallläufe erhalten.
 - Aktiver und kanonischer Workflow bleiben bytegleich; Regressionen schützen die Viermal-pro-Tag-Taktung und das Verbot der entfernten Zusatztrigger.
 - Widgetprofile, Renderlogik, Datenlogik, Integritätsprüfung und rollierendes Downloadpaket unverändert.
+- Source-Gate-Befund: Unified-Map bestand in drei Versuchen jeweils 20/24 reale Browserfälle, bevor das feste 360-s-Unterprozesslimit griff. Testabdeckung/Assertions unverändert; Zeitbudget auf 480 s Unterprozess, 10 min Heavy-Schritt und 15 min Heavy-Job erweitert, damit alle 24 Fälle tatsächlich geprüft werden.
 
 ## MID v0.9.85.186 · 2026-10-06 · Karten-Layer
 
