@@ -5,9 +5,10 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 const temp=await mkdtemp(path.resolve('.mid-synoptic-'));
 try{
- await build({entryPoints:['src/synopticComposite.ts','src/unifiedMapCatalog.ts'],outdir:temp,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
+ await build({entryPoints:['src/synopticComposite.ts','src/unifiedMapCatalog.ts','src/WeatherMapsData.ts'],outdir:temp,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
  const {SYNOPTIC_COMPONENTS,synopticCompositePlan}=await import(pathToFileURL(path.join(temp,'synopticComposite.js')));
  const {UNIFIED_MAP_PARAMETERS,groupedUnifiedParameters,unifiedSources}=await import(pathToFileURL(path.join(temp,'unifiedMapCatalog.js')));
+ const {weatherMapProduct,weatherMapModel}=await import(pathToFileURL(path.join(temp,'WeatherMapsData.js')));assert.equal(weatherMapProduct('obsolete-saved-id').id,'icon-d2-precipitation-totals');assert.equal(weatherMapModel('obsolete-saved-id').id,'observations','New models must not change legacy fallback defaults');
  const run='2026-10-07T12:00:00Z',time='2026-10-07T18:00:00Z',target=Date.parse(time);
  const data=SYNOPTIC_COMPONENTS.map(c=>({layer:c.layer,elevations:c.level?[c.level]:[],referenceTimes:[run],times:[time],styles:[{name:c.fill?'t_below500hPa_isoarea':'qa_isoline_label',title:'Verified style'}]}));
  const plan=synopticCompositePlan(data,target);assert.ok(plan);assert.equal(plan.run,run);assert.equal(plan.time,time);assert.equal(plan.components[0].level,850);assert.equal(plan.components[1].level,500);

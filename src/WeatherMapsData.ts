@@ -33,6 +33,7 @@ const HEIGHT_LEVELS=[2,50,100,150,200,250,300,350,400,450,500];
 
 export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
  {id:'gdps-cloud',modelId:'gdps',provider:'geomet',category:'surface',label:'Gesamtbewölkung',detail:'Gesamtbedeckungsgrad · ECCC GDPS · eigener Modelllauf',layer:'GDPS_15km_TotalCloudCover',timeDependent:true,forecast:true,defaultZoom:4,opacity:78},
+
  {id:'icon-d2-precipitation-totals',modelId:'icon-d2',category:'surface',label:'Niederschlagssummen · 6 / 12 / 24 / 48 h',detail:'Deutschland · Gesamtniederschlag ab demselben Modelllaufstart · Favoriten und PNG-/SVG-Download',layer:'mid:icon-d2:tot-prec',source:'totals',timeDependent:true,forecast:true,defaultZoom:5.25,opacity:85},
  {id:'radolan-observed-precipitation',modelId:'observations',category:'surface',label:'Gefallener Niederschlag · 1 / 6 / 12 / 24 / 48 h',detail:'Verifizierte Messstunden · fehlende Rasterwerte bleiben unbekannt · Ortswerte und PNG/SVG',layer:'mid:radolan:observed',source:'observed-totals',timeDependent:true,forecast:false,defaultZoom:5.25,opacity:85},
  // ICON-D2 – echte, verifizierte GRIB2-Raster aus derselben freien Publikationsstrecke wie Summenkarten
@@ -95,8 +96,8 @@ export const WEATHER_MAP_PRODUCTS:WeatherMapProduct[]=[
 // recognizable in source, but never offer a broken WMS product to the user.
 const UNAVAILABLE_WMS_LAYERS=new Set(['dwd:Icon-eu_reg00625_fd_sl_WW','dwd:Icon_reg025_fd_sl_WW','dwd:Aicon_reg025_fd_sl_WW']);
 export function weatherMapProductsForModel(modelId:WeatherMapModelId){return WEATHER_MAP_PRODUCTS.filter(product=>product.modelId===modelId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))}
-export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.find(product=>product.id===productId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))??WEATHER_MAP_PRODUCTS[0]}
-export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MODELS.find(model=>model.id===modelId)??WEATHER_MAP_MODELS[0]}
+export function weatherMapProduct(productId:string){return WEATHER_MAP_PRODUCTS.find(product=>product.id===productId&&!UNAVAILABLE_WMS_LAYERS.has(product.layer))??WEATHER_MAP_PRODUCTS.find(product=>product.id==='icon-d2-precipitation-totals')!}
+export function weatherMapModel(modelId:WeatherMapModelId){return WEATHER_MAP_MODELS.find(model=>model.id===modelId)??WEATHER_MAP_MODELS.find(model=>model.id==='observations')!}
 export function weatherMapWmsProxy(provider:'dwd'|'geomet'='dwd'){const configured=configuredWorkerBase('radar');if(!configured)return'';return buildWorkerUrl(configured,'weather-map-wms',{provider}).toString()}
 export async function loadWeatherMapMetadata(layer:string,signal?:AbortSignal){return fetchWorkerJson<WeatherMapMetadata>('weather-map-metadata',{layer},{purpose:'radar',signal,timeoutMs:12000,maxAgeMs:5*60000,staleIfErrorMs:30*60000,cacheKey:layer})}
 export async function loadWeatherMapPoint(layer:string,latitude:number,longitude:number,time:string,referenceTime:string,elevation:number|undefined,unit:string,signal:AbortSignal){
