@@ -164,8 +164,8 @@ function miniRibbonPrecipitationStyle(amount:number,probability:number,reference
 }
 
 function shortTermSummary(hours:Hour[],timezone:string,unit:WindUnit,now=Date.now()){
- const samples=shortTermHours(hours);if(!samples.length)return'Kurzfristdaten werden geladen.';
- const wet=samples.filter(sample=>(sample.precipitation>=.05&&sample.probability>=25)||sample.probability>=60),gust=samples.reduce((best,item)=>item.gust>best.gust?item:best,samples[0]);
+ const samples=shortTermHours(precipitationPresentationHours(hours));if(!samples.length)return'Kurzfristdaten werden geladen.';
+ const wet=samples.filter(sample=>sample.precipitation>=.05),gust=samples.reduce((best,item)=>item.gust>best.gust?item:best,samples[0]);
  const gustPart=`Böen bis ${wind(gust.gust,unit)} ${relativeForecastTimePhrase(gust.epoch,timezone,'at',now)}`;
  if(!wet.length)return `Trocken · ${gustPart}`;
  const first=wet[0],parts=plausiblePrecipitation(first),kind=['showers','sleetShowers','snowShowers','graupelShowers','hailShowers'].includes(parts.type)?'Schauer':parts.type==='thunderstorm'||parts.type==='thunderstormHail'?'Gewitter':parts.weatherLabel;
@@ -659,7 +659,7 @@ function MiniRibbon({horizon,hours,days,ensemble,climate,timezone,confidenceCali
  }
  const series=ensembleSeries(ensemble,days,climate,[],Date.now(),confidenceCalibration);return <span className="cockpit-mini-ribbon fourteen">{series.slice(0,14).map(item=><i key={item.date} style={{height:`${clamp(item.consistency,16,100)}%`,opacity:item.index>=7?.72:.96,background:AGREEMENT_COLOR[item.assessment.agreement]}} title={`${formatDate(item.date,{weekday:'short',day:'2-digit',month:'2-digit'})}: ${assessmentSummary(item.assessment)}`}/>)}</span>
 }
-function summaryByHorizon(horizon:ForecastHorizon,{hours,days,timezone,unit,sevenDaySummary,ensemble,scenarios,climate,shortPoints,confidenceCalibration}:{hours:Hour[];days:Day[];timezone:string;unit:WindUnit;sevenDaySummary?:string;ensemble:EnsembleDay[];scenarios:EnsembleScenarioCluster[];climate:ClimateDay[];shortPoints?:ShortTermForecastPoint[];confidenceCalibration?:EnsembleConfidenceCalibration}){if(horizon==='short-term')return shortPoints?.length?shortTermPointSummary(shortPoints,unit,timezone):shortTermSummary(hours,timezone,unit);if(horizon==='seven-day')return sevenDaySummary||'Die nächsten sieben Tage werden in Tageskarten verdichtet.';const series=ensembleSeries(ensemble,days,climate,[],Date.now(),confidenceCalibration);return uncertaintySummary(series,scenarios)}
+function summaryByHorizon(horizon:ForecastHorizon,{hours,days,timezone,unit,sevenDaySummary,ensemble,scenarios,climate,shortPoints,confidenceCalibration}:{hours:Hour[];days:Day[];timezone:string;unit:WindUnit;sevenDaySummary?:string;ensemble:EnsembleDay[];scenarios:EnsembleScenarioCluster[];climate:ClimateDay[];shortPoints?:ShortTermForecastPoint[];confidenceCalibration?:EnsembleConfidenceCalibration}){if(horizon==='short-term'){const now=Date.now(),visible=shortTermProfileHourlyPoints(hours,shortPoints??[],timezone,now);return visible.length?shortTermPointSummary(visible,unit,timezone,now,shortPoints??[]):shortTermSummary(hours,timezone,unit)}if(horizon==='seven-day')return sevenDaySummary||'Die nächsten sieben Tage werden in Tageskarten verdichtet.';const series=ensembleSeries(ensemble,days,climate,[],Date.now(),confidenceCalibration);return uncertaintySummary(series,scenarios)}
 
 function AnalysisReveal({open,onToggle,label='Ensemble-Analyse öffnen',children}:{open:boolean;onToggle:()=>void;label?:string;children?:ReactNode}){if(!children)return null;return <div className={`cockpit-analysis${open?' open':''}`}><button type="button" className="cockpit-analysis-toggle" onClick={onToggle} aria-expanded={open}><span><SlidersHorizontal size={18}/><strong>{label}</strong></span>{open?<ChevronUp size={18}/>:<ChevronDown size={18}/>}</button>{open?<div className="cockpit-analysis-panel">{children}</div>:null}</div>}
 
