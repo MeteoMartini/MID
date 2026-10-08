@@ -88,6 +88,6 @@ html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composit
 /* MID-C21: time choice before the map, outside floating navigation. */
 .composite-direct-time{display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto;gap:6px;align-items:end;margin:8px 0}
 .composite-direct-time label{min-width:0;font-size:12px;display:grid;gap:3px}
-.composite-direct-time button,.composite-direct-time select{min-height:44px;border:1px solid var(--border,#9fb8c8);border-radius:12px;background:var(--card,#fff);color:var(--text,#233d50);font:inherit}
+.composite-direct-time button,.composite-direct-time select{min-height:44px;min-width:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);color-scheme:inherit;font:inherit}
 .composite-direct-time select{width:100%;min-width:0;font-size:14px;padding:4px}
-.composite-direct-time button{padding:6px 10px}.composite-direct-time button:disabled{opacity:.4}
+.composite-direct-time button{padding:6px 10px}.composite-direct-time button:disabled{opacity:.56;cursor:not-allowed}.composite-direct-time :is(button,select):focus-visible{outline:2px solid var(--primary);outline-offset:2px}.composite-direct-time select{color-scheme:inherit;overflow:hidden;text-overflow:ellipsis}.composite-direct-time select option{background:var(--surface);color:var(--text)}@media(max-width:430px){.composite-direct-time{grid-template-columns:44px minmax(0,1fr) 44px;gap:6px}.composite-direct-time>button:last-child{grid-column:1/-1;justify-self:stretch}.composite-direct-time select{font-size:13px}}

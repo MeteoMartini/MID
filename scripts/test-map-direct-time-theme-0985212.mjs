@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const css=readFileSync('src/UnifiedWeatherMap.css','utf8');
+const theme=readFileSync('src/styles-src/00-foundation.css','utf8');
+const match=css.match(/\.composite-direct-time button,\.composite-direct-time select\{([^}]+)\}/);
+assert.ok(match,'Shared directly selectable time controls are missing');
+const rule=match[1];
+for(const v of ['background:var(--surface)','color:var(--text)','color-scheme:inherit','min-height:44px','min-width:0'])assert.ok(rule.includes(v),'Missing theme/size token: '+v);
+assert.doesNotMatch(rule,/(?:--card|#fff|#ffffff|#233d50)/i,'Do not use white/light fallback in dark theme');
+assert.match(theme,/:root\{[^}]*--surface:#0b1727;[^}]*--text:#eef6ff;/,'Dark root tokens missing');
+assert.match(theme,/:root\[data-theme=light\]\{[^}]*--surface:#fff;[^}]*--text:#132238;/,'Light theme tokens missing');
+assert.match(css,/\.composite-direct-time select option\{background:var\(--surface\);color:var\(--text\)\}/);
+assert.match(css,/\.composite-direct-time :is\(button,select\):focus-visible\{outline:2px solid var\(--primary\)/);
+assert.match(css,/@media\(max-width:430px\)\{\.composite-direct-time\{grid-template-columns:44px minmax\(0,1fr\) 44px;/);
+const radar=readFileSync('src/RadarPanel.tsx','utf8');
+assert.match(radar,/className="composite-direct-time"/,'Check actual direct-time UI is wired to theme rule');
+assert.match(radar,/aria-label="Kartentermin auswählen"/,'Accessible keyboard/select label must remain');
+console.log('MID .212: dark/light time controls, native select options, contrast tokens, 44px touch targets and <=430px layout verified.');

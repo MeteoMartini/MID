@@ -226,7 +226,16 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
         cells.append(cell)
     return {'schema':'mid.dwd.ruc.rapid-extreme.v4','run':run,'horizonHours':14,'windowHours':6,'nativePrecipitationSeconds':300,'convectiveSeconds':900,'periods':[{'id':pid,'startHour':start,'endHour':end,'source':'native-rapid+hourly-core' if pid=='0-6' else 'hourly-core'} for pid,start,end in period_specs],'grid':{'rows':rows,'cols':cols,'bounds':{'south':south,'west':west,'north':north,'east':east}},'cells':cells}
 
-def collect_parameter(files,name,targets,expected_points=None):
+def temperature_decode_audit(values):
+    """Finite-only aggregate; no individual station/grid values leave CI logs."""
+    a=np.asarray(values,dtype=np.float64).reshape(-1)
+    mask=np.isfinite(a);finite=a[mask]
+    if not finite.size:return {'count':int(a.size),'nonfinite':int(a.size),'min':None,'max':None,'outsideC':0}
+    return {'count':int(a.size),'nonfinite':int(a.size-finite.size),
+            'min':round(float(np.min(finite)),4),'max':round(float(np.max(finite)),4),
+            'outsideC':int(np.count_nonzero((finite<-93.15)|(finite>66.85)))}
+
+def collect_parameter(files,name,targets,expected_points=None,temperature_audit=None):
     rows={};reference_signature=None
     for file in files:
       for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True):
@@ -234,7 +243,13 @@ def collect_parameter(files,name,targets,expected_points=None):
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:raise SystemExit(f'{name}: native point count differs from deterministic reference')
         if valid in rows:raise SystemExit(f'{name}: duplicate GRIB validity time {valid}')
-        rows[valid]=normalize(name,vals,units)
+        decoded=normalize(name,vals,units)
+        if temperature_audit is not None and name=='temperature_2m':
+            temperature_audit.append({'valid':valid.isoformat(),'gribFile':file.name,
+                                     'units':str(units)[:64],
+                                     'native':temperature_decode_audit(vals),
+                                     'normalized':temperature_decode_audit(decoded)})
+        rows[valid]=decoded
     missing=[t for t in targets if t not in rows]
     if missing:raise SystemExit(f'{name}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
     return rows
@@ -360,11 +375,11 @@ def file_info(path:Path):
 def main():
  p=argparse.ArgumentParser();p.add_argument('--staging',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--run',required=True);p.add_argument('--hours',type=int,default=14);p.add_argument('--lookup-step',type=float,default=.025);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
  schedule=hourly_targets(a.run,a.hours)
- det_times=schedule['deterministic'];eps_times=schedule['eps'];series={};point_count=None
+ det_times=schedule['deterministic'];eps_times=schedule['eps'];series={};point_count=None;temperature_audit=[]
  for param,name in PARAM_MAP.items():
   files=sorted((a.staging/'deterministic'/param).glob('**/*.grib2*'))
   if not files:raise SystemExit(f'missing staged parameter {param}')
-  rows=collect_parameter(files,name,det_times,point_count)
+  rows=collect_parameter(files,name,det_times,point_count,temperature_audit if name=='temperature_2m' else None)
   if point_count is None:point_count=len(rows[det_times[0]])
   series[name]=rows
  base_grid=load_native_grid(a.staging,point_count)
@@ -378,7 +393,15 @@ def main():
   elif n=='wind_gusts_10m':fields[n]=np.stack([series[n][t] for t in det_times])*1.94384449
   elif n=='precipitation':fields[n]=prec
   else:fields[n]=np.stack([series[n][t] for t in det_times])
- validate_core_fields(fields)
+ try:
+  validate_core_fields(fields)
+ except Exception:
+  # Fatal core gate remains active: expose bounded per-valid-time provenance
+  # so missing-value sentinels, wrong units and corrupt GRIB fields can be
+  # distinguished on the NEXT failed production run, never silently repaired.
+  for record in temperature_audit[:24]:
+   print('RUC_T2M_DECODE_AUDIT '+json.dumps(record,sort_keys=True),flush=True)
+  raise
  det=a.output/'deterministic.bin';det.write_bytes(pack_cell_major(fields,DEFAULT_FIELDS))
  # Parameter-native rapid supplements. The shared state vector stays hourly;
  # rapid products preserve only cadences that DWD actually publishes.

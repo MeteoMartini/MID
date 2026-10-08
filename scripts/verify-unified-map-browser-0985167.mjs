@@ -42,6 +42,23 @@ async function verifyCase(width,theme,design='next'){
  assert.equal(await page.getByRole('button',{name:'Automatisch',exact:true}).getAttribute('aria-pressed'),'true');
  const direct=page.getByLabel('Kartentermin auswählen');await direct.selectOption('0');assert.equal(await page.getByRole('button',{name:'Vorheriger Kartentermin',exact:true}).isDisabled(),true);await page.getByRole('button',{name:'Nächster Kartentermin',exact:true}).click();assert.equal(await direct.inputValue(),'1');await page.getByRole('button',{name:'Aktuell',exact:true}).click();
  for(const box of await page.locator('.composite-direct-time button,.composite-direct-time select').evaluateAll(nodes=>nodes.map(el=>({height:el.getBoundingClientRect().height,overflow:el.scrollWidth>el.clientWidth+1})))){assert.ok(box.height>=44);assert.equal(box.overflow,false)}
+ // Regression .212: actual rendered theme contrast, not just static CSS tokens.
+ // Verify native <select>, action buttons and disabled controls on every
+ // already-supported real MapLibre viewport × theme × design permutation.
+ const timeControls=await page.locator('.composite-direct-time button,.composite-direct-time select').evaluateAll(nodes=>{
+  const parse=value=>{const m=value.match(/rgba?\(([^)]+)\)/);return m?m[1].split(',').slice(0,3).map(Number):[NaN,NaN,NaN]};
+  const luminance=rgb=>rgb.map(v=>{const c=v/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  return nodes.map(el=>{const style=getComputedStyle(el),background=parse(style.backgroundColor),foreground=parse(style.color),ratio=(Math.max(luminance(background),luminance(foreground))+.05)/(Math.min(luminance(background),luminance(foreground))+.05);
+   return{tag:el.tagName,disabled:el.disabled,bg:background,fg:foreground,ratio,brightness:background.reduce((a,b)=>a+b,0)/3,scheme:style.colorScheme};
+  });
+ });
+ assert.equal(timeControls.length,4,'Direct time controls include prev, select, next, and current');
+ for(const control of timeControls){
+  assert.ok(control.bg.every(Number.isFinite)&&control.fg.every(Number.isFinite),'Fully themed background and foreground required');
+  assert.ok(theme==='dark'?control.brightness<100:control.brightness>210,'Control background must respect '+theme+' theme');
+  if(!control.disabled)assert.ok(control.ratio>=4.5,'WCAG AA foreground contrast on direct map time control: '+JSON.stringify(control));
+ }
+
 
  assert.ok(await page.locator('.unified-presentation-hint').textContent().then(t=>t.includes('Linien empfohlen')));
  assert.ok(!requests.some(u=>u.includes('qa_isoarea')),'Observation selection never implicitly overlays a model area');
