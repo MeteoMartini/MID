@@ -1,3 +1,11 @@
+# MID v0.9.85.201
+
+RUC-Kurzfristdaten werden nach erfolgreichen MID-Veröffentlichungen automatisch auf Aktualität geprüft und bei Bedarf nachgeholt. Ein erfolgreicher Verarbeitungslauf ohne tatsächlich veröffentlichte Daten unterdrückt die Wiederaufnahme nicht mehr.
+
+RUC-Übergabeartefakte erhalten pro Ausführungsversuch eindeutige Namen. Der bestehende Vier-Stunden-Frischevertrag, Datenbudgets sowie Release- und Sicherheitsprüfungen bleiben erhalten.
+
+Basis: main = mid-stable c3f3abebfd5e3da86013063d7b051b05399e3876 (v0.9.85.200). Details: docs/implementation/MID_C22_RUC_RECOVERY_0.9.85.201.md.
+
 # MID v0.9.85.200 · MID-C21 Synoptik und Bildwechsel
 
 Verifizierte neue Basis: main = mid-stable = `5b8632355396ff1d6bf25dc20d7edd83415c021e` (.199), parallele Widget-Korrektur erhalten. Europaausschnitt, 60-kt-Pfeile, Theta-E-Stufen/RH700-Konturen, optionale vollständige Termine sowie gepufferte Bildwechsel. Details: docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md. Bestehende Source-/Installer-Gates und Datenbudgets bleiben verbindlich.

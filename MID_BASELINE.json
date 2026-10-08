@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.200",
+  "releaseVersion": "0.9.85.201",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -955,7 +955,8 @@
     "scripts/test-c21-map-navigation-0985197.mjs",
     "scripts/test-c21-current-weather-0985197.mjs",
     "scripts/test-c21-map-ruc-0985198.mjs",
-    "scripts/test-c21-synoptic-buffering-0985200.mjs"
+    "scripts/test-c21-synoptic-buffering-0985200.mjs",
+    "scripts/test-c22-ruc-publication-recovery-0985201.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1900,7 +1901,8 @@
     "scripts/test-c21-map-navigation-0985197.mjs",
     "scripts/test-c21-current-weather-0985197.mjs",
     "scripts/test-c21-map-ruc-0985198.mjs",
-    "scripts/test-c21-synoptic-buffering-0985200.mjs"
+    "scripts/test-c21-synoptic-buffering-0985200.mjs",
+    "scripts/test-c22-ruc-publication-recovery-0985201.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2732,7 +2734,8 @@
     "worker-src/30-push-events.js",
     "worker-src/40-aviation-router.js",
     "scripts/test-c21-synoptic-buffering-0985200.mjs",
-    "docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md"
+    "docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md",
+    "scripts/test-c22-ruc-publication-recovery-0985201.mjs"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3413,7 +3416,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.200",
+  "version": "0.9.85.201",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
