@@ -47,6 +47,8 @@ assert.ok(text.includes(String(native.precipitationIntervalStartEpoch)),'Text mu
 assert.ok(!text.includes('voraussichtlich '+String(now+hour)+' ·'),'Quarter onset must not be rounded backwards');
 assert.match(shortTermPointSummary([dry],'kn','Europe/Berlin',now),/trocken/i,'Probability without precipitation is NOT precipitation onset');
 assert.match(cockpit,/shortTermPointSummary\(profileDisplayPoints,unit,timezone,profileNow,adjusted\)/,'Text must use same displayed hourly profile as graph');
+assert.match(cockpit,/shortTermPointSummary\(visible,unit,timezone,now,shortPoints\?\?\[\]\)/,'Navigation preview must reuse visible hourly intervals');
+assert.match(cockpit,/shortTermHours\(precipitationPresentationHours\(hours\)\)/,'Hour-only fallback must use forward-facing provider intervals');
 assert.doesNotMatch(cockpit,/<small className="cockpit-now90-cloud">Wolken/,'90m visible cards must not duplicate skybar cloud percentages');
 assert.match(cockpit,/keyPrefix="now90-quarter"/,'Skybar cloud science remains present');
 console.log('MID .211 WMO/ICAO freezing rain vs sleet, warm/unknown/cold/observed safety, shared text/icon semantics, 15m-to-1h onset and 90m cloud cleanup passed.');
