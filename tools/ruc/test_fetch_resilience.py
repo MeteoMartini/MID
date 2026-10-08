@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 import requests
 import fetch_and_build_ruc as fetch
+from test_meteo_integrity import MeteoIntegrityTests  # also collected by the existing CI unittest.main()
 
 
 class FetchResilience(unittest.TestCase):
@@ -115,6 +116,27 @@ class FetchResilience(unittest.TestCase):
             fetch.validate_hourly_coverage([Path('fake')], '2026-10-05T18:00', 2, 'T_2M')
         with patch.object(fetch, 'grib_valid_times', return_value=[base]), self.assertRaisesRegex(RuntimeError, 'data-incomplete.*T_2M'):
             fetch.validate_hourly_coverage([Path('fake')], '2026-10-05T18:00', 2, 'T_2M')
+
+    def test_duplicate_core_validity_rejected(self):
+        base = datetime(2026, 10, 5, 18, tzinfo=timezone.utc)
+        valid = [base, base, base + timedelta(hours=1)]
+        with patch.object(fetch, 'grib_valid_times', return_value=valid), self.assertRaisesRegex(RuntimeError, 'duplicate'):
+            fetch.validate_hourly_coverage([Path('fixture')], '2026-10-05T18:00', 1, 'T_2M')
+
+    def test_foreign_run_header_rejected_before_full_decode(self):
+        from eccodes import codes_grib_new_from_samples, codes_set, codes_get_message, codes_release
+        gid = codes_grib_new_from_samples('regular_ll_sfc_grib2')
+        try:
+            codes_set(gid, 'dataDate', 20261005)
+            codes_set(gid, 'dataTime', 1200)
+            data = codes_get_message(gid)
+        finally:
+            codes_release(gid)
+        with tempfile.TemporaryDirectory() as directory:
+            fixture = Path(directory) / 'foreign-run.grib2'
+            fixture.write_bytes(data)
+            with self.assertRaisesRegex(ValueError, 'initialization'):
+                fetch.validate_hourly_coverage([fixture], '2026-10-05T18:00', 0, 'T_2M')
 
     def test_incomplete_core_aborts_before_optional_or_eps(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -16,6 +16,7 @@ import requests
 from run_progress import report_run
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
+from meteo_integrity import validate_grib_origin
 
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
@@ -146,13 +147,15 @@ def download_one(url,target):
    tmp.unlink(missing_ok=True)
  retry_network(request,'DWD GRIB download')
 
-def grib_valid_times(path):
+def grib_valid_times(path,expected_run=None):
  from eccodes import codes_grib_new_from_file,codes_get,codes_release
  with open_grib_stream(path) as f:
   while True:
    gid=codes_grib_new_from_file(f)
    if gid is None:break
    try:
+    if expected_run is not None:
+     validate_grib_origin(codes_get(gid,'dataDate'),codes_get(gid,'dataTime'),expected_run)
     yield datetime.strptime(f"{int(codes_get(gid,'validityDate')):08d}{int(codes_get(gid,'validityTime')):04d}",'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
    finally:codes_release(gid)
 
@@ -160,8 +163,10 @@ def validate_hourly_coverage(paths,run,hours,param):
  base=datetime.fromisoformat(run.replace('Z','+00:00'))
  if base.tzinfo is None:base=base.replace(tzinfo=timezone.utc)
  targets={base+timedelta(hours=h) for h in range(hours+1)}
- actual={valid for path in paths for valid in grib_valid_times(path)}
- missing=sorted(targets-actual)
+ found=[valid for path in paths for valid in grib_valid_times(path,expected_run=base)]
+ if len(found)!=len(set(found)):
+  raise RuntimeError(f'data-incomplete: {param}: duplicate deterministic GRIB validity timestamps')
+ missing=sorted(targets-set(found))
  if missing:raise RuntimeError(f'data-incomplete: {param}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
 
 def stage_tree(s,url,target,hours,label,*,mode='hourly'):
