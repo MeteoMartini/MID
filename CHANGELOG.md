@@ -1,3 +1,9 @@
+# MID v0.9.85.212
+
+**Karten im Dark Mode:** Die Terminwahl für Radar und Karten passt ihre Schaltflächen und das Auswahlmenü jetzt korrekt an helle und dunkle Designs an. Auch auf schmalen Smartphones bleiben die Bedienelemente besser lesbar und erreichbar. Tastaturfokus und deaktivierte Zustände sind klarer erkennbar.
+
+**Datenqualität:** Im Hintergrund werden unerwartete DWD-RUC-Temperaturwerte präziser diagnostiziert. Ungültige Wetterdaten werden weiterhin nicht veröffentlicht.
+
 # MID v0.9.85.211
 
 Niederschlagsarten sind eindeutiger: Gefrierender Regen und Schneeregen haben jetzt unterscheidbare Symbole. Bei nicht durch kalte Oberflächen bestätigtem gefrierendem Regen wird ein Modellhinweis vorsichtiger formuliert, während bestätigtes Glätterisiko sichtbar bleibt. Der Kurzfristtext orientiert den Niederschlagsbeginn an der dargestellten Stunden-/15-Minuten-Zeitachse. Die 90-Minuten-Kacheln zeigen keine redundanten Wolkenprozente mehr; die Skybar bleibt unverändert.
