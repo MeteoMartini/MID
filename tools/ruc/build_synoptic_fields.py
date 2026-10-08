@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Five same-cycle native GRIB fields through the immutable DWD totals pipeline."""
-import bz2,gzip,hashlib,json,re,tempfile,threading
+import bz2,gzip,hashlib,json,re,tempfile,threading,time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
@@ -13,12 +13,19 @@ from build_model_map_fields import theta_e
 CORE_HOURS=(0,3,6,9,12,18,24,36,48)
 HOURS=(0,3,6,9,12,15,18,21,24,30,36,42,48)
 EXTENDED_HOURS=(60,72)
-ALLOWED_HOURS=HOURS+EXTENDED_HOURS
-MODELS={'icon-d2':('DWD ICON-D2','icon-d2',2.2,'germany_regular-lat-lon'),'icon-eu':('DWD ICON-EU','icon-eu',14,'europe_regular-lat-lon')}
+MAX_HORIZON={'icon-d2':48,'icon-eu':120,'icon':180,'gfs':384,'ifs':360}
+def extended_hours(model,stamp):
+    end=120 if model=='icon' and stamp.hour in (6,18) else MAX_HORIZON[model]
+    if model=='icon-d2':return ()
+    # Endpoint first, then 24-hour context and +60/+72. Optional and same-cycle.
+    return tuple(dict.fromkeys((end,*range(96,end,24),60,72)))
+ALLOWED_HOURS=tuple(sorted(set(HOURS+EXTENDED_HOURS+tuple(range(96,385,24))+(180,))))
+MODELS={'icon':('DWD ICON Global','icon',28,'global_icosahedral'),'icon-d2':('DWD ICON-D2','icon-d2',2.2,'germany_regular-lat-lon'),'icon-eu':('DWD ICON-EU','icon-eu',14,'europe_regular-lat-lon')}
 COMPONENTS=(('t',850),('relhum',850),('fi',500),('pmsl',None),('relhum',700),('u',300),('v',300))
+GRID_CACHE={}
 LOCK=threading.Lock();ALGORITHM='bolton-1980-lcl-v3-europe'
 
-def decode(payload,run,hour,field,level):
+def decode(payload,run,hour,field,level,native=None):
     with LOCK,tempfile.TemporaryFile() as file:
         file.write(bz2.decompress(payload) if payload[:3]==b'BZh' else payload);file.seek(0);gid=codes_grib_new_from_file(file)
         if gid is None:raise ValueError('empty GRIB')
@@ -30,16 +37,21 @@ def decode(payload,run,hour,field,level):
             if level is not None and (get('typeOfLevel')!='isobaricInhPa' or int(get('level'))!=level):raise ValueError('wrong pressure level')
             if level is None and get('typeOfLevel') not in ('meanSea','surface'):raise ValueError('wrong MSL level')
             allowed={'t':('t',),'q':('q',),'relhum':('r','relhum'),'fi':('fi','z','gh'),'pmsl':('msl','prmsl','pmsl'),'u':('u',),'v':('v',)}
-            if get('shortName') not in allowed[field] or get('gridType')!='regular_ll':raise ValueError('wrong parameter/grid')
-            ni,nj=int(get('Ni')),int(get('Nj'));lat=np.asarray(codes_get_array(gid,'latitudes')).reshape(nj,ni);lon=(np.asarray(codes_get_array(gid,'longitudes')).reshape(nj,ni)+180)%360-180
-            if not np.allclose(lat,lat[:,0,None]) or not np.allclose(lon,lon[0,None,:]):raise ValueError('nonrectangular grid')
-            rows=np.where((lat[:,0]>=29.5)&(lat[:,0]<=70.5))[0];cols=np.where((lon[0]>=-23.5)&(lon[0]<=62.5))[0];rows=rows[np.argsort(lat[rows,0])];cols=cols[np.argsort(lon[0,cols])]
-            # ICON-EU overview samples the original grid at 0.125 degrees.
-            # All seven inputs use exactly the same selection; no invented detail.
-            step=abs(float(lat[1,0]-lat[0,0]))
-            stride=2 if .06<step<.07 else 1
-            rows=rows[::stride];cols=cols[::stride]
-            values=np.asarray(codes_get_array(gid,'values')).reshape(nj,ni)[np.ix_(rows,cols)];values[values==get('missingValue')]=np.nan
+            if get('shortName') not in allowed[field] or get('gridType') not in (('unstructured_grid',) if native else ('regular_ll',)):raise ValueError('wrong parameter/grid')
+            if native:
+                from icon_global_grid import remap_native
+                out_lats,out_lons,values=remap_native(gid,native)
+            else:
+                ni,nj=int(get('Ni')),int(get('Nj'));lat=np.asarray(codes_get_array(gid,'latitudes')).reshape(nj,ni);lon=(np.asarray(codes_get_array(gid,'longitudes')).reshape(nj,ni)+180)%360-180
+                if not np.allclose(lat,lat[:,0,None]) or not np.allclose(lon,lon[0,None,:]):raise ValueError('nonrectangular grid')
+                rows=np.where((lat[:,0]>=29.5)&(lat[:,0]<=70.5))[0];cols=np.where((lon[0]>=-23.5)&(lon[0]<=62.5))[0];rows=rows[np.argsort(lat[rows,0])];cols=cols[np.argsort(lon[0,cols])]
+                # ICON-EU overview samples the original grid at 0.125 degrees.
+                # All seven inputs use exactly the same selection; no invented detail.
+                step=abs(float(lat[1,0]-lat[0,0]))
+                stride=2 if .06<step<.07 else 1
+                rows=rows[::stride];cols=cols[::stride]
+                values=np.asarray(codes_get_array(gid,'values')).reshape(nj,ni)[np.ix_(rows,cols)];values[values==get('missingValue')]=np.nan
+                out_lats,out_lons=np.round(lat[rows,0],6),np.round(lon[0,cols],6)
             if not values.size or np.isfinite(values).mean()<.4:raise ValueError('incomplete field')
             unit=str(get('units'))
             if field=='t' and unit!='K':raise ValueError('temperature unit')
@@ -57,7 +69,7 @@ def decode(payload,run,hour,field,level):
             if field in ('u','v') and unit not in ('m s**-1','m s-1'):raise ValueError('wind unit')
             ranges={'t':(170,340),'q':(0,.1),'relhum':(0,150),'fi':(350,650),'pmsl':(850,1100),'u':(-200,200),'v':(-200,200)};low,high=ranges[field]
             if np.any(values<low) or np.any(values>high):raise ValueError('physical range')
-            return np.round(lat[rows,0],6),np.round(lon[0,cols],6),values
+            return out_lats,out_lons,values
         finally:codes_release(gid)
 
 def simplify_line(line,tolerance):
@@ -87,16 +99,19 @@ def contours(values,lats,lons,interval):
 def write_fields(output,model,stamp,resolution,fields,lats,lons,hours=HOURS):
     output.mkdir(parents=True,exist_ok=True);frames=[]
     for hour in hours:
-        get=lambda f,level=None:fields[(hour,f,level)];theta=theta_e(get('t',850),get('relhum',850))-273.15
-        values=[int(round(v*10)) if np.isfinite(v) else None for v in theta.ravel()];stride=max(1,round(.65/(lats[1]-lats[0])));wind=[]
-        for y in range(0,len(lats),stride):
-            for x in range(0,len(lons),stride):
+        stride_display=2 if hour>72 else 1
+        axis_lats,axis_lons=lats[::stride_display],lons[::stride_display]
+        display_resolution=resolution*stride_display
+        get=lambda f,level=None:fields[(hour,f,level)][::stride_display,::stride_display];theta=theta_e(get('t',850),get('relhum',850))-273.15
+        values=[int(round(v*10)) if np.isfinite(v) else None for v in theta.ravel()];stride=max(1,int(np.ceil(.65/(axis_lats[1]-axis_lats[0]))));wind=[]
+        for y in range(0,len(axis_lats),stride):
+            for x in range(0,len(axis_lons),stride):
                 u,v=get('u',300)[y,x],get('v',300)[y,x]
-                if np.isfinite(u) and np.isfinite(v):wind.append([float(lons[x]),float(lats[y]),round(float(u),2),round(float(v),2)])
-        time=(stamp+timedelta(hours=hour)).isoformat();payload={'schema':'mid.synoptic.field.v1','model':model,'run':stamp.isoformat(),'time':time,'resolutionKm':resolution,'unit':'°C','scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'thetae':values,'height':contours(get('fi',500),lats,lons,4),'pressure':contours(get('pmsl'),lats,lons,4),'humidity':{'type':'FeatureCollection','features':[f for f in contours(get('relhum',700),lats,lons,20)['features'] if f['properties']['level'] in (60,80)]},'thetaContours':contours(theta,lats,lons,6),'wind':wind}
+                if np.isfinite(u) and np.isfinite(v):wind.append([float(axis_lons[x]),float(axis_lats[y]),round(float(u),2),round(float(v),2)])
+        time=(stamp+timedelta(hours=hour)).isoformat();payload={'schema':'mid.synoptic.field.v1','model':model,'run':stamp.isoformat(),'time':time,'resolutionKm':display_resolution,'unit':'°C','scale':.1,'lats':axis_lats.tolist(),'lons':axis_lons.tolist(),'thetae':values,'height':contours(get('fi',500),axis_lats,axis_lons,4),'pressure':contours(get('pmsl'),axis_lats,axis_lons,4),'humidity':{'type':'FeatureCollection','features':[f for f in contours(get('relhum',700),axis_lats,axis_lons,20)['features'] if f['properties']['level'] in (60,80)]},'thetaContours':contours(theta,axis_lats,axis_lons,6),'wind':wind}
         raw=json.dumps(payload,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode();name=f'{model}-{hour:03d}.bin';data=gzip.compress(raw,mtime=0)
         if len(raw)>12_000_000:raise ValueError('decoded field budget')
-        (output/name).write_bytes(data);frames.append({'hour':hour,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+        (output/name).write_bytes(data);frames.append({'hour':hour,'resolutionKm':display_resolution,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
     return frames
 
 def model_product(model,output,now=None,hours=HOURS,cached=None,strict_run=False):
@@ -105,6 +120,12 @@ def model_product(model,output,now=None,hours=HOURS,cached=None,strict_run=False
         stamp=latest-timedelta(hours=6*offset);run=stamp.strftime('%Y%m%d%H');root=f'https://opendata.dwd.de/weather/nwp/{folder}/grib/{stamp:%H}/';jobs=[]
         try:
             if cached and cached['run']==stamp.isoformat():return cached
+            native=None;grid_origins=[]
+            if model=='icon':
+                from icon_global_grid import load_icon_grid
+                if run not in GRID_CACHE:
+                    GRID_CACHE.clear();GRID_CACHE[run]=load_icon_grid(root,run)
+                native,grid_origins=GRID_CACHE[run]
             for field in {f for f,_ in COMPONENTS}:
                 r=requests.get(root+field+'/',timeout=25);r.raise_for_status();names=re.findall(r'href="([^"/]+\.grib2.bz2)"',r.text)
                 for hour in hours:
@@ -114,9 +135,11 @@ def model_product(model,output,now=None,hours=HOURS,cached=None,strict_run=False
                         if len(candidates)!=1:raise ValueError(f'incomplete {model} {field}/{level}/{hour}')
                         jobs.append((hour,field,level,root+field+'/'+candidates[0]))
             def load(job):
-                hour,field,level,url=job;r=requests.get(url,timeout=60);r.raise_for_status();return hour,field,level,decode(r.content,run,hour,field,level),{'url':url,'sha256':hashlib.sha256(r.content).hexdigest()}
+                hour,field,level,url=job;r=requests.get(url,timeout=60);r.raise_for_status();
+                if len(r.content)>32_000_000:raise ValueError('DWD input field budget')
+                return hour,field,level,decode(r.content,run,hour,field,level,native),{'url':url,'sha256':hashlib.sha256(r.content).hexdigest()}
             with ThreadPoolExecutor(max_workers=4) as pool:loaded=list(pool.map(load,jobs))
-            fields={};origins=[];lats=lons=None
+            fields={};origins=list(grid_origins);lats=lons=None
             for hour,field,level,(lat,lon,values),origin in loaded:
                 if lats is not None and (not np.array_equal(lats,lat) or not np.array_equal(lons,lon)):raise ValueError('grid mismatch')
                 lats,lons=lat,lon;fields[(hour,field,level)]=values;origins.append(origin)
@@ -202,23 +225,29 @@ def restore_cache(output):
     except (requests.RequestException,ValueError,KeyError):return {}
 
 def build(output):
-    products={};errors={};cached=restore_cache(output)
-    for model in (*MODELS,'gfs','ifs'):
+    products={};errors={};cached=restore_cache(output);optional_deadline=None
+    builders={model:(model_product if model in MODELS else global_product) for model in ('icon-d2','icon-eu','gfs','ifs','icon')}
+    # Established cores first. The new ICON product is optional and sparse.
+    for model,builder in builders.items():
         try:
-            builder=model_product if model in MODELS else global_product
-            product=builder(model,output,cached=cached.get(model))
-            # Optional horizons never choose a different cycle or invalidate the core.
-            if model!='icon-d2':
-                for hour in EXTENDED_HOURS:
-                    if any(f['hour']==hour for f in product['frames']):continue
-                    try:
-                        extra=builder(model,output,now=datetime.fromisoformat(product['run']),hours=(hour,),strict_run=True)
-                        if extra['run']!=product['run']:raise ValueError('optional horizon run mismatch')
-                        product['frames'].extend(extra['frames']);product['origins'].extend(extra['origins'])
-                    except (requests.RequestException,ValueError,RuntimeError) as error:print(f'::notice::{model} optional +{hour}h unavailable: {error}',flush=True)
-            product['frames'].sort(key=lambda f:f['hour']);products[model]=product
-            print(f'{model}: {len(product["frames"])} complete terms',flush=True)
+            if model=='icon':optional_deadline=time.monotonic()+360
+            products[model]=builder(model,output,hours=CORE_HOURS if model=='icon' else HOURS,cached=cached.get(model))
         except (requests.RequestException,ValueError,RuntimeError) as e:errors[model]=str(e);print(f'::warning::{model} synoptic unavailable: {e}',flush=True)
+    # Round robin: each model's endpoint gets a chance before extra density.
+    optional={model:extended_hours(model,datetime.fromisoformat(p['run'])) for model,p in products.items()}
+    for position in range(max((len(h) for h in optional.values()),default=0)):
+        for model,product in products.items():
+            if time.monotonic()>optional_deadline:break
+            if position>=len(optional[model]):continue
+            hour=optional[model][position]
+            if any(f['hour']==hour for f in product['frames']):continue
+            try:
+                extra=builders[model](model,output,now=datetime.fromisoformat(product['run']),hours=(hour,),strict_run=True)
+                if extra['run']!=product['run']:raise ValueError('optional horizon run mismatch')
+                product['frames'].extend(extra['frames']);product['origins'].extend(extra['origins'])
+            except (requests.RequestException,ValueError,RuntimeError) as error:print(f'::notice::{model} optional +{hour}h unavailable: {error}',flush=True)
+    for model,product in products.items():
+        product['frames'].sort(key=lambda f:f['hour']);print(f'{model}: {len(product["frames"])} complete terms',flush=True)
     if not products:raise RuntimeError('no complete synoptic model')
     payload={'schema':'mid.synoptic.fields.v1','generatedAt':datetime.now(timezone.utc).isoformat(),'algorithm':ALGORITHM,'models':products,'unavailable':errors};(output/'index.json').write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n');return payload
 if __name__=='__main__':

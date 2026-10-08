@@ -121,10 +121,15 @@ def fit_synoptic_budget(payload,available):
     core_hours={0,3,6,9,12,18,24,36,48}
     def synoptic_size():
         return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames'])
-    # Protect extended endpoints before optional near-term density, then trim by bytes.
-    candidates=sorted(((frame['hour']<=48,frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
+    # ICON Global is optional: never lose established cores or RUC to its cost.
+    if 'icon' in payload['models']:
+        minimum=sum(f['bytes'] for p in payload['models'].values() for f in p['frames'] if f['hour'] in core_hours)
+        if minimum+len(json.dumps(payload).encode())>available:del payload['models']['icon']
+    endpoints={model:max(f['hour'] for f in product['frames']) for model,product in payload['models'].items()}
+    # Trim optional density before context, and preserve each model's endpoint last.
+    candidates=sorted(((frame['hour']<=48,frame['hour']!=endpoints[model],frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
     while synoptic_size()>available and candidates:
-        _,_,model,hour=candidates.pop(0)
+        _,_,_,model,hour=candidates.pop(0)
         payload['models'][model]['frames']=[frame for frame in payload['models'][model]['frames'] if frame['hour']!=hour]
     if synoptic_size()>available:raise ValueError('complete synoptic core exceeds remaining Pages budget')
     return payload
@@ -238,7 +243,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         prefix=f'runs/{run}__synoptic_{digest(fields_index)[:16]}/synoptic-fields/'
         files=[fields_index]
         for model,product in payload['models'].items():
-            if model not in ('icon-d2','icon-eu','gfs','ifs'):raise ValueError('unknown synoptic model')
+            if model not in ('icon-d2','icon-eu','icon','gfs','ifs'):raise ValueError('unknown synoptic model')
             for frame in product['frames']:
                 name=frame['file']
                 if not re.fullmatch(re.escape(model)+r'-\d{3}\.bin',name):raise ValueError('unsafe synoptic file')

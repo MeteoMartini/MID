@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 import numpy as np
 from eccodes import codes_grib_new_from_samples,codes_set,codes_set_values,codes_get_message,codes_release
-from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS,EXTENDED_HOURS
+from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS,EXTENDED_HOURS,extended_hours
 class SynopticTest(unittest.TestCase):
     def test_independent_metpy_references(self):
         # Bolton saturation differs from MetPy Ambaum saturation by <0.3 K here.
@@ -59,14 +59,34 @@ class SynopticTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
             result=module.build(Path(td))
         self.assertEqual([f['hour'] for f in result['models']['icon-d2']['frames']],list(HOURS))
-        self.assertEqual([f['hour'] for f in result['models']['icon-eu']['frames']],list(HOURS)+[60])
-        self.assertEqual([f['hour'] for f in result['models']['gfs']['frames']],list(HOURS+EXTENDED_HOURS))
+        self.assertEqual([f['hour'] for f in result['models']['icon-eu']['frames']],sorted(set(HOURS+extended_hours('icon-eu',stamp))-{72}))
+        self.assertEqual([f['hour'] for f in result['models']['gfs']['frames']],sorted(set(HOURS+extended_hours('gfs',stamp))))
         self.assertFalse(result['unavailable'])
         for model,hours,strict,now in calls:
-            if hours!=HOURS:self.assertTrue(strict);self.assertEqual(now,stamp);self.assertNotEqual(model,'icon-d2')
+            if hours not in (HOURS,CORE_HOURS):self.assertTrue(strict);self.assertEqual(now,stamp);self.assertNotEqual(model,'icon-d2')
     def test_horizon_budget_drops_density_before_range(self):
         from prepare_ruc_pages import fit_synoptic_budget
         payload={'models':{'gfs':{'frames':[{'hour':h,'bytes':1000} for h in HOURS+EXTENDED_HOURS]}}}
         result=fit_synoptic_budget(payload,13000)
         self.assertTrue(set(CORE_HOURS+EXTENDED_HOURS).issubset(f['hour'] for f in result['models']['gfs']['frames']))
+    def test_icon_native_remap_grid_identity_and_coverage(self):
+        from icon_global_grid import native_mapping,remap_native
+        from unittest.mock import patch
+        lat,lon=np.meshgrid(np.arange(29.5,70.51,.25),np.arange(-23.5,62.51,.25),indexing='ij')
+        mapping=native_mapping(lat.ravel(),lon.ravel(),'test-grid')
+        with patch('icon_global_grid.codes_get',side_effect=lambda _,k:'test-grid' if k=='uuidOfHGrid' else 9999),patch('icon_global_grid.codes_get_array',return_value=lat.ravel()):
+            a,b,v=remap_native(None,mapping)
+        np.testing.assert_array_equal(v,lat)
+        with patch('icon_global_grid.codes_get',return_value='wrong-grid'):
+            with self.assertRaises(ValueError):remap_native(None,mapping)
+        with self.assertRaises(ValueError):native_mapping(np.arange(10),np.arange(10),'grid')
+    def test_horizon_cycle_and_optional_icon_budget(self):
+        from prepare_ruc_pages import fit_synoptic_budget
+        self.assertEqual(extended_hours('icon',datetime(2026,10,8,0,tzinfo=timezone.utc))[0],180)
+        self.assertEqual(extended_hours('icon',datetime(2026,10,8,6,tzinfo=timezone.utc))[0],120)
+        for model,end in [('gfs',384),('ifs',360),('icon-eu',120)]:self.assertEqual(extended_hours(model,datetime.now(timezone.utc))[0],end)
+        payload={'models':{id:{'frames':[{'hour':h,'bytes':1000} for h in CORE_HOURS+(60,72,120)]} for id in ('icon-eu','icon')}}
+        result=fit_synoptic_budget(payload,15000)
+        self.assertNotIn('icon',result['models'])
+        self.assertIn(120,[f['hour'] for f in result['models']['icon-eu']['frames']])
 if __name__=='__main__':unittest.main()

@@ -1,5 +1,5 @@
-# MID v0.9.85.203 · Synoptik-Katalog ohne Terminverlust aktualisieren
+# MID v0.9.85.204 · Bewölkung und längere Synoptik
 
-Beim Neuladen bleibt der letzte geprüfte und noch gültige Synoptikkatalog sichtbar. Modellwahl, Kartenzeitachse und manuell gewählte Gültigkeitszeit bleiben während einer verzögerten Antwort erhalten. Das angebotene Zeitfenster hängt vom bestätigten Modellkatalog ab, auch wenn der bisherige Termin außerhalb eines neu gewählten Modells liegt.
+Das 24-Stunden-Profil verwendet für Bewölkungswerte, Wetterzeichen und Skybar denselben Stundenstand. Die 90-Minuten-Ansicht behält ihre feinere Auflösung. Nachtfelder nennen den tatsächlichen Bewölkungswert und werden bei unbekannten Daten nicht als klare Nacht ausgegeben.
 
-Die Kartenprüfung kontrolliert feste Gültigkeitszeiten statt veränderlicher Listenpositionen und hält die Katalogantwort gezielt zurück. Die Synoptikdarstellung, erweiterten Modelltermine und RUC-Recovery aus .202 bleiben erhalten.
+Die Synoptik prüft zusätzlich ICON Global sowie modellabhängige längere Horizonte: ICON-EU bis +120 h, ICON Global laufabhängig bis +120/+180 h, IFS bis +360 h und GFS bis +384 h. Angeboten werden ausschließlich vollständige Termine desselben Laufs, soweit Daten und das unveränderte Speicherbudget verfügbar sind. Spätere Termine nutzen ein gröberes, gekennzeichnetes Übersichtsraster. Navigation und Terminauswahl zeigen den zweibuchstabigen Wochentag.
