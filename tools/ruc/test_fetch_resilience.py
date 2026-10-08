@@ -23,8 +23,7 @@ class FetchResilience(unittest.TestCase):
             gid = codes_grib_new_from_samples('regular_ll_sfc_grib2')
             try:
                 codes_set(gid, 'centre', 78)
-                codes_set(gid, 'centre', 78)
-            codes_set(gid, 'dataDate', 20261005)
+                codes_set(gid, 'dataDate', 20261005)
                 codes_set(gid, 'dataTime', 1800)
                 codes_set(gid, 'step', hour)
                 payload.extend(codes_get_message(gid))
