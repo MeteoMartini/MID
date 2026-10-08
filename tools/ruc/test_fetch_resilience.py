@@ -129,6 +129,7 @@ class FetchResilience(unittest.TestCase):
         from eccodes import codes_grib_new_from_samples, codes_set, codes_get_message, codes_release
         gid = codes_grib_new_from_samples('regular_ll_sfc_grib2')
         try:
+            codes_set(gid, 'centre', 78)
             codes_set(gid, 'dataDate', 20261005)
             codes_set(gid, 'dataTime', 1200)
             data = codes_get_message(gid)
