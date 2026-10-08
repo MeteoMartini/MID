@@ -56,9 +56,21 @@ with tempfile.TemporaryDirectory() as td:
  (src/'precipitation-totals.json').write_text(json.dumps({'schema':'mid.icon-d2.totals.v1','run':'2026-10-01T12:00:00+00:00'}))
  next_result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=4)
  assert next_result['precipitationTotals']['key']!=previous_key, 'independent ICON cycle must receive a new immutable URL even with identical RUC run'
+ # C21 products share the existing immutable object manifest and unchanged budget.
+ import hashlib
+ syn=src/'synoptic-fields';syn.mkdir();data=b'checked-five-component-field';(syn/'icon-eu-003.bin').write_bytes(data)
+ index={'schema':'mid.synoptic.fields.v1','generatedAt':'2026-10-07T12:00:00Z','models':{'icon-eu':{'frames':[{'file':'icon-eu-003.bin','sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)}]}}}
+ (syn/'index.json').write_text(json.dumps(index));published=prepare(src,out,4,4);key=published['synopticFields']['key'];assert (out/'ruc'/key).is_file();assert any(o['key'].endswith('/synoptic-fields/icon-eu-003.bin') for o in published['pages']['objects']);assert published['pages']['budgetBytes']==900_000_000
+ (syn/'icon-eu-003.bin').write_bytes(b'tampered')
+ try:prepare(src,out,4,4);raise AssertionError('corrupt field accepted')
+ except ValueError as error:assert 'synoptic digest mismatch' in str(error)
  print('RUC GitHub Pages free-profile budget + science-prioritized projection contract OK')
 
 import unittest
 from test_native_map_products import MapProductsTest
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(MapProductsTest)
+if not unittest.TextTestRunner().run(suite).wasSuccessful():raise SystemExit(1)
+
+from test_synoptic_fields import SynopticTest
+suite=unittest.defaultTestLoader.loadTestsFromTestCase(SynopticTest)
 if not unittest.TextTestRunner().run(suite).wasSuccessful():raise SystemExit(1)

@@ -39,7 +39,7 @@ assert.ok(pollenSource.includes("if(!data)")&&!pollenSource.includes("if(error||
 assert.ok(anchorSource.includes("ageMinutes<=40")&&anchorSource.includes("distanceKm<=20"),'Beobachtete Niederschlagsart muss auf den strengen lokalen Kurzfristanker begrenzt bleiben.');
 assert.ok(weatherSource.includes("presentWeatherObservedAt")&&weatherSource.includes("presentWeatherDistance")&&weatherSource.includes("presentWeatherProvider"),'Hyperlokale Aggregation muss Provenienz der beobachteten Wettererscheinung erhalten.');
 assert.ok(weatherSource.includes("age<=40")&&weatherSource.includes("meta.distance<=20000"),'Schon die Auswahl der repräsentativen Niederschlagsmeldung muss veraltete oder zu entfernte Meldungen ausschließen.');
-assert.ok(appSource.includes("section&&(!area||primaryNavigationAreaForSection(section)===area)"),'Primärbereich muss beim Neustart einen widersprüchlichen alten Untermodulwert überstimmen.');
+assert.ok(appSource.includes("section&&(!area||area==='more'||primaryNavigationAreaForSection(section)===area)"),'Primärbereich muss beim Neustart einen widersprüchlichen alten Untermodulwert überstimmen.');
 assert.ok(appSource.includes("!MODERN_FORECAST_MODULES.includes(active as DashboardModuleId)"),'Späte Forecast-Horizon-Ereignisse dürfen Aktuell/Karten/Mehr nicht überschreiben.');
 
 const require=createRequire(import.meta.url),ts=require('typescript-strada');

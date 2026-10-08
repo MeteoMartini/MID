@@ -86,7 +86,7 @@ def model_product(model,output,now=None,hours=HOURS,cached=None):
                 for hour in hours:
                     for f,level in COMPONENTS:
                         if f!=field:continue
-                        candidates=[n for n in names if grid in n and f'_{run}_{hour:03d}_' in n and (f'_{level}_{field}.' in n if level is not None else 'single-level' in n)]
+                        candidates=[n for n in names if grid in n and f'_{run}_{hour:03d}_' in n and (f'_{level}_{field}.' in n.lower() if level is not None else 'single-level' in n)]
                         if len(candidates)!=1:raise ValueError(f'incomplete {model} {field}/{level}/{hour}')
                         jobs.append((hour,field,level,root+field+'/'+candidates[0]))
             def load(job):
@@ -115,7 +115,9 @@ def select_message(payload,field,level):
 def global_product(model,output,now=None,hours=HOURS,cached=None):
     now=now or datetime.now(timezone.utc);cycle=12 if model=='ifs' else 6;latest=now.replace(hour=now.hour//cycle*cycle,minute=0,second=0,microsecond=0);failures=[]
     for offset in range(3):
-        stamp=latest-timedelta(hours=cycle*offset);run=stamp.strftime('%Y%m%d%H');fields={};origins=[];lats=lons=None
+        stamp=latest-timedelta(hours=cycle*offset);
+        if now-stamp>timedelta(hours=24):continue
+        run=stamp.strftime('%Y%m%d%H');fields={};origins=[];lats=lons=None
         try:
             if cached and cached['run']==stamp.isoformat():return cached
             for hour in hours:
@@ -148,10 +150,37 @@ def global_product(model,output,now=None,hours=HOURS,cached=None):
         except (requests.RequestException,ValueError,RuntimeError) as error:failures.append(str(error))
     raise RuntimeError('; '.join(failures))
 
+def restore_cache(output):
+    """Reuse only complete SHA-bound products for an identical model cycle."""
+    try:
+        base='https://midwx.app/ruc/';r=requests.get(base+'latest.json',timeout=15);r.raise_for_status();key=r.json().get('synopticFields',{}).get('key','');match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_([a-f0-9]{16})/synoptic-fields/index.json',key)
+        if not match:return {}
+        r=requests.get(base+key,timeout=20);r.raise_for_status()
+        if hashlib.sha256(r.content).hexdigest()[:16]!=match[1]:return {}
+        index=r.json()
+        if index.get('schema')!='mid.synoptic.fields.v1' or index.get('algorithm')!=ALGORITHM:return {}
+        cached={}
+        for model,p in index.get('models',{}).items():
+            try:
+                stamp=datetime.fromisoformat(p['run']);age=datetime.now(timezone.utc)-stamp
+                if model not in (*MODELS,'gfs','ifs') or age<timedelta(hours=-1) or age>timedelta(hours=24) or tuple(f['hour'] for f in p['frames'])!=HOURS:continue
+                pending=[]
+                for f in p['frames']:
+                    if f['file']!=f"{model}-{f['hour']:03d}.bin" or not re.fullmatch('[a-f0-9]{64}',f['sha256']) or not 0<f['bytes']<=12_000_000:raise ValueError('cached reference')
+                    r=requests.get(base+key.rsplit('/',1)[0]+'/'+f['file'],timeout=25);r.raise_for_status()
+                    if len(r.content)!=f['bytes'] or hashlib.sha256(r.content).hexdigest()!=f['sha256']:raise ValueError('cached digest')
+                    pending.append((f['file'],r.content))
+                output.mkdir(parents=True,exist_ok=True)
+                for name,data in pending:(output/name).write_bytes(data)
+                cached[model]=p
+            except (requests.RequestException,ValueError,KeyError):continue
+        return cached
+    except (requests.RequestException,ValueError,KeyError):return {}
+
 def build(output):
-    products={};errors={}
+    products={};errors={};cached=restore_cache(output)
     for model in (*MODELS,'gfs','ifs'):
-        try:products[model]=(model_product if model in MODELS else global_product)(model,output);print(f'{model}: {len(products[model]["frames"])} complete terms',flush=True)
+        try:products[model]=(model_product if model in MODELS else global_product)(model,output,cached=cached.get(model));print(f'{model}: {len(products[model]["frames"])} complete terms',flush=True)
         except (requests.RequestException,ValueError,RuntimeError) as e:errors[model]=str(e);print(f'::warning::{model} synoptic unavailable: {e}',flush=True)
     if not products:raise RuntimeError('no complete synoptic model')
     payload={'schema':'mid.synoptic.fields.v1','generatedAt':datetime.now(timezone.utc).isoformat(),'algorithm':ALGORITHM,'models':products,'unavailable':errors};(output/'index.json').write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n');return payload

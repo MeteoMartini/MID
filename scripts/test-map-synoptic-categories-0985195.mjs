@@ -10,15 +10,13 @@ try{
  const {UNIFIED_MAP_PARAMETERS,groupedUnifiedParameters,unifiedSources}=await import(pathToFileURL(path.join(temp,'unifiedMapCatalog.js')));
  const {weatherMapProduct,weatherMapModel}=await import(pathToFileURL(path.join(temp,'WeatherMapsData.js')));assert.equal(weatherMapProduct('obsolete-saved-id').id,'icon-d2-precipitation-totals');assert.equal(weatherMapModel('obsolete-saved-id').id,'observations','New models must not change legacy fallback defaults');
  const run='2026-10-07T12:00:00Z',time='2026-10-07T18:00:00Z',target=Date.parse(time);
- const data=SYNOPTIC_COMPONENTS.map(c=>({layer:c.layer,elevations:c.level?[c.level]:[],referenceTimes:[run],times:[time],styles:[{name:c.fill?'t_below500hPa_isoarea':'qa_isoline_label',title:'Verified style'}]}));
- const plan=synopticCompositePlan(data,target);assert.ok(plan);assert.equal(plan.run,run);assert.equal(plan.time,time);assert.equal(plan.components[0].level,850);assert.equal(plan.components[1].level,500);
- assert.equal(synopticCompositePlan(data.map((d,i)=>i===1?{...d,referenceTimes:['2026-10-07T06:00:00Z']}:d),target),null,'Different initialization never forms a composite');
- assert.equal(synopticCompositePlan(data.map((d,i)=>i===1?{...d,times:['2026-10-07T21:00:00Z']}:d),target),null,'Different valid times never form a composite');
- assert.equal(synopticCompositePlan(data.map((d,i)=>i===0?{...d,elevations:[500]}:d),target),null,'850 hPa cannot become 500 hPa');
- assert.equal(synopticCompositePlan(data.map((d,i)=>i===0?{...d,styles:[{name:'t_500hPa_isoarea'}]}:d),target),null,'Level-restricted styles are respected');
- assert.equal(synopticCompositePlan(data,target+91*60000),null);assert.equal(synopticCompositePlan(data.slice(1),target),null);
+ const data={label:'DWD ICON-EU',run,resolutionKm:7,license:'CC BY 4.0',frames:[{hour:6,time,file:'icon-eu-006.bin'}]};
+ const plan=synopticCompositePlan(data,target);assert.ok(plan);assert.equal(plan.run,run);assert.equal(plan.time,time);assert.equal(plan.components.length,5);assert.equal(plan.components[0].level,850);assert.equal(plan.components[1].level,500);assert.equal(plan.components[3].level,700);assert.equal(plan.components[4].level,300);
+ assert.equal(synopticCompositePlan(data,target+91*60000),null);assert.equal(synopticCompositePlan(undefined,target),null);
+ // Run/time/grid/level identities now share one native five-component object,
+ // instead of five independent provider styles; field validation covers corrupt identities.
  const grouped=groupedUnifiedParameters(UNIFIED_MAP_PARAMETERS),ids=grouped.flatMap(g=>g.parameters.map(p=>p.id));assert.equal(ids.length,new Set(ids).size);assert.deepEqual([...ids].sort(),UNIFIED_MAP_PARAMETERS.map(p=>p.id).sort(),'Every parameter appears in exactly one group');
- assert.deepEqual(unifiedSources('synoptic',null,false,false).map(s=>s.id),['icon']);assert.ok(unifiedSources('temperature',null,false,false).some(s=>s.id==='icon-eu'));
+ assert.deepEqual(unifiedSources('synoptic',null,false,false).map(s=>s.id),[]);assert.ok(unifiedSources('temperature',null,false,false).some(s=>s.id==='icon-eu'));
  const worker=await readFile('worker-src/20-composite-models.js','utf8');for(const layer of ['Icon-eu_reg00625_fd_sl_TOTPREC12H','Icon_reg025_fd_sl_TOTPREC12H'])assert.ok(worker.includes(layer));
  const config=worker.slice(worker.indexOf('const WEATHER_MAP_LAYER_CONFIG='),worker.indexOf('\nconst WMS_ALLOWED_LAYERS='));
  const responseFunction=worker.slice(worker.indexOf('async function weatherMapWmsResponse('),worker.indexOf('async function compositeWmsResponse('));

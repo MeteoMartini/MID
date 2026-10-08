@@ -1,3 +1,7 @@
+## MID v0.9.85.197 · MID-C21 Wetterkarte, Synoptik und iPad-Rückkehr
+
+Verifizierte Basis: main = mid-stable = `55bde6e4ed20127a32403c54546379fb6e86943c` (.196). Current-UI mit Skybar über dem Graphen, eine auswählbare OSM-Topologie, native fünfteilige GRIB-Synoptik und getrennte Inhalts-/Menü-Rückkehr. Handoff grün: Run 37694186641 für Head 6e4d3fc39ace83ae17c3b5a71e6ed9c06a902030. Details: `docs/implementation/MID_C21_CURRENT_WEATHER_0.9.85.197.md`. Sämtliche Release-/Sicherheitsgates unverändert.
+
 ## MID v0.9.85.196 · MID-C21 vollständiger Handoff
 
 Verifizierte Basis: main = mid-stable = `cd3f88d3852591a6375fb46701f11708d118b6f1` (.195). Der read-only Handoff-Gate erhält für den unveränderten vollständigen Verify-Aufruf 25 statt 15 Minuten innerhalb des bestehenden 30-Minuten-Jobrahmens. Grund: Run 37683018228 meldete bis 900/938 Tests null Fehler und wurde am Zeitlimit beendet. UI-Übernahme folgt erst nach erneut grünem Handoff auf aktueller Stable-Basis. Details: `docs/implementation/MID_C21_HANDOFF_TIME_BUDGET_0.9.85.196.md`. Sämtliche Berechtigungen, Prüfungen und Releasegrenzen unverändert.

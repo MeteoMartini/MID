@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const source=readFileSync('src/App.tsx','utf8'),start=source.indexOf('className="current-weather-thread"'),sky=source.indexOf('className="current-weather-thread-sky"',start),curve=source.indexOf('<MidWeatherThread',start),axis=source.indexOf('className="current-weather-thread-axis"',start);assert.ok(start>0&&sky>start&&curve>sky&&axis>curve);for(const icon of ['CloudRain','Wind','Droplets','Gauge'])assert.ok(source.includes(`<${icon} size={14}/>`));if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-c21-current-browser.mjs'],{stdio:'inherit',timeout:360000});console.log('C21 current weather DOM order and responsive browser fixture retained.');

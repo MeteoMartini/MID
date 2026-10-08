@@ -40,14 +40,13 @@ for(const token of [
  "if(id==='forecast'||id==='ensemble'||id==='long-range')return'forecast'",
  "if(id==='composite'||id==='weather-maps')return'composite'",
  "persistLastPrimaryNavigationArea(primaryNavigationAreaForSection(id))",
- "persistLastPrimaryNavigationArea('more')",
- "readLastPrimaryNavigationArea()==='more'"
+ "useTransientNavigationDrawer()"
 ])assert.ok(app.includes(token),'Persistenz der Primärnavigation fehlt: '+token);
-assert.ok(app.includes("!/^#mid-section-[a-z-]+$/.test(location.hash)&&readLastPrimaryNavigationArea()==='more'"),'Mehr darf nur ohne expliziten Section-Deep-Link automatisch wieder öffnen.');
+assert.ok(!app.includes("onClick={()=>{persistLastPrimaryNavigationArea('more')"),'Transient menu must not replace content state.');
 assert.ok(!app.includes("if(/^#mid-section-[a-z-]+$/.test(location.hash))history.replaceState(null,'',`${location.pathname}${location.search}`)"),'Explizite #mid-section-Deep-Links dürfen beim Start nicht mehr gelöscht werden.');
 assert.ok(app.includes("hashId&&DASHBOARD_MODULE_DEFINITIONS.some(item=>item.id===hashId)?hashId:stored==='place'?undefined:stored"),'Expliziter Section-Deep-Link muss vor dem gespeicherten Bereich Vorrang behalten.');
 assert.ok(app.includes("closeDrawer=()=>{if(activeId&&activeId!=='place')persistLastPrimaryNavigationArea(primaryNavigationAreaForSection(activeId as DashboardModuleId));else persistLastPrimaryNavigationArea('current');onDrawerOpen(false)}"),'Manuelles Schließen von Mehr muss zum darunter aktiven Bereich zurückpersistieren.');
-assert.ok(app.includes("section&&(!area||primaryNavigationAreaForSection(section)===area)")&&app.includes('return primaryNavigationFallback(area)'), 'Primärer Hauptbereich muss beim Start autoritativ sein; ein widersprüchlicher alter Untermodulwert darf ihn nicht überschreiben.');
+assert.ok(app.includes("section&&(!area||area==='more'||primaryNavigationAreaForSection(section)===area)")&&app.includes("return area==='more'?'current':primaryNavigationFallback(area)"), 'Primärer Hauptbereich muss beim Start autoritativ sein; ein widersprüchlicher alter Untermodulwert darf ihn nicht überschreiben.');
 assert.ok(app.includes("!MODERN_FORECAST_MODULES.includes(active as DashboardModuleId)")&&app.includes("persistLastPrimaryNavigationArea(primaryNavigationAreaForSection(id))"),'Forecast-Horizon-Ereignisse dürfen nur im aktiven Prognosebereich persistieren und müssen Heute/Vorhersage korrekt unterscheiden.');
 assert.ok(app.includes("lastDashboardSectionRef=useRef<DashboardModuleId|'place'|''>(activeNavSection)"),'Aktive Navigation braucht einen Lifecycle-Ref.');
 assert.ok(app.includes("window.addEventListener('pagehide',flushNavigation)")&&app.includes("document.visibilityState==='hidden'"),'Die zuletzt sichtbare Auswahl muss vor Suspend/Schließen nochmals gesichert werden.');
