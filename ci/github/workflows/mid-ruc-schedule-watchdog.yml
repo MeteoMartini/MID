@@ -91,14 +91,36 @@ jobs:
           # Do not stack repair runs. A running RUC workflow or any dispatch started
           # in the last 18 minutes is sufficient; its own freshness guard decides
           # whether a rebuild is actually necessary.
+          main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          stable_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')"
+          [[ "$main_sha" =~ ^[a-f0-9]{40}$ && "$stable_sha" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          if [ "$main_sha" != "$stable_sha" ]; then
+            echo "RUC recovery deferred: MID release not yet promoted to stable."
+            exit 0
+          fi
+
           recent_json="$(gh api -X GET "repos/${GITHUB_REPOSITORY}/actions/workflows/${RUC_WORKFLOW}/runs?per_page=30")"
-          active_url="$(printf '%s' "$recent_json" | jq -r '[.workflow_runs[] | select(.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "pending" or .status == "requested")][0].html_url // empty')"
+          active_rows="$(printf '%s' "$recent_json" | jq -r 'if (.workflow_runs | type) != "array" then error("invalid RUC run list") else .workflow_runs[] | select(.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "pending" or .status == "requested") | if (.id | type) != "number" or .id <= 0 then error("invalid active RUC run id") else [.id, .status, (.run_started_at // .created_at), .html_url] | @tsv end end')"
+          active_url=''
+          while IFS=$'\t' read -r run_id run_status run_created run_url; do
+            [ -n "$run_id" ] || continue
+            run_epoch="$(date -u -d "$run_created" +%s 2>/dev/null || echo 0)"
+            if [[ "$run_status" =~ ^(queued|pending|requested)$ ]] && [ "$run_epoch" -gt 0 ] && [ "$run_epoch" -lt "$((now_epoch - 42 * 60))" ]; then
+              jobs_json="$(gh api -X GET "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?filter=latest&per_page=1")"
+              if printf '%s' "$jobs_json" | jq -e '(.total_count | type) == "number" and .total_count == 0 and (.jobs | type) == "array" and (.jobs | length) == 0' >/dev/null; then
+                echo "RUC watchdog: stale unstarted scheduler record ignored (${run_id}); no jobs were cancelled."
+                continue
+              fi
+            fi
+            active_url="${run_url:-https://github.com/${GITHUB_REPOSITORY}/actions/runs/${run_id}}"
+            break
+          done <<< "$active_rows"
           if [ -n "$active_url" ]; then
             echo "RUC recovery suppressed: active preprocessing run already exists ${active_url}"
             exit 0
           fi
 
-          latest_dispatch_at="$(printf '%s' "$recent_json" | jq -r '[.workflow_runs[] | select(.event == "workflow_dispatch")][0].created_at // empty')"
+          latest_dispatch_at="$(printf '%s' "$recent_json" | jq -r '[.workflow_runs[] | select(.event == "workflow_dispatch")] | max_by(.run_started_at // .created_at) | (.run_started_at // .created_at // empty)')"
           latest_dispatch_epoch=0
           if [ -n "$latest_dispatch_at" ]; then
             latest_dispatch_epoch="$(date -u -d "$latest_dispatch_at" +%s 2>/dev/null || echo 0)"

@@ -1,3 +1,7 @@
+# MID v0.9.85.198 · MID-C21 Karten und RUC-Veröffentlichung
+
+Basis b27bd472e228c59a9cc36e7305307b775623288a (.197). Details: docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md. Bestehende Source-/Installer-Gates bleiben verbindlich.
+
 ## MID v0.9.85.197 · MID-C21 Wetterkarte, Synoptik und iPad-Rückkehr
 
 Verifizierte Basis: main = mid-stable = `55bde6e4ed20127a32403c54546379fb6e86943c` (.196). Current-UI mit Skybar über dem Graphen, eine auswählbare OSM-Topologie, native fünfteilige GRIB-Synoptik und getrennte Inhalts-/Menü-Rückkehr. Handoff grün: Run 37694186641 für Head 6e4d3fc39ace83ae17c3b5a71e6ed9c06a902030. Details: `docs/implementation/MID_C21_CURRENT_WEATHER_0.9.85.197.md`. Sämtliche Release-/Sicherheitsgates unverändert.
