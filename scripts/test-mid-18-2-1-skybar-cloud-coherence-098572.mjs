@@ -19,7 +19,9 @@ assert.ok(shortTerm.includes('return observedSkyCode(Number.isFinite(observed)?o
 assert.ok(skybar.includes("const cloud=hour.cloud===null||hour.cloud===undefined||String(hour.cloud).trim()===''?NaN:clamp(Number(hour.cloud),0,100);")&&skybar.includes('if(cloudKnown){'),'Skybar muss weiterhin dieselbe Gesamtbewölkung als primären Himmelswert nutzen.');
 assert.ok(skybar.includes('if(cover>=87.5)return 3')===false,'Skybar darf keine getrennte Textklassifikation enthalten; Schwellen bleiben im Kurzfristcode.');
 assert.ok(cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)')&&cockpit.includes('now90SkySegments=detailSkyBarSegments(now90,2,2,120,8)'),'90-min-Skybar muss direkt aus derselben finalisierten Kurzfristreihe stammen.');
-assert.ok(cockpit.includes('<span className="cockpit-now90-weather">{item.weatherLabel}<small className="cockpit-now90-cloud">Wolken {shortTermCloudLabel(item.cloud)}</small></span>'),'90-min-Wettertext muss aus demselben Kurzfristpunkt stammen wie die Skybar.');
+assert.ok(cockpit.includes('<span className="cockpit-now90-weather">{item.weatherLabel}</span>'),'90-min-Wettertext muss weiterhin direkt aus demselben finalisierten Kurzfristpunkt wie die Skybar stammen.');
+assert.ok(!cockpit.includes('<small className="cockpit-now90-cloud">Wolken '),'Nur die redundante sichtbare Wolken-%-Zeile darf entfallen.');
+assert.ok(cockpit.includes('now90SkyCells[index].title'),'Bewölkungsdetails bleiben über den gemeinsamen Skybar-Zustand verfügbar.');
 assert.ok(rucFetch.includes("FORECAST_REQUIRED=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL'"),'RUC CLCT/CLCL müssen weiter im kanonischen Forecastkern liegen.');
 assert.ok(rucFetch.includes("for param in FORECAST_REQUIRED:")&&rucFetch.includes("mode='hourly'"),'Der robuste stündliche RUC-Fallback muss erhalten bleiben.');
 assert.ok(rucFetch.includes("RAPID_STATE_OPTIONAL_15=('VIS','CEILING')"),'Native 15-min-Zustandsfelder müssen auf tatsächlich hochfrequente Sicht/Ceiling-Felder begrenzt bleiben.');

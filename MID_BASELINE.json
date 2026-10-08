@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.210",
+  "releaseVersion": "0.9.85.211",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -652,6 +652,7 @@
     "scripts/test-precipitation-prealert-095356.mjs",
     "scripts/test-precipitation-probability-consistency-083312.mjs",
     "scripts/test-precipitation-radar-pollen-navigation-0985133.mjs",
+    "scripts/test-precipitation-shortterm-coherence-0985211.mjs",
     "scripts/test-precipitation-timing-consistency-0985132.mjs",
     "scripts/test-precipitation-totals-0985134.mjs",
     "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
@@ -1604,6 +1605,7 @@
     "scripts/test-precipitation-prealert-095356.mjs",
     "scripts/test-precipitation-probability-consistency-083312.mjs",
     "scripts/test-precipitation-radar-pollen-navigation-0985133.mjs",
+    "scripts/test-precipitation-shortterm-coherence-0985211.mjs",
     "scripts/test-precipitation-timing-consistency-0985132.mjs",
     "scripts/test-precipitation-totals-0985134.mjs",
     "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
@@ -2293,6 +2295,7 @@
     "docs/implementation/MID_C21_CURVE_WIDGET_COMPACT_0.9.85.199.md",
     "docs/implementation/MID_C21_HANDOFF_TIME_BUDGET_0.9.85.196.md",
     "docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md",
+    "docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md",
     "docs/implementation/MID_EXTREME_MEMBERS_0.9.85.155.md",
     "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
     "docs/implementation/MID_IMPLEMENTATION_0.9.76.33.md",
@@ -2375,6 +2378,8 @@
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
     "scripts/test-build-budget-media-contract-097620.mjs",
     "scripts/test-c21-map-ruc-0985198.mjs",
+    "scripts/test-c21-synoptic-buffering-0985200.mjs",
+    "scripts/test-c22-ruc-publication-recovery-0985201.mjs",
     "scripts/test-capacitor-typescript-7-ci-09761.mjs",
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-climate-delta-badges-097728.mjs",
@@ -2518,6 +2523,7 @@
     "scripts/test-precipitation-forward-geometry-097916.mjs",
     "scripts/test-precipitation-forward-slot-presentation-097846.mjs",
     "scripts/test-precipitation-forward-slot-regression-compat-097848.mjs",
+    "scripts/test-precipitation-shortterm-coherence-0985211.mjs",
     "scripts/test-precipitation-trailing-interval-nowcast-097810.mjs",
     "scripts/test-pressure-axis-nice-spacing-097861.mjs",
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -2744,10 +2750,7 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js",
-    "scripts/test-c21-synoptic-buffering-0985200.mjs",
-    "docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md",
-    "scripts/test-c22-ruc-publication-recovery-0985201.mjs"
+    "worker-src/40-aviation-router.js"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -2809,6 +2812,7 @@
     "scripts/test-pictogram-intensity-snow-depth-098426.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-precipitation-shortterm-coherence-0985211.mjs",
     "scripts/test-radar-model-phase-reliability-09395.mjs",
     "scripts/test-radar-nowcast-calibration-09370.mjs",
     "scripts/test-radar-weather-maps-interaction-09220.mjs",
@@ -3400,6 +3404,7 @@
     "scripts/test-parameter-colors-trend14plus-09771.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-precipitation-forward-geometry-097916.mjs",
+    "scripts/test-precipitation-shortterm-coherence-0985211.mjs",
     "scripts/test-regression-parallel-execution-0985168.mjs",
     "scripts/test-regression-sharding-0985171.mjs",
     "scripts/test-repository-hygiene-0985127.mjs",
@@ -3429,7 +3434,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.210",
+  "version": "0.9.85.211",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

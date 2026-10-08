@@ -173,6 +173,10 @@ function warmSurfaceRejectsFreezingRain(input:Pick<ForecastPrecipitationConsiste
  const temperature=finiteNumber(input.temperature),wetBulb=approximateWetBulbTemperature(input);
  const surface=input.surfaceTemperature==null?NaN:finiteNumber(input.surfaceTemperature);
  if(Number.isFinite(surface)&&surface<=.5)return false;
+ // Strong, *independent* evidence for a thawed receiving surface can reject a
+ // model-only freezing-rain code already near +2 C. Missing ground data never
+ // count as an observed warm surface; dry/cold near-freezing cases stay hazardous.
+ if(Number.isFinite(surface)&&surface>=1.5&&Number.isFinite(temperature)&&temperature>=1.5&&Number.isFinite(wetBulb)&&wetBulb>=1)return true;
  return Number.isFinite(temperature)&&temperature>=3&&Number.isFinite(wetBulb)&&wetBulb>=2;
 }
 function warmSurfaceRejectsPrecipitationPhase(input:Pick<ForecastPrecipitationConsistencyInput,'temperature'|'dewPoint'|'humidity'|'wetBulbTemperature'|'surfaceTemperature'>,code:number){
@@ -532,8 +536,14 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const displayCode=representativePrecipitationCode(type,intensity,effectiveCode),visualIntensity=precipitationVisualIntensity(intensity);
  const liquidSignal=Math.max(rainValue,showerValue)>=.01;
  const phenomenon=type==='drizzle'?'DZ':type==='freezingDrizzle'?'FZDZ':type==='rain'?'RA':type==='freezingRain'?'FZRA':type==='showers'?'SHRA':type==='snow'?'SN':type==='snowGrains'?'SG':type==='iceCrystals'?'IC':type==='icePellets'?'PL':type==='snowShowers'?'SHSN':type==='sleet'?'RASN':type==='sleetShowers'?'SHRASN':type==='graupelShowers'?'SHGS':type==='hailShowers'?'SHGR':type==='thunderstorm'?(hasSnow&&liquidSignal?'TSRASN':hasSnow?'TSSN':liquidSignal?'TSRA':undefined):undefined;
- const label=`${weatherLabel} ${amount}`;
- return{total,type,label,weatherLabel,code,displayCode,intensity:visualIntensity,phenomenon};
+ // Model-only freezing rain at a positive air/wet-bulb temperature does not
+ // establish a frozen ground surface. Retain the WMO phase and icing pictogram
+ // (never mislabel it as sleet), but express the conditional forecast honestly.
+ const ground=finiteNumber(h.surfaceTemperature),air=finiteNumber(h.temperature),wetBulb=approximateWetBulbTemperature(h);
+ const unconfirmedIcing=!observedCharacter&&(type==='freezingRain'||type==='freezingDrizzle')&&Number.isFinite(air)&&air>=1&&Number.isFinite(wetBulb)&&wetBulb>0&&!(Number.isFinite(ground)&&ground<=.5);
+ const phaseWording=unconfirmedIcing?`${weatherLabel} möglich`:weatherLabel;
+ const label=`${phaseWording} ${amount}`;
+ return{total,type,label,weatherLabel:phaseWording,code,displayCode,intensity:visualIntensity,phenomenon};
 }
 
 const PRECIP_TYPE_ORDER:PrecipType[]=['drizzle','freezingDrizzle','rain','freezingRain','showers','sleet','sleetShowers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers','graupelShowers','hailShowers','wintryAfterThunder','thunderstorm','thunderstormHail'];

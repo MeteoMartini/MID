@@ -18,8 +18,10 @@ assert.equal(module.relativeForecastTimePhrase(Date.parse('2026-09-01T12:00:00Z'
 for(const token of [
  "import {relativeForecastTimePhrase} from './forecastPresentation';",
  "Böen bis ${wind(gust.gust,unit)} ${relativeForecastTimePhrase(gust.epoch,timezone,'at',now)}",
- "${kind} voraussichtlich ${relativeForecastTimePhrase(first.epoch,timezone,'from',now)}"
+ "${kind} voraussichtlich ${relativeForecastTimePhrase(firstEpoch,timezone,'from',now)}"
 ])assert.ok(cockpit.includes(token),`Kurzfrist-Textvertrag fehlt: ${token}`);
+assert.ok(cockpit.includes('Number(nativeOnset?.precipitationIntervalStartEpoch??start)'),'Zeitphrase muss den tatsächlichen vorwärtsgerichteten Intervallstart statt die Akkumulations-Endzeit nutzen.');
+assert.ok(cockpit.includes('shortTermPointSummary(profileDisplayPoints,unit,timezone,profileNow,adjusted)'),'Wortstellung und Beginn gelten für genau die im Profil gezeigten Stundenintervalle.');
 for(const bad of ['um ${relativeForecastTimeLabel','ab ${relativeForecastTimeLabel','um morgen','um übermorgen'])assert.ok(!cockpit.includes(bad),`Unnatürliche deutsche Wortstellung darf nicht zurückkehren: ${bad}`);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw);assert.equal(pkg.version,baseline.releaseVersion);assert.ok(baseline.requiredRegressionTests.includes(test));
 console.log(`MID v${pkg.version}: deutsche Wortstellung dynamischer Kurzfrist-Zeitphrasen geprüft.`);

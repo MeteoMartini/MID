@@ -311,6 +311,8 @@ function Snow({grains=false,intensity='moderate'}:{grains?:boolean;intensity?:We
  const xs=solidParticleXs(intensity);
  return <g className={`mid-weather-snow intensity-${intensity}`} stroke="var(--wx-icon-snow)" strokeWidth={intensity==='very-heavy'?2.3:intensity==='heavy'?2.15:intensity==='light'?1.7:1.9} strokeLinecap="round">{xs.map((x,index)=>grains?<circle key={x} cx={x} cy={50.5+index%2*4.4} r={intensity==='very-heavy'?3:intensity==='heavy'?2.7:intensity==='light'?1.75:2.2} fill="var(--wx-icon-snow-grain)" stroke="var(--wx-icon-snow)" strokeWidth=".9"/>:<g key={x} transform={`translate(${x} ${51+index%2*4.4}) scale(${intensity==='light'?.86:intensity==='very-heavy'?1.22:intensity==='heavy'?1.12:1})`}><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g>)}</g>;
 }
+/** A glaze-coated horizontal surface, not a snow crystal: FZRA is NOT RASN. */
+function GlazeSurface(){return <g className="mid-weather-glaze" fill="none" stroke="var(--wx-icon-ice)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M44 56h20"/><path d="M47 56v4m7-4v3m7-3v4"/><path d="M48 52l4 3 4-3 4 3" strokeWidth="1.2"/></g>}
 function IceCrystal({x=51,y=51,large=false}:{x?:number;y?:number;large?:boolean}){return <g className="mid-weather-ice" transform={`translate(${x} ${y}) scale(${large?1.18:1})`} stroke="var(--wx-icon-ice)" strokeWidth="1.6" strokeLinecap="round"><path d="M-5 0h10M0-5v10M-3.5-3.5l7 7M3.5-3.5l-7 7"/></g>}
 function IceCrystals({intensity='moderate'}:{intensity?:WeatherPictogramIntensity}){return <g className={`mid-weather-ice-crystals intensity-${intensity}`}>{solidParticleXs(intensity).map((x,index)=><IceCrystal key={x} x={x} y={50.5+index%2*4.5} large={intensity==='heavy'||intensity==='very-heavy'}/>)}</g>}
 function SnowStars(){return <g className="mid-weather-snow-stars" aria-hidden="true"><g transform="translate(27 51)" stroke="var(--wx-icon-snow)" strokeWidth="1.8" strokeLinecap="round"><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g><g transform="translate(43 56) scale(.82)" stroke="var(--wx-icon-snow)" strokeWidth="1.8" strokeLinecap="round"><path d="M-4 0h8M0-4v8M-3-3l6 6M3-3l-6 6"/></g></g>}
@@ -362,9 +364,9 @@ export function WeatherPictogram({code,day=true,size='1em',className='',title,x,
    {kind==='rime-fog'?<MistLines fog rime/>:null}
    {kind==='haze'?<MistLines haze/>:null}
    {kind==='drizzle'?<Rain intensity={precipIntensity} drizzle/>:null}
-   {kind==='freezing-drizzle'?<><Rain intensity={precipIntensity} drizzle/><IceCrystal/></>:null}
+   {kind==='freezing-drizzle'?<><Rain intensity={precipIntensity} drizzle/><GlazeSurface/></>:null}
    {kind==='rain'?<Rain intensity={precipIntensity}/>:null}
-   {kind==='freezing-rain'?<><Rain intensity={precipIntensity}/><IceCrystal/></>:null}
+   {kind==='freezing-rain'?<><Rain intensity={precipIntensity}/><GlazeSurface/></>:null}
    {kind==='showers'?<Rain intensity={precipIntensity}/>:null}
    {kind==='sleet'?<><Rain intensity={precipIntensity}/><Snow intensity={precipIntensity}/></>:null}
    {kind==='sleet-showers'?<><Rain intensity={precipIntensity}/><Snow intensity={precipIntensity}/></>:null}
