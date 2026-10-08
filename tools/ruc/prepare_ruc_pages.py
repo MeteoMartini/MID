@@ -121,9 +121,10 @@ def fit_synoptic_budget(payload,available):
     core_hours={0,3,6,9,12,18,24,36,48}
     def synoptic_size():
         return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames'])
-    candidates=sorted(((frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
+    # Protect extended endpoints before optional near-term density, then trim by bytes.
+    candidates=sorted(((frame['hour']<=48,frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
     while synoptic_size()>available and candidates:
-        _,model,hour=candidates.pop(0)
+        _,_,model,hour=candidates.pop(0)
         payload['models'][model]['frames']=[frame for frame in payload['models'][model]['frames'] if frame['hour']!=hour]
     if synoptic_size()>available:raise ValueError('complete synoptic core exceeds remaining Pages budget')
     return payload

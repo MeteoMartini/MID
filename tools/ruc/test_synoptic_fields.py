@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 import numpy as np
 from eccodes import codes_grib_new_from_samples,codes_set,codes_set_values,codes_get_message,codes_release
-from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS
+from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS,EXTENDED_HOURS
 class SynopticTest(unittest.TestCase):
     def test_independent_metpy_references(self):
         # Bolton saturation differs from MetPy Ambaum saturation by <0.3 K here.
@@ -48,4 +48,25 @@ class SynopticTest(unittest.TestCase):
         full=copy.deepcopy(payload);self.assertEqual(len(fit_synoptic_budget(full,20000)['models']['icon-eu']['frames']),13)
         limited=fit_synoptic_budget(copy.deepcopy(payload),11000);hours={f['hour'] for f in limited['models']['icon-eu']['frames']};self.assertTrue(set(CORE_HOURS).issubset(hours));self.assertLess(len(hours),13)
         with self.assertRaises(ValueError):fit_synoptic_budget(copy.deepcopy(payload),1000)
+    def test_optional_horizon_is_same_cycle_and_failure_preserves_core(self):
+        import build_synoptic_fields as module
+        from unittest.mock import patch
+        stamp=datetime(2026,10,8,6,tzinfo=timezone.utc);calls=[]
+        def builder(model,output,now=None,hours=HOURS,cached=None,strict_run=False):
+            calls.append((model,tuple(hours),strict_run,now))
+            if model=='icon-eu' and hours==(72,):raise RuntimeError('upstream unavailable')
+            return {'run':stamp.isoformat(),'frames':[{'hour':h} for h in hours],'origins':[]}
+        with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
+            result=module.build(Path(td))
+        self.assertEqual([f['hour'] for f in result['models']['icon-d2']['frames']],list(HOURS))
+        self.assertEqual([f['hour'] for f in result['models']['icon-eu']['frames']],list(HOURS)+[60])
+        self.assertEqual([f['hour'] for f in result['models']['gfs']['frames']],list(HOURS+EXTENDED_HOURS))
+        self.assertFalse(result['unavailable'])
+        for model,hours,strict,now in calls:
+            if hours!=HOURS:self.assertTrue(strict);self.assertEqual(now,stamp);self.assertNotEqual(model,'icon-d2')
+    def test_horizon_budget_drops_density_before_range(self):
+        from prepare_ruc_pages import fit_synoptic_budget
+        payload={'models':{'gfs':{'frames':[{'hour':h,'bytes':1000} for h in HOURS+EXTENDED_HOURS]}}}
+        result=fit_synoptic_budget(payload,13000)
+        self.assertTrue(set(CORE_HOURS+EXTENDED_HOURS).issubset(f['hour'] for f in result['models']['gfs']['frames']))
 if __name__=='__main__':unittest.main()

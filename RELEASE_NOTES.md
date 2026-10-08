@@ -1,7 +1,7 @@
-# MID v0.9.85.201
+# MID v0.9.85.202 · Synoptik-Komposit und Kartenzeitsteuerung
 
-RUC-Kurzfristdaten werden nach erfolgreichen MID-Veröffentlichungen automatisch auf Aktualität geprüft und bei Bedarf nachgeholt. Ein erfolgreicher Verarbeitungslauf ohne tatsächlich veröffentlichte Daten unterdrückt die Wiederaufnahme nicht mehr.
+Theta-E 850 hPa erhält dezente graue Konturen; die Linienbeschriftung erscheint nur bei Vielfachen von 12 °C. Die blauen Feuchtelinien in 700 hPa bleiben ohne Linienbeschriftung.
 
-RUC-Übergabeartefakte erhalten pro Ausführungsversuch eindeutige Namen. Der bestehende Vier-Stunden-Frischevertrag, Datenbudgets sowie Release- und Sicherheitsprüfungen bleiben erhalten.
+Die fokussierte Wetterkarte wechselt mit den Pfeiltasten links/rechts zum vorherigen/nächsten bestätigten Termin. Eingabefelder und Regler behalten ihre eigene Bedienung.
 
-Basis: main = mid-stable c3f3abebfd5e3da86013063d7b051b05399e3876 (v0.9.85.200). Details: docs/implementation/MID_C22_RUC_RECOVERY_0.9.85.201.md.
+Für ICON-EU, GFS und IFS werden zusätzlich +60 und +72 Stunden angeboten, soweit vollständige Felder aus demselben Lauf verfügbar sind und das bestehende Datenbudget ausreicht. ICON-D2 bleibt auf seinen regionalen Ausschnitt und 48 Stunden begrenzt. Der große Europa-Ausschnitt und die 6-Grad-Farbstufen aus .200 bleiben erhalten.
