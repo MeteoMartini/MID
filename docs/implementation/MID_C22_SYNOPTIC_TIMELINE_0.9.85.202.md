@@ -25,7 +25,15 @@ RUC-Recovery .201 wird parallel beobachtet. Eine neue Veröffentlichung wird ers
 ## Verifizierte Ergebnisse vor Source-PR
 
 - 941/941 Core-Regressionen, Typprüfung und Produktionsbuild bestanden; 9/9 Python-Synoptiktests. Produktionsaudit: 0 Schwachstellen.
-- 24/24 reale MapLibre-Fälle bestanden: 320/390/412/844/1024/1440 px, hell/dunkel und Next/Classic. In jedem Fall geprüft: echte +72-h-Datei, unveränderte native Reglerbedienung, Anfangs-/Endbegrenzung, graue Theta-E-Konturen und fehlender RH700-Symbol-Layer.
+- Initialstand vor CI: 24/24 reale MapLibre-Fälle bestanden: 320/390/412/844/1024/1440 px, hell/dunkel und Next/Classic. In jedem Fall geprüft: echte +72-h-Datei, unveränderte native Reglerbedienung, Anfangs-/Endbegrenzung, graue Theta-E-Konturen und fehlender RH700-Symbol-Layer.
 - RUC .201 Run 37762730007 vollständig erfolgreich. 09-UTC-Lauf veröffentlicht; Health um 10:37 UTC ready=true, fresh=true. Vorhersage-Fusion Niederkassel 50,82/7,04 mit refresh=1: icon_d2_ruc und icon_d2_ruc_eps successful=true und usedInCanonical=true; rucAppliedHours=13, rucEpsAppliedHours=13, 20 EPS-Mitglieder, 25 rapidMinutes15.
 - Datenaufbereitung: 897623153/900000000 Bytes, 1178 Objekte, alle vier Modelle 13 vollständige Synoptiktermine. Optionale Solar-/Zustands-Rapidprodukte werden budgetbedingt nicht als vorhanden behauptet.
 - Live-Synoptik nach Veröffentlichung: Algorithmus bolton-1980-lcl-v3-europe, ICON-EU 06 UTC, 13 Termine. Dekodierte erste SHA-gebundene Datei: 329 × 689 Punkte, 29,5–70,5° N / −23,5–62,5° E. Damit ist der große Europa-Ausschnitt tatsächlich veröffentlicht.
+
+## CI-Rückmeldung: manuelle Zeitwahl erhalten
+
+Source-Run 37765102500: Core und vier Heavy-Gruppen grün; Desktopprüfung 1440 px meldete bei Endbegrenzung Index 1 statt 15. Der bisherige Renderpfad überschreibt den gespeicherten Termin auch bei temporär verkürzter Zeitachse. Die manuelle Terminwahl wird nun direkt in seek()/step() gespeichert; der Renderpfad überschreibt sie nicht mehr. Auch Wiedergabe und Schleifenbeginn speichern den gewählten Zeitstempel. Keine globale Tastaturänderung.
+
+Zusätzlicher Browserfall: Bei ausgewähltem +72-h-Termin den Katalog neu laden und den Termin trotz vorübergehend fehlender Modelltermine erhalten. Separater Checkout des alten Quellstands 919690d: reproduzierbarer Timeout bei diesem Fall. Neuer Quellstand: derselbe Fall (390 px, Light/Next) erfolgreich. Bestehende Endbegrenzungsprüfung unverändert; kein Überspringen oder Lockerung des fehlgeschlagenen Tests. Die vollständige Geräte-/Theme-/Designmatrix wird am neuen PR-Head erneut durch das normale Source-Gate geprüft.
+
+Die beiden bestehenden Tests für direkte Zeitwahl und gepufferte Wiedergabe verwenden die neue gemeinsame seek()-Funktion bzw. echte Zeitobjekte; der Wiedergabetest prüft zusätzlich die gespeicherten Zeitstempel. Vorherige Assertions zu Pufferung, Wartezeit, Loop und direkter Auswahl bleiben erhalten.

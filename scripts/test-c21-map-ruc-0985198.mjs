@@ -33,6 +33,6 @@ try {
  assert.ok(primary.includes('artifact-ids: ${{ needs.prepare.outputs.data_artifact_id }}'));assert.ok(primary.includes('data_artifact_id: ${{ steps.data_upload.outputs.artifact-id }}'));
  assert.equal((primary.match(/mid-ruc-pages-\$\{\{ github.run_id \}\}-\$\{\{ github.run_attempt \}\}/g)||[]).length,2);
  for(const file of ['mid-ruc-preprocess.yml','mid-ruc-schedule-watchdog.yml'])assert.equal(read(`ci/github/workflows/${file}`),read(`.github/workflows/${file}`));
- const radar=read('src/RadarPanel.tsx');assert.ok(radar.indexOf('Direkte Kartenzeitwahl')<radar.indexOf('<MapContainer center='));assert.ok(radar.includes('setIndex(Number(e.target.value))'));assert.ok(read('src/UnifiedWeatherMap.tsx').includes('Synoptik erneut laden'));assert.ok(!read('src/nativeSynopticFields.ts').includes('wird vorbereitet'));
+ const radar=read('src/RadarPanel.tsx');assert.ok(radar.indexOf('Direkte Kartenzeitwahl')<radar.indexOf('<MapContainer center='));assert.ok(radar.includes('seek(Number(e.target.value))'));assert.ok(radar.includes('previousTimeline.current=frames[next].time')); assert.ok(read('src/UnifiedWeatherMap.tsx').includes('Synoptik erneut laden'));assert.ok(!read('src/nativeSynopticFields.ts').includes('wird vorbereitet'));
  console.log('C21: recovery fail-closed jobs, rerun cooldown, release guard, exact artifact handoff, direct time and synoptic retry verified.');
 } finally {rmSync(temp,{recursive:true,force:true});}
