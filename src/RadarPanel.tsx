@@ -30,7 +30,7 @@ import {
  type RainViewerFrame,
  type WmsProvider
 } from './CompositeData';
-import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,clamp,dominantBlendFrame,nearestAvailableFrameIndex,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
+import {blendOpacity,blendTimedFrames,buildAvailableCompositeTimeline,availableCompositeFutureMinutes,clamp,dominantBlendFrame,nearestAvailableFrameIndex,uniqueTimedFrames,type BlendFrame,type CompositeTimelineFrame,type TimedFrame} from './CompositeTimeline';
 import MapTimelineControls,{MapTimelineLiveButton,MapTimelineSpeedControl,MapTimelineTransport} from './MapTimelineControls';
 import {DEFAULT_RADAR_COLOR_TABLE,PRECIPITATION_TYPE_LEGEND,radarColorTable,type RadarColorTableId} from './radarColorTables';
 import {precipitationTypeSymbolSvg,type PrecipitationSymbolPhase} from './precipitationTypeSymbols';
@@ -346,7 +346,7 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
    if(viewMode==='synoptic')return{source:modelTimelineSource,phaseSources,forecasts:modelForecastTimes};
    return{source:highResolution?'Radar 250 m':activeSource==='dwd'?'DWD Radar':activeSource==='opera'?'OPERA Radar':'RainViewer Radar',phaseSources,observations:highResolution&&Number.isFinite(pxObservedMs)?[Math.floor(pxObservedMs/1000)]:radarObservationTimes,nowcasts:highResolution?[]:radarNowcastTimes,forecasts:modelForecastTimes};
   },[viewMode,showRadar,showSatellite,highResolution,activeSource,pxObservedMs,radarObservationTimes.join('|'),radarNowcastTimes.join('|'),satelliteObservationTimes.join('|'),modelForecastTimes.join('|'),satelliteTimelineSource,modelTimelineSource]);
- const frames=useMemo(()=>buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90,unified?204*60:120),[Math.floor(referenceSeconds/300),timelineContract]),liveIndex=Math.max(0,frames.findIndex(frame=>frame.live));
+ const frames=useMemo(()=>buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120),[Math.floor(referenceSeconds/300),timelineContract]),liveIndex=Math.max(0,frames.findIndex(frame=>frame.live));
  useEffect(()=>{if(!frames.length){setIndex(0);setPlaying(false);return}const target=liveFollow?frames[liveIndex]?.time:(previousTimeline.current||frames[liveIndex]?.time),indexForTarget=nearestAvailableFrameIndex(frames,target);setIndex(clamp(indexForTarget,0,frames.length-1))},[frames,liveFollow,liveIndex]);
  const canAnimate=frames.length>1;
 

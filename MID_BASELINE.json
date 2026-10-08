@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.204",
+  "releaseVersion": "0.9.85.205",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -81,6 +81,7 @@
     "scripts/test-c22-ruc-publication-recovery-0985201.mjs",
     "scripts/test-c22-synoptic-timeline-0985202.mjs",
     "scripts/test-c23-cloud-synoptic-0985204.mjs",
+    "scripts/test-c23-full-horizon-0985205.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
     "scripts/test-c3-navigation-warning-status-098513.mjs",
     "scripts/test-c3-shared-page-grid-098514.mjs",
@@ -1029,6 +1030,7 @@
     "scripts/test-c22-ruc-publication-recovery-0985201.mjs",
     "scripts/test-c22-synoptic-timeline-0985202.mjs",
     "scripts/test-c23-cloud-synoptic-0985204.mjs",
+    "scripts/test-c23-full-horizon-0985205.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
     "scripts/test-c3-navigation-warning-status-098513.mjs",
     "scripts/test-c3-shared-page-grid-098514.mjs",
@@ -3420,7 +3422,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.204",
+  "version": "0.9.85.205",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
