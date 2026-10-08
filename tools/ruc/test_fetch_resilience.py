@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 import requests
 import fetch_and_build_ruc as fetch
 from test_meteo_integrity import MeteoIntegrityTests  # also collected by the existing CI unittest.main()
+from test_grib_metadata import DwdGribMetadataTests  # full ecCodes real-header fixtures in CI
 
 
 class FetchResilience(unittest.TestCase):
@@ -21,6 +22,7 @@ class FetchResilience(unittest.TestCase):
         for hour in range(3):
             gid = codes_grib_new_from_samples('regular_ll_sfc_grib2')
             try:
+                codes_set(gid, 'centre', 78)
                 codes_set(gid, 'dataDate', 20261005)
                 codes_set(gid, 'dataTime', 1800)
                 codes_set(gid, 'step', hour)
@@ -127,6 +129,7 @@ class FetchResilience(unittest.TestCase):
         from eccodes import codes_grib_new_from_samples, codes_set, codes_get_message, codes_release
         gid = codes_grib_new_from_samples('regular_ll_sfc_grib2')
         try:
+            codes_set(gid, 'centre', 78)
             codes_set(gid, 'dataDate', 20261005)
             codes_set(gid, 'dataTime', 1200)
             data = codes_get_message(gid)

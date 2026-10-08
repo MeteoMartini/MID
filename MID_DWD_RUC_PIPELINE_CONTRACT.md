@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.208
+Stand: v0.9.85.209
 
 ## Zweck und fachliche Rolle
 
@@ -133,3 +133,7 @@ Der deterministische ICON-D2-RUC bleibt für 0–14 h ein hoch priorisierter Kur
 ## Zusätzliche Datenintegritäts-Gates ab v0.9.85.208
 
 Der DWD-RUC-Vorprozessor prüft vor Veröffentlichung die GRIB-Initialisierung gegen den beabsichtigten Lauf, die Pflichtstunden auf doppelte Gültigkeitszeitstempel, auf bereitgestellten Roh-Akkumulationen größere Rücksprünge als 0,05 mm sowie nach Einheiten-Normalisierung die physikalische Semantik von Temperatur, Taupunkt, relativer Feuchte, Bewölkung, Wind und Niederschlag. Taupunkt oberhalb Temperatur ist nur bis +0,5 K als numerische Toleranz erlaubt; relative Feuchte/Bewölkung bis ±0,5 Prozentpunkte an den Rändern. Für Temperatur dient ein bewusst breiter Decode-Sanity-Bereich von 180–340 K. Diese Toleranzen sind MID-spezifische technische Plausibilitäts-Gates, ausdrücklich keine DWD-Warnschwellen; meteorologische Extremereignisse innerhalb physikalischer Grenzen dürfen nicht kaschiert werden. Kleine negative Niederschlags-Rundungssprünge bis 0,05 mm werden weiterhin nach bestandener Validierung auf null begrenzt. Vollständig fehlende Pflichtfelder werden abgewiesen, einzelne fehlende Gitterpunkte bleiben fehlend. Weitere GRIB-Parameter-/Level- und modelübergreifende Prüfungen benötigen einen eigenen validierten Vertrag; sie werden durch diese Stufe nicht als bereits umgesetzt bezeichnet.
+
+## GRIB2-Herkunft und Parameter-Signaturen ab v0.9.85.209
+
+Zusätzlich zur fachlichen Validierung müssen alle verarbeiteten GRIB-Nachrichten Edition 2 und das WMO-Erzeugungszentrum 78 (Offenbach, DWD) ausweisen. Dynamische deterministische, optionale, Rapid- und RUC-EPS-Felder dürfen ausschließlich zur angefragten Initialisierung gehören; deren Valid-Time darf nicht vor dem Modelllauf liegen. Innerhalb eines logischen Parameters muss die aus GRIB-Disziplin, Parameterkategorie/-nummer, Höhentyp/-wert, Gittertyp und nativer Punktzahl bestehende Signatur über alle Zeitschritte und Member gleich bleiben. Identische Stützzeiten bzw. EPS-Member/Zeitpaare werden nicht mehr still überschrieben. Die statischen Koordinatenprodukte sind vom strengen dynamischen Laufzeitabgleich ausgenommen, nicht von Edition und Zentrum. Produktfeste shortName-/Level-Tabellen erfordern nachfolgende echte DWD-RUC-v1-Headerkalibrierung; Dateinamen bleiben kein alleiniger Provenienznachweis. Diese Prüfungen sind technische MID-Publish-Gates und keine amtlichen Wetterwarnschwellen.

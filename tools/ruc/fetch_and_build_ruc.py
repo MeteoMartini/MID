@@ -16,7 +16,7 @@ import requests
 from run_progress import report_run
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
-from meteo_integrity import validate_grib_origin
+from grib_metadata import inspect_grib_header
 
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
@@ -154,9 +154,8 @@ def grib_valid_times(path,expected_run=None):
    gid=codes_grib_new_from_file(f)
    if gid is None:break
    try:
-    if expected_run is not None:
-     validate_grib_origin(codes_get(gid,'dataDate'),codes_get(gid,'dataTime'),expected_run)
-    yield datetime.strptime(f"{int(codes_get(gid,'validityDate')):08d}{int(codes_get(gid,'validityTime')):04d}",'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
+    valid,_signature=inspect_grib_header(gid,expected_run)
+    yield valid
    finally:codes_release(gid)
 
 def validate_hourly_coverage(paths,run,hours,param):
