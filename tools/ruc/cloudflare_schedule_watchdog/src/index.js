@@ -7,12 +7,26 @@ function positiveInt(value, fallback) {
 }
 
 function runTimeMs(run) {
-  const parsed = Date.parse(String(run?.created_at ?? ''));
+  const started = Date.parse(String(run?.run_started_at ?? ''));
+  const parsed = Number.isFinite(started) ? started : Date.parse(String(run?.created_at ?? ''));
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+export async function discardStaleUnstartedRuns(runs, nowMs, staleMinutes, loadJobs) {
+  const kept=[];
+  for (const run of runs) {
+    const stamp=runTimeMs(run);
+    if (['queued','pending','requested'].includes(run?.status) && stamp && nowMs-stamp>staleMinutes*60000 && Number.isSafeInteger(run.id) && run.id>0) {
+      const payload=await loadJobs(run.id);
+      if (payload?.total_count===0 && Array.isArray(payload.jobs) && payload.jobs.length===0) continue;
+    }
+    kept.push(run);
+  }
+  return kept;
+}
+
 export function decideRecovery(runs, nowMs, staleMinutes = 42, cooldownMinutes = 18) {
-  const list = Array.isArray(runs) ? runs : [];
+  const list = Array.isArray(runs) ? [...runs].sort((a,b)=>runTimeMs(b)-runTimeMs(a)) : [];
   const active = list.find(run => ACTIVE_STATUSES.has(String(run?.status ?? '')));
   if (active) {
     return { action: 'noop', reason: 'active-run', run: active };
@@ -88,7 +102,8 @@ export async function checkAndRecover(env, nowMs = Date.now()) {
   const branch = encodeURIComponent(cfg.ref);
   const runsUrl = `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/actions/workflows/${workflow}/runs?branch=${branch}&per_page=30`;
   const payload = await githubRequest(env, runsUrl);
-  const runs = Array.isArray(payload?.workflow_runs) ? payload.workflow_runs : [];
+  if (!Array.isArray(payload?.workflow_runs)) throw new Error('Invalid RUC run list');
+  const runs = await discardStaleUnstartedRuns(payload.workflow_runs, nowMs, cfg.staleMinutes, id=>githubRequest(env, `https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/actions/runs/${id}/jobs?filter=latest&per_page=1`));
   const decision = decideRecovery(runs, nowMs, cfg.staleMinutes, cfg.cooldownMinutes);
 
   if (decision.action !== 'dispatch') {

@@ -1,3 +1,7 @@
+# MID v0.9.85.198 · MID-C21 Karten und RUC-Veröffentlichung
+
+Basis b27bd472e228c59a9cc36e7305307b775623288a (.197). Details: docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md. Bestehende Source-/Installer-Gates bleiben verbindlich.
+
 ## MID v0.9.85.197 · 2026-10-08 · MID-C21 Wetterkarte, Synoptik und iPad-Rückkehr
 
 - Basis main = mid-stable = 55bde6e4ed20127a32403c54546379fb6e86943c (.196). SHA-gebundener Replit-Handoff 6e4d3fc39ace83ae17c3b5a71e6ed9c06a902030, Tree ca4fbd13f4b6337262ee854b992ec6b1cad5f847, grün in Run 37694186641. Replit lieferte lokale Vorschläge ohne belastbaren ursprünglichen Git-Commit; ChatGPT rekonstruierte und verifizierte die neun UI-Dateien auf Stable. Zusätzliche UI-QA-Korrektur erhöht nur das innere Browserlimit 480 auf 900 Sekunden bei unveränderten 24 Fällen.

@@ -84,3 +84,10 @@ html .unified-weather-map.unified-weather-map .unified-favorites button{width:10
 html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-layer-switches{grid-auto-flow:row!important;grid-auto-columns:auto!important;width:100%!important;max-width:100%!important}
 html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch.compact{grid-column:auto!important;grid-row:auto!important;width:100%!important;min-width:0!important;overflow:visible!important}
 html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch.compact small{display:block!important;min-height:0!important}
+
+/* MID-C21: time choice before the map, outside floating navigation. */
+.composite-direct-time{display:grid;grid-template-columns:44px minmax(0,1fr) 44px auto;gap:6px;align-items:end;margin:8px 0}
+.composite-direct-time label{min-width:0;font-size:12px;display:grid;gap:3px}
+.composite-direct-time button,.composite-direct-time select{min-height:44px;border:1px solid var(--border,#9fb8c8);border-radius:12px;background:var(--card,#fff);color:var(--text,#233d50);font:inherit}
+.composite-direct-time select{width:100%;min-width:0;font-size:14px;padding:4px}
+.composite-direct-time button{padding:6px 10px}.composite-direct-time button:disabled{opacity:.4}
