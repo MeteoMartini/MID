@@ -12,6 +12,8 @@ from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_rel
 from build_model_map_fields import theta_e
 CORE_HOURS=(0,3,6,9,12,18,24,36,48)
 HOURS=(0,3,6,9,12,15,18,21,24,30,36,42,48)
+EXTENDED_HOURS=(60,72)
+ALLOWED_HOURS=HOURS+EXTENDED_HOURS
 MODELS={'icon-d2':('DWD ICON-D2','icon-d2',2.2,'germany_regular-lat-lon'),'icon-eu':('DWD ICON-EU','icon-eu',14,'europe_regular-lat-lon')}
 COMPONENTS=(('t',850),('relhum',850),('fi',500),('pmsl',None),('relhum',700),('u',300),('v',300))
 LOCK=threading.Lock();ALGORITHM='bolton-1980-lcl-v3-europe'
@@ -97,9 +99,9 @@ def write_fields(output,model,stamp,resolution,fields,lats,lons,hours=HOURS):
         (output/name).write_bytes(data);frames.append({'hour':hour,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
     return frames
 
-def model_product(model,output,now=None,hours=HOURS,cached=None):
+def model_product(model,output,now=None,hours=HOURS,cached=None,strict_run=False):
     now=now or datetime.now(timezone.utc);latest=now.replace(hour=now.hour//6*6,minute=0,second=0,microsecond=0);label,folder,resolution,grid=MODELS[model];failures=[]
-    for offset in range(4):
+    for offset in range(1 if strict_run else 4):
         stamp=latest-timedelta(hours=6*offset);run=stamp.strftime('%Y%m%d%H');root=f'https://opendata.dwd.de/weather/nwp/{folder}/grib/{stamp:%H}/';jobs=[]
         try:
             if cached and cached['run']==stamp.isoformat():return cached
@@ -134,9 +136,9 @@ def select_message(payload,field,level):
     if len(found)!=1:raise ValueError('no unique GRIB message')
     return found[0]
 
-def global_product(model,output,now=None,hours=HOURS,cached=None):
+def global_product(model,output,now=None,hours=HOURS,cached=None,strict_run=False):
     now=now or datetime.now(timezone.utc);cycle=12 if model=='ifs' else 6;latest=now.replace(hour=now.hour//cycle*cycle,minute=0,second=0,microsecond=0);failures=[]
-    for offset in range(3):
+    for offset in range(1 if strict_run else 3):
         stamp=latest-timedelta(hours=cycle*offset);
         if now-stamp>timedelta(hours=24):continue
         run=stamp.strftime('%Y%m%d%H');fields={};origins=[];lats=lons=None
@@ -185,7 +187,7 @@ def restore_cache(output):
         for model,p in index.get('models',{}).items():
             try:
                 stamp=datetime.fromisoformat(p['run']);age=datetime.now(timezone.utc)-stamp
-                if model not in (*MODELS,'gfs','ifs') or age<timedelta(hours=-1) or age>timedelta(hours=24) or not set(CORE_HOURS).issubset(f['hour'] for f in p['frames']) or any(f['hour'] not in HOURS for f in p['frames']) or len({f['hour'] for f in p['frames']})!=len(p['frames']):continue
+                if model not in (*MODELS,'gfs','ifs') or age<timedelta(hours=-1) or age>timedelta(hours=24) or not set(CORE_HOURS).issubset(f['hour'] for f in p['frames']) or any(f['hour'] not in ALLOWED_HOURS for f in p['frames']) or len({f['hour'] for f in p['frames']})!=len(p['frames']):continue
                 pending=[]
                 for f in p['frames']:
                     if f['file']!=f"{model}-{f['hour']:03d}.bin" or not re.fullmatch('[a-f0-9]{64}',f['sha256']) or not 0<f['bytes']<=12_000_000:raise ValueError('cached reference')
@@ -202,7 +204,20 @@ def restore_cache(output):
 def build(output):
     products={};errors={};cached=restore_cache(output)
     for model in (*MODELS,'gfs','ifs'):
-        try:products[model]=(model_product if model in MODELS else global_product)(model,output,cached=cached.get(model));print(f'{model}: {len(products[model]["frames"])} complete terms',flush=True)
+        try:
+            builder=model_product if model in MODELS else global_product
+            product=builder(model,output,cached=cached.get(model))
+            # Optional horizons never choose a different cycle or invalidate the core.
+            if model!='icon-d2':
+                for hour in EXTENDED_HOURS:
+                    if any(f['hour']==hour for f in product['frames']):continue
+                    try:
+                        extra=builder(model,output,now=datetime.fromisoformat(product['run']),hours=(hour,),strict_run=True)
+                        if extra['run']!=product['run']:raise ValueError('optional horizon run mismatch')
+                        product['frames'].extend(extra['frames']);product['origins'].extend(extra['origins'])
+                    except (requests.RequestException,ValueError,RuntimeError) as error:print(f'::notice::{model} optional +{hour}h unavailable: {error}',flush=True)
+            product['frames'].sort(key=lambda f:f['hour']);products[model]=product
+            print(f'{model}: {len(product["frames"])} complete terms',flush=True)
         except (requests.RequestException,ValueError,RuntimeError) as e:errors[model]=str(e);print(f'::warning::{model} synoptic unavailable: {e}',flush=True)
     if not products:raise RuntimeError('no complete synoptic model')
     payload={'schema':'mid.synoptic.fields.v1','generatedAt':datetime.now(timezone.utc).isoformat(),'algorithm':ALGORITHM,'models':products,'unavailable':errors};(output/'index.json').write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n');return payload

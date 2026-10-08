@@ -1,3 +1,13 @@
+# MID v0.9.85.202 · Synoptik-Komposit und Kartenzeitsteuerung
+
+Theta-E 850 hPa erhält dezente graue Konturen; die Linienbeschriftung erscheint nur bei Vielfachen von 12 °C. Die blauen Feuchtelinien in 700 hPa bleiben ohne Linienbeschriftung.
+
+Die fokussierte Wetterkarte wechselt mit den Pfeiltasten links/rechts zum vorherigen/nächsten bestätigten Termin. Eingabefelder und Regler behalten ihre eigene Bedienung.
+
+Für ICON-EU, GFS und IFS werden zusätzlich +60 und +72 Stunden angeboten, soweit vollständige Felder aus demselben Lauf verfügbar sind und das bestehende Datenbudget ausreicht. ICON-D2 bleibt auf seinen regionalen Ausschnitt und 48 Stunden begrenzt. Der große Europa-Ausschnitt und die 6-Grad-Farbstufen aus .200 bleiben erhalten.
+
+Basis: main = mid-stable f654bd172a7afc43f307f6dd0663e9ce00b625cb (.201). Details: docs/implementation/MID_C22_SYNOPTIC_TIMELINE_0.9.85.202.md. Bestehende Release-, Sicherheits- und RUC-Frischegates bleiben verbindlich.
+
 # MID v0.9.85.201
 
 RUC-Kurzfristdaten werden nach erfolgreichen MID-Veröffentlichungen automatisch auf Aktualität geprüft und bei Bedarf nachgeholt. Ein erfolgreicher Verarbeitungslauf ohne tatsächlich veröffentlichte Daten unterdrückt die Wiederaufnahme nicht mehr.
