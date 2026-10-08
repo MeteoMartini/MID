@@ -1,4 +1,6 @@
 import React from 'react';
+import {Map as MapLibreMap} from 'maplibre-gl';
+const originalAddSource=MapLibreMap.prototype.addSource;MapLibreMap.prototype.addSource=function(...args:Parameters<typeof originalAddSource>){(window as any).__qaMap=this;return originalAddSource.apply(this,args)};
 import {createRoot} from 'react-dom/client';
 import MapWorkspacePanel from '../../src/MapWorkspacePanel';
 import '../../src/styles.css';

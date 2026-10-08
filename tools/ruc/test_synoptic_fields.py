@@ -3,7 +3,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 import numpy as np
 from eccodes import codes_grib_new_from_samples,codes_set,codes_set_values,codes_get_message,codes_release
-from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e
+from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS
 class SynopticTest(unittest.TestCase):
     def test_independent_metpy_references(self):
         # Bolton saturation differs from MetPy Ambaum saturation by <0.3 K here.
@@ -28,4 +28,24 @@ class SynopticTest(unittest.TestCase):
     def test_same_field_components_and_mask(self):
         with tempfile.TemporaryDirectory() as td:
             lat=np.linspace(47,52.5,12);lon=np.linspace(6,11.5,12);values={'t':288.15,'relhum':80,'fi':560,'pmsl':1012,'u':30,'v':10};fields={(3,f,l):np.full((12,12),values[f]) for f,l in COMPONENTS};fields[(3,'t',850)][0,0]=np.nan;stamp=datetime(2026,10,7,12,tzinfo=timezone.utc);frames=write_fields(Path(td),'icon-eu',stamp,7,fields,lat,lon,(3,));d=json.loads(gzip.decompress((Path(td)/frames[0]['file']).read_bytes()));self.assertIsNone(d['thetae'][0]);self.assertEqual(d['unit'],'°C');self.assertEqual(d['time'],'2026-10-07T15:00:00+00:00');self.assertTrue(d['wind']);self.assertEqual(set(('height','pressure','humidity')).intersection(d),{'height','pressure','humidity'})
+    def test_europe_domain_actual_grib(self):
+        g=codes_grib_new_from_samples('regular_ll_pl_grib2')
+        try:
+            for k,v in {'Ni':1377,'Nj':657,'latitudeOfFirstGridPointInDegrees':70.5,'latitudeOfLastGridPointInDegrees':29.5,'longitudeOfFirstGridPointInDegrees':-23.5,'longitudeOfLastGridPointInDegrees':62.5,'iDirectionIncrementInDegrees':.0625,'jDirectionIncrementInDegrees':.0625,'dataDate':20261007,'dataTime':1200,'typeOfLevel':'isobaricInhPa','level':850,'shortName':'t','stepUnits':1,'forecastTime':15}.items():codes_set(g,k,v)
+            codes_set_values(g,np.full(1377*657,288.15));data=codes_get_message(g)
+        finally:codes_release(g)
+        lat,lon,values=decode(data,'2026100712',15,'t',850)
+        self.assertEqual((lat[0],lat[-1],lon[0],lon[-1]),(29.5,70.5,-23.5,62.5));self.assertEqual(values.shape,(329,689));self.assertAlmostEqual(lat[1]-lat[0],.125);self.assertAlmostEqual(lon[1]-lon[0],.125)
+    def test_theta_and_humidity_levels(self):
+        lat=np.linspace(47,52.5,12);lon=np.linspace(6,11.5,12);x,y=np.meshgrid(lon,lat);rh=50+5*(x-6);fields={(3,f,l):np.full((12,12),{'t':288.15,'relhum':80,'fi':560,'pmsl':1012,'u':40,'v':10}[f]) for f,l in COMPONENTS};fields[(3,'relhum',700)]=rh;fields[(3,'t',850)]=280+(x-6)*3
+        with tempfile.TemporaryDirectory() as td:
+            stamp=datetime(2026,10,7,12,tzinfo=timezone.utc);frames=write_fields(Path(td),'icon-eu',stamp,14,fields,lat,lon,(3,));d=json.loads(gzip.decompress((Path(td)/frames[0]['file']).read_bytes()))
+            self.assertTrue(d['thetaContours']['features']);self.assertTrue(all(f['properties']['level']%6==0 for f in d['thetaContours']['features']));self.assertEqual({f['properties']['level'] for f in d['humidity']['features']},{60})
+    def test_optional_terms_budget_preserves_core(self):
+        from prepare_ruc_pages import fit_synoptic_budget
+        import copy
+        payload={'models':{'icon-eu':{'frames':[{'hour':h,'bytes':1000} for h in HOURS]}}}
+        full=copy.deepcopy(payload);self.assertEqual(len(fit_synoptic_budget(full,20000)['models']['icon-eu']['frames']),13)
+        limited=fit_synoptic_budget(copy.deepcopy(payload),11000);hours={f['hour'] for f in limited['models']['icon-eu']['frames']};self.assertTrue(set(CORE_HOURS).issubset(hours));self.assertLess(len(hours),13)
+        with self.assertRaises(ValueError):fit_synoptic_budget(copy.deepcopy(payload),1000)
 if __name__=='__main__':unittest.main()

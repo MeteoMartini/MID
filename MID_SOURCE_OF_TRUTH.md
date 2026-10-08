@@ -1,3 +1,7 @@
+# MID v0.9.85.200 · MID-C21 Synoptik und Bildwechsel
+
+Verifizierte neue Basis: main = mid-stable = `5b8632355396ff1d6bf25dc20d7edd83415c021e` (.199), parallele Widget-Korrektur erhalten. Europaausschnitt, 60-kt-Pfeile, Theta-E-Stufen/RH700-Konturen, optionale vollständige Termine sowie gepufferte Bildwechsel. Details: docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md. Bestehende Source-/Installer-Gates und Datenbudgets bleiben verbindlich.
+
 # MID v0.9.85.199 · Widget-Kurvenkopf kompakt
 
 Verifizierte Ausgangsbasis `main = mid-stable = 36110a193328b0e4a5978e742e3768a8fcd9664f` (.198). Alle Parallelstandsänderungen bis hierher bleiben erhalten. Widget-only Headerrendering via `presentationReady`; 7d-App-Ansicht unverändert. Regressionsschutz in scripts/test-widget-curve-label-spacing-0985191.mjs; reguläres Source-/Installer-/Pages-/Stable-Gate. Details: docs/implementation/MID_C21_CURVE_WIDGET_COMPACT_0.9.85.199.md.
