@@ -1,3 +1,7 @@
+# MID v0.9.85.207 · Intensivaudit – Build-Identität
+
+Intensivaudit-Schritt 1: Der Auditbefund, main/mid-stable seien ungeschützt, war falsch. GitHub bestätigt aktive MID Production Branch Guard, MID Stable Protection mit Pflichtcheck und gesonderte Agent-/Replit-Regeln. Verifizierte Basis: main = mid-stable = 541ba0b77dc932288bf68ab78b0efd7925045a47 (v0.9.85.206). Nach dem Vite-Build erzeugt scripts/write-build-identity.mjs eine dist/mid-build-identity.json mit exakter Quellversion, möglicher Quell-SHA, Build-UTC, Anzahl Dateien und SHA-256 der gebauten Assets. Fehlerhafte Versionen oder fehlende JavaScript-Assets stoppen den Build. Neue Positiv-/Negativregression scripts/test-build-identity-0985207.mjs. Build-Quell-SHA, Release-Packaging-SHA und Stable-Promotion-SHA sind verschiedene vertragskonforme Identitäten und dürfen nicht blind gleichgesetzt werden. Wetter-, Daten-, Release- und Sicherheitsfunktionen bleiben unverändert.
+
 # MID v0.9.85.206
 
 Die 90-Minuten-Kacheln zeigen zusätzlich den Bewölkungswert ihres jeweiligen Zeitschritts. Die Skybar erklärt ihre Schwellen und die breite Nacht-Hinterlegung. Vorhandene Werte unter den Bandschwellen bleiben als solche erkennbar und werden nicht als fehlende Daten bezeichnet.
