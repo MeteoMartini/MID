@@ -1,0 +1,15 @@
+{
+  "version": "0.9.85.199",
+  "date": "2026-10-08",
+  "title": "Kurven-Widgets platzsparender",
+  "external": [
+    "Bei den 7-Tage-Kurven-Widgets entfallen die beiden Unterüberschriften „7-Tage-Kurvenübersicht“ und „Wetterstreifen, Temperaturtrend & Niederschlag“.",
+    "Die Wettergrafik beginnt dadurch früher. Ortsangaben, Wetterwerte, Kurven und Zeitachse bleiben unverändert; die reguläre 7-Tage-Prognose in der App behält ihre Überschrift."
+  ],
+  "internal": [
+    "Ausgangsbasis main = mid-stable = 36110a193328b0e4a5978e742e3768a8fcd9664f (v0.9.85.198). Separate chatgpt/*-Änderung ohne Parallelbranch-Mischung.",
+    "SevenDayCurveOverview rendert seinen Header ausschließlich, wenn presentationReady=false; damit ist nur der Widget-Präsentationskontext betroffen.",
+    "Vorhandene Pflichtregression zur Widget-Kurvenbeschriftung um gezielte Assertion ergänzt. Kein CSS-Override und kein grafischer Leerraum. Wetterlogik/Quellen unverändert.",
+    "Alle Source-/Installer-/Pages-/Worker-/Stable-Gates bleiben verbindlich; Freigabe erst nach grünem Source-Gate."
+  ]
+}
