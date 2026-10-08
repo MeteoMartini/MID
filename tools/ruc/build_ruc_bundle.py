@@ -103,13 +103,7 @@ def collect_optional_parameter(files,name,targets,expected_points=None):
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:return None
         if valid in rows:raise SystemExit(f'{name}: duplicate optional GRIB validity time {valid}')
-        decoded=normalize(name,vals,units)
-        if temperature_audit is not None and name=='temperature_2m':
-            temperature_audit.append({'valid':valid.isoformat(),'gribFile':file.name,
-                                     'units':str(units)[:64],
-                                     'native':temperature_decode_audit(vals),
-                                     'normalized':temperature_decode_audit(decoded)})
-        rows[valid]=decoded
+        rows[valid]=normalize(name,vals,units)
     return rows if all(t in rows for t in targets) else None
 
 def collect_optional_fields(staging_root:Path,param_map,targets,expected_points,specs):
@@ -249,7 +243,13 @@ def collect_parameter(files,name,targets,expected_points=None,temperature_audit=
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:raise SystemExit(f'{name}: native point count differs from deterministic reference')
         if valid in rows:raise SystemExit(f'{name}: duplicate GRIB validity time {valid}')
-        rows[valid]=normalize(name,vals,units)
+        decoded=normalize(name,vals,units)
+        if temperature_audit is not None and name=='temperature_2m':
+            temperature_audit.append({'valid':valid.isoformat(),'gribFile':file.name,
+                                     'units':str(units)[:64],
+                                     'native':temperature_decode_audit(vals),
+                                     'normalized':temperature_decode_audit(decoded)})
+        rows[valid]=decoded
     missing=[t for t in targets if t not in rows]
     if missing:raise SystemExit(f'{name}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
     return rows
