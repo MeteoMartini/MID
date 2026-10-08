@@ -10,10 +10,11 @@ import contourpy
 from scipy.ndimage import gaussian_filter
 from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release,codes_set
 from build_model_map_fields import theta_e
-HOURS=(0,3,6,9,12,18,24,36,48)
-MODELS={'icon-d2':('DWD ICON-D2','icon-d2',2.2,'germany_regular-lat-lon'),'icon-eu':('DWD ICON-EU','icon-eu',7,'europe_regular-lat-lon')}
+CORE_HOURS=(0,3,6,9,12,18,24,36,48)
+HOURS=(0,3,6,9,12,15,18,21,24,30,36,42,48)
+MODELS={'icon-d2':('DWD ICON-D2','icon-d2',2.2,'germany_regular-lat-lon'),'icon-eu':('DWD ICON-EU','icon-eu',14,'europe_regular-lat-lon')}
 COMPONENTS=(('t',850),('relhum',850),('fi',500),('pmsl',None),('relhum',700),('u',300),('v',300))
-LOCK=threading.Lock();ALGORITHM='bolton-1980-lcl-v2'
+LOCK=threading.Lock();ALGORITHM='bolton-1980-lcl-v3-europe'
 
 def decode(payload,run,hour,field,level):
     with LOCK,tempfile.TemporaryFile() as file:
@@ -30,7 +31,12 @@ def decode(payload,run,hour,field,level):
             if get('shortName') not in allowed[field] or get('gridType')!='regular_ll':raise ValueError('wrong parameter/grid')
             ni,nj=int(get('Ni')),int(get('Nj'));lat=np.asarray(codes_get_array(gid,'latitudes')).reshape(nj,ni);lon=(np.asarray(codes_get_array(gid,'longitudes')).reshape(nj,ni)+180)%360-180
             if not np.allclose(lat,lat[:,0,None]) or not np.allclose(lon,lon[0,None,:]):raise ValueError('nonrectangular grid')
-            rows=np.where((lat[:,0]>=43)&(lat[:,0]<=60))[0];cols=np.where((lon[0]>=-10)&(lon[0]<=30))[0];rows=rows[np.argsort(lat[rows,0])];cols=cols[np.argsort(lon[0,cols])]
+            rows=np.where((lat[:,0]>=29.5)&(lat[:,0]<=70.5))[0];cols=np.where((lon[0]>=-23.5)&(lon[0]<=62.5))[0];rows=rows[np.argsort(lat[rows,0])];cols=cols[np.argsort(lon[0,cols])]
+            # ICON-EU overview samples the original grid at 0.125 degrees.
+            # All seven inputs use exactly the same selection; no invented detail.
+            step=abs(float(lat[1,0]-lat[0,0]))
+            stride=2 if .06<step<.07 else 1
+            rows=rows[::stride];cols=cols[::stride]
             values=np.asarray(codes_get_array(gid,'values')).reshape(nj,ni)[np.ix_(rows,cols)];values[values==get('missingValue')]=np.nan
             if not values.size or np.isfinite(values).mean()<.4:raise ValueError('incomplete field')
             unit=str(get('units'))
@@ -52,12 +58,28 @@ def decode(payload,run,hour,field,level):
             return np.round(lat[rows,0],6),np.round(lon[0,cols],6),values
         finally:codes_release(gid)
 
+def simplify_line(line,tolerance):
+    """Bound the plotted path error; preserve endpoints and meteorological levels."""
+    keep={0,len(line)-1};pending=[(0,len(line)-1)]
+    while pending:
+        first,last=pending.pop()
+        if last-first<2:continue
+        segment=line[last]-line[first];length=np.dot(segment,segment)
+        middle=line[first+1:last];t=np.clip(((middle-line[first])@segment)/length,0,1) if length else np.zeros(len(middle))
+        distances=np.linalg.norm(middle-(line[first]+t[:,None]*segment),axis=1);index=int(np.argmax(distances))
+        if distances[index]>tolerance:
+            split=first+1+index;keep.add(split);pending.extend(((first,split),(split,last)))
+    return line[sorted(keep)]
+
 def contours(values,lats,lons,interval):
     mask=np.isfinite(values);weight=gaussian_filter(mask.astype(float),.65);smooth=gaussian_filter(np.where(mask,values,0),.65)/np.maximum(weight,1e-9);z=np.ma.array(smooth,mask=~mask)
     cg=contourpy.contour_generator(x=lons,y=lats,z=z,corner_mask=False);features=[]
     for level in np.arange(np.floor(np.nanmin(values)/interval)*interval,np.ceil(np.nanmax(values)/interval)*interval+1,interval):
         for line in cg.lines(level):
-            if len(line)>=3:features.append({'type':'Feature','properties':{'level':float(level),'label':str(int(level))},'geometry':{'type':'LineString','coordinates':np.round(line,5).tolist()}})
+            if len(line)>=3:
+                line=simplify_line(line,min(.01,abs(lats[1]-lats[0])*.08))
+                if len(line)<3:line=np.vstack((line[0],(line[0]+line[-1])/2,line[-1]))
+                features.append({'type':'Feature','properties':{'level':float(level),'label':str(int(level))},'geometry':{'type':'LineString','coordinates':np.round(line,5).tolist()}})
     return {'type':'FeatureCollection','features':features}
 
 def write_fields(output,model,stamp,resolution,fields,lats,lons,hours=HOURS):
@@ -69,7 +91,7 @@ def write_fields(output,model,stamp,resolution,fields,lats,lons,hours=HOURS):
             for x in range(0,len(lons),stride):
                 u,v=get('u',300)[y,x],get('v',300)[y,x]
                 if np.isfinite(u) and np.isfinite(v):wind.append([float(lons[x]),float(lats[y]),round(float(u),2),round(float(v),2)])
-        time=(stamp+timedelta(hours=hour)).isoformat();payload={'schema':'mid.synoptic.field.v1','model':model,'run':stamp.isoformat(),'time':time,'resolutionKm':resolution,'unit':'°C','scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'thetae':values,'height':contours(get('fi',500),lats,lons,4),'pressure':contours(get('pmsl'),lats,lons,4),'humidity':contours(get('relhum',700),lats,lons,20),'wind':wind}
+        time=(stamp+timedelta(hours=hour)).isoformat();payload={'schema':'mid.synoptic.field.v1','model':model,'run':stamp.isoformat(),'time':time,'resolutionKm':resolution,'unit':'°C','scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'thetae':values,'height':contours(get('fi',500),lats,lons,4),'pressure':contours(get('pmsl'),lats,lons,4),'humidity':{'type':'FeatureCollection','features':[f for f in contours(get('relhum',700),lats,lons,20)['features'] if f['properties']['level'] in (60,80)]},'thetaContours':contours(theta,lats,lons,6),'wind':wind}
         raw=json.dumps(payload,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode();name=f'{model}-{hour:03d}.bin';data=gzip.compress(raw,mtime=0)
         if len(raw)>12_000_000:raise ValueError('decoded field budget')
         (output/name).write_bytes(data);frames.append({'hour':hour,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
@@ -122,7 +144,7 @@ def global_product(model,output,now=None,hours=HOURS,cached=None):
             if cached and cached['run']==stamp.isoformat():return cached
             for hour in hours:
                 if model=='gfs':
-                    url='https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl';params={'file':f'gfs.t{stamp:%H}z.pgrb2.0p25.f{hour:03d}','dir':f'/gfs.{stamp:%Y%m%d}/{stamp:%H}/atmos','subregion':'','leftlon':-10,'rightlon':30,'toplat':60,'bottomlat':43}
+                    url='https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl';params={'file':f'gfs.t{stamp:%H}z.pgrb2.0p25.f{hour:03d}','dir':f'/gfs.{stamp:%Y%m%d}/{stamp:%H}/atmos','subregion':'','leftlon':-23.5,'rightlon':62.5,'toplat':70.5,'bottomlat':29.5}
                     params.update({'var_'+v:'on' for v in ('TMP','RH','HGT','UGRD','VGRD','PRMSL')});params.update({f'lev_{v}_mb':'on' for v in (850,700,500,300)});params['lev_mean_sea_level']='on';r=requests.get(url,params=params,timeout=60);r.raise_for_status()
                     if len(r.content)>16_000_000:raise ValueError('GFS subset budget')
                     bundles=[(f,l,select_message(r.content,f,l)) for f,l in COMPONENTS];origins.append({'url':r.url,'sha256':hashlib.sha256(r.content).hexdigest()})
@@ -163,7 +185,7 @@ def restore_cache(output):
         for model,p in index.get('models',{}).items():
             try:
                 stamp=datetime.fromisoformat(p['run']);age=datetime.now(timezone.utc)-stamp
-                if model not in (*MODELS,'gfs','ifs') or age<timedelta(hours=-1) or age>timedelta(hours=24) or tuple(f['hour'] for f in p['frames'])!=HOURS:continue
+                if model not in (*MODELS,'gfs','ifs') or age<timedelta(hours=-1) or age>timedelta(hours=24) or not set(CORE_HOURS).issubset(f['hour'] for f in p['frames']) or any(f['hour'] not in HOURS for f in p['frames']) or len({f['hour'] for f in p['frames']})!=len(p['frames']):continue
                 pending=[]
                 for f in p['frames']:
                     if f['file']!=f"{model}-{f['hour']:03d}.bin" or not re.fullmatch('[a-f0-9]{64}',f['sha256']) or not 0<f['bytes']<=12_000_000:raise ValueError('cached reference')

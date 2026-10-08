@@ -117,6 +117,17 @@ def write_projected_i16_chunks(source:Path,target_dir:Path,spec:dict,chunk_recor
     return {'chunkRecords':chunk_records,'chunkCount':len(objects),'recordBytes':record_bytes,'prefix':prefix,'records':records},objects
 
 
+def fit_synoptic_budget(payload,available):
+    core_hours={0,3,6,9,12,18,24,36,48}
+    def synoptic_size():
+        return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames'])
+    candidates=sorted(((frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
+    while synoptic_size()>available and candidates:
+        _,model,hour=candidates.pop(0)
+        payload['models'][model]['frames']=[frame for frame in payload['models'][model]['frames'] if frame['hour']!=hour]
+    if synoptic_size()>available:raise ValueError('complete synoptic core exceeds remaining Pages budget')
+    return payload
+
 def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES):
     meta=json.loads((source/'latest.json').read_text(encoding='utf-8'))
     if meta.get('schema')!=SCHEMA or not meta.get('run'): raise ValueError('invalid RUC metadata')
@@ -219,6 +230,10 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     if fields_index.is_file():
         payload=json.loads(fields_index.read_text())
         if payload.get('schema')!='mid.synoptic.fields.v1':raise ValueError('invalid synoptic index')
+        # Retain all nine established five-field terms. Extra terms are optional
+        # when the unchanged free-Pages envelope is otherwise exhausted.
+        fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES-1-sum(row['bytes'] for row in objects))
+        fields_index.write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n')
         prefix=f'runs/{run}__synoptic_{digest(fields_index)[:16]}/synoptic-fields/'
         files=[fields_index]
         for model,product in payload['models'].items():

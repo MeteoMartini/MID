@@ -1,3 +1,7 @@
+# MID v0.9.85.199 · MID-C21 Synoptik und Bildwechsel
+
+Verifizierte Basis: main = mid-stable = `36110a193328b0e4a5978e742e3768a8fcd9664f` (.198). Europaausschnitt, 60-kt-Pfeile, Theta-E-Stufen und RH700-Konturen, optionale vollständige Termine sowie gepufferte Bildwechsel. Details: docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.199.md. Bestehende Source-/Installer-Gates und Datenbudgets bleiben verbindlich.
+
 # MID v0.9.85.198 · MID-C21 Karten und RUC-Veröffentlichung
 
 Basis b27bd472e228c59a9cc36e7305307b775623288a (.197). Details: docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md. Bestehende Source-/Installer-Gates bleiben verbindlich.

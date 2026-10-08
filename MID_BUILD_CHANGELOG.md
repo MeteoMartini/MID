@@ -1,3 +1,7 @@
+# MID v0.9.85.199 · C21
+
+Europäische native Synoptik, 60-kt-Windpfeile, Theta-E-Stufen/RH700-Konturen, budgetabhängige zusätzliche Termine und gepufferte Bildwechsel. Details: docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.199.md. Bestehende Release-/Datenbudgets unverändert.
+
 # MID v0.9.85.198 · MID-C21 Karten und RUC-Veröffentlichung
 
 Basis b27bd472e228c59a9cc36e7305307b775623288a (.197). Details: docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md. Bestehende Source-/Installer-Gates bleiben verbindlich.
