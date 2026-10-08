@@ -1,3 +1,7 @@
+# MID v0.9.85.210
+
+MID misst jetzt bei automatisierten Karten-Browsertests zusätzlich die tatsächliche Ladebereitschaft, den Bildaufbau und längere Berechnungsphasen. Die Messwerte werden für verschiedene Displaygrößen, helle und dunkle Ansichten sowie die beiden Designs dokumentiert. Sie dienen zunächst als Vergleichsbasis; Wetterprognosen, Kartenfunktionen und die Bedienoberfläche ändern sich nicht.
+
 # MID v0.9.85.209
 
 Die Prüfung der DWD-RUC-Wetterdaten wurde weiter verschärft: MID kontrolliert jetzt auch, ob GRIB2-Felder tatsächlich vom erwarteten DWD-Erzeugungszentrum stammen und die richtige Modellinitialisierung besitzen. Verwechslungen verschiedener Wetterparameter, Höhenniveaus oder Gitter innerhalb eines Modelllaufs sowie doppelte Prognosewerte werden vor der Veröffentlichung erkannt. Vorhandene Wetterfunktionen und die Bedienoberfläche bleiben unverändert.
