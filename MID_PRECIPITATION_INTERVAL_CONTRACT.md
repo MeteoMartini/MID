@@ -145,3 +145,7 @@ Verbindlich gilt daher:
 - Niederschlagswahrscheinlichkeit bleibt fachlich eine Intervallgröße. Für die Darstellung darf die Linie ab v0.9.80.6 **monoton geglättet** durch die Mittelpunkte der zugehörigen Vorwärtsslots geführt werden. Die Glättung ist ausschließlich eine visuelle Führung; Prozentwert, Auswahl/Tooltip und Intervallbeschriftung bleiben dem vollständigen Bezugsfenster `[S,S+Δ]` zugeordnet. Ein generischer Spline mit Überschwingen oder eine Umdeutung zu sub-stündlichen Wahrscheinlichkeiten ist unzulässig.
 - Die 24-h-Tagesachse reserviert die rechte Kante für 24:00; der 23:00-Punkt liegt am Beginn des letzten Slots 23:00–24:00.
 - Instantane Größen bleiben auf ihrer Zeitmarke; Akkumulations-/Wahrscheinlichkeitsfelder verwenden die Vorwärtsintervall-Geometrie.
+
+## v0.9.85.211: Kurzfristtext und Stunden-/Viertelstundenintervall
+
+Die erste im Kurzfristtext genannte Niederschlagsphase leitet sich aus denselben vorwärtsgerichteten Intervallen wie das Wetterprofil ab. Die Zeitangabe bezeichnet precipitationIntervalStartEpoch und niemals die Endezeit der Stundenakkumulation. Innerhalb der ersten betroffenen Profilstunde wird nach Möglichkeit der erste nasse native 15-Minuten-Zeitschritt als genauerer Niederschlagsbeginn verwendet. Eine hohe Niederschlagswahrscheinlichkeit bei gemessenen/modellierten 0 mm genügt nicht als alleinige Grundlage für die Aussage eines tatsächlichen Niederschlagsbeginns. WMO-Phasencodes bleiben unabhängig vom zeitlichen Display-Vertrag eindeutig.
