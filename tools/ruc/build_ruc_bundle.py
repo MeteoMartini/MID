@@ -12,6 +12,7 @@ import numpy as np
 from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,RAPID_STATE_15_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
+from meteo_integrity import validate_accumulation,validate_core_fields
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 SEVERE_PARAM_MAP={'LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
@@ -112,7 +113,7 @@ def collect_optional_fields(staging_root:Path,param_map,targets,expected_points,
     return fields,tuple(selected_specs)
 
 def accumulation_intervals(rows,targets):
-    cube=np.stack([rows[t] for t in targets]);return np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
+    cube=np.stack([rows[t] for t in targets]);validate_accumulation(cube,'native rapid/phase TOT_PREC');return np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
 
 def _max_rolling_sum(cube,window_steps,start_index=1):
     arr=np.asarray(cube,dtype=np.float64)
@@ -275,6 +276,7 @@ def collect_eps(files,targets,expected_points):
     members=sorted(set.intersection(*(set(rows[t]) for t in targets))) if targets else []
     if len(members)<10:raise SystemExit(f'RUC-EPS has only {len(members)} common members')
     cube=np.stack([np.stack([rows[t][m] for m in members],axis=0) for t in targets],axis=0)
+    validate_accumulation(cube,'RUC-EPS TOT_PREC')
     interval=np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
     return interval,members
 
@@ -358,7 +360,7 @@ def main():
   if point_count is None:point_count=len(rows[det_times[0]])
   series[name]=rows
  base_grid=load_native_grid(a.staging,point_count)
- det_acc=np.stack([series['precipitation_acc'][t] for t in det_times]);prec=np.maximum(0,np.diff(det_acc,axis=0,prepend=det_acc[:1]))
+ det_acc=np.stack([series['precipitation_acc'][t] for t in det_times]);validate_accumulation(det_acc,'RUC deterministic TOT_PREC');prec=np.maximum(0,np.diff(det_acc,axis=0,prepend=det_acc[:1]))
  u=np.stack([series['u10'][t] for t in det_times]);v=np.stack([series['v10'][t] for t in det_times]);speed=np.hypot(u,v)*1.94384449;direction=(np.degrees(np.arctan2(-u,-v))+360)%360
  fields={}
  for spec in DEFAULT_FIELDS:
@@ -368,6 +370,7 @@ def main():
   elif n=='wind_gusts_10m':fields[n]=np.stack([series[n][t] for t in det_times])*1.94384449
   elif n=='precipitation':fields[n]=prec
   else:fields[n]=np.stack([series[n][t] for t in det_times])
+ validate_core_fields(fields)
  det=a.output/'deterministic.bin';det.write_bytes(pack_cell_major(fields,DEFAULT_FIELDS))
  # Parameter-native rapid supplements. The shared state vector stays hourly;
  # rapid products preserve only cadences that DWD actually publishes.
