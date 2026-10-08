@@ -1,3 +1,3 @@
-# MID v0.9.85.210
+# MID v0.9.85.211
 
-MID misst jetzt bei automatisierten Karten-Browsertests zusätzlich die tatsächliche Ladebereitschaft, den Bildaufbau und längere Berechnungsphasen. Die Messwerte werden für verschiedene Displaygrößen, helle und dunkle Ansichten sowie die beiden Designs dokumentiert. Sie dienen zunächst als Vergleichsbasis; Wetterprognosen, Kartenfunktionen und die Bedienoberfläche ändern sich nicht.
+Niederschlagsarten sind eindeutiger: Gefrierender Regen und Schneeregen haben jetzt unterscheidbare Symbole. Bei nicht durch kalte Oberflächen bestätigtem gefrierendem Regen wird ein Modellhinweis vorsichtiger formuliert, während bestätigtes Glätterisiko sichtbar bleibt. Der Kurzfristtext orientiert den Niederschlagsbeginn an der dargestellten Stunden-/15-Minuten-Zeitachse. Die 90-Minuten-Kacheln zeigen keine redundanten Wolkenprozente mehr; die Skybar bleibt unverändert.
