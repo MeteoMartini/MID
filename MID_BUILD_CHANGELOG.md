@@ -1,3 +1,7 @@
+# MID v0.9.85.200 · C21
+
+Europäische native Synoptik, 60-kt-Windpfeile, Theta-E-Stufen/RH700-Konturen, budgetabhängige zusätzliche Termine und gepufferte Bildwechsel einschließlich OPERA und 250-m-Radar. Parallele Widget-Korrektur aus .199 erhalten. Details: docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md. Bestehende Release-/Datenbudgets unverändert.
+
 # MID v0.9.85.199 · kompakter Kurvenwidget-Kopf
 
 Basis 36110a193328b0e4a5978e742e3768a8fcd9664f (.198). Widget-Präsentation blendet nur die zwei redundanten Unterüberschriften aus; App-Prognose bleibt erhalten. Bestehende Pflichtregression erweitert, keinerlei Wetterlogik-/API-/Sicherheitsänderung. Dokumentation: docs/implementation/MID_C21_CURVE_WIDGET_COMPACT_0.9.85.199.md.
