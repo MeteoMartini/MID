@@ -1,7 +1,7 @@
-# MID v0.9.85.198
+# MID v0.9.85.199
 
-MID-C21: sichtbare Küsten und Ländergrenzen über den Wetterflächen; direkte Kartenzeitwahl mit Vor/Zurück, Terminliste und Aktuell. Synoptik zeigt fehlende Kataloge und Ladefehler mit erneutem Abruf.
+Die 7-Tage-Kurven-Widgets verzichten auf die beiden bisherigen Unterüberschriften „7-Tage-Kurvenübersicht“ und „Wetterstreifen, Temperaturtrend & Niederschlag“. So beginnt die Grafik ohne unnötigen Zwischenraum direkt unter den Ortsangaben.
 
-RUC-Veröffentlichung bindet den vorbereiteten Snapshot an seine Artefakt-ID. Pages-Artefakte sind je Ausführungsversuch eindeutig. Alte Scheduler-Einträge ohne Jobs blockieren die Wiederaufnahme erst nach überprüfter Jobs-Abfrage nicht mehr; laufende Jobs und Schutzgates bleiben erhalten.
+Die normale 7-Tage-Prognose, die Wetterwerte, Kurven, Piktogramme und der Wetterstreifen bleiben unverändert.
 
-Basis: verifiziertes main = mid-stable b27bd472e228c59a9cc36e7305307b775623288a (.197). Details: docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md.
+Basis: main = mid-stable 36110a193328b0e4a5978e742e3768a8fcd9664f (v0.9.85.198). Details: docs/implementation/MID_C21_CURVE_WIDGET_COMPACT_0.9.85.199.md.
