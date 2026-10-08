@@ -1,3 +1,7 @@
+# MID v0.9.85.199 · Widget-Kurvenkopf kompakt
+
+Verifizierte Ausgangsbasis `main = mid-stable = 36110a193328b0e4a5978e742e3768a8fcd9664f` (.198). Alle Parallelstandsänderungen bis hierher bleiben erhalten. Widget-only Headerrendering via `presentationReady`; 7d-App-Ansicht unverändert. Regressionsschutz in scripts/test-widget-curve-label-spacing-0985191.mjs; reguläres Source-/Installer-/Pages-/Stable-Gate. Details: docs/implementation/MID_C21_CURVE_WIDGET_COMPACT_0.9.85.199.md.
+
 # MID v0.9.85.198 · MID-C21 Karten und RUC-Veröffentlichung
 
 Basis b27bd472e228c59a9cc36e7305307b775623288a (.197). Details: docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md. Bestehende Source-/Installer-Gates bleiben verbindlich.
