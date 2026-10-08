@@ -1002,6 +1002,7 @@
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
     "scripts/test-build-budget-media-contract-097620.mjs",
     "scripts/test-build-icons-pressure-card.mjs",
+    "scripts/test-build-identity-0985207.mjs",
     "scripts/test-build-percent-integers-091513.mjs",
     "scripts/test-build-regression-071004.mjs",
     "scripts/test-build-render-stability-08274.mjs",
