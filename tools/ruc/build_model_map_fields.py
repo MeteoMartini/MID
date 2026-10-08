@@ -53,7 +53,7 @@ def theta_e(t,rh):
     c=t-273.15;e=np.clip(rh,0.01,150)/100*6.112*np.exp(17.67*c/(c+243.5));mix=.622*e/np.maximum(1,850-e)
     dew=243.5*np.log(e/6.112)/(17.67-np.log(e/6.112))+273.15
     tl=1/(1/(dew-56)+np.log(t/dew)/800)+56
-    return t*(1000/(850-e))**(.2854*(1-.28*mix))*np.exp((3376/tl-2.54)*mix*(1+.81*mix))
+    return t*(1000/(850-e))**(2/7)*(t/tl)**(.28*mix)*np.exp((3036/tl-1.78)*mix*(1+.448*mix))
 
 def contours(values,lats,lons):
     # Render contours on a decimated grid; underlying sampled values stay native.

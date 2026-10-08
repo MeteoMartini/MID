@@ -66,6 +66,7 @@
     "src/midC18FourteenReplitFluidGrid.css",
     "src/midC18MountainResponsiveFix.css",
     "src/midC18MapAndSevenDayAlignment.css",
-    "src/midC18AuditFollowup.css"
+    "src/midC18AuditFollowup.css",
+    "src/midC21CurrentWeather.css"
   ]
 }
