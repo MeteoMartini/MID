@@ -8,7 +8,7 @@
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "npm run prepare:release-repository && npm run sync-version",
     "build": "npm run verify:types && npm run verify:vite",
-    "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build && node scripts/write-build-identity.mjs",
+    "build:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
     "verify": "npm run build && node --check worker/metar-proxy.js && npm run test:regressions",
     "ios:sync": "npm run build && cap sync ios",
     "ios:open": "cap open ios",
