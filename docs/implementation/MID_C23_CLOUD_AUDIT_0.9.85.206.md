@@ -1,0 +1,13 @@
+# MID-C23 · Bewölkung, 90 Minuten und fehlende Werte .206
+
+Basis main = mid-stable = `5abd95581f254b2612d94612dcab73b6c8ba75ce` (.205), unverändert freigegeben. Offene PRs sind ausschließlich Dependabot; kein überlappender Produktstand.
+
+Die 90-Minuten-Kacheln und Skybar verwenden bereits dieselben sechs ShortTermForecastPoint-Intervalle. Die breite graue Fläche besitzt einen eigenen astronomischen Nacht-Renderer und ist kein Bewölkungsband. Ohne Ort/Rohdaten des Fotos kann dessen Prozentwert nicht rekonstruiert werden; es wird kein behaupteter Datenkonflikt aus der Bildfarbe erfunden. Eine deterministische Fixture schützt genau 17:30 bis 18:45 LT, graue und gelbe Bänder sowie legitime Lücken bei bekannter geringer Bewölkung und geringer direkter Sonnenscheindauer.
+
+Gefundene reale Fehler: Number(null)/Number('') in Periodenmitteln, 3-h-Detailmittel, gemeinsamen Piktogrammprofilen und Tagescode-Reconciliation; optionalen Kurzfrist-Schichtinterpolationen und 24-h-Fallbacks. Fehlend wird nun ausgeschlossen; 0 bleibt gültig. Unbekannte Gesamtbewölkung wird nicht als 0 % angezeigt; eine bekannte Tages-Bandlücke ist keine unavailable-Zelle. Die 3-h-Detailzeile hatte außerdem für trockene Gruppen einen repräsentativen Einzelcode neben mittlerer Bewölkung. Nun bestimmt derselbe Mittelwert den trockenen Code und damit dessen Text; Niederschlags-/Sichtphänomene bleiben erhalten. Regression: [0,90,0] % ergibt 30 % und leicht bewölkt, nicht einen Bedeckt-Text neben dem leichteren Wetterzeichen. Keine Änderung der WMO-/DWD-Schwellen, Niederschlagsphasen oder Direktsonnenschein-Definition.
+
+Kacheln nennen zusätzlich die konkrete Bewölkung. Nachtflächen und Gesamt-Skybar erhalten eigene Erläuterungen. Der alte 24-h-Info-Text behauptete seit .204 weiterhin eine Viertelstunden-Basis; er beschreibt jetzt korrekt das Stunden-Basisband und die feinere Niederschlagsauflage.
+
+Hinweise mit langen DWD-Texten behalten volle Breite, wenn einzeln; mehrere Hinweise nutzen adaptive Spalten ab genügend Platz. Der historische .169-CSS-Fingerprint und die .178-Niederschlagsprüfungen bleiben unverändert. Eine explizit registrierte neue C23-CSS-Schicht ergänzt die adaptive Anordnung. Alte Texttests werden ausschließlich an die bewusst korrigierte Verfügbarkeit, Feldnormalisierung und Erklärung angepasst; die neue Funktionsregression schützt ihr Verhalten. Browserprüfungen schützen Einzel-/Mehrfachhinweise und vollständigen Textfluss auf Telefon, Tablet und Desktop.
+
+Prüfungen werden im PR mit dem finalen Quell-Head und Freigabestand dokumentiert. Source-PR, serverseitiger Release und Installer bleiben die einzige Veröffentlichungskette. Keine geschützten Direktpushes, kein Ersatz-ZIP im Source-PR, keine manuelle Stable-Promotion.

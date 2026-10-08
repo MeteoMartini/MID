@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.205",
+  "releaseVersion": "0.9.85.206",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -80,6 +80,7 @@
     "scripts/test-c21-synoptic-buffering-0985200.mjs",
     "scripts/test-c22-ruc-publication-recovery-0985201.mjs",
     "scripts/test-c22-synoptic-timeline-0985202.mjs",
+    "scripts/test-c23-cloud-missing-0985206.mjs",
     "scripts/test-c23-cloud-synoptic-0985204.mjs",
     "scripts/test-c23-full-horizon-0985205.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
@@ -1029,6 +1030,7 @@
     "scripts/test-c21-synoptic-buffering-0985200.mjs",
     "scripts/test-c22-ruc-publication-recovery-0985201.mjs",
     "scripts/test-c22-synoptic-timeline-0985202.mjs",
+    "scripts/test-c23-cloud-missing-0985206.mjs",
     "scripts/test-c23-cloud-synoptic-0985204.mjs",
     "scripts/test-c23-full-horizon-0985205.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
@@ -2746,6 +2748,7 @@
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-branch-cleanup-safety-0985127.mjs",
+    "scripts/test-c23-cloud-missing-0985206.mjs",
     "scripts/test-ci-types-event-update-098436.mjs",
     "scripts/test-climate-hazard-widget-09804.mjs",
     "scripts/test-climate-section-09800.mjs",
@@ -2761,6 +2764,7 @@
     "scripts/test-dwd-native-georef-09250.mjs",
     "scripts/test-dwd-radar-worker-payload-buildfix-09221.mjs",
     "scripts/test-ensemble-progressive-bootstrap-097832.mjs",
+    "scripts/test-extreme-outlook-real-members-0985155.mjs",
     "scripts/test-extreme-rain-profile-night-097628.mjs",
     "scripts/test-feature-chunk-budget-098595.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
@@ -2837,8 +2841,7 @@
     "scripts/test-widget-url-exports-098413.mjs",
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
-    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-extreme-outlook-real-members-0985155.mjs"
+    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3422,7 +3425,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.205",
+  "version": "0.9.85.206",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

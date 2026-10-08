@@ -11,7 +11,7 @@ const FOG_KINDS=new Set<WeatherPictogramKind>(['mist','fog','rime-fog','haze']);
 const THUNDER_KINDS=new Set<WeatherPictogramKind>(['thunder','thunder-solid','thunder-graupel','thunder-hail']);
 
 function meanLayer(hours:Hour[],key:'cloud'|'lowCloud'|'midCloud'|'highCloud'){
- const values=hours.map(hour=>Number(hour[key])).filter(Number.isFinite);
+ const values=hours.filter(hour=>hour[key]!==null&&hour[key]!==undefined&&String(hour[key]).trim()!=='').map(hour=>Number(hour[key])).filter(Number.isFinite);
  return values.length?values.reduce((sum,value)=>sum+value,0)/values.length:undefined;
 }
 

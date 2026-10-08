@@ -11,16 +11,16 @@ for(const source of [weatherSource,workerSource])for(const field of ['cloud_cove
  assert.ok(source.includes(field),`Kernforecast muss ${field} weiterhin explizit anfordern.`);
 
 for(const token of [
- "type ShortTermCloudLayers={total:number;high?:number;mid?:number;low?:number;inconsistent:boolean}",
+ "type ShortTermCloudLayers={total?:number;high?:number;mid?:number;low?:number;inconsistent:boolean}",
  "function shortTermCloudPercent(value:unknown)",
  "allLayersPresent=high!==undefined&&mid!==undefined&&low!==undefined",
- "inconsistent=total>=5&&allLayersPresent&&Math.max(high,mid,low)<=.5",
+ "inconsistent=total!==undefined&&total>=5&&allLayersPresent&&Math.max(high,mid,low)<=.5",
  "return inconsistent?{total,inconsistent:true}:{total,high,mid,low,inconsistent:false}",
  "function shortTermCloudLayerTriplet(",
  "if(values.every(value=>value===undefined))return'n. v.'",
- "lowCloud:Number.isFinite(Number(hour.lowCloud))?clamp(Number(hour.lowCloud),0,100):Number.NaN",
- "midCloud:Number.isFinite(Number(hour.midCloud))?clamp(Number(hour.midCloud),0,100):undefined",
- "highCloud:Number.isFinite(Number(hour.highCloud))?clamp(Number(hour.highCloud),0,100):undefined",
+ "lowCloud:shortTermCloudPercent(hour.lowCloud)??Number.NaN",
+ "midCloud:shortTermCloudPercent(hour.midCloud)",
+ "highCloud:shortTermCloudPercent(hour.highCloud)",
  "cloud:cloudMean('cloud')??first.cloud",
  "lowCloud:cloudMean('lowCloud')??Number.NaN",
  "midCloud:cloudMean('midCloud')",
@@ -28,7 +28,7 @@ for(const token of [
  "Gesamtbewölkung und H/M/L-Schichtbewölkung sind getrennte Quellfelder",
  "nicht als 0 % ausgegeben",
  "H/M/L ${shortTermCloudLayerTriplet(profileOverlayVisualPoint.point)}",
- "Gesamt {Math.round(shortTermCloudLayers(selectedPoint).total)} % · H/M/L {shortTermCloudLayerTriplet(selectedPoint)}"
+ "Gesamt {shortTermCloudLabel(shortTermCloudLayers(selectedPoint).total)} · H/M/L {shortTermCloudLayerTriplet(selectedPoint)}"
 ])assert.ok(cockpit.includes(token),`Wolkenschicht-Verfügbarkeitsvertrag fehlt: ${token}`);
 
 for(const forbidden of [

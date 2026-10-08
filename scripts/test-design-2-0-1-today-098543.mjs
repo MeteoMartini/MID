@@ -18,7 +18,7 @@ for(const token of [
  'profileSkyBarXPositions=profileSkyBarPoints.map(point=>profileXForEpoch(point.epoch))',
  'const profileSkyBarSegments=detailSkyBarSegments(profileSkyBarBandPoints,chartDataLeft,chartWidth-(chartDataLeft+chartDataWidth),chartWidth,profileSkyBarY,profileSkyBarBandPoints.map(point=>profileXForEpoch(point.epoch)))',
  'Die Diagramme zeigen alle verfügbaren Stundenwerte.',
- "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben unverändert stündlich aufgelöst.':'Die Skybar behält in der Kurzfrist dieselben Viertelstunden wie die 90-min-Ansicht; danach folgt sie den Stundenintervallen.'",
+ "skybarDisplayMode==='squares'?'Die Stundenquadrate bleiben unverändert stündlich aufgelöst.':'Das Bewölkungs- und Sonnenband verwendet dieselben Stundenwerte wie Wolkenanzeige und Wetterzeichen; die Niederschlagsauflage behält vorhandene Viertelstunden.'",
  'data-mid-skybar="profile"',
  "skybarDisplayMode==='squares'?<SkyBarHourCellsSvg cells={profileSkyBarHourCells}",
  '<SkyBarSegmentsSvg segments={profileSkyBarSegments} keyPrefix="profile"/>'
