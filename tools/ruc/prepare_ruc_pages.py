@@ -214,10 +214,29 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
             key=prefix+file.name;destination=out/key;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
             objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
         model_fields={'key':prefix+'index.json','run':payload['run'],'schema':payload['schema']}
+    synoptic_fields=None
+    fields_dir=source/'synoptic-fields';fields_index=fields_dir/'index.json'
+    if fields_index.is_file():
+        payload=json.loads(fields_index.read_text())
+        if payload.get('schema')!='mid.synoptic.fields.v1':raise ValueError('invalid synoptic index')
+        prefix=f'runs/{run}__synoptic_{digest(fields_index)[:16]}/synoptic-fields/'
+        files=[fields_index]
+        for model,product in payload['models'].items():
+            if model not in ('icon-d2','icon-eu','gfs','ifs'):raise ValueError('unknown synoptic model')
+            for frame in product['frames']:
+                name=frame['file']
+                if not re.fullmatch(re.escape(model)+r'-\d{3}\.bin',name):raise ValueError('unsafe synoptic file')
+                file=fields_dir/name
+                if digest(file)!=frame['sha256'] or file.stat().st_size!=frame['bytes']:raise ValueError('synoptic digest mismatch')
+                files.append(file)
+        for file in files:
+            key=prefix+file.name;destination=out/key;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
+            objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
+        synoptic_fields={'key':prefix+'index.json','schema':payload['schema'],'generatedAt':payload['generatedAt']}
     total=sum(row['bytes'] for row in objects)
     if total>=PAGES_RUC_BUDGET_BYTES:
         raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
-    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,
+    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
             'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes}}
     (out/'latest.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
     return result
@@ -251,6 +270,13 @@ def main():
     except (RuntimeError,ValueError,OSError) as error:
         if fields_dir.exists():shutil.rmtree(fields_dir)
         print(f'::warning::ICON-D2 native maps unavailable: {error}',flush=True)
+    from build_synoptic_fields import build as build_synoptic
+    synoptic_dir=a.source/'synoptic-fields'
+    if synoptic_dir.exists():shutil.rmtree(synoptic_dir)
+    try:build_synoptic(synoptic_dir)
+    except Exception as error:
+        shutil.rmtree(synoptic_dir,ignore_errors=True)
+        print(f'::warning::Synoptic fields unavailable: {error}',flush=True)
     meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
     print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'budgetBytes':meta['pages']['budgetBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'prunedRapidProducts':meta['pages']['prunedRapidProducts'],'savedBytes':meta['pages']['savedBytes']}))
 if __name__=='__main__':main()

@@ -1,3 +1,11 @@
+# MID v0.9.85.197
+
+- Aktuelles Wetter: vier einheitliche Parameterfelder mit passenden Symbolen und lesbarer Typografie. Die Skybar liegt oberhalb des 12-Stunden-Temperaturgraphen mit gemeinsamer Zeitachse.
+- Kartendetails lassen sich einzeln auswählen: Ländergrenzen, Regionen, Städte, Flüsse und Straßen. Eine gemeinsame OSM-Geometrie ersetzt doppelte und schematische Grenzen.
+- Höhenlinien 500 hPa werden aus dem vollständigen Modellraster als zusammenhängende Konturen berechnet. Die alte gestufte Darstellung entfällt.
+- Das Synoptik-Komposit kombiniert Theta-E 850 hPa, Höhenlinien 500 hPa, Bodendruck, Feuchte 700 hPa und Wind 300 hPa aus demselben Modelllauf und Termin. ICON-D2, ICON-EU, GFS und IFS werden nur mit vollständigen, geprüften Rohdaten angeboten.
+- Bei App-Rückkehr bleibt die gewählte Inhaltsansicht erhalten. Das temporäre Mehr-Menü startet geschlossen und schließt beim Wechsel in den Hintergrund.
+
 # MID v0.9.85.196
 
 - Die vollständige Replit-Übergabeprüfung erhält ausreichend Zeit für alle bestehenden Browser- und Regressionstests.

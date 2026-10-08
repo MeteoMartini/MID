@@ -55,7 +55,11 @@ assert.ok(!renderer.includes("cell.state==='clear-night'&&!base&&!precip?<circle
 assert.ok(renderer.includes("cell.state==='clear-night'&&!base&&!precip?<rect"),'Klare Nacht muss als ruhige Flächenzelle statt als rätselhafter Punkt erscheinen.');
 assert.ok(favoriteLogoSquares.includes("current-weather-thread-sky[data-skybar-display='squares']")&&favoriteLogoSquares.includes("cockpit-now90-sky[data-skybar-display='squares']"),'12-h- und 90-min-Wetterquadrate müssen visuell groß genug bleiben.');
 assert.ok(midDesign.includes('className="mid-weather-thread-grid"')&&midDesign.includes('gridY=[8,50,92]')&&midDesign.includes('verticalGridDivisions=2')&&midDesign.includes('safeVerticalDivisions'),'Temperaturfaden braucht konfigurierbare vertikale Hilfslinien.');
-assert.ok(app.includes('data-mid-time-axis="current-12h"')&&app.indexOf('data-mid-time-axis="current-12h"')<app.indexOf('className="current-weather-thread-sky"'),'12-h-Zeitachse muss direkt der Temperaturkurve folgen und vor dem Wetterstreifen liegen.');
+// MID-C21 intentionally places cloud cover above temperature; keep the shared axis below the curve.
+const currentSkyIndex=app.indexOf('className="current-weather-thread-sky"');
+const currentCurveIndex=app.indexOf('<MidWeatherThread',currentSkyIndex);
+const currentAxisIndex=app.indexOf('data-mid-time-axis="current-12h"',currentCurveIndex);
+assert.ok(currentSkyIndex>=0&&currentCurveIndex>currentSkyIndex&&currentAxisIndex>currentCurveIndex,'12-h-Wetterstreifen muss oberhalb der Temperaturkurve liegen; die gemeinsame Zeitachse folgt darunter.');
 assert.ok(cockpit.includes('className="cockpit-now90-track" data-cockpit-horizontal-scroll="true"')&&cockpit.includes('data-mid-time-axis="now90"')&&cockpit.includes("'--now90-count':Math.max(1,now90.length)"),'90-Minuten-Wetterstreifen, Zeitachse und Karten müssen einen gemeinsamen horizontalen Raster-/Scrollraum verwenden.');
 for(const token of ['grid-template-columns:repeat(var(--now90-count),minmax(0,1fr))!important','min-width:max(100%,calc(var(--now90-count) * var(--now90-slot-width)))!important','grid-template-columns:minmax(0,1fr)!important','overflow-x:hidden!important'])assert.ok(axisFix.includes(token),`Zeitachsen-/7-Tage-Layoutvertrag fehlt: ${token}`);
 

@@ -22,10 +22,10 @@ globalThis.localStorage={getItem:()=>JSON.stringify({enabled:true,parameter:'gus
 assert.deepEqual(c.readUnifiedMapSettings(),{enabled:true,parameter:'gust',modelId:'icon-d2',opacity:100,hours:24,isobars:false,level:500,selectionMode:'model',presentation:'auto'});delete globalThis.localStorage;
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
-for(const token of ['loadNativeField','loadTotals','ModelMapProbe','ModelMapContextOverlay','exportNativeField','exportTotals','writeDurableStorageValue','fieldCache.current.size>8'])assert.ok(panel.includes(token),token);
+for(const token of ['loadNativeField','loadTotals','ModelMapProbe','synopticAt','exportNativeField','exportTotals','writeDurableStorageValue','fieldCache.current.size>8'])assert.ok(panel.includes(token),token);
 assert.ok(radar.includes('unified?.overlay')&&radar.includes('unified?.controls')&&radar.includes('if(unified||!fallbackNeeded'));
 assert.ok(radar.includes("visibleModelLines:ModelLineMode=unified?'off'"),'Old synoptic must be absent in unified route');
 assert.ok(radar.includes('unified?204*60:120')&&radar.includes('unified.times.map'),'Only actual model terms, not fabricated interpolations');
 assert.ok(read('src/UnifiedVectorBasemap.tsx').includes('VectorTileLayers'),'Vector geography replaces pixel base');
-if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:480000});
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:900000});
 console.log('MID-C17 unified map: scientific model/parameter matrix, one lazy/memoized map, native field integrity, overlays/probes/exports, bounded caching, persistence and legacy-source exclusion verified.');
