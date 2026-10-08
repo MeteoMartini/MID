@@ -1,3 +1,11 @@
+# MID v0.9.85.206
+
+Die 90-Minuten-Kacheln zeigen zusätzlich den Bewölkungswert ihres jeweiligen Zeitschritts. Die Skybar erklärt ihre Schwellen und die breite Nacht-Hinterlegung. Vorhandene Werte unter den Bandschwellen bleiben als solche erkennbar und werden nicht als fehlende Daten bezeichnet.
+
+Fehlende Bewölkungswerte werden in gemeinsamen Wetterzeichen, Periodenmitteln, Wolkenschichten und Kurzfrist-Fallbacks nicht mehr als 0 % ausgewertet. In den 3-Stunden-Details folgen trockene Wetterbeschreibung und Wetterzeichen nun demselben Bewölkungsmittelwert. Das 24-h-Profil besitzt einen korrigierten Erklärungstext und kompakter angeordnete Hinweise auf breiten Bildschirmen. Echte Nullwerte, Bandfarben und meteorologische Schwellen bleiben erhalten.
+
+Verifizierte Basis: main = mid-stable = 5abd95581f254b2612d94612dcab73b6c8ba75ce (.205). Details: docs/implementation/MID_C23_CLOUD_AUDIT_0.9.85.206.md. Synoptikhorizonte und sämtliche Veröffentlichungsgates bleiben erhalten.
+
 # MID v0.9.85.205 · Vollständiger veröffentlichter Kartenhorizont
 
 Nachprüfung von MID-C23: Die feste 204h-Navigationsgrenze würde die neu gültigen IFS-/GFS-Endpunkte abschneiden. Das Kartenfenster wird daher aus dem letzten tatsächlich veröffentlichten Modelltermin abgeleitet; es erzeugt keine Termine. Verifizierte Basis main = mid-stable = fe2f97fb77fe401ae86bf8b7d2d6330c7490762b (.204), live bestätigt. Gezielte Funktionsregression und sämtliche 24 Karten-Browserfälle schützen +360/+384h, Wochentag und Rückwechsel auf D2. Die vorhandenen Quelltexttests werden auf diese ausdrücklich erweiterte Grenze präzisiert. Details: docs/implementation/MID_C23_FULL_HORIZON_0.9.85.205.md.

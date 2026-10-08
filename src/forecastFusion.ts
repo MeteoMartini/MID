@@ -820,7 +820,7 @@ function dailyWeatherCodeFromHours(hours:Hour[]){
   const severity=(code:number)=>[99,96,97,95,86,85,82,84,81,83,80,75,73,71,69,68,67,66,65,63,61,57,56,55,53,51].indexOf(Math.round(code));
   return[...wet].sort((a,b)=>{const sa=severity(a.code),sb=severity(b.code);if(sa!==sb)return(sa<0?999:sa)-(sb<0?999:sb);return(b.probability+b.precipitation*8)-(a.probability+a.precipitation*8)})[0].code;
  }
- const daylight=hours.filter(hour=>hour.isDay),sample=daylight.length?daylight:hours,clouds=sample.map(hour=>Number(hour.cloud)).filter(Number.isFinite),meanCloud=clouds.length?clouds.reduce((sum,value)=>sum+value,0)/clouds.length:Number.NaN;
+ const daylight=hours.filter(hour=>hour.isDay),sample=daylight.length?daylight:hours,clouds=sample.filter(hour=>hour.cloud!==null&&hour.cloud!==undefined&&String(hour.cloud).trim()!=='').map(hour=>Number(hour.cloud)).filter(Number.isFinite),meanCloud=clouds.length?clouds.reduce((sum,value)=>sum+value,0)/clouds.length:Number.NaN;
  if(!Number.isFinite(meanCloud))return 3;if(meanCloud<6.25)return 0;if(meanCloud<43.75)return 1;if(meanCloud<81.25)return 2;return 3;
 }
 

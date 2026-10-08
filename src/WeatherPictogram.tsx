@@ -39,7 +39,7 @@ type Props=WeatherPictogramCloudProfile&{
  intensity?:WeatherPictogramIntensity;
 };
 
-function finiteCloud(value:unknown){const number=Number(value);return Number.isFinite(number)?Math.max(0,Math.min(100,number)):undefined}
+function finiteCloud(value:unknown){if(value===null||value===undefined||String(value).trim()==='')return undefined;const number=Number(value);return Number.isFinite(number)?Math.max(0,Math.min(100,number)):undefined}
 function normalizedPhenomenon(value:unknown){return String(value||'').trim().toUpperCase().replace(/\s+/g,'')}
 function dryCloudProfileKind(code:number,cloud:unknown):WeatherPictogramKind|undefined{
  const c=Math.round(Number(code)),cover=finiteCloud(cloud);

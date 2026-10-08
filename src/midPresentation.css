@@ -25890,3 +25890,10 @@ html:root .hero.current-compact .current-weather-facts>.humidity:nth-child(n) sm
 
 /* The real trend heading replaces the older floating desktop label. */
 html:root .hero.current-compact .current-weather-thread::before{content:none!important;}
+
+/* MID-C23: multiple real signals share wide screens; one signal keeps full width. */
+.cockpit-weather-profile__signals,
+html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals{
+ grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))!important;
+}
+.cockpit-now90-cloud{display:block;color:var(--muted);font-size:var(--mid-text-micro);line-height:1.3;margin-top:2px}
