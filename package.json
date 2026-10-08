@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.206",
+  "version": "0.9.85.207",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -248,7 +248,7 @@
     "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
     "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build",
+    "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build && node scripts/write-build-identity.mjs",
     "test:stable-audit-20260810": "node scripts/test-stable-audit-20260810.mjs",
     "test:hymecng-satellite-snapshot": "node scripts/test-hymecng-satellite-snapshot-09383.mjs",
     "test:maplibre-precip-09390": "node scripts/test-maplibre-precip-probability-09390.mjs",
@@ -533,7 +533,8 @@
     "test:corporate-safe-data-plane": "node scripts/test-corporate-safe-data-plane-0985183.mjs",
     "test:www-proxy-hotfix": "node scripts/test-www-proxy-hotfix-0985184.mjs",
     "test:www-proxy-dns-token": "node scripts/test-www-proxy-dns-token-0985185.mjs",
-    "test:unified-map-lines": "node scripts/test-unified-map-lines-0985186.mjs"
+    "test:unified-map-lines": "node scripts/test-unified-map-lines-0985186.mjs",
+    "test:build-identity": "node scripts/test-build-identity-0985207.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
