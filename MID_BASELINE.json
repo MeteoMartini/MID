@@ -2742,6 +2742,7 @@
     "tools/ruc/test_ruc_pack.py",
     "tools/ruc/test_ruc_schedule_guard.py",
     "tools/ruc/test_synoptic_fields.py",
+    "tools/ruc/test_temperature_decode_audit.py",
     "tools/widget-export/Download-MID-Widgets.ps1",
     "tools/widget-export/README.md",
     "tools/widget-export/capture-widget.mjs",
