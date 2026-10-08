@@ -413,7 +413,7 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
    {unified?.controls}
    {frames.length>0&&<div className="composite-direct-time" role="group" aria-label="Direkte Kartenzeitwahl">
     <button type="button" aria-label="Vorheriger Kartentermin" disabled={index<=0} onClick={()=>step(-1)}>‹</button>
-    <label>Gültiger Termin<select aria-label="Kartentermin auswählen" value={index} onChange={e=>{setPlaying(false);setLiveFollow(false);seek(Number(e.target.value))}}>{frames.map((f,i)=><option key={`${f.time}:${i}`} value={i}>{formatInZone(f.time*1000,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}{f.phase==='forecast'?' · Prognose':''}</option>)}</select></label>
+    <label>Gültiger Termin<select aria-label="Kartentermin auswählen" value={index} onChange={e=>{setPlaying(false);setLiveFollow(false);seek(Number(e.target.value))}}>{frames.map((f,i)=><option key={`${f.time}:${i}`} value={i} data-valid-time={f.time}>{formatInZone(f.time*1000,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}{f.phase==='forecast'?' · Prognose':''}</option>)}</select></label>
     <button type="button" aria-label="Nächster Kartentermin" disabled={index>=frames.length-1} onClick={()=>step(1)}>›</button>
     <button type="button" onClick={()=>{setPlaying(false);setLiveFollow(true);setIndex(liveIndex)}}>Aktuell</button>
    </div>}

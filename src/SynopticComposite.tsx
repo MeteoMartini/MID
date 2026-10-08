@@ -2,7 +2,16 @@ import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {CanvasOverlay,GeoJsonLayers,ImageQuadLayer} from './MapLibreCore';
 import {loadSynopticIndex,loadSynopticField,synopticRaster,THETAE_BANDS,jetWindStyle,type SynopticField} from './nativeSynopticFields';
 import {synopticCompositePlan} from './synopticComposite';
-export function useSynopticCatalog(revision:number){const [catalog,setCatalog]=useState<Awaited<ReturnType<typeof loadSynopticIndex>>|null>(null),[error,setError]=useState('');useEffect(()=>{const c=new AbortController();const timeout=window.setTimeout(()=>{setError('Synoptik-Katalog: Zeitüberschreitung. Bitte erneut laden.');c.abort()},20000);setCatalog(null);setError('');void loadSynopticIndex(c.signal).then(d=>{if(!c.signal.aborted)setCatalog(d)}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>window.clearTimeout(timeout));return()=>{window.clearTimeout(timeout);c.abort()}},[revision]);return {catalog,error}}
+export function useSynopticCatalog(revision:number){
+ const [catalog,setCatalog]=useState<Awaited<ReturnType<typeof loadSynopticIndex>>|null>(null),[error,setError]=useState(''),[refreshing,setRefreshing]=useState(false);
+ useEffect(()=>{const c=new AbortController();setRefreshing(true);setError('');
+  // Retain only an already validated catalogue whose model runs remain admissible.
+  setCatalog(previous=>previous&&Object.values(previous.index.models).every(m=>{const age=Date.now()-Date.parse(m.run);return Number.isFinite(age)&&age>=-3600000&&age<=24*3600000})?previous:null);
+  const timeout=window.setTimeout(()=>{setError('Synoptik-Katalog: Zeitüberschreitung. Bitte erneut laden.');setRefreshing(false);c.abort()},20000);
+  void loadSynopticIndex(c.signal).then(d=>{if(!c.signal.aborted)setCatalog(d)}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{window.clearTimeout(timeout);if(!c.signal.aborted)setRefreshing(false)});
+  return()=>{window.clearTimeout(timeout);c.abort()};
+ },[revision]);return {catalog,error,refreshing};
+}
 export function useSynopticComposite(enabled:boolean,target:number,_revision:number,_showFill:boolean,modelId:string,catalog:ReturnType<typeof useSynopticCatalog>){
  const [field,setField]=useState<SynopticField|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(false),cache=useRef(new Map<string,SynopticField>()),model=catalog.catalog?.index.models[modelId],plan=useMemo(()=>enabled?synopticCompositePlan(model,target):null,[enabled,model,target]);
  const remember=(key:string,value:SynopticField)=>{cache.current.set(key,value);while(cache.current.size>4)cache.current.delete(cache.current.keys().next().value!)};
