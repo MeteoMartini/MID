@@ -1,6 +1,11 @@
 name: MID RUC schedule watchdog
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Install MID release and deploy
+    types:
+      - completed
   push:
     branches:
       - main
@@ -23,14 +28,31 @@ concurrency:
 
 jobs:
   verify-and-recover:
-    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    if: >-
+      vars.MID_RUC_PIPELINE_ENABLED == 'true' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Geprüften Stable-Code für öffentlichen RUC-Datenabgleich laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Tatsächlich veröffentlichten RUC-Lauf mit DWD vergleichen
+        id: data_freshness
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+        run: python3 tools/ruc/check_ruc_schedule_guard.py --pages-base "$MID_RUC_PAGES_BASE_URL" --github-output "$GITHUB_OUTPUT"
       - name: Letzten primären RUC-Slot prüfen und bei Schedulerlücke nachholen
         env:
           GH_TOKEN: ${{ github.token }}
           RUC_WORKFLOW: mid-ruc-preprocess.yml
+          DATA_CATCHUP: ${{ steps.data_freshness.outputs.should_run }}
         shell: bash
         run: |
           set -euo pipefail
@@ -81,6 +103,13 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             recovery_self_test=true
             echo "RUC watchdog deployment self-test: guarded recovery dispatch will be exercised once."
+          fi
+
+          # A successful prepare/publish workflow may be a release-guarded no-op.
+          # Only an independently current public pointer can suppress catch-up.
+          if [ "$DATA_CATCHUP" != false ]; then
+            healthy_schedule=false
+            echo 'RUC publication needs catch-up; scheduler success alone is insufficient.'
           fi
 
           if [ "$healthy_schedule" = true ] && [ "$recovery_self_test" != true ]; then
