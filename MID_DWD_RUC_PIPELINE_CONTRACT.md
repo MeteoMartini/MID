@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.76.24
+Stand: v0.9.85.208
 
 ## Zweck und fachliche Rolle
 
@@ -129,3 +129,7 @@ R2-Bucket, R2-Credentials, Custom Domain oder andere potenziell kostenpflichtige
 
 Der deterministische ICON-D2-RUC bleibt für 0–14 h ein hoch priorisierter Kurzfristpfad, erhält für Niederschlagsmengen jedoch einen separaten, konsensabhängigen Anteil. Die frühere Regel „RUC ist nass → +5 Prozentpunkte RUC-Gewicht“ ist aufgehoben. Ist der RUC deutlich nasser als die Best-Match-Leitstunde, wird die Mengenwirkung kontinuierlich gegen Best Match, DWD MOSMIX (lokale 60-min-Punktmenge / RR1c-naher Konsens) und RUC-EPS geprüft. Zusätzlich dient das RUC-EPS-Q75 als **Upper-Tail-Plausibilisierung**: liegt ein deterministischer RUC-Niederschlag deutlich über lokaler Referenz und RUC-EPS-Q75, wird sein Mengenanteil kontinuierlich gedämpft; Q75 ist ausdrücklich **keine harte Mengenobergrenze**. Gestützte RUC-Signale bleiben erhalten; isolierte nasse Ausreißer werden gedämpft. MOSMIX bleibt korreliertes Postprocessing und keine zusätzliche unabhängige Modellstimme. Radar/Nowcast sowie lokale Messungen bleiben danach höher priorisiert. Für Extremwetter-Regen wird RUC-EPS nur kurzfristig und begrenzt zur Wahrscheinlichkeitseichung verwendet; Schnee/Eis koppeln die RUC-EPS-Niederschlagsstütze ausschließlich an passende deterministische Phasen-/Temperatursignale. Eine RUC-EPS-Windwahrscheinlichkeit wird nicht abgeleitet, solange die Vorverarbeitung nur Niederschlagsmember enthält.
 
+
+## Zusätzliche Datenintegritäts-Gates ab v0.9.85.208
+
+Der DWD-RUC-Vorprozessor prüft vor Veröffentlichung die GRIB-Initialisierung gegen den beabsichtigten Lauf, die Pflichtstunden auf doppelte Gültigkeitszeitstempel, auf bereitgestellten Roh-Akkumulationen größere Rücksprünge als 0,05 mm sowie nach Einheiten-Normalisierung die physikalische Semantik von Temperatur, Taupunkt, relativer Feuchte, Bewölkung, Wind und Niederschlag. Taupunkt oberhalb Temperatur ist nur bis +0,5 K als numerische Toleranz erlaubt; relative Feuchte/Bewölkung bis ±0,5 Prozentpunkte an den Rändern. Für Temperatur dient ein bewusst breiter Decode-Sanity-Bereich von 180–340 K. Diese Toleranzen sind MID-spezifische technische Plausibilitäts-Gates, ausdrücklich keine DWD-Warnschwellen; meteorologische Extremereignisse innerhalb physikalischer Grenzen dürfen nicht kaschiert werden. Kleine negative Niederschlags-Rundungssprünge bis 0,05 mm werden weiterhin nach bestandener Validierung auf null begrenzt. Vollständig fehlende Pflichtfelder werden abgewiesen, einzelne fehlende Gitterpunkte bleiben fehlend. Weitere GRIB-Parameter-/Level- und modelübergreifende Prüfungen benötigen einen eigenen validierten Vertrag; sie werden durch diese Stufe nicht als bereits umgesetzt bezeichnet.
