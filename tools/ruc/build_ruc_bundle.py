@@ -12,6 +12,7 @@ import numpy as np
 from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,RAPID_STATE_15_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
+from grib_metadata import inspect_grib_header,assert_same_parameter_signature
 from meteo_integrity import validate_accumulation,validate_core_fields
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
@@ -23,7 +24,7 @@ RUC_BBOX=(-3.85,43.18,20.22,58.05)
 if not is_native_at('CAPE_ML',900) or not is_native_at('CIN_ML',900): raise RuntimeError('RUC CAPE_ML/CIN_ML cadence contract mismatch')
 if is_native_at('CAPE_MU',900) or is_native_at('CIN_MU',900): raise RuntimeError('RUC CAPE_MU/CIN_MU must not enter the 15-minute severe path')
 
-def read_messages(path:Path,ensemble=False):
+def read_messages(path:Path,ensemble=False,expected_run=None,include_signature=False):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
     with open_grib_stream(path) as f:
@@ -31,8 +32,9 @@ def read_messages(path:Path,ensemble=False):
         gid=codes_grib_new_from_file(f)
         if gid is None: break
         try:
+          # Strictly inspect every decoded record before interpreting its values.
+          valid,signature=inspect_grib_header(gid,expected_run)
           vals=np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
-          valid=datetime.strptime(f"{int(codes_get(gid,'validityDate')):08d}{int(codes_get(gid,'validityTime')):04d}",'%Y%m%d%H%M').replace(tzinfo=timezone.utc)
           member=0
           if ensemble:
             for key in ('perturbationNumber','number'):
@@ -40,17 +42,14 @@ def read_messages(path:Path,ensemble=False):
               except Exception: pass
           try:units=str(codes_get(gid,'units'))
           except Exception:units=''
-          yield valid,member,vals,units
+          if include_signature:yield valid,member,vals,units,signature
+          else:yield valid,member,vals,units
         finally:codes_release(gid)
 
 def decode_file_batch(payload):
-    """Decode one staged GRIB file in an isolated worker process.
-
-    Returning complete per-file batches keeps result ordering deterministic while
-    allowing the CPU-heavy RUC-EPS ecCodes/bzip2 work to use more than one core.
-    """
-    path_text,ensemble=payload
-    return list(read_messages(Path(path_text),ensemble=ensemble))
+    """Decode an EPS GRIB file in an isolated worker with provenance metadata."""
+    path_text,ensemble,expected_run=payload
+    return list(read_messages(Path(path_text),ensemble=ensemble,expected_run=expected_run,include_signature=True))
 
 def read_first_values(path:Path):
     try: from eccodes import codes_grib_new_from_file,codes_get_array,codes_release
@@ -58,7 +57,9 @@ def read_first_values(path:Path):
     with open_grib_stream(path) as f:
       gid=codes_grib_new_from_file(f)
       if gid is None:raise SystemExit(f'empty coordinate GRIB: {path}')
-      try:return np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
+      try:
+        inspect_grib_header(gid)
+        return np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
       finally:codes_release(gid)
 
 def load_native_grid(staging:Path,expected_points:int):
@@ -95,11 +96,13 @@ def rapid_targets(run:str,minutes:int,hours:int):
 
 def collect_optional_parameter(files,name,targets,expected_points=None):
     if not files:return None
-    rows={}
+    rows={};reference_signature=None
     for file in files:
-      for valid,_member,vals,units in read_messages(file):
+      for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True):
+        reference_signature=assert_same_parameter_signature(name,reference_signature,signature)
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:return None
+        if valid in rows:raise SystemExit(f'{name}: duplicate optional GRIB validity time {valid}')
         rows[valid]=normalize(name,vals,units)
     return rows if all(t in rows for t in targets) else None
 
@@ -224,11 +227,13 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
     return {'schema':'mid.dwd.ruc.rapid-extreme.v4','run':run,'horizonHours':14,'windowHours':6,'nativePrecipitationSeconds':300,'convectiveSeconds':900,'periods':[{'id':pid,'startHour':start,'endHour':end,'source':'native-rapid+hourly-core' if pid=='0-6' else 'hourly-core'} for pid,start,end in period_specs],'grid':{'rows':rows,'cols':cols,'bounds':{'south':south,'west':west,'north':north,'east':east}},'cells':cells}
 
 def collect_parameter(files,name,targets,expected_points=None):
-    rows={}
+    rows={};reference_signature=None
     for file in files:
-      for valid,_member,vals,units in read_messages(file):
+      for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True):
+        reference_signature=assert_same_parameter_signature(name,reference_signature,signature)
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:raise SystemExit(f'{name}: native point count differs from deterministic reference')
+        if valid in rows:raise SystemExit(f'{name}: duplicate GRIB validity time {valid}')
         rows[valid]=normalize(name,vals,units)
     missing=[t for t in targets if t not in rows]
     if missing:raise SystemExit(f'{name}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
@@ -257,7 +262,7 @@ def collect_eps(files,targets,expected_points):
     rows={t:{} for t in targets}
     configured=max(1,int(os.getenv('MID_RUC_EPS_DECODE_WORKERS','2')))
     workers=max(1,min(4,configured,len(files)))
-    tasks=[(str(file),True) for file in files]
+    tasks=[(str(file),True,targets[0]) for file in files]
     if workers==1:
       batches=(decode_file_batch(task) for task in tasks)
       pool=None
@@ -265,11 +270,14 @@ def collect_eps(files,targets,expected_points):
       print(f'RUC-EPS decode: {len(files)} GRIB files with {workers} process workers',flush=True)
       pool=concurrent.futures.ProcessPoolExecutor(max_workers=workers)
       batches=pool.map(decode_file_batch,tasks,chunksize=1)
+    reference_signature=None
     try:
       for messages in batches:
-        for valid,member,vals,units in messages:
+        for valid,member,vals,units,signature in messages:
+          reference_signature=assert_same_parameter_signature('RUC-EPS TOT_PREC',reference_signature,signature)
           if valid not in rows:continue
           if len(vals)!=expected_points:raise SystemExit('RUC-EPS native point count differs from deterministic RUC grid')
+          if member in rows[valid]:raise SystemExit(f'RUC-EPS duplicate member {member} at {valid}')
           rows[valid][member]=normalize('precipitation_acc',vals,units)
     finally:
       if pool is not None:pool.shutdown(wait=True,cancel_futures=True)
