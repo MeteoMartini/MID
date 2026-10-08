@@ -18,6 +18,10 @@ export type CompositeTimelineContract={
 
 export function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
 
+export function availableCompositeFutureMinutes(referenceSeconds:number,forecasts:number[],minimumMinutes=204*60){
+ return forecasts.reduce((minutes,time)=>Number.isFinite(time)?Math.max(minutes,Math.ceil((time-referenceSeconds)/60)):minutes,minimumMinutes);
+}
+
 export function buildCompositeTimeline(referenceSeconds:number,stepMinutes=5){
  const step=stepMinutes*60,base=Math.floor(referenceSeconds/step)*step,frames:TimedFrame[]=[];
  for(let minute=-60;minute<=120;minute+=stepMinutes)frames.push({time:base+minute*60});

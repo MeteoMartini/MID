@@ -17,7 +17,7 @@ for(const token of [
  "viewMode==='satellite'",
  "viewMode==='synoptic'",
  'const timelineContract=useMemo',
- 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90,unified?204*60:120)',
+ 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120)',
  'className="composite-timeline-card"',
  'className="radar-playback-buttons"',
  'className="composite-playback-speed"',

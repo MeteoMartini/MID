@@ -1,3 +1,7 @@
+# MID v0.9.85.205 · Vollständiger veröffentlichter Kartenhorizont
+
+Nachprüfung von MID-C23: Die feste 204h-Navigationsgrenze würde die neu gültigen IFS-/GFS-Endpunkte abschneiden. Das Kartenfenster wird daher aus dem letzten tatsächlich veröffentlichten Modelltermin abgeleitet; es erzeugt keine Termine. Verifizierte Basis main = mid-stable = fe2f97fb77fe401ae86bf8b7d2d6330c7490762b (.204), live bestätigt. Gezielte Funktionsregression und sämtliche 24 Karten-Browserfälle schützen +360/+384h, Wochentag und Rückwechsel auf D2. Die vorhandenen Quelltexttests werden auf diese ausdrücklich erweiterte Grenze präzisiert. Details: docs/implementation/MID_C23_FULL_HORIZON_0.9.85.205.md.
+
 # MID v0.9.85.204 · Bewölkung und längere Synoptik
 
 Das 24-Stunden-Profil verwendet für Bewölkungswerte, Wetterzeichen und Skybar denselben Stundenstand. Die 90-Minuten-Ansicht behält ihre feinere Auflösung. Nachtfelder nennen den tatsächlichen Bewölkungswert und werden bei unbekannten Daten nicht als klare Nacht ausgegeben.
