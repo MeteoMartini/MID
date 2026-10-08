@@ -28,5 +28,6 @@ try{
  assert.match(cockpit,/profileSkyBarFinePoints=adjusted\.filter/);
  assert.match(cockpit,/detailSkyBarSegments\(profileSkyBarBandPoints,[^\n]*profileSkyBarBandPoints\.map\(point=>profileXForEpoch\(point\.epoch\)\)/);
  assert.match(cockpit,/profileSkyBarHourCells=detailSkyBarHourCells\(profileSkyBarPoints\.slice\(0,24\)\)/);
- console.log('MID152: identical quarter-hour sky colors/thickness in 90m and 24h; missing states fall back, real zero retained; hourly squares preserved.');
+ assert.match(cockpit,/profileSkyBarBandPoints=profileSkyBarPoints/,'24h sky state shares hourly tooltip data; 90m remains native quarter resolution');
+ console.log('MID152: shared quarter-hour renderer; 24h sky follows hourly tooltip contract; missing states fall back, real zero retained; hourly squares preserved.');
 }finally{rmSync(out,{recursive:true,force:true})}

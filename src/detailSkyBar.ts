@@ -184,10 +184,11 @@ export function detailSkyBarHourCells(hours:PrecipSample[]):SkyBarHourCell[]{
       opacity:visual.opacity,
       title:visual.title,
     }:null;
-    const cloud=Number(hour.cloud),sunshine=Number(hour.sunshineDuration),precipitation=Number(hour.precipitation),snowfall=Number(hour.snowfall);
+    const measured=(value:unknown)=>value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value))?Number(value):NaN;
+    const cloud=measured(hour.cloud),sunshine=measured(hour.sunshineDuration),precipitation=measured(hour.precipitation),snowfall=measured(hour.snowfall);
     const hasObservedSignal=[cloud,sunshine,precipitation,snowfall].some(Number.isFinite);
     const state:SkyBarHourCell['state']=baseVisual||precipVisual?'weather':hasObservedSignal&&!hour.isDay?'clear-night':'unavailable';
-    const title=[baseVisual?.title,precipVisual?.title].filter(Boolean).join(' · ')|| (state==='clear-night'?'Klare Nacht':'Wetterdaten für diese Stunde nicht verfügbar');
+    const title=[baseVisual?.title,precipVisual?.title].filter(Boolean).join(' · ')|| (Number.isFinite(cloud)?`${hour.isDay?'Tag':'Nacht'} · Gesamtbewölkung ${clamp(cloud,0,100).toFixed(0)} % · kein Bewölkungsband unter 50 %`:state==='clear-night'?'Nacht · Bewölkung nicht verfügbar':'Wetterdaten für diese Stunde nicht verfügbar');
     return{key:`hour-${index}`,index,base:toHourVisual(baseVisual),precip:toHourVisual(precipVisual),state,title};
   });
 }
@@ -195,9 +196,8 @@ export function detailSkyBarHourCells(hours:PrecipSample[]):SkyBarHourCell[]{
 function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual){
   if(x1<=x0)return;
   const previous=segments[segments.length-1];
-  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity){
+  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity&&previous.title===visual.title){
     previous.x2=x1;
-    previous.title=visual.title;
     return;
   }
   segments.push({
