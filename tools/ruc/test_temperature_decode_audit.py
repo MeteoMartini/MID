@@ -1,5 +1,6 @@
 """Offline fail-closed RUC native/normalized temperature provenance tests."""
 import unittest
+from pathlib import Path
 from datetime import datetime, timezone
 from unittest.mock import patch
 import numpy as np
@@ -14,7 +15,7 @@ class TemperatureDecodeAuditTests(unittest.TestCase):
         def records(*args,**kwargs):
             yield run,0,native,"K",{"centre":78}
         with patch("build_ruc_bundle.read_messages", records), patch("build_ruc_bundle.assert_same_parameter_signature",return_value={}):
-            result=collect_parameter(["T_2M_20261009_00.grib2"],"temperature_2m",[run],4,rows)
+            result=collect_parameter([Path("T_2M_20261009_00.grib2")],"temperature_2m",[run],4,rows)
         self.assertAlmostEqual(result[run][0],-2.,places=2)
         self.assertEqual(len(rows),1)
         self.assertEqual(rows[0]["units"],"K")
