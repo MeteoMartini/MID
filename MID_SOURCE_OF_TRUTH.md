@@ -1,3 +1,11 @@
+# MID v0.9.85.203 · Synoptik-Katalog ohne Terminverlust aktualisieren
+
+Beim Neuladen bleibt der letzte geprüfte und noch gültige Synoptikkatalog sichtbar. Modellwahl, Kartenzeitachse und manuell gewählte Gültigkeitszeit bleiben während einer verzögerten Antwort erhalten. Das angebotene Zeitfenster hängt vom bestätigten Modellkatalog ab, auch wenn der bisherige Termin außerhalb eines neu gewählten Modells liegt.
+
+Die Kartenprüfung kontrolliert feste Gültigkeitszeiten statt veränderlicher Listenpositionen und hält die Katalogantwort gezielt zurück. Die Synoptikdarstellung, erweiterten Modelltermine und RUC-Recovery aus .202 bleiben erhalten.
+
+Basis: main = mid-stable 7139d589f8b0c2bee94d0c64942bb78e25c22589 (.202). Details: docs/implementation/MID_C23_SYNOPTIC_REFRESH_0.9.85.203.md. Unveränderte Release-, Sicherheits-, Frische- und Datenbudgetgates.
+
 # MID v0.9.85.202 · Synoptik-Komposit und Kartenzeitsteuerung
 
 Theta-E 850 hPa erhält dezente graue Konturen; die Linienbeschriftung erscheint nur bei Vielfachen von 12 °C. Die blauen Feuchtelinien in 700 hPa bleiben ohne Linienbeschriftung.
