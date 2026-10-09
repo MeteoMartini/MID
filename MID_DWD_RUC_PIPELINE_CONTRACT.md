@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.220
+Stand: v0.9.85.221
 
 ## Terminabdeckung vor Quantisierung (v0.9.85.218)
 
@@ -13,6 +13,10 @@ Alle in den Zielterminen gelieferten Mitglieds-IDs müssen an jedem Zieltermin v
 ## RUC-Snapshot-Transport (v0.9.85.220)
 
 Abgebrochene HTTP-Body-Reads (IncompleteRead) werden im vorhandenen endlichen Fetch-Backoff erneut vollständig geladen. Keine Teilbytes übernehmen; Größen-/SHA-Verletzungen bleiben fatal und werden nicht als Netzwerkfehler behandelt. Atomare Ersetzung erst nach vollständiger Abnahme; bei Erschöpfung vorhandenen Snapshot erhalten und temporäre Dateien entfernen. Keine Scheduler-/Freshness-Schwellenänderung.
+
+## Aktualitätsdiagnostik (v0.9.85.221)
+
+Schema mid.ruc.freshness.v1 protokolliert beobachteten UTC-Zeitpunkt, angekündigten gemeinsamen DWD-Lauf, veröffentlichten Lauf und Metadatenvalidität. upstreamRunAgeMinutes und publishedRunAgeMinutes sind Minuten seit Initialisierung; availabilityLagMinutes ist die signierte Differenz der beiden Initialisierungen. Fehlende/ungültige Informationen sind null; negative Werte bleiben sichtbar. Ausgabe in bestehenden Job-Logs, Step-Summary und freshness_metrics-Output. Keine neue Freigabe-/Freshness-Schwelle; keine gemessene Discovery→Publish-Latenz oder dauerhafte SLO-Historie behauptet.
 
 ## Zweck und fachliche Rolle
 
