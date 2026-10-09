@@ -31,11 +31,12 @@ export default function ModelMapProbe({label,unit,source,enabled,contextKey,samp
   const marker=new Marker({element:anchor,anchor:'center'}).setLngLat([point.longitude,point.latitude]).addTo(map);anchorRef.current=anchor;
   return()=>{anchor.removeEventListener('click',click);marker.remove();anchorRef.current=null};
  },[map,point,close,tooltipId]);
- useEffect(()=>{if(!point)return;const timeout=window.setTimeout(close,point.pending?10000:6000);return()=>window.clearTimeout(timeout)},[point,close]);
+ // Interactive point information must remain available while it is being read.
+ // Dismissal stays explicit (close/Escape/outside tap) or follows a context change.
  const coordinates=point?`${formatDecimal(Math.abs(point.latitude),2)}° ${point.latitude<0?'S':'N'} · ${formatDecimal(Math.abs(point.longitude),2)}° ${point.longitude<0?'W':'O'}`:'';
  return <>
   <button type="button" className="mid-model-map-probe-center" title="Wert am Kartenmittelpunkt" aria-label="Wert am Kartenmittelpunkt anzeigen" aria-expanded={Boolean(point)} disabled={!enabled} onClick={()=>{if(point)close();else if(map){const center=map.getCenter();show(center.lat,center.wrap().lng)}}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></svg></button>
-  <AppPortalPopover anchorRef={anchorRef} open={Boolean(point)} onClose={close} className="mid-model-map-probe" width={240} ariaLabel="Kartenwert" id={tooltipId} positionKey={point}>
+  <AppPortalPopover anchorRef={anchorRef} open={Boolean(point)} onClose={close} role="dialog" className="mid-model-map-probe" width={240} ariaLabel={`Kartenwert · ${label}`} id={tooltipId} positionKey={point}>
    {point?<><header><span><small>RASTERWERT</small><strong>{label}</strong></span><button type="button" aria-label="Wertanzeige schließen" onClick={close}>×</button></header><p className="mid-model-map-probe__value" aria-live="polite" aria-busy={Boolean(point.pending)}>{point.pending?'Wert wird geladen …':point.value===null?'Kein Wert verfügbar':<>{format(point.value)} <span>{unit}</span></>}</p><p className="mid-model-map-probe__coordinates">{coordinates}</p><p className="mid-model-map-probe__source">{point.pending?source:point.value===null?unavailableNote:source}</p></>:null}
   </AppPortalPopover>
  </>;

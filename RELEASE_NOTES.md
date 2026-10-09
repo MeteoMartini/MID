@@ -1,5 +1,5 @@
-# MID v0.9.85.216
+# MID v0.9.85.217
 
-- Widget-Exporte warten auf tatsächlich geladene Schriften, Bilder und sichtbares Layout.
-- Automatische Renderläufe bewahren den ersten Fehler mit Screenshot, Build-Bezug und begrenzter Netzwerkdiagnostik auch bei erfolgreichem Retry.
-- Fehlerartefakte bleiben getrennt vom öffentlichen Widget-Paket; bestehende Daten- und Release-Gates bleiben erhalten.
+- Kartenwerte bleiben zum Lesen geöffnet, bis sie bewusst geschlossen werden oder sich der Kartenkontext ändert.
+- Die gemeinsame Wertanzeige erhält Dialogsemantik und Tastaturführung mit Escape und Rückkehr zum Auslöser.
+- Wetterwerte, Einheiten, Quellen und Kartenfarben bleiben unverändert.

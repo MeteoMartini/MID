@@ -1,3 +1,11 @@
+# MID v0.9.85.217 · MID-C25: zugängliche Kartenwertanzeige
+
+Basis main=mid-stable 77a6336554a2ceb32fdbfa3dc988d4dc7fc8012a (.216). Der gemeinsame ModelMapProbe enthält interaktive Inhalte und verwendet daher den bestehenden AppPortalPopover-Dialog mit Fokusführung, Escape und Fokusrückgabe, nicht die Tooltip-Semantik. Automatische Schließung nach sechs/zehn Sekunden entfällt; bewusstes Schließen, Außenklick und Kontext-/Kartenbewegung bleiben erhalten. Keine Daten-/Zeit-/Einheiten-/Farbänderung. Bestehende Browsermatrix prüft nun Dialog, Lesedauer, Tab/Shift+Tab und Rückkehr zum Auslöser statt des absichtlich aufgehobenen Ablaufvertrags. Keine echte VoiceOver-/WKWebView-Abnahme behauptet.
+
+RUC-Liveprobe 2026-10-09 17:22 UTC: ready/fresh/schemaValid=true, Run 15 UTC, 542040 Punkte, 15 Zeiten, 20 EPS-Mitglieder. Niederkassel forecast-fusion: active=true, rucAppliedHours=13, rucEpsAppliedHours=13, rucEpsMemberCount=20. Health-Worker meldet .195; das ist nicht die Web-/Stable-Version .216 und wird nicht als synchronisierte Buildidentität ausgegeben. Universelle Build-/Daten-/Render-IDs, Daten-/Nahtverträge, produktive Geräteperformance, VoiceOver und echte iOS-Abnahme bleiben offen. Veröffentlichung ausschließlich durch bestehendes Source-Gate/Bot/Installer/Stable-Verfahren.
+
+Lokale Abnahme: npm ci, Produktionsbuild/Types, Produktions-Dependency-Audit ohne HIGH/CRITICAL, alle 954 Regressionen, echte Chromium-Native/WMS/Export/Navigation-Matrix auf fünf Viewports mit Light/Dark sowie 24 echte Skybar-Viewport/Theme/Design-Fälle erfolgreich. Ein erster zusätzlicher Browserlauf öffnete nach Schließen vor der bestehenden requestAnimationFrame-Fokusrückgabe; der Test wartet nun zwei Paint-Zyklen vor dem nächsten Tastaturflow. Vollständige Matrix erneut grün, ohne Abschwächung der Fokus-/Escape-/Cancel-/Missing-Data-Prüfungen. Generierte dist-/native-Webassets gehören nicht in den Source-PR.
+
 # MID v0.9.85.216 · Intensivaudit: Widget-Renderbereitschaft und Erstfehlernachweis
 
 Basis: verifiziertes main=mid-stable 5dbb92411193ffecb17216952ed4e0ce9f7622f5 (.215), Installer 37888419430 erfolgreich. Keine überlappende offene Entwicklungs-PR. Bestehende Skybar-/RUC-/Karten-/Release-Verträge bleiben erhalten.
