@@ -1,5 +1,5 @@
-# MID v0.9.85.219
+# MID v0.9.85.220
 
-- RUC-EPS-Mitglieder müssen an allen benötigten Vorhersageterminen vorhanden sein.
-- Vollständig leere Termine einzelner Mitglieder stoppen den Lauf vor der Aggregation.
-- Maskierte Randzellen, trockene Nullwerte und die bisherigen Ensemble-Schwellen bleiben erhalten.
+- Abgebrochene RUC-Snapshot-Downloads werden direkt mit begrenztem Backoff wiederholt.
+- Nur vollständig geladene und per Größe/SHA geprüfte Dateien werden übernommen.
+- Bei dauerhaftem Fehler bleibt der vorhandene Snapshot erhalten; Teilbytes werden nicht veröffentlicht.
