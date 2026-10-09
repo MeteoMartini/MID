@@ -43,18 +43,40 @@ def validate_accumulation(cube: np.ndarray, label: str, tolerance_mm: float = 0.
         raise MeteoIntegrityError(f'{label}: cumulative precipitation decreases by {worst:.3f} mm')
 
 
-def validate_eps_member_coverage(cube: np.ndarray, members: list[int]) -> None:
+def missing_cell_metrics(finite: np.ndarray) -> dict:
+    """Describe native coverage; persistent missing cells are not inferred bitmaps."""
+    if finite.ndim != 2 or not all(finite.shape):
+        raise MeteoIntegrityError('coverage metrics: expected non-empty time/point mask')
+    points = int(finite.shape[1])
+    persistent = int(np.count_nonzero(~finite.any(axis=0)))
+    missing = points - np.count_nonzero(finite, axis=1)
+    return {
+        'pointCount': points,
+        'timeCount': int(finite.shape[0]),
+        'persistentMissingCount': persistent,
+        'steps': [{'step': step, 'missingCount': int(count),
+                   'missingFraction': float(count / points),
+                   'additionalMissingCount': int(count) - persistent}
+                  for step, count in enumerate(missing)],
+    }
+
+
+def validate_eps_member_coverage(cube: np.ndarray, members: list[int]) -> dict:
     """Require native finite cells for each supplied member at every target time."""
     values = np.asarray(cube)
-    if values.ndim != 3 or values.shape[1] != len(members) or not members:
+    if values.ndim != 3 or not all(values.shape) or values.shape[1] != len(members) or not members:
         raise MeteoIntegrityError('RUC-EPS: invalid time/member/point dimensions')
-    missing = np.argwhere(~np.isfinite(values).any(axis=2))
+    finite = np.isfinite(values)
+    missing = np.argwhere(~finite.any(axis=2))
     if missing.size:
         pairs = [(int(step), int(members[index])) for step, index in missing[:24]]
         raise MeteoIntegrityError(f'RUC-EPS: no finite native cells at (forecast step, member) {pairs}')
+    return {'schema': 'mid.ruc.missing.v1', 'product': 'eps-accumulation',
+            'members': [{'member': int(member), **missing_cell_metrics(finite[:, index, :])}
+                        for index, member in enumerate(members)]}
 
 
-def validate_core_fields(fields: Mapping[str, np.ndarray]) -> None:
+def validate_core_fields(fields: Mapping[str, np.ndarray]) -> dict:
     """Physical and semantic validity after native unit normalization, before packing."""
     ranges = {
         'temperature_2m': (-93.15, 66.85),  # 180..340 K decoder sanity
@@ -72,6 +94,7 @@ def validate_core_fields(fields: Mapping[str, np.ndarray]) -> None:
         if name not in fields:
             raise MeteoIntegrityError(f'{name}: missing required RUC field')
     expected_shape = None
+    coverage = {}
     for name, values in fields.items():
         arr = np.asarray(values)
         finite = np.isfinite(arr)
@@ -89,6 +112,7 @@ def validate_core_fields(fields: Mapping[str, np.ndarray]) -> None:
             valid = arr[finite]
             if np.any(valid < lower) or (upper is not None and np.any(valid > upper)):
                 raise MeteoIntegrityError(f'{name}: decoded values exceed physical/semantic bounds')
+        coverage[name] = missing_cell_metrics(finite)
     temperature = np.asarray(fields['temperature_2m'])
     dew = np.asarray(fields['dew_point_2m'])
     if temperature.shape != dew.shape:
@@ -96,3 +120,4 @@ def validate_core_fields(fields: Mapping[str, np.ndarray]) -> None:
     comparable = np.isfinite(temperature) & np.isfinite(dew)
     if np.any(comparable & (dew > temperature + 0.5)):
         raise MeteoIntegrityError('dew point exceeds air temperature by more than 0.5 K')
+    return {'schema': 'mid.ruc.missing.v1', 'product': 'deterministic-core', 'fields': coverage}

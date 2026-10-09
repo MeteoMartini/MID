@@ -303,8 +303,9 @@ def collect_eps(files,targets,expected_points):
       if missing:raise SystemExit(f'RUC-EPS missing members {missing[:24]} at forecast step {step} ({t})')
     if len(members)<10:raise SystemExit(f'RUC-EPS has only {len(members)} common members')
     cube=np.stack([np.stack([rows[t][m] for m in members],axis=0) for t in targets],axis=0)
-    validate_eps_member_coverage(cube,members)
+    coverage=validate_eps_member_coverage(cube,members)
     validate_accumulation(cube,'RUC-EPS TOT_PREC')
+    print('RUC_MISSING_METRICS '+json.dumps({'validTimes':[t.isoformat() for t in targets],**coverage},allow_nan=False,separators=(',',':')),flush=True)
     interval=np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
     return interval,members
 
@@ -399,7 +400,7 @@ def main():
   elif n=='precipitation':fields[n]=prec
   else:fields[n]=np.stack([series[n][t] for t in det_times])
  try:
-  validate_core_fields(fields)
+  coverage=validate_core_fields(fields)
  except Exception:
   # Fatal core gate remains active: expose bounded per-valid-time provenance
   # so missing-value sentinels, wrong units and corrupt GRIB fields can be
@@ -407,6 +408,7 @@ def main():
   for record in temperature_audit[:24]:
    print('RUC_T2M_DECODE_AUDIT '+json.dumps(record,sort_keys=True),flush=True)
   raise
+ print('RUC_MISSING_METRICS '+json.dumps({'run':a.run,'validTimes':[t.isoformat() for t in det_times],**coverage},allow_nan=False,separators=(',',':')),flush=True)
  det=a.output/'deterministic.bin';det.write_bytes(pack_cell_major(fields,DEFAULT_FIELDS))
  # Parameter-native rapid supplements. The shared state vector stays hourly;
  # rapid products preserve only cadences that DWD actually publishes.
