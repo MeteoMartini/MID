@@ -30,6 +30,9 @@ def validate_accumulation(cube: np.ndarray, label: str, tolerance_mm: float = 0.
     finite = np.isfinite(values)
     if not finite.any():
         raise MeteoIntegrityError(f'{label}: no finite accumulated precipitation values')
+    missing_steps = np.flatnonzero(~finite.any(axis=tuple(range(1, values.ndim))))
+    if missing_steps.size:
+        raise MeteoIntegrityError(f'{label}: no finite accumulated values at forecast steps {missing_steps[:24].tolist()}')
     if np.any(finite & (values < -tolerance_mm)):
         raise MeteoIntegrityError(f'{label}: negative cumulative precipitation below -{tolerance_mm} mm')
     differences = np.diff(values, axis=0)
@@ -54,16 +57,27 @@ def validate_core_fields(fields: Mapping[str, np.ndarray]) -> None:
         'precipitation': (-0.05, None),
         'cape': (-1.0, None),
     }
-    for name, (lower, upper) in ranges.items():
+    for name in ranges:
         if name not in fields:
             raise MeteoIntegrityError(f'{name}: missing required RUC field')
-        arr = np.asarray(fields[name])
+    expected_shape = None
+    for name, values in fields.items():
+        arr = np.asarray(values)
         finite = np.isfinite(arr)
         if arr.ndim != 2 or not finite.any():
             raise MeteoIntegrityError(f'{name}: invalid shape or no finite model values')
-        valid = arr[finite]
-        if np.any(valid < lower) or (upper is not None and np.any(valid > upper)):
-            raise MeteoIntegrityError(f'{name}: decoded values exceed physical/semantic bounds')
+        if expected_shape is None:
+            expected_shape = arr.shape
+        elif arr.shape != expected_shape:
+            raise MeteoIntegrityError(f'{name}: different grid/time dimensions {arr.shape}; expected {expected_shape}')
+        missing_steps = np.flatnonzero(~finite.any(axis=1))
+        if missing_steps.size:
+            raise MeteoIntegrityError(f'{name}: no finite model values at forecast steps {missing_steps[:24].tolist()}')
+        if name in ranges:
+            lower, upper = ranges[name]
+            valid = arr[finite]
+            if np.any(valid < lower) or (upper is not None and np.any(valid > upper)):
+                raise MeteoIntegrityError(f'{name}: decoded values exceed physical/semantic bounds')
     temperature = np.asarray(fields['temperature_2m'])
     dew = np.asarray(fields['dew_point_2m'])
     if temperature.shape != dew.shape:
