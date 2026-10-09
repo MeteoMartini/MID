@@ -1,3 +1,7 @@
+# MID v0.9.85.213
+
+Die DWD-RUC-Kurzfristdaten werden bei der Aufbereitung jetzt zuverlässiger behandelt. Bereiche ohne gültige Modellwerte sind klar als fehlende Daten gekennzeichnet; falsche Extremtemperaturen entstehen dadurch nicht mehr. Die strengen Prüfungen meteorologischer Werte bleiben bestehen. Verfügbare Radar-, Kurzfrist- und Ensemblefunktionen sowie die Bedienoberfläche werden nicht verändert.
+
 # MID v0.9.85.212
 
 **Karten im Dark Mode:** Die Terminwahl für Radar und Karten passt ihre Schaltflächen und das Auswahlmenü jetzt korrekt an helle und dunkle Designs an. Auch auf schmalen Smartphones bleiben die Bedienelemente besser lesbar und erreichbar. Tastaturfokus und deaktivierte Zustände sind klarer erkennbar.

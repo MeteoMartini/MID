@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.209
+Stand: v0.9.85.213
 
 ## Zweck und fachliche Rolle
 
@@ -137,3 +137,7 @@ Der DWD-RUC-Vorprozessor prüft vor Veröffentlichung die GRIB-Initialisierung g
 ## GRIB2-Herkunft und Parameter-Signaturen ab v0.9.85.209
 
 Zusätzlich zur fachlichen Validierung müssen alle verarbeiteten GRIB-Nachrichten Edition 2 und das WMO-Erzeugungszentrum 78 (Offenbach, DWD) ausweisen. Dynamische deterministische, optionale, Rapid- und RUC-EPS-Felder dürfen ausschließlich zur angefragten Initialisierung gehören; deren Valid-Time darf nicht vor dem Modelllauf liegen. Innerhalb eines logischen Parameters muss die aus GRIB-Disziplin, Parameterkategorie/-nummer, Höhentyp/-wert, Gittertyp und nativer Punktzahl bestehende Signatur über alle Zeitschritte und Member gleich bleiben. Identische Stützzeiten bzw. EPS-Member/Zeitpaare werden nicht mehr still überschrieben. Die statischen Koordinatenprodukte sind vom strengen dynamischen Laufzeitabgleich ausgenommen, nicht von Edition und Zentrum. Produktfeste shortName-/Level-Tabellen erfordern nachfolgende echte DWD-RUC-v1-Headerkalibrierung; Dateinamen bleiben kein alleiniger Provenienznachweis. Diese Prüfungen sind technische MID-Publish-Gates und keine amtlichen Wetterwarnschwellen.
+
+## Native GRIB-Bitmap ab v0.9.85.213
+
+Die explizite Section-6-Bitmap jeder DWD-GRIB2-Nachricht ist verbindlicher Gültigkeitsbeleg für ihre Rasterzellen. Maskierte Zellen werden vor jeder Einheitennormierung als fehlender Wert geführt; alle 542040 nativen Zellpositionen bleiben für das CLAT-/CLON-Gitter einschließlich Randbereich erhalten. Eine nicht passende, mehrwertige oder fehlende deklarierte Bitmap darf nicht publiziert werden. Physikalisch falsche **gültige** Daten bleiben dem unveränderten Fail-Closed-Validator unterworfen; der Wert 9999 ohne Bitmap ist kein hinreichender Grund für eine automatisierte Reparatur. Bereits festgelegte Wire-NODATA-Werte bleiben identisch. Nach einem Source-Release ist zusätzlich ein real erfolgreicher vollständiger DWD-RUC-/EPS-Preprocessing-Lauf mit Pages-Free-Veröffentlichung zu belegen, bevor Problem #305 abgeschlossen wird.
