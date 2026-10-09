@@ -1,5 +1,5 @@
-# MID v0.9.85.220
+# MID v0.9.85.221
 
-- Abgebrochene RUC-Snapshot-Downloads werden direkt mit begrenztem Backoff wiederholt.
-- Nur vollständig geladene und per Größe/SHA geprüfte Dateien werden übernommen.
-- Bei dauerhaftem Fehler bleibt der vorhandene Snapshot erhalten; Teilbytes werden nicht veröffentlicht.
+- RUC-Aktualität wird getrennt als Laufalter und Rückstand zum gemeinsam angekündigten DWD-Lauf protokolliert.
+- Unbekannte Angaben bleiben ausdrücklich unbekannt; auffällige Zeitstempel werden nicht zu Null geschönt.
+- Der erfolgreiche Cloudflare-Watchdog-Dispatch ist mit zwei echten GitHub-Laufnachweisen dokumentiert.

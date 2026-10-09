@@ -116,6 +116,39 @@ def write_github_outputs(path:str|None,rows:Iterable[tuple[str,str]])->None:
             clean=str(value).replace('\r',' ').replace('\n',' ')
             handle.write(f'{key}={clean}\n')
 
+def freshness_report(dwd_run:str|None,meta:dict|None,should_run:bool,reason:str,*,now:dt.datetime|None=None)->dict:
+    """Diagnostic ages, not a new scheduler gate or observed publication latency."""
+    reference=now or dt.datetime.now(dt.timezone.utc)
+    if reference.tzinfo is None:reference=reference.replace(tzinfo=dt.timezone.utc)
+    reference=reference.astimezone(dt.timezone.utc)
+    def parsed(value):
+        try:return run_time(value) if isinstance(value,str) and RUN_RE.match(value+'/') else None
+        except ValueError:return None
+    published=str((meta or {}).get('run') or '')
+    valid_meta=bool(meta and valid_pages_meta(meta))
+    upstream_time=parsed(dwd_run)
+    published_time=parsed(published) if valid_meta else None
+    minutes=lambda delta:round(delta.total_seconds()/60,3)
+    return {
+        'schema':'mid.ruc.freshness.v1',
+        'observedAt':reference.isoformat().replace('+00:00','Z'),
+        'dwdRun':str(dwd_run or ''),
+        'publishedRun':published,
+        'pagesMetaValid':valid_meta,
+        'shouldRun':bool(should_run),
+        'reason':reason,
+        'upstreamRunAgeMinutes':minutes(reference-upstream_time) if upstream_time else None,
+        'publishedRunAgeMinutes':minutes(reference-published_time) if published_time else None,
+        'availabilityLagMinutes':minutes(upstream_time-published_time) if upstream_time and published_time else None,
+    }
+
+def report_freshness(report:dict,summary_path:str|None=None)->None:
+    encoded=json.dumps(report,ensure_ascii=False,allow_nan=False,separators=(',',':'))
+    print(f'RUC freshness metrics: {encoded}')
+    if summary_path:
+        with open(summary_path,'a',encoding='utf-8') as handle:
+            handle.write('### RUC-Aktualitätsdiagnostik\n\n```json\n'+encoded+'\n```\n\n')
+
 from run_progress import report_run
 
 def main()->int:
@@ -139,11 +172,14 @@ def main()->int:
     if published:
         print(f'Published Pages run: {published}')
         report_run('bereits auf Pages veröffentlicht',published)
+    report=freshness_report(dwd,meta,should_run,reason)
+    report_freshness(report,os.getenv('GITHUB_STEP_SUMMARY'))
     write_github_outputs(args.github_output,[
         ('should_run','true' if should_run else 'false'),
         ('reason',reason),
         ('dwd_run',dwd),
         ('published_run',published),
+        ('freshness_metrics',json.dumps(report,ensure_ascii=False,allow_nan=False,separators=(',',':'))),
     ])
     return 0
 
