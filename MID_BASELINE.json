@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.213",
+  "releaseVersion": "0.9.85.214",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -492,6 +492,7 @@
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-map-direct-time-theme-0985212.mjs",
     "scripts/test-map-heading-and-ensemble-share.mjs",
+    "scripts/test-map-memory-profile-0985214.mjs",
     "scripts/test-map-runtime-baseline-0985210.mjs",
     "scripts/test-map-synoptic-categories-0985195.mjs",
     "scripts/test-map-workspace-handoff.mjs",
@@ -1446,6 +1447,7 @@
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
     "scripts/test-map-direct-time-theme-0985212.mjs",
     "scripts/test-map-heading-and-ensemble-share.mjs",
+    "scripts/test-map-memory-profile-0985214.mjs",
     "scripts/test-map-runtime-baseline-0985210.mjs",
     "scripts/test-map-synoptic-categories-0985195.mjs",
     "scripts/test-map-workspace-handoff.mjs",
@@ -3441,7 +3443,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.213",
+  "version": "0.9.85.214",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
