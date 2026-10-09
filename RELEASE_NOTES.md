@@ -1,4 +1,5 @@
-# MID v0.9.85.215
+# MID v0.9.85.216
 
-- Gleiche Skybar-Zustände erscheinen als durchgehendes Band, auch in der kompakten 7-Tage-Ansicht. Die künstlichen Stundennähte entfallen.
-- Die gemeinsame Darstellung gilt auch für Kurzfristansichten, Tageskarten und Widgets. Unterschiedliche Wetterzustände und einzelne Stundeninformationen bleiben erkennbar.
+- Widget-Exporte warten auf tatsächlich geladene Schriften, Bilder und sichtbares Layout.
+- Automatische Renderläufe bewahren den ersten Fehler mit Screenshot, Build-Bezug und begrenzter Netzwerkdiagnostik auch bei erfolgreichem Retry.
+- Fehlerartefakte bleiben getrennt vom öffentlichen Widget-Paket; bestehende Daten- und Release-Gates bleiben erhalten.

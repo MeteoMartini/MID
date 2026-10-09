@@ -1,3 +1,7 @@
+# MID v0.9.85.216 · Widget-Render-Gate
+
+Geladene Fonts/Bilder, zwei Paints und sichtbare Geometrie sind gemeinsame Voraussetzung für URL-/PNG-/Clipboard-Export. Echte Bild-/Fontfehler erzeugen keine Ready-Freigabe. CDP bewahrt den ersten Fehler mit Screenshot und begrenztem Versions-/Stable-/Render-/Netzwerkbezug über Retry/Recovery. Fehlerartefakte bleiben im CI-Artefakt außerhalb des öffentlichen Widget-ZIP. Alte Source-Wiring-Prüfungen folgen dem extrahierten Helper; ihre Font-/Paint-/SVG-Restore-Verträge bleiben erhalten. Keine Wetterwerte, Skybar-Geometrie, Release-Gates oder Produktionsberechtigungen geändert.
+
 # MID v0.9.85.215 · MID-C24: durchgehende Skybar und konkrete Intensivaudit-Abnahme
 
 Gleiche angrenzende Skybar-Darstellungen werden im gemeinsamen SVG-Renderer einmal gezeichnet; Originalintervalle/Titel, Datenlücken und Niederschlags-Paint-Reihenfolge bleiben erhalten. Konkrete offene Auditschritte und Abnahmegrenzen: docs/implementation/MID_C24_SKYBAR_AUDIT_STATUS_0.9.85.215.md. Basis main=mid-stable a4e0031df84d46614b7fc5889f92577236d01680 (.214). Veröffentlichung ausschließlich durch Source-Gate, bestehenden Bot und Installer/Pages/Stable-Promotion.

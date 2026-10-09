@@ -8,8 +8,10 @@ const capture=await readFile(new URL('../tools/widget-export/capture-widget.mjs'
 const powershell=await readFile(new URL('../tools/widget-export/Update-MID-Widgets.ps1',import.meta.url),'utf8');
 
 assert.match(app,/dataset\.midWidgetReady='pending'/,'Renderstatus beginnt nicht explizit als pending.');
-assert.match(app,/document\.fonts\?\.ready/,'Webfonts werden vor Freigabe des Screenshots nicht abgewartet.');
-assert.match(app,/requestAnimationFrame\(\(\)=>requestAnimationFrame/,'Zwei abgeschlossene Layout-/Paint-Zyklen fehlen.');
+const paint=await readFile(new URL('../src/widgetRenderReadiness.ts',import.meta.url),'utf8');
+assert.match(app,/waitForWidgetPaint/,'Gemeinsame Render-Abnahme fehlt.');
+assert.match(paint,/document\.fonts\?\.ready/,'Webfonts werden vor Freigabe des Screenshots nicht abgewartet.');
+assert.match(paint,/requestAnimationFrame\(\(\)=>requestAnimationFrame/,'Zwei abgeschlossene Layout-/Paint-Zyklen fehlen.');
 assert.match(app,/dataset\.midWidgetReady='ready'/,'Stabil gerendertes Widget wird nicht freigegeben.');
 assert.match(exportsSource,/searchParams\.set\('farben','ecmwf'\)/,'Kanonische Export-URLs fordern ECMWF-Farben nicht explizit an.');
 assert.match(exportsSource,/WIDGET_URL_THEMES:readonly WidgetUrlTheme\[\]=\['light','dark'\]/,'Hell/Dunkel-Katalog fehlt.');

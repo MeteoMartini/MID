@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.215",
+  "releaseVersion": "0.9.85.216",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -950,6 +950,7 @@
     "scripts/test-widget-export-stable-trigger-0985179.mjs",
     "scripts/test-widget-location-header-0985192.mjs",
     "scripts/test-widget-render-readiness-098424.mjs",
+    "scripts/test-widget-render-readiness-0985216.mjs",
     "scripts/test-widget-svg-export-paints-098441.mjs",
     "scripts/test-widget-url-exports-098413.mjs",
     "scripts/test-widget-wind-temperature-export-098419.mjs",
@@ -1906,6 +1907,7 @@
     "scripts/test-widget-export-stable-trigger-0985179.mjs",
     "scripts/test-widget-location-header-0985192.mjs",
     "scripts/test-widget-render-readiness-098424.mjs",
+    "scripts/test-widget-render-readiness-0985216.mjs",
     "scripts/test-widget-svg-export-paints-098441.mjs",
     "scripts/test-widget-url-exports-098413.mjs",
     "scripts/test-widget-wind-temperature-export-098419.mjs",
@@ -3445,7 +3447,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.215",
+  "version": "0.9.85.216",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",

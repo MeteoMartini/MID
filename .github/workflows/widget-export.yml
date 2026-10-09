@@ -95,6 +95,7 @@ jobs:
           fi
 
       - name: Aktuelle Widget-Matrix rendern und validieren
+        id: render_matrix
         shell: bash
         env:
           MID_STABLE_SHA: ${{ steps.source.outputs.sha }}
@@ -126,6 +127,7 @@ jobs:
           sha256sum "$RUNNER_TEMP/mid-widget-export-latest.zip" > "$RUNNER_TEMP/mid-widget-export-latest.zip.sha256"
 
       - name: Laufartefakt sichern
+        if: always() && (steps.render_matrix.outcome == 'success' || steps.render_matrix.outcome == 'failure')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-widget-export-${{ github.run_id }}-${{ github.run_attempt }}

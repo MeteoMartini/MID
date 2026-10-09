@@ -475,8 +475,8 @@
     {
       "file": "src/WidgetGenerator.tsx",
       "name": "Widget",
-      "sha256": "f57c6a248e2b61d1346e414a5547acadc5ae5543f6c38537fe4b4fe521a1b720",
-      "approvedVersion": "0.9.85.192",
+      "sha256": "676eb4a2e5f55f8238acca31d14d7f6ebe77e8313bcdb199e0201161e536cec0",
+      "approvedVersion": "0.9.85.216",
       "approvedReason": "Requested common location header for cards and curves inside the unchanged export target."
     },
     {
