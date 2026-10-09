@@ -1,10 +1,10 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.221
+Stand: v0.9.85.222
 
 ## Terminabdeckung vor Quantisierung (v0.9.85.218)
 
-Alle stündlichen Kernfelder müssen identische Zeit-/Gitterdimensionen besitzen. Jeder Termin jedes Feldes muss mindestens eine endliche native Zelle enthalten; ein vollständig fehlender Termin ist kein gültiges Nullfeld. Akkumulationen benötigen endliche Zellen je Termin über ihre Raum-/Memberachsen. Teilweise authentisch maskierte Randbereiche bleiben erhalten und werden nicht aufgefüllt. Dies ist ein MID-Integritätsgate, keine neue DWD-Warnschwelle oder prozentuale Vollständigkeitszusage. Differenzierte Quoten bleiben gesonderte Abnahmepunkte. Fehler blockieren vor Packing und Veröffentlichung; kein Catch oder Fallback darf sie in einen publizierten Teillauf umwandeln.
+Alle stündlichen Kernfelder müssen identische Zeit-/Gitterdimensionen besitzen. Jeder Termin jedes Feldes muss mindestens eine endliche native Zelle enthalten; ein vollständig fehlender Termin ist kein gültiges Nullfeld. Akkumulationen benötigen endliche Zellen je Termin über ihre Raum-/Memberachsen. Teilweise authentisch maskierte Randbereiche bleiben erhalten und werden nicht aufgefüllt. Dies ist ein MID-Integritätsgate, keine neue DWD-Warnschwelle oder prozentuale Vollständigkeitszusage. Differenzierte Quoten werden nach dem folgenden Diagnosevertrag gemessen; kalibrierte prozentuale Freigabegrenzen bleiben gesonderte Abnahmepunkte. Fehler blockieren vor Packing und Veröffentlichung; kein Catch oder Fallback darf sie in einen publizierten Teillauf umwandeln.
 
 ## EPS-Mitgliederabdeckung (v0.9.85.219)
 
@@ -17,6 +17,14 @@ Abgebrochene HTTP-Body-Reads (IncompleteRead) werden im vorhandenen endlichen Fe
 ## Aktualitätsdiagnostik (v0.9.85.221)
 
 Schema mid.ruc.freshness.v1 protokolliert beobachteten UTC-Zeitpunkt, angekündigten gemeinsamen DWD-Lauf, veröffentlichten Lauf und Metadatenvalidität. upstreamRunAgeMinutes und publishedRunAgeMinutes sind Minuten seit Initialisierung; availabilityLagMinutes ist die signierte Differenz der beiden Initialisierungen. Fehlende/ungültige Informationen sind null; negative Werte bleiben sichtbar. Ausgabe in bestehenden Job-Logs, Step-Summary und freshness_metrics-Output. Keine neue Freigabe-/Freshness-Schwelle; keine gemessene Discovery→Publish-Latenz oder dauerhafte SLO-Historie behauptet.
+
+## Missing-Data-Diagnostik (v0.9.85.222)
+
+Nach erfolgreicher semantischer Prüfung, vor Quantisierung bzw. EPS-Aggregation, schreibt der Builder `RUC_MISSING_METRICS` mit Schema `mid.ruc.missing.v1` in die vorhandenen Joblogs. Deterministische Kernfelder beziehen sich auf die normalisierten gemeinsamen Felder (Niederschlag: Intervalle); EPS bezieht sich auf die native normalisierte TOT_PREC-Akkumulation vor Differenzbildung. `validTimes` ordnet jeden Null-basierten `step` seinem UTC-Termin zu; Kernberichte nennen zusätzlich den initialisierten `run`. EPS-Berichte verwenden tatsächliche Mitglieds-IDs.
+
+`missingFraction` ist die Anzahl nicht endlicher Werte geteilt durch alle nativen Gitterzellen je Termin/Parameter bzw. Termin/Mitglied (0 bis 1, kein Prozentwert). `persistentMissingCount` zählt über alle gelieferten Termine durchgehend nicht endliche Zellen. `additionalMissingCount` ist die Differenz zur terminweisen fehlenden Zellzahl. Persistenz ist eine Beobachtung, kein Beweis für eine authentische GRIB-Bitmap und keine Erklärung der Ursache. Inf und NaN sind nicht endlich; trockene Nullwerte zählen als vorhandene Daten. Alle Originalwerte und Indizes bleiben erhalten. Die vorhandene Endlichkeitsmaske wird wiederverwendet; keine zusätzlichen Zelllisten oder Rasterscans außerhalb der Validierung. Leere Zeit-/Member-/Punktdimensionen sind ungültig.
+
+Dies sind Diagnosequoten, keine neue physikalische Grenze, DWD-Warnschwelle oder kalibrierte Publish-Schwelle. Keine historische SLO-Aggregation/Alarmierung, keine Missing-Quoten für optionale Rapid-/Spezialistfelder und keine feste erwartete EPS-Mitgliederzahl behaupten. Bestehende harte Gates (leerer Termin/Mitglied, Dimensionen, physikalische Grenzen, Akkumulation) bleiben verbindlich; keine Freigabe fehlerhafter Runs.
 
 ## Zweck und fachliche Rolle
 

@@ -1,12 +1,47 @@
 """Offline positive/negative RUC integrity fixtures (no upstream/network)."""
 import unittest
+import json
+import io
+import contextlib
 from unittest.mock import patch
 from datetime import datetime, timezone
 import numpy as np
-from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_accumulation, validate_core_fields, validate_eps_member_coverage
+from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_accumulation, validate_core_fields, validate_eps_member_coverage, missing_cell_metrics
 
 
 class MeteoIntegrityTests(unittest.TestCase):
+    def test_missing_metrics_preserve_native_masks_and_distinguish_persistence(self):
+        finite = np.array([[True, False, False, True],
+                           [True, False, True, True],
+                           [True, False, True, False]])
+        before = finite.copy()
+        report = missing_cell_metrics(finite)
+        self.assertEqual(report['pointCount'], 4)
+        self.assertEqual(report['timeCount'], 3)
+        self.assertEqual(report['persistentMissingCount'], 1)
+        self.assertEqual([s['missingCount'] for s in report['steps']], [2, 1, 2])
+        self.assertEqual([s['missingFraction'] for s in report['steps']], [.5, .25, .5])
+        self.assertEqual([s['additionalMissingCount'] for s in report['steps']], [1, 0, 1])
+        np.testing.assert_array_equal(finite, before)
+        self.assertEqual(json.loads(json.dumps(report, allow_nan=False)), report)
+        self.assertEqual(missing_cell_metrics(np.ones((2, 4), dtype=bool))['steps'][0]['missingFraction'], 0)
+        for shape in ((0, 4), (2, 0), (4,)):
+            with self.subTest(shape=shape), self.assertRaises(MeteoIntegrityError):
+                missing_cell_metrics(np.ones(shape, dtype=bool))
+
+    def test_member_metrics_use_actual_ids_and_reject_empty_time_axis(self):
+        cube = np.zeros((3, 2, 4))
+        cube[:, 0, -1] = np.nan
+        cube[1, 1, 0] = np.inf
+        before = cube.copy()
+        report = validate_eps_member_coverage(cube, [19, 3])
+        self.assertEqual([m['member'] for m in report['members']], [19, 3])
+        self.assertEqual(report['members'][0]['persistentMissingCount'], 1)
+        self.assertEqual(report['members'][1]['steps'][1]['additionalMissingCount'], 1)
+        np.testing.assert_array_equal(cube, before)
+        with self.assertRaisesRegex(MeteoIntegrityError, 'dimensions'):
+            validate_eps_member_coverage(np.zeros((0, 2, 4)), [19, 3])
+
     def test_eps_member_native_coverage(self):
         members = [3, 7, 19]
         cube = np.zeros((3, 3, 4))
@@ -33,7 +68,12 @@ class MeteoIntegrityTests(unittest.TestCase):
                  patch.object(builder, 'decode_file_batch', return_value=batch), \
                  patch.object(builder, 'assert_same_parameter_signature', return_value={}):
                 return builder.collect_eps(['fixture.grib2'], targets, 3)
-        interval, actual = collect(messages)
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            interval, actual = collect(messages)
+        metrics = json.loads(output.getvalue().split('RUC_MISSING_METRICS ', 1)[1])
+        self.assertEqual(metrics['validTimes'], [time.isoformat() for time in targets])
+        self.assertEqual([row['member'] for row in metrics['members']], members)
+        self.assertEqual(metrics['members'][0]['steps'][1]['missingFraction'], 1/3)
         self.assertEqual(actual, members)
         self.assertEqual(interval.shape, (3, 20, 3))
         np.testing.assert_array_equal(interval[:, :, 0], np.array([[0.]*20, [1.]*20, [1.]*20]))
@@ -56,7 +96,11 @@ class MeteoIntegrityTests(unittest.TestCase):
         for array in fields.values():
             array[:, -1] = np.nan
         before = {name: value.copy() for name, value in fields.items()}
-        validate_core_fields(fields)
+        report = validate_core_fields(fields)
+        self.assertEqual(set(report['fields']), set(names))
+        for row in report['fields'].values():
+            self.assertEqual(row['persistentMissingCount'], 1)
+            self.assertEqual(row['steps'][0]['missingFraction'], .25)
         for name in names:
             np.testing.assert_array_equal(fields[name], before[name])
             broken = {key: value.copy() for key, value in fields.items()}
@@ -85,7 +129,13 @@ class MeteoIntegrityTests(unittest.TestCase):
         native = np.zeros((15, 542040), dtype=np.float32)
         native[:, -16968:] = np.nan
         fields = {name: native for name in names}
-        validate_core_fields(fields)
+        report = validate_core_fields(fields)
+        row = report['fields']['cloud_cover']
+        self.assertEqual(row['pointCount'], 542040)
+        self.assertEqual(row['persistentMissingCount'], 16968)
+        self.assertEqual(row['steps'][7]['missingCount'], 16968)
+        self.assertAlmostEqual(row['steps'][7]['missingFraction'], 16968/542040)
+        self.assertEqual(row['steps'][7]['additionalMissingCount'], 0)
         missing = native.copy()
         missing[7] = np.nan
         with self.assertRaisesRegex(MeteoIntegrityError, r'forecast steps \[7\]'):

@@ -1,5 +1,5 @@
-# MID v0.9.85.221
+# MID v0.9.85.222
 
-- RUC-Aktualität wird getrennt als Laufalter und Rückstand zum gemeinsam angekündigten DWD-Lauf protokolliert.
-- Unbekannte Angaben bleiben ausdrücklich unbekannt; auffällige Zeitstempel werden nicht zu Null geschönt.
-- Der erfolgreiche Cloudflare-Watchdog-Dispatch ist mit zwei echten GitHub-Laufnachweisen dokumentiert.
+- RUC-Datenprüfungen protokollieren fehlende Rasterzellen getrennt nach Parameter, Vorhersagezeit und Ensemble-Mitglied.
+- Dauerhaft fehlende Zellen und zusätzliche zeitweise Ausfälle werden getrennt sichtbar; gültige trockene Nullwerte bleiben erhalten.
+- Eine leere Ensemble-Zeitachse wird vor der Verarbeitung abgewiesen.
