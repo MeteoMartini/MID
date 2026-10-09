@@ -11,4 +11,5 @@ for(const token of [
  "installing.addEventListener('statechange'",
  "activateWaitingMidUpdate(registration);\n  await registrationUpdateWithBudget(registration);\n  activateWaitingMidUpdate(registration);"
 ])assert.ok(pwa.includes(token),`PWA-Updateaktivierung fehlt: ${token}`);
-console.log('Wartende MID-Service-Worker werden nach sicherem Download automatisch aktiviert und die neue App-Shell kann übernehmen.');
+assert.ok(pwa.includes("localStorage.getItem('mid:auto-update')==='true'")&&pwa.includes('if(automatic&&waiting&&navigator.serviceWorker.controller)'), 'Automatische Aktivierung muss die gespeicherte Auswahl beachten.');
+console.log('Wartende MID-Service-Worker werden nach sicherem Download entsprechend der automatischen Update-Auswahl aktiviert.');

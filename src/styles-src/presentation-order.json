@@ -68,6 +68,7 @@
     "src/midC18MapAndSevenDayAlignment.css",
     "src/midC18AuditFollowup.css",
     "src/midC21CurrentWeather.css",
-    "src/midC23CloudAudit.css"
+    "src/midC23CloudAudit.css",
+    "src/midC26UpdateRecovery.css"
   ]
 }

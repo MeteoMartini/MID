@@ -14,7 +14,7 @@ function registrationUpdateWithBudget(registration:ServiceWorkerRegistration,tim
 }
 
 function activateWaitingMidUpdate(registration:ServiceWorkerRegistration){
- const activate=()=>{const waiting=registration.waiting;if(waiting&&navigator.serviceWorker.controller)waiting.postMessage({type:'MID_ACTIVATE_UPDATE'})};
+ const activate=()=>{let automatic=false;try{automatic=localStorage.getItem('mid:auto-update')==='true'}catch{}const waiting=registration.waiting;if(automatic&&waiting&&navigator.serviceWorker.controller)waiting.postMessage({type:'MID_ACTIVATE_UPDATE'})};
  registration.addEventListener('updatefound',()=>{const installing=registration.installing;if(!installing)return;installing.addEventListener('statechange',()=>{if(installing.state==='installed')activate()})});
  activate();
 }
@@ -41,7 +41,7 @@ function requestWorker(message:Record<string,unknown>,timeoutMs=10000):Promise<S
   const finish=(reply:SwReply)=>{if(settled)return;settled=true;window.clearTimeout(timer);channel.port1.close();resolve(reply)};
   const timer=window.setTimeout(()=>finish({ok:false,error:'Der App-Cache-Dienst hat nicht rechtzeitig geantwortet.'}),timeoutMs);
   channel.port1.onmessage=event=>finish((event.data??{}) as SwReply);
-  worker.postMessage(message,[channel.port2]);
+  try{worker.postMessage(message,[channel.port2])}catch(error){finish({ok:false,error:error instanceof Error?error.message:'Der App-Cache-Dienst ist nicht erreichbar.'})}
  });
 }
 
@@ -56,6 +56,12 @@ export async function repairMidCache(){
  if(isMidNativeRuntime())throw new Error('Die native MID-App verwendet einen eigenen App-Cache.');
  const reply=await requestWorker({type:'MID_REPAIR_CACHE'},30000);
  if(!reply.ok)throw new Error(reply.error||'MID-Cache konnte nicht repariert werden.');
+ return reply;
+}
+
+export async function retryMidCurrentVersion(){
+ const reply=await requestWorker({type:'MID_USE_CURRENT'},10000);
+ if(!reply.ok)throw new Error(reply.error||'Die neue Version konnte noch nicht aktiviert werden.');
  return reply;
 }
 

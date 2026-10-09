@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.222",
+  "releaseVersion": "0.9.85.223",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -967,7 +967,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-update-recovery-0985223.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1924,7 +1925,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-update-recovery-0985223.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2761,7 +2763,10 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "scripts/test-update-recovery-0985223.mjs",
+    "src/midC26UpdateRecovery.css",
+    "scripts/verify-update-recovery-browser-0985223.mjs"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -2861,7 +2866,8 @@
     "scripts/test-widget-url-exports-098413.mjs",
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
-    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
+    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
+    "scripts/test-update-recovery-0985223.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3445,9 +3451,10 @@
     "scripts/test-weather-profile-mobile-compact-097612.mjs",
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
-    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
+    "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
+    "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.222",
+  "version": "0.9.85.223",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
