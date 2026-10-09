@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Preserve the currently deployed free RUC snapshot across normal MID Pages releases."""
 from __future__ import annotations
-import argparse,concurrent.futures,hashlib,json,shutil,time,urllib.error,urllib.parse,urllib.request
+import argparse,concurrent.futures,hashlib,http.client,json,shutil,time,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 
 TRANSIENT_HTTP_CODES={429,500,502,503,504}
@@ -24,7 +24,7 @@ def fetch(url:str,timeout=30,retries=DEFAULT_FETCH_RETRIES)->bytes:
             if e.code not in TRANSIENT_HTTP_CODES or attempt>=retries:raise
             delay=_retry_delay(url,attempt,e.headers.get('Retry-After') if e.headers else None)
             print(f'Transient RUC HTTP {e.code}; retry {attempt+2}/{retries+1} in {delay:.2f}s: {url}',flush=True)
-        except (urllib.error.URLError,TimeoutError) as e:
+        except (urllib.error.URLError,TimeoutError,http.client.IncompleteRead) as e:
             if attempt>=retries:raise
             delay=_retry_delay(url,attempt)
             print(f'Transient RUC network error; retry {attempt+2}/{retries+1} in {delay:.2f}s: {url} ({e})',flush=True)

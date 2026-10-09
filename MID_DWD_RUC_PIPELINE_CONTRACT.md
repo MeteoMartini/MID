@@ -1,6 +1,6 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.219
+Stand: v0.9.85.220
 
 ## Terminabdeckung vor Quantisierung (v0.9.85.218)
 
@@ -9,6 +9,10 @@ Alle stündlichen Kernfelder müssen identische Zeit-/Gitterdimensionen besitzen
 ## EPS-Mitgliederabdeckung (v0.9.85.219)
 
 Alle in den Zielterminen gelieferten Mitglieds-IDs müssen an jedem Zieltermin vorhanden sein; die Schnittmenge darf unvollständige Mitglieder nicht still entfernen. Jeder Mitgliedstermin braucht mindestens eine endliche native Zelle. Prüfung vor Akkumulationsprüfung, Aggregation und Packing; Fehler sind fatal. Die Mindestzahl 10 bleibt unverändert. Dies beweist keine erwartete feste Mitgliederzahl oder prozentuale Zellabdeckung. Authentische Masken und trockene Nullen bleiben erhalten; keine Interpolation oder Ersatzmitglieder.
+
+## RUC-Snapshot-Transport (v0.9.85.220)
+
+Abgebrochene HTTP-Body-Reads (IncompleteRead) werden im vorhandenen endlichen Fetch-Backoff erneut vollständig geladen. Keine Teilbytes übernehmen; Größen-/SHA-Verletzungen bleiben fatal und werden nicht als Netzwerkfehler behandelt. Atomare Ersetzung erst nach vollständiger Abnahme; bei Erschöpfung vorhandenen Snapshot erhalten und temporäre Dateien entfernen. Keine Scheduler-/Freshness-Schwellenänderung.
 
 ## Zweck und fachliche Rolle
 
