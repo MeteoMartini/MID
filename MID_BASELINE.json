@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.212",
+  "releaseVersion": "0.9.85.213",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2735,6 +2735,7 @@
     "tools/ruc/restore_ruc_pages_snapshot.py",
     "tools/ruc/ruc_pack.py",
     "tools/ruc/test_cloudflare_r2_bootstrap.py",
+    "tools/ruc/test_grib_bitmap.py",
     "tools/ruc/test_prepare_ruc_pages.py",
     "tools/ruc/test_publish_ruc_r2.py",
     "tools/ruc/test_restore_ruc_pages_snapshot.py",
@@ -3440,7 +3441,7 @@
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs"
   ],
-  "version": "0.9.85.212",
+  "version": "0.9.85.213",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
