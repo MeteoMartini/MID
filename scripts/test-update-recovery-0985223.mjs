@@ -61,4 +61,10 @@ handler({data:{type:'MID_ACTIVATE_UPDATE',version:'wrong-version'},waitUntil:pro
 handler({data:{type:'MID_ACTIVATE_UPDATE',version},waitUntil:promise=>pending=promise});await pending;assert.equal(replyData.ok,true);assert.equal(prepared,1);assert.equal(skipped,1);
 console.log('Activation request: wrong release rejected before metadata/skipWaiting; matching version accepted.');
 
+const checkSource=updater.slice(updater.indexOf('async function checkVersion'),updater.indexOf('function setupVersionChecks')).replace(' as VersionDescriptor','');
+let hidden=false,reloaded=false;
+const checkContext={URL,Date,document:{baseURI:'https://example.test/'},VERSION:'old',VERSION_CHECK_THROTTLE:30000,lastVersionCheck:0,versionCheckPromise:null,dismissedVersion:'',boundedNativeFetch:async()=>({ok:true,json:async()=>({version:'new'})}),isNewerVersion:()=>true,autoUpdateEnabled:()=>true,recentReloadAttempt:()=>true,removeUpdateNotice:()=>hidden=true,reloadForVersion:async()=>reloaded=true};
+vm.runInNewContext(checkSource,checkContext);await checkContext.checkVersion(true);assert.equal(hidden,false,'focus/pageshow during a recent attempt must retain the visible status');assert.equal(reloaded,false,'a recent attempt must not start a duplicate update');
+console.log('Repeated version checks preserve the current update status without starting a duplicate.');
+
 if(process.env.GITHUB_ACTIONS==='true')await import('./verify-update-recovery-browser-0985223.mjs');
