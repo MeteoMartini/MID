@@ -1,3 +1,17 @@
+# MID v0.9.85.216 · Intensivaudit: Widget-Renderbereitschaft und Erstfehlernachweis
+
+Basis: verifiziertes main=mid-stable 5dbb92411193ffecb17216952ed4e0ce9f7622f5 (.215), Installer 37888419430 erfolgreich. Keine überlappende offene Entwicklungs-PR. Bestehende Skybar-/RUC-/Karten-/Release-Verträge bleiben erhalten.
+
+Der gemeinsame Widget-Paint-Helper wartet auf Fonts, dekodierte nicht-defekte Bilder, zwei Paint-Zyklen und sichtbare verbundene Geometrie. URL-Exporte melden bei Fehlern ausdrücklich error statt ready; auch manuelle PNG-/Clipboard-Exporte verwenden denselben Helper. Veraltete asynchrone Abnahmen werden beim Effect-Cleanup verworfen. Ready-Ereignisse führen Versions- und Zeitbereichsmetadaten mit; der Zeitbereich ist kein behaupteter Modelllauf.
+
+Der CDP-Renderer bewahrt je Ziel den ersten Fehler in einem separaten diagnostics-Unterordner: Screenshot, begrenzte Ladefehler ohne URLs/Headers/Response-Bodies, erwartete öffentliche Version, Stable-SHA, Renderstatus und verfügbarer Datenzeitbereich. Retry/Recovery überschreiben diese Dateien nicht. Terminale App-Fehler brechen sofort ab; fehlende Bereitschaft läuft weiter mit bestehendem Timeout. Das Workflow-Artefakt wird auch nach Renderfehlern gesichert; die Publish-Stufe bleibt fail-closed. Diagnosen werden nicht in das öffentliche 12-PNG-ZIP aufgenommen. Kanonischer Workflow und aktiver Spiegel werden gemeinsam synchronisiert.
+
+Abnahme: Produktionsbuild und Types bestanden; neue Positive-/Negative-Regression einschließlich Font-/Bildfehlern; 24 bestehende App-/Widget-Fälle mit tatsächlichem PNG; weitere 24 URL-/Widget-Fälle mit echtem Bildfehler und Recovery; echter Chromium/CDP-Erstfehler-Screenshot, unveränderte Erstdiagnose über Retry und erfolgreicher PNG-Recovery bestanden. Bestehende iOS-Webasset-/Lifecycle-Gates werden beibehalten. Keine reale Geräte-/WKWebView-Abnahme behauptet.
+
+Die konsolidierte Widget-Golden-Prüfung erhält nur für die bewusst geänderte Widget-Deklaration einen .216-Fingerprint; 116 weitere Deklarationen, CSS-Cascade, gemeinsame Kurve und SVG-Paint-Restore bleiben unverändert geschützt.
+
+Auditpunkt 7 ist damit für Widget-Erstfehler/Ready-Gates weiter umgesetzt; langfristige SLO-Aggregate, universelle Build-/Daten-/Render-IDs, Geräte-/VoiceOver-/WKWebView-Abnahme und weitere Meteorologie-/Performance-Abnahmen aus dem .215-Statusdokument bleiben offen. Keine vollständige Audit-Erledigung behaupten.
+
 # MID v0.9.85.215 · MID-C24: durchgehende Skybar und konkrete Intensivaudit-Abnahme
 
 Gleiche angrenzende Skybar-Darstellungen werden im gemeinsamen SVG-Renderer einmal gezeichnet; Originalintervalle/Titel, Datenlücken und Niederschlags-Paint-Reihenfolge bleiben erhalten. Konkrete offene Auditschritte und Abnahmegrenzen: docs/implementation/MID_C24_SKYBAR_AUDIT_STATUS_0.9.85.215.md. Basis main=mid-stable a4e0031df84d46614b7fc5889f92577236d01680 (.214). Veröffentlichung ausschließlich durch Source-Gate, bestehenden Bot und Installer/Pages/Stable-Promotion.

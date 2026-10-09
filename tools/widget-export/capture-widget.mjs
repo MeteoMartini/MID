@@ -56,18 +56,36 @@ class Cdp{
 }
 
 let cdp;
+const startedAt=Date.now();
+const failures=[];
 try{
  console.log(`Widget-Renderer: ${browserExecutable}`);
  const port=await waitFor(async()=>{if(!existsSync(activePort))return 0;const value=Number(String(await readFile(activePort,'utf8')).split(/\r?\n/)[0]);return Number.isFinite(value)&&value>0?value:0},'Browser-Debuggingport wurde nicht bereitgestellt');
  const target=await waitFor(async()=>{const response=await fetch(`http://127.0.0.1:${port}/json/list`),targets=await response.json();return targets.find(item=>item.type==='page'&&String(item.url).includes('widget='))},'MID-Widgetseite wurde im Browser nicht geöffnet');
  cdp=await Cdp.connect(target.webSocketDebuggerUrl);
  await cdp.call('Runtime.enable');await cdp.call('Page.enable');
- const ready=await waitFor(async()=>{const result=await cdp.call('Runtime.evaluate',{expression:`(()=>({ready:document.documentElement.dataset.midWidgetReady==='ready',error:document.querySelector('.error')?.textContent||'',text:document.body.innerText.slice(0,240)}))()`,returnByValue:true});const value=result.result?.value;if(value?.error)throw new Error(value.error);return value?.ready?value:null},'MID meldet das Widget nicht als vollständig gerendert');
+ cdp.socket.addEventListener('message',event=>{try{const message=JSON.parse(String(event.data));if(message.method==='Network.loadingFailed'&&failures.length<40)failures.push({type:message.params?.type,error:message.params?.errorText,canceled:message.params?.canceled})}catch{}});
+ await cdp.call('Network.enable');
+ const ready=await waitFor(async()=>{const result=await cdp.call('Runtime.evaluate',{expression:`(()=>({ready:document.documentElement.dataset.midWidgetReady==='ready',error:document.documentElement.dataset.midWidgetError||document.querySelector('.error')?.textContent||'',text:document.body.innerText.slice(0,240)}))()`,returnByValue:true});const value=result.result?.value;if(value?.error)return value;return value?.ready?value:null},'MID meldet das Widget nicht als vollständig gerendert');
+ if(ready.error)throw new Error(ready.error);
  const measured=await cdp.call('Runtime.evaluate',{expression:`(()=>{const node=document.querySelector('.weatherwidget');if(!node)return null;const box=node.getBoundingClientRect();return{x:Math.max(0,box.x),y:Math.max(0,box.y),width:Math.ceil(Math.max(box.width,node.scrollWidth)),height:Math.ceil(Math.max(box.height,node.scrollHeight))}})()`,returnByValue:true});
  const box=measured.result?.value;if(!box||box.width<100||box.height<100)throw new Error(`Widget-Abmessungen sind unplausibel: ${JSON.stringify(box)}; ${ready.text||''}`);
  const screenshot=await cdp.call('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:true,clip:{x:box.x,y:box.y,width:box.width,height:box.height,scale:1}}),bytes=Buffer.from(screenshot.data,'base64');
  if(bytes.length<20000||bytes[0]!==137||bytes[1]!==80||bytes[2]!==78||bytes[3]!==71)throw new Error(`Ungültiger oder leerer Screenshot (${bytes.length} Byte).`);
  await mkdir(path.dirname(output),{recursive:true});const temporary=`${output}.part.png`;await writeFile(temporary,bytes);await rm(output,{force:true});await rename(temporary,output);const result=await stat(output);console.log(`Aktualisiert: ${output} (${result.size} Byte, ${box.width}×${box.height}px, ECMWF-Farben)`);
+}catch(error){
+ // Keep the FIRST failure across retries; never capture cookies, headers or URL queries.
+ const diagnosticBase=path.join(path.dirname(output),'diagnostics',path.basename(output)),report=`${diagnosticBase}.first-failure.json`,image=`${diagnosticBase}.first-failure.png`;
+ if(!existsSync(report)){
+  await mkdir(path.dirname(report),{recursive:true});
+  let state=null,screenshotError=null;
+  if(cdp){
+   try{const result=await cdp.call('Runtime.evaluate',{expression:`(()=>({status:document.documentElement.dataset.midWidgetReady||'absent',version:document.querySelector('meta[name="mid-version"]')?.content||null,dataFrom:document.documentElement.dataset.midWidgetDataFrom||null,dataThrough:document.documentElement.dataset.midWidgetDataThrough||null,widgetCount:document.querySelectorAll('.weatherwidget').length,imageCount:document.querySelector('.weatherwidget')?.querySelectorAll('img').length||0}))()`,returnByValue:true});state=result.result?.value??null}catch{}
+   try{const shot=await cdp.call('Page.captureScreenshot',{format:'png',fromSurface:true});await writeFile(image,Buffer.from(shot.data,'base64'))}catch{screenshotError='Screenshot nicht verfügbar';}
+  }
+  await writeFile(report,JSON.stringify({schema:1,checkedAt:new Date().toISOString(),elapsedMs:Date.now()-startedAt,stableSha:process.env.MID_STABLE_SHA||null,expectedVersion:process.env.MID_PUBLIC_VERSION||null,state,networkFailures:failures,screenshotAvailable:existsSync(image),screenshotError,errorClass:error?.name||'Error'},null,2)+'\n');
+ }
+ throw error;
 }finally{
  closing=true;try{await cdp?.call('Browser.close')}catch{}try{cdp?.close()}catch{}browser.kill();await rm(profile,{recursive:true,force:true}).catch(()=>undefined);
 }

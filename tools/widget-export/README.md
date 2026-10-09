@@ -49,3 +49,7 @@ Der serverseitige Renderer verwendet auf GitHub Ubuntu den vorinstallierten Goog
 ## Resilienz bei transienten Datenfehlern
 
 Seit MID v0.9.85.182 wird jede der zwölf Varianten bei einem einzelnen Capture-/Wetterabruf-Fehler begrenzt erneut gerendert. Pro Variante sind maximal drei Versuche mit jeweils 180 Sekunden vorgesehen. Vor einem Wiederholungsversuch werden partielle PNG-Dateien entfernt. Erst wenn auch der dritte Versuch fehlschlägt, stoppt der Export weiterhin fail-closed und veröffentlicht kein unvollständiges Paket.
+
+## Erstfehlerdiagnostik (.216)
+
+Der erste fehlgeschlagene CDP-Versuch je Ziel bewahrt Screenshot und JSON unter `diagnostics/`. Weitere Versuche überschreiben den Erstbefund nicht; auch nach erfolgreicher Recovery bleibt er im CI-Laufartefakt erhalten. Das öffentliche ZIP enthält weiterhin nur die zwölf geprüften Widget-PNGs sowie Manifest und Prüfsummen. Der Bericht enthält keine Cookies, Request-Header, Antwortinhalte oder URL-Querystrings. Version, Stable-SHA und verfügbarer Widget-Zeitbereich unterstützen die Zuordnung; der Zeitbereich ist kein Modelllauf-Identifier.
