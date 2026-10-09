@@ -1,3 +1,19 @@
+# MID v0.9.85.214 · Intensivaudit Phase 3b: isolierte Karten-Speicherprobe
+
+Verifizierte Basis main = mid-stable = 19b28d9e28bb05efa6e5e690f5e224566f62c551 (.213), Installer 37882113485 erfolgreich. Paralleländerungen .207–.213 vollständig erhalten. Branch codex/v0.9.85.214-audit-map-memory.
+
+Die bestehende vollständige 24-Fälle-Kartenmatrix bleibt erhalten. Nach ihrem Abschluss läuft im Heavy-Shard 2/3 (oder lokal ohne Shard) ein zusätzlicher, isolierter 390px/Light/Next-Fall. Zwei Warmup-Rundwechsel ICON-EU→ICON-D2 füllen beide geprüften Modellcaches; danach 20 echte Rundwechsel über dieselben sichtbaren Controls. Jeder Wechsel wartet auf den aktuellen Modellstatus ohne Ladezustand sowie genau eine Synoptik-Flächenebene. Dieselbe ursprüngliche MapLibre-Instanz und genau eine Karte bleiben Pflicht. Die zusätzliche Probe ist klar als isolated-memory-cycles gekennzeichnet, damit ihre GC-/Stress-Frametimings nicht als unveränderte Phase-3a-Baseline verglichen werden.
+
+Chrome DevTools Protocol sammelt nach Garbage Collection H0/H5/H10/H15/H20: V8-Isolate used/allocated heap, optional ArrayBuffer/external-string backing storage sowie DOM-Dokumente/Knoten/Listener. Das ist weder gesamter Browser-/GPU-/Worker-Speicher noch ein WKWebView-Profil. Ein synthetischer Trend allein beweist keinen Leak. Ausgabe enthält absolute Proben, Deltas, strictlyIncreasingHeap als rein beschreibenden Befund und p95 der 20 Roundtrip-Laufzeiten. Keine willkürlichen Heap-/FPS-Grenzen, keine Budgetlockerung, keine User-Telemetrie. Defekte/unvollständige Pflichtmessungen oder fehlerhafte Modellwechsel bleiben fatal; fehlende optionale backingStorage-Metrik wird null statt 0.
+
+MID_MAP_TRACE=1 schreibt einen Chromium devtools.timeline/v8/blink.user_timing-Trace ausschließlich während der isolierten Zyklen nach /tmp/mid-map-cycles-390-light-next.json. Der Trace wird auch nach einem Zyklusfehler gestoppt; CDP-Session wird per finally freigegeben. CI-Normalweg erhebt Speicherproben ohne Tracing-Overhead. Schema mid.map.runtime.fixture.v2 nennt die echte package.json-Version statt der bisher fest codierten .210. Raw-JSON bleibt in bestehenden CI-Logs und /tmp; kompakte Speicherwerte ergänzen das Step-Summary. Keine Workflow-/Secret-/Ruleset-Änderungen.
+
+Pflichtregression scripts/test-map-memory-profile-0985214.mjs prüft 2+20 Cycles, fünf GC-Proben in richtiger Reihenfolge, wachsende/fallende Werte, fehlende/kaputte Messungen, Durchreichen von CDP-/Modellfehlern und vollständiges Browser-Wiring. Beide Baseline-Inventare verlustfrei erweitert. Bestehende Core/Heavy/Responsive/iOS/Release-Gates bleiben unverändert.
+
+Parallelstand: RUC-Bitmap-Reparatur .213 freigegeben. Issue #305 bleibt bis zur erfolgreichen neuen echten DWD-RUC/RUC-EPS-/Pages-Freshness-Abnahme offen. Die aktuelle Repo-Synchronität allein beweist keine frischen Wetterdaten. Weitere Auditpakete: Widget-readiness/Erstfehlerdiagnostik, produktfeste GRIB-Level-/shortName-Verträge mit echten Headern, Cross-Model-/Missing-Data-Prüfungen, A11y-Kartenalternative und iOS-Simulator-Lifecycle. SEC-001 aus dem PDF war durch aktive Rulesets bereits widerlegt (.207); Schutz nicht neu/parallel umbauen.
+
+Primärquellen: https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-getHeapUsage ; https://chromedevtools.github.io/devtools-protocol/tot/Memory/#method-getDOMCounters ; https://chromedevtools.github.io/devtools-protocol/tot/HeapProfiler/#method-collectGarbage . Freigabe ausschließlich über Source-PR-Gate → MID Agent Source Release → serverseitiges ZIP → Installer → Worker/Pages → SHA-gebundene Stable-Promotion.
+
 # MID v0.9.85.213 – Intensivaudit: DWD-RUC/GRIB2-Bitmap-Reparatur
 
 ## Gesicherte GitHub- und Produktivbasis
