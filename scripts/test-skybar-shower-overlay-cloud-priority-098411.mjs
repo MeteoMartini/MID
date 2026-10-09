@@ -28,7 +28,7 @@ assert.ok(app.includes('direkt verfügbare Sonnenscheindauer')&&app.includes('Di
 assert.ok(skybar.includes("layer:'base'")&&skybar.includes("layer:'precip'"),'Grund- und Niederschlagslage müssen getrennt bleiben.');
 assert.ok(skybar.includes('return [...baseSegments,...precipSegments]'),'Niederschlag muss nach dem Grundband gezeichnet werden.');
 assert.ok(skybar.includes('appendSegment(segmentsForLayer(visual.layer)')&&skybar.includes(',centerY,visual)'),'Grund- und Niederschlagslage müssen dieselbe Mittellinie verwenden.');
-assert.ok(renderer.includes('segments.map((segment,index)=>')&&!renderer.includes('sort('),'Renderer darf die fachlich definierte Layer-Reihenfolge nicht umsortieren.');
+assert.ok(renderer.includes('skyBarVisualRuns(segments)')&&renderer.includes('runs.map((run,index)=>')&&!renderer.includes('sort('),'Renderer darf die fachlich definierte Layer-Reihenfolge nicht umsortieren.');
 assert.ok(app.includes('Bei Sonne bleibt ein breiteres gelbes Grundband seitlich sichtbar')&&app.includes('gleich dick oder dicker, verdeckt er das gelbe Band vollständig'),'UI-Hinweis muss die Schauer-Überlagerungslogik erklären.');
 assert.ok(contract.includes('Niederschlag ist eine eigenständige Overlay-Lage und darf auch bei Sonne auftreten')&&contract.includes('ist der Niederschlagsstreifen gleich dick oder dicker, verdeckt er das gelbe Grundband vollständig'),'Vertrag muss sonnige Schauer und Dickenüberlagerung festschreiben.');
 

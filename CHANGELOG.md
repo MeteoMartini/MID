@@ -1,3 +1,8 @@
+# MID v0.9.85.215
+
+- Gleiche Skybar-Zustände erscheinen als durchgehendes Band, auch in der kompakten 7-Tage-Ansicht. Die künstlichen Stundennähte entfallen.
+- Die gemeinsame Darstellung gilt auch für Kurzfristansichten, Tageskarten und Widgets. Unterschiedliche Wetterzustände und einzelne Stundeninformationen bleiben erkennbar.
+
 # MID v0.9.85.214
 
 Die Wetterkarte erhält zusätzliche automatische Langzeitprüfungen: wiederholte Modellwechsel werden auf stabile Kartendarstellung und Speicherentwicklung untersucht. Das erleichtert gezielte Verbesserungen bei Geschwindigkeit und Zuverlässigkeit. Alle bisherigen Wetterfunktionen und die Korrektur fehlender RUC-Gitterwerte bleiben erhalten.
