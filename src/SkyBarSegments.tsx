@@ -1,16 +1,22 @@
 import type {SkyBarHourCell,SkyBarSegment} from './detailSkyBar';
+import {skyBarVisualRuns} from './skyBarVisualRuns';
 
 type Props={segments:SkyBarSegment[];keyPrefix?:string;thicknessScale?:number};
 
 const touches=(a:SkyBarSegment|undefined,b:SkyBarSegment|undefined)=>Boolean(a&&b&&a.layer===b.layer&&Math.abs(a.x2-b.x1)<=0.75&&Math.abs(a.y-b.y)<=0.01&&Math.abs(a.strokeWidth-b.strokeWidth)<=0.01);
 
 export function SkyBarSegmentsSvg({segments,keyPrefix='sky',thicknessScale=1}:Props){
- return <>{segments.map((segment,index)=>{
+ const runs=skyBarVisualRuns(segments);
+ return <>{runs.map((run,index)=>{
+  const segment=run.segment;
   const width=Math.max(0,segment.x2-segment.x1);if(width<=0)return null;
-  const thickness=segment.strokeWidth*thicknessScale,radius=Math.min(thickness/2,width/2),joinedLeft=touches(segments[index-1],segment),joinedRight=touches(segment,segments[index+1]);
-  if((!joinedLeft&&!joinedRight)||width<=radius*2+.01)return <rect key={`${keyPrefix}-${segment.key}`} data-skybar-level={segment.thicknessLevel} x={segment.x1} y={segment.y-thickness/2} width={width} height={thickness} rx={radius} fill={segment.color} opacity={segment.opacity}><title>{segment.title}</title></rect>;
+  const thickness=segment.strokeWidth*thicknessScale,radius=Math.min(thickness/2,width/2),joinedLeft=touches(runs[index-1]?.segment,segment),joinedRight=touches(segment,runs[index+1]?.segment);
+  const rounded=(!joinedLeft&&!joinedRight)||width<=radius*2+.01;
   const leftInset=joinedLeft?0:radius,rightInset=joinedRight?0:radius,bodyX=segment.x1+leftInset,bodyWidth=Math.max(0,segment.x2-rightInset-bodyX);
-  return <g key={`${keyPrefix}-${segment.key}`} data-skybar-level={segment.thicknessLevel} fill={segment.color} opacity={segment.opacity}><title>{segment.title}</title>{bodyWidth>0?<rect x={bodyX} y={segment.y-thickness/2} width={bodyWidth} height={thickness}/>:null}{!joinedLeft?<circle cx={segment.x1+radius} cy={segment.y} r={radius}/>:null}{!joinedRight?<circle cx={segment.x2-radius} cy={segment.y} r={radius}/>:null}</g>;
+  return <g key={`${keyPrefix}-${segment.key}`} data-skybar-level={segment.thicknessLevel} data-skybar-run-samples={run.samples.length} fill={segment.color} opacity={segment.opacity}>
+   <g pointerEvents="none">{rounded?<rect x={segment.x1} y={segment.y-thickness/2} width={width} height={thickness} rx={radius}/>:<>{bodyWidth>0?<rect x={bodyX} y={segment.y-thickness/2} width={bodyWidth} height={thickness}/>:null}{!joinedLeft?<circle cx={segment.x1+radius} cy={segment.y} r={radius}/>:null}{!joinedRight?<circle cx={segment.x2-radius} cy={segment.y} r={radius}/>:null}</>}</g>
+   {run.samples.map(sample=><rect key={sample.key} x={sample.x1} y={sample.y-thickness/2} width={sample.x2-sample.x1} height={thickness} fill="transparent"><title>{sample.title}</title></rect>)}
+  </g>;
  })}</>;
 }
 

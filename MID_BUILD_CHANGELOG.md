@@ -1,3 +1,7 @@
+# MID v0.9.85.215 · MID-C24: durchgehende Skybar und konkrete Intensivaudit-Abnahme
+
+Gleiche angrenzende Skybar-Darstellungen werden im gemeinsamen SVG-Renderer einmal gezeichnet; Originalintervalle/Titel, Datenlücken und Niederschlags-Paint-Reihenfolge bleiben erhalten. Konkrete offene Auditschritte und Abnahmegrenzen: docs/implementation/MID_C24_SKYBAR_AUDIT_STATUS_0.9.85.215.md. Basis main=mid-stable a4e0031df84d46614b7fc5889f92577236d01680 (.214). Veröffentlichung ausschließlich durch Source-Gate, bestehenden Bot und Installer/Pages/Stable-Promotion.
+
 # MID v0.9.85.214 · Intensivaudit Phase 3b: isolierte Karten-Speicherprobe
 
 Verifizierte Basis main = mid-stable = 19b28d9e28bb05efa6e5e690f5e224566f62c551 (.213), Installer 37882113485 erfolgreich. Paralleländerungen .207–.213 vollständig erhalten. Branch codex/v0.9.85.214-audit-map-memory.
