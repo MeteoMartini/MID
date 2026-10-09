@@ -6,6 +6,51 @@ from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_
 
 
 class MeteoIntegrityTests(unittest.TestCase):
+    def test_step_coverage_and_shared_dimensions(self):
+        names = ('temperature_2m', 'dew_point_2m', 'relative_humidity_2m', 'cloud_cover',
+                 'cloud_cover_low', 'wind_speed_10m', 'wind_gusts_10m',
+                 'wind_direction_10m', 'precipitation', 'cape', 'pressure_msl', 'convective_inhibition')
+        fields = {name: np.zeros((3, 4)) for name in names}
+        # Authenticated missing border cells stay at the same grid index.
+        for array in fields.values():
+            array[:, -1] = np.nan
+        before = {name: value.copy() for name, value in fields.items()}
+        validate_core_fields(fields)
+        for name in names:
+            np.testing.assert_array_equal(fields[name], before[name])
+            broken = {key: value.copy() for key, value in fields.items()}
+            broken[name][1, :] = np.nan
+            with self.subTest(field=name), self.assertRaisesRegex(MeteoIntegrityError, r'forecast steps \[1\]'):
+                validate_core_fields(broken)
+            for shape in ((2, 4), (3, 5)):
+                with self.subTest(field=name, shape=shape), self.assertRaisesRegex(MeteoIntegrityError, 'grid/time dimensions'):
+                    validate_core_fields({**fields, name: np.zeros(shape)})
+
+    def test_accumulation_step_coverage(self):
+        for cube in (np.array([[0., np.nan], [0., np.nan], [1., np.nan]]),
+                     np.zeros((3, 2, 4))):
+            original = cube.copy()
+            validate_accumulation(cube, 'coverage')
+            np.testing.assert_array_equal(cube, original)
+            missing = cube.copy()
+            missing[1] = np.nan
+            with self.assertRaisesRegex(MeteoIntegrityError, r'forecast steps \[1\]'):
+                validate_accumulation(missing, 'coverage')
+
+    def test_full_native_dimensions_with_masked_border(self):
+        names = ('temperature_2m', 'dew_point_2m', 'relative_humidity_2m', 'cloud_cover',
+                 'cloud_cover_low', 'wind_speed_10m', 'wind_gusts_10m',
+                 'wind_direction_10m', 'precipitation', 'cape', 'pressure_msl', 'convective_inhibition')
+        native = np.zeros((15, 542040), dtype=np.float32)
+        native[:, -16968:] = np.nan
+        fields = {name: native for name in names}
+        validate_core_fields(fields)
+        missing = native.copy()
+        missing[7] = np.nan
+        with self.assertRaisesRegex(MeteoIntegrityError, r'forecast steps \[7\]'):
+            validate_core_fields({**fields, 'cloud_cover': missing})
+        self.assertEqual(int(np.count_nonzero(np.isfinite(native[7]))), 525072)
+
     def test_origin(self):
         run = datetime(2026, 10, 8, 18, tzinfo=timezone.utc)
         validate_grib_origin(20261008, 1800, run)

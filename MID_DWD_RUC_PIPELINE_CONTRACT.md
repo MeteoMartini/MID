@@ -1,6 +1,10 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.213
+Stand: v0.9.85.218
+
+## Terminabdeckung vor Quantisierung (v0.9.85.218)
+
+Alle stündlichen Kernfelder müssen identische Zeit-/Gitterdimensionen besitzen. Jeder Termin jedes Feldes muss mindestens eine endliche native Zelle enthalten; ein vollständig fehlender Termin ist kein gültiges Nullfeld. Akkumulationen benötigen endliche Zellen je Termin über ihre Raum-/Memberachsen. Teilweise authentisch maskierte Randbereiche bleiben erhalten und werden nicht aufgefüllt. Dies ist ein MID-Integritätsgate, keine neue DWD-Warnschwelle oder prozentuale Vollständigkeitszusage. Einzelne EPS-Member-Abdeckung und differenzierte Quoten bleiben gesonderte Abnahmepunkte. Fehler blockieren vor Packing und Veröffentlichung; kein Catch oder Fallback darf sie in einen publizierten Teillauf umwandeln.
 
 ## Zweck und fachliche Rolle
 
