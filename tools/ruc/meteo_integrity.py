@@ -43,6 +43,17 @@ def validate_accumulation(cube: np.ndarray, label: str, tolerance_mm: float = 0.
         raise MeteoIntegrityError(f'{label}: cumulative precipitation decreases by {worst:.3f} mm')
 
 
+def validate_eps_member_coverage(cube: np.ndarray, members: list[int]) -> None:
+    """Require native finite cells for each supplied member at every target time."""
+    values = np.asarray(cube)
+    if values.ndim != 3 or values.shape[1] != len(members) or not members:
+        raise MeteoIntegrityError('RUC-EPS: invalid time/member/point dimensions')
+    missing = np.argwhere(~np.isfinite(values).any(axis=2))
+    if missing.size:
+        pairs = [(int(step), int(members[index])) for step, index in missing[:24]]
+        raise MeteoIntegrityError(f'RUC-EPS: no finite native cells at (forecast step, member) {pairs}')
+
+
 def validate_core_fields(fields: Mapping[str, np.ndarray]) -> None:
     """Physical and semantic validity after native unit normalization, before packing."""
     ranges = {

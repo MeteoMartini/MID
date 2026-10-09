@@ -14,7 +14,7 @@ from native_cadence import is_native_at
 from grib_stream import open_grib_stream
 from grib_bitmap import decode_bitmap_values
 from grib_metadata import inspect_grib_header,assert_same_parameter_signature
-from meteo_integrity import validate_accumulation,validate_core_fields
+from meteo_integrity import validate_accumulation,validate_core_fields,validate_eps_member_coverage
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 SEVERE_PARAM_MAP={'LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
@@ -297,9 +297,13 @@ def collect_eps(files,targets,expected_points):
           rows[valid][member]=normalize('precipitation_acc',vals,units)
     finally:
       if pool is not None:pool.shutdown(wait=True,cancel_futures=True)
-    members=sorted(set.intersection(*(set(rows[t]) for t in targets))) if targets else []
+    members=sorted(set.union(*(set(rows[t]) for t in targets))) if targets else []
+    for step,t in enumerate(targets):
+      missing=sorted(set(members)-set(rows[t]))
+      if missing:raise SystemExit(f'RUC-EPS missing members {missing[:24]} at forecast step {step} ({t})')
     if len(members)<10:raise SystemExit(f'RUC-EPS has only {len(members)} common members')
     cube=np.stack([np.stack([rows[t][m] for m in members],axis=0) for t in targets],axis=0)
+    validate_eps_member_coverage(cube,members)
     validate_accumulation(cube,'RUC-EPS TOT_PREC')
     interval=np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
     return interval,members

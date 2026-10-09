@@ -1,3 +1,9 @@
+# MID v0.9.85.219
+
+- RUC-EPS-Mitglieder müssen an allen benötigten Vorhersageterminen vorhanden sein.
+- Vollständig leere Termine einzelner Mitglieder stoppen den Lauf vor der Aggregation.
+- Maskierte Randzellen, trockene Nullwerte und die bisherigen Ensemble-Schwellen bleiben erhalten.
+
 # MID v0.9.85.218
 
 - RUC-Daten werden vor Veröffentlichung zusätzlich auf vollständig leere Vorhersagetermine geprüft.
