@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 import requests
 import fetch_and_build_ruc as fetch
 from test_meteo_integrity import MeteoIntegrityTests  # also collected by the existing CI unittest.main()
+from test_grib_bitmap import DwdNativeBitmapTests  # mandatory bitmap/nodata and negative fixtures
 from test_grib_metadata import DwdGribMetadataTests  # full ecCodes real-header fixtures in CI
 
 
