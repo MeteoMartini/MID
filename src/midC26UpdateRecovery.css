@@ -1,0 +1,5 @@
+/* MID-C26: update actions must remain readable and touchable on narrow screens. */
+.mid-update-actions button{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+.mid-update-actions{min-width:0}
+@media(max-width:430px){.mid-update-actions{align-items:stretch}.mid-update-actions button{min-width:0}}
+.mid-update-auto{min-height:44px}

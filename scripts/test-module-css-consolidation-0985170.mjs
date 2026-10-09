@@ -17,8 +17,8 @@ for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
 assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
-assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css'],'Established stylesheet precedence changed; only reviewed C21/C23 layers may follow the unchanged .169 cascade');
-const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css'].includes(entry.file));
+assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26 layers may follow the unchanged .169 cascade');
+const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css'].includes(entry.file));
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
