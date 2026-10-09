@@ -12,6 +12,7 @@ import numpy as np
 from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M_FIELDS,RAPID_STATE_15_FIELDS,REFLECTIVITY_15M_FIELDS,SEVERE_15M_FIELDS,SOLAR_15M_FIELDS,SPECIALIST_HOURLY_FIELDS,PHASE_15M_FIELDS,pack_cell_major,pack_eps_members,write_meta,UINT32_NODATA
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
+from grib_bitmap import decode_bitmap_values
 from grib_metadata import inspect_grib_header,assert_same_parameter_signature
 from meteo_integrity import validate_accumulation,validate_core_fields
 
@@ -34,7 +35,7 @@ def read_messages(path:Path,ensemble=False,expected_run=None,include_signature=F
         try:
           # Strictly inspect every decoded record before interpreting its values.
           valid,signature=inspect_grib_header(gid,expected_run)
-          vals=np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
+          vals=decode_bitmap_values(gid)
           member=0
           if ensemble:
             for key in ('perturbationNumber','number'):
@@ -59,7 +60,7 @@ def read_first_values(path:Path):
       if gid is None:raise SystemExit(f'empty coordinate GRIB: {path}')
       try:
         inspect_grib_header(gid)
-        return np.asarray(codes_get_array(gid,'values'),dtype=np.float32)
+        return decode_bitmap_values(gid)
       finally:codes_release(gid)
 
 def load_native_grid(staging:Path,expected_points:int):
