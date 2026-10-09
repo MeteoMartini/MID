@@ -1,11 +1,52 @@
 """Offline positive/negative RUC integrity fixtures (no upstream/network)."""
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timezone
 import numpy as np
-from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_accumulation, validate_core_fields
+from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_accumulation, validate_core_fields, validate_eps_member_coverage
 
 
 class MeteoIntegrityTests(unittest.TestCase):
+    def test_eps_member_native_coverage(self):
+        members = [3, 7, 19]
+        cube = np.zeros((3, 3, 4))
+        cube[:, :, -1] = np.nan
+        before = cube.copy()
+        validate_eps_member_coverage(cube, members)
+        np.testing.assert_array_equal(cube, before)
+        for index, member in enumerate(members):
+            broken = cube.copy()
+            broken[1, index] = np.nan
+            with self.subTest(member=member), self.assertRaisesRegex(MeteoIntegrityError, rf'\(1, {member}\)'):
+                validate_eps_member_coverage(broken, members)
+        with self.assertRaisesRegex(MeteoIntegrityError, 'dimensions'):
+            validate_eps_member_coverage(cube, members[:2])
+
+    def test_eps_collector_preserves_all_members_or_rejects(self):
+        import build_ruc_bundle as builder
+        targets = [datetime(2026, 10, 9, hour, tzinfo=timezone.utc) for hour in (0, 1, 2)]
+        members = list(range(1, 21))
+        messages = [(time, member, np.array([float(step), 0., np.nan]), 'mm', {})
+                    for step, time in enumerate(targets) for member in reversed(members)]
+        def collect(batch):
+            with patch.dict('os.environ', {'MID_RUC_EPS_DECODE_WORKERS': '1'}), \
+                 patch.object(builder, 'decode_file_batch', return_value=batch), \
+                 patch.object(builder, 'assert_same_parameter_signature', return_value={}):
+                return builder.collect_eps(['fixture.grib2'], targets, 3)
+        interval, actual = collect(messages)
+        self.assertEqual(actual, members)
+        self.assertEqual(interval.shape, (3, 20, 3))
+        np.testing.assert_array_equal(interval[:, :, 0], np.array([[0.]*20, [1.]*20, [1.]*20]))
+        self.assertTrue(np.isnan(interval[:, :, 2]).all())
+        for step in (0, 1, 2):
+            missing = [row for row in messages if not (row[0] == targets[step] and row[1] == 19)]
+            with self.subTest(step=step), self.assertRaisesRegex(SystemExit, 'missing members.*19'):
+                collect(missing)
+        empty = [(time, member, np.full(3, np.nan) if time == targets[1] and member == 19 else vals, units, sig)
+                 for time, member, vals, units, sig in messages]
+        with self.assertRaisesRegex(MeteoIntegrityError, r'\(1, 19\)'):
+            collect(empty)
+
     def test_step_coverage_and_shared_dimensions(self):
         names = ('temperature_2m', 'dew_point_2m', 'relative_humidity_2m', 'cloud_cover',
                  'cloud_cover_low', 'wind_speed_10m', 'wind_gusts_10m',
