@@ -22,4 +22,8 @@ try{
  const svg=exp.cloudWeatherSvg(pair,'data:image/png;base64,AA',[{name:'A&B',latitude:47,longitude:6},{name:'Missing',latitude:48,longitude:6}]);assert.match(svg,/A&amp;B/);assert.match(svg,/0 % Wolken/);assert.match(svg,/Wetter nicht verfügbar/);assert.match(svg,/Schneeschauer/);assert.match(svg,/gleicher|Gleicher/);
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
  console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, same-cycle GDPS capability intersection, synoptic payload validation and shared exports passed.');
+ assert.deepEqual(m.gdpsCloudWeatherCatalog(meta),{run,times:[time]});assert.equal(m.gdpsCloudWeatherPlan(meta,Date.parse(time)+12*3600000),null);assert.deepEqual(m.gdpsCloudWeatherCatalog(meta).times,[time]);
+ const independent={schema:'mid.cloud-weather.field.v1',model:'icon-eu',run,time,resolutionKm:14,lats:axis,lons:lon,...cw};assert.equal(m.validateCloudWeatherField(independent,'icon-eu',model,ref).cloud[0],50);
+ for(const patch of [{run:time},{time:run},{model:'gfs'},{cloudUnit:'1'},{weather:Array(144).fill(61.5)},{cloud:Array(144).fill(null)},{lats:[47,48]}])assert.throws(()=>m.validateCloudWeatherField({...independent,...patch},'icon-eu',model,ref));
+ assert.deepEqual(m.cloudWeatherSources(null,{models:Object.fromEntries(['icon-d2','icon-eu','icon'].map(id=>[id,{label:id,frames:[],cloudWeatherFrames:[{time}]}]))}).map(s=>s.id),['icon-d2','icon-eu','icon','gdps']);
 }finally{rmSync(temp,{recursive:true,force:true});}

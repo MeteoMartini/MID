@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.231",
+  "releaseVersion": "0.9.85.232",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2744,6 +2744,7 @@
     "tools/release/create_professional_zip.py",
     "tools/ruc/build_ruc_bundle.py",
     "tools/ruc/build_synoptic_fields.py",
+    "tools/ruc/build_cloud_weather_fields.py",
     "tools/ruc/check_ruc_health.py",
     "tools/ruc/check_ruc_schedule_guard.py",
     "tools/ruc/cloudflare_r2_bootstrap.py",
@@ -3465,7 +3466,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.231",
+  "version": "0.9.85.232",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",

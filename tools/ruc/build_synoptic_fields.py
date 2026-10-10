@@ -219,8 +219,9 @@ def restore_cache(output):
                 stamp=datetime.fromisoformat(p['run']);age=datetime.now(timezone.utc)-stamp
                 if model not in (*MODELS,'gfs','ifs') or age<timedelta(hours=-1) or age>timedelta(hours=24) or not set(CORE_HOURS).issubset(f['hour'] for f in p['frames']) or any(f['hour'] not in ALLOWED_HOURS for f in p['frames']) or len({f['hour'] for f in p['frames']})!=len(p['frames']):continue
                 pending=[]
-                for f in p['frames']:
-                    if f['file']!=f"{model}-{f['hour']:03d}.bin" or not re.fullmatch('[a-f0-9]{64}',f['sha256']) or not 0<f['bytes']<=12_000_000:raise ValueError('cached reference')
+                for f in p['frames']+p.get('cloudWeatherFrames',[]):
+                    prefix='cw-' if f in p.get('cloudWeatherFrames',[]) else ''
+                    if f['file']!=f"{model}-{prefix}{f['hour']:03d}.bin" or not re.fullmatch('[a-f0-9]{64}',f['sha256']) or not 0<f['bytes']<=12_000_000:raise ValueError('cached reference')
                     r=requests.get(base+key.rsplit('/',1)[0]+'/'+f['file'],timeout=25);r.raise_for_status()
                     if len(r.content)!=f['bytes'] or hashlib.sha256(r.content).hexdigest()!=f['sha256']:raise ValueError('cached digest')
                     pending.append((f['file'],r.content))
@@ -292,10 +293,8 @@ def build(output):
             except (requests.RequestException,ValueError,RuntimeError) as error:print(f'::notice::{model} optional +{hour}h unavailable: {error}',flush=True)
     for model,product in products.items():
         product['frames'].sort(key=lambda f:f['hour']);print(f'{model}: {len(product["frames"])} complete terms',flush=True)
-    cloud_deadline=time.monotonic()+180
-    for model,product in products.items():
-        try:enrich_cloud_weather(model,product,output,cloud_deadline)
-        except (requests.RequestException,ValueError,RuntimeError) as e:print(f'::notice::{model} cloud/weather unavailable: {e}',flush=True)
+    from build_cloud_weather_fields import build as build_cloud_weather
+    build_cloud_weather(products,output)
     if not products:raise RuntimeError('no complete synoptic model')
     payload={'schema':'mid.synoptic.fields.v1','generatedAt':datetime.now(timezone.utc).isoformat(),'algorithm':ALGORITHM,'models':products,'unavailable':errors};(output/'index.json').write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n');return payload
 if __name__=='__main__':

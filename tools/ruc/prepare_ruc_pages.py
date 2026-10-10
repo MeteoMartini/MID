@@ -120,7 +120,10 @@ def write_projected_i16_chunks(source:Path,target_dir:Path,spec:dict,chunk_recor
 def fit_synoptic_budget(payload,available):
     core_hours={0,3,6,9,12,18,24,36,48}
     def synoptic_size():
-        return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames'])
+        return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames']+product.get('cloudWeatherFrames',[]))
+    cloud_candidates=sorted(((f['hour']<=12,f['hour'],model) for model,p in payload['models'].items() for f in p.get('cloudWeatherFrames',[])),reverse=False)
+    while synoptic_size()>available and cloud_candidates:
+        _,hour,model=cloud_candidates.pop(0);payload['models'][model]['cloudWeatherFrames']=[f for f in payload['models'][model]['cloudWeatherFrames'] if f['hour']!=hour]
     # ICON Global is optional: never lose established cores or RUC to its cost.
     if 'icon' in payload['models']:
         minimum=sum(f['bytes'] for p in payload['models'].values() for f in p['frames'] if f['hour'] in core_hours)
@@ -244,9 +247,9 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         files=[fields_index]
         for model,product in payload['models'].items():
             if model not in ('icon-d2','icon-eu','icon','gfs','ifs'):raise ValueError('unknown synoptic model')
-            for frame in product['frames']:
+            for frame in product['frames']+product.get('cloudWeatherFrames',[]):
                 name=frame['file']
-                if not re.fullmatch(re.escape(model)+r'-\d{3}\.bin',name):raise ValueError('unsafe synoptic file')
+                if not re.fullmatch(re.escape(model)+r'-(cw-)?\d{3}\.bin',name):raise ValueError('unsafe synoptic file')
                 file=fields_dir/name
                 if digest(file)!=frame['sha256'] or file.stat().st_size!=frame['bytes']:raise ValueError('synoptic digest mismatch')
                 files.append(file)

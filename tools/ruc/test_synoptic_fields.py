@@ -5,6 +5,19 @@ import numpy as np
 from eccodes import codes_grib_new_from_samples,codes_set,codes_set_values,codes_get_message,codes_release
 from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS,EXTENDED_HOURS,extended_hours
 class SynopticTest(unittest.TestCase):
+    def test_independent_cloud_weather_hours_and_budget(self):
+        from build_cloud_weather_fields import cloud_hours
+        from prepare_ruc_pages import fit_synoptic_budget
+        stamp=datetime(2026,10,7,12,tzinfo=timezone.utc)
+        for model in ('icon-d2','icon-eu','icon'):self.assertEqual(cloud_hours(model,stamp)[:13],tuple(range(13)))
+        self.assertEqual(cloud_hours('icon-eu',stamp)[-1],120)
+        self.assertEqual(cloud_hours('icon',stamp)[-1],180)
+        self.assertEqual(cloud_hours('icon',stamp.replace(hour=6))[-1],120)
+        product={'frames':[{'hour':h,'bytes':1000} for h in CORE_HOURS],'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(13)]}
+        minimal={'models':{'icon-eu':{'frames':product['frames'],'cloudWeatherFrames':[]}}}
+        available=len(CORE_HOURS)*1000+len((json.dumps(minimal,separators=(',',':'),ensure_ascii=False)+'\n').encode())
+        result=fit_synoptic_budget({'models':{'icon-eu':product}},available)
+        self.assertEqual(len(result['models']['icon-eu']['frames']),len(CORE_HOURS));self.assertFalse(result['models']['icon-eu']['cloudWeatherFrames'])
     def test_cloud_weather_raw_identity_missing_and_units(self):
         for field,category,number,value in [('clct',6,1,75),('ww',19,25,61)]:
             def message(**patch):
@@ -83,7 +96,7 @@ class SynopticTest(unittest.TestCase):
             calls.append((model,tuple(hours),strict_run,now))
             if model=='icon-eu' and hours==(72,):raise RuntimeError('upstream unavailable')
             return {'run':stamp.isoformat(),'frames':[{'hour':h} for h in hours],'origins':[]}
-        with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch.object(module,'enrich_cloud_weather'),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
+        with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch('build_cloud_weather_fields.build'),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
             result=module.build(Path(td))
         self.assertEqual([f['hour'] for f in result['models']['icon-d2']['frames']],list(HOURS))
         self.assertEqual([f['hour'] for f in result['models']['icon-eu']['frames']],sorted(set(HOURS+extended_hours('icon-eu',stamp))-{72}))
