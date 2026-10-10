@@ -1,5 +1,13 @@
 # MID v0.9.85.226 · wissenschaftlicher Audit: verifizierter Fortsetzungsstand
 
+## Fortsetzung .228: kalibrierte Kern-/Zeit-/Gitterverträge
+
+Basis main=mid-stable bc7c73a818714420474b688b48b7ef3fdf2893b1 (.227). Umgesetzt: feste zwölf Kernparameter plus CLAT/CLON und EPS TOT_PREC; rohe Schichtcodes/scaled values statt unknown-Levelanzeigen; native UUID/Grid47/Reference1/542040 Punkte für alle benannten RUC-Felder; UTC init/lead/valid/bounds; instant/accum/preceding-hour-max; vollständige erwartete EPS-IDs1..20; DWD-Runstrings ohne Offset unabhängig von Host-Zeitzone als UTC. sourceGribContract dokumentiert Quellsemantik getrennt von unveränderten Wire-Intervallmengen.
+
+Read-only Header-Achsenprobe des Laufs2026-10-10T06:00: alle584 erforderlichen Dateien vollständig geprüft. Zwölf Kernfelder +0..14h, zwei Koordinaten, native benötigte Rapid-Termine +0..6h,20 EPS-Mitglieder×15 Stunden. URLs/SHA256/Member/UTC-Bounds/Grid archiviert; alle584 deklarierte Einheiten separat akzeptiert. Lokal47 GRIB-/Integritäts- und3 Temperaturtests,955 App-Regressionen,14 Browserfälle, Build/Types/Syntax und Produktionsaudit0 Vulnerabilities. Root-Hygiene-Ablagefehler korrigiert, keine Gate-Lockerung. Source-/Installer-/Stable-/Live-Abnahme vor Veröffentlichungsbehauptung weiterhin nötig.
+
+Nächste Schritte: vollständigen reproduzierbaren Werte-/QC-/Packing-/E2E-Referenzlauf mit eingefrorenen echten Inputs und numerischen Conservation/Golden-/Nahtprüfungen etablieren; optionale Parameter-/Levelverträge getrennt kalibrieren; verbleibende Verifikation/Leakage/SLO-/Geräte-/Kontoevidenz bleibt offen. Die584 Headerprüfungen sind ausdrücklich kein vollständiger wissenschaftlicher Wertebenchmark oder Overall-Auditabschluss. Folgende Abschnitte sind historische .226/.227-Checkpoints.
+
 ## Fortsetzung .227: begrenztes Einheitenpaket
 
 Auf dem verifizierten .226-Stable umgesetzt: CLAT/CLON-Konversion nach deklarierter Einheit statt Größenheuristik; achsenfremde Einheiten werden abgewiesen. u10/v10/Böen, CAPE/CIN und Niederschlagsakkumulation besitzen explizite Einheiten-Gates. 39 GRIB-/Fetch-/Integritätstests und drei Temperaturtests lokal erfolgreich; Produktionsbuild/Types erfolgreich. Vollständige Parameter-/Raw-Level-/Zeitfenster-/UUID-Matrix bleibt als nächster Schritt offen. Der folgende Abschnitt dokumentiert den vorherigen .226-Checkpoint, nicht den finalen .227-Veröffentlichungsstatus. Veröffentlichung wird erst nach erfolgreichem Installer und Stable-/Live-Abgleich behauptet.
