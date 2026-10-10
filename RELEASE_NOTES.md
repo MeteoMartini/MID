@@ -1,5 +1,5 @@
-# MID v0.9.85.229
+# MID v0.9.85.230
 
-UTCI erscheint unter „Aktuell“ als eigene hervorgehobene Wertgruppe mit °C und thermischer Einordnung. Die 14-Tage-Entwicklung bündelt drei Wetterphasen und kompakte, verbundene Tmax-/Tmin-Verläufe; echte Ensemble-Spannen und Datenlücken bleiben erkennbar.
+Die Skybar unter „Aktuelles“ verwendet jetzt dieselbe kanonische Kurzfristreihe und Stundenaufbereitung wie das Wetterprofil unter „Heute“. Auch leichte, kurze Regenphasen unter 0,1 mm bleiben als Niederschlagsband sichtbar. Beginn und Ende werden auf der gemeinsamen Zwölf-Stunden-Zeitachse verortet; Stundenquadrate erhalten dieselben Niederschlags- und Bewölkungswerte wie „Heute“.
 
-Wissenschaftlicher Audit: Reale DWD-Werte aus 66 Dateien wurden für +0/+1 Stunde auf dem vollständigen nativen Gitter und mit allen 20 EPS-Mitgliedern geprüft. Eine eingefrorene Auswahl dekodierter Zellen erlaubt reproduzierbare Einheiten-, QC-, Missing- und Packing-Vergleiche. Der vollständige 14-Stunden-/Rapid-/E2E-Referenzlauf und weitere Auditpunkte bleiben offen.
+Explizite Niederschlagsintervalle werden im gemeinsamen Skybar-Renderer nach ihren echten Grenzen gezeichnet. Datenlücken bleiben Lücken; am Rand abgeschnittene Intervalle erhalten keine künstlich erhöhte Intensität. Der wissenschaftliche Gesamtaudit und die dort dokumentierten weiteren Abnahmen bleiben offen.

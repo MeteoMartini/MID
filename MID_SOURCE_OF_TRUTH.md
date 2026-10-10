@@ -1,3 +1,9 @@
+# MID v0.9.85.230 · kanonische Skybar unter Aktuelles und Heute
+
+Basis main=mid-stable b88efe2f3ba580aad5a0e692037f2c9814f69547 (.229), Source-Gate38059167998 und Installer38059674163 einschließlich Worker/Pages/Stable erfolgreich. Keine überlappende offene Source-PR. Aktuelles verlor leichte kurze Regenphasen, weil ausschließlich die endgestempelte Stundenreihe unmittelbar als vorwärts gerichtete Skybar verwendet wurde. Current erhält jetzt die finalisierten displayMinutes15 und denselben shortTermAnchor wie Heute. Derselbe buildShortTermForecast-/shortTermProfileHourlyPoints-Pfad liefert Niederschlag und Bewölkung für Band und Stundenquadrate, ohne Radar doppelt einzurechnen.
+
+Der gemeinsame detailSkyBarTimedSegments-Renderer verortet explizite Intervallgrenzen auf der echten Epoch-Achse. Intensität bleibt aus der ursprünglichen Menge und Dauer berechnet, nur Randgeometrie wird beschnitten; fehlende Intervalle werden nicht überbrückt. Temperaturreihe und +12h-Differenz bleiben volle Stunden. Regression reproduziert positive 0,06mm bei trockener grober Reihe und prüft Aktuelles/Heute-Parität, Clipping, Lücken, Squares und Missing. Echte Komponenten werden in 48 Browserkombinationen geprüft. Der Gesamtaudit bleibt mit den unter .229 dokumentierten Einschränkungen offen.
+
 # MID v0.9.85.229 · UTCI, 14d-Entwicklung und reale Werte-Referenz
 
 Basis main=mid-stable ada0f6c54a7ed1faf56d4d202d8a897abf567157 (.228), Source-Gate38050995420 und Installer38051448345 erfolgreich; keine überlappende Source-PR. UTCI wird aus dem bestehenden kanonischen aktuellen Wert prominenter dargestellt, ohne Formel-/Einheitenänderung. Die14d-Entwicklung bündelt kompakte Wetterphasen und verbundene Tmax/Tmin-Tageswerte mit unveränderten echten Ensemblequantilen. Verbindung nur opt-in im gemeinsamen Renderer und nur bei vollständigen aufeinanderfolgenden UTC-Daten; periodische Produkte bleiben diskret.
