@@ -119,11 +119,10 @@ def write_projected_i16_chunks(source:Path,target_dir:Path,spec:dict,chunk_recor
 
 def fit_synoptic_budget(payload,available):
     core_hours={0,3,6,9,12,18,24,36,48}
+    pruned=[];pruned_synoptic=[]
+    payload['cloudWeatherBudget']={'availableBytes':available,'pruned':pruned,'prunedSynoptic':pruned_synoptic}
     def synoptic_size():
         return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames']+product.get('cloudWeatherFrames',[]))
-    cloud_candidates=sorted(((f['hour']<=12,f['hour'],model) for model,p in payload['models'].items() for f in p.get('cloudWeatherFrames',[])),reverse=False)
-    while synoptic_size()>available and cloud_candidates:
-        _,hour,model=cloud_candidates.pop(0);payload['models'][model]['cloudWeatherFrames']=[f for f in payload['models'][model]['cloudWeatherFrames'] if f['hour']!=hour]
     # ICON Global is optional: never lose established cores or RUC to its cost.
     if 'icon' in payload['models']:
         minimum=sum(f['bytes'] for p in payload['models'].values() for f in p['frames'] if f['hour'] in core_hours)
@@ -134,6 +133,15 @@ def fit_synoptic_budget(payload,available):
     while synoptic_size()>available and candidates:
         _,_,_,model,hour=candidates.pop(0)
         payload['models'][model]['frames']=[frame for frame in payload['models'][model]['frames'] if frame['hour']!=hour]
+        pruned_synoptic.append({'model':model,'hour':hour,'reason':'pages-storage-budget'})
+    # Preserve the requested hourly cloud/weather sequence before optional
+    # synoptic density. If even the core plus CW does not fit, remove distant
+    # CW terms first, then distribute remaining near-term terms across models.
+    cloud_candidates=sorted(((f['hour']<=12,-f['hour'],model) for model,p in payload['models'].items() for f in p.get('cloudWeatherFrames',[])))
+    while synoptic_size()>available and cloud_candidates:
+        _,negative_hour,model=cloud_candidates.pop(0);hour=-negative_hour
+        payload['models'][model]['cloudWeatherFrames']=[f for f in payload['models'][model]['cloudWeatherFrames'] if f['hour']!=hour]
+        pruned.append({'model':model,'hour':hour,'reason':'pages-storage-budget'})
     if synoptic_size()>available:raise ValueError('complete synoptic core exceeds remaining Pages budget')
     return payload
 

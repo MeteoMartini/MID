@@ -14,7 +14,7 @@ export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,
  const separateModel=synoptic?.index.models[modelId],separateFrames=separateModel?.cloudWeatherFrames??[];
  const nativeTimes=separateFrames.length?separateFrames.map(f=>f.time):modelId==='icon-d2'?native?.index.products.sigwx?.frames.filter(w=>native.index.products.cloud?.frames.some(c=>c.time===w.time)).map(f=>f.time)??[]:synoptic?.index.models[modelId]?.frames.filter(f=>f.cloudWeather===true).map(f=>f.time)??[];
  const nativeTime=nearestUnifiedTime(nativeTimes,target),gdpsPlan=useMemo(()=>gdpsCloudWeatherPlan(metadata,target),[metadata,target]);
- const time=modelId==='gdps'?gdpsPlan?.time:nativeTime,run=modelId==='gdps'?gdpsPlan?.run:separateFrames.length?separateModel?.run:modelId==='icon-d2'?native?.index.run:synoptic?.index.models[modelId]?.run,context=`${modelId}:${run}:${time}`;
+ const time=modelId==='gdps'?gdpsPlan?.time:nativeTime,run=modelId==='gdps'?gdpsPlan?.run:separateFrames.length?separateModel?.run:modelId==='icon-d2'?native?.index.run:synoptic?.index.models[modelId]?.run,context=`${modelId}:${run}:${time}:${revision}`;
  const currentContext=useRef(context);currentContext.current=context;
  useEffect(()=>{const c=new AbortController();setMetadata([]);setError('');if(!enabled||modelId!=='gdps')return()=>c.abort();setLoading(true);
   void Promise.all([loadWeatherMapMetadata(GDPS_CLOUD_LAYER,c.signal),loadWeatherMapMetadata(GDPS_WEATHER_LAYER,c.signal)]).then(rows=>{if(!c.signal.aborted)setMetadata(rows)}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();
