@@ -169,3 +169,7 @@ Die explizite Section-6-Bitmap jeder DWD-GRIB2-Nachricht ist verbindlicher Gült
 ## MID-C26 .224 · vollständiger Kernvertrag
 
 Die zwölf aus PARAM_MAP abgeleiteten Kernfelder sind verpflichtend, einschließlich pressure_msl (hPa, positiv) und convective_inhibition (normalisierter Betrag, >= -0.01 J/kg Rundungstoleranz). Diese Vor-Packing-Prüfung ersetzt keinen GRIB-Einheitenvertrag und setzt keine neue Missing-Prozentgrenze. EPS-Mitgliedskennungen dürfen sich nicht wiederholen. Tests entfernen jeden einzelnen Pflichtparameter und prüfen negative/Null-Druckwerte, negatives normalisiertes CIN und doppelte EPS-IDs.
+
+## .225 · explizite Einheiten und numerische Einheitennaht
+
+Temperatur wird nur bei K/Kelvin in Celsius, Druck nur bei Pa in hPa und Prozentfelder nur bei expliziter Bruchteil-Einheit in Prozent umgerechnet. Wertemagnitude entscheidet niemals über Einheiten. Native Prozentwerte einschließlich0..1 bleiben unverändert. Unbekannte Einheiten der kontrollierten Felder werden vor Packing abgewiesen. Reale Header-Samples mit URL/Hash sind archiviert; feste gesamte GRIB-Parameter-/Levelmatrix bleibt separat offen.

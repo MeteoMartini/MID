@@ -9,6 +9,30 @@ from ruc_pack import FieldSpec,NODATA_I16,quantize,pack_cell_major
 
 
 class DwdNativeBitmapTests(unittest.TestCase):
+    def test_metadata_units_override_value_magnitude(self):
+        for name in ('cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','relative_humidity_2m'):
+            native=np.array([0., .1, 1., np.nan],dtype=np.float32)
+            before=native.copy()
+            np.testing.assert_allclose(normalize(name,native,'%'),native,equal_nan=True)
+            np.testing.assert_allclose(normalize(name,native,'1'),native*100,equal_nan=True)
+            np.testing.assert_array_equal(native,before)
+            for units in ('','unknown','K'):
+                with self.subTest(name=name,units=units),self.assertRaises(MeteoIntegrityError):
+                    normalize(name,native,units)
+        # Identical physical fields in different declared units meet at the seam.
+        np.testing.assert_allclose(normalize('temperature_2m',np.array([273.15,300.,np.nan]),'K'),
+                                   normalize('temperature_2m',np.array([0.,26.85,np.nan]),'C'),atol=3e-5,equal_nan=True)
+        np.testing.assert_allclose(normalize('pressure_msl',np.array([101325.,95000.,np.nan]),'Pa'),
+                                   normalize('pressure_msl',np.array([1013.25,950.,np.nan]),'hPa'),equal_nan=True)
+        # Outliers remain outliers for the physical gate; they never change unit interpretation.
+        self.assertEqual(float(normalize('temperature_2m',np.array([150.]),'C')[0]),150.)
+        self.assertEqual(float(normalize('pressure_msl',np.array([3000.]),'hPa')[0]),3000.)
+        for name in ('temperature_2m','dew_point_2m','surface_temperature','pressure_msl'):
+            with self.subTest(name=name),self.assertRaises(MeteoIntegrityError):
+                normalize(name,np.array([np.nan]),'')
+            units='Pa' if name=='pressure_msl' else 'K'
+            self.assertTrue(np.isnan(normalize(name,np.array([np.nan]),units)).all())
+
     def test_real_dwd_domain_size_and_missing_fraction(self):
         size=542040
         native=np.full(size,275.15,dtype=np.float32)

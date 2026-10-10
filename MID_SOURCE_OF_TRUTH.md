@@ -1,3 +1,11 @@
+# MID v0.9.85.225 · MID-C26: Metadaten statt Werteheuristik
+
+Basis main=mid-stable391ed9334c0335fb9678884f6b67354e53d24dc3 (.224), Installer38026620448 erfolgreich. .225 ersetzt normalize-Heuristiken für Temperatur/Druck/Bewölkung/relative Feuchte durch explizite Einheiten. Die frühere max<=1.2-Regel konnte 1 Prozent zu100 Prozent machen; Medianregeln konnten Ausreißer als Einheitenwechsel umdeuten. Explizite K/C, Pa/hPa und Prozent/Bruchteile; unbekannte Einheiten brechen fail-closed ab. Native Missing-Zellen bleiben unverändert. Gleiche physikalische Felder in verschiedenen Einheiten werden numerisch verglichen; Ausreißer bleiben für die bestehenden physikalischen Gates sichtbar.
+
+Acht reale DWD-GRIB-Header am10.10.2026 gelesen und als docs/implementation/MID_C26_RUC_HEADER_SAMPLES_2026-10-10.json mit URL/Hash archiviert: T_2M/TD_2M K, PMSL Pa, RELHUM/CLCT/CLCL Prozent. Samples stammen aus einzelnen live verfügbaren Dateien, nicht aus einem vollständig dekodierten gemeinsamen Lauf; kein vollständiger Produkt-/Level-Vertrag daraus behauptet. CAPE_ML/CIN_ML-Metadaten ebenfalls archiviert.
+
+Der Gesamt-Intensivaudit ist noch nicht abgeschlossen: feste vollständige Parameter-/Levelverträge, Cross-Model-/Reprojektion-/Tile-Nähte, echte Geräteperformance und VoiceOver/WKWebView/macOS, kalibrierte Missing-Grenzen und historische SLO-Auswertung/Alarmierung erfordern weitere Umsetzung/Evidenz. Kein Zugriff auf reale Geräte/macOS in dieser Umgebung. Cloudflare am10.10.2026 erneut direkt geöffnet: normales Anmeldeformular, früherer Verifikationsfehler derzeit nicht sichtbar; Konto-/Cron-Abnahme benötigt sichere Anmeldung. Aktueller Code und CI allein schließen diese Abnahmen nicht.
+
 # MID v0.9.85.224 · MID-C26: vollständiger Kernparametervertrag
 
 Basis main=mid-stable 4c875804953290fdf048b93c72b716c6781064d4 (.223), Installer37991713944 erfolgreich einschließlich Core/Heavy, Pages und Stable. Live-Version am10.10.2026 bestätigt. RUC38022529847 veröffentlichte tatsächlich run03:00; Publish114130462693 bestätigt Pages/Worker, LiveHealth04:56 UTC ready/fresh/schemaValid. Kanonische Standortprobe50.815/7.04 nutzt je13 RUC-/RUC-EPS-Stunden und20 Mitglieder.

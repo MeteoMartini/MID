@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.224",
+  "releaseVersion": "0.9.85.225",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2306,6 +2306,7 @@
     "docs/implementation/MID_C21_HANDOFF_TIME_BUDGET_0.9.85.196.md",
     "docs/implementation/MID_C21_MAP_RUC_0.9.85.198.md",
     "docs/implementation/MID_C21_SYNOPTIC_BUFFERING_0.9.85.200.md",
+    "docs/implementation/MID_C26_RUC_HEADER_SAMPLES_2026-10-10.json",
     "docs/implementation/MID_EXTREME_MEMBERS_0.9.85.155.md",
     "docs/implementation/MID_EXTREME_OUTLOOK_RESILIENCE_0.9.85.154.md",
     "docs/implementation/MID_IMPLEMENTATION_0.9.76.33.md",
@@ -2591,6 +2592,7 @@
     "scripts/test-typescript-7-compatibility-09760.mjs",
     "scripts/test-ui-architecture-contract-09500.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
+    "scripts/test-update-recovery-0985223.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs",
     "scripts/test-visible-app-internals-09751.mjs",
@@ -2633,6 +2635,7 @@
     "scripts/verify-c21-navigation-browser.mjs",
     "scripts/verify-extreme-members-browser-0985155.mjs",
     "scripts/verify-module-css-browser-0985170.mjs",
+    "scripts/verify-update-recovery-browser-0985223.mjs",
     "scripts/version-regression-helper.mjs",
     "src/AppPortalPopover.tsx",
     "src/ClimatePanel.tsx",
@@ -2689,6 +2692,7 @@
     "src/midC18TodayReleaseFinish.css",
     "src/midC18WarningTimeline.css",
     "src/midC21CurrentWeather.css",
+    "src/midC26UpdateRecovery.css",
     "src/midPresentation.css",
     "src/nativeSynopticFields.ts",
     "src/precipitationIntervals.ts",
@@ -2763,10 +2767,7 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js",
-    "scripts/test-update-recovery-0985223.mjs",
-    "src/midC26UpdateRecovery.css",
-    "scripts/verify-update-recovery-browser-0985223.mjs"
+    "worker-src/40-aviation-router.js"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3454,7 +3455,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.224",
+  "version": "0.9.85.225",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_MOUNTAIN_FORECAST_REDESIGN_0.9.85.108.md",
