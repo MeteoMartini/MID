@@ -1,3 +1,13 @@
+# MID v0.9.85.231
+
+Unter Karten ersetzt „Wolken und signifikantes Wetter“ das Einzelprodukt. Graue Bewölkung plus farbige direkte Wettererscheinungen desselben Modelllaufs: ICON-D2, ICON-EU/Global bei bestätigten Daten; GDPS global mit Wolken und momentaner Niederschlagsart, ausdrücklich ohne vollständige Nebel-/Gewitterdiagnostik. Gemeinsame native Ortswerte und PNG-/SVG-Exporte; Kategorien bleiben ohne Interpolation, Missing bleibt unbekannt.
+
+Fehlende optionale RUC-Graupeldaten bleiben beim Erzeugen, Speichern und Lesen der Niederschlagsphasen als „nicht verfügbar“ erhalten. Sie werden nicht mehr als trockene Nullwerte ausgegeben. Vorhandene Regen-/Schneewerte und echte trockene Graupelwerte bleiben nutzbar; vollständig fehlende Phasenzellen bestehen die Verfügbarkeitsprüfung nicht.
+
+Das Radar-Phasenoverlay behandelt fehlende Temperatur-/Feuchtewerte ebenfalls als fehlend. Aus null oder leeren Werten entstehen keine künstlichen 0 °C und kein thermischer Beleg für Schnee oder gefrierenden Niederschlag.
+
+Wissenschaftlicher Audit: Regressionen prüfen Missing-Sentinels, partielle Datenlücken, echte trockene Nullwerte, Extremwetter-Ausgabe und den Worker-Leseweg. Weitere Parameter-/Einheitenverträge, der vollständige wissenschaftliche Referenzlauf und externe Geräte-/SLO-Abnahmen bleiben offen.
+
 # MID v0.9.85.230
 
 Die Skybar unter „Aktuelles“ verwendet jetzt dieselbe kanonische Kurzfristreihe und Stundenaufbereitung wie das Wetterprofil unter „Heute“. Auch leichte, kurze Regenphasen unter 0,1 mm bleiben als Niederschlagsband sichtbar. Beginn und Ende werden auf der gemeinsamen Zwölf-Stunden-Zeitachse verortet; Stundenquadrate erhalten dieselben Niederschlags- und Bewölkungswerte wie „Heute“.
