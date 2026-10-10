@@ -1,3 +1,7 @@
+# MID v0.9.85.233 · Wolken-/Wettertermine vor optionaler Synoptikdichte schützen
+
+MID-C27: verifizierte Basis main=mid-stable dd9e501f1ae58bab43f2f1e66c3827f388999434 (.232). Der echte veröffentlichte RUC-Snapshot 38086580776 enthielt nach Budgetbegrenzung nur CW-Stunde12 für D2/EU/Global, obwohl die Aufbereitung20/27/27 Termine erzeugt hatte. fit_synoptic_budget schützt nun zusätzliche CW-Termine vor optionalen Synoptik-Zwischenterminen. Pflicht-Kerntermine, vorhandener Endpunktschutz und900MB-Vertrag bleiben erhalten; nach Budgetprüfung werden echte verbleibende CW-Zählstände protokolliert. Publizierte Stundenverfügbarkeit muss nach normalem Source-/Installer-Release anhand neuer RUC-Publikation bestätigt werden. .232-Veröffentlichung und nachgelagerter Widgetfehler sind getrennte Sachverhalte. Weitere wissenschaftliche Auditpunkte bleiben offen.
+
 # MID v0.9.85.231 · Missing bleibt fehlend in RUC-Phasen und Radar-Thermik
 
 Ergänzter freigegebener Scope: Wolken und signifikantes Wetter als gemeinsame Karte mit derselben persistierten sigwx-ID. D2 kombiniert native CLCT/WW mit gleichem Lauf/Termin/Raster; EU/Global optional direkt aus verifizierten DWD-GRIB-Produkten und nur bei cloudWeather-Katalogbeleg. GDPS kombiniert verifizierte Wolken-/Instant-Niederschlagsart-Kacheln mit gemeinsamem Lauf/Termin und eigener Legende, ohne Anspruch auf vollständige Nebel-/Gewitterdiagnostik. Gemeinsame Ortswerte/Exports, keine Kategorieninterpolation. Wissenschaftliche Primärbelege und Einschränkungen: docs/implementation/MID_CLOUD_WEATHER_2026-10-10.md.

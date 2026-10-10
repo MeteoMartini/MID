@@ -1,9 +1,7 @@
-# MID v0.9.85.232
+# MID v0.9.85.233
 
-„Wolken und signifikantes Wetter“ erhält eigenständige Modelltermine: ICON-D2, ICON-EU und ICON Global stündlich von +0 bis +12 h, danach größere Abstände innerhalb des Modellhorizonts. Angezeigt werden ausschließlich tatsächlich aufbereitete und geprüfte Wolken-/Wetterpaare. Fehlende Termine werden nicht interpoliert.
+Die stündlichen Felder für „Wolken und signifikantes Wetter“ werden bei der Veröffentlichung vor verzichtbaren Synoptik-Zwischenterminen geschützt. Version .232 erzeugte die Stundenfolgen korrekt, entfernte sie anschließend jedoch unter Speicherbudgetdruck fast vollständig. Die Budgetprüfung priorisiert nun die unabhängigen Wolken-/Wettertermine; Pflicht-Synoptiktermine und das 900-MB-Limit bleiben bestehen.
 
-Die Veröffentlichung transportiert die zusätzlichen Raster einschließlich Prüfsummen; Wiederverwendung und Speicherbudget berücksichtigen sie. Die gröbere Synoptik-Zeitfolge begrenzt diese Karte nicht mehr. Quellen erscheinen, sobald entsprechende Daten veröffentlicht sind.
+Das Publikationsprotokoll nennt die tatsächlich verbleibenden Wolken-/Wettertermine nach der Budgetprüfung. Regressionen prüfen den Erhalt der Stundenfolge für ICON-D2, ICON-EU und ICON Global unter Budgetdruck. Fehlende Quelltermine werden weiterhin ausgelassen; falls bereits Pflichtdaten den verfügbaren Speicher ausschöpfen, werden keine zusätzlichen Daten erfunden und das Budget nicht überschritten.
 
-GDPS behält auswählbare gemeinsame Termine unabhängig von einer unpassenden bisherigen Kartenzeit. Unvollständig geladene Kombinationen erhalten eine Fehlermeldung und einen erneuten Ladeversuch. GDPS liefert die Kombination in dreistündlichen, später gröberen Abständen; stündliche Wolken allein werden nicht als stündliches kombiniertes Wetter ausgegeben.
-
-Wissenschaftlicher Audit: Lauf-, Termin-, Raster-, Missing- und Publikationsverträge werden weiter geprüft. Offene Einheitenfragen und die vollständige externe Referenz-/Geräteabnahme bleiben offen.
+Weitere wissenschaftliche Auditpunkte und der getrennt beobachtete Widget-Renderfehler bleiben offen. Arbeitsübergabe und Fortsetzung: MID-C27.

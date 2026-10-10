@@ -1,0 +1,9 @@
+# MID-C27 / .233 – reale Stundenfolge nach Speicherprüfung
+
+Der .232-Release und der anschließende RUC-Lauf38086580776 wurden erfolgreich veröffentlicht. Das unveränderliche Pages-Artefakt11683965272 wurde tatsächlich gelesen: Index2026-10-10T2000__synoptic_ed407400d71d58b4, Modellläufe18UTC, D2/EU/Global jeweils nur CW-Stunde12. Alle verbliebenen CW-Dateien entsprachen ihren Größen und SHA-256-Referenzen. Paket899713679/900000000B. Vor Budgetbegrenzung entstanden20/27/27CW-Termine, davon12/13,13/13,13/13 im Bereich0–12h. Fehlendes D2-WW+0 wird nicht erfunden.
+
+Ursache war die Reihenfolge im Speicherbudget: sämtliche CW-Dateien wurden vor optionaler Synoptikdichte entfernt. Der Fix verschiebt diese Kürzung hinter die vorhandene Kürzung optionaler Synoptik-Zwischentermine. Pflicht-Core und bestehender Endpunktschutz bleiben unverändert. Erst wenn weiterhin Platz fehlt, werden gröbere CW-Termine und zuletzt stündliche CW-Termine begrenzt. Bei unzureichendem Platz für Pflichtdaten bleibt der bisherige harte Fehler bestehen. Kein Speicherlimit wurde erhöht.
+
+Neue Regression erzeugt drei native Modelle mit Stunden0–12 und gröberen CW-Terminen. Ein Limit unterhalb des vollständigen Pakets erzwingt Kürzung optionaler Synoptikdichte; alle CW-Terminen und Pflicht-Core müssen erhalten bleiben. Das Publikationslog nennt für jedes Modell verbleibende CW-Termine und Stunden0–12 nach Budgetprüfung. Dieser Zählstand und der neue veröffentlichte Snapshot sind maßgeblich, nicht allein das vorherige Erzeugungslog.
+
+Lokale Python-Prüfung:151 Tests einschließlich15 Synoptikfälle erfolgreich; Publish-/Tamper-Regression erfolgreich. Appdarstellung und CW-Decoder bleiben unverändert. Weitere Auditpunkte:RAIN_GSP-Einheit/Step-Semantik, vollständiger realer Referenzlauf, externe Geräte-/Accessibility-/SLO-Abnahme und beobachteter späterer Widgetfehler für Malatya7d-dark. Kein vollständiger Gesamtauditabschluss.

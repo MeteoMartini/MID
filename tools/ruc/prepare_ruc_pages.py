@@ -121,9 +121,6 @@ def fit_synoptic_budget(payload,available):
     core_hours={0,3,6,9,12,18,24,36,48}
     def synoptic_size():
         return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames']+product.get('cloudWeatherFrames',[]))
-    cloud_candidates=sorted(((f['hour']<=12,f['hour'],model) for model,p in payload['models'].items() for f in p.get('cloudWeatherFrames',[])),reverse=False)
-    while synoptic_size()>available and cloud_candidates:
-        _,hour,model=cloud_candidates.pop(0);payload['models'][model]['cloudWeatherFrames']=[f for f in payload['models'][model]['cloudWeatherFrames'] if f['hour']!=hour]
     # ICON Global is optional: never lose established cores or RUC to its cost.
     if 'icon' in payload['models']:
         minimum=sum(f['bytes'] for p in payload['models'].values() for f in p['frames'] if f['hour'] in core_hours)
@@ -134,6 +131,12 @@ def fit_synoptic_budget(payload,available):
     while synoptic_size()>available and candidates:
         _,_,_,model,hour=candidates.pop(0)
         payload['models'][model]['frames']=[frame for frame in payload['models'][model]['frames'] if frame['hour']!=hour]
+    # Independent cloud/weather terms must survive optional synoptic density.
+    # Only if the established cores still leave insufficient space, thin cloud
+    # context first and hourly terms last. Never exceed the existing hard cap.
+    cloud_candidates=sorted(((f['hour']<=12,f['hour'],model) for model,p in payload['models'].items() for f in p.get('cloudWeatherFrames',[])),reverse=False)
+    while synoptic_size()>available and cloud_candidates:
+        _,hour,model=cloud_candidates.pop(0);payload['models'][model]['cloudWeatherFrames']=[f for f in payload['models'][model]['cloudWeatherFrames'] if f['hour']!=hour]
     if synoptic_size()>available:raise ValueError('complete synoptic core exceeds remaining Pages budget')
     return payload
 
@@ -242,6 +245,9 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         # Retain all nine established five-field terms. Extra terms are optional
         # when the unchanged free-Pages envelope is otherwise exhausted.
         fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES-1-sum(row['bytes'] for row in objects))
+        for model,product in payload['models'].items():
+            terms=product.get('cloudWeatherFrames',[])
+            print(f'{model}: publishing {len(terms)} cloud/weather terms; hourly {sum(f["hour"]<=12 for f in terms)}/13 after Pages budget',flush=True)
         fields_index.write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n')
         prefix=f'runs/{run}__synoptic_{digest(fields_index)[:16]}/synoptic-fields/'
         files=[fields_index]
