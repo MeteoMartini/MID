@@ -173,3 +173,7 @@ Die zwölf aus PARAM_MAP abgeleiteten Kernfelder sind verpflichtend, einschließ
 ## .225 · explizite Einheiten und numerische Einheitennaht
 
 Temperatur wird nur bei K/Kelvin in Celsius, Druck nur bei Pa in hPa und Prozentfelder nur bei expliziter Bruchteil-Einheit in Prozent umgerechnet. Wertemagnitude entscheidet niemals über Einheiten. Native Prozentwerte einschließlich0..1 bleiben unverändert. Unbekannte Einheiten der kontrollierten Felder werden vor Packing abgewiesen. Reale Header-Samples mit URL/Hash sind archiviert; feste gesamte GRIB-Parameter-/Levelmatrix bleibt separat offen.
+
+## .226 · Missing bleibt Missing bei Extremwetter-Aggregation
+
+Niederschlagsmengen über eine Periode dürfen nur bei vollständigen endlichen Intervallen summiert werden. Vollständig oder teilweise fehlende Intervalle sind keine trockenen Nullen. Rollierende Maxima berücksichtigen vollständige Fenster und erhalten gültige Fenster trotz späterer Datenlücken. EPS-Perioden-Wahrscheinlichkeiten und Quantile verwenden denselben vollständigen Mitgliedersatz pro Zelle; unvollständige Mitglieder werden ausgeschlossen. Fehlende optionale Phasen und ungültige Summen bleiben auch in Kompatibilitätsfeldern absent. Keine neue Prozent-Freigabegrenze, keine Wetter-/Warnschwellenänderung.

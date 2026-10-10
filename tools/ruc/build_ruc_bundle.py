@@ -136,8 +136,8 @@ def _max_rolling_sum(cube,window_steps,start_index=1):
     for end in range(start_index+window_steps-1,arr.shape[0]):
       first=end-window_steps+1
       if first<start_index:continue
-      total=np.nansum(arr[first:end+1],axis=0)
-      best=np.where(np.isfinite(best),np.maximum(best,total),total)
+      total=np.sum(arr[first:end+1],axis=0)
+      best=np.fmax(best,total)
     return best
 
 def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid15_cape,rapid15_cin,rapid5_precip,severe_fields=None,deterministic_times=None,deterministic_fields=None,specialist_fields=None,phase_fields=None,eps_period_summary=None):
@@ -155,9 +155,9 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
       p=np.radians(lat);l=np.radians(lon);c=np.cos(p);return np.column_stack((c*np.cos(l),c*np.sin(l),np.sin(p)))
     tree=cKDTree(xyz(np.asarray(lats,dtype=np.float64),np.asarray(lons,dtype=np.float64)));cells=[]
     severe_fields=severe_fields or {};deterministic_fields=deterministic_fields or {};specialist_fields=specialist_fields or {};phase_fields=phase_fields or {};eps_period_summary=eps_period_summary or {}
-    total6=np.nansum(rapid15_precip[1:],axis=0);max15=np.nanmax(rapid15_precip,axis=0);peak5=np.nanmax(rapid5_precip*12,axis=0);max1h_rapid=_max_rolling_sum(rapid5_precip,12,1);maxcape=np.nanmax(rapid15_cape,axis=0);mincin=np.nanmin(rapid15_cin,axis=0)
+    total6=np.sum(rapid15_precip[1:],axis=0);max15=np.nanmax(rapid15_precip,axis=0);peak5=np.nanmax(rapid5_precip*12,axis=0);max1h_rapid=_max_rolling_sum(rapid5_precip,12,1);maxcape=np.nanmax(rapid15_cape,axis=0);mincin=np.nanmin(rapid15_cin,axis=0)
     maxdbz=np.nanmax(severe_fields['dbz_cmax'],axis=0) if 'dbz_cmax' in severe_fields else None;maxuh=np.nanmax(severe_fields['uh_max'],axis=0) if 'uh_max' in severe_fields else None;maxlpi=np.nanmax(severe_fields['lpi_max'],axis=0) if 'lpi_max' in severe_fields else (np.nanmax(severe_fields['lpi'],axis=0) if 'lpi' in severe_fields else None);maxecho=np.nanmax(severe_fields['echo_top_m'],axis=0) if 'echo_top_m' in severe_fields else None;maxhail=np.nanmax(severe_fields['hail_gsp'],axis=0) if 'hail_gsp' in severe_fields else None
-    rapid_rain=np.nansum(phase_fields.get('rain',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_snow=np.nansum(phase_fields.get('snowfall_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None;rapid_graupel=np.nansum(phase_fields.get('graupel_water_equivalent',np.zeros_like(rapid15_precip))[1:],axis=0) if phase_fields else None
+    rapid_rain=np.sum(phase_fields['rain'][1:],axis=0) if 'rain' in phase_fields else None;rapid_snow=np.sum(phase_fields['snowfall_water_equivalent'][1:],axis=0) if 'snowfall_water_equivalent' in phase_fields else None;rapid_graupel=np.sum(phase_fields['graupel_water_equivalent'][1:],axis=0) if 'graupel_water_equivalent' in phase_fields else None
     base_time=datetime.fromisoformat(run.replace('Z','+00:00')).astimezone(timezone.utc);deterministic_times=list(deterministic_times or [])
     leads=[(value-base_time).total_seconds()/3600 for value in deterministic_times]
     period_specs=[('0-6',0,6),('6-12',6,12),('12-14',12,14)]
@@ -168,7 +168,7 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
     def stat(cube,indices,mode):
       if cube is None or not indices:return None
       arr=np.asarray(cube,dtype=np.float64)[indices]
-      if mode=='sum':return np.nansum(arr,axis=0)
+      if mode=='sum':return np.sum(arr,axis=0)
       if mode=='min':return np.nanmin(arr,axis=0)
       return np.nanmax(arr,axis=0)
     period_cubes={}
@@ -231,7 +231,9 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
               if any(value is not None for value in series):row[out_key]=series
           periods[pid]=row
         first=periods['0-6']
-        cell={'latitude':round(lat,4),'longitude':round(lon,4),'periods':periods,'precipitation6h':first.get('precipitationMm',0),'max1h':first.get('max1hMm',0),'max15m':first.get('max15mMm',0),'peak5mRate':first.get('peak5mRateMmh',0),'cape':first.get('cape',0),'cin':first.get('cin',0)}
+        cell={'latitude':round(lat,4),'longitude':round(lon,4),'periods':periods}
+        for out_key,period_key in [('precipitation6h','precipitationMm'),('max1h','max1hMm'),('max15m','max15mMm'),('peak5mRate','peak5mRateMmh'),('cape','cape'),('cin','cin')]:
+          if period_key in first:cell[out_key]=first[period_key]
         for key in ('dbzCmax','uhMax','lpiMax','echoTopM','hailGspMax','capeMu','cinMu'):
           if key in first:cell[key]=first[key]
         cells.append(cell)
@@ -359,8 +361,9 @@ def rapid_extreme_eps_period_summary(interval,eps_times,run):
       if not indices:continue
       cube=arr[indices]
       max1=np.nanmax(cube,axis=0)
-      total=np.nansum(cube,axis=0)
+      total=np.sum(cube,axis=0)
       valid=np.isfinite(total)
+      max1=np.where(valid,max1,np.nan)
       count=np.sum(valid,axis=0)
       denominator=np.maximum(count,1)
       def probability(values,threshold):

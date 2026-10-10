@@ -1,3 +1,3 @@
-# MID v0.9.85.225
+# MID v0.9.85.226
 
-MID-C26: RUC-Einheiten werden aus GRIB-Metadaten umgerechnet. Native geringe Prozentwerte werden nicht mehr als Bruchteile vervielfacht; Temperatur und Luftdruck wechseln die Einheit nicht anhand der Wetterwerte. Unbekannte Einheiten dieser Felder werden vor Publikation abgewiesen. Reale DWD-Header mit URL/Hash archiviert, numerische Einheitennaht- und Missing-Data-Regressionsfälle ergänzt. Hardware-/VoiceOver-/WKWebView-Abnahme und langfristige SLO-Kalibrierung bleiben offen.
+Wissenschaftlicher Audit, erstes Umsetzungspaket: Fehlende RUC-Niederschlagswerte werden in Extremwetter-Summen und Ensemble-Auswertungen nicht mehr als trockene Null gewertet. Unvollständige Mitgliedsperioden werden aus Wahrscheinlichkeiten und Quantilen ausgeschlossen; tatsächlich trockene Werte bleiben Null. Fehlende Niederschlagsphasen bleiben erkennbar fehlend. Ein reproduzierbares wissenschaftliches Inventar und eine geprüfte Referenzbaseline ergänzen die Entwicklungsprüfung. Die Browserprüfung der Update-Bedienung misst Touch-Ziele nach Ende der Einblendanimation. Weitere fachliche Audit- und reale Geräteabnahmen bleiben offen.
