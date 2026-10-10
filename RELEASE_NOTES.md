@@ -1,3 +1,3 @@
-# MID v0.9.85.224
+# MID v0.9.85.226
 
-MID-C26: Vollständiger RUC-Kernparametervertrag. Fehlender Luftdruck oder CIN wird vor Packing/Publikation abgewiesen; normalisierter Luftdruck muss positiv, CIN als Betrag nicht negativ sein. EPS-Kennungen müssen eindeutig sein. Native Missing-Zellen und bestehende Quoten bleiben erhalten. Keine vollständige numerische, Geräte- oder SLO-Abnahme behauptet.
+Wissenschaftlicher Audit, erstes Umsetzungspaket: Fehlende RUC-Niederschlagswerte werden in Extremwetter-Summen und Ensemble-Auswertungen nicht mehr als trockene Null gewertet. Unvollständige Mitgliedsperioden werden aus Wahrscheinlichkeiten und Quantilen ausgeschlossen; tatsächlich trockene Werte bleiben Null. Fehlende Niederschlagsphasen bleiben erkennbar fehlend. Ein reproduzierbares wissenschaftliches Inventar und eine geprüfte Referenzbaseline ergänzen die Entwicklungsprüfung. Die Browserprüfung der Update-Bedienung misst Touch-Ziele nach Ende der Einblendanimation. Weitere fachliche Audit- und reale Geräteabnahmen bleiben offen.

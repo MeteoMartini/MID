@@ -1,3 +1,21 @@
+# MID v0.9.85.226 · wissenschaftlicher Audit, erstes Umsetzungspaket
+
+Ausgangspunkt main=mid-stable 391ed9334c0335fb9678884f6b67354e53d24dc3 (.224). PR #319 (.225) hatte nach unveränderter Chromium-CDP-Wiederholung grünes Source-Gate und wurde vom Release-Bot zusammengeführt. main 075e0b39fa651b5da8dc7c687b8790d7cd876912 ist der serverseitige Paketcommit; Stable-Promotion war während .226-Vorbereitung wegen Installer-Browserprüfung noch nicht erfolgt. .226 integriert diesen exakt verifizierten main-Stand verlustfrei auf dem aus .224 entstandenen Arbeitsbranch; keine .225-Änderung wird rückgenommen und kein Stable manuell verändert.
+
+Bestätigter P0-Befund: nansum wertet fehlende RUC-Niederschläge in Extremwetter-Aggregaten als 0; fehlende EPS-Mitgliedsperioden werden trocken gezählt. .226 propagiert Missing in vollständigen Periodensummen, rollierenden Fenstern, EPS-Wahrscheinlichkeiten/Quantilen, Phasen- und Kompatibilitätsfeldern. Bestehende Wetter-/Warnschwellen bleiben bestehen. Negativfälle prüfen all-missing, partielle Mitgliedsperioden, echtes trockenes Null und Input-Unveränderlichkeit.
+
+Update-Browsergate auf .224 lokal reproduziert: CSS min-height44 wurde während der Transform-Einblendanimation als43.99999237060547 gemessen. Test wartet jetzt das Animationsende ab und behält die strikte44px-Mindestgröße;14 Browserfälle (7 Viewports×2 Themes) bestanden. Kein Testbudget gelockert.
+
+Inventar/Referenzbaseline erfasst Quell-SHA, Worktree, Hashes der Verträge/Dependencies, Python-Pakete, native ecCodes-API, NumPy/BLAS-Build und Threadkonfiguration. Synthetische Kern-/Missing-/Mitglieds-/Integrationsfixture besitzt festen semantischen Hash. Laufzeit/CPU/RSS separat, unbekannte I/O-Zähler null. Kein vollständiger DWD-Referenzlauf oder CF-/Grid-/Leakage-/Kalibrierungs-/Geräteabschluss behauptet. Details und geordnete Folgearbeiten in docs/implementation/MID_SCIENTIFIC_AUDIT_BASELINE_2026-10-10.md. Weitere P0/P1-Anwendbarkeitsprüfungen, numerische Cross-Model-/Reprojektionsnähte, echte VoiceOver/WKWebView-Abnahme, langfristige SLO-/Alarmierung und Cloudflare-Kontoevidenz bleiben offen.
+
+# MID v0.9.85.225 · MID-C26: Metadaten statt Werteheuristik
+
+Basis main=mid-stable391ed9334c0335fb9678884f6b67354e53d24dc3 (.224), Installer38026620448 erfolgreich. .225 ersetzt normalize-Heuristiken für Temperatur/Druck/Bewölkung/relative Feuchte durch explizite Einheiten. Die frühere max<=1.2-Regel konnte 1 Prozent zu100 Prozent machen; Medianregeln konnten Ausreißer als Einheitenwechsel umdeuten. Explizite K/C, Pa/hPa und Prozent/Bruchteile; unbekannte Einheiten brechen fail-closed ab. Native Missing-Zellen bleiben unverändert. Gleiche physikalische Felder in verschiedenen Einheiten werden numerisch verglichen; Ausreißer bleiben für die bestehenden physikalischen Gates sichtbar.
+
+Acht reale DWD-GRIB-Header am10.10.2026 gelesen und als docs/implementation/MID_C26_RUC_HEADER_SAMPLES_2026-10-10.json mit URL/Hash archiviert: T_2M/TD_2M K, PMSL Pa, RELHUM/CLCT/CLCL Prozent. Samples stammen aus einzelnen live verfügbaren Dateien, nicht aus einem vollständig dekodierten gemeinsamen Lauf; kein vollständiger Produkt-/Level-Vertrag daraus behauptet. CAPE_ML/CIN_ML-Metadaten ebenfalls archiviert.
+
+Der Gesamt-Intensivaudit ist noch nicht abgeschlossen: feste vollständige Parameter-/Levelverträge, Cross-Model-/Reprojektion-/Tile-Nähte, echte Geräteperformance und VoiceOver/WKWebView/macOS, kalibrierte Missing-Grenzen und historische SLO-Auswertung/Alarmierung erfordern weitere Umsetzung/Evidenz. Kein Zugriff auf reale Geräte/macOS in dieser Umgebung. Cloudflare am10.10.2026 erneut direkt geöffnet: normales Anmeldeformular, früherer Verifikationsfehler derzeit nicht sichtbar; Konto-/Cron-Abnahme benötigt sichere Anmeldung. Aktueller Code und CI allein schließen diese Abnahmen nicht.
+
 # MID v0.9.85.224 · MID-C26: vollständiger Kernparametervertrag
 
 Basis main=mid-stable 4c875804953290fdf048b93c72b716c6781064d4 (.223), Installer37991713944 erfolgreich einschließlich Core/Heavy, Pages und Stable. Live-Version am10.10.2026 bestätigt. RUC38022529847 veröffentlichte tatsächlich run03:00; Publish114130462693 bestätigt Pages/Worker, LiveHealth04:56 UTC ready/fresh/schemaValid. Kanonische Standortprobe50.815/7.04 nutzt je13 RUC-/RUC-EPS-Stunden und20 Mitglieder.
