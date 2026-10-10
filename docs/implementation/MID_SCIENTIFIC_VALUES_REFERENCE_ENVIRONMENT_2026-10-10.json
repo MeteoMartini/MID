@@ -1,0 +1,165 @@
+{
+  "schema": "mid.ruc.values-reference-environment.v1",
+  "observedAt": "2026-10-10T12:49:41.862404+00:00",
+  "sourceCommit": "ada0f6c54a7ed1faf56d4d202d8a897abf567157",
+  "worktreeStatus": [
+    " M scripts/test-forecast-horizon-quantiles-0985189.mjs",
+    " M scripts/verify-forecast-horizon-browser-0985189.mjs",
+    " M src/App.tsx",
+    " M src/FourteenDayDevelopment.tsx",
+    " M src/HorizonSignalChart.tsx",
+    " M src/horizonInstruments.css",
+    " M src/midC21CurrentWeather.css",
+    " M src/midPresentation.css",
+    " M tools/ruc/build_ruc_bundle.py",
+    " M tools/ruc/test_fetch_resilience.py",
+    "?? docs/implementation/MID_SCIENTIFIC_VALUES_REFERENCE_2026-10-10.json",
+    "?? src/CurrentUtciHighlight.tsx",
+    "?? tools/ruc/scientific_values_reference.py",
+    "?? tools/ruc/test_real_values_reference.py"
+  ],
+  "releaseVersion": "0.9.85.228",
+  "inputs": {
+    "package.json": "ac0d7e49058af9881515248ce5d90685dd6b8d1219346415c386419e95a0806e",
+    "package-lock.json": "22c86bb5040d2d4aa48a9d43ed88dc57306f09b3d3fd3bfd9fa802abc20d7e5e",
+    "MID_BASELINE.json": "afb08245eadb0d2e85911599a226684e9cb2d85660d9dc686735d1dd976c826b",
+    "tools/ruc/requirements.txt": "0e1d78a9115fdc70cfae92648f29a40b765311ce8c7e03919a9c026342211361",
+    "tools/ruc/requirements-pages.txt": "30bd80c51f11a406eac6da565389d9fcab6f026d04eb825088dbf674bca038b5",
+    "tools/ruc/meteo_integrity.py": "00d2fc4a273fbb4c77b3ff8db956419c2855e4d82266001d7e45c8f2809c5d54",
+    "tools/ruc/grib_metadata.py": "1f95c46fc235d05fdd78433b346d499d5024e477877a666bd549c246983c87e8",
+    "tools/ruc/scientific_baseline.py": "9199335faac1afeae8780d877bd0734f79f14d07937cdb83a64435c83de5b0db",
+    "MID_24H_PROFILE_STORY_AXIS_CONTRACT.md": "9e715616e78cdac545603b5eda02871b73f6222a142a875f4d15c698a2188631",
+    "MID_APPLE_PRIVACY_PERMISSION_CONTRACT.md": "4ff3ab782f6d62d6527f8987a09b5dad9ce3f376c23e62d7f07b52793ef3167b",
+    "MID_APPLE_PUSH_BACKGROUND_CONTRACT.md": "6652a07b19302708d14bb52c2d34421713ee09099f727348ce11f2d755375478",
+    "MID_CHATGPT_GITHUB_CONTRACT.md": "664c7bb8d2ed5689e9c8509526e104dc7925fd86fd069b6a771c0fe214f77d0f",
+    "MID_COST_GOVERNANCE_CONTRACT.md": "a0b5943fcbaa4a2ff643fa96b1ff0c800658ba48e8d8c266d299d7d773d1bab4",
+    "MID_CROSS_PLATFORM_CONTRACT.md": "8af6c466a97aedbfdac9413c338cb3a872e2c9aa97ce4e686672d1c892a3f8e8",
+    "MID_DWD_RUC_PIPELINE_CONTRACT.md": "e6a3886aa18d7c2f6eace8222dc386c37f799d4968620544407bcb7cc7e98dfe",
+    "MID_EVENT_LIFECYCLE_STARTUP_CONTRACT.md": "08c00f568f8344040d86add2daf83f376ee407aa6ba4ed2a079f08be44af33e8",
+    "MID_EVENT_RECOMMENDATION_CONTRACT.md": "7798cf1f1c5bf34db660b9010a4d60766144cb8dc1972fbedd39da7a4ea48488",
+    "MID_FORECAST_CONSISTENCY_CONTRACT.md": "9e76e4eabc80ed15d630687e8d0a217e3bec13ff8aa5a2200d5dabc2291281b4",
+    "MID_HYPERLOCAL_ANALYSIS_CONTRACT.md": "ea34e16995565d25c0245100366cb70e0fb4e249e1939ebf3afbd194ff241f91",
+    "MID_HYPERLOCAL_DOWNSCALING_CONTRACT.md": "0f183126b2bf6c52e9e2bb11323243b854eafe7c4f3a8b85580a6190e6373651",
+    "MID_IOS_26_27_DESIGN_CONTRACT.md": "2909f9598469cbdf6ec113eb0465ee102372f1a6eca85907e3fa44c60533e621",
+    "MID_IOS_RESUME_LOCATION_CONTRACT.md": "fdb34cc73eb29b44e1d4a8f056c129fc4966d6e9c357499518f6d8a851a4a19d",
+    "MID_KNMI_HARMONIE_EPS_CACHE_CONTRACT.md": "b95e71cc673a0f6bce7b0f9cdab860400983c6cf091bd9b5644ba25d6bf5c0d0",
+    "MID_KNMI_HARMONIE_EPS_DECODER_CONTRACT.md": "9120f9f3583166f2c39c014deefab12623e9c2fca404989fd172061cd8dd3fa4",
+    "MID_KNMI_HARMONIE_EPS_WORKER_CONTRACT.md": "7c08c30d8fb841a9bbe85d3a57faefd4d81d6e89c747ae652950f833ead12a6b",
+    "MID_LOGO_ASSET_CONTRACT.md": "bb4c019c59991fd2ca349db5406bc570d594daa515e3aa7b4b0d41b0957ccfa2",
+    "MID_MODEL_SOURCE_CONTRACT.md": "af213404d602b38224bab1636a4557c22e7d2b1d739bbd809c5fe2738260d84a",
+    "MID_MOSMIX_FRESHNESS_CONTRACT.md": "2d23a093da51005e2beb4d03bc508a0bd7ba209fa2e2a26b4be775376af6ba96",
+    "MID_NAVIGATION_BOTTOM_BAR_CONTRACT.md": "4426e54e0b6dd6f68ae26295ac07cdc8a80ef109245c514c579e5ece99f433df",
+    "MID_NOTIFICATION_RELIABILITY_CONTRACT.md": "bc6cb24c8ca13aa28d49748e9f0be91d2fdff251bfa314e6f334cc7ab8bf51b9",
+    "MID_PARAMETER_COLOR_CONTRACT.md": "27553b0a1fe3c8c57d74cbc0409d19e9573481c138e96b649814872fdbb595d6",
+    "MID_PRECIPITATION_INTERVAL_CONTRACT.md": "8681b2f9fedb63efc521157ce39ec7e57655a671b97410fdf32cd1e924c38e93",
+    "MID_PRECIP_PICTOGRAM_SNOW_DEPTH_CONTRACT.md": "1db4e923e315e409e5b26c7cc1ed7d11b8f0bca92cd2f561519b20740db8a598",
+    "MID_REPLIT_HANDOFF_CONTRACT.md": "1c63eb06a1f2842dab0840f3c1543c21835bde5fff6854304d4c1da2d24ec2bc",
+    "MID_RUNTIME_LIFECYCLE_OFFLINE_CONTRACT.md": "95e424cd3a847ae60e9fdda5b41a568ac909d36de7eb31c7ea2c7dfbd59f2213",
+    "MID_SOLAR_SYMBOL_CONTRACT.md": "0ce5c77ceea3b2f2f26791593078058d65e78303a9fb03fdc321c6fdfe56dae7",
+    "MID_SOURCE_AUDIT_CONTRACT_0.9.84.75.md": "90f21bea25a41f2ee6ad9ec2475a9a35bd49c7557af7330c4d4cf6a210368477",
+    "MID_STATE_INTEGRITY_CONTRACT.md": "0877c9a9b42d16b7ff8f167a9d2fb1d385d1ef8e8d3e9b85a0f26d3c4b55d3a5",
+    "MID_TRAVEL_CENTER_FORECAST_FUSION_CONTRACT.md": "4883912403894be514618e014634c3b77a54b8442ce0c82ac9168a8ac8468a1c",
+    "MID_TYPESCRIPT_7_COMPATIBILITY_CONTRACT.md": "751c16d82d3ce761fa7d6f975f29cb112ae0c7e0b72bb51851fd6c6213082b96",
+    "MID_UI_ARCHITECTURE_CONTRACT.md": "19fdff7b9615a34a386e28b208bcffcf19ef7292b9acc450ab30849e9d10cb5d",
+    "MID_UPDATE_STARTUP_RECOVERY_CONTRACT.md": "e529b198a7d39d158624c7744c00854c7c0de0356ccaed5c4a37eec67615a925",
+    "MID_WARNING_HYBRID_CONTRACT.md": "364f48fab71c47af58d6775eeec30e1abb708f49bbd1d85b49b190b7ef5cb2db",
+    "MID_WEATHER_REGIME_COLOR_CONTRACT.md": "ebb318e0e99aa732fb50b9c8ab1b8cedd06b1ee0e74edb15826f7b2f96db8412",
+    "MID_WORKER_AUTO_DEPLOY_CONTRACT.md": "7d42c09d15d88b77d0054cef01a49997ebd789b654c4b795b0559b3f25bc543e",
+    "tools/ruc/build_ruc_bundle.py": "3dc2aca4a03db90aa2823bb8eb0701a779ed938fa4d0a280449c0e04722d62ed",
+    "tools/ruc/scientific_values_reference.py": "e5469e98da3d24962da717d1cf38cac6f4c6f5a1b7f6777cfc79bd01912c2c92",
+    "tools/ruc/ruc_pack.py": "fa2e3b2cedc474edea8d3ed61349eb1b65324279a1cd3ad4a7ee4ffb6b5e5b7f"
+  },
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "dependencies": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "eccodes": "2.49.0",
+      "requests": "2.34.2",
+      "contourpy": "1.4.0"
+    },
+    "eccodesApiVersion": "2.49.0",
+    "numpyBuildConfiguration": "Build Dependencies:\n  blas:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.34.106.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.34.106.0\n  lapack:\n    detection method: pkgconfig\n    found: true\n    include directory: /opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/include\n    lib directory: /opt/_internal/cpython-3.12.13/lib/python3.12/site-packages/scipy_openblas64/lib\n    name: scipy-openblas\n    openblas configuration: OpenBLAS 0.3.34.106.0  USE64BITINT DYNAMIC_ARCH NO_AFFINITY\n      Haswell MAX_THREADS=64\n    pc file directory: /project/.openblas\n    version: 0.3.34.106.0\nCompilers:\n  c:\n    commands: cc\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  c++:\n    commands: c++\n    linker: ld.bfd\n    name: gcc\n    version: 14.2.1\n  cython:\n    commands: cython\n    linker: cython\n    name: cython\n    version: 3.3.0\nMachine Information:\n  build:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\n  host:\n    cpu: x86_64\n    endian: little\n    family: x86_64\n    system: linux\nPython Information:\n  path: /tmp/build-env-kabtnrrv/bin/python\n  version: '3.12'\nSIMD Extensions:\n  baseline:\n  - X86_V2\n  found:\n  - X86_V3\n  - X86_V4\n  - AVX512_ICL\n  not found:\n  - AVX512_SPR\n\n",
+    "threadConfiguration": {
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null
+    }
+  },
+  "reference": {
+    "deterministicPackedSha256": "aa0a66d110b409b7ab1db03f9ee1036c46da9537e13b45f6888b9a68358dddf9",
+    "epsPackedSha256": "c2077cebbe3bbdef9d7d3197005cd0608ba1e37c9088ae40f9970f6983bdb47b",
+    "deterministicBytes": 1680,
+    "epsBytes": 2800,
+    "packing": {
+      "temperature_2m": {
+        "maximumUnclippedError": 0.0048645019531257105,
+        "clippedCount": 0
+      },
+      "dew_point_2m": {
+        "maximumUnclippedError": 0.004909667968750142,
+        "clippedCount": 0
+      },
+      "relative_humidity_2m": {
+        "maximumUnclippedError": 0.049760437011727277,
+        "clippedCount": 0
+      },
+      "pressure_msl": {
+        "maximumUnclippedError": 0.04885253906252274,
+        "clippedCount": 0
+      },
+      "wind_speed_10m": {
+        "maximumUnclippedError": 0.004897003173828018,
+        "clippedCount": 0
+      },
+      "wind_direction_10m": {
+        "maximumUnclippedError": 0.049722290039056816,
+        "clippedCount": 0
+      },
+      "wind_gusts_10m": {
+        "maximumUnclippedError": 0.004876747131348225,
+        "clippedCount": 0
+      },
+      "precipitation": {
+        "maximumUnclippedError": 0.004921874999999992,
+        "clippedCount": 0
+      },
+      "cloud_cover": {
+        "maximumUnclippedError": 0.04960937499999574,
+        "clippedCount": 0
+      },
+      "cloud_cover_low": {
+        "maximumUnclippedError": 0.04804687499999982,
+        "clippedCount": 0
+      },
+      "cape": {
+        "maximumUnclippedError": 0.05000000000000426,
+        "clippedCount": 0
+      },
+      "convective_inhibition": {
+        "maximumUnclippedError": 0.04997558593749929,
+        "clippedCount": 0
+      }
+    },
+    "epsMaximumUnclippedError": 0.00496093750000004,
+    "epsClippedCount": 0
+  },
+  "measurements": {
+    "captureWallSeconds": null,
+    "captureCpuSeconds": null,
+    "downloadBytes": 26436242,
+    "rawFilesRetained": false
+  },
+  "limitations": [
+    "Not a real DWD GRIB decode or full native-grid benchmark.",
+    "Peak RSS covers the process, including imports; timings cover reference_run only.",
+    "Requirements ranges are inventoried, not converted to a validated native lockfile.",
+    "No CF compliance, spatial regridding, calibration, leakage or device acceptance claimed."
+  ],
+  "scope": "Environment recorded immediately after native capture and during exact decoded-cell replay; not capture wall/CPU measurements",
+  "nativeFixture": {
+    "path": "docs/implementation/MID_SCIENTIFIC_VALUES_REFERENCE_2026-10-10.json",
+    "sha256": "fa1660b7df8247bfd95de0b58782296f671ef01e7ac1d736752835864158e07c"
+  }
+}

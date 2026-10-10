@@ -418,6 +418,21 @@ def file_info(path:Path):
       for chunk in iter(lambda:handle.read(1024*1024),b''):digest.update(chunk)
     return {'bytes':path.stat().st_size,'sha256':digest.hexdigest()}
 
+def derive_core_fields(series,det_times):
+ """Canonical normalized native core conversion, shared by production/reference replay."""
+ det_acc=np.stack([series['precipitation_acc'][t] for t in det_times]);validate_accumulation(det_acc,'RUC deterministic TOT_PREC');prec=np.maximum(0,np.diff(det_acc,axis=0,prepend=det_acc[:1]))
+ u=np.stack([series['u10'][t] for t in det_times]);v=np.stack([series['v10'][t] for t in det_times]);speed=np.hypot(u,v)*1.94384449;direction=(np.degrees(np.arctan2(-u,-v))+360)%360
+ fields={}
+ for spec in DEFAULT_FIELDS:
+  n=spec.name
+  if n=='wind_speed_10m':fields[n]=speed
+  elif n=='wind_direction_10m':fields[n]=direction
+  elif n=='wind_gusts_10m':fields[n]=np.stack([series[n][t] for t in det_times])*1.94384449
+  elif n=='precipitation':fields[n]=prec
+  else:fields[n]=np.stack([series[n][t] for t in det_times])
+ return fields
+
+
 def main():
  p=argparse.ArgumentParser();p.add_argument('--staging',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--run',required=True);p.add_argument('--hours',type=int,default=14);p.add_argument('--lookup-step',type=float,default=.025);a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
  schedule=hourly_targets(a.run,a.hours)
@@ -429,16 +444,7 @@ def main():
   if point_count is None:point_count=len(rows[det_times[0]])
   series[name]=rows
  base_grid=load_native_grid(a.staging,point_count)
- det_acc=np.stack([series['precipitation_acc'][t] for t in det_times]);validate_accumulation(det_acc,'RUC deterministic TOT_PREC');prec=np.maximum(0,np.diff(det_acc,axis=0,prepend=det_acc[:1]))
- u=np.stack([series['u10'][t] for t in det_times]);v=np.stack([series['v10'][t] for t in det_times]);speed=np.hypot(u,v)*1.94384449;direction=(np.degrees(np.arctan2(-u,-v))+360)%360
- fields={}
- for spec in DEFAULT_FIELDS:
-  n=spec.name
-  if n=='wind_speed_10m':fields[n]=speed
-  elif n=='wind_direction_10m':fields[n]=direction
-  elif n=='wind_gusts_10m':fields[n]=np.stack([series[n][t] for t in det_times])*1.94384449
-  elif n=='precipitation':fields[n]=prec
-  else:fields[n]=np.stack([series[n][t] for t in det_times])
+ fields=derive_core_fields(series,det_times)
  try:
   coverage=validate_core_fields(fields)
  except Exception:

@@ -1,3 +1,11 @@
+## MID v0.9.85.229 · 2026-10-10 · UTCI, kompakte 14d-Entwicklung und reale Werte-Referenz
+
+- Verifizierte Basis main=mid-stable ada0f6c54a7ed1faf56d4d202d8a897abf567157 (.228). Keine überlappende offene Source-PR; Releasegates unverändert.
+- CurrentUtciHighlight erhält ausschließlich den bestehenden kanonischen UTCI; eigene Wertgruppe, Einheit und Kategorie. Nicht endliche Werte zeigen keine Behaglichkeitskategorie.
+- Gemeinsamer HorizonSignalChart verbindet nur aufeinanderfolgende UTC-Kalendertage bei explizitem connectDaily; Missing und fehlende Tage unterbrechen die Linien. Periodenprodukte bleiben diskret. 14d nutzt kompakte Höhe und konsolidierte Phasen.
+- derive_core_fields extrahiert unverändert die bisherige Produktionsrechnung; Werte-Referenz und Produktion teilen denselben Normalisierungs-/Ableitungs-/Packing-Pfad.
+- DWD-Lauf 2026-10-10T09:00: 66 Dateien, zwölf Kernparameter/Koordinaten und EPS1..20 bei +0/+1h; vollständiges Gitter542040, QC und Niederschlagskonservation bestanden. 35 dekodierte Zellvektoren mit URL/Hashes und Bit-Goldens eingefroren. Keine rohe GRIB-Archivierung oder volle14h-/Rapid-/Lookup-/E2E-Abnahme behauptet.
+
 ## MID v0.9.85.228 · 2026-10-10 · Wissenschaftsaudit: kalibrierte Kern-GRIB-Verträge
 
 - Basis main=mid-stable bc7c73a818714420474b688b48b7ef3fdf2893b1 (.227), Releasegates unverändert.

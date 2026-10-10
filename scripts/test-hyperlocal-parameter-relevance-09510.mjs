@@ -44,7 +44,7 @@ assert.ok(!weather.includes(".45+.55*(1-Math.exp"),'Alter 45-%-Mindeststützante
 assert.ok(app.includes("finalizationObservedTemperature=shortTermAnchor?.observed?.temperature?undefined:"),'Aktuelle Temperatur nutzt keinen feldbezogen freigegebenen kanonischen Stationsanker.');
 assert.ok(app.includes("fieldFresh=(field:StationAnalysisField)=>stationFieldObservationUsable"),'Aktuelles Wetter ist nicht feldweise qualitätsgesichert.');
 assert.ok(app.includes("temperatureFresh=fieldFresh('temperature')"),'Die Haupttemperatur besitzt keinen eigenen Aktualitätsstatus.');
-assert.ok(app.includes("°C · {currentUtciCategory.shortLabel}{temperatureFresh?"),'Die Haupttemperatur kennzeichnet sich weiterhin durch irgendeinen frischen Stationsparameter als stationsgeprüft.');
+assert.ok(app.includes('className="current-temperature-provenance">Lufttemperatur{temperatureFresh?'),'Die Haupttemperatur muss ihren feldbezogenen Aktualitätsstatus in der separaten Provenienz behalten.');
 assert.ok(app.includes('className="hyperlocal-analysis-compact"'),'Die Hyperlokal-Ergebniszeile ist nicht kompakt.');
 assert.ok(app.includes('<b>Datenbasis:</b> Modellhintergrund {st?.backgroundModel||forecastSourceLabel}'),'Der verwendete Regionalmodell-Hintergrund fehlt im Info-Popover.');
 assert.ok(app.indexOf("const forecastSourceLabel='Best Match';")>=0&&app.indexOf("const forecastSourceLabel='Best Match';")<app.indexOf('<b>Datenbasis:</b> Modellhintergrund {st?.backgroundModel||forecastSourceLabel}'),'forecastSourceLabel muss vor seiner ersten Verwendung im Hyperlokal-Info-Popover deklariert sein.');

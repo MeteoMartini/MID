@@ -15,7 +15,7 @@ export function FourteenDayDevelopment({series}:{series:Row[]}){
  const phases=[{label:'Tag 1–4',rows:series.slice(0,4)},{label:'Tag 5–9',rows:series.slice(4,9)},{label:'Tag 10–14',rows:series.slice(9,14)}].filter(phase=>phase.rows.length);
   return (
    <section className="long-range-overview" data-fourteen-development="true">
-    <header><div><strong>14 Tage · Entwicklung</strong><small>3 Phasen · Tmax / Tmin · Ensemble-Spannen</small></div></header>
+    <header><div><strong>14 Tage · Entwicklung</strong><small>Tmax / Tmin · Best Match mit Ensemble-Spannen</small></div><span className="fourteen-development-kicker">3 Wetterphasen</span></header>
     <div className="long-range-dwd-periods fourteen-phase-summary">
      {phases.map(phase=>{
       const temperatures=phase.rows.map(row=>row.meanDayTemperature).filter(Number.isFinite);
@@ -31,7 +31,7 @@ export function FourteenDayDevelopment({series}:{series:Row[]}){
       </article>;
      })}
     </div>
-    <HorizonSignalChart label="14 Tage: Tageshöchst- und Tiefsttemperatur mit P10–P90 und P25–P75 des Ensembles" unit="°C" zero={false} series={fourteenTemperatureSeries(series)}/>
+    <HorizonSignalChart label="14 Tage: Tageshöchst- und Tiefsttemperatur mit P10–P90 und P25–P75 des Ensembles" unit="°C" zero={false} connectDaily compact series={fourteenTemperatureSeries(series)}/>
    </section>
   );
 }

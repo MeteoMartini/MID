@@ -68,3 +68,28 @@
 [data-fourteen-development]>header small,[data-fourteen-development] .long-range-dwd-periods article>header small{font-size:12px!important;line-height:1.5!important}
 .subseasonal-main-chart>.long-range-model-selector{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
 .subseasonal-main-chart>.long-range-model-selector>button{min-width:0;white-space:normal;overflow-wrap:normal;line-height:1.35;min-height:44px}
+
+/* One compact development instrument; daily curves keep the true ensemble intervals. */
+[data-fourteen-development]{padding:14px!important;border:1px solid var(--border);border-radius:18px;background:linear-gradient(155deg,color-mix(in srgb,var(--accent) 4%,var(--surface)),var(--surface));box-shadow:0 6px 20px rgba(10,36,58,.035)}
+[data-fourteen-development]>header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-bottom:10px}
+[data-fourteen-development]>header small{margin-top:3px;font-size:12px}
+.fourteen-development-kicker{font-size:11px;font-weight:750;color:var(--muted);padding:5px 8px;border:1px solid var(--border);border-radius:999px}
+[data-fourteen-development] .fourteen-phase-summary{gap:0!important;margin:0!important;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:color-mix(in srgb,var(--s2) 60%,var(--surface))}
+[data-fourteen-development] .fourteen-phase-summary>article{border:0!important;border-radius:0!important;background:transparent!important;padding:9px 11px!important;gap:3px!important;box-shadow:none!important}
+[data-fourteen-development] .fourteen-phase-summary>article+article{border-inline-start:1px solid var(--border)!important}
+[data-fourteen-development] .fourteen-phase-summary>article>header{gap:1px}
+[data-fourteen-development] .fourteen-phase-summary>article>header strong{font-size:12px;color:var(--accent)}
+[data-fourteen-development] .fourteen-phase-summary>article>b{font-size:12px!important;font-weight:650}
+[data-fourteen-development] .long-range-chart{padding:6px 0 0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+[data-fourteen-development] .long-range-chart>svg{height:210px!important;min-height:0!important;display:block;width:100%}
+[data-fourteen-development] .long-range-model-line-legend{padding:0 3px 2px!important;gap:5px 12px;font-size:11px}
+[data-fourteen-development] [role=button]:focus-visible{outline:none}
+[data-fourteen-development] [role=button]:focus-visible>circle:last-child{stroke:var(--text);stroke-width:3}
+@media(max-width:620px){
+ [data-fourteen-development]{padding:10px!important;border-radius:14px}
+ [data-fourteen-development] .fourteen-phase-summary>article{grid-template-columns:minmax(78px,.8fr) minmax(0,1fr) auto!important;gap:2px 8px!important;padding:8px 9px!important}
+ [data-fourteen-development] .fourteen-phase-summary>article+article{border-inline-start:0!important;border-top:1px solid var(--border)!important}
+ [data-fourteen-development] .fourteen-phase-summary>article>header{grid-row:1/3!important}
+ [data-fourteen-development] .fourteen-phase-summary>article>p{grid-column:3!important;grid-row:1/3;display:grid!important;gap:1px!important;text-align:right;align-content:center}
+ [data-fourteen-development] .fourteen-phase-summary>article>small{grid-column:2!important}
+}
