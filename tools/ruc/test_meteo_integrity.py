@@ -11,6 +11,13 @@ from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_
 
 
 class MeteoIntegrityTests(unittest.TestCase):
+    def test_scientific_reference_matches_fixed_semantic_baseline(self):
+        from scientific_baseline import reference_run
+        first = reference_run()
+        self.assertEqual(first, reference_run())
+        self.assertEqual(first['semanticSha256'],
+                         '0b566974aab590973ea11e30254f0901384afc035be1e0ab43d6443651ab011f')
+
     def test_missing_rolling_rain_is_not_dry_zero(self):
         from build_ruc_bundle import _max_rolling_sum
         # One complete wet window, one completely missing cell, one interrupted
@@ -41,6 +48,38 @@ class MeteoIntegrityTests(unittest.TestCase):
         np.testing.assert_allclose(row['wetProbabilityPct'], [50., np.nan, 0.], equal_nan=True)
         np.testing.assert_allclose(row['totalQ75Mm'], [18., np.nan, 0.], equal_nan=True)
         np.testing.assert_array_equal(cube, before)
+
+    def test_extreme_wire_keeps_missing_amounts_and_phases_absent(self):
+        from build_ruc_bundle import build_rapid_extreme_summary
+        from datetime import timedelta
+        run = datetime(2026, 10, 10, tzinfo=timezone.utc)
+        hourly = [run + timedelta(hours=i) for i in range(15)]
+        rapid_times = [run + timedelta(minutes=15*i) for i in range(25)]
+        for missing in (False, True):
+            value = np.nan if missing else 0.
+            rapid = np.full((25, 1), value)
+            hourly_precip = np.full((15, 1), value)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', message='All-NaN slice encountered', category=RuntimeWarning)
+                result = build_rapid_extreme_summary(
+                    np.array([43.45]), np.array([-3.5]), run.isoformat(), rapid_times,
+                    rapid, np.zeros_like(rapid), np.zeros_like(rapid), np.full((73, 1), value),
+                    deterministic_times=hourly, deterministic_fields={'precipitation': hourly_precip},
+                    phase_fields={'rain': rapid})
+            cell = result['cells'][0]
+            self.assertNotIn('snowPhaseWaterEquivalentMm', cell['periods']['0-6'])
+            self.assertNotIn('graupelPhaseWaterEquivalentMm', cell['periods']['0-6'])
+            if missing:
+                self.assertNotIn('precipitation6h', cell)
+                self.assertNotIn('max1h', cell)
+                self.assertNotIn('rainPhaseMm', cell['periods']['0-6'])
+                for period in cell['periods'].values():
+                    self.assertNotIn('precipitationMm', period)
+            else:
+                self.assertEqual(cell['precipitation6h'], 0.)
+                self.assertEqual(cell['periods']['0-6']['rainPhaseMm'], 0.)
+                for period in cell['periods'].values():
+                    self.assertEqual(period['precipitationMm'], 0.)
 
     def test_missing_metrics_preserve_native_masks_and_distinguish_persistence(self):
         finite = np.array([[True, False, False, True],

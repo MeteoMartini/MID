@@ -1,4 +1,4 @@
-# MID v0.9.85.224 · wissenschaftlicher Audit: Inventar und Referenzbaseline
+# MID v0.9.85.226 · wissenschaftlicher Audit: Inventar und Referenzbaseline
 
 Verifizierter Ausgangspunkt: main = mid-stable = `391ed9334c0335fb9678884f6b67354e53d24dc3`. Der neue Audit ist ein artefaktunabhängiger Referenzrahmen. Seine potenziellen Befunde sind keine bestätigten MID-Fehler. Keine fachliche Gesamtfreigabe wird behauptet.
 
@@ -35,3 +35,13 @@ Auf .224 reproduziert: `_max_rolling_sum` liefert für eine vollständig fehlend
 Korrektur: Niederschlagssummen propagieren Missing statt übersprungene Intervalle als vollständig zu behandeln; rollierende Maxima berücksichtigen vollständige Fenster und erhalten deren Werte trotz später fehlender Fenster. EPS-Periodenscores und Quantile schließen unvollständige Mitglieder gemeinsam aus. Fehlende Phasenfelder werden nicht mehr mit Nullarrays ersetzt. Echte trockene Nullen bleiben Daten.
 
 33 verpflichtende Fetch-/GRIB-/Bitmap-/Integritätstests inklusive neuer Missing-Negativfälle lokal erfolgreich. Isoliertes Testenvironment: Python 3.12, NumPy 2.5.3, SciPy 1.18.1, ecCodes-Python 2.49.0 mit eigener nativer Library. Keine produktiven Dependency-Ranges oder Interpreter geändert. Die Baseline erfasst native ecCodes-API, NumPy/BLAS-Konfiguration und relevante Threadzahlen; dies ist noch kein validierter Lockfile.
+
+## Integrations- und Prüfstand .226
+
+.226 entstand auf verifiziertem .224 und integriert main-Paketcommit075e0b39fa651b5da8dc7c687b8790d7cd876912 mit allen .225-Quelländerungen verlustfrei. .225 wurde noch nicht als erfolgreich installiert behauptet. Update-Gate lokal reproduziert: Label während CSS-Transform-Animation43.99999237060547px trotz44px min-height. Abwarten des tatsächlichen Animationsendes statt Budgetlockerung;14 Browserfälle bestanden.
+
+Nach Integration36 verpflichtende ecCodes/GRIB/Fetch/Bitmap/Integritätstests und3 Temperaturtests bestanden. Sauberer Produktionsbuild/Types erfolgreich, Produktionsaudit0 Schwachstellen. Der erste lokale Build mit alten und neuen dist-Dateien scheiterte ausschließlich am doppelt gezählten Hauptbundle; Ausgaben gesichert und sauberer Neubuild mit normalem Budget bestanden. .226-App-/CI-/Installer-Gesamtabnahme separat erforderlich; kein Abschluss aus lokalen Einzeltests ableiten.
+
+Der Inventarscan fand in tools/src keine R-/Julia-/Fortran-/Notebook-Quellen und keine Xarray-/Dask-/Zarr-/netCDF-/MPI-/GPU-Pipeline. MID konsumiert amtliche NWP-Produkte und betreibt hier keinen eigenen NWP-PDE-Solver. Sprach-/MPI-/Solver-Upgrades aus dem allgemeinen Referenzaudit sind für diesen geprüften Umfang nicht anwendbar; dies entbindet eigene Regridding-/Diagnosekernel nicht von numerischer Prüfung. Neue Frameworks werden nicht allein wegen ihrer Nennung im Audit eingeführt.
+
+Alle955 lokalen App-Regressionen auf .226 erfolgreich (93.8s), Worker/SW-Syntax erfolgreich. Veröffentlichungs-Gates bleiben separat erforderlich.

@@ -14,7 +14,7 @@ from native_cadence import is_native_at
 from grib_stream import open_grib_stream
 from grib_bitmap import decode_bitmap_values
 from grib_metadata import inspect_grib_header,assert_same_parameter_signature
-from meteo_integrity import validate_accumulation,validate_core_fields,validate_eps_member_coverage
+from meteo_integrity import MeteoIntegrityError,validate_accumulation,validate_core_fields,validate_eps_member_coverage
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
 SEVERE_PARAM_MAP={'LPI':'lpi','LPI_MAX':'lpi_max','UH_MAX':'uh_max','UH_MAX_LOW':'uh_max_low','UH_MAX_MED':'uh_max_med','ECHOTOPinM':'echo_top_m','HAIL_GSP':'hail_gsp','LAPSE_RATE':'lapse_rate','W_CTMAX':'w_ctmax','VORW_CTMAX':'vorw_ctmax'}
@@ -79,10 +79,20 @@ def load_native_grid(staging:Path,expected_points:int):
     return lats.astype(np.float32),lons.astype(np.float32)
 
 def normalize(name,values,units):
-    v=values.astype(np.float32,copy=True);u=units.lower()
-    if name in {'temperature_2m','dew_point_2m','surface_temperature'} and (u=='k' or 'kelvin' in u or np.nanmedian(v)>100):v-=273.15
-    if name=='pressure_msl' and (u=='pa' or np.nanmedian(v)>2000):v/=100
-    if name in {'cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','relative_humidity_2m'} and np.nanmax(v)<=1.2:v*=100
+    """Normalize by declared units, never by the current weather values."""
+    v=values.astype(np.float32,copy=True);u=units.strip().lower()
+    if name in {'temperature_2m','dew_point_2m','surface_temperature'}:
+      if u in {'k','kelvin'}:v-=273.15
+      elif u not in {'c','°c','degc','celsius'}:
+        raise MeteoIntegrityError(f'{name}: unsupported temperature unit {units!r}')
+    elif name=='pressure_msl':
+      if u=='pa':v/=100
+      elif u not in {'hpa','mbar'}:
+        raise MeteoIntegrityError(f'{name}: unsupported pressure unit {units!r}')
+    elif name in {'cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','relative_humidity_2m'}:
+      if u in {'1','fraction','0-1'}:v*=100
+      elif u not in {'%','percent','percentage'}:
+        raise MeteoIntegrityError(f'{name}: unsupported percentage unit {units!r}')
     if name in {'convective_inhibition','cin_mu'}:v=np.abs(v)
     return v
 
@@ -221,7 +231,9 @@ def build_rapid_extreme_summary(lats,lons,run,rapid15_times,rapid15_precip,rapid
               if any(value is not None for value in series):row[out_key]=series
           periods[pid]=row
         first=periods['0-6']
-        cell={'latitude':round(lat,4),'longitude':round(lon,4),'periods':periods,'precipitation6h':first.get('precipitationMm',0),'max1h':first.get('max1hMm',0),'max15m':first.get('max15mMm',0),'peak5mRate':first.get('peak5mRateMmh',0),'cape':first.get('cape',0),'cin':first.get('cin',0)}
+        cell={'latitude':round(lat,4),'longitude':round(lon,4),'periods':periods}
+        for out_key,period_key in [('precipitation6h','precipitationMm'),('max1h','max1hMm'),('max15m','max15mMm'),('peak5mRate','peak5mRateMmh'),('cape','cape'),('cin','cin')]:
+          if period_key in first:cell[out_key]=first[period_key]
         for key in ('dbzCmax','uhMax','lpiMax','echoTopM','hailGspMax','capeMu','cinMu'):
           if key in first:cell[key]=first[key]
         cells.append(cell)
