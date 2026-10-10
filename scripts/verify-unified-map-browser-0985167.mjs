@@ -27,6 +27,13 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42
 let cases=0;
 const perfRows=[];
 const perfEnabled=process.env.GITHUB_ACTIONS==='true'||process.env.MID_MAP_PROFILE==='1';
+async function verifyAlphabeticalSelectors(page){
+ const lists=await page.evaluate(()=>({models:[...document.querySelectorAll('select[aria-label="Modell für Parameter"] option')].filter(o=>!o.disabled).map(o=>o.textContent),groups:[...document.querySelectorAll('select[aria-label="Parameter-Layer"] optgroup')].map(g=>({label:g.label,options:[...g.querySelectorAll('option')].map(o=>o.textContent)}))}));
+ const compare=new Intl.Collator('de-DE',{usage:'sort',sensitivity:'base',numeric:true}).compare;
+ assert.deepEqual(lists.models,[...lists.models].sort(compare),'visible model labels are alphabetic');
+ for(const group of lists.groups)assert.deepEqual(group.options,[...group.options].sort(compare),`parameters within ${group.label} are alphabetic`);
+}
+
 async function verifyCase(width,theme,design='next',profileMemory=false){
  let memoryProfile=null;
  const caseStarted=performance.now(),perfPhases=[];let readyMs=null;let synopticMissing=false,heldSynoptic=null,releaseSynoptic=null,failSynoptic=false,holdCatalog=false,releaseCatalog=null,catalogBlocked=null;
@@ -83,6 +90,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  assert.equal(await page.locator('canvas.model-map-context').count(),0,'No second schematic geography');
  await page.locator('.composite-advanced summary').first().click();assert.equal(await page.getByRole('group',{name:'Kartendetails'}).locator('input[type=checkbox]').count(),5);await page.getByLabel('Ländergrenzen',{exact:true}).uncheck();assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:map-reference:v1')).countries),false);await page.getByLabel('Ländergrenzen',{exact:true}).check();
 
+ await verifyAlphabeticalSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
  await page.getByLabel('Verfügbaren Produktstand auswählen').fill('0');
@@ -93,7 +101,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.getByRole('button',{name:'Flächen',exact:true}).click();
  assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original','Changing model must not remount map');
  await page.getByRole('button',{name:'Modell zuerst',exact:true}).click();await page.getByLabel('Modell für Parameter').selectOption('icon-eps');
- const epsParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(options=>options.map(o=>o.value));assert.ok(epsParameters.includes('gust-probability')&&!epsParameters.includes('gust')&&!epsParameters.includes('temperature'),'Model-first filters incompatible parameters');
+ const epsParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(options=>options.map(o=>o.value));assert.ok(epsParameters.includes('gust-probability')&&!epsParameters.includes('gust')&&!epsParameters.includes('temperature'),'Model-first filters incompatible parameters');await verifyAlphabeticalSelectors(page);
  await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('synoptic');
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('MSL-Isobaren'));
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('MSL-Isobaren')&&!text.includes('Rohdaten laden')}).catch(async error=>{console.error('Synoptic state',await page.locator('.unified-layer-status').innerText(),requests.filter(u=>u.includes('weather-map-wms')).slice(-10));throw error});
@@ -136,7 +144,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }finally{try{if(tracing)await browser.stopTracing();}finally{await session.detach();}}
  }
  assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');
- await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('thetae');assert.deepEqual(await page.getByLabel('Modell für Parameter').locator('option').allTextContents(),['DWD ICON-D2','DWD ICON-EU','NOAA GFS','ECMWF IFS'],'ThetaE offers only complete native providers');
+ await page.getByRole('button',{name:'Parameter zuerst',exact:true}).click();await page.getByLabel('Parameter-Layer').selectOption('thetae');assert.deepEqual(await page.getByLabel('Modell für Parameter').locator('option').allTextContents(),['DWD ICON-D2','DWD ICON-EU','ECMWF IFS','NOAA GFS'],'ThetaE offers only complete native providers in alphabetic label order');
  await page.getByLabel('Parameter-Layer').selectOption('geopotential');await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Höhenlinien')&&!document.querySelector('.unified-layer-status')?.textContent.includes('Rohdaten laden'));assert.equal(await page.getByRole('button',{name:'Flächen',exact:true}).isDisabled(),true);assert.ok(!requests.some(u=>u.includes('layers=dwd%3AIcon_reg025_fd_pl_GH')),'500hPa uses native contours, never stepped WMS');
  const timeline=page.getByLabel('Verfügbaren Produktstand auswählen');await timeline.fill(await timeline.getAttribute('max'));await timeline.dispatchEvent('change');await page.waitForFunction(()=>document.querySelector('.composite-map-status')?.textContent.includes('Modellprognose'));
  await page.getByRole('button',{name:'Jetzt',exact:true}).click();

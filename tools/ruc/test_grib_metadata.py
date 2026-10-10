@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import numpy as np
 from eccodes import codes_grib_new_from_samples, codes_set, codes_set_values, codes_get_message, codes_release
-from grib_metadata import inspect_grib_header, assert_same_parameter_signature, CORE_CONTRACTS, NATIVE_GRID, validate_time_window, step_seconds, source_contract_manifest
+from grib_metadata import inspect_grib_header, assert_same_parameter_signature, CORE_CONTRACTS, OPTIONAL_MU_CONTRACTS, NATIVE_GRID, validate_time_window, step_seconds, source_contract_manifest
 from meteo_integrity import MeteoIntegrityError
 import build_ruc_bundle as builder
 import fetch_and_build_ruc as fetch
@@ -28,7 +28,7 @@ def fixture(*,centre=78,run_hour=18,step=0):
 def native_fixture(name,lead=1):
     """Real ecCodes GRIB message with calibrated raw headers and constant data."""
     gid=codes_grib_new_from_samples('regular_ll_sfc_grib2')
-    contract=CORE_CONTRACTS[name]
+    contract=CORE_CONTRACTS.get(name) or OPTIONAL_MU_CONTRACTS[name]
     keys={'centre':78,'gridDefinitionTemplateNumber':101,
           'numberOfDataPoints':NATIVE_GRID[-1],'numberOfGridUsed':47,
           'numberOfGridInReference':1,'uuidOfHGrid':NATIVE_GRID[0],
@@ -48,6 +48,48 @@ def native_fixture(name,lead=1):
 
 
 class DwdGribMetadataTests(unittest.TestCase):
+    def test_optional_mu_units_are_energy_and_keep_missing(self):
+        values=np.array([0.,100.,np.nan],dtype=np.float32)
+        for name in OPTIONAL_MU_CONTRACTS:
+            for unit in ['J kg-1','J kg**-1','J/kg']:
+                np.testing.assert_equal(builder.normalize(name,values,unit),values)
+            for unit in ['', 'unknown', 'K', 'Pa', 'W m**-2', 'kJ/kg']:
+                with self.assertRaisesRegex(MeteoIntegrityError,'energy unit'):
+                    builder.normalize(name,values,unit)
+        np.testing.assert_equal(builder.normalize('cin_mu',np.array([-10.,np.nan]),'J kg-1'),[10.,np.nan])
+        np.testing.assert_equal(values,[0.,100.,np.nan])
+
+    def test_optional_mu_native_headers_reject_mixed_layer_or_parameter(self):
+        run=datetime(2026,10,10,6,tzinfo=timezone.utc)
+        for name in OPTIONAL_MU_CONTRACTS:
+            for lead in [0,1]:
+                gid=native_fixture(name,lead)
+                try:
+                    valid,_=inspect_grib_header(gid,run,name)
+                    self.assertEqual(valid.hour,6+lead)
+                finally:codes_release(gid)
+            for key,value in [('typeOfFirstFixedSurface',192),('parameterNumber',52),('stepType','accum')]:
+                gid=native_fixture(name)
+                try:
+                    codes_set(gid,key,value)
+                    with self.assertRaisesRegex(MeteoIntegrityError,'parameter/level/processing'):
+                        inspect_grib_header(gid,run,name)
+                finally:codes_release(gid)
+
+    def test_optional_mu_contract_matches_real_dwd_header_reference(self):
+        import json
+        path=Path(__file__).resolve().parents[2]/'docs/implementation/MID_MU_ENERGY_HEADER_REFERENCE_2026-10-10.json'
+        data=json.loads(path.read_text())
+        self.assertEqual(len(data['records']),4)
+        for row in data['records']:
+            h=row['rawHeader'];contract=OPTIONAL_MU_CONTRACTS[row['logicalField']]
+            self.assertEqual((h['discipline'],h['parameterCategory'],h['parameterNumber'],h['typeOfFirstFixedSurface'],h['scaledValueOfFirstFixedSurface'],h['typeOfSecondFixedSurface'],None,h['stepType']),contract)
+            self.assertEqual(row['units'],'J kg-1')
+            self.assertEqual(tuple(row['gridIdentity']),NATIVE_GRID)
+            self.assertEqual(len(row['sha256']),64)
+        manifest=source_contract_manifest('2026-10-10T15:00')
+        self.assertEqual(manifest['optionalParameters'],{name:list(contract) for name,contract in OPTIONAL_MU_CONTRACTS.items()})
+
     def test_dwd_run_identifier_is_utc_even_on_non_utc_host(self):
         import os,subprocess,sys
         code="import build_ruc_bundle as b; print(b.run_time('2026-10-10T06:00').isoformat()); print(b.run_time('2026-10-10T08:00+02:00').isoformat())"

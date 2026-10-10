@@ -1,4 +1,8 @@
-## MID v0.9.85.230 · 2026-10-10 · Aktuelles/Heute: kanonische Skybar-Intervalle
+## MID v0.9.85.230 · 2026-10-10 · Skybar, alphabetische Karten und MU-Energieverträge
+
+- Alphabetische Modelle und gruppenweise Parameter in UnifiedWeatherMap und WeatherMapsPanel; gemeinsamer deutscher Collator mit natürlichen Zahlen, kopierte Listen statt Mutation. Fallbackprioritäten/persistierte IDs unverändert.
+- Vier echte CAPE_MU/CIN_MU-DWD-Header2026-10-10T15:00 +0/+1h mit Hash/Raw-Codes/Grid archiviert; reproduzierbarer begrenzter Probe. Separate MU193-Matrix und Energieeinheiten J/kg statt stiller Übernahme beliebiger Einheiten. Drei neue Python-Pflichttests, keine vollständige optionale Werte-/E2E-Abnahme.
+- C21-CI-Browserfixture erhält den neuen expliziten minutes15-Prop;28 lokale Fälle grün. Karten-Browsergate prüft alphabetische sichtbare Reihenfolge in beiden Auswahlrichtungen; reine ThetaE-Reihenfolgeassertion folgt bewusst dem neuen Alphabetvertrag bei gleicher Anbieter-Menge.
 
 - Verifizierte Basis main=mid-stable b88efe2f3ba580aad5a0e692037f2c9814f69547 (.229), Installer38059674163 erfolgreich; keine überlappende Source-PR.
 - Current bekommt displayMinutes15 und shortTermAnchor wie Heute. buildShortTermForecast und die wiederverwendete shortTermProfileHourlyPoints-Aufbereitung erhalten geringe native Mengen und korrekte vorwärts gerichtete Zeitintervalle. Kein zweites Radar-Blending auf bereits finalisierten Daten.
