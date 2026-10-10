@@ -48,6 +48,13 @@ def native_fixture(name,lead=1):
 
 
 class DwdGribMetadataTests(unittest.TestCase):
+    def test_dwd_run_identifier_is_utc_even_on_non_utc_host(self):
+        import os,subprocess,sys
+        code="import build_ruc_bundle as b; print(b.run_time('2026-10-10T06:00').isoformat()); print(b.run_time('2026-10-10T08:00+02:00').isoformat())"
+        result=subprocess.check_output([sys.executable,'-c',code],cwd=Path(__file__).parent,
+                                       env={**os.environ,'TZ':'Europe/Berlin'},text=True)
+        self.assertEqual(result.splitlines(),['2026-10-10T06:00:00+00:00']*2)
+
     def test_member_missing_on_entire_axis_is_not_erased_from_expectation(self):
         from datetime import timedelta
         run=datetime(2026,10,10,6,tzinfo=timezone.utc)

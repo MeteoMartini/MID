@@ -5,6 +5,7 @@
 - Unstrukturierte Felder müssen UUID c6b12daa91ad64045b26c1b6452a2a20, Grid47/Reference1 und542040 Punkte treffen; Revisionen benötigen Neukalibrierung.
 - UTC init+lead=valid, instant/accum/max-Bounds und explizite m/h/s-Schritte; additive sourceGribContract-Metadaten ändern keine Binärlayouts.
 - Pflicht-Negativfixtures und read-only Header-Achsenprobe einschließlich20 EPS-Mitgliedern; keine vollständige Werte-/QC-/Packing-/E2E-Verifikation daraus behaupten.
+- Vollständiger Produktions-Mitgliedersatz1..20 und Host-zeitzonenunabhängige UTC-Laufkennungen. Reale584 Header mit URL/Hash/Bounds/Grid archiviert;47 GRIB-/Integritäts- und3 Temperaturtests,955 App-Regressionen und14 Browserfälle lokal bestanden.
 
 # MID v0.9.85.216 · Widget-Render-Gate
 

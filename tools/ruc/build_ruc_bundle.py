@@ -115,7 +115,11 @@ def normalize(name,values,units):
     if name in {'convective_inhibition','cin_mu'}:v=np.abs(v)
     return v
 
-def run_time(value:str):return datetime.fromisoformat(value.replace('Z','+00:00')).astimezone(timezone.utc)
+def run_time(value:str):
+    parsed=datetime.fromisoformat(value.replace('Z','+00:00'))
+    # DWD run identifiers without an offset are explicitly UTC, not host-local.
+    if parsed.tzinfo is None:parsed=parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 def hourly_targets(run:str,hours:int):
     base=run_time(run)
     targets=[base+timedelta(hours=h) for h in range(max(0,int(hours))+1)]
