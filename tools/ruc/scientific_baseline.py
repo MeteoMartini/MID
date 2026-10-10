@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import hashlib
+import contextlib
+import io
 import json
+import os
 import platform
 import resource
 import subprocess
@@ -77,6 +80,14 @@ def manifest() -> dict:
             dependencies[name] = metadata.version(name)
         except metadata.PackageNotFoundError:
             dependencies[name] = None
+    numpy_config = io.StringIO()
+    with contextlib.redirect_stdout(numpy_config):
+        np.show_config()
+    try:
+        from eccodes import codes_get_api_version
+        decoder_version = codes_get_api_version()
+    except (ImportError, RuntimeError):
+        decoder_version = None
     return {
         'schema': 'mid.science.baseline.v1',
         'observedAt': datetime.now(timezone.utc).isoformat(),
@@ -85,7 +96,10 @@ def manifest() -> dict:
         'releaseVersion': json.loads((ROOT / 'package.json').read_text())['version'],
         'inputs': {name: digest(ROOT / name) for name in paths},
         'environment': {'python': sys.version, 'platform': platform.platform(),
-                        'dependencies': dependencies},
+                        'dependencies': dependencies, 'eccodesApiVersion': decoder_version,
+                        'numpyBuildConfiguration': numpy_config.getvalue(),
+                        'threadConfiguration': {key: os.environ.get(key) for key in
+                            ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS')}},
         'reference': science,
         'measurements': {'wallSeconds': wall,
                          'cpuSeconds': after.ru_utime + after.ru_stime - before.ru_utime - before.ru_stime,

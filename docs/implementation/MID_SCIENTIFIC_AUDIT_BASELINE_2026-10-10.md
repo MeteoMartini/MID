@@ -27,3 +27,11 @@ PR #319 (.225) ersetzt RUC-Einheitenheuristiken. Am 10.10.2026 war er offen; Ker
 Echte iOS/WKWebView/VoiceOver-Abnahme und Cloudflare-Konto-/Cron-Nachweis bleiben externe Evidenzlücken; dieser Referenzlauf schließt sie nicht.
 
 Audit-PDF SHA256: `baee0aa3fbb6db7233d22805956a51af49ff38293e51010ae0df3f1e7642338a`.
+
+## Bestätigter P0-Missing-Befund und Korrektur in Vorbereitung .226
+
+Auf .224 reproduziert: `_max_rolling_sum` liefert für eine vollständig fehlende Zelle 0. `rapid_extreme_eps_period_summary` zählt vollständig fehlende und zeitlich unvollständige Mitgliedsperioden durch `nansum` als gültige trockene Mitglieder. Das ist ein bestätigter Codebefund, kein Nachweis eines bestimmten falschen veröffentlichten Produkts.
+
+Korrektur: Niederschlagssummen propagieren Missing statt übersprungene Intervalle als vollständig zu behandeln; rollierende Maxima berücksichtigen vollständige Fenster und erhalten deren Werte trotz später fehlender Fenster. EPS-Periodenscores und Quantile schließen unvollständige Mitglieder gemeinsam aus. Fehlende Phasenfelder werden nicht mehr mit Nullarrays ersetzt. Echte trockene Nullen bleiben Daten.
+
+33 verpflichtende Fetch-/GRIB-/Bitmap-/Integritätstests inklusive neuer Missing-Negativfälle lokal erfolgreich. Isoliertes Testenvironment: Python 3.12, NumPy 2.5.3, SciPy 1.18.1, ecCodes-Python 2.49.0 mit eigener nativer Library. Keine produktiven Dependency-Ranges oder Interpreter geändert. Die Baseline erfasst native ecCodes-API, NumPy/BLAS-Konfiguration und relevante Threadzahlen; dies ist noch kein validierter Lockfile.

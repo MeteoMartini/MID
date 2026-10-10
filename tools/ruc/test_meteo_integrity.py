@@ -3,6 +3,7 @@ import unittest
 import json
 import io
 import contextlib
+import warnings
 from unittest.mock import patch
 from datetime import datetime, timezone
 import numpy as np
@@ -10,6 +11,37 @@ from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_
 
 
 class MeteoIntegrityTests(unittest.TestCase):
+    def test_missing_rolling_rain_is_not_dry_zero(self):
+        from build_ruc_bundle import _max_rolling_sum
+        # One complete wet window, one completely missing cell, one interrupted
+        # window, and one genuinely dry cell. Only complete windows count.
+        cube = np.array([[0., np.nan, 0., 0.], [1., np.nan, np.nan, 0.],
+                         [2., np.nan, 2., 0.]])
+        before = cube.copy()
+        np.testing.assert_allclose(_max_rolling_sum(cube, 2),
+                                   [3., np.nan, np.nan, 0.], equal_nan=True)
+        np.testing.assert_array_equal(cube, before)
+        np.testing.assert_allclose(_max_rolling_sum(np.array([[0.], [1.], [2.], [np.nan]]), 2), [3.])
+
+    def test_eps_period_missing_members_do_not_become_dry_votes(self):
+        from build_ruc_bundle import rapid_extreme_eps_period_summary
+        from datetime import timedelta
+        run = datetime(2026, 10, 10, tzinfo=timezone.utc)
+        times = [run + timedelta(hours=i) for i in range(7)]
+        cube = np.zeros((7, 3, 3))
+        cube[1:, 0, 0] = 4.  # valid wet member, 24 mm over 6 h
+        cube[1:, 1, 0] = 0.  # valid dry member
+        cube[3, 2, 0] = np.nan  # incomplete member must not vote
+        cube[:, :, 1] = np.nan  # wholly unavailable cell
+        before = cube.copy()
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message='All-NaN slice encountered', category=RuntimeWarning)
+            row = rapid_extreme_eps_period_summary(cube, times, run.isoformat())['0-6']
+        np.testing.assert_array_equal(row['memberCount'], [2., 0., 3.])
+        np.testing.assert_allclose(row['wetProbabilityPct'], [50., np.nan, 0.], equal_nan=True)
+        np.testing.assert_allclose(row['totalQ75Mm'], [18., np.nan, 0.], equal_nan=True)
+        np.testing.assert_array_equal(cube, before)
+
     def test_missing_metrics_preserve_native_masks_and_distinguish_persistence(self):
         finite = np.array([[True, False, False, True],
                            [True, False, True, True],
