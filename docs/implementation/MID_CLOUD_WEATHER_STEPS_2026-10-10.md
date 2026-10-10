@@ -1,0 +1,15 @@
+# MID .232 – unabhängige Wolken-/Wettertermine
+
+Getrennte mid.cloud-weather.field.v1-Objekte stammen aus direkten DWD-CLCT-/WW-GRIB2-Feldern desselben Laufs, Termins und Rasters. Die sieben Pflichtfelder der Synoptik werden nicht vorgetäuscht. ICON-D2 verwendet jedes zweite reale Rasterelement; Kategorien werden nicht gemittelt. Missing bleibt null. Prüfsummen, Größenbegrenzung, WMO 4677 und Prozentwerte werden beim Lesen geprüft.
+
+Zeitschritte: 0–12 stündlich; 15/18/21/24/30/36/42/48; danach zwölfstündlich bis zum Modellhorizont. Nicht vorhandene Felder werden ausgelassen. Parallele Aufbereitung mit gemeinsamem Zeitbudget verhindert Quellenbenachteiligung. Cache-Restore und Pages-Budget beziehen zusätzliche Raster ein; Pflicht-Synoptiktermine behalten Vorrang.
+
+GDPS-Prüfung: direkte ECCC-WMS-Anfragen für 2026-10-10 21 UTC, INIT 12 UTC, Deutschland in EPSG:3857 liefern HTTP 200 und nichtleere PNGs für CLOUD (59225 Bytes) und INSTPRECIPITATIONTYPE (2682 Bytes). Gemeinsame Termine sind dreistündlich, später gröber. Ein ungeeigneter ausgewählter Termin darf den verfügbaren Katalog nicht verbergen. Die Karte wartet auf beide Ebenen; nach 30 Sekunden wird unvollständiges Laden angezeigt und kann wiederholt werden. Keine vollständige Nebel-/Gewitterdiagnostik bei GDPS.
+
+Öffentliche MID-Endpunkte waren aus dieser Arbeitsumgebung durch HTTP 403 blockiert. Veröffentlichung wird über vorhandene Source-/Installer-Gates und den stabilen Git-Stand nachgewiesen; Anbieterabruf ersetzt keine reale Geräteabnahme. Offene wissenschaftliche Einheitenverträge bleiben offen.
+
+Lokale Prüfung: 958/958 App-Regressionen, 149 Python-Tests einschließlich 14 Synoptikfällen; Types, Worker-Syntax und sauberer Produktionsbuild erfolgreich. Echte ICON-EU-Felder des Laufs 2026-10-10 12 UTC für +1/+12 h durch die neue Produktionsfunktion dekodiert: 286897/299663 komprimierte Bytes; SHA-256 c0794416434597f7241b8cf71535da4f0438e0c1aaefdc704ed2baad9e2aa133 / 9a6ac931f9d69698fb8d5ec53f257f48e734f8547b900e6cb869c754a3b87d02. D2-WW wird vom Anbieter nicht für +0 angeboten; dieser Termin wird deshalb nicht erfunden.
+
+Echtes ICON-Global-Wolken-/Wetterpaar desselben Laufs für +1 h ebenfalls erfolgreich mit Produktionsdecoder und originalem Grid-Mapping: 75563 komprimierte / 361401 dekodierte Bytes, SHA-256 12d44aa5ea9e3c9771c25a8bf3722ed7e58967f736c21c1d49cdee417a6b0437. Die Publikationsregression prüft ausdrücklich, dass zusätzliche CW-Objekte im unveränderlichen Pages-Manifest und auf dem Datenträger ankommen und manipulierte CW-Dateien zurückgewiesen werden.
+
+Alle 24 echten Vite/MapLibre-Browserfälle bestanden: 320/390/412/844/1024/1440 px × hell/dunkel × next/classic. Fixtures enthalten unabhängige stündliche CW-Dateien für D2/EU; Kombination, Ortswerte, gemeinsame GDPS-Ebenen, Auswahlsortierung und Kartenidentität geprüft. Synthetische Fixtures sind keine Live-Wetterdaten. Main-JS 1423644/1500000 Bytes, Haupt-CSS 1752171/1760000 Bytes. Kein Release-/Speicher-/Chunk-Budget wurde gelockert.
