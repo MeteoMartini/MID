@@ -1,5 +1,9 @@
 # MID v0.9.85.226 · wissenschaftlicher Audit: verifizierter Fortsetzungsstand
 
+## Fortsetzung .227: begrenztes Einheitenpaket
+
+Auf dem verifizierten .226-Stable umgesetzt: CLAT/CLON-Konversion nach deklarierter Einheit statt Größenheuristik; achsenfremde Einheiten werden abgewiesen. u10/v10/Böen, CAPE/CIN und Niederschlagsakkumulation besitzen explizite Einheiten-Gates. 39 GRIB-/Fetch-/Integritätstests und drei Temperaturtests lokal erfolgreich; Produktionsbuild/Types erfolgreich. Vollständige Parameter-/Raw-Level-/Zeitfenster-/UUID-Matrix bleibt als nächster Schritt offen. Der folgende Abschnitt dokumentiert den vorherigen .226-Checkpoint, nicht den finalen .227-Veröffentlichungsstatus. Veröffentlichung wird erst nach erfolgreichem Installer und Stable-/Live-Abgleich behauptet.
+
 Am 10.10.2026 Source-Gate 38031626313 und Installer 38032074847 erfolgreich, Pages im ersten Versuch. main=mid-stable=6c7d493c65cf1046fc1a5ed2f89bf10b0ea3ffca. PR #320 (Quellhead95890bbc0cc7676f2dc10b8782c524e0ebc09c79) zusammengeführt. .225 war zuvor wegen Messung während Update-Animation nicht installiert; .226 übernimmt alle .225-Quelländerungen und löst den reproduzierten Gatefehler ohne Lockerung.
 
 Erledigt: Offline-Inventar/semantische Referenzbaseline; native Environment-Diagnose; RUC-Missing-Summen, rollierende Fenster, EPS-Mitgliedervoten/Quantile, optionale Phasen und JSON-Kompatibilitätsfelder korrigiert. Lokal955 App-Regressionen,36 GRIB/Fetch/Bitmap/Integritätstests,3 Temperaturtests,14 Browserfälle, Produktionsbuild/Types, Worker/SW-Syntax und Produktionsaudit0 Vulnerabilities. CI-Core/Heavy/iOS-Webasset-Kontrolle erfolgreich. Dies ist keine reale iOS/WKWebView-/VoiceOver-Abnahme oder vollständige wissenschaftliche Abnahme.

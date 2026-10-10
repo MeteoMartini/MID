@@ -52,15 +52,16 @@ def decode_file_batch(payload):
     path_text,ensemble,expected_run=payload
     return list(read_messages(Path(path_text),ensemble=ensemble,expected_run=expected_run,include_signature=True))
 
-def read_first_values(path:Path):
-    try: from eccodes import codes_grib_new_from_file,codes_get_array,codes_release
+def read_first_values(path:Path,include_units=False):
+    try: from eccodes import codes_grib_new_from_file,codes_get,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
     with open_grib_stream(path) as f:
       gid=codes_grib_new_from_file(f)
       if gid is None:raise SystemExit(f'empty coordinate GRIB: {path}')
       try:
         inspect_grib_header(gid)
-        return decode_bitmap_values(gid)
+        values=decode_bitmap_values(gid)
+        return (values,str(codes_get(gid,'units'))) if include_units else values
       finally:codes_release(gid)
 
 def load_native_grid(staging:Path,expected_points:int):
@@ -68,15 +69,23 @@ def load_native_grid(staging:Path,expected_points:int):
     for param in ('CLAT','CLON'):
       files=sorted((staging/'grid'/param).glob('**/*.grib2*'))
       if not files:raise SystemExit(f'missing staged native-grid coordinate {param}')
-      coord[param]=read_first_values(files[0])
+      values,units=read_first_values(files[0],include_units=True)
+      coord[param]=normalize_coordinate(param,values,units)
       if len(coord[param])!=expected_points:raise SystemExit(f'{param}: coordinate point count differs from forecast grid')
     lats=coord['CLAT'].astype(np.float64);lons=coord['CLON'].astype(np.float64)
-    # ICON CLAT/CLON are commonly encoded in radians; accept degrees as a future-safe form.
-    if np.nanmax(np.abs(lats))<=math.pi/2+.05 and np.nanmax(np.abs(lons))<=math.pi+.05:
-      lats=np.degrees(lats);lons=np.degrees(lons)
     if not np.all(np.isfinite(lats)) or not np.all(np.isfinite(lons)):raise SystemExit('CLAT/CLON contain non-finite native-grid coordinates')
     if np.nanmin(lats)<-90 or np.nanmax(lats)>90 or np.nanmin(lons)<-180 or np.nanmax(lons)>180:raise SystemExit('CLAT/CLON outside geographic coordinate bounds')
     return lats.astype(np.float32),lons.astype(np.float32)
+
+def normalize_coordinate(param,values,units):
+    """Use declared coordinate units; small degree grids are not radians."""
+    v=np.asarray(values,dtype=np.float64).copy();u=units.strip().lower()
+    degrees={'CLAT':{'degree n','degrees_north'},'CLON':{'degree e','degrees_east'}}
+    if param not in degrees:raise MeteoIntegrityError(f'unknown coordinate {param!r}')
+    if u in {'rad','radian','radians'}:return np.degrees(v)
+    if u not in degrees[param]:
+      raise MeteoIntegrityError(f'{param}: unsupported coordinate unit {units!r}')
+    return v
 
 def normalize(name,values,units):
     """Normalize by declared units, never by the current weather values."""
@@ -93,6 +102,15 @@ def normalize(name,values,units):
       if u in {'1','fraction','0-1'}:v*=100
       elif u not in {'%','percent','percentage'}:
         raise MeteoIntegrityError(f'{name}: unsupported percentage unit {units!r}')
+    elif name in {'u10','v10','wind_gusts_10m'}:
+      if u not in {'m s**-1','m s-1','m/s'}:
+        raise MeteoIntegrityError(f'{name}: unsupported wind unit {units!r}')
+    elif name in {'cape','convective_inhibition'}:
+      if u not in {'j kg-1','j kg**-1','j/kg'}:
+        raise MeteoIntegrityError(f'{name}: unsupported energy unit {units!r}')
+    elif name=='precipitation_acc':
+      if u not in {'kg m**-2','kg m-2','mm'}:
+        raise MeteoIntegrityError(f'{name}: unsupported precipitation unit {units!r}')
     if name in {'convective_inhibition','cin_mu'}:v=np.abs(v)
     return v
 

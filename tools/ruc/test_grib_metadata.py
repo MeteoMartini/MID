@@ -26,6 +26,47 @@ def fixture(*,centre=78,run_hour=18,step=0):
 
 
 class DwdGribMetadataTests(unittest.TestCase):
+    def test_declared_coordinate_units_not_magnitude(self):
+        small=np.array([0.,1.,np.nan])
+        for name,unit in [('CLAT','Degree N'),('CLON','Degree E')]:
+            np.testing.assert_equal(builder.normalize_coordinate(name,small,unit),small)
+            np.testing.assert_allclose(builder.normalize_coordinate(name,small,'radians'),np.degrees(small))
+            np.testing.assert_equal(small,np.array([0.,1.,np.nan]))
+        for name,unit in [('CLAT','Degree E'),('CLON','Degree N'),('CLAT',''),('CLON','m')]:
+            with self.assertRaisesRegex(MeteoIntegrityError,'coordinate unit'):
+                builder.normalize_coordinate(name,small,unit)
+
+    def test_remaining_core_units_fail_closed(self):
+        fields={'u10':'m s**-1','v10':'m/s','wind_gusts_10m':'m s-1',
+                'cape':'J kg-1','convective_inhibition':'J kg**-1',
+                'precipitation_acc':'kg m**-2'}
+        values=np.array([0.,1.,np.nan])
+        for name,unit in fields.items():
+            np.testing.assert_equal(builder.normalize(name,values,unit),values)
+            for bad in ['', 'unknown', 'knots', 'W m**-2']:
+                with self.assertRaisesRegex(MeteoIntegrityError,'unsupported'):
+                    builder.normalize(name,values,bad)
+        np.testing.assert_equal(builder.normalize('precipitation_acc',values,'mm'),values)
+        np.testing.assert_equal(builder.normalize('convective_inhibition',np.array([-1.]),'J kg-1'),[1.])
+
+    def test_native_grid_uses_each_declared_axis_unit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            staging=Path(tmp)
+            for name in ['CLAT','CLON']:
+                folder=staging/'grid'/name
+                folder.mkdir(parents=True)
+                (folder/'fixture.grib2').touch()
+            with patch.object(builder,'read_first_values',side_effect=[
+                    (np.array([1.,2.]),'Degree N'),
+                    (np.radians(np.array([3.,4.])),'rad')]) as read:
+                lat,lon=builder.load_native_grid(staging,2)
+                np.testing.assert_allclose(lat,[1.,2.])
+                np.testing.assert_allclose(lon,[3.,4.])
+                self.assertTrue(all(call.kwargs=={'include_units':True} for call in read.call_args_list))
+            with patch.object(builder,'read_first_values',return_value=(np.array([91.,92.]),'Degree N')):
+                with self.assertRaisesRegex(MeteoIntegrityError,'coordinate unit'):
+                    builder.load_native_grid(staging,2)
+
     def test_official_centre_and_run(self):
         run=datetime(2026,10,8,18,tzinfo=timezone.utc)
         with tempfile.TemporaryDirectory() as tmp:
@@ -36,6 +77,9 @@ class DwdGribMetadataTests(unittest.TestCase):
             self.assertEqual(len(rows),1)
             self.assertEqual(rows[0][0].hour,19)
             self.assertEqual(rows[0][4][-1],len(rows[0][2]))
+            values,units=builder.read_first_values(path,include_units=True)
+            np.testing.assert_equal(values,rows[0][2])
+            self.assertEqual(units,rows[0][3])
 
     def test_rejects_foreign_centre_and_wrong_run(self):
         run=datetime(2026,10,8,18,tzinfo=timezone.utc)
