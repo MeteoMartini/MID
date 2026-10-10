@@ -1,5 +1,6 @@
 import type {NativeFieldKind,NativeIndex,NativeFrameRef} from './nativeModelFields';
 import {UNIFIED_WMS_PARAMETERS,unifiedWmsChoices} from './unifiedWmsCatalog';
+import {alphabeticalMapOptions} from './mapOptionOrdering';
 
 export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
  {id:'synoptic',label:'Synoptik-Komposit',detail:'Theta-E 850 hPa · Höhenlinien 500 hPa · MSL · Feuchte 700 hPa · Strömung 300 hPa'},
@@ -52,4 +53,4 @@ export const UNIFIED_PARAMETER_GROUPS=[
  {label:'Wolken & Wetter',ids:['cloud','sigwx']},
  {label:'Ensemble & Wahrscheinlichkeiten',ids:['ensemble-pressure','ensemble-geopotential','temperature-anomaly','ensemble-rain-24h','ensemble-wind','ensemble-upper-wind','gust-probability']}
 ];
-export function groupedUnifiedParameters(parameters:typeof UNIFIED_MAP_PARAMETERS){return UNIFIED_PARAMETER_GROUPS.map(group=>({label:group.label,parameters:group.ids.flatMap(id=>parameters.filter(p=>p.id===id))})).filter(group=>group.parameters.length)}
+export function groupedUnifiedParameters(parameters:typeof UNIFIED_MAP_PARAMETERS){return UNIFIED_PARAMETER_GROUPS.map(group=>({label:group.label,parameters:alphabeticalMapOptions(group.ids.flatMap(id=>parameters.filter(p=>p.id===id)))})).filter(group=>group.parameters.length)}

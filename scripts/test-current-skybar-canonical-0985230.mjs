@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+const out=mkdtempSync(join(tmpdir(),'mid230-sky-'));
+try{
+ await build({stdin:{contents:"export{buildShortTermForecast}from'./src/ShortTermForecast';export{shortTermProfileHourlyPoints}from'./src/ForecastCockpit';export{detailSkyBarSegments,detailSkyBarTimedSegments,detailSkyBarHourCells}from'./src/detailSkyBar';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',outfile:join(out,'qa.mjs'),loader:{'.css':'empty'},define:{'import.meta.env':'{}'},logLevel:'silent'});
+ const {buildShortTermForecast,shortTermProfileHourlyPoints,detailSkyBarSegments,detailSkyBarTimedSegments,detailSkyBarHourCells}=await import(pathToFileURL(join(out,'qa.mjs')));
+ const start=Date.UTC(2026,9,10,15),now=start+50*60000,end=start+12*3600000;
+ const base={temperature:15,apparent:14,humidity:65,dewPoint:8,pressure:1011,wind:4,gust:10,direction:270,cloud:75,lowCloud:30,midCloud:30,highCloud:20,visibility:30000,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:3,isDay:true,sunshineDuration:0};
+ const hours=Array.from({length:28},(_,i)=>({...base,epoch:start+i*3600000,time:new Date(start+i*3600000).toISOString(),precipitation:i===14?.3:0,rain:i===14?.3:0,probability:i===14?80:0}));
+ const minutes=Array.from({length:12},(_,i)=>({...base,epoch:start+i*900000,time:new Date(start+i*900000).toISOString(),sunshineDuration:0,precipitation:i===10?.06:0,rain:i===10?.06:0,probability:i===10?66:0,code:i===10?61:3}));
+ const original=structuredClone({hours,minutes}),points=buildShortTermForecast(minutes,hours,'Europe/Berlin',now,{active:false}),profile=shortTermProfileHourlyPoints(hours,points,'Europe/Berlin',now);
+ assert.equal(detailSkyBarSegments(hours.slice(0,12),2,2,120,8).filter(s=>s.layer==='precip').length,0,'reproduce old Current loss despite positive quarter signal');
+ const current=detailSkyBarTimedSegments(points,start,end,2,2,120,8),today=detailSkyBarTimedSegments(points,now,now+24*3600000,60,24,1000,8);
+ const rain=current.filter(s=>s.layer==='precip');assert.ok(rain.length>0,'unrounded 0.06 mm quarter rain must survive');
+ const sample=points.find(p=>p.source==='15-min'&&p.precipitation>0);assert.ok(sample);
+ const epochAt=(s,x,l,r,w,a,b)=>a+(x-l)/(w-l-r)*(b-a);
+ const matched=rain.find(s=>Math.abs(epochAt(s,s.x1,2,2,120,start,end)-sample.precipitationIntervalStartEpoch)<1);
+ assert.ok(matched);assert.equal(epochAt(matched,matched.x2,2,2,120,start,end),sample.precipitationIntervalEndEpoch);
+ const corresponding=today.find(s=>s.layer==='precip'&&Math.abs(epochAt(s,s.x1,60,24,1000,now,now+24*3600000)-sample.precipitationIntervalStartEpoch)<1);
+ assert.ok(corresponding);for(const key of ['color','thicknessLevel','title','opacity'])assert.equal(matched[key],corresponding[key]);
+ assert.ok(detailSkyBarHourCells(profile.filter(p=>p.epoch<end)).some(cell=>cell.precip),'same hourly aggregation preserves rain in Current squares');
+ const dry=buildShortTermForecast(minutes.map(m=>({...m,precipitation:0,rain:0,probability:0,code:3})),hours,'Europe/Berlin',now,{active:false});assert.equal(detailSkyBarTimedSegments(dry,start,end,2,2,120,8).filter(s=>s.layer==='precip').length,0);
+ const missing=buildShortTermForecast([],hours,'Europe/Berlin',now,{active:false});assert.ok(missing.length);assert.equal(detailSkyBarTimedSegments(missing,start,end,2,2,120,8).filter(s=>s.layer==='precip').length,0,'no fabricated precipitation when fine data unavailable');
+ const interval={...base,precipitation:.02,rain:.02,code:61,precipitationIntervalStartEpoch:now,precipitationIntervalEndEpoch:now+5*60000};
+ const clipped=detailSkyBarTimedSegments([interval],now+60000,now+4*60000,0,0,100,8);assert.equal(clipped.find(s=>s.layer==='precip').x1,0);assert.equal(clipped.find(s=>s.layer==='precip').x2,100);assert.equal(clipped.find(s=>s.layer==='precip').thicknessLevel,detailSkyBarTimedSegments([interval],now,now+5*60000,0,0,100,8).find(s=>s.layer==='precip').thicknessLevel,'clipping must not increase intensity');
+ const gap=detailSkyBarTimedSegments([interval,{...interval,precipitationIntervalStartEpoch:now+10*60000,precipitationIntervalEndEpoch:now+15*60000}],now,now+15*60000,0,0,150,8).filter(s=>s.layer==='precip');assert.equal(gap.length,2);assert.ok(gap[0].x2<gap[1].x1,'explicit missing interval remains a gap');
+ assert.deepEqual(detailSkyBarTimedSegments([{...interval,precipitationIntervalEndEpoch:NaN}],now,end,0,0,120,8),[]);
+ assert.deepEqual({hours,minutes},original,'canonical inputs are immutable');
+ const app=readFileSync('src/App.tsx','utf8');assert.match(app,/<MemoCurrent[^\n]*minutes15=\{displayMinutes15\} anchor=\{shortTermAnchor\}/);assert.match(app,/currentThreadSkyFine=buildShortTermForecast\(minutes15,hours,w.timezone,solarNow,anchor\)/);assert.match(app,/currentThreadSkyHours=shortTermProfileHourlyPoints\(hours,currentThreadSkyFine,w.timezone,solarNow\)/);assert.match(app,/xPositions=\{currentThreadSkyXPositions\}/);
+ console.log('MID230: missing light rain reproduced; Current/Today interval, phase, intensity and hourly squares agree; clipping, real gaps, dry/missing and immutable inputs verified.');
+}finally{rmSync(out,{recursive:true,force:true})}
+if(process.env.GITHUB_ACTIONS==='true')await import('./verify-current-skybar-browser-0985230.mjs');

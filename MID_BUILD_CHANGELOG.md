@@ -1,3 +1,15 @@
+## MID v0.9.85.230 · 2026-10-10 · Skybar, alphabetische Karten und MU-Energieverträge
+
+- Alphabetische Modelle und gruppenweise Parameter in UnifiedWeatherMap und WeatherMapsPanel; gemeinsamer deutscher Collator mit natürlichen Zahlen, kopierte Listen statt Mutation. Fallbackprioritäten/persistierte IDs unverändert.
+- Vier echte CAPE_MU/CIN_MU-DWD-Header2026-10-10T15:00 +0/+1h mit Hash/Raw-Codes/Grid archiviert; reproduzierbarer begrenzter Probe. Separate MU193-Matrix und Energieeinheiten J/kg statt stiller Übernahme beliebiger Einheiten. Drei neue Python-Pflichttests, keine vollständige optionale Werte-/E2E-Abnahme.
+- C21-CI-Browserfixture erhält den neuen expliziten minutes15-Prop;28 lokale Fälle grün. Karten-Browsergate prüft alphabetische sichtbare Reihenfolge in beiden Auswahlrichtungen; reine ThetaE-Reihenfolgeassertion folgt bewusst dem neuen Alphabetvertrag bei gleicher Anbieter-Menge.
+
+- Verifizierte Basis main=mid-stable b88efe2f3ba580aad5a0e692037f2c9814f69547 (.229), Installer38059674163 erfolgreich; keine überlappende Source-PR.
+- Current bekommt displayMinutes15 und shortTermAnchor wie Heute. buildShortTermForecast und die wiederverwendete shortTermProfileHourlyPoints-Aufbereitung erhalten geringe native Mengen und korrekte vorwärts gerichtete Zeitintervalle. Kein zweites Radar-Blending auf bereits finalisierten Daten.
+- Gemeinsame detailSkyBarTimedSegments zeichnet ausdrücklich Anfang/Ende, clippt Geometrie ohne Mengen-/Intensitätsänderung und erhält Lücken. Current und Heute verwenden denselben Niederschlagsrenderer; Current-Stundenquadrate dieselbe Stundenaufbereitung und echte Epoch-Positionen.
+- Regression reproduziert zuvor fehlende 0,06 mm, vergleicht Zeitpunkt/Phase/Intensität, Squares, trocken/Missing, Clipping, Lücken und Input-Unveränderlichkeit. Browser prüft echte Current-/Heute-Komponenten in sechs Viewports, beiden Themes/Designs und beiden Skybar-Modi.
+- Bestehende wissenschaftliche, Sicherheits- und Freigabeverträge bleiben verbindlich; weitere Gesamtauditpunkte aus .229 bleiben offen.
+
 ## MID v0.9.85.229 · 2026-10-10 · UTCI, kompakte 14d-Entwicklung und reale Werte-Referenz
 
 - Verifizierte Basis main=mid-stable ada0f6c54a7ed1faf56d4d202d8a897abf567157 (.228). Keine überlappende offene Source-PR; Releasegates unverändert.

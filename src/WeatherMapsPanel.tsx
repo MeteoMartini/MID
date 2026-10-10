@@ -1,4 +1,5 @@
 import NativeModelMap from './NativeModelMap';
+import {alphabeticalMapOptions} from './mapOptionOrdering';
 import PrecipitationTotalsMap,{type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
 import ModelMapProbe from './ModelMapProbe';
@@ -51,8 +52,8 @@ function WeatherMapsPanel({latitude,longitude,timezone,locationName,favorites=[]
    <span className="weather-maps-source"><Layers3 size={16}/><b>{phaseLabel}</b><small>{productSourceBadge}{level!==undefined?` · ${levelLabel(product,level)}`:''}</small></span>
   </header>:null}
   <div className="weather-maps-primary-controls" aria-label="Primäre Kartenauswahl">
-   <label><span>Kartenprodukt</span><select aria-label="Kartenprodukt" value={product.id} onChange={event=>chooseProduct(event.target.value)}>{['Niederschlag','Temperatur','Wind','Druck & Höhen','Weitere Wetterfelder'].map(family=>{const matching=products.filter(item=>weatherMapProductFamily(item)===family);return matching.length?<optgroup key={family} label={family}>{matching.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>:null})}</select><small>{product.detail}</small></label>
-   <label><span>Modell</span><select aria-label="Modell" value={modelId} onChange={event=>chooseModel(event.target.value as WeatherMapModelId)}>{WEATHER_MAP_MODELS.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><small>{model.detail}</small></label>
+   <label><span>Kartenprodukt</span><select aria-label="Kartenprodukt" value={product.id} onChange={event=>chooseProduct(event.target.value)}>{['Niederschlag','Temperatur','Wind','Druck & Höhen','Weitere Wetterfelder'].map(family=>{const matching=alphabeticalMapOptions(products.filter(item=>weatherMapProductFamily(item)===family));return matching.length?<optgroup key={family} label={family}>{matching.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>:null})}</select><small>{product.detail}</small></label>
+   <label><span>Modell</span><select aria-label="Modell" value={modelId} onChange={event=>chooseModel(event.target.value as WeatherMapModelId)}>{alphabeticalMapOptions(WEATHER_MAP_MODELS).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select><small>{model.detail}</small></label>
    <label><span>Kartenbasis</span><select aria-label="Kartenbasis" value={basemap} onChange={event=>setBasemap(event.target.value as BasemapId)}>{Object.entries(BASEMAPS).map(([id,item])=><option key={id} value={id}>{item.label}</option>)}</select><small>Grenzen und Ortsnamen bleiben über dem Wetterfeld sichtbar.</small></label>
   </div>
   {isTotals?<PrecipitationTotalsMap favorites={favorites} embedded basemap={basemap} kind={product.source==='observed-totals'?'observed':'forecast'}/>:product.source==='native'&&product.nativeKind?<NativeModelMap kind={product.nativeKind} label={product.label} favorites={favorites} basemap={basemap} unit={unit}/>:<>

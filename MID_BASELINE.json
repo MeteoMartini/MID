@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.229",
+  "releaseVersion": "0.9.85.230",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -182,6 +182,7 @@
     "scripts/test-current-observation-multisource-cloud-098460.mjs",
     "scripts/test-current-precip-radolan-history-visible-098483.mjs",
     "scripts/test-current-shortterm-temperature-consistency-095340.mjs",
+    "scripts/test-current-skybar-canonical-0985230.mjs",
     "scripts/test-current-solar-event-background-09538.mjs",
     "scripts/test-current-source-info-type-safety-09471.mjs",
     "scripts/test-current-sunshine-minutes-081002.mjs",
@@ -493,6 +494,7 @@
     "scripts/test-map-direct-time-theme-0985212.mjs",
     "scripts/test-map-heading-and-ensemble-share.mjs",
     "scripts/test-map-memory-profile-0985214.mjs",
+    "scripts/test-map-option-ordering-0985230.mjs",
     "scripts/test-map-runtime-baseline-0985210.mjs",
     "scripts/test-map-synoptic-categories-0985195.mjs",
     "scripts/test-map-workspace-handoff.mjs",
@@ -1140,6 +1142,7 @@
     "scripts/test-current-observation-multisource-cloud-098460.mjs",
     "scripts/test-current-precip-radolan-history-visible-098483.mjs",
     "scripts/test-current-shortterm-temperature-consistency-095340.mjs",
+    "scripts/test-current-skybar-canonical-0985230.mjs",
     "scripts/test-current-solar-event-background-09538.mjs",
     "scripts/test-current-source-info-type-safety-09471.mjs",
     "scripts/test-current-sunshine-minutes-081002.mjs",
@@ -1451,6 +1454,7 @@
     "scripts/test-map-direct-time-theme-0985212.mjs",
     "scripts/test-map-heading-and-ensemble-share.mjs",
     "scripts/test-map-memory-profile-0985214.mjs",
+    "scripts/test-map-option-ordering-0985230.mjs",
     "scripts/test-map-runtime-baseline-0985210.mjs",
     "scripts/test-map-synoptic-categories-0985195.mjs",
     "scripts/test-map-workspace-handoff.mjs",
@@ -3458,7 +3462,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.229",
+  "version": "0.9.85.230",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",

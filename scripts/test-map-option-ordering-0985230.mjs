@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {readFileSync} from 'node:fs';
+const result=await build({stdin:{contents:"export{alphabeticalMapOptions}from'./src/mapOptionOrdering';export{UNIFIED_MAP_PARAMETERS,UNIFIED_PARAMETER_GROUPS,groupedUnifiedParameters,unifiedSources}from'./src/unifiedMapCatalog';export{WEATHER_MAP_MODELS,weatherMapProductsForModel,weatherMapProductFamily}from'./src/WeatherMapsData';",resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'esm',define:{'import.meta.env':'{}'},logLevel:'silent'});
+const m=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64')),collator=new Intl.Collator('de-DE',{usage:'sort',sensitivity:'base',numeric:true}),ordered=rows=>rows.every((row,i)=>!i||collator.compare(rows[i-1].label,row.label)<=0);
+const original=structuredClone(m.UNIFIED_MAP_PARAMETERS),groups=m.groupedUnifiedParameters([...m.UNIFIED_MAP_PARAMETERS].reverse());
+assert.deepEqual(groups.map(g=>g.label),m.UNIFIED_PARAMETER_GROUPS.map(g=>g.label),'established category order remains unchanged');
+for(const group of groups){assert.ok(ordered(group.parameters),group.label);const ids=m.UNIFIED_PARAMETER_GROUPS.find(g=>g.label===group.label).ids;assert.deepEqual(group.parameters.map(p=>p.id).sort(),m.UNIFIED_MAP_PARAMETERS.filter(p=>ids.includes(p.id)).map(p=>p.id).sort(),'all compatible parameters remain available');}
+assert.deepEqual(m.UNIFIED_MAP_PARAMETERS,original,'sorting never mutates canonical product priority');
+const models=m.alphabeticalMapOptions(m.WEATHER_MAP_MODELS);assert.ok(ordered(models));assert.deepEqual(models.map(x=>x.id).sort(),m.WEATHER_MAP_MODELS.map(x=>x.id).sort());
+for(const model of models)for(const family of ['Niederschlag','Temperatur','Wind','Druck & Höhen','Weitere Wetterfelder']){const products=m.weatherMapProductsForModel(model.id).filter(p=>m.weatherMapProductFamily(p)===family),sorted=m.alphabeticalMapOptions(products);assert.ok(ordered(sorted));assert.deepEqual(sorted.map(p=>p.id).sort(),products.map(p=>p.id).sort());}
+const options=Object.freeze([{id:'c',label:'Ömega'},{id:'b',label:'Böen · 12 h'},{id:'a',label:'Böen · 3 h'}]);assert.deepEqual(m.alphabeticalMapOptions(options).map(p=>p.id),['a','b','c'],'German umlauts and natural numeric ordering');
+assert.deepEqual(m.unifiedSources('temperature',{products:{temperature:{frames:[{}]}}},false,false).map(s=>s.id),['icon-d2','icon-eu','icon','aicon'],'native source fallback priority is not changed by UI ordering');
+for(const [file,token] of [['src/UnifiedWeatherMap.tsx','shownSources=alphabeticalMapOptions('],['src/WeatherMapsPanel.tsx','alphabeticalMapOptions(WEATHER_MAP_MODELS).map'],['src/WeatherMapsPanel.tsx','matching=alphabeticalMapOptions(products.filter']])assert.ok(readFileSync(file,'utf8').includes(token),'every map selector uses shared ordering');
+console.log('MID230 maps: German alphabetic model and grouped-parameter ordering, natural numbers, unchanged membership/source priority, immutable catalogs and both selector routes verified.');

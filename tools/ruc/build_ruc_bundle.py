@@ -106,7 +106,7 @@ def normalize(name,values,units):
     elif name in {'u10','v10','wind_gusts_10m'}:
       if u not in {'m s**-1','m s-1','m/s'}:
         raise MeteoIntegrityError(f'{name}: unsupported wind unit {units!r}')
-    elif name in {'cape','convective_inhibition'}:
+    elif name in {'cape','convective_inhibition','cape_mu','cin_mu'}:
       if u not in {'j kg-1','j kg**-1','j/kg'}:
         raise MeteoIntegrityError(f'{name}: unsupported energy unit {units!r}')
     elif name=='precipitation_acc':

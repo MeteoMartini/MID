@@ -3,7 +3,7 @@
 Use decoded GRIB section headers, never filenames as the sole field authority.
 WMO Common Table C-1 defines originating centre 78 as Offenbach/RSMC.
 Core/coordinate contracts are calibrated against archived DWD headers.
-Optional parameter/level calibration is deliberately not claimed here.
+MU energy contracts are separately calibrated; other optional levels remain open.
 """
 from __future__ import annotations
 
@@ -32,6 +32,10 @@ CORE_CONTRACTS = {
     'CLON': (0,191,2,1,0,255,None,'instant'),
 }
 # A DWD grid revision must be recalibrated, not accepted by point count alone.
+OPTIONAL_MU_CONTRACTS = {
+    'cape_mu': (0,7,6,193,0,255,None,'instant'),
+    'cin_mu': (0,7,7,193,0,255,None,'instant'),
+}
 NATIVE_GRID = ('c6b12daa91ad64045b26c1b6452a2a20',47,1,542040)
 
 
@@ -40,13 +44,14 @@ def source_contract_manifest(run):
     reference=datetime.fromisoformat(run.replace('Z','+00:00'))
     reference=reference.replace(tzinfo=timezone.utc) if reference.tzinfo is None else reference.astimezone(timezone.utc)
     return {'schema':'mid.ruc.source-grib-contract.v1','forecastReferenceTime':reference.isoformat(),
-            'scope':'12 core fields, CLAT/CLON and EPS TOT_PREC; optional levels not calibrated',
+            'scope':'12 core fields, CLAT/CLON, EPS TOT_PREC and optional CAPE_MU/CIN_MU; other optional levels not calibrated',
             'epsMemberIds':list(range(1,21)),
             'nativeGrid':{'uuid':NATIVE_GRID[0],'number':NATIVE_GRID[1],
                           'reference':NATIVE_GRID[2],'pointCount':NATIVE_GRID[3]},
             'parameterColumns':['discipline','category','number','firstSurfaceCode','firstSurfaceValue',
                                 'secondSurfaceCode','secondSurfaceValue','processing'],
             'parameters':{name:list(contract) for name,contract in CORE_CONTRACTS.items()},
+            'optionalParameters':{name:list(contract) for name,contract in OPTIONAL_MU_CONTRACTS.items()},
             'sourceTimeBounds':{'instant':'[valid,valid]','accum':'[initialization,valid]',
                                 'max':'[max(initialization,valid-3600 seconds),valid]'},
             'packedPrecipitation':'interval amounts from differences of validated accumulations'}
@@ -139,7 +144,7 @@ def inspect_grib_header(gid, expected_run: datetime | None = None, expected_para
               int(codes_get_long(gid,'numberOfGridInReference')),signature[-1])
         if grid!=NATIVE_GRID:
             raise MeteoIntegrityError(f'RUC native grid identity differs: {grid}')
-    contract=CORE_CONTRACTS.get(expected_parameter)
+    contract=CORE_CONTRACTS.get(expected_parameter) or OPTIONAL_MU_CONTRACTS.get(expected_parameter)
     if expected_parameter is not None and grid is None:
         raise MeteoIntegrityError(f'{expected_parameter}: expected native unstructured RUC grid')
     if contract is not None:

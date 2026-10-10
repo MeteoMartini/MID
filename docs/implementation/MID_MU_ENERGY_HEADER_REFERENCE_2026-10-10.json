@@ -1,0 +1,183 @@
+{
+  "schema": "mid.optional-mu-grib-header-reference.v1",
+  "capturedAt": "2026-10-10T17:03:14.133752+00:00",
+  "sourceCommit": "39ebdcdb91d8c81fad67e55617837649f3c1e294",
+  "sourceWorktreeStatus": [
+    " M tools/ruc/build_ruc_bundle.py",
+    " M tools/ruc/grib_metadata.py",
+    "?? tools/ruc/scientific_mu_contract_probe.py"
+  ],
+  "sourceHashes": {
+    "tools/ruc/scientific_mu_contract_probe.py": "27c0f4dcba7d5dcfde40570aecbef503fea904f924216a3bbd73f82d621b7216",
+    "tools/ruc/scientific_grib_contract_probe.py": "3dbbbe8398629e1b2b66c395ae603c1ae004a2f01fe0e589508275efcd5f9b48",
+    "tools/ruc/grib_metadata.py": "e20d9ef07c75a7866068930fc6c65b712be1b2151f298a7dda0ae83359e9907c",
+    "tools/ruc/build_ruc_bundle.py": "92554c09117934af85009e84f7ab9f29c0adf7acd356bbea71c50173c939b142"
+  },
+  "run": "2026-10-10T15:00",
+  "nativeEcCodes": "2.49.0",
+  "numpy": "2.5.3",
+  "scope": "four real DWD MU-energy headers at +0/+1h, not full values/QC/E2E or all optional products",
+  "rawInputsRetained": false,
+  "records": [
+    {
+      "parameter": "CAPE_MU",
+      "logicalField": "cape_mu",
+      "member": null,
+      "url": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/CAPE_MU/r/2026-10-10T15:00/s/PT000H00M.grib2",
+      "sha256": "868baaef7dcf39f94212a2f38f01d9224ad68dc75e9d5362da422f57d54852a5",
+      "bytes": 756175,
+      "units": "J kg-1",
+      "gridIdentity": [
+        "c6b12daa91ad64045b26c1b6452a2a20",
+        47,
+        1,
+        542040
+      ],
+      "forecast_reference_time": "2026-10-10T15:00:00+00:00",
+      "lead_seconds": 0,
+      "valid_time": "2026-10-10T15:00:00+00:00",
+      "time_bounds": [
+        "2026-10-10T15:00:00+00:00",
+        "2026-10-10T15:00:00+00:00"
+      ],
+      "processing": "instant",
+      "rawHeader": {
+        "shortName": "CAPE_MU",
+        "typeOfLevel": "unknown",
+        "level": 0,
+        "stepType": "instant",
+        "startStep": "0m",
+        "endStep": "0m",
+        "discipline": 0,
+        "parameterCategory": 7,
+        "parameterNumber": 6,
+        "typeOfFirstFixedSurface": 193,
+        "scaleFactorOfFirstFixedSurface": 0,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "scaleFactorOfSecondFixedSurface": 2147483647,
+        "scaledValueOfSecondFixedSurface": 2147483647
+      }
+    },
+    {
+      "parameter": "CAPE_MU",
+      "logicalField": "cape_mu",
+      "member": null,
+      "url": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/CAPE_MU/r/2026-10-10T15:00/s/PT001H00M.grib2",
+      "sha256": "df48ee8aad14bd386b357991d19f2303ba98ad4f50ee65ef5d330faf11d6a93b",
+      "bytes": 735690,
+      "units": "J kg-1",
+      "gridIdentity": [
+        "c6b12daa91ad64045b26c1b6452a2a20",
+        47,
+        1,
+        542040
+      ],
+      "forecast_reference_time": "2026-10-10T15:00:00+00:00",
+      "lead_seconds": 3600,
+      "valid_time": "2026-10-10T16:00:00+00:00",
+      "time_bounds": [
+        "2026-10-10T16:00:00+00:00",
+        "2026-10-10T16:00:00+00:00"
+      ],
+      "processing": "instant",
+      "rawHeader": {
+        "shortName": "CAPE_MU",
+        "typeOfLevel": "unknown",
+        "level": 0,
+        "stepType": "instant",
+        "startStep": 1,
+        "endStep": 1,
+        "discipline": 0,
+        "parameterCategory": 7,
+        "parameterNumber": 6,
+        "typeOfFirstFixedSurface": 193,
+        "scaleFactorOfFirstFixedSurface": 0,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "scaleFactorOfSecondFixedSurface": 2147483647,
+        "scaledValueOfSecondFixedSurface": 2147483647
+      }
+    },
+    {
+      "parameter": "CIN_MU",
+      "logicalField": "cin_mu",
+      "member": null,
+      "url": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/CIN_MU/r/2026-10-10T15:00/s/PT000H00M.grib2",
+      "sha256": "bba017a34d146d9ce764c73b7619487519c03d60691b83afca2f226ffbdb71f7",
+      "bytes": 501727,
+      "units": "J kg-1",
+      "gridIdentity": [
+        "c6b12daa91ad64045b26c1b6452a2a20",
+        47,
+        1,
+        542040
+      ],
+      "forecast_reference_time": "2026-10-10T15:00:00+00:00",
+      "lead_seconds": 0,
+      "valid_time": "2026-10-10T15:00:00+00:00",
+      "time_bounds": [
+        "2026-10-10T15:00:00+00:00",
+        "2026-10-10T15:00:00+00:00"
+      ],
+      "processing": "instant",
+      "rawHeader": {
+        "shortName": "CIN_MU",
+        "typeOfLevel": "unknown",
+        "level": 0,
+        "stepType": "instant",
+        "startStep": "0m",
+        "endStep": "0m",
+        "discipline": 0,
+        "parameterCategory": 7,
+        "parameterNumber": 7,
+        "typeOfFirstFixedSurface": 193,
+        "scaleFactorOfFirstFixedSurface": 0,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "scaleFactorOfSecondFixedSurface": 2147483647,
+        "scaledValueOfSecondFixedSurface": 2147483647
+      }
+    },
+    {
+      "parameter": "CIN_MU",
+      "logicalField": "cin_mu",
+      "member": null,
+      "url": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/CIN_MU/r/2026-10-10T15:00/s/PT001H00M.grib2",
+      "sha256": "96617b159b93168d4878458000dbc687847e470ee0a3cce89b83e3533f9f3ee9",
+      "bytes": 612024,
+      "units": "J kg-1",
+      "gridIdentity": [
+        "c6b12daa91ad64045b26c1b6452a2a20",
+        47,
+        1,
+        542040
+      ],
+      "forecast_reference_time": "2026-10-10T15:00:00+00:00",
+      "lead_seconds": 3600,
+      "valid_time": "2026-10-10T16:00:00+00:00",
+      "time_bounds": [
+        "2026-10-10T16:00:00+00:00",
+        "2026-10-10T16:00:00+00:00"
+      ],
+      "processing": "instant",
+      "rawHeader": {
+        "shortName": "CIN_MU",
+        "typeOfLevel": "unknown",
+        "level": 0,
+        "stepType": "instant",
+        "startStep": 1,
+        "endStep": 1,
+        "discipline": 0,
+        "parameterCategory": 7,
+        "parameterNumber": 7,
+        "typeOfFirstFixedSurface": 193,
+        "scaleFactorOfFirstFixedSurface": 0,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "scaleFactorOfSecondFixedSurface": 2147483647,
+        "scaledValueOfSecondFixedSurface": 2147483647
+      }
+    }
+  ]
+}
