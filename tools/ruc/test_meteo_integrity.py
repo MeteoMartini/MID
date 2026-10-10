@@ -56,6 +56,8 @@ class MeteoIntegrityTests(unittest.TestCase):
                 validate_eps_member_coverage(broken, members)
         with self.assertRaisesRegex(MeteoIntegrityError, 'dimensions'):
             validate_eps_member_coverage(cube, members[:2])
+        with self.assertRaisesRegex(MeteoIntegrityError, 'duplicate member'):
+            validate_eps_member_coverage(cube, [3, 3, 19])
 
     def test_eps_collector_preserves_all_members_or_rejects(self):
         import build_ruc_bundle as builder
@@ -92,6 +94,7 @@ class MeteoIntegrityTests(unittest.TestCase):
                  'cloud_cover_low', 'wind_speed_10m', 'wind_gusts_10m',
                  'wind_direction_10m', 'precipitation', 'cape', 'pressure_msl', 'convective_inhibition')
         fields = {name: np.zeros((3, 4)) for name in names}
+        fields['pressure_msl'][:] = 1013.25
         # Authenticated missing border cells stay at the same grid index.
         for array in fields.values():
             array[:, -1] = np.nan
@@ -129,6 +132,7 @@ class MeteoIntegrityTests(unittest.TestCase):
         native = np.zeros((15, 542040), dtype=np.float32)
         native[:, -16968:] = np.nan
         fields = {name: native for name in names}
+        fields['pressure_msl'] = np.where(np.isfinite(native), 1013.25, np.nan)
         report = validate_core_fields(fields)
         row = report['fields']['cloud_cover']
         self.assertEqual(row['pointCount'], 542040)
@@ -161,15 +165,19 @@ class MeteoIntegrityTests(unittest.TestCase):
     def test_field_ranges_and_dew(self):
         names = ('temperature_2m', 'dew_point_2m', 'relative_humidity_2m', 'cloud_cover',
                  'cloud_cover_low', 'wind_speed_10m', 'wind_gusts_10m',
-                 'wind_direction_10m', 'precipitation', 'cape')
+                 'wind_direction_10m', 'precipitation', 'cape', 'pressure_msl', 'convective_inhibition')
         fields = {name: np.array([[0., 0.]]) for name in names}
+        fields['pressure_msl'][:] = 1013.25
         fields['temperature_2m'] = np.array([[63., -90.]])
         fields['dew_point_2m'] = np.array([[62.7, -91.]])
         fields['relative_humidity_2m'] = np.array([[100.4, 0.]])
         fields['cloud_cover'] = np.array([[100., np.nan]])
         validate_core_fields(fields)
+        for name in names:
+            with self.subTest(missing=name), self.assertRaisesRegex(MeteoIntegrityError, 'missing required'):
+                validate_core_fields({key: value for key, value in fields.items() if key != name})
         for name, bad in [('relative_humidity_2m', 102.), ('cloud_cover', -3.),
-                          ('temperature_2m', 100.), ('wind_speed_10m', -2.), ('cape', -4.)]:
+                          ('temperature_2m', 100.), ('wind_speed_10m', -2.), ('cape', -4.), ('pressure_msl', 0.), ('pressure_msl', -1.), ('convective_inhibition', -1.)]:
             broken = dict(fields, **{name: np.array([[bad, bad]])})
             with self.subTest(name=name), self.assertRaises(MeteoIntegrityError):
                 validate_core_fields(broken)

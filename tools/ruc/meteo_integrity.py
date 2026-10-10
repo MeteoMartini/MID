@@ -66,6 +66,8 @@ def validate_eps_member_coverage(cube: np.ndarray, members: list[int]) -> dict:
     values = np.asarray(cube)
     if values.ndim != 3 or not all(values.shape) or values.shape[1] != len(members) or not members:
         raise MeteoIntegrityError('RUC-EPS: invalid time/member/point dimensions')
+    if len(set(members)) != len(members):
+        raise MeteoIntegrityError('RUC-EPS: duplicate member identities')
     finite = np.isfinite(values)
     missing = np.argwhere(~finite.any(axis=2))
     if missing.size:
@@ -89,6 +91,8 @@ def validate_core_fields(fields: Mapping[str, np.ndarray]) -> dict:
         'wind_direction_10m': (-0.01, 360.01),
         'precipitation': (-0.05, None),
         'cape': (-1.0, None),
+        'pressure_msl': (0.01, None),  # normalized hPa; zero/negative pressure is invalid
+        'convective_inhibition': (-0.01, None),  # normalized magnitude, not signed native CIN
     }
     for name in ranges:
         if name not in fields:

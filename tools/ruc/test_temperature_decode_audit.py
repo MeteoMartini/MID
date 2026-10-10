@@ -36,8 +36,9 @@ class TemperatureDecodeAuditTests(unittest.TestCase):
     def test_no_unsafe_unit_reclassification_or_validator_bypass(self):
         native=np.array([2.,-30.],dtype=np.float32)
         np.testing.assert_allclose(normalize("temperature_2m",native,"C"),native)
-        names=("temperature_2m","dew_point_2m","relative_humidity_2m","cloud_cover","cloud_cover_low","wind_speed_10m","wind_gusts_10m","wind_direction_10m","precipitation","cape")
+        names=("temperature_2m","dew_point_2m","relative_humidity_2m","cloud_cover","cloud_cover_low","wind_speed_10m","wind_gusts_10m","wind_direction_10m","precipitation","cape","pressure_msl","convective_inhibition")
         fields={k:np.array([[0.,0.]]) for k in names}
+        fields["pressure_msl"][:]=1013.25
         fields["temperature_2m"]=np.array([[2.,100.]])
         with self.assertRaisesRegex(MeteoIntegrityError,"temperature_2m"):
             validate_core_fields(fields)

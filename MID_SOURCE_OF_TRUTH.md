@@ -1,3 +1,11 @@
+# MID v0.9.85.224 · MID-C26: vollständiger Kernparametervertrag
+
+Basis main=mid-stable 4c875804953290fdf048b93c72b716c6781064d4 (.223), Installer37991713944 erfolgreich einschließlich Core/Heavy, Pages und Stable. Live-Version am10.10.2026 bestätigt. RUC38022529847 veröffentlichte tatsächlich run03:00; Publish114130462693 bestätigt Pages/Worker, LiveHealth04:56 UTC ready/fresh/schemaValid. Kanonische Standortprobe50.815/7.04 nutzt je13 RUC-/RUC-EPS-Stunden und20 Mitglieder.
+
+Auditbefund: validate_core_fields forderte zehn der zwölf Builder-Kernfelder, pressure_msl und convective_inhibition fehlten im Pflicht-/Wertevertrag. .224 ergänzt beide und verlangt eindeutige EPS-Mitgliedskennungen. Druck in normalisierten hPa muss positiv sein; CIN nach Betrag-Normalisierung nicht negativ (0.01 Rundungstoleranz). Keine neue Missing-Quote oder erfundene obere physikalische Grenze. Tests entfernen jeden einzelnen Pflichtparameter; bestehende Dimensions-/Missing-Fixtures erhalten realistischen Druck statt bislang ungeprüfter Null.
+
+Weiter offen bleiben feste echte GRIB-Produktverträge, numerische Cross-Model-/Einheiten-/Reprojektions-/Tile-Nähte, Geräteperformance, VoiceOver/WKWebView, dauerhafte SLO-Auswertung und Alarmierung sowie direkter Cloudflare-Kontonachweis.
+
 # MID v0.9.85.223 · MID-C26: automatische Updates und eindeutige Wirkung
 
 Verifizierte Basis main=mid-stable 5c52d4fc1ca3c32b9c9abd4acd6ebaf23780e4a1 (.222). Source-Gate37987384825 und Release-Bot37988004602 erfolgreich; Installer37988046040 vollständig erfolgreich einschließlich Core, fünf Heavy-Gates, Worker, Pages im ersten Versuch und Stable-Finalisierung. .221 wurde zuvor durch Installer37985757652 veröffentlicht. Alte Replit-Arbeitsfläche .195 bleibt unprivilegierter UI-Workbench-Stand, keine Veröffentlichung daraus.
