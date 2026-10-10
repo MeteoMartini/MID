@@ -1,3 +1,11 @@
+## MID v0.9.85.228 · 2026-10-10 · Wissenschaftsaudit: kalibrierte Kern-GRIB-Verträge
+
+- Basis main=mid-stable bc7c73a818714420474b688b48b7ef3fdf2893b1 (.227), Releasegates unverändert.
+- CORE_CONTRACTS umfasst zwölf Kernfelder und CLAT/CLON; EPS TOT_PREC wird im Prozessdecoder ausdrücklich gebunden. Raw Fixed-Surface-Codes statt unknown-Anzeigenamen.
+- Unstrukturierte Felder müssen UUID c6b12daa91ad64045b26c1b6452a2a20, Grid47/Reference1 und542040 Punkte treffen; Revisionen benötigen Neukalibrierung.
+- UTC init+lead=valid, instant/accum/max-Bounds und explizite m/h/s-Schritte; additive sourceGribContract-Metadaten ändern keine Binärlayouts.
+- Pflicht-Negativfixtures und read-only Header-Achsenprobe einschließlich20 EPS-Mitgliedern; keine vollständige Werte-/QC-/Packing-/E2E-Verifikation daraus behaupten.
+
 # MID v0.9.85.216 · Widget-Render-Gate
 
 Geladene Fonts/Bilder, zwei Paints und sichtbare Geometrie sind gemeinsame Voraussetzung für URL-/PNG-/Clipboard-Export. Echte Bild-/Fontfehler erzeugen keine Ready-Freigabe. CDP bewahrt den ersten Fehler mit Screenshot und begrenztem Versions-/Stable-/Render-/Netzwerkbezug über Retry/Recovery. Fehlerartefakte bleiben im CI-Artefakt außerhalb des öffentlichen Widget-ZIP. Alte Source-Wiring-Prüfungen folgen dem extrahierten Helper; ihre Font-/Paint-/SVG-Restore-Verträge bleiben erhalten. Keine Wetterwerte, Skybar-Geometrie, Release-Gates oder Produktionsberechtigungen geändert.

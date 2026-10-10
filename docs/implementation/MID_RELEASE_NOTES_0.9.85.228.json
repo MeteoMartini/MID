@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.228",
+  "date": "2026-10-10",
+  "title": "Wissenschaftsaudit: kalibrierte RUC-Kern-GRIB-Verträge",
+  "external": [
+    "RUC-Kernparameter, Schichtgrenzen, Zeitfenster und Gitteridentität werden anhand kalibrierter DWD-Header vor Veröffentlichung geprüft.",
+    "Viertelstunden-/Sekundenangaben und UTC-Intervallgrenzen sind explizit; gleiche Zellzahl allein gilt nicht mehr als Gitteridentität.",
+    "Vollständige Werte-/E2E-Referenzabnahme und reale Geräteprüfungen bleiben offen."
+  ],
+  "internal": [
+    "Basis main=mid-stable bc7c73a818714420474b688b48b7ef3fdf2893b1 (.227), Releasegates unverändert.",
+    "CORE_CONTRACTS umfasst zwölf Kernfelder und CLAT/CLON; EPS TOT_PREC wird im Prozessdecoder ausdrücklich gebunden. Raw Fixed-Surface-Codes statt unknown-Anzeigenamen.",
+    "Unstrukturierte Felder müssen UUID c6b12daa91ad64045b26c1b6452a2a20, Grid47/Reference1 und542040 Punkte treffen; Revisionen benötigen Neukalibrierung.",
+    "UTC init+lead=valid, instant/accum/max-Bounds und explizite m/h/s-Schritte; additive sourceGribContract-Metadaten ändern keine Binärlayouts.",
+    "Pflicht-Negativfixtures und read-only Header-Achsenprobe einschließlich20 EPS-Mitgliedern; keine vollständige Werte-/QC-/Packing-/E2E-Verifikation daraus behaupten."
+  ]
+}

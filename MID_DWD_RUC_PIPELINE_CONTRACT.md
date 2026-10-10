@@ -181,3 +181,11 @@ Niederschlagsmengen über eine Periode dürfen nur bei vollständigen endlichen 
 ## .227 · verbleibende Kern- und Koordinateneinheiten
 
 CLAT/CLON verwenden deklarierte, achsenspezifische Grad-Einheiten oder explizite Radiant-Einheiten. Größenheuristiken sind unzulässig; kleine Gradwerte dürfen nicht als Radiant interpretiert werden. Endliche Werte und geographische Bounds bleiben erforderlich. Windkomponenten/Böen müssen m/s, CAPE/CIN J/kg und Niederschlagsakkumulation kg/m² oder äquivalente mm Wassersäule deklarieren. Unbekannte oder fremde Größeneinheiten werden vor Packing abgewiesen. Native Missing-/Nullwerte bleiben erhalten. Archivierte Header-Stichproben sind keine vollständige Zeit-/Level-/Gitteridentitätsabnahme.
+
+## .228 · kalibrierte Kernparameter, rohe Schichten und native Gitteridentität
+
+CORE_CONTRACTS in tools/ruc/grib_metadata.py ist verbindlich für alle zwölf Kernparameter, CLAT/CLON und EPS TOT_PREC. Die kalibrierten raw Fixed-Surface-Codes und dekodierten skalierten Werte bleiben maßgeblich, auch wenn typeOfLevel unknown ist. Unstrukturierte Felder einschließlich optionaler Felder müssen das belegte native UUID-/Grid-/Reference-/Punktzahl-Tupel treffen; eine Gitterrevision ist bis zur Neukalibrierung fail-closed. Optionale Parameter-/Levelmatrizen sind hiervon nicht als kalibriert erklärt.
+
+Der Produktionsbuilder erwartet ausdrücklich EPS-IDs1..20. Auch ein über die gesamte Zeitachse fehlendes Mitglied muss abgewiesen werden, statt aus einer beobachteten Vereinigungsmenge zu verschwinden. Synthetische Hilfsfixtures dürfen weiterhin eigene ausdrücklich angeforderte IDs verwenden; der Produktionsaufruf bleibt an den kalibrierten DWD-Satz gebunden.
+
+UTC valid=initialization+endStep; instant start=end, Niederschlagsakkumulation ab0, Böen-Maximum start=max(0,end-1h) bei nativen Stunden und Nullfenster am Laufstart. Minute/Stunde/Sekunde werden explizit dekodiert, mit oder ohne passenden ecCodes-Suffix. sourceGribContract ist zusätzliche maschinenlesbare Quellsemantik in latest.json; vorhandene Binärlayouts und Intervallmengen bleiben identisch. Vollständige angeforderte Header-Achsen sind separat vom vollständigen Werte-/E2E-Referenzlauf nachzuweisen.

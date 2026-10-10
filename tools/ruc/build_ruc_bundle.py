@@ -13,7 +13,7 @@ from ruc_pack import DEFAULT_FIELDS,EPS_SUMMARY_FIELDS,RAPID_5M_FIELDS,RAPID_15M
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
 from grib_bitmap import decode_bitmap_values
-from grib_metadata import inspect_grib_header,assert_same_parameter_signature
+from grib_metadata import inspect_grib_header,assert_same_parameter_signature,source_contract_manifest
 from meteo_integrity import MeteoIntegrityError,validate_accumulation,validate_core_fields,validate_eps_member_coverage
 
 PARAM_MAP={'T_2M':'temperature_2m','TD_2M':'dew_point_2m','RELHUM_2M':'relative_humidity_2m','PMSL':'pressure_msl','U_10M':'u10','V_10M':'v10','VMAX_10M':'wind_gusts_10m','TOT_PREC':'precipitation_acc','CLCT':'cloud_cover','CLCL':'cloud_cover_low','CAPE_ML':'cape','CIN_ML':'convective_inhibition'}
@@ -25,7 +25,7 @@ RUC_BBOX=(-3.85,43.18,20.22,58.05)
 if not is_native_at('CAPE_ML',900) or not is_native_at('CIN_ML',900): raise RuntimeError('RUC CAPE_ML/CIN_ML cadence contract mismatch')
 if is_native_at('CAPE_MU',900) or is_native_at('CIN_MU',900): raise RuntimeError('RUC CAPE_MU/CIN_MU must not enter the 15-minute severe path')
 
-def read_messages(path:Path,ensemble=False,expected_run=None,include_signature=False):
+def read_messages(path:Path,ensemble=False,expected_run=None,include_signature=False,expected_parameter=None):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
     with open_grib_stream(path) as f:
@@ -34,7 +34,7 @@ def read_messages(path:Path,ensemble=False,expected_run=None,include_signature=F
         if gid is None: break
         try:
           # Strictly inspect every decoded record before interpreting its values.
-          valid,signature=inspect_grib_header(gid,expected_run)
+          valid,signature=inspect_grib_header(gid,expected_run,expected_parameter)
           vals=decode_bitmap_values(gid)
           member=0
           if ensemble:
@@ -50,16 +50,17 @@ def read_messages(path:Path,ensemble=False,expected_run=None,include_signature=F
 def decode_file_batch(payload):
     """Decode an EPS GRIB file in an isolated worker with provenance metadata."""
     path_text,ensemble,expected_run=payload
-    return list(read_messages(Path(path_text),ensemble=ensemble,expected_run=expected_run,include_signature=True))
+    return list(read_messages(Path(path_text),ensemble=ensemble,expected_run=expected_run,include_signature=True,
+                              expected_parameter='precipitation_acc' if ensemble else None))
 
-def read_first_values(path:Path,include_units=False):
+def read_first_values(path:Path,include_units=False,expected_parameter=None):
     try: from eccodes import codes_grib_new_from_file,codes_get,codes_release
     except Exception as e: raise SystemExit('eccodes Python package required for production GRIB ingestion') from e
     with open_grib_stream(path) as f:
       gid=codes_grib_new_from_file(f)
       if gid is None:raise SystemExit(f'empty coordinate GRIB: {path}')
       try:
-        inspect_grib_header(gid)
+        inspect_grib_header(gid,expected_parameter=expected_parameter)
         values=decode_bitmap_values(gid)
         return (values,str(codes_get(gid,'units'))) if include_units else values
       finally:codes_release(gid)
@@ -69,7 +70,7 @@ def load_native_grid(staging:Path,expected_points:int):
     for param in ('CLAT','CLON'):
       files=sorted((staging/'grid'/param).glob('**/*.grib2*'))
       if not files:raise SystemExit(f'missing staged native-grid coordinate {param}')
-      values,units=read_first_values(files[0],include_units=True)
+      values,units=read_first_values(files[0],include_units=True,expected_parameter=param)
       coord[param]=normalize_coordinate(param,values,units)
       if len(coord[param])!=expected_points:raise SystemExit(f'{param}: coordinate point count differs from forecast grid')
     lats=coord['CLAT'].astype(np.float64);lons=coord['CLON'].astype(np.float64)
@@ -127,7 +128,7 @@ def collect_optional_parameter(files,name,targets,expected_points=None):
     if not files:return None
     rows={};reference_signature=None
     for file in files:
-      for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True):
+      for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True,expected_parameter=name):
         reference_signature=assert_same_parameter_signature(name,reference_signature,signature)
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:return None
@@ -269,7 +270,7 @@ def temperature_decode_audit(values):
 def collect_parameter(files,name,targets,expected_points=None,temperature_audit=None):
     rows={};reference_signature=None
     for file in files:
-      for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True):
+      for valid,_member,vals,units,signature in read_messages(file,expected_run=targets[0],include_signature=True,expected_parameter=name):
         reference_signature=assert_same_parameter_signature(name,reference_signature,signature)
         if valid not in targets:continue
         if expected_points is not None and len(vals)!=expected_points:raise SystemExit(f'{name}: native point count differs from deterministic reference')
@@ -304,7 +305,7 @@ def build_lookup(lats,lons,output:Path,step=.025,max_distance_km=5.0):
     (output/'lookup.bin').write_bytes(out.tobytes(order='C'))
     return {'lonMin':float(xs[0]),'latMin':float(ys[0]),'dx':float(step),'dy':float(step),'nx':int(len(xs)),'ny':int(len(ys)),'maxNearestKm':float(max_distance_km),'nativePointCount':int(len(lats)),'bbox':list(RUC_BBOX)}
 
-def collect_eps(files,targets,expected_points):
+def collect_eps(files,targets,expected_points,expected_members=None):
     rows={t:{} for t in targets}
     configured=max(1,int(os.getenv('MID_RUC_EPS_DECODE_WORKERS','2')))
     workers=max(1,min(4,configured,len(files)))
@@ -328,6 +329,10 @@ def collect_eps(files,targets,expected_points):
     finally:
       if pool is not None:pool.shutdown(wait=True,cancel_futures=True)
     members=sorted(set.union(*(set(rows[t]) for t in targets))) if targets else []
+    if expected_members is not None:
+      expected_members=tuple(expected_members)
+      if set(members)!=set(expected_members):
+        raise MeteoIntegrityError(f'RUC-EPS required member set differs: expected {list(expected_members)}, received {members}')
     for step,t in enumerate(targets):
       missing=sorted(set(members)-set(rows[t]))
       if missing:raise SystemExit(f'RUC-EPS missing members {missing[:24]} at forecast step {step} ({t})')
@@ -499,7 +504,7 @@ def main():
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube
  eps_files=sorted((a.staging/'eps'/'TOT_PREC').glob('**/*.grib2*'))
  if not eps_files:raise SystemExit('missing staged RUC-EPS TOT_PREC')
- eps,members=collect_eps(eps_files,eps_times,point_count);eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
+ eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21));eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
  extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
  extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
  eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
@@ -519,6 +524,6 @@ def main():
  if phase_path:rapid['phase15']=rapid_spec(phase_path,rapid15_serialized,PHASE_15M_FIELDS,900,6)
  if specialist_path:rapid['specialistHourly']=rapid_spec(specialist_path,det_serialized,specialist_specs,3600,14)
  rapid_extreme={'key':f'runs/{run_key}/rapid-extreme.json','schema':'mid.dwd.ruc.rapid-extreme.v4','windowHours':6,'horizonHours':14}
- write_meta(a.output/'latest.json',run=a.run,times=det_serialized,point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects,deterministic_times=det_serialized,eps_summary_times=eps_serialized,eps_times=eps_serialized,rapid=rapid,rapid_extreme=rapid_extreme)
+ write_meta(a.output/'latest.json',run=a.run,times=det_serialized,point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key=f'runs/{run_key}/deterministic.bin',eps_key=f'runs/{run_key}/eps-members.bin',eps_summary_key=f'runs/{run_key}/eps-summary.bin',lookup_key=f'runs/{run_key}/lookup.bin',member_count=len(members),eps_scale=.01,objects=objects,deterministic_times=det_serialized,eps_summary_times=eps_serialized,eps_times=eps_serialized,rapid=rapid,rapid_extreme=rapid_extreme,source_grib_contract=source_contract_manifest(a.run))
  print(json.dumps({'run':a.run,'deterministicTimes':len(det_times),'rapid5Times':len(rapid5_times),'rapid15Times':len(rapid15_times),'rapidState15Fields':[x.name for x in rapid_state_specs],'epsTimes':len(eps_times),'points':point_count,'members':len(members),'reflectivity15':bool(dbz_path),'severe15Fields':[x.name for x in severe_specs],'solar15Fields':[x.name for x in solar_specs],'specialistHourlyFields':[x.name for x in specialist_specs],'phase15':bool(phase_path),'detBytes':det.stat().st_size,'rapid5Bytes':rapid5_path.stat().st_size,'rapid15Bytes':rapid15_path.stat().st_size,'epsSummaryBytes':summary_path.stat().st_size,'epsBytes':eps_path.stat().st_size,'lookupBytes':lookup_path.stat().st_size}))
 if __name__=='__main__':main()

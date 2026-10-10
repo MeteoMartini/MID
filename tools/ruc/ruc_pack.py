@@ -127,7 +127,7 @@ def pack_eps_members(values: np.ndarray, scale: float=.01) -> bytes:
     out[mask]=np.rint(np.clip(arr[mask]/scale,0,65534)).astype(np.uint16)
     return out.transpose(2,0,1).copy(order='C').tobytes(order='C')
 
-def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Sequence[FieldSpec],grid:Mapping[str,object],deterministic_key:str,eps_key:str|None,lookup_key:str,member_count:int=0,eps_scale:float=.01,eps_summary_key:str|None=None,eps_summary_specs:Sequence[FieldSpec]=EPS_SUMMARY_FIELDS,objects:Mapping[str,object]|None=None,deterministic_times:Sequence[str]|None=None,eps_summary_times:Sequence[str]|None=None,eps_times:Sequence[str]|None=None,rapid:Mapping[str,object]|None=None,rapid_extreme:Mapping[str,object]|None=None) -> None:
+def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Sequence[FieldSpec],grid:Mapping[str,object],deterministic_key:str,eps_key:str|None,lookup_key:str,member_count:int=0,eps_scale:float=.01,eps_summary_key:str|None=None,eps_summary_specs:Sequence[FieldSpec]=EPS_SUMMARY_FIELDS,objects:Mapping[str,object]|None=None,deterministic_times:Sequence[str]|None=None,eps_summary_times:Sequence[str]|None=None,eps_times:Sequence[str]|None=None,rapid:Mapping[str,object]|None=None,rapid_extreme:Mapping[str,object]|None=None,source_grib_contract:Mapping[str,object]|None=None) -> None:
     det_times=list(deterministic_times or times)
     summary_times=list(eps_summary_times or eps_times or times)
     member_times=list(eps_times or eps_summary_times or times)
@@ -140,4 +140,5 @@ def write_meta(path:Path,*,run:str,times:Sequence[str],point_count:int,specs:Seq
       'rapid':dict(rapid or {}),'rapidExtreme':dict(rapid_extreme or {}) or None,
       'objects':dict(objects or {})
     }
+    if source_grib_contract is not None:payload['sourceGribContract']=dict(source_grib_contract)
     path.write_text(json.dumps(payload,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
