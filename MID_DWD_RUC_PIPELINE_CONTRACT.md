@@ -165,3 +165,7 @@ Zusätzlich zur fachlichen Validierung müssen alle verarbeiteten GRIB-Nachricht
 ## Native GRIB-Bitmap ab v0.9.85.213
 
 Die explizite Section-6-Bitmap jeder DWD-GRIB2-Nachricht ist verbindlicher Gültigkeitsbeleg für ihre Rasterzellen. Maskierte Zellen werden vor jeder Einheitennormierung als fehlender Wert geführt; alle 542040 nativen Zellpositionen bleiben für das CLAT-/CLON-Gitter einschließlich Randbereich erhalten. Eine nicht passende, mehrwertige oder fehlende deklarierte Bitmap darf nicht publiziert werden. Physikalisch falsche **gültige** Daten bleiben dem unveränderten Fail-Closed-Validator unterworfen; der Wert 9999 ohne Bitmap ist kein hinreichender Grund für eine automatisierte Reparatur. Bereits festgelegte Wire-NODATA-Werte bleiben identisch. Nach einem Source-Release ist zusätzlich ein real erfolgreicher vollständiger DWD-RUC-/EPS-Preprocessing-Lauf mit Pages-Free-Veröffentlichung zu belegen, bevor Problem #305 abgeschlossen wird.
+
+## MID-C26 .224 · vollständiger Kernvertrag
+
+Die zwölf aus PARAM_MAP abgeleiteten Kernfelder sind verpflichtend, einschließlich pressure_msl (hPa, positiv) und convective_inhibition (normalisierter Betrag, >= -0.01 J/kg Rundungstoleranz). Diese Vor-Packing-Prüfung ersetzt keinen GRIB-Einheitenvertrag und setzt keine neue Missing-Prozentgrenze. EPS-Mitgliedskennungen dürfen sich nicht wiederholen. Tests entfernen jeden einzelnen Pflichtparameter und prüfen negative/Null-Druckwerte, negatives normalisiertes CIN und doppelte EPS-IDs.

@@ -54,8 +54,9 @@ class DwdNativeBitmapTests(unittest.TestCase):
     def test_missing_mask_does_not_disable_temperature_gate(self):
         names=('temperature_2m','dew_point_2m','relative_humidity_2m','cloud_cover',
                'cloud_cover_low','wind_speed_10m','wind_gusts_10m',
-               'wind_direction_10m','precipitation','cape')
+               'wind_direction_10m','precipitation','cape','pressure_msl','convective_inhibition')
         fields={name:np.zeros((2,3),dtype=np.float32) for name in names}
+        fields['pressure_msl'][:]=1013.25
         fields['temperature_2m'][:]=[[-2.,2.,np.nan],[-1.,3.,np.nan]]
         fields['dew_point_2m'][:]=[[-3.,1.,np.nan],[-2.,2.,np.nan]]
         validate_core_fields(fields)
