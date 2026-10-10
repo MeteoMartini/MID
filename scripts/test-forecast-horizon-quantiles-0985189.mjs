@@ -15,6 +15,15 @@ const missing=context.build([{...row,bestMin:NaN,minQ25:NaN,minQ75:NaN}])[1].poi
 for(const key of ['maxQ25','maxQ75','minQ25','minQ75'])assert.ok(cockpit.includes(`${key}:item.${key}`),'Canonical weighted daily quartiles must reach the phase chart');
 assert.ok(chart.includes('[point.mean,point.low,point.q25,point.q75,point.high]'),'Scale includes both interval levels');
 assert.ok(chart.includes('P25–P75 ${formatDecimalFixed(point.q25'),'Selected interval and accessible title include inner quartiles');
+const paths=chart.slice(chart.indexOf('export function dailySignalPaths'),chart.indexOf('/** Period intervals'));
+vm.runInContext((await transform(paths.replace('export function','function')+';globalThis.paths=dailySignalPaths;',{loader:'ts',format:'iife'})).code,context);
+const point=(id,mean)=>({id,mean,label:id}),identity=x=>x;
+const connected=context.paths([point('2026-10-24',1),point('2026-10-25',2),point('2026-10-26',3)],identity,identity);
+assert.deepEqual(JSON.parse(JSON.stringify(connected)),['M 0 1 L 1 2 L 2 3'],'UTC dates connect across DST');
+for(const missingValue of [null,NaN,Infinity])assert.equal(context.paths([point('2026-10-24',1),point('2026-10-25',missingValue),point('2026-10-26',3)],identity,identity).length,2,'Missing values break daily curves');
+assert.equal(context.paths([point('2026-10-24',1),point('2026-10-26',3)],identity,identity).length,2,'Missing dates break daily curves');
+assert.equal(context.paths([point('week1',1),point('week2',3)],identity,identity).length,0,'Period labels are never treated as daily dates');
+assert.ok(fourteen.includes('connectDaily compact'),'14d opts into daily lines and compact height');
 for(const token of ["activeHorizon=initialHorizon??localHorizon","seasonSelected=activeHorizon==='season'","if(!seasonSelected)return;","if(seasonSelected)void load(false)","{!seasonSelected?<section ref={weatherTrendRef}","{seasonSelected?<section ref={seasonalRef}",'controllerRef.current?.abort()'])assert.ok(panel.includes(token),`Independent horizon activation missing: ${token}`);
 assert.ok(css.includes('.fourteen-phase-summary>article')&&css.includes('grid-template-columns:minmax(82px,.8fr) minmax(0,1fr)'),'Compact phone phase layout required');
 if(process.env.GITHUB_ACTIONS==='true'||process.env.MID_HORIZON_BROWSER_QA==='1')execFileSync(process.execPath,[new URL('./verify-forecast-horizon-browser-0985189.mjs',import.meta.url).pathname],{stdio:'inherit',timeout:240000});

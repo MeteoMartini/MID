@@ -25891,6 +25891,28 @@ html:root .hero.current-compact .current-weather-facts>.humidity:nth-child(n) sm
 /* The real trend heading replaces the older floating desktop label. */
 html:root .hero.current-compact .current-weather-thread::before{content:none!important;}
 
+/* UTCI shares the current temperature hierarchy; provenance remains separate. */
+html:root .hero.current-compact .current-weather-overview>article{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-areas:"kicker kicker" "air utci" "condition condition" "source source";
+ align-items:center;gap:4px 12px!important;min-width:0;
+}
+html:root .current-weather-overview>article>.hero-kicker-row{grid-area:kicker}
+html:root .current-weather-overview>article>strong{grid-area:air}
+html:root .current-weather-overview>article>b{grid-area:condition}
+html:root .current-weather-overview>article>.current-temperature-provenance{grid-area:source;font-size:11px!important;line-height:1.4!important}
+html:root .current-weather-overview>article>.current-utci-highlight{
+ grid-area:utci;display:grid;gap:2px;min-width:90px;padding:7px 11px;
+ border:1px solid color-mix(in srgb,var(--current-utci-tone) 24%,var(--border));
+ border-radius:12px;background:color-mix(in srgb,var(--current-utci-tone) 7%,var(--surface));
+ font-variant-numeric:tabular-nums;color:var(--text);
+}
+html:root .current-utci-highlight>span{font-size:11px;font-weight:800;letter-spacing:.07em;color:var(--muted)}
+html:root .current-utci-highlight>strong{font-size:clamp(25px,4vw,31px)!important;line-height:1.05!important;color:var(--text)!important}
+html:root .current-utci-highlight>strong>small{font-size:14px!important;font-weight:650;color:var(--muted)}
+html:root .current-utci-highlight>em{font-size:11px;line-height:1.35;font-style:normal;font-weight:700;color:var(--current-utci-tone);white-space:normal}
+@media(max-width:380px){html:root .current-weather-overview>article>.current-utci-highlight{min-width:78px;padding:6px 8px}html:root .hero.current-compact .current-weather-overview>article{column-gap:7px!important}}
+
 /* MID-C23: multiple real signals share wide screens; one signal keeps full width. */
 .cockpit-weather-profile__signals,
 html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals{

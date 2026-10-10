@@ -56,8 +56,11 @@ for(const token of [
  "temperatureObservationConstraintSignificant=temperatureFresh&&",
  "<span>Temperatur · Best Match</span>",
  "currentApparentTemperature=utciResult?utciResult.utci:modelApparentTemperature",
- "UTCI {Math.round(currentApparentTemperature)} °C"
+ "<CurrentUtciHighlight value={currentApparentTemperature}/>"
 ])assert.ok(app.includes(token),`Current-/Cache-/Forecast-Konsistenzpfad fehlt: ${token}`);
+// .229 promotes the same canonical value into a dedicated presentation component.
+const utciHighlight=await readFile(new URL('../src/CurrentUtciHighlight.tsx',import.meta.url),'utf8');
+for(const token of ['Number.isFinite(value)','Math.round(value)','<span>UTCI</span>','<small> °C</small>','nicht verfügbar'])assert.ok(utciHighlight.includes(token),`Prominente UTCI-Wertgruppe verliert Wert-/Einheiten-/Missing-Vertrag: ${token}`);
 for(const token of [
  'fast=false,forceFresh=false',
  'if(!forceFresh&&cached&&age<=freshMs)return cached.value',

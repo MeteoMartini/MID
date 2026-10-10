@@ -11,6 +11,7 @@ import fetch_and_build_ruc as fetch
 from test_meteo_integrity import MeteoIntegrityTests  # also collected by the existing CI unittest.main()
 from test_grib_bitmap import DwdNativeBitmapTests  # mandatory bitmap/nodata and negative fixtures
 from test_grib_metadata import DwdGribMetadataTests  # full ecCodes real-header fixtures in CI
+from test_real_values_reference import RealValuesReferenceTests  # frozen real values and wire golden
 
 
 class FetchResilience(unittest.TestCase):
