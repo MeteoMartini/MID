@@ -177,3 +177,7 @@ Temperatur wird nur bei K/Kelvin in Celsius, Druck nur bei Pa in hPa und Prozent
 ## .226 · Missing bleibt Missing bei Extremwetter-Aggregation
 
 Niederschlagsmengen über eine Periode dürfen nur bei vollständigen endlichen Intervallen summiert werden. Vollständig oder teilweise fehlende Intervalle sind keine trockenen Nullen. Rollierende Maxima berücksichtigen vollständige Fenster und erhalten gültige Fenster trotz späterer Datenlücken. EPS-Perioden-Wahrscheinlichkeiten und Quantile verwenden denselben vollständigen Mitgliedersatz pro Zelle; unvollständige Mitglieder werden ausgeschlossen. Fehlende optionale Phasen und ungültige Summen bleiben auch in Kompatibilitätsfeldern absent. Keine neue Prozent-Freigabegrenze, keine Wetter-/Warnschwellenänderung.
+
+## .227 · verbleibende Kern- und Koordinateneinheiten
+
+CLAT/CLON verwenden deklarierte, achsenspezifische Grad-Einheiten oder explizite Radiant-Einheiten. Größenheuristiken sind unzulässig; kleine Gradwerte dürfen nicht als Radiant interpretiert werden. Endliche Werte und geographische Bounds bleiben erforderlich. Windkomponenten/Böen müssen m/s, CAPE/CIN J/kg und Niederschlagsakkumulation kg/m² oder äquivalente mm Wassersäule deklarieren. Unbekannte oder fremde Größeneinheiten werden vor Packing abgewiesen. Native Missing-/Nullwerte bleiben erhalten. Archivierte Header-Stichproben sind keine vollständige Zeit-/Level-/Gitteridentitätsabnahme.
