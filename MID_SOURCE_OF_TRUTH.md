@@ -1,3 +1,7 @@
+# MID v0.9.85.233 · MID-C27 Kartenbudget und GDPS-Neuladen
+
+Basis dd9e501f1ae58bab43f2f1e66c3827f388999434, main=mid-stable .232. Live-Katalog bestätigt Budget-Pruning als Ursache einzelner CW-Termine. .233 priorisiert stündliche CW vor optionaler Synoptikdichte und protokolliert Kürzungen bei unverändertem900MB-Gate. GDPS-Retry erhält neue Quellenidentität. Details docs/implementation/MID_C27_CLOUD_BUDGET_0.9.85.233.md. Veröffentlichung nur regulärer Source-/Installerpfad; echter Geräte-/Langzeit-Audit weiter offen.
+
 # MID v0.9.85.231 · Missing bleibt fehlend in RUC-Phasen und Radar-Thermik
 
 Ergänzter freigegebener Scope: Wolken und signifikantes Wetter als gemeinsame Karte mit derselben persistierten sigwx-ID. D2 kombiniert native CLCT/WW mit gleichem Lauf/Termin/Raster; EU/Global optional direkt aus verifizierten DWD-GRIB-Produkten und nur bei cloudWeather-Katalogbeleg. GDPS kombiniert verifizierte Wolken-/Instant-Niederschlagsart-Kacheln mit gemeinsamem Lauf/Termin und eigener Legende, ohne Anspruch auf vollständige Nebel-/Gewitterdiagnostik. Gemeinsame Ortswerte/Exports, keine Kategorieninterpolation. Wissenschaftliche Primärbelege und Einschränkungen: docs/implementation/MID_CLOUD_WEATHER_2026-10-10.md.

@@ -13,11 +13,21 @@ class SynopticTest(unittest.TestCase):
         self.assertEqual(cloud_hours('icon-eu',stamp)[-1],120)
         self.assertEqual(cloud_hours('icon',stamp)[-1],180)
         self.assertEqual(cloud_hours('icon',stamp.replace(hour=6))[-1],120)
-        product={'frames':[{'hour':h,'bytes':1000} for h in CORE_HOURS],'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(13)]}
+        product={'frames':[{'hour':h,'bytes':1000} for h in CORE_HOURS],'cloudWeatherFrames':[{'hour':h,'bytes':10000} for h in range(13)]}
         minimal={'models':{'icon-eu':{'frames':product['frames'],'cloudWeatherFrames':[]}}}
-        available=len(CORE_HOURS)*1000+len((json.dumps(minimal,separators=(',',':'),ensure_ascii=False)+'\n').encode())
+        available=len(CORE_HOURS)*1000+len((json.dumps(minimal,separators=(',',':'),ensure_ascii=False)+'\n').encode())+3000
         result=fit_synoptic_budget({'models':{'icon-eu':product}},available)
         self.assertEqual(len(result['models']['icon-eu']['frames']),len(CORE_HOURS));self.assertFalse(result['models']['icon-eu']['cloudWeatherFrames'])
+    def test_hourly_cloud_weather_precedes_optional_synoptic_density(self):
+        from prepare_ruc_pages import fit_synoptic_budget
+        import copy
+        product={'frames':[{'hour':h,'bytes':1000} for h in CORE_HOURS]+[{'hour':72,'bytes':30000}],
+                 'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(1,13)]}
+        result=fit_synoptic_budget({'models':{'icon-eu':copy.deepcopy(product)}},15000)
+        self.assertEqual([f['hour'] for f in result['models']['icon-eu']['cloudWeatherFrames']],list(range(1,13)))
+        self.assertNotIn(72,[f['hour'] for f in result['models']['icon-eu']['frames']])
+        self.assertEqual(result['cloudWeatherBudget']['pruned'],[])
+        self.assertEqual(len(product['frames']),len(CORE_HOURS)+1)
     def test_cloud_weather_raw_identity_missing_and_units(self):
         for field,category,number,value in [('clct',6,1,75),('ww',19,25,61)]:
             def message(**patch):
