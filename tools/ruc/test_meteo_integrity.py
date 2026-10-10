@@ -11,6 +11,43 @@ from meteo_integrity import MeteoIntegrityError, validate_grib_origin, validate_
 
 
 class MeteoIntegrityTests(unittest.TestCase):
+    def test_absent_graupel_stays_missing_through_phase_packing_and_extreme_wire(self):
+        from build_ruc_bundle import phase_interval_fields, build_rapid_extreme_summary
+        from ruc_pack import pack_cell_major, PHASE_15M_FIELDS, NODATA_I16
+        from datetime import timedelta
+        run=datetime(2026,10,10,tzinfo=timezone.utc)
+        times=[run+timedelta(minutes=15*i) for i in range(25)]
+        rain={t:np.array([i*.1,0.],dtype=np.float32) for i,t in enumerate(times)}
+        snow={t:np.zeros(2,dtype=np.float32) for t in times}
+        before={t:v.copy() for t,v in rain.items()}
+        fields=phase_interval_fields(rain,snow,None,times)
+        self.assertTrue(np.isnan(fields['graupel_water_equivalent']).all())
+        packed=np.frombuffer(pack_cell_major(fields,PHASE_15M_FIELDS),dtype='<i2').reshape(2,25,3)
+        self.assertTrue((packed[:,:,2]==NODATA_I16).all())
+        self.assertTrue((packed[1,:,:2]==0).all())
+        self.assertEqual(packed[0,1,0],100)
+        dry=phase_interval_fields(rain,snow,snow,times)
+        self.assertTrue((dry['graupel_water_equivalent']==0).all())
+        for t in times:np.testing.assert_array_equal(rain[t],before[t])
+        for phases,missing in [(fields,True),(dry,False)]:
+            result=build_rapid_extreme_summary(np.array([43.45,43.5]),np.array([-3.5,-3.4]),run.isoformat(),times,
+                phases['rain'],np.zeros((25,2)),np.zeros((25,2)),np.zeros((73,2)),phase_fields=phases)
+            cell=result['cells'][0]['periods']['0-6']
+            if missing:self.assertNotIn('graupelPhaseWaterEquivalentMm',cell)
+            else:self.assertEqual(cell['graupelPhaseWaterEquivalentMm'],0.)
+
+    def test_partial_graupel_keeps_missing_adjacent_intervals(self):
+        from build_ruc_bundle import phase_interval_fields
+        from ruc_pack import pack_cell_major, PHASE_15M_FIELDS, NODATA_I16
+        times=list(range(3))
+        rain={t:np.array([float(t),0.]) for t in times}
+        graupel={0:np.array([0.,0.]),1:np.array([np.nan,.2]),2:np.array([.5,.4])}
+        fields=phase_interval_fields(rain,rain,graupel,times)
+        np.testing.assert_allclose(fields['graupel_water_equivalent'],[[0.,0.],[np.nan,.2],[np.nan,.2]],equal_nan=True)
+        packed=np.frombuffer(pack_cell_major(fields,PHASE_15M_FIELDS),dtype='<i2').reshape(2,3,3)
+        np.testing.assert_array_equal(packed[0,1:,2],[NODATA_I16,NODATA_I16])
+        np.testing.assert_array_equal(packed[1,1:,2],[200,200])
+
     def test_scientific_reference_matches_fixed_semantic_baseline(self):
         from scientific_baseline import reference_run
         first = reference_run()

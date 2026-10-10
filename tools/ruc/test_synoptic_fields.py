@@ -5,6 +5,33 @@ import numpy as np
 from eccodes import codes_grib_new_from_samples,codes_set,codes_set_values,codes_get_message,codes_release
 from build_synoptic_fields import decode,contours,write_fields,COMPONENTS,theta_e,CORE_HOURS,HOURS,EXTENDED_HOURS,extended_hours
 class SynopticTest(unittest.TestCase):
+    def test_cloud_weather_raw_identity_missing_and_units(self):
+        for field,category,number,value in [('clct',6,1,75),('ww',19,25,61)]:
+            def message(**patch):
+                g=codes_grib_new_from_samples('regular_ll_sfc_grib2')
+                try:
+                    params={'centre':78,'Ni':12,'Nj':12,'latitudeOfFirstGridPointInDegrees':52.5,'latitudeOfLastGridPointInDegrees':47,'longitudeOfFirstGridPointInDegrees':6,'longitudeOfLastGridPointInDegrees':11.5,'iDirectionIncrementInDegrees':.5,'jDirectionIncrementInDegrees':.5,'dataDate':20261007,'dataTime':1200,'discipline':0,'parameterCategory':category,'parameterNumber':number,'typeOfFirstFixedSurface':1,'scaledValueOfFirstFixedSurface':0,'typeOfSecondFixedSurface':255,'stepUnits':1,'forecastTime':3};params.update(patch)
+                    for k,v in params.items():codes_set(g,k,v)
+                    codes_set(g,'bitmapPresent',1);values=np.full(144,float(value));values[0]=9999;codes_set(g,'missingValue',9999);codes_set_values(g,values);return codes_get_message(g)
+                finally:codes_release(g)
+            lat,lon,values=decode(message(),'2026100712',3,field,None)
+            self.assertEqual(values.shape,(12,12));self.assertEqual(np.isnan(values).sum(),1);self.assertAlmostEqual(np.nanmax(values),value)
+            for patch in [{'centre':7},{'parameterNumber':0},{'scaledValueOfFirstFixedSurface':2}]:
+                with self.assertRaises(ValueError):decode(message(**patch),'2026100712',3,field,None)
+    def test_optional_cloud_weather_atomic_pair_preserves_core_on_failure(self):
+        import build_synoptic_fields as module,time,copy
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        stamp=datetime(2026,10,7,12,tzinfo=timezone.utc);lat=np.array([47.,48.]);lon=np.array([6.,7.])
+        names={name:f'icon-eu_europe_regular-lat-lon_single-level_2026100712_003_2d_{name}.grib2.bz2' for name in ('clct','ww')}
+        def get(url,**kwargs):return SimpleNamespace(text=f'<a href="{names[url.rstrip("/").split("/")[-1]]}">' if url.endswith('/') else '',content=url.encode(),raise_for_status=lambda:None)
+        with tempfile.TemporaryDirectory() as td:
+            output=Path(td);file=output/'icon-eu-003.bin';raw=gzip.compress(json.dumps({'lats':lat.tolist(),'lons':lon.tolist(),'thetae':[1,2,3,4]}).encode());file.write_bytes(raw);product={'run':stamp.isoformat(),'frames':[{'hour':3,'file':file.name,'sha256':'old','bytes':len(raw)}],'origins':[]}
+            with patch.object(module.requests,'get',side_effect=get),patch.object(module,'decode',side_effect=ValueError('missing weather')):module.enrich_cloud_weather('icon-eu',product,output,time.monotonic()+10)
+            self.assertEqual(file.read_bytes(),raw);self.assertNotIn('cloudWeather',product['frames'][0]);self.assertEqual(product['origins'],[])
+            def decoder(payload,run,hour,field,level,native):return lat,lon,np.array([[0.,75.],[np.nan,100.]]) if field=='clct' else np.array([[0.,61.],[np.nan,86.]])
+            with patch.object(module.requests,'get',side_effect=get),patch.object(module,'decode',side_effect=decoder):module.enrich_cloud_weather('icon-eu',product,output,time.monotonic()+10)
+            data=json.loads(gzip.decompress(file.read_bytes()));self.assertEqual(data['thetae'],[1,2,3,4]);self.assertEqual(data['cloudWeather']['cloud'],[0,750,None,1000]);self.assertEqual(data['cloudWeather']['weather'],[0,61,None,86]);self.assertTrue(product['frames'][0]['cloudWeather']);self.assertEqual(len(product['origins']),2)
     def test_independent_metpy_references(self):
         # Bolton saturation differs from MetPy Ambaum saturation by <0.3 K here.
         # MetPy 1.7.1 equivalent_potential_temperature(850hPa,T,dewpoint_from_relative_humidity(T,RH)).
@@ -56,7 +83,7 @@ class SynopticTest(unittest.TestCase):
             calls.append((model,tuple(hours),strict_run,now))
             if model=='icon-eu' and hours==(72,):raise RuntimeError('upstream unavailable')
             return {'run':stamp.isoformat(),'frames':[{'hour':h} for h in hours],'origins':[]}
-        with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
+        with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch.object(module,'enrich_cloud_weather'),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
             result=module.build(Path(td))
         self.assertEqual([f['hour'] for f in result['models']['icon-d2']['frames']],list(HOURS))
         self.assertEqual([f['hour'] for f in result['models']['icon-eu']['frames']],sorted(set(HOURS+extended_hours('icon-eu',stamp))-{72}))

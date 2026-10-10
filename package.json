@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.230",
+  "version": "0.9.85.231",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -245,6 +245,7 @@
     "test:weather-profile-thermal-hazards": "node scripts/test-mid-weather-profile-thermal-hazards-09321.mjs",
     "test:weather-profile-axes": "node scripts/test-mid-weather-profile-axes-09322.mjs",
     "test:regressions": "node scripts/run-regressions.mjs",
+    "test:cloud-significant-weather": "node scripts/test-cloud-significant-weather-0985231.mjs",
     "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
     "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",

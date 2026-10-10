@@ -13,7 +13,7 @@ type EchoSummary={covered:boolean;hits:number;maxDbz:number;meanDbz:number;maxRa
 type SymbolPhase=PrecipitationSymbolPhase;
 type PhaseSymbol={id:string;lat:number;lon:number;phase:SymbolPhase;label:string;dbz:number};
 
-function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:NaN}
+function finite(value:unknown){if(value==null||typeof value==='boolean'||(typeof value==='string'&&!value.trim()))return NaN;const number=Number(value);return Number.isFinite(number)?number:NaN}
 function wetBulbStull(t:number,rh:number){if(!Number.isFinite(t)||!Number.isFinite(rh))return NaN;const humidity=Math.max(1,Math.min(100,rh));return t*Math.atan(.151977*Math.sqrt(humidity+8.313659))+Math.atan(t+humidity)-Math.atan(humidity-1.676331)+.00391838*Math.pow(humidity,1.5)*Math.atan(.023101*humidity)-4.686035}
 function coldSupport(temperature:number,wetBulb:number){return(Number.isFinite(wetBulb)&&wetBulb<=.8)||(Number.isFinite(temperature)&&temperature<=1.8)}
 
