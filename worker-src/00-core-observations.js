@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.230';
+const WORKER_VERSION='0.9.85.231';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -173,7 +173,7 @@ async function dwdRucStaticPhaseGrid(lats,lons,targetMs,env){
  const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapid?.phase15,timePick=dwdRucRapidPhaseTimeIndex(spec,targetMs);if(!spec||!timePick)return null;
  const coordinates=[];for(const lat of lats)for(const lon of lons)coordinates.push({lat,lon});const pointRefs=[],pointCache=new Map();
  for(const point of coordinates){const offset=dwdRucLookupOffset(meta,point.lat,point.lon);if(offset===null){pointRefs.push(null);continue}const recordIndex=offset/4,cacheKey=`${meta.run}:${recordIndex}`,cached=dwdRucStaticLookupCache.get(cacheKey);let pointIndex=cached&&Date.now()-cached.at<10*60*1000?cached.pointIndex:null;if(pointIndex===null){const lookup=await dwdRucStaticRecord(base,meta.lookup,recordIndex);if(lookup&&lookup.length===4){const decoded=new DataView(lookup.buffer,lookup.byteOffset,4).getUint32(0,true);if(decoded!==0xffffffff&&decoded<Number(meta.pointCount||0)){pointIndex=decoded;dwdRucStaticLookupCache.set(cacheKey,{at:Date.now(),pointIndex})}}}pointRefs.push(Number.isInteger(pointIndex)?pointIndex:null)}
- const unique=[...new Set(pointRefs.filter(Number.isInteger))],decodedByPoint=new Map();for(const pointIndex of unique){const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes)continue;const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);decodedByPoint.set(pointIndex,{rain:Number(decoded.rain?.[timePick.index]),snow:Number(decoded.snowfall_water_equivalent?.[timePick.index]),graupel:Number(decoded.graupel_water_equivalent?.[timePick.index])})}
+ const unique=[...new Set(pointRefs.filter(Number.isInteger))],decodedByPoint=new Map();for(const pointIndex of unique){const bytes=await dwdRucStaticRecord(base,spec,pointIndex);if(!bytes)continue;const decoded=dwdRucDecodeI16Record(bytes,spec,spec.times||[]);decodedByPoint.set(pointIndex,{rain:decoded.rain?.[timePick.index],snow:decoded.snowfall_water_equivalent?.[timePick.index],graupel:decoded.graupel_water_equivalent?.[timePick.index]})}
  const rain=[],snowfallWaterEquivalent=[],graupelWaterEquivalent=[];let valid=0;for(const pointIndex of pointRefs){const row=decodedByPoint.get(pointIndex);if(row&&[row.rain,row.snow,row.graupel].some(Number.isFinite))valid++;rain.push(Number.isFinite(row?.rain)?Math.max(0,row.rain):NaN);snowfallWaterEquivalent.push(Number.isFinite(row?.snow)?Math.max(0,row.snow):NaN);graupelWaterEquivalent.push(Number.isFinite(row?.graupel)?Math.max(0,row.graupel):NaN)}
  if(valid<coordinates.length*.72)return null;return{time:new Date(timePick.stamp).toISOString(),run:String(meta.run||''),rain,snowfallWaterEquivalent,graupelWaterEquivalent,valid,total:coordinates.length,source:'DWD ICON-D2-RUC · native 15 min'}
 }

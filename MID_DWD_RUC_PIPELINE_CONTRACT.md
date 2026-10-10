@@ -1,6 +1,10 @@
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.222
+Stand: v0.9.85.231
+
+## Missing-Vertrag optionaler Niederschlagsphasen (v0.9.85.231)
+
+Fehlt die optionale Graupelreihe, bleibt ihr Feld im festen Phase-Wire-Layout vollständig Missing: NaN vor Packing, int16-Sentinel -32768, null beim Dekodieren/JSON. Kein Ersatz durch trockene0. Vorhandene Regen-/Schneereihen und echte trockene Graupelwerte bleiben nutzbar. Partielle Missing-Zellen propagieren durch Akkumulationsdifferenzen; unvollständige Summen werden nicht als vollständige Phasenmengen ausgegeben. Der Worker darf Decoder-null nicht numerisch in0 umwandeln; nur endliche Phasenwerte zählen als verfügbare Zellen. Vollständig fehlende Phasenzellen bestehen keine Verfügbarkeitsprüfung. Das Radar-Phasenoverlay darf aus fehlender Thermik/Feuchte/Höhe keine0°C oder kalte Phase ableiten. Schwellen/Feldlayout bleiben unverändert; Phase-Einheiten-/Größenartkalibrierung ist ein gesonderter offener Vertrag.
 
 ## Terminabdeckung vor Quantisierung (v0.9.85.218)
 

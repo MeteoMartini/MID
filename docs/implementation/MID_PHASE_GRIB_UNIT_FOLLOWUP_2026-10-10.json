@@ -1,0 +1,32 @@
+{
+  "schema": "mid.phase-grib-unit-followup.v1",
+  "observedAt": "2026-10-10T17:35:17.202860+00:00",
+  "sourceCommit": "116cc09e9fdd9605cfbc5154e6e84c4065793b78",
+  "url": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/RAIN_GSP/r/2026-10-10T15:00/s/PT000H15M.grib2",
+  "sha256": "8aec02493ed337090c2a426702bd4b131aa822454f31aa3cd91f3f3b8eff490a",
+  "bytes": 337068,
+  "nativeEcCodes": "2.49.0",
+  "rawInputsRetained": false,
+  "scope": "single header only; unit/accumulation semantics unresolved; no value conversion or full phase contract claimed",
+  "header": {
+    "units": "kg m**-2 s**-1",
+    "shortName": "lsrr",
+    "typeOfLevel": "surface",
+    "stepType": "accum",
+    "startStep": "0m",
+    "endStep": "15m"
+  },
+  "rawCodes": {
+    "discipline": 0,
+    "parameterCategory": 1,
+    "parameterNumber": 77,
+    "typeOfFirstFixedSurface": 1,
+    "scaledValueOfFirstFixedSurface": 0,
+    "typeOfSecondFixedSurface": 255,
+    "dataDate": 20261010,
+    "dataTime": 1500,
+    "validityDate": 20261010,
+    "validityTime": 1515,
+    "stepUnits": 0
+  }
+}

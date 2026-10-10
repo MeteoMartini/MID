@@ -1,3 +1,14 @@
+## MID v0.9.85.231 · 2026-10-10 · Missing-Vertrag RUC-Phasen
+
+- Kartenparameter sigwx wird bei gleicher persistierter ID zur gemeinsamen Wolken-/Wetterkarte. Gemeinsamer Renderer/Legende/Ortswert/Export; native Legacy-Route nutzt dieselbe Kombination. GDPS nutzt zwei verifizierte GeoMet-Produkte desselben Laufs und Termins, begrenzte Niederschlagsart ausdrücklich gekennzeichnet.
+- Optionale ICON-EU/ICON-Global-Anreicherung erhält Synoptikkerne bei Quellenfehlern. CLCT/WW-Raw-Identität, Einheiten, gültiger Termin und identisches Raster zwingend. Sechs reale DWD-Header belegen WW-Parameter0/19/25, keine hypothetischen WW-WMS-Layer. Kategoriale Raster auch im Kartenrenderer nearest statt linear.
+- Neue Pflichtregression und zwei Pythonfälle prüfen Paarung, Missing, WMO-Intensitätsgrenzen, Katalogfilter und Atomizität. Bestehender echter Karten-Browsergate prüft die Kombination zusätzlich in allen Viewport-/Theme-/Designfällen.
+
+- Fehlender Graupel bleibt NaN/int16-Missing statt trockener0. Wire-Struktur unverändert.
+- Worker erhält Decoder-null und zählt nur endliche Phasenwerte. All-missing nicht verfügbar; echte trockene0 gültig.
+- Overlay erzeugt aus null/Leerwerten keinen thermischen Schnee-/Gefrierbeleg. Zwei zusätzliche Pflicht-Pythonfälle und erweitertes reales Worker-/phaseFor-Gate.
+- Basis .230 Stable116cc09e9fdd9605cfbc5154e6e84c4065793b78, Gates unverändert. Separate offene RAIN_GSP-Units/accum-Frage dokumentiert.
+
 ## MID v0.9.85.230 · 2026-10-10 · Skybar, alphabetische Karten und MU-Energieverträge
 
 - Alphabetische Modelle und gruppenweise Parameter in UnifiedWeatherMap und WeatherMapsPanel; gemeinsamer deutscher Collator mit natürlichen Zahlen, kopierte Listen statt Mutation. Fallbackprioritäten/persistierte IDs unverändert.

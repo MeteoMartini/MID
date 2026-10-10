@@ -8,7 +8,7 @@ import numpy as np
 import requests
 import contourpy
 from scipy.ndimage import gaussian_filter
-from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release,codes_set
+from eccodes import codes_grib_new_from_file,codes_get,codes_get_long,codes_get_array,codes_release,codes_set
 from build_model_map_fields import theta_e
 CORE_HOURS=(0,3,6,9,12,18,24,36,48)
 HOURS=(0,3,6,9,12,15,18,21,24,30,36,42,48)
@@ -36,8 +36,11 @@ def decode(payload,run,hour,field,level,native=None):
             if f'{int(get("validityDate")):08d}{int(get("validityTime")):04d}'!=expected:raise ValueError('wrong valid time')
             if level is not None and (get('typeOfLevel')!='isobaricInhPa' or int(get('level'))!=level):raise ValueError('wrong pressure level')
             if level is None and get('typeOfLevel') not in ('meanSea','surface'):raise ValueError('wrong MSL level')
-            allowed={'t':('t',),'q':('q',),'relhum':('r','relhum'),'fi':('fi','z','gh'),'pmsl':('msl','prmsl','pmsl'),'u':('u',),'v':('v',)}
-            if get('shortName') not in allowed[field] or get('gridType') not in (('unstructured_grid',) if native else ('regular_ll',)):raise ValueError('wrong parameter/grid')
+            allowed={'t':('t',),'q':('q',),'relhum':('r','relhum'),'fi':('fi','z','gh'),'pmsl':('msl','prmsl','pmsl'),'u':('u',),'v':('v',),'clct':('clct','tcc'),'ww':('ww','w')}
+            if str(get('shortName')).lower() not in allowed[field] or get('gridType') not in (('unstructured_grid',) if native else ('regular_ll',)):raise ValueError('wrong parameter/grid')
+            if field in ('clct','ww'):
+                raw=tuple(int(codes_get_long(gid,k)) for k in ('centre','discipline','parameterCategory','parameterNumber','typeOfFirstFixedSurface','scaledValueOfFirstFixedSurface','typeOfSecondFixedSurface'))
+                if raw!=(78,0,6 if field=='clct' else 19,1 if field=='clct' else 25,1,0,255):raise ValueError('wrong cloud/weather raw product contract')
             if native:
                 from icon_global_grid import remap_native
                 out_lats,out_lons,values=remap_native(gid,native)
@@ -67,7 +70,11 @@ def decode(payload,run,hour,field,level,native=None):
                 if unit=='1':values=values*100
                 elif unit!='%':raise ValueError('humidity unit')
             if field in ('u','v') and unit not in ('m s**-1','m s-1'):raise ValueError('wind unit')
-            ranges={'t':(170,340),'q':(0,.1),'relhum':(0,150),'fi':(350,650),'pmsl':(850,1100),'u':(-200,200),'v':(-200,200)};low,high=ranges[field]
+            if field=='clct':
+                if unit=='1':values=values*100
+                elif unit!='%':raise ValueError('cloud unit')
+            if field=='ww' and (unit not in ('Numeric','Code table (4.201)','~') or not np.allclose(values[np.isfinite(values)],np.rint(values[np.isfinite(values)]))):raise ValueError('weather code unit/integrality')
+            ranges={'t':(170,340),'q':(0,.1),'relhum':(0,150),'fi':(350,650),'pmsl':(850,1100),'u':(-200,200),'v':(-200,200),'clct':(0,100.01),'ww':(0,99)};low,high=ranges[field]
             if np.any(values<low) or np.any(values>high):raise ValueError('physical range')
             return out_lats,out_lons,values
         finally:codes_release(gid)
@@ -224,6 +231,43 @@ def restore_cache(output):
         return cached
     except (requests.RequestException,ValueError,KeyError):return {}
 
+def enrich_cloud_weather(model,product,output,deadline):
+    """Optional same-cycle fields; never make a synoptic core depend on SIGWX."""
+    if model not in ('icon-eu','icon'):return
+    stamp=datetime.fromisoformat(product['run']);run=stamp.strftime('%Y%m%d%H');_,folder,_,grid=MODELS[model]
+    root=f'https://opendata.dwd.de/weather/nwp/{folder}/grib/{stamp:%H}/'
+    pending=[f for f in product['frames'] if f['hour'] in (0,3,6,12,24,48) and not f.get('cloudWeather')]
+    if not pending or time.monotonic()>=deadline:return
+    listings={}
+    for name in ('clct','ww'):
+        r=requests.get(root+name+'/',timeout=15);r.raise_for_status();listings[name]=re.findall(r'href="([^"/]+\.grib2.bz2)"',r.text)
+    native=None
+    if model=='icon':
+        from icon_global_grid import load_icon_grid
+        if run not in GRID_CACHE:GRID_CACHE[run]=load_icon_grid(root,run)
+        native=GRID_CACHE[run][0]
+    for frame in pending:
+        if time.monotonic()>=deadline:break
+        try:
+            fields={};origins=[];axes=None
+            for name in ('clct','ww'):
+                candidates=[n for n in listings[name] if grid in n and f'_{run}_{frame["hour"]:03d}_' in n and 'single-level' in n]
+                if len(candidates)!=1:raise ValueError('no unique cloud/weather source')
+                url=root+name+'/'+candidates[0];r=requests.get(url,timeout=20);r.raise_for_status()
+                if len(r.content)>32_000_000:raise ValueError('cloud/weather input budget')
+                lat,lon,values=decode(r.content,run,frame['hour'],name,None,native)
+                if axes is not None and (not np.array_equal(lat,axes[0]) or not np.array_equal(lon,axes[1])):raise ValueError('cloud/weather grid mismatch')
+                axes=(lat,lon);fields[name]=values;origins.append({'url':url,'sha256':hashlib.sha256(r.content).hexdigest()})
+            file=output/frame['file'];payload=json.loads(gzip.decompress(file.read_bytes()))
+            if not np.array_equal(axes[0],payload['lats']) or not np.array_equal(axes[1],payload['lons']):raise ValueError('cloud/weather and core grid mismatch')
+            payload['cloudWeather']={'cloudUnit':'%','weatherUnit':'WMO 4677','cloud':[int(round(v*10)) if np.isfinite(v) else None for v in fields['clct'].ravel()],
+                'weather':[int(round(v)) if np.isfinite(v) else None for v in fields['ww'].ravel()],'cloudScale':.1,'origins':origins}
+            raw=json.dumps(payload,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
+            if len(raw)>12_000_000:raise ValueError('cloud/weather decoded budget')
+            data=gzip.compress(raw,mtime=0);file.write_bytes(data)
+            frame.update({'bytes':len(data),'decodedBytes':len(raw),'sha256':hashlib.sha256(data).hexdigest(),'cloudWeather':True});product['origins'].extend(origins)
+        except (requests.RequestException,ValueError,RuntimeError) as e:print(f'::notice::{model} cloud/weather +{frame["hour"]}h unavailable: {e}',flush=True)
+
 def build(output):
     products={};errors={};cached=restore_cache(output);optional_deadline=None
     builders={model:(model_product if model in MODELS else global_product) for model in ('icon-d2','icon-eu','gfs','ifs','icon')}
@@ -248,6 +292,10 @@ def build(output):
             except (requests.RequestException,ValueError,RuntimeError) as error:print(f'::notice::{model} optional +{hour}h unavailable: {error}',flush=True)
     for model,product in products.items():
         product['frames'].sort(key=lambda f:f['hour']);print(f'{model}: {len(product["frames"])} complete terms',flush=True)
+    cloud_deadline=time.monotonic()+180
+    for model,product in products.items():
+        try:enrich_cloud_weather(model,product,output,cloud_deadline)
+        except (requests.RequestException,ValueError,RuntimeError) as e:print(f'::notice::{model} cloud/weather unavailable: {e}',flush=True)
     if not products:raise RuntimeError('no complete synoptic model')
     payload={'schema':'mid.synoptic.fields.v1','generatedAt':datetime.now(timezone.utc).isoformat(),'algorithm':ALGORITHM,'models':products,'unavailable':errors};(output/'index.json').write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n');return payload
 if __name__=='__main__':

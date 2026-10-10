@@ -152,6 +152,13 @@ def collect_optional_fields(staging_root:Path,param_map,targets,expected_points,
 def accumulation_intervals(rows,targets):
     cube=np.stack([rows[t] for t in targets]);validate_accumulation(cube,'native rapid/phase TOT_PREC');return np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
 
+def phase_interval_fields(rain_rows,snow_rows,graupel_rows,targets):
+    """Keep the fixed phase wire layout; absent graupel is missing, never dry."""
+    rain=accumulation_intervals(rain_rows,targets)
+    snow=accumulation_intervals(snow_rows,targets)
+    graupel=accumulation_intervals(graupel_rows,targets) if graupel_rows else np.full_like(rain,np.nan)
+    return {'rain':rain,'snowfall_water_equivalent':snow,'graupel_water_equivalent':graupel}
+
 def _max_rolling_sum(cube,window_steps,start_index=1):
     arr=np.asarray(cube,dtype=np.float64)
     if arr.ndim!=2 or arr.shape[0]<=start_index:return np.full(arr.shape[1] if arr.ndim==2 else 0,np.nan,dtype=np.float64)
@@ -508,7 +515,7 @@ def main():
  rain_files=sorted((a.staging/'rapid-optional'/'RAIN_GSP').glob('**/*.grib2*'));snow_files=sorted((a.staging/'rapid-optional'/'SNOW_GSP').glob('**/*.grib2*'));graupel_files=sorted((a.staging/'rapid-optional'/'GRAU_GSP').glob('**/*.grib2*'))
  rain_rows=collect_optional_parameter(rain_files,'rain_acc',rapid15_times,point_count);snow_rows=collect_optional_parameter(snow_files,'snow_acc',rapid15_times,point_count);graupel_rows=collect_optional_parameter(graupel_files,'graupel_acc',rapid15_times,point_count)
  if rain_rows and snow_rows:
-  rain15=accumulation_intervals(rain_rows,rapid15_times);snow15=accumulation_intervals(snow_rows,rapid15_times);graupel15=accumulation_intervals(graupel_rows,rapid15_times) if graupel_rows else np.zeros_like(rain15);phase_for_extreme={'rain':rain15,'snowfall_water_equivalent':snow15,'graupel_water_equivalent':graupel15};phase_path=a.output/'rapid-phase-15m.bin';phase_path.write_bytes(pack_cell_major(phase_for_extreme,PHASE_15M_FIELDS))
+  phase_for_extreme=phase_interval_fields(rain_rows,snow_rows,graupel_rows,rapid15_times);phase_path=a.output/'rapid-phase-15m.bin';phase_path.write_bytes(pack_cell_major(phase_for_extreme,PHASE_15M_FIELDS))
  grid=build_lookup(base_grid[0],base_grid[1],a.output,a.lookup_step)
  severe_for_extreme=dict(severe_fields)
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube

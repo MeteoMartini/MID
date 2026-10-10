@@ -5,10 +5,10 @@ import {useMidMap} from './MapLibreCore';
 import {formatDecimal} from './format';
 import './modelMapProbe.css';
 
-type Point={latitude:number;longitude:number;value:number|null;revision:number;pending?:boolean};
+type Point<T>={latitude:number;longitude:number;value:T|null;revision:number;pending?:boolean};
 /** Geographic anchor; all portal/outside-tap/Escape logic stays in the app primitive. */
-export default function ModelMapProbe({label,unit,source,enabled,contextKey,sample,format,unavailableNote='Keine geprüfte Rasterabdeckung.'}:{label:string;unit:string;source:string;enabled:boolean;contextKey:string;sample:(latitude:number,longitude:number,signal:AbortSignal)=>number|null|Promise<number|null>;format:(value:number|null)=>string;unavailableNote?:string}){
- const map=useMidMap(),tooltipId=useId(),[point,setPoint]=useState<Point|null>(null),anchorRef=useRef<HTMLElement|null>(null),requestRef=useRef<AbortController|null>(null),latest=useRef({sample});latest.current={sample};
+export default function ModelMapProbe<T extends number|string=number>({label,unit,source,enabled,contextKey,sample,format,unavailableNote='Keine geprüfte Rasterabdeckung.'}:{label:string;unit:string;source:string;enabled:boolean;contextKey:string;sample:(latitude:number,longitude:number,signal:AbortSignal)=>T|null|Promise<T|null>;format:(value:T|null)=>string;unavailableNote?:string}){
+ const map=useMidMap(),tooltipId=useId(),[point,setPoint]=useState<Point<T>|null>(null),anchorRef=useRef<HTMLElement|null>(null),requestRef=useRef<AbortController|null>(null),latest=useRef({sample});latest.current={sample};
  const close=useCallback(()=>{requestRef.current?.abort();setPoint(null)},[]);
  const show=useCallback((latitude:number,longitude:number)=>{
   requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;

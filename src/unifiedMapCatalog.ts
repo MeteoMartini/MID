@@ -13,13 +13,13 @@ export const UNIFIED_MAP_PARAMETERS:{id:string;label:string;detail:string}[]=[
  {id:'cloud',label:'Gesamtbewölkung',detail:'Bedeckungsgrad'},
  {id:'pressure',label:'Bodendruck · MSL',detail:'Auf Meereshöhe reduzierter Druck'},
  {id:'thetae',label:'ThetaE · 850 hPa',detail:'Luftmassen und barokline Zonen; keine analysierten Fronten'},
- {id:'sigwx',label:'Signifikantes Wetter',detail:'WMO-Modellwettercode; keine amtliche Warnung'},
+ {id:'sigwx',label:'Wolken und signifikantes Wetter',detail:'Gleicher Modelllauf und Termin · Wolken mit Wettererscheinungen; keine amtliche Warnung'},
  ...UNIFIED_WMS_PARAMETERS
 ];
 export type UnifiedParameter=typeof UNIFIED_MAP_PARAMETERS[number]['id'];
 export function unifiedModelForParameter(parameter:UnifiedParameter){return parameter==='observed'?'radolan':'icon-d2'}
 export function availableUnifiedParameters(index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean){
- return UNIFIED_MAP_PARAMETERS.filter(p=>['synoptic','thetae','geopotential'].includes(p.id)?true:p.id==='totals'?hasTotals:p.id==='observed'?hasObserved:Boolean(index?.products[p.id as NativeFieldKind]?.frames.length)||unifiedWmsChoices().some(c=>c.parameter===p.id));
+ return UNIFIED_MAP_PARAMETERS.filter(p=>['synoptic','thetae','geopotential','sigwx'].includes(p.id)?true:p.id==='totals'?hasTotals:p.id==='observed'?hasObserved:Boolean(index?.products[p.id as NativeFieldKind]?.frames.length)||unifiedWmsChoices().some(c=>c.parameter===p.id));
 }
 /** Both selectors use this single verified capability matrix. */
 export function unifiedSources(parameter:string,index:NativeIndex|null,hasTotals:boolean,hasObserved:boolean):{id:string;label:string}[]{

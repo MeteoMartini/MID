@@ -1,0 +1,145 @@
+{
+  "schema": "mid.cloud-weather.header-evidence.v1",
+  "kind": "bounded-real-DWD-header-probe-not-full-E2E",
+  "decoder": "ecCodes 2.49.0",
+  "rows": [
+    {
+      "model": "icon-d2",
+      "field": "clct",
+      "url": "https://opendata.dwd.de/weather/nwp/icon-d2/grib/12/clct/icon-d2_germany_regular-lat-lon_single-level_2026101012_003_2d_clct.grib2.bz2",
+      "sha256": "a33e54e4dcb8eea497b19814747efcbca11cb70778a5289e1d5e4444204fe8ad",
+      "bytes": 821243,
+      "header": {
+        "centre": 78,
+        "discipline": 0,
+        "parameterCategory": 6,
+        "parameterNumber": 1,
+        "typeOfFirstFixedSurface": 1,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "shortName": "CLCT",
+        "units": "%",
+        "stepType": "instant",
+        "dataDate": 20261010,
+        "dataTime": 1200,
+        "endStep": 3,
+        "gridType": "regular_ll"
+      }
+    },
+    {
+      "model": "icon-d2",
+      "field": "ww",
+      "url": "https://opendata.dwd.de/weather/nwp/icon-d2/grib/12/ww/icon-d2_germany_regular-lat-lon_single-level_2026101012_003_2d_ww.grib2.bz2",
+      "sha256": "eb446f907976ce91f58673ffdc36a7567df8da71742c06ba615ac3aefe64a16d",
+      "bytes": 68755,
+      "header": {
+        "centre": 78,
+        "discipline": 0,
+        "parameterCategory": 19,
+        "parameterNumber": 25,
+        "typeOfFirstFixedSurface": 1,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "shortName": "WW",
+        "units": "Numeric",
+        "stepType": "instant",
+        "dataDate": 20261010,
+        "dataTime": 1200,
+        "endStep": 3,
+        "gridType": "regular_ll"
+      }
+    },
+    {
+      "model": "icon-eu",
+      "field": "clct",
+      "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/12/clct/icon-eu_europe_regular-lat-lon_single-level_2026101012_003_CLCT.grib2.bz2",
+      "sha256": "4f9c3ad908003416b2c125ef8f0ff8309d6af8d774c20931aab466b3bdbb00c0",
+      "bytes": 1043630,
+      "header": {
+        "centre": 78,
+        "discipline": 0,
+        "parameterCategory": 6,
+        "parameterNumber": 1,
+        "typeOfFirstFixedSurface": 1,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "shortName": "CLCT",
+        "units": "%",
+        "stepType": "instant",
+        "dataDate": 20261010,
+        "dataTime": 1200,
+        "endStep": 3,
+        "gridType": "regular_ll"
+      }
+    },
+    {
+      "model": "icon-eu",
+      "field": "ww",
+      "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/12/ww/icon-eu_europe_regular-lat-lon_single-level_2026101012_003_WW.grib2.bz2",
+      "sha256": "a9183429c872fb75922c707faff37d284e95d4535a86b9b93a34b1ca5aeb7c8b",
+      "bytes": 220624,
+      "header": {
+        "centre": 78,
+        "discipline": 0,
+        "parameterCategory": 19,
+        "parameterNumber": 25,
+        "typeOfFirstFixedSurface": 1,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "shortName": "WW",
+        "units": "Numeric",
+        "stepType": "instant",
+        "dataDate": 20261010,
+        "dataTime": 1200,
+        "endStep": 3,
+        "gridType": "regular_ll"
+      }
+    },
+    {
+      "model": "icon",
+      "field": "clct",
+      "url": "https://opendata.dwd.de/weather/nwp/icon/grib/12/clct/icon_global_icosahedral_single-level_2026101012_003_CLCT.grib2.bz2",
+      "sha256": "60c9de0b412c6b7d776f16d119a74bd2b2d6d79b292200b5c3641ced157d80fc",
+      "bytes": 4135843,
+      "header": {
+        "centre": 78,
+        "discipline": 0,
+        "parameterCategory": 6,
+        "parameterNumber": 1,
+        "typeOfFirstFixedSurface": 1,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "shortName": "CLCT",
+        "units": "%",
+        "stepType": "instant",
+        "dataDate": 20261010,
+        "dataTime": 1200,
+        "endStep": 3,
+        "gridType": "unstructured_grid"
+      }
+    },
+    {
+      "model": "icon",
+      "field": "ww",
+      "url": "https://opendata.dwd.de/weather/nwp/icon/grib/12/ww/icon_global_icosahedral_single-level_2026101012_003_WW.grib2.bz2",
+      "sha256": "13e375f5bb02aae4f83359d0a00e05a5192f28b6d36d5a32e81c80ada2078b48",
+      "bytes": 987967,
+      "header": {
+        "centre": 78,
+        "discipline": 0,
+        "parameterCategory": 19,
+        "parameterNumber": 25,
+        "typeOfFirstFixedSurface": 1,
+        "scaledValueOfFirstFixedSurface": 0,
+        "typeOfSecondFixedSurface": 255,
+        "shortName": "WW",
+        "units": "Numeric",
+        "stepType": "instant",
+        "dataDate": 20261010,
+        "dataTime": 1200,
+        "endStep": 3,
+        "gridType": "unstructured_grid"
+      }
+    }
+  ]
+}
