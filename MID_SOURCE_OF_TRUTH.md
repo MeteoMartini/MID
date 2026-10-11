@@ -1,3 +1,7 @@
+# MID v0.9.85.234 · MID-C27 GeoMet-Zeitformat und RUC-Speichermessung
+
+Basis main=mid-stable d4ddd72445abf2e67ee38e814c8d650a52188d32 (.233). GeoMet lehnt .000Z in GetMap-Zeiten mit HTTP200/XML-NoMatch ab. Ausschließlich GeoMet-Relay normalisiert ganze UTC-Sekunden ohne Änderung des Epoch-Werts; Bruchteile werden abgewiesen. Read-only RUC-Inventar misst Produktbytes, Restbudget, deklarierte Duplikate und begrenzte hashgeprüfte gzip-Roundtrips; echte publizierte CW-Stunden werden geloggt. Keine Budget-/Decoder-/Datenänderung. Details docs/implementation/MID_C27_STORAGE_GEOMET_0.9.85.234.md. Veröffentlichung nur regulärer Source-/Installerpfad; offene echte Geräte-/Langzeit-/vollständige Wissenschaftsabnahme bleibt offen.
+
 # MID v0.9.85.233 · MID-C27 Kartenbudget und GDPS-Neuladen
 
 Basis dd9e501f1ae58bab43f2f1e66c3827f388999434, main=mid-stable .232. Live-Katalog bestätigt Budget-Pruning als Ursache einzelner CW-Termine. .233 priorisiert stündliche CW vor optionaler Synoptikdichte und protokolliert Kürzungen bei unverändertem900MB-Gate. GDPS-Retry erhält neue Quellenidentität. Details docs/implementation/MID_C27_CLOUD_BUDGET_0.9.85.233.md. Veröffentlichung nur regulärer Source-/Installerpfad; echter Geräte-/Langzeit-Audit weiter offen.
