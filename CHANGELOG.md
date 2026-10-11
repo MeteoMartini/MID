@@ -1,3 +1,9 @@
+# MID v0.9.85.234
+
+- GDPS-Wolken und Niederschlagsart erhalten das von GeoMet verlangte UTC-Zeitformat ohne Millisekunden. Lauf und gültiger Termin bleiben exakt erhalten; echte Sekundenbruchteile werden abgewiesen.
+- Jede RUC-Aufbereitung protokolliert jetzt Speicheranteile, Restbudget, mögliche identische Objekte und begrenzte verlustfreie gzip-Stichproben. Zusätzlich werden die tatsächlich veröffentlichten Wolken-/Wetterstunden ausgewiesen.
+- Das 900-MB-Budget, die Datenauflösung und sämtliche veröffentlichten Wetterwerte bleiben unverändert. Kompression und Deduplizierung werden zunächst gemessen, bevor ein neuer Datenvertrag eingeführt wird.
+
 # MID v0.9.85.233
 
 Die Wolken-/Wetterkarte behält bei knappem Speicher bevorzugt die stündlichen ICON-Termine bis +12 h. Zusätzliche Synoptiktermine werden vor diesen Stunden entfernt; die vollständigen Pflichttermine und RUC-Kerndaten bleiben erhalten. Der Katalog dokumentiert die tatsächlich gekürzten Termine. Das Speicherlimit bleibt bei 900 MB.

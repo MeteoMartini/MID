@@ -310,5 +310,7 @@ def main():
         shutil.rmtree(synoptic_dir,ignore_errors=True)
         print(f'::warning::Synoptic fields unavailable: {error}',flush=True)
     meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
+    from storage_audit import audit_storage
+    print('RUC storage audit: '+json.dumps(audit_storage(meta,a.output/'ruc'),separators=(',',':')),flush=True)
     print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'budgetBytes':meta['pages']['budgetBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'prunedRapidProducts':meta['pages']['prunedRapidProducts'],'savedBytes':meta['pages']['savedBytes']}))
 if __name__=='__main__':main()

@@ -29,6 +29,21 @@ with tempfile.TemporaryDirectory() as td:
  (src/'precipitation-totals.json').write_text(json.dumps({'schema':'mid.icon-d2.totals.v1','run':'2026-10-01T09:00:00+00:00'}))
  result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=5)
  assert result['storageProfile']=='pages-free-v1' and result['pages']['nativeEpsMembers'] is False
+ from storage_audit import audit_storage
+ audit=audit_storage(result,out/'ruc')
+ assert audit['publishedBytes']==result['pages']['publishedBytes']
+ assert sum(v['declaredBytes'] for v in audit['products'].values())==audit['publishedBytes']
+ assert audit==audit_storage(result,out/'ruc'), 'compression samples must be deterministic'
+ assert audit['products']['deterministic']['compressionSamples']
+ assert not (out/'ruc'/'storage-audit.json').exists(), 'audit must not add published objects'
+ try:audit_storage({**result,'pages':{**result['pages'],'publishedBytes':1}},out/'ruc')
+ except ValueError:pass
+ else:raise AssertionError('incorrect declared totals accepted')
+ first=result['pages']['objects'][0];sample=out/'ruc'/first['key'];original=sample.read_bytes();sample.write_bytes(b'x'*len(original))
+ try:audit_storage(result,out/'ruc')
+ except ValueError:pass
+ else:raise AssertionError('corrupted compression sample accepted')
+ finally:sample.write_bytes(original)
  assert result['deterministic']['pages']['chunkCount']==3 and result['epsSummary']['pages']['chunkCount']==3 and result['lookup']['pages']['chunkCount']==3
  assert 'key' not in result['eps'] and result['eps']['available'] is False
  assert result['rapid']['precip5']['pages']['chunkCount']==3 and result['rapid']['convection15']['pages']['chunkCount']==3
