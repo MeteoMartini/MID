@@ -70,3 +70,7 @@ for(const keys of [[],['runs/other/shared/0000.bin'],[`runs/${runKey}/../bad.bin
  context.__aliasSpec={...aliasSpec,pages:{...aliasSpec.pages,chunkKeys:keys}};
  assert.equal(await vm.runInContext("dwdRucStaticRecord(new URL('https://midwx.app/ruc/'),__aliasSpec,0)",context),null,'unsafe/incomplete alias must fail closed');
 }
+
+context.__aliasSpec={...aliasSpec,pages:{...aliasSpec.pages,chunkCount:2,chunkKeys:[aliasSpec.pages.chunkKeys[0],'runs/other/0000.bin']}};
+assert.deepEqual(Array.from(await vm.runInContext("dwdRucStaticRecord(new URL('https://midwx.app/ruc/'),__aliasSpec,0)",context)),Array.from(objects.get(`https://midwx.app/ruc/runs/${runKey}/deterministic/0000.bin`)));
+assert.equal(await vm.runInContext("dwdRucStaticRecord(new URL('https://midwx.app/ruc/'),__aliasSpec,1)",context),null,'every requested alias must be validated before fetch');

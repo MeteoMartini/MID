@@ -14,7 +14,7 @@ Die Aufbereitung meldet vollständige Synoptik-Termine für ICON-D2, ICON-EU, IC
 
 ## Datenvertrag
 
-Deduplizierung nur für Chunk-.bin vor unabhängigen Synoptikobjekten. Jeder Alias wird in pages.chunkKeys als vollständiger immutable runs/<gleicher Lauf>/…-Schlüssel angegeben. Listenlänge entspricht chunkCount; Record-Geometrie und Reihenfolge unverändert. Worker lehnt falschen Lauf, Traversal, Query/Fragment, Encodings und unvollständige Listen ab, nutzt sonst alte numerische Chunk-Adressen. Manifest enthält nur physisch vorhandene Objekte, daher funktioniert der vorhandene Hash-geprüfte Restore ohne Sonderweg. Binärformat und quantisierte Werte bleiben identisch; kein Decoder-/Dekompressions-CPU-Aufwand. Gleiche leere/Missing-Chunks dürfen über Produktgrenzen dieselben Bytes teilen, ohne Semantik zu teilen.
+Deduplizierung nur für Chunk-.bin vor unabhängigen Synoptikobjekten. Jeder Alias wird in pages.chunkKeys als vollständiger immutable runs/<gleicher Lauf>/…-Schlüssel angegeben. Listenlänge entspricht chunkCount; Record-Geometrie und Reihenfolge unverändert. Worker prüft jeden angefragten Verweis vor dem Fetch und lehnt falschen Lauf, Traversal, Query/Fragment, Encodings und unvollständige Listen ab, nutzt sonst alte numerische Chunk-Adressen. Manifest enthält nur physisch vorhandene Objekte, daher funktioniert der vorhandene Hash-geprüfte Restore ohne Sonderweg. Binärformat und quantisierte Werte bleiben identisch; kein Decoder-/Dekompressions-CPU-Aufwand. Gleiche leere/Missing-Chunks dürfen über Produktgrenzen dieselben Bytes teilen, ohne Semantik zu teilen.
 
 Das physische900MB-Limit wird einschließlich tatsächlicher latest.json-Größe geprüft. Die Site950MB-Grenze bleibt unverändert. Bestehende EPS-/Rapid-Projektion unverändert; keine neue Datenreduktion. Kompressionsaudit misst weiterhin alle eindeutigen geeigneten Binärobjekte. Native gzip-JSON-Karten bleiben unverändert. R2/andere bezahlte Backends nicht aktiviert.
 
@@ -25,3 +25,5 @@ Vorher hatte die Ortsleiste z35, der Suchkopf1000/1820 und teils backdrop blur. 
 ## Weiter offen
 
 Vollständiger produktiver Kompressionsbericht aus235 oder später; produktiver236-RUC-Gewinn/Terminkatalog nach Stable-Promotion; echte Karten-/iOS-/Geräte-Abnahme, numerische Nähte, vollständige optionale GRIB-Verträge, langfristige SLO-/Alarmzustellung. Die bestehende Freigabekette entscheidet über Veröffentlichung.
+
+Worker-Hotpath: Form/Länge der Liste in O(1), Sicherheitsprüfung ausschließlich des gerade angefragten Schlüssels. Kein O(chunkCount)-Scan pro Kartenpunkt; alle angefragten Aliase werden geprüft. Vergleichsprobe vor Optimierung:1000 PageInfo-Aufrufe mit133 Aliasen ca28ms lokal; kein physisches Geräte-/Cloudflare-CPU-Golden daraus abgeleitet.
