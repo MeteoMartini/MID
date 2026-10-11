@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const profile=readFileSync('src/ForecastCockpit.tsx','utf8'),app=readFileSync('src/App.tsx','utf8');
+const head=profile.slice(profile.indexOf('<header className="cockpit-meteogram-pro__head">'),profile.indexOf('</header>',profile.indexOf('<header className="cockpit-meteogram-pro__head">')));
+assert.match(head,/cockpit-weather-profile__toolbar/);
+assert.match(head,/aria-expanded=\{profileLegendVisible\}/);
+assert.match(head,/aria-expanded=\{profileInfoOpen\}/);
+assert.match(app,/showSelectedPlace=Boolean\(loc&&!settingsOpen&&modernPrimarySection\(activeNavSection\)!=='map'\)/);
+assert.match(app,/<SelectedPlaceBar name=\{displayLocationName\}/);
+assert.ok(app.indexOf('if(widgetUrlExport)return')<app.indexOf('<SelectedPlaceBar'),'standalone exports retain their shared export layout');
+if(process.env.GITHUB_ACTIONS==='true')await import('./verify-compact-profile-browser-0985235.mjs');
+console.log('MID235 compact profile controls, canonical selected place and map/settings/export boundaries verified.');

@@ -25925,3 +25925,27 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals
 .mid-update-actions{min-width:0}
 @media(max-width:430px){.mid-update-actions{align-items:stretch}.mid-update-actions button{min-width:0}}
 .mid-update-auto{min-height:44px}
+
+/* MID C27: compact persistent location context, shared by both design modes. */
+.selected-place-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:35;display:flex;align-items:center;justify-content:center;gap:7px;min-height:32px;margin:4px 0 8px;padding:5px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 3px 12px rgba(16,45,72,.06)}
+.selected-place-bar>svg{flex:none;color:var(--primary)}
+.selected-place-bar>strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:650}
+.selected-place-bar>span{flex:none;color:var(--muted);font-size:10px}
+/* Keep legend and help inside the existing profile header without a spare row. */
+html:root .forecast-cockpit .cockpit-weather-profile>.cockpit-meteogram-pro__head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
+html:root .forecast-cockpit .cockpit-weather-profile>.cockpit-meteogram-pro__head>span{min-width:0!important;flex:1!important}
+html:root .forecast-cockpit .cockpit-weather-profile .cockpit-meteogram-pro__head>.cockpit-weather-profile__toolbar{display:flex!important;flex:none!important;flex-wrap:nowrap!important;width:max-content!important;min-width:0!important;align-items:center!important;gap:2px!important;padding:0!important;margin:0!important}
+html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profile__toolbar>button{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-height:44px!important;min-width:44px!important;width:auto!important;margin:0!important;padding:0 8px!important;border:0!important;border-radius:10px!important;background:transparent!important;box-shadow:none!important;color:var(--muted)!important;font-size:11px!important;font-weight:600!important}
+html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profile__toolbar>button[aria-expanded="true"]{color:var(--primary)!important;background:color-mix(in srgb,var(--primary) 7%,transparent)!important}
+html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profile__toolbar>button:hover{background:var(--s2)!important}
+html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profile__toolbar>button:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+@media(max-width:420px){html:root .forecast-cockpit .cockpit-weather-profile>.cockpit-meteogram-pro__head{padding-inline:8px!important}html:root .forecast-cockpit .cockpit-weather-profile>.cockpit-meteogram-pro__head b{font-size:16px!important}html:root .forecast-cockpit .cockpit-weather-profile>.cockpit-meteogram-pro__head small{font-size:8px!important;letter-spacing:.06em!important}}
+
+.app.has-selected-place-bar>.top{position:relative!important;top:auto!important}
+
+html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profile__toggle::after{content:none!important}
+
+/* A non-scrolling body overflow container otherwise traps desktop sticky positioning. */
+html:root:has(.selected-place-bar),html:root body:has(.selected-place-bar),html:root #root:has(.selected-place-bar){overflow-x:clip;overflow-y:visible}
+
+@media(min-width:960px){html:root .forecast-cockpit .cockpit-weather-profile{grid-template-areas:'profile-head profile-head' 'profile-signals profile-signals' 'profile-info profile-info' 'profile-chart profile-data' 'profile-legend profile-data'}}

@@ -1,5 +1,5 @@
-# MID v0.9.85.234
+# MID v0.9.85.235
 
-- GDPS-Wolken und Niederschlagsart erhalten das von GeoMet verlangte UTC-Zeitformat ohne Millisekunden. Lauf und gültiger Termin bleiben exakt erhalten; echte Sekundenbruchteile werden abgewiesen.
-- Jede RUC-Aufbereitung protokolliert jetzt Speicheranteile, Restbudget, mögliche identische Objekte und begrenzte verlustfreie gzip-Stichproben. Zusätzlich werden die tatsächlich veröffentlichten Wolken-/Wetterstunden ausgewiesen.
-- Das 900-MB-Budget, die Datenauflösung und sämtliche veröffentlichten Wetterwerte bleiben unverändert. Kompression und Deduplizierung werden zunächst gemessen, bevor ein neuer Datenvertrag eingeführt wird.
+- Legende und Info dezent im gemeinsamen 24-h-Profilkopf mit unveränderten Funktionen und gut erreichbaren Touchflächen.
+- Der ausgewählte Ort bleibt außerhalb von Karten und Einstellungen kompakt am oberen Rand sichtbar, einschließlich Favoritenalias.
+- Der verlustfreie RUC-Speichervergleich misst zusätzlich reversible Byteplanes plus gzip. Produktionsdaten, Auflösung und Speichergrenzen bleiben unverändert.
