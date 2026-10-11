@@ -57,18 +57,22 @@ def theta_e(t,rh):
     return t*(1000/(850-e))**(2/7)*(t/tl)**(.28*mix)*np.exp((3036/tl-1.78)*mix*(1+.448*mix))
 
 def contours(values,lats,lons):
-    # Render contours on a decimated grid; underlying sampled values stay native.
+    import contourpy
+    from pressure_contour_spacing import pressure_spacing,line_spacing
+    # Keep established display grid; point values retain native resolution.
     v=values[::6,::6];lat=lats[::6];lon=lons[::6];result=[]
-    for level in range(int(np.floor(v.min()/4))*4,int(np.ceil(v.max()/4))*4+1,4):
-        paths=[]
-        for row in range(v.shape[0]-1):
-            for col in range(v.shape[1]-1):
-                corners=[(v[row,col],lat[row],lon[col]),(v[row,col+1],lat[row],lon[col+1]),(v[row+1,col+1],lat[row+1],lon[col+1]),(v[row+1,col],lat[row+1],lon[col])];cross=[]
-                for a,b in zip(corners,corners[1:]+corners[:1]):
-                    if (a[0]<level)==(b[0]<level):continue
-                    fraction=(level-a[0])/(b[0]-a[0]);cross.append([round(a[1]+fraction*(b[1]-a[1]),5),round(a[2]+fraction*(b[2]-a[2]),5)])
-                for i in range(0,len(cross)-1,2):paths.append([cross[i],cross[i+1]])
-        if paths:result.append({'level':level,'paths':paths})
+    finite=np.isfinite(v)
+    if len(lat)<2 or len(lon)<2 or not finite.any():return result
+    cg=contourpy.contour_generator(x=lon,y=lat,z=np.ma.array(v,mask=~finite),corner_mask=False)
+    gradient=pressure_spacing(v,lat,lon)
+    for level in range(int(np.floor(np.nanmin(v))),int(np.ceil(np.nanmax(v)))+1):
+        paths=[];spacing=[]
+        for line in cg.lines(level):
+            if len(line)<2:continue
+            spacing.append(line_spacing(gradient,lat,lon,line))
+            points=np.round(line[:,::-1],5).tolist()
+            paths.extend([[a,b] for a,b in zip(points,points[1:])])
+        if paths:result.append({'level':level,'paths':paths,'spacingKm':min(spacing)})
     return result
 
 def build(output,totals):
@@ -98,7 +102,7 @@ def build(output,totals):
         fields={'temperature':get('t_2m')-273.15,'pressure':pressure,'wind':np.hypot(get('u_10m'),get('v_10m'))*3.6,'gust':get('vmax_10m')*3.6,'cloud':get('clct'),'thetae':theta_e(get('t'),get('relhum')),'sigwx':get('ww'),'precipitation':difference(get('tot_prec',hour-1),get('tot_prec'))/10}
         for key,values in fields.items():
             values=np.rint(values*10).astype(np.int32);name=f'{key}-{hour:03d}.bin';time=(run_time+timedelta(hours=hour)).isoformat()
-            payload={'schema':'mid.icon-d2.field.v1','run':run_time.isoformat(),'time':time,'kind':key,'unit':products[key]['unit'],'scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'values':values.ravel().tolist(),'centers':pressure_centers(pressure,lats,lons) if key=='pressure' else [],'isobars':isobars if key in ('pressure','thetae','sigwx','precipitation') else []}
+            payload={'schema':'mid.icon-d2.field.v1','run':run_time.isoformat(),'time':time,'kind':key,'unit':products[key]['unit'],'scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'values':values.ravel().tolist(),'centers':pressure_centers(pressure,lats,lons) if key=='pressure' else [],'isobars':isobars if key=='pressure' else []}
             raw=(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode('utf-8')
             file=output/name;file.write_bytes(gzip.compress(raw,compresslevel=6,mtime=0));digest=hashlib.sha256(file.read_bytes()).hexdigest()
             products[key]['frames'].append({'hour':hour,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'sha256':digest,'bytes':file.stat().st_size,'intervalHours':hour-data[(hour,'vmax_10m',hour)][1] if key=='gust' else 1 if key=='precipitation' else 0})

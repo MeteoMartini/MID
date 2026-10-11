@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {build} from 'esbuild';
+import {build,transformSync} from 'esbuild';
 import {mkdtempSync,rmSync,readFileSync,writeFileSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const dir=mkdtempSync(join(tmpdir(),'mid-c28-contract-'));
 try{
  symlinkSync(join(process.cwd(),'node_modules'),join(dir,'node_modules'),'dir');
- await build({entryPoints:['src/modelPressureCenterData.ts','src/nativeModelFields.ts','src/nativeModelMapExport.ts'],outdir:dir,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
+ await build({entryPoints:['src/modelPressureCenterData.ts','src/nativeModelFields.ts','src/nativeModelMapExport.ts','src/compositeSettings.ts'],outdir:dir,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
  const centers=await import(pathToFileURL(join(dir,'modelPressureCenterData.js'))),native=await import(pathToFileURL(join(dir,'nativeModelFields.js'))),exports=await import(pathToFileURL(join(dir,'nativeModelMapExport.js')));
  const lats=[47,51.1,55.2],lons=[5.5,10.55,15.6],center={type:'H',lat:51.1,lon:10.55,value:1024,prominence:4};
  assert.ok(centers.validModelPressureCenters([center],lats,lons));
@@ -23,5 +23,15 @@ try{
  // A saved selection must survive a missing provider; only user events change it.
  const panel=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.ok(!panel.includes('update({modelId:ids[0]'));
  const radar=readFileSync('src/RadarPanel.tsx','utf8');assert.ok(radar.includes('modelLines:unified?initial.modelLines:modelLines'));
+ const settings=await import(pathToFileURL(join(dir,'compositeSettings.js'))),storage=new Map;
+ globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
+ const old=settings.readCompositeSettings();settings.writeCompositeSettings({...old,showRadar:false,showSatellite:true,observationsEnabled:false});
+ assert.equal(settings.readCompositeSettings().observationsEnabled,false);assert.equal(settings.readCompositeSettings().showSatellite,true);
+ const callback=radar.match(/const flushCompositeSettings=useCallback\((\(\)=>\{.*?\}),\[\]\);/)[1];
+ const flush=new Function('compositeSettingsRef','lastPersistedComposite','storedSettings','writeCompositeSettings',transformSync('const flush='+callback+';',{loader:'ts'}).code+'return flush');
+ const current={current:{...old}},previous={current:{...old}},runFlush=flush(current,previous,settings.readCompositeSettings,settings.writeCompositeSettings);
+ runFlush();assert.equal(settings.readCompositeSettings().observationsEnabled,false,'Unchanged older instance must not overwrite master');assert.equal(settings.readCompositeSettings().showRadar,false);
+ current.current={...old,playbackSeconds:4.8};runFlush();const saved=settings.readCompositeSettings();assert.equal(saved.playbackSeconds,4.8);assert.equal(saved.observationsEnabled,false);assert.equal(saved.showSatellite,true,'Independent setting flush must retain newer layer choices');
+ delete globalThis.localStorage;
 }finally{delete globalThis.fetch;rmSync(dir,{recursive:true,force:true})}
 console.log('MID-C28 hourly catalogue, pressure-centre validation/export and saved-selection contracts passed.');

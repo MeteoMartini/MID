@@ -1,3 +1,10 @@
+# MID v0.9.85.239 · Beobachtungen merken und kompakte Wetterphasen
+
+- Beobachtungen lassen sich gemeinsam aus-/einschalten; die gewählten Einzellayer bleiben gespeichert. Direkte Bedienaktionen speichern sofort, unveränderte alte Karteninstanzen überschreiben keine neuere Auswahl.
+- Höhenkonturen: 8/4 gpdm. Druckkonturen: 5/2/1 hPa nach Zoom und numerischem Gradienten; neue 1-hPa-Geometrie wird aus dem Modellfeld erzeugt. Ältere unveränderliche Dateien behalten ihre vorhandenen Linien bis zum nächsten passenden Datenlauf.
+- Feinere ICON-D2-Isobaren werden einmal im Bodendruckfeld gespeichert; andere native Karten und Exporte nutzen die exakt lauf-/terminpassende Druckgeometrie. T/H bleiben ausschließlich in reinen Bodendruckkarten.
+- Der Wetterphasenbereich wird im aktiven Stylesheet kompakt dargestellt: drei kurze Zeilen auf Smartphones, drei Spalten auf größeren Bildschirmen. Werte, Ensemble-Spannen und Quellen bleiben unverändert.
+
 # MID v0.9.85.238 · Adaptive Konturen und klare Ortsanzeige
 
 - Numerische Isobaren/Isohypsen werden beim Zoomen mit 16/8/4 hPa bzw. dam sichtbar; veröffentlichte Daten bleiben unverändert. Isobaren unter 1013 hPa sind gestrichelt, auch im ICON-D2-Export.

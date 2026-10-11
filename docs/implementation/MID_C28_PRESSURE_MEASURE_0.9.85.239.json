@@ -1,0 +1,33 @@
+{
+  "schema": "mid.pressure.contour.measure.v1",
+  "model": "icon-d2",
+  "run": "2026-10-11T18:00:00+00:00",
+  "hour": 0,
+  "origin": "https://opendata.dwd.de/weather/nwp/icon-d2/grib/18/pmsl/icon-d2_germany_regular-lat-lon_single-level_2026101118_000_2d_pmsl.grib2.bz2",
+  "gribSha256": "2a88959fe28719e4867edb43e4d213317c8d8dd50e185573732eef33353b89e6",
+  "oldWireBytes": 955553,
+  "newWireBytes": 1057038,
+  "newDecodedBytes": 5494092,
+  "pressureFeatures": 637,
+  "pressureLevels": [
+    1003.0,
+    1004.0,
+    1005.0,
+    1006.0,
+    1007.0,
+    1008.0,
+    1009.0,
+    1010.0,
+    1011.0,
+    1012.0,
+    1013.0,
+    1014.0,
+    1015.0,
+    1016.0,
+    1017.0,
+    1018.0,
+    1019.0
+  ],
+  "oneHpa": true,
+  "elapsedSeconds": 2.297
+}

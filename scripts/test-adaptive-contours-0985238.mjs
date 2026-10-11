@@ -8,13 +8,14 @@ const dir=mkdtempSync(join(tmpdir(),'mid-contours-'));
 try{
  await build({entryPoints:['src/adaptiveModelContours.ts'],outfile:join(dir,'contours.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
  const {contourInterval,contourVisible,adaptiveContourLayers}=await import(pathToFileURL(join(dir,'contours.mjs')));
- assert.deepEqual([4.99,5,6.99,7].map(contourInterval),[16,8,8,4]);
- assert.equal(contourVisible(1012,4),false);assert.equal(contourVisible(1012,7),true);
+ assert.deepEqual([4.99,5,6.99,7].map(z=>contourInterval(z,'height')),[8,8,8,4]);
+ assert.equal(contourVisible(1012,4,'pressure'),false);assert.equal(contourVisible(1012,7,'pressure'),true);
  assert.equal(contourVisible(560,4),true);assert.equal(contourVisible(564,6),false);
+ assert.deepEqual([4,6,8].map(z=>contourInterval(z,'pressure')),[5,2,1]);assert.equal(contourInterval(7,'pressure',2),5);assert.equal(contourInterval(7,'pressure',10),2);assert.equal(contourInterval(11,'pressure',2),1);
  const pressure=adaptiveContourLayers('pressure','#fff',.6,{halo:'#222'});
  for(const layer of pressure.filter(l=>l.type==='line')){
   const dashed=layer.id.includes('dashed');assert.deepEqual(layer.filter[2],[dashed?'<':'>=',['get','level'],1013]);
-  assert.equal(layer.filter[1][1][2],layer.maxzoom===5?16:layer.maxzoom===7?8:4);
+  assert.equal(layer.filter[1][0],'case');assert.deepEqual(layer.filter[1][1],['has','spacingKm']);
   assert.equal(Boolean(layer.paint['line-dasharray']),dashed);
  }
  assert.ok(!adaptiveContourLayers('height','#222',1).some(l=>l.paint['line-dasharray']));

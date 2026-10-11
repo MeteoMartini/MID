@@ -13,9 +13,9 @@ export function unifiedWmsLineStyle(metadata:WeatherMapMetadata|null,level:numbe
   return !restricted||Number(restricted[1])===level;
  })?.name;
 }
-export function nativeIsobarFeatures(contours:{level:number;paths:number[][][]}[]){
+export function nativeIsobarFeatures(contours:{level:number;spacingKm?:number;paths:number[][][]}[]){
  return {type:'FeatureCollection' as const,features:contours.flatMap(c=>c.paths.filter(path=>path.length>=2).map(path=>({
-  type:'Feature' as const,properties:{level:c.level,label:`${Math.round(c.level)} hPa`},
+  type:'Feature' as const,properties:{level:c.level,...(c.spacingKm!==undefined?{spacingKm:c.spacingKm}:{}),label:`${Math.round(c.level)} hPa`},
   geometry:{type:'LineString' as const,coordinates:path.map(([lat,lon])=>[lon,lat])}
  })))};
 }

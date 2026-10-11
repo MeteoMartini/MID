@@ -15,7 +15,7 @@ export function FourteenDayDevelopment({series}:{series:Row[]}){
  const phases=[{label:'Tag 1–4',rows:series.slice(0,4)},{label:'Tag 5–9',rows:series.slice(4,9)},{label:'Tag 10–14',rows:series.slice(9,14)}].filter(phase=>phase.rows.length);
   return (
    <section className="long-range-overview" data-fourteen-development="true">
-    <header><div><strong>14 Tage · Entwicklung</strong><small>Tmax / Tmin · Best Match mit Ensemble-Spannen</small></div><span className="fourteen-development-kicker">3 Wetterphasen</span></header>
+    <header><div><strong>14 Tage · Entwicklung</strong><small>Tmax / Tmin · Best Match mit Ensemble-Spannen</small></div><span className="fourteen-development-kicker">{phases.length} Wetterphasen</span></header>
     <div className="long-range-dwd-periods fourteen-phase-summary">
      {phases.map(phase=>{
       const temperatures=phase.rows.map(row=>row.meanDayTemperature).filter(Number.isFinite);
