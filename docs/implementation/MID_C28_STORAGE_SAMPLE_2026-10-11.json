@@ -1,0 +1,269 @@
+{
+  "schema": "mid.c28.storage-sample.v1",
+  "source": "https://www.midwx.app/ruc/latest.json",
+  "manifestSha256": "e902bef6dd162a21c405d2e237b24c653f6c7eec1b3aada6e223c14da9172be2",
+  "run": "2026-10-11T15:00",
+  "publishedBytes": 898918677,
+  "deduplicatedBytes": 20103168,
+  "scope": "First/middle/last checksum-verified immutable object per eligible product. Includes edge/Missing and interior chunks. Full bitwise roundtrip; no extrapolation and no deployed codec change.",
+  "samples": [
+    {
+      "product": "deterministic",
+      "key": "runs/2026-10-11T1500/deterministic/0000.bin",
+      "sha256": "db2910b98e470e9536346c7e7c16dbb63460e27a63678df512c27cd8f66cbbca",
+      "rawBytes": 1474560,
+      "gzipBytes": 1465,
+      "byteplanesGzipBytes": 1465,
+      "deltaByteplanesGzipBytes": 1471
+    },
+    {
+      "product": "deterministic",
+      "key": "runs/2026-10-11T1500/deterministic/0068.bin",
+      "sha256": "77e02b5513245e778935e87115f86b67ef57d0b966902046ac8143ea86d5fe32",
+      "rawBytes": 1474560,
+      "gzipBytes": 957950,
+      "byteplanesGzipBytes": 752721,
+      "deltaByteplanesGzipBytes": 836632
+    },
+    {
+      "product": "deterministic",
+      "key": "runs/2026-10-11T1500/deterministic/0132.bin",
+      "sha256": "1591dbed7f9536e3d1922b123ccf562b77eb0fcafbb8716f8912d1d840303b48",
+      "rawBytes": 492480,
+      "gzipBytes": 290415,
+      "byteplanesGzipBytes": 229701,
+      "deltaByteplanesGzipBytes": 263294
+    },
+    {
+      "product": "eps-summary",
+      "key": "runs/2026-10-11T1500/eps-summary/0000.bin",
+      "sha256": "1a51c477719878bad587ecd1851a20b4fef7e128628a747168997dbfa9813bb6",
+      "rawBytes": 737280,
+      "gzipBytes": 750,
+      "byteplanesGzipBytes": 750,
+      "deltaByteplanesGzipBytes": 756
+    },
+    {
+      "product": "eps-summary",
+      "key": "runs/2026-10-11T1500/eps-summary/0068.bin",
+      "sha256": "a4bc5f18d2f815df53122aac382a9c72557fa3f842686bca067afdae85bb89fb",
+      "rawBytes": 737280,
+      "gzipBytes": 18749,
+      "byteplanesGzipBytes": 16151,
+      "deltaByteplanesGzipBytes": 25072
+    },
+    {
+      "product": "eps-summary",
+      "key": "runs/2026-10-11T1500/eps-summary/0132.bin",
+      "sha256": "8d9dbc46336461eff9bab9b8be161b207711259902c6e47dc1704a0fd7b6e2e1",
+      "rawBytes": 246240,
+      "gzipBytes": 5468,
+      "byteplanesGzipBytes": 4505,
+      "deltaByteplanesGzipBytes": 6189
+    },
+    {
+      "product": "rapid/precip5",
+      "key": "runs/2026-10-11T1500/rapid/precip5/0000.bin",
+      "sha256": "927b1ba81e70c8048f62f0fa162b6fe3a9c7c75a09c25e043789f998d81ba9a8",
+      "rawBytes": 598016,
+      "gzipBytes": 615,
+      "byteplanesGzipBytes": 615,
+      "deltaByteplanesGzipBytes": 619
+    },
+    {
+      "product": "rapid/precip5",
+      "key": "runs/2026-10-11T1500/rapid/precip5/0068.bin",
+      "sha256": "58c829bbffce03e6be997e153cfffbc4c4e0a44d8e4610262644aa6d65a6b6b0",
+      "rawBytes": 598016,
+      "gzipBytes": 30578,
+      "byteplanesGzipBytes": 26348,
+      "deltaByteplanesGzipBytes": 39117
+    },
+    {
+      "product": "rapid/precip5",
+      "key": "runs/2026-10-11T1500/rapid/precip5/0132.bin",
+      "sha256": "d5fae54ac358d01ee59e511078461f93122dc1ee22bd365b5839103ebc7de95f",
+      "rawBytes": 199728,
+      "gzipBytes": 455,
+      "byteplanesGzipBytes": 398,
+      "deltaByteplanesGzipBytes": 518
+    },
+    {
+      "product": "rapid/convection15",
+      "key": "runs/2026-10-11T1500/rapid/convection15/0000.bin",
+      "sha256": "88f04112bc7dd051cda935ca4773fa7170d65bbf24cee6f31a544afb9dcb8296",
+      "rawBytes": 614400,
+      "gzipBytes": 631,
+      "byteplanesGzipBytes": 632,
+      "deltaByteplanesGzipBytes": 637
+    },
+    {
+      "product": "rapid/convection15",
+      "key": "runs/2026-10-11T1500/rapid/convection15/0068.bin",
+      "sha256": "b98ac487d544c935073c8d1cde48f93cb5253e3ff2aa04dcc0bb0dc5594ffdfe",
+      "rawBytes": 614400,
+      "gzipBytes": 255221,
+      "byteplanesGzipBytes": 215156,
+      "deltaByteplanesGzipBytes": 270914
+    },
+    {
+      "product": "rapid/convection15",
+      "key": "runs/2026-10-11T1500/rapid/convection15/0132.bin",
+      "sha256": "ccdc849eb0a0d5e8ac6c7a005fd78c033d8c770b2789639457bc079cd1d577b3",
+      "rawBytes": 205200,
+      "gzipBytes": 43357,
+      "byteplanesGzipBytes": 38588,
+      "deltaByteplanesGzipBytes": 46806
+    },
+    {
+      "product": "rapid/reflectivity15",
+      "key": "runs/2026-10-11T1500/rapid/reflectivity15/0000.bin",
+      "sha256": "fc6672a0de51c66925c33004479a8431f49e8f8dc38b972c1b00a07650f9c328",
+      "rawBytes": 204800,
+      "gzipBytes": 234,
+      "byteplanesGzipBytes": 234,
+      "deltaByteplanesGzipBytes": 239
+    },
+    {
+      "product": "rapid/reflectivity15",
+      "key": "runs/2026-10-11T1500/rapid/reflectivity15/0068.bin",
+      "sha256": "d6e03fa331f1b8f96ba6128991fa8bf6c919f087dc755ef25ccd84561547d8b1",
+      "rawBytes": 204800,
+      "gzipBytes": 110370,
+      "byteplanesGzipBytes": 111775,
+      "deltaByteplanesGzipBytes": 125314
+    },
+    {
+      "product": "rapid/reflectivity15",
+      "key": "runs/2026-10-11T1500/rapid/reflectivity15/0132.bin",
+      "sha256": "ab8b98c4462f65ffe5e141e90ecc93294ddcd320f83d0ffc2160178fe9d002c1",
+      "rawBytes": 68400,
+      "gzipBytes": 31026,
+      "byteplanesGzipBytes": 29270,
+      "deltaByteplanesGzipBytes": 34292
+    },
+    {
+      "product": "rapid/severe15",
+      "key": "runs/2026-10-11T1500/rapid/severe15/0000.bin",
+      "sha256": "c7344f4a1ef9edd678c7d4ff7fdfd58e4923d0123663c0d2a02903ce88aabb0e",
+      "rawBytes": 1024000,
+      "gzipBytes": 1027,
+      "byteplanesGzipBytes": 1029,
+      "deltaByteplanesGzipBytes": 1032
+    },
+    {
+      "product": "rapid/severe15",
+      "key": "runs/2026-10-11T1500/rapid/severe15/0068.bin",
+      "sha256": "06f3e8bceccca3c9bf807b538e61531d30d736b66b9b2fe9d12d80f7e40bb523",
+      "rawBytes": 1024000,
+      "gzipBytes": 142918,
+      "byteplanesGzipBytes": 141644,
+      "deltaByteplanesGzipBytes": 151324
+    },
+    {
+      "product": "rapid/severe15",
+      "key": "runs/2026-10-11T1500/rapid/severe15/0132.bin",
+      "sha256": "fa7d51360382017ba2249e0a571641ca1a01ad95a2efa6f935d86daffaa2d8e4",
+      "rawBytes": 342000,
+      "gzipBytes": 28244,
+      "byteplanesGzipBytes": 27798,
+      "deltaByteplanesGzipBytes": 28986
+    },
+    {
+      "product": "rapid/phase15",
+      "key": "runs/2026-10-11T1500/rapid/phase15/0004.bin",
+      "sha256": "b03f15e31c84cb98e49edba1da2e144a6a78d2fc095a3f859a114b4235effcd4",
+      "rawBytes": 614400,
+      "gzipBytes": 14781,
+      "byteplanesGzipBytes": 12837,
+      "deltaByteplanesGzipBytes": 16417
+    },
+    {
+      "product": "rapid/phase15",
+      "key": "runs/2026-10-11T1500/rapid/phase15/0068.bin",
+      "sha256": "676ef3c99d10eee0b12940c37ff5f77baa09dc9822bb03c067f16695b6fc73a2",
+      "rawBytes": 614400,
+      "gzipBytes": 27827,
+      "byteplanesGzipBytes": 24384,
+      "deltaByteplanesGzipBytes": 34705
+    },
+    {
+      "product": "rapid/phase15",
+      "key": "runs/2026-10-11T1500/rapid/phase15/0132.bin",
+      "sha256": "3178d964817305167b4bf7f9aa10239b42c982b5275b664fed0ba7cb2950101e",
+      "rawBytes": 205200,
+      "gzipBytes": 234,
+      "byteplanesGzipBytes": 234,
+      "deltaByteplanesGzipBytes": 234
+    },
+    {
+      "product": "rapid/specialistHourly",
+      "key": "runs/2026-10-11T1500/rapid/specialistHourly/0000.bin",
+      "sha256": "0a067a655fd2b002db3b4c40e73a828e237d42a09d458b6cd061cc8cbe07fce2",
+      "rawBytes": 1228800,
+      "gzipBytes": 1226,
+      "byteplanesGzipBytes": 1227,
+      "deltaByteplanesGzipBytes": 1231
+    },
+    {
+      "product": "rapid/specialistHourly",
+      "key": "runs/2026-10-11T1500/rapid/specialistHourly/0068.bin",
+      "sha256": "5074cd041ae73cd480e1a580b644e1fa948f1abba3e13b49b5aa4a92b40103ab",
+      "rawBytes": 1228800,
+      "gzipBytes": 759059,
+      "byteplanesGzipBytes": 605471,
+      "deltaByteplanesGzipBytes": 705697
+    },
+    {
+      "product": "rapid/specialistHourly",
+      "key": "runs/2026-10-11T1500/rapid/specialistHourly/0132.bin",
+      "sha256": "4bfa0d10c6c571daae32063da052ab6f9cb31d21a22603eec380289865543143",
+      "rawBytes": 410400,
+      "gzipBytes": 224022,
+      "byteplanesGzipBytes": 189372,
+      "deltaByteplanesGzipBytes": 226322
+    }
+  ],
+  "hyperlocalHourlyCoverage": {
+    "source": "https://midwx.app/ruc/latest.json",
+    "run": "2026-10-11T15:00",
+    "manifestSha256": "e902bef6dd162a21c405d2e237b24c653f6c7eec1b3aada6e223c14da9172be2",
+    "times": [
+      "2026-10-11T15:00",
+      "2026-10-11T16:00",
+      "2026-10-11T17:00",
+      "2026-10-11T18:00",
+      "2026-10-11T19:00",
+      "2026-10-11T20:00",
+      "2026-10-11T21:00",
+      "2026-10-11T22:00",
+      "2026-10-11T23:00",
+      "2026-10-12T00:00",
+      "2026-10-12T01:00",
+      "2026-10-12T02:00",
+      "2026-10-12T03:00",
+      "2026-10-12T04:00",
+      "2026-10-12T05:00"
+    ],
+    "deterministicAndEpsMatch": true,
+    "leadHours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "reducedHours": false,
+    "sourceContract": "MID_RUC_FORECAST_HOURS=14; hourly_targets includes 0..14; Pages retains deterministic/EPS time axes; point decoder reads complete axis"
+  }
+}

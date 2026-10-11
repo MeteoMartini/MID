@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.237",
+  "releaseVersion": "0.9.85.238",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-adaptive-contours-0985238.mjs",
     "scripts/test-c28-map-contracts-0985237.mjs",
     "scripts/test-cloud-significant-weather-0985231.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
@@ -978,6 +979,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-adaptive-contours-0985238.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
     "scripts/test-adaptive-weight-site-profile-0810.mjs",
     "scripts/test-advanced-progressive-skybar-performance-08270.mjs",
@@ -3477,7 +3479,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.237",
+  "version": "0.9.85.238",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",

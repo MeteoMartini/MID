@@ -25953,3 +25953,7 @@ html:root:has(.selected-place-bar),html:root body:has(.selected-place-bar),html:
 /* The scrolling search dock must never blur the selected place beneath it. */
 html:root .app.has-selected-place-bar>.top{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html:root .selected-place-bar,html:root .selected-place-bar>*{filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}
+/* Opaque, untransformed sticky text plane, also while WebKit scrolls. */
+html:root .selected-place-bar{background:var(--surface)!important;isolation:isolate;transform:none!important;translate:none!important;will-change:auto;border-radius:0;box-shadow:none;margin-inline:0;max-width:100%;box-sizing:border-box}
+html:root .selected-place-bar>strong{font-weight:700;transform:none!important;opacity:1!important}
+html:root .app.has-selected-place-bar>.top{background:var(--surface)!important;isolation:isolate}

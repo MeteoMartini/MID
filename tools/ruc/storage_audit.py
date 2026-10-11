@@ -11,9 +11,31 @@ from collections import defaultdict
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import numpy as np
 
 
-def audit_storage(meta, root, samples_per_product=3, full_compression=False):
+def delta_byteplanes(raw):
+    """Reversible uint16 delta; all signed/Missing bit patterns survive unchanged."""
+    if len(raw) % 2:
+        raise ValueError('delta candidate requires complete 16-bit words')
+    words = np.frombuffer(raw, dtype='<u2')
+    delta = words.copy()
+    if words.size > 1:
+        delta[1:] = (words[1:].astype(np.uint32)-words[:-1].astype(np.uint32)) & 65535
+    wire = delta.tobytes()
+    return wire[0::2] + wire[1::2]
+
+
+def restore_delta_byteplanes(wire):
+    if len(wire) % 2:
+        raise ValueError('incomplete delta byteplanes')
+    raw = bytearray(len(wire))
+    half = len(wire)//2
+    raw[0::2], raw[1::2] = wire[:half], wire[half:]
+    return (np.cumsum(np.frombuffer(raw, dtype='<u2'), dtype=np.uint64) & 65535).astype('<u2').tobytes()
+
+
+def audit_storage(meta, root, samples_per_product=3, full_compression=False, delta_compression=False):
     if not 1 <= samples_per_product <= 5:
         raise ValueError('storage audit samples must be 1..5 per product')
     root = Path(root).resolve()
@@ -38,7 +60,7 @@ def audit_storage(meta, root, samples_per_product=3, full_compression=False):
         selected = sorted({round(i*(len(candidates)-1)/max(1,samples_per_product-1)) for i in range(samples_per_product)}) if candidates else []
         samples = []
         candidate_bytes = sum(r['bytes'] for r in rows)
-        gzip_candidate = shuffled_candidate = candidate_bytes
+        gzip_candidate = shuffled_candidate = delta_candidate = candidate_bytes
         for index in (range(len(candidates)) if full_compression else selected):
             row = candidates[index]
             raw = (root / row['key']).read_bytes()
@@ -63,14 +85,20 @@ def audit_storage(meta, root, samples_per_product=3, full_compression=False):
                 if bytes(decoded) != raw:
                     raise ValueError('storage audit byte-shuffle roundtrip failed')
                 sample['shuffledGzipBytes'] = len(packed)
+                if delta_compression:
+                    delta = gzip.compress(delta_byteplanes(raw), compresslevel=6, mtime=0)
+                    if restore_delta_byteplanes(gzip.decompress(delta)) != raw:
+                        raise ValueError('storage audit delta byteplane roundtrip failed')
+                    sample['deltaByteplanesGzipBytes'] = len(delta)
             if full_compression:
                 gzip_candidate -= len(raw) - min(len(raw), len(compressed))
                 shuffled_candidate -= len(raw) - min(len(raw), len(compressed), sample.get('shuffledGzipBytes',len(raw)))
+                delta_candidate -= len(raw) - min(len(raw), len(compressed), sample.get('shuffledGzipBytes',len(raw)), sample.get('deltaByteplanesGzipBytes',len(raw)))
             if index in selected:
                 samples.append(sample)
         products[product] = {'objectCount':len(rows),'declaredBytes':sum(r['bytes'] for r in rows),'compressionSamples':samples}
         if full_compression:
-            products[product]['exactCandidateBytes'] = {'gzip':gzip_candidate,'byteplanesGzip':shuffled_candidate}
+            products[product]['exactCandidateBytes'] = {'gzip':gzip_candidate,'byteplanesGzip':shuffled_candidate,**({'deltaByteplanesGzip':delta_candidate} if delta_compression else {})}
 
     total = sum(p['declaredBytes'] for p in products.values())
     if total != meta['pages']['publishedBytes']:
@@ -80,7 +108,8 @@ def audit_storage(meta, root, samples_per_product=3, full_compression=False):
               'manifestDuplicateBytes':duplicates,'products':products,
               'scope':'exact declared inventory; bounded verified gzip samples; no full-payload savings estimate or publication change'}
     if full_compression:
-        report['exactCandidateBytes'] = {codec:sum(p['exactCandidateBytes'][codec] for p in products.values()) for codec in ('gzip','byteplanesGzip')}
+        codecs = ('gzip','byteplanesGzip') + (('deltaByteplanesGzip',) if delta_compression else ())
+        report['exactCandidateBytes'] = {codec:sum(p['exactCandidateBytes'][codec] for p in products.values()) for codec in codecs}
         report['scope'] = 'full eligible binary inventory verified bytewise; unchanged bytes for other objects; bounded sample detail; candidate sizes are not deployed savings'
     report['deduplicatedBytes'] = meta['pages'].get('deduplicatedBytes',0)
     manifest = root / 'latest.json'
