@@ -1,3 +1,12 @@
+# MID v0.9.85.237 · Karten merken sich die Auswahl, mehr ICON-D2-Stunden und Druckzentren
+
+- Die gespeicherte Modellwahl bleibt auch erhalten, wenn ein Modell vorübergehend nicht im Katalog verfügbar ist. Radar-/Satelliten-Layer werden beim erneuten Öffnen wiederhergestellt; die gemeinsame Karte überschreibt keine alte Synoptik-Auswahl.
+- Native ICON-D2-Karten erhalten echte Termine für jede Stunde von +1 bis +6. Zusätzliche Synoptik-Termine werden aus demselben Lauf geprüft und im Speicherbudget vor verzichtbarer späterer Dichte erhalten.
+- Bodendruckkarten und Synoptik-Komposit zeigen modellgestützte Hoch-/Tiefzentren mit H/T und Druckwert. Markierungen werden nur aus passenden numerischen Druckdaten desselben Laufs und Termins erzeugt. ICON-D2-Exporte enthalten dieselben Zentren.
+- Speichergrenzen, Prüfsummen, Mess-/Prognoseunterscheidung und fehlende Daten bleiben verbindlich. Tatsächlich verfügbare Termine richten sich nach Quelle und erfolgreicher RUC-Veröffentlichung.
+
+Technischer Nachweis: docs/implementation/MID_C28_MAPS_0.9.85.237.md. Basis main=mid-stable 7ff4f362da6742b90c5ac20f95cfe56bf5b7dc48. Vollständige echte iOS-/Langzeit-/Wissenschaftsabnahmen bleiben offen.
+
 # MID v0.9.85.236 · Ortsanzeige und verlustfreie RUC-Deduplizierung
 
 - Die ausgewählte Ortsleiste bleibt beim Scrollen über dem Suchkopf scharf lesbar. Der überlagernde Kopf-Blur wird bei sichtbarer Ortsleiste abgeschaltet; Karten-/Einstellungsgrenzen und Dialoge bleiben erhalten.

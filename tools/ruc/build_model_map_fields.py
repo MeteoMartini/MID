@@ -8,8 +8,9 @@ import numpy as np
 import requests
 from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_release,codes_set
 from build_precipitation_totals import ROOT,read_field as read_total,difference
+from pressure_centers import pressure_centers
 
-HOURS=(1,3,6,12,24,48)
+HOURS=(1,2,3,4,5,6,12,24,48)
 FIELDS=('t_2m','pmsl','u_10m','v_10m','vmax_10m','clct','ww','t','relhum','tot_prec')
 
 def read_field(payload,run,hour,field):
@@ -97,7 +98,7 @@ def build(output,totals):
         fields={'temperature':get('t_2m')-273.15,'pressure':pressure,'wind':np.hypot(get('u_10m'),get('v_10m'))*3.6,'gust':get('vmax_10m')*3.6,'cloud':get('clct'),'thetae':theta_e(get('t'),get('relhum')),'sigwx':get('ww'),'precipitation':difference(get('tot_prec',hour-1),get('tot_prec'))/10}
         for key,values in fields.items():
             values=np.rint(values*10).astype(np.int32);name=f'{key}-{hour:03d}.bin';time=(run_time+timedelta(hours=hour)).isoformat()
-            payload={'schema':'mid.icon-d2.field.v1','run':run_time.isoformat(),'time':time,'kind':key,'unit':products[key]['unit'],'scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'values':values.ravel().tolist(),'isobars':isobars if key in ('pressure','thetae','sigwx','precipitation') else []}
+            payload={'schema':'mid.icon-d2.field.v1','run':run_time.isoformat(),'time':time,'kind':key,'unit':products[key]['unit'],'scale':.1,'lats':lats.tolist(),'lons':lons.tolist(),'values':values.ravel().tolist(),'centers':pressure_centers(pressure,lats,lons) if key=='pressure' else [],'isobars':isobars if key in ('pressure','thetae','sigwx','precipitation') else []}
             raw=(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode('utf-8')
             file=output/name;file.write_bytes(gzip.compress(raw,compresslevel=6,mtime=0));digest=hashlib.sha256(file.read_bytes()).hexdigest()
             products[key]['frames'].append({'hour':hour,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'sha256':digest,'bytes':file.stat().st_size,'intervalHours':hour-data[(hour,'vmax_10m',hour)][1] if key=='gust' else 1 if key=='precipitation' else 0})

@@ -108,12 +108,12 @@ class SynopticTest(unittest.TestCase):
             return {'run':stamp.isoformat(),'frames':[{'hour':h} for h in hours],'origins':[]}
         with tempfile.TemporaryDirectory() as td,patch.object(module,'restore_cache',return_value={}),patch('build_cloud_weather_fields.build'),patch.object(module,'model_product',side_effect=builder),patch.object(module,'global_product',side_effect=builder):
             result=module.build(Path(td))
-        self.assertEqual([f['hour'] for f in result['models']['icon-d2']['frames']],list(HOURS))
+        self.assertEqual([f['hour'] for f in result['models']['icon-d2']['frames']],sorted(set(HOURS+(1,2,4,5))))
         self.assertEqual([f['hour'] for f in result['models']['icon-eu']['frames']],sorted(set(HOURS+extended_hours('icon-eu',stamp))-{72}))
         self.assertEqual([f['hour'] for f in result['models']['gfs']['frames']],sorted(set(HOURS+extended_hours('gfs',stamp))))
         self.assertFalse(result['unavailable'])
         for model,hours,strict,now in calls:
-            if hours not in (HOURS,CORE_HOURS):self.assertTrue(strict);self.assertEqual(now,stamp);self.assertNotEqual(model,'icon-d2')
+            if hours not in (HOURS,CORE_HOURS):self.assertTrue(strict);self.assertEqual(now,stamp);self.assertTrue(model!='icon-d2' or hours[0] in (1,2,4,5))
     def test_horizon_budget_drops_density_before_range(self):
         from prepare_ruc_pages import fit_synoptic_budget
         payload={'models':{'gfs':{'frames':[{'hour':h,'bytes':1000} for h in HOURS+EXTENDED_HOURS]}}}
