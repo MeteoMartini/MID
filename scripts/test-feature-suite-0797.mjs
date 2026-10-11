@@ -1,9 +1,8 @@
+import {build} from 'esbuild';
 import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createRequire} from 'node:module';
-const ts=createRequire(import.meta.url)('typescript-strada');
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=name=>readFile(path.join(root,name),'utf8');
 const [app,mountain,worker,push,radar,weather,analytics,persistence,modelChanges,styles,sw]=await Promise.all([
@@ -35,7 +34,7 @@ requireTokens('Persistenzbrücke',persistence,['const INCLUDED_KEYS=isPersistent
 
 // Funktionaler Test: Das neue Sammelarchiv überlebt den Wegfall des alten Einzelkeys.
 try{
- const js=ts.transpileModule(modelChanges,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+ const js=(await build({entryPoints:[path.join(root,'src/modelRunChanges.ts')],bundle:true,write:false,format:'esm',platform:'node',logLevel:'silent'})).outputFiles[0].text;
  const store=new Map();
  globalThis.localStorage={getItem:key=>store.has(key)?store.get(key):null,setItem:(key,value)=>store.set(key,String(value)),removeItem:key=>store.delete(key),key:index=>[...store.keys()][index]??null,get length(){return store.size},clear:()=>store.clear()};
  const module=await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);

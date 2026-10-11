@@ -1,8 +1,7 @@
+import {build} from 'esbuild';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createRequire} from 'node:module';
-const require=createRequire(import.meta.url),ts=require('typescript-strada');
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [app,radar,pixel,worker,changes,ensemble,styles]=await Promise.all([
@@ -11,7 +10,7 @@ const [app,radar,pixel,worker,changes,ensemble,styles]=await Promise.all([
  readFile(path.join(root,'src','Px250Overlay.tsx'),'utf8'),
  readFile(path.join(root,'worker','metar-proxy.js'),'utf8'),
  readFile(path.join(root,'src','modelRunChanges.ts'),'utf8'),
- readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8'),
+ Promise.all([readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8'),readFile(path.join(root,'src','PrognoseRadar.tsx'),'utf8')]).then(parts=>parts.join('\n')),
  readFile(path.join(root,'src','styles.css'),'utf8')
 ]);
 const failures=[];
@@ -49,7 +48,7 @@ try{
 
 // Funktionaler Test: alter und neuer Niederschlagsbeginn werden getrennt vom Delta ausgegeben.
 try{
- const js=ts.transpileModule(changes,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,module={exports:{}},storage=new Map();
+ const js=(await build({entryPoints:[path.join(root,'src/modelRunChanges.ts')],bundle:true,write:false,format:'cjs',platform:'node',logLevel:'silent'})).outputFiles[0].text,module={exports:{}},storage=new Map();
  const localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,String(value)),removeItem:key=>storage.delete(key)};
  new Function('module','exports','require','localStorage',js)(module,module.exports,()=>({}),localStorage);
  const previous={version:1,createdAt:'2026-07-26T09:00:00Z',runKey:'a',signature:'a',precipitationOnset:'2026-07-26T15:00:00Z',days:[]};

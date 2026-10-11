@@ -1,3 +1,12 @@
+# MID v0.9.85.240 · Orte vergleichen und Prognoseänderungen verstehen
+
+- Neuer gemeinsamer Bereich „Orte & Prognose“ unter Aktuell: Mehrort-Übersicht, Ortsvergleich 2.0 und MID Prognose-Radar.
+- Alle Favoriten im gleichen kommenden 6-/12-/24-Stunden-Fenster, Trockenfenster, Regenrisiko, Temperatur und Böen; Profile und 30-/100-km-Filter werden gespeichert. Fehlende oder veraltete Daten erhalten keinen Spitzenplatz.
+- Mehrort-Übersicht priorisiert amtliche Warnungen, Datenlücken und relevante Wetterlagen. Ensemble-P25/P75-Spannen werden gezielt ergänzt und nur für vollständig abgedeckte Stunden ausgewiesen.
+- Prognose-Radar nutzt den vorhandenen Drei-Tage-Modellvergleich: Bisher/Jetzt, Relevanzfilter, Datenkontext und bis zu sechs Prognosestände für denselben Gültigkeitstag. Derselbe Renderer wird im Ensemblebereich verwendet.
+- Regenbeginn wird mit absoluten Zeitstempeln abgesichert; abgelaufene Ereignisse und neu ins rollende Fenster kommende Termine werden nicht als Prognoseänderung ausgegeben. Ursachen ohne archivierte Eingangsevidenz bleiben ausdrücklich unbestimmt.
+- Daten laden erst beim Öffnen, mit begrenzter Parallelität und Abbruch bei Orts-/Ansichtswechsel. Keine zusätzlichen kostenpflichtigen Quellen.
+
 # MID v0.9.85.239 · Beobachtungen merken und kompakte Wetterphasen
 
 - Beobachtungen lassen sich gemeinsam aus-/einschalten; die gewählten Einzellayer bleiben gespeichert. Direkte Bedienaktionen speichern sofort, unveränderte alte Karteninstanzen überschreiben keine neuere Auswahl.
