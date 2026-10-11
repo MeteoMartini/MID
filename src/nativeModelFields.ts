@@ -6,7 +6,7 @@ import {modelMapDisplayFactor} from './modelMapUnits';
 import type {WindUnit} from './weather';
 import {ecmwfTemperatureColor} from './temperatureTone';
 export type NativeFieldKind='temperature'|'pressure'|'wind'|'gust'|'cloud'|'thetae'|'sigwx'|'precipitation';
-export type NativeField={schema:'mid.icon-d2.field.v1';run:string;time:string;kind:NativeFieldKind;unit:string;scale:number;lats:number[];lons:number[];centers?:ModelPressureCenter[];values:number[];isobars:{level:number;paths:number[][][]}[]};
+export type NativeField={schema:'mid.icon-d2.field.v1';run:string;time:string;kind:NativeFieldKind;unit:string;scale:number;lats:number[];lons:number[];centers?:ModelPressureCenter[];values:number[];isobars:{level:number;spacingKm?:number;paths:number[][][]}[]};
 export type NativeFrameRef={hour:number;time:string;file:string;sha256:string;bytes:number;intervalHours:number;encoding?:'gzip-json';decodedBytes?:number};
 export type NativeIndex={schema:string;run:string;products:Partial<Record<NativeFieldKind,{unit:string;frames:NativeFrameRef[]}>>};
 export const NATIVE_LEGENDS:Record<NativeFieldKind,[number,string][]>={
@@ -30,7 +30,7 @@ export function validateNativeField(raw:unknown,index:NativeIndex,ref:NativeFram
  const units:Record<NativeFieldKind,string>={temperature:'°C',pressure:'hPa',wind:'km/h',gust:'km/h',cloud:'%',thetae:'K',sigwx:'WMO',precipitation:'mm/1 h'};
  if(d?.unit!==units[kind])throw new Error('Modelleinheit passt nicht zum verifizierten Parametervertrag.');
  if(d?.schema!=='mid.icon-d2.field.v1'||d.run!==index.run||d.time!==ref.time||d.kind!==kind||d.unit!==index.products[kind]?.unit||d.scale!==.1||!axis(d.lats)||!axis(d.lons)||d.lats[0]>47.03||d.lats.at(-1)!<55.17||d.lons[0]>5.53||d.lons.at(-1)!<15.57||!Array.isArray(d.values)||d.values.length!==d.lats.length*d.lons.length||!d.values.every(v=>Number.isInteger(v)&&Math.abs(v)<100000))throw new Error('Modellraster, Parameter oder Gültigkeitszeit ungültig.');
- if(!Array.isArray(d.isobars)||d.isobars.length>100||d.isobars.some(c=>!Number.isFinite(c.level)||!Array.isArray(c.paths)||c.paths.some(p=>!Array.isArray(p)||p.length!==2||p.some(a=>a.length!==2||!a.every(Number.isFinite)||a[0]<47||a[0]>55.2||a[1]<5.5||a[1]>15.6))))throw new Error('Ungültige Druckkonturen.');
+ if(!Array.isArray(d.isobars)||d.isobars.length>251||d.isobars.some(c=>(c.spacingKm!==undefined&&(!Number.isFinite(c.spacingKm)||c.spacingKm<0||c.spacingKm>5000))||!Number.isFinite(c.level)||!Array.isArray(c.paths)||c.paths.some(p=>!Array.isArray(p)||p.length!==2||p.some(a=>a.length!==2||!a.every(Number.isFinite)||a[0]<47||a[0]>55.2||a[1]<5.5||a[1]>15.6))))throw new Error('Ungültige Druckkonturen.');
  const bounds:Record<NativeFieldKind,[number,number]>={temperature:[-100,70],pressure:[800,1100],wind:[0,600],gust:[0,600],cloud:[0,100.1],thetae:[150,500],sigwx:[0,99],precipitation:[0,6500]},[low,high]=bounds[kind];if(d.values.some(v=>v*d.scale<low||v*d.scale>high||(kind==='sigwx'&&v%10!==0)))throw new Error('Modellwerte außerhalb des Parametervertrags.');
  if(d.centers!==undefined&&!validModelPressureCenters(d.centers,d.lats,d.lons))throw Error('Ungültige Modell-Druckzentren.');
  return d;
