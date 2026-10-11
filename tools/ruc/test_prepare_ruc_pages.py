@@ -40,6 +40,10 @@ with tempfile.TemporaryDirectory() as td:
  assert full['exactCandidateBytes']['byteplanesGzip']<=full['exactCandidateBytes']['gzip']<=full['publishedBytes']
  assert all(full['exactCandidateBytes'][c]==sum(p['exactCandidateBytes'][c] for p in full['products'].values()) for c in ('gzip','byteplanesGzip'))
  assert full==audit_storage(result,out/'ruc',full_compression=True)
+ assert 'deltaByteplanesGzip' not in full['exactCandidateBytes'], 'no extra compression work in hourly production'
+ delta=audit_storage(result,out/'ruc',full_compression=True,delta_compression=True)
+ assert delta['exactCandidateBytes']['deltaByteplanesGzip']<=delta['exactCandidateBytes']['byteplanesGzip']
+ assert any('deltaByteplanesGzipBytes' in s for p in delta['products'].values() for s in p['compressionSamples'])
  assert not (out/'ruc'/'storage-audit.json').exists(), 'audit must not add published objects'
  try:audit_storage({**result,'pages':{**result['pages'],'publishedBytes':1}},out/'ruc')
  except ValueError:pass
