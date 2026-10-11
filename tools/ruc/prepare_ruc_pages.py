@@ -24,6 +24,7 @@ DEFAULT_LOOKUP_CHUNK_ENTRIES=65536
 # The app itself currently adds ~13 MB, therefore the RUC profile gets a stricter
 # 900 MB ceiling and should normally stay well below it.
 PAGES_RUC_BUDGET_BYTES=900_000_000
+PAGES_MANIFEST_RESERVE_BYTES=1_000_000
 PAGES_OMIT_RAPID_PRODUCTS={'solar15','state15'}
 PAGES_STATE15_FIELDS={'visibility','ceiling'}
 PAGES_REDUNDANT_SEVERE_FIELDS={
@@ -115,6 +116,30 @@ def write_projected_i16_chunks(source:Path,target_dir:Path,spec:dict,chunk_recor
     if not objects: raise ValueError(f'{source.name}: no projected chunks written')
     record_bytes=len(times)*len(fields)*2
     return {'chunkRecords':chunk_records,'chunkCount':len(objects),'recordBytes':record_bytes,'prefix':prefix,'records':records},objects
+
+
+def deduplicate_chunks(root, objects, specs):
+    """Alias only byte-identical chunks; preserve geometry and every forecast bit."""
+    seen={}; aliases={}; retained=[]; saved=0
+    eligible={f"{spec['pages']['prefix']}/{index:04d}.bin" for spec in specs for index in range(spec['pages']['chunkCount'])}
+    for row in objects:
+        identity=(row['sha256'],row['bytes'])
+        previous=seen.get(identity) if row['key'] in eligible else None
+        if previous:
+            source=root/row['key']; canonical=root/previous
+            if source.read_bytes()!=canonical.read_bytes():
+                raise ValueError('chunk identity collision')
+            aliases[row['key']]=previous
+            source.unlink();saved+=row['bytes']
+        else:
+            retained.append(row)
+            if row['key'] in eligible:seen[identity]=row['key']
+    for spec in specs:
+        page=spec['pages']
+        keys=[f"{page['prefix']}/{index:04d}.bin" for index in range(page['chunkCount'])]
+        if any(key in aliases for key in keys):
+            page['chunkKeys']=[aliases.get(key,key) for key in keys]
+    return retained,saved
 
 
 def fit_synoptic_budget(payload,available):
@@ -242,6 +267,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
             key=prefix+file.name;destination=out/key;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
             objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
         model_fields={'key':prefix+'index.json','run':payload['run'],'schema':payload['schema']}
+    objects,deduplicated_bytes=deduplicate_chunks(out,objects,[det,summary,lookup,*rapid.values()])
     synoptic_fields=None
     fields_dir=source/'synoptic-fields';fields_index=fields_dir/'index.json'
     if fields_index.is_file():
@@ -249,7 +275,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         if payload.get('schema')!='mid.synoptic.fields.v1':raise ValueError('invalid synoptic index')
         # Retain all nine established five-field terms. Extra terms are optional
         # when the unchanged free-Pages envelope is otherwise exhausted.
-        fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES-1-sum(row['bytes'] for row in objects))
+        fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES-PAGES_MANIFEST_RESERVE_BYTES-sum(row['bytes'] for row in objects))
         fields_index.write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n')
         prefix=f'runs/{run}__synoptic_{digest(fields_index)[:16]}/synoptic-fields/'
         files=[fields_index]
@@ -269,8 +295,10 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     if total>=PAGES_RUC_BUDGET_BYTES:
         raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
     result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
-            'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes}}
-    (out/'latest.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
+            'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes,'deduplicatedBytes':deduplicated_bytes}}
+    manifest=(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n').encode('utf-8')
+    if total+len(manifest)>=PAGES_RUC_BUDGET_BYTES:raise ValueError('Pages-free RUC payload including manifest exceeds budget')
+    (out/'latest.json').write_bytes(manifest)
     return result
 
 

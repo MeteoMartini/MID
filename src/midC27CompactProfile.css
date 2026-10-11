@@ -1,5 +1,5 @@
 /* MID C27: compact persistent location context, shared by both design modes. */
-.selected-place-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:35;display:flex;align-items:center;justify-content:center;gap:7px;min-height:32px;margin:4px 0 8px;padding:5px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 3px 12px rgba(16,45,72,.06)}
+.selected-place-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:1900;display:flex;align-items:center;justify-content:center;gap:7px;min-height:32px;margin:4px 0 8px;padding:5px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 3px 12px rgba(16,45,72,.06)}
 .selected-place-bar>svg{flex:none;color:var(--primary)}
 .selected-place-bar>strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:650}
 .selected-place-bar>span{flex:none;color:var(--muted);font-size:10px}
@@ -21,3 +21,7 @@ html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profil
 html:root:has(.selected-place-bar),html:root body:has(.selected-place-bar),html:root #root:has(.selected-place-bar){overflow-x:clip;overflow-y:visible}
 
 @media(min-width:960px){html:root .forecast-cockpit .cockpit-weather-profile{grid-template-areas:'profile-head profile-head' 'profile-signals profile-signals' 'profile-info profile-info' 'profile-chart profile-data' 'profile-legend profile-data'}}
+
+/* The scrolling search dock must never blur the selected place beneath it. */
+html:root .app.has-selected-place-bar>.top{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html:root .selected-place-bar,html:root .selected-place-bar>*{filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}

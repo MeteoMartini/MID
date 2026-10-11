@@ -2,7 +2,7 @@
 
 Compression candidates are measured and roundtripped, never extrapolated.
 Production can scan every eligible chunk while keeping sample log detail bounded.
-Duplicate bytes are a manifest-based opportunity, not an implemented saving.
+Remaining duplicate bytes are an opportunity; declared deduplicated bytes are measured by the producer.
 No forecast objects, decoder contracts or storage limits are changed.
 """
 import gzip
@@ -82,6 +82,11 @@ def audit_storage(meta, root, samples_per_product=3, full_compression=False):
     if full_compression:
         report['exactCandidateBytes'] = {codec:sum(p['exactCandidateBytes'][codec] for p in products.values()) for codec in ('gzip','byteplanesGzip')}
         report['scope'] = 'full eligible binary inventory verified bytewise; unchanged bytes for other objects; bounded sample detail; candidate sizes are not deployed savings'
+    report['deduplicatedBytes'] = meta['pages'].get('deduplicatedBytes',0)
+    manifest = root / 'latest.json'
+    if manifest.is_file():
+        report['manifestBytes'] = manifest.stat().st_size
+        report['physicalSnapshotBytes'] = total + report['manifestBytes']
     def utc(value):
         parsed = datetime.fromisoformat(value.replace('Z','+00:00'))
         return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
@@ -92,6 +97,7 @@ def audit_storage(meta, root, samples_per_product=3, full_compression=False):
         if not file.is_relative_to(root):
             raise ValueError('unsafe synoptic storage audit key')
         payload = json.loads(file.read_text())
+        report['synopticHoursByModel'] = {model:[f['hour'] for f in data['frames']] for model,data in payload['models'].items()}
         report['cloudWeatherHoursByModel'] = {
             model: [(utc(f['time'])-utc(data['run'])).total_seconds()/3600 for f in data.get('cloudWeatherFrames',[])]
             for model,data in payload['models'].items() if data.get('cloudWeatherFrames')}

@@ -59,3 +59,14 @@ context.__point=await vm.runInContext('dwdRucStaticPointPayload(50,7,{})',contex
 context.__summary=await vm.runInContext('dwdRucEpsSummaryStaticPayload(50,7,{})',context,{timeout:5000});assert.deepEqual(Array.from(context.__summary.hourly.precipitation_probability),[10,20,30,40]);assert.equal(context.__summary.mid_ruc.member_count,20);
 assert.ok(requests.filter(row=>row.url.endsWith('.bin')).every(row=>!new Headers(row.init.headers||{}).has('range')),'Pages backend must not depend on HTTP Range requests');
 console.log('RUC free GitHub Pages storage runtime contract OK');
+
+// Real Worker path: a new producer may alias a chunk without changing any record bits.
+const aliasSpec={...meta.deterministic,pages:{...meta.deterministic.pages,chunkKeys:[`runs/${runKey}/shared/0000.bin`]}};
+objects.set(`https://midwx.app/ruc/runs/${runKey}/shared/0000.bin`,objects.get(`https://midwx.app/ruc/runs/${runKey}/deterministic/0000.bin`));
+context.__aliasSpec=aliasSpec;
+const alias=await vm.runInContext("dwdRucStaticRecord(new URL('https://midwx.app/ruc/'),__aliasSpec,0)",context);
+assert.deepEqual(Array.from(alias),Array.from(objects.get(`https://midwx.app/ruc/runs/${runKey}/deterministic/0000.bin`)));
+for(const keys of [[],['runs/other/shared/0000.bin'],[`runs/${runKey}/../bad.bin`],[`runs/${runKey}/bad.bin?x`],[null]]){
+ context.__aliasSpec={...aliasSpec,pages:{...aliasSpec.pages,chunkKeys:keys}};
+ assert.equal(await vm.runInContext("dwdRucStaticRecord(new URL('https://midwx.app/ruc/'),__aliasSpec,0)",context),null,'unsafe/incomplete alias must fail closed');
+}
