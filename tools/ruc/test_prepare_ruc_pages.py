@@ -102,3 +102,26 @@ if not unittest.TextTestRunner().run(suite).wasSuccessful():raise SystemExit(1)
 from test_synoptic_fields import SynopticTest
 suite=unittest.defaultTestLoader.loadTestsFromTestCase(SynopticTest)
 if not unittest.TextTestRunner().run(suite).wasSuccessful():raise SystemExit(1)
+
+# Byte-identical aliasing must preserve complete records, tails, Missing and zeros.
+from prepare_ruc_pages import write_chunks,deduplicate_chunks,fit_synoptic_budget
+with tempfile.TemporaryDirectory() as td:
+ root=Path(td);source=root/'source.bin';raw=b'\x00\x80\x00\x00'*4+b'\xff\x7f';source.write_bytes(raw)
+ a,rows_a=write_chunks(source,root/'runs/r/a',2,4,'runs/r/a')
+ b,rows_b=write_chunks(source,root/'runs/r/b',2,4,'runs/r/b')
+ independent=root/'runs/r/model-fields/same.bin';independent.parent.mkdir();independent.write_bytes((root/rows_a[0]['key']).read_bytes())
+ independent_row={'key':'runs/r/model-fields/same.bin','bytes':independent.stat().st_size,'sha256':hashlib.sha256(independent.read_bytes()).hexdigest()}
+ objects,saved=deduplicate_chunks(root,rows_a+rows_b+[independent_row],[{'pages':a},{'pages':b}])
+ assert saved==26 and len(objects)==3 and independent.is_file()
+ for page in (a,b):
+  keys=page.get('chunkKeys',[f"{page['prefix']}/{i:04d}.bin" for i in range(page['chunkCount'])])
+  assert b''.join((root/key).read_bytes() for key in keys)==raw
+ assert sum(o['bytes'] for o in objects)==sum(p.stat().st_size for p in (root/'runs').rglob('*.bin'))
+ assert source.read_bytes()==raw
+ # Evidence-driven remaining budget retains optional model and hourly CW terms.
+ def inventory():return {'models':{m:{'frames':[{'hour':h,'bytes':100} for h in (0,3,6,9,12,18,24,36,48,72)],'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(1,13)]} for m in ('icon-d2','icon-eu','icon')}}
+ small=fit_synoptic_budget(inventory(),8000);large=fit_synoptic_budget(inventory(),20000)
+ assert len(large['models'])==3 and all(len(p['cloudWeatherFrames'])==12 and len(p['frames'])==10 for p in large['models'].values())
+ assert large['cloudWeatherBudget']['pruned']==[] and large['cloudWeatherBudget']['prunedSynoptic']==[]
+ assert sum(len(p['cloudWeatherFrames'])+len(p['frames']) for p in large['models'].values())>sum(len(p['cloudWeatherFrames'])+len(p['frames']) for p in small['models'].values())
+ print('RUC byte-identical physical deduplication and expanded budget retention OK')
