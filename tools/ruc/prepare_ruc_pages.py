@@ -154,9 +154,9 @@ def fit_synoptic_budget(payload,available):
         if minimum+len(json.dumps(payload).encode())>available:del payload['models']['icon']
     endpoints={model:max(f['hour'] for f in product['frames']) for model,product in payload['models'].items()}
     # Trim optional density before context, and preserve each model's endpoint last.
-    candidates=sorted(((frame['hour']<=48,frame['hour']!=endpoints[model],frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
+    candidates=sorted(((not(model=='icon-d2' and frame['hour']<=6),frame['hour']<=48,frame['hour']!=endpoints[model],frame['bytes'],model,frame['hour']) for model,product in payload['models'].items() for frame in product['frames'] if frame['hour'] not in core_hours),reverse=True)
     while synoptic_size()>available and candidates:
-        _,_,_,model,hour=candidates.pop(0)
+        _,_,_,_,model,hour=candidates.pop(0)
         payload['models'][model]['frames']=[frame for frame in payload['models'][model]['frames'] if frame['hour']!=hour]
         pruned_synoptic.append({'model':model,'hour':hour,'reason':'pages-storage-budget'})
     # Preserve the requested hourly cloud/weather sequence before optional

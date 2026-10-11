@@ -1,0 +1,250 @@
+{
+  "schema": "mid.c28.dwd-hourly-proof.v1",
+  "checkedAt": "2026-10-11T09:46:19.527531+00:00",
+  "run": "2026101106",
+  "listings": {
+    "t_2m": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_t_2m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_t_2m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_t_2m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_t_2m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_t_2m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_t_2m.grib2.bz2"
+    ],
+    "pmsl": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_pmsl.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_pmsl.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_pmsl.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_pmsl.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_pmsl.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_pmsl.grib2.bz2"
+    ],
+    "u_10m": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_u_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_u_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_u_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_u_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_u_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_u_10m.grib2.bz2"
+    ],
+    "v_10m": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_v_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_v_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_v_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_v_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_v_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_v_10m.grib2.bz2"
+    ],
+    "vmax_10m": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_vmax_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_vmax_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_vmax_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_vmax_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_vmax_10m.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_vmax_10m.grib2.bz2"
+    ],
+    "clct": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_clct.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_clct.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_clct.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_clct.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_clct.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_clct.grib2.bz2"
+    ],
+    "ww": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_ww.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_ww.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_ww.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_ww.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_ww.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_ww.grib2.bz2"
+    ],
+    "t": [
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_001_850_t.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_002_850_t.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_003_850_t.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_004_850_t.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_005_850_t.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_006_850_t.grib2.bz2"
+    ],
+    "relhum": [
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_001_850_relhum.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_002_850_relhum.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_003_850_relhum.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_004_850_relhum.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_005_850_relhum.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_pressure-level_2026101106_006_850_relhum.grib2.bz2"
+    ],
+    "tot_prec": [
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_001_2d_tot_prec.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_002_2d_tot_prec.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_003_2d_tot_prec.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_004_2d_tot_prec.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_005_2d_tot_prec.grib2.bz2",
+      "icon-d2_germany_regular-lat-lon_single-level_2026101106_006_2d_tot_prec.grib2.bz2"
+    ]
+  },
+  "pressure": [
+    {
+      "hour": 2,
+      "sha256": "818ab1802d4dedcef6524dc00461686e2f4b45f8a3cdff7f314ead723f3d1edd",
+      "bytes": 941947,
+      "grid": [
+        410,
+        505
+      ],
+      "minHpa": 1001.691796875,
+      "maxHpa": 1017.996796875,
+      "centers": []
+    },
+    {
+      "hour": 4,
+      "sha256": "7dcd7ba17d6732a8f45429510b126f9bb4ed222ecf5da2fd81e5f50a84511c6b",
+      "bytes": 925508,
+      "grid": [
+        410,
+        505
+      ],
+      "minHpa": 1002.184375,
+      "maxHpa": 1017.7146875,
+      "centers": []
+    },
+    {
+      "hour": 5,
+      "sha256": "cba8a345bb065c4b633986406ab3071aa0af94cc5fb4d2205eb3bf44a385e9f8",
+      "bytes": 924054,
+      "grid": [
+        410,
+        505
+      ],
+      "minHpa": 1002.2109375,
+      "maxHpa": 1017.7865625,
+      "centers": []
+    }
+  ],
+  "europePressure": {
+    "model": "icon-eu",
+    "run": "2026101106",
+    "hour": 3,
+    "sha256": "ddde9bab874a1afd7e0c945f043dafa705d8c7a86abf0c4f979613c63190d3f2",
+    "bytes": 837599,
+    "grid": [
+      329,
+      689
+    ],
+    "centers": [
+      {
+        "type": "H",
+        "lat": 32.75,
+        "lon": 50.0,
+        "value": 1022.4,
+        "prominence": 8.5
+      },
+      {
+        "type": "T",
+        "lat": 41.75,
+        "lon": 41.25,
+        "value": 1014.7,
+        "prominence": 6.8
+      },
+      {
+        "type": "H",
+        "lat": 36.125,
+        "lon": 52.125,
+        "value": 1023.7,
+        "prominence": 6.3
+      },
+      {
+        "type": "T",
+        "lat": 35.5,
+        "lon": 32.875,
+        "value": 1010.5,
+        "prominence": 5.7
+      },
+      {
+        "type": "H",
+        "lat": 37.75,
+        "lon": 43.625,
+        "value": 1022.9,
+        "prominence": 5.4
+      },
+      {
+        "type": "H",
+        "lat": 32.0,
+        "lon": -5.75,
+        "value": 1021.0,
+        "prominence": 5.1
+      },
+      {
+        "type": "H",
+        "lat": 45.125,
+        "lon": 15.75,
+        "value": 1014.4,
+        "prominence": 4.9
+      },
+      {
+        "type": "H",
+        "lat": 41.875,
+        "lon": 46.75,
+        "value": 1024.3,
+        "prominence": 4.3
+      },
+      {
+        "type": "T",
+        "lat": 63.75,
+        "lon": 5.5,
+        "value": 1002.4,
+        "prominence": 4.0
+      },
+      {
+        "type": "T",
+        "lat": 43.5,
+        "lon": 8.375,
+        "value": 1009.2,
+        "prominence": 3.9
+      },
+      {
+        "type": "H",
+        "lat": 34.0,
+        "lon": 36.375,
+        "value": 1018.4,
+        "prominence": 3.8
+      },
+      {
+        "type": "T",
+        "lat": 41.75,
+        "lon": 18.375,
+        "value": 1005.3,
+        "prominence": 3.6
+      },
+      {
+        "type": "T",
+        "lat": 43.375,
+        "lon": 24.5,
+        "value": 1007.3,
+        "prominence": 3.3
+      },
+      {
+        "type": "H",
+        "lat": 45.625,
+        "lon": 2.5,
+        "value": 1018.2,
+        "prominence": 3.2
+      },
+      {
+        "type": "H",
+        "lat": 35.375,
+        "lon": 7.125,
+        "value": 1020.1,
+        "prominence": 2.9
+      },
+      {
+        "type": "T",
+        "lat": 48.25,
+        "lon": 25.25,
+        "value": 1006.8,
+        "prominence": 2.9
+      }
+    ]
+  }
+}

@@ -1,3 +1,4 @@
+import {ModelPressureCenters} from './modelPressureCenters';
 import {useEffect,useMemo,useState} from 'react';
 import {GeoJsonLayers,HtmlMarker,ImageQuadLayer,MapCenter,MapFitBounds,MidMapLibre,RasterTileLayer} from './MapLibreCore';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
@@ -35,6 +36,7 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
    <RasterTileLayer id={`native-basemap-${basemap}`} url={activeBasemap.url} tone={activeBasemap.tone} attribution={activeBasemap.attribution}/>
    {field&&raster?<ImageQuadLayer id={`native-${kind}-${field.time}`} resampling={kind==='sigwx'?'nearest':'linear'} url={raster} bounds={[[field.lats[0],field.lons[0]],[field.lats.at(-1)!,field.lons.at(-1)!]]} opacity={.85}/>:null}
    {field?.isobars.length?<GeoJsonLayers id={`native-isobars-${kind}`} data={isobars} layers={[{id:'lines',type:'line',paint:{'line-color':'#192c3f','line-width':1.1,'line-opacity':.8}}]}/>:null}
+   {kind==='pressure'&&field&&<ModelPressureCenters centers={field.centers}/>}
    <ModelMapContextOverlay/>
    {combined?<ModelMapProbe<string> label={label} unit="" source="DWD ICON-D2 · gleicher Rasterpunkt" enabled={!playing} contextKey={`${combined.run}-${combined.time}`} sample={combinedValue} format={value=>value??'–'}/>:<ModelMapProbe label={label} unit={displayUnit} source="DWD ICON-D2 · nächster dargestellter Rasterpunkt" enabled={Boolean(field)&&!playing} contextKey={`${field?.run}-${field?.time}-${kind}-${unit}-${playing}`} sample={(lat,lon)=>field?nativeAt(field,lat,lon):null} format={format}/>}
    {places.filter(p=>p.latitude>=47&&p.latitude<=55.2&&p.longitude>=5.5&&p.longitude<=15.6).map(p=><HtmlMarker key={p.id} latitude={p.latitude} longitude={p.longitude} anchor="center" zIndex={2} className="precipitation-favorite-marker" html={`<span class="${p.id===selected?'selected':''}"></span>`} onClick={()=>setSelected(p.id)}/>)}

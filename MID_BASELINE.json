@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.236",
+  "releaseVersion": "0.9.85.237",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-c28-map-contracts-0985237.mjs",
     "scripts/test-cloud-significant-weather-0985231.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
     "scripts/test-adaptive-weight-site-profile-0810.mjs",
@@ -977,7 +978,6 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
-    "scripts/test-cloud-significant-weather-0985231.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
     "scripts/test-adaptive-weight-site-profile-0810.mjs",
     "scripts/test-advanced-progressive-skybar-performance-08270.mjs",
@@ -1048,6 +1048,7 @@
     "scripts/test-c23-cloud-missing-0985206.mjs",
     "scripts/test-c23-cloud-synoptic-0985204.mjs",
     "scripts/test-c23-full-horizon-0985205.mjs",
+    "scripts/test-c28-map-contracts-0985237.mjs",
     "scripts/test-c3-current-today-profile-098515.mjs",
     "scripts/test-c3-navigation-warning-status-098513.mjs",
     "scripts/test-c3-shared-page-grid-098514.mjs",
@@ -1067,6 +1068,7 @@
     "scripts/test-climate-section-09800.mjs",
     "scripts/test-cloud-layer-day-night-details-09130.mjs",
     "scripts/test-cloud-profile-structures-09740.mjs",
+    "scripts/test-cloud-significant-weather-0985231.mjs",
     "scripts/test-cloud-uvi-consistency-0985109.mjs",
     "scripts/test-cockpit-clarity-0960.mjs",
     "scripts/test-cockpit-combined-mini-buildfix-093210.mjs",
@@ -1094,6 +1096,7 @@
     "scripts/test-codeql-insecure-randomness-09524.mjs",
     "scripts/test-codeql-security-hardening-09601.mjs",
     "scripts/test-coherent-weather-bundles-08340.mjs",
+    "scripts/test-compact-profile-location-0985235.mjs",
     "scripts/test-compass-scenario-wording-08304.mjs",
     "scripts/test-composite-buffered-playback-097881.mjs",
     "scripts/test-composite-front-symbol-jsx-098457.mjs",
@@ -1362,6 +1365,7 @@
     "scripts/test-fourteen-day-pill-favorite-tap-097866.mjs",
     "scripts/test-fourteen-day-replit-fluid-grid-098593.mjs",
     "scripts/test-full-twin-archive-sync-netatmo-0850.mjs",
+    "scripts/test-geomet-wms-time-0985234.mjs",
     "scripts/test-german-format-layout.mjs",
     "scripts/test-german-weather-terminology-performance-098461.mjs",
     "scripts/test-github-actions-runtime.mjs",
@@ -1839,6 +1843,7 @@
     "scripts/test-unified-map-layers-0985167.mjs",
     "scripts/test-unified-map-lines-0985186.mjs",
     "scripts/test-update-event-sources-ios27-098434.mjs",
+    "scripts/test-update-recovery-0985223.mjs",
     "scripts/test-update-startup-recovery-098415.mjs",
     "scripts/test-updater.mjs",
     "scripts/test-uvi-card-08172.mjs",
@@ -1933,10 +1938,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-update-recovery-0985223.mjs",
-    "scripts/test-geomet-wms-time-0985234.mjs",
-    "scripts/test-compact-profile-location-0985235.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cloud-significant-weather-0985231.mjs",
@@ -3475,7 +3477,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.236",
+  "version": "0.9.85.237",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",

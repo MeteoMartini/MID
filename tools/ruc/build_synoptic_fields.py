@@ -10,6 +10,7 @@ import contourpy
 from scipy.ndimage import gaussian_filter
 from eccodes import codes_grib_new_from_file,codes_get,codes_get_long,codes_get_array,codes_release,codes_set
 from build_model_map_fields import theta_e
+from pressure_centers import pressure_centers
 CORE_HOURS=(0,3,6,9,12,18,24,36,48)
 HOURS=(0,3,6,9,12,15,18,21,24,30,36,42,48)
 EXTENDED_HOURS=(60,72)
@@ -19,11 +20,11 @@ def extended_hours(model,stamp):
     if model=='icon-d2':return ()
     # Endpoint first, then 24-hour context and +60/+72. Optional and same-cycle.
     return tuple(dict.fromkeys((end,*range(96,end,24),60,72)))
-ALLOWED_HOURS=tuple(sorted(set(HOURS+EXTENDED_HOURS+tuple(range(96,385,24))+(180,))))
+ALLOWED_HOURS=tuple(sorted(set((1,2,4,5)+HOURS+EXTENDED_HOURS+tuple(range(96,385,24))+(180,))))
 MODELS={'icon':('DWD ICON Global','icon',28,'global_icosahedral'),'icon-d2':('DWD ICON-D2','icon-d2',2.2,'germany_regular-lat-lon'),'icon-eu':('DWD ICON-EU','icon-eu',14,'europe_regular-lat-lon')}
 COMPONENTS=(('t',850),('relhum',850),('fi',500),('pmsl',None),('relhum',700),('u',300),('v',300))
 GRID_CACHE={}
-LOCK=threading.Lock();ALGORITHM='bolton-1980-lcl-v3-europe'
+LOCK=threading.Lock();ALGORITHM='bolton-1980-lcl-v4-europe-msl-centers'
 
 def decode(payload,run,hour,field,level,native=None):
     with LOCK,tempfile.TemporaryFile() as file:
@@ -115,7 +116,7 @@ def write_fields(output,model,stamp,resolution,fields,lats,lons,hours=HOURS):
             for x in range(0,len(axis_lons),stride):
                 u,v=get('u',300)[y,x],get('v',300)[y,x]
                 if np.isfinite(u) and np.isfinite(v):wind.append([float(axis_lons[x]),float(axis_lats[y]),round(float(u),2),round(float(v),2)])
-        time=(stamp+timedelta(hours=hour)).isoformat();payload={'schema':'mid.synoptic.field.v1','model':model,'run':stamp.isoformat(),'time':time,'resolutionKm':display_resolution,'unit':'°C','scale':.1,'lats':axis_lats.tolist(),'lons':axis_lons.tolist(),'thetae':values,'height':contours(get('fi',500),axis_lats,axis_lons,4),'pressure':contours(get('pmsl'),axis_lats,axis_lons,4),'humidity':{'type':'FeatureCollection','features':[f for f in contours(get('relhum',700),axis_lats,axis_lons,20)['features'] if f['properties']['level'] in (60,80)]},'thetaContours':contours(theta,axis_lats,axis_lons,6),'wind':wind}
+        time=(stamp+timedelta(hours=hour)).isoformat();payload={'schema':'mid.synoptic.field.v1','model':model,'run':stamp.isoformat(),'time':time,'resolutionKm':display_resolution,'unit':'°C','scale':.1,'lats':axis_lats.tolist(),'lons':axis_lons.tolist(),'thetae':values,'height':contours(get('fi',500),axis_lats,axis_lons,4),'pressure':contours(get('pmsl'),axis_lats,axis_lons,4),'centers':pressure_centers(get('pmsl'),axis_lats,axis_lons),'humidity':{'type':'FeatureCollection','features':[f for f in contours(get('relhum',700),axis_lats,axis_lons,20)['features'] if f['properties']['level'] in (60,80)]},'thetaContours':contours(theta,axis_lats,axis_lons,6),'wind':wind}
         raw=json.dumps(payload,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode();name=f'{model}-{hour:03d}.bin';data=gzip.compress(raw,mtime=0)
         if len(raw)>12_000_000:raise ValueError('decoded field budget')
         (output/name).write_bytes(data);frames.append({'hour':hour,'resolutionKm':display_resolution,'time':time,'file':name,'encoding':'gzip-json','decodedBytes':len(raw),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
@@ -279,7 +280,7 @@ def build(output):
             products[model]=builder(model,output,hours=CORE_HOURS if model=='icon' else HOURS,cached=cached.get(model))
         except (requests.RequestException,ValueError,RuntimeError) as e:errors[model]=str(e);print(f'::warning::{model} synoptic unavailable: {e}',flush=True)
     # Round robin: each model's endpoint gets a chance before extra density.
-    optional={model:extended_hours(model,datetime.fromisoformat(p['run'])) for model,p in products.items()}
+    optional={model:((1,2,4,5) if model=='icon-d2' else extended_hours(model,datetime.fromisoformat(p['run']))) for model,p in products.items()}
     for position in range(max((len(h) for h in optional.values()),default=0)):
         for model,product in products.items():
             if time.monotonic()>optional_deadline:break
