@@ -1,3 +1,7 @@
+# MID v0.9.85.235
+
+Kompakter gemeinsamer Profilkopf, kanonischer Sticky-Ortskontext und reversible Byteplane-Kompressionsmessung. Basis fd6890e; keine Decoder- oder Budgetänderung. Details: docs/implementation/MID_C27_COMPACT_PROFILE_0.9.85.235.md.
+
 ## MID v0.9.85.231 · 2026-10-10 · Missing-Vertrag RUC-Phasen
 
 - Kartenparameter sigwx wird bei gleicher persistierter ID zur gemeinsamen Wolken-/Wetterkarte. Gemeinsamer Renderer/Legende/Ortswert/Export; native Legacy-Route nutzt dieselbe Kombination. GDPS nutzt zwei verifizierte GeoMet-Produkte desselben Laufs und Termins, begrenzte Niederschlagsart ausdrücklich gekennzeichnet.

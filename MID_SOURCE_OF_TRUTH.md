@@ -1,3 +1,21 @@
+# MID-C27 · 0.9.85.235 · kompakter Profilkopf und Ortskontext
+
+Basis: main = mid-stable fd6890ef73d7f70f8dff962f48042994801fd7f0 (.234); keine überlappenden MID-Source-PRs (nur Dependabot 260/253/252).
+
+Legende und Info stehen im gemeinsamen ShortTermRibbon-Profilkopf. Die bestehenden Funktionen und persistierte Legendenauswahl bleiben erhalten; aria-expanded informiert über beide Zustände. Keine zusätzliche Toolbar-Zeile; Touchflächen mindestens 44px. Classic/Next und sämtliche gemeinsamen Profilverbraucher nutzen dieselbe Komponente.
+
+SelectedPlaceBar verwendet den kanonischen displayLocationName einschließlich Favoritenalias. Die kompakte Ortszeile bleibt beim Scrollen am sicheren oberen Rand sichtbar. Bei Kartenarbeitsbereich, geöffneten Einstellungen, fehlendem Ort und eigenständigem URL-/PNG-Export entfällt sie. Der bisherige Header scrollt mit, um zwei übereinanderliegende Sticky-Köpfe zu vermeiden. Lange Ortsnamen werden visuell gekürzt, vollständiger Name bleibt im Text/Accessibility-Baum und title.
+
+Orientierung: Apple Weather dokumentiert Ort vor Temperatur/Stundenprognose (https://support.apple.com/guide/iphone/check-the-weather-iph1ac0b35f/26/ios/26); meteoblue dokumentiert orts-/höhenbezogene Meteogramme mit Ortsinformation oberhalb der Aktualisierung (https://content.meteoblue.com/en/private-customers/website-help/forecast/meteograms). Daraus folgt unser eigener Ortskontext, keine Aussage über intern verwendete Kompressionsverfahren anderer Apps.
+
+RUC-Lauf 38114988882, prepare 114398002184, erfolgreich: 2026-10-11T04:00, 899950726/900000000 Bytes, nur 49274 Bytes Reserve, 1216 Objekte. Checkout erfolgte vor .234-Stable-Promotion; deshalb noch kein neuer storage-audit-Bericht. Nicht als Kompressionsmessung ausgeben.
+
+Storage-Audit misst jetzt zusätzlich reversible int16-Byteplanes + gzip6 gegen direktes gzip6. Jedes Sample wird vollständig zurückdekodiert und byteweise geprüft, einschließlich Missing-Bitmustern. Lookup wird separat behandelt; bereits komprimierte Kartenobjekte werden nicht erneut komprimiert. Der Produktionsaudit misst sämtliche geeigneten binären Chunks bis2MB vollständig und rückdekodiert; nur die Detailausgabe ist auf drei Stichproben pro Produkt begrenzt. Exakte Kandidatensummen zählen andere Objekte unverändert. Keine Extrapolation. Produktion und 900MB-/950MB-Grenzen unverändert.
+
+Priorisierte Alternativen: (1) verlustfreies gzip bzw. Byteplanes+gzip mit versioniertem Manifest, Roh-/Wire-Hashes, Decode-Limits und echtem Worker-CPU-/Latenznachweis; (2) Content-Dedup identischer Chunks, falls der echte Manifest-Duplikatwert relevant ist, ohne Dekompressionskosten; (3) ortsbezogene Chunk-Ladevorgänge beibehalten, keine Vollgitter im Client; (4) separates Objekt-Backend für vollständige EPS-Member/zusätzliche Rapid-Felder, mit konkreter Kosten-/Retentionprüfung. Keine neue Präzisionsreduktion, keine räumliche oder zeitliche Ausdünnung. R2-Retention allein löst den Pages-Snapshotdeckel nicht. Transportkompression allein löst gespeicherte Bytes nur, wenn tatsächlich komprimierte Objekte gespeichert werden. Keine Aktivierung ohne gemessenen vollständigen Payload und Decoder-/Performanceabnahme.
+
+Offene Gesamtabnahme: numerische Reprojektions-/Kachelnähte, vollständige optionale Datenverträge, langfristige SLO-/Alarmzustellung und echte physische iOS-/WKWebView-/VoiceOver-/Geräteperformance. Browseremulation ersetzt diese Evidenz nicht. GDPS-Uhrzeitkorrektur und CW-Budgetarbeit .233/.234 bleiben bestehen.
+
 # MID v0.9.85.234 · MID-C27 GeoMet-Zeitformat und RUC-Speichermessung
 
 Basis main=mid-stable d4ddd72445abf2e67ee38e814c8d650a52188d32 (.233). GeoMet lehnt .000Z in GetMap-Zeiten mit HTTP200/XML-NoMatch ab. Ausschließlich GeoMet-Relay normalisiert ganze UTC-Sekunden ohne Änderung des Epoch-Werts; Bruchteile werden abgewiesen. Read-only RUC-Inventar misst Produktbytes, Restbudget, deklarierte Duplikate und begrenzte hashgeprüfte gzip-Roundtrips; echte publizierte CW-Stunden werden geloggt. Keine Budget-/Decoder-/Datenänderung. Details docs/implementation/MID_C27_STORAGE_GEOMET_0.9.85.234.md. Veröffentlichung nur regulärer Source-/Installerpfad; offene echte Geräte-/Langzeit-/vollständige Wissenschaftsabnahme bleibt offen.

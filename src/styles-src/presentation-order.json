@@ -69,6 +69,7 @@
     "src/midC18AuditFollowup.css",
     "src/midC21CurrentWeather.css",
     "src/midC23CloudAudit.css",
-    "src/midC26UpdateRecovery.css"
+    "src/midC26UpdateRecovery.css",
+    "src/midC27CompactProfile.css"
   ]
 }

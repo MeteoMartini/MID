@@ -1,6 +1,7 @@
 """Read-only Pages inventory and bounded lossless-compression evidence.
 
-Compression samples are measured, never extrapolated to the full payload.
+Compression candidates are measured and roundtripped, never extrapolated.
+Production can scan every eligible chunk while keeping sample log detail bounded.
 Duplicate bytes are a manifest-based opportunity, not an implemented saving.
 No forecast objects, decoder contracts or storage limits are changed.
 """
@@ -12,7 +13,7 @@ import json
 from pathlib import Path
 
 
-def audit_storage(meta, root, samples_per_product=3):
+def audit_storage(meta, root, samples_per_product=3, full_compression=False):
     if not 1 <= samples_per_product <= 5:
         raise ValueError('storage audit samples must be 1..5 per product')
     root = Path(root).resolve()
@@ -36,7 +37,9 @@ def audit_storage(meta, root, samples_per_product=3):
         candidates = sorted((r for r in rows if r['key'].endswith('.bin') and r['bytes'] <= 2_000_000), key=lambda r:r['key'])
         selected = sorted({round(i*(len(candidates)-1)/max(1,samples_per_product-1)) for i in range(samples_per_product)}) if candidates else []
         samples = []
-        for index in selected:
+        candidate_bytes = sum(r['bytes'] for r in rows)
+        gzip_candidate = shuffled_candidate = candidate_bytes
+        for index in (range(len(candidates)) if full_compression else selected):
             row = candidates[index]
             raw = (root / row['key']).read_bytes()
             if len(raw) != row['bytes'] or hashlib.sha256(raw).hexdigest() != row['sha256']:
@@ -47,8 +50,28 @@ def audit_storage(meta, root, samples_per_product=3):
             compressed = gzip.compress(raw, compresslevel=6, mtime=0)
             if gzip.decompress(compressed) != raw:
                 raise ValueError('storage audit lossless roundtrip failed')
-            samples.append({'key':row['key'],'sha256':row['sha256'],'rawBytes':len(raw),'gzipBytes':len(compressed)})
+            sample = {'key':row['key'],'sha256':row['sha256'],'rawBytes':len(raw),'gzipBytes':len(compressed)}
+            # Reversible byte-plane shuffle preserves every int16 bit pattern,
+            # including Missing. Measure a candidate; never alter published bytes.
+            if product != 'lookup' and len(raw) % 2 == 0:
+                shuffled = raw[0::2] + raw[1::2]
+                packed = gzip.compress(shuffled, compresslevel=6, mtime=0)
+                restored = gzip.decompress(packed)
+                half = len(restored)//2
+                decoded = bytearray(len(restored))
+                decoded[0::2], decoded[1::2] = restored[:half], restored[half:]
+                if bytes(decoded) != raw:
+                    raise ValueError('storage audit byte-shuffle roundtrip failed')
+                sample['shuffledGzipBytes'] = len(packed)
+            if full_compression:
+                gzip_candidate -= len(raw) - min(len(raw), len(compressed))
+                shuffled_candidate -= len(raw) - min(len(raw), len(compressed), sample.get('shuffledGzipBytes',len(raw)))
+            if index in selected:
+                samples.append(sample)
         products[product] = {'objectCount':len(rows),'declaredBytes':sum(r['bytes'] for r in rows),'compressionSamples':samples}
+        if full_compression:
+            products[product]['exactCandidateBytes'] = {'gzip':gzip_candidate,'byteplanesGzip':shuffled_candidate}
+
     total = sum(p['declaredBytes'] for p in products.values())
     if total != meta['pages']['publishedBytes']:
         raise ValueError('storage audit inventory total differs from publication')
@@ -56,6 +79,9 @@ def audit_storage(meta, root, samples_per_product=3):
               'budgetBytes':meta['pages']['budgetBytes'],'remainingBytes':meta['pages']['budgetBytes']-total,
               'manifestDuplicateBytes':duplicates,'products':products,
               'scope':'exact declared inventory; bounded verified gzip samples; no full-payload savings estimate or publication change'}
+    if full_compression:
+        report['exactCandidateBytes'] = {codec:sum(p['exactCandidateBytes'][codec] for p in products.values()) for codec in ('gzip','byteplanesGzip')}
+        report['scope'] = 'full eligible binary inventory verified bytewise; unchanged bytes for other objects; bounded sample detail; candidate sizes are not deployed savings'
     def utc(value):
         parsed = datetime.fromisoformat(value.replace('Z','+00:00'))
         return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
