@@ -1,5 +1,6 @@
 # MID v0.9.85.243 · Orte sortieren und verständliche Wetterwerte
 
+- Prognose-Radar unter Vorhersage eindeutig benannt. Die erweiterte Ensembleanalyse im Prognose-Cockpit zeigt dieselbe Auswertung nicht doppelt; eigenständige Ensembleansichten und Änderungsbenachrichtigungen bleiben erhalten.
 - Die Mehrort-Übersicht folgt standardmäßig deiner Favoritenreihenfolge in den Einstellungen. Sortiere alternativ nach Ortsname, Warnlage, Temperatur, Niederschlagsmenge, Böen oder Entfernung. Deine Wahl bleibt gespeichert.
 - Übersicht und „Wetterfenster vergleichen“ haben klar unterschiedliche Aufgaben: kompakte Wetterkarten gegenüber einer Rangliste mit hervorgehobenen passenden Stunden und konkreten Trockenphasen.
 - Ganzzahlige Temperaturen in der Ortsübersicht; gleiche gerundete Minima und Maxima werden nur einmal angezeigt.
