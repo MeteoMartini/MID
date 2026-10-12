@@ -1,6 +1,7 @@
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
-import {gzipSync} from 'node:zlib';
+import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
+import {initialCssAssetStats} from './lib/initialCssBudget.mjs';
 
 const root=path.resolve(process.argv[2]||'dist');
 const baseline=JSON.parse(await readFile(new URL('../MID_PERFORMANCE_BASELINE.json',import.meta.url),'utf8'));
@@ -13,10 +14,11 @@ const assets=[];
 for(const file of files){
   const data=await readFile(file);
   const extension=path.extname(file).toLowerCase();
-  assets.push({file:path.relative(root,file),bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,extension});
+  assets.push({file:path.relative(root,file),bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,brotliBytes:extension==='.css'?brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).length:undefined,extension});
 }
 const js=assets.filter(x=>x.extension==='.js');
 const css=assets.filter(x=>x.extension==='.css');
+const initialCss=initialCssAssetStats(await readFile(path.join(root,'index.html'),'utf8'),assets);
 const compressible=assets.filter(x=>COMPRESSIBLE_EXTENSIONS.has(x.extension));
 const staticMedia=assets.filter(x=>STATIC_MEDIA_EXTENSIONS.has(x.extension));
 const totals={
@@ -27,11 +29,16 @@ const totals={
   staticMediaBytes:staticMedia.reduce((s,x)=>s+x.bytes,0),
   jsGzipBytes:js.reduce((s,x)=>s+x.gzipBytes,0),
   cssGzipBytes:css.reduce((s,x)=>s+x.gzipBytes,0),
+  initialCssBytes:initialCss.bytes,
+  initialCssGzipBytes:initialCss.gzipBytes,
+  initialCssBrotliBytes:initialCss.brotliBytes,
+  initialCssFileCount:initialCss.entries.length,
   largestJsGzipBytes:Math.max(0,...js.map(x=>x.gzipBytes)),
 };
 const failures=[];
 for(const [key,limit] of Object.entries(baseline.limits||{}))if(Number.isFinite(limit)&&totals[key]>limit)failures.push(`${key}: ${totals[key]} > ${limit}`);
 await mkdir('artifacts',{recursive:true});
-await writeFile('artifacts/build-budget.json',JSON.stringify({schema:2,ok:!failures.length,totals,definitions:baseline.metricDefinitions||{},failures},null,2)+'\n');
+await writeFile('artifacts/build-budget.json',JSON.stringify({schema:2,ok:!failures.length,totals,initialCssAssets:initialCss.entries,definitions:baseline.metricDefinitions||{},failures},null,2)+'\n');
 if(failures.length){console.error(failures.join('\n'));process.exit(1)}
 console.log(`Build-Budget bestanden: ${totals.assetCount} Dateien · Code/Text gzip ${totals.compressibleGzipBytes} B · statische Medien ${totals.staticMediaBytes} B.`);
+console.log(`Initiales CSS aus gebautem HTML: ${initialCss.entries.length} Datei(en) · ${initialCss.bytes} B roh · ${initialCss.gzipBytes} B gzip-9 · ${initialCss.brotliBytes} B Brotli-6. Kein gemessener Netztransfer oder CSS-Parse-Zeitwert.`);

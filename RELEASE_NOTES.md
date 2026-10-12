@@ -1,7 +1,5 @@
-# MID v0.9.85.245 · Robuste Wetterdatenabfragen
+# MID v0.9.85.246 · Startlast der Darstellung messbar
 
-- Geschlossene Karten-Info-Dialoge geben den Tastaturfokus nur zurück, wenn inzwischen kein anderes Bedienelement ausgewählt wurde. Dadurch bleiben Deckkraftregler und Kartentermin unabhängig bedienbar.
-- Identische gleichzeitige Wetterdatenabfragen werden weiter gemeinsam ausgeführt, ohne dass der Abbruch einer Ansicht andere aktive Ansichten beeinträchtigt.
-- Bei Orts- und Ansichtswechsel werden nicht mehr benötigte Abfragen beendet, weiterhin benötigte Daten jedoch zuverlässig geladen.
-- Explizite längere Wartezeiten von Open-Meteo werden eingehalten; unnötige erneute Versuche bei einer längeren Sperre werden vermieden.
-- Zusätzliche automatische Tests sichern gemeinsame Abfragen, unabhängige Abbrüche und die Behandlung von Rate-Limits ab. Wettermodelle und Vorhersageberechnung bleiben unverändert.
+- MID erfasst beim Qualitätscheck jetzt getrennt, wie groß die unmittelbar beim App-Start benötigten Gestaltungspakete sind. Damit lassen sich kommende Geschwindigkeitsverbesserungen zuverlässig überprüfen.
+- Die Größen für komprimiertes CSS werden mitgemessen, ohne später geladene Ansichten fälschlich zum Startpaket zu zählen.
+- Wetterdaten, Piktogramme und das gewohnte Layout bleiben unverändert. Die eigentliche Verkleinerung des Haupt-CSS folgt nach belastbaren Vergleichsmessungen.

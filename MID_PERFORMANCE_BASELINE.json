@@ -9,11 +9,15 @@
     "staticMediaBytes": 7000000,
     "jsGzipBytes": 4200000,
     "cssGzipBytes": 650000,
-    "largestJsGzipBytes": 950000
+    "largestJsGzipBytes": 950000,
+    "initialCssGzipBytes": 650000
   },
   "metricDefinitions": {
     "totalGzipBytes": "Diagnostische/hart gedeckelte gzip-9-Summe aller Dist-Dateien einschließlich bereits komprimierter Medien.",
     "compressibleGzipBytes": "gzip-9-Summe der textuell komprimierbaren Webartefakte (.js/.css/.html/.json/.xml/.svg/.txt/.webmanifest/.map). Das frühere 5,2-MB-Gesamtlimit wird hier fachlich korrekt weitergeführt.",
-    "staticMediaBytes": "Unkomprimierte Dateigröße bereits komprimierter statischer Medien/Fonts (.png/.jpg/.jpeg/.webp/.avif/.gif/.ico/.woff/.woff2/.ttf/.otf). Verhindert Medienwachstum unabhängig vom Codebudget."
+    "staticMediaBytes": "Unkomprimierte Dateigröße bereits komprimierter statischer Medien/Fonts (.png/.jpg/.jpeg/.webp/.avif/.gif/.ico/.woff/.woff2/.ttf/.otf). Verhindert Medienwachstum unabhängig vom Codebudget.",
+    "initialCssGzipBytes": "gzip-9 der im gebauten dist/index.html direkt referenzierten CSS-Dateien; 650 kB ist vorerst nur der bisherige Gesamt-CSS-Deckel. Nach Browser-Coverage und Stable-Messung verschärfen.",
+    "initialCssBytes": "Unkomprimierte Start-CSS-Größe anhand der Stylesheet-Links des gebauten HTMLs, ohne später lazy geladene Styles.",
+    "initialCssBrotliBytes": "Diagnostische Brotli-6-Größe der aus dist/index.html referenzierten Styles; kein gemessener Servertransfer."
   }
 }
