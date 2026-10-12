@@ -18,7 +18,7 @@ function meanLayer(hours:Hour[],key:'cloud'|'lowCloud'|'midCloud'|'highCloud'){
 function periodPool(hours:Hour[],dayPeriod:boolean){
  const exact=hours.filter(hour=>hour.isDay===dayPeriod);
  if(exact.length)return exact;
- const civil=hours.filter(hour=>{const clock=Number(hour.time.slice(11,13));return dayPeriod?clock>=7&&clock<=18:clock<=6||clock>=19});
+ const civil=hours.filter(hour=>{const clock=typeof hour.time==='string'?Number(hour.time.slice(11,13)):NaN;return dayPeriod?clock>=7&&clock<=18:clock<=6||clock>=19});
  return civil.length?civil:hours;
 }
 

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.240",
+  "releaseVersion": "0.9.85.241",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -976,7 +976,8 @@
     "scripts/test-www-proxy-hotfix-0985184.mjs",
     "scripts/test-update-recovery-0985223.mjs",
     "scripts/test-geomet-wms-time-0985234.mjs",
-    "scripts/test-compact-profile-location-0985235.mjs"
+    "scripts/test-compact-profile-location-0985235.mjs",
+    "scripts/test-profile-daylight-transition-0985241.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1942,7 +1943,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-profile-daylight-transition-0985241.mjs"
   ],
   "requiredFiles": [
     "scripts/test-cloud-significant-weather-0985231.mjs",
@@ -3481,7 +3483,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.240",
+  "version": "0.9.85.241",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
