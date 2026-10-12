@@ -449,10 +449,11 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainForecastDayRow",
-      "sha256": "0c5a5fbd765a879cdd5aa10e2f26ab9e0851d71ca0836e5c8e30e8779bad8032",
+      "sha256": "419dace0333edbd72107b9a2897879ead8aad29de6c82b36d299cbfd80b6b765",
       "previousSha256": "8f2670c8003454bbe3fc06fb2699b5e57b8001c6b4a10454eb05864a9692277e",
       "displayContractRevision": "0.9.85.243",
-      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
+      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged; diagnostic native interval attribute, no computation change",
+      "priorDisplayRevisionSha256": "0c5a5fbd765a879cdd5aa10e2f26ab9e0851d71ca0836e5c8e30e8779bad8032"
     },
     {
       "file": "src/WidgetGenerator.tsx",

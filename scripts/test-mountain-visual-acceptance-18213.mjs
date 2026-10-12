@@ -353,11 +353,13 @@ try{
   const precipitationInterval=JSON.parse(await evaluate(`(()=>{
    const row=document.querySelector('.mountain-seven-day-row.open'),card=row?.querySelector('.mountain-period-card'),time=card?.querySelector('time')?.textContent.trim()||'',date=row?.getAttribute('data-forecast-date')||'',fixture=window.__mountainFixtureExpectedPrecipitation;
    const [start,end]=time.split('–'),clockMinutes=value=>{const[hour,minute]=value.split(':').map(Number);return hour*60+minute},durationMinutes=(clockMinutes(end)-clockMinutes(start)+1440)%1440,hours=durationMinutes/60,startIndex=fixture?.times?.indexOf(date+'T'+start)??-1,values=fixture?.byRole?.find(item=>item.role===2)?.values||[],expected=startIndex>=0?values.slice(startIndex+1,startIndex+hours+1).reduce((sum,value)=>sum+(Number.isFinite(value)?value:0),0):NaN,actualText=card?.querySelector('.mountain-period-precip b')?.textContent.trim()||'';
-   return JSON.stringify({time,date,hours,startIndex,expected,actualText});
+   const nativeText=card?.querySelector('.mountain-period-precip b')?.getAttribute('data-precipitation-mm');const nativePrecipitation=nativeText===null||nativeText===undefined?null:Number(nativeText);return JSON.stringify({time,date,hours,startIndex,expected,actualText,nativePrecipitation});
   })()`));
   assert.ok(precipitationInterval.startIndex>=0&&precipitationInterval.hours>=1&&precipitationInterval.hours<=3,`Dreistundenintervall lässt sich nicht auf Stundenquelle abbilden: ${JSON.stringify(precipitationInterval)}.`);
   const displayedPrecipitation=Number((precipitationInterval.actualText.match(/-?\d+(?:[,.]\d+)?/)||[])[0]?.replace(',','.'));
-  assert.ok(Number.isFinite(displayedPrecipitation)&&Math.abs(displayedPrecipitation-precipitationInterval.expected)<0.06,`Intervallniederschlag muss aus den zugrunde liegenden Stundenwerten summiert sein: ${JSON.stringify({...precipitationInterval,displayedPrecipitation})}.`);
+  assert.ok(Number.isFinite(precipitationInterval.nativePrecipitation)&&Math.abs(precipitationInterval.nativePrecipitation-precipitationInterval.expected)<1e-9,`Ungerundeter Intervallniederschlag muss exakt aus der Stundenquelle summiert sein: ${JSON.stringify(precipitationInterval)}.`);
+  const expectedDisplayed=precipitationInterval.expected<1?Math.round(precipitationInterval.expected*10)/10:Math.round(precipitationInterval.expected);
+  assert.equal(displayedPrecipitation,expectedDisplayed,`Parametervertrag: Intervallsumme getrennt von der Anzeigepräzision prüfen: ${JSON.stringify({...precipitationInterval,displayedPrecipitation,expectedDisplayed})}.`);
  await clickIfClosed('.mountain-snowline-summary');
  await waitForValue('Schneefallgrenzen-Prognose',`Boolean(document.querySelector('.mountain-snowline-horizons button'))`,Boolean);
 

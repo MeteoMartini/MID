@@ -65,7 +65,7 @@ try{if(!process.argv.includes('--navigation-only')){for(const [width,height] of 
   await page.route('https://**/*',r=>r.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64')}));
   await page.goto(`http://127.0.0.1:${server.address().port}/?${kind}`);
   await page.waitForFunction(()=>!document.querySelector('.weather-precipitation-exports button')?.disabled);
-  const loaded=requests.length,expected={kn:'20 kt',kmh:'38 km/h',ms:'10,4 m/s',mph:'23 mph'};
+  const loaded=requests.length,expected={kn:'20 kt',kmh:'38 km/h',ms:'10 m/s',mph:'23 mph'};
   for(const unit of ['kn','kmh','ms','mph']){
    await page.getByRole('button',{name:'Einheit '+unit,exact:true}).click();
    await page.waitForFunction(v=>document.querySelector('tbody')?.innerText.includes(v),expected[unit]);
