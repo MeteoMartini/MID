@@ -75,7 +75,7 @@ assert.ok(verification.includes('forecast-verification'),'Verifikationskomponent
 assert.ok(route.includes('route-weather-card'),'Routenwetter-Komponente fehlt.');
 
 const moduleIds=[...modulesSource.matchAll(/\{id:'([^']+)'/g)].map(match=>match[1]);
-assert.equal(moduleIds.length,18,'Dashboard-Modulkatalog muss 18 aktivierbare Hauptmodule enthalten.');
+assert.equal(moduleIds.length,19,'Dashboard-Modulkatalog enthält die 18 bestehenden Hauptmodule und die neue Favoritenseite.');
 for(const id of moduleIds){
  const labelMatch=new RegExp(`\\{id:'${id}',label:'([^']+)'`).exec(modulesSource);
  const label=labelMatch?.[1];
