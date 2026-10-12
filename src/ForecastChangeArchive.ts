@@ -1,25 +1,24 @@
 import {useEffect} from 'react';
-import {forecast,mapDays,mapHours,type Location,type Weather} from './weather';
+import {forecast,mapDays,mapHours,type Location,type Weather,type EnsembleDay,type ModelRunMeta} from './weather';
 import {buildModelChangeSnapshot,modelChangeLocationKey,updateModelChangeRadar,readModelChangeHistory,recordModelChangeCaptureStatus} from './modelRunChanges';
 export const FORECAST_ARCHIVE_UPDATED='mid:forecast-archive-updated';
 /** Archive the actual Best-Match inputs, independent of any lazy disclosure. */
-export function captureForecastInputs(location:Location,weather:Weather){
+export function captureForecastInputs(location:Location,weather:Weather,ensemble:EnsembleDay[]=[],runs:ModelRunMeta[]=[]){
  const key=modelChangeLocationKey(location);
  try{
  if(weather._mid_core_proxy?.stale||(weather._mid_core_proxy?.ageMs??0)>3*3600000)return recordModelChangeCaptureStatus(key,'stale');
  const days=mapDays(weather).map(day=>{const index=weather.daily.time.indexOf(day.date);return {...day,precipitation:typeof weather.daily.precipitation_sum?.[index]==='number'?day.precipitation:NaN,gust:typeof weather.daily.wind_gusts_10m_max?.[index]==='number'?day.gust:NaN}});
  if(!days.length)return recordModelChangeCaptureStatus(key,'incomplete');
- const snapshot=buildModelChangeSnapshot([],days,mapHours(weather),[]);
+ const snapshot=buildModelChangeSnapshot(ensemble,days,mapHours(weather),runs);
  snapshot.inputs={...snapshot.inputs!,context:'best-match-inputs',provider:weather._mid_core_proxy?.provider||'Open-Meteo Best Match',sourceUpdatedAt:weather._mid_core_proxy?.sourceUpdatedAt,fallback:weather._mid_core_proxy?.fallback===true};
- // Best-Match probabilities are a distinct input, never labelled ensemble evidence.
- snapshot.days.forEach(row=>{row.probability=NaN});
+ // Only actually available ensemble inputs supply probability, spread and consistency.
  const report=updateModelChangeRadar(key,snapshot),saved=readModelChangeHistory(key).filter(row=>row.inputs?.context==='best-match-inputs').at(-1),status=recordModelChangeCaptureStatus(key,saved?.signature!==snapshot.signature||saved?.inputs?.context!==snapshot.inputs.context?'error':report.unchanged?'unchanged':'stored');
  return status;
  }catch{return recordModelChangeCaptureStatus(key,'error')}finally{if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent(FORECAST_ARCHIVE_UPDATED,{detail:{key}}))}
 }
-export function useForecastChangeArchive({location,weather,favorites}:{location:Location|null;weather:Weather|null;favorites:{location:Location}[]}){
+export function useForecastChangeArchive({location,weather,favorites,ensemble=[],runs=[]}:{location:Location|null;weather:Weather|null;favorites:{location:Location}[];ensemble?:EnsembleDay[];runs?:ModelRunMeta[]}){
  const favoritesKey=favorites.map(f=>`${modelChangeLocationKey(f.location)}:${f.location.timezone}:${f.location.elevation}`).join('|');
- useEffect(()=>{if(location&&weather)captureForecastInputs(location,weather)},[location?.latitude,location?.longitude,weather]);
+ useEffect(()=>{if(location&&weather)captureForecastInputs(location,weather,ensemble,runs)},[location?.latitude,location?.longitude,weather,ensemble,runs]);
  useEffect(()=>{
   const controller=new AbortController();let running=false;
   async function refresh(){

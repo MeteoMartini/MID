@@ -33,9 +33,14 @@ try{
   archive.captureForecastInputs(location,{...updated,_mid_core_proxy:{stale:true}});assert.equal(changes.readModelChangeHistory(key).filter(row=>row.inputs?.context==='best-match-inputs').length,2);assert.equal(changes.readModelChangeCaptureStatus(key).state,'stale');
   // Reload: read persisted JSON, not React state, then retain only the bounded six revisions.
   for(let i=0;i<9;i++){Date.now=()=>Date.parse('2026-10-13T11:00Z')+i*3600000;archive.captureForecastInputs(location,{...weather,daily:{...weather.daily,temperature_2m_max:[20+i,22,18]}})}assert.equal(changes.readModelChangeHistory(key).length,6);
+  const stored=JSON.parse(values.get('mid:model-run-change-history:v2'));stored.locations.broken={days:'invalid'};stored.locations['50.00000:11.00000']={not:'a snapshot array'};values.set('mid:model-run-change-history:v2',JSON.stringify(stored));
+  assert.equal(archive.captureForecastInputs({...location,longitude:11},weather).state,'stored','Malformed legacy location must not crash automatic capture or block healthy entries');assert.equal(changes.readModelChangeHistory(key).length,6,'Healthy archive survives repair');
+  const epsLocation={...location,longitude:12},eps=dates.map(date=>({date,maxMean:16,minMean:8,maxLow:13,maxHigh:19,minLow:5,minHigh:11,modelCount:2,precipitationProbability:30})),runs=[{id:'qa-eps',label:'QA EPS',kind:'ensemble',initialisationTime:'2026-10-13T00:00Z'}];
+  archive.captureForecastInputs(epsLocation,weather);archive.captureForecastInputs(epsLocation,weather,eps,runs);archive.captureForecastInputs(epsLocation,weather,eps.map(row=>({...row,precipitationProbability:80})),[{...runs[0],initialisationTime:'2026-10-13T06:00Z'}]);
+  const epsHistory=changes.readModelChangeHistory(changes.modelChangeLocationKey(epsLocation));assert.ok(epsHistory.at(-1).days.every(row=>Number.isFinite(row.confidence)));assert.ok(changes.compareModelChangeSnapshots(epsHistory.at(-2),epsHistory.at(-1)).items.some(item=>item.metric==='probability'&&item.delta===50&&item.models.includes('QA EPS')),'Available ensemble inputs and runs are archived automatically without an extra request');
   const oldSet=localStorage.setItem;localStorage.setItem=()=>{throw new Error('Quota')};assert.equal(archive.captureForecastInputs({...location,longitude:9},weather).state,'error');localStorage.setItem=oldSet;
  }finally{Date.now=now}
- assert.match(app,/useForecastChangeArchive\(\{location:loc,weather:w,favorites\}\)/);
+ assert.match(app,/useForecastChangeArchive\(\{location:loc,weather:w,favorites,ensemble:ens,runs:ensembleRuns\}\)/);
  assert.doesNotMatch(readFileSync('src/PrognoseRadar.tsx','utf8'),/updateModelChangeRadar\(key/,'Disclosure must not own the writer');
 }finally{rmSync(out,{recursive:true,force:true})}
 console.log('MID244: full-window range, DST/gaps, automatic persisted inputs, 24h reread, two places, dedup, retention, missing ensemble and quota failure verified.');
