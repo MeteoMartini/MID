@@ -13,7 +13,7 @@ export function captureForecastInputs(location:Location,weather:Weather){
  snapshot.inputs={...snapshot.inputs!,context:'best-match-inputs',provider:weather._mid_core_proxy?.provider||'Open-Meteo Best Match',sourceUpdatedAt:weather._mid_core_proxy?.sourceUpdatedAt,fallback:weather._mid_core_proxy?.fallback===true};
  // Best-Match probabilities are a distinct input, never labelled ensemble evidence.
  snapshot.days.forEach(row=>{row.probability=NaN});
- const report=updateModelChangeRadar(key,snapshot),saved=readModelChangeHistory(key).at(-1),status=recordModelChangeCaptureStatus(key,saved?.signature!==snapshot.signature||saved?.inputs?.context!==snapshot.inputs.context?'error':report.unchanged?'unchanged':'stored');
+ const report=updateModelChangeRadar(key,snapshot),saved=readModelChangeHistory(key).filter(row=>row.inputs?.context==='best-match-inputs').at(-1),status=recordModelChangeCaptureStatus(key,saved?.signature!==snapshot.signature||saved?.inputs?.context!==snapshot.inputs.context?'error':report.unchanged?'unchanged':'stored');
  return status;
  }catch{return recordModelChangeCaptureStatus(key,'error')}finally{if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent(FORECAST_ARCHIVE_UPDATED,{detail:{key}}))}
 }
