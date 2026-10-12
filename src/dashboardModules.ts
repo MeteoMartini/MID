@@ -1,5 +1,6 @@
 export type DashboardModuleId=
  |'current'
+ |'favorites'
  |'ventilation'
  |'mountain'
  |'water'
@@ -36,6 +37,7 @@ export const DASHBOARD_MODULE_SETTINGS_KEY='mid:dashboard-modules:v1';
 
 export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
  {id:'current',label:'Aktuelles Wetter',description:'Aktuelle Werte und Messwertkacheln'},
+ {id:'favorites',label:'Meine Orte',description:'Favoritenwetter, Warnlage und Ortsvergleich'},
  {id:'ventilation',label:'Lüftungsassistent',description:'Innenraumsensoren und prognosegestützte Lüftungsfenster'},
  {id:'mountain',label:'Berg- und Wintersport',description:'Höhenprofil und Bergwetter',conditional:'nur bei aktivem Favoritenprofil'},
  {id:'water',label:'Wassersport',description:'Amtliche Pegel, Wasserwetter, Gezeiten und Bedingungen',conditional:'nur bei aktivem Favoritenprofil'},
@@ -56,7 +58,7 @@ export const DASHBOARD_MODULE_DEFINITIONS:DashboardModuleDefinition[]=[
 ];
 
 export const DEFAULT_DASHBOARD_MODULE_ORDER:DashboardModuleId[]=DASHBOARD_MODULE_DEFINITIONS.map(item=>item.id);
-export const CORE_DASHBOARD_MODULES:DashboardModuleId[]=['current','warnings','short-term','forecast','composite'];
+export const CORE_DASHBOARD_MODULES:DashboardModuleId[]=['current','favorites','warnings','short-term','forecast','composite'];
 export function isCoreDashboardModule(id:DashboardModuleId){return CORE_DASHBOARD_MODULES.includes(id)}
 
 function defaultEnabled(){return Object.fromEntries(DEFAULT_DASHBOARD_MODULE_ORDER.map(id=>[id,id==='weather-maps'?false:true])) as Record<DashboardModuleId,boolean>}

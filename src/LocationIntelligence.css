@@ -3,3 +3,5 @@
 .li-best strong>span{white-space:nowrap;flex-shrink:0;min-width:44px;text-align:right}@media(max-width:620px){.li-controls.compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 44px;align-items:end}.li-controls.compare label{min-width:0}.li-controls.compare label:last-of-type{grid-column:1/3}.li-controls.compare button{grid-column:3;grid-row:2}.li-controls.compare select{width:100%}}
 
 .location-intelligence :is(button,select),.prognose-radar select{min-height:44px!important}
+
+.li-tabs.two-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.li-head h2{font-size:24px;line-height:1.2;margin:3px 0}.li-manage{border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);padding:8px 12px;font-size:13px;flex:none}.li-best .li-manage{margin-top:10px}

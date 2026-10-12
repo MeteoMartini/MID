@@ -1,6 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import './MapAvailability.css';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 
 // MapLibre GL JS 6 is ESM-only. Vite must emit its module worker as a
@@ -17,9 +18,10 @@ export function useMidMapState(){return useContext(MapContext)}
 const EMPTY_STYLE:maplibregl.StyleSpecification={version:8,sources:{},layers:[{id:'mid-map-background',type:'background',paint:{'background-color':'#dfe7ec'}}]};
 
 export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZoom=false,interactive=true,attributionControl=true,navigationControl=true,onClick,onZoomStart,onZoomEnd,onMoveEnd,children}:{center:[number,number];zoom:number;minZoom?:number;maxZoom?:number;className?:string;scrollZoom?:boolean;interactive?:boolean;attributionControl?:boolean;navigationControl?:boolean;onClick?:(latitude:number,longitude:number)=>void;onZoomStart?:()=>void;onZoomEnd?:()=>void;onMoveEnd?:()=>void;children?:ReactNode}){
- const containerRef=useRef<HTMLDivElement|null>(null),mapRef=useRef<MidMap|null>(null),[loaded,setLoaded]=useState(false);
+ const containerRef=useRef<HTMLDivElement|null>(null),mapRef=useRef<MidMap|null>(null),[loaded,setLoaded]=useState(false),[mapError,setMapError]=useState<string|null>(null),[attempt,setAttempt]=useState(0);
  useEffect(()=>{
   const container=containerRef.current;if(!container)return;
+  try{
   const map=new maplibregl.Map({container,style:EMPTY_STYLE,center:[center[1],center[0]],zoom,minZoom,maxZoom,attributionControl:false,interactive,scrollZoom,dragRotate:false,pitchWithRotate:false,fadeDuration:0,validateStyle:false,locale:{'NavigationControl.ZoomIn':'Vergrößern','NavigationControl.ZoomOut':'Verkleinern'}});
   mapRef.current=map;map.touchZoomRotate.disableRotation();map.touchPitch.disable();
   if(attributionControl)map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
@@ -28,11 +30,12 @@ export function MidMapLibre({center,zoom,minZoom=2,maxZoom=14,className,scrollZo
   map.on('load',handleLoad);if(onClick)map.on('click',handleClick);if(onZoomStart)map.on('zoomstart',onZoomStart);if(onZoomEnd)map.on('zoomend',onZoomEnd);if(onMoveEnd)map.on('moveend',onMoveEnd);
   const resizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>map.resize()):null;resizeObserver?.observe(container);
   return()=>{resizeObserver?.disconnect();setLoaded(false);mapRef.current=null;map.remove()};
- },[]);
+  }catch(error){try{mapRef.current?.remove()}catch{}container.replaceChildren();mapRef.current=null;setLoaded(false);setMapError(error instanceof Error?error.message:'Karte konnte nicht gestartet werden')}
+ },[attempt]);
  useEffect(()=>{const map=mapRef.current;if(!map)return;const current=map.getCenter();if(Math.abs(current.lat-center[0])>.00005||Math.abs(current.lng-center[1])>.00005)map.jumpTo({center:[center[1],center[0]]})},[center[0],center[1]]);
  useEffect(()=>{const map=mapRef.current;if(!map)return;if(scrollZoom)map.scrollZoom.enable();else map.scrollZoom.disable()},[scrollZoom]);
  const value=useMemo(()=>({map:mapRef.current,loaded}),[loaded]);
- return <MapContext.Provider value={value}><div ref={containerRef} className={className}/>{loaded?children:null}</MapContext.Provider>;
+ return <MapContext.Provider value={value}><div ref={containerRef} className={className}>{mapError&&<div className="map-availability-error" role="status"><strong>Interaktive Karte nicht verfügbar</strong><p>{/webgl|gpu/i.test(mapError)?"Dieser Browser stellt die benötigte Grafikunterstützung nicht bereit.":"Die Karte konnte auf diesem Gerät nicht gestartet werden."} Die übrigen MID-Ansichten bleiben verfügbar.</p><button type="button" onClick={()=>{setMapError(null);setAttempt(value=>value+1)}}>Karte erneut starten</button></div>}</div>{loaded?children:null}</MapContext.Provider>;
 }
 
 export function MapInteraction({enabled}:{enabled:boolean}){const map=useMidMap();useEffect(()=>{if(!map)return;const actions=[map.dragPan,map.touchZoomRotate,map.doubleClickZoom,map.boxZoom,map.keyboard];for(const action of actions)enabled?action.enable():action.disable();map.touchZoomRotate.disableRotation()},[map,enabled]);return null}

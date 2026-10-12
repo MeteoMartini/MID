@@ -3,3 +3,5 @@
 .mid-update-actions{min-width:0}
 @media(max-width:430px){.mid-update-actions{align-items:stretch}.mid-update-actions button{min-width:0}}
 .mid-update-auto{min-height:44px}
+
+.mid-update-notice{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:10px}
