@@ -1,3 +1,4 @@
+import {build} from 'esbuild';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -55,7 +56,7 @@ else{
 for(const token of ['modelRuns?:ModelChangeSnapshotRun[]','function modelRunDifferences','runDifferences:ModelChangeRunDifference[]','snapshotRuns(runs)'])requireToken('Modelllaufvergleich',changesSource,token);
 for(const token of ['function runDifferenceText','Geänderte Modellstände','gleicher Lauf','Modellstände geändert'])requireToken('Modelllaufanzeige',ensemble,token);
 requireToken('Modelllauf-CSS',styles,'.model-change-runs{');
-const changesJs=ts.transpileModule(changesSource,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const changesJs=(await build({entryPoints:[path.join(root,'src/modelRunChanges.ts')],bundle:true,write:false,format:'esm',platform:'node',logLevel:'silent'})).outputFiles[0].text;
 const changes=await import(`data:text/javascript;base64,${Buffer.from(changesJs).toString('base64')}`);
 const day={date:'2026-07-26',bestMax:25,bestMin:14,ensembleMax:25,ensembleMin:14,precipitation:3,probability:60,gust:20,confidence:80,spread:3};
 const previous={version:1,createdAt:'2026-07-26T12:10:00Z',runKey:'old',runTime:'2026-07-26T12:00:00Z',modelRuns:[{id:'icon-eu',label:'DWD ICON-EU ENS',kind:'ensemble',initialisationTime:'2026-07-26T06:00:00Z',availabilityTime:'2026-07-26T10:00:00Z'},{id:'ecmwf',label:'ECMWF IFS ENS',kind:'ensemble',initialisationTime:'2026-07-26T12:00:00Z',availabilityTime:'2026-07-26T13:00:00Z'}],signature:'a',days:[day]};

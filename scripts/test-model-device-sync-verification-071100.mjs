@@ -2,7 +2,7 @@ import {readFile} from 'node:fs/promises';
 const [app,modelChanges,ensemble,weather,deviceSync,deviceSettings,main,verification,verificationPanel,worker,routePanel,routeLogic]=await Promise.all([
   readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
   readFile(new URL('../src/modelRunChanges.ts',import.meta.url),'utf8'),
-  readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),
+  Promise.all([readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8'),readFile(new URL('../src/PrognoseRadar.tsx',import.meta.url),'utf8')]).then(parts=>parts.join('\n')),
   readFile(new URL('../src/weather.ts',import.meta.url),'utf8'),
   readFile(new URL('../src/deviceSync.ts',import.meta.url),'utf8'),
   readFile(new URL('../src/DeviceSyncSettings.tsx',import.meta.url),'utf8'),
