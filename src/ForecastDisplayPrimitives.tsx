@@ -1,3 +1,4 @@
+import {formatVisibility} from './weatherValueFormat';
 // Extracted from App: canonical forecastPresentation implementation, shared by every consumer.
 import {type ReactNode} from 'react';
 import {formatDecimal} from './format';
@@ -14,7 +15,7 @@ function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const d
 function formatRawInZone(value:Date|number,timeZone:string|undefined,options:Intl.DateTimeFormatOptions){const date=typeof value==='number'?new Date(value):value;try{return new Intl.DateTimeFormat('de-DE',{...options,timeZone:timeZone||undefined}).format(date)}catch{return new Intl.DateTimeFormat('de-DE',options).format(date)}}
 function formatInZone(value:Date|number,timeZone:string|undefined,options:Intl.DateTimeFormatOptions){return formatRawInZone(value,displayTimeZone(timeZone),options)}
 function localDateInZone(timeZone?:string,at:Date|number=new Date()){const date=at instanceof Date?at:new Date(at);try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timeZone||undefined,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date),get=(type:string)=>parts.find(x=>x.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return date.toISOString().slice(0,10)}}
-function visibilityLabel(meters:number){if(!Number.isFinite(meters)||meters<0)return'–';const km=meters/1000;return km>=10?`${Math.round(km)} km`:`${new Intl.NumberFormat('de-DE',{minimumFractionDigits:km<1?2:1,maximumFractionDigits:km<1?2:1}).format(km)} km`}
+function visibilityLabel(value:number){return formatVisibility(value)}
 
 function hazardValidityLabel(validFrom:string|undefined,validTo:string|undefined,timezone?:string){
  const start=Date.parse(String(validFrom??'')),end=Date.parse(String(validTo??''));if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return'';

@@ -12,7 +12,7 @@ const failures=[];
 for(const token of ["new Intl.NumberFormat('de-DE'",'formatDecimalFixed','useGrouping:false'])if(!format.includes(token))failures.push(`Zentrale deutsche Zahlenformatierung fehlt: ${token}`);
 for(const [name,source,tokens] of [
  ['Dashboard',app,['precipitationAmountLabel({precipitation:reconciledCurrentPrecipSourceRate','formatUvi(actualCurrentUv)','formatDecimal(airClassification.dominant.value,1,1)','formatDecimal(loc.latitude,2,2)']],
- ['Ensemble',ensemble,['formatDecimalFixed(best,1)','formatDecimalFixed(row.minLow,1)','formatDecimal(Number(value),1)']],
+ ['Ensemble',ensemble,["formatWeatherValue(best,'precipitation')",'formatDecimalFixed(row.minLow,1)','formatDecimal(Number(value),1)']],
  ['Meteogramm',meteogram,['precipitationAmountLabel({precipitation:amount,snowfall:snow})',"`Schneehöhe: ${depth===null?'–':Math.round(depth)} cm`",'formatDecimal(item.values[index]!']],
  ['Niederschlagszusammenfassung',precipitation,['compactPrecipitationAmount(precipitation)','formatDecimalFixed(snowfall,1)']],
  ['Komposit/Radar',radar,['formatDecimal(lightningData.nativeResolutionKm,1)']]

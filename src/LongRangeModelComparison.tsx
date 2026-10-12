@@ -17,7 +17,7 @@ const MODEL_DASH_CYCLES=['','7 3','3 3','10 3 2 3'];
 
 function finite(value:number|null|undefined):value is number{return Number.isFinite(value)}
 function metricValue(month:SeasonalMonth|undefined,metric:Metric,relative=true){if(!month)return null;return metric==='temperature'?month.temperatureAnomaly:relative?month.precipitationAnomalyPercent:month.precipitationAnomaly}
-function formatValue(value:number|undefined|null,metric:Metric,relative=true){if(!finite(value))return'–';return metric==='temperature'?`${value>=0?'+':''}${formatDecimalFixed(value,1)} K`:relative?`${value>=0?'+':''}${Math.round(value)} %`:`${value>=0?'+':''}${formatDecimalFixed(value,2)} mm/Tag`}
+function formatValue(value:number|undefined|null,metric:Metric,relative=true){if(!finite(value))return'–';return metric==='temperature'?`${value>=0?'+':''}${formatDecimalFixed(value,1)} K`:relative?`${value>=0?'+':''}${Math.round(value)} %`:`${value>=0?'+':''}${formatDecimalFixed(value,1)} mm/Tag`}
 function niceAbsMax(values:number[],metric:Metric){const minimum=metric==='temperature'?1:.5,max=Math.max(minimum,...values.map(value=>Math.abs(value)));if(max<=1)return Math.ceil(max*2)/2;if(max<=3)return Math.ceil(max);if(max<=10)return Math.ceil(max/2)*2;return Math.ceil(max/10)*10}
 function linePath(values:(number|null)[],x:(index:number)=>number,y:(value:number)=>number){let path='';let active=false;values.forEach((value,index)=>{if(!finite(value)){active=false;return;}path+=`${active?' L':'M'} ${x(index)} ${y(value)}`;active=true;});return path}
 

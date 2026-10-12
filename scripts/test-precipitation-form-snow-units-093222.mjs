@@ -65,10 +65,10 @@ const compile=spawnSync('tsc',['--ignoreConfig','src/precipitation.ts','--target
 if(compile.status!==0)process.exit(compile.status??1);
 const mod=await import(`${pathToFileURL(path.join(outDir,'precipitation.js')).href}?v=${Date.now()}`);
 const sample=(overrides={})=>({precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:0,...overrides});
-if(mod.precipitationAmountLabel({precipitation:2,snowfall:3.4})!=='2,0 mm · ❄ 3,4 cm')failures.push(`Schneemenge nicht zusätzlich in cm: ${mod.precipitationAmountLabel({precipitation:2,snowfall:3.4})}`);
-if(mod.precipitationAmountLabel({precipitation:2,snowfall:0})!=='2,0 mm')failures.push('Reiner Flüssigniederschlag darf keine cm-Angabe erhalten.');
+if(mod.precipitationAmountLabel({precipitation:2,snowfall:3.4})!=='2 mm · ❄ 3,4 cm')failures.push(`Schneemenge nicht zusätzlich in cm: ${mod.precipitationAmountLabel({precipitation:2,snowfall:3.4})}`);
+if(mod.precipitationAmountLabel({precipitation:2,snowfall:0})!=='2 mm')failures.push('Reiner Flüssigniederschlag darf keine cm-Angabe erhalten.');
 const snow=mod.precipitationParts(sample({code:75,precipitation:2,snowfall:3.4,probability:90,temperature:-2}));
-if(snow.type!=='snow'||!snow.label.includes('2,0 mm · ❄ 3,4 cm'))failures.push(`Schneefall nicht phasen-/mengentreu: ${snow.type}/${snow.label}`);
+if(snow.type!=='snow'||!snow.label.includes('2 mm · ❄ 3,4 cm'))failures.push(`Schneefall nicht phasen-/mengentreu: ${snow.type}/${snow.label}`);
 const sleet=mod.precipitationParts(sample({code:68,precipitation:1.2,rain:.6,snowfall:.8,probability:80,temperature:1}));
 if(sleet.type!=='sleet'||!sleet.label.includes('0,8 cm'))failures.push(`Schneeregen nicht phasen-/mengentreu: ${sleet.type}/${sleet.label}`);
 const dominantSnow=mod.dominantPrecipitationForm([

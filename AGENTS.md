@@ -45,3 +45,5 @@ These rules are binding for repository changes.
 - Prefer the newest validated implementation already in the repository over recreating older code from conversation history.
 
 - Changes to shared UI elements must reach every consumer, including widgets and URL/PNG exports: reuse the common renderer and pass the same canonical data/settings. Verify all consumers rather than maintaining parallel implementations.
+
+- Visible meteorological values must follow `MID_PARAMETER_DISPLAY_PRECISION_CONTRACT.md` and the shared `weatherValueFormat.ts` renderer. Do not infer precision from floating point data or round canonical values. Extend the parameter matrix before adding a new display; SYNOP coding and MID presentation are explicitly distinguished.

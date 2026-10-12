@@ -330,12 +330,18 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "mountainSnowLinePrecipPeriods",
-      "sha256": "4c52b856580c714a94c517e265303d26bdb496498246782f81acc9aab33885e9"
+      "sha256": "142e9362f6516d69ab853b47a63a7a13f46a2d8ec1e106c882acb01d38cbb5eb",
+      "previousSha256": "4c52b856580c714a94c517e265303d26bdb496498246782f81acc9aab33885e9",
+      "displayContractRevision": "0.9.85.243",
+      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
     },
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainSnowLineTrend",
-      "sha256": "5a3a30737c363f5a5b3d5ce6ec1a6c985136acaff3d9ca13ae8d7762c6ea61ed"
+      "sha256": "4df1f703a4aedd6c95997d726f869ab75104721c3b88b42b3e1ab5a58abf0c90",
+      "previousSha256": "5a3a30737c363f5a5b3d5ce6ec1a6c985136acaff3d9ca13ae8d7762c6ea61ed",
+      "displayContractRevision": "0.9.85.243",
+      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -355,7 +361,10 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainSki",
-      "sha256": "bb3fb71545ef3a16951f3fa9f968542b43e04a4e5d3d98527dff4e5711a18bea"
+      "sha256": "bdd6ab72571e2724a1e37570a97c6dae46c08bc36f83a89716716943bd30019a",
+      "previousSha256": "bb3fb71545ef3a16951f3fa9f968542b43e04a4e5d3d98527dff4e5711a18bea",
+      "displayContractRevision": "0.9.85.243",
+      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -440,7 +449,10 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainForecastDayRow",
-      "sha256": "8f2670c8003454bbe3fc06fb2699b5e57b8001c6b4a10454eb05864a9692277e"
+      "sha256": "0c5a5fbd765a879cdd5aa10e2f26ab9e0851d71ca0836e5c8e30e8779bad8032",
+      "previousSha256": "8f2670c8003454bbe3fc06fb2699b5e57b8001c6b4a10454eb05864a9692277e",
+      "displayContractRevision": "0.9.85.243",
+      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
     },
     {
       "file": "src/WidgetGenerator.tsx",
@@ -512,7 +524,10 @@
     {
       "file": "src/ForecastDisplayPrimitives.tsx",
       "name": "visibilityLabel",
-      "sha256": "34c9c7295e9b463fcb10c4ec1578f307e4960246bc4135b337d63628592683d4"
+      "sha256": "aff58df3e2fdec59367a273c036930acdab9bf1d84c7a0d9ef9eeabad105ea03",
+      "previousSha256": "34c9c7295e9b463fcb10c4ec1578f307e4960246bc4135b337d63628592683d4",
+      "displayContractRevision": "0.9.85.243",
+      "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
     },
     {
       "file": "src/ForecastDisplayPrimitives.tsx",
