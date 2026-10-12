@@ -34,3 +34,10 @@ export function formatVisibility(meters:unknown):string{
  if(km<=70)return `${Math.floor(km/5)*5} km`;
  return '>70 km';
 }
+
+/** Ocean currents are not synoptic wind: keep a meaningful tenth after unit conversion. */
+export function formatCurrentSpeed(knots:number,unit:'kn'|'kmh'|'ms'|'mph'){
+ const value=unit==='kmh'?knots*1.852:unit==='ms'?knots*.514444:unit==='mph'?knots*1.15078:knots;
+ const label=formatWeatherValue(value,'currentSpeed');
+ return label==='–'?label:`${label} ${unit==='kn'?'kt':unit==='kmh'?'km/h':unit==='ms'?'m/s':'mph'}`;
+}

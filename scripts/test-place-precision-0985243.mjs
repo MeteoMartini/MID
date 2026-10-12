@@ -7,11 +7,12 @@ import {pathToFileURL} from 'node:url';
 const dir=mkdtempSync(join(tmpdir(),'mid243-'));
 try{
  await build({entryPoints:['src/weatherValueFormat.ts','src/locationComparison.ts','src/precipitation.ts','src/weather.ts'],outdir:dir,bundle:true,platform:'node',format:'esm',logLevel:'silent'});
- const {formatWeatherValue:f,formatVisibility:v,formatTemperatureRange:r}=await import(pathToFileURL(join(dir,'weatherValueFormat.js')));
+ const {formatWeatherValue:f,formatVisibility:v,formatTemperatureRange:r,formatCurrentSpeed:current}=await import(pathToFileURL(join(dir,'weatherValueFormat.js')));
  for(const x of [null,undefined,NaN,Infinity,'2',false])assert.equal(f(x,'temperature'),'–');
  for(const [x,p,want] of [[0,'precipitation','0'],[.001,'precipitation','<0,1'],[.099,'precipitation','<0,1'],[.26,'precipitation','0,3'],[1.26,'precipitation','1'],[18.67,'precipitation','19'],[.04,'precipitationRate','<0,1'],[3.26,'precipitationRate','3,3'],[12.67,'precipitationRate','13'],[-.01,'temperature','0'],[-1.26,'temperature','-1,3'],[1013.24,'pressure','1013,2'],[76.8,'percent','77'],[358,'windDirection','0'],[-12,'windDirection','350']])assert.equal(f(x,p),want,`${x}/${p}`);
  assert.equal(r(12.1,12.4,'overview'),'12');assert.equal(r(null,12,'overview'),'–');assert.equal(r(-2.2,12.6,'overview'),'-2–13');
  for(const [x,want] of [[0,'<100 m'],[99,'<100 m'],[199,'100 m'],[999,'900 m'],[4999,'4,9 km'],[5000,'5 km'],[5999,'5 km'],[30999,'30 km'],[35999,'35 km'],[70001,'>70 km'],[null,'–']])assert.equal(v(x),want);
+ assert.equal(current(.4,'ms'),'0,2 m/s');assert.equal(current(.001,'kn'),'<0,1 kt');assert.equal(current(NaN,'ms'),'–');assert.equal(f(-.01,'waterLevel'),'0');
  const {compactPrecipitationAmount}=await import(pathToFileURL(join(dir,'precipitation.js')));assert.equal(compactPrecipitationAmount(.003,3),'<0,1');assert.equal(compactPrecipitationAmount(1.26),'1');
  const {wind}=await import(pathToFileURL(join(dir,'weather.js')));assert.equal(wind(12.3,'ms'),'6 m/s');assert.equal(wind(12.3,'kmh'),'23 km/h');assert.equal(wind(NaN,'ms'),'–');
  const {sortPlaceOverview:sort}=await import(pathToFileURL(join(dir,'locationComparison.js')));

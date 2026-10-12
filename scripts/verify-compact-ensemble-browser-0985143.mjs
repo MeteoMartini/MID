@@ -41,7 +41,7 @@ try{
    const minStart=parseFloat(await caseRoot.locator('.parameter-minimum .forecast-range-track').evaluate(e=>e.style.getPropertyValue('--range-start'))),maxStart=parseFloat(await caseRoot.locator('.parameter-temperature .forecast-range-track').evaluate(e=>e.style.getPropertyValue('--range-start'))),expectedMinStart=((sample==='dry'?-28:18)+28)/72*100,expectedMaxStart=((sample==='dry'?8:27)+28)/72*100;
    assert.ok(Math.abs(minStart-expectedMinStart)<.0001,`${tag} Tmin uses shared full-days scale`);
    assert.ok(Math.abs(maxStart-expectedMaxStart)<.0001,`${tag} Tmax uses shared full-days scale`);
-   assert.equal(await caseRoot.locator('.parameter-rain .forecast-range-bounds').textContent(),sample==='dry'?'<0,1 mm':'29,4–82,7 mm',`${tag} precipitation values and unit`);
+   assert.equal(await caseRoot.locator('.parameter-rain .forecast-range-bounds').textContent(),sample==='dry'?'<0,1 mm':'29–83 mm',`${tag} precipitation values and unit`);
    assert.equal(await caseRoot.locator('.parameter-gust .forecast-range-bounds').textContent(),sample==='dry'?expectedSmallGust[unit]:expectedLargeGust[unit],`${tag} gust values and wind unit`);
    assert.match(await caseRoot.locator('.parameter-temperature').getAttribute('aria-label'),/P25–P75 .* Median/,`${tag} retained quantiles and median`);
    for(const bounds of await caseRoot.locator('.forecast-range-bounds').all()){
