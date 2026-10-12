@@ -51,12 +51,29 @@ try{
  await Promise.all([guard.guardedOpenMeteoJson(headersUrl,{headers:{'X-MID-QA':'one'}}),guard.guardedOpenMeteoJson(headersUrl,{headers:{'X-MID-QA':'two'}})]);
  assert.equal(hits,2,'Requests with different headers must not be coalesced');
 
- hits=0;
- globalThis.fetch=async()=>{hits++;return new Response('{"reason":"limit"}',{status:429,headers:{'Retry-After':'180','Content-Type':'application/json'}})};
- await assert.rejects(guard.guardedOpenMeteoJson('https://api.open-meteo.com/v1/forecast?mid=429',{}, {priority:'background',maxRetries:0}),e=>guard.isOpenMeteoRateLimitError(e));
+ const queuedCalls=[];
+ globalThis.fetch=(url,init)=>new Promise((resolve,reject)=>{
+  const call={url:String(url),resolve,signal:init.signal};queuedCalls.push(call);
+  init.signal?.addEventListener('abort',()=>reject(init.signal.reason??new DOMException('Abgebrochen','AbortError')),{once:true});
+ });
+ const p1=new AbortController(),p2=new AbortController(),p3=new AbortController();
+ const base='https://api.open-meteo.com/v1/forecast?mid=queue';
+ const pending1=guard.guardedOpenMeteoJson(base+'1',{signal:p1.signal},{priority:'normal',maxRetries:0});
+ const pending2=guard.guardedOpenMeteoJson(base+'2',{signal:p2.signal},{priority:'normal',maxRetries:0});
+ const pending3=guard.guardedOpenMeteoJson(base+'3',{signal:p3.signal},{priority:'normal',maxRetries:0});
+ await until(()=>queuedCalls.length===2,'Expected two simultaneous transport slots');
+ await pause(300); // The queued third request may now start as soon as a slot is released.
+ queuedCalls[0].resolve(new Response('{"reason":"limit"}',{status:429,headers:{'Retry-After':'180','Content-Type':'application/json'}}));
+ await assert.rejects(pending1,e=>guard.isOpenMeteoRateLimitError(e));
  const remaining=guard.openMeteoCooldownRetryAt()-Date.now();
  assert.ok(remaining>175000&&remaining<=180000,'Server Retry-After must not be truncated to 90 seconds');
- await assert.rejects(guard.guardedOpenMeteoJson('https://api.open-meteo.com/v1/forecast?mid=429-later',{}, {priority:'foreground',maxRetries:0}),e=>guard.isOpenMeteoRateLimitError(e));
- assert.equal(hits,1,'Long server cooldown must prevent eager foreground retries');
- console.log('Open-Meteo: independent aborts, last-subscriber cancellation, in-flight reuse, request-key isolation and Retry-After verified.');
+ await pause(60);
+ assert.equal(queuedCalls.length,2,'429 cooldown must be set before a freed slot can launch a queued request');
+ p3.abort();
+ await assert.rejects(pending3,e=>e?.name==='AbortError');
+ queuedCalls[1].resolve(response());
+ assert.deepEqual(await pending2,{ok:true});
+ await assert.rejects(guard.guardedOpenMeteoJson(base+'4',{}, {priority:'foreground',maxRetries:0}),e=>guard.isOpenMeteoRateLimitError(e));
+ assert.equal(queuedCalls.length,2,'Long cooldown must prevent eager foreground retries');
+ console.log('Open-Meteo: independent aborts, last-subscriber cancellation, in-flight reuse, request-key isolation queued 429 race and Retry-After verified.');
 }finally{globalThis.fetch=originalFetch}
