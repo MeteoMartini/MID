@@ -1,1 +1,0 @@
-import{yi as e}from"./index-Dfdh4ycd.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
