@@ -150,3 +150,11 @@ Required Regression: `scripts/test-ui-interaction-standardization-095342.mjs`.
 - Designstandardisierung darf keine zusätzlichen Wetterrequests, Hintergrundjobs oder Cacheverkürzungen erzeugen.
 
 Required Regression: `scripts/test-ui-design-system-095343.mjs`.
+
+## MID-C29 / .244: Erklärung und Status
+
+Statische Methoden-/Bedienerklärungen dürfen hinter einem beschrifteten AppInfoHint liegen. Redundante Erklärungen werden konsolidiert; neue Trigger haben 44×44px. Warnungen, fehlende/veraltete Daten, Abruffehler und aktueller Lauf/Termin bleiben sichtbar. Kartenfarblegende und verpflichtende Quellenangaben bleiben erhalten.
+
+Die 12-h-Temperaturspanne verwendet alle endlichen Werte derselben kanonischen dargestellten Stundenreihe (inklusive Endpunkt), ganzzahlig gemäß Präzisionsvertrag. Fehlende Stunden werden nicht als Null behandelt und erzeugen den Zusatz „unvollständig“; keine Daten ergibt „–“. Zeitfenster und Kurvenlücken werden nicht verändert.
+
+Prognose-Eingänge werden unabhängig von einem geöffneten Radar gespeichert: Best-Match-Tageswerte, Niederschlagsbeginn mit Epoch und Quellenkontext. Bis sechs unterschiedliche Stände je Ort, höchstens 40 Orte. Favoritenabrufe nur bei sichtbarer, verbundener App, maximal zwei parallel, alle 30 Minuten und beim Wiedereinstieg. Unveränderte Eingänge zählen nicht als neuer Stand. Keine Sammlung bei geschlossener App. Fehlende Ensemble-Werte bleiben fehlend. Unvereinbare Datenkontexte dürfen nicht als Wetteränderung verglichen werden. Archivstatus zeigt Anzahl, letzten Stand, letzte Prüfung und Fehler, statt ein leeres Ergebnis als fehlende Änderung zu behaupten.

@@ -17,7 +17,7 @@ const failures=[];
 const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} darf nicht mehr aktiv sein: ${token}`)};
 
-for(const token of ['models:string[]','modelsForMetric(','current.days.slice(0,3)','snapshotDays=data.filter(row=>best.has(row.date)).slice(0,3)'])need('3-Tage-Modelländerungsradar',modelChanges,token);
+for(const token of ['models:string[]','modelsForMetric(','current.days.slice(0,3)','snapshotDays=days.slice(0,3)'])need('3-Tage-Modelländerungsradar',modelChanges,token);
 need('Modellangabe je Änderung',ensemble,"Modell: {item.models.join(' · ')}");
 need('3-Tage-Einstellung',app,'Änderungsradar für die nächsten drei Tage anzeigen');
 for(const token of [

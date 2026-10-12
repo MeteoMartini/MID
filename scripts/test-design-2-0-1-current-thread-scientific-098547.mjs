@@ -12,8 +12,8 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test
 assert.ok(app.includes("currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)"),'12-h-Reihe muss auf der aktuellen vollen lokalen Stunde verankert sein.');
 assert.ok(app.includes("fullHourMinuteInZone(Number(hour.epoch),timezone)===0"),'Minutengenaue Zwischenpunkte dürfen nicht in die +12-h-Differenz eingehen.');
 assert.ok(app.includes("currentThreadTargetEpoch=currentThreadStartEpoch+12*3600000"),'Ziel muss exakt +12 volle Stunden sein.');
-assert.ok(app.includes("currentThreadTargetHour=currentThreadSeries.find(hour=>Number(hour.epoch)===currentThreadTargetEpoch)"),'Ziel muss aus derselben hyperlokal korrigierten Reihe stammen.');
-assert.ok(app.includes("currentThreadTrendLabel=currentTemperatureDeltaLabel(Number(currentThreadSeries[0]?.temperature),Number(currentThreadTargetHour?.temperature))"),'Sichtbar muss ausschließlich T(+12 h) minus T(0 h) sein.');
+assert.ok(app.includes("currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))"),'Ziel muss aus derselben hyperlokal korrigierten Reihe stammen.');
+assert.ok(app.includes("currentThreadTrendLabel=currentTemperatureRangeLabel(currentThreadTemperatures)"),'MID244: Spanne aus allen tatsächlich angezeigten Stundenwerten.');
 assert.ok(!app.includes("function currentTemperatureTrendSummary(values:number[])")&&!app.includes("danach ↗")&&!app.includes("danach ↘"),'Mehrphasige Trendtexte müssen entfernt sein.');
 assert.ok(app.includes("minimumSpan={4}"),'Die Sparkline muss mindestens 4 K Darstellungsbereich verwenden, damit kleine Änderungen nicht übertrieben werden.');
 assert.ok(app.includes("Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>"),'Taupunkt muss primär, relative Feuchte sekundär bleiben.');

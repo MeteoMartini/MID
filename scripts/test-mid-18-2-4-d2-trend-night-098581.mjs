@@ -18,10 +18,10 @@ assert.ok(/^0\.9\.85\.(?:8[2-9]|9\d|\d{3,})$/.test(pkg.version),'D.2-Korrektur m
 assert.ok(app.includes('currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)'),'12-h-Trend muss an der aktuellen vollen lokalen Stunde beginnen.');
 assert.ok(app.includes('fullHourMinuteInZone(Number(hour.epoch),timezone)===0'),'Nur volle lokale Stunden dürfen in den Trend eingehen.');
 assert.ok(app.includes('currentThreadTargetEpoch=currentThreadStartEpoch+12*3600000'),'Ziel muss exakt zwölf volle Stunden nach dem Start liegen.');
-assert.ok(app.includes('currentThreadTargetHour=currentThreadSeries.find(hour=>Number(hour.epoch)===currentThreadTargetEpoch)'),'Zielwert muss aus derselben hyperlokal korrigierten Stundenreihe stammen.');
-assert.ok(app.includes('currentThreadTrendLabel=currentTemperatureDeltaLabel(Number(currentThreadSeries[0]?.temperature),Number(currentThreadTargetHour?.temperature))'),'Sichtbar sein darf nur T(+12 h) minus T(0 h) aus derselben Stundenreihe.');
+assert.ok(app.includes('currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))'),'Zielwert muss aus derselben hyperlokal korrigierten Stundenreihe stammen.');
+assert.ok(app.includes('currentThreadTrendLabel=currentTemperatureRangeLabel(currentThreadTemperatures)'),'MID244: Minimum und Maximum derselben sichtbaren Stundenreihe.');
 assert.ok(!app.includes('function currentTemperatureTrendSummary(values:number[])')&&!app.includes('danach ↗')&&!app.includes('danach ↘')&&!app.includes('↕ wechselhaft'),'Mehrphasige Trendzusammenfassung muss entfernt bleiben.');
-assert.ok(app.includes('<span className="current-weather-thread-title"><small>Temperaturdifferenz · +12 h</small></span>'),'Kopfzeile muss ausschließlich die +12-h-Differenz benennen.');
+assert.ok(app.includes('<span className="current-weather-thread-title"><small>Temperaturspanne · 12 h</small></span>'),'MID244: Kopfzeile benennt die 12-h-Spanne.');
 assert.ok(app.includes('<b className="current-weather-thread-delta">{currentThreadTrendLabel}</b>'),'Delta muss als eigener responsiver Wertblock erhalten bleiben.');
 assert.ok(!app.includes('currentThreadMin')&&!app.includes('currentThreadMax'),'Im +12-h-Kopf darf keine separate Temperaturspanne zurückkehren.');
 

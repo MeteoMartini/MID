@@ -3,7 +3,7 @@ import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
-import {mapBrowserWidths,MAP_BROWSER_WIDTHS} from './map-browser-shards.mjs';
+import {mapBrowserWidths,mapBrowserCases,MAP_BROWSER_WIDTHS} from './map-browser-shards.mjs';
 const root=process.cwd(),source=await readFile('ci/github/workflows/install-mid.yml','utf8');
 for(const file of ['.github/workflows/install-mid.yml','workflow-patches/install-mid.yml'])assert.equal(await readFile(file,'utf8'),source);
 for(const token of ['prepare_release:','verify_core:','verify_heavy:','needs: [prepare_release, verify_core, verify_heavy]','fail-fast: false','MID_REGRESSION_SHARD: core','npm run verify','snapshot_sha','MID_SNAPSHOT_SHA','${{ github.sha }}','${{ github.run_id }}-${{ github.run_attempt }}','persist-credentials: false'])assert.ok(source.includes(token),'Installer gate missing: '+token);
@@ -12,7 +12,7 @@ for(const key of ['prepare_release','verify_core','verify_heavy']){const block=s
 const collector=source.split('  install_build:')[1].split('  deploy_worker:')[0];assert.ok(collector.includes('needs.verify_core.outputs.snapshot_sha'));assert.ok(!collector.includes('continue-on-error'));
 assert.equal((source.match(/artifact-ids: \$\{\{ needs\.(?:prepare_release|verify_core)\.outputs\.snapshot_id \}\}/g)||[]).length,3,'Retries must download the immutable producer artifact, not the new attempt name');
 assert.equal((source.match(/digest-mismatch: error/g)||[]).length,3);assert.equal((source.match(/Missing producer artifact ID/g)||[]).length,3);
-const widths=['1/3','2/3','3/3'].flatMap(mapBrowserWidths);assert.equal(new Set(widths).size,6);assert.deepEqual([...widths].sort((a,b)=>a-b),[...MAP_BROWSER_WIDTHS].sort((a,b)=>a-b));assert.equal(widths.length*2*2,24);assert.deepEqual(mapBrowserWidths(),[...MAP_BROWSER_WIDTHS]);for(const bad of ['0/3','4/3','1/2','abc','1/3 '])assert.throws(()=>mapBrowserWidths(bad));
+const allCases=mapBrowserCases(),assigned=['1/3','2/3','3/3'].flatMap(mapBrowserCases),caseKey=row=>`${row.width}/${row.theme}/${row.design}`;assert.equal(assigned.length,24);assert.equal(new Set(assigned.map(caseKey)).size,24,'No duplicated or dropped cases');assert.deepEqual(assigned.map(caseKey).sort(),allCases.map(caseKey).sort());assert.deepEqual(['1/3','2/3','3/3'].map(shard=>mapBrowserCases(shard).length),[10,8,6],'Desktop work rebalanced without reducing coverage');assert.deepEqual(mapBrowserWidths(),[...MAP_BROWSER_WIDTHS]);for(const bad of ['0/3','4/3','1/2','abc','1/3 ']){assert.throws(()=>mapBrowserWidths(bad));assert.throws(()=>mapBrowserCases(bad))}
 const temp=await mkdtemp(path.join(tmpdir(),'mid-snapshot-test-')),checkout=path.join(temp,'checkout'),snapshot=path.join(temp,'snapshot'),output=path.join(temp,'output'),tool=path.join(root,'tools/ci/release-snapshot.mjs'),event='a'.repeat(40);
 try{await mkdir(checkout);await mkdir(path.join(checkout,'.git'));await writeFile(path.join(checkout,'.git','keep'),'git');await writeFile(path.join(checkout,'source.txt'),'validated release');
  const run=(op,env={})=>execFileSync(process.execPath,[tool,op,snapshot],{cwd:checkout,env:{...process.env,GITHUB_SHA:event,GITHUB_OUTPUT:output,...env},encoding:'utf8'});
