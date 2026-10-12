@@ -27,3 +27,5 @@ Harness corrections: historical data-URL loaders now bundle the real shared time
 The new hourly rainfall strip and Tmax history use the established parameter color tokens. Preferences use the existing durable-storage path. The default model-change notification/display setting is not changed: the standalone radar is an explicit on-demand review.
 
 CI follow-up: Source desktop shard repeated the same 30-second synoptic transition timeout seen during .239, in varying theme/design cases while seven sibling cases passed. Desktop viewports >=1024 run their complete variants serially to remove artificial simultaneous software-GPU renderer contention. Lower widths keep existing parallel execution. All viewport/theme/design cases, assertions, per-operation/suite limits and separate memory probes are retained; no release workflow or budget changes.
+
+Explicit provider restrictions also override filled numeric probability arrays: fallback sources and precipitationProbabilityAvailable=false are treated as missing probability evidence, so they cannot produce a winning dry window. Dedicated tests cover both flags.
