@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.244",
+  "releaseVersion": "0.9.85.245",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -632,6 +632,7 @@
     "scripts/test-official-observation-ensemble-09470.mjs",
     "scripts/test-official-warning-chronological-order-096616.mjs",
     "scripts/test-open-meteo-lunar-daily-0985108.mjs",
+    "scripts/test-open-meteo-multicaller-0985245.mjs",
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
@@ -1602,6 +1603,7 @@
     "scripts/test-official-observation-ensemble-09470.mjs",
     "scripts/test-official-warning-chronological-order-096616.mjs",
     "scripts/test-open-meteo-lunar-daily-0985108.mjs",
+    "scripts/test-open-meteo-multicaller-0985245.mjs",
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
@@ -2802,7 +2804,8 @@
     "scripts/test-compact-profile-location-0985235.mjs",
     "src/SelectedPlaceBar.tsx",
     "src/midC27CompactProfile.css",
-    "scripts/verify-compact-profile-browser-0985235.mjs"
+    "scripts/verify-compact-profile-browser-0985235.mjs",
+    "scripts/test-open-meteo-multicaller-0985245.mjs"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -2903,7 +2906,8 @@
     "scripts/test-widgetkit-xcode-structure-09710.mjs",
     "scripts/test-worker-auto-deploy-09693.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-update-recovery-0985223.mjs"
+    "scripts/test-update-recovery-0985223.mjs",
+    "scripts/test-open-meteo-multicaller-0985245.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3282,7 +3286,8 @@
     "MID_RUC_USAGE_AUDIT_0.9.84.0.md",
     "MID_IMPLEMENTATION_0.9.84.81.md",
     "MID_IMPLEMENTATION_0.9.84.89.md",
-    "MID_IMPLEMENTATION_0.9.84.91.md"
+    "MID_IMPLEMENTATION_0.9.84.91.md",
+    "docs/implementation/MID_OPEN_METEO_GUARD_0.9.85.245.md"
   ],
   "evidenceFiles": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3354,7 +3359,8 @@
     "scripts/test-regression-parallel-execution-0985168.mjs",
     "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
     "scripts/test-regression-sharding-0985171.mjs",
-    "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md"
+    "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md",
+    "docs/implementation/MID_OPEN_METEO_GUARD_0.9.85.245.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3488,9 +3494,10 @@
     "scripts/test-weather-regime-color-consistency-097910.mjs",
     "scripts/test-weather-regime-shared-contract-097911.mjs",
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
-    "scripts/test-update-recovery-0985223.mjs"
+    "scripts/test-update-recovery-0985223.mjs",
+    "scripts/test-open-meteo-multicaller-0985245.mjs"
   ],
-  "version": "0.9.85.244",
+  "version": "0.9.85.245",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
