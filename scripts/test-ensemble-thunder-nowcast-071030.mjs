@@ -34,7 +34,7 @@ for(const token of [
  "const FIVE_MINUTES=5*60000",
  "Radar-Nowcast mit 5-Minuten-Balken",
  "5-Minuten-Menge",
- "formatDecimalFixed(selected.amount,2)",
+ "formatWeatherValue(selected.amount,'precipitation')",
  "<PortalPopover anchorRef={anchorRef}",
  "<small>{amountCoverage.complete?'2-h-Summe':'Teilsumme'}</small><strong>{radarAmountLabel(forecastAmount)} mm</strong>"
 ])if(!app.includes(token))failures.push(`Nowcast-Auflösung fehlt: ${token}`);

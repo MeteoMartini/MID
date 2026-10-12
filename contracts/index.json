@@ -1,7 +1,7 @@
 {
   "schema": "mid.contract-registry.v1",
   "registryVersion": 1,
-  "releaseVersion": "0.9.85.242",
+  "releaseVersion": "0.9.85.243",
   "normativeFormat": "markdown",
   "policy": "Markdown contracts remain normative; this registry is the machine-readable index and must cover every root MID_*CONTRACT*.md file.",
   "contracts": [
@@ -140,6 +140,12 @@
     {
       "id": "MID_PARAMETER_COLOR_CONTRACT",
       "path": "MID_PARAMETER_COLOR_CONTRACT.md",
+      "status": "active",
+      "format": "markdown"
+    },
+    {
+      "id": "MID_PARAMETER_DISPLAY_PRECISION_CONTRACT",
+      "path": "MID_PARAMETER_DISPLAY_PRECISION_CONTRACT.md",
       "status": "active",
       "format": "markdown"
     },

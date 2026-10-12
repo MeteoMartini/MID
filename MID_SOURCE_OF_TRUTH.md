@@ -1,3 +1,12 @@
+# MID v0.9.85.243 · Orte sortieren und verständliche Wetterwerte
+
+- Prognose-Radar unter Vorhersage eindeutig benannt. Die erweiterte Ensembleanalyse im Prognose-Cockpit zeigt dieselbe Auswertung nicht doppelt; eigenständige Ensembleansichten und Änderungsbenachrichtigungen bleiben erhalten.
+- Die Mehrort-Übersicht folgt standardmäßig deiner Favoritenreihenfolge in den Einstellungen. Sortiere alternativ nach Ortsname, Warnlage, Temperatur, Niederschlagsmenge, Böen oder Entfernung. Deine Wahl bleibt gespeichert.
+- Übersicht und „Wetterfenster vergleichen“ haben klar unterschiedliche Aufgaben: kompakte Wetterkarten gegenüber einer Rangliste mit hervorgehobenen passenden Stunden und konkreten Trockenphasen.
+- Ganzzahlige Temperaturen in der Ortsübersicht; gleiche gerundete Minima und Maxima werden nur einmal angezeigt.
+- Einheitliche parameterabhängige Anzeigepräzision: keine Hundertstel bei Niederschlagswerten, ganzzahlige Windwerte auch in m/s, Sichtweiten in fachlich passenden Stufen. Kleine positive Niederschläge bleiben als „<0,1 mm“ sichtbar.
+- Neuer verbindlicher Präzisionsvertrag unterscheidet SYNOP-Berichtsregeln von MID-Prognosedarstellung. Die unveränderten Originalwerte bleiben Grundlage für Berechnungen und Vergleiche.
+
 # MID v0.9.85.242 · Meine Orte und korrektes Desktop-Wetterprofil
 
 - Eigene Favoritenseite „Meine Orte“ über die Ortsleiste und Mehr: Mehrort-Übersicht, fairer Ortsvergleich und vorhandene Favoritenverwaltung. Die Seite lädt unabhängig von der Prognose des gerade ausgewählten Orts; Zeitraum, Profil und Umkreis bleiben gespeichert.

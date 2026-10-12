@@ -20,3 +20,18 @@ export function comparePlace(place:PlaceForecast,origin:Location,start:number,co
  return {place,distance:distanceKm(origin,place.location),hours,coverage:valid,complete,stale,dryHours:longest,dryStart:bestStart,suitable:profile==='mild'?slots.filter(h=>h&&finite(h.temperature)&&h.temperature>=15&&h.temperature<=25&&finite(h.precipitation)&&h.precipitation<.1&&finite(h.probability)&&h.probability<=30).length:suitable,rain,probability,gust,min,max,spread,warnings,priority,change};
 }
 export function rankPlaces(rows:ComparisonRow[],profile:CompareProfile){return [...rows].sort((a,b)=>Number(b.complete)-Number(a.complete)||(a.complete&&b.complete?(profile==='dry'?b.dryHours-a.dryHours:b.suitable-a.suitable)||(a.rain??Infinity)-(b.rain??Infinity):0)||a.distance-b.distance||a.place.label.localeCompare(b.place.label,'de'))}
+
+export const PLACE_SORT_OPTIONS=[['settings','Reihenfolge der Einstellungen'],['name','Ortsname A–Z'],['warnings','Warnlage zuerst'],['temperatureAsc','Temperatur: kühl zuerst'],['temperatureDesc','Temperatur: warm zuerst'],['rain','Niederschlagsmenge: wenig zuerst'],['gust','Böen: schwach zuerst'],['distance','Entfernung: nah zuerst']] as const;
+export type PlaceSort=typeof PLACE_SORT_OPTIONS[number][0];
+export function sortPlaceOverview(rows:ComparisonRow[],sort:PlaceSort):ComparisonRow[]{
+ if(sort==='settings')return [...rows];
+ const indexed=rows.map((row,index)=>({row,index}));
+ const metric=(r:ComparisonRow)=>sort==='temperatureAsc'||sort==='temperatureDesc'?r.max:sort==='rain'?r.rain:sort==='gust'?r.gust:r.distance;
+ return indexed.sort((a,b)=>{
+  const x=a.row,y=b.row;
+  if(sort==='name')return x.place.label.localeCompare(y.place.label,'de',{numeric:true,sensitivity:'base'})||a.index-b.index;
+  if(sort==='warnings')return y.priority-x.priority||a.index-b.index;
+  const xv=metric(x),yv=metric(y),validX=xv!==null&&Number.isFinite(xv)&&!x.stale&&!x.place.error&&!x.place.loading,validY=yv!==null&&Number.isFinite(yv)&&!y.stale&&!y.place.error&&!y.place.loading;
+  return Number(validY)-Number(validX)||(validX&&validY?(sort==='temperatureDesc'?-1:1)*(xv!-yv!):0)||a.index-b.index;
+ }).map(item=>item.row);
+}

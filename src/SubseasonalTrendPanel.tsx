@@ -1,3 +1,4 @@
+import {formatWeatherValue} from './weatherValueFormat';
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} from 'lucide-react';
 import {guardedOpenMeteoFetch} from './openMeteoGuard';
@@ -415,7 +416,7 @@ function convertWind(value:number,unit:WindUnit){
 function formatWindMetric(value:number,unit:WindUnit){
   const converted=convertWind(value,unit);
   if(!Number.isFinite(converted))return '–';
-  return `${formatDecimalFixed(converted,unit==='ms'?1:0)} ${windUnitLabel(unit)}`;
+  return `${formatDecimalFixed(converted,0)} ${windUnitLabel(unit)}`;
 }
 
 function formatMetric(value:number,metric:RawMetricKey,windUnit:WindUnit){
@@ -423,7 +424,7 @@ function formatMetric(value:number,metric:RawMetricKey,windUnit:WindUnit){
   if(metric==='wind')return formatWindMetric(value,windUnit);
   if(metric==='cloud')return `${formatDecimalFixed(value,0)} %`;
   if(metric==='pressure')return `${formatDecimalFixed(value,1)} hPa`;
-  if(metric==='precipitation')return `${formatDecimalFixed(value,1)} mm`;
+  if(metric==='precipitation')return `${formatWeatherValue(value,'precipitation')} mm`;
   return `${formatDecimalFixed(value,1)} °C`;
 }
 
@@ -496,7 +497,7 @@ function niceTicks(min:number,max:number,count:number){
 }
 
 function axisLabel(value:number,metric:RawMetricKey,windUnit:WindUnit){
-  if(metric==='wind')return formatDecimalFixed(convertWind(value,windUnit),windUnit==='ms'?1:0);
+  if(metric==='wind')return formatDecimalFixed(convertWind(value,windUnit),0);
   return formatDecimalFixed(value,0);
 }
 

@@ -1,10 +1,9 @@
 /** Display precision must never turn a positive amount into dry weather. */
-export function compactPrecipitationAmount(value:number,digits=1){
+export function compactPrecipitationAmount(value:number,_digits=1){
  if(!Number.isFinite(value)||value<0)return '–';
  if(value===0)return '0';
- const precision=Math.max(0,Math.min(3,Math.floor(digits))),threshold=10**-precision;
- if(value<threshold)return `<${formatDecimalFixed(threshold,precision)}`;
- return formatDecimalFixed(value,precision);
+ if(value<.1)return '<0,1';
+ return value<1?formatDecimalFixed(value,1):formatDecimalFixed(value,0);
 }
 function formatDecimalFixed(value:number,fractionDigits=1){return new Intl.NumberFormat('de-DE',{useGrouping:false,minimumFractionDigits:fractionDigits,maximumFractionDigits:fractionDigits}).format(value)}
 
@@ -505,7 +504,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  if(type==='none')return{total,type,label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code,displayCode:code,intensity:'none'};
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='snowStars'||type==='iceCrystals'||type==='icePellets'||type==='sleet'||type==='sleetShowers'||type==='wintryAfterThunder'
   ?precipitationAmountLabel({precipitation:total,snowfall:snowCm})
-  :`${formatDecimalFixed(total,1)} mm`;
+  :`${compactPrecipitationAmount(total)} mm`;
  const intervalSeconds=precipitationSampleIntervalSeconds(h),intensity=precipitationIntensityDescriptor(type,total,snowCm,intervalSeconds,effectiveCode);
  const intensityWord=intensity?.label??'leicht';
  const combinedCode=[57,59,67,69,81,84,86,88,90,92,94].includes(effectiveCode);

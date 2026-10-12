@@ -4,6 +4,7 @@ import {mergeHazardEpisodes} from './hazardEpisodes';
 import {buildEnsembleEvidence,type EnsembleEvidence,type EvidenceContribution,type EnsembleParameter} from './ensembleAssessment';import {writeBoundedStorage} from './cachePolicy';
 import {guardedOpenMeteoJson,isOpenMeteoRateLimitError,openMeteoCooldownRetryAt,registerOpenMeteoCooldown,OpenMeteoRateLimitError,type OpenMeteoPriority} from './openMeteoGuard';
 import {formatDecimal} from './format';
+import {formatWeatherValue} from './weatherValueFormat';
 import {formatDisplayDateTime} from './timeDisplay';
 import {DWD_WIND_THRESHOLDS_KMH,formatDwdWarningDetailWithDirection,formatDwdWarningDirection,formatDwdWarningValue,summarizeDwdWarnings,warningLeadLabel,warningCurrentStartIndex,type DwdWarningKind,type DwdWarningLevel,type DwdWarningSignal} from './dwdWarnings';
 import {loadOperaRaster} from './CompositeData';

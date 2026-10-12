@@ -19,7 +19,7 @@ assert.match(app,/className="humidity">(?:<i[^>]*>[\s\S]*?<\/i>)?<small>Taupunkt
 
 assert.match(app,/const metricMore=\(detail:ReactNode,sourceInfo\?:ReactNode\)=>/,'Detail-/Info-Helfer für Istwetter-Karten fehlt');
 assert.match(app,/label:'Taupunkt',[\s\S]*?detail:`Feuchte \$\{Math\.round\(hum\)\} %`[\s\S]*?info:metricMore/,'Taupunkt-Karte ist nicht auf eine kurze sichtbare Zusammenfassung reduziert');
-assert.match(app,/label:'Wind \/ Böen',[\s\S]*?detail:`\$\{Math\.round\(windDirection\)\}° · \$\{cardinalDirection\(windDirection\)\}`[\s\S]*?info:metricMore/,'Windkarte hält Quellen-/Langtext nicht hinter (i)');
+assert.match(app,/label:'Wind \/ Böen',[\s\S]*?detail:`\$\{formatWeatherValue\(windDirection,'windDirection'\)\}° · \$\{cardinalDirection\(windDirection\)\}`[\s\S]*?info:metricMore/,'Windkarte hält Quellen-/Langtext nicht hinter (i)');
 assert.match(app,/label:'Niederschlag',[\s\S]*?detail:precipitationCompactDetail\|\|undefined[\s\S]*?info:metricMore\(precipitationDetail/,'Niederschlagskarte ist nicht auf den kompakten Primärtext reduziert');
 assert.match(app,/label:'Sichtweite',[\s\S]*?checked:[\s\S]*?info:metricMore\(`Meteorologische Sichtweite/,'Sichtweitenbeschreibung wurde nicht hinter (i) verschoben');
 assert.match(app,/label:'UVI',[\s\S]*?detail:Number\.isFinite\(actualCurrentUv\)\?`UVI \$\{formatUvi\(actualCurrentUv\)\}`/,'UVI-Karte zeigt weiterhin unnötig langen Primärtext');
