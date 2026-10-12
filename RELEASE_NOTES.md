@@ -1,8 +1,6 @@
-# MID v0.9.85.243 · Orte sortieren und verständliche Wetterwerte
+# MID v0.9.85.244 · Temperaturspanne und verlässliche Radar-Basis
 
-- Prognose-Radar unter Vorhersage eindeutig benannt. Die erweiterte Ensembleanalyse im Prognose-Cockpit zeigt dieselbe Auswertung nicht doppelt; eigenständige Ensembleansichten und Änderungsbenachrichtigungen bleiben erhalten.
-- Die Mehrort-Übersicht folgt standardmäßig deiner Favoritenreihenfolge in den Einstellungen. Sortiere alternativ nach Ortsname, Warnlage, Temperatur, Niederschlagsmenge, Böen oder Entfernung. Deine Wahl bleibt gespeichert.
-- Übersicht und „Wetterfenster vergleichen“ haben klar unterschiedliche Aufgaben: kompakte Wetterkarten gegenüber einer Rangliste mit hervorgehobenen passenden Stunden und konkreten Trockenphasen.
-- Ganzzahlige Temperaturen in der Ortsübersicht; gleiche gerundete Minima und Maxima werden nur einmal angezeigt.
-- Einheitliche parameterabhängige Anzeigepräzision: keine Hundertstel bei Niederschlagswerten, ganzzahlige Windwerte auch in m/s, Sichtweiten in fachlich passenden Stufen. Kleine positive Niederschläge bleiben als „<0,1 mm“ sichtbar.
-- Neuer verbindlicher Präzisionsvertrag unterscheidet SYNOP-Berichtsregeln von MID-Prognosedarstellung. Die unveränderten Originalwerte bleiben Grundlage für Berechnungen und Vergleiche.
+- Aktuelles zeigt Minimum und Maximum aller angezeigten 12-h-Stundenwerte statt einer Differenz zwischen Anfang und Ende. Fehlende Werte werden ausgewiesen.
+- Prognose-Radar speichert Best-Match-Eingänge unabhängig vom Aufklappen. Favoriten werden bei sichtbarer, verbundener App alle 30 Minuten mit höchstens zwei parallelen Abrufen geprüft. Keine Hintergrund-Aufzeichnung bei geschlossener App.
+- Anzahl gespeicherter Stände, letzter Stand und letzte Prüfung machen unveränderte Eingänge, Datenlücken und Fehler sichtbar. Fehlende Ensemble-Werte werden nicht als Nullen verglichen.
+- Doppelte Kartenbeschreibungen konsolidiert hinter zugänglichem Info-Button; Legende, Quellen, Lauf, Termin und Fehlermeldungen bleiben erreichbar bzw. sichtbar. Auch Ortsvergleich, Radar-Methode und Prognosehinweis verwenden das gemeinsame Info-Popover.

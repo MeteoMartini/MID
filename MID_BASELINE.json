@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.243",
+  "releaseVersion": "0.9.85.244",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -376,6 +376,7 @@
     "scripts/test-flight-route-briefing-cloud-steering-09590.mjs",
     "scripts/test-flight-text-vertical-briefing-09620.mjs",
     "scripts/test-fog-snowline-consistency-0985174.mjs",
+    "scripts/test-forecast-archive-range-0985244.mjs",
     "scripts/test-forecast-cockpit-0920.mjs",
     "scripts/test-forecast-cockpit-build-hygiene-095342.mjs",
     "scripts/test-forecast-cockpit-daynight-wind-09134.mjs",
@@ -1345,6 +1346,7 @@
     "scripts/test-flight-route-briefing-cloud-steering-09590.mjs",
     "scripts/test-flight-text-vertical-briefing-09620.mjs",
     "scripts/test-fog-snowline-consistency-0985174.mjs",
+    "scripts/test-forecast-archive-range-0985244.mjs",
     "scripts/test-forecast-cockpit-0920.mjs",
     "scripts/test-forecast-cockpit-build-hygiene-095342.mjs",
     "scripts/test-forecast-cockpit-daynight-wind-09134.mjs",
@@ -3488,7 +3490,7 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs"
   ],
-  "version": "0.9.85.243",
+  "version": "0.9.85.244",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
