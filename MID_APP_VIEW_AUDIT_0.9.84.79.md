@@ -11,6 +11,7 @@ Prüfkriterien: kein unbeabsichtigter horizontaler Dokumentüberlauf; keine abge
 | Bereich | Abdeckung | Ergebnis / Vertrag |
 |---|---|---|
 | Aktuelles Wetter | `test-current-header-density`, `test-secondary-detail-popover-readability`, 0.9.84.79-Rest-Audit | lokale Hinweiszeilen und Detailtexte auf MID-Mikrotext angehoben; Status darf umbrechen |
+| Meine Orte | `verify-favorites-app-browser-0985242` | Favoritenseite 320–1920 px, ≥44-px-Bedienziele, gespeicherte Filter; echte Navigation und Ausfall der ausgewählten Ortsprognose zusätzlich geprüft |
 | Lüftungsassistent | appweiter View-Vertrag 0.9.84.70 + Einstellungs-Vertrag | keine neue Abweichung im Quelltext-Audit |
 | Berg- und Wintersport | Visualisierungs-Audits 0.9.84.70/71 | sichtbare Legenden/Metadaten geschützt; dichte Diagrammachsen separat |
 | Wassersport | Visualisierungs-Audit 0.9.84.71 + Water/Tide-Regressionsverträge | keine neue Abweichung |

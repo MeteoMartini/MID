@@ -53,7 +53,7 @@ const ACTIVITY_OPTIONS:{id:EventActivity;label:string;detail:string}[]=[
 function storageGet(key:string){try{return localStorage.getItem(key)||''}catch{return''}}
 function storageSet(key:string,value:string){try{localStorage.setItem(key,value)}catch{}}
 function storedLocation(){try{const parsed=JSON.parse(storageGet(EVENT_LOCATION_KEY)) as Location;return Number.isFinite(parsed?.latitude)&&Number.isFinite(parsed?.longitude)?parsed:null}catch{return null}}
-function localToday(){try{const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date().toISOString().slice(0,10)}}
+function localToday(timezone?:string){try{const parts=new Intl.DateTimeFormat('en-CA',{...(timezone?{timeZone:timezone}:{}),year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),get=(type:string)=>parts.find(part=>part.type===type)?.value;return`${get('year')}-${get('month')}-${get('day')}`}catch{return new Date().toISOString().slice(0,10)}}
 function addDays(value:string,days:number){const match=value.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!match)return value;const date=new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12));date.setUTCDate(date.getUTCDate()+days);return date.toISOString().slice(0,10)}
 function formatNumber(value:number|null|undefined,digits=0){if(value==null||!Number.isFinite(Number(value)))return'–';return new Intl.NumberFormat('de-DE',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Number(value))}
 function eventSunshineLabel(seconds:number|null|undefined){return sunshineHoursLabel(seconds)}
@@ -99,7 +99,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const [searchError,setSearchError]=useState('')
  const [searchResults,setSearchResults]=useState<Location[]>([])
  const [title,setTitle]=useState(stored.title||'')
- const [date,setDate]=useState(stored.date||localToday())
+ const [date,setDate]=useState(stored.date||localToday(destination.timezone))
  const [startTime,setStartTime]=useState(stored.startTime||'10:00')
  const [endTime,setEndTime]=useState(stored.endTime||'13:00')
  const [environment,setEnvironment]=useState<EventEnvironment>(ENVIRONMENT_OPTIONS.some(item=>item.id===stored.environment)?stored.environment as EventEnvironment:'outdoor')
@@ -122,7 +122,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  const searchController=useRef<AbortController|null>(null)
  const searchDebounce=useRef(0)
  const analysisController=useRef<AbortController|null>(null)
- const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(),13))}`
+ const forecastWindowHint=`Vorhersage aktuell bis ${formatDate(addDays(localToday(destination.timezone),13))}`
  const currentEventId=buildEventCenterId(destination,date,startTime,title.trim()||destination.name)
  const selectedRecord=savedEvents.find(item=>item.id===selectedRecordId)||null
  const editingRecord=savedEvents.find(item=>item.id===editingRecordId)||null
@@ -187,7 +187,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
  function validateInputs(location:Location|null,eventDate:string,eventStartTime:string,eventEndTime:string){
   if(!location){setError('Bitte zuerst einen Ort auswählen.');return false}
   if(!eventDate||!eventStartTime||!eventEndTime){setError('Bitte Datum sowie Start- und Endzeit angeben.');return false}
-  if(eventStartTime===eventEndTime){setError('Start und Ende müssen verschieden sein.');return false}if(eventDate>addDays(localToday(),13)){setError('Der Event-Planer wertet die nächsten 14 Tage aus. Für spätere Termine bitte näher am Termin erneut prüfen.');return false}
+  if(eventStartTime===eventEndTime){setError('Start und Ende müssen verschieden sein.');return false}if(eventDate>addDays(localToday(destination.timezone),13)){setError('Der Event-Planer wertet die nächsten 14 Tage aus. Für spätere Termine bitte näher am Termin erneut prüfen.');return false}
   return true
  }
  function savePlanRecord(nextPlan:EventPlan,forceFavorite?:boolean){
@@ -357,7 +357,7 @@ export default function EventPlannerPanel({initialLocation,advancedMode,unit,can
     <header className="event-editor-head"><div><span>{editingRecordId?'EVENT BEARBEITEN':'NEUES EVENT'}</span><strong>{editingRecordId?'Termin und Aktivität anpassen':'Wenige Angaben – danach direkt zum Wettercheck'}</strong></div>{editingRecordId&&<button type="button" className="secondary" onClick={()=>plan?setWorkspaceView('detail'):setWorkspaceView('overview')}>Abbrechen</button>}</header>
     <div className="event-form-grid compact">
      <label className="event-title-field"><span>Event / Anlass</span><input value={title} onChange={(event:ValueEvent)=>setTitle(event.target.value)} placeholder="z. B. Spiel, Ausflug, Flug"/></label>
-     <label><span>Datum</span><input type="date" min={localToday()} max={addDays(localToday(),13)} value={date} onChange={(event:ValueEvent)=>setDate(event.target.value)}/></label>
+     <label><span>Datum</span><input type="date" min={localToday(destination.timezone)} max={addDays(localToday(destination.timezone),13)} value={date} onChange={(event:ValueEvent)=>setDate(event.target.value)}/></label>
      <label><span>Beginn</span><input type="time" step="900" value={startTime} onChange={(event:ValueEvent)=>setStartTime(event.target.value)}/></label>
      <label><span>Ende</span><input type="time" step="900" value={endTime} onChange={(event:ValueEvent)=>setEndTime(event.target.value)}/></label>
     </div>

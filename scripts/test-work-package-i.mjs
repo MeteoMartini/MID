@@ -18,7 +18,7 @@ const checks=[
  ['Settings Einheiten Zeit',app.includes("['units','Einheiten & Zeit'")],
  ['Settings Daten Qualität',app.includes("['quality','Daten & Qualität'")],
  ['Keine Ampel-Konfidenzauswahl',!app.includes('<strong>Ampel</strong>')],
- ['Warnungen Kernmodul',mods.includes("CORE_DASHBOARD_MODULES:DashboardModuleId[]=['current','warnings','short-term','forecast','composite']")],
+ ['Warnungen Kernmodul',mods.includes("CORE_DASHBOARD_MODULES:DashboardModuleId[]=['current','favorites','warnings','short-term','forecast','composite']")],
  ['Kernmodule erzwungen',mods.includes('for(const id of CORE_DASHBOARD_MODULES)enabled[id]=true')],
  ['Kernmodule UI geschützt',panel.includes('disabled={core}')],
  ['Ein Scroll-Owner Mehr',css.includes('.dashboard-section-nav-list{flex:1 1 auto;min-height:0;overflow-y:auto')],

@@ -3,7 +3,7 @@ const app=fs.readFileSync('src/App.tsx','utf8'),css=fs.readFileSync('src/styles-
 const checks=[
  ['five primary labels', ['Aktuell','Heute','Vorhersage','Karten','Mehr'].every(value=>app.includes(value))],
  ['warning status is direct and keeps Aktuell as primary context', app.includes("{id:'current',label:'Aktuell',icon:<Sun size={21}/>,candidates:['current','warnings','extreme-outlook','ventilation']}")&&app.includes('place-warning-status')],
- ['restorable section contract', app.includes("RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','warnings','extreme-outlook','ventilation'")],
+ ['restorable section contract', app.includes("RESTORABLE_DASHBOARD_SECTIONS:DashboardModuleId[]=['current','favorites','warnings','extreme-outlook','ventilation'")],
  ['progressive expert navigation', app.includes('modernMoreGroups')&&app.includes("variant==='drawer'")],
  ['modern module focus rendering', app.includes("if(navigationMode==='bottom-tabs')")&&app.includes('if(!visible)return null;')],
  ['mandatory modern navigation mode', app.includes("const navigationMode:NavigationMode='bottom-tabs'")&&!app.includes("type DesignMode='classic'|'mid-next'")&&!app.includes('Bottom-Leiste · Beta')],

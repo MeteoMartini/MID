@@ -25926,6 +25926,8 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals
 @media(max-width:430px){.mid-update-actions{align-items:stretch}.mid-update-actions button{min-width:0}}
 .mid-update-auto{min-height:44px}
 
+.mid-update-notice{grid-template-columns:minmax(0,1fr);align-items:stretch;gap:10px}
+
 /* MID C27: compact persistent location context, shared by both design modes. */
 .selected-place-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:1900;display:flex;align-items:center;justify-content:center;gap:7px;min-height:32px;margin:4px 0 8px;padding:5px 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);box-shadow:0 3px 12px rgba(16,45,72,.06)}
 .selected-place-bar>svg{flex:none;color:var(--primary)}
@@ -25948,7 +25950,7 @@ html:root .forecast-cockpit .cockpit-meteogram-pro__head .cockpit-weather-profil
 /* A non-scrolling body overflow container otherwise traps desktop sticky positioning. */
 html:root:has(.selected-place-bar),html:root body:has(.selected-place-bar),html:root #root:has(.selected-place-bar){overflow-x:clip;overflow-y:visible}
 
-@media(min-width:960px){html:root .forecast-cockpit .cockpit-weather-profile{grid-template-areas:'profile-head profile-head' 'profile-signals profile-signals' 'profile-info profile-info' 'profile-chart profile-data' 'profile-legend profile-data'}}
+@media(min-width:960px){html:root .forecast-cockpit .cockpit-weather-profile{grid-template-columns:minmax(0,2fr) minmax(280px,1fr);grid-template-areas:'profile-head profile-head' 'profile-signals profile-signals' 'profile-info profile-info' 'profile-chart profile-data' 'profile-legend profile-data'}.cockpit-weather-profile>.cockpit-meteogram-pro__head{grid-area:profile-head}.cockpit-weather-profile>.cockpit-weather-profile__signals{grid-area:profile-signals}.cockpit-weather-profile>.cockpit-weather-profile__info-card{grid-area:profile-info}.cockpit-weather-profile>.cockpit-meteogram-pro__stage{grid-area:profile-chart}.cockpit-weather-profile>.cockpit-meteogram-pro__legend{grid-area:profile-legend}.cockpit-weather-profile>.cockpit-meteogram-pro__datafield{grid-area:profile-data;align-self:start}.cockpit-weather-profile dl{grid-template-columns:1fr!important}}
 
 /* The scrolling search dock must never blur the selected place beneath it. */
 html:root .app.has-selected-place-bar>.top{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
