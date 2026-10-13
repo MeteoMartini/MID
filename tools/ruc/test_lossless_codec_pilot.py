@@ -3,7 +3,7 @@ import gzip
 import hashlib
 import numpy as np
 
-from lossless_codec_pilot import CODECS, MAX_CHUNK_BYTES, encode_candidate, decode_candidate
+from lossless_codec_pilot import CODECS, MAX_CHUNK_BYTES, MAX_WIRE_BYTES, encode_candidate, decode_candidate
 
 
 def _reject(action):
@@ -31,6 +31,11 @@ def verify_candidate_codec():
             _reject(lambda: decode_candidate({**manifest, 'encodedBytes':True}, wire))
             _reject(lambda: decode_candidate({**manifest, 'schema':'old'}, wire))
             _reject(lambda: decode_candidate({**manifest, 'future':True}, wire))
+    # A full-sized valid chunk may be incompressible, expanding the gzip wire.
+    high_entropy=np.random.default_rng(249).integers(0,256,size=MAX_CHUNK_BYTES,dtype=np.uint8).tobytes()
+    header,compressed=encode_candidate(high_entropy,'gzip')
+    assert MAX_CHUNK_BYTES < len(compressed) < MAX_WIRE_BYTES
+    assert decode_candidate(header,compressed)==high_entropy
     _reject(lambda: encode_candidate(b'', 'gzip'))
     _reject(lambda: encode_candidate(b'\x00' * (MAX_CHUNK_BYTES + 1), 'gzip'))
     _reject(lambda: encode_candidate(b'\x01', 'byteplanes-gzip'))
