@@ -22,8 +22,8 @@ try{
  const svg=exp.cloudWeatherSvg(pair,'data:image/png;base64,AA',[{name:'A&B',latitude:47,longitude:6},{name:'Missing',latitude:48,longitude:6}]);assert.match(svg,/A&amp;B/);assert.match(svg,/0 % Wolken/);assert.match(svg,/Wetter nicht verfügbar/);assert.match(svg,/Schneeschauer/);assert.match(svg,/gleicher|Gleicher/);
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
  const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
- assert.match(d2CloudPipeline,/CLOUD_HOURS_D2=tuple\(range\(19\)\)\+\(21,24,30,36,42,48\)/,'D2 should attempt paired hourly CLCT/WW through +18h');
- assert.match(d2CloudPipeline,/if model=='icon-d2':return CLOUD_HOURS_D2/);
+ assert.match(d2CloudPipeline,/CLOUD_HOURS=tuple\(range\(13\)\)\+\(15,18,21,24,30,36,42,48\)/,'Storage headroom does not permit unbudgeted D2 hourly expansion');
+ assert.match(d2CloudPipeline,/end=48 if model=='icon-d2'/);
  const composite=readFileSync('src/RadarPanel.tsx','utf8'),reference=readFileSync('src/mapReferenceLayers.ts','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
  assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
@@ -32,7 +32,7 @@ try{
  assert.match(reference,/#e5f5ff|#203c55/,'Reference lines need legible dark/light contrast');
 
  assert.match(d2CloudPipeline,/if np.mean\(np.isfinite\(fields\['clct'\]\)&np.isfinite\(fields\['ww'\]\)\)<\.4/,'Never publish a partially paired grid below the quality threshold');
- console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, D2 hourly +18h candidate window, same-cycle GDPS capability intersection and shared exports passed.');
+ console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, D2 storage-limit guard, same-cycle GDPS capability intersection and shared exports passed.');
  assert.deepEqual(m.gdpsCloudWeatherCatalog(meta),{run,times:[time]});assert.equal(m.gdpsCloudWeatherPlan(meta,Date.parse(time)+12*3600000),null);assert.deepEqual(m.gdpsCloudWeatherCatalog(meta).times,[time]);
  const independent={schema:'mid.cloud-weather.field.v1',model:'icon-eu',run,time,resolutionKm:14,lats:axis,lons:lon,...cw};assert.equal(m.validateCloudWeatherField(independent,'icon-eu',model,ref).cloud[0],50);
  for(const patch of [{run:time},{time:run},{model:'gfs'},{cloudUnit:'1'},{weather:Array(144).fill(61.5)},{cloud:Array(144).fill(null)},{lats:[47,48]}])assert.throws(()=>m.validateCloudWeatherField({...independent,...patch},'icon-eu',model,ref));
