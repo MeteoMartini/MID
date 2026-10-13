@@ -7,9 +7,13 @@ import requests
 from build_synoptic_fields import decode,MODELS,GRID_CACHE
 
 CLOUD_HOURS=tuple(range(13))+(15,18,21,24,30,36,42,48)
+# ICON-D2: publish only truly paired CLCT and WMO-4677 WW for each extra hour.
+# A 600-second acquisition deadline and per-frame origin/hash guards remain mandatory.
+CLOUD_HOURS_D2=tuple(range(19))+(21,24,30,36,42,48)
 
 def cloud_hours(model,stamp):
-    end=48 if model=='icon-d2' else 120 if model=='icon-eu' or stamp.hour in (6,18) else 180
+    if model=='icon-d2':return CLOUD_HOURS_D2
+    end=120 if model=='icon-eu' or stamp.hour in (6,18) else 180
     return CLOUD_HOURS+tuple(range(60,end+1,12))
 
 def build_model(model,product,output,deadline):

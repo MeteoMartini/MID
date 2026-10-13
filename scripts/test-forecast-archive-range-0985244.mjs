@@ -38,7 +38,17 @@ try{
   const epsLocation={...location,longitude:12},eps=dates.map(date=>({date,maxMean:16,minMean:8,maxLow:13,maxHigh:19,minLow:5,minHigh:11,modelCount:2,precipitationProbability:30})),runs=[{id:'qa-eps',label:'QA EPS',kind:'ensemble',initialisationTime:'2026-10-13T00:00Z'}];
   archive.captureForecastInputs(epsLocation,weather);archive.captureForecastInputs(epsLocation,weather,eps,runs);archive.captureForecastInputs(epsLocation,weather,eps.map(row=>({...row,precipitationProbability:80})),[{...runs[0],initialisationTime:'2026-10-13T06:00Z'}]);
   const epsHistory=changes.readModelChangeHistory(changes.modelChangeLocationKey(epsLocation));assert.ok(epsHistory.at(-1).days.every(row=>Number.isFinite(row.confidence)));assert.ok(changes.compareModelChangeSnapshots(epsHistory.at(-2),epsHistory.at(-1)).items.some(item=>item.metric==='probability'&&item.delta===50&&item.models.includes('QA EPS')),'Available ensemble inputs and runs are archived automatically without an extra request');
-  const oldSet=localStorage.setItem;localStorage.setItem=()=>{throw new Error('Quota')};assert.equal(archive.captureForecastInputs({...location,longitude:9},weather).state,'error');localStorage.setItem=oldSet;
+  const oldSet=localStorage.setItem;localStorage.setItem=()=>{throw new Error('Quota')};const quota=archive.captureForecastInputs({...location,longitude:9},weather);assert.equal(quota.state,'error');assert.equal(quota.reason,'storage');localStorage.setItem=oldSet;
+  const allFavorites=[{location},{location:b},{location:b}],fresh=Date.parse('2026-10-13T16:00Z');
+  changes.recordModelChangeCaptureStatus(changes.modelChangeLocationKey(b),'error','fetch');
+  assert.deepEqual(archive.dueForecastArchiveFavorites(allFavorites,fresh).map(x=>x.longitude),[7,8],'Failed selected/closed favourites must both remain eligible for retries; duplicate only once');
+  const nowFailed=Date.parse(changes.readModelChangeCaptureStatus(changes.modelChangeLocationKey(b)).checkedAt);
+  assert.ok(!archive.dueForecastArchiveFavorites([{location:b}],nowFailed+60_000).length,'Respect five minute failure backoff');
+  assert.equal(archive.dueForecastArchiveFavorites([{location:b}],nowFailed+301_000).length,1,'Retry failed unopened favourite after five minutes');
+  changes.recordModelChangeCaptureStatus(changes.modelChangeLocationKey(b),'stored');
+  const goodAt=Date.parse(changes.readModelChangeCaptureStatus(changes.modelChangeLocationKey(b)).checkedAt);
+  assert.equal(archive.dueForecastArchiveFavorites([{location:b}],goodAt+60_000).length,0,'Do not refetch archived favourite constantly');
+  assert.equal(archive.dueForecastArchiveFavorites([{location:b}],goodAt+1_801_000).length,1,'Refresh closed favourite after thirty minutes');
  }finally{Date.now=now}
  assert.match(app,/useForecastChangeArchive\(\{location:loc,weather:w,favorites,ensemble:ens,runs:ensembleRuns\}\)/);
  assert.doesNotMatch(readFileSync('src/PrognoseRadar.tsx','utf8'),/updateModelChangeRadar\(key/,'Disclosure must not own the writer');

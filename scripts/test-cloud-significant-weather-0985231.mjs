@@ -21,7 +21,11 @@ try{
  for(const patch of [{cloudUnit:'1'},{weatherUnit:'inferred'},{cloudScale:1},{cloud:[1]},{weather:Array(144).fill(61.5)},{cloud:Array(144).fill(1001)}])assert.throws(()=>native.validateSynopticField({...field,cloudWeather:{...cw,...patch}},'icon-eu',model,ref));assert.throws(()=>native.validateSynopticField({...field,cloudWeather:undefined},'icon-eu',model,ref));
  const svg=exp.cloudWeatherSvg(pair,'data:image/png;base64,AA',[{name:'A&B',latitude:47,longitude:6},{name:'Missing',latitude:48,longitude:6}]);assert.match(svg,/A&amp;B/);assert.match(svg,/0 % Wolken/);assert.match(svg,/Wetter nicht verfügbar/);assert.match(svg,/Schneeschauer/);assert.match(svg,/gleicher|Gleicher/);
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
- console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, same-cycle GDPS capability intersection, synoptic payload validation and shared exports passed.');
+ const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
+ assert.match(d2CloudPipeline,/CLOUD_HOURS_D2=tuple\(range\(19\)\)\+\(21,24,30,36,42,48\)/,'D2 should attempt paired hourly CLCT/WW through +18h');
+ assert.match(d2CloudPipeline,/if model=='icon-d2':return CLOUD_HOURS_D2/);
+ assert.match(d2CloudPipeline,/if np.mean\(np.isfinite\(fields\['clct'\]\)&np.isfinite\(fields\['ww'\]\)\)<\.4/,'Never publish a partially paired grid below the quality threshold');
+ console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, D2 hourly +18h candidate window, same-cycle GDPS capability intersection and shared exports passed.');
  assert.deepEqual(m.gdpsCloudWeatherCatalog(meta),{run,times:[time]});assert.equal(m.gdpsCloudWeatherPlan(meta,Date.parse(time)+12*3600000),null);assert.deepEqual(m.gdpsCloudWeatherCatalog(meta).times,[time]);
  const independent={schema:'mid.cloud-weather.field.v1',model:'icon-eu',run,time,resolutionKm:14,lats:axis,lons:lon,...cw};assert.equal(m.validateCloudWeatherField(independent,'icon-eu',model,ref).cloud[0],50);
  for(const patch of [{run:time},{time:run},{model:'gfs'},{cloudUnit:'1'},{weather:Array(144).fill(61.5)},{cloud:Array(144).fill(null)},{lats:[47,48]}])assert.throws(()=>m.validateCloudWeatherField({...independent,...patch},'icon-eu',model,ref));
