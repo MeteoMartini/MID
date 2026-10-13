@@ -27,7 +27,7 @@ try{
  const pagesBudget=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8');
  assert.match(pagesBudget,/OPTIONAL_D2_HEADROOM_RESERVE=256_000/,'Optional D2 must reserve real headroom');
  assert.match(pagesBudget,/if synoptic_size\(\)\+OPTIONAL_D2_HEADROOM_RESERVE>available/,'New D2 hours cannot displace existing published objects');
- assert.match(d2CloudPipeline,/end=48 if model=='icon-d2'/);
+ assert.match(d2CloudPipeline,/if model=='icon-d2':/,'Extra D2 candidates must be an explicit model-only branch');
  const composite=readFileSync('src/RadarPanel.tsx','utf8'),modelReferences=readFileSync('src/ModelMapContextOverlay.tsx','utf8'),modelMap=readFileSync('src/WeatherMapsPanel.tsx','utf8'),nativeMap=readFileSync('src/NativeModelMap.tsx','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
  assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
