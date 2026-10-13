@@ -2,6 +2,8 @@
 from pathlib import Path
 import json,tempfile
 import numpy as np
+from test_lossless_codec_pilot import verify_candidate_codec
+verify_candidate_codec()
 from prepare_ruc_pages import prepare
 with tempfile.TemporaryDirectory() as td:
  root=Path(td);src=root/'src';src.mkdir();out=root/'out';run='2026082906';points=10;times=['2026-08-29T06:00','2026-08-29T07:00'];det_record=8;sum_record=4

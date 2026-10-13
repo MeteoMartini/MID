@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
+import {gzipSync,brotliCompressSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import ts from 'typescript-strada';
 import {execFileSync} from 'node:child_process';
@@ -45,4 +46,26 @@ assert.ok(crossReferenced.length>0,'Lazy CSS must be reaudited; previously prese
 assert.ok(isolatedBytes>0&&isolatedBytes<Buffer.byteLength(publishedCss),'Route CSS candidate must be a proper subsection');
 console.log(`CSS split candidate: extreme-weather source ${Buffer.byteLength(extremeSource)} B, consolidated region ${isolatedBytes} B, later shared selectors ${crossReferenced.length}, total emitted source ${Buffer.byteLength(publishedCss)} B. Deferred until DOM/paint parity is proven.`);
 console.log(`Module/CSS consolidation: ${baseline.declarations.length} approved extracted declarations, ${removed.length} covered CSS duplicates, order-sensitive .169 CSS cascade equality.`);
+// v0.9.85.249: read-only actual HTML-linked initial stylesheet sizes.
+// Do not confuse this with full render/paint parity or async module CSS bytes.
+const distHtmlUrl=new URL('../dist/index.html',import.meta.url);
+if(existsSync(distHtmlUrl)){
+ const html=readFileSync(distHtmlUrl,'utf8');
+ const distRoot=new URL('../dist/',import.meta.url);
+ const tags=[...html.matchAll(/<link\b[^>]*>/g)].map(hit=>hit[0]);
+ const urls=[...new Set(tags.filter(tag=>/\brel=["']stylesheet["']/.test(tag)).map(tag=>tag.match(/\bhref=["']([^"']+)["']/)?.[1]).filter(Boolean))];
+ const measured=[];
+ for(const href of urls){
+  const asset=new URL(href,distHtmlUrl);
+  assert.ok(asset.href.startsWith(distRoot.href),'Stylesheet URL escapes dist directory');
+  assert.ok(existsSync(asset),'HTML references a nonexisting initial stylesheet');
+  const bytes=readFileSync(asset);
+  measured.push({asset:href,rawBytes:bytes.length,gzipBytes:gzipSync(bytes).length,brotliBytes:brotliCompressSync(bytes).length});
+ }
+ const raw=measured.reduce((a,b)=>a+b.rawBytes,0),gzip=measured.reduce((a,b)=>a+b.gzipBytes,0),brotli=measured.reduce((a,b)=>a+b.brotliBytes,0);
+ console.log('MID initial CSS delivery (HTML stylesheet links only, not async route CSS or measured rendering): '+JSON.stringify({count:measured.length,rawBytes:raw,gzipBytes:gzip,brotliBytes:brotli,assets:measured}));
+}else{
+ console.log('MID initial CSS delivery not measured: production dist/index.html not present in this test environment');
+}
+
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-module-css-browser-0985170.mjs'],{cwd:root,stdio:'inherit',timeout:360000});
