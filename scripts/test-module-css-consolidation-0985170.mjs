@@ -29,5 +29,20 @@ assert.equal(cssCascadeFingerprint(parseCssOutput(output)),cssCascadeFingerprint
 const main=read('src/main.tsx'),eager=[...main.matchAll(/^import '\.\/(.*\.css)';/gm)].map(m=>m[1]);
 assert.deepEqual(eager,['midPresentation.css'],'Eager CSS must have one consolidated entry');
 assert.ok(!read('src/v078.ts').includes("import './v078.css'"),'Legacy CSS must not load a second time');
+// v0.9.85.248: prove that the tempting 25-extreme stylesheet is not
+// independently movable without changing downstream rules or verifying
+// computed styles. This is read-only: the canonical CSS cascade stays intact.
+const publishedCss=read('src/midPresentation.css');
+const extremeSource=read('src/styles-src/25-extreme-outlook.css');
+const start=publishedCss.indexOf('/* MID v0.9.66.9 · probabilistic DACH extreme-weather outlook */');
+const stop=publishedCss.indexOf('/* v0.9.15.0 · klassische Stundenübersicht */',start+1);
+assert.ok(start>0&&stop>start,'CSS ownership audit cannot locate the established extreme-weather segment');
+const isolatedBytes=Buffer.byteLength(publishedCss.slice(start,stop));
+const laterCss=publishedCss.slice(stop);
+const ownedClasses=[...new Set([...extremeSource.matchAll(/\\.extreme-[\\w-]+/g)].map(match=>match[0]))];
+const crossReferenced=ownedClasses.filter(name=>laterCss.includes(name));
+assert.ok(crossReferenced.length>0,'Lazy CSS must be reaudited; previously present later overrides changed');
+assert.ok(isolatedBytes>0&&isolatedBytes<Buffer.byteLength(publishedCss),'Route CSS candidate must be a proper subsection');
+console.log(`CSS split candidate: extreme-weather source ${Buffer.byteLength(extremeSource)} B, consolidated region ${isolatedBytes} B, later shared selectors ${crossReferenced.length}, total emitted source ${Buffer.byteLength(publishedCss)} B. Deferred until DOM/paint parity is proven.`);
 console.log(`Module/CSS consolidation: ${baseline.declarations.length} approved extracted declarations, ${removed.length} covered CSS duplicates, order-sensitive .169 CSS cascade equality.`);
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-module-css-browser-0985170.mjs'],{cwd:root,stdio:'inherit',timeout:360000});
