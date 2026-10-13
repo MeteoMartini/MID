@@ -14,6 +14,7 @@ from storage_audit import delta_byteplanes, restore_delta_byteplanes
 SCHEMA = 'mid.ruc.lossless-candidate.v1'
 CODECS = frozenset(('gzip', 'byteplanes-gzip', 'delta-byteplanes-gzip'))
 MAX_CHUNK_BYTES = 2_000_000
+MAX_WIRE_BYTES = 2_100_000
 
 
 def _digest(raw: bytes) -> str:
@@ -58,7 +59,7 @@ def decode_candidate(manifest: dict, wire: bytes) -> bytes:
     encoded = manifest['encodedBytes']
     if type(size) is not int or not 0 < size <= MAX_CHUNK_BYTES:
         raise ValueError('decoded size exceeds candidate bound')
-    if type(encoded) is not int or not 0 < encoded <= MAX_CHUNK_BYTES:
+    if type(encoded) is not int or not 0 < encoded <= MAX_WIRE_BYTES:
         raise ValueError('encoded size exceeds candidate bound')
     if not isinstance(wire, bytes) or len(wire) != encoded or _digest(wire) != manifest['encodedSha256']:
         raise ValueError('encoded payload length/hash mismatch')
