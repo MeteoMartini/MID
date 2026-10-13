@@ -10,8 +10,8 @@ Verifizierte Basis `main = mid-stable = b97b0cb23f6f2a9e5f2e648db1f33e321f41b293
 - Der Nachweis beruht auf synthetischen Tests und der Prüfung, dass Archivstände tatsächlich nach dem Schreibversuch aus dem lokalen Speicher lesbar sind. **Die konkrete Nutzerdatenbank auf dem Gerät ist von CI nicht einsehbar.** Keine echten Server-Push-Abfragen einer geschlossenen App – erforderlich wären ein eigener datenschutzgeprüfter Server-Snapshot-Dienst, Rechte und Budget.
 
 ## B. Kartenüberlagerung / Grenzen
-- `src/RadarPanel.tsx` legt referenzierte Küsten-/Länder-/Orts-Vektoren bei `zIndex=790` oberhalb von Wolken-/Wetterflächen mit `zIndex=300/305` ab. Die MapLibre-Reihenfolge wird nach numerischen Prioritäten sortiert. Pflichtregression sichert diese Hierarchie.
-- Der Kontrast der Grenzen in Light/Dark wurde verstärkt, ohne meteorologische Farbpaletten oder Kategorien umzubenennen. Die Bedienoption, Referenzlayer auszuschalten, bleibt unangetastet.
+- Ursache präzisiert: `WeatherMapsPanel` und `NativeModelMap` zeichneten die Kartenreferenz nur als kontrastschwaches HTML-Canvas, während Kompositkarten eigene überlagernde Vektorebenen verwenden. Jetzt rendert `ModelMapContextOverlay` die Natur-Erde-Länder-/Verwaltungsgrenzen als echte MapLibre-GeoJSON-Layer mit numerischer Priorität 790 über separaten Modellrastern; Beschriftungen liegen als Canvas bei 800. Die Kompositkarten bleiben unverändert.
+- Kontrastreiche zweifarbige Grenzkonturen bleiben auf hellen/dunklen und intensiven Modellfarben sichtbar, ohne Meteorologie-Farbpaletten oder die vorhandene Komposit-Referenzlayer-Einstellung zu verändern.
 - Offene Realbrowser-Frage: Ob die Referenzvektorkacheln auf dem betroffenen Gerät geladen sind und wie Linien bei unterschiedlichen Zoomstufen wirken. Nicht behaupten, das Bild sei bereits live nachgestellt.
 
 ## C. Mehr ICON-D2-Karten / RUC-Möglichkeiten

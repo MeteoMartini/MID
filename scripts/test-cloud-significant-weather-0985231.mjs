@@ -24,12 +24,18 @@ try{
  const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
  assert.match(d2CloudPipeline,/CLOUD_HOURS=tuple\(range\(13\)\)\+\(15,18,21,24,30,36,42,48\)/,'Storage headroom does not permit unbudgeted D2 hourly expansion');
  assert.match(d2CloudPipeline,/end=48 if model=='icon-d2'/);
- const composite=readFileSync('src/RadarPanel.tsx','utf8'),reference=readFileSync('src/mapReferenceLayers.ts','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
+ const composite=readFileSync('src/RadarPanel.tsx','utf8'),modelReferences=readFileSync('src/ModelMapContextOverlay.tsx','utf8'),modelMap=readFileSync('src/WeatherMapsPanel.tsx','utf8'),nativeMap=readFileSync('src/NativeModelMap.tsx','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
  assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
  assert.match(layers,/opacity=\{state.ready\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
  assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');
- assert.match(reference,/#e5f5ff|#203c55/,'Reference lines need legible dark/light contrast');
+ assert.match(modelMap,/<ModelMapContextOverlay\/>/,'DWD model maps must use their local geography');
+ assert.match(nativeMap,/<ModelMapContextOverlay\/>/,'Native model maps must use their local geography');
+ assert.match(modelReferences,/MODEL_MAP_REFERENCE_PRIORITY=790/,'Model geographic line layers above all meteorological raster layers');
+ assert.match(modelReferences,/GeoJsonLayers id="model-map-reference-geography"/,'Model borders use MapLibre vector layers rather than only a canvas');
+ assert.match(modelReferences,/id:'country-halo'/,'Country borders have a contrasting outline');
+ assert.match(modelReferences,/id:'country-detail'/,'Country borders have an inner line');
+ assert.match(modelReferences,/zIndex=\{800\}/,'Model location labels remain above weather fills');
 
  assert.match(d2CloudPipeline,/if np.mean\(np.isfinite\(fields\['clct'\]\)&np.isfinite\(fields\['ww'\]\)\)<\.4/,'Never publish a partially paired grid below the quality threshold');
  console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, D2 storage-limit guard, same-cycle GDPS capability intersection and shared exports passed.');
