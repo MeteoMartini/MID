@@ -24,6 +24,13 @@ try{
  const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
  assert.match(d2CloudPipeline,/CLOUD_HOURS_D2=tuple\(range\(19\)\)\+\(21,24,30,36,42,48\)/,'D2 should attempt paired hourly CLCT/WW through +18h');
  assert.match(d2CloudPipeline,/if model=='icon-d2':return CLOUD_HOURS_D2/);
+ const composite=readFileSync('src/RadarPanel.tsx','utf8'),reference=readFileSync('src/mapReferenceLayers.ts','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
+ assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
+ assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
+ assert.match(layers,/opacity=\{state.ready\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
+ assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');
+ assert.match(reference,/#e5f5ff|#203c55/,'Reference lines need legible dark/light contrast');
+
  assert.match(d2CloudPipeline,/if np.mean\(np.isfinite\(fields\['clct'\]\)&np.isfinite\(fields\['ww'\]\)\)<\.4/,'Never publish a partially paired grid below the quality threshold');
  console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, D2 hourly +18h candidate window, same-cycle GDPS capability intersection and shared exports passed.');
  assert.deepEqual(m.gdpsCloudWeatherCatalog(meta),{run,times:[time]});assert.equal(m.gdpsCloudWeatherPlan(meta,Date.parse(time)+12*3600000),null);assert.deepEqual(m.gdpsCloudWeatherCatalog(meta).times,[time]);
