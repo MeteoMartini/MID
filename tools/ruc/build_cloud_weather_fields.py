@@ -7,8 +7,16 @@ import requests
 from build_synoptic_fields import decode,MODELS,GRID_CACHE
 
 CLOUD_HOURS=tuple(range(13))+(15,18,21,24,30,36,42,48)
+# Only four new, optional D2 hours. They must not displace established
+# forecast-map terms; the publication budget admission lives in prepare_ruc_pages.
+OPTIONAL_D2_CLOUD_HOURS=(13,14,16,17)
 def cloud_hours(model,stamp):
-    end=48 if model=='icon-d2' else 120 if model=='icon-eu' or stamp.hour in (6,18) else 180
+    if model=='icon-d2':
+        # Always exhaust the established terms before any added downloads.
+        # Missing or slow optional fields must never steal the shared deadline
+        # from +15/+18/+21/+24/+30/+36/+42/+48.
+        return CLOUD_HOURS+OPTIONAL_D2_CLOUD_HOURS
+    end=120 if model=='icon-eu' or stamp.hour in (6,18) else 180
     return CLOUD_HOURS+tuple(range(60,end+1,12))
 
 def build_model(model,product,output,deadline):

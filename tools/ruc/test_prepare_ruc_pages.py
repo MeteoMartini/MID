@@ -124,6 +124,20 @@ with tempfile.TemporaryDirectory() as td:
  assert source.read_bytes()==raw
  # Evidence-driven remaining budget retains optional model and hourly CW terms.
  def inventory():return {'models':{m:{'frames':[{'hour':h,'bytes':100} for h in (0,3,6,9,12,18,24,36,48,72)],'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(1,13)]} for m in ('icon-d2','icon-eu','icon')}}
+ # Newly attempted ICON-D2 cloud/weather pairs must never displace any existing
+ # RUC, synoptic or cloud/weather terms, and use a nonzero reserve.
+ def d2_optional_inventory():
+  result=inventory()
+  result['models']['icon-d2']['cloudWeatherFrames'].extend([{'hour':13,'bytes':100},{'hour':14,'bytes':100},{'hour':16,'bytes':100},{'hour':17,'bytes':100}])
+  return result
+ reserve=fit_synoptic_budget(d2_optional_inventory(),20000)
+ assert reserve['cloudWeatherBudget']['optionalD2']['admittedHours']==[]
+ assert reserve['cloudWeatherBudget']['optionalD2']['omittedHours']==[13,14,16,17]
+ assert reserve['models']==fit_synoptic_budget(inventory(),20000)['models'], 'Optional D2 cannot displace any older map'
+ ample=fit_synoptic_budget(d2_optional_inventory(),500000)
+ assert ample['cloudWeatherBudget']['optionalD2']['admittedHours']==[13,14,16,17]
+ assert ample['cloudWeatherBudget']['optionalD2']['omittedHours']==[]
+ assert ample['models']['icon-d2']['cloudWeatherFrames'][-4:]==[{'hour':h,'bytes':100} for h in (13,14,16,17)] or sorted(f['hour'] for f in ample['models']['icon-d2']['cloudWeatherFrames'])==list(range(1,15))+[16,17], 'All new pair times must remain correctly ordered'
  small=fit_synoptic_budget(inventory(),8000);large=fit_synoptic_budget(inventory(),20000)
  assert len(large['models'])==3 and all(len(p['cloudWeatherFrames'])==12 and len(p['frames'])==10 for p in large['models'].values())
  assert large['cloudWeatherBudget']['pruned']==[] and large['cloudWeatherBudget']['prunedSynoptic']==[]

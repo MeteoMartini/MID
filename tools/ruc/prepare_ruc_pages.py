@@ -25,6 +25,8 @@ DEFAULT_LOOKUP_CHUNK_ENTRIES=65536
 # 900 MB ceiling and should normally stay well below it.
 PAGES_RUC_BUDGET_BYTES=900_000_000
 PAGES_MANIFEST_RESERVE_BYTES=1_000_000
+OPTIONAL_D2_CLOUD_HOURS=frozenset((13,14,16,17))
+OPTIONAL_D2_HEADROOM_RESERVE=256_000
 PAGES_OMIT_RAPID_PRODUCTS={'solar15','state15'}
 PAGES_STATE15_FIELDS={'visibility','ceiling'}
 PAGES_REDUNDANT_SEVERE_FIELDS={
@@ -145,7 +147,16 @@ def deduplicate_chunks(root, objects, specs):
 def fit_synoptic_budget(payload,available):
     core_hours={0,3,6,9,12,18,24,36,48}
     pruned=[];pruned_synoptic=[]
-    payload['cloudWeatherBudget']={'availableBytes':available,'pruned':pruned,'prunedSynoptic':pruned_synoptic}
+    # Defer newly attempted D2 hours until AFTER the established forecast
+    # and cloud/weather inventory has fit. No new optional hour may evict
+    # any pre-existing frame in another model or the RUC core.
+    optional_d2=[]
+    d2=payload.get('models',{}).get('icon-d2')
+    if d2:
+        optional_d2=sorted((f for f in d2.get('cloudWeatherFrames',[]) if f['hour'] in OPTIONAL_D2_CLOUD_HOURS),key=lambda f:f['hour'])
+        d2['cloudWeatherFrames']=[f for f in d2.get('cloudWeatherFrames',[]) if f['hour'] not in OPTIONAL_D2_CLOUD_HOURS]
+    optional_budget={'attemptedHours':[f['hour'] for f in optional_d2],'admittedHours':[],'omittedHours':[],'headroomReserveBytes':OPTIONAL_D2_HEADROOM_RESERVE}
+    payload['cloudWeatherBudget']={'availableBytes':available,'pruned':pruned,'prunedSynoptic':pruned_synoptic,'optionalD2':optional_budget}
     def synoptic_size():
         return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames']+product.get('cloudWeatherFrames',[]))
     # ICON Global is optional: never lose established cores or RUC to its cost.
@@ -168,6 +179,19 @@ def fit_synoptic_budget(payload,available):
         payload['models'][model]['cloudWeatherFrames']=[f for f in payload['models'][model]['cloudWeatherFrames'] if f['hour']!=hour]
         pruned.append({'model':model,'hour':hour,'reason':'pages-storage-budget'})
     if synoptic_size()>available:raise ValueError('complete synoptic core exceeds remaining Pages budget')
+    # Strictly incremental admission; safety reserve covers metadata drift
+    # and keeps the original budget allocator's priorities unchanged.
+    if d2 and 'icon-d2' in payload['models']:
+        for frame in optional_d2:
+            d2['cloudWeatherFrames'].append(frame)
+            if synoptic_size()+OPTIONAL_D2_HEADROOM_RESERVE>available:
+                d2['cloudWeatherFrames'].pop()
+                optional_budget['omittedHours'].append(frame['hour'])
+            else:
+                optional_budget['admittedHours'].append(frame['hour'])
+        d2['cloudWeatherFrames'].sort(key=lambda frame:frame['hour'])
+    else:
+        optional_budget['omittedHours'].extend(frame['hour'] for frame in optional_d2)
     return payload
 
 def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES):
