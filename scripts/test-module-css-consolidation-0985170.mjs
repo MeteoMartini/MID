@@ -39,7 +39,7 @@ const stop=publishedCss.indexOf('/* v0.9.15.0 · klassische Stundenübersicht */
 assert.ok(start>0&&stop>start,'CSS ownership audit cannot locate the established extreme-weather segment');
 const isolatedBytes=Buffer.byteLength(publishedCss.slice(start,stop));
 const laterCss=publishedCss.slice(stop);
-const ownedClasses=[...new Set([...extremeSource.matchAll(/\\.extreme-[\\w-]+/g)].map(match=>match[0]))];
+const ownedClasses=[...new Set([...extremeSource.matchAll(/\.extreme-[\w-]+/g)].map(match=>match[0]))];
 const crossReferenced=ownedClasses.filter(name=>laterCss.includes(name));
 assert.ok(crossReferenced.length>0,'Lazy CSS must be reaudited; previously present later overrides changed');
 assert.ok(isolatedBytes>0&&isolatedBytes<Buffer.byteLength(publishedCss),'Route CSS candidate must be a proper subsection');
