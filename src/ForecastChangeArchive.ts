@@ -12,7 +12,7 @@ export function dueForecastArchiveFavorites(favorites:{location:Location}[],now=
   if(seen.has(key))return false;seen.add(key);
   const status=readModelChangeCaptureStatus(key),age=now-Date.parse(status?.checkedAt||'');
   if(!Number.isFinite(age)||age<0)return true;
-  const complete=(status?.count??0)>0&&(status?.state==='stored'||status.state==='unchanged');
+  const complete=(status?.count??0)>0&&(status?.state==='stored'||status?.state==='unchanged');
   return age>=(complete?FAVORITE_SUCCESS_MS:FAVORITE_FAILURE_RETRY_MS);
  });
 }
