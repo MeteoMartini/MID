@@ -122,6 +122,8 @@ with tempfile.TemporaryDirectory() as td:
   assert b''.join((root/key).read_bytes() for key in keys)==raw
  assert sum(o['bytes'] for o in objects)==sum(p.stat().st_size for p in (root/'runs').rglob('*.bin'))
  assert source.read_bytes()==raw
+ # Evidence-driven remaining budget retains optional model and hourly CW terms.
+ def inventory():return {'models':{m:{'frames':[{'hour':h,'bytes':100} for h in (0,3,6,9,12,18,24,36,48,72)],'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(1,13)]} for m in ('icon-d2','icon-eu','icon')}}
  # Newly attempted ICON-D2 cloud/weather pairs must never displace any existing
  # RUC, synoptic or cloud/weather terms, and use a nonzero reserve.
  def d2_optional_inventory():
@@ -136,8 +138,6 @@ with tempfile.TemporaryDirectory() as td:
  assert ample['cloudWeatherBudget']['optionalD2']['admittedHours']==[13,14,16,17]
  assert ample['cloudWeatherBudget']['optionalD2']['omittedHours']==[]
  assert ample['models']['icon-d2']['cloudWeatherFrames'][-4:]==[{'hour':h,'bytes':100} for h in (13,14,16,17)] or sorted(f['hour'] for f in ample['models']['icon-d2']['cloudWeatherFrames'])==list(range(1,15))+[16,17], 'All new pair times must remain correctly ordered'
- # Evidence-driven remaining budget retains optional model and hourly CW terms.
- def inventory():return {'models':{m:{'frames':[{'hour':h,'bytes':100} for h in (0,3,6,9,12,18,24,36,48,72)],'cloudWeatherFrames':[{'hour':h,'bytes':100} for h in range(1,13)]} for m in ('icon-d2','icon-eu','icon')}}
  small=fit_synoptic_budget(inventory(),8000);large=fit_synoptic_budget(inventory(),20000)
  assert len(large['models'])==3 and all(len(p['cloudWeatherFrames'])==12 and len(p['frames'])==10 for p in large['models'].values())
  assert large['cloudWeatherBudget']['pruned']==[] and large['cloudWeatherBudget']['prunedSynoptic']==[]
