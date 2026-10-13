@@ -22,7 +22,10 @@ try{
  const svg=exp.cloudWeatherSvg(pair,'data:image/png;base64,AA',[{name:'A&B',latitude:47,longitude:6},{name:'Missing',latitude:48,longitude:6}]);assert.match(svg,/A&amp;B/);assert.match(svg,/0 % Wolken/);assert.match(svg,/Wetter nicht verfügbar/);assert.match(svg,/Schneeschauer/);assert.match(svg,/gleicher|Gleicher/);
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
  const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
- assert.match(d2CloudPipeline,/CLOUD_HOURS=tuple\(range\(13\)\)\+\(15,18,21,24,30,36,42,48\)/,'Storage headroom does not permit unbudgeted D2 hourly expansion');
+ assert.match(d2CloudPipeline,/OPTIONAL_D2_CLOUD_HOURS=\(13,14,16,17\)/,'D2 hourly expansion must be optional');
+ const pagesBudget=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8');
+ assert.match(pagesBudget,/OPTIONAL_D2_HEADROOM_RESERVE=256_000/,'Optional D2 must reserve real headroom');
+ assert.match(pagesBudget,/if synoptic_size\(\)\+OPTIONAL_D2_HEADROOM_RESERVE>available/,'New D2 hours cannot displace existing published objects');
  assert.match(d2CloudPipeline,/end=48 if model=='icon-d2'/);
  const composite=readFileSync('src/RadarPanel.tsx','utf8'),modelReferences=readFileSync('src/ModelMapContextOverlay.tsx','utf8'),modelMap=readFileSync('src/WeatherMapsPanel.tsx','utf8'),nativeMap=readFileSync('src/NativeModelMap.tsx','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
  assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
