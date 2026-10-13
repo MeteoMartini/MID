@@ -1,10 +1,10 @@
-import {memo,useCallback,useEffect} from 'react';
-import {CanvasOverlay,useMidMap,type MidMap} from './MapLibreCore';
-import {getModelMapGeography,loadModelMapGeography} from './modelMapGeography';
+import {memo,useCallback,useEffect,useMemo,useState} from 'react';
+import {CanvasOverlay,GeoJsonLayers,useMidMap,type MidMap,type MidGeoLayer} from './MapLibreCore';
+import {getModelMapGeography,loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
 import germany from './precipitationGermany.json';
 
 export const MODEL_MAP_CONTEXT_ZOOMS={states:4.8,places:5.7};
-export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZoom'|'getCenter'>,canvas:HTMLCanvasElement,labels=true){
+export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZoom'|'getCenter'>,canvas:HTMLCanvasElement,labels=true,drawBorders=true){
  const base=map.getCanvas(),width=base.clientWidth,height=base.clientHeight;if(!width||!height)return;
  const ratio=Math.max(1,Math.min(2,globalThis.devicePixelRatio||1));
  const w=Math.round(width*ratio),h=Math.round(height*ratio);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;canvas.style.width=`${width}px`;canvas.style.height=`${height}px`}
@@ -17,9 +17,11 @@ export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZo
   const dark=typeof document!=='undefined'&&document.documentElement.dataset.theme==='dark';
   context.strokeStyle=dark?'rgba(165,181,193,.58)':'rgba(62,83,99,.52)';context.lineWidth=line;context.setLineDash(dash);context.stroke();context.setLineDash([]);
  };
- if(geography)drawRings(geography.countries,zoom>=5?1.1:.8,[3,2]);
- if(!geography)drawRings(germany.geometry.coordinates.flat(),1.15,[3,2]);
- if(geography&&zoom>=MODEL_MAP_CONTEXT_ZOOMS.states)for(const state of geography.states)drawRings(state.rings,.75,[1,2]);
+ if(drawBorders){
+  if(geography)drawRings(geography.countries,zoom>=5?1.1:.8,[3,2]);
+  if(!geography)drawRings(germany.geometry.coordinates.flat(),1.15,[3,2]);
+  if(geography&&zoom>=MODEL_MAP_CONTEXT_ZOOMS.states)for(const state of geography.states)drawRings(state.rings,.75,[1,2]);
+ }
  if(!labels||!geography||zoom<MODEL_MAP_CONTEXT_ZOOMS.places)return;
  context.font=`600 ${zoom>=7?12:11}px system-ui,sans-serif`;context.textBaseline='middle';
  const boxes:Array<{x:number;y:number;width:number}>=[];
@@ -29,5 +31,32 @@ export function drawModelMapContext(map:Pick<MidMap,'getCanvas'|'project'|'getZo
   context.beginPath();context.arc(point.x,point.y,1.7,0,Math.PI*2);context.fill();
  }
 }
-function ModelMapContextOverlay({labels=true}:{labels?:boolean}){const map=useMidMap();const render=useCallback((map:MidMap,canvas:HTMLCanvasElement)=>drawModelMapContext(map,canvas,labels),[labels]);useEffect(()=>{if(!map)return;let active=true;void loadModelMapGeography().then(()=>{if(active)map.triggerRepaint()}).catch(()=>{});return()=>{active=false}},[map]);return <CanvasOverlay id="model-map-context" zIndex={1} render={render} events={['render','resize']}/>}
+/** Separate DWD model-weather maps use local Natural Earth geography,
+ * rather than the composite map's remote vector tiles. Keep geographic
+ * boundaries in the same ordered MapLibre style as the model raster. */
+export function modelMapGeographyFeatures(geography:ModelMapGeography){
+ return {type:'FeatureCollection',features:[
+  {type:'Feature',properties:{kind:'country'},geometry:{type:'MultiLineString',coordinates:geography.countries}},
+  {type:'Feature',properties:{kind:'state'},geometry:{type:'MultiLineString',coordinates:geography.states.flatMap(state=>state.rings)}}
+ ]};
+}
+export const MODEL_MAP_REFERENCE_PRIORITY=790;
+export const MODEL_MAP_REFERENCE_LAYERS:MidGeoLayer[]=[
+ {id:'country-halo',type:'line',filter:['==',['get','kind'],'country'],paint:{'line-color':'#172e40','line-width':3.4,'line-opacity':.94}},
+ {id:'country-detail',type:'line',filter:['==',['get','kind'],'country'],paint:{'line-color':'#f5fbff','line-width':1.45,'line-opacity':.99}},
+ {id:'state-halo',type:'line',minzoom:MODEL_MAP_CONTEXT_ZOOMS.states,filter:['==',['get','kind'],'state'],paint:{'line-color':'#192f43','line-width':2.2,'line-opacity':.7,'line-dasharray':[2,2]}},
+ {id:'state-detail',type:'line',minzoom:MODEL_MAP_CONTEXT_ZOOMS.states,filter:['==',['get','kind'],'state'],paint:{'line-color':'#ecf5fa','line-width':.85,'line-opacity':.85,'line-dasharray':[2,2]}}
+];
+function ModelMapContextOverlay({labels=true}:{labels?:boolean}){
+ const map=useMidMap(),[geography,setGeography]=useState<ModelMapGeography|null>(()=>getModelMapGeography()??null);
+ const boundaries=useMemo(()=>geography?modelMapGeographyFeatures(geography):null,[geography]);
+ const render=useCallback((m:MidMap,canvas:HTMLCanvasElement)=>drawModelMapContext(m,canvas,labels,!boundaries),[labels,boundaries]);
+ useEffect(()=>{if(!map)return;let active=true;void loadModelMapGeography().then(data=>{
+  if(active){setGeography(data);map.triggerRepaint()}
+ }).catch(()=>{if(active)map.triggerRepaint()});return()=>{active=false}},[map]);
+ return <>
+  {boundaries&&<GeoJsonLayers id="model-map-reference-geography" data={boundaries} layers={MODEL_MAP_REFERENCE_LAYERS} zIndex={MODEL_MAP_REFERENCE_PRIORITY}/>}
+  <CanvasOverlay id="model-map-context-labels" zIndex={800} render={render} events={['render','resize']}/>
+ </>;
+}
 export default memo(ModelMapContextOverlay);

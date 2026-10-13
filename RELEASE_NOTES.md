@@ -1,5 +1,6 @@
-# MID v0.9.85.246 · Startlast der Darstellung messbar
+# MID v0.9.85.247 · Prognose-Radar und klarere Modellkarten
 
-- MID erfasst beim Qualitätscheck jetzt getrennt, wie groß die unmittelbar beim App-Start benötigten Gestaltungspakete sind. Damit lassen sich kommende Geschwindigkeitsverbesserungen zuverlässig überprüfen.
-- Die Größen für komprimiertes CSS werden mitgemessen, ohne später geladene Ansichten fälschlich zum Startpaket zu zählen.
-- Wetterdaten, Piktogramme und das gewohnte Layout bleiben unverändert. Die eigentliche Verkleinerung des Haupt-CSS folgt nach belastbaren Vergleichsmessungen.
+- Das Prognose-Radar prüft auch Favoriten, die nicht geöffnet wurden. Fehlgeschlagene Prüfungen werden bei sichtbarer, verbundener App früher erneut versucht; die regelmäßige Kontrolle erfolgreicher Favoriten bleibt erhalten.
+- Im Radar werden Fehler beim Wetterabruf und beim Speichern im Gerät jetzt getrennt angezeigt. So ist besser nachvollziehbar, warum noch keine Prognosebasis vorhanden ist.
+- Modellwetterkarten zeichnen Länder- und Verwaltungsgrenzen als eigene Kartenlinien über den Wetterflächen. Ortsnamen bleiben ebenfalls sichtbar; die bereits funktionierenden Kompositkarten sind unverändert.
+- Zusätzliche ICON-D2-Stunden werden aus Sicherheitsgründen noch nicht aktiviert: Die RUC-Datenveröffentlichung nutzt bereits nahezu das gesamte 900-MB-Speicherbudget. Vor einer Ausweitung müssen Speicherbedarf und Frische nachweislich abgesichert werden.

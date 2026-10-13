@@ -21,7 +21,24 @@ try{
  for(const patch of [{cloudUnit:'1'},{weatherUnit:'inferred'},{cloudScale:1},{cloud:[1]},{weather:Array(144).fill(61.5)},{cloud:Array(144).fill(1001)}])assert.throws(()=>native.validateSynopticField({...field,cloudWeather:{...cw,...patch}},'icon-eu',model,ref));assert.throws(()=>native.validateSynopticField({...field,cloudWeather:undefined},'icon-eu',model,ref));
  const svg=exp.cloudWeatherSvg(pair,'data:image/png;base64,AA',[{name:'A&B',latitude:47,longitude:6},{name:'Missing',latitude:48,longitude:6}]);assert.match(svg,/A&amp;B/);assert.match(svg,/0 % Wolken/);assert.match(svg,/Wetter nicht verfügbar/);assert.match(svg,/Schneeschauer/);assert.match(svg,/gleicher|Gleicher/);
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
- console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, same-cycle GDPS capability intersection, synoptic payload validation and shared exports passed.');
+ const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
+ assert.match(d2CloudPipeline,/CLOUD_HOURS=tuple\(range\(13\)\)\+\(15,18,21,24,30,36,42,48\)/,'Storage headroom does not permit unbudgeted D2 hourly expansion');
+ assert.match(d2CloudPipeline,/end=48 if model=='icon-d2'/);
+ const composite=readFileSync('src/RadarPanel.tsx','utf8'),modelReferences=readFileSync('src/ModelMapContextOverlay.tsx','utf8'),modelMap=readFileSync('src/WeatherMapsPanel.tsx','utf8'),nativeMap=readFileSync('src/NativeModelMap.tsx','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
+ assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
+ assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
+ assert.match(layers,/opacity=\{state.ready\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
+ assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');
+ assert.match(modelMap,/<ModelMapContextOverlay\/>/,'DWD model maps must use their local geography');
+ assert.match(nativeMap,/<ModelMapContextOverlay\/>/,'Native model maps must use their local geography');
+ assert.match(modelReferences,/MODEL_MAP_REFERENCE_PRIORITY=790/,'Model geographic line layers above all meteorological raster layers');
+ assert.match(modelReferences,/GeoJsonLayers id="model-map-reference-geography"/,'Model borders use MapLibre vector layers rather than only a canvas');
+ assert.match(modelReferences,/id:'country-halo'/,'Country borders have a contrasting outline');
+ assert.match(modelReferences,/id:'country-detail'/,'Country borders have an inner line');
+ assert.match(modelReferences,/zIndex=\{800\}/,'Model location labels remain above weather fills');
+
+ assert.match(d2CloudPipeline,/if np.mean\(np.isfinite\(fields\['clct'\]\)&np.isfinite\(fields\['ww'\]\)\)<\.4/,'Never publish a partially paired grid below the quality threshold');
+ console.log('Combined cloud/weather: strict cycle/time/grid pairs, unknown preservation, WMO intensity bounds, D2 storage-limit guard, same-cycle GDPS capability intersection and shared exports passed.');
  assert.deepEqual(m.gdpsCloudWeatherCatalog(meta),{run,times:[time]});assert.equal(m.gdpsCloudWeatherPlan(meta,Date.parse(time)+12*3600000),null);assert.deepEqual(m.gdpsCloudWeatherCatalog(meta).times,[time]);
  const independent={schema:'mid.cloud-weather.field.v1',model:'icon-eu',run,time,resolutionKm:14,lats:axis,lons:lon,...cw};assert.equal(m.validateCloudWeatherField(independent,'icon-eu',model,ref).cloud[0],50);
  for(const patch of [{run:time},{time:run},{model:'gfs'},{cloudUnit:'1'},{weather:Array(144).fill(61.5)},{cloud:Array(144).fill(null)},{lats:[47,48]}])assert.throws(()=>m.validateCloudWeatherField({...independent,...patch},'icon-eu',model,ref));

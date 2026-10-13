@@ -7,7 +7,6 @@ import requests
 from build_synoptic_fields import decode,MODELS,GRID_CACHE
 
 CLOUD_HOURS=tuple(range(13))+(15,18,21,24,30,36,42,48)
-
 def cloud_hours(model,stamp):
     end=48 if model=='icon-d2' else 120 if model=='icon-eu' or stamp.hour in (6,18) else 180
     return CLOUD_HOURS+tuple(range(60,end+1,12))
