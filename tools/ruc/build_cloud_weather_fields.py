@@ -12,7 +12,10 @@ CLOUD_HOURS=tuple(range(13))+(15,18,21,24,30,36,42,48)
 OPTIONAL_D2_CLOUD_HOURS=(13,14,16,17)
 def cloud_hours(model,stamp):
     if model=='icon-d2':
-        return tuple(sorted(set(CLOUD_HOURS+OPTIONAL_D2_CLOUD_HOURS)))
+        # Always exhaust the established terms before any added downloads.
+        # Missing or slow optional fields must never steal the shared deadline
+        # from +15/+18/+21/+24/+30/+36/+42/+48.
+        return CLOUD_HOURS+OPTIONAL_D2_CLOUD_HOURS
     end=120 if model=='icon-eu' or stamp.hour in (6,18) else 180
     return CLOUD_HOURS+tuple(range(60,end+1,12))
 

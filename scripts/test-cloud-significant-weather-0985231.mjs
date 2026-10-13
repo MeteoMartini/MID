@@ -23,6 +23,7 @@ try{
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
  const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
  assert.match(d2CloudPipeline,/OPTIONAL_D2_CLOUD_HOURS=\(13,14,16,17\)/,'D2 hourly expansion must be optional');
+ assert.match(d2CloudPipeline,/return CLOUD_HOURS\+OPTIONAL_D2_CLOUD_HOURS/,'Established D2 fields must be downloaded before any optional extra hours');
  const pagesBudget=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8');
  assert.match(pagesBudget,/OPTIONAL_D2_HEADROOM_RESERVE=256_000/,'Optional D2 must reserve real headroom');
  assert.match(pagesBudget,/if synoptic_size\(\)\+OPTIONAL_D2_HEADROOM_RESERVE>available/,'New D2 hours cannot displace existing published objects');
