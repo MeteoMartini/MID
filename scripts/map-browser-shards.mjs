@@ -7,6 +7,12 @@ export function mapBrowserCases(shard=''){
  const group=Number(match[1]);
  return cases.filter(row=>row.width===1440?(row.design==='classic'?group===1:group===3):MAP_BROWSER_WIDTHS.indexOf(row.width)%3+1===group);
 }
+/** Software-GPU browser fixtures are memory/renderer intensive.
+ * Never run four mobile MapLibre contexts in a single process. Every case remains mandatory. */
+export function mapBrowserCaseConcurrency(width){
+ if(!Number.isInteger(width)||width<=0)throw new RangeError('Invalid map browser width: '+width);
+ return width>=1024?1:2;
+}
 export function mapBrowserWidths(shard=''){return [...new Set(mapBrowserCases(shard).map(row=>row.width))]}
 
 /** Unsharded revision keeps the full matrix through individually bounded existing shards. */
