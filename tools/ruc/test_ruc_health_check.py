@@ -51,4 +51,41 @@ try:
 except RuntimeError as error:
  assert 'did not converge after 2 attempts' in str(error)
 
+# GitHub Pages may need >7 probes to move its public latest.json after
+# a successful deployment. The additional *bounded* wait must never accept the
+# old run, and a permanently stale run must still fail the release gate.
+expected_pages_run = '2026-10-14T06:00'
+old_pages_run = '2026-10-14T05:00'
+pages_requests = []
+def pages_late(url, timeout):
+ from urllib.parse import parse_qs, urlsplit
+ q = parse_qs(urlsplit(url).query)
+ pages_requests.append(q)
+ run = old_pages_run if len(pages_requests) < 9 else expected_pages_run
+ return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'pages-free-v1', 'run': run}
+assert mod.MAX_PAGES_PROBE_ATTEMPTS == 12
+assert mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=12,
+                       fetcher=pages_late, sleeper=lambda _: None) == 9
+assert len(pages_requests) == 9
+assert [row['mid_ruc_probe'][0] for row in pages_requests] == [str(i) for i in range(1, 10)]
+assert all(row['mid_ruc_expected'] == [expected_pages_run] for row in pages_requests)
+
+def pages_stale(url, timeout):
+ return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'pages-free-v1', 'run': old_pages_run}
+for attempts in (1, 7, 12):
+ try:
+  mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=attempts,
+                  fetcher=pages_stale, sleeper=lambda _: None)
+  raise AssertionError('stale public Pages pointer was accepted')
+ except RuntimeError as error:
+  assert f'after {attempts} attempts' in str(error)
+def pages_wrong_profile(url, timeout):
+ return {'schema': 'mid.dwd.ruc.grid.v2', 'storageProfile': 'unexpected', 'run': expected_pages_run}
+try:
+ mod.probe_pages('https://mid.example/ruc/', expected_pages_run, attempts=1,
+                 fetcher=pages_wrong_profile, sleeper=lambda _: None)
+ raise AssertionError('wrong Pages storage profile was accepted')
+except RuntimeError:
+ pass
+
 print('RUC deployed health-check convergence contract OK')
