@@ -51,6 +51,17 @@ export function nearestAvailableFrameIndex(frames:CompositeTimelineFrame[],targe
  return frames.reduce((best,frame,index)=>Math.abs(frame.time-targetSeconds)<Math.abs(frames[best].time-targetSeconds)?index:best,0);
 }
 
+/** Active model maps prefer an actually published forecast time over a live observation time. */
+export function preferForecastFrameIndex(frames:CompositeTimelineFrame[],forecastTimes:number[],referenceSeconds:number){
+ const available=new Set(forecastTimes.filter(Number.isFinite).map(time=>Math.floor(time)));
+ const candidates=frames.map((frame,index)=>({time:frame.time,index})).filter(item=>available.has(item.time));
+ if(!candidates.length)return Math.max(0,frames.findIndex(frame=>frame.live));
+ return candidates.reduce((best,item)=>{
+  const distance=Math.abs(item.time-referenceSeconds),previous=Math.abs(best.time-referenceSeconds);
+  return distance<previous||(distance===previous&&item.time>best.time)?item:best;
+ }).index;
+}
+
 export function uniqueTimedFrames<T extends TimedFrame>(frames:T[],minimum:number,maximum:number){
  return[...new Map(frames.filter(frame=>Number.isFinite(frame.time)&&frame.time>=minimum&&frame.time<=maximum).sort((a,b)=>a.time-b.time).map(frame=>[frame.time,frame])).values()];
 }

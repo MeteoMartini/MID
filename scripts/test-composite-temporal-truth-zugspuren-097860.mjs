@@ -10,7 +10,7 @@ const root=new URL('../',import.meta.url);
 const[panel,timeline,settings,styles]=await Promise.all(['src/RadarPanel.tsx','src/CompositeTimeline.ts','src/compositeSettings.ts','src/styles.css'].map(path=>readFile(new URL(path,root),'utf8')));
 
 for(const token of [
- 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120)',
+ 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,modelNeedsHistory?180:90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120)',
  "showPxAtTime=showRadar&&pxDisplayAvailable&&liveFollow&&viewMode==='radar'",
  'showWarningsAtTime=showWarnings&&liveFollow',
  'targetSeconds>referenceSeconds+90?[]:satelliteUntimed?',
@@ -48,6 +48,11 @@ try{
  assert.equal(frames.find(frame=>frame.live)?.time,reference-300,'Der jüngste reale Beobachtungsstand muss der Live-Anker sein.');
  assert.equal(frames.at(-1)?.phase,'nowcast','Zukünftige Radarframes müssen als Nowcast gekennzeichnet sein.');
  assert.equal(mod.nearestAvailableFrameIndex(frames,reference+240),2,'Die Auswahl muss auf den nächsten echten Produktstand springen.');
+ const models=mod.buildAvailableCompositeTimeline(reference,{source:'Modell',observations:[reference-300],forecasts:[reference-7200,reference+7200]},180,180);
+ assert.ok(models.some(f=>f.time===reference-7200),'Nur für aktivierte Modellkarten dürfen bestätigte vergangene +3h-Daten erreichbar sein.');
+ assert.equal(mod.preferForecastFrameIndex(models,[reference-7200,reference+7200],reference),models.findIndex(f=>f.time===reference+7200),'Beobachtungs-Livewert darf den tatsächlichen Modelltermin nicht ersetzen.');
+ assert.equal(mod.preferForecastFrameIndex(frames,[],reference),frames.findIndex(f=>f.live),'Ohne Modellframes bleibt Live-Follow auf Beobachtungen.');
+ assert.ok(!frames.some(f=>f.time===reference-7200),'Beobachtungsvertrag behält die historische 90-Minuten-Grenze.');
 }finally{await rm(directory,{recursive:true,force:true})}
 
 console.log('Kompositbild geprüft: zeitechte Layerframes, Live-Follow, gepufferte Rasterwechsel, moderne Modi und echogebundene Zugspuren.');

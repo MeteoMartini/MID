@@ -5,27 +5,30 @@ import {loadNativeField,type NativeIndex} from './nativeModelFields';
 import {loadSynopticField,type SynopticIndex} from './nativeSynopticFields';
 import {loadWeatherMapMetadata,weatherMapWmsProxy,type WeatherMapMetadata} from './WeatherMapsData';
 import {nearestUnifiedTime} from './unifiedMapCatalog';
-import {CLOUD_WEATHER_LABEL,GDPS_CLOUD_LAYER,GDPS_WEATHER_LAYER,SIGNIFICANT_WEATHER_STYLES,loadCloudWeatherField,cloudWeatherAt,cloudWeatherDescription,cloudWeatherRaster,gdpsCloudWeatherCatalog,gdpsCloudWeatherPlan,nativeCloudWeatherPair,synopticCloudWeather,type CloudWeatherData} from './cloudWeatherData';
+import {CLOUD_WEATHER_LABEL,GDPS_CLOUD_LAYER,GDPS_WEATHER_LAYER,SIGNIFICANT_WEATHER_STYLES,loadCloudWeatherField,cloudWeatherAt,cloudWeatherDescription,cloudWeatherRaster,gdpsCloudWeatherCatalog,gdpsCloudWeatherPlan,nativeCloudWeatherPair,pairedNativeCloudWeatherTimes,synopticCloudWeather,type CloudWeatherData} from './cloudWeatherData';
 import './CloudSignificantWeather.css';
 
 export function useCloudWeatherMap(enabled:boolean,target:number,modelId:string,revision:number,native:{index:NativeIndex;base:string}|null,synoptic:{index:SynopticIndex;base:string}|null){
  const [data,setData]=useState<CloudWeatherData|null>(null),[metadata,setMetadata]=useState<WeatherMapMetadata[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState(''),[tiles,setTiles]=useState<Set<string>>(()=>new Set());
  const cache=useRef(new Map<string,CloudWeatherData>());
  const separateModel=synoptic?.index.models[modelId],separateFrames=separateModel?.cloudWeatherFrames??[];
- const nativeTimes=separateFrames.length?separateFrames.map(f=>f.time):modelId==='icon-d2'?native?.index.products.sigwx?.frames.filter(w=>native.index.products.cloud?.frames.some(c=>c.time===w.time)).map(f=>f.time)??[]:synoptic?.index.models[modelId]?.frames.filter(f=>f.cloudWeather===true).map(f=>f.time)??[];
+ const pairedNativeTimes=modelId==='icon-d2'?pairedNativeCloudWeatherTimes(native?.index??null):[];
+ const embeddedTimes=synoptic?.index.models[modelId]?.frames.filter(f=>f.cloudWeather===true).map(f=>f.time)??[];
+ const nativeTimes=[...new Set([...separateFrames.map(f=>f.time),...pairedNativeTimes,...embeddedTimes])].sort((a,b)=>Date.parse(a)-Date.parse(b));
  const nativeTime=nearestUnifiedTime(nativeTimes,target),gdpsPlan=useMemo(()=>gdpsCloudWeatherPlan(metadata,target),[metadata,target]);
- const time=modelId==='gdps'?gdpsPlan?.time:nativeTime,run=modelId==='gdps'?gdpsPlan?.run:separateFrames.length?separateModel?.run:modelId==='icon-d2'?native?.index.run:synoptic?.index.models[modelId]?.run,context=`${modelId}:${run}:${time}:${revision}`;
+ const time=modelId==='gdps'?gdpsPlan?.time:nativeTime,selectedIndependentFrame=separateFrames.find(f=>f.time===time),useNativePair=modelId==='icon-d2'&&!selectedIndependentFrame&&pairedNativeTimes.includes(time??'');
+ const run=modelId==='gdps'?gdpsPlan?.run:selectedIndependentFrame?separateModel?.run:useNativePair?native?.index.run:synoptic?.index.models[modelId]?.run,context=`${modelId}:${run}:${time}:${revision}`;
  const currentContext=useRef(context);currentContext.current=context;
  useEffect(()=>{const c=new AbortController();setMetadata([]);setError('');if(!enabled||modelId!=='gdps')return()=>c.abort();setLoading(true);
   void Promise.all([loadWeatherMapMetadata(GDPS_CLOUD_LAYER,c.signal),loadWeatherMapMetadata(GDPS_WEATHER_LAYER,c.signal)]).then(rows=>{if(!c.signal.aborted)setMetadata(rows)}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort();
  },[enabled,modelId,revision]);
  useEffect(()=>{const c=new AbortController();setData(null);if(!enabled||modelId==='gdps')return()=>c.abort();setError('');setLoading(false);if(!time||!run)return()=>c.abort();
-  const refs=separateFrames.length?[separateFrames.find(f=>f.time===time)]:modelId==='icon-d2'?[native?.index.products.cloud?.frames.find(f=>f.time===time),native?.index.products.sigwx?.frames.find(f=>f.time===time)]:[synoptic?.index.models[modelId]?.frames.find(f=>f.time===time&&f.cloudWeather===true)];
+  const refs=selectedIndependentFrame?[selectedIndependentFrame]:useNativePair?[native?.index.products.cloud?.frames.find(f=>f.time===time),native?.index.products.sigwx?.frames.find(f=>f.time===time)]:[synoptic?.index.models[modelId]?.frames.find(f=>f.time===time&&f.cloudWeather===true)];
   if(refs.some(r=>!r))return()=>c.abort();const key=`${context}:${refs.map(r=>r!.sha256).join(':')}`,cached=cache.current.get(key);if(cached){setData(cached);return()=>c.abort();}
   setLoading(true);const timer=window.setTimeout(()=>{setError('Wolken-/Wetterfeld: Zeitüberschreitung.');setLoading(false);c.abort()},30000);
   const load=async()=>{
-   if(separateFrames.length&&separateModel&&synoptic){const frame=separateFrames.find(f=>f.time===time);return frame?loadCloudWeatherField(synoptic.base,modelId,separateModel,frame,c.signal):null;}
-   if(modelId==='icon-d2'&&native){const cloudRef=native.index.products.cloud?.frames.find(f=>f.time===time),weatherRef=native.index.products.sigwx?.frames.find(f=>f.time===time);if(!cloudRef||!weatherRef)return null;const [cloud,weather]=await Promise.all([loadNativeField(native.index,native.base,cloudRef,'cloud',c.signal),loadNativeField(native.index,native.base,weatherRef,'sigwx',c.signal)]);return nativeCloudWeatherPair(cloud,weather);}
+   if(selectedIndependentFrame&&separateModel&&synoptic)return loadCloudWeatherField(synoptic.base,modelId,separateModel,selectedIndependentFrame,c.signal);
+   if(useNativePair&&native){const cloudRef=native.index.products.cloud?.frames.find(f=>f.time===time),weatherRef=native.index.products.sigwx?.frames.find(f=>f.time===time);if(!cloudRef||!weatherRef)return null;const [cloud,weather]=await Promise.all([loadNativeField(native.index,native.base,cloudRef,'cloud',c.signal),loadNativeField(native.index,native.base,weatherRef,'sigwx',c.signal)]);return nativeCloudWeatherPair(cloud,weather);}
    const model=synoptic?.index.models[modelId],frame=model?.frames.find(f=>f.time===time&&f.cloudWeather===true);return synoptic&&model&&frame?synopticCloudWeather(await loadSynopticField(synoptic.base,modelId,model,frame,c.signal)):null;
   };
   void load().then(value=>{if(!c.signal.aborted&&value){cache.current.set(key,value);while(cache.current.size>4)cache.current.delete(cache.current.keys().next().value!);setData(value)}}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{window.clearTimeout(timer);if(!c.signal.aborted)setLoading(false)});

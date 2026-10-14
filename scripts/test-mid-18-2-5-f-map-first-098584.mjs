@@ -17,7 +17,7 @@ for(const token of [
  "viewMode==='satellite'",
  "viewMode==='synoptic'",
  'const timelineContract=useMemo',
- 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120)',
+ 'buildAvailableCompositeTimeline(referenceSeconds,timelineContract,modelNeedsHistory?180:90,unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120)',
  'className="composite-timeline-card"',
  'className="radar-playback-buttons"',
  'className="composite-playback-speed"',
@@ -28,6 +28,8 @@ for(const token of [
  'value={modelOpacity}'
 ])assert.ok(radar.includes(token),`F-Radar-/Kompositvertrag fehlt: ${token}`);
 
+assert.ok(radar.includes('modelNeedsHistory=Boolean(unified?.enabled&&modelForecastTimes.some('),'Nur ausdrücklich aktivierte Modellkarten dürfen den Verlauf erweitern.');
+assert.ok(radar.includes('preferForecastFrameIndex(frames,modelForecastTimes,referenceSeconds)'),'Aktive Modellkarten verwenden bestätigte Termine statt Beobachtungs-Zeitstempel.');
 assert.ok(radar.includes('Langsam · 4,8 s')&&radar.includes('Normal · 2,4 s')&&radar.includes('Schnell · 1,2 s'),'Playback-Geschwindigkeit muss erhalten bleiben.');
 assert.ok(radar.includes('Beobachtung')&&radar.includes('Nowcast')&&radar.includes('Modell'),'Beobachtung, Nowcast und Modell müssen fachlich getrennt bleiben.');
 assert.ok(radar.includes('250-m-Radar und Warnkarte erscheinen nur im Live-Zustand'),'Live-only-Vertrag für hochauflösendes Radar/Warnkarte muss erhalten bleiben.');

@@ -1,6 +1,6 @@
-# MID v0.9.85.251 · Zuverlässigere RUC-Veröffentlichungsprüfung
+# MID v0.9.85.252 · Modellkarten bei echten Datenlücken besser erreichbar
 
-- MID prüft nach dem Hochladen neuer RUC-Wetterdaten etwas länger, ob der neue Modelllauf tatsächlich an der öffentlichen Adresse angekommen ist. Dadurch führen verzögerte Pages-Aktualisierungen seltener zu unnötigen Fehlalarmen.
-- Die Überprüfung bleibt streng: Ein älterer oder ungültiger Modelllauf wird weiterhin nicht als erfolgreich bestätigt. Auch der Worker muss den richtigen Lauf und vollständige Daten melden.
-- Zusätzliche automatisierte Tests simulieren sowohl eine verspätete Aktualisierung als auch dauerhaft veraltete oder ungültige Daten. Der Kontrolllauf dokumentiert jetzt die einzelnen Wiederholungsversuche verständlicher.
-- Das Wettermodellangebot, die Berechnungen, das Datenspeicherbudget und die App-Oberfläche bleiben unverändert.
+- Bei geöffneten Modellkarten wählt die gemeinsame Zeitleiste zum Einstieg einen tatsächlich vorhandenen Modelltermin statt eines reinen Radar-/Beobachtungszeitpunkts. Das reduziert leere Synoptik-Komposite bei ungleichmäßig verfügbaren Modellzeiten.
+- Bei „Wolken und signifikantes Wetter“ kann ICON-D2 für einzelne fehlende Termine ein schon vorhandenes, zeitgleiches natives Wolken-/Wetterfeldpaar nutzen. Fehlende oder unpassende Felder werden weiterhin nicht ergänzt oder geschätzt.
+- Zusätzliche Regressionen prüfen die Terminwahl und stellen sicher, dass nur gemeinsam verfügbare Modellfelder verwendet werden.
+- Modellberechnungen, Warnschwellen, RUC-Datenformat, Speicherschutz und die Bedienung anderer Wetterkarten bleiben unverändert.
