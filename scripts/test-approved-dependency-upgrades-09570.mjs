@@ -7,6 +7,7 @@ const [pkgText,lockText,policy,deploy,install,audit,patchDeploy,patchInstall,bas
 const pkg=JSON.parse(pkgText),lock=JSON.parse(lockText),baseline=JSON.parse(baselineText);
 for(const [name,value] of [['react','19.2.8'],['react-dom','19.2.8'],['react-is','19.2.8'],['recharts','3.10.1']]){assert.equal(pkg.dependencies?.[name],value);assert.equal(lock.packages?.[`node_modules/${name}`]?.version,value)}
 assert.equal(pkg.dependencies?.['lucide-react'],'^1.40.0');assert.equal(lock.packages?.['node_modules/lucide-react']?.version,'1.40.0');
+assert.equal(lock.packages?.['node_modules/source-map-js']?.version,'1.2.2','Source-map HIGH-Patch muss im qualifizierten Lockfile erhalten bleiben.');
 assert.equal(pkg.devDependencies?.typescript,'7.0.2');assert.equal(pkg.devDependencies?.['typescript-strada'],'npm:typescript@6.0.3');assert.equal(lock.packages?.['node_modules/typescript-strada']?.version,'6.0.3');
 assert.equal(pkg.devDependencies?.vite,'8.2.2');assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'6.1.1');
 assert.equal(pkg.devDependencies?.esbuild,'0.28.2');assert.equal(lock.packages?.['node_modules/esbuild']?.version,'0.28.2');

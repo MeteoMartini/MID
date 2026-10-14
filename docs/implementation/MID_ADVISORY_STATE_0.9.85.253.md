@@ -9,3 +9,7 @@ Die schon bestehende deferred-external-service-outage-Policy bleibt erhalten (pr
 Die vorhandene Required-Regression ist um echte lokale HTTP-/Prozessfixtures ergänzt: npm sauber, npm-Ausfall/OSV sauber, beide 503, malformed OSV, npm HIGH, OSV CRITICAL. Isolierter temporärer Root und eigener Report verhindern Überschreibung anderer Audit-Evidenz; Summary, Hash, Fehleranzahl, Exit-Code und ausbleibendes Clean-Log werden geprüft.
 
 Keine Codec-/UI-/CSS-/Modelländerungen. #344, #345, #348, #350, #352 und echte iOS/WKWebView/VoiceOver bleiben getrennt offen. Publikation nur über Source-Gate/Release-Bot/Installer/Pages/Stable.
+
+## Zusätzlicher Sicherheitsbefund vor Freigabe
+
+`npm run audit:all` am 14.10.2026 meldete source-map-js 1.2.1 HIGH (GHSA-68fv-2mgg-jv7q). PR #358 sofort zurück in Draft. Offizielle Advisory: https://github.com/advisories/GHSA-68fv-2mgg-jv7q, patched 1.2.2. Genau ein transitives Dev-Paket aktualisiert (`npm update source-map-js`), kein Override und keine Framework-Version geändert. Upgrade-Policy/Required-Lockfile-Test sichern den Patch. Bestehende drei moderate Dev-/iOS-Befunde bleiben upstream. Alle Checks nach dem Patch erneut erforderlich; ältere grüne Resultate reichen nicht.

@@ -30,6 +30,12 @@ for(const [name,version] of Object.entries(expectedDev)){
  const locked=lock.packages?.[`node_modules/${name}`]?.version, want=lockedVersion(name,version);
  if(locked!==want)failures.push(`${name}: Lockfile ${locked??'fehlt'} statt ${want}`);
 }
+for(const [packagePath,entry] of Object.entries(lock.packages??{})){
+ if(packagePath.endsWith('node_modules/source-map-js')){
+  const version=String(entry.version??''),parts=version.split('.').map(Number);
+  if(!/^1\.\d+\.\d+$/.test(version)||parts[1]<2||(parts[1]===2&&parts[2]<2))failures.push(`${packagePath}: source-map-js >=1.2.2 im kompatiblen 1.x-Pfad erforderlich (GHSA-68fv-2mgg-jv7q)`);
+ }
+}
 const vite=await readFile(new URL('../vite.config.ts',import.meta.url),'utf8');
 for(const token of ["minify:'oxc'","cssMinify:'lightningcss'",'rolldownOptions','codeSplitting'])if(!vite.includes(token))failures.push(`Vite-8-Vertrag fehlt: ${token}`);
 for(const deprecated of ["minify:'esbuild'","cssMinify:'esbuild'",'rollupOptions','manualChunks'])if(vite.includes(deprecated))failures.push(`Deprecated Vite-Pfad ist noch aktiv: ${deprecated}`);
