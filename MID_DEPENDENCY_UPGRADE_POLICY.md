@@ -65,3 +65,11 @@ Capacitor Core/iOS/CLI 8.5.2, Share 8.0.2 und jsfive 0.4.2 sind gemeinsam mit Lo
 ## v0.9.85.170 · CSS-Aggregate-Parser
 
 PostCSS 8.5.28 (bereits transitiv durch Vite vorhanden) wird direkt und exakt als Entwicklungsabhängigkeit für die auditierte CSS-Kaskadenkonsolidierung deklariert. Keine Änderung an Produktionsabhängigkeiten oder Framework-Versionen.
+
+## v0.9.85.253 · Advisory-Verfügbarkeit explizit ausweisen
+
+Der bestehende Sonderfall eines reinen externen Advisory-Doppel-Ausfalls bleibt deferred (Exit 0 nach validiertem installiertem Produktionsbaum); er ist **keine Sicherheitsfreigabe**. `artifacts/dependency-audit.json`, die maschinenlesbare Logzeile und die GitHub-Step-Zusammenfassung müssen `state: unknown`, Lockfile-SHA-256, Prüfzeit, beide Providerfehler und `recheckRequired: true` ausweisen. Bei erfolgreicher vollständiger Quelle ist der Zustand `checked`, bei HIGH/CRITICAL `blocked` mit Exit 1. Unvollständige oder ungültige Quellantworten zählen als Quellenfehler. Bestehende Upgrade-Policy, unabhängiger vollständiger `audit:all` und Release-Gates bleiben verbindlich; kein Advisory-Ausfall darf als nachgewiesene Befundfreiheit beschrieben werden. Nachprüfung über den bestehenden regelmäßigen Dependency-/Revisionsaudit; bei einer erfolglosen Nachprüfung bleibt die Sicherheitsbewertung offen.
+
+### HIGH-Patch im CSS-Buildpfad
+
+`postcss 8.5.28 -> source-map-js ^1.2.1` wird ohne Override und ohne PostCSS-/Vite-Migration auf den kompatiblen Lockfile-Patch **1.2.2** angehoben. GHSA-68fv-2mgg-jv7q / CVE-2026-93749 betrifft indexed source-map section offsets bis 1.2.1. Die Upgrade-Policy verbietet künftig betroffene source-map-js-Versionen im 1.x-Pfad. Vollständiger npm-Audit, Rebuild, CSS-Kaskaden-/Bundle-/Regressionen sind erforderlich. Die drei moderaten Capacitor/xcode/uuid-Dev-Befunde bleiben getrennt upstream; kein force-fix, kein Capacitor-Downgrade.

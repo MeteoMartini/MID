@@ -1,8 +1,10 @@
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir,writeFile,appendFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 
 const root=new URL('../',import.meta.url);
-const lock=JSON.parse(await readFile(new URL('../package-lock.json',import.meta.url),'utf8'));
+const lockText=await readFile(new URL('../package-lock.json',import.meta.url),'utf8');
+const lock=JSON.parse(lockText);
 const packages=lock.packages??{};
 
 const packageNameFromPath=(packagePath)=>{
@@ -64,9 +66,10 @@ async function auditWithNpmBulk(){
  for(const item of productionPackages)(versions[item.name]??=[]).push(item.version);
  const endpoint=process.env.MID_NPM_AUDIT_BULK_URL||'https://registry.npmjs.org/-/npm/v1/security/advisories/bulk';
  const payload=await fetchJson(endpoint,{body:versions});
+ if(!payload||typeof payload!=='object'||Array.isArray(payload))throw new Error('Ungültiger npm-Advisory-Bericht.');
  const findings=[];
  for(const [packageName,advisories] of Object.entries(payload??{})){
-  if(!Array.isArray(advisories))continue;
+  if(!Array.isArray(advisories))throw new Error('Ungültige npm-Advisory-Liste.');
   for(const advisory of advisories){
    const severity=normalizeSeverity(advisory?.severity??advisory?.cvss?.severity);
    const score=Number(advisory?.cvss?.score);
@@ -97,7 +100,8 @@ async function auditWithOsv(){
  const endpoint=process.env.MID_OSV_AUDIT_URL||'https://api.osv.dev/v1/querybatch';
  const queries=productionPackages.map(({name,version})=>({package:{name,ecosystem:'npm'},version}));
  const payload=await fetchJson(endpoint,{body:{queries},timeoutMs:20000});
- const results=Array.isArray(payload?.results)?payload.results:[];
+ if(!Array.isArray(payload?.results)||payload.results.length!==queries.length||payload.results.some(result=>!result||typeof result!=='object'||Array.isArray(result)||(result.vulns!==undefined&&!Array.isArray(result.vulns))))throw new Error('Ungültiger oder unvollständiger OSV-Advisory-Bericht.');
+ const results=payload.results;
  const findings=[];
  results.forEach((result,index)=>{
   const packageInfo=productionPackages[index];
@@ -134,23 +138,37 @@ console.log(`MID Dependency Audit: ${productionPackages.length} installierte Pro
 
 let findings=[];
 let npmBulkError=null;
+let source='npm-bulk';
+let advisoryUnavailable=false;
+const providerErrors=[];
 try{
  findings=await auditWithNpmBulk();
  console.log('MID Dependency Audit: npm Bulk Advisory Endpoint erfolgreich geprüft.');
 }catch(error){
  npmBulkError=error;
+ providerErrors.push({source:'npm-bulk',message:String(error?.message??error)});
  console.warn(`::warning::npm Bulk Advisory Endpoint nicht erreichbar (${error?.message??error}). OSV-Fallback wird verwendet.`);
  try{
   findings=await auditWithOsv();
+  source='osv';
   console.log('MID Dependency Audit: OSV-Fallback erfolgreich geprüft.');
  }catch(osvError){
   console.warn(`::warning::Auch OSV ist vorübergehend nicht erreichbar (${osvError?.message??osvError}). Der Release wird wegen eines reinen externen Advisory-Service-Ausfalls nicht blockiert; npm-ci-Baum, Lockfile und MID-Upgrade-Policy bleiben separat verbindlich.`);
   console.warn(`::warning::Primärer npm-Fehler: ${npmBulkError?.message??npmBulkError}`);
   findings=[];
+  source=null;
+  advisoryUnavailable=true;
+  providerErrors.push({source:'osv',message:String(osvError?.message??osvError)});
  }
 }
 
 const deduped=[...new Map(findings.map(item=>[advisoryKey(item),item])).values()];
+const state=deduped.length?'blocked':advisoryUnavailable?'unknown':'checked';
+const report={schema:'mid.dependency-audit.v1',state,checkedAt:new Date().toISOString(),lockfileSha256:createHash('sha256').update(lockText).digest('hex'),productionPackageVersions:productionPackages.length,source,findings:deduped,providerErrors,recheckRequired:advisoryUnavailable,releasePolicy:advisoryUnavailable?'deferred-external-service-outage':'enforce-high-critical'};
+await mkdir(new URL('../artifacts/',import.meta.url),{recursive:true});
+await writeFile(new URL('../artifacts/dependency-audit.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
+console.log(`MID_DEPENDENCY_AUDIT_RESULT=${JSON.stringify(report)}`);
+if(process.env.GITHUB_STEP_SUMMARY)await appendFile(process.env.GITHUB_STEP_SUMMARY,`\nMID Dependency Audit: **${state}** · ${productionPackages.length} Produktionsversionen · Lockfile SHA-256 \`${report.lockfileSha256}\` · Quelle: ${source??'keine verfügbar'}${advisoryUnavailable?' · Nachprüfung erforderlich; keine Sicherheitsfreigabe belegt.':''}\n`);
 if(deduped.length){
  console.error('MID Dependency Audit: HIGH/CRITICAL-Sicherheitsbefunde in Produktionsabhängigkeiten:');
  for(const item of deduped){
@@ -159,4 +177,5 @@ if(deduped.length){
  process.exit(1);
 }
 
-console.log('MID Dependency Audit: keine HIGH/CRITICAL-Befunde aus dem verfügbaren Advisory-Pfad.');
+if(advisoryUnavailable)console.warn('::warning::MID Dependency Audit: UNKNOWN – beide Advisory-Dienste ausgefallen. Keine Aussage über HIGH/CRITICAL möglich; Nachprüfung erforderlich. Bestehende externe-Ausfall-Policy unverändert.');
+else console.log('MID Dependency Audit: keine HIGH/CRITICAL-Befunde aus dem verfügbaren Advisory-Pfad.');
