@@ -47,7 +47,7 @@ def encode_candidate(raw: bytes, codec: str) -> tuple[dict, bytes]:
     wire = gzip.compress(shaped, compresslevel=6, mtime=0)
     return ({'schema': SCHEMA, 'codec': codec,
              'decodedBytes': len(raw), 'encodedBytes': len(wire),
-             'decodedSha256': _digest(raw), 'encodedSha256': _digest(wire)}, wire
+             'decodedSha256': _digest(raw), 'encodedSha256': _digest(wire)}, wire)
 
 
 def decode_candidate(manifest: dict, wire: bytes) -> bytes:
