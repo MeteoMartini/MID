@@ -65,3 +65,7 @@ Capacitor Core/iOS/CLI 8.5.2, Share 8.0.2 und jsfive 0.4.2 sind gemeinsam mit Lo
 ## v0.9.85.170 · CSS-Aggregate-Parser
 
 PostCSS 8.5.28 (bereits transitiv durch Vite vorhanden) wird direkt und exakt als Entwicklungsabhängigkeit für die auditierte CSS-Kaskadenkonsolidierung deklariert. Keine Änderung an Produktionsabhängigkeiten oder Framework-Versionen.
+
+## v0.9.85.253 · Advisory-Verfügbarkeit explizit ausweisen
+
+Der bestehende Sonderfall eines reinen externen Advisory-Doppel-Ausfalls bleibt deferred (Exit 0 nach validiertem installiertem Produktionsbaum); er ist **keine Sicherheitsfreigabe**. `artifacts/dependency-audit.json`, die maschinenlesbare Logzeile und die GitHub-Step-Zusammenfassung müssen `state: unknown`, Lockfile-SHA-256, Prüfzeit, beide Providerfehler und `recheckRequired: true` ausweisen. Bei erfolgreicher vollständiger Quelle ist der Zustand `checked`, bei HIGH/CRITICAL `blocked` mit Exit 1. Unvollständige oder ungültige Quellantworten zählen als Quellenfehler. Bestehende Upgrade-Policy, unabhängiger vollständiger `audit:all` und Release-Gates bleiben verbindlich; kein Advisory-Ausfall darf als nachgewiesene Befundfreiheit beschrieben werden. Nachprüfung über den bestehenden regelmäßigen Dependency-/Revisionsaudit; bei einer erfolglosen Nachprüfung bleibt die Sicherheitsbewertung offen.
