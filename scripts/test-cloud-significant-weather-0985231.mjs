@@ -7,6 +7,31 @@ const temp=mkdtempSync(path.resolve('.mid-cloud-weather-'));
 try{
  await build({entryPoints:['src/cloudWeatherData.ts','src/cloudWeatherExport.ts','src/nativeSynopticFields.ts'],outdir:temp,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent',define:{'import.meta.env':'{}'}});
  const m=await import(pathToFileURL(path.join(temp,'cloudWeatherData.js'))),exp=await import(pathToFileURL(path.join(temp,'cloudWeatherExport.js'))),native=await import(pathToFileURL(path.join(temp,'nativeSynopticFields.js')));
+ const producer=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8').match(/OPTIONAL_D2_CLOUD_HOURS=frozenset\(\(([^)]*)\)\)/);assert.ok(producer);assert.deepEqual([...native.OPTIONAL_D2_CLOUD_HOURS],producer[1].split(',').map(Number),'Publisher and client must retain the same optional-hour contract');
+ // Actual SHA-bound public manifest that triggered the user's catalogue failure.
+ const fixture=readFileSync('scripts/fixtures/synoptic/index-20261014T1600.json');
+ const {createHash}=await import('node:crypto'),hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+ const fixtureKey=bytes=>`runs/2026-10-14T1600__synoptic_${hash(bytes).slice(0,16)}/synoptic-fields/index.json`;
+ const originalFetch=globalThis.fetch,originalNow=Date.now;
+ async function catalogue(bytes=fixture,badHash=false){
+  globalThis.fetch=async input=>String(input).includes('latest.json')?Response.json({synopticFields:{key:badHash?fixtureKey(bytes).replace(hash(bytes).slice(0,16),'0'.repeat(16)):fixtureKey(bytes)}}):new Response(bytes);
+  return native.loadSynopticIndex(new AbortController().signal);
+ }
+ try{
+  Date.now=()=>Date.parse('2026-10-14T17:00:00Z');
+  const published=await catalogue();
+  assert.deepEqual(Object.keys(published.index.models).sort(),['gfs','icon','icon-d2','icon-eu','ifs']);
+  for(const h of [13,14,16,17])assert.ok(published.index.models['icon-d2'].cloudWeatherFrames.some(f=>f.hour===h),'Valid published optional D2 hours must not reject every model');
+  for(const h of [13,14,16,17])for(const id of ['icon-eu','icon']){
+   const bad=JSON.parse(fixture);const frame=bad.models[id].cloudWeatherFrames[0];frame.hour=h;frame.time=new Date(Date.parse(bad.models[id].run)+h*3600000).toISOString();frame.file=`${id}-cw-${String(h).padStart(3,'0')}.bin`;
+   await assert.rejects(()=>catalogue(Buffer.from(JSON.stringify(bad))),/Wolken-\/Wettertermine/,'D2-only additions must not silently expand other models');
+  }
+  for(const patch of [{hour:19},{hour:60},{hour:13.5},{time:'2026-10-14T00:00:00Z'},{bytes:12000001},{decodedBytes:12000001},{sha256:'invalid'},{file:'../field.bin'},{encoding:'plain-json'}]){
+   const bad=JSON.parse(fixture);const changed=bad.models['icon-d2'].cloudWeatherFrames.find(f=>f.hour===13);Object.assign(changed,patch);if(patch.hour!==undefined){changed.time=new Date(Date.parse(bad.models['icon-d2'].run)+patch.hour*3600000).toISOString();changed.file=`icon-d2-cw-${String(patch.hour).padStart(3,'0')}.bin`;}
+   await assert.rejects(()=>catalogue(Buffer.from(JSON.stringify(bad))),/Wolken-\/Wettertermine/);
+  }
+  await assert.rejects(()=>catalogue(fixture,true),/Prüfsumme/);
+ }finally{globalThis.fetch=originalFetch;Date.now=originalNow}
  const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString(),time=new Date(Date.parse(run)+3*3600000).toISOString();
  const cloud={kind:'cloud',run,time,scale:.1,lats:[47,48],lons:[6,7],values:[0,1000,NaN,500]},weather={...cloud,kind:'sigwx',values:[0,610,NaN,860]};
  const pairedTimes=m.pairedNativeCloudWeatherTimes({products:{cloud:{frames:[{time},{time:run}]},sigwx:{frames:[{time}]}}});

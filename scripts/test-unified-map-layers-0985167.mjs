@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
+import {mapBrowserRunPlan} from './map-browser-shards.mjs';
 const read=p=>readFileSync(p,'utf8'),ts=createRequire(import.meta.url)('typescript-strada');
 const wms=read('src/unifiedWmsCatalog.ts').replace(/^import .*?;\n/m,''),models=[{id:'icon',label:'Global'},{id:'icon-eps',label:'EPS'},{id:'icon-d2',label:'D2'}],products={'icon':[{id:'icon-t2m'},{id:'icon-wind-10m'},{id:'icon-gh'}],'icon-eps':[{id:'icon-eps-gust-12h'}],'icon-d2':[]};
 const js=ts.transpileModule(`const WEATHER_MAP_MODELS=${JSON.stringify(models)};const products=${JSON.stringify(products)};const weatherMapProductsForModel=id=>products[id];${wms}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText,m=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
@@ -27,5 +28,5 @@ assert.ok(radar.includes('unified?.overlay')&&radar.includes('unified?.controls'
 assert.ok(radar.includes("visibleModelLines:ModelLineMode=unified?'off'"),'Old synoptic must be absent in unified route');
 assert.ok(radar.includes('unified?availableCompositeFutureMinutes(referenceSeconds,modelForecastTimes):120')&&radar.includes('unified.times.map'),'Only actual model terms, not fabricated interpolations');
 assert.ok(read('src/UnifiedVectorBasemap.tsx').includes('VectorTileLayers'),'Vector geography replaces pixel base');
-if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:900000});
+if(process.env.GITHUB_ACTIONS==='true')for(const shard of mapBrowserRunPlan(process.env.MID_MAP_QA_SHARD))execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:900000,env:{...process.env,MID_MAP_QA_SHARD:shard}});
 console.log('MID-C17 unified map: scientific model/parameter matrix, one lazy/memoized map, native field integrity, overlays/probes/exports, bounded caching, persistence and legacy-source exclusion verified.');
