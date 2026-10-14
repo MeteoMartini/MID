@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.256';
+const WORKER_VERSION='0.9.85.257';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -1236,6 +1236,126 @@ function knmiPackSparseRanges(ranges,{maxParts=KNMI_EPS_RANGE_PARTS_PER_REQUEST,
 }
 function knmiEpsTarCacheHealth(env){const binding=knmiEpsCacheBinding(env),openDataConfigured=Boolean(knmiEpsOpenDataKey(env)),decoderConfigured=Boolean(knmiEpsDecoderEndpoint(env));return{schema:KNMI_EPS_TAR_INDEX_SCHEMA,configured:Boolean(binding),persistent:Boolean(binding),binding:binding?.binding||null,keyPrefix:KNMI_EPS_TAR_CACHE_PREFIX,ttlHours:KNMI_EPS_TAR_INDEX_TTL_SECONDS/3600,memoryTtlMinutes:KNMI_EPS_TAR_MEMORY_TTL_MS/60000,openDataConfigured,decoderConfigured,productionReady:openDataConfigured&&decoderConfigured,pushNamespaceIsolation:'Push-Scheduler listet ausschließlich sub:-Keys; KNMI-Index liegt unter cache:knmi-eps:.',rangePacking:{maxPartsPerRequest:KNMI_EPS_RANGE_PARTS_PER_REQUEST,mode:'HTTP multi-range; keine vollständigen TAR-/GRIB-Downloads'},archivePolicy:'Ein persistenter kompakter TAR-Index je KNMI-Stundenarchiv; Neuaufbau nur bei Cache-Miss.',rollingPolicy:'Sechs lückenlose Stundenarchive × fünf zeitabhängig zugeordnete Member; gemeinsamer gültiger Horizont maximal 54 h.',decoderPolicy:'Cloudflare Worker dekodiert kein GRIB. Er liefert dem konfigurierten HTTPS-Punktdecoder ausschließlich einen kurzlebigen Rolling-/Range-Manifestvertrag.'}}
 export {knmiBuildTarIndex,knmiCachedTarIndex,knmiEpsProductionAdapterPayload,knmiEpsProductionConfigured,knmiEpsRollingArchivePlan,knmiEpsTarCacheHealth,knmiPackSparseRanges,knmiTarHeader};
+/* Generated isolated canary from tools/ruc; no production consumer. */
+/**
+ * MID RUC lossless transport CANDIDATE decoder. Not wired into production.
+ * Matches tools/ruc/lossless_codec_pilot.py (v1). Runs in browser,
+ * WKWebView, Cloudflare Worker and Node without an npm dependency.
+ * Unknown wire always rejects; never reinterpret as v2 raw records.
+ */
+const RUC_CANDIDATE_SCHEMA = 'mid.ruc.lossless-candidate.v1';
+const RUC_MAX_DECODED_BYTES = 2_000_000;
+const RUC_MAX_WIRE_BYTES = 2_100_000;
+const CODECS = new Set(['gzip', 'byteplanes-gzip', 'delta-byteplanes-gzip']);
+const FIELDS = ['schema', 'codec', 'decodedBytes', 'encodedBytes', 'decodedSha256', 'encodedSha256'];
+const HASH = /^[0-9a-f]{64}$/;
+
+function requireManifest(manifest, wire) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest) ||
+      Object.keys(manifest).sort().join(',') !== [...FIELDS].sort().join(',')) {
+    throw new Error('RUC codec: invalid manifest fields');
+  }
+  const {schema, codec, decodedBytes, encodedBytes, decodedSha256, encodedSha256} = manifest;
+  if (schema !== RUC_CANDIDATE_SCHEMA || !CODECS.has(codec)) throw new Error('RUC codec: unknown schema or codec');
+  if (!Number.isSafeInteger(decodedBytes) || decodedBytes < 1 || decodedBytes > RUC_MAX_DECODED_BYTES ||
+      (codec !== 'gzip' && decodedBytes % 2)) throw new Error('RUC codec: invalid decoded length/alignment');
+  if (!Number.isSafeInteger(encodedBytes) || encodedBytes < 1 || encodedBytes > RUC_MAX_WIRE_BYTES ||
+      !(wire instanceof Uint8Array) || wire.byteLength !== encodedBytes) throw new Error('RUC codec: invalid wire length');
+  if (!HASH.test(decodedSha256) || !HASH.test(encodedSha256)) throw new Error('RUC codec: invalid SHA-256');
+}
+
+async function sha256Hex(bytes) {
+  if (!globalThis.crypto?.subtle?.digest) throw new Error('RUC codec: SHA-256 unavailable');
+  const hash = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes));
+  return Array.from(hash, value => value.toString(16).padStart(2, '0')).join('');
+}
+
+function restoreByteplanes(shaped) {
+  const half = shaped.length / 2;
+  const original = new Uint8Array(shaped.length);
+  for (let i = 0; i < half; i++) {
+    original[i * 2] = shaped[i];
+    original[i * 2 + 1] = shaped[half + i];
+  }
+  return original;
+}
+
+function restoreDeltaByteplanes(shaped) {
+  const half = shaped.length / 2;
+  const original = new Uint8Array(shaped.length);
+  let word = 0;
+  for (let i = 0; i < half; i++) {
+    const delta = shaped[i] | (shaped[half + i] << 8);
+    word = (word + delta) & 0xffff;
+    original[2 * i] = word & 0xff;
+    original[2 * i + 1] = word >>> 8;
+  }
+  return original;
+}
+
+/** Decode verified bytes with an explicit bound BEFORE weather data parsing. */
+async function decodeRucLosslessCandidate(manifest, wire) {
+  requireManifest(manifest, wire);
+  if (await sha256Hex(wire) !== manifest.encodedSha256) throw new Error('RUC codec: wire SHA-256 mismatch');
+  if (typeof globalThis.DecompressionStream !== 'function' || typeof globalThis.ReadableStream !== 'function') {
+    throw new Error('RUC codec: gzip streaming unavailable');
+  }
+  const source = new ReadableStream({start(controller) {controller.enqueue(wire); controller.close();}});
+  const reader = source.pipeThrough(new DecompressionStream('gzip')).getReader();
+  const shaped = new Uint8Array(manifest.decodedBytes);
+  let consumed = 0;
+  try {
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      if (!(value instanceof Uint8Array) || consumed + value.length > shaped.length) {
+        throw new Error('RUC codec: decompression exceeds declared length');
+      }
+      shaped.set(value, consumed);
+      consumed += value.length;
+    }
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    throw new Error('RUC codec: invalid or oversized gzip (' + String(error?.message || error) + ')');
+  } finally {
+    reader.releaseLock();
+  }
+  if (consumed !== shaped.length) throw new Error('RUC codec: truncated decoded payload');
+  const decoded = manifest.codec === 'gzip' ? shaped :
+    manifest.codec === 'byteplanes-gzip' ? restoreByteplanes(shaped) : restoreDeltaByteplanes(shaped);
+  if (await sha256Hex(decoded) !== manifest.decodedSha256) throw new Error('RUC codec: decoded SHA-256 mismatch');
+  return decoded;
+}
+// Generated by tools/ruc/build_lossless_transport_canary.py.
+const CANARY_MANIFEST={"candidates":[{"key":"1db4efe1f24d27f9e3733293b29e43fc730bb02ab9c15a9a7bd1ea51052c0830.gzip.bin","manifest":{"codec":"gzip","decodedBytes":131072,"decodedSha256":"68e419472d25e0b85e9917ccf692fd58245c5e95e9a46f07d1df81d2e9da246b","encodedBytes":118987,"encodedSha256":"1db4efe1f24d27f9e3733293b29e43fc730bb02ab9c15a9a7bd1ea51052c0830","schema":"mid.ruc.lossless-candidate.v1"}},{"key":"be4022a9f8950fba70e7f77f4086f557ebe7cb902cfbd3ac5eb79ef2923fa7fa.byteplanes-gzip.bin","manifest":{"codec":"byteplanes-gzip","decodedBytes":131072,"decodedSha256":"68e419472d25e0b85e9917ccf692fd58245c5e95e9a46f07d1df81d2e9da246b","encodedBytes":1172,"encodedSha256":"be4022a9f8950fba70e7f77f4086f557ebe7cb902cfbd3ac5eb79ef2923fa7fa","schema":"mid.ruc.lossless-candidate.v1"}},{"key":"260a5d0f5c7ee14f24d25b5c4c0f1091e520fbfead1897caefc7e932a4542cdb.delta-byteplanes-gzip.bin","manifest":{"codec":"delta-byteplanes-gzip","decodedBytes":131072,"decodedSha256":"68e419472d25e0b85e9917ccf692fd58245c5e95e9a46f07d1df81d2e9da246b","encodedBytes":162,"encodedSha256":"260a5d0f5c7ee14f24d25b5c4c0f1091e520fbfead1897caefc7e932a4542cdb","schema":"mid.ruc.lossless-candidate.v1"}}],"pattern":"all-int16-little-endian","productionEnabled":false,"raw":{"bytes":14,"key":"3fdd93862442149f46c9eb1d2213031aa242b70732d1fcc67f48679d54469a41.raw.bin","sha256":"3fdd93862442149f46c9eb1d2213031aa242b70732d1fcc67f48679d54469a41"},"schema":"mid.ruc.transport-canary.v1","synthetic":true};
+const CANARY_MANIFEST_SHA="d80163e0274ed5c82163773838443e832f9b7d27701e0791b70ebe874c38b650";
+/** Isolated read-only probe. Never consumes or changes production RUC metadata. */
+const RUC_CANARY_BASE='https://midwx.app/diagnostics/ruc-codec-v1/';
+async function readRucCanaryResponse(response,limit){
+ if(!response.ok||!response.body)throw Error('RUC canary: HTTP '+response.status);
+ const reader=response.body.getReader(),parts=[];let count=0;
+ try{while(true){const {done,value}=await reader.read();if(done)break;count+=value.byteLength;if(count>limit)throw Error('RUC canary: response exceeds bound');parts.push(value)}}catch(error){await reader.cancel().catch(()=>{});throw error}finally{reader.releaseLock()}
+ const bytes=new Uint8Array(count);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.byteLength}return bytes;
+}
+async function rucCanarySha(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('')}
+/** base is supplied only by the diagnostic harness; Worker route always uses fixed origin. */
+async function runRucTransportCanary(base=RUC_CANARY_BASE){
+ const abort=new AbortController(),timer=setTimeout(()=>abort.abort(new DOMException('RUC canary deadline','TimeoutError')),20000);
+ const fetchCanary=async(key,limit)=>{const response=await fetch(new URL(key,base),{signal:abort.signal,cache:'no-store'});return {bytes:await readRucCanaryResponse(response,limit),headers:response.headers}};
+ try{
+  const index=await fetchCanary('index.json',8192);if(await rucCanarySha(index.bytes)!==CANARY_MANIFEST_SHA)throw Error('RUC canary: manifest SHA mismatch');
+  const original=await fetchCanary(CANARY_MANIFEST.raw.key,CANARY_MANIFEST.raw.bytes);
+  if(original.bytes.length!==CANARY_MANIFEST.raw.bytes||await rucCanarySha(original.bytes)!==CANARY_MANIFEST.raw.sha256)throw Error('RUC canary: original SHA/length mismatch');
+  const expected=new Uint8Array(65536*2),words=new DataView(expected.buffer);for(let i=0;i<65536;i++)words.setUint16(i*2,i,true);
+  const rows=[];
+  for(const {key,manifest} of CANARY_MANIFEST.candidates){
+   const start=performance.now(),fetched=await fetchCanary(key,manifest.encodedBytes),decoded=await decodeRucLosslessCandidate(manifest,fetched.bytes);
+   if(decoded.length!==expected.length||decoded.some((value,i)=>value!==expected[i]))throw Error('RUC canary: byte equality mismatch');
+   rows.push({codec:manifest.codec,receivedBytes:fetched.bytes.length,decodedBytes:decoded.length,contentEncoding:fetched.headers.get('content-encoding')||'identity',etag:fetched.headers.get('etag'),cacheControl:fetched.headers.get('cache-control'),verified:true,fetchAndDecodeMs:Math.round((performance.now()-start)*100)/100});
+  }
+  return {schema:CANARY_MANIFEST.schema,synthetic:true,productionEnabled:false,legacyRawSha256:CANARY_MANIFEST.raw.sha256,originalSha256:CANARY_MANIFEST.candidates[0].manifest.decodedSha256,int16Patterns:65536,missingSentinelPreserved:true,rawContentEncoding:original.headers.get('content-encoding')||'identity',candidates:rows};
+ }finally{clearTimeout(timer)}
+}
 // --- Radar-Nowcast v0.7.13 --------------------------------------------------
 const DWD_RADAR_WMS_PRIMARY='https://maps.dwd.de/geoserver/wms';
 const DWD_RADAR_WMS_WORKSPACE='https://maps.dwd.de/geoserver/dwd/wms';
@@ -2915,6 +3035,7 @@ export default{async fetch(request,env){
  if(mode==='weather-map-metadata'){try{return json({...await weatherMapMetadata(request),version:WORKER_VERSION},200,{'cache-control':'public, max-age=300, stale-while-revalidate=900'})}catch(error){return json({times:[],referenceTimes:[],elevations:[],error:error instanceof Error?error.message:String(error),version:WORKER_VERSION,checkedAt:new Date().toISOString()},502,{'cache-control':'no-store'})}}
  if(mode==='composite-diagnostics')return json(await compositeDiagnostics(),200,{'cache-control':'no-store'});
  if(mode==='site-context'){try{return json({...await localSurfaceContext(lat,lon,env),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'public, max-age=21600, stale-while-revalidate=86400'})}catch(error){return json({available:false,error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},502,{'cache-control':'public, max-age=600'})}}
+ if(mode==='ruc-codec-canary'){try{return json({...await runRucTransportCanary(),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'no-store'})}catch(error){return json({schema:CANARY_MANIFEST.schema,synthetic:true,productionEnabled:false,verified:false,error:error instanceof Error?error.message:String(error),version:WORKER_VERSION},503,{'cache-control':'no-store'})}}
  if(mode==='ruc-health')return json({...await dwdRucStorageHealth(env),version:WORKER_VERSION,checkedAt:new Date().toISOString()},200,{'cache-control':'no-store'});
  if(mode==='health')return json({ok:true,version:WORKER_VERSION,services:['stations','country-aware-official-observations','dwd-cdc-10min','dwd-synop-poi','road-weather-adapter','regional-ensemble-adapters','knmi-harmonie-eps-productive-cache','ruc-storage-health','alerts','hyperlocal-networks','model-assisted-local-analysis','terrain-surface-context','copernicus-clms-lcm10','radar-nowcast','px250-proxy','opera-cirrus-raster','dwd-konrad3d-nowcast','radolan-yw-accumulations','dwd-rs-nowcast-anchors','radolan-rw-sf-history','dwd-rv-accumulations','kostra-dwd-2020','dwd-rain-station','rainviewer-metadata','rainviewer-tile-proxy','openfreemap-basemap-proxy','best-location-lightning','dwd-nowcastmix-lightning','composite-product-times','model-contours','official-dwd-surface-analysis','dwd-precipitation-type-image','dwd-precipitation-type-meta','dwd-precipitation-type-info','dwd-pollen','objective-front-candidates','upstream-observation-corridor','front-timing-assimilation','pressure-level-meteogram','flight-route-hazard-briefing','official-aviation-hazards','wafs-sigwx','icao-location','geosphere-snow-depth','uba-air-quality-v4-adapter','eea-air-quality-stations','pegelonline-rest-v2','bafu-hydrology-graphql','meteoalarm-ogc-edr-cap-adapter','noaa-mrms-regional-adapter','wis2-normalized-observation-ingest','copernicus-marine-subset-adapter','glofas-discharge-outlook','open-meteo-core-forecast-proxy','met-norway-locationforecast-adapter','open-meteo-ensemble-proxy','open-meteo-model-meta','dwd-rapid-model-meta','adaptive-priority-forecast-fusion','dwd-mosmix-postprocessing','web-push-rules','push-kv-operations-audit','device-sync','device-sync-archive','connected-weather-stations','netatmo-oauth','ventilation-assistant','native-widget-feed','model-run-change-alerts','cors-safe-composite-wms','dwd-weather-map-wms','dwd-weather-map-point','dach-extreme-outlook','travel-water-climate','weather-map-grid','precipitation-phase-grid','weather-map-metadata','composite-diagnostics','noaa-cfsv2-seasonal-point','c3s-cds-seasonal-point','dwd-gcfs2.2-episodes-point'],providers:{'C3S CDS seasonal adapter':seasonalAdapterConfigured(env,'MID_C3S_SEASONAL_POINT_ENDPOINT'),'DWD GCFS2.2 / EPISODES adapter':seasonalAdapterConfigured(env,'MID_DWD_GCFS_EPISODES_POINT_ENDPOINT'),'NOAA AviationWeather':true,'WAFS SIGWX / WIFS':Boolean(wifsKey(env)),'KNMI Aviation Open Data':Boolean(knmiAviationKey(env)),'DWD CDC 10-Minuten':true,'GIS surface-context adapter':Boolean(adapterEndpoint(env,'MID_SURFACE_CONTEXT_POINT_ENDPOINT')),'Copernicus CLMS / CDSE':clmsConfigured(env),'DWD ICON-D2-RUC point adapter':dwdRucStorageConfigured(env)||Boolean(adapterEndpoint(env,'MID_DWD_RUC_POINT_ENDPOINT')),'DWD ICON-D2-RUC-EPS point adapter':dwdRucStorageConfigured(env)||Boolean(adapterEndpoint(env,'MID_DWD_RUC_EPS_POINT_ENDPOINT')),'DWD SYNOP / OpenData POI':true,'DWD Open Data / Bright Sky fallback':true,'DWD Straßenwetter / GMA adapter':Boolean(adapterEndpoint(env,'MID_DWD_ROAD_WEATHER_POINT_ENDPOINT')),'GeoSphere Austria':true,'MeteoSwiss SwissMetNet STAC adapter':Boolean(adapterEndpoint(env,'MID_METEOSWISS_OBSERVATION_POINT_ENDPOINT')),'KNMI current 10-min EDR adapter':Boolean(adapterEndpoint(env,'MID_KNMI_OBSERVATION_POINT_ENDPOINT')),'UBA Luftdaten API v4 adapter':Boolean(adapterEndpoint(env,'MID_UBA_AIR_QUALITY_POINT_ENDPOINT')),'MeteoAlarm OGC EDR adapter':Boolean(adapterEndpoint(env,'MID_METEOALARM_EDR_POINT_ENDPOINT')),'NOAA MRMS adapter':Boolean(adapterEndpoint(env,'MID_NOAA_MRMS_POINT_ENDPOINT')),'WMO WIS2 normalizer':Boolean(adapterEndpoint(env,'MID_WIS2_OBSERVATION_POINT_ENDPOINT')),'Copernicus Marine subset adapter':Boolean(adapterEndpoint(env,'MID_COPERNICUS_MARINE_POINT_ENDPOINT')),'GloFAS discharge adapter':Boolean(adapterEndpoint(env,'MID_GLOFAS_POINT_ENDPOINT')),'BAFU Hydrologische Beobachtungen':true,'SMHI MetObs':true,'FMI Open Data':true,'US NWS / MADIS':true,'ECCC SWOB / GeoMet':true,'DWD Pollenflug':true,'AEMET OpenData':Boolean(env?.MID_AEMET_API_KEY||env?.AEMET_API_KEY),'Météo-France observation adapter':Boolean(adapterEndpoint(env,'MID_METEOFRANCE_OBSERVATION_POINT_ENDPOINT')),'KNMI HARMONIE EPS point adapter':Boolean(adapterEndpoint(env,'MID_KNMI_HARMONIE_EPS_POINT_ENDPOINT')),'KNMI HARMONIE EPS productive cache':Boolean(knmiEpsCacheBinding(env)),'ECCC REPS point adapter':Boolean(adapterEndpoint(env,'MID_ECCC_REPS_POINT_ENDPOINT')),'MET Norway Locationforecast':true,'openSenseMap / senseBox':env?.ENABLE_OPENSENSEMAP!=='false','Weather Underground':Boolean(env?.WEATHER_COM_API_KEY||env?.WU_API_KEY),Netatmo:Boolean(env?.NETATMO_ACCESS_TOKEN),NetatmoPersonal:netatmoConfigured(env),'Synoptic Data':Boolean(env?.SYNOPTIC_TOKEN),Xweather:Boolean(env?.XWEATHER_CLIENT_ID&&env?.XWEATHER_CLIENT_SECRET),WebPush:pushConfigured(env),DeviceSync:deviceSyncConfigured(env)},timestamp:new Date().toISOString()});
  if(mode==='knmi-eps-cache-health')return json({...knmiEpsTarCacheHealth(env),version:WORKER_VERSION},200,{'cache-control':'no-store'});

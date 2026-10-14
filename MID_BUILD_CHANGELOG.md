@@ -1,3 +1,7 @@
+## MID v0.9.85.257 · 2026-10-14 · RUC transport canary
+
+Shared bounded SHA-verifying decoder in isolated browser and fixed-origin Worker diagnostic; synthetic all-int16 fixtures, raw legacy reads, CacheStorage round trips, rejection of auto-decoded opaque wire. Actual hosting is GitHub Pages behind Cloudflare, not Cloudflare Pages. No production grid.v2 migration or budget change.
+
 # MID v0.9.85.256 · RUC-Kompression sicher für Browser und Worker vorbereiten
 
 - Der neue Prüfschritt kann künftig verlustfrei komprimierte RUC-Wetterdaten in JavaScript wieder exakt in ihre ursprünglichen Werte umwandeln. Dabei werden auch fehlende Werte korrekt erhalten.
