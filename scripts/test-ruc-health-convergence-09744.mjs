@@ -7,6 +7,9 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const health=await readFile(path.join(root,'tools/ruc/check_ruc_health.py'),'utf8');
 for(const token of [
   "attempts: int = 7",
+  "MAX_PAGES_PROBE_ATTEMPTS = 12",
+  "'--pages-attempts'",
+  "MID RUC Pages not converged",
   "retry_delay: float = 8",
   "max_retry_delay: float = 30",
   "('mid_ruc_expected', run)",
