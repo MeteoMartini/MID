@@ -68,4 +68,10 @@ if(existsSync(distHtmlUrl)){
  console.log('MID initial CSS delivery not measured: production dist/index.html not present in this test environment');
 }
 
+// MID v0.9.85.250: source PR regression must catch every RUC Python syntax
+// error *before* CI accepts a PR, independently of the RUC data pipeline.
+if(process.env.GITHUB_ACTIONS==='true'){
+ const code="import ast; from pathlib import Path; files=sorted(Path('tools/ruc').glob('*.py')); assert files, 'No RUC Python files'; [ast.parse(f.read_text(encoding='utf-8'),filename=str(f)) for f in files]; print(f'RUC-Python syntax gate: {len(files)} sources OK')";
+ execFileSync('python3',['-c',code],{cwd:root,stdio:'inherit',timeout:20000});
+}
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-module-css-browser-0985170.mjs'],{cwd:root,stdio:'inherit',timeout:360000});

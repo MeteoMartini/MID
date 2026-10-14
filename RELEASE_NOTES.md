@@ -1,6 +1,6 @@
-# MID v0.9.85.249 · RUC-Speicheroptimierung sicher vorbereiten und CSS-Startlast messen
+# MID v0.9.85.250 · RUC-Datenaktualisierung wieder absichern
 
-- MID prüft neue verlustfreie RUC-Kompressionsverfahren jetzt mit einem zusätzlichen Sicherheitscheck. Dabei bleiben sämtliche 16-Bit-Werte einschließlich fehlender Wetterdaten unverändert; beschädigte und zu große Datenpakete werden im Test erkannt.
-- Der Qualitätscheck misst nun die beim App-Start direkt eingebundenen CSS-Dateien auch in gzip- und Brotli-Größe. Das schafft eine Grundlage für gezielte Ladezeitverbesserungen ohne Layoutverlust.
-- Noch keine Änderung der tatsächlich ausgelieferten RUC-Datenformate oder des Wetterkartenangebots: Eine produktive Kompressionsumstellung erfolgt erst nach Web-, Worker-, iOS- und Frischeprüfung.
-- Prognosen, Warnungen und das gewohnte App-Design bleiben unverändert.
+- Ein Fehler im neuen internen RUC-Kompressions-Prüfmodul wurde korrigiert. Er hatte zuletzt die Veröffentlichung neuer RUC-Wetterdaten verhindert, obwohl die eigentliche Datenaufbereitung bereits erfolgreich war.
+- Vor dem zeitaufwendigen Laden der DWD-Modellfelder kontrolliert MID jetzt alle Python-Programme der RUC-Pipeline auf Syntaxfehler. Zusätzlich ist diese Prüfung im Entwicklungs- und Freigabetest verankert.
+- Die eigentlichen RUC-Modellwerte, das Speicherbudget, die Modellkarten und das bisherige Datenformat bleiben unverändert; eine produktive verlustfreie Kompression folgt erst nach eigenen Decoder- und Leistungstests.
+- Die App-Oberfläche und ihre Bedienung ändern sich durch diese Fehlerbehebung nicht.

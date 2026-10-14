@@ -57,6 +57,21 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
           cache-dependency-path: tools/ruc/requirements*.txt
+      # Check every Python source before the expensive DWD download/decode.
+      # ast.parse does not import modules or require eccodes/numpy.
+      - name: RUC-Python-Syntax vor dem DWD-Download prüfen
+        shell: bash
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          sources = sorted(Path('tools/ruc').glob('*.py'))
+          if not sources:
+              raise SystemExit('Keine RUC-Python-Quellen gefunden')
+          for source in sources:
+              ast.parse(source.read_text(encoding='utf-8'), filename=str(source))
+          print(f'RUC-Syntax geprüft: {len(sources)} Python-Dateien')
+          PY
       - name: RUC-Auslöser protokollieren
         shell: bash
         run: |
