@@ -47,6 +47,11 @@ export function cloudWeatherSources(native:NativeIndex|null,synoptic:SynopticInd
  for(const id of ['icon-eu','icon']){const m=synoptic?.models[id];if(m?.cloudWeatherFrames?.length||m?.frames.some(f=>f.cloudWeather===true))choices.push({id,label:m!.label});}
  choices.push({id:'gdps',label:'ECCC GDPS Global'});return choices;
 }
+/** Only physically paired native frames can fill a missing independent cloud/WW hour. */
+export function pairedNativeCloudWeatherTimes(index:NativeIndex|null):string[]{
+ const cloudTimes=new Set(index?.products.cloud?.frames.map(frame=>frame.time)??[]);
+ return (index?.products.sigwx?.frames??[]).filter(frame=>cloudTimes.has(frame.time)).map(frame=>frame.time);
+}
 export function nativeCloudWeatherPair(cloud:NativeField,weather:NativeField):CloudWeatherData{
  if(cloud.kind!=='cloud'||weather.kind!=='sigwx'||cloud.run!==weather.run||cloud.time!==weather.time||cloud.lats.length!==weather.lats.length||cloud.lons.length!==weather.lons.length||cloud.lats.some((v,i)=>v!==weather.lats[i])||cloud.lons.some((v,i)=>v!==weather.lons[i]))throw Error('Wolken und Wetter benötigen denselben Lauf, Termin und Raster.');
  return {model:'icon-d2',run:cloud.run,time:cloud.time,lats:cloud.lats,lons:cloud.lons,cloud:cloud.values.map(v=>Number.isFinite(v)?v*cloud.scale:null),weather:weather.values.map(v=>Number.isFinite(v)?v*weather.scale:null)};

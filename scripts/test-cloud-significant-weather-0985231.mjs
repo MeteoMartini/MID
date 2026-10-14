@@ -9,6 +9,9 @@ try{
  const m=await import(pathToFileURL(path.join(temp,'cloudWeatherData.js'))),exp=await import(pathToFileURL(path.join(temp,'cloudWeatherExport.js'))),native=await import(pathToFileURL(path.join(temp,'nativeSynopticFields.js')));
  const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString(),time=new Date(Date.parse(run)+3*3600000).toISOString();
  const cloud={kind:'cloud',run,time,scale:.1,lats:[47,48],lons:[6,7],values:[0,1000,NaN,500]},weather={...cloud,kind:'sigwx',values:[0,610,NaN,860]};
+ const pairedTimes=m.pairedNativeCloudWeatherTimes({products:{cloud:{frames:[{time},{time:run}]},sigwx:{frames:[{time}]}}});
+ assert.deepEqual(pairedTimes,[time],'Native cloud/WW availability is the exact intersection, not a single upstream list');
+ assert.deepEqual(m.pairedNativeCloudWeatherTimes({products:{cloud:{frames:[{time}]},sigwx:{frames:[]}}}),[]);
  const pair=m.nativeCloudWeatherPair(cloud,weather);assert.deepEqual(pair.cloud,[0,100,null,50]);assert.deepEqual(pair.weather,[0,61,null,86]);assert.deepEqual(m.cloudWeatherAt(pair,47,6),{cloud:0,weather:0});assert.deepEqual(m.cloudWeatherAt(pair,48,6),{cloud:null,weather:null});assert.equal(m.cloudWeatherAt(pair,46,6),null);
  for(const patch of [{run:'2026-01-01T00:00:00Z'},{time:run},{lats:[46,48]},{lons:[6,8]},{kind:'pressure'}])assert.throws(()=>m.nativeCloudWeatherPair(cloud,{...weather,...patch}));
  assert.equal(m.significantWeatherStyle(null),undefined);assert.equal(m.significantWeatherStyle(61.5),undefined);assert.equal(m.significantWeatherStyle(61).color,'#39ed24');assert.match(m.significantWeatherStyle(36).label,/Schneetreiben/);for(const code of [57,59,67,69,81,84,86])assert.match(m.significantWeatherStyle(code).label,/mäßig.*stark/);
@@ -30,6 +33,9 @@ try{
  assert.match(d2CloudPipeline,/if model=='icon-d2':/,'Extra D2 candidates must be an explicit model-only branch');
  const composite=readFileSync('src/RadarPanel.tsx','utf8'),modelReferences=readFileSync('src/ModelMapContextOverlay.tsx','utf8'),modelMap=readFileSync('src/WeatherMapsPanel.tsx','utf8'),nativeMap=readFileSync('src/NativeModelMap.tsx','utf8'),layers=readFileSync('src/CloudSignificantWeather.tsx','utf8'),ordering=readFileSync('src/MapLibreCore.tsx','utf8');
  assert.match(composite,/compositeReferenceLayers\(mapOverlayOpacity\/100,referenceSettings\)\} zIndex=\{790\}/,'Country/place reference must be above filled model maps');
+ assert.match(layers,/pairedNativeCloudWeatherTimes\(native\?\.index\?\?null\)/,'Absent independent D2 cloud/WW hour must consider a valid native pair');
+ assert.match(layers,/selectedIndependentFrame\?\[selectedIndependentFrame\]:useNativePair\?/,'Independent field remains preferred; a missing hour may use an actually paired native field');
+ assert.match(layers,/if\(useNativePair&&native\)/,'No fallback to an unpaired or incompatible native term');
  assert.match(layers,/zIndex=\{role==='cloud'\?300:305\}/,'Cloud/weather WMS fills stay beneath reference layers');
  assert.match(layers,/opacity=\{state.ready\?opacity\/100:0\} zIndex=\{300\}/,'Raster fills stay beneath geography');
  assert.match(ordering,/sort\(\(a,b\)=>a\[1\]-b\[1\]\)/,'MapLibre order must follow numerical layer priorities');
