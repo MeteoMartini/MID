@@ -17,6 +17,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+MAX_PAGES_PROBE_ATTEMPTS = 12
+
 
 def health_url(raw: str) -> str:
     url = urllib.parse.urlsplit(raw.strip())
@@ -85,7 +87,7 @@ def fetch_payload(url: str, timeout: float) -> dict:
     return payload
 
 
-def probe_pages(base: str, run: str, *, attempts=7, fetcher=fetch_payload, sleeper=time.sleep) -> int:
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
@@ -100,8 +102,14 @@ def probe_pages(base: str, run: str, *, attempts=7, fetcher=fetch_payload, sleep
         except Exception as error:
             last_error = error
             if attempt < max(1, attempts):
-                sleeper(min(30, 8 * 1.5 ** (attempt - 1)))
-    raise RuntimeError(f'pages-publication: public RUC metadata did not converge: {last_error}')
+                delay = min(30, 8 * 1.5 ** (attempt - 1))
+                print(
+                    f'MID RUC Pages not converged ({attempt}/{attempts}): {error}; '
+                    f'retry in {delay:.0f}s',
+                    file=sys.stderr,
+                )
+                sleeper(delay)
+    raise RuntimeError(f'pages-publication: public RUC metadata did not converge after {attempts} attempts: {last_error}')
 
 
 def probe_until_ready(
@@ -147,13 +155,17 @@ def main() -> int:
     p.add_argument('--pages-base', help='Verify public Pages pointer before probing Worker adoption')
     p.add_argument('--timeout', type=float, default=15)
     p.add_argument('--attempts', type=int, default=7)
+    p.add_argument('--pages-attempts', type=int, default=MAX_PAGES_PROBE_ATTEMPTS,
+                   help='bounded public Pages metadata convergence window; separate from Worker attempts')
     p.add_argument('--retry-delay', type=float, default=8)
     p.add_argument('--max-retry-delay', type=float, default=30)
     a = p.parse_args()
+    if not 1 <= a.pages_attempts <= MAX_PAGES_PROBE_ATTEMPTS:
+        p.error(f'--pages-attempts must be between 1 and {MAX_PAGES_PROBE_ATTEMPTS}')
     run = expected_run(a.meta)
     url = health_url(a.url)
     if a.pages_base:
-        page_attempt = probe_pages(a.pages_base, run, attempts=a.attempts)
+        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts)
         print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
     payload, attempt = probe_until_ready(
         url,
