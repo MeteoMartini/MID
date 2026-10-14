@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.255",
+  "releaseVersion": "0.9.85.256",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -739,6 +739,7 @@
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-health-convergence-09744.mjs",
+    "scripts/test-ruc-lossless-candidate-0985256.mjs",
     "scripts/test-ruc-mosmix-precip-consensus-09786.mjs",
     "scripts/test-ruc-native-cadence-nowcast-097311.mjs",
     "scripts/test-ruc-native-phase-radar-098491.mjs",
@@ -1710,6 +1711,7 @@
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-health-convergence-09744.mjs",
+    "scripts/test-ruc-lossless-candidate-0985256.mjs",
     "scripts/test-ruc-mosmix-precip-consensus-09786.mjs",
     "scripts/test-ruc-native-cadence-nowcast-097311.mjs",
     "scripts/test-ruc-native-phase-radar-098491.mjs",
@@ -3497,7 +3499,7 @@
     "scripts/test-update-recovery-0985223.mjs",
     "scripts/test-open-meteo-multicaller-0985245.mjs"
   ],
-  "version": "0.9.85.255",
+  "version": "0.9.85.256",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
