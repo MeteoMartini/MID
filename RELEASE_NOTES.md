@@ -1,7 +1,6 @@
-# MID v0.9.85.253 · Sicherheitsprüfungen mit eindeutigem Datenstatus
+# MID v0.9.85.254 · Veröffentlichte Modellkarten wieder vollständig erreichbar
 
-- Eine hohe Sicherheitslücke im Build-Werkzeugpfad wurde durch den kompatiblen Patch von `source-map-js` auf 1.2.2 behoben.
-- Die Prüfung der Produktionsabhängigkeiten unterscheidet jetzt ein geprüftes Ergebnis von einem unbekannten Zustand bei ausgefallenen Prüfdiensten. Ein unbekannter Zustand wird nicht mehr als „keine hohen Sicherheitsbefunde“ bezeichnet.
-- Prüfzeit, geprüfter Paketstand und verwendete Quelle werden nachvollziehbar dokumentiert. Bei Dienstausfällen wird eine notwendige Nachprüfung ausgewiesen.
-- Unvollständige oder ungültige Antworten gelten nicht als erfolgreiche Prüfung. Bestätigte hohe und kritische Befunde blockieren weiterhin die Freigabe.
-- Wetterdaten, Modellkarten und Darstellung bleiben unverändert. Die bestehende Regel für reine externe Dienstausfälle und die unabhängigen Release-Prüfungen bleiben erhalten.
+- Ein Fehler im Kartenkatalog wurde behoben: Gültige zusätzliche ICON-D2-Wolken-/Wettertermine bei +13, +14, +16 und +17 Stunden führten bisher dazu, dass die App den gesamten Synoptik-Katalog ablehnte. Die bereits veröffentlichten Karten von ICON-D2, ICON-EU, ICON, GFS und IFS sind dadurch wieder auswählbar.
+- Die Prüfung bleibt streng: Zusatzstunden gelten ausschließlich für ICON-D2. Lauf, Gültigkeitszeit, Modellhorizont, Größe, Datenformat und Prüfsummen müssen weiterhin stimmen. Fehlende Karten werden nicht geschätzt oder künstlich ergänzt.
+- Automatische Kartenprüfungen verwenden auch beim vollständigen Revisionslauf die bestehenden vollständigen Teilgruppen. Alle 24 Größen-/Theme-/Designfälle bleiben erhalten; die Zeitgrenze pro Teilgruppe wird nicht erhöht.
+- Neue Regressionen prüfen den tatsächlich veröffentlichten Katalog und zusätzliche Kartenstunden. Wetterberechnungen, Darstellung, Speicherbudget und das RUC-Datenformat bleiben unverändert.

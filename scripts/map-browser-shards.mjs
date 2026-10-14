@@ -8,3 +8,12 @@ export function mapBrowserCases(shard=''){
  return cases.filter(row=>row.width===1440?(row.design==='classic'?group===1:group===3):MAP_BROWSER_WIDTHS.indexOf(row.width)%3+1===group);
 }
 export function mapBrowserWidths(shard=''){return [...new Set(mapBrowserCases(shard).map(row=>row.width))]}
+
+/** Unsharded revision keeps the full matrix through individually bounded existing shards. */
+export function mapBrowserRunPlan(shard=''){
+ const groups=shard?[shard]:['1/3','2/3','3/3'];
+ const key=row=>`${row.width}/${row.theme}/${row.design}`;
+ const assigned=groups.flatMap(mapBrowserCases).map(key),expected=mapBrowserCases(shard).map(key);
+ if(assigned.length!==expected.length||new Set(assigned).size!==assigned.length||expected.some(k=>!assigned.includes(k)))throw Error('Map browser run plan must preserve every case exactly once');
+ return groups;
+}
