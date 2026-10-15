@@ -1,6 +1,7 @@
-# MID v0.9.85.266 · RUC-Vollkompression im Worker sicher vorbereiten
+# MID v0.9.85.267 · RUC-Daten verlustfrei komprimiert veröffentlichen
 
-- Der MID-Datenworker kann künftig einzelne Datensätze aus einem vollständig verlustfrei komprimierten RUC-Paket lesen. Größen, SHA-256-Prüfsummen und unveränderte Wetterwerte einschließlich fehlender Werte bleiben geschützt.
-- Das neue Ersatzformat wird nur akzeptiert, wenn das Manifest ausdrücklich als produktives, versioniertes Format gekennzeichnet ist. Ein vorbereiteter Kandidat wird weiterhin abgewiesen.
-- Der bisherige Rohdatenpfad und der bereits geprüfte Kompressionspilot bleiben erhalten. Die laufenden RUC-Modellläufe und Modellkarten werden durch dieses Update noch nicht umgestellt.
-- Vor der endgültigen Speicherfreigabe folgen eigenständige Worker-/Browser-/Altclient-, Frische-, Budget- und Rollbackprüfungen. Die Speichergrenze bleibt unverändert.
+- Der RUC-Hintergrunddienst erhält ein vollständiges verlustfrei komprimiertes Datenprofil: Wetterwerte, Missing-Daten, Modellläufe und Zeitintervalle bleiben bitidentisch. Das veröffentlichte Datenpaket wird erst nach vollständig unabhängigen Python-/JavaScript- und Originaldatenprüfungen freigegeben.
+- Für jeden komprimierten RUC-Lauf wird ein unveränderlicher Rohsnapshot zur Rücknahme gesichert. Bei fehlerhaftem produktivem Worker-Healthcheck versucht der etablierte GitHub-Pages-Weg automatisch die geprüften Originaldaten desselben Laufs wiederherzustellen.
+- Aktualitätsprüfung, Installer-Restore und öffentliche Worker-/Pages-Healthchecks berücksichtigen das neue Format und unterscheiden es strikt vom bisherigen Rohprofil und von inaktiven Kompressionskandidaten.
+- Das unveränderte 900-MB-Speicherlimit, amtliche Modellherkunft und Warntrennung sowie sämtliche bestehenden Parameter bleiben geschützt. Die tatsächliche Datenspeicherumstellung erfolgt erst mit dem nächsten vollständig geprüften RUC-Publish nach Stable-Promotion; bis dahin können einzelne Läufe kontrolliert ausfallen.
+- Zusätzliche Parameter und Modellzeiten werden erst nach nachgewiesener produktiver Speicherreserve, gültigen DWD-Quellterminen und Leistungsprüfung zugeschaltet.
