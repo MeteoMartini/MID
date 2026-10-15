@@ -1,0 +1,9 @@
+# MID v0.9.85.266 – Worker-Vorstufe für vollständige verlustfreie RUC-Kompression
+
+Verifizierte Basis: main = mid-stable = bcb65132f6b477ae98df9c3673d0d45213104265, v0.9.85.265. Diese Änderung ist **keine** produktive Kompressionsumschaltung. Rohdaten-Publisher und 900000000-Byte-Limit bleiben unverändert.
+
+Der kanonische RUC-Worker lädt neben dem bestehenden, byteidentisch unveränderten pages-free-v1-/Pilot-Leser einen begrenzten, SHA-/Größen-/Lauf-/Record-validierenden Ersatzprofil-Reader. Ein vollständiges Ersatzprofil muss explizit als pages-lossless-v1 + productionEnabled=true + replacement/rawRetained=false markiert werden; das vorhandene pages-lossless-candidate-v1 wird als produktive Quelle weiterhin abgewiesen. Alte Worker-/Client-JSON-Endpunkte, RUC-Werte, DWD-Feld-/Zeitschritte und Missing-Sentinel bleiben erhalten.
+
+Die kanonische Worker-Aggregation erzeugt beide Worker-Mirrors einschließlich des Readers. Der vorbereitete Leser begrenzt auf zwei gleichzeitige Downloads, 32 wartende, 3000 ms Deadline pro Anfrage, 524288 dekodierte und 524800 Wire-Bytes je Teil. Keine ungeprüften Fallback-Nullen. Regressionsprüfung erweitert um den tatsächlichen aggregierten Worker mit Python-Kandidatenbytes und expliziter Aktivierungs-/Kandidaten-Unterscheidung.
+
+**Für die folgende echte Umschaltung zwingend:** abgestimmter Publisher, Health-/Rollback-Workflow, Vorabprüfung alter Browser-/Service-Worker-/iOS-Hüllen, gebundener aktueller kompletter RUC-Lauf und reale Provider-CPU-/RAM-/Latency-Evidenz. Das gebilligte Zeitfenster von ein bis zwei verpassten Datenläufen hebt weder Altclient-Vertrag noch Sicherheits-/Release-Gates auf. Neue Parameter erst nach erfolgreicher tatsächlicher Kapazitätsmessung.

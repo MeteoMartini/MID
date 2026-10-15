@@ -10,7 +10,7 @@ console.log(`Presentation CSS: ${presentationSources.length} ordered sources; ${
 const weather=await concat(['src/weather-src/00-types-models-search.tsfrag','src/weather-src/10-observations-specialized.tsfrag','src/weather-src/20-mapping-day-character.tsfrag','src/weather-src/30-ensemble-climate-hazards.tsfrag']);
 await writeFile(new URL('src/weather.ts',root),weather);
 const extremeOutlookSource=await readFile(new URL('worker-src/25-dach-extreme-outlook.js',root),'utf8');
-const codecParts=await concat(['tools/ruc/lossless_candidate_decoder.mjs','tools/ruc/lossless_canary_manifest.generated.mjs','tools/ruc/lossless_transport_canary.mjs','tools/ruc/lossless_dual_read.mjs']);
+const codecParts=await concat(['tools/ruc/lossless_candidate_decoder.mjs','tools/ruc/lossless_canary_manifest.generated.mjs','tools/ruc/lossless_transport_canary.mjs','tools/ruc/lossless_dual_read.mjs','tools/ruc/compressed_record_reader.mjs']);
 await writeFile(new URL('worker-src/06-ruc-codec-canary.generated.js',root),'/* Generated RUC codec sources: isolated canary and bounded dual-read. */\n'+codecParts.replace(/^import .*;\n/gm,'').replace(/^export /gm,''));
 const worker=await concat(['worker-src/00-core-observations.js','worker-src/05-knmi-eps-cache.js','worker-src/06-ruc-codec-canary.generated.js','worker-src/07-ruc-dual-read-health.js','worker-src/10-radar-nowcast.js','worker-src/20-composite-models.js','worker-src/25-dach-extreme-outlook.js','worker-src/30-push-events.js','worker-src/40-aviation-router.js']);
 await writeFile(new URL('worker/metar-proxy.js',root),worker);
