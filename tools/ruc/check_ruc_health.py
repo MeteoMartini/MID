@@ -119,14 +119,33 @@ def codec_evidence(payload: dict, meta: dict) -> dict:
     }
 
 
-def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep) -> int:
+def active_profile_valid(meta: dict) -> bool:
+    return bool(isinstance(meta,dict) and meta.get('schema')=='mid.dwd.ruc.grid.v2'
+                and meta.get('storageProfile')=='pages-lossless-v1'
+                and meta.get('migration',{}).get('schema')=='mid.ruc.migration-active.v1'
+                and meta.get('migration',{}).get('productionEnabled') is True
+                and meta.get('pages',{}).get('profile')=='pages-lossless-v1'
+                and meta.get('pages',{}).get('losslessTransport')=={
+                    'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False})
+
+def full_codec_evidence(payload:dict,meta:dict)->dict:
+    expected=active_profile_valid(meta)
+    full=payload.get('fullCodec') if isinstance(payload.get('fullCodec'),dict) else {}
+    verified=bool(expected and payload.get('run')==meta.get('run')
+                  and payload.get('storageProfile')=='pages-lossless-v1'
+                  and full.get('advertised') is True and full.get('verified') is True
+                  and full.get('rawRetained') is False)
+    return {'run':str(meta.get('run','')),'published':expected,'verified':verified,
+            'advertised':full.get('advertised'),'rawRetained':full.get('rawRetained')}
+
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep, expected_profile='pages-free-v1') -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
     for attempt in range(1, max(1, attempts) + 1):
         try:
             meta = fetcher(probe_url(url, run, attempt), 15)
-            if meta.get('schema') != 'mid.dwd.ruc.grid.v2' or meta.get('storageProfile') != 'pages-free-v1':
+            if meta.get('schema') != 'mid.dwd.ruc.grid.v2' or meta.get('storageProfile') != expected_profile or (expected_profile == 'pages-lossless-v1' and not active_profile_valid(meta)):
                 raise RuntimeError('Pages RUC metadata schema/profile is invalid')
             if meta.get('run') != run:
                 raise RuntimeError(f'Pages RUC run {meta.get("run")!r} does not match {run!r}')
@@ -195,9 +214,12 @@ def main() -> int:
     if not 1 <= a.pages_attempts <= MAX_PAGES_PROBE_ATTEMPTS:
         p.error(f'--pages-attempts must be between 1 and {MAX_PAGES_PROBE_ATTEMPTS}')
     run = expected_run(a.meta)
+    meta = json.loads(Path(a.meta).read_text(encoding='utf-8'))
+    if meta.get('storageProfile')=='pages-lossless-v1' and not active_profile_valid(meta):
+        raise RuntimeError('full RUC profile has not been explicitly activated')
     url = health_url(a.url)
     if a.pages_base:
-        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts)
+        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts, expected_profile=meta.get('storageProfile','pages-free-v1'))
         print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
     payload, attempt = probe_until_ready(
         url,
@@ -212,8 +234,11 @@ def main() -> int:
         f'ageHours={payload.get("ageHours")}, points={payload.get("pointCount")}, '
         f'epsMembers={payload.get("epsMemberCount")}, probe={attempt}/{a.attempts}'
     )
-    meta = json.loads(Path(a.meta).read_text(encoding='utf-8'))
     print('MID RUC codec evidence: ' + json.dumps(codec_evidence(payload, meta), sort_keys=True))
+    if meta.get('storageProfile')=='pages-lossless-v1':
+        full=full_codec_evidence(payload,meta)
+        if not full['verified']:raise RuntimeError('productively compressed RUC profile did not pass actual Worker record reads')
+        print('MID RUC full codec evidence: '+json.dumps(full,sort_keys=True))
     return 0
 
 

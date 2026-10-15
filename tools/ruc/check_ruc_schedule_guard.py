@@ -37,6 +37,7 @@ REQUIRED=FORECAST_REQUIRED+GRID_REQUIRED
 RUN_RE=re.compile(r'^20\d\d-\d\d-\d\dT\d\d:\d\d/$')
 SCHEMA='mid.dwd.ruc.grid.v2'
 STORAGE_PROFILE='pages-free-v1'
+FULL_STORAGE_PROFILE='pages-lossless-v1'
 DEFAULT_MAX_AGE_MINUTES=240
 
 class Links(html.parser.HTMLParser):
@@ -88,7 +89,13 @@ def valid_pages_meta(meta:dict)->bool:
     objects=((meta.get('pages') or {}).get('objects') or []) if isinstance(meta.get('pages'),dict) else []
     return (
         meta.get('schema')==SCHEMA
-        and meta.get('storageProfile')==STORAGE_PROFILE
+        and (meta.get('storageProfile')==STORAGE_PROFILE or
+             (meta.get('storageProfile')==FULL_STORAGE_PROFILE and
+              meta.get('migration',{}).get('schema')=='mid.ruc.migration-active.v1' and
+              meta.get('migration',{}).get('productionEnabled') is True and
+              meta.get('pages',{}).get('profile')==FULL_STORAGE_PROFILE and
+              meta.get('pages',{}).get('losslessTransport')=={
+                'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}))
         and isinstance(meta.get('run'),str)
         and bool(RUN_RE.match(meta['run']+'/'))
         and isinstance(objects,list)

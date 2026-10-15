@@ -107,3 +107,24 @@ assert mod.codec_evidence({**good,'codecPilot':pilot},{'run':good['run']})['veri
 assert mod.codec_evidence({**good,'codecPilot':pilot},{'pages':{'losslessTransport':{'mode':'dual-read-pilot','rawRetained':False}}})['verified'] is False
 
 print('RUC deployed health-check convergence and explicit codec evidence contract OK')
+
+# Full replacement must require both the new metadata and decoded Worker health.
+full_meta={'schema':'mid.dwd.ruc.grid.v2','run':good['run'],'storageProfile':'pages-lossless-v1',
+ 'migration':{'schema':'mid.ruc.migration-active.v1','productionEnabled':True},
+ 'pages':{'profile':'pages-lossless-v1','losslessTransport':{'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}}}
+assert mod.active_profile_valid(full_meta)
+full_worker={**good,'backend':'pages','storageProfile':'pages-lossless-v1',
+             'nativeEpsMembers':False,'fullCodec':{'advertised':True,'verified':True,'rawRetained':False}}
+assert mod.full_codec_evidence(full_worker,full_meta)['verified'] is True
+for bad in ({'verified':False},{'rawRetained':True},{'advertised':False}):
+ assert mod.full_codec_evidence({**full_worker,'fullCodec':{**full_worker['fullCodec'],**bad}},full_meta)['verified'] is False
+candidate=dict(full_meta);candidate['migration']={'schema':'mid.ruc.migration-candidate.v1','productionEnabled':False}
+assert not mod.active_profile_valid(candidate)
+assert not mod.full_codec_evidence(full_worker,candidate)['verified']
+assert mod.probe_pages('https://mid.example/ruc/',good['run'],attempts=1,
+ fetcher=lambda url,timeout:full_meta,sleeper=lambda _:None,expected_profile='pages-lossless-v1')==1
+try:
+ mod.probe_pages('https://mid.example/ruc/',good['run'],attempts=1,
+  fetcher=lambda url,timeout:candidate,sleeper=lambda _:None,expected_profile='pages-lossless-v1')
+ raise AssertionError('inactive candidate was accepted by public Pages gate')
+except RuntimeError:pass

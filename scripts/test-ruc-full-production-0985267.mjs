@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+execFileSync('python3',['-m','unittest','test_activate_lossless_snapshot'],{cwd:'tools/ruc',stdio:'inherit',timeout:180000});
+const source=readFileSync('tools/ruc/activate_lossless_snapshot.py','utf8');
+const workflow=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
+assert.ok(source.includes('sourceRollbackIntact')&&source.includes("proof.get(k)!=v")&&source.includes("physical>=900_000_000"),'Production activation requires complete authenticated proof, existing immutable source and exact budget');
+assert.ok(workflow.includes('tools/ruc/activate_lossless_snapshot.py')&&workflow.includes('tools/ruc/verify_lossless_migration.mjs'), 'Full producer must verify independently before activation');
+assert.ok(workflow.includes('mid-ruc-rollback-')&&workflow.includes('RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen'),'Full producer requires same-run raw rollback artifact and failure path');
+console.log('MID .267 RUC full replacement activation with independently verified Python/JS proof and raw rollback contract OK.');
