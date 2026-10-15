@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.265';
+const WORKER_VERSION='0.9.85.266';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -155,14 +155,31 @@ function dwdRucStaticObjectUrl(base,key){const clean=String(key||'');if(!clean||
 async function dwdRucStaticJson(base,key,healthProbe=false){try{const url=key==='latest.json'?new URL('latest.json',base):dwdRucStaticObjectUrl(base,key);if(!url)return null;if(healthProbe&&key==='latest.json')url.searchParams.set('mid_ruc_health_probe',String(Date.now()));const response=await fetchWithDeadline(url.toString(),{headers:{Accept:'application/json','Cache-Control':'no-cache'},cf:{cacheEverything:key!=='latest.json',cacheTtl:key==='latest.json'?0:31536000}},8000);if(!response.ok)return null;return await response.json()}catch{return null}}
 async function dwdRucStaticObject(base,key){const url=dwdRucStaticObjectUrl(base,key);if(!url)return null;const cacheKey=url.toString(),cached=dwdRucStaticObjectCache.get(cacheKey);if(cached&&Date.now()-cached.at<15*60*1000)return cached.bytes;try{const response=await fetchWithDeadline(cacheKey,{headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}},12000);if(!response.ok)return null;const bytes=new Uint8Array(await response.arrayBuffer());dwdRucStaticObjectCache.set(cacheKey,{at:Date.now(),bytes});if(dwdRucStaticObjectCache.size>24)dwdRucStaticObjectCache.delete(dwdRucStaticObjectCache.keys().next().value);return bytes}catch{return null}}
 function dwdRucStaticPageInfo(spec){const pages=spec?.pages,chunkRecords=Number(pages?.chunkRecords),recordBytes=Number(pages?.recordBytes||spec?.recordBytes),chunkCount=Number(pages?.chunkCount),prefix=String(pages?.prefix||''),chunkKeys=pages?.chunkKeys;if(chunkKeys!==undefined&&(!Array.isArray(chunkKeys)||chunkKeys.length!==chunkCount))return null;return chunkRecords>0&&recordBytes>0&&chunkCount>0&&prefix.startsWith('runs/')?{chunkRecords,recordBytes,chunkCount,prefix,chunkKeys,records:pages.records,losslessV1:pages.losslessV1}:null}
-async function dwdRucStaticCodecObject(base,key,limit){
+async function dwdRucStaticCodecObject(base,key,limit,parentSignal){
  const url=dwdRucStaticObjectUrl(base,key);if(!url)throw Error('RUC codec key');
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('RUC codec deadline','TimeoutError')),3000);
- try{const response=await fetch(url.toString(),{signal:controller.signal,headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}});return await readRucCanaryResponse(response,limit)}finally{clearTimeout(timer)}
+ const onAbort=()=>controller.abort(parentSignal?.reason||new DOMException('RUC codec parent aborted','AbortError'));
+ if(parentSignal?.aborted)onAbort();else parentSignal?.addEventListener('abort',onAbort,{once:true});
+ try{const response=await fetch(url.toString(),{signal:controller.signal,headers:{Accept:'application/octet-stream','Accept-Encoding':'identity'},cf:{cacheEverything:true,cacheTtl:31536000}});return await readRucCanaryResponse(response,limit)}
+ finally{clearTimeout(timer);parentSignal?.removeEventListener('abort',onAbort)}
 }
-async function dwdRucStaticRecord(base,spec,recordIndex,allowCodec=false){const page=dwdRucStaticPageInfo(spec);if(!page||!Number.isInteger(recordIndex)||recordIndex<0)return null;const chunkIndex=Math.floor(recordIndex/page.chunkRecords);if(chunkIndex>=page.chunkCount)return null;const key=page.chunkKeys===undefined?`${page.prefix}/${String(chunkIndex).padStart(4,'0')}.bin`:page.chunkKeys[chunkIndex];if(typeof key!=='string'||!key.startsWith(page.prefix.split('/').slice(0,2).join('/')+'/')||key.includes('..')||!key.endsWith('.bin')||/[?#%\\]/.test(key))return null;const loaded=await loadRucDualReadChunk(base,page,chunkIndex,key,()=>dwdRucStaticObject(base,key),(wireKey,limit)=>dwdRucStaticCodecObject(base,wireKey,limit),allowCodec),bytes=loaded.bytes;if(!bytes)return null;const local=recordIndex%page.chunkRecords,offset=local*page.recordBytes;if(offset+page.recordBytes>bytes.length)return null;const result=bytes.slice(offset,offset+page.recordBytes);if(page.losslessV1){result.midRucTransport=loaded.transport;result.midRucCodecReason=loaded.reason}return result}
-async function dwdRucStaticLatest(env){const base=dwdRucStaticBaseUrl(env);if(!base)return null;if(dwdRucStaticLatestCache&&dwdRucStaticLatestCache.base===base.toString()&&Date.now()-dwdRucStaticLatestCache.at<45*1000&&dwdRucMetaFresh(dwdRucStaticLatestCache.meta))return{base,meta:dwdRucStaticLatestCache.meta};const meta=await dwdRucStaticJson(base,'latest.json');if(!meta||meta.schema!=='mid.dwd.ruc.grid.v2'||meta.storageProfile!=='pages-free-v1'||!dwdRucMetaFresh(meta))return null;dwdRucStaticLatestCache={at:Date.now(),base:base.toString(),meta};return{base,meta}}
-async function dwdRucStaticHealth(env){const base=dwdRucStaticBaseUrl(env);if(!base)return{configured:false,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'statischer RUC-Datenweg deaktiviert'};const meta=await dwdRucStaticJson(base,'latest.json',true);if(!meta)return{configured:true,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'GitHub-Pages latest.json fehlt oder ist ungültig'};const schemaValid=meta.schema==='mid.dwd.ruc.grid.v2'&&meta.storageProfile==='pages-free-v1',fresh=schemaValid&&dwdRucMetaFresh(meta),stamp=dwdRucMetaTimestamp(meta),ageHours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/3600000):null,pointCount=Number(meta.pointCount)||0,timeCount=Array.isArray(meta.times)?meta.times.length:0,memberCount=Number(meta?.eps?.memberCount)||0,objectsPresent={lookup:false,deterministic:false,epsSummary:false,epsMembers:false,rapidPrecip5:false,rapidConvection15:false,rapidExtreme:false,rapidReflectivity15:false,rapidPhase15:false,rapidSevere15:false,rapidSolar15:false,rapidState15:false,specialistHourly:false};if(schemaValid){const probes=[['lookup',meta.lookup],['deterministic',meta.deterministic],['epsSummary',meta.epsSummary],['rapidPrecip5',meta?.rapid?.precip5],['rapidConvection15',meta?.rapid?.convection15],['rapidReflectivity15',meta?.rapid?.reflectivity15],['rapidPhase15',meta?.rapid?.phase15],['rapidSevere15',meta?.rapid?.severe15],['rapidSolar15',meta?.rapid?.solar15],['rapidState15',meta?.rapid?.state15],['specialistHourly',meta?.rapid?.specialistHourly]].filter(([,spec])=>spec);await Promise.all(probes.map(async([name,spec])=>{objectsPresent[name]=Boolean(await dwdRucStaticRecord(base,spec,0))}));objectsPresent.rapidExtreme=Boolean(meta?.rapidExtreme?.key&&await dwdRucStaticJson(base,meta.rapidExtreme.key))}const objectsReady=objectsPresent.lookup&&objectsPresent.deterministic&&objectsPresent.epsSummary&&objectsPresent.rapidPrecip5&&objectsPresent.rapidConvection15&&objectsPresent.rapidExtreme,ready=Boolean(schemaValid&&fresh&&pointCount>0&&timeCount>=4&&memberCount>=2&&objectsReady);const codecPilot=await dwdRucDualReadHealth(base,meta,env);return{configured:true,ready,fresh,schemaValid,codecPilot,backend:'pages',storageProfile:String(meta.storageProfile||''),run:String(meta.run||''),generatedAt:String(meta.generatedAt||''),ageHours:ageHours==null?null:Number(ageHours.toFixed(2)),pointCount,timeCount,epsMemberCount:memberCount,nativeEpsMembers:false,objectsPresent,reason:ready?undefined:!schemaValid?'Schema/Pages-Profil ungültig':!fresh?'RUC-Lauf nicht frisch':!objectsReady?'Pages-Laufobjekte unvollständig':'Metadaten unvollständig'}}
+async function dwdRucStaticRecord(base,spec,recordIndex,allowCodec=false){
+ if(spec?.compressedPages){
+  const loaded=await preparedRucCompressedRecordReader.readRecord(base.toString(),spec,recordIndex,
+    (key,limit,signal)=>dwdRucStaticCodecObject(base,key,limit,signal),{enabled:true});
+  if(!loaded.bytes)return null;
+  const result=loaded.bytes;result.midRucTransport=loaded.transport;result.midRucCodecReason=loaded.reason;
+  return result;
+ }const page=dwdRucStaticPageInfo(spec);if(!page||!Number.isInteger(recordIndex)||recordIndex<0)return null;const chunkIndex=Math.floor(recordIndex/page.chunkRecords);if(chunkIndex>=page.chunkCount)return null;const key=page.chunkKeys===undefined?`${page.prefix}/${String(chunkIndex).padStart(4,'0')}.bin`:page.chunkKeys[chunkIndex];if(typeof key!=='string'||!key.startsWith(page.prefix.split('/').slice(0,2).join('/')+'/')||key.includes('..')||!key.endsWith('.bin')||/[?#%\\]/.test(key))return null;const loaded=await loadRucDualReadChunk(base,page,chunkIndex,key,()=>dwdRucStaticObject(base,key),(wireKey,limit)=>dwdRucStaticCodecObject(base,wireKey,limit),allowCodec),bytes=loaded.bytes;if(!bytes)return null;const local=recordIndex%page.chunkRecords,offset=local*page.recordBytes;if(offset+page.recordBytes>bytes.length)return null;const result=bytes.slice(offset,offset+page.recordBytes);if(page.losslessV1){result.midRucTransport=loaded.transport;result.midRucCodecReason=loaded.reason}return result}
+function dwdRucSupportedStaticProfile(meta){
+ if(meta?.schema!=='mid.dwd.ruc.grid.v2')return false;
+ if(meta.storageProfile==='pages-free-v1')return true;
+ return meta.storageProfile==='pages-lossless-v1'&&meta.migration?.productionEnabled===true&&
+   meta.pages?.profile==='pages-lossless-v1'&&meta.pages?.losslessTransport?.profile==='mid.ruc.compressed-pages.v1'&&
+   meta.pages.losslessTransport.mode==='replacement'&&meta.pages.losslessTransport.rawRetained===false;
+}
+async function dwdRucStaticLatest(env){const base=dwdRucStaticBaseUrl(env);if(!base)return null;if(dwdRucStaticLatestCache&&dwdRucStaticLatestCache.base===base.toString()&&Date.now()-dwdRucStaticLatestCache.at<45*1000&&dwdRucMetaFresh(dwdRucStaticLatestCache.meta))return{base,meta:dwdRucStaticLatestCache.meta};const meta=await dwdRucStaticJson(base,'latest.json');if(!dwdRucSupportedStaticProfile(meta)||!dwdRucMetaFresh(meta))return null;dwdRucStaticLatestCache={at:Date.now(),base:base.toString(),meta};return{base,meta}}
+async function dwdRucStaticHealth(env){const base=dwdRucStaticBaseUrl(env);if(!base)return{configured:false,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'statischer RUC-Datenweg deaktiviert'};const meta=await dwdRucStaticJson(base,'latest.json',true);if(!meta)return{configured:true,ready:false,fresh:false,schemaValid:false,backend:'pages',reason:'GitHub-Pages latest.json fehlt oder ist ungültig'};const schemaValid=dwdRucSupportedStaticProfile(meta),fresh=schemaValid&&dwdRucMetaFresh(meta),stamp=dwdRucMetaTimestamp(meta),ageHours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/3600000):null,pointCount=Number(meta.pointCount)||0,timeCount=Array.isArray(meta.times)?meta.times.length:0,memberCount=Number(meta?.eps?.memberCount)||0,objectsPresent={lookup:false,deterministic:false,epsSummary:false,epsMembers:false,rapidPrecip5:false,rapidConvection15:false,rapidExtreme:false,rapidReflectivity15:false,rapidPhase15:false,rapidSevere15:false,rapidSolar15:false,rapidState15:false,specialistHourly:false};if(schemaValid){const probes=[['lookup',meta.lookup],['deterministic',meta.deterministic],['epsSummary',meta.epsSummary],['rapidPrecip5',meta?.rapid?.precip5],['rapidConvection15',meta?.rapid?.convection15],['rapidReflectivity15',meta?.rapid?.reflectivity15],['rapidPhase15',meta?.rapid?.phase15],['rapidSevere15',meta?.rapid?.severe15],['rapidSolar15',meta?.rapid?.solar15],['rapidState15',meta?.rapid?.state15],['specialistHourly',meta?.rapid?.specialistHourly]].filter(([,spec])=>spec);await Promise.all(probes.map(async([name,spec])=>{objectsPresent[name]=Boolean(await dwdRucStaticRecord(base,spec,0))}));objectsPresent.rapidExtreme=Boolean(meta?.rapidExtreme?.key&&await dwdRucStaticJson(base,meta.rapidExtreme.key))}const objectsReady=objectsPresent.lookup&&objectsPresent.deterministic&&objectsPresent.epsSummary&&objectsPresent.rapidPrecip5&&objectsPresent.rapidConvection15&&objectsPresent.rapidExtreme,ready=Boolean(schemaValid&&fresh&&pointCount>0&&timeCount>=4&&memberCount>=2&&objectsReady);const codecPilot=await dwdRucDualReadHealth(base,meta,env);return{configured:true,ready,fresh,schemaValid,codecPilot,fullCodec:meta.storageProfile==='pages-lossless-v1'?{advertised:true,verified:objectsReady,rawRetained:false}:{advertised:false},backend:'pages',storageProfile:String(meta.storageProfile||''),run:String(meta.run||''),generatedAt:String(meta.generatedAt||''),ageHours:ageHours==null?null:Number(ageHours.toFixed(2)),pointCount,timeCount,epsMemberCount:memberCount,nativeEpsMembers:false,objectsPresent,reason:ready?undefined:!schemaValid?'Schema/Pages-Profil ungültig':!fresh?'RUC-Lauf nicht frisch':!objectsReady?'Pages-Laufobjekte unvollständig':'Metadaten unvollständig'}}
 async function dwdRucRapidExtremeSnapshot(env){const current=await dwdRucStaticLatest(env);if(!current)return null;const{base,meta}=current,spec=meta?.rapidExtreme,key=String(spec?.key||'');if(!key)return null;const payload=await dwdRucStaticJson(base,key);if(!payload||!['mid.dwd.ruc.rapid-extreme.v1','mid.dwd.ruc.rapid-extreme.v2','mid.dwd.ruc.rapid-extreme.v3','mid.dwd.ruc.rapid-extreme.v4'].includes(payload.schema)||String(payload.run)!==String(meta.run)||!Array.isArray(payload.cells))return null;return payload}
 async function dwdRucStorageHealth(env){let r2=null;if(dwdRucR2Configured(env)){r2=await dwdRucR2Health(env);if(r2.ready)return r2}const pages=await dwdRucStaticHealth(env);if(pages.ready)return pages;return r2?.configured?{...r2,fallbackBackend:'pages',fallbackReady:Boolean(pages.ready)}:pages}
 function dwdRucLookupOffset(meta,lat,lon){const g=meta?.grid||{},latMin=Number(g.latMin),lonMin=Number(g.lonMin),dy=Number(g.dy),dx=Number(g.dx),ny=Number(g.ny),nx=Number(g.nx);if(![latMin,lonMin,dy,dx,ny,nx].every(Number.isFinite)||dx<=0||dy<=0)return null;const x=Math.round((lon-lonMin)/dx),y=Math.round((lat-latMin)/dy);if(x<0||y<0||x>=nx||y>=ny)return null;return(y*nx+x)*4}
@@ -1398,6 +1415,85 @@ async function loadRucDualReadChunk(base,page,index,rawKey,readRaw,readWire,allo
  }else reason='codec-retry-backoff';
  return {bytes:await rucDualRaw(readRaw,entry),transport:'raw-fallback',reason};
 }
+/** Prepared record reader. Not imported by the production Worker/publisher.
+ * Explicit opt-in per call; no raw fallback exists in a replacement profile.
+ * Transport must obey the supplied size limit and AbortSignal.
+ */
+const RUC_FULL_PAGE_SCHEMA='mid.ruc.compressed-pages.v1';
+const RUC_FULL_HASH=/^[a-f0-9]{64}$/;
+const RUC_FULL_MAX=524288,RUC_FULL_MAX_WIRE=524800;
+function rucFullPositive(n){return Number.isSafeInteger(n)&&n>0;}
+function rucFullSelectedPart(spec,index){
+ const page=spec?.compressedPages;
+ if(spec?.dtype!=='int16-le'||page?.schema!==RUC_FULL_PAGE_SCHEMA||Object.keys(page).sort().join(',')!=='parts,prefix,recordBytes,records,schema'||typeof page.prefix!=='string'||!rucFullPositive(page.records)||page.records>10000000||!rucFullPositive(page.recordBytes)||page.recordBytes>RUC_FULL_MAX||page.recordBytes%2||page.recordBytes!==spec.recordBytes||!/^runs\/[A-Za-z0-9_-]+$/.test(page.prefix)||!Array.isArray(page.parts)||!page.parts.length||page.parts.length>8192||!Number.isSafeInteger(index)||index<0||index>=page.records)throw Error('descriptor-invalid');
+ let next=0,found;
+ for(const part of page.parts){
+  const m=part?.manifest;
+  if(!part||Object.keys(part).sort().join(',')!=='firstRecord,key,manifest,recordCount'||part.firstRecord!==next||!rucFullPositive(part.recordCount)||part.recordCount>Math.floor(RUC_FULL_MAX/page.recordBytes)||!m||Object.keys(m).sort().join(',')!=='codec,decodedBytes,decodedSha256,encodedBytes,encodedSha256,schema'||m.schema!=='mid.ruc.lossless-candidate.v1'||m.codec!=='byteplanes-gzip'||m.decodedBytes!==part.recordCount*page.recordBytes||!rucFullPositive(m.encodedBytes)||m.encodedBytes>RUC_FULL_MAX_WIRE||!RUC_FULL_HASH.test(m.encodedSha256)||!RUC_FULL_HASH.test(m.decodedSha256)||part.key!==page.prefix+'/lossless-v2/'+m.encodedSha256+'.bin')throw Error('descriptor-invalid');
+  next+=part.recordCount;if(next>page.records)throw Error('descriptor-invalid');
+  if(index>=part.firstRecord&&index<next)found=part;
+ }
+ if(next!==page.records||!found)throw Error('descriptor-invalid');
+ return {page,part:found};
+}
+
+function createRucCompressedRecordReader({deadlineMs=3000}={}){
+ if(!rucFullPositive(deadlineMs)||deadlineMs>3000)throw Error('deadline must be 1..3000 ms');
+ const verified=new Map(),rejected=new Map(),pending=new Map(),queue=[];
+ let active=0;
+ function rememberFailure(key){rejected.set(key,Date.now());if(rejected.size>4)rejected.delete(rejected.keys().next().value);}
+ function settle(item,result){if(!item.settled){item.settled=true;clearTimeout(item.timer);item.resolve(result);}}
+ async function run(item){
+  active++;item.started=true;
+  try{
+   const wire=await item.readWire(item.part.key,item.part.manifest.encodedBytes,item.controller.signal);
+   if(item.expired)return;
+   const bytes=await decodeRucLosslessCandidate(item.part.manifest,wire);
+   if(item.expired)return;
+   verified.delete(item.key);verified.set(item.key,bytes);if(verified.size>2)verified.delete(verified.keys().next().value);
+   rejected.delete(item.key);settle(item,{bytes,transport:'byteplanes-gzip'});
+  }catch{
+   rememberFailure(item.key);settle(item,{bytes:null,reason:item.expired?'deadline':'codec-rejected'});
+  }finally{
+   active--;clearTimeout(item.timer);if(pending.get(item.key)===item)pending.delete(item.key);drain();
+  }
+ }
+ function drain(){while(active<2&&queue.length){const item=queue.shift();if(!item.expired)void run(item);}}
+ function load(base,part,readWire){
+  const m=part.manifest;
+  const key=[base,part.key,m.schema,m.codec,m.decodedBytes,m.encodedBytes,m.decodedSha256,m.encodedSha256].join('|');
+  if(verified.has(key)){const bytes=verified.get(key);verified.delete(key);verified.set(key,bytes);return Promise.resolve({bytes,transport:'byteplanes-gzip'});}
+  const old=pending.get(key);if(old)return old.promise;
+  if(rejected.has(key)&&Date.now()-rejected.get(key)<30000)return Promise.resolve({bytes:null,reason:'codec-retry-backoff'});
+  if(active>=2&&queue.length>=32)return Promise.resolve({bytes:null,reason:'queue-full'});
+  const item={key,part,readWire,controller:new AbortController(),started:false,expired:false,settled:false};
+  item.promise=new Promise(resolve=>item.resolve=resolve);
+  item.timer=setTimeout(()=>{
+   item.expired=true;item.controller.abort();
+   if(!item.started){const i=queue.indexOf(item);if(i>=0)queue.splice(i,1);if(pending.get(key)===item)pending.delete(key);}
+   else rememberFailure(key);
+   settle(item,{bytes:null,reason:item.started?'deadline':'queue-deadline'});
+   // An uncooperative transport keeps its active slot until it finishes: do
+   // not start unlimited background I/O after caller timeouts.
+  },deadlineMs);
+  pending.set(key,item);queue.push(item);drain();return item.promise;
+ }
+ return {
+  async readRecord(base,spec,index,readWire,{enabled=false}={}){
+   if(!enabled)return {bytes:null,reason:'profile-disabled'};
+   let page,part,url;
+   try{({page,part}=rucFullSelectedPart(spec,index));url=new URL(base);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash||typeof readWire!=='function')throw Error();}
+   catch{return {bytes:null,reason:'descriptor-invalid'};}
+   const loaded=await load(url.toString(),part,readWire);
+   if(!loaded.bytes)return loaded;
+   const offset=(index-part.firstRecord)*page.recordBytes;
+   return {bytes:loaded.bytes.slice(offset,offset+page.recordBytes),transport:loaded.transport};
+  },
+ };
+}
+
+// Future runtime integration must reuse this singleton per isolate.
+const preparedRucCompressedRecordReader=createRucCompressedRecordReader();
 async function dwdRucDualReadHealth(base,meta,env){
  const spec=meta.deterministic,page=spec?.pages,descriptor=page?.losslessV1;
  if(!descriptor)return {advertised:false};
