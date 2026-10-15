@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.264",
+  "releaseVersion": "0.9.85.265",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -987,7 +987,8 @@
     "scripts/test-www-proxy-hotfix-0985184.mjs",
     "scripts/test-widget-daily-rows-0985262.mjs",
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
-    "scripts/test-ruc-inventory-0985264.mjs"
+    "scripts/test-ruc-inventory-0985264.mjs",
+    "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1964,7 +1965,8 @@
     "scripts/test-www-proxy-hotfix-0985184.mjs",
     "scripts/test-widget-daily-rows-0985262.mjs",
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
-    "scripts/test-ruc-inventory-0985264.mjs"
+    "scripts/test-ruc-inventory-0985264.mjs",
+    "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2852,7 +2854,12 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "tools/ruc/lossless_inventory.py",
     "tools/ruc/verify_lossless_inventory.mjs",
-    "tools/ruc/test_lossless_inventory.py"
+    "tools/ruc/test_lossless_inventory.py",
+    "scripts/test-ruc-migration-preparation-0985265.mjs",
+    "tools/ruc/prepare_lossless_snapshot.py",
+    "tools/ruc/compressed_record_reader.mjs",
+    "tools/ruc/verify_lossless_migration.mjs",
+    "tools/ruc/test_prepare_lossless_snapshot.py"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -2957,7 +2964,8 @@
     "scripts/test-open-meteo-multicaller-0985245.mjs",
     "scripts/test-widget-daily-rows-0985262.mjs",
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
-    "scripts/test-ruc-inventory-0985264.mjs"
+    "scripts/test-ruc-inventory-0985264.mjs",
+    "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3548,9 +3556,10 @@
     "scripts/test-open-meteo-multicaller-0985245.mjs",
     "scripts/test-widget-daily-rows-0985262.mjs",
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
-    "scripts/test-ruc-inventory-0985264.mjs"
+    "scripts/test-ruc-inventory-0985264.mjs",
+    "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.264",
+  "version": "0.9.85.265",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
@@ -3694,7 +3703,9 @@
     "docs/implementation/MID_C32_WIDGET_DAILY_ROWS_0.9.85.262.md",
     "docs/implementation/MID_C32_RUC_CONCURRENCY_OFFLINE_0.9.85.263.md",
     "docs/implementation/MID_C32_RUC_INVENTORY_0.9.85.264.md",
-    "docs/implementation/MID_C32_RUC_INVENTORY_PROOF_0.9.85.264.json"
+    "docs/implementation/MID_C32_RUC_INVENTORY_PROOF_0.9.85.264.json",
+    "docs/implementation/MID_C32_RUC_MIGRATION_PREPARATION_0.9.85.265.md",
+    "docs/implementation/MID_C32_RUC_MIGRATION_PROOF_0.9.85.265.json"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

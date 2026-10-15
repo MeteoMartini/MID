@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.264",
+  "version": "0.9.85.265",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -539,7 +539,8 @@
     "test:update-recovery": "node scripts/test-update-recovery-0985223.mjs",
     "test:widget-daily-rows": "node scripts/test-widget-daily-rows-0985262.mjs",
     "test:ruc-concurrency-offline": "node scripts/test-ruc-concurrency-offline-0985263.mjs",
-    "test:ruc-inventory": "node scripts/test-ruc-inventory-0985264.mjs"
+    "test:ruc-inventory": "node scripts/test-ruc-inventory-0985264.mjs",
+    "test:ruc-migration-preparation": "node scripts/test-ruc-migration-preparation-0985265.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
