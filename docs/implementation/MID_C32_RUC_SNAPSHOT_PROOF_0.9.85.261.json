@@ -1,0 +1,23 @@
+{
+  "schema": "mid.ruc.snapshot-proof.v1",
+  "run": "2026-10-15T09:00",
+  "environment": "Node host; not Worker/browser/iOS performance evidence",
+  "node": "v24.19.0",
+  "nodeMaxRssKiB": 77876,
+  "rawRetained": true,
+  "rows": [
+    {
+      "index": 132,
+      "rawBytes": 492480,
+      "encodedBytes": 224527,
+      "rawSha256": "0b73d2c31a1912caaef94be17043c6aefe40095cc1686dd307ddf92c07a02289",
+      "iterations": 30,
+      "nodeWallP95Ms": 12.002308999999997,
+      "nodeProcessCpuP95Ms": 20.393,
+      "warmOfflineCache": true,
+      "coldRawFallback": true,
+      "killSwitch": true,
+      "legacyRawUnchanged": true
+    }
+  ]
+}

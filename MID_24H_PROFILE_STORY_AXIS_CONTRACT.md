@@ -123,3 +123,6 @@ Die gemeinsame Zeitachse unterscheidet ab v0.9.78.46 strikt zwischen instantanen
 
 ## MID-C24 · kontinuierliches Skybar-Band (.215)
 Im Bandmodus werden unmittelbar angrenzende identische Farbe/Dicke/Stufe/Deckkraft/Lage in einer Fläche gezeichnet. Unterschiedliche Prozentwerte oder Tooltiptexte erzeugen keine sichtbaren Stundennähte. Alle Originalintervalle und ihre Beschreibungen bleiben erhalten; echte Lücken, Dicken-/Phasenwechsel und separate Niederschlagslagen werden nicht übermalt. Dies gilt über den gemeinsamen Renderer für 90 min, 12/24 h, Tageskarten, 7/14 Tage sowie Widget-/PNG-/URL-Ausgaben. Der explizite Quadratmodus behält Einzelzellen.
+
+## MID-C32 · gerade Skybar-Balkenenden (.261)
+Auf ausdrücklichen Nutzerauftrag ersetzt dieser Vertrag die bisherigen Rundungen im Bandmodus: Alle Grund- und Niederschlagsbalken haben über ihr vollständiges Gültigkeitsintervall konstante Dicke und senkrechte, gerade Enden. Keine Kreiskappen, abgerundeten Ecken oder Verjüngungen an Außenrändern, Datenlücken oder Zeitschritt-/Dicken-/Phasenwechseln. Identische benachbarte Zustände bleiben fugenlos verbunden; Werte, Zeitgrenzen, Missing Data, Tooltips und Overlay-Reihenfolge bleiben unverändert. Der gemeinsame Renderer gilt für sämtliche Ansichten und Widget-/PNG-/URL-Ausgaben. Die expliziten Stundenquadrate sind keine Balken.

@@ -35,7 +35,7 @@ assert.ok(!detailSkyBar.includes('underlayColor')&&!detailSkyBar.includes('under
 assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
 assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss den gemeinsamen PrecipSample-Vertrag akzeptieren.');
 
-assert.ok(app.includes('<SkyBarSegmentsSvg segments={skyBarSegments}')&&cockpit.includes('<SkyBarSegmentsSvg segments={profileSkyBarSegments}')&&skyBarRenderer.includes('joinedLeft=touches(')&&skyBarRenderer.includes('joinedRight=touches(')&&skyBarRenderer.includes('!joinedLeft?<circle')&&skyBarRenderer.includes('!joinedRight?<circle'),'Skybar-Segmente müssen gerundet sein, bei gleich dicken Nachbarsegmenten aber ohne optische Fuge verbunden werden.');
+assert.ok(app.includes('<SkyBarSegmentsSvg segments={skyBarSegments}')&&cockpit.includes('<SkyBarSegmentsSvg segments={profileSkyBarSegments}')&&skyBarRenderer.includes('<rect pointerEvents="none" x={segment.x1}')&&!skyBarRenderer.includes('<circle'),'MID-C32: gemeinsamer Skybar-Balkenrenderer hat gerade Enden ohne Kreiskappen.');
 assert.ok(cockpit.includes('function cockpitDaySkyBarSegments(')&&cockpit.includes('data-mid-skybar="day-card"')&&styles.includes('.cockpit-day-skybar{'),'Skybar muss wieder in jeder 7-Tage-Tageskachel eingebunden sein.');
 assert.ok(cockpit.includes('probabilityHours=displayHours.filter(hour=>hour.time.startsWith(day.date))')&&cockpit.includes('calendarDayHours=probabilityHours')&&cockpit.includes('daySkyBarSource=calendarDayHours.length?calendarDayHours:dayHours')&&cockpit.includes('daySkyBarSegments=cockpitDaySkyBarSegments(daySkyBarSource)')&&cockpit.includes('daySkyBarHourCells=detailSkyBarHourCells(daySkyBarSource)')&&!cockpit.includes('daySkyBarSource.slice(0,24)'),'Die Tageskachel muss für Skybar und Stundenquadrate den vollständigen lokalen Kalendertag einschließlich 23-/25-h-DST-Tagen verwenden, während der appweite PoP-Vertrag seinen probabilityHours-Alias behält.');
 
@@ -54,4 +54,4 @@ assert.equal(baseline.releaseVersion,pkg.version,'Baseline und Paketversion müs
 assert.equal(pkg.scripts?.['test:weather-profile-skybar-pills'],`node ${test}`,'Package-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test)&&baseline.regressionTests?.includes(test),'Regressionstest muss in beiden Baseline-Testlisten enthalten sein.');
 
-console.log(`MID v${pkg.version}: Tageskarten-Skybar, gerundete farbreine Grund-/Niederschlagslagen und themefeste 7-Tage-Nachtstunden ohne P25–P75 geschützt.`);
+console.log(`MID v${pkg.version}: Tageskarten-Skybar, gerade farbreine Grund-/Niederschlagslagen und themefeste 7-Tage-Nachtstunden ohne P25–P75 geschützt.`);
