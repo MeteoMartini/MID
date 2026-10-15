@@ -1,6 +1,7 @@
 ## MID v0.9.85.260 · 2026-10-15 · RUC-Betriebsnachweis und Open-Meteo-Prüfstand
 
 - Basis .259 / 9c0cd7cd0da3dcbd1d6cd72fc9ec1ad90311b021 nach erfolgreichem Installer 38689707057. Drei erfolgreiche nachfolgende RUC-Läufe; publiziertes Pilotobjekt und aktueller Worker-Basishealth belegt, Codec-Read im bisherigen Log nicht sichtbar.
+- Source-Gate-Reparatur: gemischte Browserfixture hält ICON-06/18-UTC-Grenze von +120 h ein. Echter Produktionsleser prüft alle 24 UTC-Laufstunden; unzulässige +180 h bleiben abgewiesen. Keine Validator-/Kartenprüfungsabschwächung.
 - check_ruc_health.py ergänzt getrennte laufgebundene Codec-Evidenz. Kein Ersatz von raw readiness durch Codecstatus; explizite Boolean-, Transport- und RawRetained-Prüfung. Regressionen decken echten Nachweis, falschen Lauf, fehlende Diagnostik, Abschaltung und Rohfallback ab. Keine Workflow-/Datenformatänderung.
 - Frühere Open-Meteo-Prüfungen mit Original-PRs/SHAs konsolidiert: docs/implementation/MID_OPEN_METEO_RUC_AUDIT_0.9.85.260.md. Keine ungeprüften Aliaswechsel, wissenschaftlichen Doppelkorrekturen oder rückwirkenden Kalibrierungsänderungen. MID #345 bleibt separat offen.
 

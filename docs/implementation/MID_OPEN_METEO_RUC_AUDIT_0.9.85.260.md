@@ -104,3 +104,14 @@ Nach Weglegen des alten generierten dist-Verzeichnisses: frischer Build,
 Bundle-Prüfung (1442963/1500000 B JS, 1759989/1760000 B CSS) und abschließende
 RUC-Health-Regression erfolgreich. Keine Budgetanhebung oder Testabschwächung.
 Produktionsaudit: 0 Befunde; Gesamtaudit: 3 moderate, 0 hohe/kritische Befunde.
+
+Erster Source-Gate 38700217619: native Karten und Mountain grün; alle drei
+Unified-Kartengruppen scheiterten beim ICON-EU-Isobarennachweis. Ursache:
+Die gemischte Browserfixture erzeugte für den ICON-06-UTC-Lauf +180 h statt
+der vertraglichen +120 h; der strikte Produktionsleser verwarf damit den
+vollständigen Katalog. Die Fixture wählt jetzt den zulässigen Horizont nach
+UTC-Laufstunde. Ein zusätzlicher Test verwendet den tatsächlichen
+`loadSynopticIndex` für alle fünf Modelle und alle 24 UTC-Stunden; 06/18 UTC
+mit +180 h müssen weiterhin scheitern. Kein Produktionsvalidator, keine
+Isobarenanforderung, keine Zeitgrenze und keine der 24 Geräte-/Theme-/Design-
+Kombinationen wird abgeschwächt oder übersprungen.
