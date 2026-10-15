@@ -7,7 +7,8 @@ import vm from 'node:vm';
 import {loadRucDualReadChunk} from '../tools/ruc/lossless_dual_read.mjs';
 const dir=mkdtempSync(join(tmpdir(),'mid-ruc-dual-'));
 try{
- execFileSync('python3',['tools/ruc/test_lossless_dual_read.py',dir],{stdio:'inherit',timeout:30000});
+ // Installer fixtures must work without NumPy/ecCodes or any site packages.
+ execFileSync('python3',['-S','tools/ruc/test_lossless_dual_read.py',dir],{stdio:'inherit',timeout:30000});
  const meta=JSON.parse(readFileSync(join(dir,'latest.json'))),page=meta.deterministic.pages,entry=page.losslessV1.chunks['3'];
  const raw=new Uint8Array(readFileSync(join(dir,entry.rawKey))),wire=new Uint8Array(readFileSync(join(dir,entry.key)));
  let calls=0,rawCalls=0;

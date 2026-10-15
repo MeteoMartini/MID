@@ -1,15 +1,13 @@
 """Bounded, read-only proof-of-concept for future lossless MID RUC chunk transport.
 
-Not imported by the operational encoder/Worker. Never mutate RUC data or the
-published mid.dwd.ruc.grid.v2 contract without separate migration gates.
+The bounded dual-read publisher uses the stdlib-only byteplanes-gzip path.
+The optional delta diagnostic loads its NumPy-based audit helpers lazily.
 """
 from __future__ import annotations
 
 import gzip
 import hashlib
 import zlib
-
-from storage_audit import delta_byteplanes, restore_delta_byteplanes
 
 SCHEMA = 'mid.ruc.lossless-candidate.v1'
 CODECS = frozenset(('gzip', 'byteplanes-gzip', 'delta-byteplanes-gzip'))
@@ -43,6 +41,7 @@ def encode_candidate(raw: bytes, codec: str) -> tuple[dict, bytes]:
     elif codec == 'byteplanes-gzip':
         shaped = raw[::2] + raw[1::2]
     else:
+        from storage_audit import delta_byteplanes
         shaped = delta_byteplanes(raw)
     wire = gzip.compress(shaped, compresslevel=6, mtime=0)
     return ({'schema': SCHEMA, 'codec': codec,
@@ -77,6 +76,7 @@ def decode_candidate(manifest: dict, wire: bytes) -> bytes:
     elif manifest['codec'] == 'byteplanes-gzip':
         raw = _restore_byteplanes(shaped)
     else:
+        from storage_audit import restore_delta_byteplanes
         raw = restore_delta_byteplanes(shaped)
     if len(raw) != size or _digest(raw) != manifest['decodedSha256']:
         raise ValueError('decoded payload length/hash mismatch')

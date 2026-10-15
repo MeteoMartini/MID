@@ -1,3 +1,7 @@
+## MID v0.9.85.259 · 2026-10-15 · Installer dependency repair
+
+Installer 38686567282 correctly rejected .258: the byteplanes publisher imported NumPy through storage_audit. Load the optional delta diagnostic helpers only when selected; require the complete dual-read fixture to run under python3 -S. No dependency/workflow/gate change, no compression-wire or meteorology change. .258 never reached Stable.
+
 ## MID v0.9.85.258 · 2026-10-15 · Bounded dual-read pilot
 
 One optional <=512-KiB deterministic tail chunk, raw retention, exact post-allocation budget, strict manifest/geometry/SHA, bounded shared decoder, legacy and rollback equivalence. No full storage migration or cache deletion.
