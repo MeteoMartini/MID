@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse,hashlib,json,re,shutil
 from pathlib import Path
 import numpy as np
+from lossless_dual_read import add_dual_read_pilot
 
 SCHEMA='mid.dwd.ruc.grid.v2'
 PROFILE='pages-free-v1'
@@ -320,6 +321,8 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
     result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
             'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes,'deduplicatedBytes':deduplicated_bytes}}
+    result=add_dual_read_pilot(result,out,PAGES_RUC_BUDGET_BYTES)
+    total=result['pages']['publishedBytes']
     manifest=(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n').encode('utf-8')
     if total+len(manifest)>=PAGES_RUC_BUDGET_BYTES:raise ValueError('Pages-free RUC payload including manifest exceeds budget')
     (out/'latest.json').write_bytes(manifest)
