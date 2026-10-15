@@ -95,3 +95,26 @@ def run():
     print('RUC Pages snapshot restore retry/backoff + fail-closed contract OK')
 
 if __name__=='__main__':run()
+
+# The installer must keep a fully compressed active snapshot byte-for-byte.
+with tempfile.TemporaryDirectory() as directory:
+    root=Path(directory);source=b'compressed-valid-wire';name='runs/test/lossless-v2/valid.bin'
+    meta={'schema':'mid.dwd.ruc.grid.v2','storageProfile':'pages-lossless-v1','run':'2026-10-09T17:00',
+        'migration':{'schema':'mid.ruc.migration-active.v1','productionEnabled':True},
+        'pages':{'profile':'pages-lossless-v1','losslessTransport':{'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False},
+                 'objects':[{'key':name,'bytes':len(source),'sha256':hashlib.sha256(source).hexdigest()}]}}
+    metadata=json.dumps(meta).encode()
+    orig=module.urllib.request.urlopen
+    try:
+        def from_active(req,timeout=0):
+            return Response(metadata if 'latest.json' in req.full_url else source)
+        module.urllib.request.urlopen=from_active
+        assert module.restore('https://midwx.app/ruc/',root/'active',True,1)
+        assert (root/'active'/name).read_bytes()==source
+        assert (root/'active/latest.json').read_bytes()==metadata
+        candidate=json.loads(metadata);candidate['migration']['productionEnabled']=False
+        module.urllib.request.urlopen=lambda req,timeout=0:Response(json.dumps(candidate).encode())
+        try:module.restore('https://midwx.app/ruc/',root/'blocked',True,1);raise AssertionError('unapproved candidate accepted')
+        except RuntimeError:pass
+        assert not (root/'blocked').exists()
+    finally:module.urllib.request.urlopen=orig

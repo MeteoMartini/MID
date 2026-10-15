@@ -46,8 +46,16 @@ def restore(base:str,target:Path,required=False,workers=16):
         if required: raise RuntimeError(f'current RUC snapshot unavailable: {e}') from e
         print('No deployed RUC snapshot to preserve; continuing without ruc/.');return False
     meta=json.loads(meta_bytes.decode())
-    if meta.get('storageProfile')!='pages-free-v1':
-        if required: raise RuntimeError('deployed RUC snapshot is not pages-free-v1')
+    profile=meta.get('storageProfile')
+    compressed=profile=='pages-lossless-v1'
+    if not (profile=='pages-free-v1' or (compressed and
+        meta.get('schema')=='mid.dwd.ruc.grid.v2' and
+        meta.get('pages',{}).get('profile')==profile and
+        meta.get('pages',{}).get('losslessTransport')=={
+            'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False} and
+        meta.get('migration',{}).get('schema')=='mid.ruc.migration-active.v1' and
+        meta.get('migration',{}).get('productionEnabled') is True)):
+        if required: raise RuntimeError('deployed RUC snapshot has unsupported raw/compressed format')
         return False
     objects=meta.get('pages',{}).get('objects') or []
     if not objects:

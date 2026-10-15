@@ -69,3 +69,14 @@ with tempfile.TemporaryDirectory() as directory:
     assert json.loads(output.read_text().split('=',1)[1])==report
 
 print('RUC schedule guard unit contract OK')
+
+# Full active profile may suppress a redundant run; a candidate must never.
+active=meta();active['storageProfile']=guard.FULL_STORAGE_PROFILE
+active['pages'].update({'profile':guard.FULL_STORAGE_PROFILE,'losslessTransport':{
+ 'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}})
+active['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True}
+assert guard.valid_pages_meta(active)
+assert guard.decide('2026-08-30T02:00',active,now=NOW)[0] is False
+candidate=json.loads(json.dumps(active));candidate['migration']['productionEnabled']=False
+assert not guard.valid_pages_meta(candidate)
+assert guard.decide('2026-08-30T02:00',candidate,now=NOW)[0] is True
