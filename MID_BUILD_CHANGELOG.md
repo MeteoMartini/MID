@@ -1,3 +1,7 @@
+## MID v0.9.85.258 · 2026-10-15 · Bounded dual-read pilot
+
+One optional <=512-KiB deterministic tail chunk, raw retention, exact post-allocation budget, strict manifest/geometry/SHA, bounded shared decoder, legacy and rollback equivalence. No full storage migration or cache deletion.
+
 ## MID v0.9.85.257 · 2026-10-14 · RUC transport canary
 
 Shared bounded SHA-verifying decoder in isolated browser and fixed-origin Worker diagnostic; synthetic all-int16 fixtures, raw legacy reads, CacheStorage round trips, rejection of auto-decoded opaque wire. Actual hosting is GitHub Pages behind Cloudflare, not Cloudflare Pages. No production grid.v2 migration or budget change.
