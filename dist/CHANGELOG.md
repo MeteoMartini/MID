@@ -1,3 +1,16 @@
+# MID v0.9.85.259 · RUC-Pilot ohne zusätzliche Python-Laufzeitabhängigkeit
+
+- Der begrenzte verlustfreie RUC-Pilot benötigt für Byteplane-gzip ausschließlich die Python-Standardbibliothek. Ein unnötiger Import diagnostischer NumPy-Helfer blockierte zuvor die unabhängige Installer-Prüfung von .258.
+- Der End-to-End-Test läuft jetzt ausdrücklich ohne Python-Site-Packages. Rohdaten, Prüfsummen, Speicherbudget, Abschaltung und Rückfall bleiben unverändert.
+- .258 wurde durch das fehlgeschlagene Installer-Gate nicht veröffentlicht. Dieses Release enthält den vollständigen geprüften Pilot einschließlich Body-Deadlinekorrektur; produktive Aktivierung ist weiterhin separat an einem echten RUC-Lauf nachzuweisen.
+
+# MID v0.9.85.258 · Begrenzter RUC-Dual-Read-Pilot mit Rohdaten-Rückfall
+
+- Die RUC-Aufbereitung kann erstmals eine kleine verlustfrei komprimierte Kopie eines tatsächlichen Chunks ergänzen. Alle Rohdateien bleiben erhalten; die Kopie wird nur bei ausreichendem freiem Speicher veröffentlicht.
+- Der neue Worker kann sie im deterministischen Punktadapter lesen. Schlüssel, Chunk-Geometrie, Größen und Prüfsummen müssen stimmen. Andere Produkte und alte Worker behalten ihren bisherigen Datenweg.
+- Eine defekte Kopie führt zum diagnostizierten Rohdaten-Rückfall. Der Datenweg kann auf Rohdaten zurückgestellt werden; Wetterwerte, Missing und Zeitauflösung bleiben gleich.
+- Noch keine vollständige Speicherumstellung: keine Rohdatenentfernung, keine App-Cache-Löschung und keine Erhöhung des 900-MB-RUC-Budgets.
+
 # MID v0.9.85.257 · RUC-Kompression mit isolierter Transportprüfung
 
 - Ein getrenntes Diagnoseprodukt prüft die verlustfreie RUC-Kompression über die tatsächlich verwendete Dateiauslieferung. Rohdaten und drei Codecvarianten müssen alle 65.536 möglichen 16-Bit-Muster exakt erhalten.
