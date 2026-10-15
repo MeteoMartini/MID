@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.262",
+  "releaseVersion": "0.9.85.263",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -985,7 +985,8 @@
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-widget-daily-rows-0985262.mjs"
+    "scripts/test-widget-daily-rows-0985262.mjs",
+    "scripts/test-ruc-concurrency-offline-0985263.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1960,7 +1961,8 @@
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-widget-daily-rows-0985262.mjs"
+    "scripts/test-widget-daily-rows-0985262.mjs",
+    "scripts/test-ruc-concurrency-offline-0985263.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/install-mid.yml",
@@ -2841,7 +2843,10 @@
     "tools/ruc/verify_lossless_snapshot.mjs",
     "scripts/test-widget-daily-rows-0985262.mjs",
     "src/widgetCurveDailySummary.ts",
-    "src/widgetCurveDetails.css"
+    "src/widgetCurveDetails.css",
+    "scripts/test-ruc-concurrency-offline-0985263.mjs",
+    "scripts/fixtures/ruc-service-worker-0257.js",
+    "scripts/verify-ruc-offline-browser-0985263.mjs"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -2944,7 +2949,8 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs",
     "scripts/test-open-meteo-multicaller-0985245.mjs",
-    "scripts/test-widget-daily-rows-0985262.mjs"
+    "scripts/test-widget-daily-rows-0985262.mjs",
+    "scripts/test-ruc-concurrency-offline-0985263.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3533,9 +3539,10 @@
     "scripts/test-worker-auto-deploy-legacy-path-097859.mjs",
     "scripts/test-update-recovery-0985223.mjs",
     "scripts/test-open-meteo-multicaller-0985245.mjs",
-    "scripts/test-widget-daily-rows-0985262.mjs"
+    "scripts/test-widget-daily-rows-0985262.mjs",
+    "scripts/test-ruc-concurrency-offline-0985263.mjs"
   ],
-  "version": "0.9.85.262",
+  "version": "0.9.85.263",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
@@ -3676,7 +3683,8 @@
     "vitest.config.ts",
     "docs/implementation/MID_C32_SKYBAR_RUC_0.9.85.261.md",
     "docs/implementation/MID_C32_RUC_SNAPSHOT_PROOF_0.9.85.261.json",
-    "docs/implementation/MID_C32_WIDGET_DAILY_ROWS_0.9.85.262.md"
+    "docs/implementation/MID_C32_WIDGET_DAILY_ROWS_0.9.85.262.md",
+    "docs/implementation/MID_C32_RUC_CONCURRENCY_OFFLINE_0.9.85.263.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

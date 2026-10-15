@@ -1,6 +1,5 @@
-# MID v0.9.85.262 · Kompakte Tageswerte in der Widget-Kurvenübersicht
+# MID v0.9.85.263 · Begrenzte parallele RUC-Dekodierung und Offline-Nachweis
 
-- Bei aktivierter Niederschlagsoption zeigt die Kurvenübersicht direkt unter Tmin eine kompakte Tageszeile mit Menge und Wahrscheinlichkeit. Stundenmaxima bleiben als „max“ erkennbar; fehlende Werte werden nicht als trocken dargestellt.
-- Sonnenstunden erhalten bei aktivierter Option eine eigene kompakte Zeile oberhalb des Diagramms.
-- Ein eigenes Kästchen „Skybar“ zeigt oder verbirgt den vollständigen Wetterstreifen. Die Optionen für Niederschlags- und Sonnenwerte verändern seine Wetterlagen nicht mehr. Nachtbereiche im Diagramm bleiben erhalten.
-- Die Auswahl wird gespeichert und gilt ebenso für Vorschau, PNG und direkte Widget-URLs. Bestehende Einstellungen behalten zunächst die sichtbare Skybar. Die Kästchen stehen auch auf breiten Displays übersichtlich in zwei Spalten.
+- Gleichzeitige Abrufe desselben komprimierten RUC-Chunks teilen jetzt einen einzigen geprüften Ladevorgang. Höchstens zwei unterschiedliche Codec-Vorgänge laufen gleichzeitig; weitere Abrufe nutzen den verifizierten Rohfallback.
+- Zusätzliche Prüfungen decken parallele Abrufe, Fehler und Wiederanlauf sowie den Original-Service-Worker von .257 und den aktuellen Service-Worker im Browser ab. Offline dürfen keine alten oder beschädigten Cacheeinträge als aktuelle Wetterwerte erscheinen.
+- Der bestehende verlustfreie Pilot und die Rohkopien bleiben erhalten. Dieser Schritt begrenzt Decoderarbeit und verbessert die geprüfte Kompatibilität; eine vollständige Rohdatenablösung oder Netto-Speicherreduktion wird damit nicht freigegeben.
