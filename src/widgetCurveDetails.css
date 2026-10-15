@@ -1,0 +1,5 @@
+/* Widget-only additions load with the existing lazy WidgetGenerator module. */
+.weatherwidget .seven-day-curve-meta-row{display:grid;grid-template-columns:repeat(var(--seven-day-curve-count),minmax(0,1fr));gap:3px;padding:2px var(--seven-day-curve-right-pad) 2px var(--seven-day-curve-left-pad);font-size:9px;font-variant-numeric:tabular-nums;line-height:1.3}
+.seven-day-curve-meta-row>span{display:flex;justify-content:center;align-items:center;gap:3px;min-width:0;white-space:nowrap}
+.seven-day-curve-meta-row svg{flex:none}.seven-day-curve-rain-row,.seven-day-curve-sun-row{color:inherit}.seven-day-curve-rain-row svg{color:var(--param-precipitation)}
+.widget-embedded .widget-option-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
