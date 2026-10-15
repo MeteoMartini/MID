@@ -31,6 +31,19 @@ try{
  const old=await vm.runInContext("dwdRucStaticRecord(new URL('https://legacy.test/ruc/'),spec,769)",legacy);assert.deepEqual(Array.from(old),Array.from(raw.subarray(8,16)),'Unchanged .257 consumer ignores codec descriptor and reads same raw record');
  const proof=JSON.parse(execFileSync(process.execPath,['tools/ruc/verify_lossless_snapshot.mjs',dir,'3'],{encoding:'utf8',timeout:30000}));
  assert.equal(proof.schema,'mid.ruc.snapshot-proof.v1');assert.equal(proof.rows[0].warmOfflineCache,true);assert.equal(proof.rows[0].coldRawFallback,true);assert.equal(proof.rows[0].killSwitch,true);assert.equal(proof.rows[0].rawBytes,raw.length);
+ // Concurrent favorites share one bounded decode, not one allocation per caller.
+ let releaseWire,parallelFetches=0;const gate=new Promise(resolve=>releaseWire=resolve);
+ const parallel=Array.from({length:64},()=>loadRucDualReadChunk(new URL('https://parallel.test/'),page,3,entry.rawKey,async()=>raw,async()=>{parallelFetches++;await gate;return wire}));
+ await Promise.resolve();assert.equal(parallelFetches,1);releaseWire();
+ for(const result of await Promise.all(parallel)){assert.equal(result.transport,'byteplanes-gzip');assert.deepEqual(result.bytes,raw)}
+ // Two distinct active codecs bound total inflight work; a third uses verified raw.
+ let releaseSlots;const slots=new Promise(resolve=>releaseSlots=resolve);
+ const busyLoad=id=>loadRucDualReadChunk(new URL('https://slots-'+id+'.test/'),page,3,entry.rawKey,async()=>raw,async()=>{await slots;return wire});
+ const held=[busyLoad(1),busyLoad(2)];const busy=await busyLoad(3);assert.equal(busy.reason,'codec-busy');assert.deepEqual(busy.bytes,raw);releaseSlots();await Promise.all(held);
+ assert.equal((await busyLoad(3)).transport,'byteplanes-gzip','Busy is not a 30-second codec error');
+ let failFetches=0,releaseFailure;const failureGate=new Promise(resolve=>releaseFailure=resolve);
+ const failedParallel=Array.from({length:12},()=>loadRucDualReadChunk(new URL('https://parallel-failure.test/'),page,3,entry.rawKey,async()=>raw,async()=>{failFetches++;await failureGate;throw Error('offline')}));
+ releaseFailure();for(const result of await Promise.all(failedParallel)){assert.equal(result.transport,'raw-fallback');assert.deepEqual(result.bytes,raw)}assert.equal(failFetches,1);
  const current={...meta,run:new Date().toISOString(),generatedAt:new Date().toISOString(),storageProfile:'pages-free-v1',pointCount:1000,times:['2026-10-15T00:00','2026-10-15T01:00','2026-10-15T02:00','2026-10-15T03:00'],grid:{latMin:50,lonMin:7,dx:.1,dy:.1,nx:1,ny:1},lookup:{dtype:'uint32-le',pages:{chunkRecords:1,chunkCount:1,recordBytes:4,prefix:'runs/dual_read_test/lookup'}}};current.deterministic.fields=[{name:'temperature_2m',scale:.1,offset:0}];
  const source=readFileSync('worker/metar-proxy.js','utf8').replace(/export default\s*\{/,'const __workerDefault={').replace(/^export \{[^\n]+\};?$/gm,'');
  const fetchFixture=async input=>{const url=new URL(input);if(url.pathname.endsWith('latest.json'))return Response.json(current);if(url.pathname.endsWith('/lookup/0000.bin'))return new Response(new Uint8Array([1,3,0,0]));return new Response(readFileSync(join(dir,url.pathname.replace(/^\/ruc\//,''))))};

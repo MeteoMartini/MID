@@ -1,5 +1,5 @@
 import {decodeRucLosslessCandidate} from './lossless_candidate_decoder.mjs';
-const rucDualVerified = new Map(), rucDualRejected = new Map();
+const rucDualVerified = new Map(), rucDualRejected = new Map(), rucDualInFlight = new Map();
 const RUC_DUAL_SCHEMA = 'mid.ruc.dual-read.v1';
 async function rucDualSha(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('')}
 function rucDualEntry(page,index,rawKey){
@@ -24,8 +24,15 @@ export async function loadRucDualReadChunk(base,page,index,rawKey,readRaw,readWi
  const cached=rucDualVerified.get(key);if(cached)return {bytes:cached,transport:'byteplanes-gzip'};
  let reason='codec-rejected';
  if(!rucDualRejected.has(key)||Date.now()-rucDualRejected.get(key)>30000){
-  try{const wire=await readWire(entry.key,entry.manifest.encodedBytes),bytes=await decodeRucLosslessCandidate(entry.manifest,wire);rucDualVerified.set(key,bytes);if(rucDualVerified.size>2)rucDualVerified.delete(rucDualVerified.keys().next().value);rucDualRejected.delete(key);return {bytes,transport:'byteplanes-gzip'}}
+  let pending=rucDualInFlight.get(key);
+  if(!pending){
+   if(rucDualInFlight.size>=2)return {bytes:await rucDualRaw(readRaw,entry),transport:'raw-fallback',reason:'codec-busy'};
+   pending=(async()=>{const wire=await readWire(entry.key,entry.manifest.encodedBytes),bytes=await decodeRucLosslessCandidate(entry.manifest,wire);rucDualVerified.set(key,bytes);if(rucDualVerified.size>2)rucDualVerified.delete(rucDualVerified.keys().next().value);rucDualRejected.delete(key);return bytes})();
+   rucDualInFlight.set(key,pending);
+  }
+  try{return {bytes:await pending,transport:'byteplanes-gzip'}}
   catch{rucDualRejected.set(key,Date.now());if(rucDualRejected.size>4)rucDualRejected.delete(rucDualRejected.keys().next().value)}
+  finally{if(rucDualInFlight.get(key)===pending)rucDualInFlight.delete(key)}
  }else reason='codec-retry-backoff';
  return {bytes:await rucDualRaw(readRaw,entry),transport:'raw-fallback',reason};
 }

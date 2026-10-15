@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.262';
+const WORKER_VERSION='0.9.85.263';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -1361,7 +1361,7 @@ async function runRucTransportCanary(base=RUC_CANARY_BASE){
   return {schema:CANARY_MANIFEST.schema,synthetic:true,productionEnabled:false,legacyRawSha256:CANARY_MANIFEST.raw.sha256,originalSha256:CANARY_MANIFEST.candidates[0].manifest.decodedSha256,int16Patterns:65536,missingSentinelPreserved:true,rawContentEncoding:original.headers.get('content-encoding')||'identity',candidates:rows};
  }finally{clearTimeout(timer)}
 }
-const rucDualVerified = new Map(), rucDualRejected = new Map();
+const rucDualVerified = new Map(), rucDualRejected = new Map(), rucDualInFlight = new Map();
 const RUC_DUAL_SCHEMA = 'mid.ruc.dual-read.v1';
 async function rucDualSha(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('')}
 function rucDualEntry(page,index,rawKey){
@@ -1386,8 +1386,15 @@ async function loadRucDualReadChunk(base,page,index,rawKey,readRaw,readWire,allo
  const cached=rucDualVerified.get(key);if(cached)return {bytes:cached,transport:'byteplanes-gzip'};
  let reason='codec-rejected';
  if(!rucDualRejected.has(key)||Date.now()-rucDualRejected.get(key)>30000){
-  try{const wire=await readWire(entry.key,entry.manifest.encodedBytes),bytes=await decodeRucLosslessCandidate(entry.manifest,wire);rucDualVerified.set(key,bytes);if(rucDualVerified.size>2)rucDualVerified.delete(rucDualVerified.keys().next().value);rucDualRejected.delete(key);return {bytes,transport:'byteplanes-gzip'}}
+  let pending=rucDualInFlight.get(key);
+  if(!pending){
+   if(rucDualInFlight.size>=2)return {bytes:await rucDualRaw(readRaw,entry),transport:'raw-fallback',reason:'codec-busy'};
+   pending=(async()=>{const wire=await readWire(entry.key,entry.manifest.encodedBytes),bytes=await decodeRucLosslessCandidate(entry.manifest,wire);rucDualVerified.set(key,bytes);if(rucDualVerified.size>2)rucDualVerified.delete(rucDualVerified.keys().next().value);rucDualRejected.delete(key);return bytes})();
+   rucDualInFlight.set(key,pending);
+  }
+  try{return {bytes:await pending,transport:'byteplanes-gzip'}}
   catch{rucDualRejected.set(key,Date.now());if(rucDualRejected.size>4)rucDualRejected.delete(rucDualRejected.keys().next().value)}
+  finally{if(rucDualInFlight.get(key)===pending)rucDualInFlight.delete(key)}
  }else reason='codec-retry-backoff';
  return {bytes:await rucDualRaw(readRaw,entry),transport:'raw-fallback',reason};
 }
