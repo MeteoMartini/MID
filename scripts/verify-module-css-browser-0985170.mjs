@@ -47,6 +47,26 @@ try{
   assert.ok(current.requests.some(url=>url.includes('/src/WidgetGenerator.tsx')),'Widget module must load when opened');
   for(const view of ['cards','curve','ensemble']){
    for(const item of [current,reference].filter(Boolean)){await item.page.getByLabel('Widget-Darstellung',{exact:true}).selectOption(view);if(view==='curve')await item.page.locator('.seven-day-temperature-quantiles').waitFor();}
+   if(view==='curve'&&!reference){
+    const page=current.page,strip=()=>page.locator('.seven-day-curve-skybar');
+    await page.getByRole('checkbox',{name:'Skybar',exact:true}).check();
+    const fullBand=await strip().innerHTML();
+    for(const rain of [false,true])for(const sun of [false,true])for(const sky of [false,true]){
+     await page.getByRole('checkbox',{name:'Niederschlag',exact:true}).setChecked(rain);
+     await page.getByRole('checkbox',{name:'Sonnenstunden',exact:true}).setChecked(sun);
+     await page.getByRole('checkbox',{name:'Skybar',exact:true}).setChecked(sky);
+     assert.equal(await page.locator('.seven-day-curve-rain-row').count(),rain?1:0);
+     assert.equal(await page.locator('.seven-day-curve-sun-row').count(),sun?1:0);
+     assert.equal(await strip().count(),sky?1:0);
+     if(sky)assert.equal(await strip().innerHTML(),fullBand,'Whole Skybar stays independent of numerical rows');
+     assert.equal(await page.locator('.seven-day-curve-meta-row>span').evaluateAll(nodes=>nodes.some(n=>n.scrollWidth>n.clientWidth+1)),false,'Compact daily labels fit their own day columns');
+     const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:0.7.1:widget-settings')));
+     assert.equal(stored.showSkybar,sky);assert.equal(stored.showRain,rain);assert.equal(stored.showSunshine,sun);
+    }
+    const boxes=await page.locator('.seven-day-curve-rain-row,.seven-day-curve-wind-row,.seven-day-curve-sun-row,.seven-day-curve-chart').evaluateAll(nodes=>nodes.map(n=>({class:n.className,y:n.getBoundingClientRect().y})));
+    assert.equal(boxes.length,4);for(let i=1;i<boxes.length;i++)assert.ok(boxes[i].y>boxes[i-1].y,'Precipitation, wind, sunshine, then chart');
+    if(process.env.MID_WIDGET_QA_SCREENSHOTS)await page.locator('.weatherwidget').screenshot({path:process.env.MID_WIDGET_QA_SCREENSHOTS+`/widget262-${width}-${theme}.png`});
+   }
    assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/${view}: page overflow`);
    if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/${view}: visual/layout divergence from .169`);parity++;}cases++;
   }

@@ -468,7 +468,9 @@
     {
       "file": "src/WidgetGenerator.tsx",
       "name": "WidgetStoredSettings",
-      "sha256": "7dfbfc92cad8ccf70a8e8f73073fe7db3ce2f37d0c032a941b07830122ab8a73"
+      "sha256": "fd25e0716d36a8cc5a9485ce3206c99990fbf51b05f57748e9fce13b034b4bf8",
+      "approvedVersion": "0.9.85.262",
+      "approvedReason": "Explicit C32 widget daily precipitation/sunshine rows and independently persisted full-Skybar visibility; canonical renderer retained."
     },
     {
       "file": "src/WidgetGenerator.tsx",
@@ -483,14 +485,16 @@
     {
       "file": "src/WidgetGenerator.tsx",
       "name": "storedWidgetSettings",
-      "sha256": "da93753f2134e1e66dc63c946d01fe66f6ce71d366e642ae6c2bd953479b0a04"
+      "sha256": "a0f4fdce5130f7ddab9ed50d10c9a2652c0cbc84ea3e36743efdee9b78d6a729",
+      "approvedVersion": "0.9.85.262",
+      "approvedReason": "Explicit C32 widget daily precipitation/sunshine rows and independently persisted full-Skybar visibility; canonical renderer retained."
     },
     {
       "file": "src/WidgetGenerator.tsx",
       "name": "Widget",
-      "sha256": "676eb4a2e5f55f8238acca31d14d7f6ebe77e8313bcdb199e0201161e536cec0",
-      "approvedVersion": "0.9.85.216",
-      "approvedReason": "Requested common location header for cards and curves inside the unchanged export target."
+      "sha256": "67a79e52414019a367de4a064c183f8880787eb334929fcf802b9052c86bce15",
+      "approvedVersion": "0.9.85.262",
+      "approvedReason": "Explicit C32 widget daily precipitation/sunshine rows and independently persisted full-Skybar visibility; canonical renderer retained."
     },
     {
       "file": "src/ForecastDisplayPrimitives.tsx",
