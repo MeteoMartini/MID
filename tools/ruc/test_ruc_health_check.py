@@ -88,4 +88,22 @@ try:
 except RuntimeError:
  pass
 
-print('RUC deployed health-check convergence contract OK')
+# Base readiness must never be confused with successful optional codec adoption.
+meta={'run':good['run'],'pages':{'losslessTransport':{'mode':'dual-read-pilot','rawRetained':True,'addedBytes':224323}}}
+pilot={'advertised':True,'readEnabled':True,'verified':True,'rawRetained':True,'transport':'byteplanes-gzip','chunkIndex':132}
+evidence=mod.codec_evidence({**good,'codecPilot':pilot},meta)
+assert evidence['verified'] is True and evidence['addedBytes']==224323
+assert evidence['run']==good['run'] and evidence['chunkIndex']==132
+assert mod.codec_evidence({**good,'run':'older','codecPilot':pilot},meta)['verified'] is False
+for patch in ({'verified':False,'transport':'raw','reason':'wire-sha'},
+              {'readEnabled':False},{'advertised':False},{'rawRetained':False},
+              {'transport':'raw'},{'verified':'true'}):
+ payload={**good,'codecPilot':{**pilot,**patch}}
+ mod.check(payload,good['run']) # Raw service remains ready and rollback works.
+ assert mod.codec_evidence(payload,meta)['verified'] is False
+for absent in (None,False,{},'unexpected'):
+ assert mod.codec_evidence({**good,'codecPilot':absent},meta)['verified'] is False
+assert mod.codec_evidence({**good,'codecPilot':pilot},{'run':good['run']})['verified'] is False
+assert mod.codec_evidence({**good,'codecPilot':pilot},{'pages':{'losslessTransport':{'mode':'dual-read-pilot','rawRetained':False}}})['verified'] is False
+
+print('RUC deployed health-check convergence and explicit codec evidence contract OK')

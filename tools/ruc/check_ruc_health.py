@@ -87,6 +87,38 @@ def fetch_payload(url: str, timeout: float) -> dict:
     return payload
 
 
+def codec_evidence(payload: dict, meta: dict) -> dict:
+    """Report codec adoption separately from the strict, rollback-safe raw gate.
+
+    A successful base health check is not proof that a codec was decoded.  Keep
+    absent, disabled and raw-fallback states visible without turning the optional
+    pilot into a prerequisite for serving the preserved raw product.
+    """
+    published = meta.get('pages', {}).get('losslessTransport') or {}
+    pilot = payload.get('codecPilot')
+    pilot = pilot if isinstance(pilot, dict) else {}
+    expected = published.get('mode') == 'dual-read-pilot'
+    verified = bool(
+        expected and bool(meta.get('run')) and payload.get('run') == meta.get('run')
+        and published.get('rawRetained') is True
+        and pilot.get('advertised') is True and pilot.get('readEnabled') is True
+        and pilot.get('verified') is True and pilot.get('rawRetained') is True
+        and pilot.get('transport') == 'byteplanes-gzip'
+    )
+    return {
+        'run': str(meta.get('run', '')),
+        'published': expected,
+        'addedBytes': published.get('addedBytes'),
+        'advertised': pilot.get('advertised'),
+        'readEnabled': pilot.get('readEnabled'),
+        'verified': verified,
+        'transport': pilot.get('transport'),
+        'chunkIndex': pilot.get('chunkIndex'),
+        'rawRetained': pilot.get('rawRetained'),
+        'reason': pilot.get('reason'),
+    }
+
+
 def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
@@ -180,6 +212,8 @@ def main() -> int:
         f'ageHours={payload.get("ageHours")}, points={payload.get("pointCount")}, '
         f'epsMembers={payload.get("epsMemberCount")}, probe={attempt}/{a.attempts}'
     )
+    meta = json.loads(Path(a.meta).read_text(encoding='utf-8'))
+    print('MID RUC codec evidence: ' + json.dumps(codec_evidence(payload, meta), sort_keys=True))
     return 0
 
 
