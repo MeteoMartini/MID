@@ -33,6 +33,7 @@ jobs:
       should_run: ${{ steps.freshness.outputs.should_run }}
       stable_sha: ${{ steps.stable_revision.outputs.sha }}
       data_artifact_id: ${{ steps.data_upload.outputs.artifact-id }}
+      rollback_artifact_id: ${{ steps.rollback_upload.outputs.artifact-id }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -121,6 +122,40 @@ jobs:
           python tools/ruc/test_ruc_pack.py
           python tools/ruc/test_prepare_ruc_pages.py
           python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages
+      - name: Node.js 22 für vollständigen RUC-Python/JS-Abgleich laden
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+      - name: SHA-gebundenen RUC-Rohsnapshot als rollbackfähiges Artefakt sichern
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        id: rollback_upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./.ruc-pages/ruc
+          if-no-files-found: error
+          retention-days: 2
+          compression-level: 6
+      - name: Vollständig verlustfreie RUC-Daten byte- und meteorologisch unabhängig prüfen
+        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/test_activate_lossless_snapshot.py
+          python tools/ruc/prepare_lossless_snapshot.py .ruc-pages/ruc .ruc-codec-candidate
+          node tools/ruc/verify_lossless_migration.mjs .ruc-pages/ruc .ruc-codec-candidate > .ruc-codec-proof.json
+          python tools/ruc/activate_lossless_snapshot.py .ruc-pages/ruc .ruc-codec-candidate .ruc-codec-proof.json .ruc-compressed/ruc > .ruc-activation-proof.json
+          python - <<'PY'
+          import json
+          proof=json.load(open('.ruc-activation-proof.json'))
+          assert proof['schema']=='mid.ruc.activation-proof.v1'
+          assert proof['sourceRollbackIntact'] is True
+          assert proof['physicalBytes']<proof['budgetBytes']==900000000
+          print('RUC: lossless full replacement prepared, verified '+str(proof['fullDecodedParts'])+' parts, '+str(proof['physicalBytes'])+' bytes.')
+          PY
+          mv .ruc-pages/ruc .ruc-raw
+          mv .ruc-compressed/ruc .ruc-pages/ruc
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern
         id: data_upload
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
@@ -269,6 +304,12 @@ jobs:
           fi
           echo "allowed=true" >> "$GITHUB_OUTPUT"
           echo "MID-Stable unmittelbar vor Publish unverändert: ${actual_sha} · MID v${stable_version}"
+      - name: Produktives RUC-Healthgate vor komprimiertem Pages-Publish verpflichtend prüfen
+        if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
+        env:
+          MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
+        run: |
+          test -n "$MID_RUC_WORKER_HEALTH_URL" || { echo "::error::Ohne produktiven Worker-Health-Endpunkt keine RUC-Vollkompression."; exit 1; }
       - name: GitHub-Pages-Artefakt hochladen
         if: steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
@@ -283,12 +324,66 @@ jobs:
           artifact_name: mid-ruc-pages-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Produktiven Worker gegen den veröffentlichten RUC-Lauf prüfen
         id: worker_health
-        if: ${{ steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' && (vars.MID_RUC_WORKER_HEALTH_URL != '' || vars.MID_WORKER_HEALTH_URL != '' || vars.VITE_METAR_PROXY_URL != '') }}
+        if: ${{ steps.stable_guard.outputs.allowed == 'true' && steps.publish_guard.outputs.allowed == 'true' }}
         env:
           MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
           MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
         run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-pages/ruc/latest.json --pages-base "${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
 
+      - name: RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen
+        if: ${{ failure() && steps.deployment.outcome == 'success' && steps.worker_health.outcome == 'failure' }}
+        id: rollback_raw
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.prepare.outputs.rollback_artifact_id }}
+          merge-multiple: true
+          path: ./.ruc-rollback/ruc
+      - name: Vorherige unveränderte RUC-Rohbytes für sichere Rücknahme bereitstellen
+        if: ${{ failure() && steps.rollback_raw.outcome == 'success' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .ruc-rollback/ruc/latest.json
+          python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          root=Path('.ruc-rollback/ruc')
+          m=json.loads((root/'latest.json').read_text())
+          assert m.get('schema')=='mid.dwd.ruc.grid.v2' and m.get('storageProfile')=='pages-free-v1'
+          objects=m['pages']['objects']
+          assert sum(int(o['bytes']) for o in objects)==m['pages']['publishedBytes']
+          for o in objects:
+              key=o['key']
+              assert key.startswith('runs/') and all(x not in ('','..','.') for x in key.split('/'))
+              p=root/key
+              assert p.is_file() and p.stat().st_size==o['bytes']
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==o['sha256']
+          assert m['pages']['publishedBytes']+len((root/'latest.json').read_bytes())<900000000
+          print('RUC rollback immutable original verified: '+str(len(objects))+' objects')
+          PY
+          cp -a .ruc-site .ruc-rollback-site
+          rm -rf .ruc-rollback-site/ruc
+          cp -a .ruc-rollback/ruc .ruc-rollback-site/ruc
+          bytes="$(du -sb .ruc-rollback-site | awk '{print $1}')"
+          test "$bytes" -lt 950000000
+      - name: Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen
+        if: ${{ failure() && steps.rollback_raw.outcome == 'success' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: mid-ruc-pages-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./.ruc-rollback-site
+      - name: Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zurückveröffentlichen
+        if: ${{ failure() && steps.rollback_raw.outcome == 'success' }}
+        id: rollback_pages
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: mid-ruc-pages-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Rollback-Worker/Pages mit derselben Run-ID nachweisen
+        if: ${{ failure() && steps.rollback_pages.outcome == 'success' }}
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL }}
+          MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
+        run: python tools/ruc/check_ruc_health.py --url "$MID_RUC_WORKER_HEALTH_URL" --meta ./.ruc-rollback/ruc/latest.json --pages-base "${MID_RUC_PAGES_BASE_URL:-https://midwx.app/ruc/}"
       - name: RUC-Ergebnis eindeutig zusammenfassen
         if: always()
         env:
