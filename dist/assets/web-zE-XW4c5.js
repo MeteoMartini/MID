@@ -1,0 +1,1 @@
+import{Ai as e}from"./index-Db9HQv11.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
