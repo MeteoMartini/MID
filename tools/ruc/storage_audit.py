@@ -39,6 +39,11 @@ def audit_storage(meta, root, samples_per_product=3, full_compression=False, del
     if not 1 <= samples_per_product <= 5:
         raise ValueError('storage audit samples must be 1..5 per product')
     root = Path(root).resolve()
+    if full_compression:
+        # A full inventory claim includes JSON, native gzip maps and objects
+        # outside the candidate bound, not only the compression samples.
+        from lossless_inventory import verify_inventory
+        verify_inventory(meta, root)
     groups = defaultdict(list)
     seen = set()
     duplicates = 0
