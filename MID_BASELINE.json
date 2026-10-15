@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.265",
+  "releaseVersion": "0.9.85.266",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2859,7 +2859,8 @@
     "tools/ruc/prepare_lossless_snapshot.py",
     "tools/ruc/compressed_record_reader.mjs",
     "tools/ruc/verify_lossless_migration.mjs",
-    "tools/ruc/test_prepare_lossless_snapshot.py"
+    "tools/ruc/test_prepare_lossless_snapshot.py",
+    "docs/implementation/MID_C32_RUC_FULL_WORKER_PREFLIGHT_0.9.85.266.md"
   ],
   "requiredTests": [
     "scripts/test-aggregate-source-of-truth-098595.mjs",
@@ -3418,7 +3419,8 @@
     "docs/implementation/MID_RELEASE_PIPELINE_PERFORMANCE_0.9.85.168.md",
     "scripts/test-regression-sharding-0985171.mjs",
     "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md",
-    "docs/implementation/MID_OPEN_METEO_GUARD_0.9.85.245.md"
+    "docs/implementation/MID_OPEN_METEO_GUARD_0.9.85.245.md",
+    "docs/implementation/MID_C32_RUC_FULL_WORKER_PREFLIGHT_0.9.85.266.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3559,7 +3561,7 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.265",
+  "version": "0.9.85.266",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
