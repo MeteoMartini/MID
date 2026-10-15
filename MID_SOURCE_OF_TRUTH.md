@@ -1,3 +1,14 @@
+# MID v0.9.85.260 · RUC-Nachweise und Open-Meteo-Prüfstand
+
+Diese Entwicklung basiert auf dem erfolgreich veröffentlichten MID .259,
+main = mid-stable = 9c0cd7cd0da3dcbd1d6cd72fc9ec1ad90311b021.
+Sie ergänzt explizite laufgebundene Codecdiagnostik im bestehenden RUC-Health-CLI
+und konsolidiert frühere Open-Meteo-Prüfungen samt Originalquellen in
+`docs/implementation/MID_OPEN_METEO_RUC_AUDIT_0.9.85.260.md`.
+Rohdaten, meteorologische Berechnungen, API-Modelle, Rollback und Releaseweg
+bleiben erhalten. Entwicklungsstand und erfolgreiche Stable-Promotion sind
+unterschiedliche Belege; Source-Gate und Installer müssen erst erfolgreich sein.
+
 # MID v0.9.85.256 · RUC-Kompression sicher für Browser und Worker vorbereiten
 
 - Der neue Prüfschritt kann künftig verlustfrei komprimierte RUC-Wetterdaten in JavaScript wieder exakt in ihre ursprünglichen Werte umwandeln. Dabei werden auch fehlende Werte korrekt erhalten.

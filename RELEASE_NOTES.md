@@ -1,5 +1,6 @@
-# MID v0.9.85.259 · RUC-Pilot ohne zusätzliche Python-Laufzeitabhängigkeit
+# MID v0.9.85.260 · RUC-Betriebsnachweis und Open-Meteo-Prüfstand
 
-- Der begrenzte verlustfreie RUC-Pilot benötigt für Byteplane-gzip ausschließlich die Python-Standardbibliothek. Ein unnötiger Import diagnostischer NumPy-Helfer blockierte zuvor die unabhängige Installer-Prüfung von .258.
-- Der End-to-End-Test läuft jetzt ausdrücklich ohne Python-Site-Packages. Rohdaten, Prüfsummen, Speicherbudget, Abschaltung und Rückfall bleiben unverändert.
-- .258 wurde durch das fehlgeschlagene Installer-Gate nicht veröffentlicht. Dieses Release enthält den vollständigen geprüften Pilot einschließlich Body-Deadlinekorrektur; produktive Aktivierung ist weiterhin separat an einem echten RUC-Lauf nachzuweisen.
+- Die laufgebundene RUC-Betriebsprüfung protokolliert jetzt ausdrücklich, ob der begrenzte verlustfreie Pilot vom Worker verifiziert gelesen wurde. Ein erfolgreicher Rohdatenabruf wird dabei nicht als Codec-Erfolg ausgegeben; Abschaltung und Rohfallback bleiben möglich.
+- Die bisherigen Open-Meteo-Prüfungen sind mit verifizierten Originalquellen konsolidiert: Tagesaggregate, GEM-Strahlung, HRRR/NAM-Windrichtung, ICON-Umstellung und weiterhin offene Böen-/RUC-Themen. Es erfolgen keine spekulativen Datenkorrekturen oder Modellwechsel.
+- Die automatisierten Kartenprüfungen berücksichtigen jetzt den kürzeren ICON-Horizont der 06-/18-UTC-Läufe in ihren Testdaten. Die tatsächliche Isobarendarstellung bleibt verpflichtend geprüft.
+- Alle RUC-Rohdaten bleiben erhalten. Der Pilot bedeutet weiterhin keine vollständige Speicherkompression oder Freigabe einer Rohdatenablösung.
