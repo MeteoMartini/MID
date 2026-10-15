@@ -1,0 +1,49 @@
+{
+  "artifact": {
+    "workflowRun": 38776538266,
+    "artifactId": 11994818307,
+    "archiveBytes": 321790423,
+    "archiveSha256": "158f5bc6d92ebc6a8b7758a685b231d29760ffb341d1256d48934f0239d171a8",
+    "sourceSha": "6364ee7b4baf1bd6c809b22ecb4468618c06129e"
+  },
+  "python": {
+    "schema": "mid.ruc.offline-inventory-proof.v1",
+    "run": "2026-10-15T16:00",
+    "sourceManifestSha256": "550915a7c81f8521af94af62421774a3bd460a476eafb015e448069ee3f5f111",
+    "verifiedObjects": 1286,
+    "sourcePayloadBytes": 899175863,
+    "sourceManifestBytes": 264517,
+    "eligibleInt16Objects": 1029,
+    "convertedObjects": 1029,
+    "decodedParts": 2179,
+    "maxDecodedPartBytes": 524288,
+    "convertedOriginalBytes": 833387312,
+    "retainedOriginalBytes": 65788551,
+    "uniqueWireObjects": 2117,
+    "wireBytes": 206915707,
+    "descriptorBytes": 1296922,
+    "offlineReplacementLayoutBytes": 274001180,
+    "rawRetainingLayoutBytes": 1107388492,
+    "budgetBytes": 900000000,
+    "replacementLayoutFits": true,
+    "rawRetainingLayoutFits": false,
+    "productionEnabled": false,
+    "scope": "Exact offline layout only; report.json excluded. Retained originals must come from source. Not a publishable manifest or rollout/CPU/RAM approval."
+  },
+  "javascript": {
+    "schema": "mid.ruc.offline-inventory-js-proof.v1",
+    "run": "2026-10-15T16:00",
+    "sourceManifestSha256": "550915a7c81f8521af94af62421774a3bd460a476eafb015e448069ee3f5f111",
+    "verifiedObjects": 1286,
+    "sourceBytes": 899175863,
+    "convertedObjects": 1029,
+    "convertedOriginalBytes": 833387312,
+    "decodedParts": 2179,
+    "maxDecodedPartBytes": 524288,
+    "node": "v24.19.0",
+    "nodeDecodeP95Ms": 5.093039999999974,
+    "nodeWholeProcessMaxRssKiB": 137612,
+    "environment": "Node host diagnostics; not provider CPU/RAM or physical device evidence",
+    "productionEnabled": false
+  }
+}
