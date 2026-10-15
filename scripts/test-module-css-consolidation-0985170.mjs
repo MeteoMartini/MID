@@ -21,6 +21,22 @@ assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config
 assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26/C27/C28 layers may follow the unchanged .169 cascade');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css'].includes(entry.file));
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
+// C32 explicitly changes only the two Skybar preview/legend radii. Require the
+// new values, then restore just these declarations on the historical comparison
+// copy: every other .169 declaration and its order remain golden-checked.
+const flatSkyRules=new Map([
+ ['src/v078.css','.detaillegend i.sunshine-bar,.detaillegend i.cloudiness-bar,.detaillegend i.precipitation-bar'],
+ ['src/midC18NowcastSkybarPolish.css',"html[data-mid-design='next'] .settings-skybar-preview.band i"]
+]);
+let reviewedRadii=0;
+for(const entry of originalEntries){
+ const selector=flatSkyRules.get(entry.file);if(!selector)continue;
+ entry.tree.walkRules(selector,rule=>rule.walkDecls('border-radius',decl=>{
+  assert.equal(decl.value,'0','C32 Skybar preview/legend must have flat ends');
+  decl.value='999px';reviewedRadii++;
+ }));
+}
+assert.equal(reviewedRadii,2,'Exactly the two authorized shape changes');
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');

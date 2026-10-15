@@ -65,7 +65,7 @@ for(const token of ['grid-template-columns:repeat(var(--now90-count),minmax(0,1f
 
 for(const token of ['data-mid-skybar="react"','data-mid-skybar="profile"','data-mid-skybar="seven-day"','data-mid-skybar="day-card"'])assert.ok((app+cockpit).includes(token),`Appweite Skybar-Einbindung fehlt: ${token}`);
 assert.ok((app.match(/<SkyBarSegmentsSvg/g)||[]).length>=1&&(cockpit.match(/<SkyBarSegmentsSvg/g)||[]).length>=3,'Alle sichtbaren Skybars müssen denselben zentralen Renderer nutzen.');
-assert.ok(cockpit.includes('y="7.4" width="98" height="1.2" rx="0.6"')&&styles.includes('.cockpit-day-skybar-rail{fill:color-mix(in srgb,var(--text) 7%,transparent)}'),'7-Tage-Tageskarte darf die vier Dickenstufen nicht durch eine dicke Grundschiene optisch nivellieren.');
+assert.ok(cockpit.includes('y="7.4" width="98" height="1.2"')&&styles.includes('.cockpit-day-skybar-rail{fill:color-mix(in srgb,var(--text) 7%,transparent)}'),'7-Tage-Tageskarte darf die vier Dickenstufen nicht durch eine dicke Grundschiene optisch nivellieren.');
 assert.ok(contract.includes('`2.4 / 3.6 / 4.8 / 6.0` SVG-Einheiten'),'Dokumentierter Dickenvertrag ist nicht auf dem aktuellen Stand.');
 assert.equal(baseline.releaseVersion,pkg.version,'Package/Baseline müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);

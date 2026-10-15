@@ -20,6 +20,15 @@ try{
  const gapHours=[...hours.slice(0,3)];gapHours[1]={...gapHours[1],cloud:null};assert.equal(skyBarVisualRuns(detailSkyBarSegments(gapHours,0,0,90,8)).length,2,'Missing weather stays a gap');
  const overlay=[...pair({}),...pair({}).map(s=>({...s,key:s.key+'rain',layer:'precip',color:'#2999d1',opacity:1}))];assert.equal(skyBarVisualRuns(overlay).length,2,'Precipitation remains independent');assert.deepEqual(skyBarVisualRuns(overlay).map(r=>r.segment.layer),['base','precip'],'Paint order preserved');assert.ok(render(overlay).indexOf('fill=\"#aeb3b9\"')<render(overlay).indexOf('fill=\"#2999d1\"'),'Precipitation paints after the base');
  for(const count of [6,12,24,168])assert.equal(skyBarVisualRuns(detailSkyBarSegments(hours.slice(0,count),0,0,120,8)).length,1,'Quarter/day/week consumers share continuity');
+ // Flat ends must retain the exact interval even for isolated subpixel samples,
+ // unequal thicknesses, phase changes and genuine gaps.
+ for(const width of [.1,1,3,10])for(const thickness of [2.4,3.6,4.8,6]){
+  const narrow={...sample,x1:10,x2:10+width,strokeWidth:thickness};
+  const markup=render([narrow]);
+  assert.doesNotMatch(markup,/<circle|\srx=|\sry=|<path/,'No rounded/tapered geometry');
+  assert.match(markup,new RegExp('x="10" y="'+(sample.y-thickness/2)+'" width="'+(narrow.x2-narrow.x1)+'" height="'+thickness+'"'),'Exact rectangular interval and full thickness');
+ }
+ for(const change of [{color:'#ffc229'},{strokeWidth:2.4},{layer:'precip'},{x1:1.01}])assert.doesNotMatch(render(pair(change)),/<circle|\srx=|\sry=|<path/,'Transitions and gaps have flat ends');
  const baseline=JSON.parse(readFileSync('MID_BASELINE.json'));for(const k of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[k].includes('scripts/test-skybar-continuity-0985215.mjs'));
  console.log('MID215: continuous identical sky states, all original titles, true gaps/transitions/overlays preserved; shared renderer.');
 }finally{rmSync(out,{recursive:true,force:true})}

@@ -115,7 +115,7 @@ html[data-mid-design='next'] .settings-skybar-preview{
 html[data-mid-design='next'] .settings-skybar-preview.band i{
  display:block;
  width:22px;
- border-radius:999px;
+ border-radius:0;
 }
 html[data-mid-design='next'] .settings-skybar-preview.band i:nth-child(1){height:4px;background:#ffc229}
 html[data-mid-design='next'] .settings-skybar-preview.band i:nth-child(2){height:7px;background:#aeb3b9}

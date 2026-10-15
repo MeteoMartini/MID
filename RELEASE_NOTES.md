@@ -1,6 +1,5 @@
-# MID v0.9.85.260 · RUC-Betriebsnachweis und Open-Meteo-Prüfstand
+# MID v0.9.85.261 · Gerade Skybar-Balken und RUC-Prüfwerkzeug
 
-- Die laufgebundene RUC-Betriebsprüfung protokolliert jetzt ausdrücklich, ob der begrenzte verlustfreie Pilot vom Worker verifiziert gelesen wurde. Ein erfolgreicher Rohdatenabruf wird dabei nicht als Codec-Erfolg ausgegeben; Abschaltung und Rohfallback bleiben möglich.
-- Die bisherigen Open-Meteo-Prüfungen sind mit verifizierten Originalquellen konsolidiert: Tagesaggregate, GEM-Strahlung, HRRR/NAM-Windrichtung, ICON-Umstellung und weiterhin offene Böen-/RUC-Themen. Es erfolgen keine spekulativen Datenkorrekturen oder Modellwechsel.
-- Die automatisierten Kartenprüfungen berücksichtigen jetzt den kürzeren ICON-Horizont der 06-/18-UTC-Läufe in ihren Testdaten. Die tatsächliche Isobarendarstellung bleibt verpflichtend geprüft.
-- Alle RUC-Rohdaten bleiben erhalten. Der Pilot bedeutet weiterhin keine vollständige Speicherkompression oder Freigabe einer Rohdatenablösung.
+- Skybar-Balken besitzen in allen gemeinsamen Ansichten, Widgets und Exporten gerade Enden. Auch kurze Intervalle, Datenlücken und Dicken-/Phasenwechsel werden ohne abgerundete oder spitz zulaufende Kappen dargestellt. Zeitgrenzen, Wetterwerte, Dickenstufen und Niederschlagslagen bleiben erhalten.
+- Ein lesendes Prüfwerkzeug vergleicht echte materialisierte RUC-Pilotdateien bytegenau mit den unveränderten Rohdaten und prüft Offline-Cache, Rohfallback und Abschaltung. Lokale Laufzeit-/Speichermessungen sind ausdrücklich keine Cloudflare- oder Geräteabnahme.
+- Der begrenzte verlustfreie RUC-Pilot bleibt aktiv; die Rohdaten bleiben erhalten. Eine vollständige Rohdatenablösung wird damit nicht freigegeben.
