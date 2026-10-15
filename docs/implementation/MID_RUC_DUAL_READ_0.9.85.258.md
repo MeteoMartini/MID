@@ -22,3 +22,7 @@ App-Release allein beweist noch keine aktive Datenkompression. Erst nachfolgende
 ## MID-C31: zusätzliche Transportprüfung
 
 Die 3-s-Codecdeadline umfasst HTTP-Header und vollständigen begrenzten Body-Read. Ein tatsächlicher Worker-VM-Test simuliert erfolgreiche Header mit stockendem Body, prüft den Signalabbruch und byteidentischen SHA-geprüften Rohfallback. Der globale Legacy-Fetchhelfer bleibt unverändert.
+
+## .259 · unabhängige Installer-Umgebung
+
+Source-Gate .258 (38685505944) war vollständig grün, Installer 38686567282 scheiterte jedoch ausschließlich an der neuen Dual-Read-Regression: lossless_codec_pilot importierte über storage_audit NumPy, obwohl Byteplane-gzip nur stdlib benötigt. Der optionale Delta-Diagnostikpfad lädt seine Audit-Helfer jetzt erst bei tatsächlicher Auswahl. Der vollständige Python-Publisher-/Worker-End-to-End-Test startet die Fixture zwingend mit python3 -S; ein fehlendes Site-Package kann so nicht mehr vom lokalen oder Source-Gate-Umfeld verdeckt werden. Keine zusätzliche Dependency installieren und kein Gate verändern. .258 wurde nicht promotet. Die neue .259 übernimmt den vollständigen Pilot von #366 und ändert weder Wirebytes noch Wetterwerte.
