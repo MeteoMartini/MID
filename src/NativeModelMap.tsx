@@ -13,6 +13,7 @@ import type {WindUnit} from './weather';
 import {CloudWeatherLegend,CloudWeatherModeControl} from './CloudSignificantWeather';
 import {nativeCloudWeatherPair,cloudWeatherAt,cloudWeatherDescription,cloudWeatherRaster,readCloudWeatherRenderMode,writeCloudWeatherRenderMode,readCloudWeatherIsobars,writeCloudWeatherIsobars,type CloudWeatherRenderMode} from './cloudWeatherData';
 import {exportCloudWeather} from './cloudWeatherExport';
+import {nativeCloudIsobars} from './cloudWeatherIsobars';
 import {exportNativeField} from './nativeModelMapExport';
 import type {WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import './weatherMapsTotals.css';
@@ -37,8 +38,9 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
  useEffect(()=>{setPressureField(null);if(!catalog||!field||!['thetae','sigwx','precipitation'].includes(kind)||field.isobars.length)return;const pressureRef=catalog.index.products.pressure?.frames.find(f=>f.time===field.time);if(!pressureRef)return;const c=new AbortController();void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(value=>{if(!c.signal.aborted&&value.run===field.run&&value.time===field.time)setPressureField(value)}).catch(()=>{});return()=>c.abort()},[catalog,field,kind]);
  const pressureContours=field?.isobars.length?field:pressureField?.time===field?.time&&pressureField?.run===field?.run?pressureField:null;
  const isobars=useMemo(()=>({type:'FeatureCollection',features:pressureContours?.isobars.flatMap(c=>c.paths.map(path=>({type:'Feature',properties:{level:c.level,...(c.spacingKm!==undefined?{spacingKm:c.spacingKm}:{}),label:`${c.level} hPa`},geometry:{type:'LineString',coordinates:path.map(([lat,lon])=>[lon,lat])}})))??[]}),[pressureContours]);
- const cloudContours=kind==='sigwx'&&combined&&cloudIsobars&&pressureContours?.run===combined.run&&pressureContours.time===combined.time?pressureContours.isobars:[];
- const download=async(format:'png'|'svg')=>{if(!field||!raster||!colorScale)return;setExporting(true);try{if(combined)await exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContours);else await exportNativeField({...field,isobars:pressureContours?.isobars??field.isobars},label,raster,places,format,ref?.intervalHours??0,unit,colorScale)}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
+ const cloudContourSelection=kind==='sigwx'&&cloudIsobars?nativeCloudIsobars(combined,pressureContours):null;
+ const cloudContours=cloudContourSelection?.contours??[];
+ const download=async(format:'png'|'svg')=>{if(!field||!raster||!colorScale)return;setExporting(true);try{if(combined)await exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContourSelection);else await exportNativeField({...field,isobars:pressureContours?.isobars??field.isobars},label,raster,places,format,ref?.intervalHours??0,unit,colorScale)}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
  return <section className="weather-precipitation-totals" aria-label={label}><div className="weather-precipitation-layout">
   <section className="weather-precipitation-map-column"><div className="weather-precipitation-map-shell"><MidMapLibre center={[51.05,10.45]} zoom={5.25} minZoom={4} maxZoom={9} className="weather-precipitation-map" scrollZoom={false}>
    {place?<MapCenter latitude={place.latitude} longitude={place.longitude} zoom={6.8}/>:<MapFitBounds south={47} west={5.5} north={55.2} east={15.6} padding={20} maxZoom={6}/>}

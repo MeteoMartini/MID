@@ -1,7 +1,7 @@
 # MID v0.9.85.277 · Beobachtungs→Modell-Kartenübergang, Isobaren
 
 - Ausgangsbasis main=mid-stable=ff30648863744759aca9b28c524662e3f65ba496 (v0.9.85.276) und Issue #386. Modell-Wolken/WW-Layer nur auf bestätigten Modellframes der vorhandenen gemeinsamen Zeitachse; Beobachtungen und Nowcast behalten Originalzeit und Quelle, keine fake Frames oder echte satellitenähnliche Radiometrie.
-- Zusätzlich umschaltbare MSLP-Isobaren (hPa) ausschließlich für passende DWD ICON-D2-Wolken-/Wetterframes mit identischem Lauf und Termin; keine Vermischung von GDPS oder anderen Modellen. Gemeinsame dauerhafte Auswahl und gleiche Konturlinien auf Karte sowie PNG/SVG.
+- Zusätzlich umschaltbare MSLP-Isobaren (hPa) für ICON-D2, ICON-EU und ICON Global nur aus den jeweils eigenen verifizierten Druckkonturen mit identischem Modell, Lauf und Termin; GDPS ohne eigene passende Druckquelle bleibt ohne Linien. Gemeinsame dauerhafte Auswahl und gleiche Konturlinien auf Karte sowie PNG/SVG.
 - Meteorologische Werte, Warnungen, RUC-Kompression, native Satellitenprodukte und Zeitachsenkern bleiben unverändert. Neue Regression test-pseudo-satellite-isobars-0985277.mjs; Release nur nach vorgeschriebener automatischer Gatefolge.
 
 # MID v0.9.85.276 · Modell-Wolkenbild, Phase A
