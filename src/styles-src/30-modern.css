@@ -6665,3 +6665,36 @@ html[data-mid-design='next'] .short-term-strip>button.active{box-shadow:inset 0 
 
 .forecast-confidence-info-extra{max-width:100%;overflow-wrap:anywhere}
 .forecast-confidence-info-extra>p{margin:8px 0 0;padding-top:8px;border-top:1px solid var(--border)}
+
+
+/* MID .273: model-run *timeliness* (not forecast reliability or warning severity).
+   Visible text/accessible labels mirror border color; unknown is never green. */
+.cockpit-model-run-button[data-model-freshness]{
+ --model-status-border:#788797;
+ border:2px solid var(--model-status-border);
+ min-height:36px;
+ box-shadow:0 0 0 1px color-mix(in srgb,var(--model-status-border) 15%,transparent);
+ color:var(--text);
+}
+.cockpit-model-run-button[data-model-freshness="current"]{--model-status-border:#23865b}
+.cockpit-model-run-button[data-model-freshness="delayed"]{--model-status-border:#bd8308}
+.cockpit-model-run-button[data-model-freshness="stale"]{--model-status-border:#c94f55}
+.cockpit-model-run-button[data-model-freshness="unknown"]{--model-status-border:#7a8794;border-style:dashed}
+.cockpit-model-run-button[data-model-freshness]:hover,
+.cockpit-model-run-button[data-model-freshness]:focus-visible,
+.cockpit-model-run-button[data-model-freshness].active{
+ border-color:var(--model-status-border);
+ box-shadow:0 0 0 2px color-mix(in srgb,var(--model-status-border) 24%,transparent);
+}
+.cockpit-model-run-button .cockpit-model-freshness-dot{
+ display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;
+ background:var(--model-status-border);
+}
+.cockpit-model-freshness-info{margin:0;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+@media(max-width:620px){
+ .cockpit-model-run-button[data-model-freshness]{min-height:44px!important;padding:7px 10px!important}
+}
+@media(prefers-contrast:more){
+ .cockpit-model-run-button[data-model-freshness]{border-width:3px}
+ .cockpit-model-run-button .cockpit-model-freshness-dot{outline:1px solid currentColor}
+}
