@@ -1,3 +1,8 @@
+# MID v0.9.85.269 · RUC-Snapshotprüfung für komprimierte Daten vervollständigen
+
+- Der Installer erkennt jetzt auch das streng validierte aktive RUC-Kompressionsprofil. Eine übersehene Rohformat-Beschränkung hatte die Veröffentlichung der bereits geprüften Skybar-Korrektur sicher angehalten.
+- Kandidaten und widersprüchliche Metadaten bleiben gesperrt; die exakte Modelllaufbindung sowie alle Release-Gates bleiben erhalten. Die Skybar-Korrektur aus .268 ist enthalten.
+
 # MID v0.9.85.268 · Skybar bei kurzer Sonnenscheindauer konsistent
 
 - Bekannte geringe Tagesbewölkung verschwindet nicht mehr aus der Skybar, wenn die Sonnenscheindauer innerhalb eines Intervalls kurz ist, etwa bei Sonnenauf- oder -untergang. Das gelbe Band bezeichnet dann ausdrücklich Wolkenlücken, nicht gemessene Sonnenscheindauer.

@@ -3,12 +3,15 @@ import argparse
 import os
 import urllib.parse
 from pathlib import Path
-from check_ruc_health import fetch_payload, probe_url
+from check_ruc_health import active_profile_valid, fetch_payload, probe_url
 
 
 def snapshot_current(base, expected, fetcher=fetch_payload):
     meta = fetcher(probe_url(urllib.parse.urljoin(base.rstrip('/')+'/', 'latest.json'), expected, 1), 15)
-    if meta.get('schema') != 'mid.dwd.ruc.grid.v2' or meta.get('storageProfile') != 'pages-free-v1':
+    profile = meta.get('storageProfile')
+    if (meta.get('schema') != 'mid.dwd.ruc.grid.v2'
+            or profile not in ('pages-free-v1', 'pages-lossless-v1')
+            or (profile == 'pages-lossless-v1' and not active_profile_valid(meta))):
         raise RuntimeError('Current public RUC metadata is invalid')
     return bool(expected) and meta.get('run') == expected
 
