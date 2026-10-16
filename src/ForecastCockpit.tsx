@@ -1,5 +1,5 @@
 import {widgetCurveDailyPrecipitation} from './widgetCurveDailySummary';
-import {assessModelFreshness} from './modelFreshnessStatus';
+import {assessModelFreshness,modelRunFreshness} from './modelFreshnessStatus';
 import {AppInfoHint} from './AppInfoPopover';
 import {formatWeatherValue} from './weatherValueFormat';
 import {formatVisibility} from './weatherValueFormat';
@@ -128,7 +128,14 @@ function formatCockpitModelRunTime(value?:string){if(!value)return'';const d=new
 function formatCockpitAvailabilityTime(value:string|undefined,timezone:string){if(!value)return'';const d=new Date(value);if(!Number.isFinite(d.getTime()))return'';try{const recent=Date.now()-d.getTime()<18*3600000;return new Intl.DateTimeFormat('de-DE',{timeZone:timezone,...(recent?{}:{day:'2-digit',month:'2-digit'}),hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZoneName:'short'}).format(d)}catch{return formatDisplayDateTime(d,timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})}}
 function cockpitInitialisationLabel(row:ModelRunMeta){const formatted=formatCockpitModelRunTime(row.initialisationTime);if(formatted)return formatted;if(row.id==='best_match')return'modellabhängig';return row.metadataUnavailable||row.fusionLoaded===true?'von Quelle nicht ausgewiesen':'nicht verfügbar'}
 function cockpitAvailabilityLabel(row:ModelRunMeta,timezone:string){const formatted=formatCockpitAvailabilityTime(row.availabilityTime,timezone);if(formatted)return formatted;if(row.id==='best_match')return'modellabhängig';return row.metadataUnavailable||row.fusionLoaded===true?'von Quelle nicht ausgewiesen':'nicht verfügbar'}
-function cockpitModelFreshnessLabel(row:ModelRunMeta){const init=Date.parse(String(row.initialisationTime||''));if(!Number.isFinite(init))return'Aktualität nicht verifizierbar';const ageHours=(Date.now()-init)/3600000;if(ageHours<-.5)return'Init-Zeit unplausibel';const cadenceHours=Math.max(1,Number(row.updateIntervalSeconds||0)/3600||6),mosmix=/dwd[_-]?mosmix/i.test(row.id),limit=mosmix&&cadenceHours<=1?2.5:mosmix?Math.max(8.5,cadenceHours*1.45):Math.max(3,cadenceHours*1.6),ageLabel=ageHours<1?`${Math.max(0,Math.round(ageHours*60))} min`:`${formatDecimalFixed(ageHours,1)} h`;return ageHours<=limit?`aktuell · Laufalter ${ageLabel}`:`Achtung: Laufalter ${ageLabel} > Soll ${formatDecimalFixed(limit,1)} h`}
+function cockpitModelFreshnessLabel(row:ModelRunMeta){
+ const init=Date.parse(String(row.initialisationTime||'')),state=modelRunFreshness(row,Date.now());
+ if(state==='unknown'||!Number.isFinite(init))return'Aktualität nicht verifizierbar';
+ const ageHours=Math.max(0,(Date.now()-init)/3600000);
+ const ageLabel=ageHours<1?`${Math.round(ageHours*60)} min`:`${formatDecimalFixed(ageHours,1)} h`;
+ return state==='current'?`aktuell · Laufalter ${ageLabel}`:
+   state==='delayed'?`verzögert · Laufalter ${ageLabel}`:`Achtung: Lauf überfällig · Laufalter ${ageLabel}`;
+}
 function pct(value:number){return`${Math.max(0,Math.round(value*100))} %`}
 function pctRange(values:number[]){const safe=values.filter(Number.isFinite).sort((a,b)=>a-b);return safe.length?`${pct(safe[0])}–${pct(safe.at(-1)??safe[0])}`:'0 %'}
 function mosmixContributionDetail(fusion:ForecastFusionResult|null|undefined,scope:'short'|'seven'){const mosmix=fusion?.mosmix;if(!mosmix?.available)return'';const quality=Math.max(0,Math.min(1,Number(mosmix.quality)||0)),qualityLabel=pct(quality);if(!mosmix.applied)return`MOSMIX-Punktqualität ${qualityLabel} · derzeit 0 % direkte Temperatur-/Windbeimischung`;const ranges=forecastFusionMosmixContributionRanges(quality,scope);return`MOSMIX-Anteil ca. vor Begrenzungen · Temperatur stündlich ${pctRange(ranges.temperature)} · Tmin/Tmax ${pctRange(ranges.dailyTemperature)} · Taupunkt ${pctRange(ranges.dewPoint)} · Druck ${pctRange(ranges.pressure)} · Wind/Böen ${pctRange(ranges.wind)} · Niederschlagsmenge bis ${pct(ranges.precipitation0to6)} (0–6 h), bis ${pct(ranges.precipitation6to14)} (6–14 h) nur als RUC-Konsensanker · Punktqualität ${qualityLabel}`}
