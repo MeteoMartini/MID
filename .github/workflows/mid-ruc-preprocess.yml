@@ -121,11 +121,8 @@ jobs:
         run: |
           python tools/ruc/test_ruc_pack.py
           python tools/ruc/test_prepare_ruc_pages.py
-          # The old raw rollback is intentionally projected to <900MB. Preserve
-          # the source-native synoptic index before its budget-driven reduction.
-          if [ -f .ruc-out/synoptic-fields/index.json ]; then
-            cp -p .ruc-out/synoptic-fields/index.json .ruc-out/synoptic-fields-full-index.json
-          fi
+          # The preparer preserves the verified index after DWD build_synoptic
+          # and directly before the legacy raw-budget projection.
           python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages
       - name: Node.js 22 für vollständigen RUC-Python/JS-Abgleich laden
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
