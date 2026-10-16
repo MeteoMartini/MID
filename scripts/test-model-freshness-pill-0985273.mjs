@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import ts from 'typescript';
+import ts from 'typescript-strada';
 const js=ts.transpileModule(fs.readFileSync('src/modelFreshnessStatus.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
-const {assessModelFreshness,modelRunFreshness}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const {assessModelFreshness,modelRunFreshness,modelFreshnessColor}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 const H=3600000,now=Date.parse('2026-10-16T08:00:00Z');
 const row=(hours,cadence=3600,extra={})=>({id:'icon-d2-ruc',kind:'forecast',label:'DWD RUC',usedInCanonical:true,
  initialisationTime:new Date(now-hours*H).toISOString(),updateIntervalSeconds:cadence,...extra});
@@ -19,9 +19,14 @@ assert.equal(assessModelFreshness([row(.3),row(3.5,3600,{usedInCanonical:false,f
 assert.equal(assessModelFreshness([row(.3,3600,{usedInCanonical:false,fusionLoaded:false})],now).band,'unknown');
 assert.equal(assessModelFreshness([row(7,21600,{id:'ifs',kind:'ensemble',usedInCanonical:undefined,usageStatus:'active'})],now).band,'delayed');
 assert.equal(modelRunFreshness(row(.5,3600,{id:'dwd_mosmix_s'}),now),'current');
-const ui=fs.readFileSync('src/ForecastCockpit.tsx','utf8'),css=fs.readFileSync('src/styles.css','utf8');
+const ui=fs.readFileSync('src/ForecastCockpit.tsx','utf8');
+const tones={current:'#23865b',delayed:'#bd8308',stale:'#c94f55',unknown:'#7a8794'};
+for(const [band,expected] of Object.entries(tones))assert.equal(modelFreshnessColor(band),expected,'Status-color contract '+band);
 assert.ok(ui.includes('data-model-freshness={freshness.band}'),'Cockpit pill must expose assessed state');
 assert.ok(ui.includes('Modellstand: ${freshness.label}'),'Textual indicator must accompany color');
-for(const state of ['current','delayed','stale','unknown'])assert.ok(css.includes('data-model-freshness="'+state+'"'),state+' CSS missing');
+assert.ok(ui.includes('style={{borderColor:modelFreshnessColor(freshness.band)'),'All statuses must drive the same pill outline without increasing protected CSS bytes');
+assert.ok(ui.includes("borderStyle:freshness.band==='unknown'?'dashed':'solid'"),'Unknown must be visually distinct');
+assert.ok(ui.includes('backgroundColor:modelFreshnessColor(freshness.band)'),'Status must remain visible as a dot');
+assert.ok(ui.includes('minHeight:44'),'All viewport pills retain a 44px touch target');
 assert.ok(ui.includes('window.setInterval')&&ui.includes('window.clearInterval'),'Freshness needs refresh while app stays open');
 console.log('Model-run freshness indicator provenance, cadence, unknown data and accessible states OK');

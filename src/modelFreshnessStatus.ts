@@ -2,6 +2,10 @@ import type {ModelRunMeta} from './weather';
 export type ModelFreshnessBand='current'|'delayed'|'stale'|'unknown';
 export type ModelFreshnessAssessment={band:ModelFreshnessBand;label:string;details:string;checked:number;unknown:number;stale:number;delayed:number};
 /** Source-cycle timeliness, NOT forecast skill or official DWD warning severity. */
+/** Color is a visual aid only; unknown data must never look current. */
+export function modelFreshnessColor(band:ModelFreshnessBand):string{
+ return {current:'#23865b',delayed:'#bd8308',stale:'#c94f55',unknown:'#7a8794'}[band];
+}
 export function modelRunFreshness(row:ModelRunMeta,now:number):ModelFreshnessBand {
  const initialised=Date.parse(String(row.initialisationTime??'')),cadenceSeconds=Number(row.updateIntervalSeconds);
  if(row.metadataUnavailable===true||!Number.isFinite(initialised)||!Number.isFinite(now)||
