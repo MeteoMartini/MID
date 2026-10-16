@@ -1,3 +1,8 @@
+# MID v0.9.85.277 · Satellit→Modell-Zeitachse und optionale Isobaren
+
+- Das neue „Modell-Wolkenbild“ in der gemeinsamen Kartenzeitachse erscheint nur an bestätigten Modellterminen. Während tatsächlicher Satelliten-/Radarbeobachtungen oder Nowcast bleibt das Modell-Wolkenoverlay ausgeblendet. Nutzer können die vorhandene Satellitenebene zur Betrachtung des Beobachtungs→Modell-Übergangs zuschalten; es werden keine Zwischenbilder erfunden.
+- Für „Wolken und signifikantes Wetter“ lassen sich zusätzlich **Isobaren (hPa)** einschalten. Die erste Ausbaustufe verwendet ausschließlich geprüfte DWD ICON-D2-Druckkonturen desselben Modelllaufs und Gültigkeitszeitpunkts. Die Auswahl bleibt gespeichert und wird in SVG-/PNG-Exporten berücksichtigt. Bei Modellen ohne passende verifizierte Konturen (derzeit insbesondere GDPS) werden keine Isobaren vorgetäuscht.
+
 # MID v0.9.85.276 · Modell-Wolkenbild als alternative Kartenansicht
 
 - In „Wolken und signifikantes Wetter“ lässt sich bei DWD ICON-D2, ICON-EU und ICON nun zwischen „Standard“ und dem neuen, helleren „Modell-Wolkenbild“ wechseln. Dieses zeigt modellierte Wolken mit farbig darüber dargestellten Wettererscheinungen wie Nebel, Regen, Schnee und gefrierendem Niederschlag. Die Wahl bleibt gespeichert und wird auch in Kartenexporten übernommen.
