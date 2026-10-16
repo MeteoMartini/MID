@@ -1973,7 +1973,8 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
-    "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs"
+    "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
+    "scripts/test-model-freshness-pill-0985273.mjs"
   ],
   "requiredFiles": [
     "scripts/test-skybar-short-sunshine-0985268.mjs",
