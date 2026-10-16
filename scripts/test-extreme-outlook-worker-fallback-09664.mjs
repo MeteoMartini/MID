@@ -84,9 +84,9 @@ try{
   const a=new AbortController(),b=new AbortController();
   a.signal._midFixtureTag=first;b.signal._midFixtureTag=second;
   const requestA=mod.loadDirectDachExtremeOutlook(a.signal);
-  // Register rejection immediately: Node 22 treats a late handler as an unhandled rejection.
-  const canceled=assert.rejects(abortFirst?requestA:requestB,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
   const requestB=mod.loadDirectDachExtendedExtremeOutlook(b.signal);
+  // Attach the rejection observer before the first await to avoid Node 22 unhandled rejections.
+  const canceled=assert.rejects(abortFirst?requestA:requestB,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
   try{
    await until(first+'/phase1');await until(second+'/phase1');
    waiting.get(first+'/phase1').release();
