@@ -102,6 +102,8 @@ export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:Clo
  }
  // White cloud cover over any basemap; categorical WW paint on top. No fake image detail.
  const cover=cloud===null||!Number.isFinite(cloud)?null:Math.max(0,Math.min(100,cloud));
+ // Canonical fully transparent pixel: missing fields and confirmed clear sky are never white cloud pixels.
+ if(!style&&(cover===null||cover===0))return [0,0,0,0];
  const baseAlpha=cover===null?0:Math.round(2.15*cover);
  const shade=cover===null?231:Math.round(227+cover*.21);
  const base:[number,number,number]=[shade,Math.min(255,shade+3),Math.min(255,shade+7)];
