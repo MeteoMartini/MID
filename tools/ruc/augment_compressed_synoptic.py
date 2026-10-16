@@ -66,9 +66,24 @@ def verify_optional_payload(data:bytes,desc:dict,model_run:str):
         raise ValueError('model cycle, valid time, unit, or schema mismatch')
     cloud,weather=payload.get('cloud'),payload.get('weather')
     lats,lons=payload.get('lats'),payload.get('lons')
-    if (not isinstance(cloud,list) or not isinstance(weather,list) or len(cloud)!=len(weather) or
-        not isinstance(lats,list) or not isinstance(lons,list) or not len(lats) or not len(lons) or
-        len(cloud)!=len(lats)*len(lons)):raise ValueError('cloud/weather grid mismatch')
+    if not isinstance(cloud,list) or not isinstance(weather,list) or len(cloud)!=len(weather):
+        raise ValueError('cloud/weather vector mismatch')
+    # The actual DWD regular latitude-longitude source stores 2-D meshgrids;
+    # never mistake two nested axes for independent 1-D coordinate vectors.
+    def grid_shape(value):
+        if not isinstance(value,list) or not value or not isinstance(value[0],list):
+            raise ValueError('native cloud/weather grid must contain explicit rows')
+        width=len(value[0])
+        if width<2 or len(value)<2 or any(not isinstance(row,list) or len(row)!=width for row in value):
+            raise ValueError('inconsistent native grid rows')
+        return len(value),width
+    shape=grid_shape(lats)
+    if grid_shape(lons)!=shape or len(cloud)!=shape[0]*shape[1]:
+        raise ValueError('cloud/weather grid mismatch')
+    for latrow,lonrow in zip(lats,lons):
+        for lat,lon in zip(latrow,lonrow):
+            if type(lat) not in (float,int) or type(lon) not in (float,int) or not -90<=lat<=90 or not -180<=lon<=360:
+                raise ValueError('invalid native grid coordinate')
     valid=0
     for c,w in zip(cloud,weather):
         if c is not None and (type(c) is not int or not 0<=c<=1000):raise ValueError('invalid CLCT percent')
