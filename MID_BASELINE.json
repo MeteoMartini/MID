@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.267",
+  "releaseVersion": "0.9.85.268",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-adaptive-contours-0985238.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
     "scripts/test-adaptive-weight-site-profile-0810.mjs",
@@ -993,6 +994,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-adaptive-contours-0985238.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
     "scripts/test-adaptive-weight-site-profile-0810.mjs",
@@ -1971,6 +1973,7 @@
     "scripts/test-ruc-full-production-0985267.mjs"
   ],
   "requiredFiles": [
+    "scripts/test-skybar-short-sunshine-0985268.mjs",
     ".github/workflows/install-mid.yml",
     ".github/workflows/mid-ruc-cloudflare-bootstrap.yml",
     ".github/workflows/mid-ruc-preprocess.yml",
@@ -2865,6 +2868,7 @@
     "docs/implementation/MID_C32_RUC_FULL_WORKER_PREFLIGHT_0.9.85.266.md"
   ],
   "requiredTests": [
+    "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-branch-cleanup-safety-0985127.mjs",
     "scripts/test-c23-cloud-missing-0985206.mjs",
@@ -3478,6 +3482,7 @@
     "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md"
   ],
   "activeRegressionSuite": [
+    "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-aggregate-source-of-truth-098595.mjs",
     "scripts/test-branch-cleanup-safety-0985127.mjs",
     "scripts/test-ci-types-event-update-098436.mjs",
@@ -3564,9 +3569,10 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.267",
+  "version": "0.9.85.268",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
+    "docs/implementation/MID_C33_SKYBAR_0.9.85.268.md",
     "MID_AUDIT_UI_ACCESSIBILITY_0.9.85.113.md",
     "MID_DARK_NIGHT_BANDS_0.9.85.126.md",
     "MID_E_FORECAST_ROWS_0.9.85.83.md",

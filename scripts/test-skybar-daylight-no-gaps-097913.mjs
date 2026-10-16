@@ -8,7 +8,7 @@ const [skybar,app,cockpit,contract,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-daylight-no-gaps-097913.mjs';
 
-assert.ok(skybar.includes('if(cloudKnown){')&&skybar.includes('if(daylight&&sunshineDirect){')&&skybar.includes('if(daylight&&!sunshineDirect){'),'Bekannte Gesamtbewölkung muss starke Bewölkung grau darstellen; unter 50 % bleiben direkte Sonnenscheindauer und Wolkenlücken-Fallback getrennt.');
+assert.ok(skybar.includes('if(cloudKnown){')&&skybar.includes('if(daylight&&sunshineDirect){')&&skybar.includes('if(daylight&&(!sunshineDirect||Number(sunshineShare)<=.5)){'),'Bekannte Gesamtbewölkung muss starke Bewölkung grau darstellen; unter 50 % bleiben direkte Sonnenscheindauer und Wolkenlücken-Fallback getrennt.');
 assert.ok(skybar.includes('const openSkyShare=clamp01(1-boundedCloud/100)')&&skybar.includes('const cloudWidth=cloudBandWidth(boundedCloud);')&&skybar.includes('Sonnenscheindauer nicht verfügbar'),'Wolkenlücken-Fallback und graues Bewölkungsband müssen getrennt und provenance-ehrlich bleiben.');
 assert.ok(skybar.includes('if(daylight&&sunshineDirect)')&&skybar.includes('Bewölkung unbekannt'),'Sonnenscheindauer-Fallback bei fehlender Gesamtbewölkung muss diagnostizierbar bleiben.');
 assert.ok(app.includes('Gesamtbewölkung und Sonnenscheindauer werden als getrennte meteorologische Größen ausgewertet')&&app.includes('Wolkenlücken-Darstellung'),'UI-Hinweis muss direkte Sonnenscheindauer und Wolkenlücken-Fallback unterscheiden.');

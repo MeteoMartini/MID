@@ -1,5 +1,9 @@
 # MID – 24-h-Wetterprofil: Story-Axis-Vertrag
 
+## MID-C33 · kurze Sonnenscheindauer (.268)
+
+Unter 50 % bekannter Gesamtbewölkung darf eine vorhandene Sonnenscheindauer von höchstens 50 % das Tagesgrundband nicht ausblenden. Stattdessen zeigt Gelb ausdrücklich die Wolkenlücken / den unbedeckten Himmelsanteil; die tatsächlich vorhandene Sonnenscheindauer bleibt separat im Titel erhalten. Dies ersetzt die ältere Beschränkung des Wolkenlücken-Fallbacks auf fehlende Sonnenscheindauer. Gerade in Sonnenauf-/Untergangsintervallen können kurze Sonnenscheindauer und weitgehend unbedeckter Himmel gleichzeitig korrekt sein. Ab 50 % bleibt Grau maßgeblich. Klare Nächte und echte Datenlücken bleiben zulässig; keine Sonnenscheindauer wird aus Bewölkung errechnet.
+
 ## Kontinuierliche Skybar ab v0.9.85.152
 
 Der kontinuierliche Wetterstreifen nutzt die finalisierte Kurzfristreihe mit ihren tatsächlichen Viertelstundenintervallen und derselben Klassifikation wie die 90-min-Skybar. Danach folgen die verfügbaren Stundenintervalle. Keine vorherige Stundenmittelung der Bewölkung für diesen Streifen: sie kann über eine Farbschwelle hinweg einen abweichenden Himmelszustand erzeugen. Die gemeinsame Zeitabbildung bleibt verbindlich. Kurven, übrige Profilspuren und optionale Stundenquadrate bleiben stündlich. Dieser Abschnitt ersetzt ältere Aussagen einer ausschließlich stündlichen kontinuierlichen Skybar; die Stundenquadrat-Regeln bleiben bestehen.
