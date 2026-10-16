@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.271",
+  "releaseVersion": "0.9.85.272",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -3431,7 +3431,8 @@
     "docs/implementation/MID_C32_RUC_FULL_WORKER_PREFLIGHT_0.9.85.266.md",
     "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md",
     "docs/implementation/MID_C33_RUC_OPTIONAL_D2_AFTER_CODEC_0.9.85.270.md",
-    "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md"
+    "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md",
+    "docs/implementation/MID_C34_D2_OPTIONAL_INDEX_SHA_CONTRACT_0.9.85.272.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3573,7 +3574,7 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.271",
+  "version": "0.9.85.272",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "docs/implementation/MID_C33_RUC_SNAPSHOT_GUARD_0.9.85.269.md",
@@ -3724,7 +3725,8 @@
     "docs/implementation/MID_C32_RUC_MIGRATION_PROOF_0.9.85.265.json",
     "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md",
     "docs/implementation/MID_C33_RUC_OPTIONAL_D2_AFTER_CODEC_0.9.85.270.md",
-    "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md"
+    "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md",
+    "docs/implementation/MID_C34_D2_OPTIONAL_INDEX_SHA_CONTRACT_0.9.85.272.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
