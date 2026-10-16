@@ -41,7 +41,7 @@ for(const token of [
 for(const token of [
  'function cockpitModelFreshnessLabel(row:ModelRunMeta)',
  "return'Aktualität nicht verifizierbar'",
- "mosmix&&cadenceHours<=1?2.5:mosmix?Math.max(8.5,cadenceHours*1.45):Math.max(3,cadenceHours*1.6)",
+
  'function mosmixContributionDetail',
  'MOSMIX-Anteil ca. vor Begrenzungen',
  'Temperatur stündlich',
@@ -51,6 +51,8 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),`Modellstand-Transparenz fehlt: ${token}`);
 for(const token of ['MOSMIX-L-Init zurückfallen','2,5 h','direkte Korrekturanteile','28 %','20 %'])assert.ok(contract.includes(token),`MOSMIX-Vertrag unvollständig: ${token}`);
 
+const freshness=await readFile(new URL('src/modelFreshnessStatus.ts',root),'utf8');
+assert.ok(freshness.includes("const limit=mosmix&&cadence<=1?2.5:mosmix?Math.max(8.5,cadence*1.45):Math.max(3,cadence*1.6);"),'Originale MOSMIX-S- und L-Überfälligkeitsgrenzen müssen im gemeinsamen Modul erhalten bleiben.');
 assert.ok(!fusion.includes('leadHours<=6?.18:leadHours<=48?.38:leadHours<=120?.3:.16'),'MOSMIX-Gewicht darf nicht mehr hart an +6/+48/+120 h springen.');
 for(const token of ['smoothLeadTransition(lead,3,12,.18,.38)','smoothLeadTransition(lead,42,60,.38,.3)','smoothLeadTransition(lead,108,132,.3,.16)'])assert.ok(fusion.includes(token),`MOSMIX-Übergangsfenster fehlt: ${token}`);
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline/Paketversion nicht synchron.');

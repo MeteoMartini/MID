@@ -1,3 +1,10 @@
+## MID v0.9.85.273 · 2026-10-16 · Modellstand-Aktualität auf einen Blick
+
+- Verifizierte MID-Stable-Basis 1a7eedbe49e35445619131d390d3991e218c164a; Branch chatgpt/v0.9.85.273-model-status-freshness bei 4dbb0ef9e36d75771fbfd075e523be73f14930b8 war exakt einen Commit voraus. Divergierter paralleler 273-Branch wurde nicht übernommen.
+- Gemeinsamer CockpitModelRunDetails-Trigger für Kurzfrist, sieben und vierzehn Tage mit statusabhängiger Umrandung + Punkt, lesbarer Erklärung/ARIA, 60-s-Timer, explizitem Unknown und aktualisierungsfrequenzabhängigen Grenzwerten. Fachlich keine Modell-Skill- oder Warnstufeninterpretation.
+- Quellnaher 979-Test-Registry-Eintrag einschließlich neuer Model-Freshness-Regression, bereinigter Version-/Worker-/Pages-/iOS-Spiegel und nur additivem CSS-Status. Source-Gate, reale Browser-/iOS-Prüfungen und Installer bleiben maßgeblich.
+- Bestehende RUC-Vollkompression, Widget-Skybar, Ensemble-Meteorologie, Modellkarten und Cloudflare-Worker-Datenverträge sind unverändert.
+
 ## MID v0.9.85.260 · 2026-10-15 · RUC-Betriebsnachweis und Open-Meteo-Prüfstand
 
 - Basis .259 / 9c0cd7cd0da3dcbd1d6cd72fc9ec1ad90311b021 nach erfolgreichem Installer 38689707057. Drei erfolgreiche nachfolgende RUC-Läufe; publiziertes Pilotobjekt und aktueller Worker-Basishealth belegt, Codec-Read im bisherigen Log nicht sichtbar.
