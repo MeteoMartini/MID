@@ -18,7 +18,11 @@ assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Profess
 
 for(const token of ['probabilityFields?:','extremeProbabilityLevelsForCell',"cacheKey:'dach-extreme-outlook:v6'",'monotone[index]=Math.min'])assert.ok(client.includes(token),`Client-Feldvertrag fehlt: ${token}`);
 for(const token of ['probabilityFields={}','assessment.probabilities','assessment.signal','probabilities[index]=Math.min','Math.round(clamp'])assert.ok(workerSource.includes(token),`Worker-Feldvertrag fehlt: ${token}`);
-assert.ok(direct.includes(workerSource.trim()),'Browser-Direktweg muss dieselbe kanonische Feldberechnung wie der Worker verwenden.');
+const canonicalDirectSource=workerSource.trim().replace(
+ 'const dachExtremeOutlookCache=new Map(),dachExtremeBatchCache=new Map();',
+ 'const dachExtremeOutlookCache=directOutlookCache,dachExtremeBatchCache=directBatchCache;'
+);
+assert.ok(direct.includes(canonicalDirectSource),'Browser-Direktweg muss dieselbe kanonische Feldberechnung wie der Worker verwenden.');
 for(const token of ['data.cells.map','probabilityLevels:extremeProbabilityLevelsForCell','minimumProbability','extremeMinimumProbability','colors:EXTREME_INTENSITY_COLORS'])assert.ok(modelledAreas.includes(token),`Flächen-Feldvertrag fehlt: ${token}`);
 assert.ok(!modelledAreas.includes('paintAreas=data.cells.filter'),'Das Overlay darf Unterschwellen-Stützfelder nicht vor der Konturberechnung verwerfen.');
 for(const token of ['FIELD_SUBDIVISIONS=10','COVERAGE_THRESHOLD=.28','bilinear','fieldComponents','probabilityLevels','level===4?extremeMinimumProbability:minimumProbability'])assert.ok(canvasSource.includes(token),`Isoplethenvertrag fehlt: ${token}`);

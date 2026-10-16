@@ -84,6 +84,8 @@ try{
   const a=new AbortController(),b=new AbortController();
   a.signal._midFixtureTag=first;b.signal._midFixtureTag=second;
   const requestA=mod.loadDirectDachExtremeOutlook(a.signal);
+  // Register rejection immediately: Node 22 treats a late handler as an unhandled rejection.
+  const canceledA=assert.rejects(requestA,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
   const requestB=mod.loadDirectDachExtendedExtremeOutlook(b.signal);
   try{
    await until(first+'/phase1');await until(second+'/phase1');
@@ -95,7 +97,7 @@ try{
    assert.equal(waiting.get(first+'/phase2').aborted,true,'Abort must cancel own later-stage fetch, not another request.');
    assert.equal(waiting.get(second+'/phase2').aborted,false,'Unrelated in-flight product must not be aborted.');
    waiting.get(second+'/phase2').release();
-   await assert.rejects(requestA,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
+   await canceledA;
    const resultB=await requestB;
    assert.equal(resultB.tag,second,'Unrelated concurrent request must complete with its own data.');
    assert.equal(resultB.delivery,'browser-direct');

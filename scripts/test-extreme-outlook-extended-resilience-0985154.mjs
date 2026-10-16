@@ -14,7 +14,11 @@ for(const source of [workerSource,aggregate,proxy,direct]){
  assert.ok(source.includes('cached.storedAt<6*60*60*1000'),'Langfrist-Fachcache muss sechs Stunden halten');
  assert.ok(source.includes("dachExtremeFetchJson(url,'ICON-EPS Langfrist',6*60*60)"),'ICON-EPS-Upstream-Cache muss sechs Stunden halten');
 }
-assert.ok(direct.includes(workerSource.trim()),'Direktpfad muss die kanonische Worker-Fachlogik enthalten.');
+const canonicalDirectSource=workerSource.trim().replace(
+ 'const dachExtremeOutlookCache=new Map(),dachExtremeBatchCache=new Map();',
+ 'const dachExtremeOutlookCache=directOutlookCache,dachExtremeBatchCache=directBatchCache;'
+);
+assert.ok(direct.includes(canonicalDirectSource),'Direktpfad muss die kanonische Worker-Fachlogik enthalten.');
 assert.ok(generator.includes('export async function loadDirectDachExtendedExtremeOutlook(signal)'),'Generator muss den Langfrist-Direktexport reproduzierbar erzeugen.');
 assert.ok(client.includes("import('./extremeWeatherOutlookExtendedFallback')"),'Langfrist-Resilienz muss lazy geladen werden, damit das Main-Bundle im Budget bleibt.');
 assert.ok(client.includes("import('./extremeWeatherOutlookDirect.generated.js')"),'Auch die große kanonische Direktberechnung muss lazy bleiben und darf nicht das Main-Bundle belasten.');
