@@ -12,6 +12,7 @@ import gzip
 import hashlib
 import io
 import json
+import math
 import re
 import shutil
 from datetime import datetime, timedelta
@@ -68,22 +69,40 @@ def verify_optional_payload(data:bytes,desc:dict,model_run:str):
     lats,lons=payload.get('lats'),payload.get('lons')
     if not isinstance(cloud,list) or not isinstance(weather,list) or len(cloud)!=len(weather):
         raise ValueError('cloud/weather vector mismatch')
-    # The actual DWD regular latitude-longitude source stores 2-D meshgrids;
-    # never mistake two nested axes for independent 1-D coordinate vectors.
-    def grid_shape(value):
-        if not isinstance(value,list) or not value or not isinstance(value[0],list):
-            raise ValueError('native cloud/weather grid must contain explicit rows')
-        width=len(value[0])
-        if width<2 or len(value)<2 or any(not isinstance(row,list) or len(row)!=width for row in value):
-            raise ValueError('inconsistent native grid rows')
-        return len(value),width
-    shape=grid_shape(lats)
-    if grid_shape(lons)!=shape or len(cloud)!=shape[0]*shape[1]:
-        raise ValueError('cloud/weather grid mismatch')
-    for latrow,lonrow in zip(lats,lons):
-        for lat,lon in zip(latrow,lonrow):
-            if type(lat) not in (float,int) or type(lon) not in (float,int) or not -90<=lat<=90 or not -180<=lon<=360:
-                raise ValueError('invalid native grid coordinate')
+    # build_synoptic_fields.decode() emits regular_ll *1-D independent axes*;
+    # some legacy fixtures use full 2-D meshgrid coordinates. Validate the
+    # source geometry explicitly without inventing or flattening positions.
+    # A malformed grid is a hard source-validation error, never zero-filled.
+    def scalar(value,minimum,maximum):
+        return type(value) in (float,int) and math.isfinite(value) and minimum<=value<=maximum
+    def axis(vector,minimum,maximum):
+        if not isinstance(vector,list) or len(vector)<2 or any(not scalar(v,minimum,maximum) for v in vector):
+            raise ValueError('invalid native grid axis')
+        if any(vector[k+1]<=vector[k] for k in range(len(vector)-1)):
+            raise ValueError('non-increasing regular_ll coordinate axis')
+    if not isinstance(lats,list) or not isinstance(lons,list) or not lats or not lons:
+        raise ValueError('missing native grid coordinates')
+    if not isinstance(lats[0],list) and not isinstance(lons[0],list):
+        axis(lats,-90,90);axis(lons,-180,360)
+        expected_cells=len(lats)*len(lons)
+    elif isinstance(lats[0],list) and isinstance(lons[0],list):
+        if len(lats)<2 or len(lats)!=len(lons):
+            raise ValueError('invalid meshgrid row count')
+        width=len(lats[0])
+        if width<2 or any(not isinstance(row,list) or len(row)!=width for row in lats+lons):
+            raise ValueError('inconsistent meshgrid rows')
+        lat_axis=[row[0] for row in lats]
+        lon_axis=lons[0]
+        axis(lat_axis,-90,90);axis(lon_axis,-180,360)
+        if any(any(v!=lat_axis[j] for v in row) for j,row in enumerate(lats)):
+            raise ValueError('latitude meshgrid is not rectangular')
+        if any(row!=lon_axis for row in lons):
+            raise ValueError('longitude meshgrid is not rectangular')
+        expected_cells=len(lats)*width
+    else:
+        raise ValueError('mixed coordinate dimensions')
+    if len(cloud)!=expected_cells:
+        raise ValueError('cloud/weather cells do not match native grid dimensions')
     valid=0
     for c,w in zip(cloud,weather):
         if c is not None and (type(c) is not int or not 0<=c<=1000):raise ValueError('invalid CLCT percent')
