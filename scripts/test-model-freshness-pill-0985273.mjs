@@ -9,7 +9,7 @@ const row=(hours,cadence=3600,extra={})=>({id:'icon-d2-ruc',kind:'forecast',labe
 assert.equal(assessModelFreshness([row(.5)],now).band,'current');
 assert.equal(assessModelFreshness([row(2.5)],now).band,'delayed');
 assert.equal(assessModelFreshness([row(3.5)],now).band,'stale');
-assert.equal(assessModelFreshness([row(.3,undefined)],now).band,'unknown');
+assert.equal(assessModelFreshness([row(.3,3600,{updateIntervalSeconds:undefined})],now).band,'unknown');
 assert.equal(assessModelFreshness([row(.3,3600,{initialisationTime:undefined})],now).band,'unknown');
 assert.equal(assessModelFreshness([row(-1)],now).band,'unknown');
 assert.equal(assessModelFreshness([row(.3,3600,{metadataUnavailable:true})],now).band,'unknown');
