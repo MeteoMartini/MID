@@ -1,0 +1,15 @@
+# MID 18.2.33 · v0.9.85.274 – Modellstand-Sammelstatus fachlich präzisieren
+
+## Befund und Evidenz
+Basis `1b842f210c6f817693c8f117c91e4ee867248650` (Stable .273). Der bisherige Quellalgorithmus in `src/modelFreshnessStatus.ts` wählte bei **irgendeinem** überfälligen Lauf global rot. Beispiel zweier gültiger, tatsächlich berücksichtigter Läufe bei festem UTC-Zeitpunkt: DWD-RUC 0,3 h alt = aktuell; Regional-/Globalmodell mit 1-h-Cadence 3,5 h alt = überfällig. Bisherige Pille rot trotz überwiegend aktueller Fusion. Auch ein geladenes, explizit nicht verwendetes Modell durfte den Sammelstatus beeinflussen, wenn keine ausdrückliche `usedInCanonical`-Markierung vorlag. Dieser Befund ist quellenbasiert; eine flächendeckende empirische Häufigkeit wurde nicht behauptet.
+
+## Geänderter Produkt-/Anzeigevertrag
+Einzellaufstatus **unverändert**: UTC-Init + tatsächliche deklarierte Cadence, besondere MOSMIX-Grenzen, stündlicher RUC-Schwellenvertrag; fehlende/fehlerhafte oder unplausibel zukünftige Quellenwerte = unknown, nie Zero. Nur die **Sammellogik** wird verändert. Ein ausschließlich verwendeter überfälliger Lauf bleibt rot. Bei mehreren berücksichtigten Läufen bedeutet rot, dass mindestens zwei Drittel der Läufe nach der geltenden Einzelmodell-Regel überfällig sind. Ist ein kleinerer Anteil überfällig, wird die Pille **gelb** und sagt explizit `Einzelne Modellläufe überfällig`; vollständige Zahl und Einzelmodellstatus bleiben sichtbar. Gelb gilt auch bei verzögerten Einzelmodellen. Ohne Rot/Gelb bei unvollständigen Metadaten gilt **grau**; grün nur bei durchgängig belegten aktuellen Läufen. Diese zwei-Drittel-Schwelle ist eine **explizite UI-Aggregationsentscheidung, keine wissenschaftliche Modellqualitäts- oder DWD-Warnschwelle** und keine Aussage über gewichtete Modellbeiträge.
+
+Verwendungsselektion: `usedInCanonical=true` hat Vorrang. Fehlt diese Evidenz für alle, zählen nur erfolgreich geladene oder `usageStatus=active/fallback` geführte Quellen, sofern nicht ausdrücklich `usedInCanonical=false`. Reine Reserve-/fehlgeschlagene oder ausdrücklich unbenutzte Läufe dürfen nicht den Sammelstatus verschlechtern. In Ensembleprognosen bleiben tatsächlich verfügbare Fallbackmodelle Bestandteil.
+
+## QA und Grenzen
+Der vorhandene `scripts/test-model-freshness-pill-0985273.mjs` wurde um repräsentative Einzel-/Mehrfach-/Schwellen-/Missing-/Fallback-/Provenienzfälle ergänzt; bestehende starke Einzelmodell-Grenzen und RUC-/MOSMIX-Regressionsverträge bleiben bestehen. Die gemeinsame Modellstand-Komponente erreicht Kurzfrist, 7 Tage und 14 Tage. Farb- und Screenreader-Kontrast sowie 44-px-Touchziel unverändert, ursprüngliche CSS-Kaskade unverändert. Full-Source-Gate inkl. Heavy-Shards sowie versionierte Worker-/Pages-/iOS- und Installer-Gates verpflichtend. Kein Behaupten einer realen iOS-/VoiceOver-Geräteabnahme ohne separate Evidenz.
+
+## Nicht mitumgesetzt
+Keine generische Ausweitung von Modelllauftoleranzen, keine Open-Meteo-/RUC-Datenänderung, keine Änderung an amtlichen Warnungen, NoData, Akkumulationen, Ensemblegewichtung, Kompression, Release-Gates, Secrets, CI-Workflows oder Kosten.

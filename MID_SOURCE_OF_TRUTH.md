@@ -1,3 +1,9 @@
+# MID v0.9.85.274 · Modellstand-Sammelindikator kalibrieren
+
+- Ausgangspunkt `main = mid-stable = 1b842f210c6f817693c8f117c91e4ee867248650`, freigegebenes `v0.9.85.273`. Die bei Einzelmodellalter streng beibehaltenen RUC-/MOSMIX-/Ensemble-Schwellen werden für den **Sammelindikator** differenziert aggregiert: kein globales Rot bei nur einem veralteten von mehreren berücksichtigten Läufen; gelb meldet dies ausdrücklich im Detail. Ab ≥2/3 überfälligen Mitwirkenden bleibt Rot. Unbekannte Werte niemals grün.
+- Nur `usedInCanonical=true` oder mangels expliziter Benutzung als aktiv/geladen belegte Modelle; `usedInCanonical=false` wird ausgeschlossen. Aktive `fallback`-Ensembleläufe werden berücksichtigt. Keine Umdeutung des Status zu Prognosegüte oder amtlicher DWD-Warnstufe.
+- Nicht als veröffentlicht betrachten, bevor PR-Source-Gate, unveränderlicher serverseitiger ZIP-Release, Installer, Worker, Pages und Stable-Promotion nachweislich erfolgreich sind.
+
 # MID v0.9.85.273 · Modellstand-Aktualität auf einen Blick
 
 - Gegen GitHub-`mid-stable` `1a7eedbe49e35445619131d390d3991e218c164a` und den sauberen vorbereiteten .273-Integrationscommit geprüft. Die bestehende Model-Freshness-Pille wird in Kurzfrist-, 7-Tage- und 14-Tage-Ansichten konsistent mit grün/gelb/rot/grau, Statuspunkt und Screenreadertext ergänzt. Unbekannte Laufzeit- oder Intervallmetadaten bleiben unbekannt; Laufalter ist kein Modell-Skill und keine amtliche Warnung.

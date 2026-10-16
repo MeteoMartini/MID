@@ -1,3 +1,11 @@
+## MID v0.9.85.274 · 2026-10-16 · Modellstand: Einzelne ältere Läufe nicht pauschal rot
+
+- Basis 1b842f210c6f817693c8f117c91e4ee867248650, main = mid-stable, v0.9.85.273; keine überlappenden offenen Produkt-PRs oder 0.9.85.274-Branches vor Source-Arbeit.
+- Die bisherige aggregierte Regel `any stale -> global red` war für heterogene Multi-Modellfusionen überstreng; gleichzeitig war `fusionLoaded=true` auch bei `usedInCanonical=false` relevant, während aktiver Ensemble-Fallback fehlte.
+- Der neue Ampelvertrag verlangt für Rot >=2/3 der berücksichtigten Laufanzahl mit eigenem nachgewiesenen Stale-Status; ein einzelner tatsächlich verwendeter überfälliger Lauf bleibt Rot. Teilweise Stale=Gelb mit ungekürzter stale-Anzahl und Kennzeichnung `Einzelne Modellläufe überfällig`. Unbekannte Metadaten werden nie als grün interpretiert.
+- Bewusst keine Änderung einzelner modell- und laufzeitabhängiger fachlicher Frischegrenzen, keine Glättung/Interpolation/WMO-Codeänderungen. Numerische Grenze 2/3 ist eine erklärte UI-Aggregationsentscheidung und kein meteorologischer Qualitätswert.
+- Erweiterter existierender TS7-kompatibler Test für Mischstatus, Vollveraltung, ausdrücklich unbenutzte Fusion, echten Ensemble-Fallback und Missing. Keine CSS-Änderung, keine neuen Abhängigkeiten/Workflows, alle Release-Versionen synchron. Vollständige Source-, Heavy-, Installer-, Worker-, Pages- und Stable-Gates erforderlich.
+
 ## MID v0.9.85.273 · 2026-10-16 · Modellstand-Aktualität auf einen Blick
 
 - Verifizierte MID-Stable-Basis 1a7eedbe49e35445619131d390d3991e218c164a; Branch chatgpt/v0.9.85.273-model-status-freshness bei 4dbb0ef9e36d75771fbfd075e523be73f14930b8 war exakt einen Commit voraus. Divergierter paralleler 273-Branch wurde nicht übernommen.
