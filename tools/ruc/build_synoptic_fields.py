@@ -210,7 +210,7 @@ def global_product(model,output,now=None,hours=HOURS,cached=None,strict_run=Fals
 def restore_cache(output):
     """Reuse only complete SHA-bound products for an identical model cycle."""
     try:
-        base='https://midwx.app/ruc/';r=requests.get(base+'latest.json',timeout=15);r.raise_for_status();key=r.json().get('synopticFields',{}).get('key','');match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_([a-f0-9]{16})/synoptic-fields/index.json',key)
+        base='https://midwx.app/ruc/';r=requests.get(base+'latest.json',timeout=15);r.raise_for_status();key=r.json().get('synopticFields',{}).get('key','');match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_(?:optional_d2_)?([a-f0-9]{16})/synoptic-fields/index.json',key)
         if not match:return {}
         r=requests.get(base+key,timeout=20);r.raise_for_status()
         if hashlib.sha256(r.content).hexdigest()[:16]!=match[1]:return {}

@@ -54,6 +54,12 @@ class OptionalSynoptic(unittest.TestCase):
             self.assertLess(result['finalPhysicalBytes'],900_000_000)
             latest=json.loads((snapshot/'latest.json').read_bytes())
             name=latest['synopticFields']['key'];idx=json.loads((snapshot/name).read_bytes())
+            # This exact index-address contract is consumed by both
+            # src/nativeSynopticFields.ts and build_synoptic_fields.restore_cache.
+            import re
+            match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_([a-f0-9]{16})/synoptic-fields/index.json',name)
+            self.assertIsNotNone(match,'browser/cache cannot load optional D2 index')
+            self.assertEqual(match.group(1),sha((snapshot/name).read_bytes())[:16])
             self.assertEqual([f['hour'] for f in idx['models']['icon-d2']['cloudWeatherFrames']],[1,13,14,16,17])
             self.assertEqual(idx['cloudWeatherBudget']['optionalD2']['omittedHours'],[])
             self.assertEqual((snapshot/PREFIX/'index.json').read_bytes(),old_index)
