@@ -1,0 +1,13 @@
+# MID 18.2.33 · v0.9.85.275 · Direct-Extremwetter-Abbruchisolierung
+
+## Basis und Befund
+`MeteoMartini/MID` Stable `fabed02f7f42d4a430ba9478c33aadc0d0f98c25` v0.9.85.274; keine offenen parallelen Source-PRs. Aus [Issue #345](https://github.com/MeteoMartini/MID/issues/345): Browser-Direktadapter nutzt einen einzigen Modulzustand `directRequestSignal`, den `loadDirectDachExtremeOutlook` und `loadDirectDachExtendedExtremeOutlook` überschreiben. Asynchrone regionale Batches rufen `fetchWithDeadline` zeitversetzt auf und können so einen fremden AbortController übernehmen. Das ist quellenbasiert nachgewiesen; eine konkrete Benutzerausfallquote ist nicht gemessen.
+
+## Fix und Grenzen
+Nur der Browser-Direktadapter ist betroffen; bevorzugter Worker bleibt unverändert. `scripts/build-maintenance-aggregates.mjs` erzeugt `createDirectOutlookContext(signal)`. Das Signal wird als lexikalischer Funktionsparameter in allen verschachtelten Source- und Batchfetches benutzt, statt über modulglobalen Zustand zu wechseln. Die komplette kanonische wissenschaftliche Quelle `worker-src/25-dach-extreme-outlook.js` bleibt im Worker bytegleich; in der generierten Browserkopie wird lediglich die Deklaration der zwei vorhandenen Ergebnis-/Batch-Maps an modulweit geteilte Caches gebunden. Das schützt die bisherige 30-Minuten-/6-Stunden-Wiederverwendung und den Quell-/Ratelimit-Vertrag. Abort-Listener und Timeout-Handles werden im bestehenden `finally` entfernt. Ein post-await-Abbruchcheck blockiert veraltete Ergebnisse nach einem abgebrochenen Vorgang.
+
+## Reproduzierbare Qualitätsnachweise
+Die vorhandene Pflichtregression `scripts/test-extreme-outlook-worker-fallback-09664.mjs` prüft die Quellübereinstimmung außerhalb der Cachebindung, generierte Isolationsstruktur, Browser-Headerhärtung und echte punktweise 233-Zellen-Berechnung. Zusätzlich werden zwei getrennte Auswertungen und je zwei asynchrone, absichtlich blockierte Subrequests gestartet. Nach Abbruch der ersten Auswertung muss deren zweite Subrequest abbrechen, während die zweite unberührt bleibt und erfolgreich abgeschlossen wird. Dies wird in beiden Richtungen wiederholt. Test wird über das unveränderte Core-Regressionsinventar ausgeführt. Kein neues CSS, kein geändertes Modell, keine meteorologische Schwelle, kein neues kostenpflichtiges Produkt.
+
+## Release und ausstehende Grenzen
+Source-/Core-/Heavy-Prüfungen, serverseitig gebautes Release-ZIP, Installer, Worker/Pages und SHA-gebundene Stable-Promotion sind verpflichtend. Browser-Regression ist keine physische iOS-/WKWebView-/VoiceOver-Geräteabnahme; weitere reale Gerätebefunde werden getrennt dokumentiert.

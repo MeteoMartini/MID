@@ -1,5 +1,5 @@
-# MID v0.9.85.274 · Modellstand: Einzelne ältere Läufe nicht pauschal rot
+# MID v0.9.85.275 · Parallele Extremwetter-Direktabrufe zuverlässig abbrechen
 
-- Die Modellstand-Pillen der Kurzfrist-, 7-Tage- und 14-Tage-Prognosen bewerten nun den tatsächlich berücksichtigten Modellverbund statt automatisch das älteste Einzelmodell. Ein einzelner überfälliger Lauf unter sonst aktuellen Modellen wird gelb gemeldet und im Detail ausdrücklich als überfällig aufgeführt.
-- Rot wird weiterhin angezeigt, wenn mindestens zwei Drittel der berücksichtigten Modellläufe überfällig sind oder der einzige verwendete Modelllauf überfällig ist. Grau kennzeichnet unverändert fehlende belastbare Modellmetadaten; vollständig aktuelle, verifizierte Läufe bleiben grün.
-- Ausdrücklich nicht verwendete, lediglich geladene Kandidaten beeinflussen die Pille nicht mehr. Ein tatsächlich eingesetzter Ensemble-Fallback wird dagegen berücksichtigt. Grenzwerte der einzelnen RUC-, MOSMIX- und übrigen Modelle, Wetterwerte, amtliche Warnungen und die RUC-Kompression bleiben unverändert.
+- Überlappen zwei Auswertungen des Extremwetter-Ausblicks, sind ihre Abbruchsignale jetzt voneinander isoliert. Ein Standort- oder Ansichtswechsel beendet nur den zugehörigen Direktabruf und bricht keine unabhängigen Auswertungen versehentlich ab.
+- Die Optimierung betrifft ausschließlich den Browser-Direktfallback, wenn der bevorzugte MID-Worker nicht verfügbar ist. Erfolgreich zwischengespeicherte Daten, meteorologische Schwellenwerte, Farben, Warnungsabgrenzung und Datenverarbeitung bleiben erhalten.
+- Ein zusätzlicher deterministischer Parallelitätsnachweis schützt das Verhalten bei verzögerten Folgeabrufen und stellt sicher, dass ein abgebrochener Abruf nach der Verarbeitung nicht als neuer vollständiger Live-Stand angezeigt wird.

@@ -1,3 +1,12 @@
+## MID v0.9.85.275 · 2026-10-16 · Parallele Extremwetter-Direktabrufe zuverlässig abbrechen
+
+- Source of Truth: main=mid-stable=fabed02f7f42d4a430ba9478c33aadc0d0f98c25 v0.9.85.274 vor Entwicklung. Offene PRs zum Arbeitsbeginn nur Dependabot; keine v0.9.85.275-Parallelbranch.
+- Problem #345 bestätigt: `let directRequestSignal` in `scripts/build-maintenance-aggregates.mjs` generierte eine modulglobale veränderliche Variable. Bei zwei gleichzeitig aktiven Direct-Fallback-Forecasts konnte der erste spätere `fetchWithDeadline` das Signal der zweiten Operation lesen.
+- Die fachliche Worker-Quelle `worker-src/25-dach-extreme-outlook.js` bleibt unverändert. Der generatorseitig erzeugte Browser-Direktadapter bildet für jeden Vorgang einen eigenen lexikalischen Kontext mit dem jeweiligen Signal. Die beiden bisherigen Modul-Caches werden bewusst weitergeteilt, damit erfolgreiche Ergebnis-/Batch-Caches und Budgetschutz erhalten bleiben.
+- Die generierte Datei `src/extremeWeatherOutlookDirect.generated.js` ist synchron. Zusätzlicher `signal.aborted`-Postcheck verhindert, dass ein mittlerweile abgebrochener Vorgang aufgrund des fachlich erlaubten Batch-Fallbacks als erfolgreicher frischer Direktwert zurückkehrt.
+- Die bestehende Pflichtregression `scripts/test-extreme-outlook-worker-fallback-09664.mjs` schützt nun die ausschließlich cachebezogene Worker-Quelltexttransformation und enthält deterministische Konkurrenzfixtures: zwei gleichzeitig gestartete direkte Produkte, verzögerte zweite Teilabrufe, isolierter Abort und unabhängiger Abschluss. Keine neue externe Abhängigkeit, keine Workflow-/Gate-Schwächung, kein Server-Worker-Signalverhalten verändert.
+- Alle Versionsspiegel für App/Worker/Pages/PWA/Capacitor/Verträge auf v0.9.85.275. Regulärer Source-Gate und MID Installer inklusive echter Worker-/Pages-Promotion sind Pflicht; physische WKWebView-/VoiceOver-Abnahme wird nicht behauptet.
+
 ## MID v0.9.85.274 · 2026-10-16 · Modellstand: Einzelne ältere Läufe nicht pauschal rot
 
 - Basis 1b842f210c6f817693c8f117c91e4ee867248650, main = mid-stable, v0.9.85.273; keine überlappenden offenen Produkt-PRs oder 0.9.85.274-Branches vor Source-Arbeit.
