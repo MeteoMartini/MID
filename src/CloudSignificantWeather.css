@@ -8,3 +8,5 @@
 .cloud-weather-mode-control button{min-height:44px;padding:8px 12px;border:1px solid var(--line,#bdc9d4);border-radius:10px;background:var(--surface,#f7fafc);color:inherit;font:inherit;cursor:pointer}
 .cloud-weather-mode-control button[aria-pressed="true"]{border-color:var(--accent,#237cbf);outline:2px solid var(--accent,#237cbf);outline-offset:-2px;font-weight:650}
 .cloud-weather-mode-control button:focus-visible{outline:3px solid var(--accent,#237cbf);outline-offset:2px}
+
+.cloud-weather-cover.pseudo i{background:linear-gradient(90deg,rgba(231,235,240,0),rgba(248,251,255,.85)),repeating-linear-gradient(45deg,#64748b 0 4px,#d7e0e8 4px 8px)}

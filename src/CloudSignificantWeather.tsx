@@ -56,7 +56,7 @@ export function CloudWeatherModeControl({mode,onChange}:{mode:CloudWeatherRender
 }
 export function CloudWeatherLegend({state}:{state:Pick<CloudWeatherState,'modelId'>&{mode?:CloudWeatherRenderMode}}){
  return <details className="cloud-weather-legend"><summary>Legende · Wolken und Wetterfarben</summary>
-  <div className="cloud-weather-cover"><span>Wolken</span><i/><span>0–100 %</span></div>
+  <div className={`cloud-weather-cover${state.mode==='pseudo'?' pseudo':''}`}><span>Wolken</span><i/><span>0–100 %</span></div>
   {state.modelId==='gdps'?<><div className="cloud-weather-provider-legend">{[[GDPS_CLOUD_LAYER,'CLOUD','Wolkenbedeckung'],[GDPS_WEATHER_LAYER,'INSTPRECIPITATIONTYPE','Momentane Niederschlagsart']].map(([layer,style,label])=><img key={layer} alt={`ECCC-Legende · ${label}`} src={`${weatherMapWmsProxy('geomet')}&request=GetLegendGraphic&layers=${encodeURIComponent(layer)}&styles=${style}&format=image/png`}/>)}</div><p>GDPS: Wolken plus momentane Niederschlagsart in der ECCC-Originaldarstellung. Keine vollständige Nebel-/Gewitterdiagnostik; keine Stundensumme.</p></>:<><div className="cloud-weather-colors">{SIGNIFICANT_WEATHER_STYLES.map(s=><span key={s.label}><i style={{background:s.color}}/>{s.label}</span>)}</div><p>{state.mode==='pseudo'?'Modell-Wolkenbild: helle, transparente Gesamtbewölkung aus dem Modell; Farben darüber sind unveränderte WMO-Wettererscheinungen. Schematische Visualisierung, kein gemessenes oder physikalisch simuliertes Satellitenbild. ':'Graustufen: Gesamtbewölkung. Farbflächen: direktes Modellwetter nach WMO-Code. '}Kategorien werden nicht räumlich interpoliert; fehlende Werte bleiben unbekannt. Modellprognose, keine amtliche Warnung.</p></>}
  </details>;
 }

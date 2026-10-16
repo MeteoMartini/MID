@@ -7,3 +7,5 @@ Ein optionaler, rein visueller und rückwärtskompatibler Modus „Modell-Wolken
 Keine echte Satellitenradiometrie und kein neues Beobachtungs-/Pseudo-Satelliten-Zeitachsenprodukt. Diese Phase B bleibt in Issue #386 offen.
 
 Neue Pflichtregression: scripts/test-pseudo-satellite-cloud-render-0985276.mjs. Echte Source-Core-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates sind erforderlich; keine physische iOS- oder VoiceOver-Abnahme wird behauptet.
+
+Export-Semantik: Für Modell-Wolkenbild werden SVG-/PNG-Exporttitel, Bildname, Quellenhinweis und Wolkenlegende ausdrücklich auf den schematischen Modus umgestellt. Standardexports behalten ihre ursprüngliche Darstellung. Der Regressionstest verifiziert den exportierten SVG-Text, die Gradientensemantik und die gemeinsame Durchleitung aus beiden Kartenansichten.
