@@ -157,7 +157,7 @@ def augment(snapshot:Path,full_index_path:Path,source_dir:Path)->dict:
         budget['omittedHours']=[h for h in budget.get('omittedHours',[]) if h not in {f['hour'] for f in proposed}]
     index_bytes=compact(new_index)
     clean_run=re.sub(r'[^a-zA-Z0-9_-]','',meta['run'])
-    prefix=f'runs/{clean_run}__synoptic_optional_d2_{sha(index_bytes)[:16]}/synoptic-fields'
+    prefix=f'runs/{clean_run}__synoptic_{sha(index_bytes)[:16]}/synoptic-fields'
     source_prefix=old_key.rsplit('/',1)[0]
     if not source_prefix.startswith('runs/') or source_prefix==prefix:raise ValueError('synoptic prefix')
     declared={x['key']:x for x in meta['pages']['objects']}
@@ -182,6 +182,12 @@ def augment(snapshot:Path,full_index_path:Path,source_dir:Path)->dict:
         pending[key]=data
         new_objects.append({'key':key,'bytes':len(data),'sha256':sha(data)})
     new_index_key=prefix+'/index.json'
+    # The browser loader and the DWD cache reader both require the
+    # content-addressed '__synoptic_<first 16 SHA-256 hex>' wire contract.
+    # Never publish an optional index that either consumer cannot address.
+    pointer_match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_([a-f0-9]{16})/synoptic-fields/index.json',new_index_key)
+    if pointer_match is None or pointer_match.group(1)!=sha(index_bytes)[:16]:
+        raise ValueError('optional synoptic index pointer incompatible with browser/cache')
     pending[new_index_key]=index_bytes
     new_objects.append({'key':new_index_key,'bytes':len(index_bytes),'sha256':sha(index_bytes)})
     if len(declared)!=len(meta['pages']['objects']) or any(row['key'] in declared for row in new_objects):
