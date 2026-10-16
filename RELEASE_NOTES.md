@@ -1,18 +1,6 @@
-# MID v0.9.85.269 · RUC-Snapshotprüfung für komprimierte Daten vervollständigen
+# MID v0.9.85.270 · Zusätzliche ICON-D2-Wetterkartentermine nach RUC-Kompression
 
-- Der Installer erkennt jetzt auch das streng validierte aktive RUC-Kompressionsprofil. Eine übersehene Rohformat-Beschränkung hatte die Veröffentlichung der bereits geprüften Skybar-Korrektur sicher angehalten.
-- Kandidaten und widersprüchliche Metadaten bleiben gesperrt; die exakte Modelllaufbindung sowie alle Release-Gates bleiben erhalten. Die Skybar-Korrektur aus .268 ist enthalten.
-
-# MID v0.9.85.268 · Skybar bei kurzer Sonnenscheindauer konsistent
-
-- Bekannte geringe Tagesbewölkung verschwindet nicht mehr aus der Skybar, wenn die Sonnenscheindauer innerhalb eines Intervalls kurz ist, etwa bei Sonnenauf- oder -untergang. Das gelbe Band bezeichnet dann ausdrücklich Wolkenlücken, nicht gemessene Sonnenscheindauer.
-- Die gemeinsame Korrektur erreicht auch Tagesansichten, Widgets und Exporte. Graue Bewölkung, klare Nächte, Niederschlag und echte Datenlücken bleiben erhalten.
-- Die inzwischen veröffentlichte vollständige RUC-Kompression bleibt unverändert; zusätzliche Wetterfelder oder Termine werden mit diesem Update nicht aktiviert.
-
-# MID v0.9.85.267 · RUC-Daten verlustfrei komprimiert veröffentlichen
-
-- Der RUC-Hintergrunddienst erhält ein vollständiges verlustfrei komprimiertes Datenprofil: Wetterwerte, Missing-Daten, Modellläufe und Zeitintervalle bleiben bitidentisch. Das veröffentlichte Datenpaket wird erst nach vollständig unabhängigen Python-/JavaScript- und Originaldatenprüfungen freigegeben.
-- Für jeden komprimierten RUC-Lauf wird ein unveränderlicher Rohsnapshot zur Rücknahme gesichert. Bei fehlerhaftem produktivem Worker-Healthcheck versucht der etablierte GitHub-Pages-Weg automatisch die geprüften Originaldaten desselben Laufs wiederherzustellen.
-- Aktualitätsprüfung, Installer-Restore und öffentliche Worker-/Pages-Healthchecks berücksichtigen das neue Format und unterscheiden es strikt vom bisherigen Rohprofil und von inaktiven Kompressionskandidaten.
-- Das unveränderte 900-MB-Speicherlimit, amtliche Modellherkunft und Warntrennung sowie sämtliche bestehenden Parameter bleiben geschützt. Die tatsächliche Datenspeicherumstellung erfolgt erst mit dem nächsten vollständig geprüften RUC-Publish nach Stable-Promotion; bis dahin können einzelne Läufe kontrolliert ausfallen.
-- Zusätzliche Parameter und Modellzeiten werden erst nach nachgewiesener produktiver Speicherreserve, gültigen DWD-Quellterminen und Leistungsprüfung zugeschaltet.
+- Der bereits produktiv freigegebene verlustfrei komprimierte RUC-Snapshot kann zusätzlich tatsächlich vorhandene ICON-D2-Karten für Wolken und signifikantes Wetter (+13, +14, +16 und +17 Stunden) aufnehmen. Die Dateien werden nur bei passendem DWD-Modelllauf, exakter Gültigkeitszeit, Raster-/WMO-/Einheitenkontrolle und vollständigem SHA-Nachweis übernommen; fehlende Karten werden nicht künstlich erzeugt.
+- Die Erweiterung erfolgt ausschließlich nach bestandenem RUC-Bytegleichheitsnachweis in einem eigenen unveränderlichen Kartennamespace. Originaldaten, veröffentlichte Kartentermine und die gesicherte unkomprimierte Rückfallkopie bleiben bestehen.
+- Das 900-MB-RUC-Budget, die bisherige 950-MB-Pages-Grenze und sämtliche Worker-/Pages-/Freshness-/Rollback-Gates bleiben aktiv. Ist kein zusätzlicher gültiger Termin verfügbar, bleibt das bewährte Kartenangebot unverändert.
+- Skybar-Fix und RUC-Snapshot-Schutz aus v0.9.85.268/.269 bleiben unverändert erhalten. Neue RUC-Parameter, native RUC-Karten und eine physische iOS-/VoiceOver-Abnahme werden mit dieser Änderung nicht behauptet.
