@@ -121,6 +121,11 @@ jobs:
         run: |
           python tools/ruc/test_ruc_pack.py
           python tools/ruc/test_prepare_ruc_pages.py
+          # The old raw rollback is intentionally projected to <900MB. Preserve
+          # the source-native synoptic index before its budget-driven reduction.
+          if [ -f .ruc-out/synoptic-fields/index.json ]; then
+            cp -p .ruc-out/synoptic-fields/index.json .ruc-out/synoptic-fields-full-index.json
+          fi
           python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages
       - name: Node.js 22 für vollständigen RUC-Python/JS-Abgleich laden
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
@@ -154,6 +159,26 @@ jobs:
           assert proof['physicalBytes']<proof['budgetBytes']==900000000
           print('RUC: lossless full replacement prepared, verified '+str(proof['fullDecodedParts'])+' parts, '+str(proof['physicalBytes'])+' bytes.')
           PY
+          # Optional real DWD ICON-D2 CW/WW +13/+14/+16/+17h, only when source
+          # time, model, native grid and SHA were independently verified.
+          # Keep previously archived raw recovery exactly unchanged.
+          if [ -f .ruc-out/synoptic-fields-full-index.json ] && [ -d .ruc-out/synoptic-fields ]; then
+            python tools/ruc/augment_compressed_synoptic.py .ruc-compressed/ruc .ruc-out/synoptic-fields-full-index.json .ruc-out/synoptic-fields > .ruc-extra-synoptic-proof.json
+            python - <<'PY'
+          import json
+          report=json.load(open('.ruc-extra-synoptic-proof.json'))
+          assert report['schema']=='mid.ruc.optional-synoptic.v1'
+          if report.get('admittedHours'):
+              assert report['sourceRawUnchanged'] is True
+              assert set(report['admittedHours']).issubset({13,14,16,17})
+              assert report['finalPhysicalBytes']<900000000
+              print('RUC Zusatzkarten: geprüfte ICON-D2 CW/WW-Termina '+str(report['admittedHours'])+' im komprimierten Paket')
+          else:
+              print('RUC Zusatzkarten: keine belegten zusätzlichen ICON-D2-Termine, altes Quellenangebot bleibt erhalten')
+          PY
+          else
+            echo '::notice::Keine vollständige synoptische Quelle vorhanden; RUC und Raw-Rollback bleiben unverändert'
+          fi
           mv .ruc-pages/ruc .ruc-raw
           mv .ruc-compressed/ruc .ruc-pages/ruc
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern
