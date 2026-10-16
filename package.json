@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.275",
+  "version": "0.9.85.276",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -542,7 +542,8 @@
     "test:ruc-concurrency-offline": "node scripts/test-ruc-concurrency-offline-0985263.mjs",
     "test:ruc-inventory": "node scripts/test-ruc-inventory-0985264.mjs",
     "test:ruc-migration-preparation": "node scripts/test-ruc-migration-preparation-0985265.mjs",
-    "test:model-freshness": "node scripts/test-model-freshness-pill-0985273.mjs"
+    "test:model-freshness": "node scripts/test-model-freshness-pill-0985273.mjs",
+    "test:pseudo-satellite": "node scripts/test-pseudo-satellite-cloud-render-0985276.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

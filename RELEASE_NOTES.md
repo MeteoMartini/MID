@@ -1,5 +1,4 @@
-# MID v0.9.85.275 · Parallele Extremwetter-Direktabrufe zuverlässig abbrechen
+# MID v0.9.85.276 · Modell-Wolkenbild als alternative Kartenansicht
 
-- Überlappen zwei Auswertungen des Extremwetter-Ausblicks, sind ihre Abbruchsignale jetzt voneinander isoliert. Ein Standort- oder Ansichtswechsel beendet nur den zugehörigen Direktabruf und bricht keine unabhängigen Auswertungen versehentlich ab.
-- Die Optimierung betrifft ausschließlich den Browser-Direktfallback, wenn der bevorzugte MID-Worker nicht verfügbar ist. Erfolgreich zwischengespeicherte Daten, meteorologische Schwellenwerte, Farben, Warnungsabgrenzung und Datenverarbeitung bleiben erhalten.
-- Ein zusätzlicher deterministischer Parallelitätsnachweis schützt das Verhalten bei verzögerten Folgeabrufen und stellt sicher, dass ein abgebrochener Abruf nach der Verarbeitung nicht als neuer vollständiger Live-Stand angezeigt wird.
+- In „Wolken und signifikantes Wetter“ lässt sich bei DWD ICON-D2, ICON-EU und ICON nun zwischen „Standard“ und dem neuen, helleren „Modell-Wolkenbild“ wechseln. Dieses zeigt modellierte Wolken mit farbig darüber dargestellten Wettererscheinungen wie Nebel, Regen, Schnee und gefrierendem Niederschlag. Die Wahl bleibt gespeichert und wird auch in Kartenexporten übernommen.
+- Das Modell-Wolkenbild ist eine schematische Modellvisualisierung, kein echtes Satellitenbild. Fehlende Felder werden nicht als wolkenfrei ausgegeben; Modellläufe, echte Wetterkategorien und die bestehenden Funktionen bleiben erhalten. Ein durchgängiger Übergang von Satellitenbeobachtungen zu Modellen ist ein separates Folgepaket.

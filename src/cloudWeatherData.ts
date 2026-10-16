@@ -83,14 +83,43 @@ export function cloudWeatherAt(data:CloudWeatherData,lat:number,lon:number){
  const row=Math.round((lat-data.lats[0])/(data.lats[1]-data.lats[0])),col=Math.round((lon-data.lons[0])/(data.lons[1]-data.lons[0])),i=row*data.lons.length+col;
  const cloud=data.cloud[i],weather=data.weather[i];return {cloud:typeof cloud==='number'&&Number.isFinite(cloud)?cloud:null,weather:typeof weather==='number'&&Number.isFinite(weather)?weather:null};
 }
-export function cloudWeatherRaster(data:CloudWeatherData){
+
+export type CloudWeatherRenderMode='standard'|'pseudo';
+export const CLOUD_WEATHER_MODE_KEY='mid:cloud-weather-render:v1';
+export function readCloudWeatherRenderMode():CloudWeatherRenderMode{
+ try{return localStorage.getItem(CLOUD_WEATHER_MODE_KEY)==='pseudo'?'pseudo':'standard'}catch{return 'standard'}
+}
+export function writeCloudWeatherRenderMode(mode:CloudWeatherRenderMode){
+ try{localStorage.setItem(CLOUD_WEATHER_MODE_KEY,mode)}catch{/* blocked storage: current view remains usable */}
+}
+/** Display-only RGBA. No radiometry, inferred intensity or categorical interpolation. */
+export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:CloudWeatherRenderMode='standard'):[number,number,number,number]{
+ const style=significantWeatherStyle(weather);
+ if(mode==='standard'){
+  if(style){const c=[1,3,5].map(j=>parseInt(style.color.slice(j,j+2),16));return [c[0],c[1],c[2],240]}
+  if(cloud!==null&&Number.isFinite(cloud)){const grey=Math.round(255-cloud*1.5);return [grey,grey,grey,215]}
+  return [0,0,0,0];
+ }
+ // White cloud cover over any basemap; categorical WW paint on top. No fake image detail.
+ const cover=cloud===null||!Number.isFinite(cloud)?null:Math.max(0,Math.min(100,cloud));
+ const baseAlpha=cover===null?0:Math.round(2.15*cover);
+ const shade=cover===null?231:Math.round(227+cover*.21);
+ const base:[number,number,number]=[shade,Math.min(255,shade+3),Math.min(255,shade+7)];
+ if(!style)return [base[0],base[1],base[2],baseAlpha];
+ const rgb=[1,3,5].map(j=>parseInt(style.color.slice(j,j+2),16));
+ const phenomenonAlpha=style.codes.some(code=>code>=40&&code<=49)?200:231;
+ const a=phenomenonAlpha/255,b=baseAlpha/255,total=a+b*(1-a);
+ const mixed=rgb.map((v,j)=>Math.round((v*a+base[j]*b*(1-a))/total));
+ return [mixed[0],mixed[1],mixed[2],Math.round(total*255)];
+}
+
+export function cloudWeatherRaster(data:CloudWeatherData,mode:CloudWeatherRenderMode='standard'){
  const canvas=document.createElement('canvas');canvas.width=Math.min(1600,data.lons.length);canvas.height=Math.min(1600,data.lats.length);const c=canvas.getContext('2d');if(!c)throw Error('Wolken-/Wetterdarstellung nicht verfügbar.');
  const image=c.createImageData(canvas.width,canvas.height),north=mercatorY(data.lats.at(-1)!),south=mercatorY(data.lats[0]);
  for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
   const lat=(2*Math.atan(Math.exp(north-(y+.5)/canvas.height*(north-south)))-Math.PI/2)*180/Math.PI,lon=data.lons[0]+(x+.5)/canvas.width*(data.lons.at(-1)!-data.lons[0]),point=cloudWeatherAt(data,lat,lon);if(!point)continue;
-  const p=(y*canvas.width+x)*4,style=significantWeatherStyle(point.weather);
-  if(style){for(let j=0;j<3;j++)image.data[p+j]=parseInt(style.color.slice(1+j*2,3+j*2),16);image.data[p+3]=240;}
-  else if(point.cloud!==null){const grey=Math.round(255-point.cloud*1.5);image.data[p]=image.data[p+1]=image.data[p+2]=grey;image.data[p+3]=215;}
+  const p=(y*canvas.width+x)*4,rgba=cloudWeatherPixel(point.cloud,point.weather,mode);
+  for(let j=0;j<4;j++)image.data[p+j]=rgba[j];
  }
  c.putImageData(image,0,0);return canvas.toDataURL('image/png');
 }

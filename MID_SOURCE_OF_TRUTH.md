@@ -1,3 +1,9 @@
+# MID v0.9.85.276 · Modell-Wolkenbild, Phase A
+
+- Quelle: main=mid-stable=2879b8437123017bfc98bafcf54ec9e9b68a5b50, freigegebene v0.9.85.275, Issue #386. Schematisches Modell-Wolkenbild aus echten paarigen DWD CLCT+WW-Rasterwerten als optionaler Darstellungsmodus. Einheitliche Projektion/Farben/WMO-Zuordnung und identische Karten-/Exportdaten. Keine neue Satellitenradiometrie, kein meteorologischer Zahlenwert und kein erfundener Prognose-Frame. Fehlend ist niemals gleich 0.
+- Der bereits bestehende Pseudo-Satelliten-Zeitachsenvertrag bleibt gültig; Phase B (Beobachtungs→Modellübergang) wird hier ausdrücklich nicht vorweggenommen.
+- Veröffentlichung nur nach Source-PR-Gate, Bot-Merge, serverseitigem Release-ZIP, Installer, Worker/Pages und Stable-Promotion.
+
 # MID v0.9.85.275 · Isolierte Extremwetter-Direct-Fallback-Abbrüche
 
 - Verifizierte Stable-Basis `fabed02f7f42d4a430ba9478c33aadc0d0f98c25`, Version .274. Issue #345: Modulglobales `directRequestSignal` kann bei überlappenden Direktabrufen den Abbruch der anderen Auswertung übernehmen. Jeder direkte Auswertungsvorgang erhält nun einen eigenen lexikalischen Signal-Kontext. Der generierte Client und der kanonische Generator sind synchron; die meteorologische Worker-Quelle und die bekannten Cache-/Datenverträge bleiben unverändert.

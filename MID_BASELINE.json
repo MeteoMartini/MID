@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.275",
+  "releaseVersion": "0.9.85.276",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-pseudo-satellite-cloud-render-0985276.mjs",
     "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-adaptive-contours-0985238.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
@@ -996,6 +997,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-pseudo-satellite-cloud-render-0985276.mjs",
     "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-adaptive-contours-0985238.mjs",
     "scripts/test-adaptive-native-maps-0985141.mjs",
@@ -1977,6 +1979,8 @@
     "scripts/test-model-freshness-pill-0985273.mjs"
   ],
   "requiredFiles": [
+    "docs/implementation/MID_C34_PSEUDOSAT_PHASE_A_0.9.85.276.md",
+    "scripts/test-pseudo-satellite-cloud-render-0985276.mjs",
     "scripts/test-skybar-short-sunshine-0985268.mjs",
     ".github/workflows/install-mid.yml",
     ".github/workflows/mid-ruc-cloudflare-bootstrap.yml",
@@ -3576,7 +3580,7 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.275",
+  "version": "0.9.85.276",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "docs/implementation/MID_C33_RUC_SNAPSHOT_GUARD_0.9.85.269.md",
