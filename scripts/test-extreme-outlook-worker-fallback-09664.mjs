@@ -80,26 +80,26 @@ globalThis.__midIsolationFetch=(url,init)=>{
 try{
  const mod=await import('data:text/javascript;base64,'+Buffer.from(isolationModule).toString('base64'));
  const until=async key=>{for(let n=0;n<120&&!waiting.has(key);n++)await new Promise(resolve=>setImmediate(resolve));assert.ok(waiting.has(key),'Missing awaited concurrent stage: '+key);};
- for(const [first,second] of [['a','b'],['c','d']]){
+ for(const [first,second,abortFirst] of [['a','b',true],['c','d',false]]){
   const a=new AbortController(),b=new AbortController();
   a.signal._midFixtureTag=first;b.signal._midFixtureTag=second;
   const requestA=mod.loadDirectDachExtremeOutlook(a.signal);
   // Register rejection immediately: Node 22 treats a late handler as an unhandled rejection.
-  const canceledA=assert.rejects(requestA,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
+  const canceled=assert.rejects(abortFirst?requestA:requestB,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
   const requestB=mod.loadDirectDachExtendedExtremeOutlook(b.signal);
   try{
    await until(first+'/phase1');await until(second+'/phase1');
    waiting.get(first+'/phase1').release();
    waiting.get(second+'/phase1').release();
    await until(first+'/phase2');await until(second+'/phase2');
-   a.abort(new DOMException('Fixture cancellation','AbortError'));
+   (abortFirst?a:b).abort(new DOMException('Fixture cancellation','AbortError'));
    await new Promise(resolve=>setImmediate(resolve));
-   assert.equal(waiting.get(first+'/phase2').aborted,true,'Abort must cancel own later-stage fetch, not another request.');
-   assert.equal(waiting.get(second+'/phase2').aborted,false,'Unrelated in-flight product must not be aborted.');
-   waiting.get(second+'/phase2').release();
-   await canceledA;
-   const resultB=await requestB;
-   assert.equal(resultB.tag,second,'Unrelated concurrent request must complete with its own data.');
+   assert.equal(waiting.get((abortFirst?first:second)+'/phase2').aborted,true,'Abort must cancel own later-stage fetch, not another request.');
+   assert.equal(waiting.get((abortFirst?second:first)+'/phase2').aborted,false,'Unrelated in-flight product must not be aborted.');
+   waiting.get((abortFirst?second:first)+'/phase2').release();
+   await canceled;
+   const resultB=await (abortFirst?requestB:requestA);
+   assert.equal(resultB.tag,abortFirst?second:first,'Unrelated concurrent request must complete with its own data.');
    assert.equal(resultB.delivery,'browser-direct');
   }finally{a.abort();b.abort();}
  }
