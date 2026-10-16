@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.269",
+  "releaseVersion": "0.9.85.270",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -990,7 +990,8 @@
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
-    "scripts/test-ruc-full-production-0985267.mjs"
+    "scripts/test-ruc-full-production-0985267.mjs",
+    "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1970,7 +1971,8 @@
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
-    "scripts/test-ruc-full-production-0985267.mjs"
+    "scripts/test-ruc-full-production-0985267.mjs",
+    "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs"
   ],
   "requiredFiles": [
     "scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -3427,7 +3429,8 @@
     "docs/implementation/MID_REGRESSION_SHARDS_0.9.85.171.md",
     "docs/implementation/MID_OPEN_METEO_GUARD_0.9.85.245.md",
     "docs/implementation/MID_C32_RUC_FULL_WORKER_PREFLIGHT_0.9.85.266.md",
-    "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md"
+    "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md",
+    "docs/implementation/MID_C33_RUC_OPTIONAL_D2_AFTER_CODEC_0.9.85.270.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3569,7 +3572,7 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.269",
+  "version": "0.9.85.270",
   "updatedAt": "2026-10-07T08:54:00.000Z",
   "implementationFiles": [
     "docs/implementation/MID_C33_RUC_SNAPSHOT_GUARD_0.9.85.269.md",
@@ -3718,7 +3721,8 @@
     "docs/implementation/MID_C32_RUC_INVENTORY_PROOF_0.9.85.264.json",
     "docs/implementation/MID_C32_RUC_MIGRATION_PREPARATION_0.9.85.265.md",
     "docs/implementation/MID_C32_RUC_MIGRATION_PROOF_0.9.85.265.json",
-    "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md"
+    "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md",
+    "docs/implementation/MID_C33_RUC_OPTIONAL_D2_AFTER_CODEC_0.9.85.270.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
