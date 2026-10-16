@@ -14,7 +14,7 @@ try{
  assert.ok(radar.includes('unified.enabled?unified.times.map('),'Disabled model layer must not advertise extra forecast frames');
  assert.ok(radar.includes('showRadar&&showSatellite?'),'Mixed satellite and radar observations must identify both sources');
  assert.ok(unified.includes("modelLabel+' · Modell-Wolkenbild (schematisch)'"));
- assert.ok(unified.includes("cloudWeather.ready&&cloudWeather.data?.run===catalog?.index.run"));
+ assert.ok(unified.includes("cloudWeather.ready&&cloudWeather.data&&cloudWeather.data.run===catalog?.index.run"));
  assert.ok(unified.includes("modelId==='icon-d2'&&cloudIsobars"));
  assert.ok(unified.includes("value.run===catalog.index.run&&value.time===cloudPressureTime"));
  assert.ok(unified.includes('linesActive?pressureContours?.isobars??[]:[]'));
