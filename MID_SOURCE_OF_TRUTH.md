@@ -1,3 +1,9 @@
+# MID v0.9.85.273 · Modellstand-Aktualität auf einen Blick
+
+- Gegen GitHub-`mid-stable` `1a7eedbe49e35445619131d390d3991e218c164a` und den sauberen vorbereiteten .273-Integrationscommit geprüft. Die bestehende Model-Freshness-Pille wird in Kurzfrist-, 7-Tage- und 14-Tage-Ansichten konsistent mit grün/gelb/rot/grau, Statuspunkt und Screenreadertext ergänzt. Unbekannte Laufzeit- oder Intervallmetadaten bleiben unbekannt; Laufalter ist kein Modell-Skill und keine amtliche Warnung.
+- Die bestehende 60-Sekunden-Statusaktualisierung, Modellinit-/Cadence-basierte Regeln, differenzierten MOSMIX-Grenzen und Datenquellenprovenienz sind Teil des Regressionstests. Wetterwerte, Modellfusion, RUC-Kompression und meteorologische Warnungen werden nicht geändert.
+- Dieser Source-Stand muss vor Produktivfreigabe den vollständigen Source-PR-/SHA-Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Promotion-Pfad erfolgreich durchlaufen; eine vorbereitete Branchversion allein ist kein öffentlich bestätigter Release.
+
 # MID v0.9.85.260 · RUC-Nachweise und Open-Meteo-Prüfstand
 
 Diese Entwicklung basiert auf dem erfolgreich veröffentlichten MID .259,

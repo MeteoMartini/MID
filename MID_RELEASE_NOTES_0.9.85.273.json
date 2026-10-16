@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.273",
+  "date": "2026-10-16",
+  "title": "Modellstand-Aktualität auf einen Blick",
+  "external": [
+    "Die Modellstand-Pillen der Kurzfrist-, 7-Tage- und 14-Tage-Prognosen zeigen die zeitliche Aktualität der berücksichtigten Modellläufe direkt: grün für aktuell, gelb für verzögert, rot für überfällig, grau gestrichelt bei unzureichenden Metadaten.",
+    "Ein zusätzlicher Statuspunkt, eine aussagekräftige Schaltflächenbeschriftung für Screenreader und eine verständliche Detailerklärung machen den Zustand auch ohne Farberkennung zugänglich. Bei geöffneter App aktualisiert sich der Status einmal pro Minute.",
+    "Die Kennzeichnung bewertet nur das Laufalter gegenüber der dokumentierten Aktualisierungsfrequenz. Sie ist keine Aussage über Prognosegüte und keine amtliche Wetterwarnung. Unvollständige Modellmetadaten gelten niemals als aktuell; Wetterwerte, RUC-Berechnung, Warnungen und bisherige Funktionen bleiben unverändert."
+  ],
+  "internal": [
+    "Verifizierte MID-Stable-Basis 1a7eedbe49e35445619131d390d3991e218c164a; Branch chatgpt/v0.9.85.273-model-status-freshness bei 4dbb0ef9e36d75771fbfd075e523be73f14930b8 war exakt einen Commit voraus. Divergierter paralleler 273-Branch wurde nicht übernommen.",
+    "Gemeinsamer CockpitModelRunDetails-Trigger für Kurzfrist, sieben und vierzehn Tage mit statusabhängiger Umrandung + Punkt, lesbarer Erklärung/ARIA, 60-s-Timer, explizitem Unknown und aktualisierungsfrequenzabhängigen Grenzwerten. Fachlich keine Modell-Skill- oder Warnstufeninterpretation.",
+    "Quellnaher 979-Test-Registry-Eintrag einschließlich neuer Model-Freshness-Regression, bereinigter Version-/Worker-/Pages-/iOS-Spiegel und nur additivem CSS-Status. Source-Gate, reale Browser-/iOS-Prüfungen und Installer bleiben maßgeblich.",
+    "Bestehende RUC-Vollkompression, Widget-Skybar, Ensemble-Meteorologie, Modellkarten und Cloudflare-Worker-Datenverträge sind unverändert."
+  ]
+}
