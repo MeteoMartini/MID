@@ -3,3 +3,10 @@
 .cloud-weather-cover{display:flex;align-items:center;gap:10px;font-size:12px;margin:4px 0 12px}.cloud-weather-cover i{flex:1;height:12px;border-radius:4px;background:linear-gradient(90deg,#fff,#696969);border:1px solid #a9b3bd}
 .cloud-weather-colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px 10px}.cloud-weather-colors span{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.4}.cloud-weather-colors i{width:16px;height:12px;flex:none;border-radius:3px}.cloud-weather-legend p{font-size:12px;line-height:1.5;margin:12px 0 0;overflow-wrap:anywhere}
 .cloud-weather-provider-legend{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}.cloud-weather-provider-legend img{max-width:100%;height:auto;border-radius:6px;background:#fff}
+
+.cloud-weather-mode-control{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.cloud-weather-mode-control button{min-height:44px;padding:8px 12px;border:1px solid var(--line,#bdc9d4);border-radius:10px;background:var(--surface,#f7fafc);color:inherit;font:inherit;cursor:pointer}
+.cloud-weather-mode-control button[aria-pressed="true"]{border-color:var(--accent,#237cbf);outline:2px solid var(--accent,#237cbf);outline-offset:-2px;font-weight:650}
+.cloud-weather-mode-control button:focus-visible{outline:3px solid var(--accent,#237cbf);outline-offset:2px}
+
+.cloud-weather-cover.pseudo i{background:linear-gradient(90deg,rgba(231,235,240,0),rgba(248,251,255,.85)),repeating-linear-gradient(45deg,#64748b 0 4px,#d7e0e8 4px 8px)}

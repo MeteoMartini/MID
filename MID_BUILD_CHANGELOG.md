@@ -1,3 +1,10 @@
+## MID v0.9.85.276 · 2026-10-16 · Modell-Wolkenbild (Phase A)
+
+- Stable-Basis 2879b8437123017bfc98bafcf54ec9e9b68a5b50, vorher v0.9.85.275; Issue #386. Parallel bestehende Dependabot-PRs und aktive RUC-Runs nicht verändert.
+- DWD CLCT+WW unverändert; optionaler rein visueller RGBA-Kompositionsmodus ohne neue Modelle, Schein-Satellitenradiometrie, Änderung von WMO-Code, Schwellen oder Modelldaten. Fehlende Felder bleiben fehlend; bestätigte Wolkenfreiheit bleibt 0.
+- Ein gemeinsamer Renderer für UnifiedWeatherMap/NativeModelMap und PNG/SVG-Export; Auswahl lokal persistent, Originalansicht rückwärtskompatibel. GDPS bleibt bei seiner ursprünglichen WMS-Kombination.
+- Verbindliche Regression scripts/test-pseudo-satellite-cloud-render-0985276.mjs; vor Veröffentlichung Source-Core/Heavy, Installer, Worker, Pages und exakt SHA-gebundene Promotion erforderlich.
+
 ## MID v0.9.85.275 · 2026-10-16 · Parallele Extremwetter-Direktabrufe zuverlässig abbrechen
 
 - Source of Truth: main=mid-stable=fabed02f7f42d4a430ba9478c33aadc0d0f98c25 v0.9.85.274 vor Entwicklung. Offene PRs zum Arbeitsbeginn nur Dependabot; keine v0.9.85.275-Parallelbranch.

@@ -16,3 +16,7 @@ Die Kartenzeitachse soll perspektivisch ohne harten Ansichtswechsel von bestäti
 ## Architekturstand v0.9.85.34
 
 `CompositeTimelineContract.phaseSources` kann Beobachtung, Nowcast und Forecast verschiedene Quellenbezeichnungen zuweisen, ohne die gemeinsame bestätigte Zeitachse aufzubrechen. Die tatsächliche Pseudo-Satellitenquelle wird erst angebunden, wenn ein wissenschaftlich geeigneter numerischer Produktpfad verfügbar und fachlich geprüft ist.
+
+## Phase A · MID v0.9.85.276
+
+Optionales, als schematisch gekennzeichnetes „Modell-Wolkenbild“ aus realen paarigen DWD CLCT/WW-Rasterwerten. Dies ist weder eine Satellitenmessung noch eine physikalische VIS-/IR-Simulation. Die gemeinsame Beobachtung→Pseudo-Satelliten-Zeitachse bleibt ausdrücklich erst Phase B; es werden dafür keine Beobachtungs- oder Prognosezeitpunkte erfunden. Wetterfarbklassen, fehlende Werte und Modelleignung bleiben unter dem bisherigen Vertrag geschützt.
