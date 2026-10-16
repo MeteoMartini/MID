@@ -9,7 +9,7 @@ assert.equal(workflow,mirror,'Producer and controlled mirror must be byte-identi
 assert.ok(script.includes("pages-lossless-v1")&&script.includes("sourceRawUnchanged"),'Only explicitly active compressed snapshots receive optional frames');
 const preparer=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8');
 const save=preparer.indexOf("full_index.write_bytes(fields_index.read_bytes())");
-const projection=preparer.indexOf("fit_synoptic_budget(payload,");
+const projection=preparer.indexOf("fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES");
 const raw=workflow.indexOf('python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages');
 const activate=workflow.indexOf('python tools/ruc/activate_lossless_snapshot.py');
 const extra=workflow.indexOf('python tools/ruc/augment_compressed_synoptic.py');
