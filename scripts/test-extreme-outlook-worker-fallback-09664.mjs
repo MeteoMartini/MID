@@ -46,6 +46,64 @@ try{
  assert.equal(calls.filter(call=>call.url.hostname==='ensemble-api.open-meteo.com').length,8);assert.equal(calls.filter(call=>call.url.pathname==='/v1/dwd-icon').length,8);assert.equal(calls.filter(call=>call.url.pathname.endsWith('/meta.json')).length,1);assert.equal(calls.filter(call=>call.url.hostname==='ensemble-api.open-meteo.com').reduce((sum,call)=>sum+call.url.searchParams.get('latitude').split(',').length,0),233);
 }finally{globalThis.fetch=originalFetch}
 
+
+// Deterministic race: two direct forecast products start concurrently and issue
+// follow-up requests after an async boundary. An abort must stay with its owner.
+const fixtureSource=String.raw`
+async function dachExtremeOutlookData(){
+ const tag=signal._midFixtureTag;
+ await fetchWithDeadline('https://fixture.mid.invalid/'+tag+'/phase1');
+ await fetchWithDeadline('https://fixture.mid.invalid/'+tag+'/phase2');
+ return{scope:'Mitteleuropa',tag};
+}
+async function dachExtendedExtremeOutlookData(){return dachExtremeOutlookData()}
+`;
+const embeddedSource=workerSource.replace(
+ 'const dachExtremeOutlookCache=new Map(),dachExtremeBatchCache=new Map();',
+ 'const dachExtremeOutlookCache=directOutlookCache,dachExtremeBatchCache=directBatchCache;'
+);
+assert.ok(direct.includes(embeddedSource),'Isolation fixture must replace the entire unmodified scientific source.');
+const isolationModule=direct.replace(embeddedSource,fixtureSource)
+ .replace("import {guardedOpenMeteoFetch} from './openMeteoGuard';","const guardedOpenMeteoFetch=globalThis.__midIsolationFetch;")
+ .replace("import {MID_VERSION} from './version';",`const MID_VERSION='${pkg.version}';`);
+const originalFixture=globalThis.__midIsolationFetch,waiting=new Map();
+globalThis.__midIsolationFetch=(url,init)=>{
+ const path=new URL(url).pathname.slice(1),signal=init?.signal;
+ assert.ok(signal instanceof AbortSignal,'Every fixture subrequest must carry its own signal.');
+ return new Promise((resolve,reject)=>{
+  const item={aborted:false,release:()=>resolve(Response.json({ok:true}))};
+  const abort=()=>{item.aborted=true;reject(signal.reason??new DOMException('Aborted','AbortError'))};
+  waiting.set(path,item);
+  if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});
+ });
+};
+try{
+ const mod=await import('data:text/javascript;base64,'+Buffer.from(isolationModule).toString('base64'));
+ const until=async key=>{for(let n=0;n<120&&!waiting.has(key);n++)await new Promise(resolve=>setImmediate(resolve));assert.ok(waiting.has(key),'Missing awaited concurrent stage: '+key);};
+ for(const [first,second] of [['a','b'],['c','d']]){
+  const a=new AbortController(),b=new AbortController();
+  a.signal._midFixtureTag=first;b.signal._midFixtureTag=second;
+  const requestA=mod.loadDirectDachExtremeOutlook(a.signal);
+  const requestB=mod.loadDirectDachExtendedExtremeOutlook(b.signal);
+  try{
+   await until(first+'/phase1');await until(second+'/phase1');
+   waiting.get(first+'/phase1').release();
+   waiting.get(second+'/phase1').release();
+   await until(first+'/phase2');await until(second+'/phase2');
+   a.abort(new DOMException('Fixture cancellation','AbortError'));
+   await new Promise(resolve=>setImmediate(resolve));
+   assert.equal(waiting.get(first+'/phase2').aborted,true,'Abort must cancel own later-stage fetch, not another request.');
+   assert.equal(waiting.get(second+'/phase2').aborted,false,'Unrelated in-flight product must not be aborted.');
+   waiting.get(second+'/phase2').release();
+   await assert.rejects(requestA,error=>error?.name==='AbortError','Cancelled request must reject explicitly.');
+   const resultB=await requestB;
+   assert.equal(resultB.tag,second,'Unrelated concurrent request must complete with its own data.');
+   assert.equal(resultB.delivery,'browser-direct');
+  }finally{a.abort();b.abort();}
+ }
+}finally{if(originalFixture===undefined)delete globalThis.__midIsolationFetch;else globalThis.__midIsolationFetch=originalFixture;}
+console.log('Concurrent direct DACH fallback aborts stay request-local across delayed follow-up fetches.');
+
 assert.ok(changelog.includes('## 0.9.66.4'),'Changelog-Nachweis für 0.9.66.4 fehlt.');
 for(const token of ['Daily API request limit exceeded','meteorologischen Schwellen'])assert.ok(implementation.includes(token),`Umsetzungsnachweis unvollständig: ${token}`);
 
