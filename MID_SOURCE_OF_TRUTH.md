@@ -1,3 +1,9 @@
+# MID v0.9.85.275 · Isolierte Extremwetter-Direct-Fallback-Abbrüche
+
+- Verifizierte Stable-Basis `fabed02f7f42d4a430ba9478c33aadc0d0f98c25`, Version .274. Issue #345: Modulglobales `directRequestSignal` kann bei überlappenden Direktabrufen den Abbruch der anderen Auswertung übernehmen. Jeder direkte Auswertungsvorgang erhält nun einen eigenen lexikalischen Signal-Kontext. Der generierte Client und der kanonische Generator sind synchron; die meteorologische Worker-Quelle und die bekannten Cache-/Datenverträge bleiben unverändert.
+- Deterministischer Test für parallel laufende Produkte, eigene spätere Teilabrufe, Abbrüche und vollständig unabhängig weiterlaufenden zweiten Vorgang in der bestehenden Required-Regression. Cancelled work darf nicht als erfolgreicher neuer Live-Stand ausgegeben werden.
+- Source-PR/Review/Gates, kontrollierter Merge, serverseitiges ZIP, `install-mid.yml`, Worker-/Pages-Health und `mid-stable`-Promotion vor einer Freigabe strikt erforderlich.
+
 # MID v0.9.85.274 · Modellstand-Sammelindikator kalibrieren
 
 - Ausgangspunkt `main = mid-stable = 1b842f210c6f817693c8f117c91e4ee867248650`, freigegebenes `v0.9.85.273`. Die bei Einzelmodellalter streng beibehaltenen RUC-/MOSMIX-/Ensemble-Schwellen werden für den **Sammelindikator** differenziert aggregiert: kein globales Rot bei nur einem veralteten von mehreren berücksichtigten Läufen; gelb meldet dies ausdrücklich im Detail. Ab ≥2/3 überfälligen Mitwirkenden bleibt Rot. Unbekannte Werte niemals grün.
