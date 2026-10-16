@@ -1,3 +1,10 @@
+## MID v0.9.85.277 · 2026-10-16 · Beobachtungsübergang und Isobaren
+
+- Freigegebene Source-Basis ff30648863744759aca9b28c524662e3f65ba496, v0.9.85.276, Issue #386. Parallele Abhängigkeits-/RUC-PRs und Schutzregeln unverändert.
+- Gemeinsame Radar-/Satellit-/Modellzeitachse: Wolkenmodelllayer nur bei bestätigtem forecast-Frame, Beobachtung/Nowcast ohne vorgezogene Modellwolken; Schematik klar ausgezeichnet, kein Satellitenradiometrie-Schein.
+- Optionale DWD ICON-D2-/ICON-EU-/ICON-Global-MSLP-Isobaren hPa aus jeweils eigenem Modellfeld mit exakt gleichem Modell, Forecast-Run und Valid Time; native und gemeinsame Ansicht mit einer persistierten Auswahl; SVG und PNG verwenden überprüfte Konturpfade.
+- Neue Required-Regression `scripts/test-pseudo-satellite-isobars-0985277.mjs`; bestehende v.276-WMO-/Null-/Exportregression bleibt bestehen. Release-Freigabe nur mit belegten Source-PR, ZIP, Installer, Worker-/Pages- und Stable-Gates.
+
 ## MID v0.9.85.276 · 2026-10-16 · Modell-Wolkenbild (Phase A)
 
 - Stable-Basis 2879b8437123017bfc98bafcf54ec9e9b68a5b50, vorher v0.9.85.275; Issue #386. Parallel bestehende Dependabot-PRs und aktive RUC-Runs nicht verändert.
