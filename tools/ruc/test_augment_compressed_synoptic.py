@@ -11,7 +11,7 @@ def payload(hour):
     from datetime import datetime,timedelta
     t=(datetime.fromisoformat(MODEL)+timedelta(hours=hour)).isoformat()
     data={'schema':'mid.cloud-weather.field.v1','model':'icon-d2','run':MODEL,'time':t,'cloudUnit':'%',
-          'weatherUnit':'WMO 4677','cloudScale':.1,'lats':[[50.,50.],[51.,51.]],'lons':[[7.,8.],[7.,8.]],
+          'weatherUnit':'WMO 4677','cloudScale':.1,'lats':[50.,51.],'lons':[7.,8.],
           'cloud':[0,300,550,None],'weather':[0,3,61,None],
           'origins':[{'url':'https://opendata.dwd.de/weather/nwp/icon-d2/'+str(hour),'sha256':'a'*64}]}
     raw=json.dumps(data,separators=(',',':')).encode()
@@ -90,6 +90,44 @@ class OptionalSynoptic(unittest.TestCase):
                     augment(snap,index,source)
                 self.assertEqual((snap/'latest.json').read_bytes(),pointer)
 
+    def test_explicit_rectangular_meshgrid_still_accepted(self):
+        with tempfile.TemporaryDirectory() as td:
+            snap,index,source,frames=setup(Path(td))
+            for hour in (13,14,16,17):
+                f=frames[hour][0];file=source/f['file']
+                data=json.loads(gzip.decompress(file.read_bytes()))
+                data['lats']=[[50.,50.],[51.,51.]]
+                data['lons']=[[7.,8.],[7.,8.]]
+                wire=gzip.compress(json.dumps(data).encode(),mtime=0)
+                file.write_bytes(wire)
+                full=json.loads(index.read_bytes())
+                row=next(x for x in full['models']['icon-d2']['cloudWeatherFrames'] if x['hour']==hour)
+                row.update(bytes=len(wire),sha256=sha(wire),decodedBytes=len(gzip.decompress(wire)))
+                index.write_bytes(compact(full))
+            result=augment(snap,index,source)
+            self.assertEqual(result['admittedHours'],[13,14,16,17])
+    def test_bad_real_one_dimensional_axes_are_rejected(self):
+        for mode in ('lat-length','lon-length','lat-nonmonotonic','lat-out-of-range','lon-nan','mixed-dimension'):
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as td:
+                snap,index,source,frames=setup(Path(td))
+                original=(snap/'latest.json').read_bytes()
+                f=frames[13][0];file=source/f['file']
+                data=json.loads(gzip.decompress(file.read_bytes()))
+                if mode=='lat-length':data['lats']=[50.]
+                if mode=='lon-length':data['lons']=[7.,8.,9.]
+                if mode=='lat-nonmonotonic':data['lats']=[51.,50.]
+                if mode=='lat-out-of-range':data['lats']=[50.,91.]
+                if mode=='lon-nan':data['lons']=[7.,float('nan')]
+                if mode=='mixed-dimension':data['lons']=[[7.,8.],[7.,8.]]
+                raw=json.dumps(data).encode()
+                wire=gzip.compress(raw,mtime=0);file.write_bytes(wire)
+                full=json.loads(index.read_bytes())
+                row=next(x for x in full['models']['icon-d2']['cloudWeatherFrames'] if x['hour']==13)
+                row.update(bytes=len(wire),sha256=sha(wire),decodedBytes=len(raw))
+                index.write_bytes(compact(full))
+                with self.assertRaises((ValueError,TypeError)):
+                    augment(snap,index,source)
+                self.assertEqual((snap/'latest.json').read_bytes(),original)
     def test_optional_absent_does_not_edit_valid_codec(self):
         with tempfile.TemporaryDirectory() as td:
             snap,index,source,_=setup(Path(td));before=(snap/'latest.json').read_bytes()
