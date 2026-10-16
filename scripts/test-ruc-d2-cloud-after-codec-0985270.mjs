@@ -7,11 +7,13 @@ const workflow=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8')
 const mirror=readFileSync('.github/workflows/mid-ruc-preprocess.yml','utf8');
 assert.equal(workflow,mirror,'Producer and controlled mirror must be byte-identical');
 assert.ok(script.includes("pages-lossless-v1")&&script.includes("sourceRawUnchanged"),'Only explicitly active compressed snapshots receive optional frames');
-const save=workflow.indexOf('synoptic-fields-full-index.json');
+const preparer=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8');
+const save=preparer.indexOf("full_index.write_bytes(fields_index.read_bytes())");
+const projection=preparer.indexOf("fit_synoptic_budget(payload,");
 const raw=workflow.indexOf('python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages');
 const activate=workflow.indexOf('python tools/ruc/activate_lossless_snapshot.py');
 const extra=workflow.indexOf('python tools/ruc/augment_compressed_synoptic.py');
 const deploy=workflow.indexOf('mv .ruc-compressed/ruc .ruc-pages/ruc');
-assert.ok(save>=0&&save<raw&&raw<activate&&activate<extra&&extra<deploy,'The source index must be saved before raw projection; extra terms may only be admitted after full codec proof');
+assert.ok(save>=0&&projection>save&&raw>=0&&raw<activate&&activate<extra&&extra<deploy,'The full source index must be saved immediately before raw budget projection; extras may only be admitted after complete codec proof');
 assert.ok(workflow.includes("mid-ruc-rollback-")&&workflow.includes('RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen'),'Immutable raw rollback remains mandatory');
 console.log('MID .270 additional ICON-D2 terms after complete compression, source provenance, immutable index and rollback gates OK');
