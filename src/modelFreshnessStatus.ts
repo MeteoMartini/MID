@@ -18,11 +18,16 @@ export function modelRunFreshness(row:ModelRunMeta,now:number):ModelFreshnessBan
 }
 export function assessModelFreshness(rows:readonly ModelRunMeta[],now:number=Date.now()):ModelFreshnessAssessment {
  const used=rows.filter(r=>r.usedInCanonical===true);
- const eligible=used.length?used:rows.filter(r=>r.fusionLoaded===true||r.usageStatus==='active');
+ // Only contributing or credibly active models can decide the shared pill.
+ // Explicitly unused fusion candidates must not turn it red after prefetch.
+ const eligible=used.length?used:rows.filter(r=>r.usedInCanonical!==false&&(r.fusionLoaded===true||r.usageStatus==='active'||r.usageStatus==='fallback'));
  const count={current:0,delayed:0,stale:0,unknown:0};
  eligible.forEach(r=>{count[modelRunFreshness(r,now)]++});
- const band:ModelFreshnessBand=!eligible.length?'unknown':count.stale?'stale':count.delayed?'delayed':count.unknown?'unknown':'current';
- const label={current:'Modellläufe zeitlich aktuell',delayed:'Mindestens ein Modelllauf zeitlich verzögert',stale:'Mindestens ein Modelllauf überfällig',unknown:'Modellstand zeitlich nicht vollständig verifizierbar'}[band];
+ // One overdue run remains visible in yellow; red means at least 2/3
+ // of eligible model runs overdue, including the one-run case.
+ const substantiallyStale=count.stale>0&&count.stale*3>=eligible.length*2;
+ const band:ModelFreshnessBand=!eligible.length?'unknown':substantiallyStale?'stale':count.stale||count.delayed?'delayed':count.unknown?'unknown':'current';
+ const label=band==='stale'?(eligible.length===1?'Verwendeter Modelllauf überfällig':'Überwiegender Teil der Modellläufe überfällig'):band==='delayed'?(count.stale?'Einzelne Modellläufe überfällig':'Mindestens ein Modelllauf zeitlich verzögert'):band==='current'?'Modellläufe zeitlich aktuell':'Modellstand zeitlich nicht vollständig verifizierbar';
  const details=eligible.length?`${count.current} aktuell · ${count.delayed} verzögert · ${count.stale} überfällig · ${count.unknown} ohne verifizierbares Laufalter`:'Keine nachweislich verwendeten Modellläufe';
  return {band,label,details,checked:eligible.length,unknown:count.unknown,stale:count.stale,delayed:count.delayed};
 }
