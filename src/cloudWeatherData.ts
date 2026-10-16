@@ -85,6 +85,13 @@ export function cloudWeatherAt(data:CloudWeatherData,lat:number,lon:number){
 }
 
 export type CloudWeatherRenderMode='standard'|'pseudo';
+export const CLOUD_WEATHER_ISOBARS_KEY='mid:cloud-weather-isobars:v1';
+export function readCloudWeatherIsobars():boolean{
+ try{return localStorage.getItem(CLOUD_WEATHER_ISOBARS_KEY)==='true'}catch{return false}
+}
+export function writeCloudWeatherIsobars(enabled:boolean){
+ try{localStorage.setItem(CLOUD_WEATHER_ISOBARS_KEY,String(enabled))}catch{/* Storage access may be blocked. */}
+}
 export const CLOUD_WEATHER_MODE_KEY='mid:cloud-weather-render:v1';
 export function readCloudWeatherRenderMode():CloudWeatherRenderMode{
  try{return localStorage.getItem(CLOUD_WEATHER_MODE_KEY)==='pseudo'?'pseudo':'standard'}catch{return 'standard'}

@@ -20,3 +20,9 @@ Die Kartenzeitachse soll perspektivisch ohne harten Ansichtswechsel von bestäti
 ## Phase A · MID v0.9.85.276
 
 Optionales, als schematisch gekennzeichnetes „Modell-Wolkenbild“ aus realen paarigen DWD CLCT/WW-Rasterwerten. Dies ist weder eine Satellitenmessung noch eine physikalische VIS-/IR-Simulation. Die gemeinsame Beobachtung→Pseudo-Satelliten-Zeitachse bleibt ausdrücklich erst Phase B; es werden dafür keine Beobachtungs- oder Prognosezeitpunkte erfunden. Wetterfarbklassen, fehlende Werte und Modelleignung bleiben unter dem bisherigen Vertrag geschützt.
+
+## Phase B · Geprüfte Kartenzeitachse und Druckkonturen
+
+Das Modell-Wolkenbild wird in der gemeinsamen Karte nur an expliziten Prognose-Frames dargestellt; an tatsächlichen Beobachtungs- oder Nowcastterminen bleibt dieses Overlay ausgeblendet. Die vorhandenen Satelliten-/Radarprodukte behalten eigene zeitgebundene Provenienz. Die Auswahl „Satellit“ bleibt bewusst beim Nutzer, keine heimliche Aktivierung von Beobachtungs-Layern. Modellbilder sind keine Satellitenradiometrie. Es werden weder künstliche Beobachtungen erzeugt noch WMO-Kategorien oder Zeiten interpoliert.
+
+Optional zuschaltbare Isobaren (MSLP/hPa) werden nur aus dem echten DWD ICON-D2-Druckkonturfeld desselben bestätigten Modelllaufs und derselben Gültigkeitszeit angezeigt. Andere Cloud-Wetter-Modelle erhalten keine unbestätigt zusammengemischten Drucklinien. Deaktiviert bzw. fehlende Konturen werden weder gezeichnet noch in den Export geschrieben. Native- und gemeinsame Kartenansicht verwenden dieselbe gespeicherte Einstellung. Exportierte Isobaren werden als Modellkonturen ausgewiesen.
