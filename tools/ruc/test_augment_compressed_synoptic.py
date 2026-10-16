@@ -11,7 +11,7 @@ def payload(hour):
     from datetime import datetime,timedelta
     t=(datetime.fromisoformat(MODEL)+timedelta(hours=hour)).isoformat()
     data={'schema':'mid.cloud-weather.field.v1','model':'icon-d2','run':MODEL,'time':t,'cloudUnit':'%',
-          'weatherUnit':'WMO 4677','cloudScale':.1,'lats':[50.,51.],'lons':[7.,8.],
+          'weatherUnit':'WMO 4677','cloudScale':.1,'lats':[[50.,50.],[51.,51.]],'lons':[[7.,8.],[7.,8.]],
           'cloud':[0,300,550,None],'weather':[0,3,61,None],
           'origins':[{'url':'https://opendata.dwd.de/weather/nwp/icon-d2/'+str(hour),'sha256':'a'*64}]}
     raw=json.dumps(data,separators=(',',':')).encode()
