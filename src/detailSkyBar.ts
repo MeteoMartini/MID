@@ -115,7 +115,9 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
         title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % der betrachteten Zeit · Gesamtbewölkung ${boundedCloud.toFixed(0)} %`,
       };}
     }
-    if(daylight&&!sunshineDirect){
+    // Accumulated sunshine can legitimately be short in a sunrise/sunset slot.
+    // It must not erase a known open sky. Keep the quantities labelled separately.
+    if(daylight&&(!sunshineDirect||Number(sunshineShare)<=.5)){
       const openSkyShare=clamp01(1-boundedCloud/100),width=sunBandWidth(openSkyShare);
       if(width>0){const level=skybarAboveHalfLevel(openSkyShare);return {
         layer:'base',
@@ -123,7 +125,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
         opacity:0.78,
-        title:`Wolkenlücken · ${(openSkyShare*100).toFixed(0)} % unbedeckter Himmelsanteil · Sonnenscheindauer nicht verfügbar`,
+        title:`Wolkenlücken · ${(openSkyShare*100).toFixed(0)} % unbedeckter Himmelsanteil · Gesamtbewölkung ${boundedCloud.toFixed(0)} % · ${sunshineDirect?`Sonnenscheindauer ${(clamp01(Number(sunshineShare))*100).toFixed(0)} % der betrachteten Zeit`:'Sonnenscheindauer nicht verfügbar'}`,
       };}
     }
     return null;

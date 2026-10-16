@@ -1,3 +1,9 @@
+# MID v0.9.85.268 · Skybar bei kurzer Sonnenscheindauer konsistent
+
+- Bekannte geringe Tagesbewölkung verschwindet nicht mehr aus der Skybar, wenn die Sonnenscheindauer innerhalb eines Intervalls kurz ist, etwa bei Sonnenauf- oder -untergang. Das gelbe Band bezeichnet dann ausdrücklich Wolkenlücken, nicht gemessene Sonnenscheindauer.
+- Die gemeinsame Korrektur erreicht auch Tagesansichten, Widgets und Exporte. Graue Bewölkung, klare Nächte, Niederschlag und echte Datenlücken bleiben erhalten.
+- Die inzwischen veröffentlichte vollständige RUC-Kompression bleibt unverändert; zusätzliche Wetterfelder oder Termine werden mit diesem Update nicht aktiviert.
+
 # MID v0.9.85.267 · RUC-Daten verlustfrei komprimiert veröffentlichen
 
 - Der RUC-Hintergrunddienst erhält ein vollständiges verlustfrei komprimiertes Datenprofil: Wetterwerte, Missing-Daten, Modellläufe und Zeitintervalle bleiben bitidentisch. Das veröffentlichte Datenpaket wird erst nach vollständig unabhängigen Python-/JavaScript- und Originaldatenprüfungen freigegeben.

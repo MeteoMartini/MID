@@ -36,7 +36,7 @@ assert.ok(sky.sunBandWidth(.6)>0);
 assert.ok(sky.sunBandWidth(1)>sky.sunBandWidth(.6));
 assert.deepEqual([...sky.SKYBAR_THICKNESS_STEPS],[2.4,3.6,4.8,6]);
 assert.deepEqual([.51,.63,.76,.9].map(sky.skybarAboveHalfLevel),[0,1,2,3]);
-assert.equal(sky.baseSkyVisual(20,true,.4),null,'Direkte Sonnenscheindauer <=50 % darf nicht durch 1−Bewölkung künstlich angehoben werden.');
+const shortSun=sky.baseSkyVisual(20,true,.4);assert.match(shortSun.title,/Wolkenlücken/);assert.match(shortSun.title,/Sonnenscheindauer 40 %/);assert.equal(sky.sunVisualShare(.4,20),.4,'Wolkenlücken dürfen die physikalische Sonnenscheindauer nicht anheben.');
 const cloudGapFallback=sky.baseSkyVisual(20,true,null);assert.ok(cloudGapFallback);assert.equal(cloudGapFallback.color,'#ffc229');assert.equal(cloudGapFallback.thicknessLevel,3);assert.ok(cloudGapFallback.title.includes('Wolkenlücken'));assert.ok(cloudGapFallback.title.includes('Sonnenscheindauer nicht verfügbar'));
 const sunnyBase=sky.baseSkyVisual(20,true,.7);assert.ok(sunnyBase);assert.equal(sunnyBase.color,'#ffc229');
 assert.equal(sky.baseSkyVisual(20,false,null),null,'Klare Nacht unter 50 % Bewölkung darf weiterhin ohne Grundband bleiben.');
