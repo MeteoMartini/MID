@@ -298,6 +298,11 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     if fields_index.is_file():
         payload=json.loads(fields_index.read_text())
         if payload.get('schema')!='mid.synoptic.fields.v1':raise ValueError('invalid synoptic index')
+        # Preserve the actual complete DWD/GRIB-tested index before raw budget projection.
+        # Only the subsequent full-lossless candidate may use this as an optional overlay.
+        # This sidecar is not part of the raw Pages snapshot or its SHA-bound rollback.
+        full_index=source/'synoptic-fields-full-index.json'
+        full_index.write_bytes(fields_index.read_bytes())
         # Retain all nine established five-field terms. Extra terms are optional
         # when the unchanged free-Pages envelope is otherwise exhausted.
         fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES-PAGES_MANIFEST_RESERVE_BYTES-sum(row['bytes'] for row in objects))
