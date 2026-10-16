@@ -18,7 +18,7 @@ export function assessModelFreshness(rows:readonly ModelRunMeta[],now:number=Dat
  const count={current:0,delayed:0,stale:0,unknown:0};
  eligible.forEach(r=>{count[modelRunFreshness(r,now)]++});
  const band:ModelFreshnessBand=!eligible.length?'unknown':count.stale?'stale':count.delayed?'delayed':count.unknown?'unknown':'current';
- const label={current:'Verwendete Modellläufe aktuell',delayed:'Mindestens ein Modelllauf verzögert',stale:'Mindestens ein verwendeter Modelllauf überfällig',unknown:'Modellstand nicht vollständig verifizierbar'}[band];
+ const label={current:'Modellläufe zeitlich aktuell',delayed:'Mindestens ein Modelllauf zeitlich verzögert',stale:'Mindestens ein Modelllauf überfällig',unknown:'Modellstand zeitlich nicht vollständig verifizierbar'}[band];
  const details=eligible.length?`${count.current} aktuell · ${count.delayed} verzögert · ${count.stale} überfällig · ${count.unknown} ohne verifizierbares Laufalter`:'Keine nachweislich verwendeten Modellläufe';
  return {band,label,details,checked:eligible.length,unknown:count.unknown,stale:count.stale,delayed:count.delayed};
 }
