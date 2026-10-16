@@ -18,7 +18,13 @@ assert.ok(workerCore.includes(`const WORKER_VERSION='${pkg.version}';`),'Profess
 for(const token of ["loadDirectDachExtremeOutlook","OUTLOOK_FRESH_MS=20*60*1000","OUTLOOK_STALE_MS=12*60*60*1000","dailyWorkerLimit","rememberWorkerLimit","delivery:'browser-direct'","delivery:'local-cache'","readOutlookCache(OUTLOOK_STALE_MS)","cacheKey:'dach-extreme-outlook:v6'"])assert.ok(client.includes(token),`Client-Fallbackvertrag fehlt: ${token}`);
 assert.ok(client.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook'")<client.indexOf('loadDirectDachExtremeOutlook(signal)'),'Der Worker muss bevorzugt und der Direktabruf erst als Fallback verwendet werden.');
 assert.ok(!client.includes('Browser-, DNS-, CORS- oder Netzwerkblockade möglich.'),'Die generische Worker-Fehlermeldung darf im Modul nicht als Endzustand erscheinen.');
-assert.ok(direct.includes(workerSource.trim()),'Direktberechnung muss bytegleich aus der kanonischen Worker-Fachlogik erzeugt werden.');
+const onlyScopedCacheAlias=workerSource.trim().replace(
+ 'const dachExtremeOutlookCache=new Map(),dachExtremeBatchCache=new Map();',
+ 'const dachExtremeOutlookCache=directOutlookCache,dachExtremeBatchCache=directBatchCache;'
+);
+assert.ok(direct.includes(onlyScopedCacheAlias),'Direktberechnung muss unveränderte kanonische Worker-Fachlogik enthalten; nur Cachebindung darf auf bereits bestehende Modul-Caches zeigen.');
+assert.ok(!direct.includes('directRequestSignal'),'Globale Abbruchsignale zwischen parallelen Abrufen sind unzulässig.');
+assert.ok(direct.includes('function createDirectOutlookContext(signal){'),'Direktfallback benötigt pro Request isolierten Kontext.');
 for(const token of ["headers.delete('User-Agent')","guardedOpenMeteoFetch","priority:'normal'","maxRetries:0","delivery:'browser-direct'"])assert.ok(direct.includes(token),`Direktabruf-Härtung fehlt: ${token}`);
 assert.ok(router.includes("delivery:'worker'"));
 assert.ok(router.includes("'cache-control':'public, max-age=1800, stale-while-revalidate=21600'"));

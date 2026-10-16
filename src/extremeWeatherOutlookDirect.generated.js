@@ -4,13 +4,16 @@ import {MID_VERSION} from './version';
 
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const WORKER_VERSION=MID_VERSION;
-let directRequestSignal;
+// Shared completed-data caches stay module-scoped; request cancellation does not.
+const directOutlookCache=new Map(),directBatchCache=new Map();
 function number(value){if(value===null||value===undefined||value==='')return undefined;const parsed=Number(value);return Number.isFinite(parsed)?parsed:undefined}
 function clamp(value,minimum,maximum){return Math.max(minimum,Math.min(maximum,value))}
 function openMeteoRows(data){return Array.isArray(data)?data:Array.isArray(data?.results)?data.results:[data]}
 function directAbortReason(signal){return signal?.reason instanceof Error?signal.reason:new DOMException('Vorgang abgebrochen.','AbortError')}
+// Each direct evaluation closes over its OWN AbortSignal, including later batches.
+function createDirectOutlookContext(signal){
 async function fetchWithDeadline(url,init={},timeoutMs=22000){
- const controller=new AbortController(),parent=directRequestSignal,onAbort=()=>controller.abort(directAbortReason(parent)),timer=setTimeout(()=>controller.abort(new DOMException('Direktabruf-Zeitüberschreitung.','TimeoutError')),timeoutMs),headers=new Headers(init.headers||{}),{cf:unusedCf,...safeInit}=init;void unusedCf;headers.delete('User-Agent');
+ const controller=new AbortController(),parent=signal,onAbort=()=>controller.abort(directAbortReason(parent)),timer=setTimeout(()=>controller.abort(new DOMException('Direktabruf-Zeitüberschreitung.','TimeoutError')),timeoutMs),headers=new Headers(init.headers||{}),{cf:unusedCf,...safeInit}=init;void unusedCf;headers.delete('User-Agent');
  if(parent?.aborted)onAbort();else parent?.addEventListener('abort',onAbort,{once:true});
  try{return await guardedOpenMeteoFetch(url,{...safeInit,headers,cache:'no-store',signal:controller.signal},{priority:'normal',maxRetries:0})}finally{clearTimeout(timer);parent?.removeEventListener('abort',onAbort)}
 }
@@ -52,7 +55,7 @@ const DACH_EXTREME_GRID_PROFILES={full:{rows:13,cols:23,batchSize:32,concurrency
 const DACH_EXTREME_MIN_DATA_COVERAGE=.65;
 const DACH_EXTREME_BATCH_CACHE_MS=6*60*60*1000;
 const DACH_EXTREME_BATCH_RETRIES=2;
-const dachExtremeOutlookCache=new Map(),dachExtremeBatchCache=new Map();
+const dachExtremeOutlookCache=directOutlookCache,dachExtremeBatchCache=directBatchCache;
 
 function dachExtremePointInPolygon(lat,lon,polygon){let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const xi=polygon[i][0],yi=polygon[i][1],xj=polygon[j][0],yj=polygon[j][1],denominator=Math.abs(yj-yi)<1e-9?(yj>=yi?1e-9:-1e-9):yj-yi,cross=(yi>lat)!==(yj>lat)&&lon<(xj-xi)*(lat-yi)/denominator+xi;if(cross)inside=!inside}return inside}
 function dachExtremeInCoverage(lat,lon){return DACH_EXTREME_MASKS.some(polygon=>dachExtremePointInPolygon(lat,lon,polygon))}
@@ -198,13 +201,13 @@ async function dachExtendedCachedOutlook(request){
  catch(error){if(previous&&age>=0&&age<24*60*60*1000)return{...previous,stale:true,staleReason:'Aktualisierung derzeit nicht möglich; letzter vollständiger regionaler Ausblick.'};throw error}
 }
 
+return{dachExtremeOutlookData,dachExtendedExtremeOutlookData};
+}
 export async function loadDirectDachExtremeOutlook(signal){
  if(signal?.aborted)throw directAbortReason(signal);
- directRequestSignal=signal;
- try{return{...await dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
+ return{...await createDirectOutlookContext(signal).dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'};
 }
 export async function loadDirectDachExtendedExtremeOutlook(signal){
  if(signal?.aborted)throw directAbortReason(signal);
- directRequestSignal=signal;
- try{return{...await dachExtendedExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'}}finally{if(directRequestSignal===signal)directRequestSignal=undefined}
+ return{...await createDirectOutlookContext(signal).dachExtendedExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'};
 }
