@@ -40,11 +40,15 @@ return{dachExtremeOutlookData,dachExtendedExtremeOutlookData};
 }
 export async function loadDirectDachExtremeOutlook(signal){
  if(signal?.aborted)throw directAbortReason(signal);
- return{...await createDirectOutlookContext(signal).dachExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'};
+ const data=await createDirectOutlookContext(signal).dachExtremeOutlookData();
+ if(signal?.aborted)throw directAbortReason(signal);
+ return{...data,version:MID_VERSION,delivery:'browser-direct'};
 }
 export async function loadDirectDachExtendedExtremeOutlook(signal){
  if(signal?.aborted)throw directAbortReason(signal);
- return{...await createDirectOutlookContext(signal).dachExtendedExtremeOutlookData(),version:MID_VERSION,delivery:'browser-direct'};
+ const data=await createDirectOutlookContext(signal).dachExtendedExtremeOutlookData();
+ if(signal?.aborted)throw directAbortReason(signal);
+ return{...data,version:MID_VERSION,delivery:'browser-direct'};
 }
 `;
 const cacheDeclaration='const dachExtremeOutlookCache=new Map(),dachExtremeBatchCache=new Map();';
