@@ -62,7 +62,9 @@ class OptionalSynoptic(unittest.TestCase):
             for frame in idx['models']['icon-d2']['cloudWeatherFrames']:
                 data=(snapshot/Path(name).parent/frame['file']).read_bytes()
                 self.assertEqual(sha(data),frame['sha256'])
-            with self.assertRaises(ValueError):augment(snapshot,index,source)
+            stable=(snapshot/'latest.json').read_bytes()
+            self.assertEqual(augment(snapshot,index,source)['reason'],'no-verified-extra-terms')
+            self.assertEqual((snapshot/'latest.json').read_bytes(),stable,'Rerun must not mutate an already augmented manifest')
 
     def test_bad_source_never_changes_pointer(self):
         for mode in ('wrong-hash','wrong-hour','wrong-model','wrong-units','nonfinite','wrong-run'):
