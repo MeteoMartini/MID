@@ -89,10 +89,10 @@ with tempfile.TemporaryDirectory() as td:
  cloud_data=b'checked-independent-cloud-weather';cloud_name='icon-eu-cw-001.bin';(syn/cloud_name).write_bytes(cloud_data)
  index['models']['icon-eu']['cloudWeatherFrames']=[{'hour':1,'file':cloud_name,'sha256':hashlib.sha256(cloud_data).hexdigest(),'bytes':len(cloud_data)}]
  (syn/'index.json').write_text(json.dumps(index));published=prepare(src,out,4,4);key=published['synopticFields']['key'];assert (out/'ruc'/key).is_file();assert any(o['key'].endswith('/synoptic-fields/icon-eu-003.bin') for o in published['pages']['objects']);assert published['pages']['budgetBytes']==900_000_000
-  # Complete native source index checkpoint must be taken before the raw-capacity projection.
-  sidecar=src/'synoptic-fields-full-index.json'
-  assert sidecar.is_file() and json.loads(sidecar.read_text())==index, 'DWD source index and provenance must remain independent of the raw reduction'
-  assert all(not o['key'].endswith('synoptic-fields-full-index.json') for o in published['pages']['objects']), 'Full source checkpoint must not enlarge the legacy raw rollback'
+ # Complete native source index checkpoint must be taken before the raw-capacity projection.
+ sidecar=src/'synoptic-fields-full-index.json'
+ assert sidecar.is_file() and json.loads(sidecar.read_text())==index, 'DWD source index and provenance must remain independent of the raw reduction'
+ assert all(not o['key'].endswith('synoptic-fields-full-index.json') for o in published['pages']['objects']), 'Full source checkpoint must not enlarge the legacy raw rollback'
  cloud_object=next(o for o in published['pages']['objects'] if o['key'].endswith('/synoptic-fields/'+cloud_name))
  assert (out/'ruc'/cloud_object['key']).read_bytes()==cloud_data and cloud_object['sha256']==hashlib.sha256(cloud_data).hexdigest()
  (syn/cloud_name).write_bytes(b'tampered')
