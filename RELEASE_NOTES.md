@@ -1,6 +1,6 @@
-# MID v0.9.85.270 · Zusätzliche ICON-D2-Wetterkartentermine nach RUC-Kompression
+# MID v0.9.85.271 · Nativen DWD-Kartengittervertrag reparieren
 
-- Der bereits produktiv freigegebene verlustfrei komprimierte RUC-Snapshot kann zusätzlich tatsächlich vorhandene ICON-D2-Karten für Wolken und signifikantes Wetter (+13, +14, +16 und +17 Stunden) aufnehmen. Die Dateien werden nur bei passendem DWD-Modelllauf, exakter Gültigkeitszeit, Raster-/WMO-/Einheitenkontrolle und vollständigem SHA-Nachweis übernommen; fehlende Karten werden nicht künstlich erzeugt.
-- Die Erweiterung erfolgt ausschließlich nach bestandenem RUC-Bytegleichheitsnachweis in einem eigenen unveränderlichen Kartennamespace. Originaldaten, veröffentlichte Kartentermine und die gesicherte unkomprimierte Rückfallkopie bleiben bestehen.
-- Das 900-MB-RUC-Budget, die bisherige 950-MB-Pages-Grenze und sämtliche Worker-/Pages-/Freshness-/Rollback-Gates bleiben aktiv. Ist kein zusätzlicher gültiger Termin verfügbar, bleibt das bewährte Kartenangebot unverändert.
-- Skybar-Fix und RUC-Snapshot-Schutz aus v0.9.85.268/.269 bleiben unverändert erhalten. Neue RUC-Parameter, native RUC-Karten und eine physische iOS-/VoiceOver-Abnahme werden mit dieser Änderung nicht behauptet.
+- Die geprüfte ICON-D2-Ergänzung für echte +13, +14, +16 und +17 Stunden verarbeitet nun die vom DWD-Decoder gelieferten separaten eindimensionalen Breiten-/Längenachsen korrekt. Bisherige, ausdrücklich rechteckige zweidimensionale Rasterdarstellungen bleiben weiterhin unterstützt.
+- Koordinaten-, Feldlängen-, Monotonie-, Gültigkeitszeit-, WMO-Wettercode-, Missing- und SHA-Kontrollen bleiben streng. Ungültige Zusatzkarten werden nie als gültige Wetterwerte veröffentlicht.
+- Der bereits gesicherte unveränderte RUC-Rohsnapshot, die vollständige verlustfreie Kompression, 900-MB- und Pages-Budgetgrenzen, Worker-/Pages-Gates und Skybar-Reparatur bleiben erhalten.
+- Die zeitliche Ausweitung weiterer Modellkarten und der mögliche Einsatz nativer RUC-Karten sind fachlich in einer separaten Bestands- und Prioritätenprüfung dokumentiert. Weitere Zeitschritte werden erst nach tatsächlicher Quellfeld-, Speicher- und Performancevalidierung freigegeben.
