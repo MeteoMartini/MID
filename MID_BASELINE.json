@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.281",
+  "releaseVersion": "0.9.85.282",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -998,7 +998,8 @@
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
     "scripts/test-model-freshness-pill-0985273.mjs",
-    "scripts/test-pseudo-satellite-basemap-0985281.mjs"
+    "scripts/test-pseudo-satellite-basemap-0985281.mjs",
+    "scripts/test-full-calendar-skybar-0985282.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1986,7 +1987,8 @@
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
     "scripts/test-model-freshness-pill-0985273.mjs",
-    "scripts/test-pseudo-satellite-basemap-0985281.mjs"
+    "scripts/test-pseudo-satellite-basemap-0985281.mjs",
+    "scripts/test-full-calendar-skybar-0985282.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -2892,7 +2894,9 @@
     "docs/implementation/MID_C35_SKYBAR_SOLAR_EPOCHS_0.9.85.278.md",
     "scripts/test-pseudo-satellite-basemap-0985281.mjs",
     "src/pseudoSatelliteBasemap.ts",
-    "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md"
+    "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md",
+    "scripts/test-full-calendar-skybar-0985282.mjs",
+    "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3603,7 +3607,7 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.281",
+  "version": "0.9.85.282",
   "updatedAt": "2026-10-17T07:39:06.501Z",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -3757,7 +3761,8 @@
     "docs/implementation/MID_C33_RUC_OPTIONAL_D2_AFTER_CODEC_0.9.85.270.md",
     "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md",
     "docs/implementation/MID_C34_D2_OPTIONAL_INDEX_SHA_CONTRACT_0.9.85.272.md",
-    "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md"
+    "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md",
+    "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

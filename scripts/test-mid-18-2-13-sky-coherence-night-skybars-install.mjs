@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {transform} from 'esbuild';
+import {build,transform} from 'esbuild';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const [app,pwa,cockpit,astronomy,presentWeatherSource,dayTimelineSource]=await Promise.all([
@@ -52,7 +52,7 @@ assert.ok(app.includes('Modellfallback'),'Ohne aktuelle Beobachtung muss der Mod
 // C: Nachtstunden gehören hinter alle zeitlich aufgelösten Tages-Skybars und müssen DST-sicher sein.
 assert.ok(astronomy.includes('export function solarTimelineWindow'),'Zentrale astronomische Nachtgeometrie fehlt.');
 assert.ok(cockpit.includes('function cockpitDaySkybarNightBands'),'Wiederverwendbarer Tages-Skybar-Nachtvertrag fehlt.');
-assert.ok(cockpit.includes('daySkybarTimelinePositions(dayHours,left,right,width)'),'Tages-Skybar muss die reale Zeitachsen-Geometrie verwenden.');
+assert.ok(cockpit.includes('daySkybarTimelinePositions(dayHours,left,right,width,calendarWindow)')&&cockpit.includes('daySkybarCalendarWindow(date,timezone)')&&cockpit.includes('daySkybarHourEndPositions(dayHours,calendarWindow,left,right,width)'),'Tages-Skybar muss die reale Zeitachsen-Geometrie verwenden.');
 assert.ok(!cockpit.includes('daySkyBarSource.slice(0,24)'),'7-Tage-Skybars dürfen 25-Stunden-Tage nicht auf 24 Stunden beschneiden.');
 assert.ok(!cockpit.includes("filter(hour=>hour.time.startsWith(item.date)).slice(0,24)"),'14-Tage-Skybars dürfen 25-Stunden-Tage nicht auf 24 Stunden beschneiden.');
 assert.ok(cockpit.includes('solarTimelineWindow(start,end,{latitude:location.latitude,longitude:location.longitude,elevation:location.elevation,timezone}'),'Tages-Skybar muss die zentrale Solar-Geometrie und den Standort verwenden.');
@@ -60,7 +60,11 @@ assert.ok(cockpit.includes('<CockpitSkybarNightBandsSvg bands={daySkyBarNightBan
 assert.ok(cockpit.includes('<CockpitSkybarNightBandsSvg bands={daySkyBarNightBands} height={14}/>'),'14-Tage-Skybar muss den Nachtlayer rendern.');
 assert.ok(cockpit.includes("skybarDisplayMode==='squares'?<SkyBarHourCellsSvg"),'Band/Squares müssen dieselbe Nachtgeometrie teilen.');
 
-const timeline=await loadTsModule(dayTimelineSource,'daySkybarTimeline.ts');
+// Der Tageszeit-Helfer importiert Zeit-/Kalenderfunktionen; im isolierten VM-Transform bliebe require() ungelöst.
+// Wie im eigenständigen Kalendertags-Test deshalb mitsamt Imports bundeln und als echtes Node-ESM laden.
+assert.ok(dayTimelineSource.includes('export function daySkybarTimelinePositions'),'DST-Zeitachsenfunktion fehlt.');
+const {outputFiles:dayTimelineFiles}=await build({entryPoints:[new URL('../src/daySkybarTimeline.ts',import.meta.url).pathname],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});
+const timeline=await import(`data:text/javascript;base64,${Buffer.from(dayTimelineFiles[0].text).toString('base64')}`);
 const springStart=Date.parse('2026-03-29T00:00:00+01:00');
 const autumnStart=Date.parse('2026-10-25T00:00:00+02:00');
 const springSamples=Array.from({length:23},(_,index)=>({epoch:springStart+index*3600000}));

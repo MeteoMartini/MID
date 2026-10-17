@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict';
+import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {build} from 'esbuild';
+const source=readFileSync('src/ForecastCockpit.tsx','utf8');
+const cells=readFileSync('src/SkyBarSegments.tsx','utf8');
+const bars=readFileSync('src/detailSkyBar.ts','utf8');
+const daySummary=readFileSync('src/SevenDayForecastSummary.tsx','utf8');
+const widgetSummary=readFileSync('src/widgetCurveDailySummary.ts','utf8');
+assert.match(source,/daySkybarCalendarWindow\(day\.date,timezone\)/,'Every daily card must use calendar boundaries, not the first available hour');
+assert.match(source,/daySkybarCalendarWindow\(item\.date,timezone\)/,'14-day overview must use the same complete calendar-day axis');
+assert.match(source,/xEndPositions=\{daySkyBarEnds\}/,'14-day/day-card squares must not overpaint missing slots');
+assert.match(source,/daySkybarUnavailableRanges\(daySkyBarSource,dayCalendarWindow\)/,'Missing day-card hours must remain explicit');
+assert.match(source,/SkyBarCoverageGapsSvg/,'Missing hours must not masquerade as clear weather');
+assert.match(source,/xEndPositions=\{daySkyBarEnds\}/,'Daily squares must end at the actual slot boundary');
+assert.match(source,/xEndPositions=\{skybarPositionEnds\}/,'Seven-day curve squares must use chronological positions');
+assert.match(source,/daySkybarHourEndPositions/);
+assert.match(source,/precipitationAmountLabel\(day\)/,'Daily precipitation is from the canonical full-day Day field');
+assert.match(source,/day\.sunshineDuration/,'Daily sunshine is from the canonical full-day Day field');
+assert.match(source,/chartStartEpoch.*chartEndEpoch/,'Rolling profile must remain a distinct now-to-24h time window');
+assert.doesNotMatch(daySummary,/futureHours=index===0\?allDayHours\.filter/,'Today must not lose early day weather from its day summary');
+assert.match(widgetSummary,/widgetCurveDailyPrecipitation\(day/,'Widget day totals must use Day rather than remaining hours');
+assert.match(cells,/xEndPositions/);assert.match(bars,/xEndPositions/);
+const dir=mkdtempSync(join(tmpdir(),'mid-day-skybar-'));
+try{
+ await build({entryPoints:['src/daySkybarTimeline.ts'],outfile:join(dir,'day.mjs'),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
+ const {daySkybarCalendarWindow,daySkybarTimelinePositions,daySkybarHourEndPositions,daySkybarUnavailableRanges}=await import(pathToFileURL(join(dir,'day.mjs')));
+ const zone='Europe/Berlin',m=3600000;
+ const normal=daySkybarCalendarWindow('2026-10-17',zone),spring=daySkybarCalendarWindow('2026-03-29',zone),fall=daySkybarCalendarWindow('2026-10-25',zone);
+ assert.ok(normal&&spring&&fall);
+ assert.equal((normal.endEpoch-normal.startEpoch)/m,24,'Normal local day');
+ assert.equal((spring.endEpoch-spring.startEpoch)/m,23,'Spring DST skips one civil hour');
+ assert.equal((fall.endEpoch-fall.startEpoch)/m,25,'Autumn DST repeats one civil hour');
+ assert.equal(daySkybarCalendarWindow('2026-10-17','Invalid/Zone'),null);
+ assert.equal(daySkybarCalendarWindow('2026-02-30',zone),null);
+ // At 14:00 only the last 10h may be in a forecast response: NEVER stretch them across 00–24.
+ const partial=[{epoch:normal.startEpoch+14*m},{epoch:normal.startEpoch+15*m},{epoch:normal.startEpoch+23*m}];
+ const starts=daySkybarTimelinePositions(partial,0,0,100,normal),ends=daySkybarHourEndPositions(partial,normal,0,0,100);
+ assert.ok(Math.abs(starts[0]-14/24*100)<.01,'14:00 must occupy its true calendar position');
+ assert.ok(Math.abs(ends[0]-15/24*100)<.01,'14h cell may not paint missing 16–22h');
+ assert.ok(Math.abs(ends[1]-16/24*100)<.01,'15h cell ends after one hour');
+ assert.equal(ends[2],100,'23h cell ends at day midnight');
+ const missing=daySkybarUnavailableRanges(partial,normal);
+ assert.equal(missing.length,2,'Before the first supplied hour and internal data gaps stay unknown');
+ assert.equal((missing[0].end-missing[0].start)/m,14);
+ assert.equal((missing[1].end-missing[1].start)/m,7);
+ assert.deepEqual(daySkybarUnavailableRanges([],normal),[{start:normal.startEpoch,end:normal.endEpoch}]);
+ // 02:00 local happens twice during autumn DST; the UTC epochs and positions remain distinct.
+ const repeated=[{epoch:fall.startEpoch+2*m},{epoch:fall.startEpoch+3*m}];
+ const repeatedX=daySkybarTimelinePositions(repeated,0,0,100,fall);
+ assert.ok(repeatedX[1]>repeatedX[0],'Repeated local 02:00 slots remain in chronological order');
+ assert.ok(Math.abs(repeatedX[1]-repeatedX[0]-4)<.1,'Autumn DST width uses 25 real hours');
+ assert.equal(daySkybarUnavailableRanges([{epoch:spring.startEpoch+m}],spring).reduce((sum,gap)=>sum+gap.end-gap.start,0)/m,22);
+ console.log('Calendar-day Skybars: full-day axis, real hour widths, genuine missing slots, DST 23/25h and full-day sums protected.');
+}finally{rmSync(dir,{recursive:true,force:true})}

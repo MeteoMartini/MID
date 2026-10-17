@@ -236,6 +236,7 @@ export function detailSkyBarSegments(
   chartW:number,
   centerY:number,
   xPositions?:number[],
+  xEndPositions?:number[],
 ):SkyBarSegment[]{
   if(!hours.length||chartW<=0)return [];
 
@@ -256,7 +257,8 @@ export function detailSkyBarSegments(
       const previous=Number(positions[index-1]);
       const following=Number(positions[index+1]);
       const fallbackWidth=Number.isFinite(rawStart)&&Number.isFinite(previous)&&rawStart>previous?rawStart-previous:(rightEdge-leftEdge)/Math.max(1,hours.length);
-      const rawEnd=Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;
+      const providedEnd=Number(xEndPositions?.[index]);
+      const rawEnd=Array.isArray(xEndPositions)&&Number.isFinite(providedEnd)&&providedEnd>rawStart?providedEnd:Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;
       const x0=Math.max(leftEdge,Number.isFinite(rawStart)?rawStart:leftEdge);
       const x1=Math.min(rightEdge,Number.isFinite(rawEnd)?rawEnd:rightEdge);
       visuals.forEach((visual,visualIndex)=>appendSegment(segmentsForLayer(visual.layer),index*2+visualIndex,visual.layer,x0,x1,centerY,visual));
@@ -290,8 +292,9 @@ export type SkyBarSolarNightBand={startEpoch:number;endEpoch:number};
 export function detailSkyBarSolarSegments(
   hours:PrecipSample[],left:number,right:number,chartW:number,centerY:number,
   xPositions:number[]|undefined,nightBands:readonly SkyBarSolarNightBand[],
+  xEndPositions?:number[],
 ):SkyBarSegment[]{
-  const original=detailSkyBarSegments(hours,left,right,chartW,centerY,xPositions);
+  const original=detailSkyBarSegments(hours,left,right,chartW,centerY,xPositions,xEndPositions);
   if(!hours.length||!nightBands.length||!Number.isFinite(chartW)||chartW<=left+right)return original;
   const validBands=nightBands.filter(band=>Number.isFinite(band.startEpoch)&&Number.isFinite(band.endEpoch)&&band.endEpoch>band.startEpoch);
   if(!validBands.length)return original;
@@ -303,7 +306,8 @@ export function detailSkyBarSolarSegments(
     const previous=positions?Number(positions[index-1]):NaN;
     const following=positions?Number(positions[index+1]):NaN;
     const fallbackWidth=positions?(Number.isFinite(rawStart)&&Number.isFinite(previous)&&rawStart>previous?rawStart-previous:uniformWidth):uniformWidth;
-    const rawEnd=positions?(Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth):rawStart+uniformWidth;
+    const providedEnd=Number(xEndPositions?.[index]);
+    const rawEnd=positions?(Array.isArray(xEndPositions)&&Number.isFinite(providedEnd)&&providedEnd>rawStart?providedEnd:Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth):rawStart+uniformWidth;
     const x0=Math.max(leftEdge,rawStart),x1=Math.min(rightEdge,rawEnd);
     if(!Number.isFinite(x0)||!Number.isFinite(x1)||x1<=x0)return;
     // Instantaneous cloud/isDay state is anchored at hour.epoch, never at an
@@ -311,7 +315,7 @@ export function detailSkyBarSolarSegments(
     const start=hour.epoch===null||hour.epoch===undefined||String(hour.epoch).trim()===''?NaN:Number(hour.epoch);
     const explicitEnd=Number(hour.precipitationIntervalEndEpoch);
     const nextEpoch=Number(hours[index+1]?.epoch);
-    const end=Number.isFinite(nextEpoch)&&nextEpoch>start?nextEpoch:Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:NaN;
+    const end=Array.isArray(xEndPositions)&&Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:Number.isFinite(nextEpoch)&&nextEpoch>start?nextEpoch:Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:NaN;
     const originalBase=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index)).find(visual=>visual.layer==='base');
     if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){
       if(originalBase)appendSegment(bases,index*1024,'base',x0,x1,centerY,originalBase);
