@@ -18,7 +18,7 @@ export function adaptiveContourLayers(kind:'pressure'|'height',color:string,opac
   const filter=(threshold:unknown)=>threshold?['all',density,threshold]:density;
   if(halo)for(const v of variants)layers.push({id:`casing${v.id}${band.suffix}`,type:'line',...range,filter:filter(v.filter),paint:{'line-color':halo,'line-width':width+1.7,'line-opacity':opacity,...(v.dash?{'line-dasharray':[3,2]}:{})}});
   for(const v of variants)layers.push({id:`line${v.id}${band.suffix}`,type:'line',...range,filter:filter(v.filter),paint:{'line-color':color,'line-width':width,'line-opacity':opacity,...(v.dash?{'line-dasharray':[3,2]}:{})}});
-  if(labels)layers.push({id:`label${band.suffix}`,type:'symbol',...range,filter:density,layout:{'symbol-placement':'line','symbol-spacing':180,'text-field':['get','label'],'text-size':10,'text-font':['Noto Sans Regular']},paint:{'text-color':color,'text-halo-color':haloColor,'text-halo-width':1,'text-opacity':opacity}});
+  if(labels)layers.push({id:`label${band.suffix}`,type:'symbol',...range,filter:density,layout:{'symbol-placement':'line','symbol-spacing':180,'text-field':['to-string',['get','level']],'text-size':10,'text-font':['Noto Sans Regular']},paint:{'text-color':color,'text-halo-color':haloColor,'text-halo-width':1,'text-opacity':opacity}});
  }
  return layers;
 }

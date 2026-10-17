@@ -3,7 +3,7 @@
 - Ausgangspunkt: main=mid-stable=532f56a95a6d47a5cb2218146aaa038d7a74384c, freigegebene .283; bei Beginn kein konkurrierender Produkt-PR.
 - Kleine Displays: statt permanenter Ebenen-/Modellsteuerung ein zugängliches aufklappbares Panel mit aktiver Datenquellenbeschriftung. Direkte Kartenzeitwahl sowie die gemeinsame Zeitleiste bleiben durchgehend verfügbar. Mobile Linienfarbensteuerung wird auf einen kleinen anklickbaren „Linien“-Schalter reduziert.
 - Wettermodellkarten zeigen Modell-/Produktwahl weiterhin unmittelbar; Kartenbasis wandert in „Darstellung & Ebenen“, Modell- und Gültigkeitsstatus unter die Kartenfläche. Die Darstellungsfläche wird erhöht, einschließlich Landscape.
-- Die Bezeichnungen „Isobaren“ und „Isohypsen“ enthalten in Steuerungstexten keine redundanten Einheiten; meteorologische Datenwerte, Druckniveau, Gültigkeit und Quellen bleiben unverändert.
+- „Isobaren“ und „Isohypsen“ tragen in Steuerungstexten und direkt entlang der Kartenlinien keine redundanten Einheiten. Gemeinsame MapLibre-Linienbeschriftung nutzt das numerische Level, das Komposit dieselben Werte ohne Suffix; in Legenden/Details bleiben hPa/gpdm, Modell, Druckniveau, Gültigkeit und Quellen unverändert.
 - Neue verbindliche Regression scripts/test-map-canvas-mobile-0985284.mjs. Responsivität, echte Auswahl, Zeitleiste, Datenstatus, Bildexporte, Hell/Dunkel, Fokus und Warnungsabgrenzung vor Veröffentlichung prüfen. Kein physischer iOS/VoiceOver-Nachweis behauptet.
 - Veröffentlichung erst nach grünem Source-PR-Gate, kontrolliertem SHA-Bot, serverseitigem Release-ZIP, install-mid.yml, Worker/Pages und Stable-Promotion. Dieses Dokument ist **kein Releasebeleg**.
 
