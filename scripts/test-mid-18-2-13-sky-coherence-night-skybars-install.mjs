@@ -52,7 +52,7 @@ assert.ok(app.includes('Modellfallback'),'Ohne aktuelle Beobachtung muss der Mod
 // C: Nachtstunden gehören hinter alle zeitlich aufgelösten Tages-Skybars und müssen DST-sicher sein.
 assert.ok(astronomy.includes('export function solarTimelineWindow'),'Zentrale astronomische Nachtgeometrie fehlt.');
 assert.ok(cockpit.includes('function cockpitDaySkybarNightBands'),'Wiederverwendbarer Tages-Skybar-Nachtvertrag fehlt.');
-assert.ok(cockpit.includes('daySkybarTimelinePositions(dayHours,left,right,width)'),'Tages-Skybar muss die reale Zeitachsen-Geometrie verwenden.');
+assert.ok(cockpit.includes('daySkybarTimelinePositions(dayHours,left,right,width,calendarWindow)')&&cockpit.includes('daySkybarCalendarWindow(date,timezone)')&&cockpit.includes('daySkybarHourEndPositions(dayHours,calendarWindow,left,right,width)'),'Tages-Skybar muss die reale Zeitachsen-Geometrie verwenden.');
 assert.ok(!cockpit.includes('daySkyBarSource.slice(0,24)'),'7-Tage-Skybars dürfen 25-Stunden-Tage nicht auf 24 Stunden beschneiden.');
 assert.ok(!cockpit.includes("filter(hour=>hour.time.startsWith(item.date)).slice(0,24)"),'14-Tage-Skybars dürfen 25-Stunden-Tage nicht auf 24 Stunden beschneiden.');
 assert.ok(cockpit.includes('solarTimelineWindow(start,end,{latitude:location.latitude,longitude:location.longitude,elevation:location.elevation,timezone}'),'Tages-Skybar muss die zentrale Solar-Geometrie und den Standort verwenden.');

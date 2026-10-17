@@ -5,7 +5,7 @@ const [sky,app,cockpit,intervals,contract,pkgRaw,baselineRaw]=await Promise.all(
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test="scripts/test-precipitation-forward-geometry-097916.mjs";
 assert.ok(intervals.includes('Anzeige(S) = Rohwert(S + 60 min)')||contract.includes('Anzeige(S) = Rohwert(S + 60 min)'),'Vorwärtsslot-Vertrag fehlt.');
 assert.ok(sky.includes('xPositions represent interval starts'),'Skybar dokumentiert Slotstart-Geometrie nicht.');
-assert.ok(sky.includes('const rawEnd=Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;'),'Skybar endet nicht am Folgeslot.');
+assert.ok(sky.includes('const rawEnd=Array.isArray(xEndPositions)&&Number.isFinite(providedEnd)&&providedEnd>rawStart?providedEnd:Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth;')&&cockpit.includes('daySkybarHourEndPositions(dayHours,calendarWindow,left,right,width)'),'Skybar endet nicht am Folgeslot.');
 assert.ok(!sky.includes('const rawX0=index===0?leftEdge:(prev+x)*0.5'),'Alte zentrierte Skybar-Geometrie ist noch aktiv.');
 assert.ok(app.includes('const xAt=(i:number)=>left+(i/Math.max(1,p.length))*plotW'),'24-h-Achse reserviert 24:00 nicht als rechte Slotkante.');
 assert.ok(app.includes('slotRight=slotEndAt(i)')&&app.includes('barLeft=Math.max(left,slotLeft+barInset)'),'24-h-Niederschlagsbalken sind nicht im Vorwärtsslot verankert.');

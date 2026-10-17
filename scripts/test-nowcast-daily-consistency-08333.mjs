@@ -21,7 +21,8 @@ assert.ok(appSource.includes('displayDays=useMemo(()=>reconcileForecastDaysWithH
 assert.ok(appSource.includes('totalRain=Number.isFinite(selectedDay.precipitation)'), 'Detailpille muss denselben Tagesniederschlag wie die 7-Tage-Karte verwenden');
 assert.ok(appSource.includes('maxProb=Number.isFinite(selectedDay.probability)'), 'Detailpille muss dieselbe Tageswahrscheinlichkeit wie die 7-Tage-Karte verwenden');
 assert.ok(appSource.includes('characterHours=presentationHours.length?presentationHours:p'), 'heutige Wetterbeschreibung muss abgelaufene Stunden ausblenden');
-assert.ok(sevenDaySource.includes('futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours'), '7-Tage-Trend muss für heute nur noch relevante Forecast-Stunden bewerten');
+assert.ok(sevenDaySource.includes('fullCurrentDayAssessment=index===0&&calendarDayHours.length?precipitationPeriodAssessment(calendarDayHours):null')&&sevenDaySource.includes('precipitationSignalHours=index===0&&calendarDayHours.length?calendarDayHours:dayHours'), '7-Tage-Trend muss den ganzen lokalen Kalendertag auswerten und vergangene Ereignisse nicht ausblenden');
+assert.ok(sevenDaySource.includes('followingNightHoursForDate(day.date,allHours).filter(hour=>index>0||hour.epoch>=Date.now()-30*60000)'), 'Kommende Nacht muss zukunftsorientiert bleiben und darf keine abgelaufenen Nachtereignisse einrechnen');
 assert.ok(shortTermSource.includes('if(precipitationCode(raw)&&probability<30)return observedSkyCode'), 'Kurzfristkarten dürfen trockene Niederschlags-Wettercodes nicht als Regen darstellen');
 
 const require=createRequire(import.meta.url);

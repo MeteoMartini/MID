@@ -10,7 +10,8 @@ for(const token of [
  "wetDominant=dayAssessment.dominant||currentDayPrecipitationRelevant",
  "thunderDirect=dayHours.some(hour=>[95,96,97,98,99].includes(Math.round(Number(hour.code))))"
 ])assert.ok(sevenDay.includes(token),`7-Tage-Heute-Niederschlagsvertrag fehlt: ${token}`);
-assert.ok(sevenDay.includes("futureHours=index===0?allDayHours.filter(hour=>hour.epoch>=Date.now()-30*60000):allDayHours"),'Resttageslogik für Wettercharakter muss erhalten bleiben.');
+assert.ok(sevenDay.includes('const calendarDayHours=allHours.filter(hour=>hour.time.startsWith(day.date))')&&sevenDay.includes('precipitationSignalHours=index===0&&calendarDayHours.length?calendarDayHours:dayHours'),'Heute muss alle verfügbaren Kalendertagsstunden für den Tageswettercharakter berücksichtigen.');
+assert.ok(sevenDay.includes('followingNightHoursForDate(day.date,allHours).filter(hour=>index>0||hour.epoch>=Date.now()-30*60000)'),'Die kommende Nacht behält ihren zukunftsbezogenen Vorhersagezeitraum.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-seven-day-today-precipitation-09554.mjs';
 assert.equal(pkg.scripts?.['test:seven-day-today-precipitation'],`node ${test}`,'npm-Testeintrag fehlt.');
 assert.ok(baseline.requiredRegressionTests?.includes(test),'Pflichtregression fehlt in requiredRegressionTests.');
