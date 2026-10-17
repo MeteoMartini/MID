@@ -560,14 +560,6 @@ export function finalizeForecastMinute15(minutes15:Minute15[],baseHours:Hour[],f
 export const RADAR_DIRECT_HORIZON_MINUTES=DIRECT_RADAR_HORIZON_MINUTES;
 export const RADAR_TRANSITION_HORIZON_MINUTES=TRANSITION_RADAR_HORIZON_MINUTES;
 
-function dateKeyInTimezone(epoch:number,timezone:string){
- try{
-  const parts=new Intl.DateTimeFormat('en',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)),values=Object.fromEntries(parts.map(part=>[part.type,part.value]));
-  if(values.year&&values.month&&values.day)return`${values.year}-${values.month}-${values.day}`;
- }catch{}
- return new Date(epoch).toISOString().slice(0,10);
-}
-
 function fusionLocalClockMinutes(value:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):Number.NaN}
 export function localForecastDayReferenceEpoch(hours:Hour[]){
  const candidates=hours.filter(hour=>Number.isFinite(Number(hour.epoch)));if(!candidates.length)return Number.NaN;
@@ -854,7 +846,8 @@ export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
   const signal=completeCoverage?reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code,leadHours:(localForecastDayReferenceEpoch(relevant)-now)/3600000}):null;
   const finalPrecipitation=signal?.precipitation??precipitation,finalRain=signal?.rain??rain,finalShowers=signal?.showers??showers,finalSnowfall=signal?.snowfall??snowfall,finalProbability=signal?.probability??probability,finalCode=signal?.code??code;
   const source=completeCoverage?relevant.find(hour=>hour.weatherSourceId):undefined;
-  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(finalPrecipitation-day.precipitation)<.01&&Math.abs(finalRain-day.rain)<.01&&Math.abs(finalShowers-day.showers)<.01&&Math.abs(finalSnowfall-day.snowfall)<.01&&Math.abs(finalProbability-day.probability)<.5&&finalCode===day.code&&sunshineDuration===day.sunshineDuration&&JSON.stringify(sunshineDurationMeta)===JSON.stringify(day.sunshineDurationMeta))return day;
+  const sameOptionalAmount=(left:number|undefined,right:number|undefined)=>left===right||left!==undefined&&right!==undefined&&Number.isFinite(left)&&Number.isFinite(right)&&Math.abs(left-right)<.01;
+  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(finalPrecipitation-day.precipitation)<.01&&sameOptionalAmount(finalRain,day.rain)&&sameOptionalAmount(finalShowers,day.showers)&&sameOptionalAmount(finalSnowfall,day.snowfall)&&Math.abs(finalProbability-day.probability)<.5&&finalCode===day.code&&sunshineDuration===day.sunshineDuration&&JSON.stringify(sunshineDurationMeta)===JSON.stringify(day.sunshineDurationMeta))return day;
   changed=true;return{...day,max,min,precipitation:finalPrecipitation,rain:finalRain,showers:finalShowers,snowfall:finalSnowfall,probability:finalProbability,code:finalCode,sunshineDuration,sunshineDurationMeta,weatherSourceId:source?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:source?.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:days;
