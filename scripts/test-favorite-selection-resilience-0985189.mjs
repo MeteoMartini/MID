@@ -16,6 +16,7 @@ const scope={Date:DateAt,LOCATION_STORAGE_KEY:'mid:lastLocation',LOCATION_UPDATE
  quickTap:{current:null},suppressClick:{current:null},item:{id:'a',location:{id:1,latitude:50,longitude:7}},
  loc:{id:0,latitude:49,longitude:6},seq:{current:0},pendingViewRestore:{current:null},selectedDateRef:{current:''},
  normalizeLocation:value=>value,locationsNearlyEquivalent:()=>false,locationsShallowEqual:()=>false,
+ instantCachedCoreForecast:()=>null,
  captureCurrentView:()=>null,abortAllRequests:()=>{aborts++;},
  writeDurableStorageValue:(key,value)=>{writes.push([key,value]);return true;},readDurableStorageValue:key=>key==='mid:lastLocation'?JSON.stringify(scope.item.location):null,
  onSelect:()=>{selectCalls++;},setLocState:value=>{selected=value;}};

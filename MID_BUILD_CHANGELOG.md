@@ -1,3 +1,10 @@
+# MID v0.9.85.283 · Technischer Entwicklungsnachweis (Source-PR-Kandidat)
+
+- Ausgangsbasis `main=mid-stable=b02d1b018882807fbce114cf6816f520f52339d1`, v0.9.85.282, Installer #39038958909 grün. Issue #398; Branch `chatgpt/v0.9.85.283-forecast-mountain-resilience`.
+- Exakter Core-Cache-Warmstart mit maximal 45 Minuten ohne Verwechslung von Orten/Höhen/Zeitzonen; gespeicherte Provenienz bleibt sichtbar. Netzaktualisierung, Sequenz- und Abort-Grenzen bleiben aktiv.
+- Höhenkern unabhängig von optionalen Regionalmodellen. Nachträgliches Regional-Enrichment samt erhaltener stündlicher Zeitreferenz und erneuter UTCI-/Schneeaggregation. Abgebrochener Mehrpunkt-Request: gleichwertiger vollständiger Einzelpunkt-Retry mit Zeitlimit, 429-/Abort-Grenzen und fail-closed Schema-Prüfung.
+- Regression `scripts/test-location-mountain-resilience-0985283.mjs`; alle bisherigen Pflichtprüfungen bleiben aktiv. Produktionsbuild und CI vor Merge und Installer zwingend; keine Behauptung realer iOS-/VoiceOver-Geräteabnahme.
+
 # MID v0.9.85.282 · Technischer Entwicklungsnachweis (Source-Kandidat)
 
 - Source of Truth: Nach erfolgreichem Installer #39029978638 stehen `main = mid-stable = 5153a43979a5b995008e554d1ee8bf111c8dbe5a`, veröffentlichte v0.9.85.281. Neuer Integrationsbranch `chatgpt/v0.9.85.282-calendar-day-skybar`, Source-Commit `3901dbb215ac275e11690a55e08b64320c54ad33`. Ausgabe folgt Issue #395 und Screenshot.

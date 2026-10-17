@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.282",
+  "releaseVersion": "0.9.85.283",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -999,7 +999,8 @@
     "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
     "scripts/test-model-freshness-pill-0985273.mjs",
     "scripts/test-pseudo-satellite-basemap-0985281.mjs",
-    "scripts/test-full-calendar-skybar-0985282.mjs"
+    "scripts/test-full-calendar-skybar-0985282.mjs",
+    "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1988,7 +1989,8 @@
     "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
     "scripts/test-model-freshness-pill-0985273.mjs",
     "scripts/test-pseudo-satellite-basemap-0985281.mjs",
-    "scripts/test-full-calendar-skybar-0985282.mjs"
+    "scripts/test-full-calendar-skybar-0985282.mjs",
+    "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -2896,7 +2898,8 @@
     "src/pseudoSatelliteBasemap.ts",
     "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md",
     "scripts/test-full-calendar-skybar-0985282.mjs",
-    "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md"
+    "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md",
+    "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3005,7 +3008,8 @@
     "scripts/test-widget-daily-rows-0985262.mjs",
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
-    "scripts/test-ruc-migration-preparation-0985265.mjs"
+    "scripts/test-ruc-migration-preparation-0985265.mjs",
+    "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3605,9 +3609,10 @@
     "scripts/test-widget-daily-rows-0985262.mjs",
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
-    "scripts/test-ruc-migration-preparation-0985265.mjs"
+    "scripts/test-ruc-migration-preparation-0985265.mjs",
+    "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.282",
+  "version": "0.9.85.283",
   "updatedAt": "2026-10-17T07:39:06.501Z",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",

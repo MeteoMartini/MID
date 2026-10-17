@@ -1,7 +1,7 @@
-# MID v0.9.85.282 · Vollständige Tages-Skybar und Tageswerte
+# MID v0.9.85.283 · Schnellere Ortswechsel und stabile Bergwetter-Höhenprognose
 
-- Tagesansichten berücksichtigen jetzt den **ganzen lokalen Kalendertag**, auch wenn die aktuelle Uhrzeit bereits fortgeschritten ist. Fehlende Stunden werden in der Skybar ausdrücklich als nicht verfügbare Daten angezeigt, statt verbleibende Stunden zu strecken oder vorausgegangene Stunden als klar/trocken auszugeben.
-- Wetterstreifen, Stundenquadrate und Nachtzeiten verwenden dieselben tatsächlichen Stundenintervalle; auch die Zeitumstellungen mit 23 bzw. 25 Stunden bleiben korrekt. Tages-/Kurvenansicht und Widget-Export nutzen die entsprechende Zeitachse.
-- Tagesniederschlagsmenge und Sonnenscheindauer beruhen weiterhin auf den kanonischen **Volltageswerten**, soweit diese verfügbar und gültig sind. Die qualitative 7-Tage-Interpretation schneidet für „Heute“ nicht pauschal die vergangenen Tagesstunden ab.
-- Die bewusst **rollierenden** 90-Minuten-, 12-/24-Stunden- und Nowcast-Prognosen bleiben ab der aktuellen Zeit in die Zukunft ausgerichtet. WMO-Wetterfarben, amtliche Warnungen, RUC, Modellwerte, Tagesakkumulationsgrenzen und Quellen bleiben unverändert.
-- Fehlen vergangene Stunden oder ist ein Tageswert nicht verfügbar, werden keine Werte erfunden, nicht als 0 behandelt und keine historischen Beobachtungen simuliert.
+- Beim Wechsel zu einem bereits geladenen Favoriten zeigt MID einen überprüften gespeicherten Best-Match-Stand sofort an, sofern Standort, Höhenangabe und Zeitzone exakt passen und der Stand höchstens 45 Minuten alt ist. Alter und laufende Aktualisierung werden sichtbar ausgewiesen. Andere Ortsdaten werden nicht übertragen.
+- Die Berg-/Wintersportansicht zeigt die vollständige Best-Match-Höhenprognose, ohne auf zusätzliche regionale Modelle zu warten. Diese ergänzen die vorhandene Prognose nach erfolgreicher Prüfung im Hintergrund.
+- Bricht die gemeinsame Höhen-Netzanfrage unerwartet ab, versucht MID einmal einen kontrollierten Abruf derselben vollständigen Felder für die einzelnen Höhenstufen. Unvollständige oder zeitlich widersprüchliche Antworten werden verworfen, nicht als Nullwerte ergänzt.
+- Fehlgeschlagene Höhenprognosen erhalten eine verständliche deutsche Meldung und eine Schaltfläche zum erneuten Laden. Ausgeblendete oder gewechselte Orte übernehmen keine verspäteten Antworten.
+- Bestehende Wetterfarben, amtliche Warnungen, Prognosewerte, Quellenkennzeichnungen, RUC und Release-Schutzmechanismen bleiben erhalten. Nicht verfügbare Werte werden nicht als gemessene Nullen dargestellt. Der iOS-Code wird gebaut/synchronisiert; eine physische iOS-/VoiceOver-Abnahme ist damit nicht verbunden.
