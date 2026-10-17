@@ -6,11 +6,11 @@ const [radar,unified,native,weather,css,pkg,baseline]=await Promise.all([
  read('src/WeatherMapsPanel.tsx'),read('src/midC14MapWorkspace.css'),
  read('package.json'),read('MID_BASELINE.json')
 ]);
-assert.ok(radar.includes('className="composite-primary-layers" defaultOpen='),'Kartenebenen/Modell müssen mobil einklappbar sein');
+assert.ok(radar.includes('className="composite-primary-layers" open={compactLayersOpen}'),'Kartenebenen/Modell müssen mobil einklappbar sein');
 assert.ok(radar.includes('{unified?.controls}</div></details>'),'Alle Modellfunktionen müssen erreichbar bleiben');
 assert.ok(radar.includes('className="composite-direct-time"'),'Direkte Terminwahl muss unverändert bleiben');
 assert.ok(radar.includes('className="composite-timeline-card"'),'Gemeinsame Zeitachse muss erhalten bleiben');
-assert.ok(radar.includes('composite-line-toolbar-summary'),'Linienstile dürfen nicht permanent über der Karte liegen');
+assert.ok(radar.includes('onToggle={event=>setCompactLinesOpen(event.currentTarget.open)}')&&radar.includes('composite-line-toolbar-summary'),'Linienstile dürfen nicht permanent über der Karte liegen');
 assert.ok(radar.includes('composite-map-status'),'Produkt-/Phasenstatus muss sichtbar bleiben');
 assert.ok(radar.includes("modelLines==='isoheights'?'Isohypsen'"),'Konturen-Auswahl braucht kurze Bezeichnungen');
 assert.ok(unified.includes('Isobaren · {modelLabel}')&&unified.includes('Isohypsen · gleicher Lauf und Termin'));
