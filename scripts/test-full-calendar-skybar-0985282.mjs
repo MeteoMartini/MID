@@ -10,6 +10,8 @@ const bars=readFileSync('src/detailSkyBar.ts','utf8');
 const daySummary=readFileSync('src/SevenDayForecastSummary.tsx','utf8');
 const widgetSummary=readFileSync('src/widgetCurveDailySummary.ts','utf8');
 assert.match(source,/daySkybarCalendarWindow\(day\.date,timezone\)/,'Every daily card must use calendar boundaries, not the first available hour');
+assert.match(source,/daySkybarCalendarWindow\(item\.date,timezone\)/,'14-day overview must use the same complete calendar-day axis');
+assert.match(source,/xEndPositions=\{daySkyBarEnds\}/,'14-day/day-card squares must not overpaint missing slots');
 assert.match(source,/daySkybarUnavailableRanges\(daySkyBarSource,dayCalendarWindow\)/,'Missing day-card hours must remain explicit');
 assert.match(source,/SkyBarCoverageGapsSvg/,'Missing hours must not masquerade as clear weather');
 assert.match(source,/xEndPositions=\{daySkyBarEnds\}/,'Daily squares must end at the actual slot boundary');
