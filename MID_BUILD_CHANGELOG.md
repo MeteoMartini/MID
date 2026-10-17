@@ -1,3 +1,12 @@
+## MID v0.9.85.279 · 17.10.2026 · Ortssuche-Recovery und pseudogeografische Kartenkonturen
+
+- Source-of-Truth: freigegebener `main=mid-stable=ee2c00bfd0db42cf0f48715bccd0dbff1e221c42` (v0.9.85.278), erfolgreicher Installer #39012604444, keine konkurrierenden offenen Produkt-PRs.
+- Nutzerfall #390: Sportplatz Rankenhohn, gelegentlich Timeout nach Open-Meteo-Direct (6,5 s) und Worker-Fallback; einmaliger automatischer erneuter Versuch bei `TimeoutError`, gebunden an den aktuellen Standort/Request-Generation. Manueller Wiederholungsbutton nach fortbestehendem Fehler, ohne unendliche Retry-Kette.
+- Pseudo-Sat-Modus und Kartenauswahl waren schon persistiert; deren Speicherschlüssel bleiben unangetastet. Neuer unabhängiger gespeicherter 500-hPa-Isohypsen-Schalter, ergänzt zum MSLP-Isobaren-Schalter, nur für exakt identisches Modell/Run/Validität und bestätigte synoptische 500-hPa-Konturen. Kein GDPS-Mischprodukt.
+- Bei aktivem schematischem Wolkenbild im hellen Design andere Kartenbasis nur in Prognoseframes; unbestätigte Wetter- und Satellitenframes behalten Originalgeografie. SVG/PNG passen Druck- und Höhenlinien mit eigenständigen Einheiten und Datenherkunft an.
+- `scripts/test-mid279-pseudosat-isoheight-timeout.mjs`: Persistenz, Konturen mit falschem Modell/Run/Term ausgeschlossen, PNG/SVG-Quellgeometrie, fehlende Wetterwerte, Schutz früherer Light-/Dark-Maps, begrenzter Ortstimeout-Retry. Keine neuen Modell-/Warnschwellen, keine neuen kostenpflichtigen Datenquellen.
+- Release ausschließlich Source-PR → kontrollierter SHA-gebundener Bot-Merge → ZIP → Installer → Worker/Pages → Stable. Kein reales iOS-/VoiceOver-Gerätezertifikat.
+
 ## MID v0.9.85.278 · 2026-10-16 · Exakte solare Skybar-Slotgrenzen (Issue #374)
 
 - Ausgangsbasis: erfolgreich veröffentlichter `mid-stable` v0.9.85.277, SHA `6754d25358c809966a3e1d026c88f500a1699d69`. Keine konkurrierende Produkt-PR vor Arbeitsbeginn; RUC- und Revision-Runs separat in Arbeit und unverändert.

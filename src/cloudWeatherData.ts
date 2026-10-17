@@ -92,6 +92,16 @@ export function readCloudWeatherIsobars():boolean{
 export function writeCloudWeatherIsobars(enabled:boolean){
  try{localStorage.setItem(CLOUD_WEATHER_ISOBARS_KEY,String(enabled))}catch{/* Storage access may be blocked. */}
 }
+/** Optional 500-hPa geopotential-height contours from the same synoptic model run and valid time.
+ * Kept separate from the preexisting MSLP setting so old selections migrate losslessly.
+ */
+export const CLOUD_WEATHER_ISOHEIGHTS_KEY='mid:cloud-weather-isoheights:v1';
+export function readCloudWeatherIsoheights():boolean{
+ try{return localStorage.getItem(CLOUD_WEATHER_ISOHEIGHTS_KEY)==='true'}catch{return false}
+}
+export function writeCloudWeatherIsoheights(enabled:boolean){
+ try{localStorage.setItem(CLOUD_WEATHER_ISOHEIGHTS_KEY,String(enabled))}catch{/* unavailable storage: retain visible in-memory selection */ }
+}
 export const CLOUD_WEATHER_MODE_KEY='mid:cloud-weather-render:v1';
 export function readCloudWeatherRenderMode():CloudWeatherRenderMode{
  try{return localStorage.getItem(CLOUD_WEATHER_MODE_KEY)==='pseudo'?'pseudo':'standard'}catch{return 'standard'}

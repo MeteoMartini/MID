@@ -19,3 +19,20 @@ export function synopticCloudIsobars(data:CloudWeatherData|null,field:SynopticFi
  return contours.length?{model:field.model,run:field.run,time:field.time,contours}:null;
 }
 export function cloudIsobarModelLabel(model:string){return model==='icon-d2'?'ICON-D2':model==='icon-eu'?'ICON-EU':model==='icon'?'ICON Global':null}
+
+
+/** 500-hPa geopotential heights from a VERIFIED synoptic model frame.
+ * Values are geopotential decametres (gpdm); they are not MSLP.
+ * Never borrow contours from a different run, term, or model.
+ */
+export type CloudIsoheightLayer={model:string;run:string;time:string;contours:SynopticField['height']};
+export function synopticCloudIsoheights(data:CloudWeatherData|null,field:SynopticField|null):CloudIsoheightLayer|null{
+ if(!data||!field||!eligibleCloudIsobarModel(data.model)||field.model!==data.model||field.run!==data.run||field.time!==data.time||field.height?.type!=='FeatureCollection')return null;
+ const features=field.height.features.filter(f=>Number.isFinite(f.properties?.level)&&f.properties.level>=350&&f.properties.level<=650&&f.geometry.type==='LineString'&&f.geometry.coordinates.length>=3&&f.geometry.coordinates.every(p=>p.length===2&&p.every(Number.isFinite)));
+ if(!features.length)return null;
+ return {model:field.model,run:field.run,time:field.time,contours:{type:'FeatureCollection',features:features.map(f=>({...f,properties:{...f.properties,label:`${Math.round(f.properties.level)} gpdm`}}))}};
+}
+export function matchingCloudIsoheights(data:Pick<CloudWeatherData,'model'|'run'|'time'>|null,layer:CloudIsoheightLayer|null):SynopticField['height']{
+ if(!data||!layer||!eligibleCloudIsobarModel(data.model)||layer.model!==data.model||layer.run!==data.run||layer.time!==data.time)return {type:'FeatureCollection',features:[]};
+ return layer.contours;
+}

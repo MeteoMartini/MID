@@ -31,7 +31,7 @@ try{
  assert.ok(native.includes('cloudRenderMode,cloudContourSelection'));
  assert.ok(values.includes('CLOUD_WEATHER_ISOBARS_KEY'));
  assert.ok(values.includes('writeCloudWeatherIsobars(enabled:boolean)'));
- assert.ok(exportCode.includes('cloudWeatherSvg(data,raster,places,geography.states,mode,selectedIsobars)'));
+ assert.ok(exportCode.includes('cloudWeatherSvg(data,raster,places,geography.states,mode,selectedIsobars,selectedIsoheights)'));
  assert.ok(exportCode.includes('matchingCloudIsobars(data,selectedIsobars)'));
  await build({entryPoints:['src/CompositeTimeline.ts'],outfile:path.join(tmp,'timeline.mjs'),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
  const timeline=await import(pathToFileURL(path.join(tmp,'timeline.mjs')));
