@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {transform} from 'esbuild';
+import {build,transform} from 'esbuild';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const [app,pwa,cockpit,astronomy,presentWeatherSource,dayTimelineSource]=await Promise.all([
@@ -60,7 +60,11 @@ assert.ok(cockpit.includes('<CockpitSkybarNightBandsSvg bands={daySkyBarNightBan
 assert.ok(cockpit.includes('<CockpitSkybarNightBandsSvg bands={daySkyBarNightBands} height={14}/>'),'14-Tage-Skybar muss den Nachtlayer rendern.');
 assert.ok(cockpit.includes("skybarDisplayMode==='squares'?<SkyBarHourCellsSvg"),'Band/Squares müssen dieselbe Nachtgeometrie teilen.');
 
-const timeline=await loadTsModule(dayTimelineSource,'daySkybarTimeline.ts');
+// Der Tageszeit-Helfer importiert Zeit-/Kalenderfunktionen; im isolierten VM-Transform bliebe require() ungelöst.
+// Wie im eigenständigen Kalendertags-Test deshalb mitsamt Imports bundeln und als echtes Node-ESM laden.
+assert.ok(dayTimelineSource.includes('export function daySkybarTimelinePositions'),'DST-Zeitachsenfunktion fehlt.');
+const {outputFiles:dayTimelineFiles}=await build({entryPoints:[new URL('../src/daySkybarTimeline.ts',import.meta.url).pathname],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});
+const timeline=await import(`data:text/javascript;base64,${Buffer.from(dayTimelineFiles[0].text).toString('base64')}`);
 const springStart=Date.parse('2026-03-29T00:00:00+01:00');
 const autumnStart=Date.parse('2026-10-25T00:00:00+02:00');
 const springSamples=Array.from({length:23},(_,index)=>({epoch:springStart+index*3600000}));
