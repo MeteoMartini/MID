@@ -1,3 +1,10 @@
+# MID v0.9.85.280 · Pushzeit-Darstellung und modellgetreue Isobaren (Source-PR-Kandidat)
+
+- Verifizierter Ausgangspunkt `main=mid-stable=afceb2d0b770a7f7c337cc1b9e69359dcfee19d6`, freigegebene v0.9.85.279; Issue #392. Keine konkurrierende Produkt-PR.
+- Regen-/Schnee-Vorwarnzeit wird nur für die Anzeige gerundet. Absolute Anzeigen basieren auf dem UTC-Ereignisbeginn und einer validierten Orts- bzw. Geräte-IANA-Zeitzone mit Tageswechsel/DST; unzuverlässige Zeitanker führen zum relativen Fallback. Vorwarnung, Schwellen, Ereignisdeduplizierung und Nachrichtensperren bleiben identisch.
+- Synoptische Modellkarten mit eigenen Druckkonturen (auch GFS/IFS) besitzen eine gespeicherte MSLP-Isobaren-Umschaltung. Wolken-/Wetterkarten bleiben auf bestätigte CLCT-/WW-Paarungen begrenzt; kein GDPS-Fallback oder erfundene Konturen.
+- Änderungen werden erst nach Source-PR-Gate, kontrolliertem SHA-gebundenem Bot-Merge, serverseitigem ZIP, Installer, Worker/Pages und Stable-Promotion als veröffentlicht gewertet.
+
 # MID v0.9.85.279 · Geprüfte Pseudo-Sat-Kartenkonturen und Ortswechsel-Recovery (Source-PR-Kandidat)
 
 - Ausgangsbasis `main=mid-stable=ee2c00bfd0db42cf0f48715bccd0dbff1e221c42` als freigegebene v0.9.85.278, keine konkurrierende Produkt-PR.

@@ -7,9 +7,15 @@ export type PushRuleFavorite={
  latitude:number;
  longitude:number;
  country?:string;
+ timeZone?:string;
  rules:{precipitationStart:boolean;thunderstormApproach:boolean;forecastMaterialChange:boolean};
 };
 export type PushNotificationInterval=15|30|60|120|180;
+export type PushTimeDisplayMode='relative'|'absolute';
+export const PUSH_TIME_DISPLAY_MODE_KEY='mid:push-time-display-mode:v1';
+export function readPushTimeDisplayMode():PushTimeDisplayMode{try{return localStorage.getItem(PUSH_TIME_DISPLAY_MODE_KEY)==='absolute'?'absolute':'relative'}catch{return'relative'}}
+export function writePushTimeDisplayMode(mode:PushTimeDisplayMode){try{localStorage.setItem(PUSH_TIME_DISPLAY_MODE_KEY,mode==='absolute'?'absolute':'relative')}catch{/* storage unavailable */}}
+
 export type PushPrecipitationLeadMinutes=15|30|45|60|90|120;
 export type PushPrecipitationThresholdMm=.1|.2|.5|1|2|5;
 export type PushPrecipitationDurationMinutes=0|15|30|60|120|180;
@@ -28,8 +34,8 @@ async function workerGet<T>(mode:string){return notificationWorkerFetch<T>(mode)
 async function workerPost<T>(mode:string,body:unknown){return notificationWorkerFetch<T>(mode,body)}
 function serialiseSubscription(subscription:PushSubscription){const json=subscription.toJSON();return{endpoint:subscription.endpoint,expirationTime:subscription.expirationTime,keys:{p256dh:String(json.keys?.p256dh||''),auth:String(json.keys?.auth||'')}}}
 async function readyRegistration(){let timer=0;try{const registration=await Promise.race([navigator.serviceWorker.ready,new Promise<never>((_,reject)=>{timer=globalThis.setTimeout(()=>reject(new Error('Der Benachrichtigungsdienst startet nicht rechtzeitig.')),6000) as unknown as number})]);if(!registration.active)throw new Error('Der Benachrichtigungsdienst ist noch nicht aktiv. App bitte neu öffnen.');return registration}finally{if(timer)globalThis.clearTimeout(timer)}}
-function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach||item.rules.forecastMaterialChange).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',rules:item.rules}))}
-async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,precipitationAlert,ventilation,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent})}
+function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach||item.rules.forecastMaterialChange).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',timeZone:item.timeZone||'',rules:item.rules}))}
+async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,precipitationAlert,ventilation,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent,timeDisplayMode:readPushTimeDisplayMode(),deviceTimeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||''})}
 
 export async function getPushStatus():Promise<PushStatus>{
  if(!supportsPush())return{supported:false,permission:'unsupported',configured:false,subscribed:false,serverRegistered:false,schedulerHealthy:false,activeFavorites:0,activeRules:0,operational:false,workerUrl:'',message:'Web Push wird von diesem Browser oder dieser Installationsart nicht unterstützt.'};
