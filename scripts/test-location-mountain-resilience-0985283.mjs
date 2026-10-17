@@ -9,7 +9,7 @@ const baseline=JSON.parse(readFileSync('MID_BASELINE.json','utf8'));
 const pkg=JSON.parse(readFileSync('package.json','utf8'));
 const test='scripts/test-location-mountain-resilience-0985283.mjs';
 
-assert.equal(pkg.version,'0.9.85.283');
+assert.match(pkg.version,/^0\.9\.85\.\d+$/);assert.ok(Number(pkg.version.split('.')[3])>=283,'Mountain cache must not regress below .283');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const list of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite'])
  assert.ok(baseline[list]?.includes(test),`Missing mandated regression ${list}`);
@@ -58,4 +58,4 @@ assert.match(mountainView,/Höhenprognose erneut laden/);
 assert.match(mountainView,/if\(!controller\.signal\.aborted\)setData\(forecast\)/);
 assert.match(mountainView,/if\(!controller\.signal\.aborted\)setError\(/);
 
-console.log('MID v0.9.85.283: exact-location warm start, provenance, independent mountain core, bounded full-schema retry, abort/rate-limit and regional enrichment protected.');
+console.log('MID '+pkg.version+': exact-location warm start, provenance, independent mountain core, bounded full-schema retry, abort/rate-limit and regional enrichment protected.');

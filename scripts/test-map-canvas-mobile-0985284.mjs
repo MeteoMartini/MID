@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const [radar,unified,native,weather,css,pkg,baseline,contour,popover]=await Promise.all([
  read('src/RadarPanel.tsx'),read('src/UnifiedWeatherMap.tsx'),read('src/NativeModelMap.tsx'),
- read('src/WeatherMapsPanel.tsx'),read('src/midC14MapWorkspace.css'),
+ read('src/WeatherMapsPanel.tsx'),read('src/mapCanvasResponsive.css'),
  read('package.json'),read('MID_BASELINE.json'),read('src/adaptiveModelContours.ts'),read('src/AppPortalPopover.tsx')
 ]);
 assert.ok(radar.includes('className="composite-primary-layers" open={compactLayersOpen}'),'Kartenebenen/Modell müssen mobil einklappbar sein');
@@ -19,6 +19,7 @@ assert.ok(!unified.includes('500 hPa (gpdm) · gleicher Lauf'),'Keine Einheit im
 assert.ok(native.includes('Isobaren · gleicher ICON-D2-Lauf und Termin'));
 assert.ok(contour.includes("'text-field':['to-string',['get','level']]"),'Isobaren/Isohypsen werden direkt auf der Karte ohne Einheit an der Linie beschriftet');
 assert.ok(radar.includes("return String(type==='isobars'?Math.round(level):Math.round(level/10))"),'Radar/Komposit-Konturen müssen ebenfalls nur numerische Linienbeschriftungen verwenden');
+assert.ok(radar.includes("import './mapCanvasResponsive.css';")&&weather.includes("import './mapCanvasResponsive.css';"),'Kartenspezifisches CSS muss beim Lazy-Import der Kartenmodule geladen werden');
 assert.ok(popover.includes("new ResizeObserver(schedule)")&&popover.includes("resizeObserver?.disconnect()")&&popover.includes('layerRef.current?.getBoundingClientRect().height')&&popover.includes('Math.min(visualViewport?.height??window.innerHeight,window.innerHeight)'),'Karten-Popover müssen nach asynchronem Inhaltswachstum anhand echter sichtbarer Höhe innerhalb des Viewports positionieren');
 assert.ok(weather.includes('className="weather-maps-primary-controls"'));
 assert.ok(weather.includes('className="weather-maps-advanced"')&&weather.includes('aria-label="Kartenbasis"'),'Kartenbasis bleibt verfügbar');

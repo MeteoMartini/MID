@@ -28,5 +28,5 @@ assert(panel.includes('Zeitanzeige für Niederschlagshinweise')&&panel.includes(
 assert(app.includes('timeZone:item.location.timezone')&&app.includes('timeZone:trackedLocation.timezone'),'Ortszeitzonen dürfen nicht verloren gehen');
 assert(native.includes("'gfs','ifs'"),'Zusätzliche eigene Synoptik-Modellfelder');
 assert(synoptic.includes("showPressure&&contours('pressure'"),'Isobaren-Auswahl muss tatsächliche Konturen schalten');
-assert(unified.includes('showPressure={synopticIsobars}')&&unified.includes('Isobaren (MSLP, hPa)')&&unified.includes("localStorage.getItem('mid:synoptic-isobars:v1')!=='false'"),'Alte Karten müssen mit sichtbaren Isobaren starten und explizite Auswahl speichern');
+assert(unified.includes('showPressure={synopticIsobars}')&&unified.includes('Isobaren · {modelLabel}')&&unified.includes("localStorage.getItem('mid:synoptic-isobars:v1')!=='false'"),'Alte Karten müssen mit sichtbaren Isobaren starten und explizite Auswahl speichern');
 console.log('MID .280: relative/absolute Push-Zeiten, Ereignis-UTC/Zeitzone, Altclient, Katalog- und modellgetreue Isobaren-Verdrahtung geprüft.');

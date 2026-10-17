@@ -1,3 +1,4 @@
+import './mapCanvasResponsive.css';
 import {AppInfoHint} from './AppInfoPopover';
 import NativeModelMap from './NativeModelMap';
 import {alphabeticalMapOptions} from './mapOptionOrdering';
