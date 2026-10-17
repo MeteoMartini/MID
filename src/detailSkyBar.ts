@@ -308,7 +308,7 @@ export function detailSkyBarSolarSegments(
     if(!Number.isFinite(x0)||!Number.isFinite(x1)||x1<=x0)return;
     // Instantaneous cloud/isDay state is anchored at hour.epoch, never at an
     // accumulation's potentially different end-anchored precipitation interval.
-    const start=Number(hour.epoch);
+    const start=hour.epoch===null||hour.epoch===undefined||String(hour.epoch).trim()===''?NaN:Number(hour.epoch);
     const explicitEnd=Number(hour.precipitationIntervalEndEpoch);
     const nextEpoch=Number(hours[index+1]?.epoch);
     const end=Number.isFinite(nextEpoch)&&nextEpoch>start?nextEpoch:Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:NaN;
