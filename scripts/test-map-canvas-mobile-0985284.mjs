@@ -19,7 +19,7 @@ assert.ok(!unified.includes('500 hPa (gpdm) · gleicher Lauf'),'Keine Einheit im
 assert.ok(native.includes('Isobaren · gleicher ICON-D2-Lauf und Termin'));
 assert.ok(contour.includes("'text-field':['to-string',['get','level']]"),'Isobaren/Isohypsen werden direkt auf der Karte ohne Einheit an der Linie beschriftet');
 assert.ok(radar.includes("return String(type==='isobars'?Math.round(level):Math.round(level/10))"),'Radar/Komposit-Konturen müssen ebenfalls nur numerische Linienbeschriftungen verwenden');
-assert.ok(popover.includes("new ResizeObserver(schedule)")&&popover.includes("resizeObserver?.disconnect()"),'Karten-Popover müssen asynchrone Inhaltsgrößenänderungen beobachten und die Viewport-Position neu begrenzen');
+assert.ok(popover.includes("new ResizeObserver(schedule)")&&popover.includes("resizeObserver?.disconnect()")&&popover.includes('layerRef.current?.getBoundingClientRect().height')&&popover.includes('Math.min(visualViewport?.height??window.innerHeight,window.innerHeight)'),'Karten-Popover müssen nach asynchronem Inhaltswachstum anhand echter sichtbarer Höhe innerhalb des Viewports positionieren');
 assert.ok(weather.includes('className="weather-maps-primary-controls"'));
 assert.ok(weather.includes('className="weather-maps-advanced"')&&weather.includes('aria-label="Kartenbasis"'),'Kartenbasis bleibt verfügbar');
 assert.ok(weather.indexOf('aria-label="Kartenbasis"')>weather.indexOf('className="weather-maps-advanced"'),'Kartenbasis ist sekundäre Steuerung');

@@ -1,3 +1,5 @@
+# Map-Popup viewport bounds: Browserbefund 844×390 mit 7,5 px unterem Überlauf. Die Positionierung richtet sich jetzt nach der tatsächlich gerenderten Bounding-Rect-Höhe statt offsetHeight und begrenzt den sichtbaren Viewport konservativ; ResizeObserver reagiert auf Daten-/Labeländerungen. Echter Browser-Überlauftest bleibt verpflichtend.
+
 # MID v0.9.85.284 · Mobile weather map canvas
 
 - Baseline SHA 532f56a95a6d47a5cb2218146aaa038d7a74384c.
