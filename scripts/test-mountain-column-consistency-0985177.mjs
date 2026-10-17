@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 const source=fs.readFileSync('src/mountainSports.ts','utf8'),requests=[],time=new Date().toISOString().slice(0,13)+':00';
 const times=Array.from({length:24},(_,i)=>new Date(Date.parse(time+'Z')+i*3600000).toISOString().slice(0,16));
-const context={URLSearchParams,utciFromOutdoorState:()=>undefined,fetchWorkerJson:async()=>{throw Error('offline')},guardedOpenMeteoJson:async()=>{throw Error('offline')},guardedOpenMeteoFetch:async url=>{
+const context={URLSearchParams,AbortController,DOMException,setTimeout,clearTimeout,utciFromOutdoorState:()=>undefined,fetchWorkerJson:async()=>{throw Error('offline')},guardedOpenMeteoJson:async()=>{throw Error('offline')},guardedOpenMeteoFetch:async url=>{
  const q=new URL(url).searchParams;requests.push(q);const lat=q.get('latitude').split(','),lon=q.get('longitude').split(','),elev=q.get('elevation').split(',');
  return{ok:true,json:async()=>lat.map((v,i)=>({latitude:Number(v),longitude:Number(lon[i]),elevation:elev[0]==='nan'?400:Number(elev[i]),timezone:'UTC',utc_offset_seconds:0,current:{},hourly:{time:times,temperature_2m:times.map(()=>5),freezing_level_height:times.map(()=>3000),snowfall_height:times.map(()=>2400),temperature_850hPa:times.map(()=>5),geopotential_height_850hPa:times.map(()=>1500)}}))};
 }};
