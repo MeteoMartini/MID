@@ -1001,6 +1001,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-mid280-push-time-isobars.mjs",
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
     "scripts/test-pseudo-satellite-cloud-render-0985276.mjs",
     "scripts/test-pseudo-satellite-isobars-0985277.mjs",
