@@ -1,3 +1,10 @@
+# MID v0.9.85.282 · Vollständiger lokaler Kalendertag für Tages-Skybar und Tagessummen (Source-PR-Kandidat)
+
+- Freigegebene Source-Basis: `main = mid-stable = 5153a43979a5b995008e554d1ee8bf111c8dbe5a`, MID v0.9.85.281, Installer #39029978638 nach vollständigen Gates erfolgreich. Issue #395; Screenshot mit im Tagesverlauf abgeschnittenem Wetterstreifen.
+- `daySkybarCalendarWindow(date,timezone)` verankert die Skalen für Tageselemente auf realen lokalen Tagesgrenzen, unterstützt echte 23/25h-Zeitumstellung. `daySkybarTimelinePositions`, Stundenenden und Missing-Zeiten verhindern Dehnung ab erstem Reststundenwert und Wetter-/Niederschlagsaussagen ohne Daten. Widgets/Exports verwenden dieselbe Tagesquelle. Sonnen-/Nachtgrenzen bleiben an astronomische Zeiten gebunden.
+- `SevenDayForecastSummary` berücksichtigt Tagessignale einschließlich verfügbarer vergangener Stunden. Volle Niederschlags-/Sonnenschein-Tagesmenge stammt aus `Day`, nicht aus der nach „Jetzt“ abgeschnittenen Hour-Reihe. Nowcast und rollierende 24 Stunden werden nicht zum vollständigen Tagesfenster umdefiniert.
+- Baseline enthält Test `scripts/test-full-calendar-skybar-0985282.mjs` zusätzlich; 986 erforderliche Regressionen. Keine unbekannten Werte als 0 und keine nicht belegten historischen Stunden rekonstruieren. **Noch kein Release: Source-PR-Gate, SHA-Bot, ZIP, Installer, Worker/Pages und Stable-Promotion vorgeschrieben.**
+
 # MID v0.9.85.281 · Pseudo-Sat-Land/Wasser (Source-PR-Kandidat)
 
 - Verifizierte freigegebene Basis: `main = mid-stable = 9bb12c712cce0d6a5f73460cbe76c4a498c9a01c`, v0.9.85.280 nach Installer 39023811560. Keine offenen konkurrierenden Produkt-PRs beim Start. Vor Release erneut Drift/CI prüfen.
