@@ -46,4 +46,8 @@ for(const date of [Date.UTC(2026,2,29,1),Date.UTC(2026,9,25,1)]){
  const parts=layer(render(s,[{startEpoch:date,endEpoch:date+30*60000}]),'base');
  assert.equal(parts.length,1);assert.equal(parts[0].x1,50);assert.equal(parts[0].x2,100);
 }
-for(const missingEpoch of [null,'']){\n const unknown={...beforeSunrise,epoch:missingEpoch};\n assert.deepEqual(render(unknown,[{startEpoch:start,endEpoch:sunrise}]),detailSkyBarSegments([unknown],0,0,100,8,[0]),'Missing cloud epoch must not be treated as zero or inferred from precipitation time');\n}\nconsole.log('Skybar v0.9.85.278: exact solar epoch clipping, dawn/dusk, missing, polar night, precipitation, DST passed.');
+for(const missingEpoch of [null,'']){
+ const unknown={...beforeSunrise,epoch:missingEpoch};
+ assert.deepEqual(render(unknown,[{startEpoch:start,endEpoch:sunrise}]),detailSkyBarSegments([unknown],0,0,100,8,[0]),'Missing cloud epoch must not be treated as zero or inferred from precipitation time');
+}
+console.log('Skybar v0.9.85.278: exact solar epoch clipping, dawn/dusk, missing, polar night, precipitation, DST passed.');
