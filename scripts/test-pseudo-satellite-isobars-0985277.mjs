@@ -23,7 +23,8 @@ try{
  assert.ok(unified.includes('synopticCloudModel.frames.some(f=>f.time===cloudData.time)'));
  assert.ok(unified.includes('matchingCloudIsobars(cloudData,selectedCloudIsobars)'));
  assert.ok(unified.includes('Für diesen Modelllauf und Termin keine bestätigten Isobaren verfügbar.'));
- assert.ok(unified.includes('eligibleCloudIsobarModel(modelId)&&<label'));
+ assert.ok(unified.includes('eligibleCloudIsobarModel(modelId)&&<>'),'Isobar and isoheight options remain model-gated');
+ assert.ok(unified.includes('checked={cloudIsobars}')&&unified.includes('checked={cloudIsoheights}'),'Both independent controls remain visible for verified ICON models');
  assert.ok(unified.includes('cloudContourSelection')===false,'Native-only choice should not leak into unified map');
  assert.ok(native.includes('nativeCloudIsobars(combined,pressureContours)'));
  assert.ok(native.includes('cloudContourSelection?.contours??[]'));
