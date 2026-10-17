@@ -1,3 +1,12 @@
+## MID v0.9.85.278 · 2026-10-16 · Exakte solare Skybar-Slotgrenzen (Issue #374)
+
+- Ausgangsbasis: erfolgreich veröffentlichter `mid-stable` v0.9.85.277, SHA `6754d25358c809966a3e1d026c88f500a1699d69`. Keine konkurrierende Produkt-PR vor Arbeitsbeginn; RUC- und Revision-Runs separat in Arbeit und unverändert.
+- `detailSkyBarSolarSegments` teilt ausschließlich **durchgehende Himmels-Grundbänder** auf echte Epochengrenzen aus `solarTimelineWindow.nightBands` auf. Punktbezogene Wolkenzustände werden an ihrem `hour.epoch` statt an möglichen anderen Niederschlagsakkumulationsankern aufgetragen. Unbekannte Zeitstempel behalten das bisherige Ergebnis.
+- Niederschlagssegmente einschließlich WMO-/DWD-Phase, Intensitätsgrad, Farben, Menge, Lauf und Akkumulationszeit werden ohne geometrische Umdeutung exakt aus `detailSkyBarSegments` übernommen; kein erfundener meteorologischer Frame und keine Interpolation von Wetterwerten. Bestätigte Wolkenlücken werden nur in der astronomisch hellen Teilzeit als solche beschriftet, nicht als Sonnenscheinmessung ausgegeben. Bestehender .268-Schwellenfix bleibt aktiv.
+- Eingebunden in 90 Minuten, 24 Stunden, Tageskacheln und 7-Tage-Kurvenübersicht, zusätzlich zum bisherigen SVG-/Widget-/Export-Fundament. Stundenquadrate bleiben diskret und unverändert. DST und Polarnacht/-tag ohne zusätzliche künstliche Zeiten.
+- Neuer deterministischer Test `scripts/test-skybar-solar-epoch-split-0985278.mjs` deckt 15-/60-min-Intervallgeometrie, Sonnenauf-/-untergang, Niederschlagsunverändertheit, Missing, Vollnacht, Sommerzeitwechsel und ungültige Epochensemantik ab. Vorhandene reine Aufruftextassertionen ausschließlich an die neue Signatur angepasst; fachliche Prüfungen erhalten.
+- Keine neuen kostenpflichtigen Datenquellen, Worker-/RUC-/Modell-/Warnschwellen-, WMO-Code- oder Sicherheitsänderungen. Ohne erfolgreiche Source-Core/Heavy, Browser-/iOS-Hülle, ZIP, Installer, Worker/Pages und Stable-Promotion ist dieser Branch keine veröffentlichte Version. Physisches VoiceOver/iOS nicht abgenommen.
+
 ## MID v0.9.85.277 · 2026-10-16 · Beobachtungsübergang und Isobaren
 
 - Freigegebene Source-Basis ff30648863744759aca9b28c524662e3f65ba496, v0.9.85.276, Issue #386. Parallele Abhängigkeits-/RUC-PRs und Schutzregeln unverändert.

@@ -195,10 +195,10 @@ export function detailSkyBarHourCells(hours:PrecipSample[]):SkyBarHourCell[]{
   });
 }
 
-function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual){
+function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual,maxMergeGap=0.65){
   if(x1<=x0)return;
   const previous=segments[segments.length-1];
-  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity&&previous.title===visual.title){
+  if(previous&&Math.abs(previous.x2-x0)<=maxMergeGap&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity&&previous.title===visual.title){
     previous.x2=x1;
     return;
   }
@@ -278,4 +278,62 @@ export function detailSkyBarSegments(
   });
 
   return [...baseSegments,...precipSegments];
+}
+
+
+/** Verified solar-night clipping for continuous skybars.
+ * The night spans are absolute epoch milliseconds from solarTimelineWindow.
+ * Original sample amounts, intervals, phase and legacy square cells are unchanged.
+ * When exact timestamps are absent, use the legacy appearance, not inferred times.
+ */
+export type SkyBarSolarNightBand={startEpoch:number;endEpoch:number};
+export function detailSkyBarSolarSegments(
+  hours:PrecipSample[],left:number,right:number,chartW:number,centerY:number,
+  xPositions:number[]|undefined,nightBands:readonly SkyBarSolarNightBand[],
+):SkyBarSegment[]{
+  const original=detailSkyBarSegments(hours,left,right,chartW,centerY,xPositions);
+  if(!hours.length||!nightBands.length||!Number.isFinite(chartW)||chartW<=left+right)return original;
+  const validBands=nightBands.filter(band=>Number.isFinite(band.startEpoch)&&Number.isFinite(band.endEpoch)&&band.endEpoch>band.startEpoch);
+  if(!validBands.length)return original;
+  const bases:SkyBarSegment[]=[],precip=original.filter(segment=>segment.layer==='precip');
+  const leftEdge=left,rightEdge=Math.max(leftEdge,chartW-right),uniformWidth=(rightEdge-leftEdge)/hours.length;
+  const positions=xPositions?.slice(0,hours.length);
+  hours.forEach((hour,index)=>{
+    const rawStart=positions?Number(positions[index]):leftEdge+index*uniformWidth;
+    const previous=positions?Number(positions[index-1]):NaN;
+    const following=positions?Number(positions[index+1]):NaN;
+    const fallbackWidth=positions?(Number.isFinite(rawStart)&&Number.isFinite(previous)&&rawStart>previous?rawStart-previous:uniformWidth):uniformWidth;
+    const rawEnd=positions?(Number.isFinite(following)&&following>rawStart?following:rawStart+fallbackWidth):rawStart+uniformWidth;
+    const x0=Math.max(leftEdge,rawStart),x1=Math.min(rightEdge,rawEnd);
+    if(!Number.isFinite(x0)||!Number.isFinite(x1)||x1<=x0)return;
+    // Instantaneous cloud/isDay state is anchored at hour.epoch, never at an
+    // accumulation's potentially different end-anchored precipitation interval.
+    const start=hour.epoch===null||hour.epoch===undefined||String(hour.epoch).trim()===''?NaN:Number(hour.epoch);
+    const explicitEnd=Number(hour.precipitationIntervalEndEpoch);
+    const nextEpoch=Number(hours[index+1]?.epoch);
+    const end=Number.isFinite(nextEpoch)&&nextEpoch>start?nextEpoch:Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:NaN;
+    const originalBase=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index)).find(visual=>visual.layer==='base');
+    if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){
+      if(originalBase)appendSegment(bases,index*1024,'base',x0,x1,centerY,originalBase);
+      return;
+    }
+    const cuts=[start,end];
+    validBands.forEach(band=>{
+      if(band.startEpoch>start&&band.startEpoch<end)cuts.push(band.startEpoch);
+      if(band.endEpoch>start&&band.endEpoch<end)cuts.push(band.endEpoch);
+    });
+    cuts.sort((a,b)=>a-b);
+    const duration=sampleIntervalSeconds(hours,index);
+    for(let part=0;part<cuts.length-1;part++){
+      const from=cuts[part],to=cuts[part+1];
+      if(to<=from)continue;
+      const middle=from+(to-from)/2;
+      const night=validBands.some(band=>band.startEpoch<=middle&&middle<band.endEpoch);
+      const base=weatherStripVisuals({...hour,isDay:!night},duration).find(visual=>visual.layer==='base');
+      if(!base)continue;
+      const startX=x0+(from-start)/(end-start)*(x1-x0),endX=x0+(to-start)/(end-start)*(x1-x0);
+      appendSegment(bases,index*1024+part,'base',startX,endX,centerY,base,0);
+    }
+  });
+  return [...bases,...precip];
 }

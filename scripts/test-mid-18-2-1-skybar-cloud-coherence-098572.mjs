@@ -18,7 +18,7 @@ assert.ok(!shortTerm.includes('if(localAdjustment<=0)return raw;'),'Trockene 15-
 assert.ok(shortTerm.includes('return observedSkyCode(Number.isFinite(observed)?observed:raw,cloud,lowCloud,visibility,humidity,temperature,dewPoint);'),'Trockene Wettercodes müssen aus derselben Wolken-/Sichtlage kohärentisiert werden.');
 assert.ok(skybar.includes("const cloud=hour.cloud===null||hour.cloud===undefined||String(hour.cloud).trim()===''?NaN:clamp(Number(hour.cloud),0,100);")&&skybar.includes('if(cloudKnown){'),'Skybar muss weiterhin dieselbe Gesamtbewölkung als primären Himmelswert nutzen.');
 assert.ok(skybar.includes('if(cover>=87.5)return 3')===false,'Skybar darf keine getrennte Textklassifikation enthalten; Schwellen bleiben im Kurzfristcode.');
-assert.ok(cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)')&&cockpit.includes('now90SkySegments=detailSkyBarSegments(now90,2,2,120,8)'),'90-min-Skybar muss direkt aus derselben finalisierten Kurzfristreihe stammen.');
+assert.ok(cockpit.includes('now90SkyCells=detailSkyBarHourCells(now90)')&&cockpit.includes('now90SkySegments=detailSkyBarSolarSegments(now90,2,2,120,8,undefined,now90Solar.nightBands)'),'90-min-Skybar muss direkt aus derselben finalisierten Kurzfristreihe stammen.');
 assert.ok(cockpit.includes('<span className="cockpit-now90-weather">{item.weatherLabel}</span>'),'90-min-Wettertext muss weiterhin direkt aus demselben finalisierten Kurzfristpunkt wie die Skybar stammen.');
 assert.ok(!cockpit.includes('<small className="cockpit-now90-cloud">Wolken '),'Nur die redundante sichtbare Wolken-%-Zeile darf entfallen.');
 assert.ok(cockpit.includes('now90SkyCells[index].title'),'Bewölkungsdetails bleiben über den gemeinsamen Skybar-Zustand verfügbar.');

@@ -1,3 +1,10 @@
+# MID v0.9.85.278 · Exakte Skybar-Sonnenzeit-Segmente (Source-PR-Kandidat)
+
+- Verifizierter Ausgangspunkt `main = mid-stable = 6754d25358c809966a3e1d026c88f500a1699d69`, v0.9.85.277. Laufende RUC-/Revisions-/Widgetaktionen bleiben separate, nicht zu überschreibende Pipelines. Kein Repo-Handoff aus dem alten Replit-Workspace.
+- Der gemeinsame kontinuierliche Skybar-Helfer splittet bekannte Tages-/Nachtteilintervalle ausschließlich an `solarTimelineWindow`-Epochen; Bewölkung und echte Sonnenscheindauer bleiben verschiedene Größen. Keine gelben Bänder in bekannter Nacht, keine meteorologischen Zwischenbilder und keine angenommene Sonnenmessung. Stundenquadrate bleiben diskret.
+- Der originale precipitation-/phase-/amount-Slot bleibt unverändert; bei fehlendem Zeitanker gilt die bewährte frühere Darstellung statt frei erfundener Solargrenzen.
+- Veröffentlichung erst nach vollständigem Source-PR-Gate, kontrolliertem SHA-Bot-Merge, serverseitigem ZIP, Installer, betroffenen Worker-/Pages-Gates und `mid-stable`-Promotion. Bis dahin ausdrücklich kein bestätigter Release.
+
 # MID v0.9.85.277 · Beobachtungs→Modell-Kartenübergang, Isobaren
 
 - Ausgangsbasis main=mid-stable=ff30648863744759aca9b28c524662e3f65ba496 (v0.9.85.276) und Issue #386. Modell-Wolken/WW-Layer nur auf bestätigten Modellframes der vorhandenen gemeinsamen Zeitachse; Beobachtungen und Nowcast behalten Originalzeit und Quelle, keine fake Frames oder echte satellitenähnliche Radiometrie.

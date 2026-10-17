@@ -1,3 +1,7 @@
+## MID 18.2.35 · Exakte solare Übergänge im kontinuierlichen Skybar-Grundband (v0.9.85.278)
+
+Bekannte Sonnenereignisse aus `solarTimelineWindow` trennen nun innerhalb bestehender Stunden-/Viertelstunden-Slots nur die astronomische Tag-/Nacht-Grundbandfarbe; graue Gesamtbewölkung bleibt grau, gelbe Wolkenlücken sind niemals direkt gemessene Sonnenscheindauer. Die Sonnenzeit modifiziert weder die vom Modell angebotenen Datenpunkte noch meteorologische Werte, Schwellen, akkumulierten Niederschlag, Zeit-/Phasenfarben oder Missing-Flags. Fehlende gültige Epochengrenzen erzwingen die bisherige Slotdarstellung statt Interpolation. Niederschlagsakkumulationen bleiben auf vorwärts normalisierten Intervallen; die momentane Wolkenbewertung liegt am `hour.epoch`. Exakte solare Minutenteilung gilt für kontinuierliche Linien, während optionale Stundenquadrate weiterhin diskrete vollständige Beobachtungs-/Prognoseslots darstellen.
+
 # MID – 24-h-Wetterprofil: Story-Axis-Vertrag
 
 ## MID-C33 · kurze Sonnenscheindauer (.268)

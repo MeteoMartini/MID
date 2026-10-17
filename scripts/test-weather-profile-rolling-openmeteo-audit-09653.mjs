@@ -47,6 +47,7 @@ for(const token of [
  'profileWeatherIconY=profileY(78)',
  'const profileXForEpoch=(epoch:number)=>',
  'profileXForEpoch(event.epoch)',
+ 'solarWindow.nightBands',
  'y1={skyBandTop}',
  'weatherPictogramStep=',
  'className="day-separator"'
@@ -71,7 +72,7 @@ for(const token of [
 // Wolken: Gesamt nutzt die gemeinsame Tagesansicht-Skybar; H/M/L bleiben neutrale Graubänder ohne Prozentachse.
 for(const token of [
  'data-mid-skybar="profile"',
- 'profileSkyBarSegments=detailSkyBarSegments(',
+ 'profileSkyBarSegments=detailSkyBarSolarSegments(',
  "className:'high'",
  "className:'mid'",
  "className:'low'",

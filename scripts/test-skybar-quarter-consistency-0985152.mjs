@@ -26,7 +26,7 @@ try{
  assert.equal(fallback[0].cloud,60);assert.equal(fallback[0].temperature,22);assert.equal(fallback[0].wind,3);assert.equal(fallback[0].pressure,1015);
  const zero=buildShortTermForecast(quarters.map(q=>({...q,cloud:0,wind:0})),hours,'UTC',now,{active:false});assert.equal(zero[0].cloud,0);assert.equal(zero[0].wind,0);
  assert.match(cockpit,/profileSkyBarFinePoints=adjusted\.filter/);
- assert.match(cockpit,/detailSkyBarSegments\(profileSkyBarBandPoints,[^\n]*profileSkyBarBandPoints\.map\(point=>profileXForEpoch\(point\.epoch\)\)/);
+ assert.match(cockpit,/detailSkyBarSolarSegments\(profileSkyBarBandPoints,[^\n]*profileSkyBarBandPoints\.map\(point=>profileXForEpoch\(point\.epoch\)\),solarWindow\.nightBands\)/,'Continuous 24h skybar must use canonical hour positions plus astronomical night boundaries');
  assert.match(cockpit,/profileSkyBarHourCells=detailSkyBarHourCells\(profileSkyBarPoints\.slice\(0,24\)\)/);
  assert.match(cockpit,/profileSkyBarBandPoints=profileSkyBarPoints/,'24h sky state shares hourly tooltip data; 90m remains native quarter resolution');
  console.log('MID152: shared quarter-hour renderer; 24h sky follows hourly tooltip contract; missing states fall back, real zero retained; hourly squares preserved.');
