@@ -20,6 +20,7 @@ assert.ok(native.includes('Isobaren · gleicher ICON-D2-Lauf und Termin'));
 assert.ok(contour.includes("'text-field':['to-string',['get','level']]"),'Isobaren/Isohypsen werden direkt auf der Karte ohne Einheit an der Linie beschriftet');
 assert.ok(radar.includes("return String(type==='isobars'?Math.round(level):Math.round(level/10))"),'Radar/Komposit-Konturen müssen ebenfalls nur numerische Linienbeschriftungen verwenden');
 assert.ok(radar.includes("import './mapCanvasResponsive.css';")&&weather.includes("import './mapCanvasResponsive.css';"),'Kartenspezifisches CSS muss beim Lazy-Import der Kartenmodule geladen werden');
+assert.ok(popover.includes('above=true}top=clamp(top,viewportTop+edge')&&!popover.includes('above=true}else top=clamp('),'Popup oberhalb eines teilweise verdeckten Karten-Ankers muss im Viewport bleiben');
 assert.ok(popover.includes("new ResizeObserver(schedule)")&&popover.includes("resizeObserver?.disconnect()")&&popover.includes('layerRef.current?.getBoundingClientRect().height')&&popover.includes('Math.min(visualViewport?.height??window.innerHeight,window.innerHeight)'),'Karten-Popover müssen nach asynchronem Inhaltswachstum anhand echter sichtbarer Höhe innerhalb des Viewports positionieren');
 assert.ok(weather.includes('className="weather-maps-primary-controls"'));
 assert.ok(weather.includes('className="weather-maps-advanced"')&&weather.includes('aria-label="Kartenbasis"'),'Kartenbasis bleibt verfügbar');
