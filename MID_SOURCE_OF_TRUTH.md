@@ -1,3 +1,10 @@
+# MID v0.9.85.283 · Schnellstart/Netzwerkresilienz (Source-PR-Kandidat)
+
+- Verifizierte Stable-Basis `main=mid-stable=b02d1b018882807fbce114cf6816f520f52339d1`, v0.9.85.282 nach erfolgreichem Installer #39038958909. Issue #398; keine konkurrierenden offenen Produkt-PRs bei Arbeitsbeginn.
+- Ortswechsel dürfen ausschliesslich orts-/höhen-/zeitzonenexakte Best-Match-Cache-Prognosen bis 45 Minuten als gekennzeichneten temporären Stand sofort anzeigen; keine ortsfremden oder unvalidierten Daten. Neue Netzdaten aktualisieren weiterhin standortgebunden.
+- Höhen-Best-Match wird nicht mehr durch ein optionales Regionalmodell aufgehalten. Regionalmodelle aktualisieren nur nach erfolgreichem Schema-/Zeitabgleich; Abbrüche erhalten einen begrenzten vollständigen Retry mit gleichen Variablen und strikter 429-/Cancel-/Missing-Abgrenzung.
+- Pflichtregression `scripts/test-location-mountain-resilience-0985283.mjs` wird zur Baseline aufgenommen. Kein Release ohne grüne Source-, Install-, Worker-, Pages- und Stable-Gates; dieses Dokument selbst belegt keine Veröffentlichung.
+
 # MID v0.9.85.282 · Vollständiger lokaler Kalendertag für Tages-Skybar und Tagessummen (Source-PR-Kandidat)
 
 - Freigegebene Source-Basis: `main = mid-stable = 5153a43979a5b995008e554d1ee8bf111c8dbe5a`, MID v0.9.85.281, Installer #39029978638 nach vollständigen Gates erfolgreich. Issue #395; Screenshot mit im Tagesverlauf abgeschnittenem Wetterstreifen.
