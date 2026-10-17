@@ -33,6 +33,10 @@ try{
  const geo=JSON.parse(readFileSync('src/modelMapGeography.json','utf8'));
  assert.equal(geo.states.length,16,'All German Länder polygons must remain available');
  assert.ok(geo.states.some(s=>s.name==='Berlin'),'German inland coverage must not disappear');
+ const pointInside=(lon,lat,ring)=>{let inside=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const [x,y]=ring[i],[a,b]=ring[j];if((y>lat)!==(b>lat)&&lon<(a-x)*(lat-y)/(b-y)+x)inside=!inside;}return inside};
+ const onLand=(lon,lat)=>[...geo.countries,...geo.states.flatMap(s=>s.rings)].some(r=>pointInside(lon,lat,r));
+ for(const [name,lon,lat] of [['Berlin',13.405,52.52],['Köln',6.96,50.94],['München',11.58,48.14],['London',-.13,51.51],['Paris',2.35,48.86]])assert.ok(onLand(lon,lat),'Verified inland sample misclassified as sea: '+name);
+ for(const [name,lon,lat] of [['Nordsee',3,54],['Ärmelkanal',0,50.3],['Ostsee',13,55.3]])assert.ok(!onLand(lon,lat),'Verified open-sea sample misclassified as land: '+name);
  const countryAndStatesSvg=cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],geo.states,'pseudo',null,null,geo.countries);
  assert.ok(countryAndStatesSvg.includes('Landflächen · Natural Earth')&&countryAndStatesSvg.includes('fill="'+c.land+'"'),'Actual German states and world country coastlines must render as land');
  assert.ok(pseudo.includes('fill="'+c.water+'"'),'Sea background same as on-screen pseudo palette');
