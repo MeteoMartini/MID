@@ -27,6 +27,6 @@ assert.ok(weather.includes('className="weather-maps-advanced"')&&weather.include
 assert.ok(weather.indexOf('aria-label="Kartenbasis"')>weather.indexOf('className="weather-maps-advanced"'),'Kartenbasis ist sekundäre Steuerung');
 for(const token of ['.composite-primary-layers','composite-line-toolbar:not([open])','height:72svh!important','weather-maps-map-status{position:static!important','orientation:landscape','min-height:44px!important','prefers-reduced-motion'])assert.ok(css.includes(token),'Responsive-Regel fehlt: '+token);
 const p=JSON.parse(pkg),b=JSON.parse(baseline);
-assert.equal(p.version,'0.9.85.284');assert.equal(b.releaseVersion,p.version);
+assert.match(p.version,/^0\.9\.85\.\d+$/);assert.ok(Number(p.version.split('.')[3])>=284);assert.equal(b.releaseVersion,p.version);
 assert.ok(b.requiredRegressionTests.includes('scripts/test-map-canvas-mobile-0985284.mjs'));
 console.log('MID .284: Kartenfläche, kompakte Isolinien-Labels, Modellwahl, Zeitachse und Mobile-Controls geprüft.');

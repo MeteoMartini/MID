@@ -9,7 +9,7 @@ import {inlineUtciRegressionStub} from './utci-regression-helper.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
-for(const token of ['hoursByDate','completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS','precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation)','Der Sunshine-Contract aggregiert jeden lokalen Kalendertag'])assert.ok(source.includes(token),`fehlender Tages-/Stunden-Konsistenzvertrag: ${token}`);
+for(const token of ['hoursByDate','completeCoverage=fullCalendarDayHourlyPrecipitationCoverage(day.date,timezone,relevant,hours)','precipitation=completeCoverage?sum(\'precipitation\'):day.precipitation','minimumExpectedHours:completeCoverage?relevant.length:26'])assert.ok(source.includes(token),`fehlender Tages-/Stunden-Konsistenzvertrag: ${token}`);
 
 const require=createRequire(import.meta.url);
 const ts=require('typescript-strada')
@@ -24,12 +24,12 @@ const day=(date,precipitation,probability)=>({date,code:3,max:30,min:18,sunrise:
 const hour=(time,epoch,precipitation,probability)=>({time,epoch,timezone:'Europe/Berlin',temperature:20,apparent:20,humidity:60,dewPoint:12,pressure:1015,precipitation,rain:precipitation,showers:0,snowfall:0,probability,code:precipitation>=.05?61:3,wind:5,gust:10,direction:90,cloud:70,lowCloud:50,uvIndex:0,visibility:10000,cape:0,liftedIndex:0,convectiveInhibition:0,columnWaterVapour:20,isDay:false});
 try{
  const future=mod.reconcileForecastDaysWithHours([day('2026-08-03',0,24)],[hour('2026-08-03T23:00',now+41*3600000,.1,21)]);
- assert.equal(future[0].precipitation,.1,'sichtbare 0,1 mm um 23 Uhr müssen im Tageswert erscheinen');
+ assert.equal(future[0].precipitation,0,'eine einzelne Stunde ersetzt keinen vollständigen kanonischen Tageswert');
  assert.equal(future[0].probability,24,'höherer bereits vorhandener Tages-Maximalwert bleibt erhalten');
  const retained=mod.reconcileForecastDaysWithHours([day('2026-08-03',.4,30)],[hour('2026-08-03T23:00',now+41*3600000,0,5)]);
  assert.equal(retained[0].precipitation,.4,'spätere Tagesprognose darf durch unvollständige Stundenwerte nicht künstlich abgesenkt werden');
  const near=mod.reconcileForecastDaysWithHours([day('2026-08-02',.2,20)],[hour('2026-08-02T09:00',now+60*60000,0,1)]);
- assert.equal(near[0].precipitation,0,'trockener unmittelbarer Nowcast muss einen älteren Tageswert weiterhin absenken dürfen');
- assert.equal(near[0].probability,1);
+ assert.equal(near[0].precipitation,.2,'trockener unmittelbarer Nowcast darf vergangenen Tagesregen nicht löschen');
+ assert.equal(near[0].probability,20);
 }finally{Date.now=originalNow;fs.rmSync(tempDir,{recursive:true,force:true})}
 console.log('Tages-/Stunden-Niederschlagskonsistenz ab v0.8.33.6 geprüft.');

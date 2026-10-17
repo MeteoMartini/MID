@@ -48,7 +48,7 @@ try{
 
 const contracts=[
  ['src/weather-src/20-mapping-day-character.tsfrag',['canonicalSunshineHourSeconds','canonicalSunshineDaySeconds','weatherDaylightSeconds']],
- ['src/forecastFusion.ts',['vollständigen finalen Stundenreihe','dailySunshineReference','sunshineDurationMeta']],
+ ['src/forecastFusion.ts',['minimumExpectedHours:completeCoverage?relevant.length:26','const reference=','sunshineDurationMeta']],
  ['src/ShortTermForecast.tsx',['sunshineMinutesLabel','Bewölkung / Sicht / Sonnenscheindauer']],
  ['src/ForecastCockpit.tsx',['mid-forecast-row-detail compact','RelativeSunshineIcon','relativeSunshineShare','possibleSunshineDuration','P10–P90','sunshineHoursLabel','sunshineWholeHoursLabel','bestSunshineDuration=bestDay?.sunshineDuration!=null']],
  ['src/EnsemblePanel.tsx',['Sonnenscheindauer','formatSunshineHours']],

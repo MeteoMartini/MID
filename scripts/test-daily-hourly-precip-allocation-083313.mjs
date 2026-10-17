@@ -10,7 +10,7 @@ import {inlineUtciRegressionStub} from './utci-regression-helper.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=fs.readFileSync(path.join(root,'src','forecastFusion.ts'),'utf8');
 for(const token of [
- 'DAY_HOURLY_FULL_COVERAGE_MIN_HOURS=18',
+ 'fullCalendarDayHourlyPrecipitationCoverage(day.date,timezone,relevant,hours)',
  'export function reconcileForecastHoursWithDays',
  'Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde',
  'dailyWeatherCodeFromHours'
@@ -35,8 +35,8 @@ const tempDir=fs.mkdtempSync(path.join(os.tmpdir(),'mid-no-daily-allocation-')),
 const originalNow=Date.now,now=Date.UTC(2026,7,2,13,30);Date.now=()=>now;
 try{
  const date='2026-08-04',day={date,code:61,max:33,min:22,sunshineDuration:42000,precipitation:.4,probability:74,wind:8,gust:15,direction:90,uvMax:7};
- const hour=(index,precipitation=0,probability=0)=>({time:`${date}T${String(index).padStart(2,'0')}:00`,epoch:Date.UTC(2026,7,3,22+index),timezone:'Europe/Berlin',temperature:25,apparent:25,humidity:60,dewPoint:16,pressure:1012,precipitation,rain:precipitation,showers:0,snowfall:0,probability,code:precipitation?61:2,wind:6,gust:12,direction:90,cloud:55,lowCloud:20,uvIndex:0,visibility:10000,cape:50,sunshineDuration:1800,isDay:index>=6&&index<=21});
- const dryHours=Array.from({length:24},(_,index)=>hour(index,0,index===15?74:10));
+ const hour=(index,precipitation=0,probability=0)=>({time:index===24?'2026-08-05T00:00':`${date}T${String(index).padStart(2,'0')}:00`,epoch:Date.UTC(2026,7,3,22+index),timezone:'Europe/Berlin',temperature:25,apparent:25,humidity:60,dewPoint:16,pressure:1012,precipitation,rain:precipitation,showers:0,snowfall:0,probability,code:precipitation?61:2,wind:6,gust:12,direction:90,cloud:55,lowCloud:20,uvIndex:0,visibility:10000,cape:50,sunshineDuration:1800,isDay:index>=6&&index<=21});
+ const dryHours=Array.from({length:25},(_,index)=>hour(index,0,index===15?74:10));
  const untouched=mod.reconcileForecastHoursWithDays(dryHours,[day]);
  assert.equal(untouched.reduce((sum,item)=>sum+item.precipitation,0),0,'eine Tagesmenge darf keine künstliche Niederschlagsstunde erzeugen');
  const aligned=mod.reconcileForecastDaysWithHours([day],untouched)[0];

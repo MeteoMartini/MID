@@ -1,7 +1,6 @@
-# MID v0.9.85.284
+# MID v0.9.85.285
 
-- Karten: „Isobaren“ und „Isohypsen“ ohne angehängte hPa-/gpdm-Kürzel; auch Linien direkt auf der Karte tragen nur den Zahlenwert. Fachliche Einheiten an Datenwerten, in Legenden und Druckniveaus bleiben erhalten.
-- Weniger verdeckte Karte: Auf Smartphones sind Radar-/Satelliten- und Modelllayer einklappbar und Linienfarben nur nach bewusstem Öffnen sichtbar. Die direkte Terminwahl, Zeitleiste und Navigation bleiben erhalten.
-- Modellkarten: Parameter und Modell als kompakte Hauptauswahl; Kartenbasis unter „Darstellung & Ebenen“. Modell- und Zeitstatus liegen auf kleinen Displays außerhalb der Kartenfläche.
-- Mehr Kartenausschnitt in Portrait und Landscape; Kartenwert-Popups werden nach asynchroner Größenänderung neu innerhalb des Viewports positioniert. Touch-/Tastaturzugang sowie Light/Dark bleiben Bestandteil der Abnahme.
-- Keine Änderungen an amtlichen Warnungen, DWD-/WMO-Daten, Konturen, RUC-Kompression, Modellläufen oder Missing-Data-Regeln.
+- **Tageswerte ganzer Kalendertage:** Die heutige Niederschlagssumme wird nicht länger durch die nur noch verbleibenden Stunden ersetzt. Bei unvollständigen Stunden bleibt der Tageswert der gültigen Tagesquelle erhalten.
+- **23-/24-/25-Stunden-Tage:** Nur eine lückenlose echte Stundenfolge inklusive nachfolgendem Akkumulationsende darf die Tageswerte aus Stunden rekonstruieren. Fehlende Modellstunden oder Tageslücken dürfen nicht als null Millimeter gelten.
+- **Skybar „Aktuell“:** Bewölkung und Sonnenschein der laufenden vollen Modellstunde bilden den Hintergrund; 15-Minuten-Nowcast-Niederschläge bleiben als unabhängige Ebene mit den unveränderten Intervallzeiten erhalten.
+- **Fachliche Abgrenzung:** Keine Änderung amtlicher Warnungen, RUC-Kompression, numerischer Wetterwerte oder Modellkarten. Vollständig fehlende providerseitige Tagessummen werden weiterhin im eigenen Data-QA-Arbeitspaket #397 untersucht.
