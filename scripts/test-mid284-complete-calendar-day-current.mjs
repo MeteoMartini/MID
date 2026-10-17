@@ -27,7 +27,8 @@ try{
   Date.now=()=>Date.parse('2026-10-17T15:30:00Z'); // 17:30 local
   const full=reconcileForecastDaysWithHours([day],hours)[0];
   assert.ok(full.precipitation>=1.9,'rain at 02:00 persists in the 17:30 calendar-day total');
-  const partial=reconcileForecastDaysWithHours([day],hours.slice(6))[0];
+  const remainingOnly=hours.slice(6).map(hour=>({...hour,sunshineDuration:0,precipitation:0,rain:0}));
+  const partial=reconcileForecastDaysWithHours([day],remainingOnly)[0];
   assert.equal(partial.precipitation,2,'incomplete 18-hour future coverage cannot replace the daily sum');
   assert.equal(partial.sunshineDuration,14400,'daily sunshine fallback retains elapsed sunshine');
  }finally{Date.now=dateNow}
