@@ -1,3 +1,12 @@
+# MID v0.9.85.281 · Technischer Entwicklungsnachweis (Source-PR-Kandidat)
+
+- **Source of Truth**: v0.9.85.280 auf `main=mid-stable=9bb12c712cce0d6a5f73460cbe76c4a498c9a01c` vollständig verifiziert, Installer `39023811560` inklusive ZIP, Core/Heavy, Pages, Worker und Promotion erfolgreich. Fortführung von Issue #392, vorbereiteter Quellstand auf `chatgpt/v0.9.85.281-pseudosat-land-water` (gesichert als `d13cd9aa0cbb4106c99ebd800199549dba6dc813`), ausschließlich nach Dateiüberlappungsprüfung auf aktuell stabile .280 übertragen.
+- **Kartenbasis**: `src/pseudoSatelliteBasemap.ts` liefert gemeinsame Display-Palette; `UnifiedVectorBasemap` zeichnet Wasser aus OpenFreeMap-`source-layer:water` und Land im Hintergrund, beschränkt auf helles bestätigtes Pseudo-Modellbild. Native ICON-D2 verwendet dieselbe Basis mit negativen Karten-Layer-Prioritäten, damit Wetterraster mit `zIndex=0` sichtbar bleibt. Kein Eingriff in Modellwerte oder WMO-Palette.
+- **Export**: `cloudWeatherSvg`/PNG verwendet die Wasserbasis und Country-Ringe plus alle 16 deutschen Bundesländer aus vorhandenem Natural Earth. Die vorhandene Country-Liste bildet Deutschland nicht als zusammenhängende Landfläche ab; Bundesländer schließen diese Lücke. SVG-/PNG-Raster liegt darüber. Kein erfundener Satellitendatensatz; bekannte land/water-Geometrieauflösungsunterschiede dokumentiert.
+- **Regression**: neu `scripts/test-pseudo-satellite-basemap-0985281.mjs` (Farbkonstanz, Layerorder, Missing-/Clear-Transparenz, Export, 5 Land- und 3 Meer-Kontrollpunkte). In zwei bestehenden Pseudo-Sat-Tests wird lediglich die bewusst erweiterte Export-Aufrufsignatur mit `geography.countries` aktualisiert; fachliche Kontur-/WMO-Assertions bleiben erhalten. Vollständige Source-/Heavy- und Release-Gates müssen unabhängig erneut nachgewiesen werden.
+- **Versionsspiegel**: v0.9.85.281 in package/lock, App/Worker, beiden Service-Workern, Build-/Release-Dokumentation, Baseline und Contract-Registry, iOS-Buildnummer 282 ohne behauptete physische iOS-/VoiceOver-Abnahme.
+- **Freigabesperre**: Quell-PR zum geschützten `main`, SHA-gebundener MID-Release-Bot, serverseitiges ZIP, `install-mid.yml`, Worker-/Pages-Gates, Stable-Promotion. Keine PR-Completion-Standardmerges, manuelle Production-Releases oder Ausnahmen.
+
 # MID v0.9.85.280 – Technischer Entwicklungsnachweis (Source, nicht automatisch veröffentlicht)
 
 - Basis: v0.9.85.279 `afceb2d0b770a7f7c337cc1b9e69359dcfee19d6`, SHA-identische freigegebene Hauptbranches nach Installer #39019809930.

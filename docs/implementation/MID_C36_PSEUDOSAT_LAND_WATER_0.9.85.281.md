@@ -2,7 +2,7 @@
 
 ## Verifizierte Basis und Branch
 
-Freigegebene Ausgangsbasis bei Beginn: MID v0.9.85.279, `main = mid-stable = afceb2d0b770a7f7c337cc1b9e69359dcfee19d6`. Neuer, gesonderter Source-Branch `chatgpt/v0.9.85.281-pseudosat-land-water`, **noch nicht veröffentlicht und ohne Source-PR**. PR #393 (.280: Push-Zeiten/Synoptik-Isobaren) ist eine parallele, vor Veröffentlichung zuerst vollständig zu promotende Vorstufe. Issue #392 mit Screenshot IMG_2319.jpeg.
+Ursprüngliche Entwurfsbasis: v0.9.85.279, SHA `afceb2d0b770a7f7c337cc1b9e69359dcfee19d6`; gesicherter Vorbereitungs-Branch `chatgpt/v0.9.85.281-pseudosat-land-water`, SHA `d13cd9aa0cbb4106c99ebd800199549dba6dc813`. Freigegebene Integrationsbasis nach vollständigem PR-#393-Release: MID v0.9.85.280, `main = mid-stable = 9bb12c712cce0d6a5f73460cbe76c4a498c9a01c`; Release-Branch `chatgpt/v0.9.85.281-pseudosat-land-water-release`. Das ist weiterhin nur Source-Arbeit, keine veröffentlichte .281. Issue #392, Screenshot IMG_2319.jpeg.
 
 ## Nutzerproblem und Datenabgrenzung
 
@@ -23,4 +23,4 @@ Das bisherige Pseudo-Satelliten-Wolkenbild verwendet in Light zwei nahe Graublau
 
 ## Release-Gate
 
-Vor PR: nach erfolgreicher .280-Stable-Promotion Main/Stable-SHAs, offene PRs und Release-Verträge erneut lesen. Aktuelle .280-Quellen **ohne Reset/Force-Push** nach SHA-gesicherter WIP-Arbeit integrieren; v0.9.85.281 mit allen Spiegeln und Nutzer-Changelog bauen. Danach einzig Source-PR-Gate → kontrollierter Bot-Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker-/Pages-Gates → Stable-Promotion. Bis dahin kein grüner Produktionsstatus für .281.
+Main/Stable-SHAs, offene PRs und Release-Verträge für .280 geprüft; .281 aus der SHA-gesicherten Vorbereitung ausschließlich per Dateiübernahme auf die .280-Stable-Basis integriert, ohne Reset/Force-Push. Baseline, Changelog und Versionsspiegel auf .281 anpassen und Source-/Heavy-Gates prüfen. Danach einzig Source-PR-Gate → kontrollierter Bot-Merge → serverseitiges ZIP → `install-mid.yml` → betroffene Worker-/Pages-Gates → Stable-Promotion. Bis dahin kein grüner Produktionsstatus für .281.

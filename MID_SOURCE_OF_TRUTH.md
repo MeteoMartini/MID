@@ -1,3 +1,10 @@
+# MID v0.9.85.281 · Pseudo-Sat-Land/Wasser (Source-PR-Kandidat)
+
+- Verifizierte freigegebene Basis: `main = mid-stable = 9bb12c712cce0d6a5f73460cbe76c4a498c9a01c`, v0.9.85.280 nach Installer 39023811560. Keine offenen konkurrierenden Produkt-PRs beim Start. Vor Release erneut Drift/CI prüfen.
+- Schematische Modellwolken erhalten in heller Ansicht eine geografisch geprüfte ruhige Land-/Wasserkarte aus bestehender OpenFreeMap-Quelle. In der separaten ICON-D2-Karte bleibt das Wolken-Wetterraster über der Kartenbasis. SVG/PNG benutzen dieselbe Palette und Natural-Earth-Country-Ringe samt 16 Bundesländerflächen; transparente Clear-/Missing-Pixel bleiben unverändert. Keine Änderung echter Satellitenbeobachtungen, amtlicher Warnungen oder meteorologischer Zahlen.
+- Neue gezielte Regression `scripts/test-pseudo-satellite-basemap-0985281.mjs` mit Küsten-/Inland-/Meerproben. Zwei historische Export-Aufruf-Verträge werden nur an die zusätzliche Geometrie-Übergabe angepasst. App- und Worker-Versionsspiegel werden gemeinsam auf .281 gehoben.
+- Quelle und Tests sind **kein Release-Nachweis**. Erst Source-Gate, Bot-Merge, serverseitiges ZIP, Installer, Worker/Pages und Stable-Promotion erlauben Veröffentlichungsaussagen.
+
 # MID v0.9.85.280 · Pushzeit-Darstellung und modellgetreue Isobaren (Source-PR-Kandidat)
 
 - Verifizierter Ausgangspunkt `main=mid-stable=afceb2d0b770a7f7c337cc1b9e69359dcfee19d6`, freigegebene v0.9.85.279; Issue #392. Keine konkurrierende Produkt-PR.

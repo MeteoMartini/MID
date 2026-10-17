@@ -29,7 +29,7 @@ try{
  const exportSource=readFileSync('src/cloudWeatherExport.ts','utf8');
  assert.ok(unified.includes('exportCloudWeather(cloudWeather.data,cloudWeather.raster,places,type,cloudRenderMode,linesActive?selectedCloudIsobars:null,heightsActive?selectedCloudIsoheights:null)'));
  assert.ok(native.includes('exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContourSelection)'));
- assert.ok(exportSource.includes('cloudWeatherSvg(data,raster,places,geography.states,mode,selectedIsobars,selectedIsoheights)'));
+ assert.ok(exportSource.includes('cloudWeatherSvg(data,raster,places,geography.states,mode,selectedIsobars,selectedIsoheights,geography.countries)'));
  assert.match(exportSource,/matchingCloudIsobars\(data,selectedIsobars\)/);
  await build({entryPoints:['src/cloudWeatherExport.ts'],outfile:path.join(dir,'export.mjs'),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
  const exporter=await import(pathToFileURL(path.join(dir,'export.mjs')));

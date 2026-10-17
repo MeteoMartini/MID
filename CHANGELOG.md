@@ -1,3 +1,9 @@
+# MID v0.9.85.281 · Natürlichere Land- und Wasserfarben im Modell-Wolkenbild
+
+- Das **schematische Modell-Wolkenbild** erhält einen ruhigeren, geografisch unterscheidbaren Untergrund: Landflächen in natürlichem Sandgrau und Meere/Seen in zurückhaltendem Blaugrau. Das hilft insbesondere in Küstengebieten, bei wenig Bewölkung und unter transparenten Wolken.
+- Die einheitliche Darstellung erreicht die gemeinsame Kartenansicht, die separate ICON-D2-Modellkarte und die PNG-/SVG-Exporte. Verifizierte Vektor-Wasserflächen und die vorhandenen Natural-Earth-Landgeometrien einschließlich der Bundesländer bilden die Grenzen; Wolken und Wetterraster liegen sichtbar darüber.
+- Die Normal-/Satelliten-/Radaransichten, helle und dunkle Standardkarten, Wetterphasenfarben, Modellwerte, Isobaren, Uhrzeiten, RUC-Verarbeitung und amtliche Warnungen bleiben unverändert. Das Wolkenbild ist ausdrücklich **kein echtes Satellitenbild**; die Farben kennzeichnen die Kartengrundlage, nicht meteorologische Messwerte.
+- Land-/Wassergeometrien in Offline-Exporten und Online-Vektorkacheln besitzen unterschiedliche Detailgrade; kleinste Binnengewässer können abweichen. Die kartografische Genauigkeit wird nicht über den Datenstand der vorhandenen Quellen hinaus behauptet.
 # MID v0.9.85.280
 
 - **Regen- und Schneebeginn einfacher lesbar:** Relative Vorlaufzeiten werden auf ganze 5-/10-Minutenstufen gerundet; Dauerangaben verwenden Stunden und Minuten statt Dezimalstunden. Die tatsächlichen Ereigniszeiten und meteorologischen Auslöseschwellen bleiben unverändert.
