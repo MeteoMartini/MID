@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.279",
+  "releaseVersion": "0.9.85.280",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-mid280-push-time-isobars.mjs",
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
     "scripts/test-pseudo-satellite-cloud-render-0985276.mjs",
     "scripts/test-pseudo-satellite-isobars-0985277.mjs",
@@ -3596,7 +3597,7 @@
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs"
   ],
-  "version": "0.9.85.279",
+  "version": "0.9.85.280",
   "updatedAt": "2026-10-17T07:39:06.501Z",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",

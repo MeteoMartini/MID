@@ -1,3 +1,10 @@
+# MID v0.9.85.280 – Technischer Entwicklungsnachweis (Source, nicht automatisch veröffentlicht)
+
+- Basis: v0.9.85.279 `afceb2d0b770a7f7c337cc1b9e69359dcfee19d6`, SHA-identische freigegebene Hauptbranches nach Installer #39019809930.
+- Nutzerauftrag: #392; Regen-Vorlauf und Dauer neu formatiert; absolute Orts-/Gerätezeit als persistierte Push-Option; per-Modell-Synoptik-Isobaren sichtbar schaltbar, inklusive GFS/IFS.
+- Worker-Quelle und die beiden generierten Worker-Aggregate sind bytegenau synchronisiert; Browser-/Worker-Vertrag bleibt abwärtskompatibel. Keine Änderung der meteorologischen Berechnung oder RUC-Kompression.
+- Verifikation: neuer `test-mid280-push-time-isobars.mjs`; Source-PR-, Release-Core-, Heavy-, Worker-/Pages- und Stable-Prüfungen müssen nach Commit grün belegt werden.
+
 ## MID v0.9.85.279 · 17.10.2026 · Ortssuche-Recovery und pseudogeografische Kartenkonturen
 
 - Source-of-Truth: freigegebener `main=mid-stable=ee2c00bfd0db42cf0f48715bccd0dbff1e221c42` (v0.9.85.278), erfolgreicher Installer #39012604444, keine konkurrierenden offenen Produkt-PRs.
