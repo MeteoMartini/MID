@@ -24,7 +24,9 @@ Worker-Antwort und Status enthalten den normalisierten akzeptierten Modus und di
 Gerätezeitzone. Ohne positive Bestätigung der konkreten Auswahl darf der Client
 keinen Erfolg melden. Die Oberfläche unterscheidet lokal gespeichert, Übertragung
 ausstehend, serverseitig bestätigt und ein noch nicht aktives Geräteabo. Veraltete
-Antworten älterer Auswahlen überschreiben die aktuelle Statusmeldung nicht. Fehlgeschlagenes
+Antworten älterer Auswahlen und Statusabfragen überschreiben die aktuelle Auswahl
+nicht. Nach bestätigtem POST, aber noch abweichender Statusantwort bleibt die UI
+explizit auf „Statusbestätigung ausstehend“ statt widersprüchlich Erfolg zu melden. Fehlgeschlagenes
 lokales Speichern wird ausdrücklich als Fehler angezeigt und nicht als übertragene Auswahl.
 
 Scheduler und Testmitteilung lesen die Registrierung vor Runtime-Rückschreibungen

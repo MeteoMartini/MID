@@ -38,20 +38,21 @@ function RuleRows({rules,onChange,advancedMode}:{rules:PushRules;onChange:(key:P
 
 export function PushSettingsPanel({favorites,onRuleChange,locationTracking,trackedLocation,trackedRules,onTrackedRuleChange,modelChangeLocation,modelChangeAvailable,modelChangeNotificationEnabled,onModelChangeNotificationChange,notificationIntervalMinutes,onNotificationIntervalChange,precipitationAlert,onPrecipitationAlertChange,advancedMode}:PushSettingsProps){
  const[status,setStatus]=useState<PushStatus|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[timeDisplayMode,setTimeDisplayMode]=useState<PushTimeDisplayMode>(readPushTimeDisplayMode);
- const timeDisplaySequence=useRef(0);
+ const timeDisplaySequence=useRef(0),statusSequence=useRef(0);
  const activeRules=useMemo(()=>favorites.reduce((sum,item)=>sum+Number(Boolean(item.rules.precipitationStart))+Number(Boolean(item.rules.thunderstormApproach)),(locationTracking?Number(trackedRules.precipitationStart)+Number(trackedRules.thunderstormApproach):0)+Number(modelChangeNotificationEnabled&&Boolean(modelChangeLocation))),[favorites,locationTracking,trackedRules.precipitationStart,trackedRules.thunderstormApproach,modelChangeNotificationEnabled,modelChangeLocation]);
  const pushPayload=()=>payload(favorites,locationTracking,trackedLocation,trackedRules,modelChangeLocation,modelChangeNotificationEnabled);
- const refresh=async()=>{try{setStatus(await getPushStatus())}catch(error){setMessage(error instanceof Error?error.message:String(error))}};
+ const refresh=async()=>{const request=++statusSequence.current,choice=timeDisplaySequence.current;try{const next=await getPushStatus();if(request===statusSequence.current&&choice===timeDisplaySequence.current)setStatus(next);return next}catch(error){if(request===statusSequence.current&&choice===timeDisplaySequence.current)setMessage(error instanceof Error?error.message:String(error));return null}};
  useEffect(()=>{void refresh()},[]);
  const activate=async()=>{setBusy(true);setMessage('');try{await enablePushNotifications(pushPayload(),notificationIntervalMinutes,precipitationAlert);setMessage('Benachrichtigungen wurden auf diesem Gerät aktiviert.');await refresh()}catch(error){setMessage(error instanceof Error?error.message:'Benachrichtigungen konnten nicht aktiviert werden.')}finally{setBusy(false)}};
  const chooseTimeDisplay=async(mode:PushTimeDisplayMode)=>{
-  const sequence=++timeDisplaySequence.current;if(!writePushTimeDisplayMode(mode)){setTimeDisplayMode(readPushTimeDisplayMode());setMessage('Zeitanzeige konnte auf diesem Gerät nicht gespeichert werden. Bitte Gerätespeicher-Einstellungen prüfen.');return}setTimeDisplayMode(mode);
+  const sequence=++timeDisplaySequence.current;if(!writePushTimeDisplayMode(mode)){setTimeDisplayMode(readPushTimeDisplayMode());setMessage('Zeitanzeige konnte auf diesem Gerät nicht gespeichert werden. Bitte Gerätespeicher-Einstellungen prüfen.');return}setTimeDisplayMode(mode);setStatus(current=>current?{...current,timeDisplayMode:undefined}:current);
   setMessage('Zeitanzeige lokal gespeichert · Übertragung ausstehend.');
   try{
    const synced=await syncPushNotifications(pushPayload(),notificationIntervalMinutes,precipitationAlert);
    if(sequence!==timeDisplaySequence.current)return;
-   setMessage(synced?'Zeitanzeige serverseitig bestätigt.':'Zeitanzeige lokal gespeichert · Benachrichtigungen sind auf diesem Gerät noch nicht aktiviert.');
-   if(synced)await refresh();
+   if(!synced){setMessage('Zeitanzeige lokal gespeichert · Benachrichtigungen sind auf diesem Gerät noch nicht aktiviert.');return}
+   const next=await refresh();if(sequence!==timeDisplaySequence.current)return;
+   setMessage(next?.serverRegistered&&next.timeDisplayMode===mode?'Zeitanzeige serverseitig bestätigt.':'Zeitanzeige übertragen · Statusbestätigung ausstehend.');
   }catch(error){if(sequence===timeDisplaySequence.current)setMessage(error instanceof Error?error.message:'Zeitanzeige lokal gespeichert · Übertragung noch nicht bestätigt.')}
  };
  const deactivate=async()=>{setBusy(true);setMessage('');try{await disablePushNotifications();setMessage('Benachrichtigungen wurden auf diesem Gerät deaktiviert.');await refresh()}catch(error){setMessage(error instanceof Error?error.message:'Benachrichtigungen konnten nicht deaktiviert werden.')}finally{setBusy(false)}};
