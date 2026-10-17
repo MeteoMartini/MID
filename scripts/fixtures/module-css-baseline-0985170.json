@@ -361,7 +361,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainSki",
-      "sha256": "f4c85b9fdcb4b16c273975c4fe43dfd4a9a03cdde5211e34ca1e45927c5357bd",
+      "sha256": "02856053c8e3fc8806f1cfc8d7ffe00aa1910ec430dd10805908b5ac26d8e1ea",
       "previousSha256": "bb3fb71545ef3a16951f3fa9f968542b43e04a4e5d3d98527dff4e5711a18bea",
       "displayContractRevision": "0.9.85.243",
       "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
