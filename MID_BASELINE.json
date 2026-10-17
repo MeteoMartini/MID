@@ -996,7 +996,8 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
-    "scripts/test-model-freshness-pill-0985273.mjs"
+    "scripts/test-model-freshness-pill-0985273.mjs",
+    "scripts/test-pseudo-satellite-basemap-0985281.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1982,7 +1983,8 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-d2-cloud-after-codec-0985270.mjs",
-    "scripts/test-model-freshness-pill-0985273.mjs"
+    "scripts/test-model-freshness-pill-0985273.mjs",
+    "scripts/test-pseudo-satellite-basemap-0985281.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -2885,7 +2887,9 @@
     "tools/ruc/test_prepare_lossless_snapshot.py",
     "docs/implementation/MID_C32_RUC_FULL_WORKER_PREFLIGHT_0.9.85.266.md",
     "scripts/test-skybar-solar-epoch-split-0985278.mjs",
-    "docs/implementation/MID_C35_SKYBAR_SOLAR_EPOCHS_0.9.85.278.md"
+    "docs/implementation/MID_C35_SKYBAR_SOLAR_EPOCHS_0.9.85.278.md",
+    "scripts/test-pseudo-satellite-basemap-0985281.mjs",
+    "src/pseudoSatelliteBasemap.ts"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
