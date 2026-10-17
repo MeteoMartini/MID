@@ -26,7 +26,7 @@ assert.match(background,/export function markForegroundNetworkBusy/);
 assert.match(background,/export function markForegroundNetworkReady/);
 assert.match(background,/export function runBackgroundNetworkTask/);
 assert.match(background,/tail\.catch\(\(\)=>undefined\)\.then/,'Hintergrundjobs werden nicht global serialisiert.');
-assert.match(app,/abortAllRequests\(\);markForegroundNetworkBusy\(\)/,'Core-Reload setzt die Hintergrundbremse nicht.');
+assert.match(app,/abortAllRequests\(\);if\(forecastTimeoutRetryRef\.current!==undefined\).*?markForegroundNetworkBusy\(\)/s,'Core-Reload räumt alte Retry-Timer auf, bevor die Hintergrundbremse gesetzt wird.');
 assert.match(app,/finally\{finishRequest\('forecast',forecastController\);if\(id===seq\.current\)markForegroundNetworkReady\(\)\}/,'Terminaler Core-Forecast gibt die Hintergrundbremse nicht zuverlässig frei.');
 assert.doesNotMatch(app,/setW\(fw\);markForegroundNetworkReady\(\)/,'Hintergrundfreigabe darf nicht erneut nur an den Erfolgszweig gekoppelt werden.');
 
