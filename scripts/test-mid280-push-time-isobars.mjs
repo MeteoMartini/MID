@@ -11,8 +11,10 @@ assert.equal(validPushTimeDisplayMode(undefined),'relative');assert.equal(validP
 const event={upcomingAt:'2026-10-25T01:30:00.000Z',upcomingMinutes:90};
 let timing=pushPrecipitationTiming(event,'absolute','Europe/Berlin',Date.parse('2026-10-25T00:00:00Z'));
 assert.match(timing.title,/02:30 Uhr/);assert.match(timing.body,/MEZ/);
+timing=pushPrecipitationTiming({upcomingAt:'2026-10-17T22:55:00.000Z',upcomingMinutes:90},'absolute','Europe/Berlin',Date.parse('2026-10-17T21:25:00Z'));
+assert.match(timing.title,/18\.10\./,'Datum am lokalen Tageswechsel angeben');
 timing=pushPrecipitationTiming({upcomingAt:'2026-10-17T23:55:00.000Z',upcomingMinutes:90},'absolute','Europe/Berlin',Date.parse('2026-10-17T22:25:00Z'));
-assert.match(timing.title,/18\.10\./);
+assert.doesNotMatch(timing.title,/18\.10\./,'Am selben lokalen Kalendertag Datum nicht unnötig wiederholen');
 assert.equal(pushPrecipitationTiming({upcomingAt:'',upcomingMinutes:49},'absolute','Europe/Berlin').title,'in ca. 50 Minuten');
 assert.equal(pushPrecipitationTiming(event,'absolute','Invalid/Zone').title,'in ca. 1 Stunde 30 Minuten');
 assert(worker.includes('upcomingAt:new Date(group[0].time).toISOString()'),'Ereignisbeginn muss aus Original-UTC-Epoch kommen');
