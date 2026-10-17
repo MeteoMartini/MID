@@ -1,3 +1,10 @@
+# MID v0.9.85.279 · Wetterabruf-Retry und Pseudo-Sat-Kartenverbesserung
+
+- Ein sporadisch verzögerter Wetterabruf nach einem Ortswechsel erhält einmalig einen kontrollierten automatischen Wiederholungsversuch. Bei anhaltendem Fehler lässt sich der Wetterabruf manuell neu starten. Ergebnisse veralteter Ortsanfragen bleiben ausgeschlossen.
+- Das schematische Modell-Wolkenbild mit Wettererscheinungen behält die bisherige gespeicherte Darstellung. Bei diesem Produkt wird im hellen Design ausschließlich während bestätigter Modelltermine eine ruhigere, kontrastreichere Kartenbasis verwendet.
+- Zusätzlich zu den optionalen Bodendruck-Isobaren lassen sich verifizierte 500-hPa-Isohypsen (gpdm) unabhängig zuschalten und speichern. Beide Konturentypen dürfen nur zum identischen Modell, Lauf und Gültigkeitstermin erscheinen und werden entsprechend in PNG/SVG übernommen.
+- Niederschlagsmengen, WMO-Wetterphasen, Datenlücken, amtliche Warnungen, RUC-Kompression und vorhandene Kartenprodukte bleiben unverändert. Modell-Wolkenbilder sind keine Satellitenmessungen.
+
 # MID v0.9.85.278 · Skybar an tatsächlichen Sonnenzeiten ausrichten
 
 - Die durchgehende Skybar unterscheidet jetzt auch innerhalb eines Stunden- oder Viertelstundenabschnitts präzise zwischen Nacht und Tageslicht. So verschwinden scheinbare Lücken unmittelbar nach Sonnenaufgang und gelbe Wolkenlücken enden rechtzeitig bei Sonnenuntergang.

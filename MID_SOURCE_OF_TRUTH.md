@@ -1,3 +1,11 @@
+# MID v0.9.85.279 · Geprüfte Pseudo-Sat-Kartenkonturen und Ortswechsel-Recovery (Source-PR-Kandidat)
+
+- Ausgangsbasis `main=mid-stable=ee2c00bfd0db42cf0f48715bccd0dbff1e221c42` als freigegebene v0.9.85.278, keine konkurrierende Produkt-PR.
+- Ortssuche-Timeout wird nach direktem/Worker-Ausfall ohne vorhandenen passenden Cache nur einmal pro unverändertem Ort automatisch nachgefragt; Ergebnis der alten Ortssuche niemals übernehmen; manuelles Retry verfügbar.
+- Schematisches Wolken-/Wetterbild bleibt lokal gespeichert. Pseudo-Layer zeigt dunklere geografische Kartenbasis ausschließlich in Light und nur bei echten Modell-Terminen. Neue Konturauswahl ergänzt MSLP-Isobaren (hPa) um bestätigte 500-hPa-Isohypsen (gpdm); strikt gleicher Modelllauf und Gültigkeitszeitpunkt für Karte/PNG/SVG. Kein GDPS-Fallback oder Radiometrie-Fiktion.
+- Keine neuen kostenpflichtigen Datenprodukte, keine Änderung an RUC-Kompression, WMO-Code, fehlenden Wetterwerten oder amtlichen Warnungen.
+- Einträge beschreiben einen Source-PR-Kandidaten und dürfen nicht mit erfolgreicher Produktion verwechselt werden, bis kompletter ZIP-/Install-/Pages-/Worker-/Stable-Release abgeschlossen ist.
+
 # MID v0.9.85.278 · Exakte Skybar-Sonnenzeit-Segmente (Source-PR-Kandidat)
 
 - Verifizierter Ausgangspunkt `main = mid-stable = 6754d25358c809966a3e1d026c88f500a1699d69`, v0.9.85.277. Laufende RUC-/Revisions-/Widgetaktionen bleiben separate, nicht zu überschreibende Pipelines. Kein Repo-Handoff aus dem alten Replit-Workspace.
