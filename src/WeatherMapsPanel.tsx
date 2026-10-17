@@ -1,3 +1,4 @@
+import './mapCanvasResponsive.css';
 import {AppInfoHint} from './AppInfoPopover';
 import NativeModelMap from './NativeModelMap';
 import {alphabeticalMapOptions} from './mapOptionOrdering';
@@ -55,7 +56,6 @@ function WeatherMapsPanel({latitude,longitude,timezone,locationName,favorites=[]
   <div className="weather-maps-primary-controls" aria-label="Primäre Kartenauswahl">
    <label><span>Kartenprodukt</span><select aria-label="Kartenprodukt" value={product.id} onChange={event=>chooseProduct(event.target.value)}>{['Niederschlag','Temperatur','Wind','Druck & Höhen','Weitere Wetterfelder'].map(family=>{const matching=alphabeticalMapOptions(products.filter(item=>weatherMapProductFamily(item)===family));return matching.length?<optgroup key={family} label={family}>{matching.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</optgroup>:null})}</select></label>
    <label><span>Modell</span><select aria-label="Modell" value={modelId} onChange={event=>chooseModel(event.target.value as WeatherMapModelId)}>{alphabeticalMapOptions(WEATHER_MAP_MODELS).map(item=><option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
-   <label><span>Kartenbasis</span><select aria-label="Kartenbasis" value={basemap} onChange={event=>setBasemap(event.target.value as BasemapId)}>{Object.entries(BASEMAPS).map(([id,item])=><option key={id} value={id}>{item.label}</option>)}</select><small>Grenzen und Ortsnamen bleiben über dem Wetterfeld sichtbar.</small></label>
   </div>
   {isTotals?<PrecipitationTotalsMap favorites={favorites} embedded basemap={basemap} kind={product.source==='observed-totals'?'observed':'forecast'}/>:product.source==='native'&&product.nativeKind?<NativeModelMap kind={product.nativeKind} label={product.label} favorites={favorites} basemap={basemap} unit={unit}/>:<>
   <div className="model-map-layout"><div className="model-map-main">
@@ -70,6 +70,7 @@ function WeatherMapsPanel({latitude,longitude,timezone,locationName,favorites=[]
     liveControl={<MapTimelineLiveButton className="weather-maps-live" active={Boolean(times.length)&&timeIndex===preferredWeatherMapTimeIndex(times)} onClick={goNearNow} disabled={!times.length} label="Jetzt"/>}
    />
   <details className="weather-maps-advanced"><summary><Settings2 size={16}/><span><b>Darstellung & Ebenen</b><small>Druckfläche, Kartenbasis und Deckkraft</small></span><ChevronDown className="weather-maps-disclosure-icon" size={16}/></summary><div className="weather-maps-toolbar">
+   <label><span>Kartenbasis</span><select aria-label="Kartenbasis" value={basemap} onChange={event=>setBasemap(event.target.value as BasemapId)}>{Object.entries(BASEMAPS).map(([id,item])=><option key={id} value={id}>{item.label}</option>)}</select><small>Grenzen und Ortsnamen bleiben über dem Wetterfeld sichtbar.</small></label>
    {availableLevels.length?<label><span>{product.levelKind==='height'?'Höhe':'Druckfläche'}</span><select value={level??availableLevels[0]} onChange={event=>setSelectedLevel(Number(event.target.value))}>{availableLevels.map(value=><option key={value} value={value}>{levelLabel(product,value)}</option>)}</select><small>{product.levelKind==='height'?'Höhe über Grund':'Atmosphärisches Druckniveau'}</small></label>:null}
 
    <label className="weather-maps-opacity"><span>Deckkraft <b>{Math.round(opacity)} %</b></span><input type="range" min={20} max={100} value={opacity} onChange={event=>setOpacity(Number(event.target.value))}/></label>

@@ -1,3 +1,17 @@
+- Native-Map-Popup: Nach dem Platzieren oberhalb eines teilweise aus dem Viewport ragenden Ankers wird die berechnete Position jetzt zwingend erneut geklemmt. Bisher war die Bounds-Prüfung ausschließlich im else-Zweig; dadurch konnten Kartenwert-Popups im Querformat unten hinausragen. Dieselbe Korrektur gilt für Punkt-Popups; die 844×390-Browserprüfung bleibt unverändert streng.
+
+- Regression follow-up: immutables .169 CSS cascade restored without rewriting golden fingerprint; new maps-only CSS code-splits alongside lazily imported RadarPanel/WeatherMapsPanel (Vite cssCodeSplit=true) to preserve the 1.76 MB initial CSS budget. Source fixture includes the deferred stylesheet. Legacy push test now verifies the new compact Isobaren label while retaining default-on and persistence assertions; mountain baseline checks minimum .283 and version mirror rather than pinning a prior release.
+
+# Map-Popup viewport bounds: Browserbefund 844×390 mit 7,5 px unterem Überlauf. Die Positionierung richtet sich jetzt nach der tatsächlich gerenderten Bounding-Rect-Höhe statt offsetHeight und begrenzt den sichtbaren Viewport konservativ; ResizeObserver reagiert auf Daten-/Labeländerungen. Echter Browser-Überlauftest bleibt verpflichtend.
+
+# MID v0.9.85.284 · Mobile weather map canvas
+
+- Baseline SHA 532f56a95a6d47a5cb2218146aaa038d7a74384c.
+- RadarPanel: semantisch native details für Secondary-Layer/Modell und Linienstile, standardmäßig auf schmalen Viewports geschlossen. Beobachtungs-Master, Terminselector und Timeline bleiben jederzeit erhalten.
+- WeatherMapsPanel: Basemap im Advanced-Menü, zwei primäre Dropdowns für Produkt/Modell; Statusleiste außerhalb des Wetterkarten-Canvas bei <=850px.
+- Style rules: >70 svh map viewport, mobile line mini-trigger, 44px summaries, focus-visible, reduced-motion, landscape, Light/Dark via Tokens.
+- No meteorological data transformations, contour-value conversions, API, warning, worker pipeline or RUC changes. Required script: scripts/test-map-canvas-mobile-0985284.mjs. CI/browser/installer gates must prove release.
+
 # MID v0.9.85.283 · Technischer Entwicklungsnachweis (Source-PR-Kandidat)
 
 - Ausgangsbasis `main=mid-stable=b02d1b018882807fbce114cf6816f520f52339d1`, v0.9.85.282, Installer #39038958909 grün. Issue #398; Branch `chatgpt/v0.9.85.283-forecast-mountain-resilience`.
