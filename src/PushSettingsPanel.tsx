@@ -43,7 +43,17 @@ export function PushSettingsPanel({favorites,onRuleChange,locationTracking,track
  const refresh=async()=>{try{setStatus(await getPushStatus())}catch(error){setMessage(error instanceof Error?error.message:String(error))}};
  useEffect(()=>{void refresh()},[]);
  const activate=async()=>{setBusy(true);setMessage('');try{await enablePushNotifications(pushPayload(),notificationIntervalMinutes,precipitationAlert);setMessage('Benachrichtigungen wurden auf diesem Gerät aktiviert.');await refresh()}catch(error){setMessage(error instanceof Error?error.message:'Benachrichtigungen konnten nicht aktiviert werden.')}finally{setBusy(false)}};
- const chooseTimeDisplay=(mode:PushTimeDisplayMode)=>{writePushTimeDisplayMode(mode);setTimeDisplayMode(mode);setMessage('');void syncPushNotifications(pushPayload(),notificationIntervalMinutes,precipitationAlert).catch(()=>setMessage('Zeitanzeige gespeichert; die Übertragung zum Benachrichtigungsdienst konnte noch nicht bestätigt werden.'))};
+ const chooseTimeDisplay=(mode:PushTimeDisplayMode)=>{
+  writePushTimeDisplayMode(mode);setTimeDisplayMode(mode);setMessage('Zeitanzeige wird mit dem Benachrichtigungsdienst abgeglichen …');
+  void syncPushNotifications(pushPayload(),notificationIntervalMinutes,precipitationAlert).then(async synced=>{
+   if(readPushTimeDisplayMode()!==mode)return;
+   if(!synced){setMessage('Zeitanzeige nur auf diesem Gerät gespeichert. Bitte Benachrichtigungen aktivieren, um sie für Push-Mitteilungen zu übernehmen.');return}
+   const next=await getPushStatus();
+   if(readPushTimeDisplayMode()!==mode)return;
+   setStatus(next);
+   setMessage(next.serverRegistered&&next.timeDisplayMode===mode?`Zeitanzeige ${mode==='absolute'?'Absolut':'Relativ'} vom Benachrichtigungsdienst bestätigt.`:'Speicherung übermittelt; Serverstatus noch nicht bestätigt. Bitte Status erneut prüfen.');
+  }).catch(()=>{if(readPushTimeDisplayMode()===mode)setMessage('Auswahl lokal gespeichert, aber nicht vom Benachrichtigungsdienst bestätigt. Bitte später erneut synchronisieren.')});
+ };
  const deactivate=async()=>{setBusy(true);setMessage('');try{await disablePushNotifications();setMessage('Benachrichtigungen wurden auf diesem Gerät deaktiviert.');await refresh()}catch(error){setMessage(error instanceof Error?error.message:'Benachrichtigungen konnten nicht deaktiviert werden.')}finally{setBusy(false)}};
  const sendTest=async()=>{setBusy(true);setMessage('');try{await sendPushTestNotification();setMessage('Testmitteilung wurde an dieses Gerät gesendet.');await refresh()}catch(error){setMessage(error instanceof Error?error.message:'Testmitteilung konnte nicht gesendet werden.')}finally{setBusy(false)}};
  const permission=status?.permission,technicalNote='Für Benachrichtigungen werden nur die dafür aktivierten Geräte- und Ortsdaten verwendet. Bei Standortverfolgung gilt die zuletzt erfolgreich ermittelte Position; eine dauerhafte Hintergrund-Ortung findet nicht statt.';
