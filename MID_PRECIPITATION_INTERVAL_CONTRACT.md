@@ -121,7 +121,9 @@ Im direkten Radarhorizont besitzt die beobachtete/advectierte lokale Niederschla
 
 ## 8. Tagesaggregation
 
-Für den laufenden Tag summiert MID nur die noch zukünftigen Anteile sichtbarer Niederschlagsintervalle. Ein von `now` angeschnittenes erstes Stundenintervall geht nur mit seinem verbleibenden Zeitanteil in die Resttagesmenge ein. Temperatur-Minima/-Maxima werden davon nicht verändert.
+Ab v0.9.85.285 bezeichnet `Day` stets den vollständigen lokalen Kalendertag von 00:00 bis zur nächsten lokalen Mitternacht (einschließlich echter 23-/25-Stunden-Tage). Bei lückenhafter Stundenreihe bleibt das gültige kanonische Tagesprodukt erhalten. Eine Stundenaggregation darf Tagesniederschlag, Wahrscheinlichkeit, Wettercode und Komponenten nur ersetzen, wenn jeder reale sichtbare Stunden-Slot und sein folgendes endgestempeltes Akkumulationssample vorhanden und gültig sind. Leere Strings, Booleans, nicht endliche oder negative Mengen und doppelte Rohendpunkte sind keine vollständige Abdeckung. Missing Data sind niemals eine trockene Stunde.
+
+Eine ausdrücklich als **Resttagesmenge** bezeichnete Zukunftsmetrik darf weiterhin nur die zukünftigen Intervallanteile summieren: Ein von `now` angeschnittenes erstes Stundenintervall zählt dann anteilig. Sie darf den vollständigen Tageswert in Tageskarten, Widgets oder Exporten nicht ersetzen. Rollierende 90-min-/12-h-/24-h-Profile behalten ihre eigenen Zeitgrenzen; Temperatur-Minima/-Maxima bleiben vom Unterschied zwischen Tages- und Resttagesmenge getrennt.
 
 ## 9. Fehlende Anschlussstunde
 

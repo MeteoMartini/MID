@@ -59,8 +59,8 @@ try{
  assert.equal(radarHours[0].precipitation,0);
  assert.equal(radarHours[0].code,3);
  const reconciled=mod.reconcileForecastDaysWithHours([baseDay],radarHours);
- assert.equal(reconciled[0].precipitation,0,'Tageskarte und Detailansicht müssen denselben Nowcast-Niederschlag nutzen');
- assert.ok(reconciled[0].probability<=1,'Tageskarte und Detailansicht müssen dieselbe Nowcast-Wahrscheinlichkeit nutzen');
+ assert.equal(reconciled[0].precipitation,.2,'einzelne trockene Nowcast-Stunde darf volle Tagesquelle nicht ersetzen');
+ assert.equal(reconciled[0].probability,12,'Ganztagswahrscheinlichkeit bleibt bei unvollständigen Stunden erhalten');
  const radarWet={source:'dwd',provider:'DWD Radar',quality:'high',radarProbability:90,currentRate:1.2,peakRate:2,arrivalMinutes:20,endMinutes:100,coverage:true,summary:'Echo nähert sich'};
  const wet=mod.applyOperationalNowcastHours([baseHour],radarWet)[0];
  assert.ok(wet.probability>baseHour.probability,'nasses Radar muss Regenwahrscheinlichkeit erhöhen statt unterdrücken');

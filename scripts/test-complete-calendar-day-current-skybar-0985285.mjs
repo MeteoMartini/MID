@@ -27,6 +27,12 @@ try {
   assert.equal(full(date,timezone,[...display.slice(1),display[1]],raw),false,'repeated hour cannot replace missing hour');
   assert.equal(full(date,timezone,display,raw.map((h,i)=>i===3?{...h,precipitation:null}:h)),false,'null is never zero');
   assert.equal(full(date,timezone,display,raw.map((h,i)=>i===3?{...h,precipitation:NaN}:h)),false,'NaN is never zero');
+  for(const invalid of ['', ' ', false, true, undefined, -1, Infinity, '0']){
+   assert.equal(full(date,timezone,display,raw.map((h,i)=>i===3?{...h,precipitation:invalid}:h)),false,`invalid raw amount ${String(invalid)}`);
+   assert.equal(full(date,timezone,display.map((h,i)=>i===3?{...h,precipitation:invalid}:h),raw),false,`invalid visible amount ${String(invalid)}`);
+  }
+  assert.equal(full(date,timezone,display.map((h,i)=>i===3?{...h,precipitation:NaN}:h),raw),false,'visible missing must not become zero during aggregation');
+  assert.equal(full(date,timezone,display,[...raw,raw[3]]),false,'duplicate raw accumulation must not silently override a sample');
  }
  const previous=Date.now;
  try{

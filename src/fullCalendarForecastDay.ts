@@ -22,11 +22,15 @@ export function fullCalendarDayHourlyPrecipitationCoverage(
  const visible=visibleHours.filter(hour=>Number.isFinite(hour.epoch));
  const within=visible.filter(hour=>hour.epoch>=window.startEpoch&&hour.epoch<window.endEpoch);
  if(within.length!==expected||new Set(within.map(hour=>hour.epoch)).size!==expected)return false;
- const rawByEpoch=new Map(rawHours.filter(hour=>Number.isFinite(hour.epoch)).map(hour=>[hour.epoch,hour]));
+ const validAmount=(value:unknown)=>typeof value==='number'&&Number.isFinite(value)&&value>=0;
+ if(within.some(hour=>!validAmount(hour.precipitation)))return false;
+ const accumulations=rawHours.filter(hour=>Number.isFinite(hour.epoch)&&hour.epoch>window.startEpoch&&hour.epoch<=window.endEpoch);
+ if(accumulations.length!==expected||new Set(accumulations.map(hour=>hour.epoch)).size!==expected)return false;
+ const rawByEpoch=new Map(accumulations.map(hour=>[hour.epoch,hour]));
  const visibleEpochs=new Set(within.map(hour=>hour.epoch));
  for(let i=0;i<expected;i++){
   const start=window.startEpoch+i*HOUR_MS,rawNext=rawByEpoch.get(start+HOUR_MS);
-  if(!visibleEpochs.has(start)||rawNext?.precipitation===null||rawNext?.precipitation===undefined||!Number.isFinite(Number(rawNext.precipitation))||Number(rawNext.precipitation)<0)return false;
+  if(!visibleEpochs.has(start)||!validAmount(rawNext?.precipitation))return false;
  }
  return true;
 }

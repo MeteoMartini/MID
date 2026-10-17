@@ -6,6 +6,7 @@
 - Aktuell-Skybar: native, volle aktuelle Modellstunden für Basis, getrenntes zukünftiges 15-min-Nowcast für Niederschlag. Keine künstlichen Beobachtungen oder akkumulierten Mengen.
 - Pflichtregression: `scripts/test-complete-calendar-day-current-skybar-0985285.mjs` für echtes 0, null/NaN, Tageslücken, 23/24/25h, 17:45 nach Morgenregen. Alle bisherigen Gates weiterhin verbindlich.
 - #397 (Provider-Tagessumme vollständig missing), #352 (RUC Transport), #374 (Skybar bei niedriger Bewölkung) werden nicht still als erledigt ausgegeben. Keine echte iOS-/VoiceOver-Abnahme behauptet.
+- CI-/Coverage-Härtung und Nachweise: `docs/implementation/MID_C38_CALENDAR_REGRESSION_0.9.85.285.md`; Tages- und Resttagesmenge sind im `MID_PRECIPITATION_INTERVAL_CONTRACT.md` ausdrücklich getrennt.
 - Nur Source-PR → SHA-Bot → Release-ZIP → Installer → Worker/Pages → Stable; dieser Kandidatenkopf ist kein Veröffentlichungsbeleg.
 
 # MID v0.9.85.284 · Kartenkontrollen und freie Kartenfläche (Source-PR-Kandidat)
