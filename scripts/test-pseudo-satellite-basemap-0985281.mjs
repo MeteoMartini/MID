@@ -13,7 +13,7 @@ assert.match(vector,/pseudoLight=cloudContrast&&!dark/,'Pseudo-color gating must
 assert.match(vector,/sourceLayer:'water'/,'Vector water features required');
 assert.match(vector,/PSEUDO_SAT_BASEMAP.land/);
 assert.match(vector,/PSEUDO_SAT_BASEMAP.water/);
-assert.match(native,/combined&&cloudRenderMode==='pseudo'\?<UnifiedVectorBasemap cloudContrast dark=/,'Native ICON-D2 uses pseudo land/water with theme-aware contrast');
+assert.match(native,/combined&&cloudRenderMode==='pseudo'\?<UnifiedVectorBasemap cloudContrast zIndex={-10} dark=/,'Native ICON-D2 uses pseudo land/water with theme-aware contrast');
 assert.match(unified,/cloudContrast:settings.enabled&&isCloudWeather&&cloudRenderMode==='pseudo'&&cloudWeather.ready/);
 assert.match(exporter,/geography\.countries/,'Natural Earth countries must provide exported land mask');
 assert.match(exporter,/PSEUDO_SAT_BASEMAP.water/);
