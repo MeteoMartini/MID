@@ -346,12 +346,12 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainEnrichmentStatuses",
-      "sha256": "e2f6f8efca04a2e9a51d2f3ee7988b260d1bef5952d9c114ae4bfca56134aa95"
+      "sha256": "9bac8d67aff05b11363739df2f140023225ef10d475924cf8b5d4e1d09cfe4ba"
     },
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainEnrichmentDisclosure",
-      "sha256": "711bee879566f358010f4cde01d349ad1beac62a966f60d49a1697d3f064df27"
+      "sha256": "a0e6ac982b8ef52c9b110bed135c3f4a1fe057e9f583d65f21082c94f4cf0cd2"
     },
     {
       "file": "src/MountainWeather.tsx",
@@ -361,7 +361,7 @@
     {
       "file": "src/MountainWeather.tsx",
       "name": "MountainSki",
-      "sha256": "bdd6ab72571e2724a1e37570a97c6dae46c08bc36f83a89716716943bd30019a",
+      "sha256": "f91fae16fea4cef8a1419d12dba91448507c493e4f4c837ed09e9c4d910b45bc",
       "previousSha256": "bb3fb71545ef3a16951f3fa9f968542b43e04a4e5d3d98527dff4e5711a18bea",
       "displayContractRevision": "0.9.85.243",
       "revisionReason": "Parameter display formatter only; native calculations and source data unchanged"
