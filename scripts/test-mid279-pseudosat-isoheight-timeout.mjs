@@ -8,10 +8,10 @@ const tmp=mkdtempSync(join(tmpdir(),'mid279-'));
 const storage=new Map();
 globalThis.localStorage={getItem:k=>storage.has(k)?storage.get(k):null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};
 try{
- for(const [file,out] of [['src/cloudWeatherData.ts','cloud.mjs'],['src/cloudWeatherIsobars.ts','contours.mjs'],['src/cloudWeatherExport.ts','export.mjs']]){
+ for(const [file,out] of [['src/cloudWeatherData.ts','cloud.mjs'],['src/cloudWeatherIsobars.ts','contours.mjs'],['src/cloudWeatherExport.ts','export.mjs'],['src/pseudoSatelliteBasemap.ts','palette.mjs']]){
   await build({entryPoints:[file],outfile:join(tmp,out),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
  }
- const cloud=await import(pathToFileURL(join(tmp,'cloud.mjs'))),contour=await import(pathToFileURL(join(tmp,'contours.mjs'))),exporter=await import(pathToFileURL(join(tmp,'export.mjs')));
+ const cloud=await import(pathToFileURL(join(tmp,'cloud.mjs'))),contour=await import(pathToFileURL(join(tmp,'contours.mjs'))),exporter=await import(pathToFileURL(join(tmp,'export.mjs'))),{PSEUDO_SAT_BASEMAP:baseColors}=await import(pathToFileURL(join(tmp,'palette.mjs')));
  assert.equal(cloud.readCloudWeatherRenderMode(),'standard');
  cloud.writeCloudWeatherRenderMode('pseudo');assert.equal(cloud.readCloudWeatherRenderMode(),'pseudo','Pseudo-sat selection persists across remounts');
  cloud.writeCloudWeatherIsobars(true);cloud.writeCloudWeatherIsoheights(true);
@@ -33,13 +33,14 @@ try{
  const both=exporter.cloudWeatherSvg(data,raster,[],[],'pseudo',isobar,height);
  assert.doesNotMatch(plain,/Isohypsen gpdm|MSLP-Isobaren \(hPa\)/);
  assert.match(both,/500-hPa-Isohypsen gpdm/);assert.match(both,/MSLP-Isobaren \(hPa\)/);
- assert.match(both,/fill="#8595a1"/,'Pseudo export has same muted light background');
+ assert.ok(both.includes('fill="'+baseColors.water+'"'),'Pseudo export uses the canonical sea/water palette');
+ assert.notEqual(baseColors.land,baseColors.water,'Land and water must remain distinguishable in the model-cloud map');
  assert.doesNotMatch(exporter.cloudWeatherSvg(data,raster,[],[],'pseudo',null,{...height,run:'bad'}),/Isohypsen gpdm/);
  assert.deepEqual(cloud.cloudWeatherPixel(null,null,'pseudo'),[0,0,0,0],'Missing cloud/weather stays transparent');
  const map=readFileSync('src/UnifiedWeatherMap.tsx','utf8'),panel=readFileSync('src/RadarPanel.tsx','utf8'),base=readFileSync('src/UnifiedVectorBasemap.tsx','utf8'),app=readFileSync('src/App.tsx','utf8');
  for(const token of ['readCloudWeatherRenderMode','readUnifiedMapSettings','readCloudWeatherIsoheights','writeCloudWeatherIsoheights','matchingCloudIsoheights(cloudData,selectedCloudIsoheights)','cloudContrast:settings.enabled&&isCloudWeather','heightsActive?<GeoJsonLayers'])assert.ok(map.includes(token),token);
  assert.match(panel,/cloudContrast=\{Boolean\(unified\.cloudContrast&&modelAtSelectedTime\)\}/);
- assert.match(base,/#8595a1/);assert.match(base,/cloudContrast&&!dark/);
+ assert.match(base,/PSEUDO_SAT_BASEMAP\.water/,'Vector basemap must use the shared water tone');assert.match(base,/PSEUDO_SAT_BASEMAP\.land/,'Vector basemap must use the shared land tone');assert.match(base,/cloudContrast&&!dark/);
  assert.match(app,/forecastTimeoutRetryState\.current\.attempts<1/,'Only one automatic timeout retry');
  assert.match(app,/id===seq\.current&&document\.visibilityState/,'Retries bound to active location generation');
  assert.match(app,/Wetter erneut laden/,'Manual recovery control');
