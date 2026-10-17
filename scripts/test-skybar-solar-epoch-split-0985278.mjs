@@ -50,4 +50,10 @@ for(const missingEpoch of [null,'']){
  const unknown={...beforeSunrise,epoch:missingEpoch};
  assert.deepEqual(render(unknown,[{startEpoch:start,endEpoch:sunrise}]),detailSkyBarSegments([unknown],0,0,100,8,[0]),'Missing cloud epoch must not be treated as zero or inferred from precipitation time');
 }
+// A verified night shorter than 0.65 SVG units must not be painted over.
+const minuteNightStart=start+Math.round(30*60000*.17647),minuteNightEnd=start+Math.round(30*60000*.181818);
+const narrowSample=sample(28,false,1260,{precipitationIntervalEndEpoch:start+30*60000});
+const narrow=layer(render(narrowSample,[{startEpoch:minuteNightStart,endEpoch:minuteNightEnd}]),'base');
+assert.equal(narrow.length,2,'A subpixel confirmed night must split the yellow segments');
+assert.ok(narrow[0].x2<narrow[1].x1,'No yellow fill inside the narrow confirmed night span');
 console.log('Skybar v0.9.85.278: exact solar epoch clipping, dawn/dusk, missing, polar night, precipitation, DST passed.');

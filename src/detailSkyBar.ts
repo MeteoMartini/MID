@@ -195,10 +195,10 @@ export function detailSkyBarHourCells(hours:PrecipSample[]):SkyBarHourCell[]{
   });
 }
 
-function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual){
+function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:number,x1:number,centerY:number,visual:WeatherStripVisual,maxMergeGap=0.65){
   if(x1<=x0)return;
   const previous=segments[segments.length-1];
-  if(previous&&Math.abs(previous.x2-x0)<=0.65&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity&&previous.title===visual.title){
+  if(previous&&Math.abs(previous.x2-x0)<=maxMergeGap&&previous.y===centerY&&previous.color===visual.color&&previous.strokeWidth===visual.strokeWidth&&previous.thicknessLevel===visual.thicknessLevel&&previous.opacity===visual.opacity&&previous.title===visual.title){
     previous.x2=x1;
     return;
   }
@@ -332,7 +332,7 @@ export function detailSkyBarSolarSegments(
       const base=weatherStripVisuals({...hour,isDay:!night},duration).find(visual=>visual.layer==='base');
       if(!base)continue;
       const startX=x0+(from-start)/(end-start)*(x1-x0),endX=x0+(to-start)/(end-start)*(x1-x0);
-      appendSegment(bases,index*1024+part,'base',startX,endX,centerY,base);
+      appendSegment(bases,index*1024+part,'base',startX,endX,centerY,base,0);
     }
   });
   return [...bases,...precip];
