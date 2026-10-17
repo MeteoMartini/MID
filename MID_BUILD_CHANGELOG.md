@@ -1,3 +1,11 @@
+# MID v0.9.85.284 · Mobile weather map canvas
+
+- Baseline SHA 532f56a95a6d47a5cb2218146aaa038d7a74384c.
+- RadarPanel: semantisch native details für Secondary-Layer/Modell und Linienstile, standardmäßig auf schmalen Viewports geschlossen. Beobachtungs-Master, Terminselector und Timeline bleiben jederzeit erhalten.
+- WeatherMapsPanel: Basemap im Advanced-Menü, zwei primäre Dropdowns für Produkt/Modell; Statusleiste außerhalb des Wetterkarten-Canvas bei <=850px.
+- Style rules: >70 svh map viewport, mobile line mini-trigger, 44px summaries, focus-visible, reduced-motion, landscape, Light/Dark via Tokens.
+- No meteorological data transformations, contour-value conversions, API, warning, worker pipeline or RUC changes. Required script: scripts/test-map-canvas-mobile-0985284.mjs. CI/browser/installer gates must prove release.
+
 # MID v0.9.85.283 · Technischer Entwicklungsnachweis (Source-PR-Kandidat)
 
 - Ausgangsbasis `main=mid-stable=b02d1b018882807fbce114cf6816f520f52339d1`, v0.9.85.282, Installer #39038958909 grün. Issue #398; Branch `chatgpt/v0.9.85.283-forecast-mountain-resilience`.

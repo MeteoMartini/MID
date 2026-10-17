@@ -1,3 +1,11 @@
+# MID v0.9.85.284
+
+- Karten: Kompakte Schalter „Isobaren“ und „Isohypsen“ ohne angehängte hPa-/gpdm-Kürzel; fachliche Einheiten an tatsächlichen Datenwerten und Druckniveaus bleiben erhalten.
+- Weniger verdeckte Karte: Auf Smartphones sind Radar-/Satelliten- und Modelllayer einklappbar und Linienfarben nur nach bewusstem Öffnen sichtbar. Die direkte Terminwahl, Zeitleiste und Navigation bleiben erhalten.
+- Modellkarten: Parameter und Modell als kompakte Hauptauswahl; Kartenbasis unter „Darstellung & Ebenen“. Modell- und Zeitstatus liegen auf kleinen Displays außerhalb der Kartenfläche.
+- Mehr Kartenausschnitt in Portrait und Landscape; Touch-/Tastaturzugang sowie Light/Dark bleiben Bestandteil der Abnahme.
+- Keine Änderungen an amtlichen Warnungen, DWD-/WMO-Daten, Konturen, RUC-Kompression, Modellläufen oder Missing-Data-Regeln.
+
 # MID v0.9.85.283 · Schnellere Ortswechsel und stabile Bergwetter-Höhenprognose
 
 - Beim Wechsel zu einem bereits geladenen Favoriten zeigt MID einen überprüften gespeicherten Best-Match-Stand sofort an, sofern Standort, Höhenangabe und Zeitzone exakt passen und der Stand höchstens 45 Minuten alt ist. Alter und laufende Aktualisierung werden sichtbar ausgewiesen. Andere Ortsdaten werden nicht übertragen.

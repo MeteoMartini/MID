@@ -1,3 +1,12 @@
+# MID v0.9.85.284 · Kartenkontrollen und freie Kartenfläche (Source-PR-Kandidat)
+
+- Ausgangspunkt: main=mid-stable=532f56a95a6d47a5cb2218146aaa038d7a74384c, freigegebene .283; bei Beginn kein konkurrierender Produkt-PR.
+- Kleine Displays: statt permanenter Ebenen-/Modellsteuerung ein zugängliches aufklappbares Panel mit aktiver Datenquellenbeschriftung. Direkte Kartenzeitwahl sowie die gemeinsame Zeitleiste bleiben durchgehend verfügbar. Mobile Linienfarbensteuerung wird auf einen kleinen anklickbaren „Linien“-Schalter reduziert.
+- Wettermodellkarten zeigen Modell-/Produktwahl weiterhin unmittelbar; Kartenbasis wandert in „Darstellung & Ebenen“, Modell- und Gültigkeitsstatus unter die Kartenfläche. Die Darstellungsfläche wird erhöht, einschließlich Landscape.
+- Die Bezeichnungen „Isobaren“ und „Isohypsen“ enthalten in Steuerungstexten keine redundanten Einheiten; meteorologische Datenwerte, Druckniveau, Gültigkeit und Quellen bleiben unverändert.
+- Neue verbindliche Regression scripts/test-map-canvas-mobile-0985284.mjs. Responsivität, echte Auswahl, Zeitleiste, Datenstatus, Bildexporte, Hell/Dunkel, Fokus und Warnungsabgrenzung vor Veröffentlichung prüfen. Kein physischer iOS/VoiceOver-Nachweis behauptet.
+- Veröffentlichung erst nach grünem Source-PR-Gate, kontrolliertem SHA-Bot, serverseitigem Release-ZIP, install-mid.yml, Worker/Pages und Stable-Promotion. Dieses Dokument ist **kein Releasebeleg**.
+
 # MID v0.9.85.283 · Schnellstart/Netzwerkresilienz (Source-PR-Kandidat)
 
 - Verifizierte Stable-Basis `main=mid-stable=b02d1b018882807fbce114cf6816f520f52339d1`, v0.9.85.282 nach erfolgreichem Installer #39038958909. Issue #398; keine konkurrierenden offenen Produkt-PRs bei Arbeitsbeginn.
