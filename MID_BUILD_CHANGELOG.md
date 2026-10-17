@@ -1,3 +1,13 @@
+# MID v0.9.85.285 · Kalendertage und aktuelle Skybar (Source-PR-Kandidat)
+
+- Freigegebene Basis: main=mid-stable=16b6c87906370b62315e0046dec64506304abcc4, v0.9.85.284.
+- #401: Nur vollständige 23/24/25 reale Stunden, gültiges Folgestunden-Akkumulationsende und echte Rohwerte dürfen Tagesniederschlag/-anteile aus finalisierten Hour-Objekten neu berechnen. Vorhandene gültige Tageswerte haben bei lückenhafter Stundenfolge Vorrang; vergangener Niederschlag wird nicht durch „ab jetzt“ ersetzt.
+- Meteodatenzeit: Epoch/TZ und echte lokale Mitternachtsgrenzen statt einer heuristischen Mindestzahl (18h); Sunshine-Daily-Fallback bei unvollständigen Stunden.
+- Aktuell-Skybar: native, volle aktuelle Modellstunden für Basis, getrenntes zukünftiges 15-min-Nowcast für Niederschlag. Keine künstlichen Beobachtungen oder akkumulierten Mengen.
+- Pflichtregression: `scripts/test-complete-calendar-day-current-skybar-0985285.mjs` für echtes 0, null/NaN, Tageslücken, 23/24/25h, 17:45 nach Morgenregen. Alle bisherigen Gates weiterhin verbindlich.
+- #397 (Provider-Tagessumme vollständig missing), #352 (RUC Transport), #374 (Skybar bei niedriger Bewölkung) werden nicht still als erledigt ausgegeben. Keine echte iOS-/VoiceOver-Abnahme behauptet.
+- Nur Source-PR → SHA-Bot → Release-ZIP → Installer → Worker/Pages → Stable; dieser Kandidatenkopf ist kein Veröffentlichungsbeleg.
+
 - Native-Map-Popup: Nach dem Platzieren oberhalb eines teilweise aus dem Viewport ragenden Ankers wird die berechnete Position jetzt zwingend erneut geklemmt. Bisher war die Bounds-Prüfung ausschließlich im else-Zweig; dadurch konnten Kartenwert-Popups im Querformat unten hinausragen. Dieselbe Korrektur gilt für Punkt-Popups; die 844×390-Browserprüfung bleibt unverändert streng.
 
 - Regression follow-up: immutables .169 CSS cascade restored without rewriting golden fingerprint; new maps-only CSS code-splits alongside lazily imported RadarPanel/WeatherMapsPanel (Vite cssCodeSplit=true) to preserve the 1.76 MB initial CSS budget. Source fixture includes the deferred stylesheet. Legacy push test now verifies the new compact Isobaren label while retaining default-on and persistence assertions; mountain baseline checks minimum .283 and version mirror rather than pinning a prior release.

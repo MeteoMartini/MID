@@ -1,3 +1,13 @@
+# MID v0.9.85.285 · Kalendertage und aktuelle Skybar (Source-PR-Kandidat)
+
+- Freigegebene Basis: main=mid-stable=16b6c87906370b62315e0046dec64506304abcc4, v0.9.85.284.
+- #401: Nur vollständige 23/24/25 reale Stunden, gültiges Folgestunden-Akkumulationsende und echte Rohwerte dürfen Tagesniederschlag/-anteile aus finalisierten Hour-Objekten neu berechnen. Vorhandene gültige Tageswerte haben bei lückenhafter Stundenfolge Vorrang; vergangener Niederschlag wird nicht durch „ab jetzt“ ersetzt.
+- Meteodatenzeit: Epoch/TZ und echte lokale Mitternachtsgrenzen statt einer heuristischen Mindestzahl (18h); Sunshine-Daily-Fallback bei unvollständigen Stunden.
+- Aktuell-Skybar: native, volle aktuelle Modellstunden für Basis, getrenntes zukünftiges 15-min-Nowcast für Niederschlag. Keine künstlichen Beobachtungen oder akkumulierten Mengen.
+- Pflichtregression: `scripts/test-complete-calendar-day-current-skybar-0985285.mjs` für echtes 0, null/NaN, Tageslücken, 23/24/25h, 17:45 nach Morgenregen. Alle bisherigen Gates weiterhin verbindlich.
+- #397 (Provider-Tagessumme vollständig missing), #352 (RUC Transport), #374 (Skybar bei niedriger Bewölkung) werden nicht still als erledigt ausgegeben. Keine echte iOS-/VoiceOver-Abnahme behauptet.
+- Nur Source-PR → SHA-Bot → Release-ZIP → Installer → Worker/Pages → Stable; dieser Kandidatenkopf ist kein Veröffentlichungsbeleg.
+
 # MID v0.9.85.284 · Kartenkontrollen und freie Kartenfläche (Source-PR-Kandidat)
 
 - Ausgangspunkt: main=mid-stable=532f56a95a6d47a5cb2218146aaa038d7a74384c, freigegebene .283; bei Beginn kein konkurrierender Produkt-PR.
