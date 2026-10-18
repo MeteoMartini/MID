@@ -58,3 +58,13 @@ KV-Propagation in einer anderen Region sichtbar werden. Keine neue Datenbank,
 Durable-Object-Bindung, Berechtigung oder kostenpflichtige Infrastruktur eingeführt.
 Kein physischer iOS-/Push-/VoiceOver-Nachweis. Source-/Installer-/Worker-/Pages-/Stable-
 Gates müssen am finalen Kopf vollständig erfolgreich sein.
+
+## Erster Source-Lauf und Testprozess-Korrektur
+
+Source 39101748435 führte alle zwölf Browserkombinationen erfolgreich aus.
+Danach scheiterte ausschließlich die temporäre Profilbereinigung mit ENOTEMPTY,
+weil der noch beendende Chromium-Prozess weiter schrieb. Der Test wartet nun auf
+das close-Ereignis seines eigenen Prozesses (begrenzter TERM/KILL-Abschluss), bevor
+er sein mkdtemp-Profil entfernt. Assertions und CI-Pflicht bleiben vollständig
+erhalten. Alle fünf Heavy-Gruppen und Vitest waren im ersten Lauf erfolgreich;
+der korrigierte Kopf benötigt erneut sämtliche Gates.

@@ -6,6 +6,7 @@ import {join} from 'node:path';
 import {createServer} from 'node:http';
 import {createServer as createPortServer} from 'node:net';
 import {spawn} from 'node:child_process';
+import {once} from 'node:events';
 import {localCdpEndpoint} from './local-cdp-endpoint.mjs';
 let chromePath;for(const p of [process.env.CHROMIUM_PATH,'/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser','/repl/tools/bin/chromium'].filter(Boolean)){try{await access(p);chromePath=p;break}catch{}}
 if(!chromePath){if(process.env.GITHUB_ACTIONS==='true')throw new Error('Push browser regression requires Chromium in CI');console.log('SKIP Push-Browsermatrix: lokales Chromium fehlt; keine Browserabnahme behaupten.');process.exit(0)}
@@ -47,5 +48,12 @@ try{
  }
  assert.deepEqual(errors,[],'browser exceptions');
 }finally{
- if(socket)socket.close();for(const q of pending.values())clearTimeout(q.timer);if(chrome)chrome.kill('SIGTERM');if(server)await new Promise(r=>server.close(r));await rm(temp,{recursive:true,force:true});
+ if(socket)socket.close();for(const q of pending.values())clearTimeout(q.timer);
+ if(chrome&&chrome.exitCode===null&&chrome.signalCode===null){
+  const closed=once(chrome,'close');chrome.kill('SIGTERM');
+  const deadline=setTimeout(()=>chrome.kill('SIGKILL'),5000);deadline.unref();
+  try{await closed}finally{clearTimeout(deadline)}
+ }
+ if(server)await new Promise(r=>server.close(r));
+ await rm(temp,{recursive:true,force:true,maxRetries:10,retryDelay:100});
 }
