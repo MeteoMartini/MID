@@ -13,7 +13,13 @@
     "units": {"type": "object", "properties": {"sunshineDuration": {"const": "s"}}},
     "current": {"type": "object", "properties": {"sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0}}},
     "hourly": {"type": "array", "maxItems": 12, "items": {"type": "object", "properties": {"sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0, "maximum": 3600}}}},
-    "daily": {"type": "array", "maxItems": 5, "items": {"type": "object", "properties": {"sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0, "maximum": 86400}}}},
+    "daily": {"type": "array", "maxItems": 5, "items": {"type": "object", "properties": {
+      "precipitationSum": {"type": "number", "minimum": 0, "description": "Water equivalent in mm; when precipitationAvailable=false, numeric zero is only the v1 decoder placeholder."},
+      "precipitationAvailable": {"type": "boolean", "description": "Optional for legacy snapshots. False means no known daily total, never dry weather."},
+      "precipitationProbabilityMax": {"type": "number", "minimum": 0, "maximum": 100},
+      "probabilityAvailable": {"type": "boolean", "description": "False requires a no-data label instead of displaying the numeric placeholder."},
+      "sunshineDurationSeconds": {"type": ["number", "null"], "minimum": 0, "maximum": 86400}
+    }}},
     "source": {"type": "object"}
   }
 }

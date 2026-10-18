@@ -33,6 +33,9 @@ try {
   }
   assert.equal(full(date,timezone,display.map((h,i)=>i===3?{...h,precipitation:NaN}:h),raw),false,'visible missing must not become zero during aggregation');
   assert.equal(full(date,timezone,display,[...raw,raw[3]]),false,'duplicate raw accumulation must not silently override a sample');
+  assert.equal(full(date,timezone,display,raw.map((h,i)=>i===3?{...h,precipitation:0,precipitationAvailable:false}:h)),false,'masked missing raw value is not a valid dry hour');
+  assert.equal(full(date,timezone,display.map((h,i)=>i===3?{...h,precipitation:0,precipitationAvailable:false}:h),raw),false,'masked missing visible interval is not complete');
+  assert.equal(full(date,timezone,display,raw.map((h,i)=>i===0?{...h,precipitationAvailable:false}:h)),true,'start-midnight accumulation belongs to previous day and is not required');
  }
  const previous=Date.now;
  try{

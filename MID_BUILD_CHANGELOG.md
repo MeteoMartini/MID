@@ -1,3 +1,12 @@
+# MID v0.9.85.287 · Missing-Daily-Migration (Source-PR-Kandidat)
+
+- Start nach erfolgreicher Promotion: main=mid-stable=394ff6f999accb5c4211490d44f52275faefa61c, v0.9.85.286 (18.10.2026). Übernahme des gesicherten Codex-Arbeitsstands ef34de34dd153d42ae6c9dfe267a99a5be440b36 in einen unabhängigen `chatgpt/*`-Branch; ursprünglicher Branch bleibt unverändert.
+- Issue #397: explizite Verfügbarkeit von Tagesniederschlagsmenge und -wahrscheinlichkeit; Missing/null/NaN/Fehleinheiten dürfen nicht als trocken/0 interpretiert werden. Worker darf einen fehlenden mm-Wasseräquivalentwert insbesondere nicht aus Regen-mm plus Schnee-cm addieren. Tatsächliche Null bleibt gültig.
+- Zeit-/Akkumulationsvertrag: 23/24/25-h-Lokaltage nur bei vollständiger Stundenabdeckung rekonstruieren; unabhängige Komponenten, Codes und Wahrscheinlichkeiten erhalten. Datenstatus wird bis Forecast-/Widget-/Cache-Konsumenten und additiver Swift-v1-Wire-Maske weitergegeben, mit rückwärtskompatiblen numerischen Pflichtfeldern.
+- Regressionsinventare ergänzt: `scripts/test-missing-daily-source-0985287.mjs`. Der übernommene WIP dokumentiert 987/987 lokal bestandene Core-Tests und Type-/Probe-Build **vor** Migration auf .286; das ist ausdrücklich kein Testnachweis für diesen neuen Branch.
+- Versionsspiegel: package/lock, Worker, Web/PWA, Native-Build und Contract-Registry auf .287 harmonisiert. Vollständige Source-PR-, Browser-/Heavy-, Security-, Worker-/Pages-, Installer- und Stable-Gates müssen **jetzt tatsächlich** erfolgreich laufen. Keine iOS-/VoiceOver-/Push-Realgeräteprüfung behauptet.
+- Offene unabhängige Vorhaben bleiben Issue #352 (RUC-Transportkompression), #374 (Skybar bei geringer Bewölkung) und #405 (Open-Meteo Upstream). Kein Release, kein Production-Update aus dieser Dokumentation.
+
 # MID v0.9.85.286 · Push-Präferenzen und Bestätigung (Source-PR-Kandidat)
 
 - Basis .285 e8c3e4e61eff028797120fcecc6f3be58f993911 integriert. Keine neuen Dienste oder Berechtigungen.

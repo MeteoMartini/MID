@@ -125,9 +125,13 @@ Ab v0.9.85.285 bezeichnet `Day` stets den vollständigen lokalen Kalendertag von
 
 Eine ausdrücklich als **Resttagesmenge** bezeichnete Zukunftsmetrik darf weiterhin nur die zukünftigen Intervallanteile summieren: Ein von `now` angeschnittenes erstes Stundenintervall zählt dann anteilig. Sie darf den vollständigen Tageswert in Tageskarten, Widgets oder Exporten nicht ersetzen. Rollierende 90-min-/12-h-/24-h-Profile behalten ihre eigenen Zeitgrenzen; Temperatur-Minima/-Maxima bleiben vom Unterschied zwischen Tages- und Resttagesmenge getrennt.
 
+Fehlt die Provider-Tagessumme selbst, bleibt sie unbekannt (`precipitationAvailable=false`), bis eine vollständige gültige Stundenrekonstruktion oder eine nach dem Fusionsvertrag akzeptierte Quelle sie ersetzt. `null`, leere Strings, Booleans und nicht endliche Werte sind keine Nullmessung. Schnee in cm wird niemals zu Regen/Schauern in mm addiert, um ein fehlendes Wasseräquivalent zu erfinden. Menge und Wahrscheinlichkeit haben unabhängige Verfügbarkeit; fehlende Wahrscheinlichkeit entwertet keine bekannte Menge. JSON-/Cache-Rundläufe müssen die Verfügbarkeitsmaske erhalten. Sichtbare Tageswerte und Exporte verwenden bei fehlender Menge `– mm`.
+
+Der vorbereitete native Widget-Feed v1 ergänzt die optionalen booleschen Felder `precipitationAvailable` und `probabilityAvailable`. Bei `false` bleibt im bisherigen nicht-optionalen Zahlenfeld ausschließlich aus Decoder-Kompatibilität ein Null-Platzhalter; die aktuelle Oberfläche muss stattdessen fehlende Daten anzeigen. Alte Snapshots dürfen die zusätzlichen Felder auslassen. Schemaidentität und bisherige Zahlenfeldtypen bleiben erhalten; eine physische Widget-Abnahme ist davon unabhängig.
+
 ## 9. Fehlende Anschlussstunde
 
-Fehlt für einen sichtbaren Slot der unmittelbar folgende Rohwert oder liegt eine unplausible Zeitlücke vor, darf MID den vorherigen Niederschlag **nicht** einfach als Zukunft umetikettieren. Die Darstellung fällt für diesen Slot niederschlagsseitig sicher auf „kein belastbarer Slotwert“/0 zurück, während die instantanen Zustandsfelder erhalten bleiben. Damit ist ein falscher Zeitpunkt schlechter als ein transparent fehlender Randwert.
+Fehlt für einen sichtbaren Slot der unmittelbar folgende Rohwert oder liegt eine unplausible Zeitlücke vor, darf MID den vorherigen Niederschlag **nicht** einfach als Zukunft umetikettieren. Die Darstellung markiert für diesen Slot Menge und Wahrscheinlichkeit ausdrücklich als nicht verfügbar. Ein verbleibender numerischer Null-Platzhalter ist keine trockene Beobachtung und darf weder als gültige Tagesabdeckung noch als bekannte Menge verwendet werden. Die instantanen Zustandsfelder bleiben erhalten. Damit ist ein falscher Zeitpunkt schlechter als ein transparent fehlender Randwert.
 
 ## 10. Regressionen
 

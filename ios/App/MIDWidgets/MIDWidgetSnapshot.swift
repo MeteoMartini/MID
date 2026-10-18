@@ -53,7 +53,9 @@ struct MIDWidgetSnapshot: Codable, Sendable {
         let temperatureMax: Double
         let temperatureMin: Double
         let precipitationSum: Double
+        let precipitationAvailable: Bool?
         let precipitationProbabilityMax: Double
+        let probabilityAvailable: Bool?
         let weatherCode: Int
         let condition: String
         let symbolName: String
