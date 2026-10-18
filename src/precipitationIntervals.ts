@@ -41,8 +41,8 @@ export function precipitationPresentationHours(hours:Hour[]):Hour[]{
  const mapped=new Map<number,Hour>();
  for(let index=0;index<sorted.length;index++){
   const state=sorted[index]!,next=sorted[index+1],gap=next?next.epoch-state.epoch:NaN;
-  if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS){mapped.set(state.epoch,{...state,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:drySkyCode(state)});continue}
-  const sample={...state,precipitation:Math.max(0,Number(next.precipitation)||0),rain:Math.max(0,Number(next.rain)||0),showers:Math.max(0,Number(next.showers)||0),snowfall:Math.max(0,Number(next.snowfall)||0),probability:Math.max(0,Math.min(100,Number(next.probability)||0)),sunshineDuration:next.sunshineDuration??null,code:Number(next.code)};
+  if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS){mapped.set(state.epoch,{...state,precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:drySkyCode(state)});continue}
+  const sample={...state,precipitationComponentsAvailable:next.precipitationComponentsAvailable,precipitation:Math.max(0,Number(next.precipitation)||0),precipitationAvailable:next.precipitationAvailable!==false&&typeof next.precipitation==='number'&&Number.isFinite(next.precipitation)&&next.precipitation>=0,probabilityAvailable:next.probabilityAvailable!==false&&typeof next.probability==='number'&&Number.isFinite(next.probability),rain:Math.max(0,Number(next.rain)||0),showers:Math.max(0,Number(next.showers)||0),snowfall:Math.max(0,Number(next.snowfall)||0),probability:Math.max(0,Math.min(100,Number(next.probability)||0)),sunshineDuration:next.sunshineDuration??null,code:Number(next.code)};
   const parts=precipitationParts(sample);
   mapped.set(state.epoch,{...sample,code:parts.type==='none'?drySkyCode(state):parts.displayCode});
  }
@@ -58,8 +58,8 @@ export function precipitationPresentationMinutes15(minutes:Minute15[]):Minute15[
  const mapped=new Map<number,Minute15>();
  for(let index=0;index<sorted.length;index++){
   const state=sorted[index]!,next=sorted[index+1],gap=next?next.epoch-state.epoch:NaN;
-  if(!next||!Number.isFinite(gap)||gap<QUARTER_MIN_GAP_MS||gap>QUARTER_MAX_GAP_MS){mapped.set(state.epoch,{...state,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:0});continue}
-  const sample={...state,precipitation:Math.max(0,Number(next.precipitation)||0),rain:Math.max(0,Number(next.rain)||0),showers:Math.max(0,Number(next.showers)||0),snowfall:Math.max(0,Number(next.snowfall)||0),probability:Math.max(0,Math.min(100,Number(next.probability)||0)),sunshineDuration:next.sunshineDuration??null,code:Number(next.code)};
+  if(!next||!Number.isFinite(gap)||gap<QUARTER_MIN_GAP_MS||gap>QUARTER_MAX_GAP_MS){mapped.set(state.epoch,{...state,precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:0});continue}
+  const sample={...state,precipitation:Math.max(0,Number(next.precipitation)||0),precipitationAvailable:next.precipitationAvailable!==false&&typeof next.precipitation==='number'&&Number.isFinite(next.precipitation)&&next.precipitation>=0,probabilityAvailable:next.probabilityAvailable!==false&&typeof next.probability==='number'&&Number.isFinite(next.probability),rain:Math.max(0,Number(next.rain)||0),showers:Math.max(0,Number(next.showers)||0),snowfall:Math.max(0,Number(next.snowfall)||0),probability:Math.max(0,Math.min(100,Number(next.probability)||0)),sunshineDuration:next.sunshineDuration??null,code:Number(next.code)};
   const parts=precipitationParts(sample);
   mapped.set(state.epoch,{...sample,code:parts.type==='none'?0:parts.displayCode});
  }

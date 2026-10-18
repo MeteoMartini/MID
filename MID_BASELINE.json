@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-missing-daily-source-0985287.mjs",
     "scripts/test-push-settings-ordering-0985286.mjs",
     "scripts/test-push-settings-browser-0985286.mjs",
     "scripts/test-complete-calendar-day-current-skybar-0985285.mjs",
@@ -1008,6 +1009,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-missing-daily-source-0985287.mjs",
     "scripts/test-push-settings-ordering-0985286.mjs",
     "scripts/test-push-settings-browser-0985286.mjs",
     "scripts/test-complete-calendar-day-current-skybar-0985285.mjs",

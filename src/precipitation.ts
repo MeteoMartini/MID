@@ -551,8 +551,8 @@ export function presentPrecipTypes(series:{type:PrecipType}[]){
  return PRECIP_TYPE_ORDER.filter(type=>series.some(item=>item.type===type)) as Exclude<PrecipType,'none'>[];
 }
 
-export function precipitationAmountLabel(input:{precipitation?:number;snowfall?:number},{snowSymbol=true}:{snowSymbol?:boolean}={}){
- const precipitation=Math.max(0,Number(input.precipitation)||0),snowfall=Math.max(0,Number(input.snowfall)||0),base=`${compactPrecipitationAmount(precipitation)} mm`;
+export function precipitationAmountLabel(input:{precipitation?:number;snowfall?:number;precipitationAvailable?:boolean},{snowSymbol=true}:{snowSymbol?:boolean}={}){
+ const precipitation=input.precipitationAvailable===false||typeof input.precipitation!=='number'||!Number.isFinite(input.precipitation)||input.precipitation<0?NaN:input.precipitation,snowfall=typeof input.snowfall==='number'&&Number.isFinite(input.snowfall)?Math.max(0,input.snowfall):0,base=`${compactPrecipitationAmount(precipitation)} mm`;
  return snowfall>=.05?`${base} · ${snowSymbol?'❄ ':''}${formatDecimalFixed(snowfall,1)} cm`:base;
 }
 

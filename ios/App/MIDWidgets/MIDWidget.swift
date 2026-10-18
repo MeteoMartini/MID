@@ -63,7 +63,7 @@ struct MIDWidgetEntryView: View {
                 Text("\(Int(snapshot.current.temperature.rounded()))°").font(.system(size: 34, weight: .bold))
                 Text(snapshot.current.condition).font(.caption).lineLimit(1)
                 if let day = snapshot.daily.first {
-                    Text("\(Int(day.temperatureMin.rounded()))° / \(Int(day.temperatureMax.rounded()))° · Regen \(Int(day.precipitationProbabilityMax.rounded())) % · ☀ \(sunshineHours(day.sunshineDurationSeconds))")
+                    Text("\(Int(day.temperatureMin.rounded()))° / \(Int(day.temperatureMax.rounded()))° · Regen \(day.probabilityAvailable == false ? "–" : String(Int(day.precipitationProbabilityMax.rounded()))) % · ☀ \(sunshineHours(day.sunshineDurationSeconds))")
                         .font(.caption2)
                 }
             }
