@@ -1,7 +1,7 @@
 # MID-C35 · Open-Meteo-Vertragsprüfung · v0.9.85.291
 
 ## Herkunft und Scope
-Verifizierte Arbeitsbasis `main=mid-stable=67b289988ed0ce8433b266c8f2055f070133ffe5`, v0.9.85.289. Offener paralleler PR #412 (.290, Barcelona/CAP) bleibt getrennt; vor Veröffentlichung muss dessen frische freigegebene Basis normal übernommen werden. Issue #405 ist der Prüfauftrag, keine pauschale Freigabe neuer Modelle oder Parameter.
+Verifizierte Arbeitsbasis `main=mid-stable=67b289988ed0ce8433b266c8f2055f070133ffe5`, v0.9.85.289. Offener paralleler PR #412 (.290, Barcelona/CAP) bleibt getrennt und ist bewusst Draft. Der funktional unabhängige API-Prüfer kann auf der aktuellen freigegebenen .289-Basis regulär durch seine eigenen Gates veröffentlicht werden; .290 wird weder integriert noch freigegeben und muss vor einer späteren Veröffentlichung die dann aktuelle Stable-Basis/Versionsfolge berücksichtigen. Issue #405 ist der Prüfauftrag, keine pauschale Freigabe neuer Modelle oder Parameter.
 
 ## Reproduzierbarer MID-Befund
 Die tatsächlichen Funktionen `finiteSeries` und `rangeSeries` in `scripts/check-api-contracts.mjs` akzeptierten am Ausgangs-SHA je sechs `null`, Leerstrings, Whitespace, `false` oder `true` als sechs echte Werte. Ursache war `Number(value)`. Außerdem konnte der ECMWF-Min/Max-Test eine unterschiedliche Missing-/Zahlenpaarung als Unterschied der Temperaturextrema zählen.
@@ -42,3 +42,6 @@ Die bestehende öffentliche Testkoordinate 50.815/7.037 wurde für einen Tag mit
 | best_match, je einzeln cloud_ceiling / freezing_rain / radar_reflectivity | 400 | Die jeweils angefragte Variable wird als ungültig zurückgewiesen |
 
 Damit ist der Unterschied zwischen akzeptierter API-Syntax und nutzbarer Feldabdeckung unmittelbar belegt. Die neue Regression prüft auch den gesicherten realen Missing-Reihentyp; ein HTTP-200-Status und korrekt benannte Einheit dürfen keine nicht vorhandene Sichtweite erzeugen. Keine Schätzung als 0 m, keine vorschnelle Umstellung bestehender Modellpfade.
+
+## Releasekoordination 18.10.2026, MID-C35
+Erneut main=mid-stable=.289/67b289988ed0ce8433b266c8f2055f070133ffe5 und #412 Head 6767c50cad70c68619cd7566fcc6c7604b6aa3b6 als Draft verifiziert. Keine funktionale Abhängigkeit des API-Prüfers von dessen Warngebietsänderung. Die anfangs selbst gewählte Reihenfolge .290 vor .291 ist deshalb keine technische Freigabevoraussetzung; .291 wird unabhängig gegen die aktuelle freigegebene .289-Basis geprüft. Bestehende Gates und der alleinige MID-Releaseakteur bleiben maßgeblich. Keine Änderung am Entwurfsstatus oder Code von #412.
