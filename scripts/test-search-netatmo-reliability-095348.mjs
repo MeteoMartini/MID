@@ -12,7 +12,9 @@ need(weather,"count:'10'",'Open-Meteo-Suche liefert nicht genügend Kandidaten.'
 need(app,'[searching,setSearching]','Expliziter Such-Ladezustand fehlt.');
 need(app,'searchRequestRef=useRef(0)','Schutz vor verspäteten Suchantworten fehlt.');
 need(app,'Orte werden gesucht …','Nutzerfeedback während der Ortssuche fehlt.');
-need(app,'setOpen(true)}}).catch','Suchfeld wird bei einem Fehler weiterhin geschlossen.');
+const searchCompletion=app.slice(app.indexOf('searchLocations(term,c.signal).then'),app.indexOf('},[term]);',app.indexOf('searchLocations(term,c.signal).then')));
+need(searchCompletion,"setSearchError(error instanceof Error?error.message:'Ortssuche vorübergehend nicht erreichbar.')",'Suchfehler wird nicht sichtbar gehalten.');
+if(/setOpen\((?:true|false)\)/.test(searchCompletion))failures.push('Suchabschluss verändert den bewusst gewählten Öffnungszustand.');
 need(station,'if(status?.configured===false)','Netatmo-Setupfehler wird vor der Navigation nicht abgefangen.');
 need(station,'if(!status){setMessage','Netatmo-Start ist ohne fertig geladenen Datendienst-Status nicht geschützt.');
 need(station,"disabled={busy!==''||!statusReady||!authorizationReady}",'Netatmo-Schaltfläche ist während der Datendienst-/OAuth-Vorbereitung nicht gesperrt.');

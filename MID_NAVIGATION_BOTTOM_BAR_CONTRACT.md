@@ -18,6 +18,10 @@
 - `prefers-reduced-motion` deaktiviert die Übergangsanimationen.
 - Safe Areas links/rechts/unten, iPhone-Home-Indicator sowie Landscape werden berücksichtigt.
 
+## Ortssuche ab v0.9.85.293
+
+Die geöffnete Header-Ortssuche besitzt einen gemeinsamen, im App-Elternzustand geführten Sichtbarkeitszustand. Während der Auswahl werden die ausgewählte Ortsleiste und das mobile Bottom-Bar-Portal nicht gerendert; der iOS-Viewport-Anker ist ausgesetzt. Nach Schließen, Escape, Außenfokus/-tap oder Ortswahl kehren beide ohne unsichtbare Touch-/Fokusfänger zurück. Eine verspätete Suchantwort öffnet eine geschlossene Suche nicht erneut. Prüfmatrix: scripts/test-location-search-layers-0985293.mjs (Chromium in CI verpflichtend).
+
 ## Fachliche Isolation
 
 Die Navigation verändert ausschließlich Bedienung und Layout. Wetterdaten, `displayHours`/`displayMinutes15`/`displayDays`, Favoriten, Warn-/Pushlogik, Radar-/Satellitenprodukte, Radarfarben, Modellfusion, Einheiten und Parameterfarben bleiben unverändert.

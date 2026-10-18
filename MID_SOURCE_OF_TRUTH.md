@@ -1,3 +1,11 @@
+# MID v0.9.85.293 · Freie Ortssuche und verlässliches Schließen (Source-PR-Kandidat)
+
+- Freigegebene Ausgangsbasis main=mid-stable=7cfa80f16c7779e14a4b81ec8a060c46a39a9d09 (.292), Installer 39135094553 erfolgreich; ausgelieferte Version und Buildidentität HTTP 200 bestätigt.
+- Suchzustand im gemeinsamen App-Elternteil: Standortleiste und Body-Portal der unteren Navigation werden nur während geöffneter Suche entfernt; Nav-Zustand bleibt erhalten. Keine asynchrone Antwort oder Query-Wirkung darf nach Schließen wieder öffnen.
+- Selektiv übernommener UI-Diff aus gesichertem Commit 63f0378; Warnungsimplementierung aus PR #414 vollständig beibehalten. Getrennte Pflichtregression scripts/test-location-search-layers-0985293.mjs, Browsermatrix in CI zwingend.
+- Belege und Grenzen: docs/implementation/MID_C35_LOCATION_SEARCH_0.9.85.293.md. Kein physischer iOS-/VoiceOver-Nachweis. #411/#352/#374/#405 bleiben offen.
+- Nur regulärer Source-PR → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable; noch kein Releasebeleg für diesen Kandidaten.
+
 # MID v0.9.85.292 · Allgemeine Warngeometrie und CAP-Lebenszyklus (Source-PR-Kandidat)
 
 - Ausgangsbasis main=mid-stable=fbe9c758599928f4b5ba776de670505018750dbb (.291); PR #414 @79bd72caa7c652cdf684776c4dbcc2b05b6d3df2 selektiv vervollständigt. Kein Hardcode für Barcelona/Gemeinderadius.

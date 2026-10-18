@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {access,mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createServer} from 'node:http';
+import {createServer as createPortServer} from 'node:net';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {localCdpEndpoint} from './local-cdp-endpoint.mjs';
+let chromePath;for(const p of [process.env.CHROMIUM_PATH,'/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser','/repl/tools/bin/chromium'].filter(Boolean)){try{await access(p);chromePath=p;break}catch{}}
+
+const temp=await mkdtemp(join(tmpdir(),'mid-search-ui-')),pending=new Map(),errors=[];let server,chrome,socket,sessionId,seq=0;
+const wait=async(check,label)=>{const end=Date.now()+12000;while(Date.now()<end){if(await check())return;await new Promise(r=>setTimeout(r,80))}throw new Error('Timeout: '+label)};
+const cdp=(method,params={},session=sessionId)=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(new Error('CDP timeout: '+method))},12000);pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(session?{sessionId:session}:{})}))});
+const evaluate=async expression=>{const p=await cdp('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(p.result.exceptionDetails)throw new Error(JSON.stringify(p.result.exceptionDetails));return p.result.result?.value};
+const port=()=>new Promise((resolve,reject)=>{const s=createPortServer();s.once('error',reject);s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(e=>e?reject(e):resolve(p))})});
+const app=await readFile('src/App.tsx','utf8');
+assert.match(app,/searchOpen=\{locationSearchOpen\} onSearchOpenChange=\{setLocationSearchOpen\}/);
+assert.match(app,/Boolean\(loc&&!settingsOpen&&!locationSearchOpen&&/);
+assert.match(app,/<DashboardSectionNavigation searchOpen=\{locationSearchOpen\}/);
+const header=app.slice(app.indexOf('function Header('),app.indexOf('function cardinalDirection('));
+assert.doesNotMatch(header.slice(header.indexOf('useEffect(()=>{const requestId='),header.indexOf('useEffect(()=>{if(!open)')),/setOpen\(true\)/,'Async query lifecycle must never open picker');
+const navigation=app.slice(app.indexOf('function DashboardSectionNavigation('),app.indexOf('function eventCenterDateLabel('));
+const entry=`import React,{useState,useEffect,useRef,useMemo}from'react';import{createRoot}from'react-dom/client';import{createPortal}from'react-dom';import{Search,X,LocateFixed,Star,Settings2,RefreshCw,Menu,Sun,Clock3,CalendarDays,Monitor,CalendarRange}from'lucide-react';import{SelectedPlaceBar}from'./src/SelectedPlaceBar';import{useBottomNavigationAnchor}from'./src/useBottomNavigationAnchor';
+const noop=()=>{},VERSION='fixture',useAppLayerFocus=noop,useActiveItemReveal=noop,warmCompositePanel=noop,persistLastPrimaryNavigationArea=noop,primaryNavigationAreaForSection=x=>x,dashboardNavIcon=()=>null,FavoriteQuickStrip=()=>null,PwaInstallButton=()=>null,EventCenterHeaderButton=()=>null,favoriteLocation=x=>x,matchingStoredFavorite=(f,c)=>f.find(x=>x.location.name===c?.name),favoriteLabel=f=>f.alias||f.location.name;
+const ids=['current','short-term','forecast','ensemble','long-range','composite'],DASHBOARD_MODULE_DEFINITIONS=ids.map(id=>({id,label:id})),DASHBOARD_NAV_GROUPS=[],MODERN_MAP_MODULES=['composite'];
+window.__pending=[];window.__reject=[];const searchLocations=()=>new Promise((resolve,reject)=>{window.__pending.push(resolve);window.__reject.push(reject)});
+${header}\n${navigation}
+function Fixture(){const[open,setOpen]=useState(false),[loc,setLoc]=useState({name:'Rheidt',latitude:50.8,longitude:7.1}),[drawer,setDrawer]=useState(false);const favorites=Array.from({length:14},(_,i)=>({id:String(i),alias:i?'Sehr langer favorisierter Ortsname '+i:'Rheidt',group:'Allgemein',isDefault:i===0,location:{name:i?'Ort '+i:'Rheidt',latitude:50+i/100,longitude:7,admin1:'Nordrhein-Westfalen',country:'Deutschland'},mountain:{enabled:false},water:{enabled:false}}));return <div className={\`app navigation-bottom-tabs\${!open?' has-selected-place-bar':''}\`}><Header searchOpen={open} onSearchOpenChange={setOpen} setLoc={setLoc} favorites={favorites} current={loc} trackedLocation={null} trackedSelectionActive={false} locationTracking favoriteStripMode="hidden" onOpenSettings={noop} onOpenFavorites={noop} onOpenNavigation={noop} onOpenEventPlanner={noop} locate={noop} loading={false} reload={noop} hasLocation brandLogoPath="/logo.svg" unit="kn"/><SelectedPlaceBar name={loc.name} hidden={open}/><DashboardSectionNavigation searchOpen={open} settings={{order:ids,enabled:Object.fromEntries(ids.map(id=>[id,true]))}} layoutMode="standard" navigationMode="bottom-tabs" bottomBarBehavior="fixed" forecastTarget="forecast" currentFavorite={null} activeId="current" drawerOpen={drawer} onDrawerOpen={setDrawer} onNavigate={noop}/><main style={{minHeight:1400}}><button id="outside">Außerhalb</button><h1>{loc.name}</h1></main></div>};createRoot(document.getElementById('root')).render(<Fixture/>);`;
+try{
+ await build({stdin:{contents:entry,loader:'tsx',resolveDir:process.cwd()},bundle:true,platform:'browser',format:'esm',outfile:join(temp,'fixture.js'),jsx:'automatic',logLevel:'silent'});
+ if(!chromePath){if(process.env.GITHUB_ACTIONS==='true')throw new Error('Search browser regression requires Chromium in CI');console.log('SKIP Such-Browsermatrix: Chromium lokal nicht verfügbar; echte Komponenten erfolgreich gebündelt.');process.exitCode=0;}else{
+ const js=await readFile(join(temp,'fixture.js')),css=await readFile('src/midPresentation.css');
+ server=createServer((req,res)=>{if(req.url==='/fixture.js'){res.setHeader('Content-Type','text/javascript');res.end(js)}else if(req.url==='/presentation.css'){res.setHeader('Content-Type','text/css');res.end(css)}else if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><html data-mid-design="next"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/presentation.css"><div id="root"></div><script type="module" src="/fixture.js"></script>')}else{res.statusCode=404;res.end()}});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port+'/';
+ const debugPort=await port();chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--remote-debugging-address=127.0.0.1','--remote-debugging-port='+debugPort,'--user-data-dir='+join(temp,'profile'),'about:blank'],{stdio:'ignore'});
+ let info;await wait(async()=>{try{const r=await fetch('http://127.0.0.1:'+debugPort+'/json/version');if(r.ok){info=await r.json();return true}}catch{}return false},'Chromium');
+ socket=new WebSocket(localCdpEndpoint(info.webSocketDebuggerUrl,debugPort));socket.addEventListener('message',event=>{const p=JSON.parse(String(event.data));if(p.id){const q=pending.get(p.id);if(!q)return;clearTimeout(q.timer);pending.delete(p.id);p.error?q.reject(new Error(p.error.message)):q.resolve(p)}else if(p.method==='Runtime.exceptionThrown')errors.push(p.params.exceptionDetails)});await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true})});
+ const target=await cdp('Target.createTarget',{url:'about:blank'},null),attached=await cdp('Target.attachToTarget',{targetId:target.result.targetId,flatten:true},null);sessionId=attached.result.sessionId;await cdp('Page.enable');await cdp('Runtime.enable');await cdp('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});await cdp('Emulation.setUserAgentOverride',{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile Safari/604.1'});
+ const opened=()=>evaluate("document.querySelector('.search input')?.getAttribute('aria-expanded')==='true'"),bars=()=>evaluate("Boolean(document.querySelector('.selected-place-bar'))&&Boolean(document.querySelector('.mid-bottom-nav-fixed'))"),focus=()=>evaluate("document.querySelector('.search input').focus();true"),escape=()=>cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});
+ for(const[width,height]of[[320,740],[390,844],[844,390],[768,1024],[1024,768],[1440,1000]])for(const theme of ['light','dark']){
+ await cdp('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1025});await cdp('Page.navigate',{url});await wait(bars,'initial bars');await evaluate(`document.documentElement.dataset.theme=${JSON.stringify(theme)};true`);await focus();await wait(opened,'open picker');
+ assert.equal(await evaluate("document.querySelector('.selected-place-bar')||document.querySelector('.mid-bottom-nav-fixed')?true:false"),false,'Both bars removed, including body portal');
+ await evaluate("document.querySelector('.search>section').scrollTop=180;window.dispatchEvent(new Event('resize'));window.visualViewport?.dispatchEvent(new Event('resize'));true");
+ const hit=await evaluate("(()=>{const e=document.querySelector('.search>section'),r=e.getBoundingClientRect(),x=r.left+r.width/2,y=Math.max(0,r.top)+Math.min(r.height,innerHeight-Math.max(0,r.top))/2;return {overflow:document.documentElement.scrollWidth>innerWidth+1,reachable:e.contains(document.elementFromPoint(x,y))}})()");assert(!hit.overflow,`overflow ${width} ${theme}`);assert(hit.reachable,`picker obscured ${width} ${theme}`);
+ if(width===390){const shot=await cdp('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mid-search-293-'+theme+'.png',Buffer.from(shot.result.data,'base64'))}await escape();await wait(bars,'Escape restores both bars');await focus();await wait(opened,'reopen');await evaluate("document.querySelector('.search-favorite-group button').click();true");await wait(bars,'selection restores bars');
+ await focus();await wait(opened,'reopen outside');await evaluate("document.querySelector('#outside').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));true");await wait(bars,'outside restores bars');
+ await focus();await wait(opened,'reopen keyboard');await evaluate("document.querySelector('#outside').focus();true");await wait(bars,'focus outside restores bars');
+ await focus();await cdp('Input.insertText',{text:'Barcelona'});await wait(()=>evaluate('window.__pending.length>0'),'search started');await escape();await wait(bars,'close pending query');await evaluate("window.__pending.splice(0).forEach(resolve=>resolve([{id:1,name:'Barcelona',latitude:41.38,longitude:2.17}]));true");await new Promise(r=>setTimeout(r,120));assert.equal(await opened(),false,'Late response must not reopen search');assert(await bars());
+ await focus();await wait(opened,'query reopened');await cdp('Emulation.setDeviceMetricsOverride',{width,height:Math.max(240,Math.floor(height*.6)),deviceScaleFactor:1,mobile:width<1025});assert.equal(await evaluate("Boolean(document.querySelector('.mid-bottom-nav-fixed')||document.querySelector('.selected-place-bar'))"),false,'Keyboard viewport must not resurrect bars');await escape();await wait(bars,'keyboard close restores bars');await focus();await cdp('Input.insertText',{text:' Fehler'});await wait(()=>evaluate('window.__reject.length>1'),'error query');await evaluate("window.__reject.at(-1)(new Error('Fixture error'));true");await wait(()=>evaluate("Boolean(document.querySelector('.search-query-state.error-state'))"),'visible error');assert(await opened(),'Error keeps open picker open');await escape();await wait(bars,'error close restores bars');
+ console.log(`Search ${width}×${height} ${theme}: input/favorites, portal isolation, hit target, escape/select/outside/focus restoration, late response and keyboard resize.`);
+ }
+ assert.deepEqual(errors,[],'browser exceptions');
+ }
+}finally{
+ if(socket)socket.close();for(const q of pending.values())clearTimeout(q.timer);
+ if(chrome&&chrome.exitCode===null&&chrome.signalCode===null){
+  const closed=once(chrome,'close');chrome.kill('SIGTERM');
+  const deadline=setTimeout(()=>chrome.kill('SIGKILL'),5000);deadline.unref();
+  try{await closed}finally{clearTimeout(deadline)}
+ }
+ if(server)await new Promise(r=>server.close(r));
+ await rm(temp,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+}

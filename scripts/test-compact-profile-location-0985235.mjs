@@ -5,7 +5,7 @@ const head=profile.slice(profile.indexOf('<header className="cockpit-meteogram-p
 assert.match(head,/cockpit-weather-profile__toolbar/);
 assert.match(head,/aria-expanded=\{profileLegendVisible\}/);
 assert.match(head,/aria-expanded=\{profileInfoOpen\}/);
-assert.match(app,/showSelectedPlace=Boolean\(loc&&!settingsOpen&&modernPrimarySection\(activeNavSection\)!=='map'\)/);
+assert.match(app,/showSelectedPlace=Boolean\(loc&&!settingsOpen&&!locationSearchOpen&&modernPrimarySection\(activeNavSection\)!=='map'\)/);
 assert.match(app,/<SelectedPlaceBar name=\{displayLocationName\}/);
 assert.ok(app.indexOf('if(widgetUrlExport)return')<app.indexOf('<SelectedPlaceBar'),'standalone exports retain their shared export layout');
 if(process.env.GITHUB_ACTIONS==='true')await import('./verify-compact-profile-browser-0985235.mjs');
