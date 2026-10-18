@@ -685,14 +685,29 @@ function pointInPolygonCoords(lat,lon,rings){if(!Array.isArray(rings)||!rings.le
 function pointInGeometry(lat,lon,g){if(!g)return false;if(g.type==='Polygon')return pointInPolygonCoords(lat,lon,g.coordinates);if(g.type==='MultiPolygon')return(g.coordinates||[]).some(p=>pointInPolygonCoords(lat,lon,p));if(g.type==='GeometryCollection')return(g.geometries||[]).some(x=>pointInGeometry(lat,lon,x));return false}
 function parseCapPolygon(value){return String(value).trim().split(/\s+/).map(pair=>pair.split(',').map(Number)).filter(x=>x.length>=2&&x.every(Number.isFinite)).map(([lat,lon])=>[lon,lat])}
 function parseCircle(value){const m=String(value).trim().match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\s+([\d.]+)$/);return m?{lat:Number(m[1]),lon:Number(m[2]),radiusKm:Number(m[3])}:null}
-function officialAreaDescriptionMatches(areaXml,officialAreaNames){const descriptions=tagValues(areaXml,'areaDesc').map(cleanText).filter(Boolean);if(!Array.isArray(officialAreaNames))return undefined;if(!descriptions.length||!officialAreaNames.length)return false;return descriptions.some(description=>officialAreaNames.some(name=>{const left=normalize(description),right=normalize(name);return left===right||areaDescriptionMatches(description,termsFor(name))||areaDescriptionMatches(name,termsFor(description))}))}
+function officialWarningAreaNamesEquivalent(leftRaw,rightRaw){
+ const left=normalize(leftRaw),right=normalize(rightRaw);if(!left||!right)return false;
+ if(left===right)return true;
+ // Exact members of an administrative list may match, but a locality-name
+ // substring must never turn a different warning zone into a point warning.
+ if(String(leftRaw).split(/[,;|]/).some(item=>normalize(item)===right)||String(rightRaw).split(/[,;|]/).some(item=>normalize(item)===left))return true;
+ return AREA_TERM_GROUPS.some(group=>group.includes(left)&&group.includes(right));
+}
+function officialAreaDescriptionMatches(areaXml,officialAreaNames){
+ const descriptions=tagValues(areaXml,'areaDesc').map(cleanText).filter(Boolean);
+ if(!Array.isArray(officialAreaNames))return undefined;
+ if(!descriptions.length||!officialAreaNames.length)return false;
+ return descriptions.some(description=>officialAreaNames.some(name=>officialWarningAreaNamesEquivalent(description,name)));
+}
 function localAreaMatch(areaXml,lat,lon,terms,officialAreaNames){
  const polygons=tagValues(areaXml,'polygon').map(parseCapPolygon).filter(x=>x.length>=3);if(polygons.some(p=>pointInRing(lat,lon,p)))return true;
  const circles=tagValues(areaXml,'circle').map(parseCircle).filter(Boolean);if(circles.some(c=>distance(lat,lon,c.lat,c.lon)<=c.radiusKm*1000))return true;
  if(polygons.length||circles.length)return false;
- const descriptions=tagValues(areaXml,'areaDesc').join(' ');if(areaDescriptionMatches(descriptions,terms))return true;
+ // Once a MeteoAlarm point-area preselection exists, verify against those
+ // WHOLE official zone labels before falling back to locality text.
  const officialMatch=officialAreaDescriptionMatches(areaXml,officialAreaNames);if(officialMatch!==undefined)return officialMatch;
- return false;
+ const descriptions=tagValues(areaXml,'areaDesc').join(' ');
+ return areaDescriptionMatches(descriptions,terms);
 }
 function localMatch(xml,lat,lon,name='',region='',district='',officialAreaNames){
  const terms=termsFor(name,district||region),areas=blocks(xml,'area');if(areas.length)return areas.some(area=>localAreaMatch(area,lat,lon,terms,officialAreaNames));
@@ -762,7 +777,7 @@ async function meteoalarmPointAlerts(context,language){
 }
 function alertAreaSignature(alert){if(Array.isArray(alert?.areaCodes)&&alert.areaCodes.length)return alert.areaCodes.map(normalize).sort().join(',');return String(alert?.area||'').split(',').map(normalize).filter(Boolean).sort().join(',')}
 function alertTimeSignature(value){const date=safeDate(value);return date?date.slice(0,16):''}
-function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires)].join('|')}
+function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires),String(alert?.level||'unknown')].join('|')}
 function alertQuality(alert){const updated=Date.parse(String(alert?.updatedAt||alert?.effective||''));return(Number.isFinite(updated)?updated/1e10:0)+String(alert?.description||'').length+String(alert?.instruction||'').length*2+(alert?.areaCodes?.length||0)*20}
 function dedupeAlerts(alerts){
  const rows=[],keyToIndex=new Map();for(const alert of alerts){if(!alert)continue;const keys=[alert.id?`id:${alert.id}`:'',...(alert.references||[]).map(id=>`id:${id}`),alertSemanticKey(alert)].filter(Boolean),existing=keys.map(key=>keyToIndex.get(key)).find(index=>index!==undefined);if(existing===undefined){const index=rows.length;rows.push(alert);for(const key of keys)keyToIndex.set(key,index)}else{if(alertQuality(alert)>alertQuality(rows[existing]))rows[existing]=alert;for(const key of keys)keyToIndex.set(key,existing)}}
