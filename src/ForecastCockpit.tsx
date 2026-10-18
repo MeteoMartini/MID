@@ -31,6 +31,7 @@ import {formatDisplayDateTime,localTimeDisambiguationSuffix} from './timeDisplay
 import {AppPortalPopover} from './AppPortalPopover';
 import {useDismissibleLayer} from './useDismissibleLayer';
 import {relativeForecastTimePhrase} from './forecastPresentation';
+import {shortTermSignificantBrief} from './shortTermSignificantBrief';
 import {nicePressureAxis} from './pressureAxis';
 import {compactSevenDayConditionLabel} from './forecastDayLabel';
 import {forecastDayRegime,forecastRegimeLabel,type ForecastDayRegime} from './forecastRegime';
@@ -188,17 +189,8 @@ function shortTermSummary(hours:Hour[],timezone:string,unit:WindUnit,now=Date.no
  const first=wet[0],parts=plausiblePrecipitation(first),kind=['showers','sleetShowers','snowShowers','graupelShowers','hailShowers'].includes(parts.type)?'Schauer':parts.type==='thunderstorm'||parts.type==='thunderstormHail'?'Gewitter':parts.weatherLabel;
  return `${kind} ${relativeForecastTimePhrase(first.epoch,timezone,'from',now)} · ${gustPart}`;
 }
-function shortTermPointSummary(points:ShortTermForecastPoint[],unit:WindUnit,timezone:string,now=Date.now(),quarters:ShortTermForecastPoint[]=[]){
- if(!points.length)return'Kurzfristdaten werden geladen.';
- const wet=points.filter(point=>point.precipitation>=.05&&Number(point.precipitationIntervalEndEpoch??point.epoch+3600000)>now),gust=points.reduce((best,item)=>item.gust>best.gust?item:best,points[0]),gustPart=`Böen bis ${wind(gust.gust,unit)} ${relativeForecastTimePhrase(gust.epoch,timezone,'at',now)}`;
- if(!wet.length)return `Bis auf Weiteres trocken · ${gustPart}`;
- const first=wet[0],kind=/schauer/i.test(first.weatherLabel)?'Schauer':/gewitter/i.test(first.weatherLabel)?'Gewitter':first.weatherLabel;
- const start=Number(first.precipitationIntervalStartEpoch??first.epoch),end=Number(first.precipitationIntervalEndEpoch??start+3600000);
- // The graphic uses forward-facing interval STARTS. Within its first wet hourly
- // slot prefer the native wet 15-minute subinterval, never a trailing end stamp.
- const nativeOnset=quarters.find(point=>point.source==='15-min'&&point.precipitation>=.01&&Number(point.precipitationIntervalStartEpoch??point.epoch)>=start&&Number(point.precipitationIntervalStartEpoch??point.epoch)<end);
- const firstEpoch=Math.max(now,Number(nativeOnset?.precipitationIntervalStartEpoch??start));
- return `${kind} voraussichtlich ${relativeForecastTimePhrase(firstEpoch,timezone,'from',now)} · ${gustPart}`;
+function shortTermPointSummary(points:ShortTermForecastPoint[],unit:WindUnit,timezone:string,now=Date.now()){
+ return shortTermSignificantBrief(points,now,{from:epoch=>relativeForecastTimePhrase(epoch,timezone,'from',now),at:epoch=>relativeForecastTimePhrase(epoch,timezone,'at',now),gust:knots=>wind(knots,unit)});
 }
 function shortTermCompactWeatherLabel(label:string){
  return label.replace(/^Überwiegend\s+/i,'').replace(/^Teilweise\s+/i,'').replace(/^Leicht\s+/i,'').replace(/^Mäßig\s+/i,'');
@@ -282,7 +274,7 @@ function ShortTermRibbon({hours,minutes15,climate,timezone,unit,onSelectedDate,a
  /* Compatibility contract: profileHazardSignals=useMemo(()=>shortTermHazardSignals(hours,Number(location.elevation)||0,unit) */
  const radarNowcastInput=canonicalNowcast?undefined:radarNowcast;
  // Kompatibilitätsvertrag: buildShortTermForecast(minutes15,hours,timezone,profileNow,anchor,radarNowcast)
- const adjusted=useMemo(()=>buildShortTermForecast(minutes15,hours,timezone,profileNow,anchor,radarNowcastInput),[minutes15,hours,timezone,profileNow,anchor,radarNowcastInput]),points=useMemo(()=>adjusted.filter(point=>point.source==='hourly'),[adjusted]),hourlyPoints=points,profileHourlyPoints=useMemo(()=>shortTermProfileHourlyPoints(hours,adjusted,timezone,profileNow),[hours,adjusted,timezone,profileNow]),profileDisplayPoints=profileHourlyPoints,profileHazardSignals=useMemo(()=>shortTermHazardSignalsWithEnsemble(hours,Number(location.elevation)||0,unit,warningEnsemble),[hours,location.elevation,unit,warningEnsemble]),now90=useMemo(()=>shortTermNinetyMinutePoints(adjusted,profileNow),[adjusted,profileNow]),summary=useMemo(()=>shortTermPointSummary(profileDisplayPoints,unit,timezone,profileNow,adjusted),[profileDisplayPoints,unit,timezone,profileNow,adjusted]),focusDate=useMemo(()=>shortTermFocusDate(hours,timezone),[hours,timezone]),locallyAdjusted=adjusted.some(point=>point.localAdjustment>0);
+ const adjusted=useMemo(()=>buildShortTermForecast(minutes15,hours,timezone,profileNow,anchor,radarNowcastInput),[minutes15,hours,timezone,profileNow,anchor,radarNowcastInput]),points=useMemo(()=>adjusted.filter(point=>point.source==='hourly'),[adjusted]),hourlyPoints=points,profileHourlyPoints=useMemo(()=>shortTermProfileHourlyPoints(hours,adjusted,timezone,profileNow),[hours,adjusted,timezone,profileNow]),profileDisplayPoints=profileHourlyPoints,profileHazardSignals=useMemo(()=>shortTermHazardSignalsWithEnsemble(hours,Number(location.elevation)||0,unit,warningEnsemble),[hours,location.elevation,unit,warningEnsemble]),now90=useMemo(()=>shortTermNinetyMinutePoints(adjusted,profileNow),[adjusted,profileNow]),summary=useMemo(()=>shortTermPointSummary(profileDisplayPoints,unit,timezone,profileNow),[profileDisplayPoints,unit,timezone,profileNow]),focusDate=useMemo(()=>shortTermFocusDate(hours,timezone),[hours,timezone]),locallyAdjusted=adjusted.some(point=>point.localAdjustment>0);
  useEffect(()=>{const timer=window.setInterval(()=>setProfileNow(Date.now()),30000);return()=>window.clearInterval(timer)},[]);
  useEffect(()=>{if(focusDate)onSelectedDate(focusDate)},[focusDate,onSelectedDate]);
  const selectablePoints=useMemo(()=>{const map=new Map<string,ShortTermForecastPoint>();for(const point of [...profileHourlyPoints,...profileDisplayPoints,...adjusted,...points,...hourlyPoints])map.set(point.id,point);return [...map.values()].sort((left,right)=>left.epoch-right.epoch)},[profileHourlyPoints,profileDisplayPoints,adjusted,points,hourlyPoints]);
@@ -695,7 +687,7 @@ function MiniRibbon({horizon,hours,days,ensemble,climate,timezone,confidenceCali
  }
  const series=ensembleSeries(ensemble,days,climate,[],Date.now(),confidenceCalibration);return <span className="cockpit-mini-ribbon fourteen">{series.slice(0,14).map(item=><i key={item.date} style={{height:`${clamp(item.consistency,16,100)}%`,opacity:item.index>=7?.72:.96,background:AGREEMENT_COLOR[item.assessment.agreement]}} title={`${formatDate(item.date,{weekday:'short',day:'2-digit',month:'2-digit'})}: ${assessmentSummary(item.assessment)}`}/>)}</span>
 }
-function summaryByHorizon(horizon:ForecastHorizon,{hours,days,timezone,unit,sevenDaySummary,ensemble,scenarios,climate,shortPoints,confidenceCalibration}:{hours:Hour[];days:Day[];timezone:string;unit:WindUnit;sevenDaySummary?:string;ensemble:EnsembleDay[];scenarios:EnsembleScenarioCluster[];climate:ClimateDay[];shortPoints?:ShortTermForecastPoint[];confidenceCalibration?:EnsembleConfidenceCalibration}){if(horizon==='short-term'){const now=Date.now(),visible=shortTermProfileHourlyPoints(hours,shortPoints??[],timezone,now);return visible.length?shortTermPointSummary(visible,unit,timezone,now,shortPoints??[]):shortTermSummary(hours,timezone,unit)}if(horizon==='seven-day')return sevenDaySummary||'Die nächsten sieben Tage werden in Tageskarten verdichtet.';const series=ensembleSeries(ensemble,days,climate,[],Date.now(),confidenceCalibration);return uncertaintySummary(series,scenarios)}
+function summaryByHorizon(horizon:ForecastHorizon,{hours,days,timezone,unit,sevenDaySummary,ensemble,scenarios,climate,shortPoints,confidenceCalibration}:{hours:Hour[];days:Day[];timezone:string;unit:WindUnit;sevenDaySummary?:string;ensemble:EnsembleDay[];scenarios:EnsembleScenarioCluster[];climate:ClimateDay[];shortPoints?:ShortTermForecastPoint[];confidenceCalibration?:EnsembleConfidenceCalibration}){if(horizon==='short-term'){const now=Date.now(),visible=shortTermProfileHourlyPoints(hours,shortPoints??[],timezone,now);return visible.length?shortTermPointSummary(visible,unit,timezone,now):shortTermSummary(hours,timezone,unit)}if(horizon==='seven-day')return sevenDaySummary||'Die nächsten sieben Tage werden in Tageskarten verdichtet.';const series=ensembleSeries(ensemble,days,climate,[],Date.now(),confidenceCalibration);return uncertaintySummary(series,scenarios)}
 
 function AnalysisReveal({open,onToggle,label='Ensemble-Analyse öffnen',children}:{open:boolean;onToggle:()=>void;label?:string;children?:ReactNode}){if(!children)return null;return <div className={`cockpit-analysis${open?' open':''}`}><button type="button" className="cockpit-analysis-toggle" onClick={onToggle} aria-expanded={open}><span><SlidersHorizontal size={18}/><strong>{label}</strong></span>{open?<ChevronUp size={18}/>:<ChevronDown size={18}/>}</button>{open?<div className="cockpit-analysis-panel">{children}</div>:null}</div>}
 

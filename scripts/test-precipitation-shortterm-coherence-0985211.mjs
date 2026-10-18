@@ -32,23 +32,25 @@ assert.match(icon,/kind==='sleet'\?<><Rain intensity=\{precipIntensity\}\/><Snow
 assert.match(icon,/function GlazeSurface\(/);
 
 const cockpit=readFileSync('src/ForecastCockpit.tsx','utf8');
-const start=cockpit.indexOf('function shortTermPointSummary('),end=cockpit.indexOf('function shortTermCompactWeatherLabel(',start);
-assert.ok(start>=0&&end>start);
-const fragment=cockpit.slice(start,end);
-const stub="const wind=(v)=>v+' kt';const relativeForecastTimePhrase=(t)=>String(t);";
-const built=await build({stdin:{contents:stub+fragment+'export{shortTermPointSummary};',loader:'ts'},bundle:false,format:'esm',write:false,logLevel:'silent'});
-const {shortTermPointSummary}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+// Test the actual production TypeScript helper rather than extracting a standalone
+// JSX fragment without its imported dependencies. The 24h chart is authoritative.
+const built=await build({entryPoints:['src/shortTermSignificantBrief.ts'],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});
+const {shortTermSignificantBrief:brief}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const now=Date.UTC(2026,9,8,21,30),hour=3600000,quarter=900000;
 const dry={epoch:now,precipitationIntervalStartEpoch:now,precipitationIntervalEndEpoch:now+hour,precipitation:0,probability:99,gust:6,weatherLabel:'Bedeckt',source:'hourly'};
 const wet={...dry,epoch:now+hour,precipitationIntervalStartEpoch:now+hour,precipitationIntervalEndEpoch:now+2*hour,precipitation:.3,probability:8,gust:5,weatherLabel:'Leichter Regen'};
 const native={...wet,source:'15-min',epoch:now+hour+quarter,precipitationIntervalStartEpoch:now+hour+quarter,precipitationIntervalEndEpoch:now+hour+2*quarter,precipitation:.1};
-const text=shortTermPointSummary([dry,wet],'kn','Europe/Berlin',now,[native]);
-assert.ok(text.includes(String(native.precipitationIntervalStartEpoch)),'Text must use actual native forward interval onset, not hour-end stamp');
-assert.ok(!text.includes('voraussichtlich '+String(now+hour)+' ·'),'Quarter onset must not be rounded backwards');
-assert.match(shortTermPointSummary([dry],'kn','Europe/Berlin',now),/trocken/i,'Probability without precipitation is NOT precipitation onset');
-assert.match(cockpit,/shortTermPointSummary\(profileDisplayPoints,unit,timezone,profileNow,adjusted\)/,'Text must use same displayed hourly profile as graph');
-assert.match(cockpit,/shortTermPointSummary\(visible,unit,timezone,now,shortPoints\?\?\[\]\)/,'Navigation preview must reuse visible hourly intervals');
+const format={from:epoch=>'ab '+epoch,at:epoch=>'um '+epoch,gust:knots=>knots+' kt'};
+const text=brief([dry,wet],now,format);
+assert.ok(text.includes(String(wet.precipitationIntervalStartEpoch)),'Text onset must use the actual visible forward-facing 24h chart interval start');
+assert.ok(!text.includes(String(native.precipitationIntervalStartEpoch)),'Hidden native 15-minute onset must not shift the visible hourly chart briefing');
+assert.doesNotMatch(text,/Böen/,'Non-significant gusts must not become weather brief events');
+assert.match(brief([dry],now,format),/Keine markanten Wetterereignisse/,'Probability without precipitation amount is not a confirmed precipitation onset');
+assert.equal(brief([{...dry,precipitation:NaN,gust:NaN}],now,format),'Kurzfristdaten unvollständig.','Missing must not be converted to dry');
+assert.match(cockpit,/shortTermPointSummary\(profileDisplayPoints,unit,timezone,profileNow\)/,'Text must use same displayed hourly profile as graph');
+assert.match(cockpit,/shortTermPointSummary\(visible,unit,timezone,now\)/,'Navigation preview must reuse visible hourly intervals');
 assert.match(cockpit,/shortTermHours\(precipitationPresentationHours\(hours\)\)/,'Hour-only fallback must use forward-facing provider intervals');
+assert.doesNotMatch(cockpit,/const nativeOnset=quarters.find\(/,'Do not reintroduce independent hidden native onset');
 assert.doesNotMatch(cockpit,/<small className="cockpit-now90-cloud">Wolken/,'90m visible cards must not duplicate skybar cloud percentages');
 assert.match(cockpit,/keyPrefix="now90-quarter"/,'Skybar cloud science remains present');
-console.log('MID .211 WMO/ICAO freezing rain vs sleet, warm/unknown/cold/observed safety, shared text/icon semantics, 15m-to-1h onset and 90m cloud cleanup passed.');
+console.log('MID WMO/ICAO freezing rain vs sleet, warm/unknown/cold/observed safety, production TS 15m-to-visible-hour onset, missing data and 90m cloud cleanup passed.');
