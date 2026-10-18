@@ -20,5 +20,7 @@ try{
  assert.ok(source.includes('return sevenDayNarrativeText(events,hasUsableData);'),'Full 7-day component must use chronological renderer');
  assert.ok(source.includes("const duplicateThunder=/gewitt/i.test(hazard.text)"),'Same-day thunder warning must not duplicate storm narrative');
  assert.ok(!source.includes('weatherClauses=supplementalClause'),'Late hazard append must not reintroduce time jumps');
+ assert.ok(source.includes('sevenDayClause(segment,forecastDays)'),'First selected event must be dated by actual segment start, not its rank');
+ assert.ok(!source.includes('return`Danach ${description}`'),'Chronology must not be described by selection-rank transitions');
  console.log('7-day concise significant timeline: relevance cap, chronological order, duplicates, missing data passed.');
 }finally{await rm(tmp,{recursive:true,force:true})}
