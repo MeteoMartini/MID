@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-visibility-nodata-0985288.mjs",
     "scripts/test-missing-daily-source-0985287.mjs",
     "scripts/test-push-settings-ordering-0985286.mjs",
     "scripts/test-push-settings-browser-0985286.mjs",
@@ -1009,6 +1010,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-visibility-nodata-0985288.mjs",
     "scripts/test-missing-daily-source-0985287.mjs",
     "scripts/test-push-settings-ordering-0985286.mjs",
     "scripts/test-push-settings-browser-0985286.mjs",
