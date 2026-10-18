@@ -1,3 +1,10 @@
+# MID v0.9.85.294 · Aktuell-Skybar: exakte Sonnenübergänge (Source-PR-Kandidat)
+
+- Verifizierte Basis main=mid-stable=5ad8be1fbafbcbfbc9d1aeda451b3e642a947617 (.293), erfolgreicher Installer39158231540 attempt2.
+- Der gemeinsame zeitgebundene Adapter erhält optional dieselben solaren Nachtintervalle wie der aktuelle 12h-Hintergrund und bewahrt deren Teilsegmentgrenzen beim Epoch-Mapping und Viewport-Clipping. Niederschlag, Masken, Sonnenparameter und diskrete Stundenquadrate unverändert.
+- Regression scripts/test-skybar-solar-epoch-split-0985278.mjs erweitert; Nachweis docs/implementation/MID_C36_CURRENT_SOLAR_0.9.85.294.md. Kein physischer iOS-/VoiceOver-Nachweis.
+- #374 bleibt für die klassische Detailachse und vollständige appweite Abnahme offen; #352/#411/#405 bleiben separat. Veröffentlichung ausschließlich über bestehendes Source-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable.
+
 # MID v0.9.85.293 · Freie Ortssuche und verlässliches Schließen (Source-PR-Kandidat)
 
 - Freigegebene Ausgangsbasis main=mid-stable=7cfa80f16c7779e14a4b81ec8a060c46a39a9d09 (.292), Installer 39135094553 erfolgreich; ausgelieferte Version und Buildidentität HTTP 200 bestätigt.
