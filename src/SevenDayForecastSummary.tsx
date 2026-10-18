@@ -58,7 +58,8 @@ function sevenDayThermalPhrase(segment:SevenDayWeatherSegment){
 }
 function sevenDaySegmentDescription(segment:SevenDayWeatherSegment){
  const points=segment.points,totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0),showeryScore=points.reduce((sum,point)=>sum+(point.showery?sevenDayWeight(point.index):0),0),weight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),thermal=sevenDayThermalPhrase(segment),maxThunderRisk=Math.max(0,...points.map(point=>point.thunderSignalScore)),directThunder=points.some(point=>point.thunderDirect);
- const base=segment.regime==='snow'?'Schnee':segment.regime==='storm'?(directThunder||maxThunderRisk>=70?'Gewitter möglich':'erhöhtes Gewitterrisiko'):segment.regime==='wet'?(showeryScore>=weight*.45&&totalPrecip<10?'Schauer':'Regen'):segment.regime==='sunny'?'freundlicher':segment.regime==='cloudy'?'überwiegend bewölkt':'wechselhaft';
+ const knownPrecipitation=points.every(point=>point.day.precipitationAvailable!==false&&Number.isFinite(point.day.precipitation)&&point.day.precipitation>=0),unknownWet=segment.regime==='wet'&&points.some(point=>point.day.precipitationAvailable===false);
+ const base=segment.regime==='snow'?'Schnee':segment.regime==='storm'?(directThunder||maxThunderRisk>=70?'wechselhaft mit Gewittern':maxThunderRisk>=50?'wechselhaft mit erhöhtem Gewitterrisiko':'wechselhaft mit Gewitterrisiko'):segment.regime==='wet'?(unknownWet?'regnerisch':showeryScore>=weight*.45&&totalPrecip<10?'Schauer':'Regen'):segment.regime==='sunny'?'freundlicher':segment.regime==='cloudy'?'überwiegend bewölkt':knownPrecipitation?'wechselnd bewölkt mit sonnigen Abschnitten und überwiegend trocken':'wechselhaft';
  // Do not attach ordinary summer warmth, a dry-day boilerplate or inferred precipitation zero.
  const importantThermal=/^(extrem heiß|sehr heiß|zunehmend heiß|heiß|mit Dauerfrost|mit Nachtfrost|deutlich (wärmer|kühler))/.test(thermal)?thermal:'';
  return importantThermal?`${base}${importantThermal.startsWith('mit ')?' ':', '}${importantThermal}`:base;
@@ -79,7 +80,7 @@ function sevenDaySegmentScore(segment:SevenDayWeatherSegment){const base=segment
 function sevenDaySegmentSignificant(segment:SevenDayWeatherSegment){
  // Significance is categorical. A large weight for an early but ordinary cloud day
  // must never crowd out an actual later weather event.
- return ['storm','snow'].includes(segment.regime)||segment.regime==='wet'&&segment.points.some(point=>point.dayPrecipitation>=2||point.precipitationDurationHours>=2&&point.dayProbability>=50||point.dayProbability>=75)||segment.points.some(point=>point.hazards.some(signal=>signal.level>=2)||['extreme-hot','very-hot','hot','ice'].includes(point.thermal)||Number.isFinite(point.climateDelta)&&Math.abs(point.climateDelta)>=6);
+ return ['storm','snow'].includes(segment.regime)||segment.regime==='wet'&&segment.points.some(point=>point.dayPrecipitation>=2||point.precipitationDurationHours>=2&&point.dayProbability>=50||point.dayProbability>=75||point.day.precipitationAvailable===false&&[51,53,55,61,63,65,67,80,81,82].includes(Math.round(Number(point.day.code))))||segment.points.some(point=>point.hazards.some(signal=>signal.level>=2)||['extreme-hot','very-hot','hot','ice'].includes(point.thermal)||Number.isFinite(point.climateDelta)&&Math.abs(point.climateDelta)>=6);
 }
 function selectSevenDaySegments(segments:SevenDayWeatherSegment[]){
  const meaningful=segments.filter((segment,index)=>sevenDaySegmentSignificant(segment)||index>0&&['wet','storm','snow'].includes(segments[index-1].regime)&&['sunny','mixed'].includes(segment.regime)&&segment.points.length>=2);
@@ -100,7 +101,8 @@ function sevenDayFollowingNightClause(points:SevenDayWeatherPoint[]):SevenDayNar
 export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:ClimateDay[]=[],elevation=0){
  const forecastDays=days.slice(0,7);if(!forecastDays.length)return'';
  // Day aggregation is 00-24 local time, not a rolling weather event claim.
- const displayHours=precipitationPresentationHours(hours),climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=displayHours.filter(hour=>hour.time.startsWith(day.date)),fullDayHours=dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fullDayHours,displayHours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
+ const displayHours=precipitationPresentationHours(hours);
+ const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=displayHours.filter(hour=>hour.time.startsWith(day.date)),fullDayHours=dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fullDayHours,displayHours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
  for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end=point.index;current.points.push(point)}else segments.push({regime:point.regime,start:point.index,end:point.index,points:[point]})}
  const meaningful=selectSevenDaySegments(segments);
  const events:SevenDayNarrativeEvent[]=meaningful.map(segment=>({dayIndex:segment.start,phase:0 as const,importance:3+sevenDaySegmentScore(segment),kind:'weather' as const,text:sevenDayClause(segment,forecastDays)}));
@@ -113,6 +115,8 @@ export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:Cli
  }
  if(followingNight)events.push(followingNight);
  const hasUsableData=forecastDays.some(day=>day.max!=null&&Number.isFinite(Number(day.max))||day.min!=null&&Number.isFinite(Number(day.min))||day.precipitationAvailable!==false&&Number.isFinite(day.precipitation));
+ // Only an isolated single-day, code/accumulation-conflicted fixture can claim its *daily sum* is dry; not a general 7d period.
+ if(!events.length&&forecastDays.length===1&&displayHours.length===0&&forecastDays[0].precipitationAvailable!==false&&Number(forecastDays[0].precipitation)===0)return'Heute laut Tagessumme trocken.';
  return sevenDayNarrativeText(events,hasUsableData);
 }
 export function SevenDayForecastSummary({days,hours,climate,elevation}:{days:Day[];hours:Hour[];climate:ClimateDay[];elevation:number}){const summary=useMemo(()=>buildSevenDayForecastSummary(days,hours,climate,elevation),[days,hours,climate,elevation]);if(!summary)return null;return <aside className="seven-day-forecast-summary" aria-label="Kurzinterpretation der nächsten sieben Tage"><small>7-Tage-Trend</small><strong>{summary}</strong></aside>}
