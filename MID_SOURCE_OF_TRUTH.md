@@ -1,3 +1,11 @@
+# MID v0.9.85.287 · Tagesniederschlags-Quellgültigkeit (Source-PR-Kandidat)
+
+- Freigegebener Ausgangsstand main=mid-stable=394ff6f999accb5c4211490d44f52275faefa61c (v0.9.85.286), WIP-Provenienz ef34de34dd153d42ae6c9dfe267a99a5be440b36. Keine produktive Stable-Divergenz zum Start.
+- #397: Fehlende providerseitige Tagesakkumulationen bleiben Missing statt 0. Das gilt für Adapter, Kalender-/Modellfusion, probabilistische Zusammenfassung, Cache, Widget-Feeds und native optionale Masken. Gültige 0, unabhängig gültige Komponenten/Wettercodes und 23/24/25-h-Vollabdeckung bleiben erhalten. Regen in mm und Schnee in cm dürfen nicht zu einer fehlenden Gesamtmenge addiert werden.
+- Neue Pflichtregression test-missing-daily-source-0985287.mjs in beiden Baseline-Listen; aktuelle CI-Ergebnisse dieses Branches stehen noch aus. Vorherige lokale WIP-Proben nicht als grünes Source-Gate ausgeben.
+- Version und Quell-/Worker-/PWA-/iOS-Spiegel v0.9.85.287. Der Source-Kandidat ist **nicht veröffentlicht**. Nur PR-Gate → SHA-gebundener Release-Bot → serverseitiges ZIP → install-mid.yml → erforderliche Worker/Pages-Gates → Stable-Promotion.
+- #352 RUC-Kompression, #374 Low-Cloud-Skybar und #405 Open-Meteo Upstream bleiben separate Prüf-/Entwicklungspakete.
+
 # MID v0.9.85.286 · Push-Präferenzen und Bestätigung (Source-PR-Kandidat)
 
 - Verifizierte freigegebene Basis: main=mid-stable=e8c3e4e61eff028797120fcecc6f3be58f993911, .285; Installer 39075158905 erfolgreich. Normaler Basis-Merge, keine publizierte Historie überschrieben.
