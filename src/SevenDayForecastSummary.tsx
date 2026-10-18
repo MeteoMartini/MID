@@ -5,6 +5,7 @@ import {followingNightIsTropical} from './forecastNight';
 import {addForecastDays,dayPeriodHoursForDate,followingNightHoursForDate} from './forecastPeriods';
 import {DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD,significantHourlyThunderRisk} from './detailThunderRisk';
 import {precipitationPresentationHours} from './precipitationIntervals';
+import {sevenDayNarrativeText,type SevenDayNarrativeEvent} from './sevenDayNarrativeTimeline';
 
 function dateOnlyUtc(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3]),12)):new Date(Number.NaN)}
 function formatDateOnly(value:string,options:Intl.DateTimeFormatOptions){const date=dateOnlyUtc(value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('de-DE',{...options,timeZone:'UTC'}).format(date):value}
@@ -20,6 +21,7 @@ function sevenDayClockMinutes(value?:string){const match=String(value||'').match
 function sevenDayDaylightHours(day:Day){const sunrise=sevenDayClockMinutes(day.sunrise),sunset=sevenDayClockMinutes(day.sunset);if(Number.isFinite(sunrise)&&Number.isFinite(sunset)){const minutes=sunset>=sunrise?sunset-sunrise:sunset+1440-sunrise;if(minutes>0)return minutes/60}return 12}
 function sevenDayThermalClass(day:Day,climate?:ClimateDay){
  const max=Number(day.max),min=Number(day.min),delta=climate&&Number.isFinite(climate.maxMean)?max-climate.maxMean:Number.NaN;
+ if(day.max==null||day.min==null||!Number.isFinite(max)||!Number.isFinite(min))return'neutral';
  if(max>=40)return'extreme-hot';
  if(max>=35)return'very-hot';
  if(max>=30)return'hot';
@@ -55,27 +57,19 @@ function sevenDayThermalPhrase(segment:SevenDayWeatherSegment){
  return'';
 }
 function sevenDaySegmentDescription(segment:SevenDayWeatherSegment){
- const points=segment.points,knownPrecipitation=points.every(point=>point.day.precipitationAvailable!==false&&Number.isFinite(point.day.precipitation)&&point.day.precipitation>=0),totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0),showeryScore=points.reduce((sum,point)=>sum+(point.showery?sevenDayWeight(point.index):0),0),weight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),thermal=sevenDayThermalPhrase(segment),maxThunderRisk=Math.max(0,...points.map(point=>point.thunderSignalScore)),directThunder=points.some(point=>point.thunderDirect);
- let base='';
- if(segment.regime==='snow')base='winterlich mit Schnee';
- else if(segment.regime==='storm')base=directThunder||maxThunderRisk>=70?'wechselhaft mit Gewittern':maxThunderRisk>=50?'wechselhaft mit erhöhtem Gewitterrisiko':'wechselhaft mit Gewitterrisiko';
- else if(segment.regime==='wet')base=showeryScore>=weight*.45&&totalPrecip<10?'wechselhaft mit Schauern':totalPrecip>=8?'regnerisch':'zeitweise regnerisch';
- else if(segment.regime==='cloudy')base=knownPrecipitation?'überwiegend bewölkt, aber meist trocken':'überwiegend bewölkt';
- else if(segment.regime==='mixed')base=knownPrecipitation?'wechselnd bewölkt mit sonnigen Abschnitten und überwiegend trocken':'wechselnd bewölkt mit sonnigen Abschnitten';
- else base=knownPrecipitation?'heiter bis sonnig und trocken':'heiter bis sonnig';
- if(!thermal)return base;
- if(thermal.startsWith('mit '))return`${base} ${thermal}`;
- if(segment.regime==='sunny')return`heiter bis sonnig und ${thermal}`;
- if(segment.regime==='cloudy')return`${base}; dabei ${thermal}`;
- return`${base}, dabei ${thermal}`;
+ const points=segment.points,totalPrecip=points.reduce((sum,point)=>sum+point.dayPrecipitation,0),showeryScore=points.reduce((sum,point)=>sum+(point.showery?sevenDayWeight(point.index):0),0),weight=points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),thermal=sevenDayThermalPhrase(segment),maxThunderRisk=Math.max(0,...points.map(point=>point.thunderSignalScore)),directThunder=points.some(point=>point.thunderDirect);
+ const base=segment.regime==='snow'?'Schnee':segment.regime==='storm'?(directThunder||maxThunderRisk>=70?'Gewitter möglich':'erhöhtes Gewitterrisiko'):segment.regime==='wet'?(showeryScore>=weight*.45&&totalPrecip<10?'Schauer':'Regen'):segment.regime==='sunny'?'freundlicher':segment.regime==='cloudy'?'überwiegend bewölkt':'wechselhaft';
+ // Do not attach ordinary summer warmth, a dry-day boilerplate or inferred precipitation zero.
+ const importantThermal=/^(extrem heiß|sehr heiß|zunehmend heiß|heiß|mit Dauerfrost|mit Nachtfrost|deutlich (wärmer|kühler))/.test(thermal)?thermal:'';
+ return importantThermal?`${base}${importantThermal.startsWith('mit ')?' ':', '}${importantThermal}`:base;
 }
 function sevenDayWeekday(day:Day){return formatDateOnly(day.date,{weekday:'long'})}
 function sevenDayClause(segment:SevenDayWeatherSegment,forecastDays:Day[],index:number,total:number){
- const description=sevenDaySegmentDescription(segment),startDay=forecastDays[segment.start],endDay=forecastDays[segment.end];
+ const description=sevenDaySegmentDescription(segment),startDay=forecastDays[segment.start];
  if(index===0){
   if(segment.start===0&&segment.end===0)return`Heute ${description}`;
   if(segment.start===0&&segment.end===1)return`Heute und morgen ${description}`;
-  if(segment.end<=3)return`Bis ${sevenDayWeekday(endDay)} ${description}`;
+  if(segment.end<=3)return`Zunächst ${description}`;
   return`Zunächst ${description}`;
  }
  if(segment.start===1)return segment.start===segment.end?`Morgen ${description}`:`Ab morgen ${description}`;
@@ -84,35 +78,43 @@ function sevenDayClause(segment:SevenDayWeatherSegment,forecastDays:Day[],index:
  return`Danach ${description}`;
 }
 function sevenDaySegmentScore(segment:SevenDayWeatherSegment){const base=segment.points.reduce((sum,point)=>sum+sevenDayWeight(point.index),0),hazard=Math.max(0,...segment.points.flatMap(point=>point.hazards.map(signal=>signal.level))),weather=['wet','storm','snow'].includes(segment.regime)?1.4:0,thermal=segment.points.some(point=>['extreme-hot','very-hot','hot','ice'].includes(point.thermal))?1:0;return base+hazard*1.2+weather+thermal}
-function sevenDaySegmentSignificant(segment:SevenDayWeatherSegment){return['wet','storm','snow'].includes(segment.regime)||segment.points.some(point=>point.hazards.some(signal=>signal.level>=2)||['extreme-hot','very-hot','ice'].includes(point.thermal))||sevenDaySegmentScore(segment)>=1.8}
+function sevenDaySegmentSignificant(segment:SevenDayWeatherSegment){
+ // Significance is categorical. A large weight for an early but ordinary cloud day
+ // must never crowd out an actual later weather event.
+ return ['storm','snow'].includes(segment.regime)||segment.regime==='wet'&&segment.points.some(point=>point.dayPrecipitation>=2||point.precipitationDurationHours>=2&&point.dayProbability>=50||point.dayProbability>=75)||segment.points.some(point=>point.hazards.some(signal=>signal.level>=2)||['extreme-hot','very-hot','hot','ice'].includes(point.thermal)||Number.isFinite(point.climateDelta)&&Math.abs(point.climateDelta)>=6);
+}
 function selectSevenDaySegments(segments:SevenDayWeatherSegment[]){
- if(segments.length<=3)return segments;
- const selected=[segments[0]];
- if(segments[0].end<2&&segments[1])selected.push(segments[1]);
- const remaining=segments.filter(segment=>!selected.includes(segment)).filter(sevenDaySegmentSignificant).sort((a,b)=>sevenDaySegmentScore(b)-sevenDaySegmentScore(a)||a.start-b.start);
- if(remaining[0])selected.push(remaining[0]);
- return selected.sort((a,b)=>a.start-b.start).slice(0,3);
+ const meaningful=segments.filter((segment,index)=>sevenDaySegmentSignificant(segment)||index>0&&['wet','storm','snow'].includes(segments[index-1].regime)&&['sunny','mixed'].includes(segment.regime)&&segment.points.length>=2);
+ return meaningful.sort((a,b)=>sevenDaySegmentScore(b)-sevenDaySegmentScore(a)||a.start-b.start).slice(0,3).sort((a,b)=>a.start-b.start);
 }
 function sevenDayHazardPhrase(title:string){const value=String(title||'').trim();if(!value)return'';return /^(Schwere|Orkanartige|Extreme|Starke|Leichte|Mäßige)\b/.test(value)?value.charAt(0).toLocaleLowerCase('de-DE')+value.slice(1):value}
-function sevenDayHazardClause(points:SevenDayWeatherPoint[]){
- const candidates=points.flatMap(point=>point.hazards.filter(signal=>signal.level>=2).map(signal=>({point,signal}))).sort((a,b)=>b.signal.level-a.signal.level||a.point.index-b.point.index||sevenDayWeight(b.point.index)-sevenDayWeight(a.point.index));
- const candidate=candidates[0];if(!candidate)return'';
+function sevenDayHazardClause(points:SevenDayWeatherPoint[]):SevenDayNarrativeEvent|null{
+ const candidates=points.flatMap(point=>point.hazards.filter(signal=>signal.level>=2).map(signal=>({point,signal}))).sort((a,b)=>b.signal.level-a.signal.level||a.point.index-b.point.index);
+ const candidate=candidates[0];if(!candidate)return null;
  const prefix=candidate.point.index===0?'Heute':candidate.point.index===1?'Morgen':`Am ${sevenDayWeekday(candidate.point.day)}`,title=sevenDayHazardPhrase(candidate.signal.title);
- return`${prefix} ${title} möglich`;
+ return {dayIndex:candidate.point.index,phase:1,importance:8+candidate.signal.level,kind:'hazard',text:`${prefix} ${title} möglich`};
 }
-function sevenDayFollowingNightClause(points:SevenDayWeatherPoint[]){
- const candidate=points.find(point=>point.followingNightDominant&&point.followingNightFamily!=='none'&&point.followingNightDurationHours>=.5);if(!candidate)return'';
+function sevenDayFollowingNightClause(points:SevenDayWeatherPoint[]):SevenDayNarrativeEvent|null{
+ const candidate=points.find(point=>point.followingNightDominant&&point.followingNightFamily!=='none'&&point.followingNightDurationHours>=.5);if(!candidate)return null;
  const event=candidate.followingNightFamily==='thunder'?'Gewitter':candidate.followingNightFamily==='showers'?'Schauer':candidate.followingNightFamily==='snow'?'Schnee':candidate.followingNightFamily==='drizzle'?'Sprühregen':'Regen',plural=candidate.followingNightFamily==='thunder'||candidate.followingNightFamily==='showers',nextDate=addForecastDays(candidate.day.date,1),nextWeekday=formatDateOnly(nextDate,{weekday:'long'}),prefix=candidate.index===0?'In der kommenden Nacht':`In der Nacht zum ${nextWeekday}`;
- const daytimeWet=candidate.dayPrecipitation>=.1&&candidate.precipitationDurationHours>=.5&&!['wet','storm','snow'].includes(candidate.regime),dayPrefix=candidate.index===0?'Heute':candidate.index===1?'Morgen':`Am ${sevenDayWeekday(candidate.day)}`;
- return daytimeWet?`${dayPrefix} bereits zeitweise Niederschlag; ${prefix.charAt(0).toLocaleLowerCase('de-DE')+prefix.slice(1)} ${plural?'sind':'ist'} ${event} möglich`:`${prefix} ${plural?'sind':'ist'} ${event} möglich`;
+ return {dayIndex:candidate.index,phase:2,importance:candidate.followingNightFamily==='thunder'||candidate.followingNightFamily==='snow'?6:3,kind:'night',text:`${prefix} ${plural?'sind':'ist'} ${event} möglich`};
 }
 export function buildSevenDayForecastSummary(days:Day[],hours:Hour[],climate:ClimateDay[]=[],elevation=0){
  const forecastDays=days.slice(0,7);if(!forecastDays.length)return'';
- // Tagescharakter und Tagessummen gelten 00–24 Uhr; nur explizite Nowcast-/Warnfenster sind rollierend.
- const displayHours=precipitationPresentationHours(hours);
- const climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=displayHours.filter(hour=>hour.time.startsWith(day.date)),fullDayHours=dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fullDayHours,displayHours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
+ // Day aggregation is 00-24 local time, not a rolling weather event claim.
+ const displayHours=precipitationPresentationHours(hours),climateMap=new Map(climate.map(day=>[day.date,day])),points=forecastDays.map((day,index)=>{const allDayHours=displayHours.filter(hour=>hour.time.startsWith(day.date)),fullDayHours=dayPeriodHoursForDate(day.date,allDayHours);return sevenDayPoint(day,forecastDays[index+1],fullDayHours,displayHours,index,climateMap.get(day.date),elevation)}),segments:SevenDayWeatherSegment[]=[];
  for(const point of points){const current=segments[segments.length-1];if(current?.regime===point.regime){current.end=point.index;current.points.push(point)}else segments.push({regime:point.regime,start:point.index,end:point.index,points:[point]})}
- const effectiveSegments=selectSevenDaySegments(segments),clauses=effectiveSegments.map((segment,index)=>sevenDayClause(segment,forecastDays,index,effectiveSegments.length)),hazardClause=sevenDayHazardClause(points),followingNightClause=hazardClause?'':sevenDayFollowingNightClause(points),supplementalClause=hazardClause||followingNightClause,weatherClauses=supplementalClause?effectiveSegments.filter((segment,index)=>index===0||['wet','storm','snow'].includes(segment.regime)).slice(0,2).map(segment=>sevenDayClause(segment,forecastDays,effectiveSegments.indexOf(segment),effectiveSegments.length)):clauses.slice(0,3),text=[...weatherClauses,supplementalClause].filter(Boolean).join('. ');
- return`${text}.`;
+ const meaningful=selectSevenDaySegments(segments);
+ const events:SevenDayNarrativeEvent[]=meaningful.map((segment,index)=>({dayIndex:segment.start,phase:0 as const,importance:3+sevenDaySegmentScore(segment),kind:'weather' as const,text:sevenDayClause(segment,forecastDays,index,meaningful.length)}));
+ const hazard=sevenDayHazardClause(points),followingNight=sevenDayFollowingNightClause(points);
+ // A storm regime with the same day's thunder hazard must not be repeated.
+ if(hazard){
+  const duplicateThunder=/gewitt/i.test(hazard.text);
+  if(duplicateThunder){for(let i=events.length-1;i>=0;i--)if(events[i].dayIndex===hazard.dayIndex&&/gewitt/i.test(events[i].text))events.splice(i,1)}
+  events.push(hazard);
+ }
+ if(followingNight)events.push(followingNight);
+ const hasUsableData=forecastDays.some(day=>day.max!=null&&Number.isFinite(Number(day.max))||day.min!=null&&Number.isFinite(Number(day.min))||day.precipitationAvailable!==false&&Number.isFinite(day.precipitation));
+ return sevenDayNarrativeText(events,hasUsableData);
 }
 export function SevenDayForecastSummary({days,hours,climate,elevation}:{days:Day[];hours:Hour[];climate:ClimateDay[];elevation:number}){const summary=useMemo(()=>buildSevenDayForecastSummary(days,hours,climate,elevation),[days,hours,climate,elevation]);if(!summary)return null;return <aside className="seven-day-forecast-summary" aria-label="Kurzinterpretation der nächsten sieben Tage"><small>7-Tage-Trend</small><strong>{summary}</strong></aside>}

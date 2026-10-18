@@ -1,0 +1,13 @@
+{
+  "version": "0.9.85.295",
+  "date": "2026-10-18",
+  "title": "7-Tage-Trend: nur Signifikantes, chronologisch",
+  "external": [
+    "Wichtige Entwicklungen und Risiken stehen im Mittelpunkt des 7-Tage-Trends.",
+    "Die Kurzinterpretation bleibt zeitlich geordnet und auf drei knappe Aussagen begrenzt."
+  ],
+  "internal": [
+    "Quellbasis v0.9.85.294: b0cf607c45746239ed6246ba1e473ee41877a96d.",
+    "Neues unabhängiges Timeline-Auswahlmodul und dynamische Regression; Veröffentlichungsgates ausstehend."
+  ]
+}
