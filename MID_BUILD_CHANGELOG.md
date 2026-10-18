@@ -1,5 +1,7 @@
 # MID v0.9.85.290 · Barcelona-CAP-Warngebietsabgleich (Issue #411)
 
+- **Amtliche Barcelona-Warnzone 690804:** AEMET bestätigt für die Gemeinde Barcelona (08019) die Zone 690804 „Litoral de Barcelona“; MID nutzt diese eng auf Barcelona und einen Ortskoordinaten-Plausibilitätsradius beschränkte Zuordnung auch beim MeteoAlarm-VIS-Ausfall. Die Zonen 690802 (Depresión central) und 690803 (Prelitoral) werden dadurch nicht aufgrund ihrer ähnlichen Namen als Stadtwarnungen übernommen. Quelle: https://www.aemet.es/es/eltiempo/prediccion/municipios/barcelona-id08019 sowie das amtliche Gemeinde-Zonen-Verzeichnis (AEMET/Meteoalerta).
+
 - Grundlage: main=mid-stable=67b289988ed0ce8433b266c8f2055f070133ffe5 (v0.9.85.289, Installer #39116157190).
 - In Worker-Quelle und Laufzeitspiegeln erfolgt bei CAP-Dokumenten ohne Geometrie vor unscharfen Orts-Substring-Treffern ein **vollständiger offizieller Warngebiets-Namensabgleich**, sofern MeteoAlarm-Punktgebiete aufgelöst wurden. CAP-Polygon-/Kreisgeometrien sind weiterhin maßgeblich und haben Vorrang.
 - Die semantische Dublettenkennung enthält zusätzlich die Warnstufe; Meldungen mit gleichen Warnzeiten und Gebiet, aber unterschiedlichem offiziellen Grad werden nicht durch den semantischen Fallback verschluckt. Identische IDs/Referenzen bleiben vorrangig.
