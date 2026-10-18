@@ -6,7 +6,9 @@ const failures=[];
 for(const token of [
  "buildShortTermForecast(minutes15,hours,timezone,profileNow,anchor,radarNowcast)",
  "shortTermAnchor?:ShortTermAnchor",
- "Bis auf Weiteres trocken · ${gustPart}",
+ "import {shortTermSignificantBrief} from './shortTermSignificantBrief';",
+ "shortTermPointSummary(profileDisplayPoints,unit,timezone,profileNow)",
+ "return shortTermSignificantBrief(points,now",
  "cockpit-local-badge",
  "<WeatherPictogram code={item.weatherCode}",
  "<InlineWindArrow direction={item.direction}",
