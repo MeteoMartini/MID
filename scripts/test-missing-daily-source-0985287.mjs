@@ -9,8 +9,8 @@ import vm from 'node:vm';
 const temp=await mkdtemp(join(tmpdir(),'mid-missing-day-'));
 try{
  const output=join(temp,'adapter.cjs');
- await build({stdin:{contents:"export{mapHours,mapDays,dailyPrecipitationProbabilityCompact}from'./src/weather';export{precipitationAmountLabel}from'./src/precipitation';export{widgetCurveDailyPrecipitation}from'./src/widgetCurveDailySummary';export{applyForecastFusionDays,reconcileForecastDaysWithHours}from'./src/forecastFusion';export{daySkybarCalendarWindow}from'./src/daySkybarTimeline';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',outfile:output,define:{'import.meta.env':'{}'},logLevel:'silent'});
- const{mapHours,mapDays,precipitationAmountLabel:label,dailyPrecipitationProbabilityCompact:pop,widgetCurveDailyPrecipitation:widget,applyForecastFusionDays:applyFusion,reconcileForecastDaysWithHours:reconcile,daySkybarCalendarWindow:calendar}=createRequire(import.meta.url)(output);
+ await build({stdin:{contents:"export{forecast,mapHours,mapDays,dailyPrecipitationProbabilityCompact}from'./src/weather';export{precipitationAmountLabel}from'./src/precipitation';export{widgetCurveDailyPrecipitation}from'./src/widgetCurveDailySummary';export{buildSevenDayForecastSummary}from'./src/SevenDayForecastSummary';export{applyForecastFusionDays,reconcileForecastDaysWithHours}from'./src/forecastFusion';export{daySkybarCalendarWindow}from'./src/daySkybarTimeline';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',outfile:output,define:{'import.meta.env':'{}'},logLevel:'silent'});
+ const{forecast,buildSevenDayForecastSummary:summary,mapHours,mapDays,precipitationAmountLabel:label,dailyPrecipitationProbabilityCompact:pop,widgetCurveDailyPrecipitation:widget,applyForecastFusionDays:applyFusion,reconcileForecastDaysWithHours:reconcile,daySkybarCalendarWindow:calendar}=createRequire(import.meta.url)(output);
  const fixture=value=>({latitude:50,longitude:7,elevation:60,timezone:'Europe/Berlin',utc_offset_seconds:7200,hourly:{time:[],precipitation_probability:[]},daily:{time:['2026-10-18'],weather_code:[63],temperature_2m_max:[15],temperature_2m_min:[7],precipitation_sum:[value],precipitation_probability_max:[null],wind_speed_10m_max:[10],wind_gusts_10m_max:[20],wind_direction_10m_dominant:[180],uv_index_max:[1]}});
  for(const missing of[null,undefined,'',' ',false,true,NaN,Infinity,-1,'0']){
   const day=mapDays(fixture(missing))[0];
@@ -63,6 +63,7 @@ try{
  assert.equal(typeof wire.precipitationSum,'number','v1 nonoptional numeric Swift decoder remains compatible');
  assert.equal(typeof wire.precipitationProbabilityMax,'number');assert.equal(wire.code,63);
  assert.equal(context.widget(0,null,3,0,0,0,12).precipitationAvailable,true,'known zero differs from masked wire placeholder');
+ assert.equal(context.widget(null,null,null,null,null,null,12).code,3,'native numeric weather-code decoder remains valid when an optional code is absent');
  const swift=await readFile('ios/App/MIDWidgets/MIDWidget.swift','utf8'),snapshot=await readFile('ios/App/MIDWidgets/MIDWidgetSnapshot.swift','utf8');
  assert(swift.includes('day.probabilityAvailable == false ? "–"'),'native UI must honor missing-probability mask');
  assert(snapshot.includes('let precipitationAvailable: Bool?')&&snapshot.includes('let probabilityAvailable: Bool?'),'old cached snapshots may omit additive masks');
@@ -71,5 +72,19 @@ try{
  const ui=createRequire(import.meta.url)(uiOutput),html=ui.renderMissingDay([JSON.parse(JSON.stringify(missingDay))]);
  assert(html.includes('– mm')&&html.includes('– %'),'real fourteen-day rendering must show unknown values');
  assert(!html.includes('NaN'),'real forecast rendering must not emit NaN for unavailable precipitation');
- console.log('MID .287 source adapter: strict missing vs zero, unchanged unknown code, independent snow cm, JSON/cache/export labels and real Worker unit invariant. Full migration still requires separate coverage/widget checks.');
+ assert.match(summary([missingDay],[]),/regnerisch/,'summary must preserve a valid provider rain code when amount is missing');
+ assert.match(summary([{...missingDay,code:71}],[]),/Schnee/,'summary must preserve independent provider snow code');
+ assert(!summary([{...missingDay,code:3}],[]).includes('trocken'),'unknown totals must not become an unsupported dry summary');
+ assert(summary([dry],[]).includes('trocken'),'a real known zero remains available to dry-weather interpretation');
+ const weatherSource=await readFile('src/weather.ts','utf8'),prefix=weatherSource.match(/const FORECAST_CORE_CACHE_PREFIX='([^']+)'/)[1];
+ const cachedWeather={...fixture(null),current:{},_mid_core_proxy:{fallback:false,provider:'Open-Meteo'}},storage=new Map([[`${prefix}50.000:7.000:eauto:tzauto`,JSON.stringify({time:Date.now(),value:cachedWeather})]]);
+ const priorStorage=Object.getOwnPropertyDescriptor(globalThis,'localStorage'),priorFetch=globalThis.fetch;let fetches=0;
+ Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,String(value)),removeItem:key=>storage.delete(key),key:index=>[...storage.keys()][index]??null,get length(){return storage.size}}});
+ globalThis.fetch=async()=>{fetches++;throw new Error('cache fixture must not request network')};
+ try{
+  const restored=await forecast(50,7);assert.equal(restored._mid_core_proxy.upstreamReason,'fresh-local-cache');assert.equal(fetches,0);
+  assert.equal(restored.daily.precipitation_sum[0],null,'raw weather cache must preserve provider missingness');
+  assert.equal(label(mapDays(restored)[0]),'– mm','actual cached forecast adapter must not turn null into a dry day');
+ }finally{if(priorStorage)Object.defineProperty(globalThis,'localStorage',priorStorage);else delete globalThis.localStorage;globalThis.fetch=priorFetch}
+ console.log('MID .287: strict missing vs zero, independent snow cm, 23/24/25h masks, actual cache, fusion, summary, React rendering and Worker/widget contracts passed. Release gates and physical device evidence remain separate.');
 }finally{await rm(temp,{recursive:true,force:true})}

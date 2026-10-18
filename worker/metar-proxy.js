@@ -579,7 +579,7 @@ function nativeWidgetDailyPrecipitation(raw,probability,code,rain,showers,snowfa
  const signal=fusionDailyPrecipitation(raw,probability,code,rain,showers,snowfall,leadHours),precipitationAvailable=Number.isFinite(signal.precipitation),probabilityAvailable=Number.isFinite(signal.probability);
  // v1 keeps its numeric decoder fields. Zero is only a wire placeholder when
  // the additive availability flag is false; consumers must display no data.
- return{...signal,precipitationAvailable,probabilityAvailable,precipitationSum:precipitationAvailable?signal.precipitation:0,precipitationProbabilityMax:probabilityAvailable?signal.probability:0};
+ return{...signal,code:Number.isFinite(signal.code)?signal.code:3,precipitationAvailable,probabilityAvailable,precipitationSum:precipitationAvailable?signal.precipitation:0,precipitationProbabilityMax:probabilityAvailable?signal.probability:0};
 }
 async function nativeWidgetFeed(url,env){
  const lat=number(url.searchParams.get('lat')),lon=number(url.searchParams.get('lon')),elevation=number(url.searchParams.get('elevation')),unit=widgetWindUnit(url.searchParams.get('unit')),name=String(url.searchParams.get('name')||'MID-Standort').trim().slice(0,80)||'MID-Standort';

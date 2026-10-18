@@ -41,8 +41,16 @@ Missing-Maske fortgeschrieben; sein Zeitschutz bleibt erhalten. Fokussierte
 DWD-/Widgettests erfolgreich. Erster vollständiger Core-Lauf nach Korrektur
 987/987 erfolgreich (108,6 s); nach weiterer PoP-/Widget-Härtung erneuter Lauf.
 
-Offen bleiben finale fachliche Prüfung der Summary-/Hazard-Konsumenten und
-Cachepfade, frische .286-Stable-Integration, Versionsmigration auf .287,
+Summary-/Hazard- und Cachepfade sind jetzt geprüft: Der echte Forecast-Cache
+speichert rohe Weather-Payloads und bewahrt null bis zur erneuten Zuordnung.
+Die ausgeführte Cache-Regression benötigt keinen Netzaufruf. Zusammenfassungen
+leiten aus einer fehlenden Tagessumme kein „trocken“ ab und bewahren gültige
+Regen-/Schneecodes. Schwellen-/Warnlogik bleibt an tatsächlich verfügbare
+Stunden-/Ensemblewerte gebunden. Native Wettercodes bleiben decoder-kompatible
+Zahlen, auch wenn ein optionaler Quellcode fehlt. Nach dieser Härtung erneut
+987/987 Core erfolgreich (106,9 s), aktueller Probe-Build erfolgreich.
+
+Offen bleiben frische .286-Stable-Integration, Versionsmigration auf .287,
 abschließender Build/Core/Audit, Browser-/Heavy-Gates und der vollständige
 geschützte Releaseweg. Die noch .285 zeigenden Versionsspiegel sind absichtlich
 kein .287-Freigabekandidat. Keine Veröffentlichung dieses Arbeitsstands.
