@@ -1,3 +1,10 @@
+# MID v0.9.85.290 · Amtliche Warngebietstrennschärfe (Source-PR-Kandidat)
+
+- Start: main=mid-stable=67b289988ed0ce8433b266c8f2055f070133ffe5, v0.9.85.289 nach erfolgreichem Installer #39116157190. Keine konkurrierenden offenen Produkt-PRs beim Start.
+- Issue #411: echte CAP-Polygone/Kreise vor vollständigen Gebietsnamen; wenn offizielle MeteoAlarm-Punktgebietsnamen vorliegen, keine Stadtteilwort-Übereinstimmung als Beleg einer anderen Warnzone. Semantische Warnungsdubletten dürfen verschiedene offizielle Warnstufen nicht zusammenlegen.
+- Pflicht-Test `scripts/test-barcelona-warning-area-dedupe-0985290.mjs` nutzt **synthetische** 26 Meldungen und ist kein Nachweis der vom Nutzer aktuell gezählten Live-26. MeteoAlarm-BBox bleibt nur Vorfilter, keine verifizierte Polygonzuordnung. Offene End-to-End-Liveprüfung in Issue #411.
+- Version/Worker/Web/iOS/PWA synchron v0.9.85.290. Veröffentlichung ausschließlich nach tatsächlich grünen Source-, Release-, Worker-/Pages- und Stable-Gates.
+
 # MID v0.9.85.289 · Anzeigeidentische Kurzfrist-Ereignisse und kompakte Karten (Source-PR-Kandidat)
 
 - Freigegebene Ausgangsbasis main=mid-stable=e54c237b2d21859638cf3b21b50a842d2f0f222d nach erfolgreichem Installer #39111144520, v0.9.85.288. Kein Parallelprodukt-PR zum Entwicklungsstart.
