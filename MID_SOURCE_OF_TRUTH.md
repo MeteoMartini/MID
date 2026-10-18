@@ -1,3 +1,11 @@
+# MID v0.9.85.289 · Anzeigeidentische Kurzfrist-Ereignisse und kompakte Karten (Source-PR-Kandidat)
+
+- Freigegebene Ausgangsbasis main=mid-stable=e54c237b2d21859638cf3b21b50a842d2f0f222d nach erfolgreichem Installer #39111144520, v0.9.85.288. Kein Parallelprodukt-PR zum Entwicklungsstart.
+- #408: Die Textmeldung im Heute-Kurzfristbereich verwendet ausschließlich die korrigierten sichtbaren Profil-Stundenintervalle; abweichende native Unterstunden-Starts dürfen die Angabe nicht vorziehen. Es gibt nur belastbare Niederschlagshinweise und signifikante Böen >50 km/h; Missing/DST/Zeitzonenvertrag gewahrt. MID-Heuristiken sind keine amtlichen Warnungen.
+- #409: Next-Karten mobil: maximal einzeiliger Status und verkleinerte geschlossene Legende, bestehende Produktzeit/Kartennavigation und vollständige Attribution bleiben verfügbar. Keine Zeit- oder Modellfelder verändert.
+- Test `scripts/test-short-term-brief-chart-0985289.mjs` verpflichtend in beiden Baseline-Listen. Ergebnis ist erst nach tatsächlichem CI-Gate als bestanden zu bewerten. Web/iOS-Version .289 synchron; keine physische iOS-Abnahme.
+- Veröffentlichung nicht allein durch diese Dokumentation; nur Source-PR-Gate → kontrollierter SHA-Bot-Merge → serverseitiges ZIP → Installer → Worker/Pages → Stable-Promotion. Replit/Governance blockiert, Issues #352/#374/#405 separat.
+
 # MID v0.9.85.288 · Sichtweiten-NoData-Grenze (Source-PR-Kandidat)
 
 - Ausgangsbasis main=mid-stable=ffcc37e37c6a143ff73a714494c3e9c52eea987c, v0.9.85.287 nach erfolgreichem Installer/Stable-Promotion #39108469858.
