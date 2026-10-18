@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.291';
+const WORKER_VERSION='0.9.85.292';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -685,14 +685,29 @@ function pointInPolygonCoords(lat,lon,rings){if(!Array.isArray(rings)||!rings.le
 function pointInGeometry(lat,lon,g){if(!g)return false;if(g.type==='Polygon')return pointInPolygonCoords(lat,lon,g.coordinates);if(g.type==='MultiPolygon')return(g.coordinates||[]).some(p=>pointInPolygonCoords(lat,lon,p));if(g.type==='GeometryCollection')return(g.geometries||[]).some(x=>pointInGeometry(lat,lon,x));return false}
 function parseCapPolygon(value){return String(value).trim().split(/\s+/).map(pair=>pair.split(',').map(Number)).filter(x=>x.length>=2&&x.every(Number.isFinite)).map(([lat,lon])=>[lon,lat])}
 function parseCircle(value){const m=String(value).trim().match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\s+([\d.]+)$/);return m?{lat:Number(m[1]),lon:Number(m[2]),radiusKm:Number(m[3])}:null}
-function officialAreaDescriptionMatches(areaXml,officialAreaNames){const descriptions=tagValues(areaXml,'areaDesc').map(cleanText).filter(Boolean);if(!Array.isArray(officialAreaNames))return undefined;if(!descriptions.length||!officialAreaNames.length)return false;return descriptions.some(description=>officialAreaNames.some(name=>{const left=normalize(description),right=normalize(name);return left===right||areaDescriptionMatches(description,termsFor(name))||areaDescriptionMatches(name,termsFor(description))}))}
+function officialWarningAreaNamesEquivalent(leftRaw,rightRaw){
+ const left=normalize(leftRaw),right=normalize(rightRaw);if(!left||!right)return false;
+ if(left===right)return true;
+ // Exact members of an administrative list may match, but a locality-name
+ // substring must never turn a different warning zone into a point warning.
+ if(String(leftRaw).split(/[,;|]/).some(item=>normalize(item)===right)||String(rightRaw).split(/[,;|]/).some(item=>normalize(item)===left))return true;
+ return AREA_TERM_GROUPS.some(group=>group.includes(left)&&group.includes(right));
+}
+function officialAreaDescriptionMatches(areaXml,officialAreaNames){
+ const descriptions=tagValues(areaXml,'areaDesc').map(cleanText).filter(Boolean);
+ if(!Array.isArray(officialAreaNames))return undefined;
+ if(!descriptions.length||!officialAreaNames.length)return false;
+ return descriptions.some(description=>officialAreaNames.some(name=>officialWarningAreaNamesEquivalent(description,name)));
+}
 function localAreaMatch(areaXml,lat,lon,terms,officialAreaNames){
  const polygons=tagValues(areaXml,'polygon').map(parseCapPolygon).filter(x=>x.length>=3);if(polygons.some(p=>pointInRing(lat,lon,p)))return true;
  const circles=tagValues(areaXml,'circle').map(parseCircle).filter(Boolean);if(circles.some(c=>distance(lat,lon,c.lat,c.lon)<=c.radiusKm*1000))return true;
  if(polygons.length||circles.length)return false;
- const descriptions=tagValues(areaXml,'areaDesc').join(' ');if(areaDescriptionMatches(descriptions,terms))return true;
+ // Once a MeteoAlarm point-area preselection exists, verify against those
+ // WHOLE official zone labels before falling back to locality text.
  const officialMatch=officialAreaDescriptionMatches(areaXml,officialAreaNames);if(officialMatch!==undefined)return officialMatch;
- return false;
+ const descriptions=tagValues(areaXml,'areaDesc').join(' ');
+ return areaDescriptionMatches(descriptions,terms);
 }
 function localMatch(xml,lat,lon,name='',region='',district='',officialAreaNames){
  const terms=termsFor(name,district||region),areas=blocks(xml,'area');if(areas.length)return areas.some(area=>localAreaMatch(area,lat,lon,terms,officialAreaNames));
@@ -735,15 +750,29 @@ function embeddedCap(block){
 }
 async function fetchText(url,headers={}){const r=await fetch(url,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,...headers},redirect:'follow'});if(!r.ok)throw new Error(`${url} HTTP ${r.status}`);return r.text()}
 async function fetchJson(url,headers={}){const r=await fetch(url,{headers:{'User-Agent':`MID-weather-dashboard/${WORKER_VERSION} (+https://github.com/MeteoMartini/MID)`,'Accept':'application/json',...headers},redirect:'follow'});if(!r.ok)throw new Error(`${url} HTTP ${r.status}`);return r.json()}
+// AEMET (Meteoalerta): municipality 08019 Barcelona belongs to warning zone
+// 690804 Litoral de Barcelona, NOT 690802 Depresión central or 690803
+// Prelitoral de Barcelona. Source: aemet.es municipal Barcelona forecast and
+// official municipio-to-warning-zone table, verified 18 October 2026.
+// This is a narrow municipality hint, NOT an inferred warning polygon.
+function aemetVerifiedMunicipalityZone(countryCode,lat,lon,name=''){
+ if(String(countryCode).toUpperCase()!=='ES'||normalize(name)!=='barcelona'||!Number.isFinite(lat)||!Number.isFinite(lon))return null;
+ if(distance(lat,lon,41.38424664,2.17634927)>15000)return null;
+ return{name:'Litoral de Barcelona',zoneCode:'690804',municipalityCode:'08019',authority:'AEMET Meteoalerta · municipio Barcelona'};
+}
+function aemetAreaIsSameWarningZone(areaName,expectedName){
+ const normalized=normalize(areaName),expected=normalize(expectedName);
+ return normalized===expected||normalized.replace(/^costa\s+/,'')===expected;
+}
 function meteoalarmVisCountryCode(countryCode){return String(countryCode||'').toUpperCase()==='GB'?'UK':String(countryCode||'').toUpperCase()}
 function meteoalarmBoxContains(bb,lat,lon){const west=number(bb?.[0]?.[0]),south=number(bb?.[0]?.[1]),east=number(bb?.[1]?.[0]),north=number(bb?.[1]?.[1]);return[west,south,east,north].every(Number.isFinite)&&lon>=west&&lon<=east&&lat>=south&&lat<=north}
 function meteoalarmBoxArea(bb){const west=number(bb?.[0]?.[0]),south=number(bb?.[0]?.[1]),east=number(bb?.[1]?.[0]),north=number(bb?.[1]?.[1]);return[west,south,east,north].every(Number.isFinite)?Math.max(0,east-west)*Math.max(0,north-south):Number.POSITIVE_INFINITY}
 function meteoalarmAreaNameScore(area,name='',region='',district=''){const label=cleanText(String(area?.name||''));if(!label)return 0;const normalizedLabel=normalize(label),values=[[district,120],[region,80],[name,45]];let score=0;for(const[value,weight]of values){const normalizedValue=normalize(value);if(!normalizedValue)continue;if(normalizedLabel===normalizedValue)score=Math.max(score,weight+20);else if(areaDescriptionMatches(label,termsFor(value)))score=Math.max(score,weight)}return score}
 function meteoalarmBestAreaForHazard(candidates,name,region,district){return[...candidates].sort((a,b)=>{const scoreDiff=meteoalarmAreaNameScore(b,name,region,district)-meteoalarmAreaNameScore(a,name,region,district);if(scoreDiff)return scoreDiff;const areaDiff=meteoalarmBoxArea(a?.bb)-meteoalarmBoxArea(b?.bb);if(areaDiff)return areaDiff;return String(a?.name||'').localeCompare(String(b?.name||''),'en')})[0]}
-async function meteoalarmPointContext(countryCode,lat,lon,name='',region='',district=''){
+async function meteoalarmPointContext(countryCode,lat,lon,name='',region='',district='',verifiedZone){
  const code=meteoalarmVisCountryCode(countryCode),referenceDate=new Date().toISOString(),url=new URL(`stream-buffers/live/hazards/${encodeURIComponent(code)}`,METEOALARM_VIS);url.searchParams.set('preset','timeline');url.searchParams.set('referenceDate',referenceDate);url.searchParams.set('language','en');
  const payload=await fetchJson(url.toString()),allAreas=Array.isArray(payload?.areas)?payload.areas:[],allHazards=Array.isArray(payload?.hazards)?payload.hazards:[],hazardFeatures=new Set(allHazards.map(item=>String(item?.featureId||'')).filter(Boolean)),byFeature=new Map();
- for(const area of allAreas){const featureId=String(area?.featureId||'');if(!featureId||!hazardFeatures.has(featureId)||!meteoalarmBoxContains(area?.bb,lat,lon))continue;const current=byFeature.get(featureId);if(!current||meteoalarmBoxArea(area?.bb)<meteoalarmBoxArea(current?.bb))byFeature.set(featureId,area)}
+ for(const area of allAreas){const featureId=String(area?.featureId||'');if(!featureId||!hazardFeatures.has(featureId)||!meteoalarmBoxContains(area?.bb,lat,lon))continue;if(verifiedZone&&!aemetAreaIsSameWarningZone(area?.name,verifiedZone.name))continue;const current=byFeature.get(featureId);if(!current||meteoalarmBoxArea(area?.bb)<meteoalarmBoxArea(current?.bb))byFeature.set(featureId,area)}
  const pointAreas=[...byFeature.values()],hazardGroups=new Map();for(const item of allHazards){const featureId=String(item?.featureId||''),typeId=number(item?.typeId),levelId=number(item?.levelId);if(!byFeature.has(featureId)||typeId===undefined||levelId===undefined)continue;const key=`${typeId}:${levelId}`,group=hazardGroups.get(key)||[];if(!group.some(row=>String(row.featureId)===featureId))group.push({featureId,typeId,levelId,area:byFeature.get(featureId)});hazardGroups.set(key,group)}
  const selected=[],seenFeatures=new Set();for(const group of hazardGroups.values()){const bestArea=meteoalarmBestAreaForHazard(group.map(row=>row.area),name,region,district);if(!bestArea)continue;const featureId=String(bestArea.featureId),row=group.find(item=>String(item.featureId)===featureId);if(row)selected.push({featureId,row,typeId:row.typeId,levelId:row.levelId,area:bestArea});seenFeatures.add(featureId)}
  const areas=[...seenFeatures].map(featureId=>byFeature.get(featureId)).filter(Boolean).sort((a,b)=>{const scoreDiff=meteoalarmAreaNameScore(b,name,region,district)-meteoalarmAreaNameScore(a,name,region,district);return scoreDiff||meteoalarmBoxArea(a?.bb)-meteoalarmBoxArea(b?.bb)}),hazards=[],seen=new Set();for(const item of selected){const key=`${item.featureId}:${item.typeId}:${item.levelId}`;if(seen.has(key))continue;seen.add(key);hazards.push({featureId:item.featureId,typeId:item.typeId,levelId:item.levelId})}
@@ -762,10 +791,17 @@ async function meteoalarmPointAlerts(context,language){
 }
 function alertAreaSignature(alert){if(Array.isArray(alert?.areaCodes)&&alert.areaCodes.length)return alert.areaCodes.map(normalize).sort().join(',');return String(alert?.area||'').split(',').map(normalize).filter(Boolean).sort().join(',')}
 function alertTimeSignature(value){const date=safeDate(value);return date?date.slice(0,16):''}
-function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires)].join('|')}
-function alertQuality(alert){const updated=Date.parse(String(alert?.updatedAt||alert?.effective||''));return(Number.isFinite(updated)?updated/1e10:0)+String(alert?.description||'').length+String(alert?.instruction||'').length*2+(alert?.areaCodes?.length||0)*20}
+function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires),String(alert?.level||'unknown')].join('|')}
+function alertQuality(alert){return String(alert?.description||'').length+String(alert?.instruction||'').length*2+(alert?.areaCodes?.length||0)*20}
+function alertShouldReplace(current,candidate){
+ const currentUpdated=Date.parse(String(current?.updatedAt||'')),candidateUpdated=Date.parse(String(candidate?.updatedAt||''));
+ // A shorter, newer official CAP Update must outrank an older longer notice.
+ if(Number.isFinite(currentUpdated)&&Number.isFinite(candidateUpdated)&&currentUpdated!==candidateUpdated)return candidateUpdated>currentUpdated;
+ if(Number.isFinite(currentUpdated)!==Number.isFinite(candidateUpdated))return Number.isFinite(candidateUpdated);
+ return alertQuality(candidate)>alertQuality(current);
+}
 function dedupeAlerts(alerts){
- const rows=[],keyToIndex=new Map();for(const alert of alerts){if(!alert)continue;const keys=[alert.id?`id:${alert.id}`:'',...(alert.references||[]).map(id=>`id:${id}`),alertSemanticKey(alert)].filter(Boolean),existing=keys.map(key=>keyToIndex.get(key)).find(index=>index!==undefined);if(existing===undefined){const index=rows.length;rows.push(alert);for(const key of keys)keyToIndex.set(key,index)}else{if(alertQuality(alert)>alertQuality(rows[existing]))rows[existing]=alert;for(const key of keys)keyToIndex.set(key,existing)}}
+ const rows=[],keyToIndex=new Map();for(const alert of alerts){if(!alert)continue;const keys=[alert.id?`id:${alert.id}`:'',...(alert.references||[]).map(id=>`id:${id}`),alertSemanticKey(alert)].filter(Boolean),existing=keys.map(key=>keyToIndex.get(key)).find(index=>index!==undefined);if(existing===undefined){const index=rows.length;rows.push(alert);for(const key of keys)keyToIndex.set(key,index)}else{if(alertShouldReplace(rows[existing],alert))rows[existing]=alert;for(const key of keys)keyToIndex.set(key,existing)}}
  const order={purple:4,red:3,orange:2,yellow:1,unknown:0};return rows.sort((a,b)=>(order[b.level]??0)-(order[a.level]??0)||String(a.onset||a.effective||'').localeCompare(String(b.onset||b.effective||'')));
 }
 function featureProp(properties,...keys){if(!properties||typeof properties!=='object')return undefined;const map=new Map(Object.entries(properties).map(([k,v])=>[k.toLowerCase(),v]));for(const k of keys){const v=map.get(k.toLowerCase());if(v!==undefined&&v!==null&&v!=='')return v}return undefined}
@@ -809,8 +845,8 @@ async function officialAlerts(lat,lon,country,name,region,district,language){
  const c=await resolveCountryCode(country,lat,lon,name,region);if(c==='DE'){const result=await dwdAlerts(lat,lon,name,region,district,language);return{...result,countryCode:c}}
  if(c==='US'){const alerts=await nwsAlerts(lat,lon);return{alerts:dedupeAlerts(alerts),provider:'NOAA / National Weather Service',coverage:'USA · amtliche CAP-Warnungen',countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'NOAA/NWS',deduplication:'Kennung sowie Ereignis, Gebiet und Gültigkeit'}}}
  const slug=FEED_SLUGS[c];if(slug){
-  const url=`${METEOALARM_FEEDS}meteoalarm-legacy-atom-${slug}`;let pointContext,pointContextError;try{pointContext=await meteoalarmPointContext(c,lat,lon,name,region,district)}catch(error){pointContextError=error instanceof Error?error.message:String(error)}const officialAreaNames=pointContext?.resolved?pointContext.areas.map(area=>String(area?.name||'')).filter(Boolean):undefined,[capResult,pointResult]=await Promise.allSettled([capFeedAlerts(url,'MeteoAlarm / nationale Wetterbehörde',lat,lon,name,region,district,language,30,officialAreaNames),meteoalarmPointAlerts(pointContext,language)]),capAlerts=capResult.status==='fulfilled'?capResult.value:[],pointAlerts=pointResult.status==='fulfilled'?pointResult.value:[],alerts=dedupeAlerts([...capAlerts,...pointAlerts]);if(!alerts.length&&capResult.status==='rejected'&&pointResult.status==='rejected')throw capResult.reason;
-  return{alerts,provider:'MeteoAlarm / nationale Wetterbehörde',coverage:`Europa · amtliche Warnungen des nationalen Wetterdienstes · koordinatengeprüft · ${c}`,countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'MeteoAlarm Live-Warngebiete + Atom/CAP',endpoint:url,areaEndpoint:pointContext?.endpoint||`${METEOALARM_VIS}stream-buffers/live/hazards/${meteoalarmVisCountryCode(c)}`,coordinateAssignment:pointContext?.resolved?`amtliches Warngebiet lokal eingegrenzt (${pointContext.selection==='local-name-plus-bbox'?'Orts-/Regionsabgleich + Warngebietsbox':'kleinste passende Warngebietsbox je Warnart als Fallback'}; ${pointContext.candidateAreas||pointContext.areas.length} Box-Kandidaten)`:'CAP-Geometrie bzw. vorsichtiger Ortsnamensabgleich (Fallback)',areaResolutionError:pointContextError,deduplication:'MeteoAlarm-Warnungskennung/CAP-Referenzen sowie Ereignis, Gebiet und Gültigkeit'}}
+  const url=`${METEOALARM_FEEDS}meteoalarm-legacy-atom-${slug}`;const verifiedZone=aemetVerifiedMunicipalityZone(c,lat,lon,name);let pointContext,pointContextError;try{pointContext=await meteoalarmPointContext(c,lat,lon,name,region,district,verifiedZone)}catch(error){pointContextError=error instanceof Error?error.message:String(error)}const officialAreaNames=verifiedZone?[verifiedZone.name,...(pointContext?.areas||[]).map(area=>String(area?.name||'')).filter(Boolean)]:pointContext?.resolved?pointContext.areas.map(area=>String(area?.name||'')).filter(Boolean):undefined,[capResult,pointResult]=await Promise.allSettled([capFeedAlerts(url,'MeteoAlarm / nationale Wetterbehörde',lat,lon,name,region,district,language,30,officialAreaNames),meteoalarmPointAlerts(pointContext,language)]),capAlerts=capResult.status==='fulfilled'?capResult.value:[],pointAlerts=pointResult.status==='fulfilled'?pointResult.value:[],alerts=dedupeAlerts([...capAlerts,...pointAlerts]);if(!alerts.length&&capResult.status==='rejected'&&pointResult.status==='rejected')throw capResult.reason;
+  return{alerts,provider:'MeteoAlarm / nationale Wetterbehörde',coverage:`Europa · amtliche Warnungen des nationalen Wetterdienstes · koordinatengeprüft · ${c}`,countryCode:c,sourceStatus:{strategy:'single-canonical-provider',primary:'MeteoAlarm Live-Warngebiete + Atom/CAP',endpoint:url,areaEndpoint:pointContext?.endpoint||`${METEOALARM_VIS}stream-buffers/live/hazards/${meteoalarmVisCountryCode(c)}`,coordinateAssignment:pointContext?.resolved?`amtliches Warngebiet lokal eingegrenzt (${pointContext.selection==='local-name-plus-bbox'?'Orts-/Regionsabgleich + Warngebietsbox':'kleinste passende Warngebietsbox je Warnart als Fallback'}; ${pointContext.candidateAreas||pointContext.areas.length} Box-Kandidaten)`:'CAP-Geometrie bzw. vorsichtiger Ortsnamensabgleich (Fallback)',areaResolutionError:pointContextError,aemetMunicipalityWarningZone:verifiedZone||undefined,deduplication:'MeteoAlarm-Warnungskennung/CAP-Referenzen sowie Ereignis, Gebiet und Gültigkeit'}}
  }
  return{alerts:[],provider:'CAP',coverage:'Das Land konnte nicht sicher bestimmt werden oder besitzt keinen im öffentlichen MID-Proxy hinterlegten amtlichen CAP-Feed.',countryCode:c||undefined};
 }
