@@ -45,7 +45,16 @@ type ReportedVisibilityPhenomenon={
  geometryException:boolean;
 };
 
-function finite(value:unknown){const number=Number(value);return Number.isFinite(number)?number:undefined}
+function finite(value:unknown){
+ // Provider JSON null, empty strings, booleans and malformed values are missing,
+ // never a measured 0 m visibility or 0 % RH. Genuine numeric zero stays valid.
+ if(typeof value==='number')return Number.isFinite(value)?value:undefined;
+ if(typeof value==='string'&&value.trim()){
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?parsed:undefined;
+ }
+ return undefined;
+}
 function clamp(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
 function derivedHumidity(temperature:unknown,dewPoint:unknown){
  const t=finite(temperature),td=finite(dewPoint);if(t===undefined||td===undefined)return undefined;

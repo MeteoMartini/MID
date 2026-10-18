@@ -1,3 +1,10 @@
+# MID v0.9.85.288 · Sichtweiten-NoData-Grenze (Source-PR-Kandidat)
+
+- Ausgangsbasis main=mid-stable=ffcc37e37c6a143ff73a714494c3e9c52eea987c, v0.9.85.287 nach erfolgreichem Installer/Stable-Promotion #39108469858.
+- Ergänzung aus Open-Meteo/ICON-Prüfung #405: an der exportierten Sichtweitenklassifikation dürfen providerseitige JSON-null/blank/booleans/NaN/Infinity niemals gemessene 0 m Sicht oder 0 % relative Feuchte darstellen. Gültige echte Zahlen einschließlich 0 bleiben unverändert. Modell- und METAR-Phänomene bleiben quellengetrennt, WMO/DWD-Schwellen unverändert.
+- Neue verpflichtende Regression `scripts/test-visibility-nodata-0985288.mjs` in beiden Baseline-Testinventaren; detaillierter Nachweis `docs/implementation/MID_C39_VISIBILITY_NODATA_0.9.85.288.md`.
+- Source-PR-Kandidat ist noch nicht veröffentlicht. Erst aktuelle grüne SHA-gebundene Source-/Release-/Worker-/Pages-/Stable-Gates dürfen v0.9.85.288 freigeben. Kein physischer iOS-/VoiceOver-Nachweis. Andere offene #352/#374/#362 und neue native Modell-IDs #405 bleiben unabhängig.
+
 # MID v0.9.85.287 · Tagesniederschlags-Quellgültigkeit (Source-PR-Kandidat)
 
 - Freigegebener Ausgangsstand main=mid-stable=394ff6f999accb5c4211490d44f52275faefa61c (v0.9.85.286), WIP-Provenienz ef34de34dd153d42ae6c9dfe267a99a5be440b36. Keine produktive Stable-Divergenz zum Start.

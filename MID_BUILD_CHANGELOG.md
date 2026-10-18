@@ -1,3 +1,12 @@
+# MID v0.9.85.288 · Sichtweiten-NoData-Integrität (Source-PR-Kandidat)
+
+- Verifizierte freigegebene Basis: main=mid-stable=ffcc37e37c6a143ff73a714494c3e9c52eea987c (v0.9.85.287), Installer #39108469858 und alle vorgeschriebenen Worker-/Pages-Gates erfolgreich; keine parallelen offenen MID-Produkt-PRs beim Entwicklungsstart.
+- #405: `src/visibilityPhenomena.ts` konvertierte beim `finite(value)`-Helper `null`, Blanktext und weitere nicht-numerische Werte mittels `Number(value)` zu 0. Dadurch konnten bei unmittelbaren Caller-Eingaben eine 0-m-Sicht bzw. 0-%-Luftfeuchte erfunden und Nebel/Dunst abgeleitet werden. Zentrale `mapHours`-Maskierung war teilweise geschützt; kein unbewiesener App-Live-Screenshotfehler behauptet.
+- Neue strikte finite-Grenze: ausschließlich endliche Nummern und nichtleere numerische Strings akzeptieren; echte Null, finite Sicht-gegen-Modell-Konflikte, WMO/DWD-Nebel-/Dunstschwellen und vertrauenswürdiges METAR unverändert erhalten.
+- Pflichtregression `scripts/test-visibility-nodata-0985288.mjs` importiert den echten TypeScript-Classifier via esbuild und deckt NoData, echte Null, Modell-Wettercodes, Luftfeuchte/Taupunkt, Berichtskonflikte und Worker/JSON-null-Caching ab; beide Baseline-Inventare ergänzt.
+- Quellstand, alle Versionsspiegel, externe/interne Changelogs und Implementierung dokumentiert: `docs/implementation/MID_C39_VISIBILITY_NODATA_0.9.85.288.md`. RUC-Kompression, neue native ICON-Modelle und amtliche Warnungen werden nicht geändert.
+- Keine lokale/gerätebezogene Prüfung nach diesem Integrationscommit behaupten; verpflichtende vollständige Source-/Heavy-/Browser-/Worker-/Pages-/Native-Hüllen- und Installer-Gates stehen aus. Ein Changelog allein ist kein Release-Nachweis. Nur MID Source-PR-Bot → serverseitiges ZIP → install-mid.yml → Worker/Pages → Stable.
+
 # MID v0.9.85.287 · Missing-Daily-Migration (Source-PR-Kandidat)
 
 - Start nach erfolgreicher Promotion: main=mid-stable=394ff6f999accb5c4211490d44f52275faefa61c, v0.9.85.286 (18.10.2026). Übernahme des gesicherten Codex-Arbeitsstands ef34de34dd153d42ae6c9dfe267a99a5be440b36 in einen unabhängigen `chatgpt/*`-Branch; ursprünglicher Branch bleibt unverändert.
