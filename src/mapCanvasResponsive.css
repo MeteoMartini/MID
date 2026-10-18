@@ -44,3 +44,41 @@ html[data-mid-design='next'] .composite-primary-layers>summary:focus-visible,.co
  html[data-mid-design='next'] .c14-map-workspace .weather-maps-map-shell{height:76svh!important;min-height:260px!important;max-height:none!important}
 }
 @media(prefers-reduced-motion:reduce){html[data-mid-design='next'] .composite-primary-layers>summary>svg:last-child{transition:none}}
+
+/* MID C39 · kompakte Kartenüberlagerungen: Quellen bleiben über Status/Details abrufbar,
+ * Copyright-Attribution und 44px-Bedienziele bleiben sichtbar. */
+@media(max-width:600px){
+ html[data-mid-design='next'] .unified-weather-map .composite-map-status{
+  width:auto!important;max-width:min(57vw,226px)!important;min-height:38px!important;max-height:44px!important;
+  display:flex!important;align-items:center!important;gap:5px!important;padding:4px 7px!important;
+  overflow:hidden!important;border-radius:11px!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .composite-map-status>span{
+  flex:0 1 auto!important;max-width:91px!important;min-width:0!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;white-space:nowrap!important;line-height:1.2!important;font-size:10px!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .composite-map-status>b{
+  flex:1 1 auto!important;min-width:0!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;overflow-wrap:normal!important;white-space:nowrap!important;
+  font-size:11px!important;line-height:1.3!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .radarlegend.compact.collapsed{
+  width:auto!important;max-width:min(43vw,175px)!important;min-width:0!important;box-sizing:border-box!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .radarlegend.compact.collapsed .radarlegend-toggle{
+  min-height:44px!important;max-width:100%!important;padding:5px 8px!important;gap:5px!important;box-sizing:border-box!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .radarlegend.compact.collapsed .radarlegend-toggle>span{
+  min-width:0!important;display:flex!important;align-items:center!important;gap:5px!important;white-space:nowrap!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .radarlegend.compact.collapsed .radarlegend-toggle>span :is(strong,small){
+  display:block!important;min-width:0!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;white-space:nowrap!important;line-height:1.2!important;font-size:11px!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .composite-advanced:not([open])>summary{
+  min-height:44px!important;padding-block:6px!important;
+ }
+ html[data-mid-design='next'] .unified-weather-map .composite-advanced:not([open])>summary small{
+  display:none!important;
+ }
+}
