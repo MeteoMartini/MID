@@ -1,0 +1,128 @@
+{
+  "schema": "mid.openmeteo.readonly-probe.v1",
+  "results": [
+    {
+      "checkedAt": "2026-10-18T10:24:03.147Z",
+      "models": "dwd_icon_d2_native",
+      "hourly": "temperature_2m,visibility",
+      "status": 200,
+      "latitude": 50.80828,
+      "longitude": 7.0230975,
+      "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "°C",
+        "visibility": "m"
+      },
+      "hourCount": 24,
+      "series": {
+        "temperature_2m": {
+          "count": 24,
+          "finite": 24,
+          "missing": 0
+        },
+        "visibility": {
+          "count": 24,
+          "finite": 0,
+          "missing": 24
+        }
+      }
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:03.379Z",
+      "models": "dwd_icon_eu_native",
+      "hourly": "temperature_2m,visibility",
+      "status": 200,
+      "latitude": 50.80492,
+      "longitude": 7.0656853,
+      "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "°C",
+        "visibility": "m"
+      },
+      "hourCount": 24,
+      "series": {
+        "temperature_2m": {
+          "count": 24,
+          "finite": 24,
+          "missing": 0
+        },
+        "visibility": {
+          "count": 24,
+          "finite": 0,
+          "missing": 24
+        }
+      }
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:03.614Z",
+      "models": "dwd_icon_global_native",
+      "hourly": "temperature_2m,visibility",
+      "status": 200,
+      "latitude": 50.80379,
+      "longitude": 7.069388,
+      "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "°C",
+        "visibility": "m"
+      },
+      "hourCount": 24,
+      "series": {
+        "temperature_2m": {
+          "count": 24,
+          "finite": 24,
+          "missing": 0
+        },
+        "visibility": {
+          "count": 24,
+          "finite": 0,
+          "missing": 24
+        }
+      }
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:03.843Z",
+      "models": "dwd_icon_d2_ruc_native",
+      "hourly": "temperature_2m,visibility",
+      "status": 400,
+      "error": true,
+      "reason": "Invalid value: Cannot initialize MultiDomains from invalid String value dwd_icon_d2_ruc_native",
+      "series": {}
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:04.073Z",
+      "models": "noaa_rrfs",
+      "hourly": "temperature_2m,visibility",
+      "status": 400,
+      "error": true,
+      "reason": "Invalid value: Cannot initialize MultiDomains from invalid String value noaa_rrfs",
+      "series": {}
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:04.302Z",
+      "models": "best_match",
+      "hourly": "cloud_ceiling",
+      "status": 400,
+      "error": true,
+      "reason": "Invalid value: Cannot initialize SurfacePressureAndHeightVariable<VariableAndPreviousDay, VariableOrSpread<ForecastPressureVariable>, ForecastHeightVariable> from invalid String value cloud_ceiling",
+      "series": {}
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:04.530Z",
+      "models": "best_match",
+      "hourly": "freezing_rain",
+      "status": 400,
+      "error": true,
+      "reason": "Invalid value: Cannot initialize SurfacePressureAndHeightVariable<VariableAndPreviousDay, VariableOrSpread<ForecastPressureVariable>, ForecastHeightVariable> from invalid String value freezing_rain",
+      "series": {}
+    },
+    {
+      "checkedAt": "2026-10-18T10:24:04.758Z",
+      "models": "best_match",
+      "hourly": "radar_reflectivity",
+      "status": 400,
+      "error": true,
+      "reason": "Invalid value: Cannot initialize SurfacePressureAndHeightVariable<VariableAndPreviousDay, VariableOrSpread<ForecastPressureVariable>, ForecastHeightVariable> from invalid String value radar_reflectivity",
+      "series": {}
+    }
+  ]
+}

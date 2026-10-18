@@ -30,3 +30,15 @@ Nur Source-PR-Gate → SHA-gebundener bestehender Release-Bot → serverseitiges
 - Neue NoData-/CLI-Regressionsprüfung und bestehende Retry-, Health-Resilienz- und Open-Meteo-Update-Prüfungen erfolgreich. Lokale native/unified Karten-Quellprüfungen erfolgreich. Bergwetter-Browsermatrix ausdrücklich SKIP wegen fehlendem Chromium; CI muss echte Browserfälle ausführen.
 - PR-Completion-Watcher für #412 ausgeführt: state blocked wegen fehlendem gh. Verbundene GitHub-API liefert die aktuellen SHA-/Job-/Gatebelege. Keine generische Landing-Aktion.
 - Vollständiger lokaler Core-Shard: **992/992**, 0 Fehler, 181,0 s (`mid-c35-291-core.log`). Heavy-Browser-/Source-/Installer-Gates bleiben bis tatsächlicher CI-Ausführung offen.
+
+## Zeitgebundene öffentliche API-Proben (18.10.2026, 10:24:03–10:24:05 UTC)
+Die bestehende öffentliche Testkoordinate 50.815/7.037 wurde für einen Tag mit GMT abgefragt; keine Modell-/Produktionskonfiguration geändert. Vollständige zusammengefasste Antworten in `MID_C35_OPEN_METEO_API_PROBES_2026-10-18.json`. Das ist eine aktuelle Punkt-/Parameterprobe, keine weltweite oder historische Verfügbarkeitsfreigabe.
+
+| Request | HTTP | Reales Ergebnis |
+| --- | --- | --- |
+| dwd_icon_d2_native / dwd_icon_eu_native / dwd_icon_global_native, temperature_2m + visibility | 200 | Je 24 Temperaturwerte in °C, aber 24/24 visibility=null bei deklarierter Einheit m |
+| dwd_icon_d2_ruc_native, temperature_2m + visibility | 400 | Modellkennung wird als ungültig zurückgewiesen |
+| noaa_rrfs, temperature_2m + visibility | 400 | Diese konkrete Modellkennung wird als ungültig zurückgewiesen; keine Aussage zu anderen RRFS-Aliasnamen |
+| best_match, je einzeln cloud_ceiling / freezing_rain / radar_reflectivity | 400 | Die jeweils angefragte Variable wird als ungültig zurückgewiesen |
+
+Damit ist der Unterschied zwischen akzeptierter API-Syntax und nutzbarer Feldabdeckung unmittelbar belegt. Die neue Regression prüft auch den gesicherten realen Missing-Reihentyp; ein HTTP-200-Status und korrekt benannte Einheit dürfen keine nicht vorhandene Sichtweite erzeugen. Keine Schätzung als 0 m, keine vorschnelle Umstellung bestehender Modellpfade.

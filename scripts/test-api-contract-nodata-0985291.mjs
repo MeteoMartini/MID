@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,rm,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -20,6 +20,15 @@ for(const outOfRange of [-1,101,9999])assert.equal(rangeSeries(row([0,1,2,3,4,5,
 assert(finiteSeries({hourly:{temperature_2m_min:[-12,0]}},'temperature_2m_min',2),'Do not clamp genuine cold extremes');
 assert.equal(distinctExtrema({hourly:{temperature_2m_min:[null,2,3],temperature_2m_max:[7,2,3]}}),false,'Missing-vs-real is not a distinct extrema pair');
 assert(distinctExtrema({hourly:{temperature_2m_min:[null,-12,0],temperature_2m_max:[7,-8,0]}}));
+
+// Archived read-only probe: accepted native ICON syntax did not imply visibility data.
+// The timestamped observation is evidence, not an eternal model availability assertion.
+const probes=JSON.parse(await readFile(new URL('../docs/implementation/MID_C35_OPEN_METEO_API_PROBES_2026-10-18.json',import.meta.url),'utf8'));
+for(const probe of probes.results.filter(value=>value.status===200)){
+ assert.equal(probe.hourly_units.visibility,'m');
+ assert.equal(probe.series.visibility.missing,probe.hourCount);
+ assert.equal(finiteSeries({hourly:{visibility:Array(probe.hourCount).fill(null)}},'visibility'),false,'A real all-null visibility response must not certify a 0 m measurement');
+}
 
 // Exercise the actual CLI with its HTTP helper. No real provider or production data is changed.
 const temp=await mkdtemp(join(tmpdir(),'mid-api-nodata-'));
