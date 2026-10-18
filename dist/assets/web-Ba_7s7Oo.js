@@ -1,1 +1,0 @@
-import{Ai as e}from"./index-D08gTS45.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
