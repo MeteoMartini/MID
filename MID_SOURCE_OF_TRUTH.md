@@ -1,3 +1,11 @@
+# MID v0.9.85.286 · Push-Präferenzen und Bestätigung (Source-PR-Kandidat)
+
+- Verifizierte freigegebene Basis: main=mid-stable=e8c3e4e61eff028797120fcecc6f3be58f993911, .285; Installer 39075158905 erfolgreich. Normaler Basis-Merge, keine publizierte Historie überschrieben.
+- #400: vollständige Registrierungsmutationen geordnet, aktuelle Auswahl beim tatsächlichen POST, fehlertolerante Queue und 1,1s Schreibabstand. Status bestätigt nur den konkret angenommenen Modus; alte Antworten und lokale Speicherfehler werden abgegrenzt.
+- Scheduler-Rückschreibungen bewahren neueste lesbare Registrierung und Zeitstempel; keine Wiederherstellung abgemeldeter Geräte. Prüfung vor jedem Trigger. KV bleibt eventual consistent, kein globales CAS versprochen.
+- Belege/Grenzen: `docs/implementation/MID_C38_PUSH_CONFIRMATION_0.9.85.286.md`. Beide neuen Regressionen in beiden Baseline-Inventaren; Browsermatrix muss in CI tatsächlich laufen. Kein physischer iOS-/VoiceOver-/Push-Nachweis.
+- Nur Source-PR → SHA-Bot → serverseitiges ZIP → Installer → Worker/Pages → Stable. #397 bleibt separates unveröffentlichtes Datenpaket.
+
 # MID v0.9.85.285 · Kalendertage und aktuelle Skybar (Source-PR-Kandidat)
 
 - Freigegebene Basis: main=mid-stable=16b6c87906370b62315e0046dec64506304abcc4, v0.9.85.284.

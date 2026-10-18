@@ -14,17 +14,17 @@ export type PushNotificationInterval=15|30|60|120|180;
 export type PushTimeDisplayMode='relative'|'absolute';
 export const PUSH_TIME_DISPLAY_MODE_KEY='mid:push-time-display-mode:v1';
 export function readPushTimeDisplayMode():PushTimeDisplayMode{try{return localStorage.getItem(PUSH_TIME_DISPLAY_MODE_KEY)==='absolute'?'absolute':'relative'}catch{return'relative'}}
-export function writePushTimeDisplayMode(mode:PushTimeDisplayMode){try{localStorage.setItem(PUSH_TIME_DISPLAY_MODE_KEY,mode==='absolute'?'absolute':'relative')}catch{/* storage unavailable */}}
+export function writePushTimeDisplayMode(mode:PushTimeDisplayMode){const value=mode==='absolute'?'absolute':'relative';try{localStorage.setItem(PUSH_TIME_DISPLAY_MODE_KEY,value);return localStorage.getItem(PUSH_TIME_DISPLAY_MODE_KEY)===value}catch{return false}}
 
 export type PushPrecipitationLeadMinutes=15|30|45|60|90|120;
 export type PushPrecipitationThresholdMm=.1|.2|.5|1|2|5;
 export type PushPrecipitationDurationMinutes=0|15|30|60|120|180;
 export type PushPrecipitationAlertSettings={leadMinutes:PushPrecipitationLeadMinutes;minimumAmountMm:PushPrecipitationThresholdMm;minimumDurationMinutes:PushPrecipitationDurationMinutes};
 export const DEFAULT_PUSH_PRECIPITATION_ALERT:PushPrecipitationAlertSettings={leadMinutes:60,minimumAmountMm:.1,minimumDurationMinutes:0};
-export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;serverRegistered:boolean;schedulerHealthy:boolean;schedulerLastRunAt?:string;workerCheckedAt?:string;activeFavorites:number;activeRules:number;operational:boolean;workerUrl:string;message:string};
+export type PushStatus={supported:boolean;permission:NotificationPermission|'unsupported';configured:boolean;subscribed:boolean;serverRegistered:boolean;schedulerHealthy:boolean;schedulerLastRunAt?:string;workerCheckedAt?:string;timeDisplayMode?:PushTimeDisplayMode;deviceTimeZone?:string;activeFavorites:number;activeRules:number;operational:boolean;workerUrl:string;message:string};
 
 type PushConfig={enabled?:boolean;publicKey?:string;version?:string;error?:string};
-type WorkerReply={ok?:boolean;error?:string;favorites?:number;version?:string;registered?:boolean;schedulerHealthy?:boolean;schedulerLastRunAt?:string;checkedAt?:string;activeFavorites?:number;activeRules?:number;lastNotificationAt?:string;lastError?:string};
+type WorkerReply={timeDisplayMode?:PushTimeDisplayMode;deviceTimeZone?:string;ok?:boolean;error?:string;favorites?:number;version?:string;registered?:boolean;schedulerHealthy?:boolean;schedulerLastRunAt?:string;checkedAt?:string;activeFavorites?:number;activeRules?:number;lastNotificationAt?:string;lastError?:string};
 
 function supportsPush(){return typeof window!=='undefined'&&'serviceWorker'in navigator&&'PushManager'in window&&'Notification'in window}
 function base64UrlToBytes(value:string){const normalized=value.replace(/-/g,'+').replace(/_/g,'/'),padded=normalized+'='.repeat((4-normalized.length%4)%4),raw=atob(padded),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes}
@@ -35,16 +35,32 @@ async function workerPost<T>(mode:string,body:unknown){return notificationWorker
 function serialiseSubscription(subscription:PushSubscription){const json=subscription.toJSON();return{endpoint:subscription.endpoint,expirationTime:subscription.expirationTime,keys:{p256dh:String(json.keys?.p256dh||''),auth:String(json.keys?.auth||'')}}}
 async function readyRegistration(){let timer=0;try{const registration=await Promise.race([navigator.serviceWorker.ready,new Promise<never>((_,reject)=>{timer=globalThis.setTimeout(()=>reject(new Error('Der Benachrichtigungsdienst startet nicht rechtzeitig.')),6000) as unknown as number})]);if(!registration.active)throw new Error('Der Benachrichtigungsdienst ist noch nicht aktiv. App bitte neu öffnen.');return registration}finally{if(timer)globalThis.clearTimeout(timer)}}
 function activeFavorites(favorites:PushRuleFavorite[]){return favorites.filter(item=>item.rules.precipitationStart||item.rules.thunderstormApproach||item.rules.forecastMaterialChange).map(item=>({id:item.id,name:item.name,latitude:item.latitude,longitude:item.longitude,country:item.country||'',timeZone:item.timeZone||'',rules:item.rules}))}
-async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){return workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,precipitationAlert,ventilation,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent,timeDisplayMode:readPushTimeDisplayMode(),deviceTimeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||''})}
+// All registration mutations from this page share one ordered stream.
+let pushMutationTail:Promise<unknown>=Promise.resolve(),lastPushRegistrationWrite=0;
+function queuePushMutation<T>(operation:()=>Promise<T>):Promise<T>{
+ const result=pushMutationTail.catch(()=>undefined).then(operation);
+ pushMutationTail=result;return result;
+}
+async function saveSubscription(subscription:PushSubscription,favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
+ const waitMs=Math.max(0,lastPushRegistrationWrite+1100-Date.now());
+ if(waitMs)await new Promise(resolve=>globalThis.setTimeout(resolve,waitMs));
+ // Read the current local preference when this queued write actually starts.
+ const timeDisplayMode=readPushTimeDisplayMode();
+ try{
+  const result=await workerPost<WorkerReply>('push-subscribe',{subscription:serialiseSubscription(subscription),favorites:activeFavorites(favorites),notificationIntervalMinutes,precipitationAlert,ventilation,appUrl:new URL('./',document.baseURI).toString(),userAgent:navigator.userAgent,timeDisplayMode,deviceTimeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||''});
+  if(result.data.ok!==true||result.data.timeDisplayMode!==timeDisplayMode)throw new Error('Zeitanzeige lokal gespeichert; der Benachrichtigungsdienst hat diese Auswahl noch nicht bestätigt.');
+  return result;
+ }finally{lastPushRegistrationWrite=Date.now()}
+}
 
 export async function getPushStatus():Promise<PushStatus>{
  if(!supportsPush())return{supported:false,permission:'unsupported',configured:false,subscribed:false,serverRegistered:false,schedulerHealthy:false,activeFavorites:0,activeRules:0,operational:false,workerUrl:'',message:'Web Push wird von diesem Browser oder dieser Installationsart nicht unterstützt.'};
  let configured=false,workerUrl='',configError='';try{const result=await workerGet<PushConfig>('push-config');configured=Boolean(result.data.enabled&&result.data.publicKey);workerUrl=result.base;if(!configured)configError='Benachrichtigungen sind serverseitig noch nicht vollständig eingerichtet.'}catch(error){configError=error instanceof Error?error.message:String(error)}
  let subscription:PushSubscription|null=null;try{const registration=await readyRegistration();subscription=await registration.pushManager.getSubscription()}catch{}
- const subscribed=Boolean(subscription),permission=Notification.permission;let serverRegistered=false,schedulerHealthy=false,schedulerLastRunAt:string|undefined,workerCheckedAt:string|undefined,activeFavorites=0,activeRules=0;
- if(configured&&subscription)try{const result=await workerPost<WorkerReply>('push-status',{endpoint:subscription.endpoint});workerUrl=result.base;serverRegistered=Boolean(result.data.registered);schedulerHealthy=Boolean(result.data.schedulerHealthy);schedulerLastRunAt=result.data.schedulerLastRunAt;workerCheckedAt=result.data.checkedAt;activeFavorites=Number(result.data.activeFavorites)||0;activeRules=Number(result.data.activeRules)||0}catch{}
+ const subscribed=Boolean(subscription),permission=Notification.permission;let serverRegistered=false,schedulerHealthy=false,schedulerLastRunAt:string|undefined,workerCheckedAt:string|undefined,activeFavorites=0,activeRules=0,timeDisplayMode:PushTimeDisplayMode|undefined,deviceTimeZone:string|undefined;
+ if(configured&&subscription)try{const result=await workerPost<WorkerReply>('push-status',{endpoint:subscription.endpoint});workerUrl=result.base;serverRegistered=Boolean(result.data.registered);timeDisplayMode=result.data.timeDisplayMode==='absolute'||result.data.timeDisplayMode==='relative'?result.data.timeDisplayMode:undefined;deviceTimeZone=result.data.deviceTimeZone;schedulerHealthy=Boolean(result.data.schedulerHealthy);schedulerLastRunAt=result.data.schedulerLastRunAt;workerCheckedAt=result.data.checkedAt;activeFavorites=Number(result.data.activeFavorites)||0;activeRules=Number(result.data.activeRules)||0}catch{}
  const operational=Boolean(subscribed&&serverRegistered&&schedulerHealthy),message=permission==='denied'?'Benachrichtigungen sind im Betriebssystem oder Browser blockiert.':subscribed&&!serverRegistered?'Benachrichtigungen sind auf diesem Gerät vorhanden, die Registrierung muss aber erneuert werden.':subscribed&&serverRegistered&&!schedulerHealthy?`Benachrichtigungen sind registriert, der regelmäßige Prüfzyklus ist aber noch nicht bestätigt.${schedulerLastRunAt?` Letzte Prüfung: ${new Date(schedulerLastRunAt).toLocaleString('de-DE')}.`:' Bitte später erneut prüfen.'}`:operational?`Benachrichtigungen sind vollständig betriebsbereit${activeRules?` · ${activeRules} aktive Regel${activeRules===1?'':'n'}`:''}.`:configured?'Benachrichtigungen sind bereit und können auf diesem Gerät aktiviert werden.':configError||'Benachrichtigungen sind noch nicht eingerichtet.';
- return{supported:true,permission,configured,subscribed,serverRegistered,schedulerHealthy,schedulerLastRunAt,workerCheckedAt,activeFavorites,activeRules,operational,workerUrl,message};
+ return{supported:true,permission,configured,subscribed,serverRegistered,schedulerHealthy,schedulerLastRunAt,workerCheckedAt,timeDisplayMode,deviceTimeZone,activeFavorites,activeRules,operational,workerUrl,message};
 }
 
 export async function preparePushNotifications(){
@@ -56,12 +72,17 @@ export async function preparePushNotifications(){
 }
 
 export async function enablePushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
- const prepared=await preparePushNotifications();await saveSubscription(prepared.subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation);return prepared;
+ const preparation=preparePushNotifications();void preparation.catch(()=>undefined);
+ return queuePushMutation(async()=>{
+ const prepared=await preparation;await saveSubscription(prepared.subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation);return prepared;
+ });
 }
 
 export async function syncPushNotifications(favorites:PushRuleFavorite[],notificationIntervalMinutes:PushNotificationInterval,precipitationAlert:PushPrecipitationAlertSettings=DEFAULT_PUSH_PRECIPITATION_ALERT,ventilation:VentilationPushConfig|null=ventilationPushConfig()){
+ return queuePushMutation(async()=>{
  if(!supportsPush()||Notification.permission!=='granted')return false;
  const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return false;await saveSubscription(subscription,favorites,notificationIntervalMinutes,precipitationAlert,ventilation);return true;
+ });
 }
 
 
@@ -72,7 +93,9 @@ export async function sendPushTestNotification(){
 }
 
 export async function disablePushNotifications(){
+ return queuePushMutation(async()=>{
  if(!supportsPush())return;
  const registration=await readyRegistration(),subscription=await registration.pushManager.getSubscription();if(!subscription)return;
  await workerPost<WorkerReply>('push-unsubscribe',{endpoint:subscription.endpoint}).catch(()=>undefined);await subscription.unsubscribe();
+ });
 }

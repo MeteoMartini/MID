@@ -1,3 +1,10 @@
+# MID v0.9.85.286 · Push-Präferenzen und Bestätigung (Source-PR-Kandidat)
+
+- Basis .285 e8c3e4e61eff028797120fcecc6f3be58f993911 integriert. Keine neuen Dienste oder Berechtigungen.
+- #400 reproduziert und durch geordnete Clientmutationen, konkrete Serverbestätigung und Schutz vor veralteten UI-/Scheduler-Antworten abgesichert.
+- Neue echte Client-/Worker-Regression und React-Browsermatrix. Physische Geräteabnahme und globale KV-Atomarität nicht behauptet.
+- Ausführliche Grenzen: docs/implementation/MID_C38_PUSH_CONFIRMATION_0.9.85.286.md. Freigabe nur über unveränderte Source-/Installer-/Deployment-Gates.
+
 # MID v0.9.85.285 · Kalendertage und aktuelle Skybar (Source-PR-Kandidat)
 
 - Freigegebene Basis: main=mid-stable=16b6c87906370b62315e0046dec64506304abcc4, v0.9.85.284.
