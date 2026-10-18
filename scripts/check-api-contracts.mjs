@@ -1,4 +1,5 @@
 import {fetchJsonWithRetry} from './api-contract-request.mjs';
+import {finiteSeries,rangeSeries,distinctExtrema} from './api-contract-series.mjs';
 
 const failures=[],warnings=[],checks=[];
 
@@ -19,8 +20,6 @@ async function jsonCheck(name,url,validate,{required=true}={}){
   return false;
  }
 }
-function finiteSeries(payload,key,minCount=6){const values=payload?.hourly?.[key];return Array.isArray(values)&&values.filter(value=>Number.isFinite(Number(value))).length>=minCount}
-function rangeSeries(payload,key,min,max){const values=payload?.hourly?.[key];if(!Array.isArray(values))return false;const finite=values.map(Number).filter(Number.isFinite);return finite.length>=6&&finite.every(value=>value>=min&&value<=max)}
 function surfaceForecastContract(payload){return finiteSeries(payload,'temperature_2m')&&finiteSeries(payload,'precipitation')&&rangeSeries(payload,'cloud_cover',0,100)&&finiteSeries(payload,'wind_speed_10m')}
 
 // Kernverträge: Ein Ausfall hier betrifft den allgemeinen MID-Datenpfad und bleibt fail-closed.
@@ -53,7 +52,7 @@ const aqi=new URLSearchParams({latitude:'50.815',longitude:'7.037',timezone:'aut
 await jsonCheck('EU-AQI stündlich',`https://air-quality-api.open-meteo.com/v1/air-quality?${aqi}`,payload=>finiteSeries(payload,'pm10')&&finiteSeries(payload,'pm2_5')&&finiteSeries(payload,'european_aqi'));
 
 const aggregation=new URLSearchParams({latitude:'50.815',longitude:'7.037',timezone:'GMT',forecast_hours:'24',models:'ecmwf_ifs',hourly:'temperature_2m_min,temperature_2m_max'});
-await jsonCheck('ECMWF IFS native 3h Min/Max',`https://api.open-meteo.com/v1/forecast?${aggregation}`,payload=>finiteSeries(payload,'temperature_2m_min',2)&&finiteSeries(payload,'temperature_2m_max',2)&&payload.hourly.temperature_2m_min.some((value,index)=>Number(value)!==Number(payload.hourly.temperature_2m_max[index])));
+await jsonCheck('ECMWF IFS native 3h Min/Max',`https://api.open-meteo.com/v1/forecast?${aggregation}`,payload=>finiteSeries(payload,'temperature_2m_min',2)&&finiteSeries(payload,'temperature_2m_max',2)&&distinctExtrema(payload));
 
 if(warnings.length)console.warn(`Optionale Provider-Degradation (${warnings.length}):\n${warnings.join('\n')}`);
 if(failures.length){console.error(`Kritische API-Vertragsfehler (${failures.length}):\n${failures.join('\n')}`);process.exit(1)}

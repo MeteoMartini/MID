@@ -1,3 +1,10 @@
+# MID v0.9.85.291 · Strikte API-NoData-Prüfung (Source-PR-Kandidat)
+
+- Ausgangsbasis .289/67b289988ed0ce8433b266c8f2055f070133ffe5. Der funktional unabhängige API-Prüfer wird gegen diese weiterhin aktuelle freigegebene Basis geprüft; paralleler PR #412/.290 bleibt ausdrücklich Draft und unintegriert. Vor dessen späterem Release neue Stable-Basis/Version berücksichtigen.
+- scripts/api-contract-series.mjs erkennt fehlende Werte strikt und bewahrt gültige Null/Extremwerte. Min/Max-Unterschiede benötigen zwei echte Werte am selben Index. Pflicht-/Optional-Grenze und Retry bleiben unverändert.
+- Pflichtregression scripts/test-api-contract-nodata-0985291.mjs; Nachweis docs/implementation/MID_C35_OPEN_METEO_NODATA_0.9.85.291.md. #405 bleibt für neue Modelle/Live-Rollout/historische Regime offen.
+- Noch kein Releasebeleg: nur Source-Gate → SHA-Bot → ZIP → Installer → Worker/Pages → Stable. Keine physische iOS-Abnahme.
+
 # MID v0.9.85.289 · Anzeigeidentische Kurzfrist-Ereignisse und kompakte Karten (Source-PR-Kandidat)
 
 - Freigegebene Ausgangsbasis main=mid-stable=e54c237b2d21859638cf3b21b50a842d2f0f222d nach erfolgreichem Installer #39111144520, v0.9.85.288. Kein Parallelprodukt-PR zum Entwicklungsstart.

@@ -1,3 +1,8 @@
+## MID v0.9.85.291 · 2026-10-18 · API-NoData-Verträge
+
+- Reproduzierten Number(null/blank/boolean)-Fehler im API-Prüfer behoben; Min/Max-Unterschied erfordert gültiges Wertepaar.
+- Echte CLI-Pflicht-/Optional-Providerfixtures und Serienregression in beiden Baseline-Inventaren. Open-Meteo #405 getrennt dokumentiert; keine unbestätigte Modellfreigabe oder historische Korrektur.
+
 # MID v0.9.85.289 · C39 Kurzfristtext und mobile Kartenfläche (Source-PR-Kandidat)
 
 - Verifizierte Basis: main=mid-stable=e54c237b2d21859638cf3b21b50a842d2f0f222d, v0.9.85.288; vollständiger Installer #39111144520 mit Worker/Pages und Stable-Promotion erfolgreich. Keine parallel offenen Produkt-PRs bei Start; bestehende Dependabot-PRs nicht verändert.

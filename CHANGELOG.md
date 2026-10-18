@@ -1,3 +1,8 @@
+# MID v0.9.85.291
+
+- API-Qualitätsprüfung erkennt fehlende Wetterwerte zuverlässiger; echte Nullwerte bleiben gültig.
+- Bestehende Modelle, Wetterdaten und Warnungen bleiben erhalten.
+
 # MID v0.9.85.289
 
 - **Heute/Kurzfrist: gleiche Uhrzeit wie im Diagramm.** Niederschlagsbeginn und -ende orientieren sich an denselben korrigierten Zeitabschnitten wie die 24-Stunden-Kurve; abweichende versteckte Viertelstundenwerte bestimmen den Text nicht mehr.
