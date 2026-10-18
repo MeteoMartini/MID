@@ -7,7 +7,7 @@ assert.match(sevenDay,/type SevenDayWeatherRegime='sunny'\|'mixed'\|'cloudy'\|'w
 assert.match(sevenDay,/denseCloudText=\/stark bewölkt\|meist bewölkt\|bedeckt\|trüb\//,'stark bzw. meist bewölkte Tage müssen Vorrang vor bloßer Sonnenscheindauer haben');
 assert.match(sevenDay,/sunShare=Number\.isFinite\(sunHours\)\?Math\.max\(0,Math\.min\(1,sunHours\/Math\.max\(1,sevenDayDaylightHours\(day\)\)\)\):0/,'Sonnenscheindauer muss nullsicher relativ zur Tageslänge bewertet werden');
 for(const token of ["if(max>=40)return'extreme-hot'","if(max>=35)return'very-hot'","if(max>=30)return'hot'","if(max>=25)return'summer'","if(max<0)return'ice'","tropicalNight:followingNightIsTropical(day,nextDay,allHours)"]){assert.ok(sevenDay.includes(token),`DWD-Kenntag fehlt: ${token}`)}
-assert.match(sevenDay,/climateDelta:climate&&Number\.isFinite\(climate\.maxMean\)/,'Abweichung vom Klimamittel wird nicht einbezogen');
+assert.match(sevenDay,/climateDelta:day\.max!=null&&Number\.isFinite\(Number\(day\.max\)\)&&climate&&Number\.isFinite\(climate\.maxMean\)/,'Klimaanomalien dürfen bei fehlendem Tmax nicht aus null=0 erzeugt werden');
 assert.match(sevenDay,/trendHours=\[\.\.\.dayHours,\.\.\.followingNightHours\]/,'Warnsignale müssen ausschließlich aus dem Tag und der ersten Folgenacht stammen');
 assert.match(sevenDay,/hazards=summarizeDwdWarnings\(trendHours,elevation\)/,'markante DWD-nahe Warnsignale werden im Trend nicht geprüft');
 assert.match(sevenDay,/return sevenDayNarrativeText\(events,hasUsableData\)/,'Alle Ereignisse müssen gemeinsam zeitlich geordnet werden');

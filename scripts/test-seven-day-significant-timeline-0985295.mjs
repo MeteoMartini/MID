@@ -18,6 +18,7 @@ try{
  assert.equal(render([e(-1,0,10,'Ungültig'),e(0,0,4,'Heute Gewitter möglich.')],true),'Heute Gewitter möglich.');
  const source=await readFile('src/SevenDayForecastSummary.tsx','utf8');
  assert.ok(source.includes('return sevenDayNarrativeText(events,hasUsableData);'),'Full 7-day component must use chronological renderer');
+ assert.ok(source.includes('climateDelta:day.max!=null&&Number.isFinite(Number(day.max))'),'A missing Tmax must not be interpreted as a -climateMean anomaly');
  assert.ok(source.includes("const duplicateThunder=/gewitt/i.test(hazard.text)"),'Same-day thunder warning must not duplicate storm narrative');
  assert.ok(!source.includes('weatherClauses=supplementalClause'),'Late hazard append must not reintroduce time jumps');
  assert.ok(source.includes('sevenDayClause(segment,forecastDays)'),'First selected event must be dated by actual segment start, not its rank');
