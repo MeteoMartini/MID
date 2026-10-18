@@ -1,3 +1,10 @@
+# MID v0.9.85.292 · Allgemeine Warngeometrie und CAP-Lebenszyklus (Source-PR-Kandidat)
+
+- Ausgangsbasis main=mid-stable=fbe9c758599928f4b5ba776de670505018750dbb (.291); PR #414 @79bd72caa7c652cdf684776c4dbcc2b05b6d3df2 selektiv vervollständigt. Kein Hardcode für Barcelona/Gemeinderadius.
+- Amtliche Kartenpolygone plus CAP-Geometrie/identische amtliche Sprach-Gebietscodes, vollständige Gebietsnamen, transitive CAP-Update-/Stornoketten vor semantischer Deduplizierung. Quelle docs/implementation/MID_C35_WARNING_COMPLETION_0.9.85.292.md.
+- Gesicherter echter 22er-Live-Fall vom 18.10. und erneuter Liveabruf liefern mit Geometrie vier örtliche Warnungen. Dies ersetzt NICHT den fehlenden Einzelmeldungsnachweis des ursprünglichen 26er-Falls. #411 bleibt offen.
+- Suchleisten-Fix separat gesichert in lokalem Commit 63f0378; nicht Teil dieses Warnungs-PR. Vollständige Source-/Releasegates stehen aus. Nur regulärer geschützter MID-Releasepfad.
+
 # MID v0.9.85.291 · Strikte API-NoData-Prüfung (Source-PR-Kandidat)
 
 - Ausgangsbasis .289/67b289988ed0ce8433b266c8f2055f070133ffe5. Der funktional unabhängige API-Prüfer wird gegen diese weiterhin aktuelle freigegebene Basis geprüft; paralleler PR #412/.290 bleibt ausdrücklich Draft und unintegriert. Vor dessen späterem Release neue Stable-Basis/Version berücksichtigen.

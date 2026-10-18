@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+const source=await readFile('worker-src/00-core-observations.js','utf8'),ctx=vm.createContext({TextDecoder,Uint8Array,URL,Date,Math,Number,Set,Map});vm.runInContext(source.slice(source.indexOf('function decodeXml('),source.indexOf('async function dwdWfsFrom(')),ctx);
+const cap=(id,type='Alert',references='',sent='2099-01-01T01:00:00Z',area='Area',status='Actual')=>`<alert><identifier>${id}</identifier><sender>authority</sender><sent>${sent}</sent><status>${status}</status><msgType>${type}</msgType>${references?`<references>${references.split(' ').map(r=>'authority,'+r+',2099-01-01T00:00:00Z').join(' ')}</references>`:''}${type==='Cancel'?'':`<info><language>en</language><headline>Rain</headline><description>${id}</description><event>Rain</event><expires>2099-01-02T00:00:00Z</expires><onset>2099-01-01T05:00:00Z</onset><area><areaDesc>${area}</areaDesc></area></info>`}</alert>`;
+const parse=xml=>ctx.parseCap(xml,'Official','',50,7,'Area','','','en',['Area']);
+const original=parse(cap('original')),updated=parse(cap('updated','Update','original','2099-01-01T02:00:00Z')),cancel=parse(cap('cancel','Cancel','updated','2099-01-01T03:00:00Z'));
+assert.equal(ctx.dedupeAlerts([original,updated]).length,1);assert.equal(ctx.dedupeAlerts([updated,original])[0].id,'updated');
+for(const rows of [[original,updated,cancel],[cancel,original,updated],[updated,cancel,original]])assert.equal(ctx.dedupeAlerts(rows).length,0,'Cancel must suppress the whole transitive CAP family regardless of order');
+const retained=ctx.dedupeAlerts([original,updated,cancel],true);assert.equal(retained.length,1);assert(retained[0]._capWithdrawn);assert.equal(ctx.dedupeAlerts([...retained,{...original,id:'visual-id',references:['original']}]).length,0,'CAP cancellation must also suppress stale VIS representation after source merge');
+const moved=parse(cap('moved','Update','original','2099-01-01T02:00:00Z','Different zone'));assert(moved._capWithdrawn);assert.equal(ctx.dedupeAlerts([original,moved]).length,0,'Update moving outside the point withdraws the earlier local warning');
+const independent=parse(cap('independent'));assert.equal(ctx.dedupeAlerts([original,independent,updated,cancel]).length,1,'Unrelated same-event warning must not be cancelled');
+assert.equal(parse(cap('test-cancel','Cancel','original','2099-01-01T04:00:00Z','Area','Test')),null);
+const a={...original,id:'a',event:'Rain A'},b={...original,id:'b',event:'Rain B'},bridge={...updated,id:'bridge',references:['a','b'],event:'Updated'};assert.equal(ctx.dedupeAlerts([a,b,bridge]).length,1,'An update referencing two previously separate groups must merge them transitively');
+const later={...updated,id:'fresh',references:['updated'],updatedAt:'2099-01-01T04:00:00Z'};assert.equal(ctx.dedupeAlerts([cancel,original,updated,later])[0].id,'fresh','A genuinely later authoritative revision may supersede an older cancellation');
+console.log('CAP lifecycle: actual Cancel/Update chains, order independence, transitive identities, shorter newer messages, moved scope, stale VIS source merge and unrelated/Test isolation.');

@@ -1,0 +1,303 @@
+{
+  "capturedAt": "2026-10-18T13:50:25.119Z",
+  "payload": {
+    "alerts": [
+      {
+        "id": "2.49.0.0.724.0.ES.261018094809.690804TOTO192216889",
+        "headline": "Moderate thunderstorm warning. Litoral de Barcelona",
+        "description": "Für diese amtliche Warnung liegt kein zusätzlicher Meldungstext vor.",
+        "instruction": "Be aware, keep up to date with the latest weather forecast. Moderate damages to people and properties may occur, especially to those vulnerable or in exposed areas.",
+        "language": "en-GB",
+        "level": "yellow",
+        "severity": "Moderate",
+        "event": "Moderate thunderstorm warning",
+        "source": "AEMET. State Meteorological Agency",
+        "area": "Litoral de Barcelona",
+        "areaCodes": [
+          "emma_id:es181"
+        ],
+        "references": [
+          "2.49.0.0.724.0.ES.261018094809.690804TOTO192216889",
+          "2.49.0.0.724.0.ES.261017094209.690804TOTO192230129",
+          "7aa15f82-2c12-454b-82b6-ff83e09fe99d"
+        ],
+        "effective": "2026-10-18T09:44:38.000Z",
+        "onset": "2026-10-19T14:00:00.000Z",
+        "expires": "2026-10-19T21:59:59.000Z",
+        "updatedAt": "2026-10-18T09:48:09.000Z",
+        "url": "https://www.aemet.es/en/eltiempo/prediccion/avisos"
+      },
+      {
+        "id": "2.49.0.0.724.0.ES.261018094809.690804PRP2192216889",
+        "headline": "Moderate rain warning. Litoral de Barcelona",
+        "description": "Twelve-hours accumulated precipitation: 60 mm.",
+        "instruction": "Be aware, keep up to date with the latest weather forecast. Moderate damages to people and properties may occur, especially to those vulnerable or in exposed areas.",
+        "language": "en-GB",
+        "level": "yellow",
+        "severity": "Moderate",
+        "event": "Moderate rain warning",
+        "source": "AEMET. State Meteorological Agency",
+        "area": "Litoral de Barcelona",
+        "areaCodes": [
+          "emma_id:es181"
+        ],
+        "references": [
+          "2.49.0.0.724.0.ES.261018094809.690804PRP2192216889",
+          "b9d49937-4f9c-41cc-99c9-a1e0676605fc",
+          "2.49.0.0.724.0.ES.261018094809.690804PRP1192216889",
+          "2.49.0.0.724.0.ES.261017094209.690804PRP1192230129",
+          "2.49.0.0.724.0.ES.261017094209.690804PRP2192230129",
+          "76dcb995-fca6-454f-be23-516ed1ea09ce"
+        ],
+        "effective": "2026-10-18T09:44:38.000Z",
+        "onset": "2026-10-19T14:00:00.000Z",
+        "expires": "2026-10-19T21:59:59.000Z",
+        "updatedAt": "2026-10-18T09:48:09.000Z",
+        "url": "https://www.aemet.es/en/eltiempo/prediccion/avisos"
+      },
+      {
+        "id": "bc2e1ad1-d205-4508-b810-9a8563291e7e",
+        "headline": "Moderate thunderstorm warning. Litoral de Barcelona",
+        "description": "Pueden ir acompañadas de granizo y rachas fuertes.",
+        "instruction": "Be aware, keep up to date with the latest weather forecast. Moderate damages to people and properties may occur, especially to those vulnerable or in exposed areas.",
+        "language": "en",
+        "level": "yellow",
+        "severity": "Moderate",
+        "event": "Moderate thunderstorm warning. Litoral de Barcelona",
+        "source": "AEMET. State Meteorological Agency",
+        "area": "Litoral de Barcelona",
+        "areaCodes": [
+          "meteoalarm_feature:179df5b9 c7ca 4b59 8018 91fd007edc02"
+        ],
+        "references": [
+          "bc2e1ad1-d205-4508-b810-9a8563291e7e"
+        ],
+        "effective": "2026-10-19T22:00:00.000Z",
+        "onset": "2026-10-19T22:00:00.000Z",
+        "expires": "2026-10-20T01:59:59.000Z",
+        "updatedAt": "2026-10-18T09:54:11.000Z",
+        "url": "https://www.aemet.es/en/eltiempo/prediccion/avisos"
+      },
+      {
+        "id": "a4b7d8a9-98e6-43b1-b318-fb4caf779f3c",
+        "headline": "Moderate rain warning. Litoral de Barcelona",
+        "description": "Twelve-hours accumulated precipitation: 60 mm.",
+        "instruction": "Be aware, keep up to date with the latest weather forecast. Moderate damages to people and properties may occur, especially to those vulnerable or in exposed areas.",
+        "language": "en",
+        "level": "yellow",
+        "severity": "Moderate",
+        "event": "Moderate rain warning. Litoral de Barcelona",
+        "source": "AEMET. State Meteorological Agency",
+        "area": "Litoral de Barcelona",
+        "areaCodes": [
+          "meteoalarm_feature:179df5b9 c7ca 4b59 8018 91fd007edc02"
+        ],
+        "references": [
+          "a4b7d8a9-98e6-43b1-b318-fb4caf779f3c",
+          "646ac72b-9761-448c-ad90-caca26759dfa"
+        ],
+        "effective": "2026-10-19T22:00:00.000Z",
+        "onset": "2026-10-19T22:00:00.000Z",
+        "expires": "2026-10-20T01:59:59.000Z",
+        "updatedAt": "2026-10-18T09:54:11.000Z",
+        "url": "https://www.aemet.es/en/eltiempo/prediccion/avisos"
+      }
+    ],
+    "provider": "MeteoAlarm / nationale Wetterbehörde",
+    "coverage": "Europa · amtliche Warnungen des nationalen Wetterdienstes · koordinatengeprüft · ES",
+    "countryCode": "ES",
+    "sourceStatus": {
+      "strategy": "single-canonical-provider",
+      "primary": "MeteoAlarm Live-Warngebiete + Atom/CAP",
+      "endpoint": "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-spain",
+      "areaEndpoint": "https://visservice.meteoalarm.org/api/v1/stream-buffers/live/hazards/ES?preset=timeline&referenceDate=2026-10-18T13%3A49%3A47.929Z&language=en",
+      "coordinateAssignment": "amtliches Warngebiet lokal eingegrenzt (amtliche Kartenpolygon-Prüfung; 3 Box-Kandidaten)",
+      "geometryEndpoint": "https://visservice.meteoalarm.org/stream-buffers/live/tiles/10/518/382.mvt?preset=timeline&referenceDate=2026-10-18T00%3A00%3A00.000Z",
+      "deduplication": "MeteoAlarm-Warnungskennung/CAP-Referenzen sowie Ereignis, Gebiet und Gültigkeit"
+    },
+    "version": "0.9.85.292",
+    "checkedAt": "2026-10-18T13:50:25.117Z"
+  },
+  "calls": [
+    {
+      "url": "https://visservice.meteoalarm.org/stream-buffers/live/tiles/10/518/382.mvt?preset=timeline&referenceDate=2026-10-18T00%3A00%3A00.000Z",
+      "status": 200,
+      "ms": 5631
+    },
+    {
+      "url": "https://visservice.meteoalarm.org/api/v1/stream-buffers/live/hazards/ES?preset=timeline&referenceDate=2026-10-18T13%3A49%3A47.929Z&language=en",
+      "status": 200,
+      "ms": 5931
+    },
+    {
+      "url": "https://visservice.meteoalarm.org/api/v1/stream-buffers/live/features/179df5b9-c7ca-4b59-8018-91fd007edc02/warnings?typeId=10&levelId=2&language=en&referenceDate=2026-10-18T13%3A49%3A47.929Z&preset=timeline",
+      "status": 200,
+      "ms": 131
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-spain",
+      "status": 200,
+      "ms": 3704
+    },
+    {
+      "url": "https://visservice.meteoalarm.org/api/v1/stream-buffers/live/features/179df5b9-c7ca-4b59-8018-91fd007edc02/warnings?typeId=3&levelId=3&language=en&referenceDate=2026-10-18T13%3A49%3A47.929Z&preset=timeline",
+      "status": 200,
+      "ms": 4528
+    },
+    {
+      "url": "https://visservice.meteoalarm.org/api/v1/stream-buffers/live/features/179df5b9-c7ca-4b59-8018-91fd007edc02/warnings?typeId=10&levelId=3&language=en&referenceDate=2026-10-18T13%3A49%3A47.929Z&preset=timeline",
+      "status": 200,
+      "ms": 4528
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/7aa15f82-2c12-454b-82b6-ff83e09fe99d",
+      "status": 200,
+      "ms": 5078
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/76dcb995-fca6-454f-be23-516ed1ea09ce",
+      "status": 200,
+      "ms": 5132
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/5723fae1-4596-49d7-b6f1-707173e9b056",
+      "status": 200,
+      "ms": 5133
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/cd888c45-da45-4e40-b61f-12d6e8b8423d",
+      "status": 200,
+      "ms": 5137
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/b9d49937-4f9c-41cc-99c9-a1e0676605fc",
+      "status": 200,
+      "ms": 5198
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/bd87e677-455e-4854-af4b-3dca8021af57",
+      "status": 200,
+      "ms": 5269
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/51be02e5-d497-473a-9b5f-138c2d7b723a",
+      "status": 200,
+      "ms": 4717
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/3ef0247f-fe4f-4429-a65f-cbc06171321c",
+      "status": 200,
+      "ms": 4735
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/b47a26de-93e5-4ed4-b1ae-b03f75cf5e8c",
+      "status": 200,
+      "ms": 4753
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/d296ffed-474c-45c9-834b-0f453ea2f66d",
+      "status": 200,
+      "ms": 4835
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/5998938b-87c6-462b-9bee-30e0fe9ea3d0",
+      "status": 200,
+      "ms": 4857
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/3bb175da-ca55-4105-843e-ebf922ee0fdb",
+      "status": 200,
+      "ms": 4881
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/0a72a427-0996-4941-94e3-d35067c9e6fe",
+      "status": 200,
+      "ms": 4657
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/c346d509-e45b-4d21-9efb-db305fe35834",
+      "status": 200,
+      "ms": 4749
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/3d220c95-1dcf-4f3d-bbc2-5dfd575bfefd",
+      "status": 200,
+      "ms": 4753
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/c87a82b2-d9ac-4838-94f9-eb6766662282",
+      "status": 200,
+      "ms": 4754
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/f1bbd379-b665-40a0-a5cc-54e87db1f5bd",
+      "status": 200,
+      "ms": 4832
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/efdfd1bd-8fe4-4729-ab46-b806cb467b44",
+      "status": 200,
+      "ms": 4853
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/6864af65-df89-41a7-9d4d-afdb428d9ae4",
+      "status": 200,
+      "ms": 5141
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/a3352db7-d58e-4890-8143-ff551e5974e4",
+      "status": 200,
+      "ms": 5144
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/fd8833e2-45b9-4d06-8be9-c4e3b035656d",
+      "status": 200,
+      "ms": 5145
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/7fd2835c-46f8-4408-ab72-c9f66594c0a2",
+      "status": 200,
+      "ms": 5267
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/d3cf27f2-3172-4905-a6ed-a6d7d401a9c4",
+      "status": 200,
+      "ms": 5285
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/54e4b9f4-b22a-4e78-8c59-a735b24de3c7",
+      "status": 200,
+      "ms": 5343
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/1d35225b-62b7-4557-b4ff-29d24511f964",
+      "status": 200,
+      "ms": 4414
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/9ea52b30-2ed5-4d15-a755-3bde3926b100",
+      "status": 200,
+      "ms": 4415
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/00418db8-27dd-4e08-bf04-0c9e96d35b42",
+      "status": 200,
+      "ms": 4459
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/1ee57c2a-11dd-4bce-a4c7-5fc7848fe56a",
+      "status": 200,
+      "ms": 4472
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/88741c45-dbdf-428f-98a3-6d2b8237c7ad",
+      "status": 200,
+      "ms": 4518
+    },
+    {
+      "url": "https://feeds.meteoalarm.org/api/v1/warnings/feeds-spain/cecc0e0c-5d82-4097-bfe4-2da5daa01065",
+      "status": 200,
+      "ms": 4537
+    }
+  ]
+}

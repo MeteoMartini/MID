@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.291",
+  "version": "0.9.85.292",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -549,7 +549,9 @@
     "test:mid279-pseudosat-timeout": "node scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
     "test:mid280-push-time-isobars": "node scripts/test-mid280-push-time-isobars.mjs",
     "test:location-mountain-resilience": "node scripts/test-location-mountain-resilience-0985283.mjs",
-    "test:complete-calendar-day-current-skybar": "node scripts/test-complete-calendar-day-current-skybar-0985285.mjs"
+    "test:complete-calendar-day-current-skybar": "node scripts/test-complete-calendar-day-current-skybar-0985285.mjs",
+    "test:warning-point-geometry": "node scripts/test-warning-point-geometry-0985292.mjs",
+    "test:warning-cap-lifecycle": "node scripts/test-warning-cap-lifecycle-0985292.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

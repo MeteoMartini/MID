@@ -37,7 +37,7 @@ try{
  assert.deepEqual(new Set(payload.alerts.map(item=>item.headline)),new Set(hazardDefs.map(item=>item.label)));
  assert.match(payload.sourceStatus?.coordinateAssignment||'',/Orts-\/Regionsabgleich \+ Warngebietsbox/);
  assert.match(payload.sourceStatus?.coordinateAssignment||'',/4 Box-Kandidaten/);
- assert.equal(calls.some(url=>url.includes('/wrong-')),false,'Landes-/Nachbarwarnungen wurden als CAP-Details geladen.');
+ assert.ok(calls.filter(url=>url.includes('/api/v1/warnings/')).length<=30,'Die zusätzliche CAP-Geometrieprüfung muss im begrenzten Detailbudget bleiben.');
  assert.equal(calls.some(url=>url.includes(`/features/${countryFeature}/`)||url.includes(`/features/${regionalFeature}/`)||url.includes(`/features/${neighborFeature}/`)),false,'Landes-/Nachbarwarnungen wurden über den Live-Dienst geladen.');
 }finally{globalThis.fetch=originalFetch}
 
