@@ -10,7 +10,7 @@ Vorher auf der produktiven .291 im echten Desktop-Chromium reproduziert: Suchlis
 
 Header meldet den geöffneten Suchzustand an App. Währenddessen werden SelectedPlaceBar und deren Platzreservierung sowie das Body-Portal der schwebenden Hauptnavigation entfernt. Der Navigationsbaustein bleibt gemountet; Drawer-/Rail-Zustände werden nicht zurückgesetzt. Der VisualViewport-Anker ist währenddessen deaktiviert und wird beim Schließen neu angebunden. Keine bloße z-index-Verschiebung.
 
-Nur ausdrückliche Fokus-/Eingabehandlungen öffnen die Suche. Weder Query-Effekt, Erfolg noch Fehler einer Antwort darf dies tun. Request-ID, AbortController und Debounce bleiben erhalten. Schließen beendet einen noch ausstehenden Fokus-Animationframe. Escape, Auswahl, Klick und Fokus außerhalb stellen die Leisten wieder her.
+Nur ausdrückliche Fokus-/Eingabehandlungen öffnen die Suche. Weder Query-Effekt, Erfolg noch Fehler einer Antwort darf dies tun. Request-ID, AbortController und Debounce bleiben erhalten. Schließen beendet einen noch ausstehenden Fokus-Animationframe und führt Blur synchron aus. Der erste CI-Lauf deckte nach Escape einen echten Wettlauf zwischen verzögertem Blur und sofortigem Refokus auf (844×390); die Regression bleibt unverändert streng, ergänzt um abgeschlossenen Blur und echten ersten Touch-Tap. Escape, Auswahl, Klick und Fokus außerhalb stellen die Leisten wieder her.
 
 React ist laut qualifiziertem Lockfile 19.2.8. Context7-Dokumentation /react/react/v19.2.8 wurde für gemeinsamen Elternzustand und bedingtes Portal geprüft. Keine Abhängigkeitsänderung.
 
