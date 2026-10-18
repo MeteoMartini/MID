@@ -1,3 +1,9 @@
+## MID v0.9.85.294 · 2026-10-18 · Aktuell-Skybar mit exakten Sonnenübergängen
+
+- MID-C36: optionale solare Aufteilung im zeitgebundenen Skybar-Adapter; segmentinterne Epochengrenzen vor dem Viewport-Clipping erhalten.
+- Dynamische Regression für 12h-Geometrie, angeschnittene Sonnenübergänge, Missing, Wolkenschwellen, 15/60-min-Slots, DST und unveränderten Niederschlag erweitert.
+- Basis main=mid-stable=5ad8be1fbafbcbfbc9d1aeda451b3e642a947617 (.293). #374 bleibt wegen klassischer Detailachse und weiterer Gesamtabnahme offen.
+
 # MID v0.9.85.292 · Barcelona-Warnungsgebiete und CAP-Revision (Source-PR-Kandidat)
 
 - Verifizierte Stable/main-Basis fbe9c758599928f4b5ba776de670505018750dbb, v0.9.85.291. Ursprung: gesicherter .290 Draft #412 @ 3ba91d51ae883df4b38c59b2fad09634994a01fe, unverändert erhalten. .291-API-NoData-Code und Regression beibehalten.

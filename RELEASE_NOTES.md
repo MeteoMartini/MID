@@ -1,5 +1,4 @@
-# MID v0.9.85.293
+# MID v0.9.85.294
 
-- Die Ortssuche erhält freie Fläche: Standortleiste und schwebende Hauptnavigation werden während der geöffneten Suche ausgeblendet und beim Schließen wiederhergestellt.
-- Verspätete Suchergebnisse oder Fehler öffnen eine bereits geschlossene Suche nicht erneut.
-- Fokus ohne verzögertes Wegspringen, Escape, Ortsauswahl und Tastaturgrößenwechsel werden gemeinsam abgesichert.
+- Der Wetterstreifen unter Aktuell berücksichtigt Sonnenauf- und -untergang nun minutengenau innerhalb der Stundenabschnitte.
+- Kurzfristiger Niederschlag und die optionalen Stundenquadrate bleiben unabhängig erhalten.

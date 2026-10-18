@@ -217,14 +217,15 @@ function appendSegment(segments:SkyBarSegment[],index:number,prefix:string,x0:nu
 }
 
 /** Render explicit forward intervals on a shared epoch axis, preserving gaps and clipping edges. */
-export function detailSkyBarTimedSegments(samples:PrecipSample[],startEpoch:number,endEpoch:number,left:number,right:number,chartW:number,centerY:number):SkyBarSegment[]{
+export function detailSkyBarTimedSegments(samples:PrecipSample[],startEpoch:number,endEpoch:number,left:number,right:number,chartW:number,centerY:number,nightBands:readonly SkyBarSolarNightBand[]=[]):SkyBarSegment[]{
   if(!Number.isFinite(startEpoch)||!Number.isFinite(endEpoch)||endEpoch<=startEpoch||chartW<=left+right)return[];
   const x=(epoch:number)=>left+(epoch-startEpoch)/(endEpoch-startEpoch)*(chartW-left-right);
   const result=samples.flatMap((sample,index)=>{
     const start=Number(sample.precipitationIntervalStartEpoch??sample.epoch),end=Number(sample.precipitationIntervalEndEpoch);
     if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||end<=startEpoch||start>=endEpoch)return[];
     // Keep the original amount and duration for intensity; only the geometry is clipped.
-    return detailSkyBarSegments([sample],0,0,1,centerY).map(segment=>({...segment,key:`timed-${index}-${segment.key}`,x1:x(Math.max(startEpoch,start)),x2:x(Math.min(endEpoch,end))}));
+    const segments=nightBands.length?detailSkyBarSolarSegments([sample],0,0,1,centerY,[0],nightBands,[1]):detailSkyBarSegments([sample],0,0,1,centerY);
+    return segments.map(segment=>({...segment,key:`timed-${index}-${segment.key}`,x1:x(Math.max(startEpoch,start+(end-start)*segment.x1)),x2:x(Math.min(endEpoch,start+(end-start)*segment.x2))})).filter(segment=>segment.x2>segment.x1);
   });
   return result.filter(segment=>segment.layer==='base').concat(result.filter(segment=>segment.layer==='precip'));
 }

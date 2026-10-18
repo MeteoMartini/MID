@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.294",
+  "date": "2026-10-18",
+  "title": "Aktuell-Skybar mit exakten Sonnenübergängen",
+  "external": [
+    "Der Wetterstreifen unter Aktuell berücksichtigt Sonnenauf- und -untergang nun minutengenau innerhalb der Stundenabschnitte.",
+    "Kurzfristiger Niederschlag und die optionalen Stundenquadrate bleiben unabhängig erhalten."
+  ],
+  "internal": [
+    "MID-C36: optionale solare Aufteilung im zeitgebundenen Skybar-Adapter; segmentinterne Epochengrenzen vor dem Viewport-Clipping erhalten.",
+    "Dynamische Regression für 12h-Geometrie, angeschnittene Sonnenübergänge, Missing, Wolkenschwellen, 15/60-min-Slots, DST und unveränderten Niederschlag erweitert.",
+    "Basis main=mid-stable=5ad8be1fbafbcbfbc9d1aeda451b3e642a947617 (.293). #374 bleibt wegen klassischer Detailachse und weiterer Gesamtabnahme offen."
+  ]
+}
