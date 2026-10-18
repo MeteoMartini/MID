@@ -37,6 +37,25 @@ for(const entry of originalEntries){
  }));
 }
 assert.equal(reviewedRadii,2,'Exactly the two authorized shape changes');
+// C36: the reviewed search fix intentionally replaces the root scroll container.
+// Require the production values before restoring only these two declarations on
+// this historical comparison copy. All remaining .169 semantics/order stay pinned.
+const searchRootSelector="html[data-mid-design='next'],html[data-mid-design='next'] body,html[data-mid-design='next'] #root";
+let reviewedSearchRoots=0;
+for(const entry of originalEntries){
+ if(entry.file!=='src/midC14ViewportFixes.css')continue;
+ entry.tree.walkRules(searchRootSelector,rule=>{
+  const horizontal=rule.nodes.filter(node=>node.type==='decl'&&node.prop==='overflow-x');
+  const vertical=rule.nodes.filter(node=>node.type==='decl'&&node.prop==='overflow-y');
+  assert.equal(horizontal.length,1,'Exactly one reviewed horizontal root declaration');
+  assert.equal(vertical.length,1,'Exactly one reviewed vertical root declaration');
+  assert.equal(horizontal[0].value,'clip','Search must retain horizontal clipping without a scroll container');
+  assert.equal(vertical[0].value,'visible','Search must remain hittable beyond a short root');
+  assert.ok(!horizontal[0].important&&!vertical[0].important,'Root fix must not gain cascade priority');
+  horizontal[0].value='hidden';vertical[0].remove();reviewedSearchRoots++;
+ });
+}
+assert.equal(reviewedSearchRoots,1,'Exactly the authorized root overflow rule');
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');
