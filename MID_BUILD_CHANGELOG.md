@@ -1,3 +1,12 @@
+# MID v0.9.85.290 · Barcelona-CAP-Warngebietsabgleich (Issue #411)
+
+- Grundlage: main=mid-stable=67b289988ed0ce8433b266c8f2055f070133ffe5 (v0.9.85.289, Installer #39116157190).
+- In Worker-Quelle und Laufzeitspiegeln erfolgt bei CAP-Dokumenten ohne Geometrie vor unscharfen Orts-Substring-Treffern ein **vollständiger offizieller Warngebiets-Namensabgleich**, sofern MeteoAlarm-Punktgebiete aufgelöst wurden. CAP-Polygon-/Kreisgeometrien sind weiterhin maßgeblich und haben Vorrang.
+- Die semantische Dublettenkennung enthält zusätzlich die Warnstufe; Meldungen mit gleichen Warnzeiten und Gebiet, aber unterschiedlichem offiziellen Grad werden nicht durch den semantischen Fallback verschluckt. Identische IDs/Referenzen bleiben vorrangig.
+- Pflichtregression `scripts/test-barcelona-warning-area-dedupe-0985290.mjs`: synthetische 26 CAP-Objekte, gebietsähnliche Barcelona-Unterregionen, Valid-/Fremdpolygon, zwei separate Zeitfenster und unterschiedliche Warnstufen; Rhodos-/Österreich-Tests bleiben unverändert. **Dies ist kein archivierter Live-MID-Datensatz der vom Nutzer berichteten 26 Meldungen.**
+- Offene Limitation: VIS-Boxen beweisen keine exakte amtliche Polygonfläche. Eindeutige Zuordnung aller echten Barcelona-Warnungen ist ohne Liveobjekte und vollständige amtliche Geometrie nicht belegt; Issue #411 bleibt für die End-to-End-Abnahme offen.
+- Source-PR, SHA-kontrollierter MID-Bot, serverseitiges Release-ZIP, Installer, Worker/Pages und Stable-Promotion erforderlich. Keine physische iOS-/VoiceOver-Prüfung behaupten.
+
 # MID v0.9.85.289 · C39 Kurzfristtext und mobile Kartenfläche (Source-PR-Kandidat)
 
 - Verifizierte Basis: main=mid-stable=e54c237b2d21859638cf3b21b50a842d2f0f222d, v0.9.85.288; vollständiger Installer #39111144520 mit Worker/Pages und Stable-Promotion erfolgreich. Keine parallel offenen Produkt-PRs bei Start; bestehende Dependabot-PRs nicht verändert.
