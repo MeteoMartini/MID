@@ -1,3 +1,10 @@
+# MID v0.9.85.292 · Barcelona-CAP-Warnungsgebiete und Aktualisierungen (Source-PR-Kandidat)
+
+- Ausgangsstand v0.9.85.291 Stable/main fbe9c758599928f4b5ba776de670505018750dbb; nachweisbar migrierter WIP-Draft #412 @ 3ba91d51ae883df4b38c59b2fad09634994a01fe. Parallel eingeführter API-NoData-Pflichttest von .291 erhalten.
+- #411: vollständige AEMET-Warnzonennamen, eng begrenzter Barcelona-Ortshinweis 08019/690804, CAP-Polygon-/Kreisprüfung vor Gebietsname, unterschiedliche Warnstufen/Zeiten erhalten, jüngstes sent/updatedAt bei bestätigter Identität vor Textlänge. Keine echte Polygonbestätigung aus VIS-Bounding Box ableiten.
+- Pflichtregression test-barcelona-warning-area-dedupe-0985290.mjs synthetisch, keine Aussage zur tatsächlichen Live-Anzahl 26. Genaues LIVE-Geo-/Cancel-/Mehrsprachigkeits-Evidence in #411 weiter offen.
+- Versionsspiegel .292 vorbereitet, Source- und Release-Gates noch nicht ausgeführt. Keine physische iOS-Abnahme; protected Source-PR → Release-ZIP → Installer → Worker/Pages → Stable bleibt vorgeschrieben.
+
 # MID v0.9.85.291 · Strikte API-NoData-Prüfung (Source-PR-Kandidat)
 
 - Ausgangsbasis .289/67b289988ed0ce8433b266c8f2055f070133ffe5. Der funktional unabhängige API-Prüfer wird gegen diese weiterhin aktuelle freigegebene Basis geprüft; paralleler PR #412/.290 bleibt ausdrücklich Draft und unintegriert. Vor dessen späterem Release neue Stable-Basis/Version berücksichtigen.
