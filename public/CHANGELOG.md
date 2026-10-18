@@ -1,3 +1,11 @@
+# MID v0.9.85.290
+
+- **Amtliche Warngebiete präziser abgleichen:** Liegt eine MeteoAlarm-Warngebietsauswahl vor, muss die CAP-Gebietsbezeichnung vollständig passen. Ein Ortsname allein, etwa „Barcelona“ in „Prelitoral de Barcelona“, reicht nicht mehr zur Zuordnung.
+- **Dubletten und Warnstufen:** Gleichzeitige, tatsächlich unterschiedliche Warnstufen bleiben als eigenständige Warnmeldungen erhalten. Identische CAP-Kennungen und Referenzen werden weiterhin zusammengeführt.
+- **Geometrie:** Echte CAP-Polygone und Kreise behalten Vorrang. Begrenzungsrechtecke aus MeteoAlarm sind nur eine Vorfilterung und beweisen nicht in jedem Fall eine punktgenaue Zuordnung.
+- **Transparenz:** Die vom Nutzer beobachteten 26 Barcelona-Meldungen konnten nicht einzeln aus dem Live-MID-Worker geprüft werden. Ein ausdrücklich synthetischer 26-Meldungen-Test sichert die erkannte Fehlerklasse; die tatsächliche heutige Warnzahl bleibt separat zu validieren.
+- Keine Änderung amtlicher Warnstufen, Vorhersageschwellen, Warntexte, RUC oder anderer Wettermodelle.
+
 # MID v0.9.85.289
 
 - **Heute/Kurzfrist: gleiche Uhrzeit wie im Diagramm.** Niederschlagsbeginn und -ende orientieren sich an denselben korrigierten Zeitabschnitten wie die 24-Stunden-Kurve; abweichende versteckte Viertelstundenwerte bestimmen den Text nicht mehr.
