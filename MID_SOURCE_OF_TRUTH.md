@@ -1,9 +1,9 @@
-# MID v0.9.85.292 · Barcelona-CAP-Warnungsgebiete und Aktualisierungen (Source-PR-Kandidat)
+# MID v0.9.85.292 · Allgemeine Warngeometrie und CAP-Lebenszyklus (Source-PR-Kandidat)
 
-- Ausgangsstand v0.9.85.291 Stable/main fbe9c758599928f4b5ba776de670505018750dbb; nachweisbar migrierter WIP-Draft #412 @ 3ba91d51ae883df4b38c59b2fad09634994a01fe. Parallel eingeführter API-NoData-Pflichttest von .291 erhalten.
-- #411: vollständige AEMET-Warnzonennamen, eng begrenzter Barcelona-Ortshinweis 08019/690804, CAP-Polygon-/Kreisprüfung vor Gebietsname, unterschiedliche Warnstufen/Zeiten erhalten, jüngstes sent/updatedAt bei bestätigter Identität vor Textlänge. Keine echte Polygonbestätigung aus VIS-Bounding Box ableiten.
-- Pflichtregression test-barcelona-warning-area-dedupe-0985290.mjs synthetisch, keine Aussage zur tatsächlichen Live-Anzahl 26. Genaues LIVE-Geo-/Cancel-/Mehrsprachigkeits-Evidence in #411 weiter offen.
-- Versionsspiegel .292 vorbereitet, Source- und Release-Gates noch nicht ausgeführt. Keine physische iOS-Abnahme; protected Source-PR → Release-ZIP → Installer → Worker/Pages → Stable bleibt vorgeschrieben.
+- Ausgangsbasis main=mid-stable=fbe9c758599928f4b5ba776de670505018750dbb (.291); PR #414 @79bd72caa7c652cdf684776c4dbcc2b05b6d3df2 selektiv vervollständigt. Kein Hardcode für Barcelona/Gemeinderadius.
+- Amtliche Kartenpolygone plus CAP-Geometrie/identische amtliche Sprach-Gebietscodes, vollständige Gebietsnamen, transitive CAP-Update-/Stornoketten vor semantischer Deduplizierung. Quelle docs/implementation/MID_C35_WARNING_COMPLETION_0.9.85.292.md.
+- Gesicherter echter 22er-Live-Fall vom 18.10. und erneuter Liveabruf liefern mit Geometrie vier örtliche Warnungen. Dies ersetzt NICHT den fehlenden Einzelmeldungsnachweis des ursprünglichen 26er-Falls. #411 bleibt offen.
+- Suchleisten-Fix separat gesichert in lokalem Commit 63f0378; nicht Teil dieses Warnungs-PR. Vollständige Source-/Releasegates stehen aus. Nur regulärer geschützter MID-Releasepfad.
 
 # MID v0.9.85.291 · Strikte API-NoData-Prüfung (Source-PR-Kandidat)
 

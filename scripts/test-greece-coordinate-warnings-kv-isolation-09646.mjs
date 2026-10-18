@@ -36,7 +36,7 @@ try{
  assert.match(payload.sourceStatus?.coordinateAssignment||'',/amtliches Warngebiet/);
  assert.ok(calls.some(url=>url.includes('/stream-buffers/live/hazards/GR')),'Amtliche Koordinatenzuordnung wurde nicht abgefragt.');
  assert.equal(calls.filter(url=>url===dodeCapUrl).length,1,'Passendes CAP-Detail wurde nicht genau einmal geladen.');
- assert.equal(calls.includes(northCapUrl),false,'Nicht zutreffendes Nachbargebiet wurde unnötig als CAP-Kandidat geladen.');
+ assert.equal(payload.alerts.some(alert=>alert.area==='North East Aegean Islands'),false,'Ein geprüftes fremdes CAP-Gebiet darf nicht als örtliche Warnung erscheinen.');
  assert.equal(calls.some(url=>url.includes(`/features/${northFeature}/warnings`)),false,'Nicht zutreffendes Nachbargebiet wurde per Visualisierungsdienst geladen.');
 }finally{globalThis.fetch=originalFetch}
 

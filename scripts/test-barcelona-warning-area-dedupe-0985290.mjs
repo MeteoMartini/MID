@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
 const originalFetch=globalThis.fetch;
-const target={lat:41.3874,lon:2.1699},mainFeature='es-barcelona-litoral',adjacentFeature='es-barcelona-prelitoral';
+const target={lat:41.3874,lon:2.1699},mainFeature='179df5b9-c7ca-4b59-8018-91fd007edc02',adjacentFeature='55b72172-0907-4503-8d1e-6a59fe90df6e';
 const visAreas=[
  {featureId:mainFeature,name:'Litoral de Barcelona',bb:[[1.8,41.0],[2.5,41.7]]},
  {featureId:adjacentFeature,name:'Prelitoral de Barcelona',bb:[[2.0,41.2],[2.4,41.5]]}
@@ -30,7 +31,7 @@ let calls=[],visUnavailable=false;
 try{
  globalThis.fetch=async input=>{
   const url=String(input instanceof Request?input.url:input);calls.push(url);
-  if(url===atomUrl)return new Response(atom,{status:200});
+  if(url.includes('/tiles/10/518/382.mvt')){const f=JSON.parse(gunzipSync(Buffer.from(readFileSync('scripts/fixtures/meteoalarm-barcelona-20261018.json.gz.base64','utf8'),'base64')));return new Response(Buffer.from(f.tile.base64,'base64'))}if(url===atomUrl)return new Response(atom,{status:200});
   if(byUrl.has(url))return new Response(byUrl.get(url),{status:200});
   if(url.includes('/stream-buffers/live/hazards/ES')){if(visUnavailable)throw new Error('Synthetic VIS provider outage');return Response.json(visHazards);}
   if(url.includes(`/stream-buffers/live/features/${mainFeature}/warnings`))return Response.json({warnings:[]});
@@ -50,13 +51,11 @@ try{
  assert.notEqual(payload.alerts.find(a=>a.id==='same-time-yellow')?.level,payload.alerts.find(a=>a.id==='same-time-red')?.level,'Legitimate different warning severity must not be collapsed by a semantic deduplication key.');
  assert.equal(calls.some(url=>url.includes(`/features/${adjacentFeature}/warnings`)),false);
  assert.match(payload.sourceStatus?.coordinateAssignment||'',/Warngebiet/);
- assert.equal(payload.sourceStatus?.aemetMunicipalityWarningZone?.zoneCode,'690804','AEMET confirms municipality 08019 Barcelona belongs to Litoral de Barcelona, even if another overlapping VIS box is smaller.');
- assert.equal(payload.sourceStatus?.aemetMunicipalityWarningZone?.municipalityCode,'08019');
+ assert.match(payload.sourceStatus?.coordinateAssignment||'',/Kartenpolygon/);assert.equal(payload.sourceStatus?.aemetMunicipalityWarningZone,undefined);
  visUnavailable=true;
  const fallbackResponse=await worker.default.fetch(new Request('https://mid.test/?mode=alerts&lat=41.3874&lon=2.1699&country=ES&name=Barcelona&region=Catalunya&district=Barcelona&language=de'),{}),fallback=await fallbackResponse.json();
  assert.equal(fallbackResponse.status,200,JSON.stringify(fallback));
- assert.deepEqual(new Set((fallback.alerts||[]).map(x=>x.id)),ids,'When MeteoAlarm VIS is unavailable, an independently verified AEMET municipality-to-zone mapping must still filter CAP warnings.');
- assert.equal(fallback.sourceStatus?.aemetMunicipalityWarningZone?.zoneCode,'690804');
+ assert.ok(fallback.alerts.some(a=>a.id==='true-polygon'));assert.ok(!fallback.alerts.some(a=>a.id==='outside-polygon'));assert.match(fallback.sourceStatus?.areaResolutionError||'',/outage/);visUnavailable=false;
  // Separate synthetic CAP Update family (not part of the 26 user-observed live alerts).
  const previousLink={id:'old-cap-link',area:'Litoral de Barcelona'};
  const latestLink={id:'new-cap-link',area:'Litoral de Barcelona'};
@@ -72,7 +71,7 @@ try{
 }finally{globalThis.fetch=originalFetch}
 const src=readFileSync('worker-src/00-core-observations.js','utf8'),built=readFileSync('worker/metar-proxy.js','utf8');
 assert.equal(built.slice(0,src.length),src,'Built Worker and canonical source must match exactly.');
-assert.ok(src.includes('officialWarningAreaNamesEquivalent')&&src.includes('String(alert?.level||')&&src.includes('aemetVerifiedMunicipalityZone')&&src.includes('alertShouldReplace'), 'Official AEMET spatial and severity-aware source guards must exist.');
+assert.ok(src.includes('officialWarningAreaNamesEquivalent')&&src.includes('String(alert?.level||')&&src.includes('meteoalarmPointGeometry')&&!src.includes('aemetVerifiedMunicipalityZone')&&src.includes('alertShouldReplace'), 'Official AEMET spatial and severity-aware source guards must exist.');
 const baseline=JSON.parse(readFileSync('MID_BASELINE.json','utf8')),pkg=JSON.parse(readFileSync('package.json','utf8')),test='scripts/test-barcelona-warning-area-dedupe-0985290.mjs';
 assert.equal(pkg.version,baseline.releaseVersion);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));

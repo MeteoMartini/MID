@@ -1009,7 +1009,9 @@
     "scripts/test-pseudo-satellite-basemap-0985281.mjs",
     "scripts/test-full-calendar-skybar-0985282.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs",
-    "scripts/test-api-contract-nodata-0985291.mjs"
+    "scripts/test-api-contract-nodata-0985291.mjs",
+    "scripts/test-warning-point-geometry-0985292.mjs",
+    "scripts/test-warning-cap-lifecycle-0985292.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2008,7 +2010,9 @@
     "scripts/test-pseudo-satellite-basemap-0985281.mjs",
     "scripts/test-full-calendar-skybar-0985282.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs",
-    "scripts/test-api-contract-nodata-0985291.mjs"
+    "scripts/test-api-contract-nodata-0985291.mjs",
+    "scripts/test-warning-point-geometry-0985292.mjs",
+    "scripts/test-warning-cap-lifecycle-0985292.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
