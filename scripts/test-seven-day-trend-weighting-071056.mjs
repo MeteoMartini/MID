@@ -7,10 +7,10 @@ assert.match(sevenDay,/type SevenDayWeatherRegime='sunny'\|'mixed'\|'cloudy'\|'w
 assert.match(sevenDay,/denseCloudText=\/stark bewölkt\|meist bewölkt\|bedeckt\|trüb\//,'stark bzw. meist bewölkte Tage müssen Vorrang vor bloßer Sonnenscheindauer haben');
 assert.match(sevenDay,/sunShare=Number\.isFinite\(sunHours\)\?Math\.max\(0,Math\.min\(1,sunHours\/Math\.max\(1,sevenDayDaylightHours\(day\)\)\)\):0/,'Sonnenscheindauer muss nullsicher relativ zur Tageslänge bewertet werden');
 for(const token of ["if(max>=40)return'extreme-hot'","if(max>=35)return'very-hot'","if(max>=30)return'hot'","if(max>=25)return'summer'","if(max<0)return'ice'","tropicalNight:followingNightIsTropical(day,nextDay,allHours)"]){assert.ok(sevenDay.includes(token),`DWD-Kenntag fehlt: ${token}`)}
-assert.match(sevenDay,/climateDelta:climate&&Number\.isFinite\(climate\.maxMean\)/,'Abweichung vom Klimamittel wird nicht einbezogen');
+assert.match(sevenDay,/climateDelta:day\.max!=null&&Number\.isFinite\(Number\(day\.max\)\)&&climate&&Number\.isFinite\(climate\.maxMean\)/,'Klimaanomalien dürfen bei fehlendem Tmax nicht aus null=0 erzeugt werden');
 assert.match(sevenDay,/trendHours=\[\.\.\.dayHours,\.\.\.followingNightHours\]/,'Warnsignale müssen ausschließlich aus dem Tag und der ersten Folgenacht stammen');
 assert.match(sevenDay,/hazards=summarizeDwdWarnings\(trendHours,elevation\)/,'markante DWD-nahe Warnsignale werden im Trend nicht geprüft');
-assert.match(sevenDay,/weatherClauses=supplementalClause\?effectiveSegments\.filter/,'markante Hazards oder Folgenachtereignisse erhalten keinen garantierten Platz im Kurztext');
+assert.match(sevenDay,/return sevenDayNarrativeText\(events,hasUsableData\)/,'Alle Ereignisse müssen gemeinsam zeitlich geordnet werden');
 assert.match(app,/const climateRequested=dashboardModuleSettings\.enabled\.forecast\|\|ensembleRequested\|\|weatherTwinSettings\.useAsMainForecast/,'Klimamittel muss für die Tagesprognose unabhängig vom optionalen Summary-Schalter geladen werden');
 assert.match(app,/<SevenDayForecastSummary days=\{forecastDays\} hours=\{hours\} climate=\{climate\} elevation=\{elevation\}\/>/,'Klimamittel und Höhenlage werden nicht an den Trend übergeben');
 console.log('7-Tage-Trend geprüft: frühe Tage priorisiert, DWD-Kenntage/Klimamittel/Hazards und tatsächlicher Bewölkungsverlauf berücksichtigt.');

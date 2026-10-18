@@ -1,3 +1,10 @@
+# MID v0.9.85.295 · Prägnante 7-Tage-Kurzinterpretation (Source-PR-Kandidat)
+
+- Freigegebene Ausgangsbasis: main=mid-stable=b0cf607c45746239ed6246ba1e473ee41877a96d / v0.9.85.294, Installer 39164220384 erfolgreich.
+- Tagessegmente, modellierte Gefahren und Ereignisse der Folgendenacht werden gemeinsam priorisiert und nach Tagesindex/Tagesphase chronologisch ausgegeben. Höchstens drei kurze markante Aussagen; keine nachträglich angehängten früheren Ereignisse oder unbelegte Trockenprognosen.
+- Neue dynamische Regression scripts/test-seven-day-significant-timeline-0985295.mjs; Nachweis docs/implementation/MID_C36_SEVEN_DAY_0.9.85.295.md. Fachmodelle, amtliche Warnungen und Missing-Werte bleiben unberührt.
+- Source-/Release-/Pages-/Stable-Gates für .295 stehen aus; Browser-/Simulatorprüfungen nicht als physische iOS/VoiceOver-Abnahme ausgeben.
+
 # MID v0.9.85.294 · Aktuell-Skybar: exakte Sonnenübergänge (Source-PR-Kandidat)
 
 - Verifizierte Basis main=mid-stable=5ad8be1fbafbcbfbc9d1aeda451b3e642a947617 (.293), erfolgreicher Installer39158231540 attempt2.

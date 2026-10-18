@@ -1,3 +1,11 @@
+## MID v0.9.85.295 · 2026-10-18 · Prägnante 7-Tage-Wettertexte
+
+- Der 7-Tage-Trend priorisiert signifikanten Niederschlag, Schnee, Gewitter, markante Temperaturen und DWD-nahe Modellhinweise. Allgemeine Trocken- und Wolkenfloskeln wurden zurückgedrängt.
+- Wetterphasen, markante Hinweise und Folgenächte werden über eine einheitliche chronologische Auswahl auf höchstens drei kurze Aussagen begrenzt. Doppeltes Gewitterworting bei gleichem Tag wird unterdrückt.
+- Keine Veränderung an meteorologischen Prognosewerten, Warnquellen, Akkumulationszeiträumen oder Datenlücken; fehlende Daten bleiben unbekannt.
+- Neue dynamische Pflichtregression test-seven-day-significant-timeline-0985295.mjs; Source- und Release-Gates noch ausstehend.
+- Baseline v0.9.85.294 auf b0cf607c45746239ed6246ba1e473ee41877a96d.
+
 ## MID v0.9.85.294 · 2026-10-18 · Aktuell-Skybar mit exakten Sonnenübergängen
 
 - MID-C36: optionale solare Aufteilung im zeitgebundenen Skybar-Adapter; segmentinterne Epochengrenzen vor dem Viewport-Clipping erhalten.

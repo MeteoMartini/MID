@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.294",
+  "releaseVersion": "0.9.85.295",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-seven-day-significant-timeline-0985295.mjs",
     "scripts/test-barcelona-warning-area-dedupe-0985290.mjs",
     "scripts/test-short-term-brief-chart-0985289.mjs",
     "scripts/test-visibility-nodata-0985288.mjs",
@@ -1016,6 +1017,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-seven-day-significant-timeline-0985295.mjs",
     "scripts/test-barcelona-warning-area-dedupe-0985290.mjs",
     "scripts/test-short-term-brief-chart-0985289.mjs",
     "scripts/test-visibility-nodata-0985288.mjs",
@@ -3636,7 +3638,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.294",
+  "version": "0.9.85.295",
   "updatedAt": "2026-10-18T10:18:23.697Z",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
