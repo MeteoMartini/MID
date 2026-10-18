@@ -1,5 +1,5 @@
-# MID v0.9.85.292
+# MID v0.9.85.293
 
-- Amtliche Europa-Warngebiete werden zusätzlich anhand ihrer Kartenpolygone geprüft. Ähnliche Gebiets- und Küstennamen ziehen keine entfernten Warnungen mehr nach.
-- CAP-Aktualisierungen und Stornos werden über ihre Meldungsketten verarbeitet. Unterschiedliche Warnstufen, Gültigkeitsfenster und amtliche Sprachfassungen bleiben erhalten.
-- Der bisherige Barcelona-Sonderhinweis wird durch die allgemeine Gebietsprüfung ersetzt.
+- Die Ortssuche erhält freie Fläche: Standortleiste und schwebende Hauptnavigation werden während der geöffneten Suche ausgeblendet und beim Schließen wiederhergestellt.
+- Verspätete Suchergebnisse oder Fehler öffnen eine bereits geschlossene Suche nicht erneut.
+- Fokus ohne verzögertes Wegspringen, Escape, Ortsauswahl und Tastaturgrößenwechsel werden gemeinsam abgesichert.
