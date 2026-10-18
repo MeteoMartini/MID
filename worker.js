@@ -792,9 +792,16 @@ async function meteoalarmPointAlerts(context,language){
 function alertAreaSignature(alert){if(Array.isArray(alert?.areaCodes)&&alert.areaCodes.length)return alert.areaCodes.map(normalize).sort().join(',');return String(alert?.area||'').split(',').map(normalize).filter(Boolean).sort().join(',')}
 function alertTimeSignature(value){const date=safeDate(value);return date?date.slice(0,16):''}
 function alertSemanticKey(alert){return['semantic',normalize(alert?.event||alert?.headline),alertAreaSignature(alert),alertTimeSignature(alert?.onset||alert?.effective),alertTimeSignature(alert?.expires),String(alert?.level||'unknown')].join('|')}
-function alertQuality(alert){const updated=Date.parse(String(alert?.updatedAt||alert?.effective||''));return(Number.isFinite(updated)?updated/1e10:0)+String(alert?.description||'').length+String(alert?.instruction||'').length*2+(alert?.areaCodes?.length||0)*20}
+function alertQuality(alert){return String(alert?.description||'').length+String(alert?.instruction||'').length*2+(alert?.areaCodes?.length||0)*20}
+function alertShouldReplace(current,candidate){
+ const currentUpdated=Date.parse(String(current?.updatedAt||'')),candidateUpdated=Date.parse(String(candidate?.updatedAt||''));
+ // A shorter, newer official CAP Update must outrank an older longer notice.
+ if(Number.isFinite(currentUpdated)&&Number.isFinite(candidateUpdated)&&currentUpdated!==candidateUpdated)return candidateUpdated>currentUpdated;
+ if(Number.isFinite(currentUpdated)!==Number.isFinite(candidateUpdated))return Number.isFinite(candidateUpdated);
+ return alertQuality(candidate)>alertQuality(current);
+}
 function dedupeAlerts(alerts){
- const rows=[],keyToIndex=new Map();for(const alert of alerts){if(!alert)continue;const keys=[alert.id?`id:${alert.id}`:'',...(alert.references||[]).map(id=>`id:${id}`),alertSemanticKey(alert)].filter(Boolean),existing=keys.map(key=>keyToIndex.get(key)).find(index=>index!==undefined);if(existing===undefined){const index=rows.length;rows.push(alert);for(const key of keys)keyToIndex.set(key,index)}else{if(alertQuality(alert)>alertQuality(rows[existing]))rows[existing]=alert;for(const key of keys)keyToIndex.set(key,existing)}}
+ const rows=[],keyToIndex=new Map();for(const alert of alerts){if(!alert)continue;const keys=[alert.id?`id:${alert.id}`:'',...(alert.references||[]).map(id=>`id:${id}`),alertSemanticKey(alert)].filter(Boolean),existing=keys.map(key=>keyToIndex.get(key)).find(index=>index!==undefined);if(existing===undefined){const index=rows.length;rows.push(alert);for(const key of keys)keyToIndex.set(key,index)}else{if(alertShouldReplace(rows[existing],alert))rows[existing]=alert;for(const key of keys)keyToIndex.set(key,existing)}}
  const order={purple:4,red:3,orange:2,yellow:1,unknown:0};return rows.sort((a,b)=>(order[b.level]??0)-(order[a.level]??0)||String(a.onset||a.effective||'').localeCompare(String(b.onset||b.effective||'')));
 }
 function featureProp(properties,...keys){if(!properties||typeof properties!=='object')return undefined;const map=new Map(Object.entries(properties).map(([k,v])=>[k.toLowerCase(),v]));for(const k of keys){const v=map.get(k.toLowerCase());if(v!==undefined&&v!==null&&v!=='')return v}return undefined}
