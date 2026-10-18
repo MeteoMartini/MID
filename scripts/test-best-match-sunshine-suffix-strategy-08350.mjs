@@ -30,8 +30,8 @@ for(const token of [
 for(const token of [
  'canonicalSunshineDaySeconds',
  'daylightSecondsFromLocalTimes',
- 'Der Sunshine-Contract aggregiert jeden lokalen Kalendertag immer aus der vollständigen finalen Stundenreihe',
- 'dailySunshineReference=day.sunshineDurationMeta?day.sunshineDurationMeta.dailyReferenceSeconds:day.sunshineDuration',
+ 'minimumExpectedHours:completeCoverage?relevant.length:26',
+ 'reference=day.sunshineDurationMeta?day.sunshineDurationMeta.dailyReferenceSeconds:day.sunshineDuration',
  "weatherBundleKind:repaired?'coherent-model':'best-match'",
  'repairedHours',
  'multiModelSuffixes',
@@ -65,14 +65,14 @@ try{
 
  const originalNow=Date.now;Date.now=()=>Date.UTC(2026,7,2,18,22);
  try{
-  const hour=(date,index,sunshineDuration=0)=>({time:`${date}T${String(index).padStart(2,'0')}:00`,epoch:Date.UTC(2026,7,Number(date.slice(-2)),index),timezone:'Europe/Berlin',temperature:20,apparent:20,humidity:60,dewPoint:12,pressure:1015,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:1,wind:5,gust:8,direction:180,cloud:25,lowCloud:5,uvIndex:0,visibility:10000,cape:0,sunshineDuration,isDay:index>=6&&index<=20});
+  const hour=(date,index,sunshineDuration=0)=>({time:index===24?new Date(Date.UTC(2026,7,Number(date.slice(-2))+1)).toISOString().slice(0,10)+'T00:00':`${date}T${String(index).padStart(2,'0')}:00`,epoch:Date.UTC(2026,7,Number(date.slice(-2)),index),timezone:'UTC',temperature:20,apparent:20,humidity:60,dewPoint:12,pressure:1015,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,code:1,wind:5,gust:8,direction:180,cloud:25,lowCloud:5,uvIndex:0,visibility:10000,cape:0,sunshineDuration,isDay:index>=6&&index<=20});
   const day=(date,sunshineDuration)=>({date,code:1,max:25,min:14,sunshineDuration,precipitation:0,probability:0,wind:5,gust:8,direction:180,uvMax:5,sunrise:`${date}T06:00:00+02:00`,sunset:`${date}T21:00:00+02:00`});
 
-  const currentHours=Array.from({length:24},(_,index)=>hour('2026-08-02',index,index>=19&&index<=21?2280:0)); // 1,9 h im verbleibenden Abendfenster
+  const currentHours=Array.from({length:25},(_,index)=>hour('2026-08-02',index,index>=19&&index<=21?2280:0)); // 1,9 h im verbleibenden Abendfenster
   const current=fusion.reconcileForecastDaysWithHours([day('2026-08-02',46800)],currentHours)[0];
   assert.equal(current.sunshineDuration,6840,'auch der aktuelle lokale Kalendertag muss bei vollständiger Stundenreihe aus genau diesen Stunden aggregiert werden');
 
-  const futureBestMatchHours=Array.from({length:24},(_,index)=>({...hour('2026-08-03',index,index>=6&&index<18?3600:0),weatherBundleKind:'best-match'}));
+  const futureBestMatchHours=Array.from({length:25},(_,index)=>({...hour('2026-08-03',index,index>=6&&index<18?3600:0),weatherBundleKind:'best-match'}));
   const futureBestMatch=fusion.reconcileForecastDaysWithHours([day('2026-08-03',46800)],futureBestMatchHours)[0];
   assert.equal(futureBestMatch.sunshineDuration,43200,'vollständige Best-Match-Stunden müssen unabhängig von einer Reparatur den lokalen Tageswert bilden');
 

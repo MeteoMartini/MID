@@ -1,8 +1,8 @@
 # MID 18.2.38 · Push-Präferenzen und Bestätigung · Kandidat .286
 
-Isolierte Vorbereitung von #400 auf freigegebener .284
-`16b6c87906370b62315e0046dec64506304abcc4`. Vor einem Source-PR zwingend
-frisch veröffentlichtes .285 integrieren und alle Versionsspiegel synchronisieren.
+Vorbereitung von #400 zunächst auf .284, danach normaler Merge der vollständig
+freigegebenen .285 `e8c3e4e61eff028797120fcecc6f3be58f993911`.
+Installer 39075158905 abgeschlossen erfolgreich; Versionsspiegel auf .286 synchronisiert.
 Dieser Arbeitsstand ist weder freigegeben noch veröffentlicht.
 
 ## Reproduktion und Änderungen

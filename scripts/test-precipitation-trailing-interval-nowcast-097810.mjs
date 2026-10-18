@@ -43,13 +43,10 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),`24-h-Profil-Intervallvertrag fehlt: ${token}`);
 assert.ok(!cockpit.includes('epoch<=now&&now-epoch<90*60000)startIndex=index'),'Vergangenes Stundenende darf nicht mehr als Start des „ab jetzt“-Niederschlagsprofils gewählt werden.');
 
-// Resttagesmenge zählt nur zukünftigen Anteil des ersten trailing-hour-Intervalls.
-for(const token of [
- 'futureFraction=(hour:Hour)=>',
- 'if(!Number.isFinite(start)||end<=now)return 0',
- 'return clamp((end-now)/3600000,0,1)',
- '*precipitationFraction(hour)'
-])assert.ok(fusion.includes(token),`Resttages-Akkumulationsvertrag fehlt: ${token}`);
+// Daily rows are full calendar days; the rolling nowcast retains its own intervals.
+assert.ok(!fusion.includes('futureFraction=(hour:Hour)=>'),'voller Kalendertag darf nicht auf Resttag gekürzt werden');
+for(const token of ['fullCalendarDayHourlyPrecipitationCoverage(day.date,timezone,relevant,hours)',"precipitation=completeCoverage?sum('precipitation'):day.precipitation"])
+ assert.ok(fusion.includes(token),`Ganztages-Akkumulationsvertrag fehlt: ${token}`);
 
 for(const phrase of ['Provider-Zeitstempel `T` bezeichnet für diese Felder also das **Intervallende**','kein Standorttreffer','große NWP-Mengen >1 mm','PoP × deterministische Menge'])assert.ok(contract.includes(phrase),`Fachvertrag unvollständig: ${phrase}`);
 assert.ok(sourceOfTruth.includes('MID_PRECIPITATION_INTERVAL_CONTRACT.md'),'Source of Truth referenziert den neuen Niederschlags-Intervallvertrag nicht.');

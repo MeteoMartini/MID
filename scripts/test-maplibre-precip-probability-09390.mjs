@@ -29,7 +29,7 @@ need('Tages-PoP',weather,"DWD-Ereigniswahrscheinlichkeit${period?` · ${period}`
 need('Tages-PoP',weather,'precipitationProbabilityWindows');
 need('Tages-PoP-Fallback',weather,":'hourly-max-fallback' as const");
 need('Tages-PoP-Anwendung',app,'applyEnsembleDailyPrecipitationProbability(baseDisplayDaysUnweighted,ens)');
-need('Tages-PoP-Fusion',fusion,"day.probabilitySource==='ensemble-members-dwd'?dayProbability");
+need('Tages-PoP-Fusion',fusion,"day.probabilitySource==='ensemble-members-dwd'?day.probability");
 need('Tages-PoP-UI',app,'dailyPrecipitationProbabilityTitle(d,allDayHoursForDate)');
 need('Tages-PoP-Cockpit',cockpit,'dailyPrecipitationProbabilityTitle(day,probabilityHours)');
 need('Kompakte PoP-Darstellung',styles,'/* MID v0.9.39.4 · keine abgeschnittenen Wetterwerte');

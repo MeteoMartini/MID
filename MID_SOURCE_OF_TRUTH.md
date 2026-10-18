@@ -1,3 +1,22 @@
+# MID v0.9.85.286 · Push-Präferenzen und Bestätigung (Source-PR-Kandidat)
+
+- Verifizierte freigegebene Basis: main=mid-stable=e8c3e4e61eff028797120fcecc6f3be58f993911, .285; Installer 39075158905 erfolgreich. Normaler Basis-Merge, keine publizierte Historie überschrieben.
+- #400: vollständige Registrierungsmutationen geordnet, aktuelle Auswahl beim tatsächlichen POST, fehlertolerante Queue und 1,1s Schreibabstand. Status bestätigt nur den konkret angenommenen Modus; alte Antworten und lokale Speicherfehler werden abgegrenzt.
+- Scheduler-Rückschreibungen bewahren neueste lesbare Registrierung und Zeitstempel; keine Wiederherstellung abgemeldeter Geräte. Prüfung vor jedem Trigger. KV bleibt eventual consistent, kein globales CAS versprochen.
+- Belege/Grenzen: `docs/implementation/MID_C38_PUSH_CONFIRMATION_0.9.85.286.md`. Beide neuen Regressionen in beiden Baseline-Inventaren; Browsermatrix muss in CI tatsächlich laufen. Kein physischer iOS-/VoiceOver-/Push-Nachweis.
+- Nur Source-PR → SHA-Bot → serverseitiges ZIP → Installer → Worker/Pages → Stable. #397 bleibt separates unveröffentlichtes Datenpaket.
+
+# MID v0.9.85.285 · Kalendertage und aktuelle Skybar (Source-PR-Kandidat)
+
+- Freigegebene Basis: main=mid-stable=16b6c87906370b62315e0046dec64506304abcc4, v0.9.85.284.
+- #401: Nur vollständige 23/24/25 reale Stunden, gültiges Folgestunden-Akkumulationsende und echte Rohwerte dürfen Tagesniederschlag/-anteile aus finalisierten Hour-Objekten neu berechnen. Vorhandene gültige Tageswerte haben bei lückenhafter Stundenfolge Vorrang; vergangener Niederschlag wird nicht durch „ab jetzt“ ersetzt.
+- Meteodatenzeit: Epoch/TZ und echte lokale Mitternachtsgrenzen statt einer heuristischen Mindestzahl (18h); Sunshine-Daily-Fallback bei unvollständigen Stunden.
+- Aktuell-Skybar: native, volle aktuelle Modellstunden für Basis, getrenntes zukünftiges 15-min-Nowcast für Niederschlag. Keine künstlichen Beobachtungen oder akkumulierten Mengen.
+- Pflichtregression: `scripts/test-complete-calendar-day-current-skybar-0985285.mjs` für echtes 0, null/NaN, Tageslücken, 23/24/25h, 17:45 nach Morgenregen. Alle bisherigen Gates weiterhin verbindlich.
+- #397 (Provider-Tagessumme vollständig missing), #352 (RUC Transport), #374 (Skybar bei niedriger Bewölkung) werden nicht still als erledigt ausgegeben. Keine echte iOS-/VoiceOver-Abnahme behauptet.
+- CI-/Coverage-Härtung und Nachweise: `docs/implementation/MID_C38_CALENDAR_REGRESSION_0.9.85.285.md`; Tages- und Resttagesmenge sind im `MID_PRECIPITATION_INTERVAL_CONTRACT.md` ausdrücklich getrennt.
+- Nur Source-PR → SHA-Bot → Release-ZIP → Installer → Worker/Pages → Stable; dieser Kandidatenkopf ist kein Veröffentlichungsbeleg.
+
 # MID v0.9.85.284 · Kartenkontrollen und freie Kartenfläche (Source-PR-Kandidat)
 
 - Ausgangspunkt: main=mid-stable=532f56a95a6d47a5cb2218146aaa038d7a74384c, freigegebene .283; bei Beginn kein konkurrierender Produkt-PR.

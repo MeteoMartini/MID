@@ -1,3 +1,4 @@
+import {fullCalendarDayHourlyPrecipitationCoverage} from './fullCalendarForecastDay';
 import {fetchWorkerJson} from './workerClient';
 import {reconcileForecastPrecipitation} from './precipitation';
 import {precipitationPresentationHours} from './precipitationIntervals';
@@ -559,14 +560,6 @@ export function finalizeForecastMinute15(minutes15:Minute15[],baseHours:Hour[],f
 export const RADAR_DIRECT_HORIZON_MINUTES=DIRECT_RADAR_HORIZON_MINUTES;
 export const RADAR_TRANSITION_HORIZON_MINUTES=TRANSITION_RADAR_HORIZON_MINUTES;
 
-function dateKeyInTimezone(epoch:number,timezone:string){
- try{
-  const parts=new Intl.DateTimeFormat('en',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(epoch)),values=Object.fromEntries(parts.map(part=>[part.type,part.value]));
-  if(values.year&&values.month&&values.day)return`${values.year}-${values.month}-${values.day}`;
- }catch{}
- return new Date(epoch).toISOString().slice(0,10);
-}
-
 function fusionLocalClockMinutes(value:string){const match=String(value||'').match(/T(\d{2}):(\d{2})/);return match?Number(match[1])*60+Number(match[2]):Number.NaN}
 export function localForecastDayReferenceEpoch(hours:Hour[]){
  const candidates=hours.filter(hour=>Number.isFinite(Number(hour.epoch)));if(!candidates.length)return Number.NaN;
@@ -684,7 +677,7 @@ function dryMinute15SkyCode(row:Minute15,reference:Hour|undefined){
  if(cloud<6.25)return 0;if(cloud<43.75)return 1;if(cloud<81.25)return 2;return 3;
 }
 
-const DAY_HOURLY_FULL_COVERAGE_MIN_HOURS=18;
+// Full-day coverage is verified against the actual local epoch calendar in fullCalendarForecastDay.
 
 /**
  * Eine Tagesaggregation darf keine bislang nicht vorhandene Niederschlagsstunde
@@ -826,17 +819,36 @@ function dailyWeatherCodeFromHours(hours:Hour[]){
 
 export function reconcileForecastDaysWithHours(days:Day[],hours:Hour[]){
  if(days.length===0||hours.length===0)return days;
- const now=Date.now(),timezone=hours.find(hour=>hour.timezone)?.timezone||'UTC',today=dateKeyInTimezone(now,timezone),displayHours=precipitationPresentationHours(hours),hoursByDate=new Map<string,Hour[]>();
+ const now=Date.now(),timezone=hours.find(hour=>hour.timezone)?.timezone||'UTC',displayHours=precipitationPresentationHours(hours),hoursByDate=new Map<string,Hour[]>();
  for(const hour of displayHours){const date=hour.time.slice(0,10),bucket=hoursByDate.get(date);if(bucket)bucket.push(hour);else hoursByDate.set(date,[hour])}
- let changed=false;const result=days.map(day=>{
+ let changed=false;
+ const result=days.map(day=>{
   const relevant=hoursByDate.get(day.date);if(!relevant?.length)return day;
-  const isCurrentDay=day.date===today,futureFraction=(hour:Hour)=>{const start=Number(hour.epoch),end=start+3600000;if(!Number.isFinite(start)||end<=now)return 0;if(start>=now)return 1;return clamp((end-now)/3600000,0,1)},futureRelevant=relevant.filter(hour=>futureFraction(hour)>0),nearTerm=isCurrentDay&&futureRelevant.some(hour=>hour.epoch<=now+6*3600000),precipitationHours=nearTerm?futureRelevant:relevant,precipitationFraction=(hour:Hour)=>nearTerm?futureFraction(hour):1,completeCoverage=relevant.length>=DAY_HOURLY_FULL_COVERAGE_MIN_HOURS,temperatures=relevant.map(hour=>Number(hour.temperature)).filter(Number.isFinite),hourlyMax=temperatures.length?Math.max(...temperatures):Number.NaN,hourlyMin=temperatures.length?Math.min(...temperatures):Number.NaN;
-  // Temperaturvertrag: Bei vollständiger lokaler Tagesabdeckung sind Tmax/Tmin exakt die Extrema der finalen displayHours. Daily-Rohwerte bleiben nur Fallback für unvollständige Tage.
-  const max=completeCoverage&&Number.isFinite(hourlyMax)?hourlyMax:Number.isFinite(hourlyMax)?Math.max(day.max,hourlyMax):day.max,min=completeCoverage&&Number.isFinite(hourlyMin)?hourlyMin:Number.isFinite(hourlyMin)?Math.min(day.min,hourlyMin):day.min,hourlyPrecipitation=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.precipitation)||0)*precipitationFraction(hour),0),hourlyProbability=Math.max(0,...precipitationHours.map(hour=>clamp(Number(hour.probability)||0,0,100))),dayPrecipitation=Math.max(0,Number(day.precipitation)||0),dayProbability=clamp(Number(day.probability)||0,0,100),precipitation=nearTerm||completeCoverage?hourlyPrecipitation:Math.max(dayPrecipitation,hourlyPrecipitation),probability=day.probabilitySource==='ensemble-members-dwd'?dayProbability:nearTerm||completeCoverage?hourlyProbability:Math.max(dayProbability,hourlyProbability),hourlyCode=nearTerm||completeCoverage?dailyWeatherCodeFromHours(precipitationHours):day.code,dailySunshineReference=day.sunshineDurationMeta?day.sunshineDurationMeta.dailyReferenceSeconds:day.sunshineDuration,daylightSeconds=day.sunshineDurationMeta?.daylightSeconds??daylightSecondsFromLocalTimes(day.sunrise,day.sunset),sunshineDurationMeta=canonicalSunshineDaySeconds({hourValues:relevant.map(hour=>hour.sunshineDuration),dailyValue:dailySunshineReference,daylightSeconds}),sunshineDuration=sunshineDurationMeta.valueSeconds;
-  // Der Sunshine-Contract aggregiert jeden lokalen Kalendertag immer aus der vollständigen finalen Stundenreihe. Daily bleibt ausschließlich Fallback und Qualitätsreferenz.
-  const hourlyRain=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.rain)||0)*precipitationFraction(hour),0),hourlyShowers=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.showers)||0)*precipitationFraction(hour),0),hourlySnowfall=precipitationHours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0)*precipitationFraction(hour),0),rain=nearTerm||completeCoverage?hourlyRain:Math.max(Math.max(0,Number(day.rain)||0),hourlyRain),showers=nearTerm||completeCoverage?hourlyShowers:Math.max(Math.max(0,Number(day.showers)||0),hourlyShowers),snowfall=nearTerm||completeCoverage?hourlySnowfall:Math.max(Math.max(0,Number(day.snowfall)||0),hourlySnowfall),signal=reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code:hourlyCode,leadHours:(localForecastDayReferenceEpoch(relevant)-now)/3600000}),sunshineUnchanged=sunshineDuration===day.sunshineDuration||sunshineDuration!==null&&day.sunshineDuration!==null&&Math.abs(sunshineDuration-day.sunshineDuration)<1;
-  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(signal.precipitation-dayPrecipitation)<.01&&Math.abs(signal.probability-dayProbability)<.5&&signal.code===day.code&&sunshineUnchanged&&JSON.stringify(sunshineDurationMeta)===JSON.stringify(day.sunshineDurationMeta))return day;
-  changed=true;return{...day,max,min,precipitation:signal.precipitation,rain:signal.rain,showers:signal.showers,snowfall:signal.snowfall,probability:signal.probability,code:signal.code,sunshineDuration,sunshineDurationMeta,weatherSourceId:relevant.find(hour=>hour.weatherSourceId)?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:relevant.find(hour=>hour.weatherSourceLabel)?.weatherSourceLabel??day.weatherSourceLabel};
+  // Local calendar boundaries are epoch-based: 23/24/25 h, no 18-hour shortcut.
+  // The end-stamped value at the following local midnight must exist as well.
+  const completeCoverage=fullCalendarDayHourlyPrecipitationCoverage(day.date,timezone,relevant,hours);
+  const temperatures=relevant.map(hour=>Number(hour.temperature)).filter(Number.isFinite);
+  const hourlyMax=temperatures.length?Math.max(...temperatures):Number.NaN,hourlyMin=temperatures.length?Math.min(...temperatures):Number.NaN;
+  const max=completeCoverage&&Number.isFinite(hourlyMax)?hourlyMax:Number.isFinite(hourlyMax)?Math.max(day.max,hourlyMax):day.max;
+  const min=completeCoverage&&Number.isFinite(hourlyMin)?hourlyMin:Number.isFinite(hourlyMin)?Math.min(day.min,hourlyMin):day.min;
+  // Incomplete hours must never replace a complete provider day with the remainder from now.
+  // If every hour is present, reconcile the genuinely full 00:00-to-midnight day.
+  const sum=(field:'precipitation'|'rain'|'showers'|'snowfall')=>relevant.reduce((total,hour)=>total+Math.max(0,Number(hour[field])||0),0);
+  const precipitation=completeCoverage?sum('precipitation'):day.precipitation;
+  const rain=completeCoverage?sum('rain'):day.rain,showers=completeCoverage?sum('showers'):day.showers,snowfall=completeCoverage?sum('snowfall'):day.snowfall;
+  const hourlyProbability=Math.max(0,...relevant.map(hour=>clamp(Number(hour.probability)||0,0,100)));
+  const probability=day.probabilitySource==='ensemble-members-dwd'?day.probability:completeCoverage?hourlyProbability:day.probability;
+  const code=completeCoverage?dailyWeatherCodeFromHours(relevant):day.code;
+  const reference=day.sunshineDurationMeta?day.sunshineDurationMeta.dailyReferenceSeconds:day.sunshineDuration;
+  const daylightSeconds=day.sunshineDurationMeta?.daylightSeconds??daylightSecondsFromLocalTimes(day.sunrise,day.sunset);
+  const sunshineDurationMeta=canonicalSunshineDaySeconds({hourValues:relevant.map(hour=>hour.sunshineDuration),dailyValue:reference,daylightSeconds,minimumExpectedHours:completeCoverage?relevant.length:26});
+  const sunshineDuration=sunshineDurationMeta.valueSeconds;
+  const signal=completeCoverage?reconcileForecastPrecipitation({precipitation,rain,showers,snowfall,probability,code,leadHours:(localForecastDayReferenceEpoch(relevant)-now)/3600000}):null;
+  const finalPrecipitation=signal?.precipitation??precipitation,finalRain=signal?.rain??rain,finalShowers=signal?.showers??showers,finalSnowfall=signal?.snowfall??snowfall,finalProbability=signal?.probability??probability,finalCode=signal?.code??code;
+  const source=completeCoverage?relevant.find(hour=>hour.weatherSourceId):undefined;
+  const sameOptionalAmount=(left:number|undefined,right:number|undefined)=>left===right||left!==undefined&&right!==undefined&&Number.isFinite(left)&&Number.isFinite(right)&&Math.abs(left-right)<.01;
+  if(Math.abs(max-day.max)<.05&&Math.abs(min-day.min)<.05&&Math.abs(finalPrecipitation-day.precipitation)<.01&&sameOptionalAmount(finalRain,day.rain)&&sameOptionalAmount(finalShowers,day.showers)&&sameOptionalAmount(finalSnowfall,day.snowfall)&&Math.abs(finalProbability-day.probability)<.5&&finalCode===day.code&&sunshineDuration===day.sunshineDuration&&JSON.stringify(sunshineDurationMeta)===JSON.stringify(day.sunshineDurationMeta))return day;
+  changed=true;return{...day,max,min,precipitation:finalPrecipitation,rain:finalRain,showers:finalShowers,snowfall:finalSnowfall,probability:finalProbability,code:finalCode,sunshineDuration,sunshineDurationMeta,weatherSourceId:source?.weatherSourceId??day.weatherSourceId,weatherSourceLabel:source?.weatherSourceLabel??day.weatherSourceLabel};
  });
  return changed?result:days;
 }
