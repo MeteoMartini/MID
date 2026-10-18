@@ -23,11 +23,13 @@ const {shortTermSignificantBrief:brief}=await import('data:text/javascript;base6
 const format={from:epoch=>module.relativeForecastTimePhrase(epoch,timezone,'from',now),at:epoch=>module.relativeForecastTimePhrase(epoch,timezone,'at',now),gust:knots=>Math.round(knots)+' kt'};
 const rainStart=Date.parse('2026-08-31T12:00:00Z'),windPeak=Date.parse('2026-08-31T17:00:00Z');
 const p=(epoch,amount,gust,label)=>({epoch,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:epoch+3600000,precipitation:amount,gust,weatherLabel:label});
-const message=brief([p(rainStart,.3,14,'Leichter Regen'),p(windPeak,0,34,'Trocken')],now,format);
+// Both events must lie inside the 24h horizon without changing the local day grammar.
+const briefNow=Date.parse('2026-08-30T18:00:00Z');
+const message=brief([p(rainStart,.3,14,'Leichter Regen'),p(windPeak,0,34,'Trocken')],briefNow,format);
 assert.match(message,/Leichter Regen voraussichtlich morgen ab 14:00 Uhr/);
 assert.match(message,/Markante Böen bis 34 kt morgen um 19:00 Uhr/);
 assert.doesNotMatch(message,/um morgen|ab morgen|14 kt/);
-assert.equal(brief([p(rainStart,0,14,'Trocken')],now,format),'Keine markanten Wetterereignisse in den nächsten 24 Stunden.');
+assert.equal(brief([p(rainStart,0,14,'Trocken')],briefNow,format),'Keine markanten Wetterereignisse in den nächsten 24 Stunden.');
 for(const token of [
  "import {relativeForecastTimePhrase} from './forecastPresentation';",
  "import {shortTermSignificantBrief} from './shortTermSignificantBrief';",
