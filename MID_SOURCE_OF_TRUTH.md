@@ -1,5 +1,7 @@
 # MID v0.9.85.290 · Amtliche Warngebietstrennschärfe (Source-PR-Kandidat)
 
+- **Amtliche Barcelona-Warnzone 690804:** AEMET bestätigt für die Gemeinde Barcelona (08019) die Zone 690804 „Litoral de Barcelona“; MID nutzt diese eng auf Barcelona und einen Ortskoordinaten-Plausibilitätsradius beschränkte Zuordnung auch beim MeteoAlarm-VIS-Ausfall. Die Zonen 690802 (Depresión central) und 690803 (Prelitoral) werden dadurch nicht aufgrund ihrer ähnlichen Namen als Stadtwarnungen übernommen. Quelle: https://www.aemet.es/es/eltiempo/prediccion/municipios/barcelona-id08019 sowie das amtliche Gemeinde-Zonen-Verzeichnis (AEMET/Meteoalerta).
+
 - Start: main=mid-stable=67b289988ed0ce8433b266c8f2055f070133ffe5, v0.9.85.289 nach erfolgreichem Installer #39116157190. Keine konkurrierenden offenen Produkt-PRs beim Start.
 - Issue #411: echte CAP-Polygone/Kreise vor vollständigen Gebietsnamen; wenn offizielle MeteoAlarm-Punktgebietsnamen vorliegen, keine Stadtteilwort-Übereinstimmung als Beleg einer anderen Warnzone. Semantische Warnungsdubletten dürfen verschiedene offizielle Warnstufen nicht zusammenlegen.
 - Pflicht-Test `scripts/test-barcelona-warning-area-dedupe-0985290.mjs` nutzt **synthetische** 26 Meldungen und ist kein Nachweis der vom Nutzer aktuell gezählten Live-26. MeteoAlarm-BBox bleibt nur Vorfilter, keine verifizierte Polygonzuordnung. Offene End-to-End-Liveprüfung in Issue #411.
