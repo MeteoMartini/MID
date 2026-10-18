@@ -15520,7 +15520,9 @@ html[data-mid-design='next']{
 
 html[data-mid-design='next'],html[data-mid-design='next'] body,html[data-mid-design='next'] #root{
  max-width:100%;
- overflow-x:hidden;
+ /* clip retains horizontal containment without creating a vertical scroll container; keep search popup hit-testable. */
+ overflow-x:clip;
+ overflow-y:visible;
 }
 html[data-mid-design='next'] .app{
  max-width:100%;
