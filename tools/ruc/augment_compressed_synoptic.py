@@ -18,7 +18,7 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
-ADDITIONAL_HOURS=frozenset({13,14,16,17})
+ADDITIONAL_HOURS=frozenset({13,14,16,17,19,20,22,23})
 MAX_DECODED=12_000_000
 RUC_BUDGET=900_000_000
 ISO_RE=re.compile(r'^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}$')

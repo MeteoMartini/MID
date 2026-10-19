@@ -7,9 +7,10 @@ import requests
 from build_synoptic_fields import decode,MODELS,GRID_CACHE
 
 CLOUD_HOURS=tuple(range(13))+(15,18,21,24,30,36,42,48)
-# Only four new, optional D2 hours. They must not displace established
-# forecast-map terms; the publication budget admission lives in prepare_ruc_pages.
-OPTIONAL_D2_CLOUD_HOURS=(13,14,16,17)
+# Optional exact same-cycle D2 hours through +24 h. Preserve all established
+# terms and previously admitted +13/+14/+16/+17 first; only original GRIB
+# CLCT/WW fields may enter the budgeted compressed Pages overlay.
+OPTIONAL_D2_CLOUD_HOURS=(13,14,16,17,19,20,22,23)
 def cloud_hours(model,stamp):
     if model=='icon-d2':
         # Always exhaust the established terms before any added downloads.

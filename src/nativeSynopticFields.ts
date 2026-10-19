@@ -6,7 +6,7 @@ export type SynopticModel={label:string;run:string;resolutionKm:number;license:s
 type Contours={type:'FeatureCollection';features:{type:'Feature';properties:{level:number;label:string;spacingKm?:number};geometry:{type:'LineString';coordinates:number[][]}}[]};
 export type SynopticField={schema:string;model:string;run:string;time:string;resolutionKm:number;unit:string;scale:number;lats:number[];lons:number[];centers?:ModelPressureCenter[];thetae:(number|null)[];height:Contours;pressure:Contours;humidity:Contours;thetaContours?:Contours;wind:number[][];cloudWeather?:{cloudUnit:'%';weatherUnit:'WMO 4677';cloudScale:number;cloud:(number|null)[];weather:(number|null)[]}};
 export type SynopticIndex={schema:string;models:Record<string,SynopticModel>};
-export const OPTIONAL_D2_CLOUD_HOURS=Object.freeze([13,14,16,17]);
+export const OPTIONAL_D2_CLOUD_HOURS=Object.freeze([13,14,16,17,19,20,22,23]);
 const HOURS=[0,3,6,9,12,15,18,21,24,30,36,42,48,60,72,180,...Array.from({length:13},(_,i)=>96+i*24)],CORE_HOURS=[0,3,6,9,12,18,24,36,48],MODELS=['icon-d2','icon-eu','icon','gfs','ifs'],MAX_HORIZON:Record<string,number>={'icon-d2':48,'icon-eu':120,icon:180,gfs:384,ifs:360};
 const sha=async(bytes:ArrayBuffer)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
 export async function loadSynopticIndex(signal:AbortSignal){

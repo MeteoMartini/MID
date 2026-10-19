@@ -1,0 +1,11 @@
+# MID .299 vorbereiteter ICON-D2-Terminausbau (noch nicht veröffentlicht)
+
+Ausgangs-SHA: mid-stable=main=9bb0670fbc37d042cd77625672a319aa3dbf3f1e (.297), .298-Source-PR #421 noch nicht abgeschlossen. Vor Release auf den danach tatsächlich promovierten Stable-SHA synchronisieren, Versionsspiegel/Changelogs erst dann finalisieren.
+
+**Zusätzliche optional zugelassene Stunden:** +19, +20, +22 und +23 neben den bisherigen optionalen +13/+14/+16/+17. Damit bestehen für +0..+24 h stündliche Kandidaten, soweit beide originalen DWD-GRIB-Felder CLCT und WW desselben ICON-D2-Zyklus, gleichen nativen Rasters und Gültigkeitstermins vorliegen. Bereits priorisierte etablierte +0..+12, +15, +18, +21, +24 und fernere Zeitfenster werden unverändert vor diesen optionalen Kandidaten verarbeitet. Frühere optionale Stunden werden zuerst versucht. Kein Midpoint-Interpolation oder WW-Mittelwert.
+
+**Fachliche Bedeutung:** DWD WW ist WMO-4677 signifikantes Wetter der letzten Stunde; CLCT ist Gesamtbewölkung in %. Ein nicht vorhandenes WW-/CLCT-Paar, ungültiges Lead, mismatched Quellgitter, NaN/Sentinel oder beschädigter SHA darf nicht als ersatzweiser Zustand erscheinen. Die bestehende Pipeline erlaubt nur Einzelstundentermine aus echten Quellen; Rastermasken bleiben null, und die Kontrollen von validTime, sourceRun, grid, Units, finiteRange, Coverage und Hash bleiben verbindlich.
+
+**Budget und Sicherheit:** Zusatz-GRIBs nur nach etabliertem Inventar und nur innerhalb bestehender Deadline. Roh-RUC-Pages-Generator hält sie hinter der vorhandenen Priority- und Headroom-Grenze zurück; erst nach vollständiger byteidentischer Kompression kann die Overlay-Migration im immutable Content-Addressed-Namespace konkrete verfügbare Einzeldaten nach SHA/GRIB-Semantik und 900-MB-Gate zulassen. Kein Eingriff in RUC-Punktdaten, Worker oder produktive Transportkonfiguration.
+
+**Tests:** Erweiterung der echten Overlay-Fixtures für +19/+20/+22/+23, Gültigkeit, Hash, Units, Rasterschematest, fehlende Felder und atomaren Manifest-Zeiger; Source-Gate und Worker-/Pages-Health erst nach finalisiertem .299-PR. Zusätzliche Parameter wie T2M/PMSL/1h-Precip sind getrennte Kandidaten für #350, da native Geometrie, Zeiträume, Accumulation, Wind-/PMSL-Legenden und eigener Budgetnachweis zunächst fehlen.

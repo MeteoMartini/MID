@@ -21,16 +21,16 @@ def payload(hour):
 def setup(root):
     source=root/'full-synoptic';source.mkdir()
     snapshot=root/'snapshot';(snapshot/PREFIX).mkdir(parents=True)
-    specs={hour:payload(hour) for hour in (1,13,14,16,17)}
+    specs={hour:payload(hour) for hour in (1,13,14,16,17,19,20,22,23)}
     for hour,(frame,data) in specs.items():(source/frame['file']).write_bytes(data)
     model={'run':MODEL,'resolutionKm':2.2,'license':'CC BY 4.0',
            'frames':[], 'cloudWeatherFrames':[specs[1][0]], 'origins':[]}
     core={'schema':'mid.synoptic.fields.v1','generatedAt':'2026-10-16T04:09:00+00:00',
           'algorithm':'test-source','models':{'icon-d2':copy.deepcopy(model)}}
     full=copy.deepcopy(core)
-    full['models']['icon-d2']['cloudWeatherFrames']=[specs[h][0] for h in (1,13,14,16,17)]
-    core['cloudWeatherBudget']={'optionalD2':{'attemptedHours':[13,14,16,17],
-           'omittedHours':[13,14,16,17],'admittedHours':[]}}
+    full['models']['icon-d2']['cloudWeatherFrames']=[specs[h][0] for h in (1,13,14,16,17,19,20,22,23)]
+    core['cloudWeatherBudget']={'optionalD2':{'attemptedHours':[13,14,16,17,19,20,22,23],
+           'omittedHours':[13,14,16,17,19,20,22,23],'admittedHours':[]}}
     (snapshot/PREFIX/'index.json').write_bytes(compact(core))
     (snapshot/PREFIX/specs[1][0]['file']).write_bytes(specs[1][1])
     raw_index=source/'full-index.json';raw_index.write_bytes(compact(full))
@@ -50,7 +50,7 @@ class OptionalSynoptic(unittest.TestCase):
             snapshot,index,source,specs=setup(Path(td))
             old=(snapshot/'latest.json').read_bytes();old_index=(snapshot/PREFIX/'index.json').read_bytes()
             result=augment(snapshot,index,source)
-            self.assertEqual(result['admittedHours'],[13,14,16,17])
+            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,23])
             self.assertLess(result['finalPhysicalBytes'],900_000_000)
             latest=json.loads((snapshot/'latest.json').read_bytes())
             name=latest['synopticFields']['key'];idx=json.loads((snapshot/name).read_bytes())
@@ -60,7 +60,7 @@ class OptionalSynoptic(unittest.TestCase):
             match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_([a-f0-9]{16})/synoptic-fields/index.json',name)
             self.assertIsNotNone(match,'browser/cache cannot load optional D2 index')
             self.assertEqual(match.group(1),sha((snapshot/name).read_bytes())[:16])
-            self.assertEqual([f['hour'] for f in idx['models']['icon-d2']['cloudWeatherFrames']],[1,13,14,16,17])
+            self.assertEqual([f['hour'] for f in idx['models']['icon-d2']['cloudWeatherFrames']],[1,13,14,16,17,19,20,22,23])
             self.assertEqual(idx['cloudWeatherBudget']['optionalD2']['omittedHours'],[])
             self.assertEqual((snapshot/PREFIX/'index.json').read_bytes(),old_index)
             self.assertEqual(json.loads(old)['pages']['objects'],latest['pages']['objects'][:2])
@@ -77,19 +77,19 @@ class OptionalSynoptic(unittest.TestCase):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as td:
                 snap,index,source,frames=setup(Path(td))
                 pointer=(snap/'latest.json').read_bytes()
-                spec=frames[13][0]
+                spec=frames[20][0]
                 wire_path=source/spec['file']
                 if mode=='wrong-hash':wire_path.write_bytes(b'bad')
                 else:
                     data=json.loads(gzip.decompress(wire_path.read_bytes()))
-                    if mode=='wrong-hour':data['time']='2026-10-16T19:00:00+00:00'
+                    if mode=='wrong-hour':data['time']='2026-10-16T21:00:00+00:00'
                     if mode=='wrong-model':data['model']='icon-eu'
                     if mode=='wrong-units':data['weatherUnit']='not WMO'
                     if mode=='nonfinite':data['cloud'][0]=float('nan')
                     if mode=='wrong-run':data['run']='2026-10-15T00:00:00+00:00'
                     b=gzip.compress(json.dumps(data).encode(),mtime=0);wire_path.write_bytes(b)
                     full=json.loads(index.read_bytes())
-                    f=next(f for f in full['models']['icon-d2']['cloudWeatherFrames'] if f['hour']==13)
+                    f=next(f for f in full['models']['icon-d2']['cloudWeatherFrames'] if f['hour']==20)
                     f['sha256']=sha(b);f['bytes']=len(b);f['decodedBytes']=len(gzip.decompress(b))
                     index.write_bytes(compact(full))
                 with self.assertRaises((ValueError,TypeError)):
@@ -99,7 +99,7 @@ class OptionalSynoptic(unittest.TestCase):
     def test_explicit_rectangular_meshgrid_still_accepted(self):
         with tempfile.TemporaryDirectory() as td:
             snap,index,source,frames=setup(Path(td))
-            for hour in (13,14,16,17):
+            for hour in (13,14,16,17,19,20,22,23):
                 f=frames[hour][0];file=source/f['file']
                 data=json.loads(gzip.decompress(file.read_bytes()))
                 data['lats']=[[50.,50.],[51.,51.]]
@@ -117,7 +117,7 @@ class OptionalSynoptic(unittest.TestCase):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as td:
                 snap,index,source,frames=setup(Path(td))
                 original=(snap/'latest.json').read_bytes()
-                f=frames[13][0];file=source/f['file']
+                f=frames[22][0];file=source/f['file']
                 data=json.loads(gzip.decompress(file.read_bytes()))
                 if mode=='lat-length':data['lats']=[50.]
                 if mode=='lon-length':data['lons']=[7.,8.,9.]
@@ -128,7 +128,7 @@ class OptionalSynoptic(unittest.TestCase):
                 raw=json.dumps(data).encode()
                 wire=gzip.compress(raw,mtime=0);file.write_bytes(wire)
                 full=json.loads(index.read_bytes())
-                row=next(x for x in full['models']['icon-d2']['cloudWeatherFrames'] if x['hour']==13)
+                row=next(x for x in full['models']['icon-d2']['cloudWeatherFrames'] if x['hour']==22)
                 row.update(bytes=len(wire),sha256=sha(wire),decodedBytes=len(raw))
                 index.write_bytes(compact(full))
                 with self.assertRaises((ValueError,TypeError)):
