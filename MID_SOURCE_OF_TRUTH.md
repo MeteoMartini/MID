@@ -1,3 +1,11 @@
+# MID v0.9.85.300 · Skybar-NoData: fehlende Niederschlagsmenge nicht als 0 mm kennzeichnen
+
+- SHA-verifizierte Ausgangsbasis: main=mid-stable=8b3759960ef78e758d7c19d2603f4acde052522f, v0.9.85.299, install-mid Run #39295438835 erfolgreich. Verträge AGENTS.md, MID_BASELINE.json und bestehende WMO-/Skybar-Regressionen maßgeblich.
+- Reproduzierter Fehler: detailSkyBarHourCells() zeigte bei einem 15-Minuten-Slot mit WMO-Code 61 und precipitation=null den falschen Text „0 mm“ bzw. „0.0 mm/15 min“. Das verletzt die Unterscheidung fehlend vs. tatsächlich 0.
+- Fix ausschließlich in src/detailSkyBar.ts: validierte Mengenfelder, ursprünglicher WMO-Code als Hinweis bei fehlender Gesamtmenge, getrennte physikalisch bekannte Teilkomponenten ohne erfundene Gesamtmenge. Keine Modell-/Warnverarbeitung oder numerische Akkumulation verändert. Echte Nullwerte bleiben echte Nullwerte; Code 82 behält extreme Intensität.
+- Neue kanonische Regression scripts/test-skybar-precipitation-nodata-0985300.mjs; vorhandene Skybar-/Solar-/15-Min-Regressionen werden unverändert mit ausgeführt. Version 0.9.85.300 samt Spiegeln und Changelog synchronisieren.
+- Fachlicher Umfang und Teststand: docs/implementation/MID_C42_SKYBAR_PRECIP_NODATA_0.9.85.300.md. Browser-/WKWebView-Parität, produktive Warndaten und übriges CSS-Paket #344 sind nicht mit dieser Korrektur als nachgewiesen anzusehen. Neues Release erst mit Source-PR-/Installer-Gates.
+
 # MID v0.9.85.299 · Bundle-Budget-Integrität bei unvollständigen Build-Artefakten (Source-PR-Kandidat)
 
 - Verifizierte Stable-Basis: main=mid-stable=a21791cea8e51546ba568d9fedaf3729ae069dab, v0.9.85.298; Installer 39277116386 erfolgreich. Kein Branch-Drift zum Beginn.

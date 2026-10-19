@@ -1,4 +1,4 @@
-import {precipitationIntensityDescriptor,precipitationParts,type PrecipSample} from './precipitation';
+import {precipitationIntensityDescriptor,precipitationParts,WMO_PRECIP_TYPE,type PrecipSample} from './precipitation';
 import {precipitationPhaseColor,precipitationPhaseColorLabel} from './precipitationPhaseColor';
 
 export type SkyBarSegment={
@@ -144,11 +144,33 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
   }
   return null;
 };
+// The Skybar must distinguish a measured 0 from a missing precipitation amount.
+// A valid WMO weather code can still describe the phase/intensity without an
+// amount; a missing amount must never be converted to a fictitious 0 mm.
+const skybarKnownAmount=(value:unknown):number|null=>{
+  if(typeof value!=='number'&&typeof value!=='string')return null;
+  if(typeof value==='string'&&!value.trim())return null;
+  const number=Number(value);
+  return Number.isFinite(number)&&number>=0?number:null;
+};
 const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):WeatherStripVisual|null=>{
-  const amount=Math.max(0,Number(hour.precipitation??0));
-  const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour),snowfall=Math.max(0,Number(hour.snowfall??0)),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
+  const measuredAmount=skybarKnownAmount(hour.precipitation),measuredSnow=skybarKnownAmount(hour.snowfall);
+  const rainComponent=skybarKnownAmount(hour.rain),showerComponent=skybarKnownAmount(hour.showers);
+  const code=skybarKnownAmount(hour.code),wmoCode=code!==null&&Number.isInteger(code)&&WMO_PRECIP_TYPE[code]?code:null;
+  const partialAmount=Math.max(rainComponent??0,showerComponent??0);
+  // Components may establish a positive lower-bound signal but may not
+  // masquerade as the missing canonical total amount.
+  const amount=measuredAmount??partialAmount,snowfall=measuredSnow??0;
+  const hasAmountEvidence=measuredAmount!==null||partialAmount>0||snowfall>0;
+  if(!hasAmountEvidence&&wmoCode===null)return null;
+  const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
   if(!intensity)return null;
-  const {level:rawLevel,label:intensityLabel,basis:intensityBasis}=intensity,level=(rawLevel-1) as SkyBarThicknessIndex,width=skybarThickness(level);
+  const {level:rawLevel,label:intensityLabel}=intensity;
+  const intensityBasis=measuredAmount!==null?intensity.basis:
+    snowfall>0?`${intensity.basis} · Wasseräquivalent nicht verfügbar`:
+    wmoCode!==null?`WMO-Wettercode ${wmoCode} · Gesamtmenge nicht verfügbar`:
+    'Gesamtmenge nicht verfügbar · Niederschlagsteilfeld vorhanden';
+  const level=(rawLevel-1) as SkyBarThicknessIndex,width=skybarThickness(level);
   const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&String(rawSunshine).trim()!==''&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
   const hasSunshineBase=!!hour.isDay&&sunshineShare!==null&&Number.isFinite(sunshineShare)&&sunshineShare>.5;
   return {
@@ -157,7 +179,7 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):Weat
     strokeWidth:width,
     thicknessLevel:skybarThicknessLevel(level),
     opacity:1,
-    title:`${parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='sleetShowers'&&parts.type!=='snowShowers'&&parts.type!=='graupelShowers'&&parts.type!=='hailShowers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${amount.toFixed(amount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf Sonnenscheindauer-Grundband':''}`,
+    title:`${measuredAmount===null?parts.weatherLabel:parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${measuredAmount!==null&&intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='sleetShowers'&&parts.type!=='snowShowers'&&parts.type!=='graupelShowers'&&parts.type!=='hailShowers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${measuredAmount.toFixed(measuredAmount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf Sonnenscheindauer-Grundband':''}`,
   };
 };
 
