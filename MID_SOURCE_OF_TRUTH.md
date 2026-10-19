@@ -1,3 +1,10 @@
+# MID v0.9.85.298 · RUC-Freshness-Guard für komprimierte Veröffentlichungen (Source-PR-Kandidat)
+
+- Verifizierte Basis: main=mid-stable=9bb0670fbc37d042cd77625672a319aa3dbf3f1e, v0.9.85.297, Installer 39260114652 erfolgreich.
+- RUC-Produktionsnachweis: GitHub-Actions 39262472403, Pages-Profil pages-lossless-v1, RUC-Lauf 2026-10-19T13:00, 2252 vollständig verifizierte Teile und erfolgreicher Worker-/Pages-Codec-Healthcheck; ursprüngliche Rohdaten als Rollback-Artefakt erhalten.
+- Die günstige Scheduler-Vorprüfung validiert beim produktiv aktiven verlustfreien Transport: Profil und Proof, vollständige positive Objekt-/Bytebilanz, SHA-256-Format, eindeutige sichere Pfade sowie lückenlose, widerspruchsfreie komprimierte Records. Bei ungültigem Manifest folgt der vorhandene fail-open-Neuaufbau statt eines irrtümlichen Freshness-Skips. Rohprofil, Wetterwerte, DWD-Warnungen und Kompression unverändert.
+- Erweiterte Python-Regression: tools/ruc/test_ruc_schedule_guard.py, einschließlich mutierter aktiver Manifeste, Recordlücken und Raw-Kompatibilität. Test-, Source-, Release- und Pages-Gates gelten erst nach bestätigtem Abschluss. #352 bleibt für Langzeit-Frische und weitere echte RUC-/Modellkarten offen.
+
 # MID v0.9.85.297 · MID-C37 Detailzeitachse (Source-PR-Kandidat)
 
 - Basis main=mid-stable=e00b41ead6a0aed3a90eb20e9dde26c43455dfc6, veröffentlichte .296.

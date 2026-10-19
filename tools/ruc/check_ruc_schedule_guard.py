@@ -39,6 +39,8 @@ SCHEMA='mid.dwd.ruc.grid.v2'
 STORAGE_PROFILE='pages-free-v1'
 FULL_STORAGE_PROFILE='pages-lossless-v1'
 DEFAULT_MAX_AGE_MINUTES=240
+SHA256_RE=re.compile(r'^[0-9a-f]{64}$')
+COMPRESSED_PAGES_BUDGET=900_000_000
 
 class Links(html.parser.HTMLParser):
     def __init__(self):
@@ -85,23 +87,111 @@ def run_time(run:str)->dt.datetime:
     value=dt.datetime.strptime(run,'%Y-%m-%dT%H:%M')
     return value.replace(tzinfo=dt.timezone.utc)
 
+def valid_compressed_inventory(meta:dict,objects:list)->bool:
+    """Cheap manifest-only gate; actual SHA bytes and record decode are publish-time checks.
+
+    Avoid suppressing a scheduled catch-up when Pages serves a truncated or
+    internally inconsistent active-compression pointer. Never fetch huge RUC
+    chunks in this inexpensive scheduler preflight.
+    """
+    pages=meta.get('pages')
+    migration=meta.get('migration')
+    if not isinstance(pages,dict) or not isinstance(migration,dict):
+        return False
+    if not (
+        meta.get('storageProfile')==FULL_STORAGE_PROFILE
+        and migration.get('schema')=='mid.ruc.migration-active.v1'
+        and migration.get('productionEnabled') is True
+        and pages.get('profile')==FULL_STORAGE_PROFILE
+        and pages.get('losslessTransport')=={
+            'profile':'mid.ruc.compressed-pages.v1',
+            'mode':'replacement','rawRetained':False
+        }
+        and type(pages.get('budgetBytes')) is int
+        and pages['budgetBytes']==COMPRESSED_PAGES_BUDGET
+        and type(pages.get('publishedBytes')) is int
+        and 0<pages['publishedBytes']<COMPRESSED_PAGES_BUDGET
+        and isinstance(objects,list) and 0<len(objects)<=30_000
+    ):
+        return False
+    proof=migration.get('proof')
+    if not isinstance(proof,dict) or not all(
+        SHA256_RE.fullmatch(str(proof.get(key,'')))
+        for key in ('sourceManifestSha256','candidateManifestSha256')
+    ):
+        return False
+    if any(type(proof.get(key)) is not int or proof[key]<=0 for key in ('fullyDecodedParts','recordComparisons')):
+        return False
+    seen=set()
+    total=0
+    for row in objects:
+        if not isinstance(row,dict):
+            return False
+        key=row.get('key')
+        if (not isinstance(key,str) or not key.startswith('runs/') or
+            '\\' in key or any(segment in ('','.','..') for segment in key.split('/')) or
+            key in seen or type(row.get('bytes')) is not int or row['bytes']<=0 or
+            not SHA256_RE.fullmatch(str(row.get('sha256','')))):
+            return False
+        seen.add(key)
+        total+=row['bytes']
+        if total>pages['publishedBytes']:
+            return False
+    if total!=pages['publishedBytes']:
+        return False
+    # Check page record chains in the advertised products without reading bytes.
+    rapid=meta.get('rapid')
+    if not isinstance(rapid,dict):
+        return False
+    specs=[meta.get('deterministic'),meta.get('epsSummary'),*rapid.values()]
+    decoded_parts=0
+    for spec in specs:
+        if not isinstance(spec,dict):
+            return False
+        page=spec.get('compressedPages')
+        if spec.get('dtype')!='int16-le' or not isinstance(page,dict) or spec.get('pages') is not None:
+            return False
+        if page.get('schema')!='mid.ruc.compressed-pages.v1':
+            return False
+        if any(type(page.get(field)) is not int or page[field]<=0 for field in ('records','recordBytes')):
+            return False
+        parts=page.get('parts')
+        if not isinstance(parts,list) or not parts:
+            return False
+        cursor=0
+        for part in parts:
+            if not isinstance(part,dict) or type(part.get('firstRecord')) is not int or part['firstRecord']!=cursor or type(part.get('recordCount')) is not int or part['recordCount']<1:
+                return False
+            key=part.get('key')
+            manifest=part.get('manifest')
+            if not isinstance(key,str) or key not in seen or not isinstance(manifest,dict):
+                return False
+            if not SHA256_RE.fullmatch(str(manifest.get('encodedSha256',''))):
+                return False
+            cursor+=part['recordCount']
+            decoded_parts+=1
+        if cursor!=page['records']:
+            return False
+    return decoded_parts==proof['fullyDecodedParts'] and proof['recordComparisons']>=decoded_parts
+
+
 def valid_pages_meta(meta:dict)->bool:
-    objects=((meta.get('pages') or {}).get('objects') or []) if isinstance(meta.get('pages'),dict) else []
+    if not isinstance(meta,dict):
+        return False
+    pages=meta.get('pages')
+    objects=pages.get('objects') if isinstance(pages,dict) else None
+    profile=meta.get('storageProfile')
     return (
         meta.get('schema')==SCHEMA
-        and (meta.get('storageProfile')==STORAGE_PROFILE or
-             (meta.get('storageProfile')==FULL_STORAGE_PROFILE and
-              meta.get('migration',{}).get('schema')=='mid.ruc.migration-active.v1' and
-              meta.get('migration',{}).get('productionEnabled') is True and
-              meta.get('pages',{}).get('profile')==FULL_STORAGE_PROFILE and
-              meta.get('pages',{}).get('losslessTransport')=={
-                'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}))
         and isinstance(meta.get('run'),str)
-        and bool(RUN_RE.match(meta['run']+'/'))
+        and bool(RUN_RE.fullmatch(meta['run']+'/'))
         and isinstance(objects,list)
-        and len(objects)>0
+        and bool(objects)
+        and (
+            profile==STORAGE_PROFILE
+            or (profile==FULL_STORAGE_PROFILE and valid_compressed_inventory(meta,objects))
+        )
     )
-
 def decide(latest_dwd_run:str|None,meta:dict|None,*,now:dt.datetime|None=None,max_age_minutes:int=DEFAULT_MAX_AGE_MINUTES)->tuple[bool,str,str,str]:
     """Return (should_run, reason, dwd_run, published_run)."""
     published_run=str((meta or {}).get('run') or '')
