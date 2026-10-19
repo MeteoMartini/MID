@@ -1,7 +1,4 @@
-import {readStoredJsonCache,writeStoredJsonCache} from './cachePolicy';
-import {loadDirectDachExtendedExtremeOutlook} from './extremeWeatherOutlookDirect.generated.js';
-import {fetchWorkerJson} from './workerClient';
-import type {ExtremeWeatherOutlook} from './extremeWeatherOutlook';
+import {loadExtendedExtremeWeatherOutlook,type ExtremeWeatherOutlook} from './extremeWeatherOutlook';
 
 const PREFIX='mid:extreme-outlook:';
 const PAYLOAD_PREFIX=`${PREFIX}extended-payload:`;
@@ -22,20 +19,7 @@ function limitUntil(){try{const value=Number(storage()?.getItem(WORKER_LIMIT_KEY
 function rememberLimit(){const s=storage();if(!s)return;const now=new Date(),until=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1,0,15);try{s.setItem(WORKER_LIMIT_KEY,String(until))}catch{}}
 function clearLimit(){try{storage()?.removeItem(WORKER_LIMIT_KEY)}catch{}}
 
+// Kept as a tiny compatibility shim; the worker/cache path now lives in the stable main module.
 export async function loadExtendedExtremeWeatherOutlookFallback(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
- aborted(signal);
- const fresh=read(FRESH_MS);if(fresh)return{...fresh,delivery:'local-cache'};
- const skipped=limitUntil()>Date.now();let workerError:unknown=skipped?new Error('Zentraler Open-Meteo-Tagesrahmen vorübergehend ausgeschöpft.'):undefined;
- if(!skipped)try{
-  const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
-  if(!valid(data))throw new Error('Regionaler Langfristausblick derzeit nicht verfügbar.');
-  const result={...data,delivery:'worker' as const};clearLimit();write(result);return result
- }catch(error){aborted(signal);workerError=error;if(dailyLimit(error))rememberLimit()}
- try{
-  const direct=await loadDirectDachExtendedExtremeOutlook(signal) as ExtremeWeatherOutlook;aborted(signal);if(!valid(direct))throw new Error('Direkt berechneter Langfristausblick ist unvollständig.');
-  const result={...direct,delivery:'browser-direct' as const,fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus den tatsächlichen DWD ICON-EPS-Mitgliedern mit verfügbarer ECMWF-Böenergänzung berechnet.'};write(result);return result
- }catch(directError){
-  aborted(signal);const stale=read(STALE_MS);if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Live-Aktualisierung derzeit nicht möglich; letzter vollständiger Langfristausblick wird weiter angezeigt.'};
-  throw new Error(dailyLimit(workerError)?'Der Wetterdatenweg hat sein Tageskontingent erreicht. Auch der direkte Ersatzabruf konnte keine vollständigen Daten liefern. Bitte später erneut laden.':/limit|ausgelastet|429/i.test(errorText(directError))?'Der direkte Wetterdienst ist vorübergehend ausgelastet. Bitte später erneut laden.':'Der regionale MID-Datendienst und der direkte Ersatzabruf sind derzeit nicht verfügbar. Bitte erneut laden.')
- }
+ return loadExtendedExtremeWeatherOutlook(signal);
 }
