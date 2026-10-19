@@ -22,11 +22,21 @@ try{
   const published=await catalogue();
   assert.deepEqual(Object.keys(published.index.models).sort(),['gfs','icon','icon-d2','icon-eu','ifs']);
   for(const h of [13,14,16,17])assert.ok(published.index.models['icon-d2'].cloudWeatherFrames.some(f=>f.hour===h),'Valid published optional D2 hours must not reject every model');
-  for(const h of [13,14,16,17])for(const id of ['icon-eu','icon']){
+  for(const h of [13,14,16,17,19,20,22,23])for(const id of ['icon-eu','icon']){
    const bad=JSON.parse(fixture);const frame=bad.models[id].cloudWeatherFrames[0];frame.hour=h;frame.time=new Date(Date.parse(bad.models[id].run)+h*3600000).toISOString();frame.file=`${id}-cw-${String(h).padStart(3,'0')}.bin`;
    await assert.rejects(()=>catalogue(Buffer.from(JSON.stringify(bad))),/Wolken-\/Wettertermine/,'D2-only additions must not silently expand other models');
   }
-  for(const patch of [{hour:19},{hour:60},{hour:13.5},{time:'2026-10-14T00:00:00Z'},{bytes:12000001},{decodedBytes:12000001},{sha256:'invalid'},{file:'../field.bin'},{encoding:'plain-json'}]){
+  // The four newly allowed times belong exclusively to real ICON-D2
+  // metadata; this schema test does not claim downloaded GRIB coverage.
+  for(const h of [19,20,22,23]){
+   const candidate=JSON.parse(fixture),d2=candidate.models['icon-d2'];
+   assert.ok(!d2.cloudWeatherFrames.some(f=>f.hour===h),'Golden .297 fixture must not invent newly optional hours');
+   const original=d2.cloudWeatherFrames.find(f=>f.hour===13);
+   d2.cloudWeatherFrames.push({...original,hour:h,time:new Date(Date.parse(d2.run)+h*3600000).toISOString(),file:`icon-d2-cw-${String(h).padStart(3,'0')}.bin`});
+   const accepted=await catalogue(Buffer.from(JSON.stringify(candidate)));
+   assert.ok(accepted.index.models['icon-d2'].cloudWeatherFrames.some(f=>f.hour===h),'New real-source D2 hour must pass the client metadata contract');
+  }
+  for(const patch of [{hour:25},{hour:60},{hour:13.5},{time:'2026-10-14T00:00:00Z'},{bytes:12000001},{decodedBytes:12000001},{sha256:'invalid'},{file:'../field.bin'},{encoding:'plain-json'}]){
    const bad=JSON.parse(fixture);const changed=bad.models['icon-d2'].cloudWeatherFrames.find(f=>f.hour===13);Object.assign(changed,patch);if(patch.hour!==undefined){changed.time=new Date(Date.parse(bad.models['icon-d2'].run)+patch.hour*3600000).toISOString();changed.file=`icon-d2-cw-${String(patch.hour).padStart(3,'0')}.bin`;}
    await assert.rejects(()=>catalogue(Buffer.from(JSON.stringify(bad))),/Wolken-\/Wettertermine/);
   }
@@ -50,7 +60,7 @@ try{
  const svg=exp.cloudWeatherSvg(pair,'data:image/png;base64,AA',[{name:'A&B',latitude:47,longitude:6},{name:'Missing',latitude:48,longitude:6}]);assert.match(svg,/A&amp;B/);assert.match(svg,/0 % Wolken/);assert.match(svg,/Wetter nicht verfügbar/);assert.match(svg,/Schneeschauer/);assert.match(svg,/gleicher|Gleicher/);
  const worker=readFileSync('worker-src/20-composite-models.js','utf8');assert.ok(worker.includes("PrecipType-Instant',{forecast:true,categorical:true"));assert.ok(worker.includes("?.categorical)?'false':'true'"));
  const d2CloudPipeline=readFileSync('tools/ruc/build_cloud_weather_fields.py','utf8');
- assert.match(d2CloudPipeline,/OPTIONAL_D2_CLOUD_HOURS=\(13,14,16,17\)/,'D2 hourly expansion must be optional');
+ assert.match(d2CloudPipeline,/OPTIONAL_D2_CLOUD_HOURS=\(13,14,16,17,19,20,22,23\)/,'D2 hourly expansion must be optional');
  assert.match(d2CloudPipeline,/return CLOUD_HOURS\+OPTIONAL_D2_CLOUD_HOURS/,'Established D2 fields must be downloaded before any optional extra hours');
  const pagesBudget=readFileSync('tools/ruc/prepare_ruc_pages.py','utf8');
  assert.match(pagesBudget,/OPTIONAL_D2_HEADROOM_RESERVE=256_000/,'Optional D2 must reserve real headroom');

@@ -38,7 +38,7 @@ const pointer=/^runs\/[a-zA-Z0-9_-]+__synoptic_(?:optional_d2_)?([a-f0-9]{16})\/
 const match=generated.key.match(pointer);
 assert.ok(match,'Real augmented manifest URL would be rejected by browser');
 assert.equal(match[1],generated.digest.slice(0,16),'Real augmented SHA digest is not the URL');
-assert.deepEqual(generated.hours,[13,14,16,17],'No native optional D2 terms in golden index');
+assert.deepEqual(generated.hours,[13,14,16,17,19,20,22,23],'No native optional D2 terms in golden index');
 const legacyKey=generated.key.replace('__synoptic_', '__synoptic_optional_d2_');
 const legacy=legacyKey.match(pointer);
 assert.ok(legacy,'Existing .271 optional D2 index must remain readable by browser/GRIB cache');
