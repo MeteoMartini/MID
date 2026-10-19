@@ -91,12 +91,31 @@ const OUTLOOK_CACHE_KEY=`${OUTLOOK_PAYLOAD_PREFIX}v6`;
 const WORKER_LIMIT_KEY=`${OUTLOOK_CACHE_PREFIX}worker-limit-until:v1`;
 const OUTLOOK_FRESH_MS=20*60*1000;
 const OUTLOOK_STALE_MS=12*60*60*1000;
+const EXTENDED_CACHE_KEY='mid:extreme-outlook:extended-payload:v4';
+const EXTENDED_FRESH_MS=3*60*60*1000;
+const EXTENDED_STALE_MS=24*60*60*1000;
 
 function browserStorage(){try{return typeof localStorage==='undefined'?undefined:localStorage}catch{return undefined}}
 function validOutlook(value:unknown):value is ExtremeWeatherOutlook{const data=value as ExtremeWeatherOutlook|undefined,bounds=data?.grid?.bounds;const coverage=Number(data?.quality?.dataCoveragePct??100);return Boolean(data&&data.scope==='Mitteleuropa'&&Array.isArray(data.periods)&&data.periods.length&&Array.isArray(data.cells)&&data.cells.length&&data.grid?.pointCount&&coverage>=60&&bounds&&bounds.west<=-3.84&&bounds.east>=20.2&&bounds.south<=43.2&&bounds.north>=57.99&&data.thresholds?.probability)}
 function readOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,OUTLOOK_CACHE_KEY,maxAgeMs);return validOutlook(value)?value:undefined}
 function writeOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(!storage)return;writeStoredJsonCache(storage,OUTLOOK_CACHE_KEY,value,[OUTLOOK_PAYLOAD_PREFIX],2,OUTLOOK_STALE_MS)}
+function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
+ if(!validOutlook(value))return false;
+ const expected=[['48-72',48,72],['72-96',72,96],['96-120',96,120],['120-144',120,144],['144-168',144,168]] as const;
+ if(value.periods.length!==expected.length||!value.checkedAt||!Number.isFinite(Date.parse(value.checkedAt))||value.officialWarning!==false)return false;
+ for(let index=0;index<expected.length;index++){
+  const period=value.periods[index],spec=expected[index];
+  if(!period||period.id!==spec[0]||period.startHour!==spec[1]||period.endHour!==spec[2]||!Number.isFinite(Date.parse(period.start))||!Number.isFinite(Date.parse(period.end))||Date.parse(period.end)-Date.parse(period.start)!==(spec[2]-spec[1])*3600000||(index>0&&Date.parse(period.start)!==Date.parse(value.periods[index-1].end)))return false;
+ }
+ const coverage=value.quality?.dataCoveragePct;
+ if(!Number.isFinite(value.grid.pointCount)||value.grid.pointCount<=0||!Number.isFinite(value.quality?.ensembleMembers)||value.quality.ensembleMembers<=0||typeof coverage!=='number'||!Number.isFinite(coverage)||coverage<60||coverage>100)return false;
+ for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!expected.every(spec=>{const hazards=cell.periods?.[spec[0]]?.hazards;return hazards!==null&&typeof hazards==='object'&&!Array.isArray(hazards)}))return false;}
+ return true;
+}
+function readExtendedOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);return validExtendedOutlook(value)?value:undefined}
+function writeExtendedOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(storage)writeStoredJsonCache(storage,EXTENDED_CACHE_KEY,value,['mid:extreme-outlook:extended-payload:'],1,EXTENDED_STALE_MS)}
 function errorText(error:unknown){return error instanceof Error?error.message:String(error||'unbekannter Fehler')}
+export function isExtremeChunkLoadError(error:unknown){return /importing a module script failed|failed to fetch dynamically imported module|error loading dynamically imported module|dynamically imported module|module script.*failed|Eine App-Ressource konnte nicht geladen werden/i.test(errorText(error))}
 function abortReason(signal?:AbortSignal){return signal?.reason instanceof Error?signal.reason:new DOMException('Vorgang abgebrochen.','AbortError')}
 function throwIfAborted(signal?:AbortSignal){if(signal?.aborted)throw abortReason(signal)}
 function dailyWorkerLimit(error:unknown){return/(?:daily api request limit exceeded|try again tomorrow|t[aä]gliches? (?:api-)?(?:anfrage|aufruf|request)[ -]?(?:limit|kontingent)|tageskontingent)/i.test(errorText(error))}
@@ -158,5 +177,33 @@ export function strongestExtremeRegions(data:ExtremeWeatherOutlook,periodId:stri
 }
 
 export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
- return (await import('./extremeWeatherOutlookExtendedFallback')).loadExtendedExtremeWeatherOutlookFallback(signal)
+ throwIfAborted(signal);
+ const fresh=readExtendedOutlookCache(EXTENDED_FRESH_MS);
+ if(fresh)return{...fresh,delivery:'local-cache'};
+ const skipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=skipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
+ if(!skipped){
+  try{
+   const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
+   throwIfAborted(signal);
+   if(data.error||!validExtendedOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht vollständig verfügbar.');
+   const result={...data,delivery:'worker' as const};clearWorkerLimit();writeExtendedOutlookCache(result);return result;
+  }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
+ }
+ try{
+  const {loadDirectDachExtendedExtremeOutlook}=await import('./extremeWeatherOutlookDirect.generated.js');
+  throwIfAborted(signal);
+  const data=await loadDirectDachExtendedExtremeOutlook(signal) as ExtremeWeatherOutlook;
+  throwIfAborted(signal);
+  if(!validExtendedOutlook(data))throw new Error('Direkt berechneter Langfristausblick ist unvollständig.');
+  const result={...data,delivery:'browser-direct' as const,fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus den tatsächlichen DWD ICON-EPS-Mitgliedern mit verfügbarer ECMWF-Böenergänzung berechnet.'};
+  writeExtendedOutlookCache(result);return result;
+ }catch(directError){
+  throwIfAborted(signal);
+  const stale=readExtendedOutlookCache(EXTENDED_STALE_MS);
+  if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Live-Aktualisierung derzeit nicht möglich; letzter vollständiger Langfristausblick wird weiter angezeigt.'};
+  if(isExtremeChunkLoadError(directError))throw new Error('Eine App-Ressource konnte nicht geladen werden. Bitte die App einmal neu laden; gespeicherte Wetterdaten bleiben erhalten.');
+  if(dailyWorkerLimit(workerError))throw new Error('Der Wetterdatenweg hat sein Tageskontingent erreicht. Auch der direkte Ersatzabruf konnte keine vollständigen Daten liefern. Bitte später erneut laden.');
+  if(/limit|ausgelastet|429/i.test(errorText(directError)))throw new Error('Der direkte Wetterdienst ist vorübergehend ausgelastet. Bitte später erneut laden.');
+  throw new Error('Der regionale MID-Datendienst und der direkte Ersatzabruf sind derzeit nicht verfügbar. Bitte erneut laden.');
+ }
 }
