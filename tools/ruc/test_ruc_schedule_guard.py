@@ -80,6 +80,13 @@ active['pages'].update({
  'budgetBytes':900_000_000,'publishedBytes':24,
  'objects':[{'key':'runs/2026-08-30T0200/deterministic/0000.bin','bytes':24,'sha256':'a'*64}]
 })
+active['deterministic']={'dtype':'int16-le','compressedPages':{'schema':'mid.ruc.compressed-pages.v1','records':2,'recordBytes':12,
+ 'parts':[{'firstRecord':0,'recordCount':2,'key':'runs/2026-08-30T0200/deterministic/0000.bin',
+           'manifest':{'encodedSha256':'a'*64}}]}}
+active['epsSummary']={'dtype':'int16-le','compressedPages':{'schema':'mid.ruc.compressed-pages.v1','records':1,'recordBytes':12,
+ 'parts':[{'firstRecord':0,'recordCount':1,'key':'runs/2026-08-30T0200/deterministic/0000.bin',
+           'manifest':{'encodedSha256':'a'*64}}]}}
+active['rapid']={}
 active['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True,
  'proof':{'sourceManifestSha256':'b'*64,'candidateManifestSha256':'c'*64,
           'fullyDecodedParts':2,'recordComparisons':2}}
@@ -110,6 +117,12 @@ reject_invalid_active(lambda d:d['migration']['proof'].update({'fullyDecodedPart
 reject_invalid_active(lambda d:d['migration']['proof'].update({'sourceManifestSha256':'x'*64}))
 reject_invalid_active(lambda d:d['pages'].update({'losslessTransport':{'mode':'replacement','rawRetained':True}}))
 reject_invalid_active(lambda d:d['pages'].update({'objects':[None]}))
+reject_invalid_active(lambda d:d['deterministic']['compressedPages']['parts'][0].update({'recordCount':1}))
+reject_invalid_active(lambda d:d['deterministic']['compressedPages']['parts'][0].update({'firstRecord':1}))
+reject_invalid_active(lambda d:d['deterministic']['compressedPages']['parts'][0].update({'key':'runs/not-in-inventory.bin'}))
+reject_invalid_active(lambda d:d['deterministic']['compressedPages']['parts'][0]['manifest'].update({'encodedSha256':'no'}))
+reject_invalid_active(lambda d:d['deterministic']['compressedPages'].update({'records':3}))
+reject_invalid_active(lambda d:d['migration']['proof'].update({'recordComparisons':1}))
 assert guard.valid_pages_meta([]) is False
 assert guard.valid_pages_meta({'schema':guard.SCHEMA,'storageProfile':guard.FULL_STORAGE_PROFILE}) is False
 print('RUC active compressed inventory guard rejects malformed manifests; raw-profile compatibility preserved.')
