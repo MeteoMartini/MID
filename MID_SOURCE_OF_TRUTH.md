@@ -1,3 +1,10 @@
+# MID v0.9.85.296 · Extremwetter-Tag-3–7: Worker-/Cache-Fix (Source-PR-Kandidat)
+
+- Freigegebene Ausgangsbasis: `main=mid-stable=369cde0bbbe61e52cc422038e4d1dd94ff16099e`, v0.9.85.295; Installer 39169042660 erfolgreich.
+- Langfristpfad nicht mehr vom Chunk `extremeWeatherOutlookExtendedFallback` abhängig: frische validierte Browserkopie → Worker (ein Versuch, Open-Meteo-Limit wird respektiert) → lazy direkte ICON-EPS-Berechnung → nur vollständiger Stale-Cache → klarer Fehlerstatus. Vollständige +48–168-h-Perioden und Fachmetadaten werden validiert, keine Missing-zu-Null-Konvertierung.
+- Bei echten JS-Importfehlern bietet die Oberfläche einen expliziten Seiten-Neuladevorgang; kein automatischer Retry-/Reload-Loop. Wetterprognose bleibt von amtlichen Warnungen getrennt. Bestehende Regression `scripts/test-extreme-outlook-extended-resilience-0985154.mjs` an die geänderte Architektur angepasst.
+- Änderungen ausschließlich auf `chatgpt/v0.9.85.296-extended-extreme-recovery`. CI, Browsermatrix, Installer und Stable-Promotion erst nach tatsächlich bestätigtem Grün dokumentieren; keine physische iOS-/VoiceOver-Abnahme behaupten. #352/#374/#405/#411 bleiben unabhängig offen.
+
 # MID v0.9.85.295 · Prägnante 7-Tage-Kurzinterpretation (Source-PR-Kandidat)
 
 - Freigegebene Ausgangsbasis: main=mid-stable=b0cf607c45746239ed6246ba1e473ee41877a96d / v0.9.85.294, Installer 39164220384 erfolgreich.
