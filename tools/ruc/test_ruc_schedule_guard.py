@@ -70,13 +70,47 @@ with tempfile.TemporaryDirectory() as directory:
 
 print('RUC schedule guard unit contract OK')
 
-# Full active profile may suppress a redundant run; a candidate must never.
+# A fully signed active-compression manifest may suppress a redundant run.
+# A merely flagged profile, truncated accounting, duplicate inventory key or bad
+# SHA must instead trigger the existing fail-open rebuild (not silent freshness).
 active=meta();active['storageProfile']=guard.FULL_STORAGE_PROFILE
-active['pages'].update({'profile':guard.FULL_STORAGE_PROFILE,'losslessTransport':{
- 'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False}})
-active['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True}
+active['pages'].update({
+ 'profile':guard.FULL_STORAGE_PROFILE,
+ 'losslessTransport':{'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False},
+ 'budgetBytes':900_000_000,'publishedBytes':24,
+ 'objects':[{'key':'runs/2026-08-30T0200/deterministic/0000.bin','bytes':24,'sha256':'a'*64}]
+})
+active['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True,
+ 'proof':{'sourceManifestSha256':'b'*64,'candidateManifestSha256':'c'*64,
+          'fullyDecodedParts':2,'recordComparisons':2}}
 assert guard.valid_pages_meta(active)
 assert guard.decide('2026-08-30T02:00',active,now=NOW)[0] is False
 candidate=json.loads(json.dumps(active));candidate['migration']['productionEnabled']=False
 assert not guard.valid_pages_meta(candidate)
 assert guard.decide('2026-08-30T02:00',candidate,now=NOW)[0] is True
+
+def reject_invalid_active(change):
+ damaged=json.loads(json.dumps(active))
+ change(damaged)
+ assert guard.valid_pages_meta(damaged) is False
+ should,reason,_,_=guard.decide('2026-08-30T02:00',damaged,now=NOW)
+ assert should is True and 'Metadatenvertrag' in reason
+ report=guard.freshness_report('2026-08-30T02:00',damaged,should,reason,now=NOW)
+ assert report['pagesMetaValid'] is False and report['publishedRunAgeMinutes'] is None
+
+reject_invalid_active(lambda d:d['pages'].update({'publishedBytes':25}))
+reject_invalid_active(lambda d:d['pages'].update({'budgetBytes':900_000_001}))
+reject_invalid_active(lambda d:d['pages']['objects'].append(d['pages']['objects'][0].copy()))
+reject_invalid_active(lambda d:d['pages']['objects'][0].update({'sha256':'not-a-sha'}))
+reject_invalid_active(lambda d:d['pages']['objects'][0].update({'bytes':0}))
+reject_invalid_active(lambda d:d['pages']['objects'][0].update({'key':'runs/../escape'}))
+reject_invalid_active(lambda d:d['pages']['objects'][0].update({'key':'runs/\\\\host/evil'}))
+reject_invalid_active(lambda d:d['migration'].pop('proof'))
+reject_invalid_active(lambda d:d['migration']['proof'].update({'fullyDecodedParts':0}))
+reject_invalid_active(lambda d:d['migration']['proof'].update({'sourceManifestSha256':'x'*64}))
+reject_invalid_active(lambda d:d['pages'].update({'losslessTransport':{'mode':'replacement','rawRetained':True}}))
+reject_invalid_active(lambda d:d['pages'].update({'objects':[None]}))
+assert guard.valid_pages_meta([]) is False
+assert guard.valid_pages_meta({'schema':guard.SCHEMA,'storageProfile':guard.FULL_STORAGE_PROFILE}) is False
+print('RUC active compressed inventory guard rejects malformed manifests; raw-profile compatibility preserved.')
+
