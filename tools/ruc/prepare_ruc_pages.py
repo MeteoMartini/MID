@@ -28,6 +28,10 @@ PAGES_RUC_BUDGET_BYTES=900_000_000
 PAGES_MANIFEST_RESERVE_BYTES=1_000_000
 OPTIONAL_D2_CLOUD_HOURS=frozenset((13,14,16,17,19,20,22,23,27,33,39,45))
 OPTIONAL_D2_HEADROOM_RESERVE=256_000
+# Deferred six-hourly cloud/WW candidates beyond +48 h; keep previous maps
+# intact before spending any additional Pages bytes.
+OPTIONAL_LONG_CLOUD_HOURS={'icon-eu':frozenset((54,66,78,90,102,114)),
+    'icon':frozenset((54,66,78,90,102,114,126,138,150,162,174))}
 PAGES_OMIT_RAPID_PRODUCTS={'solar15','state15'}
 PAGES_STATE15_FIELDS={'visibility','ceiling'}
 PAGES_REDUNDANT_SEVERE_FIELDS={
@@ -156,8 +160,17 @@ def fit_synoptic_budget(payload,available):
     if d2:
         optional_d2=sorted((f for f in d2.get('cloudWeatherFrames',[]) if f['hour'] in OPTIONAL_D2_CLOUD_HOURS),key=lambda f:f['hour'])
         d2['cloudWeatherFrames']=[f for f in d2.get('cloudWeatherFrames',[]) if f['hour'] not in OPTIONAL_D2_CLOUD_HOURS]
+    optional_long={}
+    for model,hours in OPTIONAL_LONG_CLOUD_HOURS.items():
+        product=payload.get('models',{}).get(model)
+        if not product:continue
+        frames=product.get('cloudWeatherFrames',[])
+        optional_long[model]=sorted((f for f in frames if f['hour'] in hours),key=lambda f:f['hour'])
+        product['cloudWeatherFrames']=[f for f in frames if f['hour'] not in hours]
     optional_budget={'attemptedHours':[f['hour'] for f in optional_d2],'admittedHours':[],'omittedHours':[],'headroomReserveBytes':OPTIONAL_D2_HEADROOM_RESERVE}
-    payload['cloudWeatherBudget']={'availableBytes':available,'pruned':pruned,'prunedSynoptic':pruned_synoptic,'optionalD2':optional_budget}
+    long_budget={model:{'attemptedHours':[f['hour'] for f in frames],'admittedHours':[],'omittedHours':[]}
+        for model,frames in optional_long.items()}
+    payload['cloudWeatherBudget']={'availableBytes':available,'pruned':pruned,'prunedSynoptic':pruned_synoptic,'optionalD2':optional_budget,'optionalLong':long_budget}
     def synoptic_size():
         return len((json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n').encode())+sum(frame['bytes'] for product in payload['models'].values() for frame in product['frames']+product.get('cloudWeatherFrames',[]))
     # ICON Global is optional: never lose established cores or RUC to its cost.
@@ -193,6 +206,19 @@ def fit_synoptic_budget(payload,available):
         d2['cloudWeatherFrames'].sort(key=lambda frame:frame['hour'])
     else:
         optional_budget['omittedHours'].extend(frame['hour'] for frame in optional_d2)
+    for model,frames in optional_long.items():
+        product=payload.get('models',{}).get(model)
+        if not product:
+            long_budget[model]['omittedHours'].extend(f['hour'] for f in frames)
+            continue
+        for frame in frames:
+            product['cloudWeatherFrames'].append(frame)
+            if synoptic_size()+OPTIONAL_D2_HEADROOM_RESERVE>available:
+                product['cloudWeatherFrames'].pop()
+                long_budget[model]['omittedHours'].append(frame['hour'])
+            else:
+                long_budget[model]['admittedHours'].append(frame['hour'])
+        product['cloudWeatherFrames'].sort(key=lambda f:f['hour'])
     return payload
 
 def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES):
