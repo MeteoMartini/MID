@@ -107,7 +107,8 @@ function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
   const period=value.periods[index],spec=expected[index];
   if(period.id!==spec[0]||period.startHour!==spec[1]||period.endHour!==spec[2]||!Number.isFinite(Date.parse(period.start))||!Number.isFinite(Date.parse(period.end))||Date.parse(period.end)-Date.parse(period.start)!==(spec[2]-spec[1])*3600000)return false;
  }
- if(!Number.isFinite(value.grid.pointCount)||value.grid.pointCount<=0||!Number.isFinite(value.quality?.ensembleMembers)||value.quality.ensembleMembers<=0||!Number.isFinite(value.quality?.dataCoveragePct)||value.quality.dataCoveragePct<60||value.quality.dataCoveragePct>100)return false;
+ const coverage=value.quality?.dataCoveragePct;
+ if(!Number.isFinite(value.grid.pointCount)||value.grid.pointCount<=0||!Number.isFinite(value.quality?.ensembleMembers)||value.quality.ensembleMembers<=0||typeof coverage!=='number'||!Number.isFinite(coverage)||coverage<60||coverage>100)return false;
  for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!expected.every(spec=>cell.periods?.[spec[0]]&&typeof cell.periods[spec[0]].hazards==='object'))return false;}
  return true;
 }
