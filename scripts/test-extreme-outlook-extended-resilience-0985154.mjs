@@ -27,6 +27,9 @@ assert.ok(client.includes("import('./extremeWeatherOutlookDirect.generated.js')"
 for(const token of ['EXTENDED_FRESH_MS=3*60*60*1000','EXTENDED_STALE_MS=24*60*60*1000',"cacheKey:'dach-extreme-outlook:extended:v4'",'readExtendedOutlookCache(EXTENDED_FRESH_MS)','readExtendedOutlookCache(EXTENDED_STALE_MS)','if(dailyWorkerLimit(error))rememberWorkerLimit()'])assert.ok(client.includes(token),'Langfrist-Resilienzvertrag fehlt: '+token);
 assert.ok(client.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}")<client.indexOf("import('./extremeWeatherOutlookDirect.generated.js')",client.indexOf('export async function loadExtendedExtremeWeatherOutlook')),'Worker muss vor Browser-Direktabruf versucht werden.');
 assert.ok(client.includes('Der regionale MID-Datendienst und der direkte Ersatzabruf sind derzeit nicht verfügbar. Bitte erneut laden.'),'Fail-closed-Endzustand fehlt.');
+assert.ok(client.includes('function validExtendedOutlook(value:unknown)'),'Langfristprodukt muss eigenes Fachschema prüfen.');
+for(const id of ['48-72','72-96','96-120','120-144','144-168'])assert.ok(client.includes(id),'Langfristsegment fehlt: '+id);
+assert.ok(client.includes('validExtendedOutlook(data)'),'Datenquelle muss vollständigen Vorhinweis verifizieren.');
 assert.ok(fallback.includes('return loadExtendedExtremeWeatherOutlook(signal)'),'Kompatibilitätsimport muss denselben sicheren Datenweg nutzen.');
 
 const hours=Array.from({length:169},(_,index)=>new Date(Date.UTC(2026,9,3,16+index)).toISOString().slice(0,16));
