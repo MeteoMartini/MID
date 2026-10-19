@@ -21,16 +21,16 @@ def payload(hour):
 def setup(root):
     source=root/'full-synoptic';source.mkdir()
     snapshot=root/'snapshot';(snapshot/PREFIX).mkdir(parents=True)
-    specs={hour:payload(hour) for hour in (1,13,14,16,17,19,20,22,23)}
+    specs={hour:payload(hour) for hour in (1,13,14,16,17,19,20,22,23,27,33,39,45)}
     for hour,(frame,data) in specs.items():(source/frame['file']).write_bytes(data)
     model={'run':MODEL,'resolutionKm':2.2,'license':'CC BY 4.0',
            'frames':[], 'cloudWeatherFrames':[specs[1][0]], 'origins':[]}
     core={'schema':'mid.synoptic.fields.v1','generatedAt':'2026-10-16T04:09:00+00:00',
           'algorithm':'test-source','models':{'icon-d2':copy.deepcopy(model)}}
     full=copy.deepcopy(core)
-    full['models']['icon-d2']['cloudWeatherFrames']=[specs[h][0] for h in (1,13,14,16,17,19,20,22,23)]
-    core['cloudWeatherBudget']={'optionalD2':{'attemptedHours':[13,14,16,17,19,20,22,23],
-           'omittedHours':[13,14,16,17,19,20,22,23],'admittedHours':[]}}
+    full['models']['icon-d2']['cloudWeatherFrames']=[specs[h][0] for h in (1,13,14,16,17,19,20,22,23,27,33,39,45)]
+    core['cloudWeatherBudget']={'optionalD2':{'attemptedHours':[13,14,16,17,19,20,22,23,27,33,39,45],
+           'omittedHours':[13,14,16,17,19,20,22,23,27,33,39,45],'admittedHours':[]}}
     (snapshot/PREFIX/'index.json').write_bytes(compact(core))
     (snapshot/PREFIX/specs[1][0]['file']).write_bytes(specs[1][1])
     raw_index=source/'full-index.json';raw_index.write_bytes(compact(full))
@@ -50,7 +50,7 @@ class OptionalSynoptic(unittest.TestCase):
             snapshot,index,source,specs=setup(Path(td))
             old=(snapshot/'latest.json').read_bytes();old_index=(snapshot/PREFIX/'index.json').read_bytes()
             result=augment(snapshot,index,source)
-            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,23])
+            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,23,27,33,39,45])
             self.assertLess(result['finalPhysicalBytes'],900_000_000)
             latest=json.loads((snapshot/'latest.json').read_bytes())
             name=latest['synopticFields']['key'];idx=json.loads((snapshot/name).read_bytes())
@@ -60,7 +60,7 @@ class OptionalSynoptic(unittest.TestCase):
             match=re.fullmatch(r'runs/[a-zA-Z0-9_-]+__synoptic_([a-f0-9]{16})/synoptic-fields/index.json',name)
             self.assertIsNotNone(match,'browser/cache cannot load optional D2 index')
             self.assertEqual(match.group(1),sha((snapshot/name).read_bytes())[:16])
-            self.assertEqual([f['hour'] for f in idx['models']['icon-d2']['cloudWeatherFrames']],[1,13,14,16,17,19,20,22,23])
+            self.assertEqual([f['hour'] for f in idx['models']['icon-d2']['cloudWeatherFrames']],[1,13,14,16,17,19,20,22,23,27,33,39,45])
             self.assertEqual(idx['cloudWeatherBudget']['optionalD2']['omittedHours'],[])
             self.assertEqual((snapshot/PREFIX/'index.json').read_bytes(),old_index)
             self.assertEqual(json.loads(old)['pages']['objects'],latest['pages']['objects'][:2])
@@ -99,7 +99,7 @@ class OptionalSynoptic(unittest.TestCase):
     def test_explicit_rectangular_meshgrid_still_accepted(self):
         with tempfile.TemporaryDirectory() as td:
             snap,index,source,frames=setup(Path(td))
-            for hour in (13,14,16,17,19,20,22,23):
+            for hour in (13,14,16,17,19,20,22,23,27,33,39,45)
                 f=frames[hour][0];file=source/f['file']
                 data=json.loads(gzip.decompress(file.read_bytes()))
                 data['lats']=[[50.,50.],[51.,51.]]
@@ -111,7 +111,7 @@ class OptionalSynoptic(unittest.TestCase):
                 row.update(bytes=len(wire),sha256=sha(wire),decodedBytes=len(gzip.decompress(wire)))
                 index.write_bytes(compact(full))
             result=augment(snap,index,source)
-            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,23])
+            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,23,27,33,39,45])
     def test_bad_real_one_dimensional_axes_are_rejected(self):
         for mode in ('lat-length','lon-length','lat-nonmonotonic','lat-out-of-range','lon-nan','mixed-dimension'):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as td:

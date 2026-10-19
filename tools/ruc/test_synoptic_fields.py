@@ -13,6 +13,13 @@ class SynopticTest(unittest.TestCase):
         self.assertEqual(cloud_hours('icon-eu',stamp)[-1],120)
         self.assertEqual(cloud_hours('icon',stamp)[-1],180)
         self.assertEqual(cloud_hours('icon',stamp.replace(hour=6))[-1],120)
+        self.assertEqual(cloud_hours('icon-d2',stamp)[-4:],(27,33,39,45))
+        self.assertEqual(cloud_hours('icon-eu',stamp)[-6:],(54,66,78,90,102,114))
+        self.assertEqual(cloud_hours('icon',stamp)[-11:],(54,66,78,90,102,114,126,138,150,162,174))
+        self.assertEqual(cloud_hours('icon',stamp.replace(hour=6))[-6:],(54,66,78,90,102,114))
+        self.assertTrue(all(hour<=48 for hour in cloud_hours('icon-d2',stamp)))
+        self.assertTrue(all(hour<=120 for hour in cloud_hours('icon-eu',stamp)))
+        self.assertTrue(all(hour<=180 for hour in cloud_hours('icon',stamp)))
         product={'frames':[{'hour':h,'bytes':1000} for h in CORE_HOURS],'cloudWeatherFrames':[{'hour':h,'bytes':10000} for h in range(13)]}
         minimal={'models':{'icon-eu':{'frames':product['frames'],'cloudWeatherFrames':[]}}}
         available=len(CORE_HOURS)*1000+len((json.dumps(minimal,separators=(',',':'),ensure_ascii=False)+'\n').encode())+3000

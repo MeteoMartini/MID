@@ -7,10 +7,14 @@ import requests
 from build_synoptic_fields import decode,MODELS,GRID_CACHE
 
 CLOUD_HOURS=tuple(range(13))+(15,18,21,24,30,36,42,48)
-# Optional exact same-cycle D2 hours through +24 h. Preserve all established
+# Optional exact same-cycle D2 hours through +48 h. Preserve all established
 # terms and previously admitted +13/+14/+16/+17 first; only original GRIB
 # CLCT/WW fields may enter the budgeted compressed Pages overlay.
-OPTIONAL_D2_CLOUD_HOURS=(13,14,16,17,19,20,22,23)
+OPTIONAL_D2_CLOUD_HOURS=(13,14,16,17,19,20,22,23,27,33,39,45)
+# Additional six-hourly CLCT/WW pairs, only if the source cycle publishes both.
+# Legacy twelve-hour terms through the verified horizon always take priority.
+def additional_long_cloud_hours(end):
+    return tuple(hour for hour in range(54,end,12) if hour%12==6)
 def cloud_hours(model,stamp):
     if model=='icon-d2':
         # Always exhaust the established terms before any added downloads.
@@ -18,7 +22,7 @@ def cloud_hours(model,stamp):
         # from +15/+18/+21/+24/+30/+36/+42/+48.
         return CLOUD_HOURS+OPTIONAL_D2_CLOUD_HOURS
     end=120 if model=='icon-eu' or stamp.hour in (6,18) else 180
-    return CLOUD_HOURS+tuple(range(60,end+1,12))
+    return CLOUD_HOURS+tuple(range(60,end+1,12))+additional_long_cloud_hours(end)
 
 def build_model(model,product,output,deadline):
     stamp=datetime.fromisoformat(product['run']);run=stamp.strftime('%Y%m%d%H');_,folder,resolution,grid=MODELS[model]
