@@ -10,9 +10,9 @@ class SynopticTest(unittest.TestCase):
         from prepare_ruc_pages import fit_synoptic_budget
         stamp=datetime(2026,10,7,12,tzinfo=timezone.utc)
         for model in ('icon-d2','icon-eu','icon'):self.assertEqual(cloud_hours(model,stamp)[:13],tuple(range(13)))
-        self.assertEqual(cloud_hours('icon-eu',stamp)[-1],120)
-        self.assertEqual(cloud_hours('icon',stamp)[-1],180)
-        self.assertEqual(cloud_hours('icon',stamp.replace(hour=6))[-1],120)
+        self.assertEqual(max(cloud_hours('icon-eu',stamp)),120)
+        self.assertEqual(max(cloud_hours('icon',stamp)),180)
+        self.assertEqual(max(cloud_hours('icon',stamp.replace(hour=6))),120)
         self.assertEqual(cloud_hours('icon-d2',stamp)[-4:],(27,33,39,45))
         self.assertEqual(cloud_hours('icon-eu',stamp)[-6:],(54,66,78,90,102,114))
         self.assertEqual(cloud_hours('icon',stamp)[-11:],(54,66,78,90,102,114,126,138,150,162,174))

@@ -99,7 +99,7 @@ class OptionalSynoptic(unittest.TestCase):
     def test_explicit_rectangular_meshgrid_still_accepted(self):
         with tempfile.TemporaryDirectory() as td:
             snap,index,source,frames=setup(Path(td))
-            for hour in (13,14,16,17,19,20,22,23,27,33,39,45)
+            for hour in (13,14,16,17,19,20,22,23,27,33,39,45):
                 f=frames[hour][0];file=source/f['file']
                 data=json.loads(gzip.decompress(file.read_bytes()))
                 data['lats']=[[50.,50.],[51.,51.]]
@@ -144,11 +144,11 @@ class OptionalSynoptic(unittest.TestCase):
             ]
             index.write_bytes(compact(full))
             result=augment(snap,index,source)
-            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22])
+            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,27,33,39,45])
             latest=json.loads((snap/'latest.json').read_bytes())
             ix=json.loads((snap/latest['synopticFields']['key']).read_bytes())
             hours=[f['hour'] for f in ix['models']['icon-d2']['cloudWeatherFrames']]
-            self.assertEqual(hours,[1,13,14,16,17,19,20,22])
+            self.assertEqual(hours,[1,13,14,16,17,19,20,22,27,33,39,45])
             self.assertEqual(ix['cloudWeatherBudget']['optionalD2']['omittedHours'],[23])
             self.assertEqual(sum(o['bytes'] for o in latest['pages']['objects']),latest['pages']['publishedBytes'])
 
