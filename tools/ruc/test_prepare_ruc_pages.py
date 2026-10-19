@@ -144,6 +144,21 @@ with tempfile.TemporaryDirectory() as td:
  assert ample['cloudWeatherBudget']['optionalD2']['admittedHours']==[13,14,16,17,19,20,22,23,27,33,39,45]
  assert ample['cloudWeatherBudget']['optionalD2']['omittedHours']==[]
  assert sorted(f['hour'] for f in ample['models']['icon-d2']['cloudWeatherFrames'])==list(range(1,15))+[16,17,19,20,22,23,27,33,39,45], 'All new pair times must remain correctly ordered'
+ # All six-hourly ICON-EU/Global extensions are optional after the
+ # already released cloud + model inventory. They cannot displace it.
+ long_candidate=inventory()
+ long_candidate['models']['icon-eu']['cloudWeatherFrames'].extend(
+     {'hour':h,'bytes':100} for h in (54,66,78,90,102,114))
+ long_candidate['models']['icon']['cloudWeatherFrames'].extend(
+     {'hour':h,'bytes':100} for h in (54,66,78,90,102,114,126,138,150,162,174))
+ long_small=fit_synoptic_budget(long_candidate,20000)
+ assert long_small['models']==fit_synoptic_budget(inventory(),20000)['models'], 'Added long horizons displaced existing cloud/map fields'
+ assert long_small['cloudWeatherBudget']['optionalLong']['icon-eu']['admittedHours']==[]
+ assert long_small['cloudWeatherBudget']['optionalLong']['icon']['omittedHours']==[54,66,78,90,102,114,126,138,150,162,174]
+ long_ample=fit_synoptic_budget(long_candidate,500000)
+ assert long_ample['cloudWeatherBudget']['optionalLong']['icon-eu']['admittedHours']==[54,66,78,90,102,114]
+ assert long_ample['cloudWeatherBudget']['optionalLong']['icon']['admittedHours']==[54,66,78,90,102,114,126,138,150,162,174]
+ assert all(len(p['frames'])==10 for p in long_ample['models'].values()), 'Core synoptic frames may not be evicted'
  small=fit_synoptic_budget(inventory(),8000);large=fit_synoptic_budget(inventory(),20000)
  assert len(large['models'])==3 and all(len(p['cloudWeatherFrames'])==12 and len(p['frames'])==10 for p in large['models'].values())
  assert large['cloudWeatherBudget']['pruned']==[] and large['cloudWeatherBudget']['prunedSynoptic']==[]
