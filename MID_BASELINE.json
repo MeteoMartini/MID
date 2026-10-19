@@ -2791,7 +2791,6 @@
     "src/extremeWeatherOutlook.ts",
     "src/extremeWeatherOutlookDirect.generated.d.ts",
     "src/extremeWeatherOutlookDirect.generated.js",
-    "src/extremeWeatherOutlookExtendedFallback.ts",
     "src/filePlatform.ts",
     "src/flightRouteBriefing.ts",
     "src/forecastDayLabel.ts",

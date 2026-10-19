@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
-const [client,fallback,direct,workerSource,aggregate,proxy,generator,pkgRaw,baselineRaw]=await Promise.all([
- read('src/extremeWeatherOutlook.ts'),read('src/extremeWeatherOutlookExtendedFallback.ts'),read('src/extremeWeatherOutlookDirect.generated.js'),read('worker-src/25-dach-extreme-outlook.js'),read('worker.js'),read('worker/metar-proxy.js'),read('scripts/build-maintenance-aggregates.mjs'),read('package.json'),read('MID_BASELINE.json')
+const [client,direct,workerSource,aggregate,proxy,generator,pkgRaw,baselineRaw]=await Promise.all([
+ read('src/extremeWeatherOutlook.ts'),read('src/extremeWeatherOutlookDirect.generated.js'),read('worker-src/25-dach-extreme-outlook.js'),read('worker.js'),read('worker/metar-proxy.js'),read('scripts/build-maintenance-aggregates.mjs'),read('package.json'),read('MID_BASELINE.json')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-extreme-outlook-extended-resilience-0985154.mjs';
 assert.ok(Number(pkg.version.split('.').at(-1))>=154); // Historical release test remains valid for subsequent maintenance releases.
@@ -30,7 +30,6 @@ assert.ok(client.includes('Der regionale MID-Datendienst und der direkte Ersatza
 assert.ok(client.includes('function validExtendedOutlook(value:unknown)'),'Langfristprodukt muss eigenes Fachschema prüfen.');
 for(const id of ['48-72','72-96','96-120','120-144','144-168'])assert.ok(client.includes(id),'Langfristsegment fehlt: '+id);
 assert.ok(client.includes('validExtendedOutlook(data)'),'Datenquelle muss vollständigen Vorhinweis verifizieren.');
-assert.ok(fallback.includes('return loadExtendedExtremeWeatherOutlook(signal)'),'Kompatibilitätsimport muss denselben sicheren Datenweg nutzen.');
 const panel=await read('src/ExtremeWeatherOutlookPanel.tsx');
 assert.ok(panel.includes('isExtremeChunkLoadError(error)')&&panel.includes('window.location.reload()')&&panel.includes('App neu laden'),'Fehlendes JS-Modul muss durch echten Nutzer-Reload statt wiederholten kaputten Import behoben werden.');
 assert.ok(panel.includes('Erneut laden'),'Andere Netzwerkfehler müssen regulär wiederholbar bleiben.');

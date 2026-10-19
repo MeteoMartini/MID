@@ -11,7 +11,7 @@ import {formatDwdWindValue} from './dwdWarnings';
 import {formatDecimal} from './format';
 import {displayTimeLabel,formatDisplayDateTime} from './timeDisplay';
 import type {WindUnit} from './weather';
-import {EXTREME_HAZARDS,EXTREME_INTENSITY_COLORS,EXTREME_INTENSITY_LABELS,extremeProbabilityBand,extremeProbabilityOpacity,extremeSignalForCell,extremeSignalVisible,loadExtremeWeatherOutlook,loadExtendedExtremeWeatherOutlook,type ExtremeHazardId,type ExtremeHazardKind,type ExtremeOutlookThresholds,type ExtremeWeatherOutlook,type ResolvedExtremeSignal} from './extremeWeatherOutlook';
+import {EXTREME_HAZARDS,EXTREME_INTENSITY_COLORS,EXTREME_INTENSITY_LABELS,extremeProbabilityBand,extremeProbabilityOpacity,extremeSignalForCell,extremeSignalVisible,loadExtremeWeatherOutlook,loadExtendedExtremeWeatherOutlook,isExtremeChunkLoadError,type ExtremeHazardId,type ExtremeHazardKind,type ExtremeOutlookThresholds,type ExtremeWeatherOutlook,type ResolvedExtremeSignal} from './extremeWeatherOutlook';
 
 type Props={latitude:number;longitude:number;locationName:string;timezone?:string;unit:WindUnit;advancedMode:boolean};
 type RegionRow=ExtremeModelledArea;
@@ -56,7 +56,6 @@ function SelectedRegion({row,unit}:{row:RegionRow;unit:WindUnit}){const{region,s
 function cellHitRing(cell:ExtremeWeatherOutlook['cells'][number],data:ExtremeWeatherOutlook){const points=Array.from({length:24},(_,index)=>{const angle=index/24*Math.PI*2;return[cell.lon+Math.cos(angle)*data.grid.lonStep*.64,cell.lat+Math.sin(angle)*data.grid.latStep*.64]});return[...points,points[0]]}
 function buildMapData(data:ExtremeWeatherOutlook,periodId:string,hazard:ExtremeHazardId,unit:WindUnit){const features=[];for(const cell of data.cells){const signal=extremeSignalForCell(cell,periodId,hazard);if(!extremeSignalVisible(signal,hazard,data.thresholds)||!signal)continue;const color=EXTREME_INTENSITY_COLORS[signal.intensity],popup=`<strong>${escapeHtml(cell.region)}</strong><br/>${escapeHtml(HAZARD_LABELS[signal.hazard])} · I${signal.intensity} ${escapeHtml(EXTREME_INTENSITY_LABELS[signal.intensity])}<br/><b>${signal.probability} %</b> · ${escapeHtml(signalMetricSummary(signal,unit))}`;features.push({type:'Feature',properties:{cellId:cell.id,color,opacity:extremeProbabilityOpacity(signal.probability),popup,intensity:signal.intensity,probability:signal.probability,hazard:signal.hazard},geometry:{type:'Polygon',coordinates:[cellHitRing(cell,data)]}})}return{type:'FeatureCollection',features} as any}
 
-function isExtremeChunkLoadError(message:string){return /importing a module script failed|failed to fetch dynamically imported module|error loading dynamically imported module|dynamically imported module|module script.*failed/i.test(message)}
 
 function ExtremeWeatherOutlookContent({latitude,longitude,locationName,timezone,unit,advancedMode,range}:Props&{range:'short'|'extended'}){
  const[data,setData]=useState<ExtremeWeatherOutlook|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[hazard,setHazard]=useState<ExtremeHazardId>('overall'),[periodId,setPeriodId]=useState('0-6'),[revision,setRevision]=useState(0),[selectedAreaId,setSelectedAreaId]=useState('');

@@ -105,16 +105,17 @@ function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
  if(value.periods.length!==expected.length||!value.checkedAt||!Number.isFinite(Date.parse(value.checkedAt))||value.officialWarning!==false)return false;
  for(let index=0;index<expected.length;index++){
   const period=value.periods[index],spec=expected[index];
-  if(period.id!==spec[0]||period.startHour!==spec[1]||period.endHour!==spec[2]||!Number.isFinite(Date.parse(period.start))||!Number.isFinite(Date.parse(period.end))||Date.parse(period.end)-Date.parse(period.start)!==(spec[2]-spec[1])*3600000)return false;
+  if(!period||period.id!==spec[0]||period.startHour!==spec[1]||period.endHour!==spec[2]||!Number.isFinite(Date.parse(period.start))||!Number.isFinite(Date.parse(period.end))||Date.parse(period.end)-Date.parse(period.start)!==(spec[2]-spec[1])*3600000||(index>0&&Date.parse(period.start)!==Date.parse(value.periods[index-1].end)))return false;
  }
  const coverage=value.quality?.dataCoveragePct;
  if(!Number.isFinite(value.grid.pointCount)||value.grid.pointCount<=0||!Number.isFinite(value.quality?.ensembleMembers)||value.quality.ensembleMembers<=0||typeof coverage!=='number'||!Number.isFinite(coverage)||coverage<60||coverage>100)return false;
- for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!expected.every(spec=>cell.periods?.[spec[0]]&&typeof cell.periods[spec[0]].hazards==='object'))return false;}
+ for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!expected.every(spec=>{const hazards=cell.periods?.[spec[0]]?.hazards;return hazards!==null&&typeof hazards==='object'&&!Array.isArray(hazards)}))return false;}
  return true;
 }
 function readExtendedOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);return validExtendedOutlook(value)?value:undefined}
 function writeExtendedOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(storage)writeStoredJsonCache(storage,EXTENDED_CACHE_KEY,value,['mid:extreme-outlook:extended-payload:'],1,EXTENDED_STALE_MS)}
 function errorText(error:unknown){return error instanceof Error?error.message:String(error||'unbekannter Fehler')}
+export function isExtremeChunkLoadError(error:unknown){return /importing a module script failed|failed to fetch dynamically imported module|error loading dynamically imported module|dynamically imported module|module script.*failed|Eine App-Ressource konnte nicht geladen werden/i.test(errorText(error))}
 function abortReason(signal?:AbortSignal){return signal?.reason instanceof Error?signal.reason:new DOMException('Vorgang abgebrochen.','AbortError')}
 function throwIfAborted(signal?:AbortSignal){if(signal?.aborted)throw abortReason(signal)}
 function dailyWorkerLimit(error:unknown){return/(?:daily api request limit exceeded|try again tomorrow|t[aä]gliches? (?:api-)?(?:anfrage|aufruf|request)[ -]?(?:limit|kontingent)|tageskontingent)/i.test(errorText(error))}
@@ -200,6 +201,7 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Pro
   throwIfAborted(signal);
   const stale=readExtendedOutlookCache(EXTENDED_STALE_MS);
   if(stale)return{...stale,delivery:'local-cache',stale:true,staleReason:'Live-Aktualisierung derzeit nicht möglich; letzter vollständiger Langfristausblick wird weiter angezeigt.'};
+  if(isExtremeChunkLoadError(directError))throw new Error('Eine App-Ressource konnte nicht geladen werden. Bitte die App einmal neu laden; gespeicherte Wetterdaten bleiben erhalten.');
   if(dailyWorkerLimit(workerError))throw new Error('Der Wetterdatenweg hat sein Tageskontingent erreicht. Auch der direkte Ersatzabruf konnte keine vollständigen Daten liefern. Bitte später erneut laden.');
   if(/limit|ausgelastet|429/i.test(errorText(directError)))throw new Error('Der direkte Wetterdienst ist vorübergehend ausgelastet. Bitte später erneut laden.');
   throw new Error('Der regionale MID-Datendienst und der direkte Ersatzabruf sind derzeit nicht verfügbar. Bitte erneut laden.');

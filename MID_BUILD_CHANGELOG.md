@@ -1,3 +1,8 @@
+## MID v0.9.85.296 · 2026-10-19 · Langfrist-Ausblick und Wiederherstellung
+
+- PR419: Cache-/Workerpfad unabhängig von optionalem Direktmodul, Schema-Recovery und nutzergetriggerter Reload nach Modulfehler; keine meteorologische Änderung.
+- Vier Source-Blocker ohne Gate-/Budgetausnahme repariert; dynamische Loaderprüfung und 24 tatsächliche Browserfälle, Types/Build und 1001/1001 lokal grün. Nachweis docs/implementation/MID_C36_EXTREME_RECOVERY_0.9.85.296.md.
+
 ## MID v0.9.85.295 · 2026-10-18 · Prägnante 7-Tage-Wettertexte
 
 - Der 7-Tage-Trend priorisiert signifikanten Niederschlag, Schnee, Gewitter, markante Temperaturen und DWD-nahe Modellhinweise. Allgemeine Trocken- und Wolkenfloskeln wurden zurückgedrängt.
