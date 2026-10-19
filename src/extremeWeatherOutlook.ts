@@ -99,7 +99,19 @@ function browserStorage(){try{return typeof localStorage==='undefined'?undefined
 function validOutlook(value:unknown):value is ExtremeWeatherOutlook{const data=value as ExtremeWeatherOutlook|undefined,bounds=data?.grid?.bounds;const coverage=Number(data?.quality?.dataCoveragePct??100);return Boolean(data&&data.scope==='Mitteleuropa'&&Array.isArray(data.periods)&&data.periods.length&&Array.isArray(data.cells)&&data.cells.length&&data.grid?.pointCount&&coverage>=60&&bounds&&bounds.west<=-3.84&&bounds.east>=20.2&&bounds.south<=43.2&&bounds.north>=57.99&&data.thresholds?.probability)}
 function readOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,OUTLOOK_CACHE_KEY,maxAgeMs);return validOutlook(value)?value:undefined}
 function writeOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(!storage)return;writeStoredJsonCache(storage,OUTLOOK_CACHE_KEY,value,[OUTLOOK_PAYLOAD_PREFIX],2,OUTLOOK_STALE_MS)}
-function readExtendedOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);return validOutlook(value)?value:undefined}
+function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
+ if(!validOutlook(value))return false;
+ const expected=[['48-72',48,72],['72-96',72,96],['96-120',96,120],['120-144',120,144],['144-168',144,168]] as const;
+ if(value.periods.length!==expected.length||!value.checkedAt||!Number.isFinite(Date.parse(value.checkedAt))||value.officialWarning!==false)return false;
+ for(let index=0;index<expected.length;index++){
+  const period=value.periods[index],spec=expected[index];
+  if(period.id!==spec[0]||period.startHour!==spec[1]||period.endHour!==spec[2]||!Number.isFinite(Date.parse(period.start))||!Number.isFinite(Date.parse(period.end))||Date.parse(period.end)-Date.parse(period.start)!==(spec[2]-spec[1])*3600000)return false;
+ }
+ if(!Number.isFinite(value.grid.pointCount)||value.grid.pointCount<=0||!Number.isFinite(value.quality?.ensembleMembers)||value.quality.ensembleMembers<=0)return false;
+ for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!expected.every(spec=>cell.periods?.[spec[0]]&&typeof cell.periods[spec[0]].hazards==='object'))return false;}
+ return true;
+}
+function readExtendedOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);return validExtendedOutlook(value)?value:undefined}
 function writeExtendedOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(storage)writeStoredJsonCache(storage,EXTENDED_CACHE_KEY,value,['mid:extreme-outlook:extended-payload:'],1,EXTENDED_STALE_MS)}
 function errorText(error:unknown){return error instanceof Error?error.message:String(error||'unbekannter Fehler')}
 function abortReason(signal?:AbortSignal){return signal?.reason instanceof Error?signal.reason:new DOMException('Vorgang abgebrochen.','AbortError')}
@@ -171,7 +183,7 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Pro
   try{
    const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
    throwIfAborted(signal);
-   if(data.error||!validOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht vollständig verfügbar.');
+   if(data.error||!validExtendedOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht vollständig verfügbar.');
    const result={...data,delivery:'worker' as const};clearWorkerLimit();writeExtendedOutlookCache(result);return result;
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
  }
@@ -180,7 +192,7 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Pro
   throwIfAborted(signal);
   const data=await loadDirectDachExtendedExtremeOutlook(signal) as ExtremeWeatherOutlook;
   throwIfAborted(signal);
-  if(!validOutlook(data))throw new Error('Direkt berechneter Langfristausblick ist unvollständig.');
+  if(!validExtendedOutlook(data))throw new Error('Direkt berechneter Langfristausblick ist unvollständig.');
   const result={...data,delivery:'browser-direct' as const,fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus den tatsächlichen DWD ICON-EPS-Mitgliedern mit verfügbarer ECMWF-Böenergänzung berechnet.'};
   writeExtendedOutlookCache(result);return result;
  }catch(directError){
