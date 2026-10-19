@@ -139,7 +139,10 @@ def valid_compressed_inventory(meta:dict,objects:list)->bool:
     if total!=pages['publishedBytes']:
         return False
     # Check page record chains in the advertised products without reading bytes.
-    specs=[meta.get('deterministic'),meta.get('epsSummary'),*(meta.get('rapid') or {}).values()]
+    rapid=meta.get('rapid')
+    if not isinstance(rapid,dict):
+        return False
+    specs=[meta.get('deterministic'),meta.get('epsSummary'),*rapid.values()]
     decoded_parts=0
     for spec in specs:
         if not isinstance(spec,dict):
