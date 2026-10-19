@@ -7,16 +7,16 @@ from augment_compressed_synoptic import augment,compact,sha
 RUC='2026-10-16T04:00'
 MODEL='2026-10-16T00:00:00+00:00'
 PREFIX='runs/20261016T0400__synoptic_old/synoptic-fields'
-def payload(hour):
+def payload(hour,model='icon-d2'):
     from datetime import datetime,timedelta
     t=(datetime.fromisoformat(MODEL)+timedelta(hours=hour)).isoformat()
-    data={'schema':'mid.cloud-weather.field.v1','model':'icon-d2','run':MODEL,'time':t,'cloudUnit':'%',
+    data={'schema':'mid.cloud-weather.field.v1','model':model,'run':MODEL,'time':t,'cloudUnit':'%',
           'weatherUnit':'WMO 4677','cloudScale':.1,'lats':[50.,51.],'lons':[7.,8.],
           'cloud':[0,300,550,None],'weather':[0,3,61,None],
           'origins':[{'url':'https://opendata.dwd.de/weather/nwp/icon-d2/'+str(hour),'sha256':'a'*64}]}
     raw=json.dumps(data,separators=(',',':')).encode()
     wire=gzip.compress(raw,mtime=0)
-    return ({'hour':hour,'time':t,'file':f'icon-d2-cw-{hour:03d}.bin',
+    return ({'hour':hour,'time':t,'file':f'{model}-cw-{hour:03d}.bin',
             'encoding':'gzip-json','decodedBytes':len(raw),'bytes':len(wire),'sha256':sha(wire)},wire)
 def setup(root):
     source=root/'full-synoptic';source.mkdir()
@@ -164,6 +164,85 @@ class OptionalSynoptic(unittest.TestCase):
                 augment(snap,index,source)
             self.assertEqual(pointer.read_bytes(),original)
             self.assertEqual(sorted(p.name for p in (snap/PREFIX).iterdir()),['icon-d2-cw-001.bin','index.json'])
+
+    def test_optional_eu_global_horizon_sources_are_verified_and_published_atomically(self):
+        with tempfile.TemporaryDirectory() as td:
+            snap,index,source,_=setup(Path(td))
+            pointer=snap/'latest.json'
+            original=pointer.read_bytes()
+            active_path=snap/PREFIX/'index.json'
+            current=json.loads(active_path.read_bytes())
+            full=json.loads(index.read_bytes())
+            expected={'icon-eu':(54,66,78,90,102,114),
+                      'icon':(54,66,78,90,102,114,126,138,150,162,174)}
+            for model,hours in expected.items():
+                current['models'][model]={'run':MODEL,'resolutionKm':14 if model=='icon-eu' else 28,
+                                          'license':'CC BY 4.0','frames':[],'cloudWeatherFrames':[]}
+                full['models'][model]=copy.deepcopy(current['models'][model])
+                for hour in hours:
+                    descriptor,wire=payload(hour,model)
+                    (source/descriptor['file']).write_bytes(wire)
+                    full['models'][model]['cloudWeatherFrames'].append(descriptor)
+            # Copy only the original index descriptor, not a different unhashed
+            # active index: all original published objects remain unchanged.
+            new_active=compact(current)
+            active_path.write_bytes(new_active)
+            manifest=json.loads(original)
+            for row in manifest['pages']['objects']:
+                if row['key'].endswith('/index.json'):
+                    row.update(bytes=len(new_active),sha256=sha(new_active))
+            manifest['pages']['publishedBytes']=sum(r['bytes'] for r in manifest['pages']['objects'])
+            pointer.write_bytes(compact(manifest))
+            index.write_bytes(compact(full))
+            before=pointer.read_bytes()
+            result=augment(snap,index,source)
+            self.assertEqual(result['admittedByModel']['icon-eu'],list(expected['icon-eu']))
+            self.assertEqual(result['admittedByModel']['icon'],list(expected['icon']))
+            self.assertEqual(result['admittedByModel']['icon-d2'],[13,14,16,17,19,20,22,23,27,33,39,45])
+            latest=json.loads(pointer.read_bytes())
+            self.assertEqual(latest['synopticFields']['optionalModelProof']['admittedByModel'],result['admittedByModel'])
+            new_index_path=snap/latest['synopticFields']['key']
+            merged=json.loads(new_index_path.read_bytes())
+            for model,hours in expected.items():
+                self.assertEqual([f['hour'] for f in merged['models'][model]['cloudWeatherFrames']],list(hours))
+                for frame in merged['models'][model]['cloudWeatherFrames']:
+                    wire=(new_index_path.parent/frame['file']).read_bytes()
+                    self.assertEqual(sha(wire),frame['sha256'])
+            self.assertEqual(sum(row['bytes'] for row in latest['pages']['objects']),
+                             latest['pages']['publishedBytes'])
+            self.assertNotEqual(pointer.read_bytes(),before)
+            self.assertEqual((snap/PREFIX/'index.json').read_bytes(),new_active)
+
+    def test_invalid_eu_cloud_weather_does_not_move_published_pointer(self):
+        with tempfile.TemporaryDirectory() as td:
+            snap,index,source,_=setup(Path(td))
+            original_meta_path=snap/'latest.json'
+            current=json.loads((snap/PREFIX/'index.json').read_bytes())
+            full=json.loads(index.read_bytes())
+            current['models']['icon-eu']={'run':MODEL,'resolutionKm':14,
+                'license':'CC BY 4.0','frames':[],'cloudWeatherFrames':[]}
+            full['models']['icon-eu']=copy.deepcopy(current['models']['icon-eu'])
+            descriptor,wire=payload(54,'icon-eu')
+            weather=json.loads(gzip.decompress(wire))
+            weather['model']='icon'  # Wrong model even when the bytes/hash agree
+            mutated=gzip.compress(json.dumps(weather).encode(),mtime=0)
+            descriptor.update(bytes=len(mutated),decodedBytes=len(gzip.decompress(mutated)),sha256=sha(mutated))
+            (source/descriptor['file']).write_bytes(mutated)
+            full['models']['icon-eu']['cloudWeatherFrames']=[descriptor]
+            existing_index=snap/PREFIX/'index.json'
+            active_bytes=compact(current)
+            existing_index.write_bytes(active_bytes)
+            meta=json.loads(original_meta_path.read_bytes())
+            for row in meta['pages']['objects']:
+                if row['key'].endswith('/index.json'):
+                    row.update(bytes=len(active_bytes),sha256=sha(active_bytes))
+            meta['pages']['publishedBytes']=sum(row['bytes'] for row in meta['pages']['objects'])
+            original_meta_path.write_bytes(compact(meta))
+            before=original_meta_path.read_bytes()
+            index.write_bytes(compact(full))
+            with self.assertRaisesRegex(ValueError,'model cycle'):
+                augment(snap,index,source)
+            self.assertEqual(original_meta_path.read_bytes(),before)
 
     def test_optional_absent_does_not_edit_valid_codec(self):
         with tempfile.TemporaryDirectory() as td:
