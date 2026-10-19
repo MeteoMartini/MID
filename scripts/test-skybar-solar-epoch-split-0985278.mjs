@@ -82,3 +82,25 @@ assert.ok(app.includes('detailSkyBarTimedSegments(currentThreadSkyBaseHours,curr
 assert.ok(app.includes('detailSkyBarTimedSegments(currentThreadSkyFine,currentThreadStartEpoch,currentThreadTargetEpoch,2,2,120,8).filter'), 'Current nowcast precipitation remains independent');
 assert.ok(app.indexOf('currentThreadSolar=')<app.indexOf('currentThreadSkySegments='),'Solar context must be initialized before rendering');
 console.log('Current 12h: solar mapping, clipped dawn/dusk, 15/60min, cloud/Missing, DST and unchanged precipitation passed.');
+
+// C37: the actual classic/hourly-detail consumer uses calendar-midnight epochs.
+const axisSource=app.match(/function detailCalendarAxis[\s\S]*?\n}/)?.[0];
+assert.ok(axisSource,'Shared detail calendar axis is present');
+const axisModule={exports:{}},axisJs=ts.transpileModule('export '+axisSource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+vm.runInNewContext('(function(module,exports){'+axisJs+'\n})',{localIsoToEpoch:load('src/timeDisplay.ts').localIsoToEpoch,clamp:(v,a,b)=>Math.min(b,Math.max(a,v))})(axisModule,axisModule.exports);
+for(const [date,count] of [['2026-03-29',23],['2026-10-25',25],['2026-10-19',24]]){
+ const axis=axisModule.exports.detailCalendarAxis(date,'Europe/Berlin',40,1000);
+ assert.equal((axis.end-axis.start)/3600000,count);
+ const points=Array.from({length:count},(_,i)=>axis.start+i*3600000);
+ assert.equal(new Set(points.map(axis.x)).size,count,'Repeated clock hour has distinct epoch geometry');
+ assert.equal(axis.x(axis.start),40);assert.equal(axis.x(axis.end),1040);
+ const sunset=axis.start+count*.7*3600000;
+ const samples=points.map(epoch=>sample(20,true,0,{epoch,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:epoch+3600000}));
+ const segments=detailSkyBarTimedSegments(samples,axis.start,axis.end,40,0,1040,8,[{startEpoch:sunset,endEpoch:axis.end}]);
+ assert.ok(layer(segments,'base').every(s=>s.x2<=axis.x(sunset)+1e-8),'No yellow extends beyond exact sunset on any calendar-day length');
+}
+assert.ok(app.includes('detailSkyBarTimedSegments(detailSkyHours,detailAxis.start,detailAxis.end,left,right,W,skyBarY,detailSolar.nightBands)'));
+assert.ok(app.includes('detailSolar.nightBands.map'));
+assert.ok(!app.includes('23*60'),'No nominal 23-hour solar axis');
+assert.ok(!app.includes('allDayHours.slice(0,24)'),'Do not truncate the repeated autumn hour');
+console.log('C37 calendar detail axis: 23/24/25 hours, unique repeated-hour geometry, exact sunset, shared consumer wiring passed.');

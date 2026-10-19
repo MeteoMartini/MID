@@ -35,3 +35,11 @@ for(const [i,p] of points.entries()){assert.match(p.weatherLabel,p.cloud>=43.75?
 console.log('C23 .206: six screenshot time slots, physical band gaps, missing vs zero clouds, all shared icons/periods/detail/cloud layers and short-term fallback passed.');
 
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-c23-sunset-browser-0985206.mjs'],{stdio:'inherit',timeout:360000});
+// C37: 3h display groups retain their true duration and never cross missing slots.
+for(const count of [2,3,4]){
+ const rows=Array.from({length:count},(_,i)=>({...hours[0],epoch:Date.UTC(2026,9,25,0)+i*3600000,time:'2026-10-25T02:00',precipitation:1,rain:1}));
+ const group=m.detailHoursByResolution(rows,'3h');assert.equal(group.length,1);
+ assert.equal(group[0].precipitation,count);assert.equal(group[0].precipitationIntervalEndEpoch-group[0].precipitationIntervalStartEpoch,count*3600000);
+}
+const gapRows=[0,2,3].map(i=>({...hours[0],epoch:Date.UTC(2026,9,19,0)+i*3600000,time:'2026-10-19T02:00'}));
+const gapGroups=m.detailHoursByResolution(gapRows,'3h');assert.equal(gapGroups.length,2);assert.equal(gapGroups[0].precipitationIntervalEndEpoch,gapRows[0].epoch+3600000);assert.equal(gapGroups[1].epoch,gapRows[1].epoch);

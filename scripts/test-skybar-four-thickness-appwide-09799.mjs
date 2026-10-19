@@ -20,7 +20,7 @@ assert.ok(skybar.includes('export function detailSkyBarHourCells(hours:PrecipSam
 assert.ok(skybar.includes("const visuals=weatherStripVisuals(hour,intervalSeconds)"),'Stundenquadrate dürfen keine zweite Wetterklassifikation erfinden.');
 assert.ok(renderer.includes('export function SkyBarHourCellsSvg')&&renderer.includes('data-mid-skybar-cells="24h"'),'24-Stundenquadrate brauchen einen eigenen zentralen Renderer.');
 assert.ok(app.includes("type SkybarDisplayMode='band'|'squares'")&&app.includes("skybarDisplayMode:'band'"),'Skybar muss Standard bleiben und Quadratmodus explizit typisiert sein.');
-assert.ok(app.includes("allDayHours.slice(0,24)")&&app.includes('detailSkyBarHourCells'),'Quadratmodus muss die unveränderte Einzelstundenfolge und maximal 24 reale Stundenpositionen verwenden.');
+assert.ok(app.includes("detailSkyBarHourCells(allDayHours)")&&!app.includes("allDayHours.slice(0,24)")&&app.includes("xEndPositions={allDayHours.map(hour=>xEpoch(hour.epoch+3600000))}"),'Quadratmodus muss die unveränderte Einzelstundenfolge und alle 23/24/25 realen Stundenpositionen verwenden.');
 assert.ok(app.includes('24 Stundenquadrate')&&app.includes('Eine gleich große Zelle je Einzelstunde'),'Persistente Einstellungsoption für die Stundenquadrate fehlt.');
 assert.ok(app.includes('data-skybar-display={skybarDisplayMode}')&&app.includes('data-mid-skybar="squares"'),'Forecast muss den gewählten Darstellungsmodus sichtbar rendern.');
 assert.ok(polish.includes("[data-skybar-display='squares'] .mid-skybar-note")&&polish.includes('.settings-skybar-preview.squares'),'Quadratmodus braucht passende Legenden-/Einstellungspolitur.');

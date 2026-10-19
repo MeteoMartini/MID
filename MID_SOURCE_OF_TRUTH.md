@@ -1,3 +1,10 @@
+# MID v0.9.85.297 · MID-C37 Detailzeitachse (Source-PR-Kandidat)
+
+- Basis main=mid-stable=e00b41ead6a0aed3a90eb20e9dde26c43455dfc6, veröffentlichte .296.
+- Klassische Forecast-/Hourly-Details: gemeinsame lokale Kalender-Epochachse, echte 23/24/25h, solare Nachtbänder/Marker aus kanonischer Astronomie; Band aus unveränderten stündlichen Vorwärtsslots statt 3h-Mittelbewölkung. Keine neue Meteorologie oder Warnschwelle.
+- 3h-Gruppen erhalten tatsächliche Intervallenden, brechen an fehlenden Stunden; Stundenquadrate erhalten alle Stunden. Kalendertag bleibt ortslokal auch bei UTC-Anzeige.
+- Prüf-/Releasebelege: docs/implementation/MID_C37_DETAIL_SOLAR_0.9.85.297.md. Noch keine Veröffentlichung; ausschließlich bestehender Source-/Bot-/Installer-/Stable-Pfad. #374 bleibt für appweite Live-/Geräteabnahme offen; #352/#405/#411 separat.
+
 # MID v0.9.85.296 · Extremwetter-Tag-3–7: Worker-/Cache-Fix (Source-PR-Kandidat)
 
 - Freigegebene Ausgangsbasis: `main=mid-stable=369cde0bbbe61e52cc422038e4d1dd94ff16099e`, v0.9.85.295; Installer 39169042660 erfolgreich.
