@@ -111,7 +111,7 @@ class OptionalSynoptic(unittest.TestCase):
                 row.update(bytes=len(wire),sha256=sha(wire),decodedBytes=len(gzip.decompress(wire)))
                 index.write_bytes(compact(full))
             result=augment(snap,index,source)
-            self.assertEqual(result['admittedHours'],[13,14,16,17])
+            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22,23])
     def test_bad_real_one_dimensional_axes_are_rejected(self):
         for mode in ('lat-length','lon-length','lat-nonmonotonic','lat-out-of-range','lon-nan','mixed-dimension'):
             with self.subTest(mode=mode),tempfile.TemporaryDirectory() as td:
@@ -134,6 +134,37 @@ class OptionalSynoptic(unittest.TestCase):
                 with self.assertRaises((ValueError,TypeError)):
                     augment(snap,index,source)
                 self.assertEqual((snap/'latest.json').read_bytes(),original)
+    def test_missing_optional_term_stays_missing_without_shifting_or_synthesis(self):
+        with tempfile.TemporaryDirectory() as td:
+            snap,index,source,_=setup(Path(td))
+            full=json.loads(index.read_bytes())
+            full['models']['icon-d2']['cloudWeatherFrames']=[
+                f for f in full['models']['icon-d2']['cloudWeatherFrames']
+                if f['hour']!=23
+            ]
+            index.write_bytes(compact(full))
+            result=augment(snap,index,source)
+            self.assertEqual(result['admittedHours'],[13,14,16,17,19,20,22])
+            latest=json.loads((snap/'latest.json').read_bytes())
+            ix=json.loads((snap/latest['synopticFields']['key']).read_bytes())
+            hours=[f['hour'] for f in ix['models']['icon-d2']['cloudWeatherFrames']]
+            self.assertEqual(hours,[1,13,14,16,17,19,20,22])
+            self.assertEqual(ix['cloudWeatherBudget']['optionalD2']['omittedHours'],[23])
+            self.assertEqual(sum(o['bytes'] for o in latest['pages']['objects']),latest['pages']['publishedBytes'])
+
+    def test_budget_failure_never_moves_original_snapshot_pointer(self):
+        with tempfile.TemporaryDirectory() as td:
+            snap,index,source,_=setup(Path(td))
+            pointer=snap/'latest.json'
+            manifest=json.loads(pointer.read_bytes())
+            manifest['pages']['publishedBytes']=899_999_995
+            pointer.write_bytes(compact(manifest))
+            original=pointer.read_bytes()
+            with self.assertRaisesRegex(ValueError,'budget'):
+                augment(snap,index,source)
+            self.assertEqual(pointer.read_bytes(),original)
+            self.assertEqual(sorted(p.name for p in (snap/PREFIX).iterdir()),['icon-d2-cw-001.bin','index.json'])
+
     def test_optional_absent_does_not_edit_valid_codec(self):
         with tempfile.TemporaryDirectory() as td:
             snap,index,source,_=setup(Path(td));before=(snap/'latest.json').read_bytes()
