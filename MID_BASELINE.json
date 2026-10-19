@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-extreme-outlook-module-recovery-0985296.mjs",
     "scripts/test-seven-day-significant-timeline-0985295.mjs",
     "scripts/test-barcelona-warning-area-dedupe-0985290.mjs",
     "scripts/test-short-term-brief-chart-0985289.mjs",
@@ -1017,6 +1018,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-extreme-outlook-module-recovery-0985296.mjs",
     "scripts/test-seven-day-significant-timeline-0985295.mjs",
     "scripts/test-barcelona-warning-area-dedupe-0985290.mjs",
     "scripts/test-short-term-brief-chart-0985289.mjs",
