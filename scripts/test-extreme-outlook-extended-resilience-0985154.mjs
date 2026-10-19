@@ -20,7 +20,9 @@ const canonicalDirectSource=workerSource.trim().replace(
 );
 assert.ok(direct.includes(canonicalDirectSource),'Direktpfad muss die kanonische Worker-Fachlogik enthalten.');
 assert.ok(generator.includes('export async function loadDirectDachExtendedExtremeOutlook(signal)'),'Generator muss den Langfrist-Direktexport reproduzierbar erzeugen.');
-assert.ok(client.includes("import('./extremeWeatherOutlookExtendedFallback')"),'Langfrist-Resilienz muss lazy geladen werden, damit das Main-Bundle im Budget bleibt.');
+assert.ok(!client.includes("import('./extremeWeatherOutlookExtendedFallback')"),'Langfrist-Worker darf bei fehlendem Zusatzmodul nicht blockiert werden.');
+assert.ok(client.includes("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}"),'Langfrist-Worker muss vor dynamischem Direktmodul ohne Import erreichbar sein.');
+assert.ok(client.includes('readExtendedOutlookCache(EXTENDED_FRESH_MS)')&&client.includes('readExtendedOutlookCache(EXTENDED_STALE_MS)'),'Vollständiger Langfrist-Cache muss auch ohne Import erreichbar sein.');
 assert.ok(client.includes("import('./extremeWeatherOutlookDirect.generated.js')"),'Auch die große kanonische Direktberechnung muss lazy bleiben und darf nicht das Main-Bundle belasten.');
 for(const token of ['loadDirectDachExtendedExtremeOutlook','FRESH_MS=3*60*60*1000','STALE_MS=24*60*60*1000',"cacheKey:'dach-extreme-outlook:extended:v4'",'const fresh=read(FRESH_MS)','const stale=read(STALE_MS)','if(dailyLimit(error))rememberLimit()'])assert.ok(fallback.includes(token),'Langfrist-Resilienzvertrag fehlt: '+token);
 assert.ok(fallback.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}")<fallback.indexOf('loadDirectDachExtendedExtremeOutlook(signal)'),'Worker muss vor Browser-Direktabruf versucht werden.');
