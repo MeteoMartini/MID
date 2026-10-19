@@ -10,8 +10,7 @@ const required=[
  'function windDirectionWarningLevel',
  'function localTimeLabel',
  'function hourDisplayClock',
- 'function clockMinutes',
- 'function clockLabel',
+ 'function detailCalendarAxis',
  'function precipitationBeyondTwoHours'
 ];
 const missing=required.filter(token=>!app.includes(token));
