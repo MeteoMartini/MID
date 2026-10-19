@@ -12,6 +12,10 @@ const mainJs=mainChunks.length?{size:mainChunks.reduce((total,item)=>total+item.
 const mainCss=files.filter(item=>/^index-.*\.css$/.test(item.name)).sort((a,b)=>b.size-a.size)[0];
 const budgets={js:1_500_000,css:1_760_000};
 const failures=[];
+// When a build directory exists, its startup bundles are mandatory. Missing
+// index assets must not be reported as a successful (0-byte) production build.
+if(!mainJs)failures.push('Main-JS fehlt im vorhandenen dist/assets');
+if(!mainCss)failures.push('Main-CSS fehlt im vorhandenen dist/assets');
 if(mainJs&&mainJs.size>budgets.js)failures.push(`Main-JS ${mainJs.size} B > ${budgets.js} B`);
 if(mainCss&&mainCss.size>budgets.css)failures.push(`Main-CSS ${mainCss.size} B > ${budgets.css} B`);
 console.log(`Bundle-Budget: JS ${mainJs?.size??0}/${budgets.js} B · CSS ${mainCss?.size??0}/${budgets.css} B`);

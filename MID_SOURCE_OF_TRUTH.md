@@ -1,3 +1,11 @@
+# MID v0.9.85.299 · Bundle-Budget-Integrität bei unvollständigen Build-Artefakten (Source-PR-Kandidat)
+
+- Verifizierte Stable-Basis: main=mid-stable=a21791cea8e51546ba568d9fedaf3729ae069dab, v0.9.85.298; Installer 39277116386 erfolgreich. Kein Branch-Drift zum Beginn.
+- Die bisherige `scripts/test-bundle-budget-098594.mjs` meldete ein vorhandenes, aber nur teilweise gefülltes `dist/assets` als bestanden (Main-Asset fehlte und wurde als `0` Byte angezeigt). Die Prüfung verlangt jetzt bei vorhandenem `dist/assets` mindestens ein Main-JS- und ein Main-CSS-Asset; die alten 1.500.000/1.760.000-Byte-Grenzen bleiben hart unverändert.
+- Regression `scripts/test-bundle-budget-missing-assets-0985299.mjs` deckt source-only-Prebuild, leeren Build, JS-only, CSS-only, vollständigen Build und zu große CSS/JS-Bundles ab. Bestehende 1.001 Regressionen bleiben erhalten.
+- **Kein behaupteter CSS-Performancegewinn**: Die große Start-CSS-Datei bleibt unverändert; #344 braucht Browser-Coverage und Layoutparität. Keine Änderungen an Meteorologie, Datenquellen, PWA-/iOS-Assets, Warnlogik oder Workerberechnung.
+- Test-/Source-/Installer-Gates und neue Stable-Promotion gelten erst nach tatsächlichem Nachweis, ausschließlich über den MID-Releasepfad. Technischer Bericht: `docs/implementation/MID_C42_BUNDLE_BUDGET_0.9.85.299.md`.
+
 # MID v0.9.85.298 · RUC-Freshness-Guard für komprimierte Veröffentlichungen (Source-PR-Kandidat)
 
 - Verifizierte Basis: main=mid-stable=9bb0670fbc37d042cd77625672a319aa3dbf3f1e, v0.9.85.297, Installer 39260114652 erfolgreich.
