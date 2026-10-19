@@ -24,9 +24,10 @@ assert.ok(!client.includes("import('./extremeWeatherOutlookExtendedFallback')"),
 assert.ok(client.includes("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}"),'Langfrist-Worker muss vor dynamischem Direktmodul ohne Import erreichbar sein.');
 assert.ok(client.includes('readExtendedOutlookCache(EXTENDED_FRESH_MS)')&&client.includes('readExtendedOutlookCache(EXTENDED_STALE_MS)'),'Vollständiger Langfrist-Cache muss auch ohne Import erreichbar sein.');
 assert.ok(client.includes("import('./extremeWeatherOutlookDirect.generated.js')"),'Auch die große kanonische Direktberechnung muss lazy bleiben und darf nicht das Main-Bundle belasten.');
-for(const token of ['loadDirectDachExtendedExtremeOutlook','FRESH_MS=3*60*60*1000','STALE_MS=24*60*60*1000',"cacheKey:'dach-extreme-outlook:extended:v4'",'const fresh=read(FRESH_MS)','const stale=read(STALE_MS)','if(dailyLimit(error))rememberLimit()'])assert.ok(fallback.includes(token),'Langfrist-Resilienzvertrag fehlt: '+token);
-assert.ok(fallback.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}")<fallback.indexOf('loadDirectDachExtendedExtremeOutlook(signal)'),'Worker muss vor Browser-Direktabruf versucht werden.');
-assert.ok(fallback.includes('Der regionale MID-Datendienst und der direkte Ersatzabruf sind derzeit nicht verfügbar. Bitte erneut laden.'),'Fail-closed-Endzustand fehlt.');
+for(const token of ['EXTENDED_FRESH_MS=3*60*60*1000','EXTENDED_STALE_MS=24*60*60*1000',"cacheKey:'dach-extreme-outlook:extended:v4'",'readExtendedOutlookCache(EXTENDED_FRESH_MS)','readExtendedOutlookCache(EXTENDED_STALE_MS)','if(dailyWorkerLimit(error))rememberWorkerLimit()'])assert.ok(client.includes(token),'Langfrist-Resilienzvertrag fehlt: '+token);
+assert.ok(client.indexOf("fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'}")<client.indexOf("import('./extremeWeatherOutlookDirect.generated.js')",client.indexOf('export async function loadExtendedExtremeWeatherOutlook')),'Worker muss vor Browser-Direktabruf versucht werden.');
+assert.ok(client.includes('Der regionale MID-Datendienst und der direkte Ersatzabruf sind derzeit nicht verfügbar. Bitte erneut laden.'),'Fail-closed-Endzustand fehlt.');
+assert.ok(fallback.includes('return loadExtendedExtremeWeatherOutlook(signal)'),'Kompatibilitätsimport muss denselben sicheren Datenweg nutzen.');
 
 const hours=Array.from({length:169},(_,index)=>new Date(Date.UTC(2026,9,3,16+index)).toISOString().slice(0,16));
 const values=value=>Array(169).fill(value);
