@@ -136,7 +136,39 @@ def valid_compressed_inventory(meta:dict,objects:list)->bool:
         total+=row['bytes']
         if total>pages['publishedBytes']:
             return False
-    return total==pages['publishedBytes']
+    if total!=pages['publishedBytes']:
+        return False
+    # Check page record chains in the advertised products without reading bytes.
+    specs=[meta.get('deterministic'),meta.get('epsSummary'),*(meta.get('rapid') or {}).values()]
+    decoded_parts=0
+    for spec in specs:
+        if not isinstance(spec,dict):
+            return False
+        page=spec.get('compressedPages')
+        if spec.get('dtype')!='int16-le' or not isinstance(page,dict) or spec.get('pages') is not None:
+            return False
+        if page.get('schema')!='mid.ruc.compressed-pages.v1':
+            return False
+        if any(type(page.get(field)) is not int or page[field]<=0 for field in ('records','recordBytes')):
+            return False
+        parts=page.get('parts')
+        if not isinstance(parts,list) or not parts:
+            return False
+        cursor=0
+        for part in parts:
+            if not isinstance(part,dict) or type(part.get('firstRecord')) is not int or part['firstRecord']!=cursor or type(part.get('recordCount')) is not int or part['recordCount']<1:
+                return False
+            key=part.get('key')
+            manifest=part.get('manifest')
+            if not isinstance(key,str) or key not in seen or not isinstance(manifest,dict):
+                return False
+            if not SHA256_RE.fullmatch(str(manifest.get('encodedSha256',''))):
+                return False
+            cursor+=part['recordCount']
+            decoded_parts+=1
+        if cursor!=page['records']:
+            return False
+    return decoded_parts==proof['fullyDecodedParts'] and proof['recordComparisons']>=decoded_parts
 
 
 def valid_pages_meta(meta:dict)->bool:
