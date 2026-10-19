@@ -33,7 +33,7 @@ assert.ok(detailSkyBar.includes("import {precipitationPhaseColor,precipitationPh
 assert.ok(!detailSkyBar.includes('const precipSunColor=')&&!detailSkyBar.includes('color-mix(in srgb'),'Niederschlag darf nicht mehr mit Gelb/Grau zu Mischfarben verrechnet werden.');
 assert.ok(!detailSkyBar.includes('underlayColor')&&!detailSkyBar.includes('underlayStrokeWidth')&&!detailSkyBar.includes('underlayOpacity'),'Skybar darf keine 3D-Unterlage rendern.');
 assert.ok(detailSkyBar.includes('xPositions?:number[]'),'detailSkyBar muss explizite X-Positionen der 7-Tage-Kurvenübersicht unterstützen.');
-assert.ok(detailSkyBar.includes("precipitationParts,type PrecipSample")&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss den gemeinsamen PrecipSample-Vertrag akzeptieren.');
+assert.ok(/import \{[^}]*\bprecipitationParts\b[^}]*\btype PrecipSample\b[^}]*\} from '\.\/precipitation';/.test(detailSkyBar)&&detailSkyBar.includes('hours:PrecipSample[]')&&!detailSkyBar.includes("import type {Hour} from './weather'"),'Wetterstreifen muss den gemeinsamen PrecipSample-Vertrag akzeptieren.');
 
 assert.ok(app.includes('<SkyBarSegmentsSvg segments={skyBarSegments}')&&cockpit.includes('<SkyBarSegmentsSvg segments={profileSkyBarSegments}')&&skyBarRenderer.includes('<rect pointerEvents="none" x={segment.x1}')&&!skyBarRenderer.includes('<circle'),'MID-C32: gemeinsamer Skybar-Balkenrenderer hat gerade Enden ohne Kreiskappen.');
 assert.ok(cockpit.includes('function cockpitDaySkyBarSegments(')&&cockpit.includes('data-mid-skybar="day-card"')&&styles.includes('.cockpit-day-skybar{'),'Skybar muss wieder in jeder 7-Tage-Tageskachel eingebunden sein.');
