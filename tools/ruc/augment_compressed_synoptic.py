@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add only verified, already decoded ICON-D2 cloud/WW terms after full RUC compression.
+"""Add verified optional ICON-D2/EU/Global CLCT/WW terms after lossless RUC compression.
 
 RUC raw rollback and all core codec bytes stay untouched. A new immutable index namespace
 contains copied, SHA-verified existing synoptic assets plus strictly sourced optional terms.
@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 ADDITIONAL_HOURS=frozenset({13,14,16,17,19,20,22,23,27,33,39,45})
+ADDITIONAL_MODEL_HOURS={'icon-d2':ADDITIONAL_HOURS,
+    'icon-eu':frozenset((54,66,78,90,102,114)),
+    'icon':frozenset((54,66,78,90,102,114,126,138,150,162,174))}
 MAX_DECODED=12_000_000
 RUC_BUDGET=900_000_000
 ISO_RE=re.compile(r'^20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}$')
@@ -50,7 +53,7 @@ def check_asset(path:Path,descriptor:dict):
         raise ValueError('synoptic bytes/SHA mismatch')
     return data
 
-def verify_optional_payload(data:bytes,desc:dict,model_run:str):
+def verify_optional_payload(data:bytes,desc:dict,model_run:str,model_id:str='icon-d2'):
     if desc.get('encoding')!='gzip-json' or type(desc.get('decodedBytes')) is not int or not 0<desc['decodedBytes']<=MAX_DECODED:
         raise ValueError('optional encoding/decode budget')
     with gzip.GzipFile(fileobj=io.BytesIO(data)) as stream:
@@ -60,7 +63,7 @@ def verify_optional_payload(data:bytes,desc:dict,model_run:str):
     hour=desc['hour']
     t0=datetime.fromisoformat(model_run)
     expected=(t0+timedelta(hours=hour)).isoformat()
-    if any((payload.get('schema')!='mid.cloud-weather.field.v1',payload.get('model')!='icon-d2',
+    if any((payload.get('schema')!='mid.cloud-weather.field.v1',payload.get('model')!=model_id,
             payload.get('run')!=model_run,payload.get('time')!=expected,desc.get('time')!=expected,
             payload.get('cloudUnit')!='%',payload.get('weatherUnit')!='WMO 4677',
             payload.get('cloudScale')!=.1)):
@@ -134,27 +137,40 @@ def augment(snapshot:Path,full_index_path:Path,source_dir:Path)->dict:
         current.get('generatedAt')!=full.get('generatedAt') or
         current.get('algorithm')!=full.get('algorithm')):
         raise ValueError('index generation/provenance drift')
-    existing=current.get('models',{}).get('icon-d2')
-    source=full.get('models',{}).get('icon-d2')
-    if not existing or not source:return {'schema':'mid.ruc.optional-synoptic.v1','admittedHours':[],'reason':'no-icon-d2-model'}
-    if any(existing.get(k)!=source.get(k) for k in ('run','resolutionKm','license')):
-        raise ValueError('ICON-D2 model run/grid drift')
-    baseline={int(f['hour']) for f in existing.get('cloudWeatherFrames',[])}
-    proposed=[]
-    for frame in source.get('cloudWeatherFrames',[]):
-        hour=frame.get('hour')
-        if type(hour) is not int or hour not in ADDITIONAL_HOURS or hour in baseline:continue
-        if frame.get('file')!=f'icon-d2-cw-{hour:03d}.bin':raise ValueError('optional filename mismatch')
-        proposed.append(frame)
-    if len({f['hour'] for f in proposed})!=len(proposed):raise ValueError('duplicate optional terms')
-    if not proposed:return {'schema':'mid.ruc.optional-synoptic.v1','admittedHours':[],'reason':'no-verified-extra-terms'}
+    proposals={}
+    for model_id,allowed in ADDITIONAL_MODEL_HOURS.items():
+        existing=current.get('models',{}).get(model_id)
+        source=full.get('models',{}).get(model_id)
+        if not existing or not source:
+            continue
+        if any(existing.get(k)!=source.get(k) for k in ('run','resolutionKm','license')):
+            raise ValueError('optional model run/grid/license drift: '+model_id)
+        baseline={int(f['hour']) for f in existing.get('cloudWeatherFrames',[])}
+        proposed=[]
+        for frame in source.get('cloudWeatherFrames',[]):
+            hour=frame.get('hour')
+            if type(hour) is not int or hour not in allowed or hour in baseline:
+                continue
+            if frame.get('file')!=f'{model_id}-cw-{hour:03d}.bin':
+                raise ValueError('optional filename mismatch: '+model_id)
+            proposed.append(frame)
+        if len({f['hour'] for f in proposed})!=len(proposed):
+            raise ValueError('duplicate optional terms: '+model_id)
+        if proposed:
+            proposals[model_id]=proposed
+    if not proposals:
+        return {'schema':'mid.ruc.optional-synoptic.v1','admittedHours':[],'admittedByModel':{},'reason':'no-verified-extra-terms'}
     new_index=copy.deepcopy(current)
-    new_index['models']['icon-d2']['cloudWeatherFrames'].extend(copy.deepcopy(proposed))
-    new_index['models']['icon-d2']['cloudWeatherFrames'].sort(key=lambda f:f['hour'])
-    budget=new_index.get('cloudWeatherBudget',{}).get('optionalD2')
-    if isinstance(budget,dict):
-        budget['admittedHours']=sorted(set(budget.get('admittedHours',[]))|{f['hour'] for f in proposed})
-        budget['omittedHours']=[h for h in budget.get('omittedHours',[]) if h not in {f['hour'] for f in proposed}]
+    for model_id,proposed in proposals.items():
+        frames=new_index['models'][model_id]['cloudWeatherFrames']
+        frames.extend(copy.deepcopy(proposed))
+        frames.sort(key=lambda f:f['hour'])
+        budget=new_index.get('cloudWeatherBudget',{})
+        target=budget.get('optionalD2') if model_id=='icon-d2' else budget.get('optionalLong',{}).get(model_id)
+        if isinstance(target,dict):
+            admitted={f['hour'] for f in proposed}
+            target['admittedHours']=sorted(set(target.get('admittedHours',[]))|admitted)
+            target['omittedHours']=[h for h in target.get('omittedHours',[]) if h not in admitted]
     index_bytes=compact(new_index)
     clean_run=re.sub(r'[^a-zA-Z0-9_-]','',meta['run'])
     prefix=f'runs/{clean_run}__synoptic_{sha(index_bytes)[:16]}/synoptic-fields'
@@ -163,24 +179,26 @@ def augment(snapshot:Path,full_index_path:Path,source_dir:Path)->dict:
     declared={x['key']:x for x in meta['pages']['objects']}
     new_objects=[]
     pending={}
-    all_frames=[f for model in new_index['models'].values() for f in model.get('frames',[])+model.get('cloudWeatherFrames',[])]
+    source_keys={(model_id,f['file']) for model_id,frames in proposals.items() for f in frames}
     names=set()
-    for frame in all_frames:
-        name=frame.get('file')
-        if not isinstance(name,str) or not FILENAME_RE.fullmatch(name) or name in names:raise ValueError('duplicated/unsafe synoptic filename')
-        names.add(name)
-        if frame in proposed:
-            data=check_asset(within(source_dir,name),frame)
-            verify_optional_payload(data,frame,source['run'])
-        else:
-            key=source_prefix+'/'+name
-            descriptor=declared.get(key)
-            if descriptor is None or descriptor['sha256']!=frame.get('sha256') or descriptor['bytes']!=frame.get('bytes'):
-                raise ValueError('original synoptic frame not in checked inventory')
-            data=check_asset(within(snapshot,key),descriptor)
-        key=prefix+'/'+name
-        pending[key]=data
-        new_objects.append({'key':key,'bytes':len(data),'sha256':sha(data)})
+    for model_id,model in new_index['models'].items():
+        for frame in model.get('frames',[])+model.get('cloudWeatherFrames',[]):
+            name=frame.get('file')
+            if not isinstance(name,str) or not FILENAME_RE.fullmatch(name) or name in names:
+                raise ValueError('duplicated/unsafe synoptic filename')
+            names.add(name)
+            if (model_id,name) in source_keys:
+                data=check_asset(within(source_dir,name),frame)
+                verify_optional_payload(data,frame,full['models'][model_id]['run'],model_id)
+            else:
+                key=source_prefix+'/'+name
+                descriptor=declared.get(key)
+                if descriptor is None or descriptor['sha256']!=frame.get('sha256') or descriptor['bytes']!=frame.get('bytes'):
+                    raise ValueError('original synoptic frame not in checked inventory')
+                data=check_asset(within(snapshot,key),descriptor)
+            key=prefix+'/'+name
+            pending[key]=data
+            new_objects.append({'key':key,'bytes':len(data),'sha256':sha(data)})
     new_index_key=prefix+'/index.json'
     # The browser loader and the DWD cache reader both require the
     # content-addressed '__synoptic_<first 16 SHA-256 hex>' wire contract.
@@ -196,11 +214,21 @@ def augment(snapshot:Path,full_index_path:Path,source_dir:Path)->dict:
     updated['pages']['objects'].extend(new_objects)
     updated['pages']['publishedBytes']+=sum(row['bytes'] for row in new_objects)
     updated['synopticFields']['key']=new_index_key
-    updated['synopticFields']['optionalD2Proof']={'schema':'mid.ruc.optional-synoptic.v1','hours':sorted(f['hour'] for f in proposed),
-        'originalIndexSha256':sha(within(snapshot,old_key).read_bytes()),'fullIndexSha256':sha(full_index_path.read_bytes()),
+    admitted_by_model={m:sorted(f['hour'] for f in frames) for m,frames in proposals.items()}
+    evidence={'schema':'mid.ruc.optional-synoptic.v1','admittedByModel':admitted_by_model,
+        'originalIndexSha256':sha(within(snapshot,old_key).read_bytes()),
+        'fullIndexSha256':sha(full_index_path.read_bytes()),
         'newIndexSha256':sha(index_bytes),'objectCount':len(new_objects)}
+    updated['synopticFields']['optionalModelProof']=evidence
+    if 'icon-d2' in proposals:
+        updated['synopticFields']['optionalD2Proof']={'schema':'mid.ruc.optional-synoptic.v1',
+            'hours':admitted_by_model['icon-d2'],
+            'originalIndexSha256':evidence['originalIndexSha256'],
+            'fullIndexSha256':evidence['fullIndexSha256'],
+            'newIndexSha256':evidence['newIndexSha256'],
+            'objectCount':evidence['objectCount']}
     encoded=compact(updated)
-    if updated['pages']['publishedBytes']+len(encoded)>=RUC_BUDGET:raise ValueError('RUC full codec + D2 optional exceeds budget')
+    if updated['pages']['publishedBytes']+len(encoded)>=RUC_BUDGET:raise ValueError('RUC full codec + optional model maps exceeds budget')
     # All checks first. None of the old bytes or original manifest are overwritten on failure.
     directory=within(snapshot,prefix)
     if directory.exists():raise ValueError('immutable destination exists')
@@ -217,7 +245,7 @@ def augment(snapshot:Path,full_index_path:Path,source_dir:Path)->dict:
     except BaseException:
         shutil.rmtree(directory,ignore_errors=True)
         raise
-    return {'schema':'mid.ruc.optional-synoptic.v1','admittedHours':sorted(f['hour'] for f in proposed),
+    return {'schema':'mid.ruc.optional-synoptic.v1','admittedHours':admitted_by_model.get('icon-d2',[]),'admittedByModel':admitted_by_model,
         'run':meta['run'],'addedPhysicalBytes':sum(row['bytes'] for row in new_objects)+len(encoded)-len(original),
         'finalPhysicalBytes':updated['pages']['publishedBytes']+len(encoded),'sourceRawUnchanged':True,
         'previousManifestSha256':sha(original),'newManifestSha256':sha(encoded)}
