@@ -31,6 +31,9 @@ assert.ok(client.includes('function validExtendedOutlook(value:unknown)'),'Langf
 for(const id of ['48-72','72-96','96-120','120-144','144-168'])assert.ok(client.includes(id),'Langfristsegment fehlt: '+id);
 assert.ok(client.includes('validExtendedOutlook(data)'),'Datenquelle muss vollständigen Vorhinweis verifizieren.');
 assert.ok(fallback.includes('return loadExtendedExtremeWeatherOutlook(signal)'),'Kompatibilitätsimport muss denselben sicheren Datenweg nutzen.');
+const panel=await read('src/ExtremeWeatherOutlookPanel.tsx');
+assert.ok(panel.includes('isExtremeChunkLoadError(error)')&&panel.includes('window.location.reload()')&&panel.includes('App neu laden'),'Fehlendes JS-Modul muss durch echten Nutzer-Reload statt wiederholten kaputten Import behoben werden.');
+assert.ok(panel.includes('Erneut laden'),'Andere Netzwerkfehler müssen regulär wiederholbar bleiben.');
 
 const hours=Array.from({length:169},(_,index)=>new Date(Date.UTC(2026,9,3,16+index)).toISOString().slice(0,16));
 const values=value=>Array(169).fill(value);
