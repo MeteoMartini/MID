@@ -72,15 +72,38 @@ jobs:
           fields=['T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML']
           base='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
           discovered=get(base+'/T_2M/r/')
-          runs=sorted(set(x.strip('/') for x in links(discovered) if re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:00/',x)))[-3:]
-          doc['runDiscovery']={'http':discovered['http'],'runs':runs,'requiredRuns':3}
-          for run in runs:
+          # New runs appear before all of their forecast lead files. Never infer
+          # a 27h feed outage from a still-publishing newest initialization.
+          candidates=sorted(set(x.strip('/') for x in links(discovered) if re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:00/',x)))[-6:]
+          accepted=[]
+          rejected=[]
+          def complete(field,row):
+              inv=row.get('inventory')
+              if row['http']!=200 or not inv or inv['missingHourlyLeads'] or not inv['plus27Listed']:
+                  return False
+              expected=325 if field=='TOT_PREC' else 109 if field in ('CAPE_ML','CIN_ML') else 28
+              return inv['filesListed']==expected and (field!='TOT_PREC' or inv['fiveMinuteSlotsMissing']==0)
+          for run in reversed(candidates):
+              rows=[]
               for field in fields:
                   url=base+'/'+field+'/r/'+run.replace(':','%3A')+'/s/'
                   rsp=get(url)
                   inventory=leads(links(rsp)) if rsp['http']==200 else None
-                  doc['dwd'].append({'run':run,'field':field,'http':rsp['http'],
+                  rows.append({'run':run,'field':field,'http':rsp['http'],
                       'error':rsp.get('error'),'inventory':inventory})
+              incomplete=[row['field'] for row in rows if not complete(row['field'],row)]
+              if incomplete:
+                  rejected.append({'run':run,'classification':'not_yet_complete_27h_listing',
+                                   'incompleteFields':incomplete})
+              else:
+                  accepted.append(run)
+                  doc['dwd'].extend(rows)
+              if len(accepted)==3:
+                  break
+          runs=sorted(accepted)
+          doc['runDiscovery']={'http':discovered['http'],'runs':runs,'requiredRuns':3,
+                               'candidateRuns':candidates,'excludedIncompleteRuns':rejected,
+                               'selection':'three latest complete 27h source listings, not newest visible directories'}
           params={'latitude':'50.815','longitude':'7.037','models':'dwd_icon_d2_ruc_native',
                   'timezone':'GMT','timeformat':'unixtime','forecast_hours':'28','hourly':'temperature_2m'}
           url='https://api.open-meteo.com/v1/forecast?'+urlencode(params)
