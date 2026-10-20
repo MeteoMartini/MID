@@ -36,6 +36,9 @@ class NativeRucMapPilotTest(unittest.TestCase):
                 'grid': {'lonMin': 5.5, 'latMin': 47.0, 'dx': 0.025, 'dy': 0.025,
                          'nx': 3, 'ny': 3, 'maxNearestKm': 5.0}}
         if corrupt: meta['deterministic']['recordBytes'] += 2
+        meta['objects'] = {name: {'bytes': (source/name).stat().st_size,
+                                  'sha256': digest((source/name).read_bytes())}
+                           for name in ('deterministic.bin', 'lookup.bin')}
         (source / 'latest.json').write_text(json.dumps(meta))
         return source
 
@@ -69,6 +72,9 @@ class NativeRucMapPilotTest(unittest.TestCase):
             data = np.fromfile(source / 'deterministic.bin', dtype='<i2')
             data[0] = 0
             data.tofile(source / 'deterministic.bin')
+            meta = json.loads((source/'latest.json').read_text())
+            meta['objects']['deterministic.bin']['sha256'] = digest((source/'deterministic.bin').read_bytes())
+            (source/'latest.json').write_text(json.dumps(meta))
             out = root / 'pilot'
             frames = build(source, out, bbox=(5.5,47.0,5.55,47.05))['products']['temperature']['frames']
             payload = json.loads(gzip.decompress((out / frames[0]['file']).read_bytes()))
@@ -76,7 +82,7 @@ class NativeRucMapPilotTest(unittest.TestCase):
             self.assertIn(None, payload['values'])
 
     def test_bad_model_schema_missing_and_lookup_fail_closed(self):
-        for scenario in ('geometry', 'missing-everywhere', 'bad-index', 'missing-times', 'bad-unit'):
+        for scenario in ('geometry', 'missing-everywhere', 'bad-index', 'missing-times', 'bad-unit', 'corrupt-sha'):
             with self.subTest(scenario=scenario), tempfile.TemporaryDirectory() as temp:
                 root = Path(temp); source = self.source(root)
                 meta = json.loads((source / 'latest.json').read_text())
@@ -85,6 +91,10 @@ class NativeRucMapPilotTest(unittest.TestCase):
                 if scenario == 'bad-unit': meta['deterministic']['fields'][0]['unit'] = 'K'
                 if scenario == 'bad-index': (source / 'lookup.bin').write_bytes(np.full((3, 3), 8, dtype='<u4').tobytes())
                 if scenario == 'missing-everywhere': (source / 'deterministic.bin').write_bytes(np.full((4,3,2),-32768,dtype='<i2').tobytes())
+                for name in ('deterministic.bin', 'lookup.bin'):
+                    meta['objects'][name] = {'bytes': (source/name).stat().st_size,
+                                             'sha256': digest((source/name).read_bytes())}
+                if scenario=='corrupt-sha': meta['objects']['deterministic.bin']['sha256']='0'*64
                 (source / 'latest.json').write_text(json.dumps(meta))
                 with self.assertRaises(ValueError): build(source, root / 'pilot', bbox=(5.5,47.0,5.55,47.05))
                 self.assertFalse((root / 'pilot').exists())
