@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.302",
+  "releaseVersion": "0.9.85.303",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-skybar-daylight-levels-0985303.mjs",
     "scripts/test-explicit-time-offsets-0985302.mjs",
     "scripts/test-direct-outlook-abort-isolation-0985301.mjs",
     "scripts/test-skybar-precipitation-nodata-0985300.mjs",
@@ -1022,6 +1023,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-skybar-daylight-levels-0985303.mjs",
     "scripts/test-explicit-time-offsets-0985302.mjs",
     "scripts/test-direct-outlook-abort-isolation-0985301.mjs",
     "scripts/test-skybar-precipitation-nodata-0985300.mjs",
@@ -3647,7 +3649,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.302",
+  "version": "0.9.85.303",
   "updatedAt": "2026-10-18T10:18:23.697Z",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
