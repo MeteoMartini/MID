@@ -62,10 +62,11 @@ jobs:
                   if m:steps.add(int(m[1])*60+int(m[2]))
               return {'filesListed':len(steps),'missingHourlyLeads':[h for h in range(28) if h*60 not in steps],
                       'plus27Listed':1620 in steps,'fiveMinuteLeadNamesBeyond14h':sum(1 for m in steps if 840<m<=1620 and m%5==0 and m%15!=0),
+                      'fiveMinuteSlotsMissing':sum(1 for minute in range(0,1621,5) if minute not in steps),
                       'gribDecoded':False}
           assert leads(['PT000H00M.grib2','PT027H00M.grib2'])['missingHourlyLeads']==list(range(1,27))
           assert leads(['PT000H00M.grib2','PT001H00M.grib2'])['plus27Listed'] is False
-          fields=['T_2M','PMSL','CLCL','TOT_PREC']
+          fields=['T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML']
           base='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
           discovered=get(base+'/T_2M/r/')
           runs=sorted(set(x.strip('/') for x in links(discovered) if re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:00/',x)))[-3:]
@@ -99,8 +100,9 @@ jobs:
               try:verdict['providerReason']=json.loads(api.get('text','{}')).get('reason')
               except (ValueError,AttributeError):pass
           doc['openMeteo']=verdict
-          doc['dwdListingGate']=len(runs)==3 and len(doc['dwd'])==12 and all(
-              x['http']==200 and x['inventory'] and not x['inventory']['missingHourlyLeads'] for x in doc['dwd'])
+          doc['dwdListingGate']=len(runs)==3 and len(doc['dwd'])==len(runs)*len(fields) and all(
+              x['http']==200 and x['inventory'] and not x['inventory']['missingHourlyLeads'] and
+              (x['field']!='TOT_PREC' or x['inventory']['fiveMinuteSlotsMissing']==0) for x in doc['dwd'])
           doc['modelIdMinimalCanary']=bool(verdict['usable'])
           doc['acceptedForProduction']=False
           out.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
@@ -108,11 +110,80 @@ jobs:
           print('Evidence:',out,'; no GRIB decode, no RUC run provenance, no integration approval')
           if not doc['dwdListingGate'] or not doc['modelIdMinimalCanary']:sys.exit(2)
           PY
+      - name: Install ecCodes for bounded GRIB header verification
+        if: always()
+        shell: bash
+        run: python3 -m pip install 'eccodes>=2.38,<3'
+      - name: Compare native GRIB headers with 27h filename validity
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime, json, tempfile, sys
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+          from eccodes import codes_grib_new_from_file, codes_get, codes_release
+
+          root=Path('.ruc-readonly-evidence')
+          root.mkdir(exist_ok=True)
+          out=root/'native-grib27-header-samples.json'
+          doc={'schema':'mid.ruc.grib-header-sample.v1','decodedHeadersOnly':True,
+               'noFieldArrayOrPrecipitationAccumulationValidated':True,'samples':[]}
+          listing=root/'provider-status.json'
+          runs=json.loads(listing.read_text(encoding='utf8')).get('runDiscovery',{}).get('runs',[]) if listing.exists() else []
+          if not runs:
+              out.write_text(json.dumps(doc,indent=2)+'\n')
+              raise SystemExit('No listed DWD run from prerequisite')
+          run=runs[-1]
+          initialized=datetime.datetime.strptime(run,'%Y-%m-%dT%H:%M').replace(tzinfo=datetime.timezone.utc)
+          sample_steps=[('T_2M',1620),('PMSL',1620),('CLCL',1620),('TOT_PREC',1620),('TOT_PREC',1615)]
+          good=True
+          for field,lead_minutes in sample_steps:
+              hours,minutes=divmod(lead_minutes,60)
+              name=f'PT{hours:03d}H{minutes:02d}M.grib2'
+              url=f'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{field}/r/{quote(run,safe=":")}/s/{name}'
+              row={'run':run,'field':field,'leadMinutes':lead_minutes,'file':name,'validityMatched':False}
+              try:
+                  with urlopen(Request(url,headers={'User-Agent':'MID-RUC-header-readonly/1.0'}),timeout=15) as response:
+                      data=response.read(2000001)
+                  if not data or len(data)>2000000:raise ValueError('sample is empty or over 2MB bounded limit')
+                  with tempfile.TemporaryFile() as file:
+                      file.write(data);file.seek(0)
+                      gid=codes_grib_new_from_file(file,headers_only=True)
+                      if gid is None:raise ValueError('GRIB2 header not found')
+                      try:
+                          def get(key):
+                              try:return codes_get(gid,key)
+                              except Exception:return None
+                          keys=['edition','centre','shortName','paramId','units','gridType','numberOfDataPoints',
+                                'dataDate','dataTime','validityDate','validityTime','stepType','stepRange',
+                                'typeOfLevel','level','bitmapPresent']
+                          row['grib']={k:get(k) for k in keys}
+                      finally:codes_release(gid)
+                  valid=initialized+datetime.timedelta(minutes=lead_minutes)
+                  g=row['grib']
+                  row['validityMatched']=(
+                      g['edition']==2 and g['dataDate']==int(initialized.strftime('%Y%m%d')) and
+                      g['dataTime']==int(initialized.strftime('%H%M')) and
+                      g['validityDate']==int(valid.strftime('%Y%m%d')) and
+                      g['validityTime']==int(valid.strftime('%H%M')) and
+                      isinstance(g['numberOfDataPoints'],int) and g['numberOfDataPoints']>0)
+                  if not row['validityMatched']:good=False
+              except Exception as e:
+                  row['error']=type(e).__name__+': '+str(e)[:220];good=False
+              doc['samples'].append(row)
+          doc['headerTimeGate']=good
+          out.write_text(json.dumps(doc,indent=2,ensure_ascii=False)+'\n',encoding='utf8')
+          print('Native +27h header time gate:',good,'sampleCount:',len(doc['samples']),'; GRIB values NOT analyzed')
+          if not good:sys.exit(2)
+          PY
       - name: Retain public-provider evidence on success or failure
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-provider-readonly-preflight
-          path: .ruc-readonly-evidence/provider-status.json
+          path: .ruc-readonly-evidence/
           retention-days: 7
           if-no-files-found: warn
