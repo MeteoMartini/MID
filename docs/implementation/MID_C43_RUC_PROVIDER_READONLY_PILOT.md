@@ -1,0 +1,11 @@
+# MID-C43 · Isolierter Open-Meteo-/DWD-RUC-Provider-Pilot
+
+**Basis verifiziert:** \`main = mid-stable = 589d0bc41860cebf6cbec1591ad1c0644f557097\`, \`v0.9.85.300\` (20.10.2026). Diese Draft-PR ist **kein** Release und keine Änderung an produktiver Meteorologie.
+
+Der neue Workflow \`mid-ruc-provider-readonly-pilot.yml\` ist ein eng begrenzter, nur bei PR-Änderungen laufender Read-only-GitHub-Runner-Proof. Er benötigt weder Secrets noch Provider-Schreibrechte; \`contents: read\`, SHA-gepinnte Actions, keine regelmäßigen Cron-Ausführungen, keine GRIB-Downloads, keine Worker- oder Pages-Veröffentlichung. \`workflow_dispatch\` kann erst nach einer gesonderten regulären Freigabe über den Default-Branch genutzt werden; die Pilot-PR soll selbst per \`pull_request\` den Test liefern. Ein fehlender/ungültiger Provider-Response führt zu einem **nichtgrünen** Lauf und einem JSON-Artefakt.
+
+Der Canariesatz ist bewusst begrenzt: drei zuletzt gelistete DWD-ICON-D2-RUC-Läufe, vier deterministische Verzeichnisse (\`T_2M\`, \`PMSL\`, \`CLCL\`, \`TOT_PREC\`), Prüfung der stündlichen Dateinamen 0…+27 h; sowie das isolierte Open-Meteo-Modell \`dwd_icon_d2_ruc_native\` mit \`temperature_2m\`, \`timeformat=unixtime\`, Plausibilisierung von HTTP, Zeitraster, Einheiten, Missing und mindestens sechs finiten Werten. Der DWD-Filename-Vertrag ist **keine** GRIB-Validierung. Insbesondere führt auch ein grüner Pilot **nicht** zur automatischen Produktionsfreigabe.
+
+**Vor tatsächlicher RUC-Erweiterung erforderlich:** Native GRIB-Felder und Raster/Masken, Akkumulationsschritte \`stepType/stepRange\`, Run- und UTC-ValidTime-Provenienz, EPS-Mitglieder getrennt, Datenbudget (RUC 900 MB / Pages 950 MB), verlustfreie End-to-End-Bestätigung, Worker/Fusion/Doppelgewichtung von \`best_match\`, vollständige Modellkarten/Nowcast-Regression und gesonderter versionierter Release-PR. Unverändert bleiben \`MID_RUC_FORECAST_HOURS=14\`, \`RUC-EPS\`, die kanonische Prognose, Warnungen und Stable. Externe Verzeichnisbelege sind nicht mit einem aufeinander abgestimmten numerischen Produktionsdatensatz gleichzusetzen.
+
+Nächste fachliche Prüfung und Blocker: [Issue #405](https://github.com/MeteoMartini/MID/issues/405). Open-Meteo Upstream: [#2186](https://github.com/open-meteo/open-meteo/pull/2186).
