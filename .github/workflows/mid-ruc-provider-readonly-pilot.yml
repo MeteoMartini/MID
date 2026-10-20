@@ -18,6 +18,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Validate native readiness evaluator with synthetic regressions
+        shell: bash
+        run: node --test tools/ruc/tests/ruc-integration-readiness.test.mjs
       - name: DWD three-run inventory and isolated Open-Meteo RUC API canary
         shell: bash
         run: |
@@ -261,6 +264,12 @@ jobs:
           print('RUC native bitmap + numerical 5-minute sample gate:',ok,'fields:',len(doc['files']),'increments:',len(doc['increments']))
           if not ok:sys.exit(2)
           PY
+      - name: Report independent integration readiness and remaining release gates
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .ruc-readonly-evidence
+          node tools/ruc/ruc_integration_gate.mjs --evidence-dir .ruc-readonly-evidence .ruc-readonly-evidence/integration-readiness.json
       - name: Retain public-provider evidence on success or failure
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -270,5 +279,6 @@ jobs:
             .ruc-readonly-evidence/provider-status.json
             .ruc-readonly-evidence/native-grib27-header-samples.json
             .ruc-readonly-evidence/native-ruc-numeric-samples.json
+            .ruc-readonly-evidence/integration-readiness.json
           retention-days: 7
           if-no-files-found: warn
