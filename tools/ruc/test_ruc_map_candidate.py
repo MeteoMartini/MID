@@ -121,4 +121,15 @@ class RucMapCandidateTests(unittest.TestCase):
       build_candidate(source,out)
     self.assertFalse(out.exists())
 
+ def test_lookup_declared_dtype_and_missing_sentinel(self):
+  for key,value in (('dtype','uint16-le'),('nodata',0),('nodata',-1),('nodata',None)):
+   with self.subTest(field=key,value=value),tempfile.TemporaryDirectory() as t:
+    root=Path(t);source=self.fixture(root)
+    meta=json.loads((source/'latest.json').read_text())
+    meta['lookup'][key]=value
+    (source/'latest.json').write_text(json.dumps(meta))
+    with self.assertRaisesRegex(ValueError,'lookup dtype/nodata'):
+     build_candidate(source,root/'maps')
+    self.assertFalse((root/'maps').exists())
+
 if __name__=='__main__':unittest.main()

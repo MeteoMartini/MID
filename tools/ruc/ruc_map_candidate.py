@@ -115,6 +115,9 @@ def build_candidate(source:Path,output:Path):
   raise ValueError('non-contiguous absolute hourly RUC axis')
  if det['dtype']!='int16-le' or det['layout']!='point-time-field' or det['recordBytes']!=len(times)*len(specs)*2:
   raise ValueError('unsupported deterministic geometry')
+ lookup_spec=meta.get('lookup')
+ if not isinstance(lookup_spec,dict) or lookup_spec.get('dtype')!='uint32-le' or type(lookup_spec.get('nodata')) is not int or lookup_spec['nodata']!=0xffffffff:
+  raise ValueError('unsupported source lookup dtype/nodata')
  raw=checked_object(source,meta,'deterministic.bin')
  if len(raw)!=points*det['recordBytes']:raise ValueError('source deterministic dimensions')
  cube=np.frombuffer(raw,dtype='<i2').reshape(points,len(times),len(specs))
