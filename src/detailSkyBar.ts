@@ -86,7 +86,7 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   return clamp(interval,60,6*3600);
 };
 
-const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):WeatherStripVisual|null=>{
+const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sunshineReference='der betrachteten Zeit'):WeatherStripVisual|null=>{
   const cloudKnown=Number.isFinite(cloud),sunshineDirect=sunshineShare!==null&&Number.isFinite(sunshineShare);
 
   // Gesamtbewölkung und Sonnenscheindauer bleiben getrennte physikalische Größen.
@@ -112,7 +112,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
         opacity:0.98,
-        title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % der betrachteten Zeit · Gesamtbewölkung ${boundedCloud.toFixed(0)} %`,
+        title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % ${sunshineReference} · Gesamtbewölkung ${boundedCloud.toFixed(0)} %`,
       };}
     }
     // Accumulated sunshine can legitimately be short in a sunrise/sunset slot.
@@ -125,7 +125,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
         opacity:0.78,
-        title:`Wolkenlücken · ${(openSkyShare*100).toFixed(0)} % unbedeckter Himmelsanteil · Gesamtbewölkung ${boundedCloud.toFixed(0)} % · ${sunshineDirect?`Sonnenscheindauer ${(clamp01(Number(sunshineShare))*100).toFixed(0)} % der betrachteten Zeit`:'Sonnenscheindauer nicht verfügbar'}`,
+        title:`Wolkenlücken · ${(openSkyShare*100).toFixed(0)} % unbedeckter Himmelsanteil · Gesamtbewölkung ${boundedCloud.toFixed(0)} % · ${sunshineDirect?`Sonnenscheindauer ${(clamp01(Number(sunshineShare))*100).toFixed(0)} % ${sunshineReference}`:'Sonnenscheindauer nicht verfügbar'}`,
       };}
     }
     return null;
@@ -139,7 +139,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null):We
       strokeWidth:width,
       thicknessLevel:skybarThicknessLevel(level),
       opacity:0.98,
-      title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % der betrachteten Zeit · Bewölkung unbekannt`,
+      title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % ${sunshineReference} · Bewölkung unbekannt`,
     };}
   }
   return null;
@@ -183,12 +183,12 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):Weat
   };
 };
 
-const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number)=>{
+const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number,daylightSeconds?:number)=>{
   const cloud=hour.cloud===null||hour.cloud===undefined||String(hour.cloud).trim()===''?NaN:clamp(Number(hour.cloud),0,100);
   const daylight=!!hour.isDay,rawSunshine=hour.sunshineDuration;
-  const sunshineShare=daylight&&rawSunshine!==null&&rawSunshine!==undefined&&String(rawSunshine).trim()!==''&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
+  const sunshineShare=daylight&&rawSunshine!==null&&rawSunshine!==undefined&&String(rawSunshine).trim()!==''&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(.001,daylightSeconds??Math.max(60,intervalSeconds))):null;
   const visuals:WeatherStripVisual[]=[];
-  const base=baseSkyVisual(cloud,daylight,sunshineShare);
+  const base=baseSkyVisual(cloud,daylight,sunshineShare,daylightSeconds===undefined?'der betrachteten Zeit':'der möglichen Tageslichtzeit');
   if(base)visuals.push(base);
   const precipitation=precipitationOverlayVisual(hour,intervalSeconds);
   if(precipitation)visuals.push(precipitation);
@@ -312,6 +312,14 @@ export function detailSkyBarSegments(
  * When exact timestamps are absent, use the legacy appearance, not inferred times.
  */
 export type SkyBarSolarNightBand={startEpoch:number;endEpoch:number};
+// Only the reference for the visible solar base changes: source seconds and
+// precipitation intervals stay untouched. Union overlapping night bands once.
+function skybarDaylightSeconds(start:number,end:number,bands:readonly SkyBarSolarNightBand[]){
+  const nights=bands.map(band=>({start:Math.max(start,band.startEpoch),end:Math.min(end,band.endEpoch)})).filter(band=>band.end>band.start).sort((a,b)=>a.start-b.start);
+  let night=0,coveredUntil=start;
+  for(const band of nights){const from=Math.max(coveredUntil,band.start);if(band.end>from)night+=band.end-from;coveredUntil=Math.max(coveredUntil,band.end);}
+  return Math.max(0,(end-start-night)/1000);
+}
 export function detailSkyBarSolarSegments(
   hours:PrecipSample[],left:number,right:number,chartW:number,centerY:number,
   xPositions:number[]|undefined,nightBands:readonly SkyBarSolarNightBand[],
@@ -350,13 +358,13 @@ export function detailSkyBarSolarSegments(
       if(band.endEpoch>start&&band.endEpoch<end)cuts.push(band.endEpoch);
     });
     cuts.sort((a,b)=>a-b);
-    const duration=sampleIntervalSeconds(hours,index);
+    const duration=sampleIntervalSeconds(hours,index),daylightSeconds=skybarDaylightSeconds(start,end,validBands);
     for(let part=0;part<cuts.length-1;part++){
       const from=cuts[part],to=cuts[part+1];
       if(to<=from)continue;
       const middle=from+(to-from)/2;
       const night=validBands.some(band=>band.startEpoch<=middle&&middle<band.endEpoch);
-      const base=weatherStripVisuals({...hour,isDay:!night},duration).find(visual=>visual.layer==='base');
+      const base=weatherStripVisuals({...hour,isDay:!night},duration,daylightSeconds).find(visual=>visual.layer==='base');
       if(!base)continue;
       const startX=x0+(from-start)/(end-start)*(x1-x0),endX=x0+(to-start)/(end-start)*(x1-x0);
       appendSegment(bases,index*1024+part,'base',startX,endX,centerY,base,0);

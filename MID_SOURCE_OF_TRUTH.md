@@ -1,3 +1,11 @@
+# MID v0.9.85.303 · Skybar-Dickenstufen am solaren Tagesrand (Source-PR-Kandidat)
+
+- Ausgangsbasis main=mid-stable=20872a05b80b94824219b20fbf97d3e9441ce98e (.302), Installer39402717597 erfolgreich; Parallel-Draft425 unverändert. Nutzerauftrag: alle gelben/grauen Dicken und Tag-/Nachtübergänge intensiv prüfen.
+- Reproduziert: In einem 60-min-Slot mit 15min möglichem Tageslicht wurde relative Sonnenscheindauer gegen60min klassifiziert und dadurch ein falscher Wolkenlücken-Fallback bzw. eine falsche gelbe Stufe gewählt. Ausschließlich der Nenner des solaren Grundband-Renderers wird auf den vereinigten tatsächlichen Tageslichtanteil des Originalslots umgestellt und im Tooltip benannt. Keine Änderung von Sonnenminuten, Wetterwerten, Intervallgrenzen, Niederschlag oder vier Klassen.
+- Neue Pflichtregression `scripts/test-skybar-daylight-levels-0985303.mjs` prüft tatsächlichen gemeinsamen SVG-Renderer, alle4gelben/grauen Stufen,15/60min-Dämmerung, Nachtüberlappungen, Missing und unveränderten Niederschlag. Bestehende Sonnen-/DST-/Skybar-Regressionen bleiben unverändert. Präzisierter Darstellungsvertrag und Bericht `docs/implementation/MID_C37_SKYBAR_LEVELS_0.9.85.303.md`.
+- Nicht jede Wetterlage enthält jede Klasse; keine künstliche Klassenverteilung. #428 bleibt für Anbieter-Fixoffset/DST separat offen. Keine physische iOS-/WKWebView-Abnahme oder vollständige Livefehler-Erklärung ohne Evidenz behaupten.
+- Veröffentlichung nur über vollständigen Source-Gate → bestehenden SHA-Bot → ServerZIP → Installer/Pages/Worker → Stable. Dieser Kandidat ist noch nicht veröffentlicht.
+
 # MID v0.9.85.302 · Explizite UTC-/Offset-Zeitpunkte erhalten (Source-PR-Kandidat)
 
 - Verifizierte Ausgangsbasis main=mid-stable=f17226dea646193a43c78e29198886d7f3601254, v0.9.85.301; Installer 39391396433 erfolgreich. Parallel-Draft #425 bleibt unverändert.
