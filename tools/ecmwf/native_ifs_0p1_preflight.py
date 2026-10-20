@@ -2,7 +2,7 @@
 """MID read-only ECMWF IFS Open Data 0.1 degree field-level preflight."""
 from __future__ import annotations
 import argparse,json,math,tempfile
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 from pathlib import Path
 
 SPECS=[
@@ -20,12 +20,14 @@ def parse_run(run):
  if run.hour not in (0,6,12,18) or run.minute or run.second:raise ValueError("Invalid UTC IFS reference cycle")
  return run
 
-def validate(meta,run,spec,values):
+def validate(meta,run,spec,values,lead_hours=0):
+ if lead_hours not in (0,24):raise ValueError('unapproved forecast lead')
+ valid=run+timedelta(hours=lead_hours)
  checks={
   "GRIB2":meta.get("edition")==2,
   "centre":meta.get("centre") in ("ecmf",98,"98"),
   "run":meta.get("dataDate")==int(run.strftime("%Y%m%d")) and meta.get("dataTime")==int(run.strftime("%H%M")),
-  "validity":meta.get("validityDate")==int(run.strftime("%Y%m%d")) and meta.get("validityTime")==int(run.strftime("%H%M")),
+  "validity":meta.get("validityDate")==int(valid.strftime("%Y%m%d")) and meta.get("validityTime")==int(valid.strftime("%H%M")),
   "instant":meta.get("stepType") in ("instant","instantaneous"),
   "parameter":meta.get("shortName")==spec["param"],
   "level":meta.get("typeOfLevel")==spec["typeOfLevel"] and meta.get("level")==spec["level"],
@@ -41,7 +43,7 @@ def validate(meta,run,spec,values):
    "samples":{"count":len(values),"finite":len(finite),"missing":len(values)-len(finite),
               "min":min(finite) if finite else None,"max":max(finite) if finite else None}}
 
-def inspect(path,run,spec):
+def inspect(path,run,spec,lead_hours):
  from eccodes import codes_grib_new_from_file,codes_get,codes_get_double_elements,codes_release
  size=path.stat().st_size
  if not 100<=size<=MAX_FILE_BYTES:raise ValueError("Single GRIB file exceeds bounded size or is empty")
@@ -65,8 +67,8 @@ def inspect(path,run,spec):
   if extra is not None:
    codes_release(extra)
    raise ValueError("Unexpected extra GRIB field")
- report=validate(meta,run,spec,values)
- return {"field":spec["id"],"bytes":size,"nativeMetadata":meta,**report,"fullSpatialValidation":False}
+ report=validate(meta,run,spec,values,lead_hours)
+ return {"field":spec["id"],"leadHours":lead_hours,"bytes":size,"nativeMetadata":meta,**report,"fullSpatialValidation":False}
 
 def live_report(path):
  from ecmwf.opendata import Client
@@ -83,18 +85,19 @@ def live_report(path):
   result["checkedUtc"]=datetime.now(timezone.utc).isoformat()
   with tempfile.TemporaryDirectory(prefix="mid-ecmwf-canary-") as tmp:
    size=0
-   for spec in SPECS:
-    file=Path(tmp)/(spec["id"]+".grib2")
-    query={"date":run.strftime("%Y%m%d"),"time":run.hour,"stream":"oper","type":"fc",
-           "step":0,"levtype":spec["levtype"],"param":spec["param"],"target":str(file)}
-    if spec["levtype"]=="pl":query["levelist"]=spec["level"]
-    item=client.retrieve(**query)
-    if parse_run(item.datetime)!=run:raise ValueError("Mixed ECMWF initialization times")
-    size+=file.stat().st_size
-    if size>MAX_TOTAL_BYTES:raise ValueError("Read-only transfer budget exceeded")
-    result["files"].append(inspect(file,run,spec))
+   for lead in (0,24):
+    for spec in SPECS:
+     file=Path(tmp)/(spec["id"]+"_"+str(lead)+"h.grib2")
+     query={"date":run.strftime("%Y%m%d"),"time":run.hour,"stream":"oper","type":"fc",
+            "step":lead,"levtype":spec["levtype"],"param":spec["param"],"target":str(file)}
+     if spec["levtype"]=="pl":query["levelist"]=spec["level"]
+     item=client.retrieve(**query)
+     if parse_run(item.datetime)!=run:raise ValueError("Mixed ECMWF initialization times")
+     size+=file.stat().st_size
+     if size>MAX_TOTAL_BYTES:raise ValueError("Read-only transfer budget exceeded")
+     result["files"].append(inspect(file,run,spec,lead))
   result["bytesDownloaded"]=size
-  result["pilotPassed"]=len(result["files"])==len(SPECS) and all(f["passed"] for f in result["files"])
+  result["pilotPassed"]=len(result["files"])==len(SPECS)*2 and all(f["passed"] for f in result["files"])
  except Exception as exc:result["errors"].append({"type":type(exc).__name__,"description":str(exc)[:240]})
  path.write_text(json.dumps(result,ensure_ascii=False,indent=2,default=str)+"\n",encoding="utf8")
  print("ECMWF IFS 0p1 pilot", "PASS" if result["pilotPassed"] else "BLOCKED",

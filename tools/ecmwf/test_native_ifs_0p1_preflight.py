@@ -33,6 +33,12 @@ class PilotTests(unittest.TestCase):
   y=validate(fixture(SPECS[0]),RUN,SPECS[0],[280,None,281,282,283,284,285])
   self.assertTrue(y["passed"]);self.assertEqual(y["samples"]["missing"],1)
   self.assertFalse(validate(fixture(SPECS[0]),RUN,SPECS[0],[0]*7)["passed"])
+ def test_24_hour_validity_and_boundary(self):
+  x=fixture(SPECS[0])
+  x["validityDate"]=20261021
+  self.assertTrue(validate(x,RUN,SPECS[0],[280]*7,lead_hours=24)["passed"])
+  self.assertFalse(validate(x,RUN,SPECS[0],[280]*7,lead_hours=0)["passed"])
+  self.assertRaises(ValueError,validate,x,RUN,SPECS[0],[280]*7,lead_hours=23)
  def test_outliers_fail_not_smoothed(self):
   self.assertFalse(validate(fixture(SPECS[0]),RUN,SPECS[0],[400]*7)["passed"])
 if __name__=="__main__":unittest.main()
