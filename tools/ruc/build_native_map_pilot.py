@@ -89,6 +89,12 @@ def read_core(root: Path):
         raise ValueError('RUC lookup grid dimensions invalid')
     if lookup_path.stat().st_size != n_x * n_y * 4:
         raise ValueError('RUC lookup byte count invalid')
+    declared = meta.get('objects') or {}
+    for name, item in (('deterministic.bin', core_path), ('lookup.bin', lookup_path)):
+        ref = declared.get(name)
+        if (not isinstance(ref, dict) or ref.get('bytes') != item.stat().st_size
+                or ref.get('sha256') != digest(item.read_bytes())):
+            raise ValueError(f'RUC source object {name} does not match advertised SHA-256')
     if any(not isinstance(grid.get(p), (int, float)) or not np.isfinite(grid[p])
            for p in ('lonMin', 'latMin', 'dx', 'dy', 'maxNearestKm')):
         raise ValueError('RUC geographic lookup invalid')
