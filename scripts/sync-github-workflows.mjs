@@ -53,6 +53,7 @@ export const managedFiles=[
  ['workflows/unit-coverage.yml','workflows/unit-coverage.yml'],
  ['workflows/widget-export.yml','workflows/widget-export.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
+ ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
  ['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml'],
  ['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml'],
  ['dependabot.yml','dependabot.yml']
