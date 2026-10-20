@@ -141,7 +141,8 @@ def build(source: Path, target: Path, bbox=GRID_BBOX) -> dict:
            'gridTypeOriginal': 'unstructured_grid',
            'displaySampling': 'nearest-native-point-via-verified-lookup-no-smoothing',
            'maxLookupDistanceKm': grid['maxNearestKm'],
-           'nativeExtremaMayNotBeRepresentedInPreview': True,
+           'packedCoreExtremaMayNotBeRepresentedInPreview': True,
+           'packedCoreExtremaMayDifferFromOriginalGrib': True,
            'lats': lats, 'lons': lons, 'nativePointCount': meta['pointCount'],
            'nativePointLookup': {'pixelCount': ids.size, 'insideCoverage': decoded_count,
                                  'maskedOutsideCoverage': int((~valid_locations).sum())},
@@ -162,7 +163,7 @@ def build(source: Path, target: Path, bbox=GRID_BBOX) -> dict:
                 sampled = np.full(ids.shape, NODATA_I16, dtype=np.int16)
                 sampled[valid_locations] = native[indices]
                 # A preview is not the native field. The two separate extrema
-                # prevent hiding real extremes just because some nodes were unsampled.
+                # record quantized-core extrema that geographic sampling might omit.
                 native_range = extrema(native, scale, offset)
                 sampled_range = extrema(sampled, scale, offset)
                 if not native_range or not sampled_range:
@@ -182,7 +183,7 @@ def build(source: Path, target: Path, bbox=GRID_BBOX) -> dict:
                              'file': file, 'encoding': 'gzip-json', 'bytes': len(compressed),
                              'sha256': digest(compressed), 'decodedBytes': len(raw),
                              'decodedSha256': digest(raw),
-                             'nativeExtrema': native_range, 'sampledExtrema': sampled_range,
+                             'packedCoreExtrema': native_range, 'sampledExtrema': sampled_range,
                              'sampledMissingCount': int(np.count_nonzero(sampled == NODATA_I16))})
             out['products'][label] = {'unit': unit, 'scale': scale, 'offset': offset, 'frames': refs}
         (staging / 'index.json').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':'), allow_nan=False)+'\n', encoding='utf-8')
