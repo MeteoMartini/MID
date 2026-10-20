@@ -2,7 +2,7 @@ import gzip,hashlib,json,tempfile,unittest
 from pathlib import Path
 import numpy as np
 from ruc_pack import DEFAULT_FIELDS,pack_cell_major,write_meta
-from ruc_map_candidate import build_candidate,decode_display,PARAMETERS
+from ruc_map_candidate import build_candidate,decode_display,PARAMETERS,audit_native_frame
 
 class RucMapCandidateTests(unittest.TestCase):
  def fixture(self,root,hours=14):
@@ -79,4 +79,24 @@ class RucMapCandidateTests(unittest.TestCase):
    with self.assertRaisesRegex(ValueError,'new'):build_candidate(source,out)
    meta=json.loads((source/'latest.json').read_text());meta['deterministic']['fields'][0]['unit']='K';(source/'latest.json').write_text(json.dumps(meta))
    with self.assertRaisesRegex(ValueError,'unit'):build_candidate(source,root/'bad')
+ def test_native_extreme_outside_crop_and_native_missing_audit(self):
+  # The unstructured source can contain extremes outside the map crop.
+  # They must remain visible as provenance, even if sampling omits them.
+  cube=np.array([[[0]],[[4000]],[[5000]],[[-32768]]],dtype='<i2')
+  lookup=np.array([[0,1,3,0xffffffff]],dtype='<u4')
+  audit=audit_native_frame(cube,lookup,0,0,{'scale':.01},1,(-100.,70.))
+  self.assertEqual(audit['packedCoreExtrema'],[0.,50.])
+  self.assertEqual(audit['sampledExtrema'],[0.,40.])
+  self.assertEqual(audit['nativeMissingCount'],1)
+  self.assertEqual(audit['sampledMissingCount'],2)
+  self.assertTrue(audit['nativeExtremeNotSampled'])
+  self.assertTrue(audit['packedCoreExtremaMayDifferFromOriginalGrib'])
+  self.assertEqual(decode_display(cube,lookup,0,{'scale':.01},1,(-100.,70.))[1][0],[0,4000,None,None])
+  cube[2,0,0]=15000  # Outside preview; 150 °C must nevertheless fail.
+  with self.assertRaisesRegex(ValueError,'native map field outside physical contract'):
+   audit_native_frame(cube,lookup,0,0,{'scale':.01},1,(-100.,70.))
+  cube[2,0,0]=5000
+  with self.assertRaisesRegex(ValueError,'fully missing native'):
+   audit_native_frame(np.full_like(cube,-32768),lookup,0,0,{'scale':.01},1,(-100.,70.))
+
 if __name__=='__main__':unittest.main()

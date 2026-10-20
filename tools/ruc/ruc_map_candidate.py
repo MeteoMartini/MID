@@ -57,6 +57,34 @@ def decode_display(cube,lookup,field_index,spec,factor,bounds):
   result.append([int(v) if ok else None for v,ok in zip(quantized.ravel(),mask.ravel())])
  return scale,result
 
+def audit_native_frame(cube,lookup,field_index,time_index,spec,factor,bounds):
+ """Audit the entire quantized native field, not only the selected map crop.
+
+ GRIB-original extrema may be different after the source's lossless transport
+ and intentional int16 quantization. Missing sentinel is never a dry zero.
+ """
+ native=cube[:,time_index,field_index]
+ native_ok=native!=-32768
+ if not np.any(native_ok):raise ValueError('fully missing native map time')
+ physical=(native[native_ok].astype(np.float64)*spec['scale']+spec.get('offset',0))*factor
+ lo,hi=bounds
+ if np.any(~np.isfinite(physical)|(physical<lo)|(physical>hi)):
+  raise ValueError('native map field outside physical contract')
+ inside=lookup!=np.uint32(0xffffffff)
+ sampled=native[lookup[inside].astype(np.intp)]
+ sampled_ok=sampled!=-32768
+ if not np.any(sampled_ok):raise ValueError('fully missing sampled map time')
+ shown=(sampled[sampled_ok].astype(np.float64)*spec['scale']+spec.get('offset',0))*factor
+ core_min,core_max=float(physical.min()),float(physical.max())
+ shown_min,shown_max=float(shown.min()),float(shown.max())
+ return {'packedCoreExtrema':[core_min,core_max],
+         'sampledExtrema':[shown_min,shown_max],
+         'nativeMissingCount':int(native.size-np.count_nonzero(native_ok)),
+         'sampledMissingCount':int(lookup.size-np.count_nonzero(sampled_ok)),
+         'nativeExtremeNotSampled':bool(core_min<shown_min-1e-9 or core_max>shown_max+1e-9),
+         'packedCoreExtremaMayDifferFromOriginalGrib':True}
+
+
 def build_candidate(source:Path,output:Path):
  source=Path(source).resolve(strict=True);output=Path(output).resolve()
  if source==output or source.is_relative_to(output) or output.is_relative_to(source):
@@ -105,7 +133,8 @@ def build_candidate(source:Path,output:Path):
    encoded=compact(payload);wire=gzip.compress(encoded,mtime=0)
    if len(encoded)>12_000_000:raise ValueError('map decoded budget')
    key=f'{kind}-{hour:03d}.bin';files[key]=wire
-   refs.append({'hour':hour,'time':payload['time'],'file':key,'sha256':hashlib.sha256(wire).hexdigest(),'bytes':len(wire),'decodedBytes':len(encoded),'encoding':'gzip-json','intervalHours':1 if kind in ('precipitation','gust') else 0})
+   frame_audit=audit_native_frame(cube,lookup,fi,hour,spec,factor,bounds)
+   refs.append({'hour':hour,'time':payload['time'],'file':key,'sha256':hashlib.sha256(wire).hexdigest(),'bytes':len(wire),'decodedBytes':len(encoded),'encoding':'gzip-json','intervalHours':1 if kind in ('precipitation','gust') else 0,**frame_audit})
   index['products'][kind]={'unit':unit,'frames':refs}
  index['candidateBytes']=sum(len(data) for data in files.values())
  if index['candidateBytes']>100_000_000:raise ValueError('offline map candidate budget')
