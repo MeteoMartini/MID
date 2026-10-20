@@ -1,3 +1,11 @@
+# MID v0.9.85.301 · Direkter Extremwetterabruf: abgebrochene Folgeabfragen verhindern
+
+- Ausgangsbasis: main=mid-stable=589d0bc41860cebf6cbec1591ad1c0644f557097, v0.9.85.300; Issue #345. Parallel-PR #425 ist ein eigenständiger Draft-RUC-Provider-Canary und wird nicht verändert.
+- Einziger Fachcode-Fix: `scripts/build-maintenance-aggregates.mjs` bekommt einen sofortigen Parent-Abort-Check vor `guardedOpenMeteoFetch`, innerhalb des vorhandenen try/finally. Das daraus erzeugte `src/extremeWeatherOutlookDirect.generated.js` erhält denselben Guard. Kein geänderter Wetterwert, Warnstatus, Cache-Key, Retry-Limit, Provider oder Datenmodell.
+- Neue Regression `scripts/test-direct-outlook-abort-isolation-0985301.mjs` registriert in `MID_BASELINE.json` (beide Inventare). Sechs Fälle mit zwei konkurrierenden Kontexten, bereits abgebrochenen Startpfaden und simulierten unabhängigen HTTP-429-Fehlern. Basisversion/Versionsspiegel, Release Notes und Changelogs synchronisieren.
+- Historische isolierte Node-v22-Red-/Green-Fixture bestand; das vollständige Source-Gate und der reguläre Installer sind die verbindlichen Freigabestufen. Reale Netzwerk-429, Browser/WKWebView/VoiceOver und Geräteparität nicht als durch lokale Tests bewiesen ausgeben.
+- Nach grünen Source-Gates ausschließlich kontrollierter MID Agent Source Release → serverseitiges ZIP → install-mid.yml → betroffene Worker-/Pages-Gates → mid-stable-Promotion. Kein direkter Merge oder manuelles Deployment.
+
 # MID v0.9.85.300 · Skybar-NoData: fehlende Niederschlagsmenge nicht als 0 mm kennzeichnen
 
 - SHA-verifizierte Ausgangsbasis: main=mid-stable=8b3759960ef78e758d7c19d2603f4acde052522f, v0.9.85.299, install-mid Run #39295438835 erfolgreich. Verträge AGENTS.md, MID_BASELINE.json und bestehende WMO-/Skybar-Regressionen maßgeblich.
