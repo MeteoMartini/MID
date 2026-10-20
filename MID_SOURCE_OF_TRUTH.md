@@ -1,3 +1,11 @@
+# MID v0.9.85.302 · Explizite UTC-/Offset-Zeitpunkte erhalten (Source-PR-Kandidat)
+
+- Verifizierte Ausgangsbasis main=mid-stable=f17226dea646193a43c78e29198886d7f3601254, v0.9.85.301; Installer 39391396433 erfolgreich. Parallel-Draft #425 bleibt unverändert.
+- Beide gemeinsamen Zeitparser ignorierten vorhandene ISO-Zonenangaben. Die Red-Fixture reproduziert u. a. eine Verschiebung der ersten Berliner Herbst-Doppelstunde um eine Stunde. Gemeinsamer Helper `src/explicitIsoInstant.ts` wahrt ausdrücklich angegebene Instants vor jeder IANA-/Offset-Fallbackbehandlung; fehlerhafte explizite Suffixe werden nicht als lokale Zeit umgedeutet.
+- Offsetlose IANA-Ortszeiten und bestehende Fixoffset-Aufrufer bleiben unverändert. Keine Änderung an Open-Meteo-Abfragen, Cacheformat, Tagesprodukten, Akkumulation oder Modellwerten. Der größere Open-Meteo-DST-Adapterfehler bleibt offen; keine vollständige DST-Datenmigration behaupten.
+- Pflichtregression `scripts/test-explicit-time-offsets-0985302.mjs` in beiden Inventaren: explizites Z, ±Offset mit/ohne Doppelpunkt, Bruchteile, Herbst-Doppelstunde, Frühlingslücke, ungültige Suffixe, Lokal-/Zulu-Darstellung und unveränderte offsetlose Pfade. Technischer Nachweis `docs/implementation/MID_C37_EXPLICIT_TIME_0.9.85.302.md`.
+- Freigabe ausschließlich über Source-Gates → SHA-gebundenen MID-Bot → serverseitiges ZIP → Installer → Worker/Pages → Stable. Noch kein Veröffentlichungsbeleg für diesen Kandidaten.
+
 # MID v0.9.85.301 · Direkter Extremwetterabruf: abgebrochene Folgeabfragen verhindern
 
 - Ausgangsbasis: main=mid-stable=589d0bc41860cebf6cbec1591ad1c0644f557097, v0.9.85.300; Issue #345. Parallel-PR #425 ist ein eigenständiger Draft-RUC-Provider-Canary und wird nicht verändert.
