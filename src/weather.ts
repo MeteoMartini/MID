@@ -21,7 +21,7 @@ import {loadDwdRsCalibration} from './DwdRsSource';
 import {loadHxBoundaryCheck} from './HxRadarPointSource';
 import type {RadarRainStationCalibration} from './RadarNowcastCalibration';
 import {astronomicalIsDayAt,solarDaylightWindowAt} from './astronomy';
-import {boundedSunshineSeconds,canonicalSunshineDaySeconds,canonicalSunshineHourSeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes,reconcileSunshineDuration,type SunshineDurationDiagnostic} from './sunshineDuration';
+import {boundedSunshineSeconds,canonicalSunshineDaySeconds,canonicalSunshineHourSeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes,reconcileSunshineDuration,sunshineQuarterValuesForHour,type SunshineDurationDiagnostic} from './sunshineDuration';
 import {classifyVisibilityPhenomenon} from './visibilityPhenomena';
 import {observedPrecipitationForecastCode} from './observationPresentWeather';
 import {utciFromOutdoorState} from './utci';
@@ -937,7 +937,13 @@ export function coreForecastSourceLabel(_w:Weather){return'Open-Meteo Best Match
 export function coreForecastUsesIndependentFallback(_w:Weather){return false}
 function knownForecastPrecipitation(value:unknown){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:NaN}
 function knownForecastProbability(value:unknown){return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100?value:NaN}
-function minutelySunshineValuesForHour(w:Weather,time:string){const times=(w.minutely_15?.time??[]) as string[],values=(w.minutely_15?.sunshine_duration??[]) as (number|string|null)[];return times.map((stamp,index)=>({stamp:String(stamp),value:values[index]})).filter(row=>row.stamp.slice(0,13)===String(time).slice(0,13)).sort((a,b)=>a.stamp.localeCompare(b.stamp)).map(row=>row.value)}
+function minutelySunshineValuesForHour(w:Weather,time:string){
+ const times=(w.minutely_15?.time??[]) as string[],values=(w.minutely_15?.sunshine_duration??[]) as (number|string|null)[],offset=Number(w.utc_offset_seconds)||0;
+ // These are raw Open-Meteo endpoints: their response offset is fixed. Real
+ // user-local events continue to use the IANA-aware localIsoEpoch path.
+ const endpoint=(stamp:string)=>localIsoEpoch(String(stamp),undefined,offset);
+ return sunshineQuarterValuesForHour(endpoint(time),times.map((stamp,index)=>({epoch:endpoint(stamp),value:values[index]})));
+}
 function weatherDaylightOverlapSeconds(w:Weather,epoch:number,intervalSeconds:number){if(!Number.isFinite(epoch))return undefined;const window=solarDaylightWindowAt(epoch,{latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone}),sunrise=window.sunrise?.getTime(),sunset=window.sunset?.getTime(),start=epoch-Math.max(60,intervalSeconds)*1000;if(!Number.isFinite(sunrise)||!Number.isFinite(sunset))return undefined;return Math.max(0,(Math.min(epoch,Number(sunset))-Math.max(start,Number(sunrise)))/1000)}
 function weatherSunshineHourSeconds(w:Weather,time:string,index:number){
  const raw=canonicalSunshineHourSeconds(w.hourly.sunshine_duration?.[index],minutelySunshineValuesForHour(w,time)),epoch=localIsoEpoch(time,w.timezone,Number(w.utc_offset_seconds)||0),providerIsDay=n(w.hourly.is_day?.[index],0)===1,isDay=astronomicalIsDayAt(epoch,{latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone},providerIsDay);

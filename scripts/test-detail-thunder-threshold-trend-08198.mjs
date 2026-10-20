@@ -21,8 +21,8 @@ for(const token of [
  'hourlyThunderRisks=dayHours.map(hour=>significantHourlyThunderRisk(hour))',
  'thunderSignalScore=Math.max(0,...hourlyThunderRisks.map(risk=>risk.signalScore))',
  'stormy=thunderSignalScore>=DETAIL_THUNDER_RISK_DISPLAY_THRESHOLD||thunderDirect',
- "directThunder||maxThunderRisk>=70?'wechselhaft mit Gewittern'",
- "maxThunderRisk>=50?'wechselhaft mit erhöhtem Gewitterrisiko':'wechselhaft mit Gewitterrisiko'"
+ "directThunder||maxThunderRisk>=70?'ist es wechselhaft mit Gewittern'",
+ "maxThunderRisk>=50?'besteht erhöhtes Gewitterrisiko':'besteht Gewitterrisiko'"
 ])need('Trend-Konsistenz',sevenDay,token);
 if(sevenDay.includes('maxCape>=700&&day.probability>=45'))failures.push('Die alte CAPE-/Tageswahrscheinlichkeits-Ersatzregel ist weiterhin aktiv.');
 need('Package-Test',pkg,'test:detail-thunder-threshold-trend');

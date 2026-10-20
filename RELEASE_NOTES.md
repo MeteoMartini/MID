@@ -1,4 +1,5 @@
-# MID v0.9.85.303
+# MID v0.9.85.304
 
-- Skybar: An Sonnenauf- und -untergang richtet sich die gelbe Balkendicke jetzt nach dem tatsächlich möglichen Tageslichtanteil des Intervalls. Nachtminuten schwächen das sichtbare Tagesstück nicht mehr künstlich ab. Die Bezugszeit wird im Tooltip genannt; Sonnenminuten bleiben unverändert.
-- Alle vier gelben und grauen Dickenstufen werden separat geprüft. Nicht jede Wetterlage enthält jede Stufe; Bewölkungswerte und Niederschlag werden nicht verändert oder künstlich auf Klassen verteilt. Die größere Open-Meteo-Zeitumstellungs-Migration bleibt separat offen.
+- Der 7-Tage-Kurztext liest sich flüssiger: vollständige Sätze, ein natürlicher Anschluss an die kommende Nacht und klar datierte weitere Wetterphasen. Niederschlagsart, Unsicherheit und markante Hinweise bleiben erhalten.
+- Sonnenscheindauer: Die stündliche Zusammenfassung aus Viertelstunden verwendet jetzt genau die vier vorangegangenen Intervalle bis zum Stundenende. Spätere Viertelstunden fließen nicht mehr versehentlich ein. Dies verbessert auch die davon abhängige Skybar.
+- Bei Lücken, doppelten oder unpassenden Zeitpunkten bleibt der verfügbare Stundenwert erhalten. Fehlende Werte bleiben fehlend. Die weitergehende Anbieter-Zeitumstellungs-Migration bleibt offen.

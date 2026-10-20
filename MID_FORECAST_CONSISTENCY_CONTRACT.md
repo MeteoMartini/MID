@@ -1,5 +1,15 @@
 # MID – verbindlicher Vertrag für eine konsistente Prognose aus einem Guss
 
+## v0.9.85.304 · Natürlich formulierter 7-Tage-Kurztext
+
+Der Kurztext verwendet vollständige Aussagen aus denselben ausgewählten Ereignissen. Nur ein unmittelbar aufeinander ausgewähltes Tag-/Folgenachtpaar desselben Tagesindexes und derselben Niederschlagsfamilie darf mit „auch“ verbunden werden. Ein Phasenwechsel oder eine spätere Nacht bleibt separat datiert. Daraus werden keine durchgehenden Niederschläge, trockenen Zwischenphasen, räumliche Ausdehnungen oder synoptischen Ursachen abgeleitet. Rangfolge, maximal drei ausgewählte Ereignisse, Warnstärke und Möglichkeitsaussagen bleiben unverändert. Markante Hinweise erhalten grammatisch passende Singular-/Pluralformen. Fehlende Daten werden weiterhin ausdrücklich als unvollständig ausgewiesen. Der Sprachstil orientiert sich an DWD-Beispielen; die Aussagen entstehen aus MID-Daten und sind keine amtliche DWD-Vorhersage.
+
+Ein markanter Hinweis darf mit „zudem“ an eine Aussage desselben einzelnen Tages anschließen. Deckt die Wetterbeschreibung mehrere Tage ab, behält der Hinweis seinen eigenen Tagesbezug; seine Gültigkeit darf sprachlich nicht auf den gesamten Wetterabschnitt erweitert werden.
+
+## v0.9.85.304 · Sonnenschein aus endgestempelten Viertelstunden
+
+Die rohe Sonnenscheinstundensumme am Endstempel T darf nur durch vier gültige native Viertelstunden mit Endstempeln T−45min, T−30min, T−15min und T ersetzt werden. Die vier Rohintervalle überdecken exakt (T−60min,T]. Eine Suche allein nach gleichem Uhrzeitpräfix ist unzulässig. Lücken, doppelte oder zusätzliche unpassende Endstempel innerhalb dieses Fensters erzwingen den bisherigen Stunden-Fallback; Missing bleibt Missing. Explizite ISO-Offsets werden als absolute Zeitpunkte gewahrt. Offsetlose Open-Meteo-Rohendstempel werden für diese Zuordnung mit dem festen Antwortoffset verglichen. Diese enge Intervallkorrektur ist keine vollständige Anbieter-DST-/Tages-/Cachemigration (#428); nutzerlokale Eventzeiten und die astronomische Symbolgrenze behalten ihre eigenen Verträge.
+
 Dieser Vertrag gilt ab MID v0.9.53.26 app-weit für alle bestehenden und neuen sichtbaren Prognose-, Analyse-, Warn-, Event-, Aktivitäts-, Widget- und Exportmodule.
 
 ## 1. Eine operative Prognose, mehrere Darstellungen
