@@ -1,0 +1,52 @@
+name: MID RUC native horizon read-only
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/ruc/ruc_horizon_probe.py'
+      - 'tools/ruc/test_ruc_horizon_probe.py'
+      - 'tools/ruc/ruc_map_archive_probe.py'
+      - 'tools/ruc/test_ruc_map_archive_probe.py'
+      - 'tools/ruc/ruc_map_candidate.py'
+      - 'tools/ruc/test_ruc_map_candidate.py'
+      - 'ci/github/workflows/mid-ruc-horizon-readonly.yml'
+      - '.github/workflows/mid-ruc-horizon-readonly.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-horizon-readonly-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  native-horizon:
+    if: github.event.pull_request.head.repo.full_name == github.repository && (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Read exact PR head without stored credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Python for existing RUC readers
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install existing preprocessing requirements
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Local integrity regressions
+        run: |
+          python tools/ruc/test_ruc_map_candidate.py
+          python tools/ruc/test_ruc_horizon_probe.py
+          python tools/ruc/test_ruc_map_archive_probe.py
+          python tools/ruc/test_grib_metadata.py
+          python tools/ruc/test_grib_bitmap.py
+      - name: Three native runs, all twelve hourly fields through +27h
+        run: python tools/ruc/ruc_horizon_probe.py --output .ruc-horizon-evidence --runs 3 --candidate-count 6
+      - name: Preserve numerical evidence, including incomplete candidates
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-horizon-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ruc-horizon-evidence/
+          if-no-files-found: warn
+          retention-days: 2

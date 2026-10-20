@@ -85,3 +85,49 @@ routine is being used separately; production protections remain unchanged.
 Issues #350/#352/#405/#428 remain open. This candidate is not authorization or
 evidence for production activation, +27 h fusion, a new model family vote, or
 closing any scientific/live-device acceptance item.
+
+## Follow-up: actual 20Z archive replay and full-horizon diagnostics
+
+GitHub Actions run 39495600947 on the same .304 stable SHA produced artifact
+12299022607, `mid-ruc-data-39495600947-1`. The downloaded 368,540,037-byte ZIP
+matches its GitHub artifact SHA256
+`83da6240488a315ca7d85aeea728a7272845f3a00ebca6ce972f558be5cbef21`.
+It contains a verified compressed snapshot for 2026-10-20T20:00, 542,040 points.
+397 deterministic codec parts were individually hash-checked and decoded with
+the existing lossless decoder. Lookup chunks were independently size/SHA checked.
+The reconstructed deterministic object is 195,134,400 bytes; lookup 2,298,176.
+
+`ruc_map_archive_probe.py` makes this archive-to-candidate transformation
+reproducible. It never extracts arbitrary archive paths, binds the complete ZIP
+SHA, bounds decode sizes and record geometry, and writes only to a new isolated
+output. Its three additional synthetic regressions cover exact reconstruction,
+corrupt ZIP SHA, record gaps and lookup SHA corruption, including cleanup of
+incomplete output. No source archive or production pointer is modified.
+
+The actual candidate has **88 frames / 11,696,580 wire bytes**, six parameter
+products over the real 0…+14 h axis and a 328×404 nearest-cell display crop.
+An independent comparison checked every displayed cell of all 88 frames against
+the reconstructed source and lookup. Maximum map rounding error is 0.005 km/h
+for converted wind/gust; precipitation and temperature have zero additional
+rounding in this run. The actual Germany crop has no missing cells; synthetic
+NoData tests remain the evidence for propagation of both source and lookup masks.
+See `MID_C38_RUC_MAP_REPLAY_20Z.json` for hashes, per-parameter counts and errors.
+This is an actual archive replay, not current live rendering or GRIB re-decoding.
+
+The new PR-only `mid-ruc-horizon-readonly.yml` has read-only contents permission,
+SHA-pinned actions, exact PR-head checkout without persisted credentials, a
+25-minute timeout, and two-day evidence retention. It has no schedule, manual
+trigger, production secrets, Pages/Worker deployment, or release permission.
+It runs `ruc_horizon_probe.py` against up to six advertised native DWD runs to
+find three completely validated 0…+27 h hourly core datasets. It independently
+excludes incomplete newest candidates and emits a report even on failure.
+
+For each accepted run, all twelve fields use the released GRIB-header / native
+grid / bitmap / unit readers, full hourly target validation, accumulation
+monotonicity and canonical field integrity. The probe also rejects native values
+which the current int16 packer would clip; it must not claim extrema-preserving
+validation for unrepresentable values. Native file SHAs, per-time missing counts,
+extrema, actual deterministic bytes and map-candidate bytes are reported.
+EPS and production readiness remain explicitly false. This diagnostic complements
+PR #425's limited provider pilot; neither draft is a production activation.
+The workflow and source are mirrored through the existing explicit sync script.
