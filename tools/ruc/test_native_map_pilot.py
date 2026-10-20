@@ -59,7 +59,7 @@ class NativeRucMapPilotTest(unittest.TestCase):
             self.assertEqual(payload['validTime'], '2026-10-20T00:00:00+00:00')
             self.assertIn(None, payload['values'])
             self.assertEqual(frame['sampledMissingCount'], 2)
-            self.assertEqual(frame['nativeExtrema'], [-12.34, 12.0])
+            self.assertEqual(frame['packedCoreExtrema'], [-12.34, 12.0])
             self.assertEqual((source / 'latest.json').read_bytes(), initial)
             with self.assertRaises(ValueError): build(source, out)
 
