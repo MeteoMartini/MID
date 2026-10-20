@@ -12,7 +12,7 @@ assert.match(css,/\.hero\.current-compact \.current-weather-overview>\.hero-day-
 assert.match(app,/className="wind-value-nowrap"/,'Wind/Böen-Wert braucht einen umbrechungsfesten Wrapper');
 assert.match(css,/\.metrics \.wind-gust-card>strong[\s\S]*white-space:nowrap/,'Wind/Böen-Einheit darf in der aktuellen Wetterkachel nicht umbrechen');
 assert.match(sevenDay,/function sevenDayHazardPhrase/,'Rechtschreibungsbehandlung für Trend-Hazards fehlt');
-assert.match(sevenDay,/return \/\^\(Schwere\|Orkanartige\|Extreme\|Starke\|Leichte\|Mäßige\)/,'Nur führende Adjektive dürfen kleingeschrieben werden');
+assert.match(sevenDay,/return \/\^\(Schwere\|Schweres\|Orkanartige\|Extreme\|Extrem\|Extremes\|Extremer\|Starke\|Starkes\|Starker\|Leichte\|Leichter\|Mäßige\|Markante\|Strenger\|Heftiger\|Ergiebiger\)\\b/,'Nur die ausdrücklich benannten führenden Adjektive mit Wortgrenze dürfen kleingeschrieben werden');
 assert.match(sevenDay,/title=sevenDayHazardPhrase\(candidate\.signal\.title\)/,'7-Tage-Trend muss die rechtschreibungsbewusste Hazard-Phrase verwenden');
 assert.match(app,/onConfigChange:\(change:Partial<MountainConfig>\)=>void/,'Berg-/Wintersport braucht eine direkte Konfigurationsschnittstelle');
 assert.match(app,/aria-label="Saisonprofil"[\s\S]*Auto[\s\S]*Sommer[\s\S]*Winter/,'Saisonumschalter muss im Berg-/Wintersportbereich sichtbar sein');

@@ -88,6 +88,16 @@ export function daylightSecondsFromLocalTimes(sunrise?:string|null,sunset?:strin
  return Math.max(0,Number(fallbackSeconds)||12*SUNSHINE_HOUR_SECONDS);
 }
 
+/** End-stamped native quarters must tile (hourEnd - 1 h, hourEnd] exactly.
+ * Duplicate, missing or off-grid endpoints cannot replace a known hourly sum. */
+export function sunshineQuarterValuesForHour(hourEnd:number,samples:readonly {epoch:number;value:unknown}[]):unknown[]{
+ if(!Number.isFinite(hourEnd))return[];
+ const quarterMs=SUNSHINE_QUARTER_HOUR_SECONDS*1000,start=hourEnd-SUNSHINE_HOUR_SECONDS*1000;
+ const selected=samples.filter(sample=>Number.isFinite(sample.epoch)&&sample.epoch>start&&sample.epoch<=hourEnd).sort((a,b)=>a.epoch-b.epoch);
+ if(selected.length!==4||selected.some((sample,index)=>sample.epoch!==start+(index+1)*quarterMs))return[];
+ return selected.map(sample=>sample.value);
+}
+
 /** Vier vollständige 15-Minuten-Werte haben Vorrang vor dem Stundenfeld; jeder Einzelwert bleibt auf 900 s begrenzt. */
 export function canonicalSunshineHourSeconds(hourValue:unknown,quarterValues:unknown[]=[]):number|null{
  const quarters=quarterValues.map(value=>boundedSunshineSeconds(value,SUNSHINE_QUARTER_HOUR_SECONDS)).filter((value):value is number=>value!==null);

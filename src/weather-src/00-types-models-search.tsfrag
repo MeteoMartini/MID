@@ -21,7 +21,7 @@ import {loadDwdRsCalibration} from './DwdRsSource';
 import {loadHxBoundaryCheck} from './HxRadarPointSource';
 import type {RadarRainStationCalibration} from './RadarNowcastCalibration';
 import {astronomicalIsDayAt,solarDaylightWindowAt} from './astronomy';
-import {boundedSunshineSeconds,canonicalSunshineDaySeconds,canonicalSunshineHourSeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes,reconcileSunshineDuration,type SunshineDurationDiagnostic} from './sunshineDuration';
+import {boundedSunshineSeconds,canonicalSunshineDaySeconds,canonicalSunshineHourSeconds,coherentSunshineDurationSeconds,daylightSecondsFromLocalTimes,reconcileSunshineDuration,sunshineQuarterValuesForHour,type SunshineDurationDiagnostic} from './sunshineDuration';
 import {classifyVisibilityPhenomenon} from './visibilityPhenomena';
 import {observedPrecipitationForecastCode} from './observationPresentWeather';
 import {utciFromOutdoorState} from './utci';

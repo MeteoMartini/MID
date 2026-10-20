@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {build} from 'esbuild';
+const dir=mkdtempSync(join(tmpdir(),'mid-narrative-304-')),originalNow=Date.now;
+try{
+ await build({stdin:{contents:"export{buildSevenDayForecastSummary,sevenDayHazardPhrase}from'./src/SevenDayForecastSummary';export{sevenDayNarrativeText}from'./src/sevenDayNarrativeTimeline';",resolveDir:process.cwd()},plugins:[{name:'test-actual-hazard-grammar',setup(b){b.onLoad({filter:/SevenDayForecastSummary\.tsx$/},args=>({contents:readFileSync(args.path,'utf8')+'\nexport {sevenDayHazardPhrase};',loader:'tsx'}))}}],bundle:true,platform:'node',format:'esm',outfile:join(dir,'test.mjs'),logLevel:'silent'});
+ const {buildSevenDayForecastSummary:summary,sevenDayNarrativeText:render,sevenDayHazardPhrase:phrase}=await import(pathToFileURL(join(dir,'test.mjs')));
+ const adjectives=['Schwere Sturmböen','Orkanartige Böen','Extreme Orkanböen','Starkes Gewitter','Schweres Gewitter','Extremes Gewitter','Heftiger Starkregen','Extrem heftiger Starkregen','Ergiebiger Dauerregen','Extrem ergiebiger Dauerregen','Starker Schneefall','Leichter Schneefall','Extrem starker Schneefall','Starke Schneeverwehung','Extrem starke Schneeverwehung','Markante Glätte','Strenger Frost','Starke Wärmebelastung','Extreme Wärmebelastung'];
+ for(const title of adjectives)assert.equal(phrase(title),title.charAt(0).toLocaleLowerCase('de-DE')+title.slice(1),title+' adjective must agree with full sentence');
+ for(const title of ['Windböen','Sturmböen','Orkanböen','Gewitter','Starkregen','Dauerregen','Schneefall','Schneeverwehung','Glätte','Glatteis','Frost','Nebel','Regen und Schnee'])assert.equal(phrase(title),title,'Never lowercase an event noun');
+ Date.now=()=>Date.UTC(2026,9,20,10);
+ const days=Array.from({length:7},(_,i)=>({date:new Date(Date.UTC(2026,9,20+i)).toISOString().slice(0,10),min:8,max:14,code:i===0||i>=2?61:1,precipitation:i===0||i>=2?4:0,probability:i===0||i>=2?90:0,sunshineDuration:i===1?8*3600:0,wind:4,gust:8,direction:90,uvMax:2}));
+ const hours=Array.from({length:169},(_,i)=>{const date=new Date(Date.UTC(2026,9,20)+i*3600000),time=date.toISOString().slice(0,16),h=i%24,day=Math.floor(i/24),wet=(day===0&&h>=8&&h<=18)||(day===0&&h>=20)||(day===1&&h<=4)||(day>=2&&h>=8&&h<=18);return{time,epoch:date.getTime(),timezone:'UTC',temperature:12,apparent:12,dewPoint:7,humidity:70,pressure:1015,isDay:h>=7&&h<19,code:wet?61:1,precipitation:wet?.4:0,rain:wet?.4:0,showers:0,snowfall:0,probability:wet?90:0,cloud:wet?90:20,gust:8,wind:4,direction:90,uvIndex:1,cape:0,visibility:10000}});
+ const before=JSON.stringify({days,hours}),text=summary(days,hours);
+ assert.equal(text,'Heute regnet es; auch in der kommenden Nacht kann es regnen. Ab Donnerstag ist mit Regen zu rechnen.');
+ assert.equal(JSON.stringify({days,hours}),before,'Language cannot change canonical forecast data');
+ const windy=summary(days,hours.map(h=>h.time.startsWith(days[0].date)?{...h,gust:45}:h));assert.match(windy,/Heute regnet es; zudem sind Sturmböen möglich/,'Same-day plural warning joins without repeating Heute and keeps degree/uncertainty');
+ const storm=summary(days,hours.map(h=>h.time.startsWith(days[0].date)?{...h,code:96}:h));assert.match(storm,/Heute ist ein starkes Gewitter möglich/,'Singular warning uses grammatical verb, article and adjective');
+ const heavyRain=summary(days,hours.map(h=>h.time.startsWith(days[0].date)?{...h,precipitation:3,rain:3,probability:90}:h));assert.match(heavyRain,/Starkregen|Dauerregen/,'Hazard nouns retain their initial capital');assert.doesNotMatch(heavyRain,/ist (?:starkregen|dauerregen)/);
+ const ice=summary([{...days[0],code:3,max:-2,min:-5,precipitation:0,probability:0}],[]);assert.match(ice,/Heute ist es überwiegend bewölkt, dabei herrscht Dauerfrost/,'Cloud and frost descriptions form complete sentences');
+ assert.doesNotMatch(text,/anhaltend|durchgehend|verbreitet|zwischenzeitlich trocken|Kaltfront/,'No unsupported duration, coverage, dry gap or synoptic cause');
+ const e=(dayIndex,phase,kind,text,weatherFamily,importance=5)=>({dayIndex,phase,kind,text,weatherFamily,importance});
+ assert.equal(render([e(0,0,'weather','Heute fällt Schnee','snow'),e(0,2,'night','In der kommenden Nacht kann Schnee fallen','snow')],true),'Heute fällt Schnee; auch in der kommenden Nacht kann Schnee fallen.');
+ assert.equal(render([e(0,0,'weather','Heute regnet es','rain'),e(0,2,'night','In der kommenden Nacht kann Schnee fallen','snow')],true),'Heute regnet es. In der kommenden Nacht kann Schnee fallen.','Changing phases must remain separate');
+ assert.equal(render([e(0,0,'weather','Heute regnet es','rain'),e(1,2,'night','In der Nacht zum Donnerstag kann es regnen','rain')],true),'Heute regnet es. In der Nacht zum Donnerstag kann es regnen.','Do not attach a later night as the immediately following night');
+ assert.equal(render([{...e(0,0,'weather','In den nächsten Tagen regnet es','rain'),throughDayIndex:2},e(0,1,'hazard','Heute sind Sturmböen möglich')],true),'In den nächsten Tagen regnet es. Heute sind Sturmböen möglich.','A same-day warning must not inherit a multi-day weather period');
+ const hazard=render([e(4,0,'weather','Ab Samstag ist mit Regen zu rechnen','rain'),e(0,2,'night','In der kommenden Nacht kann es regnen','rain',3),e(2,1,'hazard','Am Donnerstag schwere Sturmböen möglich',undefined,12),e(0,0,'weather','Heute regnet es','rain',7)],true);
+ assert.match(hazard,/Heute regnet es\. Am Donnerstag schwere Sturmböen möglich\. Ab Samstag/);assert.doesNotMatch(hazard,/kommenden Nacht/,'Significance cap still prioritizes the severe hazard');
+ assert.equal(render([],false),'7-Tage-Prognosedaten unvollständig.');
+ const missing=days.map(day=>({...day,max:null,min:null,precipitation:NaN,precipitationAvailable:false,probability:NaN,probabilityAvailable:false,code:NaN,sunshineDuration:null}));
+ assert.equal(summary(missing,[]),'7-Tage-Prognosedaten unvollständig.','Missing data cannot become benign prose');
+ console.log('MID .304: actual user rain/night/Thursday sequence rendered naturally; unchanged values, certainty, phase changes, night dates, severe hazard priority, event cap and Missing passed.');
+}finally{Date.now=originalNow;rmSync(dir,{recursive:true,force:true})}

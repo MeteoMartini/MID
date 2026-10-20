@@ -1,3 +1,13 @@
+# MID v0.9.85.304 · Natürlicher 7-Tage-Kurztext und korrekt zugeordnete Sonnenscheinintervalle (Source-PR-Kandidat)
+
+- Nutzerergänzung: 7d-Telegrammstil durch vollständige, natürlich verbundene Aussagen ersetzen. Tatsächliche Beispieldaten ergeben „Heute regnet es; auch in der kommenden Nacht kann es regnen. Ab Donnerstag ist mit Regen zu rechnen.“ DWD-Primärbeispiele recherchiert; keine neue Wetterursache, Verbreitung, Dauer oder Trockenpause erfunden. Semantische Familienmetadaten verbinden nur dasselbe Tag-/Folgenachtpaar; Hazard-Rangfolge, Ereignislimit, Daten und Unsicherheit erhalten.
+- Zweite neue Pflichtregression test-seven-day-natural-language-0985304.mjs in beiden Inventaren: tatsächliche Summary-Funktion, unveränderte Eingaben, Phasen-/Nachtwechsel, Singular/Plural/Artikel, Missing und markante Hinweise; zusätzlich 19 Adjektivbezeichnungen und13 Nomen/Gegenbeispiele gegen den tatsächlichen privaten Formatter. Drei historische Wortlaut-Assertions für Bewölkung, Mischwetter und Adjektivliste werden auf die bewusst neue Grammatik aktualisiert; ihr meteorologischer Schutz bleibt erhalten. Implementierungsbericht MID_C37_NATURAL_SUMMARY_0.9.85.304.md.
+
+- Verifizierte Basis main=mid-stable=6c3137426f332fb86369ac8f82783180a8b2f296 (.303), Installer39410945206 und alle fünf Heavygruppen erfolgreich; Pages-Versuch1 erfolgreich, Stable-Promotion bestätigt. Parallel-Draft425 unverändert.
+- Tatsächliches mapHours reproduziert 3100 statt1000 Sekunden: Viertelstunden mit gleichem Stundenpräfix enthielten zukünftige Akkumulationen. Die kanonische Stundensumme verwendet jetzt ausschließlich vier eindeutige native Endstempel T−45/30/15min und T. Vollständigkeitsprüfung verhindert Lücken-/Dubletten-/Offgrid-Scheinerfolge; Stunden-Fallback und Missing bleiben erhalten.
+- Neue Pflichtregression test-sunshine-quarter-intervals-0985304.mjs in beiden Inventaren, mit tatsächlichen mapHours/mapMinutely15, expliziten Offsets, DST-/Mitternachts-/Halb-/Viertelstundenoffset-Fenstern, Rohdaten-Unveränderlichkeit und Fehlerfällen. Gemeinsamer Sunshine-Pfad erreicht die bestehenden App-/Widget-/Exportverbraucher. Fachvertrag präzisiert; Anbieter-DST-/Cache-/Daily-Migration #428 bleibt offen.
+- Release ausschließlich Source-Gates → bestehender SHA-Bot → ServerZIP → Installer/Worker/Pages → Stable. Noch kein .304-Release behauptet. Nachweise im Implementierungsbericht MID_C37_SUNSHINE_INTERVALS_0.9.85.304.md.
+
 # MID v0.9.85.303 · Skybar-Dickenstufen am solaren Tagesrand (Source-PR-Kandidat)
 
 - Ausgangsbasis main=mid-stable=20872a05b80b94824219b20fbf97d3e9441ce98e (.302), Installer39402717597 erfolgreich; Parallel-Draft425 unverändert. Nutzerauftrag: alle gelben/grauen Dicken und Tag-/Nachtübergänge intensiv prüfen.
