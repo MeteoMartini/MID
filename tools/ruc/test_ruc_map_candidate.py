@@ -1,4 +1,6 @@
 import gzip,hashlib,json,tempfile,unittest
+from unittest.mock import patch
+import ruc_map_candidate as module
 from pathlib import Path
 import numpy as np
 from ruc_pack import DEFAULT_FIELDS,pack_cell_major,write_meta
@@ -22,12 +24,17 @@ class RucMapCandidateTests(unittest.TestCase):
    with self.subTest(hours=hours),tempfile.TemporaryDirectory() as t:
     root=Path(t);source=self.fixture(root,hours);before={p.name:p.read_bytes() for p in source.iterdir()}
     out=root/'maps';index=build_candidate(source,out)
+    self.assertEqual(index['sourceManifestSha256'],hashlib.sha256(before['latest.json']).hexdigest())
+    self.assertEqual(index['sourceDeterministicSha256'],hashlib.sha256(before['deterministic.bin']).hexdigest())
+    self.assertEqual(index['sourceLookupSha256'],hashlib.sha256(before['lookup.bin']).hexdigest())
     self.assertEqual(index['modelId'],'icon-d2-ruc');self.assertEqual(index['sampling'],'nearest-native-cell')
     for kind in PARAMETERS:
      frames=index['products'][kind]['frames'];self.assertEqual(len(frames),hours if kind in ('gust','precipitation') else hours+1)
      for frame in frames:
       wire=(out/frame['file']).read_bytes();self.assertEqual(hashlib.sha256(wire).hexdigest(),frame['sha256'])
-      payload=json.loads(gzip.decompress(wire));self.assertEqual(len(gzip.decompress(wire)),frame['decodedBytes'])
+      decoded=gzip.decompress(wire)
+      self.assertEqual(hashlib.sha256(decoded).hexdigest(),frame['decodedSha256'])
+      payload=json.loads(decoded);self.assertEqual(len(decoded),frame['decodedBytes'])
       self.assertIsNone(payload['values'][0]);self.assertIsNone(payload['values'][1])
       self.assertEqual(payload['time'],frame['time']);self.assertEqual(payload['run'],index['run'])
     rain=json.loads(gzip.decompress((out/'precipitation-001.bin').read_bytes()))
@@ -98,5 +105,20 @@ class RucMapCandidateTests(unittest.TestCase):
   cube[2,0,0]=5000
   with self.assertRaisesRegex(ValueError,'fully missing native'):
    audit_native_frame(np.full_like(cube,-32768),lookup,0,0,{'scale':.01},1,(-100.,70.))
+
+ def test_source_changed_before_atomic_output_rejected(self):
+  for changed in ('latest.json','deterministic.bin','lookup.bin'):
+   with self.subTest(changed=changed),tempfile.TemporaryDirectory() as t:
+    root=Path(t);source=self.fixture(root);out=root/'maps'
+    original_compact=module.compact
+    def swap_at_index(payload):
+     if payload.get('schema')=='mid.ruc.map-candidate.v1':
+      target=source/changed
+      with target.open('ab') as fp:fp.write(b'X')
+     return original_compact(payload)
+    with patch.object(module,'compact',side_effect=swap_at_index):
+     with self.assertRaisesRegex(ValueError,'source (manifest|object) changed during map generation'):
+      build_candidate(source,out)
+    self.assertFalse(out.exists())
 
 if __name__=='__main__':unittest.main()

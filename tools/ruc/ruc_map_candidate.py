@@ -35,6 +35,18 @@ def checked_object(root,meta,name):
   raise ValueError('source object size/SHA mismatch: '+name)
  return data
 
+def recheck_object(root,meta,name):
+ """Check the original object still matches its pinned SHA without rereading it into RAM."""
+ descriptor=meta.get('objects',{}).get(name)
+ if not isinstance(descriptor,dict):raise ValueError('missing source object descriptor: '+name)
+ h=hashlib.sha256();size=0
+ with (root/name).open('rb') as stream:
+  for part in iter(lambda:stream.read(1048576),b''):
+   size+=len(part);h.update(part)
+ if size!=descriptor.get('bytes') or h.hexdigest()!=descriptor.get('sha256'):
+  raise ValueError('source object changed during map generation: '+name)
+
+
 def decode_display(cube,lookup,field_index,spec,factor,bounds):
  """NoData from either lookup or source stays null, including at grid edges."""
  if cube.ndim!=3 or lookup.ndim!=2 or not all(cube.shape) or not lookup.size:
@@ -90,7 +102,9 @@ def build_candidate(source:Path,output:Path):
  if source==output or source.is_relative_to(output) or output.is_relative_to(source):
   raise ValueError('map candidate must be outside source and its parents')
  if output.exists():raise ValueError('map candidate output must be new')
- meta=json.loads((source/'latest.json').read_text())
+ manifest_bytes=(source/'latest.json').read_bytes()
+ if len(manifest_bytes)>8_000_000:raise ValueError('source manifest exceeds size budget')
+ meta=json.loads(manifest_bytes)
  if meta.get('schema')!='mid.dwd.ruc.grid.v2':raise ValueError('unsupported RUC source schema')
  run=utc_time(meta['run'])
  if run.minute or run.second or run.microsecond:raise ValueError('RUC initialization is not a full UTC hour')
@@ -115,7 +129,7 @@ def build_candidate(source:Path,output:Path):
  rows=np.flatnonzero((ys>=47)&(ys<=55.2));cols=np.flatnonzero((xs>=5.5)&(xs<=15.6))
  if len(rows)<2 or len(cols)<2:raise ValueError('display crop not covered')
  lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)[np.ix_(rows,cols)]
- index={'schema':'mid.ruc.map-candidate.v1','modelId':'icon-d2-ruc','productionEnabled':False,'readyForProduction':False,'run':run.isoformat(),'sourceManifestSha256':hashlib.sha256((source/'latest.json').read_bytes()).hexdigest(),'sampling':'nearest-native-cell','maxNearestKm':grid['maxNearestKm'],'products':{}}
+ index={'schema':'mid.ruc.map-candidate.v1','modelId':'icon-d2-ruc','productionEnabled':False,'readyForProduction':False,'run':run.isoformat(),'sourceManifestSha256':hashlib.sha256(manifest_bytes).hexdigest(),'sourceDeterministicSha256':meta['objects']['deterministic.bin']['sha256'],'sourceLookupSha256':meta['objects']['lookup.bin']['sha256'],'sampling':'nearest-native-cell','maxNearestKm':grid['maxNearestKm'],'products':{}}
  files={}
  for kind,(name,unit,factor,bounds) in PARAMETERS.items():
   matches=[(i,s) for i,s in enumerate(specs) if s.get('name')==name]
@@ -134,7 +148,7 @@ def build_candidate(source:Path,output:Path):
    if len(encoded)>12_000_000:raise ValueError('map decoded budget')
    key=f'{kind}-{hour:03d}.bin';files[key]=wire
    frame_audit=audit_native_frame(cube,lookup,fi,hour,spec,factor,bounds)
-   refs.append({'hour':hour,'time':payload['time'],'file':key,'sha256':hashlib.sha256(wire).hexdigest(),'bytes':len(wire),'decodedBytes':len(encoded),'encoding':'gzip-json','intervalHours':1 if kind in ('precipitation','gust') else 0,**frame_audit})
+   refs.append({'hour':hour,'time':payload['time'],'file':key,'sha256':hashlib.sha256(wire).hexdigest(),'bytes':len(wire),'decodedBytes':len(encoded),'decodedSha256':hashlib.sha256(encoded).hexdigest(),'encoding':'gzip-json','intervalHours':1 if kind in ('precipitation','gust') else 0,**frame_audit})
   index['products'][kind]={'unit':unit,'frames':refs}
  index['candidateBytes']=sum(len(data) for data in files.values())
  if index['candidateBytes']>100_000_000:raise ValueError('offline map candidate budget')
@@ -143,6 +157,11 @@ def build_candidate(source:Path,output:Path):
  try:
   for key,data in files.items():(temporary/key).write_bytes(data)
   (temporary/'index.json').write_bytes(compact(index))
+  # The input was SHA-checked before processing; repeat at the atomic handoff
+  # so an upstream replacement cannot label output with a stale source SHA.
+  if (source/'latest.json').read_bytes()!=manifest_bytes:
+   raise ValueError('source manifest changed during map generation')
+  for name in ('deterministic.bin','lookup.bin'):recheck_object(source,meta,name)
   if output.exists():raise ValueError('map output appeared during generation')
   os.rename(temporary,output)
  finally:
