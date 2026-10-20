@@ -179,6 +179,88 @@ jobs:
           print('Native +27h header time gate:',good,'sampleCount:',len(doc['samples']),'; GRIB values NOT analyzed')
           if not good:sys.exit(2)
           PY
+      - name: Decode three five-minute cumulative precipitation fields with native bitmaps
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, tempfile, sys
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+          import numpy as np
+          from eccodes import codes_grib_new_from_file, codes_get, codes_release
+          sys.path.insert(0,'tools/ruc')
+          from grib_bitmap import decode_bitmap_values
+          from grib_metadata import NATIVE_GRID
+          from meteo_integrity import validate_accumulation, MeteoIntegrityError
+
+          folder=Path('.ruc-readonly-evidence');folder.mkdir(exist_ok=True)
+          out=folder/'native-ruc-numeric-samples.json'
+          doc={'schema':'mid.ruc.numeric-pilot.v1','fieldScope':'one DWD run +27h and last two 5-minute cumulative differences',
+               'fullRunValidation':False,'productionApproved':False,'files':[],'increments':[]}
+          report=json.loads((folder/'provider-status.json').read_text())
+          runs=report.get('runDiscovery',{}).get('runs',[])
+          if not runs:raise SystemExit('No verified source run to sample')
+          run=runs[-1]
+          rows={}
+          ok=True
+          samples=[('T_2M',1620),('CLCL',1620),('TOT_PREC',1610),('TOT_PREC',1615),('TOT_PREC',1620)]
+          for field,step in samples:
+              hour,minute=divmod(step,60)
+              name=f'PT{hour:03d}H{minute:02d}M.grib2'
+              url=f'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{field}/r/{quote(run,safe=":")}/s/{name}'
+              item={'run':run,'field':field,'leadMinutes':step,'valid':False}
+              try:
+                  with urlopen(Request(url,headers={'User-Agent':'MID-RUC-native-numeric-readonly/1.0'}),timeout=15) as response:
+                      data=response.read(2000001)
+                  if not data.startswith(b'GRIB') or len(data)>2000000:raise ValueError('invalid GRIB or over 2MB maximum')
+                  with tempfile.TemporaryFile() as temp:
+                      temp.write(data);temp.seek(0)
+                      gid=codes_grib_new_from_file(temp)
+                      if gid is None:raise ValueError('empty GRIB')
+                      try:
+                          unit=str(codes_get(gid,'units'))
+                          vals=decode_bitmap_values(gid)
+                      finally:codes_release(gid)
+                  finite=np.isfinite(vals)
+                  usable=vals[finite]
+                  item.update({'pointCount':int(vals.size),'finitePoints':int(finite.sum()),'missingPoints':int((~finite).sum()),
+                      'missingFraction':float((~finite).sum()/vals.size),'units':unit,
+                      'min':float(usable.min()) if usable.size else None,'max':float(usable.max()) if usable.size else None,
+                      'p99':float(np.percentile(usable,99)) if usable.size else None})
+                  good=vals.size==NATIVE_GRID[3] and usable.size>0
+                  if field=='T_2M':good=good and unit=='K' and bool((usable>=180).all() and (usable<=340).all())
+                  if field=='CLCL':good=good and unit=='%' and bool((usable>=-0.5).all() and (usable<=100.5).all())
+                  if field=='TOT_PREC':good=good and unit=='kg m**-2' and bool((usable>=-0.05).all())
+                  item['valid']=bool(good)
+                  rows[(field,step)]=vals
+                  if not good:ok=False
+              except Exception as error:
+                  item['error']=type(error).__name__+': '+str(error)[:210];ok=False
+              doc['files'].append(item)
+          if all(('TOT_PREC',x) in rows for x in (1610,1615,1620)):
+              accum=np.stack([rows[('TOT_PREC',x)] for x in (1610,1615,1620)],axis=0)
+              try:validate_accumulation(accum,'27h 5-minute native TOT_PREC sample',tolerance_mm=0.05)
+              except MeteoIntegrityError as error:
+                  doc['accumulationError']=str(error);ok=False
+              for index,(a,b) in enumerate(((1610,1615),(1615,1620))):
+                  earlier,later=accum[index],accum[index+1]
+                  mask=np.isfinite(earlier)&np.isfinite(later)
+                  delta=later[mask]-earlier[mask]
+                  doc['increments'].append({'startLeadMinutes':a,'endLeadMinutes':b,'validPairedCells':int(mask.sum()),
+                      'missingPairedCells':int(mask.size-mask.sum()),'minMm':float(delta.min()) if delta.size else None,
+                      'maxMm':float(delta.max()) if delta.size else None,'p99Mm':float(np.percentile(delta,99)) if delta.size else None,
+                      'negativeBelowToleranceCount':int((delta<-0.05).sum()),
+                      'smallNegativeJitterCount':int(((delta<0)&(delta>=-0.05)).sum())})
+                  if not delta.size:ok=False
+          else:ok=False
+          doc['numericSampleGate']=ok
+          out.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          print('RUC native bitmap + numerical 5-minute sample gate:',ok,'fields:',len(doc['files']),'increments:',len(doc['increments']))
+          if not ok:sys.exit(2)
+          PY
       - name: Retain public-provider evidence on success or failure
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -187,5 +269,6 @@ jobs:
           path: |
             .ruc-readonly-evidence/provider-status.json
             .ruc-readonly-evidence/native-grib27-header-samples.json
+            .ruc-readonly-evidence/native-ruc-numeric-samples.json
           retention-days: 7
           if-no-files-found: warn
