@@ -15,7 +15,7 @@ function createDirectOutlookContext(signal){
 async function fetchWithDeadline(url,init={},timeoutMs=22000){
  const controller=new AbortController(),parent=signal,onAbort=()=>controller.abort(directAbortReason(parent)),timer=setTimeout(()=>controller.abort(new DOMException('Direktabruf-Zeitüberschreitung.','TimeoutError')),timeoutMs),headers=new Headers(init.headers||{}),{cf:unusedCf,...safeInit}=init;void unusedCf;headers.delete('User-Agent');
  if(parent?.aborted)onAbort();else parent?.addEventListener('abort',onAbort,{once:true});
- try{return await guardedOpenMeteoFetch(url,{...safeInit,headers,cache:'no-store',signal:controller.signal},{priority:'normal',maxRetries:0})}finally{clearTimeout(timer);parent?.removeEventListener('abort',onAbort)}
+ try{if(parent?.aborted)throw directAbortReason(parent);return await guardedOpenMeteoFetch(url,{...safeInit,headers,cache:'no-store',signal:controller.signal},{priority:'normal',maxRetries:0})}finally{clearTimeout(timer);parent?.removeEventListener('abort',onAbort)}
 }
 
 /* MID Central Europe extreme-weather outlook across the complete ICON-D2 domain. */
