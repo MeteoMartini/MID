@@ -1,5 +1,6 @@
 import {fetchWorkerJson,workerBaseCandidates} from './workerClient';
 import {fetchWithDeadline} from './fetchDeadline';
+import {explicitIsoInstant} from './explicitIsoInstant';
 import {mergeHazardEpisodes} from './hazardEpisodes';
 import {buildEnsembleEvidence,type EnsembleEvidence,type EvidenceContribution,type EnsembleParameter} from './ensembleAssessment';import {writeBoundedStorage} from './cachePolicy';
 import {guardedOpenMeteoJson,isOpenMeteoRateLimitError,openMeteoCooldownRetryAt,registerOpenMeteoCooldown,OpenMeteoRateLimitError,type OpenMeteoPriority} from './openMeteoGuard';
@@ -170,7 +171,7 @@ async function j<T>(url:string,signal?:AbortSignal,priority:OpenMeteoPriority='n
 
 function parseLocalIso(value:string){const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);if(!match)return null;return{year:Number(match[1]),month:Number(match[2]),day:Number(match[3]),hour:Number(match[4]),minute:Number(match[5]),second:Number(match[6]||0)}}
 function partsAtEpoch(epoch:number,timeZone:string){try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)),get=(type:string)=>Number(parts.find(x=>x.type===type)?.value);const year=get('year'),month=get('month'),day=get('day'),hour=get('hour'),minute=get('minute'),second=get('second');return[year,month,day,hour,minute,second].every(Number.isFinite)?{year,month,day,hour,minute,second}:null}catch{return null}}
-export function localIsoEpoch(value:string,timeZone?:string,utcOffsetSeconds=0){const local=parseLocalIso(value);if(!local)return Number.NaN;const wall=Date.UTC(local.year,local.month-1,local.day,local.hour,local.minute,local.second);if(timeZone){let epoch=wall-utcOffsetSeconds*1000;for(let i=0;i<3;i++){const actual=partsAtEpoch(epoch,timeZone);if(!actual)break;const rendered=Date.UTC(actual.year,actual.month-1,actual.day,actual.hour,actual.minute,actual.second),delta=wall-rendered;if(Math.abs(delta)<500)break;epoch+=delta}return epoch}return wall-utcOffsetSeconds*1000}
+export function localIsoEpoch(value:string,timeZone?:string,utcOffsetSeconds=0){const absolute=explicitIsoInstant(value);if(absolute!==undefined)return absolute;const local=parseLocalIso(value);if(!local)return Number.NaN;const wall=Date.UTC(local.year,local.month-1,local.day,local.hour,local.minute,local.second);if(timeZone){let epoch=wall-utcOffsetSeconds*1000;for(let i=0;i<3;i++){const actual=partsAtEpoch(epoch,timeZone);if(!actual)break;const rendered=Date.UTC(actual.year,actual.month-1,actual.day,actual.hour,actual.minute,actual.second),delta=wall-rendered;if(Math.abs(delta)<500)break;epoch+=delta}return epoch}return wall-utcOffsetSeconds*1000}
 
 type PhotonFeature={geometry?:{type?:string;coordinates?:number[]};properties?:Record<string,any>};
 function numeric(value:unknown){if(value===null||value===undefined||value==='')return undefined;const n=Number(String(value).replace(',','.'));return Number.isFinite(n)?n:undefined}
