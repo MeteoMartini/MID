@@ -131,3 +131,11 @@ extrema, actual deterministic bytes and map-candidate bytes are reported.
 EPS and production readiness remain explicitly false. This diagnostic complements
 PR #425's limited provider pilot; neither draft is a production activation.
 The workflow and source are mirrored through the existing explicit sync script.
+
+The first full-horizon run 39501615678 completed its numeric step, but artifact
+upload explicitly warned that no files were found: upload-artifact excludes the
+leading-dot output directory by default. This is a diagnostic evidence-capture
+bug, not a production RUC failure. Its workflow success is not a complete data
+proof. The output directory is now non-hidden (`ruc-horizon-evidence`) and
+missing evidence is fatal (`if-no-files-found: error`). A fresh SHA-bound run is
+required; no unmodified retry or threshold relaxation is used.

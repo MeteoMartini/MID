@@ -41,12 +41,12 @@ jobs:
           python tools/ruc/test_grib_metadata.py
           python tools/ruc/test_grib_bitmap.py
       - name: Three native runs, all twelve hourly fields through +27h
-        run: python tools/ruc/ruc_horizon_probe.py --output .ruc-horizon-evidence --runs 3 --candidate-count 6
+        run: python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6
       - name: Preserve numerical evidence, including incomplete candidates
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-horizon-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .ruc-horizon-evidence/
-          if-no-files-found: warn
+          path: ruc-horizon-evidence/
+          if-no-files-found: error
           retention-days: 2
