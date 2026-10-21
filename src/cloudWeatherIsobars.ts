@@ -10,7 +10,7 @@ export function matchingCloudIsobars(data:Pick<CloudWeatherData,'model'|'run'|'t
  return layer.contours;
 }
 export function nativeCloudIsobars(data:CloudWeatherData|null,field:NativeField|null):CloudIsobarLayer|null{
- if(!data||data.model!=='icon-d2'||field?.kind!=='pressure'||field.run!==data.run||field.time!==data.time||field.unit!=='hPa'||!field.isobars.length)return null;
+ if(!data||data.model!=='icon-d2'||field?.kind!=='pressure'||field.modelId!==undefined||field.run!==data.run||field.time!==data.time||field.unit!=='hPa'||!field.isobars.length)return null;
  return {model:'icon-d2',run:field.run,time:field.time,contours:field.isobars};
 }
 export function synopticCloudIsobars(data:CloudWeatherData|null,field:SynopticField|null):CloudIsobarLayer|null{
