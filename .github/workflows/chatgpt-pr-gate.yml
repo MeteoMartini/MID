@@ -108,7 +108,10 @@ jobs:
       - name: Produktionsabhängigkeiten prüfen
         shell: bash
         timeout-minutes: 5
-        run: npm run audit:dependencies
+        run: |
+          set -euo pipefail
+          npm run audit:dependencies
+          npm run audit:all
 
       - name: Python für echte RUC-GRIB-Regressionen einrichten
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

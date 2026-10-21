@@ -256,7 +256,7 @@ jobs:
           set -euo pipefail
           audited=false
           for attempt in 1 2 3; do
-            if npm run audit:dependencies; then
+            if npm run audit:dependencies && npm run audit:all; then
               audited=true
               break
             fi

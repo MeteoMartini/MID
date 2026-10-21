@@ -1,3 +1,9 @@
+# MID v0.9.85.306 · Vorhandene Revisionsprüfungen und Vite-Sicherheit
+
+Verifizierte Basis main=mid-stable=88c04410de7275010cdcf9ff14b2c26ca35479d1 (.305). #435/#436 sind ausschließlich über vorhandenen Source-Gate, Bot, ZIP und Installer39557997892 veröffentlicht. Produktiver RUC-Lauf08UTC21.10.2026 in39574875111: mapHours27/coreHours14, admitted=true,410534246Bytes, unveränderte Quelle/Codec-Proof und bestätigte Pages-/Worker-Frische. Keine physische Geräte-Abnahme behauptet.
+
+Revisionslauf39570739442 erkannte fehlendes numpy im bestehenden Revisionsworkflow sowie HIGH im gebündelten launch-editor von Vite8.2.2. Alle vorhandenen vollständigen Core-Einstiege erhalten dieselbe Python3.12-/requirements-pages-Umgebung; vorhandene Workflow-Namen/Trigger und Releaseweg bleiben. Bestehende bisher unverwaltete Revision-/Analytics-Workflows werden kanonisch gespiegelt, keine zusätzliche aktive Workflow-Datei. Bootstrap-Regression prüft jetzt jeden Core-Job. Kompatibler Vite-Patch8.2.4 mit Registry-Lockfile und aktualisiertem exaktem Upgrade-Vertrag; bekannte moderate uuid-Dev-Abhängigkeit separat, kein force-fix. Release-Kandidat .306 benötigt vollständige Gates. Implementierungs-/Produktionsnachweis: docs/implementation/MID_C38_REVISION_SECURITY_0.9.85.306.md.
+
 # MID v0.9.85.305 · RUC-Kartenintegration (Source-Kandidat)
 
 Verifizierte Basis main=mid-stable: 438bfb7838a727ad8753940872c8b8ab140bb7c2 (.304). Auf den gehärteten Kartenpilot #431 (af75157ee858d6c5e45e1bd213dfc46f73cc0d49) aufgebaut. Eigenständiger Integrationsbranch; #425/#431/#432/#433 bleiben unverändert. Separate native Kartenachse bis +27h; Kern/EPS/Fusion weiterhin14h, Budget900MB und Raw-Rollback unverändert. Prüfbelege/Restpunkte: docs/implementation/MID_C38_RUC_MAP_INTEGRATION_0.9.85.305.md. Keine Releasebehauptung vor Source-/Installer-/Stable-Nachweis.
