@@ -23,6 +23,14 @@ for(const token of [
   'steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha'
 ])if(!sourceRelease.includes(token))failures.push(`Agent-Release-Recovery für bereits geschützte Merges fehlt: ${token}`);
 
+// Both full-core entry points execute Python-backed RUC regressions. A green
+// source gate must not conceal missing dependencies in the installer snapshot.
+for(const [workflow,command] of [['chatgpt-pr-gate.yml','MID_REGRESSION_SHARD=core npm run test:regressions'],['install-mid.yml','npm run verify']]){
+ const text=await readFile(path.join(root,'ci','github','workflows',workflow),'utf8');
+ const setup=text.indexOf('uses: actions/setup-python@'),dependencies=text.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt'),core=text.indexOf(command);
+ if(setup<0||dependencies<setup||core<dependencies)failures.push(`RUC-Python-Testumgebung fehlt vor vollständigem Core-Gate: ${workflow}`);
+}
+
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));
 try{
  await cp(path.join(root,'ci'),path.join(temp,'ci'),{recursive:true});
