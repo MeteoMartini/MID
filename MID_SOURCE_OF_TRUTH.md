@@ -2,6 +2,12 @@
 
 Basis main=mid-stable b57f07081a2b92ae763af9c909aa3f65b9e211ac (.307). PR #440 (.308), ECMWF #433 und bestehende RUC-/Warnverträge bleiben unangetastet. Source-Kandidat ohne Releasebehauptung; Issue #441 und Belege in docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md. Nach Failures der nativen GeoJSON-Kartenebene können vollständige modellierte Konturen georeferenziert degradiert gerendert werden. Keine Veränderung meteorologischer Felder, Wahrscheinlichkeiten oder Warnstufen. Echte Browser-Pixel-/Source-/Worker- und Responsive-Prüfungen vor Freigabe zwingend.
 
+Abgleich 21.10.2026: Die zwischenzeitlich vollständig freigegebene RUC-Erweiterung v0.9.85.308 ist unter Stable-SHA 3420d2b7f7afca80783ed90799234310820c9f3e im selben Integrationscommit erhalten. Die Polygon-Reparatur ergänzt die aktuelle Stable-Basis ausschließlich im eigenen Draft; insbesondere nativer WW-/GRIB-Provenienzpfad, bestehende Source-/ZIP-/Worker-/Pages-Gates und alle .308-Regressionen bleiben unverändert.
+
+# MID v0.9.85.308 · RUC-Komposit und sichtbare Vorhersagestunden (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable=b57f07081a2b92ae763af9c909aa3f65b9e211ac (.307), erneut geprüft am21.10.2026. Parallel-PR439 ist veröffentlicht; dessen RADOLAN-/Ensemble-Extremwert- und unabhängige Referenzverifikation bleiben vollständig erhalten. PR440 führt die RUC-Arbeit fort; Parallel-Drafts einschließlich ECMWF433 und Extrempolygon442 bleiben unberührt. Native RUC-Zusatzquelle mit neun oder zehn GRIB-Komponenten und vollständiger Synoptikachse0..27, separater SHA-Index, ursprüngliche Core/EPS-/Codec-Objekte unverändert. Bei ausschließlich fehlender WW-Analyse beginnt Wolken/Wetter mit dem echten Prognosetermin+1; kein erfundener WW0. Bestehender RUC-Produzent und Source-Gate erweitert, keine neue Workflow-Datei oder Release-Aktion. Live-/Browser-/Release-Nachweise und offene Echtdatenprüfung: docs/implementation/MID_C38_RUC_COMPOSITES_0.9.85.308.md. Noch keine .308-Stable-Veröffentlichung behauptet.
+
 # MID v0.9.85.307 · P1-Datenintegrität (Source-Kandidat)
 
 Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.

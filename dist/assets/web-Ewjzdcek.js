@@ -1,0 +1,1 @@
+import{ki as e}from"./index-C3JeRltl.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

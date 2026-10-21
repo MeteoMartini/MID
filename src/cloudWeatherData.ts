@@ -44,7 +44,7 @@ export function cloudWeatherDescription(code:number|null){return code===null?'We
 export function cloudWeatherSources(native:NativeIndex|null,synoptic:SynopticIndex|null){
  const choices:{id:string;label:string}[]=[];
  if(synoptic?.models['icon-d2']?.cloudWeatherFrames?.length||native?.products.sigwx?.frames.some(w=>native.products.cloud?.frames.some(c=>c.time===w.time)))choices.push({id:'icon-d2',label:'DWD ICON-D2'});
- for(const id of ['icon-eu','icon']){const m=synoptic?.models[id];if(m?.cloudWeatherFrames?.length||m?.frames.some(f=>f.cloudWeather===true))choices.push({id,label:m!.label});}
+ for(const id of ['icon-d2-ruc','icon-eu','icon']){const m=synoptic?.models[id];if(m?.cloudWeatherFrames?.length||m?.frames.some(f=>f.cloudWeather===true))choices.push({id,label:m!.label});}
  choices.push({id:'gdps',label:'ECCC GDPS Global'});return choices;
 }
 /** Only physically paired native frames can fill a missing independent cloud/WW hour. */
@@ -62,7 +62,7 @@ export function validateCloudWeatherField(d:any,id:string,model:SynopticModel,re
  const n=d.lats.length*d.lons.length;if(!Array.isArray(d.cloud)||!Array.isArray(d.weather)||d.cloud.length!==n||d.weather.length!==n||d.cloud.some((v:any)=>v!==null&&(!Number.isInteger(v)||v<0||v>1000))||d.weather.some((v:any)=>v!==null&&(!Number.isInteger(v)||v<0||v>99))||d.cloud.filter((v:any,i:number)=>v!==null&&d.weather[i]!==null).length<n*.4)throw Error('Wolken-/Wetterwerte unvollständig oder ungültig.');
  return {...d,cloud:d.cloud.map((v:number|null)=>v===null?null:v*.1)};
 }
-export async function loadCloudWeatherField(base:string,id:string,model:SynopticModel,ref:SynopticFrame,signal:AbortSignal){const r=await fetch(base+ref.file,{signal});if(!r.ok)throw Error('Wolken-/Wetterfeld nicht erreichbar.');const bytes=await r.arrayBuffer(),hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');if(bytes.byteLength!==ref.bytes||hash!==ref.sha256)throw Error('Wolken-/Wetterfeld-Prüfsumme ungültig.');return validateCloudWeatherField(JSON.parse(await decodeNativeMapGzip(bytes,ref.decodedBytes)),id,model,ref);}
+export async function loadCloudWeatherField(base:string,id:string,model:SynopticModel,ref:SynopticFrame,signal:AbortSignal){const r=await fetch((model.base??base)+ref.file,{signal});if(!r.ok)throw Error('Wolken-/Wetterfeld nicht erreichbar.');const bytes=await r.arrayBuffer(),hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');if(bytes.byteLength!==ref.bytes||hash!==ref.sha256)throw Error('Wolken-/Wetterfeld-Prüfsumme ungültig.');return validateCloudWeatherField(JSON.parse(await decodeNativeMapGzip(bytes,ref.decodedBytes)),id,model,ref);}
 export function synopticCloudWeather(field:SynopticField):CloudWeatherData{
  const c=field.cloudWeather;if(!c)throw Error('Keine bestätigten Wolken-/Wetterdaten für diesen Termin.');
  return {model:field.model,run:field.run,time:field.time,resolutionKm:field.resolutionKm,lats:field.lats,lons:field.lons,cloud:c.cloud.map(v=>v===null?null:v*c.cloudScale),weather:c.weather};

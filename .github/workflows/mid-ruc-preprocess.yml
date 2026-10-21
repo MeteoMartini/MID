@@ -204,6 +204,19 @@ jobs:
           Path('.ruc-map-admission-proof.json').write_text(json.dumps(proof)+'\n')
           print('RUC_MAP_ADMISSION '+json.dumps(proof))
           PYMAP
+          # Same native run, nine checked pressure/surface components, full hourly axis.
+          # Isolated timeout: preserve the independently verified core on optional failure.
+          ruc_composite_source=.ruc-out
+          if [ -d .ruc-map-source ]; then ruc_composite_source=.ruc-map-source; fi
+          ruc_composite_status=0
+          timeout 300 python tools/ruc/build_ruc_synoptic_fields.py --snapshot .ruc-compressed/ruc --source "$ruc_composite_source" --staging .ruc-stage --candidate .ruc-synoptic --report .ruc-synoptic-proof.json || ruc_composite_status=$?
+          if [ "$ruc_composite_status" -eq 3 ]; then
+            echo '::error::RUC Snapshot-Integrität verletzt'; exit 1
+          elif [ "$ruc_composite_status" -ne 0 ]; then
+            echo '::notice::RUC Synoptik/Wetter nicht vollständig; geprüfter Kern bleibt erhalten'
+          else
+            cat .ruc-synoptic-proof.json
+          fi
           mv .ruc-pages/ruc .ruc-raw
           mv .ruc-compressed/ruc .ruc-pages/ruc
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern

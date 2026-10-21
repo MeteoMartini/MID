@@ -141,8 +141,12 @@ jobs:
 
       - name: Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen
         if: steps.ruc_native_changes.outputs.enabled == 'true'
-        timeout-minutes: 15
-        run: python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
+        # Real three-run .308 probe reached the third complete source inventory
+        # at 15min; retain all checks and allow bounded contour/codec completion.
+        timeout-minutes: 20
+        run: |
+          python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
+          node scripts/verify-ruc-composites.mjs ruc-horizon-evidence
 
       - name: Numerische RUC-Prüfnachweise sichern
         if: always() && steps.ruc_native_changes.outputs.enabled == 'true'

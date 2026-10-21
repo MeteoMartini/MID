@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-ruc-composites-horizons-0985308.mjs",
     "scripts/test-ruc-map-pipeline-0985305.mjs",
     "scripts/test-ruc-native-map-integration-0985305.mjs",
     "scripts/test-seven-day-natural-language-0985304.mjs",
@@ -1031,6 +1032,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-ruc-composites-horizons-0985308.mjs",
     "scripts/test-ruc-map-pipeline-0985305.mjs",
     "scripts/test-ruc-native-map-integration-0985305.mjs",
     "scripts/test-seven-day-natural-language-0985304.mjs",
