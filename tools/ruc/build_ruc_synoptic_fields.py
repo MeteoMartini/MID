@@ -46,7 +46,9 @@ def source_plan(stamp,hours=27):
   root=source_url(component,stamp)
   files=select_requested_files(crawl_files(s,root),hours,mode='hourly')
   leads=[forecast_lead_minutes(f) for f in files]
-  if len(leads)!=hours+1 or set(leads)!={60*h for h in range(hours+1)}:raise ValueError('Incomplete native inventory: '+root)
+  expected={60*h for h in range(hours+1)}
+  valid_axis=set(leads)==expected or component[2]=='ww' and set(leads)==expected-{0}
+  if len(leads)!=len(set(leads)) or not valid_axis:raise ValueError(f'Incomplete native inventory: {root}; hourly leads={leads}; missing={sorted(expected-set(leads))}')
   checked[component]=True
  plan=[c for c in COMPONENTS if c[2]!='relhum']
  for c in plan:available(c)
@@ -90,7 +92,9 @@ def decode(path,run,hour,component):
     actual=tuple(int(codes_get_long(gid,k)) for k in ('discipline','parameterCategory','parameterNumber'))
     if actual!=identity or sig[-2]!='unstructured_grid' or sig[8] is None:raise ValueError(f'RUC {param}/{level}: parameter/native grid mismatch {actual}, {sig[8]}')
     first,second=sig[5],sig[6]
-    expected=(100,level*100) if level is not None else (101,0) if field=='pmsl' else (1,0)
+    # Real DWD WW is surface (code1), with inapplicable scale/value missing.
+    # Do not extend this exception to pressure levels or numeric surface data.
+    expected=(100,level*100) if level is not None else (101,0) if field=='pmsl' else (1,None) if field=='ww' else (1,0)
     if first!=expected or second!=(255,None) or codes_get(gid,'stepType')!='instant':raise ValueError(f'RUC {param}/{level}: level/processing mismatch {first}/{second}')
     validate_time_window(run,valid,codes_get(gid,'startStep'),codes_get(gid,'endStep'),int(codes_get_long(gid,'stepUnits')),'instant')
     if valid!=run+timedelta(hours=hour) or str(codes_get(gid,'units')) not in units:raise ValueError(f'RUC {param}/{level}: valid time/unit mismatch {valid}/{codes_get(gid,"units")}')
@@ -135,7 +139,8 @@ def build(source,staging,output,hours=27,plan=None):
    if np.isfinite(values).mean()<.4:raise ValueError('RUC insufficient displayed coverage')
    fields[(hour,field,level)]=values
    origins.append({'parameter':param,'levelHpa':level,'hour':hour,'url':root+rel,'bytes':path.stat().st_size,'sha256':sha(path.read_bytes())})
-  if seen!={h*60 for h in range(n)}:raise ValueError('RUC composite incomplete hourly axis')
+  expected={h*60 for h in range(n)}
+  if seen!=expected and not(field=='ww' and seen==expected-{0}):raise ValueError('RUC composite incomplete hourly axis')
  for level in derived:
   for h in range(n):fields[(h,'relhum',level)]=relative_humidity_from_specific(fields[(h,'q',level)],fields[(h,'t',level)],level)
  output.mkdir(parents=True)
@@ -143,14 +148,16 @@ def build(source,staging,output,hours=27,plan=None):
   frames=write_fields(output,'icon-d2-ruc',run,2.2,fields,ys[rows].round(6),xs[cols].round(6),range(n))
   for ref in frames:
    p=output/ref['file'];data=json.loads(gzip.decompress(p.read_bytes()));h=ref['hour']
-   if np.count_nonzero(np.isfinite(fields[(h,'clct',None)]) & np.isfinite(fields[(h,'ww',None)]))/lookup.size<.4:raise ValueError('RUC insufficient paired cloud/WW coverage')
    data['sampling']='nearest-native-cell'
-   data['cloudWeather']={'cloudUnit':'%','weatherUnit':'WMO 4677','cloudScale':.1,
-    'cloud':[int(round(v*10)) if np.isfinite(v) else None for v in fields[(h,'clct',None)].ravel()],
-    'weather':[int(v) if np.isfinite(v) else None for v in fields[(h,'ww',None)].ravel()]}
+   has_weather=(h,'ww',None) in fields
+   if has_weather:
+    if np.count_nonzero(np.isfinite(fields[(h,'clct',None)]) & np.isfinite(fields[(h,'ww',None)]))/lookup.size<.4:raise ValueError('RUC insufficient paired cloud/WW coverage')
+    data['cloudWeather']={'cloudUnit':'%','weatherUnit':'WMO 4677','cloudScale':.1,
+     'cloud':[int(round(v*10)) if np.isfinite(v) else None for v in fields[(h,'clct',None)].ravel()],
+     'weather':[int(v) if np.isfinite(v) else None for v in fields[(h,'ww',None)].ravel()]}
    raw=compact(data)
    if len(raw)>12_000_000:raise ValueError('RUC composite decode budget')
-   wire=gzip.compress(raw,mtime=0);p.write_bytes(wire);ref.update(bytes=len(wire),decodedBytes=len(raw),sha256=sha(wire),cloudWeather=True)
+   wire=gzip.compress(raw,mtime=0);p.write_bytes(wire);ref.update(bytes=len(wire),decodedBytes=len(raw),sha256=sha(wire),cloudWeather=has_weather)
   index={'schema':'mid.ruc.synoptic-fields.v1','modelId':'icon-d2-ruc','run':run.isoformat(),'sampling':'nearest-native-cell','maxNearestKm':g['maxNearestKm'],
    'sourceManifestSha256':sha(original),'sourceLookupSha256':sha(lookup_raw),'derivedHumidityLevelsHpa':derived,'humidityDerivation':'Bolton-1980-RH-over-water-from-native-specific-humidity-and-temperature','origins':origins,
    'model':{'label':'DWD ICON-D2-RUC','run':run.isoformat(),'resolutionKm':2.2,'license':'CC BY 4.0','frames':frames}}

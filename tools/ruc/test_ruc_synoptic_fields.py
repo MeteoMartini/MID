@@ -16,6 +16,9 @@ class RucCompositeTests(unittest.TestCase):
    codes_set(gid,'typeOfFirstFixedSurface',100 if level else 101 if field=='pmsl' else 1)
    codes_set(gid,'scaleFactorOfFirstFixedSurface',0)
    codes_set(gid,'scaledValueOfFirstFixedSurface',level*100 if level else 0)
+   if field=='ww':
+    codes_set(gid,'scaleFactorOfFirstFixedSurface',2147483647)
+    codes_set(gid,'scaledValueOfFirstFixedSurface',2147483647)
    value={'t':280,'relhum':80,'fi':550*98.0665,'pmsl':100000,'u':35,'v':-15,'clct':90,'ww':95,'q':.005}[field]
    codes_set_values(gid,np.full(542040,value))
    if mutate:mutate(gid)
@@ -49,6 +52,10 @@ class RucCompositeTests(unittest.TestCase):
  def test_fractional_weather_not_rounded_to_category(self):
   c=COMPONENTS[-1]
   with self.assertRaises(ValueError):self.read(self.source(c,lambda gid:codes_set_values(gid,np.full(542040,95.5))),c)
+ def test_weather_requires_calibrated_surface_not_pressure_or_height(self):
+  c=COMPONENTS[-1]
+  for code in (100,103,255):
+   with self.subTest(surface=code),self.assertRaises(ValueError):self.read(self.source(c,lambda gid:codes_set(gid,'typeOfFirstFixedSurface',code)),c)
  def test_missing_bitmap_stays_unknown(self):
   c=COMPONENTS[0]
   def mask(gid):
@@ -113,5 +120,28 @@ class RucCompositePublicationTests(unittest.TestCase):
    root=Path(t);snapshot,source=self.fixture(root);p=source/'latest.json';meta=json.loads(p.read_bytes());meta['run']='2026-10-20T01:00';p.write_text(json.dumps(meta))
    with patch.object(m,'build') as build,self.assertRaises(m.SnapshotIntegrityError):m.admit(snapshot,source,root/'stage',root/'candidate')
    build.assert_not_called()
+
+class RucSourceDiscoveryTests(unittest.TestCase):
+ def files(self,missing_zero=False):return [f'https://opendata.dwd.de/PT{h:03d}H00M.grib2' for h in range(1 if missing_zero else 0,28)]
+ def test_weather_may_start_at_first_forecast_without_inventing_analysis(self):
+  from unittest.mock import patch
+  import build_ruc_synoptic_fields as m
+  with patch.object(m,'session',return_value=None),patch.object(m,'crawl_files',side_effect=lambda s,u:self.files('/WW/' in u)):
+   plan,derived=m.source_plan('2026-10-21T11:00')
+  self.assertEqual(len(plan),9);self.assertEqual(derived,[])
+ def test_missing_direct_rh_uses_only_same_pressure_native_q_and_t(self):
+  from unittest.mock import patch
+  import requests
+  import build_ruc_synoptic_fields as m
+  def listing(s,url):
+   if '/RELHUM/' in url:raise requests.HTTPError('native direct RH missing')
+   return self.files('/WW/' in url)
+  with patch.object(m,'session',return_value=None),patch.object(m,'crawl_files',side_effect=listing):plan,derived=m.source_plan('2026-10-21T11:00')
+  self.assertEqual(len(plan),10);self.assertEqual(derived,[850,700]);self.assertIn(m.QV_COMPONENTS[850],plan);self.assertIn(m.QV_COMPONENTS[700],plan);self.assertIn(m.T700,plan)
+ def test_missing_interior_weather_hour_is_not_admitted(self):
+  from unittest.mock import patch
+  import build_ruc_synoptic_fields as m
+  def listing(s,url):return [f for f in self.files() if '/WW/' not in url or 'PT005H' not in f]
+  with patch.object(m,'session',return_value=None),patch.object(m,'crawl_files',side_effect=listing),self.assertRaisesRegex(ValueError,'missing=\[300\]'):m.source_plan('2026-10-21T11:00')
 
 if __name__=='__main__':unittest.main()

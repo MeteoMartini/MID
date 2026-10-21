@@ -12,12 +12,12 @@ try{
  let frames=0,cells=0;
  for(const run of report.runs){
   const folder=resolve(root,run.run.replace(/[^A-Za-z0-9_-]/g,''),'composites'),index=JSON.parse(await readFile(resolve(folder,'index.json'),'utf8')),model=m.validateRucSynopticIndex(index);
-  if(run.rucCompositeFrames!==28||![252,280].includes(run.rucCompositeSources))throw Error('Incomplete native composite proof');
+  if(run.rucCompositeFrames!==28||![251,252,279,280].includes(run.rucCompositeSources))throw Error('Incomplete native composite proof');
   for(const ref of model.frames){
    const wire=await readFile(resolve(folder,ref.file));if(wire.length!==ref.bytes||createHash('sha256').update(wire).digest('hex')!==ref.sha256)throw Error('RUC composite SHA/size mismatch');
    const decoded=gunzipSync(wire);if(decoded.length!==ref.decodedBytes)throw Error('RUC composite decoded size');
-   const field=m.validateSynopticField(JSON.parse(decoded),'icon-d2-ruc',model,ref),cloud=m.synopticCloudWeather(field);
-   if(cloud.model!=='icon-d2-ruc'||cloud.time!==field.time||cloud.run!==field.run)throw Error('RUC model/run/time drift');
+   const field=m.validateSynopticField(JSON.parse(decoded),'icon-d2-ruc',model,ref),cloud=ref.cloudWeather?m.synopticCloudWeather(field):null;
+   if(cloud&&(cloud.model!=='icon-d2-ruc'||cloud.time!==field.time||cloud.run!==field.run))throw Error('RUC model/run/time drift');
    frames++;cells+=field.thetae.length;
   }
  }

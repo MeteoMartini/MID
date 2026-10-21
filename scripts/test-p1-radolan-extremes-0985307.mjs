@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),ts=require('typescript-strada');
+const source=readFileSync(new URL('../src/RadolanRasterSource.ts',import.meta.url),'utf8');
+const ast=ts.createSourceFile('RadolanRasterSource.ts',source,ts.ScriptTarget.Latest,true);
+const declaration=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='decoded');
+assert.ok(declaration,'Original-Dekoder fehlt');
+const compiled=ts.transpileModule(declaration.getText(ast),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+const decoded=new Function(compiled+'\nreturn decoded;')();
+const sample=(raw,quantity='ACRR')=>decoded({values:[raw],width:1,height:1,gain:1,offset:0,nodata:-9999,undetect:-8888,quantity},0,0);
+assert.deepEqual(sample(0),{covered:true,amountMm:0});
+assert.deepEqual(sample(501),{covered:true,amountMm:501},'Starkregen nicht auf 250 mm kappen');
+assert.deepEqual(sample(24,'RATE'),{covered:true,amountMm:2},'RATE 5 min mm/h → mm');
+assert.deepEqual(sample(-8888),{covered:true,amountMm:0});
+for(const invalid of [-9999,-5,NaN,Infinity])assert.equal(sample(invalid).covered,false,'NoData ist nicht trocken');
+assert.equal(decoded({values:[5],width:1,height:1,gain:1,offset:0,nodata:-9999,undetect:-8888,quantity:'ACRR'},2,0).covered,false);
+console.log('P1 RADOLAN: gültiges Extrem, RATE, Missing/Undetect und Null verifiziert.');

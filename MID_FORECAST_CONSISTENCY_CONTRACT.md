@@ -1,5 +1,10 @@
 # MID – verbindlicher Vertrag für eine konsistente Prognose aus einem Guss
 
+## v0.9.85.307 · Niederschlagsextreme und unabhängige Verifikation
+
+Vollständige Ensemble-Mitglieder werden nicht allein wegen hoher Niederschlagsmengen als Ausreißer gelöscht; positive kleine Cluster bleiben sichtbar. Relative Modellfamiliengewichte sind keine kalibrierten Ereigniswahrscheinlichkeiten. Gültige positive RADOLAN-Werte dürfen nicht mit ungeprüften Obergrenzen gekappt werden; fehlende Messdaten sind nicht 0 mm. Modellrückblick und Reanalyse sind keine unabhängigen Beobachtungen für Lerngewichtung, Bias, Konfidenz und Skill. Diese erfordern qualitätsgesicherte Messquellen mit dokumentierter zeitlicher Vollständigkeit. Erst nach Ausgabe beobachtete Wetterregimes dürfen nicht als prognostizierte Regimes in die Verifikation einfließen.
+
+
 ## v0.9.85.304 · Natürlich formulierter 7-Tage-Kurztext
 
 Der Kurztext verwendet vollständige Aussagen aus denselben ausgewählten Ereignissen. Nur ein unmittelbar aufeinander ausgewähltes Tag-/Folgenachtpaar desselben Tagesindexes und derselben Niederschlagsfamilie darf mit „auch“ verbunden werden. Ein Phasenwechsel oder eine spätere Nacht bleibt separat datiert. Daraus werden keine durchgehenden Niederschläge, trockenen Zwischenphasen, räumliche Ausdehnungen oder synoptischen Ursachen abgeleitet. Rangfolge, maximal drei ausgewählte Ereignisse, Warnstärke und Möglichkeitsaussagen bleiben unverändert. Markante Hinweise erhalten grammatisch passende Singular-/Pluralformen. Fehlende Daten werden weiterhin ausdrücklich als unvollständig ausgewiesen. Der Sprachstil orientiert sich an DWD-Beispielen; die Aussagen entstehen aus MID-Daten und sind keine amtliche DWD-Vorhersage.
