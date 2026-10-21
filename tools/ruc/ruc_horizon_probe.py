@@ -25,6 +25,8 @@ def verify_hourly_listing(files,hours):
 
 def probe_run(run,work,output,hours=27,admission=False):
  start=time.monotonic();s=session();stage=work/'stage';source=work/'source';source.mkdir()
+ from build_ruc_synoptic_fields import source_plan
+ composites_plan=source_plan(run,hours)
  # Validate availability before large transfers. A newly advertised directory
  # alone is not a complete run; incomplete candidates are reported separately.
  inventory={}
@@ -55,13 +57,16 @@ def probe_run(run,work,output,hours=27,admission=False):
  grid=build_lookup(lats,lons,source)
  objects={name:file_info(source/name) for name in ('deterministic.bin','lookup.bin')}
  write_meta(source/'latest.json',run=run,times=[t.strftime('%Y-%m-%dT%H:%M') for t in targets],point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key='runs/probe/deterministic.bin',eps_key=None,lookup_key='runs/probe/lookup.bin',objects=objects)
+ # The three-run existing preflight also proves all nine new real components.
+ from build_ruc_synoptic_fields import build as build_composites
+ composites=build_composites(source,stage,output/'composites',hours,composites_plan)
  candidate=build_candidate(source,output/'maps')
  admission_proof=None
  if admission:
   from ruc_map_admission_probe import probe_admission
   admission_proof=probe_admission(source,work)
  metrics={name:{'min':float(np.nanmin(values)),'max':float(np.nanmax(values))} for name,values in fields.items()}
- return {'run':run,'hours':hours,'nativePointCount':point_count,'hourlyInventory':inventory,'sourceGribFiles':origins,'coverage':coverage,'extrema':metrics,'deterministicBytes':objects['deterministic.bin']['bytes'],'additionalCoreBytesVs14':point_count*max(0,hours-14)*len(DEFAULT_FIELDS)*2,'mapCandidateBytes':candidate['candidateBytes'],'mapIndexSha256':file_info(output/'maps'/'index.json')['sha256'],'sourceManifestSha256':candidate['sourceManifestSha256'],'durationSeconds':round(time.monotonic()-start,2),'mapAdmissionFixture':admission_proof,'nativeHourlyVerified':True,'epsVerified':False,'readyForProduction':False}
+ return {'run':run,'hours':hours,'rucCompositeFrames':len(composites['model']['frames']),'rucCompositeSources':len(composites['origins']),'nativePointCount':point_count,'hourlyInventory':inventory,'sourceGribFiles':origins,'coverage':coverage,'extrema':metrics,'deterministicBytes':objects['deterministic.bin']['bytes'],'additionalCoreBytesVs14':point_count*max(0,hours-14)*len(DEFAULT_FIELDS)*2,'mapCandidateBytes':candidate['candidateBytes'],'mapIndexSha256':file_info(output/'maps'/'index.json')['sha256'],'sourceManifestSha256':candidate['sourceManifestSha256'],'durationSeconds':round(time.monotonic()-start,2),'mapAdmissionFixture':admission_proof,'nativeHourlyVerified':True,'epsVerified':False,'readyForProduction':False}
 
 
 def main():
@@ -79,11 +84,11 @@ def main():
      result=probe_run(run,Path(tmp),output,admission=a.admission)
     report['runs'].append(result)
    except (Exception,SystemExit) as e:
-    report['excludedCandidates'].append({'run':run,'reason':type(e).__name__+': '+str(e)[:500]})
+    report['excludedCandidates'].append({'run':run,'reason':type(e).__name__+': '+str(e)[:4000]})
    save()
    if len(report['runs'])==a.runs:break
   report['pilotVerified']=len(report['runs'])==a.runs;save()
   return 0 if report['pilotVerified'] else 2
  except (Exception,SystemExit) as e:
-  report['error']=type(e).__name__+': '+str(e)[:500];report['pilotVerified']=False;save();return 2
+  report['error']=type(e).__name__+': '+str(e)[:4000];report['pilotVerified']=False;save();return 2
 if __name__=='__main__':raise SystemExit(main())

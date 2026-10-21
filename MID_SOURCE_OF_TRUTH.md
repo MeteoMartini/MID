@@ -1,3 +1,7 @@
+# MID v0.9.85.308 · RUC-Komposit und sichtbare Vorhersagestunden (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable=b57f07081a2b92ae763af9c909aa3f65b9e211ac (.307), erneut geprüft am21.10.2026. Parallel-PR439 ist veröffentlicht; dessen RADOLAN-/Ensemble-Extremwert- und unabhängige Referenzverifikation bleiben vollständig erhalten. PR440 führt die RUC-Arbeit fort; Parallel-Drafts einschließlich ECMWF433 und Extrempolygon442 bleiben unberührt. Native RUC-Zusatzquelle mit neun oder zehn GRIB-Komponenten und vollständiger Synoptikachse0..27, separater SHA-Index, ursprüngliche Core/EPS-/Codec-Objekte unverändert. Bei ausschließlich fehlender WW-Analyse beginnt Wolken/Wetter mit dem echten Prognosetermin+1; kein erfundener WW0. Bestehender RUC-Produzent und Source-Gate erweitert, keine neue Workflow-Datei oder Release-Aktion. Live-/Browser-/Release-Nachweise und offene Echtdatenprüfung: docs/implementation/MID_C38_RUC_COMPOSITES_0.9.85.308.md. Noch keine .308-Stable-Veröffentlichung behauptet.
+
 # MID v0.9.85.307 · P1-Datenintegrität (Source-Kandidat)
 
 Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.
