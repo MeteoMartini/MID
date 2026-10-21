@@ -1,3 +1,13 @@
+# MID v0.9.85.307 · P1-Datenintegrität (Source-Kandidat)
+
+Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.
+
+Szenario-Ausreißerfilter und 6%-Sichtbarkeitsschwelle entfernt; RADOLAN nicht mehr bei 250 mm hart begrenzt, ungültige Daten uncovered.
+
+Lokale Güte- und Lernverifikation: nur measured/private-sensor, >=18h Deckung und Qualität >=0,55 aus ausschließlich Messquellen, jeweils >=12 Temperatur-/Niederschlagsproben; kein beobachtetes Regime rückwirkend als Ausgabe-Regime.
+
+Drei dynamische Pflichtregressionen zum gesamten Bestand hinzugefügt (1013); Source-, Installer-, Worker-, Pages-Gates noch nachzuweisen. Historische Archive bleiben erhalten; keine empirische 90-Tage- oder iOS-Gerätefreigabe behauptet.
+
 # MID v0.9.85.306 · Vorhandene Revisionsprüfungen und Vite-Sicherheit
 
 Verifizierte Basis main=mid-stable=88c04410de7275010cdcf9ff14b2c26ca35479d1 (.305). #435/#436 sind ausschließlich über vorhandenen Source-Gate, Bot, ZIP und Installer39557997892 veröffentlicht. Produktiver RUC-Lauf08UTC21.10.2026 in39574875111: mapHours27/coreHours14, admitted=true,410534246Bytes, unveränderte Quelle/Codec-Proof und bestätigte Pages-/Worker-Frische. Keine physische Geräte-Abnahme behauptet.

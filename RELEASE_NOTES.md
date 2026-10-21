@@ -1,5 +1,6 @@
-# MID v0.9.85.306
+# MID v0.9.85.307
 
-- Wartung: Die bestehenden Revisions-, Sicherheits- und Veröffentlichungsprüfungen verwenden jetzt einheitlich die erforderliche RUC-Testumgebung.
-- Sicherheit: Vite erhält den kompatiblen Sicherheits-Patch 8.2.4; die bestehenden Karten-, Export- und iOS-Verträge bleiben erhalten.
-- RUC-Karten aus .305 bleiben verfügbar: sechs Parameter und getrennt geprüfte Kartenstunden bis +27 h; EPS und Prognosefusion behalten ihren bisherigen Stundenvertrag.
+- Ensemble-Szenariocluster bewahren seltene vollständige Starkregenverläufe und kleine Cluster. Modellanteile sind keine amtlichen oder kalibrierten Eintrittswahrscheinlichkeiten.
+- RADOLAN: Gültige Niederschlagswerte werden nicht länger unbegründet bei 250 mm begrenzt. Fehlende Daten und trockene Null bleiben unterscheidbar.
+- Wetterzwilling: Prognosegüte, Bias und Kalibrierung verwenden ausschließlich genügend vollständige unabhängige Messreferenzen. Frühere Modell- und Reanalyserückblicke bleiben archiviert, sind jedoch keine Messwahrheit.
+- Best Match wird präziser als automatisch ausgewählte operative Modellprognose erklärt.
