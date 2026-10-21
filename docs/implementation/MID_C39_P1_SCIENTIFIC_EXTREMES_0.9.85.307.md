@@ -15,3 +15,7 @@ Pflichtregressionen: scripts/test-p1-radolan-extremes-0985307.mjs, scripts/test-
 Nur bestehender SHA-gebundener Source-PR → MID-Bot → ServerZIP → install-mid.yml → Worker-/Pages-Gates → Stable. Keine generischen PR-Landing-Skripte oder neue Workflow-Actions.
 
 Zusätzlicher P1-Gate-Nachweis: Tagesreferenzen benötigen nicht nur >=18h Spannweite, sondern lückenfreie fachliche Stützung mit maximal 2h Abstand benachbarter Temperatur- und Niederschlagsmessungen. Der Niederschlagsdeckungsnachweis verwendet ausschließlich Beobachtungen mit tatsächlich geliefertem Niederschlagsfeld und darf eine lückenlose Temperaturreihe nicht als Regenbeobachtung ausgeben. Dies wird in der dynamischen Provenienzregression geprüft.
+
+## Altregression mit bewusst geändertem meteorologischem Vertrag
+
+Source-Core-Gate 39597366424: 1009/1010 Core-Tests bestanden; ausschließlich `test-scenario-regime-settings-0820.mjs` verlangte den früheren Niederschlags-Ausreißerfilter sowie die alte Median/MAD-Schwelle. Diese zwei Forderungen widersprechen dem nun expliziten Extremwert-Erhalt. Test nicht übersprungen, sondern auf vollständig vorhandene Member-Trajektorien, numerische Vollständigkeit, fehlende unbegründete Ausreißer-Unterdrückung und Sichtbarkeit aller positiven Cluster umgestellt; zusätzlich prüft `test-p1-ensemble-extremes-0985307.mjs` dynamisch 42 Member samt seltenem Starkregenszenario. Sämtliche anderen Assertions des Alt-Tests bleiben erhalten. Vor einer Freigabe muss das vollständige Core-Gate erneut tatsächlich grün sein.
