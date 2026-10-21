@@ -2954,7 +2954,9 @@
     "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md",
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
-    "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md"
+    "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md",
+    "src/extremeOutlookRenderHealth.ts",
+    "tests/unit/extreme-outlook-render-health.test.ts"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3311,7 +3313,9 @@
     "tools/widget-export/render-widget-matrix.mjs",
     "vitest.config.ts",
     "worker-src/05-knmi-eps-cache.js",
-    "scripts/test-extreme-outlook-render-fallback-0985309.mjs"
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "src/extremeOutlookRenderHealth.ts",
+    "tests/unit/extreme-outlook-render-health.test.ts"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",

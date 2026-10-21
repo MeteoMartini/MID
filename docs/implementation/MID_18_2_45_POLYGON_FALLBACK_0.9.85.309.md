@@ -20,3 +20,7 @@ Nutzer sieht modellierte I-Stufen-/Prozent-HTML-Marker ohne die farbigen Polygon
 
 ## Verifikationsstatus
 Codekandidat und Source-Vertrag erstellt; tatsächliche Browser-/Netzwerk-/Pixelabnahme **noch nicht belegt**. Bis zur Abnahme nicht als behoben oder produktiv veröffentlichen.
+
+## Ergänzende runtime- und Vitest-Fachprüfung (MID 18.2.45)
+
+Die Source-PR-Regression führt seit 160f98361d32753c1bca712e37e123fad6d9c94f das tatsächliche TSX-Overlay unter simulierten MapLibre-Source-/Worker-/Idle-Events aus, statt allein Source-Strings zu vergleichen. Die native Source-/Polygon-Vollständigkeit wird zusätzlich in `src/extremeOutlookRenderHealth.ts` als reine fachliche Entscheidung mit `tests/unit/extreme-outlook-render-health.test.ts` im vorhandenen Vitest-Pilot geprüft. Auch teilweise fehlende MultiPolygon-Geometrie darf nicht unbemerkt bleiben. Ein positives `queryRenderedFeatures` kann laut MapLibre-Dokumentation selbst bei tatsächlich null Pixelbeitrag auftreten; daraus wird daher keine Browser-Pixel-Freigabe abgeleitet. Echte Pixel-/Recovery-/Light-Dark-/Responsive-Prüfung bleibt vor Bot-Merge zwingend.

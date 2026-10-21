@@ -1,6 +1,7 @@
 import {Fragment,memo,useCallback,useEffect,useMemo,useState} from 'react';
 import {CanvasOverlay,HtmlMarker,registerMapLayerOrder,unregisterMapLayerOrder,useMidMap,type MidMap} from './MapLibreCore';
 import {drawExtremeOutlookContours} from './extremeOutlookAreaCanvas';
+import {requiresExtremeOutlookCanvasFallback} from './extremeOutlookRenderHealth';
 import {buildExtremeOutlookContourGeoJson} from './extremeOutlookAreaGeoJson';
 import {buildExtremeOutlookContourSet} from './extremeOutlookModelledAreas';
 import {EXTREME_HAZARDS,EXTREME_INTENSITY_COLORS,type ExtremeHazardId,type ExtremeWeatherOutlook} from './extremeWeatherOutlook';
@@ -35,15 +36,17 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
   };
   const nativeVisible=()=>{
    if(!contours.length)return true;
-   if(!geojson.features.some(feature=>feature.geometry.coordinates.length>0))return false;
-   if(!map.getLayer(LAYER_IDS[0])||!map.getSource(SOURCE_ID)||!map.isSourceLoaded(SOURCE_ID))return false;
+   const polygonCount=geojson.features.filter(feature=>feature.geometry.coordinates.some(polygon=>polygon.some(ring=>ring.length>=4))).length;
+   const hasFillLayer=Boolean(map.getLayer(LAYER_IDS[0]));
+   const hasSource=Boolean(map.getSource(SOURCE_ID));
+   const sourceLoaded=hasSource&&map.isSourceLoaded(SOURCE_ID);
    const mapCanvas=map.getCanvas();
    const labelInView=areas.some(area=>{
     const point=map.project([area.longitude,area.latitude]);
     return Number.isFinite(point.x)&&Number.isFinite(point.y)&&point.x>=0&&point.y>=0&&point.x<=mapCanvas.clientWidth&&point.y<=mapCanvas.clientHeight;
    });
-   if(!labelInView)return true;
-   return map.queryRenderedFeatures({layers:[LAYER_IDS[0]]}).length>0;
+   const renderedFeatureCount=hasFillLayer&&sourceLoaded&&labelInView?map.queryRenderedFeatures({layers:[LAYER_IDS[0]]}).length:0;
+   return !requiresExtremeOutlookCanvasFallback({contourCount:contours.length,polygonCount,hasFillLayer,hasSource,sourceLoaded,labelInView,renderedFeatureCount});
   };
   const verify=()=>{
    if(!active)return;
