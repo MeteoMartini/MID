@@ -34,8 +34,8 @@ jobs:
       - name: PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Struktur, Build und Regressionen benötigen nur den SHA-genauen PR-Merge-Snapshot.
-          fetch-depth: 1
+          # Zwei Ebenen erlauben den Vergleich des SHA-genauen Merge-Snapshots mit dessen Basis.
+          fetch-depth: 2
 
       - name: MID-Quellstruktur prüfen
         shell: bash
@@ -123,6 +123,32 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
           python tools/ruc/test_fetch_resilience.py
+
+      - name: Änderungen am nativen RUC-Kartenpfad erkennen
+        id: ruc_native_changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only HEAD^1 HEAD -- tools/ruc/)"
+          if [ -n "$changed" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen
+        if: steps.ruc_native_changes.outputs.enabled == 'true'
+        timeout-minutes: 15
+        run: python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
+
+      - name: Numerische RUC-Prüfnachweise sichern
+        if: always() && steps.ruc_native_changes.outputs.enabled == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-horizon-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-horizon-evidence/
+          if-no-files-found: error
+          retention-days: 2
 
       - name: Produktionsbuild und Regressionen prüfen
         shell: bash

@@ -114,10 +114,13 @@ NoData tests remain the evidence for propagation of both source and lookup masks
 See `MID_C38_RUC_MAP_REPLAY_20Z.json` for hashes, per-parameter counts and errors.
 This is an actual archive replay, not current live rendering or GRIB re-decoding.
 
-The new PR-only `mid-ruc-horizon-readonly.yml` has read-only contents permission,
-SHA-pinned actions, exact PR-head checkout without persisted credentials, a
-25-minute timeout, and two-day evidence retention. It has no schedule, manual
-trigger, production secrets, Pages/Worker deployment, or release permission.
+The native horizon diagnostic is consolidated into the existing
+`chatgpt-pr-gate.yml` Source-PR Gate. The standalone diagnostic workflow was
+removed before release. The existing gate checks the exact PR merge snapshot;
+its two-level checkout detects changes under tools/ruc against the merge base
+parent. Only those changes invoke the bounded 15-minute native probe, with
+SHA-pinned artifact upload and two-day evidence retention. No new production
+workflow, deployment permission, secret or schedule is introduced.
 It runs `ruc_horizon_probe.py` against up to six advertised native DWD runs to
 find three completely validated 0…+27 h hourly core datasets. It independently
 excludes incomplete newest candidates and emits a report even on failure.
