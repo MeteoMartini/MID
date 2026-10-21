@@ -12,7 +12,12 @@ from lossless_codec_pilot import decode_candidate
 from augment_compressed_synoptic import within
 from build_model_map_fields import contours
 from pressure_centers import pressure_centers
+from ruc_pack import DEFAULT_FIELDS
+from datetime import timedelta
 BUDGET=900_000_000
+
+class SnapshotIntegrityError(ValueError):
+ """Existing core snapshot is unsafe; never turn this into an optional skip."""
 
 def sha(data):return hashlib.sha256(data).hexdigest()
 
@@ -22,38 +27,55 @@ def verify_inventory(snapshot,objects):
   with path.open('rb') as stream:
    for data in iter(lambda:stream.read(1048576),b''):
     h.update(data);size+=len(data)
-  if size!=o['bytes'] or h.hexdigest()!=o['sha256']:raise ValueError('inventory SHA/size mismatch')
+  if size!=o['bytes'] or h.hexdigest()!=o['sha256']:raise SnapshotIntegrityError('inventory SHA/size mismatch')
+
+def verify_snapshot(snapshot):
+ snapshot=Path(snapshot).resolve(strict=True);original=(snapshot/'latest.json').read_bytes()
+ try:
+  m=json.loads(original)
+  if m.get('schema')!='mid.dwd.ruc.grid.v2' or m.get('storageProfile')!='pages-lossless-v1' or m.get('migration',{}).get('schema')!='mid.ruc.migration-active.v1' or m['migration'].get('productionEnabled') is not True or m.get('pages',{}).get('profile')!='pages-lossless-v1' or m['pages'].get('losslessTransport')!={'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False} or m['pages'].get('budgetBytes')!=BUDGET:raise SnapshotIntegrityError('requires complete activated codec snapshot')
+  core=m['deterministic'];times=core['times'];run=utc_time(m['run'])
+  if type(m['pointCount']) is not int or not 0<m['pointCount']<=1000000 or len(times)!=15 or core['fields']!=[vars(spec) for spec in DEFAULT_FIELDS] or core.get('dtype')!='int16-le' or core.get('layout')!='point-time-field' or core['recordBytes']!=len(times)*len(core['fields'])*2 or any(utc_time(t)!=run+timedelta(hours=i) for i,t in enumerate(times)):raise SnapshotIntegrityError('existing core geometry/time contract invalid')
+  pages=core['compressedPages']
+  if pages['recordBytes']!=core['recordBytes'] or pages['records']!=m['pointCount']:raise SnapshotIntegrityError('existing compressed geometry invalid')
+  objects=m['pages']['objects'];bykey={o['key']:o for o in objects}
+  if len(bykey)!=len(objects) or sum(o['bytes'] for o in objects)!=m['pages']['publishedBytes']:raise SnapshotIntegrityError('inventory duplicates/size mismatch')
+  if m['pages']['publishedBytes']+len(original)>=BUDGET:raise SnapshotIntegrityError('existing snapshot budget exceeded')
+  verify_inventory(snapshot,objects)
+  actual={p.relative_to(snapshot).as_posix() for p in snapshot.rglob('*') if p.is_file()}
+  if actual!=set(bykey)|{'latest.json'}:raise SnapshotIntegrityError('undeclared snapshot objects')
+ except SnapshotIntegrityError:raise
+ except (ValueError,KeyError,TypeError,OSError) as error:raise SnapshotIntegrityError('existing snapshot invalid: '+str(error)) from error
+ return m,original
 
 def admit(snapshot,source,candidate):
  snapshot=Path(snapshot).resolve(strict=True);source=Path(source).resolve(strict=True);candidate=Path(candidate).resolve()
  roots=(snapshot,source,candidate)
  if candidate.exists() or any(a.is_relative_to(b) or b.is_relative_to(a) for i,a in enumerate(roots) for b in roots[i+1:]):raise ValueError('admission directories overlap or candidate exists')
- manifest=snapshot/'latest.json';original=manifest.read_bytes();m=json.loads(original);source_bytes=(source/'latest.json').read_bytes();s=json.loads(source_bytes)
- if m.get('schema')!='mid.dwd.ruc.grid.v2' or m.get('storageProfile')!='pages-lossless-v1' or m.get('migration',{}).get('productionEnabled') is not True or m.get('pages',{}).get('losslessTransport')!={'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False} or m['pages'].get('budgetBytes')!=BUDGET or 'rucModelFields' in m:raise ValueError('requires complete activated codec snapshot without maps')
+ manifest=snapshot/'latest.json';m,original=verify_snapshot(snapshot);source_bytes=(source/'latest.json').read_bytes();s=json.loads(source_bytes)
+ if 'rucModelFields' in m:raise ValueError('snapshot already has RUC maps')
  if s.get('schema')!=m['schema'] or utc_time(s['run'])!=utc_time(m['run']) or s.get('grid')!=m.get('grid') or s.get('pointCount')!=m['pointCount']:raise ValueError('source run/grid mismatch')
  if {k:v for k,v in s['lookup'].items() if k not in ('pages','key')}!={k:v for k,v in m['lookup'].items() if k not in ('pages','key')}:raise ValueError('lookup contract drift')
  core=m['deterministic'];det=s['deterministic'];n=len(core['times']);nt=len(det['times']);nf=len(core['fields'])
  if not 2<=n<=nt<=28 or det['times'][:n]!=core['times'] or any(det.get(k)!=core.get(k) for k in ('fields','dtype','layout')) or core['recordBytes']!=n*nf*2 or det['recordBytes']!=nt*nf*2:raise ValueError('source/core geometry mismatch')
  raw=checked_object(source,s,'deterministic.bin');lookup=checked_object(source,s,'lookup.bin');cube=np.frombuffer(raw,dtype='<i2').reshape(m['pointCount'],nt,nf)
  objects=m['pages']['objects'];bykey={o['key']:o for o in objects}
- if len(bykey)!=len(objects) or sum(o['bytes'] for o in objects)!=m['pages']['publishedBytes']:raise ValueError('inventory duplicates/size mismatch')
- verify_inventory(snapshot,objects)
- actual={p.relative_to(snapshot).as_posix() for p in snapshot.rglob('*') if p.is_file()}
- if actual!=set(bykey)|{'latest.json'}:raise ValueError('undeclared snapshot objects')
+
  pages=core['compressedPages'];cursor=0
- if pages['recordBytes']!=core['recordBytes'] or pages['records']!=m['pointCount']:raise ValueError('compressed geometry mismatch')
+ if pages['recordBytes']!=core['recordBytes'] or pages['records']!=m['pointCount']:raise SnapshotIntegrityError('compressed geometry mismatch')
  for part in pages['parts']:
   count=part['recordCount'];descriptor=part['manifest'];key=part['key']
-  if type(count) is not int or count<=0 or part['firstRecord']!=cursor or descriptor['decodedBytes']!=count*core['recordBytes'] or descriptor['decodedBytes']>524288 or key not in bykey:raise ValueError('compressed record coverage')
-  decoded=decode_candidate(descriptor,within(snapshot,key).read_bytes())
+  if type(count) is not int or count<=0 or part['firstRecord']!=cursor or descriptor['decodedBytes']!=count*core['recordBytes'] or descriptor['decodedBytes']>524288 or key not in bykey:raise SnapshotIntegrityError('compressed record coverage')
+  try:decoded=decode_candidate(descriptor,within(snapshot,key).read_bytes())
+  except ValueError as error:raise SnapshotIntegrityError('existing core codec invalid') from error
   if decoded!=cube[cursor:cursor+count,:n,:].tobytes():raise ValueError('map source differs from decoded original core')
   cursor+=count
- if cursor!=m['pointCount']:raise ValueError('core point coverage mismatch')
+ if cursor!=m['pointCount']:raise SnapshotIntegrityError('core point coverage mismatch')
  lp=m['lookup']['pages'];h=hashlib.sha256();lookup_bytes=0
- if lp['recordBytes']!=4 or not 1<=lp['chunkCount']<=8192:raise ValueError('lookup geometry')
+ if lp['recordBytes']!=4 or not 1<=lp['chunkCount']<=8192:raise SnapshotIntegrityError('lookup geometry')
  for i in range(lp['chunkCount']):
   key=lp['prefix']+'/'+str(i).zfill(4)+'.bin'
-  if key not in bykey:raise ValueError('lookup not inventoried')
+  if key not in bykey:raise SnapshotIntegrityError('lookup not inventoried')
   data=within(snapshot,key).read_bytes();h.update(data);lookup_bytes+=len(data)
  if h.hexdigest()!=sha(lookup) or lookup_bytes!=len(lookup) or lookup_bytes!=lp['records']*4:raise ValueError('lookup/source mismatch')
  index=build_candidate(source,candidate);pending={}
@@ -85,12 +107,24 @@ def admit(snapshot,source,candidate):
   for name,data in pending.items():
    target=directory/name;target.write_bytes(data)
    if target.read_bytes()!=data:raise ValueError('new object write corruption')
-  if manifest.read_bytes()!=original or (source/'latest.json').read_bytes()!=source_bytes:raise ValueError('manifest drift during admission')
+  if manifest.read_bytes()!=original:raise SnapshotIntegrityError('existing manifest drift during admission')
+  if (source/'latest.json').read_bytes()!=source_bytes:raise ValueError('source manifest drift during admission')
   for name in ('deterministic.bin','lookup.bin'):recheck_object(source,s,name)
   verify_inventory(snapshot,objects)
   temporary.write_bytes(encoded);temporary.replace(manifest)
  except BaseException:
   shutil.rmtree(directory.parent,ignore_errors=True);temporary.unlink(missing_ok=True);raise
  return {'schema':'mid.ruc.map-admission.v1','run':index['run'],'mapHours':nt-1,'coreHours':n-1,'finalPhysicalBytes':physical,'addedPhysicalBytes':physical-m['pages']['publishedBytes']-len(original),'previousManifestSha256':sha(original),'newManifestSha256':sha(encoded),'sourceRawUnchanged':True,'codecProofUnchanged':updated['migration']==m['migration']}
+def admit_optional(snapshot,source,candidate):
+ """Map failure cannot block a verified core; existing corruption stays fatal."""
+ snapshot=Path(snapshot).resolve(strict=True);_,original=verify_snapshot(snapshot)
+ try:return {'admitted':True,**admit(snapshot,source,candidate)}
+ except SnapshotIntegrityError:raise
+ except (Exception,SystemExit) as error:
+  # No broad catch may hide an unexpected mutation of the existing snapshot.
+  if (snapshot/'latest.json').read_bytes()!=original:raise SnapshotIntegrityError('existing manifest changed after optional failure') from error
+  verify_snapshot(snapshot)
+  return {'schema':'mid.ruc.map-admission.v1','admitted':False,'coreRetained':True,'reason':type(error).__name__+': '+str(error)[:500]}
+
 if __name__=='__main__':
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('snapshot',type=Path);p.add_argument('source',type=Path);p.add_argument('candidate',type=Path);a=p.parse_args();print(json.dumps(admit(a.snapshot,a.source,a.candidate)))

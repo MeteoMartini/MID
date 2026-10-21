@@ -138,6 +138,9 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC has no horizontal overflow');await page.screenshot({path:'/tmp/mid-c38-ruc-390.png',fullPage:true});
  }
+ if(width===390&&design==='next'){
+  await page.setViewportSize({width:430,height:932});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC430px iPhone contract has no overflow');assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-d2-ruc');await page.screenshot({path:`/tmp/mid-c38-ruc-430-${theme}.png`,fullPage:true});await page.setViewportSize({width:390,height:920});
+ }
  await measuredReload();assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-d2-ruc','RUC source persists across reload');
  await page.getByLabel('Parameter-Layer').selectOption('pressure');await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
  if(width===844||width===1024)await page.setViewportSize({width,height:920});

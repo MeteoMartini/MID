@@ -21,8 +21,8 @@ def probe_admission(source,work):
  root=copy.deepcopy(m);root['storageProfile']='pages-lossless-v1';root['deterministic']['times']=root['deterministic']['times'][:15];root['deterministic']['recordBytes']=record_bytes
  root['deterministic']['compressedPages']={'schema':'mid.ruc.compressed-pages.v1','recordBytes':record_bytes,'records':m['pointCount'],'parts':parts}
  root['lookup']['pages']={'prefix':lookup_prefix,'recordBytes':4,'records':len(lookup)//4,'chunkCount':len(lookup_parts)}
- root['migration']={'productionEnabled':True,'probeFixture':True,'proof':{'scope':'read-only real-core codec fixture, excludes EPS and rapid'}}
- root['pages']={'budgetBytes':900000000,'publishedBytes':sum(map(len,assets.values())),'losslessTransport':{'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False},'objects':[{'key':k,'bytes':len(v),'sha256':sha(v)} for k,v in assets.items()]}
+ root['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True,'probeFixture':True,'proof':{'scope':'read-only real-core codec fixture, excludes EPS and rapid'}}
+ root['pages']={'profile':'pages-lossless-v1','budgetBytes':900000000,'publishedBytes':sum(map(len,assets.values())),'losslessTransport':{'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False},'objects':[{'key':k,'bytes':len(v),'sha256':sha(v)} for k,v in assets.items()]}
  for key,data in assets.items():
   p=snapshot/key;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
  (snapshot/'latest.json').write_bytes(compact(root));proof=admit(snapshot,source,work/'admission-candidate')
