@@ -1,0 +1,44 @@
+{
+  "archiveReplay": {
+    "schema": "mid.ruc.archive-map-probe.v1",
+    "archiveSha256": "83da6240488a315ca7d85aeea728a7272845f3a00ebca6ce972f558be5cbef21",
+    "originalManifestSha256": "fcf7606ee1568f2308309a3f22650bf115fb1b440e23e4c09961f017914c6d34",
+    "reconstructedObjects": {
+      "deterministic.bin": {
+        "bytes": 195134400,
+        "sha256": "c964658c359d8b1704e560f7d244e27ce7af24b39b73dc7232c1820cd3b60916"
+      },
+      "lookup.bin": {
+        "bytes": 2298176,
+        "sha256": "8bc12649247f5bbbe554217455b3770cf589106e4de5637b15af9aa23c09b482"
+      }
+    },
+    "sourceRun": "2026-10-20T20:00",
+    "nativePoints": 542040,
+    "mapBytes": 11696580,
+    "candidateIndexSha256": "dfd6c5b86c50b2584fb3ef55357cbd5aec54e41242d725445da5f5de0701df54",
+    "partCount": 397,
+    "products": {
+      "temperature": 15,
+      "pressure": 15,
+      "wind": 15,
+      "gust": 14,
+      "cloud": 15,
+      "precipitation": 14
+    },
+    "productionEnabled": false,
+    "readyForProduction": false
+  },
+  "admission": {
+    "schema": "mid.ruc.map-admission.v1",
+    "run": "2026-10-20T20:00:00+00:00",
+    "mapHours": 14,
+    "coreHours": 14,
+    "finalPhysicalBytes": 379704626,
+    "addedPhysicalBytes": 11906071,
+    "previousManifestSha256": "fcf7606ee1568f2308309a3f22650bf115fb1b440e23e4c09961f017914c6d34",
+    "newManifestSha256": "053988212b2b00d5a44ebd509c1f9aa1f622e0996b65fa94324d8d6f87d29c03",
+    "sourceRawUnchanged": true,
+    "codecProofUnchanged": true
+  }
+}

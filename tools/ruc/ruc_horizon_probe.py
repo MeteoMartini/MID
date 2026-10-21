@@ -23,7 +23,7 @@ def verify_hourly_listing(files,hours):
  return len(leads)
 
 
-def probe_run(run,work,output,hours=27):
+def probe_run(run,work,output,hours=27,admission=False):
  start=time.monotonic();s=session();stage=work/'stage';source=work/'source';source.mkdir()
  # Validate availability before large transfers. A newly advertised directory
  # alone is not a complete run; incomplete candidates are reported separately.
@@ -56,12 +56,16 @@ def probe_run(run,work,output,hours=27):
  objects={name:file_info(source/name) for name in ('deterministic.bin','lookup.bin')}
  write_meta(source/'latest.json',run=run,times=[t.strftime('%Y-%m-%dT%H:%M') for t in targets],point_count=point_count,specs=DEFAULT_FIELDS,grid=grid,deterministic_key='runs/probe/deterministic.bin',eps_key=None,lookup_key='runs/probe/lookup.bin',objects=objects)
  candidate=build_candidate(source,output/'maps')
+ admission_proof=None
+ if admission:
+  from ruc_map_admission_probe import probe_admission
+  admission_proof=probe_admission(source,work)
  metrics={name:{'min':float(np.nanmin(values)),'max':float(np.nanmax(values))} for name,values in fields.items()}
- return {'run':run,'hours':hours,'nativePointCount':point_count,'hourlyInventory':inventory,'sourceGribFiles':origins,'coverage':coverage,'extrema':metrics,'deterministicBytes':objects['deterministic.bin']['bytes'],'additionalCoreBytesVs14':point_count*max(0,hours-14)*len(DEFAULT_FIELDS)*2,'mapCandidateBytes':candidate['candidateBytes'],'mapIndexSha256':file_info(output/'maps'/'index.json')['sha256'],'sourceManifestSha256':candidate['sourceManifestSha256'],'durationSeconds':round(time.monotonic()-start,2),'nativeHourlyVerified':True,'epsVerified':False,'readyForProduction':False}
+ return {'run':run,'hours':hours,'nativePointCount':point_count,'hourlyInventory':inventory,'sourceGribFiles':origins,'coverage':coverage,'extrema':metrics,'deterministicBytes':objects['deterministic.bin']['bytes'],'additionalCoreBytesVs14':point_count*max(0,hours-14)*len(DEFAULT_FIELDS)*2,'mapCandidateBytes':candidate['candidateBytes'],'mapIndexSha256':file_info(output/'maps'/'index.json')['sha256'],'sourceManifestSha256':candidate['sourceManifestSha256'],'durationSeconds':round(time.monotonic()-start,2),'mapAdmissionFixture':admission_proof,'nativeHourlyVerified':True,'epsVerified':False,'readyForProduction':False}
 
 
 def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True);p.add_argument('--runs',type=int,default=3);p.add_argument('--candidate-count',type=int,default=6);a=p.parse_args()
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True);p.add_argument('--runs',type=int,default=3);p.add_argument('--candidate-count',type=int,default=6);p.add_argument('--admission',action='store_true');a=p.parse_args()
  if not 1<=a.runs<=3 or not a.runs<=a.candidate_count<=6:raise SystemExit('probe bounds: 1..3 runs, at most six candidates')
  if a.output.exists():raise SystemExit('probe output must be new')
  a.output.mkdir(parents=True);report={'schema':'mid.ruc.horizon-probe.v1','generatedAtUtc':datetime.now(timezone.utc).isoformat(),'hours':27,'runs':[],'excludedCandidates':[],'readyForProduction':False,'productionEnabled':False,'epsVerified':False}
@@ -72,7 +76,7 @@ def main():
    output=a.output/re.sub('[^A-Za-z0-9_-]','',run);output.mkdir()
    try:
     with tempfile.TemporaryDirectory(prefix='mid-ruc-horizon-') as tmp:
-     result=probe_run(run,Path(tmp),output)
+     result=probe_run(run,Path(tmp),output,admission=a.admission)
     report['runs'].append(result)
    except (Exception,SystemExit) as e:
     report['excludedCandidates'].append({'run':run,'reason':type(e).__name__+': '+str(e)[:500]})

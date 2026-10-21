@@ -3,6 +3,9 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'tools/ruc/ruc_map_admission_probe.py'
+      - 'tools/ruc/admit_ruc_map_candidate.py'
+      - 'tools/ruc/prepare_ruc_map_source.py'
       - 'tools/ruc/ruc_horizon_probe.py'
       - 'tools/ruc/test_ruc_horizon_probe.py'
       - 'tools/ruc/ruc_map_archive_probe.py'
@@ -38,10 +41,12 @@ jobs:
           python tools/ruc/test_ruc_map_candidate.py
           python tools/ruc/test_ruc_horizon_probe.py
           python tools/ruc/test_ruc_map_archive_probe.py
+          python tools/ruc/test_prepare_ruc_map_source.py
+          python tools/ruc/test_admit_ruc_map_candidate.py
           python tools/ruc/test_grib_metadata.py
           python tools/ruc/test_grib_bitmap.py
       - name: Three native runs, all twelve hourly fields through +27h
-        run: python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6
+        run: python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
       - name: Preserve numerical evidence, including incomplete candidates
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

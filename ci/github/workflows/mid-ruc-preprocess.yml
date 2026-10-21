@@ -176,6 +176,28 @@ jobs:
           else
             echo '::notice::Keine vollständige synoptische Quelle vorhanden; RUC und Raw-Rollback bleiben unverändert'
           fi
+          # Optional native RUC map horizon, strictly separate from core/EPS.
+          # Never change the immutable raw rollback or the codec proof.
+          python - <<'PYMAP'
+          import json,shutil,subprocess,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from admit_ruc_map_candidate import admit
+          source=Path('.ruc-out')
+          try:
+              subprocess.run([sys.executable,'tools/ruc/prepare_ruc_map_source.py','--core',str(source),'--staging','.ruc-stage','--output','.ruc-map-source'],check=True,timeout=180)
+              source=Path('.ruc-map-source')
+          except (subprocess.SubprocessError,OSError) as error:
+              shutil.rmtree('.ruc-map-source',ignore_errors=True)
+              print('::notice::RUC +27h map-only source unavailable; verified core horizon retained: '+str(error))
+          # Integrity/budget/write failures are fatal before snapshot handoff.
+          # The public last-good snapshot remains installed on a failed prepare.
+          proof=admit(Path('.ruc-compressed/ruc'),source,Path('.ruc-map-candidate'))
+          assert proof['sourceRawUnchanged'] is True and proof['codecProofUnchanged'] is True
+          assert proof['finalPhysicalBytes']<900000000
+          Path('.ruc-map-admission-proof.json').write_text(json.dumps(proof)+'\n')
+          print('RUC_MAP_ADMISSION '+json.dumps(proof))
+          PYMAP
           mv .ruc-pages/ruc .ruc-raw
           mv .ruc-compressed/ruc .ruc-pages/ruc
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern

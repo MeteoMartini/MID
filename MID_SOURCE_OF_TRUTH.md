@@ -1,3 +1,7 @@
+# MID v0.9.85.305 · RUC-Kartenintegration (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable: 438bfb7838a727ad8753940872c8b8ab140bb7c2 (.304). Auf den gehärteten Kartenpilot #431 (af75157ee858d6c5e45e1bd213dfc46f73cc0d49) aufgebaut. Eigenständiger Integrationsbranch; #425/#431/#432/#433 bleiben unverändert. Separate native Kartenachse bis +27h; Kern/EPS/Fusion weiterhin14h, Budget900MB und Raw-Rollback unverändert. Prüfbelege/Restpunkte: docs/implementation/MID_C38_RUC_MAP_INTEGRATION_0.9.85.305.md. Keine Releasebehauptung vor Source-/Installer-/Stable-Nachweis.
+
 # MID v0.9.85.304 · Natürlicher 7-Tage-Kurztext und korrekt zugeordnete Sonnenscheinintervalle (Source-PR-Kandidat)
 
 - Nutzerergänzung: 7d-Telegrammstil durch vollständige, natürlich verbundene Aussagen ersetzen. Tatsächliche Beispieldaten ergeben „Heute regnet es; auch in der kommenden Nacht kann es regnen. Ab Donnerstag ist mit Regen zu rechnen.“ DWD-Primärbeispiele recherchiert; keine neue Wetterursache, Verbreitung, Dauer oder Trockenpause erfunden. Semantische Familienmetadaten verbinden nur dasselbe Tag-/Folgenachtpaar; Hazard-Rangfolge, Ereignislimit, Daten und Unsicherheit erhalten.
