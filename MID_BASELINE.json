@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.306",
+  "releaseVersion": "0.9.85.307",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1023,7 +1023,10 @@
     "scripts/test-api-contract-nodata-0985291.mjs",
     "scripts/test-warning-point-geometry-0985292.mjs",
     "scripts/test-warning-cap-lifecycle-0985292.mjs",
-    "scripts/test-location-search-layers-0985293.mjs"
+    "scripts/test-location-search-layers-0985293.mjs",
+    "scripts/test-p1-radolan-extremes-0985307.mjs",
+    "scripts/test-p1-ensemble-extremes-0985307.mjs",
+    "scripts/test-p1-reference-provenance-0985307.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2036,7 +2039,10 @@
     "scripts/test-api-contract-nodata-0985291.mjs",
     "scripts/test-warning-point-geometry-0985292.mjs",
     "scripts/test-warning-cap-lifecycle-0985292.mjs",
-    "scripts/test-location-search-layers-0985293.mjs"
+    "scripts/test-location-search-layers-0985293.mjs",
+    "scripts/test-p1-radolan-extremes-0985307.mjs",
+    "scripts/test-p1-ensemble-extremes-0985307.mjs",
+    "scripts/test-p1-reference-provenance-0985307.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -3657,7 +3663,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.306",
+  "version": "0.9.85.307",
   "updatedAt": "2026-10-18T10:18:23.697Z",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",

@@ -1,3 +1,10 @@
+## MID v0.9.85.307 · 2026-10-21 · P1-Datenintegrität
+
+- Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.
+- Szenario-Ausreißerfilter und 6%-Sichtbarkeitsschwelle entfernt; RADOLAN nicht mehr bei 250 mm hart begrenzt, ungültige Daten uncovered.
+- Lokale Güte- und Lernverifikation: nur measured/private-sensor, >=18h Deckung und Qualität >=0,55 aus ausschließlich Messquellen, jeweils >=12 Temperatur-/Niederschlagsproben; kein beobachtetes Regime rückwirkend als Ausgabe-Regime.
+- Drei dynamische Pflichtregressionen zum gesamten Bestand hinzugefügt (1013); Source-, Installer-, Worker-, Pages-Gates noch nachzuweisen. Historische Archive bleiben erhalten; keine empirische 90-Tage- oder iOS-Gerätefreigabe behauptet.
+
 ## MID v0.9.85.296 · 2026-10-19 · Langfrist-Ausblick und Wiederherstellung
 
 - PR419: Cache-/Workerpfad unabhängig von optionalem Direktmodul, Schema-Recovery und nutzergetriggerter Reload nach Modulfehler; keine meteorologische Änderung.
