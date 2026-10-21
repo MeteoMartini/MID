@@ -1,3 +1,7 @@
+# MID v0.9.85.309 · Extremwetterpolygone – georeferenzierter Ersatzmodus (Source-Kandidat)
+
+Basis main=mid-stable b57f07081a2b92ae763af9c909aa3f65b9e211ac (.307). PR #440 (.308), ECMWF #433 und bestehende RUC-/Warnverträge bleiben unangetastet. Source-Kandidat ohne Releasebehauptung; Issue #441 und Belege in docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md. Nach Failures der nativen GeoJSON-Kartenebene können vollständige modellierte Konturen georeferenziert degradiert gerendert werden. Keine Veränderung meteorologischer Felder, Wahrscheinlichkeiten oder Warnstufen. Echte Browser-Pixel-/Source-/Worker- und Responsive-Prüfungen vor Freigabe zwingend.
+
 # MID v0.9.85.307 · P1-Datenintegrität (Source-Kandidat)
 
 Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.

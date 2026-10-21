@@ -1,6 +1,5 @@
-# MID v0.9.85.307
+# MID v0.9.85.309
 
-- Ensemble-Szenariocluster bewahren seltene vollständige Starkregenverläufe und kleine Cluster. Modellanteile sind keine amtlichen oder kalibrierten Eintrittswahrscheinlichkeiten.
-- RADOLAN: Gültige Niederschlagswerte werden nicht länger unbegründet bei 250 mm begrenzt. Fehlende Daten und trockene Null bleiben unterscheidbar.
-- Wetterzwilling: Prognosegüte, Bias und Kalibrierung verwenden ausschließlich genügend vollständige unabhängige Messreferenzen. Frühere Modell- und Reanalyserückblicke bleiben archiviert, sind jedoch keine Messwahrheit.
-- Best Match wird präziser als automatisch ausgewählte operative Modellprognose erklärt.
+- Extremwetter-Ausblick: Bei einer nicht geladenen oder leer gerenderten nativen Gefahrenebene kann eine georeferenzierte Ersatzdarstellung aus denselben modellierten Wahrscheinlichkeitskonturen einspringen.
+- Ein klarer Hinweis kennzeichnet diesen Ersatzmodus; Gefahrenstufen, Eintrittswahrscheinlichkeiten, Schraffuren und amtliche Warnungen bleiben fachlich unverändert.
+- Der native Kartenlayer bleibt der bevorzugte Normalfall und wird nach erfolgreicher Wiederherstellung erneut verwendet.
