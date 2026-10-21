@@ -17,4 +17,14 @@ assert.ok(source.includes('&&isIndependentTwinReference(row)).map(row=>[row.date
 assert.ok(source.includes("regime:capture.predictedRegime??'wechselhaft'"),'Kein rückwirkendes Regime-Leakage');
 assert.ok(source.includes('independent=store.references.filter(isIndependentTwinReference)'));
 assert.ok(source.includes('row.samples>=12&&row.coverageHours>=18'),'Vollständigkeit der Regenbeobachtungen');
+const continuousDeclaration=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='observationTimelineComplete');
+const coverageDeclaration=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='observationCoverageHours');
+assert.ok(continuousDeclaration&&coverageDeclaration,'Lückenfreie Messzeitprüfung fehlt');
+const joined=ts.transpileModule(coverageDeclaration.getText(ast)+'\n'+continuousDeclaration.getText(ast),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+const complete=new Function(joined+'\nreturn observationTimelineComplete;')();
+const records=Array.from({length:20},(_,i)=>({timestamp:new Date(Date.UTC(2026,9,1,i)).toISOString()}));
+assert.equal(complete(records),true,'20 echte stündliche Messungen sind zeitlich plausibel');
+assert.equal(complete(records.filter((_,i)=>i<=6||i>=14)),false,'Siebenstündige Messlücke darf nicht als Tagesdeckung gelten');
+assert.equal(complete(records.slice(0,8)),false,'Nur acht Stunden sind keine Tagesreferenz');
+assert.equal(complete(records.slice(0,11)),false,'Nur elf Messungen sind zu wenig');
 console.log('P1 Prognosegüte: unabhängige Messwerte, Deckung und Ausgabe-Regime geprüft.');
