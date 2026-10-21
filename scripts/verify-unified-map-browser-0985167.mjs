@@ -129,7 +129,15 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.getByRole('button',{name:'Modell zuerst',exact:true}).click();
  const rucParameters=await page.getByLabel('Parameter-Layer').locator('option').evaluateAll(rows=>rows.map(o=>o.value));assert.deepEqual([...rucParameters].sort(),['temperature','pressure','wind','gust','cloud','precipitation'].sort(),'RUC advertises exactly its six verified products');
  const rucEnd=Math.floor((runMs+27*hour)/1000);await page.waitForFunction(t=>Boolean(document.querySelector('[aria-label="Kartentermin auswählen"] option[data-valid-time="'+t+'"]')),rucEnd);
- const rucLast=direct.locator(`option[data-valid-time="${rucEnd}"]`);await direct.selectOption(await rucLast.getAttribute('value'));await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin')&&!document.querySelector('.unified-layer-status')?.textContent.includes('lädt'));
+ const rucLast=direct.locator(`option[data-valid-time="${rucEnd}"]`);await direct.selectOption(await rucLast.getAttribute('value'));await page.waitForFunction(ms=>{const expected=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(ms));return document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin '+expected)},runMs+27*hour);
+ if(width===390&&theme==='light'&&design==='next'){
+  await page.locator('.unified-favorites summary').click();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('23,5'));
+  for(const type of ['SVG','PNG']){
+   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Raster + Ortswerte · '+type,exact:true}).click();const download=await pending;assert.match(download.suggestedFilename(),/^MID-ICON-D2-RUC-temperature-/);const bytes=readFileSync(await download.path());
+   if(type==='SVG'){assert.ok(bytes.toString().includes('ICON-D2-RUC · Lauf'));assert.ok(bytes.toString().includes('23,5'))}else{assert.equal(bytes.subarray(1,4).toString(),'PNG');assert.equal(bytes.readUInt32BE(16),1200);assert.ok(bytes.readUInt32BE(20)>=1130)}
+  }
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC has no horizontal overflow');await page.screenshot({path:'/tmp/mid-c38-ruc-390.png',fullPage:true});
+ }
  await measuredReload();assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-d2-ruc','RUC source persists across reload');
  await page.getByLabel('Parameter-Layer').selectOption('pressure');await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
  if(width===844||width===1024)await page.setViewportSize({width,height:920});
