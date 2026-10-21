@@ -1,7 +1,7 @@
 import type {CloudWeatherData} from './cloudWeatherData';
 import type {NativeField} from './nativeModelFields';
 import type {SynopticField} from './nativeSynopticFields';
-export const CLOUD_ISOBAR_MODELS=Object.freeze(['icon-d2','icon-eu','icon'] as const);
+export const CLOUD_ISOBAR_MODELS=Object.freeze(['icon-d2','icon-d2-ruc','icon-eu','icon'] as const);
 export type CloudWeatherIsobar={level:number;spacingKm?:number;paths:number[][][]};
 export type CloudIsobarLayer={model:string;run:string;time:string;contours:CloudWeatherIsobar[]};
 export function eligibleCloudIsobarModel(model:string){return CLOUD_ISOBAR_MODELS.some(id=>id===model)}
@@ -18,7 +18,7 @@ export function synopticCloudIsobars(data:CloudWeatherData|null,field:SynopticFi
  const contours=field.pressure.features.filter(f=>Number.isFinite(f.properties.level)&&f.properties.level>=850&&f.properties.level<=1100&&f.geometry.type==='LineString'&&f.geometry.coordinates.length>=2&&f.geometry.coordinates.every(p=>p.length===2&&p.every(Number.isFinite))).map(f=>({level:f.properties.level,...(f.properties.spacingKm===undefined?{}:{spacingKm:f.properties.spacingKm}),paths:[f.geometry.coordinates.map(([lon,lat])=>[lat,lon])]}));
  return contours.length?{model:field.model,run:field.run,time:field.time,contours}:null;
 }
-export function cloudIsobarModelLabel(model:string){return model==='icon-d2'?'ICON-D2':model==='icon-eu'?'ICON-EU':model==='icon'?'ICON Global':null}
+export function cloudIsobarModelLabel(model:string){return model==='icon-d2-ruc'?'ICON-D2-RUC':model==='icon-d2'?'ICON-D2':model==='icon-eu'?'ICON-EU':model==='icon'?'ICON Global':null}
 
 
 /** 500-hPa geopotential heights from a VERIFIED synoptic model frame.

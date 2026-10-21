@@ -1,3 +1,7 @@
+# MID v0.9.85.308 · RUC-Komposit und sichtbare Vorhersagestunden (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable=a1f40fb42ea45bd3c695583a49a1310e0fc853fc (.306), Installer39585586008 erfolgreich. Parallel-PR439 (.307/P1) ist beim erneuten Abgleich im Core-Gate fehlgeschlagen und noch nicht freigegeben; main=mid-stable bleiben .306. Eigene Version .308 vermeidet die Nummernkollision. Bestehende Parallel-Drafts425/431/432/433 bleiben unberührt. Native RUC-Zusatzquelle mit neun GRIB-Komponenten und vollständiger Achse0..27, separater SHA-Index, ursprüngliche Core/EPS-/Codec-Objekte unverändert. Bestehender RUC-Produzent und Source-Gate erweitert, keine neue Workflow-Datei oder Release-Aktion. Live-/Browser-/Release-Nachweise und Grenzen: docs/implementation/MID_C38_RUC_COMPOSITES_0.9.85.308.md. Noch keine Stable-Veröffentlichung behauptet.
+
 # MID v0.9.85.306 · Vorhandene Revisionsprüfungen und Vite-Sicherheit
 
 Verifizierte Basis main=mid-stable=88c04410de7275010cdcf9ff14b2c26ca35479d1 (.305). #435/#436 sind ausschließlich über vorhandenen Source-Gate, Bot, ZIP und Installer39557997892 veröffentlicht. Produktiver RUC-Lauf08UTC21.10.2026 in39574875111: mapHours27/coreHours14, admitted=true,410534246Bytes, unveränderte Quelle/Codec-Proof und bestätigte Pages-/Worker-Frische. Keine physische Geräte-Abnahme behauptet.
