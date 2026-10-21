@@ -1,5 +1,5 @@
-# MID v0.9.85.305
+# MID v0.9.85.306
 
-- Karten: DWD ICON-D2-RUC ergänzt Temperatur, Bodendruck, Wind, Böen, Bewölkung und stündlichen Niederschlag mit eigenem Modelllauf. Vollständig geprüfte Stundenfelder reichen bis +27 Stunden.
-- Modellauswahl bleibt gespeichert. Karten, Ortswerte und Bildexporte verwenden dieselben Rasterwerte und Einheiten. Datenlücken bleiben transparent.
-- Kartenstunden werden getrennt geprüft: RUC-EPS und Prognosefusion behalten ihren bisherigen Stundenvertrag.
+- Wartung: Die bestehenden Revisions-, Sicherheits- und Veröffentlichungsprüfungen verwenden jetzt einheitlich die erforderliche RUC-Testumgebung.
+- Sicherheit: Vite erhält den kompatiblen Sicherheits-Patch 8.2.4; die bestehenden Karten-, Export- und iOS-Verträge bleiben erhalten.
+- RUC-Karten aus .305 bleiben verfügbar: sechs Parameter und getrennt geprüfte Kartenstunden bis +27 h; EPS und Prognosefusion behalten ihren bisherigen Stundenvertrag.

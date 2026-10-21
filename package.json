@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.305",
+  "version": "0.9.85.306",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -586,10 +586,10 @@
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "6.1.1",
     "esbuild": "0.28.2",
+    "postcss": "8.5.28",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "8.2.2",
-    "postcss": "8.5.28"
+    "vite": "8.2.4"
   },
   "packageManager": "npm@10.9.2",
   "engines": {

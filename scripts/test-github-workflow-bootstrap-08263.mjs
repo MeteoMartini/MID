@@ -1,4 +1,4 @@
-import {cp,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {cp,mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -23,12 +23,19 @@ for(const token of [
   'steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha'
 ])if(!sourceRelease.includes(token))failures.push(`Agent-Release-Recovery für bereits geschützte Merges fehlt: ${token}`);
 
-// Both full-core entry points execute Python-backed RUC regressions. A green
-// source gate must not conceal missing dependencies in the installer snapshot.
-for(const [workflow,command] of [['chatgpt-pr-gate.yml','MID_REGRESSION_SHARD=core npm run test:regressions'],['install-mid.yml','npm run verify']]){
- const text=await readFile(path.join(root,'ci','github','workflows',workflow),'utf8');
- const setup=text.indexOf('uses: actions/setup-python@'),dependencies=text.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt'),core=text.indexOf(command);
- if(setup<0||dependencies<setup||core<dependencies)failures.push(`RUC-Python-Testumgebung fehlt vor vollständigem Core-Gate: ${workflow}`);
+// Every existing job that runs the full inventory also runs Python-backed RUC
+// tests. Check each job, not just the first setup occurrence in a workflow.
+for(const name of await readdir(path.join(root,'.github','workflows'))){
+ if(!/\.ya?ml$/.test(name))continue;
+ const text=await readFile(path.join(root,'.github','workflows',name),'utf8'),jobs=[...text.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm)];
+ for(let i=0;i<jobs.length;i++){
+  const body=text.slice(jobs[i].index,jobs[i+1]?.index??text.length);
+  const command=/^\s*(?:run:\s*)?(?:MID_REGRESSION_SHARD=core\s+)?npm run (?:verify|test:regressions)\b/m.exec(body);
+  if(!command)continue;
+  if(/MID_REGRESSION_SHARD:\s*\$\{\{ matrix\.shard \}\}/.test(body)&&body.includes('heavy-'))continue;
+  const setup=body.indexOf('uses: actions/setup-python@'),deps=body.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt');
+  if(setup<0||deps<setup||command.index<deps)failures.push(`RUC-Python-Testumgebung fehlt vor vollständigem Core-Gate: ${name}/${jobs[i][1]}`);
+ }
 }
 
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));
