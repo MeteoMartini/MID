@@ -1,0 +1,9 @@
+{
+  "schema": "mid.ruc.browser-decoder-real-replay.v1",
+  "scope": "actual production .304 artifact via production JS field loader, controlled historical validation clock; not live freshness",
+  "frames": 88,
+  "cells": 11661056,
+  "maxDisplayQuantizationError": 0.005000000000009663,
+  "indexSha256": "90ae0bed87bb6f25cf356c49c7f9cfa854c70b81b551f08131cef1cfc3c48ee5",
+  "sourceRun": "2026-10-20T20:00"
+}

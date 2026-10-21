@@ -40,6 +40,14 @@ class AdmissionTests(unittest.TestCase):
    root=Path(t);snapshot,source=self.fixture(root);m=json.loads((snapshot/'latest.json').read_bytes());m['pages']['budgetBytes']=1000;(snapshot/'latest.json').write_bytes(compact(m));original=(snapshot/'latest.json').read_bytes()
    with patch.object(module,'BUDGET',1000),self.assertRaisesRegex(ValueError,'budget'):module.admit(snapshot,source,root/'candidate')
    self.assertEqual(original,(snapshot/'latest.json').read_bytes());self.assertFalse(list(snapshot.glob('runs/*__rucmaps*')))
+ def test_existing_snapshot_drift_during_generation_rejected(self):
+  with tempfile.TemporaryDirectory() as t:
+   root=Path(t);snapshot,source=self.fixture(root);original=(snapshot/'latest.json').read_bytes();build=module.build_candidate
+   def changed_source(*args):
+    result=build(*args);(snapshot/'runs/test/core.bin').write_bytes(b'changed concurrently');return result
+   with patch.object(module,'build_candidate',changed_source),self.assertRaisesRegex(ValueError,'inventory SHA'):
+    module.admit(snapshot,source,root/'candidate')
+   self.assertEqual(original,(snapshot/'latest.json').read_bytes());self.assertFalse(list(snapshot.glob('runs/*__rucmaps*')))
  def test_partial_write_rolls_back_new_objects(self):
   with tempfile.TemporaryDirectory() as t:
    root=Path(t);snapshot,source=self.fixture(root);original=(snapshot/'latest.json').read_bytes();write=Path.write_bytes

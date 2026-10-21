@@ -16,6 +16,14 @@ BUDGET=900_000_000
 
 def sha(data):return hashlib.sha256(data).hexdigest()
 
+def verify_inventory(snapshot,objects):
+ for o in objects:
+  path=within(snapshot,o['key']);h=hashlib.sha256();size=0
+  with path.open('rb') as stream:
+   for data in iter(lambda:stream.read(1048576),b''):
+    h.update(data);size+=len(data)
+  if size!=o['bytes'] or h.hexdigest()!=o['sha256']:raise ValueError('inventory SHA/size mismatch')
+
 def admit(snapshot,source,candidate):
  snapshot=Path(snapshot).resolve(strict=True);source=Path(source).resolve(strict=True);candidate=Path(candidate).resolve()
  roots=(snapshot,source,candidate)
@@ -29,9 +37,7 @@ def admit(snapshot,source,candidate):
  raw=checked_object(source,s,'deterministic.bin');lookup=checked_object(source,s,'lookup.bin');cube=np.frombuffer(raw,dtype='<i2').reshape(m['pointCount'],nt,nf)
  objects=m['pages']['objects'];bykey={o['key']:o for o in objects}
  if len(bykey)!=len(objects) or sum(o['bytes'] for o in objects)!=m['pages']['publishedBytes']:raise ValueError('inventory duplicates/size mismatch')
- for key,o in bykey.items():
-  data=within(snapshot,key).read_bytes()
-  if len(data)!=o['bytes'] or sha(data)!=o['sha256']:raise ValueError('inventory SHA/size mismatch')
+ verify_inventory(snapshot,objects)
  actual={p.relative_to(snapshot).as_posix() for p in snapshot.rglob('*') if p.is_file()}
  if actual!=set(bykey)|{'latest.json'}:raise ValueError('undeclared snapshot objects')
  pages=core['compressedPages'];cursor=0
@@ -81,6 +87,7 @@ def admit(snapshot,source,candidate):
    if target.read_bytes()!=data:raise ValueError('new object write corruption')
   if manifest.read_bytes()!=original or (source/'latest.json').read_bytes()!=source_bytes:raise ValueError('manifest drift during admission')
   for name in ('deterministic.bin','lookup.bin'):recheck_object(source,s,name)
+  verify_inventory(snapshot,objects)
   temporary.write_bytes(encoded);temporary.replace(manifest)
  except BaseException:
   shutil.rmtree(directory.parent,ignore_errors=True);temporary.unlink(missing_ok=True);raise

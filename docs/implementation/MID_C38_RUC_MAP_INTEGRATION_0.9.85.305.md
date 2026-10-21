@@ -27,3 +27,13 @@ Read-only native horizon run39502837253 (head37380f65b4f290a4708d14ef577c031e379
 Released .304 RUC archive run39495600947 artifact12299022607 SHA83da6240488a315ca7d85aeea728a7272845f3a00ebca6ce972f558be5cbef21 is re-downloaded and SHA-verified for integration replay.
 
 Open separate work: #428 provider DST/cache/daily migration; #374 live/device acceptance; #350/#352/#405 retain EPS/full rapid/science/SLO scope. No blanket issue closure.
+
+## Independent production JS replay
+
+`MID_C38_RUC_JS_REAL_REPLAY_0.9.85.305.json` records all88published frames and11661056cells from the actual .304 archive, loaded by `loadNativeField` (production SHA/byte/gzip/schema/physical-bound validators), independently compared cell-by-cell against original native int16 values and lookup. Maximum display quantization error0.00500000000001 in converted wind units; no source-value rewrite. Controlled historical clock only for catalog validation, not a live freshness claim.
+
+Admission now streams a second full SHA/size verification of every old inventory object immediately before atomic pointer replacement. A negative regression mutates an existing compressed core object during map generation and proves rejection without manifest replacement or new namespace leakage. Source files and manifest are also rechecked at handoff.
+
+Enhanced read-only native horizon workflow exercises full27hmap admission against a real14hcore prefix in a temporary codec fixture on each of three native runs. Its fixture explicitly excludes production EPS/rapid/rollback coverage; the separate .304 actual full-snapshot replay proves preservation/admission with those production products present. Workflow remains contents:read, PR/head-only, no secrets/deployment/schedule.
+
+PR Completion's canonical watcher returned blocked because `gh` is absent; observation continues through the connected GitHub API. No generic landing action is invoked. Source PR435 head aeacfaf9d781404c650da1e0b472d86860ba3062 was created draft and verified. Publication remains unclaimed.
