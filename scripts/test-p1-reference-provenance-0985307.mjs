@@ -16,7 +16,7 @@ for(const bad of [{coverageHours:6},{coverageHours:undefined},{quality:.3},{sour
 assert.ok(source.includes('&&isIndependentTwinReference(row)).map(row=>[row.date,row])'));
 assert.ok(source.includes("regime:capture.predictedRegime??'wechselhaft'"),'Kein rückwirkendes Regime-Leakage');
 assert.ok(source.includes('independent=store.references.filter(isIndependentTwinReference)'));
-assert.ok(source.includes('row.samples>=12&&row.coverageHours>=18'),'Vollständigkeit der Regenbeobachtungen');
+assert.ok(source.includes('observationTimelineComplete(row.rows)'),'Lückenfreie Messdeckung gilt auch für Niederschlag');
 const continuousDeclaration=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='observationTimelineComplete');
 const coverageDeclaration=ast.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='observationCoverageHours');
 assert.ok(continuousDeclaration&&coverageDeclaration,'Lückenfreie Messzeitprüfung fehlt');
