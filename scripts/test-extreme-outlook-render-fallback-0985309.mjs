@@ -49,3 +49,94 @@ assert.ok(canvas.includes("context.fill('evenodd')")&&canvas.includes("context.c
 assert.ok(styles.includes('.extreme-map-layer-fallback-status')&&styles.includes('pointer-events:none'),
  'Degradationshinweis darf Karteninteraktion nicht überdecken');
 console.log('MID 0.9.85.309: native Gefahrenpolygonprüfung mit georeferenziertem, deutlich deklariertem Canvas-Notfallmodus geprüft (Quell-/Konturvertrag, keine Browser-Pixelabnahme).');
+
+
+// Real component-effect execution with a deterministic MapLibre event/source mock.
+// This is an executable state-machine test, not a substitute for browser pixels.
+const js=ts.transpileModule(overlay,{fileName:'ExtremeOutlookAreaOverlay.tsx',compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+const sampleContours=[{intensity:2,color:'#ef8a24',opacity:.6,probability:70,rings:[[{lon:7,lat:51},{lon:8,lat:51},{lon:8,lat:50},{lon:7,lat:50}]]}];
+const sampleAreas=[{id:'region1',latitude:50.5,longitude:7.5,intensity:2,probability:70,region:'Messregion',signal:{hazard:'rain'}}];
+function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoaded=true,rendered=1,throwQuery=false}={}){
+ let fallback=false,cleanup,firstRender=true,drawnContours,drawCalls=0;
+ const changes=[],sources=new Map(),layers=new Map(),images=new Set(),events=new Map();
+ const contourSet={contours,hatchContours:contours.filter(row=>row.probability<60),areas};
+ const map={
+  hasImage:id=>images.has(id),addImage:id=>images.add(id),
+  getSource:id=>sources.get(id),addSource:(id,data)=>sources.set(id,{setData(next){this.data=next},data}),
+  removeSource:id=>sources.delete(id),
+  getLayer:id=>layers.get(id),addLayer:layer=>layers.set(layer.id,layer),removeLayer:id=>layers.delete(id),
+  isSourceLoaded:()=>sourceLoaded,
+  getCanvas:()=>({clientWidth:390,clientHeight:500}),
+  project:()=>({x:150,y:180}),
+  queryRenderedFeatures(){if(throwQuery)throw new Error('query failed');return Array.from({length:rendered},()=>({properties:{}}))},
+  on(name,listener){if(!events.has(name))events.set(name,new Set());events.get(name).add(listener)},
+  off(name,listener){events.get(name)?.delete(listener)}
+ };
+ const CanvasOverlay=function TestCanvasOverlay(){};
+ const HtmlMarker=function TestHtmlMarker(){};
+ const jsx=(type,props)=>({type,props});
+ const hooks={
+  memo:fn=>fn,useCallback:fn=>fn,useMemo:fn=>fn(),
+  useState:()=>[fallback,value=>{fallback=typeof value==='function'?value(fallback):value;changes.push(fallback)}],
+  useEffect:callback=>{if(firstRender)cleanup=callback()}
+ };
+ const modules={
+  react:hooks,'react/jsx-runtime':{jsx,jsxs:jsx,Fragment:'fragment'},
+  './MapLibreCore':{CanvasOverlay,HtmlMarker,useMidMap:()=>map,registerMapLayerOrder(){},unregisterMapLayerOrder(){}},
+  './extremeOutlookAreaCanvas':{drawExtremeOutlookContours:(_map,_canvas,values)=>{drawnContours=values;drawCalls++}},
+  './extremeOutlookAreaGeoJson':{buildExtremeOutlookContourGeoJson:values=>({type:'FeatureCollection',features:values.map(row=>({type:'Feature',geometry:{type:'MultiPolygon',coordinates:row.rings.length?[[row.rings.map(ring=>ring.map(point=>[point.lon,point.lat]))[0]]]:[]}}))})},
+  './extremeOutlookModelledAreas':{buildExtremeOutlookContourSet:()=>contourSet},
+  './extremeWeatherOutlook':{EXTREME_HAZARDS:[],EXTREME_INTENSITY_COLORS:{1:'#fff',2:'#ef8a24',3:'#d9363e',4:'#8f174f'}}
+ };
+ const module={exports:{}};
+ new Function('require','module','exports',js)(id=>{if(!(id in modules))throw Error('Unexpected dependency: '+id);return modules[id]},module,module.exports);
+ const Component=module.exports.default;
+ const props={data:{},periodId:'period',hazard:'overall'};
+ Component(props);
+ firstRender=false;
+ const emit=(event,payload={})=>{for(const callback of events.get(event)||[])callback(payload)};
+ const canvasNode=()=>{const tree=Component(props);return [tree.props.children].flat().find(node=>node&&node.type===CanvasOverlay)};
+ const stop=()=>{cleanup?.();return [...events.values()].reduce((count,set)=>count+set.size,0)};
+ return{emit,canvasNode,stop,map,layers,sources,changes,get fallback(){return fallback},get renderedContours(){return drawnContours},get draws(){return drawCalls}};
+}
+{
+ const ok=executeOverlayCase();
+ ok.emit('idle');
+ assert.equal(ok.fallback,false,'Vollständig geladene native GeoJSON-Fläche bleibt der bevorzugte Renderer.');
+ assert.equal(ok.canvasNode(),undefined,'Kein zusätzlicher Canvas auf gesundem nativen Layer.');
+ ok.emit('error',{sourceId:'extreme-outlook-contours-source',error:new Error('worker failure')});
+ assert.equal(ok.fallback,true,'Quellbezogener Workerfehler muss auf georeferenzierten Ersatz umschalten.');
+ const substitute=ok.canvasNode();
+ assert.ok(substitute,'Notfallmodus muss die Canvas-Komponente wirklich mounten.');
+ substitute.props.render(ok.map,{});
+ assert.strictEqual(ok.renderedContours,sampleContours,'Derselbe ungekürzte Gefahrenkontur-Array muss im Fallback ankommen.');
+ ok.emit('idle');
+ assert.equal(ok.fallback,false,'Nativer Renderer muss nach nachweislicher Wiederherstellung wieder bevorzugt werden.');
+ assert.equal(ok.stop(),0,'Alle Kartenlistener bei Unmount entfernen.');
+}
+{
+ const missing=executeOverlayCase({rendered:0});
+ missing.emit('idle');
+ assert.equal(missing.fallback,true,'Leeres natives Paint-Ergebnis darf nicht zu alleinstehenden Labels führen.');
+ assert.ok(missing.canvasNode(),'Fehlender Layer-Paint braucht sichtbaren Ersatz.');
+ missing.stop();
+}
+{
+ const unavailable=executeOverlayCase({sourceLoaded:false});
+ unavailable.emit('idle');
+ assert.equal(unavailable.fallback,true,'Nicht fertig geladene GeoJSON-Quelle bleibt nicht unmarkiert.');
+ unavailable.stop();
+}
+{
+ const invalid=executeOverlayCase({throwQuery:true});
+ invalid.emit('idle');
+ assert.equal(invalid.fallback,true,'Ausfall des nativen Query-Pfades muss den Ersatz aktivieren.');
+ invalid.stop();
+}
+{
+ const noHazards=executeOverlayCase({contours:[],areas:[],rendered:0});
+ noHazards.emit('idle');
+ assert.equal(noHazards.fallback,false,'Keine modellierten Gefahren bedeuten keine erfundenen Ersatzpolygone.');
+ assert.equal(noHazards.canvasNode(),undefined);
+ noHazards.stop();
+}
