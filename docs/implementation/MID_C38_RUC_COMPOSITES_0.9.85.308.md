@@ -32,3 +32,9 @@ Der gemeinsame Zeithelper wertet explizite UTC/Offset-Instants korrekt aus und b
 ## Primärquellen
 
 DWD-Parameterverzeichnis https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/ (T, RELHUM, FI, PMSL, U/V, CLCT, WW) und Druckflächenpfad https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/FI/lvt1/100/lv1/ . Metadatenautorität sind die tatsächlich dekodierten GRIB-Header, nicht nur Verzeichnisnamen. MapLibre-Dokumentation über Context7: `raster-resampling=nearest` verwendet GL.NEAREST statt GL.LINEAR für unveränderte Kategorien. Context7 ist keine Daten-/Release-Evidenz.
+
+## Echtdatenkorrektur vor Freigabe
+
+Erster Source-Gate39600013837 auf ca6846453dc4ed6e4c672a4618b43ef54abf05d8: alle fünf Browser-Heavy-Gruppen erfolgreich. Native Vorprüfung scheitert reproduzierbar für sechs Läufe06..11UTC21.10. an HTTP404 für RELHUM850 (T850 war korrekt dekodiert). Artefakt12345239268, ZIP-SHA25626d8e7dbd1b3bc8b8e533e39ae542de4743f003199de0d8351cfe70dd3bca1d0. Kein Release erfolgt.
+
+Native Verfügbarkeit wird jetzt vor dem großen Core-Download geprüft. Direkte RH850/RH700 wird bevorzugt; andernfalls ausschließlich native spezifische Feuchte QV (GRIB0/1/0) plus T an exakt derselben Druckfläche und im selben Lauf. RH über Wasser aus e=q*p/(.622+.378*q), e_s nach Bolton1980; identischer Ansatz wie im bestehenden direkten IFS-Synoptikpfad. Kein Ersatz anderer Druckflächen/Modelle, kein Filling/Clipping. Herkunft und abgeleitete Feuchteniveaus werden im Index gespeichert. Je nach tatsächlicher direkter RH700-Verfügbarkeit neun oder zehn native Eingaben (252 oder280GRIBs je Lauf); Browserbeleg zählt die tatsächlichen Quellen. Negative ecCodes- und Sättigungs-/Missing-Tests erweitert auf10Tests. Die echte Verfügbarkeit dieses Pfades muss der neue Gate belegen; keine Erfolgsannahme.

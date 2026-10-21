@@ -8,8 +8,9 @@ import gzip,hashlib,json,re,shutil
 from datetime import timedelta
 from pathlib import Path
 import numpy as np
+import requests
 from eccodes import codes_grib_new_from_file,codes_get,codes_get_long,codes_release
-from fetch_and_build_ruc import DET_BASE,session,stage_tree
+from fetch_and_build_ruc import DET_BASE,session,stage_tree,crawl_files,index as directory_index,forecast_lead_minutes,select_requested_files
 from grib_stream import open_grib_stream
 from grib_metadata import inspect_grib_header,validate_time_window
 from grib_bitmap import decode_bitmap_values
@@ -24,7 +25,61 @@ COMPONENTS=(('T',850,'t',(0,0,0),('K',)),('RELHUM',850,'relhum',(0,1,1),('%',)),
  ('RELHUM',700,'relhum',(0,1,1),('%',)),('U',300,'u',(0,2,2),('m s**-1',)),
  ('V',300,'v',(0,2,3),('m s**-1',)),('CLCT',None,'clct',(0,6,1),('%',)),
  ('WW',None,'ww',(0,19,25),('Numeric','Code table (4.201)','~')))
-BOUNDS={'t':(170,340),'relhum':(0,150),'fi':(350,650),'pmsl':(850,1100),'u':(-200,200),'v':(-200,200),'clct':(0,100.01),'ww':(0,99)}
+QV_COMPONENTS={level:('QV',level,'q',(0,1,0),('kg kg**-1','kg kg-1')) for level in (850,700)}
+T700=('T',700,'t',(0,0,0),('K',))
+BOUNDS={'q':(0,.1),'t':(170,340),'relhum':(0,150),'fi':(350,650),'pmsl':(850,1100),'u':(-200,200),'v':(-200,200),'clct':(0,100.01),'ww':(0,99)}
+
+def source_url(component,stamp):
+ param,level,*_=component
+ return f'{DET_BASE}/{param}'+(f'/lvt1/100/lv1/{level*100}' if level is not None else '')+f'/r/{stamp}/'
+
+def source_plan(stamp,hours=27):
+ """Discover complete native products BEFORE any full-core downloads.
+
+ RH at 850 hPa is not published for every RUC cycle. When required, derive RH
+ from specific humidity and temperature at exactly that pressure, as in IFS.
+ No neighbouring level, different run or different model may substitute.
+ """
+ s=session();checked={}
+ def available(component):
+  if component in checked:return
+  root=source_url(component,stamp)
+  files=select_requested_files(crawl_files(s,root),hours,mode='hourly')
+  leads=[forecast_lead_minutes(f) for f in files]
+  if len(leads)!=hours+1 or set(leads)!={60*h for h in range(hours+1)}:raise ValueError('Incomplete native inventory: '+root)
+  checked[component]=True
+ plan=[c for c in COMPONENTS if c[2]!='relhum']
+ for c in plan:available(c)
+ derived=[]
+ for level in (850,700):
+  rh=next(c for c in COMPONENTS if c[1]==level and c[2]=='relhum')
+  try:available(rh);plan.append(rh)
+  except (requests.RequestException,ValueError) as original:
+   try:
+    q=QV_COMPONENTS[level];available(q);plan.append(q)
+    if level==700:available(T700);plan.append(T700)
+    derived.append(level)
+    print(f'RUC RH{level}: same-pressure QV/T derivation; direct RH unavailable: {original}',flush=True)
+   except (requests.RequestException,ValueError) as fallback:
+    discovery={}
+    for param in ('RELHUM','QV'):
+     for suffix in ('lvt1/','lvt1/100/lv1/'):
+      try:discovery[param+'/'+suffix]=directory_index(s,f'{DET_BASE}/{param}/'+suffix)
+      except requests.RequestException as error:discovery[param+'/'+suffix]=str(error)
+    raise ValueError(f'RUC moisture {level}: {fallback}; direct: {original}; directory discovery: {json.dumps(discovery)}') from fallback
+ return plan,derived
+
+def relative_humidity_from_specific(q,t,level):
+ """Specific humidity -> vapour pressure -> RH over water (Bolton 1980).
+
+ q is moist-air mass fraction, e/p=q/(epsilon+(1-epsilon)q), epsilon=.622.
+ No clipping or synthetic filling; caller validates native q/T first.
+ """
+ c=t-273.15;e=q*level/(.622+.378*q)
+ rh=100*e/(6.112*np.exp(17.67*c/(c+243.5)))
+ finite=rh[np.isfinite(rh)]
+ if np.any(finite<0) or np.any(finite>150):raise ValueError('Derived native RH outside physical contract')
+ return rh
 
 def decode(path,run,hour,component):
  param,level,field,identity,units=component;found=[]
@@ -49,7 +104,7 @@ def decode(path,run,hour,component):
  if len(found)!=1:raise ValueError('RUC source must contain exactly one requested GRIB')
  return found[0]
 
-def build(source,staging,output,hours=27):
+def build(source,staging,output,hours=27,plan=None):
  source=Path(source).resolve(strict=True);output=Path(output).resolve();staging=Path(staging).resolve()
  if output.exists() or output.is_relative_to(source) or source.is_relative_to(output):raise ValueError('new disjoint RUC sidecar required')
  original=(source/'latest.json').read_bytes();meta=json.loads(original);run=utc_time(meta['run'])
@@ -59,9 +114,10 @@ def build(source,staging,output,hours=27):
  lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)[np.ix_(rows,cols)];known=lookup!=0xffffffff
  if rows.size<10 or cols.size<10 or np.any(lookup[known]>=meta['pointCount']) or not 0<g['maxNearestKm']<=5:raise ValueError('RUC lookup geometry invalid')
  fields={};origins=[];s=session();stamp=meta['run'];n=hours+1
- for component in COMPONENTS:
+ components,derived=plan or source_plan(stamp,hours)
+ for component in components:
   param,level,field,_,_=component
-  root=f'{DET_BASE}/{param}'+(f'/lvt1/100/lv1/{level*100}' if level is not None else '')+f'/r/{stamp}/'
+  root=source_url(component,stamp)
   folder=staging/'ruc-synoptic'/param/str(level or 'surface')
   if level is None and param in ('PMSL','CLCT'):
    core_stage=staging/re.sub(r'[^0-9A-Za-z_-]','',stamp)/'deterministic'/param
@@ -69,7 +125,6 @@ def build(source,staging,output,hours=27):
    if core_stage.is_dir():folder=core_stage
    elif probe_stage.is_dir():folder=probe_stage
   files=stage_tree(s,root,folder,hours,f'RUC composite {param}/{level}',mode='hourly')
-  from fetch_and_build_ruc import forecast_lead_minutes
   seen=set()
   for rel in files:
    path=folder/rel;lead=forecast_lead_minutes(path.as_posix())
@@ -81,6 +136,8 @@ def build(source,staging,output,hours=27):
    fields[(hour,field,level)]=values
    origins.append({'parameter':param,'levelHpa':level,'hour':hour,'url':root+rel,'bytes':path.stat().st_size,'sha256':sha(path.read_bytes())})
   if seen!={h*60 for h in range(n)}:raise ValueError('RUC composite incomplete hourly axis')
+ for level in derived:
+  for h in range(n):fields[(h,'relhum',level)]=relative_humidity_from_specific(fields[(h,'q',level)],fields[(h,'t',level)],level)
  output.mkdir(parents=True)
  try:
   frames=write_fields(output,'icon-d2-ruc',run,2.2,fields,ys[rows].round(6),xs[cols].round(6),range(n))
@@ -95,7 +152,7 @@ def build(source,staging,output,hours=27):
    if len(raw)>12_000_000:raise ValueError('RUC composite decode budget')
    wire=gzip.compress(raw,mtime=0);p.write_bytes(wire);ref.update(bytes=len(wire),decodedBytes=len(raw),sha256=sha(wire),cloudWeather=True)
   index={'schema':'mid.ruc.synoptic-fields.v1','modelId':'icon-d2-ruc','run':run.isoformat(),'sampling':'nearest-native-cell','maxNearestKm':g['maxNearestKm'],
-   'sourceManifestSha256':sha(original),'sourceLookupSha256':sha(lookup_raw),'origins':origins,
+   'sourceManifestSha256':sha(original),'sourceLookupSha256':sha(lookup_raw),'derivedHumidityLevelsHpa':derived,'humidityDerivation':'Bolton-1980-RH-over-water-from-native-specific-humidity-and-temperature','origins':origins,
    'model':{'label':'DWD ICON-D2-RUC','run':run.isoformat(),'resolutionKm':2.2,'license':'CC BY 4.0','frames':frames}}
   (output/'index.json').write_bytes(compact(index))
   if (source/'latest.json').read_bytes()!=original or checked_object(source,meta,'lookup.bin')!=lookup_raw:raise ValueError('RUC source drift')

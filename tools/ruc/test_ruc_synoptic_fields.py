@@ -5,7 +5,7 @@ from datetime import datetime,timezone
 from eccodes import codes_set,codes_set_values,codes_get_message,codes_release
 import numpy as np
 from test_grib_metadata import native_fixture
-from build_ruc_synoptic_fields import COMPONENTS,decode
+from build_ruc_synoptic_fields import COMPONENTS,QV_COMPONENTS,T700,decode,relative_humidity_from_specific
 
 class RucCompositeTests(unittest.TestCase):
  def source(self,component,mutate=None):
@@ -16,7 +16,7 @@ class RucCompositeTests(unittest.TestCase):
    codes_set(gid,'typeOfFirstFixedSurface',100 if level else 101 if field=='pmsl' else 1)
    codes_set(gid,'scaleFactorOfFirstFixedSurface',0)
    codes_set(gid,'scaledValueOfFirstFixedSurface',level*100 if level else 0)
-   value={'t':280,'relhum':80,'fi':550*98.0665,'pmsl':100000,'u':35,'v':-15,'clct':90,'ww':95}[field]
+   value={'t':280,'relhum':80,'fi':550*98.0665,'pmsl':100000,'u':35,'v':-15,'clct':90,'ww':95,'q':.005}[field]
    codes_set_values(gid,np.full(542040,value))
    if mutate:mutate(gid)
    return codes_get_message(gid)
@@ -32,6 +32,16 @@ class RucCompositeTests(unittest.TestCase):
     if c[2]=='fi':self.assertAlmostEqual(values[0],550,places=3)
     if c[2]=='pmsl':self.assertEqual(values[0],1000)
     if c[2]=='ww':self.assertEqual(values[0],95)
+ def test_specific_humidity_and_700_temperature_use_native_pressure_headers(self):
+  for c in (*QV_COMPONENTS.values(),T700):
+   values=self.read(self.source(c),c)
+   self.assertAlmostEqual(values[0],.005 if c[2]=='q' else 280,places=6)
+ def test_native_humidity_derivation_water_saturation_and_missing(self):
+  saturated=.622*6.112/(850-.378*6.112)
+  q=np.array([0.,saturated,np.nan,saturated]);t=np.array([273.15,273.15,273.15,np.nan])
+  rh=relative_humidity_from_specific(q,t,850)
+  np.testing.assert_allclose(rh[:2],[0,100],rtol=1e-12);self.assertTrue(np.isnan(rh[2:]).all());np.testing.assert_equal(q,[0.,saturated,np.nan,saturated])
+  with self.assertRaises(ValueError):relative_humidity_from_specific(np.array([.1]),np.array([273.15]),850)
  def test_wrong_run_step_level_grid_parameter_and_centre_rejected(self):
   c=COMPONENTS[0]
   for key,value in [('dataTime',700),('endStep',4),('scaledValueOfFirstFixedSurface',70000),('numberOfGridUsed',48),('parameterNumber',6),('centre',98)]:
