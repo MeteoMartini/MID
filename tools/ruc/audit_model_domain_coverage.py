@@ -47,8 +47,9 @@ def utc(value: str) -> datetime:
     if not isinstance(value, str):
         raise ValueError('Invalid UTC timestamp')
     parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    # DWD/MID RUC source manifests use UTC even when the source omits 'Z'.
     if parsed.tzinfo is None:
-        raise ValueError('Unqualified time in immutable source/index')
+        parsed = parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
 
 
@@ -186,7 +187,6 @@ def inspect(source: Path, maps: Path) -> dict:
                 raise ValueError('Map values differ from native quantized source')
             omitted = native & ~inside
             omitted_native_indices = np.unique(lookup[omitted]).astype(np.intp)
-            known_outside = None
             known_outside = int(np.count_nonzero(packed[omitted_native_indices, hour, spec_indices[0]] != SOURCE_MISSING))
             rows.append({'hour':hour, 'sourceValueAndMaskRoundtrip':True, 'publishedBounds':[float(xs[0]),float(ys[0]),float(xs[-1]),float(ys[-1])],
                          'omittedNativeLookupCells':int(np.count_nonzero(omitted)),
