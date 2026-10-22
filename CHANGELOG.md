@@ -1,3 +1,11 @@
+# MID v0.9.85.309
+
+- GeoJSON-Konturen: tiefe Loch-/Inselverschachtelungen werden duplikatfrei erzeugt; keine veränderten Gefahrenschwellen.
+
+- Extremwetter-Ausblick: Bei einer nicht geladenen oder leer gerenderten nativen Gefahrenebene kann eine georeferenzierte Ersatzdarstellung aus denselben modellierten Wahrscheinlichkeitskonturen einspringen.
+- Ein klarer Hinweis kennzeichnet diesen Ersatzmodus; Gefahrenstufen, Eintrittswahrscheinlichkeiten, Schraffuren und amtliche Warnungen bleiben fachlich unverändert.
+- Der native Kartenlayer bleibt der bevorzugte Normalfall und wird nach erfolgreicher Wiederherstellung erneut verwendet.
+
 # MID v0.9.85.308
 
 - RUC im Modellmarkt: vollständiges Synoptik-Komposit mit Theta-E 850 hPa, Höhe 500 hPa, Bodendruck, Feuchte 700 hPa und Strömung 300 hPa aus demselben nativen Lauf.

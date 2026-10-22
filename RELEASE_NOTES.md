@@ -1,6 +1,9 @@
-# MID v0.9.85.308
+# MID v0.9.85.309
 
-- RUC im Modellmarkt: vollständiges Synoptik-Komposit mit Theta-E 850 hPa, Höhe 500 hPa, Bodendruck, Feuchte 700 hPa und Strömung 300 hPa aus demselben nativen Lauf.
-- RUC-Wolken und signifikantes Wetter: direkte WMO-Wettercodes und Gesamtbewölkung, wahlweise als schematisches Modell-Wolkenbild; Isobaren und Isohypsen aus demselben Termin.
-- Karten zeigen die sichtbare Vorhersagestunde (z. B. +3 h), den tatsächlich verfügbaren Bereich und die Anzahl/Schrittweite der Termine. Zeitachse und Bildexporte nennen die Vorhersagestunde ebenfalls.
-- RUC-Zusatzkarten werden ausschließlich mit vollständiger stündlicher Achse bis +27 h veröffentlicht. Bei unvollständigen Quellen bleibt der geprüfte RUC-Kern erhalten; EPS und Prognosefusion behalten ihren bisherigen Horizont.
+- Extremwetter-Ausblick: Verschachtelte Gefahrenflächen mit Löchern und Inseln erscheinen nicht mehr mehrfach übereinander; ihre modellierten Werte bleiben unverändert.
+
+- Extremwetter-Ausblick: Bei einer nicht geladenen oder leer gerenderten nativen Gefahrenebene kann eine georeferenzierte Ersatzdarstellung aus denselben modellierten Wahrscheinlichkeitskonturen einspringen.
+- Ein klarer Hinweis kennzeichnet diesen Ersatzmodus; Gefahrenstufen, Eintrittswahrscheinlichkeiten, Schraffuren und amtliche Warnungen bleiben fachlich unverändert.
+- Der native Kartenlayer bleibt der bevorzugte Normalfall und wird nach erfolgreicher Wiederherstellung erneut verwendet.
+
+- Extremwetter-Kartenfallback erkennt zusätzlich explizit ausgeblendete bzw. vollständig transparente native Fill-Layer, auch wenn die Featureabfrage Geometrie zurückliefert. Keine Änderung meteorologischer Felder.

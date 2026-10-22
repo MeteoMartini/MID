@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.308",
+  "releaseVersion": "0.9.85.309",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1027,7 +1027,9 @@
     "scripts/test-location-search-layers-0985293.mjs",
     "scripts/test-p1-radolan-extremes-0985307.mjs",
     "scripts/test-p1-ensemble-extremes-0985307.mjs",
-    "scripts/test-p1-reference-provenance-0985307.mjs"
+    "scripts/test-p1-reference-provenance-0985307.mjs",
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2044,7 +2046,9 @@
     "scripts/test-location-search-layers-0985293.mjs",
     "scripts/test-p1-radolan-extremes-0985307.mjs",
     "scripts/test-p1-ensemble-extremes-0985307.mjs",
-    "scripts/test-p1-reference-provenance-0985307.mjs"
+    "scripts/test-p1-reference-provenance-0985307.mjs",
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -2952,7 +2956,17 @@
     "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md",
     "scripts/test-full-calendar-skybar-0985282.mjs",
     "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md",
-    "scripts/test-location-mountain-resilience-0985283.mjs"
+    "scripts/test-location-mountain-resilience-0985283.mjs",
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md",
+    "src/extremeOutlookRenderHealth.ts",
+    "tests/unit/extreme-outlook-render-health.test.ts",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs",
+    "scripts/verify-extreme-outlook-pixels-browser-0985309.mjs",
+    "tests/visual/extreme-outlook-qa.tsx",
+    "tests/visual/extreme-outlook-qa.html",
+    "ci/github/workflows/chatgpt-pr-gate.yml",
+    ".github/workflows/chatgpt-pr-gate.yml"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3308,7 +3322,16 @@
     "tools/widget-export/capture-widget.mjs",
     "tools/widget-export/render-widget-matrix.mjs",
     "vitest.config.ts",
-    "worker-src/05-knmi-eps-cache.js"
+    "worker-src/05-knmi-eps-cache.js",
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "src/extremeOutlookRenderHealth.ts",
+    "tests/unit/extreme-outlook-render-health.test.ts",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs",
+    "scripts/verify-extreme-outlook-pixels-browser-0985309.mjs",
+    "tests/visual/extreme-outlook-qa.tsx",
+    "tests/visual/extreme-outlook-qa.html",
+    "ci/github/workflows/chatgpt-pr-gate.yml",
+    ".github/workflows/chatgpt-pr-gate.yml"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -3520,7 +3543,8 @@
     "docs/implementation/MID_C32_RUC_FULL_PRODUCTION_0.9.85.267.md",
     "docs/implementation/MID_C33_RUC_OPTIONAL_D2_AFTER_CODEC_0.9.85.270.md",
     "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md",
-    "docs/implementation/MID_C34_D2_OPTIONAL_INDEX_SHA_CONTRACT_0.9.85.272.md"
+    "docs/implementation/MID_C34_D2_OPTIONAL_INDEX_SHA_CONTRACT_0.9.85.272.md",
+    "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md"
   ],
   "releaseEvidence": [
     "scripts/test-dwd-location-crop-original-pixels-097611.mjs",
@@ -3665,8 +3689,8 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.308",
-  "updatedAt": "2026-10-18T10:18:23.697Z",
+  "version": "0.9.85.309",
+  "updatedAt": "2026-10-22",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
     "docs/implementation/MID_C33_RUC_SNAPSHOT_GUARD_0.9.85.269.md",
@@ -3820,7 +3844,8 @@
     "docs/implementation/MID_C34_RUC_NATIVE_GRID_AND_MODEL_TIME_AUDIT_0.9.85.271.md",
     "docs/implementation/MID_C34_D2_OPTIONAL_INDEX_SHA_CONTRACT_0.9.85.272.md",
     "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md",
-    "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md"
+    "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md",
+    "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

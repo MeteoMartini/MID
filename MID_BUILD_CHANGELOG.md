@@ -1,3 +1,14 @@
+## MID v0.9.85.309 · 2026-10-21 · Extremwetter-Polygon-Ersatzmodus (Source-Kandidat)
+
+- Reproduzierter P1-GeoJSON-Geometriefehler: fünf verschachtelte Originalringe ergaben vier statt drei MultiPolygon-Teile (Insel doppelt), sechs Ringe vier statt drei. Der neue ausschließlich direkte Hole→Island-Rekursionspfad erhält jeden Ring exakt einmal und normalisiert Außen- und Lochorientierung. Bestehende Pflichtregression test-extreme-outlook-geodata-096614 wurde um Ringtiefen 1–6, Multipolygonanzahl, Duplikatfreiheit, Ringanzahl und Winding erweitert. Kein Schluss auf WebGL-Pixel, Live-Ursache oder amtliche Warnungen.
+
+- Basis: erfolgreich nach Pages/Worker promovierter Stable-SHA b57f07081a2b92ae763af9c909aa3f65b9e211ac, v0.9.85.307; paralleler blockierter RUC-PR #440 v0.9.85.308 und Draft #433 unberührt.
+- Die maplibre-gl@6.7.0-GeoJSON-Flächen werden wie bisher zuerst verwendet. Ein zeitversetzter Source-/Layer-/Render-Check mit map.isSourceLoaded, queryRenderedFeatures und erfassten Workerfehlern aktiviert bei tatsächlichem Fehlen einen Canvas-Ersatz aus derselben Konturserie.
+- Canvas zeichnet dieselben I1–I4-Konturen inklusive Schraffur, Inseln und Löchern; kann aber im Ersatzmodus über gezeichneten OSM-Ortsnamen liegen. Zustand wird optisch und per role=status deklariert. Nicht als amtliche Warnung ausgeben.
+- Unterdrückte synchronen Fehler bei der nativen Installation dürfen nicht länger zu alleinstehenden Gefahrenlabels führen. Wiederherstellung über map.idle erneut prüfen, Eventlistener beim Wechsel freigeben.
+- Neue Pflichtregression scripts/test-extreme-outlook-render-fallback-0985309.mjs, bestehende Label-/Canvas-/GeoJSON-Tests fachlich angepasst; Version, Worker, Service Worker, iOS und Verträge synchronisiert.
+- **Freigabesperre:** Hier ist noch kein realer Browser-Pixel-/Viewport-/WKWebView-Nachweis vorhanden. Ein neuer Source-PR bleibt bis zum tatsächlichen Source-Gate, reproduzierbarer Polygon-Pixelprüfung, betroffener Heavy-Regression und dem regulären Installer/Pages/Worker/Stable-Pfad Draft. Kein öffentlicher Release durch diesen Commit allein.
+
 ## MID v0.9.85.307 · 2026-10-21 · P1-Datenintegrität
 
 - Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.
@@ -1149,3 +1160,5 @@ Native Quelle: https://github.com/jdemaeyer/brightsky/issues/144 und https://git
 ## Veröffentlichung
 
 Verbindlicher Pfad: **Source-PR-Gate → Auto-Merge → Release-ZIP → Installer → Stable-Promotion**. Der Stand darf erst nach grünem Gate und erfolgreicher Stable-Promotion als veröffentlicht gelten.
+
+- Renderprüfung von PR #442 um native Fill-Style-Sichtbarkeit (`layout.visibility`, numerisches `fill-opacity`) ergänzt. Der positive MapLibre-Query allein konnte bei unsichtbarem Fill eine falsche Gesundmeldung auslösen. Zusätzliche Vitest- und TSX-MapLibre-Mockfälle für `none`/`0`; unveränderte Feature-, GeoJSON-, Modell- und Source-PR-Gates. Sichtbare WebGL-Pixel und tatsächlicher Browser-/Recovery-Check weiterhin offene Release-Blocker.

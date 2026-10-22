@@ -312,11 +312,56 @@ jobs:
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
         run: npm run test:regressions
 
+  visual_extreme:
+    name: Extremwetterpolygone · echte Browserpixel
+    # This branch-scoped draft preflight is not a release or a replacement for core/heavy.
+    if: >-
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.head_ref, 'extreme-polygons-fallback')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-identischen PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          npm ci --no-audit --no-fund --legacy-peer-deps --loglevel=notice
+      - name: Synthetische Gefahrengeometrie in echtem WebGL und Canvas visuell prüfen
+        shell: bash
+        timeout-minutes: 16
+        env:
+          MID_EXTREME_QA_DIR: artifacts/extreme-browser-qa
+        run: |
+          set -euo pipefail
+          node scripts/verify-extreme-outlook-pixels-browser-0985309.mjs
+      - name: SHA-gebundene Browserbilder und Prüfnachweis sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-extreme-webgl-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/extreme-browser-qa/
+          if-no-files-found: warn
+          retention-days: 7
+
   validate_source:
     name: Agent-Quellstand vollständig prüfen
     needs:
       - source_core
       - heavy_regressions
+      - visual_extreme
     if: >-
       always() &&
       (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
@@ -332,10 +377,16 @@ jobs:
         env:
           CORE_RESULT: ${{ needs.source_core.result }}
           HEAVY_RESULT: ${{ needs.heavy_regressions.result }}
+          VISUAL_RESULT: ${{ needs.visual_extreme.result }}
+          EXTREME_BRANCH: ${{ contains(github.head_ref, 'extreme-polygons-fallback') }}
         run: |
           set -euo pipefail
           if [ "$CORE_RESULT" != success ] || [ "$HEAVY_RESULT" != success ]; then
             echo "::error::MID-Source-Gate unvollständig: core=${CORE_RESULT}, heavy=${HEAVY_RESULT}."
+            exit 1
+          fi
+          if [ "$EXTREME_BRANCH" = true ] && [ "$VISUAL_RESULT" != success ]; then
+            echo "::error::Echte Extremwetter-WebGL-Pixelabnahme nicht grün: visual=${VISUAL_RESULT}."
             exit 1
           fi
           echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."

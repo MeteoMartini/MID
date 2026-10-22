@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const path='scripts/test-extreme-outlook-browser-contract-0985309.mjs';
+const browserPath='scripts/verify-extreme-outlook-pixels-browser-0985309.mjs';
+const fixturePath='tests/visual/extreme-outlook-qa.tsx';
+const htmlPath='tests/visual/extreme-outlook-qa.html';
+const pkg=JSON.parse(read('package.json')),baseline=JSON.parse(read('MID_BASELINE.json'));
+assert.equal(pkg.version,'0.9.85.309');
+assert.equal(baseline.releaseVersion,pkg.version);
+assert.equal(pkg.scripts['test:extreme-outlook-browser-qa'],'node '+browserPath);
+for(const key of ['requiredRegressionTests','regressionTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(path),'Missing protected regression: '+key);
+for(const file of [browserPath,fixturePath,htmlPath,'ci/github/workflows/chatgpt-pr-gate.yml','.github/workflows/chatgpt-pr-gate.yml'])for(const key of ['requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(file),file+' missing in '+key);
+const fixture=read(fixturePath),runner=read(browserPath),html=read(htmlPath);
+for(const token of ['MidMapLibre','ExtremeOutlookAreaOverlay','qa','officialWarning:false','__midPolygonQaReset','__midPolygonQaSetValid'])assert.ok(fixture.includes(token),'Real component fixture incomplete: '+token);
+assert.ok(html.includes('./extreme-outlook-qa.tsx'));
+for(const token of ['getwebgl','getContext(']){if(token==='getContext(')assert.ok(runner.includes(token))}
+for(const token of ['.screenshot(','.toString(','pixel','setLayoutProperty','extreme-outlook-native-fallback','__midPolygonQaReset','__midPolygonQaSetValid','colorScheme','sourceLoaded','WebGL','evidence.json',"sourceId:'extreme-outlook-contours-source'",'injectedMapLibreSourceErrorRecovered'])assert.ok(runner.toLowerCase().includes(token.toLowerCase()),'Missing browser proof: '+token);
+for(const width of [320,390,430,834,1024,1440])assert.ok(runner.includes('['+width+',')||runner.includes(','+width+','),'Uncovered viewport: '+width);
+const canonical=read('ci/github/workflows/chatgpt-pr-gate.yml'),mirror=read('.github/workflows/chatgpt-pr-gate.yml');
+assert.equal(canonical,mirror,'Canonical and active PR workflow mirrors diverged');
+assert.ok(canonical.includes('  visual_extreme:')&&canonical.includes('visual_extreme.result')&&canonical.includes('VISUAL_RESULT')&&canonical.includes('EXTREME_BRANCH'),'Visual proof must be a true Source-Gate dependency, never optional on this branch');
+assert.ok(canonical.includes('mid-extreme-webgl-')&&canonical.includes('actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'),'Screenshots and evidence must be attached to exact run');
+assert.ok(canonical.includes('github.event.pull_request.draft == false'),'Draft cannot be automatically released');
+assert.ok(!runner.includes('process.exit(0)')&&!runner.includes('test.skip('),'No synthetic green result or WebGL skip is permitted');
+console.log('MID .309: protected actual React/MapLibre WebGL browser QA + two-theme responsive evidence + Source-Gate fail-closed dependency verified (structural contract, not pixel acceptance).');

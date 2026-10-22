@@ -20,7 +20,8 @@ assert.ok(!panel.includes("['Gefrierhöhe'")&&!worker.includes('Gefrierhöhe'),'
 for(const token of ['buildExtremeOutlookContourGeoJson',"type:'fill'","type:'line'",'fill-pattern','registerMapLayerOrder','8+index/100','areas.map(area=>','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Nativer Kartenlayer bzw. flächengebundene Beschriftung fehlt: ${token}`);
 assert.ok(modelledAreas.includes('overlapsStronger'),'Stärkere eingebettete Kerne müssen doppelte Hüllenbeschriftungen verdrängen.');
 for(const token of ["type:'MultiPolygon'",'FeatureCollection<MultiPolygon','contourPolygons'])assert.ok(geojsonSource.includes(token),`Nativer GeoJSON-Kartenlayer fehlt: ${token}`);
-assert.ok(!overlay.includes('CanvasOverlay'),'Gefahrenflächen dürfen nicht mehr als DOM-Canvas über sämtlichen Kartenbeschriftungen liegen.');
+assert.ok(overlay.includes('fallback&&contours.length>0?<CanvasOverlay')&&overlay.includes('render={drawFallback}'),'Canvas darf ausschließlich als dokumentierter Notfall-Ersatz für nicht gerenderte native Flächen erscheinen.');
+assert.ok(!overlay.includes('<CanvasOverlay id="extreme-outlook-areas"'),'Unbedingte ältere DOM-Canvas-Layer dürfen die MapLibre-Kartenbeschriftungen nicht überdecken.');
 for(const token of ['.extreme-map .maplibregl-popup-content','background:#fff','font-size:11px','.extreme-validity b{font-size:13px','.extreme-period-tabs small{max-width:190px'])assert.ok(styles.includes(token),`Lesbarkeitsregel fehlt: ${token}`);
 
 for(const token of ['DashboardModuleSettingsUpdater','onChange(current=>moveDashboardModule','onChange(current=>({...current'])assert.ok(settings.includes(token),`Funktionale Sektionsänderung fehlt: ${token}`);
