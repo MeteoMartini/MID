@@ -15,7 +15,7 @@ const fixture=read(fixturePath),runner=read(browserPath),html=read(htmlPath);
 for(const token of ['MidMapLibre','ExtremeOutlookAreaOverlay','qa','officialWarning:false','__midPolygonQaReset','__midPolygonQaSetValid'])assert.ok(fixture.includes(token),'Real component fixture incomplete: '+token);
 assert.ok(html.includes('./extreme-outlook-qa.tsx'));
 for(const token of ['getwebgl','getContext(']){if(token==='getContext(')assert.ok(runner.includes(token))}
-for(const token of ['.screenshot(','.toString(','pixel','setLayoutProperty','extreme-outlook-native-fallback','__midPolygonQaReset','__midPolygonQaSetValid','colorScheme','sourceLoaded','WebGL','evidence.json'])assert.ok(runner.toLowerCase().includes(token.toLowerCase()),'Missing browser proof: '+token);
+for(const token of ['.screenshot(','.toString(','pixel','setLayoutProperty','extreme-outlook-native-fallback','__midPolygonQaReset','__midPolygonQaSetValid','colorScheme','sourceLoaded','WebGL','evidence.json',"sourceId:'extreme-outlook-contours-source'",'injectedMapLibreSourceErrorRecovered'])assert.ok(runner.toLowerCase().includes(token.toLowerCase()),'Missing browser proof: '+token);
 for(const width of [320,390,430,834,1024,1440])assert.ok(runner.includes('['+width+',')||runner.includes(','+width+','),'Uncovered viewport: '+width);
 const canonical=read('ci/github/workflows/chatgpt-pr-gate.yml'),mirror=read('.github/workflows/chatgpt-pr-gate.yml');
 assert.equal(canonical,mirror,'Canonical and active PR workflow mirrors diverged');

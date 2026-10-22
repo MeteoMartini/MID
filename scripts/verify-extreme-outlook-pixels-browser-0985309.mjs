@@ -53,6 +53,15 @@ try{
   assert.equal(state.overflow,false,'Horizontal overflow at '+width+'px '+theme);
   assert.equal(await page.locator('.extreme-map-layer-fallback-status').count(),0,'Native should initially be healthy');
   if([390,1024].includes(width))await page.screenshot({path:join(evidenceDir,'native-'+width+'-'+theme+'.png'),animations:'disabled',fullPage:true});
+  // Exercise the *actual* overlay source-error listener on the real MapLibre map.
+  // This is an injected source error, not an external Worker/CSP outage.
+  await page.evaluate(()=>window.__midPolygonQaMap.fire('error',{
+    sourceId:'extreme-outlook-contours-source',error:new Error('MID QA injected GeoJSON worker failure')
+  }));
+  await page.waitForFunction(()=>Boolean(document.querySelector('.extreme-map-layer-fallback-status')),null,{timeout:12000});
+  await page.waitForFunction(()=>Boolean(document.querySelector('canvas.extreme-outlook-native-fallback')),null,{timeout:12000});
+  await page.evaluate(()=>window.__midPolygonQaReset());
+  await page.waitForFunction(()=>window.__midPolygonQaMap?.getLayer('extreme-outlook-contours-fill')&&!document.querySelector('.extreme-map-layer-fallback-status'),null,{timeout:18000});
   const map=page.locator('.qa-map');
   const mask=await page.addStyleTag({content:'.extreme-map-label,.extreme-map-layer-fallback-status,canvas.extreme-outlook-native-fallback{visibility:hidden!important}'});
   const realPixels=await map.screenshot({animations:'disabled'});
@@ -84,7 +93,7 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('.extreme-map-label').length===0,null,{timeout:18000});
   assert.equal(await page.locator('.extreme-map-layer-fallback-status').count(),0,'Empty forecast must not synthesize hazards');
   assert.deepEqual(errors,[],'Unexpected browser error at '+width+'/'+theme);
-  report.cases.push({width,height,theme,nativeFeatures:state.n,nativeChangedPixels:changed,fallbackColoredPixels:fallback.colored,recovered:true,missingNoFakeHazards:true,overflow:false});
+  report.cases.push({width,height,theme,nativeFeatures:state.n,nativeChangedPixels:changed,fallbackColoredPixels:fallback.colored,injectedMapLibreSourceErrorRecovered:true,recovered:true,missingNoFakeHazards:true,overflow:false});
   console.log('MID visual QA passed '+width+'px '+theme+' / nativeDelta='+changed+' / fallbackPixels='+fallback.colored);
   await context.close();
  }
