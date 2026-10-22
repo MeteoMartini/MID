@@ -1160,3 +1160,5 @@ Native Quelle: https://github.com/jdemaeyer/brightsky/issues/144 und https://git
 ## Veröffentlichung
 
 Verbindlicher Pfad: **Source-PR-Gate → Auto-Merge → Release-ZIP → Installer → Stable-Promotion**. Der Stand darf erst nach grünem Gate und erfolgreicher Stable-Promotion als veröffentlicht gelten.
+
+- Renderprüfung von PR #442 um native Fill-Style-Sichtbarkeit (`layout.visibility`, numerisches `fill-opacity`) ergänzt. Der positive MapLibre-Query allein konnte bei unsichtbarem Fill eine falsche Gesundmeldung auslösen. Zusätzliche Vitest- und TSX-MapLibre-Mockfälle für `none`/`0`; unveränderte Feature-, GeoJSON-, Modell- und Source-PR-Gates. Sichtbare WebGL-Pixel und tatsächlicher Browser-/Recovery-Check weiterhin offene Release-Blocker.

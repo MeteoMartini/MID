@@ -38,6 +38,8 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
    if(!contours.length)return true;
    const polygonCount=geojson.features.filter(feature=>feature.geometry.coordinates.some(polygon=>polygon.some(ring=>ring.length>=4))).length;
    const hasFillLayer=Boolean(map.getLayer(LAYER_IDS[0]));
+   const fillOpacity=hasFillLayer?map.getPaintProperty(LAYER_IDS[0],'fill-opacity'):undefined;
+   const fillStyleVisible=hasFillLayer&&map.getLayoutProperty(LAYER_IDS[0],'visibility')!=='none'&&!(typeof fillOpacity==='number'&&fillOpacity<=0);
    const hasSource=Boolean(map.getSource(SOURCE_ID));
    const sourceLoaded=hasSource&&map.isSourceLoaded(SOURCE_ID);
    const mapCanvas=map.getCanvas();
@@ -46,7 +48,7 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
     return Number.isFinite(point.x)&&Number.isFinite(point.y)&&point.x>=0&&point.y>=0&&point.x<=mapCanvas.clientWidth&&point.y<=mapCanvas.clientHeight;
    });
    const renderedFeatureCount=hasFillLayer&&sourceLoaded&&labelInView?map.queryRenderedFeatures({layers:[LAYER_IDS[0]]}).length:0;
-   return !requiresExtremeOutlookCanvasFallback({contourCount:contours.length,polygonCount,hasFillLayer,hasSource,sourceLoaded,labelInView,renderedFeatureCount});
+   return !requiresExtremeOutlookCanvasFallback({contourCount:contours.length,polygonCount,hasFillLayer,fillStyleVisible,hasSource,sourceLoaded,labelInView,renderedFeatureCount});
   };
   const verify=()=>{
    if(!active)return;

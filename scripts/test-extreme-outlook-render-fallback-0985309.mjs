@@ -56,7 +56,7 @@ console.log('MID 0.9.85.309: native Gefahrenpolygonprüfung mit georeferenzierte
 const js=ts.transpileModule(overlay,{fileName:'ExtremeOutlookAreaOverlay.tsx',compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const sampleContours=[{intensity:2,color:'#ef8a24',opacity:.6,probability:70,rings:[[{lon:7,lat:51},{lon:8,lat:51},{lon:8,lat:50},{lon:7,lat:50}]]}];
 const sampleAreas=[{id:'region1',latitude:50.5,longitude:7.5,intensity:2,probability:70,region:'Messregion',signal:{hazard:'rain'}}];
-function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoaded=true,rendered=1,throwQuery=false}={}){
+function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoaded=true,rendered=1,throwQuery=false,fillOpacity=.45,fillVisibility='visible'}={}){
  let fallback=false,cleanup,firstRender=true,drawnContours,drawCalls=0;
  const changes=[],sources=new Map(),layers=new Map(),images=new Set(),events=new Map();
  const contourSet={contours,hatchContours:contours.filter(row=>row.probability<60),areas};
@@ -65,6 +65,8 @@ function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoa
   getSource:id=>sources.get(id),addSource:(id,data)=>sources.set(id,{setData(next){this.data=next},data}),
   removeSource:id=>sources.delete(id),
   getLayer:id=>layers.get(id),addLayer:layer=>layers.set(layer.id,layer),removeLayer:id=>layers.delete(id),
+  getPaintProperty:(_id,property)=>property==='fill-opacity'?fillOpacity:undefined,
+  getLayoutProperty:(_id,property)=>property==='visibility'?fillVisibility:undefined,
   isSourceLoaded:()=>sourceLoaded,
   getCanvas:()=>({clientWidth:390,clientHeight:500}),
   project:()=>({x:150,y:180}),
@@ -139,4 +141,16 @@ function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoa
  assert.equal(noHazards.fallback,false,'Keine modellierten Gefahren bedeuten keine erfundenen Ersatzpolygone.');
  assert.equal(noHazards.canvasNode(),undefined);
  noHazards.stop();
+}
+
+{
+ const transparent=executeOverlayCase({fillOpacity:0,rendered:2});
+ transparent.emit('idle');
+ assert.equal(transparent.fallback,true,'Vollständig transparente native Gefahrenflächen dürfen trotz Featureabfrage nicht als sichtbar gelten.');
+ assert.ok(transparent.canvasNode(),'Transparente native Flächen müssen auf den degradierten Zeichner wechseln.');
+ transparent.stop();
+ const hidden=executeOverlayCase({fillVisibility:'none',rendered:2});
+ hidden.emit('idle');
+ assert.equal(hidden.fallback,true,'Unsichtbare native Fill-Layer dürfen trotz Featureabfrage keine Entwarnung auslösen.');
+ hidden.stop();
 }
