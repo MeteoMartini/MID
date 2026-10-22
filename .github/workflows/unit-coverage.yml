@@ -48,3 +48,60 @@ jobs:
           path: coverage/
           if-no-files-found: warn
           retention-days: 14
+# Draft-only validation. It never changes a PR's readiness or triggers deployment.
+  # The MID Source-PR Gate/Release Bot remains the sole release authority.
+  draft-map-preflight:
+    name: ICON-D2 Python/ecCodes + Export/Typecheck (read-only)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.head_ref == 'chatgpt/v0.9.85.310-contour-fidelity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-genauen Draft-Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Python 3.12 mit ecCodes einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+
+      - name: DWD/ecCodes-GRIB- und Konturregressionen
+        shell: bash
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python -m eccodes selfcheck
+          python -m unittest discover -s tools/ruc -p 'test_native_map_products.py' -v
+
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: MID-Abhängigkeiten aus geprüftem Lockfile
+        shell: bash
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+
+      - name: Native Isolinien und SVG-/PNG-Export verifizieren
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          node scripts/test-adaptive-contours-0985238.mjs
+          node scripts/test-unified-map-lines-0985186.mjs
+          npm run verify:types
+
+      - name: Vite-Produktionsbuild ohne Deployment verifizieren
+        shell: bash
+        timeout-minutes: 6
+        run: npm run verify:vite
