@@ -80,6 +80,20 @@ jobs:
           python -m eccodes selfcheck
           python -m unittest discover -s tools/ruc -p 'test_native_map_products.py' -v
 
+      - name: Reale DWD ICON-D2 Druckfelder gegen Konturencode validieren
+        shell: bash
+        timeout-minutes: 7
+        run: python tools/ruc/verify_real_icon_d2_contours.py --output artifacts/real-dwd-contours.json
+
+      - name: Herkunft und Echtdatenkonturen als Evidenz sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-real-dwd-contours
+          path: artifacts/real-dwd-contours.json
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Node.js 22 einrichten
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
