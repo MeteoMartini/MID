@@ -13,8 +13,24 @@ export function unifiedWmsLineStyle(metadata:WeatherMapMetadata|null,level:numbe
   return !restricted||Number(restricted[1])===level;
  })?.name;
 }
+/** Reconnect consecutive two-point wire segments into the original line strips.
+ * Keeps all vertices/extrema without changing the published map-field schema.
+ * Closed loops remain independent so unrelated touching contours are not joined.
+ */
+export function joinNativeContourSegments(paths:number[][][]){
+ const strips:number[][][]=[];
+ for(const path of paths){
+  if(path.length<2)continue;
+  const tail=strips[strips.length-1],last=tail?.[tail.length-1];
+  if(last&&last[0]===path[0][0]&&last[1]===path[0][1]&&
+     !(tail.length>2&&tail[0][0]===last[0]&&tail[0][1]===last[1])){
+   for(let i=1;i<path.length;i++)tail.push(path[i]);
+  }else strips.push([...path]);
+ }
+ return strips;
+}
 export function nativeIsobarFeatures(contours:{level:number;spacingKm?:number;paths:number[][][]}[]){
- return {type:'FeatureCollection' as const,features:contours.flatMap(c=>c.paths.filter(path=>path.length>=2).map(path=>({
+ return {type:'FeatureCollection' as const,features:contours.flatMap(c=>joinNativeContourSegments(c.paths).map(path=>({
   type:'Feature' as const,properties:{level:c.level,...(c.spacingKm!==undefined?{spacingKm:c.spacingKm}:{}),label:`${Math.round(c.level)} hPa`},
   geometry:{type:'LineString' as const,coordinates:path.map(([lat,lon])=>[lon,lat])}
  })))};

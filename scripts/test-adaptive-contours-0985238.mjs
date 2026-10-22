@@ -24,5 +24,13 @@ try{
  const {nativeFieldSvg}=await import(pathToFileURL(join(dir,'export.mjs')));
  const field={kind:'pressure',unit:'hPa',run:'2026-10-11T00:00Z',time:'2026-10-11T01:00Z',scale:.1,lats:[47,55],lons:[5,16],values:[10000,10000,10000,10000],isobars:[{level:1012,paths:[[[48,6],[52,12]]]},{level:1016,paths:[[[49,6],[53,12]]]}]};
  const svg=nativeFieldSvg(field,'Bodendruck','',[],0);assert.equal((svg.match(/stroke-dasharray="3 2"/g)||[]).length,1,'Only sub-1013 pressure is dashed in export');
+ const segmented={...field,isobars:[{level:1012,paths:[[[48,6],[49,7]],[[49,7],[52,12]]]},{level:1016,paths:[[[49,6],[50,8]],[[50,8],[53,12]]]}]};
+ const before=JSON.stringify(segmented);
+ const joinedSvg=nativeFieldSvg(segmented,'Bodendruck','',[],0);
+ const svgContours=joinedSvg.match(/<g fill="none" stroke="#192c3f" stroke-width="1">([\s\S]*?)<\/g>/)?.[1]??'';
+ assert.equal((svgContours.match(/<path/g)||[]).length,2,'SVG export preserves exactly two connected original isolines, not four fragments');
+ assert.equal((svgContours.match(/ L/g)||[]).length,4,'SVG export retains each contour vertex and 2 joining points');
+ assert.equal((svgContours.match(/stroke-dasharray="3 2"/g)||[]).length,1,'Only the 1012 hPa SVG line remains dashed');
+ assert.equal(JSON.stringify(segmented),before,'SVG exporting cannot mutate verified contour geometry');
 }finally{rmSync(dir,{recursive:true,force:true})}
 console.log('Adaptive contour zoom boundaries, pressure threshold, composite exclusion and export passed.');
