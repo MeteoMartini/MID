@@ -1028,7 +1028,8 @@
     "scripts/test-p1-radolan-extremes-0985307.mjs",
     "scripts/test-p1-ensemble-extremes-0985307.mjs",
     "scripts/test-p1-reference-provenance-0985307.mjs",
-    "scripts/test-extreme-outlook-render-fallback-0985309.mjs"
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2046,7 +2047,8 @@
     "scripts/test-p1-radolan-extremes-0985307.mjs",
     "scripts/test-p1-ensemble-extremes-0985307.mjs",
     "scripts/test-p1-reference-provenance-0985307.mjs",
-    "scripts/test-extreme-outlook-render-fallback-0985309.mjs"
+    "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs"
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
@@ -2958,7 +2960,13 @@
     "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
     "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md",
     "src/extremeOutlookRenderHealth.ts",
-    "tests/unit/extreme-outlook-render-health.test.ts"
+    "tests/unit/extreme-outlook-render-health.test.ts",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs",
+    "scripts/verify-extreme-outlook-pixels-browser-0985309.mjs",
+    "tests/visual/extreme-outlook-qa.tsx",
+    "tests/visual/extreme-outlook-qa.html",
+    "ci/github/workflows/chatgpt-pr-gate.yml",
+    ".github/workflows/chatgpt-pr-gate.yml"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3317,7 +3325,13 @@
     "worker-src/05-knmi-eps-cache.js",
     "scripts/test-extreme-outlook-render-fallback-0985309.mjs",
     "src/extremeOutlookRenderHealth.ts",
-    "tests/unit/extreme-outlook-render-health.test.ts"
+    "tests/unit/extreme-outlook-render-health.test.ts",
+    "scripts/test-extreme-outlook-browser-contract-0985309.mjs",
+    "scripts/verify-extreme-outlook-pixels-browser-0985309.mjs",
+    "tests/visual/extreme-outlook-qa.tsx",
+    "tests/visual/extreme-outlook-qa.html",
+    "ci/github/workflows/chatgpt-pr-gate.yml",
+    ".github/workflows/chatgpt-pr-gate.yml"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -3676,7 +3690,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
   "version": "0.9.85.309",
-  "updatedAt": "2026-10-18T10:18:23.697Z",
+  "updatedAt": "2026-10-22",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
     "docs/implementation/MID_C33_RUC_SNAPSHOT_GUARD_0.9.85.269.md",
