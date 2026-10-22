@@ -57,7 +57,7 @@ const js=ts.transpileModule(overlay,{fileName:'ExtremeOutlookAreaOverlay.tsx',co
 const sampleContours=[{intensity:2,color:'#ef8a24',opacity:.6,probability:70,rings:[[{lon:7,lat:51},{lon:8,lat:51},{lon:8,lat:50},{lon:7,lat:50}]]}];
 const sampleAreas=[{id:'region1',latitude:50.5,longitude:7.5,intensity:2,probability:70,region:'Messregion',signal:{hazard:'rain'}}];
 function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoaded=true,rendered=1,throwQuery=false,fillOpacity=.45,fillVisibility='visible'}={}){
- let fallback=false,cleanup,firstRender=true,drawnContours,drawCalls=0;
+ let fallback=false,cleanup,firstRender=true,drawnContours,drawCalls=0,loaded=sourceLoaded;
  const changes=[],sources=new Map(),layers=new Map(),images=new Set(),events=new Map();
  const contourSet={contours,hatchContours:contours.filter(row=>row.probability<60),areas};
  const map={
@@ -67,7 +67,7 @@ function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoa
   getLayer:id=>layers.get(id),addLayer:layer=>layers.set(layer.id,layer),removeLayer:id=>layers.delete(id),
   getPaintProperty:(_id,property)=>property==='fill-opacity'?fillOpacity:undefined,
   getLayoutProperty:(_id,property)=>property==='visibility'?fillVisibility:undefined,
-  isSourceLoaded:()=>sourceLoaded,
+  isSourceLoaded:()=>loaded,
   getCanvas:()=>({clientWidth:390,clientHeight:500}),
   project:()=>({x:150,y:180}),
   queryRenderedFeatures(){if(throwQuery)throw new Error('query failed');return Array.from({length:rendered},()=>({properties:{}}))},
@@ -99,7 +99,7 @@ function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoa
  const emit=(event,payload={})=>{for(const callback of events.get(event)||[])callback(payload)};
  const canvasNode=()=>{const tree=Component(props);return [tree.props.children].flat().find(node=>node&&node.type===CanvasOverlay)};
  const stop=()=>{cleanup?.();return [...events.values()].reduce((count,set)=>count+set.size,0)};
- return{emit,canvasNode,stop,map,layers,sources,changes,get fallback(){return fallback},get renderedContours(){return drawnContours},get draws(){return drawCalls}};
+ return{emit,canvasNode,stop,map,layers,sources,changes,setSourceLoaded:value=>{loaded=value},get fallback(){return fallback},get renderedContours(){return drawnContours},get draws(){return drawCalls}};
 }
 {
  const ok=executeOverlayCase();
@@ -113,7 +113,13 @@ function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoa
  substitute.props.render(ok.map,{});
  assert.strictEqual(ok.renderedContours,sampleContours,'Derselbe ungekürzte Gefahrenkontur-Array muss im Fallback ankommen.');
  ok.emit('idle');
- assert.equal(ok.fallback,false,'Nativer Renderer muss nach nachweislicher Wiederherstellung wieder bevorzugt werden.');
+ assert.equal(ok.fallback,true,'Idle mit alten Quellfeatures darf nach Workerfehler nicht als Recovery gelten.');
+ ok.setSourceLoaded(false);
+ ok.emit('sourcedata',{sourceId:'extreme-outlook-contours-source'});
+ assert.equal(ok.fallback,true,'Entladener Source ist noch nicht wiederhergestellt.');
+ ok.setSourceLoaded(true);
+ ok.emit('sourcedata',{sourceId:'extreme-outlook-contours-source'});
+ assert.equal(ok.fallback,false,'Nur beobachtete Neu-Ladung darf nativen Renderer reaktivieren.');
  assert.equal(ok.stop(),0,'Alle Kartenlistener bei Unmount entfernen.');
 }
 {

@@ -29,10 +29,14 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
  useEffect(()=>{
   if(!map)return;
   let active=true;
+  // A GeoJSON fault must not be cleared by idle events with stale source data.
+  let sourceFaulted=false,sourceReloadObserved=false;
   let watchdog:ReturnType<typeof setTimeout>|undefined;
   const errorHandler=(event:{sourceId?:string;error?:{message?:string}})=>{
    const message=String(event.error?.message??'');
-   if(event.sourceId===SOURCE_ID||event.sourceId===HATCH_SOURCE_ID||/geojson.{0,60}worker|worker.{0,60}geojson/i.test(message))setFallback(true);
+   if(event.sourceId===SOURCE_ID||event.sourceId===HATCH_SOURCE_ID||/geojson.{0,60}worker|worker.{0,60}geojson/i.test(message)){
+    sourceFaulted=true;sourceReloadObserved=false;setFallback(contours.length>0);
+   }
   };
   const nativeVisible=()=>{
    if(!contours.length)return true;
@@ -52,10 +56,19 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
   };
   const verify=()=>{
    if(!active)return;
+   if(sourceFaulted){setFallback(contours.length>0);return}
    try{setFallback(!nativeVisible())}catch{setFallback(contours.length>0)}
+  };
+  const sourceHandler=(event:{sourceId?:string})=>{
+   if(!active||!sourceFaulted||event.sourceId!==SOURCE_ID)return;
+   try{
+    if(!map.isSourceLoaded(SOURCE_ID)){sourceReloadObserved=true;return}
+    if(sourceReloadObserved){sourceFaulted=false;sourceReloadObserved=false;verify()}
+   }catch{setFallback(contours.length>0)}
   };
   map.on('error',errorHandler);
   map.on('idle',verify);
+  map.on('sourcedata',sourceHandler);
   try{
    if(!map.hasImage(HATCH_IMAGE_ID))map.addImage(HATCH_IMAGE_ID,hatchImage(),{pixelRatio:1});
    if(map.getSource(SOURCE_ID))(map.getSource(SOURCE_ID) as any).setData(geojson);else map.addSource(SOURCE_ID,{type:'geojson',data:geojson});
@@ -77,6 +90,7 @@ function ExtremeOutlookAreaOverlay({data,periodId,hazard}:{data:ExtremeWeatherOu
    if(watchdog!==undefined)clearTimeout(watchdog);
    map.off('idle',verify);
    map.off('error',errorHandler);
+   map.off('sourcedata',sourceHandler);
    try{
     for(const id of [...LAYER_IDS].reverse()){unregisterMapLayerOrder(map,id);if(map.getLayer(id))map.removeLayer(id)}
     if(map.getSource(HATCH_SOURCE_ID))map.removeSource(HATCH_SOURCE_ID);
