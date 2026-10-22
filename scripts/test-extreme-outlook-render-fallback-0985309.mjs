@@ -15,7 +15,8 @@ const renderHealthJs=ts.transpileModule(renderHealth,{fileName:'extremeOutlookRe
 const healthModule={exports:{}};
 new Function('module','exports',renderHealthJs)(healthModule,healthModule.exports);
 const path='scripts/test-extreme-outlook-render-fallback-0985309.mjs';
-assert.equal(pkg.version,'0.9.85.309');
+assert.match(pkg.version,/^\d+\.\d+\.\d+\.\d+$/);
+assert.ok(pkg.version.split('.').reduce((comparison,part,index)=>comparison||Number(part)-[0,9,85,309][index],0)>=0,'Der .309-Vertrag gilt auch für nachfolgende Releases.');
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(baseline.version,pkg.version);
 assert.equal(pkg.scripts['test:extreme-outlook-render-fallback'],'node '+path);

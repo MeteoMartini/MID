@@ -1,3 +1,10 @@
+## MID v0.9.85.311 · 2026-10-22 · Gepaarte Prognoseverifikation
+
+- Basis main=mid-stable 8e829d2e1d474f4beb10937194773d65e12c69fe (.309). Parallel-PR #443 reserviert .310 und bleibt unberührt.
+- Reproduzierter Fehler: asymmetrisch fehlende optionale Parameter erzeugen bei identischen gemeinsamen Fehlern einen scheinbaren MID-Vorteil. Report verglich außerdem Gesamtarchive mit unterschiedlicher Falldeckung.
+- Gemeinsame Parametermaske pro archiviertem Stand, Tagesmittel vor Gesamtmittel, identische Fallmenge für Anzeige, adaptive Obergrenze und Aktivierungsentscheidung. Keine neue Kalibrierung und keine rückwirkende Änderung gespeicherter Prognosen.
+- Neuer dynamischer Pflicht-Test test-paired-verification-0985311.mjs; Altcode rot, Korrektur grün. Release erst nach vollständigen Source-/Installer-/Pages-/Stable-Gates.
+
 ## MID v0.9.85.309 · 2026-10-21 · Extremwetter-Polygon-Ersatzmodus (Source-Kandidat)
 
 - Reproduzierter P1-GeoJSON-Geometriefehler: fünf verschachtelte Originalringe ergaben vier statt drei MultiPolygon-Teile (Insel doppelt), sechs Ringe vier statt drei. Der neue ausschließlich direkte Hole→Island-Rekursionspfad erhält jeden Ring exakt einmal und normalisiert Außen- und Lochorientierung. Bestehende Pflichtregression test-extreme-outlook-geodata-096614 wurde um Ringtiefen 1–6, Multipolygonanzahl, Duplikatfreiheit, Ringanzahl und Winding erweitert. Kein Schluss auf WebGL-Pixel, Live-Ursache oder amtliche Warnungen.
