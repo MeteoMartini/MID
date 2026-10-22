@@ -10,6 +10,10 @@ const styles=read('src/styles-src/25-extreme-outlook.css');
 const pkg=JSON.parse(read('package.json'));
 const baseline=JSON.parse(read('MID_BASELINE.json'));
 const worker=read('worker-src/00-core-observations.js');
+const renderHealth=read('src/extremeOutlookRenderHealth.ts');
+const renderHealthJs=ts.transpileModule(renderHealth,{fileName:'extremeOutlookRenderHealth.ts',compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const healthModule={exports:{}};
+new Function('module','exports',renderHealthJs)(healthModule,healthModule.exports);
 const path='scripts/test-extreme-outlook-render-fallback-0985309.mjs';
 assert.equal(pkg.version,'0.9.85.309');
 assert.equal(baseline.releaseVersion,pkg.version);
@@ -46,8 +50,10 @@ assert.ok(overlay.includes("type:'fill'")&&overlay.includes("type:'line'")&&over
 assert.ok(core.includes('maplibregl.setWorkerUrl(maplibreWorkerUrl)'),'Original-MapLibre-Worker darf nicht weggelassen werden');
 assert.ok(canvas.includes("context.fill('evenodd')")&&canvas.includes("context.clip('evenodd')"),
  'Fallback muss Löcher, Inseln und Schraffur erhalten');
-assert.ok(styles.includes('.extreme-map-layer-fallback-status')&&styles.includes('pointer-events:none'),
- 'Degradationshinweis darf Karteninteraktion nicht überdecken');
+assert.ok(overlay.includes('className="extreme-map-layer-fallback-status"')&&overlay.includes("pointerEvents:'none'")&&overlay.includes("zIndex:39")&&overlay.includes("role=\"status\""),
+ 'Degradationshinweis muss im React-Renderpfad sichtbare, nichtinteraktive Barrierefreiheitswerte besitzen');
+assert.ok(!styles.includes('.extreme-map-layer-fallback-status{'),
+ 'Fallback-Stil darf die historisch gepinnte CSS-Kaskade und das Haupt-CSS-Budget nicht verändern');
 console.log('MID 0.9.85.309: native Gefahrenpolygonprüfung mit georeferenziertem, deutlich deklariertem Canvas-Notfallmodus geprüft (Quell-/Konturvertrag, keine Browser-Pixelabnahme).');
 
 
@@ -86,6 +92,7 @@ function executeOverlayCase({contours=sampleContours,areas=sampleAreas,sourceLoa
   react:hooks,'react/jsx-runtime':{jsx,jsxs:jsx,Fragment:'fragment'},
   './MapLibreCore':{CanvasOverlay,HtmlMarker,useMidMap:()=>map,registerMapLayerOrder(){},unregisterMapLayerOrder(){}},
   './extremeOutlookAreaCanvas':{drawExtremeOutlookContours:(_map,_canvas,values)=>{drawnContours=values;drawCalls++}},
+  './extremeOutlookRenderHealth':healthModule.exports,
   './extremeOutlookAreaGeoJson':{buildExtremeOutlookContourGeoJson:values=>({type:'FeatureCollection',features:values.map(row=>({type:'Feature',geometry:{type:'MultiPolygon',coordinates:row.rings.length?[[row.rings.map(ring=>ring.map(point=>[point.lon,point.lat]))[0]]]:[]}}))})},
   './extremeOutlookModelledAreas':{buildExtremeOutlookContourSet:()=>contourSet},
   './extremeWeatherOutlook':{EXTREME_HAZARDS:[],EXTREME_INTENSITY_COLORS:{1:'#fff',2:'#ef8a24',3:'#d9363e',4:'#8f174f'}}
