@@ -8,7 +8,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import numpy as np
-from audit_model_domain_coverage import inspect, PARAMS, FACTORS, NODATA
+from audit_model_domain_coverage import inspect, PARAMS, FACTORS
 
 RUN = datetime(2026, 10, 22, 18, tzinfo=timezone.utc)
 
@@ -21,10 +21,6 @@ def write_blob(path, raw):
 def fixture(root, *, cropped=False, tamper=False, missing_outer=False, missing_inner=False):
     src = root/'source'; maps = root/'maps'; src.mkdir(); maps.mkdir()
     lookup = np.arange(25, dtype='<u4').reshape(5, 5)
-    if missing_outer:
-        # Valid lookup geometry, but the native parameter source is missing at
-        # the outer ring. Do not claim these sites have a real forecast.
-        pass
     specs = [{'name': name, 'scale': .1, 'offset': 0} for name in PARAMS.values()]
     cube = np.full((25, 2, len(specs)), 100, dtype='<i2')
     if missing_outer:
@@ -33,12 +29,15 @@ def fixture(root, *, cropped=False, tamper=False, missing_outer=False, missing_i
     if missing_inner:
         cube[12, :, :] = -32768
     cube[6, 0, :] = 0  # A real zero must not turn into missing data.
+    # RUC native source uses provider-bound naive UTC; map index uses UTC offset.
     run = RUN.isoformat()
+    source_run = RUN.strftime('%Y-%m-%dT%H:%M')
     times = [(RUN+timedelta(hours=h)).isoformat() for h in (0, 1)]
-    meta = {'schema':'mid.dwd.ruc.grid.v2','run':run,'pointCount':25,
+    source_times = [(RUN+timedelta(hours=h)).strftime('%Y-%m-%dT%H:%M') for h in (0, 1)]
+    meta = {'schema':'mid.dwd.ruc.grid.v2','run':source_run,'pointCount':25,
             'lookup':{'grid':{'nx':5,'ny':5,'lonMin':0,'latMin':40,'dx':1,'dy':1}},
             'deterministic':{'dtype':'int16-le','layout':'point-time-field',
-                             'times':times,'fields':specs},'objects':{}}
+                             'times':source_times,'fields':specs},'objects':{}}
     meta['objects']['lookup.bin'] = write_blob(src/'lookup.bin', lookup.tobytes())
     meta['objects']['deterministic.bin'] = write_blob(src/'deterministic.bin', cube.tobytes())
     manifest = (json.dumps(meta, separators=(',', ':'))+'\n').encode()
