@@ -165,3 +165,48 @@ jobs:
             /tmp/mid-unified-map-390.png
           if-no-files-found: error
           retention-days: 7
+# Draft-only release-core rehearsal. No privileged workflow_run, no deployment,
+  # and no relaxation of the authoritative non-draft source/release gates.
+  draft-source-preflight:
+    name: Draft Source-Core / Dependency / iOS Shell regression (read-only)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.head_ref == 'chatgpt/v0.9.85.310-contour-fidelity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-genauen PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Node.js 22 und Lockfile-Cache
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Abhängigkeiten reproduzierbar installieren
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Abhängigkeiten und npm-Sicherheitsverträge prüfen
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          npm run audit:dependencies
+          npm run audit:all
+      - name: Originalen MID Source-Produktionsbuild prüfen
+        timeout-minutes: 7
+        run: npm run build
+      - name: Vollständigen Core-Regression-Shard ausführen
+        timeout-minutes: 16
+        env:
+          MID_REGRESSION_SHARD: core
+        run: npm run test:regressions
+      - name: iOS-Hülle und Offline-Wiederaufnahme als synthetische Shelltests prüfen
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          node --check worker/metar-proxy.js
+          node scripts/test-cross-platform-ios-shell-09670.mjs
+          node scripts/test-runtime-lifecycle-offline-resume-09701.mjs
