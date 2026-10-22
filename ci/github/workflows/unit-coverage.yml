@@ -105,3 +105,44 @@ jobs:
         shell: bash
         timeout-minutes: 6
         run: npm run verify:vite
+# Uses the already established read-only MapLibre browser fixture and genuine
+  # Chromium WebGL. This is not the polygon worker-recovery acceptance (#442).
+  draft-map-browser:
+    name: Draft MapLibre/WebGL responsive smoke (read-only)
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == true &&
+      github.head_ref == 'chatgpt/v0.9.85.310-contour-fidelity'
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    permissions:
+      contents: read
+    env:
+      MID_MAP_QA_SHARD: '2/3'
+    steps:
+      - name: SHA-genauen Draft-Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Node.js 22 einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Paketstand reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Native/Unified Model Map in echtem Chromium prüfen
+        shell: bash
+        timeout-minutes: 19
+        run: node scripts/verify-unified-map-browser-0985167.mjs
+      - name: Browser- und Speicherevidenz sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-c46-draft-map-browser
+          path: |
+            /tmp/mid-map-runtime-baseline-2_3.json
+            /tmp/mid-unified-map-390.png
+          if-no-files-found: warn
+          retention-days: 7
