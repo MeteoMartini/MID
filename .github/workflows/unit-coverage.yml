@@ -198,6 +198,18 @@ jobs:
       - name: Originalen MID Source-Produktionsbuild prüfen
         timeout-minutes: 7
         run: npm run build
+      - name: Python 3.12 für vollständige RUC-Kernregression einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+
+      - name: RUC-Python-Regressionen vorbereiten
+        timeout-minutes: 5
+        shell: bash
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+
       - name: Vollständigen Core-Regression-Shard ausführen
         timeout-minutes: 16
         env:
