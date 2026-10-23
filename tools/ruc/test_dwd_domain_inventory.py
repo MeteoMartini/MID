@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pilot_dwd_domain_inventory import field_statistics,validate_collection
+from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding
 
 class DomainInventoryTests(unittest.TestCase):
  def test_valid_zero_and_missing_preserved(self):
@@ -40,6 +40,16 @@ class DomainInventoryTests(unittest.TestCase):
   b=[{'model':'icon-d2','parameter':'t_2m','run':str(i),'leadHours':1} for i in (1,2,3)]
   with self.assertRaisesRegex(ValueError,'Mixed model cycles'):
    validate_collection(a+b,parameters={'icon-d2':['pmsl','t_2m']},leads={'icon-d2/pmsl':[1],'icon-d2/t_2m':[1]})
+ def test_no_bitmap_cannot_hide_nan(self):
+  with self.assertRaisesRegex(ValueError,'Unmasked'):
+   assert_bitmap_decoding([0,np.nan],0)
+ def test_bitmap_validates_explicit_missing(self):
+  assert_bitmap_decoding([0,np.nan,2],1,[1,0,1])
+  with self.assertRaisesRegex(ValueError,'differ'):
+   assert_bitmap_decoding([0,0,2],1,[1,0,1])
+ def test_bad_bitmap_shapes_fails(self):
+  with self.assertRaisesRegex(ValueError,'Section-6'):
+   assert_bitmap_decoding([0,2],1,[1,0,1])
  def test_all_scope_must_be_present(self):
   a=[{'model':'icon-d2','parameter':'pmsl','run':str(i),'leadHours':1} for i in range(3)]
   with self.assertRaisesRegex(ValueError,'Insufficient'):
