@@ -53,10 +53,19 @@ def assert_bitmap_decoding(values,bitmap_present,bits=None):
     else:raise ValueError('Unsupported GRIB Section-6 bitmap indicator')
 
 
+def assert_grib_identity(actual,record,step_type):
+    expected=record.get('wmoParameter')
+    if (not isinstance(expected,list) or len(expected)!=3 or
+            any(type(v) is not int or not 0<=v<=255 for v in expected)):
+        raise ValueError('Missing pinned WMO parameter identity')
+    if list(actual)!=expected or step_type!=record.get('stepType'):
+        raise ValueError('GRIB parameter or statistical processing identity drift')
+
+
 def inventory_record(record,root):
     from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_get_long,codes_release,codes_set
     from grib_bitmap import decode_bitmap_values
-    required={'path','sha256','model','parameter','run','leadHours'}
+    required={'path','sha256','model','parameter','run','leadHours','wmoParameter','stepType'}
     if not isinstance(record,dict) or not required <= record.keys():raise ValueError('Incomplete record identity')
     if record['model'] not in MODELS or not re.fullmatch('[a-z0-9_]+',record['parameter']):
         raise ValueError('Unrecognized model or parameter')
@@ -100,6 +109,7 @@ def inventory_record(record,root):
             stats=field_statistics(lat,lon,values,grid_type,bitmap_present=bitmap,number_of_points=points)
             stats['parameterIdentity']=[int(codes_get_long(gid,k)) for k in ('discipline','parameterCategory','parameterNumber')]
             stats['stepType']=str(codes_get(gid,'stepType'))
+            assert_grib_identity(stats['parameterIdentity'],record,stats['stepType'])
             next_gid=codes_grib_new_from_file(stream)
             if next_gid is not None:
                 codes_release(next_gid)
