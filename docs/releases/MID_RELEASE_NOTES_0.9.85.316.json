@@ -1,0 +1,16 @@
+{
+ "version":"0.9.85.316",
+ "date":"2026-10-23",
+ "title":"Parameterlinien, Rasterextreme und runde Windskalen",
+ "external":[
+  "Native Modellkarten zeigen auf Wunsch beschriftete Isothermen, Wind-/Böen-, Bewölkungs- und Niederschlagslinien aus dem gewählten Raster.",
+  "Min-/Max-Markierungen und Zahlenübersicht zeigen die tatsächlichen Extremwerte des verfügbaren Rasters einschließlich Randzellen. Fehlende Daten bleiben ausgespart.",
+  "Die 24-h-Übersicht erhält runde Windteilstriche in der gewählten Einheit. Karte und PNG-/SVG-Export übernehmen dieselben Linien und Extremwerte."
+ ],
+ "internal":[
+  "Verifizierte Basis main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6 / 0.9.85.314. PR449 reserviert .315 für unabhängige DWD-Geometrieinventur; keine Duplikation oder Aktivierung dieses WIP.",
+  "Stückweise lineare Konturen auf jedem gültigen Rasterquad, deterministische Dreiecksteilung, keine räumliche Ausdünnung oder Glättung; fehlende Ecke sperrt den Quad. Wettercodes sind keine skalare Größe. Originalwerte bleiben unverändert.",
+  "Gemeinsame nativeScalarAnnotations für UnifiedWeatherMap, NativeModelMap und native PNG/SVG; bestehende adaptive MSLP-Isobaren und T/H-Konvention bleiben erhalten. Min/Max beziehen sich ausdrücklich auf das veröffentlichte Raster, nicht auf volle native DWD-Gebietsabdeckung.",
+  "niceWindRange wählt 1/2/5-Teilstriche nach Anzeigeumrechnung; Koordinaten und Spitzen bleiben kanonisch in Knoten. Pflichtregression test-map-scalar-annotations-0985316.mjs."
+ ]
+}

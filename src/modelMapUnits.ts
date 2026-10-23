@@ -1,5 +1,5 @@
 import {wind,type WindUnit} from './weather';
-import {formatDecimal} from './format';
+import {formatWeatherValue} from './weatherValueFormat';
 import {compactPrecipitationAmount} from './forecastAmountFormat';
 import type {NativeFieldKind} from './nativeModelFields';
 // Same physical conversions as canonical wind(), before display rounding.
@@ -17,5 +17,5 @@ export function modelMapValue(kind:NativeFieldKind,value:number|null,rawUnit:str
   const text=wind(value/1.852,unit),suffix=modelMapUnit(kind,rawUnit,unit);
   return text.slice(0,-suffix.length).trim();
  }
- return kind==='precipitation'?compactPrecipitationAmount(value):kind==='sigwx'?String(Math.round(value)):formatDecimal(value,1);
+ return kind==='precipitation'?compactPrecipitationAmount(value):kind==='sigwx'?String(Math.round(value)):formatWeatherValue(value,kind==='cloud'?'percent':kind==='pressure'?'pressure':'temperature');
 }

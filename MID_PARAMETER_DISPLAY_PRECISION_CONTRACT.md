@@ -29,6 +29,7 @@ Primary references checked 2026-10-12:
 | Snowfall accumulation/rate | at most 0.1 cm below 10; whole above | MID snowfall distinction, not snow depth |
 | Visibility | <100 m: `<100 m`; below 1 km: 100 m steps; to 5 km: 0.1 km; above 5 to 30 km: whole km; above 30 to 70 km: 5 km; >70: `>70 km` | FM12 table 4377; lower step at boundaries |
 | Humidity, cloud percentage, rain probability | whole %; cloud oktas remain discrete | DWD humidity resolution; MID probability/cloud rule |
+| Native map scalar contours and raster Min/Max | same parameter resolution above via shared modelMapValue/weatherValueFormat; labels include selected unit; values and extrema are computed before rounding | derived contours and extrema of the available published raster; no full-domain or time-window-extreme claim |
 | Cloud base, freezing/snowfall level, elevation | whole displayed m/ft/hft maximum precision; model-level approximation remains labeled | MID rule; no invented FM12 precision |
 | CAPE/CIN, radiation | whole J/kg or W/m² | MID rule |
 | UV index | whole, nonnegative | established MID UVI convention |

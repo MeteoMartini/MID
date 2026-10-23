@@ -1,3 +1,10 @@
+## MID v0.9.85.316 · 2026-10-23 · Parameterlinien, Rasterextreme und runde Windskalen
+
+- Verifizierte Basis main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6 / 0.9.85.314. PR449 reserviert .315 für unabhängige DWD-Geometrieinventur; keine Duplikation oder Aktivierung dieses WIP.
+- Stückweise lineare Konturen auf jedem gültigen Rasterquad, deterministische Dreiecksteilung, keine räumliche Ausdünnung oder Glättung; fehlende Ecke sperrt den Quad. Wettercodes sind keine skalare Größe. Originalwerte bleiben unverändert.
+- Gemeinsame nativeScalarAnnotations für UnifiedWeatherMap, NativeModelMap und native PNG/SVG; bestehende adaptive MSLP-Isobaren und T/H-Konvention bleiben erhalten. Min/Max beziehen sich ausdrücklich auf das veröffentlichte Raster, nicht auf volle native DWD-Gebietsabdeckung.
+- niceWindRange wählt 1/2/5-Teilstriche nach Anzeigeumrechnung; Koordinaten und Spitzen bleiben kanonisch in Knoten. Pflichtregression test-map-scalar-annotations-0985316.mjs.
+
 ## MID v0.9.85.314 · 2026-10-23 · Konsolidierte Konturen und strenger Domänenauditor
 
 - Nutzerfreigabe: geprüfte Konturen-/Exportkorrekturen #445 und ausschließlich lesender Auditor #447 gemeinsam veröffentlichen; Vollgebiet #446 bleibt ausdrücklich separat offen.
