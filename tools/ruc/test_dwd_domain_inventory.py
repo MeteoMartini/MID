@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding
+from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding,assert_grib_identity
 
 class DomainInventoryTests(unittest.TestCase):
  def test_valid_zero_and_missing_preserved(self):
@@ -50,6 +50,13 @@ class DomainInventoryTests(unittest.TestCase):
  def test_bad_bitmap_shapes_fails(self):
   with self.assertRaisesRegex(ValueError,'Section-6'):
    assert_bitmap_decoding([0,2],1,[1,0,1])
+ def test_wmo_identity_must_match_original(self):
+  assert_grib_identity([0,3,1],{'wmoParameter':[0,3,1],'stepType':'instant'},'instant')
+  with self.assertRaisesRegex(ValueError,'identity drift'):
+   assert_grib_identity([0,3,1],{'wmoParameter':[0,3,1],'stepType':'accum'},'instant')
+ def test_missing_wmo_identity_fails(self):
+  with self.assertRaisesRegex(ValueError,'pinned WMO'):
+   assert_grib_identity([0,3,1],{'stepType':'instant'},'instant')
  def test_all_scope_must_be_present(self):
   a=[{'model':'icon-d2','parameter':'pmsl','run':str(i),'leadHours':1} for i in range(3)]
   with self.assertRaisesRegex(ValueError,'Insufficient'):
