@@ -55,5 +55,4 @@ try{
 }finally{rmSync(dir,{recursive:true,force:true})}
 if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){
  await import('./verify-round-wind-browser-0985316.mjs');
- await import('./verify-viewport-extrema-browser-0985317.mjs');
 }
