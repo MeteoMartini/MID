@@ -2,7 +2,7 @@
 
 ## Verifizierte Basis / Abgrenzung
 
-Ausgangsbasis `main=mid-stable=1eca0e0de84abda59d693f6ce69592f3709c7536`, `v0.9.85.316` (23.10.2026). Schutzregeln und offene PRs geprüft; PR #449 (DWD-Originaldaten), #433 (ECMWF) und #425 (RUC-Canary) bleiben unabhängig. Branch `chatgpt/v0.9.85.317-viewport-extrema` ist **nur ein Integrationsentwurf**; es erfolgte keine Änderung an Versionsspiegeln, Worker/Pages, Quellen, Pipelines, WMO-Codes oder Stable. Vollständiges DWD-Modellgebiet bleibt P1 in #446 offen.
+Ausgangsbasis `main=mid-stable=1eca0e0de84abda59d693f6ce69592f3709c7536`, `v0.9.85.316` (23.10.2026). Schutzregeln und offene PRs geprüft; PR #449 (DWD-Originaldaten), #433 (ECMWF) und #425 (RUC-Canary) bleiben unabhängig. Branch `chatgpt/v0.9.85.317-viewport-extrema` ist **nur ein Integrationsentwurf**; die Versions-/Changelog-Spiegel einschließlich Worker- und PWA-Versionskonstanten sowie iOS-Buildnummer wurden wie im kanonischen sync-version-Vertrag auf den noch NICHT veröffentlichten Kandidaten .317 synchronisiert. Meteorologische Workerlogik, Quellen, Datenpipelines, WMO-Codes, Produktionsdeployments und Stable blieben unverändert. Vollständiges DWD-Modellgebiet bleibt P1 in #446 offen.
 
 ## Nutzervertrag / Kachelmannwetter als funktionale Referenz
 
@@ -21,6 +21,6 @@ Das bereitgestellte Referenzbild zeigt dezente weiße Zahlen auf dem eingefärbt
 
 `scripts/test-map-scalar-annotations-0985316.mjs` erweitert die vorhandene Regression für Teilbereiche, verschobene/leer sichtbare Ausschnitte, echte Null/NoData, konstante Felder, fehlende Randwerte, datumsgrenzübergreifende Kartenausschnitte, unveränderte Eingabe, SVG-Zahl ohne sichtbares Prefix und deaktivierte Annotationen. Bisherige Isolinien-, Wind-/Einheiten- und Warnlinienprüfungen bleiben unverändert. Hier **kein** vollständiger npm-/TypeScript-/Build-/Browser-/Device-/Source-/Heavy-Nachweis; die neue PR bleibt deshalb bis zur belegten CI-/QA-Abnahme Draft.
 
-Offen für Release: exakt gebundener Build `v0.9.85.317` mit sämtlichen Versionsspiegeln und ChangeLogs, vollständige bestehende Regressionen, echte Browser-Viewport- und Touch-/A11y-Prüfung (320/390/430/768/1024/1440px, Light/Dark, Quer/Hoch), Paketbudget und Security, regulärer Source-PR-Gate → SHA-MID-Bot → Server-ZIP → `install-mid.yml` → Worker/Pages → Stable-Promotion. Nicht freigegebene Arbeiten/Branches bewahren, keine GitHub-Schutzregeln umgehen.
+Offen für Release: vollständige bestehende Regressionen und verifizierter Build für den vorbereiteten synchronisierten `v0.9.85.317`-Kandidaten, echte Browser-Viewport- und Touch-/A11y-Prüfung (320/390/430/768/1024/1440px, Light/Dark, Quer/Hoch), Paketbudget und Security, regulärer Source-PR-Gate → SHA-MID-Bot → Server-ZIP → `install-mid.yml` → Worker/Pages → Stable-Promotion. Nicht freigegebene Arbeiten/Branches bewahren, keine GitHub-Schutzregeln umgehen.
 
 Referenzen: https://kachelmannwetter.com/de/modellkarten/rapid-id2/signifikantes-wetter.html ; MapLibre event/getBounds/getCanvas-Dokumentation via Context7.
