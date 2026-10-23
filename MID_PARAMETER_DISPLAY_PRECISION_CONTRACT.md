@@ -29,7 +29,9 @@ Primary references checked 2026-10-12:
 | Snowfall accumulation/rate | at most 0.1 cm below 10; whole above | MID snowfall distinction, not snow depth |
 | Visibility | <100 m: `<100 m`; below 1 km: 100 m steps; to 5 km: 0.1 km; above 5 to 30 km: whole km; above 30 to 70 km: 5 km; >70: `>70 km` | FM12 table 4377; lower step at boundaries |
 | Humidity, cloud percentage, rain probability | whole %; cloud oktas remain discrete | DWD humidity resolution; MID probability/cloud rule |
-| Native map scalar contours and raster Min/Max | same parameter resolution above via shared modelMapValue/weatherValueFormat; labels include selected unit; values and extrema are computed before rounding | derived contours and extrema of the available published raster; no full-domain or time-window-extreme claim |
+| Native map scalar contours | same parameter resolution above via shared modelMapValue/weatherValueFormat; isoline labels include the selected unit | derived contour values of the available published raster; no interpolation through missing values |
+| Visible native model-map extrema | use the same canonical parameter precision AFTER unit conversion; on-map marker shows only a subtle white number with dark halo, without a visible Min/Max prefix or repeated unit (unit belongs in legend/parameter context). Accessible name/popup retains extremum type, unit and validity; never change the native value before selecting the extremum | select minimum/maximum solely from finite scalar raster cell centres within the currently visible map viewport; recompute after map pan/zoom/resize and model/validity changes, while hiding stale markers during movement; missing/null is never zero, identical extrema yield one marker; no full-model-domain or daily-extreme claim |
+| Native model-map PNG/SVG exports | use the same numeric-only white style and accessible type, with canonical formatted parameter values; unit remains available in export metadata | the full exported raster is the export's own displayed image extent and therefore has its own whole-raster extrema; the UI viewport is not falsely applied to an uncropped exported image |
 | Cloud base, freezing/snowfall level, elevation | whole displayed m/ft/hft maximum precision; model-level approximation remains labeled | MID rule; no invented FM12 precision |
 | CAPE/CIN, radiation | whole J/kg or W/m² | MID rule |
 | UV index | whole, nonnegative | established MID UVI convention |
@@ -47,3 +49,7 @@ Default overview sort is `settings`, exactly the incoming settings favorite orde
 ## Regression requirements
 
 Boundary fixtures must cover missing, positive trace, signed temperature, equal displayed range endpoints, unit conversion, visibility steps and lower binning. Favorites checks must cover preference migration, reload persistence, settings order, stable ties, missing/stale last, comparison quality gating and responsive touch/overflow in both themes. Browser emulation does not certify physical iOS/WKWebView/VoiceOver.
+
+## MID v0.9.85.317 · Extrema display precision amendment (source candidate)
+
+This additive presentation rule is the user's explicit viewport-number requirement, not a change to source meteorological data or WMO/SYNOP coding conventions. Every model/parameter with a **complete trusted numeric scalar field** uses the common native renderer; categorical WMO weather codes and image-only WMS products cannot claim independently verified extrema. Verify 320/390/844/1024/1440-pixel viewports, both themes, pan/zoom/resize, masked and genuine zero cells, ties, unit conversion, keyboard focus, lossless full-field exports and pressure-center coexistence before release. No actual iOS/WKWebView/VoiceOver-device approval is implied.

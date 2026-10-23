@@ -4,18 +4,39 @@ import {modelMapDisplayFactor,modelMapUnit,modelMapValue} from './modelMapUnits'
 import type {WindUnit} from './weather';
 
 export type RasterExtreme={type:'Min'|'Max';lat:number;lon:number;value:number};
+export type RasterViewport={south:number;west:number;north:number;east:number};
+/** MapLibre longitudes can be unwrapped across the antimeridian. */
+function visibleLongitude(lon:number,west:number,east:number){
+ const right=east<west?east+360:east;
+ if(right-west>=360)return true;
+ const wrapped=lon+360*Math.round(((west+right)/2-lon)/360);
+ return wrapped>=west-1e-10&&wrapped<=right+1e-10;
+}
+
 export type ScalarLine={level:number;label:string;path:number[][]};
 export type NativeAnnotationOptions={lines?:boolean;extremes?:boolean;fill?:boolean};
 export const scalarLineName=(kind:NativeField['kind'])=>({temperature:'Isothermen',wind:'Isotachen',gust:'Böen-Isolinien',cloud:'Bewölkungs-Isolinien',thetae:'Theta-E-Isolinien',precipitation:'Niederschlags-Isolinien',pressure:'Isobaren',sigwx:''}[kind]);
-/** Every available cell participates, including boundary cells. Stable first-cell ties.
- * These are extrema of the published raster, never an assertion about the full model domain.
+/** Extrema of available scalar *cell centres* within the visible map viewport.
+ * No temporal interpolation or extrapolation, and numeric zero is valid.
+ * Missing fields/empty viewport return no markers rather than fallback global values.
+ * The optional bounds preserve whole-export and existing global contour semantics.
+ * Stable first-cell ties prevent jitter for otherwise identical grid values.
  */
-export function nativeRasterExtremes(field:NativeField):RasterExtreme[]{
+export function nativeRasterExtremes(field:NativeField,viewport?:RasterViewport):RasterExtreme[]{
  if(field.kind==='sigwx')return [];
+ if(viewport&&(![viewport.south,viewport.north,viewport.west,viewport.east].every(Number.isFinite)||viewport.south>viewport.north))return [];
+ const width=field.lons.length,height=field.lats.length;
+ // A malformed raster must not return an arbitrary extreme or convert absent cells into zero.
+ if(!width||!height||field.values.length!==width*height||!Number.isFinite(field.scale)||field.lats.some(lat=>!Number.isFinite(lat))||field.lons.some(lon=>!Number.isFinite(lon)))return [];
+ const rows=viewport?field.lats.flatMap((lat,row)=>Number.isFinite(lat)&&lat>=viewport.south-1e-10&&lat<=viewport.north+1e-10?[row]:[]):field.lats.map((_,row)=>row);
+ const columns=viewport?field.lons.flatMap((lon,col)=>Number.isFinite(lon)&&visibleLongitude(lon,viewport.west,viewport.east)?[col]:[]):field.lons.map((_,col)=>col);
  let lo=-1,hi=-1;
- for(let i=0;i<field.values.length;i++)if(Number.isFinite(field.values[i])){
-  if(lo<0||field.values[i]<field.values[lo])lo=i;
-  if(hi<0||field.values[i]>field.values[hi])hi=i;
+ // Row-major traversal preserves first-cell ties while only touching the visible cells.
+ for(const row of rows)for(const col of columns){
+  const i=row*width+col,value=field.values[i];
+  if(!Number.isFinite(value))continue;
+  if(lo<0||value<field.values[lo])lo=i;
+  if(hi<0||value>field.values[hi])hi=i;
  }
  if(lo<0)return [];
  return ([['Min',lo],['Max',hi]] as const).map(([type,i])=>({type,lat:field.lats[Math.floor(i/field.lons.length)],lon:field.lons[i%field.lons.length],value:field.values[i]*field.scale}));
@@ -72,6 +93,7 @@ export function nativeAnnotationSvg(field:NativeField,unit:WindUnit,options:Nati
  const xml=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));
  const lines=options.lines?nativeScalarLines(field,unit):[],extremes=options.extremes===false?[]:nativeRasterExtremes(field);
  const text=(lon:number,lat:number,label:string,color='#20384d')=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="${color}" stroke="white" stroke-width="3" paint-order="stroke">${xml(label)}</text>`;
+ const extremeNumber=(lon:number,lat:number,label:string,type:'Min'|'Max')=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="12" font-weight="600" fill="#fff" stroke="#17232b" stroke-width="2.5" stroke-opacity=".8" paint-order="stroke" role="img" aria-label="${xml(type==='Min'?'Minimum':'Maximum')}: ${xml(label)}">${xml(label)}</text>`;
  const uniform=extremes.length===2&&extremes[0].value===extremes[1].value;
- return `<g class="native-scalar-annotations">${lines.map(l=>{const p=l.path[Math.floor(l.path.length/2)];return `<path d="${l.path.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}" fill="none" stroke="#20384d" stroke-width="1.2"/>${text(p[0],p[1],l.label)}`}).join('')}${extremes.filter((_,i)=>!uniform||i===0).map(p=>text(p.lon,p.lat,`${uniform?'Min = Max':p.type} ${modelMapValue(field.kind,p.value,field.unit,unit)} ${modelMapUnit(field.kind,field.unit,unit)}`,p.type==='Max'?'#9b1833':'#153c7b')).join('')}</g>`;
+ return `<g class="native-scalar-annotations">${lines.map(l=>{const p=l.path[Math.floor(l.path.length/2)];return `<path d="${l.path.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}" fill="none" stroke="#20384d" stroke-width="1.2"/>${text(p[0],p[1],l.label)}`}).join('')}${extremes.filter((_,i)=>!uniform||i===0).map(p=>extremeNumber(p.lon,p.lat,modelMapValue(field.kind,p.value,field.unit,unit),p.type)).join('')}</g>`;
 }
