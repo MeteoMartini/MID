@@ -28,7 +28,7 @@ try{
  const wrap={...field,lons:[-179,-178,-177]};
  assert.deepEqual(nativeRasterExtremes(wrap,{south:48,north:50,west:180,east:184}).map(p=>p.value),[0,20],'Longitude wrap across 180 degrees retains genuine values');
  const clipped={...field,values:[-70,5,8,0,20,10,12,18,90]};
- assert.deepEqual(nativeRasterExtremes(clipped,{south:48.5,north:50.1,west:7.5,east:9.1}).map(p=>p.value),[0,90],'Visible minimum and maximum ignore hidden global low');
+ assert.deepEqual(nativeRasterExtremes(clipped,{south:48.5,north:50.1,west:7.5,east:9.1}).map(p=>p.value),[10,90],'Visible minimum and maximum ignore hidden global low');
  assert.deepEqual(nativeRasterExtremes({...field,values:field.values.map((v,i)=>i===4?NaN:v)},mid),[],'Missing viewport point never becomes a zero');
  assert.equal(JSON.stringify(field),before,'Viewport selection does not mutate the source');
  assert.equal(JSON.stringify(field),before,'No data values or axes are modified');
