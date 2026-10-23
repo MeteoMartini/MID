@@ -1,3 +1,8 @@
+# MID v0.9.85.311
+
+- Prognosegüte: MID und Best Match werden anhand identischer gespeicherter Fälle und gemeinsam verfügbarer Parameter verglichen. Fehlende Werte können keinen künstlichen Vorteil mehr erzeugen.
+- Der Kontrollvergleich nennt die Zahl der tatsächlich auswertbaren Tage und Fälle.
+
 # MID v0.9.85.309
 
 - Extremwetter-Ausblick: Verschachtelte Gefahrenflächen mit Löchern und Inseln erscheinen nicht mehr mehrfach übereinander; ihre modellierten Werte bleiben unverändert.

@@ -1,4 +1,5 @@
 import {modelLeadLabel} from './modelForecastTime';
+import {joinNativeContourSegments} from './unifiedMapPresentation';
 import {CLOUD_WEATHER_LABEL,SIGNIFICANT_WEATHER_STYLES,cloudWeatherAt,cloudWeatherDescription,type CloudWeatherData,type CloudWeatherRenderMode} from './cloudWeatherData';
 import {loadModelMapGeography,type ModelMapGeography} from './modelMapGeography';
 import {mercatorY} from './precipitationTotals';
@@ -11,7 +12,7 @@ export function cloudWeatherSvg(data:CloudWeatherData,raster:string,places:Place
  const pseudo=mode==='pseudo',productLabel=pseudo?`${CLOUD_WEATHER_LABEL} · Modell-Wolkenbild (schematisch)`:CLOUD_WEATHER_LABEL;
  const west=data.lons[0],east=data.lons.at(-1)!,south=mercatorY(data.lats[0]),north=mercatorY(data.lats.at(-1)!),mapHeight=Math.round(1000*(north-south)/((east-west)*Math.PI/180)),legendY=150+mapHeight,height=legendY+150+Math.ceil(SIGNIFICANT_WEATHER_STYLES.length/3)*25+places.length*28;
  const x=(lon:number)=>50+(lon-west)/(east-west)*1000,y=(lat:number)=>140+(north-mercatorY(lat))/(north-south)*mapHeight;
- const isobarPaths=matchingCloudIsobars(data,selectedIsobars).flatMap(c=>c.paths.filter(p=>p.length>=2).map(p=>`<path d="${p.filter(point=>point.length>=2&&Number.isFinite(point[0])&&Number.isFinite(point[1])).map(([lat,lon],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}"/>`)).join('');
+ const isobarPaths=matchingCloudIsobars(data,selectedIsobars).flatMap(c=>joinNativeContourSegments(c.paths).map(p=>`<path d="${p.filter(point=>point.length>=2&&Number.isFinite(point[0])&&Number.isFinite(point[1])).map(([lat,lon],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}"/>`)).join('');
  const isoheightPaths=matchingCloudIsoheights(data,selectedIsoheights).features.map(f=>`<path d="${f.geometry.coordinates.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}"/>`).join('');
  const paths=states.flatMap(s=>s.rings.map(r=>`<path d="${r.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}Z"/>`)).join('');
  // Natural Earth country polygons plus all 16 German state polygons form the land mask.

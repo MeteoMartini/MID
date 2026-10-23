@@ -1,5 +1,9 @@
 # MID – verbindlicher Vertrag für eine konsistente Prognose aus einem Guss
 
+## v0.9.85.311 · Gepaarter Kontrollvergleich
+
+Verbesserung und Freigabe der lokalen Nachkorrektur gegenüber Best Match verwenden ausschließlich Fälle mit beiden archivierten Prognosen, derselben unabhängigen Messreferenz und gemeinsam auswertbaren Parametern. Ein einseitig fehlender Parameter wird für beide Seiten aus diesem Vergleich ausgeschlossen, niemals als Nullfehler ersetzt. Mehrere Horizonte werden zunächst innerhalb desselben lokalen Zieltags gemittelt; jeder Tag erhält anschließend gleiches Gewicht. Fall- und Tageszahlen zählen nur tatsächlich berechenbare Paare. Angezeigte MID-/Best-Match-Kontrollscores, adaptive Kontrollbelege und Aktivierungsentscheidung müssen aus derselben gepaarten Auswertung stammen. Gesamtarchiv-Rankings bleiben deskriptiv und sind kein gepaarter Skillnachweis. Auch ein positiver Kontrollscore ersetzt keine zeitlich blockierte, unabhängige Studie mit Unsicherheitsanalyse.
+
 ## v0.9.85.307 · Niederschlagsextreme und unabhängige Verifikation
 
 Vollständige Ensemble-Mitglieder werden nicht allein wegen hoher Niederschlagsmengen als Ausreißer gelöscht; positive kleine Cluster bleiben sichtbar. Relative Modellfamiliengewichte sind keine kalibrierten Ereigniswahrscheinlichkeiten. Gültige positive RADOLAN-Werte dürfen nicht mit ungeprüften Obergrenzen gekappt werden; fehlende Messdaten sind nicht 0 mm. Modellrückblick und Reanalyse sind keine unabhängigen Beobachtungen für Lerngewichtung, Bias, Konfidenz und Skill. Diese erfordern qualitätsgesicherte Messquellen mit dokumentierter zeitlicher Vollständigkeit. Erst nach Ausgabe beobachtete Wetterregimes dürfen nicht als prognostizierte Regimes in die Verifikation einfließen.
