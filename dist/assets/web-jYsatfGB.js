@@ -1,0 +1,1 @@
+import{Ai as e}from"./index-Cu5U7wsh.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};

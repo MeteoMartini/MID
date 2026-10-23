@@ -1,3 +1,9 @@
+# MID v0.9.85.316
+
+- Native Modellkarten zeigen auf Wunsch beschriftete Isothermen, Wind-/Böen-, Bewölkungs- und Niederschlagslinien aus dem gewählten Raster.
+- Min-/Max-Markierungen und Zahlenübersicht zeigen die tatsächlichen Extremwerte des verfügbaren Rasters einschließlich Randzellen. Fehlende Daten bleiben ausgespart.
+- Die 24-h-Übersicht erhält runde Windteilstriche in der gewählten Einheit. Karte und PNG-/SVG-Export übernehmen dieselben Linien und Extremwerte.
+
 # MID v0.9.85.314
 
 - Druckkarten: Kleine Druckextrema bleiben bei der Konturberechnung erhalten; Karten und SVG-/PNG-Exporte verwenden dieselben vollständigen Linienzüge, auch bei Wolken-/Wetterkarten.
