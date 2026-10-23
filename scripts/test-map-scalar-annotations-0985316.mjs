@@ -50,4 +50,7 @@ try{
  assert.ok(!annotationOnly.includes('<text'),'Disabling extrema removes all annotation values, independently of legend ticks');
  console.log('PASS native scalar isolines, missing masks, boundary extremes, export settings and unit-aware wind ticks');
 }finally{rmSync(dir,{recursive:true,force:true})}
-if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1')await import('./verify-round-wind-browser-0985316.mjs');
+if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){
+ await import('./verify-round-wind-browser-0985316.mjs');
+ await import('./verify-viewport-extrema-browser-0985317.mjs');
+}
