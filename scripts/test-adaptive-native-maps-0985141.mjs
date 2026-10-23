@@ -37,6 +37,7 @@ await import('./verify-model-map-point-0985149.mjs');
 if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){
  await import('./verify-native-model-browser-0985141.mjs');
  await import('./verify-viewport-extrema-browser-0985317.mjs');
+ await import('./verify-provider-time-browser-0985318.mjs');
  await import('./verify-compact-ensemble-browser-0985143.mjs');
  await import('./verify-forecast-views-browser-0985145.mjs');
 }

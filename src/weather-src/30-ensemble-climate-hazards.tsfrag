@@ -48,7 +48,7 @@ function buildEnsembleScenarios(results:ModelResult[],days:EnsembleDay[]):Ensemb
  return labelled.map(cluster=>({...cluster,divergenceDate}));
 }
 function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{
- const times=(w.hourly.time as string[])??[],keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k)),windKeys=keys.filter(k=>/^wind_speed_10m(?:_member\d+)?$/.test(k)),gustKeys=keys.filter(k=>/^wind_gusts_10m(?:_member\d+)?$/.test(k));
+ const sourceTimes=(w.hourly.time as string[])??[],times=sourceTimes.map(time=>providerPresentationTime(time,w.timezone,w.utc_offset_seconds)),keys=Object.keys(w.hourly),tempKeys=keys.filter(k=>/^temperature_2m(?:_member\d+)?$/.test(k)),precipKeys=keys.filter(k=>/^precipitation(?:_member\d+)?$/.test(k)),sunshineKeys=keys.filter(k=>/^sunshine_duration(?:_member\d+)?$/.test(k)),windKeys=keys.filter(k=>/^wind_speed_10m(?:_member\d+)?$/.test(k)),gustKeys=keys.filter(k=>/^wind_gusts_10m(?:_member\d+)?$/.test(k));
  if(!times.length||!tempKeys.length)return null;
  const suffix=(k:string)=>k.replace('temperature_2m',''),pBySuffix=new Map(precipKeys.map(k=>[k.replace('precipitation',''),k])),sBySuffix=new Map(sunshineKeys.map(k=>[k.replace('sunshine_duration',''),k])),wBySuffix=new Map(windKeys.map(k=>[k.replace('wind_speed_10m',''),k])),gBySuffix=new Map(gustKeys.map(k=>[k.replace('wind_gusts_10m',''),k]));
  const members=new Map<string,MemberDay[]>();
@@ -59,20 +59,20 @@ function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{
    const date=String(times[i]).slice(0,10),tv=n(temps[i]),pv=n(rain[i]),sv=n(sunshine[i]),wv=n(winds[i]),gv=n(gusts[i]);
    if(!daily.has(date))daily.set(date,{t:[],p:[],pb:[[],[],[],[]],s:[],w:[],g:[],expected:0,stamps:new Set<string>()});
    const d=daily.get(date)!;
-   d.expected++;d.stamps.add(String(times[i]));
+   d.expected++;d.stamps.add(String(providerIsoEpoch(sourceTimes[i],w.timezone,w.utc_offset_seconds)));
    if(Number.isFinite(tv)&&tv>-65&&tv<65)d.t.push(tv);
    // Accumulations end at the timestamp: 00:00 belongs to the previous civil day.
-   const intervalEnd=Date.parse(`${String(times[i]).slice(0,19)}Z`),intervalLabel=new Date(intervalEnd-1),intervalDate=intervalLabel.toISOString().slice(0,10);
+   const intervalEnd=providerIsoEpoch(sourceTimes[i],w.timezone,w.utc_offset_seconds),intervalLabel=providerPresentationTime(new Date(intervalEnd-1).toISOString(),w.timezone,0),intervalDate=intervalLabel.slice(0,10);
    if(!daily.has(intervalDate))daily.set(intervalDate,{t:[],p:[],pb:[[],[],[],[]],s:[],w:[],g:[],expected:0,stamps:new Set<string>()});
    const accumulated=daily.get(intervalDate)!;
-   if(Number.isFinite(pv)&&pv>=0&&pv<150){accumulated.p.push(pv);accumulated.pb[Math.floor(intervalLabel.getUTCHours()/6)].push(pv)}
+   if(Number.isFinite(pv)&&pv>=0&&pv<150){accumulated.p.push(pv);accumulated.pb[Math.floor(Number(intervalLabel.slice(11,13))/6)].push(pv)}
    if(Number.isFinite(sv)&&sv>=0&&sv<=3600)accumulated.s.push(sv);
    if(Number.isFinite(wv)&&wv>=0&&wv<140)d.w.push(wv);
    if(Number.isFinite(gv)&&gv>=0&&gv<180)d.g.push(gv);
   }
   const rows:MemberDay[]=[];
   daily.forEach((d,date)=>{
-   const nextDate=new Date(Date.parse(`${date}T00:00:00Z`)+86400000).toISOString().slice(0,10),expectedHours=(localIsoEpoch(`${nextDate}T00:00`,w.timezone,Number(w.utc_offset_seconds)||0)-localIsoEpoch(`${date}T00:00`,w.timezone,Number(w.utc_offset_seconds)||0))/3600000,fullDay=d.expected===expectedHours&&d.stamps.size===d.expected;
+   const nextDate=new Date(Date.parse(`${date}T00:00:00Z`)+86400000).toISOString().slice(0,10),dayStart=localIsoEpoch(`${date}T00:00`,w.timezone,Number(w.utc_offset_seconds)||0),expectedHours=(localIsoEpoch(`${nextDate}T00:00`,w.timezone,Number(w.utc_offset_seconds)||0)-dayStart)/3600000,fullDay=d.expected===expectedHours&&d.stamps.size===d.expected&&Array.from({length:d.expected},(_,index)=>d.stamps.has(String(dayStart+index*3600000))).every(Boolean);
    if(d.t.length>=18){
     const max=Math.max(...d.t),min=Math.min(...d.t),precipitation=d.p.reduce((a,b)=>a+b,0),precipitationWindows=d.pb.map(values=>values.length>=5?values.reduce((a,b)=>a+b,0):NaN) as [number,number,number,number],sunshineDuration=d.expected>=18&&d.s.length===d.expected?clampNumber(d.s.reduce((a,b)=>a+b,0),0,weatherDaylightSeconds(w,date)):null,wind=d.w.length?Math.max(...d.w):NaN,gust=d.g.length?Math.max(...d.g):NaN;
     if(Number.isFinite(max)&&Number.isFinite(min)&&max>=min&&max-min<35)rows.push({date,max,min,precipitation,precipitationWindows,sunshineDuration,wind,gust,daylightSeconds:weatherDaylightSeconds(w,date),complete:{temperature:fullDay&&d.t.length===d.expected,precipitation:fullDay&&d.p.length===d.expected,wind:fullDay&&d.w.length===d.expected&&d.g.length===d.expected,sunshine:fullDay&&d.s.length===d.expected}});
@@ -80,7 +80,7 @@ function parseModelMembers(w:Weather,model:EnsembleModel):ModelResult|null{
   });
   if(rows.length>=2)members.set(s||'_control',rows);
  }
- const temperatureHours=times.flatMap((time,index)=>{const values=tempKeys.map(key=>n(w.hourly[key]?.[index])).filter(value=>Number.isFinite(value)&&value>-65&&value<65),epoch=localIsoEpoch(time,w.timezone,Number(w.utc_offset_seconds)||0);return values.length&&Number.isFinite(epoch)?[{time,epoch,values}]:[]});
+ const temperatureHours=times.flatMap((time,index)=>{const values=tempKeys.map(key=>n(w.hourly[key]?.[index])).filter(value=>Number.isFinite(value)&&value>-65&&value<65),epoch=providerIsoEpoch(time,w.timezone,w.utc_offset_seconds);return values.length&&Number.isFinite(epoch)?[{time,epoch,values}]:[]});
  return members.size?{model,members,temperatureHours}:null;
 }
 function clampNumber(value:number,min:number,max:number){return Math.min(max,Math.max(min,value))}
@@ -153,8 +153,8 @@ function pseudoModelFromMeanSpread(w:Weather,definition:EnsembleMeanModel):Model
  for(let member=0;member<z.length;member++){
   const daily=new Map<string,{t:number[];p:number[];pb:[number[],number[],number[],number[]]}>();
   for(let index=0;index<times.length;index++){
-   const timestamp=String(times[index]),date=timestamp.slice(0,10),hour=Number(timestamp.slice(11,13)),temperature=n(mean[index]),sigma=Math.max(0,n(spread[index])),precipitation=Math.max(0,n(rain[index])+z[member]*Math.max(0,n(rainSpread[index])));
-   if(!Number.isFinite(temperature))continue;const row=daily.get(date)??{t:[],p:[],pb:[[],[],[],[]]};row.t.push(temperature+z[member]*sigma);if(Number.isFinite(precipitation)){row.p.push(precipitation);if(Number.isFinite(hour)&&hour>=0&&hour<24)row.pb[Math.min(3,Math.floor(hour/6))].push(precipitation)}daily.set(date,row);
+   const timestamp=providerPresentationTime(String(times[index]),w.timezone,w.utc_offset_seconds),date=timestamp.slice(0,10),intervalEpoch=providerIsoEpoch(String(times[index]),w.timezone,w.utc_offset_seconds),intervalLabel=providerPresentationTime(new Date(intervalEpoch-1).toISOString(),w.timezone,0),intervalDate=intervalLabel.slice(0,10),hour=Number(intervalLabel.slice(11,13)),temperature=n(mean[index]),sigma=Math.max(0,n(spread[index])),precipitation=Math.max(0,n(rain[index])+z[member]*Math.max(0,n(rainSpread[index])));
+   if(!Number.isFinite(temperature))continue;const row=daily.get(date)??{t:[],p:[],pb:[[],[],[],[]]};row.t.push(temperature+z[member]*sigma);daily.set(date,row);if(Number.isFinite(precipitation)){const accumulated=daily.get(intervalDate)??{t:[],p:[],pb:[[],[],[],[]]};accumulated.p.push(precipitation);if(Number.isFinite(hour)&&hour>=0&&hour<24)accumulated.pb[Math.min(3,Math.floor(hour/6))].push(precipitation);daily.set(intervalDate,accumulated)}
   }
   const rows:MemberDay[]=[];daily.forEach((row,date)=>{if(row.t.length>=18){const precipitationWindows=row.pb.map(values=>values.length>=5?values.reduce((sum,value)=>sum+value,0):NaN) as [number,number,number,number];rows.push({date,max:Math.max(...row.t),min:Math.min(...row.t),precipitation:row.p.reduce((sum,value)=>sum+value,0),precipitationWindows,sunshineDuration:null,wind:NaN,gust:NaN})}});
   if(rows.length>=5)members.set(`spread_${member+1}`,rows);
@@ -198,7 +198,7 @@ function writeEventEnsembleCache(lat:number,lon:number,date:string,startTime:str
 function eventMemberPrecipitationTotals(weather:Weather,date:string,startTime:string,endTime:string){
  const times=(weather.hourly?.time??[]).map(String),keys=Object.keys(weather.hourly??{}).filter(key=>/^precipitation(?:_member\d+)?$/.test(key));if(!times.length||!keys.length)return[] as number[];
  const wallStart=eventCivilEpoch(`${date}T${startTime}`),wallEnd=eventCivilEpoch(`${date}T${endTime}`);if(!Number.isFinite(wallStart)||!Number.isFinite(wallEnd)||wallStart===wallEnd)return[];
- const endDate=wallEnd<wallStart?new Date(Date.parse(`${date}T00:00:00Z`)+86400000).toISOString().slice(0,10):date,epoch=(value:string)=>localIsoEpoch(value,weather.timezone,Number(weather.utc_offset_seconds)||0),start=epoch(`${date}T${startTime}`),end=epoch(`${endDate}T${endTime}`),duration=end-start,stamps=times.map(epoch),totals:number[]=[];
+ const endDate=wallEnd<wallStart?new Date(Date.parse(`${date}T00:00:00Z`)+86400000).toISOString().slice(0,10):date,epoch=(value:string)=>localIsoEpoch(value,weather.timezone,Number(weather.utc_offset_seconds)||0),start=epoch(`${date}T${startTime}`),end=epoch(`${endDate}T${endTime}`),duration=end-start,stamps=times.map(value=>providerIsoEpoch(value,weather.timezone,weather.utc_offset_seconds)),totals:number[]=[];
  if(!Number.isFinite(duration)||duration<=0)return[];
  // Repeated local timestamps during autumn DST cannot identify distinct intervals.
  if(stamps.some((stamp,index)=>index>0&&stamp<=stamps[index-1]&&stamp>=start&&stamp<=end))return[];
@@ -253,7 +253,7 @@ function warningEnsembleValue(weather:Weather,field:string,suffix:string,index:n
 async function fetchWarningEnsembleModel(model:EnsembleModel,lat:number,lon:number,radiusKm:number,signal?:AbortSignal):Promise<WarningEnsembleModelResult|null>{
  const points=warningNeighborhoodPoints(lat,lon,radiusKm),params=new URLSearchParams({latitude:points.map(point=>point.lat.toFixed(5)).join(','),longitude:points.map(point=>point.lon.toFixed(5)).join(','),timezone:'GMT',forecast_days:'10',models:model.id,hourly:'temperature_2m,precipitation,wind_gusts_10m',wind_speed_unit:'kn'}),payload=await guardedOpenMeteoJson<Weather|Weather[]>(`https://ensemble-api.open-meteo.com/v1/ensemble?${params}`,{signal,cache:'no-store'},{priority:'background',maxRetries:0}),locations=Array.isArray(payload)?payload:[payload],center=locations[0];
  if(!center||locations.length<3||!Array.isArray(center.hourly?.time)||center.hourly.time.length<12)return null;const suffixes=warningEnsembleMemberSuffixes(center);if(suffixes.length<2)return null;const times=center.hourly.time.map(String),now=Date.now(),maxEpoch=now+240*3600000,hours:WarningEnsembleModelHour[]=[];
- for(let index=0;index<times.length;index++){const time=times[index],epoch=localIsoEpoch(time,center.timezone,Number(center.utc_offset_seconds)||0);if(!Number.isFinite(epoch)||epoch<now-2*3600000||epoch>maxEpoch)continue;const centerGust:number[]=[],neighborhoodGust:number[]=[],centerPrecipitation:number[]=[],neighborhoodPrecipitation:number[]=[],centerTemperature:number[]=[],neighborhoodTemperatureLow:number[]=[],neighborhoodTemperatureHigh:number[]=[];
+ for(let index=0;index<times.length;index++){const time=times[index],epoch=providerIsoEpoch(time,center.timezone,center.utc_offset_seconds);if(!Number.isFinite(epoch)||epoch<now-2*3600000||epoch>maxEpoch)continue;const centerGust:number[]=[],neighborhoodGust:number[]=[],centerPrecipitation:number[]=[],neighborhoodPrecipitation:number[]=[],centerTemperature:number[]=[],neighborhoodTemperatureLow:number[]=[],neighborhoodTemperatureHigh:number[]=[];
   for(const suffix of suffixes){const gustCenter=warningEnsembleValue(center,'wind_gusts_10m',suffix,index),precipCenter=warningEnsembleValue(center,'precipitation',suffix,index),tempCenter=warningEnsembleValue(center,'temperature_2m',suffix,index),gustValues=locations.map(location=>warningEnsembleValue(location,'wind_gusts_10m',suffix,index)).filter(Number.isFinite),precipValues=locations.map(location=>warningEnsembleValue(location,'precipitation',suffix,index)).filter(Number.isFinite),tempValues=locations.map(location=>warningEnsembleValue(location,'temperature_2m',suffix,index)).filter(Number.isFinite);if(Number.isFinite(gustCenter))centerGust.push(gustCenter);if(gustValues.length)neighborhoodGust.push(Math.max(...gustValues));if(Number.isFinite(precipCenter))centerPrecipitation.push(Math.max(0,precipCenter));if(precipValues.length)neighborhoodPrecipitation.push(Math.max(0,...precipValues));if(Number.isFinite(tempCenter))centerTemperature.push(tempCenter);if(tempValues.length){neighborhoodTemperatureLow.push(Math.min(...tempValues));neighborhoodTemperatureHigh.push(Math.max(...tempValues))}}
   if(centerGust.length||centerPrecipitation.length||centerTemperature.length)hours.push({time,epoch,centerGust,neighborhoodGust,centerPrecipitation,neighborhoodPrecipitation,centerTemperature,neighborhoodTemperatureLow,neighborhoodTemperatureHigh});
  }

@@ -23,7 +23,7 @@ for(const token of [
  'hourlyMax=temperatures.length?Math.max(...temperatures):Number.NaN',
  'completeCoverage&&Number.isFinite(hourlyMax)?hourlyMax',
  'completeCoverage&&Number.isFinite(hourlyMin)?hourlyMin',
- 'return{...day,max,min,precipitation:finalPrecipitation'
+ 'return{...day,max,min,wind,gust,'
 ])need('Temperaturkonsistenz',fusion,token);
 for(const token of [
  'finalizeForecastHours',
