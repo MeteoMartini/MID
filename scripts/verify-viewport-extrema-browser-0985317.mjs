@@ -28,8 +28,8 @@ const compiled=await transform(entry,{loader:'tsx',jsx:'automatic',format:'esm'}
 const server=await createServer({server:{host:'127.0.0.1',port:0,watch:null,hmr:false},plugins:[{
  name:'mid-viewport-extrema-browser-fixture',
  configureServer(s){s.middlewares.use((req,res,next)=>{if(req.url?.startsWith('/__mid_viewport_317')){res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="de"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0}.mid-viewport-test-map{height:390px;width:100%}</style><div id="root"></div><script type="module" src="/__mid_viewport_entry.tsx"></script></html>')}else next()})},
- resolveId(id){if(id==='/__mid_viewport_entry.tsx')return '\\0mid-viewport-entry.tsx'},
- load(id){if(id==='\\0mid-viewport-entry.tsx')return compiled.code}
+ resolveId(id){if(id==='/__mid_viewport_entry.tsx')return '\0mid-viewport-entry.tsx'},
+ load(id){if(id==='\0mid-viewport-entry.tsx')return compiled.code}
 }]});
 await server.listen();
 const browser=await chromium.launch({headless:true,...(process.env.MID_CHROMIUM_EXECUTABLE?{executablePath:process.env.MID_CHROMIUM_EXECUTABLE}:{}),args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
