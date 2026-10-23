@@ -2,7 +2,7 @@
 
 ## Bindende Ausgangsbasis
 
-GitHub main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6; Version v0.9.85.314 nach regulärem, erfolgreichem Installer [39920562049](https://github.com/MeteoMartini/MID/actions/runs/39920562049). Der neue Branch chatgpt/v0.9.85.315-domain-source-inventory ist nur eine **Reservierung**; keine .315-App wurde gebaut oder veröffentlicht. Originale RUC-Pipeline, Worker, Pages, Workflows, bestehende Tests und die produktive Kartenabdeckung bleiben unverändert.
+GitHub main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6; Version v0.9.85.314 nach regulärem, erfolgreichem Installer [39920562049](https://github.com/MeteoMartini/MID/actions/runs/39920562049). Der neue Branch chatgpt/v0.9.85.315-domain-source-inventory ist nur eine **Reservierung**; keine .315-App wurde gebaut oder veröffentlicht. Originale RUC-Datenpipeline, Worker, Pages, Workflows und produktive Kartenabdeckung bleiben unverändert. Der bestehende RUC-Pflichttest-Einstieg scripts/test-ruc-map-pipeline-0985305.mjs wurde um den neuen synthetischen Test ergänzt, ohne Testgrenzen zu lockern oder einen Workflow zu verändern.
 
 Die vollständige Modellgebietsabdeckung aus [Issue #446](https://github.com/MeteoMartini/MID/issues/446) ist **nicht** erledigt. Verifizierte Deutschland-Crops: 47 bis 55,2 Grad N, 5,5 bis 15,6 Grad E in ICON-D2, RUC-Karten, Synoptik und Client. Weder Zoom noch größere BBOX allein belegen gültige Werte.
 
