@@ -1,4 +1,5 @@
 import {adaptiveContourLayers} from './adaptiveModelContours';
+import {nativeIsobarFeatures} from './unifiedMapPresentation';
 import {ModelPressureCenters} from './modelPressureCenters';
 import {useEffect,useMemo,useState} from 'react';
 import {GeoJsonLayers,HtmlMarker,ImageQuadLayer,MapCenter,MapFitBounds,MidMapLibre,RasterTileLayer} from './MapLibreCore';
@@ -38,7 +39,7 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
  const[pressureField,setPressureField]=useState<NativeField|null>(null);
  useEffect(()=>{setPressureField(null);if(!catalog||!field||!['thetae','sigwx','precipitation'].includes(kind)||field.isobars.length)return;const pressureRef=catalog.index.products.pressure?.frames.find(f=>f.time===field.time);if(!pressureRef)return;const c=new AbortController();void loadNativeField(catalog.index,catalog.base,pressureRef,'pressure',c.signal).then(value=>{if(!c.signal.aborted&&value.run===field.run&&value.time===field.time)setPressureField(value)}).catch(()=>{});return()=>c.abort()},[catalog,field,kind]);
  const pressureContours=field?.isobars.length?field:pressureField?.time===field?.time&&pressureField?.run===field?.run?pressureField:null;
- const isobars=useMemo(()=>({type:'FeatureCollection',features:pressureContours?.isobars.flatMap(c=>c.paths.map(path=>({type:'Feature',properties:{level:c.level,...(c.spacingKm!==undefined?{spacingKm:c.spacingKm}:{}),label:`${c.level} hPa`},geometry:{type:'LineString',coordinates:path.map(([lat,lon])=>[lon,lat])}})))??[]}),[pressureContours]);
+ const isobars=useMemo(()=>nativeIsobarFeatures(pressureContours?.isobars??[]),[pressureContours]);
  const cloudContourSelection=kind==='sigwx'&&cloudIsobars?nativeCloudIsobars(combined,pressureContours):null;
  const cloudContours=cloudContourSelection?.contours??[];
  const download=async(format:'png'|'svg')=>{if(!field||!raster||!colorScale)return;setExporting(true);try{if(combined)await exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContourSelection);else await exportNativeField({...field,isobars:pressureContours?.isobars??field.isobars},label,raster,places,format,ref?.intervalHours??0,unit,colorScale)}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};

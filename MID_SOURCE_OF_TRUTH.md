@@ -1,3 +1,7 @@
+# MID v0.9.85.314 · Konturen-/Audit-Konsolidierung (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable=7cabe4ca23d86dbf3aadccdb03aa3fc0dbf20885 (.311). Nutzerfreigabe zum separaten gemeinsamen Release der geprüften Konturenkorrekturen #445 (6d8fa7f777df565c64e4293235f754445814a774) und des gehärteten rein lesenden Auditors #447 (13e0f384981652271d5e54556da470cc638531da). Alle .309-/ .311-Fixes erhalten. Vollgebiet #446 bleibt offen und ist kein Erfolg dieses Releases. Keine neue Datenquelle, keine Crop-Erweiterung, kein experimenteller Pilot, keine ungeprüften Dependency-Upgrades oder zusätzlichen Workflows. Version/Changelog synchronisiert; tatsächlicher Release erst nach vollständigem Source-/RUC-/Heavy-/Browser-Gate, SHA-MID-Bot, ServerZIP, Installer, Worker/Pages und Stable-Promotion. Implementierungsnachweis docs/implementation/MID_C39_CONSOLIDATED_RELEASE_0.9.85.314.md.
+
 # MID v0.9.85.309 · Extremwetterpolygone – georeferenzierter Ersatzmodus (Source-Kandidat)
 
 Neuer unabhängiger Geometrienachweis im Draft .309: verschachtelte GeoJSON-Inseln ab fünf Konturringen wurden bisher in ancestor-weiten Queues doppelt ergänzt. Korrigierte parent-lokale Hole→Island-Rekursion und verschärfter vorhandener Pflicht-Test erhalten genau einen Outer-Ring bzw. ein Loch je Originalkontur. Ein erfolgreicher reiner Canvas-Browserpixeltest auf .308 bestätigte Füllung/Lochtransparenz, ist jedoch keine WebGL-/Live-Gefahrenkartenabnahme.

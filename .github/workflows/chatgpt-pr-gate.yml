@@ -26,7 +26,9 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # RUC admission (20m) and core build/regressions (15m) run sequentially.
+    # Keep both step limits unchanged and leave room for setup/iOS/packaging.
+    timeout-minutes: 45
     permissions:
       contents: read
 
