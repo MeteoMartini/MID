@@ -30,6 +30,9 @@ try{
  const clipped={...field,values:[-70,5,8,0,20,10,12,18,90]};
  assert.deepEqual(nativeRasterExtremes(clipped,{south:48.5,north:50.1,west:7.5,east:9.1}).map(p=>p.value),[10,90],'Visible minimum and maximum ignore hidden global low');
  assert.deepEqual(nativeRasterExtremes({...field,values:field.values.map((v,i)=>i===4?NaN:v)},mid),[],'Missing viewport point never becomes a zero');
+ assert.deepEqual(nativeRasterExtremes({...field,lons:[7,8]},mid),[],'Raster dimensions must match the coordinate axes');
+ assert.deepEqual(nativeRasterExtremes({...field,scale:NaN},mid),[],'Invalid quantization must fail closed');
+ assert.deepEqual(nativeRasterExtremes({...field,values:field.values.map((v,i)=>i===4?Infinity:v)},mid),[],'Infinite data must not become a visible extreme');
  assert.equal(JSON.stringify(field),before,'Viewport selection does not mutate the source');
  assert.equal(JSON.stringify(field),before,'No data values or axes are modified');
  const missing={...field,values:[0,0,0,0,NaN,0,0,0,0]};
