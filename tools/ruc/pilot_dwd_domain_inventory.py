@@ -2,7 +2,7 @@
 """Read-only multi-run DWD ICON-D2 grid/bitmap inventory; never publishes.
 
 Use source-provided GRIB files and a pinned SHA manifest, not HTTP fallbacks.
-The result is source evidence, not a renderer or full-domain admission gate.
+The result is source *evidence*, not a renderer or full-domain admission gate.
 """
 from __future__ import annotations
 import argparse,bz2,hashlib,json,re,tempfile
