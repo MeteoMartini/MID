@@ -27,7 +27,7 @@ export function nativeRasterExtremes(field:NativeField,viewport?:RasterViewport)
  if(viewport&&(![viewport.south,viewport.north,viewport.west,viewport.east].every(Number.isFinite)||viewport.south>viewport.north))return [];
  const width=field.lons.length,height=field.lats.length;
  // A malformed raster must not return an arbitrary extreme or convert absent cells into zero.
- if(!width||!height||field.values.length!==width*height||!Number.isFinite(field.scale))return [];
+ if(!width||!height||field.values.length!==width*height||!Number.isFinite(field.scale)||field.lats.some(lat=>!Number.isFinite(lat))||field.lons.some(lon=>!Number.isFinite(lon)))return [];
  const rows=viewport?field.lats.flatMap((lat,row)=>Number.isFinite(lat)&&lat>=viewport.south-1e-10&&lat<=viewport.north+1e-10?[row]:[]):field.lats.map((_,row)=>row);
  const columns=viewport?field.lons.flatMap((lon,col)=>Number.isFinite(lon)&&visibleLongitude(lon,viewport.west,viewport.east)?[col]:[]):field.lons.map((_,col)=>col);
  let lo=-1,hi=-1;
