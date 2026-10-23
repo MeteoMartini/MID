@@ -48,6 +48,20 @@ try{
  const plain=e.cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'pseudo');
  const selected={model:frame.model,run:frame.run,time:frame.time,contours:contour};
  const outlined=e.cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'pseudo',selected);
+ const split={...selected,contours:[{level:1016,paths:[
+  [[48.2,7.2],[48.4,7.4]],[[48.4,7.4],[48.6,7.6]],
+  [[48.7,7.2],[48.8,7.3]],
+ ]}]};
+ const original=JSON.stringify(split);
+ for(const mode of ['pseudo','standard']){
+  const svg=e.cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],mode,split);
+  const group=svg.match(/aria-label="DWD ICON-D2 MSLP Isobaren hPa">([\s\S]*?)<\/g>/)?.[1];
+  assert.ok(group,'Matching pressure contours must remain present');
+  const paths=[...group.matchAll(/<path d="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(paths.length,2,'Consecutive source segments must share one SVG/PNG path; disconnected contours stay separate');
+  assert.equal((paths[0].match(/L/g)||[]).length,2,'Every original intermediate vertex survives');
+  assert.equal(JSON.stringify(split),original,'Export must not mutate canonical source contours');
+ }
  const rejected=e.cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'pseudo',{...selected,run:'2026-10-15T00:00:00Z'});
  assert.doesNotMatch(rejected,/MSLP-Isobaren/);
  const euSvg=e.cloudWeatherSvg({...frame,model:'icon-eu'},'data:image/png;base64,AA==',[],[],'pseudo',{...selected,model:'icon-eu'});

@@ -1,3 +1,11 @@
+## MID v0.9.85.314 · 2026-10-23 · Konsolidierte Konturen und strenger Domänenauditor
+
+- Nutzerfreigabe: geprüfte Konturen-/Exportkorrekturen #445 und ausschließlich lesender Auditor #447 gemeinsam veröffentlichen; Vollgebiet #446 bleibt ausdrücklich separat offen.
+- Basis main=mid-stable 7cabe4ca23d86dbf3aadccdb03aa3fc0dbf20885 (.311); keine alten Versionen, Draft-Workflows oder ungeprüften Dependency-Upgrades übernommen.
+- Vollständiges vorhandenes Druckraster statt Sechser-Ausdünnung, gemeinsame verlustfreie Linienzüge in Karten und nativen/Wolken-Wetter-SVG-/PNG-Exporten.
+- Auditor prüft volle Quellzeitachse, SHA, Einheiten, Intervalle und Missing-Masken; 17 Fälle im bestehenden Pflicht-Test registriert. Keine produktive Crop- oder Datenquellenänderung.
+- Release ausschließlich nach erneuten kombinierten Source-/RUC-/Heavy-/Browser-/Installer-/Worker-/Pages-Gates und Stable-Promotion. #433/#432/#425 sowie nicht qualifizierte Dependency-PRs bleiben separat; keine ECMWF- oder Open-Meteo-RUC-Aktivierung.
+
 ## MID v0.9.85.311 · 2026-10-22 · Gepaarte Prognoseverifikation
 
 - Basis main=mid-stable 8e829d2e1d474f4beb10937194773d65e12c69fe (.309). Parallel-PR #443 reserviert .310 und bleibt unberührt.

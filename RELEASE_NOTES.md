@@ -1,3 +1,9 @@
+# MID v0.9.85.314
+
+- Druckkarten: Kleine Druckextrema bleiben bei der Konturberechnung erhalten; Karten und SVG-/PNG-Exporte verwenden dieselben vollständigen Linienzüge, auch bei Wolken-/Wetterkarten.
+- Datenprüfung: Der Vollgebiets-Auditor prüft zusätzlich vollständige Vorhersagestunden, Quellprüfsummen, Einheiten und Intervalle. Fehlende Daten bleiben von tatsächlichen Nullwerten getrennt.
+- Die vollständige Erweiterung auf das gesamte ICON-D2/RUC-Modellgebiet ist weiterhin in Arbeit; dieser Stand aktiviert keine neue Datenquelle oder größere Gebietsabdeckung.
+
 # MID v0.9.85.311
 
 - Prognosegüte: MID und Best Match werden anhand identischer gespeicherter Fälle und gemeinsam verfügbarer Parameter verglichen. Fehlende Werte können keinen künstlichen Vorteil mehr erzeugen.
