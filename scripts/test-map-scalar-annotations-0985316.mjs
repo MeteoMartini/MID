@@ -45,8 +45,9 @@ try{
  }
  const svg=nativeFieldSvg(field,'Temperatur','data:image/png;base64,AA',[],0,'kn',undefined,[],{lines:true,extremes:true,fill:false});
  assert.ok(svg.includes('aria-label="Maximum: 20"'),'Export retains accessible extrema type');assert.ok(svg.includes('>20</text>'),'Export shows only the white numeric value');assert.ok(!svg.includes('>Max 20'),'Export never shows a printed Min/Max prefix');assert.ok(svg.includes('native-scalar-annotations'));assert.ok(!svg.includes('data:image/png'),'Line-only export omits the color raster');
- const noExtremes=nativeFieldSvg(field,'Temperatur','',[],0,'kn',undefined,[],{extremes:false});assert.ok(!noExtremes.includes('aria-label="Maximum: 20"'));
- assert.ok(!noExtremes.includes('>20</text>'));
+ const noExtremes=nativeFieldSvg(field,'Temperatur','',[],0,'kn',undefined,[],{extremes:false});
+ const annotationOnly=noExtremes.match(/<g class="native-scalar-annotations">([\s\S]*?)<\/g>/)?.[1]??'';
+ assert.ok(!annotationOnly.includes('<text'),'Disabling extrema removes all annotation values, independently of legend ticks');
  console.log('PASS native scalar isolines, missing masks, boundary extremes, export settings and unit-aware wind ticks');
 }finally{rmSync(dir,{recursive:true,force:true})}
 if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1')await import('./verify-round-wind-browser-0985316.mjs');
