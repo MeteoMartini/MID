@@ -19,16 +19,21 @@ PARAMS = {
 }
 FACTORS = {'temperature': 1., 'pressure': 1., 'wind': 1.852,
            'gust': 1.852, 'cloud': 1., 'precipitation': 1.}
+SOURCE_UNITS = {'temperature':'°C','pressure':'hPa','wind':'kn','gust':'kn','cloud':'%','precipitation':'mm'}
+MAP_UNITS = {**SOURCE_UNITS,'wind':'km/h','gust':'km/h','precipitation':'mm/1 h'}
 KINDS = frozenset(PARAMS)
 SOURCE_MISSING = -32768
 MAX_MANIFEST_BYTES = 8_000_000
 MAX_FRAME_BYTES = 12_000_000
 
 
-def checked(source: Path, name: str, descriptor: dict) -> bytes:
-    if type(descriptor.get('bytes')) is not int or not 0 < descriptor['bytes'] < 1_000_000_000:
+def checked(source: Path, name: str, descriptor: dict, max_bytes=999_999_999) -> bytes:
+    if type(descriptor.get('bytes')) is not int or not 0 < descriptor['bytes'] <= max_bytes:
         raise ValueError(f'Invalid byte contract: {name}')
-    raw = (source / name).read_bytes()
+    path = source / name
+    if path.stat().st_size != descriptor['bytes']:
+        raise ValueError(f'SHA/byte drift: {name}')
+    raw = path.read_bytes()
     if len(raw) != descriptor['bytes'] or hashlib.sha256(raw).hexdigest() != descriptor.get('sha256'):
         raise ValueError(f'SHA/byte drift: {name}')
     return raw
@@ -80,10 +85,10 @@ def inspect(source: Path, maps: Path) -> dict:
     index = load_index(maps/'index.json')
     if (meta.get('schema') != 'mid.dwd.ruc.grid.v2' or
             utc(index.get('run')) != utc(meta.get('run')) or
-            index.get('modelId') not in (None, 'icon-d2-ruc') or
-            index.get('sampling') not in (None, 'nearest-native-cell')):
+            index.get('modelId') != 'icon-d2-ruc' or
+            index.get('sampling') != 'nearest-native-cell'):
         raise ValueError('Source/index identity drift')
-    if index.get('sourceManifestSha256') not in (None, hashlib.sha256(manifest_bytes).hexdigest()):
+    if index.get('sourceManifestSha256') != hashlib.sha256(manifest_bytes).hexdigest():
         raise ValueError('Map index source manifest SHA drift')
     grid = meta.get('lookup', {}).get('grid', meta.get('grid', {}))
     nx, ny = grid.get('nx'), grid.get('ny')
@@ -96,7 +101,7 @@ def inspect(source: Path, maps: Path) -> dict:
         raise ValueError('Invalid grid spacing')
     objects = meta.get('objects', {})
     lookup_bytes = checked(source, 'lookup.bin', objects.get('lookup.bin', {}))
-    if index.get('sourceLookupSha256') not in (None, hashlib.sha256(lookup_bytes).hexdigest()):
+    if index.get('sourceLookupSha256') != hashlib.sha256(lookup_bytes).hexdigest():
         raise ValueError('Map index source lookup SHA drift')
     if len(lookup_bytes) != nx*ny*4:
         raise ValueError('Invalid lookup byte dimensions')
@@ -114,12 +119,15 @@ def inspect(source: Path, maps: Path) -> dict:
     if (isinstance(times, list) and times and isinstance(specs, list) and specs and
             dimensions.get('dtype') == 'int16-le' and dimensions.get('layout') == 'point-time-field'):
         data = checked(source, 'deterministic.bin', objects.get('deterministic.bin', {}))
+        if index.get('sourceDeterministicSha256') != hashlib.sha256(data).hexdigest():
+            raise ValueError('Map index source deterministic SHA drift')
         if len(data) != points*len(times)*len(specs)*2:
             raise ValueError('Invalid deterministic cube shape')
         packed = np.frombuffer(data, dtype='<i2').reshape(points, len(times), len(specs))
     else:
         raise ValueError('Native deterministic source unavailable: cannot claim field coverage')
-    if any(utc(t) != utc(meta['run']) + timedelta(hours=i) for i, t in enumerate(times)):
+    run = utc(meta['run'])
+    if run.minute or run.second or run.microsecond or not 2 <= len(times) <= 28 or any(utc(t) != run + timedelta(hours=i) for i, t in enumerate(times)):
         raise ValueError('Native source has incomplete hourly validity axis')
     if not isinstance(index.get('products'), dict) or set(index['products']) != KINDS:
         raise ValueError('Expected every published RUC map parameter in domain audit')
@@ -132,6 +140,10 @@ def inspect(source: Path, maps: Path) -> dict:
         if len(spec_indices) != 1:
             raise ValueError(f'Native source field missing or ambiguous: {kind}')
         spec = specs[spec_indices[0]]
+        if spec.get('unit') != SOURCE_UNITS[kind]:
+            raise ValueError('Invalid native source unit')
+        if product.get('unit') != MAP_UNITS[kind]:
+            raise ValueError('Invalid map product unit')
         factor = FACTORS[kind]
         if not isinstance(spec.get('scale'), (int, float)) or not np.isfinite(spec['scale']) or spec['scale'] <= 0 or not np.isfinite(spec.get('offset', 0)):
             raise ValueError('Invalid source quantization')
@@ -141,20 +153,25 @@ def inspect(source: Path, maps: Path) -> dict:
             name = ref.get('file', '')
             if not isinstance(name, str) or not name.startswith(kind+'-') or '/' in name or '..' in name:
                 raise ValueError('Unexpected map object key')
-            raw = checked(maps, name, ref)
+            raw = checked(maps, name, ref, MAX_FRAME_BYTES)
             if len(raw) > MAX_FRAME_BYTES or ref.get('encoding') != 'gzip-json':
                 raise ValueError('Unexpected compressed frame format/size')
             with gzip.GzipFile(fileobj=io.BytesIO(raw)) as stream:
                 decoded = stream.read(MAX_FRAME_BYTES+1)
             if len(decoded) > MAX_FRAME_BYTES or len(decoded) != ref.get('decodedBytes'):
                 raise ValueError('Decode size mismatch')
+            if hashlib.sha256(decoded).hexdigest() != ref.get('decodedSha256'):
+                raise ValueError('Decoded frame SHA drift')
             field = json.loads(decoded)
             ys = np.asarray(field.get('lats', []), dtype=np.float64)
             xs = np.asarray(field.get('lons', []), dtype=np.float64)
             if (len(ys)<2 or len(xs)<2 or not np.isfinite(ys).all() or not np.isfinite(xs).all()
                     or np.any(np.diff(ys)<=0) or np.any(np.diff(xs)<=0)):
                 raise ValueError('Invalid published axes')
-            if field.get('kind') != kind or utc(field.get('run')) != utc(meta['run']) or \
+            expected_schema = 'mid.ruc.map-field-candidate.v1' if index['schema']=='mid.ruc.map-candidate.v1' else 'mid.ruc.map-field.v1'
+            if field.get('schema') != expected_schema or field.get('modelId') != 'icon-d2-ruc' or \
+                    field.get('sampling') != 'nearest-native-cell' or field.get('unit') != MAP_UNITS[kind] or \
+                    field.get('kind') != kind or utc(field.get('run')) != utc(meta['run']) or \
                     utc(field.get('time')) != utc(ref.get('time')):
                 raise ValueError('Map frame identity/validity mismatch')
             hour = ref.get('hour')
@@ -162,6 +179,8 @@ def inspect(source: Path, maps: Path) -> dict:
                     utc(ref.get('time')) != utc(meta['run']) + timedelta(hours=hour):
                 raise ValueError('Map forecast hour/time inconsistency')
             seen_hours.add(hour)
+            if type(ref.get('intervalHours')) is not int or ref['intervalHours'] != (1 if kind in ('gust','precipitation') else 0):
+                raise ValueError('Map frame interval mismatch')
             values = field.get('values')
             if not isinstance(values, list) or len(values) != len(xs)*len(ys):
                 raise ValueError('Published raster dimensions mismatch')
@@ -192,10 +211,15 @@ def inspect(source: Path, maps: Path) -> dict:
                          'omittedNativeLookupCells':int(np.count_nonzero(omitted)),
                          'omittedUniqueNativePoints':int(len(omitted_native_indices)),
                          'omittedKnownParameterNativePoints':known_outside})
+        expected_hours = set(range(1 if kind in ('gust','precipitation') else 0, len(times)))
+        if seen_hours != expected_hours:
+            raise ValueError(f'Incomplete map forecast axis: {kind}')
         product_results.append({'parameter':kind, 'frames':rows})
     if (source/'latest.json').read_bytes() != manifest_bytes:
         raise ValueError('Source changed during read-only audit')
     return {'schema':'mid.model-domain-audit.v1','sourceRun':meta['run'],
+            'sourceForecastHours':len(times)-1, 'full27HourSourceAxis':len(times)==28,
+            'allSourceForecastHoursPresent':True,
             'sourceLookupBounds':[float(lon[0]),float(lat[0]),float(lon[-1]),float(lat[-1])],
             'sourceLookupCells':int(nx*ny),'nativeLookupCoveredCells':int(np.count_nonzero(native)),
             'products':product_results,
@@ -210,7 +234,7 @@ def main() -> None:
     args = p.parse_args()
     report = inspect(args.source, args.maps)
     print(json.dumps(report, ensure_ascii=False, separators=(',',':')))
-    if not report['allFramesCoverKnownNativeLookup']:
+    if not report['allFramesCoverKnownNativeLookup'] or not report['full27HourSourceAxis']:
         raise SystemExit(2)
 
 if __name__ == '__main__': main()
