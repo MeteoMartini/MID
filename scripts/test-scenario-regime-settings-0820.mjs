@@ -10,7 +10,7 @@ const [weather,ensemble,verification,panel,settings,styles,app]=await Promise.al
 ]);
 const failures=[];
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
-need(weather,"const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v18:'",'Alter Ensemblecache wird nicht invalidiert.');
+need(weather,"const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v19:'",'Alter Ensemblecache wird nicht invalidiert.');
 need(weather,'const trajectories=collected;if(trajectories.length<10)return[];','Vollständige Member-Trajektorien werden nicht in die Cluster übernommen.');
 need(weather,'if(complete.length!==dates.length)continue','Unvollständige Member-Trajektorien müssen weiterhin ausgeschlossen bleiben.');
 need(weather,'if(!row||![row.max,row.min,row.precipitation].every(Number.isFinite))return[];','Numerisch ungültige Szenariowerte müssen ausgeschlossen bleiben.');

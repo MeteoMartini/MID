@@ -1,3 +1,7 @@
+## v0.9.85.318 · Feste Anbieterzeiten und echte lokale Kalendertage
+
+Offsetlose Open-Meteo-Rohzeiten werden mit dem festen numerischen Antwortoffset in absolute Epochen übersetzt; nutzerlokale Eventgrenzen bleiben IANA-basiert. Ortszeitlabels sind davon abgeleitet und erhalten an Übergängen eindeutige Offsets. Originalendstempel bleiben als Provenienz erhalten. Ein abweichender fester Daily-Zeitraum darf nicht als lokaler 23-/25h-Tag erscheinen: Rekonstruktion erfordert vollständige native Stunden einschließlich folgendem Akkumulationsende und gültigen Pflichtmengen; sonst bleibt dieser Tagesdatensatz unverfügbar. Ensemble-/Eventzuordnungen folgen denselben absoluten Zeitgrenzen; alte abgeleitete Caches werden invalidiert. Rohe Caches ohne numerischen Offset werden nicht per Heuristik migriert. Details und Grenzen: docs/implementation/MID_C39_PROVIDER_TIME_0.9.85.318.md.
+
 # MID – verbindlicher Vertrag für eine konsistente Prognose aus einem Guss
 
 ## v0.9.85.311 · Gepaarter Kontrollvergleich
