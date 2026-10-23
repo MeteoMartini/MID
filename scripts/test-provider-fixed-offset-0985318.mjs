@@ -41,6 +41,11 @@ try{
  const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage'),lookups=[];
  try{Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:key=>{lookups.push(key);return key.includes('mid:ensemble:v18:')||key.includes('mid:event-ensemble:v4:')?'{}':null}}});assert.equal(readEnsembleCache(50.8,7),null);assert.equal(readEventEnsembleCache(50.8,7,'2026-10-25','00:00','23:00'),null);assert.ok(lookups.some(k=>k.startsWith('mid:ensemble:v19:')));assert.ok(lookups.some(k=>k.startsWith('mid:event-ensemble:v5:')));}finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
  const missing=fixture('2026-10-24T00:00','Europe/Berlin',7200);for(const values of Object.values(missing.hourly))values.splice(30,1);
+ const shifted=fixture('2026-10-03T00:00','Australia/Lord_Howe',37800,145),shiftedDate='2026-10-05';
+ assert.match(mapHours(shifted).find(h=>h.time.startsWith(shiftedDate)).time,/T00:30/,'Fixture actually has a phase-shifted local hourly grid');
+ const shiftedMember=parseModelMembers(shifted,{id:'shifted'}).members.get('_control').find(d=>d.date===shiftedDate);
+ assert.deepEqual(shiftedMember.complete,{temperature:false,precipitation:false,wind:false,sunshine:false},'24 samples at :30 cannot prove a midnight-aligned civil day');
+ assert.ok(!mapDays(shifted).some(d=>d.date===shiftedDate),'No fabricated partial-hour split of source accumulations');
  assert.ok(!mapDays(missing).some(d=>d.date==='2026-10-25'),'Incomplete mismatched civil day cannot reuse a fixed 24h total');
  assert.equal(providerIsoEpoch('2026-10-25T03:00','Europe/Berlin',7200),Date.parse('2026-10-25T01:00Z'));
  assert.equal(localIsoEpoch('2026-10-25T03:00','Europe/Berlin',7200),Date.parse('2026-10-25T02:00Z'),'User-local event remains IANA-aware');
