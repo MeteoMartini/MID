@@ -38,6 +38,21 @@ def field_statistics(lats,lons,values,grid_type,*,bitmap_present,number_of_point
             'valueRange':ext(val[valid]),'bitmapPresent':int(bitmap_present)}
 
 
+def assert_bitmap_decoding(values,bitmap_present,bits=None):
+    """Require the ecCodes decoded missing mask to equal GRIB Section 6."""
+    v=np.asarray(values,dtype=np.float64).reshape(-1)
+    if bitmap_present==0:
+        if bits is not None or not np.isfinite(v).all():
+            raise ValueError('Unmasked GRIB contains missing or non-finite cells')
+    elif bitmap_present==1:
+        b=np.asarray(bits).reshape(-1)
+        if b.shape!=v.shape or not np.all((b==0)|(b==1)):
+            raise ValueError('Invalid GRIB Section-6 bitmap')
+        if np.any(np.isfinite(v)!=(b==1)):
+            raise ValueError('GRIB bitmap and decoded valid values differ')
+    else:raise ValueError('Unsupported GRIB Section-6 bitmap indicator')
+
+
 def inventory_record(record,root):
     from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_get_long,codes_release,codes_set
     from grib_bitmap import decode_bitmap_values
@@ -78,6 +93,8 @@ def inventory_record(record,root):
             points=int(codes_get_long(gid,'numberOfPoints'))
             bitmap=int(codes_get_long(gid,'bitmapPresent'))
             values=decode_bitmap_values(gid)
+            bits=codes_get_array(gid,'bitmap') if bitmap==1 else None
+            assert_bitmap_decoding(values,bitmap,bits)
             lat=codes_get_array(gid,'latitudes')
             lon=codes_get_array(gid,'longitudes')
             stats=field_statistics(lat,lon,values,grid_type,bitmap_present=bitmap,number_of_points=points)
