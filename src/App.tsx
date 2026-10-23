@@ -26,7 +26,7 @@ import type {StationAnalysisField} from './sourceQuality';
 import {representativeDetailPictograms} from './detailPictograms';
 import {getMidUpdateStatus,repairMidCache,resetMidServiceWorker,rollbackMidVersion,type MidUpdateStatus} from './pwa';
 import {DWD_WARNING_COLORS,DWD_WIND_THRESHOLDS_KMH,formatDwdWindValue} from './dwdWarnings';
-import {clamp,monotoneSvgPath,nicePositiveRange,niceRange} from './chartMath';
+import {clamp,monotoneSvgPath,nicePositiveRange,niceRange,niceWindRange} from './chartMath';
 import {combineThunderstormInformation,type ThunderInfo,type ThunderInfoPlace} from './thunderstorm';
 import {combineHeavyRain,loadHeavyRainBase,type HeavyRainBase,type HeavyRainInfo} from './heavyRain';
 import {radarHistory,type RadarHistory} from './radarHistory';
@@ -1428,7 +1428,7 @@ function Forecast({latitude,longitude,calendarTimezone,days,hours,minutes15,clim
  const temperatureScale=niceRange((temperatureValues.length?Math.min(...temperatureValues):0)-1.5,(temperatureValues.length?Math.max(...temperatureValues):10)+1.5,4),tMin=temperatureScale.min,tMax=temperatureScale.max,tempRange=Math.max(1,tMax-tMin),temperatureTicks=temperatureScale.ticks;
  const pressureScale=nicePressureAxis(pressureValues),pressureMin=pressureScale.minimum,pressureMax=pressureScale.maximum,pressureRange=Math.max(1,pressureMax-pressureMin),pressureTicks=pressureScale.ticks;
  const rawRainMax=Math.max(0,...p.map((x,index)=>{const type=precipSeries[index].type;return isDetailPrecipType(type)&&visiblePrecipLegendTypes.includes(type)?x.precipitation:0})),rainScale=nicePositiveRange(Math.max(1,rawRainMax),3),rainMax=rainScale.max,rainTicks=rainScale.ticks;
- const rawWindMax=Math.max(0,...p.flatMap(x=>[showWind?x.wind:0,showGust?x.gust:0])),windScale=nicePositiveRange(Math.max(5,rawWindMax),3),windMaxScale=windScale.max,windTicks=windScale.ticks;
+ const rawWindMax=Math.max(0,...p.flatMap(x=>[showWind?x.wind:0,showGust?x.gust:0]).filter(Number.isFinite)),windScale=niceWindRange(rawWindMax,unit,3),windMaxScale=windScale.max,windTicks=windScale.ticks;
  const W=Math.max(320,detailChartWidth),narrowChart=W<560,mediumChart=W<900,left=narrowChart?42:58,right=narrowChart?48:mediumChart?64:72,plotW=Math.max(180,W-left-right),nowBadgeY=4,iconY=narrowChart?46:48,skyBarY=narrowChart?69:71,cloudTop=skyBarY+(narrowChart?19:21),selectedMarkerTop=iconY-10;
  const tempHeight=narrowChart?112:mediumChart?132:154,thermalFeelHeight=narrowChart?10:12,pressureHeight=narrowChart?54:mediumChart?62:70,rainHeight=narrowChart?68:mediumChart?80:92,windHeight=narrowChart?58:mediumChart?70:82,directionHeight=showDirection?(narrowChart?26:30):0,sectionGap=narrowChart?10:14,thermalGap=narrowChart?7:9;
  let sectionCursor=cloudTop+12;

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.314",
+  "releaseVersion": "0.9.85.316",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -14,6 +14,7 @@
     "requireFeatureContract": true
   },
   "requiredRegressionTests": [
+    "scripts/test-map-scalar-annotations-0985316.mjs",
     "scripts/test-paired-verification-0985311.mjs",
     "scripts/test-ruc-composites-horizons-0985308.mjs",
     "scripts/test-ruc-map-pipeline-0985305.mjs",
@@ -1034,6 +1035,7 @@
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
+    "scripts/test-map-scalar-annotations-0985316.mjs",
     "scripts/test-paired-verification-0985311.mjs",
     "scripts/test-ruc-composites-horizons-0985308.mjs",
     "scripts/test-ruc-map-pipeline-0985305.mjs",
@@ -3699,7 +3701,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.314",
+  "version": "0.9.85.316",
   "updatedAt": "2026-10-23",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
