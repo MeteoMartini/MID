@@ -25,16 +25,18 @@ export const scalarLineName=(kind:NativeField['kind'])=>({temperature:'Isotherme
 export function nativeRasterExtremes(field:NativeField,viewport?:RasterViewport):RasterExtreme[]{
  if(field.kind==='sigwx')return [];
  if(viewport&&(![viewport.south,viewport.north,viewport.west,viewport.east].every(Number.isFinite)||viewport.south>viewport.north))return [];
+ const width=field.lons.length,height=field.lats.length;
+ // A malformed raster must not return an arbitrary extreme or convert absent cells into zero.
+ if(!width||!height||field.values.length!==width*height||!Number.isFinite(field.scale))return [];
+ const rows=viewport?field.lats.flatMap((lat,row)=>Number.isFinite(lat)&&lat>=viewport.south-1e-10&&lat<=viewport.north+1e-10?[row]:[]):field.lats.map((_,row)=>row);
+ const columns=viewport?field.lons.flatMap((lon,col)=>Number.isFinite(lon)&&visibleLongitude(lon,viewport.west,viewport.east)?[col]:[]):field.lons.map((_,col)=>col);
  let lo=-1,hi=-1;
- const width=field.lons.length;
- for(let i=0;i<field.values.length;i++){
-  if(!Number.isFinite(field.values[i]))continue;
-  if(viewport){
-   const lat=field.lats[Math.floor(i/width)],lon=field.lons[i%width];
-   if(lat<viewport.south-1e-10||lat>viewport.north+1e-10||!visibleLongitude(lon,viewport.west,viewport.east))continue;
-  }
-  if(lo<0||field.values[i]<field.values[lo])lo=i;
-  if(hi<0||field.values[i]>field.values[hi])hi=i;
+ // Row-major traversal preserves first-cell ties while only touching the visible cells.
+ for(const row of rows)for(const col of columns){
+  const i=row*width+col,value=field.values[i];
+  if(!Number.isFinite(value))continue;
+  if(lo<0||value<field.values[lo])lo=i;
+  if(hi<0||value>field.values[hi])hi=i;
  }
  if(lo<0)return [];
  return ([['Min',lo],['Max',hi]] as const).map(([type,i])=>({type,lat:field.lats[Math.floor(i/field.lons.length)],lon:field.lons[i%field.lons.length],value:field.values[i]*field.scale}));
