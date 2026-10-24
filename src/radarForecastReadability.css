@@ -81,3 +81,23 @@ html[data-mid-design='next'] .cockpit-day.mid-forecast-row .cockpit-day-temps>.c
 
 /* Tablet/mobile rows must not inherit classic per-day column placement. */
 @media(max-width:1100px){html[data-mid-design='next'] .forecast-cockpit.modern-workspace .cockpit-seven-grid>.cockpit-day.mid-forecast-row{grid-column:1!important;grid-row:auto!important}}
+
+/* MID .319: measurable rain-rate intensity is encoded by hue.
+   Forecast uncertainty is encoded separately by stipple/hatching and opacity.
+   Percentage = uncalibrated nowcast ensemble hit fraction, NOT official probability. */
+html #mid-radar-nowcast .radar-nowcast-wet.intensity-light{--radar-intensity:#3589d8}
+html #mid-radar-nowcast .radar-nowcast-wet.intensity-moderate{--radar-intensity:#15996f}
+html #mid-radar-nowcast .radar-nowcast-wet.intensity-strong{--radar-intensity:#da6a26}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet:not(.radar-nowcast-missing):not(.nearby){background:var(--radar-intensity,#3589d8)!important;opacity:.98!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.scenario-high:not(.nearby):not(.radar-nowcast-missing){background:var(--radar-intensity)!important;opacity:.95!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.scenario-medium:not(.nearby):not(.radar-nowcast-missing){background:repeating-linear-gradient(135deg,var(--radar-intensity) 0 5px,color-mix(in srgb,var(--radar-intensity) 38%,transparent) 5px 9px)!important;opacity:.79!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.scenario-low:not(.nearby):not(.radar-nowcast-missing){background:repeating-linear-gradient(135deg,var(--radar-intensity) 0 3px,transparent 3px 9px)!important;opacity:.59!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.scenario-unknown:not(.nearby):not(.radar-nowcast-missing){background:repeating-linear-gradient(135deg,var(--radar-intensity) 0 3px,transparent 3px 7px)!important;opacity:.68!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.nearby:not(.radar-nowcast-missing){background:repeating-linear-gradient(135deg,#7c8b9a 0 3px,transparent 3px 8px)!important;opacity:.65!important}
+html #mid-radar-nowcast.radar-nowcast-strip.compact .radar-nowcast-wet.radar-nowcast-missing{background:repeating-linear-gradient(135deg,transparent 0 3px,#8994a0 3px 4px)!important;opacity:.65!important}
+html #mid-radar-nowcast .radar-nowcast-visual-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;min-width:0;margin:0;font-size:10px;line-height:1.45;color:var(--text)}
+html #mid-radar-nowcast .radar-nowcast-visual-legend>span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+html #mid-radar-nowcast .radar-nowcast-visual-legend i{display:inline-block;width:10px;height:9px;border-radius:2px;background:#3589d8}
+html #mid-radar-nowcast .radar-nowcast-visual-legend i.intensity-moderate{background:#15996f}
+html #mid-radar-nowcast .radar-nowcast-visual-legend i.intensity-strong{background:#da6a26}
+html #mid-radar-nowcast .radar-nowcast-visual-legend small{flex-basis:100%;min-width:0;color:var(--muted);font-size:9px;line-height:1.4}
