@@ -1,3 +1,7 @@
+# MID v0.9.85.322 · Isolierte native RUC-Seitenschritte (Source-Kandidat)
+
+Verifizierte Ausgangsbasis main=mid-stable=205d4c6bf8f9799c9f4ef38f31d20b7940470ced (.321). RUC-Lauf 40088804651 beendete sich nach der Storage-Audit-Ausgabe mit SIGABRT/Exit 134: double free or corruption. Getrennte Python-Prozesse für ICON-D2-Summen, RADOLAN-H5, Modellkarten und Synoptik begrenzen native Bibliothekslebenszyklen; nicht erwartete Exceptions und native Signalabstürze blockieren unverändert jede Veröffentlichung. Kein Codec-, SHA-, Missing-/NoData-, DWD-, 900-MB-, Security- oder Release-Gate wird umgangen. Vollständige Codec-/Pages-/Worker-/Fusion-Produktivabnahme steht noch aus.
+
 # MID v0.9.85.321 · RADOLAN-Abhängigkeiten im Pages-Pfad
 
 Basis freigegeben .319 4c092751208c437a152eb8fcdf87fd8301a537cb, fast-forward auf vollständig source-geprüften Main-Kandidaten 78db20da51104bb2104e06fbe2f7d18f750247f8 (.320). RUC-Job 120826278775 scheiterte nach erfolgreicher Rohaufbereitung an fehlendem h5py: requirements-pages.txt enthielt anders als requirements.txt keine ODIM-Abhängigkeiten. Ergänzt h5py/pyproj im Lean-Pfad, kein awscli, kein neuer Dienst, keine Daten-/Gate-Abschwächung. Kontur-Hilfetext präzisiert. Release-/Live-RADOLAN-Nachweise noch erforderlich.

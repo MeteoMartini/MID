@@ -1,4 +1,5 @@
-# MID v0.9.85.321
+# MID v0.9.85.322
 
-- RADOLAN: Die HDF5- und Projektionsbibliotheken werden auch im schlanken Pages-/Installer-Pfad installiert. Dies behebt den belegten Importabbruch vor der Summenveröffentlichung.
-- Karten: Der Hilfetext beschreibt die je Zoomstufe einheitlichen Druckkonturintervalle korrekt.
+- RUC: Isolierte native DWD-/RADOLAN-/Synoptik-Seitenschritte trennen native Bibliothekslebenszyklen im Pages-Packer; die Crash-Behebung muss im echten Datenlauf bestätigt werden.
+- Native Prozessabstürze, fehlgeschlagene Metadaten-/Integritätsprüfungen und Codec-Fehler bleiben fatal. Die vollständige verlustfreie Migration, der gesicherte Raw-Rollback und der 900-MB-Grenzwert bleiben unverändert.
+- Die tatsächliche Wiederherstellung erfordert separate RUC-, Pages-, Worker-, Fusion- und Stable-Live-Nachweise; ein grünes Source-Gate allein genügt nicht.

@@ -117,9 +117,12 @@ jobs:
           MID_RUC_EPS_DECODE_WORKERS: '2'
         run: python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
       - name: RUC-Wire- und Pages-Free-Profil prüfen
+        env:
+          PYTHONFAULTHANDLER: '1'
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
           python tools/ruc/test_ruc_pack.py
+          python tools/ruc/test_ruc_native_sidecar.py
           python tools/ruc/test_prepare_ruc_pages.py
           # The preparer preserves the verified index after DWD build_synoptic
           # and directly before the legacy raw-budget projection.
