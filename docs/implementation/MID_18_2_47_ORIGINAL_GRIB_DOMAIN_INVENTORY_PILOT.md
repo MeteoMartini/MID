@@ -34,3 +34,29 @@ Bestehende Konturen/Audit sind über PR #448 bereits in .314 integriert; Drafts 
 Ausgangsbasis dieses Integrationschecks: 205d4c6bf8f9799c9f4ef38f31d20b7940470ced, main = mid-stable. Historische Basisangaben oben beschreiben den ursprünglichen Pilot. Keine Produktionsaktivierung und keine neue App-Version.
 
 Die vier Pilotdateien wurden selektiv auf .321 angewendet; 16/16 Python-Regressionen erfolgreich. Erster echter Original-RUC-Test: PMSL, Lauf 24.10.2026 16Z, +0h, SHA256 52b30ec5591d2a2f6a9f13406bde309de6cd8f4e6089520641077ba748892b88. SHA/Bitmap/Parameter/Runprüfung läuft bis zum Zugriff auf latitudes; dort ecCodes KeyValueNotFoundError am unstrukturierten Originalgitter. Keine Geometrie erfinden: CLAT/CLON und Grididentität müssen explizit verknüpft werden. Diese Echtdatenabnahme ist fehlgeschlagen, nicht als Vollgebiet freigegeben. #446 bleibt offen.
+
+
+### Native Koordinatenbindung nach Echtdatenfehler ergänzt
+
+Der oben dokumentierte erste Fehler wurde im Pilot eingegrenzt und behoben:
+Für unstructured_grid verlangt jeder Input-Record nun nativeCoordinates mit
+latitude/longitude, jeweils path und Original-sha256 innerhalb desselben root.
+CLAT/CLON müssen GRIB2, DWD-Zentrum 78, WMO 0/191/1 bzw. 0/191/2 und dieselbe
+UUID, numberOfGridUsed, numberOfGridInReference und Punktzahl tragen. Die Reihenfolge
+nativer Zellen bleibt unverändert. Zeitkonstante Gridkoordinaten dürfen unabhängig
+von der Forecast-Gültigkeit gebunden werden; keine Interpolation oder Nearest-Zuordnung.
+Die tatsächlichen DWD-Einheiten Degree N/Degree E wurden an den Originaldateien
+verifiziert. Radian-Einheiten werden explizit in Grad umgerechnet, fremde oder
+vertauschte Richtungseinheiten abgewiesen. SHA, Budget, Doppelmessage, Missing,
+Punktzahl und native Provenienz bleiben fail-closed.
+
+24/24 synthetische Regressionen bestanden, darunter acht neue Koordinatengrenzfälle.
+Ein echter originaler RUC-PMSL-Record (24.10.2026 16Z, +0h) besteht nun mit
+542040 Zellen, 525072 gültigen und 16968 fehlenden Werten. Das koordinatengebundene
+gültige Gebiet reicht 43,147320..58,060894 Grad N und -3,943863..20,303696 Grad E.
+Der unveränderte native Wertbereich ist 96793,21875..102647,71875 Pa.
+SHA/UUID/Koordinatenquellen: MID_C41_RUC_DOMAIN_SAMPLE.json.
+
+Dies ist genau EINE Parameter-/Lauf-/Lead-Stichprobe; weder vollständiges
+Drei-Lauf-Inventar aller Kartenparameter noch produktive Vollgebiets-Karte.
+fullDomainProductionApproved bleibt false, #446 bleibt offen und dieser PR Draft.

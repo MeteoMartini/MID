@@ -61,4 +61,49 @@ class DomainInventoryTests(unittest.TestCase):
   a=[{'model':'icon-d2','parameter':'pmsl','run':str(i),'leadHours':1} for i in range(3)]
   with self.assertRaisesRegex(ValueError,'Insufficient'):
    validate_collection(a,parameters={'icon-d2':['pmsl','t_2m']},leads={'icon-d2/pmsl':[1],'icon-d2/t_2m':[1]})
+class NativeCoordinateTests(unittest.TestCase):
+ def exercise(self, *, bad_sha=False, drift=False, units='rad', point_count=3, extra=False):
+  import hashlib,sys,tempfile,types
+  from pathlib import Path
+  from unittest.mock import patch
+  from pilot_dwd_domain_inventory import native_coordinates
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td);bindings={}
+   for name in ('latitude','longitude'):
+    p=root/name;p.write_bytes(name.encode())
+    bindings[name]={'path':name,'sha256':'0'*64 if bad_sha else hashlib.sha256(p.read_bytes()).hexdigest()}
+   identities={'uuidOfHGrid':'abc','numberOfGridUsed':47,'numberOfGridInReference':1,'numberOfPoints':3}
+   def get(handle,key):
+    if key in identities:return 'wrong' if drift and handle and key=='uuidOfHGrid' else identities[key]
+    return {'gridType':'unstructured_grid','edition':2,'centre':78,'discipline':0,'parameterCategory':191,'parameterNumber':handle,'units':({'latitude':'Degree N','longitude':'Degree E'}['latitude' if handle==1 else 'longitude'] if units=='dwd-degrees' else units)}[key]
+   handles=iter([1,99] if extra else [1,None,2,None])
+   fake=types.SimpleNamespace(codes_get=get,codes_get_long=get,codes_get_array=lambda h,k: np.array([.1,.2,.3])[:point_count],codes_grib_new_from_file=lambda f:next(handles),codes_release=lambda h:None)
+   with patch.dict(sys.modules,{'eccodes':fake}):
+    return native_coordinates({'nativeCoordinates':bindings},root,0)
+ def test_native_index_order_and_radians_are_preserved(self):
+  lat,lon,origin=self.exercise()
+  np.testing.assert_allclose(lat,np.rad2deg([.1,.2,.3]));np.testing.assert_array_equal(lat,lon)
+  self.assertEqual(set(origin),{'latitude','longitude'})
+ def test_original_dwd_coordinate_units_preserve_degrees(self):
+  lat,lon,_=self.exercise(units='dwd-degrees')
+  np.testing.assert_array_equal(lat,[.1,.2,.3]);np.testing.assert_array_equal(lon,lat)
+ def test_hash_drift_rejected_before_decode(self):
+  with self.assertRaisesRegex(ValueError,'SHA drift'):self.exercise(bad_sha=True)
+ def test_same_length_wrong_uuid_is_rejected(self):
+  with self.assertRaisesRegex(ValueError,'identity mismatch'):self.exercise(drift=True)
+ def test_unverified_units_rejected(self):
+  with self.assertRaisesRegex(ValueError,'units'):self.exercise(units='metres')
+ def test_missing_coordinate_cell_rejected(self):
+  with self.assertRaisesRegex(ValueError,'Incomplete'):self.exercise(point_count=2)
+ def test_multiple_coordinate_messages_rejected(self):
+  with self.assertRaisesRegex(ValueError,'Ambiguous'):self.exercise(extra=True)
+ def test_absent_binding_never_invents_coordinates(self):
+  import sys,types,tempfile
+  from pathlib import Path
+  from unittest.mock import patch
+  from pilot_dwd_domain_inventory import native_coordinates
+  fake=types.SimpleNamespace(**{k:None for k in ['codes_grib_new_from_file','codes_get','codes_get_array','codes_get_long','codes_release']})
+  with patch.dict(sys.modules,{'eccodes':fake}),tempfile.TemporaryDirectory() as td:
+   with self.assertRaisesRegex(ValueError,'SHA-pinned CLAT/CLON'):native_coordinates({},Path(td),0)
+
 if __name__=='__main__': unittest.main()

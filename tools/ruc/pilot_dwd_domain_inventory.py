@@ -62,6 +62,75 @@ def assert_grib_identity(actual,record,step_type):
         raise ValueError('GRIB parameter or statistical processing identity drift')
 
 
+def native_coordinates(record, root, gid):
+    """Bind original DWD CLAT/CLON by hashes and native grid identity.
+
+    Native point indices are preserved. No nearest-cell sampling or regridding.
+    Coordinate fields are time-constant; UUID/point-order identity, not forecast
+    validity, is the authority for attaching them to an original scalar field.
+    """
+    from eccodes import codes_grib_new_from_file, codes_get, codes_get_array, codes_get_long, codes_release
+    bindings = record.get('nativeCoordinates')
+    if not isinstance(bindings, dict) or set(bindings) != {'latitude', 'longitude'}:
+        raise ValueError('Native GRIB requires SHA-pinned CLAT/CLON bindings')
+    keys = ('uuidOfHGrid', 'numberOfGridUsed', 'numberOfGridInReference', 'numberOfPoints')
+    identity = tuple(str(codes_get(gid, key)).lower() for key in keys)
+    arrays = []
+    provenance = {}
+    for axis, parameter in (('latitude', 1), ('longitude', 2)):
+        entry = bindings[axis]
+        if not isinstance(entry, dict) or set(entry) != {'path', 'sha256'}:
+            raise ValueError('Incomplete native coordinate binding')
+        path = (root / entry['path']).resolve(strict=True)
+        if not path.is_relative_to(root.resolve()) or not 0 < path.stat().st_size <= MAX_FILE_BYTES:
+            raise ValueError('Native coordinate path or byte budget invalid')
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        if not re.fullmatch('[a-f0-9]{64}', str(entry['sha256'])) or digest != entry['sha256']:
+            raise ValueError('Native coordinate SHA drift')
+        # Coordinate binaries have the same bounded file/decompression contract.
+        with tempfile.TemporaryFile() as stream:
+            with (bz2.BZ2File(path) if path.name.endswith('.bz2') else path.open('rb')) as source:
+                total = 0
+                for chunk in iter(lambda: source.read(1_048_576), b''):
+                    total += len(chunk)
+                    if total > MAX_FILE_BYTES * 8:
+                        raise ValueError('Native coordinate decoded byte budget exceeded')
+                    stream.write(chunk)
+            stream.seek(0)
+            handle = codes_grib_new_from_file(stream)
+            if handle is None:
+                raise ValueError('Empty native coordinate GRIB')
+            try:
+                actual = tuple(str(codes_get(handle, key)).lower() for key in keys)
+                signature = tuple(int(codes_get_long(handle, key)) for key in
+                                  ('centre', 'discipline', 'parameterCategory', 'parameterNumber'))
+                if (actual != identity or codes_get(handle, 'gridType') != 'unstructured_grid'
+                        or int(codes_get_long(handle, 'edition')) != 2
+                        or signature != (78, 0, 191, parameter)):
+                    raise ValueError('Native CLAT/CLON grid or WMO identity mismatch')
+                values = np.asarray(codes_get_array(handle, 'values'), dtype=np.float64)
+                units = str(codes_get(handle, 'units'))
+                if units in ('rad', 'radian', 'radians'):
+                    values = np.rad2deg(values)
+                elif units not in ('degree', 'degrees', *({'latitude': ('degrees_north', 'Degree N'), 'longitude': ('degrees_east', 'Degree E')}[axis])):
+                    raise ValueError('Unverified native coordinate units')
+                if values.size != int(identity[-1]) or not np.isfinite(values).all():
+                    raise ValueError('Incomplete native coordinate cells')
+                if axis == 'latitude' and np.any(np.abs(values) > 90):
+                    raise ValueError('Native latitude outside physical range')
+                if axis == 'longitude' and np.any((values < -180) | (values > 360)):
+                    raise ValueError('Native longitude outside physical range')
+                arrays.append(values.copy())
+                provenance[axis] = {'sha256': digest, 'gridIdentity': list(identity), 'units': units}
+                extra = codes_grib_new_from_file(stream)
+                if extra is not None:
+                    codes_release(extra)
+                    raise ValueError('Ambiguous native coordinate messages')
+            finally:
+                codes_release(handle)
+    return arrays[0], arrays[1], provenance
+
+
 def inventory_record(record,root):
     from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_get_long,codes_release,codes_set
     from grib_bitmap import decode_bitmap_values
@@ -104,9 +173,14 @@ def inventory_record(record,root):
             values=decode_bitmap_values(gid)
             bits=codes_get_array(gid,'bitmap') if bitmap==1 else None
             assert_bitmap_decoding(values,bitmap,bits)
-            lat=codes_get_array(gid,'latitudes')
-            lon=codes_get_array(gid,'longitudes')
+            coordinate_provenance = None
+            if grid_type == 'unstructured_grid':
+                lat, lon, coordinate_provenance = native_coordinates(record, root, gid)
+            else:
+                lat=codes_get_array(gid,'latitudes')
+                lon=codes_get_array(gid,'longitudes')
             stats=field_statistics(lat,lon,values,grid_type,bitmap_present=bitmap,number_of_points=points)
+            if coordinate_provenance is not None:stats['nativeCoordinates']=coordinate_provenance
             stats['parameterIdentity']=[int(codes_get_long(gid,k)) for k in ('discipline','parameterCategory','parameterNumber')]
             stats['stepType']=str(codes_get(gid,'stepType'))
             assert_grib_identity(stats['parameterIdentity'],record,stats['stepType'])
