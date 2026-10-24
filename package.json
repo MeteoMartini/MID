@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.304",
+  "version": "0.9.85.321",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -555,7 +555,12 @@
     "test:location-search-layers": "node scripts/test-location-search-layers-0985293.mjs",
     "test:bundle-budget-integrity": "node scripts/test-bundle-budget-missing-assets-0985299.mjs",
     "test:skybar-precipitation-nodata": "node scripts/test-skybar-precipitation-nodata-0985300.mjs",
-    "test:extreme-direct-abort-isolation": "node scripts/test-direct-outlook-abort-isolation-0985301.mjs"
+    "test:extreme-direct-abort-isolation": "node scripts/test-direct-outlook-abort-isolation-0985301.mjs",
+    "test:ruc-map-pipeline": "node scripts/test-ruc-map-pipeline-0985305.mjs",
+    "test:ruc-native-map-integration": "node scripts/test-ruc-native-map-integration-0985305.mjs",
+    "test:extreme-outlook-render-fallback": "node scripts/test-extreme-outlook-render-fallback-0985309.mjs",
+    "test:extreme-outlook-browser-qa": "node scripts/verify-extreme-outlook-pixels-browser-0985309.mjs",
+    "test:extreme-outlook-browser-contract": "node scripts/test-extreme-outlook-browser-contract-0985309.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",
@@ -584,10 +589,10 @@
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "6.1.1",
     "esbuild": "0.28.2",
+    "postcss": "8.5.28",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "8.2.2",
-    "postcss": "8.5.28"
+    "vite": "8.2.4"
   },
   "packageManager": "npm@10.9.2",
   "engines": {

@@ -1,3 +1,9 @@
+# Separate RUC-Kartenachse ab v0.9.85.305
+
+Die optionalen RUC-Modellkarten erhalten eine eigene stündliche Achse0…27h aus demselben vollständig validierten nativen DWD-Lauf. Der gesamte ursprüngliche0…14h-Kern muss nach Dekodierung der aktiven Codec-Parts bitgleich zum Präfix der Kartenquelle sein. +27h wird nur bei vollständig dekodierten12Feldern, identischem Gitter, GRIB-/UTC-/Intervall-/Einheiten-/Missing-Prüfungen und darstellbaren int16-Werten zugelassen; sonst bleibt der geprüfte Kernhorizont für Karten verwendbar. Kein zusätzlicher Konsensbeitrag, keine EPS-/Rapid-/Fusion-Erweiterung. Kartenprodukte Temperatur/Druck/Wind/Böen/Wolken/Niederschlag nutzen den bestehenden Lookup als nearest-native-cell-Sampling, ohne Wertglättung. NoData bleibt null/transparent; trockene0 bleibt0. Initialisierungs-Böe/-Niederschlag wird nicht als1h-Intervall angeboten.
+
+Zulassung erst nach kompletter Codec-Aktivierung und Prüfung sämtlicher vorhandener SHA-/Größeninventare. Atomare Manifestersetzung nach unveränderlicher Ausgabe aller Kartenobjekte, erneutem Source-Check und realer Gesamtbudgetprüfung (<900000000Bytes einschließlich Manifest). Bestehende Objekte, Codec-Proof und separat archivierter Raw-Rollback bleiben unverändert. Kartenfehler lassen den bestehenden validierten Snapshot bestehen. Browser prüft Root-/Index-/Frame-Verträge, SHA/Bytes, vier Stunden Freshness und durchgängige identische Stundenachsen. Keine RUC-Daten als ICON-D2 oder WMS-Ersatz ausgeben.
+
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
 Stand: v0.9.85.231

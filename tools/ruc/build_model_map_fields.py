@@ -59,8 +59,11 @@ def theta_e(t,rh):
 def contours(values,lats,lons):
     import contourpy
     from pressure_contour_spacing import pressure_spacing,line_spacing
-    # Keep established display grid; point values retain native resolution.
-    v=values[::6,::6];lat=lats[::6];lon=lons[::6];result=[]
+    # Use each available regular-grid cell for contour geometry: a 1:6 stride
+    # loses isolated pressure extrema and draws scientifically incomplete lines.
+    v=np.asarray(values,dtype=np.float64);lat=np.asarray(lats,dtype=np.float64);lon=np.asarray(lons,dtype=np.float64);result=[]
+    if v.ndim!=2 or v.shape!=(len(lat),len(lon)):
+        raise ValueError('pressure contour geometry differs from field grid')
     finite=np.isfinite(v)
     if len(lat)<2 or len(lon)<2 or not finite.any():return result
     cg=contourpy.contour_generator(x=lon,y=lat,z=np.ma.array(v,mask=~finite),corner_mask=False)

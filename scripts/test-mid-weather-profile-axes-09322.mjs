@@ -25,9 +25,9 @@ for(const token of [
   '>hPa</text>',
   "unit==='kmh'?'km/h':unit==='ms'?'m/s':unit==='mph'?'mph':'kt'",
   'x={leftScaleLabelX}',
-  '[chartRainMax,chartRainMax/2,0].map',
+  'chartRainScale.ticks.slice().reverse().map',
   '[100,50,0].map',
-  '[chartWindMax,chartWindMax/2,0].map'
+  'chartWindScale.ticks.slice().reverse().map'
 ])need('24-h-Wetterprofil',cockpit,token);
 
 for(const token of [

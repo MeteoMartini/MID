@@ -1,0 +1,49 @@
+{
+  "schema": "mid.icon-d2.real-contour-canary.v1",
+  "source": "DWD Open Data real GRIB2",
+  "generatedAt": "2026-10-22T19:11:55.044897+00:00",
+  "modelRun": "2026-10-22T18:00:00+00:00",
+  "frames": [
+    {
+      "leadHours": 1,
+      "validAt": "2026-10-22T19:00:00+00:00",
+      "source": "https://opendata.dwd.de/weather/nwp/icon-d2/grib/18/pmsl/icon-d2_germany_regular-lat-lon_single-level_2026102218_001_2d_pmsl.grib2.bz2",
+      "sourceSha256": "284485db55d32bd2d4321702819ea1718f7204f8de042ee1dfd2c02e8d83bb41",
+      "compressedBytes": 857671,
+      "decodedBytes": 2103416,
+      "rows": 410,
+      "cols": 505,
+      "cells": 207050,
+      "grid": "DWD regular_ll, not triangular native",
+      "deltaLat": 0.020000000000003126,
+      "deltaLon": 0.019999999999999574,
+      "minHpa": 1007.981640625,
+      "maxHpa": 1026.914765625,
+      "strideSixMinHpa": 1008.061015625,
+      "strideSixMaxHpa": 1026.618515625,
+      "contourLevels": 19,
+      "contourSegments": 24638
+    },
+    {
+      "leadHours": 3,
+      "validAt": "2026-10-22T21:00:00+00:00",
+      "source": "https://opendata.dwd.de/weather/nwp/icon-d2/grib/18/pmsl/icon-d2_germany_regular-lat-lon_single-level_2026102218_003_2d_pmsl.grib2.bz2",
+      "sourceSha256": "692221f5944e6a29344bc3acb2ed01f9976d39dbb37da766f8e44b603b8c093a",
+      "compressedBytes": 878589,
+      "decodedBytes": 2217074,
+      "rows": 410,
+      "cols": 505,
+      "cells": 207050,
+      "grid": "DWD regular_ll, not triangular native",
+      "deltaLat": 0.020000000000003126,
+      "deltaLon": 0.019999999999999574,
+      "minHpa": 1008.983828125,
+      "maxHpa": 1027.428203125,
+      "strideSixMinHpa": 1009.030078125,
+      "strideSixMaxHpa": 1027.428203125,
+      "contourLevels": 19,
+      "contourSegments": 27874
+    }
+  ],
+  "limitations": "Tests regular remap only, not triangular native or RUC skill"
+}

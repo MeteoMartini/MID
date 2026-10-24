@@ -22,9 +22,14 @@ function contourPolygons(contour:ExtremeAreaContour):Position[][][]{
   ring.parent=parent;
   if(parent)parent.children.push(ring);
  }
- const depthOf=(ring:OverlayRing)=>{let depth=0,current=ring.parent;while(current){depth++;current=current.parent}return depth};
  const polygons:Position[][][]=[];
- const appendPolygon=(outer:OverlayRing)=>{const polygon:Position[][]=[normalizeOrientation(outer.closed,false)];const stack=[...outer.children];while(stack.length){const child=stack.shift()!;const depth=depthOf(child)-depthOf(outer);if(depth===1)polygon.push(normalizeOrientation(child.closed,true));else if(depth%2===0)appendPolygon(child);stack.push(...child.children)}polygons.push(polygon)};
+ // Traverse each island once, through its immediate parent hole. The former
+ // ancestor-wide queue re-added islands at depths 4, 6, ... as duplicate fills.
+ const appendPolygon=(outer:OverlayRing)=>{
+  const polygon:Position[][]=[normalizeOrientation(outer.closed,false),...outer.children.map(hole=>normalizeOrientation(hole.closed,true))];
+  polygons.push(polygon);
+  for(const hole of outer.children)for(const island of hole.children)appendPolygon(island);
+ };
  for(const ring of rings)if(!ring.parent)appendPolygon(ring);
  return polygons;
 }

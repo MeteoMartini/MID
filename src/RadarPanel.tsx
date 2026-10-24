@@ -1,3 +1,4 @@
+import {modelLeadLabel,modelAvailableLabel} from './modelForecastTime';
 import './mapCanvasResponsive.css';
 import {compositeReferenceLayers,readMapReferenceSettings,MAP_REFERENCE_KEY,type MapReferenceSettings} from './mapReferenceLayers';
 import {Fragment,lazy,memo,Suspense,useCallback,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
@@ -504,7 +505,7 @@ const applyLineTonePreset=(value:ModelLineTone)=>{setModelLineTone(value);if(val
      rangeLabel="Verfügbaren Produktstand auswählen"
      countLabel={null}
      valueLabel={relative}
-      detailLabel={<>{frames.length?`${index+1} / ${frames.length} · `:''}{formatInZone(targetMs,timezone,{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · {phaseLabel}{selectedFrame?.source?` · ${selectedFrame.source}`:''}{selectedFrame?.phase==='forecast'?` · Prognosebeginn/INIT ${(unified?.run||modelData.wms?.referenceTime)&&Number.isFinite(Date.parse(unified?.run||modelData.wms!.referenceTime))?formatInZone(Date.parse(unified?.run||modelData.wms!.referenceTime),timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'nicht verfügbar'}`:''}</>}
+      detailLabel={<>{frames.length?`${index+1} / ${frames.length} · `:''}{formatInZone(targetMs,timezone,{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · {phaseLabel}{unified&&selectedFrame?.phase==='forecast'?` · ${modelAvailableLabel(unified.run,unified.times)}`:''}{selectedFrame?.source?` · ${selectedFrame.source}`:''}{selectedFrame?.phase==='forecast'?` · Gewählt ${modelLeadLabel(unified?.run||modelData.wms?.referenceTime,new Date(targetMs).toISOString())} · Prognosebeginn/INIT ${(unified?.run||modelData.wms?.referenceTime)&&Number.isFinite(Date.parse(unified?.run||modelData.wms!.referenceTime))?formatInZone(Date.parse(unified?.run||modelData.wms!.referenceTime),timezone,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'nicht verfügbar'}`:''}</>}
      liveLabel="Jetzt"
      playLabel="Komposit-Animation starten"
      pauseLabel="Komposit-Animation pausieren"

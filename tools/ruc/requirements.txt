@@ -6,3 +6,7 @@ requests>=2.31,<3
 awscli>=1.32,<2
 
 contourpy>=1.3,<2
+
+# CI-only ODIM-H5 RADOLAN RW decoding and WGS84 stereographic reprojection.
+h5py>=3.12,<4
+pyproj>=3.7,<4

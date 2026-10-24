@@ -13,3 +13,10 @@ Bei verifizierter Datenreife folgt erst ein gesonderter versionierter Source-PR 
 ## Weiterführender Gate-1-Nachweis nach erfolgreicher Erstprobe
 
 [Live-Run #39510094453](https://github.com/MeteoMartini/MID/actions/runs/39510094453) konnte drei direkt geladene Felder desselben IFS-12UTC-Laufs (20.10.2026) bei +0h dekodieren: 2t 1.377.018 Bytes, MSL 2.318.182 Bytes, Z500 4.784.272 Bytes, insgesamt 8.479.472 Bytes. Alle drei Felder: reguläres 0,1°-Globalraster 3600x1801, ECMWF, GRIB2, native Einheiten und sieben endliche Samplewerte. Dies ist kein Nachweis gesamter Raster- oder Prognosehorizont-Konsistenz. Die nächste Testversion fordert dieselben drei Felder für +0 UND +24 h vom selben ausdrücklich gepinnten Lauf an; die Gültigkeit muss jeweils Referenzzeit+Lead sein. Kein Publish; bisherige Maps unverändert.
+
+
+## MID-C41: separat auf Stable .321 geprüft (24.10.2026)
+
+Ausgangsbasis dieses Integrationschecks: 205d4c6bf8f9799c9f4ef38f31d20b7940470ced, main = mid-stable. Historische Basisangaben oben beschreiben den ursprünglichen Pilot. Keine Produktionsaktivierung und keine neue App-Version.
+
+Die sieben Pilotdateien wurden selektiv auf .321 angewendet; 9/9 Python-Regressionen erfolgreich. Neuer echter ECMWF-Pilot vom 24.10.2026: Lauf 06Z, sechs GRIB2-Felder (2t/msl/z500 je +0/+24h), 17.016.423 Bytes, sämtliche Pilotprüfungen bestanden. Gitter 3600x1801, 0,1 Grad. fullSpatialValidation=false, readyForProduction=false, fusionEnabled=false, mapsEnabled=false, published=false. Kein Beleg für vollständige Modellkartenintegration.

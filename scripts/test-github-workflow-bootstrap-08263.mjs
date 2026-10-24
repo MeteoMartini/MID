@@ -1,4 +1,4 @@
-import {cp,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {cp,mkdir,mkdtemp,readFile,readdir,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -8,6 +8,18 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
 const baseline=JSON.parse(await readFile(path.join(root,'MID_BASELINE.json'),'utf8'));
 const failures=[];
+const prGate=await readFile(path.join(root,'ci/github/workflows/chatgpt-pr-gate.yml'),'utf8');
+function sourceTimeBudgetValid(text){
+ const core=text.slice(text.indexOf('\n  source_core:'),text.indexOf('\n  regression_heavy:')>0?text.indexOf('\n  regression_heavy:'):undefined);
+ const outer=Number(core.match(/^    timeout-minutes: (\d+)/m)?.[1]);
+ const stepLimit=name=>Number(core.slice(core.indexOf('- name: '+name)).split(/\n      - name:/)[0].match(/timeout-minutes: (\d+)/)?.[1]);
+ const ruc=stepLimit('Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen');
+ const regression=stepLimit('Produktionsbuild und Regressionen prüfen');
+ return ruc===20&&regression===15&&outer>=ruc+regression+8&&outer<=45;
+}
+if(!sourceTimeBudgetValid(prGate))failures.push('Source-Job muss beide unveränderten Einzelgrenzen plus Setup/iOS/Paketierung innerhalb eines festen 45-Minuten-Rahmens ermöglichen.');
+if(sourceTimeBudgetValid(prGate.replace('    timeout-minutes: 45','    timeout-minutes: 30')))failures.push('Der reproduzierte 30-Minuten-Abbruch darf nicht erneut als gültiges Zeitbudget gelten.');
+if(sourceTimeBudgetValid(prGate.replace('        timeout-minutes: 20','        timeout-minutes: 21')))failures.push('RUC-Einzelgrenze darf nicht stillschweigend verlängert werden.');
 if('preverify' in (pkg.scripts??{}))failures.push('Der reguläre Installationslauf darf aktive Workflowdateien nicht automatisch verändern.');
 if(pkg.scripts?.['sync:github-workflows']!=='node scripts/sync-github-workflows.mjs')failures.push('Explizites Synchronisationsskript fehlt in package.json.');
 if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-08263.mjs'))failures.push('Workflow-Paket-Regression fehlt in MID_BASELINE.json.');
@@ -22,6 +34,21 @@ for(const token of [
   "steps.pr.outputs.already_merged != 'true'",
   'steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha'
 ])if(!sourceRelease.includes(token))failures.push(`Agent-Release-Recovery für bereits geschützte Merges fehlt: ${token}`);
+
+// Every existing job that runs the full inventory also runs Python-backed RUC
+// tests. Check each job, not just the first setup occurrence in a workflow.
+for(const name of await readdir(path.join(root,'.github','workflows'))){
+ if(!/\.ya?ml$/.test(name))continue;
+ const text=await readFile(path.join(root,'.github','workflows',name),'utf8'),jobs=[...text.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm)];
+ for(let i=0;i<jobs.length;i++){
+  const body=text.slice(jobs[i].index,jobs[i+1]?.index??text.length);
+  const command=/^\s*(?:run:\s*)?(?:MID_REGRESSION_SHARD=core\s+)?npm run (?:verify|test:regressions)\b/m.exec(body);
+  if(!command)continue;
+  if(/MID_REGRESSION_SHARD:\s*\$\{\{ matrix\.shard \}\}/.test(body)&&body.includes('heavy-'))continue;
+  const setup=body.indexOf('uses: actions/setup-python@'),deps=body.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt');
+  if(setup<0||deps<setup||command.index<deps)failures.push(`RUC-Python-Testumgebung fehlt vor vollständigem Core-Gate: ${name}/${jobs[i][1]}`);
+ }
+}
 
 const temp=await mkdtemp(path.join(tmpdir(),'mid-workflow-package-'));
 try{

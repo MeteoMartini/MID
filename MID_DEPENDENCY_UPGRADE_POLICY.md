@@ -10,7 +10,7 @@ Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zus
 - TypeScript: 7.0.2; App- und Node-Typecheck bleiben artefaktfrei.
 - TypeScript-Strada-Test-API: Alias `typescript-strada` auf 6.0.3, ausschließlich für bestehende Regressionen mit der von TypeScript 7 entfernten JavaScript-Compiler-API; niemals für App-/Node-Typecheck.
 - esbuild: 0.28.2, ausschließlich als direkte Testabhängigkeit für isolierte TypeScript-Fachmodul-Regressionen; nicht als Vite-Minifier oder Produktionsbundler.
-- Vite: 8.2.2.
+- Vite: 8.2.4.
 - `@vitejs/plugin-react`: 6.1.1, nur zusammen mit Vite 8; dieser Vertrag koppelt @vitejs/plugin-react 6 ausdrücklich an Vite 8.
 - Vite-8-Buildkern: Oxc für JavaScript-Minifizierung, Lightning CSS für CSS-Minifizierung und Rolldown `output.codeSplitting` für die auditierte React-/Charts-Vendor-Aufteilung. Der veraltete esbuild-Minify- und Rollup-`manualChunks`-Pfad ist nicht mehr Bestandteil des Stable-Vertrags.
 - Lucide React: 1.40.0.
@@ -73,3 +73,7 @@ Der bestehende Sonderfall eines reinen externen Advisory-Doppel-Ausfalls bleibt 
 ### HIGH-Patch im CSS-Buildpfad
 
 `postcss 8.5.28 -> source-map-js ^1.2.1` wird ohne Override und ohne PostCSS-/Vite-Migration auf den kompatiblen Lockfile-Patch **1.2.2** angehoben. GHSA-68fv-2mgg-jv7q / CVE-2026-93749 betrifft indexed source-map section offsets bis 1.2.1. Die Upgrade-Policy verbietet künftig betroffene source-map-js-Versionen im 1.x-Pfad. Vollständiger npm-Audit, Rebuild, CSS-Kaskaden-/Bundle-/Regressionen sind erforderlich. Die drei moderaten Capacitor/xcode/uuid-Dev-Befunde bleiben getrennt upstream; kein force-fix, kein Capacitor-Downgrade.
+
+## Sicherheitswartung 21.10.2026 · v0.9.85.306
+
+Vite8.2.2 wird innerhalb derselben8.2-Reihe auf8.2.4 aktualisiert. Die offiziellen Advisories GHSA-587h-7wmj-h5pm (HIGH), GHSA-698v-4r3x-3vcv und GHSA-r825-w8mm-5pxw betreffen den gebündelten launch-editor bis2.14.1; für Vite8.2 ist8.2.4 als korrigierter Patch benannt. Kein Override/force-fix und kein Framework-/Bundler-Majorwechsel. plugin-react6.1.1, Node22.16 und bestehende Oxc-/Rolldown-/Lightning-CSS-Konfiguration bleiben. npm erzeugt das Lockfile aus dem Registry-Paket neu; keine manuell erdachten Integritätswerte. Der bekannte moderate Capacitor/xcode/uuid-Pfad bleibt separat und wird nicht inkompatibel überschrieben. Vollständiger Audit, Types, Build, CSS-/Karten-/Export-/iOS- und Release-Gates bleiben erforderlich.

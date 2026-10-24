@@ -35,6 +35,17 @@ class MapProductsTest(unittest.TestCase):
     def test_thetae_and_contours(self):
         dry=theta_e(np.array([280.]),np.array([10.]));wet=theta_e(np.array([280.]),np.array([90.]));self.assertGreater(wet[0],dry[0]);self.assertGreater(dry[0],280)
         field=np.tile(np.linspace(1000,1020,13),(13,1));result=contours(field,np.linspace(47,55.2,13),np.linspace(5.5,15.6,13));self.assertTrue(result);self.assertTrue(all(len(p)==2 for c in result for p in c['paths']))
+    def test_contours_do_not_drop_local_extremes_on_sparse_sampling(self):
+        # This high is deliberately between the former 1:6 sampling nodes.
+        field=np.full((61,61),1010.,dtype=float);field[49,49]=1030.
+        lats=np.linspace(47,55.2,61);lons=np.linspace(5.5,15.6,61)
+        levels={c['level'] for c in contours(field,lats,lons)}
+        self.assertIn(1020,levels);self.assertIn(1029,levels)
+        # Missing neighbours must be masked rather than treated as zero.
+        field[49,48]=np.nan
+        self.assertIn(1020,{c['level'] for c in contours(field,lats,lons)})
+        with self.assertRaisesRegex(ValueError,'geometry'):
+            contours(field,lats[:-1],lons)
     def test_optional_products_are_immutable_manifest_objects(self):
         with tempfile.TemporaryDirectory(prefix='mid141-publish-') as temp:
             source=Path(temp)/'source';source.mkdir();target=Path(temp)/'target'
