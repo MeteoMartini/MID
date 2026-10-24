@@ -60,3 +60,12 @@ SHA/UUID/Koordinatenquellen: MID_C41_RUC_DOMAIN_SAMPLE.json.
 Dies ist genau EINE Parameter-/Lauf-/Lead-Stichprobe; weder vollständiges
 Drei-Lauf-Inventar aller Kartenparameter noch produktive Vollgebiets-Karte.
 fullDomainProductionApproved bleibt false, #446 bleibt offen und dieser PR Draft.
+
+
+Fortgesetzter begrenzter Echtdatencheck: drei aufeinanderfolgende Original-PMSL-
+Analysen 14Z/15Z/16Z (24.10.2026) jeweils vollständig über 542040 native Zellen
+mit expliziter gleicher CLAT/CLON-Grididentität geprüft. Je Lauf 525072 gültige
+und 16968 Missing-Zellen; SHA-Originale und Wertebereiche im separaten JSON
+MID_C41_RUC_DOMAIN_THREE_PMSL.json. Die Drei-Lauf-Bedingung dieses engen
+PMSL/+0h-Scopes besteht. Die vollständige Matrix aller Parameter und Leads
+beider Modelle bleibt offen, ebenso Produktion/Kartenrenderer/Transport.
