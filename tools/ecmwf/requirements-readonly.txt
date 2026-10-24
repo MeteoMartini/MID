@@ -1,0 +1,2 @@
+ecmwf-opendata==0.3.35
+eccodes>=2.38,<3

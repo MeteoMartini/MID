@@ -1,0 +1,40 @@
+name: MID ECMWF IFS 0.1-degree native read-only pilot
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mid-ecmwf-ifs-0p1-readonly.yml'
+      - 'ci/github/workflows/mid-ecmwf-ifs-0p1-readonly.yml'
+      - 'tools/ecmwf/**'
+      - 'scripts/sync-github-workflows.mjs'
+permissions:
+  contents: read
+jobs:
+  native-readonly:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Exact PR source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Deterministic field contract regressions
+        run: PYTHONPATH=tools/ecmwf python -m unittest discover -s tools/ecmwf -p 'test_*_preflight.py' -v
+      - name: Official bounded ECMWF client and GRIB decoder
+        run: python -m pip install -r tools/ecmwf/requirements-readonly.txt
+      - name: ECMWF 0.1-degree sfc and pl GRIB2 native canary
+        run: |
+          mkdir -p .ecmwf-readonly-evidence
+          python tools/ecmwf/native_ifs_0p1_preflight.py --report .ecmwf-readonly-evidence/ecmwf-ifs-0p1.json
+      - name: Only preserve JSON diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ecmwf-0p1-readonly
+          path: .ecmwf-readonly-evidence/ecmwf-ifs-0p1.json
+          retention-days: 7
+          if-no-files-found: warn
