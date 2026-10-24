@@ -1,22 +1,23 @@
 import {useEffect,useMemo,useState} from 'react';
 import {GeoJsonLayers,HtmlMarker,useMidMap,type MidGeoLayer} from './MapLibreCore';
 import type {NativeField} from './nativeModelFields';
+import type {ScalarRaster} from './nativeScalarAnnotations';
 import {modelMapUnit,modelMapValue} from './modelMapUnits';
 import {nativeRasterExtremes,nativeScalarLines,scalarLineFeatures,scalarLineName,type RasterViewport} from './nativeScalarAnnotations';
 import type {WindUnit} from './weather';
 
 const escape=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function scalarMapLayers():MidGeoLayer[]{return [
- {id:'halo',type:'line',paint:{'line-color':'#fff','line-width':3,'line-opacity':.8}},
- {id:'line',type:'line',paint:{'line-color':'#20384d','line-width':1.2}},
- {id:'labels',type:'symbol',layout:{'symbol-placement':'line','symbol-spacing':180,'text-field':['get','label'],'text-font':['Noto Sans Regular'],'text-size':11},paint:{'text-color':'#20384d','text-halo-color':'#fff','text-halo-width':1.5}}
+ {id:'halo',type:'line',paint:{'line-color':'#fff','line-width':1.4,'line-opacity':.13}},
+ {id:'line',type:'line',paint:{'line-color':'#20384d','line-width':.7,'line-opacity':.34}},
+ {id:'labels',type:'symbol',layout:{'symbol-placement':'line','symbol-spacing':300,'text-field':['get','label'],'text-font':['Noto Sans Regular'],'text-size':10},paint:{'text-color':'#20384d','text-opacity':.48,'text-halo-color':'#fff','text-halo-width':.7}}
 ]}
 
 /** MapLibre's visible extent drives scalar markers; never use the entire raster
  * while panning, and never substitute an unavailable/no-data cell with zero.
  * moveend/zoomend/resize are supported by MapLibre 6.
  */
-export function NativeScalarOverlay({field,unit,lines=false,extremes=true}:{field:NativeField;unit:WindUnit;lines?:boolean;extremes?:boolean}){
+export function NativeScalarOverlay({field,unit,lines=false,extremes=true}:{field:ScalarRaster;unit:WindUnit;lines?:boolean;extremes?:boolean}){
  const map=useMidMap(),[viewport,setViewport]=useState<RasterViewport|null>(null),[moving,setMoving]=useState(false);
  useEffect(()=>{
   if(!map)return;
@@ -45,7 +46,7 @@ export function NativeScalarOverlay({field,unit,lines=false,extremes=true}:{fiel
   return {p,pixel,anchor,longitude};
  });
  const collision=locations.length===2&&locations.every(x=>x.pixel)&&Math.hypot(locations[0].pixel!.x-locations[1].pixel!.x,locations[0].pixel!.y-locations[1].pixel!.y)<32;
- return <>{lines&&<GeoJsonLayers id="native-parameter-isolines" data={contours} zIndex={665} hoverProperty="label" layers={scalarMapLayers()}/>}
+ return <>{lines&&<GeoJsonLayers id="native-parameter-isolines" data={contours} zIndex={620} hoverProperty="label" layers={scalarMapLayers()}/>}
   {locations.map(({p,anchor,longitude},i)=>{
    const val=modelMapValue(field.kind,p.value,field.unit,unit);
    const full=`${uniform?'Einheitlicher Wert':p.type==='Min'?'Minimum':'Maximum'} im sichtbaren Ausschnitt: ${val} ${modelMapUnit(field.kind,field.unit,unit)}`;
