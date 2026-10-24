@@ -1,9 +1,9 @@
-/** Display-only rain-rate categories in mm/h. They are NOT DWD warning levels. */
+/** Display-only rain-rate categories in mm/h, matching the existing app-wide precipitationIntensityDescriptor('rain') contract. NOT DWD warning levels. */
 export type RadarBarIntensity='light'|'moderate'|'strong'|'missing';
 export type RadarBarScenario='observed'|'low'|'medium'|'high'|'unknown';
 export function radarBarIntensity(rate:number,missing=false):RadarBarIntensity{
  if(missing||!Number.isFinite(rate)||rate<0)return 'missing';
- return rate>=10?'strong':rate>=2.5?'moderate':'light';
+ return rate>4?'strong':rate>.5?'moderate':'light';
 }
 /** hitProbability is the uncalibrated member hit fraction, not a validated probability forecast.
  * Never fill absent uncertainty data with 0 or 100. Observed frames have no forecast uncertainty. */
