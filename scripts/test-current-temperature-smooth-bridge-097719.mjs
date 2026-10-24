@@ -33,7 +33,7 @@ assert.ok(corrected[4].temperature<base[4].temperature&&corrected[4].temperature
 assert.equal(corrected[6].temperature,base[6].temperature,'Außerhalb des Brückenfensters darf die Prognose nicht verschoben werden.');
 assert.ok(Math.abs((corrected[3].apparent-base[3].apparent)-(corrected[3].temperature-base[3].temperature))<1e-9,'Der UTCI-Platzhalter des isolierten Brückentests muss denselben thermischen Brückenversatz erhalten.');
 
-for(const token of ["currentObservationEpoch=w?localIsoEpoch(String(w.current?.time||''),w.timezone,Number(w.utc_offset_seconds)||0):Number.NaN",'observedAt:finalizationObservedAt'])assert.ok(app.includes(token),`Dashboard muss den echten, standortlokal interpretierten Current-Zeitstempel verwenden: ${token}`);
-assert.ok(eventEngine.includes("currentObservedEpoch=localIsoEpoch(String(weather.current?.time||''),weather.timezone,Number(weather.utc_offset_seconds)||0)"),'Eventpfad muss denselben standortlokalen Current-Zeitstempelvertrag verwenden.');
+for(const token of ["currentObservationEpoch=w?providerIsoEpoch(String(w.current?.time||''),w.timezone,w.utc_offset_seconds):Number.NaN",'observedAt:finalizationObservedAt'])assert.ok(app.includes(token),`Dashboard muss den echten, standortlokal interpretierten Current-Zeitstempel verwenden: ${token}`);
+assert.ok(eventEngine.includes("currentObservedEpoch=providerIsoEpoch(String(weather.current?.time||''),weather.timezone,weather.utc_offset_seconds)"),'Eventpfad muss denselben standortlokalen Current-Zeitstempelvertrag verwenden.');
 assert.ok(!source.includes('result[bestIndex]={...current,temperature}'),'Der alte Einpunkt-Ersatz darf nicht zurückkehren.');
 console.log('Current-Temperatur wird zeitgenau und ohne Einzelstunden-Delle in den kanonischen Forecast überführt.');

@@ -11,11 +11,12 @@ try{
  assert.deepEqual([4.99,5,6.99,7].map(z=>contourInterval(z,'height')),[8,8,8,4]);
  assert.equal(contourVisible(1012,4,'pressure'),false);assert.equal(contourVisible(1012,7,'pressure'),true);
  assert.equal(contourVisible(560,4),true);assert.equal(contourVisible(564,6),false);
- assert.deepEqual([4,6,8].map(z=>contourInterval(z,'pressure')),[5,2,1]);assert.equal(contourInterval(7,'pressure',2),5);assert.equal(contourInterval(7,'pressure',10),2);assert.equal(contourInterval(11,'pressure',2),1);
+ assert.deepEqual([4,6,8].map(z=>contourInterval(z,'pressure')),[5,2,1]);assert.equal(contourInterval(7,'pressure',2),1);assert.equal(contourInterval(7,'pressure',10),1);assert.equal(contourInterval(11,'pressure',2),1);
+ for(const zoom of [4,6,8]){const levels=Array.from({length:41},(_,i)=>990+i).filter(v=>contourVisible(v,zoom,'pressure',iSpacing(v)));function iSpacing(v){return v%2?2:100}for(let i=1;i<levels.length;i++)assert.equal(levels[i]-levels[i-1],contourInterval(zoom,'pressure'));}
  const pressure=adaptiveContourLayers('pressure','#fff',.6,{halo:'#222'});
  for(const layer of pressure.filter(l=>l.type==='line')){
   const dashed=layer.id.includes('dashed');assert.deepEqual(layer.filter[2],[dashed?'<':'>=',['get','level'],1013]);
-  assert.equal(layer.filter[1][0],'case');assert.deepEqual(layer.filter[1][1],['has','spacingKm']);
+  assert.equal(layer.filter[1][0],'==');assert.ok(!JSON.stringify(layer.filter).includes('spacingKm'),'No feature-local thinning may remove individual levels');
   assert.equal(Boolean(layer.paint['line-dasharray']),dashed);
  }
  assert.ok(!adaptiveContourLayers('height','#222',1).some(l=>l.paint['line-dasharray']));

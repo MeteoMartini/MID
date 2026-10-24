@@ -1,3 +1,37 @@
+# MID v0.9.85.321
+
+- RADOLAN: Die HDF5- und Projektionsbibliotheken werden auch im schlanken Pages-/Installer-Pfad installiert. Dies behebt den belegten Importabbruch vor der Summenveröffentlichung.
+- Karten: Der Hilfetext beschreibt die je Zoomstufe einheitlichen Druckkonturintervalle korrekt.
+
+# MID v0.9.85.320
+
+- Karten: Isobaren verwenden je Zoomstufe ein einheitliches Werteintervall ohne lokale Auslassung einzelner Linien.
+- Flächige numerische Modellkarten zeigen zusätzlich beschriftete Hilfskonturen, auch für Wind und Böen. Export und Karte verwenden denselben Konturpfad.
+
+# MID v0.9.85.319
+
+- Aktuell – Radar-Nowcast: Niederschlagsbalken zeigen leichte, mäßige und starke Regenintensität anhand der Radar-Rate farblich abgestuft. Schraffur und Deckkraft unterscheiden die unkalibrierte Szenariounterstützung; fehlende Werte bleiben ausdrücklich unbekannt.
+- Karten – RADOLAN-Niederschlagssummen: DWD-Import an aktuelle ODIM-H5-RW-Dateien und deren eigenständige 1-km-Rastergeometrie angepasst. Nur zeitlich vollständige, qualitätsgeprüfte 1-/6-/12-/24-/48-Stunden-Summen werden angeboten; fehlende Beobachtungen sind keine Nullwerte.
+- Technisch: HDF5-Projektions-/Zeit-/NoData-Regressionen und einheitliche Radar-Farb-/Wahrscheinlichkeitsprüfungen ergänzt, ohne RUC- oder Warnlogik umzudeuten.
+
+# MID v0.9.85.318
+
+- Zeitumstellung: Stunden- und Viertelstundenprognosen behalten ihre richtigen absoluten Zeitpunkte. Die doppelte Herbststunde bleibt eindeutig; im Frühjahr wird keine zusätzliche Stunde erzeugt.
+- Tageswerte: Unterschiedliche Anbieter- und Ortszeitgrenzen werden erkannt. Vollständig abgedeckte lokale 23-/25-Stunden-Tage werden aus den Stunden berechnet; unvollständige Zeiträume erhalten keine falsche 24-Stunden-Summe.
+- Ensemble- und Eventauswertungen verwenden dieselben Zeitgrenzen. Alte abgeleitete Ensemble-Zwischenspeicher werden erneuert; Rohdaten mit verlässlichem UTC-Offset bleiben verwendbar.
+
+# MID v0.9.85.317
+
+- Modellkarten: dezente weiße Extremwertzahlen ausschließlich aus gültigen Rasterzellen des sichtbaren Kartenausschnitts; Aktualisierung bei Verschieben, Zoom und Größenwechsel.
+- Einheitliche Darstellung für vorhandene numerische ICON-D2-/RUC-Modellfelder ohne sichtbare „Min.“-/„Max.“-Zusätze, mit barrierearmer Erläuterung beim Fokussieren/Antippen.
+- PNG-/SVG-Kartenexporte zeigen Extremwerte passend zum eigenen vollständigen Exportbild; Missing Data und Originalmodellwerte bleiben unverändert.
+
+# MID v0.9.85.316
+
+- Native Modellkarten zeigen auf Wunsch beschriftete Isothermen, Wind-/Böen-, Bewölkungs- und Niederschlagslinien aus dem gewählten Raster.
+- Min-/Max-Markierungen und Zahlenübersicht zeigen die tatsächlichen Extremwerte des verfügbaren Rasters einschließlich Randzellen. Fehlende Daten bleiben ausgespart.
+- Die 24-h-Übersicht erhält runde Windteilstriche in der gewählten Einheit. Karte und PNG-/SVG-Export übernehmen dieselben Linien und Extremwerte.
+
 # MID v0.9.85.314
 
 - Druckkarten: Kleine Druckextrema bleiben bei der Konturberechnung erhalten; Karten und SVG-/PNG-Exporte verwenden dieselben vollständigen Linienzüge, auch bei Wolken-/Wetterkarten.

@@ -56,7 +56,7 @@ const parserSource=fs.readFileSync(new URL('../src/weather-src/30-ensemble-clima
 const ast=ts.createSourceFile('weather.ts',parserSource,ts.ScriptTarget.Latest,true);
 const parserText=ast.statements.find(s=>s.name?.text==='parseModelMembers').getText(ast);
 const parserCode=ts.transpileModule(parserText,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
-const parse=new Function('n','clampNumber','weatherDaylightSeconds','localIsoEpoch',parserCode+';return parseModelMembers')(v=>typeof v==='number'?v:NaN,(v,a,b)=>Math.min(b,Math.max(a,v)),()=>43200,v=>Date.parse(v+'Z'));
+const parse=new Function('n','clampNumber','weatherDaylightSeconds','localIsoEpoch','providerIsoEpoch','providerPresentationTime',parserCode+';return parseModelMembers')(v=>typeof v==='number'?v:NaN,(v,a,b)=>Math.min(b,Math.max(a,v)),()=>43200,v=>Date.parse(v+'Z'),v=>Date.parse(v+'Z'),v=>v);
 const hourly={time:Array.from({length:48},(_,i)=>new Date(Date.parse(date+'T00:00Z')+i*3600000).toISOString().slice(0,16))};
 for(const [key,value] of [['temperature_2m',20],['precipitation',0],['wind_speed_10m',10],['wind_gusts_10m',20],['sunshine_duration',900]])hourly[key]=Array(48).fill(value);
 hourly.precipitation[0]=70;hourly.precipitation[24]=9;

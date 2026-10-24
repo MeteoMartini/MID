@@ -27,3 +27,10 @@ Die vollständige Eingabedatei darf nur echte, SHA-verifizierte DWD-Dateien refe
 - Auch nach einem erfolgreichen Originalinventar ist ein separater, versionierter Implementierungs-PR für vollständige ICON-D2- und RUC-Parameter nötig: native Gitterzuordnung, Bitmap-NoData, sichere Kachelung/Decoder, unverändertes 900.000.000-Byte-Pages-Budget und 12.000.000-Byte-Feldlimit, echte 3-Lauf-Regressionsabdeckung, Konturen, Karten, Favoriten/Probe, PNG/SVG/Widgets, WebGL/Mobilansichten sowie etablierter MID-Source→Bot→ZIP→Installer→Worker/Pages→Stable-Gate.
 
 Bestehende Konturen/Audit sind über PR #448 bereits in .314 integriert; Drafts #443/#445/#447 nicht erneut mergen. ECMWF-Pilot #433 und RUC-Canary #425 weiterhin separat. Issue #446 bleibt P1.
+
+
+## MID-C41: separat auf Stable .321 geprüft (24.10.2026)
+
+Ausgangsbasis dieses Integrationschecks: 205d4c6bf8f9799c9f4ef38f31d20b7940470ced, main = mid-stable. Historische Basisangaben oben beschreiben den ursprünglichen Pilot. Keine Produktionsaktivierung und keine neue App-Version.
+
+Die vier Pilotdateien wurden selektiv auf .321 angewendet; 16/16 Python-Regressionen erfolgreich. Erster echter Original-RUC-Test: PMSL, Lauf 24.10.2026 16Z, +0h, SHA256 52b30ec5591d2a2f6a9f13406bde309de6cd8f4e6089520641077ba748892b88. SHA/Bitmap/Parameter/Runprüfung läuft bis zum Zugriff auf latitudes; dort ecCodes KeyValueNotFoundError am unstrukturierten Originalgitter. Keine Geometrie erfinden: CLAT/CLON und Grididentität müssen explizit verknüpft werden. Diese Echtdatenabnahme ist fehlgeschlagen, nicht als Vollgebiet freigegeben. #446 bleibt offen.
