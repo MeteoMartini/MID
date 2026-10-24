@@ -8,7 +8,7 @@ const dir=mkdtempSync(join(tmpdir(),'mid319-radar-'));
 try{
  await build({entryPoints:['src/radarNowcastVisual.ts'],outfile:join(dir,'visual.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
  const {radarBarIntensity,radarBarScenario,radarBarIntensityLabel}=await import(pathToFileURL(join(dir,'visual.mjs')));
- for(const [rate,band] of [[0,'light'],[.01,'light'],[2.49,'light'],[2.5,'moderate'],[9.99,'moderate'],[10,'strong'],[87,'strong'],[NaN,'missing'],[-1,'missing']])assert.equal(radarBarIntensity(rate),band);
+ for(const [rate,band] of [[0,'light'],[.01,'light'],[.5,'light'],[.51,'moderate'],[2.5,'moderate'],[4,'moderate'],[4.01,'strong'],[10,'strong'],[87,'strong'],[NaN,'missing'],[-1,'missing']])assert.equal(radarBarIntensity(rate),band);
  assert.equal(radarBarIntensity(20,true),'missing','NoData cannot appear as a strong rain report');
  for(const [chance,band] of [[0,'low'],[34.99,'low'],[35,'medium'],[69.99,'medium'],[70,'high'],[100,'high'],[undefined,'unknown'],[NaN,'unknown'],[-1,'unknown'],[101,'unknown']])assert.equal(radarBarScenario(true,chance),band);
  assert.equal(radarBarScenario(false,undefined),'observed','Observation is not a forecast probability');
