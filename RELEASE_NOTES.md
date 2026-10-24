@@ -1,4 +1,4 @@
-# MID v0.9.85.320
+# MID v0.9.85.321
 
-- Karten: Isobaren verwenden je Zoomstufe ein einheitliches Werteintervall ohne lokale Auslassung einzelner Linien.
-- Flächige numerische Modellkarten zeigen zusätzlich beschriftete Hilfskonturen, auch für Wind und Böen. Export und Karte verwenden denselben Konturpfad.
+- RADOLAN: Die HDF5- und Projektionsbibliotheken werden auch im schlanken Pages-/Installer-Pfad installiert. Dies behebt den belegten Importabbruch vor der Summenveröffentlichung.
+- Karten: Der Hilfetext beschreibt die je Zoomstufe einheitlichen Druckkonturintervalle korrekt.

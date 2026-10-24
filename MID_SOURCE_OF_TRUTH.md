@@ -1,3 +1,7 @@
+# MID v0.9.85.321 · RADOLAN-Abhängigkeiten im Pages-Pfad
+
+Basis freigegeben .319 4c092751208c437a152eb8fcdf87fd8301a537cb, fast-forward auf vollständig source-geprüften Main-Kandidaten 78db20da51104bb2104e06fbe2f7d18f750247f8 (.320). RUC-Job 120826278775 scheiterte nach erfolgreicher Rohaufbereitung an fehlendem h5py: requirements-pages.txt enthielt anders als requirements.txt keine ODIM-Abhängigkeiten. Ergänzt h5py/pyproj im Lean-Pfad, kein awscli, kein neuer Dienst, keine Daten-/Gate-Abschwächung. Kontur-Hilfetext präzisiert. Release-/Live-RADOLAN-Nachweise noch erforderlich.
+
 # MID v0.9.85.320 · Gleichmäßige Konturintervalle
 
 Druckkonturen verwenden je Zoomstufe ein einziges arithmetisches Raster (5/2/1 hPa); lokale spacingKm-Filter dürfen keine Einzelwerte entfernen. Native skalare Flächen zeigen den bestehenden gemeinsamen numerischen Konturpfad einschließlich Export. Geometrie und Missing-Werte bleiben unverändert. Basis 4c092751208c437a152eb8fcdf87fd8301a537cb (.319).
