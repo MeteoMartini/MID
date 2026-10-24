@@ -10,9 +10,12 @@ const [weather,ensemble,verification,panel,settings,styles,app]=await Promise.al
 ]);
 const failures=[];
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
-need(weather,"const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v18:'",'Alter Ensemblecache wird nicht invalidiert.');
-need(weather,'function filterScenarioRainOutliers(','Robuste Filterung isolierter Niederschlagsausreißer fehlt.');
-need(weather,'median+Math.max(60,8*mad,median*3+25)','Szenario-Ausreißergrenze ist nicht robust an Median und MAD gekoppelt.');
+need(weather,"const ENSEMBLE_CACHE_PREFIX='mid:ensemble:v19:'",'Alter Ensemblecache wird nicht invalidiert.');
+need(weather,'const trajectories=collected;if(trajectories.length<10)return[];','Vollständige Member-Trajektorien werden nicht in die Cluster übernommen.');
+need(weather,'if(complete.length!==dates.length)continue','Unvollständige Member-Trajektorien müssen weiterhin ausgeschlossen bleiben.');
+need(weather,'if(!row||![row.max,row.min,row.precipitation].every(Number.isFinite))return[];','Numerisch ungültige Szenariowerte müssen ausgeschlossen bleiben.');
+need(weather,'.filter(cluster=>cluster.memberCount>0).sort((a,b)=>b.probability-a.probability);','Szenariocluster dürfen kleine positive Mitgliedsanteile nicht ausblenden.');
+if(weather.includes('filterScenarioRainOutliers(')||weather.includes('cluster.probability>=6'))failures.push('Unbelegte Extremwert-Ausreißerunterdrückung darf nicht zurückkehren.');
 need(weather,'gust:mean(row=>row.gust)','Böen werden in den Szenariokennwerten nicht fortgeführt.');
 need(ensemble,'className={index===0?\'leading\':\'\'}','Führendes Szenario verwendet noch die globale .primary-Klasse.');
 if(ensemble.includes("className={index===0?'primary':''}"))failures.push('Globale .primary-Klasse verursacht weiterhin unlesbaren Text auf blauem Grund.');
@@ -32,4 +35,4 @@ for(const token of ['checked={settings.biasCorrection}','checked={settings.proba
 if(panel.includes('checked={settings.biasCorrection}')||panel.includes('checked={settings.probabilityCalibration}'))failures.push('Globale Lernoptionen werden im Rückblicksmodul weiterhin doppelt angeboten.');
 need(panel,'Einstellungen → Lokaler Wetterzwilling','Hinweis auf die zentrale Konfiguration fehlt.');
 if(failures.length){console.error('Szenario-/Regime-/Einstellungsprüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Szenariodarstellung, Ausreißerfilter, Dauerregenklassifikation und zentrale Wetterzwilling-Einstellungen sind geprüft.');
+console.log('Szenariodarstellung mit numerischer Vollständigkeit und Extremwerterhalt, Dauerregenklassifikation und Wetterzwilling-Einstellungen sind geprüft.');

@@ -22,13 +22,21 @@ case "$*" in
 esac
 `,{mode:0o700});
  writeFileSync(path.join(temp,'sleep'),'#!/bin/bash\nexit 0\n',{mode:0o700});
- const now=new Date().toISOString(),sha='a'.repeat(40);
+ // Freeze the watchdog clock as well as API fixtures: later cases must not
+ // become stale merely because earlier subprocesses took more than 5 seconds.
+ writeFileSync(path.join(temp,'date'),`#!/bin/bash
+case " $* " in
+  *" -d "*) exec /bin/date "$@";;
+  *) exec /bin/date -d "$TEST_NOW" "$@";;
+esac
+`,{mode:0o700});
+ const now='2026-10-20T12:20:00.000Z',sha='a'.repeat(40);
  const recent=(status,event='schedule')=>({id:123,status,event,conclusion:status==='completed'?'success':null,created_at:now,run_started_at:now,html_url:'https://github.com/run/123'});
- const check=(extra,dispatched,message)=>{
+ const check=(extra,dispatched,message,expectedStatus=0)=>{
   rmSync(marker,{force:true});
-  const env={...process.env,PATH:`${temp}:${process.env.PATH}`,GITHUB_EVENT_NAME:'schedule',GITHUB_REPOSITORY:'MeteoMartini/MID',RUC_WORKFLOW:'mid-ruc-preprocess.yml',DISPATCH_MARKER:marker,MAIN_SHA:sha,STABLE_SHA:sha,DATA_CATCHUP:'true',SCHEDULE_JSON:JSON.stringify({workflow_runs:[recent('completed')]}),RECENT_JSON:JSON.stringify({workflow_runs:[recent('completed')]}),DISPATCH_JSON:JSON.stringify({workflow_runs:[recent('queued','workflow_dispatch')]}),...extra};
+  const env={...process.env,PATH:`${temp}:${process.env.PATH}`,TEST_NOW:now,GITHUB_EVENT_NAME:'schedule',GITHUB_REPOSITORY:'MeteoMartini/MID',RUC_WORKFLOW:'mid-ruc-preprocess.yml',DISPATCH_MARKER:marker,MAIN_SHA:sha,STABLE_SHA:sha,DATA_CATCHUP:'true',SCHEDULE_JSON:JSON.stringify({workflow_runs:[recent('completed')]}),RECENT_JSON:JSON.stringify({workflow_runs:[recent('completed')]}),DISPATCH_JSON:JSON.stringify({workflow_runs:[recent('queued','workflow_dispatch')]}),...extra};
   const result=spawnSync('bash',['-c',shell],{encoding:'utf8',env});
-  assert.equal(result.status,0,result.stderr);assert.equal(existsSync(marker),dispatched,result.stdout);assert.ok(result.stdout.includes(message),result.stdout);
+  assert.equal(result.status,expectedStatus,result.stderr);assert.equal(existsSync(marker),dispatched,result.stdout);assert.ok(result.stdout.includes(message),result.stdout);
  };
  // Regression: a green scheduled run that never published cannot block recovery.
  check({},true,'RUC recovery dispatch verified');
@@ -39,6 +47,8 @@ esac
  check({RECENT_JSON:JSON.stringify({workflow_runs:[recent('completed','workflow_dispatch')]})},false,'cooldown');
  check({GITHUB_EVENT_NAME:'workflow_run'},true,'RUC recovery dispatch verified');
  check({GITHUB_EVENT_NAME:'workflow_run',DATA_CATCHUP:'false'},false,'schedule event verified');
+ const staleDispatch={...recent('queued','workflow_dispatch'),created_at:'2026-10-20T12:19:54.000Z'};
+ check({DISPATCH_JSON:JSON.stringify({workflow_runs:[staleDispatch]})},true,'no new workflow_dispatch run became visible',1);
  const primary=read('ci/github/workflows/mid-ruc-preprocess.yml');
  const upload=primary.slice(primary.indexOf('        id: data_upload'),primary.indexOf('      - name: Bereits aktuellen'));
  assert.ok(upload.includes('name: mid-ruc-data-${{ github.run_id }}-${{ github.run_attempt }}'));

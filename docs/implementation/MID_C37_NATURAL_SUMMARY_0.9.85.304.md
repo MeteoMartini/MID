@@ -1,0 +1,39 @@
+# MID-C37 · Natürlicher 7-Tage-Kurztext · .304
+
+Nutzerergänzung vom20.10.2026: Die Folge „Heute Regen. In der kommenden Nacht ist Regen möglich. Ab Donnerstag Regen.“ soll sich natürlicher lesen. Änderung im noch unveröffentlichten .304-Kandidaten auf Stable6c3137426f332fb86369ac8f82783180a8b2f296 (.303).
+
+## Sprache und fachliche Grenzen
+
+Die tatsächliche Summary-Funktion erzeugt aus einer entsprechenden Fixture nun: „Heute regnet es; auch in der kommenden Nacht kann es regnen. Ab Donnerstag ist mit Regen zu rechnen.“ Vollständige Prädikate ersetzen bloße Stichworte. Bekannte Niederschlagsfamilien verbinden ausschließlich ein ausgewähltes Tag-/Folgenachtpaar desselben Tagesindexes. Spätere Nächte und Phasenwechsel bleiben getrennt. Es gibt keine Behauptung von Dauerregen, räumlicher Verbreitung, trockenen Zwischenphasen oder Kaltfronten ohne entsprechende Evidenz. Die Wortwahl „auch“ behauptet keine lückenlose Fortdauer.
+
+Rangfolge und Höchstzahl von drei ausgewählten Ereignissen bleiben bestehen. Markante Hinweise werden weiterhin priorisiert; Schweregrad und „möglich“ bleiben erhalten. Singular-/Pluralform und Artikel passen zur bestehenden Hinweiskategorie. Wolken-/Temperaturformulierungen erhalten vollständige Prädikate. Kanonische Wetterdaten, Prognose-/Warnschwellen, Tages-/Nachtfenster und Missing-Verträge ändern sich nicht.
+
+Bei einem einzelnen gemeinsamen Tag wird ein markanter Hinweis mit „zudem“ angeschlossen, sodass „Heute“ nicht unnötig wiederholt wird. Das neue optionale throughDayIndex-Metadatum verhindert diesen Anschluss bei mehrtägigen Wetterabschnitten; der separat datierte Hinweis darf deren längeren Zeitraum nicht erben. Ein dynamischer Gegenfall schützt diese Grenze.
+
+## Recherche
+
+DWD-Primärbeispiele: https://www.dwd.de/DE/wetter/vorhersage_aktuell/niedersachsen_bremen/vhs_nib_node.html (Suchergebnis) und https://opendata.dwd.de/weather/text_forecasts/html/VHDL54_DWEG_300839_html (Bericht30.09.2026, vollständig geöffnet). Beobachtet wurden klare zeitliche Anschlüsse und vollständige Wetterentwicklungssätze. Einzelne direkte DWD-Seitenabrufe lieferten403; Suchergebnisse und offizieller Open-Data-Bericht dienen als Stilreferenz. Keine Behauptung eines aktuellen Wetterabgleichs oder Übernahme amtlicher Textbausteine in MID. Keine externe Sprach-API, zusätzliche Datenübermittlung oder Kosten.
+
+## Prüfung
+
+Neue dynamische Pflichtregression mit actualbuildSevenDayForecastSummary: Nutzersequenz, unveränderte Eingaben, unterschiedliche Niederschlagsphasen, spätere Nächte, starker Wind, starkes Gewitter, Bewölkung/Dauerfrost, fehlende Daten und Auswahl markanter Hinweise. Bestehende Timeline-/Gewichtungs-/Ensemble-/Missing-Tests bestehen separat. Eine historische statische Assertion in test-forecast-summary-landscape.mjs erwartet jetzt die bewusst vervollständigte Bewölkungsform „ist es überwiegend bewölkt“; Schutz vor erfundener Trockenheit bleibt identisch.
+
+Der vor der Nutzerergänzung laufende .304-Prüflauf wurde nach750fehlerfreien Tests über seine Session kontrolliert beendet (Exit130). Er ersetzt keine vollständige Prüfung der ergänzten Fassung. Vollsuite1008, Build und reguläre Release-Gates werden für die finale Fassung erneut abgeschlossen und erst danach als Erfolg dokumentiert.
+
+Der erste erweiterte1008-Lauf fand zwei weitere veraltete Source-Text-Erwartungen: test-composite-phase-grammar-09395.mjs verlangte die alte Mischwetterphrase, test-current-layout-module-controls-071080.mjs die bisherige kleinere Adjektivliste. Beide wurden auf die ausdrücklich neue Grammatik aktualisiert; das Mischwetter behält die Trockenqualifikation und die Adjektivliste verlangt nun zusätzlich eine Wortgrenze. Die neue dynamische Regression bestätigt, dass Ereignisnomen wie Starkregen/Dauerregen groß bleiben und Hinweisstärke/Unsicherheit erhalten bleiben. Alle gezielten Tests danach grün; die kompletteSuite wird neu ausgeführt. Keine fachliche Assertion entfernt oder meteorologische Grenze geändert.
+
+## Abgeschlossene Browsermatrix der finalen Fassung
+
+Nach dem ersten24er-Abschluss wurde der gesamte bestehende Hinweiskatalog zusätzlich geprüft. Die dynamische Probe reproduzierte die fehlende Kleinschreibung von „Schweres Gewitter“ nach dem neu eingefügten Artikel. Die begrenzte Adjektivliste wurde vollständig ergänzt (auch starker Schneefall/ergiebiger Dauerregen); 19 Adjektivbezeichnungen und13 Nomen/Gegenbeispiele sind jetzt direkt gegen den tatsächlichen privaten Formatter getestet. Kein allgemeines Kleinschreiben unbekannter Ereignisnamen. Der laufende Zwischenstand der Vollsuite wurde deshalb vorzeitig beendet; nach dem abschließenden Build werden Vollsuite und Browsermatrix erneut bestätigt. Alte Matrix bleibt Vorbeleg für die unveränderten Regen-/Windfälle, keine Behauptung einer abschließenden Prüfung des ergänzten Katalogs.
+
+Tatsächliche SevenDayForecastSummary-Reactkomponente mit sämtlichen CSS-Imports aus main.tsx: 24/24 Fälle, sechs Fenstergrößen320/390/844/768/1024/1440 × Light/Dark × Regen-/markanterHinweisfixture. Vollständiger Beispieltext, tatsächliche Zeilenrechtecke und Komponentenmaße geprüft; kein Clipping, horizontalerOverflow oder Laufzeitfehler. 390pxLight/Dark visuell geprüft. IsoliertesChromium141, keine MID-Abhängigkeitsänderung und keine physischeiOS-/WKWebView-/VoiceOver-Abnahme. Belege mid-c37-304-summary-browser-candidate.log und mid-c37-304-summary-browser-results.json.
+
+Browser-Harnessgrenzen: Standardentpackung scheiterte an nicht unterstütztemchown für/tmp/fonts. Offizielle Archive wurden stattdessen ohne Eigentümeränderung in einen eigenen temporären Laufzeitordner entpackt. Eine anfänglich falsche Hilfserwartung für60kn wurde auf die bestehende korrekte Klasse „orkanartige Böen“ berichtigt; weder Schwelle noch Produkt geändert. Vorläufige/abgebrochene Browserläufe zählen nicht zu24/24.
+
+Die Vollsuite deckte außerdem einen unabhängigen Zeitfehler in test-c22-ruc-publication-recovery-0985201.mjs auf: identische API-Zeitstempel für alle Fälle trafen auf eine weiterlaufende reale Shelluhr. Nach mehr als fünf Sekunden wurde deshalb ein späterer positiver Fall fälschlich als veralteter Dispatch abgewiesen. Reproduziert mit tatsächlichem Shellstdout. Der Test fixiert jetzt API- und Shelluhr gemeinsam; alle bisherigen Schutzfälle bleiben erhalten. Ein neuer negativer Fall verlangt weiterhin Exit1 für einen sechs Sekunden alten Dispatch. Produktiver Watchdog, Zeitgrenzen und Workflowdateien unverändert. Fokustest erfolgreich; Zwischenlauf mit einem Fehler bei700/1008 kontrolliert beendet, vollständiger Abschlusslauf separat.
+
+## Vollständiger lokaler Durchlauf
+
+1008/1008 Tests ausgeführt in2101,7s. 1007 bestanden; ausschließlich test-detail-thunder-threshold-trend-08198.mjs scheiterte an zwei alten, exakten Source-Text-Erwartungen für die nun vollständig formulierten Gewitteraussagen. Diese beiden Erwartungen wurden angepasst und der Test bestand einzeln. Alle meteorologischen Schwellenprüfungen einschließlich dynamischer30%-Mehrindex-/CAPE-Gegenprobe unverändert erhalten. Während des Durchlaufs keine weitere Änderung am Anwendungscode. Dieser Lauf wird ausdrücklich nicht als fehlerfreier Vollsuite-Lauf bezeichnet. Die abschließende gezielte Nachprüfung und der vollständige Source-PR-Gate prüfen die endgültigen Testdateien.
+
+Abschließende gezielte Nachprüfung7/7 erfolgreich: beide neuen dynamischen Regressionen, vier auf die bewusst neue Grammatik angepasste Altprüfungen und der deterministische RUC-Wiederherstellungstest inklusive negativem Altersfall. Beleg mid-c37-304-focused-release.log. Build/Typen und Worker-Syntax erfolgreich; Audit83Produktionsversionen ohne Befunde/Providerfehler. Finale Webidentität .304/115Assets/sha2563ecc8088e168…; MainJS1.471.311/1.500.000B, CSS1.759.985/1.760.000B. Der reguläre vollständige GitHub-Source-/Installer-Gate bleibt Veröffentlichungsbedingung; kein manueller Merge oder Stable-Push.

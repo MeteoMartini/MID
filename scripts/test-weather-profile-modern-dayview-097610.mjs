@@ -17,7 +17,7 @@ for(const token of [
  'x1={item.x} y1={skyBandTop} x2={item.x} y2={impactTop+impactHeight}',
  'DWD_WIND_THRESHOLDS_KMH.map(item=>({...item,kt:item.threshold/KMH_PER_KT}))',
  'firstWindWarningKt=(DWD_WIND_THRESHOLDS_KMH[0]?.threshold??50)/KMH_PER_KT',
- 'chartWindMax=Math.max(30',
+ 'chartWindScale=niceWindRange(Math.max(30',
  'className={`wind-warning-band level-${guide.level}`}',
  'className="wind-warning-threshold"',
  'className="wind-warning-threshold-label"',

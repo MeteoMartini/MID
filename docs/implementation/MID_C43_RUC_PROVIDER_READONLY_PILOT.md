@@ -27,3 +27,10 @@ Auch bei erfolgreich verifizierter Pilotstufe meldet das Modul `readyForProducti
 ## Race zwischen Run-Verzeichnis und vollständiger Veröffentlichung (20.10., 07:36 UTC)
 
 GitHub-Run 39387601469 belegte: Das DWD-Verzeichnis für den neuen 07-UTC-Lauf wurde bereits sichtbar, obwohl die Termindateien +16...+27 h noch fehlten. Diese erwartbare zeitversetzte Veröffentlichung führte zuvor beim starren `runs[-3:]` zu falsch als fehlgeschlagen bewerteten GRIB-Stichproben. Ab dieser Korrektur prüft die read-only Routine höchstens die **sechs zuletzt sichtbaren** Modellläufe und wählt davon die **drei jüngsten tatsächlich vollständigen** Läufe aus. Teilweise publizierte neuere Läufe bleiben gesondert unter `excludedIncompleteRuns` dokumentiert; ihre Lücken werden niemals still als Null oder als gültige vollständige RUC-27h-Daten ausgegeben. Die nachgelagerten ecCodes-Header-/Numerikproben referenzieren ausschließlich die jüngste vollständig belegte Initialisierung. Erreichen weniger als drei vollständige Läufe den Vertrauensvertrag, bleibt das Gate rot. Keine Änderung an MID-RUC-Publisher, Forecast- oder Produktionsdaten.
+
+
+## MID-C41: separat auf Stable .321 geprüft (24.10.2026)
+
+Ausgangsbasis dieses Integrationschecks: 205d4c6bf8f9799c9f4ef38f31d20b7940470ced, main = mid-stable. Historische Basisangaben oben beschreiben den ursprünglichen Pilot. Keine Produktionsaktivierung und keine neue App-Version.
+
+Die sechs Pilotdateien wurden als selektiver Diff auf .321 angewendet; 7/7 Node-Regressionen erfolgreich. Die aktuelle direkte Modell-ID-Abfrage liefert HTTP200 und numerische Temperaturen statt des früheren HTTP400. Laufidentität und native Drei-Lauf-/NoData-/Zeit-/Grid-/Fusionsgates bleiben separat erforderlich. Ein isolierter kompletter Provider-Canary wurde erneut gestartet; noch kein Endergebnis behauptet.

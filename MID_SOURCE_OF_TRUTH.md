@@ -1,3 +1,101 @@
+# MID v0.9.85.321 · RADOLAN-Abhängigkeiten im Pages-Pfad
+
+Basis freigegeben .319 4c092751208c437a152eb8fcdf87fd8301a537cb, fast-forward auf vollständig source-geprüften Main-Kandidaten 78db20da51104bb2104e06fbe2f7d18f750247f8 (.320). RUC-Job 120826278775 scheiterte nach erfolgreicher Rohaufbereitung an fehlendem h5py: requirements-pages.txt enthielt anders als requirements.txt keine ODIM-Abhängigkeiten. Ergänzt h5py/pyproj im Lean-Pfad, kein awscli, kein neuer Dienst, keine Daten-/Gate-Abschwächung. Kontur-Hilfetext präzisiert. Release-/Live-RADOLAN-Nachweise noch erforderlich.
+
+# MID v0.9.85.320 · Gleichmäßige Konturintervalle
+
+Druckkonturen verwenden je Zoomstufe ein einziges arithmetisches Raster (5/2/1 hPa); lokale spacingKm-Filter dürfen keine Einzelwerte entfernen. Native skalare Flächen zeigen den bestehenden gemeinsamen numerischen Konturpfad einschließlich Export. Geometrie und Missing-Werte bleiben unverändert. Basis 4c092751208c437a152eb8fcdf87fd8301a537cb (.319).
+
+# MID v0.9.85.319 · Radar-Nowcast-Intensität, Szenario-Signalisierung und RADOLAN ODIM-H5 (Source-Kandidat)
+
+Verifizierte Basis `main=mid-stable=1835fd4fda68916620f2518dbbab7d1b379bfb3c` (v0.9.85.318, 24.10.2026). 5-Min-Radarbalken farblich nach Rate in mm/h kategorisiert (leicht ≤0,5, mäßig >0,5–4, stark >4 mm/h; konsistent mit appweiter Regenintensität); eigenständig von der Wahrscheinlichkeit: nur tatsächlich verfügbare unkalibrierte Hit-Szenarioanteile erzeugen graduierte Schraffur/Transparenz, fehlende Werte nie 0/100. Beobachtung voll, Umfeld-Echo besonders markiert, Datenlücke grau. Keine offiziellen Warnstufen. RADOLAN RW im aktuellen DWD Live-Verzeichnis nur als ODIM-H5, bestehender reiner BZ2-900x900-Import scheiterte nachweislich im RUC-Lauf 40061926315 mit `RADOLAN sums unavailable: no fresh aligned RW hour`. Ergänzt h5py/pyproj WGS84 polarstereographische 1200x1100 H5-Ablage mit expliziten Quelldaten-/Projektion-/Stunden-/ACRR-/NoData-Gates; unveränderte historische BZ2-Rastertrennung. Unvollständige Fenster bleiben unverfügbar, keine Messung wird als null/trocken deklariert. Tests und Nachweise: `docs/implementation/MID_C40_RADAR_NOWCAST_RADOLAN_0.9.85.319.md`. Dieser Branch ist ein **noch NICHT freigegebener** Releasekandidat; kein Build/Installer oder Live-DWD-H5-Healthcheck ist damit vorweggenommen. Zwingender regulärer Source-/Heavy-/RUC-/Pages-/Worker-/Stable-Releasepfad, keine parallelen Piloten #449/#433/#425 übernehmen.
+
+# MID v0.9.85.318 · Anbieterzeit und lokale Kalendertage (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable=b34dcea88c84acacdbba24ac3e051bbb00ed0cfc (.317). Getrennter Anbieter-Fixoffset-Parser, eindeutige lokale DST-Labels, unveränderte Rohendstempel, strenge 23/25h-Tagesrekonstruktion, Ensemble-/Event-Kohärenz und Cachemigration. Fachlicher Umfang und Nachweise: docs/implementation/MID_C39_PROVIDER_TIME_0.9.85.318.md. Vollständiger Source-/Heavy-/Installer-/Pages-/Worker-/Stable-Nachweis vor Release erforderlich; keine physische iOS-Abnahme. Piloten #449/#433/#425 bleiben unabhängig.
+
+# MID v0.9.85.317 · Sichtbare Kartenextremwerte (Source-Kandidat, noch NICHT veröffentlicht)
+
+Verifizierte freigegebene Basis: `main=mid-stable=1eca0e0de84abda59d693f6ce69592f3709c7536`, v0.9.85.316. Das bestehende PR451-Feature zur Rasterextrem-Anzeige wird im autorisierten Branch `chatgpt/v0.9.85.317-viewport-extrema` auf tatsächlich sichtbare MapLibre-Kartenbereiche umgestellt: numerische gültige Raster-Zellzentren, dezente weiße Werte ohne sichtbaren Min/Max-Text, NoData/Null und Gleichstände zuverlässig getrennt, Aktualisierung bei Pan/Zoom/Resize, gemeinsamer Pfad NativeModelMap/UnifiedWeatherMap. Unveränderte numerische Originaldaten, Modellprovenienz, Druckzentren, WMO-Standards und sonstige UI-Funktionen. Der PNG/SVG-Export zeigt weiterhin seinen EIGENEN vollständigen Exportbereich, nicht einen fälschlich angenommenen UI-Zoom. Dokumentation: `docs/implementation/MID_18_2_47_VIEWPORT_EXTREMA_WIP.md`; regressionstest `scripts/test-map-scalar-annotations-0985316.mjs` erweitert. Nur echte numerische ICON-D2/RUC-Raster, nicht aus Bildern erfundene WMS-Extreme. P1-Vollgebiet #446 und DWD-GRIB-Pilot #449 bleiben separat offen. App-/Worker-Versionen und Changelogs sind für die geplante .317 synchronisiert, aber die Quelle ist **kein** Build, kein Gate-Nachweis und keine Stable-Freigabe. Release ausschließlich über vollständigen Source-/Heavy-/Browser-/Budget-/CI-Gate, SHA-MID-Bot, Server-ZIP, `install-mid.yml`, Worker/Pages und Stable-Promotion.
+
+# MID v0.9.85.316 · Parameterlinien, Rasterextreme und runde 24-h-Achsen (Source-Kandidat)
+
+Verifizierte freigegebene Basis: main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6, v0.9.85.314. PR448, Source-Gate 39916972847 und Installer 39920562049 einschließlich Pages/Worker-Prüfungen und Stable-Promotion erfolgreich. PR443/445/447 wurden nach selektiver Integration über #448 als überholt geschlossen; Branches bleiben erhalten. Die volle DWD-Geometrieinventur #449/.315 bleibt unabhängig und wird nicht als produktiv freigegeben behandelt.
+
+PR451 ergänzt native parameterbezogene beschriftete Skalarlinien ohne räumliche Ausdünnung, Min-/Max-Markierungen jeder verfügbaren Rasterzelle einschließlich Rändern, gemeinsame Anzeige-/PNG-/SVG-Daten und runde Wind-/Niederschlagsticks in der gewählten Anzeigeeinheit im 24-h-Profil; das Tagesdetail nutzt dieselbe Windskala. Fehlende Zellen bleiben fehlend, Wettercodes sind keine skalaren Extremwerte, und die Anzeige behauptet keine volle native Modellgebietsabdeckung. Bestehende adaptive Isobaren, Quellen-/Lauf-/Terminbindung und T/H-Konvention bleiben erhalten. Alle Warnlinien bleiben verfügbar; nur kollidierende Schwellentexte werden entzerrt. Native Prozentwerte folgen weatherValueFormat.
+
+Lokale Abnahme: frisches npm ci; 1018/1018 Regressionen, Build/Types/Budget, 24 Unified-Map-Fälle, native responsive Karten-/Exportprüfung, 48 tatsächliche 24-h-Einheiten-/Theme-/Viewportfälle sowie 96 7-/14-Tage-Fälle grün. Produktionsaudit ohne Findings; 0 High/Critical im Gesamtaudit, 3 bekannte moderate Entwicklungsbefunde. Das bestehende PNG-Logo wurde pixel- und metadatenidentisch um 90.170 B komprimiert; kein Budget erhöht. Fachlicher Nachweis: docs/implementation/MID_C39_MAP_ANNOTATIONS_0.9.85.316.md. Tatsächliche Veröffentlichung ausschließlich nach vollständigem aktuellem Source-Gate, SHA-gebundenem MID-Bot, Server-ZIP, Installer, Pages/Worker-Prüfung und Stable-Promotion; der Source-Kandidat allein ist kein Release.
+
+# MID v0.9.85.314 · Konturen-/Audit-Konsolidierung (historischer Source-Kandidat; inzwischen freigegeben)
+
+Verifizierte Basis main=mid-stable=7cabe4ca23d86dbf3aadccdb03aa3fc0dbf20885 (.311). Nutzerfreigabe zum separaten gemeinsamen Release der geprüften Konturenkorrekturen #445 (6d8fa7f777df565c64e4293235f754445814a774) und des gehärteten rein lesenden Auditors #447 (13e0f384981652271d5e54556da470cc638531da). Alle .309-/ .311-Fixes erhalten. Vollgebiet #446 bleibt offen und ist kein Erfolg dieses Releases. Keine neue Datenquelle, keine Crop-Erweiterung, kein experimenteller Pilot, keine ungeprüften Dependency-Upgrades oder zusätzlichen Workflows. Version/Changelog synchronisiert; tatsächlicher Release erst nach vollständigem Source-/RUC-/Heavy-/Browser-Gate, SHA-MID-Bot, ServerZIP, Installer, Worker/Pages und Stable-Promotion. Implementierungsnachweis docs/implementation/MID_C39_CONSOLIDATED_RELEASE_0.9.85.314.md.
+
+# MID v0.9.85.309 · Extremwetterpolygone – georeferenzierter Ersatzmodus (Source-Kandidat)
+
+Neuer unabhängiger Geometrienachweis im Draft .309: verschachtelte GeoJSON-Inseln ab fünf Konturringen wurden bisher in ancestor-weiten Queues doppelt ergänzt. Korrigierte parent-lokale Hole→Island-Rekursion und verschärfter vorhandener Pflicht-Test erhalten genau einen Outer-Ring bzw. ein Loch je Originalkontur. Ein erfolgreicher reiner Canvas-Browserpixeltest auf .308 bestätigte Füllung/Lochtransparenz, ist jedoch keine WebGL-/Live-Gefahrenkartenabnahme.
+
+Basis main=mid-stable b57f07081a2b92ae763af9c909aa3f65b9e211ac (.307). PR #440 (.308), ECMWF #433 und bestehende RUC-/Warnverträge bleiben unangetastet. Source-Kandidat ohne Releasebehauptung; Issue #441 und Belege in docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md. Nach Failures der nativen GeoJSON-Kartenebene können vollständige modellierte Konturen georeferenziert degradiert gerendert werden. Keine Veränderung meteorologischer Felder, Wahrscheinlichkeiten oder Warnstufen. Echte Browser-Pixel-/Source-/Worker- und Responsive-Prüfungen vor Freigabe zwingend.
+
+Abgleich 21.10.2026: Die zwischenzeitlich vollständig freigegebene RUC-Erweiterung v0.9.85.308 ist unter Stable-SHA 3420d2b7f7afca80783ed90799234310820c9f3e im selben Integrationscommit erhalten. Die Polygon-Reparatur ergänzt die aktuelle Stable-Basis ausschließlich im eigenen Draft; insbesondere nativer WW-/GRIB-Provenienzpfad, bestehende Source-/ZIP-/Worker-/Pages-Gates und alle .308-Regressionen bleiben unverändert.
+
+# MID v0.9.85.308 · RUC-Komposit und sichtbare Vorhersagestunden (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable=b57f07081a2b92ae763af9c909aa3f65b9e211ac (.307), erneut geprüft am21.10.2026. Parallel-PR439 ist veröffentlicht; dessen RADOLAN-/Ensemble-Extremwert- und unabhängige Referenzverifikation bleiben vollständig erhalten. PR440 führt die RUC-Arbeit fort; Parallel-Drafts einschließlich ECMWF433 und Extrempolygon442 bleiben unberührt. Native RUC-Zusatzquelle mit neun oder zehn GRIB-Komponenten und vollständiger Synoptikachse0..27, separater SHA-Index, ursprüngliche Core/EPS-/Codec-Objekte unverändert. Bei ausschließlich fehlender WW-Analyse beginnt Wolken/Wetter mit dem echten Prognosetermin+1; kein erfundener WW0. Bestehender RUC-Produzent und Source-Gate erweitert, keine neue Workflow-Datei oder Release-Aktion. Live-/Browser-/Release-Nachweise und offene Echtdatenprüfung: docs/implementation/MID_C38_RUC_COMPOSITES_0.9.85.308.md. Noch keine .308-Stable-Veröffentlichung behauptet.
+
+# MID v0.9.85.307 · P1-Datenintegrität (Source-Kandidat)
+
+Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.
+
+Szenario-Ausreißerfilter und 6%-Sichtbarkeitsschwelle entfernt; RADOLAN nicht mehr bei 250 mm hart begrenzt, ungültige Daten uncovered.
+
+Lokale Güte- und Lernverifikation: nur measured/private-sensor, >=18h Deckung und Qualität >=0,55 aus ausschließlich Messquellen, jeweils >=12 Temperatur-/Niederschlagsproben; kein beobachtetes Regime rückwirkend als Ausgabe-Regime.
+
+Drei dynamische Pflichtregressionen zum gesamten Bestand hinzugefügt (1013); Source-, Installer-, Worker-, Pages-Gates noch nachzuweisen. Historische Archive bleiben erhalten; keine empirische 90-Tage- oder iOS-Gerätefreigabe behauptet.
+
+# MID v0.9.85.306 · Vorhandene Revisionsprüfungen und Vite-Sicherheit
+
+Verifizierte Basis main=mid-stable=88c04410de7275010cdcf9ff14b2c26ca35479d1 (.305). #435/#436 sind ausschließlich über vorhandenen Source-Gate, Bot, ZIP und Installer39557997892 veröffentlicht. Produktiver RUC-Lauf08UTC21.10.2026 in39574875111: mapHours27/coreHours14, admitted=true,410534246Bytes, unveränderte Quelle/Codec-Proof und bestätigte Pages-/Worker-Frische. Keine physische Geräte-Abnahme behauptet.
+
+Revisionslauf39570739442 erkannte fehlendes numpy im bestehenden Revisionsworkflow sowie HIGH im gebündelten launch-editor von Vite8.2.2. Alle vorhandenen vollständigen Core-Einstiege erhalten dieselbe Python3.12-/requirements-pages-Umgebung; vorhandene Workflow-Namen/Trigger und Releaseweg bleiben. Bestehende bisher unverwaltete Revision-/Analytics-Workflows werden kanonisch gespiegelt, keine zusätzliche aktive Workflow-Datei. Bootstrap-Regression prüft jetzt jeden Core-Job. Kompatibler Vite-Patch8.2.4 mit Registry-Lockfile und aktualisiertem exaktem Upgrade-Vertrag; bekannte moderate uuid-Dev-Abhängigkeit separat, kein force-fix. Release-Kandidat .306 benötigt vollständige Gates. Implementierungs-/Produktionsnachweis: docs/implementation/MID_C38_REVISION_SECURITY_0.9.85.306.md.
+
+# MID v0.9.85.305 · RUC-Kartenintegration (Source-Kandidat)
+
+Verifizierte Basis main=mid-stable: 438bfb7838a727ad8753940872c8b8ab140bb7c2 (.304). Auf den gehärteten Kartenpilot #431 (af75157ee858d6c5e45e1bd213dfc46f73cc0d49) aufgebaut. Eigenständiger Integrationsbranch; #425/#431/#432/#433 bleiben unverändert. Separate native Kartenachse bis +27h; Kern/EPS/Fusion weiterhin14h, Budget900MB und Raw-Rollback unverändert. Prüfbelege/Restpunkte: docs/implementation/MID_C38_RUC_MAP_INTEGRATION_0.9.85.305.md. Keine Releasebehauptung vor Source-/Installer-/Stable-Nachweis.
+
+# MID v0.9.85.304 · Natürlicher 7-Tage-Kurztext und korrekt zugeordnete Sonnenscheinintervalle (Source-PR-Kandidat)
+
+- Nutzerergänzung: 7d-Telegrammstil durch vollständige, natürlich verbundene Aussagen ersetzen. Tatsächliche Beispieldaten ergeben „Heute regnet es; auch in der kommenden Nacht kann es regnen. Ab Donnerstag ist mit Regen zu rechnen.“ DWD-Primärbeispiele recherchiert; keine neue Wetterursache, Verbreitung, Dauer oder Trockenpause erfunden. Semantische Familienmetadaten verbinden nur dasselbe Tag-/Folgenachtpaar; Hazard-Rangfolge, Ereignislimit, Daten und Unsicherheit erhalten.
+- Zweite neue Pflichtregression test-seven-day-natural-language-0985304.mjs in beiden Inventaren: tatsächliche Summary-Funktion, unveränderte Eingaben, Phasen-/Nachtwechsel, Singular/Plural/Artikel, Missing und markante Hinweise; zusätzlich 19 Adjektivbezeichnungen und13 Nomen/Gegenbeispiele gegen den tatsächlichen privaten Formatter. Drei historische Wortlaut-Assertions für Bewölkung, Mischwetter und Adjektivliste werden auf die bewusst neue Grammatik aktualisiert; ihr meteorologischer Schutz bleibt erhalten. Implementierungsbericht MID_C37_NATURAL_SUMMARY_0.9.85.304.md.
+
+- Verifizierte Basis main=mid-stable=6c3137426f332fb86369ac8f82783180a8b2f296 (.303), Installer39410945206 und alle fünf Heavygruppen erfolgreich; Pages-Versuch1 erfolgreich, Stable-Promotion bestätigt. Parallel-Draft425 unverändert.
+- Tatsächliches mapHours reproduziert 3100 statt1000 Sekunden: Viertelstunden mit gleichem Stundenpräfix enthielten zukünftige Akkumulationen. Die kanonische Stundensumme verwendet jetzt ausschließlich vier eindeutige native Endstempel T−45/30/15min und T. Vollständigkeitsprüfung verhindert Lücken-/Dubletten-/Offgrid-Scheinerfolge; Stunden-Fallback und Missing bleiben erhalten.
+- Neue Pflichtregression test-sunshine-quarter-intervals-0985304.mjs in beiden Inventaren, mit tatsächlichen mapHours/mapMinutely15, expliziten Offsets, DST-/Mitternachts-/Halb-/Viertelstundenoffset-Fenstern, Rohdaten-Unveränderlichkeit und Fehlerfällen. Gemeinsamer Sunshine-Pfad erreicht die bestehenden App-/Widget-/Exportverbraucher. Fachvertrag präzisiert; Anbieter-DST-/Cache-/Daily-Migration #428 bleibt offen.
+- Release ausschließlich Source-Gates → bestehender SHA-Bot → ServerZIP → Installer/Worker/Pages → Stable. Noch kein .304-Release behauptet. Nachweise im Implementierungsbericht MID_C37_SUNSHINE_INTERVALS_0.9.85.304.md.
+
+# MID v0.9.85.303 · Skybar-Dickenstufen am solaren Tagesrand (Source-PR-Kandidat)
+
+- Ausgangsbasis main=mid-stable=20872a05b80b94824219b20fbf97d3e9441ce98e (.302), Installer39402717597 erfolgreich; Parallel-Draft425 unverändert. Nutzerauftrag: alle gelben/grauen Dicken und Tag-/Nachtübergänge intensiv prüfen.
+- Reproduziert: In einem 60-min-Slot mit 15min möglichem Tageslicht wurde relative Sonnenscheindauer gegen60min klassifiziert und dadurch ein falscher Wolkenlücken-Fallback bzw. eine falsche gelbe Stufe gewählt. Ausschließlich der Nenner des solaren Grundband-Renderers wird auf den vereinigten tatsächlichen Tageslichtanteil des Originalslots umgestellt und im Tooltip benannt. Keine Änderung von Sonnenminuten, Wetterwerten, Intervallgrenzen, Niederschlag oder vier Klassen.
+- Neue Pflichtregression `scripts/test-skybar-daylight-levels-0985303.mjs` prüft tatsächlichen gemeinsamen SVG-Renderer, alle4gelben/grauen Stufen,15/60min-Dämmerung, Nachtüberlappungen, Missing und unveränderten Niederschlag. Bestehende Sonnen-/DST-/Skybar-Regressionen bleiben unverändert. Präzisierter Darstellungsvertrag und Bericht `docs/implementation/MID_C37_SKYBAR_LEVELS_0.9.85.303.md`.
+- Nicht jede Wetterlage enthält jede Klasse; keine künstliche Klassenverteilung. #428 bleibt für Anbieter-Fixoffset/DST separat offen. Keine physische iOS-/WKWebView-Abnahme oder vollständige Livefehler-Erklärung ohne Evidenz behaupten.
+- Veröffentlichung nur über vollständigen Source-Gate → bestehenden SHA-Bot → ServerZIP → Installer/Pages/Worker → Stable. Dieser Kandidat ist noch nicht veröffentlicht.
+
+# MID v0.9.85.302 · Explizite UTC-/Offset-Zeitpunkte erhalten (Source-PR-Kandidat)
+
+- Verifizierte Ausgangsbasis main=mid-stable=f17226dea646193a43c78e29198886d7f3601254, v0.9.85.301; Installer 39391396433 erfolgreich. Parallel-Draft #425 bleibt unverändert.
+- Beide gemeinsamen Zeitparser ignorierten vorhandene ISO-Zonenangaben. Die Red-Fixture reproduziert u. a. eine Verschiebung der ersten Berliner Herbst-Doppelstunde um eine Stunde. Gemeinsamer Helper `src/explicitIsoInstant.ts` wahrt ausdrücklich angegebene Instants vor jeder IANA-/Offset-Fallbackbehandlung; fehlerhafte explizite Suffixe werden nicht als lokale Zeit umgedeutet.
+- Offsetlose IANA-Ortszeiten und bestehende Fixoffset-Aufrufer bleiben unverändert. Keine Änderung an Open-Meteo-Abfragen, Cacheformat, Tagesprodukten, Akkumulation oder Modellwerten. Der größere Open-Meteo-DST-Adapterfehler bleibt offen; keine vollständige DST-Datenmigration behaupten.
+- Pflichtregression `scripts/test-explicit-time-offsets-0985302.mjs` in beiden Inventaren: explizites Z, ±Offset mit/ohne Doppelpunkt, Bruchteile, Herbst-Doppelstunde, Frühlingslücke, ungültige Suffixe, Lokal-/Zulu-Darstellung und unveränderte offsetlose Pfade. Technischer Nachweis `docs/implementation/MID_C37_EXPLICIT_TIME_0.9.85.302.md`.
+- Freigabe ausschließlich über Source-Gates → SHA-gebundenen MID-Bot → serverseitiges ZIP → Installer → Worker/Pages → Stable. Noch kein Veröffentlichungsbeleg für diesen Kandidaten.
+
+# MID v0.9.85.301 · Direkter Extremwetterabruf: abgebrochene Folgeabfragen verhindern
+
+- Ausgangsbasis: main=mid-stable=589d0bc41860cebf6cbec1591ad1c0644f557097, v0.9.85.300; Issue #345. Parallel-PR #425 ist ein eigenständiger Draft-RUC-Provider-Canary und wird nicht verändert.
+- Einziger Fachcode-Fix: `scripts/build-maintenance-aggregates.mjs` bekommt einen sofortigen Parent-Abort-Check vor `guardedOpenMeteoFetch`, innerhalb des vorhandenen try/finally. Das daraus erzeugte `src/extremeWeatherOutlookDirect.generated.js` erhält denselben Guard. Kein geänderter Wetterwert, Warnstatus, Cache-Key, Retry-Limit, Provider oder Datenmodell.
+- Neue Regression `scripts/test-direct-outlook-abort-isolation-0985301.mjs` registriert in `MID_BASELINE.json` (beide Inventare). Sechs Fälle mit zwei konkurrierenden Kontexten, bereits abgebrochenen Startpfaden und simulierten unabhängigen HTTP-429-Fehlern. Basisversion/Versionsspiegel, Release Notes und Changelogs synchronisieren.
+- Historische isolierte Node-v22-Red-/Green-Fixture bestand; das vollständige Source-Gate und der reguläre Installer sind die verbindlichen Freigabestufen. Reale Netzwerk-429, Browser/WKWebView/VoiceOver und Geräteparität nicht als durch lokale Tests bewiesen ausgeben.
+- Nach grünen Source-Gates ausschließlich kontrollierter MID Agent Source Release → serverseitiges ZIP → install-mid.yml → betroffene Worker-/Pages-Gates → mid-stable-Promotion. Kein direkter Merge oder manuelles Deployment.
+
 # MID v0.9.85.300 · Skybar-NoData: fehlende Niederschlagsmenge nicht als 0 mm kennzeichnen
 
 - SHA-verifizierte Ausgangsbasis: main=mid-stable=8b3759960ef78e758d7c19d2603f4acde052522f, v0.9.85.299, install-mid Run #39295438835 erfolgreich. Verträge AGENTS.md, MID_BASELINE.json und bestehende WMO-/Skybar-Regressionen maßgeblich.

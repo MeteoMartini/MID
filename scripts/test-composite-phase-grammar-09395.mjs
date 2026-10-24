@@ -34,7 +34,7 @@ assert(/maxRunAgeMs=model\.rapidUpdate\?Math\.max\(5\*3600000/.test(worker),'Wor
 
 // Grammar protection for the generated 7-day prose.
 assert(sevenDay.includes("mit einer möglichen Tropennacht"),'Tropennacht-Formulierung muss vollständig flektiert sein.');
-assert(sevenDay.includes("wechselnd bewölkt mit sonnigen Abschnitten und überwiegend trocken"),'Mischwetter-Satz darf nicht mit „Am … mit …“ fragmentieren.');
+assert(sevenDay.includes("wechseln Sonne und Wolken, dabei bleibt es überwiegend trocken"),'Mischwetter-Satz braucht vollständige Prädikate und muss die gestützte Trockenqualifikation erhalten.');
 assert(sevenDay.includes("${plural?'sind':'ist'} ${event} möglich"),'Nachtzusatz braucht ein finites Verb.');
 assert(!sevenDay.includes("event.toLocaleLowerCase('de-DE')"),'Wetterereignisse wie Schauer dürfen nicht kleingeschrieben werden.');
 

@@ -256,7 +256,7 @@ jobs:
           set -euo pipefail
           audited=false
           for attempt in 1 2 3; do
-            if npm run audit:dependencies; then
+            if npm run audit:dependencies && npm run audit:all; then
               audited=true
               break
             fi
@@ -267,6 +267,18 @@ jobs:
             echo "::error::Dependency-Audit konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
             exit 1
           fi
+
+      - name: Python für die RUC-Kernregressionen einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+
+      - name: Vorhandene RUC-Testabhängigkeiten installieren
+        shell: bash
+        timeout-minutes: 5
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
 
       - name: Produktionsbuild und Regressionstests ausführen
         shell: bash

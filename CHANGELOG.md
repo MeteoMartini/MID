@@ -1,3 +1,128 @@
+# MID v0.9.85.321
+
+- RADOLAN: Die HDF5- und Projektionsbibliotheken werden auch im schlanken Pages-/Installer-Pfad installiert. Dies behebt den belegten Importabbruch vor der Summenveröffentlichung.
+- Karten: Der Hilfetext beschreibt die je Zoomstufe einheitlichen Druckkonturintervalle korrekt.
+
+# MID v0.9.85.320
+
+- Karten: Isobaren verwenden je Zoomstufe ein einheitliches Werteintervall ohne lokale Auslassung einzelner Linien.
+- Flächige numerische Modellkarten zeigen zusätzlich beschriftete Hilfskonturen, auch für Wind und Böen. Export und Karte verwenden denselben Konturpfad.
+
+# MID v0.9.85.319
+
+- Aktuell – Radar-Nowcast: Niederschlagsbalken zeigen leichte, mäßige und starke Regenintensität anhand der Radar-Rate farblich abgestuft. Schraffur und Deckkraft unterscheiden die unkalibrierte Szenariounterstützung; fehlende Werte bleiben ausdrücklich unbekannt.
+- Karten – RADOLAN-Niederschlagssummen: DWD-Import an aktuelle ODIM-H5-RW-Dateien und deren eigenständige 1-km-Rastergeometrie angepasst. Nur zeitlich vollständige, qualitätsgeprüfte 1-/6-/12-/24-/48-Stunden-Summen werden angeboten; fehlende Beobachtungen sind keine Nullwerte.
+- Technisch: HDF5-Projektions-/Zeit-/NoData-Regressionen und einheitliche Radar-Farb-/Wahrscheinlichkeitsprüfungen ergänzt, ohne RUC- oder Warnlogik umzudeuten.
+
+# MID v0.9.85.318
+
+- Zeitumstellung: Stunden- und Viertelstundenprognosen behalten ihre richtigen absoluten Zeitpunkte. Die doppelte Herbststunde bleibt eindeutig; im Frühjahr wird keine zusätzliche Stunde erzeugt.
+- Tageswerte: Unterschiedliche Anbieter- und Ortszeitgrenzen werden erkannt. Vollständig abgedeckte lokale 23-/25-Stunden-Tage werden aus den Stunden berechnet; unvollständige Zeiträume erhalten keine falsche 24-Stunden-Summe.
+- Ensemble- und Eventauswertungen verwenden dieselben Zeitgrenzen. Alte abgeleitete Ensemble-Zwischenspeicher werden erneuert; Rohdaten mit verlässlichem UTC-Offset bleiben verwendbar.
+
+# MID v0.9.85.317
+
+- Modellkarten: dezente weiße Extremwertzahlen ausschließlich aus gültigen Rasterzellen des sichtbaren Kartenausschnitts; Aktualisierung bei Verschieben, Zoom und Größenwechsel.
+- Einheitliche Darstellung für vorhandene numerische ICON-D2-/RUC-Modellfelder ohne sichtbare „Min.“-/„Max.“-Zusätze, mit barrierearmer Erläuterung beim Fokussieren/Antippen.
+- PNG-/SVG-Kartenexporte zeigen Extremwerte passend zum eigenen vollständigen Exportbild; Missing Data und Originalmodellwerte bleiben unverändert.
+
+# MID v0.9.85.316
+
+- Native Modellkarten zeigen auf Wunsch beschriftete Isothermen, Wind-/Böen-, Bewölkungs- und Niederschlagslinien aus dem gewählten Raster.
+- Min-/Max-Markierungen und Zahlenübersicht zeigen die tatsächlichen Extremwerte des verfügbaren Rasters einschließlich Randzellen. Fehlende Daten bleiben ausgespart.
+- Die 24-h-Übersicht erhält runde Windteilstriche in der gewählten Einheit. Karte und PNG-/SVG-Export übernehmen dieselben Linien und Extremwerte.
+
+# MID v0.9.85.314
+
+- Druckkarten: Kleine Druckextrema bleiben bei der Konturberechnung erhalten; Karten und SVG-/PNG-Exporte verwenden dieselben vollständigen Linienzüge, auch bei Wolken-/Wetterkarten.
+- Datenprüfung: Der Vollgebiets-Auditor prüft zusätzlich vollständige Vorhersagestunden, Quellprüfsummen, Einheiten und Intervalle. Fehlende Daten bleiben von tatsächlichen Nullwerten getrennt.
+- Die vollständige Erweiterung auf das gesamte ICON-D2/RUC-Modellgebiet ist weiterhin in Arbeit; dieser Stand aktiviert keine neue Datenquelle oder größere Gebietsabdeckung.
+
+# MID v0.9.85.311
+
+- Prognosegüte: MID und Best Match werden anhand identischer gespeicherter Fälle und gemeinsam verfügbarer Parameter verglichen. Fehlende Werte können keinen künstlichen Vorteil mehr erzeugen.
+- Der Kontrollvergleich nennt die Zahl der tatsächlich auswertbaren Tage und Fälle.
+
+# MID v0.9.85.309
+
+- Extremwetter-Ausblick: Verschachtelte Gefahrenflächen mit Löchern und Inseln erscheinen nicht mehr mehrfach übereinander; ihre modellierten Werte bleiben unverändert.
+
+- Extremwetter-Ausblick: Bei einer nicht geladenen oder leer gerenderten nativen Gefahrenebene kann eine georeferenzierte Ersatzdarstellung aus denselben modellierten Wahrscheinlichkeitskonturen einspringen.
+- Ein klarer Hinweis kennzeichnet diesen Ersatzmodus; Gefahrenstufen, Eintrittswahrscheinlichkeiten, Schraffuren und amtliche Warnungen bleiben fachlich unverändert.
+- Der native Kartenlayer bleibt der bevorzugte Normalfall und wird nach erfolgreicher Wiederherstellung erneut verwendet.
+
+- Extremwetter-Kartenfallback erkennt zusätzlich explizit ausgeblendete bzw. vollständig transparente native Fill-Layer, auch wenn die Featureabfrage Geometrie zurückliefert. Keine Änderung meteorologischer Felder.
+
+# MID v0.9.85.311
+
+- Prognosegüte: MID und Best Match werden anhand identischer gespeicherter Fälle und gemeinsam verfügbarer Parameter verglichen. Fehlende Werte können keinen künstlichen Vorteil mehr erzeugen.
+- Der Kontrollvergleich nennt die Zahl der tatsächlich auswertbaren Tage und Fälle.
+
+# MID v0.9.85.309
+
+- Extremwetter-Ausblick: Verschachtelte Gefahrenflächen mit Löchern und Inseln erscheinen nicht mehr mehrfach übereinander; ihre modellierten Werte bleiben unverändert.
+
+- Extremwetter-Ausblick: Bei einer nicht geladenen oder leer gerenderten nativen Gefahrenebene kann eine georeferenzierte Ersatzdarstellung aus denselben modellierten Wahrscheinlichkeitskonturen einspringen.
+- Ein klarer Hinweis kennzeichnet diesen Ersatzmodus; Gefahrenstufen, Eintrittswahrscheinlichkeiten, Schraffuren und amtliche Warnungen bleiben fachlich unverändert.
+- Der native Kartenlayer bleibt der bevorzugte Normalfall und wird nach erfolgreicher Wiederherstellung erneut verwendet.
+
+- Extremwetter-Kartenfallback erkennt zusätzlich explizit ausgeblendete bzw. vollständig transparente native Fill-Layer, auch wenn die Featureabfrage Geometrie zurückliefert. Keine Änderung meteorologischer Felder.
+
+# MID v0.9.85.309
+
+- GeoJSON-Konturen: tiefe Loch-/Inselverschachtelungen werden duplikatfrei erzeugt; keine veränderten Gefahrenschwellen.
+
+- Extremwetter-Ausblick: Bei einer nicht geladenen oder leer gerenderten nativen Gefahrenebene kann eine georeferenzierte Ersatzdarstellung aus denselben modellierten Wahrscheinlichkeitskonturen einspringen.
+- Ein klarer Hinweis kennzeichnet diesen Ersatzmodus; Gefahrenstufen, Eintrittswahrscheinlichkeiten, Schraffuren und amtliche Warnungen bleiben fachlich unverändert.
+- Der native Kartenlayer bleibt der bevorzugte Normalfall und wird nach erfolgreicher Wiederherstellung erneut verwendet.
+
+# MID v0.9.85.308
+
+- RUC im Modellmarkt: vollständiges Synoptik-Komposit mit Theta-E 850 hPa, Höhe 500 hPa, Bodendruck, Feuchte 700 hPa und Strömung 300 hPa aus demselben nativen Lauf.
+- RUC-Wolken und signifikantes Wetter: direkte WMO-Wettercodes und Gesamtbewölkung, wahlweise als schematisches Modell-Wolkenbild; Isobaren und Isohypsen aus demselben Termin.
+- Karten zeigen die sichtbare Vorhersagestunde (z. B. +3 h), den tatsächlich verfügbaren Bereich und die Anzahl/Schrittweite der Termine. Zeitachse und Bildexporte nennen die Vorhersagestunde ebenfalls.
+- RUC-Zusatzkarten werden ausschließlich mit vollständiger stündlicher Achse bis +27 h veröffentlicht. Bei unvollständigen Quellen bleibt der geprüfte RUC-Kern erhalten; EPS und Prognosefusion behalten ihren bisherigen Horizont.
+
+# MID v0.9.85.307
+
+- Ensemble-Szenariocluster bewahren seltene vollständige Starkregenverläufe und kleine Cluster. Modellanteile sind keine amtlichen oder kalibrierten Eintrittswahrscheinlichkeiten.
+- RADOLAN: Gültige Niederschlagswerte werden nicht länger unbegründet bei 250 mm begrenzt. Fehlende Daten und trockene Null bleiben unterscheidbar.
+- Wetterzwilling: Prognosegüte, Bias und Kalibrierung verwenden ausschließlich genügend vollständige unabhängige Messreferenzen. Frühere Modell- und Reanalyserückblicke bleiben archiviert, sind jedoch keine Messwahrheit.
+- Best Match wird präziser als automatisch ausgewählte operative Modellprognose erklärt.
+
+# MID v0.9.85.306
+
+- Wartung: Die bestehenden Revisions-, Sicherheits- und Veröffentlichungsprüfungen verwenden jetzt einheitlich die erforderliche RUC-Testumgebung.
+- Sicherheit: Vite erhält den kompatiblen Sicherheits-Patch 8.2.4; die bestehenden Karten-, Export- und iOS-Verträge bleiben erhalten.
+- RUC-Karten aus .305 bleiben verfügbar: sechs Parameter und getrennt geprüfte Kartenstunden bis +27 h; EPS und Prognosefusion behalten ihren bisherigen Stundenvertrag.
+
+# MID v0.9.85.305
+
+- Karten: DWD ICON-D2-RUC ergänzt Temperatur, Bodendruck, Wind, Böen, Bewölkung und stündlichen Niederschlag mit eigenem Modelllauf. Vollständig geprüfte Stundenfelder reichen bis +27 Stunden.
+- Modellauswahl bleibt gespeichert. Karten, Ortswerte und Bildexporte verwenden dieselben Rasterwerte und Einheiten. Datenlücken bleiben transparent.
+- Kartenstunden werden getrennt geprüft: RUC-EPS und Prognosefusion behalten ihren bisherigen Stundenvertrag.
+
+# MID v0.9.85.304
+
+- Der 7-Tage-Kurztext liest sich flüssiger: vollständige Sätze, ein natürlicher Anschluss an die kommende Nacht und klar datierte weitere Wetterphasen. Niederschlagsart, Unsicherheit und markante Hinweise bleiben erhalten.
+- Sonnenscheindauer: Die stündliche Zusammenfassung aus Viertelstunden verwendet jetzt genau die vier vorangegangenen Intervalle bis zum Stundenende. Spätere Viertelstunden fließen nicht mehr versehentlich ein. Dies verbessert auch die davon abhängige Skybar.
+- Bei Lücken, doppelten oder unpassenden Zeitpunkten bleibt der verfügbare Stundenwert erhalten. Fehlende Werte bleiben fehlend. Die weitergehende Anbieter-Zeitumstellungs-Migration bleibt offen.
+
+# MID v0.9.85.303
+
+- Skybar: An Sonnenauf- und -untergang richtet sich die gelbe Balkendicke jetzt nach dem tatsächlich möglichen Tageslichtanteil des Intervalls. Nachtminuten schwächen das sichtbare Tagesstück nicht mehr künstlich ab. Die Bezugszeit wird im Tooltip genannt; Sonnenminuten bleiben unverändert.
+- Alle vier gelben und grauen Dickenstufen werden separat geprüft. Nicht jede Wetterlage enthält jede Stufe; Bewölkungswerte und Niederschlag werden nicht verändert oder künstlich auf Klassen verteilt. Die größere Open-Meteo-Zeitumstellungs-Migration bleibt separat offen.
+
+# MID v0.9.85.302
+
+- Zeitangaben mit ausdrücklich angegebener UTC-Zeit oder Zeitzonenverschiebung werden nicht mehr erneut als Ortszeit interpretiert. Die beiden gleichen Ortszeiten bei der Herbst-Zeitumstellung bleiben dadurch unterschiedliche Zeitpunkte.
+- Zeiten ohne ausdrücklich angegebene Verschiebung behalten ihre bisherige Ortszeitbehandlung. Die weitergehende Umstellung der Open-Meteo-Zeitreihen und Tagesgrenzen ist damit noch nicht abgeschlossen.
+
+# MID v0.9.85.301
+
+- Extremwetterhinweise: Nach dem Abbruch eines direkten Abrufs werden keine unnötigen Folgeabfragen mehr gestartet. Parallel laufende, nicht abgebrochene Abrufe bleiben unabhängig.
+- Fachliche Berechnung, vorhandene Niederschlags-/Warnlogik und Modellwerte bleiben unverändert. Fehlerfälle und bereits abgebrochene Abrufe werden separat getestet.
+
 # MID v0.9.85.300
 
 - Die Niederschlags-Skybar unterscheidet bei vorhandenen WMO-Wettercodes nun fehlende Mengen von tatsächlich gemessenen 0 mm. Statt fälschlicher Nullmengen werden „Gesamtmenge nicht verfügbar“ und der ursprüngliche WMO-Code angezeigt.

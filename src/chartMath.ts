@@ -25,6 +25,20 @@ export function nicePositiveRange(maxValue:number,targetIntervals=3){
  return{max,step,ticks:ticksBetween(0,max,step)};
 }
 
+/** Choose round ticks in the visible unit; coordinates remain canonical knots. */
+export function niceWindRange(maxKnots:number,unit:'kn'|'kmh'|'ms'|'mph',targetIntervals=3){
+ const factor={kn:1,kmh:1.852,ms:.514444,mph:1.15078}[unit];
+ const display=nicePositiveRange(Math.max(5,Number.isFinite(maxKnots)?maxKnots:0)*factor,targetIntervals);
+ return {max:display.max/factor,step:display.step/factor,ticks:display.ticks.map(v=>v/factor)};
+}
+
+/** Keep all warning lines, but give their text enough vertical room. */
+export function spacedGuideLabels(guides:{threshold:number;y:number}[],gap=14){
+ const labels=new Set<number>();let last=-Infinity;
+ for(const guide of [...guides].sort((a,b)=>a.y-b.y))if(guide.y-last>=gap){labels.add(guide.threshold);last=guide.y}
+ return labels;
+}
+
 export function niceTemperatureScale(minValue:number,maxValue:number,targetIntervals=5){
  const step=niceStep(Math.max(.1,(maxValue-minValue)/Math.max(1,targetIntervals)));
  const min=Math.floor(minValue/step)*step,max=Math.ceil(maxValue/step)*step;

@@ -1,3 +1,43 @@
+## MID v0.9.85.316 · 2026-10-23 · Parameterlinien, Rasterextreme und runde Windskalen
+
+- Verifizierte Basis main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6 / 0.9.85.314. PR449 reserviert .315 für unabhängige DWD-Geometrieinventur; keine Duplikation oder Aktivierung dieses WIP.
+- Stückweise lineare Konturen auf jedem gültigen Rasterquad, deterministische Dreiecksteilung, keine räumliche Ausdünnung oder Glättung; fehlende Ecke sperrt den Quad. Wettercodes sind keine skalare Größe. Originalwerte bleiben unverändert.
+- Gemeinsame nativeScalarAnnotations für UnifiedWeatherMap, NativeModelMap und native PNG/SVG; bestehende adaptive MSLP-Isobaren und T/H-Konvention bleiben erhalten. Min/Max beziehen sich ausdrücklich auf das veröffentlichte Raster, nicht auf volle native DWD-Gebietsabdeckung.
+- niceWindRange wählt 1/2/5-Teilstriche nach Anzeigeumrechnung; Koordinaten und Spitzen bleiben kanonisch in Knoten. Pflichtregression test-map-scalar-annotations-0985316.mjs.
+
+## MID v0.9.85.314 · 2026-10-23 · Konsolidierte Konturen und strenger Domänenauditor
+
+- Nutzerfreigabe: geprüfte Konturen-/Exportkorrekturen #445 und ausschließlich lesender Auditor #447 gemeinsam veröffentlichen; Vollgebiet #446 bleibt ausdrücklich separat offen.
+- Basis main=mid-stable 7cabe4ca23d86dbf3aadccdb03aa3fc0dbf20885 (.311); keine alten Versionen, Draft-Workflows oder ungeprüften Dependency-Upgrades übernommen.
+- Vollständiges vorhandenes Druckraster statt Sechser-Ausdünnung, gemeinsame verlustfreie Linienzüge in Karten und nativen/Wolken-Wetter-SVG-/PNG-Exporten.
+- Auditor prüft volle Quellzeitachse, SHA, Einheiten, Intervalle und Missing-Masken; 17 Fälle im bestehenden Pflicht-Test registriert. Keine produktive Crop- oder Datenquellenänderung.
+- Release ausschließlich nach erneuten kombinierten Source-/RUC-/Heavy-/Browser-/Installer-/Worker-/Pages-Gates und Stable-Promotion. #433/#432/#425 sowie nicht qualifizierte Dependency-PRs bleiben separat; keine ECMWF- oder Open-Meteo-RUC-Aktivierung.
+
+## MID v0.9.85.311 · 2026-10-22 · Gepaarte Prognoseverifikation
+
+- Basis main=mid-stable 8e829d2e1d474f4beb10937194773d65e12c69fe (.309). Parallel-PR #443 reserviert .310 und bleibt unberührt.
+- Reproduzierter Fehler: asymmetrisch fehlende optionale Parameter erzeugen bei identischen gemeinsamen Fehlern einen scheinbaren MID-Vorteil. Report verglich außerdem Gesamtarchive mit unterschiedlicher Falldeckung.
+- Gemeinsame Parametermaske pro archiviertem Stand, Tagesmittel vor Gesamtmittel, identische Fallmenge für Anzeige, adaptive Obergrenze und Aktivierungsentscheidung. Keine neue Kalibrierung und keine rückwirkende Änderung gespeicherter Prognosen.
+- Neuer dynamischer Pflicht-Test test-paired-verification-0985311.mjs; Altcode rot, Korrektur grün. Release erst nach vollständigen Source-/Installer-/Pages-/Stable-Gates.
+
+## MID v0.9.85.309 · 2026-10-21 · Extremwetter-Polygon-Ersatzmodus (Source-Kandidat)
+
+- Reproduzierter P1-GeoJSON-Geometriefehler: fünf verschachtelte Originalringe ergaben vier statt drei MultiPolygon-Teile (Insel doppelt), sechs Ringe vier statt drei. Der neue ausschließlich direkte Hole→Island-Rekursionspfad erhält jeden Ring exakt einmal und normalisiert Außen- und Lochorientierung. Bestehende Pflichtregression test-extreme-outlook-geodata-096614 wurde um Ringtiefen 1–6, Multipolygonanzahl, Duplikatfreiheit, Ringanzahl und Winding erweitert. Kein Schluss auf WebGL-Pixel, Live-Ursache oder amtliche Warnungen.
+
+- Basis: erfolgreich nach Pages/Worker promovierter Stable-SHA b57f07081a2b92ae763af9c909aa3f65b9e211ac, v0.9.85.307; paralleler blockierter RUC-PR #440 v0.9.85.308 und Draft #433 unberührt.
+- Die maplibre-gl@6.7.0-GeoJSON-Flächen werden wie bisher zuerst verwendet. Ein zeitversetzter Source-/Layer-/Render-Check mit map.isSourceLoaded, queryRenderedFeatures und erfassten Workerfehlern aktiviert bei tatsächlichem Fehlen einen Canvas-Ersatz aus derselben Konturserie.
+- Canvas zeichnet dieselben I1–I4-Konturen inklusive Schraffur, Inseln und Löchern; kann aber im Ersatzmodus über gezeichneten OSM-Ortsnamen liegen. Zustand wird optisch und per role=status deklariert. Nicht als amtliche Warnung ausgeben.
+- Unterdrückte synchronen Fehler bei der nativen Installation dürfen nicht länger zu alleinstehenden Gefahrenlabels führen. Wiederherstellung über map.idle erneut prüfen, Eventlistener beim Wechsel freigeben.
+- Neue Pflichtregression scripts/test-extreme-outlook-render-fallback-0985309.mjs, bestehende Label-/Canvas-/GeoJSON-Tests fachlich angepasst; Version, Worker, Service Worker, iOS und Verträge synchronisiert.
+- **Freigabesperre:** Hier ist noch kein realer Browser-Pixel-/Viewport-/WKWebView-Nachweis vorhanden. Ein neuer Source-PR bleibt bis zum tatsächlichen Source-Gate, reproduzierbarer Polygon-Pixelprüfung, betroffener Heavy-Regression und dem regulären Installer/Pages/Worker/Stable-Pfad Draft. Kein öffentlicher Release durch diesen Commit allein.
+
+## MID v0.9.85.307 · 2026-10-21 · P1-Datenintegrität
+
+- Stable-Basis .306 a1f40fb42ea45bd3c695583a49a1310e0fc853fc verifiziert; parallele ECMWF-/RUC-Drafts unangetastet; vorhandene Workflownamen und Freigabepfade unverändert.
+- Szenario-Ausreißerfilter und 6%-Sichtbarkeitsschwelle entfernt; RADOLAN nicht mehr bei 250 mm hart begrenzt, ungültige Daten uncovered.
+- Lokale Güte- und Lernverifikation: nur measured/private-sensor, >=18h Deckung und Qualität >=0,55 aus ausschließlich Messquellen, jeweils >=12 Temperatur-/Niederschlagsproben; kein beobachtetes Regime rückwirkend als Ausgabe-Regime.
+- Drei dynamische Pflichtregressionen zum gesamten Bestand hinzugefügt (1013); Source-, Installer-, Worker-, Pages-Gates noch nachzuweisen. Historische Archive bleiben erhalten; keine empirische 90-Tage- oder iOS-Gerätefreigabe behauptet.
+
 ## MID v0.9.85.296 · 2026-10-19 · Langfrist-Ausblick und Wiederherstellung
 
 - PR419: Cache-/Workerpfad unabhängig von optionalem Direktmodul, Schema-Recovery und nutzergetriggerter Reload nach Modulfehler; keine meteorologische Änderung.
@@ -1142,3 +1182,5 @@ Native Quelle: https://github.com/jdemaeyer/brightsky/issues/144 und https://git
 ## Veröffentlichung
 
 Verbindlicher Pfad: **Source-PR-Gate → Auto-Merge → Release-ZIP → Installer → Stable-Promotion**. Der Stand darf erst nach grünem Gate und erfolgreicher Stable-Promotion als veröffentlicht gelten.
+
+- Renderprüfung von PR #442 um native Fill-Style-Sichtbarkeit (`layout.visibility`, numerisches `fill-opacity`) ergänzt. Der positive MapLibre-Query allein konnte bei unsichtbarem Fill eine falsche Gesundmeldung auslösen. Zusätzliche Vitest- und TSX-MapLibre-Mockfälle für `none`/`0`; unveränderte Feature-, GeoJSON-, Modell- und Source-PR-Gates. Sichtbare WebGL-Pixel und tatsächlicher Browser-/Recovery-Check weiterhin offene Release-Blocker.

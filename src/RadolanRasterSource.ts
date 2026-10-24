@@ -43,7 +43,10 @@ function forward(latDegrees:number,lonDegrees:number,projection:Projection):[num
  const phi0=projection.lat0*radians,qp=q(Math.PI/2,projection.e2),beta=Math.asin(Math.max(-1,Math.min(1,q(phi,projection.e2)/qp))),beta0=Math.asin(Math.max(-1,Math.min(1,q(phi0,projection.e2)/qp))),rq=projection.a*Math.sqrt(qp/2),m0=Math.cos(phi0)/Math.sqrt(1-projection.e2*Math.sin(phi0)**2),d=projection.a*m0/(rq*Math.cos(beta0)),denominator=1+Math.sin(beta0)*Math.sin(beta)+Math.cos(beta0)*Math.cos(beta)*Math.cos(delta);if(denominator<=1e-12)return null;const b=rq*Math.sqrt(2/denominator);return[projection.x0+b*d*Math.cos(beta)*Math.sin(delta),projection.y0+(b/d)*(Math.cos(beta0)*Math.sin(beta)-Math.sin(beta0)*Math.cos(beta)*Math.cos(delta))];
 }
 function decoded(raster:RadolanRaster,column:number,row:number):{covered:boolean;amountMm:number}{
- if(column<0||column>=raster.width||row<0||row>=raster.height)return{covered:false,amountMm:0};const raw=Number(raster.values[row*raster.width+column]);if(!Number.isFinite(raw)||raw===raster.nodata)return{covered:false,amountMm:0};if(raw===raster.undetect)return{covered:true,amountMm:0};const physical=raw*raster.gain+raster.offset,amount=/RATE/.test(raster.quantity)?physical/12:physical;return{covered:true,amountMm:Math.max(0,Math.min(250,amount))};
+ if(column<0||column>=raster.width||row<0||row>=raster.height)return{covered:false,amountMm:0};const raw=Number(raster.values[row*raster.width+column]);if(!Number.isFinite(raw)||raw===raster.nodata)return{covered:false,amountMm:0};if(raw===raster.undetect)return{covered:true,amountMm:0};const physical=raw*raster.gain+raster.offset,amount=/RATE/.test(raster.quantity)?physical/12:physical;
+ // Keine unbegründete Kappung gültiger Extremwerte; negative/missing Werte sind keine trockene Null.
+ if(!Number.isFinite(amount)||amount<0)return{covered:false,amountMm:0};
+ return{covered:true,amountMm:amount};
 }
 export function sampleRadolanPoint(raster:RadolanRaster,lat:number,lon:number):RadolanPointSample{
  const projected=forward(lat,lon,raster.projection);if(!projected)return{covered:false,amountMm:0,nearbyAmountMm:0};const column=Math.floor((projected[0]-raster.minX)/raster.xScale),row=Math.floor((raster.maxY-projected[1])/raster.yScale),centre=decoded(raster,column,row);let nearby=0,valid=0,total=0,nearest=Infinity;

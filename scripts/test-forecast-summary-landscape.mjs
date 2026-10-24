@@ -17,7 +17,7 @@ assert.match(sevenDay,/currentDayPrecipitationRelevant=index===0&&\(dayPrecipita
 assert.match(sevenDay,/function sevenDayClause/,'natürliche Satzbildung für die Kurzinterpretation fehlt');
 assert.match(sevenDay,/Heute und morgen \$\{description\}|Heute \$\{description\}/,'der erste Prognosetag muss sprachlich natürlich mit Heute beginnen können');
 assert.match(sevenDay,/zunehmend heiß|sehr heiß|extrem heiß|sommerlich warm/,'DWD-nahe Temperaturklassifikation fehlt');
-assert.match(sevenDay,/segment\.regime==='cloudy'\?'überwiegend bewölkt'/,'Bewölkung bleibt als Wetterregime erhalten, aber ohne ungesicherte Trockenbehauptung');
+assert.match(sevenDay,/segment\.regime==='cloudy'\?'ist es überwiegend bewölkt'/,'Bewölkung bleibt als Wetterregime in einem vollständigen Satz erhalten, ohne ungesicherte Trockenbehauptung');
 const summaryIndex=app.indexOf('<SevenDayForecastSummary');
 const dayIndex=app.indexOf('{forecastDays.map',summaryIndex);
 assert.ok(summaryIndex>=0&&dayIndex>summaryIndex,'Kurzinterpretation muss vor dem ersten Prognosetag stehen');

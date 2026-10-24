@@ -46,7 +46,9 @@ assert.deepEqual([.1,.8,5,15].map(amount=>precipIntensity.precipitationIntensity
 assert.deepEqual([1,6,18,60].map(amount=>precipIntensity.precipitationIntensityDescriptor('showers',amount,0,3600,80)?.level),[1,2,3,4],'Regenschauer bilden leicht/mäßig/stark/sehr stark über 10-min-Intensität ab; ein expliziter Code 81 würde mindestens mäßig erzwingen.');
 assert.deepEqual([.2,1,5].map(snowfall=>precipIntensity.precipitationIntensityDescriptor('snow',.1,snowfall,3600,71)?.level),[1,2,3],'Schneeintensität muss dem Schneezuwachs folgen.');
 // Legacy temperature-index checks are superseded by test-ensemble-multiparameter-097865.mjs.
-const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','partsAtEpoch','localIsoEpoch']);
+// The AST harness extracts declarations, not imports: inject the real shared parser.
+const explicitTime=load('src/explicitIsoInstant.ts',['explicitIsoInstant']);
+const time=load('src/weather-src/00-types-models-search.tsfrag',['parseLocalIso','sourceTimeFormatters','partsAtEpoch','localIsoEpoch','providerIsoEpoch','providerPresentationTime'],explicitTime);
 const intervalSemantics=load('src/eventIntervalSemantics.ts',['eventIntervalHasPrecipitation','eventIntervalSkyCode']);
 const event=load('src/eventWeatherEngine.ts',['parseMinuteStamp','eventWindowEndDate','clockFromCivilStamp','timelineForWindow','unique','weatherSeverity','majorWeatherCode','mean','maximum','minimum','eventWeatherPart','summarizeTimeline'],{localIsoEpoch:time.localIsoEpoch,precipitationParts:()=>({type:'none',displayCode:0,total:0}),label:()=>'',dryWeatherLabel:()=>'',compactPrecipitationTypeLabel:()=>'',eventIntervalHasPrecipitation:intervalSemantics.eventIntervalHasPrecipitation,eventIntervalSkyCode:intervalSemantics.eventIntervalSkyCode,coherentSunshineDurationSeconds:({valueSeconds})=>valueSeconds});
 const hours=['2026-09-05T23:00','2026-09-06T00:00','2026-09-06T01:00','2026-09-06T02:00'].map(time=>({time,precipitation:0,probability:0}));

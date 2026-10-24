@@ -1,0 +1,86 @@
+{
+  "archiveSha256": "83da6240488a315ca7d85aeea728a7272845f3a00ebca6ce972f558be5cbef21",
+  "originalManifestSha256": "fcf7606ee1568f2308309a3f22650bf115fb1b440e23e4c09961f017914c6d34",
+  "reconstructedObjects": {
+    "deterministic.bin": {
+      "bytes": 195134400,
+      "sha256": "c964658c359d8b1704e560f7d244e27ce7af24b39b73dc7232c1820cd3b60916"
+    },
+    "lookup.bin": {
+      "bytes": 2298176,
+      "sha256": "8bc12649247f5bbbe554217455b3770cf589106e4de5637b15af9aa23c09b482"
+    }
+  },
+  "sourceRun": "2026-10-20T20:00",
+  "nativePoints": 542040,
+  "mapBytes": 11696580,
+  "candidateIndexSha256": "2a9540c26a8c1284ae431a22aa78a481fcb8188d56df84f01fbaec9f8c19de5f",
+  "productionEnabled": false,
+  "partCount": 397,
+  "products": {
+    "temperature": 15,
+    "pressure": 15,
+    "wind": 15,
+    "gust": 14,
+    "cloud": 15,
+    "precipitation": 14
+  },
+  "independentFrameComparisons": 88,
+  "comparisons": {
+    "temperature": {
+      "frames": 15,
+      "missingCellValues": 0,
+      "maxDisplayQuantizationError": 0.0,
+      "displayGrid": [
+        328,
+        404
+      ]
+    },
+    "pressure": {
+      "frames": 15,
+      "missingCellValues": 0,
+      "maxDisplayQuantizationError": 1.1368683772161603e-13,
+      "displayGrid": [
+        328,
+        404
+      ]
+    },
+    "wind": {
+      "frames": 15,
+      "missingCellValues": 0,
+      "maxDisplayQuantizationError": 0.005000000000002558,
+      "displayGrid": [
+        328,
+        404
+      ]
+    },
+    "gust": {
+      "frames": 14,
+      "missingCellValues": 0,
+      "maxDisplayQuantizationError": 0.005000000000009663,
+      "displayGrid": [
+        328,
+        404
+      ]
+    },
+    "cloud": {
+      "frames": 15,
+      "missingCellValues": 0,
+      "maxDisplayQuantizationError": 1.4210854715202004e-14,
+      "displayGrid": [
+        328,
+        404
+      ]
+    },
+    "precipitation": {
+      "frames": 14,
+      "missingCellValues": 0,
+      "maxDisplayQuantizationError": 0.0,
+      "displayGrid": [
+        328,
+        404
+      ]
+    }
+  },
+  "comparisonPassed": true
+}

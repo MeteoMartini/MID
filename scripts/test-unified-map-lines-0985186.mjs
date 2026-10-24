@@ -23,6 +23,18 @@ const features=p.nativeIsobarFeatures([{level:1016,paths:[[[50,7],[51,8]],[[52,9
 assert.equal(features.features.length,1,'Published native two-point contour segments are valid lines');
 assert.deepEqual(features.features[0].geometry.coordinates,[[7,50],[8,51]],'GeoJSON order is longitude, latitude');
 assert.equal(features.features[0].properties.label,'1016 hPa');
+const segments=[[[50,7],[51,8]],[[51,8],[52,9]],[[53,10],[54,11]],[[54,11],[55,12]]];
+const original=structuredClone(segments);
+const connected=p.nativeIsobarFeatures([{level:1017,spacingKm:55,paths:segments}]);
+assert.equal(connected.features.length,2,'Continuous contour segments must reduce map features without losing separate lines');
+assert.deepEqual(connected.features[0].geometry.coordinates,[[7,50],[8,51],[9,52]],'All original contour vertices survive in order');
+assert.deepEqual(connected.features[1].geometry.coordinates,[[10,53],[11,54],[12,55]]);
+assert.equal(connected.features[0].properties.spacingKm,55,'Provenance and density metadata preserved');
+assert.deepEqual(segments,original,'Do not mutate verified source contours');
+const closed=p.nativeIsobarFeatures([{level:1000,paths:[[[50,7],[51,8]],[[51,8],[50,7]],[[50,7],[52,9]]]}]);
+assert.equal(closed.features.length,2,'Do not join a separate line into a completed closed loop');
+assert.equal(p.nativeIsobarFeatures([{level:1010,paths:[[[50,7]]]}]).features.length,0,'Reject degenerate contour fragments');
+
 const worker=read('worker/metar-proxy.js'),extract=(start,end)=>worker.slice(worker.indexOf(start),worker.indexOf(end,worker.indexOf(start)));
 const styles=new Function(`${extract('function xmlLayerBlock(', 'function wmsLayerNameMatches(')}${extract('function weatherMapStylesFromCapabilities(', 'async function weatherMapMetadata(')}return weatherMapStylesFromCapabilities;`)();
 const xml='<Layer><Name>dwd:root</Name><Style><Name>parent_isoarea</Name></Style><Layer><Name>dwd:PMSL</Name><Style><Name>pmsl_isoline_label</Name><Title>Pressure</Title></Style><Style><Name>invalid&lt;name</Name></Style></Layer><Layer><Name>dwd:T2M</Name><Style><Name>t2m_isoarea</Name></Style></Layer></Layer>';

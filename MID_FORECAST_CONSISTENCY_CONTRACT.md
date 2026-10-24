@@ -1,4 +1,27 @@
+## v0.9.85.318 · Feste Anbieterzeiten und echte lokale Kalendertage
+
+Offsetlose Open-Meteo-Rohzeiten werden mit dem festen numerischen Antwortoffset in absolute Epochen übersetzt; nutzerlokale Eventgrenzen bleiben IANA-basiert. Ortszeitlabels sind davon abgeleitet und erhalten an Übergängen eindeutige Offsets. Originalendstempel bleiben als Provenienz erhalten. Ein abweichender fester Daily-Zeitraum darf nicht als lokaler 23-/25h-Tag erscheinen: Rekonstruktion erfordert vollständige native Stunden einschließlich folgendem Akkumulationsende und gültigen Pflichtmengen; sonst bleibt dieser Tagesdatensatz unverfügbar. Ensemble-/Eventzuordnungen folgen denselben absoluten Zeitgrenzen; alte abgeleitete Caches werden invalidiert. Rohe Caches ohne numerischen Offset werden nicht per Heuristik migriert. Details und Grenzen: docs/implementation/MID_C39_PROVIDER_TIME_0.9.85.318.md.
+
 # MID – verbindlicher Vertrag für eine konsistente Prognose aus einem Guss
+
+## v0.9.85.311 · Gepaarter Kontrollvergleich
+
+Verbesserung und Freigabe der lokalen Nachkorrektur gegenüber Best Match verwenden ausschließlich Fälle mit beiden archivierten Prognosen, derselben unabhängigen Messreferenz und gemeinsam auswertbaren Parametern. Ein einseitig fehlender Parameter wird für beide Seiten aus diesem Vergleich ausgeschlossen, niemals als Nullfehler ersetzt. Mehrere Horizonte werden zunächst innerhalb desselben lokalen Zieltags gemittelt; jeder Tag erhält anschließend gleiches Gewicht. Fall- und Tageszahlen zählen nur tatsächlich berechenbare Paare. Angezeigte MID-/Best-Match-Kontrollscores, adaptive Kontrollbelege und Aktivierungsentscheidung müssen aus derselben gepaarten Auswertung stammen. Gesamtarchiv-Rankings bleiben deskriptiv und sind kein gepaarter Skillnachweis. Auch ein positiver Kontrollscore ersetzt keine zeitlich blockierte, unabhängige Studie mit Unsicherheitsanalyse.
+
+## v0.9.85.307 · Niederschlagsextreme und unabhängige Verifikation
+
+Vollständige Ensemble-Mitglieder werden nicht allein wegen hoher Niederschlagsmengen als Ausreißer gelöscht; positive kleine Cluster bleiben sichtbar. Relative Modellfamiliengewichte sind keine kalibrierten Ereigniswahrscheinlichkeiten. Gültige positive RADOLAN-Werte dürfen nicht mit ungeprüften Obergrenzen gekappt werden; fehlende Messdaten sind nicht 0 mm. Modellrückblick und Reanalyse sind keine unabhängigen Beobachtungen für Lerngewichtung, Bias, Konfidenz und Skill. Diese erfordern qualitätsgesicherte Messquellen mit dokumentierter zeitlicher Vollständigkeit. Erst nach Ausgabe beobachtete Wetterregimes dürfen nicht als prognostizierte Regimes in die Verifikation einfließen.
+
+
+## v0.9.85.304 · Natürlich formulierter 7-Tage-Kurztext
+
+Der Kurztext verwendet vollständige Aussagen aus denselben ausgewählten Ereignissen. Nur ein unmittelbar aufeinander ausgewähltes Tag-/Folgenachtpaar desselben Tagesindexes und derselben Niederschlagsfamilie darf mit „auch“ verbunden werden. Ein Phasenwechsel oder eine spätere Nacht bleibt separat datiert. Daraus werden keine durchgehenden Niederschläge, trockenen Zwischenphasen, räumliche Ausdehnungen oder synoptischen Ursachen abgeleitet. Rangfolge, maximal drei ausgewählte Ereignisse, Warnstärke und Möglichkeitsaussagen bleiben unverändert. Markante Hinweise erhalten grammatisch passende Singular-/Pluralformen. Fehlende Daten werden weiterhin ausdrücklich als unvollständig ausgewiesen. Der Sprachstil orientiert sich an DWD-Beispielen; die Aussagen entstehen aus MID-Daten und sind keine amtliche DWD-Vorhersage.
+
+Ein markanter Hinweis darf mit „zudem“ an eine Aussage desselben einzelnen Tages anschließen. Deckt die Wetterbeschreibung mehrere Tage ab, behält der Hinweis seinen eigenen Tagesbezug; seine Gültigkeit darf sprachlich nicht auf den gesamten Wetterabschnitt erweitert werden.
+
+## v0.9.85.304 · Sonnenschein aus endgestempelten Viertelstunden
+
+Die rohe Sonnenscheinstundensumme am Endstempel T darf nur durch vier gültige native Viertelstunden mit Endstempeln T−45min, T−30min, T−15min und T ersetzt werden. Die vier Rohintervalle überdecken exakt (T−60min,T]. Eine Suche allein nach gleichem Uhrzeitpräfix ist unzulässig. Lücken, doppelte oder zusätzliche unpassende Endstempel innerhalb dieses Fensters erzwingen den bisherigen Stunden-Fallback; Missing bleibt Missing. Explizite ISO-Offsets werden als absolute Zeitpunkte gewahrt. Offsetlose Open-Meteo-Rohendstempel werden für diese Zuordnung mit dem festen Antwortoffset verglichen. Diese enge Intervallkorrektur ist keine vollständige Anbieter-DST-/Tages-/Cachemigration (#428); nutzerlokale Eventzeiten und die astronomische Symbolgrenze behalten ihre eigenen Verträge.
 
 Dieser Vertrag gilt ab MID v0.9.53.26 app-weit für alle bestehenden und neuen sichtbaren Prognose-, Analyse-, Warn-, Event-, Aktivitäts-, Widget- und Exportmodule.
 

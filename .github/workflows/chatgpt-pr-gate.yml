@@ -26,7 +26,9 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # RUC admission (20m) and core build/regressions (15m) run sequentially.
+    # Keep both step limits unchanged and leave room for setup/iOS/packaging.
+    timeout-minutes: 45
     permissions:
       contents: read
 
@@ -34,8 +36,8 @@ jobs:
       - name: PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Struktur, Build und Regressionen benötigen nur den SHA-genauen PR-Merge-Snapshot.
-          fetch-depth: 1
+          # Zwei Ebenen erlauben den Vergleich des SHA-genauen Merge-Snapshots mit dessen Basis.
+          fetch-depth: 2
 
       - name: MID-Quellstruktur prüfen
         shell: bash
@@ -108,7 +110,10 @@ jobs:
       - name: Produktionsabhängigkeiten prüfen
         shell: bash
         timeout-minutes: 5
-        run: npm run audit:dependencies
+        run: |
+          set -euo pipefail
+          npm run audit:dependencies
+          npm run audit:all
 
       - name: Python für echte RUC-GRIB-Regressionen einrichten
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -123,6 +128,36 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
           python tools/ruc/test_fetch_resilience.py
+
+      - name: Änderungen am nativen RUC-Kartenpfad erkennen
+        id: ruc_native_changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only HEAD^1 HEAD -- tools/ruc/)"
+          if [ -n "$changed" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen
+        if: steps.ruc_native_changes.outputs.enabled == 'true'
+        # Real three-run .308 probe reached the third complete source inventory
+        # at 15min; retain all checks and allow bounded contour/codec completion.
+        timeout-minutes: 20
+        run: |
+          python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
+          node scripts/verify-ruc-composites.mjs ruc-horizon-evidence
+
+      - name: Numerische RUC-Prüfnachweise sichern
+        if: always() && steps.ruc_native_changes.outputs.enabled == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-horizon-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-horizon-evidence/
+          if-no-files-found: error
+          retention-days: 2
 
       - name: Produktionsbuild und Regressionen prüfen
         shell: bash
@@ -279,11 +314,56 @@ jobs:
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
         run: npm run test:regressions
 
+  visual_extreme:
+    name: Extremwetterpolygone · echte Browserpixel
+    # This branch-scoped draft preflight is not a release or a replacement for core/heavy.
+    if: >-
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.head_ref, 'extreme-polygons-fallback')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-identischen PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          npm ci --no-audit --no-fund --legacy-peer-deps --loglevel=notice
+      - name: Synthetische Gefahrengeometrie in echtem WebGL und Canvas visuell prüfen
+        shell: bash
+        timeout-minutes: 16
+        env:
+          MID_EXTREME_QA_DIR: artifacts/extreme-browser-qa
+        run: |
+          set -euo pipefail
+          node scripts/verify-extreme-outlook-pixels-browser-0985309.mjs
+      - name: SHA-gebundene Browserbilder und Prüfnachweis sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-extreme-webgl-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/extreme-browser-qa/
+          if-no-files-found: warn
+          retention-days: 7
+
   validate_source:
     name: Agent-Quellstand vollständig prüfen
     needs:
       - source_core
       - heavy_regressions
+      - visual_extreme
     if: >-
       always() &&
       (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
@@ -299,10 +379,16 @@ jobs:
         env:
           CORE_RESULT: ${{ needs.source_core.result }}
           HEAVY_RESULT: ${{ needs.heavy_regressions.result }}
+          VISUAL_RESULT: ${{ needs.visual_extreme.result }}
+          EXTREME_BRANCH: ${{ contains(github.head_ref, 'extreme-polygons-fallback') }}
         run: |
           set -euo pipefail
           if [ "$CORE_RESULT" != success ] || [ "$HEAVY_RESULT" != success ]; then
             echo "::error::MID-Source-Gate unvollständig: core=${CORE_RESULT}, heavy=${HEAVY_RESULT}."
+            exit 1
+          fi
+          if [ "$EXTREME_BRANCH" = true ] && [ "$VISUAL_RESULT" != success ]; then
+            echo "::error::Echte Extremwetter-WebGL-Pixelabnahme nicht grün: visual=${VISUAL_RESULT}."
             exit 1
           fi
           echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."

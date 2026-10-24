@@ -43,6 +43,29 @@ try{
  assert.ok(signedArea(holePolygon[0])>0,'Außenringe müssen stabil gegenzeigersinnig ausgegeben werden.');
  assert.ok(signedArea(holePolygon[1])<0,'Lochringe müssen stabil im Gegensinn ausgegeben werden.');
  assert.ok(signedArea(islandPolygon[0])>0,'Inselpolygone im Loch müssen erneut als Außenring ausgegeben werden.');
+
+ // Regression: five or more nested rings used to append deep islands twice.
+ // Preserve exactly one island per even nesting depth, including its next hole.
+ const square=(offset)=>[
+  {lon:offset,lat:offset},{lon:6-offset,lat:offset},
+  {lon:6-offset,lat:6-offset},{lon:offset,lat:6-offset}
+ ];
+ for(const ringCount of [1,2,3,4,5,6]){
+  const nested=geojsonModule.buildExtremeOutlookContourGeoJson([{
+   ...contours[0],rings:Array.from({length:ringCount},(_,index)=>square(index*.35))
+  }]).features[0].geometry.coordinates;
+  const expected=Math.ceil(ringCount/2);
+  assert.equal(nested.length,expected,`Jede Insel muss genau ein Polygon liefern (Ringtiefe ${ringCount}).`);
+  const outerKeys=nested.map(polygon=>polygon[0].map(point=>point.join(',')).sort().join('|'));
+  assert.equal(new Set(outerKeys).size,expected,`Bei Ringtiefe ${ringCount} dürfen keine Insel-Polygone doppelt erscheinen.`);
+  const encodedRings=nested.reduce((sum,polygon)=>sum+polygon.length,0);
+  assert.equal(encodedRings,ringCount,`Kein Originalring darf doppelt gezeichnet oder verschluckt werden (${ringCount}).`);
+  for(const polygon of nested){
+   assert.ok(signedArea(polygon[0])>0,'Außenring gegenzeigersinnig');
+   for(const hole of polygon.slice(1))assert.ok(signedArea(hole)<0,'Lochring im Gegensinn');
+  }
+ }
+
 }finally{fs.rmSync(tempDir,{recursive:true,force:true})}
 
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
