@@ -1,3 +1,7 @@
+# MID v0.9.85.323 · Dezente numerische Hilfskonturen und Niederschlagssummen (Source-Kandidat)
+
+Basis: main=mid-stable=30fa3817db2a3cfba2ff57c7f437e26a5c65ac5a (v0.9.85.322). Skalare Raster-Isolinien werden schmaler, transparenter und unter geografischen Referenzgrenzen gerendert. Für ICON-D2-Modellsummen und DWD-RADOLAN-Stundensummen zeigt der gleiche Algorithmus echte Gitterkonturen in mm; -1/NoData bleibt NaN, gültige Null bleibt Null, Zeit-/Akkumulationsfenster und Datenherkunft bleiben unverändert. SVG-/PNG-Export und umschaltbare Darstellung entsprechen der Kartenansicht. Die dokumentierte Deutschland-Beschneidung von ICON-D2/RUC wird NICHT durch eine fiktive Vollgebietsausdehnung ersetzt; Issue #446 und Original-GRIB-Pilot #449 bleiben gesonderte Gates. Vor Release sind alle Source-, Browser-, Heavy-, Installer-, Worker-, Pages- und Stable-Gates erforderlich.
+
 # MID v0.9.85.322 · Isolierte native RUC-Seitenschritte (Source-Kandidat)
 
 Verifizierte Ausgangsbasis main=mid-stable=205d4c6bf8f9799c9f4ef38f31d20b7940470ced (.321). RUC-Lauf 40088804651 beendete sich nach der Storage-Audit-Ausgabe mit SIGABRT/Exit 134: double free or corruption. Getrennte Python-Prozesse für ICON-D2-Summen, RADOLAN-H5, Modellkarten und Synoptik begrenzen native Bibliothekslebenszyklen; nicht erwartete Exceptions und native Signalabstürze blockieren unverändert jede Veröffentlichung. Kein Codec-, SHA-, Missing-/NoData-, DWD-, 900-MB-, Security- oder Release-Gate wird umgangen. Vollständige Codec-/Pages-/Worker-/Fusion-Produktivabnahme steht noch aus.

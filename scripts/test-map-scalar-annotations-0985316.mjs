@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const dir=mkdtempSync(join(tmpdir(),'mid-scalar-'));
 try{
- for(const [name,entry] of [['scalar','nativeScalarAnnotations'],['math','chartMath'],['export','nativeModelMapExport']])await build({entryPoints:[`src/${entry}.ts`],outfile:join(dir,name+'.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
+ for(const [name,entry] of [['scalar','nativeScalarAnnotations'],['math','chartMath'],['export','nativeModelMapExport'],['totals','totalsScalarField']])await build({entryPoints:[`src/${entry}.ts`],outfile:join(dir,name+'.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
  const {nativeScalarLines,nativeRasterExtremes}=await import(pathToFileURL(join(dir,'scalar.mjs')));
+ const {totalsScalarField}=await import(pathToFileURL(join(dir,'totals.mjs')));
  const {niceWindRange,spacedGuideLabels}=await import(pathToFileURL(join(dir,'math.mjs')));
  const guides=[{threshold:50,y:34},{threshold:65,y:31},{threshold:85,y:27},{threshold:100,y:23},{threshold:115,y:20},{threshold:140,y:14}];
  assert.deepEqual([...spacedGuideLabels(guides)],[140,65],'Strongest guide remains labeled; nearby warning text cannot overlap');
@@ -51,7 +52,28 @@ try{
  const noExtremes=nativeFieldSvg(field,'Temperatur','',[],0,'kn',undefined,[],{extremes:false});
  const annotationOnly=noExtremes.match(/<g class="native-scalar-annotations">([\s\S]*?)<\/g>/)?.[1]??'';
  assert.ok(!annotationOnly.includes('<text'),'Disabling extrema removes all annotation values, independently of legend ticks');
- console.log('PASS native scalar isolines, missing masks, boundary extremes, export settings and unit-aware wind ticks');
+ const sums={lats:[48,49,50],lons:[7,8,9],scale:.1};
+ const sumFrame={validTo:'2026-10-24T18:00:00Z',values:[0,0,0,0,-1,20,0,0,0]};
+ const adapted=totalsScalarField(sums,sumFrame);
+ assert.equal(adapted.unit,'mm');assert.equal(adapted.time,sumFrame.validTo);
+ assert.ok(Number.isNaN(adapted.values[4]),'Observed RADOLAN NoData must remain unknown, not dry zero');
+ assert.equal(adapted.values[0],0,'Measured dry zero remains valid');
+ assert.equal(nativeScalarLines(adapted).length,0,'No isoline crosses the missing middle cell');
+ const valid={...sumFrame,values:sumFrame.values.map((v,i)=>i===4?20:v)};
+ const native=totalsScalarField(sums,valid);
+ assert.ok(nativeScalarLines(native).length>0,'Verified accumulated sums create isolines');
+ assert.ok(nativeScalarLines(native).every(l=>l.label.endsWith(' mm')),'Accumulation contours are labelled mm, not mm/hour');
+ const overlay=readFileSync('src/NativeScalarMapOverlay.tsx','utf8');
+ assert.match(overlay,/line-opacity':\.34/,'Scalar line must be subtle');
+ assert.match(overlay,/line-opacity':\.13/,'Wide opaque white scalar casing is forbidden');
+ assert.match(overlay,/zIndex=\{620\}/,'Scalar lines must remain beneath geographic borders');
+ const totalsMap=readFileSync('src/PrecipitationTotalsMap.tsx','utf8');
+ const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8');
+ const totalsExport=readFileSync('src/precipitationTotalsExport.ts','utf8');
+ assert.match(totalsMap,/totalsScalarField\(data,frame\)/);
+ assert.match(unified,/totalsScalarField\(data,frame\)/);
+ assert.match(totalsExport,/contourPaths/);
+ console.log('PASS native scalar isolines, missing masks, subtle layer style, sum overlays, exports and unit-aware wind ticks');
 }finally{rmSync(dir,{recursive:true,force:true})}
 if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){
  await import('./verify-round-wind-browser-0985316.mjs');
