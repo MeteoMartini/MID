@@ -1,0 +1,207 @@
+{
+  "schema": "mid.dwd.domain-inventory.v1",
+  "requiredRuns": 3,
+  "expectedParameters": {
+    "icon-d2-ruc": [
+      "pmsl"
+    ]
+  },
+  "expectedLeads": {
+    "icon-d2-ruc/pmsl": [
+      0
+    ]
+  },
+  "records": [
+    {
+      "model": "icon-d2-ruc",
+      "parameter": "pmsl",
+      "run": "20261024T1400",
+      "leadHours": 0,
+      "sourceSha256": "ba137bb8fc8324c935b7ccbf6e33e5abc42d0b734406cc33bff2456c59da2998",
+      "gridType": "unstructured_grid",
+      "points": 542040,
+      "validPoints": 525072,
+      "missingPoints": 16968,
+      "realZeroPoints": 0,
+      "coordinateLatitudeRange": [
+        43.044048,
+        58.164654
+      ],
+      "coordinateLongitudeRange": [
+        -4.161636,
+        20.544418
+      ],
+      "validLatitudeRange": [
+        43.14732,
+        58.060894
+      ],
+      "validLongitudeRange": [
+        -3.943863,
+        20.303696
+      ],
+      "valueRange": [
+        97191.78125,
+        102807.65625
+      ],
+      "bitmapPresent": 1,
+      "nativeCoordinates": {
+        "latitude": {
+          "sha256": "cc30a08d173f3989b6cb1f809d61bae42ab16b80ba90c954d9d13eafc4be8d2c",
+          "gridIdentity": [
+            "c6b12daa91ad64045b26c1b6452a2a20",
+            "47",
+            "1",
+            "542040"
+          ],
+          "units": "Degree N"
+        },
+        "longitude": {
+          "sha256": "0c28c1c4129d16278d276141a7afb69a54df537aa9efc6e2eae09c8e4c9b42c0",
+          "gridIdentity": [
+            "c6b12daa91ad64045b26c1b6452a2a20",
+            "47",
+            "1",
+            "542040"
+          ],
+          "units": "Degree E"
+        }
+      },
+      "parameterIdentity": [
+        0,
+        3,
+        1
+      ],
+      "stepType": "instant",
+      "sourceUrl": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/PMSL/r/2026-10-24T14:00/s/PT000H00M.grib2"
+    },
+    {
+      "model": "icon-d2-ruc",
+      "parameter": "pmsl",
+      "run": "20261024T1500",
+      "leadHours": 0,
+      "sourceSha256": "4ce092b84d8a95d307665272c211c94509c14ac05ec9665eab227768db73ef22",
+      "gridType": "unstructured_grid",
+      "points": 542040,
+      "validPoints": 525072,
+      "missingPoints": 16968,
+      "realZeroPoints": 0,
+      "coordinateLatitudeRange": [
+        43.044048,
+        58.164654
+      ],
+      "coordinateLongitudeRange": [
+        -4.161636,
+        20.544418
+      ],
+      "validLatitudeRange": [
+        43.14732,
+        58.060894
+      ],
+      "validLongitudeRange": [
+        -3.943863,
+        20.303696
+      ],
+      "valueRange": [
+        96911.09375,
+        102725.34375
+      ],
+      "bitmapPresent": 1,
+      "nativeCoordinates": {
+        "latitude": {
+          "sha256": "cc30a08d173f3989b6cb1f809d61bae42ab16b80ba90c954d9d13eafc4be8d2c",
+          "gridIdentity": [
+            "c6b12daa91ad64045b26c1b6452a2a20",
+            "47",
+            "1",
+            "542040"
+          ],
+          "units": "Degree N"
+        },
+        "longitude": {
+          "sha256": "0c28c1c4129d16278d276141a7afb69a54df537aa9efc6e2eae09c8e4c9b42c0",
+          "gridIdentity": [
+            "c6b12daa91ad64045b26c1b6452a2a20",
+            "47",
+            "1",
+            "542040"
+          ],
+          "units": "Degree E"
+        }
+      },
+      "parameterIdentity": [
+        0,
+        3,
+        1
+      ],
+      "stepType": "instant",
+      "sourceUrl": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/PMSL/r/2026-10-24T15:00/s/PT000H00M.grib2"
+    },
+    {
+      "model": "icon-d2-ruc",
+      "parameter": "pmsl",
+      "run": "20261024T1600",
+      "leadHours": 0,
+      "sourceSha256": "52b30ec5591d2a2f6a9f13406bde309de6cd8f4e6089520641077ba748892b88",
+      "gridType": "unstructured_grid",
+      "points": 542040,
+      "validPoints": 525072,
+      "missingPoints": 16968,
+      "realZeroPoints": 0,
+      "coordinateLatitudeRange": [
+        43.044048,
+        58.164654
+      ],
+      "coordinateLongitudeRange": [
+        -4.161636,
+        20.544418
+      ],
+      "validLatitudeRange": [
+        43.14732,
+        58.060894
+      ],
+      "validLongitudeRange": [
+        -3.943863,
+        20.303696
+      ],
+      "valueRange": [
+        96793.21875,
+        102647.71875
+      ],
+      "bitmapPresent": 1,
+      "nativeCoordinates": {
+        "latitude": {
+          "sha256": "cc30a08d173f3989b6cb1f809d61bae42ab16b80ba90c954d9d13eafc4be8d2c",
+          "gridIdentity": [
+            "c6b12daa91ad64045b26c1b6452a2a20",
+            "47",
+            "1",
+            "542040"
+          ],
+          "units": "Degree N"
+        },
+        "longitude": {
+          "sha256": "0c28c1c4129d16278d276141a7afb69a54df537aa9efc6e2eae09c8e4c9b42c0",
+          "gridIdentity": [
+            "c6b12daa91ad64045b26c1b6452a2a20",
+            "47",
+            "1",
+            "542040"
+          ],
+          "units": "Degree E"
+        }
+      },
+      "parameterIdentity": [
+        0,
+        3,
+        1
+      ],
+      "stepType": "instant",
+      "sourceUrl": "https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/PMSL/r/2026-10-24T16:00/s/PT000H00M.grib2"
+    }
+  ],
+  "runCounts": {
+    "icon-d2-ruc/pmsl": 3
+  },
+  "fullDomainProductionApproved": false,
+  "scope": "Three consecutive original PMSL analysis fields only; not all parameters/leads or model-map production approval"
+}
