@@ -120,6 +120,7 @@ jobs:
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
           python tools/ruc/test_ruc_pack.py
+          python tools/ruc/test_ruc_native_sidecar.py
           python tools/ruc/test_prepare_ruc_pages.py
           # The preparer preserves the verified index after DWD build_synoptic
           # and directly before the legacy raw-budget projection.

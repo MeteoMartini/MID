@@ -341,34 +341,11 @@ def main():
     # The established workflow (including recovery reruns) already invokes this
     # CLI. Keep totals orchestration here instead of adding another paid service
     # or an additional workflow/permission surface.
-    from build_precipitation_totals import build as build_totals
-    try:build_totals(a.source/'precipitation-totals.json')
-    except RuntimeError as error:
-        # A missing independent 48-hour product must not block the canonical
-        # short-range RUC forecast. The map then stays explicitly unavailable.
-        (a.source/'precipitation-totals.json').unlink(missing_ok=True)
-        print(f'::warning::ICON-D2 totals unavailable: {error}',flush=True)
-    from build_observed_precipitation import build as build_observed
-    try:build_observed(a.source/'observed-precipitation.json')
-    except (RuntimeError,ValueError,OSError) as error:
-        (a.source/'observed-precipitation.json').unlink(missing_ok=True)
-        print(f'::warning::RADOLAN sums unavailable: {error}',flush=True)
-    from build_model_map_fields import build as build_fields
-    fields_dir=a.source/'model-fields'
-    if fields_dir.exists():shutil.rmtree(fields_dir)
-    try:
-        totals_path=a.source/'precipitation-totals.json'
-        if totals_path.is_file():build_fields(fields_dir,json.loads(totals_path.read_text()))
-    except (RuntimeError,ValueError,OSError) as error:
-        if fields_dir.exists():shutil.rmtree(fields_dir)
-        print(f'::warning::ICON-D2 native maps unavailable: {error}',flush=True)
-    from build_synoptic_fields import build as build_synoptic
-    synoptic_dir=a.source/'synoptic-fields'
-    if synoptic_dir.exists():shutil.rmtree(synoptic_dir)
-    try:build_synoptic(synoptic_dir)
-    except Exception as error:
-        shutil.rmtree(synoptic_dir,ignore_errors=True)
-        print(f'::warning::Synoptic fields unavailable: {error}',flush=True)
+    # Separate native DWD/ecCodes and RADOLAN/h5py/pyproj lifetimes from the
+    # Python inventory/packing process. A SIGABRT/nonzero subprocess exit
+    # remains fatal; optional source failures retain their original semantics.
+    from run_ruc_native_sidecar import run_all_stages
+    run_all_stages(a.source)
     meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
     from storage_audit import audit_storage
     print('RUC storage audit: '+json.dumps(audit_storage(meta,a.output/'ruc',full_compression=True),separators=(',',':')),flush=True)
