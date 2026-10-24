@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Run one optional, native-library-heavy RUC sidecar in an isolated process.
 
+ecCodes followed by pyproj in one interpreter can abort during native teardown.
+Keep their imports in separate interpreters; changing import order is not a fix.
 A signal/nonzero interpreter exit is fatal to the calling workflow. Only the
 same expected data-unavailability exceptions as the legacy in-process builder
 are optional. The complete RUC core, checks and publication gates are unchanged.

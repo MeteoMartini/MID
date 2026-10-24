@@ -88,6 +88,28 @@ class SidecarTests(unittest.TestCase):
                 run_all_stages(Path('fixture'), python_executable='python3')
         self.assertEqual(error.exception.returncode, -11)
 
+    def test_real_native_imports_remain_in_separate_interpreters(self):
+        # The legacy eccodes -> pyproj import order aborts at interpreter exit
+        # with current binary wheels. Test real imports and normal teardown,
+        # without network or deliberately crashing the regression runner.
+        root = Path(__file__).resolve().parent
+        checks = (
+            ('prepare_ruc_pages', ('eccodes', 'pyproj', 'h5py')),
+            ('build_precipitation_totals', ('pyproj', 'h5py')),
+            ('build_observed_precipitation', ('eccodes',)),
+            ('build_model_map_fields', ('pyproj', 'h5py')),
+            ('build_synoptic_fields', ('pyproj', 'h5py')),
+        )
+        for module, forbidden in checks:
+            with self.subTest(module=module):
+                code = (f'import {module}; import sys; '
+                        f'assert not set({forbidden!r}) & set(sys.modules), '
+                        f'"native runtime contamination: {module}"')
+                completed = subprocess.run(
+                    [sys.executable, '-X', 'faulthandler', '-c', code],
+                    cwd=root, capture_output=True, text=True, timeout=30)
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+
     def test_real_subprocess_exit_is_fatal_to_parent(self):
         with tempfile.TemporaryDirectory() as td:
             script = Path(td) / 'exit_after_read.py'

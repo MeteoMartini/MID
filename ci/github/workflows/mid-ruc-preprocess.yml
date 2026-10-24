@@ -117,6 +117,8 @@ jobs:
           MID_RUC_EPS_DECODE_WORKERS: '2'
         run: python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
       - name: RUC-Wire- und Pages-Free-Profil prüfen
+        env:
+          PYTHONFAULTHANDLER: '1'
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         run: |
           python tools/ruc/test_ruc_pack.py
