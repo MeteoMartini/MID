@@ -1,0 +1,307 @@
+name: MID RUC provider read-only pilot
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/mid-ruc-provider-readonly-pilot.yml'
+      - 'ci/github/workflows/mid-ruc-provider-readonly-pilot.yml'
+      - 'scripts/sync-github-workflows.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-provider:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Read the exact PR sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate native readiness evaluator with synthetic regressions
+        shell: bash
+        run: node --test tools/ruc/tests/ruc-integration-readiness.test.mjs
+      - name: DWD three-run inventory and isolated Open-Meteo RUC API canary
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ruc-readonly-evidence
+          python3 - <<'PY'
+          import datetime, html, json, math, re, sys
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlencode, unquote
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError, URLError
+
+          out=Path('.ruc-readonly-evidence/provider-status.json')
+          doc={"schema":"mid.ruc.provider.readonly.v1","generatedAtUtc":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+               "source":"public DWD file-name listings + Open-Meteo forecast API",
+               "integrationApproved":False,"prodChanges":False,"dwd":[],"openMeteo":{}}
+          class A(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.links=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='a':
+                      href=dict(attrs).get('href')
+                      if href:self.links.append(unquote(html.unescape(href)).split('?')[0])
+          def get(url):
+              try:
+                  with urlopen(Request(url,headers={'User-Agent':'MID-RUC-readonly-preflight/1.0'}),timeout=9) as response:
+                      body=response.read(2000001)
+                      if len(body)>2000000:raise ValueError('over bounded read limit')
+                      return {'http':response.status,'text':body.decode('utf8','replace'),'date':response.headers.get('Date')}
+              except HTTPError as e:return {'http':e.code,'error':e.read(512).decode('utf8','replace')}
+              except (URLError,TimeoutError,OSError,ValueError) as e:return {'http':None,'error':type(e).__name__+': '+str(e)[:180]}
+          def links(raw):
+              parser=A()
+              if 'text' not in raw:return []
+              parser.feed(raw['text'])
+              return parser.links
+          def leads(files):
+              steps=set()
+              for name in files:
+                  m=re.fullmatch(r'PT(\d{3})H([0-5]\d)M\.grib2',name)
+                  if m:steps.add(int(m[1])*60+int(m[2]))
+              return {'filesListed':len(steps),'missingHourlyLeads':[h for h in range(28) if h*60 not in steps],
+                      'plus27Listed':1620 in steps,'fiveMinuteLeadNamesBeyond14h':sum(1 for m in steps if 840<m<=1620 and m%5==0 and m%15!=0),
+                      'fiveMinuteSlotsMissing':sum(1 for minute in range(0,1621,5) if minute not in steps),
+                      'gribDecoded':False}
+          assert leads(['PT000H00M.grib2','PT027H00M.grib2'])['missingHourlyLeads']==list(range(1,27))
+          assert leads(['PT000H00M.grib2','PT001H00M.grib2'])['plus27Listed'] is False
+          fields=['T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML']
+          base='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
+          discovered=get(base+'/T_2M/r/')
+          # New runs appear before all of their forecast lead files. Never infer
+          # a 27h feed outage from a still-publishing newest initialization.
+          candidates=sorted(set(x.strip('/') for x in links(discovered) if re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:00/',x)))[-6:]
+          accepted=[]
+          rejected=[]
+          def complete(field,row):
+              inv=row.get('inventory')
+              if row['http']!=200 or not inv or inv['missingHourlyLeads'] or not inv['plus27Listed']:
+                  return False
+              expected=325 if field=='TOT_PREC' else 109 if field in ('CAPE_ML','CIN_ML') else 28
+              return inv['filesListed']==expected and (field!='TOT_PREC' or inv['fiveMinuteSlotsMissing']==0)
+          for run in reversed(candidates):
+              rows=[]
+              for field in fields:
+                  url=base+'/'+field+'/r/'+run.replace(':','%3A')+'/s/'
+                  rsp=get(url)
+                  inventory=leads(links(rsp)) if rsp['http']==200 else None
+                  rows.append({'run':run,'field':field,'http':rsp['http'],
+                      'error':rsp.get('error'),'inventory':inventory})
+              incomplete=[row['field'] for row in rows if not complete(row['field'],row)]
+              if incomplete:
+                  rejected.append({'run':run,'classification':'not_yet_complete_27h_listing',
+                                   'incompleteFields':incomplete})
+              else:
+                  accepted.append(run)
+                  doc['dwd'].extend(rows)
+              if len(accepted)==3:
+                  break
+          runs=sorted(accepted)
+          doc['runDiscovery']={'http':discovered['http'],'runs':runs,'requiredRuns':3,
+                               'candidateRuns':candidates,'excludedIncompleteRuns':rejected,
+                               'selection':'three latest complete 27h source listings, not newest visible directories'}
+          params={'latitude':'50.815','longitude':'7.037','models':'dwd_icon_d2_ruc_native',
+                  'timezone':'GMT','timeformat':'unixtime','forecast_hours':'28','hourly':'temperature_2m'}
+          url='https://api.open-meteo.com/v1/forecast?'+urlencode(params)
+          api=get(url)
+          verdict={'http':api['http'],'model':'dwd_icon_d2_ruc_native','runIdentified':False,'usable':False,
+                   'error':api.get('error'),'validatedField':'temperature_2m'}
+          if api['http']==200:
+              try:
+                  payload=json.loads(api['text']);hourly=payload.get('hourly',{})
+                  times=hourly.get('time',[]);temps=hourly.get('temperature_2m',[])
+                  finite=[x for x in temps if type(x) in (int,float) and math.isfinite(x)]
+                  monotonic=len(times)>=6 and all(type(t) in (int,float) and math.isfinite(t) for t in times) and all(times[i]-times[i-1]==3600 for i in range(1,len(times)))
+                  units=payload.get('hourly_units',{}).get('temperature_2m')
+                  verdict.update({'timeCount':len(times),'temperatureCount':len(temps),'finite':len(finite),
+                                  'missing':len(temps)-len(finite),'unit':units,'hourlyTimeStepValid':monotonic,
+                                  'usable':not payload.get('error',False) and len(times)==len(temps) and len(finite)>=6 and monotonic and units=='°C',
+                                  'providerReason':payload.get('reason')})
+              except (ValueError,TypeError,AttributeError) as e:verdict['error']='invalid-json-or-response-shape: '+str(e)[:130]
+          else:
+              try:verdict['providerReason']=json.loads(api.get('text','{}')).get('reason')
+              except (ValueError,AttributeError):pass
+          doc['openMeteo']=verdict
+          doc['dwdListingGate']=len(runs)==3 and len(doc['dwd'])==len(runs)*len(fields) and all(
+              x['http']==200 and x['inventory'] and not x['inventory']['missingHourlyLeads'] and
+              (x['field']!='TOT_PREC' or x['inventory']['fiveMinuteSlotsMissing']==0) for x in doc['dwd'])
+          doc['modelIdMinimalCanary']=bool(verdict['usable'])
+          doc['acceptedForProduction']=False
+          out.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          print('DWD 3-run file-name listing gate:',doc['dwdListingGate'],'Open-Meteo minimal numeric model-ID canary:',doc['modelIdMinimalCanary'])
+          print('Evidence:',out,'; no GRIB decode, no RUC run provenance, no integration approval')
+          if not doc['dwdListingGate'] or not doc['modelIdMinimalCanary']:sys.exit(2)
+          PY
+      - name: Install ecCodes for bounded GRIB header verification
+        if: always()
+        shell: bash
+        run: python3 -m pip install 'eccodes>=2.38,<3'
+      - name: Compare native GRIB headers with 27h filename validity
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime, json, tempfile, sys
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+          from eccodes import codes_grib_new_from_file, codes_get, codes_release
+
+          root=Path('.ruc-readonly-evidence')
+          root.mkdir(exist_ok=True)
+          out=root/'native-grib27-header-samples.json'
+          doc={'schema':'mid.ruc.grib-header-sample.v1','decodedHeadersOnly':True,
+               'noFieldArrayOrPrecipitationAccumulationValidated':True,'samples':[]}
+          listing=root/'provider-status.json'
+          runs=json.loads(listing.read_text(encoding='utf8')).get('runDiscovery',{}).get('runs',[]) if listing.exists() else []
+          if not runs:
+              out.write_text(json.dumps(doc,indent=2)+'\n')
+              raise SystemExit('No listed DWD run from prerequisite')
+          run=runs[-1]
+          initialized=datetime.datetime.strptime(run,'%Y-%m-%dT%H:%M').replace(tzinfo=datetime.timezone.utc)
+          sample_steps=[('T_2M',1620),('PMSL',1620),('CLCL',1620),('TOT_PREC',1620),('TOT_PREC',1615)]
+          good=True
+          for field,lead_minutes in sample_steps:
+              hours,minutes=divmod(lead_minutes,60)
+              name=f'PT{hours:03d}H{minutes:02d}M.grib2'
+              url=f'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{field}/r/{quote(run,safe=":")}/s/{name}'
+              row={'run':run,'field':field,'leadMinutes':lead_minutes,'file':name,'validityMatched':False}
+              try:
+                  with urlopen(Request(url,headers={'User-Agent':'MID-RUC-header-readonly/1.0'}),timeout=15) as response:
+                      data=response.read(2000001)
+                  if not data or len(data)>2000000:raise ValueError('sample is empty or over 2MB bounded limit')
+                  with tempfile.TemporaryFile() as file:
+                      file.write(data);file.seek(0)
+                      gid=codes_grib_new_from_file(file,headers_only=True)
+                      if gid is None:raise ValueError('GRIB2 header not found')
+                      try:
+                          def get(key):
+                              try:return codes_get(gid,key)
+                              except Exception:return None
+                          keys=['edition','centre','shortName','paramId','units','gridType','numberOfDataPoints',
+                                'dataDate','dataTime','validityDate','validityTime','stepType','stepRange',
+                                'typeOfLevel','level','bitmapPresent']
+                          row['grib']={k:get(k) for k in keys}
+                      finally:codes_release(gid)
+                  valid=initialized+datetime.timedelta(minutes=lead_minutes)
+                  g=row['grib']
+                  row['validityMatched']=(
+                      g['edition']==2 and g['dataDate']==int(initialized.strftime('%Y%m%d')) and
+                      g['dataTime']==int(initialized.strftime('%H%M')) and
+                      g['validityDate']==int(valid.strftime('%Y%m%d')) and
+                      g['validityTime']==int(valid.strftime('%H%M')) and
+                      isinstance(g['numberOfDataPoints'],int) and g['numberOfDataPoints']>0)
+                  if not row['validityMatched']:good=False
+              except Exception as e:
+                  row['error']=type(e).__name__+': '+str(e)[:220];good=False
+              doc['samples'].append(row)
+          doc['headerTimeGate']=good
+          out.write_text(json.dumps(doc,indent=2,ensure_ascii=False)+'\n',encoding='utf8')
+          print('Native +27h header time gate:',good,'sampleCount:',len(doc['samples']),'; GRIB values NOT analyzed')
+          if not good:sys.exit(2)
+          PY
+      - name: Decode three five-minute cumulative precipitation fields with native bitmaps
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, tempfile, sys
+          from pathlib import Path
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+          import numpy as np
+          from eccodes import codes_grib_new_from_file, codes_get, codes_release
+          sys.path.insert(0,'tools/ruc')
+          from grib_bitmap import decode_bitmap_values
+          from grib_metadata import NATIVE_GRID
+          from meteo_integrity import validate_accumulation, MeteoIntegrityError
+
+          folder=Path('.ruc-readonly-evidence');folder.mkdir(exist_ok=True)
+          out=folder/'native-ruc-numeric-samples.json'
+          doc={'schema':'mid.ruc.numeric-pilot.v1','fieldScope':'one DWD run +27h and last two 5-minute cumulative differences',
+               'fullRunValidation':False,'productionApproved':False,'files':[],'increments':[]}
+          report=json.loads((folder/'provider-status.json').read_text())
+          runs=report.get('runDiscovery',{}).get('runs',[])
+          if not runs:raise SystemExit('No verified source run to sample')
+          run=runs[-1]
+          rows={}
+          ok=True
+          samples=[('T_2M',1620),('CLCL',1620),('TOT_PREC',1610),('TOT_PREC',1615),('TOT_PREC',1620)]
+          for field,step in samples:
+              hour,minute=divmod(step,60)
+              name=f'PT{hour:03d}H{minute:02d}M.grib2'
+              url=f'https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/{field}/r/{quote(run,safe=":")}/s/{name}'
+              item={'run':run,'field':field,'leadMinutes':step,'valid':False}
+              try:
+                  with urlopen(Request(url,headers={'User-Agent':'MID-RUC-native-numeric-readonly/1.0'}),timeout=15) as response:
+                      data=response.read(2000001)
+                  if not data.startswith(b'GRIB') or len(data)>2000000:raise ValueError('invalid GRIB or over 2MB maximum')
+                  with tempfile.TemporaryFile() as temp:
+                      temp.write(data);temp.seek(0)
+                      gid=codes_grib_new_from_file(temp)
+                      if gid is None:raise ValueError('empty GRIB')
+                      try:
+                          unit=str(codes_get(gid,'units'))
+                          vals=decode_bitmap_values(gid)
+                      finally:codes_release(gid)
+                  finite=np.isfinite(vals)
+                  usable=vals[finite]
+                  item.update({'pointCount':int(vals.size),'finitePoints':int(finite.sum()),'missingPoints':int((~finite).sum()),
+                      'missingFraction':float((~finite).sum()/vals.size),'units':unit,
+                      'min':float(usable.min()) if usable.size else None,'max':float(usable.max()) if usable.size else None,
+                      'p99':float(np.percentile(usable,99)) if usable.size else None})
+                  good=vals.size==NATIVE_GRID[3] and usable.size>0
+                  if field=='T_2M':good=good and unit=='K' and bool((usable>=180).all() and (usable<=340).all())
+                  if field=='CLCL':good=good and unit=='%' and bool((usable>=-0.5).all() and (usable<=100.5).all())
+                  if field=='TOT_PREC':good=good and unit=='kg m**-2' and bool((usable>=-0.05).all())
+                  item['valid']=bool(good)
+                  rows[(field,step)]=vals
+                  if not good:ok=False
+              except Exception as error:
+                  item['error']=type(error).__name__+': '+str(error)[:210];ok=False
+              doc['files'].append(item)
+          if all(('TOT_PREC',x) in rows for x in (1610,1615,1620)):
+              accum=np.stack([rows[('TOT_PREC',x)] for x in (1610,1615,1620)],axis=0)
+              try:validate_accumulation(accum,'27h 5-minute native TOT_PREC sample',tolerance_mm=0.05)
+              except MeteoIntegrityError as error:
+                  doc['accumulationError']=str(error);ok=False
+              for index,(a,b) in enumerate(((1610,1615),(1615,1620))):
+                  earlier,later=accum[index],accum[index+1]
+                  mask=np.isfinite(earlier)&np.isfinite(later)
+                  delta=later[mask]-earlier[mask]
+                  doc['increments'].append({'startLeadMinutes':a,'endLeadMinutes':b,'validPairedCells':int(mask.sum()),
+                      'missingPairedCells':int(mask.size-mask.sum()),'minMm':float(delta.min()) if delta.size else None,
+                      'maxMm':float(delta.max()) if delta.size else None,'p99Mm':float(np.percentile(delta,99)) if delta.size else None,
+                      'negativeBelowToleranceCount':int((delta<-0.05).sum()),
+                      'smallNegativeJitterCount':int(((delta<0)&(delta>=-0.05)).sum())})
+                  if not delta.size:ok=False
+          else:ok=False
+          doc['numericSampleGate']=ok
+          out.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          print('RUC native bitmap + numerical 5-minute sample gate:',ok,'fields:',len(doc['files']),'increments:',len(doc['increments']))
+          if not ok:sys.exit(2)
+          PY
+      - name: Report independent integration readiness and remaining release gates
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .ruc-readonly-evidence
+          node tools/ruc/ruc_integration_gate.mjs --evidence-dir .ruc-readonly-evidence .ruc-readonly-evidence/integration-readiness.json
+      - name: Retain public-provider evidence on success or failure
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-provider-readonly-preflight
+          path: |
+            .ruc-readonly-evidence/provider-status.json
+            .ruc-readonly-evidence/native-grib27-header-samples.json
+            .ruc-readonly-evidence/native-ruc-numeric-samples.json
+            .ruc-readonly-evidence/integration-readiness.json
+          retention-days: 7
+          if-no-files-found: warn
