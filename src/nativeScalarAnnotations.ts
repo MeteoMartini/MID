@@ -14,6 +14,9 @@ function visibleLongitude(lon:number,west:number,east:number){
 }
 
 export type ScalarLine={level:number;label:string;path:number[][]};
+// A grid-only contract shared by native forecast fields and complete precipitation sums.
+// No fabricated model schema or provenance is assigned to observation products.
+export type ScalarRaster=Pick<NativeField,'kind'|'unit'|'time'|'scale'|'lats'|'lons'|'values'>;
 export type NativeAnnotationOptions={lines?:boolean;extremes?:boolean;fill?:boolean};
 export const scalarLineName=(kind:NativeField['kind'])=>({temperature:'Isothermen',wind:'Isotachen',gust:'Böen-Isolinien',cloud:'Bewölkungs-Isolinien',thetae:'Theta-E-Isolinien',precipitation:'Niederschlags-Isolinien',pressure:'Isobaren',sigwx:''}[kind]);
 /** Extrema of available scalar *cell centres* within the visible map viewport.
@@ -22,7 +25,7 @@ export const scalarLineName=(kind:NativeField['kind'])=>({temperature:'Isotherme
  * The optional bounds preserve whole-export and existing global contour semantics.
  * Stable first-cell ties prevent jitter for otherwise identical grid values.
  */
-export function nativeRasterExtremes(field:NativeField,viewport?:RasterViewport):RasterExtreme[]{
+export function nativeRasterExtremes(field:ScalarRaster,viewport?:RasterViewport):RasterExtreme[]{
  if(field.kind==='sigwx')return [];
  if(viewport&&(![viewport.south,viewport.north,viewport.west,viewport.east].every(Number.isFinite)||viewport.south>viewport.north))return [];
  const width=field.lons.length,height=field.lats.length;
@@ -45,14 +48,16 @@ export function nativeRasterExtremes(field:NativeField,viewport?:RasterViewport)
  * smoothing or extrapolation. Missing corners exclude the entire quad. A fixed
  * diagonal resolves saddle cells deterministically and retains closed extremes.
  */
-export function nativeScalarLines(field:NativeField,unit:WindUnit='kn'):ScalarLine[]{
+export function nativeScalarLines(field:ScalarRaster,unit:WindUnit='kn'):ScalarLine[]{
  if(field.kind==='pressure'||field.kind==='sigwx')return [];
  const extremes=nativeRasterExtremes(field);if(!extremes.length)return [];
  const factor=modelMapDisplayFactor(field.kind,unit),low=extremes[0].value*factor,high=extremes[1].value*factor;
  if(!(high>low))return [];
- const minimum={temperature:2,thetae:2,wind:5,gust:5,cloud:10,precipitation:1}[field.kind];
+ const minimum={temperature:2,thetae:2,wind:5,gust:5,cloud:10,precipitation:.5}[field.kind];
  const step=Math.max(minimum,niceStep((high-low)/12)),out:ScalarLine[]=[],w=field.lons.length,h=field.lats.length;
  for(let visible=Math.ceil(low/step)*step;visible<high;visible+=step){
+  // A dry zero is a valid value, but never draw a misleading zero-rain isoline.
+  if(field.kind==='precipitation'&&visible<=0)continue;
   const level=visible/factor,segments:number[][][]=[],adj=new Map<string,number[]>();
   const key=(p:number[])=>p.map(v=>v.toFixed(9)).join(',');
   for(let r=0;r<h-1;r++)for(let c=0;c<w-1;c++){
@@ -95,5 +100,5 @@ export function nativeAnnotationSvg(field:NativeField,unit:WindUnit,options:Nati
  const text=(lon:number,lat:number,label:string,color='#20384d')=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="${color}" stroke="white" stroke-width="3" paint-order="stroke">${xml(label)}</text>`;
  const extremeNumber=(lon:number,lat:number,label:string,type:'Min'|'Max')=>`<text x="${x(lon).toFixed(1)}" y="${y(lat).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="12" font-weight="600" fill="#fff" stroke="#17232b" stroke-width="2.5" stroke-opacity=".8" paint-order="stroke" role="img" aria-label="${xml(type==='Min'?'Minimum':'Maximum')}: ${xml(label)}">${xml(label)}</text>`;
  const uniform=extremes.length===2&&extremes[0].value===extremes[1].value;
- return `<g class="native-scalar-annotations">${lines.map(l=>{const p=l.path[Math.floor(l.path.length/2)];return `<path d="${l.path.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}" fill="none" stroke="#20384d" stroke-width="1.2"/>${text(p[0],p[1],l.label)}`}).join('')}${extremes.filter((_,i)=>!uniform||i===0).map(p=>extremeNumber(p.lon,p.lat,modelMapValue(field.kind,p.value,field.unit,unit),p.type)).join('')}</g>`;
+ return `<g class="native-scalar-annotations">${lines.map(l=>{const p=l.path[Math.floor(l.path.length/2)];return `<path d="${l.path.map(([lon,lat],i)=>`${i?'L':'M'}${x(lon).toFixed(1)},${y(lat).toFixed(1)}`).join(' ')}" fill="none" stroke="#20384d" stroke-width=".7" stroke-opacity=".32"/>${text(p[0],p[1],l.label)}`}).join('')}${extremes.filter((_,i)=>!uniform||i===0).map(p=>extremeNumber(p.lon,p.lat,modelMapValue(field.kind,p.value,field.unit,unit),p.type)).join('')}</g>`;
 }
