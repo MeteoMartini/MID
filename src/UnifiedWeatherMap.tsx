@@ -125,7 +125,7 @@ export default function UnifiedWeatherMap(props:Props){
  const heightsActive=Boolean(isCloudWeather&&cloudWeather.ready&&cloudIsoheights&&isoheightContours.features.length);
  const linesActive=(isCloudWeather?cloudWeather.ready:active)&&showIsobars&&Boolean(contours.features.length);
  const [showExtremes,setShowExtremes]=useState(true);
- const scalarLinesActive=active&&!isTotals&&!rawSynoptic&&field?.kind!=='pressure'&&field?.kind!=='sigwx'&&presentation==='lines';
+ const scalarLinesActive=active&&!isTotals&&!rawSynoptic&&field?.kind!=='pressure'&&field?.kind!=='sigwx';
  const noLines=settings.enabled&&!rawSynoptic&&presentation==='lines'&&!wmsRenderable&&!linesActive&&!scalarLinesActive;
  const noFill=settings.enabled&&showFill&&Boolean(wmsProduct)&&!wmsFillStyle;
  const times=useMemo(()=>isCloudWeather?cloudWeather.times:rawSynoptic?(settings.enabled?synoptic.model?.frames.map(f=>f.time)??[]:[]):!settings.enabled||isTotals?[]:wmsProduct?wmsTimes:frames.map(f=>f.time),[isCloudWeather,cloudWeather.times.join('|'),rawSynoptic,synoptic.model,settings.enabled,isTotals,wmsProduct,wmsTimes.join('|'),frames]);
