@@ -10,6 +10,8 @@ import ModelMapScaleLegend from './ModelMapScaleLegend';
 import ModelMapProbe from './ModelMapProbe';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
 import {exportTotals} from './precipitationTotalsExport';
+import {NativeScalarOverlay} from './NativeScalarMapOverlay';
+import {totalsScalarField} from './totalsScalarField';
 function stamp(value:string){return new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC'}
 
 export type WeatherMapFavoriteLocation={id:string;name:string;latitude:number;longitude:number};
@@ -22,8 +24,10 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
  const[data,setData]=useState<TotalsData|null>(null),[hours,setHours]=useState(24),[error,setError]=useState(''),[exporting,setExporting]=useState(false),[revision,setRevision]=useState(0);
  useEffect(()=>{const controller=new AbortController();setData(null);setError('');void loadTotals(controller.signal,kind).then(result=>{setData(result);setHours(current=>result.frames.some(frame=>frame.hours===current)?current:result.frames[0].hours)}).catch(reason=>{if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Kartendaten nicht verfügbar.')});return()=>controller.abort()},[revision,kind]);
  const[colorMode,setColorMode]=useState<MapColorMode>('field');
+ const[showContours,setShowContours]=useState(true);
  const frame=data?.frames.find(item=>item.hours===hours),rangeScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'field'):null,[data,frame]),fixedScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'absolute'):null,[data,frame]),colorScale=colorMode==='field'?rangeScale:fixedScale,raster=useMemo(()=>data&&frame&&colorScale?totalsRaster(data,frame,colorScale):'',[data,frame,colorScale]);
- const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await exportTotals(data,frame,raster,sortedFavorites,kind,colorScale??undefined)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
+ const contourField=useMemo(()=>data&&frame?totalsScalarField(data,frame):null,[data,frame]);
+ const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await exportTotals(data,frame,raster,sortedFavorites,kind,colorScale??undefined,showContours)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
  const center:[number,number]=selectedFavorite?[selectedFavorite.latitude,selectedFavorite.longitude]:[51.05,10.45],zoom=selectedFavorite?6.8:5.25;
 
 
@@ -39,6 +43,7 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
       {selectedFavorite?<MapCenter latitude={center[0]} longitude={center[1]} zoom={zoom}/>:<MapFitBounds south={47} west={5.5} north={55.2} east={15.6} padding={20} maxZoom={6}/>}
       <RasterTileLayer id={`weather-precipitation-basemap-${activeBasemapId}`} url={activeBasemap.url} tone={activeBasemap.tone} attribution={activeBasemap.attribution}/>
       {data&&frame&&raster?<ImageQuadLayer id={`precipitation-totals-${data.run}-${hours}`} url={raster} bounds={[[data.lats[0],data.lons[0]],[data.lats.at(-1)!,data.lons.at(-1)!]]} opacity={.85}/>:null}
+      {showContours&&contourField&&<NativeScalarOverlay field={contourField} unit="kn" lines extremes={false}/>}
       <ModelMapContextOverlay/>
       <ModelMapProbe label="Niederschlagssumme" unit="mm" source={kind==='observed'?'DWD RADOLAN · stationsangeeichte Messanalyse':'DWD ICON-D2 · nächster dargestellter Rasterpunkt'} enabled={Boolean(data&&frame)} contextKey={`${data?.run}-${hours}-${kind}`} sample={(lat,lon)=>data&&frame?totalsAt(data,frame,lat,lon):null} format={value=>value===null?'–':compactPrecipitationAmount(value)}/>
       {sortedFavorites.filter(isGermanyLocation).map(place=><HtmlMarker key={place.id} latitude={place.latitude} longitude={place.longitude} zIndex={2} anchor="center" className="precipitation-favorite-marker" html={`<span class="${place.id===selectedFavoriteId?'selected':''}"></span>`} onClick={()=>setSelectedFavoriteId(place.id)}/>)}
@@ -49,6 +54,7 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
      </div>:null}
     </div>
     {colorScale&&rangeScale&&fixedScale?<ModelMapScaleLegend label="Niederschlagssumme" unit="mm" scale={colorScale} range={rangeScale} format={value=>compactPrecipitationAmount(value)} onModeChange={setColorMode}/>:<div className="weather-precipitation-legend-placeholder">Farblegende · mm · erst mit vollständig geprüften Rasterwerten</div>}
+    <label className="unified-check" style={{display:'flex',alignItems:'center',minHeight:44,gap:8,fontSize:12}}><input type="checkbox" checked={showContours} onChange={event=>setShowContours(event.target.checked)}/>Dezente Niederschlags-Isolinien · mm</label>
     <p className="weather-precipitation-attribution">Karte antippen für einen Ortswert. Kartengrundlage: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap-Mitwirkende</a>, ODbL 1.0. Summen: DWD Open Data · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>, bearbeitet durch MID. {data?.grid||'DWD-Lat/Lon-Raster'}, Ortswerte vom nächsten dargestellten Rasterpunkt. Grenzen und Ortsnamen: Natural Earth (Public Domain), zoomabhängig über dem Modellfeld.</p>
    </section>
    <aside className="weather-precipitation-summary">
