@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.333",
+  "releaseVersion": "0.9.85.334",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -3728,7 +3728,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.333",
+  "version": "0.9.85.334",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
@@ -3888,7 +3888,8 @@
     "docs/implementation/MID_C36_PSEUDOSAT_LAND_WATER_0.9.85.281.md",
     "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md",
     "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md",
-    "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md"
+    "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
+    "docs/implementation/MID_DARK_HORIZONTAL_LOGO_0.9.85.334.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

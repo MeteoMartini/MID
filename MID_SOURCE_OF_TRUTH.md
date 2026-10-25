@@ -1,10 +1,16 @@
-# MID v0.9.85.333 · Karten-Popup-Kontrast (Source-Kandidat)
+# MID v0.9.85.334 · Dunkles Horizontal-Logo (Source-Kandidat)
 
-- Verifizierte Ausgangsbasis: `main = mid-stable = 3887ebc31dc93fc33b51ad87b55284671e4d4224`, v0.9.85.332; Installer 40218239133 erfolgreich einschließlich Core/Build/Audit/iOS, aller Heavy-Shards, Same-Origin-Smoke, Pages und Fast-Forward-Promotion.
-- Leaflet-Popups (KONRAD3D, Blitz, NowCastMIX, Standort) übernehmen nun die MID-Themefarben für Fläche und Text. Zentrale MapLibre-Popups erhalten eine eigene Themeklasse; bewusst anders gestaltete Sonderkarten bleiben davon getrennt.
-- Popup-Schließen erhält sichtbaren Fokus und auf Touch-Geräten eine 44-px-Zielfläche. Keine Änderung an Kartendaten, Layer-Reihenfolge, Meteorologie, Worker oder Provider.
-- Regression `scripts/test-map-popup-theme-0985333.mjs`; technische Prüfung `docs/implementation/MID_MAP_POPUP_THEME_0.9.85.333.md`. Das CSS wird zusammen mit den Kartenmodulen geladen und erhöht nicht das initiale CSS-Budget.
-- Source-PR-/Bot-Merge-/ZIP-/Installer-/Pages-/Stable-Gates für .333 stehen aus. Noch keine Veröffentlichung oder Stable-Promotion für diesen Kandidaten.
+- Verifizierte Ausgangsbasis: Stable `main = mid-stable = dfe92422c32971fc18df088e3d5417e228903768`, v0.9.85.333.
+- Das bereitgestellte Dark-Mode-Horizontal-Logo ersetzt `public/mid-logo-dark-horizontal.png`. PNG-Abmessungen 2048 × 768, transparenter Hintergrund, SHA-256 `62435a0b4e03faeb719717c36ef8ad24937e9e1be3b62025723a4d3b4a138bd6`.
+- Kompakte Light-/Dark-Logos, Favicons, Touch-/PWA-Icons, App-Icons und helles Horizontal-Logo sind gegenüber den passenden bereitgestellten Varianten byteidentisch. Nur das dunkle horizontale Wortbild wird aktualisiert.
+- Regression `scripts/test-logo-theme-assets-09748.mjs` bindet die exakte Datei, Abmessungen und SHA ein. Keine Wetter-, Karten-, Worker- oder Berechnungslogik geändert.
+- Source-Gate, SHA-gebundener MID-Bot, Server-ZIP, Installer, Pages und Fast-Forward-Promotion stehen für .334 noch aus.
+
+# MID v0.9.85.333 · Karten-Popup-Kontrast (Stable-Stand)
+
+- Veröffentlicht auf `main = mid-stable = dfe92422c32971fc18df088e3d5417e228903768`; Installer, Pages, Stable-Promotion und nachlaufende MID CI erfolgreich.
+- Leaflet- und MapLibre-Popups verwenden die MID-Themefarben für Fläche und Text. Popup-Schließen hat sichtbaren Fokus und auf Touch-Geräten eine 44-px-Zielfläche; die helle Sondergestaltung der Extremwetterkarte bleibt erhalten.
+- Regression `scripts/test-map-popup-theme-0985333.mjs`; technische Prüfung `docs/implementation/MID_MAP_POPUP_THEME_0.9.85.333.md`.
 
 # MID v0.9.85.332 · Vite-Wartungsupdate (Stable-Stand)
 

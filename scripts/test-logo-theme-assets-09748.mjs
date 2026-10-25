@@ -39,12 +39,14 @@ const assets={
   'public/mid-icon-dark-180.png':[180,180],
   'public/mid-logo-light-compact.png':[512,512],
   'public/mid-logo-dark-compact.png':[512,512],
+  'public/mid-logo-dark-horizontal.png':[2048,768],
   'public/mid-social-card.png':[1200,630],
   'ios/App/App/Assets.xcassets/Splash.imageset/splash-light-2732x2732-1x.png':[2732,2732],
   'ios/App/App/Assets.xcassets/Splash.imageset/splash-dark-2732x2732-1x.png':[2732,2732]
 };
 for(const [path,[width,height]] of Object.entries(assets)){const image=await read(path);assert.deepEqual(dimensions(image),{width,height},path);}
 assert.notEqual(digest(await read('public/mid-app-icon-light-1024.png')),digest(await read('public/mid-app-icon-dark-1024.png')),'Light und Dark App-Icon müssen verschieden sein.');
+assert.equal(digest(await read('public/mid-logo-dark-horizontal.png')),'62435a0b4e03faeb719717c36ef8ad24937e9e1be3b62025723a4d3b4a138bd6','Dark-Mode-Header muss das freigegebene horizontale Wortbild verwenden.');
 
 const parsedAppIcons=JSON.parse(appIconCatalog),parsedSplash=JSON.parse(splashCatalog);
 assert.ok(parsedAppIcons.images.some(image=>image.filename==='AppIcon-Light-1024.png'));
@@ -56,4 +58,4 @@ const packageJson=JSON.parse(pkg),baselineJson=JSON.parse(baseline);
 assert.equal(packageJson.version,baselineJson.releaseVersion);
 assert.equal(packageJson.scripts?.['test:logo-theme-assets'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baselineJson[key]?.includes(test),`${test} fehlt in ${key}.`);
-console.log('Verbindliche MID-Light-/Dark-Logo-Sets für Header, Boot, PWA/Favicon und iOS geprüft.');
+console.log('Verbindliche MID-Light-/Dark-Logo-Sets für Header, Boot, PWA/Favicon und iOS geprüft; dunkles Horizontal-Wortbild ist bytegenau abgesichert.');
