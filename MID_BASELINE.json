@@ -1971,6 +1971,7 @@
     "scripts/test-visibility-nodata-0985288.mjs",
     "scripts/test-visibility-phenomena-wmo-dwd-098592.mjs",
     "scripts/test-visible-app-internals-09751.mjs",
+    "scripts/test-visible-solar-clock-0985326.mjs",
     "scripts/test-visualization-readability-098470.mjs",
     "scripts/test-visualization-readability-2-098471.mjs",
     "scripts/test-warning-buildfix-081811.mjs",
