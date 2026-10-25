@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.326",
+  "version": "0.9.85.327",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -560,7 +560,8 @@
     "test:ruc-native-map-integration": "node scripts/test-ruc-native-map-integration-0985305.mjs",
     "test:extreme-outlook-render-fallback": "node scripts/test-extreme-outlook-render-fallback-0985309.mjs",
     "test:extreme-outlook-browser-qa": "node scripts/verify-extreme-outlook-pixels-browser-0985309.mjs",
-    "test:extreme-outlook-browser-contract": "node scripts/test-extreme-outlook-browser-contract-0985309.mjs"
+    "test:extreme-outlook-browser-contract": "node scripts/test-extreme-outlook-browser-contract-0985309.mjs",
+    "test:hour-window-formatter": "node scripts/test-hour-window-formatter-0985327.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.1",

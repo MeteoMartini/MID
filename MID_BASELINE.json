@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.326",
+  "releaseVersion": "0.9.85.327",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -439,6 +439,7 @@
     "scripts/test-heavy-rain.mjs",
     "scripts/test-horizon-seasonal-members-0985162.mjs",
     "scripts/test-hour-temperature-ensemble-desktop-tooltip-09152.mjs",
+    "scripts/test-hour-window-formatter-0985327.mjs",
     "scripts/test-hx-projection-alignment-09158.mjs",
     "scripts/test-hymecng-direct-latest-hg-fallback-09384.mjs",
     "scripts/test-hymecng-satellite-snapshot-09383.mjs",
@@ -1463,6 +1464,7 @@
     "scripts/test-heavy-rain.mjs",
     "scripts/test-horizon-seasonal-members-0985162.mjs",
     "scripts/test-hour-temperature-ensemble-desktop-tooltip-09152.mjs",
+    "scripts/test-hour-window-formatter-0985327.mjs",
     "scripts/test-hx-projection-alignment-09158.mjs",
     "scripts/test-hymecng-direct-latest-hg-fallback-09384.mjs",
     "scripts/test-hymecng-satellite-snapshot-09383.mjs",
@@ -2982,7 +2984,9 @@
     "tools/ruc/audit_model_domain_coverage.py",
     "tools/ruc/test_model_domain_coverage.py",
     "tools/ruc/verify_real_icon_d2_contours.py",
-    "docs/implementation/MID_C39_CONSOLIDATED_RELEASE_0.9.85.314.md"
+    "docs/implementation/MID_C39_CONSOLIDATED_RELEASE_0.9.85.314.md",
+    "scripts/test-hour-window-formatter-0985327.mjs",
+    "docs/implementation/MID_C49_HOUR_FORMATTER_0.9.85.327.md"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3092,7 +3096,8 @@
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
-    "scripts/test-location-mountain-resilience-0985283.mjs"
+    "scripts/test-location-mountain-resilience-0985283.mjs",
+    "scripts/test-hour-window-formatter-0985327.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3349,7 +3354,8 @@
     "ci/github/workflows/chatgpt-pr-gate.yml",
     ".github/workflows/chatgpt-pr-gate.yml",
     "scripts/test-paired-verification-0985311.mjs",
-    "scripts/verify-paired-verification-browser-0985311.mjs"
+    "scripts/verify-paired-verification-browser-0985311.mjs",
+    "scripts/test-hour-window-formatter-0985327.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -3707,7 +3713,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.326",
+  "version": "0.9.85.327",
   "updatedAt": "2026-10-23",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
