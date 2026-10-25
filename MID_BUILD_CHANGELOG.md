@@ -1,6 +1,6 @@
 ## MID v0.9.85.335 · 2026-10-25 · Fusion resume
 
-Nachholen versäumter Fusionsabrufe, begrenzter Fehlerbackoff, Lifecycle-Cleanup und explizite fehlende Übernahmeverifikation. Wetterwerte und Workerkern unverändert.
+Begrenzte Auswahlmarkierung im Tagesdiagramm beseitigt den im bestehenden Heavy-Browsergate reproduzierten epoch-Absturz. Nachholen versäumter Fusionsabrufe, begrenzter Fehlerbackoff, Lifecycle-Cleanup und explizite fehlende Übernahmeverifikation. Wetterwerte und Workerkern unverändert.
 
 ## MID v0.9.85.316 · 2026-10-23 · Parameterlinien, Rasterextreme und runde Windskalen
 
