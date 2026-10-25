@@ -17,6 +17,9 @@ for(const token of [
  '.leaflet-container .leaflet-popup-content{color:var(--text)}',
  '.maplibregl-popup.mid-themed-popup .maplibregl-popup-content{background:var(--surface);color:var(--text)}',
  '.maplibregl-popup.mid-themed-popup .maplibregl-popup-tip{border-color:var(--surface)}',
+ '.extreme-map .maplibregl-popup.mid-themed-popup .maplibregl-popup-content{background:#fff;color:#13243a}',
+ '.extreme-map .maplibregl-popup.mid-themed-popup .maplibregl-popup-tip{border-color:#fff}',
+ '.extreme-map .maplibregl-popup.mid-themed-popup .maplibregl-popup-close-button{color:#1167b1}',
  '.leaflet-container .leaflet-popup-close-button',
  '.maplibregl-popup.mid-themed-popup .maplibregl-popup-close-button:focus-visible',
  '@media(pointer:coarse)', 'width:44px;height:44px'
