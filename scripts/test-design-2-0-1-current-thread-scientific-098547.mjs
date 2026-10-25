@@ -10,7 +10,7 @@ const [app,design,pkgRaw,baselineRaw]=await Promise.all([
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-current-thread-scientific-098547.mjs';
 
 assert.ok(app.includes("currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)"),'12-h-Reihe muss auf der aktuellen vollen lokalen Stunde verankert sein.');
-assert.ok(app.includes("fullHourMinuteInZone(Number(hour.epoch),timezone)===0"),'Minutengenaue Zwischenpunkte dürfen nicht in die +12-h-Differenz eingehen.');
+assert.ok(app.includes("fullHourMinuteInZone(Number(hour.epoch),timezone,minuteFormatterCache)===0")&&app.includes("const minuteFormatterCache:{formatter?:Intl.DateTimeFormat}={};")&&app.includes("if(cache)cache.formatter=formatter"),'Minutengenaue Zwischenpunkte dürfen nicht in die +12-h-Differenz eingehen; die IANA-Stundenprüfung muss erhalten bleiben.');
 assert.ok(app.includes("currentThreadTargetEpoch=currentThreadStartEpoch+12*3600000"),'Ziel muss exakt +12 volle Stunden sein.');
 assert.ok(app.includes("currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))"),'Ziel muss aus derselben hyperlokal korrigierten Reihe stammen.');
 assert.ok(app.includes("currentThreadTrendLabel=currentTemperatureRangeLabel(currentThreadTemperatures)"),'MID244: Spanne aus allen tatsächlich angezeigten Stundenwerten.');
