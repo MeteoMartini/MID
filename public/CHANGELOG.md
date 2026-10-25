@@ -1,3 +1,9 @@
+# MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate
+
+Capacitor Core, CLI und iOS werden gemeinsam von 8.5.2 auf 8.5.3 qualifiziert. Andere Capacitor-Plugins, React, Vite, MapLibre, PostCSS und Pako bleiben unverändert. Keine fachliche Änderung am Web-/PWA-Kern ist beabsichtigt.
+
+Registry-Metadaten und offizielle Capacitor-8-Kompatibilität wurden geprüft. Reproduzierbare Installation, vollständiger Build und Regressionen, iOS-Synchronisierung, Audits und die vollständigen MID-Release-Gates sind erforderlich.
+
 # MID v0.9.85.330 · Isoliertes React-Vite-Plugin-Update
 
 `@vitejs/plugin-react` wird einzeln von 6.1.1 auf 6.1.2 aktualisiert. Das Plugin bleibt an Vite 8 gebunden; die unabhängigen React-, Vite-, Capacitor-, MapLibre- und Pako-Versionen bleiben unverändert. Upstream 6.1.2 behebt HMR für Compound Components. Keine absichtliche Änderung am Produktionsverhalten oder an CSS, Karten, Widgets und Exporten.

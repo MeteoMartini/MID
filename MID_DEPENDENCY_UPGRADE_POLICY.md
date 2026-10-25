@@ -15,7 +15,8 @@ Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zus
 - Vite-8-Buildkern: Oxc für JavaScript-Minifizierung, Lightning CSS für CSS-Minifizierung und Rolldown `output.codeSplitting` für die auditierte React-/Charts-Vendor-Aufteilung. Der veraltete esbuild-Minify- und Rollup-`manualChunks`-Pfad ist nicht mehr Bestandteil des Stable-Vertrags.
 - Lucide React: 1.40.0.
 - MapLibre GL JS: 6.7.0.
-- Capacitor Core / iOS / CLI: 8.5.2.
+- Capacitor Core / iOS / CLI: 8.5.3.
+- Capacitor Core / iOS / CLI 8.5.3 ist der isolierte .331-Kandidat (gemeinsame Migration von 8.5.2); Core, CLI und iOS müssen synchron bleiben.
 - GitHub Actions: checkout 7.0.1 (`3d3c42e5aac5ba805825da76410c181273ba90b1`), setup-node 7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`), setup-python 7.0.0 (`5fda3b95a4ea91299a34e894583c3862153e4b97`), upload-artifact 7.0.1 (`043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`), download-artifact 8.0.1 (`3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c`) und deploy-pages 5.0.1 (`368f82528645a54fb793d4d04e342629a3f51346`), jeweils SHA-gepinnt.
 - CodeQL: 4.38.2 (`2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2`), SHA-gepinnt und für `init`/`analyze` zwingend identisch.
 - Workflow-Aktivierung: Der Release-Installer verändert `.github` nicht selbst. Die kanonischen Quellen unter `ci/github` und `workflow-patches` sowie `npm run sync:github-workflows` halten die administrativ zu aktivierenden Pins synchron.
@@ -36,7 +37,7 @@ Recharts-Minor-/Patch-Upgrades bleiben an vollständigen Build sowie Ensemble-/T
 
 MapLibre GL JS 6.7.0 bleibt der qualifizierte Kartenstand. Die Karten-, Radar-, Komposit-, GeoJSON-, Worker- und Lazy-Load-Verträge dürfen durch Toolchain-Wartung nicht verändert werden.
 
-Die Installationswarnung `uuid@7.0.3` stammt ausschließlich aus dem Dev-/iOS-Werkzeugpfad `@capacitor/cli 8.5.2 -> xcode 3.0.1 -> uuid ^7.0.3`. MID erzwingt kein inkompatibles UUID-Override; der Pfad wird bei einem kompatiblen Upstream-Update erneut bewertet.
+Die Installationswarnung `uuid@7.0.3` stammt ausschließlich aus dem Dev-/iOS-Werkzeugpfad `@capacitor/cli 8.5.3 -> xcode 3.0.1 -> uuid ^7.0.3`. MID erzwingt kein inkompatibles UUID-Override; der Pfad wird bei einem kompatiblen Upstream-Update erneut bewertet.
 
 
 ## Wartungsreview 23.09.2026

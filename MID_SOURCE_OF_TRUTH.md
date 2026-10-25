@@ -1,3 +1,7 @@
+# MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate (Source-Kandidat)
+
+Verifizierte Stable-Basis .330: `84d52042521fe087bef490d8a8966ffe72295c1d`. Capacitor Core, CLI und iOS werden gemeinsam von 8.5.2 auf 8.5.3 aktualisiert; andere Capacitor-Plugins und React/Vite/MapLibre/PostCSS/Pako bleiben unverändert. npm erzeugt das Lockfile regulär neu. Vollständige Installations-, Audit-, Build-, Regression-, iOS- und MID-Release-Gates sind erforderlich.
+
 # MID v0.9.85.330 · Isoliertes React-Vite-Plugin-Update (Source-Kandidat)
 
 Verifizierte Stable-Basis .329: `85f98cc3a347657071eef0a18aee4f0345d26ed7`. `@vitejs/plugin-react` wird isoliert von 6.1.1 auf 6.1.2 aktualisiert; React, Vite, Capacitor, MapLibre, Pako und Produktionsabhängigkeiten bleiben unverändert. Das Lockfile aktualisiert ausschließlich die Plugin-Version, Integrität und optionale Oxc-Peer-Anforderung. Upstream nennt einen HMR-Fix für Compound Components. Lokale Installation, vollständige Regressionen, Produktions-CSS-Byteparität und alle MID-Release-Gates bleiben verpflichtend.
