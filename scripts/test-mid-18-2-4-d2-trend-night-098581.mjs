@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const [app,design,astronomy,cockpit,pkgRaw,baselineRaw]=await Promise.all([
+const [app,hourWindow,design,astronomy,cockpit,pkgRaw,baselineRaw]=await Promise.all([
   read('src/App.tsx'),
+  read('src/currentFullHourWindow.ts'),
   read('src/MidDesign.tsx'),
   read('src/astronomy.ts'),
   read('src/ForecastCockpit.tsx'),
@@ -15,11 +16,11 @@ const testPath='scripts/test-mid-18-2-4-d2-trend-night-098581.mjs';
 
 assert.ok(/^0\.9\.85\.(?:8[2-9]|9\d|\d{3,})$/.test(pkg.version),'D.2-Korrektur muss MID v0.9.85.82 oder neuer sein.');
 
-assert.ok(app.includes('currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)'),'12-h-Trend muss an der aktuellen vollen lokalen Stunde beginnen.');
-assert.ok(app.includes('fullHourMinuteInZone(Number(hour.epoch),timezone,minuteFormatterCache)===0')&&app.includes('const minuteFormatterCache:{formatter?:Intl.DateTimeFormat}={};')&&app.includes('if(cache)cache.formatter=formatter'),'Nur volle lokale Stunden dürfen in den Trend eingehen; ihr Zeitzonen-Formatter wird innerhalb des Aufrufs wiederverwendet.');
+assert.ok(app.includes('currentThreadSeries=useMemo(()=>currentFullHourWindowFromIndex(currentFullHourIndex,w.timezone,currentThreadStartEpoch,12)')&&app.includes('currentThreadStartEpoch=currentFullHourStartEpoch(currentFullHourIndex,solarNow)'),'12-h-Trend muss an der aktuellen vollen lokalen Stunde beginnen.');
+assert.ok(hourWindow.includes('fullHourMinuteInZone(Number(hour.epoch),timezone,cache)===0')&&hourWindow.includes("Intl.DateTimeFormat('en-GB',{timeZone:timezone,minute:'2-digit'})")&&hourWindow.includes('const cache:{formatter?:Intl.DateTimeFormat}={}'),'Nur volle lokale Stunden dürfen in den Trend eingehen; ihr Zeitzonen-Formatter wird innerhalb des Aufrufs wiederverwendet.');
 assert.ok(app.includes('currentThreadTargetEpoch=currentThreadStartEpoch+12*3600000'),'Ziel muss exakt zwölf volle Stunden nach dem Start liegen.');
-assert.ok(app.includes('currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))'),'Zielwert muss aus derselben hyperlokal korrigierten Stundenreihe stammen.');
-assert.ok(app.includes('currentThreadTrendLabel=currentTemperatureRangeLabel(currentThreadTemperatures)'),'MID244: Minimum und Maximum derselben sichtbaren Stundenreihe.');
+assert.ok(app.includes('currentThreadTemperatures=useMemo(()=>currentThreadSeries.map(hour=>Number(hour.temperature))'),'Zielwert muss aus derselben hyperlokal korrigierten Stundenreihe stammen.');
+assert.ok(app.includes('currentThreadTrendLabel=useMemo(()=>currentTemperatureRangeLabel(currentThreadTemperatures)'),'MID244: Minimum und Maximum derselben sichtbaren Stundenreihe.');
 assert.ok(!app.includes('function currentTemperatureTrendSummary(values:number[])')&&!app.includes('danach ↗')&&!app.includes('danach ↘')&&!app.includes('↕ wechselhaft'),'Mehrphasige Trendzusammenfassung muss entfernt bleiben.');
 assert.ok(app.includes('<span className="current-weather-thread-title"><small>Temperaturspanne · 12 h</small></span>'),'MID244: Kopfzeile benennt die 12-h-Spanne.');
 assert.ok(app.includes('<b className="current-weather-thread-delta">{currentThreadTrendLabel}</b>'),'Delta muss als eigener responsiver Wertblock erhalten bleiben.');

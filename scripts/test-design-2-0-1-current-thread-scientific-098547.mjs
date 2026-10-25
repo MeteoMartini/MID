@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,design,pkgRaw,baselineRaw]=await Promise.all([
+const [app,hourWindow,design,pkgRaw,baselineRaw]=await Promise.all([
   readFile('src/App.tsx','utf8'),
+  readFile('src/currentFullHourWindow.ts','utf8'),
   readFile('src/MidDesign.tsx','utf8'),
   readFile('package.json','utf8'),
   readFile('MID_BASELINE.json','utf8')
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-current-thread-scientific-098547.mjs';
 
-assert.ok(app.includes("currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)"),'12-h-Reihe muss auf der aktuellen vollen lokalen Stunde verankert sein.');
-assert.ok(app.includes("fullHourMinuteInZone(Number(hour.epoch),timezone,minuteFormatterCache)===0")&&app.includes("const minuteFormatterCache:{formatter?:Intl.DateTimeFormat}={};")&&app.includes("if(cache)cache.formatter=formatter"),'Minutengenaue Zwischenpunkte dürfen nicht in die +12-h-Differenz eingehen; die IANA-Stundenprüfung muss erhalten bleiben.');
+assert.ok(app.includes('currentThreadSeries=useMemo(()=>currentFullHourWindowFromIndex(currentFullHourIndex,w.timezone,currentThreadStartEpoch,12)')&&app.includes('currentThreadStartEpoch=currentFullHourStartEpoch(currentFullHourIndex,solarNow)'),'12-h-Reihe muss auf der aktuellen vollen lokalen Stunde verankert sein.');
+assert.ok(hourWindow.includes('fullHourMinuteInZone(Number(hour.epoch),timezone,cache)===0')&&hourWindow.includes("Intl.DateTimeFormat('en-GB',{timeZone:timezone,minute:'2-digit'})")&&hourWindow.includes('const cache:{formatter?:Intl.DateTimeFormat}={}'),'Minutengenaue Zwischenpunkte dürfen nicht in die +12-h-Differenz eingehen; die IANA-Stundenprüfung muss erhalten bleiben.');
 assert.ok(app.includes("currentThreadTargetEpoch=currentThreadStartEpoch+12*3600000"),'Ziel muss exakt +12 volle Stunden sein.');
-assert.ok(app.includes("currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))"),'Ziel muss aus derselben hyperlokal korrigierten Reihe stammen.');
-assert.ok(app.includes("currentThreadTrendLabel=currentTemperatureRangeLabel(currentThreadTemperatures)"),'MID244: Spanne aus allen tatsächlich angezeigten Stundenwerten.');
+assert.ok(app.includes('currentThreadTemperatures=useMemo(()=>currentThreadSeries.map(hour=>Number(hour.temperature))'),'Ziel muss aus derselben hyperlokal korrigierten Reihe stammen.');
+assert.ok(app.includes('currentThreadTrendLabel=useMemo(()=>currentTemperatureRangeLabel(currentThreadTemperatures)'),'MID244: Spanne aus allen tatsächlich angezeigten Stundenwerten.');
 assert.ok(!app.includes("function currentTemperatureTrendSummary(values:number[])")&&!app.includes("danach ↗")&&!app.includes("danach ↘"),'Mehrphasige Trendtexte müssen entfernt sein.');
 assert.ok(app.includes("minimumSpan={4}"),'Die Sparkline muss mindestens 4 K Darstellungsbereich verwenden, damit kleine Änderungen nicht übertrieben werden.');
 assert.ok(app.includes("Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>"),'Taupunkt muss primär, relative Feuchte sekundär bleiben.');
