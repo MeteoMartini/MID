@@ -3,20 +3,18 @@ import {readdir,readFile} from 'node:fs/promises';
 import {versionAtLeast} from './version-regression-helper.mjs';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
-const [app,modern,styles,pkgRaw,lockRaw,baselineRaw,gitignore,packer,implementation]=await Promise.all([
+const [app,modern,styles,pkgRaw,lockRaw,baselineRaw,gitignore,packer,implementation,solarClock]=await Promise.all([
  read('src/App.tsx'),read('src/styles-src/30-modern.css'),read('src/styles.css'),read('package.json'),read('package-lock.json'),
- read('MID_BASELINE.json'),read('.gitignore'),read('tools/release/create_professional_zip.py'),read('MID_IMPLEMENTATION_0.9.78.28.md')
+ read('MID_BASELINE.json'),read('.gitignore'),read('tools/release/create_professional_zip.py'),read('MID_IMPLEMENTATION_0.9.78.28.md'),read('src/visibleSolarClock.ts')
 ]);
 const pkg=JSON.parse(pkgRaw),lock=JSON.parse(lockRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-maintenance-cleanup-097828.mjs';
 assert.ok(versionAtLeast(pkg.version,'0.9.78.28'));
 assert.equal(baseline.releaseVersion,pkg.version);
 
-const schedulerStart=app.indexOf('const location={latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone}');
-const schedulerEnd=app.indexOf('const c=w.current',schedulerStart);
-assert.ok(schedulerStart>=0&&schedulerEnd>schedulerStart,'Leichter Sonnenfenster-Scheduler fehlt.');
-const scheduler=app.slice(schedulerStart,schedulerEnd);
-assert.ok(scheduler.includes('solarDaylightWindowAt(Date.now(),location)'),'Scheduler nutzt nicht das gecachte Sonnenfenster.');
-assert.ok(!scheduler.includes('astronomySummary('),'Scheduler berechnet weiterhin jede Minute die vollständige Astronomie.');
+assert.ok(app.includes('startVisibleSolarClock({latitude:w.latitude,longitude:w.longitude,elevation:w.elevation,timezone:w.timezone}'),'Aktuelles Wetter muss den zentralen, sichtbarkeitsbewussten Sonnenfenster-Scheduler aufrufen.');
+assert.ok(solarClock.includes('daylightAt(epoch,location)'),'Scheduler nutzt nicht das aktuelle gecachte Sonnenfenster.');
+assert.ok(solarClock.includes("if(document.visibilityState==='hidden'){cancel();return}"),'Scheduler pausiert nicht bei verborgenem Dokument.');
+assert.ok(!solarClock.includes('astronomySummary('),'Scheduler berechnet weiterhin die vollständige Astronomie in jedem Timerdurchlauf.');
 assert.ok(app.includes('astronomy=useMemo(()=>astronomySummary(w,new Date(solarNow))'),'Astronomie-Tagesdetail ist nicht memoisiert.');
 assert.ok(app.includes('astronomyHour=Math.floor(solarNow/3600000)'),'Stündliche Aktualität des Astronomie-Tagesdetails fehlt.');
 

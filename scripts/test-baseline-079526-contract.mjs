@@ -5,8 +5,8 @@ import {fileURLToPath} from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=relative=>readFile(path.join(root,relative),'utf8');
-const [app,portal,ensemble,styles,v078,worker,serviceWorker,astronomy,mountain,push,pushPanel,modelChanges,analytics,deviceSync,forecastVerification]=await Promise.all([
- readAppFeatureSources(),read('src/AppPortalPopover.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('src/v078.css'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('src/deviceSync.ts'),read('src/forecastVerification.ts')
+const [app,portal,ensemble,styles,v078,worker,serviceWorker,astronomy,mountain,push,pushPanel,modelChanges,analytics,deviceSync,forecastVerification,solarClock]=await Promise.all([
+ readAppFeatureSources(),read('src/AppPortalPopover.tsx'),read('src/EnsemblePanel.tsx'),read('src/styles.css'),read('src/v078.css'),read('worker/metar-proxy.js'),read('public/service-worker.js'),read('src/astronomy.ts'),read('src/mountainSports.ts'),read('src/pushNotifications.ts'),read('src/PushSettingsPanel.tsx'),read('src/modelRunChanges.ts'),read('src/webAnalytics.ts'),read('src/deviceSync.ts'),read('src/forecastVerification.ts'),read('src/visibleSolarClock.ts')
 ]);
 const failures=[];
 const requireTokens=(name,text,tokens)=>{for(const token of tokens)if(!text.includes(token))failures.push(`${name}: ${token}`)};
@@ -15,7 +15,8 @@ requireTokens('Info-Portale',app,["import {AppPortalPopover as PortalPopover} fr
 requireTokens('Ensemble-Portale',ensemble,["function useEnsemblePortal(open:boolean","createPortal(<div ref={layer}","ensemble-help-toolbar","className=\"model-run-popover ensemble-portal-popover\"","Init {formatModelRunTime","Quelle bereit {formatAvailabilityTime"]);
 requireTokens('Konsistenz-Tooltips',ensemble,["buttonRef.current?.contains(target)||tooltipRef.current?.contains(target)","document.addEventListener('pointerdown',dismiss,true)","if(event.key==='Escape')onClose()","event.preventDefault();event.stopPropagation();onToggle()"]);
 requireTokens('Portal-CSS',styles+v078,['.ensemble-portal-popover{','.consistency-popover-portal{','.app-portal-popover{','position:fixed']);
-requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h','astronomySummary(w,new Date(solarNow))','solarDaylightWindowAt(Date.now(),location)','Sonne / Mond','hero-day-range']);
+requireTokens('Luftdruck/Astronomie',app,['function pressureTendency','hPa / 3 h','astronomySummary(w,new Date(solarNow))','startVisibleSolarClock(','Sonne / Mond','hero-day-range']);
+requireTokens('Sonnenfenster-Scheduler',solarClock,['solarDaylightWindowAt','daylightAt(epoch,location)',"document.addEventListener('visibilitychange',visibility)","window.addEventListener('focus',focus)","document.removeEventListener('visibilitychange',visibility)"]);
 requireTokens('Astronomiekern',astronomy,['export function astronomySummary','moonIllumination','formatDayLengthChange']);
 requireTokens('Bergprofil',mountain,['export async function mountainProfile','OVERPASS_ENDPOINTS','applyMountainProfile',"season:'auto'",'summer','winter']);
 requireTokens('Bergprofil-UI',app,['Automatisch bestimmen','Talstation','Mittelstation','Bergstation','Saisonprofil','mountainSportsForecast']);

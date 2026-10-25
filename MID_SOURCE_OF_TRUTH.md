@@ -1,3 +1,7 @@
+# MID v0.9.85.326 · Sonnenzeit-Timer unter Aktuell nur im Vordergrund (Source-Kandidat)
+
+Verifizierte Stable-Basis v0.9.85.325 SHA 3fa82c38920a44bcee383e3f5fa857d6354183e4. Der Sonnenzeit-Timer unter „Aktuell“ wird bei hidden sofort abbestellt; sichtbare/fokussierte Dokumente aktualisieren sofort per aktueller Epoch, ohne falsche DST-Kalenderannahme. Sonnenauf-/untergangsgrenzen bleiben auf 250-ms-Guard und reguläre 30-s-Grenze begrenzt. Neuer fachkernneutraler, deterministischer Timer-Regressionstest. Kein geänderter Wetterwert, RUC/Nowcast, Warnstatus, CSS, Workerkern oder Sicherheitsvertrag. Vollständige Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates erforderlich. Andere P1-Punkte CSS-Coverage und gezielte Memoisierung werden aufgrund fehlender Last-/Kaskadenmessung separat behandelt.
+
 # MID v0.9.85.325 · Vollständige laufende Niederschlagsstunde unter Aktuell
 
 Basis veröffentlichtes .324 `cd50ee899c8bfc38799c396a9ba38c41702e5df6`. Die 12h-Anzeige erhält die vollständigen nativen Intervalle der laufenden Stunde; spätere Live-Anpassungen bleiben erhalten. Keine rückwirkende Projektion aktueller Messanker. Allgemeine IANA-/Epochlogik für 23/25h-Tage bleibt unverändert, zusätzliche dynamische Fälle für Berlin 2027/New York 2026. Nachweise: docs/implementation/MID_C41_CURRENT_HOUR_0.9.85.325.md. Source-/Heavy-/Installer-/Worker-/Pages-/Stable- und Live-Nachweis vor Veröffentlichung erforderlich.
