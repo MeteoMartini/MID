@@ -7,8 +7,8 @@ const versionAtLeast=(value,minimum)=>{const a=String(value).split('.').map(Numb
 assert.ok(versionAtLeast(pkg.version,'0.9.53.17'));
 assert.equal(baseline.releaseVersion,pkg.version);
 assert.ok(baseline.requiredRegressionTests.includes('scripts/test-core-forecast-resilience-095315.mjs'));
-assert.match(weather,/FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v4:'/);
-assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v3:','mid:forecast-core:v2:','mid:forecast-core:v1:'\]/);
+assert.match(weather,/FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v5:'/);
+assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v4:','mid:forecast-core:v3:','mid:forecast-core:v2:','mid:forecast-core:v1:'\]/);
 assert.match(weather,/FORECAST_CORE_NEARBY_FALLBACK_M=2500/);
 assert.match(weather,/primaryCoreForecast\(value:unknown\)/);
 assert.match(weather,/meta\?\.fallback!==true&&!\/MET Norway\/i/);

@@ -33,13 +33,13 @@ assert.match(guard,/const MAX_ACTIVE=2/);
 assert.match(guard,/PRIORITY_WEIGHT:Record<OpenMeteoPriority,number>=\{foreground:0,normal:1,background:2\}/);
 
 // Cached v15/v16 fallback payloads cannot contaminate the restored tiles.
-assert.match(weather,/FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v4:'/);
-assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v3:','mid:forecast-core:v2:','mid:forecast-core:v1:'\]/);
+assert.match(weather,/FORECAST_CORE_CACHE_PREFIX='mid:forecast-core:v5:'/);
+assert.match(weather,/FORECAST_CORE_LEGACY_CACHE_PREFIXES=\['mid:forecast-core:v4:','mid:forecast-core:v3:','mid:forecast-core:v2:','mid:forecast-core:v1:'\]/);
 assert.match(weather,/meta\?\.fallback!==true&&!\/MET Norway\/i/);
 assert.match(weather,/if\(!primaryCoreForecast\(value\)\)return/);
 
-// Worker is only an Open-Meteo Best Match resilience/cache path for the core forecast. Schema v4 additionally carries moonrise/moonset/moon_phase.
-assert.match(worker,/CORE_FORECAST_EDGE_CACHE_VERSION='v4'/,'Worker-Core-Cache muss nach der Erweiterung des Daily-Schemas um Mondfelder auf v4 invalidiert sein.');
+// Worker is only an Open-Meteo Best Match resilience/cache path for the core forecast. Schema v5 retains lunar fields and adds full current-day hourly coverage.
+assert.match(worker,/CORE_FORECAST_EDGE_CACHE_VERSION='v5'/,'Worker-Core-Cache muss nach der Erweiterung des Daily-Schemas um Mondfelder auf v5 invalidiert sein.');
 assert.match(worker,/coreForecastCacheRequest\(lat,lon,elevation,timeZone/);
 assert.match(worker,/elevation=coreForecastElevation\(url\.searchParams\.get\('elevation'\)\),timeZone=coreForecastTimeZone\(url\.searchParams\.get\('timezone'\)\)/);
 const core=worker.slice(worker.indexOf('async function openMeteoCoreForecast'),worker.indexOf('async function openMeteoEnsembleProxy'));

@@ -19,7 +19,7 @@ for(const [label,source] of [['kanonische Wetterquelle',weatherSource],['generie
 
 for(const [label,source] of [['kanonischer Worker',workerSource],['generierter Worker',worker]]){
  assert.ok(source.includes("sunrise,sunset,moonrise,moonset,moon_phase,precipitation_sum"),`${label}: Core-Forecast reicht die neuen Mondfelder nicht durch.`);
- assert.ok(source.includes("CORE_FORECAST_EDGE_CACHE_VERSION='v4'"),`${label}: Edge-Cache wurde für das erweiterte Daily-Schema nicht invalidiert.`);
+ assert.ok(source.includes("CORE_FORECAST_EDGE_CACHE_VERSION='v5'"),`${label}: Edge-Cache wurde für das erweiterte Daily-Schema nicht invalidiert.`);
 }
 
 assert.match(astronomy,/function openMeteoDailyAstronomy\(/,'Open-Meteo-Mondfelder werden nicht in den Astronomievertrag übernommen.');

@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.323';
+const WORKER_VERSION='0.9.85.324';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -210,7 +210,7 @@ const CORE_FORECAST_CURRENT='temperature_2m,relative_humidity_2m,dew_point_2m,ap
 const CORE_FORECAST_MINUTELY='precipitation_probability,precipitation,rain,showers,snowfall,weather_code,sunshine_duration';
 const CORE_FORECAST_HOURLY='temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,showers,snowfall,weather_code,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,visibility,cape,lifted_index,convective_inhibition,total_column_integrated_water_vapour,is_day,sunshine_duration';
 const CORE_FORECAST_DAILY='weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,moonrise,moonset,moon_phase,precipitation_sum,rain_sum,showers_sum,snowfall_sum,precipitation_hours,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,uv_index_max,sunshine_duration';
-const CORE_FORECAST_EDGE_FRESH_MS=2*60*1000,CORE_FORECAST_EDGE_STALE_MS=18*3600000,CORE_FORECAST_EDGE_CACHE_VERSION='v4';
+const CORE_FORECAST_EDGE_FRESH_MS=2*60*1000,CORE_FORECAST_EDGE_STALE_MS=18*3600000,CORE_FORECAST_EDGE_CACHE_VERSION='v5';
 function coreForecastTimeZone(value){const candidate=String(value||'').trim();if(!candidate||candidate==='auto')return'auto';if(candidate.length<=80)try{new Intl.DateTimeFormat('en-US',{timeZone:candidate}).format(new Date(0));return candidate}catch{}return'auto'}
 function coreForecastElevation(value){const parsed=number(value);return Number.isFinite(parsed)?Math.max(-500,Math.min(9000,Math.round(parsed))):undefined}
 function coreForecastCacheRequest(lat,lon,elevation,timeZone,version=CORE_FORECAST_EDGE_CACHE_VERSION){const elevationKey=elevation===undefined?'auto':String(elevation),timeZoneKey=encodeURIComponent(timeZone||'auto');return new Request(`https://mid-core-cache.invalid/${version}/${lat.toFixed(3)}/${lon.toFixed(3)}/e${elevationKey}/tz${timeZoneKey}`)}
@@ -234,7 +234,7 @@ async function openMeteoCoreForecast(url){
  const lat=Number(rawLat.toFixed(3)),lon=Number(rawLon.toFixed(3)),elevation=coreForecastElevation(url.searchParams.get('elevation')),timeZone=coreForecastTimeZone(url.searchParams.get('timezone')),cached=await readCoreForecastEdgeCache(lat,lon,elevation,timeZone),cachedMeta=cached?.payload?._mid_core_proxy&&typeof cached.payload._mid_core_proxy==='object'?cached.payload._mid_core_proxy:{},requestMeta={requestedElevation:elevation,requestedTimezone:timeZone,cacheContract:CORE_FORECAST_EDGE_CACHE_VERSION};
  const cachedResponse=(extra={})=>json({...cached.payload,_mid_core_proxy:{...cachedMeta,...requestMeta,provider:'Open-Meteo Best Match',fallback:false,version:WORKER_VERSION,cached:true,ageMs:cached.age,...extra}},200,{'cache-control':'public, max-age=60, stale-while-revalidate=600'});
  if(!refresh&&cached&&cached.age<=CORE_FORECAST_EDGE_FRESH_MS)return cachedResponse({stale:false});
- const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:timeZone,forecast_days:'14',forecast_minutely_15:'24',past_minutely_15:'4',models:'best_match',wind_speed_unit:'kn',current:CORE_FORECAST_CURRENT,minutely_15:CORE_FORECAST_MINUTELY,hourly:CORE_FORECAST_HOURLY,daily:CORE_FORECAST_DAILY});if(elevation!==undefined)query.set('elevation',String(elevation));
+ const query=new URLSearchParams({latitude:String(lat),longitude:String(lon),timezone:timeZone,forecast_days:'14',past_hours:'25',forecast_hours:'336',forecast_minutely_15:'24',past_minutely_15:'4',models:'best_match',wind_speed_unit:'kn',current:CORE_FORECAST_CURRENT,minutely_15:CORE_FORECAST_MINUTELY,hourly:CORE_FORECAST_HOURLY,daily:CORE_FORECAST_DAILY});if(elevation!==undefined)query.set('elevation',String(elevation));
  try{
   const response=await fetchWithDeadline(`${OPEN_METEO_FORECAST}?${query}`,{headers:{Accept:'application/json','User-Agent':`MID-weather-dashboard/${WORKER_VERSION}`},cf:{cacheTtl:120,cacheEverything:true}},18000),body=await response.text();let payload;try{payload=JSON.parse(body)}catch{}
   if(response.ok&&validCoreForecastPayload(payload)){const stored={...payload,_mid_core_proxy:{provider:'Open-Meteo Best Match',fallback:false,checkedAt:new Date().toISOString(),...requestMeta}};await writeCoreForecastEdgeCache(lat,lon,elevation,timeZone,stored);return json({...stored,_mid_core_proxy:{...stored._mid_core_proxy,version:WORKER_VERSION,cached:false}},200,{'cache-control':'public, max-age=120, stale-while-revalidate=600'})}

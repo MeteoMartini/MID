@@ -19,13 +19,13 @@ const [weather,fusion,periods,seven,portal,app,worker,versionSource,pkgSource,ba
  readFile(new URL('package.json',root),'utf8'),
  readFile(new URL('MID_BASELINE.json',root),'utf8')
 ]);
-assert.ok(weather.includes("mid:forecast-core:v4:"),'Forecast-Core-Cachevertrag wurde nicht versioniert.');
+assert.ok(weather.includes("mid:forecast-core:v5:"),'Forecast-Core-Cachevertrag wurde nicht versioniert.');
 assert.ok(weather.includes('forecastCoreDimensionSuffix(options)'),'Frontend-Cache enthält keine Höhen-/Zeitzonendimension.');
 assert.ok(weather.includes("query.set('elevation',String(dimensions.elevation))"),'Direktabruf übernimmt die angeforderte Höhe nicht.');
 assert.ok(weather.includes('timezone:dimensions.timeZone'),'Direktabruf übernimmt die effektive Zeitzone nicht.');
-assert.ok(weather.includes('forecast-core:v4:'),'Worker-Request-Cachekey ist nicht dimensionsgebunden.');
+assert.ok(weather.includes('forecast-core:v5:'),'Worker-Request-Cachekey ist nicht dimensionsgebunden.');
 assert.ok(!weather.includes('legacy.value,legacy.time'),'Unsichere Legacy-Cachemigration ist weiterhin aktiv.');
-assert.ok(worker.includes("CORE_FORECAST_EDGE_CACHE_VERSION='v4'"),'Worker-Edge-Cachevertrag wurde für das erweiterte Daily-Schema nicht auf v4 versioniert.');
+assert.ok(worker.includes("CORE_FORECAST_EDGE_CACHE_VERSION='v5'"),'Worker-Edge-Cachevertrag wurde für das erweiterte Daily-Schema nicht auf v5 versioniert.');
 assert.ok(worker.includes('/e\${elevationKey}/tz\${timeZoneKey}'),'Worker-Edge-Cache trennt Höhe und Zeitzone nicht.');
 assert.ok(worker.includes('timezone:timeZone'),'Worker reicht die angeforderte Zeitzone nicht an Open-Meteo weiter.');
 assert.ok(worker.includes("query.set('elevation',String(elevation))"),'Worker reicht die angeforderte Höhe nicht an Open-Meteo weiter.');
