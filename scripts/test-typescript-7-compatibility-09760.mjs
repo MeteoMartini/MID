@@ -27,7 +27,7 @@ assert.equal(typeof stradaTs.createSourceFile,'function');
 assert.equal(typeof ts.transpileModule,'undefined','TypeScript 7 darf nicht versehentlich als alte Strada-API behandelt werden.');
 
 for(const [name,value] of Object.entries({react:'19.2.8','react-dom':'19.2.8','react-is':'19.2.8'}))assert.equal(pkg.dependencies?.[name],value,`${name} muss dem qualifizierten React-19-Gesamtvertrag entsprechen.`);
-assert.equal(pkg.devDependencies?.vite,'8.2.4');
+assert.equal(pkg.devDependencies?.vite,'8.3.5');
 assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'6.1.2');
 
 assert.equal(appConfig.compilerOptions?.strict,true);

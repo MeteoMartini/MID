@@ -16,7 +16,7 @@ const expectedDev={
  '@types/react-dom':'^19.2.5',
  typescript:'7.0.2',
  'typescript-strada':'npm:typescript@6.0.3',
- vite:'8.2.4',
+ vite:'8.3.5',
  '@vitejs/plugin-react':'6.1.2',
 };
 const lockedVersion=(name,declared)=>name==='typescript-strada'?'6.0.3':declared.replace(/^\^/,'');
@@ -40,4 +40,4 @@ const vite=await readFile(new URL('../vite.config.ts',import.meta.url),'utf8');
 for(const token of ["minify:'oxc'","cssMinify:'lightningcss'",'rolldownOptions','codeSplitting'])if(!vite.includes(token))failures.push(`Vite-8-Vertrag fehlt: ${token}`);
 for(const deprecated of ["minify:'esbuild'","cssMinify:'esbuild'",'rollupOptions','manualChunks'])if(vite.includes(deprecated))failures.push(`Deprecated Vite-Pfad ist noch aktiv: ${deprecated}`);
 if(failures.length){console.error('MID-Abhängigkeits-Upgrade-Policy verletzt:\n- '+failures.join('\n- '));process.exit(1)}
-console.log('Dependency-Policy geprüft: React 19.2.8, Recharts 3.10.1, Lucide 1.40.0, MapLibre 6.7.0, TypeScript 7.0.2 sowie Vite 8.2.4/plugin-react 6.1.2 sind reproduzierbar geschützt.');
+console.log('Dependency-Policy geprüft: React 19.2.8, Recharts 3.10.1, Lucide 1.40.0, MapLibre 6.7.0, TypeScript 7.0.2 sowie Vite 8.3.5/plugin-react 6.1.2 sind reproduzierbar geschützt.');
