@@ -30,7 +30,7 @@ try{
  const gap=detailSkyBarTimedSegments([interval,{...interval,precipitationIntervalStartEpoch:now+10*60000,precipitationIntervalEndEpoch:now+15*60000}],now,now+15*60000,0,0,150,8).filter(s=>s.layer==='precip');assert.equal(gap.length,2);assert.ok(gap[0].x2<gap[1].x1,'explicit missing interval remains a gap');
  assert.deepEqual(detailSkyBarTimedSegments([{...interval,precipitationIntervalEndEpoch:NaN}],now,end,0,0,120,8),[]);
  assert.deepEqual({hours,minutes},original,'canonical inputs are immutable');
- const app=readFileSync('src/App.tsx','utf8');assert.match(app,/<MemoCurrent[^\n]*minutes15=\{displayMinutes15\} anchor=\{shortTermAnchor\}/);assert.match(app,/currentThreadSkyFine=buildShortTermForecast\(minutes15,hours,w.timezone,solarNow,anchor\)/);assert.match(app,/currentThreadSkyHours=shortTermProfileHourlyPoints\(hours,currentThreadSkyFine,w.timezone,solarNow\)/);assert.match(app,/xPositions=\{currentThreadSkyXPositions\}/);
+ const app=readFileSync('src/App.tsx','utf8');assert.match(app,/<MemoCurrent[^\n]*minutes15=\{displayMinutes15\} anchor=\{shortTermAnchor\}/);assert.match(app,/currentThreadSkyFine=buildCurrentHourPrecipitation\(minutes15,hours,w.timezone,solarNow,currentThreadStartEpoch,anchor\)/);assert.match(app,/currentThreadSkyHours=shortTermProfileHourlyPoints\(hours,currentThreadSkyFine,w.timezone,currentThreadStartEpoch\)/);assert.match(app,/xPositions=\{currentThreadSkyXPositions\}/);
  console.log('MID230: missing light rain reproduced; Current/Today interval, phase, intensity and hourly squares agree; clipping, real gaps, dry/missing and immutable inputs verified.');
 }finally{rmSync(out,{recursive:true,force:true})}
 if(process.env.GITHUB_ACTIONS==='true')await import('./verify-current-skybar-browser-0985230.mjs');

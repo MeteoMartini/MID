@@ -168,6 +168,18 @@ export function plausibilizeShortTermThermals(points:ShortTermForecastPoint[]){
  return result;
 }
 
+/** Current's full-hour chart retains the complete native current-hour intervals.
+ * Only that hour is rebuilt without projecting the current observation backward.
+ * Subsequent intervals keep the live adjusted forecast unchanged. Epoch boundaries
+ * distinguish the repeated autumn hour and skip the absent spring hour naturally. */
+export function buildCurrentHourPrecipitation(minutes15:Minute15[],hours:Hour[],timezone:string,now:number,hourStart:number,anchor:ShortTermAnchor={}):ShortTermForecastPoint[]{
+ const live=buildShortTermForecast(minutes15,hours,timezone,now,anchor);
+ if(!Number.isFinite(hourStart)||hourStart>now||now>=hourStart+3600000)return live;
+ const hourEnd=hourStart+3600000;
+ const current=buildShortTermForecast(minutes15,hours,timezone,hourStart,{active:false}).filter(point=>Number(point.precipitationIntervalStartEpoch)>=hourStart&&Number(point.precipitationIntervalEndEpoch)<=hourEnd);
+ return [...current,...live.filter(point=>Number(point.precipitationIntervalStartEpoch)>=hourEnd)];
+}
+
 export function buildShortTermForecast(minutes15:Minute15[],hours:Hour[],timezone:string,now=Date.now(),anchor:ShortTermAnchor={},radarNowcast?:RadarNowcast):ShortTermForecastPoint[]{
  if(!hours.length)return[];
  const points:ShortTermForecastPoint[]=[],modelNow=interpolatedHour(hours,now),modelNowAccumulation=trailingAccumulationHour(hours,now),anchorTemperature=anchorField(anchor,'temperature'),anchorApparent=anchorField(anchor,'apparent'),anchorHumidity=anchorField(anchor,'humidity'),anchorDewPoint=anchorField(anchor,'dewPoint'),anchorPressure=anchorField(anchor,'pressure'),anchorWind=anchorField(anchor,'wind'),anchorGust=anchorField(anchor,'gust'),anchorDirection=anchorField(anchor,'direction'),anchorCloud=anchorField(anchor,'cloud'),anchorLowCloud=anchorField(anchor,'lowCloud'),anchorVisibility=anchorField(anchor,'visibility'),anchorPrecipitation=anchorField(anchor,'precipitation'),anchorCode=anchorField(anchor,'code'),targets=buildTargetEpochs(now);let previousIntervalEnd=now;
