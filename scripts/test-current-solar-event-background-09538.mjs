@@ -1,22 +1,28 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const [app,panel,eventCenter,refresh,pkgRaw,baselineRaw]=await Promise.all([
+const [app,panel,eventCenter,refresh,pkgRaw,baselineRaw,solarClock]=await Promise.all([
  readFile(new URL('../src/App.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/EventPlannerPanel.tsx',import.meta.url),'utf8'),
  readFile(new URL('../src/eventCenter.ts',import.meta.url),'utf8'),
  readFile(new URL('../src/eventWeatherRefresh.ts',import.meta.url),'utf8'),
  readFile(new URL('../package.json',import.meta.url),'utf8'),
- readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
+ readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8'),
+ readFile(new URL('../src/visibleSolarClock.ts',import.meta.url),'utf8')
 ]);
 
 assert.match(app,/\[solarNow,setSolarNow\]=useState\(\(\)=>Date\.now\(\)\)/,'Aktuelles Wetter besitzt keine laufende astronomische Zeitbasis.');
 assert.match(app,/astronomy=useMemo\(\(\)=>astronomySummary\(w,new Date\(solarNow\)\).*currentIsDay=astronomicalIsDayAt\(solarNow,/s,'Tag-/Nachtstatus wird nicht über die zentrale astronomische Sonnenauf-/untergangsgrenze abgeleitet.');
-assert.match(app,/solarDaylightWindowAt\(Date\.now\(\),location\)/,'Der Hintergrundtimer verwendet nicht das zentrale, gecachte Sonnenfenster.');
+assert.match(app,/startVisibleSolarClock\(\{latitude:w\.latitude,longitude:w\.longitude,elevation:w\.elevation,timezone:w\.timezone\},\(\)=>setSolarNow\(Date\.now\(\)\)\)/,'Aktuelles Wetter muss den sichtbarkeitsabhängigen Sonnenzeit-Scheduler verwenden.');
+assert.match(solarClock,/import \{solarDaylightWindowAt\} from '\.\/astronomy'/,'Der ausgelagerte Scheduler muss das zentrale Sonnenfenster verwenden.');
+assert.match(solarClock,/daylightAt\(epoch,location\)/,'Der Scheduler muss den aktuellen Zeitstempel statt eines alten Renderzeitpunkts verwenden.');
 assert.match(app,/<WeatherPictogram code=\{currentWeatherCode\}[^>]*day=\{currentIsDay\}/,'Hauptpiktogramm verwendet nicht den astronomisch abgeleiteten Tag-/Nachtstatus.');
 assert.match(app,/<WeatherPictogram code=\{currentWeatherCode\}[^>]*intensity=\{currentPrecip\.intensity\}/,'Hauptpiktogramm verliert die zentrale Niederschlagsintensität.');
 assert.match(app,/recentSunshineDuration\(w,\{[^}]*isDay:currentIsDay\}\)/s,'Sonnenschein-Plausibilisierung verwendet nicht denselben astronomischen Tag-/Nachtstatus.');
-assert.match(app,/document\.addEventListener\('visibilitychange',resume\).*window\.addEventListener\('focus',resume\)/s,'Astronomischer Status wird nach App-Rückkehr nicht sofort nachgeführt.');
+assert.match(solarClock,/document\.addEventListener\('visibilitychange',visibility\)/,'Sonnenzeit-Scheduler reagiert nicht auf Sichtbarkeitswechsel.');
+assert.match(solarClock,/window\.addEventListener\('focus',focus\)/,'Sonnenzeit-Scheduler reagiert nicht auf Rückkehr in den Vordergrund.');
+assert.match(solarClock,/if\(document\.visibilityState==='hidden'\)\{cancel\(\);return\}/,'Hintergrundpause muss den laufenden Timeout abbrechen.');
+assert.match(solarClock,/document\.removeEventListener\('visibilitychange',visibility\)/,'Cleanup darf keine Sichtbarkeits-Listener hinterlassen.');
 
 assert.match(eventCenter,/EVENT_CENTER_REFRESH_REQUEST_KEY='mid:event-center:refresh-request:v1'/,'Persistenter Event-Refresh-Auftrag fehlt.');
 assert.match(eventCenter,/persistEventCenterRefreshRequest\(source:string\)/,'Event-Refresh-Aufträge werden nicht persistent vorgemerkt.');
