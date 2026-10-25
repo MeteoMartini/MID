@@ -10,9 +10,10 @@ assert.ok(fusionSource.includes('fullCalendarDayHourlyPrecipitationCoverage(day.
 assert.ok(!fusionSource.includes('futureFraction=(hour:Hour)'), 'Day must not become just the remainder from now');
 assert.ok(fusionSource.includes('completeCoverage?sum(\'precipitation\'):day.precipitation'), 'Incomplete day must preserve canonical daily source');
 assert.ok(fusionSource.includes('minimumExpectedHours:completeCoverage?relevant.length:26'), 'Incomplete sunshine hours must not masquerade as full-day coverage');
-assert.ok(app.includes('currentThreadSkyBaseHours=precipitationPresentationHours(hours)'), 'Current base Skybar needs the complete native model hour');
-assert.ok(app.includes('currentThreadSkySegments=detailSkyBarTimedSegments(currentThreadSkyBaseHours'), 'Base sky must not be clipped to future-only precipitation series');
+assert.match(app,/currentThreadSkyBaseHours=useMemo\(\(\)=>precipitationPresentationHours\(hours\)/, 'Current base Skybar needs the complete native model hour, memoized only with its forecast inputs');
+assert.ok(app.includes('currentThreadBaseSkySegments=useMemo(()=>detailSkyBarTimedSegments(currentThreadSkyBaseHours'), 'Base sky must not be clipped to future-only precipitation series');
 assert.ok(app.includes('detailSkyBarTimedSegments(currentThreadSkyFine'), 'Quarter-hour precipitation overlay remains independent');
+assert.ok(app.includes('currentThreadSkyFine=buildCurrentHourPrecipitation(minutes15,hours,w.timezone,solarNow'), 'The running hour and observation age must remain live on each solar clock update');
 const root=mkdtempSync(join(tmpdir(),'mid-day-285-'));
 try {
  await build({stdin:{contents:"export{fullCalendarDayHourlyPrecipitationCoverage}from'./src/fullCalendarForecastDay';export{reconcileForecastDaysWithHours}from'./src/forecastFusion';export{daySkybarCalendarWindow}from'./src/daySkybarTimeline';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',packages:'external',outfile:join(root,'tests.mjs'),loader:{'.css':'empty'},define:{'import.meta.env':'{}'},logLevel:'silent'});

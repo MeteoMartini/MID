@@ -1,3 +1,7 @@
+# MID v0.9.85.328 · Wiederverwendung unveränderter Berechnungen unter „Aktuell“
+
+Die lokale Stundenfolge wird einmal je Prognose-/Zeitzonen-Eingabe aufgebaut; nur die Auswahl der aktuell gültigen Ortsstunde bleibt an die laufende Uhr gebunden. Temperaturreihe, Achse, vollständige Basis-Skybar und Sonnenfenster verwenden unveränderte Ergebnisse wieder. Niederschlags-Unterstunde, Beobachtungsalter und Sonnenzeit reagieren weiterhin unmittelbar auf jede Uhraktualisierung. 420 Golden-Vergleiche einschließlich Viertelstunden-Zeitzonen und DST sowie ein lokaler React-Profiler bestätigen Verhalten und geringere Renderkosten im synthetischen Fixture. Keine Änderung an Wetterfachwerten oder Darstellungs-CSS.
+
 # MID v0.9.85.327 · Schnellere Stundenfilterung unter „Aktuell“
 
 Die Zeitachse der laufenden 12-Stunden-Übersicht erzeugt ihren Zeitzonen-Formatter nur einmal pro Berechnung statt für jede einzelne Stunde. Dadurch entfällt unnötige Renderarbeit, ohne Prognosewerte, fehlende Daten, die laufende Niederschlagsstunde oder Sommer-/Winterzeitwechsel zu ändern. Der Sonnenzeit-Timer-Fix aus v0.9.85.326 bleibt erhalten.
