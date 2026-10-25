@@ -74,6 +74,10 @@ Der bestehende Sonderfall eines reinen externen Advisory-Doppel-Ausfalls bleibt 
 
 `postcss 8.5.28 -> source-map-js ^1.2.1` wird ohne Override und ohne PostCSS-/Vite-Migration auf den kompatiblen Lockfile-Patch **1.2.2** angehoben. GHSA-68fv-2mgg-jv7q / CVE-2026-93749 betrifft indexed source-map section offsets bis 1.2.1. Die Upgrade-Policy verbietet künftig betroffene source-map-js-Versionen im 1.x-Pfad. Vollständiger npm-Audit, Rebuild, CSS-Kaskaden-/Bundle-/Regressionen sind erforderlich. Die drei moderaten Capacitor/xcode/uuid-Dev-Befunde bleiben getrennt upstream; kein force-fix, kein Capacitor-Downgrade.
 
+## Isolierte Qualifikation 25.10.2026 · PostCSS 8.5.31
+
+Ausgangsbasis ist der veröffentlichte Stable-Stand .328 (`7b7d94447d584dc7b7ee4bad7549150ad19c916c`). PostCSS bleibt eine exakte direkte Entwicklungsabhängigkeit und wird separat auf 8.5.31 aktualisiert. Die verifizierte Registry-Metadaten-SRI für das Release stimmt mit dem Lockfile überein. PostCSS 8.5.31 verlangt `nanoid ^3.3.20` und `source-map-js ^1.2.2`; Lockfile-Auflösung ist `nanoid 3.3.20`, `source-map-js 1.2.2`. Keine Overrides, kein `npm audit fix --force`, keine React-/Vite-/plugin-react-/Capacitor-/MapLibre-/Pako-Änderung. Der freigegebene .328-Produktions-CSS-Hash ist die bytegenaue Vergleichsbasis; CSS-Kaskaden-, Theme-, Widget-, Export- und Bundleverträge bleiben bestehen.
+
 ## Sicherheitswartung 21.10.2026 · v0.9.85.306
 
 Vite8.2.2 wird innerhalb derselben8.2-Reihe auf8.2.4 aktualisiert. Die offiziellen Advisories GHSA-587h-7wmj-h5pm (HIGH), GHSA-698v-4r3x-3vcv und GHSA-r825-w8mm-5pxw betreffen den gebündelten launch-editor bis2.14.1; für Vite8.2 ist8.2.4 als korrigierter Patch benannt. Kein Override/force-fix und kein Framework-/Bundler-Majorwechsel. plugin-react6.1.1, Node22.16 und bestehende Oxc-/Rolldown-/Lightning-CSS-Konfiguration bleiben. npm erzeugt das Lockfile aus dem Registry-Paket neu; keine manuell erdachten Integritätswerte. Der bekannte moderate Capacitor/xcode/uuid-Pfad bleibt separat und wird nicht inkompatibel überschrieben. Vollständiger Audit, Types, Build, CSS-/Karten-/Export-/iOS- und Release-Gates bleiben erforderlich.
