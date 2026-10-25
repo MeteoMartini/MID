@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.332",
+  "version": "0.9.85.333",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -16,6 +16,7 @@
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
+    "test:map-popup-theme": "node scripts/test-map-popup-theme-0985333.mjs",
     "test:interactions": "node scripts/test-interactions.mjs",
     "test:precipitation": "node scripts/test-precipitation.mjs",
     "test:sunshine": "node scripts/test-sunshine-format.mjs",

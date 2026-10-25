@@ -1,0 +1,12 @@
+/* Shared theme for the custom KONRAD Leaflet popups and MapLibreCore popups. */
+.leaflet-container .leaflet-popup-content-wrapper,.leaflet-container .leaflet-popup-tip{background:var(--surface);color:var(--text)}
+.leaflet-container .leaflet-popup-content{color:var(--text)}
+.leaflet-container .leaflet-popup-close-button,.maplibregl-popup.mid-themed-popup .maplibregl-popup-close-button{color:var(--primary)}
+.leaflet-container .leaflet-popup-close-button:focus-visible,.maplibregl-popup.mid-themed-popup .maplibregl-popup-close-button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+.maplibregl-popup.mid-themed-popup .maplibregl-popup-content{background:var(--surface);color:var(--text)}
+.maplibregl-popup.mid-themed-popup .maplibregl-popup-tip{border-color:var(--surface)}
+@media(pointer:coarse){
+ .leaflet-container .leaflet-popup-close-button,.maplibregl-popup.mid-themed-popup .maplibregl-popup-close-button{width:44px;height:44px}
+ .leaflet-container .leaflet-popup-content{margin-right:48px}
+ .maplibregl-popup.mid-themed-popup .maplibregl-popup-content{padding-right:48px}
+}

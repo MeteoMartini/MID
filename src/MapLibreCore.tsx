@@ -1,6 +1,7 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import './mapPopupTheme.css';
 import './MapAvailability.css';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 
@@ -76,7 +77,7 @@ export function GeoJsonLayers({id,data,layers,hoverProperty,zIndex=0}:{id:string
  useEffect(()=>{
   if(!map)return;
   const layerIds=layers.map(spec=>`${safeId(id)}-${safeId(spec.id)}`);
-  const popup=hoverProperty?new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:8,maxWidth:'320px'}):null;
+  const popup=hoverProperty?new maplibregl.Popup({closeButton:true,closeOnClick:false,offset:8,maxWidth:'320px',className:'mid-themed-popup'}):null;
   const handlers:Array<{layerId:string;move:(event:maplibregl.MapLayerMouseEvent)=>void;leave:()=>void;click:(event:maplibregl.MapLayerMouseEvent)=>void}>=[];
   let pinned=false;
   const onPopupClose=()=>{pinned=false};
@@ -121,7 +122,7 @@ export function GeoJsonLayers({id,data,layers,hoverProperty,zIndex=0}:{id:string
  return null;
 }
 
-export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom',offset=[0,0],popupHtml,onClick,zIndex}:{latitude:number;longitude:number;html:string;className?:string;anchor?:maplibregl.PositionAnchor;offset?:[number,number];popupHtml?:string;onClick?:()=>void;zIndex?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const el=document.createElement('div');el.className=className;el.innerHTML=html;if(zIndex!==undefined)el.style.zIndex=String(zIndex);if(onClick)el.addEventListener('click',onClick);const marker=new maplibregl.Marker({element:el,anchor,offset}).setLngLat([longitude,latitude]);if(popupHtml)marker.setPopup(new maplibregl.Popup({offset:12,maxWidth:'330px'}).setHTML(popupHtml));marker.addTo(map);return()=>{if(onClick)el.removeEventListener('click',onClick);marker.remove()}},[map,latitude,longitude,html,className,anchor,offset[0],offset[1],popupHtml,onClick,zIndex]);return null}
+export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom',offset=[0,0],popupHtml,onClick,zIndex}:{latitude:number;longitude:number;html:string;className?:string;anchor?:maplibregl.PositionAnchor;offset?:[number,number];popupHtml?:string;onClick?:()=>void;zIndex?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const el=document.createElement('div');el.className=className;el.innerHTML=html;if(zIndex!==undefined)el.style.zIndex=String(zIndex);if(onClick)el.addEventListener('click',onClick);const marker=new maplibregl.Marker({element:el,anchor,offset}).setLngLat([longitude,latitude]);if(popupHtml)marker.setPopup(new maplibregl.Popup({offset:12,maxWidth:'330px',className:'mid-themed-popup'}).setHTML(popupHtml));marker.addTo(map);return()=>{if(onClick)el.removeEventListener('click',onClick);marker.remove()}},[map,latitude,longitude,html,className,anchor,offset[0],offset[1],popupHtml,onClick,zIndex]);return null}
 
 export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','zoomend','resize'] as const}:{id:string;opacity?:number;zIndex?:number;render:(map:MidMap,canvas:HTMLCanvasElement)=>void;events?:readonly ('moveend'|'zoomend'|'resize'|'render')[]}){
  const map=useMidMap(),canvasRef=useRef<HTMLCanvasElement|null>(null),renderRef=useRef(render),opacityRef=useRef(opacity);renderRef.current=render;opacityRef.current=opacity;
