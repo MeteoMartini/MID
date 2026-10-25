@@ -1,3 +1,7 @@
+# MID v0.9.85.335 · Modellfusion nach App-Rückkehr zuverlässig laden
+
+Die Modellfusion wird nach Rückkehr in die App und bei wiederhergestellter Netzverbindung erneut geprüft. Fehlgeschlagene Abrufe werden mit begrenzter Wiederholungsrate nachgeholt; ein vorhandener erfolgreicher Prognosestand bleibt erhalten. Ohne bestätigten Fusionsstand weist die Modellliste ausdrücklich darauf hin, dass die Übernahme derzeit nicht verifiziert ist.
+
 # MID v0.9.85.333 · Lesbare Karten-Popups in Light und Dark
 
 Leaflet- und MapLibre-Karten-Popups verwenden jetzt die MID-Flächen- und Textfarben ihres aktiven Themes. Dadurch bleiben KONRAD3D-Informationen und weitere Radar-Overlays auch im dunklen Kartenmodus lesbar. Schließen-Schaltflächen erhalten sichtbaren Fokus und auf Touch-Geräten eine 44-px-Zielfläche. Die bewusst helle Extremwetter-Popupgestaltung bleibt unverändert.

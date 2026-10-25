@@ -1,3 +1,7 @@
+## MID v0.9.85.335 · 2026-10-25 · Fusion resume
+
+Nachholen versäumter Fusionsabrufe, begrenzter Fehlerbackoff, Lifecycle-Cleanup und explizite fehlende Übernahmeverifikation. Wetterwerte und Workerkern unverändert.
+
 ## MID v0.9.85.316 · 2026-10-23 · Parameterlinien, Rasterextreme und runde Windskalen
 
 - Verifizierte Basis main = mid-stable = 48692e0cd168302f1dd035f5d79200a4812a00a6 / 0.9.85.314. PR449 reserviert .315 für unabhängige DWD-Geometrieinventur; keine Duplikation oder Aktivierung dieses WIP.

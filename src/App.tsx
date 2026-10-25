@@ -1,3 +1,4 @@
+import {createForecastFusionRefresh} from './forecastFusionRefresh';
 import {instantCachedCoreForecast} from './weather';
 import {useForecastChangeArchive} from './ForecastChangeArchive';
 import {formatWeatherValue,formatVisibility,formatTemperatureRange} from './weatherValueFormat';
@@ -578,13 +579,22 @@ useEffect(()=>{try{localStorage.setItem(POLLEN_DISPLAY_SETTINGS_KEY,JSON.stringi
  }
  useEffect(()=>{
   if(!loc||!w){setForecastFusion(null);return}
-  let disposed=false,timer=0,idleHandle=0,controller:AbortController|null=null;
-  const cancelIdle=()=>{if(idleHandle&&'cancelIdleCallback'in window)(window as Window&{cancelIdleCallback?:(handle:number)=>void}).cancelIdleCallback?.(idleHandle);else if(idleHandle)window.clearTimeout(idleHandle);idleHandle=0};
+  let idleHandle=0;
   const connection=(navigator as Navigator&{connection?:{saveData?:boolean;effectiveType?:string}}).connection,constrained=connection?.saveData===true||connection?.effectiveType==='slow-2g'||connection?.effectiveType==='2g';
-  const run=()=>{idleHandle=0;if(disposed||document.visibilityState!=='visible'||navigator.onLine===false)return;const pending=(navigator as Navigator&{scheduling?:{isInputPending?:(options?:{includeContinuous?:boolean})=>boolean}}).scheduling?.isInputPending?.({includeContinuous:true});if(pending){timer=window.setTimeout(schedule,constrained?700:260);return}controller=new AbortController();void loadForecastFusion(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??w.elevation,controller.signal).then(value=>{if(!disposed&&!controller?.signal.aborted)setForecastFusion(value)}).catch(()=>undefined)};
-  const schedule=()=>{if(disposed)return;cancelIdle();const idle=(window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number}).requestIdleCallback;idleHandle=idle?idle(run,{timeout:constrained?2200:850}):window.setTimeout(run,constrained?450:140)};
-  timer=window.setTimeout(schedule,constrained?650:140);
-  return()=>{disposed=true;window.clearTimeout(timer);cancelIdle();controller?.abort()};
+  const cancelIdle=()=>{if(idleHandle&&'cancelIdleCallback'in window)window.cancelIdleCallback(idleHandle);else if(idleHandle)window.clearTimeout(idleHandle);idleHandle=0};
+  const loop=createForecastFusionRefresh({
+   load:signal=>loadForecastFusion(loc.latitude,loc.longitude,loc.country_code||loc.country,loc.elevation??w.elevation,signal),
+   apply:setForecastFusion,
+   available:()=>document.visibilityState==='visible'&&navigator.onLine!==false,
+   setTimer:(callback,delay)=>window.setTimeout(()=>{const idle=window.requestIdleCallback;const invoke=()=>{idleHandle=0;const pending=(navigator as Navigator&{scheduling?:{isInputPending?:(options?:{includeContinuous?:boolean})=>boolean}}).scheduling?.isInputPending?.({includeContinuous:true});if(pending){loop.resume(constrained?700:260);return}callback()};idleHandle=idle?idle(invoke,{timeout:constrained?2200:850}):window.setTimeout(invoke,0)},delay),
+   clearTimer:id=>{window.clearTimeout(id);cancelIdle()},
+  });
+  const resume=()=>loop.resume(),visibility=()=>{if(document.visibilityState==='visible')loop.resume();else loop.pause()};
+  document.addEventListener('visibilitychange',visibility);
+  window.addEventListener('online',resume);window.addEventListener('offline',visibility);
+  window.addEventListener('pageshow',resume);window.addEventListener(MID_RUNTIME_RESUME_EVENT,resume);
+  loop.resume(constrained?650:140);
+  return()=>{loop.stop();cancelIdle();document.removeEventListener('visibilitychange',visibility);window.removeEventListener('online',resume);window.removeEventListener('offline',visibility);window.removeEventListener('pageshow',resume);window.removeEventListener(MID_RUNTIME_RESUME_EVENT,resume)};
  },[loc?.id,loc?.latitude,loc?.longitude,loc?.country_code,loc?.country,loc?.elevation,w]);
  useEffect(()=>{if(!loc){abortAllRequests();return}void load();return()=>{seq.current++;abortAllRequests();if(forecastRateRetryRef.current!==undefined){window.clearTimeout(forecastRateRetryRef.current);forecastRateRetryRef.current=undefined}if(storageQuotaRetryRef.current!==undefined){window.clearTimeout(storageQuotaRetryRef.current);storageQuotaRetryRef.current=undefined}if(forecastTimeoutRetryRef.current!==undefined){window.clearTimeout(forecastTimeoutRetryRef.current);forecastTimeoutRetryRef.current=undefined}}},[loc?.id,loc?.latitude,loc?.longitude]);
  useEffect(()=>{let lastRefreshAt=0;const refresh=(forceFresh:boolean)=>{const online=navigator.onLine!==false;setNetworkOnline(online);if(!online||!loc)return;const now=Date.now();if(now-lastRefreshAt<1800)return;lastRefreshAt=now;void load({forceFresh})},offline=()=>setNetworkOnline(false),online=()=>refresh(true),resume=(event:Event)=>{const detail=(event as CustomEvent<MidRuntimeResumeDetail>).detail;setNetworkOnline(detail?.online!==false);if(detail?.online!==false&&Number(detail?.elapsedMs||0)>=30_000)refresh(false)};window.addEventListener('offline',offline);window.addEventListener('online',online);window.addEventListener(MID_RUNTIME_RESUME_EVENT,resume);return()=>{window.removeEventListener('offline',offline);window.removeEventListener('online',online);window.removeEventListener(MID_RUNTIME_RESUME_EVENT,resume)}},[loc?.id,loc?.latitude,loc?.longitude,w]);

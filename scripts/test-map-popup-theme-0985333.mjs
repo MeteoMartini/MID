@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {versionAtLeast} from './version-regression-helper.mjs';
 import {readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url),read=path=>readFile(new URL(path,root),'utf8');
@@ -6,7 +7,8 @@ const[theme,radar,mapLibre,legacy,packageRaw,baselineRaw,eager,compiled]=await P
  read('src/mapPopupTheme.css'),read('src/RadarPanel.tsx'),read('src/MapLibreCore.tsx'),read('src/MapLibreLegacyCompat.tsx'),read('package.json'),read('MID_BASELINE.json'),read('src/midPresentation.css'),read('src/styles.css')
 ]);
 const pkg=JSON.parse(packageRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-map-popup-theme-0985333.mjs';
-assert.equal(pkg.version,'0.9.85.333');
+assert.equal(pkg.version,baseline.releaseVersion);
+assert.ok(versionAtLeast(pkg.version,'0.9.85.333'),'Popup-Vertrag gilt auch nach dem Einführungsrelease.');
 assert.equal(pkg.scripts?.['test:map-popup-theme'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests.includes(test)&&baseline.regressionTests.includes(test));
 assert.ok(baseline.requiredFiles.includes(test)&&baseline.requiredFiles.includes('docs/implementation/MID_MAP_POPUP_THEME_0.9.85.333.md'));
