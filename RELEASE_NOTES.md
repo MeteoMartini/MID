@@ -1,5 +1,5 @@
-# MID v0.9.85.329 · Isoliertes PostCSS-Wartungsupdate
+# MID v0.9.85.330 · Isoliertes React-Vite-Plugin-Update
 
-PostCSS wird separat von 8.5.28 auf 8.5.31 qualifiziert. Das reproduzierbar erneuerte Lockfile zieht nur die dafür erforderliche Nanoid-Patchversion nach; `source-map-js` bleibt auf dem bereits geprüften 1.2.2. React, Vite, Plugin-React, Capacitor, MapLibre und Pako ändern sich nicht. Produktions-CSS, Kaskade, Themen, Widgets, Karten und Exporte bleiben byteidentisch zum freigegebenen .328-Build. Das ist ein Entwicklungsabhängigkeits- und CSS-Parser-Wartungsschritt, kein CSS-Split und kein Laufzeit-/Designwechsel.
+`@vitejs/plugin-react` wird einzeln von 6.1.1 auf 6.1.2 aktualisiert. Das Plugin bleibt an Vite 8 gebunden; die unabhängigen React-, Vite-, Capacitor-, MapLibre- und Pako-Versionen bleiben unverändert. Upstream 6.1.2 behebt HMR für Compound Components. Keine absichtliche Änderung am Produktionsverhalten oder an CSS, Karten, Widgets und Exporten.
 
-Context7/PostCSS-Quelldokumentation und die Registry-Metadaten für 8.5.31 wurden geprüft. Build, vollständige Regression, Dependency-Audit, CSS-Kaskaden-/Budget-Tests und MID-Release-Gates bleiben erforderlich.
+Die Registry-Auflösung, Integrität, Peer-Abhängigkeiten und Node-Anforderungen wurden geprüft. Vollständige Types-, Build-, Audit-, Regression-, Browser-/Heavy- und MID-Release-Gates sind erforderlich.

@@ -1,3 +1,7 @@
+# MID v0.9.85.330 · Isoliertes React-Vite-Plugin-Update (Source-Kandidat)
+
+Verifizierte Stable-Basis .329: `85f98cc3a347657071eef0a18aee4f0345d26ed7`. `@vitejs/plugin-react` wird isoliert von 6.1.1 auf 6.1.2 aktualisiert; React, Vite, Capacitor, MapLibre, Pako und Produktionsabhängigkeiten bleiben unverändert. Das Lockfile aktualisiert ausschließlich die Plugin-Version, Integrität und optionale Oxc-Peer-Anforderung. Upstream nennt einen HMR-Fix für Compound Components. Lokale Installation, vollständige Regressionen, Produktions-CSS-Byteparität und alle MID-Release-Gates bleiben verpflichtend.
+
 # MID v0.9.85.329 · Isoliertes PostCSS-Wartungsupdate (Source-Kandidat)
 
 Verifizierte Stable-Basis .328: `7b7d94447d584dc7b7ee4bad7549150ad19c916c`. PostCSS als direkte exakte Entwicklungsabhängigkeit 8.5.28 → 8.5.31; neu erzeugtes Lockfile aktualisiert nur zusätzlich `nanoid` 3.3.18 → 3.3.20. `source-map-js` bleibt 1.2.2; keine Produktionsabhängigkeiten oder sonstigen Framework-/Capacitor-/Karten-/Pako-Versionen ändern sich. Offizielle Context7/PostCSS-Referenz beschreibt u.a. Kommentarverarbeitung in `list.split()` seit 8.5.29 und SourceMap-/SafeStringifier-Korrekturen bis 8.5.31. Produktionsbuild gegen .328 ist byteidentisch: `index-CuuPtrVL.css`, 1.759.985 Bytes roh, SHA-256 `2d31d276bde4453a367251cd5e8efc999807cdf50ac609d1cdeddb883b1ce4cd`; kein CSS-Split, kein Runtime-/Kaskaden-/Theme-/Widget-/Exportwechsel. Vollständige Types-/Build-/Audit-/Regressionen sowie bestehende Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates sind Pflicht.
