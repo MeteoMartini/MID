@@ -6,8 +6,8 @@ import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const dir=mkdtempSync(join(tmpdir(),'mid-provider-time-'));
 try{
- await build({stdin:{contents:readFileSync('src/weather.ts','utf8')+'\nexport {reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache};',resolveDir:resolve('src'),loader:'ts'},outfile:join(dir,'weather.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
- const {mapHours,mapMinutely15,mapDays,providerIsoEpoch,localIsoEpoch,reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache}=await import(pathToFileURL(join(dir,'weather.mjs')));
+ await build({stdin:{contents:readFileSync('src/weather.ts','utf8')+'\nexport {reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache,forecastQuery};',resolveDir:resolve('src'),loader:'ts'},outfile:join(dir,'weather.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
+ const {mapHours,mapMinutely15,mapDays,providerIsoEpoch,localIsoEpoch,reconcileForecastDaysWithHours,parseModelMembers,pseudoModelFromMeanSpread,eventMemberPrecipitationTotals,parseForecastCoreCache,readEnsembleCache,readEventEnsembleCache,forecastQuery}=await import(pathToFileURL(join(dir,'weather.mjs')));
  const fixture=(start,timezone,offset,count=97)=>{
   const stamps=(step,n)=>Array.from({length:n},(_,i)=>new Date(Date.parse(start+'Z')+i*step).toISOString().slice(0,16));
   const times=stamps(3600000,count),fields=['temperature_2m','relative_humidity_2m','dew_point_2m','apparent_temperature','precipitation_probability','precipitation','rain','showers','snowfall','weather_code','cloud_cover','cloud_cover_low','cloud_cover_mid','cloud_cover_high','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','visibility','cape','sunshine_duration','is_day'];
@@ -32,6 +32,36 @@ try{
   if(count!==24)assert.deepEqual(eventMemberPrecipitationTotals(w,target,'00:00','23:00'),[count-1],'User-local event window uses provider absolute endpoints');
   assert.equal(JSON.stringify(w),before,'Raw endpoints, accumulations and weather data stay immutable');
  }
+ // Request-time offset after the autumn switch used to omit today's first hour.
+ const query=forecastQuery(50.82,7.04,{timeZone:'Europe/Berlin'});
+ assert.equal(query.get('past_hours'),'25');assert.equal(query.get('forecast_hours'),'336');
+ assert.equal(query.get('forecast_days'),'14');assert.equal(query.has('past_days'),false,'Daily list still begins today');
+ const worker=readFileSync('worker-src/00-core-observations.js','utf8');
+ assert.match(worker,/forecast_days:'14',past_hours:'25',forecast_hours:'336'/,'Worker and direct request preserve the same full-day coverage');
+ const clipped=fixture('2026-10-25T00:00','Europe/Berlin',3600);
+ assert.ok(!mapDays(clipped).some(day=>day.date==='2026-10-25'),'Reproduce missing today when request begins at fixed-offset midnight');
+ const complete=fixture('2026-10-24T06:00','Europe/Berlin',3600,121);
+ complete.minutely_15=undefined;
+ complete.hourly.weather_code=complete.hourly.time.map(()=>80);complete.hourly.cloud_cover=complete.hourly.time.map(()=>20);
+ complete.hourly.is_day=complete.hourly.time.map(t=>Number(t.slice(11,13))>=7&&Number(t.slice(11,13))<18?1:0);
+ complete.hourly.sunshine_duration=complete.hourly.time.map(t=>Number(t.slice(11,13))>=9&&Number(t.slice(11,13))<16?1800:0);
+ const todayHours=mapHours(complete).filter(h=>h.time.startsWith('2026-10-25'));
+ assert.equal(todayHours.length,25);
+ const originalNow=Date.now;let morning;
+ try{
+  for(const clock of ['07:00','15:00','22:00']){
+   Date.now=()=>Date.parse('2026-10-25T'+clock+'Z');
+   const day=mapDays(complete).find(day=>day.date==='2026-10-25');assert.ok(day);
+   assert.equal(day.precipitation,25,'Past rainfall is retained through the evening');
+   assert.equal(day.sunshineDuration,7*1800,'Morning sunshine is retained after sunset');
+   assert.equal(day.min,Math.min(...todayHours.map(h=>h.temperature)));
+   assert.equal(day.max,Math.max(...todayHours.map(h=>h.temperature)));
+   const metrics=({precipitation,sunshineDuration,min,max})=>({precipitation,sunshineDuration,min,max});
+   if(morning)assert.deepEqual(metrics(day),morning,'Full-day values do not shrink with elapsed time');else morning=metrics(day);
+  }
+ }finally{Date.now=originalNow}
+ const omitted=structuredClone(complete);for(const values of Object.values(omitted.hourly))values.splice(25,1);
+ assert.ok(!mapDays(omitted).some(day=>day.date==='2026-10-25'),'Real missing hours remain missing, never zero-filled');
  const spread=fixture('2026-10-23T00:00','Europe/Berlin',7200,193);spread.hourly.temperature_2m_spread=spread.hourly.time.map(()=>1);spread.hourly.precipitation_spread=spread.hourly.time.map(()=>0);
  const synthetic=pseudoModelFromMeanSpread(spread,{id:'spread',label:'spread',maxDays:14});assert.ok(synthetic);
  for(const rows of synthetic.members.values())assert.equal(rows.find(d=>d.date==='2026-10-25').precipitation,25,'Mean/spread fallback respects the same 25h accumulation boundary');
