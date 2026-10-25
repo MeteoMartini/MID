@@ -344,6 +344,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - shard: heavy-browser-state
+            map_group: ''
           - shard: heavy-native-map
             map_group: ''
           - shard: heavy-mountain-visual

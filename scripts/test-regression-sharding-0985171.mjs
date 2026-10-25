@@ -10,6 +10,7 @@ const tests=await regressionSuite(root),plan=await regressionShardPlan(root),ass
 assert.equal(assigned.length,tests.length,'Shard-Summe muss exakt dem vollständigen Regressionsinventar entsprechen.');
 assert.equal(new Set(assigned).size,tests.length,'Kein Regressionstest darf in zwei Shards liegen.');
 assert.deepEqual(new Set(assigned),new Set(tests),'Kein Regressionstest darf durch Sharding fehlen.');
+assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-browser-state'],['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-native-map'],['test-adaptive-native-maps-0985141.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-unified-map'],['test-unified-map-layers-0985167.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-mountain-visual'],['test-mountain-visual-acceptance-18213.mjs']);
@@ -23,13 +24,14 @@ assert.equal(canonical,active,'Kanonischer und aktiver Source-Gate-Workflow müs
 for(const token of [
  'source_core:','heavy_regressions:','validate_source:',
  'name: Agent-Quellstand vollständig prüfen',
- 'fail-fast: false','heavy-native-map','heavy-unified-map','heavy-mountain-visual',
+ 'fail-fast: false','heavy-browser-state','heavy-native-map','heavy-unified-map','heavy-mountain-visual',
  'MID_REGRESSION_SHARD=core','MID_REGRESSION_SHARD: \${{ matrix.shard }}',
  'needs.source_core.result','needs.heavy_regressions.result'
 ])assert.ok(canonical.includes(token),'Source-Gate-Shardingvertrag fehlt: '+token);
 assert.ok(canonical.indexOf('source_core:')<canonical.indexOf('validate_source:'),'Required gate must remain the final aggregator.');
 assert.ok(canonical.includes('npm run build'),'Jeder Heavy-Shard braucht denselben Produktionsbuild als Browser-QA-Basis.');
 const heavy=canonical.split('  heavy_regressions:')[1].split('  validate_source:')[0];
+assert.equal((heavy.match(/shard: heavy-browser-state/g)||[]).length,1,'Browser-state wrappers must run exactly once in their own source matrix job.');
 assert.equal((heavy.match(/shard: heavy-unified-map/g)||[]).length,3,'All three disjoint map groups must run before source release.');
 for(const group of ['1/3','2/3','3/3'])assert.ok(heavy.includes("map_group: '"+group+"'"));
 assert.ok(heavy.includes('MID_MAP_QA_SHARD: ${'+'{ matrix.map_group }}'));
