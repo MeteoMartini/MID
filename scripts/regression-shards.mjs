@@ -1,6 +1,7 @@
 import {regressionSuite} from './regression-suite.mjs';
 
 export const REGRESSION_HEAVY_SHARDS=Object.freeze({
+ 'heavy-browser-state':Object.freeze(['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs']),
  'heavy-native-map':Object.freeze(['test-adaptive-native-maps-0985141.mjs']),
  'heavy-unified-map':Object.freeze(['test-unified-map-layers-0985167.mjs']),
  'heavy-mountain-visual':Object.freeze(['test-mountain-visual-acceptance-18213.mjs']),
