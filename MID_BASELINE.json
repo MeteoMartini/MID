@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.328",
+  "releaseVersion": "0.9.85.329",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -2989,7 +2989,8 @@
     "docs/implementation/MID_C49_HOUR_FORMATTER_0.9.85.327.md",
     "src/currentFullHourWindow.ts",
     "scripts/test-complete-calendar-day-current-skybar-0985285.mjs",
-    "docs/implementation/MID_C42_CURRENT_RENDER_0.9.85.328.md"
+    "docs/implementation/MID_C42_CURRENT_RENDER_0.9.85.328.md",
+    "docs/implementation/MID_C42_POSTCSS_0.9.85.329.md"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3717,8 +3718,8 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.328",
-  "updatedAt": "2026-10-23",
+  "version": "0.9.85.329",
+  "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
     "docs/implementation/MID_C33_RUC_SNAPSHOT_GUARD_0.9.85.269.md",
