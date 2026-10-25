@@ -35,8 +35,8 @@ for(const zone of ['Europe/Berlin','Europe/London','America/New_York','Asia/Kath
 // DST fall-back has two distinct UTC epochs with the same local 02:00; never collapse them.
 const berlin=hours.filter(hour=>hour.epoch>=Date.parse('2026-10-25T00:00:00Z')&&hour.epoch<=Date.parse('2026-10-25T03:00:00Z'));
 const firstTwo=berlin.slice(0,2);
-assert.equal(new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'}).format(new Date(firstTwo[0].epoch)), '02');
-assert.equal(new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'}).format(new Date(firstTwo[1].epoch)), '02');
+assert.equal(new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date(firstTwo[0].epoch)).find(part=>part.type==='hour')?.value, '02');
+assert.equal(new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date(firstTwo[1].epoch)).find(part=>part.type==='hour')?.value, '02');
 assert.notEqual(firstTwo[0].epoch,firstTwo[1].epoch);
 assert.deepEqual(currentFullHourWindow(hours,'Europe/Berlin',firstTwo[0].epoch),reference(hours,'Europe/Berlin',firstTwo[0].epoch));
 assert.deepEqual(currentFullHourWindow(hours,'Europe/Berlin',firstTwo[1].epoch),reference(hours,'Europe/Berlin',firstTwo[1].epoch));
