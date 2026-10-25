@@ -1,10 +1,10 @@
-# MID v0.9.85.332 · Qualifizierung von React, Vite und MapLibre
+# MID v0.9.85.332 · Vite-Wartungsupdate
 
-- React, React DOM und react-is gemeinsam von 19.2.8 auf 19.3.1; React-Typen gemeinsam auf 19.3.0.
-- Vite von 8.2.4 auf 8.3.5; das kompatible @vitejs/plugin-react 6.1.2 bleibt unverändert.
-- MapLibre GL JS von 6.7.0 auf 6.15.0.
-- Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 bleiben unverändert. Keine beabsichtigte Änderung an Wetterwerten, Kartendaten, Radarverarbeitung, CSS, Widgets oder Exporten.
-- Das neu erzeugte Lockfile, CSS-Ausgabe, React-UI, Karten-/Worker-/GeoJSON-/Radarverträge, Responsive-Ansichten und die vollständigen MID-Regressionen müssen vor Veröffentlichung geprüft werden.
+- Vite wurde von 8.2.4 auf 8.3.5 aktualisiert; @vitejs/plugin-react 6.1.2 blieb unverändert.
+- React, React DOM, react-is und die React-Typen blieben auf den qualifizierten 19.2-Versionen. MapLibre GL JS blieb auf 6.7.0.
+- React 19.3.1 und MapLibre GL JS 6.15.0 wurden im kombinierten Kandidaten geprüft, überschritten aber die bestehenden harten Feature-Chunk-Budgets und sind nicht Bestandteil des Releases. Die Budgets wurden nicht angehoben.
+- Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 blieben unverändert.
+- Der veröffentlichte Stable-Stand basiert auf `253b365fb916c1e104e04f1c594f5c027dfd9bbf`; Source-Gate, Release-Installer, Worker-Smoke, Pages-Deployment und Stable-Promotion waren erfolgreich.
 
 # MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate
 

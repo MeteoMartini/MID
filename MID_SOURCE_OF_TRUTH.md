@@ -1,10 +1,12 @@
-# MID v0.9.85.332 · Vite-Wartungsupdate (Source-Kandidat)
+# MID v0.9.85.332 · Vite-Wartungsupdate (Stable-Stand)
 
-Verifizierte Stable-Basis .331: `447890032ce1b1d9103bc76811061b790b26f328`. Vite 8.2.4 → 8.3.5 mit unverändertem @vitejs/plugin-react 6.1.2. React 19.2.8 und MapLibre GL JS 6.7.0 bleiben unverändert. React 19.3.1 und MapLibre GL JS 6.15.0 wurden im kombinierten Kandidaten geprüft, überschritten aber die harten Bundle-Budgets und bleiben zurückgestellt; keine Grenzwerte wurden gelockert. Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 bleiben unverändert. Volle Types-, Build-, Audit-, Regression-, Source- und Installer-Gates bleiben erforderlich. Noch kein Release behauptet.
+Der Source-PR #469 wurde am 25.10.2026 nach erfolgreichem Source-Gate vom MID-Release-Bot für den exakt geprüften Head `676b04440e2f167fd9ec0947537910ab8e7da852` aus Stable .331 (`447890032ce1b1d9103bc76811061b790b26f328`) gemergt. Der Release-Installer `40215524340` schloss Build, Audit, Core- und Heavy-Regressionen, iOS, unveränderten Worker-Pfad, Same-Origin-Smoke, Pages-Deployment und Fast-Forward-Promotion erfolgreich ab. `main = mid-stable = 253b365fb916c1e104e04f1c594f5c027dfd9bbf`.
 
-# MID v0.9.85.332 · React-/Vite-/MapLibre-Breitenqualifikation (Source-Kandidat)
+Vite wurde von 8.2.4 auf 8.3.5 aktualisiert; @vitejs/plugin-react blieb bei 6.1.2. React/React DOM/react-is blieben bei 19.2.8, React-Typen auf 19.2.x und MapLibre GL JS bei 6.7.0. Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 blieben unverändert.
 
-Verifizierte Stable-Basis .331: `447890032ce1b1d9103bc76811061b790b26f328`. Geplante gemeinsame React-Familie: React/React DOM/react-is 19.3.1 und @types/react/@types/react-dom 19.3.0. Vite 8.3.5 mit plugin-react 6.1.2 sowie MapLibre GL JS 6.15.0. Das Lockfile wird aus dem npm-Registry-Baum erzeugt; Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 bleiben unverändert. Vollständige Build-, Audit-, CSS-, React-UI-, Karten-/Worker-/Radar-/GeoJSON-/Export-, Responsive-, Source-Gate- und Installerprüfungen sind Pflicht. Noch kein Release behauptet.
+# MID v0.9.85.332 · Ursprünglicher Breitenkandidat (zurückgestellt, nicht veröffentlicht)
+
+Der anfängliche Qualifikationsplan kombinierte React/React DOM/react-is 19.3.1, React-Typen 19.3.0, Vite 8.3.5 und MapLibre GL JS 6.15.0. Die Regression zeigte Überschreitungen der unveränderten harten ReactVendor- und MapLibreCore-Feature-Chunk-Budgets. Dieser Kandidat wurde deshalb nicht veröffentlicht; die Budgets wurden nicht gelockert. Ausschließlich Vite 8.3.5 ging in Stable .332 ein.
 
 # MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate (Source-Kandidat)
 
