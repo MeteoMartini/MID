@@ -1,6 +1,6 @@
 # MID Dependency Upgrade Policy
 
-Stand: MID 18.2.9 Wartungsreview 23.09.2026 / Ziel v0.9.85.95
+Stand: MID 18.2.9 Wartungsreview 25.10.2026 / Ziel v0.9.85.330
 
 Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zusammenhängend geprüfte Verträge. Für v0.9.83.0 gilt:
 
@@ -11,7 +11,7 @@ Der Stable-Channel übernimmt Abhängigkeits- und Toolchain-Sprünge nur als zus
 - TypeScript-Strada-Test-API: Alias `typescript-strada` auf 6.0.3, ausschließlich für bestehende Regressionen mit der von TypeScript 7 entfernten JavaScript-Compiler-API; niemals für App-/Node-Typecheck.
 - esbuild: 0.28.2, ausschließlich als direkte Testabhängigkeit für isolierte TypeScript-Fachmodul-Regressionen; nicht als Vite-Minifier oder Produktionsbundler.
 - Vite: 8.2.4.
-- `@vitejs/plugin-react`: 6.1.1, nur zusammen mit Vite 8; dieser Vertrag koppelt @vitejs/plugin-react 6 ausdrücklich an Vite 8.
+- `@vitejs/plugin-react`: 6.1.2, nur zusammen mit Vite 8; dieser Vertrag koppelt @vitejs/plugin-react 6 ausdrücklich an Vite 8.
 - Vite-8-Buildkern: Oxc für JavaScript-Minifizierung, Lightning CSS für CSS-Minifizierung und Rolldown `output.codeSplitting` für die auditierte React-/Charts-Vendor-Aufteilung. Der veraltete esbuild-Minify- und Rollup-`manualChunks`-Pfad ist nicht mehr Bestandteil des Stable-Vertrags.
 - Lucide React: 1.40.0.
 - MapLibre GL JS: 6.7.0.
