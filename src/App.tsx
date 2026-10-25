@@ -1019,13 +1019,18 @@ function pressureTendency(hours:Hour[]){
  const arrow=delta>.3?'↗':delta<-.3?'↘':'→';return{delta,label,arrow};
 }
 
-function fullHourMinuteInZone(epoch:number,timezone:string){
+function fullHourMinuteInZone(epoch:number,timezone:string,cache?:{formatter?:Intl.DateTimeFormat}){
  if(!Number.isFinite(epoch))return Number.NaN;
- const minute=Intl.DateTimeFormat('en-GB',{timeZone:timezone,minute:'2-digit'}).formatToParts(new Date(epoch)).find(part=>part.type==='minute')?.value;
+ const formatter=cache?.formatter??Intl.DateTimeFormat('en-GB',{timeZone:timezone,minute:'2-digit'});
+ if(cache)cache.formatter=formatter;
+ const minute=formatter.formatToParts(new Date(epoch)).find(part=>part.type==='minute')?.value;
  return Number(minute);
 }
 function currentFullHourWindow(hours:Hour[],timezone:string,now:number,horizonHours=12){
- const fullHours=hours.filter(hour=>Number.isFinite(Number(hour.epoch))&&fullHourMinuteInZone(Number(hour.epoch),timezone)===0);
+ // A single per-invocation formatter avoids rebuilding ICU time-zone data for every hour.
+ // The cache never outlives this render calculation: DST epochs and observation freshness remain live.
+ const minuteFormatterCache:{formatter?:Intl.DateTimeFormat}={};
+ const fullHours=hours.filter(hour=>Number.isFinite(Number(hour.epoch))&&fullHourMinuteInZone(Number(hour.epoch),timezone,minuteFormatterCache)===0);
  if(!fullHours.length)return[] as Hour[];
  let startIndex=-1;
  for(let index=0;index<fullHours.length;index++){if(Number(fullHours[index].epoch)<=now)startIndex=index;else break}
