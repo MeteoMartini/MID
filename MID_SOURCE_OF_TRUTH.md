@@ -1,3 +1,11 @@
+# MID v0.9.85.332 · Vite-Wartungsupdate (Source-Kandidat)
+
+Verifizierte Stable-Basis .331: `447890032ce1b1d9103bc76811061b790b26f328`. Vite 8.2.4 → 8.3.5 mit unverändertem @vitejs/plugin-react 6.1.2. React 19.2.8 und MapLibre GL JS 6.7.0 bleiben unverändert. React 19.3.1 und MapLibre GL JS 6.15.0 wurden im kombinierten Kandidaten geprüft, überschritten aber die harten Bundle-Budgets und bleiben zurückgestellt; keine Grenzwerte wurden gelockert. Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 bleiben unverändert. Volle Types-, Build-, Audit-, Regression-, Source- und Installer-Gates bleiben erforderlich. Noch kein Release behauptet.
+
+# MID v0.9.85.332 · React-/Vite-/MapLibre-Breitenqualifikation (Source-Kandidat)
+
+Verifizierte Stable-Basis .331: `447890032ce1b1d9103bc76811061b790b26f328`. Geplante gemeinsame React-Familie: React/React DOM/react-is 19.3.1 und @types/react/@types/react-dom 19.3.0. Vite 8.3.5 mit plugin-react 6.1.2 sowie MapLibre GL JS 6.15.0. Das Lockfile wird aus dem npm-Registry-Baum erzeugt; Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 bleiben unverändert. Vollständige Build-, Audit-, CSS-, React-UI-, Karten-/Worker-/Radar-/GeoJSON-/Export-, Responsive-, Source-Gate- und Installerprüfungen sind Pflicht. Noch kein Release behauptet.
+
 # MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate (Source-Kandidat)
 
 Verifizierte Stable-Basis .330: `84d52042521fe087bef490d8a8966ffe72295c1d`. Capacitor Core, CLI und iOS werden gemeinsam von 8.5.2 auf 8.5.3 aktualisiert; andere Capacitor-Plugins und React/Vite/MapLibre/PostCSS/Pako bleiben unverändert. npm erzeugt das Lockfile regulär neu. Vollständige Installations-, Audit-, Build-, Regression-, iOS- und MID-Release-Gates sind erforderlich.
