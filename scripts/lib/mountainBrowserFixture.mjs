@@ -6,6 +6,10 @@ export function browserPrelude(favorite,location,mountain,diagnosticMode){
   const berlinParts=epoch=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Vienna',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(epoch)).map(part=>[part.type,part.value]));
   const localIso=epoch=>{const p=berlinParts(epoch);return p.year+'-'+p.month+'-'+p.day+'T'+p.hour+':'+p.minute};
    const currentLocalHour=Number(localIso(now).slice(11,13));
+   // The fixture spans the seasonal clock change. A hard-coded summer offset would
+   // mislabel valid 1h source intervals after Europe/Vienna switches to CET.
+   const nowParts=berlinParts(now),utcMinute=Math.floor(now/60000)*60000;
+   const utcOffsetSeconds=(Date.UTC(Number(nowParts.year),Number(nowParts.month)-1,Number(nowParts.day),Number(nowParts.hour),Number(nowParts.minute))-utcMinute)/1000;
    const times=Array.from({length:193},(_,index)=>localIso(start+index*hourMs));
   const todayKey=localIso(now).slice(0,10),dayKeys=[...new Set(times.map(value=>value.slice(0,10)))].filter(date=>date>=todayKey).slice(0,8);
   const levels=[
@@ -44,7 +48,7 @@ export function browserPrelude(favorite,location,mountain,diagnosticMode){
    const localHour=Number(localIso(now).slice(11,13)),isDay=localHour>=7&&localHour<19?1:0;
    const current={time:new Date(now).toISOString(),temperature_2m:point.temp,apparent_temperature:point.temp-5,relative_humidity_2m:82,dew_point_2m:point.temp-3,precipitation:1.4,rain:point.role===0?1.4:0,showers:0,snowfall:point.role===0?0:.6,snow_depth:point.role===0?.12:point.role===1?.34:.58,weather_code:point.role===0?61:71,cloud_cover:82,cloud_cover_low:72,visibility:5200,freezing_level_height:1200,wet_bulb_temperature_2m:point.temp-2,wind_speed_10m:point.wind,wind_gusts_10m:point.gust,wind_direction_10m:292,uv_index:isDay?2.4:0,cape:90,is_day:isDay,temperature_850hPa:-5,geopotential_height_850hPa:1500};
    const daily={time:dayKeys,temperature_2m_max:dayKeys.map((_,d)=>point.temp+3+d%2),temperature_2m_min:dayKeys.map((_,d)=>point.temp-4-d%2),precipitation_sum:dayKeys.map(()=>point.role===1?null:14),precipitation_probability_max:dayKeys.map(()=>91),rain_sum:dayKeys.map(()=>point.role===0?14:0),showers_sum:dayKeys.map(()=>0),snowfall_sum:dayKeys.map(()=>point.role===0?0:4.2),precipitation_hours:dayKeys.map(()=>6),weather_code:dayKeys.map(()=>point.role===0?61:71),wind_speed_10m_max:dayKeys.map(()=>point.wind),wind_gusts_10m_max:dayKeys.map(()=>point.gust),wind_direction_10m_dominant:dayKeys.map(()=>292),uv_index_max:dayKeys.map(()=>3.2),sunshine_duration:dayKeys.map(()=>point.role===0?18000:10800),sunrise:dayKeys.map(date=>date+'T06:20'),sunset:dayKeys.map(date=>date+'T18:35')};
-   return{latitude:point.latitude,longitude:point.longitude,elevation:point.elevation,timezone:'Europe/Vienna',timezone_abbreviation:'CEST',utc_offset_seconds:7200,current,hourly,daily};
+   return{latitude:point.latitude,longitude:point.longitude,elevation:point.elevation,timezone:'Europe/Vienna',timezone_abbreviation:utcOffsetSeconds===7200?'CEST':'CET',utc_offset_seconds:utcOffsetSeconds,current,hourly,daily};
   };
   const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'content-type':'application/json'}});
   window.__mountainFixtureRequests=[];
