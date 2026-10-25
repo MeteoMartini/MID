@@ -1,3 +1,13 @@
+# MID v0.9.85.335 · Fusionsabruf nach Hintergrund-/Netzrückkehr (Source-Kandidat)
+
+Basis: verifiziertes Stable .333, dfe92422c32971fc18df088e3d5417e228903768. Paralleler Logo-PR #472/.334 bleibt eigenständig; sein Logo ist in diesem Fusionsfix nicht enthalten. Vor Freigabe erneut Refs und Parallelstände prüfen.
+
+Foreground-Refresh mit 5/15/60-s-Fehlerbackoff, danach maximal alle fünf Minuten, mit bestehendem Fusionscache. Sichtbarkeit, online, pageshow und MID-Runtime-Resume starten den versäumten Abruf nach. Keine parallelen Abrufe innerhalb des Effekts, Abort und Schutz vor verspäteten Antworten bei Ortswechsel/Unmount. Modellstand ohne Fusion explizit als nicht verifizierte Übernahme beschrieben. Keine Änderung meteorologischer Werte oder Workerlogik. Nachweis: docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md.
+
+Zusätzlich: vorhandene begrenzte selectedDetailIndex-Auswahl auch für sämtliche Tagesdiagramm-Markierungen verwenden. Reproduktion des vorherigen epoch-Absturzes im echten Browser; anschließend unveränderter Bergwettertest mit sechs Viewports × zwei Themes lokal erfolgreich.
+
+Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates stehen aus; noch nicht veröffentlicht.
+
 # MID v0.9.85.333 · Karten-Popup-Kontrast (Source-Kandidat)
 
 - Verifizierte Ausgangsbasis: `main = mid-stable = 3887ebc31dc93fc33b51ad87b55284671e4d4224`, v0.9.85.332; Installer 40218239133 erfolgreich einschließlich Core/Build/Audit/iOS, aller Heavy-Shards, Same-Origin-Smoke, Pages und Fast-Forward-Promotion.
