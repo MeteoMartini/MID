@@ -1,3 +1,7 @@
+# MID v0.9.85.325 · Vollständige laufende Niederschlagsstunde unter Aktuell
+
+Basis veröffentlichtes .324 `cd50ee899c8bfc38799c396a9ba38c41702e5df6`. Die 12h-Anzeige erhält die vollständigen nativen Intervalle der laufenden Stunde; spätere Live-Anpassungen bleiben erhalten. Keine rückwirkende Projektion aktueller Messanker. Allgemeine IANA-/Epochlogik für 23/25h-Tage bleibt unverändert, zusätzliche dynamische Fälle für Berlin 2027/New York 2026. Nachweise: docs/implementation/MID_C41_CURRENT_HOUR_0.9.85.325.md. Source-/Heavy-/Installer-/Worker-/Pages-/Stable- und Live-Nachweis vor Veröffentlichung erforderlich.
+
 # MID v0.9.85.323 · Dezente numerische Hilfskonturen und Niederschlagssummen (Source-Kandidat)
 
 Basis: main=mid-stable=30fa3817db2a3cfba2ff57c7f437e26a5c65ac5a (v0.9.85.322). Skalare Raster-Isolinien werden schmaler, transparenter und unter geografischen Referenzgrenzen gerendert. Für ICON-D2-Modellsummen und DWD-RADOLAN-Stundensummen zeigt der gleiche Algorithmus echte Gitterkonturen in mm; -1/NoData bleibt NaN, gültige Null bleibt Null, Zeit-/Akkumulationsfenster und Datenherkunft bleiben unverändert. SVG-/PNG-Export und umschaltbare Darstellung entsprechen der Kartenansicht. Die dokumentierte Deutschland-Beschneidung von ICON-D2/RUC wird NICHT durch eine fiktive Vollgebietsausdehnung ersetzt; Issue #446 und Original-GRIB-Pilot #449 bleiben gesonderte Gates. Vor Release sind alle Source-, Browser-, Heavy-, Installer-, Worker-, Pages- und Stable-Gates erforderlich.

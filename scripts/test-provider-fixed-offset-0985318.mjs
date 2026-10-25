@@ -18,7 +18,7 @@ try{
   const quarter=stamps(900000,(count-1)*4+1),minutely_15={time:quarter,precipitation:quarter.map(()=>.25),rain:quarter.map(()=>.25),showers:quarter.map(()=>0),snowfall:quarter.map(()=>0),weather_code:quarter.map(()=>61),precipitation_probability:quarter.map(()=>80),sunshine_duration:quarter.map(()=>0)};
   return {latitude:50.82,longitude:7.04,elevation:50,timezone,utc_offset_seconds:offset,current:{time:times[27]},hourly,daily,minutely_15};
  };
- for(const [start,zone,offset,target,count]of [['2026-10-24T00:00','Europe/Berlin',7200,'2026-10-25',25],['2026-03-28T00:00','Europe/Berlin',3600,'2026-03-29',23],['2026-10-24T00:00','UTC',0,'2026-10-25',24],['2026-10-24T00:00','Asia/Kathmandu',20700,'2026-10-25',24],['2026-10-24T00:00','America/St_Johns',-9000,'2026-10-25',24]]){
+ for(const [start,zone,offset,target,count]of [['2027-10-30T00:00','Europe/Berlin',7200,'2027-10-31',25],['2027-03-27T00:00','Europe/Berlin',3600,'2027-03-28',23],['2026-03-07T00:00','America/New_York',-18000,'2026-03-08',23],['2026-10-31T00:00','America/New_York',-14400,'2026-11-01',25],['2026-10-24T00:00','Europe/Berlin',7200,'2026-10-25',25],['2026-03-28T00:00','Europe/Berlin',3600,'2026-03-29',23],['2026-10-24T00:00','UTC',0,'2026-10-25',24],['2026-10-24T00:00','Asia/Kathmandu',20700,'2026-10-25',24],['2026-10-24T00:00','America/St_Johns',-9000,'2026-10-25',24]]){
   const w=fixture(start,zone,offset),before=JSON.stringify(w),hours=mapHours(w),minutes=mapMinutely15(w);
   assert.equal(hours.length,w.hourly.time.length);
   for(let i=0;i<hours.length;i++){assert.equal(hours[i].epoch,Date.parse(w.hourly.time[i]+'Z')-offset*1000);assert.equal(hours[i].sourceTime,w.hourly.time[i]);if(i)assert.equal(hours[i].epoch-hours[i-1].epoch,3600000);}
