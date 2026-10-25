@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync,realpathSync} from 'node:fs';
+import {readFileSync,realpathSync,mkdirSync,writeFileSync,appendFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {dirname,join,resolve} from 'node:path';
@@ -29,11 +29,34 @@ async function fixtureServer(project){
 }
 const active=await fixtureServer(root),baseline=process.env.MID_PARITY_BASE?await fixtureServer(resolve(process.env.MID_PARITY_BASE)):null;
 const browser=await chromium.launch({executablePath:process.env.MID_BROWSER_EXECUTABLE||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
-let cases=0,parity=0;
+let cases=0,parity=0;const cssCoverage=[];
 async function openPage(target,width,height,theme){
  const context=await browser.newContext({viewport:{width,height},colorScheme:theme}),page=await context.newPage(),requests=[],errors=[];
+ const cdp=target===active?await context.newCDPSession(page):null,headers=new Map();
+ if(cdp){cdp.on('CSS.styleSheetAdded',event=>headers.set(event.header.styleSheetId,event.header));await cdp.send('DOM.enable');await cdp.send('CSS.enable');await cdp.send('Performance.enable');await cdp.send('CSS.startRuleUsageTracking');}
  await page.addInitScript(({epoch,prelude,theme})=>{const OriginalDate=Date;class FixtureDate extends OriginalDate{constructor(...args){super(...(args.length?args:[epoch]));}static now(){return epoch+Math.floor(performance.now());}}window.Date=FixtureDate;(0,eval)(prelude);localStorage.setItem('theme',theme);localStorage.setItem('mid:0.7.1:widget-settings',JSON.stringify({schema:5,days:7,view:'cards',dark:theme==='dark',ecmwfTemperatureColors:false}));const applyTheme=()=>{document.documentElement.dataset.theme=theme;document.documentElement.classList.toggle('dark',theme==='dark');};if(document.documentElement)applyTheme();else document.addEventListener('DOMContentLoaded',applyTheme,{once:true});},{epoch,prelude:browserPrelude(favorite,location,mountain,''),theme});
- page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));await page.goto(target.url);await page.getByRole('button',{name:'Widget laden',exact:true}).waitFor();return {context,page,requests,errors};
+ page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));await page.goto(target.url);await page.getByRole('button',{name:'Widget laden',exact:true}).waitFor();return {context,page,requests,errors,cdp,headers};
+}
+// Diagnostic only: CDP offsets are UTF-16 positions, not gzip byte ranges.
+function usedCssBytes(source,ranges){
+ const spans=ranges.filter(row=>row.used).map(row=>[Math.max(0,row.startOffset),Math.min(source.length,row.endOffset)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);
+ let total=0,start=-1,end=-1;
+ for(const [a,b] of spans){if(start<0){start=a;end=b}else if(a<=end){end=Math.max(end,b)}else{total+=Buffer.byteLength(source.slice(start,end));start=a;end=b}}
+ if(start>=0)total+=Buffer.byteLength(source.slice(start,end));return total;
+}
+async function measureCssCoverage(item,width,height,theme){
+ const usage=await item.cdp.send('CSS.stopRuleUsageTracking'),bySheet=new Map();
+ for(const rule of usage.ruleUsage||[]){const rows=bySheet.get(rule.styleSheetId)||[];rows.push(rule);bySheet.set(rule.styleSheetId,rows)}
+ const sheets=[];
+ for(const [id,header] of item.headers){
+  let source;try{source=(await item.cdp.send('CSS.getStyleSheetText',{styleSheetId:id})).text}catch{continue}
+  if(!source||!source.trim())continue;
+  const rawBytes=Buffer.byteLength(source),usedBytes=usedCssBytes(source,bySheet.get(id)||[]);
+  sheets.push({source:header.sourceURL||header.origin||'(inline)',rawBytes,usedBytes,unusedBytes:Math.max(0,rawBytes-usedBytes)});
+ }
+ const metrics=(await item.cdp.send('Performance.getMetrics')).metrics||[];
+ const selected=Object.fromEntries(metrics.filter(x=>['RecalcStyleDuration','LayoutDuration','ScriptDuration','TaskDuration','RecalcStyleCount','LayoutCount','JSHeapUsedSize'].includes(x.name)).map(x=>[x.name,x.value]));
+ return {viewport:[width,height],theme,scope:'Vite development fixture; widget/cards/curve/ensemble and mountain only',sheets,metrics:selected};
 }
 async function snapshot(page){
  await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(120);
@@ -76,8 +99,16 @@ try{
   assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/mountain: page overflow`);
   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain: visual/layout divergence from .169`);parity++;}cases++;
   assert.deepEqual(current.errors,[],'Optional module caused a runtime error');if(reference)assert.deepEqual(reference.errors,[]);
+  cssCoverage.push(await measureCssCoverage(current,width,height,theme));
   await current.context.close();if(reference)await reference.context.close();
   console.log(`${width}×${height} ${theme}: module loading and four feature views passed${reference?' with .169 parity':''}.`);
  }
+ const report={schema:'mid.css-coverage-diagnostic.v1',sourceSha:process.env.GITHUB_SHA||null,scope:'Vite development fixture only, not whole app or production CSS',cases:cssCoverage};
+ mkdirSync(join(root,'artifacts'),{recursive:true});
+ writeFileSync(join(root,'artifacts','css-module-coverage.json'),JSON.stringify(report,null,2)+'\n');
+ const raw=cssCoverage.reduce((n,item)=>n+item.sheets.reduce((sum,css)=>sum+css.rawBytes,0),0);
+ const used=cssCoverage.reduce((n,item)=>n+item.sheets.reduce((sum,css)=>sum+css.usedBytes,0),0);
+ console.log('MID_CSS_COVERAGE_DIAGNOSTIC='+JSON.stringify({cases:cssCoverage.length,rawStyleBytesAcrossIndependentCases:raw,usedRuleBytesAcrossIndependentCases:used,hasCoverage:raw>0,artifact:'artifacts/css-module-coverage.json',scope:report.scope}));
+ if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,'\n### MID CSS coverage — diagnostics only\n\n'+cssCoverage.length+' separate Chromium viewport/theme contexts; rule bytes across cases: '+used+'/'+raw+'. **Not production CSS or whole-app coverage.**\n');
  console.log(`Module/CSS browser QA: ${cases} viewport/theme/view cases; on-demand network edges, shared uncertainty and no overflow/errors; ${parity} exact .169 layout/paint snapshots.`);
 }finally{await browser.close();await active.server.close();if(baseline)await baseline.server.close();}
