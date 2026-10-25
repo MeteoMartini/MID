@@ -1,3 +1,11 @@
+# MID v0.9.85.333 · Karten-Popup-Kontrast (Source-Kandidat)
+
+- Verifizierte Ausgangsbasis: `main = mid-stable = 3887ebc31dc93fc33b51ad87b55284671e4d4224`, v0.9.85.332; Installer 40218239133 erfolgreich einschließlich Core/Build/Audit/iOS, aller Heavy-Shards, Same-Origin-Smoke, Pages und Fast-Forward-Promotion.
+- Leaflet-Popups (KONRAD3D, Blitz, NowCastMIX, Standort) übernehmen nun die MID-Themefarben für Fläche und Text. Zentrale MapLibre-Popups erhalten eine eigene Themeklasse; bewusst anders gestaltete Sonderkarten bleiben davon getrennt.
+- Popup-Schließen erhält sichtbaren Fokus und auf Touch-Geräten eine 44-px-Zielfläche. Keine Änderung an Kartendaten, Layer-Reihenfolge, Meteorologie, Worker oder Provider.
+- Regression `scripts/test-map-popup-theme-0985333.mjs`; technische Prüfung `docs/implementation/MID_MAP_POPUP_THEME_0.9.85.333.md`. Das CSS wird zusammen mit den Kartenmodulen geladen und erhöht nicht das initiale CSS-Budget.
+- Source-PR-/Bot-Merge-/ZIP-/Installer-/Pages-/Stable-Gates für .333 stehen aus. Noch keine Veröffentlichung oder Stable-Promotion für diesen Kandidaten.
+
 # MID v0.9.85.332 · Vite-Wartungsupdate (Stable-Stand)
 
 Der Source-PR #469 wurde am 25.10.2026 nach erfolgreichem Source-Gate vom MID-Release-Bot für den exakt geprüften Head `676b04440e2f167fd9ec0947537910ab8e7da852` aus Stable .331 (`447890032ce1b1d9103bc76811061b790b26f328`) gemergt. Der Release-Installer `40215524340` schloss Build, Audit, Core- und Heavy-Regressionen, iOS, unveränderten Worker-Pfad, Same-Origin-Smoke, Pages-Deployment und Fast-Forward-Promotion erfolgreich ab. `main = mid-stable = 253b365fb916c1e104e04f1c594f5c027dfd9bbf`.

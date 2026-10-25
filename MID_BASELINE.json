@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.332",
+  "releaseVersion": "0.9.85.333",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -517,6 +517,7 @@
     "scripts/test-map-heading-and-ensemble-share.mjs",
     "scripts/test-map-memory-profile-0985214.mjs",
     "scripts/test-map-option-ordering-0985230.mjs",
+    "scripts/test-map-popup-theme-0985333.mjs",
     "scripts/test-map-runtime-baseline-0985210.mjs",
     "scripts/test-map-scalar-annotations-0985316.mjs",
     "scripts/test-map-synoptic-categories-0985195.mjs",
@@ -1542,6 +1543,7 @@
     "scripts/test-map-heading-and-ensemble-share.mjs",
     "scripts/test-map-memory-profile-0985214.mjs",
     "scripts/test-map-option-ordering-0985230.mjs",
+    "scripts/test-map-popup-theme-0985333.mjs",
     "scripts/test-map-runtime-baseline-0985210.mjs",
     "scripts/test-map-scalar-annotations-0985316.mjs",
     "scripts/test-map-synoptic-categories-0985195.mjs",
@@ -2991,7 +2993,12 @@
     "scripts/test-complete-calendar-day-current-skybar-0985285.mjs",
     "docs/implementation/MID_C42_CURRENT_RENDER_0.9.85.328.md",
     "docs/implementation/MID_C42_POSTCSS_0.9.85.329.md",
-    "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md"
+    "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
+    "docs/implementation/MID_MAP_POPUP_THEME_0.9.85.333.md",
+    "scripts/test-map-popup-theme-0985333.mjs",
+    "src/mapPopupTheme.css",
+    "src/MapLibreCore.tsx",
+    "src/RadarPanel.tsx"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3721,7 +3728,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.332",
+  "version": "0.9.85.333",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
