@@ -1,3 +1,7 @@
+# MID v0.9.85.343 · Browserprüfung und Offline-Entwicklung absichern
+
+Die 14-Tage-Entwicklung bleibt gezielt nachgeladen und steht nach vollständiger Installation der App-Shell auch beim ersten Offline-Aufruf bereit. Die Vorbereitung von Chromium und WebKit erfolgt im Release nun als eigener Schritt mit getrennten Laufzeit- und Abbruchmeldungen. Alle visuellen, funktionalen und meteorologischen Pflichtprüfungen bleiben erhalten.
+
 # MID v0.9.85.342 · 7-Tage-Skybar: Sonnenauf- und -untergänge vollständig
 
 Der Wetterstreifen der 7-Tage-Kurvenübersicht ermittelt die astronomischen Tages- und Nachtgrenzen nun für alle angezeigten lokalen Kalendertage. Auch Freitag, Samstag und Sonntag erhalten damit ihre tatsächlichen Sonnenauf- und -untergänge statt einer künstlich bis zum Wochen-Ende verlängerten Nacht. Die Tageskarten und die Kurvenübersicht verwenden dieselbe astronomische Berechnung; auch 14- und 46-Tage-Zeiträume sowie 23-/25-Stunden-Tage beim Zeitwechsel werden abgesichert. Niederschlagswerte, Wolken, Sonnenscheindauer, RUC-/Modellfusion und amtliche Warnungen bleiben unverändert.
