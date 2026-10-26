@@ -1,0 +1,71 @@
+{
+  "schema": "mid.ruc.extended-core-build-proof.v1",
+  "runId": 40321851403,
+  "headSha": "01563be16d42a476188f048394ef0edf481c8e6d",
+  "artifactId": 12650146735,
+  "artifactSha256": "2ed134f50496702a5d7c395ce98ffe7fe3b5e8374c935937d2ea969ae660fc1c",
+  "run": "2026-10-26T11:00",
+  "pointCount": 542040,
+  "deterministicTimes": 28,
+  "epsTimes": 28,
+  "epsSummaryTimes": 28,
+  "memberCount": 20,
+  "objects": {
+    "deterministic.bin": {
+      "bytes": 364250880,
+      "sha256": "bbd35c372e7af342aafd11cff43cbfdeb2c9c7a5aba03d84df5bec7890180a0d"
+    },
+    "eps-summary.bin": {
+      "bytes": 182125440,
+      "sha256": "e5b850a2b8a55c72c78dfda80322ddf350fce804100dd97babffb277d405c3aa"
+    },
+    "eps-members.bin": {
+      "bytes": 607084800,
+      "sha256": "fb29535d239072e8f90fd55c3639a1141bc292f0aaab53984ff4c7bb206ec9eb"
+    },
+    "lookup.bin": {
+      "bytes": 2298176,
+      "sha256": "8bc12649247f5bbbe554217455b3770cf589106e4de5637b15af9aa23c09b482"
+    },
+    "rapid-5m.bin": {
+      "bytes": 79137840,
+      "sha256": "88867eaad27c44f62c5ad3d65d5903fd013068efde1ded20895ced6f3d57c9a3"
+    },
+    "rapid-15m.bin": {
+      "bytes": 81306000,
+      "sha256": "99504ecae2d82e9c9cb6e5121f59923502c1ce4dd5cf4b5dd9224901953793e7"
+    },
+    "rapid-extreme.json": {
+      "bytes": 452062,
+      "sha256": "dd57982b2785f1d741802f3b09f8a07582fcdf4d79b143c8811ec546be762147"
+    },
+    "rapid-state-15m.bin": {
+      "bytes": 54204000,
+      "sha256": "ee5de10ccf7312e56a2af3fdebb9dba228802928f78b5c9cbedf53cdf5c27365"
+    },
+    "rapid-reflectivity-15m.bin": {
+      "bytes": 27102000,
+      "sha256": "a30a6385d355aae51cef9703a98b4140ea21cca8911dbda4963d0e310d750f1f"
+    },
+    "rapid-severe-15m.bin": {
+      "bytes": 216816000,
+      "sha256": "62560b27e0318a023b5a28134d97121df45eef456979d339e76817fe842d4fd8"
+    },
+    "specialist-hourly.bin": {
+      "bytes": 303542400,
+      "sha256": "5d8fb8bff8b730a6b3bf991cd6319785be4abdf6f99dd0ff231997d41b365dfd"
+    },
+    "rapid-phase-15m.bin": {
+      "bytes": 81306000,
+      "sha256": "3448a0dfb1394b0bd46cf3d8bc4164e3b7e34743846c24eb5b6f0a6ff8714676"
+    }
+  },
+  "productionApproved": false,
+  "remainingGates": [
+    "14-hour-prefix",
+    "codec",
+    "900MB-published-budget",
+    "fusion",
+    "release"
+  ]
+}

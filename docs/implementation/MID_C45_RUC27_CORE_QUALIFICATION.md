@@ -35,3 +35,9 @@ collect_eps baut die validierte Akkumulationsmatrix nun durch Übertragung und F
 17 bestehende/erweiterte Integritätstests erfolgreich. Neuer Vergleich: 28 Termine × 20 Mitglieder mit Missing, Null und Extrembeispiel; Blockgrößen 1/7/16/31/64 liefern bitidentische Member- und Summary-Dateien zum bisherigen vollständigen Encoder. Der echte +27-h-Build läuft erneut auf denselben GRIB-Quellen. Noch keine RAM-/Codec-/Produktionsfreigabe.
 
 Zweiter Echtlauf: ebenfalls OOM, Zähler=2. Zusätzliche Korrektur: rohe deterministische Parameter nach Packing und nicht mehr konsumierte Rapid-/Phasen-/State-/Solar-Ausgangsarrays nach dem letzten Verbraucher freigeben; die für Extremdiagnostik weiterhin benötigten abgeleiteten Arrays bleiben erhalten. Dritter Echtlauf auf identischen Dateien läuft; bisher keine weitere OOM-Erhöhung. Vollständiger Snapshot-/Budgetnachweis weiterhin offen.
+
+## MID-C46 · vollständiger Kern-/EPS-Build erfolgreich
+
+GitHub-Run 40321851403 (Head 01563be16d42a476188f048394ef0edf481c8e6d) erfolgreich: DWD 26.10.2026 11Z, 542040 Punkte, jeweils 28 deterministische/EPS-/Summary-Termine, 20 Mitglieder. Artefakt 12650146735 unabhängig heruntergeladen und SHA256 2ed134f50496702a5d7c395ce98ffe7fe3b5e8374c935937d2ea969ae660fc1c geprüft. Dauerhafter kompakter Nachweis: MID_C46_RUC27_BUILD_PROOF.json. Dies beendet den früheren OOM-/Vollbuildblocker, ersetzt aber keinen Pages-/Codec-/900-MB-/Fusionsnachweis.
+
+Nächster isolierter Prüflauf baut aus denselben Originaldateien zusätzlich den 14-h-Referenzkern. Der neue speicherbegrenzte Prüfer vergleicht sämtliche Deterministik-/Summary-/EPS-Präfixbytes, Zeitsystem, Lauf, Geometrie und Kodierung; sechs positive/negative lokale Tests bestanden. Danach werden der unveränderte Pages-Preparer sowie Python-/JS-Codecprüfung und isolierte Aktivierung durchlaufen. Keine Veröffentlichung durch diesen Draft-Job.

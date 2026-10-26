@@ -359,6 +359,30 @@ jobs:
           assert meta['eps']['memberCount'] == 20
           print('Complete 28-term core/EPS snapshot built; codec, prefix, budget and fusion admission remain separate gates.')
           PY
+      - name: Node für den bestehenden unabhängigen Codec-Nachweis einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+      - name: Präfix und unveränderten Pages-/Codec-/Budgetpfad prüfen
+        shell: bash
+        timeout-minutes: 25
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tools/ruc -p test_compare_core_prefix.py
+          python - <<'PYBUILD'
+          import json, os, re, subprocess, sys
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          run=json.loads((root/'ruc27-output/latest.json').read_text())['run']
+          stage=root/'ruc27-stage'/re.sub(r'[^0-9A-Za-z_-]','',run)
+          with open('ruc27-evidence/prefix-build.log','w') as log:
+              subprocess.run([sys.executable,'tools/ruc/build_ruc_bundle.py','--staging',str(stage),'--output',str(root/'ruc14-reference'),'--run',run,'--hours','14'],stdout=log,stderr=subprocess.STDOUT,check=True)
+          PYBUILD
+          python tools/ruc/compare_core_prefix.py "$RUNNER_TEMP/ruc14-reference" "$RUNNER_TEMP/ruc27-output" > ruc27-evidence/prefix-proof.json
+          python tools/ruc/prepare_ruc_pages.py --source "$RUNNER_TEMP/ruc27-output" --output "$RUNNER_TEMP/ruc27-pages" 2>&1 | tee ruc27-evidence/pages-build.log
+          python tools/ruc/prepare_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-build.json
+          node tools/ruc/verify_lossless_migration.mjs "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-proof.json
+          python tools/ruc/activate_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" ruc27-evidence/codec-proof.json "$RUNNER_TEMP/ruc27-active" > ruc27-evidence/activation-proof.json
       - name: Ausschließlich Diagnose und Manifest sichern
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
