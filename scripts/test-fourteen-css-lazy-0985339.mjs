@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync,readdirSync,existsSync} from 'node:fs';
-import {execFileSync} from 'node:child_process';
+import {spawn} from 'node:child_process';
 const read=p=>readFileSync(p,'utf8');
 const manifest=JSON.parse(read('src/styles-src/presentation-order.json'));
 assert.ok(!manifest.sources.includes('src/midC28MapPhase.css'),'Exclusive final module stylesheet must not remain eager');
@@ -16,5 +16,14 @@ if(existsSync('dist/index.html')){
  assert.ok(read('dist/assets/'+css[0]).includes('[data-fourteen-development]'));
  assert.ok(!html.includes(css[0]),'Async CSS must not be an initial stylesheet');
 }
-if(process.env.GITHUB_ACTIONS==='true'||process.env.MID_CSS_BROWSER_QA==='1')execFileSync(process.execPath,['scripts/verify-fourteen-css-production-0985339.mjs'],{stdio:'inherit',timeout:330000});
+if(process.env.GITHUB_ACTIONS==='true'||process.env.MID_CSS_BROWSER_QA==='1'){
+ console.log('[css-parity] launching independent Chromium/WebKit production parity process');
+ await new Promise((resolve,reject)=>{
+  const child=spawn(process.execPath,['scripts/verify-fourteen-css-production-0985339.mjs'],{stdio:'inherit'});
+  let expired=false;
+  const timer=setTimeout(()=>{expired=true;console.error('[css-parity] 420s diagnostic deadline exceeded; the complete parity suite is NOT approved');child.kill('SIGTERM')},420000);
+  child.once('error',error=>{clearTimeout(timer);reject(error)});
+  child.once('close',(code,signal)=>{clearTimeout(timer);code===0&&!expired?resolve():reject(new Error('CSS browser parity failed: '+(expired?'deadline':`exit ${code}, signal ${signal}`)))});
+ });
+}
 console.log('14-day development: canonical data and shared SVG renderer preserved; exclusive stylesheet and component load asynchronously.');
