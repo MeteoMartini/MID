@@ -50,7 +50,9 @@ esac
  const staleDispatch={...recent('queued','workflow_dispatch'),created_at:'2026-10-20T12:19:54.000Z'};
  check({DISPATCH_JSON:JSON.stringify({workflow_runs:[staleDispatch]})},true,'no new workflow_dispatch run became visible',1);
  const primary=read('ci/github/workflows/mid-ruc-preprocess.yml');
- const upload=primary.slice(primary.indexOf('        id: data_upload'),primary.indexOf('      - name: Bereits aktuellen'));
+ // .344 adds an earlier calculation no-op; identify this upload's own next step.
+ const uploadStart=primary.indexOf('        id: data_upload');
+ const upload=primary.slice(uploadStart,primary.indexOf('\n      - name:',uploadStart));
  assert.ok(upload.includes('name: mid-ruc-data-${{ github.run_id }}-${{ github.run_attempt }}'));
  assert.ok(!upload.includes('artifact-ids:')&&!upload.includes('merge-multiple:'));
  assert.ok(primary.includes('artifact-ids: ${{ needs.prepare.outputs.data_artifact_id }}'));

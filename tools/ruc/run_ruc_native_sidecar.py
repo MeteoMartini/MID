@@ -13,9 +13,19 @@ import json
 import shutil
 import subprocess
 import sys
+import time
+import os
+from datetime import datetime,timezone
 from pathlib import Path
 
 STAGES = ('totals', 'observed', 'model-fields', 'synoptic')
+
+
+def emit_timing(row):
+    row={'at':datetime.now(timezone.utc).isoformat(),**row}
+    print('RUC_TIMING '+json.dumps(row),flush=True)
+    if os.environ.get('MID_RUC_TIMINGS_FILE'):
+        with open(os.environ['MID_RUC_TIMINGS_FILE'],'a') as stream:stream.write(json.dumps(row)+'\n')
 
 
 def run_all_stages(source: Path, *, sidecar_path: Path | None = None, python_executable: str | None = None) -> None:
@@ -29,7 +39,17 @@ def run_all_stages(source: Path, *, sidecar_path: Path | None = None, python_exe
     sidecar = str(sidecar_path or Path(__file__).resolve())
     for stage in STAGES:
         print(f'RUC native subprocess starting: {stage}', flush=True)
-        subprocess.run([program, sidecar, stage, '--source', str(source)], check=True)
+        started=time.monotonic();code=None
+        emit_timing({'stage':'native/'+stage,'event':'start'})
+        try:
+            subprocess.run([program, sidecar, stage, '--source', str(source)], check=True)
+            code=0
+        except subprocess.CalledProcessError as error:
+            code=error.returncode
+            raise
+        finally:
+            row={'stage':'native/'+stage,'event':'finish','elapsedSeconds':round(time.monotonic()-started,3),'exitCode':code,'signal':-code if type(code) is int and code<0 else None,'reason':'success' if code==0 else 'signal' if type(code) is int and code<0 else 'nonzero-or-interrupted'}
+            emit_timing(row)
         print(f'RUC native subprocess completed: {stage}', flush=True)
 
 
