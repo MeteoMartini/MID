@@ -345,7 +345,7 @@ jobs:
           mkdir -p ruc27-evidence
           printf '%s\n' "$GITHUB_SHA" > ruc27-evidence/tested-merge-sha.txt
           python -m unittest discover -s tools/ruc -p test_meteo_integrity.py
-          python tools/ruc/fetch_and_build_ruc.py --hours 27 --run 2026-10-26T11:00 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
+          python tools/ruc/fetch_and_build_ruc.py --hours 27 --candidate-count 4 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
           cp "$RUNNER_TEMP/ruc27-output/latest.json" ruc27-evidence/latest.json
           # Manifest is evidence only, never a published data pointer.
           python - <<'PY'
@@ -363,34 +363,48 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.16.0
-      - name: Bestätigten Präfix übernehmen und isolierten Kern-Codec prüfen
+      - name: Vollständiges Kartenpaket, Rohrollback und Codec unabhängig prüfen
         shell: bash
         timeout-minutes: 25
         run: |
           set -euo pipefail
           python -m unittest discover -s tools/ruc -p test_compare_core_prefix.py
           python -m unittest discover -s tools/ruc -p test_codec_staging.py
+          python -m unittest discover -s tools/ruc -p test_legacy_core_rollback.py
+          python tools/ruc/prepare_ruc_pages.py --codec-staging --source "$RUNNER_TEMP/ruc27-output" --output "$RUNNER_TEMP/ruc27-pages" 2>&1 | tee ruc27-evidence/pages-build.log
+          python tools/ruc/prepare_legacy_core_rollback.py "$RUNNER_TEMP/ruc27-output" "$RUNNER_TEMP/ruc14-projected" "$RUNNER_TEMP/ruc14-rollback" > ruc27-evidence/rollback-proof.json
           python - <<'PYBUILD'
-          import json, os, sys
+          import json, os, re, subprocess, sys
           from pathlib import Path
-          sys.path.insert(0,'tools/ruc')
-          from compare_core_prefix import checked
-          from prepare_ruc_pages import prepare
           root=Path(os.environ['RUNNER_TEMP']); source=root/'ruc27-output'
-          meta=json.loads((source/'latest.json').read_text())
-          expected=json.loads(Path('docs/implementation/MID_C46_RUC27_BUILD_PROOF.json').read_text())
-          prefix=json.loads(Path('docs/implementation/MID_C46_RUC27_PREFIX_PROOF.json').read_text())
-          assert meta['run']==expected['run']==prefix['proof']['run']
-          assert meta['pointCount']==expected['pointCount']==542040
-          for name in ('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin'):
-              checked(source,meta,name)
-              assert meta['objects'][name]==expected['objects'][name], 'Previously proven prefix may only be reused with identical complete core bytes'
-          Path('ruc27-evidence/prefix-proof.json').write_text(json.dumps(prefix,indent=2))
-          prepare(source,root/'ruc27-pages',codec_staging=True)
+          meta=json.loads((source/'latest.json').read_text());run=meta['run']
+          stage=root/'ruc27-stage'/re.sub(r'[^0-9A-Za-z_-]','',run)
+          with open('ruc27-evidence/independent14-build.log','w') as log:
+              subprocess.run([sys.executable,'tools/ruc/build_ruc_bundle.py','--staging',str(stage),'--output',str(root/'ruc14-independent'),'--run',run,'--hours','14'],stdout=log,stderr=subprocess.STDOUT,check=True)
+          golden=json.loads((root/'ruc14-independent/latest.json').read_text())
+          projected=json.loads((root/'ruc14-projected/latest.json').read_text())
+          for key in ('run','grid','pointCount','sourceGribContract'):
+              assert golden.get(key)==projected.get(key), key
+          for name,info in golden['objects'].items():
+              assert projected['objects'][name]==info, 'Independent14h mismatch: '+name
+          Path('ruc27-evidence/legacy-equivalence.json').write_text(json.dumps({'run':run,'independentObjectsCompared':len(golden['objects']),'allRawObjectsByteIdentical':True,'published':False},indent=2))
           PYBUILD
           python tools/ruc/prepare_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-build.json
           node tools/ruc/verify_lossless_migration.mjs "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-proof.json
           python tools/ruc/activate_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" ruc27-evidence/codec-proof.json "$RUNNER_TEMP/ruc27-active" > ruc27-evidence/activation-proof.json
+          python - <<'PYMAP'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from admit_ruc_map_candidate import admit_optional
+          root=Path(os.environ['RUNNER_TEMP'])
+          report=admit_optional(root/'ruc27-active',root/'ruc27-output',root/'ruc27-map-candidate')
+          assert report['admitted'] is True
+          assert report['sourceRawUnchanged'] is True and report['codecProofUnchanged'] is True
+          assert report['finalPhysicalBytes']<900000000
+          Path('ruc27-evidence/maps-proof.json').write_text(json.dumps(report,indent=2))
+          PYMAP
+          python tools/ruc/build_ruc_synoptic_fields.py --snapshot "$RUNNER_TEMP/ruc27-active" --source "$RUNNER_TEMP/ruc27-output" --staging "$RUNNER_TEMP/ruc27-stage" --candidate "$RUNNER_TEMP/ruc27-synoptic" --report ruc27-evidence/synoptic-proof.json
       - name: Ausschließlich Diagnose und Manifest sichern
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

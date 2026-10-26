@@ -17,6 +17,7 @@ from pathlib import Path
 import numpy as np
 from lossless_dual_read import add_dual_read_pilot
 from lossless_inventory import MAX_CODEC_STAGING_BYTES
+from compare_core_prefix import checked as checked_core_object
 
 SCHEMA='mid.dwd.ruc.grid.v2'
 PROFILE='pages-free-v1'
@@ -203,6 +204,11 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
     profile=CODEC_STAGING_PROFILE if codec_staging else PROFILE
     meta=json.loads((source/'latest.json').read_text(encoding='utf-8'))
     if meta.get('schema')!=SCHEMA or not meta.get('run'): raise ValueError('invalid RUC metadata')
+    if codec_staging:
+        if not isinstance(meta.get('objects'),dict) or not meta['objects']:
+            raise ValueError('codec staging requires complete raw object inventory')
+        for name in meta['objects']:
+            checked_core_object(source,meta,name)
     run=safe_run(meta['run'])
     if not run: raise ValueError('invalid RUC run')
     for name in ('deterministic.bin','eps-summary.bin','lookup.bin','rapid-5m.bin','rapid-15m.bin','rapid-extreme.json'):

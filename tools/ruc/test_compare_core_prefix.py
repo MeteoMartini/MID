@@ -20,10 +20,10 @@ class PrefixTests(unittest.TestCase):
             for section, name in (('deterministic', 'deterministic.bin'), ('epsSummary', 'eps-summary.bin'), ('eps', 'eps-members.bin')):
                 width = 20 if section == 'eps' else 2
                 values = np.arange(3 * 28 * width, dtype='<u2').reshape(3, 28, width)
-                values[:, 1, 0] = 65535  # Missing sentinel, distinct from dry zero.
+                values[:, 1, 0] = 65535 if section == 'eps' else 32768  # Missing sentinel, distinct from dry zero.
                 values[:, 2, 0] = 32767  # Unsmoothed extreme.
                 (root / name).write_bytes(values[:, :count].tobytes())
-                meta[section] = {'key': name, 'times': times, 'recordBytes': count * width * 2, 'dtype': 'uint16-le', 'layout': 'point-time-member' if section == 'eps' else 'point-time-field', **({'memberCount': width, 'scale': .01, 'nodata': 65535} if section == 'eps' else {'fields': [{'name': 'a'}, {'name': 'b'}]})}
+                meta[section] = {'key': name, 'times': times, 'recordBytes': count * width * 2, 'dtype': 'uint16-le' if section == 'eps' else 'int16-le', 'layout': 'point-time-member' if section == 'eps' else 'point-time-field', **({'memberCount': width, 'scale': .01, 'nodata': 65535} if section == 'eps' else {'fields': [{'name': 'a'}, {'name': 'b'}]})}
             (root / 'lookup.bin').write_bytes(b'lookup')
             for name in ('lookup.bin', 'deterministic.bin', 'eps-summary.bin', 'eps-members.bin'):
                 data = (root / name).read_bytes()
@@ -64,6 +64,19 @@ class PrefixTests(unittest.TestCase):
         data = bytearray(path.read_bytes()); data[40] ^= 1; path.write_bytes(data)
         self.mutate_meta(lambda x: x['objects']['eps-members.bin'].update(sha256=hashlib.sha256(data).hexdigest()))
         with self.assertRaisesRegex(ValueError, 'prefix bytes'):
+            compare(*self.roots)
+
+    def test_matching_but_unsupported_layout_is_not_a_valid_prefix_proof(self):
+        for root in self.roots:
+            p=root/'latest.json'; m=json.loads(p.read_text());m['deterministic']['layout']='time-point-field';p.write_text(json.dumps(m))
+        with self.assertRaisesRegex(ValueError, 'unsupported record encoding'):
+            compare(*self.roots)
+
+    def test_external_symlink_with_identical_bytes_rejected(self):
+        path = self.roots[1] / 'deterministic.bin'
+        outside = self.roots[1].parent / 'outside.bin'
+        outside.write_bytes(path.read_bytes()); path.unlink(); path.symlink_to(outside)
+        with self.assertRaisesRegex(ValueError, 'object path'):
             compare(*self.roots)
 
     def test_corrupt_object_rejected(self):

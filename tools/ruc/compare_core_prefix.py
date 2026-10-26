@@ -10,7 +10,10 @@ import numpy as np
 
 
 def checked(root, meta, name):
+    root = Path(root).resolve(strict=True)
     path = root / name
+    if path.is_symlink() or path.resolve(strict=True).parent != root:
+        raise ValueError('unsafe object path: ' + name)
     info = meta['objects'][name]
     digest = hashlib.sha256()
     with path.open('rb') as stream:
@@ -40,6 +43,8 @@ def compare(short_root, long_root):
     for section, name in (('deterministic', 'deterministic.bin'),
                           ('epsSummary', 'eps-summary.bin'), ('eps', 'eps-members.bin')):
         old, new = a[section], b[section]
+        if old.get('dtype')!=('uint16-le' if section=='eps' else 'int16-le') or old.get('layout')!=('point-time-member' if section=='eps' else 'point-time-field'):
+            raise ValueError('unsupported record encoding: ' + section)
         n, m = len(old['times']), len(new['times'])
         if n != 15 or m != 28 or new['times'][:n] != old['times']:
             raise ValueError('expected identical +0..14h prefix and +0..27h axis: ' + section)

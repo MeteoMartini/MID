@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 execFileSync('python3',['-m','unittest','test_activate_lossless_snapshot'],{cwd:'tools/ruc',stdio:'inherit',timeout:180000});
-execFileSync('python3',['-m','unittest','test_codec_staging','test_compare_core_prefix'],{cwd:'tools/ruc',stdio:'inherit',timeout:180000});
+execFileSync('python3',['-m','unittest','test_codec_staging','test_compare_core_prefix','test_legacy_core_rollback'],{cwd:'tools/ruc',stdio:'inherit',timeout:180000});
 const source=readFileSync('tools/ruc/activate_lossless_snapshot.py','utf8');
 const workflow=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
 assert.ok(source.includes('sourceRollbackIntact')&&source.includes("proof.get(k)!=v")&&source.includes("physical>=900_000_000"),'Production activation requires complete authenticated proof, existing immutable source and exact budget');
