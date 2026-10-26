@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.342",
+  "releaseVersion": "0.9.85.343",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -50,6 +50,7 @@
     "scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs",
     "scripts/test-bottom-bar-forecast-horizon-race-0985102.mjs",
     "scripts/test-bottom-bar-settings-synoptic-polish-098493.mjs",
+    "scripts/test-bounded-process-0985343.mjs",
     "scripts/test-branch-cleanup-safety-0985127.mjs",
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
     "scripts/test-build-budget-media-contract-097620.mjs",
@@ -1079,6 +1080,7 @@
     "scripts/test-bottom-bar-current-persistence-isohypses-098492.mjs",
     "scripts/test-bottom-bar-forecast-horizon-race-0985102.mjs",
     "scripts/test-bottom-bar-settings-synoptic-polish-098493.mjs",
+    "scripts/test-bounded-process-0985343.mjs",
     "scripts/test-branch-cleanup-safety-0985127.mjs",
     "scripts/test-budget-workflow-release-lineage-097621.mjs",
     "scripts/test-build-budget-media-contract-097620.mjs",
@@ -3013,7 +3015,9 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "tools/ci/bounded-process.mjs",
+    "scripts/prepare-browser-runtimes.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3743,7 +3747,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.342",
+  "version": "0.9.85.343",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

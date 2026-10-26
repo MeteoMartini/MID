@@ -12,12 +12,9 @@ console.log('[css-parity] resolving pinned Playwright 1.56.1 CLI');
 const cli=await realpath(process.env.MID_PLAYWRIGHT_CLI||execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8',timeout:90000,stdio:['ignore','pipe','inherit']}).trim());
 console.log('[css-parity] resolved pinned Playwright CLI');
 const require=createRequire(import.meta.url),engines=require(join(dirname(dirname(cli)),'playwright'));
-const browserNames=(process.env.MID_CSS_BROWSER_ENGINES||'chromium,webkit').split(',');
-if(process.env.GITHUB_ACTIONS==='true'){
- console.log('[css-parity] verifying required Chromium and WebKit runtimes');
- execFileSync(process.execPath,[cli,'install','--with-deps',...browserNames],{stdio:'inherit',timeout:240000});
- console.log('[css-parity] required browser runtimes installed');
-}
+assert.equal(require(join(dirname(cli),'package.json')).version,'1.56.1','Pinned browser runner required');
+const browserNames=(process.env.GITHUB_ACTIONS==='true'?'chromium,webkit':process.env.MID_CSS_BROWSER_ENGINES||'chromium,webkit').split(',');
+console.log('[css-parity] browser preparation is a separate CI step; actual Chromium/WebKit launch is mandatory');
 const temp=await mkdtemp(join(tmpdir(),'mid-css-production-'));
 const rows=Array.from({length:14},(_,i)=>({date:`2026-10-${String(i+7).padStart(2,'0')}`,meanDayTemperature:12,regimeText:i<4?'Ruhig':'Regen',bestMax:18+i/3,bestMin:6+i/4,maxLow:14,maxQ25:15,maxQ75:19,maxHigh:23,minLow:2,minQ25:4,minQ75:7,minHigh:9,ensembleAvailable:i!==4,assessment:{agreement:'high',confidenceScore:90,dataQuality:'good',limiting:[]}}));
 async function fixture(project,name,baseline){
@@ -32,6 +29,39 @@ async function fixture(project,name,baseline){
  let cssRequests=0;const server=createServer(async(req,res)=>{try{const path=resolve(dir,'dist','.'+(new URL(req.url,'http://localhost').pathname==='/'?'/index.html':new URL(req.url,'http://localhost').pathname));assert.ok(path.startsWith(join(dir,'dist')+'/'));const file=path.endsWith('/')?join(path,'index.html'):path;if(/FourteenDayDevelopment-.*\.css$/.test(file))cssRequests++;res.setHeader('Cache-Control',file.endsWith('.html')?'no-store':'public, max-age=31536000, immutable');res.setHeader('Content-Type',file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(await readFile(file));}catch{res.statusCode=404;res.end();}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));return {server,cssRequests:()=>cssRequests,url:`http://127.0.0.1:${server.address().port}/`};
 }
+async function verifyOfflineModule(browser,name){
+ const html=await readFile(join(root,'dist/index.html'),'utf8');
+ const modulePath=[...html.matchAll(/<link rel="mid-offline" href="\.\/([^"]+)"/g)].map(m=>m[1]);
+ const entry=modulePath.find(p=>/FourteenDayDevelopment-.*\.js$/.test(p));
+ const css=modulePath.find(p=>/FourteenDayDevelopment-.*\.css$/.test(p));
+ assert.ok(entry&&css,'Built shell must declare deferred JS and CSS');
+ const server=createServer(async(req,res)=>{try{
+  const pathname=new URL(req.url,'http://localhost').pathname;
+  if(pathname==='/__offline_qa.html'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Offline module QA</title>');return}
+  const file=resolve(root,'dist','.'+(pathname==='/'?'/index.html':pathname));
+  assert.ok(file.startsWith(join(root,'dist')+'/'));
+  res.setHeader('Content-Type',file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':file.endsWith('.json')?'application/json':file.endsWith('.html')?'text/html':'application/octet-stream');
+  res.end(await readFile(file));
+ }catch{res.statusCode=404;res.end()}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const url=`http://127.0.0.1:${server.address().port}/`,context=await browser.newContext(),page=await context.newPage();
+ try{
+  await page.goto(url+'__offline_qa.html');
+  await page.evaluate(async()=>{await navigator.serviceWorker.register('/service-worker.js');await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',resolve,{once:true}))});
+  for(const path of modulePath)assert.ok(await page.evaluate(async p=>Boolean(await caches.match(new URL(p,location.href).href)),path),'Offline cache missing '+path);
+  // Browser offline emulation alone can still allow SW-originated network calls.
+  // Shut down the real server to prove that a first module open uses cached bytes.
+  await new Promise(r=>{server.close(r);server.closeAllConnections()});
+  const result=await page.evaluate(async({entry,css})=>{
+   const module=await import('/'+entry);
+   const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href='/'+css;
+   await new Promise((resolve,reject)=>{sheet.onload=resolve;sheet.onerror=reject;document.head.append(sheet)});
+   return {renderer:typeof module.FourteenDayDevelopment,cssRules:sheet.sheet.cssRules.length};
+  },{entry,css});
+  assert.equal(result.renderer,'function');assert.ok(result.cssRules>0);
+  console.log(`[css-parity] ${name}: first deferred import and stylesheet passed with real server shut down`);
+ }finally{await context.close();if(server.listening)await new Promise(r=>{server.close(r);server.closeAllConnections()})}
+}
 let active,stable,cases=0;
 async function snapshot(page){return page.locator('[data-fourteen-development]').evaluate(el=>[...el.querySelectorAll('*')].map(n=>{const s=getComputedStyle(n),r=n.getBoundingClientRect();return {tag:n.tagName,text:n.children.length?'':n.textContent,box:[r.x,r.y,r.width,r.height].map(v=>Math.round(v*100)/100),style:['display','color','backgroundColor','fontSize','fontWeight','lineHeight','padding','margin','border','borderRadius','gridTemplateColumns','gap','fill','stroke','opacity'].map(k=>s[k])};}));}
 try{
@@ -39,6 +69,7 @@ try{
  active=await fixture(root,'active',false);stable=await fixture(reference,'stable',true);
  console.log('[css-parity] both production fixtures built');
  for(const name of browserNames){console.log(`[css-parity] launching ${name}`);const browser=await engines[name].launch({headless:true,args:name==='chromium'?['--no-sandbox']:[],timeout:30000});console.log(`[css-parity] ${name} running`);try{
+ await verifyOfflineModule(browser,name);
  for(const [width,height]of [[320,568],[390,844],[430,932],[844,390],[834,1194],[1194,834],[1440,900]])for(const theme of ['light','dark','high-contrast']){
   console.log(`[css-parity] ${name} ${width}x${height} ${theme} starting`);
   const contexts=await Promise.all([active,stable].map(async(target)=>{const context=await browser.newContext({viewport:{width,height},reducedMotion:'reduce'}),page=await context.newPage(),errors=[];page.setDefaultTimeout(30000);page.setDefaultNavigationTimeout(30000);page.on('pageerror',e=>errors.push(e.message));await page.goto(target.url+'?theme='+theme);await page.locator('#open').waitFor();return {context,page,errors};}));

@@ -449,6 +449,11 @@ jobs:
           fi
 
 
+      - name: Verpflichtende Browserlaufzeiten separat vorbereiten
+        if: matrix.shard == 'heavy-browser-state'
+        timeout-minutes: 10
+        run: node scripts/prepare-browser-runtimes.mjs
+
       - name: Vollständigen Heavy-Anteil des gleichen Releases prüfen
         shell: bash
         timeout-minutes: 15
