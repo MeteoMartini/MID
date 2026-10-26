@@ -135,13 +135,14 @@ jobs:
         run: |
           python tools/ruc/timed_command.py preserve-map-grib-cache -- python tools/ruc/prepared_snapshot.py stage-core-cache --snapshot .ruc-out --grib-source .ruc-stage
           python tools/ruc/timed_command.py core-checkpoint -- python tools/ruc/prepared_snapshot.py seal-core --snapshot .ruc-out
+          mv .ruc-out ruc-core-checkpoint
       - name: Unveränderlichen RUC-Kern für getrennte Aufbereitung sichern
         id: core_upload
         if: steps.freshness.outputs.should_run == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-core-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./.ruc-out
+          path: ./ruc-core-checkpoint
           if-no-files-found: error
           retention-days: 1
           compression-level: 1
@@ -153,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-calculation-timings-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .ruc-timings.jsonl
+          path: ruc-timings.jsonl
           if-no-files-found: ignore
           retention-days: 2
 
@@ -237,7 +238,7 @@ jobs:
       - name: RUC-Wire- und Pages-Free-Profil prüfen
         env:
           PYTHONFAULTHANDLER: '1'
-          MID_RUC_TIMINGS_FILE: .ruc-timings.jsonl
+          MID_RUC_TIMINGS_FILE: ruc-timings.jsonl
         if: ${{ inputs.reuse_run_id == '' }}
         run: |
           python tools/ruc/timed_command.py wire-tests -- python tools/ruc/test_ruc_pack.py
@@ -378,7 +379,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-preparation-timings-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .ruc-timings.jsonl
+          path: ruc-timings.jsonl
           if-no-files-found: ignore
           retention-days: 2
 
@@ -643,6 +644,6 @@ jobs:
         if: always()
         with:
           name: mid-ruc-workflow-timings-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .ruc-workflow-timings.json
+          path: ruc-workflow-timings.json
           if-no-files-found: error
           retention-days: 2

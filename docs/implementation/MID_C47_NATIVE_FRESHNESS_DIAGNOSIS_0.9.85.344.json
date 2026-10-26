@@ -1,0 +1,36 @@
+{
+  "schema": "mid.c47.local-native-freshness-diagnosis.v1",
+  "runs": 3,
+  "frames": 84,
+  "cells": 11131008,
+  "realGribSources": 753,
+  "hashesAndBrowserDecoderVerified": true,
+  "historicalDecoderQualification": true,
+  "productionFreshnessLimitUnchanged": true,
+  "productionEnabled": false,
+  "clocks": [
+    {
+      "run": "2026-10-26T22:00:00+00:00",
+      "referenceTime": "2026-10-26T22:30:00.000Z",
+      "wallClock": "2026-10-26T23:54:45.351Z",
+      "eligibleAtWallClock": true
+    },
+    {
+      "run": "2026-10-26T19:00:00+00:00",
+      "referenceTime": "2026-10-26T19:30:00.000Z",
+      "wallClock": "2026-10-26T23:54:46.156Z",
+      "eligibleAtWallClock": false
+    },
+    {
+      "run": "2026-10-26T18:00:00+00:00",
+      "referenceTime": "2026-10-26T18:30:00.000Z",
+      "wallClock": "2026-10-26T23:54:46.850Z",
+      "eligibleAtWallClock": false
+    }
+  ],
+  "sourceGatePassed": false,
+  "diagnosticOnly": true,
+  "historicalClockNotCommitted": true,
+  "artifactId": 12698300224,
+  "artifactZipSha256": "93dbef762012c474635fbca9ddf87aaec5cbff6cd52cbe5c2643b7053ef9cd4b"
+}

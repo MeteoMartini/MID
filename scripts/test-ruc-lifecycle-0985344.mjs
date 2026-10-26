@@ -35,6 +35,11 @@ try{
  assert.match(step('Vollständige Snapshot-Wiederzulassung mit aktuellem Stable-Datenvertrag'),/verify_prepared_snapshot\.mjs/);
  assert.match(step('MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut prüfen'),/EXPECTED_STABLE_SHA: \$\{\{ steps\.stable_guard\.outputs\.consumer_sha \}\}/);
  assert.match(step('Bereits geprüften Snapshot ohne fachliche Neuberechnung laden'),/digest-mismatch: error/);
+ // upload-artifact v7 excludes hidden roots/files even when explicitly named.
+ assert.match(step('Unveränderlichen RUC-Kern für getrennte Aufbereitung sichern'),/path: \.\/ruc-core-checkpoint/);
+ assert.ok(!workflow.includes('path: .ruc-timings.jsonl'));assert.ok(!workflow.includes('path: .ruc-workflow-timings.json'));
+ assert.ok(workflow.includes('mv .ruc-out ruc-core-checkpoint'));
+ assert.ok(readFileSync('tools/ruc/report_workflow_timings.py','utf8').includes("Path('ruc-workflow-timings.json')"));
  assert.match(step('Neuesten vollständigen RUC\/RUC-EPS-Lauf laden und dekodieren'),/steps\.freshness\.outputs\.should_run == 'true'/);
 }finally{rmSync(root,{recursive:true,force:true});}
 console.log('RUC lifecycle: real codec/replay/ancestry/integrity tests; timeout/descendant cleanup; release-window and exact consumer-SHA guards passed.');

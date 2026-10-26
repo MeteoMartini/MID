@@ -1,0 +1,25 @@
+{
+  "schema": "mid.c47.pinned-artifact-glob.v1",
+  "uploadActionSha": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+  "globVersion": "0.6.1",
+  "globIntegrity": "sha512-K4+2Ac5ILcf2ySdJCha+Pop9NcKjxqCL4xL4zI50dgB2PbXgC0+AcP011xfH4Of6b4QEJJg8dyZYv7zl4byTsw==",
+  "excludeHiddenFiles": true,
+  "proof": [
+    {
+      "path": ".ruc-out",
+      "files": 0
+    },
+    {
+      "path": "ruc-core-checkpoint",
+      "files": 1
+    },
+    {
+      "path": ".ruc-timings.jsonl",
+      "files": 0
+    },
+    {
+      "path": "ruc-timings.jsonl",
+      "files": 1
+    }
+  ]
+}

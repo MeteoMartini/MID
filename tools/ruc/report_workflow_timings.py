@@ -15,7 +15,7 @@ report={'schema':'mid.ruc.workflow-timings.v1','runId':int(run),'jobs':[]}
 for job in jobs:
     if job['name']=='diagnostics':continue
     report['jobs'].append({'id':job['id'],'name':job['name'],'conclusion':job['conclusion'],'elapsedSeconds':elapsed(job['started_at'],job['completed_at']),'steps':[{'number':s['number'],'name':s['name'],'conclusion':s['conclusion'],'elapsedSeconds':elapsed(s['started_at'],s['completed_at'])} for s in job['steps']]})
-Path('.ruc-workflow-timings.json').write_text(json.dumps(report,indent=2)+'\n')
+Path('ruc-workflow-timings.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))
 if os.environ.get('GITHUB_STEP_SUMMARY'):
     with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:

@@ -36,7 +36,7 @@ def run(name,command,report,timeout=2400,grace=5):
     return 0 if code==0 and reason=='success' else 1
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--report',default='.ruc-timings.jsonl');p.add_argument('--timeout',type=int,default=2400);p.add_argument('stage');p.add_argument('command',nargs=argparse.REMAINDER);a=p.parse_args();command=a.command
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--report',default='ruc-timings.jsonl');p.add_argument('--timeout',type=int,default=2400);p.add_argument('stage');p.add_argument('command',nargs=argparse.REMAINDER);a=p.parse_args();command=a.command
     if command[:1]==['--']:command=command[1:]
     if not command:p.error('command required')
     sys.exit(run(a.stage,command,a.report,a.timeout))
