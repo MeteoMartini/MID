@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import assert from 'node:assert/strict';
 import vm from 'node:vm';
 const raw=fs.readFileSync('worker/metar-proxy.js','utf8')
  .replace(/export default\s*\{/,'const __workerDefault={')
@@ -64,4 +65,51 @@ context.__final=await call('applyRucEpsProbabilityHours(__rapid,__epsState)');
 if(!context.__final.some(h=>h.rucEpsApplied&&h.probability>20&&Math.abs(h.rucEpsQ75Mm-.65)<.01&&Math.abs(h.rucEpsSignificantProbability-25)<.01))throw new Error('RUC-EPS did not calibrate precipitation probability with summary diagnostics');
 context.__guard=await call("rucPrecipitationConsensus(2,{precipitation:.2},{precipitation:5,cape:100},{precipitation:.2},{probability:80,significantProbability:15,q75Mm:.7},1)");if(!(context.__guard.epsUpperTailPenalty<1&&context.__guard.rapidWeight<context.__guard.baseWeight))throw new Error('RUC-EPS Q75 upper-tail guard did not damp an isolated wet deterministic RUC outlier');
 const preserved=await call('rapidForecastWeatherCode(95,NaN)');if(preserved!==95)throw new Error('RUC calibration must not demote an existing numerical thunderstorm forecast when lightning is absent');const directRapid=await call('rapidForecastWeatherCode(61,95)');if(directRapid!==95)throw new Error('A direct numerical RUC thunderstorm weather interpretation must remain a forecast thunderstorm signal');
-console.log('RUC fusion runtime contract OK');
+// Native +27h is a run-relative ceiling shared by every canonical consumer.
+const fullTimes=Array.from({length:28},(_,i)=>new Date(now.getTime()+i*3600000).toISOString().slice(0,16));
+context.__longPayload={...context.__p,hourly:{...context.__p.hourly,time:fullTimes},mid_ruc:{...context.__p.mid_ruc,run:now.toISOString()}};
+for(const [key,value] of Object.entries(context.__p.hourly))if(key!=='time'&&Array.isArray(value))context.__longPayload.hourly[key]=Array(28).fill(value[0]);
+context.__longRuc=call('parseDwdRucPointPayload(__longPayload,__model)');
+assert.equal(context.__longRuc.successful,true);assert.equal(context.__longRuc.maxHours,27);
+context.__longBase=fullTimes.map((time,i)=>({...context.__base[0],time,epoch:now.getTime()+i*3600000}));
+context.__longEps={...context.__epsState,run:now.toISOString(),hours:fullTimes.map((time,i)=>({...context.__epsState.hours[0],time,epoch:now.getTime()+i*3600000}))};
+context.__longRapid=call('applyRucRapidUpdateWeatherHours(__longBase,[__longRuc])');
+context.__longFinal=call('applyRucEpsProbabilityHours(__longRapid,__longEps)');
+for(const lead of [14,15,20,24,26]){
+ assert.equal(context.__longFinal[lead].rucApplied,true,`native +${lead}h must enter the canonical series`);
+ assert.equal(context.__longFinal[lead].rucEpsApplied,true,`native EPS +${lead}h must enter the same series`);
+ assert.ok(context.__longFinal[lead].temperature>context.__longBase[lead].temperature);
+}
+assert.equal(context.__longRapid[27],context.__longBase[27],'terminal native +27h has zero deterministic weight');
+assert.equal(context.__longFinal[27],context.__longBase[27],'terminal EPS +27h has zero weight');
+for(let lead=12;lead<27;lead+=.25){assert.ok(call(`rucRapidWeight(${lead},{cape:900})`)>0);assert.ok(call(`rucRapidWeight(${lead},{cape:900})`)>call(`rucRapidWeight(${lead+.25},{cape:900})`));}
+assert.equal(call('rucRapidWeight(27,{cape:900})'),0,'convection must taper without a terminal jump');
+// A 14h raw rollback never advertises or synthesizes a 27h forecast.
+context.__short={...context.__longRuc,hours:context.__longRuc.hours.slice(0,15)};
+context.__shortRapid=call('applyRucRapidUpdateWeatherHours(__longBase,[__short])');
+assert.equal(call('rucSourceWindow(__short).maxHours'),14);
+for(let lead=15;lead<28;lead++)assert.equal(context.__shortRapid[lead],context.__longBase[lead]);
+// An initialization two hours earlier reduces remaining lead rather than resetting it.
+context.__older={...context.__longRuc,midRuc:{run:new Date(now.getTime()-2*3600000).toISOString()},hours:context.__longRuc.hours.slice(0,26)};
+context.__olderRapid=call('applyRucRapidUpdateWeatherHours(__longBase,[__older])');
+assert.equal(context.__olderRapid[25],context.__longBase[25],'native +27h endpoint remains unmodified even though now+25h');
+assert.ok(context.__olderRapid[20].rucWeight<context.__longRapid[20].rucWeight,'older runs receive their real native lead weight');
+for(const shift of [-5,1]){
+ context.__invalid={...context.__longRuc,midRuc:{run:new Date(now.getTime()+shift*3600000).toISOString()},hours:context.__longRuc.hours.map(h=>({...h,epoch:h.epoch+shift*3600000}))};
+ assert.equal(call('applyRucRapidUpdateWeatherHours(__longBase,[__invalid])'),context.__longBase,'stale/future source must not calibrate');
+}
+for(const mutate of [p=>delete p.mid_ruc.run,p=>p.hourly.time[3]=p.hourly.time[2],p=>p.hourly.time[4]=p.hourly.time[4].replace(':00',':30'),p=>p.hourly.time.reverse(),p=>p.mid_ruc.run='invalid',p=>p.mid_ruc.run=now.toISOString().replace(':00.000Z',':30.000'),p=>p.mid_ruc.run=now.toISOString().slice(0,16)+'trailing-garbage']){
+ context.__bad=structuredClone(context.__longPayload);mutate(context.__bad);
+ assert.equal(call('parseDwdRucPointPayload(__bad,__model).successful'),false,'invalid provenance/UTC axis must be rejected');
+}
+assert.equal(call("rucHourlyEpoch('2026-10-25T02:00:00+01:00',3600)"),Date.parse('2026-10-25T01:00:00Z'),'explicit DST offset must be applied exactly once');
+context.__missing=structuredClone(context.__longPayload);context.__missing.hourly.precipitation[20]=null;context.__missing.hourly.temperature_2m[20]=null;
+context.__missingParsed=call('parseDwdRucPointPayload(__missing,__model)');
+assert.ok(!Number.isFinite(context.__missingParsed.hours[20].precipitation),'NoData is not dry zero');
+assert.ok(!Number.isFinite(context.__missingParsed.hours[20].temperature),'NoData is not 0°C');
+context.__badEps={...context.__longEps,run:'unverified'};
+context.__withoutEps=call('applyRucRapidUpdateWeatherHours(__longBase,[__longRuc])');
+context.__badEpsResult=call('applyRucRapidUpdateWeatherHours(__longBase,[__longRuc],undefined,__badEps)');
+assert.deepEqual(context.__badEpsResult,context.__withoutEps,'EPS provenance must protect precipitation consensus as well as probability');
+assert.equal(context.__longPayload.hourly.time.length,28,'fusion must preserve source data');
+console.log('RUC fusion runtime contract OK: run-relative +27h, EPS, rollback, freshness, UTC/DST, taper and NoData');

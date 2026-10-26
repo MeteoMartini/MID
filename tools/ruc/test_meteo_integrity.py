@@ -295,5 +295,26 @@ class MeteoIntegrityTests(unittest.TestCase):
             validate_core_fields({**fields, 'cloud_cover_low': np.array([[np.nan, np.nan]])})
 
 
+class EpsBoundedPackingRegression(unittest.TestCase):
+    def test_point_blocks_are_byte_identical(self):
+        import tempfile
+        from pathlib import Path
+        from build_ruc_bundle import write_eps_products, eps_summary
+        from ruc_pack import pack_eps_members, pack_cell_major, EPS_SUMMARY_FIELDS
+        rng=np.random.default_rng(742)
+        values=rng.uniform(0,40,(28,20,31))
+        values[:,:,0]=np.nan
+        values[0,:,1]=0
+        values[7,3,11]=np.nan
+        values[20,5,18]=327.67
+        expected_members=pack_eps_members(values,.01)
+        expected_summary=pack_cell_major(eps_summary(values),EPS_SUMMARY_FIELDS)
+        with tempfile.TemporaryDirectory() as folder:
+            member=Path(folder)/'members.bin';summary=Path(folder)/'summary.bin'
+            for chunk in (1,7,16,31,64):
+                write_eps_products(values,member,summary,chunk)
+                self.assertEqual(member.read_bytes(),expected_members)
+                self.assertEqual(summary.read_bytes(),expected_summary)
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,33 @@
+{
+  "runId": 40324367352,
+  "artifactId": 12654645786,
+  "artifactSha256": "82c42c07c7a33c083419a29f4d166c7e71464dbb3d1a9ae0e0cddc66459443f8",
+  "proof": {
+    "schema": "mid.ruc.core-prefix-proof.v1",
+    "run": "2026-10-26T11:00",
+    "sections": [
+      {
+        "section": "deterministic",
+        "points": 542040,
+        "prefixTimes": 15,
+        "extendedTimes": 28,
+        "prefixByteIdentical": true
+      },
+      {
+        "section": "epsSummary",
+        "points": 542040,
+        "prefixTimes": 15,
+        "extendedTimes": 28,
+        "prefixByteIdentical": true
+      },
+      {
+        "section": "eps",
+        "points": 542040,
+        "prefixTimes": 15,
+        "extendedTimes": 28,
+        "prefixByteIdentical": true
+      }
+    ],
+    "productionApproved": false
+  }
+}

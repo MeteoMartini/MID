@@ -129,6 +129,7 @@ jobs:
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
           python tools/ruc/test_fetch_resilience.py
           python tools/ruc/test_ruc_native_sidecar.py
+          python -m unittest discover -s tools/ruc -p test_ruc_horizon_probe.py
 
       - name: Änderungen am nativen RUC-Kartenpfad erkennen
         id: ruc_native_changes
@@ -317,6 +318,107 @@ jobs:
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
         run: npm run test:regressions
 
+  ruc27_qualification:
+    name: RUC +27h Kern, EPS und Gesamtpaket
+    # Read-only data qualification; this migration branch must also pass it
+    # in the final Source gate before the existing release bot may proceed.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification'
+    runs-on: ubuntu-latest
+    # 26 Oct verified: full native EPS build ~18 min, independent map/codec
+    # exceeded 25 min; extend EXECUTION ONLY, retain every validation gate.
+    timeout-minutes: 65
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-identischen PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Python einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Bestehende native Testumgebung installieren
+        run: python -m pip install -r tools/ruc/requirements-pages.txt
+      - name: Integrität und vollständigen +27h-Kern einschließlich EPS prüfen
+        shell: bash
+        timeout-minutes: 38
+        run: |
+          set -euo pipefail
+          mkdir -p ruc27-evidence
+          printf '%s\n' "$GITHUB_SHA" > ruc27-evidence/tested-merge-sha.txt
+          python -m unittest discover -s tools/ruc -p test_meteo_integrity.py
+          python tools/ruc/fetch_and_build_ruc.py --hours 27 --candidate-count 4 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
+          cp "$RUNNER_TEMP/ruc27-output/latest.json" ruc27-evidence/latest.json
+          # Manifest is evidence only, never a published data pointer.
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'ruc27-output'
+          meta=json.loads((root/'latest.json').read_text())
+          assert len(meta['deterministic']['times']) == 28
+          assert len(meta['eps']['times']) == 28
+          assert len(meta['epsSummary']['times']) == 28
+          assert meta['eps']['memberCount'] == 20
+          print('Complete 28-term core/EPS snapshot built; codec, prefix, budget and fusion admission remain separate gates.')
+          PY
+      - name: Node für den bestehenden unabhängigen Codec-Nachweis einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+      - name: Vollständiges Kartenpaket, Rohrollback und Codec unabhängig prüfen
+        shell: bash
+        # Native model maps + full Python/JS/Worker replay need more than 25 min.
+        # No altered 900 MB budget, source identity, checksum or acceptance rule.
+        timeout-minutes: 40
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tools/ruc -p test_compare_core_prefix.py
+          python -m unittest discover -s tools/ruc -p test_codec_staging.py
+          python -m unittest discover -s tools/ruc -p test_legacy_core_rollback.py
+          python tools/ruc/prepare_ruc_pages.py --codec-staging --source "$RUNNER_TEMP/ruc27-output" --output "$RUNNER_TEMP/ruc27-pages" 2>&1 | tee ruc27-evidence/pages-build.log
+          python tools/ruc/prepare_legacy_core_rollback.py "$RUNNER_TEMP/ruc27-output" "$RUNNER_TEMP/ruc14-projected" "$RUNNER_TEMP/ruc14-rollback" > ruc27-evidence/rollback-proof.json
+          python - <<'PYBUILD'
+          import json, os, re, subprocess, sys
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP']); source=root/'ruc27-output'
+          meta=json.loads((source/'latest.json').read_text());run=meta['run']
+          stage=root/'ruc27-stage'/re.sub(r'[^0-9A-Za-z_-]','',run)
+          with open('ruc27-evidence/independent14-build.log','w') as log:
+              subprocess.run([sys.executable,'tools/ruc/build_ruc_bundle.py','--staging',str(stage),'--output',str(root/'ruc14-independent'),'--run',run,'--hours','14'],stdout=log,stderr=subprocess.STDOUT,check=True)
+          golden=json.loads((root/'ruc14-independent/latest.json').read_text())
+          projected=json.loads((root/'ruc14-projected/latest.json').read_text())
+          for key in ('run','grid','pointCount','sourceGribContract'):
+              assert golden.get(key)==projected.get(key), key
+          for name,info in golden['objects'].items():
+              assert projected['objects'][name]==info, 'Independent14h mismatch: '+name
+          Path('ruc27-evidence/legacy-equivalence.json').write_text(json.dumps({'run':run,'independentObjectsCompared':len(golden['objects']),'allRawObjectsByteIdentical':True,'published':False},indent=2))
+          PYBUILD
+          python tools/ruc/prepare_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-build.json
+          node tools/ruc/verify_lossless_migration.mjs "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-proof.json
+          python tools/ruc/activate_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" ruc27-evidence/codec-proof.json "$RUNNER_TEMP/ruc27-active" > ruc27-evidence/activation-proof.json
+          python - <<'PYMAP'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from admit_ruc_map_candidate import admit_optional
+          root=Path(os.environ['RUNNER_TEMP'])
+          report=admit_optional(root/'ruc27-active',root/'ruc27-output',root/'ruc27-map-candidate')
+          assert report['admitted'] is True
+          assert report['sourceRawUnchanged'] is True and report['codecProofUnchanged'] is True
+          assert report['finalPhysicalBytes']<900000000
+          Path('ruc27-evidence/maps-proof.json').write_text(json.dumps(report,indent=2))
+          PYMAP
+          python tools/ruc/build_ruc_synoptic_fields.py --snapshot "$RUNNER_TEMP/ruc27-active" --source "$RUNNER_TEMP/ruc27-output" --staging "$RUNNER_TEMP/ruc27-stage" --candidate "$RUNNER_TEMP/ruc27-synoptic" --report ruc27-evidence/synoptic-proof.json
+      - name: Ausschließlich Diagnose und Manifest sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc27-core-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc27-evidence/
+          if-no-files-found: error
+          retention-days: 7
+
   visual_extreme:
     name: Extremwetterpolygone · echte Browserpixel
     # This branch-scoped draft preflight is not a release or a replacement for core/heavy.
@@ -367,6 +469,7 @@ jobs:
       - source_core
       - heavy_regressions
       - visual_extreme
+      - ruc27_qualification
     if: >-
       always() &&
       (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
@@ -383,6 +486,8 @@ jobs:
           CORE_RESULT: ${{ needs.source_core.result }}
           HEAVY_RESULT: ${{ needs.heavy_regressions.result }}
           VISUAL_RESULT: ${{ needs.visual_extreme.result }}
+          RUC27_RESULT: ${{ needs.ruc27_qualification.result }}
+          RUC27_REQUIRED: ${{ github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification' }}
           EXTREME_BRANCH: ${{ contains(github.head_ref, 'extreme-polygons-fallback') }}
         run: |
           set -euo pipefail
@@ -394,5 +499,8 @@ jobs:
             echo "::error::Echte Extremwetter-WebGL-Pixelabnahme nicht grün: visual=${VISUAL_RESULT}."
             exit 1
           fi
+          if [ "$RUC27_REQUIRED" = true ] && [ "$RUC27_RESULT" != success ]; then
+            echo "::error::Vollständiges RUC-27h-Datenpaket nicht abgenommen: ruc27=${RUC27_RESULT}."
+            exit 1
+          fi
           echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."
-

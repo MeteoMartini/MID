@@ -1,3 +1,9 @@
+# MID v0.9.85.336 · Kanonische RUC-Laufabdeckung (Source-Kandidat)
+
+Verifizierte Basis main = mid-stable = 3908e1c7e6c8475278ae07e5cfbd5a4780822e95, v0.9.85.335. RUC-Karten +27 h wurden bereits in .305 nachgewiesen; hier werden gemeinsame Stundenfusion und voraggregierte EPS-Wahrscheinlichkeiten laufbezogen erweitert. Die bestehenden Rapid-/Extrem-/Eventgrenzen bleiben erhalten. Native Vollprüfung, 14-h-Bytepräfix, vollständiger Codec, Rohrollback und Kartenbudget sind eigenständige Nachweise. Die Qualifikationshistorie liegt in #478; die vollständige27h-Paketabnahme ist nun auf diesem Migrationsbranch zusätzlich im finalen regulären Source-Gate verbindlich. Kein veröffentlichter .336-Stand behauptet.
+
+Siehe MID_DWD_RUC_PIPELINE_CONTRACT.md und docs/implementation/MID_C46_RUC27_BUILD_PROOF.json, MID_C46_RUC27_PREFIX_PROOF.json, MID_C46_RUC27_CODEC_PROOF.json. CSS-Coverage #463 und Logo #472 bleiben eigenständige parallele Arbeiten. Normaler MID Source-/Heavy-/Bot-/Installer-/Worker-/Pages-/Stable-Weg bleibt verbindlich.
+
 # MID v0.9.85.335 · Fusionsabruf nach Hintergrund-/Netzrückkehr (Source-Kandidat)
 
 Basis: verifiziertes Stable .333, dfe92422c32971fc18df088e3d5417e228903768. Paralleler Logo-PR #472/.334 bleibt eigenständig; sein Logo ist in diesem Fusionsfix nicht enthalten. Vor Freigabe erneut Refs und Parallelstände prüfen.

@@ -1,0 +1,59 @@
+{
+  "runId": 40330246007,
+  "headSha": "17731201b3ac657ae46d2fbb5bbe154b53c5781f",
+  "artifactId": 12654369939,
+  "artifactSha256": "93667aac1f6f64d4389ab3f82ee92966211d58df98fef46ffee96776cdbc4605",
+  "scope": "Core codec only; no full maps/rollback/deployed-endpoint admission",
+  "evidence": {
+    "codec-build.json": {
+      "schema": "mid.ruc.migration-build-proof.v1",
+      "run": "2026-10-26T11:00",
+      "profile": "pages-lossless-candidate-v1",
+      "productionEnabled": false,
+      "sourceManifestSha256": "5878460b72cd512b60426031b6007b077baae1b4ef7af7fa949b0a769660c1da",
+      "candidateManifestSha256": "52d3183f91d2773bcb04a2151ce8c3a54f96b87a66eaed8066e8366b10af4721",
+      "verifiedSourceObjects": 1045,
+      "candidateObjects": 2919,
+      "convertedOriginalObjects": 1035,
+      "payloadBytes": 385236463,
+      "manifestBytes": 1944530,
+      "physicalBytes": 387180993,
+      "budgetBytes": 900000000,
+      "originalRollbackSnapshotIntact": true,
+      "scope": "Isolated complete candidate; legacy deployed readers reject this profile. No production publisher or rollout mutation."
+    },
+    "codec-proof.json": {
+      "schema": "mid.ruc.migration-record-proof.v1",
+      "run": "2026-10-26T11:00",
+      "candidateProfile": "pages-lossless-candidate-v1",
+      "sourceManifestSha256": "5878460b72cd512b60426031b6007b077baae1b4ef7af7fa949b0a769660c1da",
+      "candidateManifestSha256": "52d3183f91d2773bcb04a2151ce8c3a54f96b87a66eaed8066e8366b10af4721",
+      "sourceObjectsVerified": 1045,
+      "candidateObjectsVerified": 2919,
+      "physicalCandidateBytes": 387180993,
+      "products": 8,
+      "fullDecodedParts": 3046,
+      "recordComparisons": 9138,
+      "wireReads": 2941,
+      "originalRollbackSnapshotIntact": true,
+      "productionEnabled": false,
+      "environment": "Node host; full byte equality plus actual record decoder parity, not deployed endpoint/CPU/RAM/physical-device acceptance"
+    },
+    "activation-proof.json": {
+      "schema": "mid.ruc.activation-proof.v1",
+      "run": "2026-10-26T11:00",
+      "profile": "pages-lossless-v1",
+      "sourceManifestSha256": "5878460b72cd512b60426031b6007b077baae1b4ef7af7fa949b0a769660c1da",
+      "candidateManifestSha256": "52d3183f91d2773bcb04a2151ce8c3a54f96b87a66eaed8066e8366b10af4721",
+      "activeManifestSha256": "ca8bae40cadee68c611b9b36c3677980a6769b8697ce739336a74cffedc52d6e",
+      "sourceObjectsVerified": 1045,
+      "activeObjectsVerified": 2919,
+      "fullDecodedParts": 3046,
+      "recordComparisons": 9138,
+      "physicalBytes": 387181247,
+      "budgetBytes": 900000000,
+      "sourceRollbackIntact": true
+    }
+  },
+  "productionApproved": false
+}

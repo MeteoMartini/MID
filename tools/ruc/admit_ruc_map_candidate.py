@@ -35,7 +35,7 @@ def verify_snapshot(snapshot):
   m=json.loads(original)
   if m.get('schema')!='mid.dwd.ruc.grid.v2' or m.get('storageProfile')!='pages-lossless-v1' or m.get('migration',{}).get('schema')!='mid.ruc.migration-active.v1' or m['migration'].get('productionEnabled') is not True or m.get('pages',{}).get('profile')!='pages-lossless-v1' or m['pages'].get('losslessTransport')!={'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False} or m['pages'].get('budgetBytes')!=BUDGET:raise SnapshotIntegrityError('requires complete activated codec snapshot')
   core=m['deterministic'];times=core['times'];run=utc_time(m['run'])
-  if type(m['pointCount']) is not int or not 0<m['pointCount']<=1000000 or len(times)!=15 or core['fields']!=[vars(spec) for spec in DEFAULT_FIELDS] or core.get('dtype')!='int16-le' or core.get('layout')!='point-time-field' or core['recordBytes']!=len(times)*len(core['fields'])*2 or any(utc_time(t)!=run+timedelta(hours=i) for i,t in enumerate(times)):raise SnapshotIntegrityError('existing core geometry/time contract invalid')
+  if type(m['pointCount']) is not int or not 0<m['pointCount']<=1000000 or len(times) not in (15,28) or core['fields']!=[vars(spec) for spec in DEFAULT_FIELDS] or core.get('dtype')!='int16-le' or core.get('layout')!='point-time-field' or core['recordBytes']!=len(times)*len(core['fields'])*2 or any(utc_time(t)!=run+timedelta(hours=i) for i,t in enumerate(times)):raise SnapshotIntegrityError('existing core geometry/time contract invalid')
   pages=core['compressedPages']
   if pages['recordBytes']!=core['recordBytes'] or pages['records']!=m['pointCount']:raise SnapshotIntegrityError('existing compressed geometry invalid')
   objects=m['pages']['objects'];bykey={o['key']:o for o in objects}

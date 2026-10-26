@@ -8,10 +8,10 @@ import test_ruc_map_candidate as fixtures
 from ruc_map_candidate import compact
 
 class AdmissionTests(unittest.TestCase):
- def fixture(self,root,hours=14):
+ def fixture(self,root,hours=14,core_hours=14):
   source=fixtures.RucMapCandidateTests().fixture(root,hours);s=json.loads((source/'latest.json').read_bytes());m=copy.deepcopy(s);snapshot=root/'snapshot';snapshot.mkdir()
-  cube=np.frombuffer((source/'deterministic.bin').read_bytes(),dtype='<i2').reshape(9,hours+1,12);raw=cube[:,:15,:].tobytes();desc,wire=encode_candidate(raw,'byteplanes-gzip');key='runs/test/core.bin';look='runs/test/lookup/0000.bin'
-  m['deterministic']['times']=m['deterministic']['times'][:15];m['deterministic']['recordBytes']=360;m['deterministic']['compressedPages']={'schema':'mid.ruc.compressed-pages.v1','recordBytes':360,'records':9,'parts':[{'firstRecord':0,'recordCount':9,'key':key,'manifest':desc}]}
+  cube=np.frombuffer((source/'deterministic.bin').read_bytes(),dtype='<i2').reshape(9,hours+1,12);raw=cube[:,:core_hours+1,:].tobytes();desc,wire=encode_candidate(raw,'byteplanes-gzip');key='runs/test/core.bin';look='runs/test/lookup/0000.bin'
+  m['deterministic']['times']=m['deterministic']['times'][:core_hours+1];m['deterministic']['recordBytes']=(core_hours+1)*24;m['deterministic']['compressedPages']={'schema':'mid.ruc.compressed-pages.v1','recordBytes':(core_hours+1)*24,'records':9,'parts':[{'firstRecord':0,'recordCount':9,'key':key,'manifest':desc}]}
   m['lookup']['pages']={'prefix':'runs/test/lookup','recordBytes':4,'records':9,'chunkCount':1};m['storageProfile']='pages-lossless-v1';m['migration']={'schema':'mid.ruc.migration-active.v1','productionEnabled':True,'proof':{'untouched':'original'}}
   assets={key:wire,look:(source/'lookup.bin').read_bytes()};m['pages']={'profile':'pages-lossless-v1','budgetBytes':900000000,'publishedBytes':sum(map(len,assets.values())),'losslessTransport':{'profile':'mid.ruc.compressed-pages.v1','mode':'replacement','rawRetained':False},'objects':[{'key':k,'bytes':len(v),'sha256':hashlib.sha256(v).hexdigest()} for k,v in assets.items()]}
   for k,v in assets.items():p=snapshot/k;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(v)
@@ -26,6 +26,27 @@ class AdmissionTests(unittest.TestCase):
      if k!='latest.json':self.assertEqual((snapshot/k).read_bytes(),v)
     self.assertEqual(source_before,{p.name:p.read_bytes() for p in source.iterdir()});self.assertLess(proof['finalPhysicalBytes'],900000000)
     pressure=index['products']['pressure']['frames'][0];payload=json.loads(gzip.decompress((snapshot/m['rucModelFields']['key']).parent.joinpath(pressure['file']).read_bytes()));self.assertIsNone(payload['values'][0]);self.assertEqual(payload['schema'],'mid.ruc.map-field.v1')
+ def test_full_27h_core_admits_identical_27h_maps(self):
+  with tempfile.TemporaryDirectory() as t:
+   root=Path(t);snapshot,source=self.fixture(root,27,27)
+   proof=module.admit_optional(snapshot,source,root/'candidate')
+   self.assertTrue(proof['admitted']);self.assertEqual(proof['coreHours'],27);self.assertEqual(proof['mapHours'],27)
+   self.assertTrue(proof['sourceRawUnchanged']);self.assertTrue(proof['codecProofUnchanged'])
+ def test_full_core_rejects_drift_beyond_old_14h_prefix(self):
+  with tempfile.TemporaryDirectory() as t:
+   root=Path(t);snapshot,source=self.fixture(root,27,27);original=(snapshot/'latest.json').read_bytes()
+   path=source/'deterministic.bin';raw=bytearray(path.read_bytes());raw[(2*28*12+20*12)*2]^=1;path.write_bytes(raw)
+   meta=json.loads((source/'latest.json').read_bytes());meta['objects']['deterministic.bin']['sha256']=hashlib.sha256(raw).hexdigest();(source/'latest.json').write_bytes(compact(meta))
+   with self.assertRaisesRegex(ValueError,'differs from decoded original core'):module.admit(snapshot,source,root/'candidate')
+   self.assertEqual(original,(snapshot/'latest.json').read_bytes())
+ def test_partial_core_axis_remains_invalid(self):
+  for count in (16,27,29):
+   with self.subTest(count=count),tempfile.TemporaryDirectory() as t:
+    root=Path(t);snapshot,_=self.fixture(root,27,27);meta=json.loads((snapshot/'latest.json').read_bytes());core=meta['deterministic']
+    from datetime import timedelta
+    run=module.utc_time(meta['run']);core['times']=[(run+timedelta(hours=i)).isoformat() for i in range(count)];core['recordBytes']=count*24;core['compressedPages']['recordBytes']=count*24
+    (snapshot/'latest.json').write_bytes(compact(meta))
+    with self.assertRaises(module.SnapshotIntegrityError):module.verify_snapshot(snapshot)
  def test_corruption_and_prefix_drift_fail_closed(self):
   for source_drift in (False,True):
    with tempfile.TemporaryDirectory() as t:

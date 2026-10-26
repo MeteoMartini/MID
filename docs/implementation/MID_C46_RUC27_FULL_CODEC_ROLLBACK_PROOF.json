@@ -1,0 +1,1143 @@
+{
+  "schema": "mid.ruc.full-codec-rollback-qualification.v1",
+  "runId": 40337698380,
+  "headSha": "261c3d3bd3f8a41298fb46ac1629b0977a8a0ddd",
+  "artifactId": 12660151606,
+  "artifactSha256": "0a5c14dad219d3a5eeae137ef868a21d5ec333865a9894594f998598837e8080",
+  "results": {
+    "activation-proof.json": {
+      "schema": "mid.ruc.activation-proof.v1",
+      "run": "2026-10-26T13:00",
+      "profile": "pages-lossless-v1",
+      "sourceManifestSha256": "f8ce4b4b3d705e58ba94fb65ca6be12b1b1224e62460a5258e90f81c267a79f0",
+      "candidateManifestSha256": "38ce2eb57948d24f0458e0dc27074f9dad31685ffbfef80e0a51ef9779f7caaa",
+      "activeManifestSha256": "a0b8d4f96320c66aa39cd39edc5e0513e3663d15a82c8f41df9f716239c37ae8",
+      "sourceObjectsVerified": 1289,
+      "activeObjectsVerified": 3182,
+      "fullDecodedParts": 3046,
+      "recordComparisons": 9138,
+      "physicalBytes": 445168293,
+      "budgetBytes": 900000000,
+      "sourceRollbackIntact": true
+    },
+    "codec-build.json": {
+      "schema": "mid.ruc.migration-build-proof.v1",
+      "run": "2026-10-26T13:00",
+      "profile": "pages-lossless-candidate-v1",
+      "productionEnabled": false,
+      "sourceManifestSha256": "f8ce4b4b3d705e58ba94fb65ca6be12b1b1224e62460a5258e90f81c267a79f0",
+      "candidateManifestSha256": "38ce2eb57948d24f0458e0dc27074f9dad31685ffbfef80e0a51ef9779f7caaa",
+      "verifiedSourceObjects": 1289,
+      "candidateObjects": 3182,
+      "convertedOriginalObjects": 1039,
+      "payloadBytes": 443175404,
+      "manifestBytes": 1992635,
+      "physicalBytes": 445168039,
+      "budgetBytes": 900000000,
+      "originalRollbackSnapshotIntact": true,
+      "scope": "Isolated complete candidate; legacy deployed readers reject this profile. No production publisher or rollout mutation."
+    },
+    "codec-proof.json": {
+      "schema": "mid.ruc.migration-record-proof.v1",
+      "run": "2026-10-26T13:00",
+      "candidateProfile": "pages-lossless-candidate-v1",
+      "sourceManifestSha256": "f8ce4b4b3d705e58ba94fb65ca6be12b1b1224e62460a5258e90f81c267a79f0",
+      "candidateManifestSha256": "38ce2eb57948d24f0458e0dc27074f9dad31685ffbfef80e0a51ef9779f7caaa",
+      "sourceObjectsVerified": 1289,
+      "candidateObjectsVerified": 3182,
+      "physicalCandidateBytes": 445168039,
+      "products": 8,
+      "fullDecodedParts": 3046,
+      "recordComparisons": 9138,
+      "wireReads": 2956,
+      "originalRollbackSnapshotIntact": true,
+      "productionEnabled": false,
+      "environment": "Node host; full byte equality plus actual record decoder parity, not deployed endpoint/CPU/RAM/physical-device acceptance"
+    },
+    "latest.json": {
+      "schema": "mid.dwd.ruc.grid.v2",
+      "run": "2026-10-26T13:00",
+      "generatedAt": "2026-10-26T14:33:18.269889Z",
+      "times": [
+        "2026-10-26T13:00",
+        "2026-10-26T14:00",
+        "2026-10-26T15:00",
+        "2026-10-26T16:00",
+        "2026-10-26T17:00",
+        "2026-10-26T18:00",
+        "2026-10-26T19:00",
+        "2026-10-26T20:00",
+        "2026-10-26T21:00",
+        "2026-10-26T22:00",
+        "2026-10-26T23:00",
+        "2026-10-27T00:00",
+        "2026-10-27T01:00",
+        "2026-10-27T02:00",
+        "2026-10-27T03:00",
+        "2026-10-27T04:00",
+        "2026-10-27T05:00",
+        "2026-10-27T06:00",
+        "2026-10-27T07:00",
+        "2026-10-27T08:00",
+        "2026-10-27T09:00",
+        "2026-10-27T10:00",
+        "2026-10-27T11:00",
+        "2026-10-27T12:00",
+        "2026-10-27T13:00",
+        "2026-10-27T14:00",
+        "2026-10-27T15:00",
+        "2026-10-27T16:00"
+      ],
+      "pointCount": 542040,
+      "grid": {
+        "lonMin": -3.85,
+        "latMin": 43.18,
+        "dx": 0.025,
+        "dy": 0.025,
+        "nx": 964,
+        "ny": 596,
+        "maxNearestKm": 5.0,
+        "nativePointCount": 542040,
+        "bbox": [
+          -3.85,
+          43.18,
+          20.22,
+          58.05
+        ]
+      },
+      "lookup": {
+        "key": "runs/2026-10-26T1300/lookup.bin",
+        "dtype": "uint32-le",
+        "nodata": 4294967295
+      },
+      "deterministic": {
+        "key": "runs/2026-10-26T1300/deterministic.bin",
+        "dtype": "int16-le",
+        "layout": "point-time-field",
+        "times": [
+          "2026-10-26T13:00",
+          "2026-10-26T14:00",
+          "2026-10-26T15:00",
+          "2026-10-26T16:00",
+          "2026-10-26T17:00",
+          "2026-10-26T18:00",
+          "2026-10-26T19:00",
+          "2026-10-26T20:00",
+          "2026-10-26T21:00",
+          "2026-10-26T22:00",
+          "2026-10-26T23:00",
+          "2026-10-27T00:00",
+          "2026-10-27T01:00",
+          "2026-10-27T02:00",
+          "2026-10-27T03:00",
+          "2026-10-27T04:00",
+          "2026-10-27T05:00",
+          "2026-10-27T06:00",
+          "2026-10-27T07:00",
+          "2026-10-27T08:00",
+          "2026-10-27T09:00",
+          "2026-10-27T10:00",
+          "2026-10-27T11:00",
+          "2026-10-27T12:00",
+          "2026-10-27T13:00",
+          "2026-10-27T14:00",
+          "2026-10-27T15:00",
+          "2026-10-27T16:00"
+        ],
+        "fields": [
+          {
+            "name": "temperature_2m",
+            "unit": "°C",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "dew_point_2m",
+            "unit": "°C",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "relative_humidity_2m",
+            "unit": "%",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "pressure_msl",
+            "unit": "hPa",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "wind_speed_10m",
+            "unit": "kn",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "wind_direction_10m",
+            "unit": "°",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "wind_gusts_10m",
+            "unit": "kn",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "precipitation",
+            "unit": "mm",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "cloud_cover",
+            "unit": "%",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "cloud_cover_low",
+            "unit": "%",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "cape",
+            "unit": "J/kg",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "convective_inhibition",
+            "unit": "J/kg",
+            "scale": 0.1,
+            "offset": 0.0
+          }
+        ],
+        "recordBytes": 672
+      },
+      "epsSummary": {
+        "key": "runs/2026-10-26T1300/eps-summary.bin",
+        "dtype": "int16-le",
+        "layout": "point-time-field",
+        "times": [
+          "2026-10-26T13:00",
+          "2026-10-26T14:00",
+          "2026-10-26T15:00",
+          "2026-10-26T16:00",
+          "2026-10-26T17:00",
+          "2026-10-26T18:00",
+          "2026-10-26T19:00",
+          "2026-10-26T20:00",
+          "2026-10-26T21:00",
+          "2026-10-26T22:00",
+          "2026-10-26T23:00",
+          "2026-10-27T00:00",
+          "2026-10-27T01:00",
+          "2026-10-27T02:00",
+          "2026-10-27T03:00",
+          "2026-10-27T04:00",
+          "2026-10-27T05:00",
+          "2026-10-27T06:00",
+          "2026-10-27T07:00",
+          "2026-10-27T08:00",
+          "2026-10-27T09:00",
+          "2026-10-27T10:00",
+          "2026-10-27T11:00",
+          "2026-10-27T12:00",
+          "2026-10-27T13:00",
+          "2026-10-27T14:00",
+          "2026-10-27T15:00",
+          "2026-10-27T16:00"
+        ],
+        "fields": [
+          {
+            "name": "precipitation_probability",
+            "unit": "%",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "precipitation_probability_significant",
+            "unit": "%",
+            "scale": 0.1,
+            "offset": 0.0
+          },
+          {
+            "name": "precipitation_mean",
+            "unit": "mm",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "precipitation_q25",
+            "unit": "mm",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "precipitation_q50",
+            "unit": "mm",
+            "scale": 0.01,
+            "offset": 0.0
+          },
+          {
+            "name": "precipitation_q75",
+            "unit": "mm",
+            "scale": 0.01,
+            "offset": 0.0
+          }
+        ],
+        "recordBytes": 336,
+        "thresholdsMm": {
+          "wet": 0.2,
+          "significant": 5.0
+        }
+      },
+      "eps": {
+        "key": "runs/2026-10-26T1300/eps-members.bin",
+        "dtype": "uint16-le",
+        "layout": "point-time-member",
+        "times": [
+          "2026-10-26T13:00",
+          "2026-10-26T14:00",
+          "2026-10-26T15:00",
+          "2026-10-26T16:00",
+          "2026-10-26T17:00",
+          "2026-10-26T18:00",
+          "2026-10-26T19:00",
+          "2026-10-26T20:00",
+          "2026-10-26T21:00",
+          "2026-10-26T22:00",
+          "2026-10-26T23:00",
+          "2026-10-27T00:00",
+          "2026-10-27T01:00",
+          "2026-10-27T02:00",
+          "2026-10-27T03:00",
+          "2026-10-27T04:00",
+          "2026-10-27T05:00",
+          "2026-10-27T06:00",
+          "2026-10-27T07:00",
+          "2026-10-27T08:00",
+          "2026-10-27T09:00",
+          "2026-10-27T10:00",
+          "2026-10-27T11:00",
+          "2026-10-27T12:00",
+          "2026-10-27T13:00",
+          "2026-10-27T14:00",
+          "2026-10-27T15:00",
+          "2026-10-27T16:00"
+        ],
+        "nodata": 65535,
+        "scale": 0.01,
+        "unit": "mm",
+        "memberCount": 20,
+        "recordBytes": 1120
+      },
+      "rapid": {
+        "precip5": {
+          "key": "runs/2026-10-26T1300/rapid-5m.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T13:05",
+            "2026-10-26T13:10",
+            "2026-10-26T13:15",
+            "2026-10-26T13:20",
+            "2026-10-26T13:25",
+            "2026-10-26T13:30",
+            "2026-10-26T13:35",
+            "2026-10-26T13:40",
+            "2026-10-26T13:45",
+            "2026-10-26T13:50",
+            "2026-10-26T13:55",
+            "2026-10-26T14:00",
+            "2026-10-26T14:05",
+            "2026-10-26T14:10",
+            "2026-10-26T14:15",
+            "2026-10-26T14:20",
+            "2026-10-26T14:25",
+            "2026-10-26T14:30",
+            "2026-10-26T14:35",
+            "2026-10-26T14:40",
+            "2026-10-26T14:45",
+            "2026-10-26T14:50",
+            "2026-10-26T14:55",
+            "2026-10-26T15:00",
+            "2026-10-26T15:05",
+            "2026-10-26T15:10",
+            "2026-10-26T15:15",
+            "2026-10-26T15:20",
+            "2026-10-26T15:25",
+            "2026-10-26T15:30",
+            "2026-10-26T15:35",
+            "2026-10-26T15:40",
+            "2026-10-26T15:45",
+            "2026-10-26T15:50",
+            "2026-10-26T15:55",
+            "2026-10-26T16:00",
+            "2026-10-26T16:05",
+            "2026-10-26T16:10",
+            "2026-10-26T16:15",
+            "2026-10-26T16:20",
+            "2026-10-26T16:25",
+            "2026-10-26T16:30",
+            "2026-10-26T16:35",
+            "2026-10-26T16:40",
+            "2026-10-26T16:45",
+            "2026-10-26T16:50",
+            "2026-10-26T16:55",
+            "2026-10-26T17:00",
+            "2026-10-26T17:05",
+            "2026-10-26T17:10",
+            "2026-10-26T17:15",
+            "2026-10-26T17:20",
+            "2026-10-26T17:25",
+            "2026-10-26T17:30",
+            "2026-10-26T17:35",
+            "2026-10-26T17:40",
+            "2026-10-26T17:45",
+            "2026-10-26T17:50",
+            "2026-10-26T17:55",
+            "2026-10-26T18:00",
+            "2026-10-26T18:05",
+            "2026-10-26T18:10",
+            "2026-10-26T18:15",
+            "2026-10-26T18:20",
+            "2026-10-26T18:25",
+            "2026-10-26T18:30",
+            "2026-10-26T18:35",
+            "2026-10-26T18:40",
+            "2026-10-26T18:45",
+            "2026-10-26T18:50",
+            "2026-10-26T18:55",
+            "2026-10-26T19:00"
+          ],
+          "fields": [
+            {
+              "name": "precipitation",
+              "unit": "mm",
+              "scale": 0.001,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 146,
+          "nativeResolutionSeconds": 300,
+          "horizonHours": 6
+        },
+        "convection15": {
+          "key": "runs/2026-10-26T1300/rapid-15m.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T13:15",
+            "2026-10-26T13:30",
+            "2026-10-26T13:45",
+            "2026-10-26T14:00",
+            "2026-10-26T14:15",
+            "2026-10-26T14:30",
+            "2026-10-26T14:45",
+            "2026-10-26T15:00",
+            "2026-10-26T15:15",
+            "2026-10-26T15:30",
+            "2026-10-26T15:45",
+            "2026-10-26T16:00",
+            "2026-10-26T16:15",
+            "2026-10-26T16:30",
+            "2026-10-26T16:45",
+            "2026-10-26T17:00",
+            "2026-10-26T17:15",
+            "2026-10-26T17:30",
+            "2026-10-26T17:45",
+            "2026-10-26T18:00",
+            "2026-10-26T18:15",
+            "2026-10-26T18:30",
+            "2026-10-26T18:45",
+            "2026-10-26T19:00"
+          ],
+          "fields": [
+            {
+              "name": "precipitation",
+              "unit": "mm",
+              "scale": 0.001,
+              "offset": 0.0
+            },
+            {
+              "name": "cape",
+              "unit": "J/kg",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "convective_inhibition",
+              "unit": "J/kg",
+              "scale": 0.1,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 150,
+          "nativeResolutionSeconds": 900,
+          "horizonHours": 6
+        },
+        "state15": {
+          "key": "runs/2026-10-26T1300/rapid-state-15m.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T13:15",
+            "2026-10-26T13:30",
+            "2026-10-26T13:45",
+            "2026-10-26T14:00",
+            "2026-10-26T14:15",
+            "2026-10-26T14:30",
+            "2026-10-26T14:45",
+            "2026-10-26T15:00",
+            "2026-10-26T15:15",
+            "2026-10-26T15:30",
+            "2026-10-26T15:45",
+            "2026-10-26T16:00",
+            "2026-10-26T16:15",
+            "2026-10-26T16:30",
+            "2026-10-26T16:45",
+            "2026-10-26T17:00",
+            "2026-10-26T17:15",
+            "2026-10-26T17:30",
+            "2026-10-26T17:45",
+            "2026-10-26T18:00",
+            "2026-10-26T18:15",
+            "2026-10-26T18:30",
+            "2026-10-26T18:45",
+            "2026-10-26T19:00"
+          ],
+          "fields": [
+            {
+              "name": "visibility",
+              "unit": "m",
+              "scale": 10.0,
+              "offset": 0.0
+            },
+            {
+              "name": "ceiling",
+              "unit": "m",
+              "scale": 1.0,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 100,
+          "nativeResolutionSeconds": 900,
+          "horizonHours": 6
+        },
+        "reflectivity15": {
+          "key": "runs/2026-10-26T1300/rapid-reflectivity-15m.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T13:15",
+            "2026-10-26T13:30",
+            "2026-10-26T13:45",
+            "2026-10-26T14:00",
+            "2026-10-26T14:15",
+            "2026-10-26T14:30",
+            "2026-10-26T14:45",
+            "2026-10-26T15:00",
+            "2026-10-26T15:15",
+            "2026-10-26T15:30",
+            "2026-10-26T15:45",
+            "2026-10-26T16:00",
+            "2026-10-26T16:15",
+            "2026-10-26T16:30",
+            "2026-10-26T16:45",
+            "2026-10-26T17:00",
+            "2026-10-26T17:15",
+            "2026-10-26T17:30",
+            "2026-10-26T17:45",
+            "2026-10-26T18:00",
+            "2026-10-26T18:15",
+            "2026-10-26T18:30",
+            "2026-10-26T18:45",
+            "2026-10-26T19:00"
+          ],
+          "fields": [
+            {
+              "name": "dbz_cmax",
+              "unit": "dBZ",
+              "scale": 0.01,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 50,
+          "nativeResolutionSeconds": 900,
+          "horizonHours": 6
+        },
+        "severe15": {
+          "key": "runs/2026-10-26T1300/rapid-severe-15m.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T13:15",
+            "2026-10-26T13:30",
+            "2026-10-26T13:45",
+            "2026-10-26T14:00",
+            "2026-10-26T14:15",
+            "2026-10-26T14:30",
+            "2026-10-26T14:45",
+            "2026-10-26T15:00",
+            "2026-10-26T15:15",
+            "2026-10-26T15:30",
+            "2026-10-26T15:45",
+            "2026-10-26T16:00",
+            "2026-10-26T16:15",
+            "2026-10-26T16:30",
+            "2026-10-26T16:45",
+            "2026-10-26T17:00",
+            "2026-10-26T17:15",
+            "2026-10-26T17:30",
+            "2026-10-26T17:45",
+            "2026-10-26T18:00",
+            "2026-10-26T18:15",
+            "2026-10-26T18:30",
+            "2026-10-26T18:45",
+            "2026-10-26T19:00"
+          ],
+          "fields": [
+            {
+              "name": "lpi",
+              "unit": "J/kg",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "lpi_max",
+              "unit": "J/kg",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "uh_max",
+              "unit": "m2/s2",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "uh_max_low",
+              "unit": "m2/s2",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "uh_max_med",
+              "unit": "m2/s2",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "hail_gsp",
+              "unit": "native",
+              "scale": 0.001,
+              "offset": 0.0
+            },
+            {
+              "name": "w_ctmax",
+              "unit": "m/s",
+              "scale": 0.01,
+              "offset": 0.0
+            },
+            {
+              "name": "vorw_ctmax",
+              "unit": "s-1",
+              "scale": 0.0001,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 400,
+          "nativeResolutionSeconds": 900,
+          "horizonHours": 6
+        },
+        "phase15": {
+          "key": "runs/2026-10-26T1300/rapid-phase-15m.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T13:15",
+            "2026-10-26T13:30",
+            "2026-10-26T13:45",
+            "2026-10-26T14:00",
+            "2026-10-26T14:15",
+            "2026-10-26T14:30",
+            "2026-10-26T14:45",
+            "2026-10-26T15:00",
+            "2026-10-26T15:15",
+            "2026-10-26T15:30",
+            "2026-10-26T15:45",
+            "2026-10-26T16:00",
+            "2026-10-26T16:15",
+            "2026-10-26T16:30",
+            "2026-10-26T16:45",
+            "2026-10-26T17:00",
+            "2026-10-26T17:15",
+            "2026-10-26T17:30",
+            "2026-10-26T17:45",
+            "2026-10-26T18:00",
+            "2026-10-26T18:15",
+            "2026-10-26T18:30",
+            "2026-10-26T18:45",
+            "2026-10-26T19:00"
+          ],
+          "fields": [
+            {
+              "name": "rain",
+              "unit": "mm",
+              "scale": 0.001,
+              "offset": 0.0
+            },
+            {
+              "name": "snowfall_water_equivalent",
+              "unit": "mm",
+              "scale": 0.001,
+              "offset": 0.0
+            },
+            {
+              "name": "graupel_water_equivalent",
+              "unit": "mm",
+              "scale": 0.001,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 150,
+          "nativeResolutionSeconds": 900,
+          "horizonHours": 6
+        },
+        "specialistHourly": {
+          "key": "runs/2026-10-26T1300/specialist-hourly.bin",
+          "dtype": "int16-le",
+          "layout": "point-time-field",
+          "times": [
+            "2026-10-26T13:00",
+            "2026-10-26T14:00",
+            "2026-10-26T15:00",
+            "2026-10-26T16:00",
+            "2026-10-26T17:00",
+            "2026-10-26T18:00",
+            "2026-10-26T19:00",
+            "2026-10-26T20:00",
+            "2026-10-26T21:00",
+            "2026-10-26T22:00",
+            "2026-10-26T23:00",
+            "2026-10-27T00:00",
+            "2026-10-27T01:00",
+            "2026-10-27T02:00",
+            "2026-10-27T03:00",
+            "2026-10-27T04:00",
+            "2026-10-27T05:00",
+            "2026-10-27T06:00",
+            "2026-10-27T07:00",
+            "2026-10-27T08:00",
+            "2026-10-27T09:00",
+            "2026-10-27T10:00",
+            "2026-10-27T11:00",
+            "2026-10-27T12:00",
+            "2026-10-27T13:00",
+            "2026-10-27T14:00",
+            "2026-10-27T15:00",
+            "2026-10-27T16:00"
+          ],
+          "fields": [
+            {
+              "name": "cape_mu",
+              "unit": "J/kg",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "cin_mu",
+              "unit": "J/kg",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "visibility",
+              "unit": "m",
+              "scale": 10.0,
+              "offset": 0.0
+            },
+            {
+              "name": "ceiling",
+              "unit": "m",
+              "scale": 1.0,
+              "offset": 0.0
+            },
+            {
+              "name": "freezing_level_height",
+              "unit": "m",
+              "scale": 1.0,
+              "offset": 0.0
+            },
+            {
+              "name": "snowline_height",
+              "unit": "m",
+              "scale": 1.0,
+              "offset": 0.0
+            },
+            {
+              "name": "cloud_cover_mid",
+              "unit": "%",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "cloud_cover_high",
+              "unit": "%",
+              "scale": 0.1,
+              "offset": 0.0
+            },
+            {
+              "name": "surface_temperature",
+              "unit": "°C",
+              "scale": 0.01,
+              "offset": 0.0
+            },
+            {
+              "name": "snow_depth",
+              "unit": "m",
+              "scale": 0.001,
+              "offset": 0.0
+            }
+          ],
+          "recordBytes": 560,
+          "nativeResolutionSeconds": 3600,
+          "horizonHours": 14
+        }
+      },
+      "rapidExtreme": {
+        "key": "runs/2026-10-26T1300/rapid-extreme.json",
+        "schema": "mid.dwd.ruc.rapid-extreme.v4",
+        "windowHours": 6,
+        "horizonHours": 14
+      },
+      "objects": {
+        "deterministic.bin": {
+          "bytes": 364250880,
+          "sha256": "8b90fa9ffcc9540f7378927aa98781730d8e3ffbefa12d0ea985d6ae5c2afd5f"
+        },
+        "eps-summary.bin": {
+          "bytes": 182125440,
+          "sha256": "dca685a797a21d90d0cfd992e661b56e35732dc7af673dd9931df3aecd7efcda"
+        },
+        "eps-members.bin": {
+          "bytes": 607084800,
+          "sha256": "60122cf8c9947d91a9d118e3a5574a6fbb34ba95f0564ef749664280fdc762dc"
+        },
+        "lookup.bin": {
+          "bytes": 2298176,
+          "sha256": "8bc12649247f5bbbe554217455b3770cf589106e4de5637b15af9aa23c09b482"
+        },
+        "rapid-5m.bin": {
+          "bytes": 79137840,
+          "sha256": "efc64575eaf6d6b61fd49e919d25c702fa2bbedab276a00fd7c3e6ec82011ef1"
+        },
+        "rapid-15m.bin": {
+          "bytes": 81306000,
+          "sha256": "81cd84870cbae35b809a702bf28656220c8fea93bef05d55ce3c073868e9bb4d"
+        },
+        "rapid-extreme.json": {
+          "bytes": 452096,
+          "sha256": "7bdfd8d89509685cfc8a13a86a612f21fde17207ff0a676976607efd8ee82bb9"
+        },
+        "rapid-state-15m.bin": {
+          "bytes": 54204000,
+          "sha256": "d91500af8b4e2e8bc23548aa4af54b8890d3ad6fb50ef7c4609e2b6fa557db8c"
+        },
+        "rapid-reflectivity-15m.bin": {
+          "bytes": 27102000,
+          "sha256": "0e323859de5afb9bc72ad64f1d20b8c99fd563313450289f724ebf684c0a6f45"
+        },
+        "rapid-severe-15m.bin": {
+          "bytes": 216816000,
+          "sha256": "1c242e224e30704eed85068f84de8a771266df144e0f059ce302d358c6a48ef8"
+        },
+        "specialist-hourly.bin": {
+          "bytes": 303542400,
+          "sha256": "6723d496352c10c8d06f983748f71f134b308bca83a9565053465c90a3febd14"
+        },
+        "rapid-phase-15m.bin": {
+          "bytes": 81306000,
+          "sha256": "e91f4d7417c55aa321db43e9018730e3a46cd2f285b116719be4f06c93fb9150"
+        }
+      },
+      "sourceGribContract": {
+        "schema": "mid.ruc.source-grib-contract.v1",
+        "forecastReferenceTime": "2026-10-26T13:00:00+00:00",
+        "scope": "12 core fields, CLAT/CLON, EPS TOT_PREC and optional CAPE_MU/CIN_MU; other optional levels not calibrated",
+        "epsMemberIds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "nativeGrid": {
+          "uuid": "c6b12daa91ad64045b26c1b6452a2a20",
+          "number": 47,
+          "reference": 1,
+          "pointCount": 542040
+        },
+        "parameterColumns": [
+          "discipline",
+          "category",
+          "number",
+          "firstSurfaceCode",
+          "firstSurfaceValue",
+          "secondSurfaceCode",
+          "secondSurfaceValue",
+          "processing"
+        ],
+        "parameters": {
+          "temperature_2m": [
+            0,
+            0,
+            0,
+            103,
+            2,
+            255,
+            null,
+            "instant"
+          ],
+          "dew_point_2m": [
+            0,
+            0,
+            6,
+            103,
+            2,
+            255,
+            null,
+            "instant"
+          ],
+          "relative_humidity_2m": [
+            0,
+            1,
+            1,
+            103,
+            2,
+            255,
+            null,
+            "instant"
+          ],
+          "pressure_msl": [
+            0,
+            3,
+            1,
+            101,
+            0,
+            255,
+            null,
+            "instant"
+          ],
+          "u10": [
+            0,
+            2,
+            2,
+            103,
+            10,
+            255,
+            null,
+            "instant"
+          ],
+          "v10": [
+            0,
+            2,
+            3,
+            103,
+            10,
+            255,
+            null,
+            "instant"
+          ],
+          "wind_gusts_10m": [
+            0,
+            2,
+            22,
+            103,
+            10,
+            255,
+            null,
+            "max"
+          ],
+          "precipitation_acc": [
+            0,
+            1,
+            52,
+            1,
+            0,
+            255,
+            null,
+            "accum"
+          ],
+          "cloud_cover": [
+            0,
+            6,
+            1,
+            1,
+            0,
+            255,
+            null,
+            "instant"
+          ],
+          "cloud_cover_low": [
+            0,
+            6,
+            22,
+            100,
+            80000,
+            1,
+            0,
+            "instant"
+          ],
+          "cape": [
+            0,
+            7,
+            6,
+            192,
+            0,
+            255,
+            null,
+            "instant"
+          ],
+          "convective_inhibition": [
+            0,
+            7,
+            7,
+            192,
+            0,
+            255,
+            null,
+            "instant"
+          ],
+          "CLAT": [
+            0,
+            191,
+            1,
+            1,
+            0,
+            255,
+            null,
+            "instant"
+          ],
+          "CLON": [
+            0,
+            191,
+            2,
+            1,
+            0,
+            255,
+            null,
+            "instant"
+          ]
+        },
+        "optionalParameters": {
+          "cape_mu": [
+            0,
+            7,
+            6,
+            193,
+            0,
+            255,
+            null,
+            "instant"
+          ],
+          "cin_mu": [
+            0,
+            7,
+            7,
+            193,
+            0,
+            255,
+            null,
+            "instant"
+          ]
+        },
+        "sourceTimeBounds": {
+          "instant": "[valid,valid]",
+          "accum": "[initialization,valid]",
+          "max": "[max(initialization,valid-3600 seconds),valid]"
+        },
+        "packedPrecipitation": "interval amounts from differences of validated accumulations"
+      }
+    },
+    "legacy-equivalence.json": {
+      "run": "2026-10-26T13:00",
+      "independentObjectsCompared": 12,
+      "allRawObjectsByteIdentical": true,
+      "published": false
+    },
+    "rollback-proof.json": {
+      "schema": "mid.ruc.legacy-prefix-rollback.v1",
+      "run": "2026-10-26T13:00",
+      "prefix": {
+        "schema": "mid.ruc.core-prefix-proof.v1",
+        "run": "2026-10-26T13:00",
+        "sections": [
+          {
+            "section": "deterministic",
+            "points": 542040,
+            "prefixTimes": 15,
+            "extendedTimes": 28,
+            "prefixByteIdentical": true
+          },
+          {
+            "section": "epsSummary",
+            "points": 542040,
+            "prefixTimes": 15,
+            "extendedTimes": 28,
+            "prefixByteIdentical": true
+          },
+          {
+            "section": "eps",
+            "points": 542040,
+            "prefixTimes": 15,
+            "extendedTimes": 28,
+            "prefixByteIdentical": true
+          }
+        ],
+        "productionApproved": false
+      },
+      "storageProfile": "pages-free-v1",
+      "manifestSha256": "2d4a210f5caa60b7aa9f1fbe1237f73fc255f4e96a59f2dc217196927ab86eb5",
+      "physicalBytes": 899400092,
+      "budgetBytes": 900000000,
+      "published": false
+    }
+  },
+  "overallRunConclusion": "failure",
+  "failure": "old map admission requires exactly15 terms; corrected locally to accept only15or28 complete hourly terms",
+  "productionApproved": false,
+  "remainingGates": [
+    "full actual RUC map and synoptic admission after strict28-term fix",
+    "normal MID Source/Heavy/Installer/Worker/Pages/Stable release"
+  ],
+  "testedMergeSha": "72766074436d01bdb2d69af837ae5675f1b780ab"
+}

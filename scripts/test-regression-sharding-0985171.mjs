@@ -1,3 +1,4 @@
+import {spawnSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -37,3 +38,21 @@ for(const group of ['1/3','2/3','3/3'])assert.ok(heavy.includes("map_group: '"+g
 assert.ok(heavy.includes('MID_MAP_QA_SHARD: ${'+'{ matrix.map_group }}'));
 assert.ok(!heavy.includes('continue-on-error')&&!heavy.includes('secrets.'),'Source matrix remains read-only and fail-closed.');
 console.log('MID v0.9.85.171: Regressionsinventar verlustfrei in Core plus drei isolierte Heavy-Shards partitioniert.');
+
+// Execute the real final gate script: the migration cannot release on a skipped,
+// cancelled or failed native 27h qualification, while unrelated PRs stay unchanged.
+const gate=canonical.slice(canonical.indexOf('  validate_source:'));
+assert.ok(gate.includes('      - ruc27_qualification')&&gate.includes('needs.ruc27_qualification.result'));
+assert.ok(gate.includes("RUC27_REQUIRED: ${{ github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification' }}"));
+const gateScript=gate.split('        run: |\n')[1].split('\n').filter(line=>line.startsWith('          ')).map(line=>line.slice(10)).join('\n');
+for(const [required,result,core,heavy,visual,extreme,success] of [
+ ['false','skipped','success','success','skipped','false',true],
+ ['true','success','success','success','skipped','false',true],
+ ...['skipped','failure','cancelled',''].map(result=>['true',result,'success','success','skipped','false',false]),
+ ['true','success','failure','success','skipped','false',false],
+ ['true','success','success','failure','skipped','false',false],
+ ['true','success','success','success','skipped','true',false],
+]){
+ const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:required,RUC27_RESULT:result,CORE_RESULT:core,HEAVY_RESULT:heavy,VISUAL_RESULT:visual,EXTREME_BRANCH:extreme}});
+ assert.equal(run.status===0,success,`actual final Source gate: required=${required}, ruc=${result}, core=${core}, heavy=${heavy}, visual=${visual}`);
+}

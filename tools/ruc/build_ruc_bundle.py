@@ -348,12 +348,29 @@ def collect_eps(files,targets,expected_points,expected_members=None):
       missing=sorted(set(members)-set(rows[t]))
       if missing:raise SystemExit(f'RUC-EPS missing members {missing[:24]} at forecast step {step} ({t})')
     if len(members)<10:raise SystemExit(f'RUC-EPS has only {len(members)} common members')
-    cube=np.stack([np.stack([rows[t][m] for m in members],axis=0) for t in targets],axis=0)
+    cube=np.empty((len(targets),len(members),expected_points),dtype=np.float64)
+    for ti,t in enumerate(targets):
+      for mi,m in enumerate(members):cube[ti,mi]=rows[t].pop(m)
+    del rows
     coverage=validate_eps_member_coverage(cube,members)
     validate_accumulation(cube,'RUC-EPS TOT_PREC')
     print('RUC_MISSING_METRICS '+json.dumps({'validTimes':[t.isoformat() for t in targets],**coverage},allow_nan=False,separators=(',',':')),flush=True)
-    interval=np.maximum(0,np.diff(cube,axis=0,prepend=cube[:1]))
-    return interval,members
+    # Reverse traversal preserves each original predecessor and all NaN masks.
+    for step in range(len(targets)-1,0,-1):
+      np.subtract(cube[step],cube[step-1],out=cube[step])
+      np.maximum(cube[step],0,out=cube[step])
+    np.subtract(cube[0],cube[0],out=cube[0])
+    return cube,members
+
+
+def write_eps_products(interval,members_path,summary_path,chunk_points=4096):
+    """Same point-major bytes, bounded temporary arrays per native point block."""
+    if chunk_points<1:raise ValueError('chunk_points must be positive')
+    with open(members_path,'wb') as member_file,open(summary_path,'wb') as summary_file:
+      for start in range(0,interval.shape[2],chunk_points):
+        block=interval[:,:,start:start+chunk_points]
+        member_file.write(pack_eps_members(block,.01))
+        summary_file.write(pack_cell_major(eps_summary(block),EPS_SUMMARY_FIELDS))
 
 
 def eps_summary(interval):
@@ -463,6 +480,8 @@ def main():
   raise
  print('RUC_MISSING_METRICS '+json.dumps({'run':a.run,'validTimes':[t.isoformat() for t in det_times],**coverage},allow_nan=False,separators=(',',':')),flush=True)
  det=a.output/'deterministic.bin';det.write_bytes(pack_cell_major(fields,DEFAULT_FIELDS))
+ # Derived fields own the retained arrays; raw parameter dictionaries are no longer consumed.
+ del series,rows
  # Parameter-native rapid supplements. The shared state vector stays hourly;
  # rapid products preserve only cadences that DWD actually publishes.
  rapid5_times=rapid_targets(a.run,5,6);rapid15_times=rapid_targets(a.run,15,6)
@@ -473,6 +492,8 @@ def main():
  rapid_precip5=accumulation_intervals(rapid_acc5,rapid5_times);rapid_precip15=accumulation_intervals(rapid_acc15,rapid15_times)
  rapid5_path=a.output/'rapid-5m.bin';rapid5_path.write_bytes(pack_cell_major({'precipitation':rapid_precip5},RAPID_5M_FIELDS))
  rapid15_path=a.output/'rapid-15m.bin';rapid15_path.write_bytes(pack_cell_major({'precipitation':rapid_precip15,'cape':np.stack([rapid_cape[t] for t in rapid15_times]),'convective_inhibition':np.stack([rapid_cin[t] for t in rapid15_times])},RAPID_15M_FIELDS))
+
+ del rapid_acc5,rapid_acc15
 
  # Immediate-state vector: only truly complete native 15-minute fields are
  # admitted. Hourly-only DWD parameters simply remain on the deterministic /
@@ -490,12 +511,16 @@ def main():
  if rapid_state_specs:
   rapid_state_path=a.output/'rapid-state-15m.bin';rapid_state_path.write_bytes(pack_cell_major(rapid_state_fields,rapid_state_specs))
 
+ if u_rows and v_rows:del u15,v15
+ del u_rows,v_rows,rapid_state_fields
+
  # Reflectivity is intentionally fixed to the advertised DBZ_CMAX 15-minute path.
  dbz_files=sorted((a.staging/'rapid-optional'/'DBZ_CMAX').glob('**/*.grib2*'));dbz_path=None;dbz_cube=None
  dbz_rows=collect_optional_parameter(dbz_files,'dbz_cmax',rapid15_times,point_count)
  if dbz_rows:
   dbz_cube=np.stack([dbz_rows[t] for t in rapid15_times]);dbz_path=a.output/'rapid-reflectivity-15m.bin';dbz_path.write_bytes(pack_cell_major({'dbz_cmax':dbz_cube},REFLECTIVITY_15M_FIELDS))
 
+ del dbz_rows
  severe_fields,severe_specs=collect_optional_fields(a.staging/'rapid-optional',SEVERE_PARAM_MAP,rapid15_times,point_count,SEVERE_15M_FIELDS)
  if dbz_cube is not None:
   severe_fields={'dbz_cmax':dbz_cube,**severe_fields}
@@ -506,6 +531,7 @@ def main():
  solar_path=None
  if solar_specs:
   solar_path=a.output/'rapid-solar-15m.bin';solar_path.write_bytes(pack_cell_major(solar_fields,solar_specs))
+ del solar_fields
  specialist_fields,specialist_specs=collect_optional_fields(a.staging/'specialist-hourly',SPECIALIST_PARAM_MAP,det_times,point_count,SPECIALIST_HOURLY_FIELDS)
  specialist_path=None
  if specialist_specs:
@@ -516,6 +542,7 @@ def main():
  rain_rows=collect_optional_parameter(rain_files,'rain_acc',rapid15_times,point_count);snow_rows=collect_optional_parameter(snow_files,'snow_acc',rapid15_times,point_count);graupel_rows=collect_optional_parameter(graupel_files,'graupel_acc',rapid15_times,point_count)
  if rain_rows and snow_rows:
   phase_for_extreme=phase_interval_fields(rain_rows,snow_rows,graupel_rows,rapid15_times);phase_path=a.output/'rapid-phase-15m.bin';phase_path.write_bytes(pack_cell_major(phase_for_extreme,PHASE_15M_FIELDS))
+ del rain_rows,snow_rows,graupel_rows
  grid=build_lookup(base_grid[0],base_grid[1],a.output,a.lookup_step)
  severe_for_extreme=dict(severe_fields)
  if dbz_cube is not None:severe_for_extreme['dbz_cmax']=dbz_cube
@@ -524,8 +551,8 @@ def main():
  eps,members=collect_eps(eps_files,eps_times,point_count,expected_members=range(1,21));eps_period_summary=rapid_extreme_eps_period_summary(eps,eps_times,a.run)
  extreme=build_rapid_extreme_summary(base_grid[0],base_grid[1],a.run,rapid15_times,rapid_precip15,np.stack([rapid_cape[t] for t in rapid15_times]),np.stack([rapid_cin[t] for t in rapid15_times]),rapid_precip5,severe_for_extreme,deterministic_times=det_times,deterministic_fields=fields,specialist_fields=specialist_fields,phase_fields=phase_for_extreme,eps_period_summary=eps_period_summary)
  extreme_path=a.output/'rapid-extreme.json';extreme_path.write_text(json.dumps(extreme,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
- eps_path=a.output/'eps-members.bin';eps_path.write_bytes(pack_eps_members(eps,.01))
- summary_path=a.output/'eps-summary.bin';summary_path.write_bytes(pack_cell_major(eps_summary(eps),EPS_SUMMARY_FIELDS))
+ eps_path=a.output/'eps-members.bin';summary_path=a.output/'eps-summary.bin'
+ write_eps_products(eps,eps_path,summary_path)
  run_key=re.sub(r'[^0-9A-Za-z_-]','',a.run);lookup_path=a.output/'lookup.bin'
  object_paths={'deterministic.bin':det,'eps-summary.bin':summary_path,'eps-members.bin':eps_path,'lookup.bin':lookup_path,'rapid-5m.bin':rapid5_path,'rapid-15m.bin':rapid15_path,'rapid-extreme.json':extreme_path}
  for optional_path in (rapid_state_path,dbz_path,severe_path,solar_path,specialist_path,phase_path):
