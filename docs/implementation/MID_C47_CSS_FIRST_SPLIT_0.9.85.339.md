@@ -17,3 +17,7 @@ Gleiche lokale Toolchain, sauberer Stable-Referenzbuild: initiales CSS 1759985 �
 Dies ist ein kleiner isolierter erster Schritt; die größere Bergwetter-/Widget-/Extremwetter-CSS-Auslagerung, alle 19 Dashboardmodule und der Diagnose-Draft #463 bleiben offen. Vite dokumentiert CSS-Laden vor Ausführung eines asynchronen Chunks; das ist allein kein Kaskaden-/Pixelbeweis (https://vite.dev/guide/features.html#css-code-splitting).
 
 Source-Gate, kontrollierter MID-Bot-Merge, Server-ZIP, Installer, Worker/Pages und Stable-Promotion stehen aus. Kein generischer PR-Completion-Merge. Kein .339-Release behauptet.
+
+## Abschließende lokale Engine-Abnahme
+
+Chromium 42/42 gegen die vollständige Stable-Referenz und zusätzlich 42/42 gegen die im CI rekonstruierte Referenz; WebKit 42/42 gegen Stable, jeweils mit exakter Pixel-/SVG-/Computed-Parität. WebKit liefert im Memorycache decodedBodySize=0; deshalb wird Cachewiederverwendung unabhängig über serverseitige HTTP-Zähler (cold genau ein Modul-CSS-Request, warm keiner) plus tatsächlich geladenen CSSOM-Regeln geprüft. Kein Testskip und keine gelockerte Pixel-/Layoutassertion. CI rekonstruiert die ursprüngliche letzte eager CSS-Lage und entfernt den neuen CSS-Import ausschließlich aus der Baseline-Fixture, damit diese nicht versehentlich die neue Einfügereihenfolge übernimmt. Quellhashes im JSON-Bericht. Release-Gates weiterhin ausstehend.

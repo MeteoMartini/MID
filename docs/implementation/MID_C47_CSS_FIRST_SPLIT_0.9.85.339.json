@@ -25,7 +25,17 @@
     "passed": 1025,
     "total": 1025
   },
-  "webkitProductionCases": null,
+  "webkitProductionCases": 42,
   "physicalIosVoiceOverApproved": false,
-  "releaseGates": "pending"
+  "releaseGates": "pending",
+  "ciReconstructedReferenceChromiumCases": 42,
+  "cssCacheEvidence": "Server HTTP request counters plus loaded CSSOM; cached WebKit decodedBodySize may be zero",
+  "sourceFilesSha256": {
+    "src/ForecastCockpit.tsx": "5b9ad2f9cb583d2e156a5434d6e716d2fc172c8d7459a46c3fcfa047dea538ff",
+    "src/FourteenDayDevelopment.tsx": "3206ad9437214c799f581135cb17aa167079730a4356af21c0844131c9f3f613",
+    "src/midC28MapPhase.css": "806707a01f33ad926a468963e4e8660fb2df9d94dc2154dc9e9f59dbad3d0acf",
+    "src/midPresentation.css": "3a067869985df17b30b560fcfe5cce596567da44dbced6640ee21cfba4d49e4e",
+    "src/styles-src/presentation-order.json": "7368c5bb1523fd804a288e97b834351979f488a02963fc81faf0e8044cfefd22",
+    "scripts/verify-fourteen-css-production-0985339.mjs": "7ff94461200d291ab03b00762a7e2c17bf12d367b36f8af5247d9e10004fa1f6"
+  }
 }
