@@ -10,6 +10,10 @@ for(const [value,phase] of Object.entries(golden)){const code=Number(value);asse
 for(const unavailable of [null,undefined,NaN,Infinity,-1,100,0,3,45,51,61,63,65,80,81,82,95,97,22,66.2,'66',false]){assert.equal(synopPrecipitationPhase(unavailable),null);assert.equal(synopPrecipitationSymbolSvg(unavailable),null)}
 assert.notEqual(synopPrecipitationSymbolSvg(56),synopPrecipitationSymbolSvg(66),'freezing drizzle/rain symbols must differ');
 assert.notEqual(synopPrecipitationSymbolSvg(71),synopPrecipitationSymbolSvg(73),'intensity groups must differ');
+const snowMarks=ww=>(synopPrecipitationSymbolSvg(ww)?.match(/<g stroke=/g)||[]).length;
+assert.deepEqual([snowMarks(71),snowMarks(73),snowMarks(75)],[1,2,3],'light, moderate, heavy snow plotting must retain relative intensity');
+assert.notEqual(synopPrecipitationSymbolSvg(68),synopPrecipitationSymbolSvg(69),'slight/heavy mixed precipitation must not be identical');
+assert.notEqual(synopPrecipitationSymbolSvg(83),synopPrecipitationSymbolSvg(84),'mixed shower severity must remain distinct');
 assert.notEqual(synopPrecipitationSymbolSvg(87),synopPrecipitationSymbolSvg(89),'graupel and hail must remain distinct');
 const overlay=readFileSync(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8');
 assert.ok(overlay.includes("synopPrecipitationPhase(rawWw)===typed"));
