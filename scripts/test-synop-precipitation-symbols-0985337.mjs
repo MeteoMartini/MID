@@ -13,7 +13,7 @@ assert.notEqual(synopPrecipitationSymbolSvg(71),synopPrecipitationSymbolSvg(73),
 assert.notEqual(synopPrecipitationSymbolSvg(87),synopPrecipitationSymbolSvg(89),'graupel and hail must remain distinct');
 const overlay=readFileSync(new URL('../src/RadarModelPrecipTypeOverlay.tsx',import.meta.url),'utf8');
 assert.ok(overlay.includes("synopPrecipitationPhase(rawWw)===typed"));
-assert.ok(overlay.includes("ww===undefined?precipitationTypeSymbolSvg(item.phase):synopPrecipitationSymbolSvg(item.ww)"));
+assert.ok(overlay.includes("item.ww===undefined?precipitationTypeSymbolSvg(item.phase):synopPrecipitationSymbolSvg(item.ww)"));
 assert.ok(overlay.includes("if(!echo.covered||!Number.isFinite(echo.maxDbz))continue"));
 assert.ok(overlay.includes("if(echo.maxDbz<phaseMinimumDbz(typed))continue"));
 assert.ok(overlay.includes("OPERA-CIRRUS-Echomaske fehlt; die Niederschlagsart bleibt aus."));
