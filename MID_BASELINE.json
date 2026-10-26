@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.338",
+  "releaseVersion": "0.9.85.339",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -407,6 +407,7 @@
     "scripts/test-forecast-precipitation-support-083317.mjs",
     "scripts/test-forecast-summary-landscape.mjs",
     "scripts/test-forecast-wind-layout.mjs",
+    "scripts/test-fourteen-css-lazy-0985339.mjs",
     "scripts/test-fourteen-day-bestmatch-fallback-097829.mjs",
     "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
@@ -1434,6 +1435,7 @@
     "scripts/test-forecast-precipitation-support-083317.mjs",
     "scripts/test-forecast-summary-landscape.mjs",
     "scripts/test-forecast-wind-layout.mjs",
+    "scripts/test-fourteen-css-lazy-0985339.mjs",
     "scripts/test-fourteen-day-bestmatch-fallback-097829.mjs",
     "scripts/test-fourteen-day-confidence-no-clipping-097879.mjs",
     "scripts/test-fourteen-day-header-density-097880.mjs",
@@ -2068,6 +2070,7 @@
   ],
   "requiredFiles": [
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",
+    "scripts/test-fourteen-css-lazy-0985339.mjs",
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
     "docs/implementation/MID_C34_PSEUDOSAT_PHASE_A_0.9.85.276.md",
     "docs/implementation/MID_C34_PSEUDOSAT_PHASE_B_ISOBARS_0.9.85.277.md",
@@ -3003,7 +3006,10 @@
     "src/RadarPanel.tsx",
     "src/forecastFusionRefresh.ts",
     "scripts/test-forecast-fusion-resume-0985335.mjs",
-    "docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md"
+    "docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md",
+    "scripts/verify-fourteen-css-production-0985339.mjs",
+    "docs/implementation/MID_C47_CSS_FIRST_SPLIT_0.9.85.339.json",
+    "docs/implementation/MID_C47_CSS_FIRST_SPLIT_0.9.85.339.md"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3733,7 +3739,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.338",
+  "version": "0.9.85.339",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

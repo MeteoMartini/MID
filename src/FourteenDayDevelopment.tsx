@@ -1,3 +1,4 @@
+import './midC28MapPhase.css';
 import {HorizonSignalChart} from './HorizonSignalChart';
 import {assessmentSummary,type DayAssessment} from './ensembleAssessment';
 import {formatDecimalFixed} from './format';

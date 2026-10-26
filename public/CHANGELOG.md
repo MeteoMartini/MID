@@ -1,3 +1,7 @@
+# MID v0.9.85.339 · 14-Tage-Entwicklung gezielt nachladen
+
+Die Entwicklungsübersicht der 14-Tage-Prognose wird mit ihren eigenen Styles erst beim Öffnen geladen. Wetterwerte, Ensemble-Spannen, Diagramme und Bedienung bleiben erhalten. Dies ist der erste abgegrenzte Schritt der CSS-Auslagerung.
+
 # MID v0.9.85.338 · Dunkles horizontales MID-Logo
 
 Der Startbildschirm verwendet das bereitgestellte dunkle horizontale MID-Wortbild. Die übrigen Logos und App-Icons bleiben erhalten.

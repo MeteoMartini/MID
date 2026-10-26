@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "baselineSha": "ed934fb0e755e54e0e4a553b8c47d44f7a59c262",
+  "version": "0.9.85.339",
+  "scope": "Exclusive final FourteenDayDevelopment stylesheet and renderer, no whole-app CSS migration",
+  "sameToolchainBaseline": true,
+  "initialCss": {
+    "beforeRaw": 1759985,
+    "afterRaw": 1756829,
+    "beforeGzip9": 249702,
+    "afterGzip9": 249397
+  },
+  "initialIndexJs": {
+    "beforeRaw": 1478169,
+    "afterRaw": 1471006,
+    "beforeGzip9": 455621,
+    "afterGzip9": 453214
+  },
+  "deferredCss": {
+    "raw": 3157,
+    "gzip9": 664
+  },
+  "chromiumProductionCases": 42,
+  "localRegressions": {
+    "passed": 1025,
+    "total": 1025
+  },
+  "webkitProductionCases": null,
+  "physicalIosVoiceOverApproved": false,
+  "releaseGates": "pending"
+}

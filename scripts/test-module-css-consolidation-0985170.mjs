@@ -18,7 +18,7 @@ for(const file of files.keys())assert.ok(!/from ['"]\.\/App['"]|import\(['"]\.\/
 assert.match(read('src/WidgetGenerator.tsx'),/SevenDayCurveOverview/,'Widget must retain the common curve renderer');
 assert.match(read('src/WidgetGenerator.tsx'),/freezeWidgetSvgPaintsForExport/,'PNG export must retain resolved SVG paints');
 assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config,controller.signal/,'Mountain data acquisition must retain cancellation');
-assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26/C27/C28 layers may follow the unchanged .169 cascade');
+assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26/C27 layers may follow the unchanged .169 eager cascade; C28 is owned by the async development component');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css'].includes(entry.file));
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
 // C32 explicitly changes only the two Skybar preview/legend radii. Require the
@@ -59,6 +59,8 @@ assert.equal(reviewedSearchRoots,1,'Exactly the authorized root overflow rule');
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');
+assert.ok(read('src/FourteenDayDevelopment.tsx').startsWith("import './midC28MapPhase.css';"),'Trailing development styles must load with their sole consumer');
+assert.ok(!read('src/ForecastCockpit.tsx').includes("import {FourteenDayDevelopment}"),'Development chart must remain an async boundary');
 const output=read('src/midPresentation.css');
 assert.equal(output,renderConsolidatedCss(entries),'Generated CSS does not match canonical ordered sources');
 assert.equal(cssCascadeFingerprint(parseCssOutput(output)),cssCascadeFingerprint(entries),'Published stylesheet changed canonical CSS semantics/order');
