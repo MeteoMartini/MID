@@ -317,6 +317,57 @@ jobs:
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
         run: npm run test:regressions
 
+  ruc27_qualification:
+    name: RUC +27h Kern und EPS · isolierter Draft-Nachweis
+    # Read-only preflight; never participates in release readiness or publication.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification' &&
+      github.event.pull_request.draft == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-identischen PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Python einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Bestehende native Testumgebung installieren
+        run: python -m pip install -r tools/ruc/requirements-pages.txt
+      - name: Integrität und vollständigen +27h-Kern einschließlich EPS prüfen
+        shell: bash
+        timeout-minutes: 38
+        run: |
+          set -euo pipefail
+          mkdir -p ruc27-evidence
+          printf '%s\n' "$GITHUB_SHA" > ruc27-evidence/tested-merge-sha.txt
+          python -m unittest discover -s tools/ruc -p test_meteo_integrity.py
+          python tools/ruc/fetch_and_build_ruc.py --hours 27 --candidate-count 1 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
+          cp "$RUNNER_TEMP/ruc27-output/latest.json" ruc27-evidence/latest.json
+          # Manifest is evidence only, never a published data pointer.
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'ruc27-output'
+          meta=json.loads((root/'latest.json').read_text())
+          assert len(meta['deterministic']['times']) == 28
+          assert len(meta['eps']['times']) == 28
+          assert len(meta['epsSummary']['times']) == 28
+          assert meta['eps']['memberCount'] == 20
+          print('Complete 28-term core/EPS snapshot built; codec, prefix, budget and fusion admission remain separate gates.')
+          PY
+      - name: Ausschließlich Diagnose und Manifest sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc27-core-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc27-evidence/
+          if-no-files-found: error
+          retention-days: 7
+
   visual_extreme:
     name: Extremwetterpolygone · echte Browserpixel
     # This branch-scoped draft preflight is not a release or a replacement for core/heavy.

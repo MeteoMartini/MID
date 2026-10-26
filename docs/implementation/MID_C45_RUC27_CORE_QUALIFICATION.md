@@ -1,5 +1,11 @@
 # MID-C45 · RUC-Kern/Fusion über +14 h
 
+## MID-C46 · bestehende Nachweise nutzen
+
+Der frühere +27-h-Nachweis ist vorhanden und wird nicht erneut verlangt: GitHub-Run 39549581777 (success), Head d65b8efaedb14c21dc310ed886781a5ec058d4bb, Artefakt 12322369998, Archiv-SHA256 8f35dccd8a8d5f058de28c76a8c30bceac503830c4df691983c99d1bbf1ce6ee. Drei echte Läufe vom 21.10.2026 mit jeweils 28 Terminen, zwölf Feldern und 542040 Punkten sowie 498 unabhängig geprüfte Kartenframes; bitgleicher 14-h-Kernpräfix. Dauerhafte Evidenz: MID_C38_RUC_NATIVE_27H_0.9.85.305.json. Der damalige Bericht grenzt EPS und numerische Fusionsausdehnung ausdrücklich aus.
+
+Der zusätzliche lokale Vollbuild wurde durch die Executor-Netzrichtlinie für opendata.dwd.de beendet. Deshalb läuft die fehlende erweiterte Kern-/EPS-Buildprüfung nun als eng auf diesen Draft-Branch begrenzter Read-only-Job im bestehenden Source-PR-Workflow. Derselbe SHA-gebundene PR-Mergecheckout, vorhandene Python-Anforderungen und gepinnte Actions; kein neuer Workflow, keine Secrets, keine Deploy-/Schreibrechte. 28 deterministische/EPS-/EPS-Summary-Termine und 20 Mitglieder sind Pflicht. Nur Manifest, Log und Merge-SHA werden sieben Tage archiviert. Produktionsaggregate und Release-Readiness bleiben unverändert; dieser Preflight ersetzt weder Präfix-/Codec-/Budgetnachweis noch Fusions-/Releasegates. Die Workflowquellen sind kanonisch synchronisiert und die bestehenden Schreibvertrags-/Bootstrapprüfungen bestehen.
+
 Basis: Stable v0.9.85.335, 3908e1c7e6c8475278ae07e5cfbd5a4780822e95.
 
 ## Ziel und Zeitsystem
