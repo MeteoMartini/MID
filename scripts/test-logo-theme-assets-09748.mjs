@@ -46,7 +46,7 @@ const assets={
 };
 for(const [path,[width,height]] of Object.entries(assets)){const image=await read(path);assert.deepEqual(dimensions(image),{width,height},path);}
 assert.notEqual(digest(await read('public/mid-app-icon-light-1024.png')),digest(await read('public/mid-app-icon-dark-1024.png')),'Light und Dark App-Icon müssen verschieden sein.');
-assert.equal(digest(await read('public/mid-logo-dark-horizontal.png')),'62435a0b4e03faeb719717c36ef8ad24937e9e1be3b62025723a4d3b4a138bd6','Dark-Mode-Header muss das freigegebene horizontale Wortbild verwenden.');
+assert.equal(digest(await read('public/mid-logo-dark-horizontal.png')),'d66e9033b7512f088562917dded446681911ff975307342d6b3d7da0e4e9123a','Dark-Mode-Header muss das freigegebene horizontale Wortbild verwenden.');
 
 const parsedAppIcons=JSON.parse(appIconCatalog),parsedSplash=JSON.parse(splashCatalog);
 assert.ok(parsedAppIcons.images.some(image=>image.filename==='AppIcon-Light-1024.png'));
