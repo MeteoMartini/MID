@@ -11,7 +11,7 @@ const tests=await regressionSuite(root),plan=await regressionShardPlan(root),ass
 assert.equal(assigned.length,tests.length,'Shard-Summe muss exakt dem vollständigen Regressionsinventar entsprechen.');
 assert.equal(new Set(assigned).size,tests.length,'Kein Regressionstest darf in zwei Shards liegen.');
 assert.deepEqual(new Set(assigned),new Set(tests),'Kein Regressionstest darf durch Sharding fehlen.');
-assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-browser-state'],['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs']);
+assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-browser-state'],['test-favorite-selection-browser-0985189.mjs','test-forecast-display-persistence-0985166.mjs','test-fourteen-css-lazy-0985339.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-native-map'],['test-adaptive-native-maps-0985141.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-unified-map'],['test-unified-map-layers-0985167.mjs']);
 assert.deepEqual(REGRESSION_HEAVY_SHARDS['heavy-mountain-visual'],['test-mountain-visual-acceptance-18213.mjs']);
