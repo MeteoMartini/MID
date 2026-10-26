@@ -345,7 +345,7 @@ jobs:
           mkdir -p ruc27-evidence
           printf '%s\n' "$GITHUB_SHA" > ruc27-evidence/tested-merge-sha.txt
           python -m unittest discover -s tools/ruc -p test_meteo_integrity.py
-          python tools/ruc/fetch_and_build_ruc.py --hours 27 --candidate-count 1 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
+          python tools/ruc/fetch_and_build_ruc.py --hours 27 --candidate-count 4 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
           cp "$RUNNER_TEMP/ruc27-output/latest.json" ruc27-evidence/latest.json
           # Manifest is evidence only, never a published data pointer.
           python - <<'PY'
