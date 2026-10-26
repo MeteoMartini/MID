@@ -5,6 +5,9 @@ as the released preprocessor. EPS and production fusion are explicitly excluded.
 """
 from __future__ import annotations
 import argparse,hashlib,json,re,tempfile,time
+from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
+from multiprocessing import get_context
 from datetime import datetime,timezone
 from pathlib import Path
 import numpy as np
@@ -69,6 +72,40 @@ def probe_run(run,work,output,hours=27,admission=False):
  return {'run':run,'hours':hours,'rucCompositeFrames':len(composites['model']['frames']),'rucCompositeSources':len(composites['origins']),'nativePointCount':point_count,'hourlyInventory':inventory,'sourceGribFiles':origins,'coverage':coverage,'extrema':metrics,'deterministicBytes':objects['deterministic.bin']['bytes'],'additionalCoreBytesVs14':point_count*max(0,hours-14)*len(DEFAULT_FIELDS)*2,'mapCandidateBytes':candidate['candidateBytes'],'mapIndexSha256':file_info(output/'maps'/'index.json')['sha256'],'sourceManifestSha256':candidate['sourceManifestSha256'],'durationSeconds':round(time.monotonic()-start,2),'mapAdmissionFixture':admission_proof,'nativeHourlyVerified':True,'epsVerified':False,'readyForProduction':False}
 
 
+def _probe_candidate(run,root,admission):
+ # Each ecCodes/NumPy process owns its GRIB session, temporary data and output.
+ # No two candidates share mutable state; no production write is performed.
+ output=root/re.sub('[^A-Za-z0-9_-]','',run)
+ output.mkdir()
+ try:
+  with tempfile.TemporaryDirectory(prefix='mid-ruc-horizon-') as tmp:
+   result=probe_run(run,Path(tmp),output,admission=admission)
+  return {'run':run,'result':result}
+ except (Exception,SystemExit) as e:
+  return {'run':run,'error':type(e).__name__+': '+str(e)[:4000]}
+
+
+def select_probes(candidates,needed,run_batch,record):
+ # Keep the original newest-first admission and exactly three proven runs.
+ # At most two candidates run concurrently; never launch a surplus candidate.
+ if len(set(candidates))!=len(candidates):raise ValueError('duplicate RUC run candidates')
+ cursor=0;accepted=0
+ while cursor<len(candidates) and accepted<needed:
+  batch=candidates[cursor:cursor+min(2,needed-accepted)]
+  results=list(run_batch(batch))
+  if [row.get('run') for row in results]!=batch:
+   raise ValueError('RUC parallel candidate identity/order/count drift')
+  for row in results:
+   if ('result' in row)==('error' in row):raise ValueError('RUC candidate outcome must contain exactly one status')
+   if 'result' in row:
+    if row['result'].get('run')!=row['run'] or row['result'].get('hours')!=27:
+     raise ValueError('RUC candidate source run/horizon mismatch')
+    accepted+=1
+   record(row)
+  cursor+=len(batch)
+ return accepted==needed
+
+
 def main():
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--output',type=Path,required=True);p.add_argument('--runs',type=int,default=3);p.add_argument('--candidate-count',type=int,default=6);p.add_argument('--admission',action='store_true');a=p.parse_args()
  if not 1<=a.runs<=3 or not a.runs<=a.candidate_count<=6:raise SystemExit('probe bounds: 1..3 runs, at most six candidates')
@@ -77,17 +114,17 @@ def main():
  def save():(a.output/'report.json').write_text(json.dumps(report,ensure_ascii=False,allow_nan=False,indent=2)+'\n')
  try:
   candidates=sorted(runs(session(),DET_BASE,'T_2M'),reverse=True)[:a.candidate_count]
-  for run in candidates:
-   output=a.output/re.sub('[^A-Za-z0-9_-]','',run);output.mkdir()
-   try:
-    with tempfile.TemporaryDirectory(prefix='mid-ruc-horizon-') as tmp:
-     result=probe_run(run,Path(tmp),output,admission=a.admission)
-    report['runs'].append(result)
-   except (Exception,SystemExit) as e:
-    report['excludedCandidates'].append({'run':run,'reason':type(e).__name__+': '+str(e)[:4000]})
+  def record(row):
+   if 'result' in row:report['runs'].append(row['result'])
+   else:report['excludedCandidates'].append({'run':row['run'],'reason':row['error']})
    save()
-   if len(report['runs'])==a.runs:break
-  report['pilotVerified']=len(report['runs'])==a.runs;save()
+  # The former fully serial three-run preflight exceeded its 20-minute step.
+  # Use isolated spawned workers, bounded to two concurrent native GRIB probes;
+  # every original full-run, composite, map and admission assertion stays intact.
+  with ProcessPoolExecutor(max_workers=2,mp_context=get_context('spawn')) as pool:
+   def submit(batch):return pool.map(_probe_candidate,batch,repeat(a.output),repeat(a.admission))
+   report['pilotVerified']=select_probes(candidates,a.runs,submit,record)
+  save()
   return 0 if report['pilotVerified'] else 2
  except (Exception,SystemExit) as e:
   report['error']=type(e).__name__+': '+str(e)[:4000];report['pilotVerified']=False;save();return 2

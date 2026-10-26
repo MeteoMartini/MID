@@ -129,6 +129,7 @@ jobs:
           python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
           python tools/ruc/test_fetch_resilience.py
           python tools/ruc/test_ruc_native_sidecar.py
+          python -m unittest discover -s tools/ruc -p test_ruc_horizon_probe.py
 
       - name: Änderungen am nativen RUC-Kartenpfad erkennen
         id: ruc_native_changes
@@ -325,7 +326,9 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 26 Oct verified: full native EPS build ~18 min, independent map/codec
+    # exceeded 25 min; extend EXECUTION ONLY, retain every validation gate.
+    timeout-minutes: 65
     permissions:
       contents: read
     steps:
@@ -365,7 +368,9 @@ jobs:
           node-version: 22.16.0
       - name: Vollständiges Kartenpaket, Rohrollback und Codec unabhängig prüfen
         shell: bash
-        timeout-minutes: 25
+        # Native model maps + full Python/JS/Worker replay need more than 25 min.
+        # No altered 900 MB budget, source identity, checksum or acceptance rule.
+        timeout-minutes: 40
         run: |
           set -euo pipefail
           python -m unittest discover -s tools/ruc -p test_compare_core_prefix.py
@@ -499,4 +504,3 @@ jobs:
             exit 1
           fi
           echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."
-
