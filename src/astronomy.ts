@@ -107,8 +107,16 @@ export type SolarNightBand={startEpoch:number;endEpoch:number;fadeIn:boolean;fad
 export function solarTimelineWindow(startEpoch:number,endEpoch:number,location:SolarDaylightLocation,fallbackIsDay=false){
  const start=Number(startEpoch),end=Number(endEpoch),timezone=location.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
  if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||!Number.isFinite(Number(location.latitude))||!Number.isFinite(Number(location.longitude)))return{events:[] as SolarTimelineEvent[],nightBands:[] as SolarNightBand[]};
- const startParts=localDateParts(new Date(start),timezone),eventsByKey=new Map<string,SolarTimelineEvent>();
- for(let dayOffset=-1;dayOffset<=3;dayOffset++){
+ const startParts=localDateParts(new Date(start),timezone),endParts=localDateParts(new Date(end-1),timezone);
+ // Count real IANA-local calendar dates, not elapsed 24h UTC blocks: DST can
+ // create 23/25h days. An invalid/unbounded span must not invent a night mask.
+ const calendarDays=(Date.UTC(endParts.year,endParts.month-1,endParts.day)-Date.UTC(startParts.year,startParts.month-1,startParts.day))/DAY_MS+1;
+ if(!Number.isInteger(calendarDays)||calendarDays<1||calendarDays>62)return{events:[] as SolarTimelineEvent[],nightBands:[] as SolarNightBand[]};
+ const eventsByKey=new Map<string,SolarTimelineEvent>();
+ // Cover every visible day plus one local calendar-day guard at each edge.
+ // The former fixed +3 cutoff incorrectly extended the last known night
+ // across Friday–Sunday in MID's seven-day curve.
+ for(let dayOffset=-1;dayOffset<=calendarDays;dayOffset++){
   const parts=shiftDate(startParts,dayOffset),times=sunTimesForDate(parts,Number(location.latitude),Number(location.longitude),Number(location.elevation)||0,timezone);
   for(const [kind,value] of [['sunrise',times.sunrise],['sunset',times.sunset]] as const){const epoch=value?.getTime();if(!Number.isFinite(epoch)||Number(epoch)<start-36*3600000||Number(epoch)>end+36*3600000)continue;eventsByKey.set(`${kind}:${epoch}`,{kind,epoch:Number(epoch)})}
  }
