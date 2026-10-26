@@ -16,6 +16,9 @@ from lossless_codec_pilot import encode_candidate, decode_candidate
 from lossless_dual_read import MAX_PILOT_BYTES
 
 
+MAX_CODEC_STAGING_BYTES=3_600_000_000
+
+
 def packed(value):
     return (json.dumps(value, ensure_ascii=False, separators=(',', ':'))+'\n').encode()
 
@@ -39,7 +42,8 @@ def digest_file(path):
 
 def verify_inventory(meta, root):
     root=Path(root).resolve()
-    if meta.get('schema')!='mid.dwd.ruc.grid.v2' or meta.get('storageProfile')!='pages-free-v1':
+    staging=meta.get('storageProfile')=='pages-codec-staging-v1' and meta.get('pages',{}).get('profile')=='pages-codec-staging-v1' and meta.get('pages',{}).get('stagingOnly') is True
+    if meta.get('schema')!='mid.dwd.ruc.grid.v2' or not (meta.get('storageProfile')=='pages-free-v1' or staging):
         raise ValueError('unsupported source inventory')
     pages=meta.get('pages', {})
     rows=pages.get('objects')
@@ -56,6 +60,8 @@ def verify_inventory(meta, root):
         by_key[key]=row
     if type(pages.get('publishedBytes')) is not int or sum(r['bytes'] for r in rows)!=pages['publishedBytes']:
         raise ValueError('inventory total mismatch')
+    if staging and pages['publishedBytes']+(root/'latest.json').stat().st_size>=MAX_CODEC_STAGING_BYTES:
+        raise ValueError('non-publishable codec staging exceeds temporary disk quota')
     if type(pages.get('budgetBytes')) is not int or pages['budgetBytes']!=900_000_000:
         raise ValueError('unexpected publication budget')
     return by_key

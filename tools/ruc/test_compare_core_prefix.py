@@ -16,7 +16,7 @@ class PrefixTests(unittest.TestCase):
         for root, count in zip(self.roots, (15, 28)):
             root.mkdir()
             times = [(datetime(2026, 10, 21) + timedelta(hours=i)).isoformat(timespec='minutes') for i in range(count)]
-            meta = {'schema': 'mid.dwd.ruc.grid.v2', 'run': times[0], 'pointCount': 3, 'grid': {'name': 'fixture'}, 'lookup': {'key': 'lookup.bin'}, 'objects': {}}
+            meta = {'schema': 'mid.dwd.ruc.grid.v2', 'run': times[0], 'pointCount': 3, 'times': times, 'grid': {'name': 'fixture'}, 'lookup': {'key': 'lookup.bin'}, 'objects': {}}
             for section, name in (('deterministic', 'deterministic.bin'), ('epsSummary', 'eps-summary.bin'), ('eps', 'eps-members.bin')):
                 width = 20 if section == 'eps' else 2
                 values = np.arange(3 * 28 * width, dtype='<u2').reshape(3, 28, width)
@@ -47,6 +47,11 @@ class PrefixTests(unittest.TestCase):
     def test_shifted_tail_rejected(self):
         self.mutate_meta(lambda x: x['eps']['times'].__setitem__(27, '2026-10-22T04:00'))
         with self.assertRaisesRegex(ValueError, 'axis'):
+            compare(*self.roots)
+
+    def test_root_axis_drift_rejected(self):
+        self.mutate_meta(lambda x: x.update(times=x['times'][1:]))
+        with self.assertRaisesRegex(ValueError, 'root time axis'):
             compare(*self.roots)
 
     def test_encoding_drift_rejected(self):

@@ -33,6 +33,14 @@ with tempfile.TemporaryDirectory() as td:
  (src/'precipitation-totals.json').write_text(json.dumps({'schema':'mid.icon-d2.totals.v1','run':'2026-10-01T09:00:00+00:00'}))
  result=prepare(src,out,data_chunk_points=4,lookup_chunk_entries=5)
  assert result['storageProfile']=='pages-free-v1' and result['pages']['nativeEpsMembers'] is False
+ staged=prepare(src,root/'codec-staging',data_chunk_points=4,lookup_chunk_entries=5,codec_staging=True)
+ assert staged['storageProfile']=='pages-codec-staging-v1' and staged['pages']['stagingOnly'] is True
+ assert staged['pages']['budgetBytes']==900000000
+ for section in ('deterministic','epsSummary'):
+  assert staged[section]['recordBytes']==result[section]['recordBytes']
+  for row in staged['pages']['objects']:
+   if row['key'].startswith(staged[section]['pages']['prefix']+'/'):
+    assert (root/'codec-staging/ruc'/row['key']).read_bytes()==(out/'ruc'/row['key']).read_bytes()
  from storage_audit import audit_storage
  audit=audit_storage(result,out/'ruc')
  assert audit['publishedBytes']==result['pages']['publishedBytes']

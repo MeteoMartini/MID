@@ -17,7 +17,8 @@ async function file(root,key){
 }
 const oldBytes=await readFile(await file(source,'latest.json')),newBytes=await readFile(await file(candidate,'latest.json'));
 const old=JSON.parse(oldBytes),next=JSON.parse(newBytes);
-assert.equal(old.storageProfile,'pages-free-v1');assert.equal(next.schema,old.schema);
+assert.ok(old.storageProfile==='pages-free-v1'||(old.storageProfile==='pages-codec-staging-v1'&&old.pages.stagingOnly===true),'Only legacy raw rollback or explicitly non-publishable codec staging');
+assert.equal(next.pages.stagingOnly,undefined);assert.equal(next.schema,old.schema);
 assert.equal(next.storageProfile,'pages-lossless-candidate-v1');assert.equal(next.migration.productionEnabled,false);
 assert.equal(next.migration.sourceManifestSha256,sha(oldBytes));
 async function inventory(root,meta){

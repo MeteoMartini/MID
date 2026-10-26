@@ -345,7 +345,7 @@ jobs:
           mkdir -p ruc27-evidence
           printf '%s\n' "$GITHUB_SHA" > ruc27-evidence/tested-merge-sha.txt
           python -m unittest discover -s tools/ruc -p test_meteo_integrity.py
-          python tools/ruc/fetch_and_build_ruc.py --hours 27 --candidate-count 4 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
+          python tools/ruc/fetch_and_build_ruc.py --hours 27 --run 2026-10-26T11:00 --stage "$RUNNER_TEMP/ruc27-stage" --output "$RUNNER_TEMP/ruc27-output" 2>&1 | tee ruc27-evidence/build.log
           cp "$RUNNER_TEMP/ruc27-output/latest.json" ruc27-evidence/latest.json
           # Manifest is evidence only, never a published data pointer.
           python - <<'PY'
@@ -363,23 +363,31 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.16.0
-      - name: Präfix und unveränderten Pages-/Codec-/Budgetpfad prüfen
+      - name: Bestätigten Präfix übernehmen und isolierten Kern-Codec prüfen
         shell: bash
         timeout-minutes: 25
         run: |
           set -euo pipefail
           python -m unittest discover -s tools/ruc -p test_compare_core_prefix.py
+          python -m unittest discover -s tools/ruc -p test_codec_staging.py
           python - <<'PYBUILD'
-          import json, os, re, subprocess, sys
+          import json, os, sys
           from pathlib import Path
-          root=Path(os.environ['RUNNER_TEMP'])
-          run=json.loads((root/'ruc27-output/latest.json').read_text())['run']
-          stage=root/'ruc27-stage'/re.sub(r'[^0-9A-Za-z_-]','',run)
-          with open('ruc27-evidence/prefix-build.log','w') as log:
-              subprocess.run([sys.executable,'tools/ruc/build_ruc_bundle.py','--staging',str(stage),'--output',str(root/'ruc14-reference'),'--run',run,'--hours','14'],stdout=log,stderr=subprocess.STDOUT,check=True)
+          sys.path.insert(0,'tools/ruc')
+          from compare_core_prefix import checked
+          from prepare_ruc_pages import prepare
+          root=Path(os.environ['RUNNER_TEMP']); source=root/'ruc27-output'
+          meta=json.loads((source/'latest.json').read_text())
+          expected=json.loads(Path('docs/implementation/MID_C46_RUC27_BUILD_PROOF.json').read_text())
+          prefix=json.loads(Path('docs/implementation/MID_C46_RUC27_PREFIX_PROOF.json').read_text())
+          assert meta['run']==expected['run']==prefix['proof']['run']
+          assert meta['pointCount']==expected['pointCount']==542040
+          for name in ('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin'):
+              checked(source,meta,name)
+              assert meta['objects'][name]==expected['objects'][name], 'Previously proven prefix may only be reused with identical complete core bytes'
+          Path('ruc27-evidence/prefix-proof.json').write_text(json.dumps(prefix,indent=2))
+          prepare(source,root/'ruc27-pages',codec_staging=True)
           PYBUILD
-          python tools/ruc/compare_core_prefix.py "$RUNNER_TEMP/ruc14-reference" "$RUNNER_TEMP/ruc27-output" > ruc27-evidence/prefix-proof.json
-          python tools/ruc/prepare_ruc_pages.py --source "$RUNNER_TEMP/ruc27-output" --output "$RUNNER_TEMP/ruc27-pages" 2>&1 | tee ruc27-evidence/pages-build.log
           python tools/ruc/prepare_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-build.json
           node tools/ruc/verify_lossless_migration.mjs "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" > ruc27-evidence/codec-proof.json
           python tools/ruc/activate_lossless_snapshot.py "$RUNNER_TEMP/ruc27-pages/ruc" "$RUNNER_TEMP/ruc27-codec" ruc27-evidence/codec-proof.json "$RUNNER_TEMP/ruc27-active" > ruc27-evidence/activation-proof.json

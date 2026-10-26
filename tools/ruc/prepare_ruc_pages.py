@@ -16,9 +16,12 @@ import argparse,hashlib,json,re,shutil
 from pathlib import Path
 import numpy as np
 from lossless_dual_read import add_dual_read_pilot
+from lossless_inventory import MAX_CODEC_STAGING_BYTES
 
 SCHEMA='mid.dwd.ruc.grid.v2'
 PROFILE='pages-free-v1'
+CODEC_STAGING_PROFILE='pages-codec-staging-v1'
+CODEC_STAGING_LIMIT_BYTES=MAX_CODEC_STAGING_BYTES
 DEFAULT_DATA_CHUNK_POINTS=4096
 DEFAULT_LOOKUP_CHUNK_ENTRIES=65536
 # Keep the free Pages payload comfortably below the 950 MB combined site guard.
@@ -195,7 +198,9 @@ def fit_synoptic_budget(payload,available):
         optional_budget['omittedHours'].extend(frame['hour'] for frame in optional_d2)
     return payload
 
-def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES):
+def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES,*,codec_staging:bool=False):
+    limit=CODEC_STAGING_LIMIT_BYTES if codec_staging else PAGES_RUC_BUDGET_BYTES
+    profile=CODEC_STAGING_PROFILE if codec_staging else PROFILE
     meta=json.loads((source/'latest.json').read_text(encoding='utf-8'))
     if meta.get('schema')!=SCHEMA or not meta.get('run'): raise ValueError('invalid RUC metadata')
     run=safe_run(meta['run'])
@@ -305,7 +310,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
         full_index.write_bytes(fields_index.read_bytes())
         # Retain all nine established five-field terms. Extra terms are optional
         # when the unchanged free-Pages envelope is otherwise exhausted.
-        fit_synoptic_budget(payload,PAGES_RUC_BUDGET_BYTES-PAGES_MANIFEST_RESERVE_BYTES-sum(row['bytes'] for row in objects))
+        fit_synoptic_budget(payload,limit-PAGES_MANIFEST_RESERVE_BYTES-sum(row['bytes'] for row in objects))
         fields_index.write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False)+'\n')
         prefix=f'runs/{run}__synoptic_{digest(fields_index)[:16]}/synoptic-fields/'
         files=[fields_index]
@@ -322,14 +327,17 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
             objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
         synoptic_fields={'key':prefix+'index.json','schema':payload['schema'],'generatedAt':payload['generatedAt']}
     total=sum(row['bytes'] for row in objects)
-    if total>=PAGES_RUC_BUDGET_BYTES:
-        raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')
-    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':PROFILE,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
-            'pages':{'profile':PROFILE,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes,'deduplicatedBytes':deduplicated_bytes}}
-    result=add_dual_read_pilot(result,out,PAGES_RUC_BUDGET_BYTES)
+    if total>=limit:
+        raise ValueError(f'{profile} RUC payload {total} bytes exceeds {limit} byte limit')
+    result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':profile,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
+            'pages':{'profile':profile,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes,'deduplicatedBytes':deduplicated_bytes}}
+    if codec_staging:
+        result['pages']['stagingOnly']=True
+    else:
+        result=add_dual_read_pilot(result,out,PAGES_RUC_BUDGET_BYTES)
     total=result['pages']['publishedBytes']
     manifest=(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n').encode('utf-8')
-    if total+len(manifest)>=PAGES_RUC_BUDGET_BYTES:raise ValueError('Pages-free RUC payload including manifest exceeds budget')
+    if total+len(manifest)>=limit:raise ValueError(f'{profile} RUC payload including manifest exceeds {limit} byte limit')
     (out/'latest.json').write_bytes(manifest)
     return result
 
@@ -337,6 +345,7 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
 def main():
     p=argparse.ArgumentParser();p.add_argument('--source',type=Path,default=Path('.ruc-out'));p.add_argument('--output',type=Path,default=Path('.ruc-pages'))
     p.add_argument('--data-chunk-points',type=int,default=DEFAULT_DATA_CHUNK_POINTS);p.add_argument('--lookup-chunk-entries',type=int,default=DEFAULT_LOOKUP_CHUNK_ENTRIES)
+    p.add_argument('--codec-staging',action='store_true',help='Non-publishable raw codec input; final publication budget remains 900 MB')
     a=p.parse_args()
     # The established workflow (including recovery reruns) already invokes this
     # CLI. Keep totals orchestration here instead of adding another paid service
@@ -346,7 +355,7 @@ def main():
     # remains fatal; optional source failures retain their original semantics.
     from run_ruc_native_sidecar import run_all_stages
     run_all_stages(a.source)
-    meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries)
+    meta=prepare(a.source,a.output,a.data_chunk_points,a.lookup_chunk_entries,codec_staging=a.codec_staging)
     from storage_audit import audit_storage
     print('RUC storage audit: '+json.dumps(audit_storage(meta,a.output/'ruc',full_compression=True),separators=(',',':')),flush=True)
     print(json.dumps({'run':meta['run'],'profile':meta['storageProfile'],'publishedBytes':meta['pages']['publishedBytes'],'budgetBytes':meta['pages']['budgetBytes'],'objects':len(meta['pages']['objects']),'nativeEpsMembers':False,'prunedRedundantFields':meta['pages']['prunedRedundantFields'],'prunedRapidProducts':meta['pages']['prunedRapidProducts'],'savedBytes':meta['pages']['savedBytes']}))

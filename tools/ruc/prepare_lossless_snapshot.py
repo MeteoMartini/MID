@@ -30,7 +30,8 @@ def prepare_snapshot(source, target):
         raise ValueError('candidate must be new and outside original/rollback snapshot')
     source_bytes=(source/'latest.json').read_bytes();meta=json.loads(source_bytes)
     rows=verify_inventory(meta,source);geometry=record_geometry(meta,rows)
-    if meta['pages']['publishedBytes']+len(source_bytes)>=meta['pages']['budgetBytes']:
+    staging=meta.get('storageProfile')=='pages-codec-staging-v1' and meta['pages'].get('stagingOnly') is True
+    if meta['pages']['publishedBytes']+len(source_bytes)>=meta['pages']['budgetBytes'] and not staging:
         raise ValueError('original snapshot including manifest exceeds budget')
     candidate=copy.deepcopy(meta);new_rows={};physical_parts={}
     target.parent.mkdir(parents=True,exist_ok=True)
@@ -71,6 +72,7 @@ def prepare_snapshot(source, target):
             path=safe_file(tmp,key);path.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(safe_file(source,key),path)
             new_rows[key]=row
         candidate['storageProfile']=PROFILE;candidate.pop('objects',None)
+        candidate['pages'].pop('stagingOnly',None)
         candidate['pages'].update({'profile':PROFILE,'objects':sorted(new_rows.values(),key=lambda r:r['key']),
                                   'publishedBytes':sum(row['bytes'] for row in new_rows.values()),
                                   'losslessTransport':{'profile':PAGE_SCHEMA,'mode':'replacement-candidate','rawRetained':False}})

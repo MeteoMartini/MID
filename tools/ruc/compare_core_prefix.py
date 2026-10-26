@@ -30,7 +30,10 @@ def compare(short_root, long_root):
             raise ValueError('source contract mismatch: ' + key)
     if a['schema'] != 'mid.dwd.ruc.grid.v2' or a['pointCount'] <= 0:
         raise ValueError('unsupported core')
-    lookups = [checked(root, meta, 'lookup.bin') for root, meta in zip(roots, metas)]
+    for root, meta in zip(roots, metas):
+        if meta.get('times') != meta['deterministic']['times']:
+            raise ValueError('root time axis differs from deterministic axis')
+        checked(root, meta, 'lookup.bin')
     if a['objects']['lookup.bin'] != b['objects']['lookup.bin']:
         raise ValueError('lookup changed')
     result = []
