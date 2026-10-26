@@ -94,9 +94,17 @@ context.__older={...context.__longRuc,midRuc:{run:new Date(now.getTime()-2*36000
 context.__olderRapid=call('applyRucRapidUpdateWeatherHours(__longBase,[__older])');
 assert.equal(context.__olderRapid[25],context.__longBase[25],'native +27h endpoint remains unmodified even though now+25h');
 assert.ok(context.__olderRapid[20].rucWeight<context.__longRapid[20].rucWeight,'older runs receive their real native lead weight');
-for(const shift of [-5,1]){
+// The production worker admits up to +5 minutes of wall-clock skew. The
+// synthetic future run must remain invalid regardless of this test's minute.
+for(const shift of [-5,2]){
  context.__invalid={...context.__longRuc,midRuc:{run:new Date(now.getTime()+shift*3600000).toISOString()},hours:context.__longRuc.hours.map(h=>({...h,epoch:h.epoch+shift*3600000}))};
  assert.equal(call('applyRucRapidUpdateWeatherHours(__longBase,[__invalid])'),context.__longBase,'stale/future source must not calibrate');
+}
+// Hard boundary contract, with an absolute clock rather than an hour-rounded
+// Date.now(): exactly +5m and 4h old are allowed, one ms outside is rejected.
+const freshnessNow=Date.UTC(2026,9,26,12);
+for(const [runEpoch,eligible] of [[freshnessNow+5*60000,true],[freshnessNow+5*60000+1,false],[freshnessNow-4*3600000,true],[freshnessNow-4*3600000-1,false]]){
+ assert.equal(call(`rucWindowFresh({initialisationEpoch:${runEpoch}},${freshnessNow})`),eligible,`Run-age threshold mismatch for ${runEpoch-freshnessNow}ms`);
 }
 for(const mutate of [p=>delete p.mid_ruc.run,p=>p.hourly.time[3]=p.hourly.time[2],p=>p.hourly.time[4]=p.hourly.time[4].replace(':00',':30'),p=>p.hourly.time.reverse(),p=>p.mid_ruc.run='invalid',p=>p.mid_ruc.run=now.toISOString().replace(':00.000Z',':30.000'),p=>p.mid_ruc.run=now.toISOString().slice(0,16)+'trailing-garbage']){
  context.__bad=structuredClone(context.__longPayload);mutate(context.__bad);

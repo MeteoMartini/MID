@@ -1,3 +1,7 @@
+# MID v0.9.85.340 · RUC-Frischeprüfung und Release-Stabilität
+
+Der bisher nicht veröffentlichte 14-Tage-CSS-Ladeschritt aus .339 bleibt vollständig erhalten. Die RUC-Quellenprüfung unterscheidet auch an der erlaubten Fünf-Minuten-Uhrentoleranz zuverlässig gültige und unzulässige Modellläufe; Wetterwerte und RUC-Gewichtung bleiben unverändert. Die verpflichtende CSS-Browserprüfung für Chromium und WebKit erhält kontrollierte Start-/Zeitdiagnosen, ohne die visuellen, funktionalen oder Zugänglichkeitsprüfungen abzuschwächen. Ein tatsächlicher Release erfolgt erst nach erneutem vollständigem Source-/Installer-/Pages-/Stable-Gate.
+
 # MID v0.9.85.339 · 14-Tage-Entwicklung gezielt nachladen
 
 Die Entwicklungsübersicht der 14-Tage-Prognose wird mit ihren eigenen Styles erst beim Öffnen geladen. Wetterwerte, Ensemble-Spannen, Diagramme und Bedienung bleiben erhalten. Dies ist der erste abgegrenzte Schritt der CSS-Auslagerung.
