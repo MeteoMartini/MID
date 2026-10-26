@@ -828,5 +828,24 @@
   "nativeValuesVerified": false,
   "epsMembersVerified": false,
   "fullCodecBudgetVerified": false,
-  "productionEnabled": false
+  "productionEnabled": false,
+  "firstFullBuild": {
+    "run": "2026-10-26T05:00",
+    "deterministicTimes": 28,
+    "epsAccumulationTimes": 28,
+    "exitSignal": "SIGKILL",
+    "memoryLimitBytes": 8589934592,
+    "cgroupOomKills": 1,
+    "productionEnabled": false
+  },
+  "secondFullBuild": {
+    "result": "SIGKILL",
+    "cgroupOomKills": 2,
+    "memoryLimitBytes": 8589934592
+  },
+  "thirdFullBuild": {
+    "status": "running",
+    "change": "release raw arrays after final use; point-block EPS products; in-place interval differences",
+    "productionEnabled": false
+  }
 }

@@ -20,3 +20,12 @@ Vollständiger echter +27-h-Build einschließlich sämtlicher Mitglieder, urspr�
 Sonnentimer-Pause wurde in .326 veröffentlicht; Renderwiederverwendung in .327/.328. Im aktuellen Stable erneut bestanden: sichtbarer Sonnentimer, 420 Golden-Vergleiche des Stundenformatters, vollständige 23/24/25-h-Kalendertage mit Missing-Erhalt. CSS-Coverage-Draft #463 bleibt ungeprüfte Vorarbeit für einen produktiven CSS-Split. Die 1122 konsolidierten Deklarationen sind bestehender Fortschritt, keine neue Einsparung. Bewusst ruhende Referenzmodule bleiben bestehen. React-/MapLibre-Updates überschritten die bestehenden Budgets und sind weiterhin nicht freigegeben.
 
 Stand: Qualifikation läuft; keine aktive +27-h-Kernfusion, keine Veröffentlichung dieser Erweiterung.
+
+## Reproduzierter RAM-Blocker und vorbereitete Korrektur
+Der erste echte 05Z-Build erfasste deterministischen Kern und EPS-Akkumulationen für 28 Termine, wurde danach mit SIGKILL beendet. Cgroup: memory.max=8589934592, oom=1, oom_kill=1. Kein vollständiger Snapshot veröffentlicht.
+
+collect_eps baut die validierte Akkumulationsmatrix nun durch Übertragung und Freigabe der Quellarrays auf; die anschließende Differenzbildung läuft rückwärts in-place, sodass jede Originalvorgängerstunde und NaN-Maske erhalten bleibt. Member-/Summary-Encoding bleibt unverändert, wird aber auf native Punktblöcke begrenzt und in gleicher point-time-member/field-Reihenfolge geschrieben.
+
+17 bestehende/erweiterte Integritätstests erfolgreich. Neuer Vergleich: 28 Termine × 20 Mitglieder mit Missing, Null und Extrembeispiel; Blockgrößen 1/7/16/31/64 liefern bitidentische Member- und Summary-Dateien zum bisherigen vollständigen Encoder. Der echte +27-h-Build läuft erneut auf denselben GRIB-Quellen. Noch keine RAM-/Codec-/Produktionsfreigabe.
+
+Zweiter Echtlauf: ebenfalls OOM, Zähler=2. Zusätzliche Korrektur: rohe deterministische Parameter nach Packing und nicht mehr konsumierte Rapid-/Phasen-/State-/Solar-Ausgangsarrays nach dem letzten Verbraucher freigeben; die für Extremdiagnostik weiterhin benötigten abgeleiteten Arrays bleiben erhalten. Dritter Echtlauf auf identischen Dateien läuft; bisher keine weitere OOM-Erhöhung. Vollständiger Snapshot-/Budgetnachweis weiterhin offen.
