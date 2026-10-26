@@ -1,3 +1,7 @@
+# MID v0.9.85.338 · Dunkles horizontales MID-Logo
+
+Der Startbildschirm verwendet das bereitgestellte dunkle horizontale MID-Wortbild. Die übrigen Logos und App-Icons bleiben erhalten.
+
 # MID v0.9.85.336 · RUC über 14 Stunden hinaus
 
 - Die gemeinsame Wetterprognose kann DWD ICON-D2-RUC und die stündlichen RUC-EPS-Niederschlagswahrscheinlichkeiten über 14 Stunden hinaus bis zum geprüften nativen Laufende berücksichtigen. Die Obergrenze von +27 Stunden bezieht sich auf die UTC-Modellinitialisierung; die verbleibende Vorhersagezeit ist entsprechend kürzer.
