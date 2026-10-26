@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.327",
+  "version": "0.9.85.335",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -16,6 +16,7 @@
     "preview": "vite preview",
     "test:updater": "node scripts/test-updater.mjs",
     "test:radar": "node scripts/test-radar.mjs",
+    "test:map-popup-theme": "node scripts/test-map-popup-theme-0985333.mjs",
     "test:interactions": "node scripts/test-interactions.mjs",
     "test:precipitation": "node scripts/test-precipitation.mjs",
     "test:sunshine": "node scripts/test-sunshine-format.mjs",
@@ -566,10 +567,10 @@
   "dependencies": {
     "@capacitor/app": "8.1.1",
     "@capacitor/browser": "8.0.4",
-    "@capacitor/core": "8.5.2",
+    "@capacitor/core": "8.5.3",
     "@capacitor/filesystem": "8.1.3",
     "@capacitor/geolocation": "8.2.2",
-    "@capacitor/ios": "8.5.2",
+    "@capacitor/ios": "8.5.3",
     "@capacitor/share": "8.0.2",
     "@capacitor/splash-screen": "8.0.2",
     "@capacitor/status-bar": "8.0.3",
@@ -585,15 +586,15 @@
     "recharts": "3.10.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.2",
+    "@capacitor/cli": "8.5.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
-    "@vitejs/plugin-react": "6.1.1",
+    "@vitejs/plugin-react": "6.1.2",
     "esbuild": "0.28.2",
-    "postcss": "8.5.28",
+    "postcss": "8.5.31",
     "typescript": "7.0.2",
     "typescript-strada": "npm:typescript@6.0.3",
-    "vite": "8.2.4"
+    "vite": "8.3.5"
   },
   "packageManager": "npm@10.9.2",
   "engines": {

@@ -3,11 +3,9 @@ import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
 
 // Compile the REAL source helpers, not a copied production algorithm.
-const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
-const start=app.indexOf('function fullHourMinuteInZone('),end=app.indexOf('function currentTemperatureRangeLabel(',start);
-assert.ok(start>=0&&end>start,'Canonical current-hour functions must be discoverable');
-const output=await transform(app.slice(start,end)+'\nexport {fullHourMinuteInZone,currentFullHourWindow};',{loader:'ts',format:'esm',target:'es2020'});
-const {fullHourMinuteInZone,currentFullHourWindow}=await import('data:text/javascript;base64,'+Buffer.from(output.code).toString('base64'));
+const source=await readFile(new URL('../src/currentFullHourWindow.ts',import.meta.url),'utf8');
+const output=await transform(source,{loader:'ts',format:'esm',target:'es2020'});
+const {fullHourMinuteInZone,buildCurrentFullHourIndex,currentFullHourStartEpoch,currentFullHourWindowFromIndex,currentFullHourWindow}=await import('data:text/javascript;base64,'+Buffer.from(output.code).toString('base64'));
 
 // Golden reference keeps the historical per-row formatter and original UTC-window selection.
 function oldMinute(epoch,zone){if(!Number.isFinite(epoch))return Number.NaN;return Number(Intl.DateTimeFormat('en-GB',{timeZone:zone,minute:'2-digit'}).formatToParts(new Date(epoch)).find(part=>part.type==='minute')?.value)}
@@ -26,9 +24,13 @@ const interleaved=hours.flatMap((hour,index)=>index%2?[hour,{...hour,epoch:hour.
 let checked=0;
 for(const zone of ['Europe/Berlin','Europe/London','America/New_York','Asia/Kathmandu']){
  for(const input of [hours,interleaved,[],[{epoch:NaN,temperature:99}],hours.slice(10,20).filter((_,i)=>i%3)]){
+  const index=buildCurrentFullHourIndex(input,zone);
   for(const offset of [0,26,49,84,120,188,210])for(const horizon of [1,12,24]){
    const now=base+offset*3600000;
-   assert.deepEqual(currentFullHourWindow(input,zone,now,horizon),reference(input,zone,now,horizon),zone+'/'+offset+'/'+horizon);checked++;
+   const expected=reference(input,zone,now,horizon),start=expected.length?Number(expected[0].epoch):Number.NaN;
+   assert.equal(currentFullHourStartEpoch(index,now),start,zone+'/'+offset+'/'+horizon+' start');
+   assert.deepEqual(currentFullHourWindowFromIndex(index,zone,start,horizon),expected,zone+'/'+offset+'/'+horizon+' indexed');
+   assert.deepEqual(currentFullHourWindow(input,zone,now,horizon),expected,zone+'/'+offset+'/'+horizon);checked++;
   }
  }
 }
@@ -40,6 +42,9 @@ assert.equal(new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-d
 assert.notEqual(firstTwo[0].epoch,firstTwo[1].epoch);
 assert.deepEqual(currentFullHourWindow(hours,'Europe/Berlin',firstTwo[0].epoch),reference(hours,'Europe/Berlin',firstTwo[0].epoch));
 assert.deepEqual(currentFullHourWindow(hours,'Europe/Berlin',firstTwo[1].epoch),reference(hours,'Europe/Berlin',firstTwo[1].epoch));
+const kathmanduIndex=buildCurrentFullHourIndex(interleaved,'Asia/Kathmandu'),fractionalBoundary=base+3*3600000+15*60000;
+assert.equal(currentFullHourStartEpoch(kathmanduIndex,fractionalBoundary-1),base+3600000+15*60000,'Fractional-offset zone keeps the previous forecast hour until its actual local boundary');
+assert.equal(currentFullHourStartEpoch(kathmanduIndex,fractionalBoundary),fractionalBoundary,'Fractional-offset zone switches immediately at the actual local boundary');
 // A new observation/value and a moved 30-s or hourly reference must not be cached across calls.
 const changed=hours.map(hour=>({...hour,temperature:hour.temperature+19}));
 assert.notDeepEqual(currentFullHourWindow(changed,'Europe/Berlin',base+50*3600000),currentFullHourWindow(hours,'Europe/Berlin',base+50*3600000));

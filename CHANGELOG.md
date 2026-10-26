@@ -1,3 +1,52 @@
+# MID v0.9.85.335 · Modellfusion nach App-Rückkehr zuverlässig laden
+
+Die Modellfusion wird nach Rückkehr in die App und bei wiederhergestellter Netzverbindung erneut geprüft. Fehlgeschlagene Abrufe werden mit begrenzter Wiederholungsrate nachgeholt; ein vorhandener erfolgreicher Prognosestand bleibt erhalten. Ohne bestätigten Fusionsstand weist die Modellliste ausdrücklich darauf hin, dass die Übernahme derzeit nicht verifiziert ist.
+
+Die Stundenmarkierung im Tagesdiagramm verwendet bei Tages- und Auflösungswechseln denselben gültigen Index wie die Detailwerte; dadurch bleibt die Vorhersageansicht auch bei verkürzten Stundenreihen bedienbar.
+
+# MID v0.9.85.333 · Lesbare Karten-Popups in Light und Dark
+
+Leaflet- und MapLibre-Karten-Popups verwenden jetzt die MID-Flächen- und Textfarben ihres aktiven Themes. Dadurch bleiben KONRAD3D-Informationen und weitere Radar-Overlays auch im dunklen Kartenmodus lesbar. Schließen-Schaltflächen erhalten sichtbaren Fokus und auf Touch-Geräten eine 44-px-Zielfläche. Die bewusst helle Extremwetter-Popupgestaltung bleibt unverändert.
+
+## Prüfstand
+
+Der Änderungskandidat basiert auf Stable `3887ebc31dc93fc33b51ad87b55284671e4d4224`. Gemeinsame Leaflet- und MapLibre-Popupverträge sowie deren generierte CSS-Aggregate sind regressionsgeprüft. Der reguläre MID Source-Gate-, Installer-, Pages- und Stable-Pfad ist für diesen Kandidaten noch erforderlich.
+
+- Vite wird von 8.2.4 auf 8.3.5 aktualisiert; @vitejs/plugin-react 6.1.2 bleibt unverändert und ist mit Vite 8 kompatibel.
+- React 19.2.8 und MapLibre GL JS 6.7.0 bleiben auf dem bereits qualifizierten Stand.
+- Die Kandidaten React 19.3.1 und MapLibre GL JS 6.15.0 überschritten bei gemeinsamer lokaler Regression die bestehenden harten Feature-Chunk-Budgets. Sie sind nicht Bestandteil dieses Releases; die Budgets wurden nicht angehoben.
+- Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 bleiben unverändert.
+
+# MID v0.9.85.332 · Vite-Wartungsupdate
+
+- Vite wurde von 8.2.4 auf 8.3.5 aktualisiert; @vitejs/plugin-react 6.1.2 blieb unverändert.
+- React, React DOM, react-is und die React-Typen blieben auf den qualifizierten 19.2-Versionen. MapLibre GL JS blieb auf 6.7.0.
+- React 19.3.1 und MapLibre GL JS 6.15.0 wurden im kombinierten Kandidaten geprüft, überschritten aber die bestehenden harten Feature-Chunk-Budgets und sind nicht Bestandteil des Releases. Die Budgets wurden nicht angehoben.
+- Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 blieben unverändert.
+- Der veröffentlichte Stable-Stand basiert auf `253b365fb916c1e104e04f1c594f5c027dfd9bbf`; Source-Gate, Release-Installer, Worker-Smoke, Pages-Deployment und Stable-Promotion waren erfolgreich.
+
+# MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate
+
+Capacitor Core, CLI und iOS werden gemeinsam von 8.5.2 auf 8.5.3 qualifiziert. Andere Capacitor-Plugins, React, Vite, MapLibre, PostCSS und Pako bleiben unverändert. Keine fachliche Änderung am Web-/PWA-Kern ist beabsichtigt.
+
+Registry-Metadaten und offizielle Capacitor-8-Kompatibilität wurden geprüft. Reproduzierbare Installation, vollständiger Build und Regressionen, iOS-Synchronisierung, Audits und die vollständigen MID-Release-Gates sind erforderlich.
+
+# MID v0.9.85.330 · Isoliertes React-Vite-Plugin-Update
+
+`@vitejs/plugin-react` wird einzeln von 6.1.1 auf 6.1.2 aktualisiert. Das Plugin bleibt an Vite 8 gebunden; die unabhängigen React-, Vite-, Capacitor-, MapLibre- und Pako-Versionen bleiben unverändert. Upstream 6.1.2 behebt HMR für Compound Components. Keine absichtliche Änderung am Produktionsverhalten oder an CSS, Karten, Widgets und Exporten.
+
+Die Registry-Auflösung, Integrität, Peer-Abhängigkeiten und Node-Anforderungen wurden geprüft. Vollständige Types-, Build-, Audit-, Regression-, Browser-/Heavy- und MID-Release-Gates sind erforderlich.
+
+# MID v0.9.85.329 · Isoliertes PostCSS-Wartungsupdate
+
+PostCSS wird separat von 8.5.28 auf 8.5.31 qualifiziert. Das reproduzierbar erneuerte Lockfile zieht nur die dafür erforderliche Nanoid-Patchversion nach; `source-map-js` bleibt auf dem bereits geprüften 1.2.2. React, Vite, Plugin-React, Capacitor, MapLibre und Pako ändern sich nicht. Produktions-CSS, Kaskade, Themen, Widgets, Karten und Exporte bleiben byteidentisch zum freigegebenen .328-Build. Das ist ein Entwicklungsabhängigkeits- und CSS-Parser-Wartungsschritt, kein CSS-Split und kein Laufzeit-/Designwechsel.
+
+Context7/PostCSS-Quelldokumentation und die Registry-Metadaten für 8.5.31 wurden geprüft. Build, vollständige Regression, Dependency-Audit, CSS-Kaskaden-/Budget-Tests und MID-Release-Gates bleiben erforderlich.
+
+# MID v0.9.85.328 · Wiederverwendung unveränderter Berechnungen unter „Aktuell“
+
+Die lokale Stundenfolge wird einmal je Prognose-/Zeitzonen-Eingabe aufgebaut; nur die Auswahl der aktuell gültigen Ortsstunde bleibt an die laufende Uhr gebunden. Temperaturreihe, Achse, vollständige Basis-Skybar und Sonnenfenster verwenden unveränderte Ergebnisse wieder. Niederschlags-Unterstunde, Beobachtungsalter und Sonnenzeit reagieren weiterhin unmittelbar auf jede Uhraktualisierung. 420 Golden-Vergleiche einschließlich Viertelstunden-Zeitzonen und DST sowie ein lokaler React-Profiler bestätigen Verhalten und geringere Renderkosten im synthetischen Fixture. Keine Änderung an Wetterfachwerten oder Darstellungs-CSS.
+
 # MID v0.9.85.327 · Schnellere Stundenfilterung unter „Aktuell“
 
 Die Zeitachse der laufenden 12-Stunden-Übersicht erzeugt ihren Zeitzonen-Formatter nur einmal pro Berechnung statt für jede einzelne Stunde. Dadurch entfällt unnötige Renderarbeit, ohne Prognosewerte, fehlende Daten, die laufende Niederschlagsstunde oder Sommer-/Winterzeitwechsel zu ändern. Der Sonnenzeit-Timer-Fix aus v0.9.85.326 bleibt erhalten.

@@ -12,10 +12,10 @@ const [app,design,css,main,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-design-2-0-1-current-critical-098546.mjs';
 
-assert.ok(app.includes("currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)"),'12-h-Faden muss an der aktuellen vollen lokalen Stunde beginnen und bis exakt +12 h reichen.');
+assert.ok(app.includes('currentThreadSeries=useMemo(()=>currentFullHourWindowFromIndex(currentFullHourIndex,w.timezone,currentThreadStartEpoch,12)')&&app.includes('currentThreadStartEpoch=currentFullHourStartEpoch(currentFullHourIndex,solarNow)'),'12-h-Faden muss an der aktuellen vollen lokalen Stunde beginnen und bis exakt +12 h reichen.');
 assert.ok(app.includes('Temperaturspanne · 12 h'),'Eindeutige +12-h-Beschriftung der ganzstündigen Temperaturdifferenz fehlt.');
 assert.ok(app.includes('current-weather-thread-axis'),'Zeit-/Temperaturachse für den 12-h-Faden fehlt.');
-assert.ok(app.includes('currentThreadAxisTicks=currentThreadSeries.map')&&app.includes('index%3===0||index===currentThreadSeries.length-1'),'3-stündliche Zeitanker plus Endzeit fehlen.');
+assert.ok(app.includes('currentThreadAxisTicks=useMemo(()=>currentThreadSeries.map')&&app.includes('index%3===0||index===currentThreadSeries.length-1'),'3-stündliche Zeitanker plus Endzeit fehlen.');
 assert.ok(app.includes('<small>{hourDisplayClock(tick.hour,w.timezone)}</small>'),'Zeitanker müssen ausschließlich echte volle lokale Uhrzeiten verwenden.');
 assert.ok(app.includes('<small>Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Taupunkt muss in der Hauptansicht vor relativer Feuchte stehen.');
 assert.ok(app.includes("dryNow=probability<10&&!radarSignalDetected(radar)&&!thunderInfo&&!heavyRainInfo"),'Trockener Nowcast braucht einen kompakten Darstellungszustand.');

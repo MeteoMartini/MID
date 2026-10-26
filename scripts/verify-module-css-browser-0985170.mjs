@@ -73,17 +73,17 @@ try{
     if(process.env.MID_WIDGET_QA_SCREENSHOTS)await page.locator('.weatherwidget').screenshot({path:process.env.MID_WIDGET_QA_SCREENSHOTS+`/widget262-${width}-${theme}.png`});
    }
    assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/${view}: page overflow`);
-   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/${view}: visual/layout divergence from .169`);parity++;}cases++;
+   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/${view}: visual/layout divergence from configured reference`);parity++;}cases++;
   }
   assert.equal(await current.page.evaluate(()=>window.qaEnsembleRequested),true,'Curve/ensemble must request canonical ensemble support');
   for(const item of [current,reference].filter(Boolean)){await item.page.getByRole('button',{name:'Bergwetter laden',exact:true}).click();try{await item.page.locator('.mountain-current-source').waitFor();await item.page.locator('.mountain-seven-day-row').first().waitFor();}catch(error){console.error(JSON.stringify({width,theme,baseline:item===reference,errors:item.errors,requests:item.requests.slice(-12),body:await item.page.locator('body').innerText()}));throw error;}}
   assert.ok(current.requests.some(url=>url.includes('/src/MountainWeather.tsx')),'Mountain module must load when opened');
   assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/mountain: page overflow`);
-  if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain: visual/layout divergence from .169`);parity++;}cases++;
+  if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain: visual/layout divergence from configured reference`);parity++;}cases++;
   assert.deepEqual(current.errors,[],'Optional module caused a runtime error');if(reference)assert.deepEqual(reference.errors,[]);
   cssCoverage.push(await measureCssCoverage(current,width,height,theme));
   await current.context.close();if(reference)await reference.context.close();
-  console.log(`${width}×${height} ${theme}: module loading and four feature views passed${reference?' with .169 parity':''}.`);
+  console.log(`${width}×${height} ${theme}: module loading and four feature views passed${reference?' with configured reference parity':''}.`);
  }
  const report={schema:'mid.css-coverage-diagnostic.v1',sourceSha:process.env.GITHUB_SHA||null,scope:'Vite development fixture only, not whole app or production CSS',cases:cssCoverage};
  mkdirSync(join(root,'artifacts'),{recursive:true});
@@ -92,5 +92,5 @@ try{
  const used=cssCoverage.reduce((n,item)=>n+item.sheets.reduce((sum,css)=>sum+css.usedBytes,0),0);
  console.log('MID_CSS_COVERAGE_DIAGNOSTIC='+JSON.stringify({cases:cssCoverage.length,rawStyleBytesAcrossIndependentCases:raw,usedRuleBytesAcrossIndependentCases:used,hasCoverage:raw>0,artifact:'artifacts/css-module-coverage.json',scope:report.scope}));
  if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,'\n### MID CSS coverage — diagnostics only\n\n'+cssCoverage.length+' separate Chromium viewport/theme contexts; rule bytes across cases: '+used+'/'+raw+'. **Not production CSS or whole-app coverage.**\n');
- console.log(`Module/CSS browser QA: ${cases} viewport/theme/view cases; on-demand network edges, shared uncertainty and no overflow/errors; ${parity} exact .169 layout/paint snapshots.`);
+ console.log(`Module/CSS browser QA: ${cases} viewport/theme/view cases; on-demand network edges, shared uncertainty and no overflow/errors; ${parity} exact configured-reference layout/paint snapshots.`);
 }finally{await browser.close();await active.server.close();if(baseline)await baseline.server.close();}

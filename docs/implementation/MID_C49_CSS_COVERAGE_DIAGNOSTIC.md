@@ -1,5 +1,15 @@
 # MID 18.2.49 – CSS-Regelnutzung: read-only Diagnose
 
+## MID-C46 · erneute Integration am 26.10.2026
+
+Stable .335: `3908e1c7e6c8475278ae07e5cfbd5a4780822e95`. Normaler Merge auf den erhaltenen Draft-Head `0f72e75be2b8d4d8f8d27f9151e7fcadcbb70967`; gemeinsamer Vorfahr `.327` nachgewiesen, keine Textkonflikte. Syntax, Typen, Kaskade/Konsolidierung und initiales CSS-Budget erneut erfolgreich.
+
+Chromium 141 als vollständiger Browser scheiterte vor dem ersten Test an einer vom Executor verweigerten lokalen Socketoperation. Das regulär installierte Playwright Chromium Headless Shell 141.0.7390.37 führt dieselben Assertions erfolgreich aus: 14 Modulkontexte, 56 Ansichtsprüfungen und 56 identische Layout-/Darstellungssnapshots. Referenzcheckout `96d6332a7f9f67c94cdfd3e900d03de61a0b33c3`; dessen `src`, `package.json` und Lockfile sind nach Git-Diff identisch mit Stable .335. Die ursprünglich fest auf `.169` beschrifteten Diagnosemeldungen werden auf die tatsächlich konfigurierte Referenz korrigiert; keine Assertion wird geändert.
+
+Modulmessung: 26.455.632 rohe CSS-Quellbytes über unabhängige Fälle, 1.297.703 verwendete Regelbytes. Diese Summen zählen Stylesheets mehrfach und bleiben Entwicklungsfixture-Messungen. Keine Produktions-CSS-, Cold-/Warmcache-, Vollansichts-, Export- oder Safari/WKWebView-Abnahme, weiterhin keine Freigabe für verzögertes CSS-Laden.
+
+Auch die Appmatrix ist vollständig abgeschlossen: 16 Kontexte, 30.916.620 rohe Quellbytes über unabhängige Fälle und 2.384.098 verwendete Regelbytes. Die vorhandenen Assert-Prüfungen für Vergleich, Persistenz, Touchziele sowie in den dafür vorgesehenen Fällen Verwaltung, Navigation, Radar und WebGL-Wiederherstellung bestanden. Beide JSON-Messberichte wurden nach Abschluss erneut gelesen; vollständige Geräte-/Produktionsabdeckung wird damit weiterhin nicht behauptet.
+
 - **Basis:** veröffentlichte v0.9.85.327, `main` = `mid-stable` = `e5f509cce4e9f345392b24c7f800d84efc5f8837`.
 - **Unveränderte Produktions-Baseline:** `node scripts/test-performance-budget.mjs` zählt ein initiales CSS-Asset mit 1.759.985 Byte roh, 253.294 Byte gzip und 178.104 Byte Brotli. Kein CSS-Split wurde vorgenommen.
 - Ausschließlich vorhandene Chromium-Browser-Fixtures werden mit CDP `CSS.startRuleUsageTracking` / `CSS.stopRuleUsageTracking` erweitert. Der gemeinsame Helper [`scripts/lib/cssRuleUsageDiagnostic.mjs`](../../scripts/lib/cssRuleUsageDiagnostic.mjs) erfasst Stylesheet-Offsets, rohe Quellbytes und ergänzend `Performance.getMetrics`.

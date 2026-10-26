@@ -11,7 +11,7 @@ const [app,main,css,c10]=await Promise.all([
 ]);
 
 assert.ok(app.includes("import {MidWeatherThread} from './MidDesign';"),'MID-Wetterfaden muss die gemeinsame Designprimitive verwenden.');
-assert.ok(app.includes("currentThreadSeries=currentFullHourWindow(hours,w.timezone,solarNow,12)")&&app.includes("currentThreadTemperatures=currentThreadSeries.map(hour=>Number(hour.temperature))"),'Aktuell-Wetterfaden muss volle Stunden aus der hyperlokal korrigierten Reihe bis exakt +12 h verwenden.');
+assert.ok(app.includes('currentThreadSeries=useMemo(()=>currentFullHourWindowFromIndex(currentFullHourIndex,w.timezone,currentThreadStartEpoch,12)')&&app.includes('currentThreadTemperatures=useMemo(()=>currentThreadSeries.map(hour=>Number(hour.temperature))'),'Aktuell-Wetterfaden muss volle Stunden aus der hyperlokal korrigierten Reihe bis exakt +12 h verwenden und unveränderte Prognosewerte wiederverwenden.');
 assert.ok(app.includes('<MidWeatherThread points={currentThreadTemperatures} minimumSpan={4} verticalGridDivisions={Math.max(1,currentThreadHorizon)} horizontalInset={currentThreadPlotInset} temperatureColorMode="ecmwf" markers="none" nightBands={currentThreadNightBands}')&&app.includes('hyperlokal korrigierte Stundenreihe · ECMWF-Farbskala'),'Skalentreuer 12-h-Wetterfaden mit stündlicher Hilfsrasterung, gemeinsamer Plotbasis, Nachtband und ECMWF-Farben fehlt in Aktuell.');
 assert.ok(app.includes("horizontalBrandLogoPath=brandLogoPath.replace('-compact','-horizontal')"),'Breite Ansichten müssen die Original-Horizontalwortmarke ableiten.');
 assert.ok(app.includes('<div className="brand"><picture className="brand-picture">'),'Responsive Logoauswahl muss im obligatorischen MID-Design dauerhaft aktiv sein.');

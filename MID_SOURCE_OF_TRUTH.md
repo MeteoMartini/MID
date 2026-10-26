@@ -1,3 +1,47 @@
+# MID v0.9.85.335 · Fusionsabruf nach Hintergrund-/Netzrückkehr (Source-Kandidat)
+
+Basis: verifiziertes Stable .333, dfe92422c32971fc18df088e3d5417e228903768. Paralleler Logo-PR #472/.334 bleibt eigenständig; sein Logo ist in diesem Fusionsfix nicht enthalten. Vor Freigabe erneut Refs und Parallelstände prüfen.
+
+Foreground-Refresh mit 5/15/60-s-Fehlerbackoff, danach maximal alle fünf Minuten, mit bestehendem Fusionscache. Sichtbarkeit, online, pageshow und MID-Runtime-Resume starten den versäumten Abruf nach. Keine parallelen Abrufe innerhalb des Effekts, Abort und Schutz vor verspäteten Antworten bei Ortswechsel/Unmount. Modellstand ohne Fusion explizit als nicht verifizierte Übernahme beschrieben. Keine Änderung meteorologischer Werte oder Workerlogik. Nachweis: docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md.
+
+Zusätzlich: vorhandene begrenzte selectedDetailIndex-Auswahl auch für sämtliche Tagesdiagramm-Markierungen verwenden. Reproduktion des vorherigen epoch-Absturzes im echten Browser; anschließend unveränderter Bergwettertest mit sechs Viewports × zwei Themes lokal erfolgreich.
+
+Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates stehen aus; noch nicht veröffentlicht.
+
+# MID v0.9.85.333 · Karten-Popup-Kontrast (Source-Kandidat)
+
+- Verifizierte Ausgangsbasis: `main = mid-stable = 3887ebc31dc93fc33b51ad87b55284671e4d4224`, v0.9.85.332; Installer 40218239133 erfolgreich einschließlich Core/Build/Audit/iOS, aller Heavy-Shards, Same-Origin-Smoke, Pages und Fast-Forward-Promotion.
+- Leaflet-Popups (KONRAD3D, Blitz, NowCastMIX, Standort) übernehmen nun die MID-Themefarben für Fläche und Text. Zentrale MapLibre-Popups erhalten eine eigene Themeklasse; bewusst anders gestaltete Sonderkarten bleiben davon getrennt.
+- Popup-Schließen erhält sichtbaren Fokus und auf Touch-Geräten eine 44-px-Zielfläche. Keine Änderung an Kartendaten, Layer-Reihenfolge, Meteorologie, Worker oder Provider.
+- Regression `scripts/test-map-popup-theme-0985333.mjs`; technische Prüfung `docs/implementation/MID_MAP_POPUP_THEME_0.9.85.333.md`. Das CSS wird zusammen mit den Kartenmodulen geladen und erhöht nicht das initiale CSS-Budget.
+- Source-PR-/Bot-Merge-/ZIP-/Installer-/Pages-/Stable-Gates für .333 stehen aus. Noch keine Veröffentlichung oder Stable-Promotion für diesen Kandidaten.
+
+# MID v0.9.85.332 · Vite-Wartungsupdate (Stable-Stand)
+
+Der Source-PR #469 wurde am 25.10.2026 nach erfolgreichem Source-Gate vom MID-Release-Bot für den exakt geprüften Head `676b04440e2f167fd9ec0947537910ab8e7da852` aus Stable .331 (`447890032ce1b1d9103bc76811061b790b26f328`) gemergt. Der Release-Installer `40215524340` schloss Build, Audit, Core- und Heavy-Regressionen, iOS, unveränderten Worker-Pfad, Same-Origin-Smoke, Pages-Deployment und Fast-Forward-Promotion erfolgreich ab. `main = mid-stable = 253b365fb916c1e104e04f1c594f5c027dfd9bbf`.
+
+Vite wurde von 8.2.4 auf 8.3.5 aktualisiert; @vitejs/plugin-react blieb bei 6.1.2. React/React DOM/react-is blieben bei 19.2.8, React-Typen auf 19.2.x und MapLibre GL JS bei 6.7.0. Capacitor 8.5.3, PostCSS 8.5.31 und Pako 2.2.0 blieben unverändert.
+
+# MID v0.9.85.332 · Ursprünglicher Breitenkandidat (zurückgestellt, nicht veröffentlicht)
+
+Der anfängliche Qualifikationsplan kombinierte React/React DOM/react-is 19.3.1, React-Typen 19.3.0, Vite 8.3.5 und MapLibre GL JS 6.15.0. Die Regression zeigte Überschreitungen der unveränderten harten ReactVendor- und MapLibreCore-Feature-Chunk-Budgets. Dieser Kandidat wurde deshalb nicht veröffentlicht; die Budgets wurden nicht gelockert. Ausschließlich Vite 8.3.5 ging in Stable .332 ein.
+
+# MID v0.9.85.331 · Isoliertes Capacitor-Patchupdate (Source-Kandidat)
+
+Verifizierte Stable-Basis .330: `84d52042521fe087bef490d8a8966ffe72295c1d`. Capacitor Core, CLI und iOS werden gemeinsam von 8.5.2 auf 8.5.3 aktualisiert; andere Capacitor-Plugins und React/Vite/MapLibre/PostCSS/Pako bleiben unverändert. npm erzeugt das Lockfile regulär neu. Vollständige Installations-, Audit-, Build-, Regression-, iOS- und MID-Release-Gates sind erforderlich.
+
+# MID v0.9.85.330 · Isoliertes React-Vite-Plugin-Update (Source-Kandidat)
+
+Verifizierte Stable-Basis .329: `85f98cc3a347657071eef0a18aee4f0345d26ed7`. `@vitejs/plugin-react` wird isoliert von 6.1.1 auf 6.1.2 aktualisiert; React, Vite, Capacitor, MapLibre, Pako und Produktionsabhängigkeiten bleiben unverändert. Das Lockfile aktualisiert ausschließlich die Plugin-Version, Integrität und optionale Oxc-Peer-Anforderung. Upstream nennt einen HMR-Fix für Compound Components. Lokale Installation, vollständige Regressionen, Produktions-CSS-Byteparität und alle MID-Release-Gates bleiben verpflichtend.
+
+# MID v0.9.85.329 · Isoliertes PostCSS-Wartungsupdate (Source-Kandidat)
+
+Verifizierte Stable-Basis .328: `7b7d94447d584dc7b7ee4bad7549150ad19c916c`. PostCSS als direkte exakte Entwicklungsabhängigkeit 8.5.28 → 8.5.31; neu erzeugtes Lockfile aktualisiert nur zusätzlich `nanoid` 3.3.18 → 3.3.20. `source-map-js` bleibt 1.2.2; keine Produktionsabhängigkeiten oder sonstigen Framework-/Capacitor-/Karten-/Pako-Versionen ändern sich. Offizielle Context7/PostCSS-Referenz beschreibt u.a. Kommentarverarbeitung in `list.split()` seit 8.5.29 und SourceMap-/SafeStringifier-Korrekturen bis 8.5.31. Produktionsbuild gegen .328 ist byteidentisch: `index-CuuPtrVL.css`, 1.759.985 Bytes roh, SHA-256 `2d31d276bde4453a367251cd5e8efc999807cdf50ac609d1cdeddb883b1ce4cd`; kein CSS-Split, kein Runtime-/Kaskaden-/Theme-/Widget-/Exportwechsel. Vollständige Types-/Build-/Audit-/Regressionen sowie bestehende Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates sind Pflicht.
+
+# MID v0.9.85.328 · Wiederverwendung von Renderberechnungen unter „Aktuell“ (Source-Kandidat)
+
+Ausgangsbasis veröffentlichte v0.9.85.327 SHA e5f509cce4e9f345392b24c7f800d84efc5f8837. Der vollständige Ortsstundenindex ist an unveränderliche Prognosestunden und Zeitzone gebunden; die Echtzeitauswahl der aktuellen Epoche wird pro Render neu ausgewertet. Temperaturwerte, Achsenticks, vollständige stündliche Basis-Skybar und Sonnenfenster werden nur bei geänderten Eingaben neu berechnet. Viertelstunden-Niederschlag und Beobachtungsfrische bleiben unmittelbar an `solarNow` gebunden. Keine fachlichen Wetterwertänderungen. DST-Doppeluhrzeiten, +05:45-Ortsstundenwechsel, Missing/ungültige Daten und geänderte Eingaben sind gegen den historischen Algorithmus geprüft. Lokaler synthetischer React-Profiler: Median 34,1 → 25,1 ms (11 Updates, ca. 26 %), kein Geräte-/Produktionsleistungsversprechen. Nachweise `scripts/test-hour-window-formatter-0985327.mjs`, `scripts/test-complete-calendar-day-current-skybar-0985285.mjs` und `docs/implementation/MID_C42_CURRENT_RENDER_0.9.85.328.md`. Zwingende Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates vor Veröffentlichung. Unabhängige CSS-Coverage #463 bleibt Draft und ohne CSS-Split.
+
 # MID v0.9.85.327 · Lokale ICU-Zeitzonenformatierung in der laufenden 12-h-Ansicht (Source-Kandidat)
 
 Ausgangsbasis veröffentlichte v0.9.85.326 SHA f32e100842e434909f2fcd2154a885b2a3b36f56. Einmalige ICU-DateTimeFormat-Instanz nur innerhalb des einzelnen `currentFullHourWindow`-Aufrufs; keine dauerhafte Memoisierung, keine geänderten meteorologischen Werte, Zeitintervalle, UTC-Epochen oder Beobachtungs-/Sonnenzeitfrische. 23/25h-Tage und unvollständige Stundenserien bleiben unverändert. Deterministischer Golden-Test mit echtem TS-Helfer unter `scripts/test-hour-window-formatter-0985327.mjs`; ausführlicher Nachweis `docs/implementation/MID_C49_HOUR_FORMATTER_0.9.85.327.md`. Erst nach Source-/Heavy-/Installer-/Worker-/Pages-/Stable-Gates freigeben. Unabhängiger CSS-Diagnose-Draft #463 nicht übernommen.

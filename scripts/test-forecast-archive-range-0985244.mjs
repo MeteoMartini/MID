@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {execFileSync} from 'node:child_process';
 const out=mkdtempSync(join(tmpdir(),'mid244-'));
-const app=readFileSync('src/App.tsx','utf8'),helpers=app.slice(app.indexOf('function fullHourMinuteInZone('),app.indexOf('function Current('));
+const app=readFileSync('src/App.tsx','utf8'),rangeStart=app.indexOf('function currentTemperatureRangeLabel('),rangeEnd=app.indexOf('function Current(',rangeStart),helpers=`import {currentFullHourWindow} from './src/currentFullHourWindow';\n${app.slice(rangeStart,rangeEnd)}`;
 try{
  await build({stdin:{contents:`import {formatTemperatureRange}from'./src/weatherValueFormat';${helpers};export {currentFullHourWindow,currentTemperatureRangeLabel}`,resolveDir:process.cwd(),loader:'ts'},outfile:join(out,'range.mjs'),bundle:true,platform:'node',format:'esm',logLevel:'silent'});
  await build({entryPoints:['src/ForecastChangeArchive.ts','src/modelRunChanges.ts'],outdir:out,bundle:true,platform:'node',format:'esm',logLevel:'silent'});

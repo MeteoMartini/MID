@@ -5,6 +5,6 @@ const [pkgText,lockText,policy,baselineText]=await Promise.all([read('package.js
 const pkg=JSON.parse(pkgText),lock=JSON.parse(lockText),baseline=JSON.parse(baselineText),test='scripts/test-lucide-135-maintenance-097616.mjs';
 assert.equal(pkg.dependencies?.['lucide-react'],'^1.40.0');assert.equal(lock.packages?.['']?.dependencies?.['lucide-react'],'^1.40.0');assert.equal(lock.packages?.['node_modules/lucide-react']?.version,'1.40.0');
 assert.equal(lock.packages?.['node_modules/lucide-react']?.integrity,'sha512-MaG+8WnOXkDWz9XeElj7TnQ890tTZUB0a36i03aRRCKGWE6e7jJpmdCvtxxuxcjjdqyN6m4sL6qlHVuSUDtYgg==');
-for(const [name,value] of [['react','19.2.8'],['react-dom','19.2.8'],['react-is','19.2.8']])assert.equal(pkg.dependencies?.[name],value);assert.equal(pkg.devDependencies?.vite,'8.2.4');assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'6.1.1');assert.ok(policy.includes('Lucide React: 1.40.0'));
+for(const [name,value] of [['react','19.2.8'],['react-dom','19.2.8'],['react-is','19.2.8']])assert.equal(pkg.dependencies?.[name],value);assert.equal(pkg.devDependencies?.vite,'8.3.5');assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'6.1.2');assert.ok(policy.includes('Lucide React: 1.40.0'));
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 console.log('MID Lucide-Wartung geprüft: 1.40.0 reproduzierbar und mit React 19/Vite 8 gekoppelt qualifiziert.');
