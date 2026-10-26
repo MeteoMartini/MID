@@ -1,3 +1,12 @@
+# MID v0.9.85.340 · RUC-Frischeprüfung und Release-Stabilität
+
+Der bisher nicht veröffentlichte 14-Tage-CSS-Ladeschritt aus .339 bleibt vollständig erhalten. Die RUC-Quellenprüfung unterscheidet auch an der erlaubten Fünf-Minuten-Uhrentoleranz zuverlässig gültige und unzulässige Modellläufe; Wetterwerte und RUC-Gewichtung bleiben unverändert. Die verpflichtende CSS-Browserprüfung für Chromium und WebKit erhält kontrollierte Start-/Zeitdiagnosen, ohne die visuellen, funktionalen oder Zugänglichkeitsprüfungen abzuschwächen. Ein tatsächlicher Release erfolgt erst nach erneutem vollständigem Source-/Installer-/Pages-/Stable-Gate.
+
+## Recovery-Provenienz (26.10.2026)
+
+Kanonisch Stable .338 SHA `ed934fb0e755e54e0e4a553b8c47d44f7a59c262`. Erhaltener .339-Source-Merge PR #482 SHA `60ae85ed0513dc7e6bc25008e9c3c263ecbcd429` ist dessen direkter Nachfolger und Ausgangspunkt des autorisierten `chatgpt/v0.9.85.340-release-recovery`-Branches. Der alte installerrote main-Snapshot `addd4c124ea10a5acc503624544f4443e1e4a913` besteht aus diesem Source-Merge plus dem serverseitigen `.339`-ZIP und bleibt unverändert. .340 ist ein eigener Maintenance-Kandidat ohne mitgeführtes ZIP. Das neue Release-ZIP erzeugt ausschließlich der MID Agent Release-Bot nach vollständigem Gate. Keine unterbrochene .339-Promotion als Erfolg ausgegeben.
+
+
 # MID v0.9.85.339 · 14-Tage-Entwicklung gezielt nachladen
 
 Die Entwicklungsübersicht der 14-Tage-Prognose wird mit ihren eigenen Styles erst beim Öffnen geladen. Wetterwerte, Ensemble-Spannen, Diagramme und Bedienung bleiben erhalten. Dies ist der erste abgegrenzte Schritt der CSS-Auslagerung.
