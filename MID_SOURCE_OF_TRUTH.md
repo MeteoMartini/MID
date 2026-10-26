@@ -1,3 +1,9 @@
+# MID v0.9.85.338 · Dunkles horizontales MID-Logo
+
+Der Startbildschirm verwendet das bereitgestellte dunkle horizontale MID-Wortbild. Die übrigen Logos und App-Icons bleiben erhalten.
+
+Basis: Stable .336, d080fe240d5a59a5a77467c783aba59a33957ddc. Selektive Übernahme der Asset-/Hashänderung aus PR #472; keine Übernahme seiner alten Versionsspiegel. Source-/Installer-/Stable-Gates für .338 stehen aus. .337 bleibt dem separaten SYNOP-Draft #480 vorbehalten.
+
 # MID v0.9.85.336 · Kanonische RUC-Laufabdeckung (Source-Kandidat)
 
 Verifizierte Basis main = mid-stable = 3908e1c7e6c8475278ae07e5cfbd5a4780822e95, v0.9.85.335. RUC-Karten +27 h wurden bereits in .305 nachgewiesen; hier werden gemeinsame Stundenfusion und voraggregierte EPS-Wahrscheinlichkeiten laufbezogen erweitert. Die bestehenden Rapid-/Extrem-/Eventgrenzen bleiben erhalten. Native Vollprüfung, 14-h-Bytepräfix, vollständiger Codec, Rohrollback und Kartenbudget sind eigenständige Nachweise. Die Qualifikationshistorie liegt in #478; die vollständige27h-Paketabnahme ist nun auf diesem Migrationsbranch zusätzlich im finalen regulären Source-Gate verbindlich. Kein veröffentlichter .336-Stand behauptet.
