@@ -22,7 +22,7 @@ for(const forbidden of ['freezing_level_height','snowline_height','cloud_cover',
 assert.ok(pages.includes("PAGES_RUC_BUDGET_BYTES=900_000_000"),'Pages-free RUC budget must fail before the 950 MB combined-site guard.');
 assert.ok(pages.includes("PAGES_OMIT_RAPID_PRODUCTS={'solar15','state15'}"),'Pages-free profile must omit unused solar15 and the optional 15-min visibility/ceiling duplicate.');
 assert.ok(pages.includes("PAGES_STATE15_FIELDS={'visibility','ceiling'}"),'If state15 is re-enabled in another storage profile, its projection must remain restricted to visibility and ceiling.');
-assert.ok(pages.includes("raise ValueError(f'Pages-free RUC payload {total} bytes exceeds {PAGES_RUC_BUDGET_BYTES} byte budget')"),'Pages overflow must fail during preparation, before artifact upload/publish.');
+assert.ok(pages.includes("limit=CODEC_STAGING_LIMIT_BYTES if codec_staging else PAGES_RUC_BUDGET_BYTES")&&pages.includes("if total>=limit:")&&pages.includes("if total+len(manifest)>=limit:raise ValueError"),'Pages overflow must fail during preparation, before artifact upload/publish.');
 assert.ok(worker.includes("rapidSolar15:false")&&worker.includes("rapidState15:false"),'Worker health must continue treating optional rapid products as optional.');
 assert.ok(shortTerm.includes('stateCeiling=finite(quarter?.ceiling)??base.ceiling')&&shortTerm.includes('stateVisibility=finite(quarter?.visibility)??base.visibility'),'Short-term forecast must consume native 15-min visibility/ceiling when present and fall back hourly otherwise.');
 assert.equal(baseline.releaseVersion,pkg.version);

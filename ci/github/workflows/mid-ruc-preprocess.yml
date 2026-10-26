@@ -113,7 +113,7 @@ jobs:
       - name: Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         env:
-          MID_RUC_FORECAST_HOURS: '14'
+          MID_RUC_FORECAST_HOURS: '27'
           MID_RUC_EPS_DECODE_WORKERS: '2'
         run: python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
       - name: RUC-Wire- und Pages-Free-Profil prüfen
@@ -126,7 +126,11 @@ jobs:
           python tools/ruc/test_prepare_ruc_pages.py
           # The preparer preserves the verified index after DWD build_synoptic
           # and directly before the legacy raw-budget projection.
-          python tools/ruc/prepare_ruc_pages.py --source .ruc-out --output .ruc-pages
+          # This raw staging profile is never uploaded/published as a fallback.
+          python tools/ruc/prepare_ruc_pages.py --codec-staging --source .ruc-out --output .ruc-pages
+          # Keep the established raw decoder recovery independent of the codec.
+          # Byte-project the same run's first 15 terms; rapid/extreme axes stay unchanged.
+          python tools/ruc/prepare_legacy_core_rollback.py .ruc-out .ruc14-reference .ruc14-rollback > .ruc-legacy-rollback-proof.json
       - name: Node.js 22 für vollständigen RUC-Python/JS-Abgleich laden
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -138,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-rollback-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ./.ruc-pages/ruc
+          path: ./.ruc14-rollback/ruc
           if-no-files-found: error
           retention-days: 2
           compression-level: 6
@@ -189,8 +193,18 @@ jobs:
           map_started=time.monotonic()
           source=Path('.ruc-out')
           try:
-              subprocess.run([sys.executable,'tools/ruc/prepare_ruc_map_source.py','--core',str(source),'--staging','.ruc-stage','--output','.ruc-map-source'],check=True,timeout=180)
-              source=Path('.ruc-map-source')
+              from datetime import datetime,timedelta
+              core=json.loads((source/'latest.json').read_text())
+              if len(core['deterministic']['times'])==28:
+                  run=datetime.fromisoformat(core['run'].replace('Z','+00:00'))
+                  expected=[run+timedelta(hours=i) for i in range(28)]
+                  for name in ('deterministic','epsSummary','eps'):
+                      if [datetime.fromisoformat(t.replace('Z','+00:00')) for t in core[name]['times']]!=expected:
+                          raise ValueError('invalid native 27h map/core axis: '+name)
+                  print('RUC maps reuse the already validated native 27h core; no duplicate download')
+              else:
+                  subprocess.run([sys.executable,'tools/ruc/prepare_ruc_map_source.py','--core',str(source),'--staging','.ruc-stage','--output','.ruc-map-source'],check=True,timeout=180)
+                  source=Path('.ruc-map-source')
           except (subprocess.SubprocessError,OSError) as error:
               shutil.rmtree('.ruc-map-source',ignore_errors=True)
               print('::notice::RUC +27h map-only source unavailable; verified core horizon retained: '+str(error))

@@ -16,7 +16,7 @@ must(worker.includes('dwdRucLatestCache')&&worker.includes('dwdRucLookupCache'),
 must(worker.includes('dwdRucR2Health')&&router.includes("mode==='ruc-health'")&&router.includes("'ruc-storage-health'"),'RUC health route missing');
 must(!/eccodes|codes_grib|grib_new/i.test(worker),'Cloudflare Worker must never decode GRIB/eccodes');
 must(worker.includes('applyRucRapidUpdateWeatherHours')&&worker.includes('applyRucEpsProbabilityHours'),'RUC and RUC-EPS must calibrate canonical hours');
-must(worker.includes("sourceRole:'rapid-update'")&&worker.includes('leadHours>14'),'RUC calibration must be 0–14 h only');
+must(worker.includes("sourceRole:'rapid-update'")&&worker.includes('leadHours>27')&&worker.includes('window.initialisationEpoch'),'RUC calibration must respect native 0–27 h from initialization');
 must(worker.includes('rapidForecastWeatherCode')&&!worker.includes('safeRapidThunderCode'),'RUC forecast weather-code handling must preserve numerical thunder without a lightning gate');
 must(worker.includes('temperature_2m,dew_point_2m,pressure_msl,wind_speed_10m'),'RUC/core physical variables missing from fusion request');
 

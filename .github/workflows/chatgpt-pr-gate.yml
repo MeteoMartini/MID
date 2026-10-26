@@ -318,12 +318,12 @@ jobs:
         run: npm run test:regressions
 
   ruc27_qualification:
-    name: RUC +27h Kern und EPS · isolierter Draft-Nachweis
-    # Read-only preflight; never participates in release readiness or publication.
+    name: RUC +27h Kern, EPS und Gesamtpaket
+    # Read-only data qualification; this migration branch must also pass it
+    # in the final Source gate before the existing release bot may proceed.
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification' &&
-      github.event.pull_request.draft == true
+      github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -464,6 +464,7 @@ jobs:
       - source_core
       - heavy_regressions
       - visual_extreme
+      - ruc27_qualification
     if: >-
       always() &&
       (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
@@ -480,6 +481,8 @@ jobs:
           CORE_RESULT: ${{ needs.source_core.result }}
           HEAVY_RESULT: ${{ needs.heavy_regressions.result }}
           VISUAL_RESULT: ${{ needs.visual_extreme.result }}
+          RUC27_RESULT: ${{ needs.ruc27_qualification.result }}
+          RUC27_REQUIRED: ${{ github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification' }}
           EXTREME_BRANCH: ${{ contains(github.head_ref, 'extreme-polygons-fallback') }}
         run: |
           set -euo pipefail
@@ -489,6 +492,10 @@ jobs:
           fi
           if [ "$EXTREME_BRANCH" = true ] && [ "$VISUAL_RESULT" != success ]; then
             echo "::error::Echte Extremwetter-WebGL-Pixelabnahme nicht grün: visual=${VISUAL_RESULT}."
+            exit 1
+          fi
+          if [ "$RUC27_REQUIRED" = true ] && [ "$RUC27_RESULT" != success ]; then
+            echo "::error::Vollständiges RUC-27h-Datenpaket nicht abgenommen: ruc27=${RUC27_RESULT}."
             exit 1
           fi
           echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."

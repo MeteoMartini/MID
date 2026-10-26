@@ -8,4 +8,6 @@ const workflow=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8')
 assert.ok(source.includes('sourceRollbackIntact')&&source.includes("proof.get(k)!=v")&&source.includes("physical>=900_000_000"),'Production activation requires complete authenticated proof, existing immutable source and exact budget');
 assert.ok(workflow.includes('tools/ruc/activate_lossless_snapshot.py')&&workflow.includes('tools/ruc/verify_lossless_migration.mjs'), 'Full producer must verify independently before activation');
 assert.ok(workflow.includes('mid-ruc-rollback-')&&workflow.includes('RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen'),'Full producer requires same-run raw rollback artifact and failure path');
+assert.ok(workflow.includes("MID_RUC_FORECAST_HOURS: '27'")&&workflow.includes('prepare_ruc_pages.py --codec-staging'),'27h input must be staged without relaxing the publication budget');
+assert.ok(workflow.includes('prepare_legacy_core_rollback.py .ruc-out .ruc14-reference .ruc14-rollback')&&workflow.includes('path: ./.ruc14-rollback/ruc'),'published rollback must remain a same-run raw 14h snapshot, never codec staging');
 console.log('MID .267 RUC full replacement activation with independently verified Python/JS proof and raw rollback contract OK.');

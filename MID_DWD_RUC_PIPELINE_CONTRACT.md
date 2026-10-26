@@ -1,3 +1,15 @@
+# Kanonische RUC-/RUC-EPS-Laufabdeckung ab v0.9.85.336 (Source-Kandidat)
+
+Der Nutzerauftrag erweitert den gemeinsamen stündlichen Zustandskern und die voraggregierte RUC-EPS-Wahrscheinlichkeitsreihe auf native +0…+27 h **seit UTC-Modellinitialisierung**. Die vorhandene Kartenqualifikation .305 bleibt gültig; deren damaliger Ausschluss einer Fusion-/EPS-Erweiterung beschreibt den historischen Umfang und wird für diese beiden kanonischen Stundenprodukte hier ausdrücklich abgelöst. Keine Behauptung zusätzlich gemessener Vorhersagegüte.
+
+Worker prüft Herkunft, streng aufsteigende volle UTC-Stunden, native Leads 0…27 und höchstens vier Stunden Laufalter (maximal fünf Minuten Zukunftstoleranz). Gewichtung verwendet den Quelllauf, niemals verbleibende Stunden ab Abrufzeit. Tatsächliches Datenende begrenzt jedes Produkt separat; ein Rohrollback mit 15 Terminen bleibt +14 h. Ungültige Herkunft/Achse liefert keine RUC-Korrektur; authentische fehlende Werte werden weder interpoliert noch zu null. Die gemeinsame `weatherHours`-Reihe versorgt weiterhin alle Ansichten, Widgets und Exporte.
+
+Die begrenzte, nicht empirisch gütekalibrierte MID-Heuristik behält die bisherigen frühen Gewichtsknoten und physikalischen Delta-/Niederschlags-Ausreißerschutzregeln. Der deterministische Anteil nimmt ab +12 h mit einer stetigen kubischen Übergangsfunktion von 0,30 bis null bei +27 h ab; auch der konvektive Zusatz wird im selben Bereich gegen null geführt. Der EPS-Wahrscheinlichkeitsanteil nimmt jenseits +14 h von 0,34 bis null bei +27 h ab. Am letzten Termin wird kein Gewicht oder Anschlusswert erfunden. RUC/EPS bleibt dieselbe DWD-Unabhängigkeitsgruppe, keine zusätzliche unabhängige Modellstimme.
+
+Native 5-/15-min-Produkte bleiben +0…+6 h; `rapid-extreme.v4` bleibt bewusst +0…+14 h mit Zeitfenstern 0–6, 6–12 und 12–14. Auch die gesonderte native Member-Eventauswahl bleibt bei ihrem bisherigen +14-h-Vertrag. Keine Erweiterung dieser Extremwetter-/Eventprodukte durch die Erweiterung der kanonischen Stundenfusion.
+
+Der Vorprozessor verlangt einen gemeinsamen vollständigen +27-h-Lauf für Deterministik/EPS. Ein ausschließlich temporäres `pages-codec-staging-v1` darf den Rohcodec-Eingang aufnehmen; es wird von produktiven Lesern abgelehnt. Veröffentlichung erfordert weiterhin vollständigen unabhängigen Python-/JS-/Worker-Dekodiernachweis und weniger als 900.000.000 Bytes einschließlich Manifest. Der Rückfallpfad bleibt derselbe native Lauf in `pages-free-v1`, als byteidentisches +0…+14-h-Präfix ohne erneute meteorologische Berechnung; native Rapid-/Extremprodukte bleiben unverändert. Staging darf niemals als Rollback hochgeladen werden. Fehler blockieren atomare Veröffentlichung, der letzte gültige Stand bleibt erhalten.
+
 # Separate RUC-Kartenachse ab v0.9.85.305
 
 Die optionalen RUC-Modellkarten erhalten eine eigene stündliche Achse0…27h aus demselben vollständig validierten nativen DWD-Lauf. Der gesamte ursprüngliche0…14h-Kern muss nach Dekodierung der aktiven Codec-Parts bitgleich zum Präfix der Kartenquelle sein. +27h wird nur bei vollständig dekodierten12Feldern, identischem Gitter, GRIB-/UTC-/Intervall-/Einheiten-/Missing-Prüfungen und darstellbaren int16-Werten zugelassen; sonst bleibt der geprüfte Kernhorizont für Karten verwendbar. Kein zusätzlicher Konsensbeitrag, keine EPS-/Rapid-/Fusion-Erweiterung. Kartenprodukte Temperatur/Druck/Wind/Böen/Wolken/Niederschlag nutzen den bestehenden Lookup als nearest-native-cell-Sampling, ohne Wertglättung. NoData bleibt null/transparent; trockene0 bleibt0. Initialisierungs-Böe/-Niederschlag wird nicht als1h-Intervall angeboten.
@@ -6,7 +18,7 @@ Zulassung erst nach kompletter Codec-Aktivierung und Prüfung sämtlicher vorhan
 
 # MID DWD RUC/RUC-EPS Pipeline Contract
 
-Stand: v0.9.85.231
+Stand: v0.9.85.336 (kanonische Stundenfusion; historische Produktgrenzen ausdrücklich ausgenommen)
 
 ## Missing-Vertrag optionaler Niederschlagsphasen (v0.9.85.231)
 
@@ -38,14 +50,14 @@ Dies sind Diagnosequoten, keine neue physikalische Grenze, DWD-Warnschwelle oder
 
 ## Zweck und fachliche Rolle
 
-DWD ICON-D2-RUC ist in MID ein stündlich neu initialisierter Kurzfrist-Kalibrator mit parameterabhängiger nativer Zeitauflösung der bereits kohärenten kanonischen Best-Match-Prognose. Der räumliche Vertrag ist auf `[-3.85, 43.18, 20.22, 58.05]` begrenzt, der zeitliche Vertrag auf 0–14 Stunden ab dem aktuellen Zeitpunkt. Best Match bleibt die Prognosebasis; RUC erzeugt weder eine zweite DWD-Modellfamilienstimme noch einen parallelen UI-Forecast.
+DWD ICON-D2-RUC ist in MID ein stündlich neu initialisierter Kurzfrist-Kalibrator mit parameterabhängiger nativer Zeitauflösung der bereits kohärenten kanonischen Best-Match-Prognose. Der räumliche Vertrag ist auf `[-3.85, 43.18, 20.22, 58.05]` begrenzt, der zeitliche Vertrag auf native 0–27 Stunden seit UTC-Initialisierung innerhalb der tatsächlich validierten Laufabdeckung. Best Match bleibt die Prognosebasis; RUC erzeugt weder eine zweite DWD-Modellfamilienstimme noch einen parallelen UI-Forecast.
 
 RUC-EPS gehört wie ICON-D2-EPS zur Unabhängigkeitsgruppe `dwd-ensemble` und zur gemeinsamen Variantengruppe `dwd-icon-d2-eps-rapid`. In der Kurzfrist/Event-Auswertung wird RUC-EPS bis maximal 14 Stunden vor ICON-D2-EPS versucht. Ist RUC-EPS nicht nutzbar, fällt MID innerhalb derselben Familie auf ICON-D2-EPS zurück. Normale 7-/14-Tage-Ensembleabrufe laden RUC-EPS nicht.
 
 ## Meteorologische Schutzregeln
 
-- RUC darf ausschließlich innerhalb des 0–14-h- und Gebietsvertrags kalibrieren.
-- Die Gewichtung ist in 0–3 h am höchsten und nimmt danach stufenweise ab. Physikalische Felder werden zusätzlich durch Delta-Grenzen geschützt.
+- RUC darf ausschließlich innerhalb des nativen 0–27-h- und Gebietsvertrags kalibrieren.
+- Die Gewichtung ist in 0–3 h am höchsten und nimmt danach begrenzt ab und läuft bis +27 h stetig gegen null aus. Physikalische Felder werden zusätzlich durch Delta-Grenzen geschützt.
 - RUC-Niederschlag wird mit dem kanonischen Best-Match-Niederschlagsbündel reconciled; RUC ersetzt keine Niederschlagsphase blind.
 - RUC-EPS kalibriert die kurzfristige Niederschlagswahrscheinlichkeit im normalen Forecast aus bereits im Vorprozessor aggregierten Memberwahrscheinlichkeiten.
 - Native RUC-EPS-Member sind ausschließlich eine optionale exakt eventbezogene Zusatzquelle. Fehlen sie im kostenlosen Speicherprofil, fällt diese Memberauswertung auf ICON-D2-EPS innerhalb derselben DWD-Ensemblefamilie zurück.
@@ -58,7 +70,7 @@ Quelle sind die offiziellen DWD-Open-Data-Bäume `icon-d2-ruc` und `icon-d2-ruc-
 
 **Verbindlicher parameterabhängiger Zeitvertrag ab v0.9.73.11:**
 
-- gemeinsamer Zustandskern 0…+14 h **stündlich**: `T_2M`, `TD_2M`, `RELHUM_2M`, `PMSL`, `U_10M`, `V_10M`, `VMAX_10M`, `CLCT`, `CLCL` sowie stündliche Referenzen für Niederschlag/CAPE/CIN;
+- gemeinsamer Zustandskern 0…+27 h **stündlich**: `T_2M`, `TD_2M`, `RELHUM_2M`, `PMSL`, `U_10M`, `V_10M`, `VMAX_10M`, `CLCT`, `CLCL` sowie stündliche Referenzen für Niederschlag/CAPE/CIN;
 - `TOT_PREC` 0…+6 h **5-minütlich** als natives Rapid-Niederschlagsprodukt; daraus wird zusätzlich eine echte 15-min-Akkumulation gebildet;
 - `TOT_PREC`, `CAPE_ML` und `CIN_ML` 0…+6 h **15-minütlich** für den kanonischen Kurzfrist-/Konvektionspfad;
 - `DBZ_CMAX` wird optional **15-minütlich** verwendet und ausdrücklich nur als **modellierte Reflektivität**, niemals als beobachtetes Radar;
@@ -66,7 +78,7 @@ Quelle sind die offiziellen DWD-Open-Data-Bäume `icon-d2-ruc` und `icon-d2-ruc-
 - weitere optionale 15-min-Severe-Diagnostik (`CAPE_MU`, `CIN_MU`, `LPI`, `LPI_MAX`, `UH_MAX*`, `ECHOTOPinM`, `HAIL_GSP`, `LAPSE_RATE`, `W_CTMAX`, `VORW_CTMAX`) wird nur bei vollständiger Zeitachse aufgenommen und nie als alleinige Warn-/Gewitterautorität verwendet;
 - `ASOB_S`, `ASWDIR_S`, `ASWDIFD_S` werden optional 15-minütlich als Strahlungsdiagnostik geführt;
 - `VIS`, `CEILING`, `HZEROCL`, `SNOWLMT`, `CLCM`, `CLCH`, `T_G`, `H_SNOW` werden optional stündlich als Specialist-Diagnostik geführt; `SRH` und `WSHEAR_U/V` bleiben bis zur expliziten `lvt1`-Layerauswahl deaktiviert;
-- RUC-EPS bleibt für den normalen probabilistischen Kurzfristpfad **stündlich 0…+14 h**.
+- RUC-EPS bleibt für den normalen probabilistischen Kurzfristpfad **stündlich 0…+27 h**.
 
 Fehlende Zwischenwerte von Temperatur, Wind, Druck oder Wolken werden nicht interpoliert. Die feineren Einzelprodukte werden als getrennte Wire-Produkte publiziert (`rapid-5m.bin`, `rapid-15m.bin`, optional Reflektivität/Phase) und erzwingen keine falsche gemeinsame 5-/15-min-Zustandsachse.
 
@@ -74,7 +86,7 @@ Fehlende Zwischenwerte von Temperatur, Wind, Druck oder Wolken werden nicht inte
 
 Die RUC-Rapid-Felder laufen in `forecast-fusion` als `rapidMinutes15` in die kanonische `displayMinutes15`-Endstufe ein. RUC wird **vor** Radar/Nowcast angewendet; beobachtetes Radar und lokale Beobachtungen bleiben dadurch nachgelagert und höher priorisiert. 5-min-Niederschläge liefern neben der 15-min-Summe einen Peak-Intensitätswert. CAPE/MU-CAPE und CIN/MU-CIN bilden zusammen mit modellierter Reflektivität bzw. Niederschlagstriggern den konvektiven Kern; LPI, UH, EchoTop und maximaler Aufwind verstärken ihn als zusätzliche elektrische/organisatorische Evidenz. Ab v0.9.76.35 darf diese **Mehrparameterdiagnostik** ein numerisches Gewittersignal in der Prognose erzeugen. Die aktuelle KONRAD3D-Zellbezeichnung bleibt davon unabhängig und heißt ohne Blitz weiterhin Schauer-/starke Schauerzelle.
 
-Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompaktes räumliches `rapid-extreme.json` (Schema v4) über die **vollständige verfügbare RUC-Laufzeit 0…+14 h**. +0–6 h enthält die nativen 5-/15-min-Produkte (u. a. 6-h-Niederschlag, max. 1 h, max. 15 min, 5-min-Peakrate, CAPE/CIN und optional `DBZ_CMAX`, MU-CAPE/CIN, UH, LPI, EchoTop, Hagel und Niederschlagsphase). +6–12 h und +12–14 h werden aus dem stündlichen RUC-Zustandskern abgeleitet (Niederschlag/max. 1 h, Böen/Wind, CAPE/CIN, Temperatur, Taupunkt, Feuchte sowie – wenn vorhanden – Nullgrad- und Schneefallgrenze). Schema v4 ergänzt pro Zeitraum ausschließlich **voraggregierte** RUC-EPS-Niederschlagsevidenz (Memberzahl, Wahrscheinlichkeit >0,2 mm bzw. >5 mm, Q75 sowie die I1–I4-Überschreitungswahrscheinlichkeiten für 1 h und – bei vollständiger Abdeckung – 6 h); das native Member-Cube wird weiterhin nicht an App oder Worker ausgeliefert. Im UI-Zeitraum +12–24 h darf RUC/RUC-EPS deshalb ausschließlich die reale Teilabdeckung +12–14 h stützen; +24–48 h bleibt vollständig beim ICON-D2-/EPS-Pfad. Deterministische RUC-Werte dürfen eine I-Stufe nur dann stützen, wenn die zugehörige Intensitätsschwelle tatsächlich erreicht wird; subthreshold RUC-Werte erzeugen keine höhere I-Stufe. RUC-EPS darf die bestehende ICON-D2-EPS-Regenwahrscheinlichkeit kurzfristig **begrenzt in beide Richtungen kalibrieren**, eine bereits ensemblegestützte I-Stufe aber nicht allein unter ihre Aktivierungsschwelle drücken. Schnee und Eis dürfen RUC-EPS nur als Niederschlagsstütze zusammen mit deterministischen Temperatur-/Phasen-/Nullgrad- bzw. Schneefallgrenzensignalen verwenden; daraus wird keine ungestützte hohe Intensitätsstufe erzeugt. Diese Unterstützung ergänzt ICON-D2-EPS/ICON-D2, ersetzt aber weder die Ensemble-Wahrscheinlichkeit noch KONRAD3D/Meso/Blitz als beobachtungsnahe Bestätigung.
+Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompaktes räumliches `rapid-extreme.json` (Schema v4) über die **bewusst separat begrenzte Zeitachse 0…+14 h**. +0–6 h enthält die nativen 5-/15-min-Produkte (u. a. 6-h-Niederschlag, max. 1 h, max. 15 min, 5-min-Peakrate, CAPE/CIN und optional `DBZ_CMAX`, MU-CAPE/CIN, UH, LPI, EchoTop, Hagel und Niederschlagsphase). +6–12 h und +12–14 h werden aus dem stündlichen RUC-Zustandskern abgeleitet (Niederschlag/max. 1 h, Böen/Wind, CAPE/CIN, Temperatur, Taupunkt, Feuchte sowie – wenn vorhanden – Nullgrad- und Schneefallgrenze). Schema v4 ergänzt pro Zeitraum ausschließlich **voraggregierte** RUC-EPS-Niederschlagsevidenz (Memberzahl, Wahrscheinlichkeit >0,2 mm bzw. >5 mm, Q75 sowie die I1–I4-Überschreitungswahrscheinlichkeiten für 1 h und – bei vollständiger Abdeckung – 6 h); das native Member-Cube wird weiterhin nicht an App oder Worker ausgeliefert. Im UI-Zeitraum +12–24 h darf RUC/RUC-EPS deshalb ausschließlich die reale Teilabdeckung +12–14 h stützen; +24–48 h bleibt vollständig beim ICON-D2-/EPS-Pfad. Deterministische RUC-Werte dürfen eine I-Stufe nur dann stützen, wenn die zugehörige Intensitätsschwelle tatsächlich erreicht wird; subthreshold RUC-Werte erzeugen keine höhere I-Stufe. RUC-EPS darf die bestehende ICON-D2-EPS-Regenwahrscheinlichkeit kurzfristig **begrenzt in beide Richtungen kalibrieren**, eine bereits ensemblegestützte I-Stufe aber nicht allein unter ihre Aktivierungsschwelle drücken. Schnee und Eis dürfen RUC-EPS nur als Niederschlagsstütze zusammen mit deterministischen Temperatur-/Phasen-/Nullgrad- bzw. Schneefallgrenzensignalen verwenden; daraus wird keine ungestützte hohe Intensitätsstufe erzeugt. Diese Unterstützung ergänzt ICON-D2-EPS/ICON-D2, ersetzt aber weder die Ensemble-Wahrscheinlichkeit noch KONRAD3D/Meso/Blitz als beobachtungsnahe Bestätigung.
 
 
 ### Gewittersemantik ab v0.9.76.35
@@ -82,7 +94,7 @@ Für den Mitteleuropa-Extremwetter-Ausblick erzeugt der Vorprozessor ein kompakt
 MID unterscheidet zwei verschiedene Aussagen, die nicht mehr gegenseitig blockiert werden:
 
 1. **Aktuelle beobachtete Zellklassifikation:** KONRAD3D/Radar ohne detektierten Blitz → Schauer bzw. starke Schauerzelle; mit Blitz → Gewitterzelle. VIL, Reflektivität, vertikale Ausdehnung, Starkregenpotential und Zellmasse fließen über die amtliche KONRAD3D-Schwereklassifikation weiterhin in die Intensitätsbewertung ein, ersetzen aber den Blitznachweis für die Benennung des aktuellen Zustands nicht.
-2. **Numerische Gewitterprognose:** kann unabhängig vom aktuellen Blitzstatus entstehen. Ohne Rapid-Daten bleibt die kanonische Mehrparameter-/WMO-Prognose voll wirksam. Mit Rapid-Daten ergänzt ICON-D2-RUC +0–6 h die Diagnose aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, `DBZ_CMAX`, LPI/LPI_MAX, UH, EchoTop und Aufwind. Von +6 bis +14 h stehen nur die wissenschaftlich belastbaren stündlichen Zustandsparameter zur Verfügung; sie dürfen ein vorhandenes Ensemble-Gewittersignal nur bei passender CAPE-/CIN- und Niederschlagslage stützen und ersetzen fehlende Scherungs-/Organisationsdiagnostik nicht. Die Entscheidung ist ingredient-basiert; ein einzelnes Feld allein erzeugt keinen synthetischen Gewittercode.
+2. **Numerische Gewitterprognose:** kann unabhängig vom aktuellen Blitzstatus entstehen. Ohne Rapid-Daten bleibt die kanonische Mehrparameter-/WMO-Prognose voll wirksam. Mit Rapid-Daten ergänzt ICON-D2-RUC +0–6 h die Diagnose aus CAPE/MU-CAPE, CIN/MU-CIN, 5-/15-min-Niederschlag, `DBZ_CMAX`, LPI/LPI_MAX, UH, EchoTop und Aufwind. Für die kanonische Stundenfusion von +6 bis +27 h stehen nur die wissenschaftlich belastbaren stündlichen Zustandsparameter zur Verfügung; sie dürfen ein vorhandenes Ensemble-Gewittersignal nur bei passender CAPE-/CIN- und Niederschlagslage stützen und ersetzen fehlende Scherungs-/Organisationsdiagnostik nicht. Die Entscheidung ist ingredient-basiert; ein einzelnes Feld allein erzeugt keinen synthetischen Gewittercode.
 
 Damit bedeutet „kein aktueller Blitz“ nur „aktuell nicht blitzbestätigt“ und niemals „numerisch kein Gewitter möglich“.
 
