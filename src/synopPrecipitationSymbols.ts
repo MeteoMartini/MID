@@ -22,12 +22,12 @@ const freezing=(x=16)=>`<path d="M${x-5} 21h10M${x} 18v5" stroke="currentColor" 
 export function synopPrecipitationSymbolSvg(code:unknown):string|null{
  const phase=synopPrecipitationPhase(code);if(!phase)return null;
  const ww=code as number;
- const count=[57,67,69,73,86,88,90,99].includes(ww)?3:[56,66,68,71,79,83,84,85,87,89,96].includes(ww)?2:1;
+ const count=[57,67,69,75,84,86,88,90,99].includes(ww)?3:ww===73?2:1;
  const locations=count===3?[[8,12],[16,15],[24,12]]:count===2?[[11,13],[21,13]]:[[16,13]];
  let marks='';
  if(phase==='snow'||phase==='snow-stars')marks=locations.map(([x,y])=>snow(x,y)).join('');
  else if(phase==='snow-grains')marks=locations.map(([x,y])=>circle(x,y,1.5)).join('');
- else if(phase==='mixed')marks=snow(10,12)+circle(22,12,2.2);
+ else if(phase==='mixed')marks=[69,84].includes(ww)?snow(8,14)+snow(21,14)+circle(16,7):snow(11,13)+circle(21,13,2.2);
  else if(phase==='freezing')marks=locations.map(([x,y])=>ww===56||ww===57?comma(x,y):circle(x,y)).join('')+freezing();
  else if(phase==='ice-pellets')marks=locations.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.4" fill="none" stroke="currentColor" stroke-width="1.5"/>`).join('');
  else if(phase==='graupel')marks=locations.map(([x,y])=>`<polygon points="${x},${y-2.7} ${x+2.7},${y+2.5} ${x-2.7},${y+2.5}" fill="none" stroke="currentColor" stroke-width="1.5"/>`).join('');
