@@ -61,3 +61,70 @@ assert.ok(inside(polarNight.nightBands,polarStart+5*DAY+12*HOUR),'Polar night re
 const long=solarTimelineWindow(weekStart,weekStart+70*DAY,berlin,false);
 assert.deepEqual(long,{events:[],nightBands:[]},'Outside the supported 62-local-day horizon must not fabricate events');
 console.log('Skybar 7/14/46 days: complete local solar events, 31 Oct/1 Nov, per-day parity, 23/25h DST, polar no-event and bounded fallback verified.');
+
+
+// C49: A full seven-day source has 168 immutable hourly slots, but precise
+// sunrise/sunset clipping legitimately creates extra rendered partitions.
+// The SVG renderer must retain every original hour and both solar boundaries
+// on every day, rather than assuming one drawn segment per source sample.
+{
+ const {mkdtempSync,rmSync}=await import('node:fs');
+ const {tmpdir}=await import('node:os');
+ const {join}=await import('node:path');
+ const {pathToFileURL}=await import('node:url');
+ const work=mkdtempSync(join(tmpdir(),'mid-week-solar-render-'));
+ try{
+  await build({
+   stdin:{contents:"export{detailSkyBarTimedSegments}from'./src/detailSkyBar';export{skyBarVisualRuns}from'./src/skyBarVisualRuns';export{SkyBarSegmentsSvg}from'./src/SkyBarSegments';export{renderToStaticMarkup}from'react-dom/server';export{createElement}from'react';",resolveDir:process.cwd()},
+   bundle:true,platform:'node',format:'cjs',outfile:join(work,'render.cjs'),jsx:'automatic',logLevel:'silent'
+  });
+  const {detailSkyBarTimedSegments:timed,skyBarVisualRuns:visualRuns,SkyBarSegmentsSvg,renderToStaticMarkup,createElement}=await import(pathToFileURL(join(work,'render.cjs')));
+  const hours=168,spanEnd=weekStart+hours*HOUR,sky=solarTimelineWindow(weekStart,spanEnd,berlin,false),chartWidth=1680,slotWidth=chartWidth/hours;
+  assert.equal(sky.events.length,14,'Seven genuine local sunrises and sunsets must survive week rendering');
+  const sampleAt=(epoch,cloud,wet=0)=>({
+   epoch,precipitationIntervalStartEpoch:epoch,precipitationIntervalEndEpoch:epoch+HOUR,
+   cloud,isDay:false,sunshineDuration:null,precipitation:wet,rain:wet,showers:0,snowfall:0,probability:0,code:wet>0?61:0
+  });
+  const source=Array.from({length:hours},(_,i)=>sampleAt(weekStart+i*HOUR,70));
+  const paint=(rows)=>timed(rows,weekStart,spanEnd,0,0,chartWidth,8,sky.nightBands);
+  const gray=paint(source).filter(s=>s.layer==='base');
+  assert.equal(gray.length,hours+sky.events.length,'Solar event divisions are additional true intervals, not extra input hours');
+  assert.ok(gray.every(s=>s.color==='#aeb3b9'&&s.x2>s.x1&&s.x1>=0&&s.x2<=chartWidth),'Known 70% cloud must remain gray on both sides of each event');
+  assert.ok(Math.abs(gray.reduce((sum,s)=>sum+s.x2-s.x1,0)-chartWidth)<1e-8,'Every original known-cloud minute must remain covered, without seams or extrapolation');
+  for(const e of sky.events){
+   const x=(e.epoch-weekStart)/(spanEnd-weekStart)*chartWidth;
+   assert.ok(gray.some(s=>Math.abs(s.x1-x)<1e-7),'Solar boundary must be represented exactly: '+e.kind+' '+e.epoch);
+   assert.ok(gray.some(s=>Math.abs(s.x2-x)<1e-7),'Neighboring parts must meet at actual '+e.kind);
+  }
+  const runs=visualRuns(gray);
+  assert.equal(runs.reduce((n,r)=>n+r.samples.length,0),gray.length,'Merging visually identical paints must preserve every per-interval tooltip');
+  const markup=renderToStaticMarkup(createElement('svg',{viewBox:'0 0 1680 16'},createElement(SkyBarSegmentsSvg,{segments:gray})));
+  assert.equal((markup.match(/<title>/g)||[]).length,gray.length,'Shared SVG keeps all split-hour metadata');
+  assert.ok(markup.includes('data-skybar-run-samples='),'Shared widget/curve renderer may optimize paint but never discard intervals');
+
+  // Precipitation is a separate accumulation overlay and MUST NOT inherit
+  // the solar partitions or redistribute its original quantity.
+  const rainy=source.map(s=>({...s,precipitation:1,rain:1,code:61}));
+  const wet=paint(rainy).filter(s=>s.layer==='precip');
+  assert.equal(wet.length,hours,'168 valid precipitation accumulations stay exactly 168 forward intervals');
+  for(let i=0;i<hours;i++){assert.ok(Math.abs(wet[i].x1-i*slotWidth)<1e-7);assert.ok(Math.abs(wet[i].x2-(i+1)*slotWidth)<1e-7)}
+  const unknown=source.map((s,i)=>i===20?{...s,cloud:null}:s);
+  const unavailable=paint(unknown).filter(s=>s.layer==='base');
+  assert.ok(unavailable.every(s=>s.x2<=20*slotWidth+1e-7||s.x1>=21*slotWidth-1e-7),'Missing cloud must produce an actual gap, not zero or fabricated sunshine');
+  const clear=paint(source.map(s=>({...s,cloud:20}))).filter(s=>s.layer==='base');
+  assert.ok(clear.some(s=>s.color==='#ffc229'),'Verified daylight retains its labeled cloud-gap base');
+  for(const item of clear)for(const night of sky.nightBands){
+   assert.ok(item.x2<=(night.startEpoch-weekStart)/(spanEnd-weekStart)*chartWidth+1e-7||
+             item.x1>=(night.endEpoch-weekStart)/(spanEnd-weekStart)*chartWidth-1e-7,'No yellow may cross a confirmed night interval');
+  }
+  // The repeated autumn civil hour is still two separate, valid UTC slots.
+  const dstStart=Date.parse('2026-10-24T22:00:00Z'),dstEnd=Date.parse('2026-10-25T23:00:00Z'),dstHours=(dstEnd-dstStart)/HOUR;
+  const dst=solarTimelineWindow(dstStart,dstEnd,berlin,false);
+  const dstCloud=Array.from({length:dstHours},(_,i)=>sampleAt(dstStart+i*HOUR,70));
+  const dstSegments=timed(dstCloud,dstStart,dstEnd,0,0,250,8,dst.nightBands).filter(s=>s.layer==='base');
+  assert.equal(dstHours,25);assert.equal(dst.events.length,2);
+  assert.equal(dstSegments.length,dstHours+dst.events.length,'25 real hours plus exact sunrise/sunset partitions');
+  assert.ok(Math.abs(dstSegments.reduce((sum,s)=>sum+s.x2-s.x1,0)-250)<1e-8);
+  console.log('C49 week/widget solar: 168 source hours, 14 real event partitions, 182 tooltip intervals, 168 unchanged precipitation slots, true Missing gap, no night sunshine and 25-hour DST passed.');
+ }finally{rmSync(work,{recursive:true,force:true})}
+}

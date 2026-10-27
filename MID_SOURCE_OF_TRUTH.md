@@ -1,3 +1,11 @@
+# MID v0.9.85.350 · 7-Tage-Skybar: echte Solarpartitionen statt fester Segmentzahl
+
+Basis: veröffentlichte v0.9.85.349, `main = mid-stable = 51043685a263393fcb72a6275f8c59a31e72202f`. Nach der publizierten Wochen-Solarfenster-Reparatur (.342) prüft die erweiterte Bestandsregression `scripts/test-skybar-week-solar-0985342.mjs` exakt 168 unveränderte einstündige Quellintervalle, 14 reale Sonnenereignisse und ihre 182 tatsächlichen geometrischen Teilintervalle; `SkyBarSegmentsSvg` behält auch bei identisch zusammenhängendem Farbband jeden Einzel-Tooltip. Zusätzlich werden 168 Niederschlagsakkumulationen unverändert übernommen, Missing bleibt sichtbar fehlend, klares Tagesgrundband übermalt keine astronomische Nacht, und beim DST-Herbstwechsel bleiben beide Stunden einschließlich korrekter Sonnen-Teilungen erhalten. Der Test prüft Produktionsrenderer-Funktionen; das Produkt selbst bleibt identisch.
+
+Die Regression darf nicht durch eine pauschale Annahme „ein Segment je Stunde“ ersetzt werden. Vollständige reale Touch-/Accessibility-/Export-/WKWebView-Abnahmen bleiben unter Issue #374 separat offen. Die Originaldaten- und Budgetgates für DWD-Vollgebiet (#446) und ECMWF (#434) bleiben ebenfalls unverändert; kein Pilot wird aktiviert.
+
+**Freigabegrenze:** Dies ist vor Source-/Installer-Gates nur ein Kandidat; keine Behauptung eines bestandenen Tests oder einer erfolgten Promotion. Release ausschließlich über den SHA-gebundenen MID-Bot, Server-ZIP, `install-mid.yml`, Worker/Pages und Stable.
+
 # MID v0.9.85.349 · Security-/Quality-Testkorrekturen
 
 Basis: veröffentlichte .348 e7fbc07dd319e3589924e841d15eeca88ee0edd4. CDP-Testwerte werden als Argumente statt durch Quelltextinterpolation übergeben; Chromium übernimmt die Portzuweisung. Bounded Startdiagnostik erhält Exit/Signal/Stderr ohne längere Wartebudgets. CSS-Regelnutzung wird ausschließlich in vorhandenen Entwicklungsfixtures gemessen; beide Bergwetter-Seiten müssen vor dem unveränderten Referenzvergleich die Datenanreicherung abgeschlossen haben. Keine produktive CSS-/Daten-/Worker-Fachänderung oder Pilotaktivierung.
