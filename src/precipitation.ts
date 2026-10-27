@@ -463,13 +463,19 @@ function representativePrecipitationCode(type:PrecipType,intensity:Precipitation
  * Stratuslage, eine sehr niedrige Wolkenbasis und eine schwache nicht-konvektive
  * Rate, wird innerhalb derselben Phase zu Regen bzw. Schnee verallgemeinert.
  */
-export function precipitationParts(h:PrecipSample):PrecipitationParts{
+export function precipitationParts(h:PrecipSample,verifiedIntervalSeconds?:number):PrecipitationParts{
+ // Optional verified visual slot duration avoids inconsistent 60m fallback
+ // in the Skybar when the provider supplied only one original epoch edge.
+ // All other consumers continue using their existing source interval contract.
+ const intervalSeconds=Number.isFinite(verifiedIntervalSeconds)&&Number(verifiedIntervalSeconds)>0
+  ?Math.min(6*3600,Math.max(60,Number(verifiedIntervalSeconds)))
+  :precipitationSampleIntervalSeconds(h);
  const total=Math.max(0,Number(h.precipitation)||0);
  const rainValue=Math.max(0,Number(h.rain)||0);
  const showerValue=Math.max(0,Number(h.showers)||0);
  const rawSnowCm=Math.max(0,Number(h.snowfall)||0);
  const code=Math.round(Number(h.code)||0);
- const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseProtected=[76,77,78,79,87,88,89,90,93,94,96,99].includes(code),warmPhaseAdjusted=!h.precipitationPhenomenonObserved&&frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsPrecipitationPhase(h,code),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase,precipitationSampleIntervalSeconds(h)):mixedForecastPrecipitationCode(total,rainValue,showerValue,rawSnowCm,code,Boolean(h.precipitationPhenomenonObserved),precipitationSampleIntervalSeconds(h)),snowCm=warmPhaseAdjusted?0:rawSnowCm;
+ const rawCodedType=WMO_PRECIP_TYPE[code],frozenSignal=['freezingDrizzle','freezingRain','sleet','sleetShowers','snow','snowGrains','snowStars','iceCrystals','icePellets','snowShowers'].includes(String(rawCodedType))||rawSnowCm>=.05,warmPhaseProtected=[76,77,78,79,87,88,89,90,93,94,96,99].includes(code),warmPhaseAdjusted=!h.precipitationPhenomenonObserved&&frozenSignal&&!warmPhaseProtected&&warmSurfaceRejectsPrecipitationPhase(h,code),showeryWarmPhase=['sleetShowers','snowShowers'].includes(String(rawCodedType))||showerValue>Math.max(.02,rainValue),effectiveCode=warmPhaseAdjusted?warmLiquidEquivalentCode(code,total,showeryWarmPhase,intervalSeconds):mixedForecastPrecipitationCode(total,rainValue,showerValue,rawSnowCm,code,Boolean(h.precipitationPhenomenonObserved),intervalSeconds),snowCm=warmPhaseAdjusted?0:rawSnowCm;
  const codedType=WMO_PRECIP_TYPE[effectiveCode],observedCharacter=Boolean(h.precipitationPhenomenonObserved);
  const hasRain=rainValue>=.05;
  const hasShowers=showerValue>=.05;
@@ -505,7 +511,7 @@ export function precipitationParts(h:PrecipSample):PrecipitationParts{
  const amount=type==='snow'||type==='snowShowers'||type==='snowGrains'||type==='snowStars'||type==='iceCrystals'||type==='icePellets'||type==='sleet'||type==='sleetShowers'||type==='wintryAfterThunder'
   ?precipitationAmountLabel({precipitation:total,snowfall:snowCm})
   :`${compactPrecipitationAmount(total)} mm`;
- const intervalSeconds=precipitationSampleIntervalSeconds(h),intensity=precipitationIntensityDescriptor(type,total,snowCm,intervalSeconds,effectiveCode);
+ const intensity=precipitationIntensityDescriptor(type,total,snowCm,intervalSeconds,effectiveCode);
  const intensityWord=intensity?.label??'leicht';
  const combinedCode=[57,59,67,69,81,84,86,88,90,92,94].includes(effectiveCode);
  const adjective=combinedCode&&intensity?.basis.includes('WMO/DWD-Code')
