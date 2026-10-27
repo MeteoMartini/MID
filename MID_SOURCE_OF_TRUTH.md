@@ -1,3 +1,7 @@
+# MID v0.9.85.349 · Security-/Quality-Testkorrekturen
+
+Basis: veröffentlichte .348 e7fbc07dd319e3589924e841d15eeca88ee0edd4. CDP-Testwerte werden als Argumente statt durch Quelltextinterpolation übergeben; Chromium übernimmt die Portzuweisung. Bounded Startdiagnostik erhält Exit/Signal/Stderr ohne längere Wartebudgets. CSS-Regelnutzung wird ausschließlich in vorhandenen Entwicklungsfixtures gemessen; beide Bergwetter-Seiten müssen vor dem unveränderten Referenzvergleich die Datenanreicherung abgeschlossen haben. Keine produktive CSS-/Daten-/Worker-Fachänderung oder Pilotaktivierung.
+
 # MID v0.9.85.348 · Diagnose-Sicherheitskorrekturen
 
 Basis: veröffentlichte .347 f4360f6e573f78c2be6e20d1c40d9540fd7cb1ea. Exklusives Anlegen von Widget-Erstberichten und Diagnosebildern, private mkdtemp-Verzeichnisse für Browserprofile und Regressionstimings; beide Installer-Uploadpfade werden synchron migriert. Kein Daten-/Worker-Fachpfad geändert. CodeQL-Alertstatus erst nach erneuter Analyse bewerten; #490 bleibt für weitere Befunde offen.
