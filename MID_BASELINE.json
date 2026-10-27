@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.350",
+  "releaseVersion": "0.9.85.351",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -460,6 +460,7 @@
     "scripts/test-icao-location-search-08193.mjs",
     "scripts/test-icloud-backup-08280.mjs",
     "scripts/test-imprint-protection-08184.mjs",
+    "scripts/test-initial-css-budget-contract-0985351.mjs",
     "scripts/test-install-main-race-09572.mjs",
     "scripts/test-install-minimist-diff-bootstrap-09398.mjs",
     "scripts/test-install-node-modules-bootstrap-09396.mjs",
@@ -1493,6 +1494,7 @@
     "scripts/test-icao-location-search-08193.mjs",
     "scripts/test-icloud-backup-08280.mjs",
     "scripts/test-imprint-protection-08184.mjs",
+    "scripts/test-initial-css-budget-contract-0985351.mjs",
     "scripts/test-install-main-race-09572.mjs",
     "scripts/test-install-minimist-diff-bootstrap-09398.mjs",
     "scripts/test-install-node-modules-bootstrap-09396.mjs",
@@ -3765,7 +3767,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.350",
+  "version": "0.9.85.351",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

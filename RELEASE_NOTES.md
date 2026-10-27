@@ -1,5 +1,5 @@
-# MID v0.9.85.350 · Skybar-Wochengeometrie und Solargrenzen regressionssicher
+# MID v0.9.85.351 · Start-CSS-Größenbudget gezielt absichern
 
-Die 7-Tage-Skybar erhält einen zusätzlichen Prüfvertrag mit 168 unveränderten Wetterstunden und allen 14 tatsächlichen Sonnenauf- und -untergangsgrenzen. Die Browser-/Widget-kompatible SVG-Darstellung bewahrt jeden Originalwert und jeden interaktiven Zeitabschnitt auch dann, wenn diese Solargrenzen zu 182 Teilstücken führen. Regenintervalle, fehlende Bewölkungswerte, gelbe Tagesabschnitte und der 25-Stunden-Sommerzeitwechsel werden unabhängig geprüft. Unbelegte Zeitgrenzen, Wetterwerte und zusätzliche Son­nen­stunden werden nicht erzeugt.
+Die Produktionsprüfung setzt für alle direkt aus dem Start-HTML referenzierten Stylesheets zusammen Obergrenzen von 1.760.000 Byte Roh-CSS, 320.000 Byte gzip-9 und 225.000 Byte Brotli-6. Der zuvor großzügige gzip-Startwert von 650.000 Byte wird deutlich begrenzt. Ein Regressionstest prüft die korrekte Behandlung mehrerer CSS-Dateien, doppelter Referenzen, fehlender Dateien und externer Stylesheets. Die bisherigen Gesamtbudgets bleiben unverändert.
 
-Die produktive Skybar-Logik, Wettermodelle, Warnungen, CSS, RUC-Kern und veröffentlichte Datenverträge bleiben unverändert. Der neue Test unterstützt die noch offene vollständige Geräte- und Verbraucherabnahme; er ersetzt keine reale iOS-/VoiceOver-Abnahme.
+Dies ist ein Größen- und Qualitätsvertrag, kein bereits gemessener Laufzeit- oder Ladegeschwindigkeitsgewinn. Die vollständige CSS-Kaskaden-, Browser-, WebKit-, Widget-/Export- und Geräteabnahme aus Issue #344 bleibt offen. Die eigentlichen App-Styles, Wetterdaten, Worker-Logik und UI bleiben unverändert.
