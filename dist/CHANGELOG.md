@@ -1,3 +1,9 @@
+# MID v0.9.85.348 · Sichere Diagnoseberichte
+
+Automatische Prüfungen schreiben ihre Laufzeitberichte in getrennte private Verzeichnisse. Widget-Exporte bewahren bei gleichzeitigen Fehlversuchen eindeutig den zuerst angelegten Fehlerbericht samt zugehörigem Diagnosebild. Browserprofile erhalten zufällige Verzeichnisnamen. Die Prüfung der produktiven Datendienst-Adresse vergleicht die vollständige URL.
+
+Wetterdaten, Vorhersagen, Warnungen und Darstellungen bleiben unverändert.
+
 # MID v0.9.85.347 · Automatische Revision: Chromium und WebKit vollständig vorbereiten
 
 Die automatische und nächtliche MID-Code-Revision installiert die fest vorgegebenen Chromium- und WebKit-Laufzeiten einschließlich benötigter Systembibliotheken jetzt vor der vollständigen Regression in einem separat zeitlich begrenzten Schritt. Dadurch ist die WebKit-Prüfung der 14-Tage-CSS-Parität auch auf frisch gestarteten Runnern ausführbar. Eine gescheiterte Browserbereitstellung bleibt ein harter Fehler und wird in der nächtlichen Revision ausdrücklich gemeldet. Das Zeitbudget berücksichtigt die zusätzliche Vorbereitung; kein Browser, visueller Vergleich oder Regressionstest wird übersprungen.
