@@ -54,3 +54,5 @@ assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:new Date(now-2*H).t
 assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:'invalid'}),now),'unknown');
 assert.equal(assessModelFreshness([delivery(7),row(.5)],now).band,'current');
 assert.equal(assessModelFreshness([delivery(7),row(.5,3600,{metadataUnavailable:true})],now).band,'unknown');
+
+assert.ok(ui.includes('Date.parse(source.initialisationTime)!==Date.parse(meta.initialisationTime))?undefined:meta?.availabilityTime'),'Latest inventory delivery must not be attributed to a different actually used run');
