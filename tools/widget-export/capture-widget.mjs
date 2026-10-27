@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+import {writeFirstDiagnostic} from '../../scripts/lib/secure-diagnostics.mjs';
 import {spawn} from 'node:child_process';
 import {existsSync} from 'node:fs';
-import {mkdir,readFile,rename,rm,stat,writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,rename,rm,stat,writeFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -31,8 +32,7 @@ const browserCandidates=[requestedBrowser,...platformCandidates].filter((candida
 const browserExecutable=browserCandidates.find(candidate=>existsSync(candidate));
 if(!browserExecutable)throw new Error(`Kein Chromium-kompatibler Browser gefunden. Geprüft: ${browserCandidates.join(', ')}`);
 
-const profile=path.join(os.tmpdir(),`mid-widget-browser-${process.pid}-${Date.now()}`),activePort=path.join(profile,'DevToolsActivePort');
-await mkdir(profile,{recursive:true});
+const profile=await mkdtemp(path.join(os.tmpdir(),'mid-widget-browser-')),activePort=path.join(profile,'DevToolsActivePort');
 const browserArgs=[
  '--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run',
  '--disable-features=msEdgeFirstRunExperience','--hide-scrollbars',`--window-size=${width},${height}`
@@ -76,15 +76,15 @@ try{
 }catch(error){
  // Keep the FIRST failure across retries; never capture cookies, headers or URL queries.
  const diagnosticBase=path.join(path.dirname(output),'diagnostics',path.basename(output)),report=`${diagnosticBase}.first-failure.json`,image=`${diagnosticBase}.first-failure.png`;
- if(!existsSync(report)){
-  await mkdir(path.dirname(report),{recursive:true});
-  let state=null,screenshotError=null;
+ await mkdir(path.dirname(report),{recursive:true});
+ await writeFirstDiagnostic(report,async()=>{
+  let state=null,screenshotError=null,screenshotAvailable=false;
   if(cdp){
    try{const result=await cdp.call('Runtime.evaluate',{expression:`(()=>({status:document.documentElement.dataset.midWidgetReady||'absent',version:document.querySelector('meta[name="mid-version"]')?.content||null,dataFrom:document.documentElement.dataset.midWidgetDataFrom||null,dataThrough:document.documentElement.dataset.midWidgetDataThrough||null,widgetCount:document.querySelectorAll('.weatherwidget').length,imageCount:document.querySelector('.weatherwidget')?.querySelectorAll('img').length||0}))()`,returnByValue:true});state=result.result?.value??null}catch{}
-   try{const shot=await cdp.call('Page.captureScreenshot',{format:'png',fromSurface:true});await writeFile(image,Buffer.from(shot.data,'base64'))}catch{screenshotError='Screenshot nicht verfügbar';}
+   try{const shot=await cdp.call('Page.captureScreenshot',{format:'png',fromSurface:true});await writeFile(image,Buffer.from(shot.data,'base64'),{flag:'wx',mode:0o600});screenshotAvailable=true}catch{screenshotError='Screenshot nicht verfügbar';}
   }
-  await writeFile(report,JSON.stringify({schema:1,checkedAt:new Date().toISOString(),elapsedMs:Date.now()-startedAt,stableSha:process.env.MID_STABLE_SHA||null,expectedVersion:process.env.MID_PUBLIC_VERSION||null,state,networkFailures:failures,screenshotAvailable:existsSync(image),screenshotError,errorClass:error?.name||'Error'},null,2)+'\n');
- }
+  return {schema:1,checkedAt:new Date().toISOString(),elapsedMs:Date.now()-startedAt,stableSha:process.env.MID_STABLE_SHA||null,expectedVersion:process.env.MID_PUBLIC_VERSION||null,state,networkFailures:failures,screenshotAvailable,screenshotError,errorClass:error?.name||'Error'};
+ });
  throw error;
 }finally{
  closing=true;try{await cdp?.call('Browser.close')}catch{}try{cdp?.close()}catch{}browser.kill();await rm(profile,{recursive:true,force:true}).catch(()=>undefined);

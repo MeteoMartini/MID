@@ -30,7 +30,11 @@ try{
  await assert.rejects(waitForWidgetPaint(node),/fonts failed/);
  const widget=await readFile('src/WidgetGenerator.tsx','utf8'),capture=await readFile('tools/widget-export/capture-widget.mjs','utf8');
  assert.match(widget,/await waitForWidgetPaint\(target\)/);assert.match(widget,/midWidgetReady='error'/);
- assert.match(capture,/if\(!existsSync\(report\)\)/,'Retry must preserve first failure');
+ // Atomic reservation replaces the former TOCTOU exists/write check (#490).
+ assert.match(capture,/await writeFirstDiagnostic\(report,/,'Retry must use exclusive first-writer diagnostic reservation');
+ const secure=await readFile('scripts/lib/secure-diagnostics.mjs','utf8');
+ assert.match(secure,/open\(report,'wx',0o600\)/);
+ assert.match(secure,/error.code==='EEXIST'/);
  assert.match(capture,/path\.join\(path\.dirname\(output\),'diagnostics'/,'Diagnostics stay outside the public widget ZIP');
  const canonical=await readFile('ci/github/workflows/widget-export.yml','utf8');
  assert.equal(canonical,await readFile('.github/workflows/widget-export.yml','utf8'));
