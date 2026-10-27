@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.343",
+  "releaseVersion": "0.9.85.344",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -779,6 +779,7 @@
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-health-convergence-09744.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
+    "scripts/test-ruc-lifecycle-0985344.mjs",
     "scripts/test-ruc-lossless-candidate-0985256.mjs",
     "scripts/test-ruc-map-pipeline-0985305.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
@@ -1809,6 +1810,7 @@
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-health-convergence-09744.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
+    "scripts/test-ruc-lifecycle-0985344.mjs",
     "scripts/test-ruc-lossless-candidate-0985256.mjs",
     "scripts/test-ruc-map-pipeline-0985305.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
@@ -3017,7 +3019,13 @@
     "worker-src/30-push-events.js",
     "worker-src/40-aviation-router.js",
     "tools/ci/bounded-process.mjs",
-    "scripts/prepare-browser-runtimes.mjs"
+    "scripts/prepare-browser-runtimes.mjs",
+    "tools/ruc/prepared_snapshot.py",
+    "tools/ruc/verify_prepared_snapshot.mjs",
+    "tools/ruc/timed_command.py",
+    "tools/ruc/report_workflow_timings.py",
+    "tools/ruc/test_prepared_snapshot.py",
+    "tools/ruc/test_timed_command.py"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3747,7 +3755,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.343",
+  "version": "0.9.85.344",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

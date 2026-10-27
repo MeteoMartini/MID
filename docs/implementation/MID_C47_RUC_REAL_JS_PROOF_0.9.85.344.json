@@ -1,0 +1,10 @@
+{
+  "schema": "mid.c47.legacy-snapshot-decode-test.v1",
+  "run": "2026-10-26T20:00",
+  "manifestSha256": "9d1f90a0d2ecddd48a9a38f6ab49bbc8b485a66a6bd2c8ec8d94dfec6a4adda8",
+  "parts": 3046,
+  "recordDecoderChecks": 9138,
+  "elapsedSeconds": 33.286581752,
+  "readmissionAuthorized": false,
+  "scope": "Read-only complete real-data JS codec and actual meteorological record decoder test; legacy artifact lacks the new producer receipt."
+}

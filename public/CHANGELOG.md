@@ -1,3 +1,7 @@
+# MID v0.9.85.344 · RUC-Aufbereitung und Releasewechsel entkoppeln
+
+RUC-Berechnung und Aufbereitung erhalten getrennte, nachvollziehbare Laufzeiten und einen geprüften Zwischenstand. Eine fehlgeschlagene Aufbereitung kann dadurch ihren vorhandenen Berechnungsstand weiterverwenden. Bereits vollständig geprüfte, aktuelle RUC-Daten können nach einem kompatiblen App-Update erneut zugelassen werden; Herkunft, Datenvertrag, sämtliche Objektbytes und Decoder werden erneut geprüft. Die Veröffentlichung verwendet die aktuelle freigegebene App und verhindert die Rückkehr zu einem älteren RUC-Lauf. Wetterwerte, Ensemble, Extremwerte und Prognosezeiträume bleiben unverändert.
+
 # MID v0.9.85.343 · Browserprüfung und Offline-Entwicklung absichern
 
 Die 14-Tage-Entwicklung bleibt gezielt nachgeladen und steht nach vollständiger Installation der App-Shell auch beim ersten Offline-Aufruf bereit. Die Vorbereitung von Chromium und WebKit erfolgt im Release nun als eigener Schritt mit getrennten Laufzeit- und Abbruchmeldungen. Alle visuellen, funktionalen und meteorologischen Pflichtprüfungen bleiben erhalten.

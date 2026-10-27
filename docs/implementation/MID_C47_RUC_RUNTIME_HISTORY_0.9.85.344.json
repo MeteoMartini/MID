@@ -1,0 +1,1127 @@
+{
+  "schema": "mid.c47.ruc-historical-timings.v1",
+  "cancellationAttribution": "GitHub conclusion is authoritative. 45-minute limit is a timing/configuration inference; cancellation alone does not identify timeout or human/API actor.",
+  "runs": [
+    {
+      "runId": 40398320462,
+      "url": "https://github.com/MeteoMartini/MID/actions/runs/40398320462",
+      "jobs": [
+        {
+          "id": 121837185787,
+          "name": "prepare",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-26T20:44:31Z",
+          "completedAt": "2026-10-26T21:29:50Z",
+          "seconds": 2719,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:32Z",
+              "completedAt": "2026-10-26T20:44:33Z",
+              "seconds": 1
+            },
+            {
+              "name": "Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:34Z",
+              "completedAt": "2026-10-26T20:44:37Z",
+              "seconds": 3
+            },
+            {
+              "name": "Verwendeten MID-Stable-Stand festhalten",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:37Z",
+              "completedAt": "2026-10-26T20:44:37Z",
+              "seconds": 0
+            },
+            {
+              "name": "Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:37Z",
+              "completedAt": "2026-10-26T20:44:40Z",
+              "seconds": 3
+            },
+            {
+              "name": "RUC-Python-Syntax vor dem DWD-Download pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:40Z",
+              "completedAt": "2026-10-26T20:44:40Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ausl\u00f6ser protokollieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:40Z",
+              "completedAt": "2026-10-26T20:44:40Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Schedulerl\u00fccke und Aktualit\u00e4t vorab pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:40Z",
+              "completedAt": "2026-10-26T20:44:52Z",
+              "seconds": 12
+            },
+            {
+              "name": "Freie DWD-Decodierwerkzeuge installieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:44:52Z",
+              "completedAt": "2026-10-26T20:47:29Z",
+              "seconds": 157
+            },
+            {
+              "name": "RUC-Downloadfehler und fr\u00fche Vollst\u00e4ndigkeitspr\u00fcfung offline testen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:47:29Z",
+              "completedAt": "2026-10-26T20:47:31Z",
+              "seconds": 2
+            },
+            {
+              "name": "Neuesten vollst\u00e4ndigen RUC/RUC-EPS-Lauf laden und dekodieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T20:47:31Z",
+              "completedAt": "2026-10-26T21:12:39Z",
+              "seconds": 1508
+            },
+            {
+              "name": "RUC-Wire- und Pages-Free-Profil pr\u00fcfen",
+              "conclusion": "cancelled",
+              "startedAt": "2026-10-26T21:12:39Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 1028
+            },
+            {
+              "name": "Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "SHA-gebundenen RUC-Rohsnapshot als rollbackf\u00e4higes Artefakt sichern",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Vollst\u00e4ndig verlustfreie RUC-Daten byte- und meteorologisch unabh\u00e4ngig pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot als unver\u00e4nderliches \u00dcbergabeartefakt sichern",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Bereits aktuellen RUC-Lauf ohne Neubau best\u00e4tigen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Erfolgreiche Aufbereitung zusammenfassen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:29:47Z",
+              "completedAt": "2026-10-26T21:29:47Z",
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "id": 121859808697,
+          "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-26T21:29:50Z",
+          "completedAt": "2026-10-26T21:29:50Z",
+          "seconds": 0,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "runId": 40384626826,
+      "url": "https://github.com/MeteoMartini/MID/actions/runs/40384626826",
+      "jobs": [
+        {
+          "id": 121789512149,
+          "name": "prepare",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-26T19:12:22Z",
+          "completedAt": "2026-10-26T19:58:16Z",
+          "seconds": 2754,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:23Z",
+              "completedAt": "2026-10-26T19:12:23Z",
+              "seconds": 0
+            },
+            {
+              "name": "Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:23Z",
+              "completedAt": "2026-10-26T19:12:27Z",
+              "seconds": 4
+            },
+            {
+              "name": "Verwendeten MID-Stable-Stand festhalten",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:27Z",
+              "completedAt": "2026-10-26T19:12:27Z",
+              "seconds": 0
+            },
+            {
+              "name": "Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:27Z",
+              "completedAt": "2026-10-26T19:12:31Z",
+              "seconds": 4
+            },
+            {
+              "name": "RUC-Python-Syntax vor dem DWD-Download pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:31Z",
+              "completedAt": "2026-10-26T19:12:31Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ausl\u00f6ser protokollieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:31Z",
+              "completedAt": "2026-10-26T19:12:31Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Schedulerl\u00fccke und Aktualit\u00e4t vorab pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:31Z",
+              "completedAt": "2026-10-26T19:12:44Z",
+              "seconds": 13
+            },
+            {
+              "name": "Freie DWD-Decodierwerkzeuge installieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:12:44Z",
+              "completedAt": "2026-10-26T19:15:16Z",
+              "seconds": 152
+            },
+            {
+              "name": "RUC-Downloadfehler und fr\u00fche Vollst\u00e4ndigkeitspr\u00fcfung offline testen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:15:16Z",
+              "completedAt": "2026-10-26T19:15:18Z",
+              "seconds": 2
+            },
+            {
+              "name": "Neuesten vollst\u00e4ndigen RUC/RUC-EPS-Lauf laden und dekodieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:15:18Z",
+              "completedAt": "2026-10-26T19:37:05Z",
+              "seconds": 1307
+            },
+            {
+              "name": "RUC-Wire- und Pages-Free-Profil pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:37:05Z",
+              "completedAt": "2026-10-26T19:55:44Z",
+              "seconds": 1119
+            },
+            {
+              "name": "Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:55:44Z",
+              "completedAt": "2026-10-26T19:55:51Z",
+              "seconds": 7
+            },
+            {
+              "name": "SHA-gebundenen RUC-Rohsnapshot als rollbackf\u00e4higes Artefakt sichern",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:55:51Z",
+              "completedAt": "2026-10-26T19:56:20Z",
+              "seconds": 29
+            },
+            {
+              "name": "Vollst\u00e4ndig verlustfreie RUC-Daten byte- und meteorologisch unabh\u00e4ngig pr\u00fcfen",
+              "conclusion": "cancelled",
+              "startedAt": "2026-10-26T19:56:20Z",
+              "completedAt": "2026-10-26T19:58:13Z",
+              "seconds": 113
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot als unver\u00e4nderliches \u00dcbergabeartefakt sichern",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T19:58:13Z",
+              "completedAt": "2026-10-26T19:58:13Z",
+              "seconds": 0
+            },
+            {
+              "name": "Bereits aktuellen RUC-Lauf ohne Neubau best\u00e4tigen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T19:58:13Z",
+              "completedAt": "2026-10-26T19:58:13Z",
+              "seconds": 0
+            },
+            {
+              "name": "Erfolgreiche Aufbereitung zusammenfassen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T19:58:13Z",
+              "completedAt": "2026-10-26T19:58:13Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T19:58:13Z",
+              "completedAt": "2026-10-26T19:58:13Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T19:58:13Z",
+              "completedAt": "2026-10-26T19:58:13Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:58:13Z",
+              "completedAt": "2026-10-26T19:58:14Z",
+              "seconds": 1
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T19:58:14Z",
+              "completedAt": "2026-10-26T19:58:14Z",
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "id": 121813236407,
+          "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-26T19:58:17Z",
+          "completedAt": "2026-10-26T19:58:16Z",
+          "seconds": -1,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "runId": 40349487541,
+      "url": "https://github.com/MeteoMartini/MID/actions/runs/40349487541",
+      "jobs": [
+        {
+          "id": 121681827600,
+          "name": "prepare",
+          "conclusion": "cancelled",
+          "startedAt": "2026-10-26T15:55:43Z",
+          "completedAt": "2026-10-26T16:42:07Z",
+          "seconds": 2784,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:43Z",
+              "completedAt": "2026-10-26T15:55:44Z",
+              "seconds": 1
+            },
+            {
+              "name": "Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:44Z",
+              "completedAt": "2026-10-26T15:55:47Z",
+              "seconds": 3
+            },
+            {
+              "name": "Verwendeten MID-Stable-Stand festhalten",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:47Z",
+              "completedAt": "2026-10-26T15:55:47Z",
+              "seconds": 0
+            },
+            {
+              "name": "Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:47Z",
+              "completedAt": "2026-10-26T15:55:51Z",
+              "seconds": 4
+            },
+            {
+              "name": "RUC-Python-Syntax vor dem DWD-Download pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:51Z",
+              "completedAt": "2026-10-26T15:55:51Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ausl\u00f6ser protokollieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:51Z",
+              "completedAt": "2026-10-26T15:55:51Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Schedulerl\u00fccke und Aktualit\u00e4t vorab pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:55:51Z",
+              "completedAt": "2026-10-26T15:56:08Z",
+              "seconds": 17
+            },
+            {
+              "name": "Freie DWD-Decodierwerkzeuge installieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:56:08Z",
+              "completedAt": "2026-10-26T15:56:36Z",
+              "seconds": 28
+            },
+            {
+              "name": "RUC-Downloadfehler und fr\u00fche Vollst\u00e4ndigkeitspr\u00fcfung offline testen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:56:36Z",
+              "completedAt": "2026-10-26T15:56:38Z",
+              "seconds": 2
+            },
+            {
+              "name": "Neuesten vollst\u00e4ndigen RUC/RUC-EPS-Lauf laden und dekodieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T15:56:38Z",
+              "completedAt": "2026-10-26T16:23:46Z",
+              "seconds": 1628
+            },
+            {
+              "name": "RUC-Wire- und Pages-Free-Profil pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T16:23:46Z",
+              "completedAt": "2026-10-26T16:40:09Z",
+              "seconds": 983
+            },
+            {
+              "name": "Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T16:40:09Z",
+              "completedAt": "2026-10-26T16:40:16Z",
+              "seconds": 7
+            },
+            {
+              "name": "SHA-gebundenen RUC-Rohsnapshot als rollbackf\u00e4higes Artefakt sichern",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T16:40:16Z",
+              "completedAt": "2026-10-26T16:40:47Z",
+              "seconds": 31
+            },
+            {
+              "name": "Vollst\u00e4ndig verlustfreie RUC-Daten byte- und meteorologisch unabh\u00e4ngig pr\u00fcfen",
+              "conclusion": "cancelled",
+              "startedAt": "2026-10-26T16:40:47Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 78
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot als unver\u00e4nderliches \u00dcbergabeartefakt sichern",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Bereits aktuellen RUC-Lauf ohne Neubau best\u00e4tigen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Erfolgreiche Aufbereitung zusammenfassen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T16:42:05Z",
+              "completedAt": "2026-10-26T16:42:05Z",
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "id": 121708316168,
+          "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+          "conclusion": "skipped",
+          "startedAt": "2026-10-26T16:42:08Z",
+          "completedAt": "2026-10-26T16:42:07Z",
+          "seconds": -1,
+          "steps": []
+        }
+      ]
+    },
+    {
+      "runId": 40404899375,
+      "url": "https://github.com/MeteoMartini/MID/actions/runs/40404899375",
+      "jobs": [
+        {
+          "id": 121860020050,
+          "name": "prepare",
+          "conclusion": "success",
+          "startedAt": "2026-10-26T21:30:19Z",
+          "completedAt": "2026-10-26T22:02:53Z",
+          "seconds": 1954,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:19Z",
+              "completedAt": "2026-10-26T21:30:20Z",
+              "seconds": 1
+            },
+            {
+              "name": "Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:20Z",
+              "completedAt": "2026-10-26T21:30:23Z",
+              "seconds": 3
+            },
+            {
+              "name": "Verwendeten MID-Stable-Stand festhalten",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:23Z",
+              "completedAt": "2026-10-26T21:30:23Z",
+              "seconds": 0
+            },
+            {
+              "name": "Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:23Z",
+              "completedAt": "2026-10-26T21:30:25Z",
+              "seconds": 2
+            },
+            {
+              "name": "RUC-Python-Syntax vor dem DWD-Download pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:25Z",
+              "completedAt": "2026-10-26T21:30:25Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ausl\u00f6ser protokollieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:25Z",
+              "completedAt": "2026-10-26T21:30:25Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Schedulerl\u00fccke und Aktualit\u00e4t vorab pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:25Z",
+              "completedAt": "2026-10-26T21:30:40Z",
+              "seconds": 15
+            },
+            {
+              "name": "Freie DWD-Decodierwerkzeuge installieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:30:40Z",
+              "completedAt": "2026-10-26T21:31:02Z",
+              "seconds": 22
+            },
+            {
+              "name": "RUC-Downloadfehler und fr\u00fche Vollst\u00e4ndigkeitspr\u00fcfung offline testen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:31:02Z",
+              "completedAt": "2026-10-26T21:31:03Z",
+              "seconds": 1
+            },
+            {
+              "name": "Neuesten vollst\u00e4ndigen RUC/RUC-EPS-Lauf laden und dekodieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:31:03Z",
+              "completedAt": "2026-10-26T21:44:50Z",
+              "seconds": 827
+            },
+            {
+              "name": "RUC-Wire- und Pages-Free-Profil pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:44:50Z",
+              "completedAt": "2026-10-26T21:58:49Z",
+              "seconds": 839
+            },
+            {
+              "name": "Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:58:49Z",
+              "completedAt": "2026-10-26T21:58:56Z",
+              "seconds": 7
+            },
+            {
+              "name": "SHA-gebundenen RUC-Rohsnapshot als rollbackf\u00e4higes Artefakt sichern",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:58:56Z",
+              "completedAt": "2026-10-26T21:59:17Z",
+              "seconds": 21
+            },
+            {
+              "name": "Vollst\u00e4ndig verlustfreie RUC-Daten byte- und meteorologisch unabh\u00e4ngig pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T21:59:17Z",
+              "completedAt": "2026-10-26T22:02:44Z",
+              "seconds": 207
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot als unver\u00e4nderliches \u00dcbergabeartefakt sichern",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:44Z",
+              "completedAt": "2026-10-26T22:02:49Z",
+              "seconds": 5
+            },
+            {
+              "name": "Bereits aktuellen RUC-Lauf ohne Neubau best\u00e4tigen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:02:49Z",
+              "completedAt": "2026-10-26T22:02:49Z",
+              "seconds": 0
+            },
+            {
+              "name": "Erfolgreiche Aufbereitung zusammenfassen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:49Z",
+              "completedAt": "2026-10-26T22:02:49Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:49Z",
+              "completedAt": "2026-10-26T22:02:50Z",
+              "seconds": 1
+            },
+            {
+              "name": "Post Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:50Z",
+              "completedAt": "2026-10-26T22:02:50Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:50Z",
+              "completedAt": "2026-10-26T22:02:50Z",
+              "seconds": 0
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:50Z",
+              "completedAt": "2026-10-26T22:02:50Z",
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "id": 121875537267,
+          "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+          "conclusion": "success",
+          "startedAt": "2026-10-26T22:02:57Z",
+          "completedAt": "2026-10-26T22:03:08Z",
+          "seconds": 11,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:02:58Z",
+              "completedAt": "2026-10-26T22:03:01Z",
+              "seconds": 3
+            },
+            {
+              "name": "Aktuellen MID-Stable-Stand erst im Publish-Lock laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:03:01Z",
+              "completedAt": "2026-10-26T22:03:03Z",
+              "seconds": 2
+            },
+            {
+              "name": "RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:03:03Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 2
+            },
+            {
+              "name": "Exakte Producer-Artefakt-ID pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot laden",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Produktives RUC-Healthgate vor komprimiertem Pages-Publish verpflichtend pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "GitHub-Pages-Artefakt hochladen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Produktiven Worker gegen den ver\u00f6ffentlichten RUC-Lauf pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Vorherige unver\u00e4nderte RUC-Rohbytes f\u00fcr sichere R\u00fccknahme bereitstellen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zur\u00fcckver\u00f6ffentlichen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Rollback-Worker/Pages mit derselben Run-ID nachweisen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ergebnis eindeutig zusammenfassen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:05Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Aktuellen MID-Stable-Stand erst im Publish-Lock laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:03:05Z",
+              "completedAt": "2026-10-26T22:03:06Z",
+              "seconds": 1
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:03:06Z",
+              "completedAt": "2026-10-26T22:03:06Z",
+              "seconds": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 40411633451,
+      "url": "https://github.com/MeteoMartini/MID/actions/runs/40411633451",
+      "jobs": [
+        {
+          "id": 121883533201,
+          "name": "prepare",
+          "conclusion": "success",
+          "startedAt": "2026-10-26T22:20:16Z",
+          "completedAt": "2026-10-26T22:59:36Z",
+          "seconds": 2360,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:17Z",
+              "completedAt": "2026-10-26T22:20:18Z",
+              "seconds": 1
+            },
+            {
+              "name": "Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:18Z",
+              "completedAt": "2026-10-26T22:20:21Z",
+              "seconds": 3
+            },
+            {
+              "name": "Verwendeten MID-Stable-Stand festhalten",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:21Z",
+              "completedAt": "2026-10-26T22:20:21Z",
+              "seconds": 0
+            },
+            {
+              "name": "Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:21Z",
+              "completedAt": "2026-10-26T22:20:26Z",
+              "seconds": 5
+            },
+            {
+              "name": "RUC-Python-Syntax vor dem DWD-Download pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:26Z",
+              "completedAt": "2026-10-26T22:20:26Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ausl\u00f6ser protokollieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:26Z",
+              "completedAt": "2026-10-26T22:20:26Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Schedulerl\u00fccke und Aktualit\u00e4t vorab pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:26Z",
+              "completedAt": "2026-10-26T22:20:38Z",
+              "seconds": 12
+            },
+            {
+              "name": "Freie DWD-Decodierwerkzeuge installieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:20:38Z",
+              "completedAt": "2026-10-26T22:23:17Z",
+              "seconds": 159
+            },
+            {
+              "name": "RUC-Downloadfehler und fr\u00fche Vollst\u00e4ndigkeitspr\u00fcfung offline testen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:23:17Z",
+              "completedAt": "2026-10-26T22:23:19Z",
+              "seconds": 2
+            },
+            {
+              "name": "Neuesten vollst\u00e4ndigen RUC/RUC-EPS-Lauf laden und dekodieren",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:23:19Z",
+              "completedAt": "2026-10-26T22:37:58Z",
+              "seconds": 879
+            },
+            {
+              "name": "RUC-Wire- und Pages-Free-Profil pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:37:58Z",
+              "completedAt": "2026-10-26T22:54:51Z",
+              "seconds": 1013
+            },
+            {
+              "name": "Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:54:51Z",
+              "completedAt": "2026-10-26T22:55:04Z",
+              "seconds": 13
+            },
+            {
+              "name": "SHA-gebundenen RUC-Rohsnapshot als rollbackf\u00e4higes Artefakt sichern",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:55:04Z",
+              "completedAt": "2026-10-26T22:55:30Z",
+              "seconds": 26
+            },
+            {
+              "name": "Vollst\u00e4ndig verlustfreie RUC-Daten byte- und meteorologisch unabh\u00e4ngig pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:55:30Z",
+              "completedAt": "2026-10-26T22:59:27Z",
+              "seconds": 237
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot als unver\u00e4nderliches \u00dcbergabeartefakt sichern",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:27Z",
+              "completedAt": "2026-10-26T22:59:32Z",
+              "seconds": 5
+            },
+            {
+              "name": "Bereits aktuellen RUC-Lauf ohne Neubau best\u00e4tigen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:32Z",
+              "completedAt": "2026-10-26T22:59:32Z",
+              "seconds": 0
+            },
+            {
+              "name": "Erfolgreiche Aufbereitung zusammenfassen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:32Z",
+              "completedAt": "2026-10-26T22:59:32Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Node.js 22 f\u00fcr vollst\u00e4ndigen RUC-Python/JS-Abgleich laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:32Z",
+              "completedAt": "2026-10-26T22:59:32Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Run actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:32Z",
+              "completedAt": "2026-10-26T22:59:32Z",
+              "seconds": 0
+            },
+            {
+              "name": "Post Letzten gepr\u00fcften MID-Stable-Stand laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:32Z",
+              "completedAt": "2026-10-26T22:59:33Z",
+              "seconds": 1
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:33Z",
+              "completedAt": "2026-10-26T22:59:33Z",
+              "seconds": 0
+            }
+          ]
+        },
+        {
+          "id": 121900294968,
+          "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+          "conclusion": "success",
+          "startedAt": "2026-10-26T22:59:39Z",
+          "completedAt": "2026-10-26T22:59:47Z",
+          "seconds": 8,
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:40Z",
+              "completedAt": "2026-10-26T22:59:42Z",
+              "seconds": 2
+            },
+            {
+              "name": "Aktuellen MID-Stable-Stand erst im Publish-Lock laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:42Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 2
+            },
+            {
+              "name": "RUC-Basis und laufendes Release gegen aktuellen MID-Stable-Stand pr\u00fcfen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Exakte Producer-Artefakt-ID pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Vorbereiteten RUC-Snapshot laden",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "MID-Stable und Releasefenster unmittelbar vor dem Pages-Publish erneut pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Produktives RUC-Healthgate vor komprimiertem Pages-Publish verpflichtend pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "GitHub-Pages-Artefakt hochladen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "MID + RUC kostenfrei auf GitHub Pages ver\u00f6ffentlichen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Produktiven Worker gegen den ver\u00f6ffentlichten RUC-Lauf pr\u00fcfen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Rohsnapshot bei Codec-Ausfall wiederherstellen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Vorherige unver\u00e4nderte RUC-Rohbytes f\u00fcr sichere R\u00fccknahme bereitstellen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Rollback-Rohdaten als GitHub-Pages-Artefakt hochladen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Nach fehlgeschlagenem Codec-Healthcheck RUC-Rohsnapshot zur\u00fcckver\u00f6ffentlichen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "Rollback-Worker/Pages mit derselben Run-ID nachweisen",
+              "conclusion": "skipped",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:44Z",
+              "seconds": 0
+            },
+            {
+              "name": "RUC-Ergebnis eindeutig zusammenfassen",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:44Z",
+              "completedAt": "2026-10-26T22:59:45Z",
+              "seconds": 1
+            },
+            {
+              "name": "Post Aktuellen MID-Stable-Stand erst im Publish-Lock laden",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:45Z",
+              "completedAt": "2026-10-26T22:59:45Z",
+              "seconds": 0
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success",
+              "startedAt": "2026-10-26T22:59:45Z",
+              "completedAt": "2026-10-26T22:59:45Z",
+              "seconds": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

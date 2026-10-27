@@ -2,6 +2,11 @@ name: MID DWD RUC preprocessing
 on:
   workflow_dispatch:
     inputs:
+      reuse_run_id:
+        description: Exakte ursprüngliche Producer-Run-ID eines vollständig geprüften Snapshots; keine Neuberechnung
+        required: false
+        default: ''
+        type: string
       force:
         description: Vollständige RUC-Verarbeitung unabhängig vom Freshness-Guard erzwingen
         required: false
@@ -25,15 +30,14 @@ concurrency:
 permissions:
   contents: read
 jobs:
-  prepare:
+  calculate:
     # The expensive DWD download/decode deliberately runs without the Pages
     # lock. Only the short publish job below serializes against MID releases.
-    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' && !inputs.reuse_run_id }}
     outputs:
       should_run: ${{ steps.freshness.outputs.should_run }}
       stable_sha: ${{ steps.stable_revision.outputs.sha }}
-      data_artifact_id: ${{ steps.data_upload.outputs.artifact-id }}
-      rollback_artifact_id: ${{ steps.rollback_upload.outputs.artifact-id }}
+      core_artifact_id: ${{ steps.core_upload.outputs.artifact-id }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -82,8 +86,18 @@ jobs:
           else
             echo "RUC trigger source: schedule"
           fi
+      - name: Geprüfte Stable-Fähigkeit für den neuen Datenübergabevertrag prüfen
+        id: capability
+        shell: bash
+        run: |
+          if [ -f tools/ruc/prepared_snapshot.py ]; then
+            echo 'supported=true' >> "$GITHUB_OUTPUT"
+          else
+            echo '::notice::Der neue RUC-Datenübergabevertrag ist noch nicht nach Stable promotet; letzter geprüfter Snapshot bleibt erhalten.'
+          fi
       - name: RUC-Schedulerlücke und Aktualität vorab prüfen
         id: freshness
+        if: steps.capability.outputs.supported == 'true'
         env:
           MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
         shell: bash
@@ -109,35 +123,141 @@ jobs:
           python -m pip install --disable-pip-version-check -r "$requirements"
       - name: RUC-Downloadfehler und frühe Vollständigkeitsprüfung offline testen
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
-        run: python tools/ruc/test_fetch_resilience.py
+        run: python tools/ruc/timed_command.py download-tests -- python tools/ruc/test_fetch_resilience.py
       - name: Neuesten vollständigen RUC/RUC-EPS-Lauf laden und dekodieren
         if: ${{ steps.freshness.outputs.should_run == 'true' }}
         env:
           MID_RUC_FORECAST_HOURS: '27'
           MID_RUC_EPS_DECODE_WORKERS: '2'
-        run: python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
+        run: python tools/ruc/timed_command.py --timeout 2400 core-download-decode -- python tools/ruc/fetch_and_build_ruc.py --output .ruc-out
+      - name: Vollständige RUC-Kernbytes vor dem Jobwechsel SHA-gebunden prüfen
+        if: steps.freshness.outputs.should_run == 'true'
+        run: |
+          python tools/ruc/timed_command.py preserve-map-grib-cache -- python tools/ruc/prepared_snapshot.py stage-core-cache --snapshot .ruc-out --grib-source .ruc-stage
+          python tools/ruc/timed_command.py core-checkpoint -- python tools/ruc/prepared_snapshot.py seal-core --snapshot .ruc-out
+          mv .ruc-out ruc-core-checkpoint
+      - name: Unveränderlichen RUC-Kern für getrennte Aufbereitung sichern
+        id: core_upload
+        if: steps.freshness.outputs.should_run == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-core-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./ruc-core-checkpoint
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 1
+      - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
+        if: steps.freshness.outputs.should_run != 'true'
+        run: echo "RUC ohne Neubau; Freshness-Ergebnis oder noch nicht promoteter Übergabevertrag" >> "$GITHUB_STEP_SUMMARY"
+      - name: Berechnungslaufzeiten auch bei Fehlern sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-calculation-timings-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-timings.jsonl
+          if-no-files-found: ignore
+          retention-days: 2
+
+  prepare:
+    needs: calculate
+    if: ${{ always() && vars.MID_RUC_PIPELINE_ENABLED == 'true' && ((needs.calculate.result == 'success' && needs.calculate.outputs.should_run == 'true') || inputs.reuse_run_id != '') }}
+    outputs:
+      should_run: ${{ steps.ready.outputs.ready }}
+      stable_sha: ${{ steps.stable_revision.outputs.sha }}
+      producer_run_id: ${{ inputs.reuse_run_id || github.run_id }}
+      producer_event_sha: ${{ steps.reuse.outputs.producer_event_sha || github.sha }}
+      producer_run_attempt: ${{ steps.reuse.outputs.producer_run_attempt || github.run_attempt }}
+      data_artifact_id: ${{ steps.reuse.outputs.data_artifact_id || steps.data_upload.outputs.artifact-id }}
+      rollback_artifact_id: ${{ steps.reuse.outputs.rollback_artifact_id || steps.rollback_upload.outputs.artifact-id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Producer-Stable oder aktuellen Stable für explizite Wiederverwendung laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.calculate.outputs.stable_sha || 'mid-stable' }}
+          fetch-depth: 1
+      - name: Aufbereitungsquelle festhalten
+        id: stable_revision
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tools/ruc/requirements*.txt
+      - name: Exakten geprüften Producer und unveränderliche Artefaktpaare ermitteln
+        id: reuse
+        if: inputs.reuse_run_id != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RUC_REUSE_RUN_ID: ${{ inputs.reuse_run_id }}
+          MID_RUC_FORCE_REBUILD: ${{ inputs.force }}
+        run: python tools/ruc/prepared_snapshot.py resolve --run-id "$RUC_REUSE_RUN_ID"
+      - name: Bereits geprüften Snapshot ohne fachliche Neuberechnung laden
+        if: inputs.reuse_run_id != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ steps.reuse.outputs.data_artifact_id }}
+          run-id: ${{ inputs.reuse_run_id }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: ./.ruc-pages/ruc
+      - name: Producer-Linie, Vertrag, Frische und alle Snapshotbytes erneut zulassen
+        if: inputs.reuse_run_id != ''
+        env:
+          RUC_REUSE_RUN_ID: ${{ inputs.reuse_run_id }}
+          RUC_PRODUCER_EVENT_SHA: ${{ steps.reuse.outputs.producer_event_sha }}
+          RUC_PRODUCER_ATTEMPT: ${{ steps.reuse.outputs.producer_run_attempt }}
+        run: |
+          git fetch --no-tags --filter=blob:none --deepen=128 origin mid-stable
+          python tools/ruc/timed_command.py readmission -- python tools/ruc/prepared_snapshot.py admit --snapshot .ruc-pages/ruc --run-id "$RUC_REUSE_RUN_ID" --event-sha "$RUC_PRODUCER_EVENT_SHA" --attempt "$RUC_PRODUCER_ATTEMPT"
+      - name: Exakten Kern-Checkpoint dieser Berechnung laden
+        if: inputs.reuse_run_id == ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.calculate.outputs.core_artifact_id }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: ./.ruc-out
+      - name: Kernbytes und Berechnungsquelle nach dem Jobwechsel erneut prüfen
+        if: inputs.reuse_run_id == ''
+        run: |
+          python tools/ruc/timed_command.py check-core-handoff -- python tools/ruc/prepared_snapshot.py admit-core --snapshot .ruc-out --run-id "$GITHUB_RUN_ID"
+          test ! -e .ruc-stage
+          mv .ruc-out/prepared-map-grib .ruc-stage
+      - name: Etablierte native Aufbereitungsabhängigkeiten installieren
+        if: inputs.reuse_run_id == ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
       - name: RUC-Wire- und Pages-Free-Profil prüfen
         env:
           PYTHONFAULTHANDLER: '1'
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+          MID_RUC_TIMINGS_FILE: ruc-timings.jsonl
+        if: ${{ inputs.reuse_run_id == '' }}
         run: |
-          python tools/ruc/test_ruc_pack.py
-          python tools/ruc/test_ruc_native_sidecar.py
-          python tools/ruc/test_prepare_ruc_pages.py
+          python tools/ruc/timed_command.py wire-tests -- python tools/ruc/test_ruc_pack.py
+          python tools/ruc/timed_command.py native-isolation-tests -- python tools/ruc/test_ruc_native_sidecar.py
+          python tools/ruc/timed_command.py pages-tests -- python tools/ruc/test_prepare_ruc_pages.py
           # The preparer preserves the verified index after DWD build_synoptic
           # and directly before the legacy raw-budget projection.
           # This raw staging profile is never uploaded/published as a fallback.
-          python tools/ruc/prepare_ruc_pages.py --codec-staging --source .ruc-out --output .ruc-pages
+          python tools/ruc/timed_command.py sidecars-and-pages -- python tools/ruc/prepare_ruc_pages.py --codec-staging --source .ruc-out --output .ruc-pages
           # Keep the established raw decoder recovery independent of the codec.
           # Byte-project the same run's first 15 terms; rapid/extreme axes stay unchanged.
-          python tools/ruc/prepare_legacy_core_rollback.py .ruc-out .ruc14-reference .ruc14-rollback > .ruc-legacy-rollback-proof.json
+          python tools/ruc/timed_command.py legacy-rollback -- python tools/ruc/prepare_legacy_core_rollback.py .ruc-out .ruc14-reference .ruc14-rollback > .ruc-legacy-rollback-proof.json
       - name: Node.js 22 für vollständigen RUC-Python/JS-Abgleich laden
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        if: ${{ inputs.reuse_run_id == '' }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.16.0
       - name: SHA-gebundenen RUC-Rohsnapshot als rollbackfähiges Artefakt sichern
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        if: ${{ inputs.reuse_run_id == '' }}
         id: rollback_upload
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -147,14 +267,14 @@ jobs:
           retention-days: 2
           compression-level: 6
       - name: Vollständig verlustfreie RUC-Daten byte- und meteorologisch unabhängig prüfen
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        if: ${{ inputs.reuse_run_id == '' }}
         shell: bash
         run: |
           set -euo pipefail
           python tools/ruc/test_activate_lossless_snapshot.py
-          python tools/ruc/prepare_lossless_snapshot.py .ruc-pages/ruc .ruc-codec-candidate
-          node tools/ruc/verify_lossless_migration.mjs .ruc-pages/ruc .ruc-codec-candidate > .ruc-codec-proof.json
-          python tools/ruc/activate_lossless_snapshot.py .ruc-pages/ruc .ruc-codec-candidate .ruc-codec-proof.json .ruc-compressed/ruc > .ruc-activation-proof.json
+          python tools/ruc/timed_command.py codec-build -- python tools/ruc/prepare_lossless_snapshot.py .ruc-pages/ruc .ruc-codec-candidate
+          python tools/ruc/timed_command.py full-js-byte-proof -- node tools/ruc/verify_lossless_migration.mjs .ruc-pages/ruc .ruc-codec-candidate > .ruc-codec-proof.json
+          python tools/ruc/timed_command.py activate-verified-codec -- python tools/ruc/activate_lossless_snapshot.py .ruc-pages/ruc .ruc-codec-candidate .ruc-codec-proof.json .ruc-compressed/ruc > .ruc-activation-proof.json
           python - <<'PY'
           import json
           proof=json.load(open('.ruc-activation-proof.json'))
@@ -236,9 +356,12 @@ jobs:
           fi
           mv .ruc-pages/ruc .ruc-raw
           mv .ruc-compressed/ruc .ruc-pages/ruc
+      - name: Geprüften Snapshot für spätere kompatible Releasewechsel versiegeln
+        if: inputs.reuse_run_id == ''
+        run: python tools/ruc/timed_command.py seal-prepared-snapshot -- python tools/ruc/prepared_snapshot.py seal --snapshot .ruc-pages/ruc
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern
         id: data_upload
-        if: ${{ steps.freshness.outputs.should_run == 'true' }}
+        if: ${{ inputs.reuse_run_id == '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mid-ruc-data-${{ github.run_id }}-${{ github.run_attempt }}
@@ -248,20 +371,22 @@ jobs:
           # RUC-Binärdaten sind bereits kompakt; kein zusätzlicher CPU-intensiver
           # Kompressionslauf vor dem kurzen Publish-Lock.
           compression-level: 0
-      - name: Bereits aktuellen RUC-Lauf ohne Neubau bestätigen
-        if: ${{ steps.freshness.outputs.should_run != 'true' }}
-        run: |
-          echo "RUC-Ergebnis: bereits aktuell · ${{ steps.freshness.outputs.reason }}" | tee -a "$GITHUB_STEP_SUMMARY"
-
-      - name: Erfolgreiche Aufbereitung zusammenfassen
-        if: steps.freshness.outputs.should_run == 'true'
-        run: |
-          echo 'RUC-Ergebnis: neu aufbereitet; Veröffentlichung folgt separat' >> "$GITHUB_STEP_SUMMARY"
+      - name: Erfolgreiche Aufbereitung oder Wiederzulassung bestätigen
+        id: ready
+        run: echo 'ready=true' >> "$GITHUB_OUTPUT"
+      - name: Aufbereitungslaufzeiten auch bei Fehlern sichern
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mid-ruc-preparation-timings-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-timings.jsonl
+          if-no-files-found: ignore
+          retention-days: 2
 
   publish:
     name: MID + RUC kostenfrei auf GitHub Pages veröffentlichen
     needs: prepare
-    if: ${{ needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' }}
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -290,15 +415,8 @@ jobs:
         run: |
           set -euo pipefail
           actual_sha="$(git rev-parse HEAD)"
-          if [ -z "${EXPECTED_STABLE_SHA}" ] || [ "${actual_sha}" != "${EXPECTED_STABLE_SHA}" ]; then
-            echo "allowed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::MID-Stable wurde seit der RUC-Vorbereitung weitergeführt (${EXPECTED_STABLE_SHA:-<leer>} → ${actual_sha}). RUC-Publish wird sicher als No-op übersprungen; der nächste Lauf baut auf der neuen Basis."
-            {
-              echo "### RUC-Publish übersprungen"
-              echo 'Die Vorbereitungsbasis ist nicht mehr der aktuelle mid-stable-Stand. Es wurde kein veraltetes RUC-Artefakt veröffentlicht.'
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
+          echo "consumer_sha=${actual_sha}" >> "$GITHUB_OUTPUT"
+          echo "Producer source: ${EXPECTED_STABLE_SHA}; current Stable shell: ${actual_sha}"
           git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
           stable_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
           main_version="$(git show refs/remotes/origin/main:package.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
@@ -322,7 +440,7 @@ jobs:
             exit 0
           fi
           echo "allowed=true" >> "$GITHUB_OUTPUT"
-          echo "RUC-Basis unverändert: ${actual_sha} · MID v${stable_version}"
+          echo "Aktuelle Stable-App-Shell: ${actual_sha} · MID v${stable_version}; Snapshot-Zulassung folgt separat"
       - name: Exakte Producer-Artefakt-ID prüfen
         if: steps.stable_guard.outputs.allowed == 'true'
         env:
@@ -338,8 +456,27 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ needs.prepare.outputs.data_artifact_id }}
+          run-id: ${{ needs.prepare.outputs.producer_run_id }}
+          github-token: ${{ github.token }}
+          digest-mismatch: error
           merge-multiple: true
           path: ./.ruc-pages/ruc
+      - name: Aktuellen JS-Decoder für Snapshot-Zulassung laden
+        if: steps.stable_guard.outputs.allowed == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+      - name: Vollständige Snapshot-Wiederzulassung mit aktuellem Stable-Datenvertrag
+        if: steps.stable_guard.outputs.allowed == 'true'
+        env:
+          RUC_PRODUCER_RUN_ID: ${{ needs.prepare.outputs.producer_run_id }}
+          RUC_PRODUCER_EVENT_SHA: ${{ needs.prepare.outputs.producer_event_sha }}
+          RUC_PRODUCER_ATTEMPT: ${{ needs.prepare.outputs.producer_run_attempt }}
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+        run: |
+          git fetch --no-tags --filter=blob:none --deepen=128 origin mid-stable
+          python tools/ruc/timed_command.py publish-readmission -- python tools/ruc/prepared_snapshot.py admit --snapshot .ruc-pages/ruc --run-id "$RUC_PRODUCER_RUN_ID" --event-sha "$RUC_PRODUCER_EVENT_SHA" --attempt "$RUC_PRODUCER_ATTEMPT" --pages-base "$MID_RUC_PAGES_BASE_URL"
+          python tools/ruc/timed_command.py publish-js-decoder -- node tools/ruc/verify_prepared_snapshot.mjs .ruc-pages/ruc
       - name: MID-Seite mit aktuellem Stable-Stand und RUC-Snapshot zusammensetzen
         if: steps.stable_guard.outputs.allowed == 'true'
         shell: bash
@@ -364,7 +501,7 @@ jobs:
         id: publish_guard
         if: steps.stable_guard.outputs.allowed == 'true'
         env:
-          EXPECTED_STABLE_SHA: ${{ needs.prepare.outputs.stable_sha }}
+          EXPECTED_STABLE_SHA: ${{ steps.stable_guard.outputs.consumer_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -418,6 +555,9 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ needs.prepare.outputs.rollback_artifact_id }}
+          run-id: ${{ needs.prepare.outputs.producer_run_id }}
+          github-token: ${{ github.token }}
+          digest-mismatch: error
           merge-multiple: true
           path: ./.ruc-rollback/ruc
       - name: Vorherige unveränderte RUC-Rohbytes für sichere Rücknahme bereitstellen
@@ -482,3 +622,28 @@ jobs:
           elif [ "$DEPLOYED" = success ]; then result='Codec veröffentlicht, Worker-Übernahme NICHT bestätigt; sofortige Fehlerprüfung erforderlich';
           else result='nicht veröffentlicht; vorherige Schritte prüfen'; fi
           echo "RUC-Ergebnis: $result · Worker-Übernahme: ${WORKER_HEALTH:-nicht geprüft}" >> "$GITHUB_STEP_SUMMARY"
+
+  diagnostics:
+    if: always()
+    needs: [calculate, prepare, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Sämtliche GitHub-Schrittzeiten und unveränderte Abbruchkonklusionen sichern
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/ruc/report_workflow_timings.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: mid-ruc-workflow-timings-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-workflow-timings.json
+          if-no-files-found: error
+          retention-days: 2
