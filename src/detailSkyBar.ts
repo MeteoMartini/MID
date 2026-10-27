@@ -76,10 +76,15 @@ const sunBandWidth=(sunshineShare:number)=>{
   return skybarThickness(skybarAboveHalfLevel(sunshineShare));
 };
 
+// A missing timestamp is not the Unix epoch. In particular Number(null),
+// Number('') and Number(false) would otherwise silently fabricate 1970-01-01.
+const skybarEpochMillis=(value:unknown):number=>
+  typeof value==='number'||(typeof value==='string'&&value.trim()!=='')?Number(value):NaN;
+
 const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
-  const sample=hours[index],explicitStart=Number(sample?.precipitationIntervalStartEpoch),explicitEnd=Number(sample?.precipitationIntervalEndEpoch),explicit=Number.isFinite(explicitStart)&&Number.isFinite(explicitEnd)&&explicitEnd>explicitStart?(explicitEnd-explicitStart)/1000:NaN;
+  const sample=hours[index],explicitStart=skybarEpochMillis(sample?.precipitationIntervalStartEpoch),explicitEnd=skybarEpochMillis(sample?.precipitationIntervalEndEpoch),explicit=Number.isFinite(explicitStart)&&Number.isFinite(explicitEnd)&&explicitEnd>explicitStart?(explicitEnd-explicitStart)/1000:NaN;
   if(Number.isFinite(explicit)&&explicit>0)return clamp(explicit,60,6*3600);
-  const current=Number(sample?.epoch),next=Number(hours[index+1]?.epoch),previous=Number(hours[index-1]?.epoch);
+  const current=skybarEpochMillis(sample?.epoch),next=skybarEpochMillis(hours[index+1]?.epoch),previous=skybarEpochMillis(hours[index-1]?.epoch);
   const forward=Number.isFinite(current)&&Number.isFinite(next)?(next-current)/1000:NaN;
   const backward=Number.isFinite(current)&&Number.isFinite(previous)?(current-previous)/1000:NaN;
   const interval=Number.isFinite(forward)&&forward>0?forward:Number.isFinite(backward)&&backward>0?backward:3600;
@@ -243,7 +248,9 @@ export function detailSkyBarTimedSegments(samples:PrecipSample[],startEpoch:numb
   if(!Number.isFinite(startEpoch)||!Number.isFinite(endEpoch)||endEpoch<=startEpoch||chartW<=left+right)return[];
   const x=(epoch:number)=>left+(epoch-startEpoch)/(endEpoch-startEpoch)*(chartW-left-right);
   const result=samples.flatMap((sample,index)=>{
-    const start=Number(sample.precipitationIntervalStartEpoch??sample.epoch),end=Number(sample.precipitationIntervalEndEpoch);
+    const originalStart=skybarEpochMillis(sample.precipitationIntervalStartEpoch);
+    const start=Number.isFinite(originalStart)?originalStart:skybarEpochMillis(sample.epoch);
+    const end=skybarEpochMillis(sample.precipitationIntervalEndEpoch);
     if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||end<=startEpoch||start>=endEpoch)return[];
     // Keep the original amount and duration for intensity; only the geometry is clipped.
     const segments=nightBands.length?detailSkyBarSolarSegments([sample],0,0,1,centerY,[0],nightBands,[1]):detailSkyBarSegments([sample],0,0,1,centerY);
@@ -343,9 +350,9 @@ export function detailSkyBarSolarSegments(
     if(!Number.isFinite(x0)||!Number.isFinite(x1)||x1<=x0)return;
     // Instantaneous cloud/isDay state is anchored at hour.epoch, never at an
     // accumulation's potentially different end-anchored precipitation interval.
-    const start=hour.epoch===null||hour.epoch===undefined||String(hour.epoch).trim()===''?NaN:Number(hour.epoch);
-    const explicitEnd=Number(hour.precipitationIntervalEndEpoch);
-    const nextEpoch=Number(hours[index+1]?.epoch);
+    const start=skybarEpochMillis(hour.epoch);
+    const explicitEnd=skybarEpochMillis(hour.precipitationIntervalEndEpoch);
+    const nextEpoch=skybarEpochMillis(hours[index+1]?.epoch);
     const end=Array.isArray(xEndPositions)&&Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:Number.isFinite(nextEpoch)&&nextEpoch>start?nextEpoch:Number.isFinite(explicitEnd)&&explicitEnd>start?explicitEnd:NaN;
     const originalBase=weatherStripVisuals(hour,sampleIntervalSeconds(hours,index)).find(visual=>visual.layer==='base');
     if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){

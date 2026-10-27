@@ -1,3 +1,9 @@
+# MID v0.9.85.352 · Skybar-Zeitintervalle mit fehlenden Grenzen korrekt behandeln
+
+Eine fehlende Intervall-Startzeit wird nicht länger als Unix-Epoche 1970 interpretiert. Vorhandene vollständige Originalintervalle behalten Vorrang; bei unvollständigen Grenzen verwendet die Skybar die tatsächlich gelieferten aufeinanderfolgenden Zeitpunkte, statt einen fehlerhaften Sechsstundenwert für Sonnenschein- oder Niederschlagsintensität anzunehmen. Auch die zeitgebundenen 12-/24-Stunden- und Solarsegmente schützen sich vor leeren Epochfeldern.
+
+Eine neue Produktionsrenderer-Regression überprüft 15-/60-Minuten-Intervalle, gültige und fehlende Grenzen, wahre Nullwerte, NoData, Regen-Overlays, Sonnen-/Wolkenbandsichtbarkeit und die zweifach vorkommende Herbststunde beziehungsweise die Frühjahrslücke. Farben, vier Dickenklassen, meteorologische Originalwerte, DWD-/WMO-Standards, RUC-Veröffentlichung und Warnungen bleiben unverändert. Die vollständige Geräte-, Export- und VoiceOver-Abnahme aus #374 bleibt eigenständig offen.
+
 # MID v0.9.85.351 · Start-CSS-Größenbudget gezielt absichern
 
 Die Produktionsprüfung setzt für alle direkt aus dem Start-HTML referenzierten Stylesheets zusammen Obergrenzen von 1.760.000 Byte Roh-CSS, 320.000 Byte gzip-9 und 225.000 Byte Brotli-6. Der zuvor großzügige gzip-Startwert von 650.000 Byte wird deutlich begrenzt. Ein Regressionstest prüft die korrekte Behandlung mehrerer CSS-Dateien, doppelter Referenzen, fehlender Dateien und externer Stylesheets. Die bisherigen Gesamtbudgets bleiben unverändert.
