@@ -1,0 +1,10 @@
+import {createRequire} from 'node:module';import fs from 'node:fs';import {execFileSync} from 'node:child_process';import {realpathSync} from 'node:fs';import {dirname,join} from 'node:path';import assert from 'node:assert/strict';
+const require=createRequire(import.meta.url),cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim()),{chromium,webkit}=require(join(dirname(dirname(cli)),'playwright'));
+const css=fs.readFileSync('src/midPresentation.css','utf8');
+for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
+ const browser=await engine.launch({headless:true});
+ for(const width of [320,390,768,820,834,1024,1180,1366])for(const theme of ['light','dark']){
+ const page=await browser.newPage({viewport:{width,height:900}});await page.setContent(`<html data-mid-design="next" data-theme="${theme}"><head><style>${css}</style></head><body><section class="composite-card"><div class="composite-timeline-card"><div class="composite-timeline-main composite-timeline-controls"><div class="radar-playback-buttons"><button>◀</button><button>▶</button><button>▷</button></div><label class="map-timeline-speed composite-playback-speed"><span>Tempo</span><select aria-label="Anzeigedauer je Bild"><option>Normal · 2,4 s</option><option>Schnell</option></select></label><div class="composite-timeline-range"><div class="composite-frame-markers"><i></i></div><input aria-label="Zeitschritt" type="range"></div><time class="composite-timeline-time">08:02</time><button class="composite-live-button">Jetzt</button></div></div></section></body></html>`);
+ const a=await page.locator('select').boundingBox(),b=await page.locator('input').boundingBox();assert.ok(a&&b);assert.ok(a.y+a.height<=b.y||b.y+b.height<=a.y||a.x+a.width<=b.x||b.x+b.width<=a.x,`${name} ${width} overlap`);await page.locator('select').selectOption({label:'Schnell'});await page.locator('input').focus();assert.ok(await page.locator('input').evaluate(el=>document.activeElement===el));await page.close();
+ }await browser.close();console.log(name+': 16 viewport/theme cases passed');
+}

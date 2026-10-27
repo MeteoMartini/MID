@@ -9,3 +9,12 @@ Der vorhandene echte Worker-Routentest prüft JSON-Transport, reale Null, negati
 Die historische statische Regression erwartete showers=0 ohne API-Feld. Sie wird ausdrücklich auf den korrigierten NoData-Vertrag umgestellt; der Routentest prüft das tatsächliche JSON samt Stalecache. Keine Testpflicht entfällt.
 
 Lokaler Nachweis: Produktionsbuild/Types und Produktionsaudit (0 Vulnerabilities) erfolgreich. Voller Lauf 1028 Tests: 1027 erfolgreich, ausschließlich die historische showers=0-Quelltextannahme schlug fehl. Nach dokumentierter Anpassung bestehen diese Regression, der erweiterte echte Worker-Routentest und native RUC-/Rendererprüfung erneut. Frisches vollständiges Source-/Installer-Gate bleibt verbindlich.
+
+## Tablet und Screenshot-Skybar
+Die geerbte composite-playback-speed grid-row:2 kollidiert bei Tabletspalten mit dem Slider. Explizite getrennte Gridzeilen bis 1200 CSS-Pixel, mindestens 44px Bedienelementhöhe; keine Änderung der Zeitachse oder Schrittwerte.
+
+Screenshot 1 allein enthält keine numerische Gesamtbewölkung für 18–19 Uhr. Zentraler Solar-Segmenttest belegt: bekannte Nachtbewölkung 50/75/100% deckt den ganzen Slot; 49% lässt vertragsgemäß das Band frei. Damit ist die exakte Ursache im konkreten Screenshot ohne dessen Quelldaten nicht abschließend belegt. Kein künstliches Auffüllen, keine Änderung fachlicher Schwellen. Prüfung bleibt offen, falls dort tatsächlich >=50% Gesamtbewölkung vorlag.
+
+Chromium: 16 CSS-Fixture-Fälle über 320/390/768/820/834/1024/1180/1366px Light/Dark mit Bounding-Box-Kollisionstest sowie echter Select-/Range-Fokusbedienung bestanden. WebKit lokal durch fehlende Systembibliotheken blockiert; apt scheitert an setgroups-Berechtigung. Keine WebKit-/iOS-Abnahme behauptet. Der vorhandene verpflichtende heavy-browser-state-Test ruft zusätzlich die neue Chromium/WebKit-Fixture auf; beide Engines bleiben im CI verpflichtend. Es handelt sich um eine CSS-/Bedienfixture, keine vollständige Live-Radar- oder physische iPad-Abnahme.
+
+Die Tablet-Korrektur ist eine neue abschließende C48-Styleschicht. Der ursprüngliche .169-CSS-Fingerprint bleibt unverändert vorgeschrieben. Die Konsolidierungsregression prüft weiterhin dessen exakte Gleichheit, 117 Extraktionen und 1122 Duplikate. Die neue Schicht wird ausdrücklich außerhalb der historischen Referenz geführt.
