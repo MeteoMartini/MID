@@ -171,7 +171,7 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):Weat
   const amount=measuredAmount??partialAmount,snowfall=measuredSnow??0;
   const hasAmountEvidence=measuredAmount!==null||partialAmount>0||snowfall>0;
   if(!hasAmountEvidence&&wmoCode===null)return null;
-  const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
+  const intervalMinutes=Math.round(intervalSeconds/60),parts=precipitationParts(hour,intervalSeconds),intensity=precipitationIntensityDescriptor(parts.type,amount,snowfall,intervalSeconds,parts.displayCode);
   if(!intensity)return null;
   const {level:rawLevel,label:intensityLabel}=intensity;
   const intensityBasis=measuredAmount!==null?intensity.basis:

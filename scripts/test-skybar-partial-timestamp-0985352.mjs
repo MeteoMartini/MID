@@ -21,6 +21,7 @@ try{
  for(const duration of [15*60000,hour]){
   const good=sample(base,duration),neighbor=sample(base+duration,duration),reference=cells([good,neighbor])[0];
   assert.equal(reference.base?.color,'#ffc229','75% directly known sunshine retains yellow');
+  assert.match(reference.precip?.title??'',duration===15*60000?/starker Regen/:/mäßiger Regen/,'Source-consistent DWD rain intensity and wording');
   assert.match(reference.base?.title??'',/Sonnenscheindauer/);
   for(const invalid of [null,undefined,'',' ',false]){
    const missing={...good,precipitationIntervalStartEpoch:invalid};
