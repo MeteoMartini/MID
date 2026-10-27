@@ -1,0 +1,12 @@
+/* C48: inherited speed row 2 must never share the seek slider's tablet row. */
+@media(max-width:1200px){
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls{
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+ }
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls>.radar-playback-buttons{grid-row:1!important;grid-column:1!important}
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls>.composite-playback-speed{grid-row:1!important;grid-column:2/4!important;justify-self:end!important}
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls>.composite-timeline-range{grid-row:2!important;grid-column:1/-1!important;min-height:44px!important}
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls>.composite-timeline-time{grid-row:3!important;grid-column:1/3!important;justify-self:start!important}
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls>.composite-live-button{grid-row:3!important;grid-column:3!important}
+ html[data-mid-design='next'] .composite-card .composite-timeline-controls :is(button,select){min-height:44px!important}
+}

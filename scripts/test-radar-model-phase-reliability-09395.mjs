@@ -7,10 +7,12 @@ const realFetch=globalThis.fetch;
 const testNowMs=Date.now(),quarterMs=15*60*1000,targetMs=Math.floor((testNowMs-15*60*1000)/quarterMs)*quarterMs;
 let metaInitialMs=targetMs-2*60*60*1000;
 let phaseBatchCalls=0,totalLocations=0,activeCalls=0,maxConcurrent=0,rateLimited=false;
+let fixtureIndex=0;
 function phasePoint(lat,lon,targetMs){
+ const fixture=[null,0,-1,.4,false,' ',undefined,2][fixtureIndex++%8],code=[null,0,71.5,61,false,' ',100,99][(fixtureIndex-1)%8];
  const times=[-15,0,15].map(minutes=>new Date(targetMs+minutes*60000).toISOString());
  const three=value=>[value,value,value];
- return{latitude:lat,longitude:lon,elevation:80,minutely_15:{time:times,temperature_2m:three(6),relative_humidity_2m:three(90),wet_bulb_temperature_2m:three(5),weather_code:three(61),precipitation:three(.4),rain:three(.4),snowfall:three(0),snowfall_height:three(1200),freezing_level_height:three(1500)}};
+ return{latitude:lat,longitude:lon,elevation:80,minutely_15:{time:times,temperature_2m:three(6),relative_humidity_2m:three(90),wet_bulb_temperature_2m:three(5),weather_code:three(code),precipitation:three(fixture),rain:three(fixture),snowfall:three(fixture),snowfall_height:three(1200),freezing_level_height:three(1500)}};
 }
 globalThis.fetch=async input=>{
  const url=new URL(typeof input==='string'?input:input.url);
@@ -43,11 +45,17 @@ try{
  if(phaseBatchCalls!==3||maxConcurrent!==1)throw new Error(`Batches nicht sequenziell: ${phaseBatchCalls} Abrufe, Parallelität ${maxConcurrent}.`);
  if(!(Number(data.gridSpacingKm)>=7&&Number(data.gridSpacingKm)<=15))throw new Error(`Stichpunktabstand nicht plausibel: ${data.gridSpacingKm} km`);
 
+ for(const name of ['precipitation','rain','snowfall']){
+  if(JSON.stringify(data.frame[name].slice(0,8))!==JSON.stringify([null,0,null,.4,null,null,null,2]))throw new Error(name+': Missing/negative must remain null while zero survives JSON');
+ }
+ if(JSON.stringify(data.frame.weatherCode.slice(0,8))!==JSON.stringify([null,0,null,61,null,null,null,99]))throw new Error('Missing/fractional WW must not become a clear-sky or rounded code');
+ if(!data.frame.showers.every(value=>value===null))throw new Error('Unrequested showers must remain Missing');
  // Bei einem Minutenlimit darf MID nicht den zweiten Modellalias nachfeuern. Stattdessen
  // wird ein höchstens 45 Minuten altes bereits belastbares Phasenfeld begrenzt genutzt.
  rateLimited=true;const beforeLimitCalls=phaseBatchCalls,nextTarget=new Date(targetMs+quarterMs).toISOString();
  const fallbackResponse=await module.default.fetch(new Request(`https://mid.test/?mode=precipitation-phase-grid&lat=50.82&lon=7.05&target=${encodeURIComponent(nextTarget)}`),{}),fallback=await fallbackResponse.json();
  if(!fallbackResponse.ok||fallback.stale!==true||!/(?:API-Limit|Minutenlimit)/i.test(String(fallback.fallbackReason||'')))throw new Error(`Rate-Limit-Fallback fehlt: ${JSON.stringify(fallback)}`);
+ if(JSON.stringify(fallback.frame.precipitation)!==JSON.stringify(data.frame.precipitation))throw new Error('Stale cache altered Missing/zero semantics');
  if(phaseBatchCalls-beforeLimitCalls!==1)throw new Error(`Rate-Limit löste unnötige Folgeabrufe aus: ${phaseBatchCalls-beforeLimitCalls}.`);
 
  // Frischer Modulzustand: Ein deutlich zu alter Modelllauf muss weiter abgelehnt werden.

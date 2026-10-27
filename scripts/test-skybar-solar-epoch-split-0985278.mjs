@@ -104,3 +104,11 @@ assert.ok(app.includes('detailSolar.nightBands.map'));
 assert.ok(!app.includes('23*60'),'No nominal 23-hour solar axis');
 assert.ok(!app.includes('allDayHours.slice(0,24)'),'Do not truncate the repeated autumn hour');
 console.log('C37 calendar detail axis: 23/24/25 hours, unique repeated-hour geometry, exact sunset, shared consumer wiring passed.');
+// C48 screenshot diagnosis: darkness alone must not erase a known cloudy slot.
+const night=[{startEpoch:start,endEpoch:end}];
+assert.equal(layer(render(sample(49,false),night),'base').length,0,'Known <50% cloud at night intentionally has no cloud band');
+for(const cloud of [50,75,100]){
+ const cloudy=layer(render(sample(cloud,false),night),'base');
+ assert.ok(cloudy.length>0,'Known cloudy night must not create an hour-long gap');
+ assert.equal(cloudy[0].x1,0);assert.equal(cloudy.at(-1).x2,100);
+}

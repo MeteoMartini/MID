@@ -20,5 +20,6 @@ if(existsSync('dist/index.html')){
 if(process.env.GITHUB_ACTIONS==='true'||process.env.MID_CSS_BROWSER_QA==='1'){
  console.log('[css-parity] launching independent Chromium/WebKit production parity process');
  await runBounded(process.execPath,['scripts/verify-fourteen-css-production-0985339.mjs'],{timeoutMs:420000});
+ await runBounded(process.execPath,['scripts/verify-c48-tablet-timeline-0985345.mjs'],{timeoutMs:90000});
 }
 console.log('14-day development: canonical data and shared SVG renderer preserved; exclusive stylesheet and component load asynchronously.');

@@ -1,3 +1,11 @@
+# MID v0.9.85.345 · Modellphasen und Tablet-Zeitleiste
+
+Die Modellstandsanzeige berücksichtigt eine verifizierte Bereitstellungszeit und den Quellrhythmus statt ausschließlich das Alter seit Initialisierung. Fehlende oder widersprüchliche Metadaten werden nicht grün.
+
+Tempoauswahl und Zeitschieberegler liegen auf Tablets wieder in getrennten, bedienbaren Zeilen.
+
+Das Radar-Phasenraster erhält fehlende und ungültige Niederschlagsmengen sowie Wettercodes als fehlende Werte. Echte trockene Nullen bleiben erhalten. Nicht angeforderte Schauerwerte werden nicht mehr als gemessene Nullmenge ausgegeben. Radar-Echos, Phasenschwellen, RUC-Horizonte und amtliche Warnungen bleiben unverändert.
+
 # MID v0.9.85.344 · RUC-Aufbereitung und Releasewechsel entkoppeln
 
 RUC-Berechnung und Aufbereitung erhalten getrennte, nachvollziehbare Laufzeiten und einen geprüften Zwischenstand. Eine fehlgeschlagene Aufbereitung kann dadurch ihren vorhandenen Berechnungsstand weiterverwenden. Bereits vollständig geprüfte, aktuelle RUC-Daten können nach einem kompatiblen App-Update erneut zugelassen werden; Herkunft, Datenvertrag, sämtliche Objektbytes und Decoder werden erneut geprüft. Die Veröffentlichung verwendet die aktuelle freigegebene App und verhindert die Rückkehr zu einem älteren RUC-Lauf. Wetterwerte, Ensemble, Extremwerte und Prognosezeiträume bleiben unverändert.

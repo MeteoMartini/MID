@@ -8,3 +8,5 @@ for(const token of ['function steeringMotionFromContext(','cloudSignal*.72+humid
 assert.ok(radar.includes("if(radarValid)return{direction:normalizeBearing(radarDirection)"),'Radarbildfolge muss für die Darstellung Vorrang vor reiner Höhenströmung haben.');
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-composite-time-axis-template-09609.mjs';assert.equal(pkg.scripts?.['test:composite-time-axis-template'],`node ${test}`);assert.ok(baseline.requiredRegressionTests?.includes(test));assert.ok(baseline.regressionTests?.includes(test));
 console.log('Komposit-Zugachse geprüft: reale Echoanker, Zeitknoten und Radarpriorität; Höhenströmung bleibt nur Diagnose/Fallback ohne ETA.');
+const tabletCss=await readFile(new URL('src/midC48TabletTimeline.css',root),'utf8');
+for(const token of ['.composite-timeline-controls>.composite-playback-speed{grid-row:1!important;grid-column:2/4!important','.composite-timeline-controls>.composite-timeline-range{grid-row:2!important;grid-column:1/-1!important'])assert.ok(tabletCss.includes(token),'Tablet speed and seek range must have distinct explicit rows');
