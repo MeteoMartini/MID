@@ -41,3 +41,16 @@ assert.ok(ui.includes('backgroundColor:modelFreshnessColor(freshness.band)'),'St
 assert.ok(ui.includes('minHeight:44'),'All viewport pills retain a 44px touch target');
 assert.ok(ui.includes('window.setInterval')&&ui.includes('window.clearInterval'),'Freshness needs refresh while app stays open');
 console.log('Model-run freshness indicator provenance, cadence, unknown data and accessible states OK');
+
+// C48: a just-delivered slow model is current despite its older reference epoch.
+const delivery=(age,delay=6,cadence=21600)=>row(age,cadence,{id:'ifs',availabilityTime:new Date(now-(age-delay)*H).toISOString()});
+assert.equal(modelRunFreshness(delivery(7),now),'current');
+assert.equal(modelRunFreshness(delivery(12.9),now),'current');
+assert.equal(modelRunFreshness(delivery(13),now),'delayed');
+assert.equal(modelRunFreshness(delivery(17),now),'stale');
+assert.equal(modelRunFreshness(delivery(49,48),now),'unknown','Unbounded publication lag cannot launder an ancient run');
+assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:new Date(now+10*60000).toISOString()}),now),'unknown');
+assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:new Date(now-2*H).toISOString()}),now),'unknown');
+assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:'invalid'}),now),'unknown');
+assert.equal(assessModelFreshness([delivery(7),row(.5)],now).band,'current');
+assert.equal(assessModelFreshness([delivery(7),row(.5,3600,{metadataUnavailable:true})],now).band,'unknown');

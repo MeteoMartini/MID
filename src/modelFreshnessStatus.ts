@@ -12,6 +12,14 @@ export function modelRunFreshness(row:ModelRunMeta,now:number):ModelFreshnessBan
  !Number.isFinite(cadenceSeconds)||cadenceSeconds<=0||cadenceSeconds>7*86400)return'unknown';
  const age=(now-initialised)/3600000,cadence=cadenceSeconds/3600;
  if(age<-.5)return'unknown';
+ // Initialization is the model's reference epoch, not its delivery deadline.
+ // Prefer the source-reported delivery time only with bounded, coherent provenance.
+ if(row.availabilityTime!==undefined){
+  const available=Date.parse(String(row.availabilityTime)),lag=(available-initialised)/3600000;
+  if(!Number.isFinite(available)||available>now+5*60000||lag<0||lag>Math.min(48,Math.max(6,cadence*2)))return'unknown';
+  const deliveredAge=Math.max(0,(now-available)/3600000),grace=Math.max(.25,Math.min(1,cadence*.15));
+  return deliveredAge>cadence*1.6+grace?'stale':deliveredAge>cadence+grace?'delayed':'current';
+ }
  const mosmix=/dwd[_-]?mosmix/i.test(row.id);
  const limit=mosmix&&cadence<=1?2.5:mosmix?Math.max(8.5,cadence*1.45):Math.max(3,cadence*1.6);
  return age>limit?'stale':age>limit*.7?'delayed':'current';
@@ -29,5 +37,5 @@ export function assessModelFreshness(rows:readonly ModelRunMeta[],now:number=Dat
  const band:ModelFreshnessBand=!eligible.length?'unknown':substantiallyStale?'stale':count.stale||count.delayed?'delayed':count.unknown?'unknown':'current';
  const label=band==='stale'?(eligible.length===1?'Verwendeter Modelllauf überfällig':'Überwiegender Teil der Modellläufe überfällig'):band==='delayed'?(count.stale?'Einzelne Modellläufe überfällig':'Mindestens ein Modelllauf zeitlich verzögert'):band==='current'?'Modellläufe zeitlich aktuell':'Modellstand zeitlich nicht vollständig verifizierbar';
  const details=eligible.length?`${count.current} aktuell · ${count.delayed} verzögert · ${count.stale} überfällig · ${count.unknown} ohne verifizierbares Laufalter`:'Keine nachweislich verwendeten Modellläufe';
- return {band,label,details,checked:eligible.length,unknown:count.unknown,stale:count.stale,delayed:count.delayed};
+ return {band,label,details:details+' · Verifizierte Bereitstellungszeit + Quellrhythmus; ohne Bereitstellung konservatives Laufalter. Keine Aussage zur Prognosegüte.',checked:eligible.length,unknown:count.unknown,stale:count.stale,delayed:count.delayed};
 }
