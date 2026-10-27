@@ -1,7 +1,5 @@
-# MID v0.9.85.345 · Modellphasen und Tablet-Zeitleiste
+# MID v0.9.85.346 · Kartenintegrität und Modellstand
 
-Die Modellstandsanzeige berücksichtigt eine verifizierte Bereitstellungszeit und den Quellrhythmus statt ausschließlich das Alter seit Initialisierung. Fehlende oder widersprüchliche Metadaten werden nicht grün.
+Die Modellstandsanzeige zeigt verifizierte Einzelmodelle als Anzahl und unterscheidet Teilverifikation von fehlenden Nachweisen. Best Match wird als Sammelquelle separat erläutert; überfällige Läufe bleiben sichtbar.
 
-Tempoauswahl und Zeitschieberegler liegen auf Tablets wieder in getrennten, bedienbaren Zeilen.
-
-Das Radar-Phasenraster erhält fehlende und ungültige Niederschlagsmengen sowie Wettercodes als fehlende Werte. Echte trockene Nullen bleiben erhalten. Nicht angeforderte Schauerwerte werden nicht mehr als gemessene Nullmenge ausgegeben. Radar-Echos, Phasenschwellen, RUC-Horizonte und amtliche Warnungen bleiben unverändert.
+Die lokalen ICON-D2-Karten unterscheiden fehlende Werte wieder von trockenem Wetter. Ungültige Wettercodes werden nicht gerundet; echte Nullwerte und gültige Extremwerte bleiben erhalten. Jeder Rasterpunkt wird vor der Darstellung mit der gemeinsamen Gültigkeitszeit abgeglichen. Fehlende oder zeitlich unpassende Zellen bleiben transparent.
