@@ -9,6 +9,8 @@ let workflow=null;
 try{workflow=await read('.github/workflows/mid-code-revision.yml')}catch(error){if(error?.code!=='ENOENT')throw error}
 if(workflow){
  for(const token of ['MID CI verify','MID-code-revision-v0.9.19.0.zip',"cron: '17 3 * * *'","cron: '23 */6 * * *'","cron: '23 2 * * 0'","cron: '41 1 * * 3'",'scripts/check-deployed-mid.mjs','scripts/check-api-contracts.mjs','scripts/check-build-budget.mjs','playwright test','lhci autorun','github/codeql-action/init@','gh issue create','Verifizierte Abhängigkeiten unverändert aus Lockfile installieren','npm install --no-save --no-package-lock','Gemeldete Cockpit-Regressionen auf unveränderter Stable-Basis vorprüfen','cp "$GITHUB_WORKSPACE/.github/workflows/mid-code-revision.yml"'])if(!workflow.includes(token))failures.push(`Workflow-Vertrag fehlt: ${token}`);
+ if((workflow.match(/run: node scripts\/prepare-browser-runtimes\.mjs/g)||[]).length!==2)failures.push('CI- und Nightly-Revision müssen Chromium und WebKit vor der vollständigen Prüfung separat vorbereiten');
+ if(!workflow.includes("if: steps.install.outcome == 'success' && steps.browser_install.outcome == 'success'"))failures.push('Nightly-Regression darf nicht ohne beide vorbereiteten Browser laufen');
  for(const line of workflow.match(/^\s*uses:\s*[^\s#]+/gm)||[]){const revision=line.match(/@([^\s#]+)/)?.[1];if(!revision||!/[0-9a-f]{40}/i.test(revision))failures.push(`Action nicht auf vollständigen SHA fixiert: ${line.trim()}`)}
 }else{
  const packer=await read('tools/release/create_professional_zip.py');
