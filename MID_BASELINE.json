@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.348",
+  "releaseVersion": "0.9.85.349",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -100,6 +100,7 @@
     "scripts/test-c8-visible-redesign-098528.mjs",
     "scripts/test-c9-continuous-map-timeline-098529.mjs",
     "scripts/test-capacitor-typescript-7-ci-09761.mjs",
+    "scripts/test-cdp-call-arguments-0985349.mjs",
     "scripts/test-chart-layout-079.mjs",
     "scripts/test-chatgpt-github-write-contract-098510.mjs",
     "scripts/test-ci-regression-determinism-08262.mjs",
@@ -1132,6 +1133,7 @@
     "scripts/test-c8-visible-redesign-098528.mjs",
     "scripts/test-c9-continuous-map-timeline-098529.mjs",
     "scripts/test-capacitor-typescript-7-ci-09761.mjs",
+    "scripts/test-cdp-call-arguments-0985349.mjs",
     "scripts/test-chart-layout-079.mjs",
     "scripts/test-chatgpt-github-write-contract-098510.mjs",
     "scripts/test-ci-regression-determinism-08262.mjs",
@@ -3029,7 +3031,11 @@
     "tools/ruc/test_prepared_snapshot.py",
     "tools/ruc/test_timed_command.py",
     "scripts/lib/secure-diagnostics.mjs",
-    "scripts/test-security-diagnostics-0985347.mjs"
+    "scripts/test-security-diagnostics-0985347.mjs",
+    "scripts/lib/browser-start-diagnostics.mjs",
+    "scripts/lib/cdp-call-function.mjs",
+    "scripts/lib/cssRuleUsageDiagnostic.mjs",
+    "scripts/test-cdp-call-arguments-0985349.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3759,7 +3765,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.348",
+  "version": "0.9.85.349",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

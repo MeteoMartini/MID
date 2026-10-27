@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import {readFileSync,realpathSync} from 'node:fs';
+import {readFileSync,realpathSync,mkdirSync,writeFileSync,appendFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
+import {startCssRuleUsageTracking,collectCssRuleUsage} from './lib/cssRuleUsageDiagnostic.mjs';
 import {browserPrelude} from './lib/mountainBrowserFixture.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),require=createRequire(import.meta.url);
 const cli=realpathSync(execFileSync('npm',['exec','--yes','--package=playwright@1.56.1','--','which','playwright'],{encoding:'utf8'}).trim());
@@ -29,11 +30,15 @@ async function fixtureServer(project){
 }
 const active=await fixtureServer(root),baseline=process.env.MID_PARITY_BASE?await fixtureServer(resolve(process.env.MID_PARITY_BASE)):null;
 const browser=await chromium.launch({executablePath:process.env.MID_BROWSER_EXECUTABLE||undefined,headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
-let cases=0,parity=0;
+let cases=0,parity=0;const cssCoverage=[];
 async function openPage(target,width,height,theme){
  const context=await browser.newContext({viewport:{width,height},colorScheme:theme}),page=await context.newPage(),requests=[],errors=[];
+ const cssSession=target===active?await startCssRuleUsageTracking(context,page):null;
  await page.addInitScript(({epoch,prelude,theme})=>{const OriginalDate=Date;class FixtureDate extends OriginalDate{constructor(...args){super(...(args.length?args:[epoch]));}static now(){return epoch+Math.floor(performance.now());}}window.Date=FixtureDate;(0,eval)(prelude);localStorage.setItem('theme',theme);localStorage.setItem('mid:0.7.1:widget-settings',JSON.stringify({schema:5,days:7,view:'cards',dark:theme==='dark',ecmwfTemperatureColors:false}));const applyTheme=()=>{document.documentElement.dataset.theme=theme;document.documentElement.classList.toggle('dark',theme==='dark');};if(document.documentElement)applyTheme();else document.addEventListener('DOMContentLoaded',applyTheme,{once:true});},{epoch,prelude:browserPrelude(favorite,location,mountain,''),theme});
- page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));await page.goto(target.url);await page.getByRole('button',{name:'Widget laden',exact:true}).waitFor();return {context,page,requests,errors};
+ page.on('request',request=>requests.push(request.url()));page.on('pageerror',error=>errors.push(error.message));await page.goto(target.url);await page.getByRole('button',{name:'Widget laden',exact:true}).waitFor();return {context,page,requests,errors,cssSession};
+}
+async function measureCssCoverage(item,width,height,theme){
+ return collectCssRuleUsage(item.cssSession,{viewport:[width,height],theme,scope:'Vite development fixture; widget/cards/curve/ensemble and mountain only',views:['widget/cards','widget/curve','widget/ensemble','mountain']});
 }
 async function snapshot(page){
  await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(120);
@@ -68,16 +73,24 @@ try{
     if(process.env.MID_WIDGET_QA_SCREENSHOTS)await page.locator('.weatherwidget').screenshot({path:process.env.MID_WIDGET_QA_SCREENSHOTS+`/widget262-${width}-${theme}.png`});
    }
    assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/${view}: page overflow`);
-   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/${view}: visual/layout divergence from .169`);parity++;}cases++;
+   if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/${view}: visual/layout divergence from configured reference`);parity++;}cases++;
   }
   assert.equal(await current.page.evaluate(()=>window.qaEnsembleRequested),true,'Curve/ensemble must request canonical ensemble support');
-  for(const item of [current,reference].filter(Boolean)){await item.page.getByRole('button',{name:'Bergwetter laden',exact:true}).click();try{await item.page.locator('.mountain-current-source').waitFor();await item.page.locator('.mountain-seven-day-row').first().waitFor();}catch(error){console.error(JSON.stringify({width,theme,baseline:item===reference,errors:item.errors,requests:item.requests.slice(-12),body:await item.page.locator('body').innerText()}));throw error;}}
+  for(const item of [current,reference].filter(Boolean)){await item.page.getByRole('button',{name:'Bergwetter laden',exact:true}).click();try{await item.page.locator('.mountain-current-source').waitFor();await item.page.locator('.mountain-seven-day-row').first().waitFor();await item.page.waitForFunction(()=>document.querySelector('.mountain-enrichment-disclosure summary strong')?.textContent==='Datenhinweise');}catch(error){console.error(JSON.stringify({width,theme,baseline:item===reference,errors:item.errors,requests:item.requests.slice(-12),body:await item.page.locator('body').innerText()}));throw error;}}
   assert.ok(current.requests.some(url=>url.includes('/src/MountainWeather.tsx')),'Mountain module must load when opened');
   assert.equal(await current.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width}/${theme}/mountain: page overflow`);
-  if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain: visual/layout divergence from .169`);parity++;}cases++;
+  if(reference){assert.deepEqual(await snapshot(current.page),await snapshot(reference.page),`${width}/${theme}/mountain: visual/layout divergence from configured reference`);parity++;}cases++;
   assert.deepEqual(current.errors,[],'Optional module caused a runtime error');if(reference)assert.deepEqual(reference.errors,[]);
+  cssCoverage.push(await measureCssCoverage(current,width,height,theme));
   await current.context.close();if(reference)await reference.context.close();
-  console.log(`${width}×${height} ${theme}: module loading and four feature views passed${reference?' with .169 parity':''}.`);
+  console.log(`${width}×${height} ${theme}: module loading and four feature views passed${reference?' with configured reference parity':''}.`);
  }
- console.log(`Module/CSS browser QA: ${cases} viewport/theme/view cases; on-demand network edges, shared uncertainty and no overflow/errors; ${parity} exact .169 layout/paint snapshots.`);
+ const report={schema:'mid.css-coverage-diagnostic.v1',sourceSha:process.env.GITHUB_SHA||null,scope:'Vite development fixture only, not whole app or production CSS',cases:cssCoverage};
+ mkdirSync(join(root,'artifacts'),{recursive:true});
+ writeFileSync(join(root,'artifacts','css-module-coverage.json'),JSON.stringify(report,null,2)+'\n');
+ const raw=cssCoverage.reduce((n,item)=>n+item.sheets.reduce((sum,css)=>sum+css.rawBytes,0),0);
+ const used=cssCoverage.reduce((n,item)=>n+item.sheets.reduce((sum,css)=>sum+css.usedBytes,0),0);
+ console.log('MID_CSS_COVERAGE_DIAGNOSTIC='+JSON.stringify({cases:cssCoverage.length,rawStyleBytesAcrossIndependentCases:raw,usedRuleBytesAcrossIndependentCases:used,hasCoverage:raw>0,artifact:'artifacts/css-module-coverage.json',scope:report.scope}));
+ if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,'\n### MID CSS coverage — diagnostics only\n\n'+cssCoverage.length+' separate Chromium viewport/theme contexts; rule bytes across cases: '+used+'/'+raw+'. **Not production CSS or whole-app coverage.**\n');
+ console.log(`Module/CSS browser QA: ${cases} viewport/theme/view cases; on-demand network edges, shared uncertainty and no overflow/errors; ${parity} exact configured-reference layout/paint snapshots.`);
 }finally{await browser.close();await active.server.close();if(baseline)await baseline.server.close();}
