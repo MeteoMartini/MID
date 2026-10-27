@@ -8,7 +8,7 @@ The downloader is deliberately fail-safe:
 - publish nothing here; CI uploads immutable objects and latest.json separately/last.
 """
 from __future__ import annotations
-import argparse,concurrent.futures,html.parser,os,random,re,shutil,subprocess,sys,time
+import argparse,concurrent.futures,html.parser,os,random,re,shutil,ssl,subprocess,sys,time
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
@@ -48,14 +48,29 @@ LEAD_RE=re.compile(r'PT(?P<hours>\d{3})H(?P<minutes>\d{2})M',re.I)
 DEFAULT_DOWNLOAD_WORKERS=8
 NETWORK_ATTEMPTS=4
 
+def transient_tls_eof(error):
+ # Requests/urllib3 wrap the actual SSL exception in args/reason/cause.
+ # A text mentioning EOF is not proof, and certificate errors always win.
+ pending=[error];seen=set();eof=False
+ while pending:
+  item=pending.pop()
+  if id(item) in seen:continue
+  seen.add(id(item))
+  if isinstance(item,ssl.SSLCertVerificationError) or (isinstance(item,ssl.SSLError) and getattr(item,'reason',None)=='CERTIFICATE_VERIFY_FAILED'):return False
+  if isinstance(item,ssl.SSLEOFError):eof=True
+  elif isinstance(item,ssl.SSLError):return False
+  for nested in (getattr(item,'reason',None),item.__cause__,item.__context__,*item.args):
+   if isinstance(nested,BaseException):pending.append(nested)
+ return eof
+
 def retry_network(operation,label):
  for attempt in range(NETWORK_ATTEMPTS):
   try:return operation()
   except (requests.ConnectionError,requests.Timeout,requests.exceptions.ChunkedEncodingError,requests.HTTPError) as exc:
    status=exc.response.status_code if isinstance(exc,requests.HTTPError) and exc.response is not None else None
    if status is not None and status not in (408,429,500,502,503,504):raise
-   # Certificate failures are not transient: never weaken TLS verification.
-   if isinstance(exc,requests.exceptions.SSLError):raise
+   # Only a typed abrupt transport EOF is retryable. No TLS setting changes.
+   if isinstance(exc,requests.exceptions.SSLError) and not transient_tls_eof(exc):raise
    if attempt+1==NETWORK_ATTEMPTS:raise
    delay=min(16,2**(attempt+1))+random.uniform(0,.5)
    print(f'{label}: transient {type(exc).__name__}; retry {attempt+2}/{NETWORK_ATTEMPTS} in {delay:.1f}s',flush=True)

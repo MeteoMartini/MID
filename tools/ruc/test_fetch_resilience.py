@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline regressions: retries, atomic staging and early GRIB coverage."""
 import bz2
+import ssl
+from urllib3.exceptions import MaxRetryError,SSLError as PoolSSLError
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -75,6 +77,46 @@ class FetchResilience(unittest.TestCase):
             with patch.object(fetch.time, 'sleep'), self.assertRaises(requests.HTTPError):
                 fetch.retry_network(operation, 'test')
             self.assertEqual(operation.call_count, calls)
+
+    def wrapped_tls(self,error):
+        return requests.exceptions.SSLError(MaxRetryError(None,'https://opendata.dwd.de/fixture',PoolSSLError(error)))
+
+    def test_typed_tls_eof_retries_with_original_bound_and_verification(self):
+        eof=self.wrapped_tls(ssl.SSLEOFError(8,'abrupt EOF'))
+        operation=Mock(side_effect=[eof,'complete'])
+        with patch.object(fetch.time,'sleep') as sleep:
+            self.assertEqual(fetch.retry_network(operation,'TLS EOF'),'complete')
+        self.assertEqual(operation.call_count,2);self.assertEqual(sleep.call_count,1)
+        operation=Mock(side_effect=eof)
+        with patch.object(fetch.time,'sleep'),self.assertRaises(requests.exceptions.SSLError):fetch.retry_network(operation,'TLS bound')
+        self.assertEqual(operation.call_count,4)
+        session=fetch.session()
+        try:self.assertIs(session.verify,True)
+        finally:session.close()
+
+    def test_certificate_unknown_and_eof_text_remain_fatal(self):
+        certificate=self.wrapped_tls(ssl.SSLCertVerificationError(1,'certificate verification failed'))
+        eof=self.wrapped_tls(ssl.SSLEOFError(8,'EOF'))
+        eof.__context__=certificate
+        ambiguous=self.wrapped_tls(ssl.SSLEOFError(8,'EOF'));ambiguous.__context__=ssl.SSLError(1,'unknown native SSL failure')
+        for error in [certificate,eof,ambiguous,requests.exceptions.SSLError('SSLEOFError text is not a typed cause')]:
+            operation=Mock(side_effect=error)
+            with patch.object(fetch.time,'sleep') as sleep,self.assertRaises(requests.exceptions.SSLError):fetch.retry_network(operation,'fatal TLS')
+            self.assertEqual(operation.call_count,1);sleep.assert_not_called()
+
+    def test_tls_eof_stream_never_reuses_a_partial_file(self):
+        eof=self.wrapped_tls(ssl.SSLEOFError(8,'abrupt stream EOF'))
+        def partial():
+            yield b'partial'*25
+            raise eof
+        first=Mock();first.__enter__=Mock(return_value=first);first.__exit__=Mock(return_value=False);first.iter_content=Mock(return_value=partial())
+        complete=b'complete GRIB transport bytes'*20
+        second=Mock();second.__enter__=Mock(return_value=second);second.__exit__=Mock(return_value=False);second.iter_content=Mock(return_value=iter([complete]))
+        with tempfile.TemporaryDirectory() as td:
+            target=Path(td)/'source.grib2'
+            with patch.object(fetch.requests,'get',side_effect=[first,second]) as get,patch.object(fetch.time,'sleep'):
+                fetch.download_one('https://opendata.dwd.de/fixture',target)
+            self.assertEqual(get.call_count,2);self.assertEqual(target.read_bytes(),complete);self.assertFalse(target.with_suffix('.grib2.part').exists())
 
     def test_directory_retry(self):
         response = Mock()
