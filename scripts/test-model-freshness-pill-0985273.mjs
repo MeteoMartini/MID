@@ -23,9 +23,9 @@ assert.equal(assessModelFreshness([row(.3),row(4,3600,{id:'unused',usedInCanonic
 assert.equal(assessModelFreshness([row(4,3600,{usedInCanonical:false,fusionLoaded:true})],now).band,'unknown','Unused model alone is not evidence');
 assert.equal(assessModelFreshness([row(.3,3600,{usedInCanonical:undefined,fusionLoaded:true}),row(4,3600,{id:'not-used',usedInCanonical:false,fusionLoaded:true})],now).band,'current','Fallback inventory excludes unused');
 assert.equal(assessModelFreshness([row(4,3600,{usedInCanonical:undefined,usageStatus:'fallback'})],now).band,'stale','Ensemble fallback included');
-assert.equal(assessModelFreshness([row(.3),row(.3,3600,{id:'no-meta',metadataUnavailable:true})],now).band,'unknown','Missing metadata must not be green');
+assert.equal(assessModelFreshness([row(.3),row(.3,3600,{id:'no-meta',metadataUnavailable:true})],now).band,'partial','Partial metadata must remain disclosed, never green');
 assert.equal(assessModelFreshness([],now).band,'unknown');
-assert.equal(assessModelFreshness([row(.3),row(.3,3600,{id:'icon-d2',metadataUnavailable:true})],now).band,'unknown');
+assert.equal(assessModelFreshness([row(.3),row(.3,3600,{id:'icon-d2',metadataUnavailable:true})],now).band,'partial');
 assert.equal(assessModelFreshness([row(.3),row(3.5,3600,{usedInCanonical:false,fusionLoaded:false})],now).band,'current');
 assert.equal(assessModelFreshness([row(.3,3600,{usedInCanonical:false,fusionLoaded:false})],now).band,'unknown');
 assert.equal(assessModelFreshness([row(7,21600,{id:'ifs',kind:'ensemble',usedInCanonical:undefined,usageStatus:'active'})],now).band,'delayed');
@@ -53,6 +53,18 @@ assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:new Date(now+10*600
 assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:new Date(now-2*H).toISOString()}),now),'unknown');
 assert.equal(modelRunFreshness(row(1,21600,{availabilityTime:'invalid'}),now),'unknown');
 assert.equal(assessModelFreshness([delivery(7),row(.5)],now).band,'current');
-assert.equal(assessModelFreshness([delivery(7),row(.5,3600,{metadataUnavailable:true})],now).band,'unknown');
+assert.equal(assessModelFreshness([delivery(7),row(.5,3600,{metadataUnavailable:true})],now).band,'partial');
 
 assert.ok(ui.includes('Date.parse(source.initialisationTime)!==Date.parse(meta.initialisationTime))?undefined:meta?.availabilityTime'),'Latest inventory delivery must not be attributed to a different actually used run');
+
+const screenshotRows=[...Array.from({length:12},(_,i)=>row(.3,3600,{id:'known'+i})),...Array.from({length:5},(_,i)=>row(.3,3600,{id:'missing'+i,label:'Missing '+i,metadataUnavailable:true})),row(.3,3600,{id:'best_match',initialisationTime:undefined,metadataUnavailable:true})];
+const partial=assessModelFreshness(screenshotRows,now);
+assert.equal(partial.band,'partial');assert.equal(partial.checked,17);assert.equal(partial.unknown,5);assert.equal(partial.aggregated,1);
+assert.ok(partial.details.includes('Best Match ist eine Sammelquelle'));
+assert.ok(partial.details.includes('Missing 0'));
+assert.equal(assessModelFreshness([row(.3),row(.3,3600,{id:'best_match',metadataUnavailable:true})],now).band,'current','Composite source cannot masquerade as a missing individual run');
+assert.equal(assessModelFreshness([row(4),...screenshotRows.slice(12)],now).band,'delayed','Actual overdue run stays visible even with partial coverage');
+assert.equal(modelFreshnessColor('partial'),'#357f9d');
+assert.ok(ui.includes('freshness.checked-freshness.unknown}/${freshness.checked}'),'Trigger must expose verified individual-run coverage');
+assert.equal(assessModelFreshness([row(.3,3600,{id:'best_match',metadataUnavailable:true})],now).band,'unknown','An aggregate alone provides no individual run evidence');
+assert.equal(assessModelFreshness([row(4),row(.3,3600,{id:'best_match',metadataUnavailable:true})],now).band,'stale','Aggregate must not dilute a genuinely overdue individual model');

@@ -90,3 +90,4 @@ if(failures.length){
  process.exit(1);
 }
 console.log('Wetterkartenmodul mit ICON-D2-Kombinationskarten, gemeinsamer C14-Zeitachse und einklappbaren INIT-/Gültig-Details erfolgreich geprüft.');
+await import('./verify-map-grid-nodata-0985346.mjs');
