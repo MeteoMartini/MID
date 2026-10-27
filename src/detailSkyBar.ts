@@ -87,7 +87,10 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
   const current=skybarEpochMillis(sample?.epoch),next=skybarEpochMillis(hours[index+1]?.epoch),previous=skybarEpochMillis(hours[index-1]?.epoch);
   const forward=Number.isFinite(current)&&Number.isFinite(next)?(next-current)/1000:NaN;
   const backward=Number.isFinite(current)&&Number.isFinite(previous)?(current-previous)/1000:NaN;
-  const interval=Number.isFinite(forward)&&forward>0?forward:Number.isFinite(backward)&&backward>0?backward:3600;
+  // With a missing interval-start field, the supplied sample epoch and valid
+  // interval end still prove a forward slot, even without adjacent samples.
+  const endForward=!Number.isFinite(explicitStart)&&Number.isFinite(current)&&Number.isFinite(explicitEnd)&&explicitEnd>current?(explicitEnd-current)/1000:NaN;
+  const interval=Number.isFinite(endForward)&&endForward>0?endForward:Number.isFinite(forward)&&forward>0?forward:Number.isFinite(backward)&&backward>0?backward:3600;
   return clamp(interval,60,6*3600);
 };
 

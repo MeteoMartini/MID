@@ -26,6 +26,8 @@ try{
    const missing={...good,precipitationIntervalStartEpoch:invalid};
    const checked=cells([missing,neighbor])[0];
    assert.deepEqual(checked.base,reference.base,'Missing start falls back to true '+(duration/60000)+'-minute neighbor timestamps');
+   assert.deepEqual(cells([missing])[0].base,cells([good])[0].base,'Standalone sunshine uses genuine end minus source epoch for '+(duration/60000)+' minutes');
+   assert.deepEqual(cells([missing])[0].precip,cells([good])[0].precip,'Standalone precipitation intensity keeps true '+(duration/60000)+' minute accumulation');
    assert.deepEqual(checked.precip,reference.precip,'Precipitation intensity remains interval-correct despite missing start');
    assert.deepEqual(weather(timed([missing],base,base+duration,0,0,100,8)),weather(timed([good],base,base+duration,0,0,100,8)),'Timed sky uses observed epoch when explicit start missing');
    assert.deepEqual(precip(timed([missing],base,base+duration,0,0,100,8)),precip(timed([good],base,base+duration,0,0,100,8)),'No change to accumulated precipitation geometry');
