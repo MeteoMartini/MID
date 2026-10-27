@@ -1,3 +1,7 @@
+# MID v0.9.85.348 · Diagnose-Sicherheitskorrekturen
+
+Basis: veröffentlichte .347 f4360f6e573f78c2be6e20d1c40d9540fd7cb1ea. Exklusives Anlegen von Widget-Erstberichten und Diagnosebildern, private mkdtemp-Verzeichnisse für Browserprofile und Regressionstimings; beide Installer-Uploadpfade werden synchron migriert. Kein Daten-/Worker-Fachpfad geändert. CodeQL-Alertstatus erst nach erneuter Analyse bewerten; #490 bleibt für weitere Befunde offen.
+
 # MID v0.9.85.347 · Browserpflichtprüfungen in der MID-Code-Revision
 
 Ausgangsbasis: veröffentlichte v0.9.85.346, `main = mid-stable = 34563d9f31b0d5a04bf242498841a23e424ab9a2`. Automatischer MID-Revision-Push-Lauf 40503871329 scheiterte beim vorhandenen `scripts/test-fourteen-css-lazy-0985339.mjs` nach erfolgreichen Chromium-Fällen, weil die gepinnte WebKit-Laufzeit `webkit-2215/pw_run.sh` fehlte. Der Browser- und CSS-Test selbst wird nicht verändert. Der bestehende separate, versionierte Browser-Preflight aus dem Release-Installer wird nun auch im regulären CI- und im nächtlichen Revisionsworkflow vor `npm run verify` ausgeführt. Die Pflichtprüfungen werden weder deaktiviert noch abgeschwächt. Die Revision meldet gescheiterte Browserinstallation gesondert; beide GitHub-Workflow-Spiegel sind identisch. App-, Worker-, Daten- und RUC-Algorithmen bleiben unverändert.

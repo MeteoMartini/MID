@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.347",
+  "releaseVersion": "0.9.85.348",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -815,6 +815,7 @@
     "scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
     "scripts/test-secondary-detail-popover-readability-098473.mjs",
     "scripts/test-section-navigation-profile-inset-09361.mjs",
+    "scripts/test-security-diagnostics-0985347.mjs",
     "scripts/test-security-pollen-maintenance-0985128.mjs",
     "scripts/test-seo-discoverability-0990.mjs",
     "scripts/test-settings-ensemble-reference-079529.mjs",
@@ -1846,6 +1847,7 @@
     "scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
     "scripts/test-secondary-detail-popover-readability-098473.mjs",
     "scripts/test-section-navigation-profile-inset-09361.mjs",
+    "scripts/test-security-diagnostics-0985347.mjs",
     "scripts/test-security-pollen-maintenance-0985128.mjs",
     "scripts/test-seo-discoverability-0990.mjs",
     "scripts/test-settings-ensemble-reference-079529.mjs",
@@ -3025,7 +3027,9 @@
     "tools/ruc/timed_command.py",
     "tools/ruc/report_workflow_timings.py",
     "tools/ruc/test_prepared_snapshot.py",
-    "tools/ruc/test_timed_command.py"
+    "tools/ruc/test_timed_command.py",
+    "scripts/lib/secure-diagnostics.mjs",
+    "scripts/test-security-diagnostics-0985347.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3755,7 +3759,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.347",
+  "version": "0.9.85.348",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
