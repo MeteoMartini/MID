@@ -1,3 +1,9 @@
+# MID v0.9.85.347 · Browserpflichtprüfungen in der MID-Code-Revision
+
+Ausgangsbasis: veröffentlichte v0.9.85.346, `main = mid-stable = 34563d9f31b0d5a04bf242498841a23e424ab9a2`. Automatischer MID-Revision-Push-Lauf 40503871329 scheiterte beim vorhandenen `scripts/test-fourteen-css-lazy-0985339.mjs` nach erfolgreichen Chromium-Fällen, weil die gepinnte WebKit-Laufzeit `webkit-2215/pw_run.sh` fehlte. Der Browser- und CSS-Test selbst wird nicht verändert. Der bestehende separate, versionierte Browser-Preflight aus dem Release-Installer wird nun auch im regulären CI- und im nächtlichen Revisionsworkflow vor `npm run verify` ausgeführt. Die Pflichtprüfungen werden weder deaktiviert noch abgeschwächt. Die Revision meldet gescheiterte Browserinstallation gesondert; beide GitHub-Workflow-Spiegel sind identisch. App-, Worker-, Daten- und RUC-Algorithmen bleiben unverändert.
+
+Die Freigabe für v0.9.85.347 ist bis zum erfolgreichen Source-PR-Gate, SHA-gebundenem Release-Bot, `install-mid.yml`, betroffenen Worker-/Pages-Gates und exakter Stable-Promotion ausdrücklich ausstehend; diese Beschreibung behauptet keine bereits bestandenen Gates.
+
 # MID v0.9.85.346 · Kartenintegrität und Modellstand
 
 Die Modellstandsanzeige zeigt verifizierte Einzelmodelle als Anzahl und unterscheidet Teilverifikation von fehlenden Nachweisen. Best Match wird als Sammelquelle separat erläutert; überfällige Läufe bleiben sichtbar.

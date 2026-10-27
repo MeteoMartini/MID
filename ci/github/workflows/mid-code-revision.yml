@@ -314,7 +314,7 @@ jobs:
       github.event_name == 'pull_request' ||
       (github.event_name == 'workflow_dispatch' && (inputs.task == 'ci' || inputs.task == 'all'))
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       contents: read
     steps:
@@ -356,6 +356,11 @@ jobs:
         timeout-minutes: 5
         run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
 
+      - name: Chromium und WebKit vor der Revision vollständig vorbereiten
+        if: steps.revision_ready.outputs.ready == 'true'
+        timeout-minutes: 10
+        run: node scripts/prepare-browser-runtimes.mjs
+
       - name: Build und sämtliche Regressionen ausführen
         if: steps.revision_ready.outputs.ready == 'true'
         env:
@@ -379,7 +384,7 @@ jobs:
       (github.event_name == 'schedule' && github.event.schedule == '17 3 * * *') ||
       (github.event_name == 'workflow_dispatch' && (inputs.task == 'nightly' || inputs.task == 'all'))
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75
     permissions:
       contents: read
       issues: write
@@ -412,9 +417,16 @@ jobs:
         timeout-minutes: 5
         run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
 
+      - id: browser_install
+        name: Chromium und WebKit vor der nächtlichen Revision vorbereiten
+        if: steps.install.outcome == 'success'
+        timeout-minutes: 10
+        continue-on-error: true
+        run: node scripts/prepare-browser-runtimes.mjs
+
       - id: verify
         name: Vollständige Regression
-        if: steps.install.outcome == 'success'
+        if: steps.install.outcome == 'success' && steps.browser_install.outcome == 'success'
         continue-on-error: true
         run: npm run verify
       - id: audit
@@ -437,7 +449,7 @@ jobs:
         if: always()
         run: node scripts/create-revision-report.mjs
       - name: Befund als dedupliziertes Issue melden
-        if: always() && (steps.install.outcome != 'success' || steps.verify.outcome != 'success' || steps.audit.outcome != 'success' || steps.budget.outcome != 'success' || steps.contracts.outcome != 'success')
+        if: always() && (steps.install.outcome != 'success' || steps.browser_install.outcome != 'success' || steps.verify.outcome != 'success' || steps.audit.outcome != 'success' || steps.budget.outcome != 'success' || steps.contracts.outcome != 'success')
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -448,13 +460,14 @@ jobs:
           number="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"
           body="Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
           Install: ${{ steps.install.outcome }}
+          Chromium/WebKit: ${{ steps.browser_install.outcome }}
           Verify: ${{ steps.verify.outcome }}
           Audit: ${{ steps.audit.outcome }}
           Budget: ${{ steps.budget.outcome }}
           API-Verträge: ${{ steps.contracts.outcome }}"
           if [ -n "$number" ]; then gh issue comment "$number" --body "$body"; else gh issue create --title "$title" --body "$body" --label automated-review; fi
       - name: Revision bei Befund fehlschlagen lassen
-        if: always() && (steps.install.outcome != 'success' || steps.verify.outcome != 'success' || steps.audit.outcome != 'success' || steps.budget.outcome != 'success' || steps.contracts.outcome != 'success')
+        if: always() && (steps.install.outcome != 'success' || steps.browser_install.outcome != 'success' || steps.verify.outcome != 'success' || steps.audit.outcome != 'success' || steps.budget.outcome != 'success' || steps.contracts.outcome != 'success')
         run: exit 1
 
   health:

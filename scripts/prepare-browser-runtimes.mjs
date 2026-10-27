@@ -9,6 +9,12 @@ assert.equal(createRequire(import.meta.url)(join(dirname(cli),'package.json')).v
 console.log('[browser-setup] pinned Playwright 1.56.1; Chromium + WebKit required');
 // Run the root-owned apt process under a root-owned timeout, so its descendants
 // receive TERM/KILL too. Browser downloads stay under the unprivileged runner.
+if(process.platform==='linux'){
+ // Azure's Ubuntu mirror stalled before downloading even the signed WebKit runtime packages
+ // in Source Gate #491. Use Ubuntu's official HTTPS archive for the disposable CI runner.
+ // apt continues to check repository signatures and every browser test stays mandatory.
+ await runBounded('sudo',['-n','sed','-i','s#http://azure.archive.ubuntu.com/ubuntu#https://archive.ubuntu.com/ubuntu#g','/etc/apt/apt-mirrors.txt'],{timeoutMs:15000});
+}
 if(process.platform==='linux')await runBounded('sudo',['-n','timeout','--signal=TERM','--kill-after=10s','300s',process.execPath,cli,'install-deps','chromium','webkit'],{timeoutMs:320000,graceMs:15000});
 await runBounded(process.execPath,[cli,'install','chromium','webkit'],{timeoutMs:180000});
 console.log('[browser-setup] preparation completed; real engine launches remain mandatory in parity QA');
