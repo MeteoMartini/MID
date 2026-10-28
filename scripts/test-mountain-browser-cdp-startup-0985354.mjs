@@ -11,6 +11,11 @@ const baseline=JSON.parse(await readFile(new URL('../MID_BASELINE.json',import.m
 for(const key of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[key]?.includes(test),`${key}: browser-start regression not registered`);
 for(const token of ["'--remote-debugging-port=0'","'--remote-debugging-address=127.0.0.1'",'DevToolsActivePort','readDevToolsPort(','browserStartDiagnostics(chrome)','startup.assertRunning()','startup.describe()','localCdpEndpoint(endpoint.info.webSocketDebuggerUrl,endpoint.port)',"stdio:['ignore','ignore','pipe']"])
  assert.ok(source.includes(token),`Missing safe Chromium start contract: ${token}`);
+// A single transient Chromium startup failure is retried from a freshly
+// isolated profile; a second failure still blocks the required visual gate.
+for(const token of ['for(let attempt=1;attempt<=2;attempt++)',"await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100})",'await mkdir(profile,{recursive:true})',"if(attempt===2)throw new Error('Chromium-CDP-Start fehlgeschlagen:","await Promise.race([once(chrome,'exit'),delay(1800)])",'startupFailures.join'])
+ assert.ok(source.includes(token),`Unbounded or non-isolated Chromium startup recovery: ${token}`);
+assert.ok(source.includes('},45000);'),'Each Chromium startup attempt must keep its original bounded 45-second wait.');
 for(const forbidden of ['reserveLoopbackPort','createServer','--remote-debugging-port=${remotePort}'])assert.ok(!source.includes(forbidden),`Unsafe port reuse in mountain test: ${forbidden}`);
 for(const token of ['const viewports=[',"const themes=['light','dark']",'Page.captureScreenshot','Sölden-Winterprofil','Stundenkarten je Test-Viewport'])
  assert.ok(source.includes(token),`Mountain visual acceptance coverage must be preserved: ${token}`);
