@@ -161,6 +161,14 @@ const skybarKnownAmount=(value:unknown):number|null=>{
   const number=Number(value);
   return Number.isFinite(number)&&number>=0?number:null;
 };
+// Reject booleans, arrays and objects: Number(false) and Number([])
+// would otherwise turn missing meteorological observations into 0 %.
+const skybarFiniteMeasurement=(value:unknown):number=>{
+  if(typeof value!=='number'&&typeof value!=='string')return NaN;
+  if(typeof value==='string'&&!value.trim())return NaN;
+  const number=Number(value);
+  return Number.isFinite(number)?number:NaN;
+};
 const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):WeatherStripVisual|null=>{
   const measuredAmount=skybarKnownAmount(hour.precipitation),measuredSnow=skybarKnownAmount(hour.snowfall);
   const rainComponent=skybarKnownAmount(hour.rain),showerComponent=skybarKnownAmount(hour.showers);
@@ -179,7 +187,8 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):Weat
     wmoCode!==null?`WMO-Wettercode ${wmoCode} · Gesamtmenge nicht verfügbar`:
     'Gesamtmenge nicht verfügbar · Niederschlagsteilfeld vorhanden';
   const level=(rawLevel-1) as SkyBarThicknessIndex,width=skybarThickness(level);
-  const rawSunshine=hour.sunshineDuration,sunshineShare=!!hour.isDay&&rawSunshine!==null&&rawSunshine!==undefined&&String(rawSunshine).trim()!==''&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(60,intervalSeconds)):null;
+  const measuredSunshine=skybarFiniteMeasurement(hour.sunshineDuration);
+  const sunshineShare=!!hour.isDay&&Number.isFinite(measuredSunshine)?clamp01(measuredSunshine/Math.max(60,intervalSeconds)):null;
   const hasSunshineBase=!!hour.isDay&&sunshineShare!==null&&Number.isFinite(sunshineShare)&&sunshineShare>.5;
   return {
     layer:'precip',
@@ -192,9 +201,9 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):Weat
 };
 
 const weatherStripVisuals=(hour:PrecipSample,intervalSeconds:number,daylightSeconds?:number)=>{
-  const cloud=hour.cloud===null||hour.cloud===undefined||String(hour.cloud).trim()===''?NaN:clamp(Number(hour.cloud),0,100);
-  const daylight=!!hour.isDay,rawSunshine=hour.sunshineDuration;
-  const sunshineShare=daylight&&rawSunshine!==null&&rawSunshine!==undefined&&String(rawSunshine).trim()!==''&&Number.isFinite(Number(rawSunshine))?clamp01(Number(rawSunshine)/Math.max(.001,daylightSeconds??Math.max(60,intervalSeconds))):null;
+  const measuredCloud=skybarFiniteMeasurement(hour.cloud),cloud=Number.isFinite(measuredCloud)?clamp(measuredCloud,0,100):NaN;
+  const daylight=!!hour.isDay,measuredSunshine=skybarFiniteMeasurement(hour.sunshineDuration);
+  const sunshineShare=daylight&&Number.isFinite(measuredSunshine)?clamp01(measuredSunshine/Math.max(.001,daylightSeconds??Math.max(60,intervalSeconds))):null;
   const visuals:WeatherStripVisual[]=[];
   const base=baseSkyVisual(cloud,daylight,sunshineShare,daylightSeconds===undefined?'der betrachteten Zeit':'der möglichen Tageslichtzeit');
   if(base)visuals.push(base);
@@ -216,8 +225,7 @@ export function detailSkyBarHourCells(hours:PrecipSample[]):SkyBarHourCell[]{
       opacity:visual.opacity,
       title:visual.title,
     }:null;
-    const measured=(value:unknown)=>value!==null&&value!==undefined&&String(value).trim()!==''&&Number.isFinite(Number(value))?Number(value):NaN;
-    const cloud=measured(hour.cloud),sunshine=measured(hour.sunshineDuration);
+    const cloud=skybarFiniteMeasurement(hour.cloud),sunshine=skybarFiniteMeasurement(hour.sunshineDuration);
     const hasObservedSignal=Number.isFinite(cloud)||(Boolean(hour.isDay)&&Number.isFinite(sunshine));
     const state:SkyBarHourCell['state']=baseVisual||precipVisual?'weather':Number.isFinite(cloud)&&!hour.isDay?'clear-night':hasObservedSignal?'weather':'unavailable';
     const title=[baseVisual?.title,precipVisual?.title].filter(Boolean).join(' · ')|| (Number.isFinite(cloud)?`${hour.isDay?'Tag':'Nacht'} · Gesamtbewölkung ${clamp(cloud,0,100).toFixed(0)} % · kein Bewölkungsband unter 50 %${hour.isDay&&Number.isFinite(sunshine)?` · Sonnenscheindauer ${(clamp01(sunshine/intervalSeconds)*100).toFixed(0)} % der betrachteten Zeit · kein Sonnenband bis 50 %`:''}`:hasObservedSignal?`Sonnenscheindauer ${(clamp01(sunshine/intervalSeconds)*100).toFixed(0)} % der betrachteten Zeit · kein Sonnenband bis 50 % · Bewölkung nicht verfügbar`:`${hour.isDay?'Tag':'Nacht'} · Bewölkung nicht verfügbar`);

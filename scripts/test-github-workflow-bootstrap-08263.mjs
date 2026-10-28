@@ -10,16 +10,23 @@ const baseline=JSON.parse(await readFile(path.join(root,'MID_BASELINE.json'),'ut
 const failures=[];
 const prGate=await readFile(path.join(root,'ci/github/workflows/chatgpt-pr-gate.yml'),'utf8');
 function sourceTimeBudgetValid(text){
- const core=text.slice(text.indexOf('\n  source_core:'),text.indexOf('\n  regression_heavy:')>0?text.indexOf('\n  regression_heavy:'):undefined);
+ const from=text.indexOf('\n  source_core:'),to=text.indexOf('\n  core_regressions:');
+ if(from<0||to<=from)return false;
+ const core=text.slice(from,to),matrix=text.slice(to,text.indexOf('\n  heavy_regressions:',to));
  const outer=Number(core.match(/^    timeout-minutes: (\d+)/m)?.[1]);
  const stepLimit=name=>Number(core.slice(core.indexOf('- name: '+name)).split(/\n      - name:/)[0].match(/timeout-minutes: (\d+)/)?.[1]);
  const ruc=stepLimit('Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen');
- const regression=stepLimit('Produktionsbuild und Regressionen prüfen');
- return ruc===20&&regression===15&&outer>=ruc+regression+8&&outer<=45;
+ const sourceBuild=stepLimit('Produktionsbuild und Runtime-Prüfungen durchführen');
+ const coreTestStep=Number(matrix.slice(matrix.indexOf('- name: Disjunkten Core-Regressionsteil vollständig ausführen')).match(/timeout-minutes: (\d+)/)?.[1]);
+ const shards=(matrix.match(/- shard: core-[1-4]\/4/g)||[]);
+ return ruc===20&&sourceBuild===15&&outer>=ruc+sourceBuild+8&&outer<=45&&coreTestStep===13&&shards.length===4&&new Set(shards).size===4&&matrix.includes('fail-fast: false')&&!matrix.includes('continue-on-error');
 }
 if(!sourceTimeBudgetValid(prGate))failures.push('Source-Job muss beide unveränderten Einzelgrenzen plus Setup/iOS/Paketierung innerhalb eines festen 45-Minuten-Rahmens ermöglichen.');
 if(sourceTimeBudgetValid(prGate.replace('    timeout-minutes: 45','    timeout-minutes: 30')))failures.push('Der reproduzierte 30-Minuten-Abbruch darf nicht erneut als gültiges Zeitbudget gelten.');
 if(sourceTimeBudgetValid(prGate.replace('        timeout-minutes: 20','        timeout-minutes: 21')))failures.push('RUC-Einzelgrenze darf nicht stillschweigend verlängert werden.');
+if(sourceTimeBudgetValid(prGate.replace('      - name: Produktionsbuild und Runtime-Prüfungen durchführen\n        shell: bash\n        timeout-minutes: 15','      - name: Produktionsbuild und Runtime-Prüfungen durchführen\n        shell: bash\n        timeout-minutes: 16')))failures.push('Source-Build-Einzelgrenze darf nicht erhöht werden.');
+if(sourceTimeBudgetValid(prGate.replace('      - name: Disjunkten Core-Regressionsteil vollständig ausführen\n        shell: bash\n        timeout-minutes: 13','      - name: Disjunkten Core-Regressionsteil vollständig ausführen\n        shell: bash\n        timeout-minutes: 14')))failures.push('Core-Matrix-Einzelgrenze darf nicht erhöht werden.');
+if(sourceTimeBudgetValid(prGate.replace('          - shard: core-4/4\n            map_group: \'\'\n','')))failures.push('Ein fehlender Core-Matrixjob darf nicht durch den Rest freigegeben werden.');
 if('preverify' in (pkg.scripts??{}))failures.push('Der reguläre Installationslauf darf aktive Workflowdateien nicht automatisch verändern.');
 if(pkg.scripts?.['sync:github-workflows']!=='node scripts/sync-github-workflows.mjs')failures.push('Explizites Synchronisationsskript fehlt in package.json.');
 if(!baseline.regressionTests?.includes('scripts/test-github-workflow-bootstrap-08263.mjs'))failures.push('Workflow-Paket-Regression fehlt in MID_BASELINE.json.');

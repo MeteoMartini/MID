@@ -5,7 +5,7 @@ import {once} from 'node:events';
 import {access,mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import {createServer} from 'node:net';
+import {readDevToolsPort,browserStartDiagnostics} from './lib/browser-start-diagnostics.mjs';
 import {fileURLToPath} from 'node:url';
 import {preview} from 'vite';
 import {localCdpEndpoint} from './local-cdp-endpoint.mjs';
@@ -37,7 +37,7 @@ if(enrichmentOnly&&!enrichmentMode)throw new Error('MID_MOUNTAIN_ENRICHMENT_ONLY
 const profile=await mkdtemp(path.join(os.tmpdir(),'mid-mountain-cdp-'));
 const visualDir=process.env.MID_MOUNTAIN_VISUAL_DIR?path.resolve(root,process.env.MID_MOUNTAIN_VISUAL_DIR):null;
 const screenshotDir=visualDir?path.join(visualDir,'screenshots'):null;
-let server,chrome,socket,commandId=0,sessionId;
+let server,chrome,socket,startup,commandId=0,sessionId;
 const pending=new Map(),browserErrors=[],delay=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
 
 async function waitFor(label,check,timeout=45000){
@@ -68,16 +68,6 @@ async function callPageFunction(functionDeclaration,args=[]){
  const response=await cdp('Runtime.callFunctionOn',{objectId,functionDeclaration,arguments:args.map(value=>({value})),returnByValue:true,awaitPromise:true});
  if(response.result.exceptionDetails)throw new Error(response.result.exceptionDetails.text||'Browser-Funktion fehlgeschlagen.');
  return response.result.result?.value;
-}
-async function reserveLoopbackPort(){
- return new Promise((resolve,reject)=>{
-  const listener=createServer();
-  listener.once('error',reject);
-  listener.listen(0,'127.0.0.1',()=>{
-   const address=listener.address(),port=typeof address==='object'&&address?address.port:null;
-   listener.close(error=>error?reject(error):port?resolve(port):reject(new Error('Kein lokaler Debug-Port verfügbar.')));
-  });
- });
 }
 async function waitForValue(label,expression,predicate,timeout=45000){
  return waitFor(label,async()=>{
@@ -241,13 +231,42 @@ try{
  const address=server.httpServer.address(),baseUrl=`http://127.0.0.1:${address.port}`;
  await waitFor('Vite-Produktionsvorschau',async()=>{const response=await fetch(baseUrl);return response.ok});
 
- const remotePort=await reserveLoopbackPort();
- chrome=spawn(chromiumPath,[
-  '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
-  `--remote-debugging-port=${remotePort}`,'--remote-debugging-address=127.0.0.1',`--user-data-dir=${profile}`,'about:blank',
- ],{stdio:'ignore'});
- const browserInfo=await waitFor('Chromium-CDP-Port',async()=>{try{const response=await fetch(`http://127.0.0.1:${remotePort}/json/version`);return response.ok?response.json():null}catch{return null}});
- socket=new WebSocket(localCdpEndpoint(browserInfo.webSocketDebuggerUrl,remotePort));
+ // Each attempt must prove the real browser port; a fresh isolated profile
+ // provides one bounded recovery from transient CI Chrome startup failures.
+ // No assertion, UI viewport or security gate is bypassed on retry.
+ let endpoint;
+ const startupFailures=[];
+ for(let attempt=1;attempt<=2;attempt++){
+  chrome=spawn(chromiumPath,[
+   '--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+   '--remote-debugging-port=0','--remote-debugging-address=127.0.0.1',`--user-data-dir=${profile}`,'about:blank',
+  ],{stdio:['ignore','ignore','pipe']});
+  startup=browserStartDiagnostics(chrome);
+  try{
+   endpoint=await waitFor('Chromium-CDP-Port',async()=>{
+    startup.assertRunning();
+    const port=await readDevToolsPort(path.join(profile,'DevToolsActivePort'));
+    if(!port)return null;
+    try{
+     const response=await fetch(`http://127.0.0.1:${port}/json/version`);
+     if(!response.ok)return null;
+     return {port,info:await response.json()};
+    }catch{return null}
+   },45000);
+   break;
+  }catch(error){
+   startupFailures.push(`attempt ${attempt}: ${startup.describe()} · ${error.message}`);
+   if(chrome?.exitCode===null){
+    chrome.kill('SIGTERM');
+    await Promise.race([once(chrome,'exit'),delay(1800)]);
+    if(chrome.exitCode===null){chrome.kill('SIGKILL');await Promise.race([once(chrome,'exit'),delay(800)])}
+   }
+   if(attempt===2)throw new Error('Chromium-CDP-Start fehlgeschlagen: '+startupFailures.join(' | '),{cause:error});
+   await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+   await mkdir(profile,{recursive:true});
+  }
+ }
+ socket=new WebSocket(localCdpEndpoint(endpoint.info.webSocketDebuggerUrl,endpoint.port));
  socket.addEventListener('message',event=>{
   let packet;
   try{packet=JSON.parse(typeof event.data==='string'?event.data:Buffer.from(event.data).toString())}catch{return}

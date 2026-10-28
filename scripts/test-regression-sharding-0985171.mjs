@@ -26,7 +26,7 @@ for(const token of [
  'source_core:','heavy_regressions:','validate_source:',
  'name: Agent-Quellstand vollständig prüfen',
  'fail-fast: false','heavy-browser-state','heavy-native-map','heavy-unified-map','heavy-mountain-visual',
- 'MID_REGRESSION_SHARD=core','MID_REGRESSION_SHARD: \${{ matrix.shard }}',
+ 'core_regressions:','CORE_MATRIX_RESULT: ${{ needs.core_regressions.result }}','MID_REGRESSION_SHARD: \${{ matrix.shard }}',
  'needs.source_core.result','needs.heavy_regressions.result'
 ])assert.ok(canonical.includes(token),'Source-Gate-Shardingvertrag fehlt: '+token);
 assert.ok(canonical.indexOf('source_core:')<canonical.indexOf('validate_source:'),'Required gate must remain the final aggregator.');
@@ -37,6 +37,12 @@ assert.equal((heavy.match(/shard: heavy-unified-map/g)||[]).length,3,'All three 
 for(const group of ['1/3','2/3','3/3'])assert.ok(heavy.includes("map_group: '"+group+"'"));
 assert.ok(heavy.includes('MID_MAP_QA_SHARD: ${'+'{ matrix.map_group }}'));
 assert.ok(!heavy.includes('continue-on-error')&&!heavy.includes('secrets.'),'Source matrix remains read-only and fail-closed.');
+const coreMatrix=canonical.split('  core_regressions:')[1].split('  heavy_regressions:')[0];
+for(const index of [1,2,3,4])assert.ok(coreMatrix.includes('shard: core-'+index+'/4'),'Core Teil '+index+' muss isoliert laufen.');
+assert.equal((coreMatrix.match(/- shard: core-\d\/4/g)||[]).length,4,'Alle vier Core-Teiljobs sind Pflicht.');
+assert.ok(!coreMatrix.includes('continue-on-error')&&coreMatrix.includes('fail-fast: false'),'Keine gescheiterten Core-Teile freigeben.');
+assert.ok(canonical.includes('      - core_regressions')&&canonical.includes('needs.core_regressions.result'),'Der finale Freigabegate muss alle Core-Teile abwarten.');
+assert.ok(!canonical.split('  source_core:')[1].split('  core_regressions:')[0].includes('MID_REGRESSION_SHARD=core npm run test:regressions'),'Core-Ausführung muss pro isoliertem Job statt in überlangem Source-Step erfolgen.');
 console.log('MID v0.9.85.171: Regressionsinventar verlustfrei in Core plus drei isolierte Heavy-Shards partitioniert.');
 
 // Execute the real final gate script: the migration cannot release on a skipped,
@@ -53,6 +59,12 @@ for(const [required,result,core,heavy,visual,extreme,success] of [
  ['true','success','success','failure','skipped','false',false],
  ['true','success','success','success','skipped','true',false],
 ]){
- const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:required,RUC27_RESULT:result,CORE_RESULT:core,HEAVY_RESULT:heavy,VISUAL_RESULT:visual,EXTREME_BRANCH:extreme}});
+ const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:required,RUC27_RESULT:result,CORE_RESULT:core,CORE_MATRIX_RESULT:'success',HEAVY_RESULT:heavy,VISUAL_RESULT:visual,EXTREME_BRANCH:extreme}});
  assert.equal(run.status===0,success,`actual final Source gate: required=${required}, ruc=${result}, core=${core}, heavy=${heavy}, visual=${visual}`);
+}
+
+// Every skipped/failed/cancelled/missing Core matrix result must block promotion.
+for(const result of ['skipped','failure','cancelled','']){
+ const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:'false',RUC27_RESULT:'skipped',CORE_RESULT:'success',CORE_MATRIX_RESULT:result,HEAVY_RESULT:'success',VISUAL_RESULT:'skipped',EXTREME_BRANCH:'false'}});
+ assert.notEqual(run.status,0,'Incomplete Core matrix must block source release: '+result);
 }

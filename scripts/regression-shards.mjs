@@ -8,6 +8,17 @@ export const REGRESSION_HEAVY_SHARDS=Object.freeze({
 });
 
 export const REGRESSION_SHARD_NAMES=Object.freeze(['core',...Object.keys(REGRESSION_HEAVY_SHARDS)]);
+// Core jobs use separate checkouts. Keep the complete `core` alias for local
+// developer verification; only the CI source gate uses these disjoint subsets.
+export const REGRESSION_CORE_SUBSHARDS=Object.freeze(['core-1/4','core-2/4','core-3/4','core-4/4']);
+
+export function regressionCoreSubshards(core){
+ const parts=Object.fromEntries(REGRESSION_CORE_SUBSHARDS.map(name=>[name,[]]));
+ for(const [index,name] of core.entries())parts[REGRESSION_CORE_SUBSHARDS[index%REGRESSION_CORE_SUBSHARDS.length]].push(name);
+ const assigned=REGRESSION_CORE_SUBSHARDS.flatMap(name=>parts[name]);
+ if(assigned.length!==core.length||new Set(assigned).size!==core.length||core.some(name=>!assigned.includes(name)))throw new Error('Core subshards do not cover every required regression exactly once.');
+ return parts;
+}
 
 export async function regressionShardPlan(root){
  const tests=await regressionSuite(root);
@@ -29,6 +40,7 @@ export async function regressionShardPlan(root){
 export async function regressionShard(root,name){
  const plan=await regressionShardPlan(root);
  if(name==='all'||!name)return plan.tests;
+ if(REGRESSION_CORE_SUBSHARDS.includes(name))return regressionCoreSubshards(plan.shards.core)[name];
  if(!REGRESSION_SHARD_NAMES.includes(name))throw new Error('Unknown MID regression shard: '+name);
  return plan.shards[name];
 }
