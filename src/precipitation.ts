@@ -352,8 +352,18 @@ export type PrecipitationIntensityDescriptor={
  basis:string;
 };
 
+// Only finite timestamps are usable; coercing false or whitespace to 0
+// would turn an incomplete 2026 accumulation interval into a 1970-anchored one.
+const precipitationIntervalEpoch=(value:unknown):number=>{
+ if(typeof value==='number')return Number.isFinite(value)?value:NaN;
+ if(typeof value==='string'&&value.trim()!==''){
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?parsed:NaN;
+ }
+ return NaN;
+};
 export function precipitationSampleIntervalSeconds(sample:Pick<PrecipSample,'precipitationIntervalStartEpoch'|'precipitationIntervalEndEpoch'>,fallbackSeconds=3600){
- const start=finiteOrNaN(sample.precipitationIntervalStartEpoch),end=finiteOrNaN(sample.precipitationIntervalEndEpoch);
+ const start=precipitationIntervalEpoch(sample.precipitationIntervalStartEpoch),end=precipitationIntervalEpoch(sample.precipitationIntervalEndEpoch);
  const seconds=Number.isFinite(start)&&Number.isFinite(end)&&end>start?(end-start)/1000:Number(fallbackSeconds);
  return Math.min(6*3600,Math.max(60,Number.isFinite(seconds)&&seconds>0?seconds:3600));
 }
