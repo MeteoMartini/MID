@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.355",
+  "releaseVersion": "0.9.85.356",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -3047,7 +3047,12 @@
     "scripts/lib/browser-start-diagnostics.mjs",
     "scripts/lib/cdp-call-function.mjs",
     "scripts/lib/cssRuleUsageDiagnostic.mjs",
-    "scripts/test-cdp-call-arguments-0985349.mjs"
+    "scripts/test-cdp-call-arguments-0985349.mjs",
+    "tools/ecmwf/native_ifs_0p1_preflight.py",
+    "tools/ecmwf/test_native_ifs_0p1_preflight.py",
+    "tools/ecmwf/requirements-readonly.txt",
+    "ci/github/workflows/mid-ecmwf-ifs-0p1-readonly.yml",
+    ".github/workflows/mid-ecmwf-ifs-0p1-readonly.yml"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3777,7 +3782,7 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs"
   ],
-  "version": "0.9.85.355",
+  "version": "0.9.85.356",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

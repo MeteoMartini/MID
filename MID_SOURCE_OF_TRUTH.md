@@ -1,3 +1,7 @@
+# MID v0.9.85.356 · ECMWF-Originaldatenqualifikation
+
+Basis: veröffentlichte .355 `48c4016d0b98244cb08aa560aa42b14d6c6754a7`. Selektive Integration des lesenden #433-Piloten mit drei Zyklen und vollständigem Zell-/Bitmap-/Geometrienachweis. Keine Produktivaktivierung; Source-, Installer-, Worker-/Pages- und Stable-Gates bleiben erforderlich.
+
 # MID v0.9.85.355 · Installer-Recovery und Bergwetter-Klickvertrag
 
 Basis: veröffentlichter Stable `c53dc8442abe4038fbc039e1b88432fdace831b7` / .353. Reparaturzweig vom früheren .354-Source-Merge `a0ce578e6ec439d30ef3affb48a228d8face0cea` (direkter Stable-Nachfolger), nicht vom installerroten Main-ZIP-Commit `ed25c9c4853cefef50bcba4f90e81e50a1a11805`. Neue echte CDP-Hit-Tests, Renderframes, Fehlermeldungen und Wind-Einheiten-Persistenz bei unveränderten Wetterdaten. Zusätzlich SHA-gebundener Source-ZIP-Provenienzguard, echte Git-Negativproben, byteidentische Release-Notiz unter docs/releases/ sowie isolierter zweiter Chromium-12s-Startversuch für unverändert vollständige Push-UI-Browsermatrix. Vollständiger Nachweis: `docs/implementation/MID_C53_RELEASE_RECOVERY_0.9.85.355.md`. Veröffentlichung ausschließlich nach Source-Gate, SHA-Bot, Server-ZIP, Installer, Worker/Pages und Stable-Promotion. Bis dahin unveröffentlichter Kandidat.

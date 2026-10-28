@@ -3,7 +3,7 @@ import {gzipSync,gunzipSync} from 'node:zlib';
 import {appendFile,writeFile} from 'node:fs/promises';
 import {installMapBrowserProbe,snapshotMapBrowserProbe} from './lib/mapBrowserPerformanceProbe.mjs';
 import {summarizePhases} from './lib/mapBaselineStatistics.mjs';
-import {mapBrowserWidths,mapBrowserCases,mapBrowserCaseConcurrency} from './map-browser-shards.mjs';
+import {mapBrowserMemoryProbe,mapBrowserWidths,mapBrowserCases,mapBrowserCaseConcurrency} from './map-browser-shards.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
@@ -257,7 +257,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    perfRows.push({width,theme,design,caseKind:profileMemory?'isolated-memory-cycles':'functional-matrix',memoryProfile,readyMs:readyMs===null?null:Math.round(readyMs*100)/100,...summarizePhases(perfPhases)});
   }cases++;console.log(`Map case ${cases}: ${width}px ${theme} ${design} passed · ${((performance.now()-caseStarted)/1000).toFixed(1)} s`);await context.close();
 }
-try{for(const width of mapBrowserWidths(process.env.MID_MAP_QA_SHARD)){const variants=mapBrowserCases(process.env.MID_MAP_QA_SHARD).filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,mapBrowserCases(process.env.MID_MAP_QA_SHARD).length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserWidths(process.env.MID_MAP_QA_SHARD).includes(390))await verifyCase(390,'light','next',true);if(perfRows.length){
+try{for(const width of mapBrowserWidths(process.env.MID_MAP_QA_SHARD)){const variants=mapBrowserCases(process.env.MID_MAP_QA_SHARD).filter(row=>row.width===width),concurrency=mapBrowserCaseConcurrency(width);/* Bound synthetic MapLibre software-GPU contention; all cases and all assertions remain mandatory. */for(let offset=0;offset<variants.length;offset+=concurrency){const results=await Promise.allSettled(variants.slice(offset,offset+concurrency).map(({theme,design})=>verifyCase(width,theme,design)));for(const result of results)if(result.status==='rejected')throw result.reason;}}assert.equal(cases,mapBrowserCases(process.env.MID_MAP_QA_SHARD).length,'Complete assigned viewport/theme/design coverage');if(perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD))await verifyCase(390,'light','next',true);if(perfRows.length){
  const rows=perfRows.sort((a,b)=>a.width-b.width||a.theme.localeCompare(b.theme)||a.design.localeCompare(b.design));
  const report={schema:'mid.map.runtime.fixture.v2',version:JSON.parse(readFileSync(new URL('../package.json',import.meta.url))).version,commit:process.env.GITHUB_SHA||null,shard:process.env.MID_MAP_QA_SHARD||'all',kind:'synthetic-Vite-MapLibre-fixture-not-user-CWV',cases:rows};
  const serialized=JSON.stringify(report),safeShard=String(report.shard).replace(/[^A-Za-z0-9_-]/g,'_');
