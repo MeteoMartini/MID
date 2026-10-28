@@ -1,0 +1,12 @@
+# MID 18.2.53 · v0.9.85.355 kontrollierte Installer-Recovery
+
+## Unveränderliche Herkunft
+Veröffentlichte Stable-Basis: v0.9.85.353 `c53dc8442abe4038fbc039e1b88432fdace831b7`. Zuvor per Source-Gate geprüfter .354-Source-Merge: `a0ce578e6ec439d30ef3affb48a228d8face0cea`, direkter Parent ist Stable. Das danach aus der Quelle angefertigte installerrote Release-ZIP wurde erst in Main-Commit `ed25c9c4853cefef50bcba4f90e81e50a1a11805` hinzugefügt und wird **nicht** in den Recovery-Branch übernommen. Installer [#40755153826](https://github.com/MeteoMartini/MID/actions/runs/40755153826) ist vollständig fehlgeschlagen: Core und fünf Heavy-Gruppen erfolgreich, ausschließlich `heavy-mountain-visual` fehlerhaft; Worker, Pages und Stable-Promotion nicht gestartet.
+
+## Lösung und Regression
+Beim gemeinsamen Bergwetter-CDP-Buttonhelper erfolgt `scrollIntoView` vor zwei tatsächlichen Animationframes; danach wird mit `elementFromPoint` die Sichtbarkeit und reale Hit-Geometrie geprüft. Nur ein gültiges, aktives, nicht verdecktes Ziel erhält die normalen CDP-Mausereignisse. Maximal fünf kurze Prüfversuche, niemals synthetische DOM-`click()`-Umgehung oder Aussetzen einer Assertion. Fehlschläge enthalten Ziel, tatsächlich getroffenes Element, Auswahlstatus, gespeicherte Einheit und Browserfehler.
+
+Der echte Wind-Einheitenwechsel von Knoten auf km/h muss nach dem Klick, nach lokalem Speichern und nach erneutem Öffnen der Einstellungen aktiv sein. Die schon bestehenden aktuellen, täglichen und intervallbezogenen Windwerte müssen sich ändern, Temperatur und Niederschlag unverändert bleiben. Alle vorhandenen 6 Viewports × Light/Dark, Wetter-, Saison-, Wetterwarnfarben-, NoData-, Screenshot- und Browserprüfungen bleiben erhalten. `test-mountain-browser-cdp-startup-0985354.mjs` schützt den erweiterten Interaktionsvertrag zusammen mit dem bisherigen sicheren Port-0-Start.
+
+## Freigabe
+Diese Recovery basiert auf der freigegebenen Stable-Lineage und ist noch **kein** Release. Neue Version und sämtliche Versionsspiegel `0.9.85.355`, kein rotes .354-ZIP, keine direkte Mutation von Main/Stable, keine Gate-Lockerung. Freigabe ausschließlich Source-PR-Gate → kontrollierter SHA-gebundener Bot-Merge → neues serverseitiges ZIP → Installer mit Core und 6 Heavy → Worker/Pages → Stable-Fast-Forward. Original-DWD-/ECMWF-/RUC-Gebietsprüfungen, physisches iOS, VoiceOver und Prognosegüte bleiben gesonderte offene Aufgaben.
