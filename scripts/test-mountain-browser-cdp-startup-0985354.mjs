@@ -22,6 +22,9 @@ for(const token of ['const viewports=[',"const themes=['light','dark']",'Page.ca
 
 for(const token of ['requestAnimationFrame(()=>requestAnimationFrame(resolve))','document.elementFromPoint(x,y)','point?.receivesPointer','windUnitDiagnostic()',"localStorage.getItem('windUnit')",'Persistente Wind-Auswahl nach erneutem Öffnen'])
  assert.ok(source.includes(token),`Bergwetter-Einheitenwahl muss echte Treffer, React-Status und Persistenz statt erzwungenem DOM-Klick prüfen: ${token}`);
+const pushBrowserSource=await readFile(new URL('./test-push-settings-browser-0985286.mjs',import.meta.url),'utf8');
+for(const token of ["for(let attempt=1;attempt<=2;attempt++)","await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100})","--remote-debugging-port=0","readDevToolsPort(join(profile,'DevToolsActivePort'))","chromeStartupFailures.join","assert.deepEqual(errors,[],'browser exceptions')","[320,740],[390,844],[844,390],[768,1024],[1024,768],[1440,1000]"])
+ assert.ok(pushBrowserSource.includes(token),'Push-Settings-Browser muss isolierten Chromium-Neustart und vollständige Interaktionsmatrix erhalten: '+token);
 const dir=await mkdtemp(join(tmpdir(),'mid-mountain-cdp-check-'));
 try{
  const file=join(dir,'DevToolsActivePort');
