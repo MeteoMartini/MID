@@ -3,7 +3,7 @@ import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
-import {mapBrowserWidths,mapBrowserCases,mapBrowserRunPlan,MAP_BROWSER_WIDTHS} from './map-browser-shards.mjs';
+import {mapBrowserMemoryProbe,mapBrowserWidths,mapBrowserCases,mapBrowserRunPlan,MAP_BROWSER_WIDTHS} from './map-browser-shards.mjs';
 const root=process.cwd(),source=await readFile('ci/github/workflows/install-mid.yml','utf8');
 for(const file of ['.github/workflows/install-mid.yml','workflow-patches/install-mid.yml'])assert.equal(await readFile(file,'utf8'),source);
 for(const token of ['prepare_release:','verify_core:','verify_heavy:','needs: [prepare_release, verify_core, verify_heavy]','fail-fast: false','MID_REGRESSION_SHARD: core','npm run verify','snapshot_sha','MID_SNAPSHOT_SHA','${{ github.sha }}','${{ github.run_id }}-${{ github.run_attempt }}','persist-credentials: false'])assert.ok(source.includes(token),'Installer gate missing: '+token);
@@ -24,3 +24,9 @@ try{await mkdir(checkout);await mkdir(path.join(checkout,'.git'));await writeFil
 console.log('Installer: exact event/manifest/archive/files binding, fail-closed parallel gate and lossless 24-case map partition verified.');
 
 assert.equal((heavy.match(/shard: heavy-browser-state/g)||[]).length,1,'Installer must independently repeat the entire browser-state shard exactly once.');
+
+assert.deepEqual(mapBrowserRunPlan().filter(mapBrowserMemoryProbe),['3/3'],'Exactly one complete isolated memory probe survives the three-group run');
+assert.equal(mapBrowserMemoryProbe(''),true,'Direct full-matrix runs retain the memory probe');
+for(const bad of ['0/3','4/3','1/2','abc'])assert.throws(()=>mapBrowserMemoryProbe(bad));
+const mapRunner=await readFile('scripts/verify-unified-map-browser-0985167.mjs','utf8');
+assert.ok(mapRunner.includes('perfEnabled&&mapBrowserMemoryProbe(process.env.MID_MAP_QA_SHARD)')&&mapRunner.includes("verifyCase(390,'light','next',true)"),'Preserve the entire original 20-cycle probe on the lighter shard');

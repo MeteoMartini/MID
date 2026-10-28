@@ -23,3 +23,9 @@ export function mapBrowserRunPlan(shard=''){
  if(assigned.length!==expected.length||new Set(assigned).size!==assigned.length||expected.some(k=>!assigned.includes(k)))throw Error('Map browser run plan must preserve every case exactly once');
  return groups;
 }
+
+/** Keep the complete isolated 20-cycle memory case once, in the lighter map group. */
+export function mapBrowserMemoryProbe(shard=''){
+ mapBrowserCases(shard); // reject unknown groups before selecting any work
+ return shard===''||shard==='3/3';
+}
