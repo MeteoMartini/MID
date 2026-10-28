@@ -1,3 +1,9 @@
+# MID v0.9.85.353 · Original-Zeitstempel in Niederschlagsintervallen zuverlässig prüfen
+
+Ungültige oder fehlende Intervallgrenzen können keine falsche Niederschlagsdauer aus dem Unix-Jahr 1970 mehr erzeugen. Insbesondere werden leere und ausschließlich aus Leerzeichen bestehende Zeitfelder sowie boolesche Werte nicht als Zeitstempel `0` interpretiert. Gültige original gelieferte 15-/60-Minuten-Intervalle behalten ihren Vorrang; unvollständige Zeitgrenzen bleiben im bestehenden, dokumentierten Fallback-Verhalten. Niederschlagsarten, WMO-/DWD-Intensitätsstufen, die Originalmenge sowie echte Nullen und Datenlücken werden nicht neu berechnet oder geglättet.
+
+Ein neuer Regressionstest gegen die produktiven Niederschlagsfunktionen deckt beide Intervallgrenzen, numerische und ungültige Metadaten, 15-/60-Minuten-Intervalle, den echten Unix-Epoch-0-Zeitpunkt, Tageszeitumstellung und Regenintensitäten ab. Sonstige App-Styles, Warnungen, RUC, Karten, iOS-/Web-UI und Datenquellen bleiben unverändert. Die vollständigen erforderlichen Release- und Geräteabnahmen bleiben maßgeblich.
+
 # MID v0.9.85.352 · Skybar-Zeitintervalle mit fehlenden Grenzen korrekt behandeln
 
 Eine fehlende Intervall-Startzeit wird nicht länger als Unix-Epoche 1970 interpretiert. Vorhandene vollständige Originalintervalle behalten Vorrang; bei unvollständigen Grenzen verwendet die Skybar die tatsächlich gelieferten aufeinanderfolgenden Zeitpunkte, statt einen fehlerhaften Sechsstundenwert für Sonnenschein- oder Niederschlagsintensität anzunehmen. Auch die zeitgebundenen 12-/24-Stunden- und Solarsegmente schützen sich vor leeren Epochfeldern.
