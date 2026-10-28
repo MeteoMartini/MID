@@ -39,8 +39,10 @@ jobs:
           # Zwei Ebenen erlauben den Vergleich des SHA-genauen Merge-Snapshots mit dessen Basis.
           fetch-depth: 2
 
-      - name: MID-Quellstruktur prüfen
+      - name: MID-Quellstruktur und PR-ZIP-Provenienz prüfen
         shell: bash
+        env:
+          EXPECTED_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           for required in package.json package-lock.json MID_BASELINE.json MID_SOURCE_OF_TRUTH.md src worker public ios; do
@@ -49,9 +51,31 @@ jobs:
               exit 1
             fi
           done
-          if [ -f MID-professional-replacement.zip ]; then
-            echo "::error::Agent-PRs dürfen künftig kein Release-ZIP mehr transportieren. Das Paket wird nach grünem Gate serverseitig erzeugt."
+          # GitHub checks out the synthetic merge commit. A failed previous
+          # installer may leave a ZIP solely on main; never confuse this base
+          # artifact with a ZIP contributed by the agent's source branch.
+          actual_pr_head="$(git rev-parse 'HEAD^2')"
+          if [ "$actual_pr_head" != "$EXPECTED_PR_HEAD_SHA" ]; then
+            echo "::error::PR-HEAD stimmt nicht mit dem SHA-gebundenen GitHub-Ereignis überein."
             exit 1
+          fi
+          if git cat-file -e 'HEAD^2:MID-professional-replacement.zip' 2>/dev/null; then
+            echo "::error::Agent-PRs dürfen kein Release-ZIP transportieren (PR-HEAD enthält ZIP)."
+            exit 1
+          fi
+          if [ -e MID-professional-replacement.zip ] || [ -L MID-professional-replacement.zip ]; then
+            if ! git cat-file -e 'HEAD^1:MID-professional-replacement.zip' 2>/dev/null; then
+              echo "::error::Release-ZIP stammt weder aus PR-HEAD noch nachweislich aus der Main-Basis."
+              exit 1
+            fi
+            if [ -L MID-professional-replacement.zip ] || ! git diff --quiet 'HEAD^1' HEAD -- MID-professional-replacement.zip; then
+              echo "::error::Release-ZIP im Merge-Snapshot wurde verändert oder ist ein Symlink."
+              exit 1
+            fi
+            # Nur die vorbestehende Main-Kopie aus dem temporären Runner-Worktree
+            # ausklammern; weder PR noch geschützte Refs werden verändert.
+            rm -f -- MID-professional-replacement.zip
+            echo "::notice::Geprüftes Main-Alt-ZIP nur aus temporärem Source-Test-Worktree entfernt."
           fi
 
       - name: Node.js 22 mit npm-Cache einrichten
