@@ -28,8 +28,25 @@ try{
  await build({stdin:{contents:entry,loader:'tsx',resolveDir:process.cwd()},bundle:true,platform:'browser',format:'esm',outfile:join(temp,'fixture.js'),jsx:'automatic',logLevel:'silent',plugins:[{name:'mock-push-boundary',setup(b){b.onResolve({filter:/^\.\/pushNotifications$/},()=>({path:'mock',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:mock,loader:'js'}))}}]});
  const js=await readFile(join(temp,'fixture.js')),css=await readFile('src/midPresentation.css');
  server=createServer((req,res)=>{if(req.url==='/fixture.js'){res.setHeader('Content-Type','text/javascript');res.end(js)}else if(req.url==='/presentation.css'){res.setHeader('Content-Type','text/css');res.end(css)}else if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/presentation.css"><div id="root"></div><script type="module" src="/fixture.js"></script>')}else{res.statusCode=404;res.end()}});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port+'/';
- let debugPort;const profile=join(temp,'profile');chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});startup=browserStartDiagnostics(chrome);
- let info;await wait(async()=>{try{debugPort=await readDevToolsPort(join(profile,'DevToolsActivePort'));if(!debugPort)return false;const r=await fetch('http://127.0.0.1:'+debugPort+'/json/version');if(r.ok){info=await r.json();return true}}catch{}return false},'Chromium');
+ let debugPort,info;const chromeStartupFailures=[];
+ for(let attempt=1;attempt<=2;attempt++){
+  const profile=join(temp,`profile-${attempt}`);
+  chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
+  startup=browserStartDiagnostics(chrome);
+  try{
+   await wait(async()=>{try{debugPort=await readDevToolsPort(join(profile,'DevToolsActivePort'));if(!debugPort)return false;const r=await fetch('http://127.0.0.1:'+debugPort+'/json/version');if(r.ok){info=await r.json();return true}}catch{}return false},'Chromium');
+   break;
+  }catch(error){
+   chromeStartupFailures.push(`Versuch ${attempt}: ${error.message}`);
+   if(chrome?.pid&&chrome.exitCode===null&&chrome.signalCode===null){
+    const closed=once(chrome,'close');chrome.kill('SIGTERM');
+    const deadline=setTimeout(()=>chrome.kill('SIGKILL'),2000);deadline.unref();
+    try{await closed}finally{clearTimeout(deadline)}
+   }
+   await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+   if(attempt===2)throw new Error(`Isolierter Chromium-Start zweimal fehlgeschlagen (jeweils 12s, keine UI-Assertion übersprungen): ${chromeStartupFailures.join(' | ')}`);
+  }
+ }
  socket=new WebSocket(localCdpEndpoint(info.webSocketDebuggerUrl,debugPort));socket.addEventListener('message',event=>{const p=JSON.parse(String(event.data));if(p.id){const q=pending.get(p.id);if(!q)return;clearTimeout(q.timer);pending.delete(p.id);p.error?q.reject(new Error(p.error.message)):q.resolve(p)}else if(p.method==='Runtime.exceptionThrown')errors.push(p.params.exceptionDetails)});await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true})});
  const target=await cdp('Target.createTarget',{url:'about:blank'},null),attached=await cdp('Target.attachToTarget',{targetId:target.result.targetId,flatten:true},null);sessionId=attached.result.sessionId;await cdp('Page.enable');await cdp('Runtime.enable');await cdp('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
  const selector='select[aria-label="Zeitanzeige der Niederschlagsbenachrichtigungen"]';
