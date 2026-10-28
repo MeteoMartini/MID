@@ -20,6 +20,8 @@ for(const forbidden of ['reserveLoopbackPort','createServer','--remote-debugging
 for(const token of ['const viewports=[',"const themes=['light','dark']",'Page.captureScreenshot','Sölden-Winterprofil','Stundenkarten je Test-Viewport'])
  assert.ok(source.includes(token),`Mountain visual acceptance coverage must be preserved: ${token}`);
 
+for(const token of ['requestAnimationFrame(()=>requestAnimationFrame(resolve))','document.elementFromPoint(x,y)','point?.receivesPointer','windUnitDiagnostic()',"localStorage.getItem('windUnit')",'Persistente Wind-Auswahl nach erneutem Öffnen'])
+ assert.ok(source.includes(token),`Bergwetter-Einheitenwahl muss echte Treffer, React-Status und Persistenz statt erzwungenem DOM-Klick prüfen: ${token}`);
 const dir=await mkdtemp(join(tmpdir(),'mid-mountain-cdp-check-'));
 try{
  const file=join(dir,'DevToolsActivePort');
@@ -37,4 +39,4 @@ assert.throws(()=>startup.assertRunning(),/Chromium exited: code=87[\s\S]*CHROMI
 const failed=new EventEmitter();failed.stderr=new EventEmitter();
 const spawnFailure=browserStartDiagnostics(failed);failed.emit('error',new Error('ENOENT executable'));
 assert.throws(()=>spawnFailure.assertRunning(),/Chromium spawn failed: ENOENT executable/);
-console.log('MID .354: atomic Chromium port 0, strict loopback CDP, isolated profile, startup evidence, invalid-port rejection and unchanged mountain visual matrix verified.');
+console.log('MID .355: atomic Chromium port 0, strict loopback CDP, isolated profile, startup evidence, invalid-port rejection and unchanged mountain visual matrix verified.');
