@@ -26,8 +26,22 @@ for(const level of ['keine','schwach','mäßig','stark'])assert.ok(pollen.includ
 
 assert.ok(!app.includes('return`Eintrittswahrscheinlichkeit ${text}`'),'Externe Warnwahrscheinlichkeit darf nicht ungeprüft ausgegeben werden.');
 assert.ok(app.includes("'unlikely':'unwahrscheinlich'")&&app.includes("'very likely':'sehr wahrscheinlich'"),'Qualitative Warnwahrscheinlichkeiten müssen allowlist-basiert normalisiert werden.');
-assert.ok(visual.includes('Runtime.callFunctionOn')&&visual.includes('reserveLoopbackPort'),'Browsertest muss strukturierte CDP-Argumente und einen lokal reservierten Port verwenden.');
-assert.ok(!visual.includes('DevToolsActivePort'),'Dateidaten dürfen nicht mehr die Chromium-Netzwerkadresse steuern.');
+assert.ok(visual.includes('Runtime.callFunctionOn')&&visual.includes("arguments:args.map(value=>({value}))"),'Browsertest muss dynamische Werte als strukturierte CDP-Argumente übergeben.');
+assert.ok(visual.includes("'--remote-debugging-port=0'")&&visual.includes("'--remote-debugging-address=127.0.0.1'")&&visual.includes("path.join(profile,'DevToolsActivePort')")&&visual.includes('localCdpEndpoint(endpoint.info.webSocketDebuggerUrl,endpoint.port)'),'Chromium muss seine eigene Portbindung veröffentlichen; nur der tatsächlich gestartete Loopback-Browser darf Ziel sein.');
+assert.ok(visual.includes('browserStartDiagnostics(chrome)')&&visual.includes('startup.assertRunning()')&&!visual.includes('reserveLoopbackPort')&&!visual.includes('createServer'),'Browserstart muss Exit-/Spawn-/Stderr-Diagnosen liefern und die anfällige Port-Vorreservierung vermeiden.');
+const {localCdpEndpoint}=await import('./local-cdp-endpoint.mjs');
+assert.equal(localCdpEndpoint('ws://127.0.0.1:9234/devtools/browser/abc123',9234),'ws://127.0.0.1:9234/devtools/browser/abc123','Nur gestarteter Loopback-Browser mit passendem Port darf CDP-Verbindung erlauben.');
+for(const target of [
+ 'ws://example.org:9234/devtools/browser/abc123',
+ 'ws://localhost:9234/devtools/browser/abc123',
+ 'ws://127.0.0.1.evil.example:9234/devtools/browser/abc123',
+ 'ws://127.0.0.1:9235/devtools/browser/abc123',
+ 'ws://name:pass@127.0.0.1:9234/devtools/browser/abc123',
+ 'ws://127.0.0.1:9234/devtools/page/abc123',
+ 'ws://127.0.0.1:9234/devtools/browser/abc123?remote=1',
+ 'wss://127.0.0.1:9234/devtools/browser/abc123'
+])assert.throws(()=>localCdpEndpoint(target,9234),/CDP endpoint must be the launched loopback browser/,'Unvertrauenswürdige CDP-Metadaten müssen abgelehnt werden: '+target);
+for(const port of [0,-1,65536,9234.5,NaN,Infinity])assert.throws(()=>localCdpEndpoint('ws://127.0.0.1:9234/devtools/browser/abc123',port),/CDP endpoint must be the launched loopback browser/,'Ungültige CDP-Ports dürfen nicht zugelassen werden: '+port);
 assert.ok(!visual.includes('document.querySelector(${JSON.stringify(selector)})'),'Selektoren dürfen nicht in Seitencode interpoliert werden.');
 
 const lock=JSON.parse(lockRaw),brace=lock.packages?.['node_modules/brace-expansion'];
