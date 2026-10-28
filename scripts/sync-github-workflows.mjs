@@ -40,6 +40,7 @@ function maintainHistoricalWorkflow(name,source){
  return next;
 }
 export const managedFiles=[
+ ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/chatgpt-pr-gate.yml','workflows/chatgpt-pr-gate.yml'],
  ['workflows/replit-handoff-gate.yml','workflows/replit-handoff-gate.yml'],
