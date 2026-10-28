@@ -178,7 +178,7 @@ jobs:
 
       - name: Numerische RUC-Prüfnachweise sichern
         if: always() && steps.ruc_native_changes.outputs.enabled == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-horizon-${{ github.run_id }}-${{ github.run_attempt }}
           path: ruc-horizon-evidence/
@@ -534,7 +534,7 @@ jobs:
           python tools/ruc/build_ruc_synoptic_fields.py --snapshot "$RUNNER_TEMP/ruc27-active" --source "$RUNNER_TEMP/ruc27-output" --staging "$RUNNER_TEMP/ruc27-stage" --candidate "$RUNNER_TEMP/ruc27-synoptic" --report ruc27-evidence/synoptic-proof.json
       - name: Ausschließlich Diagnose und Manifest sichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc27-core-${{ github.run_id }}-${{ github.run_attempt }}
           path: ruc27-evidence/
@@ -578,7 +578,7 @@ jobs:
           node scripts/verify-extreme-outlook-pixels-browser-0985309.mjs
       - name: SHA-gebundene Browserbilder und Prüfnachweis sichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-extreme-webgl-${{ github.run_id }}-${{ github.run_attempt }}
           path: artifacts/extreme-browser-qa/

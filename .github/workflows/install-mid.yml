@@ -139,7 +139,7 @@ jobs:
         run: node tools/ci/release-snapshot.mjs pack /tmp/mid-snapshot
       - name: Unveränderlichen Snapshot übertragen
         id: snapshot_upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-source-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/mid-snapshot/
@@ -314,7 +314,7 @@ jobs:
 
       - name: Laufzeitbericht ohne Freigabewirkung speichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-timings-core-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/mid-regression-*/timings.json
@@ -326,7 +326,7 @@ jobs:
         run: node tools/ci/release-snapshot.mjs pack /tmp/mid-snapshot
       - name: Unveränderlichen Snapshot übertragen
         id: snapshot_upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-built-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/mid-snapshot/
@@ -473,7 +473,7 @@ jobs:
           npm run test:regressions
       - name: Laufzeitbericht ohne Freigabewirkung speichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-timings-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/mid-regression-*/timings.json
