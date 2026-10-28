@@ -1,3 +1,12 @@
+## MID v0.9.85.355 · 2026-10-28 · Bergwetter-Installer-Recovery
+
+- SHA-verifizierter Stable-.353-Nachfolger mit übernommenem .354-Source-Tree, ohne rotes Release-ZIP.
+- Echte CDP-Hit-Geometrie nach Layoutframes, Browserfehlersicherung, Persistenz und erneute Einheitenauswahl.
+- ZIP-Git-Merge-Provenienzprüfung mit fünf Git-Laufzeitproben; rootfreie Release-Notizen.
+- Push-Settings-Chromium hat bei echtem Startausfall maximal einen weiteren frischen Port-0-/Profilversuch (2 × 12 s) mit klarer Diagnose; vollständige 12-Fälle-UI-Prüfung bleibt zwingend.
+- Alte meteorologische, Accessibility-, Responsive-, Browser- und Sicherheitsprüfungen bleiben Pflicht.
+- Ausschließlich kompletter geschützter MID-Releaseweg.
+
 ## MID v0.9.85.335 · 2026-10-25 · Fusion resume
 
 Begrenzte Auswahlmarkierung im Tagesdiagramm beseitigt den im bestehenden Heavy-Browsergate reproduzierten epoch-Absturz. Nachholen versäumter Fusionsabrufe, begrenzter Fehlerbackoff, Lifecycle-Cleanup und explizite fehlende Übernahmeverifikation. Wetterwerte und Workerkern unverändert.

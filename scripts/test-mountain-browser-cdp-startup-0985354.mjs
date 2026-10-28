@@ -20,6 +20,11 @@ for(const forbidden of ['reserveLoopbackPort','createServer','--remote-debugging
 for(const token of ['const viewports=[',"const themes=['light','dark']",'Page.captureScreenshot','Sölden-Winterprofil','Stundenkarten je Test-Viewport'])
  assert.ok(source.includes(token),`Mountain visual acceptance coverage must be preserved: ${token}`);
 
+for(const token of ['requestAnimationFrame(()=>requestAnimationFrame(resolve))','document.elementFromPoint(x,y)','point?.receivesPointer','windUnitDiagnostic()',"localStorage.getItem('windUnit')",'Persistente Wind-Auswahl nach erneutem Öffnen'])
+ assert.ok(source.includes(token),`Bergwetter-Einheitenwahl muss echte Treffer, React-Status und Persistenz statt erzwungenem DOM-Klick prüfen: ${token}`);
+const pushBrowserSource=await readFile(new URL('./test-push-settings-browser-0985286.mjs',import.meta.url),'utf8');
+for(const token of ["for(let attempt=1;attempt<=2;attempt++)","await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100})","--remote-debugging-port=0","readDevToolsPort(join(profile,'DevToolsActivePort'))","chromeStartupFailures.join","assert.deepEqual(errors,[],'browser exceptions')","[320,740],[390,844],[844,390],[768,1024],[1024,768],[1440,1000]"])
+ assert.ok(pushBrowserSource.includes(token),'Push-Settings-Browser muss isolierten Chromium-Neustart und vollständige Interaktionsmatrix erhalten: '+token);
 const dir=await mkdtemp(join(tmpdir(),'mid-mountain-cdp-check-'));
 try{
  const file=join(dir,'DevToolsActivePort');
@@ -37,4 +42,4 @@ assert.throws(()=>startup.assertRunning(),/Chromium exited: code=87[\s\S]*CHROMI
 const failed=new EventEmitter();failed.stderr=new EventEmitter();
 const spawnFailure=browserStartDiagnostics(failed);failed.emit('error',new Error('ENOENT executable'));
 assert.throws(()=>spawnFailure.assertRunning(),/Chromium spawn failed: ENOENT executable/);
-console.log('MID .354: atomic Chromium port 0, strict loopback CDP, isolated profile, startup evidence, invalid-port rejection and unchanged mountain visual matrix verified.');
+console.log('MID .355: atomic Chromium port 0, strict loopback CDP, isolated profile, startup evidence, invalid-port rejection and unchanged mountain visual matrix verified.');

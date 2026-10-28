@@ -83,11 +83,28 @@ async function clickAt(selector,index=0){
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0,clickCount:1});
 }
 async function clickButtonContaining(selector,text){
- const point=await callPageFunction(`function(selector,text){const e=[...document.querySelectorAll(selector)].find(button=>button.textContent.includes(text));if(!e||e.disabled)return null;e.scrollIntoView({block:'center',inline:'center',behavior:'instant'});const r=e.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}`,[selector,text]);
- assert.ok(point,`Schaltfläche mit "${text}" fehlt oder ist deaktiviert.`);
+ let point=null;
+ for(let attempt=0;attempt<5;attempt++){
+  point=await callPageFunction(`async function(selector,text){
+   const matches=[...document.querySelectorAll(selector)].filter(button=>button.textContent.includes(text));
+   const e=matches.find(button=>{const r=button.getBoundingClientRect(),style=getComputedStyle(button);return r.width>0&&r.height>0&&style.visibility==='visible'&&style.display!=='none'});
+   if(!e||e.disabled)return {error:e?'disabled':'not-visible',matches:matches.length};
+   e.scrollIntoView({block:'center',inline:'center',behavior:'instant'});
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+   const hit=document.elementFromPoint(x,y);
+   return {x,y,receivesPointer:hit===e||e.contains(hit),buttonText:e.textContent.trim().slice(0,90),hitTag:hit?.tagName||'',hitClass:hit?.getAttribute('class')?.slice(0,90)||'',matches:matches.length,pressed:e.getAttribute('aria-pressed')};
+  }`,[selector,text]);
+  if(point?.receivesPointer)break;
+  await delay(200);
+ }
+ assert.ok(point?.receivesPointer,`Klickziel ${selector} / ${text} liegt nicht frei: ${JSON.stringify(point)}.`);
  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
  await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',buttons:1,clickCount:1});
  await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',buttons:0,clickCount:1});
+}
+async function windUnitDiagnostic(){
+ return callPageFunction(`function(){const selector='.settings-dialog .settings-units-section .settings-unit-grid button';return JSON.stringify({stored:localStorage.getItem('windUnit'),dialog:!!document.querySelector('.settings-dialog'),buttons:[...document.querySelectorAll(selector)].map(b=>({text:b.textContent.trim().slice(0,80),pressed:b.getAttribute('aria-pressed'),visible:b.getClientRects().length>0})),visibleMountain:!!document.querySelector('.mountain-ski')})}`);
 }
 async function clickIfClosed(selector){
  const expanded=await callPageFunction(`function(selector){return document.querySelector(selector)?.getAttribute('aria-expanded')||''}`,[selector]);
@@ -400,9 +417,15 @@ try{
 
  const unitBefore=JSON.parse(await snapshotWindAndWeather());
  await evaluate(`window.dispatchEvent(new CustomEvent('mid:open-settings',{detail:{section:'units'}}))`);
-  await waitForValue('Einheitenauswahl',`Boolean(document.querySelector('.settings-dialog .settings-units-section .settings-unit-grid button')&&[...document.querySelectorAll('.settings-dialog .settings-units-section .settings-unit-grid button')].some(button=>button.textContent.includes('km/h')))`,Boolean);
-  await clickButtonContaining('.settings-dialog .settings-units-section .settings-unit-grid button','km/h');
+ await waitForValue('Einheitenauswahl',`Boolean([...document.querySelectorAll('.settings-dialog .settings-units-section .settings-unit-grid button')].some(button=>button.textContent.includes('km/h')&&button.getClientRects().length>0))`,Boolean);
+ assert.equal(JSON.parse(await windUnitDiagnostic()).stored,'kn','Die Testfixture muss mit der Originaleinheit Knoten beginnen.');
+ await clickButtonContaining('.settings-dialog .settings-units-section .settings-unit-grid button','km/h');
+ try{
   await waitForValue('Windanzeige in km/h',`[...document.querySelectorAll('.settings-dialog .settings-units-section .settings-unit-grid button')].find(button=>button.textContent.includes('km/h'))?.getAttribute('aria-pressed')||''`,value=>value==='true');
+ }catch(error){
+  throw new Error(`${error.message} Wind-Einheitendiagnose: ${await windUnitDiagnostic()}; Browserfehler: ${JSON.stringify(browserErrors.slice(-8))}`);
+ }
+ await waitForValue('Wind-Einheit dauerhaft gespeichert',`localStorage.getItem('windUnit')||''`,value=>value==='kmh');
  const unitAfter=JSON.parse(await snapshotWindAndWeather());
  assert.notEqual(unitAfter.currentWind,unitBefore.currentWind,'Die aktuelle Wind-/Böenanzeige reagiert nicht auf die Einheitenauswahl.');
  assert.notEqual(unitAfter.dayWind,unitBefore.dayWind,'Die Tages-Windanzeige reagiert nicht auf die Einheitenauswahl.');
@@ -410,8 +433,12 @@ try{
  assert.equal(unitAfter.temperature,unitBefore.temperature,'Die Temperaturanzeige darf durch den Wind-Einheitenwechsel nicht verändert werden.');
  assert.equal(unitAfter.currentPrecipitation,unitBefore.currentPrecipitation,'Die Niederschlagswahrscheinlichkeit darf durch den Wind-Einheitenwechsel nicht verändert werden.');
  assert.equal(unitAfter.periodPrecipitation,unitBefore.periodPrecipitation,'Niederschlagsmengen dürfen durch den Wind-Einheitenwechsel nicht verändert werden.');
-  await clickAt('.settings-dialog button[aria-label="Einstellungen schließen"]');
-  await waitForValue('Geschlossene Einstellungen',`!document.querySelector('.settings-dialog')`,Boolean);
+ await clickAt('.settings-dialog button[aria-label="Einstellungen schließen"]');
+ await waitForValue('Geschlossene Einstellungen',`!document.querySelector('.settings-dialog')`,Boolean);
+ await evaluate(`window.dispatchEvent(new CustomEvent('mid:open-settings',{detail:{section:'units'}}))`);
+ await waitForValue('Persistente Wind-Auswahl nach erneutem Öffnen',`[...document.querySelectorAll('.settings-dialog .settings-units-section .settings-unit-grid button')].find(button=>button.textContent.includes('km/h'))?.getAttribute('aria-pressed')||''`,value=>value==='true');
+ await clickAt('.settings-dialog button[aria-label="Einstellungen schließen"]');
+ await waitForValue('Nach Wiederöffnung geschlossene Einstellungen',`!document.querySelector('.settings-dialog')`,Boolean);
     await clickButtonContaining('.mountain-season-control button','Winter');
     await waitForValue('Sölden-Winterprofil für die Viewport-Matrix',`Boolean(document.querySelector('.mountain-hourly-snow-summary'))`,Boolean,60000);
    if(!mountainOnly)await navigateToForecast();
