@@ -26,8 +26,8 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    # RUC admission (20m) and core build/regressions (15m) run sequentially.
-    # Keep both step limits unchanged and leave room for setup/iOS/packaging.
+    # RUC admission and source build/iOS/packaging stay here; disjoint
+    # regression tests run in four independent, required core_regressions jobs.
     timeout-minutes: 45
     permissions:
       contents: read
@@ -161,7 +161,7 @@ jobs:
           if-no-files-found: error
           retention-days: 2
 
-      - name: Produktionsbuild und Regressionen prüfen
+      - name: Produktionsbuild und Runtime-Prüfungen durchführen
         shell: bash
         timeout-minutes: 15
         env:
@@ -175,7 +175,8 @@ jobs:
           set -euo pipefail
           npm run build
           node --check worker/metar-proxy.js
-          MID_REGRESSION_SHARD=core npm run test:regressions
+          # Das vollständige Core-Inventar läuft in vier separat isolierten
+          # Core-Regressionsjobs; ihre Gesamtfreigabe ist zwingend.
 
       - name: Geprüften Web-Build in die iOS-Hülle übernehmen und prüfen
         shell: bash
@@ -233,6 +234,97 @@ jobs:
                   raise SystemExit(f'Beschädigter ZIP-Eintrag: {corrupt}')
           print(f'Release-Paketierung vorgeprüft: {out.stat().st_size} Byte')
           PY
+  core_regressions:
+    name: Core-Regression · ${{ matrix.shard }}
+    if: >-
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: core-1/4
+            map_group: ''
+          - shard: core-2/4
+            map_group: ''
+          - shard: core-3/4
+            map_group: ''
+          - shard: core-4/4
+            map_group: ''
+
+    steps:
+      - name: PR-Mergezustand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          npm config set registry https://registry.npmjs.org/
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps --loglevel=notice; then
+              installed=true
+              break
+            fi
+            echo "::warning::npm ci für ${{ matrix.shard }} fehlgeschlagen (Versuch ${attempt}/3)."
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          [ "$installed" = true ] || { echo "::error::npm ci konnte nicht erfolgreich abgeschlossen werden."; exit 1; }
+
+      - name: Python für fachliche RUC-/GRIB-Core-Tests einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+
+      - name: Reproduzierbare Python-Core-Abhängigkeiten installieren
+        timeout-minutes: 5
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+
+      - name: SHA-identischen Produktionsbuild für Core-Regression erzeugen
+        shell: bash
+        timeout-minutes: 6
+        env:
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: npm run build
+
+      - name: Disjunkten Core-Regressionsteil vollständig ausführen
+        shell: bash
+        timeout-minutes: 13
+        env:
+          MID_REGRESSION_SHARD: ${{ matrix.shard }}
+                    MID_REGRESSION_JOBS: '2'
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+        run: npm run test:regressions
+
   heavy_regressions:
     name: Heavy-Regression · ${{ matrix.shard }} · ${{ matrix.map_group }}
     if: >-
@@ -472,6 +564,7 @@ jobs:
     name: Agent-Quellstand vollständig prüfen
     needs:
       - source_core
+      - core_regressions
       - heavy_regressions
       - visual_extreme
       - ruc27_qualification
@@ -489,6 +582,7 @@ jobs:
         shell: bash
         env:
           CORE_RESULT: ${{ needs.source_core.result }}
+          CORE_MATRIX_RESULT: ${{ needs.core_regressions.result }}
           HEAVY_RESULT: ${{ needs.heavy_regressions.result }}
           VISUAL_RESULT: ${{ needs.visual_extreme.result }}
           RUC27_RESULT: ${{ needs.ruc27_qualification.result }}
@@ -496,8 +590,8 @@ jobs:
           EXTREME_BRANCH: ${{ contains(github.head_ref, 'extreme-polygons-fallback') }}
         run: |
           set -euo pipefail
-          if [ "$CORE_RESULT" != success ] || [ "$HEAVY_RESULT" != success ]; then
-            echo "::error::MID-Source-Gate unvollständig: core=${CORE_RESULT}, heavy=${HEAVY_RESULT}."
+          if [ "$CORE_RESULT" != success ] || [ "$CORE_MATRIX_RESULT" != success ] || [ "$HEAVY_RESULT" != success ]; then
+            echo "::error::MID-Source-Gate unvollständig: source=${CORE_RESULT}, alle Core-Subshards=${CORE_MATRIX_RESULT}, heavy=${HEAVY_RESULT}."
             exit 1
           fi
           if [ "$EXTREME_BRANCH" = true ] && [ "$VISUAL_RESULT" != success ]; then
@@ -508,4 +602,4 @@ jobs:
             echo "::error::Vollständiges RUC-27h-Datenpaket nicht abgenommen: ruc27=${RUC27_RESULT}."
             exit 1
           fi
-          echo "MID-Source-Gate vollständig grün: Core und alle isolierten Heavy-Shards bestanden."
+          echo "MID-Source-Gate vollständig grün: Source-Core, alle vier Core-Subshards und alle isolierten Heavy-Shards bestanden."
