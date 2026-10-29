@@ -1,0 +1,14 @@
+{
+  "version": "0.9.85.361",
+  "date": "2026-10-29",
+  "title": "Zuverlässige Security-Fehlerdiagnostik",
+  "external": [
+    "Ein Erstfehlerbericht bleibt selbst bei einem Diagnosefehler als gültiges JSON erhalten.",
+    "Wetterdaten, Warnungen und Widgetlayout bleiben unverändert."
+  ],
+  "internal": [
+    "First-Writer-Claim 0600, gültiges In-Flight-JSON und atomarer privat gestagter Abschluss.",
+    "Fallback ohne Secrets bei Rejection, Circular und leerer Payload; 32 Race-, Symlink-, Screenshot- und Timingtests.",
+    "MID-Source-/Installer-/Deploy-/Stable-Gates sowie Kostenbudgets unverändert."
+  ]
+}
