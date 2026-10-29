@@ -1,3 +1,7 @@
+# MID v0.9.85.359 · zusammengefasste Actions-Wartung
+
+Basis: veröffentlichte .358 `53198841d90c9e4cbbe4b5eb53b39cd1e64693da`. PRs #475–#477 werden selektiv über kanonische Workflowquellen und synchronisierte Spiegel integriert. Vollständige SHA-Pins, unveränderte Berechtigungen, Snapshot-/Release-Gates und erforderliche Tests. Keine Wetter-/Browser-Timeoutänderung. Veröffentlichung erst nach vollständiger regulärer Releasekette.
+
 # MID v0.9.85.358 · farbreines Skybar-Grundband
 
 Basis: freigegebene .357 `a9bc9b7e429e4d0d10d67e0ebc4d8e35d1d2caf1`. Der gemeinsame Renderer erhält für Gelb und Grau vollständig deckende Grundfarben; die Ausprägung bleibt ausschließlich an den unveränderten vier Balkendicken erkennbar. Direkte Sonnenscheindauer und Wolkenlücken bleiben in den Titeln fachlich getrennt. Quadrat-Klassenfarben, Sonnenränder, Missing und Niederschlagslagen bleiben erhalten. Nachweis: `docs/implementation/MID_C50_SKYBAR_COLORS_358.md`. Nur Source-Kandidat bis vollständigem Source-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable.

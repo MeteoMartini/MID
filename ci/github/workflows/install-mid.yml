@@ -139,7 +139,7 @@ jobs:
         run: node tools/ci/release-snapshot.mjs pack /tmp/mid-snapshot
       - name: Unveränderlichen Snapshot übertragen
         id: snapshot_upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-source-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/mid-snapshot/
@@ -181,7 +181,7 @@ jobs:
           MID_SNAPSHOT_SHA: ${{ needs.prepare_release.outputs.snapshot_sha }}
         run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
       - name: Node.js 22 mit npm-Cache einrichten
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
           cache: npm
@@ -314,7 +314,7 @@ jobs:
 
       - name: Laufzeitbericht ohne Freigabewirkung speichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-timings-core-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/mid-regression-*/timings.json
@@ -326,7 +326,7 @@ jobs:
         run: node tools/ci/release-snapshot.mjs pack /tmp/mid-snapshot
       - name: Unveränderlichen Snapshot übertragen
         id: snapshot_upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-built-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/mid-snapshot/
@@ -381,7 +381,7 @@ jobs:
           MID_SNAPSHOT_SHA: ${{ needs.prepare_release.outputs.snapshot_sha }}
         run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
       - name: Node.js 22 mit npm-Cache einrichten
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
           cache: npm
@@ -473,7 +473,7 @@ jobs:
           npm run test:regressions
       - name: Laufzeitbericht ohne Freigabewirkung speichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-timings-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/mid-regression-*/timings.json
@@ -517,7 +517,7 @@ jobs:
           MID_SNAPSHOT_SHA: ${{ needs.verify_core.outputs.snapshot_sha }}
         run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
       - name: Node.js 22 einrichten
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
       - name: Release- und Worker-Änderungsmetadaten ermitteln
@@ -543,7 +543,7 @@ jobs:
 
       - name: MID Release Bot Token für main erzeugen
         id: release_app_token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}
@@ -1260,7 +1260,7 @@ jobs:
     steps:
       - name: MID Release Bot Token für Stable-Promotion erzeugen
         id: release_app_token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         with:
           client-id: ${{ vars.MID_RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.MID_RELEASE_APP_PRIVATE_KEY }}

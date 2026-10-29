@@ -16,7 +16,7 @@ const need=(area,text,token)=>{if(!text.includes(token))failures.push(area+': '+
 for(const token of ['rolldownOptions','codeSplitting','reactVendorPattern','chartsVendorPattern',"name:'ReactVendor'","name:'ChartsVendor'"])need('Vite-Chunking',vite,token);
 for(const token of ['manualChunks','rollupOptions'])if(vite.includes(token))failures.push('Vite-Chunking: deprecated '+token+' ist zurückgekehrt.');
 if(/return ['"]MapLibre/i.test(vite))failures.push('Vite-Chunking: MapLibre wurde in einen erzwungenen Vendor-Chunk verschoben; die bestehende Lazy-Grenze muss erhalten bleiben.');
-for(const token of ['npm-audit-full.json','if: always()','actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a','npm run audit:all'])need('Dependency-Audit',audit,token);
+for(const token of ['npm-audit-full.json','if: always()','actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9','npm run audit:all'])need('Dependency-Audit',audit,token);
 for(const token of ['permission-statuses: write','git/ref/heads/mid-stable',"'context': 'MID / stable-release-quality'",'/statuses/${stable_sha}','-F force=false'])need('Stable-SHA',install,token);
 if(rechartsTest.includes('Recharts 3.8.1 ist nicht reproduzierbar festgeschrieben.'))failures.push('Recharts-Wartungstest blockiert weiterhin kompatible 3.x-Patch-/Minor-Updates durch einen historischen Versionsliteral.');
 need('Recharts-Wartungstest',rechartsTest,'lockedRechartsVersion!==rechartsVersion');

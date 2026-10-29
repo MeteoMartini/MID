@@ -24,7 +24,7 @@ for(const token of ['source_core:','core_regressions:','heavy_regressions:','val
 assert.ok(workflow.includes('      - core_regressions')&&workflow.includes('      - heavy_regressions')&&!workflow.includes('MID_REGRESSION_SHARD=core npm run test:regressions'),'Source-Gate muss alle disjunkten Core-Tests vor dem Release zwingend freigeben.');
 assert.ok(workflow.includes('fetch-depth: 1'),'PR-Gate muss ohne unnötige Vollhistorie prüfen.');
 assert.ok(workflow.includes('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'),'Checkout muss auf vollständige SHA gepinnt sein.');
-assert.ok(workflow.includes('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020'),'Setup-Node muss auf vollständige SHA gepinnt sein.');
+assert.ok(workflow.includes('actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'),'Setup-Node muss auf vollständige SHA gepinnt sein.');
 assert.ok(sync.includes("['workflows/chatgpt-pr-gate.yml','workflows/chatgpt-pr-gate.yml']"),'Workflow muss Teil der kanonischen GitHub-Synchronisierung sein.');
 
 const guardStart=workflow.indexOf('      - name: MID-Quellstruktur und PR-ZIP-Provenienz prüfen');
