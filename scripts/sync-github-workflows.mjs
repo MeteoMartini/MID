@@ -57,6 +57,7 @@ export const managedFiles=[
  ['workflows/widget-export.yml','workflows/widget-export.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
  ['workflows/mid-ruc-schedule-watchdog.yml','workflows/mid-ruc-schedule-watchdog.yml'],
+ ['workflows/mid-ruc-provider-readonly-pilot.yml','workflows/mid-ruc-provider-readonly-pilot.yml'],
  ['workflows/mid-ruc-cloudflare-bootstrap.yml','workflows/mid-ruc-cloudflare-bootstrap.yml'],
  ['dependabot.yml','dependabot.yml']
 ];
