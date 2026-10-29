@@ -186,8 +186,9 @@ function warningSampleEpoch(sample:DwdWarningSample){const raw=sample.epoch===nu
 export function warningCurrentStartIndex(samples:DwdWarningSample[],now=Date.now()){let currentIndex=-1,currentEpoch=Number.NEGATIVE_INFINITY,futureIndex=-1,futureEpoch=Number.POSITIVE_INFINITY;for(let index=0;index<samples.length;index++){const epoch=warningSampleEpoch(samples[index]);if(!Number.isFinite(epoch))continue;if(epoch<=now&&epoch>currentEpoch){currentEpoch=epoch;currentIndex=index}else if(epoch>now&&epoch<futureEpoch){futureEpoch=epoch;futureIndex=index}}return currentIndex>=0?currentIndex:futureIndex>=0?futureIndex:0}
 function warningOccurrence(signal:DwdWarningSignal,index:number,sample:DwdWarningSample,samples:DwdWarningSample[]):WarningOccurrence{
  const start=warningSampleEpoch(sample),durationHours=Math.max(1,Math.round(Number(signal.windowHours)||1));
- if(signal.kind==='heavyRain'||signal.kind==='continuousRain'){
-  const wet=samples.slice(index,index+durationHours).filter(row=>liquidPrecipitation(row)>=.05),first=wet[0],last=wet.at(-1),from=first?(Number.isFinite(first.precipitationIntervalStartEpoch)?Number(first.precipitationIntervalStartEpoch):warningSampleEpoch(first)):NaN,to=last?(Number.isFinite(last.precipitationIntervalEndEpoch)?Number(last.precipitationIntervalEndEpoch):warningSampleEpoch(last)+3600000):NaN;
+ if(signal.kind==='heavyRain'||signal.kind==='continuousRain'||signal.kind==='snow'){
+  // Accumulation windows qualify amounts; wet intervals locate actual exposure.
+  const wet=samples.slice(index,index+durationHours).filter(row=>signal.kind==='snow'?snowfall(row)>=.05:liquidPrecipitation(row)>=.05),first=wet[0],last=wet.at(-1),from=first?(Number.isFinite(first.precipitationIntervalStartEpoch)?Number(first.precipitationIntervalStartEpoch):warningSampleEpoch(first)):NaN,to=last?(Number.isFinite(last.precipitationIntervalEndEpoch)?Number(last.precipitationIntervalEndEpoch):warningSampleEpoch(last)+3600000):NaN;
   return{signal,index,start:from,end:to};
  }
  return{signal,index,start,end:Number.isFinite(start)?start+durationHours*3600000:Number.NaN};
@@ -252,6 +253,7 @@ export function summarizeDwdWarnings(samples:DwdWarningSample[],elevation=0,star
  * einen früheren, technisch noch vollständig auswertbaren Stundenwert gekürzt.
  */
 function dailyWarningHasMatchingPrecipitation(signal:DwdWarningSignal,daySamples:DwdWarningSample[]){
+ if(signal.kind==='snow')return daySamples.some(sample=>snowfall(sample)>=.05);
  if(signal.kind!=='heavyRain'&&signal.kind!=='continuousRain')return true;
  const liquid=daySamples.map(liquidPrecipitation),total=liquid.reduce((sum,value)=>sum+value,0),wetHours=liquid.filter(value=>value>=.05).length;
  if(total<.05||wetHours===0)return false;
