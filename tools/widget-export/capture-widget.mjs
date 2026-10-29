@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import {writeFirstDiagnostic} from '../../scripts/lib/secure-diagnostics.mjs';
+import {createWidgetNetworkDiagnostics} from './network-diagnostics.mjs';
 import {spawn} from 'node:child_process';
 import {existsSync} from 'node:fs';
 import {mkdir,mkdtemp,readFile,rename,rm,stat,writeFile} from 'node:fs/promises';
@@ -38,7 +39,8 @@ const browserArgs=[
  '--disable-features=msEdgeFirstRunExperience','--hide-scrollbars',`--window-size=${width},${height}`
 ];
 if(process.platform==='linux')browserArgs.push('--no-sandbox','--disable-dev-shm-usage');
-browserArgs.push(url.toString());
+// CDP attaches before navigation so even the first weather request is observable.
+browserArgs.push('about:blank');
 let browserFailure=null,browserStderr='',closing=false;
 const browser=spawn(browserExecutable,browserArgs,{stdio:['ignore','ignore','pipe'],windowsHide:true});
 browser.stderr?.on('data',chunk=>{browserStderr=(browserStderr+String(chunk)).slice(-8000)});
@@ -57,15 +59,16 @@ class Cdp{
 
 let cdp;
 const startedAt=Date.now();
-const failures=[];
+const networkDiagnostics=createWidgetNetworkDiagnostics();
 try{
  console.log(`Widget-Renderer: ${browserExecutable}`);
  const port=await waitFor(async()=>{if(!existsSync(activePort))return 0;const value=Number(String(await readFile(activePort,'utf8')).split(/\r?\n/)[0]);return Number.isFinite(value)&&value>0?value:0},'Browser-Debuggingport wurde nicht bereitgestellt');
- const target=await waitFor(async()=>{const response=await fetch(`http://127.0.0.1:${port}/json/list`),targets=await response.json();return targets.find(item=>item.type==='page'&&String(item.url).includes('widget='))},'MID-Widgetseite wurde im Browser nicht geöffnet');
+ const target=await waitFor(async()=>{const response=await fetch(`http://127.0.0.1:${port}/json/list`),targets=await response.json();return targets.find(item=>item.type==='page'&&String(item.url)==='about:blank')},'MID-Widgetseite wurde im Browser nicht geöffnet');
  cdp=await Cdp.connect(target.webSocketDebuggerUrl);
  await cdp.call('Runtime.enable');await cdp.call('Page.enable');
- cdp.socket.addEventListener('message',event=>{try{const message=JSON.parse(String(event.data));if(message.method==='Network.loadingFailed'&&failures.length<40)failures.push({type:message.params?.type,error:message.params?.errorText,canceled:message.params?.canceled})}catch{}});
+ cdp.socket.addEventListener('message',event=>{try{const message=JSON.parse(String(event.data));if(typeof message.method==='string'&&message.method.startsWith('Network.'))networkDiagnostics.observe(message.method,message.params)}catch{}});
  await cdp.call('Network.enable');
+ await cdp.call('Page.navigate',{url:url.toString()});
  const ready=await waitFor(async()=>{const result=await cdp.call('Runtime.evaluate',{expression:`(()=>({ready:document.documentElement.dataset.midWidgetReady==='ready',error:document.documentElement.dataset.midWidgetError||document.querySelector('.error')?.textContent||'',text:document.body.innerText.slice(0,240)}))()`,returnByValue:true});const value=result.result?.value;if(value?.error)return value;return value?.ready?value:null},'MID meldet das Widget nicht als vollständig gerendert');
  if(ready.error)throw new Error(ready.error);
  const measured=await cdp.call('Runtime.evaluate',{expression:`(()=>{const node=document.querySelector('.weatherwidget');if(!node)return null;const box=node.getBoundingClientRect();return{x:Math.max(0,box.x),y:Math.max(0,box.y),width:Math.ceil(Math.max(box.width,node.scrollWidth)),height:Math.ceil(Math.max(box.height,node.scrollHeight))}})()`,returnByValue:true});
@@ -83,7 +86,7 @@ try{
    try{const result=await cdp.call('Runtime.evaluate',{expression:`(()=>({status:document.documentElement.dataset.midWidgetReady||'absent',version:document.querySelector('meta[name="mid-version"]')?.content||null,dataFrom:document.documentElement.dataset.midWidgetDataFrom||null,dataThrough:document.documentElement.dataset.midWidgetDataThrough||null,widgetCount:document.querySelectorAll('.weatherwidget').length,imageCount:document.querySelector('.weatherwidget')?.querySelectorAll('img').length||0}))()`,returnByValue:true});state=result.result?.value??null}catch{}
    try{const shot=await cdp.call('Page.captureScreenshot',{format:'png',fromSurface:true});await writeFile(image,Buffer.from(shot.data,'base64'),{flag:'wx',mode:0o600});screenshotAvailable=true}catch{screenshotError='Screenshot nicht verfügbar';}
   }
-  return {schema:1,checkedAt:new Date().toISOString(),elapsedMs:Date.now()-startedAt,stableSha:process.env.MID_STABLE_SHA||null,expectedVersion:process.env.MID_PUBLIC_VERSION||null,state,networkFailures:failures,screenshotAvailable,screenshotError,errorClass:error?.name||'Error'};
+  return {schema:1,checkedAt:new Date().toISOString(),elapsedMs:Date.now()-startedAt,stableSha:process.env.MID_STABLE_SHA||null,expectedVersion:process.env.MID_PUBLIC_VERSION||null,state,network:networkDiagnostics.snapshot(),screenshotAvailable,screenshotError,errorClass:error?.name||'Error'};
  });
  throw error;
 }finally{
