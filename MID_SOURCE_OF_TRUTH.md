@@ -1,3 +1,7 @@
+# MID v0.9.85.368 · Anzeigepräferenz und Datenverfügbarkeit
+
+Verifizierte Basis `main=mid-stable=317a07ecb842d40de82d67c04abfb25ecfc8eaf0`, veröffentlichtes .366. #508: 250-m-Nutzerwunsch getrennt vom aktuellen frischen, ortsgebundenen Datenangebot; kein automatischer persistenter Reset bei Metadata-/Netzfehlern. Gemeinsame Kartendetail-Snapshots mit atomaren Teiländerungen, synchroner Speicherung und Abonnements; 24h-Profillegende nutzt gemeinsamen dauerhaften Präferenzvertrag mit Legacy-0/1-Vorgabe. Modelllinien-Disclosure dauerhaft. Keine meteorologische Mengen-/Gewichts-/Warnänderung. Parallel-Draft #516 (.367 Schnee) unverändert erhalten; keine überlappenden Änderungen übernommen. Technischer Nachweis `docs/implementation/MID_C52_DISPLAY_AVAILABILITY_368.md`. Nur Sourcekandidat bis Source-Gate → SHA-Bot → ServerZIP → Installer → Worker/Pages → Stable.
+
 # MID v0.9.85.366 · kanonische Karten- und Ensembleanzeige
 
 Verifizierte Stable-Basis `v0.9.85.365` `723ef0e11f87963a47aee8a9df8a3c757d07d7ae`, bei Beginn `main = mid-stable`; offene Draft- und Abhängigkeits-PRs geprüft. Nur der Integrationsbranch `codex/v0.9.85.366-display-state-integrity` wird verändert, kein ZIP und kein direkter Schreibzugriff auf main/stable. Vollständiger fachlicher Nachweis: `docs/implementation/MID_C51_DISPLAY_DURABLE_366.md`.

@@ -1,7 +1,27 @@
+import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety';
 export type MapReferenceSettings={countries:boolean;regions:boolean;cities:boolean;water:boolean;roads:boolean};
 export const MAP_REFERENCE_KEY='mid:map-reference:v1';
 export const DEFAULT_MAP_REFERENCE:MapReferenceSettings={countries:true,regions:true,cities:true,water:false,roads:false};
-export function readMapReferenceSettings(){try{const d=JSON.parse(localStorage.getItem(MAP_REFERENCE_KEY)||'{}');return Object.fromEntries(Object.entries(DEFAULT_MAP_REFERENCE).map(([key,value])=>[key,typeof d[key]==='boolean'?d[key]:value])) as MapReferenceSettings}catch{return {...DEFAULT_MAP_REFERENCE}}}
+let cachedRaw:string|null|undefined,cachedSettings=DEFAULT_MAP_REFERENCE;
+export function readMapReferenceSettings():MapReferenceSettings{
+ let raw:string|null=null;try{raw=readDurableStorageValue(MAP_REFERENCE_KEY)}catch{}
+ if(raw===cachedRaw)return cachedSettings;
+ let data:Record<string,unknown>={};try{const parsed:unknown=JSON.parse(raw||'{}');if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))data=parsed as Record<string,unknown>}catch{}
+ cachedRaw=raw;cachedSettings=Object.fromEntries(Object.entries(DEFAULT_MAP_REFERENCE).map(([key,value])=>[key,typeof data[key]==='boolean'?data[key]:value])) as MapReferenceSettings;
+ return cachedSettings;
+}
+export function patchMapReferenceSettings(patch:Partial<MapReferenceSettings>){
+ const current=readMapReferenceSettings(),next={...current};
+ for(const key of Object.keys(DEFAULT_MAP_REFERENCE) as (keyof MapReferenceSettings)[])if(typeof patch[key]==='boolean')next[key]=patch[key]!;
+ writeDurableStorageValue(MAP_REFERENCE_KEY,JSON.stringify(next));
+ if(typeof window!=='undefined')window.dispatchEvent(new Event('mid:map-reference-changed'));
+ return readMapReferenceSettings();
+}
+export function subscribeMapReferenceSettings(callback:()=>void){
+ if(typeof window==='undefined')return()=>{};
+ window.addEventListener('mid:map-reference-changed',callback);window.addEventListener('storage',callback);
+ return()=>{window.removeEventListener('mid:map-reference-changed',callback);window.removeEventListener('storage',callback)};
+}
 export function compositeReferenceLayers(opacity:number,settings:MapReferenceSettings=DEFAULT_MAP_REFERENCE){const boundaryColor=typeof document!=='undefined'&&(document.documentElement.dataset.theme==='dark'||document.documentElement.classList.contains('dark'))?'#c6dfed':'#405e73';const alpha=Math.max(0,Math.min(1,opacity)),nonMaritime=['any',['!',['has','maritime']],['==',['get','maritime'],0],['==',['get','maritime'],'0'],['==',['get','maritime'],false],['==',['get','maritime'],'false']],adminLevel=(level:number)=>['any',['==',['get','admin_level'],level],['==',['get','admin_level'],String(level)]];return[
  {id:'coastlines',type:'line' as const,sourceLayer:'water',filter:['==',['get','class'],'ocean'],paint:{'line-color':boundaryColor,'line-width':['interpolate',['linear'],['zoom'],3,1.25,7,1.8,11,2.2],'line-opacity':alpha}},
  {id:'country-boundaries',type:'line' as const,sourceLayer:'boundary',filter:['all',adminLevel(2),nonMaritime],paint:{'line-color':boundaryColor,'line-width':['interpolate',['linear'],['zoom'],3,1.25,7,1.8,11,2.2],'line-opacity':alpha}},

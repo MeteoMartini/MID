@@ -9,8 +9,8 @@ const [cockpit,shortTerm,styles,pkg,baseline]=await Promise.all([
 const failures=[];const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}: ${token}`)};const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label}: unerwartet ${token}`)};
 for(const token of [
  "const PROFILE_LEGEND_KEY='mid:forecastCockpit:profileLegendVisible'",
- 'useState(readProfileLegendVisible)',
- "localStorage.setItem(PROFILE_LEGEND_KEY,profileLegendVisible?'1':'0')",
+ "useDisplayPreference('ForecastCockpit.profileLegendVisible',readProfileLegendVisible(),displayBoolean)",
+ "readDurableStorageValue(PROFILE_LEGEND_KEY)!=='0'",
  "label:'Stärkste Einschränkung'",
  "function shortTermHazardSignals(hours:Hour[],elevation=0,unit:WindUnit='kn'){return hazards(hours,undefined,elevation,unit)}",
  'shortTermImpactForInterval(profileHazardSignals',

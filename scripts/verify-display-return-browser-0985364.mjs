@@ -13,9 +13,11 @@ const fixture=`import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {useDisplayPreference,displayBoolean,displayChoice} from '/src/useDisplayPreference.ts';
 import {initializeStorageSafety} from '/src/storageSafety.ts';
+import {readMapReferenceSettings,patchMapReferenceSettings,subscribeMapReferenceSettings,DEFAULT_MAP_REFERENCE} from '/src/mapReferenceLayers.ts';
 await initializeStorageSafety();
 function Panel({id}){const [on,set]=useDisplayPreference(id,true,displayBoolean);return <button id={id} onClick={()=>set(v=>!v)}>{String(on)}</button>}
-function App(){const [mounted,setMounted]=React.useState(true);const [mode,setMode]=useDisplayPreference('browser.mode','field',displayChoice('field','absolute'));return <><button id="mount" onClick={()=>setMounted(v=>!v)}>mount</button>{mounted&&<Panel id="browser.shared"/>}<Panel id="browser.independent"/><select id="mode" value={mode} onChange={e=>setMode(e.target.value)}><option>field</option><option>absolute</option></select></>}
+function Reference(){const values=React.useSyncExternalStore(subscribeMapReferenceSettings,readMapReferenceSettings,()=>DEFAULT_MAP_REFERENCE);return <fieldset><legend>Kartendetails</legend>{['countries','roads'].map(key=><label key={key}><input id={'ref-'+key} type="checkbox" checked={values[key]} onChange={e=>patchMapReferenceSettings({[key]:e.target.checked})}/>{key}</label>)}</fieldset>}
+function App(){const [mounted,setMounted]=React.useState(true);const [mode,setMode]=useDisplayPreference('browser.mode','field',displayChoice('field','absolute'));return <><button id="mount" onClick={()=>setMounted(v=>!v)}>mount</button>{mounted&&<Panel id="browser.shared"/>}<Panel id="browser.independent"/><Reference/><select id="mode" value={mode} onChange={e=>setMode(e.target.value)}><option>field</option><option>absolute</option></select></>}
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);`;
 const server=await createServer({cacheDir:'node_modules/.vite-mid-display-qa',plugins:[{name:'display-fixture',configureServer(s){s.middlewares.use('/display-qa',async(req,res)=>{const html='<div id="root"></div><script type="module" src="/display-fixture.tsx"></script>';res.setHeader('Content-Type','text/html');res.end(await s.transformIndexHtml('/display-qa',html))})},resolveId(id){if(id==='/display-fixture.tsx')return '\0display-fixture.tsx'},async load(id){if(id==='\0display-fixture.tsx')return (await transform(fixture,{loader:'tsx',jsx:'transform',target:'esnext'})).code}}],server:{host:'127.0.0.1',port:0,hmr:false,watch:null}});
 await server.listen();
@@ -36,7 +38,13 @@ try{
   await a.locator('#mount').click();await a.locator('#mount').click();assert.equal(await shared(a).textContent(),'false');
   assert.equal(await a.locator('[id="browser.independent"]').textContent(),'true');
   await a.reload();await shared(a).waitFor();assert.equal(await shared(a).textContent(),'false');assert.equal(await a.locator('#mode').inputValue(),'absolute');
+  await a.locator('#ref-countries').uncheck();
+  await b.waitForFunction(()=>document.getElementById('ref-countries')?.checked===false);
+  await b.locator('#ref-roads').check();
+  await a.waitForFunction(()=>document.getElementById('ref-roads')?.checked===true);
+  assert.equal(await a.locator('#ref-countries').isChecked(),false,'A separate field patch must preserve newer false');
+  await a.reload();await a.locator('#ref-countries').waitFor();assert.equal(await a.locator('#ref-countries').isChecked(),false);assert.equal(await a.locator('#ref-roads').isChecked(),true);
   assert.deepEqual(errors,[]);await context.close();cases++;
  }
- console.log('PASS actual React StrictMode/durable storage: '+cases+' viewport/theme cases; cross-tab live updates, remount, reload, enum and independent keys; synthetic consumers, not complete app/device QA');
+ console.log('PASS actual React StrictMode/durable storage: '+cases+' viewport/theme cases; cross-tab live updates, remount, reload, enum, independent keys and real map-reference cross-tab partial updates; synthetic consumers, not complete app/device QA');
 }finally{await browser.close();await server.close()}
