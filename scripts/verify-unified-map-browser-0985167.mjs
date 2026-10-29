@@ -260,7 +260,10 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  const pxToggle=()=>advanced.getByRole('button',{name:/Radar · 250 m/});
  await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
  assert.equal(await pxToggle().isDisabled(),false,'A retained unavailable PX choice can be switched off');
+ await page.waitForFunction(()=>{const map=window.__qaMap,ids=Object.entries(map.getStyle().sources).filter(([,s])=>s.type==='vector').map(([id])=>id);return ids.length>0&&ids.every(id=>map.isSourceLoaded(id))});
+ await page.evaluate(()=>{window.__qaReferenceSources=Object.entries(window.__qaMap.getStyle().sources).filter(([,s])=>s.type==='vector').map(([id])=>[id,window.__qaMap.getSource(id)])});
  await advanced.getByLabel('Ländergrenzen',{exact:true}).uncheck();await advanced.getByLabel('Straßen',{exact:true}).check();
+ assert.equal(await page.evaluate(()=>window.__qaReferenceSources.every(([id,source])=>window.__qaMap.getSource(id)===source)),true,'Checkboxes retain the same live vector source and pending requests');
  await measuredReload();advanced=await openAdvanced();
  await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
  assert.equal(await advanced.getByLabel('Ländergrenzen',{exact:true}).isChecked(),false);assert.equal(await advanced.getByLabel('Straßen',{exact:true}).isChecked(),true);
