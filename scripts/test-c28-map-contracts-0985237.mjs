@@ -22,16 +22,18 @@ try{
  delete field.centers;assert.equal(native.validateNativeField(field,index,frames[0],'pressure'),field,'Old immutable snapshots remain readable');
  // A saved selection must survive a missing provider; only user events change it.
  const panel=readFileSync('src/UnifiedWeatherMap.tsx','utf8');assert.ok(!panel.includes('update({modelId:ids[0]'));
- const radar=readFileSync('src/RadarPanel.tsx','utf8');assert.ok(radar.includes('modelLines:unified?initial.modelLines:modelLines'));
+ const radar=readFileSync('src/RadarPanel.tsx','utf8');assert.ok(radar.includes('modelLines:unified?storedSettings().modelLines:modelLines'));
  const settings=await import(pathToFileURL(join(dir,'compositeSettings.js'))),storage=new Map;
- globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
+ const previousStorage=globalThis.Storage,previousWindow=globalThis.window,previousLocal=globalThis.localStorage;
+ class TestStorage{getItem(key){return storage.get(key)??null}setItem(key,value){storage.set(key,value)}removeItem(key){storage.delete(key)}key(i){return [...storage.keys()][i]??null}}
+ const fake=new TestStorage();globalThis.Storage=TestStorage;globalThis.localStorage=fake;globalThis.window=Object.assign(new EventTarget(),{localStorage:fake});
  const old=settings.readCompositeSettings();settings.writeCompositeSettings({...old,showRadar:false,showSatellite:true,observationsEnabled:false});
  assert.equal(settings.readCompositeSettings().observationsEnabled,false);assert.equal(settings.readCompositeSettings().showSatellite,true);
  const callback=radar.match(/const flushCompositeSettings=useCallback\((\(\)=>\{.*?\}),\[\]\);/)[1];
- const flush=new Function('compositeSettingsRef','lastPersistedComposite','storedSettings','writeCompositeSettings',transformSync('const flush='+callback+';',{loader:'ts'}).code+'return flush');
- const current={current:{...old}},previous={current:{...old}},runFlush=flush(current,previous,settings.readCompositeSettings,settings.writeCompositeSettings);
+ const flush=new Function('compositeSettingsRef','lastPersistedComposite','patchCompositeSettings',transformSync('const flush='+callback+';',{loader:'ts'}).code+'return flush');
+ const current={current:{...old}},previous={current:{...old}},runFlush=flush(current,previous,settings.patchCompositeSettings);
  runFlush();assert.equal(settings.readCompositeSettings().observationsEnabled,false,'Unchanged older instance must not overwrite master');assert.equal(settings.readCompositeSettings().showRadar,false);
  current.current={...old,playbackSeconds:4.8};runFlush();const saved=settings.readCompositeSettings();assert.equal(saved.playbackSeconds,4.8);assert.equal(saved.observationsEnabled,false);assert.equal(saved.showSatellite,true,'Independent setting flush must retain newer layer choices');
- delete globalThis.localStorage;
+ globalThis.Storage=previousStorage;globalThis.window=previousWindow;globalThis.localStorage=previousLocal;
 }finally{delete globalThis.fetch;rmSync(dir,{recursive:true,force:true})}
 console.log('MID-C28 hourly catalogue, pressure-centre validation/export and saved-selection contracts passed.');

@@ -1,3 +1,12 @@
+## MID v0.9.85.366 · 29.10.2026 · Karteneinstellungen und Ensemble-Cachevertrag
+
+- Legacy-Composite-Layer-Mirror kann den kanonischen v3-Record nicht mehr überstimmen. Fehlender 2. Write, falsche/fehlende Werte und vollständiger Snapshot müssen die bewusste Auswahl `false` erhalten.
+- Radar und UnifiedMap verwenden den letzten dauerhaften Zustand beim Patchen und aktualisieren mehrere Instanzen/Tabs. DWD-Warngebietsdarstellung verwirft nicht die Benutzerpräferenz.
+- Sieben konkrete Ensemble-UI-Schlüssel vom vergänglichen Forecast-Cache getrennt, direkte Durable-Speicherung, Backup-/Quota-Events.
+- Neuer tatsächlicher Produktionshelper-Test `test-composite-settings-durability-0985366.mjs` in beiden vollständigen Regressioninventaren; Browser-/Build-/Native-/Release-Prüfungen bleiben Pflicht.
+- Fachlich offene 250m-Auswahl bei Nichtverfügbarkeit, vollständige Geräteabnahme sowie Schnee-/RUC-Qualifikation nicht als geschlossen deklarieren.
+- Buildversion `v0.9.85.366`, iOS Buildcounter 367, synchronisierte Worker-/PWA-/Registry-/Baseline-Spiegel. Nur SHA-Bot mit Installer/Pages/Stable darf veröffentlichen.
+
 ## MID v0.9.85.361 · 29.10.2026 · transaktionale Security-Diagnostik
 
 - Exklusiv reservierte Erstfehler-Berichte mit sofort gültigem JSON-Zwischenstatus und atomarem Endbericht.

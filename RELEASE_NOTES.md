@@ -1,7 +1,8 @@
-# MID v0.9.85.365
+# MID v0.9.85.366
 
-## Ansichten zuverlässig wieder aufnehmen
-- Die erweiterten Speicherfunktionen für Parameter, Legenden, Karten, Klima, Wasserwetter und Routen sind gemeinsam enthalten.
-- Bergwetter behält Höhenstufe, Schneefallgrenzen-Zeitraum und geöffnete Analyseabschnitte; Radar merkt sich die ausführliche Legende und den Ebenenbereich.
-- Erweiterte Stundenlisten und Pollenansicht bleiben wie zuletzt gewählt. Tageswechsel setzen die gewünschte Zeitauflösung nicht mehr automatisch zurück.
-- Vorübergehend fehlende Höhenstufen überschreiben die bevorzugte Auswahl nicht. Alte Wetterzeitpunkte und Dialogfokus werden nicht eingefroren.
+## Karten, Radar und Ensemble behalten die Auswahl
+- Karten übernehmen eine bereits getroffene Auswahl auch bei mehreren gleichzeitig geöffneten Fenstern. Insbesondere bleibt „Beobachtungen aus“ erhalten, selbst wenn ältere Ebeneneinstellungen etwas anderes enthalten.
+- Kartenparameter und Layeroptionen werden aus dem letzten gespeicherten Stand aktualisiert. Andere geöffnete Kartenansichten übernehmen Änderungen unmittelbar.
+- Gewählte Ensemble-Ansichten, Diagrammabschnitte und Windoptionen bleiben bei Cachebereinigung und Speicherplatzengpässen geschützt.
+- Eine vorübergehend nicht verfügbare DWD-Warnkarte löscht nicht die gewünschte Anzeigeoption.
+- Keine Änderung der Wettermodelle, amtlichen Warnungen oder meteorologischen Vorhersagegewichte. Weitere offene Auswahl- und Schneequellenprüfungen laufen unabhängig weiter.

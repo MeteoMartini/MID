@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.365",
+  "releaseVersion": "0.9.85.366",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -154,6 +154,7 @@
     "scripts/test-composite-satellite-cache-snapshot-093221.mjs",
     "scripts/test-composite-satellite-freshness-zoom-093220.mjs",
     "scripts/test-composite-satellite-timestamp-09405.mjs",
+    "scripts/test-composite-settings-durability-0985366.mjs",
     "scripts/test-composite-synoptic-completeness-098456.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "scripts/test-composite-time-arrow-09561.mjs",
@@ -1201,6 +1202,7 @@
     "scripts/test-composite-satellite-cache-snapshot-093221.mjs",
     "scripts/test-composite-satellite-freshness-zoom-093220.mjs",
     "scripts/test-composite-satellite-timestamp-09405.mjs",
+    "scripts/test-composite-settings-durability-0985366.mjs",
     "scripts/test-composite-synoptic-completeness-098456.mjs",
     "scripts/test-composite-temporal-truth-zugspuren-097860.mjs",
     "scripts/test-composite-time-arrow-09561.mjs",
@@ -3808,7 +3810,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.365",
+  "version": "0.9.85.366",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

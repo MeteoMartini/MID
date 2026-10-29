@@ -27,13 +27,19 @@ export const TRANSIENT_STORAGE_PREFIXES=[
 ] as const;
 
 export const ROOT_DURABLE_STORAGE_KEYS=new Set(['theme','windUnit']);
+/** Explicit Ensemble UI choices, never expendable forecast caches. */
+export function isEnsembleUserPreferenceKey(key:string){
+ return key==='mid:ensemble:activeMetric'||key==='mid:ensemble:wind-mode'||
+ /^mid:ensemble:chart-open:(temperature|precipitation|wind)$/.test(key)||
+ /^mid:ensemble:advanced:(change-radar|scenario-clusters)$/.test(key);
+}
 
 export function isMainModuleViewStateKey(key:string){
  return /^mid:module:[^:]+:open$/.test(key)||key.startsWith('mid:module-open-contract:');
 }
 
 export function isTransientStorageKey(key:string){
- return TRANSIENT_STORAGE_PREFIXES.some(prefix=>key.startsWith(prefix));
+ return !isEnsembleUserPreferenceKey(key)&&TRANSIENT_STORAGE_PREFIXES.some(prefix=>key.startsWith(prefix));
 }
 
 export function isDurableStorageKey(key:string){

@@ -1,3 +1,4 @@
+import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety';
 import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
 import {PrognoseRadarView} from './PrognoseRadar';
@@ -30,7 +31,7 @@ function formatAvailabilityTime(value?:string){if(!value)return'–';const d=new
 export type EnsembleDisplayMetric='temperature'|'precipitation'|'wind';
 type EnsemblePresentation='full'|'cockpit'|'widget';
 const ENSEMBLE_ACTIVE_METRIC_KEY='mid:ensemble:activeMetric';
-function storedEnsembleMetric():EnsembleDisplayMetric{try{const value=localStorage.getItem(ENSEMBLE_ACTIVE_METRIC_KEY);if(value==='temperature'||value==='precipitation'||value==='wind')return value}catch{}return'temperature'}
+function storedEnsembleMetric():EnsembleDisplayMetric{try{const value=readDurableStorageValue(ENSEMBLE_ACTIVE_METRIC_KEY);if(value==='temperature'||value==='precipitation'||value==='wind')return value}catch{}return'temperature'}
 function uncertaintyOpacity(row:Pick<TrendRow,'confidence'|'x'>,minimum=.22){const confidence=clamp(Number(row.confidence)||0,0,100)/100,leadFade=clamp(1-Math.max(0,Number(row.x)-5)*.045,.38,1);return clamp(minimum+confidence*(1-minimum)*leadFade,minimum,1)}
 function confidenceGradientStops(data:TrendRow[],color:string,multiplier=1){return data.map((row,index)=><stop key={`${row.date}-${index}`} offset={`${data.length<=1?0:index/(data.length-1)*100}%`} stopColor={color} stopOpacity={clamp(uncertaintyOpacity(row)*multiplier,.12,1)}/>)}
 function TemperatureValueDot({cx,cy,payload,kind,compact}:{cx?:number;cy?:number;payload?:TrendRow;kind:'max'|'min';compact:boolean}){if(!Number.isFinite(cx)||!Number.isFinite(cy)||!payload)return null;const value=kind==='max'?payload.bestMax:payload.bestMin,color=kind==='max'?'var(--param-temperature-max)':'var(--param-temperature-min)',offset=kind==='max'?-10:15;return <g className={`ensemble-temperature-value ${kind}`} opacity={uncertaintyOpacity(payload,.4)} pointerEvents="none"><circle cx={Number(cx)} cy={Number(cy)} r={2.8} fill={color}/><text x={Number(cx)} y={Number(cy)+offset} textAnchor="middle" fontSize={compact?8.5:10} fontWeight="800" fill={color} stroke="var(--card, #fff)" strokeWidth="3" paintOrder="stroke">{Math.round(value)}°</text></g>}
@@ -133,9 +134,9 @@ type WindChartMode='wind'|'gust';
 const ENSEMBLE_CHART_OPEN_PREFIX='mid:ensemble:chart-open:';
 const ENSEMBLE_WIND_MODE_KEY='mid:ensemble:wind-mode';
 const ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX='mid:ensemble:advanced:';
-function storedAdvancedDisclosure(kind:'change-radar'|'scenario-clusters'){try{return localStorage.getItem(`${ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX}${kind}`)==='1'}catch{return false}}
-function storedEnsembleChartOpen(kind:EnsembleChartKind){try{return localStorage.getItem(`${ENSEMBLE_CHART_OPEN_PREFIX}${kind}`)!=='0'}catch{return true}}
-function storedEnsembleWindMode():WindChartMode{try{return localStorage.getItem(ENSEMBLE_WIND_MODE_KEY)==='gust'?'gust':'wind'}catch{return'wind'}}
+function storedAdvancedDisclosure(kind:'change-radar'|'scenario-clusters'){try{return readDurableStorageValue(`${ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX}${kind}`)==='1'}catch{return false}}
+function storedEnsembleChartOpen(kind:EnsembleChartKind){try{return readDurableStorageValue(`${ENSEMBLE_CHART_OPEN_PREFIX}${kind}`)!=='0'}catch{return true}}
+function storedEnsembleWindMode():WindChartMode{try{return readDurableStorageValue(ENSEMBLE_WIND_MODE_KEY)==='gust'?'gust':'wind'}catch{return'wind'}}
 function EnsembleChartCollapse({kind,open,onToggle}:{kind:EnsembleChartKind;open:boolean;onToggle:()=>void}){const label=kind==='temperature'?'Temperaturdiagramm':kind==='precipitation'?'Niederschlagsdiagramm':'Winddiagramm';return <button type="button" className="ensemble-chart-collapse" data-export-ignore="true" aria-expanded={open} onClick={onToggle} title={`${label} ${open?'einklappen':'ausklappen'}`}><ChevronDown size={16}/><span>{open?'Einklappen':'Ausklappen'}</span></button>}
 type EnsembleDateAxisTickProps={x?:number|string;y?:number|string;payload?:{value?:number|string};data:TrendRow[];compact:boolean};
 function EnsembleDateAxisTick({x=0,y=0,payload,data,compact}:EnsembleDateAxisTickProps){
@@ -415,13 +416,13 @@ export default function EnsemblePanel({data,scenarios,models,runs,days,hours,ele
  const[showRainProbability,setShowRainProbability]=useDisplayPreference('EnsemblePanel.showRainProbability',true,displayBoolean),[showRainRange,setShowRainRange]=useDisplayPreference('EnsemblePanel.showRainRange',true,displayBoolean),[rainCumulative,setRainCumulative]=useDisplayPreference('EnsemblePanel.rainCumulative',false,displayBoolean),[showEnsMean,setShowEnsMean]=useDisplayPreference('EnsemblePanel.showEnsMean',true,displayBoolean),[showClimatology,setShowClimatology]=useDisplayPreference('EnsemblePanel.showClimatology',true,displayBoolean),[showQuartiles,setShowQuartiles]=useDisplayPreference('EnsemblePanel.showQuartiles',true,displayBoolean),[windMode,setWindMode]=useState<WindChartMode>(storedEnsembleWindMode),[temperatureOpen,setTemperatureOpen]=useState(()=>storedEnsembleChartOpen('temperature')),[rainOpen,setRainOpen]=useState(()=>storedEnsembleChartOpen('precipitation')),[windOpen,setWindOpen]=useState(()=>storedEnsembleChartOpen('wind')),[selectedConsistency,setSelectedConsistency]=useState<string|null>(null),[changeReport,setChangeReport]=useState<ModelChangeReport|null>(null),[changeRadarOpen,setChangeRadarOpen]=useState(()=>storedAdvancedDisclosure('change-radar')),[scenarioOpen,setScenarioOpen]=useState(()=>storedAdvancedDisclosure('scenario-clusters')),[exportingKind,setExportingKind]=useState<EnsembleExportKind|null>(null),[activeMetric,setActiveMetric]=useState<EnsembleDisplayMetric>(storedEnsembleMetric);
  const rainTooltip=useDismissibleChartTooltip(),viewportCompactChart=useCompactEnsembleChart(),compactChart=exportingKind==='precipitation'?false:viewportCompactChart,rainLayout=professionalEnsembleLayout(compactChart,exportingKind==='precipitation'),showQuartileLayer=advancedMode&&showQuartiles,precipitationDisplayHours=useMemo(()=>precipitationPresentationHours(hours),[hours]);
  const temperatureExportRef=useRef<HTMLDivElement>(null),rainExportRef=useRef<HTMLDivElement>(null),windExportRef=useRef<HTMLDivElement>(null);
- useEffect(()=>{try{localStorage.setItem(`${ENSEMBLE_CHART_OPEN_PREFIX}temperature`,temperatureOpen?'1':'0')}catch{}},[temperatureOpen]);
- useEffect(()=>{try{localStorage.setItem(`${ENSEMBLE_CHART_OPEN_PREFIX}precipitation`,rainOpen?'1':'0')}catch{}},[rainOpen]);
- useEffect(()=>{try{localStorage.setItem(`${ENSEMBLE_CHART_OPEN_PREFIX}wind`,windOpen?'1':'0')}catch{}},[windOpen]);
- useEffect(()=>{try{localStorage.setItem(ENSEMBLE_WIND_MODE_KEY,windMode)}catch{}},[windMode]);
- useEffect(()=>{try{localStorage.setItem(ENSEMBLE_ACTIVE_METRIC_KEY,activeMetric)}catch{}},[activeMetric]);
- useEffect(()=>{try{localStorage.setItem(`${ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX}change-radar`,changeRadarOpen?'1':'0')}catch{}},[changeRadarOpen]);
- useEffect(()=>{try{localStorage.setItem(`${ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX}scenario-clusters`,scenarioOpen?'1':'0')}catch{}},[scenarioOpen]);
+ useEffect(()=>{try{writeDurableStorageValue(`${ENSEMBLE_CHART_OPEN_PREFIX}temperature`,temperatureOpen?'1':'0')}catch{}},[temperatureOpen]);
+ useEffect(()=>{try{writeDurableStorageValue(`${ENSEMBLE_CHART_OPEN_PREFIX}precipitation`,rainOpen?'1':'0')}catch{}},[rainOpen]);
+ useEffect(()=>{try{writeDurableStorageValue(`${ENSEMBLE_CHART_OPEN_PREFIX}wind`,windOpen?'1':'0')}catch{}},[windOpen]);
+ useEffect(()=>{try{writeDurableStorageValue(ENSEMBLE_WIND_MODE_KEY,windMode)}catch{}},[windMode]);
+ useEffect(()=>{try{writeDurableStorageValue(ENSEMBLE_ACTIVE_METRIC_KEY,activeMetric)}catch{}},[activeMetric]);
+ useEffect(()=>{try{writeDurableStorageValue(`${ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX}change-radar`,changeRadarOpen?'1':'0')}catch{}},[changeRadarOpen]);
+ useEffect(()=>{try{writeDurableStorageValue(`${ENSEMBLE_ADVANCED_DISCLOSURE_PREFIX}scenario-clusters`,scenarioOpen?'1':'0')}catch{}},[scenarioOpen]);
  useEffect(()=>{if(!advancedMode)setSelectedConsistency(null)},[advancedMode]);
  useEffect(()=>{if(presentation==='cockpit'||!advancedMode||!changeRadarEnabled||data.length<3||days.length<3){setChangeReport(null);return}let cancelled=false;const calculate=()=>{if(cancelled)return;const snapshot=buildModelChangeSnapshot(data,days,hours,runs);if(snapshot.days.length<3){setChangeReport(null);return}if(!cancelled){const next=updateModelChangeRadar(locationKey,snapshot),past=readModelChangeHistory(locationKey).filter(row=>row.inputs?.context===snapshot.inputs?.context);setChangeReport(next.unchanged&&past.length>=2?compareModelChangeSnapshots(past.at(-2),past.at(-1)!):next)}},idleWindow=window as Window&{requestIdleCallback?:(callback:()=>void,options?:{timeout:number})=>number;cancelIdleCallback?:(id:number)=>void},idleId=idleWindow.requestIdleCallback?.(calculate,{timeout:900}),timer=idleId===undefined?window.setTimeout(calculate,80):undefined;return()=>{cancelled=true;if(idleId!==undefined)idleWindow.cancelIdleCallback?.(idleId);if(timer!==undefined)window.clearTimeout(timer)}},[presentation,advancedMode,changeRadarEnabled,locationKey,data,days,hours,runs]);
  const assessmentTime=useEnsembleAssessmentTime();

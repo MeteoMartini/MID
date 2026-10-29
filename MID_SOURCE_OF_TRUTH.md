@@ -1,3 +1,9 @@
+# MID v0.9.85.366 · kanonische Karten- und Ensembleanzeige
+
+Verifizierte Stable-Basis `v0.9.85.365` `723ef0e11f87963a47aee8a9df8a3c757d07d7ae`, bei Beginn `main = mid-stable`; offene Draft- und Abhängigkeits-PRs geprüft. Nur der Integrationsbranch `codex/v0.9.85.366-display-state-integrity` wird verändert, kein ZIP und kein direkter Schreibzugriff auf main/stable. Vollständiger fachlicher Nachweis: `docs/implementation/MID_C51_DISPLAY_DURABLE_366.md`.
+
+`mid:composite-settings:v3` ist die kanonische Quelle; ein veraltetes `mid:composite-layers:v3` darf eine gültige explizite Auswahl `false` nicht überschreiben. RadarPanel synchronisiert gleichzeitige Ansichten und speichert Patches gegen aktuellen Stand, UnifiedWeatherMap verwendet die dauerhafte Lesebrücke statt stale Mount-Snapshot. Ensemble-UI-Präferenzen bleiben von löschbaren Wetterdaten-Caches getrennt. Keine Änderung der Meteorologielogik, der amtlichen Warnsemantik, RUC-Gewichte oder Produktiv-Schneedaten. Jeder Release benötigt erfolgreichen Source-Gate → Bot-SHA-Merge → serverseitiges ZIP → Installer → Worker/Pages → Stable.
+
 # MID v0.9.85.365 · Sourcekandidat / Recovery nach blockiertem .364-Installer
 
 Freigegebene Basis bleibt .363 `f0ccf4a448b5281a7bfc795d687544c06439104b`; bekannter main-Kandidat .364 `11733c934f8ac60ff109f8b7f175d5bf4fc6f9ef` hat zwei Installer-Core-Fehlschläge ausschließlich beim Chromium-Start. .364 wurde nicht veröffentlicht. Der .365-Branch beginnt auf Stable .363 und übernimmt den exakt geprüften .364-Source-Tree `007001fd25e5973c42e32e62f01f5e708c716b55`, ohne ZIP. Bestehender Source-Gate prüft ausdrücklich das Main-Alt-ZIP fehlgeschlagener Installer separat. Bekannte Lineage, kein unbekannter Drift oder direkter main/stable-Schreibzugriff.
