@@ -1,3 +1,7 @@
+# MID v0.9.85.364 · Ansichts- und Parameterkontinuität
+
+Verifizierte freigegebene Basis .363 `f0ccf4a448b5281a7bfc795d687544c06439104b`, main=mid-stable. Gemeinsame Präferenzen mit stabilen Objekt-Snapshots, sofortigen Writes und aktueller Quelle bei parallelen funktionalen Updates. Stunden-/Tagesdetails getrennt, bestehende Legacy-Parameter validiert, weitere Auswahlzustände in Klima/Karten/Extremwetter/Wasser/Route/Langfrist erhalten. Nachweis und QA-Grenzen `docs/implementation/MID_C51_DISPLAY_RETURN_STATES_364.md`. Keine meteorologische Quelle oder RUC-Gewichtung verändert. Nur Kandidat bis vollständigem Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Nachweis.
+
 # MID v0.9.85.363 · dauerhafte Anzeigeauswahl
 
 Basis .362 `7ced6f011d14e42b6bc9e79ccbb7cd237abbc9f8`. Validierte sofortige Speicherung zuvor flüchtiger Ensemble-/Karten-/Trend-/Pollen-/Klima-Schalter. Technische Abnahme und offene App-Gesamtinventur: `docs/implementation/MID_C51_DISPLAY_PREFERENCES_363.md`. Keine neue meteorologische Quelle, keine Gewichtänderung. Nur Kandidat bis vollständigen Source-/Installer-/Worker-/Pages-/Stable-Gates.

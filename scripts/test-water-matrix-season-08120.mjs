@@ -8,7 +8,7 @@ const [water,mountain,app,styles]=await Promise.all([
 const failures=[];
 const need=(text,token,message)=>{if(!text.includes(token))failures.push(message)};
 for(const token of ['function WaterForecastMatrix','Wasserwetter-Verlauf','Zeitliche Auflösung','>1 h<','>3 h<','Nächste 3 Tage','Welle / Richtung','Wellenperiode','Wassertemperatur','Strömung','Wasserstand'])need(water,token,`Wasserwetter-Verlauf unvollständig: ${token}`);
-need(water,'const[open,setOpen]=useState(false)','Wasserwetter-Verlauf muss standardmäßig eingeklappt sein.');
+need(water,"const[open,setOpen]=useDisplayPreference('WaterSportsPanel.matrix.open',false,displayBoolean)",'Wasserwetter-Verlauf muss standardmäßig eingeklappt sein.');
 need(water,'data-mid-view="water"','Die Wassersport-Innenansicht muss eindeutig markiert sein.');
 need(app,'id="water" title="Wassersport"','Der äußere, nicht doppelte Modultitel muss „Wassersport“ lauten.');
 if(water.includes('Wassersportmodus')||app.includes('Wassersportmodus'))failures.push('Alte Bezeichnung „Wassersportmodus“ ist noch in der App enthalten.');

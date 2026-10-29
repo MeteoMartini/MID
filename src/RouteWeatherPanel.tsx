@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {AlertTriangle,CloudRain,MapPinned,Navigation,Route as RouteIcon,Search,Wind} from 'lucide-react';
 import {GeoJsonLayers,HtmlMarker,MapFitBounds,MidMapLibre,RasterTileLayer} from './MapLibreCore';
@@ -33,6 +34,7 @@ function RouteMap({result,mode}:{result:RouteWeatherResult;mode:RouteMapMode}){
  return <div className="route-weather-map"><MidMapLibre center={points[0]} zoom={7} className="route-maplibre" scrollZoom={false}><MapFitBounds south={south-dy} north={north+dy} west={west-dx} east={east+dx} padding={24}/><RasterTileLayer id="route-osm" attribution="© OpenStreetMap-Mitwirkende" url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"/><GeoJsonLayers id={`route-lines-${mode}`} data={{type:'FeatureCollection',features:lineFeatures}} layers={[{id:'segments',type:'line',paint:{'line-color':['get','color'],'line-width':['get','width'],'line-opacity':['get','opacity'],'line-cap':'round','line-join':'round'}}]}/><GeoJsonLayers id="route-checkpoints" data={{type:'FeatureCollection',features:pointFeatures}} layers={[{id:'points',type:'circle',paint:{'circle-radius':8,'circle-color':['get','color'],'circle-opacity':.94,'circle-stroke-color':'#ffffff','circle-stroke-width':2}}]} hoverProperty="popup"/>{result.checkpoints.map(point=><HtmlMarker key={`wind-${point.id}`} latitude={point.latitude} longitude={point.longitude} html={`<span class="route-wind-glyph" style="color:${routeLevelColor(point.restriction.level)};transform:rotate(${point.weather.direction}deg)">↑</span>`} className="route-wind-marker" anchor="center" popupHtml={htmlEscape(formatRouteWind(point.weather.direction,point.weather.wind,point.weather.gust))}/>)}</MidMapLibre></div>;
 }
 
+function isStoredRouteSpeed(value:unknown):value is number{return typeof value==='number'&&Number.isFinite(value)&&value>=5&&value<=130&&value%5===0}
 function profileSpeed(profile:RouteProfile){return profile==='bike'?20:profile==='foot'?5:90}
 
 export default function RouteWeatherPanel({start,defaultProfile='car',sampleMinutes=20}:{start:Location;defaultProfile?:RouteProfile;sampleMinutes?:number}){
@@ -41,15 +43,15 @@ export default function RouteWeatherPanel({start,defaultProfile='car',sampleMinu
  const[suggestions,setSuggestions]=useState<Location[]>([]);
  const[searchLoading,setSearchLoading]=useState(false);
  const[departureInput,setDepartureInput]=useState(defaultDepartureInput);
- const[speedKmh,setSpeedKmh]=useState(()=>profileSpeed(defaultProfile));
- const[mode,setMode]=useState<RouteMapMode>('line');
+ const[speedKmh,setSpeedKmh]=useDisplayPreference<number>(`RouteWeatherPanel.${defaultProfile}.speed`,profileSpeed(defaultProfile),isStoredRouteSpeed);
+ const[mode,setMode]=useDisplayPreference<RouteMapMode>('RouteWeatherPanel.mode','line',displayChoice('line','segments','corridor'));
  const[result,setResult]=useState<RouteWeatherResult|null>(null);
  const[loading,setLoading]=useState(false);
  const[error,setError]=useState('');
  const searchSeq=useRef(0),loadController=useRef<AbortController|null>(null);
 
  useEffect(()=>{setResult(null);setError('');setSuggestions([]);setDestination(null);setDestinationQuery('')},[start.id,start.latitude,start.longitude]);
- useEffect(()=>{setSpeedKmh(profileSpeed(defaultProfile));setResult(null)},[defaultProfile]);
+ useEffect(()=>{setResult(null)},[defaultProfile]);
  useEffect(()=>{
   const query=destinationQuery.trim();
   if(destination&&query===displayDestination(destination))return;

@@ -1,3 +1,5 @@
+import {readDurableStorageValue} from './storageSafety';
+import {useDisplayPreference,displayChoice,displayBoolean} from './useDisplayPreference';
 import {CalendarMonthAxisLabel} from './CalendarMonthAxisLabel';
 import './horizonInstruments.css';
 import './midC16OutlookCharts.css';
@@ -42,9 +44,10 @@ function dwdQualityLabel(classification:'better'|'similar'|'worse'|'unknown'){re
 function dwdQualityDetails(metric:{mse:number|null;msess:number|null;rpss:number|null;correlation:number|null}){const values:string[]=[];if(Number.isFinite(metric.mse))values.push(`MSE ${formatDecimalFixed(Number(metric.mse),2)}`);if(Number.isFinite(metric.msess))values.push(`MSESS ${formatDecimalFixed(Number(metric.msess),2)}`);if(Number.isFinite(metric.rpss))values.push(`RPSS ${formatDecimalFixed(Number(metric.rpss),2)}`);if(Number.isFinite(metric.correlation))values.push(`r ${formatDecimalFixed(Number(metric.correlation),2)}`);return values.join(' · ')}
 function dwdPrecipValue(period:NonNullable<SeasonalForecastBundle['dwdPerspective']>['periods'][number]){if(Number.isFinite(period.precipitationAnomalyPercent))return`${Number(period.precipitationAnomalyPercent)>=0?'+':''}${Math.round(Number(period.precipitationAnomalyPercent))} %`;if(Number.isFinite(period.precipitationAnomaly))return`${Number(period.precipitationAnomaly)>=0?'+':''}${formatDecimalFixed(Number(period.precipitationAnomaly),2)} mm/Tag`;return'–'}
 
+function readLegacyLongRangeLegend(){try{return readDurableStorageValue('mid:long-range:legend-details')==='1'}catch{return false}}
 export default function LongRangePanel({location,locationName,advancedMode,windUnit,initialHorizon}:Props){
- const[localHorizon,setLocalHorizon]=useState<'46d'|'season'>('46d'),activeHorizon=initialHorizon??localHorizon,seasonSelected=activeHorizon==='season';
- const[data,setData]=useState<SeasonalForecastBundle|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[infoOpen,setInfoOpen]=useState(false),[legendOpen,setLegendOpen]=useState(()=>{try{return localStorage.getItem('mid:long-range:legend-details')==='1'}catch{return false}});
+ const[localHorizon,setLocalHorizon]=useDisplayPreference<'46d'|'season'>('LongRangePanel.horizon','46d',displayChoice('46d','season')),activeHorizon=initialHorizon??localHorizon,seasonSelected=activeHorizon==='season';
+ const[data,setData]=useState<SeasonalForecastBundle|null>(null),[loading,setLoading]=useState(true),[refreshing,setRefreshing]=useState(false),[error,setError]=useState(''),[infoOpen,setInfoOpen]=useState(false),[legendOpen,setLegendOpen]=useDisplayPreference('LongRangePanel.legend',readLegacyLongRangeLegend(),displayBoolean);
  const controllerRef=useRef<AbortController|null>(null),weatherTrendRef=useRef<HTMLElement>(null),seasonalRef=useRef<HTMLElement>(null);
  const load=useCallback(async(refresh=false)=>{
   if(!seasonSelected)return;
