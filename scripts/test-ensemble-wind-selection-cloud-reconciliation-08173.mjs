@@ -11,9 +11,9 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 for(const token of [
   "const ENSEMBLE_WIND_MODE_KEY='mid:ensemble:wind-mode'",
   'function storedEnsembleWindMode():WindChartMode',
-  "localStorage.getItem(ENSEMBLE_WIND_MODE_KEY)==='gust'?'gust':'wind'",
+  "readDurableStorageValue(ENSEMBLE_WIND_MODE_KEY)==='gust'?'gust':'wind'",
   'useState<WindChartMode>(storedEnsembleWindMode)',
-  'localStorage.setItem(ENSEMBLE_WIND_MODE_KEY,windMode)',
+  'writeDurableStorageValue(ENSEMBLE_WIND_MODE_KEY,windMode)',
   '},[windMode]);'
 ])need('Persistente Wind-/Böenauswahl',panel,token);
 
