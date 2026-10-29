@@ -1,3 +1,7 @@
+# MID v0.9.85.358 · farbreines Skybar-Grundband
+
+Basis: freigegebene .357 `a9bc9b7e429e4d0d10d67e0ebc4d8e35d1d2caf1`. Der gemeinsame Renderer erhält für Gelb und Grau vollständig deckende Grundfarben; die Ausprägung bleibt ausschließlich an den unveränderten vier Balkendicken erkennbar. Direkte Sonnenscheindauer und Wolkenlücken bleiben in den Titeln fachlich getrennt. Quadrat-Klassenfarben, Sonnenränder, Missing und Niederschlagslagen bleiben erhalten. Nachweis: `docs/implementation/MID_C50_SKYBAR_COLORS_358.md`. Nur Source-Kandidat bis vollständigem Source-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable.
+
 # MID v0.9.85.357 · astronomische Skybar-Zustände in hohen Breiten
 
 Basis: freigegebene .356 `4595367c3439639b25c7decd23d39d57ab66ed92`. Polartag/-nacht ohne tägliche Ereignisse, einseitige und über Mitternacht angeordnete Sonnenereignisse werden im gemeinsamen Astronomiekern und der Kurzfristinterpolation bestimmt. Kein erfundener Sonnenzeitstempel, kein meteorologischer Mengen-/Schwellenwechsel. Nachweise und Abnahmegrenzen: `docs/implementation/MID_C49_SKYBAR_POLAR_357.md`. Veröffentlichung erst nach vollständigem Source-Gate, SHA-Bot, Server-ZIP, Installer, Worker/Pages und Stable-Promotion.

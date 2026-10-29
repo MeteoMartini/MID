@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.357",
+  "releaseVersion": "0.9.85.358",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -869,6 +869,7 @@
     "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
     "scripts/test-skybar-solar-epoch-split-0985278.mjs",
+    "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
     "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
     "scripts/test-skybar-week-solar-0985342.mjs",
@@ -1909,6 +1910,7 @@
     "scripts/test-skybar-short-sunshine-0985268.mjs",
     "scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs",
     "scripts/test-skybar-solar-epoch-split-0985278.mjs",
+    "scripts/test-skybar-solid-colors-0985358.mjs",
     "scripts/test-skybar-sun-cloud-exclusive-097863.mjs",
     "scripts/test-skybar-sunshine-time-alignment-097881.mjs",
     "scripts/test-skybar-week-solar-0985342.mjs",
@@ -3054,7 +3056,8 @@
     "tools/ecmwf/test_native_ifs_0p1_preflight.py",
     "tools/ecmwf/requirements-readonly.txt",
     "ci/github/workflows/mid-ecmwf-ifs-0p1-readonly.yml",
-    ".github/workflows/mid-ecmwf-ifs-0p1-readonly.yml"
+    ".github/workflows/mid-ecmwf-ifs-0p1-readonly.yml",
+    "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3166,7 +3169,8 @@
     "scripts/test-ruc-migration-preparation-0985265.mjs",
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-hour-window-formatter-0985327.mjs",
-    "scripts/test-complete-calendar-day-current-skybar-0985285.mjs"
+    "scripts/test-complete-calendar-day-current-skybar-0985285.mjs",
+    "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3782,9 +3786,10 @@
     "scripts/test-ruc-concurrency-offline-0985263.mjs",
     "scripts/test-ruc-inventory-0985264.mjs",
     "scripts/test-ruc-migration-preparation-0985265.mjs",
-    "scripts/test-location-mountain-resilience-0985283.mjs"
+    "scripts/test-location-mountain-resilience-0985283.mjs",
+    "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.357",
+  "version": "0.9.85.358",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

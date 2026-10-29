@@ -97,6 +97,10 @@ const sampleIntervalSeconds=(hours:PrecipSample[],index:number)=>{
 const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sunshineReference='der betrachteten Zeit'):WeatherStripVisual|null=>{
   const cloudKnown=Number.isFinite(cloud),sunshineDirect=sunshineShare!==null&&Number.isFinite(sunshineShare);
 
+  // Continuous bands encode magnitude by thickness alone. Opaque base colors
+  // prevent source provenance or the day/night background from tinting them;
+  // direct sunshine and open-sky evidence remain distinct in every tooltip.
+
   // Gesamtbewölkung und Sonnenscheindauer bleiben getrennte physikalische Größen.
   // Bekannte starke Bewölkung trägt das graue Grundband. Bei geringer Bewölkung
   // darf Gelb nur eine direkt gelieferte Sonnenscheindauer oder – klar benannt –
@@ -109,7 +113,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sun
       color:'#aeb3b9',
       strokeWidth:cloudWidth,
       thicknessLevel:skybarThicknessLevel(level),
-      opacity:0.96,
+      opacity:1,
       title:`Gesamtbewölkung${daylight?'':' Nacht'} · ${boundedCloud.toFixed(0)} %`,
     };}
     if(daylight&&sunshineDirect){
@@ -119,7 +123,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sun
         color:'#ffc229',
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
-        opacity:0.98,
+        opacity:1,
         title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % ${sunshineReference} · Gesamtbewölkung ${boundedCloud.toFixed(0)} %`,
       };}
     }
@@ -132,7 +136,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sun
         color:'#ffc229',
         strokeWidth:width,
         thicknessLevel:skybarThicknessLevel(level),
-        opacity:0.78,
+        opacity:1,
         title:`Wolkenlücken · ${(openSkyShare*100).toFixed(0)} % unbedeckter Himmelsanteil · Gesamtbewölkung ${boundedCloud.toFixed(0)} % · ${sunshineDirect?`Sonnenscheindauer ${(clamp01(Number(sunshineShare))*100).toFixed(0)} % ${sunshineReference}`:'Sonnenscheindauer nicht verfügbar'}`,
       };}
     }
@@ -146,7 +150,7 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sun
       color:'#ffc229',
       strokeWidth:width,
       thicknessLevel:skybarThicknessLevel(level),
-      opacity:0.98,
+      opacity:1,
       title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % ${sunshineReference} · Bewölkung unbekannt`,
     };}
   }
