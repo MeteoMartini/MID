@@ -7,6 +7,9 @@ const now=Date.parse('2026-10-29T14:00:00Z'),station={elevation:1250,targetEleva
 const point=(x,t='2026-10-29T13:50:00Z')=>({properties:{parameters:{SCHNEE:x},timestamp:t}});
 assert.equal(snowSample(point({data:[null,0]}),station,now).valueCm,0);
 assert.equal(snowSample(point({data:[12,15]}),station,now).valueCm,15);
+assert.equal(snowSample(point({data:[14,null]}),station,now).accepted,false,'newest missing: no stale backfill with current timestamp');
+assert.equal(snowSample(point({data:[0,null]}),station,now).accepted,false,'old zero must not masquerade as fresh zero');
+assert.equal(snowSample(point({data:[null,0]}),station,now).accepted,true,'fresh actual 0 cm valid');
 for(const bad of [null,undefined,false,[],{},-1,1200,NaN,'', 'Infinity'])assert.equal(snowSample(point(bad),station,now).accepted,false);
 for(const t of ['2026-10-29T05:00:00Z','2026-10-29T16:00:00Z','2026-10-29T13:50:00'])assert.equal(snowSample(point(3,t),station,now).accepted,false);
 for(const s of [{...station,elevation:undefined},{...station,targetElevation:1800},{...station,distanceKm:30}])assert.equal(snowSample(point(3),s,now).accepted,false);

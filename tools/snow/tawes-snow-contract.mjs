@@ -17,7 +17,8 @@ function finite(v){
 export function snowSample(feature,station,now=Date.now()){
  const props=feature?.properties??{},params=props.parameters??{},raw=params.SCHNEE??params.schnee;
  const values=Array.isArray(raw?.data)?raw.data:Array.isArray(raw?.values)?raw.values:Array.isArray(raw)?raw:[raw?.value??raw];
- let cm=null;for(let i=values.length-1;i>=0;i--){const n=finite(values[i]?.value??values[i]);if(n!==null){cm=n;break}}
+ // The timestamp belongs to the newest sample only. Never backfill an older non-null value.
+ const latest=values.at(-1),cm=finite(latest?.value??latest);
  if(cm===null)return{accepted:false,reason:'missing'};
  if(cm<0||cm>1000)return{accepted:false,reason:'implausible'};
  const time=props.timestamp??props.reference_time??feature?.timestamp;
