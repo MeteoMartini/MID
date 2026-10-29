@@ -47,7 +47,7 @@ assert.equal(redirect.snapshot().groups['mid-origin'].status['3xx'],1);
 assert.equal(redirect.snapshot().groups['mid-origin'].pending,0);
 assert.equal(redirect.snapshot().groups['open-meteo'].completed,1);
 const source=await readFile(new URL('../tools/widget-export/capture-widget.mjs',import.meta.url),'utf8');
-for(const token of ["browserArgs.push('about:blank')","createWidgetNetworkDiagnostics()","Page.navigate',{url:url.toString()}","Network.requestWillBeSent","network:networkDiagnostics.snapshot()"])assert.ok(source.includes(token),`Widget-Capture-Trace-Pfad fehlt: ${token}`);
+for(const token of ["browserArgs.push('about:blank')","createWidgetNetworkDiagnostics()","Page.navigate',{url:url.toString()}","message.method.startsWith('Network.')","network:networkDiagnostics.snapshot()"])assert.ok(source.includes(token),`Widget-Capture-Trace-Pfad fehlt: ${token}`);
 assert.ok(source.indexOf("await cdp.call('Network.enable')")<source.indexOf("await cdp.call('Page.navigate'"),'Network monitoring must start before navigation');
 assert.ok(!source.includes('networkFailures:failures'),'Raw network errors may not appear in reports');
 console.log('Widget-CDP: 5 real event patterns, redirects, pending, truncation, status, rate limits, DNS, timeout, canceled, and no URL/token/coordinate leakage.');
