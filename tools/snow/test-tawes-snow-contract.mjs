@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {snowMetadata,snowSample} from './tawes-snow-contract.mjs';
+const metadata={parameters:[{name:'SCHNEE',unit:'cm',long_name:'Gesamtschneehöhe 10 Minuten'}]};
+assert.equal(snowMetadata(metadata).ready,true);
+for(const invalid of [{},{parameters:[{name:'HS',unit:'cm',long_name:'Schnee'}]},{parameters:[{name:'SCHNEE',unit:'mm',long_name:'Schnee'}]},{parameters:[{name:'SCHNEE',unit:'cm'}]},{parameters:[metadata.parameters[0],metadata.parameters[0]]}])assert.equal(snowMetadata(invalid).ready,false);
+const now=Date.parse('2026-10-29T14:00:00Z'),station={elevation:1250,targetElevation:1200,distanceKm:8};
+const point=(x,t='2026-10-29T13:50:00Z')=>({properties:{parameters:{SCHNEE:x},timestamp:t}});
+assert.equal(snowSample(point({data:[null,0]}),station,now).valueCm,0);
+assert.equal(snowSample(point({data:[12,15]}),station,now).valueCm,15);
+for(const bad of [null,undefined,false,[],{},-1,1200,NaN,'', 'Infinity'])assert.equal(snowSample(point(bad),station,now).accepted,false);
+for(const t of ['2026-10-29T05:00:00Z','2026-10-29T16:00:00Z','2026-10-29T13:50:00'])assert.equal(snowSample(point(3,t),station,now).accepted,false);
+for(const s of [{...station,elevation:undefined},{...station,targetElevation:1800},{...station,distanceKm:30}])assert.equal(snowSample(point(3),s,now).accepted,false);
+assert.equal(snowSample(point(3),station,now).measurementClass,'automatic_unverified_snow_depth');
+console.log('PASS read-only TAWES metadata and snow-sample contract');
