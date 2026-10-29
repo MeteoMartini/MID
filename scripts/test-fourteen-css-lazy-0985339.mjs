@@ -17,6 +17,10 @@ if(existsSync('dist/index.html')){
  assert.ok(!hrefs.some(href=>href.endsWith(css[0])),'Async CSS must not be an initial stylesheet');
  assert.ok(html.includes('rel="mid-offline"'),'Deferred module must remain available in the offline shell');
 }
+const parity=read('scripts/verify-fourteen-css-production-0985339.mjs');
+for(const token of ['settledSnapshot(', 'requestAnimationFrame(()=>requestAnimationFrame(resolve))','assert.deepEqual(actual,expected', 'assert.ok(images[0].equals(images[1])','throw new Error(label']){
+ assert.ok(parity.includes(token),'WebKit browser parity must await stable deferred layout and retain exact computed/pixel comparisons: '+token);
+}
 if(process.env.GITHUB_ACTIONS==='true'||process.env.MID_CSS_BROWSER_QA==='1'){
  console.log('[css-parity] launching independent Chromium/WebKit production parity process');
  await runBounded(process.execPath,['scripts/verify-fourteen-css-production-0985339.mjs'],{timeoutMs:420000});

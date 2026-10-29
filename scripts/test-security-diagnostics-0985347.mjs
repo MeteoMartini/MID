@@ -27,5 +27,33 @@ try{
  const canonical=await read('ci/github/workflows/install-mid.yml');for(const name of ['.github/workflows/install-mid.yml','workflow-patches/install-mid.yml'])assert.equal(await read(name),canonical);
  assert.equal(canonical.split('path: ${{ runner.temp }}/mid-regression-*/timings.json').length-1,2);
  const expected='https://www.midwx.app/api/mid-worker';assert.ok(sourceUsesExactHttpsUrl(`--url "${expected}"`,expected));for(const suffix of ['.evil.example','/extra','?evil=1'])assert.equal(sourceUsesExactHttpsUrl(`--url "${expected}${suffix}"`,expected),false);
- console.log('Security diagnostics: 32 concurrent writers, retries, symlinks, paired image/report, 12 private timing artifacts, workflow mirrors and URL negatives passed.');
+ // Incomplete or non-serializable collectors must still publish a valid
+ // first-failure report, never a zero-byte file or leaked error text.
+ for(const bad of [
+  async()=>{throw new Error('SECRET_URL_HTTPS_credential_should_not_be_logged')},
+  async()=>{const cycle={schema:1};cycle.self=cycle;return cycle},
+  async()=>undefined,
+  async()=>[]
+ ]){
+  await fs.rm(report,{force:true});
+  assert.equal(await writeFirstDiagnostic(report,bad),true);
+  assert.deepEqual(JSON.parse(await fs.readFile(report,'utf8')),{schema:1,collectionFailed:true,screenshotAvailable:false});
+  assert.equal((await fs.stat(report)).mode&0o777,0o600);
+  assert.equal(await writeFirstDiagnostic(report,async()=>({schema:1,secret:'later-attempt'})),false);
+  assert.ok(!(await fs.readFile(report,'utf8')).includes('SECRET_URL_HTTPS'));
+  assert.ok(!(await fs.readFile(report,'utf8')).includes('later-attempt'));
+ }
+ await fs.rm(report,{force:true});
+ let releaseCollector,startedCollector;
+ const collectorGate=new Promise(resolve=>{releaseCollector=resolve});
+ const startedGate=new Promise(resolve=>{startedCollector=resolve});
+ const first=writeFirstDiagnostic(report,async()=>{startedCollector();await collectorGate;return{schema:1,first:true,screenshotAvailable:false}});
+ await startedGate;
+ assert.deepEqual(JSON.parse(await fs.readFile(report,'utf8')),{schema:1,collectionState:'capturing',screenshotAvailable:false});
+ assert.equal(await writeFirstDiagnostic(report,async()=>({schema:1,first:false})),false);
+ releaseCollector();
+ assert.equal(await first,true);
+ assert.deepEqual(JSON.parse(await fs.readFile(report,'utf8')),{schema:1,first:true,screenshotAvailable:false});
+ assert.deepEqual((await fs.readdir(path.dirname(report))).filter(name=>name.startsWith('.mid-diagnostic-stage-')),[]);
+ console.log('Security diagnostics: 32 concurrent writers, safe rejected/circular collectors, valid in-flight JSON, atomic report, retries, symlinks, paired image/report, 12 private timing artifacts, workflow mirrors and URL negatives passed.');
 }finally{await fs.rm(temporary,{recursive:true,force:true})}

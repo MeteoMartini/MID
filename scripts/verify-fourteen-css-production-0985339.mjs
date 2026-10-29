@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {isDeepStrictEqual} from 'node:util';
 import {mkdtemp,writeFile,readFile,symlink,mkdir,rm,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve,dirname} from 'node:path';
@@ -64,6 +65,21 @@ async function verifyOfflineModule(browser,name){
 }
 let active,stable,cases=0;
 async function snapshot(page){return page.locator('[data-fourteen-development]').evaluate(el=>[...el.querySelectorAll('*')].map(n=>{const s=getComputedStyle(n),r=n.getBoundingClientRect();return {tag:n.tagName,text:n.children.length?'':n.textContent,box:[r.x,r.y,r.width,r.height].map(v=>Math.round(v*100)/100),style:['display','color','backgroundColor','fontSize','fontWeight','lineHeight','padding','margin','border','borderRadius','gridTemplateColumns','gap','fill','stroke','opacity'].map(k=>s[k])};}));}
+async function settledSnapshot(page,label){
+ // WebKit can complete JS rendering before deferred CSS/font layout has settled.
+ // Require three identical sampled layouts after explicit animation frames;
+ // never relax computed parity or pixel equality.
+ let previous=null,unchanged=0;
+ for(let attempt=0;attempt<18;attempt++){
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const current=await snapshot(page);
+  if(previous&&isDeepStrictEqual(previous,current))unchanged++;else unchanged=0;
+  if(unchanged>=2)return current;
+  previous=current;
+  await page.waitForTimeout(70);
+ }
+ throw new Error(label+': deferred CSS/font layout did not reach a stable geometry');
+}
 try{
  console.log('[css-parity] building isolated release/reference production fixtures');
  active=await fixture(root,'active',false);stable=await fixture(reference,'stable',true);
@@ -76,7 +92,17 @@ try{
   try{for(const cache of ['cold','warm']){const requestsBefore=active.cssRequests();
    for(const {page}of contexts){if(cache==='warm'){await page.reload();await page.locator('#open').waitFor();}assert.equal(await page.locator('[data-fourteen-development]').count(),0);assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(e=>/FourteenDayDevelopment-.*\.css/.test(e.name))),false,'Closed component must not fetch its CSS');await page.locator('#open').click();await page.locator('[data-signal-series="tmin"] circle').first().waitFor();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(60);}
    const cssResources=await contexts[0].page.evaluate(()=>performance.getEntriesByType('resource').filter(e=>/FourteenDayDevelopment-.*\.css/.test(e.name)).map(e=>({transfer:e.transferSize,size:e.decodedBodySize})));assert.equal(cssResources.length,1,'One exclusive CSS chunk loaded');if(cache==='cold')assert.ok(cssResources[0].size>0);assert.equal(active.cssRequests()-requestsBefore,cache==='cold'?1:0,'Cold CSS fetched exactly once, warm CSS reused without HTTP');assert.ok(await contexts[0].page.evaluate(()=>[...document.styleSheets].some(s=>/FourteenDayDevelopment-.*\.css/.test(s.href||'')&&s.cssRules.length>0)),'Deferred stylesheet has actual CSS rules');if(cache==='warm')assert.equal(cssResources[0].transfer,0,'Warm run must use cached CSS');
-   assert.deepEqual(await snapshot(contexts[0].page),await snapshot(contexts[1].page),`${name}/${width}/${theme}/${cache}: computed/layout parity`);
+   const label=`${name}/${width}/${theme}/${cache}`;
+   const actual=await settledSnapshot(contexts[0].page,label+'/deferred'),expected=await settledSnapshot(contexts[1].page,label+'/reference');
+   if(!isDeepStrictEqual(actual,expected)){
+    const first=actual.findIndex((value,index)=>!isDeepStrictEqual(value,expected[index]));
+    const selectors=await Promise.all(contexts.map(({page})=>page.locator('[data-fourteen-development]').evaluate((root,index)=>{
+     const node=root.querySelectorAll('*')[index];
+     return node?{tag:node.tagName,className:node.getAttribute('class'),html:node.outerHTML.slice(0,260)}:null;
+    },first)));
+    console.error('[css-parity] first computed/layout mismatch: '+JSON.stringify({label,index:first,actual:actual[first],expected:expected[first],selectors}));
+   }
+   assert.deepEqual(actual,expected,`${label}: computed/layout parity`);
    for(const {page,errors}of contexts){assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('[data-signal-series="tmin"] g[role="button"]').first().focus();await page.keyboard.press('Enter');assert.match(await page.getByRole('status').innerText(),/P10–P90/);}
    assert.equal(await contexts[0].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),await contexts[1].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),'Shared SVG geometry and accessible data');
    const images=await Promise.all(contexts.map(({page})=>page.locator('[data-fourteen-development]').screenshot({animations:'disabled'})));assert.ok(images[0].equals(images[1]),`${name}/${width}/${theme}/${cache}: pixel parity`);cases++;console.log(`${name} ${width}/${theme}/${cache}: parity passed`);

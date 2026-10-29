@@ -1,3 +1,11 @@
+## MID v0.9.85.361 · 29.10.2026 · transaktionale Security-Diagnostik
+
+- Exklusiv reservierte Erstfehler-Berichte mit sofort gültigem JSON-Zwischenstatus und atomarem Endbericht.
+- Sicherer Fehler-Fallback bei Collector-Rejection, zyklischem/undefiniertem oder nicht-objektförmigem Payload ohne Übernahme vertraulicher Fehlermeldungen.
+- Parallele 32-Writer-, In-Flight-, Symlink-, Datei-0600-/Screenshot-/Timing-Regressionsprüfungen; keine Pflichtprüfung deaktiviert.
+- Der WebKit-320px-Kaltstart-CSS-Paritätsblocker wird mit echten stabilen Frame-Snapshots und präziser DOM-Diagnose statt gelockerter Parität überprüft; die gesamte Browser-/Pixelmatrix bleibt Pflicht.
+- Versionsspiegel für App, Worker, Service Worker, iOS und Registry synchronisiert. Freigabe ausschließlich über den MID-Releasebot.
+
 ## MID v0.9.85.355 · 2026-10-28 · Bergwetter-Installer-Recovery
 
 - SHA-verifizierter Stable-.353-Nachfolger mit übernommenem .354-Source-Tree, ohne rotes Release-ZIP.
