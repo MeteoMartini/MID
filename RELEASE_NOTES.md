@@ -1,9 +1,8 @@
-# MID v0.9.85.358
+# MID v0.9.85.359
 
-## Einheitliche Skybar-Farben
+## Geprüfte Wartung der Veröffentlichungskette
 
-- Das kontinuierliche Sonnenband zeigt Sonnenschein und Wolkenlücken durchgehend im gleichen Gelb. Auch das graue Bewölkungsband behält über wechselnden Hintergründen seine feste Farbe.
-- Die Ausprägung bleibt an der Balkendicke erkennbar. Tooltips unterscheiden weiterhin direkte Sonnenscheindauer und Wolkenlücken mit dem jeweiligen Bezugszeitraum.
-- Die gemeinsame Darstellung gilt auch für Kurzfrist, Tages- und Wochenansichten sowie SVG-/PNG-Ausgaben. Die optionalen Stundenquadrate behalten ihre eigenen vier Klassenfarben.
+- Node-Setup, Artefaktübertragung und App-Token-Erzeugung verwenden gemeinsam aktualisierte, auf vollständige Commit-SHAs festgelegte GitHub Actions.
+- Kanonische Workflows, ihre aktiven Spiegel und die Prüfungen der zugelassenen Versionen bleiben synchron. Bestehende Berechtigungen, Snapshot-Prüfungen und Freigabegates gelten weiterhin.
 
-Sonnenzeiten, Wetterwerte, Niederschlagsphasen, Datenlücken und die astronomische Nachtgrenze bleiben erhalten. Browserprüfungen ersetzen keine physische iOS-/VoiceOver-Abnahme.
+Wetterberechnungen und Darstellung bleiben erhalten. Die Browser-Download-Zuverlässigkeit bleibt eine gesonderte Betriebsaufgabe.

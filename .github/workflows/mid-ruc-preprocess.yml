@@ -139,7 +139,7 @@ jobs:
       - name: Unveränderlichen RUC-Kern für getrennte Aufbereitung sichern
         id: core_upload
         if: steps.freshness.outputs.should_run == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-core-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./ruc-core-checkpoint
@@ -151,7 +151,7 @@ jobs:
         run: echo "RUC ohne Neubau; Freshness-Ergebnis oder noch nicht promoteter Übergabevertrag" >> "$GITHUB_STEP_SUMMARY"
       - name: Berechnungslaufzeiten auch bei Fehlern sichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-calculation-timings-${{ github.run_id }}-${{ github.run_attempt }}
           path: ruc-timings.jsonl
@@ -253,13 +253,13 @@ jobs:
           python tools/ruc/timed_command.py legacy-rollback -- python tools/ruc/prepare_legacy_core_rollback.py .ruc-out .ruc14-reference .ruc14-rollback > .ruc-legacy-rollback-proof.json
       - name: Node.js 22 für vollständigen RUC-Python/JS-Abgleich laden
         if: ${{ inputs.reuse_run_id == '' }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
       - name: SHA-gebundenen RUC-Rohsnapshot als rollbackfähiges Artefakt sichern
         if: ${{ inputs.reuse_run_id == '' }}
         id: rollback_upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-rollback-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./.ruc14-rollback/ruc
@@ -362,7 +362,7 @@ jobs:
       - name: Vorbereiteten RUC-Snapshot als unveränderliches Übergabeartefakt sichern
         id: data_upload
         if: ${{ inputs.reuse_run_id == '' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-data-${{ github.run_id }}-${{ github.run_attempt }}
           path: ./.ruc-pages/ruc
@@ -376,7 +376,7 @@ jobs:
         run: echo 'ready=true' >> "$GITHUB_OUTPUT"
       - name: Aufbereitungslaufzeiten auch bei Fehlern sichern
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-preparation-timings-${{ github.run_id }}-${{ github.run_attempt }}
           path: ruc-timings.jsonl
@@ -463,7 +463,7 @@ jobs:
           path: ./.ruc-pages/ruc
       - name: Aktuellen JS-Decoder für Snapshot-Zulassung laden
         if: steps.stable_guard.outputs.allowed == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
       - name: Vollständige Snapshot-Wiederzulassung mit aktuellem Stable-Datenvertrag
@@ -640,7 +640,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 tools/ruc/report_workflow_timings.py
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: mid-ruc-workflow-timings-${{ github.run_id }}-${{ github.run_attempt }}

@@ -14,7 +14,7 @@ assert.equal(pkg.devDependencies?.esbuild,'0.28.2');assert.equal(lock.packages?.
 assert.equal(pkg.devDependencies?.['@types/react'],'^19.2.18');assert.equal(pkg.devDependencies?.['@types/react-dom'],'^19.2.5');
 for(const token of ["minify:'oxc'","cssMinify:'lightningcss'",'rolldownOptions','codeSplitting'])assert.ok(vite.includes(token),`Vite-8-Konfiguration fehlt: ${token}`);
 for(const token of ['manualChunks',"minify:'esbuild'","cssMinify:'esbuild'",'rollupOptions'])assert.ok(!vite.includes(token),`Veralteter Vite-Vertrag aktiv: ${token}`);
-const checkout='actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1',setup='actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0',deployPages='actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1';
+const checkout='actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1',setup='actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0',deployPages='actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1';
 for(const [label,text] of [['deploy',deploy],['install',install],['dependency-audit',audit],['patch-deploy',patchDeploy],['patch-install',patchInstall]]){
  assert.ok(text.includes(checkout),`${label}: checkout v7 SHA fehlt.`);if(label!=='patch-install'||text.includes('setup-node'))assert.ok(text.includes(setup),`${label}: setup-node v7 SHA fehlt.`);
  if(label==='deploy'||label==='install'||label==='patch-deploy'||label==='patch-install')assert.ok(text.includes(deployPages),`${label}: deploy-pages 5.0.1 fehlt.`);

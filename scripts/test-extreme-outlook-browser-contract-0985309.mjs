@@ -21,7 +21,7 @@ for(const width of [320,390,430,834,1024,1440])assert.ok(runner.includes('['+wid
 const canonical=read('ci/github/workflows/chatgpt-pr-gate.yml'),mirror=read('.github/workflows/chatgpt-pr-gate.yml');
 assert.equal(canonical,mirror,'Canonical and active PR workflow mirrors diverged');
 assert.ok(canonical.includes('  visual_extreme:')&&canonical.includes('visual_extreme.result')&&canonical.includes('VISUAL_RESULT')&&canonical.includes('EXTREME_BRANCH'),'Visual proof must be a true Source-Gate dependency, never optional on this branch');
-assert.ok(canonical.includes('mid-extreme-webgl-')&&canonical.includes('actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a'),'Screenshots and evidence must be attached to exact run');
+assert.ok(canonical.includes('mid-extreme-webgl-')&&canonical.includes('actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'),'Screenshots and evidence must be attached to exact run');
 assert.ok(canonical.includes('github.event.pull_request.draft == false'),'Draft cannot be automatically released');
 assert.ok(!runner.includes('process.exit(0)')&&!runner.includes('test.skip('),'No synthetic green result or WebGL skip is permitted');
 console.log('MID .309: protected actual React/MapLibre WebGL browser QA + two-theme responsive evidence + Source-Gate fail-closed dependency verified (structural contract, not pixel acceptance).');
