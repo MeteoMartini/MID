@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {useEffect,useMemo,useState} from 'react';
 import {AlertTriangle,Cloud,CloudRain,Compass,RefreshCw,Thermometer,Wind} from 'lucide-react';
 import {fetchTravelClimatology,type TravelClimateDataset,type TravelClimateDay} from './travelPlanner';
@@ -35,7 +36,7 @@ function CloudShares({days}:{days:TravelClimateDay[]}){
  return <div className="climate-cloud-shares"><div className="climate-cloud-stack">{CLOUD_CLASSES.map((item,index)=><span key={item.key} className={item.key} style={{width:`${share(counts[index],values.length)}%`}} title={`${item.label}: ${share(counts[index],values.length)} %`}/>)}</div><div className="climate-cloud-legend">{CLOUD_CLASSES.map((item,index)=><span key={item.key} className={item.key}><i/>{item.label}<b>{share(counts[index],values.length)} %</b></span>)}</div></div>;
 }
 function WindRose({days,unit}:{days:TravelClimateDay[];unit:WindUnit}){
- const gustAvailable=days.some(day=>Number.isFinite(Number(day.gustMaxMean))),[mode,setMode]=useState<'wind'|'gust'>('wind');
+ const gustAvailable=days.some(day=>Number.isFinite(Number(day.gustMaxMean))),[mode,setMode]=useDisplayPreference<'wind'|'gust'>('ClimatePanel.mode','wind',displayChoice('wind','gust'));
  useEffect(()=>{if(!gustAvailable&&mode==='gust')setMode('wind')},[gustAvailable,mode]);
  const bins=mode==='gust'?GUST_BINS:WIND_BINS,sectors=Array.from({length:8},()=>({bins:bins.map(()=>0),total:0}));
  for(const day of days){const direction=Number(day.windDirection),speed=mode==='gust'?Number(day.gustMaxMean):Number(day.windMean??day.windMaxMean);if(!Number.isFinite(direction)||!Number.isFinite(speed))continue;const sector=sectors[Math.round(direction/45)%8],bin=bins.findIndex(item=>speed>=item.min&&speed<item.max);if(bin>=0){sector.bins[bin]++;sector.total++}}

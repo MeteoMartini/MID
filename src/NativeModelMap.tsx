@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls} from './NativeScalarMapOverlay';
 import {adaptiveContourLayers} from './adaptiveModelContours';
 import {nativeIsobarFeatures} from './unifiedMapPresentation';
@@ -23,11 +24,11 @@ import './weatherMapsTotals.css';
 const stamp=(value:string)=>new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC';
 export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:{kind:NativeFieldKind;label:string;favorites:WeatherMapFavoriteLocation[];basemap:WeatherMapBasemapId;unit?:WindUnit}){
  const [catalog,setCatalog]=useState<{index:NativeIndex;base:string}|null>(null),[field,setField]=useState<NativeField|null>(null),[hour,setHour]=useState(6),[error,setError]=useState(''),[revision,setRevision]=useState(0),[playing,setPlaying]=useState(false),[exporting,setExporting]=useState(false),[selected,setSelected]=useState('');
- const [showExtremes,setShowExtremes]=useState(true),[showScalarLines,setShowScalarLines]=useState(false);
+ const [showExtremes,setShowExtremes]=useDisplayPreference('NativeModelMap.showExtremes',true,displayBoolean),[showScalarLines,setShowScalarLines]=useDisplayPreference('NativeModelMap.showScalarLines',false,displayBoolean);
  const [cloudField,setCloudField]=useState<NativeField|null>(null);
  const combined=useMemo(()=>kind==='sigwx'&&field&&cloudField?nativeCloudWeatherPair(cloudField,field):null,[kind,field,cloudField]);
  const combinedValue=(lat:number,lon:number)=>{const p=combined?cloudWeatherAt(combined,lat,lon):null;return p?`${p.cloud===null?'Wolken unbekannt':Math.round(p.cloud)+' % Wolken'} · ${cloudWeatherDescription(p.weather)}`:null;};
- const [colorMode,setColorMode]=useState<MapColorMode>('field');
+ const [colorMode,setColorMode]=useDisplayPreference<MapColorMode>('NativeModelMap.colorMode','field',displayChoice('field','absolute'));
  const [cloudRenderMode,setCloudRenderMode]=useState<CloudWeatherRenderMode>(readCloudWeatherRenderMode);
  const [cloudIsobars,setCloudIsobars]=useState(readCloudWeatherIsobars);
  const chooseCloudIsobars=(enabled:boolean)=>{setCloudIsobars(enabled);writeCloudWeatherIsobars(enabled)};

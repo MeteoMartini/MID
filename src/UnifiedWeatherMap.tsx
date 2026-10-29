@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls} from './NativeScalarMapOverlay';
 import {totalsScalarField} from './totalsScalarField';
 import {modelLeadLabel,modelAvailableLabel} from './modelForecastTime';
@@ -59,7 +60,7 @@ export default function UnifiedWeatherMap(props:Props){
  const fieldCache=useRef(new Map<string,NativeField>());
  const [availability,setAvailability]=useState({forecast:false,observed:false});
  const onTimeChange=useCallback((value:number)=>setTarget(value),[]);
- const [observationLayers,setObservationLayers]=useState(true);
+ const [observationLayers,setObservationLayers]=useDisplayPreference('UnifiedWeatherMap.observationLayers',true,displayBoolean);
  const onObservationLayersChange=useCallback((active:boolean)=>setObservationLayers(active),[]);
  const presentation=settings.parameter==='geopotential'?'lines':['thetae','sigwx'].includes(settings.parameter)?'fill':unifiedMapPresentation(settings,observationLayers),showFill=presentation==='fill';
  useEffect(()=>{const c=new AbortController();setCatalogErrors([]);setCatalog(null);setRucCatalog(null);setTotals(null);setObserved(null);fieldCache.current.clear();
@@ -125,7 +126,7 @@ export default function UnifiedWeatherMap(props:Props){
  const isoheightContours=useMemo(()=>matchingCloudIsoheights(cloudData,selectedCloudIsoheights),[cloudData,selectedCloudIsoheights]);
  const heightsActive=Boolean(isCloudWeather&&cloudWeather.ready&&cloudIsoheights&&isoheightContours.features.length);
  const linesActive=(isCloudWeather?cloudWeather.ready:active)&&showIsobars&&Boolean(contours.features.length);
- const [showExtremes,setShowExtremes]=useState(true),[showTotalsContours,setShowTotalsContours]=useState(true);
+ const [showExtremes,setShowExtremes]=useDisplayPreference('UnifiedWeatherMap.showExtremes',true,displayBoolean),[showTotalsContours,setShowTotalsContours]=useDisplayPreference('UnifiedWeatherMap.showTotalsContours',true,displayBoolean);
  const scalarLinesActive=active&&!isTotals&&!rawSynoptic&&field?.kind!=='pressure'&&field?.kind!=='sigwx';
  const totalsContours=useMemo(()=>isTotals&&data&&frame?totalsScalarField(data,frame):null,[isTotals,data,frame]);
  const totalsLinesActive=active&&Boolean(totalsContours)&&showTotalsContours;
