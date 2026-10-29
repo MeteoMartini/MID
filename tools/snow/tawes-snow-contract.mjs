@@ -38,8 +38,9 @@ async function cli(){
   try{
    const res=await fetch(metadataUrl,{signal:ac.signal,redirect:'error'});
    if(!res.ok||Number(res.headers.get('content-length')||0)>400000)throw new Error('remote_metadata_unavailable');
-   const buf=await res.arrayBuffer();if(buf.byteLength>400000)throw new Error('metadata_oversize');
-   metadata=JSON.parse(new TextDecoder().decode(buf));
+   let bytes=0,body='';const decoder=new TextDecoder();
+   for await(const part of res.body){bytes+=part.byteLength;if(bytes>400000)throw new Error('metadata_oversize');body+=decoder.decode(part,{stream:true})}
+   body+=decoder.decode();metadata=JSON.parse(body);
   }finally{clearTimeout(t)}
  }else metadata=JSON.parse(await readFile(argv[i+1],'utf8'));
  const result=snowMetadata(metadata);
