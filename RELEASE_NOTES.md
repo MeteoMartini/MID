@@ -1,9 +1,9 @@
-# MID v0.9.85.357
+# MID v0.9.85.358
 
-## Skybar und Wettersymbole in hohen Breiten
+## Einheitliche Skybar-Farben
 
-- Polartag und Polarnacht werden aus der astronomischen Ereignisfolge bestimmt, auch wenn am jeweiligen Kalendertag kein Sonnenaufgang oder Sonnenuntergang stattfindet.
-- Tage mit nur einem Sonnenereignis oder Sonnenuntergang vor Sonnenaufgang behalten die korrekte Tag-/Nachtfolge. Auch die 15-/60-Minuten-Kurzfristinterpolation verwendet diese Entscheidung.
-- Wolkenlücken, direkte Sonnenscheindauer, fehlende Werte und Niederschlagsintervalle behalten ihre getrennte Bedeutung. Regenmengen, Intensitäten und Sonnenereignisse werden nicht erfunden oder verschoben.
+- Das kontinuierliche Sonnenband zeigt Sonnenschein und Wolkenlücken durchgehend im gleichen Gelb. Auch das graue Bewölkungsband behält über wechselnden Hintergründen seine feste Farbe.
+- Die Ausprägung bleibt an der Balkendicke erkennbar. Tooltips unterscheiden weiterhin direkte Sonnenscheindauer und Wolkenlücken mit dem jeweiligen Bezugszeitraum.
+- Die gemeinsame Darstellung gilt auch für Kurzfrist, Tages- und Wochenansichten sowie SVG-/PNG-Ausgaben. Die optionalen Stundenquadrate behalten ihre eigenen vier Klassenfarben.
 
-Die normalen Sonnenaufgangs-/Sonnenuntergangsgrenzen und der bestehende Veröffentlichungsweg bleiben verbindlich. Browserprüfungen sind keine physische iOS-/VoiceOver-Abnahme.
+Sonnenzeiten, Wetterwerte, Niederschlagsphasen, Datenlücken und die astronomische Nachtgrenze bleiben erhalten. Browserprüfungen ersetzen keine physische iOS-/VoiceOver-Abnahme.

@@ -140,3 +140,9 @@ Im Bandmodus werden unmittelbar angrenzende identische Farbe/Dicke/Stufe/Deckkra
 
 ## MID-C32 · gerade Skybar-Balkenenden (.261)
 Auf ausdrücklichen Nutzerauftrag ersetzt dieser Vertrag die bisherigen Rundungen im Bandmodus: Alle Grund- und Niederschlagsbalken haben über ihr vollständiges Gültigkeitsintervall konstante Dicke und senkrechte, gerade Enden. Keine Kreiskappen, abgerundeten Ecken oder Verjüngungen an Außenrändern, Datenlücken oder Zeitschritt-/Dicken-/Phasenwechseln. Identische benachbarte Zustände bleiben fugenlos verbunden; Werte, Zeitgrenzen, Missing Data, Tooltips und Overlay-Reihenfolge bleiben unverändert. Der gemeinsame Renderer gilt für sämtliche Ansichten und Widget-/PNG-/URL-Ausgaben. Die expliziten Stundenquadrate sind keine Balken.
+
+## MID-C50 · farbreines kontinuierliches Grundband (.358)
+
+Das kontinuierliche gelbe Sonnen-/Wolkenlückenband verwendet appweit `#ffc229` mit Deckkraft `1`, das graue Bewölkungsband `#aeb3b9` mit Deckkraft `1`. Die vier Ausprägungen werden ausschließlich durch `2.4 / 3.6 / 4.8 / 6.0` SVG-Einheiten vermittelt. Weder direkt gelieferte Sonnenscheindauer gegenüber Wolkenlücken noch Hell-/Dunkel- oder Nachtunterlagen dürfen eine zusätzliche Farbabstufung verursachen. Die Titel behalten den tatsächlichen Parameter und seinen Bezugszeitraum; Wolkenlücken werden niemals zu gemessener Sonnenscheindauer umgedeutet.
+
+Dies gilt für 90 min, Aktuell 12 h, 24-h-Profil, Tagesdetails, 7-/14-Tage-Verbraucher sowie gemeinsam gerenderte Widgets und SVG-/PNG-/URL-Ausgaben. Sonnenränder, Missing, Schwellen, Originalintervalle und phasenabhängige Niederschlagslagen bleiben unverändert. Der optionale Quadratmodus besitzt weiterhin seine expliziten Klassenfarben, weil dort gleich große Zellen die Banddicke nicht abbilden. Die Datenherkunft erzeugt auch dort keine zusätzliche Deckkraftstufe innerhalb derselben Klasse. Dieser Zusatz ersetzt die früheren Grundbanddeckkräfte 0,78 / 0,98 / 0,96.

@@ -1,0 +1,24 @@
+# MID-C50 · .358 · einheitliche Skybar-Grundfarben
+
+## Basis und Befund
+
+Freigegebenes .357: `main = mid-stable = a9bc9b7e429e4d0d10d67e0ebc4d8e35d1d2caf1`. Installer 40809934587 einschließlich Pages/Worker und Stable erfolgreich. Offene PRs #480/#477/#476/#475/#474/#449/#425 vor Beginn geprüft; keine überlappende Skybar-Integration. Die bekannten Security-Codefixes sind in Stable enthalten; die Alertinstanzen aus #490 sind mangels Code-Scanning-Berechtigung weiterhin nicht verifiziert. Der zusätzliche REST-Leseversuch liefert HTTP 401; keine Alerts oder Schutzregeln verändert.
+
+`baseSkyVisual` verwendete bei derselben Farbe #ffc229 0,98 Deckkraft für direkte Sonnenscheindauer und 0,78 für den klar gekennzeichneten Wolkenlückenpfad. Der gemeinsame SVG-Renderer übernahm diese Deckkraft. Dadurch erzeugte der Quellwechsel bei identischer Dicke einen sichtbaren Farbwechsel. Grau war mit 0,96 ebenfalls vom Hintergrund abhängig. Context7 `/mdn/content`, SVG opacity: Gruppen werden mit dem Hintergrund komponiert; 1 ist vollständig deckend. Keine Framework-/Dependency-Migration.
+
+## Änderung und Abgrenzung
+
+Alle gelben und grauen Grundbandpfade liefern Deckkraft 1. Zentraler Renderer, vier Dickenstufen, Schwellen, Himmelsklassifikation, Datenvalidierung und astronomische Intervallteilung bleiben bestehen. Sonnenscheindauer und unbedeckter Himmelsanteil bleiben getrennte Größen und vollständig in den Titeln bezeichnet. Werte werden nicht ausgetauscht, neu berechnet oder geglättet. Das Wolkenlücken-Fallback bei fehlender oder kurzer Sonnenscheindauer wird erhalten.
+
+Der gemeinsame Pfad erreicht Aktuell/12h, 90min, 24h-Profil, Tagesdetails und 7-Tage-Kurven einschließlich gemeinsamer Widget-/Exportverbraucher. Der optionale Quadratmodus behält seine vier Klassenfarben; Quelle und Hintergrund erzeugen innerhalb einer Klasse keine weitere Deckkraftstufe. Niederschlagsfarben/-dicken/-intervalle, H/M/L-Wolkenlagen und Nachtunterlagen bleiben unverändert. Kein CSS-, RUC-, Worker-Fach- oder Modellaktivierungswechsel.
+
+## Prüfungen
+
+- Neuer Pflicht-Produktionstest `scripts/test-skybar-solid-colors-0985358.mjs`: 40 direkte/fehlende/kurze Sonnenschein- und Wolkenlückenfälle in 15-/60-min-Auflösung, sämtliche vier Gelb-/Graudicken, Tag/Nacht, >50-/50-%-Grenzen, Missing/Bool, Quellwechsel mit einem farbgleichen gezeichneten Lauf bei getrennten Originaltiteln, Sonnenauf-/untergangsschnitte, fünf Niederschlagszustände mit unveränderten Overlayobjekten, Clipping, 6/12/23/24/25/168/336 Intervalle und Quadratklassenparität. Keine Testabschwächung.
+- Ausführbare Zusatzmatrix `tools/qa/skybar-solid-colors-browser.mjs`: echte ShortTermRibbon-Komponente und gemeinsame Skybar-SVG-Renderer mit vollständiger eager CSS-Kaskade. Chromium 141.0.7390.37; 64/64 Fälle, 256 Tracks, 320×740 / 390×844 / 430×932 / 844×390 / 834×1194 / 1194×834 / 1024×768 / 1440×900, Hell/Dunkel, band/squares, Sonne/Wolken. Kein Dokument-Overflow, keine JS-Laufzeitfehler, alle sechs 90-min-Slots; vier Dicken und alle Originaltitel. SVG→Canvas→PNG misst jedes Grundbandsegment als exakt RGBA 255/194/41/255 oder 174/179/185/255. Quadratfarben/-deckkräfte stimmen bei gleicher Klasse trotz Quellwechsel überein. Vollständiger Bericht `MID_C50_SKYBAR_COLOR_BROWSER_358.json`; Dark-Screenshot visuell geprüft.
+- Reproduzierbare Lockfile-Installation, TypeScript-App/Node-Prüfung und Produktionsbuild erfolgreich; 118 Assets. Produktions-Audit: 0 bekannte Schwachstellen. Sicherheitsdiagnostik (32 konkurrierende Schreiber, Symlinks, exklusive Dateien, Timing-/Workflow-/URL-Verträge), CDP-Argumentbindung und appweite Parameterfarbprüfung erfolgreich.
+- Lokaler kompletter Core: 1.032/1.032 Prüfungen ausgeführt; 1.030 direkt erfolgreich. Die beiden UI-Startfehler (Ortssuche und Push-Einstellungen) scheiterten vor den Assertions am in dieser Work-Umgebung verbotenen Chromium-Singleton-Socket. Beide Prüfungen bestehen unverändert mit Chromium Headless Shell 141.0.7390.37, jeweils 12 echte Browserfälle. Kein Produktionscode oder Test wurde dafür geändert. Sämtliche vorgeschriebenen Source-/Heavy-/Installer-Gates werden am tatsächlichen Head im PR dokumentiert. Keine Veröffentlichung aus vorbereiteter Dokumentation ableiten.
+
+## Grenzen und Restaufträge
+
+Browsermatrix ist eine Produktionskomponenten-Fixture mit echter SVG-/PNG-Rasterisierung; keine physische iOS/WKWebView/VoiceOver-Abnahme, kein vollständiger Durchlauf jeder Widget-/URL-Navigation und keine native Widget-Auslieferung. #374 bleibt für diese und weitere astronomische Abnahmen offen. #490 bleibt für instanzbezogene CodeQL-Verifikation offen. CSS #344, RUC #352 sowie DWD/ECMWF #446/#434 bleiben eigenständige Pakete. Source-PR → vollständiger SHA-Gate → bestehender MID-Bot → Server-ZIP → Installer → Worker/Pages → Stable ist unverändert verbindlich. PR Completion darf keine konkurrierende Landing-Aktion auslösen.
