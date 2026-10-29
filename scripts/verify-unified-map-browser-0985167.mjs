@@ -178,6 +178,23 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
  await verifyAlphabeticalSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
+ // .368: exercise the actual RadarPanel, not a synthetic checkbox. PX metadata
+ // in this fixture is deliberately unavailable; the saved choice must survive it.
+ await page.evaluate(async()=>{const store=await import('/src/compositeSettings.ts');store.patchCompositeSettings({observationsEnabled:true,showRadar:true,highResolution:true})});
+ async function openAdvanced(){const details=page.locator('.composite-advanced').first();await details.waitFor();if(await details.getAttribute('open')===null)await details.locator(':scope > summary').click();return details}
+ let advanced=await openAdvanced();
+ const pxToggle=()=>advanced.getByRole('button',{name:/Radar · 250 m/});
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
+ assert.equal(await pxToggle().isDisabled(),false,'A retained unavailable PX choice can be switched off');
+ await advanced.getByLabel('Ländergrenzen',{exact:true}).uncheck();await advanced.getByLabel('Straßen',{exact:true}).check();
+ await measuredReload();advanced=await openAdvanced();
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
+ assert.equal(await advanced.getByLabel('Ländergrenzen',{exact:true}).isChecked(),false);assert.equal(await advanced.getByLabel('Straßen',{exact:true}).isChecked(),true);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:composite-settings:v3')).highResolution),true,'Unavailable metadata/reload must not erase the request');
+ await pxToggle().click();
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:composite-settings:v3')).highResolution),false,'First click persists explicit off immediately');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Saved-state fallback text stays within the viewport');
+ assert.deepEqual(errors,[],'No runtime errors during availability/reload/checkbox interaction');
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
  await page.evaluate(()=>performance.clearResourceTimings());
  await page.getByLabel('Verfügbaren Produktstand auswählen').fill('0');
