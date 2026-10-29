@@ -36,11 +36,19 @@ forbid('Kurzfristlayout',styles,'.short-term-thunder{position:absolute');
 need('Package-Test',pkg,'test:short-term-rounding-wind-layout');
 need('Baseline-Test',baseline,'scripts/test-short-term-rounding-wind-layout-08221.mjs');
 
+// The legacy transpile harness strips imports. Inline the actual production
+// event-order helper so it tests the new dependency instead of mocking it away.
+const solarSource=await readFile(new URL('../src/astronomy.ts',import.meta.url),'utf8');
+const solarEventFunction=solarSource.match(/export function solarIsDayFromEvents[\s\S]*?\n}/)?.[0];
+if(!solarEventFunction)throw new Error('Production solar event-order helper missing');
+const solarEventDefinition=solarEventFunction.replace('export function','function');
+
 const dir=await mkdtemp(join(tmpdir(),'mid-08221-'));
 try{
  let source=inlineUtciRegressionStub(shortTerm);
  source=source.replace(/^import .*$/gm,'');
  source=`const React={createElement:(...args)=>({args})};\nconst useMemo=(factory)=>factory();\nconst useState=(value)=>[value,()=>{}];\nconst CloudLightning=()=>null; const Droplets=()=>null; const Gauge=()=>null; const Navigation=()=>null; const Thermometer=()=>null; const WindIcon=()=>null;\nconst significantHourlyThunderRisk=(hour)=>Number(hour.cape)>=200?{percent:51,label:'erhöht'}:null;\nconst precipitationParts=(input)=>({displayCode:input.code,weatherLabel:'Regen',type:input.precipitation>0?'rain':'none'});\nconst reconcileForecastPrecipitation=input=>({precipitation:Math.max(0,Number(input.precipitation)||0),rain:Math.max(0,Number(input.rain)||0),showers:Math.max(0,Number(input.showers)||0),snowfall:Math.max(0,Number(input.snowfall)||0),probability:Math.max(0,Math.min(100,Number(input.probability)||0)),code:Math.round(Number(input.code)||0),traceSuppressed:false});\nconst sunshineAfterSkyCorrection=(value,original,final)=>Number.isFinite(original)&&Number.isFinite(final)&&Math.abs(original-final)>=12.5?null:value;\nconst coherentSunshineDurationSeconds=input=>input.valueSeconds===null||input.valueSeconds===undefined?null:Math.min(Math.max(0,Number(input.intervalSeconds)||3600),Math.max(0,Number(input.valueSeconds)||0));\nconst icon=()=>''; const label=()=>''; const wind=(value,unit)=>String(Math.round(Number(value)||0))+' '+String(unit); const formatDecimal=(value,digits=1)=>Number(value).toFixed(digits);\nconst DWD_WIND_THRESHOLDS_KMH=[]; const blendRadarAtTarget=()=>null;\n${source}`;
+ source=solarEventDefinition+'\n'+source;
  const out=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022,jsx:ts.JsxEmit.React},fileName:'ShortTermForecast.tsx'});
  const file=join(dir,'ShortTermForecast.mjs');
  await writeFile(file,out.outputText);

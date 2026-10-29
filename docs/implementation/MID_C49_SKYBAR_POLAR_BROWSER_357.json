@@ -1,0 +1,1306 @@
+{
+  "schema": 1,
+  "version": "0.9.85.357",
+  "browser": "141.0.7390.37",
+  "kind": "Chromium shared-renderer and ShortTermRibbon fixture, not physical devices",
+  "cases": 144,
+  "trackChecks": 576,
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "light",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "light",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 430,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "light",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 834,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "light",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1024,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "band",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "band",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "band",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "band",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "band",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-day",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "polar-night",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "single-rise",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "reversed-events",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "spring-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "mode": "squares",
+      "case": "autumn-DST",
+      "overflow": false,
+      "tracks": 4,
+      "svgPng": true
+    }
+  ]
+}

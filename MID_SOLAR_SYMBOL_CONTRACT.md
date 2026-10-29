@@ -62,3 +62,12 @@ Die Required Regression `scripts/test-solar-symbol-contract-095333.mjs` schützt
 - aktuelle/Komposit-/Bergwetter-Symbolpfade,
 - die native Widget-Ausgabe im Worker,
 - das Verbot einer direkten Provider-`is_day`-Entscheidung für sichtbare Zeitpunkt-Piktogramme.
+
+
+## 7. Hohe Breiten und Ereignisfolge (v0.9.85.357)
+
+Die normale lokale Reihenfolge Sonnenaufgang vor Sonnenuntergang behält exakt `[Sonnenaufgang, Sonnenuntergang)`. Bei Sonnenuntergang vor Sonnenaufgang ist der lokale Tagesbeginn hell; die Nacht liegt zwischen beiden Ereignissen. Bei nur einem lokalen Ereignis wechselt der Zustand exakt an dessen Epoch.
+
+Fehlen beide täglichen Ereignisse bei gültiger Astronomie, bestimmt das nächste tatsächliche Rise-/Set-Ereignis den aktuellen Zustand: nächster Sonnenuntergang vor nächstem Sonnenaufgang bedeutet Polartag, umgekehrt Polarnacht. Die begrenzte 370-Tage-Suche verwendet Astronomy Engine SearchRiseSet mit demselben Oberrand-/Refraktionsmodell wie die normalen Sonnenereignisse. Ergebnisse werden im bestehenden begrenzten lokalen Tagescache gehalten. Es werden keine lokalen Sunrise-/Sunset-Zeitstempel erfunden. Ein Provider-Fallback gilt nur bei nicht bestimmbarer Astronomie.
+
+Diese Frontend-Astronomie und die gemeinsamen Skybar-/Kurzfristverbraucher ändern weder native Worker-Providerdaten noch tägliche Sonnenscheinsummen. Die native Widget-Worker-Astronomie bei fehlenden Provider-Ereignissen bleibt eine eigenständige Abnahme; Chromium-/SVG-/PNG-Fixtures ersetzen keine physische WKWebView-/VoiceOver-Prüfung.
