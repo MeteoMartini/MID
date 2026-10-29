@@ -84,7 +84,7 @@ export function sunTimesForDate(parts:{year:number;month:number;day:number},lat:
 }
 
 export type SolarDaylightLocation={latitude:number;longitude:number;elevation?:number;timezone?:string};
-export type SolarDaylightWindow={sunrise?:Date;sunset?:Date;timezone:string};
+export type SolarDaylightWindow={sunrise?:Date;sunset?:Date;timezone:string;isDayWithoutEvents?:boolean};
 const solarDaylightCache=new Map<string,SolarDaylightWindow>();
 function solarDaylightCacheKey(parts:{year:number;month:number;day:number},location:SolarDaylightLocation,timezone:string){return`${parts.year}-${String(parts.month).padStart(2,'0')}-${String(parts.day).padStart(2,'0')}|${Number(location.latitude).toFixed(5)}|${Number(location.longitude).toFixed(5)}|${Math.round(Number(location.elevation)||0)}|${timezone}`}
 /**
@@ -96,10 +96,34 @@ export function solarDaylightWindowAt(at:Date|number,location:SolarDaylightLocat
  const date=at instanceof Date?at:new Date(at),timezone=location.timezone||Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';
  if(!Number.isFinite(date.getTime())||!Number.isFinite(Number(location.latitude))||!Number.isFinite(Number(location.longitude)))return{timezone};
  const parts=localDateParts(date,timezone),key=solarDaylightCacheKey(parts,location,timezone),cached=solarDaylightCache.get(key);if(cached)return cached;
- const times=sunTimesForDate(parts,Number(location.latitude),Number(location.longitude),Number(location.elevation)||0,timezone),window={sunrise:times.sunrise,sunset:times.sunset,timezone};
+ const times=sunTimesForDate(parts,Number(location.latitude),Number(location.longitude),Number(location.elevation)||0,timezone),window:SolarDaylightWindow={sunrise:times.sunrise,sunset:times.sunset,timezone};
+ // No daily crossing is normal during polar day/night. The next actual event
+ // determines the state before it: sunset means day, sunrise means night.
+ // Use the same upper-limb/refraction definition as the local RiseSet events,
+ // never a separate altitude threshold or an invented sunrise/sunset timestamp.
+ if(!times.sunrise&&!times.sunset){
+  try{
+   const observer=observerFor(Number(location.latitude),Number(location.longitude),Number(location.elevation)||0),start=localDayWindow(parts,timezone).start;
+   const rise=SearchRiseSet(Body.Sun,observer,1,start,370,0)?.date.getTime(),set=SearchRiseSet(Body.Sun,observer,-1,start,370,0)?.date.getTime();
+   if(Number.isFinite(rise)&&Number.isFinite(set)&&rise!==set)window.isDayWithoutEvents=Number(set)<Number(rise);
+  }catch{/* Unknown astronomy retains the caller's explicit fallback. */}
+ }
  solarDaylightCache.set(key,window);if(solarDaylightCache.size>96){const first=solarDaylightCache.keys().next().value;if(first)solarDaylightCache.delete(first)}return window;
 }
-export function astronomicalIsDayAt(at:Date|number,location:SolarDaylightLocation,fallback=false){const date=at instanceof Date?at:new Date(at),window=solarDaylightWindowAt(date,location),sunrise=window.sunrise?.getTime(),sunset=window.sunset?.getTime();return Number.isFinite(sunrise)&&Number.isFinite(sunset)&&Number(sunset)>Number(sunrise)?date.getTime()>=Number(sunrise)&&date.getTime()<Number(sunset):fallback}
+/** Local-day event ordering also covers a single crossing and midnight sun. */
+export function solarIsDayFromEvents(epoch:number,sunriseEpoch:number|undefined,sunsetEpoch:number|undefined,fallback:boolean){
+ if(!Number.isFinite(epoch))return fallback;
+ const rise=Number.isFinite(sunriseEpoch),set=Number.isFinite(sunsetEpoch);
+ if(rise&&set){
+  if(Number(sunriseEpoch)<Number(sunsetEpoch))return epoch>=Number(sunriseEpoch)&&epoch<Number(sunsetEpoch);
+  if(Number(sunsetEpoch)<Number(sunriseEpoch))return epoch<Number(sunsetEpoch)||epoch>=Number(sunriseEpoch);
+  return fallback;
+ }
+ if(rise)return epoch>=Number(sunriseEpoch);
+ if(set)return epoch<Number(sunsetEpoch);
+ return fallback;
+}
+export function astronomicalIsDayAt(at:Date|number,location:SolarDaylightLocation,fallback=false){const date=at instanceof Date?at:new Date(at),window=solarDaylightWindowAt(date,location),sunrise=window.sunrise?.getTime(),sunset=window.sunset?.getTime();return Number.isFinite(sunrise)&&Number.isFinite(sunset)&&Number(sunset)>Number(sunrise)?date.getTime()>=Number(sunrise)&&date.getTime()<Number(sunset):solarIsDayFromEvents(date.getTime(),sunrise,sunset,window.isDayWithoutEvents??fallback)}
 
 export type SolarTimelineEvent={kind:'sunrise'|'sunset';epoch:number};
 export type SolarNightBand={startEpoch:number;endEpoch:number;fadeIn:boolean;fadeOut:boolean};

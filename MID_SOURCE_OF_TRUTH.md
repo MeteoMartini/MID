@@ -1,3 +1,7 @@
+# MID v0.9.85.357 · astronomische Skybar-Zustände in hohen Breiten
+
+Basis: freigegebene .356 `4595367c3439639b25c7decd23d39d57ab66ed92`. Polartag/-nacht ohne tägliche Ereignisse, einseitige und über Mitternacht angeordnete Sonnenereignisse werden im gemeinsamen Astronomiekern und der Kurzfristinterpolation bestimmt. Kein erfundener Sonnenzeitstempel, kein meteorologischer Mengen-/Schwellenwechsel. Nachweise und Abnahmegrenzen: `docs/implementation/MID_C49_SKYBAR_POLAR_357.md`. Veröffentlichung erst nach vollständigem Source-Gate, SHA-Bot, Server-ZIP, Installer, Worker/Pages und Stable-Promotion.
+
 # MID v0.9.85.356 · ECMWF-Originaldatenqualifikation
 
 Basis: veröffentlichte .355 `48c4016d0b98244cb08aa560aa42b14d6c6754a7`. Selektive Integration des lesenden #433-Piloten mit drei Zyklen und vollständigem Zell-/Bitmap-/Geometrienachweis. Keine Produktivaktivierung; Source-, Installer-, Worker-/Pages- und Stable-Gates bleiben erforderlich.
