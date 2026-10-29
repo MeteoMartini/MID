@@ -12,7 +12,7 @@ const [radar,styles,precipitation,route]=await Promise.all([
 ]);
 const failures=[];
 for(const token of [
- "const[expanded,setExpanded]=useState(false)",
+ "const[expanded,setExpanded]=useDisplayPreference('RadarPanel.legend.expanded',false,displayBoolean)",
  "aria-label={expanded?'Komposit-Legende verkleinern':'Komposit-Legende vergrößern'}",
  "expanded&&<div className=\"radarlegend-details\"",
  "className={`radarlegend compact ${expanded?'expanded':'collapsed'}`}"

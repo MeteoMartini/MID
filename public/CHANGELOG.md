@@ -1,4 +1,14 @@
+# MID v0.9.85.365
+
+## Ansichten zuverlässig wieder aufnehmen
+- Die erweiterten Speicherfunktionen für Parameter, Legenden, Karten, Klima, Wasserwetter und Routen sind gemeinsam enthalten.
+- Bergwetter behält Höhenstufe, Schneefallgrenzen-Zeitraum und geöffnete Analyseabschnitte; Radar merkt sich die ausführliche Legende und den Ebenenbereich.
+- Erweiterte Stundenlisten, Pollenansicht und die Übersicht eigener Wetterhinweise bleiben wie zuletzt gewählt. Tageswechsel setzen die gewünschte Zeitauflösung nicht mehr automatisch zurück.
+- Vorübergehend fehlende Höhenstufen überschreiben die bevorzugte Auswahl nicht. Alte Wetterzeitpunkte und Dialogfokus werden nicht eingefroren.
+
 # MID v0.9.85.364
+
+Entwicklungsstand, nicht veröffentlicht; die Funktionen sind in v0.9.85.365 enthalten.
 
 ## Ansichten wie zuletzt verlassen wieder öffnen
 - Stunden- und Tagesdetailansicht behalten ihre Legendenanzeige getrennt; Diagrammparameter und ausgeblendete Niederschlagsarten werden sofort gespeichert. Die Stundenansicht bleibt fachlich bei 1 Stunde.
