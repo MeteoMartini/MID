@@ -51,7 +51,11 @@ export default function UnifiedWeatherMap(props:Props){
  const chooseCloudIsobars=(enabled:boolean)=>{setCloudIsobars(enabled);writeCloudWeatherIsobars(enabled)};
  const chooseCloudIsoheights=(enabled:boolean)=>{setCloudIsoheights(enabled);writeCloudWeatherIsoheights(enabled)};
  const chooseCloudRenderMode=(mode:CloudWeatherRenderMode)=>{setCloudRenderMode(mode);writeCloudWeatherRenderMode(mode)};
- const update=(patch:Partial<UnifiedMapSettings>)=>{const next={...settingsRef.current,...patch};writeDurableStorageValue(UNIFIED_MAP_SETTINGS_KEY,JSON.stringify({...next,updatedAt:Date.now()}));settingsRef.current=next;setSettings(next)};
+ const update=(patch:Partial<UnifiedMapSettings>)=>{const next={...readUnifiedMapSettings(),...patch};writeDurableStorageValue(UNIFIED_MAP_SETTINGS_KEY,JSON.stringify({...next,updatedAt:Date.now()}));settingsRef.current=next;setSettings(next);window.dispatchEvent(new Event('mid:unified-map-settings-changed'))};
+ useEffect(()=>{const sync=()=>{const latest=readUnifiedMapSettings();settingsRef.current=latest;setSettings(previous=>JSON.stringify(previous)===JSON.stringify(latest)?previous:latest)},external=(event:StorageEvent)=>{if(event.key===UNIFIED_MAP_SETTINGS_KEY)sync()};
+ window.addEventListener('mid:unified-map-settings-changed',sync);window.addEventListener('storage',external);
+ return()=>{window.removeEventListener('mid:unified-map-settings-changed',sync);window.removeEventListener('storage',external)};
+ },[]);
  const [d2Catalog,setCatalog]=useState<{index:NativeIndex;base:string}|null>(null),[totals,setTotals]=useState<TotalsData|null>(null),[observed,setObserved]=useState<TotalsData|null>(null),[catalogErrors,setCatalogErrors]=useState<string[]>([]),[revision,setRevision]=useState(0),[target,setTarget]=useState(Date.now()),[field,setField]=useState<NativeField|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[colorMode,setColorMode]=useDisplayPreference<MapColorMode>('UnifiedWeatherMap.colorMode','absolute',displayChoice('field','absolute')),[selected,setSelected]=useState(''),[exporting,setExporting]=useState(false);
  const [rucCatalog,setRucCatalog]=useState<{index:NativeIndex;base:string}|null>(null);
  const catalog=settings.modelId==='icon-d2-ruc'?rucCatalog:d2Catalog,isNativeModel=['icon-d2','icon-d2-ruc'].includes(settings.modelId);
