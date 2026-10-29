@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.364",
+  "releaseVersion": "0.9.85.365",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -819,6 +819,7 @@
     "scripts/test-scenario-regime-settings-0820.mjs",
     "scripts/test-scenario-temperature-delta-k-0881.mjs",
     "scripts/test-scroll-tap-performance-083315.mjs",
+    "scripts/test-search-browser-startup-0985365.mjs",
     "scripts/test-search-netatmo-reliability-095348.mjs",
     "scripts/test-seasonal-all-model-consensus-097727.mjs",
     "scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
@@ -1865,6 +1866,7 @@
     "scripts/test-scenario-regime-settings-0820.mjs",
     "scripts/test-scenario-temperature-delta-k-0881.mjs",
     "scripts/test-scroll-tap-performance-083315.mjs",
+    "scripts/test-search-browser-startup-0985365.mjs",
     "scripts/test-search-netatmo-reliability-095348.mjs",
     "scripts/test-seasonal-all-model-consensus-097727.mjs",
     "scripts/test-seasonal-c3s-dwd-ui-09410.mjs",
@@ -3806,7 +3808,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.364",
+  "version": "0.9.85.365",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

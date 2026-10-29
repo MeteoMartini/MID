@@ -8,8 +8,21 @@ import {activeCssSources,loadCssCascade,consolidateCssCascade,cssCascadeFingerpr
 const root=new URL('../',import.meta.url),read=file=>readFileSync(new URL(file,root),'utf8');
 const baseline=JSON.parse(read('scripts/fixtures/module-css-baseline-0985170.json'));
 function declarations(file){const source=read(file),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),result=new Map;for(const node of ast.statements){for(const name of node.name?[node.name.getText(ast)]:node.declarationList?.declarations.map(d=>d.name.getText(ast))||[])result.set(name,node.getText(ast));}return result;}
+// .365 intentionally changes only storage wiring in these three components.
+// Require each reviewed new expression, then restore only that expression on
+// the historical comparison copy. Every calculation, renderer and other byte
+// remains pinned to the existing golden; the fixture hashes are not rewritten.
+const displayWiring=new Map([
+ ['MountainZoneAnalysis',[["useDisplayPreference('MountainWeather.zoneAnalysis.open',false,displayBoolean)","useState(false)"]]],
+ ['MountainSnowLineTrend',[["useDisplayPreference('MountainWeather.snowLine.open',false,displayBoolean)","useState(false)"],["useDisplayPreference<MountainSnowLineHorizon>('MountainWeather.snowLine.horizon',3,displayChoice(1,3,7,14))","useState<MountainSnowLineHorizon>(3)"]]],
+ ['MountainForecastOverview',[["useDisplayPreference<MountainLevelRole>('MountainWeather.forecast.role','summit',displayChoice('valley','middle','summit'))","useState<MountainLevelRole>('summit')"],[" useEffect(()=>{setExpandedDate(null)},[selectedRole]);"," useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);\n useEffect(()=>{setExpandedDate(null)},[selectedRole]);"]]]
+]);
+function historicalDisplaySource(name,source){
+ for(const [current,historical] of displayWiring.get(name)||[]){assert.equal(source.split(current).length-1,1,`${name}: reviewed persistent expression must occur exactly once`);source=source.replace(current,historical)}
+ return source;
+}
 const files=new Map;
-for(const item of baseline.declarations){if(!files.has(item.file))files.set(item.file,declarations(item.file));const source=files.get(item.file).get(item.name);assert.ok(source,`Extracted implementation missing: ${item.name}`);assert.equal(createHash('sha256').update(source).digest('hex'),item.sha256,`${item.name}: implementation differs from the approved ${baseline.baselineVersion} golden`);}
+for(const item of baseline.declarations){if(!files.has(item.file))files.set(item.file,declarations(item.file));const source=files.get(item.file).get(item.name);assert.ok(source,`Extracted implementation missing: ${item.name}`);assert.equal(createHash('sha256').update(historicalDisplaySource(item.name,source)).digest('hex'),item.sha256,`${item.name}: implementation differs from the approved ${baseline.baselineVersion} golden`);}
 const app=read('src/App.tsx');
 for(const name of ['MountainWeather','WidgetGenerator'])assert.ok(app.includes(`lazy(()=>import('./${name}')`),`${name} must load on demand`);
 assert.ok(!app.includes('function mountainZoneAssessments('),'Mountain implementation must be outside App');

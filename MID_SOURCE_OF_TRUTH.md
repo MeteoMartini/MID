@@ -1,3 +1,9 @@
+# MID v0.9.85.365 · Sourcekandidat / Recovery nach blockiertem .364-Installer
+
+Freigegebene Basis bleibt .363 `f0ccf4a448b5281a7bfc795d687544c06439104b`; bekannter main-Kandidat .364 `11733c934f8ac60ff109f8b7f175d5bf4fc6f9ef` hat zwei Installer-Core-Fehlschläge ausschließlich beim Chromium-Start. .364 wurde nicht veröffentlicht. Der .365-Branch beginnt auf Stable .363 und übernimmt den exakt geprüften .364-Source-Tree `007001fd25e5973c42e32e62f01f5e708c716b55`, ohne ZIP. Bestehender Source-Gate prüft ausdrücklich das Main-Alt-ZIP fehlgeschlagener Installer separat. Bekannte Lineage, kein unbekannter Drift oder direkter main/stable-Schreibzugriff.
+
+Zusätzliche konkrete Rückkehrzustände in Bergwetter/Radar/Stundenliste/Pollen und Entfernung automatischer Präferenz-Resets. Ortssuche übernimmt validierten Mountain/Push-Browserstartvertrag: maximal zwei frische Profile, begrenzte45s-Startphase, unveränderte12s-UI-Waits/volle12-Fall-Matrix und Fault-Injection gegen fälschlich grüne Tests. Details `docs/implementation/MID_C51_DISPLAY_INVENTORY_RECOVERY_365.md`. Keine meteorologische Quelle oder Gewichtung geändert. Veröffentlichung erst nach vollständigem neuem Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Nachweis.
+
 # MID v0.9.85.364 · Ansichts- und Parameterkontinuität
 
 Verifizierte freigegebene Basis .363 `f0ccf4a448b5281a7bfc795d687544c06439104b`, main=mid-stable. Gemeinsame Präferenzen mit stabilen Objekt-Snapshots, sofortigen Writes und aktueller Quelle bei parallelen funktionalen Updates. Stunden-/Tagesdetails getrennt, bestehende Legacy-Parameter validiert, weitere Auswahlzustände in Klima/Karten/Extremwetter/Wasser/Route/Langfrist erhalten. Nachweis und QA-Grenzen `docs/implementation/MID_C51_DISPLAY_RETURN_STATES_364.md`. Keine meteorologische Quelle oder RUC-Gewichtung verändert. Nur Kandidat bis vollständigem Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Nachweis.

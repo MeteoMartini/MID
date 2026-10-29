@@ -15,7 +15,7 @@ const need=(label,text,token)=>{if(!text.includes(token))failures.push(`${label}
 const reject=(label,text,token)=>{if(text.includes(token))failures.push(`${label} sollte fehlen: ${token}`)};
 
 for(const token of ["buildWorkerUrl(base,'dwd-precipitation-type-image'",'dwd-precip-type-radar__original-viewport','changeZoom','x-mid-radar-at','x-mid-satellite-at'])need('DWD-Livebild',radar,token);
-for(const token of ['[hourlyExpanded,setHourlyExpanded]=useState(false)',"hourlyExpanded?'weniger anzeigen':'mehr anzeigen'",'24-h-Wetterprofil','Math.round(selectedPoint.dewPoint)'])need('24h mobil/Profil',cockpit,token);
+for(const token of ["[hourlyExpanded,setHourlyExpanded]=useDisplayPreference('ForecastCockpit.shortTerm.hourlyExpanded',false,displayBoolean)","hourlyExpanded?'weniger anzeigen':'mehr anzeigen'",'24-h-Wetterprofil','Math.round(selectedPoint.dewPoint)'])need('24h mobil/Profil',cockpit,token);
 for(const token of ['.cockpit-hourly-preview.collapsed>.cockpit-hourly-chip:nth-child(n+7){display:none}','.cockpit-hourly-more{display:inline-flex}','.dwd-precip-type-radar__original-viewport{'])need('Responsive CSS',styles,token);
 for(const token of ['icon-d2-pressure-thetae','icon-d2-pressure-sigwx','icon-d2-pressure-precip','loadWeatherMapGrid'])need('ICON-D2-Karten',data,token);
 for(const token of ['className="weather-maps-map-status"','className="weather-maps-controls"','className="weather-maps-timeline"','className="weather-maps-meta-details"','leadTimeLabel(selectedTime,referenceTime)','referenceTimeLabel(referenceTime,timezone)'])need('Kartenzeit und Laufdetails',maps,token);

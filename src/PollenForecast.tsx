@@ -57,7 +57,7 @@ function findPollenRegion(lat:number,lon:number,regions:PollenRegion[]):PollenRe
 export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:boolean}){
   const [data,setData]=useState<PollenResponse|null>(null);
   const [error,setError]=useState<string|null>(null);
-  const [expanded,setExpanded]=useState(false);
+  const [expanded,setExpanded]=useDisplayPreference('PollenForecast.expanded',false,displayBoolean);
   const [showAll,setShowAll]=useDisplayPreference('PollenForecast.showAll',false,displayBoolean);
   const [loading,setLoading]=useState(false);
 

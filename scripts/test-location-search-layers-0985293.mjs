@@ -1,7 +1,7 @@
 import {readDevToolsPort,browserStartDiagnostics} from './lib/browser-start-diagnostics.mjs';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-import {access,mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
+import {access,mkdir,mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'node:http';
@@ -12,7 +12,7 @@ let chromePath;for(const p of [process.env.CHROMIUM_PATH,'/usr/bin/google-chrome
 
 const temp=await mkdtemp(join(tmpdir(),'mid-search-ui-')),pending=new Map(),errors=[];let server,chrome,socket,sessionId,seq=0;
 let startup;
-const wait=async(check,label)=>{const end=Date.now()+12000;while(Date.now()<end){startup?.assertRunning();if(await check())return;await new Promise(r=>setTimeout(r,80))}throw new Error('Timeout: '+label+(label==='Chromium'?' · '+startup?.describe():''))};
+const wait=async(check,label,timeoutMs=12000)=>{const end=Date.now()+timeoutMs;while(Date.now()<end){startup?.assertRunning();if(await check())return;await new Promise(r=>setTimeout(r,80))}throw new Error('Timeout: '+label+(label==='Chromium'?' · '+startup?.describe():''))};
 const cdp=(method,params={},session=sessionId)=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(new Error('CDP timeout: '+method))},12000);pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(session?{sessionId:session}:{})}))});
 const evaluate=async expression=>{const p=await cdp('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(p.result.exceptionDetails)throw new Error(JSON.stringify(p.result.exceptionDetails));return p.result.result?.value};
 const app=await readFile('src/App.tsx','utf8');
@@ -34,8 +34,22 @@ try{
  if(!chromePath){if(process.env.GITHUB_ACTIONS==='true')throw new Error('Search browser regression requires Chromium in CI');console.log('SKIP Such-Browsermatrix: Chromium lokal nicht verfügbar; echte Komponenten erfolgreich gebündelt.');process.exitCode=0;}else{
  const js=await readFile(join(temp,'fixture.js')),css=await readFile('src/midPresentation.css');
  server=createServer((req,res)=>{if(req.url==='/fixture.js'){res.setHeader('Content-Type','text/javascript');res.end(js)}else if(req.url==='/presentation.css'){res.setHeader('Content-Type','text/css');res.end(css)}else if(req.url==='/'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><html data-mid-design="next"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/presentation.css"><div id="root"></div><script type="module" src="/fixture.js"></script>')}else{res.statusCode=404;res.end()}});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port+'/';
- let debugPort;const profile=join(temp,'profile');chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});startup=browserStartDiagnostics(chrome);
- let info;await wait(async()=>{try{debugPort=await readDevToolsPort(join(profile,'DevToolsActivePort'));if(!debugPort)return false;const r=await fetch('http://127.0.0.1:'+debugPort+'/json/version');if(r.ok){info=await r.json();return true}}catch{}return false},'Chromium');
+ let debugPort,info;const profile=join(temp,'profile'),chromeStartupFailures=[];
+ // Match the validated Mountain/Push startup contract, separately from UI waits.
+ for(let attempt=1;attempt<=2;attempt++){
+  chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});startup=browserStartDiagnostics(chrome);
+  try{
+   await wait(async()=>{try{debugPort=await readDevToolsPort(join(profile,'DevToolsActivePort'));if(!debugPort)return false;const r=await fetch('http://127.0.0.1:'+debugPort+'/json/version',{signal:AbortSignal.timeout(2000)});if(r.ok){info=await r.json();return true}}catch{}return false},'Chromium',45000);
+   if(chromeStartupFailures.length)console.warn('Search Chromium startup recovered: '+chromeStartupFailures.join(' | '));
+   break;
+  }catch(error){
+   chromeStartupFailures.push(`attempt ${attempt}: ${startup.describe()} · ${error.message}`);
+   if(chrome?.exitCode===null&&chrome.signalCode===null){const stopped=once(chrome,'close');chrome.kill('SIGTERM');await Promise.race([stopped,new Promise(resolve=>setTimeout(resolve,1800))]);if(chrome.exitCode===null&&chrome.signalCode===null){chrome.kill('SIGKILL');await Promise.race([stopped,new Promise(resolve=>setTimeout(resolve,800))])}}
+   if(chrome?.exitCode===null&&chrome.signalCode===null)throw new Error('Search Chromium did not terminate; profile cannot be reused');
+   if(attempt===2)throw new Error('Search Chromium startup failed: '+chromeStartupFailures.join(' | '),{cause:error});
+   await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100});await mkdir(profile,{recursive:true});
+  }
+ }
  socket=new WebSocket(localCdpEndpoint(info.webSocketDebuggerUrl,debugPort));socket.addEventListener('message',event=>{const p=JSON.parse(String(event.data));if(p.id){const q=pending.get(p.id);if(!q)return;clearTimeout(q.timer);pending.delete(p.id);p.error?q.reject(new Error(p.error.message)):q.resolve(p)}else if(p.method==='Runtime.exceptionThrown')errors.push(p.params.exceptionDetails)});await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true})});
  const target=await cdp('Target.createTarget',{url:'about:blank'},null),attached=await cdp('Target.attachToTarget',{targetId:target.result.targetId,flatten:true},null);sessionId=attached.result.sessionId;await cdp('Page.enable');await cdp('Runtime.enable');await cdp('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});await cdp('Emulation.setUserAgentOverride',{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile Safari/604.1'});
  const opened=()=>evaluate("document.querySelector('.search input')?.getAttribute('aria-expanded')==='true'"),bars=()=>evaluate("Boolean(document.querySelector('.selected-place-bar'))&&Boolean(document.querySelector('.mid-bottom-nav-fixed'))"),focus=()=>evaluate("document.querySelector('.search input').focus();true"),escape=async()=>{await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape'})};
