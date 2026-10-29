@@ -1,3 +1,11 @@
+# MID v0.9.85.367 · zeitgerechte Schneefallhinweise
+
+Schneefallhinweise beginnen bei tatsächlich prognostiziertem Schneefall. Ein erst später erreichter 6–72-Stunden-Summenwert erzeugt keine Einschränkung ab jetzt im trockenen 24-h-Profil. Trockene Kalendertage erhalten keinen aus späterem Schnee vorgezogenen Hinweis. Mengen, Summendauer und Warnschwellen bleiben erhalten; amtliche Warnungen unverändert.
+
+Technischer Nachweis: docs/implementation/MID_C52_SNOW_EXPOSURE_DRAFT.md. Source-Kandidat bis vollständigem Source-/Bot-/Installer-/Worker-/Pages-/Stable-Nachweis.
+
+Basis .366 `317a07ecb842d40de82d67c04abfb25ecfc8eaf0`; Issue #515, PR #516. Sieben neue Unit-Tests durch GitHub Vitest erfolgreich auf ursprünglichem Draft-Head. Vollständige Source-Gates für diesen versionierten Kandidaten erforderlich.
+
 # MID v0.9.85.366 · kanonische Karten- und Ensembleanzeige
 
 Verifizierte Stable-Basis `v0.9.85.365` `723ef0e11f87963a47aee8a9df8a3c757d07d7ae`, bei Beginn `main = mid-stable`; offene Draft- und Abhängigkeits-PRs geprüft. Nur der Integrationsbranch `codex/v0.9.85.366-display-state-integrity` wird verändert, kein ZIP und kein direkter Schreibzugriff auf main/stable. Vollständiger fachlicher Nachweis: `docs/implementation/MID_C51_DISPLAY_DURABLE_366.md`.

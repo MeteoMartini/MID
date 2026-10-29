@@ -1,8 +1,5 @@
-# MID v0.9.85.366
+# MID v0.9.85.367 · zeitgerechte Schneefallhinweise
 
-## Karten, Radar und Ensemble behalten die Auswahl
-- Karten übernehmen eine bereits getroffene Auswahl auch bei mehreren gleichzeitig geöffneten Fenstern. Insbesondere bleibt „Beobachtungen aus“ erhalten, selbst wenn ältere Ebeneneinstellungen etwas anderes enthalten.
-- Kartenparameter und Layeroptionen werden aus dem letzten gespeicherten Stand aktualisiert. Andere geöffnete Kartenansichten übernehmen Änderungen unmittelbar.
-- Gewählte Ensemble-Ansichten, Diagrammabschnitte und Windoptionen bleiben bei Cachebereinigung und Speicherplatzengpässen geschützt.
-- Eine vorübergehend nicht verfügbare DWD-Warnkarte löscht nicht die gewünschte Anzeigeoption.
-- Keine Änderung der Wettermodelle, amtlichen Warnungen oder meteorologischen Vorhersagegewichte. Weitere offene Auswahl- und Schneequellenprüfungen laufen unabhängig weiter.
+Schneefallhinweise beginnen bei tatsächlich prognostiziertem Schneefall. Ein erst später erreichter 6–72-Stunden-Summenwert erzeugt keine Einschränkung ab jetzt im trockenen 24-h-Profil. Trockene Kalendertage erhalten keinen aus späterem Schnee vorgezogenen Hinweis. Mengen, Summendauer und Warnschwellen bleiben erhalten; amtliche Warnungen unverändert.
+
+Technischer Nachweis: docs/implementation/MID_C52_SNOW_EXPOSURE_DRAFT.md. Source-Kandidat bis vollständigem Source-/Bot-/Installer-/Worker-/Pages-/Stable-Nachweis.

@@ -1,9 +1,9 @@
-# MID-C52 · Schneefall-Zeitbezug · unfreigegebener Kandidat
+# MID-C52 · Schneezeitbezug · Source-Kandidat .367
 
-Basis .366 / 317a07ecb842d40de82d67c04abfb25ecfc8eaf0, Issue #515.
+Basis .366 317a07ecb842d40de82d67c04abfb25ecfc8eaf0. #515 / #516.
 
-Reproduziert mit unverändertem dwdWarnings.ts: 168 Stunden ab 29.10.2026 19Z, einzige Schneestunde bei +60h (1cm) ergibt Hinweis ab jetzt bis 02.11.07Z. Reparatur bindet Schnee wie Regen an tatsächliche Niederschlagsintervalle; Vorwärtsfenster und Summen/Schwellen bleiben erhalten. Die probabilistische Präsentation darf das akkumulierte Schneeereignis nicht erneut über trockene Vorlaufstunden ausweiten. Tageszusammenfassungen verlangen tatsächlichen Schneefall am Tag.
+Unverändertes Produktionsmodul erzeugte für eine einzige Schneestunde bei +60h ein Fenster ab jetzt bis über +72h. warningOccurrence bindet Schnee nun an tatsächlich schneeführende Akkumulationsintervalle, Summenwerte und Stufen bleiben erhalten. Die probabilistische Präsentation übernimmt diese Grenzen ohne erneute Ausdehnung durch vorwärts summierte Schneeunterstützung. Tagesansichten verlangen passende Schneestunden. weather.ts enthält denselben Fragmentstand. Versionsspiegel synchron .367.
 
-Lokal Node24 Produktionsmodul geprüft: Schnee +60h, +4h, 35cm mit hoher Stufe, trockene Reihe und trockener Kalendertag bestanden. Sieben Vitest-Fälle hinzugefügt, deren Vitest-Lauf noch NICHT bestätigt ist. Weitere Gates offen: EPS-/Profilintegration, getrennte Episoden, fehlende Daten, existierende meteorologische Regressionen, Responsive Light/Dark, Types/Build/Audit. src/weather.ts muss über kanonischen Generator synchronisiert werden; Versionsspiegel/Changelog erst bei qualifiziertem vollständigem Releasekandidaten. Branchname benennt Zielversion, KEIN .367-Build veröffentlicht.
+Fünf lokale Produktionsmodul-Fälle erfolgreich. GitHub Vitest Run40954639576, Job123731434590 bestätigt sieben neue Tests auf b630a823ad1acb62df0f518f505ef36a0b3df8a6. Neuer versionierter Head benötigt frische Source-/Unit-/Core-/Heavy-Gates. Browser-/Responsive-/EPS-Gesamtnachweis bislang NICHT bestätigt. Keine tatsächlichen historischen Rohdaten des Nutzergeräts. Keine amtliche Warnlogik oder Meteorologiemenge geändert.
 
-Hier kein vollständiger Checkout möglich: GitHub-Gittransport ohne Antwort, Git-Proxy ohne verfügbare Anmeldung, gh fehlt. Connector-basierte Source-Sicherung erlaubt, keine Zugangsdaten improvisiert. Draft bleibt nicht produktiv; niemals als non-draft freigeben, bevor Generatoren/Versionsspiegel und alle Gates vollständig sind. Source→Bot→ZIP→Installer→Worker/Pages→Stable unverändert erforderlich.
+Lokaler vollständiger Gittransport nicht verfügbar; GitHub-Connector liest/sichert SHA-gebundene Quellen, npm wieder erreichbar. Produktionsfreigabe ausschließlich über bestehendes Source-Gate und SHA-Releasebot → ZIP → Installer → Worker/Pages → Stable. PR Completion ausschließlich Prüf-/Reparaturrolle. Kein generischer Merge.
