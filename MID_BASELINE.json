@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.362",
+  "releaseVersion": "0.9.85.363",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -241,6 +241,7 @@
     "scripts/test-device-sync-nullability-buildfix-095329.mjs",
     "scripts/test-device-sync-startup-route-09381.mjs",
     "scripts/test-direct-outlook-abort-isolation-0985301.mjs",
+    "scripts/test-display-preferences-0985363.mjs",
     "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
     "scripts/test-dwd-composite-source-integrity-09300.mjs",
     "scripts/test-dwd-curved-grid-source-times-09243.mjs",
@@ -639,6 +640,7 @@
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
     "scripts/test-native-location-adapter-09680.mjs",
+    "scripts/test-native-plugin-patches-0985362.mjs",
     "scripts/test-native-share-import-export-096682.mjs",
     "scripts/test-navigation-composite-ruc-098491.mjs",
     "scripts/test-navigation-favorites.mjs",
@@ -780,6 +782,7 @@
     "scripts/test-ruc-dual-read-0985258.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-ruc-full-fusion-horizon-0985363.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-health-convergence-09744.mjs",
@@ -1052,8 +1055,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-native-plugin-patches-0985362.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1284,6 +1286,7 @@
     "scripts/test-device-sync-nullability-buildfix-095329.mjs",
     "scripts/test-device-sync-startup-route-09381.mjs",
     "scripts/test-direct-outlook-abort-isolation-0985301.mjs",
+    "scripts/test-display-preferences-0985363.mjs",
     "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
     "scripts/test-dwd-composite-source-integrity-09300.mjs",
     "scripts/test-dwd-curved-grid-source-times-09243.mjs",
@@ -1682,6 +1685,7 @@
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
     "scripts/test-native-location-adapter-09680.mjs",
+    "scripts/test-native-plugin-patches-0985362.mjs",
     "scripts/test-native-share-import-export-096682.mjs",
     "scripts/test-navigation-composite-ruc-098491.mjs",
     "scripts/test-navigation-favorites.mjs",
@@ -1823,6 +1827,7 @@
     "scripts/test-ruc-dual-read-0985258.mjs",
     "scripts/test-ruc-dwd-pipeline-09690.mjs",
     "scripts/test-ruc-expanded-extreme-integration-09840.mjs",
+    "scripts/test-ruc-full-fusion-horizon-0985363.mjs",
     "scripts/test-ruc-full-production-0985267.mjs",
     "scripts/test-ruc-fusion-runtime-09691.mjs",
     "scripts/test-ruc-health-convergence-09744.mjs",
@@ -2095,8 +2100,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-native-plugin-patches-0985362.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3800,7 +3804,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.362",
+  "version": "0.9.85.363",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

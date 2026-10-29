@@ -1,7 +1,6 @@
-# MID v0.9.85.362
+# MID v0.9.85.363
 
-## Wartung der nativen Schnittstellen
-- Sechs kompatible Capacitor-Plugin-Patches gemeinsam aktualisiert: App, Systembrowser, Dateien, Standort, Teilen und Statusleiste.
-- Enthalten sind Upstream-Korrekturen für iOS-Dateipfade, den Teilen-Dialog und die Speicherfreigabe der Statusleiste sowie Android-Browser-/Standortintegration.
-- Browser-/PWA-Fallbacks, Berechtigungen und Wetterberechnung bleiben erhalten. React, Kartenbibliothek und die gekoppelten Capacitor-Kernpakete behalten ihren qualifizierten Stand.
-- Native Synchronisierung und Adapterverträge werden geprüft; eine physische iOS-/Android-Abnahme ist damit nicht ersetzt.
+## Anzeigeauswahl zuverlässiger behalten
+- Ensemble-Optionen, Karten-Extremwerte, Konturen, Beobachtungslayer, Skalenmodus, Trend-Anomalien, Pollenansicht, Klimawindrose und Extremwetterhorizont bleiben beim erneuten Öffnen erhalten.
+- Änderungen werden sofort gespeichert; ungültige gespeicherte Werte verwenden sichere Vorgaben.
+- Der bestehende RUC-Fusionspfad wird für den Verlauf bis zur bestehenden Nullgewicht-Grenze bei +27 h und gegen unzulässige Verlängerung geprüft. Keine neue Wetterquelle aktiviert.

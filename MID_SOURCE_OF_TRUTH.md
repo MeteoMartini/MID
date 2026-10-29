@@ -1,3 +1,7 @@
+# MID v0.9.85.363 · dauerhafte Anzeigeauswahl
+
+Basis .362 `7ced6f011d14e42b6bc9e79ccbb7cd237abbc9f8`. Validierte sofortige Speicherung zuvor flüchtiger Ensemble-/Karten-/Trend-/Pollen-/Klima-Schalter. Technische Abnahme und offene App-Gesamtinventur: `docs/implementation/MID_C51_DISPLAY_PREFERENCES_363.md`. Keine neue meteorologische Quelle, keine Gewichtänderung. Nur Kandidat bis vollständigen Source-/Installer-/Worker-/Pages-/Stable-Gates.
+
 # MID v0.9.85.362 · gemeinsame native Plugin-Patchqualifikation
 
 Verifizierte Stable-Basis: .361 `3b158eaf9634faa70c5c290da2171248dbf923bc`, main und mid-stable identisch. Sechs kompatible Capacitor-Plugin-Patches aus #474 werden mit neu erzeugtem Lockfile, strikten Versionsverträgen, ausführbaren Adapterprüfungen und nativer Synchronisierung gemeinsam qualifiziert. Core/iOS/CLI, React, MapLibre, Lucide und meteorologische Fachlogik bleiben unverändert. Nachweis: `docs/implementation/MID_C50_NATIVE_PLUGINS_362.md`. Kein physischer Geräte-/Signierungsnachweis. Source-Kandidat bis vollständigem Source-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable.

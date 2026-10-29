@@ -3,7 +3,7 @@ const source=await readFile(new URL('../src/EnsemblePanel.tsx',import.meta.url),
 const styles=await readFile(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
- "[rainCumulative,setRainCumulative]=useState(false)",
+ "[rainCumulative,setRainCumulative]=useDisplayPreference('EnsemblePanel.rainCumulative',false,displayBoolean)",
  "const cumulativeRainData=useMemo<TrendRow[]>(()",
  "bestTotal+=Math.max(0,Number(row.bestPrecipitation)||0)",
  "row.cumulativePrecipitationLow",

@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
 import {drawExtremeOutlookOutsideCoverage} from './extremeOutlookCoverage';
 import {memo,useEffect,useMemo,useState} from 'react';
@@ -83,5 +84,5 @@ function ExtremeWeatherOutlookContent({latitude,longitude,locationName,timezone,
  </section>;
 }
 
-function ExtremeWeatherOutlookPanel(props:Props){const[range,setRange]=useState<'short'|'extended'>('short');return <section className="extreme-outlook-panel"><div className="extreme-hazard-tabs" role="group" aria-label="Warnhorizont">{(['short','extended'] as const).map(value=><button type="button" key={value} style={{minHeight:44}} className={range===value?'active':''} aria-pressed={range===value} onClick={()=>setRange(value)}>{value==='short'?'Bis 48 Stunden':'Vorhinweise · Tag 3–7'}</button>)}</div><ExtremeWeatherOutlookContent key={range} {...props} range={range}/></section>}
+function ExtremeWeatherOutlookPanel(props:Props){const[range,setRange]=useDisplayPreference<'short'|'extended'>('ExtremeWeatherOutlookPanel.range','short',displayChoice('short','extended'));return <section className="extreme-outlook-panel"><div className="extreme-hazard-tabs" role="group" aria-label="Warnhorizont">{(['short','extended'] as const).map(value=><button type="button" key={value} style={{minHeight:44}} className={range===value?'active':''} aria-pressed={range===value} onClick={()=>setRange(value)}>{value==='short'?'Bis 48 Stunden':'Vorhinweise · Tag 3–7'}</button>)}</div><ExtremeWeatherOutlookContent key={range} {...props} range={range}/></section>}
 export default memo(ExtremeWeatherOutlookPanel);

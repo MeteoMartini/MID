@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Cloud,CloudRain,Gauge,Info,RefreshCw,ThermometerSun,Wind as WindIcon} from 'lucide-react';
@@ -764,7 +765,7 @@ export default function SubseasonalTrendPanel({location,windUnit='kn'}:{location
     }catch{return 'combined';}
   });
   const [infoOpen,setInfoOpen]=useState(false);
-  const [anomalyMode,setAnomalyMode]=useState(true);
+  const [anomalyMode,setAnomalyMode]=useDisplayPreference('SubseasonalTrendPanel.anomalyMode',true,displayBoolean);
   const controllerRef=useRef<AbortController|null>(null);
 
   const load=useCallback(async(refresh=false)=>{

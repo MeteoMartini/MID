@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {useState,useEffect,type CSSProperties} from 'react';
 import {fetchWorkerJson} from './workerClient';
 import {CloudSun,ChevronDown} from 'lucide-react';
@@ -57,7 +58,7 @@ export function PollenForecast({lat,lon,enabled}:{lat:number,lon:number,enabled:
   const [data,setData]=useState<PollenResponse|null>(null);
   const [error,setError]=useState<string|null>(null);
   const [expanded,setExpanded]=useState(false);
-  const [showAll,setShowAll]=useState(false);
+  const [showAll,setShowAll]=useDisplayPreference('PollenForecast.showAll',false,displayBoolean);
   const [loading,setLoading]=useState(false);
 
   // Der Pollenstand ist ein täglich aktualisiertes DWD-Produkt. Eine PWA kann

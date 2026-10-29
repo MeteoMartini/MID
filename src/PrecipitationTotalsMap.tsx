@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {useEffect,useMemo,useState} from 'react';
 import {CloudRain,Download,MapPinned} from 'lucide-react';
 import {HtmlMarker,ImageQuadLayer,MapCenter,MapFitBounds,MidMapLibre,RasterTileLayer} from './MapLibreCore';
@@ -23,8 +24,8 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
  const[selectedFavoriteId,setSelectedFavoriteId]=useState(''),[basemapId,setBasemapId]=useState<WeatherMapBasemapId>('light'),selectedFavorite=sortedFavorites.find(place=>place.id===selectedFavoriteId&&isGermanyLocation(place)),activeBasemapId=controlledBasemap??basemapId,activeBasemap=WEATHER_MAP_BASEMAPS[activeBasemapId];
  const[data,setData]=useState<TotalsData|null>(null),[hours,setHours]=useState(24),[error,setError]=useState(''),[exporting,setExporting]=useState(false),[revision,setRevision]=useState(0);
  useEffect(()=>{const controller=new AbortController();setData(null);setError('');void loadTotals(controller.signal,kind).then(result=>{setData(result);setHours(current=>result.frames.some(frame=>frame.hours===current)?current:result.frames[0].hours)}).catch(reason=>{if(!controller.signal.aborted)setError(reason instanceof Error?reason.message:'Kartendaten nicht verfügbar.')});return()=>controller.abort()},[revision,kind]);
- const[colorMode,setColorMode]=useState<MapColorMode>('field');
- const[showContours,setShowContours]=useState(true);
+ const[colorMode,setColorMode]=useDisplayPreference<MapColorMode>('PrecipitationTotalsMap.colorMode','field',displayChoice('field','absolute'));
+ const[showContours,setShowContours]=useDisplayPreference('PrecipitationTotalsMap.showContours',true,displayBoolean);
  const frame=data?.frames.find(item=>item.hours===hours),rangeScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'field'):null,[data,frame]),fixedScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'absolute'):null,[data,frame]),colorScale=colorMode==='field'?rangeScale:fixedScale,raster=useMemo(()=>data&&frame&&colorScale?totalsRaster(data,frame,colorScale):'',[data,frame,colorScale]);
  const contourField=useMemo(()=>data&&frame?totalsScalarField(data,frame):null,[data,frame]);
  const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await exportTotals(data,frame,raster,sortedFavorites,kind,colorScale??undefined,showContours)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
