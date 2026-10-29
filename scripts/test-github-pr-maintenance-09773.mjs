@@ -8,6 +8,6 @@ assert.ok(audit.includes(`actions/upload-artifact@${upload} # v7.0.2`));assert.o
 for(const token of [`UPLOAD_ARTIFACT_V7_SHA='${upload}'`,`SETUP_PYTHON_V7_SHA='${python}'`,`CODEQL_V4_SHA='${codeql}'`,`DEPLOY_PAGES_V5_SHA='${deployPages}'`])assert.ok(sync.includes(token));
 assert.ok(sync.includes('github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.38.2'));
 for(const [name,value] of [['react','19.2.8'],['react-dom','19.2.8'],['react-is','19.2.8']])assert.equal(pkg.dependencies?.[name],value);assert.equal(pkg.devDependencies?.['@vitejs/plugin-react'],'6.1.2');assert.equal(pkg.devDependencies?.vite,'8.3.5');
-for(const token of ['setup-python 7.0.0','upload-artifact 7.0.1','CodeQL: 4.38.2','deploy-pages 5.0.1'])assert.ok(policy.includes(token),`Policy fehlt: ${token}`);
+for(const token of ['setup-python 7.0.0','upload-artifact 7.0.2','CodeQL: 4.38.2','deploy-pages 5.0.1'])assert.ok(policy.includes(token),`Policy fehlt: ${token}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 console.log(`MID v${pkg.version}: aktuelle GitHub-PR-Wartung inklusive React/Vite-Gesamtmigration ist MID-konform geschützt.`);
