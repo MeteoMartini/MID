@@ -17,7 +17,14 @@ try{
  for(const bad of [{...field,schema:'mid.ruc.map-field-candidate.v1'},{...field,modelId:'icon-d2'},{...field,values:field.values.map(()=>null)}])assert.throws(()=>m.validateNativeField(bad,index,ref,'temperature'));
  for(const kind of m.RUC_MAP_KINDS)assert(m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
  for(const kind of ['sigwx','thetae','totals','observed'])assert(!m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
- globalThis.localStorage={getItem:()=>JSON.stringify({modelId:'icon-d2-ruc'})};assert.equal(m.readUnifiedMapSettings().modelId,'icon-d2-ruc');
+ const oldWindow=globalThis.window,oldLocalStorage=globalThis.localStorage,oldStorage=globalThis.Storage;
+ class FakeStorage{
+  getItem(key){return key==='mid:unified-map:v1'?JSON.stringify({modelId:'icon-d2-ruc'}):null}
+  setItem(){}removeItem(){}key(){return null}
+ }
+ const fake=new FakeStorage();globalThis.Storage=FakeStorage;globalThis.localStorage=fake;globalThis.window={localStorage:fake};
+ try{assert.equal(m.readUnifiedMapSettings().modelId,'icon-d2-ruc','durable UnifiedMap still restores genuine RUC model choice')}
+ finally{globalThis.window=oldWindow;globalThis.localStorage=oldLocalStorage;globalThis.Storage=oldStorage}
  assert(m.nativeFieldSvg(d,'Temperatur','data:image/png;base64,',[],0).includes('ICON-D2-RUC · Lauf'));
  // Index is separately byte/SHA-verified before its capabilities become visible.
  const encoded=new TextEncoder().encode(JSON.stringify(index)),digest=Buffer.from(await crypto.subtle.digest('SHA-256',encoded)).toString('hex'),key='runs/test__rucmaps_1234567890123456/ruc-model-fields/index.json';
