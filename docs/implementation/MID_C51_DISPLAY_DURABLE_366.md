@@ -1,0 +1,15 @@
+# MID-C51 · v0.9.85.366 · Kanonische Benutzeranzeige und Cache-Vertrag
+
+Basis v0.9.85.365, `main = mid-stable = 723ef0e11f87963a47aee8a9df8a3c757d07d7ae`, Issues #508/#422. Nur zulässiger `codex/*`-Integrationszweig; kein RUC-, Schnee-, Warnungs- oder Produktionsquellenwechsel.
+
+## Ursachen und umfassende Abhilfe
+- Real reproduziert: Im Radar-Compositespeicher überstimmte der altkompatible `mid:composite-layers:v3` mit `observationsEnabled:true` den aktuelleren kanonischen `mid:composite-settings:v3` mit `false`, wenn der zweite Write fehlgeschlagen war. Der kanonische Datensatz ist nun für jedes gültig vorhandene Feld authoritative; das alte Record gilt nur als Migration für fehlende Felder. JSON-Fehler eines Schlüssels dürfen andere nicht zerstören. Die existierenden Keys bleiben als kompatibler Mirror nutzbar.
+- `compositeSettings` schreibt einen vollständigen kanonischen Datensatz mit UpdatedAt über `storageSafety` **vor** dem nicht autoritativen Legacy-Mirror. RadarPanel patcht gegen aktuellste gespeicherte Werte und erhält Live-Abonnements bei Änderungen paralleler Panels/Tabs, statt alte Mount-Snapshots zurückzuschreiben. DWD-Warnkarten außerhalb des Gebiets sind ausgeblendet, aber die Nutzerpräferenz bleibt unverändert.
+- `UnifiedWeatherMap` liest, patcht und synchronisiert die Einstellungen über denselben dauerhaften Speicher. Alte reine In-Memory-`settingsRef`-Snapshots sind keine Schreibautorität mehr.
+- Ensemble: sieben echte Benutzer-UI-Felder (Metrik, Wind, Temperatur-/Niederschlags-/Winddiagramme, zwei Analyse-Disclosure-Schalter) sind aus dem `mid:ensemble:`-Cachepräfix ausgenommen; sie erhalten Durable-/Backup-/Quota-Verträge. Andere Ensemble-/NWP-Caches bleiben bewusst transient. `EnsemblePanel` liest und schreibt diese Bedieneinstellungen direkt über die permanente Storage-Brücke.
+- Persistenz-Backup hört zusätzlich auf Komposit- und Unified-Map-Änderungen. Keine Wetterwerte fehlen stillschweigend oder werden zu 0; Daten-/Warnings-Gates bleiben unangetastet.
+
+## Geprüfte/noch zu prüfende Grenzen
+Neuer `test-composite-settings-durability-0985366.mjs` lädt die echten Produktionshelper mit kontrollierten Storage-Abhängigkeiten. Behandelt canonical false/legacy true, verlorenen Zweitwrite, Migration, defektes JSON, Skalengrenzen, Event-Abo/Cleanup, sieben UI-Keys vs. Caches und Bridge-Ereignisse. Bestehende gesonderte Browser- und App-Regressionen bleiben **Pflicht**, insbesondere Reopen/Reload/Tab-Sync, Storage-Quota, 320/390/430/834/1024/1440, hell/dunkel, 250m-Radar-Frische und amtliche Warnungen. Die 250m-Checkbox wird bei fehlendem PX-Angebot im Bestand noch automatisch zurückgesetzt: vor einer vollständigen appweiten Abnahme getrennt von der effektiven Verfügbarkeit zu beheben; noch kein grüner Vollständigkeitsanspruch.
+
+Keine echten mobilen iOS-/VoiceOver-Abnahmen aus Browsertests behaupten. Release erst nach Source-PR-Gate → SHA-Bot → serverseitiges ZIP → Installer → Worker-/Pages-Gates → Stable-Promotion. Andere Draft-PRs #425/#449/#480/#513 sowie Dependabot #474 bleiben unabhängig.
