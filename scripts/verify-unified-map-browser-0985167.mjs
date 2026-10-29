@@ -178,23 +178,6 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('Rastertermin'));
  await verifyAlphabeticalSelectors(page);
  const mapIdentity=await page.locator('.maplibregl-map').evaluate(el=>{el.dataset.qaIdentity='original';return true});assert.ok(mapIdentity);
- // .368: exercise the actual RadarPanel, not a synthetic checkbox. PX metadata
- // in this fixture is deliberately unavailable; the saved choice must survive it.
- await page.evaluate(async()=>{const store=await import('/src/compositeSettings.ts');store.patchCompositeSettings({observationsEnabled:true,showRadar:true,highResolution:true})});
- async function openAdvanced(){const details=page.locator('.composite-advanced').first();await details.waitFor();if(await details.getAttribute('open')===null)await details.locator(':scope > summary').click();return details}
- let advanced=await openAdvanced();
- const pxToggle=()=>advanced.getByRole('button',{name:/Radar · 250 m/});
- await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
- assert.equal(await pxToggle().isDisabled(),false,'A retained unavailable PX choice can be switched off');
- await advanced.getByLabel('Ländergrenzen',{exact:true}).uncheck();await advanced.getByLabel('Straßen',{exact:true}).check();
- await measuredReload();advanced=await openAdvanced();
- await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
- assert.equal(await advanced.getByLabel('Ländergrenzen',{exact:true}).isChecked(),false);assert.equal(await advanced.getByLabel('Straßen',{exact:true}).isChecked(),true);
- assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:composite-settings:v3')).highResolution),true,'Unavailable metadata/reload must not erase the request');
- await pxToggle().click();
- assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:composite-settings:v3')).highResolution),false,'First click persists explicit off immediately');
- assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Saved-state fallback text stays within the viewport');
- assert.deepEqual(errors,[],'No runtime errors during availability/reload/checkbox interaction');
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-model-390.png',fullPage:true});
  await page.evaluate(()=>performance.clearResourceTimings());
  await page.getByLabel('Verfügbaren Produktstand auswählen').fill('0');
@@ -269,6 +252,23 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.getByRole('button',{name:'Modell / Messraster'}).click();await measuredReload();await page.getByRole('button',{name:'Modell / Messraster'}).waitFor();assert.equal(await page.getByRole('button',{name:'Modell / Messraster'}).getAttribute('aria-pressed'),'false');
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No page overflow');assert.equal(await page.evaluate(()=>window.__qaDataImageFetches),0,'Decoded native images never cause a fetch that can race layer removal');assert.deepEqual(errors,[],'No browser runtime errors');assert.ok(!requests.some(u=>/rainviewer-meta|rainviewer.com|mode=model-contours|mode=synoptic-analysis/.test(u)),'No low-resolution or old synoptic fetch');
  omitIcon=true;await page.evaluate(()=>{const key='mid:unified-map:v1',d=JSON.parse(localStorage.getItem(key));localStorage.setItem(key,JSON.stringify({...d,enabled:true,parameter:'synoptic',modelId:'icon'}))});await measuredReload();await page.getByLabel('Modell für Parameter').waitFor();await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('nicht verfügbar'));assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:unified-map:v1')).modelId),'icon','Unavailable model preference survives reopen');
+ // .368: exercise the actual RadarPanel, not a synthetic checkbox. PX metadata
+ // in this fixture is deliberately unavailable; the saved choice must survive it.
+ await page.evaluate(async()=>{const store=await import('/src/compositeSettings.ts');store.patchCompositeSettings({observationsEnabled:true,showRadar:true,highResolution:true})});
+ async function openAdvanced(){const details=page.locator('.composite-advanced').first();await details.waitFor();if(await details.getAttribute('open')===null)await details.locator(':scope > summary').click();return details}
+ let advanced=await openAdvanced();
+ const pxToggle=()=>advanced.getByRole('button',{name:/Radar · 250 m/});
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
+ assert.equal(await pxToggle().isDisabled(),false,'A retained unavailable PX choice can be switched off');
+ await advanced.getByLabel('Ländergrenzen',{exact:true}).uncheck();await advanced.getByLabel('Straßen',{exact:true}).check();
+ await measuredReload();advanced=await openAdvanced();
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('Radar · 250 m')&&b.getAttribute('aria-pressed')==='true'&&b.textContent.includes('Daten nicht verfügbar')));
+ assert.equal(await advanced.getByLabel('Ländergrenzen',{exact:true}).isChecked(),false);assert.equal(await advanced.getByLabel('Straßen',{exact:true}).isChecked(),true);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:composite-settings:v3')).highResolution),true,'Unavailable metadata/reload must not erase the request');
+ await pxToggle().click();
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('mid:composite-settings:v3')).highResolution),false,'First click persists explicit off immediately');
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Saved-state fallback text stays within the viewport');
+ assert.deepEqual(errors,[],'No runtime errors during availability/reload/checkbox interaction');
  if(width===390&&theme==='light')await page.screenshot({path:'/tmp/mid-unified-map-390.png',fullPage:true});if(perfEnabled){
    const last=await snapshotMapBrowserProbe(page,'end-case');if(last)perfPhases.push(last);
    perfRows.push({width,theme,design,caseKind:profileMemory?'isolated-memory-cycles':'functional-matrix',memoryProfile,readyMs:readyMs===null?null:Math.round(readyMs*100)/100,...summarizePhases(perfPhases)});
