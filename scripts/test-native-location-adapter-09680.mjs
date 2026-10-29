@@ -9,7 +9,7 @@ const [adapter,app,runtime,pkgRaw,baselineRaw,statusRaw,plist,roadmap,implementa
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),status=JSON.parse(statusRaw),test='scripts/test-native-location-adapter-09680.mjs';
 
 assert.ok(versionAtLeast(pkg.version,'0.9.68.0'));
-assert.equal(pkg.dependencies?.['@capacitor/geolocation'],'8.2.2');
+assert.equal(pkg.dependencies?.['@capacitor/geolocation'],'8.2.4');
 assert.equal(pkg.scripts?.['test:native-location-adapter'],`node ${test}`);
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);

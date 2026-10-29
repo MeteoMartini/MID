@@ -4,6 +4,13 @@ const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'
 const lock=JSON.parse(await readFile(new URL('../package-lock.json',import.meta.url),'utf8'));
 const failures=[];
 const expected={
+ '@capacitor/app':'8.1.2',
+ '@capacitor/browser':'8.0.5',
+ '@capacitor/filesystem':'8.1.5',
+ '@capacitor/geolocation':'8.2.4',
+ '@capacitor/share':'8.0.3',
+ '@capacitor/status-bar':'8.0.4',
+
  react:'19.2.8',
  'react-dom':'19.2.8',
  'react-is':'19.2.8',

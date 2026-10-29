@@ -9,7 +9,7 @@ const [adapter,runtime,app,station,settings,pkgRaw,baselineRaw,statusRaw,plist,w
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),status=JSON.parse(statusRaw),test='scripts/test-native-external-navigation-096681.mjs';
 
 assert.ok(versionAtLeast(pkg.version,'0.9.68.1'));
-assert.equal(pkg.dependencies?.['@capacitor/browser'],'8.0.4');
+assert.equal(pkg.dependencies?.['@capacitor/browser'],'8.0.5');
 assert.equal(pkg.scripts?.['test:native-external-navigation'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','requiredFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
 for(const file of ['src/externalNavigation.ts','MID_IMPLEMENTATION_0.9.68.1.md'])assert.ok(baseline.requiredFiles?.includes(file),`${file} fehlt in requiredFiles.`);
