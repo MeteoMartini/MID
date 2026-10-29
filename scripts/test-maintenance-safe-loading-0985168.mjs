@@ -6,7 +6,7 @@ assert.ok(!existsSync('ios/App/App/Assets.xcassets/Splash.imageset/.splash-dark-
 const assets=JSON.parse(read('ios/App/App/Assets.xcassets/Splash.imageset/Contents.json'));for(const entry of assets.images??[])if(entry.filename)assert.ok(existsSync('ios/App/App/Assets.xcassets/Splash.imageset/'+entry.filename));
 for(const name of ['AppleWidgetSettings','DashboardModuleSettings']){assert.ok(app.includes(`lazy(()=>import('./${name}')`));assert.ok(!new RegExp(`^import \\{[^}]*\\} from './${name}';`,'m').test(app));}
 for(const name of ['@capacitor/core','@capacitor/ios','@capacitor/cli']){assert.equal((pkg.dependencies??{})[name]??pkg.devDependencies[name],'8.5.3');assert.equal(lock.packages['node_modules/'+name].version,'8.5.3')}
-assert.equal(pkg.dependencies.jsfive,'0.4.2');assert.equal(pkg.dependencies['@capacitor/share'],'8.0.2');
+assert.equal(pkg.dependencies.jsfive,'0.4.2');assert.equal(pkg.dependencies['@capacitor/share'],'8.0.3');
 if(existsSync('dist/assets')){const files=readdirSync('dist/assets');assert.ok(files.some(n=>/^AppleWidgetSettings-.*\.js$/.test(n)));assert.ok(files.some(n=>/^DashboardModuleSettings-.*\.js$/.test(n)));}
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-maintenance-browser-0985168.mjs'],{stdio:'inherit',timeout:360000});
 console.log('Maintenance: referenced iOS assets intact, optional settings lazy, compatible exact patch versions and browser QA protected.');

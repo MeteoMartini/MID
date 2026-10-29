@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.361",
+  "releaseVersion": "0.9.85.362",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1052,7 +1052,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-native-plugin-patches-0985362.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2094,7 +2095,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-native-plugin-patches-0985362.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3061,7 +3063,8 @@
     "tools/ecmwf/requirements-readonly.txt",
     "ci/github/workflows/mid-ecmwf-ifs-0p1-readonly.yml",
     ".github/workflows/mid-ecmwf-ifs-0p1-readonly.yml",
-    "scripts/test-skybar-solid-colors-0985358.mjs"
+    "scripts/test-skybar-solid-colors-0985358.mjs",
+    "scripts/test-native-plugin-patches-0985362.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3174,7 +3177,8 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-hour-window-formatter-0985327.mjs",
     "scripts/test-complete-calendar-day-current-skybar-0985285.mjs",
-    "scripts/test-skybar-solid-colors-0985358.mjs"
+    "scripts/test-skybar-solid-colors-0985358.mjs",
+    "scripts/test-native-plugin-patches-0985362.mjs"
   ],
   "protectedFiles": [
     ".github/workflows/install-mid.yml",
@@ -3435,7 +3439,8 @@
     "scripts/test-paired-verification-0985311.mjs",
     "scripts/verify-paired-verification-browser-0985311.mjs",
     "scripts/test-hour-window-formatter-0985327.mjs",
-    "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md"
+    "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
+    "scripts/test-native-plugin-patches-0985362.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -3795,7 +3800,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.361",
+  "version": "0.9.85.362",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
