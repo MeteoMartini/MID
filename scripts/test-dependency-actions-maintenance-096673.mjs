@@ -12,5 +12,5 @@ const codeql='2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2',upload='cf430e030ddbb5b0
 for(const token of [`CHECKOUT_V7_SHA='${checkout}'`,`SETUP_NODE_V7_SHA='${setup}'`,`SETUP_PYTHON_V7_SHA='${python}'`,`CODEQL_V4_SHA='${codeql}'`,`UPLOAD_ARTIFACT_V7_SHA='${upload}'`,`DEPLOY_PAGES_V5_SHA='${deployPages}'`])assert.ok(syncSource.includes(token),`Workflow-Sync fehlt: ${token}`);
 assert.ok(syncSource.includes('github/codeql-action/${action}@${CODEQL_V4_SHA} # v4.38.2'));assert.ok(codeRevision.includes("--exclude='.github/'"));assert.ok(codeRevision.includes("git add -A -- . ':(exclude).github/**'"));
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles','protectedFiles'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);
-for(const token of ['Lucide React: 1.40.0','MapLibre GL JS: 6.7.0','CodeQL: 4.38.2','deploy-pages 5.0.1','setup-python 7.0.0','upload-artifact 7.0.1'])assert.ok(policy.includes(token),`Dependency-Policy fehlt: ${token}`);
+for(const token of ['Lucide React: 1.40.0','MapLibre GL JS: 6.7.0','CodeQL: 4.38.2','deploy-pages 5.0.1','setup-python 7.0.0','upload-artifact 7.0.2'])assert.ok(policy.includes(token),`Dependency-Policy fehlt: ${token}`);
 console.log(`MID v${pkg.version}: Dependency- und Actions-Verträge sind auf dem aktuellen migrationsfähigen Stable-Stand synchron.`);
