@@ -38,3 +38,6 @@ assert.ok(read('src/deviceSync.ts').includes('mergeForecastDisplaySettings(value
 assert.ok(read('src/deviceSync.ts').includes('applyForecastDisplaySettingsRaw(forecastSettings)'));
 console.log('Forecast settings: synchronous durable on/off writes, monotonic recovery revision, legacy compatibility and stale/new remote snapshots passed.');
 if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-c17-settings-restart-browser.mjs'],{cwd:new URL('../',import.meta.url),stdio:'inherit',timeout:360000});
+
+// MID .364: real React + durable storage for generic display preferences, in the existing browser-state shard.
+if(process.env.GITHUB_ACTIONS==='true')execFileSync(process.execPath,['scripts/verify-display-return-browser-0985364.mjs'],{cwd:new URL('../',import.meta.url),stdio:'inherit',timeout:240000});

@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.363",
+  "releaseVersion": "0.9.85.364",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -242,6 +242,7 @@
     "scripts/test-device-sync-startup-route-09381.mjs",
     "scripts/test-direct-outlook-abort-isolation-0985301.mjs",
     "scripts/test-display-preferences-0985363.mjs",
+    "scripts/test-display-return-states-0985364.mjs",
     "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
     "scripts/test-dwd-composite-source-integrity-09300.mjs",
     "scripts/test-dwd-curved-grid-source-times-09243.mjs",
@@ -1287,6 +1288,7 @@
     "scripts/test-device-sync-startup-route-09381.mjs",
     "scripts/test-direct-outlook-abort-isolation-0985301.mjs",
     "scripts/test-display-preferences-0985363.mjs",
+    "scripts/test-display-return-states-0985364.mjs",
     "scripts/test-dwd-cloud-confidence-signal-097877.mjs",
     "scripts/test-dwd-composite-source-integrity-09300.mjs",
     "scripts/test-dwd-curved-grid-source-times-09243.mjs",
@@ -3804,7 +3806,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.363",
+  "version": "0.9.85.364",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

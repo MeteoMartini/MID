@@ -1,4 +1,4 @@
-import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
+import {useDisplayPreference,displayBoolean,displayChoice} from './useDisplayPreference';
 import {NativeScalarOverlay,NativeScalarControls} from './NativeScalarMapOverlay';
 import {totalsScalarField} from './totalsScalarField';
 import {modelLeadLabel,modelAvailableLabel} from './modelForecastTime';
@@ -52,7 +52,7 @@ export default function UnifiedWeatherMap(props:Props){
  const chooseCloudIsoheights=(enabled:boolean)=>{setCloudIsoheights(enabled);writeCloudWeatherIsoheights(enabled)};
  const chooseCloudRenderMode=(mode:CloudWeatherRenderMode)=>{setCloudRenderMode(mode);writeCloudWeatherRenderMode(mode)};
  const update=(patch:Partial<UnifiedMapSettings>)=>{const next={...settingsRef.current,...patch};writeDurableStorageValue(UNIFIED_MAP_SETTINGS_KEY,JSON.stringify({...next,updatedAt:Date.now()}));settingsRef.current=next;setSettings(next)};
- const [d2Catalog,setCatalog]=useState<{index:NativeIndex;base:string}|null>(null),[totals,setTotals]=useState<TotalsData|null>(null),[observed,setObserved]=useState<TotalsData|null>(null),[catalogErrors,setCatalogErrors]=useState<string[]>([]),[revision,setRevision]=useState(0),[target,setTarget]=useState(Date.now()),[field,setField]=useState<NativeField|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[colorMode,setColorMode]=useState<MapColorMode>('absolute'),[selected,setSelected]=useState(''),[exporting,setExporting]=useState(false);
+ const [d2Catalog,setCatalog]=useState<{index:NativeIndex;base:string}|null>(null),[totals,setTotals]=useState<TotalsData|null>(null),[observed,setObserved]=useState<TotalsData|null>(null),[catalogErrors,setCatalogErrors]=useState<string[]>([]),[revision,setRevision]=useState(0),[target,setTarget]=useState(Date.now()),[field,setField]=useState<NativeField|null>(null),[loading,setLoading]=useState(false),[error,setError]=useState(''),[colorMode,setColorMode]=useDisplayPreference<MapColorMode>('UnifiedWeatherMap.colorMode','absolute',displayChoice('field','absolute')),[selected,setSelected]=useState(''),[exporting,setExporting]=useState(false);
  const [rucCatalog,setRucCatalog]=useState<{index:NativeIndex;base:string}|null>(null);
  const catalog=settings.modelId==='icon-d2-ruc'?rucCatalog:d2Catalog,isNativeModel=['icon-d2','icon-d2-ruc'].includes(settings.modelId);
  const [favoritesOpen,setFavoritesOpen]=useState(false),[pointValues,setPointValues]=useState<Record<string,number|null>>({}),[pointStatus,setPointStatus]=useState('');

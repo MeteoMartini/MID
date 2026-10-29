@@ -1,3 +1,4 @@
+import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {CalendarMonthAxisLabel} from './CalendarMonthAxisLabel';
 import {useSignalChartWidth} from './HorizonSignalChart';
 import {useEffect,useMemo,useState} from 'react';
@@ -22,7 +23,7 @@ function niceAbsMax(values:number[],metric:Metric){const minimum=metric==='tempe
 function linePath(values:(number|null)[],x:(index:number)=>number,y:(value:number)=>number){let path='';let active=false;values.forEach((value,index)=>{if(!finite(value)){active=false;return;}path+=`${active?' L':'M'} ${x(index)} ${y(value)}`;active=true;});return path}
 
 export default function LongRangeModelComparison({models}:Props){
- const [chartRef,chartWidth]=useSignalChartWidth(),[relative,setRelative]=useState(true);
+ const [chartRef,chartWidth]=useSignalChartWidth(),[relative,setRelative]=useDisplayPreference('LongRangeModelComparison.relative',true,displayBoolean);
  const months=useMemo(()=>{const map=new Map<string,string>();models.forEach(model=>model.months.forEach(month=>map.set(month.date,map.get(month.date)??month.label)));return[...map.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,label])=>({date,label}))},[models]);
  const[metric,setMetric]=useState<Metric>(()=>{try{return localStorage.getItem('mid:long-range:comparison-metric')==='precipitation'?'precipitation':'temperature'}catch{return'temperature'}});
  useEffect(()=>{try{localStorage.setItem('mid:long-range:comparison-metric',metric)}catch{}},[metric]);

@@ -1,0 +1,515 @@
+{
+  "schema": "mid.geosphere.parameter-review.v1",
+  "reviewedAt": "2026-10-29T12:19:59.066787+00:00",
+  "attribution": "GeoSphere Austria Data Hub, CC BY 4.0",
+  "productionApproved": false,
+  "entries": [
+    {
+      "id": "clae_det",
+      "source": "https://dataset.api.hub.geosphere.at/v1/timeseries/forecast/nwp-v2-1h-1km/metadata",
+      "sha256": "fa3b936e17352186bec5bcf2ca9e736bfa7ca9af62301862e9bb9638b6820e04",
+      "metadata": {
+        "title": "numerical weather prediction",
+        "parameters": [
+          {
+            "name": "10fg",
+            "long_name": "maximum 10 metre wind gust in the last forecast interval",
+            "desc": "maximum 10 metre wind gust in the last forecast interval",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10u",
+            "long_name": "10m wind speed in eastward direction",
+            "desc": "wind speed in eastward direction 10m above ground",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10v",
+            "long_name": "10m wind speed in northward direction",
+            "desc": "wind speed in northward direction",
+            "unit": "m s-1"
+          },
+          {
+            "name": "2r",
+            "long_name": "relative humidity 2m above ground",
+            "desc": "relative humidity 2m above ground",
+            "unit": "%"
+          },
+          {
+            "name": "2t",
+            "long_name": "2m temperature",
+            "desc": "air temperature 2m above ground",
+            "unit": "degree Celsius"
+          },
+          {
+            "name": "cape",
+            "long_name": "convective available potential energy",
+            "desc": "convectively available potential energy",
+            "unit": "m2 s-2"
+          },
+          {
+            "name": "msl",
+            "long_name": "mean sea level pressure",
+            "desc": "air pressure at mean sea level",
+            "unit": "Pa"
+          },
+          {
+            "name": "pt",
+            "long_name": "severe precipitation type in the last forecast interval",
+            "desc": "precipitation type",
+            "unit": "1"
+          },
+          {
+            "name": "rain",
+            "long_name": "rainfall amount in the last forecast interval",
+            "desc": "rainfall amount in the last forecast interval",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "sf",
+            "long_name": "snowfall amount in the last forecast interval",
+            "desc": "snowfall amount in the last forecast interval",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "snowlmt",
+            "long_name": "snowlimit",
+            "desc": "height above ground where falling snow melts",
+            "unit": "m"
+          },
+          {
+            "name": "ssrd",
+            "long_name": "surface global radiation",
+            "desc": "surface downwelling shortwave is the sum of direct and diffuse solar radiation incident on the surface, and is sometimes called global radiation",
+            "unit": "W m-2"
+          },
+          {
+            "name": "sund",
+            "long_name": "sunshine duration in the last forecast interval",
+            "desc": "length of time for which surface incident radiative flux from solar beam exceeds 120 W m-2 in the last forecast interval",
+            "unit": "s"
+          },
+          {
+            "name": "sy",
+            "long_name": "weather symbol",
+            "desc": "codes for GeoSphere Austria weather symbol",
+            "unit": "1"
+          },
+          {
+            "name": "tcc",
+            "long_name": "total cloud cover",
+            "desc": "total cloud cover",
+            "unit": "%"
+          },
+          {
+            "name": "tp",
+            "long_name": "total precipitation amount in the last forecast interval",
+            "desc": "total amount of liquid and solid precipitation in the last forecast interval",
+            "unit": "kg m-2"
+          }
+        ],
+        "frequency": "1H",
+        "type": "timeseries",
+        "mode": "forecast",
+        "response_formats": [
+          "geojson",
+          "csv"
+        ],
+        "last_forecast_reftime": "2026-10-29T06:00+00:00",
+        "max_forecast_offset": 5,
+        "available_forecast_reftimes": [
+          "2026-10-29T06:00+00:00",
+          "2026-10-29T03:00+00:00",
+          "2026-10-29T00:00+00:00",
+          "2026-10-28T21:00+00:00",
+          "2026-10-28T18:00+00:00",
+          "2026-10-28T15:00+00:00"
+        ],
+        "forecast_length": 61,
+        "bbox": [
+          43.002,
+          5.0317,
+          51.498000000000324,
+          22.56819999999951
+        ],
+        "bbox_outer": [
+          42.9975,
+          5.02495,
+          51.502500000000325,
+          22.57494999999951
+        ],
+        "spatial_resolution": [
+          0.0135,
+          0.009
+        ],
+        "spatial_resolution_unit": "deg",
+        "spatial_resolution_m": 1000,
+        "crs": "EPSG:4326",
+        "grid_bounds": [
+          43.002,
+          5.0317,
+          51.498000000000324,
+          22.56819999999951
+        ]
+      }
+    },
+    {
+      "id": "clae_ens",
+      "source": "https://dataset.api.hub.geosphere.at/v1/grid/forecast/ensemble-v2-1h-1km/metadata",
+      "sha256": "f087f6f9bda6dae7344f711473b45b39ac38b7e575ae8a395adad4aaa8f0c9b3",
+      "metadata": {
+        "title": "ensemble forecast",
+        "parameters": [
+          {
+            "name": "10fg_p10",
+            "long_name": "maximum 10 metre wind gust (10th percentile)",
+            "desc": "maximum 10 metre wind gust in the last forecast interval (10th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10fg_p50",
+            "long_name": "maximum 10 metre wind gust (50th percentile)",
+            "desc": "maximum 10 metre wind gust in the last forecast interval (50th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10fg_p90",
+            "long_name": "maximum 10 metre wind gust (90th percentile)",
+            "desc": "maximum 10 metre wind gust in the last forecast interval (90th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10u_p10",
+            "long_name": "10m wind speed in eastward direction (10th percentile)",
+            "desc": "wind speed in eastward direction 10m above ground (10th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10u_p50",
+            "long_name": "10m wind speed in eastward direction (50th percentile)",
+            "desc": "wind speed in eastward direction 10m above ground (50th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10u_p90",
+            "long_name": "10m wind speed in eastward direction (90th percentile)",
+            "desc": "wind speed in eastward direction 10m above ground (90th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10v_p10",
+            "long_name": "10m wind speed in northward direction (10th percentile)",
+            "desc": "wind speed in northward direction 10m above ground (10th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10v_p50",
+            "long_name": "10m wind speed in northward direction (50th percentile)",
+            "desc": "wind speed in northward direction 10m above ground (50th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "10v_p90",
+            "long_name": "10m wind speed in northward direction (90th percentile)",
+            "desc": "wind speed in northward direction 10m above ground (90th percentile of an ensemble forecast)",
+            "unit": "m s-1"
+          },
+          {
+            "name": "2r_p10",
+            "long_name": "relative humidity 2m above ground (10th percentile)",
+            "desc": "relative humidity 2m above ground (10th percentile of an ensemble forecast)",
+            "unit": "%"
+          },
+          {
+            "name": "2r_p50",
+            "long_name": "relative humidity 2m above ground (50th percentile)",
+            "desc": "relative humidity 2m above ground (50th percentile of an ensemble forecast)",
+            "unit": "%"
+          },
+          {
+            "name": "2r_p90",
+            "long_name": "relative humidity 2m above ground (90th percentile)",
+            "desc": "relative humidity 2m above ground (90th percentile of an ensemble forecast)",
+            "unit": "%"
+          },
+          {
+            "name": "2t_p10",
+            "long_name": "2m temperature (10th percentile)",
+            "desc": "air temperature 2m above ground (10th percentile of an ensemble forecast)",
+            "unit": "degree Celsius"
+          },
+          {
+            "name": "2t_p50",
+            "long_name": "2m temperature (50th percentile)",
+            "desc": "air temperature 2m above ground (50th percentile of an ensemble forecast)",
+            "unit": "degree Celsius"
+          },
+          {
+            "name": "2t_p90",
+            "long_name": "2m temperature (90th percentile)",
+            "desc": "air temperature 2m above ground (90th percentile of an ensemble forecast)",
+            "unit": "degree Celsius"
+          },
+          {
+            "name": "cape_p10",
+            "long_name": "convective available potential energy (10th percentile)",
+            "desc": "convectively available potential energy (10th percentile of an ensemble forecast)",
+            "unit": "m2 s-2"
+          },
+          {
+            "name": "cape_p50",
+            "long_name": "convective available potential energy (50th percentile)",
+            "desc": "convectively available potential energy (50th percentile of an ensemble forecast)",
+            "unit": "m2 s-2"
+          },
+          {
+            "name": "cape_p90",
+            "long_name": "convective available potential energy (90th percentile)",
+            "desc": "convectively available potential energy (90th percentile of an ensemble forecast)",
+            "unit": "m2 s-2"
+          },
+          {
+            "name": "msl_p10",
+            "long_name": "mean sea level pressure (10th percentile)",
+            "desc": "air pressure at mean sea level (10th percentile of an ensemble forecast)",
+            "unit": "Pa"
+          },
+          {
+            "name": "msl_p50",
+            "long_name": "mean sea level pressure (50th percentile)",
+            "desc": "air pressure at mean sea level (50th percentile of an ensemble forecast)",
+            "unit": "Pa"
+          },
+          {
+            "name": "msl_p90",
+            "long_name": "mean sea level pressure (90th percentile)",
+            "desc": "air pressure at mean sea level (90th percentile of an ensemble forecast)",
+            "unit": "Pa"
+          },
+          {
+            "name": "rain_p10",
+            "long_name": "rainfall amount in the last forecast interval (10th percentile)",
+            "desc": "rainfall amount in the last forecast interval (10th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "rain_p50",
+            "long_name": "rainfall amount in the last forecast interval (50th percentile)",
+            "desc": "rainfall amount in the last forecast interval (50th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "rain_p90",
+            "long_name": "rainfall amount in the last forecast interval (90th percentile)",
+            "desc": "rainfall amount in the last forecast interval (90th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "sf_p10",
+            "long_name": "snowfall amount in the last forecast interval (10th percentile)",
+            "desc": "snowfall amount in the last forecast interval (10th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "sf_p50",
+            "long_name": "snowfall amount in the last forecast interval (50th percentile)",
+            "desc": "snowfall amount in the last forecast interval (50th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "sf_p90",
+            "long_name": "snowfall amount in the last forecast interval (90th percentile)",
+            "desc": "snowfall amount in the last forecast interval (90th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "snowlmt_p10",
+            "long_name": "snowlimit (10th percentile)",
+            "desc": "height above ground where falling snow melts (10th percentile of an ensemble forecast)",
+            "unit": "m"
+          },
+          {
+            "name": "snowlmt_p50",
+            "long_name": "snowlimit (50th percentile)",
+            "desc": "height above ground where falling snow melts (50th percentile of an ensemble forecast)",
+            "unit": "m"
+          },
+          {
+            "name": "snowlmt_p90",
+            "long_name": "snowlimit (90th percentile)",
+            "desc": "height above ground where falling snow melts (90th percentile of an ensemble forecast)",
+            "unit": "m"
+          },
+          {
+            "name": "ssrd_p10",
+            "long_name": "surface global radiation (10th percentile)",
+            "desc": "surface downwelling shortwave is the sum of direct and diffuse solar radiation incident on the surface, and is sometimes called global radiation (10th percentile of an ensemble forecast)",
+            "unit": "W m-2"
+          },
+          {
+            "name": "ssrd_p50",
+            "long_name": "surface global radiation (50th percentile)",
+            "desc": "surface downwelling shortwave is the sum of direct and diffuse solar radiation incident on the surface, and is sometimes called global radiation (50th percentile of an ensemble forecast)",
+            "unit": "W m-2"
+          },
+          {
+            "name": "ssrd_p90",
+            "long_name": "surface global radiation (90th percentile)",
+            "desc": "surface downwelling shortwave is the sum of direct and diffuse solar radiation incident on the surface, and is sometimes called global radiation (90th percentile of an ensemble forecast)",
+            "unit": "W m-2"
+          },
+          {
+            "name": "sund_p10",
+            "long_name": "sunshine duration in the last forecast interval (10th percentile)",
+            "desc": "length of time for which surface incident radiative flux from solar beam exceeds 120 W m-2 in the last forecast interval (10th percentile of an ensemble forecast)",
+            "unit": "s"
+          },
+          {
+            "name": "sund_p50",
+            "long_name": "sunshine duration in the last forecast interval (50th percentile)",
+            "desc": "length of time for which surface incident radiative flux from solar beam exceeds 120 W m-2 in the last forecast interval (50th percentile of an ensemble forecast)",
+            "unit": "s"
+          },
+          {
+            "name": "sund_p90",
+            "long_name": "sunshine duration in the last forecast interval (90th percentile)",
+            "desc": "length of time for which surface incident radiative flux from solar beam exceeds 120 W m-2 in the last forecast interval (90th percentile of an ensemble forecast)",
+            "unit": "s"
+          },
+          {
+            "name": "tcc_p10",
+            "long_name": "total cloud cover (10th percentile)",
+            "desc": "total cloud cover (10th percentile of an ensemble forecast)",
+            "unit": "%"
+          },
+          {
+            "name": "tcc_p50",
+            "long_name": "total cloud cover (50th percentile)",
+            "desc": "total cloud cover (50th percentile of an ensemble forecast)",
+            "unit": "%"
+          },
+          {
+            "name": "tcc_p90",
+            "long_name": "total cloud cover (90th percentile)",
+            "desc": "total cloud cover (90th percentile of an ensemble forecast)",
+            "unit": "%"
+          },
+          {
+            "name": "tp_p10",
+            "long_name": "total precipitation amount in the last forecast interval (10th percentile)",
+            "desc": "total amount of liquid and solid precipitation in the last forecast interval (10th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "tp_p50",
+            "long_name": "total precipitation amount in the last forecast interval (50th percentile)",
+            "desc": "total amount of liquid and solid precipitation in the last forecast interval (50th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          },
+          {
+            "name": "tp_p90",
+            "long_name": "total precipitation amount in the last forecast interval (90th percentile)",
+            "desc": "total amount of liquid and solid precipitation in the last forecast interval (90th percentile of an ensemble forecast)",
+            "unit": "kg m-2"
+          }
+        ],
+        "frequency": "1H",
+        "type": "grid",
+        "mode": "forecast",
+        "response_formats": [
+          "geojson",
+          "netcdf"
+        ],
+        "last_forecast_reftime": "2026-10-29T06:00+00:00",
+        "max_forecast_offset": 2,
+        "available_forecast_reftimes": [
+          "2026-10-29T06:00+00:00",
+          "2026-10-29T03:00+00:00",
+          "2026-10-29T00:00+00:00"
+        ],
+        "forecast_length": 61,
+        "bbox": [
+          43.002,
+          5.0317,
+          51.498000000000324,
+          22.56819999999951
+        ],
+        "bbox_outer": [
+          42.9975,
+          5.02495,
+          51.502500000000325,
+          22.57494999999951
+        ],
+        "spatial_resolution": [
+          0.0135,
+          0.009
+        ],
+        "spatial_resolution_unit": "deg",
+        "spatial_resolution_m": 1000,
+        "crs": "EPSG:4326",
+        "grid_bounds": [
+          43.002,
+          5.0317,
+          51.498000000000324,
+          22.56819999999951
+        ]
+      }
+    },
+    {
+      "id": "snowgrid_v2",
+      "source": "https://dataset.api.hub.geosphere.at/v1/timeseries/historical/snowgrid_cl-v2-1d-1km/metadata",
+      "sha256": "ba395e68b2c1c4ef4e1e57df9763c40c8d7797a1023ab33b67b979971bf46ffc",
+      "metadata": {
+        "title": "Output from the SNOWGRID Climate model (SNOWGRID-CL)",
+        "parameters": [
+          {
+            "name": "snow_depth",
+            "long_name": "total snow depth",
+            "desc": "total snow depth",
+            "unit": "m"
+          },
+          {
+            "name": "swe_tot",
+            "long_name": "total snow water equivalent",
+            "desc": "total snow water equivalent",
+            "unit": "kg m-2"
+          }
+        ],
+        "frequency": "1D",
+        "type": "timeseries",
+        "mode": "historical",
+        "response_formats": [
+          "geojson",
+          "csv"
+        ],
+        "start_time": "1961-01-01T00:00+00:00",
+        "end_time": "2026-10-28T00:00+00:00",
+        "bbox": [
+          46.16132856869247,
+          9.393909734939893,
+          49.177527691779716,
+          17.382180045432914
+        ],
+        "bbox_outer": [
+          46.15661379652522,
+          9.386722653137136,
+          49.18202316439182,
+          17.389375741207555
+        ],
+        "spatial_resolution": [
+          1000,
+          1000
+        ],
+        "spatial_resolution_unit": "m",
+        "spatial_resolution_m": 1000,
+        "crs": "EPSG:3416",
+        "grid_bounds": [
+          258500.0,
+          112500.0,
+          586500.0,
+          695500.0
+        ]
+      }
+    }
+  ]
+}
