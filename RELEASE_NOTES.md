@@ -1,8 +1,9 @@
-# MID v0.9.85.359
+# MID v0.9.85.360
 
-## Geprüfte Wartung der Veröffentlichungskette
+## Verlässliche und datensparsame Widget-Fehlerdiagnose
 
-- Node-Setup, Artefaktübertragung und App-Token-Erzeugung verwenden gemeinsam aktualisierte, auf vollständige Commit-SHAs festgelegte GitHub Actions.
-- Kanonische Workflows, ihre aktiven Spiegel und die Prüfungen der zugelassenen Versionen bleiben synchron. Bestehende Berechtigungen, Snapshot-Prüfungen und Freigabegates gelten weiterhin.
+- Widget-Exports zeichnen Browser-Netzwerkanfragen nun schon vor der ersten Seitennavigation auf. Der erste Wetterabruf geht nicht mehr wegen einer verspäteten DevTools-Anbindung verloren.
+- Der Erstfehlerbericht unterscheidet HTTP-Fehler samt Rate-Limits, DNS-/Verbindungsfehler, Zeitüberschreitungen, Abbrüche und noch ausstehende Requests. Er enthält nur begrenzte Zähler, Statusgruppen und Laufzeiten – niemals URLs, Queryparameter, Koordinaten, Cookies oder Zugriffstokens.
+- Atomare Erstfehlerberichte, private Browserprofile, zwölf Pflicht-Widget-Varianten und die Veröffentlichungsblockade bei unvollständigen Ergebnissen bleiben erhalten. Ein neuer deterministischer Test deckt die Netzwerkereignisse und das Fehlen sensibler Werte ab.
 
-Wetterberechnungen und Darstellung bleiben erhalten. Die Browser-Download-Zuverlässigkeit bleibt eine gesonderte Betriebsaufgabe.
+Wettermodelle, Vorhersagewerte, Wetterfarben, amtliche Warnungen und RUC-Daten bleiben unverändert.
