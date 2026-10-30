@@ -4,6 +4,7 @@ import datetime as dt,json,os,sys,tempfile
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'ruc'))
 from prepared_snapshot import api,resolve_reuse,REPOSITORY
+from ruc_resume_preflight import compatible_producer_source
 
 MAX_CANDIDATES=10
 MAX_AGE_SECONDS=90*60
@@ -20,7 +21,7 @@ def trusted(row):
         and row.get('path')=='.github/workflows/mid-ruc-preprocess.yml'
         and row.get('event') in ('schedule','workflow_dispatch'))
 
-def select_run(payload,jobs,resolve,*,now):
+def select_run(payload,jobs,resolve,*,now,compatible=None):
     rows=payload.get('workflow_runs')
     if not isinstance(rows,list):raise ValueError('invalid workflow run list')
     eligible=[]
@@ -50,6 +51,10 @@ def select_run(payload,jobs,resolve,*,now):
         except json.JSONDecodeError:raise
         except ValueError:continue
         if proof.get('producer_run_id')!=str(row['id']):raise ValueError('resolved producer mismatch')
+        if compatible is not None:
+            # A known-incompatible newest candidate must not fall through to
+            # even older products. Normal calculation reestablishes provenance.
+            if not compatible(row.get('head_sha')):return ''
         return str(row['id'])
     return ''
 
@@ -67,5 +72,5 @@ if __name__=='__main__':
     if os.environ.get('GITHUB_REPOSITORY')!=REPOSITORY:raise SystemExit('repository mismatch')
     # Reuse the existing authenticated API resolver and immutable artifact proof.
     if 'GH_TOKEN' in os.environ:os.environ['GITHUB_TOKEN']=os.environ['GH_TOKEN']
-    result=select_run(json.load(sys.stdin),lambda run:api(f'actions/runs/{run}/jobs?filter=latest&per_page=100')['jobs'],resolve_without_outputs,now=dt.datetime.now(dt.timezone.utc).timestamp())
+    result=select_run(json.load(sys.stdin),lambda run:api(f'actions/runs/{run}/jobs?filter=latest&per_page=100')['jobs'],resolve_without_outputs,now=dt.datetime.now(dt.timezone.utc).timestamp(),compatible=compatible_producer_source)
     print(result)

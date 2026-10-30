@@ -8,4 +8,7 @@ assert.ok(canonical.indexOf('select_ruc_resume.py')>canonical.indexOf('active pr
 assert.ok(canonical.includes('-f reuse_run_id="$reuse_run_id"'));assert.ok(canonical.includes('-f force=false'));
 const pipeline=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
 for(const token of ['digest-mismatch: error','prepared_snapshot.py admit','verify_prepared_snapshot.mjs','main_version','publish_guard','950000000'])assert.ok(pipeline.includes(token));
+const preflight=readFileSync('tools/release/ruc_resume_preflight.py','utf8'),selector=readFileSync('tools/release/select_ruc_resume.py','utf8');
+for(const contract of ['def compatible_producer_source(', "['merge-base', '--is-ancestor'", "['diff', '--name-only'", 'normalize', 'tools/ruc', 'worker-src', 'package-lock.json'])assert.ok(preflight.includes(contract),'RUC old-producer preflight contract missing '+contract);
+assert.ok(selector.includes('compatible=compatible_producer_source')&&selector.includes("if not compatible(row.get('head_sha')):return ''"),'RUC resume selector must preflight before dispatch');
 console.log('PASS bounded RUC resume selection, retry barrier, existing immutable resolver, unchanged admission and workflow guard ordering');
