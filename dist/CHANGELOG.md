@@ -1,3 +1,9 @@
+# MID v0.9.85.379 – Geschützter GitHub-Source-Signaturpilot
+
+- Sicherheit: Auf `main` begrenzter, manuell gestarteter SHA-gepinnter GitHub-Signaturpilot für erfolgreich verifizierte Source-PR-Läufe.
+- Unabhängige GitHub-API-Gegenprüfung von PR, Commit, Run, Attempt, sämtlichen Core-/Heavy-Gates und erfolgreicher Stable-Promotion; strikte Fail-closed-Gegenproben.
+- Keine Wetter- oder UI-Änderungen, kein neues Abonnement und **keine** Ersetzung von Source-, Installer-, Worker-/Pages- oder Stable-Prüfungen. Das Artefakt-Reuse bleibt deaktiviert.
+
 # MID v0.9.85.378
 
 ## Verständlichere Wetterdiagramme und bessere Datenlückenanzeige
