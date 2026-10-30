@@ -3,6 +3,9 @@ run-name: MID CI/CD-Dauern und Engpässe messen
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: [Install MID release and deploy]
+    types: [completed]
 
 # Diagnostic only: no PR, branch, deployment, workflow or release modifications.
 permissions:
@@ -15,6 +18,7 @@ concurrency:
 
 jobs:
   report:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     name: GitHub-Actions-Laufzeiten zuverlässig auswerten
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -28,4 +32,4 @@ jobs:
       - name: Letzte Source-, Release-Bot- und Installerläufe messen
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/ci/release-timing.mjs --count 10
+        run: node tools/ci/release-timing.mjs --count 10 --json

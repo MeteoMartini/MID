@@ -43,11 +43,22 @@ export function summarizeRun(run) {
       seconds: seconds(step.started_at, step.completed_at),
     })),
   }));
-  const starts = jobs.map(j => j.startedMs).filter(Number.isFinite);
-  const ends = jobs.map(j => j.completedMs).filter(Number.isFinite);
+  // Retries can retain prior successful jobs with synthetic attempt metadata.
+  // Count an execution once by its actual name/start/end, never by cloned job ID.
+  const executions=new Map();
+  for(const job of [...run.jobs,...(run.previousAttemptJobs??[])]){
+    if(job.conclusion==='skipped')continue;
+    const elapsed=seconds(job.started_at,job.completed_at);
+    const key=JSON.stringify([job.name,job.started_at,job.completed_at]);
+    executions.set(key,{...job,elapsed});
+  }
+  const measured=[...executions.values()].filter(j=>j.elapsed!==null);
+  const incomplete=[...executions.values()].filter(j=>j.elapsed===null).length;
+  const starts = measured.map(j => asMs(j.started_at));
+  const ends = measured.map(j => asMs(j.completed_at));
   const start = starts.length ? Math.min(...starts) : null;
   const end = ends.length ? Math.max(...ends) : null;
-  const durationSeconds = start !== null && end !== null && end >= start
+  const durationSeconds = !incomplete && start !== null && end !== null && end >= start
     ? Math.round((end - start)/1000) : null;
   const created = asMs(run.created_at);
   const queueSeconds = created !== null && start !== null && start >= created
@@ -62,8 +73,12 @@ export function summarizeRun(run) {
     workflow: workflowFile(run.path) ?? String(run.name ?? '(unknown)'),
     conclusion: String(run.conclusion ?? 'unknown'),
     headSha: typeof run.head_sha === 'string' ? run.head_sha : null,
+    attemptCount:Number.isSafeInteger(run.run_attempt)&&run.run_attempt>0?run.run_attempt:null,
+    runnerSeconds:incomplete||!measured.length?null:measured.reduce((n,j)=>n+j.elapsed,0),
+    executedJobs:executions.size,
+    cancelledExecutions:measured.filter(j=>j.conclusion==='cancelled').length,
     jobCount: jobs.length,
-    incompleteJobs: jobs.filter(j => j.durationSeconds === null && j.conclusion !== 'skipped').length,
+    incompleteJobs: incomplete,
     durationSeconds, queueSeconds,
     longestJob: critical ? {name:critical.name, seconds:critical.durationSeconds} : null,
     expensiveSteps,
@@ -84,6 +99,10 @@ export function summarizeCohort(runs) {
       p95Seconds:percentile(successful.map(d=>d.durationSeconds),0.95),
       queueP50Seconds:percentile(successful.map(d=>d.queueSeconds),0.5),
       failureCount:sample.filter(d => d.conclusion === 'failure').length,
+      cancelledCount:sample.filter(d => d.conclusion === 'cancelled').length,
+      timedOutCount:sample.filter(d => d.conclusion === 'timed_out').length,
+      retriedRuns:sample.filter(d => d.attemptCount>1).length,
+      runnerP50Seconds:percentile(successful.map(d=>d.runnerSeconds),0.5),
       unknownTimingCount:sample.filter(d => d.durationSeconds === null).length,
     };
   }
@@ -99,9 +118,10 @@ export function renderMarkdown(report) {
   for (const [name, c] of Object.entries(report.byWorkflow)) {
     out += '| '+safe(name)+' | '+c.count+' | '+c.successful+' | '+c.failureCount+' | '+format(c.p50Seconds)+' | '+format(c.p95Seconds)+' | '+format(c.queueP50Seconds)+' |\n';
   }
-  out += '\n| Run | Status | Elapsed | Slowest job | Slowest duration | Incomplete timing |\n|---|---|---:|---|---:|---:|\n';
+  out += '\nRunner time sums actual measured job executions (not billed minutes); retries and waiting gaps remain in elapsed time. Cancelled/skipped results never become successful samples.\n\n';
+  out += '| Run | Status | Elapsed | Attempts | Runner time | Slowest job | Slowest duration | Incomplete timing |\n|---|---|---:|---:|---:|---|---:|---:|\n';
   for (const r of report.details) {
-    out += '| '+r.id+' | '+safe(r.conclusion)+' | '+format(r.durationSeconds)+' | '+
+    out += '| '+r.id+' | '+safe(r.conclusion)+' | '+format(r.durationSeconds)+' | '+(r.attemptCount??'n/a')+' | '+format(r.runnerSeconds)+' | '+
       safe(r.longestJob?.name ?? 'n/a')+' | '+format(r.longestJob?.seconds ?? null)+
       ' | '+r.incompleteJobs+' |\n';
   }
@@ -161,12 +181,29 @@ export async function githubRuns(repository, count, token, workflowNames=DEFAULT
     const jobs = [];
     for (let page=1; page<=10;page++) {
       const data = await api('repos/'+repository+'/actions/runs/'+run.id+'/jobs?per_page=100&page='+page,token);
-      const batch = data.jobs ?? [];
+      if(!Array.isArray(data.jobs))throw Error('Missing run job inventory');
+      const batch = data.jobs;
       jobs.push(...batch);
       if (batch.length < 100) break;
       if (page === 10) throw new Error('Too many jobs; incomplete pagination refused');
     }
-    runs.push({...run, jobs});
+    const previousAttemptJobs=[];
+    if(run.run_attempt!==undefined&&(!Number.isSafeInteger(run.run_attempt)||run.run_attempt<1||run.run_attempt>20))throw Error('Invalid or excessive run attempts');
+    for(let attempt=1;attempt<(run.run_attempt??1);attempt++){
+      for(let page=1;page<=10;page++){
+        const data=await api('repos/'+repository+'/actions/runs/'+run.id+'/attempts/'+attempt+'/jobs?per_page=100&page='+page,token);
+        if(!Array.isArray(data.jobs))throw Error('Missing attempt job inventory');
+        previousAttemptJobs.push(...data.jobs);
+        if(data.jobs.length<100)break;
+        if(page===10)throw Error('Incomplete attempt pagination');
+      }
+    }
+    // A rerun during collection would otherwise mix incompatible observations.
+    if(run.run_attempt!==undefined){
+      const current=await api('repos/'+repository+'/actions/runs/'+run.id,token);
+      if(current.run_attempt!==run.run_attempt||current.status!==run.status||current.conclusion!==run.conclusion||current.head_sha!==run.head_sha)throw Error('Run changed during timing collection');
+    }
+    runs.push({...run, jobs,previousAttemptJobs});
   }
   return runs;
 }
