@@ -25,7 +25,23 @@ try{
  const dirs=(await fs.readdir(temporary)).filter(name=>name.startsWith('mid-regression-'));assert.equal(dirs.length,12);
  const ids=[];for(const dir of dirs){assert.equal((await fs.stat(path.join(temporary,dir))).mode&0o777,0o700);const file=path.join(temporary,dir,'timings.json');ids.push(JSON.parse(await fs.readFile(file,'utf8')).id);assert.equal((await fs.stat(file)).mode&0o777,0o600)}assert.equal(new Set(ids).size,12);
  const canonical=await read('ci/github/workflows/install-mid.yml');for(const name of ['.github/workflows/install-mid.yml','workflow-patches/install-mid.yml'])assert.equal(await read(name),canonical);
- assert.equal(canonical.split('path: ${{ runner.temp }}/mid-regression-*/timings.json').length-1,2);
+ const timingPath='path: ${{ runner.temp }}/mid-regression-*/timings.json';
+ const sections={
+  core:canonical.split('  verify_core:')[1]?.split('  verify_core_shards:')[0],
+  coreShards:canonical.split('  verify_core_shards:')[1]?.split('  verify_heavy:')[0],
+  heavy:canonical.split('  verify_heavy:')[1]?.split('  install_build:')[0],
+ };
+ assert.equal(canonical.split(timingPath).length-1,3,'Exact three private timing producers required.');
+ for(const [name,block] of Object.entries(sections)){
+  assert.ok(block,'Missing independent timed verification group: '+name);
+  assert.equal(block.split(timingPath).length-1,1,'Each timed group must write a private timing file exactly once: '+name);
+  assert.ok(block.includes('if: always()')&&block.includes('retention-days: 7'),
+    'Timing diagnostics must preserve bounded, non-authorizing retention: '+name);
+ }
+ assert.ok(sections.coreShards.includes('name: mid-timings-core-shard-'),
+   'Core-shard diagnostics must not collide with existing Core/Heavy artifacts.');
+ assert.ok(sections.heavy.includes('name: mid-timings-${{ strategy.job-index }}-'),
+   'Heavy diagnostic artifact naming must stay unchanged.');
  const expected='https://www.midwx.app/api/mid-worker';assert.ok(sourceUsesExactHttpsUrl(`--url "${expected}"`,expected));for(const suffix of ['.evil.example','/extra','?evil=1'])assert.equal(sourceUsesExactHttpsUrl(`--url "${expected}${suffix}"`,expected),false);
  // Incomplete or non-serializable collectors must still publish a valid
  // first-failure report, never a zero-byte file or leaked error text.
