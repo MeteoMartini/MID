@@ -6,7 +6,8 @@ const styles={temperature:'none',apparent:'5 4',dewpoint:'2 5',pressure:'none',p
 for(const [role,dash] of Object.entries(styles)){
   assert.match(line,new RegExp('^\\s*'+role+':\\{[^\\n]*'+(dash==='none'?'width:':'dash:\\x27'+dash+'\\x27'),'m'),'line contract: '+role);
   assert.ok(app.includes('data-parameter-line="'+role+'" style={parameterLineStyle(\x27'+role+'\x27)}'),'daily detail uses central role '+role);
-  assert.ok(cockpit.includes('data-parameter-line="'+role+'" style={parameterLineStyle(\x27'+role+'\x27)}'),'24h profile uses central role '+role);
+  if(role==='temperature') assert.ok(cockpit.includes('data-parameter-line="temperature" style={{...parameterLineStyle(\x27temperature\x27),stroke:'),'24h temperature uses central role with intentional value-driven stroke override');
+  else assert.ok(cockpit.includes('data-parameter-line="'+role+'" style={parameterLineStyle(\x27'+role+'\x27)}'),'24h profile uses central role '+role);
 }
 const dashed=Object.entries(styles).filter(([,dash])=>dash!=='none').map(([,dash])=>dash);
 assert.equal(new Set(dashed).size,dashed.length,'overlapping dashed meteorological lines must be distinct without colour');
