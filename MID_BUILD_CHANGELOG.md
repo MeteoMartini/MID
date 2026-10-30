@@ -1,3 +1,12 @@
+## MID v0.9.85.371 · 30.10.2026 · Open-Meteo BOM ACCESS-G deterministisch außer Betrieb
+
+- Offizielle Provenienz: seit 26.06.2025 18 UTC keine aktuellen BOM ACCESS-G-Läufe. Trotz weiter gelisteter API-ID keine aktuelle deterministische Quelle.
+- Den aktiven Kandidaten aus kanonischem Forecast-Katalog und generiertem weather.ts entfernt; Worker-Fusionsmodell und globalIds in kanonischer Quelle, worker.js und metar-proxy.js entfernt.
+- Bestehende globale Ersatzmodelle, Best-Match-Anker, 20er-Modellbudget, Unabhängigkeitsgruppen, RUC-/Warn- und Missing-Data-Semantik unverändert.
+- BOM Ensemble und BOM ACCESS-S2 saisonal explizit bewahrt; keine historischen Prognosen verändert.
+- Zwei veraltete Modellfamilien-Assertions angepasst; neue tatsächliche Worker-Auswahl-Regression test-openmeteo-bom-retirement-0985371.mjs für DE/AU/US, Katalog-/Mirror-Parität und Saison/Ensemble; 1049 Tests in beiden Inventaren.
+- Versions-/PWA-/iOS-/Worker-/Lockfile-/Baseline-/Registry-/Nutzer-Changelog synchron auf 0.9.85.371, iOS Build 372. Source-Gates und Release nicht als erfolgreich bezeichnen, bis GitHub die Schritte belegt.
+
 ## MID v0.9.85.366 · 29.10.2026 · Karteneinstellungen und Ensemble-Cachevertrag
 
 - Legacy-Composite-Layer-Mirror kann den kanonischen v3-Record nicht mehr überstimmen. Fehlender 2. Write, falsche/fehlende Werte und vollständiger Snapshot müssen die bewusste Auswahl `false` erhalten.

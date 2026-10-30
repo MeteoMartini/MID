@@ -20,7 +20,9 @@ for(const token of ['independenceGroup','independentFusionRows','consensusRole']
 assert.ok(worker.includes("result.consensusRole!=='postprocessing'"),'Postprocessing darf nicht als unabhängige Stimme gewertet werden.');
 assert.ok(worker.includes('const families=new Map()')&&worker.includes('budget=Math.max(...representatives.map(row=>row.weight))'),'Pro Horizont muss ein geeigneter Vertreter je Familie gewählt und ein gemeinsames Gruppenbudget geteilt werden.');
 assert.ok(worker.includes("maxHours:27,rapidUpdate:true"),'ICON-D2-RUC muss auf seine Rapid-Cycle-Reichweite begrenzt bleiben.');
-for(const token of ['knmi_harmonie_europe','ukmo_ukv','metno_nordic','hrrr','nam','nbm','chmi_aladin_ce','ecmwf_ifs','ecmwf_aifs','gfs','aigfs','ukmo_global','gem_global','jma_gsm','bom_access_global','cma_grapes_global','arpege_world'])assert.ok(worker.includes(`id:'${token}'`),`Modellfamilie fehlt im Worker-Katalog: ${token}`);
+for(const token of ['knmi_harmonie_europe','ukmo_ukv','metno_nordic','hrrr','nam','nbm','chmi_aladin_ce','ecmwf_ifs','ecmwf_aifs','gfs','aigfs','ukmo_global','gem_global','jma_gsm','cma_grapes_global','arpege_world'])assert.ok(worker.includes(`id:'${token}'`),`Modellfamilie fehlt im Worker-Katalog: ${token}`);
+assert.ok(!worker.includes("id:'bom_access_global'"),'Veraltetes BOM ACCESS Global darf nicht aktiv im Worker-Katalog bleiben.');
+assert.ok(!weather.includes("id:'bom_access_global'"),'Veraltetes BOM ACCESS Global darf nicht im aktuellen Frontend-Katalog stehen.');
 for(const token of ['kma_ldps','kma_gdps'])assert.ok(!worker.includes(`id:'${token}'`),`Suspendiertes KMA-Modell darf nicht aktiv im Worker-Katalog bleiben: ${token}`);
 for(const token of ['kma_ldps','kma_gdps'])assert.ok(!weather.includes(`id:'${token}'`),`Suspendiertes KMA-Modell darf nicht aktiv im Frontend-Katalog bleiben: ${token}`);
 assert.ok(weather.includes("country==='KR'?['jma_msm','jma_seamless']"),'Südkorea muss während der KMA-KIM-Migration auf dokumentierte JMA-Modelle plus Best-Match zurückfallen.');

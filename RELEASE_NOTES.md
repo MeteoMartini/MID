@@ -1,6 +1,7 @@
-# MID v0.9.85.370
+# MID v0.9.85.371
 
-## Aufbereitete RUC-Daten nach App-Releases wiederverwenden
-- Der RUC-Watchdog kann bei Datenrückstand einen bereits vollständig aufbereiteten Datensatz über seinen exakten Ursprungslauf erneut prüfen lassen. Ein App-Release muss dadurch keine erneute Wetterdatenberechnung auslösen.
-- Herkunft, unveränderliche Artefakte, aktueller Datenvertrag, Frische, vollständige Datenbytes und JS-Decoder bleiben verpflichtend geprüft. Eine erfolgte Wiederaufnahme wird nicht fortlaufend erneut angefordert.
-- Laufende Verarbeitungen, Wartefristen, Release-Schutz und Pages-/Worker-Gates bleiben unverändert. Ohne geeigneten Kandidaten bleibt der bisherige Berechnungspfad erhalten.
+## Aktuelle Mehrmodellvorhersage von veraltetem BOM ACCESS Global bereinigt
+- Das seit Juni 2025 nicht mehr aktualisierte deterministische Modell BOM ACCESS Global wird nicht mehr als aktuelle Vorhersage angeboten.
+- Es wird auch nicht mehr im Worker als vermeintlich frische unabhängige Modellstimme oder globaler Fallback gewertet. Die übrigen globalen Modelle bleiben unverändert verfügbar.
+- Die separat angebotenen BOM-Ensemble-Prognosen und saisonalen ACCESS-S2-Produkte bleiben erhalten; historische Prognosen und Quellenangaben werden nicht umgeschrieben.
+- Weitere Modellumstellungen, insbesondere GeoSphere AROME/C-LAEF, erfolgen erst nach belastbarer API-, Feld- und Datenprüfung.
