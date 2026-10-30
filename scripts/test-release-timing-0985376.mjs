@@ -67,3 +67,64 @@ test('GitHub API client rejects unsafe repository and sample size before network
   await assert.rejects(githubRuns('../evil',2,''),/Invalid repository/);
   await assert.rejects(githubRuns('MeteoMartini/MID',31,''),/Count/);
 });
+
+test('GitHub API samples workflow file identities rather than display run-names and excludes skips',async()=>{
+  const original=globalThis.fetch;
+  const paths=[];
+  try{
+    globalThis.fetch=async(url)=>{
+      paths.push(String(url));
+      if(String(url).includes('/actions/workflows/install-mid.yml/runs?')){
+        return {ok:true,json:async()=>({workflow_runs:[
+          {...sample(101,'MID-Release aus ZIP installieren und veröffentlichen'),path:'.github/workflows/install-mid.yml',event:'push',status:'completed'},
+          {...sample(102,'MID-Release aus ZIP installieren und veröffentlichen','skipped'),path:'.github/workflows/install-mid.yml',event:'workflow_dispatch',status:'completed'},
+          {...sample(103,'MID-Release aus ZIP installieren und veröffentlichen'),path:'.github/workflows/install-mid.yml',event:'workflow_dispatch',status:'completed'},
+        ]})};
+      }
+      if(String(url).includes('/actions/runs/103/jobs?')){
+        return {ok:true,json:async()=>({jobs:sample(103,'any').jobs})};
+      }
+      throw Error('Unexpected path '+url);
+    };
+    const runs=await githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']]));
+    assert.equal(runs.length,1);
+    assert.equal(runs[0].id,103);
+    assert.equal(summarizeRun(runs[0]).workflow,'install-mid.yml');
+    assert.equal(paths.length,2);
+  }finally{globalThis.fetch=original}
+});
+test('pagination traverses skipped runs before a real successful source gate',async()=>{
+  const original=globalThis.fetch;
+  let pages=0;
+  try{
+    globalThis.fetch=async(url)=>{
+      if(String(url).includes('/actions/workflows/chatgpt-pr-gate.yml/runs?')){
+        pages++;
+        const isFirst=String(url).includes('page=1');
+        const batch=isFirst?Array.from({length:100},(_,i)=>({
+          ...sample(i+1,'MID-Agent-Quellstand prüfen','skipped'),
+          path:'.github/workflows/chatgpt-pr-gate.yml',event:'pull_request',status:'completed'
+        })):
+          [{...sample(1001,'MID-Agent-Quellstand prüfen'),path:'.github/workflows/chatgpt-pr-gate.yml',
+            event:'pull_request',status:'completed'}];
+        return {ok:true,json:async()=>({workflow_runs:batch})};
+      }
+      if(String(url).includes('/actions/runs/1001/jobs?')){
+        return {ok:true,json:async()=>({jobs:sample(1001,'any').jobs})};
+      }
+      throw Error('Unexpected path '+url);
+    };
+    const runs=await githubRuns('MeteoMartini/MID',1,'',new Map([['chatgpt-pr-gate.yml','pull_request']]));
+    assert.equal(runs.length,1);
+    assert.equal(runs[0].id,1001);
+    assert.equal(pages,2);
+  }finally{globalThis.fetch=original}
+});
+test('invalid workflow identities and absence of real completed runs fail closed',async()=>{
+  const original=globalThis.fetch;
+  try{
+    globalThis.fetch=async()=>({ok:true,json:async()=>({workflow_runs:[]})});
+    await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['../unsafe.yml','pull_request']])),/Unexpected workflow/);
+    await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']])),/No completed/);
+  }finally{globalThis.fetch=original}
+});
