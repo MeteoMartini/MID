@@ -202,3 +202,6 @@ test('an incomplete success sample is an explicit error, not an invented green P
   await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']])),/Incomplete workflow sample/);
  }finally{globalThis.fetch=original}
 });
+
+// Read-only stage timing, parallel wall-time and missing-data regression.
+await import('../tools/ci/release-phase-observation.test.mjs');

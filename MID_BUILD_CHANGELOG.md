@@ -1,3 +1,13 @@
+## MID v0.9.85.381 – Phase 1/4: parallelisierungsbewusste CI-Messung
+
+- Vollständig freigegebene Ausgangsbasis v0.9.85.380: `main=mid-stable` @ `e6d70e1104bee5980ac5153fc99f59775756014e`, Installer 41123191600 success, alle Core-/Heavy-, Worker-/Pages-/Stable-Gates und fünf aktive Rulesets bestätigt.
+- `tools/ci/release-phase-observation.mjs` ist ein neuer reiner Diagnoseadapter für tatsächliche GitHub-Job-/Stepintervalle. Selektive, konservative Klassen: Queue, Setup, npm, Build, Core, Heavy, SHA-Bot, Paket, Worker, Pages, Stable. Kein fingiertes Zeitintervall für ausgelassene, rückwärts laufende oder unbekannte Zeitstempel. Namenänderungen führen zu „nicht beobachtet“ statt zu unkontrolliertem Raten.
+- Überlappende Jobintervalle werden für **Wall-Time vereinigt**, Runnerzeit separat summiert, die reine Spannweite inklusive Lücken als dritte Größe geführt. Retry-Dubletten anhand derselben Identität/Start-/Endzeit nur einmal erfasst; echte frühere Versuche bleiben sichtbar. Core/Heavy enthalten jeweils ihre Setup-/Buildzeit: Phasensummen sind keine End-to-End-Releasezeit.
+- `tools/ci/release-timing.mjs` behält sämtliche bisherigen per-Workflow- und per-Run-Messungen und ergänzt eine nicht freigabewirksame phasenweise P50/P95-Auswertung einschließlich gezählter gültiger, fehlender und unbeobachteter Stichproben pro Workflow. JSON-Report enthält die neue `phaseDiagnostics`-Sektion.
+- `tools/ci/release-phase-observation.test.mjs` liefert adversarielle Unit-/Semantiktests zu Parallelität, ungültigen/fehlenden Zeitstempeln, Skips, Retry-Dubletten, echtem 0-s-Intervall, unterschiedlichen Jobkategorien, unvollständiger Stichprobe und Autorisierungsfreiheit. Alle Tests werden über die bestehende Pflichtregression `scripts/test-release-timing-0985376.mjs` ausgeführt, die bereits im normalen MID-Regressionensatz registriert ist.
+- Keine aktiven Workflow-/CI-/Release-, Token-, Cloudflare- oder Branchenrechte geändert. Versionen/Lock, Baseline, Vertragsregister, Web/PWA, Worker und iOS-Build 382 konsistent. Weiterhin keine A/B-Produktionsgleichwertigkeitsfreigabe für Artefakt-Reuse; Issue #526 bleibt offen. `docs/implementation/MID_CICD_PHASE_OBSERVATION_381.md` enthält die Prüfkriterien.
+- Veröffentlichung ausschließlich durch Source-PR-Gate → kontrollierten SHA-Bot → Server-ZIP → `install-mid.yml` → Worker/Pages → Stable, keine Sonder- oder Direktintegration.
+
 ## MID v0.9.85.380 – Independent protected Source-Signature verification
 
 - Basis: vollständig freigegebenes `main=mid-stable` v0.9.85.379 @ `c4fd1c79d0b7272b7998c79cd88d445b5681e81d`, Source PR #532, Installer 41118131439 mit allen Core/Heavy, Worker, Pages und Stable erfolgreich.

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {analyzePhaseCohort,renderPhaseMarkdown} from './release-phase-observation.mjs';
 // Read-only MID CI/CD timing auditor. No release actions or secret output.
 import {readFile,appendFile} from 'node:fs/promises';
 
@@ -227,7 +228,12 @@ async function main() {
   }
   const result = summarizeCohort(runs);
   if (!result.details.length) throw new Error('No runs in sample');
-  const md = renderMarkdown(result);
+  const phaseDiagnostics={};
+  for(const name of new Set(result.details.map(x=>x.workflow))){
+    phaseDiagnostics[name]=analyzePhaseCohort(runs.filter(run=>summarizeRun(run).workflow===name));
+  }
+  result.phaseDiagnostics=phaseDiagnostics;
+  const md = renderMarkdown(result)+'\n'+renderPhaseMarkdown(phaseDiagnostics);
   process.stdout.write(md);
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (summaryPath) await appendFile(summaryPath,md,'utf8');
