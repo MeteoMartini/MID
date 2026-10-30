@@ -1,10 +1,11 @@
 import test from 'node:test';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,symlink,rm,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {environmentFingerprint,validateManifest,compareBuilds,buildInventory} from '../tools/ci/build-parity.mjs';
+import {environmentFingerprint,validateManifest,compareBuilds,buildInventory,captureInputs} from '../tools/ci/build-parity.mjs';
 const manifest=()=>{const m=({schema:'mid.build-parity.v1',releaseAuthorized:false,inputs:{sourceSha:'a'.repeat(40),treeSha:'b'.repeat(40),lockSha:'c'.repeat(64),environmentSha:'d'.repeat(64),node:'v22.16.0',npm:'10.9.2',platform:'linux',arch:'x64',image:'20261025.353.1'},files:[{path:'index.html',bytes:10,sha256:'e'.repeat(64)},{path:'version.json',bytes:0,sha256:'f'.repeat(64)}]});
   const sha=s=>createHash('sha256').update(s).digest('hex');
   m.identity={schema:'mid.web-build-identity.v1',version:'0.9.85.377',sourceGitSha:m.inputs.sourceSha,builtAtUtc:'2026-10-30T15:00:00.000Z',assetsSha256:sha(m.files.map(f=>f.path+'\0'+f.sha256+'\n').join('')),assetCount:2};
@@ -62,4 +63,16 @@ test('real differing build timestamps remain visible without granting full byte 
  const raw=JSON.stringify(b.identity,null,2)+'\n',f=b.files.find(f=>f.path==='mid-build-identity.json');f.bytes=Buffer.byteLength(raw);f.sha256=createHash('sha256').update(raw).digest('hex');
  const result=compareBuilds(a,b);assert.equal(result.equivalent,false);assert.equal(result.payloadEquivalent,true);assert.equal(result.executionMetadataDiffers,true);assert.equal(result.reuseAuthorized,false);
  b.identity.assetsSha256='0'.repeat(64);assert.throws(()=>compareBuilds(a,b),/mismatch/);
+});
+test('ignored local environment files cannot enter a clean source fingerprint invisibly',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'mid-build-inputs-'));
+ const git=(...args)=>execFileSync('git',args,{cwd:dir,stdio:'pipe'});
+ try{
+  git('init','-q');git('config','user.name','Fixture');git('config','user.email','fixture@example.invalid');
+  await writeFile(path.join(dir,'.gitignore'),'.env*\n');await writeFile(path.join(dir,'package-lock.json'),'{}\n');
+  git('add','.');git('commit','-qm','fixture');assert.match((await captureInputs(dir,{})).sourceSha,/^[a-f0-9]{40}$/);
+  await writeFile(path.join(dir,'.env.local'),'VITE_lowercase=hidden\n');
+  assert.equal(git('status','--porcelain').toString(),'');
+  await assert.rejects(captureInputs(dir,{}));
+ }finally{await rm(dir,{recursive:true,force:true})}
 });
