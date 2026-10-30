@@ -31,3 +31,8 @@ The timing auditor uses bounded API pagination and caps earlier attempts at 20; 
 ## Remaining #526 qualification
 
 At least ten fully linked Source/Bot/package/Installer/Worker/Pages/Stable chains, new-path cohort, representative identical-tree A/B trials, trusted signed producer/consumer attestations and negative tests for poisoning/expiry/foreign workflow identity are still required before any productive reuse. No artificial duplicate releases are created to fill a sample. Cache egress warnings do not establish the cause of a cancelled runner.
+
+
+## Proven optional cache stall, included before .377 release
+
+Run 41064710553 records 605–606 seconds in multiple setup-node cache steps, with log warning `Failed to restore: Egress is over the account limit.` Job 124121801496 independently confirms the warning. This does not prove why a different job was cancelled. Source qualification therefore explicitly disables optional remote npm restore/save in every Node setup using the exact existing setup-node SHA and `package-manager-cache:false`; Node 22.16.0, reproducible npm ci, registry/lockfile checks, Python, all builds/audits/regressions and matrix aggregators remain mandatory. Removing `cache:npm` alone is insufficient: the pinned setup-node enables npm caching automatically from package.json packageManager. The action's pinned README and action.yml confirm the explicit switch. Installer cache policy is unchanged because its observed .376 setup was short; no unsupported general cache-failure claim is made. A fresh complete Source run and normal release are required after this change.

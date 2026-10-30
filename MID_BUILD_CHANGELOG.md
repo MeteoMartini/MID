@@ -1,6 +1,7 @@
 ## MID v0.9.85.377 · 30.10.2026 · Buildparität und Retry-Diagnose
 
 - Zwei getrennt gesicherte Kandidaten #527/#528 auf freigegebener .376-Basis zu einem vollständig neu geprüften Quellbaum integrieren; eine Version, keine doppelte Veröffentlichung.
+- Source: optionale Remote-npm-Cache-Abhängigkeit nach belegtem 605–606s-Account-Egress-Stall explizit deaktiviert; Node/Lockfile/npm ci/Build/Audits/alle Gates unverändert.
 - Zwei unabhängige, exakt SHA-gebundene npm-Installationen/Builds; vollständige Ausgabeinventare und Fingerprints; keine neuen Deployment- oder Attestierungsrechte, keine automatische Artefaktübernahme.
 - Read-only-Timing mit allen Versuchen, ausgeführten Runnersekunden, Abbruch-/Timeoutzählung, Schutz vor gemischten Rerun-Beobachtungen und automatischem Audit nach erfolgreichem Installer.
 - Source-Bot queue:max bei unverändertem SHA-Merge-/ZIP-/Installerpfad. Bestehende Installer-Supersession bewusst unverändert; P0 darf keine unnötige Queue abwarten.

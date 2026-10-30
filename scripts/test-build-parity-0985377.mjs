@@ -76,3 +76,13 @@ test('ignored local environment files cannot enter a clean source fingerprint in
   await assert.rejects(captureInputs(dir,{}));
  }finally{await rm(dir,{recursive:true,force:true})}
 });
+test('Source optional remote npm cache cannot block exact Node setup or bypass mandatory installation',async()=>{
+ const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
+ const source=await read('ci/github/workflows/chatgpt-pr-gate.yml');
+ assert.equal(source,await read('.github/workflows/chatgpt-pr-gate.yml'));
+ const setups=[...source.matchAll(/uses: actions\/setup-node@([a-f0-9]{40})[^\n]*\n        with:\n([\s\S]*?)(?=\n\n|\n      -)/g)];
+ assert.equal(setups.length,5);
+ for(const [,sha,config] of setups){assert.equal(sha,'949feb2413d6458794dcd2491c4babbbce0c15c1');assert.match(config,/node-version: 22.16.0/);assert.match(config,/package-manager-cache: false/);assert.doesNotMatch(config,/\bcache: npm/)}
+ for(const token of ['npm ci','npm run audit:dependencies','npm run audit:all','npm run build','npm run test:regressions','fail-fast: false','Agent-Quellstand vollständig prüfen'])assert.ok(source.includes(token),token);
+ assert.doesNotMatch(source,/continue-on-error/);
+});

@@ -29,7 +29,7 @@ assert.ok(sync.includes("['workflows/chatgpt-pr-gate.yml','workflows/chatgpt-pr-
 
 const guardStart=workflow.indexOf('      - name: MID-Quellstruktur und PR-ZIP-Provenienz prüfen');
 const guardRun=workflow.indexOf('        run: |',guardStart);
-const guardEnd=workflow.indexOf('\n      - name: Node.js 22 mit npm-Cache einrichten',guardRun);
+const guardEnd=workflow.indexOf('\n      - name:',guardRun);
 assert.ok(guardStart>0&&guardRun>guardStart&&guardEnd>guardRun,'SHA-gebundene Source-ZIP-Provenienzprüfung muss in der Release-CI existieren.');
 const zipGuard=workflow.slice(guardRun+'        run: |'.length,guardEnd).trimEnd().split('\n').map(line=>line.replace(/^          /,'')).join('\n').trimStart();
 for(const token of ["git rev-parse 'HEAD^2'","HEAD^2:MID-professional-replacement.zip","HEAD^1:MID-professional-replacement.zip","git diff --quiet 'HEAD^1' HEAD","rm -f -- MID-professional-replacement.zip"])

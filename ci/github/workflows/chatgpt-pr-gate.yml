@@ -78,12 +78,11 @@ jobs:
             echo "::notice::Geprüftes Main-Alt-ZIP nur aus temporärem Source-Test-Worktree entfernt."
           fi
 
-      - name: Node.js 22 mit npm-Cache einrichten
+      - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
-          cache: npm
-          cache-dependency-path: package-lock.json
+          package-manager-cache: false
 
       - name: Lockfile und npm-Registry prüfen
         shell: bash
@@ -287,12 +286,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Node.js 22 mit npm-Cache einrichten
+      - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
-          cache: npm
-          cache-dependency-path: package-lock.json
+          package-manager-cache: false
 
       - name: Abhängigkeiten reproduzierbar installieren
         shell: bash
@@ -382,12 +380,11 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Node.js 22 mit npm-Cache einrichten
+      - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
-          cache: npm
-          cache-dependency-path: package-lock.json
+          package-manager-cache: false
 
       - name: Abhängigkeiten reproduzierbar installieren
         shell: bash
@@ -488,6 +485,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
+          package-manager-cache: false
       - name: Vollständiges Kartenpaket, Rohrollback und Codec unabhängig prüfen
         shell: bash
         # Native model maps + full Python/JS/Worker replay need more than 25 min.
@@ -555,12 +553,11 @@ jobs:
     steps:
       - name: SHA-identischen PR-Mergezustand laden
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Node.js 22 mit npm-Cache einrichten
+      - name: Node.js 22 ohne blockierenden Remote-npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
-          cache: npm
-          cache-dependency-path: package-lock.json
+          package-manager-cache: false
       - name: Abhängigkeiten reproduzierbar installieren
         shell: bash
         timeout-minutes: 8
