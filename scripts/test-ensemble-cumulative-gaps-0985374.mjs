@@ -32,6 +32,11 @@ assert.equal(below.precipitationQ25,10);
 assert.equal(below.precipitationQ75,10);
 const beyond=step({...base,cumulativePrecipitationLow:5,cumulativePrecipitationHigh:10,cumulativePrecipitationQ25:6,cumulativePrecipitationQ75:9},0,8);
 assert.equal(beyond.cumulativeQ25Plot,undefined,'quartiles limited to days 1–7');
+const upstream=read('src/weather-src/30-ensemble-climate-hazards.tsfrag'),generated=read('src/weather.ts');
+for(const name of ['Mean','Low','High','Q25','Q75']){
+ const expected=`cumulativePrecipitation${name}:Number.isFinite(cumulativePrecipitation${name})?cumulativePrecipitation${name}:Number.NaN`;
+ assert.ok(upstream.includes(expected)&&generated.includes(expected),'Missing upstream cumulative '+name+' must never be fabricated as zero');
+}
 const component=read('src/EnsemblePanel.tsx');
 assert.ok(component.includes('ensembleCumulativeRainStep(row,bestTotal,index)'));
 assert.ok(component.includes('rainValues=rainChartData.flatMap'));
