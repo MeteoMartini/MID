@@ -24,11 +24,14 @@ const fail=message=>{throw Error('Attested evidence rejected: '+message)};
 const timestamp=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString()===s;
 const hex=(v,re,field)=>{if(typeof v!=='string'||!re.test(v))fail(field)};
 export function validateTrustedPolicy(p,now=Date.now()){
-  requiredKeys(p,['schema','repo','repoId','sourceSha','treeSha','lockSha','envSha','artifactSha256','version','runId','attempt','sourceRef','signerWorkflow','signerDigest','notAfter'],'trusted policy');
+  requiredKeys(p,['schema','repo','repoId','sourceSha','treeSha','lockSha','envSha','artifactSha256','version','runId','attempt','sourceRef','signerWorkflow','signerDigest','signerSourceSha','notAfter'],'trusted policy');
   if(p.schema!=='mid.attested-source-policy.v1'||p.repo!=='MeteoMartini/MID'||String(p.repoId)!=='1305110795')fail('trusted repository identity');
-  for(const k of ['sourceSha','treeSha','signerDigest'])hex(p[k],SHA,k);
+  for(const k of ['sourceSha','treeSha','signerDigest','signerSourceSha'])hex(p[k],SHA,k);
   for(const k of ['lockSha','envSha','artifactSha256'])hex(p[k],DIGEST,k);
   if(!REF.test(p.sourceRef)||p.sourceRef!=='refs/heads/main')fail('trusted main ref required');
+  // The signed workflow runs on protected main while sourceSha identifies the
+  // independently verified PR Source-Gate HEAD. They are distinct trust zones.
+  if(p.signerSourceSha===p.sourceSha)fail('protected signer SHA must differ from untrusted PR HEAD');
   if(p.signerWorkflow!=='MeteoMartini/MID/.github/workflows/attested-source-qualification.yml')fail('untrusted signer workflow');
   if(!/^\d+\.\d+\.\d+\.\d+$/.test(p.version)||!Number.isSafeInteger(p.runId)||p.runId<1||
     !Number.isInteger(p.attempt)||p.attempt<1||p.attempt>20)fail('version/run/attempt invalid');
@@ -46,7 +49,9 @@ export function examineVerifiedArtifact(policy,artifactBytes,verified,now=Date.n
   const result=verified[0]?.verificationResult;
   const cert=result?.signature?.certificate;
   if(!cert||String(cert.sourceRepositoryIdentifier)!==String(policy.repoId)||
-     cert.sourceRepository!==policy.repo)fail('signing certificate repository mismatch');
+     cert.sourceRepository!==policy.repo||
+     cert.sourceRepositoryDigest!==policy.signerSourceSha||
+     cert.sourceRepositoryRef!==policy.sourceRef)fail('signing certificate repository/ref/digest mismatch');
   if(!Array.isArray(result.verifiedTimestamps)||result.verifiedTimestamps.length===0)fail('no verified signature timestamp');
   const statement=result.statement;
   if(statement?._type!=='https://in-toto.io/Statement/v1'||
@@ -79,7 +84,7 @@ export function verifyThroughGithubCLI(policy,artifactFile,{invoke=execFileSync,
   validateTrustedPolicy(policy,now);
   const args=['attestation','verify',artifactFile,'--repo',policy.repo,
     '--signer-workflow',policy.signerWorkflow,'--signer-digest',policy.signerDigest,
-    '--source-ref',policy.sourceRef,'--source-digest',policy.sourceSha,
+    '--source-ref',policy.sourceRef,'--source-digest',policy.signerSourceSha,
     '--deny-self-hosted-runners','--format','json'];
   // Never pass untrusted data through a shell; never use --bundle (must query
   // current GitHub repository identity rather than accept an offline alias).

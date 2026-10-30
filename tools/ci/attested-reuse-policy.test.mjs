@@ -11,7 +11,7 @@ function fixture(){
     sourceSha:sha('a',40),treeSha:sha('b',40),lockSha:sha('c',64),envSha:sha('d',64),
     artifactSha256:'',version:'0.9.85.378',runId:41000000001,attempt:1,
     sourceRef:'refs/heads/main',signerWorkflow:'MeteoMartini/MID/.github/workflows/attested-source-qualification.yml',
-    signerDigest:sha('e',40),notAfter:'2026-10-31T00:00:00.000Z'};
+    signerDigest:sha('e',40),signerSourceSha:sha('f',40),notAfter:'2026-10-31T00:00:00.000Z'};
   const jobs=Object.fromEntries(SOURCE_JOBS.map(name=>[name,{runId:policy.runId,
     attempt:policy.attempt,headSha:policy.sourceSha,conclusion:'success'}]));
   const report={schema:'mid.attested-source-evidence.v1',releaseAuthorized:false,reuseAuthorized:false,
@@ -19,7 +19,7 @@ function fixture(){
     lockSha:policy.lockSha,envSha:policy.envSha,version:policy.version,runId:policy.runId,
     attempt:policy.attempt,issuedAt:'2026-10-30T15:30:00.000Z',notAfter:policy.notAfter,jobs};
   const bytes=Buffer.from(JSON.stringify(report));policy.artifactSha256=H(bytes);
-  const verified=[{verificationResult:{signature:{certificate:{sourceRepository:policy.repo,sourceRepositoryIdentifier:policy.repoId}},
+  const verified=[{verificationResult:{signature:{certificate:{sourceRepository:policy.repo,sourceRepositoryIdentifier:policy.repoId,sourceRepositoryDigest:policy.signerSourceSha,sourceRepositoryRef:policy.sourceRef}},
     verifiedTimestamps:[{timestamp:'2026-10-30T15:31:00Z'}],statement:{_type:'https://in-toto.io/Statement/v1',
     predicateType:'https://slsa.dev/provenance/v1',subject:[{name:'signed-evidence.json',digest:{sha256:policy.artifactSha256}}],
     predicate:{buildDefinition:{}}}}}];
@@ -44,7 +44,7 @@ for(const k of ['sourceSha','treeSha','lockSha','envSha','version','runId','atte
       k==='version'?'0.9.85.379':k==='notAfter'?'2026-10-31T01:00:00.000Z':f.report[k].replace(/^./,'f')}),/mismatch|freshness/);
   });
 }
-for(const k of ['sourceSha','treeSha','lockSha','envSha','signerDigest','artifactSha256']){
+for(const k of ['sourceSha','treeSha','lockSha','envSha','signerDigest','signerSourceSha','artifactSha256']){
   test('reject malformed trusted policy field: '+k,()=>{
     const f=fixture();f.policy[k]='0';assert.throws(()=>validateTrustedPolicy(f.policy,NOW));
   });
@@ -52,7 +52,7 @@ for(const k of ['sourceSha','treeSha','lockSha','envSha','signerDigest','artifac
 test('reject changes to trusted repository id, ref, signing workflow and unknown fields',()=>{
   for(const change of [p=>p.repoId='999',p=>p.repo='other/repo',
     p=>p.sourceRef='refs/heads/dev',p=>p.signerWorkflow='MeteoMartini/MID/.github/workflows/unit-coverage.yml',
-    p=>p.notAfter='2020-01-01T00:00:00.000Z',p=>p.extra=true]){
+    p=>p.notAfter='2020-01-01T00:00:00.000Z',p=>p.signerSourceSha=p.sourceSha,p=>p.extra=true]){
     const f=fixture();change(f.policy);assert.throws(()=>validateTrustedPolicy(f.policy,NOW));
   }
 });
@@ -60,6 +60,8 @@ test('missing, ambiguous, or unverified attestations fail closed',()=>{
   for(const change of [f=>f.verified=[],f=>f.verified.push(structuredClone(f.verified[0])),
     f=>f.verified[0].verificationResult.signature.certificate={},
     f=>f.verified[0].verificationResult.signature.certificate.sourceRepositoryIdentifier='42',
+    f=>f.verified[0].verificationResult.signature.certificate.sourceRepositoryDigest='a'.repeat(40),
+    f=>f.verified[0].verificationResult.signature.certificate.sourceRepositoryRef='refs/heads/chatgpt/unsafe',
     f=>f.verified[0].verificationResult.verifiedTimestamps=[],
     f=>f.verified[0].verificationResult.statement.predicateType='https://spdx.dev/Document/v2.3',
     f=>f.verified[0].verificationResult.statement.subject=[]]){
@@ -98,7 +100,7 @@ test('GitHub CLI requires exact signer, repository, source digest and ref, never
  assert.equal(output.length,1);assert.equal(called.name,'gh');assert.equal(called.opts.encoding,'utf8');
  for(const [flag,value] of [['--repo',f.policy.repo],['--signer-workflow',f.policy.signerWorkflow],
    ['--signer-digest',f.policy.signerDigest],['--source-ref','refs/heads/main'],
-   ['--source-digest',f.policy.sourceSha]]){
+   ['--source-digest',f.policy.signerSourceSha]]){
    assert.equal(called.args[called.args.indexOf(flag)+1],value);
  }
  for(const flag of ['--bundle','--owner','--cert-identity-regex','--no-public-good'])
@@ -108,6 +110,13 @@ test('GitHub CLI requires exact signer, repository, source digest and ref, never
  assert.throws(()=>verifyThroughGithubCLI(f.policy,'/tmp/source-report.json',{now:NOW,invoke:()=>{throw Error('signature invalid')}}),/signature invalid/);
 });
 
+
+test('protected main signer digest is distinct from PR gate HEAD',()=>{
+ const f=fixture();assert.notEqual(f.policy.sourceSha,f.policy.signerSourceSha);
+ assert.equal(inspect().reuseAuthorized,false);
+ f.policy.signerSourceSha=f.policy.sourceSha;
+ assert.throws(()=>validateTrustedPolicy(f.policy,NOW),/signer SHA/);
+});
 
 // Independent GitHub REST run/job observation: the signed REPORT alone is never
 // accepted as evidence that required jobs actually executed on the right SHA.
