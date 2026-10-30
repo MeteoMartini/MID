@@ -5,16 +5,22 @@ const [panel,styles,pkg,baseline]=await Promise.all([
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
+const helper=await readFile(new URL('../src/ensembleCumulativeDisplay.ts',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
- 'cumulativeQ25Plot:index<7?q25:undefined',
- 'cumulativeQBandPlot:index<7?Math.max(0,q75-q25):undefined',
+ 'cumulativeQ25Plot?:number;',
+ 'cumulativeQBandPlot?:number;',
  'cumulative&&row.x<7&&<div><dt>P25–P75</dt>',
  'P25–P75 <small>Tage 1–7</small>',
- 'rainCumulative?x.precipitationMean:0',
+ 'const rainChartData=rainCumulative?cumulativeRainData:d;',
  'Das arithmetische ENS-Mittel kann bei stark rechtsschiefen Niederschlagsverteilungen außerhalb des zentralen P10–P90-Bereichs liegen',
  'P25–P75 Tag 1–7 · ENS-Mittel'
 ]) if(!panel.includes(token)) failures.push(`EnsemblePanel.tsx fehlt: ${token}`);
+for(const token of [
+ 'cumulativeQ25Plot:index<7&&hasQuartiles?q25:undefined',
+ 'cumulativeQBandPlot:index<7&&hasQuartiles?Math.max(0,q75-q25):undefined',
+ 'const mean=finite(row.cumulativePrecipitationMean)?row.cumulativePrecipitationMean:Number.NaN'
+])if(!helper.includes(token))failures.push(`Cumulative helper missing: ${token}`);
 for(const token of [
  '.with-section-navigation{padding-left:86px}',
  '.dashboard-section-rail{z-index:1060;width:64px;overflow:hidden}',

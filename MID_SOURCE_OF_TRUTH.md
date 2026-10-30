@@ -1,3 +1,7 @@
+# MID v0.9.85.378 · appweite Diagrammlinien und NoData-Zeichnung
+
+Verifizierte Stable-Basis `main=mid-stable` .377 @ `44f5d02b0374b275e423e43233addff91d4eeb82`, vollständige Release-Gates der .377 bestätigt. Selektive Codeübernahme aus bestehendem Design-Draft #524 nur für SHA-identische, seit .373 nicht geänderte Verbraucher; die ursprünglichen Draft- und Attestierungs-Branches bleiben unangetastet. Gemeinsame Linien-/Farbsemantik für 24h/7d und kumulierte Niederschlag-Datenlücken in 14d: Missing niemals als 0, keine synthetisch durchgehenden Linien, echte 0 mm erhalten, Modell-/ENS-/Zeitsignale nicht umgeschrieben. Dateien, zweifache obligatorische Regression und Provenienz in `docs/design/MID_PARAMETER_LINE_AUDIT_0.9.85.378.md`. Alle Version-/Worker-/PWA-/iOS-Spiegel für .378 synchron. Nur Source-Kandidat bis vollständiger Source-PR-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable-Nachweis. Kein Design-Draft wird vorzeitig selbst veröffentlicht.
+
 # MID v0.9.85.377 · Build-Parität und reproduzierbare Laufzeitdiagnose
 
 Basis main=mid-stable `.376` @ `c8ec5614a5d2b6833b87029e59d048ef90029c2d`. Installer 41074944208 vollständig erfolgreich, Worker-Smokegate mit unverändertem produktivem .372-Worker, Pages und exakte Stable-Promotion belegt. SHA-gesicherte getrennte Eingänge Draft #527 `093f112cdcbb93104aa5b31d7cfc497f9cff9e72` und Draft #528 `6d2a4c317226af60747ffcd8b8176ab59de192f3`; vollständige gemeinsame .377-Versionierung und Baseline erst im Integrationszweig. Design-Draft #524 unverändert.

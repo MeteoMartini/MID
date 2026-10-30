@@ -112,3 +112,31 @@ Der ausdrückliche MID-C15-Auftrag ersetzt die ältere ECMWF-Sonderpalette der 7
 App, Widget und PNG-/URL-Export verwenden denselben SevenDayCurveOverview-Renderer, dieselben stündlichen Ensemble-Mitglieder und dieselbe Skybar-Einstellung. P25–P75 gilt nur mit mindestens sechs Mitgliedern aus mindestens zwei Modellfamilien; Datenlücken werden nicht überbrückt. Nachtflächen verwenden den gemeinsamen astronomischen Renderer mit eindeutigen Gradient-IDs. Die 90-Minuten-Skybar rendert die unveränderten `2.4 / 3.6 / 4.8 / 6.0` SVG-Einheiten jetzt ohne vertikale CSS-Stauchung ebenso dick wie das 24h-Profil.
 
 Bei schmalen Geräten berücksichtigt der gemeinsame Skybar-Renderer zusätzlich den effektiven Skalierungsfaktor des 24h-SVGs. Die 90-Minuten-Ansicht erhält denselben Faktor; die vier physikalischen Stufen und alle übrigen Verbraucher bleiben unverändert. PNG-Aktionen warten in der Kurvenansicht auf den Ensembleabruf.
+
+
+## Verbindlicher Zusatz v0.9.85.378 – gemeinsame Linien- und Legendenidentität
+
+Im 24-h-Wetterprofil und im aufgeklappten 7-Tage-Tagesdetail liefern die sieben Parameterrollen aus `src/parameterLineStyle.ts` die verbindlichen SVG-Strichfarben, -stärken, -muster und Deckkraft. Abweichende lokale Präsentationsattribute dürfen diese nicht doppelt deklarieren. Eine bewusst wertabhängige Temperaturkurve darf ihren dynamischen Farbverlauf im selben React-`style`-Objekt überschreiben; ein separates `stroke`-SVG-Attribut kann einen vorhandenen CSS-`stroke` nicht übersteuern.
+
+| Rolle | Kanonischer Token | SVG-Muster |
+| --- | --- | --- |
+| Temperatur | `--param-temperature`, im 24h-Profil dynamisch nach ECMWF | durchgehend |
+| UTCI | `--apparent-line` | 5 4 |
+| Taupunkt | `--param-dewpoint` | 2 5 |
+| Luftdruck | `--param-pressure` | durchgehend |
+| Niederschlagswahrscheinlichkeit | `--param-precipitation` | 4 3 |
+| Windmittel | `--param-wind` | durchgehend |
+| Böenspitzen | `--param-gust` | 9 4 |
+
+Legende und Tooltipmarker müssen sowohl Token als auch Muster der tatsächlich gezeichneten Linie übernehmen. 14d-Ensemble-, Karten-Isolinien-, synoptische und originale WMS-Darstellungen behalten ihre fachlichen Spezialkonventionen; sie werden nicht blind nach gewöhnlichen Profillinien umgestaltet. Farben dürfen nicht alleinige Unterscheidungsmerkmale sein (WCAG 2.2 SC 1.4.1). Modellwerte, Quellen, Warnung, Zeit-/Akkumulationssemantik und Nutzerpräferenzen bleiben unverändert.
+
+Regression: `scripts/test-appwide-line-semantics-0985374.mjs`; die historische Böen-Muster-Erwartung in `scripts/test-parameter-color-contract-097711.mjs` wird gezielt auf 9px korrigiert, ohne andere Schutzbehauptungen abzuschwächen.
+
+
+### v0.9.85.374 · Kontrastabsicherung zentraler Basisfarben
+
+Für sinntragende Profillinien und Legenden gilt WCAG 2.2 SC 1.4.11 (mindestens 3:1 gegenüber angrenzenden Flächen). Gegen `--bg`, `--surface`, `--s2` und `--s3` werden drei bisher knapp unzureichende Farben innerhalb ihrer Farbfamilien kontrastverstärkt: `--param-pressure` in Dark `#8469be`, `--param-precipitation-snow` in Light `#418bb6`, `--param-sunshine` in Light `#a77c00`. Kein Eingriff in amtliche Warnfarben, originale WMS-Providerpaletten oder fachliche Rasterwerte. Statischer Tokenkontrast ersetzt keine Prüfung von Transparenz, Antialiasing oder tatsächlicher Hintergrundüberlagerung im Browser.
+
+### v0.9.85.374 – 14-Tage-Ensemble-Lücken sind keine Linien
+
+In 14d-Ensemble-Diagrammen werden fehlende Temperatur-/Wind-/Klimadaten nicht mit `connectNulls` überbrückt. Die Fachidentität der 14d-ENS-, Klima-, Quantil- und Niederschlagskurven bleibt unabhängig vom 24h-Linienvertrag. Fehlende Kumulativwerte sind weder 0 mm noch auf fachlich unsichere Weise interpolierte Summen; echte trockene Tage behalten 0 mm. Die gleiche Ansicht gilt auch in Widgets/Exporten, die den gemeinsamen Ensemble-Renderer verwenden.

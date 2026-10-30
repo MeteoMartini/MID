@@ -6,12 +6,13 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const app=await readFile(path.join(root,'src','App.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
 const weather=await readFile(path.join(root,'src','weather.ts'),'utf8');
+const lineStyle=await readFile(path.join(root,'src','parameterLineStyle.ts'),'utf8');
 const failures=[];
 
 for(const id of ['chmi_aladin_seamless','chmi_aladin_central_europe_2km','chmi_aladin_cz_1km'])if(!weather.includes(id))failures.push(`Open-Meteo-Modellkennung fehlt: ${id}`);
 for(const token of ["toggleDetailLine('temperature')","toggleDetailLine('apparent')","toggleDetailLine('dewPoint')","toggleDetailLine('probability')","toggleDetailLine('wind')","toggleDetailLine('gust')","toggleDetailLine('direction')",'togglePrecipType(type)'])if(!app.includes(token))failures.push(`Schaltbarer Detailparameter fehlt: ${token}`);
 for(const token of ['dewPointPath','windPath','gustPath','directionY','showTemperatureSection','showRainSection','showWindSection','adaptive-detail-chart','ResizeObserver'])if(!app.includes(token))failures.push(`Adaptive Diagrammlogik fehlt: ${token}`);
-if(!app.includes('strokeDasharray="8 6"'))failures.push('Gefühlte Temperatur ist im Diagramm nicht gestrichelt.');
+if(!app.includes("data-parameter-line=\"apparent\" style={parameterLineStyle('apparent')}" )||!lineStyle.includes("apparent:{color:'var(--apparent-line)',width:1.9,dash:'5 4'"))failures.push('Gemeinsamer gestrichelter UTCI-Vertrag fehlt.');
 if(!styles.includes('repeating-linear-gradient(90deg,var(--apparent-line)'))failures.push('Gefühlte Temperatur ist in der Legende nicht gestrichelt.');
 for(const token of ['i.dewpoint','i.windline','i.gustline','i.direction'])if(!styles.includes(token))failures.push(`Legendenstil fehlt: ${token}`);
 if(!app.includes('visiblePrecipLegendTypes.length>0'))failures.push('Niederschlagsbereich wird bei vollständiger Deaktivierung nicht ausgeblendet.');

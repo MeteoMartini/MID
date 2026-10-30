@@ -5,6 +5,7 @@ const [panel,weather,pkg,baseline]=await Promise.all([
  readFile(new URL('../package.json',import.meta.url),'utf8'),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
+const helper=await readFile(new URL('../src/ensembleCumulativeDisplay.ts',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
  'cumulativePrecipitationMean:number;cumulativePrecipitationLow:number;cumulativePrecipitationHigh:number;cumulativePrecipitationQ25:number;cumulativePrecipitationQ75:number;',
@@ -18,14 +19,19 @@ for(const token of [
  'day.cumulativePrecipitationQ75].every(Number.isFinite)'
 ]) if(!weather.includes(token)) failures.push(`weather.ts fehlt: ${token}`);
 for(const token of [
- 'row.cumulativePrecipitationLow',
- 'row.cumulativePrecipitationHigh',
- 'row.cumulativePrecipitationQ25',
- 'row.cumulativePrecipitationQ75',
- 'row.cumulativePrecipitationMean',
- 'cumulativeQ25Plot:index<7?q25:undefined',
- 'cumulativeQBandPlot:index<7?Math.max(0,q75-q25):undefined'
+ 'ensembleCumulativeRainStep(row,bestTotal,index)',
+ 'cumulativeLowPlot?:number;',
+ 'cumulativeBandPlot?:number;',
+ 'cumulativeQ25Plot?:number;',
+ 'cumulativeQBandPlot?:number;',
+ 'const rainChartData=rainCumulative?cumulativeRainData:d;',
+ 'const cumulativeRainData=useMemo<TrendRow[]>(()'
 ]) if(!panel.includes(token)) failures.push(`EnsemblePanel.tsx fehlt: ${token}`);
+for(const token of [
+ 'cumulativeQ25Plot:index<7&&hasQuartiles?q25:undefined',
+ 'cumulativeQBandPlot:index<7&&hasQuartiles?Math.max(0,q75-q25):undefined',
+ 'const hasQuartiles=hasRange&&finite(row.cumulativePrecipitationQ25)&&finite(row.cumulativePrecipitationQ75)'
+])if(!helper.includes(token))failures.push(`Member quantile contract missing: ${token}`);
 if(panel.includes('q25Total+=dailyQ25')||panel.includes('q75Total+=dailyQ75')) failures.push('Kumulierte Quartile werden weiterhin fälschlich aus täglichen Quartilen aufsummiert.');
 const version=JSON.parse(pkg).version,base=JSON.parse(baseline).releaseVersion;
 if(version!==base) failures.push(`Version/Baseline nicht synchron: ${version}/${base}`);

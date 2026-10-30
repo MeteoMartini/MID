@@ -1,3 +1,13 @@
+## MID v0.9.85.378 – Diagramm-, Farb- und NoData-Konsolidierung
+
+- Verifizierte Ausgangsbasis `main=mid-stable` v0.9.85.377 @ `44f5d02b0374b275e423e43233addff91d4eeb82`. Exakte Blob-SHAs der acht vorhandenen Fach-/CSS-/Vertragsdateien sind gegenüber dem Ausgangspunkt von Draft PR #524 (.373) unverändert. Keine Übernahme alter Versions-/Release-Spiegel, kein Rebase/Reset von #524.
+- Selektive fachliche Integration aus PR #524: `src/App.tsx`, `src/ForecastCockpit.tsx`, `src/EnsemblePanel.tsx`, `src/ensembleCumulativeDisplay.ts`, `src/parameterLineStyle.ts`, `src/styles-src/00-foundation.css`, `src/styles-src/30-modern.css` sowie zentraler Farb-/Linienvertrag.
+- 24h und 7d: zentral definierte, farbunabhängig unterscheidbare Linienmuster; bestehende konkurrierende SVG-Präsentationsattribute beseitigt; Legenden-/Tooltipmarker und tatsächliche Diagrammfarben verbunden. Dynamische Temperaturfarbe erhält Vorrang gegenüber generischem Inline-Stroke.
+- 14d: keine Null-Fälschung aus Missing/NaN im kumulierten Niederschlag; unabhängige Ensemble-Quartile/Mittel und tatsächlicher Niederschlagswert gesondert; fehlende Wind/Klima/Best-Match-Werte nicht quer über Lücken verbunden.
+- Zwei neue obligatorische Regressionen: `scripts/test-appwide-line-semantics-0985374.mjs`, `scripts/test-ensemble-cumulative-gaps-0985374.mjs`; bestehende Farbregression aktualisiert statt abgeschwächt. Gemeinsamer Vertrag `MID_PARAMETER_COLOR_CONTRACT.md` ergänzt.
+- Versionspiegel v0.9.85.378: Web, PWA, Worker/Worker-Mirror, iOS Build 379, Lockfile, Baseline, Registry, Benutzer- und technischer Changelog. Kein anderer meteorologischer Daten- oder API-Vertrag, keine amtlichen Warnungen, keine RUC-Kompression/Modelle geändert.
+- Parallel-Drafts #530 (Attestierung, read-only) und #524 (Original-Design-Draft) bleiben unangetastet. Source-PR nicht als Release melden, solange nicht SHA-Bot, serverseitiges ZIP, Installer mit Core/Heavy und Worker-/Pages-/Stable-Gates vollständig success sind. Nachweis: `docs/design/MID_PARAMETER_LINE_AUDIT_0.9.85.378.md`.
+
 ## MID v0.9.85.377 · 30.10.2026 · Buildparität und Retry-Diagnose
 
 - Zwei getrennt gesicherte Kandidaten #527/#528 auf freigegebener .376-Basis zu einem vollständig neu geprüften Quellbaum integrieren; eine Version, keine doppelte Veröffentlichung.

@@ -26,7 +26,7 @@ const checks=[
  ['7d detail no longer hardcodes old temperature/wind/gust/pressure/rain palette',!['#ff7a37','#59b8b0','#c48cff','#56d7ff','#4fc985','#b786ff'].some(color=>app.includes(`stroke=\"${color}\"`))],
  ['detail legend pressure uses pressure token',modern.includes('.detaillegend i.pressureline{background:var(--param-pressure)!important}')],
  ['detail legend wind uses wind token',modern.includes('.detaillegend i.windline{background:var(--param-wind)!important}')],
- ['detail legend gust uses gust token',modern.includes('var(--param-gust) 0 7px')],
+ ['detail legend gust uses gust token',modern.includes('var(--param-gust) 0 9px')],
  ['detail legend probability uses precipitation token',modern.includes('.detaillegend .probability,.detaillegend i.probability')&&modern.includes('var(--param-precipitation)!important')],
  ['svg wind arrows are warning-aware and baseline green',app.includes('SvgWindDirectionArrow({x,y,direction,gust')&&foundation.includes('.svg-wind-direction-arrow{color:var(--param-wind);stroke:currentColor')&&foundation.includes('.svg-wind-direction-arrow.warning-4{color:#9b59c6}')]
 ];
