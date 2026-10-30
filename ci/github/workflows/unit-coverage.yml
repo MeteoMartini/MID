@@ -45,6 +45,10 @@ jobs:
         run: |
           set -euo pipefail
           node --test scripts/test-release-timing-0985376.mjs scripts/test-release-train-plan-0985376.mjs scripts/test-source-gate-evidence-0985376.mjs
+          node scripts/test-installer-sharding-0985193.mjs
+          node scripts/test-installer-verification-budget-0985190.mjs
+          node scripts/test-core-regression-isolated-matrix-0985354.mjs
+          node scripts/test-install-main-race-09572.mjs
 
       - name: Coverage-Bericht sichern
         if: always()
