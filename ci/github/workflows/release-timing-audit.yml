@@ -1,0 +1,31 @@
+name: MID Release Timing Audit (read-only)
+run-name: MID CI/CD-Dauern und Engpässe messen
+
+on:
+  workflow_dispatch:
+
+# Diagnostic only: no PR, branch, deployment, workflow or release modifications.
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: mid-release-timing-audit
+  cancel-in-progress: false
+
+jobs:
+  report:
+    name: GitHub-Actions-Laufzeiten zuverlässig auswerten
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Geprüfte Quellwerkzeuge laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Read-only-Metrikregressionen ausführen
+        run: node --test scripts/test-release-timing-0985376.mjs
+      - name: Letzte Source-, Release-Bot- und Installerläufe messen
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/ci/release-timing.mjs --count 10

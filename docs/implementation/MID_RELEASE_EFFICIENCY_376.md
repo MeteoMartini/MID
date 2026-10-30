@@ -1,0 +1,104 @@
+# MID Release-Effizienz: kontrollierte Migration (Vorbereitung, kein produktiver Fast Path)
+
+Stand: 30.10.2026. Verifizierte Basis `main = mid-stable = 05798c4134431a5fb0455ef5f71441b4a7051e38`, v0.9.85.373. Geplante Arbeitskennung .376 ist **keine behauptete Version oder Veröffentlichung**. Draft #524 (.374) unverändert geschützt; parallel angelegter .375-Branch ist nicht in Stable enthalten.
+
+## Ziel, harte Grenzen und Reihenfolge
+
+Ziel: kürzere Ende-zu-Ende-Zeit bei **unveränderten oder stärkeren** Source-/Release-/Worker-/Pages-/Stable-Gates, Attestierung, Reproduzierbarkeit und NoData-/WMO-/DWD-Verträgen. Kein Admin-Bypass, keine neue kostenpflichtige Infrastruktur, keine erweiterte Release-Token-Berechtigung, kein Force-Push, keine automatische PR-Zusammenführung durch Diagnostik. Die bestehenden kanonischen Workflowquellen unter `ci/github/` werden weiter über `npm run sync:github-workflows` gespiegelt.
+
+1. **Messung (implementierter read-only Pilot):** `tools/ci/release-timing.mjs` liest GitHub-Actions-Metadaten (`actions:read`); kein Logdownload, keine Tokens im Bericht. Separater manueller Workflow `MID Release Timing Audit (read-only)`. `node --test scripts/test-release-timing-0985376.mjs` prüft Parallelität, fehlende Zeiten, problematische Eingaben und Perzentile. Zeit `first job started → last job completed` ist *kein* vollständig gemessener PR→Stable-Lead-Time-Ersatz. Source-Gate, Bot und Installer müssen bis zur Zuordnung über PR-HEAD, Merge-SHA, ZIP-/Snapshot-SHA und Promotion-SHA **getrennt** ausgewiesen werden. Die GitHub-Laufzeitmetadaten sind Grundlage, nicht die konfigurierte `timeout-minutes`-Obergrenze.
+2. **Sichere Wiederverwendung (noch nicht aktiviert):** Bestehende SHA-Snapshot-/ZIP-Verträge bleiben unverändert. Ein zukünftiger vertrauenswürdiger Build-Produzent darf nur nach eindeutiger Identität von Source-Tree, Node-/Toolchain, Lockfile, buildrelevanten `VITE_*`-Umgebungswerten, Workflows/Actions, Testinventar und Eingangsartefakten sowie Nachweis ALLER erforderlichen grünen Testshards als Quelle dienen. Artefakte werden mit Hash und nachvollziehbarer Runner-Identität attestiert und unabhängig *verifiziert*; der Release-Bot bleibt exklusiver ZIP-Erzeuger. Kein simples Cache-Hit-Flag, kein PR-generierter unverifizierter ZIP und kein Austausch von GitHub-Run-Ergebnissen zwischen verschiedenen SHAs.
+3. **Release Train (implementierter read-only Vorprüfer, keine automatische Änderung):** `tools/ci/release-train-plan.mjs <manifest.json> MeteoMartini/MID`. Ein Manifest (Schema 1) enthält genau `mainSha`, `stableSha` und 1–5 Einträge `{"pr": N, "headSha": "<40 hex>"}`. Der Live-Vorprüfer liest GitHub-PR-Metadaten und Dateipfade, verwirft SHA-Drift, Draft, fremde PR-Quelle, abweichende Basis und überlappende Dateien. Er markiert sicherheits-/RUC-/Worker-/Dependency-Pfade ausdrücklich. **Ein positives Ergebnis ist nur ein Planungshinweis**, kein Review, Source-Gate und schon gar keine Merge-/Deploy-Freigabe. Separate Feature-/Fix-Branches bleiben frühzeitig bei GitHub gesichert. Die Gesamtänderung wird selektiv in EINEM neuen autorisierten Integration-PR gegen aktuelle Stable zusammengesetzt; Versionsspiegel/Changelog gelten dem gesamten Paket; **kombinierter Source-Gate vollständig erneut**; danach ausschließlich SHA-Bot → ZIP → Installer → Worker/Pages → Stable. Zwei bis fünf thematisch verträgliche Patches, z. B. alle 2–4 Stunden, sind zunächst eine Empfehlung und **kein automatischer Takt**. P0-Hotfixe warten nicht auf ein Bündel.
+4. **Vergleich/Abnahme (noch offen):** vor einer produktiven Änderung mindestens 10 repräsentative erfolgreiche Source- und Installerläufe sowie Fehler-/Retryfälle auswerten; p50/p95, Queue, Setup, npm, Python, Browser, Build, Core, Heavy, Bot, Pages, Worker, Promotion und Fehlerquote dokumentieren. Zwei identische Source-Trees als Referenz mit unverändertem und optimiertem Pfad auf vertrauenswürdiger CI prüfen. Erforderliche negative Fälle: PR-HEAD-Wechsel, Main-/Stable-Drift, abweichender ZIP-/Test-Artefakt-Hash, unvollständige Testshards, misslingender Build, unpassender Worker-/RUC-/Codec-Vertrag, veränderte Cloudflare-Variablen, fremder Workflow/Akteur, abgelaufener Nachweis, Cache-Poisoning, Pages-Fehler, Rollback und fehlende GitHub-Actions-API-Metadaten. Jede Unklarheit → klassischer vollständiger Installer / fail-closed; keine grüne Kurzschlussfreigabe.
+
+## Verifizierter Ausgangspunkt (Protokollmessung, keine allgemeine Laufzeitgarantie)
+
+Installer #40966776369: 29.10.2026 22:33:35Z bis 22:51:42Z ≈ 18,1 Minuten; `Release-Core` ≈ 14,8 min, langsamster `Heavy` ≈ 12 min, Pages ≈ 1,2 min, Stable-Promotion ≈ 0,1 min. Verschiedene Jobs laufen parallel. Source-Gate #41042447504 (PR #522) hatte als langsamen Shard `heavy-unified-map 1/3` ≈ 12 min. Source und Installer stammen nicht aus demselben Versionslauf: diese Zahlen dürfen **nicht** als bereits gemessene gemeinsame Lead Time addiert werden. Keine Änderung an Testausführung / Produktion in dieser Draft-Stufe.
+
+## Gegenüberstellung mit professionellen CI/CD-Verfahren
+
+- **GitHub Actions:** Artefakte für Weitergabe zwischen vertrauenswürdigen Jobs, Caches nur für regenerierbare Abhängigkeiten; Caches nicht als Vertrauensanker.
+- **SLSA / GitHub Artifact Attestations:** kryptografische Provenienz des Erzeugers *und Prüfung beim Verbraucher*; Attestierung allein ist keine Freigabe. Erst nach passender Rechte-/Kostenprüfung und Vertragsfreigabe aktivieren.
+- **GitLab Merge Trains / GitHub Merge Queue:** prüfen einen integrierten Zustand statt isolierter grüner PRs. MID übernimmt dieses Prinzip selektiver Integration ohne Ersatz des vorhandenen SHA-Bots.
+- **DORA / Continuous Delivery:** kurze Entwicklungs-PRs; deploybare integrierte Version; reguläre kurze Release-Trains, kritische Sofort-Hotfixe.
+
+## Definition of Done der vier Phasen
+
+- Phase 1: Tooltests **auf GitHub CI ausgeführt**; manuelle Workflow-Runde erfolgreich; mindestens 10 echte Laufzeitdatensätze inkl. fehlender Zeitwerte und Fehlläufe; kein Secret im Log. Nur Einchecken ist keine erfüllte CI-Abnahme.
+- Phase 2: positive/negative Provenienz-Gates, Konflikt-/RUC- und Worker-Proben, Testinventar-Parität, attestierter Byte-/SHA-Vertrag, Quelle und ZIP unverändert; A/B-Läufe erfolgreich; erst dann ist Vermeidung der redundanten Installer-Tests vertraglich verhandelbar.
+- Phase 3: Ein getrennt entwickeltes, nicht sensibles Paket mit 2–5 Änderungen vollständig und gemeinsam geprüft, der etablierte Releaseweg nachweislich grün; kein Merge von Draft-/Abhängigkeits-PRs.
+- Phase 4: Median und p95 per Patchklasse aus echten Runs, Rückverfolgbarkeit PR→Stable mit vollständigen SHAs, normaler Regression, RUC-Datenfrische und realen Pages-/Worker-Nachweisen; kein gemeldeter Erfolg auf reinen Planungsdaten.
+
+## Nicht veröffentlichen, solange:
+
+- .374 Draft #524 / parallele .375-Entwicklung nicht aufgelöst und eine neue Versionsnummer nicht eindeutig freigegeben ist.
+- Der Integrations-PR nicht seine vollständige kombinierte Source-Prüfung bestanden hat.
+- Die benötigte Ruleset-/Source-Bot-/Workflow-Synchronisations-Abnahme fehlt.
+- Der neu vorgeschlagene Artefakt-Reuse-Pfad keine beweisbar gleichwertigen Sicherheits- und Testverträge besitzt.
+
+Ergebnisse der Diagnose bleiben explizit **nicht releasefähig**; der vollständige bisherige Pfad gilt bis zur gesondert belegten Umstellung weiter.
+
+
+## Ergänzung: vollständige Installer-Core-Parallelisierung als Draft-Pilot
+
+Der Installationspfad hat jetzt **nur im nicht freigegebenen PR #525** einen strukturellen Optimierungskandidaten. Das bisherige `verify_core` führt weiterhin einen reproduzierbaren Produktionsbuild, Dependency-Audit, Worker-Syntaxprüfung, iOS-Bundle-Kopie und Versionsabgleich aus. Die monolithische vollständige Regression `MID_REGRESSION_SHARD=core` wird durch **vier disjunkte vollständige Shards** `core-1/4` bis `core-4/4` ersetzt. Jeder Shard lädt den exakt gleichen eventgebundenen, unveränderlichen `prepare_release`-Snapshot, prüft Artefakt-ID, Digest, Manifest und Einzeldateien, richtet eigene reproduzierbare Node-/Python-Abhängigkeiten ein, baut und führt seine Regressionen aus. Das Core-Testinventar und seine Eins-zu-eins-Partition bleiben über `regressionCoreSubshards` und den vorhandenen verpflichtenden `test-core-regression-isolated-matrix-0985354.mjs` geschützt. Ein regulärer Core-Regressionstest darf weder verschwinden noch zweimal ausgeführt werden.
+
+`install_build` benötigt nun **alle vier** Erfolge: `prepare_release`, `verify_core`, `verify_core_shards` und `verify_heavy`. Ohne einen grünen Matrix-Gesamtstatus bleiben Commit, Worker, Pages und Stable blockiert. Bestehende sechs Heavy-Matrixjobs, Worker-Canaries, RUC-Prüfungen, Pages-Sperre, Fast-Forward-/SHA-Freigabe, signierte Versions-/Releasenachweise und die Retry-/Rollback-Grenzen bleiben erhalten. Jeder Matrixjob hat read-only `contents`, keine Secrets, keine Schreib- oder Deploymentrechte. Eindeutige `mid-timings-core-shard-…`-Artefaktnamen vermeiden die Kollision mit bestehenden Heavy-Timing-Artefakten.
+
+Drei byteidentische Installerdateien: `ci/github/workflows/install-mid.yml`, `.github/workflows/install-mid.yml`, `workflow-patches/install-mid.yml`. Die bestehenden verpflichtenden Tester `test-installer-sharding-0985193.mjs` und `test-installer-verification-budget-0985190.mjs` wurden auf **stärkere** Invarianten aktualisiert (einschließlich disjunkter Pflichtshards, Snapshotidentität, Retry-Namensraum, verbotener Fehlerunterdrückung und vollständiger Freigabeverkettung). Der bekannte zulässige `npm cache verify || true`-Retry im Setup ist ausdrücklich von einer verbotenen `|| true`-Umgehung der Regressionen unterschieden.
+
+**Freigabestatus:** Dies ist nur ein nicht veröffentlichter Kandidat. Vor Ready/Release müssen der Draft-Unit-Runner, der vollständige Source-PR-Gate, die effektive Installer-Matrix auf einem authentischen Release, Dateisnapshots, negative Recovery-Szenarien, betroffene Contract-Tests und der unveränderte Gesamtumfang nachweislich grün sein. Geplante Einsparung ist eine **Hypothese**; vier zusätzliche parallele Runner können trotz kürzerer Wall Time mehr aggregierte CI-Minuten kosten. Bei dem geringsten Coverage-, Runner-, Rechte- oder SHA-Problem zurück zum monolithischen bestehenden Standard – niemals skippen oder ignorieren. Die privilegierte Source-Bot-/Installer-Sequenz bleibt unverändert.
+
+## Unabhängiger Provenienzprüfer (read-only, kein Fast-Path-Ticket)
+
+`tools/ci/source-gate-evidence.mjs` liest unter anderem die GitHub-Refs, PR-Metadaten, Source-Gate-Run-Metadaten und alle aktuell gültigen Jobs; `scripts/test-source-gate-evidence-0985376.mjs` prüft vollständige verpflichtende Source-Core-/vier Core-/sechs Heavy-/Final-Gate-Namen, Head-/Run-/Repo-/Event-/Base-/Stable-Bindung, Einmaligkeit, unvollständige und fehlerhafte Jobs, Drafts, Fremdrepositories und Race-Drift. Das Ergebnis heißt bewusst nur `eligibleForFurtherEvidenceReview` und ist weder eine kryptographische Artefaktattestierung noch ein Nachweis byteidentischer Releaseartefakte. Produktives Überspringen der Installer-Core-Prüfungen auf Basis eines früheren Source-Gates bleibt ausdrücklich verboten und nicht implementiert.
+
+## Empirischer 10-Läufe-Ausgangswert (30.10.2026, GitHub read-only)
+
+Die zehn jüngsten erfolgreichen, jeweils zum Workflow und Event passenden Läufe wurden aus vier Seiten zu jeweils 100 GitHub-Run-Metadaten selektiert. *Je Workflow* sind es tatsächlich zehn Erfolge, nicht zehn Läufe einschließlich Draft-Skips, Abbrüchen oder Fehlschlägen. Dauer: `run_started_at → updated_at`; Perzentil nach nächsthöherem Rang (n=10). Diese Zeiten sind ein erster belastbarer Phasenvergleich, noch **keine** SHA-zu-SHA korrelierte PR→Stable-Lead-Time und keine Messung des neuen Installers.
+
+| Phase | Erfolgreiche Läufe | P50 | P95 |
+|---|---:|---:|---:|
+| Source-PR-Gate | 10 | 12,3 min | 14,2 min |
+| SHA-Release-Bot | 10 | 0,4 min | 0,5 min |
+| Installer inkl. Worker/Pages/Promotion | 10 | 18,3 min | 22,8 min |
+
+Der Source-Gate-Run 41042447504 und Installer 41043980916 belegen einen konkreten Releasezyklus, sind aber noch kein vollständiger kryptografisch verknüpfter Timingbeleg. In der gesichteten Historie existieren außerdem abgebrochene Source-Läufe und fehlgeschlagene Installerläufe: solche Ergebnisse werden separat als Fehler-/Abbruchdiagnostik betrachtet, nicht als grüne Zeitprobe. Der read-only Auditor samplet jetzt nach kanonischem Workflowpfad und Event aus den jeweiligen workflow-spezifischen API-Endpunkten mit bounded Pagination und verlangt eine vollständige Erfolgsstichprobe, damit Skips keine falsche Messung erzeugen.
+
+## SHA-korrelierte historische Ende-zu-Ende-Messung (n=8)
+
+In neun anhand von GitHub-Bot-Logs zunächst aufgelösten Kandidaten wurden für acht **erfolgreiche** Releases diese konkreten Identitäten gegengeprüft: Source-Gate-Run mit PR-Head-SHA, im Bot-Run protokollierter exakt gleicher PR-Head und SHA-gebundener Squash-Merge, protokollierter Paket-Commit, Installer-Run des **identischen** Paket-Commits mit `workflow_dispatch` und erfolgreichem Abschluss. PR #511 hatte einen fehlgeschlagenen Installer und ist ausdrücklich **kein** Erfolgspunkt.
+
+| PR | Source-Gate-Run | Bot-Run | Installer-Run | Source→Installer (min) |
+|---|---:|---:|---:|---:|
+| #522 | 41042447504 | 41043939501 | 41043980916 | 30,9 |
+| #521 | 41035797997 | 41037357503 | 41037391196 | 34,7 |
+| #520 | 41026523238 | 41027789188 | 41027821734 | 32,7 |
+| #519 | 41016487911 | 41017701039 | 41017731341 | 30,4 |
+| #518 | 40965161189 | 40966734368 | 40966776369 | 30,9 |
+| #514 | 40934456612 | 40936650472 | 40936701732 | 35,9 |
+| #512 | 40904941352 | 40906877714 | 40906954670 | 35,0 |
+| #507 | 40866026109 | 40867601364 | 40867643184 | 32,9 |
+
+P50 **32,7 min**, P95 **35,9 min** als nächsthöherer Rang, gemessen von `Source.created_at` bis `Installer.updated_at`. Diese acht Werte ergänzen die unabhängige 10-er Phasenstichprobe, **sind nicht die Gesamtdauer von PR-Erstellung bis Nutzerfreigabe** und stammen ausschließlich vom *alten* Installer.
+
+## Wirklich ausgeführter vierfacher Core-Draft-Pilot
+
+Testworkflow ausschließlich für Draft-PR #525 und same-repo Branch, read-only `contents`; `actions/checkout` mit exaktem PR-Head-SHA; Node 22.16, Python 3.12, `npm ci`, `npm run build`, `MID_REGRESSION_SHARD=core-{1,2,3,4}/4` und `npm run test:regressions` ohne Secrets, Merge oder Deploy. Die erste Github-Runner-Matrix #41059320558 hat echte historisch nicht bemerkte Contract-Sentinel-Fehler reproduziert: `test-github-actions-runtime.mjs` verlangte den monolithischen Befehlsnamen statt dessen vollständiger drei Komponenten; `test-security-diagnostics-0985347.mjs` erwartete nur zwei Timingreporter. Diese Tests wurden mit **strengeren semantischen Invarianten** statt einer gelockerten Negativprobe aktualisiert.
+
+Der zweite GitHub-Pilot #41060283405 hat `core-1/4`, `core-2/4` und `core-3/4` erfolgreich abgeschlossen; `core-4/4` entdeckte den zusätzlichen Legacy-Sentinel `test-ruc-pages-free-storage-09700.mjs`. Der Test prüft jetzt bei vorübergehend älterem aktiven Installer entweder das *vollständige* bisherige `npm run verify`-/Core-/Heavy-Gate oder das *vollständige* neue Build-/Syntax-/Vier-Shard-/Hash-/Heavy-Success-Gate – die RUC-/Pages-Snapshot-, Memory-, Wiederherstellungs- und Deployverträge bleiben ansonsten unverändert. **Abschließender echter Runnerbeleg:** GitHub-Lauf **41061455141** (SHA `412b950ef3f95306f2bc0f963f05a08bbe9e9252`) completed/success; `core-1/4`: 262, `core-2/4`: 262, `core-3/4`: 262, `core-4/4`: 261 **alle bestanden**, insgesamt 1047/1047 Core-Regressionsfälle. Die in genau diesem Runnerlauf gemeldeten reinen Suite-Laufzeiten lagen bei 284,0 s, 114,7 s, 222,5 s und 411,8 s. Der neue Installer wurde dabei nicht produktiv ausgeführt und die Heavy-Matrix nicht durch diesen Draft-Pilot neu getestet. Der vollständige Gateumfang wird erst beim normalen SHA-freigegebenen Release ausgeführt.
+
+Nach erfolgreichem Vierfachpilot wurde die **temporäre nur auf PR #525 bezogene Runner-Matrix wieder aus beiden `unit-coverage.yml`-Spiegeln entfernt**. Die schnellen dauerhaft ergänzten Herkunfts-/Security-/RUC-/Installer-Invarianten bleiben erhalten. Der belegte, kontrollierte Vierfach-Installer bleibt dann ein **Draft-Kandidat**; reale Installer-/Worker-/Pages-/Stable-Abnahme und A/B-P95 sind noch offen. Kein Source-PR-Ready, keine Aktualisierung von Main/Stable, keine alten Prüfergebnisse als Freigabe übernommen.
+
+
+## Fortsetzung: releasefähigen Kandidaten vorbereiten (30.10.2026)
+
+Die frühere Arbeitskennung .376 wird jetzt als **Sourcekandidat** korrekt über alle Versionsspiegel und Changelogs geführt. Live-Basis weiter `.373` mit vollständigem SHA wie oben. Design-Draft #524 bleibt unangetastet. Der .375-Branch enthält zum neuen Prüfzeitpunkt lediglich denselben Stable-SHA, also keine zu übernehmende Änderung. Es besteht damit kein ungeklärter Quell- oder Versionskonflikt dieses unabhängigen CI-Kandidaten; jede spätere Änderung der Parallelbranches verlangt erneute Prüfung.
+
+**Korrektur des Planungsmodells:** Im ursprünglichen Absatz 3 werden Drafts pauschal verworfen. Dies bleibt der konservative Standard `candidateMode: non-draft`. Für das sichere Sammeln noch nicht freigegebener Änderungen existiert nun die ausdrückliche Option `candidateMode: draft-planning`. Sie akzeptiert Drafts ausschließlich als rein lesende Planungskandidaten; `releaseAuthorized` ist **immer false**. Ein Draft wird niemals zum Sammeln auf Ready gesetzt, kein Kandidat ausgecheckt/ausgeführt/zusammengeführt. Nur gleiche Repositoryquelle und autorisierte chatgpt-/codex-Branches werden berücksichtigt; Dependabot-/Replit-Branches sind kein direkter Release-Train-Eingang. Alle zuvor bestehenden SHA-/Basis-/Konflikt-/Sensitivitätsprüfungen gelten weiter. Jede Umbenennung belegt alten und neuen Pfad; unvollständige Dateilisten, geänderte PR-Metadaten oder Main-/Stable-Wechsel während der Abfrage blockieren. Der Bericht ist eine punktuelle Planung und verlangt vor Integration erneut live verifizierte SHAs.
+
+**Provenienz-Härtung:** Der Read-only-Pilot lädt Jobs des konkret gelesenen Run-Attempts über den attempt-spezifischen API-Pfad, verlangt eindeutige positive Job-IDs sowie passende `run_id`, `run_attempt` und `head_sha` für jeden Job. Nach dem Laden prüft er Main/Stable, PR und Run erneut. Eine zwischenzeitliche Wiederholung, Head-/Basisänderung, Draft-/Statusänderung oder neues negatives Ergebnis blockiert. Die Prüfung stellt weiterhin ausdrücklich keine Attestierung oder Berechtigung zur Ergebniswiederverwendung aus.
+
+Neue ausführbare Gegenproben: expliziter Draft-Modus ohne Freigabe, fehlende Zustandswerte, fremde Branchfamilien, PR-Head-/Stable-Races, spätes Head-Race, unvollständiges Inventory, Rename-Quellpfade, Job-ID-Duplikate, falscher Attempt und Head, Attempt-/PR-/Stable-/Conclusion-Wechsel während der Evidenceabfrage. Der normale vollständige Source-/Installerpfad bleibt die unabhängige Abnahme.
+
+Offen bleiben echte A/B-Veröffentlichungsmessung, attestierte Buildprodukt-Parität und die separate produktive Artefaktwiederverwendung aus #526. Diese sind keine Voraussetzung, um reine Parallelisierung **mit allen weiterhin ausgeführten Pflichtprüfungen** regulär zu qualifizieren. Sie bleiben Voraussetzung für jeden zukünftigen Testsprung; dieser Kandidat implementiert keinen solchen Sprung.

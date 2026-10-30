@@ -280,12 +280,12 @@ jobs:
         timeout-minutes: 5
         run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
 
-      - name: Produktionsbuild und Regressionstests ausführen
+      - name: Produktionsbuild und Worker-Syntax verifizieren
         shell: bash
-        # Core plus vollständige isolierte Heavy-Matrix bilden zusammen das gesamte Inventar.
-        timeout-minutes: 25
+        # Der unveränderte Produktionsbuild bleibt eigener verpflichtender Gate-Job.
+        # Alle Core-Regressionen laufen vollständig in vier obligatorischen disjunkten Matrix-Shards.
+        timeout-minutes: 8
         env:
-          MID_REGRESSION_SHARD: core
           VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
           VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
           VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
@@ -294,7 +294,8 @@ jobs:
           VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
         run: |
           set -euo pipefail
-          npm run verify
+          npm run build
+          node --check worker/metar-proxy.js
 
 
       - name: Geprüften Web-Build in die Capacitor-iOS-Hülle übernehmen
@@ -332,6 +333,151 @@ jobs:
           path: /tmp/mid-snapshot/
           if-no-files-found: error
           retention-days: 1
+
+  verify_core_shards:
+    name: Release-Core-Regression · ${{ matrix.shard }}
+    needs: prepare_release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: core-1/4
+          - shard: core-2/4
+          - shard: core-3/4
+          - shard: core-4/4
+    steps:
+      - name: Eventgebundenen Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Unveränderliche Produzenten-Artefakt-ID prüfen
+        shell: bash
+        env:
+          MID_ARTIFACT_ID: ${{ needs.prepare_release.outputs.snapshot_id }}
+        run: node -e "if(!/^[1-9][0-9]*$/.test(process.env.MID_ARTIFACT_ID||''))throw Error('Missing producer artifact ID')"
+      - name: Snapshot dieses Laufs laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.prepare_release.outputs.snapshot_id }}
+          merge-multiple: true
+          digest-mismatch: error
+          path: /tmp/mid-snapshot
+      - name: Event, Manifest, Archiv und alle Dateien verifizieren
+        shell: bash
+        env:
+          MID_SNAPSHOT_SHA: ${{ needs.prepare_release.outputs.snapshot_sha }}
+        run: node tools/ci/release-snapshot.mjs restore /tmp/mid-snapshot
+      - name: Node.js 22 mit npm-Cache einrichten
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Lockfile und npm-Registry prüfen
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 2
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-mintimeout 3000
+          npm config set fetch-retry-maxtimeout 15000
+          npm config set fetch-timeout 60000
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const invalid = [];
+          for (const [name, entry] of Object.entries(lock.packages ?? {})) {
+            const resolved = entry && typeof entry === 'object' ? entry.resolved : undefined;
+            if (typeof resolved !== 'string') continue;
+            if (/internal\.api\.openai\.org|applied-caas-gateway|localhost|127\.0\.0\.1/i.test(resolved)) {
+              invalid.push(`${name || '(root)'}: ${resolved}`);
+            }
+          }
+          if (invalid.length) {
+            console.error('Nicht öffentlich erreichbare Paket-URLs im Lockfile:\n' + invalid.join('\n'));
+            process.exit(1);
+          }
+          console.log('Lockfile enthält keine internen oder lokalen Paket-URLs.');
+          NODE
+
+          echo "Node: $(node --version)"
+          echo "npm: $(npm --version)"
+          echo "Registry: $(npm config get registry)"
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        shell: bash
+        timeout-minutes: 8
+        run: |
+          set -euo pipefail
+          installed=false
+          for attempt in 1 2 3; do
+            if npm ci \
+              --no-audit \
+              --no-fund \
+              --prefer-offline \
+              --legacy-peer-deps \
+              --loglevel=notice; then
+              installed=true
+              break
+            fi
+            echo "::warning::npm ci fehlgeschlagen (Versuch ${attempt}/3). Bereinige node_modules und prüfe den Cache vor erneutem Versuch."
+            rm -rf node_modules
+            npm cache verify || true
+            sleep $((attempt * 3))
+          done
+          if [ "$installed" != true ]; then
+            echo "::error::npm ci konnte nach drei Versuchen nicht erfolgreich abgeschlossen werden."
+            exit 1
+          fi
+
+
+      - name: Python für die RUC-Kernregressionen einrichten
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+
+      - name: Vorhandene RUC-Testabhängigkeiten installieren
+        shell: bash
+        timeout-minutes: 5
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+
+      - name: Disjunkten Core-Regressionsanteil ohne Testsprung prüfen
+        shell: bash
+        timeout-minutes: 15
+        env:
+          MID_REGRESSION_SHARD: ${{ matrix.shard }}
+          MID_REGRESSION_JOBS: '2'
+          VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+          VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+          VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
+          VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+          VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm run build
+          npm run test:regressions
+      - name: Laufzeitbericht ohne Freigabewirkung speichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-timings-core-shard-${{ strategy.job-index }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mid-regression-*/timings.json
+          if-no-files-found: warn
+          retention-days: 7
 
   verify_heavy:
     name: Release-Heavy · ${{ matrix.shard }} · ${{ matrix.map_group }}
@@ -482,8 +628,8 @@ jobs:
 
   install_build:
     name: Vollständig geprüften Release sammeln und committen
-    needs: [prepare_release, verify_core, verify_heavy]
-    if: needs.prepare_release.result == 'success' && needs.verify_core.result == 'success' && needs.verify_heavy.result == 'success'
+    needs: [prepare_release, verify_core, verify_core_shards, verify_heavy]
+    if: needs.prepare_release.result == 'success' && needs.verify_core.result == 'success' && needs.verify_core_shards.result == 'success' && needs.verify_heavy.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     permissions:

@@ -18,7 +18,19 @@ assert.equal(workflowContract.state,'canonical','Der fachliche RUC-Pages-Test va
 // ein Widerspruch zum Self-Modification-Schutz; geprüft wird stattdessen der weiterhin sichere
 // Mindestvertrag der gerade aktiven Pipeline.
 if(fs.existsSync(activeInstallPath)){
- for(const token of ['MID-professional-replacement.zip','npm run verify',"git add -A -- . ':(exclude).github/**'",'restore_ruc_pages_snapshot.py','MID_RUC_PAGES_BASE_URL','group: mid-pages','cancel-in-progress: false'])assert.ok(activeInstall.includes(token),`active installer safety token missing: ${token}`);
+ for(const token of ['MID-professional-replacement.zip',"git add -A -- . ':(exclude).github/**'",'restore_ruc_pages_snapshot.py','MID_RUC_PAGES_BASE_URL','group: mid-pages','cancel-in-progress: false'])assert.ok(activeInstall.includes(token),`active installer safety token missing: ${token}`);
+ const activeCore=activeInstall.split('  verify_core:')[1]?.split(/^  [a-z_]+:/m)[0]??'';
+ const activeShards=activeInstall.split('  verify_core_shards:')[1]?.split('  verify_heavy:')[0]??'';
+ const activeCollector=activeInstall.split('  install_build:')[1]?.split('  deploy_worker:')[0]??'';
+ const legacyComplete=activeCore.includes('npm run verify')&&activeCore.includes('MID_REGRESSION_SHARD: core')&&
+   activeCollector.includes('needs: [prepare_release, verify_core, verify_heavy]');
+ const newComplete=activeCore.includes('npm run build')&&activeCore.includes('node --check worker/metar-proxy.js')&&
+   ['core-1/4','core-2/4','core-3/4','core-4/4'].every(s=>activeShards.split('shard: '+s).length===2)&&
+   ['npm run build','npm run test:regressions','MID_REGRESSION_SHARD: ${{ matrix.shard }}',
+    'digest-mismatch: error','fail-fast: false'].every(s=>activeShards.includes(s))&&
+   activeCollector.includes('needs: [prepare_release, verify_core, verify_core_shards, verify_heavy]')&&
+   activeCollector.includes("needs.verify_core_shards.result == 'success'");
+ assert.ok(legacyComplete||newComplete,'active installer must preserve a complete monolithic or four-shard Core/Heavy verification gate');
  assert.ok(!activeInstall.includes('git push --force origin HEAD:main'),'active installer must never force-push main');
  assert.ok(!activeInstall.includes('rsync -a --delete --checksum "$source_dir/" .github/'),'active installer must not self-modify .github');
 }
