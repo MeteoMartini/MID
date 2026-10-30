@@ -12,6 +12,48 @@ const sample = (id, name, conclusion='success') => ({
     {name:'Skipped retry',conclusion:'skipped',started_at:null,completed_at:null},
   ],
 });
+test('skipped synthetic timestamps cannot extend or shrink measured execution',()=>{
+  const run=sample(30,'Retry');run.jobs[2]={name:'Skipped retry',conclusion:'skipped',started_at:'2020-01-01T00:00:00Z',completed_at:'2030-01-01T00:00:00Z'};
+  assert.equal(summarizeRun(run).durationSeconds,600);
+  assert.deepEqual(summarizeRun(run).longestJob,{name:'Core',seconds:600});
+});
+test('slowest execution and expensive steps include earlier attempts without skipped sentinels',()=>{
+ const run=sample(33,'Retry');run.previousAttemptJobs=[{name:'Earlier failed setup',conclusion:'failure',started_at:'2026-10-30T08:00:00Z',completed_at:'2026-10-30T08:30:00Z',steps:[{name:'Earlier npm',started_at:'2026-10-30T08:00:00Z',completed_at:'2026-10-30T08:20:00Z'}]}];
+ const report=summarizeRun(run);assert.deepEqual(report.longestJob,{name:'Earlier failed setup',seconds:1800});assert.equal(report.expensiveSteps[0].name,'Earlier npm');
+});
+test('retries include earlier cancelled work and gaps; retained success is counted once',()=>{
+  const run=sample(31,'Retry');run.run_attempt=2;
+  run.previousAttemptJobs=[{...run.jobs[0],id:123},{name:'Heavy',conclusion:'cancelled',started_at:'2026-10-30T08:00:00Z',completed_at:'2026-10-30T08:05:00Z'}];
+  run.created_at='2026-10-30T07:59:00Z';
+  const report=summarizeRun(run);
+  assert.equal(report.attemptCount,2);assert.equal(report.durationSeconds,4200);
+  assert.equal(report.runnerSeconds,600+420+300);assert.equal(report.executedJobs,3);assert.equal(report.cancelledExecutions,1);
+});
+test('a partial execution invalidates whole-run timing rather than creating a low P95',()=>{
+  const run=sample(32,'Partial');run.jobs.push({name:'Unknown',conclusion:'success',started_at:null,completed_at:null});
+  const report=summarizeRun(run);assert.equal(report.durationSeconds,null);assert.equal(report.runnerSeconds,null);
+  assert.equal(report.incompleteJobs,1);
+});
+test('cancelled and timed-out runs remain explicit outcomes outside successful percentiles',()=>{
+  const report=summarizeCohort([sample(1,'X'),sample(2,'X','cancelled'),sample(3,'X','timed_out')]).byWorkflow.X;
+  assert.equal(report.successful,1);assert.equal(report.cancelledCount,1);assert.equal(report.timedOutCount,1);
+});
+test('attempt pagination and final identity recheck refuse a concurrent rerun',async()=>{
+  const original=globalThis.fetch,run={...sample(40,'X'),run_attempt:2,path:'.github/workflows/install-mid.yml',event:'workflow_dispatch',status:'completed'};
+  let changed=false;const calls=[];
+  try{
+    globalThis.fetch=async url=>{const u=String(url);calls.push(u);let data;
+      if(u.includes('/workflows/'))data={workflow_runs:[run]};
+      else if(u.includes('/jobs?'))data={jobs:run.jobs};
+      else data={...run,run_attempt:changed?3:2};
+      return {ok:true,json:async()=>data};
+    };
+    const map=new Map([['install-mid.yml','workflow_dispatch']]);
+    const good=await githubRuns('MeteoMartini/MID',1,'',map);
+    assert.equal(good[0].previousAttemptJobs.length,3);assert.ok(calls.some(u=>u.includes('/attempts/1/jobs?')));
+    changed=true;await assert.rejects(githubRuns('MeteoMartini/MID',1,'',map),/Run changed/);
+  }finally{globalThis.fetch=original}
+});
 test('parallel job durations are measured as wall time, never summed', () => {
   const r=summarizeRun(sample(12,'Install MID release and deploy'));
   assert.equal(r.durationSeconds,600);

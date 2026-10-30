@@ -1,0 +1,108 @@
+name: MID Build Parity Qualification
+run-name: Zwei unabhängige MID-Builds ohne Wiederverwendungsfreigabe vergleichen
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - tools/ci/build-parity.mjs
+      - scripts/test-build-parity-0985377.mjs
+      - ci/github/workflows/build-parity-qualification.yml
+      - .github/workflows/build-parity-qualification.yml
+
+# No release credentials, attestations permission or consumed production artifact.
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-build-parity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  VITE_METAR_PROXY_URL: ${{ vars.VITE_METAR_PROXY_URL }}
+  VITE_ALERT_PROXY_URL: ${{ vars.VITE_ALERT_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+  VITE_RADAR_PROXY_URL: ${{ vars.VITE_RADAR_PROXY_URL || vars.VITE_METAR_PROXY_URL }}
+  VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH || '/api/mid-worker' }}
+  VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
+  VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+
+jobs:
+  independent_build:
+    name: Unabhängiger Paritätsbuild · ${{ matrix.copy }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        copy: [a, b]
+    steps:
+      - name: Exakten Quellstand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Qualifizierte Node-Version laden
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Fingerprint-Gegenproben ausführen
+        run: node --test scripts/test-build-parity-0985377.mjs
+      - name: Unabhängige Installation und Buildinventur
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/ci/build-parity.mjs inputs "$RUNNER_TEMP/inputs.json"
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+          npm run build
+          node tools/ci/build-parity.mjs inventory "$RUNNER_TEMP/inputs.json" dist "$RUNNER_TEMP/build.json"
+      - name: Nur Diagnosemanifest dieses Versuchs sichern
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-build-parity-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.copy }}
+          path: ${{ runner.temp }}/build.json
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    name: Vollständige Byte- und Eingabeparität vergleichen
+    needs: independent_build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Identischen Vergleichscode laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Diagnose a aus demselben Run laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-build-parity-${{ github.run_id }}-${{ github.run_attempt }}-a
+          path: ${{ runner.temp }}/a
+          digest-mismatch: error
+      - name: Diagnose b aus demselben Run laden
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-build-parity-${{ github.run_id }}-${{ github.run_attempt }}-b
+          path: ${{ runner.temp }}/b
+          digest-mismatch: error
+      - name: Alle Eingaben und alle Ausgabebytes vergleichen
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node tools/ci/build-parity.mjs compare "$RUNNER_TEMP/a/build.json" "$RUNNER_TEMP/b/build.json" > "$RUNNER_TEMP/parity-result.json"; then
+            cat "$RUNNER_TEMP/parity-result.json"
+          else
+            cat "$RUNNER_TEMP/parity-result.json"
+            exit 1
+          fi
+      - name: Diagnoseergebnis sichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-build-parity-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/parity-result.json
+          if-no-files-found: warn
+          retention-days: 7

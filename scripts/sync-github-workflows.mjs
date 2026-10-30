@@ -40,6 +40,7 @@ function maintainHistoricalWorkflow(name,source){
  return next;
 }
 export const managedFiles=[
+ ['workflows/build-parity-qualification.yml','workflows/build-parity-qualification.yml'],
  ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/release-timing-audit.yml','workflows/release-timing-audit.yml'],
