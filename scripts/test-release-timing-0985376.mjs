@@ -125,7 +125,7 @@ test('invalid workflow identities and absence of real completed runs fail closed
   try{
     globalThis.fetch=async()=>({ok:true,json:async()=>({workflow_runs:[]})});
     await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['../unsafe.yml','pull_request']])),/Unexpected workflow/);
-    await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']])),/No completed/);
+    await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']])),/Incomplete workflow sample/);
   }finally{globalThis.fetch=original}
 });
 
