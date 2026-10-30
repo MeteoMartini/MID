@@ -1,0 +1,64 @@
+name: MID Protected Source Attestation Qualification
+run-name: Geschützte Source-Gates attestieren (nur Diagnose)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Erfolgreiche GitHub Source-Gate Run-ID (Ziffern)
+        type: string
+        required: true
+      pr_number:
+        description: Kontrolliert gemergte MID Source-PR-Nummer (Ziffern)
+        type: string
+        required: true
+
+# No production or release token, and never any untrusted PR checkout.
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-source-attestation-${{github.ref}}-${{inputs.source_run_id}}
+  cancel-in-progress: false
+
+jobs:
+  attest_source:
+    name: GitHub-Quellgates unabhängig prüfen und Beobachtung attestieren
+    if: github.repository == 'MeteoMartini/MID' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only this single protected signer job has the minimal OIDC/attest scope.
+    permissions:
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Exakten geschützten Signierer-Code laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{github.sha}}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Read-only Run-, PR-, Job- und Stable-Provenienz prüfen
+        shell: bash
+        env:
+          GH_TOKEN: ${{github.token}}
+          MID_SOURCE_RUN_ID: ${{inputs.source_run_id}}
+          MID_SOURCE_PR_NUMBER: ${{inputs.pr_number}}
+          MID_OBSERVATION_OUTPUT: ${{runner.temp}}/mid-source-observation.json
+        run: |
+          set -euo pipefail
+          # The script verifies GITHUB_REF_PROTECTED=true, exact main/stable SHA
+          # and all mandatory GitHub API jobs. It never executes PR code.
+          node tools/ci/protected-source-attestation.mjs
+      - name: Nur die authentifiziert geprüfte Beobachtung signieren
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{runner.temp}}/mid-source-observation.json
+      - name: Subject für späteren unabhängigen Sigstore-Beleg sichern
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-protected-observation-${{github.run_id}}-${{github.run_attempt}}
+          path: ${{runner.temp}}/mid-source-observation.json
+          if-no-files-found: error
+          retention-days: 7
