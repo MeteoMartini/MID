@@ -24,10 +24,12 @@ const fail=message=>{throw Error('Attested evidence rejected: '+message)};
 const timestamp=s=>typeof s==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString()===s;
 const hex=(v,re,field)=>{if(typeof v!=='string'||!re.test(v))fail(field)};
 export function validateTrustedPolicy(p,now=Date.now()){
-  requiredKeys(p,['schema','repo','repoId','sourceSha','treeSha','lockSha','envSha','artifactSha256','version','runId','attempt','sourceRef','signerWorkflow','signerDigest','signerSourceSha','notAfter'],'trusted policy');
+  requiredKeys(p,['schema','repo','repoId','sourceSha','baseSha','prNumber','treeSha','lockSha','envSha','artifactSha256','version','runId','attempt','sourceRef','signerWorkflow','signerDigest','signerSourceSha','notAfter'],'trusted policy');
   if(p.schema!=='mid.attested-source-policy.v1'||p.repo!=='MeteoMartini/MID'||String(p.repoId)!=='1305110795')fail('trusted repository identity');
-  for(const k of ['sourceSha','treeSha','signerDigest','signerSourceSha'])hex(p[k],SHA,k);
+  for(const k of ['sourceSha','baseSha','treeSha','signerDigest','signerSourceSha'])hex(p[k],SHA,k);
   for(const k of ['lockSha','envSha','artifactSha256'])hex(p[k],DIGEST,k);
+  if(!Number.isSafeInteger(p.prNumber)||p.prNumber<1||p.prNumber>9999999)fail('source PR number invalid');
+  if(p.baseSha===p.sourceSha)fail('PR base and head must differ');
   if(!REF.test(p.sourceRef)||p.sourceRef!=='refs/heads/main')fail('trusted main ref required');
   // The signed workflow runs on protected main while sourceSha identifies the
   // independently verified PR Source-Gate HEAD. They are distinct trust zones.
@@ -60,14 +62,15 @@ export function examineVerifiedArtifact(policy,artifactBytes,verified,now=Date.n
      statement.subject[0]?.digest?.sha256!==sha)fail('signed statement subject mismatch');
   let report;
   try{report=JSON.parse(artifactBytes.toString('utf8'))}catch{fail('invalid artifact JSON')}
-  requiredKeys(report,['schema','releaseAuthorized','reuseAuthorized','repo','repoId','sourceSha','treeSha','lockSha','envSha','version','runId','attempt','issuedAt','notAfter','jobs'],'signed report');
+  requiredKeys(report,['schema','releaseAuthorized','reuseAuthorized','repo','repoId','sourceSha','baseSha','prNumber','treeSha','lockSha','envSha','version','runId','attempt','issuedAt','notAfter','jobs'],'signed report');
   if(report.schema!=='mid.attested-source-evidence.v1'||report.releaseAuthorized!==false||
      report.reuseAuthorized!==false||report.repo!==policy.repo||String(report.repoId)!==String(policy.repoId))
     fail('report identity/permissions');
-  for(const k of ['sourceSha','treeSha','lockSha','envSha','version','runId','attempt','notAfter'])
+  for(const k of ['sourceSha','baseSha','prNumber','treeSha','lockSha','envSha','version','runId','attempt','notAfter'])
     if(report[k]!==policy[k])fail(k+' mismatch');
   if(!timestamp(report.issuedAt)||Date.parse(report.issuedAt)>now+60000||
-     Date.parse(report.issuedAt)>Date.parse(report.notAfter)||now>Date.parse(report.notAfter))fail('report freshness');
+     Date.parse(report.issuedAt)>Date.parse(report.notAfter)||now>Date.parse(report.notAfter)||
+     Date.parse(report.notAfter)-Date.parse(report.issuedAt)>24*60*60*1000)fail('report freshness');
   requiredKeys(report.jobs,SOURCE_JOBS,'complete source job inventory');
   for(const name of SOURCE_JOBS){
     const job=report.jobs[name];

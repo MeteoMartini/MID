@@ -62,6 +62,32 @@ export function inspectSourceRun(policy,run,payload,now=Date.now()){
   sourceRunsObserved:true,releaseAuthorized:false,reuseAuthorized:false});
 }
 
+/**
+ * A merged PR's Actions run may have pull_requests: []. Verify the original
+ * immutable PR HEAD and base through a separate authenticated GitHub request.
+ * A caller-supplied PR number without verified metadata grants nothing.
+ */
+export function inspectSourcePullRequest(policy,run,pr){
+ validateTrustedPolicy(policy);
+ if(!isObject(pr)||pr.number!==policy.prNumber||pr.draft!==false||
+    !(pr.state==='open'||(pr.state==='closed'&&pr.merged===true))||
+    !isObject(pr.head)||!isObject(pr.base)||
+    pr.head.sha!==policy.sourceSha||pr.head.ref!==run.head_branch||
+    pr.base.sha!==policy.baseSha||pr.base.ref!=='main'||
+    pr.head.repo?.id!==OWN_ID||pr.head.repo?.full_name!==OWN_REPO||
+    pr.base.repo?.id!==OWN_ID||pr.base.repo?.full_name!==OWN_REPO)
+  abort('PR identity, original base, head, or merge state mismatch');
+ return Object.freeze({prIdentityObserved:true,prNumber:policy.prNumber,baseSha:policy.baseSha});
+}
+const runIdentity=r=>JSON.stringify([
+ r?.id,r?.run_attempt,r?.head_sha,r?.head_branch,r?.status,r?.conclusion,
+ r?.path,r?.event,r?.repository?.id,r?.head_repository?.id
+]);
+const prIdentity=p=>JSON.stringify([
+ p?.number,p?.head?.sha,p?.head?.ref,p?.head?.repo?.id,
+ p?.base?.sha,p?.base?.ref,p?.base?.repo?.id,p?.draft,p?.state,p?.merged
+]);
+
 export function observeSourceThroughGithubCLI(policy,{invoke=execFileSync,now=Date.now()}={}){
  validateTrustedPolicy(policy,now);
  const endpoint=path=>'repos/'+OWN_REPO+'/actions/runs/'+policy.runId+path;
@@ -72,7 +98,15 @@ export function observeSourceThroughGithubCLI(policy,{invoke=execFileSync,now=Da
  };
  const run=api(endpoint(''));
  const jobs=api(endpoint('/jobs?filter=latest&per_page=100'));
- return inspectSourceRun(policy,run,jobs,now);
+ const prEndpoint='repos/'+OWN_REPO+'/pulls/'+policy.prNumber;
+ const pr=api(prEndpoint);
+ // A rerun or PR-head/base change during the inspection is always rejected.
+ const runAfter=api(endpoint(''));
+ const prAfter=api(prEndpoint);
+ if(runIdentity(run)!==runIdentity(runAfter)||prIdentity(pr)!==prIdentity(prAfter))
+   abort('Source run or PR changed during authenticated inspection');
+ const source=inspectSourceRun(policy,run,jobs,now);
+ return Object.freeze({...source,...inspectSourcePullRequest(policy,run,pr)});
 }
 async function main(){
  if(process.argv.length!==3)throw Error('Usage: node source-run-observation.mjs trusted-policy.json');

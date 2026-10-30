@@ -8,14 +8,15 @@ const NOW=Date.parse('2026-10-30T16:00:00.000Z');
 const sha=(x,n)=>x.repeat(n);
 function fixture(){
   const policy={schema:'mid.attested-source-policy.v1',repo:'MeteoMartini/MID',repoId:'1305110795',
-    sourceSha:sha('a',40),treeSha:sha('b',40),lockSha:sha('c',64),envSha:sha('d',64),
+    sourceSha:sha('a',40),baseSha:sha('1',40),prNumber:531,treeSha:sha('b',40),lockSha:sha('c',64),envSha:sha('d',64),
     artifactSha256:'',version:'0.9.85.378',runId:41000000001,attempt:1,
     sourceRef:'refs/heads/main',signerWorkflow:'MeteoMartini/MID/.github/workflows/attested-source-qualification.yml',
     signerDigest:sha('e',40),signerSourceSha:sha('f',40),notAfter:'2026-10-31T00:00:00.000Z'};
   const jobs=Object.fromEntries(SOURCE_JOBS.map(name=>[name,{runId:policy.runId,
     attempt:policy.attempt,headSha:policy.sourceSha,conclusion:'success'}]));
   const report={schema:'mid.attested-source-evidence.v1',releaseAuthorized:false,reuseAuthorized:false,
-    repo:policy.repo,repoId:policy.repoId,sourceSha:policy.sourceSha,treeSha:policy.treeSha,
+    repo:policy.repo,repoId:policy.repoId,sourceSha:policy.sourceSha,baseSha:policy.baseSha,
+    prNumber:policy.prNumber,treeSha:policy.treeSha,
     lockSha:policy.lockSha,envSha:policy.envSha,version:policy.version,runId:policy.runId,
     attempt:policy.attempt,issuedAt:'2026-10-30T15:30:00.000Z',notAfter:policy.notAfter,jobs};
   const bytes=Buffer.from(JSON.stringify(report));policy.artifactSha256=H(bytes);
@@ -38,13 +39,13 @@ test('successfully inspected simulated evidence still cannot authorize release o
   const a=inspect();assert.equal(a.provenanceConsistent,true);assert.equal(a.releaseAuthorized,false);
   assert.equal(a.reuseAuthorized,false);assert.equal(a.inspectedJobs,11);
 });
-for(const k of ['sourceSha','treeSha','lockSha','envSha','version','runId','attempt','notAfter']){
+for(const k of ['sourceSha','baseSha','prNumber','treeSha','lockSha','envSha','version','runId','attempt','notAfter']){
   test('reject signed-report input drift: '+k,()=>{
     assert.throws(()=>inspect(f=>{f.report[k]=typeof f.report[k]==='number'?f.report[k]+1:
       k==='version'?'0.9.85.379':k==='notAfter'?'2026-10-31T01:00:00.000Z':f.report[k].replace(/^./,'f')}),/mismatch|freshness/);
   });
 }
-for(const k of ['sourceSha','treeSha','lockSha','envSha','signerDigest','signerSourceSha','artifactSha256']){
+for(const k of ['sourceSha','baseSha','treeSha','lockSha','envSha','signerDigest','signerSourceSha','artifactSha256']){
   test('reject malformed trusted policy field: '+k,()=>{
     const f=fixture();f.policy[k]='0';assert.throws(()=>validateTrustedPolicy(f.policy,NOW));
   });
@@ -52,7 +53,8 @@ for(const k of ['sourceSha','treeSha','lockSha','envSha','signerDigest','signerS
 test('reject changes to trusted repository id, ref, signing workflow and unknown fields',()=>{
   for(const change of [p=>p.repoId='999',p=>p.repo='other/repo',
     p=>p.sourceRef='refs/heads/dev',p=>p.signerWorkflow='MeteoMartini/MID/.github/workflows/unit-coverage.yml',
-    p=>p.notAfter='2020-01-01T00:00:00.000Z',p=>p.signerSourceSha=p.sourceSha,p=>p.extra=true]){
+    p=>p.notAfter='2020-01-01T00:00:00.000Z',p=>p.prNumber=0,
+    p=>p.baseSha=p.sourceSha,p=>p.signerSourceSha=p.sourceSha,p=>p.extra=true]){
     const f=fixture();change(f.policy);assert.throws(()=>validateTrustedPolicy(f.policy,NOW));
   }
 });
@@ -120,7 +122,7 @@ test('protected main signer digest is distinct from PR gate HEAD',()=>{
 
 // Independent GitHub REST run/job observation: the signed REPORT alone is never
 // accepted as evidence that required jobs actually executed on the right SHA.
-const {inspectSourceRun,observeSourceThroughGithubCLI}=await import('./source-run-observation.mjs');
+const {inspectSourceRun,inspectSourcePullRequest,observeSourceThroughGithubCLI}=await import('./source-run-observation.mjs');
 function sourceFixture(){
  const policy=fixture().policy,run={id:policy.runId,run_attempt:policy.attempt,
   event:'pull_request',path:'.github/workflows/chatgpt-pr-gate.yml',
@@ -134,7 +136,10 @@ function sourceFixture(){
    run_attempt:policy.attempt,head_sha:policy.sourceSha,
    workflow_name:'MID-Agent-Quellstand prüfen',status:'completed',
    conclusion:i<=SOURCE_JOBS.length?'success':'skipped'}));
- return{policy,run,payload:{total_count:jobs.length,jobs}};
+ const pr={number:policy.prNumber,draft:false,state:'closed',merged:true,
+  head:{sha:policy.sourceSha,ref:run.head_branch,repo:{id:1305110795,full_name:policy.repo}},
+  base:{sha:policy.baseSha,ref:'main',repo:{id:1305110795,full_name:policy.repo}}};
+ return{policy,run,pr,payload:{total_count:jobs.length,jobs}};
 }
 const checkSource=mutate=>{
  const f=sourceFixture();mutate?.(f);
@@ -177,17 +182,61 @@ test('known conditional success/absence remains observable, never an implicit pa
  assert.equal(checkSource(f=>f.payload.jobs.at(-1).conclusion='success').conditionalJobs,2);
  assert.equal(checkSource(f=>{f.payload.jobs.pop();f.payload.total_count--}).conditionalJobs,1);
 });
-test('independent gh api reader makes exactly two authenticated GETs and retains no release authority',()=>{
- const f=sourceFixture(),argsSeen=[];
- const a=observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:(command,args,options)=>{
-  argsSeen.push({command,args,options});
-  assert.equal(command,'gh');assert.deepEqual(args.slice(0,3),['api','-X','GET']);
-  return JSON.stringify(args[3].includes('/jobs?')?f.payload:f.run);
- }});
- assert.equal(argsSeen.length,2);
- assert.equal(argsSeen[0].args[3],'repos/MeteoMartini/MID/actions/runs/'+f.policy.runId);
- assert.equal(argsSeen[1].args[3],'repos/MeteoMartini/MID/actions/runs/'+f.policy.runId+'/jobs?filter=latest&per_page=100');
- assert.equal(a.reuseAuthorized,false);
+test('PR identity works after protected merge even when the run has no linked PRs',()=>{
+ const f=sourceFixture();f.run.pull_requests=[];
+ const a=inspectSourcePullRequest(f.policy,f.run,f.pr);
+ assert.equal(a.prIdentityObserved,true);assert.equal(a.prNumber,531);
+});
+for(const [label,mutate] of [
+ ['incorrect PR number',f=>f.pr.number=999],
+ ['wrong original main base',f=>f.pr.base.sha='2'.repeat(40)],
+ ['different PR HEAD',f=>f.pr.head.sha='2'.repeat(40)],
+ ['foreign branch',f=>f.pr.head.ref='chatgpt/v0.9.85.378-fake'],
+ ['draft PR',f=>f.pr.draft=true],
+ ['closed unmerged PR',f=>f.pr.merged=false],
+ ['invalid state',f=>f.pr.state='unknown'],
+ ['fork head',f=>f.pr.head.repo.full_name='attacker/MID'],
+ ['foreign target',f=>f.pr.base.repo.id=444],
+ ['wrong main target',f=>f.pr.base.ref='mid-stable'],
+ ['missing repository',f=>delete f.pr.head.repo],
+ ['missing base',f=>delete f.pr.base]
+]){
+ test('independent PR evidence rejects '+label,()=>{
+  const f=sourceFixture();mutate(f);
+  assert.throws(()=>inspectSourcePullRequest(f.policy,f.run,f.pr),/Source run evidence rejected/);
+ });
+}
+test('long-lived signed evidence is rejected even if its signature appears valid',()=>{
+ const f=fixture();
+ f.policy.notAfter='2026-11-02T15:30:00.000Z';f.report.notAfter=f.policy.notAfter;
+ f.bytes=Buffer.from(JSON.stringify(f.report));f.policy.artifactSha256=H(f.bytes);
+ f.verified[0].verificationResult.statement.subject[0].digest.sha256=f.policy.artifactSha256;
+ assert.throws(()=>examineVerifiedArtifact(f.policy,f.bytes,f.verified,NOW),/freshness/);
+});
+test('independent gh api reader makes five authenticated GETs, rechecks PR/run and retains no release authority',()=>{
+ const f=sourceFixture(),calls=[];
+ const invoke=(command,args,opts)=>{
+  calls.push({command,args,opts});assert.equal(command,'gh');
+  assert.deepEqual(args.slice(0,3),['api','-X','GET']);
+  return JSON.stringify(args[3].includes('/jobs?')?f.payload:args[3].includes('/pulls/')?f.pr:f.run);
+ };
+ const a=observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke});
+ assert.equal(calls.length,5);
+ assert.equal(calls[0].args[3],'repos/MeteoMartini/MID/actions/runs/'+f.policy.runId);
+ assert.equal(calls[1].args[3],calls[0].args[3]+'/jobs?filter=latest&per_page=100');
+ assert.equal(calls[2].args[3],'repos/MeteoMartini/MID/pulls/'+f.policy.prNumber);
+ assert.equal(calls[3].args[3],calls[0].args[3]);
+ assert.equal(calls[4].args[3],calls[2].args[3]);
+ assert.equal(a.prIdentityObserved,true);assert.equal(a.reuseAuthorized,false);
  assert.throws(()=>observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:()=>'{bad json'}));
  assert.throws(()=>observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:()=>{throw Error('unauthorized')}}),/unauthorized/);
+ for(const race of ['run','pr']){
+  let n=0;
+  assert.throws(()=>observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:(cmd,args)=>{
+   n++;
+   if(n===4&&race==='run')return JSON.stringify({...f.run,run_attempt:2});
+   if(n===5&&race==='pr')return JSON.stringify({...f.pr,head:{...f.pr.head,sha:'2'.repeat(40)}});
+   return JSON.stringify(args[3].includes('/jobs?')?f.payload:args[3].includes('/pulls/')?f.pr:f.run);
+  }}),/Source run evidence rejected/);
+ }
 });
