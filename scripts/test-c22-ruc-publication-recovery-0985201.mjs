@@ -12,7 +12,7 @@ try {
  writeFileSync(path.join(temp,'gh'),`#!/bin/bash
 set -eu
 case "$*" in
-  *"workflow run"*) touch "$DISPATCH_MARKER"; exit 0;;
+  *"workflow run"*) printf '%s' "$*" > "$DISPATCH_MARKER"; exit 0;;
   *"git/ref/heads/main"*) printf '%s' "$MAIN_SHA";;
   *"git/ref/heads/mid-stable"*) printf '%s' "$STABLE_SHA";;
   *"event=schedule"*) printf '%s' "$SCHEDULE_JSON";;
@@ -22,6 +22,14 @@ case "$*" in
 esac
 `,{mode:0o700});
  writeFileSync(path.join(temp,'sleep'),'#!/bin/bash\nexit 0\n',{mode:0o700});
+ writeFileSync(path.join(temp,'python3'),`#!/bin/bash
+set -eu
+[ "$1" = tools/release/select_ruc_resume.py ] || exit 78
+cat >/dev/null
+[ "\${TEST_SELECTOR_EXIT:-0}" = 0 ] || exit 1
+printf '%s' "\${TEST_REUSE_ID:-}"
+`,{mode:0o700});
+
  // Freeze the watchdog clock as well as API fixtures: later cases must not
  // become stale merely because earlier subprocesses took more than 5 seconds.
  writeFileSync(path.join(temp,'date'),`#!/bin/bash
@@ -40,6 +48,11 @@ esac
  };
  // Regression: a green scheduled run that never published cannot block recovery.
  check({},true,'RUC recovery dispatch verified');
+ check({TEST_REUSE_ID:'321'},true,'readmit exact prepared producer 321');
+ assert.ok(read(marker).includes('-f reuse_run_id=321'),'Exact prepared producer is sent to the existing workflow input');
+ check({TEST_REUSE_ID:'1;invalid'},false,'',1);
+ check({TEST_SELECTOR_EXIT:'1'},false,'',1);
+
  check({DATA_CATCHUP:'false'},false,'schedule event verified');
  check({DATA_CATCHUP:''},true,'scheduler success alone is insufficient');
  check({STABLE_SHA:'b'.repeat(40)},false,'release not yet promoted');

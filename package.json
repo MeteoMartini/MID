@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.369",
+  "version": "0.9.85.370",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -564,7 +564,8 @@
     "test:extreme-outlook-browser-contract": "node scripts/test-extreme-outlook-browser-contract-0985309.mjs",
     "test:hour-window-formatter": "node scripts/test-hour-window-formatter-0985327.mjs",
     "test:display-availability": "node scripts/test-display-availability-0985368.mjs",
-    "test:snow-exposure": "node scripts/test-snow-exposure-0985369.mjs"
+    "test:snow-exposure": "node scripts/test-snow-exposure-0985369.mjs",
+    "test:ruc-resume-watchdog": "node scripts/test-ruc-resume-watchdog-0985370.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.2",

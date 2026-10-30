@@ -165,7 +165,20 @@ jobs:
             echo "::warning::RUC primary ${expected_slot} schedule event missing or failed; starting guarded recovery dispatch."
           fi
           dispatch_started_epoch="$(date -u +%s)"
-          gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false -f trigger_source=github-watchdog
+          # Prefer the immutable, already prepared data over another 30–45 min
+          # decode. The existing reuse path still rechecks all bytes, lineage,
+          # current compatibility, freshness and the actual Pages/Worker gates.
+          reuse_run_id=''
+          if [ "$DATA_CATCHUP" = true ]; then
+            reuse_run_id="$(printf '%s' "$recent_json" | python3 tools/release/select_ruc_resume.py)"
+          fi
+          if [ -n "$reuse_run_id" ]; then
+            [[ "$reuse_run_id" =~ ^[1-9][0-9]*$ ]] || exit 1
+            echo "RUC recovery: readmit exact prepared producer ${reuse_run_id}; no recalculation requested."
+            gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false -f trigger_source=github-watchdog -f reuse_run_id="$reuse_run_id"
+          else
+            gh workflow run "$RUC_WORKFLOW" -R "$GITHUB_REPOSITORY" --ref main -f force=false -f trigger_source=github-watchdog
+          fi
 
           for attempt in $(seq 1 18); do
             sleep 5
