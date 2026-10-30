@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "inventory": {
+    "model": "icon-d2-ruc",
+    "parameter": "pmsl",
+    "run": "20261024T1600",
+    "leadHours": 0,
+    "sourceSha256": "52b30ec5591d2a2f6a9f13406bde309de6cd8f4e6089520641077ba748892b88",
+    "gridType": "unstructured_grid",
+    "points": 542040,
+    "validPoints": 525072,
+    "missingPoints": 16968,
+    "realZeroPoints": 0,
+    "coordinateLatitudeRange": [
+      43.044048,
+      58.164654
+    ],
+    "coordinateLongitudeRange": [
+      -4.161636,
+      20.544418
+    ],
+    "validLatitudeRange": [
+      43.14732,
+      58.060894
+    ],
+    "validLongitudeRange": [
+      -3.943863,
+      20.303696
+    ],
+    "valueRange": [
+      96793.21875,
+      102647.71875
+    ],
+    "bitmapPresent": 1,
+    "nativeCoordinates": {
+      "latitude": {
+        "sha256": "cc30a08d173f3989b6cb1f809d61bae42ab16b80ba90c954d9d13eafc4be8d2c",
+        "gridIdentity": [
+          "c6b12daa91ad64045b26c1b6452a2a20",
+          "47",
+          "1",
+          "542040"
+        ],
+        "units": "Degree N"
+      },
+      "longitude": {
+        "sha256": "0c28c1c4129d16278d276141a7afb69a54df537aa9efc6e2eae09c8e4c9b42c0",
+        "gridIdentity": [
+          "c6b12daa91ad64045b26c1b6452a2a20",
+          "47",
+          "1",
+          "542040"
+        ],
+        "units": "Degree E"
+      }
+    },
+    "parameterIdentity": [
+      0,
+      3,
+      1
+    ],
+    "stepType": "instant"
+  },
+  "fullDomainProductionApproved": false,
+  "scope": "one original RUC PMSL field, 2026-10-24T1600 lead 0; not a complete three-run inventory"
+}
