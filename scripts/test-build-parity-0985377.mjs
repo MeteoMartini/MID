@@ -32,6 +32,7 @@ test('VITE input order is deterministic; values remain absent; unrelated credent
   assert.equal(environmentFingerprint({VITE_A:'x',VITE_B:'y',TOKEN:'secret'}),environmentFingerprint({VITE_B:'y',VITE_A:'x'}));
   assert.notEqual(environmentFingerprint({VITE_A:'x'}),environmentFingerprint({VITE_A:'y'}));
   assert.notEqual(environmentFingerprint({VITE_A:'x'}),environmentFingerprint({VITE_A:'x',VITE_UNKNOWN:'z'}));
+  assert.notEqual(environmentFingerprint({VITE_A:'x'}),environmentFingerprint({VITE_A:'x',VITE_lowercase:'z'}));
 });
 test('real inventory includes empty files and rejects symlinks',async()=>{
   const dir=await mkdtemp(path.join(tmpdir(),'mid-parity-'));

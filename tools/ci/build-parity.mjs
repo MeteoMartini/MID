@@ -12,7 +12,7 @@ const canonical=value=>JSON.stringify(Object.fromEntries(Object.entries(value).s
 const safePath=p=>typeof p==='string'&&p.length>0&&p.length<1024&&!p.includes('\\')&&!p.includes('\0')&&!path.posix.isAbsolute(p)&&p.split('/').every(s=>s!==''&&s!=='.'&&s!=='..');
 export function environmentFingerprint(env) {
   // VITE values are public build inputs. Only a digest, never their values, is retained.
-  const values=Object.fromEntries(Object.entries(env).filter(([key])=>/^VITE_[A-Z0-9_]+$/.test(key)||['NODE_ENV','TZ','LANG'].includes(key)));
+  const values=Object.fromEntries(Object.entries(env).filter(([key])=>key.startsWith('VITE_')||['NODE_ENV','TZ','LANG'].includes(key)));
   return hash(canonical(values));
 }
 export function validateManifest(m) {
@@ -74,12 +74,21 @@ export async function buildInventory(root) {
 export async function captureInputs(root,env=process.env) {
   const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
   if(git('status','--porcelain','--untracked-files=normal'))throw Error('Fingerprint requires a clean committed source');
+  await verifyEnvironmentFiles(root);
   const inputs={sourceSha:git('rev-parse','HEAD'),treeSha:git('rev-parse','HEAD^{tree}'),
     lockSha:hash(await readFile(path.join(root,'package-lock.json'))),
     environmentSha:environmentFingerprint(env),node:process.version,
     npm:execFileSync('npm',['--version'],{encoding:'utf8'}).trim(),platform:process.platform,arch:process.arch,
     image:env.ImageVersion||'local-unqualified'};
   return inputs;
+}
+async function verifyEnvironmentFiles(root){
+  for(const name of (await readdir(root)).filter(n=>n==='.env'||n.startsWith('.env.'))){
+    const info=await lstat(path.join(root,name));
+    if(!info.isFile()||info.isSymbolicLink())throw Error('Unsafe environment file');
+    // Ignored .env.local files must not become invisible build inputs.
+    execFileSync('git',['ls-files','--error-unmatch','--',name],{cwd:root,stdio:'pipe'});
+  }
 }
 async function main(){
   const [mode,...args]=process.argv.slice(2);
@@ -89,6 +98,7 @@ async function main(){
     const inputs=JSON.parse(await readFile(args[0],'utf8'));
     // Prebuild is allowed to generate version mirrors; no VITE/toolchain change is allowed.
     // Reject any source mutation during the build; generated output alone may differ.
+    await verifyEnvironmentFiles(process.cwd());
     execFileSync('git',['diff','--quiet','HEAD','--','.',':(exclude)dist/**',':(exclude)ios/App/App/public/**']);
     if(inputs.sourceSha!==execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim()||
        inputs.environmentSha!==environmentFingerprint(process.env)||inputs.lockSha!==hash(await readFile('package-lock.json')))throw Error('Build inputs changed');
