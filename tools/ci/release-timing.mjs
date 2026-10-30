@@ -2,11 +2,16 @@
 // Read-only MID CI/CD timing auditor. No release actions or secret output.
 import {readFile,appendFile} from 'node:fs/promises';
 
-const DEFAULT_WORKFLOWS = new Set([
-  'MID ChatGPT/Codex Source-PR Gate',
-  'MID Agent Source Release',
-  'Install MID release and deploy',
+// Match stable workflow file identities, never the user-visible run-name.
+const DEFAULT_WORKFLOWS = new Map([
+  ['chatgpt-pr-gate.yml', 'pull_request'],
+  ['agent-source-release.yml', 'workflow_run'],
+  ['install-mid.yml', 'workflow_dispatch'],
 ]);
+const workflowFile = path => {
+  const match = /^\.github\/workflows\/([a-z0-9-]+\.yml)$/.exec(path || '');
+  return match?.[1] ?? null;
+};
 const asMs = value => {
   if (typeof value !== 'string' || !value) return null;
   const time = Date.parse(value);
@@ -54,7 +59,7 @@ export function summarizeRun(run) {
   }))).filter(step => step.seconds !== null).sort((a,b) => b.seconds-a.seconds).slice(0,8);
   return {
     id: Number(run.id),
-    workflow: String(run.name ?? '(unknown)'),
+    workflow: workflowFile(run.path) ?? String(run.name ?? '(unknown)'),
     conclusion: String(run.conclusion ?? 'unknown'),
     headSha: typeof run.head_sha === 'string' ? run.head_sha : null,
     jobCount: jobs.length,
@@ -119,17 +124,33 @@ async function api(path, token) {
 export async function githubRuns(repository, count, token, workflowNames=DEFAULT_WORKFLOWS) {
   if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository)) throw new Error('Invalid repository');
   if (!Number.isInteger(count) || count < 1 || count > 30) throw new Error('Count must be 1–30');
-  const latest = await api('repos/'+repository+'/actions/runs?per_page=100',token);
-  const selected = [];
-  const perWorkflow = new Map();
-  for (const run of latest.workflow_runs ?? []) {
-    if (!workflowNames.has(run.name) || !['completed'].includes(run.status)) continue;
-    const found = perWorkflow.get(run.name) ?? 0;
-    if (found >= count) continue;
-    perWorkflow.set(run.name,found+1);
-    selected.push(run);
+  if (!(workflowNames instanceof Map) || workflowNames.size === 0) {
+    throw new Error('Explicit workflow filename/event map required');
   }
-  if (!selected.length) throw new Error('No completed matching workflow runs in the most recent 100');
+  const selected = [];
+  for (const [filename, expectedEvent] of workflowNames) {
+    if (!/^[a-z0-9-]+\.yml$/.test(filename) || !['pull_request','workflow_run','workflow_dispatch'].includes(expectedEvent)) {
+      throw new Error('Unexpected workflow identity or event');
+    }
+    let found = 0;
+    // Per-workflow REST endpoint prevents frequent skipped Draft PRs from
+    // displacing real deploys. Bound pagination to avoid silently endless API reads.
+    for (let page=1;page<=10 && found<count;page++) {
+      const latest = await api('repos/'+repository+'/actions/workflows/'+filename+'/runs?per_page=100&page='+page,token);
+      if (!Array.isArray(latest.workflow_runs)) throw new Error('Missing GitHub workflow_runs list');
+      const batch = latest.workflow_runs;
+      for (const run of batch) {
+        if (workflowFile(run.path)!==filename || run.event!==expectedEvent ||
+            run.status!=='completed' || run.conclusion==='skipped') continue;
+        selected.push(run);
+        found++;
+        if (found===count) break;
+      }
+      if (batch.length<100) break;
+      if (page===10 && found<count) throw new Error('Workflow sampling reached 1000 runs without '+count+' non-skipped runs: '+filename);
+    }
+    if (!found) throw new Error('No completed, non-skipped runs found: '+filename);
+  }
   const runs = [];
   for (const run of selected) {
     const jobs = [];
