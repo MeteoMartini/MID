@@ -1,3 +1,11 @@
+## MID v0.9.85.377 · 30.10.2026 · Buildparität und Retry-Diagnose
+
+- Zwei getrennt gesicherte Kandidaten #527/#528 auf freigegebener .376-Basis zu einem vollständig neu geprüften Quellbaum integrieren; eine Version, keine doppelte Veröffentlichung.
+- Zwei unabhängige, exakt SHA-gebundene npm-Installationen/Builds; vollständige Ausgabeinventare und Fingerprints; keine neuen Deployment- oder Attestierungsrechte, keine automatische Artefaktübernahme.
+- Read-only-Timing mit allen Versuchen, ausgeführten Runnersekunden, Abbruch-/Timeoutzählung, Schutz vor gemischten Rerun-Beobachtungen und automatischem Audit nach erfolgreichem Installer.
+- Source-Bot queue:max bei unverändertem SHA-Merge-/ZIP-/Installerpfad. Bestehende Installer-Supersession bewusst unverändert; P0 darf keine unnötige Queue abwarten.
+- Vollständige Tests/GitHub-Abnahme für den kombinierten Head separat nachweisen. Echtmessreihe, signierte Attestierung und unabhängige A/B-Freigabe in #526 weiterhin offen.
+
 ## MID v0.9.85.376 · 30.10.2026 · Vollständiger Installer-Core parallel und sichere Draft-Bündelplanung
 
 - Sourcekandidat von bestätigtem main=mid-stable `.373` @ `05798c4134431a5fb0455ef5f71441b4a7051e38`; unabhängiger Design-Draft #524 bleibt erhalten. .375-Branch beim Abgleich identisch mit Stable. Kein ZIP im Source-PR.
