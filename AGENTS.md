@@ -30,6 +30,15 @@ These rules are binding for repository changes.
 - After a green Source-PR Gate, `MID Agent Source Release` performs the controlled SHA-bound merge, creates `MID-professional-replacement.zip` server-side from the current `main` source and starts `install-mid.yml`.
 - `install-mid.yml` remains the only normal path that verifies, deploys Worker/Pages and fast-forward promotes a successful release to `mid-stable`.
 - Never force-update or manually promote `mid-stable`.
+
+## Release train: controlled batching (supplement; does not replace release gates)
+- Save each independent change in its own SHA-verifiable authorized development branch. Do not accumulate unpublished work only in an ephemeral workspace.
+- For normal non-urgent fixes, an integration coordinator may collect 2–5 independently inspected, compatible changes into ONE short-lived authorized source PR, after checking the live Stable/Main SHAs, exact input heads, overlaps, dependency order and all parallel drafts.
+- Keep pre-integration candidate PRs in Draft when they must not trigger the MID source-release bot. A candidate's individual checks or an optional read-only release-train preflight are **never** sufficient to release the combined tree; the combined integration PR must pass every mandatory Source-PR Gate before the existing bot may package it.
+- The coordinated release has one coherent new app version, matching version mirrors and complete internal/external changelog. Reverify from the freshly promoted Stable base if another release or branch changes meanwhile. Never erase, reset, or force-update parallel branches to reconcile conflicts.
+- P0 security, warning, meteorological-correctness and severe production fixes may use the standard immediate complete release path. Bundling must not delay these cases.
+- Diagnostic caching, source attestations or prior passing tests do not authorize shortening the installer; a separately versioned, adversarially tested equivalence contract and fully completed release gates are required before any optimization may claim equivalent authorization.
+
 - For an actual application release, bump the MID maintenance version, synchronize all version mirrors, update the external/internal changelog, and run the focused tests plus the normal release gate.
 - Simulate/verify common iPhone, iPad/tablet, Android-phone and desktop viewport contracts, especially text wrapping, overlays/tooltips and floating navigation.
 
