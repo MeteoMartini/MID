@@ -1,3 +1,13 @@
+## MID v0.9.85.380 – Independent protected Source-Signature verification
+
+- Basis: vollständig freigegebenes `main=mid-stable` v0.9.85.379 @ `c4fd1c79d0b7272b7998c79cd88d445b5681e81d`, Source PR #532, Installer 41118131439 mit allen Core/Heavy, Worker, Pages und Stable erfolgreich.
+- `ci/github/workflows/attested-source-qualification.yml` und synchroner `.github`-Mirror erhalten nach dem minimal privilegierten geschützten Signierer einen zweiten **nur lesenden** Verifier-Job. Er besitzt `contents:read`, `actions:read`, `attestations:read`, `pull-requests:read`; ausschließlich der ursprüngliche Signierer erhält `id-token:write`/`attestations:write`.
+- Neues `tools/ci/verify-protected-source-pilot.mjs`: SHA-/Run-/Attempt-gebundener GitHub-Artefaktdownload aus demselben geschützten Workflow, einziges kanonisches JSON-Subject, echtes `gh attestation verify` mit Repo/Signer/Commit/Ref und `--deny-self-hosted-runners` ohne akzeptiertes Fremdbundle; Sigstore-Zertifikat, SLSA-Subject, Original-SHA256 und frische Source-PR-/Run-/Job-/Stable-Gegenprobe müssen übereinstimmen. Bei Fehler oder Drift stets fail-closed.
+- `tools/ci/verify-protected-source-pilot.test.mjs` adversariell über den weiterhin verpflichtenden Einstieg `scripts/test-build-parity-0985377.mjs` importiert; keine bestehende Prüfung entfernt oder abgeschwächt.
+- Vollständige `v0.9.85.380`-Spiegel für Paket/Lock, Baseline/Vertragsregister, HTML/PWA/SW, Webversion, Worker, iOS-Build 381, Nutzer-/Technik-Changelog und Release Notes. Keine meteorologische Produktlogik verändert.
+- Signierte Beobachtung ist **kein** attestierter Build und darf niemals `releaseAuthorized` oder `reuseAuthorized` freigeben. Reale manuelle geschützte Producer-/Verifier-Läufe und identische-Source-Tree-A/B-Produktionsäquivalenz noch offen, Issue #526 bleibt offen. Vollständige Beleg- und Negativgrenzen: `docs/implementation/MID_PROTECTED_SIGNATURE_VERIFICATION_380.md`.
+- Veröffentlichung ausschließlich über vollständigen MID Source-PR-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable. Bis zu erfolgreich bestandenen Gates Kandidat, keine Releasebehauptung.
+
 ## MID v0.9.85.379 – Protected Source-Attestation Pilot (qualifizierte CI-Ausweitung)
 
 - Freigegebene Ausgangsbasis `main=mid-stable` v0.9.85.378 @ `745ee5945fd90a11614400016efb78965da08d71`; Installer 41106636347 success mit kompletter Worker/Pages/Stable-Abnahme.
