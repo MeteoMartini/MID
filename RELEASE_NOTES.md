@@ -1,9 +1,7 @@
-# MID v0.9.85.379
+# MID v0.9.85.380 – Kryptografisch geprüfte Source-Beobachtung
 
-## Überprüfbare Herkunft von MID-Quellprüfungen
-
-- Ein neuer, ausschließlich manuell auf dem geschützten GitHub-`main` ausführbarer Signatur-Pilot kann die Herkunft erfolgreich abgeschlossener Quellprüfungen unabhängig über GitHub nachweisen.
-- Er prüft den ursprünglichen Pull Request, das Quellcommit, alle Pflichtjobs und deren Status sowie die Übereinstimmung von `main` und `mid-stable`. Fehlende, widersprüchliche oder veraltete Belege werden abgewiesen.
-- Ein signierter Beobachtungsbericht ersetzt ausdrücklich **keine** Tests, keinen Produktivbuild, kein Worker-/Pages-Gate und keine Stable-Promotion. Alle bisherigen Sicherheits- und Releaseprüfungen bleiben vollständig bestehen.
-- Die bereits bekannten Wetterfunktionen und Darstellungen sind unverändert. Der zusätzliche Pilot hat keine automatischen Auslöser und verursacht keine zusätzlichen regulären Releases.
+- Der ausschließlich auf geschütztem GitHub-`main` ausführbare Source-Signaturpilot kontrolliert nun nach erfolgreicher Signatur in einem zweiten, unabhängig lesenden Job das echte Sigstore-Zertifikat, den Datei-SHA256 und die Herkunft.
+- Die signierten Aussagen werden gegen frisch abgerufene PR-/Run-/Attempt-/Source-Gate- und Stable-Daten geprüft. Fehlende, falsche, abgelaufene oder doppelte Angaben blockieren sicher.
+- Keine Wetter- oder UI-Änderung, keine neuen Dienste oder Abonnements, keine Freigabe zur Wiederverwendung von Build-/Test-Artefakten. Sämtliche bisherigen Source-/Installer-/Worker-/Pages-/Stable-Prüfungen bleiben unverändert.
+- Echte manuelle Signatur- und Verifier-Ausführung nach Stable-Promotion als separate Betriebsabnahme erforderlich; synthetische Negativtests genügen nicht als kryptografischer Nachweis.
 

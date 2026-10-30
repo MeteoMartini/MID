@@ -62,3 +62,31 @@ jobs:
           path: ${{runner.temp}}/mid-source-observation.json
           if-no-files-found: error
           retention-days: 7
+
+  verify_observation:
+    name: Verifizierte Source-Signatur unabhängig gegenprüfen
+    needs: attest_source
+    if: github.repository == 'MeteoMartini/MID' && github.ref == 'refs/heads/main' && needs.attest_source.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only read-only GitHub API, verified artifact and authenticated Sigstore claims.
+    permissions:
+      contents: read
+      actions: read
+      attestations: read
+      pull-requests: read
+    steps:
+      - name: Identischen geschützten Source-Verifier laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{github.sha}}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Originalsubject, Sigstore und frische GitHub-Source-Gates unabhängig prüfen
+        env:
+          GH_TOKEN: ${{github.token}}
+          MID_SOURCE_RUN_ID: ${{inputs.source_run_id}}
+          MID_SOURCE_PR_NUMBER: ${{inputs.pr_number}}
+        run: |
+          set -euo pipefail
+          node tools/ci/verify-protected-source-pilot.mjs
