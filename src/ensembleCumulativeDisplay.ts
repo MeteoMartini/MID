@@ -14,8 +14,8 @@ export function ensembleCumulativeRainStep(row:CumulativePrecipitationInput,prev
  const low=hasRange?Math.min(row.cumulativePrecipitationLow!,row.cumulativePrecipitationHigh!):Number.NaN;
  const high=hasRange?Math.max(row.cumulativePrecipitationLow!,row.cumulativePrecipitationHigh!):Number.NaN;
  const hasQuartiles=hasRange&&finite(row.cumulativePrecipitationQ25)&&finite(row.cumulativePrecipitationQ75);
- const q25=hasQuartiles?Math.max(low,Math.min(row.cumulativePrecipitationQ25!,row.cumulativePrecipitationQ75!)):Number.NaN;
- const q75=hasQuartiles?Math.min(high,Math.max(row.cumulativePrecipitationQ25!,row.cumulativePrecipitationQ75!)):Number.NaN;
+ const q25=hasQuartiles?Math.max(low,Math.min(high,Math.min(row.cumulativePrecipitationQ25!,row.cumulativePrecipitationQ75!))):Number.NaN;
+ const q75=hasQuartiles?Math.max(low,Math.min(high,Math.max(row.cumulativePrecipitationQ25!,row.cumulativePrecipitationQ75!))):Number.NaN;
  const mean=finite(row.cumulativePrecipitationMean)?row.cumulativePrecipitationMean:Number.NaN;
  const band=hasRange?high-low:Number.NaN;
  return{
