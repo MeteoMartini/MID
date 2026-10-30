@@ -9,7 +9,7 @@ const roles:Record<ParameterLineRole,{color:string;width:number;dash?:string;opa
  pressure:{color:'var(--param-pressure)',width:1.55,opacity:.98},
  probability:{color:'var(--param-precipitation)',width:2,dash:'4 3'},
  wind:{color:'var(--param-wind)',width:2.5},
- gust:{color:'var(--param-gust)',width:2,dash:'5 4',opacity:.96},
+ gust:{color:'var(--param-gust)',width:2,dash:'9 4',opacity:.96},
 };
 export function parameterLineStyle(role:ParameterLineRole):CSSProperties{
  const spec=roles[role];

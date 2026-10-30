@@ -29,7 +29,9 @@ const lineSource=await read('src/parameterLineStyle.ts'),lines=await loadTs(line
 for(const role of ['temperature','apparent','dewpoint','pressure','probability','wind','gust']){
  const spec=lines.parameterLineStyle(role);
  assert.equal(spec.strokeLinecap,'round');assert.equal(spec.strokeLinejoin,'round');assert.ok(spec.strokeWidth>0);
- for(const source of [app,cockpit])assert.ok(source.includes(`style={parameterLineStyle('${role}')}`),`${role} must use the common rendered line contract in both consumers.`);
+ assert.ok(app.includes(`style={parameterLineStyle('${role}')}`),`${role} must use the daily common SVG contract.`);
+ if(role==='temperature')assert.ok(cockpit.includes("style={{...parameterLineStyle('temperature'),stroke:`url(#${temperatureGradientId})`}}"),'24h temperature gradient must override shared color in the same inline style');
+ else assert.ok(cockpit.includes(`style={parameterLineStyle('${role}')}`),`${role} must use the 24h shared SVG contract.`);
 }
 for(const token of ['ECMWF_TEMPERATURE_STOPS','export function ecmwfTemperatureColor','export function ecmwfTemperatureTone'])assert.ok(tone.includes(token),`ECMWF-Temperaturskala fehlt: ${token}`);
 for(const token of [
