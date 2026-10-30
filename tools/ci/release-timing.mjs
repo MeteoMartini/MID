@@ -122,7 +122,7 @@ async function api(path, token) {
   return response.json();
 }
 export async function githubRuns(repository, count, token, workflowNames=DEFAULT_WORKFLOWS) {
-  if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository)) throw new Error('Invalid repository');
+  if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repository) || repository.split('/').some(p => p==='.' || p==='..')) throw new Error('Invalid repository');
   if (!Number.isInteger(count) || count < 1 || count > 30) throw new Error('Count must be 1–30');
   if (!(workflowNames instanceof Map) || workflowNames.size === 0) {
     throw new Error('Explicit workflow filename/event map required');
