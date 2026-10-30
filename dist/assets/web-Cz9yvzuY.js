@@ -1,1 +1,0 @@
-import{ki as e}from"./index-CAQlM7Zl.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
