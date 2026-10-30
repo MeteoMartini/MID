@@ -132,24 +132,29 @@ export async function githubRuns(repository, count, token, workflowNames=DEFAULT
     if (!/^[a-z0-9-]+\.yml$/.test(filename) || !['pull_request','workflow_run','workflow_dispatch'].includes(expectedEvent)) {
       throw new Error('Unexpected workflow identity or event');
     }
-    let found = 0;
-    // Per-workflow REST endpoint prevents frequent skipped Draft PRs from
-    // displacing real deploys. Bound pagination to avoid silently endless API reads.
-    for (let page=1;page<=10 && found<count;page++) {
+    let successful = 0, otherResults = 0;
+    // Sample exactly count successful runs for reproducible P50/P95; retain
+    // up to count non-successful results for diagnostic context, never as green.
+    // Per-workflow REST pagination prevents skipped Draft PRs displacing actual releases.
+    for (let page=1;page<=10 && successful<count;page++) {
       const latest = await api('repos/'+repository+'/actions/workflows/'+filename+'/runs?per_page=100&page='+page,token);
       if (!Array.isArray(latest.workflow_runs)) throw new Error('Missing GitHub workflow_runs list');
       const batch = latest.workflow_runs;
       for (const run of batch) {
         if (workflowFile(run.path)!==filename || run.event!==expectedEvent ||
             run.status!=='completed' || run.conclusion==='skipped') continue;
-        selected.push(run);
-        found++;
-        if (found===count) break;
+        if (run.conclusion==='success') {
+          selected.push(run);
+          successful++;
+        } else if (otherResults<count) {
+          selected.push(run);
+          otherResults++;
+        }
+        if (successful===count) break;
       }
       if (batch.length<100) break;
-      if (page===10 && found<count) throw new Error('Workflow sampling reached 1000 runs without '+count+' non-skipped runs: '+filename);
     }
-    if (!found) throw new Error('No completed, non-skipped runs found: '+filename);
+    if (successful<count) throw new Error('Incomplete workflow sample: '+filename+' contains only '+successful+'/'+count+' successful runs in bounded search');
   }
   const runs = [];
   for (const run of selected) {
