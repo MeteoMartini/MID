@@ -14,7 +14,7 @@ const [app,phase,foundation,modern,generated]=await Promise.all([
 
 const checks=[
   [foundation.includes('--param-precipitation-snow:#66bce8')&&foundation.includes('--param-precipitation-mixed:#a769d8')&&foundation.includes('--param-precipitation-storm:#7869e8'),'Kanonische Niederschlags-Phasenfarben fehlen im Dark-Theme.'],
-  [foundation.includes('--param-precipitation-snow:#4f9fc9')&&foundation.includes('--param-precipitation-mixed:#8c58bd')&&foundation.includes('--param-precipitation-storm:#6558d4'),'Kanonische Niederschlags-Phasenfarben fehlen im Light-Theme.'],
+  [foundation.includes('--param-precipitation-snow:#418bb6')&&foundation.includes('--param-precipitation-mixed:#8c58bd')&&foundation.includes('--param-precipitation-storm:#6558d4'),'Kanonische Niederschlags-Phasenfarben fehlen im Light-Theme.'],
   [phase.includes("snow:'var(--param-precipitation-snow)'")&&phase.includes("mixed:'var(--param-precipitation-mixed)'")&&phase.includes("storm:'var(--param-precipitation-storm)'"),'TypeScript-Phasenpalette nutzt nicht die zentralen CSS-Parameterfarben.'],
   [phase.includes("if(type==='hailShowers'||type==='thunderstorm'||type==='thunderstormHail')return'storm'"),'Hagel ist nicht eindeutig der Purpur-/Sturmfamilie zugeordnet.'],
   [phase.includes("if(kind==='snow')return'Schnee/Graupel · hellblau'")&&phase.includes("if(kind==='storm')return'Gewitter/Graupel/Hagel · purpur'"),'Phasenlegendentexte stimmen nicht mit dem Farbvertrag überein.'],

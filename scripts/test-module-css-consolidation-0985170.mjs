@@ -3,6 +3,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import {gzipSync,brotliCompressSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import ts from 'typescript-strada';
+import postcss from 'postcss';
 import {execFileSync} from 'node:child_process';
 import {activeCssSources,loadCssCascade,consolidateCssCascade,cssCascadeFingerprint,renderConsolidatedCss,parseCssOutput} from './lib/cssCascade.mjs';
 const root=new URL('../',import.meta.url),read=file=>readFileSync(new URL(file,root),'utf8');
@@ -69,6 +70,26 @@ for(const entry of originalEntries){
  });
 }
 assert.equal(reviewedSearchRoots,1,'Exactly the authorized root overflow rule');
+// .378: on the historical comparison AST only, undo the exact reviewed
+// theme and shared-line changes. Production CSS and the .169 golden remain intact.
+const reviewedThemeColors=[
+ [':root','--param-pressure','#8469be','#7b61b7'],
+ [':root[data-theme=light]','--param-precipitation-snow','#418bb6','#4f9fc9'],
+ [':root[data-theme=light]','--param-sunshine','#a77c00','#bf8d00']
+];
+const reviewedLineRules=[[".cockpit-meteogram-pro__tooltip-content dt i.dew",0,"background:#71869a","background:var(--param-dewpoint)",1],[".cockpit-meteogram-pro__tooltip-content dt i.rain",0,"background:#2697d8","background:var(--param-precipitation)",1],[".cockpit-meteogram-pro__tooltip-content dt i.wind",0,"background:#3ba66e","background:var(--param-wind)",1],[".cockpit-meteogram-pro__tooltip-content dt i.gust",0,"background:#9c63bb","background:var(--param-gust)",1],[".cockpit-meteogram-pro__tooltip-content dt i.pressure",0,"background:#6d89a5","background:var(--param-pressure)",1],[".cockpit-meteogram-pro__legend i.temperature",0,"width:24px;height:4px;border-radius:999px;background:linear-gradient(90deg,#74b7d8,#ffe391,#f06a46)","width:24px;height:4px;border-radius:999px;background:var(--param-temperature)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.apparent",0,null,"width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)",1],[".cockpit-meteogram-pro__legend i.rain",0,"width:8px;height:14px;border-radius:999px;background:#2697d8","width:8px;height:14px;border-radius:999px;background:var(--param-precipitation)",1],[".cockpit-meteogram-pro__legend i.wind",0,"width:12px;height:12px;border-top:3px solid #3ba66e;border-right:3px solid #3ba66e;transform:rotate(45deg)","width:12px;height:12px;border-top:3px solid var(--param-wind);border-right:3px solid var(--param-wind);transform:rotate(45deg)",1],[".cockpit-weather-profile .gust-line",0,"fill:none;stroke:var(--profile-gust);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:5 4;opacity:.96","fill:none;stroke:var(--profile-gust);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:9 4;opacity:.96",2],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.dewpoint",0,"width:24px;height:0;border-top:2px dotted var(--profile-dew)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-dew) 0 2px,transparent 2px 7px)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.probability",0,"width:24px;height:0;border-top:2px dashed var(--profile-prob)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-prob) 0 4px,transparent 4px 7px)",1],[".cockpit-weather-profile .cockpit-meteogram-pro__legend i.gust",0,"width:24px;height:0;border-top:2px dashed var(--profile-gust)","width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--profile-gust) 0 9px,transparent 9px 13px)",1],[".detaillegend i.gustline",0,"background:repeating-linear-gradient(90deg,var(--param-gust) 0 7px,transparent 7px 11px)!important","background:repeating-linear-gradient(90deg,var(--param-gust) 0 9px,transparent 9px 13px)!important",1],[".detaillegend i.apparent",0,null,"background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)!important",1],[".detaillegend i.probability",0,null,"background:repeating-linear-gradient(90deg,var(--param-precipitation) 0 4px,transparent 4px 7px)!important",1]];
+for(const entry of originalEntries){
+ if(entry.file==='src/styles-src/00-foundation.css')for(const [selector,prop,actual,historical] of reviewedThemeColors){
+  const rules=[];entry.tree.walkRules(selector,r=>rules.push(r));assert.equal(rules.length,1,'Theme selector drift '+selector);
+  const decls=[];rules[0].walkDecls(prop,d=>decls.push(d));assert.equal(decls.length,1,'Theme property drift '+prop);
+  assert.equal(decls[0].value,actual,'Theme color drift '+prop);decls[0].value=historical;
+ }
+ if(entry.file==='src/styles-src/30-modern.css')for(const [selector,index,prior,current,count] of reviewedLineRules){
+  const rules=[];entry.tree.walkRules(selector,r=>rules.push(r));assert.equal(rules.length,count,'Line CSS selector drift '+selector);
+  assert.equal(rules[index].toString(),selector+'{'+current+'}','Line CSS declaration drift '+selector);
+  if(prior===null)rules[index].remove();else rules[index].replaceWith(postcss.parse(selector+'{'+prior+'}').first);
+ }
+}
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');
