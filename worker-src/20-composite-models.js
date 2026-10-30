@@ -503,6 +503,37 @@ function weatherMapStylesFromCapabilities(xml,layer){
   return name&&/^[a-zA-Z0-9_:.-]{1,180}$/.test(name)?[{name,title:title||name}]:[];
  });
 }
+// Query current provider catalogues once per provider, not once per map product.
+// An upstream failure leaves its products unchecked; it never declares them absent.
+async function weatherMapCatalogAvailability(){
+ const checkedAt=new Date().toISOString(),layers={},providers={};
+ const targets=[
+  {id:'dwd',read:()=>firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Wetterkarten')},
+  {id:'geomet',read:async()=>{
+   const response=await fetchWithDeadline(GEOMET_WEATHER_WMS+'?service=WMS&version=1.3.0&request=GetCapabilities',{headers:{Accept:'application/xml,text/xml'}},12000);
+   if(!response.ok)throw new Error('GeoMet WMS-Katalog nicht erreichbar');
+   const xml=await response.text();if(xml.length>2000000)throw new Error('GeoMet WMS-Katalog über Größenlimit');
+   return xml;
+  }}
+ ];
+ await Promise.all(targets.map(async provider=>{
+  try{
+   const xml=await provider.read();
+   if(!xml||(!xml.includes('<WMS_Capabilities')&&!xml.includes('<WMT_MS_Capabilities')))throw new Error('Ungültiges WMS-Capabilities-Dokument');
+   for(const [layer,config] of WEATHER_MAP_LAYER_CONFIG){
+    if((config.provider==='geomet'?'geomet':'dwd')!==provider.id)continue;
+    if(!hasWmsLayer(xml,layer)){layers[layer]={status:'absent'};continue}
+    const times=limitedWeatherMapTimes(dwdTimesFromCapabilities(xml,layer),config);
+    const runs=dwdDimensionTimesFromCapabilities(xml,layer,'reference_time').filter(Number.isFinite);
+    const elevations=config.elevation?dwdElevationsFromCapabilities(xml,layer):[];
+    layers[layer]={status:'listed',timeCount:times.length,referenceCount:runs.length,elevationCount:elevations.length,
+     ...(times.length?{latestTime:new Date(times.at(-1)).toISOString()}:{})};
+   }
+   providers[provider.id]='verified';
+  }catch{providers[provider.id]='unchecked';for(const [layer,config] of WEATHER_MAP_LAYER_CONFIG)if((config.provider==='geomet'?'geomet':'dwd')===provider.id)delete layers[layer]}
+ }));
+ return{schema:'mid.weather-map-catalog.v1',layers,providers,checkedAt};
+}
 async function weatherMapMetadata(request){
  const url=new URL(request.url),layer=String(url.searchParams.get('layer')||'').trim(),config=WEATHER_MAP_LAYER_CONFIG.get(layer);if(!config)throw new Error('Nicht freigegebener Wetterkarten-Layer');
  const xml=config.provider==='geomet'?await fetchWithDeadline(`${GEOMET_WEATHER_WMS}?service=WMS&version=1.3.0&request=GetCapabilities&layer=${encodeURIComponent(layer)}`,{headers:{Accept:'application/xml,text/xml'}},12000).then(async response=>{if(!response.ok)throw new Error('GeoMet-Katalog nicht erreichbar');const text=await response.text();if(text.length>2000000)throw new Error('GeoMet-Katalog zu groß');return text}):await firstWmsCapabilities(DWD_RADAR_WMS_BASES,'DWD Wetterkarten');if(!hasWmsLayer(xml,layer))throw new Error(`DWD-WMS-Layer derzeit nicht verfügbar: ${layer}`);

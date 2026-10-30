@@ -1,3 +1,12 @@
+## MID v0.9.85.372 · 30.10.2026 · echte WMS-Kartenverfügbarkeit und sichere Kombinationen
+
+- Verifizierte Stable-Basis .371 `76fef22a9f10af06faa0566a01a93df150f2cdf9`; offene PRs #513/#474/#480/#449/#425 berücksichtigt.
+- Worker-Katalog-Endpunkt `weather-map-catalog`: exakt ein DWD- und ein ECCC-GetCapabilities-Read je Antwort; feste WEATHER_MAP_LAYER_CONFIG-Allowlist; Status `listed`/`absent`, numerische Zeit-, Lauf- und Ebenenanzahlen, geprüfte Anbieterprovenienz; Provider-/Netzfehler bleiben `unchecked`, dabei wird ein unvollständiger Status vollständig verworfen.
+- Beide Kartenmodelle `WeatherMapsPanel` und `UnifiedWeatherMap` nutzen dieselbe veröffentlichte Capabilities-Matrix. Eine confirmed-absent- oder ohne bestätigten Zeit-/Run-/Höhenwert unbrauchbare WMS-Kombination wird bei neuen Wahlen herausgenommen, ohne bestehende gespeicherte Auswahl/andere native Raster zu vernichten. Synoptik- und Wolkenkombinationen nur bei geladenen Originalkatalogen anbieten.
+- `weatherMapFrameReady` verhindert WMS-GetMap ohne Layer+Zeit+Lauf+Ebenenbindung. Zeitabhängiger NowCastELEC benötigt den echten valid-time-Schritt, aber keine fiktive deterministische INIT. Statische Gewitter-/Warnpolygone bleiben ohne Wetterereignis legitim leer. Worker-Routen, Aggregat und Alias bytegleich; GeoMet-Attribution korrigiert.
+- Neuer reproduzierbarer Production-Worker-Contract `test-map-combination-availability-0985372.mjs` mit isolierten Original-GetCapabilities-Mocks: positive/negative Layer, unbekannte Anbieterfehler, valid/invalid Time/Run/Elevation, 2 UI-Matrizen, Native-/Preferences-Schutz. Beide vollständigen Inventare jetzt 1050 Tests. `scripts/audit-weather-map-live.mjs` für späteren expliziten externen GetMap-PNG-Read-only-Nachweis mit hartem Budget; ein PNG allein belegt nicht nichttransparente Daten.
+- `v0.9.85.372` Versionsspiegel, iOS-Buildcounter 373, Worker, PWA, Registry, Nutzer-/interner Changelog und Baseline synchron. Ohne erfolgreiche tatsächliche CI-, Worker-/Pages-, Installer- und Stable-Gates nicht als veröffentlicht zu melden. Keine heimlichen Modell-/Warn-/Raster-/Zeitachsenänderungen.
+
 ## MID v0.9.85.371 · 30.10.2026 · Open-Meteo BOM ACCESS-G deterministisch außer Betrieb
 
 - Offizielle Provenienz: seit 26.06.2025 18 UTC keine aktuellen BOM ACCESS-G-Läufe. Trotz weiter gelisteter API-ID keine aktuelle deterministische Quelle.

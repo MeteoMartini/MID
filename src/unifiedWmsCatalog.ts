@@ -1,4 +1,4 @@
-import {weatherMapProductsForModel,WEATHER_MAP_MODELS,type WeatherMapModelId} from './WeatherMapsData';
+import {weatherMapProductsForModel,weatherMapCatalogExcludes,WEATHER_MAP_MODELS,type WeatherMapModelId,type WeatherMapCatalog} from './WeatherMapsData';
 /** Distinct accumulations, height levels, probabilities and instantaneous values must not be conflated. */
 const PARAMETERS:Record<string,string>={
  'gdps-cloud':'cloud',
@@ -32,5 +32,5 @@ export const UNIFIED_WMS_PARAMETERS=[
  {id:'temperature-anomaly',label:'Ensemble-Temperaturanomalie',detail:'DWD-Modellreferenz'},
  {id:'gust-probability',label:'Böenwahrscheinlichkeit · 12 h',detail:'DWD-Überschreitungsprodukt, keine Böengeschwindigkeit'}
 ];
-export function unifiedWmsChoices(){return WEATHER_MAP_MODELS.flatMap(model=>weatherMapProductsForModel(model.id).filter(p=>!p.source&&PARAMETERS[p.id]).flatMap(product=>[{parameter:PARAMETERS[product.id],model,product},...(product.id==='icon-eu-temperature-height'?[{parameter:'temperature',model,product:{...product,id:'icon-eu-temperature-2m',levels:[2],defaultLevel:2}}]:[])]))}
+export function unifiedWmsChoices(catalog:WeatherMapCatalog|null=null){return WEATHER_MAP_MODELS.flatMap(model=>weatherMapProductsForModel(model.id).filter(p=>!p.source&&PARAMETERS[p.id]&&!weatherMapCatalogExcludes(p,catalog)).flatMap(product=>[{parameter:PARAMETERS[product.id],model,product},...(product.id==='icon-eu-temperature-height'?[{parameter:'temperature',model,product:{...product,id:'icon-eu-temperature-2m',levels:[2],defaultLevel:2}}]:[])]))}
 export function unifiedWmsProduct(parameter:string,model:WeatherMapModelId){return unifiedWmsChoices().find(p=>p.parameter===parameter&&p.model.id===model)?.product}
