@@ -125,3 +125,30 @@ export function weatherMapProductFamily(product:WeatherMapProduct){
  if(/qff|pmsl|pressure|gh|omega/.test(product.id))return 'Druck & Höhen';
  return 'Weitere Wetterfelder';
 }
+
+export type WeatherMapCatalog={error?:string;schema:'mid.weather-map-catalog.v1';checkedAt:string;providers:Record<string,'verified'|'unchecked'>;layers:Record<string,{status:'listed'|'absent';timeCount?:number;referenceCount?:number;elevationCount?:number;latestTime?:string}>};
+/** Unknown provider state never implies a missing layer. */
+export async function loadWeatherMapCatalog(signal?:AbortSignal):Promise<WeatherMapCatalog>{
+ const value=await fetchWorkerJson<WeatherMapCatalog>('weather-map-catalog',{}, {purpose:'radar',signal,timeoutMs:16000,maxAgeMs:5*60000,staleIfErrorMs:15*60000,cacheKey:'weather-map-catalog:v1'});
+ if(value?.schema!=='mid.weather-map-catalog.v1'||!value.layers||!value.providers||!Number.isFinite(Date.parse(value.checkedAt)))throw new Error('Unverifizierter Wetterkartenkatalog');
+ return value;
+}
+export function weatherMapCatalogExcludes(product:WeatherMapProduct,catalog:WeatherMapCatalog|null){
+ if(product.source||catalog?.providers?.[product.provider==='geomet'?'geomet':'dwd']!=='verified')return false;
+ const layer=catalog.layers?.[product.layer];
+ if(!layer||layer.status==='absent')return layer?.status==='absent';
+ // A layer in GetCapabilities is NOT yet a confirmed frame. These checks
+ // affect only new choices; do not erase the user's stored preference.
+ return Boolean(product.timeDependent&&(layer.timeCount??0)<1||
+  product.timeDependent&&product.modelId!=='nowcastmix'&&(layer.referenceCount??0)<1||
+  product.levelKind&&(layer.elevationCount??0)<1);
+}
+/** Do not render a forecast tile for an unconfirmed run, valid time or level. */
+export function weatherMapFrameReady(product:WeatherMapProduct,metadata:WeatherMapMetadata|null,time:string,referenceTime:string|undefined,level:number|undefined){
+ if(product.source||!metadata||metadata.error||metadata.layer!==product.layer)return false;
+ if(!product.timeDependent)return true;
+ if(!time||!Number.isFinite(Date.parse(time))||!weatherMapAvailableTimes(product,metadata).includes(time))return false;
+ if(product.modelId!=='nowcastmix'&&(!referenceTime||!Number.isFinite(Date.parse(referenceTime))||!metadata.referenceTimes.includes(referenceTime)))return false;
+ if(product.levelKind&&(!Number.isFinite(level)||!metadata.elevations.includes(level!)))return false;
+ return product.modelId==='nowcastmix'||(referenceTime!==undefined&&Date.parse(time)>=Date.parse(referenceTime));
+}

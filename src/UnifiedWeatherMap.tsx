@@ -32,7 +32,7 @@ import {writeDurableStorageValue} from './storageSafety';
 import type {WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import type {RadarNowcast,ThunderstormNowcast,WindUnit} from './weather';
 import {unifiedWmsChoices,unifiedWmsProduct} from './unifiedWmsCatalog';
-import {loadWeatherMapMetadata,weatherMapAvailableTimes,weatherMapWmsProxy,loadWeatherMapPoint,type WeatherMapMetadata,type WeatherMapModelId} from './WeatherMapsData';
+import {loadWeatherMapMetadata,loadWeatherMapCatalog,weatherMapAvailableTimes,weatherMapWmsProxy,loadWeatherMapPoint,type WeatherMapMetadata,type WeatherMapCatalog,type WeatherMapModelId} from './WeatherMapsData';
 import './UnifiedWeatherMap.css';
 import './weatherMapsTotals.css';
 
@@ -63,6 +63,8 @@ export default function UnifiedWeatherMap(props:Props){
  const [metadata,setMetadata]=useState<WeatherMapMetadata|null>(null),[wmsError,setWmsError]=useState(''),[loadedWms,setLoadedWms]=useState<Set<string>>(()=>new Set()),[pressureField,setPressureField]=useState<NativeField|null>(null),[cloudSynopticPressure,setCloudSynopticPressure]=useState<SynopticField|null>(null),[pressureError,setPressureError]=useState('');
  const fieldCache=useRef(new Map<string,NativeField>());
  const [availability,setAvailability]=useState({forecast:false,observed:false});
+ const [wmsCatalog,setWmsCatalog]=useState<WeatherMapCatalog|null>(null);
+ useEffect(()=>{const c=new AbortController();void loadWeatherMapCatalog(c.signal).then(value=>{if(!c.signal.aborted)setWmsCatalog(value)}).catch(()=>{if(!c.signal.aborted)setWmsCatalog(null)});return()=>c.abort()},[revision]);
  const onTimeChange=useCallback((value:number)=>setTarget(value),[]);
  const [observationLayers,setObservationLayers]=useDisplayPreference('UnifiedWeatherMap.observationLayers',true,displayBoolean);
  const onObservationLayersChange=useCallback((active:boolean)=>setObservationLayers(active),[]);
@@ -76,7 +78,7 @@ export default function UnifiedWeatherMap(props:Props){
  },[revision]);
  useEffect(()=>{if(props.requestedProductId?.startsWith('icon-d2-precipitation-totals'))update({enabled:true,parameter:'totals',modelId:'icon-d2'})},[props.requestedProductId]);
  const synopticCatalog=useSynopticCatalog(revision);
- const available=useMemo(()=>availableUnifiedParameters(d2Catalog?.index??null,availability.forecast,availability.observed,rucCatalog?.index??null),[d2Catalog,rucCatalog,availability]);
+ const available=useMemo(()=>availableUnifiedParameters(d2Catalog?.index??null,availability.forecast,availability.observed,rucCatalog?.index??null,wmsCatalog).filter(p=>['synoptic','thetae','geopotential'].includes(p.id)?Object.values(synopticCatalog.catalog?.index.models??{}).some(m=>m.frames.length>0):p.id==='sigwx'?cloudWeatherSources(d2Catalog?.index??null,synopticCatalog.catalog?.index??null).length>0:true),[d2Catalog,rucCatalog,availability,wmsCatalog,synopticCatalog.catalog]);
  const parameter=settings.parameter,isCloudWeather=parameter==='sigwx',isTotals=parameter==='totals'||parameter==='observed',kind=parameter as NativeFieldKind,product=UNIFIED_MAP_PARAMETERS.find(p=>p.id===parameter)!,modelId=settings.modelId,modelLabel=synopticCatalog.catalog?.index.models[modelId]?.label||(modelId==='icon-d2-ruc'?'DWD ICON-D2-RUC':modelId==='radolan'?'DWD RADOLAN · Messanalyse':modelId==='icon-d2'?'DWD ICON-D2':unifiedWmsChoices().find(c=>c.model.id===modelId)?.model.label||'DWD'),frames=(!isTotals?catalog?.index.products[kind]?.frames:undefined)??[],ref=isNativeModel?nearestUnifiedFrame(frames,target):undefined,data=parameter==='observed'?observed:totals,frame=data?.frames.find(f=>f.hours===settings.hours),fieldKey=ref&&catalog?`${catalog.index.run}:${kind}:${ref.sha256}`:'',unit=props.unit??'kn';
  useEffect(()=>{if(!settings.enabled||!isTotals||data)return;const c=new AbortController();setLoading(true);setError('');void loadTotals(c.signal,parameter==='observed'?'observed':'forecast').then(d=>{if(!c.signal.aborted){if(parameter==='observed')setObserved(d);else setTotals(d)}}).catch(e=>{if(!c.signal.aborted)setError(String(e.message||e))}).finally(()=>{if(!c.signal.aborted)setLoading(false)});return()=>c.abort()},[settings.enabled,parameter,isTotals,data,revision]);
  useEffect(()=>{const c=new AbortController();setField(previous=>previous?.kind===kind&&nativeFieldModel(previous)===modelId?previous:null);if(isTotals||isCloudWeather)return()=>c.abort();setError('');setLoading(false);if(!settings.enabled||!catalog||!ref)return()=>c.abort();
@@ -142,7 +144,7 @@ export default function UnifiedWeatherMap(props:Props){
  const forecastTimeSummary=displayedForecastTime?`Angezeigt ${modelLeadLabel(rawSynoptic?synoptic.field?.run:forecastRun,displayedForecastTime)}`:'Kein bestätigter Modelltermin angezeigt';
  const download=async(type:'png'|'svg')=>{if(!(isCloudWeather?cloudWeather.ready&&cloudWeather.data:active&&scale))return;setExporting(true);try{if(isCloudWeather&&cloudWeather.data)await exportCloudWeather(cloudWeather.data,cloudWeather.raster,places,type,cloudRenderMode,linesActive?selectedCloudIsobars:null,heightsActive?selectedCloudIsoheights:null);else if(isTotals&&data&&frame)await exportTotals(data,frame,raster,places,type,scale!,showTotalsContours);else if(field)await exportNativeField({...field,isobars:linesActive?pressureContours?.isobars??[]:[]},product.label,raster,places,type,ref?.intervalHours??0,unit,scale!,{lines:scalarLinesActive,extremes:showExtremes,fill:showFill})}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
  const comparisonActive=rawSynoptic?Boolean(synoptic.field)&&!rawHeight:active,comparisonSample=(lat:number,lon:number)=>rawSynoptic?synoptic.field?synopticAt(synoptic.field,lat,lon):null:sample(lat,lon),comparisonUnit=rawSynoptic?'°C':displayUnit,comparisonFormat=(v:number|null)=>rawSynoptic?v===null?'–':new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(v):format(v);
- const sourcesFor=(p:string)=>p==='sigwx'?cloudWeatherSources(d2Catalog?.index??null,synopticCatalog.catalog?.index??null):['synoptic','thetae','geopotential'].includes(p)?Object.entries(synopticCatalog.catalog?.index.models??{}).map(([id,m])=>({id,label:m.label})):unifiedSources(p,d2Catalog?.index??null,availability.forecast,availability.observed,rucCatalog?.index??null);
+ const sourcesFor=(p:string)=>p==='sigwx'?cloudWeatherSources(d2Catalog?.index??null,synopticCatalog.catalog?.index??null):['synoptic','thetae','geopotential'].includes(p)?Object.entries(synopticCatalog.catalog?.index.models??{}).map(([id,m])=>({id,label:m.label})):unifiedSources(p,d2Catalog?.index??null,availability.forecast,availability.observed,rucCatalog?.index??null,wmsCatalog);
  // A temporarily unavailable catalogue must not overwrite the saved model choice.
  const shownParameters=settings.selectionMode==='model'?available.filter(p=>sourcesFor(p.id).some(c=>c.id===modelId)):available;
  const shownSources=alphabeticalMapOptions(settings.selectionMode==='model'?[...new Map(available.flatMap(p=>sourcesFor(p.id)).map(c=>[c.id,c])).values()]:sourcesFor(parameter));
