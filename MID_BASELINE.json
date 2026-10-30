@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.369",
+  "releaseVersion": "0.9.85.370",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -803,6 +803,7 @@
     "scripts/test-ruc-parameter-audit-097311.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "scripts/test-ruc-rapid-update-policy-09400.mjs",
+    "scripts/test-ruc-resume-watchdog-0985370.mjs",
     "scripts/test-ruc-schedule-catchup-09745.mjs",
     "scripts/test-ruc-scheduler-resilience-097624.mjs",
     "scripts/test-ruc-scheduler-watchdog-09751.mjs",
@@ -1853,6 +1854,7 @@
     "scripts/test-ruc-parameter-audit-097311.mjs",
     "scripts/test-ruc-precip-amplitude-guard-09787.mjs",
     "scripts/test-ruc-rapid-update-policy-09400.mjs",
+    "scripts/test-ruc-resume-watchdog-0985370.mjs",
     "scripts/test-ruc-schedule-catchup-09745.mjs",
     "scripts/test-ruc-scheduler-resilience-097624.mjs",
     "scripts/test-ruc-scheduler-watchdog-09751.mjs",
@@ -3814,7 +3816,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.369",
+  "version": "0.9.85.370",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

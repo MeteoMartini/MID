@@ -1,6 +1,6 @@
-# MID v0.9.85.369
+# MID v0.9.85.370
 
-## Schneefall zur tatsächlichen Ereigniszeit
-- Später erwarteter Schnee erzeugt keinen vorgezogenen Hinweis mehr im trockenen 24-h-Wetterprofil.
-- Die 6–72-Stunden-Summendauer bestimmt weiterhin die Schneemenge und Stufe. Der angezeigte Ereigniszeitraum folgt den tatsächlichen Schneestunden.
-- Ensemble-Präsentation und Tagesansichten übernehmen denselben Zeitbezug. Schneemengen, hohe Stufen und amtliche Warnungen bleiben unverändert.
+## Aufbereitete RUC-Daten nach App-Releases wiederverwenden
+- Der RUC-Watchdog kann bei Datenrückstand einen bereits vollständig aufbereiteten Datensatz über seinen exakten Ursprungslauf erneut prüfen lassen. Ein App-Release muss dadurch keine erneute Wetterdatenberechnung auslösen.
+- Herkunft, unveränderliche Artefakte, aktueller Datenvertrag, Frische, vollständige Datenbytes und JS-Decoder bleiben verpflichtend geprüft. Eine erfolgte Wiederaufnahme wird nicht fortlaufend erneut angefordert.
+- Laufende Verarbeitungen, Wartefristen, Release-Schutz und Pages-/Worker-Gates bleiben unverändert. Ohne geeigneten Kandidaten bleibt der bisherige Berechnungspfad erhalten.

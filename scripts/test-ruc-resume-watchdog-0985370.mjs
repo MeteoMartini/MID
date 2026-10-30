@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+execFileSync('python3',['tools/release/test_select_ruc_resume.py'],{stdio:'inherit'});
+const canonical=readFileSync('ci/github/workflows/mid-ruc-schedule-watchdog.yml','utf8'),mirror=readFileSync('.github/workflows/mid-ruc-schedule-watchdog.yml','utf8');assert.equal(canonical,mirror);
+assert.ok(canonical.indexOf('select_ruc_resume.py')>canonical.indexOf('workflow_dispatch cooldown'));
+assert.ok(canonical.indexOf('select_ruc_resume.py')>canonical.indexOf('active preprocessing run already exists'));
+assert.ok(canonical.includes('-f reuse_run_id="$reuse_run_id"'));assert.ok(canonical.includes('-f force=false'));
+const pipeline=readFileSync('ci/github/workflows/mid-ruc-preprocess.yml','utf8');
+for(const token of ['digest-mismatch: error','prepared_snapshot.py admit','verify_prepared_snapshot.mjs','main_version','publish_guard','950000000'])assert.ok(pipeline.includes(token));
+console.log('PASS bounded RUC resume selection, retry barrier, existing immutable resolver, unchanged admission and workflow guard ordering');
