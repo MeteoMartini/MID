@@ -40,6 +40,12 @@ jobs:
         shell: bash
         run: npm run test:coverage
 
+      - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test scripts/test-release-timing-0985376.mjs scripts/test-release-train-plan-0985376.mjs scripts/test-source-gate-evidence-0985376.mjs
+
       - name: Coverage-Bericht sichern
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
