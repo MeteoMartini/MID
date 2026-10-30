@@ -49,6 +49,9 @@ jobs:
           node scripts/test-installer-verification-budget-0985190.mjs
           node scripts/test-core-regression-isolated-matrix-0985354.mjs
           node scripts/test-install-main-race-09572.mjs
+          node scripts/test-github-actions-runtime.mjs
+          node scripts/test-security-diagnostics-0985347.mjs
+          node scripts/test-ruc-pages-free-storage-09700.mjs
 
       - name: Coverage-Bericht sichern
         if: always()
