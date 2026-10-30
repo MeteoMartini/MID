@@ -1,3 +1,13 @@
+## MID v0.9.85.379 – Protected Source-Attestation Pilot (qualifizierte CI-Ausweitung)
+
+- Freigegebene Ausgangsbasis `main=mid-stable` v0.9.85.378 @ `745ee5945fd90a11614400016efb78965da08d71`; Installer 41106636347 success mit kompletter Worker/Pages/Stable-Abnahme.
+- Selektive SHA-gesicherte Integration der neun qualifizierten Dateien aus Draft #530 @ `b043b9348171f0b2af2cbbd6b6f5bc4f963a8881`, mit unverändertem Original-Draft und neuem autorisierten `chatgpt/*`-Sourcebranch.
+- `tools/ci/attested-reuse-policy.mjs`, `source-run-observation.mjs` und neue `protected-source-attestation.mjs` trennen unverbindliche signierte Claims von unabhängig authentifizierten GitHub-Fakten; Source-PR-Nummer, ursprüngliche Base- und Head-SHA, Run-/Attempt und alle zwölf Pflicht-Gatejobs werden erneut geprüft. Optionales Gate darf nur bei explizitem Ergebnis fehlen.
+- Neue rein manuell auf dem geschützten `main` startbare Workflowquelle `attested-source-qualification.yml` einschließlich exakt gespiegelt gepinntem Actions/attest v4.2.2; isolierte Job-Berechtigungen `contents:read`, `id-token:write`, `attestations:write`, keine Release-Credentials, kein PR-Checkout und kein Produktiv-Reuse.
+- Eigene Schutztests im obligatorischen vorhandenen Paritätsregressionseinstieg, unabhängiger Doppelbuild, SHA- und Konfigurationsnachweis; vollständiger Source-PR-/Installer-/Worker-/Pages-/Stable-Gate bleibt Pflicht. Kein Signaturbeleg als Ersatz für ein Quell-/Produktivgate.
+- Ergebnisgrenze: Das Beobachtungsschema `mid.protected-source-observation.v1` ist **nicht** das vollqualifizierte `mid.attested-source-evidence.v1`. Ohne reale Sigstore-Verifikation und identische Byte-/Environment-/Gate-A/B-Abnahme sind `releaseAuthorized`/`reuseAuthorized` immer `false`. Issue #526 bleibt offen.
+- Release-Status: Sourcekandidat bis vollständige verpflichtende CI/Installer/Stable-Kette; vor Erfolg nicht als veröffentlicht ausgeben.
+
 ## MID v0.9.85.378 – Diagramm-, Farb- und NoData-Konsolidierung
 
 - Verifizierte Ausgangsbasis `main=mid-stable` v0.9.85.377 @ `44f5d02b0374b275e423e43233addff91d4eeb82`. Exakte Blob-SHAs der acht vorhandenen Fach-/CSS-/Vertragsdateien sind gegenüber dem Ausgangspunkt von Draft PR #524 (.373) unverändert. Keine Übernahme alter Versions-/Release-Spiegel, kein Rebase/Reset von #524.
