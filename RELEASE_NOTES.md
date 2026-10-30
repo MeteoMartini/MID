@@ -1,9 +1,9 @@
-# MID v0.9.85.378
+# MID v0.9.85.379
 
-## Verständlichere Wetterdiagramme und bessere Datenlückenanzeige
+## Überprüfbare Herkunft von MID-Quellprüfungen
 
-- Im 24-Stunden-Wetterprofil und den aufgeklappten 7-Tage-Profilen sind Temperatur, UTCI/gefühlte Wärmebelastung, Taupunkt, Luftdruck, Wind, Böen und Niederschlagswahrscheinlichkeit in Farben und Linienmustern besser auseinanderzuhalten.
-- Legenden und Tooltipmarker verwenden dieselben gemeinsamen Farbtokens und Strichmuster wie ihre Kurven. Die Temperaturkurve im 24-Stunden-Profil zeigt wieder den wertabhängigen Farbverlauf.
-- Die 14-Tage-Ensembleansicht unterscheidet echte 0 mm Niederschlag von fehlenden kumulierten Werten. Bei Datenlücken entstehen keine vermeintlich durchgehenden Prognose-, Wind- oder Klimakurven.
-- Die Kontraste von Schnee- und Sonnenscheinfeldern im hellen Design sowie Luftdruck im dunklen Design werden verbessert, ohne meteorologische Warnstufen zu ändern.
+- Ein neuer, ausschließlich manuell auf dem geschützten GitHub-`main` ausführbarer Signatur-Pilot kann die Herkunft erfolgreich abgeschlossener Quellprüfungen unabhängig über GitHub nachweisen.
+- Er prüft den ursprünglichen Pull Request, das Quellcommit, alle Pflichtjobs und deren Status sowie die Übereinstimmung von `main` und `mid-stable`. Fehlende, widersprüchliche oder veraltete Belege werden abgewiesen.
+- Ein signierter Beobachtungsbericht ersetzt ausdrücklich **keine** Tests, keinen Produktivbuild, kein Worker-/Pages-Gate und keine Stable-Promotion. Alle bisherigen Sicherheits- und Releaseprüfungen bleiben vollständig bestehen.
+- Die bereits bekannten Wetterfunktionen und Darstellungen sind unverändert. Der zusätzliche Pilot hat keine automatischen Auslöser und verursacht keine zusätzlichen regulären Releases.
 
