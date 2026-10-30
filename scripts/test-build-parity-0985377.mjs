@@ -93,3 +93,6 @@ await import('../tools/ci/attested-reuse-policy.test.mjs');
 
 // Protected main-only signing pilot is qualified under the existing mandatory parity regression.
 await import('../tools/ci/protected-source-attestation.test.mjs');
+
+// Verify protected Sigstore observations under the existing mandatory parity regression.
+await import('../tools/ci/verify-protected-source-pilot.test.mjs');
