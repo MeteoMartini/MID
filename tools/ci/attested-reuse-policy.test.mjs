@@ -184,7 +184,7 @@ test('known conditional success/absence remains observable, never an implicit pa
 });
 test('PR identity works after protected merge even when the run has no linked PRs',()=>{
  const f=sourceFixture();f.run.pull_requests=[];
- const a=inspectSourcePullRequest(f.policy,f.run,f.pr);
+ const a=inspectSourcePullRequest(f.policy,f.run,f.pr,NOW);
  assert.equal(a.prIdentityObserved,true);assert.equal(a.prNumber,531);
 });
 for(const [label,mutate] of [
@@ -203,7 +203,7 @@ for(const [label,mutate] of [
 ]){
  test('independent PR evidence rejects '+label,()=>{
   const f=sourceFixture();mutate(f);
-  assert.throws(()=>inspectSourcePullRequest(f.policy,f.run,f.pr),/Source run evidence rejected/);
+  assert.throws(()=>inspectSourcePullRequest(f.policy,f.run,f.pr,NOW),/Source run evidence rejected/);
  });
 }
 test('long-lived signed evidence is rejected even if its signature appears valid',()=>{

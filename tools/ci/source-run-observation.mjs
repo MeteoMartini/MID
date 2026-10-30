@@ -67,8 +67,8 @@ export function inspectSourceRun(policy,run,payload,now=Date.now()){
  * immutable PR HEAD and base through a separate authenticated GitHub request.
  * A caller-supplied PR number without verified metadata grants nothing.
  */
-export function inspectSourcePullRequest(policy,run,pr){
- validateTrustedPolicy(policy);
+export function inspectSourcePullRequest(policy,run,pr,now=Date.now()){
+ validateTrustedPolicy(policy,now);
  if(!isObject(pr)||pr.number!==policy.prNumber||pr.draft!==false||
     !(pr.state==='open'||(pr.state==='closed'&&pr.merged===true))||
     !isObject(pr.head)||!isObject(pr.base)||
@@ -106,7 +106,7 @@ export function observeSourceThroughGithubCLI(policy,{invoke=execFileSync,now=Da
  if(runIdentity(run)!==runIdentity(runAfter)||prIdentity(pr)!==prIdentity(prAfter))
    abort('Source run or PR changed during authenticated inspection');
  const source=inspectSourceRun(policy,run,jobs,now);
- return Object.freeze({...source,...inspectSourcePullRequest(policy,run,pr)});
+ return Object.freeze({...source,...inspectSourcePullRequest(policy,run,pr,now)});
 }
 async function main(){
  if(process.argv.length!==3)throw Error('Usage: node source-run-observation.mjs trusted-policy.json');
