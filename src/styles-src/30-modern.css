@@ -505,9 +505,9 @@
 .cockpit-meteogram-pro__tooltip-content dt i{display:block;width:8px;height:8px;border-radius:999px;flex:0 0 auto}
 .cockpit-meteogram-pro__tooltip-content dt i.temp{background:linear-gradient(135deg,#74b7d8,#ffd36e,#ef5c3e)}
 .cockpit-meteogram-pro__tooltip-content dt i.apparent{background:var(--mg-apparent)}
-.cockpit-meteogram-pro__tooltip-content dt i.dew{background:#71869a}
-.cockpit-meteogram-pro__tooltip-content dt i.rain{background:#2697d8}
-.cockpit-meteogram-pro__tooltip-content dt i.wind{background:#3ba66e}
+.cockpit-meteogram-pro__tooltip-content dt i.dew{background:var(--param-dewpoint)}
+.cockpit-meteogram-pro__tooltip-content dt i.rain{background:var(--param-precipitation)}
+.cockpit-meteogram-pro__tooltip-content dt i.wind{background:var(--param-wind)}
 .cockpit-meteogram-pro__tooltip-content dt i.gust{background:var(--param-gust)}
 .cockpit-meteogram-pro__tooltip-content dt i.pressure{background:var(--param-pressure)}
 .cockpit-meteogram-pro__legend{display:flex;flex-wrap:wrap;gap:7px 14px;color:var(--mg-muted);font-size:10px}
@@ -517,7 +517,7 @@
 .cockpit-meteogram-pro__legend i.apparent{width:24px;height:0;border-top:2px dashed var(--mg-apparent)}
 .cockpit-weather-profile .cockpit-meteogram-pro__legend i.apparent{width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)}
 .cockpit-meteogram-pro__legend i.rain{width:8px;height:14px;border-radius:999px;background:var(--param-precipitation)}
-.cockpit-meteogram-pro__legend i.wind{width:12px;height:12px;border-top:3px solid #3ba66e;border-right:3px solid #3ba66e;transform:rotate(45deg)}
+.cockpit-meteogram-pro__legend i.wind{width:12px;height:12px;border-top:3px solid var(--param-wind);border-right:3px solid var(--param-wind);transform:rotate(45deg)}
 @media(max-width:760px){
  .cockpit-meteogram-pro{padding:12px;border-radius:22px;gap:10px}
  .cockpit-meteogram-pro__head{gap:9px}.cockpit-meteogram-pro__head b{font-size:16px}.cockpit-meteogram-pro__head span>span{font-size:10px}.cockpit-meteogram-pro__head em{padding:6px 9px;font-size:9px;white-space:normal}

@@ -1,3 +1,19 @@
+# MID v0.9.85.374
+
+## Wetterdiagramme: besser erkennbare Linien und konsistente Legenden
+- Im 24-Stunden-Wetterprofil und den aufgeklappten 7-Tage-Details sind die Linienmuster für UTCI, Taupunkt, Niederschlagswahrscheinlichkeit und Böenspitzen verlässlich voneinander unterscheidbar.
+- Legenden und Tooltipmarker folgen den gemeinsamen Parameterfarben und tatsächlichen Strichmustern.
+- Der wertabhängige Temperaturfarbverlauf im 24-Stunden-Profil wird korrekt als Kurvenfarbe verwendet.
+- Wetterwerte, Modellprognosen, Karten, Warnungen, Favoriten und Einstellungen bleiben fachlich unverändert. Der vollständige Qualitätsaudit wird in #523 fortgesetzt.
+
+# MID v0.9.85.373
+
+## RUC: sichere Wiederaufnahme nach Versionswechsel
+- Die automatische RUC-Überwachung prüft jetzt vor der Wiederverwendung eines vorbereiteten Datenlaufs, ob die zugrunde liegenden Worker-, Daten- und Verarbeitungsverträge zur veröffentlichten MID-Version passen.
+- Veraltete oder nicht eindeutig verifizierbare Aufbereitungen werden nicht wiederholt gestartet. Stattdessen bleibt der etablierte Pfad zur vollständigen Neuaufbereitung verfügbar.
+- Reine Versionsnummernwechsel können weiterhin ohne Neuberechnung behandelt werden, wenn die Originalverträge tatsächlich unverändert sind.
+- Frischegrenzen, RUC-Horizont, verlustfreie Datenprüfung, amtliche Datenherkunft und die vollständigen Worker-/Pages-Veröffentlichungsprüfungen bleiben unverändert.
+
 # MID v0.9.85.372
 
 ## Modellkarten: nur passende Quellen und bestätigte Termine

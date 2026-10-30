@@ -66,4 +66,62 @@ class Resume(unittest.TestCase):
  def test_malformed_authenticated_json_stops(self):
   def broken(i):raise json.JSONDecodeError('invalid API payload','x',0)
   with self.assertRaises(json.JSONDecodeError):self.select([row(1)],r=broken)
+
+class ProducerCompatibility(unittest.TestCase):
+ def git(self,root,*args):
+  return subprocess.run(['git',*args],cwd=root,check=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True).stdout.strip()
+
+ def test_real_git_lineage_and_complete_contract_input_paths(self):
+  import tempfile
+  with tempfile.TemporaryDirectory(prefix='mid-ruc-contract-preflight-') as directory:
+   root=Path(directory)
+   self.git(root,'init','-q')
+   self.git(root,'config','user.name','MID Test')
+   self.git(root,'config','user.email','mid-test@example.invalid')
+   def put(name,value):
+    target=root/name
+    target.parent.mkdir(parents=True,exist_ok=True)
+    target.write_text(value)
+   def commit(label):
+    self.git(root,'add','.')
+    self.git(root,'commit','-qm',label)
+    return self.git(root,'rev-parse','HEAD')
+   put('src/unrelatedWeatherUI.ts','export const x=1;\n')
+   put('worker-src/20-composite-models.js','const WMS_CATALOG=1;\n')
+   put('worker-src/00-core-observations.js',"const WORKER_VERSION='0.9.85.371';\n")
+   put('tools/ruc/prepared_snapshot.py','# original validation\n')
+   put('package-lock.json',json.dumps({'version':'0.9.85.371','packages':{'':{'version':'0.9.85.371'},'a':{'version':'1.0.0'}}}))
+   baseline=commit('prepared producer 371')
+   self.assertTrue(m.compatible_producer_source(baseline,repo=root),'same signed source must be eligible')
+   put('src/unrelatedWeatherUI.ts','export const x=2;\n')
+   unrelated=commit('unrelated UI patch')
+   self.assertTrue(m.compatible_producer_source(baseline,repo=root),'unrelated UI must not discard prepared RUC bytes')
+   put('worker-src/00-core-observations.js',"const WORKER_VERSION='0.9.85.372';\n")
+   put('package-lock.json',json.dumps({'version':'0.9.85.372','packages':{'':{'version':'0.9.85.372'},'a':{'version':'1.0.0'}}}))
+   version=commit('version-only mirrors')
+   self.assertTrue(m.compatible_producer_source(baseline,repo=root),'release-only normalization must match existing exact producer contract')
+   put('worker-src/20-composite-models.js','const WMS_CATALOG=2;\n')
+   changed_worker=commit('WMS map Worker contract changed')
+   self.assertFalse(m.compatible_producer_source(baseline,repo=root),'regression .371=>.372: even unrelated Worker input is in immutable RUC compatibility hash')
+   self.assertFalse(m.compatible_producer_source(version,repo=root),'changed Worker contract requires full new producer')
+   put('worker-src/20-composite-models.js','const WMS_CATALOG=1;\n')
+   put('tools/ruc/prepared_snapshot.py','# changed original validation\n')
+   changed_ruc=commit('new RUC validator')
+   self.assertFalse(m.compatible_producer_source(baseline,repo=root),'RUC decoder and validator updates require fresh producer')
+   put('tools/ruc/prepared_snapshot.py','# original validation\n')
+   put('package-lock.json',json.dumps({'version':'0.9.85.373','packages':{'':{'version':'0.9.85.373'},'a':{'version':'1.0.1'}}}))
+   changed_lock=commit('dependency change not only version')
+   self.assertFalse(m.compatible_producer_source(baseline,repo=root),'changed dependencies must never reuse earlier snapshot')
+   self.assertFalse(m.compatible_producer_source(changed_worker,repo=root),'non-ancestor producer cannot reuse artifacts')
+   self.assertFalse(m.compatible_producer_source('x'*40,repo=root),'invalid SHA may not authorize reuse')
+   self.assertFalse(m.compatible_producer_source('0'*40,repo=root),'missing Git object means no reuse')
+
+ def test_reject_candidate_before_dispatch_but_allow_full_recalculation(self):
+  producer=row(17)
+  producer['head_sha']='a'*40
+  self.assertEqual(m.select_run({'workflow_runs':[producer]},jobs,proof,now=NOW,compatible=lambda sha:False),'')
+  self.assertEqual(m.select_run({'workflow_runs':[producer]},jobs,proof,now=NOW,compatible=lambda sha:sha=='a'*40),'17')
+  producer.pop('head_sha')
+  self.assertEqual(m.select_run({'workflow_runs':[producer]},jobs,proof,now=NOW,compatible=lambda sha:bool(sha)),'')
+
 if __name__=='__main__':unittest.main()
