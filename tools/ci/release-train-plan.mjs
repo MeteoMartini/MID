@@ -3,6 +3,7 @@
 import {readFile} from 'node:fs/promises';
 const SHA=/^[0-9a-f]{40}$/;
 const REPO=/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const validRepo = value => REPO.test(value??'') && !value.split('/').some(p=>p==='.'||p==='..');
 const SENSITIVE = /^(?:\.github\/|ci\/github\/|worker\/|tools\/ruc\/|tools\/release\/|tools\/cloudflare\/|package(?:-lock)?\.json$|MID_(?:BASELINE|SOURCE_OF_TRUTH)|AGENTS\.md)/;
 
 export function validateManifest(raw) {
@@ -61,7 +62,7 @@ async function api(repository,path,token) {
   return response.json();
 }
 export async function inspectRemote(manifest,repository,token) {
-  if (!REPO.test(repository)) throw Error('Invalid repository');
+  if (!validRepo(repository)) throw Error('Invalid repository');
   const [main,stable]=await Promise.all([
     api(repository,'git/ref/heads/main',token),api(repository,'git/ref/heads/mid-stable',token),
   ]);
