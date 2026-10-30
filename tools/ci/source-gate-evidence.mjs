@@ -2,6 +2,7 @@
 // Experimental read-only Source-Gate evidence validator.
 // This cannot grant release, replace installer tests, or validate build artifacts.
 const SHA=/^[0-9a-f]{40}$/;
+const validRepo = value => typeof value==='string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value) && !value.split('/').some(p=>p==='.'||p==='..');
 const EXPECTED_PATH='.github/workflows/chatgpt-pr-gate.yml';
 const REQUIRED=[
   'Source-Kern vollständig prüfen',
@@ -29,7 +30,7 @@ export function validateSourceGateEvidence({expected,mainSha,stableSha,pr,run,jo
   const reject = reason => blockers.push(reason);
   if (!expected || !clean(expected.headSha) || !Number.isSafeInteger(expected.prNumber) ||
       !Number.isSafeInteger(expected.runId) || expected.prNumber<=0 || expected.runId<=0 ||
-      !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(expected.repository??'')) {
+      !validRepo(expected.repository)) {
     throw Error('Invalid expected provenance inputs');
   }
   if (!clean(mainSha)||mainSha!==stableSha) reject('main/mid-stable SHA drift');
@@ -79,7 +80,7 @@ async function api(repo,endpoint,token) {
 }
 export async function inspectSourceGate(expected,token) {
   const {repository,prNumber,runId}=expected;
-  if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) ||
+  if (!validRepo(repository) ||
       !Number.isSafeInteger(prNumber)||prNumber<=0 ||
       !Number.isSafeInteger(runId)||runId<=0 || !clean(expected.headSha)) {
     throw Error('Invalid CLI evidence request');
