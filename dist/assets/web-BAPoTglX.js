@@ -1,1 +1,0 @@
-import{ki as e}from"./index-DNs9mxDZ.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
