@@ -581,11 +581,11 @@
     "html-to-image": "^1.11.13",
     "jsfive": "0.4.2",
     "lucide-react": "^1.40.0",
-    "maplibre-gl": "6.7.0",
+    "maplibre-gl": "6.15.0",
     "pako": "2.2.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "react-is": "19.2.8",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-is": "19.3.1",
     "recharts": "3.10.1"
   },
   "devDependencies": {
