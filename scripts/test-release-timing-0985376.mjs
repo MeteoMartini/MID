@@ -100,7 +100,7 @@ test('pagination traverses skipped runs before a real successful source gate',as
     globalThis.fetch=async(url)=>{
       if(String(url).includes('/actions/workflows/chatgpt-pr-gate.yml/runs?')){
         pages++;
-        const isFirst=String(url).includes('page=1');
+        const isFirst=String(url).endsWith('&page=1');
         const batch=isFirst?Array.from({length:100},(_,i)=>({
           ...sample(i+1,'MID-Agent-Quellstand prüfen','skipped'),
           path:'.github/workflows/chatgpt-pr-gate.yml',event:'pull_request',status:'completed'
