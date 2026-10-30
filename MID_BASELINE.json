@@ -31,6 +31,7 @@
     "scripts/test-apple-push-background-source-preparation-09720.mjs",
     "scripts/test-approved-dependency-upgrades-09570.mjs",
     "scripts/test-appwide-design-coverage-098470.mjs",
+    "scripts/test-appwide-line-semantics-0985374.mjs",
     "scripts/test-appwide-parameter-colors-09779.mjs",
     "scripts/test-appwide-precipitation-and-daily-heat.mjs",
     "scripts/test-appwide-readability-continuation-098479.mjs",
@@ -523,6 +524,7 @@
     "scripts/test-maintenance-user-contracts-09630.mjs",
     "scripts/test-map-canvas-mobile-0985284.mjs",
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
+    "scripts/test-map-combination-availability-0985372.mjs",
     "scripts/test-map-direct-time-theme-0985212.mjs",
     "scripts/test-map-heading-and-ensemble-share.mjs",
     "scripts/test-map-memory-profile-0985214.mjs",
@@ -665,6 +667,7 @@
     "scripts/test-official-warning-chronological-order-096616.mjs",
     "scripts/test-open-meteo-lunar-daily-0985108.mjs",
     "scripts/test-open-meteo-multicaller-0985245.mjs",
+    "scripts/test-openmeteo-bom-retirement-0985371.mjs",
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
@@ -1061,9 +1064,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-openmeteo-bom-retirement-0985371.mjs",
-    "scripts/test-map-combination-availability-0985372.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1084,6 +1085,7 @@
     "scripts/test-apple-push-background-source-preparation-09720.mjs",
     "scripts/test-approved-dependency-upgrades-09570.mjs",
     "scripts/test-appwide-design-coverage-098470.mjs",
+    "scripts/test-appwide-line-semantics-0985374.mjs",
     "scripts/test-appwide-parameter-colors-09779.mjs",
     "scripts/test-appwide-precipitation-and-daily-heat.mjs",
     "scripts/test-appwide-readability-continuation-098479.mjs",
@@ -1576,6 +1578,7 @@
     "scripts/test-maintenance-user-contracts-09630.mjs",
     "scripts/test-map-canvas-mobile-0985284.mjs",
     "scripts/test-map-chart-responsive-continuation-098482.mjs",
+    "scripts/test-map-combination-availability-0985372.mjs",
     "scripts/test-map-direct-time-theme-0985212.mjs",
     "scripts/test-map-heading-and-ensemble-share.mjs",
     "scripts/test-map-memory-profile-0985214.mjs",
@@ -1718,6 +1721,7 @@
     "scripts/test-official-warning-chronological-order-096616.mjs",
     "scripts/test-open-meteo-lunar-daily-0985108.mjs",
     "scripts/test-open-meteo-multicaller-0985245.mjs",
+    "scripts/test-openmeteo-bom-retirement-0985371.mjs",
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
@@ -2114,9 +2118,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-openmeteo-bom-retirement-0985371.mjs",
-    "scripts/test-map-combination-availability-0985372.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
