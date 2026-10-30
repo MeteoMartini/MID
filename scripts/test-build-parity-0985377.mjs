@@ -86,3 +86,7 @@ test('Source optional remote npm cache cannot block exact Node setup or bypass m
  for(const token of ['npm ci','npm run audit:dependencies','npm run audit:all','npm run build','npm run test:regressions','fail-fast: false','Agent-Quellstand vollständig prüfen'])assert.ok(source.includes(token),token);
  assert.doesNotMatch(source,/continue-on-error/);
 });
+
+// Security qualification is executed by the existing mandatory parity test runner;
+// no production workflow, token permission or release gate is changed here.
+await import('./test-attested-reuse-policy-0985378.mjs');
