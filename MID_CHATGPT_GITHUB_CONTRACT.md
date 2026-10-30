@@ -58,3 +58,13 @@ This contract makes AI-assisted MID changes durable in GitHub without bypassing 
 - Matrix `fail-fast` remains disabled so one failing heavy shard cannot hide the result of another shard.
 - This optimization applies only to the Source-PR Gate in v0.9.85.171. The Installer continues its complete independent verification until a separately versioned and proven equivalent installer-sharding or attestation contract is approved.
 
+
+## Isolated Installer Core shards (v0.9.85.376)
+
+- The Installer independently executes **all** regressions again; no prior Source-Gate result, cache flag, diagnostic report or artifact attestation authorizes skipping a required test.
+- The complete Installer Core inventory may run as four isolated `core-1/4` through `core-4/4` jobs only with the same lossless one-to-one partition already enforced for Source-Core. Each job independently installs dependencies, builds, verifies the exact event-bound immutable release snapshot, manifest, archive digest and all file hashes, then executes its assigned tests.
+- The separate `verify_core` job retains production build, dependency audit, Worker syntax and iOS copy/version checks. All six Heavy jobs, existing Worker/RUC/Pages checks and Stable promotion requirements remain mandatory.
+- `install_build` requires `prepare_release`, `verify_core`, the **entire** `verify_core_shards` matrix and the **entire** `verify_heavy` matrix to report success. Failed, cancelled, skipped, partial or unknown mandatory results cannot authorize install, deployment or promotion. `fail-fast: false` preserves independent evidence for each matrix member.
+- All verification jobs remain read-only, with no deployment secrets or increased token privileges. Timing artifact namespaces must be distinct per run/attempt/shard.
+- Release-train preflight is advisory only. Explicit `candidateMode: draft-planning` may inventory authorized same-repository Draft candidates without changing their state. It always reports `releaseAuthorized: false`; it never merges or executes candidate code. Before integration, revalidate exact heads, live Main/Stable, complete inventories (including rename sources) and conflicts. The combined new version must pass the full independent Source-Gate and Installer again.
+- A live runtime improvement is established only by real complete release evidence. Future cross-gate build/test reuse remains a separate unapproved change requiring independently verified attestation, equivalence, negative cases and A/B qualification (#526).

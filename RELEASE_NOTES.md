@@ -1,7 +1,8 @@
-# MID v0.9.85.373
+# MID v0.9.85.376
 
-## RUC: sichere Wiederaufnahme nach Versionswechsel
-- Die automatische RUC-Überwachung prüft jetzt vor der Wiederverwendung eines vorbereiteten Datenlaufs, ob die zugrunde liegenden Worker-, Daten- und Verarbeitungsverträge zur veröffentlichten MID-Version passen.
-- Veraltete oder nicht eindeutig verifizierbare Aufbereitungen werden nicht wiederholt gestartet. Stattdessen bleibt der etablierte Pfad zur vollständigen Neuaufbereitung verfügbar.
-- Reine Versionsnummernwechsel können weiterhin ohne Neuberechnung behandelt werden, wenn die Originalverträge tatsächlich unverändert sind.
-- Frischegrenzen, RUC-Horizont, verlustfreie Datenprüfung, amtliche Datenherkunft und die vollständigen Worker-/Pages-Veröffentlichungsprüfungen bleiben unverändert.
+## Vollständige Prüfungen mit kürzerem Veröffentlichungsweg
+- Die Kernregressionen des Installers werden auf vier unabhängige Prüfgruppen verteilt. Jede Gruppe prüft denselben unveränderlichen Release-Stand; nur wenn alle Pflichtprüfungen erfolgreich sind, kann die Veröffentlichung fortgesetzt werden.
+- Neue rein lesende Diagnosewerkzeuge zeigen Laufzeiten, Engpässe und mögliche Updatepakete. Mehrere kompatible Korrekturen können gemeinsam als eine vollständig geprüfte Version veröffentlicht werden; dringende Fehlerbehebungen warten nicht auf ein Paket.
+- Updatepakete können bereits im Draft-Zustand geplant werden. SHA-Wechsel, unvollständige Dateilisten, Umbenennungskonflikte und fremde Entwicklungsbranches blockieren die Vorprüfung.
+- Herkunftsprüfungen binden Ergebnisse an den konkreten GitHub-Prüfversuch, Quellstand und alle Pflichtgruppen. Frühere Prüfergebnisse ersetzen keine Installerprüfung.
+- Wetterberechnung, Warnschwellen, Datenquellen und Bedienoberfläche bleiben unverändert. Eine Laufzeitverkürzung wird erst nach realen Veröffentlichungen als gemessen ausgewiesen.

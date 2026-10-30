@@ -19,7 +19,7 @@ const fixtures=()=>{
   const run={id:1234567,name:'MID-Agent-Quellstand prüfen',
     path:'.github/workflows/chatgpt-pr-gate.yml',repository:{full_name:expected.repository},
     head_sha:b,event:'pull_request',status:'completed',conclusion:'success',run_attempt:1};
-  const jobs=names.map((name,i)=>({id:i+1,run_id:1234567,name,status:'completed',conclusion:'success'}));
+  const jobs=names.map((name,i)=>({id:i+1,run_id:1234567,run_attempt:1,head_sha:b,name,status:'completed',conclusion:'success'}));
   return {expected,mainSha:a,stableSha:a,pr,run,jobs};
 };
 const check=data=>validateSourceGateEvidence(data);
@@ -53,6 +53,10 @@ test('Missing, skipped, failing, incomplete and duplicated mandatory shards all 
   f=>f.jobs[2].conclusion='failure',
   f=>f.jobs[2].status='in_progress',
   f=>f.jobs[2].run_id=12,
+  f=>f.jobs[2].run_attempt=2,
+  f=>f.jobs[2].head_sha=a,
+  f=>f.jobs[2].id=f.jobs[1].id,
+  f=>delete f.jobs[2].id,
   f=>f.jobs[2].name=f.jobs[1].name,
   f=>f.jobs.push({name:'Unknown success',run_id:f.expected.runId,status:'completed',conclusion:'success'}),
  ];
@@ -63,7 +67,7 @@ test('Missing, skipped, failing, incomplete and duplicated mandatory shards all 
 });
 test('Skipped OPTIONAL jobs permitted; failed optional must block',()=>{
  const f=fixtures();
- f.jobs.push({name:'Extremwetterpolygone · echte Browserpixel',run_id:f.expected.runId,
+ f.jobs.push({id:100,run_attempt:1,head_sha:b,name:'Extremwetterpolygone · echte Browserpixel',run_id:f.expected.runId,
   status:'completed',conclusion:'skipped'});
  assert.equal(check(f).eligibleForFurtherEvidenceReview,true);
  f.jobs.at(-1).conclusion='failure';
@@ -75,4 +79,32 @@ test('Main/Stable divergence and invalid evidence inputs fail closed',()=>{
 });
 test('Remote inspector blocks unauthorized repository before any network calls',async()=>{
  await assert.rejects(inspectSourceGate({repository:'../bad',prNumber:1,runId:2,headSha:a},''),/Invalid CLI/);
+});
+
+test('remote inspector pins job attempt and rechecks refs, PR and run after reading jobs',async()=>{
+ const original=globalThis.fetch;
+ try{
+  for(const variant of ['unchanged','attempt','head','stable','conclusion']) {
+   const f=fixtures();let readJobs=false;
+   globalThis.fetch=async url=>{
+    const path=String(url);let data;
+    if(path.includes('/attempts/1/jobs?')) {readJobs=true;data={jobs:f.jobs};}
+    else if(path.endsWith('/heads/main'))data={object:{sha:a}};
+    else if(path.endsWith('/heads/mid-stable'))data={object:{sha:readJobs&&variant==='stable'?b:a}};
+    else if(path.endsWith('/pulls/525')){
+     data=structuredClone(f.pr);if(readJobs&&variant==='head')data.head.sha=a;
+    }else if(path.endsWith('/runs/1234567')){
+     data=structuredClone(f.run);
+     if(readJobs&&variant==='attempt')data.run_attempt=2;
+     if(readJobs&&variant==='conclusion')data.conclusion='failure';
+    }else throw Error('Unpinned or unexpected endpoint '+path);
+    return {ok:true,json:async()=>data};
+   };
+   if(['attempt','stable'].includes(variant))await assert.rejects(inspectSourceGate(f.expected,''),/changed during/);
+   else {
+    const out=await inspectSourceGate(f.expected,'');
+    assert.equal(out.eligibleForFurtherEvidenceReview,variant==='unchanged');
+   }
+  }
+ }finally{globalThis.fetch=original}
 });

@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       manifest:
-        description: 'Schema-1-JSON: stableSha, mainSha, changes:[{pr,headSha}]'
+        description: 'Schema-1-JSON: stableSha, mainSha, candidateMode: draft-planning, changes:[{pr,headSha}]'
         required: true
         type: string
 

@@ -46,12 +46,15 @@ export function validateSourceGateEvidence({expected,mainSha,stableSha,pr,run,jo
     reject('Source Gate run identity, event, attempt or conclusion mismatch');
   }
   if (!Array.isArray(jobs) || jobs.length<REQUIRED.length || jobs.length>100) reject('Incomplete job inventory');
-  const seen = new Map();
+  const seen = new Map(), jobIds = new Set();
   for (const job of Array.isArray(jobs)?jobs:[]) {
     const name=norm(job?.name);
-    if (!name || !Number.isSafeInteger(job?.run_id) || job.run_id!==expected.runId) {
+    if (!name || !Number.isSafeInteger(job?.id) || job.id<=0 || jobIds.has(job.id) ||
+        job.run_attempt!==run?.run_attempt || job.head_sha!==expected.headSha ||
+        !Number.isSafeInteger(job?.run_id) || job.run_id!==expected.runId) {
       reject('Invalid job identity/run reference');continue;
     }
+    jobIds.add(job.id);
     if (seen.has(name)) reject('Duplicated job name '+name);
     seen.set(name,job);
     if (!REQUIRED.includes(name) && !OPTIONAL.has(name)) reject('Unknown job '+name);
@@ -91,15 +94,25 @@ export async function inspectSourceGate(expected,token) {
     api(repository,'pulls/'+prNumber,token),
     api(repository,'actions/runs/'+runId,token),
   ]);
+  if (!Number.isSafeInteger(run.run_attempt) || run.run_attempt<1) throw Error('Invalid source run attempt');
   const jobs=[];
   for(let page=1;page<=10;page++){
-    const data=await api(repository,'actions/runs/'+runId+'/jobs?filter=latest&per_page=100&page='+page,token);
+    const data=await api(repository,'actions/runs/'+runId+'/attempts/'+run.run_attempt+'/jobs?per_page=100&page='+page,token);
     if (!Array.isArray(data.jobs)) throw Error('Missing jobs data');
     jobs.push(...data.jobs);
     if (data.jobs.length<100) break;
     if(page===10)throw Error('Job pagination incomplete');
   }
-  return validateSourceGateEvidence({expected,mainSha:main.object?.sha,stableSha:stable.object?.sha,pr,run,jobs});
+  const [finalMain,finalStable,finalPr,finalRun]=await Promise.all([
+    api(repository,'git/ref/heads/main',token),api(repository,'git/ref/heads/mid-stable',token),
+    api(repository,'pulls/'+prNumber,token),api(repository,'actions/runs/'+runId,token),
+  ]);
+  if (main.object?.sha!==finalMain.object?.sha || stable.object?.sha!==finalStable.object?.sha ||
+      run.run_attempt!==finalRun.run_attempt) throw Error('Evidence changed during inspection');
+  const before=validateSourceGateEvidence({expected,mainSha:main.object?.sha,stableSha:stable.object?.sha,pr,run,jobs});
+  const after=validateSourceGateEvidence({expected,mainSha:finalMain.object?.sha,stableSha:finalStable.object?.sha,pr:finalPr,run:finalRun,jobs});
+  if (!before.eligibleForFurtherEvidenceReview) return before;
+  return after;
 }
 if (process.argv[1]?.endsWith('source-gate-evidence.mjs')) {
   const [pr,run,headSha]=process.argv.slice(2);

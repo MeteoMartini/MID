@@ -1,3 +1,10 @@
+## MID v0.9.85.376 · 30.10.2026 · Vollständiger Installer-Core parallel und sichere Draft-Bündelplanung
+
+- Sourcekandidat von bestätigtem main=mid-stable `.373` @ `05798c4134431a5fb0455ef5f71441b4a7051e38`; unabhängiger Design-Draft #524 bleibt erhalten. .375-Branch beim Abgleich identisch mit Stable. Kein ZIP im Source-PR.
+- Vier disjunkte vollständige Installer-Core-Shards auf demselben event-/SHA-/Manifest-/Byte-gebundenen Snapshot; Build/Audit/Worker-Syntax/iOS und sechs Heavy-Gruppen bleiben unverändert Pflicht. Aggregator verlangt alle vier Verifikationsgruppen erfolgreich. Normativer ergänzter Vertrag `MID_CHATGPT_GITHUB_CONTRACT.md`.
+- Read-only-Planung ausdrücklich für Draft-Kandidaten, ohne Ready-/Merge-Aktion: autorisierte Branchfamilie, exakte Basis/Head, vollständige Dateiliste einschließlich Rename-Quelle, erneute Metadaten-/Ref-Prüfung. Provenienzpilot bindet jeden Job an ID, Head und Run-Attempt und prüft nach dem Lesen erneut. Keine produktive Testergebnis- oder Buildartefaktwiederverwendung.
+- Fokussierte CI-/Diagnose-/Provenienztests lokal 33/33; reproduzierbare npm-Installation, Types/Produktionsbuild und Installer-/Security-/RUC-/Workflow-Sentinels erfolgreich. Vollständige lokale Core-/GitHub-Source-/Installer-/Pages-/Worker-/Stable-Abnahme separat nachweisen. Keine Laufzeitgarantie aus dem bisherigen Core-Pilot abgeleitet; Issue #526 bleibt bis attestierter A/B-Qualifikation offen.
+
 ## MID v0.9.85.373 · 30.10.2026 · Source-SHA-gebundene RUC-Wiederverwendung
 
 - **Aktuelle freigegebene Basis**: main=mid-stable=v0.9.85.372 @ `e8e8c60ecc36447dbd21cde239fac06d58314a7d`; #521 vollständig gemergt; Installer [41037391196](https://github.com/MeteoMartini/MID/actions/runs/41037391196) einschließlich Core, Heavy, Worker, Pages und Stable erfolgreich. Fünf Rulesets aktiv; offene Parallel-Drafts #425/#449/#480/#513 und Dependabot #474 nicht überschrieben.
