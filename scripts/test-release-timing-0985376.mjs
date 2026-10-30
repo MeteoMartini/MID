@@ -15,6 +15,11 @@ const sample = (id, name, conclusion='success') => ({
 test('skipped synthetic timestamps cannot extend or shrink measured execution',()=>{
   const run=sample(30,'Retry');run.jobs[2]={name:'Skipped retry',conclusion:'skipped',started_at:'2020-01-01T00:00:00Z',completed_at:'2030-01-01T00:00:00Z'};
   assert.equal(summarizeRun(run).durationSeconds,600);
+  assert.deepEqual(summarizeRun(run).longestJob,{name:'Core',seconds:600});
+});
+test('slowest execution and expensive steps include earlier attempts without skipped sentinels',()=>{
+ const run=sample(33,'Retry');run.previousAttemptJobs=[{name:'Earlier failed setup',conclusion:'failure',started_at:'2026-10-30T08:00:00Z',completed_at:'2026-10-30T08:30:00Z',steps:[{name:'Earlier npm',started_at:'2026-10-30T08:00:00Z',completed_at:'2026-10-30T08:20:00Z'}]}];
+ const report=summarizeRun(run);assert.deepEqual(report.longestJob,{name:'Earlier failed setup',seconds:1800});assert.equal(report.expensiveSteps[0].name,'Earlier npm');
 });
 test('retries include earlier cancelled work and gaps; retained success is counted once',()=>{
   const run=sample(31,'Retry');run.run_attempt=2;

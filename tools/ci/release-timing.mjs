@@ -63,10 +63,9 @@ export function summarizeRun(run) {
   const created = asMs(run.created_at);
   const queueSeconds = created !== null && start !== null && start >= created
     ? Math.round((start - created)/1000) : null;
-  const critical = jobs.filter(j => j.durationSeconds !== null)
-    .sort((a,b) => b.durationSeconds-a.durationSeconds)[0] ?? null;
-  const expensiveSteps = jobs.flatMap(job => job.steps.map(step => ({
-    job: job.name, name: step.name, seconds: step.seconds,
+  const critical = measured.slice().sort((a,b) => b.elapsed-a.elapsed)[0] ?? null;
+  const expensiveSteps = measured.flatMap(job => (Array.isArray(job.steps)?job.steps:[]).map(step => ({
+    job: String(job.name??'(unnamed)'), name: String(step.name??'(unnamed)'), seconds: seconds(step.started_at,step.completed_at),
   }))).filter(step => step.seconds !== null).sort((a,b) => b.seconds-a.seconds).slice(0,8);
   return {
     id: Number(run.id),
@@ -80,7 +79,7 @@ export function summarizeRun(run) {
     jobCount: jobs.length,
     incompleteJobs: incomplete,
     durationSeconds, queueSeconds,
-    longestJob: critical ? {name:critical.name, seconds:critical.durationSeconds} : null,
+    longestJob: critical ? {name:String(critical.name??'(unnamed)'), seconds:critical.elapsed} : null,
     expensiveSteps,
     // Reporting never interprets missing timestamps, runs or data as zero.
   };
