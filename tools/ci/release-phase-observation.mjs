@@ -74,7 +74,8 @@ export function analyzeRunPhases(run){
    const created=stamp(run.created_at);
    const starts=jobs.filter(j=>j.start!==null).map(j=>j.start);
    const first=starts.length?Math.min(...starts):null;
-   const valid=created!==null&&first!==null&&first>=created;
+   // Missing start on any executed job makes the earliest queue start unknowable.
+   const valid=created!==null&&first!==null&&jobs.every(j=>j.start!==null)&&first>=created;
    phases.queue={observed:valid?1:0,missing:valid?0:1,
       wallSeconds:valid?Math.round((first-created)/1000):null,
       spanSeconds:valid?Math.round((first-created)/1000):null,

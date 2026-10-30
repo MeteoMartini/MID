@@ -128,3 +128,12 @@ test('untrusted timing shape is refused and cannot be counted as clean',()=>{
  assert.throws(()=>analyzeRunPhases({jobs:[],previousAttemptJobs:{}}),/Invalid previous attempt/);
  assert.throws(()=>analyzePhaseCohort({}),/Invalid phase cohort/);
 });
+
+test('missing start on an executed sibling invalidates queue rather than shortening it',()=>{
+ const r=run(15,[job('Source-Kern vollständig prüfen',0,2),
+  job('Core-Regression · core-2/4',null,4)]);
+ const p=analyzeRunPhases(r).phases.queue;
+ assert.equal(p.wallSeconds,null);
+ assert.equal(p.missing,1);
+ assert.equal(analyzePhaseCohort([r]).summary.queue.measuredRuns,0);
+});
