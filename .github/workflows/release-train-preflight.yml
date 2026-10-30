@@ -1,0 +1,50 @@
+name: MID Release Train Preflight (read-only)
+run-name: SHA-geprüfte MID-Updatebündelung vorprüfen
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: 'Schema-1-JSON: stableSha, mainSha, changes:[{pr,headSha}]'
+        required: true
+        type: string
+
+# Planning only. No workflow can merge, build production or deploy.
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: mid-release-train-preflight
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Änderungen gegen den aktuellen GitHub-Stand prüfen
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Integrationswerkzeuge laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Integritäts- und Konflikt-Negativtests
+        run: node --test scripts/test-release-train-plan-0985376.mjs
+      - name: Kandidaten ohne Schreibrechte prüfen
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PLAN_MANIFEST: ${{ inputs.manifest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$PLAN_MANIFEST" > "$RUNNER_TEMP/mid-release-train-plan.json"
+          node tools/ci/release-train-plan.mjs "$RUNNER_TEMP/mid-release-train-plan.json" "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/mid-release-train-result.json"
+          {
+            echo '### MID Release Train – rein lesende Vorprüfung'
+            echo
+            echo 'Dies ist kein Merge-, Gate- oder Deploymentnachweis.'
+            echo
+            echo '~~~json'
+            cat "$RUNNER_TEMP/mid-release-train-result.json"
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
