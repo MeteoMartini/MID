@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.372",
+  "releaseVersion": "0.9.85.373",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -3820,7 +3820,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.372",
+  "version": "0.9.85.373",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
@@ -3984,7 +3984,8 @@
     "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
     "docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md",
     "docs/implementation/MID_C53_OPENMETEO_BOM_371.md",
-    "docs/implementation/MID_C53_MAP_AVAILABILITY_372.md"
+    "docs/implementation/MID_C53_MAP_AVAILABILITY_372.md",
+    "docs/implementation/MID_C53_RUC_RESUME_PREFLIGHT_373.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",
