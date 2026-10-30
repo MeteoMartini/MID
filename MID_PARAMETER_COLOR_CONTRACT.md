@@ -136,3 +136,7 @@ Regression: `scripts/test-appwide-line-semantics-0985374.mjs`; die historische B
 ### v0.9.85.374 · Kontrastabsicherung zentraler Basisfarben
 
 Für sinntragende Profillinien und Legenden gilt WCAG 2.2 SC 1.4.11 (mindestens 3:1 gegenüber angrenzenden Flächen). Gegen `--bg`, `--surface`, `--s2` und `--s3` werden drei bisher knapp unzureichende Farben innerhalb ihrer Farbfamilien kontrastverstärkt: `--param-pressure` in Dark `#8469be`, `--param-precipitation-snow` in Light `#418bb6`, `--param-sunshine` in Light `#a77c00`. Kein Eingriff in amtliche Warnfarben, originale WMS-Providerpaletten oder fachliche Rasterwerte. Statischer Tokenkontrast ersetzt keine Prüfung von Transparenz, Antialiasing oder tatsächlicher Hintergrundüberlagerung im Browser.
+
+### v0.9.85.374 – 14-Tage-Ensemble-Lücken sind keine Linien
+
+In 14d-Ensemble-Diagrammen werden fehlende Temperatur-/Wind-/Klimadaten nicht mit `connectNulls` überbrückt. Die Fachidentität der 14d-ENS-, Klima-, Quantil- und Niederschlagskurven bleibt unabhängig vom 24h-Linienvertrag. Fehlende Kumulativwerte sind weder 0 mm noch auf fachlich unsichere Weise interpolierte Summen; echte trockene Tage behalten 0 mm. Die gleiche Ansicht gilt auch in Widgets/Exporten, die den gemeinsamen Ensemble-Renderer verwenden.
