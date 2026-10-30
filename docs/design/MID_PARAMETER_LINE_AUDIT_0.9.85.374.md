@@ -15,3 +15,7 @@ Source of Truth: veröffentlichte .373 @ `05798c4134431a5fb0455ef5f71441b4a7051e
 
 ## Abnahme und offene Folgearbeit
 Ein Git-Diff/Code- und Strukturtest ist keine echte Browser-/iOS-/VoiceOver-Abnahme. Erst Source-Gates, tatsächliche Desktop-/Tablet-/Mobil-Renderprüfungen, Worker-/Pages-Installer und Stable-Promotion dürfen als reale Erfolge dokumentiert werden. Diese Tranche ist noch kein vollständiger auditierter Zustand der Karten, 14d-Ensembles, Fachmodule, Widgets oder Exporte. Master-Audit #523; Persistenz #508; CSS-Budget #344; Kartendaten #446. Der Releasepfad darf nicht verkürzt werden.
+
+
+## Ergänzung: Basisfarben und Nichttextkontrast
+Die Kontrastmessung gegen vier Light-/Dark-Flächen ergab vorher die Mindestwerte 2,58:1 (Schneephase Light), 2,62:1 (Sonnenschein Light) und 2,94:1 (Luftdruck Dark). Mit den gezielt angepassten Tokens werden für diese drei Basisfarben auf allen geprüften Flächen mindestens 3:1 erreicht; der neue Pflichtregressionstest ermittelt die WCAG-Ratio aus Theme-Variablen und weist Änderungen unter 3:1 zurück. Mischfarben und tatsächliche Diagrammrenderings bleiben gesondert abzunehmen.

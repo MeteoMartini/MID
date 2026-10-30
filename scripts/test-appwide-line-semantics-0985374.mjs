@@ -37,4 +37,21 @@ assert.ok(cockpit.includes('className="temperature" style={{background:temperatu
 assert.ok(css.includes('.cockpit-meteogram-pro__legend i.temperature{width:24px;height:4px;border-radius:999px;background:var(--param-temperature)}'),'legend fallback must retain canonical token');
 assert.ok(cockpit.includes("style={{...parameterLineStyle('temperature'),stroke:`url(#${temperatureGradientId})`}} className=\"temperature-line\" d={actualPath}"),'temperature gradient must override generic stroke within same CSS style');
 assert.ok(!cockpit.includes("style={parameterLineStyle('temperature')} className=\"temperature-line\" d={actualPath} stroke="),'no ineffective SVG presentation stroke override');
+
+const foundation=read('src/styles-src/00-foundation.css');
+const darkTheme=foundation.split(':root{')[1]?.split('}')[0],lightTheme=foundation.split(':root[data-theme=light]{')[1]?.split('}')[0];
+assert.ok(darkTheme&&lightTheme,'both theme roots exist');
+const hex=(root,token)=>{const raw=root.split('--'+token+':')[1]?.split(';')[0];assert.ok(/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(raw),'hex color '+token);const c=raw.slice(1);return c.length===3?c.split('').map(x=>x+x).join(''):c};
+const luminance=(color)=>{const weights=[.2126,.7152,.0722];return [0,2,4].reduce((sum,index,i)=>{const channel=parseInt(color.slice(index,index+2),16)/255,linear=channel<=.04045?channel/12.92:((channel+.055)/1.055)**2.4;return sum+weights[i]*linear},0)};
+const contrast=(a,b)=>{const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+for(const [theme,root] of [['dark',darkTheme],['light',lightTheme]]){
+ for(const param of ['pressure','precipitation-snow','sunshine']){
+  const foreground=hex(root,'param-'+param);
+  for(const background of ['bg','surface','s2','s3']){
+   const ratio=contrast(foreground,hex(root,background));
+   assert.ok(ratio>=3,'nontext contrast <3:1 '+theme+'/'+param+'/'+background+': '+ratio.toFixed(2));
+  }
+ }
+}
+
 console.log('MID app-wide line/legend semantic regression passed');

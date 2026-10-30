@@ -131,3 +131,8 @@ Im 24-h-Wetterprofil und im aufgeklappten 7-Tage-Tagesdetail liefern die sieben 
 Legende und Tooltipmarker müssen sowohl Token als auch Muster der tatsächlich gezeichneten Linie übernehmen. 14d-Ensemble-, Karten-Isolinien-, synoptische und originale WMS-Darstellungen behalten ihre fachlichen Spezialkonventionen; sie werden nicht blind nach gewöhnlichen Profillinien umgestaltet. Farben dürfen nicht alleinige Unterscheidungsmerkmale sein (WCAG 2.2 SC 1.4.1). Modellwerte, Quellen, Warnung, Zeit-/Akkumulationssemantik und Nutzerpräferenzen bleiben unverändert.
 
 Regression: `scripts/test-appwide-line-semantics-0985374.mjs`; die historische Böen-Muster-Erwartung in `scripts/test-parameter-color-contract-097711.mjs` wird gezielt auf 9px korrigiert, ohne andere Schutzbehauptungen abzuschwächen.
+
+
+### v0.9.85.374 · Kontrastabsicherung zentraler Basisfarben
+
+Für sinntragende Profillinien und Legenden gilt WCAG 2.2 SC 1.4.11 (mindestens 3:1 gegenüber angrenzenden Flächen). Gegen `--bg`, `--surface`, `--s2` und `--s3` werden drei bisher knapp unzureichende Farben innerhalb ihrer Farbfamilien kontrastverstärkt: `--param-pressure` in Dark `#8469be`, `--param-precipitation-snow` in Light `#418bb6`, `--param-sunshine` in Light `#a77c00`. Kein Eingriff in amtliche Warnfarben, originale WMS-Providerpaletten oder fachliche Rasterwerte. Statischer Tokenkontrast ersetzt keine Prüfung von Transparenz, Antialiasing oder tatsächlicher Hintergrundüberlagerung im Browser.
