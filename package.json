@@ -567,7 +567,8 @@
     "test:snow-exposure": "node scripts/test-snow-exposure-0985369.mjs",
     "test:ruc-resume-watchdog": "node scripts/test-ruc-resume-watchdog-0985370.mjs",
     "test:release-timing-ci": "node --test scripts/test-release-timing-0985376.mjs",
-    "test:release-train-ci": "node --test scripts/test-release-train-plan-0985376.mjs"
+    "test:release-train-ci": "node --test scripts/test-release-train-plan-0985376.mjs",
+    "test:source-gate-evidence-ci": "node --test scripts/test-source-gate-evidence-0985376.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.2",
