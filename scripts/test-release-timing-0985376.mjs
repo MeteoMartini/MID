@@ -128,3 +128,35 @@ test('invalid workflow identities and absence of real completed runs fail closed
     await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']])),/No completed/);
   }finally{globalThis.fetch=original}
 });
+
+test('A failed run never consumes the quota of successful runs for P50/P95',async()=>{
+ const original=globalThis.fetch;
+ try{
+  globalThis.fetch=async(url)=>{
+   if(String(url).includes('/actions/workflows/install-mid.yml/runs?'))
+    return {ok:true,json:async()=>({workflow_runs:[
+      {...sample(201,'Installer','failure'),path:'.github/workflows/install-mid.yml',event:'workflow_dispatch',status:'completed'},
+      {...sample(202,'Installer','success'),path:'.github/workflows/install-mid.yml',event:'workflow_dispatch',status:'completed'},
+    ]})};
+   if(String(url).includes('/actions/runs/201/jobs?')||String(url).includes('/actions/runs/202/jobs?'))
+    return {ok:true,json:async()=>({jobs:sample(201,'any').jobs})};
+   throw Error('Unexpected path '+url);
+  };
+  const runs=await githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']]));
+  assert.equal(runs.length,2);
+  const summary=summarizeCohort(runs).byWorkflow['install-mid.yml'];
+  assert.equal(summary.successful,1);
+  assert.equal(summary.failureCount,1);
+  assert.equal(summary.p50Seconds,600);
+ }finally{globalThis.fetch=original}
+});
+test('an incomplete success sample is an explicit error, not an invented green P95',async()=>{
+ const original=globalThis.fetch;
+ try{
+  globalThis.fetch=async()=>({ok:true,json:async()=>({workflow_runs:[
+   {...sample(301,'Installer','failure'),path:'.github/workflows/install-mid.yml',
+    event:'workflow_dispatch',status:'completed'}
+  ]})});
+  await assert.rejects(githubRuns('MeteoMartini/MID',1,'',new Map([['install-mid.yml','workflow_dispatch']])),/Incomplete workflow sample/);
+ }finally{globalThis.fetch=original}
+});
