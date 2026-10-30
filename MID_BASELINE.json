@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.370",
+  "releaseVersion": "0.9.85.371",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1061,7 +1061,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-openmeteo-bom-retirement-0985371.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2112,7 +2113,8 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-openmeteo-bom-retirement-0985371.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3816,7 +3818,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.370",
+  "version": "0.9.85.371",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
@@ -3978,7 +3980,8 @@
     "docs/implementation/MID_C36_FULL_CALENDAR_SKYBAR_0.9.85.282.md",
     "docs/implementation/MID_18_2_45_POLYGON_FALLBACK_0.9.85.309.md",
     "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
-    "docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md"
+    "docs/implementation/MID_C45_FUSION_RESUME_0.9.85.335.md",
+    "docs/implementation/MID_C53_OPENMETEO_BOM_371.md"
   ],
   "testReports": [
     "MID_TEST_REPORT_0.9.77.23.md",

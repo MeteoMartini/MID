@@ -17,7 +17,8 @@ for(const token of ['kma_ldps','kma_gdps']){
 assert.ok(observations.includes("country==='KR'?['jma_msm','jma_seamless']"),'Südkorea-Fallback muss JMA MSM/Seamless verwenden.');
 assert.ok(!observations.includes("kma_ldps:'KMA LDPS"),'Veraltetes KMA-Label darf nicht im Hyperlokal-Pfad bleiben.');
 assert.ok(workerSource.includes("apiIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'"),'AROME HD 15-min muss vor dem stündlichen AROME-HD-Fallback aktiv sein.');
-assert.ok(!workerSource.includes("'jma_gsm','kma_gdps','bom_access_global'"),'Stale KMA-GDPS-Referenz darf nicht im globalIds-Auswahlpfad bleiben.');
+assert.ok(!workerSource.includes("'kma_gdps'"),'Stale KMA-GDPS-Referenz darf nicht im globalIds-Auswahlpfad bleiben.');
+assert.ok(!workerSource.includes("id:'bom_access_global'")&&!workerSource.includes("'bom_access_global'"),'Stillgelegtes deterministisches BOM ACCESS Global darf nicht im Worker-Selektor stehen.');
 for(const token of ["country==='KR'?['jma_msm','jma_seamless']","apiIds:['meteofrance_arome_france_hd_15min','meteofrance_arome_france_hd'"]){
  assert.ok((token.startsWith('country')?weather:worker).includes(token),`Generiertes Aggregat fehlt: ${token}`);
 }

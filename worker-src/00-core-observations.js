@@ -52,7 +52,7 @@ const DWD_KOSTRA_ASC_ROOT='https://opendata.dwd.de/climate_environment/CDC/grids
 const OPEN_METEO_FORECAST='https://api.open-meteo.com/v1/forecast';
 const OPEN_METEO_ENSEMBLE='https://ensemble-api.open-meteo.com/v1/ensemble';
 const MET_NORWAY_LOCATIONFORECAST='https://api.met.no/weatherapi/locationforecast/2.0/complete';
-const WORKER_VERSION='0.9.85.370';
+const WORKER_VERSION='0.9.85.371';
 const C3S_SEASONAL_POINT_SYSTEMS=[
  {centreId:'ecmwf',originatingCentre:'ecmwf',system:'51',modelKey:'ecmwf-seas5-51',independenceKey:'ecmwf-seas5-51',label:'ECMWF SEAS5'},
  {centreId:'ukmo',originatingCentre:'ukmo',system:'610',modelKey:'ukmo-glosea6-gc51-610',independenceKey:'ukmo-glosea6-gc51-610',label:'UK Met Office GloSea6-GC5.1'},
@@ -326,7 +326,6 @@ const FORECAST_FUSION_MODELS=[
  {id:'ukmo_global',apiIds:['ukmo_global_deterministic_10km'],label:'UKMO Global',family:'ukmo-global',independenceGroup:'ukmo',provider:'UK Met Office',tier:2,maxDays:7,updateHours:6,resolutionKm:10,latencyHours:4},
  {id:'gem_global',apiIds:['cmc_gem_gdps'],label:'GEM Global',family:'gem-gdps',independenceGroup:'cmc-gem',provider:'Environment Canada',tier:3,maxDays:10,updateHours:12,resolutionKm:15},
  {id:'jma_gsm',apiIds:['jma_gsm'],label:'JMA GSM',family:'jma-gsm',independenceGroup:'jma',provider:'JMA',tier:4,maxDays:11,updateHours:6,resolutionKm:55,consensusOnly:true},
- {id:'bom_access_global',apiIds:['bom_access_global'],label:'BOM ACCESS Global',family:'bom-access',independenceGroup:'bom',provider:'BOM',tier:3,maxDays:10,updateHours:6,resolutionKm:15,consensusOnly:true},
  {id:'cma_grapes_global',apiIds:['cma_grapes_global'],label:'CMA GRAPES Global',family:'cma-grapes',independenceGroup:'cma',provider:'CMA',tier:3,maxDays:10,updateHours:6,resolutionKm:15,consensusOnly:true},
  {id:'arpege_world',apiIds:['meteofrance_arpege_world'],label:'Météo-France ARPEGE World',family:'meteofrance-arpege-world',independenceGroup:'meteofrance',provider:'Météo-France',tier:3,maxDays:4,updateHours:6,resolutionKm:25,consensusOnly:true}
 ];
@@ -378,7 +377,7 @@ function forecastFusionSelection(lat,lon,country){
  // ergänzt. Varianten derselben Familie (z. B. IFS/AIFS oder ICON-Auflösungen)
  // kommen erst danach als Reichweiten-/Verfügbarkeitsfallback hinzu und erhalten
  // im Konsens trotzdem keine zweite Stimme.
- const globalIds=['ecmwf_ifs','gfs','icon_global','ukmo_global','gem_global','jma_gsm','bom_access_global','cma_grapes_global','arpege_world','ecmwf_aifs','aigfs'],globalRows=globalIds.map(id=>applicable.find(model=>model.id===id)).filter(Boolean),seenGroups=new Set(chosen.filter(model=>!model.anchor).map(model=>model.independenceGroup||model.family));
+ const globalIds=['ecmwf_ifs','gfs','icon_global','ukmo_global','gem_global','jma_gsm','cma_grapes_global','arpege_world','ecmwf_aifs','aigfs'],globalRows=globalIds.map(id=>applicable.find(model=>model.id===id)).filter(Boolean),seenGroups=new Set(chosen.filter(model=>!model.anchor).map(model=>model.independenceGroup||model.family));
  for(const model of globalRows){const group=model.independenceGroup||model.family;if(seenGroups.has(group))continue;add(model);seenGroups.add(group)}
  for(const model of globalRows)add(model);
  return chosen.slice(0,20);

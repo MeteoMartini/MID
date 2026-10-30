@@ -244,7 +244,6 @@ const globalForecastCandidates:ForecastCandidate[]=[
  {id:'ukmo_global_deterministic_10km',label:'UKMO Global 10 km',kind:'forecast',resolutionKm:10,forecastHorizonHours:168},
  {id:'cmc_gem_gdps',label:'GEM Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
  {id:'jma_gsm',label:'JMA GSM 55 km',kind:'forecast',resolutionKm:55,forecastHorizonHours:264},
- {id:'bom_access_global',label:'BOM ACCESS Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
  {id:'cma_grapes_global',label:'CMA GRAPES Global 15 km',kind:'forecast',resolutionKm:15,forecastHorizonHours:240},
  {id:'meteofrance_arpege_world',label:'Météo-France ARPEGE World',kind:'forecast',resolutionKm:25,forecastHorizonHours:96}
 ];
