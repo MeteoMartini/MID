@@ -90,3 +90,6 @@ test('Source optional remote npm cache cannot block exact Node setup or bypass m
 // Security qualification is executed by the existing mandatory parity test runner;
 // no production workflow, token permission or release gate is changed here.
 await import('../tools/ci/attested-reuse-policy.test.mjs');
+
+// Protected main-only signing pilot is qualified under the existing mandatory parity regression.
+await import('../tools/ci/protected-source-attestation.test.mjs');
