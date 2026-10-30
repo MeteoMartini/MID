@@ -24,7 +24,7 @@ assert.equal(worker,alias,'Worker output aliases must be byte-identical');
 assert.ok(worker.startsWith(workerSource),'Worker aggregate must begin with canonical source');
 assert.ok(weather.startsWith(source),'Weather aggregate must begin with canonical source');
 const models=worker.match(/const FORECAST_FUSION_MODELS=\[[\s\S]*?\n\];/)?.[0];
-const applies=worker.match(/function fusionModelApplies\([\s\S]*?\n\}/)?.[0];
+const applies=worker.match(/function fusionModelApplies\([^\n]+/)?.[0];
 const select=worker.match(/function forecastFusionSelection\([\s\S]*?\n\}/)?.[0];
 assert.ok(models&&applies&&select,'Actual Worker fusion-selector code must be identifiable');
 for(const [lat,lon,country] of [[50.9,7.2,'DE'],[-33.9,151.2,'AU'],[40.7,-74,'US']]){
