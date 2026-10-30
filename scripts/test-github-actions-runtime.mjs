@@ -35,7 +35,21 @@ for(const action of ['actions/checkout','actions/setup-node','actions/upload-pag
 const install=workflows['install-mid.yml']||'';
 const deploy=workflows['deploy.yml']||'';
 const audit=workflows['dependency-audit.yml']||'';
-for(const token of ['MID-professional-replacement.zip','npm run verify','npm run audit:dependencies','git push origin HEAD:main'])if(!install.includes(token))failures.push(`install-mid.yml: ${token} fehlt`);
+for(const token of ['MID-professional-replacement.zip','npm run audit:dependencies','git push origin HEAD:main'])if(!install.includes(token))failures.push(`install-mid.yml: ${token} fehlt`);
+const core=install.split('  verify_core:')[1]?.split('  verify_core_shards:')[0]||'';
+const shards=install.split('  verify_core_shards:')[1]?.split('  verify_heavy:')[0]||'';
+const collector=install.split('  install_build:')[1]?.split('  deploy_worker:')[0]||'';
+for(const token of ['npm run build','node --check worker/metar-proxy.js','npm run audit:dependencies'])
+ if(!core.includes(token))failures.push('install-mid.yml: Core-Build/Syntax/Audit fehlt: '+token);
+for(const token of ['npm run build','npm run test:regressions','MID_REGRESSION_SHARD: ${{ matrix.shard }}','fail-fast: false','digest-mismatch: error','MID_SNAPSHOT_SHA'])
+ if(!shards.includes(token))failures.push('install-mid.yml: Core-Shard-Gate fehlt: '+token);
+for(const name of ['core-1/4','core-2/4','core-3/4','core-4/4'])
+ if(shards.split('shard: '+name).length!==2)failures.push('install-mid.yml: Core-Shard fehlt oder doppelt: '+name);
+if(!collector.includes("needs.verify_core_shards.result == 'success'") ||
+   !collector.includes('needs: [prepare_release, verify_core, verify_core_shards, verify_heavy]'))
+ failures.push('install-mid.yml: Vollständiger Core-/Heavy-Matrix-Success-Gate fehlt');
+if(shards.includes('continue-on-error')||!shards.includes('npm run test:regressions'))
+ failures.push('install-mid.yml: obligatorische Core-Shards können Fehler ignorieren');
 if(install.includes('actions/configure-pages@')||deploy.includes('actions/configure-pages@'))failures.push('configure-pages ist wieder aktiv; MID muss Pages ohne diesen zusätzlichen Codeload-Download veröffentlichen.');
 if(install.includes('Geprüfte MID-Workflows aktualisieren')||install.includes('rsync -a --delete --checksum "$source_dir/" .github/'))failures.push('install-mid.yml versucht weiterhin, Workflowdateien mit dem GITHUB_TOKEN selbst zu überschreiben.');
 if(!deploy.includes('paths-ignore:')||!deploy.includes('MID-professional-replacement.zip'))failures.push('deploy.yml: reiner ZIP-Upload wird nicht vom vorzeitigen Parallel-Deployment ausgeschlossen');
