@@ -10,7 +10,7 @@ Source of Truth: veröffentlichte .373 @ `05798c4134431a5fb0455ef5f71441b4a7051e
 - `src/parameterLineStyle.ts`: Böen 9/4 statt 5/4, damit UTCI 5/4 und Böen farbunabhängig unterscheidbar sind.
 - `src/App.tsx`: Sieben konkurrierende lokale SVG-Präsentationsattribute aus Tagesdetail entfernt; zentrale Rollen bestimmen die wirklichen Kurven.
 - `src/styles-src/30-modern.css`: Linienmuster in Legenden exakt an 24h- und Tagesdetailpfade angepasst, Tooltipmarker in Taupunkt-/Regen-/Wind-/Böen-/Druckfarben vereinheitlicht.
-- `src/ForecastCockpit.tsx`: Das SVG-Präsentationsattribut `stroke=` konnte den zentralen React-Inline-Style-`stroke` nicht überschreiben. Der dynamische Farbverlauf überschreibt `stroke` nun im selben Style-Objekt.
+- `src/ForecastCockpit.tsx`: Das SVG-Präsentationsattribut `stroke=` konnte den zentralen React-Inline-Style-`stroke` nicht überschreiben. Der dynamische Farbverlauf überschreibt `stroke` nun im selben Style-Objekt; die Temperaturlegende verwendet dieselben wertabhängigen Farbstopps statt einer willkürlichen statischen Dreifarbpalette.
 - Normativer Fachzusatz in `MID_PARAMETER_COLOR_CONTRACT.md`; Regression `scripts/test-appwide-line-semantics-0985374.mjs` und gezielte Anpassung einer historischen Gust-Muster-Erwartung.
 
 ## Abnahme und offene Folgearbeit

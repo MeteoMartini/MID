@@ -513,7 +513,7 @@
 .cockpit-meteogram-pro__legend{display:flex;flex-wrap:wrap;gap:7px 14px;color:var(--mg-muted);font-size:10px}
 .cockpit-meteogram-pro__legend span{display:inline-flex;align-items:center;gap:6px}
 .cockpit-meteogram-pro__legend i{display:inline-block;flex:0 0 auto}
-.cockpit-meteogram-pro__legend i.temperature{width:24px;height:4px;border-radius:999px;background:linear-gradient(90deg,#74b7d8,#ffe391,#f06a46)}
+.cockpit-meteogram-pro__legend i.temperature{width:24px;height:4px;border-radius:999px;background:var(--param-temperature)}
 .cockpit-meteogram-pro__legend i.apparent{width:24px;height:0;border-top:2px dashed var(--mg-apparent)}
 .cockpit-weather-profile .cockpit-meteogram-pro__legend i.apparent{width:24px;height:2px;border:0;background:repeating-linear-gradient(90deg,var(--apparent-line) 0 5px,transparent 5px 9px)}
 .cockpit-meteogram-pro__legend i.rain{width:8px;height:14px;border-radius:999px;background:var(--param-precipitation)}

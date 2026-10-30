@@ -33,6 +33,8 @@ for(const [name,token] of [['dew','--param-dewpoint'],['rain','--param-precipita
  assert.ok(css.includes('.cockpit-meteogram-pro__tooltip-content dt i.'+name+'{background:var('+token+')}'),'meteorological tooltip uses canonical token: '+name);
 }
 assert.ok(css.includes('border-top:3px solid var(--param-wind);border-right:3px solid var(--param-wind)'));
+assert.ok(cockpit.includes('className="temperature" style={{background:temperatureCurvePoints.length>1?`linear-gradient('),'temperature legend must consume dynamic 24h temperature samples');
+assert.ok(css.includes('.cockpit-meteogram-pro__legend i.temperature{width:24px;height:4px;border-radius:999px;background:var(--param-temperature)}'),'legend fallback must retain canonical token');
 assert.ok(cockpit.includes("style={{...parameterLineStyle('temperature'),stroke:`url(#${temperatureGradientId})`}} className=\"temperature-line\" d={actualPath}"),'temperature gradient must override generic stroke within same CSS style');
 assert.ok(!cockpit.includes("style={parameterLineStyle('temperature')} className=\"temperature-line\" d={actualPath} stroke="),'no ineffective SVG presentation stroke override');
 console.log('MID app-wide line/legend semantic regression passed');
