@@ -126,7 +126,7 @@ export function weatherMapProductFamily(product:WeatherMapProduct){
  return 'Weitere Wetterfelder';
 }
 
-export type WeatherMapCatalog={schema:'mid.weather-map-catalog.v1';checkedAt:string;providers:Record<string,'verified'|'unchecked'>;layers:Record<string,{status:'listed'|'absent';timeCount?:number;referenceCount?:number;elevationCount?:number;latestTime?:string}>};
+export type WeatherMapCatalog={error?:string;schema:'mid.weather-map-catalog.v1';checkedAt:string;providers:Record<string,'verified'|'unchecked'>;layers:Record<string,{status:'listed'|'absent';timeCount?:number;referenceCount?:number;elevationCount?:number;latestTime?:string}>};
 /** Unknown provider state never implies a missing layer. */
 export async function loadWeatherMapCatalog(signal?:AbortSignal):Promise<WeatherMapCatalog>{
  const value=await fetchWorkerJson<WeatherMapCatalog>('weather-map-catalog',{}, {purpose:'radar',signal,timeoutMs:16000,maxAgeMs:5*60000,staleIfErrorMs:15*60000,cacheKey:'weather-map-catalog:v1'});
@@ -150,5 +150,5 @@ export function weatherMapFrameReady(product:WeatherMapProduct,metadata:WeatherM
  if(!time||!Number.isFinite(Date.parse(time))||!weatherMapAvailableTimes(product,metadata).includes(time))return false;
  if(product.modelId!=='nowcastmix'&&(!referenceTime||!Number.isFinite(Date.parse(referenceTime))||!metadata.referenceTimes.includes(referenceTime)))return false;
  if(product.levelKind&&(!Number.isFinite(level)||!metadata.elevations.includes(level!)))return false;
- return product.modelId==='nowcastmix'||Date.parse(time)>=Date.parse(referenceTime);
+ return product.modelId==='nowcastmix'||(referenceTime!==undefined&&Date.parse(time)>=Date.parse(referenceTime));
 }
