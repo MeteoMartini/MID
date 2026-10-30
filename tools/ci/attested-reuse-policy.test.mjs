@@ -107,3 +107,78 @@ test('GitHub CLI requires exact signer, repository, source digest and ref, never
  assert.equal(called.args.includes('--format'),true);
  assert.throws(()=>verifyThroughGithubCLI(f.policy,'/tmp/source-report.json',{now:NOW,invoke:()=>{throw Error('signature invalid')}}),/signature invalid/);
 });
+
+
+// Independent GitHub REST run/job observation: the signed REPORT alone is never
+// accepted as evidence that required jobs actually executed on the right SHA.
+const {inspectSourceRun,observeSourceThroughGithubCLI}=await import('./source-run-observation.mjs');
+function sourceFixture(){
+ const policy=fixture().policy,run={id:policy.runId,run_attempt:policy.attempt,
+  event:'pull_request',path:'.github/workflows/chatgpt-pr-gate.yml',
+  status:'completed',conclusion:'success',head_sha:policy.sourceSha,
+  head_branch:'chatgpt/v0.9.85.378-evidence',
+  repository:{id:1305110795,full_name:policy.repo},
+  head_repository:{id:1305110795,full_name:policy.repo}};
+ const jobs=[...SOURCE_JOBS,'Agent-Quellstand vollständig prüfen',
+  'RUC +27h Kern, EPS und Gesamtpaket','Extremwetterpolygone · echte Browserpixel']
+  .map((name,i)=>({id:12000000000+i,name,run_id:policy.runId,
+   run_attempt:policy.attempt,head_sha:policy.sourceSha,
+   workflow_name:'MID-Agent-Quellstand prüfen',status:'completed',
+   conclusion:i<=SOURCE_JOBS.length?'success':'skipped'}));
+ return{policy,run,payload:{total_count:jobs.length,jobs}};
+}
+const checkSource=mutate=>{
+ const f=sourceFixture();mutate?.(f);
+ return inspectSourceRun(f.policy,f.run,f.payload,NOW);
+};
+test('actual GitHub Source run, all 11 jobs and final aggregator observed without reuse authority',()=>{
+ const a=checkSource();
+ assert.equal(a.mandatoryJobs,12);
+ assert.equal(a.observedJobIds.length,14);
+ assert.equal(a.releaseAuthorized,false);
+ assert.equal(a.reuseAuthorized,false);
+});
+for(const [name,mutate] of [
+ ['runId',f=>f.run.id++],['run attempt',f=>f.run.run_attempt++],
+ ['wrong workflow',f=>f.run.path='.github/workflows/other.yml'],
+ ['event',f=>f.run.event='workflow_dispatch'],
+ ['head SHA',f=>f.run.head_sha='f'.repeat(40)],
+ ['failed run',f=>f.run.conclusion='failure'],
+ ['fork',f=>f.run.head_repository.full_name='attacker/MID'],
+ ['wrong repository id',f=>f.run.repository.id=77],
+ ['wrong branch',f=>f.run.head_branch='main'],
+ ['missing core',f=>{f.payload.jobs.shift();f.payload.total_count--}],
+ ['missing aggregator',f=>{f.payload.jobs=f.payload.jobs.filter(x=>!x.name.startsWith('Agent-Quellstand'));f.payload.total_count=f.payload.jobs.length}],
+ ['failed heavy',f=>f.payload.jobs[7].conclusion='failure'],
+ ['skipped required',f=>f.payload.jobs[2].conclusion='skipped'],
+ ['stale attempt',f=>f.payload.jobs[3].run_attempt++],
+ ['wrong job SHA',f=>f.payload.jobs[4].head_sha='b'.repeat(40)],
+ ['cross-run',f=>f.payload.jobs[5].run_id++],
+ ['duplicate job ID',f=>f.payload.jobs[1].id=f.payload.jobs[0].id],
+ ['duplicate job name',f=>f.payload.jobs[1].name=f.payload.jobs[0].name],
+ ['partial pagination',f=>f.payload.total_count++],
+ ['unexpected new gate',f=>{f.payload.jobs.push({...f.payload.jobs[0],id:13999999999,name:'new required gate'});f.payload.total_count++}],
+ ['optional failure',f=>f.payload.jobs.at(-1).conclusion='failure'],
+ ['wrong job workflow',f=>f.payload.jobs[0].workflow_name='other'],
+ ['in progress',f=>f.payload.jobs[0].status='in_progress']
+]){
+ test('independent GitHub evidence rejects '+name,()=>assert.throws(()=>checkSource(mutate),/Source run evidence rejected/));
+}
+test('known conditional success/absence remains observable, never an implicit pass for core jobs',()=>{
+ assert.equal(checkSource(f=>f.payload.jobs.at(-1).conclusion='success').conditionalJobs,2);
+ assert.equal(checkSource(f=>{f.payload.jobs.pop();f.payload.total_count--}).conditionalJobs,1);
+});
+test('independent gh api reader makes exactly two authenticated GETs and retains no release authority',()=>{
+ const f=sourceFixture(),argsSeen=[];
+ const a=observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:(command,args,options)=>{
+  argsSeen.push({command,args,options});
+  assert.equal(command,'gh');assert.deepEqual(args.slice(0,3),['api','-X','GET']);
+  return JSON.stringify(args[3].includes('/jobs?')?f.payload:f.run);
+ }});
+ assert.equal(argsSeen.length,2);
+ assert.equal(argsSeen[0].args[3],'repos/MeteoMartini/MID/actions/runs/'+f.policy.runId);
+ assert.equal(argsSeen[1].args[3],'repos/MeteoMartini/MID/actions/runs/'+f.policy.runId+'/jobs?filter=latest&per_page=100');
+ assert.equal(a.reuseAuthorized,false);
+ assert.throws(()=>observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:()=>'{bad json'}));
+ assert.throws(()=>observeSourceThroughGithubCLI(f.policy,{now:NOW,invoke:()=>{throw Error('unauthorized')}}),/unauthorized/);
+});
