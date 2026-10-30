@@ -64,3 +64,28 @@ Die zehn jüngsten erfolgreichen, jeweils zum Workflow und Event passenden Läuf
 | Installer inkl. Worker/Pages/Promotion | 10 | 18,3 min | 22,8 min |
 
 Der Source-Gate-Run 41042447504 und Installer 41043980916 belegen einen konkreten Releasezyklus, sind aber noch kein vollständiger kryptografisch verknüpfter Timingbeleg. In der gesichteten Historie existieren außerdem abgebrochene Source-Läufe und fehlgeschlagene Installerläufe: solche Ergebnisse werden separat als Fehler-/Abbruchdiagnostik betrachtet, nicht als grüne Zeitprobe. Der read-only Auditor samplet jetzt nach kanonischem Workflowpfad und Event aus den jeweiligen workflow-spezifischen API-Endpunkten mit bounded Pagination und verlangt eine vollständige Erfolgsstichprobe, damit Skips keine falsche Messung erzeugen.
+
+## SHA-korrelierte historische Ende-zu-Ende-Messung (n=8)
+
+In neun anhand von GitHub-Bot-Logs zunächst aufgelösten Kandidaten wurden für acht **erfolgreiche** Releases diese konkreten Identitäten gegengeprüft: Source-Gate-Run mit PR-Head-SHA, im Bot-Run protokollierter exakt gleicher PR-Head und SHA-gebundener Squash-Merge, protokollierter Paket-Commit, Installer-Run des **identischen** Paket-Commits mit `workflow_dispatch` und erfolgreichem Abschluss. PR #511 hatte einen fehlgeschlagenen Installer und ist ausdrücklich **kein** Erfolgspunkt.
+
+| PR | Source-Gate-Run | Bot-Run | Installer-Run | Source→Installer (min) |
+|---|---:|---:|---:|---:|
+| #522 | 41042447504 | 41043939501 | 41043980916 | 30,9 |
+| #521 | 41035797997 | 41037357503 | 41037391196 | 34,7 |
+| #520 | 41026523238 | 41027789188 | 41027821734 | 32,7 |
+| #519 | 41016487911 | 41017701039 | 41017731341 | 30,4 |
+| #518 | 40965161189 | 40966734368 | 40966776369 | 30,9 |
+| #514 | 40934456612 | 40936650472 | 40936701732 | 35,9 |
+| #512 | 40904941352 | 40906877714 | 40906954670 | 35,0 |
+| #507 | 40866026109 | 40867601364 | 40867643184 | 32,9 |
+
+P50 **32,7 min**, P95 **35,9 min** als nächsthöherer Rang, gemessen von `Source.created_at` bis `Installer.updated_at`. Diese acht Werte ergänzen die unabhängige 10-er Phasenstichprobe, **sind nicht die Gesamtdauer von PR-Erstellung bis Nutzerfreigabe** und stammen ausschließlich vom *alten* Installer.
+
+## Wirklich ausgeführter vierfacher Core-Draft-Pilot
+
+Testworkflow ausschließlich für Draft-PR #525 und same-repo Branch, read-only `contents`; `actions/checkout` mit exaktem PR-Head-SHA; Node 22.16, Python 3.12, `npm ci`, `npm run build`, `MID_REGRESSION_SHARD=core-{1,2,3,4}/4` und `npm run test:regressions` ohne Secrets, Merge oder Deploy. Die erste Github-Runner-Matrix #41059320558 hat echte historisch nicht bemerkte Contract-Sentinel-Fehler reproduziert: `test-github-actions-runtime.mjs` verlangte den monolithischen Befehlsnamen statt dessen vollständiger drei Komponenten; `test-security-diagnostics-0985347.mjs` erwartete nur zwei Timingreporter. Diese Tests wurden mit **strengeren semantischen Invarianten** statt einer gelockerten Negativprobe aktualisiert.
+
+Der zweite GitHub-Pilot #41060283405 hat `core-1/4`, `core-2/4` und `core-3/4` erfolgreich abgeschlossen; `core-4/4` entdeckte den zusätzlichen Legacy-Sentinel `test-ruc-pages-free-storage-09700.mjs`. Der Test prüft jetzt bei vorübergehend älterem aktiven Installer entweder das *vollständige* bisherige `npm run verify`-/Core-/Heavy-Gate oder das *vollständige* neue Build-/Syntax-/Vier-Shard-/Hash-/Heavy-Success-Gate – die RUC-/Pages-Snapshot-, Memory-, Wiederherstellungs- und Deployverträge bleiben ansonsten unverändert. Die gesamte Matrix gilt bis zu einem neuen durchgehend grünen Live-Lauf als **nicht bestanden**.
+
+Nach einem erfolgreichen Test wird die temporäre nur auf PR #525 bezogene Runner-Matrix wieder aus dem dauerhaften `unit-coverage.yml`-Workflow entfernt. Der belegte, kontrollierte Vierfach-Installer bleibt dann ein **Draft-Kandidat**; reale Installer-/Worker-/Pages-/Stable-Abnahme und A/B-P95 sind noch offen. Kein Source-PR-Ready, keine Aktualisierung von Main/Stable, keine alten Prüfergebnisse als Freigabe übernommen.
