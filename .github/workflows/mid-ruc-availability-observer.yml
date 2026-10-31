@@ -1,0 +1,86 @@
+name: MID DWD RUC availability observation (read-only)
+on:
+  workflow_dispatch:
+  schedule:
+    # Observations are best-effort; true first availability is interval-censored.
+    # This job must not trigger, block or replace the 27h/20-EPS pipeline.
+    - cron: '3,18,33,48 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-availability-observer
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Geprüften Stable-Code ausschließlich lesend laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+      - name: SHA-gebundenen Stable/Main-Releasezustand vor jeder Probe prüfen
+        id: lineage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          checkout_sha="$(git rev-parse HEAD)"
+          main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          stable_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')"
+          [[ "$main_sha" =~ ^[a-f0-9]{40}$ && "$stable_sha" =~ ^[a-f0-9]{40}$ ]]
+          if [ "$checkout_sha" != "$main_sha" ] || [ "$checkout_sha" != "$stable_sha" ]; then
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::MID Releasefenster: DWD-/Pages-/Worker-Telemetrie ohne Stable=Main-Konsens ausgesetzt.'
+          else
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Standard-Python für indexbasierten DWD-Probe laden
+        if: steps.lineage.outputs.ready == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Negativtests ohne DWD-Netz ausführen
+        if: steps.lineage.outputs.ready == 'true'
+        run: |
+          python tools/ruc/test_dwd_availability_observer.py
+          python tools/ruc/test_dwd_availability_report.py
+          python tools/ruc/test_ruc_freshness_shadow_gate.py
+          python tools/ruc/test_ruc_e2e_readback.py
+          python tools/ruc/test_ruc_weekly_e2e_observations.py
+      - name: DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten
+        if: steps.lineage.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/dwd_availability_observer.py --runs 2 --output "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl"
+          echo 'Read-only DWD directory sample collected; NO completeness/admission or actual first-publication time proved.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Öffentlichen Pages-/Worker-Readback separat erfassen (kein App-/SLO-Beweis)
+        if: steps.lineage.outputs.ready == 'true'
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+          MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--pages-base "$MID_RUC_PAGES_BASE_URL" --output "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json")
+          if [ -n "$MID_RUC_WORKER_HEALTH_URL" ]; then args+=(--worker-url "$MID_RUC_WORKER_HEALTH_URL"); fi
+          python tools/ruc/ruc_e2e_readback.py "${args[@]}"
+          echo 'Pages/Worker observational readback ONLY; no true publication-time, EPS-bitmap or App-adoption/SLO attestation.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Stichproben für sieben Tage auswertbar sichern
+        if: ${{ always() && steps.lineage.outputs.ready == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dwd-ruc-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dwd-observation-*.jsonl
+            ruc-e2e-*.json
+          retention-days: 14
+          if-no-files-found: warn
+          compression-level: 6

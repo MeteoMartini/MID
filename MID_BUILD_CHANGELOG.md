@@ -1,3 +1,11 @@
+## MID v0.9.85.388 · 2026-10-31 · RUC-Verfügbarkeit und Pages-/Worker-Readback beobachten
+
+- Gesicherte Releasebasis: v0.9.85.387 main=mid-stable SHA 83d5c1d9e7c0ce082242e71aec855d8319340169; Installer #41232575766 success, fünf aktive Rulesets.
+- Ein ausschließlich lesender DWD-/Pages-/Worker-Beobachtungsworkflow mit 15-min-Best-Effort-Schedule, identischen CI- und aktiven YAML-Blobs und 14-tägigen, eindeutigen Artefakten wird versioniert installiert.
+- 12 Datei-Blobs mit DWD-Directory-Observer, Readback, 168h-Auswertung, Shadow-Gates und fünf Python-Negativtests sind byteidentisch vom geprüften PR #542 SHA a75716f567e4cf321cfc648de7ba1c8375ea3368 übernommen; keine Übernahme der unveröffentlichten Fast-Publisher-Sourcen oder unautorisierten P4-Testdatei.
+- Beobachtete Verfügbarkeit ist intervallzensiert; fehlende Daten bleiben unbekannt. Das neue Diagnoserelease beweist weder vollständige DWD-GRIB-/EPS20-Verfügbarkeit noch 0–6h-Fast-Lane, App-/Widget-/Export-Refresh, GH/Cloudflare-Single-Flight oder ≤60-min-P95.
+- Nur das etablierte Source-PR-Gate→SHA-Bot→serverseitiges Release-ZIP→Installer→Worker/Pages→Stable darf veröffentlichen. Bestehender 27h/20-EPS-Lauf und DWD-Warnungen bleiben geschützt.
+
 ## MID v0.9.85.387 – Designaudit A3: 3h-/Tagesdaten und PoP-NoData
 
 - Basis: verifizierte v0.9.85.386, main=mid-stable @ b6eba7bea8a42bc78841955b3eeac8a392510d12, Installer #41218322192 erfolgreich. RUC-Draft #542 (.387) und KNMI-/Cleanup-Draft #543 bleiben unangetastet; vor ihrer eigenen Integration muss die dann neue Stable-/Versionseinordnung geprüft werden.

@@ -1,0 +1,89 @@
+name: MID RUC telemetry Python qualification (PR, read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'tools/ruc/dwd_availability_observer.py'
+      - 'tools/ruc/dwd_availability_report.py'
+      - 'tools/ruc/ruc_freshness_shadow_gate.py'
+      - 'tools/ruc/ruc_e2e_readback.py'
+      - 'tools/ruc/ruc_weekly_e2e_observations.py'
+      - 'tools/ruc/test_dwd_availability_observer.py'
+      - 'tools/ruc/test_dwd_availability_report.py'
+      - 'tools/ruc/test_ruc_freshness_shadow_gate.py'
+      - 'tools/ruc/test_ruc_e2e_readback.py'
+      - 'tools/ruc/test_ruc_weekly_e2e_observations.py'
+      - 'ci/github/workflows/mid-ruc-availability-observer.yml'
+      - '.github/workflows/mid-ruc-availability-observer.yml'
+      - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
+      - '.github/workflows/mid-ruc-telemetry-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-telemetry-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  telemetry-python:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Exakten PR-Head ohne Credentials laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: GitHub-HEAD und Releaseversion prüfen
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
+          python3 - <<'PY'
+          import json
+          version=json.load(open('package.json'))['version']
+          assert version == json.load(open('MID_BASELINE.json'))['releaseVersion']
+          assert version == json.load(open('contracts/index.json'))['releaseVersion']
+          assert version == json.load(open('public/version.json'))['version']
+          print('Read-only telemetry version mirrors:',version)
+          PY
+      - name: Python 3.12 bereitstellen
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Node.js 22.16.0 für reproduzierbare MID-Versionsspiegel
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Alle MID-Versionen und kanonischen GitHub-Workflows unverändert regenerieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run sync-version
+          npm run sync:github-workflows
+          git diff --exit-code -- .
+          test -z "$(git status --porcelain)"
+          grep -Fq 'SHA-gebundenen Stable/Main-Releasezustand vor jeder Probe prüfen' ci/github/workflows/mid-ruc-availability-observer.yml
+          grep -Fq 'if: steps.lineage.outputs.ready == ' ci/github/workflows/mid-ruc-availability-observer.yml
+          grep -Fq 'contents: read' ci/github/workflows/mid-ruc-availability-observer.yml
+      - name: Python-Quellen und negative Readback-/Zeit-/Datenlückentests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ast
+          from pathlib import Path
+          for source in sorted(Path('tools/ruc').glob('*.py')):
+              ast.parse(source.read_text(encoding='utf-8'),filename=str(source))
+          PY
+          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py; do
+            python3 "tools/ruc/$test" -v
+          done
+          echo 'Only DWD directory observation/Pages/Worker readback reviewed; no GRIB/EPS/App/SLO or Fast-Publisher release authorization.' >> "$GITHUB_STEP_SUMMARY"

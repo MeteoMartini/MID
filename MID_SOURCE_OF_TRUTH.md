@@ -1,3 +1,17 @@
+# MID v0.9.85.388 · DWD-RUC-Verfügbarkeit und Pages-/Worker-Frische lesend beobachten
+
+**Ausgangsbasis:** `main=mid-stable` v0.9.85.387 bei SHA `83d5c1d9e7c0ce082242e71aec855d8319340169`, `install-mid.yml` #41232575766 vollständig `success`. Der unabhängige RUC-Entwicklungs-Draft #542 mit Head `a75716f567e4cf321cfc648de7ba1c8375ea3368` lieferte SHA-identische DWD-/Pages-/Worker-Beobachter-, Shadow-Qualifikations- und Testdateien. Die neue reine Messinfrastruktur wird auf dem bestätigten Stable-Code integriert; P2/P4/P5-Produktivteile verbleiben auf Draft.
+
+**Meteorologische Korrektheit:** Verzeichnisanzeige belegt nicht die amtliche DWD-Erstpublikation. Poll-Abstände, lückenhafte GRIB-/EPS-Aussagen, tatsächliche Seiten-/Worker-Sichtbarkeit und nachgewiesene Endnutzer-App-Adoption sind getrennt; fehlende Daten werden niemals zu 0/„trocken“ umgedeutet. Die Diagnostik darf keine Warnungen, Modellfusion oder Fast-Lane-Pointer beeinflussen.
+
+**Sicherheit:** Der neue 15-Minuten-Beobachtungsworkflow besitzt ausschließlich `contents: read`, schreibgeschützte Fremddatenproben, maximal 14 Tage Retention, keine eigenen Secrets, keine Workflow-Dispatch-, Worker-/Pages- oder Stable-Schreiboperation und gibt ausdrücklich kein ≤60-min-Produktions-SLO frei. Die bestehende 27h-/20-EPS-RUC-Produktion bleibt unverändert.
+
+**Unverändert offene Aufgabe:** P2 echte aktive Fast-Lane-Atomizität/Rollback/Client-Parität; P4 authentische datengetriebene und doppeltabgeglichene Single-Flight-Steuerung einschließlich bereits extern gesperrter Tests; P5 168h historische Livebeobachtungen, P50/P90/P95 und App-/Widget-/Export-Adoption. Kein Source-Gate darf diese separaten Freigaben ersetzen.
+
+**Releasepfad:** Nur SHA-gebundenes Source-PR-Gate → MID-Release-Bot → serverseitiges ZIP → `install-mid.yml` → Worker-/Pages-Prüfung → Stable-Promotion. Keine parallelen Design-PRs überschreiben; alle 1.059 bestehenden Regressionen bleiben verpflichtend.
+
+---
+
 # MID v0.9.85.387 · Designaudit A3: vollständige Tagesintervalle und PoP-NoData (Source-Kandidat)
 
 **Verifizierte Basis:** v0.9.85.386 `main=mid-stable` SHA `b6eba7bea8a42bc78841955b3eeac8a392510d12`, Installer #41218322192 vollständig erfolgreich. Separater `chatgpt/v0.9.85.387-design-a3-precipitation-integrity`-Integrationskandidat; bis nach vollständig erfolgreicher Promotion **keine veröffentlichte Stable-Version .387**. Der parallele RUC-.387-Draft #542 bleibt gesichert und bedarf vor einem eigenen Release einer neuen Versions-/Stable-Koordination.
