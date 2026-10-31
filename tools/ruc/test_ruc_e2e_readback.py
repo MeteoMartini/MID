@@ -26,6 +26,17 @@ class Tests(unittest.TestCase):
         x=inspect_readback(pages(),worker(),'2026-10-31T11:00:00Z')
         self.assertTrue(x['sameRun']);self.assertIsNone(x['appAdopted']);self.assertFalse(x['productionSloAuthorized'])
         self.assertEqual(x['runAgeMinutes'],60)
+    def test_future_dated_run_is_not_valid_freshness(self):
+        x=inspect_readback(pages(),worker(),'2026-10-31T09:59:59Z')
+        self.assertFalse(x['pagesValid'])
+        self.assertFalse(x['sameRun'])
+        self.assertIsNone(x['runAgeMinutes'])
+    def test_ambiguous_observation_timestamp_rejected(self):
+        with self.assertRaisesRegex(ValueError,'explicit UTC Z'):
+            inspect_readback(pages(),worker(),'2026-10-31T11:00:00+00:00')
+    def test_invalid_observation_timestamp_rejected(self):
+        with self.assertRaisesRegex(ValueError,'invalid UTC'):
+            inspect_readback(pages(),worker(),'2026-13-31T11:00:00Z')
     def test_shifted_hour(self):
         p=pages();p['deterministic']['times']=AXIS[:-1]
         self.assertFalse(inspect_readback(p,worker(),'2026-10-31T11:00:00Z')['sameRun'])
