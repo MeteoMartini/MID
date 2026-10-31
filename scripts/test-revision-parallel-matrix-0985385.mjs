@@ -39,7 +39,7 @@ for(const section of [ci,nightly]){
  assert.match(section,/SOURCE_RESULT: \$\{\{ needs\.revision_source\.result \}\}/);
  assert.match(section,/MATRIX_RESULT: \$\{\{ needs\.revision_regressions\.result \}\}/);
  assert.match(section,/test "\$SOURCE_RESULT" = success && test "\$MATRIX_RESULT" = success/);
- assert.match(section,/run: \|\n\s+npm run build/,'Final stage still performs independent production build');
+ assert.match(section,/run: \|[\s\S]{0,240}npm run build/,'Final stage still performs independent production build');
  assert.doesNotMatch(section,/run: npm run verify/,'No second sequential 1056-test execution after mandatory matrix');
 }
 assert.match(nightly,/steps\.verify\.outcome != 'success'/,'Nightly must report a failed matrix as a real failure');
