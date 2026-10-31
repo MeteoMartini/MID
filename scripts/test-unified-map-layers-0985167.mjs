@@ -21,8 +21,30 @@ assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T03
 assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T04:31:00Z')),undefined);
 globalThis.localStorage={getItem:()=>JSON.stringify({enabled:true,parameter:'gust',modelId:'icon-d2',opacity:200,hours:9,selectionMode:'model'})};
 assert.deepEqual(c.readUnifiedMapSettings(),{enabled:true,parameter:'gust',modelId:'icon-d2',opacity:100,hours:24,isobars:false,level:500,selectionMode:'model',presentation:'auto'});delete globalThis.localStorage;
+// WMS legends must be the provider's permitted original GetLegendGraphic, never guessed from map colors.
+const legendSource=read('src/wmsProviderLegend.ts').replace(/^import .*?;\n/gm,'');
+const legendJs=ts.transpileModule(`const WEATHER_MAP_PRODUCTS=[{layer:'dwd:Icon_reg025_fd_sl_T2M'},{layer:'GDPS_15km_TotalCloudCover',provider:'geomet'}];const weatherMapWmsProxy=provider=>'https://mid.example/worker?mode=weather-map-wms&provider='+provider;${legendSource}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const legend=await import('data:text/javascript;base64,'+Buffer.from(legendJs).toString('base64'));
+const dwdMap={layer:'dwd:Icon_reg025_fd_sl_T2M',id:'icon-t2m'};
+const nativeMap={...dwdMap,source:'native'};
+const ecccMap={layer:'GDPS_15km_TotalCloudCover',id:'gdps-cloud',provider:'geomet'};
+const legendUrl=new URL(legend.wmsProviderLegendUrl(dwdMap,'temp_fill'));
+assert.equal(legendUrl.searchParams.get('request'),'GetLegendGraphic');
+assert.equal(legendUrl.searchParams.get('layers'),dwdMap.layer);
+assert.equal(legendUrl.searchParams.get('styles'),'temp_fill');
+assert.equal(legendUrl.searchParams.get('format'),'image/png');
+assert.equal(legendUrl.searchParams.get('provider'),'dwd');
+assert.equal(new URL(legend.wmsProviderLegendUrl(ecccMap,'')).searchParams.get('provider'),'geomet');
+assert.equal(legend.wmsProviderLegendUrl(nativeMap,'temp_fill'),'','Native model fields use their own numerical legend');
+assert.equal(legend.wmsProviderLegendUrl({...dwdMap,layer:'unapproved:layer'},''),'','Unapproved WMS layers cannot request a legend');
+assert.equal(legend.wmsProviderLegendUrl(dwdMap,'../../unsafe'),'','Unexpected styles cannot be used');
+assert.ok(read('src/WmsProviderLegend.tsx').includes('Originallegende derzeit nicht verfügbar'),'Provider failures must never fabricate a scale');
+assert.ok(read('src/WmsProviderLegend.tsx').includes('loading="lazy"'),'Unopened map legends must not eagerly load imagery');
+assert.ok(read('src/UnifiedWeatherMap.css').includes('.unified-wms-provider-legend summary{min-height:44px'),'Mobile WMS legend disclosure must have 44px touch target');
+
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
+assert.ok(panel.includes('wmsProviderLegendUrl(wmsProduct,wmsStyle)')&&panel.includes('loadedWms.has(wmsSelectedKey)'),'Only the displayed, confirmed WMS product may display its provider legend');
 for(const token of ['loadNativeField','loadTotals','ModelMapProbe','synopticAt','exportNativeField','exportTotals','writeDurableStorageValue','fieldCache.current.size>8'])assert.ok(panel.includes(token),token);
 assert.ok(radar.includes('unified?.overlay')&&radar.includes('unified?.controls')&&radar.includes('if(unified||!fallbackNeeded'));
 assert.ok(radar.includes("visibleModelLines:ModelLineMode=unified?'off'"),'Old synoptic must be absent in unified route');
