@@ -24,6 +24,9 @@ export function classifyKnmiPublicStatus(cache,capabilities,health,expectedVersi
  if(!flags.every(isBool))throw new Error('Notwendige KNMI-Konfigurationsflags fehlen');
  if(cache.productionReady!==(cache.openDataConfigured&&cache.decoderConfigured))throw new Error('Widersprüchliche KNMI-Produktionsbereitschaft');
  if(model.configured!==cache.decoderConfigured)throw new Error('Widerspruch zwischen KNMI-Decoder- und Regionalensemble-Konfiguration');
+ const provider=health.providers;
+ if(!isBool(provider?.['KNMI HARMONIE EPS point adapter'])||!isBool(provider?.['KNMI HARMONIE EPS productive cache']))throw new Error('KNMI-Providerstatus fehlt im allgemeinen Worker-Health');
+ if(provider['KNMI HARMONIE EPS point adapter']!==model.configured||provider['KNMI HARMONIE EPS productive cache']!==cache.configured)throw new Error('Widerspruch zwischen KNMI-Providerstatus und spezifischen Health-Flags');
  const ts=Date.parse(health.timestamp||'');
  if(!Number.isFinite(ts)||Math.abs(Date.now()-ts)>10*60*1000)throw new Error('Worker-Health-Zeitstempel fehlt oder ist nicht frisch');
  let configuration='decoder-not-configured';
