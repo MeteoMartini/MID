@@ -37,7 +37,7 @@ for(const token of ['ECMWF_TEMPERATURE_STOPS','export function ecmwfTemperatureC
 for(const token of [
  'hourly=(presentationReady?hours:precipitationPresentationHours(hours)).filter(hour=>visibleDateIndex.has(hour.time.slice(0,10)))',
  'hourPosition=(hour:Hour)',
- 'amount:Math.max(parts.total,direct,components)',
+ 'amount:Math.max(parts.total,hour.precipitation,components)',
  'halfDayTicks=Array.from({length:visible.length*2+1}',
  "{hour%24===12?'12':'00'}",
  'seven-day-temperature-quantiles',
@@ -50,6 +50,8 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),`7-Tage-Kurvenkonzept unvollständig: ${token}`);
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(minTone.anomaly)'),'7-Tage-Cockpit darf keine Tmin-Klimaabweichung mehr anzeigen.');
 assert.ok(!cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('\nfunction ensembleSeries(')).includes('dailyTemperatureAnomalyLabel(maxTone.anomaly)'),'7-Tage-Cockpit darf keine Tmax-Klimaabweichung mehr anzeigen.');
+assert.ok(cockpit.includes('if(!isAvailablePrecipitation(hour.precipitation))return{hour,amount:Number.NaN}'),'Fehlende stündliche Niederschlagsmengen müssen als NoData erhalten bleiben.');
+assert.ok(cockpit.includes('Niederschlagsmenge nicht verfügbar`}</title></line>'),'7d-Stundenkurve muss fehlende Daten markieren.');
 const forecastRows=app.slice(app.indexOf('const forecastRowContents='),app.indexOf(' useEffect(()=>',app.indexOf('const forecastRowContents=')));
 assert.ok(forecastRows.includes("minTone=parameterTemperatureTone(d.min,'min',ecmwfTemperatureColors),maxTone=parameterTemperatureTone(d.max,'max',ecmwfTemperatureColors)"),'Klassische 7-Tage-Karten müssen ECMWF-Farbton verwenden.');
 assert.ok(!forecastRows.includes('<small>Min</small>')&&!forecastRows.includes('<small>Max</small>'),'Klassische 7-Tage-Karten zeigen seit v0.9.78.4 nur noch die Tmin/Tmax-Werte ohne zusätzliche Min/Max-Labels.');

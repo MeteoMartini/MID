@@ -10,7 +10,8 @@ assert.ok(!sky.includes('const rawX0=index===0?leftEdge:(prev+x)*0.5'),'Alte zen
 assert.ok(app.includes('xAt=(i:number)=>xEpoch(p[i].epoch)')&&app.includes("end=localIsoToEpoch(next+'T00:00',timezone)")&&app.includes('slotEndAt=(i:number)=>xEpoch(Math.min(detailAxis.end,Number(p[i].precipitationIntervalEndEpoch??(p[i].epoch+3600000))))'),'24-h-Achse reserviert 24:00 nicht als rechte Slotkante.');
 assert.ok(app.includes('slotRight=slotEndAt(i)')&&app.includes('barLeft=Math.max(left,slotLeft+barInset)'),'24-h-Niederschlagsbalken sind nicht im Vorwärtsslot verankert.');
 assert.ok(app.includes('probabilityCurvePoints=showProbability&&p.length')&&app.includes('monotoneSvgPath(probabilityCurvePoints)'),'24-h-Niederschlagswahrscheinlichkeit wird nicht aus den Vorwärtsslot-Ankern monoton geglättet.');
-assert.ok(cockpit.includes('probabilityCurvePoints=chartPoints.length')&&cockpit.includes('precipitationStartX')&&cockpit.includes('precipitationEndX')&&cockpit.includes('monotoneSvgPath(probabilityCurvePoints)'),'Wetterprofil-PoP verliert Intervallanker oder monotone Glättung.');
+assert.ok(cockpit.includes('probabilityCurvePoints=chartPoints.length')&&cockpit.includes('precipitationStartX')&&cockpit.includes('precipitationEndX')&&cockpit.includes("contiguousFinitePrecipitationSegments(probabilityCurvePoints).map(monotoneSvgPath).join(' ')"),'Wetterprofil-PoP verliert Intervallanker oder überbrückt Missing-Daten.');
+assert.ok(!cockpit.includes('probabilityPath=monotoneSvgPath(probabilityCurvePoints)'),'Eine monotone PoP-Kurve darf keine Lücken künstlich schließen.');
 assert.ok(contract.includes('19:00–20:00')&&contract.includes('18:30–19:30'),'Intervallgeometrie ist nicht im Vertrag abgesichert.');
 assert.equal(baseline.releaseVersion,pkg.version);
 for(const key of ['requiredRegressionTests','regressionTests','requiredTests','activeRegressionSuite'])assert.ok(baseline[key]?.includes(test),`${test} fehlt in ${key}.`);

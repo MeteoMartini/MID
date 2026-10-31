@@ -11,7 +11,8 @@ const need=(source,token,label=token)=>{if(!source.includes(token))failures.push
 need(cockpit,'spotlightPoints=timelinePoints.length?timelinePoints:previewPoints','24-h-Kacheln nutzen sichtbare Timeline');
 for(const token of ['peakGustPoint=spotlightPoints.reduce','peakRainPoint=spotlightPoints.reduce','peakWarmPoint=spotlightPoints.reduce','coolestPoint=spotlightPoints.reduce'])need(cockpit,token,'24-h-Extremwertbindung');
 need(cockpit,"item.precipitation===best.precipitation&&item.probability>best.probability",'Niederschlagstie-Break nach Wahrscheinlichkeit');
-need(cockpit,'{Math.round(peakRainPoint.probability)} % · {relativePointTime(peakRainPoint)}','Niederschlagskarte zeigt Wahrscheinlichkeit desselben Zeitpunkts');
+need(cockpit,'{shortTermKnownProbabilityLabel(peakRainPoint.probability)} · {relativePointTime(peakRainPoint)}','Niederschlagskarte zeigt geprüfte Wahrscheinlichkeit desselben Zeitpunkts');
+need(cockpit,'isAvailableProbability(probability)?`${Math.round(probability)} %`','Unbekannte 24h-Niederschlagswahrscheinlichkeit darf nicht als 0 % erscheinen');
 if(cockpit.includes('Math.max(...points.map(item=>item.probability))'))failures.push('Niederschlagskarte verwendet weiterhin den Gesamtdatensatz statt des 24-h-Zeitpunkts.');
 need(app,"const FAVORITES_UPDATED_AT_KEY='mid:favorites:updated-at'",'Favoriten-Revision');
 need(app,'function favoriteIdentityNamesEquivalent(a:Location|undefined|null,b:Location|undefined|null)','POI-Namensvarianten');
