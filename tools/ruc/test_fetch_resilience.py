@@ -185,12 +185,35 @@ class FetchResilience(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'initialization'):
                 fetch.validate_hourly_coverage([fixture], '2026-10-05T18:00', 0, 'T_2M')
 
+    def test_eps_header_inventory_fails_closed(self):
+        run='2026-10-05T18:00'
+        start=datetime(2026,10,5,18,tzinfo=timezone.utc)
+        complete=[(start+timedelta(hours=h),m) for h in range(28) for m in range(1,21)]
+        with patch.object(fetch,'eps_grib_headers',return_value=iter(complete)):
+            fetch.validate_eps_header_coverage([Path('eps.grib2')],run,27)
+        incomplete=[item for item in complete if item!=(start+timedelta(hours=19),4)]
+        with patch.object(fetch,'eps_grib_headers',return_value=iter(incomplete)),self.assertRaisesRegex(RuntimeError,'missing members.*4'):
+            fetch.validate_eps_header_coverage([Path('eps.grib2')],run,27)
+        with patch.object(fetch,'eps_grib_headers',return_value=iter(complete+[complete[0]])),self.assertRaisesRegex(RuntimeError,'duplicate member'):
+            fetch.validate_eps_header_coverage([Path('eps.grib2')],run,27)
+        with patch.object(fetch,'eps_grib_headers',return_value=iter(complete+[(start,0)])),self.assertRaisesRegex(RuntimeError,'unexpected member'):
+            fetch.validate_eps_header_coverage([Path('eps.grib2')],run,27)
+
+    def test_incomplete_eps_aborts_before_deterministic_and_optional_downloads(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            with patch.object(fetch,'stage_tree',return_value=['eps.grib2']) as stage,patch.object(fetch,'validate_eps_header_coverage',side_effect=RuntimeError('data-incomplete: RUC-EPS')),self.assertRaisesRegex(RuntimeError,'RUC-EPS'):
+                fetch.build_candidate(Mock(),'2026-10-05T18:00',root/'stage',root/'output',27)
+            self.assertEqual(stage.call_count,1)
+            self.assertIn('/icon-d2-ruc-eps/',stage.call_args.args[1])
+            self.assertFalse((root/'output').exists())
+
     def test_incomplete_core_aborts_before_optional_or_eps(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            with patch.object(fetch, 'stage_tree', return_value=['fake.grib2']) as stage, patch.object(fetch, 'validate_hourly_coverage', side_effect=RuntimeError('data-incomplete')), self.assertRaises(RuntimeError):
+            with patch.object(fetch, 'stage_tree', return_value=['fake.grib2']) as stage, patch.object(fetch, 'validate_eps_header_coverage'), patch.object(fetch, 'validate_hourly_coverage', side_effect=RuntimeError('data-incomplete')), self.assertRaises(RuntimeError):
                 fetch.build_candidate(Mock(), '2026-10-05T18:00', root/'stage', root/'output', 14)
-            self.assertEqual(stage.call_count, 1)
+            self.assertEqual(stage.call_count, 2)
             self.assertFalse((root/'output').exists())
 
 
