@@ -94,7 +94,12 @@ def _worker_readonly(worker, expected):
 
 def inspect_readback(pages, worker, observed_at):
     """Structural public comparison only; exact SHA/bitmap checks are producer gates."""
-    when=datetime.fromisoformat(observed_at.replace('Z','+00:00'))
+    if not isinstance(observed_at,str) or not observed_at.endswith('Z'):
+        raise ValueError('observation timestamp must be explicit UTC Z')
+    try:
+        when=datetime.fromisoformat(observed_at[:-1]+'+00:00')
+    except ValueError as error:
+        raise ValueError('invalid UTC observation timestamp') from error
     if when.tzinfo is None or when.utcoffset().total_seconds()!=0:
         raise ValueError('observation timestamp not UTC')
     result={'schema':'mid.ruc.e2e-readback-shadow.v1','observedAtUtc':observed_at,
@@ -106,8 +111,11 @@ def inspect_readback(pages, worker, observed_at):
     try:
         contract=_released_contract_readonly(pages)
         result['pagesRun']=contract['run']
+        elapsed=(when-model_time(contract['run'])).total_seconds()/60
+        if elapsed < 0:
+            raise ValueError('future-dated model run cannot be observed')
         result['pagesValid']=True
-        result['runAgeMinutes']=round((when-model_time(contract['run'])).total_seconds()/60,3)
+        result['runAgeMinutes']=round(elapsed,3)
     except (RuntimeError, ValueError, TypeError, KeyError, AttributeError):
         contract=None
     if contract is not None and isinstance(worker,dict):
