@@ -52,7 +52,6 @@ export const managedFiles=[
  ['workflows/deploy.yml','workflows/deploy.yml'],
  ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],
  ['workflows/mid-code-revision.yml','workflows/mid-code-revision.yml'],
- ['workflows/apply-private-analytics.yml','workflows/apply-private-analytics.yml'],
  ['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml'],
  ['workflows/mid-knmi-eps-rolling-manifest.yml','workflows/mid-knmi-eps-rolling-manifest.yml'],
  ['workflows/mid-knmi-eps-rolling-offset-smoke.yml','workflows/mid-knmi-eps-rolling-offset-smoke.yml'],
