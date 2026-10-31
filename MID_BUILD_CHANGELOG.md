@@ -1,3 +1,12 @@
+## MID v0.9.85.382 – Echtformatprüfung des EPS-Inventars vor großen RUC-Downloads
+
+- Ausgangsbasis v0.9.85.381, `main=mid-stable` @ `f91696cb3468730a4b4473c5ff1cc86b0ab57869`, fünf aktive GitHub-Rulesets und vollständiger Vorgängerinstaller.
+- RUC-Lauf 41171508327: DWD 04Z am 31.10.2026 unvollständig (EPS +19h ohne zehn Member), MID fiel auf 03Z zurück. Dies belegt die Lücke, nicht die generelle Ursache jedes Versorgungsproblems.
+- `fetch_and_build_ruc.py` staged EPS zuerst und validiert native ecCodes-Header (Modell-Lauf/Parameter/ValidTime/Member 1..20 für 0..27h), bevor deterministische, schnelle und optionale Felder heruntergeladen werden. Vollständiger nachgelagerter EPS-/Det-/Bitmap-/Grid-/NoData-/Codec-Prüfpfad bleibt bestehen.
+- `test_fetch_resilience.py` ergänzt Negativtests, die fehlende Member, Duplikate, fremde IDs und die frühzeitige Ablehnung prüfen. Die bisherige frühe Deterministikprüfung bleibt erhalten. Keine künstlichen Werte oder unsicheren Fallbacks.
+- Nachweis `docs/implementation/MID_RUC_EPS_EARLY_PREFLIGHT_382.md`. Zeitgewinn, DWD-Verfügbarkeit und produktive Frische sind erst nach echten Runs messbar; bis Source-PR-Gate, Bot, ZIP, Installer, Worker, Pages und Stable-Promotion nur unveröffentlichter Kandidat.
+- Andere Phasen von Issue #526 – geschützter produktiver Signaturlauf und echte A/B-Gleichwertigkeit – werden hier nicht frei- oder kurzgeschaltet.
+
 ## MID v0.9.85.381 – Phase 1/4: parallelisierungsbewusste CI-Messung
 
 - Vollständig freigegebene Ausgangsbasis v0.9.85.380: `main=mid-stable` @ `e6d70e1104bee5980ac5153fc99f59775756014e`, Installer 41123191600 success, alle Core-/Heavy-, Worker-/Pages-/Stable-Gates und fünf aktive Rulesets bestätigt.
