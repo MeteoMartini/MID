@@ -1,6 +1,6 @@
 import {lazy,memo,Suspense,useEffect,useState} from 'react';
 import {type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
-import {readMapWorkspaceView,saveMapWorkspaceView} from './mapWorkspaceState';
+import {MAP_WORKSPACE_VIEW_KEY,readMapWorkspaceView,saveMapWorkspaceView} from './mapWorkspaceState';
 import type {RadarNowcast,ThunderstormNowcast,WindUnit} from './weather';
 import './MapWorkspace.css';
 
@@ -24,9 +24,9 @@ type MapWorkspacePanelProps={
 function LoadingMapPanel(){return <section className="lazy-placeholder inner"><span>Kartenprodukt wird geladen …</span></section>}
 
 export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
- const[requestedProductId,setRequestedProductId]=useState<string|undefined>(()=>{try{if(localStorage.getItem('mid:unified-map:v1'))return undefined}catch{}return readMapWorkspaceView()==='models'?'icon-d2-precipitation-totals':undefined});
+ const[requestedProductId,setRequestedProductId]=useState<string|undefined>(()=>{try{if(localStorage.getItem('mid:unified-map:v1')||localStorage.getItem(MAP_WORKSPACE_VIEW_KEY)!=='totals')return undefined;readMapWorkspaceView();return'icon-d2-precipitation-totals'}catch{return undefined}});
  useEffect(()=>{
-  const handleChange=(event:Event)=>{const next=(event as CustomEvent<{view?:string}>).detail?.view;if(next==='totals'||next==='models'){saveMapWorkspaceView('totals');setRequestedProductId(`icon-d2-precipitation-totals:${Date.now()}`)}};
+  const handleChange=(event:Event)=>{const next=(event as CustomEvent<{view?:string}>).detail?.view;if(next==='models'){saveMapWorkspaceView('models');return}if(next==='totals'){saveMapWorkspaceView('totals');setRequestedProductId(`icon-d2-precipitation-totals:${Date.now()}`)}};
   window.addEventListener('mid:map-workspace-view',handleChange);
   return()=>window.removeEventListener('mid:map-workspace-view',handleChange);
  },[]);

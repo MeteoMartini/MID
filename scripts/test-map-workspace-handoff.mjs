@@ -15,6 +15,47 @@ assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('
 assert.ok(workspace.includes('mid:map-workspace-view')&&workspace.includes('requestedProductId'),'Historische Summen-/Modelleinstiege müssen erhalten bleiben.');
 assert.ok(weatherMaps.includes('<PrecipitationTotalsMap')&&weatherMaps.includes('isTotals?'),'Summenkarten müssen innerhalb der Modellkartenauswahl dargestellt werden.');
 assert.ok(state.includes("mid:map-workspace-view:v1")&&state.includes('readMapWorkspaceView')&&state.includes('saveMapWorkspaceView'),'Die Auswahl muss sitzungsübergreifend gespeichert werden.');
+
+// Run the real TypeScript handler and initializer with adversarial navigation/storage.
+const {createRequire}=await import('node:module');
+const vm=await import('node:vm');
+const ts=createRequire(import.meta.url)('typescript-strada');
+const initLine=workspace.split('\n').find(line=>line.includes('const[requestedProductId,setRequestedProductId]=useState<string|undefined>('));
+const handlerLine=workspace.split('\n').find(line=>line.includes('const handleChange=(event:Event)=>'));
+assert.ok(initLine&&handlerLine,'Karteninitialisierung/Navigation fehlen');
+const prefix='useState<string|undefined>(',initStart=initLine.indexOf(prefix)+prefix.length;
+assert.ok(initStart>=prefix.length);
+const initText=initLine.slice(initStart,initLine.lastIndexOf(');'));
+const compiled=ts.transpileModule('const initialState='+initText+';\n'+handlerLine+'\nexport {initialState,handleChange};',{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+const storage=new Map(),effects={views:[],products:[],migrations:0};
+const runtime={
+ exports:{},MAP_WORKSPACE_VIEW_KEY:'mid:map-workspace-view:v1',
+ localStorage:{getItem:key=>storage.get(key)??null},
+ readMapWorkspaceView:()=>{effects.migrations++;return'models'},
+ saveMapWorkspaceView:view=>effects.views.push(view),
+ setRequestedProductId:product=>effects.products.push(product),
+ Date:{now:()=>123456}
+};
+vm.runInNewContext(compiled,runtime);
+const {initialState,handleChange}=runtime.exports;
+storage.set('mid:map-workspace-view:v1','models');
+assert.equal(initialState(),undefined,'Modelleinstieg darf keine ICON-D2-Summen erzwingen');
+assert.equal(effects.migrations,0);
+storage.set('mid:map-workspace-view:v1','totals');
+assert.equal(initialState(),'icon-d2-precipitation-totals','Historischer Summeneinstieg bleibt erhalten');
+assert.equal(effects.migrations,1);
+storage.set('mid:unified-map:v1',JSON.stringify({parameter:'wind',modelId:'icon-eu'}));
+assert.equal(initialState(),undefined,'Gespeicherte Modell-/Parameterauswahl darf nicht migriert werden');
+assert.equal(effects.migrations,1);
+handleChange({detail:{view:'models'}});
+assert.deepEqual(effects.views,['models']);
+assert.deepEqual(effects.products,[],'Modelleinstieg darf kein Summenprodukt anfordern');
+handleChange({detail:{view:'radar'}});
+assert.deepEqual(effects.views,['models']);
+handleChange({detail:{view:'totals'}});
+assert.deepEqual(effects.views,['models','totals']);
+assert.deepEqual(effects.products,['icon-d2-precipitation-totals:123456']);
+
 assert.ok(app.includes("function dashboardSectionAlias(id:DashboardModuleId):DashboardModuleId{return id==='weather-maps'?'composite':id}"),'Der alte Wetterkarten-Einstieg muss als Alias zur gemeinsamen Kartenansicht funktionieren.');
 assert.ok(app.includes("if(id==='weather-maps'){saveMapWorkspaceView('models')"),'Der alte Einstieg muss Modellkarten direkt öffnen.');
 assert.ok(app.includes("case'weather-maps':return null;"),'Der alte Modulpfad darf keine zweite Kartenoberfläche rendern.');
