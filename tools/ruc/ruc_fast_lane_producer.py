@@ -52,6 +52,8 @@ def safe_quantization(fields, specs, np):
         raise ValueError('native fields have inconsistent shapes')
     for spec in specs:
         arr=np.asarray(fields[spec.name],dtype=np.float64)
+        if np.any(np.isinf(arr)):
+            raise ValueError('nonfinite native GRIB infinity: '+spec.name)
         available=np.isfinite(arr)
         # Authentic masked cells remain missing. A completely missing forecast
         # lead must not be packed as an apparently valid short-range field.
