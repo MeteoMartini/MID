@@ -13,7 +13,7 @@ assert.deepEqual(active,[],'KNMI-P4a-Diagnoseworkflows dürfen nicht weiter akti
 assert.deepEqual(canonical,[],'Kanonische KNMI-P4a-Diagnoseworkflows dürfen nicht wieder durch Sync entstehen.');
 
 const archiveRoot=new URL('../ci/github/archive/knmi/',import.meta.url);
-const archived=(await readdir(archiveRoot)).filter(name=>/\\.ya?ml$/i.test(name));
+const archived=(await readdir(archiveRoot)).filter(name=>/\.ya?ml$/i.test(name));
 assert.deepEqual(archived,[],'Alte KNMI-Experimente dürfen nicht erneut im aktiven Source-Tree eingecheckt werden.');
 const archiveManifest=await readFile(new URL('README.md',archiveRoot),'utf8');
 assert.ok(archiveManifest.includes('1ade69f46b9bf77e9adaa360353ffacc7a0b967c'),'Archiv-Provenienz muss an den freigegebenen Stable-SHA gebunden bleiben.');
