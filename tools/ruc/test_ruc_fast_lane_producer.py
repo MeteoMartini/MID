@@ -17,12 +17,14 @@ fmt=lambda dt:dt.strftime('%Y-%m-%dT%H:%M')
 
 def candidate(root):
     objs={}
-    for name in ('deterministic.bin','rapid-5m.bin','rapid-15m.bin','lookup.bin'):
-        (root/name).write_bytes(b'GRIB-output-'+name.encode())
+    for name, length in (('deterministic.bin',2*7*12*2),
+                         ('rapid-5m.bin',2*73*2),
+                         ('rapid-15m.bin',2*25*3*2),('lookup.bin',2*1*4)):
+        (root/name).write_bytes(bytes(length))
         objs[name]=digest(root/name)
     return {'schema':'mid.ruc.fast-prepared.v1','run':RUN,'horizonHours':6,
         'eps':{'availability':'unavailable'},'publicationAuthorized':False,
-        'pointCount':2,'grid':{'nativePointCount':2},
+        'pointCount':2,'grid':{'nativePointCount':2,'nx':2,'ny':1},
         'fields':[{'name':name} for name in WIRE_FIELDS],
         'dataTimes':[fmt(T+timedelta(hours=i)) for i in range(7)],
         'rapid5Times':[fmt(T+timedelta(minutes=i)) for i in range(0,361,5)],
@@ -78,6 +80,30 @@ class TestFast(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'native grid'):verify_candidate_manifest(c,root)
             c=candidate(root);c['fields'][0]['name']='fake_temperature'
             with self.assertRaisesRegex(ValueError,'wire field'):verify_candidate_manifest(c,root)
+    def test_rehashed_truncated_wire_object_still_fails(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            (root/'rapid-15m.bin').write_bytes(bytes(8))
+            c['objects']['rapid-15m.bin']=digest(root/'rapid-15m.bin')
+            with self.assertRaisesRegex(ValueError,'record length'):
+                verify_candidate_manifest(c,root)
+    def test_rehashed_extra_wire_object_still_fails(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            with (root/'deterministic.bin').open('ab') as file:file.write(b'\x00'*10)
+            c['objects']['deterministic.bin']=digest(root/'deterministic.bin')
+            with self.assertRaisesRegex(ValueError,'record length'):
+                verify_candidate_manifest(c,root)
+    def test_lookup_grid_dimensions_cannot_be_missing(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root);c['grid'].pop('nx')
+            with self.assertRaisesRegex(ValueError,'lookup grid'):
+                verify_candidate_manifest(c,root)
+    def test_rehashed_lookup_must_match_grid_size(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root);c['grid']['ny']=2
+            with self.assertRaisesRegex(ValueError,'record length'):
+                verify_candidate_manifest(c,root)
     def test_missing_field(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);c=candidate(root);c['objects'].pop('lookup.bin')
