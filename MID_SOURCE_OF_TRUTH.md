@@ -1,3 +1,17 @@
+# MID v0.9.85.388 · DWD-RUC-Verfügbarkeit und Pages-/Worker-Frische lesend beobachten
+
+**Ausgangsbasis:** `main=mid-stable` v0.9.85.386 bei SHA `b6eba7bea8a42bc78841955b3eeac8a392510d12`, `install-mid.yml` #41218322192 vollständig `success`. Der unabhängige RUC-Entwicklungs-Draft #542 mit Head `a75716f567e4cf321cfc648de7ba1c8375ea3368` lieferte SHA-identische DWD-/Pages-/Worker-Beobachter-, Shadow-Qualifikations- und Testdateien. Die neue reine Messinfrastruktur wird auf dem bestätigten Stable-Code integriert; P2/P4/P5-Produktivteile verbleiben auf Draft.
+
+**Meteorologische Korrektheit:** Verzeichnisanzeige belegt nicht die amtliche DWD-Erstpublikation. Poll-Abstände, lückenhafte GRIB-/EPS-Aussagen, tatsächliche Seiten-/Worker-Sichtbarkeit und nachgewiesene Endnutzer-App-Adoption sind getrennt; fehlende Daten werden niemals zu 0/„trocken“ umgedeutet. Die Diagnostik darf keine Warnungen, Modellfusion oder Fast-Lane-Pointer beeinflussen.
+
+**Sicherheit:** Der neue 15-Minuten-Beobachtungsworkflow besitzt ausschließlich `contents: read`, schreibgeschützte Fremddatenproben, maximal 14 Tage Retention, keine eigenen Secrets, keine Workflow-Dispatch-, Worker-/Pages- oder Stable-Schreiboperation und gibt ausdrücklich kein ≤60-min-Produktions-SLO frei. Die bestehende 27h-/20-EPS-RUC-Produktion bleibt unverändert.
+
+**Unverändert offene Aufgabe:** P2 echte aktive Fast-Lane-Atomizität/Rollback/Client-Parität; P4 authentische datengetriebene und doppeltabgeglichene Single-Flight-Steuerung einschließlich bereits extern gesperrter Tests; P5 168h historische Livebeobachtungen, P50/P90/P95 und App-/Widget-/Export-Adoption. Kein Source-Gate darf diese separaten Freigaben ersetzen.
+
+**Releasepfad:** Nur SHA-gebundenes Source-PR-Gate → MID-Release-Bot → serverseitiges ZIP → `install-mid.yml` → Worker-/Pages-Prüfung → Stable-Promotion. Keine parallelen Design-PRs überschreiben; alle 1.058 bestehenden Regressionen bleiben verpflichtend.
+
+---
+
 # MID v0.9.85.386 · Designaudit A1/A2: bekannte Null von fehlenden Niederschlagsdaten trennen
 
 **Quellenbasis und Integration:** v0.9.85.385 auf `main=mid-stable` SHA `1ade69f46b9bf77e9adaa360353ffacc7a0b967c` nach vollständig erfolgreichem Installer #41197737906. Feature-Herkunft: Design-Draft #538 SHA `f93203729414b8f706691fb5dce52008cbed99a4`, ausschließlich über geprüften Stable-basierten Integrations-PR #540. Die parallele Cleanup-Arbeit PR #543 und RUC-Shadow-PR #542 sind nicht Bestandteil dieses Quellstands.

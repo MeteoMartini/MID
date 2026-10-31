@@ -1,3 +1,9 @@
+# MID v0.9.85.388 – RUC-Datenaktualität jetzt unabhängig beobachten
+
+- Eigenständige read-only DWD-RUC-Verfügbarkeitsmessung und öffentlicher Pages-/Worker-Readback, mit 14-tägiger Aufbewahrung der separaten, Run-/Attempt-identifizierten Beobachtungen.
+- Neue 168-Stunden-Auswertung unterscheidet beobachtete Sichtbarkeit von amtlicher Erstpublikation; unvollständige Messreihen gelten niemals als Null, SLO oder App-Adoption.
+- Bestehende 27h-/20-EPS-RUC-Produktion, offizielle Warnungen und App-Consumer bleiben unverändert; die 0–6h-Fast Lane ist nicht aktiviert.
+
 # MID v0.9.85.386 – Wetterprofile: fehlende Niederschlagsdaten nicht als trocken ausgeben
 
 - Kurzfrist- und 24h-Profil zeigen unbekannte Mengen und Wahrscheinlichkeiten nicht mehr als 0 mm oder 0 %. Die Aggregation unterscheidet echte Null und nicht verfügbare Beiträge.

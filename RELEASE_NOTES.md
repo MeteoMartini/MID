@@ -1,12 +1,5 @@
-# MID v0.9.85.386 – Wetterprofile: fehlende Niederschlagsdaten nicht als trocken ausgeben
+# MID v0.9.85.388 – RUC-Datenaktualität jetzt unabhängig beobachten
 
-- Kurzfrist- und 24h-Profil zeigen unbekannte Mengen und Wahrscheinlichkeiten nicht mehr als 0 mm oder 0 %. Die Aggregation unterscheidet echte Null und nicht verfügbare Beiträge.
-- Niederschlagsraten und Einzeldaten kennzeichnen nicht verfügbare Werte. Die bisherige Zeitintervallzuordnung und meteorologische Phasensemantik bleiben erhalten.
-- 90-Minuten-/24h-Titel und Diagramm zeigen fehlende Mengen/PoP explizit. Die SVG-Wahrscheinlichkeitslinie unterbricht bei NoData und ungültige Balken/Punkte werden nicht gerendert.
-- Kompakte 14d-Ensembleangaben unterscheiden sichere Trockenheit, geringe Mengen, kleine bekannte Niederschlagswahrscheinlichkeit und unvollständige Daten; eine fehlende Phase wird nicht als Gewitter ausgegeben.
-- Fokussierte Negativtests für null/NaN/Infinity, echte Null und PoP. Amtliche Warnungen, Modellfusionsgewichte, RUC und Karten bleiben unverändert.
-- Der vollständige appweite Design-/Geräteaudit #523 ist noch nicht abgeschlossen. Die Veröffentlichung erfolgt ausschließlich nach bestandenem Source-PR-Gate, serverseitigem ZIP, Installer, Worker-/Pages-Gates und Stable-Promotion.
-- Für 24h-Aggregate werden fehlende und überlappende Original-Zeitintervalle erkannt; unvollständige Summen oder Niederschlagswahrscheinlichkeiten erscheinen nicht mehr als scheinbar vollständige Werte.
-- Im 7-Tage-Stundenprofil zeigt eine dezente, gestrichelte Kennzeichnung fehlende Niederschlagsmengen an. Die zugehörige Niederschlagswahrscheinlichkeit wird im Tooltip nur bei gültigen Daten ausgewiesen.
-- Im kompakten 14-Tage-Ensemble erhält unbekannter Niederschlagsstatus ein eigenes, neutrales Symbol statt der bisherigen Verwechslungsmöglichkeit mit sicherer Trockenheit. Dies ist kein amtliches Warnsymbol.
-- Der verpflichtende NoData-Negativtest schützt bekannte Nullwerte, Missing-/Infinity-Eingaben, Zeitlücken, Überlappungen, Diagrammunterbrechungen und die Ensemblekennzeichnung.
+- MID erhebt die Verfügbarkeit neuer DWD-RUC-Modellläufe und prüft die Übereinstimmung der öffentlich sichtbaren Pages-/Worker-Stände in einem separaten, schreibgeschützten Beobachtungsworkflow.
+- Die Messwerte bleiben diagnostisch: Verzeichnisanzeige ist keine bestätigte Erstveröffentlichung, fehlende Daten werden nicht als Null dargestellt und die tatsächliche Übernahme durch die App wird nicht behauptet.
+- Die bisherige vollständige 27h-/20-EPS-Versorgung und sämtliche amtlichen Wetterwarnungen bleiben unverändert; die neue 0–6h-Fast-Lane ist weiterhin nicht produktiv aktiviert.
