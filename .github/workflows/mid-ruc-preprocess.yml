@@ -241,6 +241,7 @@ jobs:
           MID_RUC_TIMINGS_FILE: ruc-timings.jsonl
         if: ${{ inputs.reuse_run_id == '' }}
         run: |
+          python tools/ruc/timed_command.py strict-health-tests -- python tools/ruc/test_ruc_health_check.py
           python tools/ruc/timed_command.py wire-tests -- python tools/ruc/test_ruc_pack.py
           python tools/ruc/timed_command.py native-isolation-tests -- python tools/ruc/test_ruc_native_sidecar.py
           python tools/ruc/timed_command.py pages-tests -- python tools/ruc/test_prepare_ruc_pages.py
