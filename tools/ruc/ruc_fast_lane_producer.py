@@ -88,6 +88,9 @@ def verify_candidate_manifest(candidate, root):
             or type(grid.get('nativePointCount')) is not int
             or grid['nativePointCount']!=points):
         raise ValueError('fast candidate native grid dimensions invalid')
+    nx,ny=grid.get('nx'),grid.get('ny')
+    if (type(nx) is not int or type(ny) is not int or nx<=0 or ny<=0):
+        raise ValueError('fast candidate lookup grid dimensions invalid')
     field_rows=candidate.get('fields')
     if (not isinstance(field_rows,list) or len(field_rows)!=len(WIRE_FIELDS)
             or not all(isinstance(row,dict) for row in field_rows)
@@ -96,8 +99,23 @@ def verify_candidate_manifest(candidate, root):
     files=candidate.get('objects')
     if not isinstance(files,dict) or set(files)!={'deterministic.bin','rapid-5m.bin','rapid-15m.bin','lookup.bin'}:
         raise ValueError('required objects missing')
+    # A checksum can confirm bytes are unchanged without confirming that they
+    # have the native point/time/field layout. Check every record length too.
+    expected_bytes={
+        'deterministic.bin':points*7*len(WIRE_FIELDS)*2,
+        'rapid-5m.bin':points*73*2,
+        'rapid-15m.bin':points*25*3*2,
+        'lookup.bin':nx*ny*4,
+    }
+    total_bytes=0
     base=Path(root).resolve(strict=True)
     for name,proof in files.items():
+        if (not isinstance(proof,dict) or type(proof.get('bytes')) is not int
+                or proof['bytes'] != expected_bytes[name]):
+            raise ValueError('native fast candidate record length mismatch: '+name)
+        total_bytes+=proof['bytes']
+        if total_bytes>=900_000_000:
+            raise ValueError('fast candidate exceeds Pages RUC budget (separate global budget still required)')
         path=base/name
         if path.is_symlink() or not path.is_file() or path.resolve().parent!=base:
             raise ValueError('unsafe candidate path')
