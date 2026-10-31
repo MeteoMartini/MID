@@ -32,14 +32,15 @@ export function inspectPublishedChain(e){
  const {pr,sourceRun,sourceJobs,botRun,mergeCommit,packageCommit,packageFiles,installerRun,installerJobs,stableCommit,mainSha,stableSha}=e;
  sha(mainSha,'main');sha(stableSha,'Stable');sha(stableCommit?.sha,'Stable commit');
  if(mainSha!==stableSha||stableCommit.sha!==mainSha)fail('main and Stable diverged');
- if(!isObj(pr)||!positive(pr.number)||pr.state!=='closed'||pr.merged!==true||pr.draft!==false||pr.base!=='main'||!/^(chatgpt|codex)\/v\d+\.\d+\.\d+\.\d+-[a-z0-9._-]+$/.test(pr.head)||sha(pr.headSha,'PR HEAD')!==sourceRun?.head_sha||sha(pr.mergeSha,'PR merge')!==mergeCommit?.sha)fail('PR merge/head policy');
+ if(!isObj(pr)||!positive(pr.number)||pr.state!=='closed'||pr.merged!==true||pr.draft!==false||pr.base!=='main'||!/^(chatgpt|codex)\/v\d+\.\d+\.\d+\.\d+-[a-z0-9._-]+$/.test(pr.head)||sha(pr.headSha,'PR HEAD')!==sourceRun?.head_sha||sha(pr.baseSha,'PR base')!==botRun?.head_sha||sha(pr.mergeSha,'PR merge')!==mergeCommit?.sha)fail('PR merge/head policy');
  const source=checkRun(sourceRun,'MID-Agent-Quellstand prüfen','.github/workflows/chatgpt-pr-gate.yml','pull_request',pr.headSha);
  const sourceMap=requiredJobs(sourceJobs,sourceRequired,sourceRun,'Source');
  const allowed=new Set([...sourceRequired,'RUC +27h Kern, EPS und Gesamtpaket','Extremwetterpolygone · echte Browserpixel']);
  for(const [name,j] of sourceMap)if(!allowed.has(name)||!['success','skipped'].includes(j.conclusion))fail('Unknown Source job '+name);
- const bot=checkRun(botRun,'Geprüften Agent-PR automatisch veröffentlichen','.github/workflows/agent-source-release.yml','workflow_run',sha(botRun?.head_sha,'Bot'));
+ const bot=checkRun(botRun,'Geprüften Agent-PR automatisch veröffentlichen','.github/workflows/agent-source-release.yml','workflow_run',pr.baseSha);
  if(bot.first<source.first||bot.last<source.last)fail('Source/Bot impossible ordering');
  sha(mergeCommit?.sha,'merge commit');sha(packageCommit?.sha,'package commit');
+ if(!Array.isArray(mergeCommit.parents)||mergeCommit.parents.length!==1||mergeCommit.parents[0]?.sha!==pr.baseSha)fail('Merged Source parent is not the verified PR base');
  if(!Array.isArray(packageCommit?.parents)||packageCommit.parents.length!==1||packageCommit.parents[0]?.sha!==mergeCommit.sha)fail('Package parent is not Source merge');
  if(!Array.isArray(packageFiles)||packageFiles.length!==1||packageFiles[0]?.filename!=='MID-professional-replacement.zip'||packageFiles[0]?.status!=='added')fail('Package not ZIP-only');
  if(!Array.isArray(stableCommit.parents)||stableCommit.parents.length!==1||stableCommit.parents[0]?.sha!==packageCommit.sha)fail('Stable parent not package');
