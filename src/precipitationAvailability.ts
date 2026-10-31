@@ -28,3 +28,15 @@ export function inactivePrecipitationLabel(amount:unknown,probability:unknown):s
  if(probability>0)return `Überwiegend trocken · ${Math.round(probability)} % Niederschlagswahrscheinlichkeit`;
  return 'Trocken';
 }
+
+/** Hard boundaries: finite precipitation plot points must not bridge unknown slots. */
+export function contiguousFinitePrecipitationSegments(points:readonly {x:number;y:number}[]):{x:number;y:number}[][] {
+ const groups:{x:number;y:number}[][]=[];
+ let current:{x:number;y:number}[]=[];
+ for(const point of points){
+  if(Number.isFinite(point.x)&&Number.isFinite(point.y)){current.push(point)}
+  else if(current.length){groups.push(current);current=[]}
+ }
+ if(current.length)groups.push(current);
+ return groups;
+}

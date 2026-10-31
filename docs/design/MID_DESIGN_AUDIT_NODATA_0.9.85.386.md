@@ -27,6 +27,10 @@
 
 Normative Grundlage: MID_PRECIPITATION_INTERVAL_CONTRACT.md, MID_PARAMETER_DISPLAY_PRECISION_CONTRACT.md, MID_PARAMETER_COLOR_CONTRACT.md, MID_UI_ARCHITECTURE_CONTRACT.md; WCAG 2.2 SC 1.4.11 und SC 2.5.8. Keine statischen Tests als Screenreader- oder physische iOS-Abnahme ausgeben.
 
+## Erweiterte NoData-SVG-Sicherheit
+
+Die 24h-Wahrscheinlichkeitslinie wird an ungültigen Werten segmentiert; nicht verfügbare Werte dürfen keine verbindende Linie, keine PoP-Punkte/Säulen und keine Niederschlagsbalken erzeugen. Im 90-Minuten-Raster und den 24h-Titeln wird ein fehlender Wert ausdrücklich benannt, statt zu 0 mm/0 % zu werden. Noch nicht als reale Browser-/iOS-Abnahme nachgewiesen.
+
 ## Freigabegrenze
 
 Erst neue Stable-SHA-Prüfung, saubere .385-Reihenfolge bzw. Versionskoordination, vollständige Source-PR-Gates, SHA-Bot-Merge, serverseitiges ZIP, Installer und betroffene Worker/Pages-Gates, anschließend bestätigte Stable-Promotion. Bis dahin bleibt der PR im Draft. Issue #523 bleibt offen.

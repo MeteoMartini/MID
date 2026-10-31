@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {transformSync} from 'esbuild';
 const source=readFileSync(new URL('../src/precipitationAvailability.ts',import.meta.url),'utf8');
 const js=transformSync(source,{loader:'ts',format:'esm',target:'es2022'}).code;
-const {isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,scaleAvailablePrecipitation,precipitationRateIfAvailable,inactivePrecipitationLabel}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const {isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,scaleAvailablePrecipitation,precipitationRateIfAvailable,inactivePrecipitationLabel,contiguousFinitePrecipitationSegments}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 for(const bad of [null,undefined,NaN,Infinity,-Infinity,-.01,'','0']){assert.equal(isAvailablePrecipitation(bad),false);assert.ok(Number.isNaN(sumCompletePrecipitation([.4,bad,0])));assert.ok(Number.isNaN(scaleAvailablePrecipitation(bad,.5)));assert.ok(Number.isNaN(precipitationRateIfAvailable(bad,15)));assert.equal(inactivePrecipitationLabel(bad,0),'Niederschlagsdaten unvollständig')}
 for(const bad of [null,undefined,NaN,-1,101,'0']){assert.equal(isAvailableProbability(bad),false);assert.ok(Number.isNaN(maxCompleteProbability([0,bad])));assert.equal(inactivePrecipitationLabel(0,bad),'Niederschlagsdaten unvollständig')}
 assert.equal(sumCompletePrecipitation([0,0,0,0]),0);
@@ -23,4 +23,12 @@ assert.equal(cockpit.split('scaleAvailablePrecipitation(hour.precipitation,fract
 assert.ok(!cockpit.includes('shownProbability=clamp(Number(hour.probability)||0,0,100)'));
 assert.ok(ensemble.includes('label:inactivePrecipitationLabel(precipitation,probability)'));
 assert.ok(ensemble.includes('Niederschlag möglich · ${amountSummary}'));
+const segments=[{x:0,y:2},{x:1,y:3},{x:2,y:NaN},{x:3,y:0},{x:4,y:5},{x:5,y:Infinity},{x:6,y:6}];
+assert.deepEqual(contiguousFinitePrecipitationSegments(segments),[[segments[0],segments[1]],[segments[3],segments[4]],[segments[6]]]);
+assert.deepEqual(contiguousFinitePrecipitationSegments([{x:0,y:NaN}]),[]);
+assert.ok(cockpit.includes('contiguousFinitePrecipitationSegments(probabilityCurvePoints).map(monotoneSvgPath)'));
+assert.ok(cockpit.includes('chartPoints.filter(item=>isAvailableProbability(item.point.probability))'));
+assert.ok(cockpit.includes('isAvailablePrecipitation(item.point.precipitation)?<rect className="rain-bar"'));
+assert.ok(cockpit.includes('shortTermKnownProbabilityLabel(item.probability)'));
+assert.ok(!cockpit.includes('probabilityDisplayValue=clamp(Number(point.probability)||0,0,100)'));
 console.log('MID .386: Niederschlag/PoP NoData, Trace, Raten und 24h-/Ensemble-Consumer geprüft');
