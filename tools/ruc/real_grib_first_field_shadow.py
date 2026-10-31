@@ -195,14 +195,34 @@ def main():
     a = parser.parse_args()
     if a.output.exists():
         parser.error('do not overwrite an existing sample')
-    run = discovered_runs()[0] if a.run == 'latest' else a.run
-    model_time(run)
-    payload = sample(run, a.lead_minutes)
+    run = None
+    code = 0
+    try:
+        runs = discovered_runs() if a.run == 'latest' else [a.run]
+        if not runs:
+            raise ValueError('no DWD model initialization was advertised')
+        run = runs[0]
+        model_time(run)
+        payload = sample(run, a.lead_minutes)
+    except Exception as error:
+        # A missing/failed observation is UNKNOWN, never an unavailable
+        # weather field or zero precipitation/temperature.
+        code = 2
+        payload = {
+            'schema': 'mid.ruc.real-grib-first-field-shadow.v1',
+            'observedAtUtc': datetime.now(timezone.utc).isoformat().replace('+00:00','Z'),
+            'run': run, 'sourceField': FIELD, 'leadMinutes': a.lead_minutes,
+            'observationStatus': 'unknown',
+            'errorClass': type(error).__name__,
+            'fullRunVerified': False, 'productionAuthorized': False,
+            'note': 'probe failure; no conclusion about actual DWD availability'
+        }
     a.output.write_text(json.dumps(payload, ensure_ascii=False,
                                    allow_nan=False, indent=2) + '\n', encoding='utf-8')
-    print(f'RUC GRIB first-field witness run={run} lead={a.lead_minutes}; '
+    print(f'RUC GRIB first-field probe run={run} status='
+          f'{"verified-one-field" if code == 0 else "unknown"}; '
           'no full-model/production authorization')
-    return 0
+    return code
 
 
 if __name__ == '__main__':
