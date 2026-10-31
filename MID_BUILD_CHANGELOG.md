@@ -1,3 +1,11 @@
+## MID v0.9.85.386 – A1/A2: Cockpit- und Ensemble-NoData konsolidieren
+
+- Aus verifiziertem main=mid-stable v0.9.85.384 @ 4901049d973b14015959ee576ede49a9de6a6489. Bestehenden parallelen .385-Branch nicht angefasst.
+- Neue pure Niederschlags-/Wahrscheinlichkeitsvalidierung und zwei betroffene produktive Verbraucher, vier Schnittstellenpfade: stündliche Summen, stündliche PoP, anteilige Stundenwerte und kompakte Ensembletexte.
+- Ein unvollständig verfügbares Inputintervall darf nicht 0 mm simulieren. Fehlende vollständig ausgelassene Zeitslots bleiben als zusätzliche Provider-Vollständigkeitsaufgabe offen.
+- Scripts-Regressionsinventare um negative/fachliche Grenzfälle ergänzt; aktuelle Code- und User-Änderungen nicht gegen einen echten Browser/iOS/VoiceOver geprüft.
+- Geplanter .386-Draft; keine Freigabe/Installation, bis Source-Gate, Bot, Server-ZIP, Core/Heavy, Worker, Pages, Stable nach gültiger Releasebasis erfolgreich sind.
+
 ## MID v0.9.85.383 – Modellgenauer RUC-Pages-/Worker-Abgleich statt Mindestzahlen
 
 - Grundlage: verifizierte MID v0.9.85.382, `main=mid-stable` @ `e539d4b0db4e84587af3aeef4fbc5c32e160142c`, Source #535 und Installer 41174796571 success. Fünf Rulesets aktiv.

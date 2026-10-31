@@ -1,4 +1,5 @@
 import {ensembleCumulativeRainStep} from './ensembleCumulativeDisplay';
+import {isAvailablePrecipitation,isAvailableProbability,inactivePrecipitationLabel} from './precipitationAvailability';
 import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety';
 import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
@@ -305,12 +306,13 @@ function precipitationVisualType(code:number):'none'|'rain'|'snow'|'mixed'|'grau
  return'none';
 }
 function precipitationVisualDescriptor(code:number,precipitation:number,probability:number,hours:Hour[]=[]){
- const plausible=hours.map(hour=>precipitationParts(hour)).filter(parts=>parts.type!=='none').sort((a,b)=>b.total-a.total)[0],amount=Math.max(0,Number.isFinite(precipitation)?precipitation:0),snowfall=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0),0),amountLabel=precipitationAmountLabel({precipitation:amount,snowfall}),chance=Math.max(0,Number.isFinite(probability)?probability:0),rawCode=Math.round(code),unsupportedDrizzle=hours.length>0&&rawCode>=51&&rawCode<=57&&!plausible,displayCode=plausible?.displayCode??(unsupportedDrizzle?(amount>=.1&&chance>=25?61:3):code),type=precipitationVisualType(displayCode),thunder=displayCode>=95&&displayCode<=99;
+ const plausible=hours.map(hour=>precipitationParts(hour)).filter(parts=>parts.type!=='none').sort((a,b)=>b.total-a.total)[0],amountKnown=isAvailablePrecipitation(precipitation),probabilityKnown=isAvailableProbability(probability),amount=amountKnown?precipitation:0,snowfall=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0),0),amountLabel=amountKnown?precipitationAmountLabel({precipitation:amount,snowfall}):'Menge nicht verfügbar',chance=probabilityKnown?probability:0,rawCode=Math.round(code),unsupportedDrizzle=hours.length>0&&rawCode>=51&&rawCode<=57&&!plausible,displayCode=plausible?.displayCode??(unsupportedDrizzle?(amount>=.1&&chance>=25?61:3):code),type=precipitationVisualType(displayCode),thunder=displayCode>=95&&displayCode<=99;
  const active=amount>=0.1||chance>=35||thunder||['snow','mixed','graupel','hail','solid','wintry'].includes(type);
- if(!active)return{type:'none' as const,size:'small' as const,thunder:false,label:'Trocken'};
+ if(!active)return{type:'none' as const,size:'small' as const,thunder:false,label:inactivePrecipitationLabel(precipitation,probability)};
  const largeThreshold=type==='snow'||type==='graupel'||type==='hail'||type==='solid'?1:type==='mixed'||type==='wintry'?1.2:2;
  const size=amount>=largeThreshold?'large' as const:'small' as const;
- const label=thunder?`Gewitter${type==='solid'?' mit Graupel/Hagel':type==='hail'?' mit Hagel':''}${amount>0?`, ${amountLabel} Best Match`:''}`:type==='snow'?`Schnee, ${amountLabel} Best Match`:type==='mixed'?`Gemischter oder gefrierender Niederschlag, ${amountLabel} Best Match`:type==='graupel'?`Graupel, ${amountLabel} Best Match`:type==='hail'?`Hagel, ${amountLabel} Best Match`:type==='solid'?`Graupel oder Hagel, ${amountLabel} Best Match`:type==='wintry'?`Winterlicher Niederschlag nach Gewitter, ${amountLabel} Best Match`:type==='rain'?`Regen, ${amountLabel} Best Match`:`Gewitter${amount>0?`, ${amountLabel} Best Match`:''}`;
+ const amountSummary=amountKnown?`${amountLabel} Best Match`:'Best-Match-Menge nicht verfügbar';
+ const label=thunder?`Gewitter${type==='solid'?' mit Graupel/Hagel':type==='hail'?' mit Hagel':''}${amount>0?`, ${amountSummary}`:''}`:type==='snow'?`Schnee, ${amountSummary}`:type==='mixed'?`Gemischter oder gefrierender Niederschlag, ${amountSummary}`:type==='graupel'?`Graupel, ${amountSummary}`:type==='hail'?`Hagel, ${amountSummary}`:type==='solid'?`Graupel oder Hagel, ${amountSummary}`:type==='wintry'?`Winterlicher Niederschlag nach Gewitter, ${amountSummary}`:type==='rain'?`Regen, ${amountSummary}`:probabilityKnown?`Niederschlag möglich · ${amountSummary}`:'Niederschlagsphase nicht verfügbar';
  return{type,size,thunder,label};
 }
 function PrecipitationGlyph({type,size,thunder}:{type:'none'|'rain'|'snow'|'mixed'|'graupel'|'hail'|'solid'|'wintry';size:'small'|'large';thunder:boolean}){
