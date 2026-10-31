@@ -1,3 +1,11 @@
+## MID v0.9.85.390 · 2026-10-31 · Designaudit A3: einheitliche WMS-Run/ValidTime/Level-Integrität
+
+- Veröffentlichte Stable-Basis: v0.9.85.389 `main=mid-stable` @ `6e449be3baf13e9c33ec206864189dd4b580d482`; erfolgreicher Source-PR #549, Installer #41240348162 mit vollständigen Core-/Heavy-/Worker-/Pages-/Finalisierungs-Gates.
+- Vergleich mit Legacy `weatherMapFrameReady` zeigt, dass Unified WMS bisher unzureichend auf Katalogfehler, Lauf-/Zeitverfügbarkeit und verfügbare Druckflächen prüfte. Identische kanonische Validierung nun im zentralen `wmsActive`-Pfad; kein unerlaubter Rückfall auf anderes Modell.
+- Bereits verpflichtender Test `scripts/test-unified-map-layers-0985167.mjs` um tatsächliche transpilierte Negativfälle und Renderverkabelung ergänzt. Keine Pflichtregression entfernt: 1059/1059.
+- RUC, DWD/WMO-Warnungen, Zeit-/Niederschlags-/Quellenverträge, Worker-Produktivcode und Releasekonfiguration fachlich unverändert; sämtliche Versionsspiegel werden synchronisiert.
+- Freigabe nur nach unverändertem Source-PR-Gate → SHA-Bot → ZIP → Installer → Worker/Pages → Stable. Browser-/Geräte-/VoiceOver-Checks separat evidenzpflichtig.
+
 ## MID v0.9.85.389 · 2026-10-31 · Designaudit #523: Karten-Navigationszustand bewahren
 
 - Nach vollständig freigegebener v0.9.85.388 @ `11c56661b371bf9c0da49d0836fcb548d46bf46f` mit Installer #41236833866 werden die zwei fachlichen Blobs aus Draft #547 @ `a73b9009172e0f778604314ecca7ea8bed53d8f1` auf tatsächlich aktuelle Stable neu verankert; keine Rebase-/Branchlöschung der Parallelvorhaben.

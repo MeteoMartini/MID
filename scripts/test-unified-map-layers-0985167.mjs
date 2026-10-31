@@ -21,8 +21,33 @@ assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T03
 assert.equal(c.nearestUnifiedTime(terms.map(t=>t.time),Date.parse('2026-10-05T04:31:00Z')),undefined);
 globalThis.localStorage={getItem:()=>JSON.stringify({enabled:true,parameter:'gust',modelId:'icon-d2',opacity:200,hours:9,selectionMode:'model'})};
 assert.deepEqual(c.readUnifiedMapSettings(),{enabled:true,parameter:'gust',modelId:'icon-d2',opacity:100,hours:24,isobars:false,level:500,selectionMode:'model',presentation:'auto'});delete globalThis.localStorage;
+// A3: the unified map must reuse the exact legacy WMS frame/run/level gate.
+const weatherData=read('src/WeatherMapsData.ts');
+const availableStart=weatherData.indexOf('export function weatherMapAvailableTimes('),availableEnd=weatherData.indexOf('export function preferredWeatherMapTimeIndex(');
+const readyStart=weatherData.indexOf('export function weatherMapFrameReady(');
+assert.ok(availableStart>=0&&availableEnd>availableStart&&readyStart>availableEnd);
+const readyJs=ts.transpileModule(weatherData.slice(availableStart,availableEnd)+'\n'+weatherData.slice(readyStart),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const ready=await import('data:text/javascript;base64,'+Buffer.from(readyJs).toString('base64'));
+const run='2026-10-31T00:00:00Z',valid='2026-10-31T12:00:00Z',earlier='2026-10-31T03:00:00Z';
+const wmsProduct={id:'icon-gh',modelId:'icon',layer:'dwd:Icon_reg025_fd_pl_GH',timeDependent:true,levelKind:'pressure'};
+const wmsMeta={layer:wmsProduct.layer,times:[earlier,valid],referenceTimes:[run],elevations:[500]};
+assert.equal(ready.weatherMapFrameReady(wmsProduct,wmsMeta,valid,run,500),true,'Confirmed run, time and pressure level render');
+for(const [label,meta,at,init,height] of [
+ ['wrong layer',{...wmsMeta,layer:'another'},valid,run,500],
+ ['provider error',{...wmsMeta,error:'WMS unavailable'},valid,run,500],
+ ['unlisted run',wmsMeta,valid,'2026-10-30T18:00:00Z',500],
+ ['unlisted validity',wmsMeta,'2026-10-31T14:00:00Z',run,500],
+ ['unavailable pressure level',wmsMeta,valid,run,850],
+ ['unavailable elevation',{...wmsMeta,elevations:[]},valid,run,500],
+ ['invalid time',wmsMeta,'not-a-time',run,500]
+])assert.equal(ready.weatherMapFrameReady(wmsProduct,meta,at,init,height),false,label);
+const precipProduct={...wmsProduct,id:'icon-rain-6h',levelKind:undefined};
+assert.equal(ready.weatherMapFrameReady(precipProduct,wmsMeta,earlier,run,undefined),false,'3h lead time cannot satisfy a 6h accumulation');
+assert.equal(ready.weatherMapFrameReady(precipProduct,wmsMeta,valid,run,undefined),true,'Complete 6h lead time remains available');
+
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
+assert.ok(panel.includes("weatherMapFrameReady(wmsProduct,metadata,wmsTime??'',wmsRun,level)"),'Unified map must enforce the same WMS frame/run/level validation as the model map panel');
 for(const token of ['loadNativeField','loadTotals','ModelMapProbe','synopticAt','exportNativeField','exportTotals','writeDurableStorageValue','fieldCache.current.size>8'])assert.ok(panel.includes(token),token);
 assert.ok(radar.includes('unified?.overlay')&&radar.includes('unified?.controls')&&radar.includes('if(unified||!fallbackNeeded'));
 assert.ok(radar.includes("visibleModelLines:ModelLineMode=unified?'off'"),'Old synoptic must be absent in unified route');
