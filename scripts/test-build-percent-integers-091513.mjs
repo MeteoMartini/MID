@@ -12,7 +12,9 @@ if(!fusion.includes('function parseInterval(interval:RadarNowcastInterval)'))fai
 
 const cockpit=await read('src/ForecastCockpit.tsx');
 if(cockpit.includes('{peakRainPoint.probability} %'))fail('Niederschlagsrisiko wird weiterhin ungerundet ausgegeben.');
-if(!cockpit.includes('{Math.round(peakRainPoint.probability)} %'))fail('Ganzzahlige Cockpit-Prozentanzeige fehlt.');
+if(!cockpit.includes('shortTermKnownProbabilityLabel(peakRainPoint.probability)'))fail('Cockpit nutzt nicht die geprüfte Prozent-/Missing-Anzeige desselben Zeitpunkts.');
+if(!cockpit.includes('isAvailableProbability(probability)?`${Math.round(probability)} %`'))fail('Ganzzahlige PoP-Anzeige bzw. NoData-Gültigkeitsprüfung fehlt.');
+if(cockpit.includes('{Math.round(peakRainPoint.probability)} %'))fail('Ungeprüfte Direktformatierung der PoP wurde wieder eingeführt.');
 
 const verification=await read('src/forecastVerification.ts');
 if(/toFixed\(1\)[^\n]{0,120}%/.test(verification))fail('Forecast-Verifikation enthält noch Prozentangaben mit einer Nachkommastelle.');

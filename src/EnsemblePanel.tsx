@@ -1,4 +1,5 @@
 import {ensembleCumulativeRainStep} from './ensembleCumulativeDisplay';
+import {isAvailablePrecipitation,isAvailableProbability,inactivePrecipitationLabel} from './precipitationAvailability';
 import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety';
 import {useDisplayPreference,displayBoolean} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
@@ -283,7 +284,7 @@ type TrendRow=EnsembleDay&{
  characterText:string;
  sunshineShare:number;
  skyColor:string;
- precipVisualType:'none'|'rain'|'snow'|'mixed'|'graupel'|'hail'|'solid'|'wintry';
+ precipVisualType:'none'|'unknown'|'rain'|'snow'|'mixed'|'graupel'|'hail'|'solid'|'wintry';
  precipVisualSize:'small'|'large';
  precipVisualThunder:boolean;
  precipVisualLabel:string;
@@ -305,21 +306,22 @@ function precipitationVisualType(code:number):'none'|'rain'|'snow'|'mixed'|'grau
  return'none';
 }
 function precipitationVisualDescriptor(code:number,precipitation:number,probability:number,hours:Hour[]=[]){
- const plausible=hours.map(hour=>precipitationParts(hour)).filter(parts=>parts.type!=='none').sort((a,b)=>b.total-a.total)[0],amount=Math.max(0,Number.isFinite(precipitation)?precipitation:0),snowfall=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0),0),amountLabel=precipitationAmountLabel({precipitation:amount,snowfall}),chance=Math.max(0,Number.isFinite(probability)?probability:0),rawCode=Math.round(code),unsupportedDrizzle=hours.length>0&&rawCode>=51&&rawCode<=57&&!plausible,displayCode=plausible?.displayCode??(unsupportedDrizzle?(amount>=.1&&chance>=25?61:3):code),type=precipitationVisualType(displayCode),thunder=displayCode>=95&&displayCode<=99;
+ const plausible=hours.map(hour=>precipitationParts(hour)).filter(parts=>parts.type!=='none').sort((a,b)=>b.total-a.total)[0],amountKnown=isAvailablePrecipitation(precipitation),probabilityKnown=isAvailableProbability(probability),amount=amountKnown?precipitation:0,snowfall=hours.reduce((sum,hour)=>sum+Math.max(0,Number(hour.snowfall)||0),0),amountLabel=amountKnown?precipitationAmountLabel({precipitation:amount,snowfall}):'Menge nicht verfügbar',chance=probabilityKnown?probability:0,rawCode=Math.round(code),unsupportedDrizzle=hours.length>0&&rawCode>=51&&rawCode<=57&&!plausible,displayCode=plausible?.displayCode??(unsupportedDrizzle?(amount>=.1&&chance>=25?61:3):code),type=precipitationVisualType(displayCode),thunder=displayCode>=95&&displayCode<=99;
  const active=amount>=0.1||chance>=35||thunder||['snow','mixed','graupel','hail','solid','wintry'].includes(type);
- if(!active)return{type:'none' as const,size:'small' as const,thunder:false,label:'Trocken'};
+ if(!active)return{type:(!amountKnown||!probabilityKnown?'unknown' as const:'none' as const),size:'small' as const,thunder:false,label:inactivePrecipitationLabel(precipitation,probability)};
  const largeThreshold=type==='snow'||type==='graupel'||type==='hail'||type==='solid'?1:type==='mixed'||type==='wintry'?1.2:2;
  const size=amount>=largeThreshold?'large' as const:'small' as const;
- const label=thunder?`Gewitter${type==='solid'?' mit Graupel/Hagel':type==='hail'?' mit Hagel':''}${amount>0?`, ${amountLabel} Best Match`:''}`:type==='snow'?`Schnee, ${amountLabel} Best Match`:type==='mixed'?`Gemischter oder gefrierender Niederschlag, ${amountLabel} Best Match`:type==='graupel'?`Graupel, ${amountLabel} Best Match`:type==='hail'?`Hagel, ${amountLabel} Best Match`:type==='solid'?`Graupel oder Hagel, ${amountLabel} Best Match`:type==='wintry'?`Winterlicher Niederschlag nach Gewitter, ${amountLabel} Best Match`:type==='rain'?`Regen, ${amountLabel} Best Match`:`Gewitter${amount>0?`, ${amountLabel} Best Match`:''}`;
+ const amountSummary=amountKnown?`${amountLabel} Best Match`:'Best-Match-Menge nicht verfügbar';
+ const label=thunder?`Gewitter${type==='solid'?' mit Graupel/Hagel':type==='hail'?' mit Hagel':''}${amount>0?`, ${amountSummary}`:''}`:type==='snow'?`Schnee, ${amountSummary}`:type==='mixed'?`Gemischter oder gefrierender Niederschlag, ${amountSummary}`:type==='graupel'?`Graupel, ${amountSummary}`:type==='hail'?`Hagel, ${amountSummary}`:type==='solid'?`Graupel oder Hagel, ${amountSummary}`:type==='wintry'?`Winterlicher Niederschlag nach Gewitter, ${amountSummary}`:type==='rain'?`Regen, ${amountSummary}`:probabilityKnown?`Niederschlag möglich · ${amountSummary}`:'Niederschlagsphase nicht verfügbar';
  return{type,size,thunder,label};
 }
-function PrecipitationGlyph({type,size,thunder}:{type:'none'|'rain'|'snow'|'mixed'|'graupel'|'hail'|'solid'|'wintry';size:'small'|'large';thunder:boolean}){
+function PrecipitationGlyph({type,size,thunder}:{type:'none'|'unknown'|'rain'|'snow'|'mixed'|'graupel'|'hail'|'solid'|'wintry';size:'small'|'large';thunder:boolean}){
  const scale=size==='large'?1.08:.9,precipitationOffset=thunder&&type!=='none'?-4.4:0,boltOffset=thunder&&type!=='none'?7.1:0;
  const drop=<path d="M0 -6.7 C2.8 -3.1 4.5 -1 4.5 2.1 C4.5 5.2 2.2 7.2 0 7.2 C-2.2 7.2 -4.5 5.2 -4.5 2.1 C-4.5 -1 -2.8 -3.1 0 -6.7 Z" fill="var(--param-precipitation)" stroke="rgba(255,255,255,.95)" strokeWidth="0.9"/>;
  const snowPaths=<><line x1="0" y1="-5" x2="0" y2="5"/><line x1="-4.2" y1="0" x2="4.2" y2="0"/><line x1="-3.1" y1="-3.1" x2="3.1" y2="3.1"/><line x1="-3.1" y1="3.1" x2="3.1" y2="-3.1"/></>,snow=<g strokeLinecap="round"><g stroke="rgba(5,12,18,.86)" strokeWidth="2.15">{snowPaths}</g><g stroke="#ffffff" strokeWidth="1.35">{snowPaths}</g></g>,graupel=<g><circle cx="-3.5" cy="0" r="3" fill="var(--param-snow)" stroke="rgba(5,12,18,.72)" strokeWidth=".8"/><circle cx="3.5" cy="1" r="2.4" fill="var(--param-snow)" stroke="rgba(5,12,18,.72)" strokeWidth=".8"/></g>,hail=<g><circle cx="-3.6" cy="0" r="3.2" fill="#fff" stroke="var(--param-precipitation)" strokeWidth="1.4"/><circle cx="3.7" cy="1" r="2.7" fill="#fff" stroke="var(--param-precipitation)" strokeWidth="1.4"/></g>,solid=<g><circle cx="-3.8" cy="0" r="3" fill="var(--param-snow)" stroke="rgba(5,12,18,.72)" strokeWidth=".8"/><circle cx="3.8" cy="1" r="2.8" fill="#fff" stroke="var(--param-precipitation)" strokeWidth="1.35"/></g>;
  const mixed=<g><g transform="translate(-3.1,0) scale(.82)">{drop}</g><g transform="translate(3.4,0) scale(.82)">{snow}</g></g>,wintry=<g><g transform="translate(-4.2,0) scale(.7)">{drop}</g><g transform="scale(.72)">{snow}</g><g transform="translate(4.8,0) scale(.62)">{hail}</g></g>;
  const precipitation=type==='rain'?drop:type==='snow'?snow:type==='mixed'?mixed:type==='graupel'?graupel:type==='hail'?hail:type==='solid'?solid:type==='wintry'?wintry:null;
- return <g>{precipitation?<g transform={`translate(${precipitationOffset},0) scale(${scale})`}>{precipitation}</g>:null}{thunder&&<path d="M1.9 -8.8 L-3.3 -0.6 H0.2 L-3.5 8.6 L6.3 -2 H2.5 Z" fill="#ffd84a" stroke="#a65800" strokeWidth="1.3" strokeLinejoin="round" transform={`translate(${boltOffset},0) scale(1.08)`}/>}</g>;
+ return <g>{type==='unknown'?<g aria-hidden="true"><circle r="6.2" fill="rgba(255,255,255,.96)" stroke="rgba(5,12,18,.93)" strokeWidth="1.25" strokeDasharray="2 1"/><text textAnchor="middle" dominantBaseline="central" fontSize="10" fontWeight="700" fill="rgba(5,12,18,.95)">?</text></g>:null}{precipitation?<g transform={`translate(${precipitationOffset},0) scale(${scale})`}>{precipitation}</g>:null}{thunder&&<path d="M1.9 -8.8 L-3.3 -0.6 H0.2 L-3.5 8.6 L6.3 -2 H2.5 Z" fill="#ffd84a" stroke="#a65800" strokeWidth="1.3" strokeLinejoin="round" transform={`translate(${boltOffset},0) scale(1.08)`}/>}</g>;
 }
 function EnsemblePrecipShape({cx,cy,row,boxWidth,boxHeight}:{cx?:number;cy?:number;row:TrendRow;boxWidth:number;boxHeight:number}){
  if(!Number.isFinite(cx)||!Number.isFinite(cy)||(row.precipVisualType==='none'&&!row.precipVisualThunder))return null;

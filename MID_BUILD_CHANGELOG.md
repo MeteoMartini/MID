@@ -1,3 +1,12 @@
+## MID v0.9.85.386 – Niederschlags-NoData-Integrität und konsolidierter Designaudit A1/A2
+
+- Verifizierte Stable-Quelle v0.9.85.385 SHA `1ade69f46b9bf77e9adaa360353ffacc7a0b967c` und Source-PR #540. Parallele Drafts #538, #542 und #543 erhalten; keine Fremdänderungen übernommen.
+- Kurzfrist-/24h-Profil, 7d-Stundenkurve und kompakte 14d-Ensemblevisualisierung führen nicht verfügbare Niederschlagsmengen/PoP als explizite Missing-Zustände statt synthetische Nullen. 24h-Aggregation verlangt lückenlose, nicht überlappende Originalintervalle. SVG-Wahrscheinlichkeitskurven überbrücken fehlende Werte nicht.
+- Gemeinsamer typisierter `src/precipitationAvailability.ts`-Pfad und neue Regression `scripts/test-precipitation-availability-0985386.mjs` inklusive null/NaN/Infinity, Nullwert, PoP-Grenzen, Zeitlücken/Overlap und UI-Markierung.
+- `MID_BASELINE.json`: ursprüngliche 1057 erforderlichen Tests aus .385 verlustfrei + 1 neuer = 1058 Einträge in beiden verpflichtenden Inventaren. `scripts/test-revision-parallel-matrix-0985385.mjs` und alle 10 isolierten Revisionsjobs bleiben erhalten.
+- Versionsspiegel `package*.json`, `MID_IOS_STATUS.json`, `contracts/index.json`, `index.html`, `src/version.ts`, `public/version.json`, PWA-Caches, Worker-Dateien und iOS-Xcode-Buildversion synchron auf .386 aktualisiert. Alter Source-of-Truth-/Changelog-Verlauf bleibt vollständig im Anhang.
+- Vollständige Browser-/iOS-Abnahme und die regulären Source-/Installer-/Stable-Gates sind releasepflichtig; automatisierte Testresultate werden ausschließlich nach echten GitHub-Checks als bestanden vermerkt.
+
 ## MID v0.9.85.383 – Modellgenauer RUC-Pages-/Worker-Abgleich statt Mindestzahlen
 
 - Grundlage: verifizierte MID v0.9.85.382, `main=mid-stable` @ `e539d4b0db4e84587af3aeef4fbc5c32e160142c`, Source #535 und Installer 41174796571 success. Fünf Rulesets aktiv.

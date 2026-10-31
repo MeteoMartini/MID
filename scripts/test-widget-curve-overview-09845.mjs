@@ -38,7 +38,10 @@ need('Präsentationswidget markiert den ersten Tag nicht künstlich als aktiv',c
 need('Präsentationswidget entfernt eine eventuell verbleibende Aktiv-Hinterlegung auch per CSS',foundation,'.weatherwidget.modern.compact.widget-view-curve .seven-day-curve-days>button.active{background:transparent;box-shadow:none}');
 need('Kurvenfarbe folgt dem gemeinsamen 24h-Farbvertrag',cockpit,'stopColor="var(--param-temperature)"');
 need('ECMWF-Badgefarben bleiben an die Option gebunden',cockpit,'ecmwfTemperatureColors?{color:exportMinTone.color,background:exportMinTone.background,borderColor:exportMinTone.border}:undefined');
-need('Niederschlagsmenge hat robusten Komponentenfallback',cockpit,'Math.max(parts.total,direct,components)');
+need('Niederschlagsmenge hat robusten Komponentenfallback bei vorhandenen Daten',cockpit,'Math.max(parts.total,hour.precipitation,components)');
+need('Fehlende Gesamtmenge bleibt NoData statt vermeintlich trocken',cockpit,'if(!isAvailablePrecipitation(hour.precipitation))return{hour,amount:Number.NaN}');
+need('7d-Diagramm zeigt fehlende Mengen als eigene Markierung',cockpit,'Niederschlagsmenge nicht verfügbar`}</title></line>');
+assert.ok(!cockpit.includes('Math.max(parts.total,direct,components)'),'Alte Null-Substitution darf den NoData-Vertrag nicht wieder aushebeln.');
 need('Widget-Kurvenansicht folgt dem Referenzdesign',foundation,'.weatherwidget.modern.compact.widget-view-curve');
 need('Widget-Kurvenansicht nutzt die dunkle Referenzfläche',foundation,'background:#081a2b');
 need('Widget-Kurvenansicht bleibt responsiv',foundation,'@media(max-width:760px){.weatherwidget.modern.compact.widget-view-curve');
