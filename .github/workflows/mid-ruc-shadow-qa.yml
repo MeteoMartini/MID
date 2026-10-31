@@ -1,0 +1,203 @@
+name: MID RUC shadow Python qualification (PR, read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'tools/ruc/**'
+      - 'ci/github/workflows/mid-ruc-shadow-qa.yml'
+      - '.github/workflows/mid-ruc-shadow-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-shadow-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  shadow-python:
+    # No fork source, secrets, production write scopes, workflows, or deployment.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Exakten integrierten PR-Head ohne Schreibcredentials laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: SHA und Quellzustand belegen
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
+          echo "RUC-PR-SHA: $PR_HEAD_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Python 3.12 bereitstellen
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Numerische Prüfabhängigkeit aus dem bestehenden RUC-Vertrag
+        run: python -m pip install --disable-pip-version-check 'numpy>=2,<3'
+      - name: RUC-Python-Syntax und adversarielle Offline-Gates ausführen
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          for f in sorted(Path('tools/ruc').glob('*.py')):
+              ast.parse(f.read_text(encoding='utf-8'), filename=str(f))
+          PY
+          # Only files already admitted to this PR; the prior safety-blocked
+          # P4 test file is deliberately not uploaded or replaced here.
+          for test in \
+            test_dwd_availability_observer.py \
+            test_dwd_availability_report.py \
+            test_ruc_freshness_shadow_gate.py \
+            test_ruc_fast_lane_producer.py \
+            test_ruc_e2e_readback.py \
+            test_ruc_weekly_e2e_observations.py; do
+            python "tools/ruc/$test" -v
+          done
+          python tools/ruc/test_ruc_fast_pointer_staging.py -v
+      - name: Begrenzten SHA-gebundenen QA-Bericht schreiben
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'RUC Offline: Python/Native-Format/Readback-Tests bestanden; keine DWD-Liveprüfung.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'P4-Testdatei sicherheitsbedingt nicht Bestandteil dieser Suite; keine Triggerfreigabe.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Kein Fast-Lane-Publisher, kein App-Refresh, kein EPS20-Nachweis, kein Production-SLO.' >> "$GITHUB_STEP_SUMMARY"
+
+  live-dwd-grib-canary:
+    # This job downloads only four small public DWD GRIBs to prove real
+    # ecCodes decoding and native bitmap/field/time/grid validity. No state is
+    # published. Restrict expensive network sampling to the owning RUC PR.
+    if: >-
+      github.event.pull_request.number == 542 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'chatgpt/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: PR-Head ohne Credentials exakt laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Python 3.12 für echte DWD GRIB2 Reader
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Nur vorhandene DWD-Reader-Abhängigkeiten installieren
+        run: python -m pip install --disable-pip-version-check 'numpy>=2,<3' 'requests>=2.31,<3' 'eccodes>=2.38,<3'
+      - name: Offline-Netz-/Bitmap-/GRIB-Inventar-Negativtests
+        run: python tools/ruc/test_ruc_dwd_grib_live_canary.py -v
+      - name: Echte DWD GRIBs lesen – streng begrenzt und ohne Freigabewirkung
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_dwd_grib_live_canary.py --output dwd-grib-live-canary.json
+          echo '4 native DWD GRIB samples read; NO complete run, EPS, consumer adoption or publication admission.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Diagnostischen Byte-/Header-Beleg 2 Tage bewahren
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-dwd-grib-canary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dwd-grib-live-canary.json
+          retention-days: 2
+          if-no-files-found: error
+
+  fast-lane-full-6h-canary:
+    # Full real DWD deterministic 0..6h read-back, SHA and ecCodes validation.
+    # This is NOT a Pages/Worker publisher and cannot set an active pointer.
+    if: >-
+      github.event.pull_request.number == 542 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'chatgpt/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: SHA-gebundenen RUC-Draft ohne Credentials laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Zeitgleichen MID-Stable-/Main-SHA gegen PR-Base absichern
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_PR_BASE: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PR_HEAD"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')" = "$EXPECTED_PR_BASE"
+          test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')" = "$EXPECTED_PR_BASE"
+      - name: Python 3.12 bereitstellen
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Native ecCodes-/Geometrie-Prüfabhängigkeiten installieren
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Negative Fast-Lane-Wire- und zeitliche Herkunftsgates prüfen
+        run: |
+          python tools/ruc/test_ruc_fast_lane_producer.py -v
+          python tools/ruc/test_ruc_dwd_grib_live_canary.py -v
+          python tools/ruc/test_ruc_fast_pointer_staging.py -v
+      - name: Vollständigen nativen 0–6h-Kandidaten isoliert aus echten DWD-GRIBs bauen
+        timeout-minutes: 25
+        env:
+          MID_RUC_DOWNLOAD_WORKERS: '4'
+        shell: bash
+        run: |
+          set -euo pipefail
+          observed_run="$(python - <<'PY'
+          import sys
+          from datetime import datetime,timezone
+          sys.path.insert(0,'tools/ruc')
+          from fetch_and_build_ruc import session
+          from ruc_dwd_grib_live_canary import select_run
+          with session() as s:
+              print(select_run(s,datetime.now(timezone.utc)))
+          PY
+          )"
+          test -n "$observed_run"
+          python tools/ruc/ruc_fast_lane_producer.py --run "$observed_run" --stage .ruc-fast-live-grib --output .ruc-fast-live-candidate
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from ruc_fast_lane_producer import verify_candidate_manifest
+          root=Path('.ruc-fast-live-candidate')
+          meta=json.loads((root/'fast-candidate.json').read_text(encoding='utf-8'))
+          assert verify_candidate_manifest(meta,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}
+          assert meta['realtimeConsumerEnabled'] is False and meta['eps']=={'availability':'unavailable'}
+          from ruc_fast_pointer_staging import stage_fast_candidate
+          result=stage_fast_candidate(root,Path('.ruc-fast-inactive-site'))
+          pointer=result['pointer']
+          assert result['productionAuthorized'] is False
+          assert pointer['productionEnabled'] is False and pointer['realtimeConsumerEnabled'] is False
+          assert pointer['publicationAuthorized'] is False and pointer['consumerAdoptionVerified'] is False
+          manifest={key:meta[key] for key in ('schema','run','pointCount','dataTimes','rapid5Times','rapid15Times','objects','coverage','eps','publicationAuthorized','realtimeConsumerEnabled')}
+          manifest['inactiveFastSiteBytes']=result['fastLocalBytes']
+          manifest['pointerSchema']=pointer['schema']
+          manifest['pointerActivation']='inactive-only'
+          manifest['evidenceLimit']='local full 6h DWD deterministic bytes verified; no EPS20, Pages/Worker or client admission'
+          Path('fast-lane-6h-grib-proof.json').write_text(json.dumps(manifest,ensure_ascii=False,sort_keys=True,allow_nan=False)+'\n',encoding='utf-8')
+          print(f"Verified complete deterministic 0-6h native candidate from {meta['run']} without production activation")
+          PY
+      - name: Nur Diagnosemanifest, keine GRIB-/Binärdaten und keinen Pointer sichern
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-fast-6h-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fast-lane-6h-grib-proof.json
+          if-no-files-found: error
+          retention-days: 2
