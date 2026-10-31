@@ -1,3 +1,10 @@
+# MID v0.9.85.383 – Vollständige RUC-Publikationsprüfung
+
+- MID überprüft bei RUC-Modellveröffentlichungen die vollständige 27-Stunden-Prognose mit 28 korrekten UTC-Zeitpunkten und genau 20 Ensemblemitgliedern anhand des geprüften Originalmanifests.
+- Das öffentliche GitHub-Pages-Manifest muss dieselbe Rastergeometrie und vollständigen Zeitachsen besitzen; der produktive Worker muss exakt dieselben Datenzahlen zurückmelden. Fehlende oder verkürzte Inhalte werden nicht mehr durch bloße Mindestzählungen akzeptiert.
+- Verzögerte Aktualisierungen werden weiterhin nur innerhalb der bestehenden festen Wiederholungsgrenzen geprüft; der letzte gültige Wetterdatenstand bleibt geschützt. Fehlende Werte werden nicht aufgefüllt.
+- Die neue Prüfung ist zusätzlich in den verpflichtenden Source- und RUC-Tests verankert. Keine Veränderungen amtlicher Warnungen, Wetterwerte oder des gesicherten Releaseverfahrens.
+
 # MID v0.9.85.382 – RUC: Ensemble-Mitglieder früher prüfen
 
 - MID erkennt fehlende RUC-Ensemblemitglieder und Gültigkeitsstunden bereits aus echten GRIB-Headern vor der umfangreichen übrigen Modellaufbereitung.
