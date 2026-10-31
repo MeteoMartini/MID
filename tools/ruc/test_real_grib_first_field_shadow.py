@@ -3,6 +3,8 @@
 import bz2
 from datetime import timedelta
 import io
+import json
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -100,6 +102,33 @@ class Tests(unittest.TestCase):
         self.assertRaises(ValueError,s.validate_witness,[],run=RUN,lead_minutes=0,point_count=542040)
         self.assertRaises(ValueError,s.validate_witness,[invalid[-1]]*2,
                           run=RUN,lead_minutes=0,point_count=542040)
+
+
+    def test_failed_download_is_unknown_and_report_is_saved(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out=Path(folder)/'sample.json'
+            with patch.object(s,'discovered_runs',return_value=[RUN]), \
+                 patch.object(s,'sample',side_effect=RuntimeError('DWD transient')), \
+                 patch.object(sys,'argv',['probe','--run','latest','--output',str(out)]):
+                self.assertEqual(s.main(),2)
+            result=json.loads(out.read_text())
+            self.assertEqual(result['observationStatus'],'unknown')
+            self.assertEqual(result['errorClass'],'RuntimeError')
+            self.assertFalse(result['productionAuthorized'])
+            self.assertIsNone(result.get('witness'))
+
+    def test_successful_one_field_still_not_production(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out=Path(folder)/'sample.json'
+            mocked={'schema':'mid.ruc.real-grib-first-field-shadow.v1','run':RUN,
+                    'witness':{'finitePointCount':500000},
+                    'fullRunVerified':False,'productionAuthorized':False}
+            with patch.object(s,'sample',return_value=mocked), \
+                 patch.object(sys,'argv',['probe','--run',RUN,'--output',str(out)]):
+                self.assertEqual(s.main(),0)
+            result=json.loads(out.read_text())
+            self.assertFalse(result['fullRunVerified'])
+            self.assertFalse(result['productionAuthorized'])
 
 
 if __name__=='__main__':
