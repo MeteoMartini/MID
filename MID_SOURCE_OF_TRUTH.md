@@ -1,3 +1,11 @@
+# MID v0.9.85.387 · Designaudit A3: vollständige Tagesintervalle und PoP-NoData (Source-Kandidat)
+
+**Verifizierte Basis:** v0.9.85.386 `main=mid-stable` SHA `b6eba7bea8a42bc78841955b3eeac8a392510d12`, Installer #41218322192 vollständig erfolgreich. Separater `chatgpt/v0.9.85.387-design-a3-precipitation-integrity`-Integrationskandidat; bis nach vollständig erfolgreicher Promotion **keine veröffentlichte Stable-Version .387**. Der parallele RUC-.387-Draft #542 bleibt gesichert und bedarf vor einem eigenen Release einer neuen Versions-/Stable-Koordination.
+
+**Meteorologischer Vertrag:** A3-Tagesdetail verwendet für 3h-Niederschlag und PoP ausschließlich vollständige, gültige beitragende Intervalle; Missing bleibt Missing. Ersatz-Tagesprodukte aus stündlichen Werten benötigen lückenlose Originalintervalle zwischen echten lokalen 23h/24h/25h-Kalendertaggrenzen. PoP-Linien werden bei fehlenden Werten segmentiert, auch Tooltip, Stundenliste und ausgewählter Marker stellen 0 % nur bei gültiger Null dar. Die kanonische Tagesquelle bleibt vorrangig. Amtliche Warnfarben, WMO-Codes, Quell-/Modelllauf, Karten/WMS und RUC unverändert.
+
+**Regressions- und Releasegrenze:** Neuer Pflicht-Test `scripts/test-design-a3-precipitation-integrity-0985387.mjs`; bisherige 1058 pro Inventar vollständig erhalten, jetzt 1059. Vollständiges Source-PR-Gate, SHA-gebundener Bot, serverseitiges Release-ZIP, `install-mid.yml`, Worker-/Pages- und Stable-Promotion bleiben zwingend; keine reale Geräteabnahme allein durch Quell-/CI-Prüfungen. Designaudit #523 bleibt für A1–A5, Widgets/Exporte und echte Accessibility-/Viewport-Nachweise offen.
+
 # MID v0.9.85.386 · Designaudit A1/A2: bekannte Null von fehlenden Niederschlagsdaten trennen
 
 **Quellenbasis und Integration:** v0.9.85.385 auf `main=mid-stable` SHA `1ade69f46b9bf77e9adaa360353ffacc7a0b967c` nach vollständig erfolgreichem Installer #41197737906. Feature-Herkunft: Design-Draft #538 SHA `f93203729414b8f706691fb5dce52008cbed99a4`, ausschließlich über geprüften Stable-basierten Integrations-PR #540. Die parallele Cleanup-Arbeit PR #543 und RUC-Shadow-PR #542 sind nicht Bestandteil dieses Quellstands.

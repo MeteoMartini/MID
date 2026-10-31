@@ -18,8 +18,11 @@ const sevenDaySource=fs.readFileSync(path.join(root,'src','SevenDayForecastSumma
 
 for(const token of ['drySignal','dryAdjustedHour','groundLayerState','convectivePersistenceFactor','refineOperationalRadarBlend','reconcileForecastDaysWithHours','weatherHours',"weatherBundleKind:repaired?'coherent-model':'best-match'"])assert.ok(fusionSource.includes(token),`fehlender Nowcast-/Modellbündelvertrag: ${token}`);
 assert.ok(appSource.includes('displayDays=useMemo(()=>reconcileForecastDaysWithHours(baseDisplayDays,displayHours)'), 'Tagesansicht muss aus den finalen Nowcast-Stunden reconciliert werden');
-assert.ok(appSource.includes('totalRain=Number.isFinite(selectedDay.precipitation)'), 'Detailpille muss denselben Tagesniederschlag wie die 7-Tage-Karte verwenden');
-assert.ok(appSource.includes('maxProb=Number.isFinite(selectedDay.probability)'), 'Detailpille muss dieselbe Tageswahrscheinlichkeit wie die 7-Tage-Karte verwenden');
+assert.ok(appSource.includes('totalRain=isAvailablePrecipitation(selectedDay.precipitation)?selectedDay.precipitation'), 'Detailpille muss gültigen kanonischen Tagesniederschlag vorrangig verwenden');
+assert.ok(appSource.includes('totalSnow=isAvailablePrecipitation(selectedDay.snowfall)?selectedDay.snowfall'), 'Kanonischer Tagesschnee darf fehlende Werte nicht als Null ersetzen');
+assert.ok(appSource.includes('maxProb=isAvailableProbability(selectedDay.probability)?selectedDay.probability'), 'Detailpille muss gültige kanonische Tageswahrscheinlichkeit vorrangig verwenden');
+assert.ok(appSource.includes('completeCalendarDayCoverage=completePrecipitationWindowCoverage('), 'Ersatz-Tageswerte erfordern lückenlose reale lokale Taggrenzen');
+assert.ok(appSource.includes('completeCalendarDayCoverage?sumCompletePrecipitation(metricHours.map(hour=>hour.precipitation)):Number.NaN'), 'Unvollständige Stunden dürfen keine scheinbar vollständige Tagessumme bilden');
 assert.ok(appSource.includes('characterHours=presentationHours.length?presentationHours:p'), 'heutige Wetterbeschreibung muss abgelaufene Stunden ausblenden');
 assert.ok(sevenDaySource.includes('fullCurrentDayAssessment=index===0&&calendarDayHours.length?precipitationPeriodAssessment(calendarDayHours):null')&&sevenDaySource.includes('precipitationSignalHours=index===0&&calendarDayHours.length?calendarDayHours:dayHours'), '7-Tage-Trend muss den ganzen lokalen Kalendertag auswerten und vergangene Ereignisse nicht ausblenden');
 assert.ok(sevenDaySource.includes('followingNightHoursForDate(day.date,allHours).filter(hour=>index>0||hour.epoch>=Date.now()-30*60000)'), 'Kommende Nacht muss zukunftsorientiert bleiben und darf keine abgelaufenen Nachtereignisse einrechnen');

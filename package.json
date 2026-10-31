@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.386",
+  "version": "0.9.85.387",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -569,7 +569,8 @@
     "test:release-timing-ci": "node --test scripts/test-release-timing-0985376.mjs",
     "test:release-train-ci": "node --test scripts/test-release-train-plan-0985376.mjs",
     "test:source-gate-evidence-ci": "node --test scripts/test-source-gate-evidence-0985376.mjs",
-    "test:build-parity-ci": "node --test scripts/test-build-parity-0985377.mjs"
+    "test:build-parity-ci": "node --test scripts/test-build-parity-0985377.mjs",
+    "test:design-a3-nodata": "node scripts/test-design-a3-precipitation-integrity-0985387.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.2",
