@@ -47,3 +47,13 @@ export function completePrecipitationIntervalCoverage(intervals:readonly {start:
  const sorted=[...intervals].sort((a,b)=>a.start-b.start);
  return sorted.every((interval,index)=>Number.isFinite(interval.start)&&Number.isFinite(interval.end)&&interval.end>interval.start&&(index===0||Math.abs(interval.start-sorted[index-1].end)<=1000));
 }
+
+/** A local day may span 23, 24 or 25 real hours; only the absolute bounds
+ * and a gap-free sequence of original slots prove completeness. */
+export function completePrecipitationWindowCoverage(
+ intervals:readonly {start:number;end:number}[],start:number,end:number
+):boolean {
+ if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||!completePrecipitationIntervalCoverage(intervals))return false;
+ const sorted=[...intervals].sort((a,b)=>a.start-b.start);
+ return Math.abs(sorted[0].start-start)<=1000&&Math.abs(sorted[sorted.length-1].end-end)<=1000;
+}
