@@ -13,6 +13,8 @@ on:
       - 'tools/ruc/test_ruc_freshness_shadow_gate.py'
       - 'tools/ruc/test_ruc_e2e_readback.py'
       - 'tools/ruc/test_ruc_weekly_e2e_observations.py'
+      - 'ci/github/workflows/mid-ruc-availability-observer.yml'
+      - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
       - '.github/workflows/mid-ruc-telemetry-qa.yml'
 
@@ -68,6 +70,9 @@ jobs:
           npm run sync:github-workflows
           git diff --exit-code -- .
           test -z "$(git status --porcelain)"
+          grep -Fq 'SHA-gebundenen Stable/Main-Releasezustand vor jeder Probe prüfen' ci/github/workflows/mid-ruc-availability-observer.yml
+          grep -Fq 'if: steps.lineage.outputs.ready == ' ci/github/workflows/mid-ruc-availability-observer.yml
+          grep -Fq 'contents: read' ci/github/workflows/mid-ruc-availability-observer.yml
       - name: Python-Quellen und negative Readback-/Zeit-/Datenlückentests
         shell: bash
         run: |
