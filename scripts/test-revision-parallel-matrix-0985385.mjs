@@ -7,6 +7,9 @@ import {mapBrowserRunPlan,mapBrowserCases,mapBrowserMemoryProbe} from './map-bro
 const root=new URL('../',import.meta.url),read=p=>readFile(new URL(p,root),'utf8');
 const canonical=await read('ci/github/workflows/mid-code-revision.yml');
 assert.equal(canonical,await read('.github/workflows/mid-code-revision.yml'),'Source and active revision workflows must remain exactly identical');
+assert.doesNotMatch(canonical,/^  install:\\s*$/m,'Obsoleter Revision-Installerjob darf nicht zurückkehren');
+assert.doesNotMatch(canonical,/^          - install\\s*$/m,'Veralteter task=install-Dispatch muss dauerhaft entfallen');
+assert.doesNotMatch(canonical,/git push origin HEAD:(?:main|mid-stable)/,'Revision darf geschützte Release-Branches nie direkt beschreiben');
 const matrix=canonical.split('  revision_regressions:')[1]?.split('  ci:')[0];
 const resolver=canonical.split('  revision_source:')[1]?.split('  revision_regressions:')[0];
 const ci=canonical.split('  ci:')[1]?.split('  nightly:')[0];
