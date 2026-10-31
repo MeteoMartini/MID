@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from ruc_fast_lane_producer import (
     FIELDS, EXPECTED_LEADS, EXPECTED_RAPID5, EXPECTED_RAPID15,
-    canonical_run, lead_inventory, verify_candidate_manifest, digest)
+    canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
 
 RUN='2026-10-31T10:00'
 T=datetime(2026,10,31,10,tzinfo=timezone.utc)
@@ -33,6 +33,25 @@ class TestFast(unittest.TestCase):
     def test_run_invalid_calendar(self):
         for x in ('2026-13-01T09:00','2026-10-31T09:30','2026-10-31T09:00Z','2026-02-30T09:00'):
             with self.subTest(run=x),self.assertRaises(ValueError):canonical_run(x)
+    def test_whole_native_forecast_step_missing_rejected(self):
+        import numpy as np
+        from collections import namedtuple
+        Spec=namedtuple('Spec','name offset scale')
+        values=np.array([[0.,1.],[np.nan,np.nan],[2.,np.nan]])
+        with self.assertRaisesRegex(ValueError,'forecast step entirely missing'):
+            safe_quantization({'precipitation':values},(Spec('precipitation',0.,0.01),),np)
+    def test_real_dry_zero_remains_finite(self):
+        import numpy as np
+        from collections import namedtuple
+        Spec=namedtuple('Spec','name offset scale')
+        values=np.array([[0.,np.nan],[0.,0.],[0.04,np.nan]])
+        self.assertTrue(safe_quantization({'precipitation':values},(Spec('precipitation',0.,0.01),),np))
+    def test_extreme_cannot_clip_as_normal_data(self):
+        import numpy as np
+        from collections import namedtuple
+        Spec=namedtuple('Spec','name offset scale')
+        with self.assertRaisesRegex(ValueError,'native extreme'):
+            safe_quantization({'precipitation':np.array([[40000.]])},(Spec('precipitation',0.,0.01),),np)
     def test_native_hourly_exact(self):self.assertEqual(lead_inventory(sorted(EXPECTED_LEADS),lambda x:int(x),EXPECTED_LEADS),7)
     def test_missing_native_hour(self):
         with self.assertRaises(ValueError):lead_inventory([0,60,120,180,240,300],lambda x:int(x),EXPECTED_LEADS)
