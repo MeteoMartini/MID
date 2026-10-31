@@ -32,6 +32,7 @@ jobs:
         run: |
           python tools/ruc/test_dwd_availability_observer.py
           python tools/ruc/test_dwd_availability_report.py
+          python tools/ruc/test_ruc_freshness_shadow_gate.py
       - name: DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten
         shell: bash
         run: |
