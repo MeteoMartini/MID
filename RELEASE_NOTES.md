@@ -1,7 +1,6 @@
-# MID v0.9.85.383 – RUC-Lauf und Vollständigkeit exakt prüfen
+# MID v0.9.85.384 – Nachvollziehbare Releasekette und CI-Laufzeit
 
-- MID prüft bei RUC-Veröffentlichungen nun die vollständige Vorhersagezeitachse, Modellgitter und Ensembleanzahl anhand eines vorab verifizierten Snapshots.
-- GitHub Pages und der produktive Worker müssen exakt dieselbe Run-ID und die erwarteten 28 Stunden, 20 Ensemblemitglieder und Rasterpunktanzahl melden. Unvollständige Felder oder verkürzte Daten dürfen nicht nur wegen eines erfolgreichen Workflows als betriebsbereit gelten.
-- Bei verzögerter Veröffentlichung bleiben begrenzte Wiederholungsprüfungen und der vorherige gültige Datenstand erhalten. Der getrennte, vollständig geprüfte 14-Stunden-Rohrollback bleibt bei einem Codec-Ausfall ausdrücklich verfügbar. Fehlende Wetterwerte werden nicht als Nullwerte ersetzt.
-- Die originalen DWD-Werte, amtliche Warnungen, Benutzeroberfläche und der sichere Releasepfad bleiben unverändert.
-
+- MID kann veröffentlichte Releaseketten zusätzlich als eine einzige, schreibgeschützte Prüfung aus Source-PR, kontrolliertem Merge, ausschließlich serverseitigem Release-ZIP, Installer, Worker/Pages und Stable-Commit untersuchen.
+- Pflichtjobs, vollständige Commit-SHAs, Run-Versuche, Versionsform, zulässige Branches, fehlende und doppelte Jobs sowie ungültige Zeitstempel werden fail-closed beurteilt. Gleichzeitige Bot-/Installer-Phasen werden in der Gesamtlaufzeit nicht doppelt gezählt.
+- Umfangreiche Negativtests sind in die bestehende verpflichtende CI-Timing-Regression integriert. Der Prüfer verändert weder Wetterdaten noch die Benutzeroberfläche oder die bestehende Releasepipeline.
+- Die Auswertung ist eine zusätzliche Diagnose und KEINE Signatur, Build-/Testartefakt-Wiederverwendung oder Releasefreigabe. Sämtliche Source-, Installer-, Worker-, Pages- und Stable-Gates bleiben zwingend erforderlich. Issue #526 bleibt für tatsächliche Sigstore-/Artefakt- und A/B-Gleichwertigkeit offen.
