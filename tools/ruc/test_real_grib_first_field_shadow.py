@@ -35,7 +35,7 @@ class Tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             s.choose_source(RUN,indexer=lambda url:[])
         with self.assertRaises(ValueError):
-            s.choose_source(RUN,indexer=lambda url:[URL,URL])
+            s.choose_source(RUN,indexer=lambda url:[URL,ROOT+'alternative_PT000H00M.grib2.bz2'])
         with self.assertRaises(ValueError):
             s.choose_source(RUN,lead_minutes=15,indexer=lambda url:[URL])
 
