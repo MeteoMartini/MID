@@ -25,7 +25,6 @@ on:
           - health
           - performance
           - codeql
-          - install
           - all
   schedule:
     - cron: '17 3 * * *'
