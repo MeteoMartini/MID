@@ -33,18 +33,33 @@ jobs:
           python tools/ruc/test_dwd_availability_observer.py
           python tools/ruc/test_dwd_availability_report.py
           python tools/ruc/test_ruc_freshness_shadow_gate.py
+          python tools/ruc/test_ruc_e2e_readback.py
+          python tools/ruc/test_ruc_weekly_e2e_observations.py
       - name: DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten
         shell: bash
         run: |
           set -euo pipefail
           python tools/ruc/dwd_availability_observer.py --runs 2 --output "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl"
           echo 'Read-only DWD directory sample collected; NO completeness/admission or actual first-publication time proved.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Öffentlichen Pages-/Worker-Readback separat erfassen (kein App-/SLO-Beweis)
+        env:
+          MID_RUC_PAGES_BASE_URL: ${{ vars.MID_RUC_PAGES_BASE_URL || 'https://midwx.app/ruc/' }}
+          MID_RUC_WORKER_HEALTH_URL: ${{ vars.MID_RUC_WORKER_HEALTH_URL || vars.MID_WORKER_HEALTH_URL || vars.VITE_METAR_PROXY_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--pages-base "$MID_RUC_PAGES_BASE_URL" --output "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json")
+          if [ -n "$MID_RUC_WORKER_HEALTH_URL" ]; then args+=(--worker-url "$MID_RUC_WORKER_HEALTH_URL"); fi
+          python tools/ruc/ruc_e2e_readback.py "${args[@]}"
+          echo 'Pages/Worker observational readback ONLY; no true publication-time, EPS-bitmap or App-adoption/SLO attestation.' >> "$GITHUB_STEP_SUMMARY"
       - name: Stichproben für sieben Tage auswertbar sichern
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dwd-ruc-observation-${{ github.run_id }}-${{ github.run_attempt }}
-          path: dwd-observation-*.jsonl
+          path: |
+            dwd-observation-*.jsonl
+            ruc-e2e-*.json
           retention-days: 14
           if-no-files-found: warn
           compression-level: 6
