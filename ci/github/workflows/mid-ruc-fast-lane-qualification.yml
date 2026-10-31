@@ -1,0 +1,87 @@
+name: MID DWD RUC 0-6h Fast Lane qualification (no publication)
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'Exact authentic UTC DWD ICON-D2-RUC run YYYY-MM-DDTHH:00; qualification only'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-fast-qualification
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Geprüften aktuellen Stable-Stand laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Stable/Main-Lineage und Eindeutigkeit prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MID_RUC_SELECTED_RUN: ${{ inputs.run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git_sha="$(git rev-parse HEAD)"
+          main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          stable_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')"
+          if [ "$git_sha" != "$main_sha" ] || [ "$git_sha" != "$stable_sha" ]; then
+            echo '::error::Stable/Main drift; fail closed before real DWD I/O.'
+            exit 1
+          fi
+          python -c 'import sys;sys.path.insert(0,"tools/ruc");from ruc_fast_lane_producer import canonical_run;canonical_run(sys.argv[1])' "$MID_RUC_SELECTED_RUN"
+      - name: Python-/GRIB-Pflichtabhängigkeiten installieren
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: ecCodes und qualifizierte MID-RUC-Pakete installieren
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Offline-Negativtests als harte Pflicht vor echter GRIB-Aufbereitung
+        run: |
+          python tools/ruc/test_ruc_fast_lane_producer.py
+          # P4 safety-gated test source is not merged; this workflow qualifies P2 only.
+          # Do not infer cross-provider trigger authorization from these tests.
+          python tools/ruc/test_ruc_e2e_readback.py
+          python tools/ruc/test_ruc_weekly_e2e_observations.py
+      - name: Eigenständigen authentischen 0-6h-RUC-Kandidaten ohne EPS bauen
+        env:
+          MID_RUC_SELECTED_RUN: ${{ inputs.run }}
+          MID_RUC_DOWNLOAD_WORKERS: '4'
+        run: |
+          python tools/ruc/ruc_fast_lane_producer.py --run "$MID_RUC_SELECTED_RUN" \
+            --stage .ruc-fast-grib-isolated --output .ruc-fast-candidate
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from ruc_fast_lane_producer import verify_candidate_manifest
+          root=Path('.ruc-fast-candidate')
+          manifest=json.loads((root/'fast-candidate.json').read_text())
+          assert verify_candidate_manifest(manifest,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}
+          size=sum(p.stat().st_size for p in root.rglob('*') if p.is_file())
+          assert 0<size<900_000_000, 'unqualified size / budget violation'
+          print('MID RUC Fast candidate: real GRIBs checked and local bytes read back;'
+                ' NOT approved for Pages/Worker/app release. Bytes:',size)
+          PY
+      - name: Ausschließlich unveränderliche Diagnose als kurzes GitHub-Artefakt sichern
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-fast-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ruc-fast-candidate/
+          retention-days: 2
+          if-no-files-found: error
+          compression-level: 1
