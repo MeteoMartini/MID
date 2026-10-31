@@ -1,0 +1,49 @@
+name: MID DWD RUC availability observation (read-only)
+on:
+  workflow_dispatch:
+  schedule:
+    # Observations are best-effort; true first availability is interval-censored.
+    # This job must not trigger, block or replace the 27h/20-EPS pipeline.
+    - cron: '3,18,33,48 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-availability-observer
+  cancel-in-progress: false
+
+jobs:
+  observe:
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Geprüften Stable-Code ausschließlich lesend laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+      - name: Standard-Python für indexbasierten DWD-Probe laden
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Negativtests ohne DWD-Netz ausführen
+        run: |
+          python tools/ruc/test_dwd_availability_observer.py
+          python tools/ruc/test_dwd_availability_report.py
+      - name: DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/dwd_availability_observer.py --runs 2 --output "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl"
+          echo 'Read-only DWD directory sample collected; NO completeness/admission or actual first-publication time proved.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Stichproben für sieben Tage auswertbar sichern
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dwd-ruc-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dwd-observation-*.jsonl
+          retention-days: 14
+          if-no-files-found: warn
+          compression-level: 6
