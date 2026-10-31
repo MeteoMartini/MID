@@ -1,8 +1,8 @@
 {
   "schema": "mid.web-build-identity.v1",
-  "version": "0.9.85.387",
-  "sourceGitSha": "0eb10c80f15b4b3e8190dadb12a94fb7adba8495",
-  "builtAtUtc": "2026-10-31T19:06:53.786Z",
-  "assetsSha256": "8fdd240c77a69eeea515b31c0ff1b3ceaaa5d7e7ea61b028a8778de05f93d924",
+  "version": "0.9.85.388",
+  "sourceGitSha": "9e56268b0cdb2ce97beae8f4619e7d1975a54ffc",
+  "builtAtUtc": "2026-10-31T20:01:29.458Z",
+  "assetsSha256": "da56190d4bde98ae84c934414bb212400bedffb17b03bfc8bc7351e54d74b7cb",
   "assetCount": 118
 }
