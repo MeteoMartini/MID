@@ -27,6 +27,23 @@ WIRE_FIELDS = ('temperature_2m', 'dew_point_2m', 'relative_humidity_2m',
                'wind_gusts_10m', 'precipitation', 'cloud_cover',
                'cloud_cover_low', 'cape', 'convective_inhibition')
 
+# Immutable unit/scale contract mirrored from the released ruc_pack.DEFAULT_FIELDS.
+# Reject release-schema drift instead of silently relabelling meteorological values.
+WIRE_CONTRACT = (
+    ('temperature_2m', '°C', 0.01, 0.0),
+    ('dew_point_2m', '°C', 0.01, 0.0),
+    ('relative_humidity_2m', '%', 0.1, 0.0),
+    ('pressure_msl', 'hPa', 0.1, 0.0),
+    ('wind_speed_10m', 'kn', 0.01, 0.0),
+    ('wind_direction_10m', '°', 0.1, 0.0),
+    ('wind_gusts_10m', 'kn', 0.01, 0.0),
+    ('precipitation', 'mm', 0.01, 0.0),
+    ('cloud_cover', '%', 0.1, 0.0),
+    ('cloud_cover_low', '%', 0.1, 0.0),
+    ('cape', 'J/kg', 0.1, 0.0),
+    ('convective_inhibition', 'J/kg', 0.1, 0.0),
+)
+
 
 def canonical_run(value):
     if not isinstance(value,str) or not RUN.fullmatch(value):
@@ -96,6 +113,11 @@ def verify_candidate_manifest(candidate, root):
             or not all(isinstance(row,dict) for row in field_rows)
             or tuple(row.get('name') for row in field_rows)!=WIRE_FIELDS):
         raise ValueError('fast candidate wire field inventory/order invalid')
+    if any((row.get('name'), row.get('unit'), row.get('scale'), row.get('offset')) != expected
+           for row, expected in zip(field_rows, WIRE_CONTRACT)):
+        raise ValueError('fast candidate wire unit/scale/offset drift')
+    if candidate.get('realtimeConsumerEnabled') is not False:
+        raise ValueError('fast candidate cannot claim active realtime consumers')
     files=candidate.get('objects')
     if not isinstance(files,dict) or set(files)!={'deterministic.bin','rapid-5m.bin','rapid-15m.bin','lookup.bin'}:
         raise ValueError('required objects missing')
@@ -148,8 +170,8 @@ def build(run, output, staging):
     from ruc_pack import (DEFAULT_FIELDS, RAPID_5M_FIELDS, RAPID_15M_FIELDS,
         pack_cell_major)
     if set(FORECAST_REQUIRED)!=set(FIELDS):raise ValueError('production field contract drift')
-    if tuple(item.name for item in DEFAULT_FIELDS)!=WIRE_FIELDS:
-        raise ValueError('production native field order contract drift')
+    if tuple((item.name,item.unit,item.scale,item.offset) for item in DEFAULT_FIELDS)!=WIRE_CONTRACT:
+        raise ValueError('production native wire unit/scale/offset contract drift')
     s=session()
     # Directory listings are only a preflight; the original ecCodes reader
     # independently validates every downloaded GRIB header, units and bitmap.
