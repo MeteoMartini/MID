@@ -1,3 +1,15 @@
+# MID v0.9.85.390 · Designaudit A3: WMS-Modelllauf-, Gültigkeits- und Höhenflächen-Gate vereinheitlicht
+
+**Verifizierte Quelle:** v0.9.85.389, `main=mid-stable` @ `6e449be3baf13e9c33ec206864189dd4b580d482`; PR #549 und Installer #41240348162 vollständig erfolgreich mit Core, Heavy, Worker, Pages, Finalize. Fünf aktive Rulesets und 1.059 Pflichtregressionen erhalten.
+
+**Ursache und fachliche Abgrenzung:** Die Legacy-Wetterkartenansicht verwendet `weatherMapFrameReady` und verweigert unbestätigte WMS-Metadaten, unbekannte Lauf-/Gültigkeitszeiten und nicht gelistete Vertikalniveaus. `UnifiedWeatherMap` verwendete bisher nur Layergleichheit, ausgewählten Termin, Lauf-String und URL, wodurch unvollständig qualifizierte WMS-Kachelanfragen möglich waren. Die vereinigte Ansicht verwendet jetzt **denselben** vorhandenen Validator, einschließlich korrekter akkumulativer Mindestvorlaufzeiten. Kein synthetischer Nullwert, keine automatische Fallback-Karte und keine Änderung der amtlichen Warnsemantik.
+
+**Test:** Der bestehende verpflichtende `scripts/test-unified-map-layers-0985167.mjs` führt aus der echten TypeScript-Quelle transpilierte WMS-Validatorfälle für korrekten/fehlenden Lauf, Termin, Layer, Höhenfläche, Providerfehler und 6h-Niederschlagsfenster aus und erzwingt den korrekten Renderpfad in `UnifiedWeatherMap`. Beide Pflichtinventare unverändert **1059**. Echte Browser-/iOS-/VoiceOver-Gates dürfen erst nach konkreter Durchführung grün genannt werden.
+
+**Releasegrenze:** `v0.9.85.390` ist erst nach vollständigem Source-PR-Gate, SHA-Bot, serverseitigem ZIP, Installer, Worker/Pages und Stable-Promotion veröffentlicht. Keine direkten Hauptbranch-Schreiboperationen.
+
+---
+
 # MID v0.9.85.389 · Designaudit #523: Modell- und Parameterauswahl bei Karten-Navigation erhalten
 
 **Provenienz:** Ausgangsbasis ist veröffentlichte v0.9.85.388, `main=mid-stable` SHA `11c56661b371bf9c0da49d0836fcb548d46bf46f`, Installer #41236833866 vollständig erfolgreich. Die Quell-/Testblobs des auf .387 basierenden Drafts #547, Head `a73b9009172e0f778604314ecca7ea8bed53d8f1`, werden auf die danach freigegebene Stable neu integriert; unveröffentlichte Branches und weitere parallel laufende RUC-/KNMI-Arbeiten werden nicht umgeschrieben.

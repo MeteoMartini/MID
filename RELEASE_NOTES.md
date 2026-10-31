@@ -1,5 +1,5 @@
-# MID v0.9.85.389 – Karten behalten die gewählte Modell- und Parameterauswahl
+# MID v0.9.85.390 – Modellkarten prüfen Gültigkeit und Höhenfläche einheitlich
 
-- Beim Aufruf der Wetterkarten bleibt die zuletzt gewählte Modell- und Parameterkombination erhalten. Der bisher mögliche unbeabsichtigte Wechsel zu ICON-D2-Niederschlagssummen wird verhindert.
-- Niederschlagssummen lassen sich weiterhin ausdrücklich auswählen. Ältere gespeicherte Karteneinstellungen bleiben kompatibel, ohne bestehende individuelle Einstellungen zu überschreiben.
-- Meteorologische Daten, amtliche Warnungen, RUC-Versorgung, Zeitachsen und andere Wetterfunktionen bleiben unverändert.
+- Wetterkarten prüfen nun auch in der gemeinsamen Kartenansicht, ob ein WMS-Produkt für den konkreten Modelllauf, Zeitpunkt und die gewählte Druck- bzw. Höhenfläche bestätigt ist.
+- Fehlende oder ungültige Modellkarten werden nicht als bestätigte Wetterkarten dargestellt. Bereits verfügbare, fachlich gültige Karten bleiben erhalten.
+- Prognosewerte, akkumulierte Niederschlagsintervalle, RUC und amtliche Warnungen bleiben unverändert.
