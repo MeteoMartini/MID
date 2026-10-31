@@ -40,3 +40,10 @@ export function contiguousFinitePrecipitationSegments(points:readonly {x:number;
  if(current.length)groups.push(current);
  return groups;
 }
+
+/** Detect dropped or overlapping input intervals before producing any aggregate amount or PoP. */
+export function completePrecipitationIntervalCoverage(intervals:readonly {start:number;end:number}[]):boolean {
+ if(!intervals.length)return false;
+ const sorted=[...intervals].sort((a,b)=>a.start-b.start);
+ return sorted.every((interval,index)=>Number.isFinite(interval.start)&&Number.isFinite(interval.end)&&interval.end>interval.start&&(index===0||Math.abs(interval.start-sorted[index-1].end)<=1000));
+}

@@ -31,6 +31,10 @@ Normative Grundlage: MID_PRECIPITATION_INTERVAL_CONTRACT.md, MID_PARAMETER_DISPL
 
 Die 24h-Wahrscheinlichkeitslinie wird an ungültigen Werten segmentiert; nicht verfügbare Werte dürfen keine verbindende Linie, keine PoP-Punkte/Säulen und keine Niederschlagsbalken erzeugen. Im 90-Minuten-Raster und den 24h-Titeln wird ein fehlender Wert ausdrücklich benannt, statt zu 0 mm/0 % zu werden. Noch nicht als reale Browser-/iOS-Abnahme nachgewiesen.
 
+## Vollständigkeit der Zeitachse und 7d-Kurve (PR-Completion)
+
+Zusätzlich zu Rohwertverfügbarkeit validiert `completePrecipitationIntervalCoverage` die lückenlose und überschneidungsfreie Folge der im 24h-Aggregat enthaltenen Intervallkanten. Fehlt ein 15-min-Beitrag innerhalb des angezeigten Gruppenintervalls, ergeben die Menge und das PoP-Maximum `NaN`, nicht eine plausibel wirkende zu kleine Summe oder 0 %. Eine vollständig entfernte 24h-Gruppe bleibt weiterhin eine gesonderte Provider-/Achsenprüfung. Die 7d-Stundenniederschlagskurve kennzeichnet fehlende Gesamtmengen dezent gestrichelt und lässt sie nicht unbemerkt als trockenen Nullbalken erscheinen; der Tooltip erhält gültige PoP oder einen Missing-Hinweis. Umfang: reiner Fachvertrag und fokussierte Regression, noch keine echte Browser-/iOS-Abnahme.
+
 ## Freigabegrenze
 
 Erst neue Stable-SHA-Prüfung, saubere .385-Reihenfolge bzw. Versionskoordination, vollständige Source-PR-Gates, SHA-Bot-Merge, serverseitiges ZIP, Installer und betroffene Worker/Pages-Gates, anschließend bestätigte Stable-Promotion. Bis dahin bleibt der PR im Draft. Issue #523 bleibt offen.

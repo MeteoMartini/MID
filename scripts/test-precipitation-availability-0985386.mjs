@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {transformSync} from 'esbuild';
 const source=readFileSync(new URL('../src/precipitationAvailability.ts',import.meta.url),'utf8');
 const js=transformSync(source,{loader:'ts',format:'esm',target:'es2022'}).code;
-const {isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,scaleAvailablePrecipitation,precipitationRateIfAvailable,inactivePrecipitationLabel,contiguousFinitePrecipitationSegments}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const {isAvailablePrecipitation,isAvailableProbability,sumCompletePrecipitation,maxCompleteProbability,scaleAvailablePrecipitation,precipitationRateIfAvailable,inactivePrecipitationLabel,contiguousFinitePrecipitationSegments,completePrecipitationIntervalCoverage}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 for(const bad of [null,undefined,NaN,Infinity,-Infinity,-.01,'','0']){assert.equal(isAvailablePrecipitation(bad),false);assert.ok(Number.isNaN(sumCompletePrecipitation([.4,bad,0])));assert.ok(Number.isNaN(scaleAvailablePrecipitation(bad,.5)));assert.ok(Number.isNaN(precipitationRateIfAvailable(bad,15)));assert.equal(inactivePrecipitationLabel(bad,0),'Niederschlagsdaten unvollständig')}
 for(const bad of [null,undefined,NaN,-1,101,'0']){assert.equal(isAvailableProbability(bad),false);assert.ok(Number.isNaN(maxCompleteProbability([0,bad])));assert.equal(inactivePrecipitationLabel(0,bad),'Niederschlagsdaten unvollständig')}
 assert.equal(sumCompletePrecipitation([0,0,0,0]),0);
@@ -31,4 +31,13 @@ assert.ok(cockpit.includes('chartPoints.filter(item=>isAvailableProbability(item
 assert.ok(cockpit.includes('isAvailablePrecipitation(item.point.precipitation)?<rect className="rain-bar"'));
 assert.ok(cockpit.includes('shortTermKnownProbabilityLabel(item.probability)'));
 assert.ok(!cockpit.includes('probabilityDisplayValue=clamp(Number(point.probability)||0,0,100)'));
+assert.equal(completePrecipitationIntervalCoverage([{start:0,end:900000},{start:900000,end:1800000}]),true);
+assert.equal(completePrecipitationIntervalCoverage([{start:0,end:900000},{start:1200000,end:1800000}]),false);
+assert.equal(completePrecipitationIntervalCoverage([{start:0,end:1200000},{start:900000,end:1800000}]),false);
+assert.equal(completePrecipitationIntervalCoverage([{start:0,end:NaN}]),false);
+assert.equal(completePrecipitationIntervalCoverage([]),false);
+assert.ok(cockpit.includes('completeCoverage?sumCompletePrecipitation'));
+assert.ok(cockpit.includes('completeCoverage?maxCompleteProbability'));
+assert.ok(cockpit.includes('rainItems.map(item=>item.amount).filter(Number.isFinite)'));
+assert.ok(cockpit.includes('Niederschlagsmenge nicht verfügbar`}</title></line>'));
 console.log('MID .386: Niederschlag/PoP NoData, Trace, Raten und 24h-/Ensemble-Consumer geprüft');
