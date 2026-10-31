@@ -7,7 +7,7 @@ const isObj=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const positive=x=>Number.isSafeInteger(x)&&x>0;
 const fail=s=>{throw Error('MID read-only release chain rejected: '+s)};
 const sha=(x,s)=>{if(typeof x!=='string'||!SHA.test(x))fail('Invalid '+s+' SHA');return x};
-const stamp=(s,name)=>{if(typeof s!=='string'||!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$/.test(s)||!Number.isFinite(Date.parse(s)))fail('Unknown '+name+' UTC time');return Date.parse(s)};
+const stamp=(s,name)=>{if(typeof s!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(s)||!Number.isFinite(Date.parse(s)))fail('Unknown '+name+' UTC time');return Date.parse(s)};
 function checkRun(r,name,path,event,head){
  if(!isObj(r)||!positive(r.id)||r.name!==name||r.path!==path||r.event!==event||r.head_sha!==head||r.status!=='completed'||r.conclusion!=='success'||!positive(r.run_attempt))fail('Untrusted '+name+' workflow status/identity');
  const first=stamp(r.created_at,name),last=stamp(r.updated_at,name);
@@ -28,11 +28,11 @@ function requiredJobs(jobs,required,run,scope){
  return names;
 }
 export function inspectPublishedChain(e){
- if(!isObj(e)||e.schema!=='mid.readonly-release-chain.v1'||e.repository!=='MeteoMartini/MID'||!/^\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(e.version))fail('Unknown provenance/schema/version');
+ if(!isObj(e)||e.schema!=='mid.readonly-release-chain.v1'||e.repository!=='MeteoMartini/MID'||!/^\d+\.\d+\.\d+\.\d+$/.test(e.version))fail('Unknown provenance/schema/version');
  const {pr,sourceRun,sourceJobs,botRun,mergeCommit,packageCommit,packageFiles,installerRun,installerJobs,stableCommit,mainSha,stableSha}=e;
  sha(mainSha,'main');sha(stableSha,'Stable');sha(stableCommit?.sha,'Stable commit');
  if(mainSha!==stableSha||stableCommit.sha!==mainSha)fail('main and Stable diverged');
- if(!isObj(pr)||!positive(pr.number)||pr.state!=='closed'||pr.merged!==true||pr.draft!==false||pr.base!=='main'||!/^(chatgpt|codex)\\/v\\d+\\.\\d+\\.\\d+\\.\\d+-[a-z0-9._-]+$/.test(pr.head)||sha(pr.headSha,'PR HEAD')!==sourceRun?.head_sha||sha(pr.mergeSha,'PR merge')!==mergeCommit?.sha)fail('PR merge/head policy');
+ if(!isObj(pr)||!positive(pr.number)||pr.state!=='closed'||pr.merged!==true||pr.draft!==false||pr.base!=='main'||!/^(chatgpt|codex)\/v\d+\.\d+\.\d+\.\d+-[a-z0-9._-]+$/.test(pr.head)||sha(pr.headSha,'PR HEAD')!==sourceRun?.head_sha||sha(pr.mergeSha,'PR merge')!==mergeCommit?.sha)fail('PR merge/head policy');
  const source=checkRun(sourceRun,'MID-Agent-Quellstand prüfen','.github/workflows/chatgpt-pr-gate.yml','pull_request',pr.headSha);
  const sourceMap=requiredJobs(sourceJobs,sourceRequired,sourceRun,'Source');
  const allowed=new Set([...sourceRequired,'RUC +27h Kern, EPS und Gesamtpaket','Extremwetterpolygone · echte Browserpixel']);
@@ -46,7 +46,7 @@ export function inspectPublishedChain(e){
  if(installerRun?.head_sha!==packageCommit.sha)fail('Installer did not use package SHA');
  const installer=checkRun(installerRun,'MID-Release aus ZIP installieren und veröffentlichen','.github/workflows/install-mid.yml','workflow_dispatch',packageCommit.sha);
  const installMap=requiredJobs(installerJobs,installerRequired,installerRun,'Installer');
- const pages=[...installMap].filter(([name])=>/^MID auf GitHub Pages veröffentlichen · Versuch [1-9]\\d*$/.test(name));
+ const pages=[...installMap].filter(([name])=>/^MID auf GitHub Pages veröffentlichen · Versuch [1-9]\d*$/.test(name));
  if(!pages.length||pages.filter(([,j])=>j.status==='completed'&&j.conclusion==='success').length!==1||pages.some(([,j])=>!['success','skipped'].includes(j.conclusion)))fail('Exactly one successful Pages deploy required');
  if(installer.first<source.first||installer.first<bot.first||installer.last<bot.last)fail('Impossible installer order');
  return Object.freeze({schema:'mid.readonly-release-chain-result.v1',version:e.version,prNumber:pr.number,sourceHeadSha:pr.headSha,packageSha:packageCommit.sha,stableSha:mainSha,sourceSeconds:Math.round((source.last-source.first)/1000),botSeconds:Math.round((bot.last-bot.first)/1000),installerSeconds:Math.round((installer.last-installer.first)/1000),sourceToInstallerEndSeconds:Math.round((installer.last-source.first)/1000),releaseAuthorized:false,reuseAuthorized:false,signatureVerified:false,interpretation:'Descriptive read-only job and SHA lineage. Independently validated signature, A/B artifact parity and release authorization NOT provided.'});
