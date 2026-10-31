@@ -1,8 +1,5 @@
-# MID v0.9.85.387 – 7-Tage-Tagesdetails: Datenlücken meteorologisch korrekt darstellen
+# MID v0.9.85.388 – RUC-Datenaktualität jetzt unabhängig beobachten
 
-- Die 3-Stunden-Auflösung fasst Niederschlagsmengen und -wahrscheinlichkeiten nur bei gültigen, lückenlosen Beiträgen zusammen. Fehlende Werte werden nicht mehr als 0 mm oder 0 % ausgegeben.
-- Die Wahrscheinlichkeitskurve der Tagesdetails unterbricht an fehlenden Daten und verbindet nur tatsächlich gültige, benachbarte Werte. Vorwärtsintervall-Zeitanker bleiben erhalten.
-- Tooltip, Stundenliste, ausgewählter Kurvenpunkt und Tageskennzahlen verwenden dieselbe geprüfte PoP-Verfügbarkeit. Ungültige Zahlen erscheinen nicht als „NaN %“.
-- Eine Ersatz-Tagesmenge aus Stundenwerten wird nur bei nachgewiesener lückenloser Abdeckung des lokalen Kalendertags gebildet – einschließlich 23-/25-Stunden-Tagen. Kanonische Tageswerte bleiben vorrangig.
-- Gemeinsame NoData-Fachhelfer und verpflichtender adversarieller Regressionstest. Amtliche Warnungen, Modellfusion, RUC, Karten, Wetterpiktogramme und Nutzereinstellungen bleiben unverändert.
-- Die vollständige appweite Browser-/iOS-/VoiceOver-Designabnahme #523 bleibt offen. Veröffentlichung ausschließlich nach Source-PR-Gate, SHA-Bot, serverseitigem ZIP, Installer, Worker-/Pages- und Stable-Promotion.
+- MID erhebt die Verfügbarkeit neuer DWD-RUC-Modellläufe und prüft die Übereinstimmung der öffentlich sichtbaren Pages-/Worker-Stände in einem separaten, schreibgeschützten Beobachtungsworkflow.
+- Die Messwerte bleiben diagnostisch: Verzeichnisanzeige ist keine bestätigte Erstveröffentlichung, fehlende Daten werden nicht als Null dargestellt und die tatsächliche Übernahme durch die App wird nicht behauptet.
+- Die bisherige vollständige 27h-/20-EPS-Versorgung und sämtliche amtlichen Wetterwarnungen bleiben unverändert; die neue 0–6h-Fast-Lane ist weiterhin nicht produktiv aktiviert.
