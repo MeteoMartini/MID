@@ -106,6 +106,34 @@ class TestFast(unittest.TestCase):
             root=Path(folder);c=candidate(root);c['grid']['ny']=2
             with self.assertRaisesRegex(ValueError,'record length'):
                 verify_candidate_manifest(c,root)
+    def test_rehashed_invalid_lookup_index_is_rejected(self):
+        import struct
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            (root/'lookup.bin').write_bytes(struct.pack('<II',0,2))
+            c['objects']['lookup.bin']=digest(root/'lookup.bin')
+            with self.assertRaisesRegex(ValueError,'nonexistent native point'):
+                verify_candidate_manifest(c,root)
+    def test_rehashed_all_missing_lookup_is_not_empty_coverage(self):
+        import struct
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            (root/'lookup.bin').write_bytes(struct.pack('<II',0xffffffff,0xffffffff))
+            c['objects']['lookup.bin']=digest(root/'lookup.bin')
+            with self.assertRaisesRegex(ValueError,'lookup coverage'):
+                verify_candidate_manifest(c,root)
+    def test_rehashed_partial_lookup_below_coverage_contract(self):
+        import struct
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            (root/'lookup.bin').write_bytes(struct.pack('<II',0,0xffffffff))
+            c['objects']['lookup.bin']=digest(root/'lookup.bin')
+            with self.assertRaisesRegex(ValueError,'lookup coverage'):
+                verify_candidate_manifest(c,root)
+    def test_real_zero_lookup_index_is_valid(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            self.assertFalse(verify_candidate_manifest(c,root)['publicationAuthorized'])
     def test_mislabelled_units_fail_closed(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);c=candidate(root)
