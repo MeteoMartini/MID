@@ -1,7 +1,12 @@
-# MID v0.9.85.385 – Parallelisierte, SHA-gebundene Revisionsprüfung
+# MID v0.9.85.386 – Wetterprofile: fehlende Niederschlagsdaten nicht als trocken ausgeben
 
-- Die bisherige etwa 49-minütige automatische Revision erhält zehn voneinander isolierte und vollständige Prüfgänge: vier Core-Subshards sowie sechs Heavy-Subshards, davon drei strikt getrennte Unified-Map-Browsergruppen.
-- Alle 1.057 registrierten Regressionen bleiben Pflicht. Das bestehende Testinventar wird ohne doppelte oder ausgelassene Fälle partitioniert; die 24 Karten-/Designkombinationen einschließlich ICON-EU-Isobaren und Speicherprüfung bleiben verpflichtend.
-- Die Revision bindet alle Jobs an einen gemeinsamen Quell-SHA, prüft GitHub-Main-/Stable-Drift und verweigert bei fehlenden oder fehlgeschlagenen Matrixjobs den grünen CI-/Nightly-Abschluss. Web, iOS, Worker und Wetterdaten bleiben funktional unverändert.
-- Alle Builds und Browserprüfungen verwenden weiterhin die bestehenden Toolchain-/Lockfile-/Umgebungs-Verträge; bestehende Source-PR-, Installer-, Worker-/Pages- und Stable-Promotion-Gates werden nicht verkürzt.
-- Der Laufzeitgewinn ist zunächst ein zu verifizierendes Ziel. Unsignierte Build-/Testartefakte werden weiterhin nicht wiederverwendet; Issue #526 und die unabhängige Signatur-/A/B-Abnahme bleiben offen.
+- Kurzfrist- und 24h-Profil zeigen unbekannte Mengen und Wahrscheinlichkeiten nicht mehr als 0 mm oder 0 %. Die Aggregation unterscheidet echte Null und nicht verfügbare Beiträge.
+- Niederschlagsraten und Einzeldaten kennzeichnen nicht verfügbare Werte. Die bisherige Zeitintervallzuordnung und meteorologische Phasensemantik bleiben erhalten.
+- 90-Minuten-/24h-Titel und Diagramm zeigen fehlende Mengen/PoP explizit. Die SVG-Wahrscheinlichkeitslinie unterbricht bei NoData und ungültige Balken/Punkte werden nicht gerendert.
+- Kompakte 14d-Ensembleangaben unterscheiden sichere Trockenheit, geringe Mengen, kleine bekannte Niederschlagswahrscheinlichkeit und unvollständige Daten; eine fehlende Phase wird nicht als Gewitter ausgegeben.
+- Fokussierte Negativtests für null/NaN/Infinity, echte Null und PoP. Amtliche Warnungen, Modellfusionsgewichte, RUC und Karten bleiben unverändert.
+- Der vollständige appweite Design-/Geräteaudit #523 ist noch nicht abgeschlossen. Die Veröffentlichung erfolgt ausschließlich nach bestandenem Source-PR-Gate, serverseitigem ZIP, Installer, Worker-/Pages-Gates und Stable-Promotion.
+- Für 24h-Aggregate werden fehlende und überlappende Original-Zeitintervalle erkannt; unvollständige Summen oder Niederschlagswahrscheinlichkeiten erscheinen nicht mehr als scheinbar vollständige Werte.
+- Im 7-Tage-Stundenprofil zeigt eine dezente, gestrichelte Kennzeichnung fehlende Niederschlagsmengen an. Die zugehörige Niederschlagswahrscheinlichkeit wird im Tooltip nur bei gültigen Daten ausgewiesen.
+- Im kompakten 14-Tage-Ensemble erhält unbekannter Niederschlagsstatus ein eigenes, neutrales Symbol statt der bisherigen Verwechslungsmöglichkeit mit sicherer Trockenheit. Dies ist kein amtliches Warnsymbol.
+- Der verpflichtende NoData-Negativtest schützt bekannte Nullwerte, Missing-/Infinity-Eingaben, Zeitlücken, Überlappungen, Diagrammunterbrechungen und die Ensemblekennzeichnung.
