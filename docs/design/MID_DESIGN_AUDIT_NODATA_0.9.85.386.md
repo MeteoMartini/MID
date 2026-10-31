@@ -42,3 +42,7 @@ Für ein ruhendes kompaktes Niederschlags-Piktogramm werden fehlende Gesamtmenge
 ## Freigabegrenze
 
 Erst neue Stable-SHA-Prüfung, saubere .385-Reihenfolge bzw. Versionskoordination, vollständige Source-PR-Gates, SHA-Bot-Merge, serverseitiges ZIP, Installer und betroffene Worker/Pages-Gates, anschließend bestätigte Stable-Promotion. Bis dahin bleibt der PR im Draft. Issue #523 bleibt offen.
+
+## Nachführung bestehender Pflichtregressionen (.386 CI-Triage)
+
+Der vollständige Source-Gate #41216434355 identifizierte drei textgebundene Altprüfungen, deren positive fachliche Verträge erhalten und auf die absichtliche NoData-Korrektur erweitert werden: `test-widget-curve-overview-09845.mjs` prüft weiter den robusten Komponentenfallback **nur bei gültiger Gesamtmenge** sowie Missing-Marker; `test-pictogram-intensity-snow-depth-098426.mjs` hält WMO 98 als Gewitter **ohne erfundene Niederschlagsphase** fest und lässt den zusätzlichen neutralen UI-Status `unknown` zu; `test-weather-profile-polish-temporal-09802.mjs` bewahrt die gemeinsame 24h-Zeitachse und fordert unterbrochene PoP-Linien an Datenlücken. Keine der drei Regressionen wird entfernt, abgeschaltet oder fachlich aufgeweicht. Neubewertung erst nach erfolgreichem fokussiertem und vollständigem CI-Lauf auf dem neuen HEAD.
