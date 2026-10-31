@@ -1,5 +1,5 @@
 name: MID automated code revision
-# Installer revision 3: preserves the verified MID lockfile, avoids duplicate ZIP runs and recovers pending releases.
+# SHA-bound read-only revision matrix; production installation is exclusively install-mid.yml.
 run-name: MID-Revision – ${{ github.event_name }} / ${{ inputs.task || 'automatic' }}
 
 on:
