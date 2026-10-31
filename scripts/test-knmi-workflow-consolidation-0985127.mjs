@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {access,readdir,readFile} from 'node:fs/promises';
+import {readdir,readFile} from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const activeRoot=new URL('../.github/workflows/',import.meta.url);
@@ -12,8 +12,15 @@ const [active,canonical]=await Promise.all([
 assert.deepEqual(active,[],'KNMI-P4a-Diagnoseworkflows dürfen nicht weiter aktiv sein.');
 assert.deepEqual(canonical,[],'Kanonische KNMI-P4a-Diagnoseworkflows dürfen nicht wieder durch Sync entstehen.');
 
-const archived=['mid-knmi-grib-inspect.yml','mid-knmi-grib-range-index.yml','mid-knmi-grid-index-smoke.yml','mid-knmi-multiparam-packed-smoke.yml','mid-knmi-multirange-smoke.yml','mid-knmi-open-data-smoke.yml','mid-knmi-open-data-tar-inspect.yml','mid-knmi-packed-point-smoke.yml','mid-knmi-point-adapter-smoke.yml','mid-knmi-point-inspect.yml'];
-for(const name of archived)await access(new URL('../ci/github/archive/knmi/'+name,import.meta.url));
+const archiveRoot=new URL('../ci/github/archive/knmi/',import.meta.url);
+const archived=(await readdir(archiveRoot)).filter(name=>/\\.ya?ml$/i.test(name));
+assert.deepEqual(archived,[],'Alte KNMI-Experimente dürfen nicht erneut im aktiven Source-Tree eingecheckt werden.');
+const archiveManifest=await readFile(new URL('README.md',archiveRoot),'utf8');
+assert.ok(archiveManifest.includes('1ade69f46b9bf77e9adaa360353ffacc7a0b967c'),'Archiv-Provenienz muss an den freigegebenen Stable-SHA gebunden bleiben.');
+const archivedBlobs=[["mid-knmi-grib-inspect.yml","c929ca61f0c268beb834b5c9cbdf5ebe3e8f739b"],["mid-knmi-grib-range-index.yml","4acb1699b9542d4dd399210debdd100e9fb33aa5"],["mid-knmi-grid-index-smoke.yml","45828407836ac5dc8e70c37362772d6b867dc3e5"],["mid-knmi-multiparam-packed-smoke.yml","977c098daaa0361d0fab20ae4aa94c63a09afb24"],["mid-knmi-multirange-smoke.yml","5de5140f1aa7c8771fb029a4d13c05714a367357"],["mid-knmi-open-data-smoke.yml","594bdf5e9d38968ac6340ec94e4650772b0d4fe6"],["mid-knmi-open-data-tar-inspect.yml","90f8f482a6e94e8e4865e23be98198b506d07751"],["mid-knmi-packed-point-smoke.yml","71d2da505c2544f25b6e0b1b4b18b28becf7f857"],["mid-knmi-point-adapter-smoke.yml","a1093b48a7d8985dd86c928fa63281998309a584"],["mid-knmi-point-inspect.yml","c6e7285ed1fe38f65b07bbe2cb7a0a7df7dd6b79"]];
+for(const [name,sha] of archivedBlobs){
+ assert.ok(archiveManifest.includes(name)&&archiveManifest.includes(sha),'Unveränderliche KNMI-Workflow-Historie muss rekonstruierbar bleiben: '+name);
+}
 
 const [sync,model,worker,core]=await Promise.all([
  readFile(new URL('scripts/sync-github-workflows.mjs',root),'utf8'),
