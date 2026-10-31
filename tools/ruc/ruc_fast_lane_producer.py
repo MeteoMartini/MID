@@ -47,10 +47,13 @@ def safe_quantization(fields, specs, np):
     if len(shapes)!=1 or len(next(iter(shapes)))!=2:
         raise ValueError('native fields have inconsistent shapes')
     for spec in specs:
-        arr=fields[spec.name]
-        finite=arr[np.isfinite(arr)]
-        if finite.size==0:
-            raise ValueError('field entirely missing: '+spec.name)
+        arr=np.asarray(fields[spec.name],dtype=np.float64)
+        available=np.isfinite(arr)
+        # Authentic masked cells remain missing. A completely missing forecast
+        # lead must not be packed as an apparently valid short-range field.
+        if not np.all(np.any(available,axis=1)):
+            raise ValueError('native forecast step entirely missing: '+spec.name)
+        finite=arr[available]
         scaled=np.rint((finite-spec.offset)/spec.scale)
         if np.any(~np.isfinite(scaled)) or np.any(scaled<-32767) or np.any(scaled>32767):
             raise ValueError('native extreme would clip int16: '+spec.name)
