@@ -12,7 +12,9 @@ assert.equal(baseline.releaseVersion,pkg.version);
 assert.equal(pkg.scripts?.['test:day-detail-probability-wind-contrast'],`node ${test}`);
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
 
-assert.ok(app.includes("probabilityCurvePoints=showProbability&&p.length")&&app.includes("probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints):''"),'Niederschlagswahrscheinlichkeit muss unabhängig von vorhandenen Niederschlagsbalken als eigene geglättete Kurve erzeugt werden.');
+assert.ok(app.includes("probabilityCurvePoints=showProbability&&p.length")&&app.includes("probabilityPath=showProbability?contiguousFinitePrecipitationSegments(probabilityCurvePoints).map(monotoneSvgPath).join(' '):''"),'Niederschlagswahrscheinlichkeit muss unabhängig von Balken sichtbar, vorwärtsslotverankert und über Missing-Lücken unterbrochen sein.');
+assert.ok(!app.includes("probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints):''"),'Ungültige PoP darf nicht überbrückt werden.');
+assert.ok(app.includes('const yProb=(v:unknown)=>isAvailableProbability(v)?'),'Niederschlagswahrscheinlichkeit muss 0–100% validieren und fehlende Werte nicht zu 0% machen.');
 assert.ok(app.includes("{x:(xAt(index)+slotEndAt(index))/2,y:yProb(item.probability)}"),'Die geglättete Niederschlagswahrscheinlichkeit muss an den Mittelpunkten der verbindlichen Vorwärtsslots verankert bleiben.');
 assert.ok(app.includes("showRainSection=showRainBars||showProbability"),'Der Niederschlagsbereich muss auch ohne Mengenbalken für die Wahrscheinlichkeitskurve sichtbar bleiben.');
 assert.ok(app.includes('{showProbability&&<g className="detail-probability-line"'),'Die Wahrscheinlichkeitskurve muss ausschließlich von showProbability abhängen.');
