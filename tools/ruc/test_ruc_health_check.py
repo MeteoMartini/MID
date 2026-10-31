@@ -128,3 +128,138 @@ try:
   fetcher=lambda url,timeout:candidate,sleeper=lambda _:None,expected_profile='pages-lossless-v1')
  raise AssertionError('inactive candidate was accepted by public Pages gate')
 except RuntimeError:pass
+
+
+# SHA-sealed 27 h Pages -> Worker strict dimension, UTC and grid parity.
+from datetime import datetime, timedelta
+import copy
+MODEL_RUN = '2026-10-31T03:00'
+_base = datetime.strptime(MODEL_RUN, '%Y-%m-%dT%H:%M')
+_axis = [(_base + timedelta(hours=i)).strftime('%Y-%m-%dT%H:%M') for i in range(28)]
+sealed = {
+ 'schema':'mid.dwd.ruc.grid.v2', 'run':MODEL_RUN, 'storageProfile':'pages-free-v1',
+ 'times':_axis, 'pointCount':542040, 'grid':{'nativePointCount':542040,'nx':300,'ny':300},
+ 'deterministic':{'times':_axis}, 'epsSummary':{'times':_axis},
+ 'eps':{'times':_axis,'memberCount':20,'available':False}
+}
+contract=mod.verified_snapshot_contract(sealed)
+assert contract['timeCount']==28 and contract['epsMemberCount']==20 and contract['pointCount']==542040
+worker={**good,'run':MODEL_RUN,'timeCount':28,'pointCount':542040,'epsMemberCount':20}
+mod.check(worker,MODEL_RUN,expected_contract=contract)
+for name,invalid in (('timeCount',27),('timeCount',29),('timeCount','28'),('timeCount',True),
+                     ('pointCount',542039),('pointCount',0),('pointCount','542040'),
+                     ('epsMemberCount',19),('epsMemberCount',21),('epsMemberCount','20')):
+ try:
+  mod.check({**worker,name:invalid},MODEL_RUN,expected_contract=contract)
+  raise AssertionError(f'worker {name} invalid value {invalid!r} passed')
+ except RuntimeError as error:
+  assert name in str(error)
+try:
+ mod.check(worker,'2026-10-31T04:00',expected_contract=contract)
+ raise AssertionError('foreign local run accepted')
+except RuntimeError:pass
+
+def bad_snapshot(change):
+ damaged=copy.deepcopy(sealed);change(damaged)
+ try:
+  mod.verified_snapshot_contract(damaged)
+  raise AssertionError('bad source snapshot accepted')
+ except RuntimeError:pass
+for change in (
+ lambda m:m['times'].pop(),
+ lambda m:m['times'].append('2026-11-01T07:00'),
+ lambda m:m['times'].__setitem__(19,m['times'][18]),
+ lambda m:m['times'].__setitem__(19,'2026-10-31T22:30'),
+ lambda m:m['deterministic']['times'].__setitem__(1,'2026-10-31T03:00'),
+ lambda m:m['epsSummary']['times'].pop(),
+ lambda m:m['eps']['times'].pop(),
+ lambda m:m['eps'].__setitem__('memberCount',19),
+ lambda m:m['eps'].__setitem__('memberCount',True),
+ lambda m:m.__setitem__('pointCount','542040'),
+ lambda m:m.__setitem__('pointCount',0),
+ lambda m:m['grid'].__setitem__('nativePointCount',1),
+ lambda m:m.__setitem__('grid',None),
+ lambda m:m.__setitem__('run','2026-10-31T03:01'),
+ lambda m:m.__setitem__('run','not-a-date'),
+):
+ bad_snapshot(change)
+
+# Public Pages must match the *same sealed* geometry/axes, not merely its run.
+assert mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
+ fetcher=lambda url,timeout:sealed,sleeper=lambda _:None,
+ expected_profile='pages-free-v1',expected_contract=contract)==1
+for mutate in (
+ lambda m:m['eps'].__setitem__('memberCount',19),
+ lambda m:m['times'].__setitem__(7,'2026-10-31T09:00'),
+ lambda m:m.__setitem__('pointCount',542039),
+ lambda m:m['grid'].__setitem__('nativePointCount',542039),
+):
+ damaged=copy.deepcopy(sealed);mutate(damaged)
+ try:
+  mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
+   fetcher=lambda url,timeout:damaged,sleeper=lambda _:None,
+   expected_profile='pages-free-v1',expected_contract=contract)
+  raise AssertionError('public Pages wrong dimensions passed')
+ except RuntimeError as error:
+  assert 'did not converge' in str(error)
+
+# Bounded exact Worker retry: a truncated EPS count cannot pass until it heals.
+responses=iter([{**worker,'epsMemberCount':19},worker])
+seen=[]
+payload,attempt=mod.probe_until_ready('https://mid.example/?mode=ruc-health',MODEL_RUN,
+ attempts=2,retry_delay=0,max_retry_delay=0,fetcher=lambda url,timeout:next(responses),
+ sleeper=lambda delay:seen.append(delay),expected_contract=contract)
+assert attempt==2 and payload['epsMemberCount']==20 and len(seen)==1
+try:
+ mod.probe_until_ready('https://mid.example/?mode=ruc-health',MODEL_RUN,
+  attempts=2,retry_delay=0,max_retry_delay=0,fetcher=lambda url,timeout:{**worker,'timeCount':27},
+  sleeper=lambda _:None,expected_contract=contract)
+ raise AssertionError('truncated worker temporal axis passed')
+except RuntimeError as error:
+ assert 'did not converge' in str(error)
+print('RUC sealed manifest dimensions and public Pages/Worker end-to-end parity verified')
+
+# The historical 14 h raw Pages rollback is a separate signed/checksummed
+# emergency fallback, never an exemption available to normal 27 h publication.
+legacy=copy.deepcopy(sealed)
+for key in ('times',):
+ legacy[key]=legacy[key][:15]
+for key in ('deterministic','epsSummary','eps'):
+ legacy[key]['times']=legacy[key]['times'][:15]
+legacy['pages']={'profile':'pages-free-v1','nativeEpsMembers':False}
+try:
+ mod.verified_snapshot_contract(legacy)
+ raise AssertionError('14 h emergency profile accepted by regular 27 h publish')
+except RuntimeError:pass
+legacy_contract=mod.verified_snapshot_contract(legacy,allow_legacy_rollback=True)
+assert legacy_contract['timeCount']==15
+legacy_worker={**worker,'timeCount':15}
+mod.check(legacy_worker,MODEL_RUN,expected_contract=legacy_contract)
+# No normal publisher can silently reclassify a 14 h raw snapshot as 27 h.
+try:
+ mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
+  fetcher=lambda url,timeout:legacy,sleeper=lambda _:None,expected_profile='pages-free-v1',
+  expected_contract=legacy_contract)
+ raise AssertionError('legacy horizon accepted without explicit emergency flag')
+except RuntimeError:pass
+assert mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
+ fetcher=lambda url,timeout:legacy,sleeper=lambda _:None,expected_profile='pages-free-v1',
+ expected_contract=legacy_contract,allow_legacy_rollback=True)==1
+for mutation in (
+ lambda m:m['times'].pop(),
+ lambda m:m['eps']['times'].pop(),
+ lambda m:m['eps'].__setitem__('memberCount',19),
+ lambda m:m['grid'].__setitem__('nativePointCount',5),
+ lambda m:m.__setitem__('storageProfile','pages-lossless-v1'),
+ lambda m:m['pages'].__setitem__('nativeEpsMembers',True),
+):
+ damaged=copy.deepcopy(legacy);mutation(damaged)
+ try:
+  mod.verified_snapshot_contract(damaged,allow_legacy_rollback=True)
+  raise AssertionError('corrupt emergency rollback passed')
+ except RuntimeError:pass
+try:
+ mod.check({**legacy_worker,'timeCount':14},MODEL_RUN,expected_contract=legacy_contract)
+ raise AssertionError('shorter emergency worker health accepted')
+except RuntimeError:pass
+print('RUC distinct 27h production and validated 14h emergency raw rollback contracts OK')
