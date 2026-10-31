@@ -38,8 +38,6 @@ export const managedFiles=[
  ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],
  ['workflows/mid-code-revision.yml','workflows/mid-code-revision.yml'],
  ['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml'],
- ['workflows/mid-knmi-eps-rolling-manifest.yml','workflows/mid-knmi-eps-rolling-manifest.yml'],
- ['workflows/mid-knmi-eps-rolling-offset-smoke.yml','workflows/mid-knmi-eps-rolling-offset-smoke.yml'],
  ['workflows/unit-coverage.yml','workflows/unit-coverage.yml'],
  ['workflows/widget-export.yml','workflows/widget-export.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
