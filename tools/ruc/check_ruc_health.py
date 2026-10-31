@@ -45,7 +45,45 @@ def expected_run(meta_path: str) -> str:
     return str(data['run'])
 
 
-def check(payload: dict, run: str) -> None:
+def verified_snapshot_contract(meta: dict) -> dict:
+    """Check the immutable 27 h model axes and native geometry before public readback.
+
+    The candidate is already SHA-sealed by the producer. Here we require exact
+    typed dimensions rather than treating a partly decoded snapshot as healthy.
+    """
+    from datetime import datetime, timedelta
+    if not isinstance(meta, dict) or meta.get('schema') != 'mid.dwd.ruc.grid.v2':
+        raise RuntimeError('RUC snapshot metadata schema invalid')
+    run = meta.get('run')
+    try:
+        if not isinstance(run, str) or len(run) != 16:
+            raise ValueError('invalid run')
+        base = datetime.strptime(run, '%Y-%m-%dT%H:%M')
+        if base.strftime('%Y-%m-%dT%H:%M') != run:
+            raise ValueError('noncanonical run')
+    except ValueError as error:
+        raise RuntimeError('RUC snapshot model initialization is invalid') from error
+    axis = [(base + timedelta(hours=h)).strftime('%Y-%m-%dT%H:%M') for h in range(28)]
+    for label, times in (
+        ('times', meta.get('times')),
+        ('deterministic.times', (meta.get('deterministic') or {}).get('times') if isinstance(meta.get('deterministic'), dict) else None),
+        ('epsSummary.times', (meta.get('epsSummary') or {}).get('times') if isinstance(meta.get('epsSummary'), dict) else None),
+        ('eps.times', (meta.get('eps') or {}).get('times') if isinstance(meta.get('eps'), dict) else None),
+    ):
+        if not isinstance(times, list) or times != axis:
+            raise RuntimeError(f'RUC snapshot {label} is not complete 0..+27h UTC hourly')
+    points = meta.get('pointCount')
+    members = (meta.get('eps') or {}).get('memberCount') if isinstance(meta.get('eps'), dict) else None
+    grid = meta.get('grid')
+    if type(points) is not int or points < 1 or type(members) is not int or members != 20:
+        raise RuntimeError('RUC snapshot point/member dimensions invalid')
+    if not isinstance(grid, dict) or type(grid.get('nativePointCount')) is not int or grid['nativePointCount'] != points:
+        raise RuntimeError('RUC snapshot native-grid dimensions invalid')
+    return {'run': run, 'timeCount': len(axis), 'pointCount': points,
+            'epsMemberCount': members, 'times': axis, 'grid': grid}
+
+
+def check(payload: dict, run: str, *, expected_contract: dict | None = None) -> None:
     required={'configured':True,'ready':True,'fresh':True,'schemaValid':True}
     for key, value in required.items():
         if payload.get(key) is not value:
@@ -64,8 +102,16 @@ def check(payload: dict, run: str) -> None:
         raise RuntimeError('worker RUC native EPS object is not present for R2 backend')
     if backend == 'pages' and payload.get('nativeEpsMembers') is not False:
         raise RuntimeError('GitHub Pages free profile must explicitly omit native EPS members')
-    if int(payload.get('timeCount') or 0) < 4 or int(payload.get('pointCount') or 0) < 1 or int(payload.get('epsMemberCount') or 0) < 2:
-        raise RuntimeError('worker RUC metadata counts are incomplete')
+    if expected_contract is None:
+        if int(payload.get('timeCount') or 0) < 4 or int(payload.get('pointCount') or 0) < 1 or int(payload.get('epsMemberCount') or 0) < 2:
+            raise RuntimeError('worker RUC metadata counts are incomplete')
+    else:
+        if run != expected_contract['run']:
+            raise RuntimeError('worker RUC run differs from the sealed local manifest')
+        for name in ('timeCount', 'pointCount', 'epsMemberCount'):
+            received = payload.get(name)
+            if type(received) is not int or received != expected_contract[name]:
+                raise RuntimeError(f'worker RUC {name}={received!r} differs from sealed snapshot {expected_contract[name]}')
 
 
 def fetch_payload(url: str, timeout: float) -> dict:
@@ -138,7 +184,7 @@ def full_codec_evidence(payload:dict,meta:dict)->dict:
     return {'run':str(meta.get('run','')),'published':expected,'verified':verified,
             'advertised':full.get('advertised'),'rawRetained':full.get('rawRetained')}
 
-def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep, expected_profile='pages-free-v1') -> int:
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
@@ -149,6 +195,9 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
                 raise RuntimeError('Pages RUC metadata schema/profile is invalid')
             if meta.get('run') != run:
                 raise RuntimeError(f'Pages RUC run {meta.get("run")!r} does not match {run!r}')
+            if expected_contract is not None:
+                if verified_snapshot_contract(meta) != expected_contract:
+                    raise RuntimeError('Pages RUC geometry, member or validity axes differ from sealed local snapshot')
             return attempt
         except Exception as error:
             last_error = error
@@ -173,6 +222,7 @@ def probe_until_ready(
     max_retry_delay: float = 30,
     fetcher=fetch_payload,
     sleeper=time.sleep,
+    expected_contract: dict | None = None,
 ) -> tuple[dict, int]:
     attempts = max(1, int(attempts))
     retry_delay = max(0.0, float(retry_delay))
@@ -182,7 +232,7 @@ def probe_until_ready(
     for attempt in range(1, attempts + 1):
         try:
             payload = fetcher(probe_url(url, run, attempt), timeout)
-            check(payload, run)
+            check(payload, run, expected_contract=expected_contract)
             return payload, attempt
         except Exception as error:  # strict final gate; only timing is retried
             last_error = error
@@ -215,11 +265,12 @@ def main() -> int:
         p.error(f'--pages-attempts must be between 1 and {MAX_PAGES_PROBE_ATTEMPTS}')
     run = expected_run(a.meta)
     meta = json.loads(Path(a.meta).read_text(encoding='utf-8'))
+    expected_contract = verified_snapshot_contract(meta)
     if meta.get('storageProfile')=='pages-lossless-v1' and not active_profile_valid(meta):
         raise RuntimeError('full RUC profile has not been explicitly activated')
     url = health_url(a.url)
     if a.pages_base:
-        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts, expected_profile=meta.get('storageProfile','pages-free-v1'))
+        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts, expected_profile=meta.get('storageProfile','pages-free-v1'), expected_contract=expected_contract)
         print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
     payload, attempt = probe_until_ready(
         url,
@@ -228,6 +279,7 @@ def main() -> int:
         attempts=a.attempts,
         retry_delay=a.retry_delay,
         max_retry_delay=a.max_retry_delay,
+        expected_contract=expected_contract,
     )
     print(
         f'MID RUC health OK: backend={payload.get("backend")}, run={run}, '
