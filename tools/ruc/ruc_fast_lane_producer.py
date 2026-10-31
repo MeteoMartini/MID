@@ -142,6 +142,23 @@ def verify_candidate_manifest(candidate, root):
         if path.is_symlink() or not path.is_file() or path.resolve().parent!=base:
             raise ValueError('unsafe candidate path')
         if digest(path)!=proof:raise ValueError('candidate bytes do not match SHA/length')
+    # Source-hashed lookup bytes must also contain only native point indexes
+    # or the documented uint32 NoData sentinel. A correct digest/length alone
+    # cannot protect against rehashed but invalid location indexes.
+    import numpy as np
+    valid_lookup = 0
+    all_lookup = nx * ny
+    with (base/'lookup.bin').open('rb') as lookup_file:
+        for chunk in iter(lambda: lookup_file.read(4 * 32768), b''):
+            if len(chunk) % 4:
+                raise ValueError('lookup wire record is not uint32 aligned')
+            values = np.frombuffer(chunk, dtype='<u4')
+            known = values != np.uint32(0xffffffff)
+            if np.any(values[known] >= points):
+                raise ValueError('lookup references a nonexistent native point')
+            valid_lookup += int(np.count_nonzero(known))
+    if valid_lookup < all_lookup * .85:
+        raise ValueError('native lookup coverage below the released 85% contract')
     run=datetime.strptime(candidate['run'],'%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
     from datetime import timedelta
     expected=[(run+timedelta(hours=i)).strftime('%Y-%m-%dT%H:%M') for i in range(7)]
