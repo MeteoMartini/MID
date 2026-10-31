@@ -1,3 +1,10 @@
+## MID v0.9.85.389 · 2026-10-31 · Designaudit #523: Karten-Navigationszustand bewahren
+
+- Nach vollständig freigegebener v0.9.85.388 @ `11c56661b371bf9c0da49d0836fcb548d46bf46f` mit Installer #41236833866 werden die zwei fachlichen Blobs aus Draft #547 @ `a73b9009172e0f778604314ecca7ea8bed53d8f1` auf tatsächlich aktuelle Stable neu verankert; keine Rebase-/Branchlöschung der Parallelvorhaben.
+- Der historische Wetterkarten-Einstieg darf nicht mehr implizit `icon-d2-precipitation-totals` auswählen. Ausdrücklicher Summeneinstieg und Legacy-Migration bleiben erhalten, bestehende Modell-/Parameterpräferenzen sind vorrangig.
+- Bereits verpflichtender Regressionstest erhält ausgeführte TS-Handler-/State-Negativfälle. Beide Pflichtlisten bleiben vollständig bei 1059/1059; keine Tests entfernt oder abgeschwächt.
+- WMO-/DWD-Warnungen, Datenlücken, RUC 27h/20-EPS und Produktions-Workflows unverändert. Echte Browser-/iOS-/VoiceOver-Abnahme weiterhin getrennt zu dokumentieren; nur bestehender SHA-gebundener Releasepfad.
+
 ## MID v0.9.85.388 · 2026-10-31 · RUC-Verfügbarkeit und Pages-/Worker-Readback beobachten
 
 - Gesicherte Releasebasis: v0.9.85.387 main=mid-stable SHA 83d5c1d9e7c0ce082242e71aec855d8319340169; Installer #41232575766 success, fünf aktive Rulesets.

@@ -1,3 +1,15 @@
+# MID v0.9.85.389 · Designaudit #523: Modell- und Parameterauswahl bei Karten-Navigation erhalten
+
+**Provenienz:** Ausgangsbasis ist veröffentlichte v0.9.85.388, `main=mid-stable` SHA `11c56661b371bf9c0da49d0836fcb548d46bf46f`, Installer #41236833866 vollständig erfolgreich. Die Quell-/Testblobs des auf .387 basierenden Drafts #547, Head `a73b9009172e0f778604314ecca7ea8bed53d8f1`, werden auf die danach freigegebene Stable neu integriert; unveröffentlichte Branches und weitere parallel laufende RUC-/KNMI-Arbeiten werden nicht umgeschrieben.
+
+**Fehlerursache:** Der historische Wetterkarten-Einstieg löst `view:'models'` aus. Der bisherige Handler wertete dies wie den ausdrücklichen Summen-Einstieg aus, forderte `icon-d2-precipitation-totals` an und ließ `UnifiedWeatherMap` die Nutzerwahl auf `parameter:'totals',modelId:'icon-d2'` persistieren. Der neue Handler bewahrt bei `models` die vorhandene Wahl; nur `totals` fordert ein Summenprodukt an. Legacy-Migration wird auf einen tatsächlich gespeicherten `totals`-Wert ohne vorhandene Unified-Map-Einstellung beschränkt.
+
+**Regressionsschutz:** Bereits obligatorischer Test `scripts/test-map-workspace-handoff.mjs` erweitert um aus TypeScript transpilierten Initializer-/Event-Handler-Test für Modell-/Summeneinstieg, Radar-Negativfall, historische Migration und vorhandene ICON-EU/Wind-Wahl. Beide bisherigen vollständigen Testinventare enthalten unverändert je 1059 Tests. Keine RUC-, Wetterwarnungs-, Zeit-/Feld-, Export- oder Worker-Produktionsänderung. Quell-/Unit-Prüfung ersetzt keine unabhängige Browser-/iOS-/VoiceOver-/Viewport-Abnahme.
+
+**Freigabe:** Erst nach vollständigem Source-PR-Gate, SHA-gebundenem Bot-Merge, serverseitigem Release-ZIP, `install-mid.yml`, Worker/Pages und Stable-Promotion. Bis dahin ausschließlich Kandidat.
+
+---
+
 # MID v0.9.85.388 · DWD-RUC-Verfügbarkeit und Pages-/Worker-Frische lesend beobachten
 
 **Ausgangsbasis:** `main=mid-stable` v0.9.85.387 bei SHA `83d5c1d9e7c0ce082242e71aec855d8319340169`, `install-mid.yml` #41232575766 vollständig `success`. Der unabhängige RUC-Entwicklungs-Draft #542 mit Head `a75716f567e4cf321cfc648de7ba1c8375ea3368` lieferte SHA-identische DWD-/Pages-/Worker-Beobachter-, Shadow-Qualifikations- und Testdateien. Die neue reine Messinfrastruktur wird auf dem bestätigten Stable-Code integriert; P2/P4/P5-Produktivteile verbleiben auf Draft.

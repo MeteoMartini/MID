@@ -1,5 +1,5 @@
-# MID v0.9.85.388 – RUC-Datenaktualität jetzt unabhängig beobachten
+# MID v0.9.85.389 – Karten behalten die gewählte Modell- und Parameterauswahl
 
-- MID erhebt die Verfügbarkeit neuer DWD-RUC-Modellläufe und prüft die Übereinstimmung der öffentlich sichtbaren Pages-/Worker-Stände in einem separaten, schreibgeschützten Beobachtungsworkflow.
-- Die Messwerte bleiben diagnostisch: Verzeichnisanzeige ist keine bestätigte Erstveröffentlichung, fehlende Daten werden nicht als Null dargestellt und die tatsächliche Übernahme durch die App wird nicht behauptet.
-- Die bisherige vollständige 27h-/20-EPS-Versorgung und sämtliche amtlichen Wetterwarnungen bleiben unverändert; die neue 0–6h-Fast-Lane ist weiterhin nicht produktiv aktiviert.
+- Beim Aufruf der Wetterkarten bleibt die zuletzt gewählte Modell- und Parameterkombination erhalten. Der bisher mögliche unbeabsichtigte Wechsel zu ICON-D2-Niederschlagssummen wird verhindert.
+- Niederschlagssummen lassen sich weiterhin ausdrücklich auswählen. Ältere gespeicherte Karteneinstellungen bleiben kompatibel, ohne bestehende individuelle Einstellungen zu überschreiben.
+- Meteorologische Daten, amtliche Warnungen, RUC-Versorgung, Zeitachsen und andere Wetterfunktionen bleiben unverändert.
