@@ -64,6 +64,7 @@ jobs:
             test_ruc_weekly_e2e_observations.py; do
             python "tools/ruc/$test" -v
           done
+          python tools/ruc/test_ruc_fast_pointer_staging.py -v
       - name: Begrenzten SHA-gebundenen QA-Bericht schreiben
         shell: bash
         run: |
@@ -149,6 +150,7 @@ jobs:
         run: |
           python tools/ruc/test_ruc_fast_lane_producer.py -v
           python tools/ruc/test_ruc_dwd_grib_live_canary.py -v
+          python tools/ruc/test_ruc_fast_pointer_staging.py -v
       - name: Vollständigen nativen 0–6h-Kandidaten isoliert aus echten DWD-GRIBs bauen
         timeout-minutes: 25
         env:
@@ -177,7 +179,16 @@ jobs:
           meta=json.loads((root/'fast-candidate.json').read_text(encoding='utf-8'))
           assert verify_candidate_manifest(meta,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}
           assert meta['realtimeConsumerEnabled'] is False and meta['eps']=={'availability':'unavailable'}
+          from ruc_fast_pointer_staging import stage_fast_candidate
+          result=stage_fast_candidate(root,Path('.ruc-fast-inactive-site'))
+          pointer=result['pointer']
+          assert result['productionAuthorized'] is False
+          assert pointer['productionEnabled'] is False and pointer['realtimeConsumerEnabled'] is False
+          assert pointer['publicationAuthorized'] is False and pointer['consumerAdoptionVerified'] is False
           manifest={key:meta[key] for key in ('schema','run','pointCount','dataTimes','rapid5Times','rapid15Times','objects','coverage','eps','publicationAuthorized','realtimeConsumerEnabled')}
+          manifest['inactiveFastSiteBytes']=result['fastLocalBytes']
+          manifest['pointerSchema']=pointer['schema']
+          manifest['pointerActivation']='inactive-only'
           manifest['evidenceLimit']='local full 6h DWD deterministic bytes verified; no EPS20, Pages/Worker or client admission'
           Path('fast-lane-6h-grib-proof.json').write_text(json.dumps(manifest,ensure_ascii=False,sort_keys=True,allow_nan=False)+'\n',encoding='utf-8')
           print(f"Verified complete deterministic 0-6h native candidate from {meta['run']} without production activation")
