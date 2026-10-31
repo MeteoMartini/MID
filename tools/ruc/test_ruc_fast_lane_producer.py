@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from ruc_fast_lane_producer import (
     FIELDS, EXPECTED_LEADS, EXPECTED_RAPID5, EXPECTED_RAPID15,
-    WIRE_FIELDS, canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
+    WIRE_FIELDS, WIRE_CONTRACT, canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
 
 RUN='2026-10-31T10:00'
 T=datetime(2026,10,31,10,tzinfo=timezone.utc)
@@ -25,7 +25,9 @@ def candidate(root):
     return {'schema':'mid.ruc.fast-prepared.v1','run':RUN,'horizonHours':6,
         'eps':{'availability':'unavailable'},'publicationAuthorized':False,
         'pointCount':2,'grid':{'nativePointCount':2,'nx':2,'ny':1},
-        'fields':[{'name':name} for name in WIRE_FIELDS],
+        'realtimeConsumerEnabled':False,
+        'fields':[{'name':name,'unit':unit,'scale':scale,'offset':offset}
+                  for name,unit,scale,offset in WIRE_CONTRACT],
         'dataTimes':[fmt(T+timedelta(hours=i)) for i in range(7)],
         'rapid5Times':[fmt(T+timedelta(minutes=i)) for i in range(0,361,5)],
         'rapid15Times':[fmt(T+timedelta(minutes=i)) for i in range(0,361,15)],
@@ -103,6 +105,30 @@ class TestFast(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);c=candidate(root);c['grid']['ny']=2
             with self.assertRaisesRegex(ValueError,'record length'):
+                verify_candidate_manifest(c,root)
+    def test_mislabelled_units_fail_closed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            c['fields'][0]['unit']='K'
+            with self.assertRaisesRegex(ValueError,'unit/scale/offset'):
+                verify_candidate_manifest(c,root)
+    def test_wrong_precipitation_scale_fails_closed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            c['fields'][7]['scale']=0.1
+            with self.assertRaisesRegex(ValueError,'unit/scale/offset'):
+                verify_candidate_manifest(c,root)
+    def test_wrong_offset_fails_closed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            c['fields'][0]['offset']=273.15
+            with self.assertRaisesRegex(ValueError,'unit/scale/offset'):
+                verify_candidate_manifest(c,root)
+    def test_consumer_activation_claim_fails_closed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root)
+            c['realtimeConsumerEnabled']=True
+            with self.assertRaisesRegex(ValueError,'realtime consumers'):
                 verify_candidate_manifest(c,root)
     def test_missing_field(self):
         with tempfile.TemporaryDirectory() as folder:
