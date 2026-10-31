@@ -1,0 +1,17 @@
+# MID v0.9.85.384 – SHA-gebundene Read-only-Releasekettenprüfung
+
+## Verifizierte und unveränderte Releasebasis
+Vor dem Entwicklungsbranch am 31.10.2026 live geprüft: `main = mid-stable`, v0.9.85.383 @ `f14d4dc1b2bb4f75ba9fe45347415d2682225073`, fünf aktive Rulesets. Die bislang aktuelle erfolgreiche Source-PR #536 verwendete HEAD `ff19e1c960622fa6bf3e16f6b8bd90fab427ddf1`, Source-Run 41180583712, SHA-gebundenen Bot 41181385304, ZIP-Commit `cf3e423ae80d6700a6b806b5fd2a1143804d241d` und Installer 41181403841. Die .383-Promotion ist bereits vollständig erfolgt. Diese Datei ist erst nach erfolgreichem neuem .384-Source-/Installer-/Stablepfad ein Releasebeleg.
+
+## Funktion, kein Gate-Bypass
+`tools/ci/release-chain-integrity.mjs` verarbeitet ausschließlich **unabhängig** durch GitHub beschaffte, vollständig paginierte und aktuell gegen den geschützten Repository-Stand überprüfte Source-PR-, Workflow-, Job-, Commit- und Ref-Daten. Es verwirft falsche Quellbranche/-HEAD/-Base, falsche Source/Bot/Installer-Run-SHA oder Run-Attempts, fehlende/doppelte Source-Core/Core-/Heavy- und Installer-/Worker-/Pages-/Stable-Jobs, einen falschen ZIP-only-Paket-Parent, eine andere Stable-Abstammung, fehlgeschlagene oder mehrfach erfolgreiche Pages-Deploys und ungültige UTC-Zeiten. Bot-HEAD muss exakt dem PR-Base-SHA und der erste Merge-Parent exakt diesem Base-SHA entsprechen; Source-PR, Merge, Package, Installer und Stable müssen SHA-gebunden zusammenhängen.
+
+Gemeldete Laufzeitwerte sind reine GitHub-Run-Zeitspannen und erklären **nicht** jedes Setup-/Jobintervall oder den Kostenaufwand; Bot und Installer überlappen potentiell. Fehlende Daten werden nie als Null ausgegeben. Der Prüfer setzt immer `releaseAuthorized:false`, `reuseAuthorized:false`, `signatureVerified:false`. Unsignierte CI- und Commitdaten aus einer externen Payload können nicht die Echtheit des Beweises garantieren. Keine vollständige Trust-/A/B-Zertifizierung wird behauptet.
+
+Die Negativtestmatrix in `tools/ci/release-chain-integrity.test.mjs` ist in `scripts/test-release-timing-0985376.mjs` eingebunden, dem bestehenden Pflichtregressionseinstieg. Keine Änderung an `ci/github`, aktiven GitHub-Workflows, Secrets, Versionsschutz, Testinventaren oder Release-Gates. Das Paket verbessert nur nachvollziehbare Diagnose. Die 27h/20-EPS-RUC-Produktion ist eigenständig; keine RUC-Code-/Publikationsänderung.
+
+## Offen für #526 / Phasen 2 und 4
+Ein echter `workflow_dispatch` auf **geschütztem main** für `.github/workflows/attested-source-qualification.yml` mit einer erfolgreich gemergten und publizierten PR ist weiterhin separat notwendig. Nur der tatsächlich erfolgreiche Signer und unabhängige Sigstore-Verifier mit überprüftem Subject-Digest belegen eine reale Source-Beobachtung. Das beweist weder signierten Build-/Test-Reuse noch Gleichwertigkeit der vollständigen produktiven Installer-/Worker-/Pages-/Stable-Gates. Eine spätere A/B-Qualifikation muss identische, SHA-/Tree-/Lock-/Toolchain-/VITE-gebundene Eingaben, tatsächlich signierte konkrete Artefaktbytes, getrennte Durchläufe sowie sämtliche funktionalen, visuellen, meteorologischen und Sicherheitsregressionen nachweisen. Keine Pipelineverkürzung bis dahin.
+
+## Verbindlicher Freigabeweg
+Nicht-Draft-Quell-PR aus `chatgpt/*` → vollständiger obligatorischer Source-Gate → kontrollierter SHA-Bot → serverseitiges ZIP → `install-mid.yml` → Worker/Pages → bestätigte Stable-Promotion. Vorher keine Bezeichnung als veröffentlicht oder produktionsabgenommen.

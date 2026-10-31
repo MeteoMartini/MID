@@ -205,3 +205,5 @@ test('an incomplete success sample is an explicit error, not an invented green P
 
 // Read-only stage timing, parallel wall-time and missing-data regression.
 await import('../tools/ci/release-phase-observation.test.mjs');
+// Verify the complete read-only Source/Bot/ZIP/Installer/Stable lineage as one gate-safe observation.
+await import('../tools/ci/release-chain-integrity.test.mjs');
