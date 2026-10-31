@@ -1,3 +1,11 @@
+## MID v0.9.85.387 – Designaudit A3: 3h-/Tagesdaten und PoP-NoData
+
+- Basis: verifizierte v0.9.85.386, main=mid-stable @ b6eba7bea8a42bc78841955b3eeac8a392510d12, Installer #41218322192 erfolgreich. RUC-Draft #542 (.387) und KNMI-/Cleanup-Draft #543 bleiben unangetastet; vor ihrer eigenen Integration muss die dann neue Stable-/Versionseinordnung geprüft werden.
+- A3-Tagesdetail: 3h-Niederschlagsmengen und -PoP nicht als 0 bei fehlenden Beiträgen; getrennte SVG-Wahrscheinlichkeitssegmente, nur gültige Punkte und geprüfte Stunden-/Tageslabels.
+- `completePrecipitationWindowCoverage` qualifiziert bei der Ersatz-Tagesaggregation echte lokale Zeitfenster mit vollständigen Epochengrenzen, einschließlich 23-/25h-Zeitumstellung. Tageswerte aus dem kanonischen Produkt haben Vorrang.
+- Neuer Pflichttest `scripts/test-design-a3-precipitation-integrity-0985387.mjs` mit adversariellen NoData-/Intervall-/DST- und Consumer-Checks. Beide bestehende Regressionsinventare unverändert erhalten und von 1058 auf 1059 erweitert.
+- WMO/DWD-Piktogramme, amtliche Warnungen, Modelle/RUC, Layout- und Nutzerzustand, Karten und bestehende Release- und Sicherheitsgates unverändert. Browser-/iOS-/VoiceOver-Abnahme und Issue #523 bleiben offen; Veröffentlichung nur nach vollständiger realer SHA-Gatekette.
+
 ## MID v0.9.85.386 – Niederschlags-NoData-Integrität und konsolidierter Designaudit A1/A2
 
 - Verifizierte Stable-Quelle v0.9.85.385 SHA `1ade69f46b9bf77e9adaa360353ffacc7a0b967c` und Source-PR #540. Parallele Drafts #538, #542 und #543 erhalten; keine Fremdänderungen übernommen.
