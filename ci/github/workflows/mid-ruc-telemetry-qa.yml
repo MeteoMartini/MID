@@ -56,6 +56,18 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Node.js 22.16.0 für reproduzierbare MID-Versionsspiegel
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Alle MID-Versionen und kanonischen GitHub-Workflows unverändert regenerieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run sync-version
+          npm run sync:github-workflows
+          git diff --exit-code -- .
+          test -z "$(git status --porcelain)"
       - name: Python-Quellen und negative Readback-/Zeit-/Datenlückentests
         shell: bash
         run: |
