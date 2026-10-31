@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from ruc_fast_lane_producer import (
     FIELDS, EXPECTED_LEADS, EXPECTED_RAPID5, EXPECTED_RAPID15,
-    canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
+    WIRE_FIELDS, canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
 
 RUN='2026-10-31T10:00'
 T=datetime(2026,10,31,10,tzinfo=timezone.utc)
@@ -22,6 +22,8 @@ def candidate(root):
         objs[name]=digest(root/name)
     return {'schema':'mid.ruc.fast-prepared.v1','run':RUN,'horizonHours':6,
         'eps':{'availability':'unavailable'},'publicationAuthorized':False,
+        'pointCount':2,'grid':{'nativePointCount':2},
+        'fields':[{'name':name} for name in WIRE_FIELDS],
         'dataTimes':[fmt(T+timedelta(hours=i)) for i in range(7)],
         'rapid5Times':[fmt(T+timedelta(minutes=i)) for i in range(0,361,5)],
         'rapid15Times':[fmt(T+timedelta(minutes=i)) for i in range(0,361,15)],
@@ -64,6 +66,12 @@ class TestFast(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);c=candidate(root)
             self.assertEqual(verify_candidate_manifest(c,root),{'verifiedLocalBytes':True,'publicationAuthorized':False})
+    def test_invalid_native_grid_and_field_order(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);c=candidate(root);c['grid']['nativePointCount']=3
+            with self.assertRaisesRegex(ValueError,'native grid'):verify_candidate_manifest(c,root)
+            c=candidate(root);c['fields'][0]['name']='fake_temperature'
+            with self.assertRaisesRegex(ValueError,'wire field'):verify_candidate_manifest(c,root)
     def test_missing_field(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);c=candidate(root);c['objects'].pop('lookup.bin')
