@@ -15,7 +15,6 @@ import json
 from pathlib import Path
 
 from ruc_freshness_shadow_gate import model_time
-from grib_metadata import NATIVE_GRID
 
 CORE_FIELDS = ('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M',
                'VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
@@ -87,7 +86,7 @@ def evaluate(root, run, hours=6, *, reader=real_headers, parameters=None):
     root = Path(root)
     if not root.is_dir() or root.is_symlink():
         raise ValueError('invalid GRIB staging root')
-    mapping = parameters if parameters is not None else _parameter_map()
+    # Tests inject a synthetic mapping without requiring numpy/ecCodes.\n    # Real CLI always uses the actual native DWD contract.\n    if parameters is None:\n        from grib_metadata import NATIVE_GRID\n        mapping, native_grid = _parameter_map(), NATIVE_GRID\n    else:\n        mapping, native_grid = parameters, None
     if not isinstance(mapping, dict) or set(mapping) != set(CORE_FIELDS):
         raise ValueError('incorrect complete production field contract')
     targets = {base + timedelta(hours=lead) for lead in range(hours + 1)}
@@ -148,7 +147,7 @@ def evaluate(root, run, hours=6, *, reader=real_headers, parameters=None):
     det_complete = all(row['headerComplete'] for row in observed.values())
     eps_complete = not eps_invalid and not eps_duplicate and not eps_missing and len(eps) == 20 * len(targets)
     return {'schema': 'mid.ruc.fast-lane-header-preflight.v1', 'run': run, 'hours': hours,
-            'requiredPointGrid': {'uuid': NATIVE_GRID[0], 'pointCount': NATIVE_GRID[-1]},
+            'requiredPointGrid': {'uuid': native_grid[0], 'pointCount': native_grid[-1]}\n                                 if native_grid else None,
             'deterministicHeadersComplete': det_complete,
             'epsHeadersComplete': eps_complete, 'gridHeadersComplete': grid_complete,
             'deterministic': observed, 'epsMissingMemberIdsByValidUtc': eps_missing,
