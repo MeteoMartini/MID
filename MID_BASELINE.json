@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.386",
+  "releaseVersion": "0.9.85.387",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -31,6 +31,7 @@
     "scripts/test-apple-push-background-source-preparation-09720.mjs",
     "scripts/test-approved-dependency-upgrades-09570.mjs",
     "scripts/test-appwide-design-coverage-098470.mjs",
+    "scripts/test-appwide-line-semantics-0985374.mjs",
     "scripts/test-appwide-parameter-colors-09779.mjs",
     "scripts/test-appwide-precipitation-and-daily-heat.mjs",
     "scripts/test-appwide-readability-continuation-098479.mjs",
@@ -224,6 +225,7 @@
     "scripts/test-design-2-0-1-mobile-polish-098544.mjs",
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-today-098543.mjs",
+    "scripts/test-design-a3-precipitation-integrity-0985387.mjs",
     "scripts/test-design-readability-3-098476.mjs",
     "scripts/test-detail-parameters.mjs",
     "scripts/test-detail-pictogram-precipitation.mjs",
@@ -269,6 +271,7 @@
     "scripts/test-ensemble-cockpit-clarity-0950.mjs",
     "scripts/test-ensemble-confidence-calibration-097867.mjs",
     "scripts/test-ensemble-cumulative-ens-mean-09364.mjs",
+    "scripts/test-ensemble-cumulative-gaps-0985374.mjs",
     "scripts/test-ensemble-cumulative-mean-sidebar-09366.mjs",
     "scripts/test-ensemble-cumulative-member-quantiles-09363.mjs",
     "scripts/test-ensemble-cumulative-rain-09360.mjs",
@@ -696,6 +699,7 @@
     "scripts/test-planner-section-compact-event-controls-09450.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-popover-regression.mjs",
+    "scripts/test-precipitation-availability-0985386.mjs",
     "scripts/test-precipitation-character-0960.mjs",
     "scripts/test-precipitation-duration-day-character-09160.mjs",
     "scripts/test-precipitation-form-snow-units-093222.mjs",
@@ -782,6 +786,7 @@
     "scripts/test-responsive-layout-tooltip-098474.mjs",
     "scripts/test-responsive-nowcast-ensemble-071032.mjs",
     "scripts/test-responsiveness-071003.mjs",
+    "scripts/test-revision-parallel-matrix-0985385.mjs",
     "scripts/test-route-weather.mjs",
     "scripts/test-ruc-common-hourly-axis-097310.mjs",
     "scripts/test-ruc-composites-horizons-0985308.mjs",
@@ -1067,11 +1072,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-appwide-line-semantics-0985374.mjs",
-    "scripts/test-ensemble-cumulative-gaps-0985374.mjs",
-    "scripts/test-revision-parallel-matrix-0985385.mjs",
-    "scripts/test-precipitation-availability-0985386.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1092,6 +1093,7 @@
     "scripts/test-apple-push-background-source-preparation-09720.mjs",
     "scripts/test-approved-dependency-upgrades-09570.mjs",
     "scripts/test-appwide-design-coverage-098470.mjs",
+    "scripts/test-appwide-line-semantics-0985374.mjs",
     "scripts/test-appwide-parameter-colors-09779.mjs",
     "scripts/test-appwide-precipitation-and-daily-heat.mjs",
     "scripts/test-appwide-readability-continuation-098479.mjs",
@@ -1285,6 +1287,7 @@
     "scripts/test-design-2-0-1-mobile-polish-098544.mjs",
     "scripts/test-design-2-0-1-mobile-qa-098545.mjs",
     "scripts/test-design-2-0-1-today-098543.mjs",
+    "scripts/test-design-a3-precipitation-integrity-0985387.mjs",
     "scripts/test-design-readability-3-098476.mjs",
     "scripts/test-detail-parameters.mjs",
     "scripts/test-detail-pictogram-precipitation.mjs",
@@ -1330,6 +1333,7 @@
     "scripts/test-ensemble-cockpit-clarity-0950.mjs",
     "scripts/test-ensemble-confidence-calibration-097867.mjs",
     "scripts/test-ensemble-cumulative-ens-mean-09364.mjs",
+    "scripts/test-ensemble-cumulative-gaps-0985374.mjs",
     "scripts/test-ensemble-cumulative-mean-sidebar-09366.mjs",
     "scripts/test-ensemble-cumulative-member-quantiles-09363.mjs",
     "scripts/test-ensemble-cumulative-rain-09360.mjs",
@@ -1757,6 +1761,7 @@
     "scripts/test-planner-section-compact-event-controls-09450.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-popover-regression.mjs",
+    "scripts/test-precipitation-availability-0985386.mjs",
     "scripts/test-precipitation-character-0960.mjs",
     "scripts/test-precipitation-duration-day-character-09160.mjs",
     "scripts/test-precipitation-form-snow-units-093222.mjs",
@@ -1843,6 +1848,7 @@
     "scripts/test-responsive-layout-tooltip-098474.mjs",
     "scripts/test-responsive-nowcast-ensemble-071032.mjs",
     "scripts/test-responsiveness-071003.mjs",
+    "scripts/test-revision-parallel-matrix-0985385.mjs",
     "scripts/test-route-weather.mjs",
     "scripts/test-ruc-common-hourly-axis-097310.mjs",
     "scripts/test-ruc-composites-horizons-0985308.mjs",
@@ -2128,11 +2134,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-appwide-line-semantics-0985374.mjs",
-    "scripts/test-ensemble-cumulative-gaps-0985374.mjs",
-    "scripts/test-revision-parallel-matrix-0985385.mjs",
-    "scripts/test-precipitation-availability-0985386.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3847,7 +3849,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.386",
+  "version": "0.9.85.387",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
