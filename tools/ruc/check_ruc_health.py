@@ -45,7 +45,7 @@ def expected_run(meta_path: str) -> str:
     return str(data['run'])
 
 
-def verified_snapshot_contract(meta: dict) -> dict:
+def verified_snapshot_contract(meta: dict, *, allow_legacy_rollback: bool = False) -> dict:
     """Check the immutable 27 h model axes and native geometry before public readback.
 
     The candidate is already SHA-sealed by the producer. Here we require exact
@@ -63,7 +63,16 @@ def verified_snapshot_contract(meta: dict) -> dict:
             raise ValueError('noncanonical run')
     except ValueError as error:
         raise RuntimeError('RUC snapshot model initialization is invalid') from error
-    axis = [(base + timedelta(hours=h)).strftime('%Y-%m-%dT%H:%M') for h in range(28)]
+    # A legacy 14 h raw rollback exists for the rare full-codec-activation
+    # failure. It is allowed ONLY in the separately gated rollback workflow.
+    if allow_legacy_rollback:
+        pages = meta.get('pages')
+        if (meta.get('storageProfile') != 'pages-free-v1' or
+                not isinstance(pages, dict) or pages.get('profile') != 'pages-free-v1' or
+                pages.get('nativeEpsMembers') is not False):
+            raise RuntimeError('RUC legacy rollback is not a verified raw Pages profile')
+    hours = 14 if allow_legacy_rollback else 27
+    axis = [(base + timedelta(hours=h)).strftime('%Y-%m-%dT%H:%M') for h in range(hours + 1)]
     for label, times in (
         ('times', meta.get('times')),
         ('deterministic.times', (meta.get('deterministic') or {}).get('times') if isinstance(meta.get('deterministic'), dict) else None),
@@ -71,7 +80,7 @@ def verified_snapshot_contract(meta: dict) -> dict:
         ('eps.times', (meta.get('eps') or {}).get('times') if isinstance(meta.get('eps'), dict) else None),
     ):
         if not isinstance(times, list) or times != axis:
-            raise RuntimeError(f'RUC snapshot {label} is not complete 0..+27h UTC hourly')
+            raise RuntimeError(f'RUC snapshot {label} is not complete 0..+{hours}h UTC hourly')
     points = meta.get('pointCount')
     members = (meta.get('eps') or {}).get('memberCount') if isinstance(meta.get('eps'), dict) else None
     grid = meta.get('grid')
@@ -253,6 +262,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument('--url', required=True)
     p.add_argument('--meta', default='.ruc-out/latest.json')
+    p.add_argument('--legacy-rollback', action='store_true', help='only for the separately verified 14 h raw emergency rollback')
     p.add_argument('--pages-base', help='Verify public Pages pointer before probing Worker adoption')
     p.add_argument('--timeout', type=float, default=15)
     p.add_argument('--attempts', type=int, default=7)
@@ -265,7 +275,7 @@ def main() -> int:
         p.error(f'--pages-attempts must be between 1 and {MAX_PAGES_PROBE_ATTEMPTS}')
     run = expected_run(a.meta)
     meta = json.loads(Path(a.meta).read_text(encoding='utf-8'))
-    expected_contract = verified_snapshot_contract(meta)
+    expected_contract = verified_snapshot_contract(meta, allow_legacy_rollback=a.legacy_rollback)
     if meta.get('storageProfile')=='pages-lossless-v1' and not active_profile_valid(meta):
         raise RuntimeError('full RUC profile has not been explicitly activated')
     url = health_url(a.url)

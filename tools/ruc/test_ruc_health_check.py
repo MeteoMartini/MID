@@ -218,3 +218,41 @@ try:
 except RuntimeError as error:
  assert 'did not converge' in str(error)
 print('RUC sealed manifest dimensions and public Pages/Worker end-to-end parity verified')
+
+# The historical 14 h raw Pages rollback is a separate signed/checksummed
+# emergency fallback, never an exemption available to normal 27 h publication.
+legacy=copy.deepcopy(sealed)
+for key in ('times',):
+ legacy[key]=legacy[key][:15]
+for key in ('deterministic','epsSummary','eps'):
+ legacy[key]['times']=legacy[key]['times'][:15]
+legacy['pages']={'profile':'pages-free-v1','nativeEpsMembers':False}
+try:
+ mod.verified_snapshot_contract(legacy)
+ raise AssertionError('14 h emergency profile accepted by regular 27 h publish')
+except RuntimeError:pass
+legacy_contract=mod.verified_snapshot_contract(legacy,allow_legacy_rollback=True)
+assert legacy_contract['timeCount']==15
+legacy_worker={**worker,'timeCount':15}
+mod.check(legacy_worker,MODEL_RUN,expected_contract=legacy_contract)
+assert mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
+ fetcher=lambda url,timeout:legacy,sleeper=lambda _:None,expected_profile='pages-free-v1',
+ expected_contract=legacy_contract)==1
+for mutation in (
+ lambda m:m['times'].pop(),
+ lambda m:m['eps']['times'].pop(),
+ lambda m:m['eps'].__setitem__('memberCount',19),
+ lambda m:m['grid'].__setitem__('nativePointCount',5),
+ lambda m:m.__setitem__('storageProfile','pages-lossless-v1'),
+ lambda m:m['pages'].__setitem__('nativeEpsMembers',True),
+):
+ damaged=copy.deepcopy(legacy);mutation(damaged)
+ try:
+  mod.verified_snapshot_contract(damaged,allow_legacy_rollback=True)
+  raise AssertionError('corrupt emergency rollback passed')
+ except RuntimeError:pass
+try:
+ mod.check({**legacy_worker,'timeCount':14},MODEL_RUN,expected_contract=legacy_contract)
+ raise AssertionError('shorter emergency worker health accepted')
+except RuntimeError:pass
+print('RUC distinct 27h production and validated 14h emergency raw rollback contracts OK')

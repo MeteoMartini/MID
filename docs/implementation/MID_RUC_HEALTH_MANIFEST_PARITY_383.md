@@ -9,3 +9,7 @@ Sicherheit: Kein neu verfügbarer DWD-Zeitschritt wird künstlich aufgefüllt; N
 Negativ- und Konvergenztests: `tools/ruc/test_ruc_health_check.py`, nun zusätzlich als Pflicht in kanonischer und aktiver `mid-ruc-preprocess.yml`. Ein erfolgreicher CI/Source-/Installercheck ist nicht gleich tatsächlichem neuen RUC-Modell: effektive Frische und spätere Läufe separat messen.
 
 Freigabe ausstehend, bis Source-PR-Gate→SHA-Bot→Server-ZIP→Installer→Worker/Pages→Stable bestätigt.
+
+## Fail-closed Notfallpfad: geprüfter Roh-Rollback mit +14h
+
+Das produktive Standardprofil erfordert **28** stündliche Gültigkeitszeitpunkte bis +27h und den vollständig verifizierten Codec. Bei einem **fehlgeschlagenen** Codec-Publish ist jedoch schon vor .383 ein SHA-/Byte-verifizierter, eindeutig separater `pages-free-v1`-Rollback mit 15 Stunden bis +14h vorhanden (`prepare_legacy_core_rollback.py`). Dieser muss als letzte sichere Rückfalloption erhalten bleiben. Daher akzeptiert `check_ruc_health.py` die 15-stündige Achse **ausschließlich mit explizitem `--legacy-rollback` und korrekt typisiertem rohem Pages-Metadatenprofil**, und der Schalter wird ausschließlich im bestehenden nach Codec-Fehler gestarteten Workflow-Zweig gesetzt. Exakte Raster-/20-EPS-/Zeitachsen-Parität und alle schon bestehenden SHA-/Pages-/Worker-Gates bleiben Pflicht. Jeder andere 15h-Kandidat im regulären vollständigen Publish ist verboten. Negative Regressionen validieren die Kontexttrennung, kaputte Rollbacks und unveränderte 27h-Produktionsanforderung.
