@@ -11,7 +11,9 @@ on:
   schedule:
     # Observations are best-effort; true first availability is interval-censored.
     # This job must not trigger, block or replace the 27h/20-EPS pipeline.
-    - cron: '3,18,33,48 * * * *'
+    - cron: '3,18,48 * * * *'
+    # One bounded native-field value witness each hour.
+    - cron: '33 * * * *'
 
 permissions:
   contents: read
@@ -93,6 +95,79 @@ jobs:
           path: |
             dwd-observation-*.jsonl
             ruc-e2e-*.json
+          retention-days: 14
+          if-no-files-found: warn
+          compression-level: 6
+
+  native-first-field:
+    # One-object witness, not a 6h/14h or EPS20 admission.
+    # Never execute on workflow_run recovery or release windows.
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' && github.event_name == 'schedule' && github.event.schedule == '33 * * * *' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - name: Stable-SHA ohne Credentials laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+      - name: Stable- und Main-Lineage vor realem DWD-Download abgleichen
+        id: lineage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          checkout_sha="$(git rev-parse HEAD)"
+          main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          stable_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')"
+          [[ "$checkout_sha" =~ ^[a-f0-9]{40}$ && "$main_sha" =~ ^[a-f0-9]{40}$ && "$stable_sha" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          if [ "$checkout_sha" = "$main_sha" ] && [ "$checkout_sha" = "$stable_sha" ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::Real GRIB sampling suspended during MID release drift.'
+          fi
+      - name: Python und zugelassenes ecCodes nur im Echtwerte-Probejob laden
+        if: steps.lineage.outputs.ready == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Native DWD-Abhängigkeiten aus bestehendem MID-Versionsbereich installieren
+        if: steps.lineage.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check 'numpy>=2.0,<3' 'eccodes>=2.38,<3'
+      - name: Eine echte native T_2M GRIB-Stichprobe mit Bitmap und Werten prüfen
+        if: steps.lineage.outputs.ready == 'true'
+        id: real_probe
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/real_grib_first_field_shadow.py --run latest --lead-minutes 0 --output "ruc-real-grib-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+      - name: Sachlichen GRIB-Pollstatus ausdrücklich berichten
+        if: steps.lineage.outputs.ready == 'true'
+        env:
+          STATUS: ${{ steps.real_probe.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "DWD real GRIB single-file witness: ${STATUS}; not an entire model run/EPS/publish/SLO proof." >> "$GITHUB_STEP_SUMMARY"
+          if [ "$STATUS" != success ]; then
+            echo '::warning::Native DWD witness missing/invalid; no upstream latency or availability inferred.'
+          fi
+      - name: Echtdatenstichprobe maximal 14 Tage als reine Evidenz sichern
+        if: ${{ always() && steps.lineage.outputs.ready == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dwd-ruc-real-grib-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-real-grib-*.json
           retention-days: 14
           if-no-files-found: warn
           compression-level: 6
