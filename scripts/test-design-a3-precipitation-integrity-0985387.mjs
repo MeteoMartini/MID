@@ -44,6 +44,7 @@ for(const key of [
 assert.ok(!app.includes("probabilityPath=showProbability?monotoneSvgPath(probabilityCurvePoints)"));
 assert.ok(!app.includes("total+Math.max(0,Number(hour[key])||0)"));
 assert.ok(app.includes('no-data-rain-${x.epoch}'),'Missing 7d hourly precipitation needs visible marker');
+assert.ok(app.includes('precipLegendTypes.length===0&&p.some(hour=>!isAvailablePrecipitation(hour.precipitation))'),'Pure Missing 7d phase still needs a rain lane');
 assert.ok(app.includes('<title>Niederschlagsmenge nicht verfügbar</title></line>'),'NoData marker must be explained');
 assert.ok(contract.includes('23-/25-Stunden-Tage'));
 const pkg=JSON.parse(pkgSource),baseline=JSON.parse(baselineSource),name='scripts/test-design-a3-precipitation-integrity-0985387.mjs';
