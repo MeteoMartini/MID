@@ -15,6 +15,8 @@ on:
       - 'tools/ruc/test_ruc_weekly_e2e_observations.py'
       - 'tools/ruc/fast_lane_grib_preflight.py'
       - 'tools/ruc/test_fast_lane_grib_preflight.py'
+      - 'tools/ruc/real_grib_first_field_shadow.py'
+      - 'tools/ruc/test_real_grib_first_field_shadow.py'
       - 'ci/github/workflows/mid-ruc-availability-observer.yml'
       - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
@@ -85,7 +87,7 @@ jobs:
           for source in sorted(Path('tools/ruc').glob('*.py')):
               ast.parse(source.read_text(encoding='utf-8'),filename=str(source))
           PY
-          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py test_fast_lane_grib_preflight.py; do
+          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py test_fast_lane_grib_preflight.py test_real_grib_first_field_shadow.py; do
             python3 "tools/ruc/$test" -v
           done
           echo 'Only DWD directory observation/Pages/Worker readback reviewed; no GRIB/EPS/App/SLO or Fast-Publisher release authorization.' >> "$GITHUB_STEP_SUMMARY"
