@@ -1,1 +1,0 @@
-import{Mi as e}from"./index-C2foSARJ.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
