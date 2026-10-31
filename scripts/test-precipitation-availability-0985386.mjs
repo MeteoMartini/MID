@@ -40,4 +40,7 @@ assert.ok(cockpit.includes('completeCoverage?sumCompletePrecipitation'));
 assert.ok(cockpit.includes('completeCoverage?maxCompleteProbability'));
 assert.ok(cockpit.includes('rainItems.map(item=>item.amount).filter(Number.isFinite)'));
 assert.ok(cockpit.includes('Niederschlagsmenge nicht verfügbar`}</title></line>'));
+assert.ok(ensemble.includes("?'unknown' as const:'none' as const"),'fehlende Ensemble-Niederschlagsdaten müssen visuell erkennbar bleiben');
+assert.ok(ensemble.includes('type===\'unknown\'?<g aria-hidden="true">'),'NoData-Symbol muss einen neutralen kontrastreichen Zustand besitzen');
+assert.ok(ensemble.includes("precipVisualType:'none'|'unknown'"),'14d TrendRow muss NoData explizit typisieren');
 console.log('MID .386: Niederschlag/PoP NoData, Trace, Raten und 24h-/Ensemble-Consumer geprüft');

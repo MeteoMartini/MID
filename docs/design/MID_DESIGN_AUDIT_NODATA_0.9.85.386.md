@@ -35,6 +35,10 @@ Die 24h-Wahrscheinlichkeitslinie wird an ungültigen Werten segmentiert; nicht v
 
 Zusätzlich zu Rohwertverfügbarkeit validiert `completePrecipitationIntervalCoverage` die lückenlose und überschneidungsfreie Folge der im 24h-Aggregat enthaltenen Intervallkanten. Fehlt ein 15-min-Beitrag innerhalb des angezeigten Gruppenintervalls, ergeben die Menge und das PoP-Maximum `NaN`, nicht eine plausibel wirkende zu kleine Summe oder 0 %. Eine vollständig entfernte 24h-Gruppe bleibt weiterhin eine gesonderte Provider-/Achsenprüfung. Die 7d-Stundenniederschlagskurve kennzeichnet fehlende Gesamtmengen dezent gestrichelt und lässt sie nicht unbemerkt als trockenen Nullbalken erscheinen; der Tooltip erhält gültige PoP oder einen Missing-Hinweis. Umfang: reiner Fachvertrag und fokussierte Regression, noch keine echte Browser-/iOS-Abnahme.
 
+## Kompakte 14d-Ensemble-Visualisierung
+
+Für ein ruhendes kompaktes Niederschlags-Piktogramm werden fehlende Gesamtmenge oder fehlende PoP als eigener neutraler `unknown`-Zustand mit kleinem Fragezeichen in kontrastreichem Kreis dargestellt. Ein fehlendes Symbol wäre optisch nicht von trockenen Intervallen unterscheidbar. Nur bestätigte 0 mm und 0 % dürfen die inaktive Trocken-Visualisierung ohne Marker ergeben; der zugängliche Tooltip benennt die unvollständige Datenlage. Bei unabhängig aktiven eindeutigen Niederschlags-WMO-Signalen bleibt die ursprüngliche Phase sichtbar und die fehlende Best-Match-Menge wird weiterhin im Text erklärt. Symbol ist ein MID-Hinweis, keine amtliche DWD-Warnung. Strukturtests ergänzt, echte Light/Dark-/Phone-/VoiceOver-Screenshots stehen aus.
+
 ## Freigabegrenze
 
 Erst neue Stable-SHA-Prüfung, saubere .385-Reihenfolge bzw. Versionskoordination, vollständige Source-PR-Gates, SHA-Bot-Merge, serverseitiges ZIP, Installer und betroffene Worker/Pages-Gates, anschließend bestätigte Stable-Promotion. Bis dahin bleibt der PR im Draft. Issue #523 bleibt offen.
