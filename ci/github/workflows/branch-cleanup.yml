@@ -65,20 +65,24 @@ jobs:
           recent=0
           unique=0
 
-          while IFS= read -r branch_name; do
+          # Branch list carries the effective ruleset protection flag.
+          # Skip 490+ redundant detail requests for protected historical refs.
+          while IFS=$'\t' read -r branch_name is_protected; do
             [ -n "$branch_name" ] || continue
             case "$branch_name" in main|mid-stable) continue ;; esac
+            case "$is_protected" in
+              true)
+                protected_count=$((protected_count+1))
+                echo "PROTECTED  $branch_name"
+                continue
+                ;;
+              false) ;;
+              *) echo "::error::Unbekannter Schutzstatus für $branch_name"; exit 1 ;;
+            esac
 
             encoded="$(jq -rn --arg v "$branch_name" '$v|@uri')"
             info="$(gh api "repos/${GITHUB_REPOSITORY}/branches/${encoded}")"
-            is_protected="$(jq -r '.protected' <<<"$info")"
             last_push="$(jq -r '.commit.commit.author.date // empty' <<<"$info")"
-
-            if [ "$is_protected" = "true" ]; then
-              protected_count=$((protected_count+1))
-              echo "PROTECTED  $branch_name"
-              continue
-            fi
 
             if [ "$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$branch_name" --json number --jq 'length')" -gt 0 ]; then
               open_pr_count=$((open_pr_count+1))
@@ -109,7 +113,7 @@ jobs:
               unique=$((unique+1))
               echo "UNMERGED    $branch_name · einzigartige Commits bleiben erhalten"
             fi
-          done < <(gh api "repos/${GITHUB_REPOSITORY}/branches" --paginate --jq '.[].name')
+          done < <(gh api "repos/${GITHUB_REPOSITORY}/branches" --paginate --jq '.[] | [.name, .protected] | @tsv')
 
           {
             echo "### Branch Cleanup"

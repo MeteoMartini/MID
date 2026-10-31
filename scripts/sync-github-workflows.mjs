@@ -24,21 +24,6 @@ function pinApprovedActions(source){
 }
 
 
-function maintainHistoricalWorkflow(name,source){
- if(name!=='mid-code-revision.yml')return source;
- let next=source;
- // v0.9.19.0 was a one-off bootstrap revision. Keep manual install/all for
- // forensic/recovery use, but never spend a runner on every normal main push.
- next=next.replace(
-  /(^\s*branches:\s*\n)(\s*- main\s*\n)(\s*- mid-stable\s*$)/m,
-  (_match,head,_main,stable)=>`${head}${stable}`
- );
- next=next.replace(
-  /(\s+if:\s*>-\s*\n)\s*\(github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'\) \|\|\s*\n\s*\(github\.event_name == 'workflow_dispatch' && \(inputs\.task == 'install' \|\| inputs\.task == 'all'\)\)/,
-  (_match,head)=>`${head}      github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all')`
- );
- return next;
-}
 export const managedFiles=[
  ['workflows/build-parity-qualification.yml','workflows/build-parity-qualification.yml'],
  ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
@@ -52,10 +37,7 @@ export const managedFiles=[
  ['workflows/deploy.yml','workflows/deploy.yml'],
  ['workflows/dependency-audit.yml','workflows/dependency-audit.yml'],
  ['workflows/mid-code-revision.yml','workflows/mid-code-revision.yml'],
- ['workflows/apply-private-analytics.yml','workflows/apply-private-analytics.yml'],
  ['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml'],
- ['workflows/mid-knmi-eps-rolling-manifest.yml','workflows/mid-knmi-eps-rolling-manifest.yml'],
- ['workflows/mid-knmi-eps-rolling-offset-smoke.yml','workflows/mid-knmi-eps-rolling-offset-smoke.yml'],
  ['workflows/unit-coverage.yml','workflows/unit-coverage.yml'],
  ['workflows/widget-export.yml','workflows/widget-export.yml'],
  ['workflows/mid-ruc-preprocess.yml','workflows/mid-ruc-preprocess.yml'],
@@ -97,7 +79,7 @@ export async function syncGithubConfiguration({root=defaultRoot,sourceRoot=path.
  try{workflowNames=(await readdir(workflowsRoot)).filter(name=>/\.ya?ml$/i.test(name))}catch{}
  for(const name of workflowNames){
   const targetRelative=path.join('workflows',name),targetPath=path.join(githubRoot,targetRelative);
-  const current=await readFile(targetPath,'utf8'),next=maintainHistoricalWorkflow(name,pinApprovedActions(current));
+  const current=await readFile(targetPath,'utf8'),next=pinApprovedActions(current);
   validateWorkflow(targetRelative,next);
   if(current===next)continue;
   await writeFile(targetPath,next);
