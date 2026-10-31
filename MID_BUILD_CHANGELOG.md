@@ -1,3 +1,12 @@
+## MID v0.9.85.383 – Modellgenauer RUC-Pages-/Worker-Abgleich statt Mindestzahlen
+
+- Grundlage: verifizierte MID v0.9.85.382, `main=mid-stable` @ `e539d4b0db4e84587af3aeef4fbc5c32e160142c`, Source #535 und Installer 41174796571 success. Fünf Rulesets aktiv.
+- Bisher kontrollierte `check_ruc_health.py` nur timeCount >=4, pointCount >=1 und epsMemberCount >=2 trotz vollständigerer SHA-gebundener Metadaten; auch der Pages-Pointer prüfte keine identische Raster-/Member-/Zeitachse. Die bisherigen Decode-/Codec-/SHA-Pflichtprüfungen waren und bleiben zusätzlich vorhanden.
+- Neu: typisierter, vollständiger, UTC-stündlicher 0..+27h-Manifestvertrag in allen vier Zeitachsen, exakt 20 Ensemblemitglieder, positive Punktzahl und identische native Grid-Dimension. Öffentlicher Pages-Readback gleicht zusätzlich die gesamte Gittermetadatenstruktur ab; Worker-Health muss exakte int-Werte statt bloßer Mindestzahlen liefern. Bestehende CDN/Worker-Recovery-Retries bleiben begrenzt, falsche Inhalte fail-closed.
+- Adversarielle Tests für fehlende/duplizierte/verschobene Prognoseschritte, 19/21 Mitglieder, Geometriedrift, Bool/Strings statt ints, fremden Lauf, dauerhaft kaputte Pages/Worker und erst nach Retry konvergierte Werte im bestehenden `tools/ruc/test_ruc_health_check.py`.
+- Die bisherigen normalen Source-Gates und beide RUC-Workflow-Spiegel nehmen diesen Test als Pflicht vor Publikation auf. Keine neuen Secrets, keine Änderungen an Wetterwerten, keine Überschreibung amtlicher Warnungen.
+- Technischer Nachweis `docs/implementation/MID_RUC_HEALTH_MANIFEST_PARITY_383.md`. Änderung erst nach vollständiger Source-PR-Gate → Bot → Server-ZIP → Installer → Worker/Pages → Stable vollständig veröffentlicht; bis dahin nur Kandidat.
+
 ## MID v0.9.85.382 – Echtformatprüfung des EPS-Inventars vor großen RUC-Downloads
 
 - Ausgangsbasis v0.9.85.381, `main=mid-stable` @ `f91696cb3468730a4b4473c5ff1cc86b0ab57869`, fünf aktive GitHub-Rulesets und vollständiger Vorgängerinstaller.
