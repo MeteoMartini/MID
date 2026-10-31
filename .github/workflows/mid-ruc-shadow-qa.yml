@@ -71,3 +71,43 @@ jobs:
           echo 'RUC Offline: Python/Native-Format/Readback-Tests bestanden; keine DWD-Liveprüfung.' >> "$GITHUB_STEP_SUMMARY"
           echo 'P4-Testdatei sicherheitsbedingt nicht Bestandteil dieser Suite; keine Triggerfreigabe.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Kein Fast-Lane-Publisher, kein App-Refresh, kein EPS20-Nachweis, kein Production-SLO.' >> "$GITHUB_STEP_SUMMARY"
+
+  live-dwd-grib-canary:
+    # This job downloads only four small public DWD GRIBs to prove real
+    # ecCodes decoding and native bitmap/field/time/grid validity. No state is
+    # published. Restrict expensive network sampling to the owning RUC PR.
+    if: >-
+      github.event.pull_request.number == 542 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'chatgpt/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: PR-Head ohne Credentials exakt laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Python 3.12 für echte DWD GRIB2 Reader
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Nur vorhandene DWD-Reader-Abhängigkeiten installieren
+        run: python -m pip install --disable-pip-version-check 'numpy>=2,<3' 'requests>=2.31,<3' 'eccodes>=2.38,<3'
+      - name: Offline-Netz-/Bitmap-/GRIB-Inventar-Negativtests
+        run: python tools/ruc/test_ruc_dwd_grib_live_canary.py -v
+      - name: Echte DWD GRIBs lesen – streng begrenzt und ohne Freigabewirkung
+        timeout-minutes: 6
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_dwd_grib_live_canary.py --output dwd-grib-live-canary.json
+          echo '4 native DWD GRIB samples read; NO complete run, EPS, consumer adoption or publication admission.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Diagnostischen Byte-/Header-Beleg 2 Tage bewahren
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-dwd-grib-canary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dwd-grib-live-canary.json
+          retention-days: 2
+          if-no-files-found: error
