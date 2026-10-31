@@ -1,3 +1,10 @@
+# MID v0.9.85.382 – RUC: Ensemble-Mitglieder früher prüfen
+
+- MID erkennt fehlende RUC-Ensemblemitglieder und Gültigkeitsstunden bereits aus echten GRIB-Headern vor der umfangreichen übrigen Modellaufbereitung.
+- Für unvollständige aktuelle DWD-Läufe erfolgt der bisherige sichere Rückfall auf den nächsten vollständigen Lauf. Fehlende Werte bleiben fehlend und werden nie als Nullwerte ausgegeben.
+- Sämtliche vollständigen meteorologischen GRIB-/Bitmap-/NoData- und Veröffentlichungsprüfungen bleiben unverändert. Die Frühprüfung ist kein Freigabeersatz.
+- Keine Änderungen an Wetterwarnungen oder Oberflächendesign, keine neuen Kosten und keine verkürzten Release-Gates.
+
 # MID v0.9.85.381 – Reproduzierbare CI/CD-Phasenmessung
 
 - Die GitHub-Laufzeitdiagnose unterscheidet jetzt zusätzlich die Zeiten für Warteschlange, Setup, npm, Produktionsbuild, Core, Heavy, SHA-Bot, Paketierung, Worker, Pages und Stable.
