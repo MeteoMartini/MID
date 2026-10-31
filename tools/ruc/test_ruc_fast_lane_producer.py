@@ -48,6 +48,12 @@ class TestFast(unittest.TestCase):
         Spec=namedtuple('Spec','name offset scale')
         values=np.array([[0.,np.nan],[0.,0.],[0.04,np.nan]])
         self.assertTrue(safe_quantization({'precipitation':values},(Spec('precipitation',0.,0.01),),np))
+    def test_infinite_value_is_invalid_not_missing(self):
+        import numpy as np
+        from collections import namedtuple
+        Spec=namedtuple('Spec','name offset scale')
+        with self.assertRaisesRegex(ValueError,'infinity'):
+            safe_quantization({'precipitation':np.array([[0.,np.inf]])},(Spec('precipitation',0.,0.01),),np)
     def test_extreme_cannot_clip_as_normal_data(self):
         import numpy as np
         from collections import namedtuple
