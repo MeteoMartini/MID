@@ -183,6 +183,45 @@ def validate_hourly_coverage(paths,run,hours,param):
  missing=sorted(targets-set(found))
  if missing:raise RuntimeError(f'data-incomplete: {param}: missing hourly targets: '+','.join(t.isoformat() for t in missing[:4]))
 
+def eps_grib_headers(path,expected_run):
+  """Scan genuine ecCodes validity and member headers without decoding values."""
+  from eccodes import codes_grib_new_from_file,codes_get,codes_release
+  with open_grib_stream(path) as source:
+   while True:
+    gid=codes_grib_new_from_file(source)
+    if gid is None:break
+    try:
+     valid,_=inspect_grib_header(gid,expected_run,expected_parameter='precipitation_acc')
+     member=None
+     for key in ('perturbationNumber','number'):
+      try:member=int(codes_get(gid,key));break
+      except Exception:pass
+     if member is None:raise RuntimeError('data-incomplete: RUC-EPS member metadata missing')
+     yield valid,member
+    finally:codes_release(gid)
+
+
+def validate_eps_header_coverage(paths,run,hours,expected_members=range(1,21)):
+  """Only an early filter, not permission to skip full value/bitmap/grid checks."""
+  base=datetime.fromisoformat(run.replace('Z','+00:00'))
+  if base.tzinfo is None:base=base.replace(tzinfo=timezone.utc)
+  targets={base+timedelta(hours=h):set() for h in range(hours+1)}
+  required=set(expected_members)
+  if not required or any(type(member) is not int or member<1 for member in required):
+   raise ValueError('invalid RUC-EPS preflight member contract')
+  observed=0
+  for path in paths:
+   for valid,member in eps_grib_headers(path,base):
+    if valid not in targets:continue
+    if member not in required:raise RuntimeError(f'data-incomplete: RUC-EPS unexpected member {member} at {valid.isoformat()}')
+    if member in targets[valid]:raise RuntimeError(f'data-incomplete: RUC-EPS duplicate member {member} at {valid.isoformat()}')
+    targets[valid].add(member);observed+=1
+  for valid,found in targets.items():
+   missing=sorted(required-found)
+   if missing:raise RuntimeError(f'data-incomplete: RUC-EPS missing members {missing[:20]} at {valid.isoformat()}')
+  print(f'RUC_EPS_HEADER_PREFLIGHT complete run={run} hours={hours} members={len(required)} records={observed}; full values/bitmap/grid checks still required',flush=True)
+
+
 def stage_tree(s,url,target,hours,label,*,mode='hourly'):
  discovered=crawl_files(s,url)
  if not discovered:raise RuntimeError(f'No GRIB2 files under {url}')
@@ -221,6 +260,11 @@ def stage_coordinate(s,url,target,label):
 def build_candidate(s,run,stage_root,output,hours):
  run_key=re.sub(r'[^0-9A-Za-z_-]','',run);stage=stage_root/run_key;tmp=output.parent/f'.{output.name}.{run_key}.tmp'
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
+ # The newest RUC-EPS directory can advertise a partially published cycle.
+ # Reject missing native members and hours before expensive deterministic downloads.
+ eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC',mode='hourly')
+ print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
+ validate_eps_header_coverage([stage/'eps'/'TOT_PREC'/row for row in eps_rows],run,hours)
  for param in FORECAST_REQUIRED:
   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'deterministic'/param,hours,f'{run} {param}',mode='hourly');print(f'{run} {param}: {len(rows)} staged GRIB files',flush=True)
   # Read headers only, before expensive optional/EPS downloads. The builder
@@ -243,7 +287,6 @@ def build_candidate(s,run,stage_root,output,hours):
   except Exception as exc: print(f'{run} specialist {param}: skipped ({exc})',flush=True)
  for param in GRID_REQUIRED:
   rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
- eps_rows=stage_tree(s,f'{EPS_BASE}/TOT_PREC/r/{run}/',stage/'eps'/'TOT_PREC',hours,f'{run} RUC-EPS TOT_PREC',mode='hourly');print(f'{run} RUC-EPS TOT_PREC: {len(eps_rows)} staged GRIB files',flush=True)
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')
  missing=[name for name in required if not (tmp/name).is_file() or (tmp/name).stat().st_size<2]

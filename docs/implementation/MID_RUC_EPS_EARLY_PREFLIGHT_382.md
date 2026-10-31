@@ -1,0 +1,7 @@
+# MID v0.9.85.382 · Early EPS GRIB metadata preflight
+
+Verified baseline: main=mid-stable v0.9.85.381 @ f91696cb3468730a4b4473c5ff1cc86b0ab57869. Actual GitHub RUC run 41171508327: 2026-10-31T04:00 DWD RUC-EPS missing ten members at +19h; later 03Z fallback. Previous builder downloaded all deterministic and optional fields before detecting missing EPS members.
+
+Move authentic EPS TOT_PREC download to the first candidate stage. Header-only ecCodes scan checks model run, parameter, validity and the exact required 20 perturbation members for each 0..27h. Reject duplicates, unexpected IDs and gaps before spending on 12 deterministic and many optional parameters. The existing full build independently rechecks every GRIB field, grid, member, value, bitmap, missing mask, units and accumulation. Failures still try the next older common candidate, never convert missing into 0. Initial EPS download itself remains subject to network failures and retry policy; no claim of universal freshness.
+
+Mandatory regression: tools/ruc/test_fetch_resilience.py includes 28h×20 complete/missing(+19h)/duplicate/extra-member cases; rejects partial EPS before deterministic; old deterministic early rejection remains. No new production permissions, deployment or CI bypass. #352 operational monitoring and #526 full attestation/A-B equivalence remain open. Promotion only after every Source/Installer/Worker/Pages/Stable gate.
