@@ -39,7 +39,7 @@ const liveTime=new Date().toISOString();
 function mockSnapshot(keyConfigured,decoderConfigured){
  const cache={schema:'mid.knmi.harmonie-eps.tar-index.v1',version:workerVersion,configured:true,openDataConfigured:keyConfigured,decoderConfigured,productionReady:keyConfigured&&decoderConfigured};
  const capabilities={ok:true,version:workerVersion,models:{knmi_harmonie_arome_cy43_eps:{configured:decoderConfigured}}};
- const health={ok:true,version:workerVersion,timestamp:liveTime};
+ const health={ok:true,version:workerVersion,timestamp:liveTime,providers:{'KNMI HARMONIE EPS point adapter':decoderConfigured,'KNMI HARMONIE EPS productive cache':true}};
  return {cache,capabilities,health};
 }
 for(const [key,decoder,expected] of [
@@ -59,6 +59,7 @@ for(const [key,decoder,expected] of [
  assert.throws(()=>classifyKnmiPublicStatus({...cache,version:'0.0.0'},capabilities,health,workerVersion),/Version/,'Versionsdrift muss blockieren.');
  assert.throws(()=>classifyKnmiPublicStatus({...cache,productionReady:false},capabilities,health,workerVersion),/Widersprüchliche/,'Inkonsistente Flags müssen blockieren.');
  assert.throws(()=>classifyKnmiPublicStatus(cache,{...capabilities,models:{knmi_harmonie_arome_cy43_eps:{configured:false}}},health,workerVersion),/Widerspruch/,'Unterschiedliche Decoderflags müssen blockieren.');
+ assert.throws(()=>classifyKnmiPublicStatus(cache,capabilities,{...health,providers:{...health.providers,'KNMI HARMONIE EPS point adapter':false}},workerVersion),/Widerspruch/,'Allgemeines Worker-Health darf keine abweichenden Providerflags enthalten.');
  assert.throws(()=>classifyKnmiPublicStatus(cache,capabilities,{...health,timestamp:'2026-01-01T00:00:00Z'},workerVersion),/nicht frisch/,'Veraltete Health-Antwort muss blockieren.');
  const payloads={'knmi-eps-cache-health':cache,'ensemble-capabilities':capabilities,health};
  const requested=[];
