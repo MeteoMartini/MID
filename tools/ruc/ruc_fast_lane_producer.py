@@ -22,6 +22,10 @@ RUN = re.compile(r'^20\d{2}-\d{2}-\d{2}T\d{2}:00$')
 EXPECTED_LEADS = frozenset(range(0,361,60))
 EXPECTED_RAPID5 = frozenset(range(0,361,5))
 EXPECTED_RAPID15 = frozenset(range(0,361,15))
+WIRE_FIELDS = ('temperature_2m', 'dew_point_2m', 'relative_humidity_2m',
+               'pressure_msl', 'wind_speed_10m', 'wind_direction_10m',
+               'wind_gusts_10m', 'precipitation', 'cloud_cover',
+               'cloud_cover_low', 'cape', 'convective_inhibition')
 
 
 def canonical_run(value):
@@ -76,6 +80,17 @@ def verify_candidate_manifest(candidate, root):
             or candidate.get('publicationAuthorized') is not False):
         raise ValueError('invalid immutable fast candidate contract')
     canonical_run(candidate.get('run'))
+    points=candidate.get('pointCount')
+    grid=candidate.get('grid')
+    if (type(points) is not int or points<=0 or not isinstance(grid,dict)
+            or type(grid.get('nativePointCount')) is not int
+            or grid['nativePointCount']!=points):
+        raise ValueError('fast candidate native grid dimensions invalid')
+    field_rows=candidate.get('fields')
+    if (not isinstance(field_rows,list) or len(field_rows)!=len(WIRE_FIELDS)
+            or not all(isinstance(row,dict) for row in field_rows)
+            or tuple(row.get('name') for row in field_rows)!=WIRE_FIELDS):
+        raise ValueError('fast candidate wire field inventory/order invalid')
     files=candidate.get('objects')
     if not isinstance(files,dict) or set(files)!={'deterministic.bin','rapid-5m.bin','rapid-15m.bin','lookup.bin'}:
         raise ValueError('required objects missing')
@@ -113,6 +128,8 @@ def build(run, output, staging):
     from ruc_pack import (DEFAULT_FIELDS, RAPID_5M_FIELDS, RAPID_15M_FIELDS,
         pack_cell_major)
     if set(FORECAST_REQUIRED)!=set(FIELDS):raise ValueError('production field contract drift')
+    if tuple(item.name for item in DEFAULT_FIELDS)!=WIRE_FIELDS:
+        raise ValueError('production native field order contract drift')
     s=session()
     # Directory listings are only a preflight; the original ecCodes reader
     # independently validates every downloaded GRIB header, units and bitmap.
