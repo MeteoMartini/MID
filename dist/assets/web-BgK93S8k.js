@@ -1,1 +1,0 @@
-import{Mi as e}from"./index-By6nHdir.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
