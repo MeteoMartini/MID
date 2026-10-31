@@ -193,7 +193,7 @@ def full_codec_evidence(payload:dict,meta:dict)->dict:
     return {'run':str(meta.get('run','')),'published':expected,'verified':verified,
             'advertised':full.get('advertised'),'rawRetained':full.get('rawRetained')}
 
-def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None) -> int:
+def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetcher=fetch_payload, sleeper=time.sleep, expected_profile='pages-free-v1', expected_contract: dict | None = None, allow_legacy_rollback: bool = False) -> int:
     """Prove public Pages convergence separately from Worker adoption."""
     url = urllib.parse.urljoin(base.rstrip('/') + '/', 'latest.json')
     last_error = None
@@ -205,7 +205,7 @@ def probe_pages(base: str, run: str, *, attempts=MAX_PAGES_PROBE_ATTEMPTS, fetch
             if meta.get('run') != run:
                 raise RuntimeError(f'Pages RUC run {meta.get("run")!r} does not match {run!r}')
             if expected_contract is not None:
-                if verified_snapshot_contract(meta) != expected_contract:
+                if verified_snapshot_contract(meta, allow_legacy_rollback=allow_legacy_rollback) != expected_contract:
                     raise RuntimeError('Pages RUC geometry, member or validity axes differ from sealed local snapshot')
             return attempt
         except Exception as error:
@@ -280,7 +280,7 @@ def main() -> int:
         raise RuntimeError('full RUC profile has not been explicitly activated')
     url = health_url(a.url)
     if a.pages_base:
-        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts, expected_profile=meta.get('storageProfile','pages-free-v1'), expected_contract=expected_contract)
+        page_attempt = probe_pages(a.pages_base, run, attempts=a.pages_attempts, expected_profile=meta.get('storageProfile','pages-free-v1'), expected_contract=expected_contract, allow_legacy_rollback=a.legacy_rollback)
         print(f'MID RUC Pages publication OK: run={run}, probe={page_attempt}')
     payload, attempt = probe_until_ready(
         url,

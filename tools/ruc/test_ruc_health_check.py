@@ -235,9 +235,16 @@ legacy_contract=mod.verified_snapshot_contract(legacy,allow_legacy_rollback=True
 assert legacy_contract['timeCount']==15
 legacy_worker={**worker,'timeCount':15}
 mod.check(legacy_worker,MODEL_RUN,expected_contract=legacy_contract)
+# No normal publisher can silently reclassify a 14 h raw snapshot as 27 h.
+try:
+ mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
+  fetcher=lambda url,timeout:legacy,sleeper=lambda _:None,expected_profile='pages-free-v1',
+  expected_contract=legacy_contract)
+ raise AssertionError('legacy horizon accepted without explicit emergency flag')
+except RuntimeError:pass
 assert mod.probe_pages('https://mid.example/ruc/',MODEL_RUN,attempts=1,
  fetcher=lambda url,timeout:legacy,sleeper=lambda _:None,expected_profile='pages-free-v1',
- expected_contract=legacy_contract)==1
+ expected_contract=legacy_contract,allow_legacy_rollback=True)==1
 for mutation in (
  lambda m:m['times'].pop(),
  lambda m:m['eps']['times'].pop(),
