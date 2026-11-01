@@ -76,7 +76,7 @@ class Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             base=Path(td);(base/'candidate').mkdir()
             (base/'candidate'/'fast-candidate.json').write_text(json.dumps({
-                'run':'2026-10-31T15:00','objects':{}}))
+                'run':'2026-10-31T15:00','objects':{},'grid':{'nativePointCount':542040,'nx':2,'ny':1},'fields':[{'name':'temperature_2m','unit':'°C','scale':.01,'offset':0}]}))
             with patch('ruc_fast_pointer_staging.verify_candidate_manifest',return_value={
                 'verifiedLocalBytes':True,'publicationAuthorized':False}):
                 with self.assertRaises(KeyError):stage_fast_candidate(base/'candidate',base/'inactive')
