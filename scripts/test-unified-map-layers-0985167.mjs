@@ -118,6 +118,47 @@ assert.ok(classicExport.includes('WmsOriginalExportControl')&&classicExport.incl
 assert.ok(unifiedExport.includes('WmsOriginalExportControl')&&unifiedExport.includes('loadedWms.has(wmsSelectedKey)&&!wmsPending&&!wmsError'),'Unified export waits for current frame');
 // Existing baseline: 1059 regression entries unchanged; no fallback to guessed values or an SVG bitmap mislabeled vector.
 
+// Execute the legacy weather-map settings store with real TypeScript source.
+// A new tab's selection must not be overwritten by a remounted map.
+const classicStoreSource=read('src/WeatherMapsPanel.tsx');
+const classicStart=classicStoreSource.indexOf('function storedSettings()'),classicEnd=classicStoreSource.indexOf('function formatMapTime(',classicStart);
+assert.ok(classicStart>0&&classicEnd>classicStart,'Classic map store source must be present');
+const classicStoreJs=ts.transpileModule(`
+ type WeatherMapModelId='icon-d2'|'icon-eu';
+ type BasemapId='light'|'dark';
+ type WeatherMapSettings={modelId:WeatherMapModelId;productId:string;level:number;opacity:number;basemap:BasemapId};
+ const SETTINGS_KEY='mid:weather-maps:v2';
+ const sampleProducts={
+  'icon-d2-precipitation-totals':{id:'icon-d2-precipitation-totals',modelId:'icon-d2',defaultLevel:500,opacity:76},
+  'icon-eu-t2m':{id:'icon-eu-t2m',modelId:'icon-eu',defaultLevel:850,opacity:70}
+ };
+ const weatherMapProduct=(id:string)=>sampleProducts[id]??sampleProducts['icon-d2-precipitation-totals'];
+ const weatherMapProductsForModel=(id:string)=>Object.values(sampleProducts).filter(p=>p.modelId===id);
+ const WEATHER_MAP_MODELS=[{id:'icon-d2'},{id:'icon-eu'}],BASEMAPS={light:{},dark:{}};
+ const testStore=new Map<string,string>(),testEvents:string[]=[];
+ const localStorage={getItem:(key:string)=>testStore.get(key)??null,setItem:(key:string,value:string)=>testStore.set(key,value)};
+ const window={dispatchEvent:(event:{type:string})=>testEvents.push(event.type)};
+ class Event{constructor(public type:string){}}
+ ${classicStoreSource.slice(classicStart,classicEnd)}
+ export const __testMapPreferences={storedSettings,patchStoredWeatherMapSettings,testStore,testEvents};
+`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const mapSettings=(await import('data:text/javascript;base64,'+Buffer.from(classicStoreJs).toString('base64'))).__testMapPreferences;
+const savedMapKey='mid:weather-maps:v2';
+mapSettings.testStore.set(savedMapKey,JSON.stringify({modelId:'icon-eu',productId:'icon-eu-t2m',level:850,opacity:33,basemap:'dark'}));
+mapSettings.patchStoredWeatherMapSettings({opacity:66});
+let updatedMap=JSON.parse(mapSettings.testStore.get(savedMapKey));
+assert.equal(updatedMap.opacity,66);assert.equal(updatedMap.level,850);assert.equal(updatedMap.basemap,'dark');assert.equal(updatedMap.productId,'icon-eu-t2m');
+assert.ok(mapSettings.testEvents.includes('mid:weather-map-settings-changed'),'Same-tab map settings must broadcast a change');
+mapSettings.testStore.set(savedMapKey,JSON.stringify({...updatedMap,level:500,opacity:44}));
+mapSettings.patchStoredWeatherMapSettings({basemap:'light'});
+updatedMap=JSON.parse(mapSettings.testStore.get(savedMapKey));
+assert.equal(updatedMap.opacity,44,'Other tab opacity change must not be overwritten by an older local render');
+assert.equal(updatedMap.level,500,'External level choice must survive unrelated setting changes');
+mapSettings.testStore.set(savedMapKey,JSON.stringify({productId:'icon-eu-t2m',modelId:'icon-eu',level:null,opacity:66}));
+assert.equal(mapSettings.storedSettings().level,850,'Missing pressure level is not a real zero');
+assert.ok(classicStoreSource.includes("window.addEventListener('storage',onStorage)"),'Classic map must listen for cross-tab changes');
+assert.ok(!classicStoreSource.includes('useEffect(()=>{try{localStorage.setItem(SETTINGS_KEY'),'Classic map mount must not write a stale default');
+
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
 assert.ok(read('src/UnifiedWeatherMap.tsx').includes("from './wmsLegendUrl'")&&read('src/WeatherMapsPanel.tsx').includes("from './wmsLegendUrl'"),'Both views import a uniquely named helper to avoid case-only module aliases');
