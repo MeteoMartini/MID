@@ -56,5 +56,18 @@ try{
  assert.ok(route.includes('className="route-mode-toggle" role="group"'),'pressed route-map mode buttons are not unimplemented tabs');
  const totals=await readFile('src/PrecipitationTotalsMap.tsx','utf8'),extreme=await readFile('src/ExtremeWeatherOutlookPanel.tsx','utf8');assert.ok(totals.includes('data?.frames.find(item=>item.hours===requestedHours)??data?.frames[0]'));assert.ok(!totals.includes('setHours(current=>result.frames'));assert.ok(!extreme.includes('if(!result.periods.some(period=>period.id===periodId))setPeriodId'));
  for(const file of ['App','ClimatePanel','ExtremeWeatherOutlookPanel','LongRangeModelComparison','LongRangePanel','PrecipitationTotalsMap','RouteWeatherPanel','UnifiedWeatherMap','WaterSportsPanel'])assert.ok((await readFile(`src/${file}.tsx`,'utf8')).includes('useDisplayPreference'));
+
+ const storageSource=await readFile('src/forecastDetailStorage.ts','utf8');
+ await build({stdin:{contents:storageSource,loader:'ts'},outfile:join(dir,'forecast-storage.mjs'),format:'esm',platform:'node'});
+ const {initialForecastDetailsOpen:readForecastOpen}=await import(pathToFileURL(join(dir,'forecast-storage.mjs')));
+ assert.equal(readForecastOpen(true,()=>{throw Error('denied')}),true,'hourly remains open');
+ assert.equal(readForecastOpen(false,()=>{throw Error('denied')}),false,'blocked daily storage cannot crash render');
+ assert.equal(readForecastOpen(false,()=> '1'),true,'legacy open');
+ assert.equal(readForecastOpen(false,()=> '0'),false,'legacy closed');
+ assert.equal(readForecastOpen(false,()=> null),false,'missing is closed');
+ assert.ok(app.includes('initialForecastDetailsOpen(hourlyDetailOnly)'),'Actual Forecast must use safe reader');
+ assert.ok(comparison.includes('strokeDasharray={item.dash||undefined}'),'legend must reuse exact line dash');
+ assert.ok(comparison.includes('<svg aria-hidden="true" focusable="false" viewBox="0 0 27 10"'),'legend SVG should be decorative');
+
  console.log('PASS return-state contracts: raw legacy keys, climate location swaps, concurrent model metrics, invalid input, blocked storage bridge, keyboard semantics, legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
 }finally{globalThis.localStorage=oldStorage;globalThis.window=oldWindow;delete globalThis.__midReturnMemory;await rm(dir,{recursive:true,force:true})}
