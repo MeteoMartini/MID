@@ -1,5 +1,6 @@
 import type {Location} from './weather';
 import {fetchWorkerJson} from './workerClient';
+import {validatedGeoSphereSnowMeasurement} from './mountainSnowObservation';
 import {guardedOpenMeteoFetch,guardedOpenMeteoJson} from './openMeteoGuard';
 import {utciFromOutdoorState} from './utci';
 
@@ -270,9 +271,7 @@ type GeoSphereSnowResponse={available?:boolean;valueCm?:number;stationName?:stri
 async function geoSphereSnowMeasurement(point:{latitude:number;longitude:number;elevation:number},signal?:AbortSignal):Promise<MountainSnowMeasurement|undefined>{
  try{
   const response=await fetchWorkerJson<GeoSphereSnowResponse>('geosphere-snow',{lat:point.latitude,lon:point.longitude,elevation:point.elevation},{purpose:'general',signal,timeoutMs:11000});
-  const value=Number(response.valueCm),distanceKm=Number(response.distanceKm),heightDifferenceM=Number(response.heightDifferenceM),observedAt=String(response.observedAt||'');
-  if(!response.available||!Number.isFinite(value)||value<0||value>1000||!Number.isFinite(distanceKm)||distanceKm>25||!Number.isFinite(heightDifferenceM)||Math.abs(heightDifferenceM)>350||!Number.isFinite(Date.parse(observedAt))||Date.now()-Date.parse(observedAt)>3*3600000)return undefined;
-  return{valueCm:value,stationName:String(response.stationName||'GeoSphere-Schneestation'),stationId:response.stationId,stationElevation:Number.isFinite(Number(response.stationElevation))?Number(response.stationElevation):undefined,distanceKm,heightDifferenceM,observedAt,provider:String(response.provider||'GeoSphere Austria')};
+  return validatedGeoSphereSnowMeasurement(response,point.elevation);
  }catch{return undefined}
 }
 
