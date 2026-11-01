@@ -20,12 +20,12 @@ The native candidate producer requires all 12 0..6h deterministic fields, the na
 ## P3 actual timing limitation, P4/P5 release blockers
 The P3 module from #569 identifies the genuine 3603s unaccounted job/step timing difference in prior GitHub RUC logs without falsely attributing it to DWD download or ecCodes decode. True P3 improvement requires SHA-identical raw GRIB inputs and CPU/RAM A/B evidence.
 
-P4 still needs one authenticated shared single-flight/fencing control across production RUC publish and any later Fast-Publisher. GitHub Actions concurrency, independent trigger checks and an offline decision alone do not guarantee atomic remote pointer publication; no Fast-Publisher is activated. The existing complete 27h/20-EPS publish remains sovereign.
+P4 now includes the SHA-verified *read-only* qualification-decision helper from Draft #542, plus 12 negative tests for source drift, duplicate/stale/in-flight runs and unchanged provider-inventory fingerprints. Production still needs one authenticated shared single-flight/fencing control across the existing RUC publish and any later Fast-Publisher. GitHub Actions concurrency, independent trigger checks and an offline decision alone do not guarantee atomic remote pointer publication; no Fast-Publisher is activated. The existing complete 27h/20-EPS publish remains sovereign.
 
 P5 168-hour client-observed E2E + real P95<=60 min is **not** verified. Current Python tests/CI are qualification only.
 
 ## Release eligibility
-Draft only, currently app version still .396 on this branch. Never merge it as a normal .397 release without:
+Draft only; all .397 application and Worker/iOS/PWA version mirrors and changelogs are now prepared on this branch, but no release gate has authorized publication. Never merge it as a normal .397 release without:
 1. fresh Stable/Main SHAs and parallel PR scan, confirmed source ancestry,
 2. coherent .397 release version and ALL package/lockfile/baseline/contract/iOS/PWA/Worker mirrors and German user changelog,
 3. passing exact PR-head Source-Core/Heavy/Vitest/browsers/build and all **1059+** required regression inventory,
