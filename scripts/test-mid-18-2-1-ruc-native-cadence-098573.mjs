@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 const [fetcher,builder,pack,worker,sourceWorker,weather,fusion,shortTerm,pkgRaw,baselineRaw]=await Promise.all([
@@ -16,7 +17,19 @@ const [fetcher,builder,pack,worker,sourceWorker,weather,fusion,shortTerm,pkgRaw,
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),self='scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs';
 
-for(const token of ["RAPID_STATE_OPTIONAL_15=('VIS','CEILING')","stage/'rapid-state'/param","mode='rapid15'"])assert.ok(fetcher.includes(token),`RUC native-state discovery missing: ${token}`);
+// The P3 bounded optional prefetch preserves the same per-field native stages
+// while moving repeated serial directory loops into a verified parameter table.
+for(const token of [
+ "RAPID_STATE_OPTIONAL_15=('VIS','CEILING')",
+ "(param,'rapid-state','rapid15','rapid-state')",
+ "stage/subdir/param",
+ "stage_optional_parameters(run,stage,hours)",
+ "max_download_workers=per_field_limit"
+])assert.ok(fetcher.includes(token),`RUC native-state discovery missing: ${token}`);
+const safety=spawnSync(process.env.PYTHON||'python3',['-m','unittest','-q','test_optional_stage_parallel.py'],{
+ cwd:new URL('../tools/ruc/',import.meta.url),encoding:'utf8'
+});
+assert.equal(safety.status,0,`Bounded optional staging runtime regressions failed: ${safety.stdout}\n${safety.stderr}`);
 assert.ok(fetcher.includes("mode='rapid-precip' if param=='TOT_PREC' else 'rapid15'"),'Native precipitation/convection cadence contract regressed.');
 assert.ok(pack.includes('RAPID_STATE_15_FIELDS')&&pack.includes("FieldSpec('visibility', 'm', 10.0)")&&pack.includes("FieldSpec('ceiling', 'm', 1.0)"),'15-minute state packing contract incomplete.');
 for(const token of ["RAPID_STATE_PARAM_MAP","rapid-state-15m.bin","rapid['state15']","rapid_state_specs=tuple","np.hypot(u15,v15)*1.94384449"])assert.ok(builder.includes(token),`Adaptive rapid-state bundle missing: ${token}`);

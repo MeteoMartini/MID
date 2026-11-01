@@ -13,10 +13,12 @@ from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
 import requests
+import threading
 from run_progress import report_run
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
 from grib_metadata import inspect_grib_header
+from optional_stage_parallel import run_optional_downloads
 
 UA='MID-weather-dashboard/RUC-preprocessor'
 DET_BASE='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p'
@@ -47,6 +49,9 @@ GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
 LEAD_RE=re.compile(r'PT(?P<hours>\d{3})H(?P<minutes>\d{2})M',re.I)
 DEFAULT_DOWNLOAD_WORKERS=8
 NETWORK_ATTEMPTS=4
+# A requests.Session contains mutable headers/cookies and must never be
+# shared across concurrent worker threads. Each pool worker owns one.
+_RUC_HTTP_WORKER=threading.local()
 
 def transient_tls_eof(error):
  # Requests/urllib3 wrap the actual SSL exception in args/reason/cause.
@@ -150,7 +155,9 @@ def download_one(url,target):
  tmp=target.with_suffix(target.suffix+'.part')
  def request():
   try:
-   with requests.get(url,headers={'User-Agent':UA},stream=True,timeout=90) as r:
+   worker_http=getattr(_RUC_HTTP_WORKER,'client',None)
+   getter=worker_http.get if worker_http is not None else requests.get
+   with getter(url,headers={'User-Agent':UA},stream=True,timeout=90) as r:
     r.raise_for_status()
     with tmp.open('wb') as f:
      for chunk in r.iter_content(1024*1024):
@@ -222,23 +229,37 @@ def validate_eps_header_coverage(paths,run,hours,expected_members=range(1,21)):
   print(f'RUC_EPS_HEADER_PREFLIGHT complete run={run} hours={hours} members={len(required)} records={observed}; full values/bitmap/grid checks still required',flush=True)
 
 
-def stage_tree(s,url,target,hours,label,*,mode='hourly'):
+def stage_tree(s,url,target,hours,label,*,mode='hourly',max_download_workers=None):
  discovered=crawl_files(s,url)
  if not discovered:raise RuntimeError(f'No GRIB2 files under {url}')
  files=select_requested_files(discovered,hours,mode=mode)
  if not files:raise RuntimeError(f'No requested GRIB2 files under {url}')
  root=url if url.endswith('/') else url+'/'
- workers=max(1,min(12,int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS))),len(files)))
+ configured=int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS)))
+ if max_download_workers is not None:
+  if type(max_download_workers) is not int or not 1<=max_download_workers<=12:raise ValueError('invalid optional per-field worker bound')
+  configured=min(configured,max_download_workers)
+ workers=max(1,min(12,configured,len(files)))
  grid_label={'hourly':f'hourly 0..{hours}h','rapid-precip':'5 min 0..6h','rapid15':'15 min 0..6h','rapid5':'5 min 0..6h','native6h':'native cadence 0..6h'}.get(mode,mode)
  print(f'{label}: selected {len(files)}/{len(discovered)} GRIB files for {grid_label}; {workers} download workers',flush=True)
  def job(file_url):
   rel=unquote(urlparse(file_url).path[len(urlparse(root).path):]).lstrip('/');download_one(file_url,target/rel);return rel
  rows=[];completed=0;report_every=max(1,min(10,len(files)//3 or 1))
- with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-  futures=[pool.submit(job,file_url) for file_url in files]
-  for future in concurrent.futures.as_completed(futures):
-   rows.append(future.result());completed+=1
-   if completed==len(files) or completed%report_every==0:print(f'{label}: downloaded {completed}/{len(files)}',flush=True)
+ clients=[];client_lock=threading.Lock()
+ def initialize_worker():
+  client=session()
+  _RUC_HTTP_WORKER.client=client
+  with client_lock:
+   clients.append(client)
+ try:
+  with concurrent.futures.ThreadPoolExecutor(max_workers=workers,initializer=initialize_worker) as pool:
+   futures=[pool.submit(job,file_url) for file_url in files]
+   for future in concurrent.futures.as_completed(futures):
+    rows.append(future.result());completed+=1
+    if completed==len(files) or completed%report_every==0:print(f'{label}: downloaded {completed}/{len(files)}',flush=True)
+ finally:
+  # All futures have completed before closing; never leak open sockets.
+  for client in clients:client.close()
  return sorted(rows)
 
 
@@ -257,7 +278,42 @@ def stage_coordinate(s,url,target,label):
  download_one(file_url,target/rel)
  return [rel]
 
+def stage_optional_parameters(run,stage,hours):
+ """Fetch independent *optional* parameter trees with bounded total DWD concurrency.
+
+ Existing strict GRIB parsing, native cadence and SHA/bitmap/NoData checks run in
+ build_ruc_bundle unchanged; required deterministic and EPS paths are serial.
+ Two independent directory sessions and at most the same total download slots
+ as the former one-at-a-time 8-worker stage are used, never more.
+ """
+ optional_start=time.monotonic()
+ global_limit=max(1,min(12,int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS)))))
+ fields_in_flight=2 if global_limit>=2 else 1
+ per_field_limit=max(1,global_limit//fields_in_flight)
+ specs=([(param,'rapid-optional','rapid15','optional') for param in RAPID_OPTIONAL_15]
+       +[(param,'rapid-state','rapid15','rapid-state') for param in RAPID_STATE_OPTIONAL_15]
+       +[(param,'specialist-hourly','hourly','specialist') for param in SPECIALIST_HOURLY_OPTIONAL])
+ def task(spec):
+  param,subdir,mode,label=spec
+  # Requests sessions are not shared across concurrent directory crawls.
+  with session() as independent:
+   return stage_tree(independent,f'{DET_BASE}/{param}/r/{run}/',
+                     stage/subdir/param,hours,f'{run} {label} {param}',
+                     mode=mode,max_download_workers=per_field_limit)
+ results=run_optional_downloads(specs,task,max_concurrent=fields_in_flight)
+ for (param,subdir,mode,label),rows,error in results:
+  if error is not None:
+   # A failed optional fetch must not leave partial bytes for the builder.
+   shutil.rmtree(stage/subdir/param,ignore_errors=True)
+   print(f'{run} {label} {param}: unavailable/invalid ({type(error).__name__}: {error})',flush=True)
+  else:
+   print(f'{run} {label} {param}: {len(rows)} staged GRIB files',flush=True)
+ print(f'RUC_OPTIONAL_STAGE run={run} seconds={time.monotonic()-optional_start:.3f} available={len([row for row in results if row[2] is None])} total={len(results)} workers={fields_in_flight}x{per_field_limit}',flush=True)
+ return len([row for row in results if row[2] is None])
+
+
 def build_candidate(s,run,stage_root,output,hours):
+ started_at=time.monotonic()
  run_key=re.sub(r'[^0-9A-Za-z_-]','',run);stage=stage_root/run_key;tmp=output.parent/f'.{output.name}.{run_key}.tmp'
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
  # The newest RUC-EPS directory can advertise a partially published cycle.
@@ -273,21 +329,13 @@ def build_candidate(s,run,stage_root,output,hours):
  for param in RAPID_REQUIRED:
   mode='rapid-precip' if param=='TOT_PREC' else 'rapid15'
   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid'/param,hours,f'{run} rapid {param}',mode=mode);print(f'{run} rapid {param}: {len(rows)} staged GRIB files',flush=True)
- for param in RAPID_OPTIONAL_15:
-  try:
-   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid-optional'/param,hours,f'{run} optional {param}',mode='rapid15');print(f'{run} optional {param}: {len(rows)} staged GRIB files',flush=True)
-  except Exception as exc: print(f'{run} optional {param}: skipped ({exc})',flush=True)
- for param in RAPID_STATE_OPTIONAL_15:
-  try:
-   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'rapid-state'/param,hours,f'{run} rapid-state {param}',mode='rapid15');print(f'{run} rapid-state {param}: {len(rows)} staged candidate GRIB files',flush=True)
-  except Exception as exc: print(f'{run} rapid-state {param}: native 15 min unavailable ({exc})',flush=True)
- for param in SPECIALIST_HOURLY_OPTIONAL:
-  try:
-   rows=stage_tree(s,f'{DET_BASE}/{param}/r/{run}/',stage/'specialist-hourly'/param,hours,f'{run} specialist {param}',mode='hourly');print(f'{run} specialist {param}: {len(rows)} staged GRIB files',flush=True)
-  except Exception as exc: print(f'{run} specialist {param}: skipped ({exc})',flush=True)
+ stage_optional_parameters(run,stage,hours)
  for param in GRID_REQUIRED:
   rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
+ download_seconds=time.monotonic()-started_at
+ builder_start=time.monotonic()
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
+ print(f'RUC_P3_PHASES run={run} download_stage_seconds={download_seconds:.3f} native_builder_seconds={time.monotonic()-builder_start:.3f}',flush=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')
  missing=[name for name in required if not (tmp/name).is_file() or (tmp/name).stat().st_size<2]
  if missing:raise RuntimeError('builder output incomplete: '+','.join(missing))

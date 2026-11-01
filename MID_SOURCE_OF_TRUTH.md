@@ -1,3 +1,13 @@
+# MID v0.9.85.394 · RUC-P3 Native-Downloader-Beschleunigung ohne Netzparallelitätszuwachs
+
+**Verifizierte Source-Basis**: v0.9.85.393, `main=mid-stable` SHA `43cb36c07531b8d93418061aa1f075df5f6ac0fc` und alle fünf aktiven Rulesets. Der bisherige P3-Entwicklungszweig #557 war nicht veröffentlicht; nur sieben geprüfte Fach-/QA-Dateien auf dem neuen Source-Tree eingebracht. Parallele Drafts #542/#551/#554/#560/#561 nicht überschrieben.
+
+Das bestehende vollständige 27-Stunden-RUC- und 20-EPS-Paket bleibt zwingend. Nur optionale Parameter können in zwei Gruppen unter unverändertem globalem Downloadthreadlimit laden. Alle DWD ecCodes-Kernwert-/Zeit-/Bitmap-/Geo-/NoData- und Native-Intervallabnahmen bleiben unverändert; optionale Fehlerdaten werden vollständig entfernt. HTTP-Pooling pro Thread, nicht über Threadgrenzen, mit Exit-Close; reale Phasendauern werden protokolliert. Der Produzent legt weiterhin nur lokal Kandidaten ab; kein neuer Datenpointer, kein Fake-Zeitpunkt, keine Warnungsänderung. Der alte 0–6h-Fast-Lane-Draft #542 bleibt unabhängig und nicht in Produktion.
+
+**Source-/Release-Gate**: Erst nach tatsächlich grüner Quellprüfung am neuen SHA und vollständigem MID-Bot/Installer/Worker/Pages/Finalize erfolgreich veröffentlicht. Kein numerisch bewiesener Beschleunigungsgewinn ohne echte identische DWD A/B-Samples; keine 60min-P95-Zusage.
+
+---
+
 # MID v0.9.85.393 · echte GeoSphere-Schneemessungen: Missing ≠ 0
 
 **Verifizierte Quelle:** v0.9.85.392, `main=mid-stable` SHA `74f39cc3ea371e8e1ddae5d09d16e77241864a32`. Vorgänger-Release Source-PR #556, Installer #41279397041 vollständig erfolgreich (Core/Heavy/Worker/Pages/Finalize); fünf Rulesets. Alte .392-Snow-PR #558 @ `fbd497ea87cb63a435aa15b6eed992466ebe8140` wurde wegen paralleler .392-Design-Promotion NICHT auf main gemergt. Code- und Testblobs selektiv, vollständig SHA-geprüft und ohne Rebase/Reset auf neuen Stable-Tree portiert.
