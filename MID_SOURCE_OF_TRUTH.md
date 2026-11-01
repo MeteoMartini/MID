@@ -1,3 +1,14 @@
+# MID v0.9.85.402 · Designaudit 1.7 + kompakter Kartenarbeitsraum
+
+**Release-Vorgänger:** vollständig erfolgreicher MID Installer #41319782471; `main=mid-stable` v0.9.85.401 SHA `00639856b5c1598cbccb837a3b63fbe57cc5d566`. Fünf aktive Rulesets, 1059 registrierte Pflichtregressionen. Nur SHA-verifizierte, disjunkte Source-/Testblobs von Audit-PR #580 (`edda2b400f1dc581da3c443bb3e968381527cab4`) und Karten-Draft #583 (`e359aa18dce94f1f4c98816539bc5e01edd43d4c`) übernommen.
+
+**A1/A2:** Modellierte MID-Warnhinweise für mehrstündigen Regen, Schnee, Schneeverwehung, Frost und starke Wärme benötigen lückenlose vorhandene Stundenwerte und stimmige Zeitstempel. Fehlende Windrichtung bleibt unbekannt; echte 0° bleibt Nord. Eigene MID-Hinweise bleiben ausdrücklich getrennt von amtlichen DWD-Warnungen.
+
+**A3/A4:** Karten-Workspace-Altpräferenzen werden ohne Datenverlust migriert; die relative Zeit wird durch eine lokale absolute bestätigte Gültigkeitszeit ergänzt; Beobachtungs- und Modellsteuerung wird kompakt mit vollständig erreichbaren Optionen, fokusfähigen Disclosures und 44px-Touchzielen angeordnet. Viewport-Gating wärmt Karte sinnvoll vor, belegt aber ohne HAR/TTFP keine gemessene Geschwindigkeit.
+
+**Gates:** Versionsspiegel `.402` (Xcode Build 403), User-/Internal-Changelog, QA und Fachverträge konsistent. Source-/Heavy-/Releasegates, Browsermatrix, echte Provider-WMS-/RUC-Originalklassennachweise, physisches iOS/VoiceOver sind nur dann bestanden, wenn gesondert SHA-gebunden erfolgreich protokolliert. Der Quellkandidat darf ausschließlich über den bestehenden kontrollierten MID-Pfad freigegeben werden.
+
+---
 # MID v0.9.85.401 · RUC P1/P5-Evidenz und inaktive P3-Quantil-Qualifikation
 
 **Quellbasis:** v0.9.85.400 main=mid-stable SHA `a6c644fef9762ffad1f4f48a8ddfdf77d4fe2fe7`, erfolgreich veröffentlichter Installer #41311115993, fünf aktive GitHub-Rulesets, 1059 Pflichtregressionen. Diese Beschreibung ist ein SHA-gebundener Source-PR-Kandidat und kein Beweis der .401-Promotion.

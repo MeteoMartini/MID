@@ -1,7 +1,9 @@
-# MID v0.9.85.401 – RUC-Datenherkunft und Datenlücken besser nachvollziehen
+# MID v0.9.85.402 – Wetterhinweise belastbarer, Kartenbedienung kompakter
 
-- **RUC-Beobachtungen transparent prüfen:** Ein ausschließlich lesender Archivbericht sammelt vorhandene GitHub-Originalbelege zu DWD-Verzeichnisständen und öffentlichen Pages-/Worker-Rückmeldungen. Fehlende oder übersprungene Messungen werden ausdrücklich als unbekannt ausgewiesen – niemals als Null.
-- **Sicherere Prüfkette:** Ein ergänzender lesender Beobachtungsanlass kann ausgefallene GitHub-Zeitpläne teilweise abfedern. SHA-Abgleich, begrenzte Artefakte und ursprüngliche Zeitstempel schützen die Herkunft der Daten; die bestehende vollständige RUC-/EPS20-Vorhersage bleibt unverändert.
-- **Performance fachlich vorbereitet:** Die alternative Berechnung der EPS20-Niederschlagsquantile wurde mit Original-Quellcode und identischen Binärdaten gegen die bisherige Methode geprüft. Sie ist noch **nicht für die produktive Berechnung aktiviert**; eine allgemeine RUC-Beschleunigung wird nicht behauptet.
+- **Verlässlichere MID-Prognosehinweise:** Regen-, Schnee-, Frost-, Hitze- und Schneeverwehungshinweise berücksichtigen nur vollständig belegte Zeitfenster. Unbekannte Teilwerte werden nicht als trockene oder windstille Stunden ausgegeben; gültige Nullwerte bleiben erhalten.
+- **Nachvollziehbare Windrichtung:** Fehlende Windrichtungen werden nicht mit Norden gleichgesetzt. Eine echte Nordrichtung von 0° bleibt erhalten.
+- **Bessere Kartenbedienung:** Beobachtungs- und Modelleinstellungen sind übersichtlicher gruppiert, ohne Funktionen zu entfernen. Der Komposit-Kartenbereich ergänzt zur relativen Zeit die lokale absolute Gültigkeitszeit, soweit ein bestätigter Datenframe vorliegt.
+- **Kartenladeweg vorbereitet:** Wetterkarten-Code wird beim sichtbarkeitsabhängigen Öffnen vorgewärmt. Eine konkrete Beschleunigung wird erst nach vergleichbaren Browsermessungen beansprucht.
+- **Einstellungen erhalten:** Die Migration älterer Kartenansichten erhält gültige Zoom-/Darstellungswünsche und überschreibt beschädigte Browser-Speicherwerte nicht mit scheinbar gültigen Defaults.
 
-**Nachweisgrenzen:** Die neue Auswertung ermittelt weder den exakten ersten DWD-GRIB-Veröffentlichungszeitpunkt noch eine bestätigte 60-Minuten-Endgeräte-Frische. Die unabhängige 0–6h-Fast-Lane bleibt deaktiviert. Amtliche DWD-Warnungen und die bestehenden Prognose-/NoData-Verträge bleiben unverändert.
+**Hinweis:** MID-Prognosehinweise sind eigene Modellbewertungen und keine amtlichen DWD-Warnungen. Amtliche Warnungen bleiben vorrangig. Weder unbekannte Daten noch fehlende Kartenausgaben gelten als Nullwerte. Browser-/iOS-/VoiceOver-Gesamtabnahme ist nicht Teil dieser Behauptung.
