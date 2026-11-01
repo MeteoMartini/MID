@@ -64,7 +64,8 @@ assert.equal(legend.wmsProviderLegendUrl({...dwdMap,layer:'unapproved:layer'},''
 assert.equal(legend.wmsProviderLegendUrl(dwdMap,'../../unsafe'),'','Unexpected styles cannot be used');
 assert.ok(read('src/WmsProviderLegend.tsx').includes('Originallegende derzeit nicht verfügbar'),'Provider failures must never fabricate a scale');
 assert.ok(read('src/WmsProviderLegend.tsx').includes('loading="lazy"'),'Unopened map legends must not eagerly load imagery');
-assert.ok(read('src/UnifiedWeatherMap.css').includes('.unified-wms-provider-legend summary{min-height:44px'),'Mobile WMS legend disclosure must have 44px touch target');
+assert.ok(read('src/WmsProviderLegend.css').includes('.unified-wms-provider-legend summary{min-height:44px'),'Shared WMS legend disclosure must have 44px touch target');
+assert.ok(read('src/WmsProviderLegend.tsx').includes("import './WmsProviderLegend.css'"),'Both map surfaces must load the same styles through their shared component');
 
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));

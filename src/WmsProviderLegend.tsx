@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import './WmsProviderLegend.css';
 
 /** A real WMS legend image, never an inferred numeric scale. */
 export default function WmsProviderLegend({url,label,provider}:{url:string;label:string;provider:string}){

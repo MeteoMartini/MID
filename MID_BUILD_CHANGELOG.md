@@ -1,10 +1,11 @@
+## MID v0.9.85.391 · 2026-11-01 · A3 Originalfarblegenden für Wetterkarten beider Ansichten
+
 ### CI-Korrektur zum .391-Source-Gate
 
 - Source-PR #553, erster Head `3dcde596b5cf8c34fb6244bcc2d157194afd9f56`: Heavy-Native-Map #41274814990 scheiterte reproduzierbar beim esbuild-Browsercheck (`No matching export in WmsProviderLegend.tsx for import wmsProviderLegendUrl`). Ursache waren zwei Module, deren Namen sich allein durch Groß-/Kleinschreibung unterschieden. Fehler ist **nicht** meteorologisch und wurde nicht durch reduzierte Tests verdeckt.
 - Helfer in eindeutig benanntes `src/wmsLegendUrl.ts` verschoben; veraltete nur-Case-unterschiedliche Datei aus dem Tree gelöscht, beide UI-Importe und bereits verpflichtenden Regressionstest aktualisiert. Der Test verankert ausdrücklich den eindeutigen Importpfad. Erneute Source-/Browser-/Installer-Abnahme auf neuem Head ist zwingend; alle 1059 Pflichtregressionen bleiben erhalten.
 
-## MID v0.9.85.391 · 2026-11-01 · A3 Originalfarblegenden für Wetterkarten beider Ansichten
-
+- Shared WMS-Legenden-Styles liegen nun direkt an der gemeinsamen Komponente statt im nur bei UnifiedWeatherMap geladenen Stylesheet; dadurch auch im klassischen Karten-Entrypoint zuverlässig verfügbar und per Pflichtregression geprüft.
 - Live-Stable v0.9.85.390 @ `8a886b3695ca0ae6ae94e7c18b1bfeb790ddb0a2`, PR #550, Source-Gate #41244176018 und Installer #41245171750 vollständig success (Core, Heavy, Worker, Pages, Stable). Fünf Repository-Rulesets weiterhin aktiv.
 - Entkoppelte Migration der fachlichen Draft-Arbeit aus #552 @ `5cbfa528680fbd0a23e07d63d039df4e80f7eecc` auf aktuellen veröffentlichten Code; .390-ValidTime-/INIT-/Level-Gate und Tests bleiben unverändert erhalten. Alte Draft-Branchhistorie bleibt gesichert.
 - WMS-`GetLegendGraphic` über vorhandene allowlist-geschützte DWD-/ECCC-Proxyroute; kein fremder Proxy, kein neuer Dienst, keine künstlichen Grenzwerte. Responsives 44px-Disclosure, lazy Bild, expliziter Fehlerstatus, Light/Dark und keine Warnstufenverwechslung.

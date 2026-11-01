@@ -1,0 +1,8 @@
+/* Designaudit A3: provider-native WMS legends, no guessed colors or ranges. */
+.unified-wms-provider-legend{margin:10px 0;padding:0 12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);max-width:100%;min-width:0}
+.unified-wms-provider-legend summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.unified-wms-provider-legend summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.unified-wms-provider-legend__content{padding:8px 0 14px;min-width:0;overflow-wrap:anywhere}
+.unified-wms-provider-legend__content img{display:block;width:auto;height:auto;max-width:100%;max-height:420px;object-fit:contain;background:#fff;border-radius:6px}
+.unified-wms-provider-legend__content p,.unified-wms-provider-legend__content small{font-size:12px;line-height:1.5;color:var(--muted);display:block;margin-top:8px}
+@media(max-width:390px){.unified-wms-provider-legend{padding:0 10px}.unified-wms-provider-legend__content img{max-height:320px}}
