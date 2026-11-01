@@ -1,3 +1,15 @@
+# MID v0.9.85.401 · RUC P1/P5-Evidenz und inaktive P3-Quantil-Qualifikation
+
+**Quellbasis:** v0.9.85.400 main=mid-stable SHA `a6c644fef9762ffad1f4f48a8ddfdf77d4fe2fe7`, erfolgreich veröffentlichter Installer #41311115993, fünf aktive GitHub-Rulesets, 1059 Pflichtregressionen. Diese Beschreibung ist ein SHA-gebundener Source-PR-Kandidat und kein Beweis der .401-Promotion.
+
+**RUC-Vertragsgrenze:** Der 27h-/EPS20-MID-Produktionsalgorithmus, die amtlichen DWD-Warnungen und vollständigen NoData-/Bitmap-/Geometrie-/Einheiten-/Zeit-/Akkumulationsgates sind unverändert. PR #577 liefert ausschließlich SHA-authentifizierte, zensierte GitHub-Originalartefakt-Telemetrie und lesende Observer-Fallbacks; echte 168h-P95 und vollständige Echtdaten-Messabdeckung bleiben unbewiesen. PR #581 liefert ausschließlich einen inaktiven, byteparitätsgeprüften EPS20-Quantilkandidaten, dessen Full-GRIB-/542040-Rasterpunkt-, CPU-/RAM-/900MB-A/B-Parität noch nicht belegt ist. Die 0–6h-Fast-Lane bleibt `publicationAuthorized=false`; ein globales CAS/Fencing-/Single-Writer-Protokoll ist nicht freigegeben. Keine produktive Fast-Lane-/Worker-/R2-/Cloudflare-/Pages-Datenpfadmutation durch diese Änderung.
+
+**Quellherkunft:** 18 anfänglich einzeln und untereinander nicht überlappend SHA-identisch übernommene Source-/Test-/Workflow-/Dokumentdateien aus PR #577 HEAD `b4f8ca34dd4b432978d661ca7b6ace864d5d97d4` und PR #581 HEAD `2fc42bb84b168b478cb82c88e319c9b042abd7eb` zunächst als identische Git-Blob-SHAs überführt. Danach wurden ausschließlich der neue Observer-Collector und seine Negativtests in diesem Integrationsbranch für gebündelte GitHub-REST-Artefaktseiten, API-Ratenlimits, 15min-Schedule-/Watchdog-Deduplizierung und tatsächliche Ereignisprovenienz gehärtet; diese Dateien haben deshalb nun bewusst eigene nachvollziehbare Git-Blob-SHAs. Parallele RUC- und D2-PRs einschließlich #578 bleiben unangetastet. Der eigene .401-Integrationsbranch benutzt ausschließlich autorisierte `chatgpt/v*`-Refs.
+
+**Freigabegrenze:** Der Source-PR muss am letzten Head sämtliche Pflichtgates einschließlich 1059 Regressionen erfüllen, anschließend nur MID SHA-Bot-Merge, serverseitiges Release-ZIP, `install-mid.yml`, Worker/Pages/Finalize und Stable-Promotion. Weder generisches PR-Completion-Merge noch direkte Schreibrechte auf `main`/`mid-stable` autorisiert. Echte 168h-Frische, 60-Minuten-P95 und eine produktive P2/P3/P4-Freigabe dürfen vor Vorliegen der unabhängigen Datenbeweise nicht behauptet werden.
+
+---
+
 # MID v0.9.85.400 · Designaudit 1.6: persistierter Prognosehorizont und NoData-sichere Miniverläufe
 
 **Quelle:** v0.9.85.399 `main=mid-stable` SHA `bba6006f50b5c279aebc0c5a40a812dc21c5d500`, Quelle PR #575, Installer #41305710537 vollständig `completed/success`; fünf aktive GitHub-Rulesets, 1059 Pflichtregressionstests, 38 registrierte Verträge. Der Quellkandidat steht ausschließlich auf `chatgpt/v0.9.85.400-audit16-horizon-nodata`. Kein Direktwrite auf `main`/`mid-stable`, keine Änderungen an RUC- oder Kartenarbeiter-Drafts.

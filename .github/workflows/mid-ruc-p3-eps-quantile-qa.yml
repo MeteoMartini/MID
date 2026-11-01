@@ -1,0 +1,54 @@
+name: MID RUC P3 EPS20 quantile candidate parity (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_p3_eps_quantile_candidate.py'
+      - 'tools/ruc/test_ruc_p3_eps_quantile_candidate.py'
+      - 'tools/ruc/build_ruc_bundle.py'
+      - 'tools/ruc/ruc_pack.py'
+      - 'ci/github/workflows/mid-ruc-p3-eps-quantile-qa.yml'
+      - '.github/workflows/mid-ruc-p3-eps-quantile-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-p3-quantile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  candidate-reference-qa:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Exact PR SHA without saved credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || 'mid-stable' }}
+          persist-credentials: false
+      - name: Verify exact head and canonical workflow mirror
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = pull_request ]; then test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"; fi
+          cmp ci/github/workflows/mid-ruc-p3-eps-quantile-qa.yml .github/workflows/mid-ruc-p3-eps-quantile-qa.yml
+          # Fail closed if a later change quietly enables an experimental production path.
+          ! grep -q 'ruc_p3_eps_quantile_candidate' tools/ruc/build_ruc_bundle.py
+      - name: NumPy 2.x scientific test runtime
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install compatible NumPy only, no provider calls
+        run: python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
+      - name: EPS20 native production-source AST / pack bytes parity offline tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/ruc_p3_eps_quantile_candidate.py tools/ruc/test_ruc_p3_eps_quantile_candidate.py
+          python tools/ruc/test_ruc_p3_eps_quantile_candidate.py -v
+          echo '13+ candidate-only synthetic tests including original production eps_summary AST and exact ruc_pack wire byte equality; NO original DWD GRIB or app/worker SLO evidence, NO release authorization.' >> "$GITHUB_STEP_SUMMARY"
