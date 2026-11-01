@@ -62,8 +62,15 @@ jobs:
         run: |
           set -euo pipefail
           dir="$RUNNER_TEMP/ruc-native-original"
-          test -f "$dir/latest.json"
-          (cd "$dir" && find . -type f -printf '%P\n' | LC_ALL=C sort | zip -q -0 "$RUNNER_TEMP/ruc-original.zip" -@)
+          test -d "$dir"
+          mapfile -d '' manifests < <(find "$dir" -type f -name latest.json -print0)
+          test "${#manifests[@]}" -eq 1 || { echo "::error::Expected exactly one RUC original manifest"; exit 1; }
+          root="$(dirname "${manifests[0]}")"
+          test -s "$root/latest.json"
+          # GitHub artifact archives can retain a parent run-directory.
+          # Repackage only the unique manifest root; every source object is
+          # subsequently validated against this manifest's SHA inventory.
+          (cd "$root" && find . -type f -printf '%P\n' | LC_ALL=C sort | zip -q -0 "$RUNNER_TEMP/ruc-original.zip" -@)
           test -s "$RUNNER_TEMP/ruc-original.zip"
           digest="$(sha256sum "$RUNNER_TEMP/ruc-original.zip" | cut -d' ' -f1)"
           echo "sha=$digest" >> "$GITHUB_OUTPUT"
@@ -81,7 +88,7 @@ jobs:
           python - <<'PY'
           import json,os,pathlib
           temp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          root=json.loads((temp/'ruc-native-original/latest.json').read_bytes())
+          root=json.loads(next((temp/'ruc-native-original').rglob('latest.json')).read_bytes())
           r=json.loads((temp/'ruc-real-full-domain/report.json').read_bytes())
           assert root['schema']=='mid.dwd.ruc.grid.v2' and root['storageProfile']=='pages-lossless-v1'
           assert r['schema']=='mid.ruc.archive-map-probe.v1'
