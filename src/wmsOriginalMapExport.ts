@@ -63,13 +63,23 @@ function loadImage(blob:Blob,signal?:AbortSignal):Promise<HTMLImageElement>{
 }
 
 async function fetchPng(url:string,signal?:AbortSignal){
- const response=await fetch(url,{signal,cache:'no-store'});
- if(!response.ok||!(response.headers.get('content-type')||'').toLowerCase().startsWith('image/png'))throw new Error('Der Anbieter liefert derzeit kein bestätigtes PNG.');
- const size=Number(response.headers.get('content-length')||0);
- if(size>12_000_000)throw new Error('Die Anbieterdatei ist zu groß.');
- const blob=await response.blob();
- if(blob.size<50||blob.size>12_000_000)throw new Error('Die Anbieterdatei ist leer oder zu groß.');
- return blob;
+ const localAbort=new AbortController(),onAbort=()=>localAbort.abort();
+ if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+ signal?.addEventListener('abort',onAbort,{once:true});
+ let expired=false;
+ const timeout=setTimeout(()=>{expired=true;localAbort.abort()},15_000);
+ try{
+  const response=await fetch(url,{signal:localAbort.signal,cache:'no-store'});
+  if(!response.ok||!(response.headers.get('content-type')||'').toLowerCase().startsWith('image/png'))throw new Error('Der Anbieter liefert derzeit kein bestätigtes PNG.');
+  const size=Number(response.headers.get('content-length')||0);
+  if(size>12_000_000)throw new Error('Die Anbieterdatei ist zu groß.');
+  const blob=await response.blob();
+  if(blob.size<50||blob.size>12_000_000)throw new Error('Die Anbieterdatei ist leer oder zu groß.');
+  return blob;
+ }catch(error){
+  if(expired&&!signal?.aborted)throw new Error('Die WMS-Anfrage hat das Zeitlimit überschritten.');
+  throw error;
+ }finally{clearTimeout(timeout);signal?.removeEventListener('abort',onAbort)}
 }
 
 /** Downloads the provider-original map image plus its provider-original legend.
