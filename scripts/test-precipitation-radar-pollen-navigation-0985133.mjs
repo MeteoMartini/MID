@@ -19,6 +19,31 @@ const weatherSource=readFileSync(new URL('../src/weather.ts',import.meta.url),'u
 assert.ok(precipitationSource.includes('precipitationSampleIntervalSeconds(h)/3600'),'Sprühregen-Plausibilität muss die tatsächliche Intervalllänge berücksichtigen.');
 assert.ok(precipitationSource.includes("rate<=.5&&showerRate<.08"),'Sprühregen darf nur bei schwachem stratiformem Niederschlag bestehen bleiben.');
 assert.ok(appSource.includes('canonicalPrecipitationTimeline(minutes,hours,now,24)'),'Aktuell und 24-h-Profil brauchen denselben 24-h-Niederschlagshorizont.');
+
+const begin=appSource.indexOf('function precipitationNowSummary('),end=appSource.indexOf('\n}',begin);
+assert.ok(begin>=0&&end>begin,'Actual precipitation status function must be present');
+const executable=appSource.slice(begin,end+2)+'\nglobalThis.__midPrecipNow=precipitationNowSummary;';
+const {transformSync}=await import('esbuild'),vm=await import('node:vm');
+const context={canonicalPrecipitationTimeline:()=>({slots:[],periods:[],source:'15-min'}),currentIndex:()=>0,precipitationBeyondTwoHours:()=>''};
+vm.runInNewContext(transformSync(executable,{loader:'ts',format:'iife',target:'es2022'}).code,context);
+const getPrecip=context.__midPrecipNow;
+const empty=getPrecip([],[]);
+assert.equal(empty.probability,null,'Absent precipitation timeline must not display 0%.');
+assert.match(empty.summary,/nicht auswertbar/);
+const now=Date.now(),slot=(probability)=>({startEpoch:now-60000,endEpoch:now+60000,sample:{probability}});
+context.canonicalPrecipitationTimeline=()=>({slots:[slot(null)],periods:[],source:'15-min'});
+const missing=getPrecip([],[]);
+assert.equal(missing.probability,null,'Missing precipitation probability in an existing interval is unknown, not zero.');
+context.canonicalPrecipitationTimeline=()=>({slots:[slot(0)],periods:[],source:'15-min'});
+const realZero=getPrecip([],[]);
+assert.equal(realZero.probability,0,'A genuine zero probability must stay zero.');
+context.canonicalPrecipitationTimeline=()=>({slots:[slot(87)],periods:[],source:'15-min'});
+assert.equal(getPrecip([],[]).probability,87,'Available high probability must remain unchanged.');
+assert.ok(appSource.includes("type PrecipNowResult={probability:number|null"),'Missing PoP must propagate into the explicit UI type.');
+assert.ok(appSource.includes("risk===null?'–'"),'Current location header must show a missing marker.');
+assert.ok(appSource.includes("probability===null?'–'"),'Current rain card must show a missing marker.');
+assert.ok(appSource.includes("Modellwahrscheinlichkeit fehlt; kein Prozentwert verfügbar."),'Radar cannot fabricate a combined model probability when model PoP is missing.');
+
 assert.ok(appSource.includes('periods=timeline.periods.filter')&&appSource.includes('last=periods.at(-1)!'),'Fortsetzungstext muss alle relevanten Niederschlagsphasen statt nur der ersten berücksichtigen.');
 assert.ok(radarWorker.includes("rateSource:'missing',dataAvailable:false"),'Fehlende DWD-RV-Zeitschritte müssen explizit als Datenlücke erhalten bleiben.');
 assert.ok(radarWorker.includes("hitClass:!available?'missing'"),'Radar-Datenlücke darf nicht als trocken klassifiziert werden.');
