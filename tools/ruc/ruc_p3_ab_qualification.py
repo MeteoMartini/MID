@@ -7,8 +7,7 @@ MID publisher gates remain mandatory. No network or production side effects.
 """
 from __future__ import annotations
 import argparse
-from datetime import datetime, timedelta, timezone
-import hashlib
+from datetime import datetime, timedelta
 import json
 import math
 import re
@@ -32,7 +31,7 @@ def _utc(value):
         parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
     except ValueError as exc:
         raise ValueError('invalid UTC run') from exc
-    if parsed.utcoffset() != timedelta(0) or parsed.second or parsed.microsecond:
+    if parsed.utcoffset() != timedelta(0) or parsed.minute or parsed.second or parsed.microsecond:
         raise ValueError('RUC run must be an exact UTC minute')
     return parsed
 
@@ -116,8 +115,10 @@ def report(rows):
     # prove Pages/Worker/client adoption. No production SLO can follow here.
     return {'schema': 'mid.ruc.p3-ab-report.v1', 'publicationAuthorized': False,
             'productionSloAuthorized': False, 'sourceReceiptsIndependentlyVerified': False,
-            'pairedRuns': len(pairs), 'runCoverageHours':
-            int((_utc(runs[-1])-_utc(runs[0])).total_seconds()/3600)+1,
+            'pairedRuns': len(pairs), 'observedPairedHours': len(pairs),
+            'observationSpanHours': int((_utc(runs[-1])-_utc(runs[0])).total_seconds()/3600)+1,
+            'missingHourlySlots': int((_utc(runs[-1])-_utc(runs[0])).total_seconds()/3600)+1-len(pairs),
+            'descriptiveP95Only': len(pairs) < 20,
             'medianCandidateToBaselineRatio': nearest_rank(.5),
             'p95CandidateToBaselineRatio': nearest_rank(.95), 'pairs': pairs,
             'note': 'Read-only self-declared receipt comparison; independently verify DWD SHA, elapsed time, output bytes, worker and client before any release.'}

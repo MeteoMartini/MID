@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """Adversarial offline P3 receipt comparisons, no DWD network or publisher."""
-import copy
-import math
 import unittest
 from datetime import datetime, timezone, timedelta
 from ruc_p3_ab_qualification import compare, inspect, report, REQUIRED, STAGES
@@ -60,7 +58,7 @@ class RucP3ABTests(unittest.TestCase):
             r=fixture();r[key]='a'*63
             with self.assertRaises(ValueError):inspect(r)
     def test_run_time_utc_and_invalid(self):
-        for run in ('2026-11-01T01:00+01:00','2026-11-01T01:00','bad','2026-11-01T01:00:01Z'):
+        for run in ('2026-11-01T01:00+01:00','2026-11-01T01:00','bad','2026-11-01T01:00:01Z','2026-11-01T01:30Z'):
             r=fixture();r['run']=run
             with self.subTest(run=run),self.assertRaises(ValueError):inspect(r)
     def test_aggregate_nearest_rank(self):
@@ -71,9 +69,20 @@ class RucP3ABTests(unittest.TestCase):
             rows.extend((a,b))
         result=report(rows)
         self.assertEqual(result['pairedRuns'],4)
-        self.assertEqual(result['runCoverageHours'],4)
+        self.assertEqual(result['observationSpanHours'],4)
+        self.assertEqual(result['observedPairedHours'],4)
+        self.assertEqual(result['missingHourlySlots'],0)
+        self.assertTrue(result['descriptiveP95Only'])
         self.assertEqual(result['medianCandidateToBaselineRatio'],1.1)
         self.assertEqual(result['p95CandidateToBaselineRatio'],1.3)
+
+    def test_missing_hourly_pairs_not_covered_by_span(self):
+        a,b=fixture(hour=0),fixture('candidate',hour=0)
+        c,d=fixture(hour=3),fixture('candidate',hour=3)
+        result=report([a,b,c,d])
+        self.assertEqual(result['observedPairedHours'],2)
+        self.assertEqual(result['observationSpanHours'],4)
+        self.assertEqual(result['missingHourlySlots'],2)
 
 
 if __name__=='__main__':
