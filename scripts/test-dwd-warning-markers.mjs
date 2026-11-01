@@ -9,7 +9,7 @@ const outDir=path.join(root,'.dwd-warning-test');
 await rm(outDir,{recursive:true,force:true});
 const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.dwd-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
-const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue,formatDwdWarningDirection}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
+const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue,formatDwdWarningDetailWithDirection}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const app=await readAppFeatureSources();
 const ensemble=await readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
@@ -54,9 +54,9 @@ const partialSnow=Array.from({length:6},(_,i)=>sample(i===3?{snowfall:null}:{sno
 if(dwdWarningSignalsAt(partialSnow,0).some(item=>item.kind==='snow'))failures.push('Partial 6 h snowfall must not masquerade as a complete warning sum.');
 if(!dwdWarningSignalsAt(partialSnow.map(()=>sample({snowfall:1})),0).some(item=>item.kind==='snow'&&item.windowHours===6))failures.push('Complete 6 h snowfall must still be classified.');
 const missingDirection=signal([sample({gust:70/1.852,windDirection:null,direction:null})],'wind');
-if(missingDirection&&formatDwdWarningDirection(missingDirection)!=='')failures.push('Missing wind direction must not be displayed as north.');
+if(missingDirection&&/aus (?:nördlicher|südlicher|östlicher|westlicher) Richtung/i.test(formatDwdWarningDetailWithDirection(missingDirection)))failures.push('Missing wind direction must not be displayed as a fabricated direction.');
 const north=signal([sample({gust:70/1.852,windDirection:0})],'wind');
-if(!north||!formatDwdWarningDirection(north).includes('nördlicher'))failures.push('Real 0 degree wind direction must remain north.');
+if(!north||!formatDwdWarningDetailWithDirection(north).includes('nördlicher'))failures.push('Real 0 degree wind direction must remain north.');
 // A 3-hour frost or 12-hour heat spell requires actual contiguous hours when times exist.
 const firstEpoch=Date.UTC(2026,9,18,0);
 const frostAt=hour=>sample({epoch:firstEpoch+hour*3600000,temperature:-11,apparent:-11});
