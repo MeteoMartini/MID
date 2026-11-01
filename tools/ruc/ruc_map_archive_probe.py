@@ -8,6 +8,7 @@ import argparse,copy,hashlib,json,re,tempfile,shutil,os,zipfile
 from pathlib import Path
 from lossless_codec_pilot import decode_candidate
 from ruc_map_candidate import build_candidate
+from audit_model_domain_coverage import inspect as audit_full_domain
 
 def digest(path):
  h=hashlib.sha256()
@@ -55,7 +56,10 @@ def replay(archive:Path,expected_sha:str,output:Path):
   (source/'latest.json').write_text(json.dumps(meta,separators=(',',':'))+'\n')
   (work/'original-latest.json').write_bytes(original)
   candidate=build_candidate(source,work/'maps')
-  report={'schema':'mid.ruc.archive-map-probe.v1','archiveSha256':expected_sha,'originalManifestSha256':hashlib.sha256(original).hexdigest(),'reconstructedObjects':objects,'sourceRun':m['run'],'nativePoints':m['pointCount'],'mapBytes':candidate['candidateBytes'],'candidateIndexSha256':digest(work/'maps'/'index.json'),'partCount':len(page['parts']),'products':{k:len(p['frames']) for k,p in candidate['products'].items()},'productionEnabled':False,'readyForProduction':False}
+  full=audit_full_domain(source,work/'maps')
+  if not full['allFramesCoverKnownNativeLookup'] or not full['allPublishedFrameValuesMatchNativeSource'] or not full['allSourceForecastHoursPresent'] or len(full['products'])!=6:
+   raise ValueError('Original archive cannot reproduce complete native map lookup')
+  report={'schema':'mid.ruc.archive-map-probe.v1','archiveSha256':expected_sha,'originalManifestSha256':hashlib.sha256(original).hexdigest(),'reconstructedObjects':objects,'sourceRun':m['run'],'nativePoints':m['pointCount'],'mapBytes':candidate['candidateBytes'],'candidateIndexSha256':digest(work/'maps'/'index.json'),'fullNativeLookupVerified':True,'full27HourSourceAxis':full['full27HourSourceAxis'],'nativeLookupCoveredCells':full['nativeLookupCoveredCells'],'partCount':len(page['parts']),'products':{k:len(p['frames']) for k,p in candidate['products'].items()},'productionEnabled':False,'readyForProduction':False}
   (work/'report.json').write_text(json.dumps(report,indent=2)+'\n')
   if output.exists():raise ValueError('output appeared during archive replay')
   os.rename(work,output)
