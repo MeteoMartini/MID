@@ -28,6 +28,7 @@ NAME = re.compile(r'^dwd-ruc-observation-(\d+)-(\d+)$')
 MAX_PAGES = 18
 MAX_RUNS = 1500
 MAX_ARTIFACT_PAGES = 64
+MAX_RUN_ARTIFACT_PAGES = 3  # max 300 per authenticated observer workflow run
 MAX_ZIP_DOWNLOADS = 800
 MAX_ZIP_BYTES = 2_000_000
 
@@ -83,6 +84,11 @@ class GitHubReadOnly:
         # One paginated repository inventory instead of a REST request for
         # every observer run (GitHub Actions GITHUB_TOKEN is rate limited).
         return self.get(f'/repos/{REPO}/actions/artifacts?per_page=100&page={page}')
+
+    def list_run_artifacts(self, run_id, page):
+        if type(run_id) is not int or run_id <= 0 or type(page) is not int or page <= 0:
+            raise ValueError('invalid authenticated run-artifact request')
+        return self.get(f'/repos/{REPO}/actions/runs/{run_id}/artifacts?per_page=100&page={page}')
 
     def download_zip(self, artifact_id):
         return self.get(f'/repos/{REPO}/actions/artifacts/{artifact_id}/zip', binary=True)
@@ -178,6 +184,55 @@ def select_bounded_polls(rows):
     return sorted(selected.values(), key=lambda x: x['runId']), suppressed
 
 
+def index_run_artifacts(client, rows):
+    """Bounded exact-run REST fallback when historical repository inventory is huge.
+
+    GitHub's per-run artifact endpoint proves which observation attempt owns
+    the archive. Every page is accounted for; a truncated response is fatal.
+    Missing/expired observations remain gaps, not invented negative polls.
+    """
+    found, seen_ids = {}, set()
+    for run in rows:
+        run_id, attempt = run['runId'], run['runAttempt']
+        total = None
+        for page in range(1, MAX_RUN_ARTIFACT_PAGES + 1):
+            response = client.list_run_artifacts(run_id, page)
+            batch = response.get('artifacts') if isinstance(response, dict) else None
+            n = response.get('total_count') if isinstance(response, dict) else None
+            if (type(n) is not int or not 0 <= n <= 100 * MAX_RUN_ARTIFACT_PAGES
+                    or not isinstance(batch, list) or len(batch) > 100):
+                raise ValueError('untrusted per-run artifact pagination')
+            if total is None:
+                total = n
+            elif total != n:
+                raise ValueError('per-run artifact pagination changed during read')
+            for art in batch:
+                if not isinstance(art, dict) or type(art.get('id')) is not int or art['id'] <= 0:
+                    raise ValueError('invalid per-run artifact ID')
+                if art['id'] in seen_ids:
+                    raise ValueError('duplicate GitHub artifact ID across run pages')
+                seen_ids.add(art['id'])
+                parent = art.get('workflow_run')
+                if not isinstance(parent, dict) or parent.get('id') != run_id:
+                    raise ValueError('GitHub run-artifact parent identity mismatch')
+                name = art.get('name')
+                match = NAME.fullmatch(name) if isinstance(name, str) else None
+                if match and tuple(int(v) for v in match.groups()) == (run_id, attempt):
+                    key = (run_id, attempt)
+                    if key in found:
+                        raise ValueError('duplicate named GitHub observer artifacts')
+                    found[key] = art
+            if page * 100 >= total:
+                if (page - 1) * 100 + len(batch) != total:
+                    raise ValueError('incomplete per-run artifact pagination')
+                break
+            if len(batch) != 100:
+                raise ValueError('incomplete per-run artifact pagination')
+        else:
+            raise ValueError('per-run artifact inventory exceeds bounded limit')
+    return found
+
+
 def index_repository_artifacts(client, rows):
     """Fully paginate bounded GitHub repository artifact inventory once.
 
@@ -195,9 +250,15 @@ def index_repository_artifacts(client, rows):
             raise ValueError('invalid repository artifact response')
         batch = response.get('artifacts')
         n = response.get('total_count')
-        if (type(n) is not int or n < 0 or n > MAX_ARTIFACT_PAGES * 100
-                or not isinstance(batch, list) or len(batch) > 100):
+        if (type(n) is not int or n < 0 or not isinstance(batch, list) or len(batch) > 100):
             raise ValueError('unbounded or malformed repository artifact pagination')
+        # Years of unrelated CI uploads can legitimately exceed this scan's
+        # budget. Never call it a missing observer ZIP: switch to exact-run
+        # authenticated pagination without requiring full-repo enumeration.
+        if n > MAX_ARTIFACT_PAGES * 100:
+            if page != 1:
+                raise ValueError('repository artifact pagination changed during read')
+            return index_run_artifacts(client, rows), 'bounded-exact-run-pagination'
         if total is None:
             total = n
         elif total != n:
@@ -222,7 +283,7 @@ def index_repository_artifacts(client, rows):
         if page * 100 >= total:
             if len(seen_ids) != total:
                 raise ValueError('repository artifact pagination incomplete')
-            return found
+            return found, 'bounded-repository-pagination'
         if len(batch) != 100:
             raise ValueError('repository artifact pagination incomplete')
     raise ValueError('repository artifact pagination exceeds bounded limit')
@@ -239,7 +300,7 @@ def collect(client, *, cutoff_utc, output_dir):
     rows, suppressed = select_bounded_polls(inventory)
     if len(rows) > MAX_ZIP_DOWNLOADS:
         raise ValueError('bounded original ZIP observation budget exceeded')
-    artifact_index = index_repository_artifacts(client, rows)
+    artifact_index, inventory_mode = index_repository_artifacts(client, rows)
     # Build all evidence inside a private scratch directory. Nothing gets
     # published, and a failing sample leaves no partially trusted report.
     scratch = Path(tempfile.mkdtemp(prefix='.ruc-gh-observations-', dir=output_dir.parent))
@@ -298,7 +359,7 @@ def collect(client, *, cutoff_utc, output_dir):
         summary['originalGithubObserverRunsInWindow'] = len(inventory)
         summary['supersededSameSlotRuns'] = len(suppressed)
         summary['suppressedObserverRunIds'] = [row['runId'] for row in suppressed]
-        summary['artifactInventoryFetchMode'] = 'bounded-repository-pagination'
+        summary['artifactInventoryFetchMode'] = inventory_mode
         summary['observerRunRecords'] = records
         summary['archiveSha256AuthenticatedViaGithubApiOnly'] = True
         summary['complete168hNativeGribOrClientSloProof'] = False

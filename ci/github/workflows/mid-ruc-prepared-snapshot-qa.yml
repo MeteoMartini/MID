@@ -1,0 +1,56 @@
+name: MID RUC immutable prepared-snapshot compatibility QA (PR, read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/prepared_snapshot.py'
+      - 'tools/ruc/test_prepared_snapshot.py'
+      - 'ci/github/workflows/mid-ruc-prepared-snapshot-qa.yml'
+      - '.github/workflows/mid-ruc-prepared-snapshot-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-snapshot-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  immutable-snapshot-qa:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: SHA-bound unprivileged PR checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Verify exact head and canonical/active workflow parity
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          cmp ci/github/workflows/mid-ruc-prepared-snapshot-qa.yml .github/workflows/mid-ruc-prepared-snapshot-qa.yml
+      - name: Python 3.12 for immutable receipt and adversarial replay tests
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Node.js 22 for original lossless wire parity proof
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Install locked offline proof dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run original immutable readmission tests plus negative cross-release tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile tools/ruc/prepared_snapshot.py tools/ruc/test_prepared_snapshot.py
+          python tools/ruc/test_prepared_snapshot.py -v
+          python tools/ruc/test_ruc_p4_pages_serialization_contract.py -v
+          echo 'SHA/byte/ancestry/release compatibility QA only; no DWD fetch, no Pages/Worker publish, no Fast-Lane, no production freshness SLO attestation.' >> "$GITHUB_STEP_SUMMARY"

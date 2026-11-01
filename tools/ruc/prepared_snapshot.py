@@ -17,9 +17,27 @@ SHA=re.compile(r'^[a-f0-9]{40}$')
 
 def packed(value):return (json.dumps(value,sort_keys=True,separators=(',',':'))+'\n').encode()
 def digest(data):return hashlib.sha256(data).hexdigest()
+# Files that cannot affect the sealed GRIB/data/decoder contract. Tests still
+# execute under the normal CI gates; this only scopes *snapshot reuse* hashing.
+# P3 native log audit reads existing logs and never feeds the producer.
+_NON_RUNTIME_RUC_TOOLS = frozenset({'ruc_p3_native_log_audit.py'})
+
+
+def _snapshot_read_only_tool(root, path):
+    relative = path.relative_to(root).as_posix()
+    if not relative.startswith('tools/ruc/'):
+        return False
+    return ((path.name.startswith('test_') and path.suffix in ('.py', '.mjs'))
+            or path.name in _NON_RUNTIME_RUC_TOOLS)
+
+
 def compatibility(root):
     root=Path(root)
     paths=set(root.glob('tools/ruc/*.py'))|set(root.glob('tools/ruc/*.mjs'))|set(root.glob('tools/ruc/requirements*.txt'))|set(root.glob('worker-src/*.js'))|set(root.glob('src/ruc*.ts'))
+    # A new or changed test/read-only audit does not invalidate verified data.
+    # All runtime helpers, formats, dependencies, worker decoding and canonical
+    # preprocessing workflow remain included by default (fail-closed).
+    paths={path for path in paths if not _snapshot_read_only_tool(root, path)}
     paths|={root/p for p in ('src/forecastFusion.ts','ci/github/workflows/mid-ruc-preprocess.yml','MID_DWD_RUC_PIPELINE_CONTRACT.md')}
     rows={}
     for path in sorted(paths):

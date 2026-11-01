@@ -43,6 +43,7 @@ class Reader:
         self.artifacts=artifacts or {}
         self.zips=zips or {}
         self.repository_artifact_calls = 0
+        self.run_artifact_calls = 0
     def list_runs(self,page):
         if page==1:return {'workflow_runs':list(self.runs)}
         return {'workflow_runs':[]}
@@ -50,6 +51,11 @@ class Reader:
         self.repository_artifact_calls += 1
         rows=[row for group in self.artifacts.values() for row in group]
         return {'total_count':len(rows),'artifacts':rows if page == 1 else []}
+    def list_run_artifacts(self,run_id,page):
+        self.run_artifact_calls += 1
+        rows=list(self.artifacts.get(run_id,[]))
+        return {'total_count':len(rows),
+                'artifacts':rows[(page - 1)*100:page*100]}
     def download_zip(self,artifact_id):return self.zips[artifact_id]
 
 
@@ -248,6 +254,68 @@ class Collector(unittest.TestCase):
         wrong=artifact(workflow_run={'id':99})
         with self.assertRaisesRegex(ValueError,'identity mismatch'):
             self.check(Reader(artifacts={42:[wrong]}))
+
+    def test_huge_unrelated_repository_history_uses_exact_run_artifact_api(self):
+        raw=zipped()
+        class Huge(Reader):
+            def list_repository_artifacts(self,page):
+                self.repository_artifact_calls += 1
+                return {'total_count':6501,'artifacts':[]}
+        client=Huge(artifacts={42:[artifact(data=raw)]},zips={111:raw})
+        report=self.check(client)
+        self.assertEqual(report['artifactInventoryFetchMode'],'bounded-exact-run-pagination')
+        self.assertEqual(report['directorySamples'],1)
+        self.assertEqual(report['publicReadbacks'],1)
+        self.assertEqual(report['missingGitHubRunAttemptArtifacts'],0)
+        self.assertEqual(client.repository_artifact_calls,1)
+        self.assertEqual(client.run_artifact_calls,1)
+        self.assertTrue(report['observerRunRecords'][0]['archiveDigestVerified'])
+
+    def test_large_inventory_per_run_missing_is_unknown_not_zero(self):
+        class Huge(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':6501,'artifacts':[]}
+        client=Huge()
+        result=self.check(client)
+        self.assertEqual(result['artifactInventoryFetchMode'],'bounded-exact-run-pagination')
+        self.assertEqual(result['directorySamples'],0)
+        self.assertEqual(result['missingGitHubRunAttemptArtifacts'],1)
+        self.assertFalse(result['productionSloAuthorized'])
+
+    def test_large_inventory_per_run_broken_pages_fail_closed(self):
+        class Huge(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':6501,'artifacts':[]}
+            def list_run_artifacts(self,run_id,page):
+                return {'total_count':101,'artifacts':[]}
+        with self.assertRaisesRegex(ValueError,'per-run artifact pagination'):
+            self.check(Huge())
+        self.assertFalse((self.root/'report').exists())
+
+    def test_large_inventory_rejects_foreign_run_artifact_parent(self):
+        class Huge(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':6501,'artifacts':[]}
+        with self.assertRaisesRegex(ValueError,'parent identity mismatch'):
+            self.check(Huge(artifacts={42:[artifact(workflow_run={'id':99})]}))
+        self.assertFalse((self.root/'report').exists())
+
+    def test_large_inventory_rejects_duplicate_per_run_artifacts(self):
+        class Huge(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':6501,'artifacts':[]}
+        with self.assertRaisesRegex(ValueError,'duplicate named GitHub observer artifacts'):
+            self.check(Huge(artifacts={42:[artifact(id=111),artifact(id=112)]}))
+        self.assertFalse((self.root/'report').exists())
+
+    def test_large_inventory_readback_sha_tamper_rejected(self):
+        raw=zipped()
+        class Huge(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':6501,'artifacts':[]}
+        with self.assertRaisesRegex(ValueError,'SHA-256 mismatch'):
+            self.check(Huge(artifacts={42:[artifact(data=raw,digest='sha256:'+'a'*64)]},zips={111:raw}))
+        self.assertFalse((self.root/'report').exists())
 
     def test_existing_output_not_overwritten(self):
         (self.root/'report').mkdir()

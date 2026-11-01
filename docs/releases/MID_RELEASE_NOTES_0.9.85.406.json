@@ -1,0 +1,23 @@
+{
+  "version": "0.9.85.406",
+  "date": "2026-11-01",
+  "title": "RUC-Datenintegrität, sicheres 168h-Originalarchiv und Pages-Serialisierung",
+  "external": [
+    "RUC-Datenaktualisierung robuster: Bereits verifizierte und unveränderte DWD-Daten können über reine Test- und Log-Audit-Updates hinweg sicher wiederverwendet werden, ohne die Originaldatenprüfung zu lockern.",
+    "7-Tage-Verfügbarkeitsarchiv vollständiger: Auch nach mehr als 6.400 GitHub-Artefakten findet MID die echten RUC-Originalbelege über exakt zugeordnete, SHA-geprüfte Workflow-Artefakte; ausbleibende Beobachtungen bleiben unbekannt statt Null.",
+    "RUC-Pages und MID-App-Deployment behalten die gemeinsame Veröffentlichungssperre. Neue Negativtests überwachen Source-SHA, Rollback-Prüfung, unveränderliche Artefakte und Publish-Reihenfolge.",
+    "Keine Änderung an Wetterwerten, amtlichen Warnungen, Modellgewichtung, +27h-RUC/20-EPS-Produkt oder fehlenden Daten. Eine separate 0–6h-Fast-Lane bleibt bis zur echten Abnahme deaktiviert."
+  ],
+  "internal": [
+    "Live Stable-Basis: MID .405 SHA 6410cf049f097b1d0518beac601e1baa08583f4a, Installer #41346300018 vollständig grün; fünf aktive Rulesets, 1059 Pflichtregressionen.",
+    "Exakt 8 SHA-geprüfte original Code-/Test-/Doku-Blobs aus PR #596 HEAD 9273db1392ece8f2a76102b7c46711bdce6dfa98 und PR #598 HEAD c227db8d13910d91828e86eb0e81422756421070 in PR #601 integriert. Kein Überschneiden mit .405.",
+    "Snapshot-Neu-Fingerprints nehmen nur Test-/Read-only-P3-Log-Auditor aus Runtime-Hash aus; unveränderliche Datenreceipts, tatsächliche RUC-Module, Worker-Decoder, canonical Workflow/Lockfile, Original SHA und Ancestry bleiben hart geprüft. Alte versiegelte Receipts nicht rückwirkend zulassen.",
+    "168h-Originale-Archiv: paginierter Repository-Scan bis 6400, danach authentifizierte exakte Run-ID/Attempt-Artefaktlisten, vollständige Seiten, Parent-/SHA-/Duplikatkontrolle, fehlende Daten zensiert statt interpoliert.",
+    "P4 adversarieller Test sichert existing mid-pages Single-Flight für App-Retries+Finalize, RUC-Publish+Rollback, Source-Guard und immutable Digest auf BEIDEN Artefakten. Cross-Provider Global CAS/Fencing bleibt ausdrücklich offen.",
+    "Quell-Preflight: Snapshot/P4 #41351487477, P1/P5 #41351487543 und Vitest #41351487586 jeweils completed/success auf vorherigem Head 4cb9bd3813926ff2983467352ca2a5a8237d5dde; Source-PR Core+Heavy auf FINALEN versionierten Head erneut erforderlich.",
+    "P1 Echt-DWD 168h+ Original GRIB/Werte EPS20; P2 selbständiger echter 0–6h-Provider- und Clientpfad; P3 identische Originaldateien A/B CPU/RAM/Bytes/900MB; P4 globale CAS-Fencing und P5 echte Web/Widget/Export Adoption/60min-P95 weiterhin OPEN (#541).",
+    "Parallele D2-Vollgebiets-Drafts #600/#602 bleiben unangetastet und sind nicht Teil dieser Freigabe. Nach erfolgreichem .406-Stable nur auf neuem SHA in nächster Version qualifizieren.",
+    "Synchronisiert: package.json, package-lock, MID_BASELINE, contracts/index, src/version, web/meta, PWA Cache, Worker-Spiegel, iOS Build 407, Changelogs und strukturierte Release-Notiz.",
+    "Nur SHA-gebundener MID Source-PR Gate → kontrollierter Bot-Merge → serverseitiges ZIP → install-mid.yml einschließlich Core/Heavy/Worker/Pages/Finalize → Stable; niemals direkte Hauptbranchmutation."
+  ]
+}

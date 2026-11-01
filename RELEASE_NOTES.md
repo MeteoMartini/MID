@@ -1,9 +1,8 @@
-# MID v0.9.85.405 – Extremwetter-Vorhinweise Tag 3–7 zuverlässiger laden
+# MID v0.9.85.406 – verlässlichere RUC-Datenfreigabe und Beobachtungsarchiv
 
-- **Schneller verfügbare Langfristdaten:** Die vorhandenen regionalen ICON-EPS-Raster werden mit höchstens zwei gleichzeitigen, begrenzten Abrufen statt vollständig nacheinander geladen. Die optionale ECMWF-Böenergänzung bleibt getrennt; Modelle werden nicht künstlich zu einem Ensemble vermischt.
-- **Vorschau bleibt bei Aktualisierungsfehlern sichtbar:** Bereits geprüfte Ergebnisse werden während einer erneuten Datenabfrage nicht mehr ausgeblendet. Gesicherte Daten zwischen drei und 24 Stunden Alter erscheinen mit deutlich erkennbarem Hinweis auf den älteren Stand; bei Fehlern bleibt ein Wiederholen-Knopf erreichbar.
-- **Echte Vorhersagezeiträume statt falscher Entwarnung:** Datenlücken für Regen, Wind oder Schnee bleiben „nicht auswertbar“. Auch wenn nur ein tatsächlich vorhandener zusammenhängender Abschnitt von Tag 3–7 vorliegt, wird dieser als Teilhorizont ausgewiesen; fehlende spätere Tage werden nicht erfunden oder zu 0 erklärt.
-- **Modelllauf-Konsistenz:** Unterschiedliche Startzeiten und unvollständige Stundenachsen in parallel eintreffenden Rasterpaketen werden geprüft. Unvereinbare Daten dürfen nicht unbemerkt zusammengeführt werden.
-- **Mobile Bedienung:** Lade- und Fehlermeldungen erhalten eine umbruchfähige Darstellung und einen gut erreichbaren Wiederholen-Button.
+- RUC-Datenaktualisierung robuster: Bereits verifizierte und unveränderte DWD-Daten können über reine Test- und Log-Audit-Updates hinweg sicher wiederverwendet werden, ohne die Originaldatenprüfung zu lockern.
+- 7-Tage-Verfügbarkeitsarchiv vollständiger: Auch nach mehr als 6.400 GitHub-Artefakten findet MID die echten RUC-Originalbelege über exakt zugeordnete, SHA-geprüfte Workflow-Artefakte; ausbleibende Beobachtungen bleiben unbekannt statt Null.
+- RUC-Pages und MID-App-Deployment behalten die gemeinsame Veröffentlichungssperre. Neue Negativtests überwachen Source-SHA, Rollback-Prüfung, unveränderliche Artefakte und Publish-Reihenfolge.
+- Keine Änderung an Wetterwerten, amtlichen Warnungen, Modellgewichtung, +27h-RUC/20-EPS-Produkt oder fehlenden Daten. Eine separate 0–6h-Fast-Lane bleibt bis zur echten Abnahme deaktiviert.
 
-**Fachliche Abgrenzung:** MID-Vorhinweise sind keine amtlichen Warnungen. Quellen, Wahrscheinlichkeits-/Ensemblesemantik, Schwellen, akkumulierte 24-Stunden-Mengen und die 65-%-Datenabdeckungsgrenze bleiben erhalten. Eine bestimmte reale Ladezeitverkürzung oder vollständige iOS-/VoiceOver-Abnahme ist ohne entsprechende Endgerätebelege nicht bestätigt.
+**Messgrenzen:** Die vollständige 168-Stunden-DWD-Messung, eine aktivierte Fast-Lane, echter A/B-Produktiv-Speedup, globales CAS/Fencing sowie reale 60-Minuten-P95-Frische bis zu App, Widgets und Export sind mit diesem Release nicht belegt.
