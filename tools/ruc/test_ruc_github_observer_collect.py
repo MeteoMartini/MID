@@ -11,7 +11,7 @@ from zipfile import ZipFile
 
 sys.path.insert(0, str(Path(__file__).parent))
 from ruc_github_observer_collect import (collect, parse_observed_runs, safe_redirect_host,
-                                         MAX_PAGES, MAX_ZIP_BYTES)
+                                         MAX_PAGES, MAX_ZIP_BYTES, select_bounded_polls, index_repository_artifacts)
 from test_ruc_observer_artifact_bundle import status, directory, readback
 
 CUTOFF = '2026-11-01T12:00:00Z'
@@ -42,19 +42,22 @@ class Reader:
         self.runs = list(runs if runs is not None else [run()])
         self.artifacts=artifacts or {}
         self.zips=zips or {}
+        self.repository_artifact_calls = 0
     def list_runs(self,page):
         if page==1:return {'workflow_runs':list(self.runs)}
         return {'workflow_runs':[]}
-    def list_artifacts(self,run_id):
-        rows=self.artifacts.get(run_id,[])
-        return {'total_count':len(rows),'artifacts':rows}
+    def list_repository_artifacts(self,page):
+        self.repository_artifact_calls += 1
+        rows=[row for group in self.artifacts.values() for row in group]
+        return {'total_count':len(rows),'artifacts':rows if page == 1 else []}
     def download_zip(self,artifact_id):return self.zips[artifact_id]
 
 
 def artifact(id=111, run_id=42, attempt=1, data=None, **extra):
     if data is None:data=zipped(run_id,attempt)
     record={'id':id,'name':f'dwd-ruc-observation-{run_id}-{attempt}',
-            'size_in_bytes':len(data),'expired':False,'digest':'sha256:'+hashlib.sha256(data).hexdigest()}
+            'size_in_bytes':len(data),'expired':False,'digest':'sha256:'+hashlib.sha256(data).hexdigest(),
+            'workflow_run':{'id':run_id,'head_sha':SHA,'head_branch':'main'}}
     record.update(extra)
     return record
 
@@ -154,7 +157,7 @@ class Collector(unittest.TestCase):
 
     def test_reject_unbounded_artifact_listing(self):
         class Bad(Reader):
-            def list_artifacts(self,run_id):return {'total_count':101,'artifacts':[]}
+            def list_repository_artifacts(self,page):return {'total_count':101,'artifacts':[]}
         with self.assertRaisesRegex(ValueError,'unbounded'):
             self.check(Bad())
 
@@ -180,6 +183,59 @@ class Collector(unittest.TestCase):
         for s in ['http://evil.githubusercontent.com/foo','https://github.com.evil.com/foo',
                   'https://user:pass@github.com/','https://evil.com/','https://github.com/x#fragment']:
             self.assertFalse(safe_redirect_host(s),s)
+
+    def test_schedule_and_fallback_same_quarter_are_not_independent(self):
+        source=[run(42, when='2026-11-01T10:18:00Z'),
+                run(43, when='2026-11-01T10:23:00Z', event='workflow_run')]
+        chosen, suppressed=select_bounded_polls([
+            {'runId':x['id'], 'runAttempt':1,'createdAtUtc':x['created_at'],
+             'event':x['event'],'status':'completed'} for x in source])
+        self.assertEqual([x['runId'] for x in chosen],[42])
+        self.assertEqual([x['runId'] for x in suppressed],[43])
+        out=self.check(Reader(runs=source))
+        self.assertEqual(out['expectedGitHubRunAttempts'],1)
+        self.assertEqual(out['supersededSameSlotRuns'],1)
+        self.assertEqual(out['originalGithubObserverRunsInWindow'],2)
+        self.assertEqual(out['directorySamples'],0)
+        self.assertFalse(out['productionSloAuthorized'])
+
+    def test_fallback_is_selected_when_schedule_is_missing(self):
+        result=self.check(Reader(runs=[run(event='workflow_run',when='2026-11-01T10:23:00Z')]))
+        self.assertEqual(result['expectedGitHubRunAttempts'],1)
+        self.assertEqual(result['supersededSameSlotRuns'],0)
+
+    def test_bulk_repository_inventory_replaces_per_run_calls(self):
+        client=Reader(runs=[run(42,when='2026-11-01T10:18:00Z'),
+                            run(43,when='2026-11-01T10:48:00Z')])
+        report=self.check(client)
+        self.assertEqual(report['expectedGitHubRunAttempts'],2)
+        self.assertEqual(client.repository_artifact_calls,1)
+        self.assertEqual(report['missingGitHubRunAttemptArtifacts'],2)
+        self.assertEqual(report['artifactInventoryFetchMode'],'bounded-repository-pagination')
+
+    def test_bulk_inventory_requires_full_pages_and_consistent_total(self):
+        class MissingPage(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':101,'artifacts':[]}
+        with self.assertRaisesRegex(ValueError,'pagination'):
+            self.check(MissingPage())
+        class CountChanges(Reader):
+            def list_repository_artifacts(self,page):
+                if page==1:
+                    return {'total_count':101,'artifacts':[{'id':i,'name':'other'} for i in range(100)]}
+                return {'total_count':102,'artifacts':[{'id':101,'name':'other'}]}
+        with self.assertRaisesRegex(ValueError,'pagination changed'):
+            self.check(CountChanges())
+
+    def test_bulk_duplicate_ids_and_foreign_parent_are_rejected(self):
+        class DuplicateIDs(Reader):
+            def list_repository_artifacts(self,page):
+                return {'total_count':2,'artifacts':[{'id':7,'name':'other'},{'id':7,'name':'other'}]}
+        with self.assertRaisesRegex(ValueError,'duplicate GitHub artifact ID'):
+            self.check(DuplicateIDs())
+        wrong=artifact(workflow_run={'id':99})
+        with self.assertRaisesRegex(ValueError,'identity mismatch'):
+            self.check(Reader(artifacts={42:[wrong]}))
 
     def test_existing_output_not_overwritten(self):
         (self.root/'report').mkdir()

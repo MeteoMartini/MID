@@ -25,8 +25,10 @@ WORKFLOW = 'mid-ruc-availability-observer.yml'
 API = 'https://api.github.com'
 SHA = re.compile(r'^[a-f0-9]{40}$')
 NAME = re.compile(r'^dwd-ruc-observation-(\d+)-(\d+)$')
-MAX_PAGES = 15
-MAX_RUNS = 900
+MAX_PAGES = 18
+MAX_RUNS = 1500
+MAX_ARTIFACT_PAGES = 64
+MAX_ZIP_DOWNLOADS = 800
 MAX_ZIP_BYTES = 2_000_000
 
 
@@ -77,8 +79,10 @@ class GitHubReadOnly:
     def list_runs(self, page):
         return self.get(f'/repos/{REPO}/actions/workflows/{WORKFLOW}/runs?per_page=100&page={page}')
 
-    def list_artifacts(self, run_id):
-        return self.get(f'/repos/{REPO}/actions/runs/{run_id}/artifacts?per_page=100')
+    def list_repository_artifacts(self, page):
+        # One paginated repository inventory instead of a REST request for
+        # every observer run (GitHub Actions GITHUB_TOKEN is rate limited).
+        return self.get(f'/repos/{REPO}/actions/artifacts?per_page=100&page={page}')
 
     def download_zip(self, artifact_id):
         return self.get(f'/repos/{REPO}/actions/artifacts/{artifact_id}/zip', binary=True)
@@ -138,6 +142,91 @@ def parse_observed_runs(client, cutoff):
     return sorted(results.values(), key=lambda x: x['runId'])
 
 
+
+def select_bounded_polls(rows):
+    """One representative observer attempt per 15-minute slot.
+
+    The optional Watchdog fallback is five minutes after a schedule poll.
+    Prefer the native schedule; retain the fallback when schedule is absent.
+    Duplicates are explicitly accounted for, never treated as independent
+    samples. Manual dispatches retain independent diagnostic provenance.
+    """
+    selected = {}
+    suppressed = []
+    for row in rows:
+        if row['status'] != 'completed':
+            # Incomplete runs are evidence gaps, not positive polls.
+            rank = 0
+        else:
+            rank = 2 if row.get('event') == 'schedule' else 1
+        if row.get('event') == 'workflow_dispatch':
+            key = ('manual', row['runId'])
+        else:
+            observed = utc(row['createdAtUtc'])
+            minute = (observed.minute // 15) * 15
+            key = ('slot', observed.replace(minute=minute, second=0, microsecond=0))
+        old = selected.get(key)
+        if old is None:
+            selected[key] = row
+        elif (rank, row['runId']) > (2 if old.get('event') == 'schedule' and old['status'] == 'completed'
+                                       else 1 if old['status'] == 'completed' else 0, old['runId']):
+            suppressed.append(old)
+            selected[key] = row
+        else:
+            suppressed.append(row)
+    return sorted(selected.values(), key=lambda x: x['runId']), suppressed
+
+
+def index_repository_artifacts(client, rows):
+    """Fully paginate bounded GitHub repository artifact inventory once.
+
+    Reject incomplete/changing pagination rather than treating omitted pages
+    as missing DWD observations. GitHub-supplied workflow_run identity must
+    agree with the expected observer run and attempt.
+    """
+    expected = {(x['runId'], x['runAttempt']) for x in rows}
+    found = {}
+    seen_ids = set()
+    total = None
+    for page in range(1, MAX_ARTIFACT_PAGES + 1):
+        response = client.list_repository_artifacts(page)
+        if not isinstance(response, dict):
+            raise ValueError('invalid repository artifact response')
+        batch = response.get('artifacts')
+        n = response.get('total_count')
+        if (type(n) is not int or n < 0 or n > MAX_ARTIFACT_PAGES * 100
+                or not isinstance(batch, list) or len(batch) > 100):
+            raise ValueError('unbounded or malformed repository artifact pagination')
+        if total is None:
+            total = n
+        elif total != n:
+            raise ValueError('repository artifact pagination changed during read')
+        for art in batch:
+            if not isinstance(art, dict) or type(art.get('id')) is not int:
+                raise ValueError('invalid GitHub repository artifact')
+            if art['id'] in seen_ids:
+                raise ValueError('duplicate GitHub artifact ID across pages')
+            seen_ids.add(art['id'])
+            name = art.get('name', '')
+            match = NAME.fullmatch(name) if isinstance(name, str) else None
+            if match:
+                key = tuple(int(v) for v in match.groups())
+                if key in expected:
+                    parent = art.get('workflow_run')
+                    if not isinstance(parent, dict) or parent.get('id') != key[0]:
+                        raise ValueError('GitHub artifact workflow run identity mismatch')
+                    if key in found:
+                        raise ValueError('duplicate named GitHub observer artifacts')
+                    found[key] = art
+        if page * 100 >= total:
+            if len(seen_ids) != total:
+                raise ValueError('repository artifact pagination incomplete')
+            return found
+        if len(batch) != 100:
+            raise ValueError('repository artifact pagination incomplete')
+    raise ValueError('repository artifact pagination exceeds bounded limit')
+
+
 def collect(client, *, cutoff_utc, output_dir):
     cutoff = utc(cutoff_utc)
     if cutoff > datetime.now(timezone.utc) + timedelta(minutes=1):
@@ -145,7 +234,11 @@ def collect(client, *, cutoff_utc, output_dir):
     output_dir = Path(output_dir)
     if output_dir.exists() or not output_dir.parent.is_dir() or output_dir.is_symlink():
         raise ValueError('output directory exists or parent missing')
-    rows = parse_observed_runs(client, cutoff)
+    inventory = parse_observed_runs(client, cutoff)
+    rows, suppressed = select_bounded_polls(inventory)
+    if len(rows) > MAX_ZIP_DOWNLOADS:
+        raise ValueError('bounded original ZIP observation budget exceeded')
+    artifact_index = index_repository_artifacts(client, rows)
     # Build all evidence inside a private scratch directory. Nothing gets
     # published, and a failing sample leaves no partially trusted report.
     scratch = Path(tempfile.mkdtemp(prefix='.ruc-gh-observations-', dir=output_dir.parent))
@@ -158,16 +251,9 @@ def collect(client, *, cutoff_utc, output_dir):
             run_id, attempt = run['runId'], run['runAttempt']
             result = dict(run, artifactState='missing-or-unavailable', archiveSha256=None,
                           archiveDigestVerified=False)
-            response = client.list_artifacts(run_id)
-            artifacts = response.get('artifacts') if isinstance(response, dict) else None
-            if not isinstance(artifacts, list) or response.get('total_count', 0) > 100:
-                raise ValueError('unbounded or malformed GitHub artifact listing')
             expected_name = f'dwd-ruc-observation-{run_id}-{attempt}'
-            matches = [x for x in artifacts if isinstance(x, dict) and x.get('name') == expected_name]
-            if len(matches) > 1:
-                raise ValueError('duplicate named GitHub observer artifacts')
-            if matches:
-                art = matches[0]
+            art = artifact_index.get((run_id, attempt))
+            if art is not None:
                 workflow_run = art.get('workflow_run')
                 if workflow_run is not None and (not isinstance(workflow_run, dict) or workflow_run.get('id') != run_id):
                     raise ValueError('GitHub artifact workflow run identity mismatch')
@@ -208,6 +294,10 @@ def collect(client, *, cutoff_utc, output_dir):
         summary, directory, readbacks = bundle(chosen_paths, cutoff_utc, manifest_rows)
         summary['githubInventorySource'] = 'GitHub REST actions workflow runs + artifacts (read-only)'
         summary['githubRunInventoryComplete'] = True
+        summary['originalGithubObserverRunsInWindow'] = len(inventory)
+        summary['supersededSameSlotRuns'] = len(suppressed)
+        summary['suppressedObserverRunIds'] = [row['runId'] for row in suppressed]
+        summary['artifactInventoryFetchMode'] = 'bounded-repository-pagination'
         summary['observerRunRecords'] = records
         summary['archiveSha256AuthenticatedViaGithubApiOnly'] = True
         summary['complete168hNativeGribOrClientSloProof'] = False
