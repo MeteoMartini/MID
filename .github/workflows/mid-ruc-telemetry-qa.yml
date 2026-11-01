@@ -91,6 +91,7 @@ jobs:
             python3 "tools/ruc/$test" -v
           done
           python3 tools/ruc/test_optional_stage_parallel.py -v
+          node scripts/test-mid-18-2-1-ruc-native-cadence-098573.mjs
           echo 'Read-only DWD/Pages/Worker and bounded optional staging regression only; no GRIB/EPS/App/SLO or Fast-Publisher release authorization.' >> "$GITHUB_STEP_SUMMARY"
       - name: Native RUC Download-/Decoder-Resilienz offline inkl. optionaler Parallelität
         shell: bash
