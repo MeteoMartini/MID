@@ -38,3 +38,12 @@ Der neue `mid-d2-ruc-three-run-qa.yml` wird **nur** bei Branch-Codeänderungen a
 
 Die nächste DWD-Original-QA [41294736972](https://github.com/MeteoMartini/MID/actions/runs/41294736972) hat nach Korrektur des WMO-0/1/52-Parametervertrags 279 native Dateien geladen, aber bei `Multiple GRIB messages; require one verified record per file` korrekt gestoppt. Das bedeutet, mindestens ein unverändertes offizielles DWD-Original enthält mehr als eine GRIB-Nachricht. Das ist kein Beleg für fehlende Gebietsabdeckung oder fehlerhafte Modellwerte. Der nächste Prüfer gibt ausschließlich nach SHA-/WMO-/Geo-Abnahme die zusätzlichen GRIB-Header (Parameter/Level/Run/Start-/EndStep) begrenzt aus und bleibt gesperrt, bis ein eindeutiger meteorologischer Nachrichtenwahlvertrag nachweislich definiert werden kann.
 
+
+## Realer RUC-Endaufnahme-Test auf isoliertem Snapshot – neuer QA-Schritt
+
+Die bislang erfolgreichen drei RUC-Läufe liefern ein originalgetreues, vollständiges 27h-Kartenlookup mit rund 83,6–84,0 MB und einer realitätsnahen Gesamtprojektion von 562,7–568,6 MB. Der echte Admission-Code `tools/ruc/admit_ruc_map_candidate.py` generiert darüber hinaus alle Isobaren/Druckzentren und ein neues atomar signiertes Source-Manifest; seine endgültige Datengröße war damit noch nicht nachgewiesen.
+
+Der neue **ausschließlich lesende GitHub-Workflow** `mid-d2-ruc-full-admission-qa.yml` lädt die immutabel per GitHub digest gebundene Original-`mid-ruc-data-41286412886-1`-Quelle, verifiziert das original erhaltene `prepared-snapshot-proof.json`-Receipt gegen Originallauf und unveränderten Manifest-SHA sowie jede einzelne Quellobjekt-SHA, erzeugt eine disjunkte Kopie in `RUNNER_TEMP`, entfernt das Receipt **nur aus dieser Kopie** für das unveränderte `verify_snapshot`-Format, führt anschließend den tatsächlichen unveränderten `admit()`-Kartenpfad aus und prüft dessen Source-Identität, Core-/EPS-/Codec-Bytes, Isobaren-/Produktzeiten und reales physisches Gesamtbudget <900 MB. Nur eine kleine numerische JSON-Abnahme wird zwei Tage archiviert; **kein** Source/Worker/Pages/Produktions-Pointer darf beschrieben werden.
+
+Dieser Nachweis ist **erst** erfolgreich, wenn der neue Actions-Lauf komplett `completed/success` meldet. Ein eventueller Timeout/Memory-/Admissionfehler bleibt explizit blockierend, kein Ersatz durch rein projizierte Bytes.
+

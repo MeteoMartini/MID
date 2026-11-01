@@ -30,6 +30,7 @@ export const managedFiles=[
  ['workflows/mid-d2-native-original-audit.yml','workflows/mid-d2-native-original-audit.yml'],
  ['workflows/mid-d2-ruc-archive-qa.yml','workflows/mid-d2-ruc-archive-qa.yml'],
  ['workflows/mid-d2-ruc-three-run-qa.yml','workflows/mid-d2-ruc-three-run-qa.yml'],
+ ['workflows/mid-d2-ruc-full-admission-qa.yml','workflows/mid-d2-ruc-full-admission-qa.yml'],
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/release-timing-audit.yml','workflows/release-timing-audit.yml'],
  ['workflows/release-train-preflight.yml','workflows/release-train-preflight.yml'],
