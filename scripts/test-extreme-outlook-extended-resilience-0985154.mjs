@@ -38,6 +38,9 @@ assert.ok(client.includes('data.stale||age>EXTENDED_FRESH_MS'),'Worker-provided 
 assert.ok(client.includes('value.periods.length>expected.length')&&client.includes('value.periods.length;index++'),'Teilweise Prognosehorizonte müssen als zusammenhängendes, reales Präfix geprüft werden.');
 assert.ok(workerSource.includes('async function dachExtendedEachBatch(points,visit)'),'Begrenzte Langfrist-Parallelität fehlt.');
 assert.ok(workerSource.includes('const admissionByPeriod=new Map()'),'EPS-Feldabdeckung muss für jeden Tageszeitraum einmal statt pro Rasterzelle bestimmt werden.');
+assert.ok(workerSource.includes('const runCounts=new Map()')&&workerSource.includes('if(dachExtendedTimeAxis(row)!==origin)byId.delete(id)'),'Parallel abrufbare EPS-Rastergruppen verschiedener UTC-Läufe dürfen nicht zeitlich vermischt werden.');
+assert.ok(workerSource.includes('inkonsistente Zeitachsen oder Modellläufe'),'Zu geringe konsistente Modelllauf-Abdeckung muss fail-closed bleiben.');
+
 assert.ok(workerSource.includes('const {useIfs,sourceRows,available}=admissionByPeriod.get(p.id)[kind]'),'Abdeckungsentscheidung darf innerhalb der Zellschleife nicht wiederholt werden.');
 assert.ok(!workerSource.includes("for(const kind of['rain','wind','snow']){const useIfs=kind==='wind'&&[...byId.values()].filter"),'Quadratische Vollgebiets-Abdeckungsberechnung darf nicht zurückkehren.');
 
