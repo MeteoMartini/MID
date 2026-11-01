@@ -1,1 +1,0 @@
-import{Ni as e}from"./index--gvllq6n.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
