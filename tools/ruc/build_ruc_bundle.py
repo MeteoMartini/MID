@@ -5,7 +5,7 @@ The builder is fail-closed: mixed grids, missing hourly targets, missing EPS mem
 or spatially implausible lookups abort publication before latest.json exists.
 """
 from __future__ import annotations
-import argparse,concurrent.futures,hashlib,json,math,os,re
+import argparse,concurrent.futures,hashlib,json,math,os,re,time
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
@@ -364,13 +364,35 @@ def collect_eps(files,targets,expected_points,expected_members=None):
 
 
 def write_eps_products(interval,members_path,summary_path,chunk_points=4096):
-    """Same point-major bytes, bounded temporary arrays per native point block."""
+    """Same point-major bytes, bounded temporary arrays per native point block.
+
+    Emit diagnostic phase timings; never alter source values or output bytes.
+    """
     if chunk_points<1:raise ValueError('chunk_points must be positive')
+    chunks=0
+    member_seconds=summary_seconds=summary_pack_seconds=0.0
     with open(members_path,'wb') as member_file,open(summary_path,'wb') as summary_file:
       for start in range(0,interval.shape[2],chunk_points):
         block=interval[:,:,start:start+chunk_points]
+        t0=time.perf_counter()
         member_file.write(pack_eps_members(block,.01))
-        summary_file.write(pack_cell_major(eps_summary(block),EPS_SUMMARY_FIELDS))
+        member_seconds+=time.perf_counter()-t0
+        t0=time.perf_counter()
+        result=eps_summary(block)
+        summary_seconds+=time.perf_counter()-t0
+        t0=time.perf_counter()
+        summary_file.write(pack_cell_major(result,EPS_SUMMARY_FIELDS))
+        summary_pack_seconds+=time.perf_counter()-t0
+        chunks+=1
+    # Output is metadata only: no original weather values or location data.
+    print('RUC_P3_EPS_TIMINGS '+json.dumps({
+      'schema':'mid.ruc.p3-eps-timings.v1',
+      'chunks':chunks,'points':int(interval.shape[2]),
+      'validTimes':int(interval.shape[0]),'members':int(interval.shape[1]),
+      'memberPackWriteSeconds':round(member_seconds,6),
+      'epsSummarySeconds':round(summary_seconds,6),
+      'summaryPackWriteSeconds':round(summary_pack_seconds,6),
+    },sort_keys=True,allow_nan=False,separators=(',',':')),flush=True)
 
 
 def eps_summary(interval):
