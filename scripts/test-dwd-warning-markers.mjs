@@ -57,6 +57,13 @@ const missingDirection=signal([sample({gust:70/1.852,windDirection:null,directio
 if(missingDirection&&/aus (?:nördlicher|südlicher|östlicher|westlicher) Richtung/i.test(formatDwdWarningDetailWithDirection(missingDirection)))failures.push('Missing wind direction must not be displayed as a fabricated direction.');
 const north=signal([sample({gust:70/1.852,windDirection:0})],'wind');
 if(!north||!formatDwdWarningDetailWithDirection(north).includes('nördlicher'))failures.push('Real 0 degree wind direction must remain north.');
+// A snowdrift requires continuous available gust evidence as well as snowfall.
+const completeDrift=Array.from({length:6},(_,i)=>sample({epoch:Date.UTC(2026,9,17,i),gust:30,snowfall:1}));
+const gustMissingDrift=completeDrift.map((row,i)=>i===2?{...row,gust:null}:row);
+const gustGapDrift=completeDrift.map((row,i)=>({...row,epoch:Date.UTC(2026,9,17,i*2)}));
+if(!dwdWarningSignalsAt(completeDrift,0).some(item=>item.kind==='snowdrift'))failures.push('Snowdrift supported by complete 6 h gust/snowfall must remain.');
+if(dwdWarningSignalsAt(gustMissingDrift,0).some(item=>item.kind==='snowdrift'))failures.push('Missing gust within six hours must not masquerade as complete snowdrift evidence.');
+if(dwdWarningSignalsAt(gustGapDrift,0).some(item=>item.kind==='snowdrift'))failures.push('Irregular gust time gaps must not masquerade as a complete six-hour maximum.');
 // A 3-hour frost or 12-hour heat spell requires actual contiguous hours when times exist.
 const firstEpoch=Date.UTC(2026,9,18,0);
 const frostAt=hour=>sample({epoch:firstEpoch+hour*3600000,temperature:-11,apparent:-11});
