@@ -37,6 +37,9 @@ for(const token of [
 const extract=(name)=>{
  const start=app.indexOf('function '+name+'(');
  assert.ok(start>=0,'Source function missing: '+name);
+ const firstEnd=app.indexOf('\n',start);
+ const firstLine=app.slice(start,firstEnd);
+ if(firstLine.trimEnd().endsWith('}'))return firstLine;
  const end=app.indexOf('\n}',start);
  assert.ok(end>start,'Source function boundary missing: '+name);
  return app.slice(start,end+2);
