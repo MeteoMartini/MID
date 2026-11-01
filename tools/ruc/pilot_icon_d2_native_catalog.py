@@ -16,6 +16,9 @@ from urllib.parse import quote
 ROOT="https://opendata.dwd.de/weather/nwp/icon-d2/grib/"
 FIELDS=("t_2m","pmsl","u_10m","v_10m","vmax_10m","clct","ww","t","relhum","tot_prec")
 LEADS=(1,2,3,4,5,6,12,24,48)
+# Original cumulative previous-hour references for offered +12, +24 and +48h.
+# These are not extra displayed forecast times; absent sources must fail closed.
+TOT_PREC_PREVIOUS=(11,23,47)
 MAX_GRIB_BYTES=80_000_000
 CYCLE_HOURS=3
 
@@ -38,7 +41,7 @@ def cycles(last):
  return [(dt-timedelta(hours=3*i)).strftime("%Y%m%d%H") for i in (2,1,0)]
 
 def select_name(links,field,stamp,lead):
- if field not in FIELDS or not re.fullmatch(r"[0-9]{10}",stamp) or type(lead) is not int or lead not in LEADS and not (field=="tot_prec" and lead==0):
+ if field not in FIELDS or not re.fullmatch(r"[0-9]{10}",stamp) or type(lead) is not int or lead not in LEADS and not (field=="tot_prec" and lead in (0,*TOT_PREC_PREVIOUS)):
   raise ValueError("unqualified native source request")
  prefix="icon-d2_germany_icosahedral_"
  pressure=field in ("t","relhum")
@@ -71,7 +74,7 @@ def catalogue(last,fetch_listing):
   for field in (*FIELDS,"clat","clon"):
    url=ROOT+stamp[-2:]+"/"+field+"/"
    links=Hrefs();links.feed(fetch_listing(url))
-   wanted=(0,) if field in ("clat","clon") else (0,*LEADS) if field=="tot_prec" else LEADS
+   wanted=(0,) if field in ("clat","clon") else (0,*LEADS,*TOT_PREC_PREVIOUS) if field=="tot_prec" else LEADS
    for lead in wanted:
     name=select_coordinate(links.links,field,stamp) if field in ("clat","clon") else select_name(links.links,field,stamp,lead)
     planned.append({"model":"icon-d2","run":stamp+"00","parameter":field,"leadHours":lead,
@@ -137,7 +140,7 @@ def pin_original_inventory(catalog):
   coordinates={"latitude":{"path":lat["file"],"sha256":lat["sha256"]},
                "longitude":{"path":lon["file"],"sha256":lon["sha256"]}}
   for field in FIELDS:
-   for lead in ((0,*LEADS) if field=="tot_prec" else LEADS):
+   for lead in ((0,*LEADS,*TOT_PREC_PREVIOUS) if field=="tot_prec" else LEADS):
     item=bykey.get((run,field,lead))
     if not item:raise ValueError("native DWD parameter/lead missing")
     identity,step=WMO[field]
@@ -147,7 +150,7 @@ def pin_original_inventory(catalog):
  if len(rows)+6!=len(bykey):raise ValueError("unknown catalog entries")
  return {"schema":"mid.dwd.domain-inventory-input.v1","productionApproved":False,
          "expectedParameters":{"icon-d2":list(FIELDS)},
-         "expectedLeads":{"icon-d2/"+f:list((0,*LEADS) if f=="tot_prec" else LEADS) for f in FIELDS},
+         "expectedLeads":{"icon-d2/"+f:list((0,*LEADS,*TOT_PREC_PREVIOUS) if f=="tot_prec" else LEADS) for f in FIELDS},
          "records":rows}
 
 def main():

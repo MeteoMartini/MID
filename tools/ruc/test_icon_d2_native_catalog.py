@@ -1,6 +1,6 @@
 import unittest
 from pilot_icon_d2_native_catalog import (
- FIELDS,LEADS,Hrefs,catalogue,cycles,select_name,select_coordinate,parse_last_run,pin_original_inventory
+ FIELDS,LEADS,TOT_PREC_PREVIOUS,Hrefs,catalogue,cycles,select_name,select_coordinate,parse_last_run,pin_original_inventory
 )
 
 def html_for(url):
@@ -12,7 +12,7 @@ def html_for(url):
  if field in ("clat","clon"):
   names=[prefix+"time-invariant_"+stamp+"_000_0_"+field+".grib2.bz2"]
  else:
-  requested=(0,*LEADS) if field=="tot_prec" else LEADS
+  requested=(0,*LEADS,*TOT_PREC_PREVIOUS) if field=="tot_prec" else LEADS
   kind="pressure-level" if field in ("t","relhum") else "single-level"
   level="850" if field in ("t","relhum") else "2d"
   names=[prefix+kind+"_"+stamp+"_"+str(h).zfill(3)+"_"+level+"_"+field+".grib2.bz2" for h in requested]
@@ -39,13 +39,13 @@ class NativeD2CatalogTests(unittest.TestCase):
   report=catalogue("2026110106",html_for)
   self.assertFalse(report["productionApproved"])
   self.assertEqual(report["expectedRuns"],["2026110100","2026110103","2026110106"])
-  self.assertEqual(len(report["files"]),3*(9*len(FIELDS)+3))
+  self.assertEqual(len(report["files"]),3*(9*len(FIELDS)+3+len(TOT_PREC_PREVIOUS)))
   self.assertEqual(len({r["sourceUrl"] for r in report["files"]}),len(report["files"]))
   self.assertTrue(all("germany_icosahedral" in r["file"] for r in report["files"]))
   self.assertTrue(all(r["status"].startswith("catalog-only") for r in report["files"]))
   pressure=[r for r in report["files"] if r["parameter"] in ("t","relhum")]
   self.assertTrue(all("_pressure-level_" in r["file"] and "_850_" in r["file"] for r in pressure))
-  self.assertEqual(len([r for r in report["files"] if r["parameter"]=="tot_prec"]),3*(len(LEADS)+1))
+  self.assertEqual(len([r for r in report["files"] if r["parameter"]=="tot_prec"]),3*(len(LEADS)+1+len(TOT_PREC_PREVIOUS)))
 
  def test_original_dwd_cumulative_total_precipitation_code_is_pinned(self):
   from pilot_icon_d2_native_catalog import WMO
@@ -56,7 +56,7 @@ class NativeD2CatalogTests(unittest.TestCase):
   report=pin_original_inventory(catalog)
   self.assertEqual(report["schema"],"mid.dwd.domain-inventory-input.v1")
   self.assertFalse(report["productionApproved"])
-  self.assertEqual(len(report["records"]),273)
+  self.assertEqual(len(report["records"]),282)
   self.assertEqual(sorted({r["run"] for r in report["records"]}),["20261101T0000","20261101T0300","20261101T0600"])
   for row in report["records"]:
    self.assertEqual(row["nativeCoordinates"]["latitude"]["sha256"],"a"*64)
@@ -77,6 +77,10 @@ class NativeD2CatalogTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,"duplicate"):select_name([name,name],"t_2m","2026110100",6)
   with self.assertRaisesRegex(ValueError,"missing"):select_name([name],"t_2m","2026110103",6)
   with self.assertRaises(ValueError):select_name([name],"t_2m","2026110100",11)
+  self.assertEqual(TOT_PREC_PREVIOUS,(11,23,47))
+  for prior in TOT_PREC_PREVIOUS:
+   total=f"icon-d2_germany_icosahedral_single-level_2026110100_{prior:03d}_2d_tot_prec.grib2.bz2"
+   self.assertEqual(select_name([total],"tot_prec","2026110100",prior),total)
   with self.assertRaises(ValueError):select_name([name],"__hack__","2026110100",6)
   coordinate="icon-d2_germany_icosahedral_time-invariant_2026110100_000_0_clat.grib2.bz2"
   with self.assertRaisesRegex(ValueError,"not uniquely"):select_coordinate([coordinate,coordinate],"clat","2026110100")
