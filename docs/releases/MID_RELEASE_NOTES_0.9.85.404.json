@@ -21,6 +21,7 @@
     "Vier SHA-identisch übernommene stärkere Designaudit-#592-Blobs HEAD a21e20d3e1dec1469d26ef20c629c5a4391522fb: vierstufige finite 0…100 Probability-Field-Admission statt bloßer Existenz; echter Nullwert bleibt gültig. Testet fehlende, NaN, Infinity, negative, >100 und Kurzvektoren.",
     "ExtremeWeatherOutlookPanel verwendet role=region statt role=img für den interaktiven MapLibre-Container; bestehender obligatorischer test-dach-extreme-outlook-09660 sichert die zugängliche Struktur. Keine physische VoiceOver-Abnahme behauptet.",
     "Vier 1:1 geprüfte UI-/CSS-Blobs aus #594 HEAD 95d097434c6980b77e5bbf82d3190169f0e3d4fb; die Source-Assertions aus dessen test-c14-map-workspace-098534.mjs sind additive mit den bereits enthaltenen Idle-Preload-Negativtests integriert.",
-    "D2-Vollgebiet und tatsächlicher WebGL-TTFP, Realgeräte-/Accessibility-Gesamtabnahme weiterhin ausständig, kein neuer Radar-/WMS-/RUC-/Warn-/iOS-Datenpfad."
+    "D2-Vollgebiet und tatsächlicher WebGL-TTFP, Realgeräte-/Accessibility-Gesamtabnahme weiterhin ausständig, kein neuer Radar-/WMS-/RUC-/Warn-/iOS-Datenpfad.",
+    "Browser-Heavy-Regressionsdiagnose #41335101804: Der neue kompakte Modell-Toggle behält den etablierten barrierefreien aria-label='Modell / Messraster' zusätzlich zum sichtbaren Status 'Modell an/aus'. Originaler Playwright-Bedienpfad und aria-pressed unverändert; Source-C14-Negativassertion zusätzlich. Vollständiger neuer Gate-Lauf erforderlich."
   ]
 }

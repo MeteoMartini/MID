@@ -105,6 +105,7 @@ assert.ok(!radar.includes('className="composite-map-absolute-clock"'),'Zweites Z
 assert.equal((radar.match(/className="composite-observation-master"/g)||[]).length,1,'Beobachtungen dürfen nur einen Master-Schalter besitzen.');
 assert.ok(radar.includes('composite-compact-observation-heading'),'Der Master-Schalter bleibt innerhalb der Ebeneauswahl bedienbar.');
 assert.ok(unified.includes('<summary>Weitere Einstellungen</summary>'),'Profioptionen bleiben über eine einzige sekundäre Steuerung zugänglich.');
+assert.ok(unified.includes('aria-label="Modell / Messraster" className={`unified-model-toggle'),'Der kompakte Modell-Schalter muss unter dem stabilen Screenreader-/Browsernamen bedienbar bleiben.');
 assert.ok(!unified.includes('<summary>Darstellung & Auswahlrichtung</summary>'),'Redundantes zweites Profigruppen-Disclosure wird entfernt.');
 assert.ok(compactStyles.includes('radarlegend-toggle small'),'Die vereinte Zeit-/Legendenfläche bleibt responsiv.');
 assert.ok(radar.indexOf('className="radarmap"')<radar.indexOf('className="composite-direct-time"'),'Vor der Karte dürfen keine redundanten Termin- und Advanced-Menüs Platz beanspruchen.');
