@@ -12,7 +12,7 @@ from pathlib import Path
 import re
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
-RUN = re.compile(r"^20\\d\\d-\\d\\d-\\d\\dT\\d\\d:00$")
+RUN = re.compile(r"^20\d\d-\d\d-\d\dT\d\d:00$")
 DIRECTORY = "mid.ruc.dwd-directory-observation.v1"
 READBACK = "mid.ruc.e2e-readback-shadow.v1"
 SCHEMA = "mid.ruc.observer-execution.v1"
@@ -125,7 +125,7 @@ def main():
                         directory=a.directory, readback=a.readback)
     with a.output.open("x", encoding="utf-8") as out:
         json.dump(evidence, out, ensure_ascii=False, sort_keys=True, allow_nan=False)
-        out.write("\\n")
+        out.write("\n")
     print("MID RUC observer execution evidence: " + json.dumps(evidence, sort_keys=True))
 
 
