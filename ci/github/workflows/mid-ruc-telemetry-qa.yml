@@ -24,6 +24,8 @@ on:
       - 'tools/ruc/test_fast_lane_native_values_shadow.py'
       - 'tools/ruc/fast_lane_eps_native_values_shadow.py'
       - 'tools/ruc/test_fast_lane_eps_native_values_shadow.py'
+      - 'tools/ruc/fast_lane_dual_native_shadow.py'
+      - 'tools/ruc/test_fast_lane_dual_native_shadow.py'
       - 'ci/github/workflows/mid-ruc-availability-observer.yml'
       - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
@@ -96,7 +98,7 @@ jobs:
           for source in sorted(Path('tools/ruc').glob('*.py')):
               ast.parse(source.read_text(encoding='utf-8'),filename=str(source))
           PY
-          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py test_fast_lane_grib_preflight.py test_real_grib_first_field_shadow.py test_ruc_observation_workflow_contract.py test_ruc_real_grib_interval_report.py test_fast_lane_native_values_shadow.py test_fast_lane_eps_native_values_shadow.py; do
+          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py test_fast_lane_grib_preflight.py test_real_grib_first_field_shadow.py test_ruc_observation_workflow_contract.py test_ruc_real_grib_interval_report.py test_fast_lane_native_values_shadow.py test_fast_lane_eps_native_values_shadow.py test_fast_lane_dual_native_shadow.py; do
             python3 "tools/ruc/$test" -v
           done
           echo 'DWD real-value deterministic/EPS read-only qualification is NOT full DWD authentication, lossless wire/client parity, real 168h history or publication authorization.' >> "$GITHUB_STEP_SUMMARY"
