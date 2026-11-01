@@ -214,8 +214,37 @@ def inventory_record(record,root):
 
             next_gid=codes_grib_new_from_file(stream)
             if next_gid is not None:
-                codes_release(next_gid)
-                raise ValueError('Multiple GRIB messages; require one verified record per file')
+                # Audit the exact offending original headers, never silently
+                # take GRIB message 1 or convert another message's time window.
+                extras=[]
+                truncated=False
+                try:
+                    for i in range(4):
+                        if next_gid is None:break
+                        try:
+                            extras.append({
+                                'discipline':int(codes_get_long(next_gid,'discipline')),
+                                'category':int(codes_get_long(next_gid,'parameterCategory')),
+                                'parameter':int(codes_get_long(next_gid,'parameterNumber')),
+                                'startStep':int(codes_get_long(next_gid,'startStep')),
+                                'endStep':int(codes_get_long(next_gid,'endStep')),
+                                'stepType':str(codes_get(next_gid,'stepType')),
+                                'typeOfLevel':str(codes_get(next_gid,'typeOfLevel')),
+                                'level':int(codes_get_long(next_gid,'level')),
+                            })
+                        finally:codes_release(next_gid)
+                        next_gid=codes_grib_new_from_file(stream)
+                finally:
+                    truncated=next_gid is not None
+                    if next_gid is not None:codes_release(next_gid)
+                raise ValueError('Multiple original GRIB messages need field-specific selection: '+
+                                 json.dumps({'model':record['model'],'field':record['parameter'],
+                                             'run':record['run'],'leadHours':lead,
+                                             'firstIdentity':stats['parameterIdentity'],
+                                             'firstStepType':stats['stepType'],
+                                             'additionalHeaders':extras,
+                                             'moreThanFourExtraMessages':truncated},
+                                            sort_keys=True))
             return {k:record[k] for k in ('model','parameter','run','leadHours')}|{'sourceSha256':record['sha256'],**stats}
         finally:codes_release(gid)
 

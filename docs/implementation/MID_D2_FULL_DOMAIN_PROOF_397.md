@@ -23,3 +23,18 @@ Offizielle Grundlagen: https://ci.codes.wmo.int/grib2/codeflag/4.2/_0-1-52 und h
 ## Erfolgreicher echter RUC-Vollgebiet-Replay 41294275689
 Das zuvor falsch verwendete Pages-Tar wurde durch den normalen vorbereiteten RUC-Datenartefakttyp ersetzt. [Read-only Actions-Run 41294275689](https://github.com/MeteoMartini/MID/actions/runs/41294275689) **completed/success**: originaler RUC-06Z-Lauf 2026-11-01, SHA-gebundener 542040-Punkte-Rasterkern, `deterministic.bin` 364250880 Bytes, Native-Lookup 2298176 Bytes, **497675** gültige Lookupzellen, alle 6 Map-Parameter mit 28 bzw. 27 korrekten Frames, `fullNativeLookupVerified=true`, `full27HourSourceAxis=true`, Kandidatenbytes **83967302**, physische read-only Gesamtprojektion **568569219 von 900000000 Bytes**. Numerischer Beleg und Source-SHAs: GitHub-Actions-Probe/Reportartefakt `13078173707`, originaler Seitenmanifest-SHA `c545f2f877a47064b575d5319af558b94c8933f603c16e1bb0185bc14f55be69`. Kein produktiver Map-Admission-/Cloudflare-Readback, kein Drei-RUC-Laufbeweis. Fehlende Zellen bleiben `null`, nicht 0.
 
+
+## D2-RUC: echte drei aufeinanderfolgende 04Z/05Z/06Z-Quellproben (read-only)
+
+Die erfolgreichen originalen RUC-Publisherläufe [41278599081](https://github.com/MeteoMartini/MID/actions/runs/41278599081), [41281807000](https://github.com/MeteoMartini/MID/actions/runs/41281807000) und [41286412886](https://github.com/MeteoMartini/MID/actions/runs/41286412886) bestätigen durch separaten Pages-/Worker-Readback die tatsächlichen DWD-RUC-Initialisierungen **2026-11-01 04Z, 05Z und 06Z**. Alle drei bereitgestellten Original-Datenartefakte sind im GitHub-API-Katalog noch unverfallen und besitzen eindeutige SHA256-Digests:
+
+- 04Z: Run 41278599081, Artifact 13073147274, sha256:63343e7e3c7a5a1bc5e813db8d6032da43ad33f40b8406faf78b308b9c65c102.
+- 05Z: Run 41281807000, Artifact 13074037562, sha256:554ef25765bdb5902830e93704aed9cee100e54b3371784c487bf16e9ff20847.
+- 06Z: Run 41286412886, Artifact 13076182582, sha256:e942c77cc3ee8d1473277a851a306d4e203857b0070120eb8fc0ffdeb46eff8f.
+
+Der neue `mid-d2-ruc-three-run-qa.yml` wird **nur** bei Branch-Codeänderungen auf dem autorisierten Entwicklungszweig ausgeführt, mit `contents:read/actions:read` und ohne Produktivschreibpfad. Drei unabhängige QA-Jobs prüfen jeweils ursprünglichen Manifest-SHA, exakte stündliche Lauf-ID, den gesamten decodierten DWD-27h-Rasterkern, Original-Null-/NoData-/extremaerhaltende Lookupwerte, sechs Kartenparameter (28/27 Frames), die 12MB/350MB-Mindestbudgetkontrakte und die projizierten 900MB physisch je Lauf. Die Aggregation verlangt genau drei verschiedene, aufeinanderfolgende Läufe, jeweils eindeutigen originalen Manifest-SHA und drei erfolgreich abgeschlossene Jobs. Nur die numerischen Provenienzberichte werden für zwei Tage hochgeladen. Das ist eine echte Rückrechnung, aber **noch kein realer neuer Cloudflare-Produktiv-Admission-/Browser-Export-Beleg** und keine Ersatzabnahme für deterministisches D2.
+
+## Original-D2-GRIB-Multimessage: diagnostischer Fail-closed-Nachweis
+
+Die nächste DWD-Original-QA [41294736972](https://github.com/MeteoMartini/MID/actions/runs/41294736972) hat nach Korrektur des WMO-0/1/52-Parametervertrags 279 native Dateien geladen, aber bei `Multiple GRIB messages; require one verified record per file` korrekt gestoppt. Das bedeutet, mindestens ein unverändertes offizielles DWD-Original enthält mehr als eine GRIB-Nachricht. Das ist kein Beleg für fehlende Gebietsabdeckung oder fehlerhafte Modellwerte. Der nächste Prüfer gibt ausschließlich nach SHA-/WMO-/Geo-Abnahme die zusätzlichen GRIB-Header (Parameter/Level/Run/Start-/EndStep) begrenzt aus und bleibt gesperrt, bis ein eindeutiger meteorologischer Nachrichtenwahlvertrag nachweislich definiert werden kann.
+
