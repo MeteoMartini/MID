@@ -48,7 +48,7 @@ jobs:
         run: |
           last="$(python -c 'from datetime import datetime,timezone,timedelta;t=datetime.now(timezone.utc)-timedelta(hours=5);print(t.replace(hour=t.hour//3*3,minute=0,second=0,microsecond=0).strftime("%Y%m%d%H"))')"
           echo "last=$last" >> "$GITHUB_OUTPUT"
-      - name: Download originals only, SHA-seal exact native field manifest
+      - name: Download original D2 fields with time-invariant CLAT/CLON and immutable SHAs
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "${{ steps.cycle.outputs.last }}" --output "$RUNNER_TEMP/d2-originals" --download
