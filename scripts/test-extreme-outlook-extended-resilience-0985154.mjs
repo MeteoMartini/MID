@@ -30,17 +30,25 @@ assert.ok(client.includes('Der regionale MID-Datendienst und der direkte Ersatza
 assert.ok(client.includes('function validExtendedOutlook(value:unknown)'),'Langfristprodukt muss eigenes Fachschema prüfen.');
 for(const id of ['48-72','72-96','96-120','120-144','144-168'])assert.ok(client.includes(id),'Langfristsegment fehlt: '+id);
 assert.ok(client.includes('validExtendedOutlook(data)'),'Datenquelle muss vollständigen Vorhinweis verifizieren.');
+assert.ok(client.includes('forceRefresh=false')&&client.includes('if(!forceRefresh){'),'Zuverlässige stale-first-Anzeige mit explizit frischem Nutzer-Neuladen fehlt.');
+assert.ok(client.includes('value.periods.length>expected.length')&&client.includes('value.periods.length;index++'),'Teilweise Prognosehorizonte müssen als zusammenhängendes, reales Präfix geprüft werden.');
+assert.ok(workerSource.includes('async function dachExtendedEachBatch(points,visit)'),'Begrenzte Langfrist-Parallelität fehlt.');
+assert.ok(workerSource.includes('const anyComplete=periods.some('),'Fehlende 24h-Gefahrenfenster dürfen nicht als nicht vorhandene Zeitfenster getarnt werden.');
+
 const panel=await read('src/ExtremeWeatherOutlookPanel.tsx');
 assert.ok(panel.includes('isExtremeChunkLoadError(error)')&&panel.includes('window.location.reload()')&&panel.includes('App neu laden'),'Fehlendes JS-Modul muss durch echten Nutzer-Reload statt wiederholten kaputten Import behoben werden.');
 assert.ok(panel.includes('Erneut laden'),'Andere Netzwerkfehler müssen regulär wiederholbar bleiben.');
+assert.ok(panel.includes('Die zuletzt validierten Angaben bleiben sichtbar.')&&panel.includes('Aktualisierung fehlgeschlagen:'),'Nichtblockierende Fehler- und Aktualisierungsmeldung fehlt.');
+assert.ok(!panel.includes('setLoading(true);setData(null);setError'), 'Beim Reload dürfen vorhandene Daten nicht ausgelöscht werden.');
+
 
 const hours=Array.from({length:169},(_,index)=>new Date(Date.UTC(2026,9,3,16+index)).toISOString().slice(0,16));
 const values=value=>Array(169).fill(value);
 function row(){return{elevation:90,hourly:{time:hours,rain:values(0),rain_spread:values(0),wind_gusts_10m:values(20),wind_gusts_10m_spread:values(1),snowfall:values(0),snowfall_spread:values(0),...Object.fromEntries(Array.from({length:39},(_,i)=>['rain','wind_gusts_10m','snowfall'].map(field=>[`${field}_member${String(i+1).padStart(2,'0')}`,values(field==='wind_gusts_10m'?20:0)])).flat())}}}
-const originalFetch=globalThis.fetch,calls=[];
-globalThis.fetch=async(input,init={})=>{const url=new URL(String(input));calls.push(url);if(url.hostname!=='ensemble-api.open-meteo.com')return Response.json({error:true,reason:'unerwartete URL'},{status:404});const count=String(url.searchParams.get('latitude')||'').split(',').filter(Boolean).length;assert.ok(count>0&&count<=16,'Langfrist-Direktabruf überschreitet Batchbudget');assert.equal(url.searchParams.get('models'),'dwd_icon_seamless_eps');assert.equal(url.searchParams.get('forecast_hours'),'169');return Response.json(Array.from({length:count},row))};
+const originalFetch=globalThis.fetch,calls=[];let activeRequests=0,peakRequests=0;
+globalThis.fetch=async(input,init={})=>{const url=new URL(String(input));calls.push(url);if(url.hostname!=='ensemble-api.open-meteo.com')return Response.json({error:true,reason:'unerwartete URL'},{status:404});const count=String(url.searchParams.get('latitude')||'').split(',').filter(Boolean).length;activeRequests++;peakRequests=Math.max(peakRequests,activeRequests);await new Promise(resolve=>setTimeout(resolve,5));activeRequests--;assert.ok(count>0&&count<=16,'Langfrist-Direktabruf überschreitet Batchbudget');assert.equal(url.searchParams.get('models'),'dwd_icon_seamless_eps');assert.equal(url.searchParams.get('forecast_hours'),'169');return Response.json(Array.from({length:count},row))};
 try{
  const executable=direct.replace("import {guardedOpenMeteoFetch} from './openMeteoGuard';","const guardedOpenMeteoFetch=(url,init)=>fetch(url,init);").replace("import {MID_VERSION} from './version';","const MID_VERSION='0.9.85.154';"),module=await import('data:text/javascript;base64,'+Buffer.from(executable).toString('base64')),result=await module.loadDirectDachExtendedExtremeOutlook();
- assert.equal(result.scope,'Mitteleuropa');assert.equal(result.delivery,'browser-direct');assert.equal(result.periods.length,5);assert.ok(result.cells.length>0);assert.equal(result.grid.availablePointCount,result.cells.length);assert.equal(result.quality.ensembleMembers,40);assert.ok(calls.length>=2);assert.ok(calls.every(url=>url.searchParams.get('hourly')==='rain,wind_gusts_10m,snowfall'));
+ assert.equal(result.scope,'Mitteleuropa');assert.equal(result.delivery,'browser-direct');assert.equal(result.periods.length,5);assert.ok(result.cells.length>0);assert.equal(result.grid.availablePointCount,result.cells.length);assert.equal(result.quality.ensembleMembers,40);assert.ok(calls.length>=2);assert.equal(peakRequests,2,'Mehr als zwei parallele ICON-EPS-Langfristabrufe oder unbeabsichtigt sequentielle Abrufe');assert.ok(calls.every(url=>url.searchParams.get('hourly')==='rain,wind_gusts_10m,snowfall'));
 }finally{globalThis.fetch=originalFetch}
 console.log('MID v0.9.85.154: Langfrist-Extremwetter resilient gegen zentrales Open-Meteo-Tageslimit, mit Browser-Direktpfad und Stale-Cache geschützt.');
