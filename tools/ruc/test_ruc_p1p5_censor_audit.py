@@ -45,7 +45,8 @@ def public(hour, delay=40, worker_valid=True):
 
 class P1P5Evidence(unittest.TestCase):
     def audit(self, rows=None, readbacks=None, **kwargs):
-        return analyze(rows or [], readbacks or [], ending_at_utc=END, **kwargs)
+        ending_at_utc = kwargs.pop('ending_at_utc', END)
+        return analyze(rows or [], readbacks or [], ending_at_utc=ending_at_utc, **kwargs)
 
     def test_168_interval_censored_directory_and_public_not_slo(self):
         rows = [row for hour in range(168) for row in
