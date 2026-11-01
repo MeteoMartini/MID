@@ -1,3 +1,13 @@
+## MID v0.9.85.392 · 2026-11-01 · Designaudit #523: WMS-Legenden und transparentes Exportverhalten
+
+- Verifizierte Ausgangsbasis: veröffentlicht v0.9.85.391, `main=mid-stable` SHA `79b3a8cb995f780c863d6f4b1762155f80e09a15`, fünf aktive Rulesets; Source-Gate #41275254803 und Installer #41276158578 erfolgreich.
+- Beiden Kartenansichten gemeinsam genutzte `WmsProviderLegend` erweitert um Originalbild-Link mit 44px-Touchziel, Tastaturfokus und `target=_blank rel=noopener noreferrer`; ausschließlich zuvor allowlist-geprüfte Proxy-URL.
+- Provider-Bildfehler an die konkrete Bild-URL gebunden, nicht an globale Fail-Flags; andere Produkt-/Stilbilder werden nicht durch alte Fehler blockiert.
+- Kennzeichnung der Bitmap als nicht vollständig numerisch barrierefrei und der weiterhin fehlenden qualifizierten WMS-PNG-/SVG-Kartenexporte. Native Raster-/Cloudexporte bleiben unverändert, keine aus Bildpixeln geschätzten Klassen oder amtlichen Warnfarben.
+- Fachlich geprüft: Der bereits bestehende Worker übersetzt `layers/styles` aus der allowlist-geprüften MID-Proxyroute bei `GetLegendGraphic` zu singulärem `layer/style` für DWD/ECCC. Die ECCC-GeoMet-Dokumentation verlangt explizit `STYLE` im Singular. Die bestehende Pflichtregression `test-unified-map-layers-0985167.mjs` erhält positive Schutzassertionen; keine Änderung am produktiven Workerrouting außer erforderlichem Versionsspiegel.
+- Alle 1059 Testeinträge in beiden Baselineinventaren, 38 Contract-Indexeinträge und die ursprüngliche Source-Historie bleiben erhalten. iOS-Build 393; vollständige Source-/Installer-/Worker-/Pages-/Finalize-/Stable-Gates erforderlich.
+- **Nicht abgenommen:** Live-Provider-Readbacks je Layer/Stil, GetMap-basierte WMS-Exportparität, numerische Accessible-Tabellen, echte Browser-/iOS-/VoiceOver-/Viewport-Prüfungen. RUC-Full-Domain-Draft #555 nicht verändert.
+
 ## MID v0.9.85.391 · 2026-11-01 · A3 Originalfarblegenden für Wetterkarten beider Ansichten
 
 ### CI-Korrektur zum .391-Source-Gate
