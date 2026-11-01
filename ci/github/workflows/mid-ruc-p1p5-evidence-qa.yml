@@ -67,23 +67,6 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22.16.0
-      - name: RUC release mirrors and exact canonical workflow sync are clean
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm run sync-version
-          npm run sync:github-workflows
-          git diff --exit-code -- .
-          test -z "$(git status --porcelain)"
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          version=json.loads(Path('package.json').read_text())['version']
-          assert version == '0.9.85.398'
-          assert json.loads(Path('MID_BASELINE.json').read_text())['releaseVersion'] == version
-          assert json.loads(Path('contracts/index.json').read_text())['releaseVersion'] == version
-          assert len(json.loads(Path('MID_BASELINE.json').read_text())['requiredRegressionTests']) >= 1059
-          PY
       - name: Exercise 168-hour censoring and negative observations
         shell: bash
         run: |
@@ -106,3 +89,20 @@ jobs:
           cmp ci/github/workflows/mid-ruc-fast-lane-qualification.yml .github/workflows/mid-ruc-fast-lane-qualification.yml
           cmp ci/github/workflows/mid-ruc-availability-observer.yml .github/workflows/mid-ruc-availability-observer.yml
           echo 'P2 is native offline QA only. No production pointer, release, actual DWD GRIB retrieval or app adoption.' >> "$GITHUB_STEP_SUMMARY"
+      - name: RUC release mirrors and exact canonical workflow sync are clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run sync-version
+          npm run sync:github-workflows
+          git diff --exit-code -- .
+          test -z "$(git status --porcelain)"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          version=json.loads(Path('package.json').read_text())['version']
+          assert version == '0.9.85.398'
+          assert json.loads(Path('MID_BASELINE.json').read_text())['releaseVersion'] == version
+          assert json.loads(Path('contracts/index.json').read_text())['releaseVersion'] == version
+          assert len(json.loads(Path('MID_BASELINE.json').read_text())['requiredRegressionTests']) >= 1059
+          PY
