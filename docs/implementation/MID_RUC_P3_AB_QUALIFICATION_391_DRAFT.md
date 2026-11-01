@@ -21,3 +21,11 @@ Basis: freigegebener \`mid-stable\`-Commit \`79b3a8cb995f780c863d6f4b1762155f80e
 
 ## Tests und Release
 Lokal \`python -m unittest -v test_ruc_p3_ab_qualification.py\`: **10/10 erfolgreich**. Das ist eine gezielte Offline-Prüfung ohne echte DWD-/GRIB-Dateien oder GitHub-Release-Gates. Draft erhält keine Versionshebung, keinen automatischen Merge und keinen produktiven Publisher. Vor Integration neue Stable-SHA-/Versions-/Vertrags-/Parallel-PR-Prüfung, Versionsspiegel und alle 1.059 Pflichtregressionen; der allein zulässige Freigabepfad ist Source-PR-Gate → SHA-Bot → Server-ZIP → Installer → Worker/Pages → Stable-Promotion.
+
+
+## P5 Readback-Präzisierung (nur diagnostisch)
+Zwei echte Observer-Artefakte aus GitHub-Runs #41251700562 und #41264383379 zeigen öffentliches Pages-Manifest mit gültiger Struktur, gleiche Worker-/Pages-Run-ID, aber \`workerValid=false\` bei beobachtetem Run-Alter 255,567 bzw. 255,778 min. Das liegt oberhalb der bestehenden vierstündigen RUC-Freshness-Grenze; die Antwort des Worker-Health-Endpunkts wurde jedoch nicht roh mitgespeichert. Daher ist \`fresh=false\` plausibel, aber nicht als direkte Worker-Payload-Tatsache bestätigt.
+
+Die read-only Funktion \`ruc_e2e_readback.inspect_readback\` liefert zusätzlich \`workerReadbackIssue\`: z. B. gezielt \`worker status not verified: fresh\` statt eines unbestimmten False. Die bestehende Gate-Entscheidung, URL-/Schema-/Run-/Objektprüfung, NoData-Semantik und \`productionSloAuthorized=false\` bleiben unverändert. Zwei neue Negativtests erzwingen die präzise, nicht von untrusted Payloadtext abgeleitete Diagnose.
+
+Ein vollständiger RUC-Job #41273392587 (01.11.2026) meldete real 1.014 s \`calculate\`, 623 s \`prepare\`, 106 s \`publish\`: der gebündelte Schritt Download+Decode allein 945 s; Wire-/Pages-Free-Prüfung 248 s und verlustfreie Python-/JS-Qualifikation 262 s. **Das sind reale GitHub-Jobmessungen, keine vergleichbaren A/B-Eingangs-SHAs oder separate Download-/Dekodierzeiten.** Ein echter P3-Vergleich erfordert die Trennung der Download-/Decode-Messung und authentisierte identische Rohdaten.
