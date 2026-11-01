@@ -21,6 +21,20 @@ context.__mock=async input=>{const url=new URL(input);assert.equal(url.searchPar
 vm.runInContext('dachExtremeFetchJson=__mock',context);
 const result=await vm.runInContext('dachExtendedExtremeOutlookData()',context);assert.equal(result.periods.length,5);
 for(const cell of result.cells){const last=cell.periods['144-168'];assert.ok(last.probabilityFields.rain);assert.ok(last.probabilityFields.snow);assert.equal(last.probabilityFields.wind,undefined);assert.equal(last.hazards.wind,undefined);assert.equal(last.hazards.thunderstorm,undefined);assert.equal(last.hazards.ice,undefined)}
+
+const tailMissing=structuredClone(fixture);
+for(const [key,values] of Object.entries(tailMissing.hourly))if(key!=='time'&&Array.isArray(values))tailMissing.hourly[key]=values.map((value,index)=>index>=120?null:value);
+context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>structuredClone(tailMissing));
+vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+const missingTail=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+assert.equal(missingTail.periods.length,5,'Reale, aber unvollständige 24h-Zeitfenster bleiben sichtbar.');
+assert.ok(missingTail.cells.every(cell=>Object.keys(cell.periods['120-144'].probabilityFields).length===0&&Object.keys(cell.periods['144-168'].probabilityFields).length===0),'Fehlende Tage 6/7 müssen explizit Missing, niemals Nullwahrscheinlichkeit, bleiben.');
+const truncated=structuredClone(fixture);
+for(const [key,values] of Object.entries(truncated.hourly))if(Array.isArray(values))truncated.hourly[key]=values.slice(0,120);
+context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>structuredClone(truncated));
+vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+const shorter=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+assert.deepEqual(Array.from(shorter.periods,p=>p.id),['48-72','72-96','96-120'],'Ein kürzerer Original-Lauf darf nur real vorhandene zusammenhängende Tage anzeigen.');
 context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>({hourly:{time:fixture.hourly.time,rain:Array(169).fill(null)}}));
 vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
 await assert.rejects(vm.runInContext('dachExtendedExtremeOutlookData()',context),/nicht bestimmbar/);
