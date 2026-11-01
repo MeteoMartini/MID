@@ -31,6 +31,10 @@ assert.ok(client.includes('function validExtendedOutlook(value:unknown)'),'Langf
 for(const id of ['48-72','72-96','96-120','120-144','144-168'])assert.ok(client.includes(id),'Langfristsegment fehlt: '+id);
 assert.ok(client.includes('validExtendedOutlook(data)'),'Datenquelle muss vollständigen Vorhinweis verifizieren.');
 assert.ok(client.includes('forceRefresh=false')&&client.includes('if(!forceRefresh){'),'Zuverlässige stale-first-Anzeige mit explizit frischem Nutzer-Neuladen fehlt.');
+assert.ok(client.includes('age=Date.now()-Date.parse(value.checkedAt)')&&client.includes('age<=maxAgeMs'),'Local cache age must be measured from actual model calculation, not a fresh re-storage timestamp.');
+assert.ok(client.includes('if(fresh&&!forceRefresh&&!fresh.stale)'),'Stored stale Worker data must never become fresh by cache insertion.');
+assert.ok(client.includes('data.stale||age>EXTENDED_FRESH_MS'),'Worker-provided prior model run must remain visibly stale.');
+
 assert.ok(client.includes('value.periods.length>expected.length')&&client.includes('value.periods.length;index++'),'Teilweise Prognosehorizonte müssen als zusammenhängendes, reales Präfix geprüft werden.');
 assert.ok(workerSource.includes('async function dachExtendedEachBatch(points,visit)'),'Begrenzte Langfrist-Parallelität fehlt.');
 assert.ok(workerSource.includes('const anyComplete=periods.some('),'Fehlende 24h-Gefahrenfenster dürfen nicht als nicht vorhandene Zeitfenster getarnt werden.');
