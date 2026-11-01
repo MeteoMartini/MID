@@ -58,6 +58,7 @@ jobs:
           python tools/ruc/test_ruc_e2e_readback.py
           python tools/ruc/test_ruc_weekly_e2e_observations.py
           python tools/ruc/test_ruc_observer_execution_status.py
+          python tools/ruc/test_ruc_observer_release_drift_workflow.py
       - name: DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten
         if: steps.lineage.outputs.ready == 'true'
         shell: bash
