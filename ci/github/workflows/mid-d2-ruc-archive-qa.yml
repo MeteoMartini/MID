@@ -1,0 +1,113 @@
+name: MID D2 RUC full-lookup archive reconstruction (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.406-d2-native-full-domain-draft
+    paths:
+      - '.github/workflows/mid-d2-ruc-archive-qa.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-d2-ruc-real-archive-qa
+  cancel-in-progress: false
+jobs:
+  reconstruct:
+    name: Full native RUC map replay from immutable .394 sealed-data artifact (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Load the exact code candidate without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read-only verify current Stable SHA and pinned original RUC artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$main" = "$stable"
+          test "$stable" = 8cf0c99ecc0a4c6502c188a9ca108466b53bb128
+          metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13076182582")"
+          test "$(jq -r '.id' <<< "$metadata")" = 13076182582
+          test "$(jq -r '.name' <<< "$metadata")" = mid-ruc-data-41286412886-1
+          test "$(jq -r '.digest' <<< "$metadata")" = sha256:e942c77cc3ee8d1473277a851a306d4e203857b0070120eb8fc0ffdeb46eff8f
+          test "$(jq -r '.expired' <<< "$metadata")" = false
+          echo "Verified immutable original RUC published snapshot provenance (no bytes logged)."
+      - name: Install existing native ecCodes/Python QA dependencies
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install the existing fixed-range RUC QA requirement set
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Download the exact immutable artifact with GitHub-attested digest verification
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          run-id: 41286412886
+          artifact-ids: 13076182582
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: ${{ runner.temp }}/ruc-native-original
+      - name: Repackage verified artifacts without path-prefix changes
+        id: archive
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/ruc-native-original"
+          test -d "$dir"
+          mapfile -d '' manifests < <(find "$dir" -type f -name latest.json -print0)
+          if [ "${#manifests[@]}" -ne 1 ]; then
+            echo "::error::Sealed RUC data artifact must contain exactly one latest.json; download may have wrong artifact format"
+            find "$dir" -maxdepth 3 -type f -printf '%P\n' | LC_ALL=C sort | head -n 12
+            exit 1
+          fi
+          root="$(dirname "${manifests[0]}")"
+          test -s "$root/latest.json"
+          # GitHub artifact archives can retain a parent run-directory.
+          # Repackage only the unique manifest root; every source object is
+          # subsequently validated against this manifest's SHA inventory.
+          (cd "$root" && find . -type f -printf '%P\n' | LC_ALL=C sort | zip -q -0 "$RUNNER_TEMP/ruc-original.zip" -@)
+          test -s "$RUNNER_TEMP/ruc-original.zip"
+          digest="$(sha256sum "$RUNNER_TEMP/ruc-original.zip" | cut -d' ' -f1)"
+          echo "sha=$digest" >> "$GITHUB_OUTPUT"
+      - name: Decode all original 27h source cells and audit six complete map fields
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_map_archive_probe.py \
+            --archive "$RUNNER_TEMP/ruc-original.zip" --sha256 "${{ steps.archive.outputs.sha }}" \
+            --output "$RUNNER_TEMP/ruc-real-full-domain"
+          test -s "$RUNNER_TEMP/ruc-real-full-domain/report.json"
+      - name: Check original source-byte budget, actual candidate and 900 MB admission projection
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          root=json.loads(next((temp/'ruc-native-original').rglob('latest.json')).read_bytes())
+          r=json.loads((temp/'ruc-real-full-domain/report.json').read_bytes())
+          assert root['schema']=='mid.dwd.ruc.grid.v2' and root['storageProfile']=='pages-lossless-v1'
+          assert r['schema']=='mid.ruc.archive-map-probe.v1'
+          assert r['fullNativeLookupVerified'] is True and r['full27HourSourceAxis'] is True
+          assert r['nativePoints']==542040 and len(r['products'])==6
+          assert root['pages']['budgetBytes']==900_000_000
+          projected=root['pages']['publishedBytes']+r['mapBytes']+len(json.dumps(root).encode())
+          assert projected<900_000_000
+          print('Read-only RUC original map candidate validated; projection bytes:',projected)
+          PY
+      - name: Retain only numeric/source provenance report, never raw snapshot or field maps
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-ruc-full-domain-source-evidence
+          if-no-files-found: ignore
+          retention-days: 2
+          path: ${{ runner.temp }}/ruc-real-full-domain/report.json
