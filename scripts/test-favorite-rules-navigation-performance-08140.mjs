@@ -46,12 +46,13 @@ const extract=(name)=>{
  assert.ok(end>start,'Original source function boundary missing: '+name);
  return app.slice(start,end+2);
 };
+const originalRuleDefaults=app.split('\n').find(line=>line.startsWith('const DEFAULT_FAVORITE_RULES:FavoriteRules='));
+assert.ok(originalRuleDefaults&&originalRuleDefaults.endsWith(';'),'Real favorite threshold defaults required');
 const executable=[
- extract('finiteProvidedNumber'),extract('legacyFavoriteRulesEnabled'),extract('favoriteRuleAlerts'),
+ originalRuleDefaults,extract('finiteProvidedNumber'),extract('legacyFavoriteRulesEnabled'),extract('favoriteRuleAlerts'),
  'globalThis.__audit={legacyFavoriteRulesEnabled,favoriteRuleAlerts};'
 ].join('\n');
 const sandbox={
- DEFAULT_FAVORITE_RULES:{rainProbability:50,gustKt:35,frostC:0,heatC:30},
  currentIndex:()=>0,
 };
 vm.runInNewContext(transformSync(executable,{loader:'ts',format:'iife',target:'es2022'}).code,sandbox);

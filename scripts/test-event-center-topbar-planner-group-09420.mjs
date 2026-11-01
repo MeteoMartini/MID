@@ -41,11 +41,10 @@ const extract=(name)=>{
  assert.ok(end>start,'Source function boundary missing: '+name);
  return app.slice(start,end+2);
 };
-const source=[extract('finiteProvidedNumber'),extract('eventCenterMetricNumber'),extract('normalizeWaterConfig'),'globalThis.__audit={finiteProvidedNumber,eventCenterMetricNumber,normalizeWaterConfig};'].join('\n');
-const sandbox={
- formatDecimal:(value,digits)=>Number(value).toFixed(digits),
- defaultWaterConfig:()=>({enabled:false,waterType:'auto',activity:'general',maxWaveHeight:2,maxGustKt:35,minWaterTemperature:12}),
-};
+const originalWaterDefaults=app.split('\n').find(line=>line.startsWith('function defaultWaterConfig('));
+assert.ok(originalWaterDefaults&&originalWaterDefaults.endsWith('}'),'Real water defaults must be tested, never mocked');
+const source=[extract('finiteProvidedNumber'),originalWaterDefaults,extract('eventCenterMetricNumber'),extract('normalizeWaterConfig'),'globalThis.__audit={finiteProvidedNumber,eventCenterMetricNumber,normalizeWaterConfig};'].join('\n');
+const sandbox={formatDecimal:(value,digits)=>Number(value).toFixed(digits)};
 vm.runInNewContext(transformSync(source,{loader:'ts',format:'iife',target:'es2022'}).code,sandbox);
 const {finiteProvidedNumber,eventCenterMetricNumber,normalizeWaterConfig}=sandbox.__audit;
 for(const value of [null,undefined,'', '   ',false,Number.NaN,Number.POSITIVE_INFINITY]){
@@ -56,9 +55,9 @@ assert.equal(eventCenterMetricNumber(0),'0','Real zero is still a measured/model
 assert.equal(eventCenterMetricNumber(12.34,1),'12.3');
 assert.equal(finiteProvidedNumber('0'),0,'Legacy numeric string zero is intentional');
 const water=normalizeWaterConfig({enabled:true,maxWaveHeight:null,maxGustKt:'',minWaterTemperature:false});
-assert.equal(water.maxWaveHeight,2,'Missing persisted wave threshold uses default, never minimum');
-assert.equal(water.maxGustKt,35,'Empty persisted wind threshold uses default, never minimum');
-assert.equal(water.minWaterTemperature,12,'Invalid boolean stored temperature uses default');
+assert.equal(water.maxWaveHeight,1.5,'Missing persisted wave threshold uses default, never minimum');
+assert.equal(water.maxGustKt,28,'Empty persisted wind threshold uses default, never minimum');
+assert.equal(water.minWaterTemperature,15,'Invalid boolean stored temperature uses default');
 assert.equal(normalizeWaterConfig({maxWaveHeight:0,maxGustKt:0}).maxWaveHeight,.1,'Explicit real zero still follows the documented lower safety bound');
 assert.ok(app.includes('finiteProvidedNumber(summary.uvMax)!==null'),'Missing UV index must not become UVI 0 in the header');
 assert.ok(app.includes('role="heading" aria-level={2}'),'Drawer heading must announce correct section hierarchy');
