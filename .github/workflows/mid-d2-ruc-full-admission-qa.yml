@@ -2,7 +2,7 @@ name: MID D2 RUC actual native full-domain admission on isolated original (read-
 on:
   push:
     branches:
-      - chatgpt/v0.9.85.406-d2-native-full-domain-draft
+      - chatgpt/v0.9.85.406-full-domain-integration-from405
     paths:
       - '.github/workflows/mid-d2-ruc-full-admission-qa.yml'
       - 'tools/ruc/ruc_map_archive_probe.py'
@@ -40,7 +40,7 @@ jobs:
           stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
           main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
           test "$main" = "$stable"
-          test "$stable" = 8cf0c99ecc0a4c6502c188a9ca108466b53bb128
+          test "$stable" = 6410cf049f097b1d0518beac601e1baa08583f4a
           metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13076182582")"
           test "$(jq -r '.id' <<< "$metadata")" = 13076182582
           test "$(jq -r '.name' <<< "$metadata")" = mid-ruc-data-41286412886-1
