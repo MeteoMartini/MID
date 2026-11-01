@@ -1,3 +1,10 @@
+# MID v0.9.85.397 – RUC-Frische transparenter prüfen und native Kurzfristdaten vorbereiten
+
+- **Nachvollziehbare RUC-Messungen:** Jede stündliche bzw. viertelstündliche DWD-Beobachterausführung dokumentiert nun separat, ob tatsächlich Verzeichnisdaten erfasst wurden, ob Pages/Worker einen geprüften Lauf zeigen oder ob die Messung wegen eines laufenden MID-Releases ausgesetzt wurde. Ein erfolgreicher GitHub-Job ohne Messwerte zählt nicht mehr als Datenbeleg.
+- **Frischere Kurzfristdaten vorbereiten:** MID erhält eine getrennte, zunächst **inaktive** Qualifikation für originale DWD-RUC-Daten der ersten sechs Stunden. Sie prüft native Stundenwerte, echte 5-Minuten-Niederschlags- und 15-Minuten-Konvektionsschritte sowie Quelle, Prüfsummen, Gitter, Einheiten, Datenlücken und Akkumulationszeiten. Das vollständige 27h-/20-EPS-Produkt bleibt unverändert.
+- **Veröffentlichung bewusst abgesichert:** Die neue Fast-Lane lädt nicht automatisch mehr Daten, aktiviert keine App-Ansicht und schreibt keinen produktiven Datenpointer. Ein echter DWD-Probelauf muss nach der Quellfreigabe zusätzlich erfolgreich sein, bevor ein separater Fast-Publisher und seine Verbraucher überhaupt freigegeben werden können.
+- **Qualitätsnachweise:** Erweiterte Prüfungen erkennen unvollständige Datenserien, doppelte oder ungültige Auslöser, Release-SHA-Drift und nicht zugeordnete Laufzeiten. Es wird weder ein 60-Minuten-Frischeversprechen noch eine neue meteorologische Vorhersagegenauigkeit behauptet.
+
 # MID v0.9.85.396 – Original-WMS-Kartenexport und dauerhaft gespeicherte Widget-/Kartenansichten
 
 - Die klassischen und vereinheitlichten Modellkarten können den bestätigten DWD-/ECCC-WMS-Wetterausschnitt zusammen mit der originalen Anbieterlegende als **PNG** exportieren. Das Bild nennt Modelllauf, gültigen Termin, Niveau, Stil und Quelle. Basiskarte, Radar, Satellit und amtliche Warnungen sind nicht Teil dieses Original-WMS-Bildes.
