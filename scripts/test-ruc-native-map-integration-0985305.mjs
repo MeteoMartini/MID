@@ -45,6 +45,9 @@ try{
  assert(standalone.includes('<MapFitBounds south={field.lats[0]} west={field.lons[0]} north={field.lats.at(-1)!} east={field.lons.at(-1)!}'), 'standalone native map must fit real raster extent');
  assert(standalone.includes('places.filter(p=>field&&p.latitude>=field.lats[0]'), 'only real in-grid favorites may receive markers');
  assert(!standalone.includes('p.latitude>=47&&p.latitude<=55.2'), 'historic fixed Germany crop must not filter native markers');
+ assert(standalone.includes("field?.modelId==='icon-d2-ruc'"), 'native RUC field must keep separate data provenance');
+ assert(standalone.includes('source={sourceLabel}'), 'map probe and raster must share source provenance');
+ assert(standalone.includes('kein natives Vollgebiet'), 'deterministic regular-grid path may not be labelled native full domain');
  assert(standalone.includes('minZoom={2.5}'), 'full native domain must remain fit-to-bounds on narrow mobiles');
  console.log('RUC integration: UTC/freshness/complete axes/SHA/units/NoData/dry zero/catalog/persistence/export passed');
 }finally{await rm(dir,{recursive:true,force:true})}
