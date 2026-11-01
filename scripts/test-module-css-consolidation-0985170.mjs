@@ -13,12 +13,67 @@ function declarations(file){const source=read(file),ast=ts.createSourceFile(file
 // Require each reviewed new expression, then restore only that expression on
 // the historical comparison copy. Every calculation, renderer and other byte
 // remains pinned to the existing golden; the fixture hashes are not rewritten.
+// .396 reviewed widget behavior: only the storage subscription and ten actual
+// user actions may differ from the approved historical Widget renderer.
+// Assert each exact current expression, restore it on the comparison copy,
+// and KEEP the old fixture SHA/renderer/CSS golden unchanged.
+const approvedWidgetStorageWiring=[
+ [
+  "useEffect(()=>{if(urlExport)return;\n  const sync=()=>{const s=storedWidgetSettings();setN(s.days);setDark(s.dark);setShowWind(s.showWind);setShowRain(s.showRain);setShowSkybar(s.showSkybar);setShowSunshine(s.showSunshine);setShowHazards(s.showHazards);setEcmwfTemperatureColors(s.ecmwfTemperatureColors);setView(s.view);setEnsembleMetric(s.ensembleMetric)};\n  const onStorage=(event:StorageEvent)=>{if(event.key===WIDGET_SETTINGS_STORAGE_KEY||event.key===null)sync()};\n  window.addEventListener('storage',onStorage);window.addEventListener(WIDGET_SETTINGS_CHANGED,sync);\n  return()=>{window.removeEventListener('storage',onStorage);window.removeEventListener(WIDGET_SETTINGS_CHANGED,sync)};\n },[urlExport]);\n const persist=(patch:Partial<WidgetStoredSettings>)=>{if(!urlExport)patchStoredWidgetSettings(patch)};\n ",
+  "useEffect(()=>{if(urlExport)return;try{localStorage.setItem(WIDGET_SETTINGS_STORAGE_KEY,JSON.stringify({schema:5,days:n,dark,showWind,showRain,showSkybar,showSunshine,showHazards,ecmwfTemperatureColors,view,ensembleMetric} satisfies WidgetStoredSettings))}catch{}},[n,dark,showWind,showRain,showSkybar,showSunshine,showHazards,ecmwfTemperatureColors,view,ensembleMetric,urlExport]);\n "
+ ],
+ [
+  "onChange={e=>{const days=Number(e.target.value) as WidgetDayCount;setN(days);persist({days})}}",
+  "onChange={e=>setN(Number(e.target.value) as WidgetDayCount)}"
+ ],
+ [
+  "onChange={e=>{const view=e.target.value as WidgetView;setView(view);persist({view})}}",
+  "onChange={e=>setView(e.target.value as WidgetView)}"
+ ],
+ [
+  "onChange={e=>{const ensembleMetric=e.target.value as EnsembleDisplayMetric;setEnsembleMetric(ensembleMetric);persist({ensembleMetric})}}",
+  "onChange={e=>setEnsembleMetric(e.target.value as EnsembleDisplayMetric)}"
+ ],
+ [
+  "onChange={e=>{setDark(e.target.checked);persist({dark:e.target.checked})}}",
+  "onChange={e=>setDark(e.target.checked)}"
+ ],
+ [
+  "onChange={e=>{setShowWind(e.target.checked);persist({showWind:e.target.checked})}}",
+  "onChange={e=>setShowWind(e.target.checked)}"
+ ],
+ [
+  "onChange={e=>{setShowRain(e.target.checked);persist({showRain:e.target.checked})}}",
+  "onChange={e=>setShowRain(e.target.checked)}"
+ ],
+ [
+  "onChange={e=>{setShowSunshine(e.target.checked);persist({showSunshine:e.target.checked})}}",
+  "onChange={e=>setShowSunshine(e.target.checked)}"
+ ],
+ [
+  "onChange={e=>{setShowSkybar(e.target.checked);persist({showSkybar:e.target.checked})}}",
+  "onChange={e=>setShowSkybar(e.target.checked)}"
+ ],
+ [
+  "onChange={e=>{setShowHazards(e.target.checked);persist({showHazards:e.target.checked})}}",
+  "onChange={e=>setShowHazards(e.target.checked)}"
+ ],
+ [
+  "onChange={e=>{setEcmwfTemperatureColors(e.target.checked);persist({ecmwfTemperatureColors:e.target.checked})}}",
+  "onChange={e=>setEcmwfTemperatureColors(e.target.checked)}"
+ ]
+];
 const displayWiring=new Map([
  ['MountainZoneAnalysis',[["useDisplayPreference('MountainWeather.zoneAnalysis.open',false,displayBoolean)","useState(false)"]]],
  ['MountainSnowLineTrend',[["useDisplayPreference('MountainWeather.snowLine.open',false,displayBoolean)","useState(false)"],["useDisplayPreference<MountainSnowLineHorizon>('MountainWeather.snowLine.horizon',3,displayChoice(1,3,7,14))","useState<MountainSnowLineHorizon>(3)"]]],
  ['MountainForecastOverview',[["useDisplayPreference<MountainLevelRole>('MountainWeather.forecast.role','summit',displayChoice('valley','middle','summit'))","useState<MountainLevelRole>('summit')"],[" useEffect(()=>{setExpandedDate(null)},[selectedRole]);"," useEffect(()=>{if(level&&level.role!==selectedRole)setSelectedRole(level.role)},[level,selectedRole]);\n useEffect(()=>{setExpandedDate(null)},[selectedRole]);"]]]
 ]);
 function historicalDisplaySource(name,source){
+ if(name==='Widget')for(const [current,historical] of approvedWidgetStorageWiring){
+  assert.equal(source.split(current).length-1,1,'Widget v.396 reviewed storage expression must occur exactly once: '+current.slice(0,60));
+  source=source.replace(current,historical);
+ }
+
  for(const [current,historical] of displayWiring.get(name)||[]){assert.equal(source.split(current).length-1,1,`${name}: reviewed persistent expression must occur exactly once`);source=source.replace(current,historical)}
  return source;
 }
