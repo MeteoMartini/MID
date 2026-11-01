@@ -18,7 +18,7 @@ import tempfile
 from urllib.parse import urlparse
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
-from ruc_observer_artifact_bundle import read_artifact, bundle, utc
+from ruc_observer_artifact_bundle import read_artifact, bundle, utc, json_strict
 
 REPO = 'MeteoMartini/MID'
 WORKFLOW = 'mid-ruc-availability-observer.yml'
@@ -72,7 +72,7 @@ class GitHubReadOnly:
             raise ValueError('GitHub response missing or over budget')
         if binary:
             return raw
-        return json.loads(raw)
+        return json_strict(raw)
 
     def list_runs(self, page):
         return self.get(f'/repos/{REPO}/actions/workflows/{WORKFLOW}/runs?per_page=100&page={page}')
@@ -175,6 +175,8 @@ def collect(client, *, cutoff_utc, output_dir):
                 artid = art.get('id')
                 if type(artid) is not int or artid <= 0 or type(size) is not int or size < 1 or size > MAX_ZIP_BYTES:
                     raise ValueError('invalid original GitHub artifact size or ID')
+                if type(art.get('expired')) is not bool:
+                    raise ValueError('artifact expiration status unknown')
                 if art.get('expired') is True:
                     result['artifactState'] = 'expired'
                 elif run['status'] != 'completed':
@@ -194,6 +196,8 @@ def collect(client, *, cutoff_utc, output_dir):
                     decoded = read_artifact(zip_path)
                     if decoded['runId'] != run_id or decoded['runAttempt'] != attempt:
                         raise ValueError('downloaded observer identity mismatch')
+                    if decoded.get('stableSha') and decoded['stableSha'] != run['headSha']:
+                        raise ValueError('observer status SHA differs from authenticated GitHub workflow head')
                     result['archiveSha256'] = digest
                     result['archiveDigestVerified'] = announced is not None
                     result['artifactState'] = decoded['kind']

@@ -84,6 +84,13 @@ class Collector(unittest.TestCase):
         self.assertEqual(report['publicReadbacks'],0)
         self.assertEqual(report['observerRunRecords'][0]['artifactState'],'missing-or-unavailable')
 
+    def test_github_run_head_and_zip_release_source_must_agree(self):
+        raw=zipped()
+        client=Reader(runs=[run(head_sha='f'*40)],artifacts={42:[artifact(data=raw)]},zips={111:raw})
+        with self.assertRaisesRegex(ValueError,'observer status SHA differs'):
+            self.check(client)
+        self.assertFalse((self.root/'report').exists())
+
     def test_api_tampered_digest_rejects_atomically(self):
         raw=zipped(); bad=artifact(data=raw,digest='sha256:'+'f'*64)
         with self.assertRaisesRegex(ValueError,'SHA-256 mismatch'):
