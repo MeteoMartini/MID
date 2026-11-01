@@ -1,0 +1,76 @@
+name: MID D2 original native QA (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.406-d2-native-full-domain-draft
+    paths:
+      - '.github/workflows/mid-d2-native-original-audit.yml'
+      - 'tools/ruc/pilot_dwd_domain_inventory.py'
+      - 'tools/ruc/test_dwd_domain_inventory.py'
+permissions:
+  contents: read
+concurrency:
+  group: mid-d2-native-original-qa
+  cancel-in-progress: false
+jobs:
+  qualify:
+    name: Three original DWD ICON-D2 cycles with GRIB/bitmap/WMO parity (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Load SHA-bound MID candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Reject any source, Stable or Main drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = 8cf0c99ecc0a4c6502c188a9ca108466b53bb128
+      - name: Python 3.12 for native GRIB QA
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Use pinned-range current MID RUC QA requirements
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Fail-closed D2 original-grid, source-schema and mask regression gates
+        run: |
+          cd tools/ruc
+          python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate
+      - name: Select aged three-hourly source cycles
+        id: cycle
+        run: |
+          last="$(python -c 'from datetime import datetime,timezone,timedelta;t=datetime.now(timezone.utc)-timedelta(hours=5);print(t.replace(hour=t.hour//3*3,minute=0,second=0,microsecond=0).strftime("%Y%m%d%H"))')"
+          echo "last=$last" >> "$GITHUB_OUTPUT"
+      - name: Download original D2 fields with time-invariant CLAT/CLON and immutable SHAs
+        timeout-minutes: 15
+        run: |
+          python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "${{ steps.cycle.outputs.last }}" --output "$RUNNER_TEMP/d2-originals" --download
+      - name: Three original DWD cycles – minute/hour GRIB validity and strict bitmap admission (fail-closed)
+        timeout-minutes: 15
+        run: |
+          python tools/ruc/pilot_dwd_domain_inventory.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" > "$RUNNER_TEMP/d2-originals/original-grib-inventory.json"
+      - name: Produce no-publish native scalar probe from originals
+        timeout-minutes: 7
+        run: |
+          python tools/ruc/pilot_icon_d2_native_scalar.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-scalar" --field t_2m --lead 6
+      - name: Upload only small provenance reports, not provider GRIB files
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-native-original-qa
+          retention-days: 2
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/d2-originals/catalog.json
+            ${{ runner.temp }}/d2-originals/inventory-input.json
+            ${{ runner.temp }}/d2-originals/original-grib-inventory.json
+            ${{ runner.temp }}/d2-native-scalar/readme.json

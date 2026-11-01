@@ -1,5 +1,6 @@
 import copy,hashlib,json,tempfile,unittest,zipfile
 from pathlib import Path
+from unittest.mock import patch
 from lossless_codec_pilot import encode_candidate
 from ruc_map_archive_probe import replay,digest
 import test_ruc_map_candidate as fixtures
@@ -18,6 +19,18 @@ class ArchiveMapProbeTests(unittest.TestCase):
    root=Path(t);archive,source=self.fixture(root);sha=digest(archive);report=replay(archive,sha,root/'result')
    self.assertEqual(digest(archive),sha);self.assertFalse(report['productionEnabled']);self.assertEqual(report['nativePoints'],9)
    self.assertEqual((root/'result/source/deterministic.bin').read_bytes(),(source/'deterministic.bin').read_bytes());self.assertEqual(report['products']['precipitation'],14)
+   self.assertTrue(report['fullNativeLookupVerified']);self.assertFalse(report['full27HourSourceAxis']);self.assertEqual(report['nativeLookupCoveredCells'],8)
+ def test_archive_replay_rejects_missing_source_mask_without_publishing(self):
+  with tempfile.TemporaryDirectory() as t:
+   root=Path(t);archive,_=self.fixture(root)
+   with patch('ruc_map_archive_probe.audit_full_domain',return_value={
+     'allFramesCoverKnownNativeLookup':False,
+     'allPublishedFrameValuesMatchNativeSource':True,
+     'allSourceForecastHoursPresent':True,
+     'products':[{}]*6
+   }),self.assertRaisesRegex(ValueError,'complete native map lookup'):
+    replay(archive,digest(archive),root/'result')
+   self.assertFalse((root/'result').exists())
  def test_corrupt_archive_sha(self):
   with tempfile.TemporaryDirectory() as t:
    root=Path(t);archive,_=self.fixture(root)

@@ -25,6 +25,10 @@ function pinApprovedActions(source){
 
 
 export const managedFiles=[
+ ['workflows/mid-d2-native-original-audit.yml','workflows/mid-d2-native-original-audit.yml'],
+ ['workflows/mid-d2-ruc-three-run-qa.yml','workflows/mid-d2-ruc-three-run-qa.yml'],
+ ['workflows/mid-d2-ruc-full-admission-qa.yml','workflows/mid-d2-ruc-full-admission-qa.yml'],
+ ['workflows/mid-d2-ruc-archive-qa.yml','workflows/mid-d2-ruc-archive-qa.yml'],
  ['workflows/build-parity-qualification.yml','workflows/build-parity-qualification.yml'],
  ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
