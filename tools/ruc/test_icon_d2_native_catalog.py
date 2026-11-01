@@ -25,6 +25,16 @@ class NativeD2CatalogTests(unittest.TestCase):
   for bad in ("2026110101","2026110124","2026110106Z","20261101","2026-11-01T06"):
    with self.subTest(bad=bad),self.assertRaises(ValueError):parse_last_run(bad)
 
+ def test_time_invariant_native_geometry_uses_sha_grid_identity_not_run_filename(self):
+  # Official DWD time-invariant CLAT/CLON can be older than forecast cycles.
+  old="icon-d2_germany_icosahedral_time-invariant_2026031306_000_0_clat.grib2.bz2"
+  self.assertEqual(select_coordinate([old],"clat","2026110106"),old)
+  with self.assertRaisesRegex(ValueError,"from future"):
+   select_coordinate(["icon-d2_germany_icosahedral_time-invariant_2026120106_000_0_clat.grib2.bz2"],"clat","2026110106")
+  with self.assertRaisesRegex(ValueError,"not uniquely"):
+   select_coordinate([old,"icon-d2_germany_icosahedral_time-invariant_2026020106_000_0_clat.grib2.bz2"],"clat","2026110106")
+  with self.assertRaisesRegex(ValueError,"not uniquely"):
+   select_coordinate([old.replace("icosahedral","regular-lat-lon")],"clat","2026110106")
  def test_complete_native_directory_plan_never_silent_germany_regular_fallback(self):
   report=catalogue("2026110106",html_for)
   self.assertFalse(report["productionApproved"])

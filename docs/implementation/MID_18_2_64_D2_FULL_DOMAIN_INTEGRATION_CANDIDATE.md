@@ -23,3 +23,7 @@ Der DWD bietet originale `icon-d2_germany_icosahedral`-GRIB2-Felder und getrennt
 ## Read-only original evidence workflow initial diagnostic (#41291004550)
 
 The first GitHub QA run completed **failure before any original DWD GRIB download**: six legacy-geometry source-fixture errors in `tools/ruc/test_ruc_map_candidate.py` expected `meta['lookup']['grid']` although the exact `ruc_pack.write_meta()` fixture writes top-level `meta['grid']`. Corrected by using the production-supported `meta['lookup'].get('grid',meta['grid'])` selector for both outside-Germany acceptance and global invalid-coordinate rejection. Neither source geometry, values, NoData/bitmap requirements nor tests were removed. The tracked active+canonical read-only workflow receives a renamed test step to trigger an entirely new source-SHA-bound run. First failure is NOT original-GRIB evidence.
+
+## CLAT/CLON: Originaldatei kann älter als D2-Lauf sein
+
+Offizielles DWD-Listing der nativen `clat` zeigt einen zeitinvarianten Original-Grid-Filename mit historischem Erstellungsdatum, nicht mit der jeweiligen Prognoseinitialisierung. Die Quellwahl verlangt nun einen **eindeutigen zeitinvarianten nativen** Koordinatennamen, gültiges Originaldatum nicht nach dem Prognoselauf, und unverändert nachgeschaltete vollständige ecCodes/SHA/UUID-Gitteridentitätsabnahme pro Feld und Lauf. Vorherige „CLAT-Dateidatum = Modelllauf“-Annahme ist fachlich falsch. Kein alter Koordinatensatz wird allein anhand des Namens freigegeben. Original-GRIB-Kanäle bleiben streng read-only.

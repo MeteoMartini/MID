@@ -51,9 +51,19 @@ def select_name(links,field,stamp,lead):
 
 def select_coordinate(links,field,stamp):
  if field not in ("clat","clon"):raise ValueError("invalid native coordinate")
- expected="icon-d2_germany_icosahedral_time-invariant_"+stamp+"_000_0_"+field+".grib2.bz2"
- if links.count(expected)!=1:raise ValueError("original native "+field+" not uniquely available for "+stamp)
- return expected
+ # CLAT/CLON are time-invariant: their file date need NOT equal the current
+ # forecast cycle. Binding is via the exact original source SHA plus the GRIB
+ # UUID/numberOfGridUsed/numberOfGridInReference/numberOfPoints identity.
+ parse_last_run(stamp)
+ pattern=re.compile(r"^icon-d2_germany_icosahedral_time-invariant_([0-9]{10})_000_0_"+field+r"\.grib2\.bz2$")
+ matches=[(name,pattern.fullmatch(name)) for name in links]
+ matches=[(name,match) for name,match in matches if match is not None]
+ if len(matches)!=1:raise ValueError("original native "+field+" not uniquely available for "+stamp)
+ try:
+  source_stamp=datetime.strptime(matches[0][1].group(1),"%Y%m%d%H").replace(tzinfo=timezone.utc)
+ except ValueError as exc:raise ValueError("invalid original native coordinate date") from exc
+ if source_stamp>parse_last_run(stamp):raise ValueError("native grid coordinate file from future cycle")
+ return matches[0][0]
 
 def catalogue(last,fetch_listing):
  planned=[];runs=cycles(last)
