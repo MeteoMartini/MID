@@ -189,7 +189,7 @@ class Collector(unittest.TestCase):
                 run(43, when='2026-11-01T10:23:00Z', event='workflow_run')]
         chosen, suppressed=select_bounded_polls([
             {'runId':x['id'], 'runAttempt':1,'createdAtUtc':x['created_at'],
-             'event':x['event'],'status':'completed'} for x in source])
+             'event':x['event'],'status':'completed','conclusion':x['conclusion']} for x in source])
         self.assertEqual([x['runId'] for x in chosen],[42])
         self.assertEqual([x['runId'] for x in suppressed],[43])
         out=self.check(Reader(runs=source))
@@ -198,6 +198,15 @@ class Collector(unittest.TestCase):
         self.assertEqual(out['originalGithubObserverRunsInWindow'],2)
         self.assertEqual(out['directorySamples'],0)
         self.assertFalse(out['productionSloAuthorized'])
+
+    def test_successful_fallback_wins_over_failed_schedule(self):
+        rows=[run(42,when='2026-11-01T10:18:00Z',conclusion='failure'),
+              run(43,when='2026-11-01T10:23:00Z',event='workflow_run')]
+        src=[{'runId':x['id'],'runAttempt':1,'createdAtUtc':x['created_at'],
+              'event':x['event'],'status':x['status'],'conclusion':x['conclusion']} for x in rows]
+        chosen,suppressed=select_bounded_polls(src)
+        self.assertEqual([x['runId'] for x in chosen],[43])
+        self.assertEqual([x['runId'] for x in suppressed],[42])
 
     def test_fallback_is_selected_when_schedule_is_missing(self):
         result=self.check(Reader(runs=[run(event='workflow_run',when='2026-11-01T10:23:00Z')]))

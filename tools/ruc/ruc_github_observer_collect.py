@@ -153,12 +153,13 @@ def select_bounded_polls(rows):
     """
     selected = {}
     suppressed = []
-    for row in rows:
+    def rank(row):
         if row['status'] != 'completed':
-            # Incomplete runs are evidence gaps, not positive polls.
-            rank = 0
-        else:
-            rank = 2 if row.get('event') == 'schedule' else 1
+            return 0
+        if row.get('conclusion') != 'success':
+            return 1
+        return 3 if row.get('event') == 'schedule' else 2
+    for row in rows:
         if row.get('event') == 'workflow_dispatch':
             key = ('manual', row['runId'])
         else:
@@ -168,8 +169,7 @@ def select_bounded_polls(rows):
         old = selected.get(key)
         if old is None:
             selected[key] = row
-        elif (rank, row['runId']) > (2 if old.get('event') == 'schedule' and old['status'] == 'completed'
-                                       else 1 if old['status'] == 'completed' else 0, old['runId']):
+        elif (rank(row), row['runId']) > (rank(old), old['runId']):
             suppressed.append(old)
             selected[key] = row
         else:
