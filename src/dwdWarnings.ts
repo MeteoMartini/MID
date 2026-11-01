@@ -107,10 +107,16 @@ function finite(value:unknown,fallback=0){if(value===null||value===undefined||ty
 /** Missing accumulation is unknown, never a verified dry hour. */
 function nonnegativeAmount(value:unknown){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:Number.NaN}
 function forwardValues(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const count=Math.max(1,Math.round(hours));return samples.slice(index,index+count).map(selector)}
-function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector),epochs=rows.map(warningSampleEpoch),timed=epochs.some(Number.isFinite);if(values.length<hours||values.some(value=>!Number.isFinite(value)||value<0)||timed&&(!epochs.every(Number.isFinite)||epochs.some((epoch,i)=>i>0&&Math.abs(epoch-epochs[i-1]-3600000)>5*60000)))return Number.NaN;return values.reduce((sum,value)=>sum+value,0)}
+/** Known sample epochs must prove consecutive hours; a missing timestamp cannot bridge a known gap. */
+function completeHourlyWarningWindow(rows:DwdWarningSample[],hours:number){
+ if(rows.length<hours)return false;
+ const epochs=rows.map(warningSampleEpoch),timed=epochs.some(Number.isFinite);
+ return !timed||epochs.every(Number.isFinite)&&epochs.every((epoch,index)=>index===0||Math.abs(epoch-epochs[index-1]-3600000)<=5*60000);
+}
+function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector);if(!completeHourlyWarningWindow(rows,hours)||values.some(value=>!Number.isFinite(value)||value<0))return Number.NaN;return values.reduce((sum,value)=>sum+value,0)}
 function forwardMax(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length?Math.max(...values):Number.NaN}
-function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length>=hours?Math.min(...values):Number.NaN}
-function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const values=forwardValues(samples,index,hours,sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return values.length>=hours&&values.every(value=>value<threshold)}
+function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector).filter(Number.isFinite);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours?Math.min(...values):Number.NaN}
+function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours&&values.every(value=>value<threshold)}
 function liquidPrecipitation(sample:DwdWarningSample){
  const rain=nonnegativeAmount(sample.rain),showers=nonnegativeAmount(sample.showers),total=nonnegativeAmount(sample.precipitation),code=finite(sample.code,-1);
  const explicit=rain+showers;
