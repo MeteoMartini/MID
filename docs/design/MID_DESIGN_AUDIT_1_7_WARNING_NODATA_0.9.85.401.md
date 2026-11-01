@@ -17,6 +17,12 @@ Die Korrektur unterscheidet echte endliche, nichtnegative Zahlen von `null`, `un
 
 **Fachgrenze:** Dies sind modellierte MID-Prognosehinweise mit DWD-nahen Schwellen, keine amtlichen DWD-Warnungen. Für amtliche Daten bleiben Originalwarnungen, Meldungstexte, Warnstufen, zeitliche Gültigkeit, Hierarchie und Farbvertrag nach `MID_WARNING_HYBRID_CONTRACT.md` unberührt.
 
+## A4 · Quellenprovenienz und Zeitstempel
+
+Quellcodebefund in `src/DataQualityIndicator.tsx`: Ohne geladenes `radarData` wurde der angezeigte Ersatz `Modellvorhersage` weiterhin mit dem Quellenlabel `Radar` versehen. Das neue bedingte Quellenlabel heißt in diesem belegten Fall `Modell`. Ein um mehr als eine Minute in der Zukunft liegender Beobachtungszeitstempel darf außerdem nicht als `gerade eben` erscheinen; die Anzeige kennzeichnet jetzt einen Zukunftszeitstempel. Bei kleiner Uhrabweichung bis zu einer Minute bleibt die bisherige Toleranz erhalten. Bestehende Qualitätsstufen und empirische Stations-Verwendbarkeitsprüfungen bleiben unverändert.
+
+Die bereits obligatorische Regression `scripts/test-current-source-info-type-safety-09471.mjs` prüft zusätzlich beide Präsentationspfade auf Quelltextebene. Eine echte React-/Browser-/VoiceOver-Interaktionsprüfung des Qualitätsindikators ist **noch offen**. Der vorhandene Inline-`span role=button`/`tooltip`-Pfad sollte separat gegen den gemeinsamen `AppInfoHint`-/`AppPortalPopover`- und Touchziel-Vertrag geprüft werden; kein ungeprüfter CSS-/Popover-Umbau in dieser Korrekturtranche.
+
 ## Wiederverwendete Regression
 
 `scripts/test-dwd-warning-markers.mjs` erweitert das bestehende Pflichtskript (kein Entfernen oder Ersetzen von Tests). Neue adversarielle Fälle: 6-h-Starkregen mit fehlender Stunde, vollständiger 6-h-Starkregen, 6-h-Neuschnee mit fehlender Stunde, vollständiger Schnee, fehlende Windrichtung sowie echte Nordrichtung 0 Grad. Die bestehenden DWD-/Schwellen- und Darstellungsfälle bleiben erhalten. Aussage `grün` erst nach tatsächlichem Lauf auf genau dem neuen Head.
