@@ -87,12 +87,12 @@ jobs:
           STABLE_SHA: ${{ steps.lineage.outputs.stable_sha }}
         run: |
           set -euo pipefail
-          python3 tools/ruc/ruc_observer_execution_status.py \\
-            --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" \\
-            --lineage-ready "$LINEAGE_READY" \\
-            --checkout-sha "$CHECKOUT_SHA" --main-sha "$MAIN_SHA" --stable-sha "$STABLE_SHA" \\
-            --directory "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl" \\
-            --readback "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json" \\
+          python3 tools/ruc/ruc_observer_execution_status.py \
+            --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" \
+            --lineage-ready "$LINEAGE_READY" \
+            --checkout-sha "$CHECKOUT_SHA" --main-sha "$MAIN_SHA" --stable-sha "$STABLE_SHA" \
+            --directory "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl" \
+            --readback "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json" \
             --output "ruc-observer-status-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
           echo 'Execution status is an independent observation evidence. GitHub job success alone is NOT a sample.' >> "$GITHUB_STEP_SUMMARY"
       - name: Stichproben für sieben Tage auswertbar sichern
