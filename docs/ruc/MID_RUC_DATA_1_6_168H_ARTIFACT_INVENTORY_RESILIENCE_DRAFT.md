@@ -1,3 +1,7 @@
+> **Releaseintegration v0.9.85.406 (2026-11-01, Source-PR #601):** Die untenstehende historische Draft-Analyse beschreibt den damaligen isolierten Kandidaten auf .404. Die unveränderten Fachcode-/Testblobs wurden nun auf die verifizierte .405-Stable-SHA `6410cf049f097b1d0518beac601e1baa08583f4a` übernommen, gemeinsam mit zusätzlicher P4-QA qualifiziert und für .406 mit synchronisierten Spiegeln/Changelogs vorbereitet. **Bis zur erfolgreichen vollständigen Source-PR-, Installer- und Stable-Gatekette bleiben auch diese Änderungen unveröffentlicht.** Dies ist keine P1–P5-DoD-Freigabe; Echtdaten-168h, unabhängige Fast-Lane, echtes A/B, globales CAS und reale P95 bleiben offen.
+
+---
+
 # RUC Data 1.6 – 168h observer evidence archival resilience (P1/P5 draft)
 
 **Live canonical base:** MID v0.9.85.404, main=mid-stable at `8cf0c99ecc0a4c6502c188a9ca108466b53bb128`. This is a new isolated source-only Draft on an authorized `chatgpt/*` branch, not a published release.
