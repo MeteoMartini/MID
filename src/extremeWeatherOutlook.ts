@@ -196,7 +196,7 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal,forc
  const skipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=skipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
  if(!skipped){
   try{
-   const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
+   const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:forceRefresh?0:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
    throwIfAborted(signal);
    if(data.error||!validExtendedOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht vollständig verfügbar.');
    const age=Date.now()-Date.parse(data.checkedAt),stale=Boolean(data.stale||age>EXTENDED_FRESH_MS);
