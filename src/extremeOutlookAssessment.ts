@@ -7,6 +7,11 @@ import {extremeSignalForCell,extremeSignalVisible,type ExtremeHazardId,type Extr
  * This deliberately preserves the existing 65% extended-product admission
  * threshold and never changes the modeled hazard/contour calculation.
  */
+/** A present but invalid 4-level field is missing evidence, never an all-clear. */
+function completeProbabilityLevels(value:unknown):boolean{
+ return Array.isArray(value)&&value.length===4&&value.every(level=>typeof level==='number'&&Number.isFinite(level)&&level>=0&&level<=100);
+}
+
 export function assessExtremeOutlookPeriod(
  data:ExtremeWeatherOutlook,
  periodId:string,
@@ -17,11 +22,11 @@ export function assessExtremeOutlookPeriod(
  const extended=range==='extended';
  for(const cell of data.cells){
   const fields=cell.periods[periodId]?.probabilityFields;
-  if(fields&&(hazard==='overall'?Object.keys(fields).length>0:Boolean(fields[hazard])))assessedCells++;
+  if(fields&&(hazard==='overall'?Object.values(fields).some(completeProbabilityLevels):completeProbabilityLevels(fields[hazard])))assessedCells++;
   if(extended&&fields){
-   if(fields.rain)rainCells++;
-   if(fields.wind)windCells++;
-   if(fields.snow)snowCells++;
+   if(completeProbabilityLevels(fields.rain))rainCells++;
+   if(completeProbabilityLevels(fields.wind))windCells++;
+   if(completeProbabilityLevels(fields.snow))snowCells++;
   }
   if(extremeSignalVisible(extremeSignalForCell(cell,periodId,hazard),hazard,data.thresholds))visibleCount++;
  }
