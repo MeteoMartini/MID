@@ -72,10 +72,11 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
   assert.equal(await panel.getAttribute('open'),'','Modell- und Beobachtungslayer sind nach dem ersten Tap zugänglich');
   // MID .402: Presentation controls moved into a deliberate, keyboard-accessible disclosure.
   // Preserve all subsequent controls, portal, layering and screenshot checks; do not skip them.
-  const presentation=page.locator('.unified-model-advanced');
-  if(await presentation.count()){
-   if(await presentation.getAttribute('open')===null)await presentation.locator(':scope > summary').click();
-   assert.equal(await presentation.getAttribute('open'),'','Advanced model controls remain accessible after disclosure interaction');
+  const advanced=page.locator('details.unified-model-advanced');
+  for(let index=0,count=await advanced.count();index<count;index++){
+   const disclosure=advanced.nth(index);
+   if(await disclosure.getAttribute('open')===null)await disclosure.locator(':scope > summary').click();
+   assert.equal(await disclosure.getAttribute('open'),'','All advanced model controls remain accessible via explicit disclosure interactions');
   }
  }
  async function measuredReload(){
