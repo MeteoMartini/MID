@@ -70,6 +70,13 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
    await page.waitForFunction(()=>document.querySelector('.composite-primary-layers')?.open===true);
   }
   assert.equal(await panel.getAttribute('open'),'','Modell- und Beobachtungslayer sind nach dem ersten Tap zugänglich');
+  // MID .402: Presentation controls moved into a deliberate, keyboard-accessible disclosure.
+  // Preserve all subsequent controls, portal, layering and screenshot checks; do not skip them.
+  const presentation=page.locator('.unified-model-advanced');
+  if(await presentation.count()){
+   if(await presentation.getAttribute('open')===null)await presentation.locator(':scope > summary').click();
+   assert.equal(await presentation.getAttribute('open'),'','Advanced model controls remain accessible after disclosure interaction');
+  }
  }
  async function measuredReload(){
   if(perfEnabled){const phase=await snapshotMapBrowserProbe(page,'before-reload');if(phase)perfPhases.push(phase);}

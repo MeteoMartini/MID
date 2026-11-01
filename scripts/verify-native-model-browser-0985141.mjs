@@ -48,7 +48,7 @@ async function assertProbe(page,expected,{timer=false}={}){
  const button=page.getByRole('button',{name:'Wert am Kartenmittelpunkt anzeigen',exact:true}),tip=page.getByRole('dialog',{name:/^Kartenwert ·/});
  if(timer)await page.clock.install();
  await button.click();await tip.waitFor();assert.ok((await tip.locator('.mid-model-map-probe__value').innerText()).includes(expected),'Map probe uses the same immutable raster value and selected unit');
- assert.equal(await tip.evaluate(e=>e.parentElement===document.body),true,'Geographic values use the existing body portal');
+ const portalRoot=await tip.evaluate(e=>({isBodyChild:e.parentElement===document.body,parent:e.parentElement?.tagName||'',parentId:e.parentElement?.id||'',parentClass:e.parentElement?.className||'',root:e.getRootNode()===document}));assert.equal(portalRoot.isBodyChild,true,'Geographic values use the existing body portal: '+JSON.stringify(portalRoot));
  const box=await tip.boundingBox(),viewport=page.viewportSize();assert.ok(box.x>=0&&box.y>=0&&box.x+box.width<=viewport.width+1&&box.y+box.height<=viewport.height+1,'Point value stays in the viewport');
  assert.ok((await tip.getByRole('button',{name:'Wertanzeige schließen'}).boundingBox()).height>=44);
  if([320,390].includes(viewport.width)){for(const theme of ['light','dark']){await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);await page.screenshot({path:join(out,`${viewport.width}-probe-${expected.replace(/[^a-z0-9]/gi,'')}-${theme}.png`),fullPage:false});}}
