@@ -15,6 +15,19 @@ try{
  const index=make(),ref=index.products.temperature.frames[0],field={schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell',run,time:ref.time,kind:'temperature',unit:'°C',scale:.01,lats:[47,51.1,55.2],lons:[5.5,10.55,15.6],values:[null,0,1234,100,200,300,400,500,600],isobars:[]};
  const d=m.validateNativeField(field,index,ref,'temperature');assert.equal(field.values[0],null);assert.equal(m.nativeAt(d,47,5.5),null);assert.equal(m.nativeAt(d,47,10.55),0);assert.equal(m.nativeAt(d,47,15.6),12.34);assert.equal(m.nativeFieldModel(d),'icon-d2-ruc');
  for(const bad of [{...field,schema:'mid.ruc.map-field-candidate.v1'},{...field,modelId:'icon-d2'},{...field,values:field.values.map(()=>null)}])assert.throws(()=>m.validateNativeField(bad,index,ref,'temperature'));
+ // Extended original RUC coverage is admitted only when its axes, NoData and
+ // pressure contours remain exactly within the provider's source region.
+ const fullDomain={...field,lats:[43.18,50.615,58.05],lons:[-3.85,8.18,20.21]};
+ const full=m.validateNativeField(fullDomain,index,ref,'temperature');
+ assert.equal(m.nativeAt(full,43.18,-3.85),null);
+ assert.equal(m.nativeAt(full,43.18,8.18),0);
+ assert.equal(m.nativeAt(full,60,10),null);
+ const pressureRef=index.products.pressure.frames[0],pressureDomain={...fullDomain,kind:'pressure',unit:'hPa',values:[null,...Array(8).fill(100000)],isobars:[{level:1000,paths:[[[43.2,-3.8],[58,20.2]]]}]};
+ assert.equal(m.validateNativeField(pressureDomain,index,pressureRef,'pressure').isobars.length,1);
+ assert.throws(()=>m.validateNativeField({...pressureDomain,isobars:[{level:1000,paths:[[[42,-3.8],[58,20.2]]]}]},index,pressureRef,'pressure'));
+ const nativeMapUI=await (await import('node:fs/promises')).readFile('src/NativeModelMap.tsx','utf8');
+ assert.match(nativeMapUI,/MapFitBounds south=\{field\.lats\[0\]\}/);
+ assert.match(nativeMapUI,/field&&p\.latitude>=field\.lats\[0\]/);
  for(const kind of m.RUC_MAP_KINDS)assert(m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
  for(const kind of ['sigwx','thetae','totals','observed'])assert(!m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
  const oldWindow=globalThis.window,oldLocalStorage=globalThis.localStorage,oldStorage=globalThis.Storage;
