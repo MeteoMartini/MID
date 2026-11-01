@@ -1,6 +1,8 @@
-# MID v0.9.85.394 – RUC-Downloads mit Wiederverwendung und begrenzter Parallelisierung
+# MID v0.9.85.395 – Einstellungen bewahren, alte Wartungspfade sicher entfernen
 
-- MID verarbeitet zusätzliche optionale DWD-RUC-Modellfelder jetzt in zwei begrenzten Gruppen, statt sämtliche Felder nacheinander herunterzuladen. Die bisherige Obergrenze gleichzeitiger DWD-Downloads bleibt unverändert.
-- Die RUC-Aufbereitung nutzt HTTP-Verbindungen pro Download-Thread erneut und schließt sie auch nach Fehlern zuverlässig. Fehlgeschlagene optionale Dateien werden vollständig aus dem Zwischenstand entfernt.
-- Die Laufzeit von Download, optionalen Feldern und nativer Aufbereitung wird getrennt protokolliert, damit echte Leistungsverbesserungen überprüfbar werden. Die vollständige 27-Stunden-RUC-Prognose, 20 Ensemblemitglieder, NoData- und Messwertprüfung, amtliche Warnungen sowie bestehende Verbraucher bleiben unverändert.
-- Eine eigene 0–6h-Fast-Lane und eine garantierte RUC-Aktualität innerhalb einer Stunde sind damit noch nicht freigegeben.
+- Im Klimabereich bleibt die Wahl für die Verwendung des Favoritennamens beim Ortswechsel erhalten. Bereits ausdrücklich ausgeschaltete Optionen werden nicht versehentlich wieder aktiviert.
+- Der Saisonmodellvergleich speichert die Auswahl von Temperatur oder Niederschlag unmittelbar; verschiedene Ansichten und Browser-Tabs sehen konsistente Einstellungen.
+- Routenwetter-Modi und Saisonparameter kennzeichnen ihre Auswahl für Tastatur und Screenreader eindeutiger.
+- Veraltete, eigenständig schreibende Analytics-/Installationsworkflows und reine KNMI-Experiment-/Diagnoseworkflows werden aus dem aktiven Repository entfernt. Die genutzten KNMI-Prognosewege bleiben bestehen.
+- Die Branch-Bereinigung prüft Schutzstatus vor weiteren Aktionen; ungesicherte oder nicht eindeutig freigegebene Branches werden nicht gelöscht.
+- RUC-Vollgebiet, Vorhersagedaten, amtliche Warnungen und Modellläufe werden durch diesen Build nicht verändert.

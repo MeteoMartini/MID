@@ -1,3 +1,13 @@
+# MID v0.9.85.395 – abgestimmter Cleanup und Zustandsintegrität (#564)
+
+**Quellbasis:** v0.9.85.394 `main=mid-stable` `d3e8446673488dc23d104b86d376c918524fa0be`; fünf aktive Rulesets; letzte nachweislich vollständige Installer-Kette #41284233444. Alle 33 ersten Quelländerungen stammen von SHA-geprüften, auf der Stable-Basis unveränderten Source-Blobs aus Draft #543 @ `ce1d5b5aa8958c5cb0eb462ad3af94ec0f3692d4` und Draft #563 @ `1ccd4fb712b7912d2b64d1ba2cfea8d7cbefe638`; die alten Drafts bleiben intakt. Das RUC-Vollgebiet #561 und die KNMI-P4a-Produktivdekodierung bleiben unberührt.
+
+**Änderungen:** Veraltete direkte Main-/Stable-Installations-/Analytics-Aktionspfade und KNMI-Diagnose-/Archivexperimente werden mit beiden kanonischen/aktiven Workflow-Spiegeln entfernt; Branch-Bereinigung auf Schutz-/Abstammungsprüfung, negative Pflichtregressionen und öffentliche read-only KNMI-Statusqualifikation gestützt. Klimafavoritenname/Saisonmetriken werden als dauerhafte UI-Auswahl ohne überschreibende Mount-Effects gespeichert, `false`/0 bleibt erhalten; Routenwetter-Toggles erhalten korrekte ARIA-Semantik. Keine WMO/DWD-, Modell-, Warnungs-, RUC-, Worker-Daten- oder physikalische Wertänderung.
+
+**Releasegrenze:** PR #564 ist nicht automatisch freigegeben. Alle 1059 Pflichtregressionen, Source-Core-/Heavy-/Browser-/Build-, Versions-/Workflow- und Installer-Worker-/Pages-/Finalize-Gates müssen für den *exakten neuen .395-HEAD* tatsächlich erfolgreich sein, bevor `mid-stable` als .395 gelten darf. SHA-Fixierung, kein generischer PR-Merge, kein Admin-/Force-Bypass. Browser-Simulationen sind keine echte iOS-/VoiceOver-Abnahme.
+
+---
+
 # MID v0.9.85.394 · RUC-P3 Native-Downloader-Beschleunigung ohne Netzparallelitätszuwachs
 
 **Verifizierte Source-Basis**: v0.9.85.393, `main=mid-stable` SHA `43cb36c07531b8d93418061aa1f075df5f6ac0fc` und alle fünf aktiven Rulesets. Der bisherige P3-Entwicklungszweig #557 war nicht veröffentlicht; nur sieben geprüfte Fach-/QA-Dateien auf dem neuen Source-Tree eingebracht. Parallele Drafts #542/#551/#554/#560/#561 nicht überschrieben.
