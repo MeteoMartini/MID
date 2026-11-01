@@ -47,6 +47,21 @@ class RaceAndSingleFlightAdvisory(unittest.TestCase):
             with self.subTest(active=active):
                 self.assertFalse(decision(active_run=active)["qualify"])
 
+    def test_newer_advertisement_cannot_bypass_older_active_producer(self):
+        # The previous policy accepted NEW while OLD was still active.
+        x = decision(advertised_run=NEW, active_run=OLD,
+                     now=NOW + timedelta(minutes=10))
+        self.assertFalse(x["qualify"])
+        self.assertFalse(x["productionDispatchAuthorized"])
+        self.assertIn("in flight", x["reason"])
+
+    def test_invalid_inventory_cannot_qualify_new_run(self):
+        for invalid in ("abc", "", "g" * 64, 18, False):
+            with self.subTest(value=invalid):
+                x = decision(observed_inventory_sha256=invalid)
+                self.assertFalse(x["qualify"])
+                self.assertFalse(x["productionDispatchAuthorized"])
+
     def test_published_same_or_newer_run_blocked(self):
         self.assertFalse(decision(published_run=RUN)["qualify"])
         self.assertFalse(decision(published_run=NEW)["qualify"])
