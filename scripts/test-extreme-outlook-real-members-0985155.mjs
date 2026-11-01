@@ -7,6 +7,16 @@ const context=vm.createContext({console,URL,URLSearchParams,Headers,Request,Resp
 context.__fixture=fixture;
 const stats=vm.runInContext('dachExtendedMemberStatistics(__fixture)',context);
 assert.equal(stats.hourly.precipitation.length,169);
+
+context.__badTime=structuredClone(fixture);
+context.__badTime.hourly.time[74]=context.__badTime.hourly.time[75];
+assert.equal(vm.runInContext('dachExtendedTimeAxis(__badTime)',context),undefined,'Nicht-stündliche Zeitachse darf nicht zu einem Modelllauf zusammengefügt werden.');
+context.__shiftedTime=structuredClone(fixture);
+context.__shiftedTime.hourly.time=context.__shiftedTime.hourly.time.map(iso=>new Date(Date.parse(iso+'Z')+3600000).toISOString().slice(0,16));
+const originalOrigin=vm.runInContext('dachExtendedTimeAxis(__fixture)',context);
+const shiftedOrigin=vm.runInContext('dachExtendedTimeAxis(__shiftedTime)',context);
+assert.equal(shiftedOrigin-originalOrigin,3600000,'Verschiedene Modelllauf-UTC-Ursprünge müssen trennbar bleiben.');
+
 assert.ok(stats.hourly.precipitation.slice(48,168).every(Number.isFinite));
 assert.ok(stats.hourly.precipitation_spread.slice(48,168).every(Number.isFinite));
 assert.ok(stats.hourly.snowfall_spread.slice(48,168).every(Number.isFinite));
