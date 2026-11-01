@@ -97,5 +97,39 @@ try{
  assert.deepEqual(readOrder(savedFavoriteOrder),{ids:['b','a'],updatedAt:'2026-11-01T10:00:00Z'},'explicit snapshot must not require storage');
  assert.equal(readOrder('{invalid'),null,'malformed favorite order ignored');
 
+
+ // Audit 1.6: execute the actual production horizon selection / restore logic.
+ await build({entryPoints:['src/forecastHorizonPreference.ts'],outfile:join(dir,'forecast-horizon.mjs'),format:'esm',platform:'node',bundle:true});
+ const horizon=await import(pathToFileURL(join(dir,'forecast-horizon.mjs')));
+ const available={shortTerm:true,sevenDay:true,fourteenDay:true},missingLong={shortTerm:true,sevenDay:true,fourteenDay:false};
+ for(const [raw,expected]of [['seven-day','seven-day'],['fourteen-day','fourteen-day'],['short-term','short-term'],['bogus',null],['',null],[null,null]])assert.equal(horizon.readPreferredForecastHorizon(()=>raw),expected);
+ assert.equal(horizon.readPreferredForecastHorizon(()=>{throw Error('denied')}),null,'blocked storage must not crash cockpit');
+ assert.equal(horizon.restorableForecastHorizon('fourteen-day','short-term',missingLong),null,'unavailable favorite must not render');
+ assert.equal(horizon.restorableForecastHorizon('fourteen-day','short-term',available),'fourteen-day','preferred 14d must return after recovery');
+ assert.equal(horizon.restorableForecastHorizon('seven-day','short-term',available),'seven-day','preferred 7d must return after recovery');
+ assert.equal(horizon.restorableForecastHorizon('fourteen-day','fourteen-day',available),null,'avoid loop');
+ assert.equal(horizon.restorableForecastHorizon('fourteen-day','short-term',available,'short-term'),null,'explicit navigation wins');
+ assert.equal(horizon.restorableForecastHorizon(null,'short-term',available),null,'unselected preference stays neutral');
+ const forecastCockpit=await readFile('src/ForecastCockpit.tsx','utf8');
+ assert.ok(forecastCockpit.includes('preferredHorizonRef.current=next'),'explicit navigation must update preferred value');
+ assert.ok(forecastCockpit.includes('switchHorizon(readActiveHorizon(availability),false)'),'availability fallback must not persist');
+ assert.ok(forecastCockpit.includes('restorableForecastHorizon(preferredHorizonRef.current,activeHorizon,availability,navigationHorizon)'),'restoration must honor explicit navigation');
+ assert.ok(!forecastCockpit.includes('localStorage.setItem(ACTIVE_HORIZON_KEY,activeHorizon)'),'automatic fallback must not overwrite stored choice');
+
+ // NoData-safe miniature SVG temperature series: temperature gaps are not fabricated or bridged.
+ await build({entryPoints:['src/miniRibbonTemperature.ts'],outfile:join(dir,'mini-temperature.mjs'),format:'esm',platform:'node',bundle:true});
+ const ribbon=await import(pathToFileURL(join(dir,'mini-temperature.mjs')));
+ assert.equal(ribbon.miniRibbonTemperaturePath([{x:1,y:5},{x:2,y:null},{x:3,y:6}]),'M 1.00 5.00M 3.00 6.00','missing temperature must split line');
+ assert.equal(ribbon.miniRibbonTemperaturePath([{x:1,y:5},{x:2,y:6},{x:3,y:NaN},{x:4,y:7},{x:5,y:8}]),'M 1.00 5.00 L 2.00 6.00M 4.00 7.00 L 5.00 8.00');
+ assert.equal(ribbon.miniRibbonTemperaturePath([{x:1,y:null},{x:2,y:NaN}]),'','all-missing temperature produces no path');
+ for(const v of [NaN,Infinity,-Infinity])assert.equal(ribbon.miniRibbonTemperatureLabel(v),'Temperatur nicht verfügbar');
+ assert.equal(ribbon.miniRibbonTemperatureLabel(0),'0 °C');
+ assert.equal(ribbon.miniRibbonTemperaturePath([{x:1,y:2},{x:Infinity,y:3},{x:4,y:5}]),'M 1.00 2.00M 4.00 5.00');
+ assert.equal(forecastCockpit.split('miniRibbonTemperaturePath(linePoints)').length-1,2,'both miniature horizons use the same gap-safe SVG path');
+ assert.ok(forecastCockpit.includes('linePoints.filter(item=>item.y!==null).map(item=><circle key={`temp-')&&forecastCockpit.includes('linePoints.filter(item=>item.y!==null).map(item=><circle key={`day-temp-'),'missing temperature must not be plotted as a dot');
+ assert.ok(forecastCockpit.includes('miniRibbonTemperatureLabel(item.point.temperature)')&&forecastCockpit.includes('miniRibbonTemperatureLabel(item.day.max)'),'missing temperature tooltips must not show NaN °C');
+ const modelComparison=await readFile('src/LongRangeModelComparison.tsx','utf8');
+ assert.ok(modelComparison.includes("item.model.ensembleMembers===1?'1 Member':'Memberzahl nicht ausgewiesen'"),'unknown single-model member count must not claim a mean');
+
  console.log('PASS return-state contracts: raw legacy keys, climate location swaps, concurrent model metrics, invalid input, blocked storage bridge, keyboard semantics, legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
 }finally{globalThis.localStorage=oldStorage;globalThis.window=oldWindow;delete globalThis.__midReturnMemory;await rm(dir,{recursive:true,force:true})}

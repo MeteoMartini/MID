@@ -1,3 +1,15 @@
+# MID v0.9.85.400 · Designaudit 1.6: persistierter Prognosehorizont und NoData-sichere Miniverläufe
+
+**Quelle:** v0.9.85.399 `main=mid-stable` SHA `bba6006f50b5c279aebc0c5a40a812dc21c5d500`, Quelle PR #575, Installer #41305710537 vollständig `completed/success`; fünf aktive GitHub-Rulesets, 1059 Pflichtregressionstests, 38 registrierte Verträge. Der Quellkandidat steht ausschließlich auf `chatgpt/v0.9.85.400-audit16-horizon-nodata`. Kein Direktwrite auf `main`/`mid-stable`, keine Änderungen an RUC- oder Kartenarbeiter-Drafts.
+
+**A3 Persistenz (#508):** Die bisherige `ForecastCockpit`-Ausweichwahl bei vorübergehend fehlenden 7-/14-Tage-Daten wurde durch ihren Speicher-Effekt als dauerhafte Benutzerentscheidung überschrieben. Der neue `forecastHorizonPreference.ts`-Vertrag trennt explizite Nutzer-/Navigationswahl von lediglich vorübergehend gerendertem Fallback. Nur eine ausdrückliche Auswahl persistiert; bei Datenwiederherstellung und ohne widersprechende gültige Navigation wird die präferierte Ansicht zurückgebracht. Invalid/blocked Storage kann diese Stelle nicht abstürzen lassen.
+
+**A1/A2/A3 meteorologische Darstellungsintegrität (#523):** Miniverläufe für Kurzfrist-/7d-Temperatur bauen SVG-Pfade nur aus endlichen Werten. Bei missing/NaN/Infinity bleibt eine sichtbare Pfadlücke statt falscher Verbindung oder ungültiger Koordinate; fehlende Temperaturpunkte erzeugen weder Marker noch `NaN °C`-Tooltip. Regenmengen/Warn-/RUC-/Ensemble-Originaldaten bleiben unverändert. Saisonmodell-Legenden dürfen bei `ensembleMembers=0` nicht „Ensemble-Mittel“ behaupten.
+
+**Nachweisgrenze:** Die bestehende obligatorische Return-State-Regression testet die tatsächlich kompilierten zwei neuen TS-Helfer und App-/Chart-Verdrahtung. Quell-/Build-/CI-Behauptungen erfolgen nur für konkret erfolgreiche GitHub-Gates auf finalem SHA. Vor Produktivfreigabe Pflicht Source-PR-Gate → SHA-gesteuerter Merge → serverseitiges ZIP → Installer → Worker/Pages/Finalize → Stable. Echte Hardware-iOS-/VoiceOver-/WCAG-AA-Zertifizierung sowie eine vollständige A0–A5-Matrix fehlen weiterhin.
+
+---
+
 # MID v0.9.85.399 · Designaudit 1.6: Wasserwetter-Missing-Intervalle, originale Saisonlinien und resiliente Tagesdetails
 
 **Verifizierter Vorgänger:** v0.9.85.398 `main=mid-stable` @ `adf2a832bd7d66a9bb7c16ec6d9f4dcdedeff855`, Installer #41300031208 vollständig `completed/success`, fünf aktive Rulesets, 1059 bestehende Pflichtregressionen. Der anfänglich blockierte Integrationsversuch aus dem Vorgängerturn hat keine Branch-/PR-Refs verändert. Danach wurden auf erneuter, identischer Stable-Basis ausschließlich ein autorisierter `chatgpt/*`-Branch und Draft-PR #575 mit nachverfolgbaren Commits geschaffen. Keine konkurrierenden RUC-/DWD-/iOS-/Release-/Warnbranches geändert.
