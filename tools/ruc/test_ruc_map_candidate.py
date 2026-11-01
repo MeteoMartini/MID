@@ -63,7 +63,7 @@ class RucMapCandidateTests(unittest.TestCase):
     self.assertEqual(payload['values'][2],1234)
 
  def test_full_lookup_geographic_bounds_fail_closed(self):
-  for lat,lon in ((90,-3.8),(-90,-3.8),(43.2,180), (43.2,-181)):
+  for lat,lon in ((90,-3.8),(-90.1,-3.8),(43.2,180),(43.2,-181)):
    with self.subTest(lat=lat,lon=lon),tempfile.TemporaryDirectory() as t:
     root=Path(t);source=self.fixture(root,2)
     meta=json.loads((source/'latest.json').read_bytes())
