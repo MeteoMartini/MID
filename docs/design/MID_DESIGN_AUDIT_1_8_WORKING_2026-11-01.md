@@ -1,3 +1,17 @@
+# MID Designaudit 1.8 – Integrationsprotokoll v0.9.85.404
+
+**Status:** Autorisierter Source-PR-Kandidat auf `chatgpt/v0.9.85.404-designaudit18-batch`; keine vollständige A0–A5-, iOS- oder VoiceOver-Abnahme behauptet. Die nachstehenden .402/Draft-Notizen sind historische Ursprungsbelege, nicht die aktuelle Release-Basis.
+
+- **Verifizierte Ausgangsbasis:** `main=mid-stable` v0.9.85.403 SHA `e908b767a9db09df6f07afef86e471978807b5bb`; Installer #41331015688 vollständig success. Die fünf aktiven Rulesets und das ursprüngliche Inventar von 1059 Pflichtregressionen wurden nicht reduziert.
+- **SHA-Übernahme:** Die sieben Original-Audit-Source-/Test-/Dokumentblobs aus Draft-PR #590, Head `0e25771f46ad2d6b5970c40ec90c9199090b96f9`, wurden nur übernommen, nachdem die vier vorhandenen Verbraucher-/Testblobs auf .402 und .403 exakt übereinstimmten. `src/App.tsx`, `src/ExtremeWeatherOutlookPanel.tsx`, `scripts/test-c14-map-workspace-098534.mjs` und `scripts/test-extreme-outlook-modelled-areas-096618.mjs` stimmten bytegenau in beiden Stable-Ständen überein; die drei übrigen Dateien waren neue Kandidaten. Kein ungeprüfter Rebase/Reset oder Hauptbranch-Write.
+- **A5-Fachänderung:** Zusätzlich `role="img"` an interaktiver Extremwetterkarte durch benanntes `role="region"` ersetzt und vorhandenes `scripts/test-dach-extreme-outlook-09660.mjs` um positive/negative Marker-Container-Semantik erweitert. Begründung: ARIA-`img` behandelt die Nachfahren im Accessibility-Tree präsentativ und kann interaktive Kartenmarker verbergen. Das ist eine Quellsemantik-Korrektur, kein behaupteter realer VoiceOver-Nachweis.
+- **A3/A1-Fachänderung:** Karten-Idle-Preload nur für Code-Chunks und unter datenschonenden Voraussetzungen, Extremwetter-Coverage in einem Rasterpass bei unveränderten Schwellen; leeres Raster scheitert fail-closed. Die drei betroffenen bisherigen Pflichtskripte wurden erweitert, nicht entfernt.
+- **Version und Changelog:** `0.9.85.404` in Paket, Lock, Baseline, Vertragsregister, Web/PWA/SW, Worker, iOS, Changelog und Release Notes; Xcode Build 405. Der Sammelrelease umfasst keine zusätzlichen aktiven RUC-/D2-/WMS-Datenquellen und keinen neuen kostenpflichtigen Dienst. Parallel-RUC-Draft #591 bleibt vollständig getrennt.
+- **Noch ausstehend:** vollständige A0–A5-Realbrowser-/Provider-/Geräteprüfungen, unabhängige kartografische Originalpixel-/WMS-Gültigkeit, reale Erstöffnung-/Idle-Wasserfallmessungen, 24h-Warnzeitpunkte, Persistenz-Multitab/Offline, kontrast- und Screenreaderbasierte Abnahme. Keine der offenen Aufgaben wird durch grüne Strukturtests als automatisch abgeschlossen erklärt.
+- **Sicherheits-/Release-Gate:** nur vollständig grüner Source-PR auf finalem SHA, SHA-gebundener Bot-Merge, serverseitiges ZIP, unabhängiger `install-mid.yml` mit allen obligatorischen Core-/Heavy-, Worker-, Pages-/Finalize-Gates und bestätigter Stable-Promotion. Bei Fehler/Drift ausdrücklich keine Veröffentlichung.
+
+---
+
 # MID-Designaudit 1.8 – SHA-gebundener offener Audit-/Releasezug
 
 **Status: Source-Draft, ausdrücklich kein freigegebener Build, keine abgeschlossene A0–A5-Abnahme.**
