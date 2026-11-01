@@ -28,5 +28,30 @@ export function useDisplayPreference<T>(id:string,fallback:T,valid:(value:unknow
  },[id,getSnapshot,valid]);
  return [value,set];
 }
+/**
+ * Observe an existing durable, unversioned preference without migrating or overwriting its
+ * original key. Primitive snapshots remain stable for React 19. Updates are written before
+ * React renders, and every mounted panel reads the latest value on every action.
+ * Returning null from parse means "missing/invalid", not the valid value false or 0.
+ */
+export function readRawDisplayPreference<T extends string|number|boolean>(key:string,fallback:T,parse:(raw:string|null)=>T|null):T{
+ try{const value=parse(readDurableStorageValue(key));return value===null?fallback:value}catch{return fallback}
+}
+export function useRawDisplayPreference<T extends string|number|boolean>(key:string,fallback:T,parse:(raw:string|null)=>T|null,serialize:(value:T)=>string):[T,Dispatch<SetStateAction<T>>]{
+ const initial=useMemo(()=>fallback,[key]);
+ const getSnapshot=useCallback(()=>readRawDisplayPreference(key,initial,parse),[key,initial,parse]);
+ const value=useSyncExternalStore(subscribe,getSnapshot,()=>initial);
+ const set=useCallback<Dispatch<SetStateAction<T>>>(action=>{
+  const previous=getSnapshot(),next=typeof action==='function'?(action as (previous:T)=>T)(previous):action;
+  try{
+   const raw=serialize(next);
+   if(!Object.is(parse(raw),next))return;
+   writeDurableStorageValue(key,raw);
+   if(typeof window!=='undefined')window.dispatchEvent(new Event('mid:display-preference-changed'));
+  }catch{}
+ },[key,getSnapshot,parse,serialize]);
+ return[value,set];
+}
+
 export const displayBoolean=(value:unknown):value is boolean=>typeof value==='boolean';
 export const displayChoice=<T extends string|number>(...choices:T[])=>(value:unknown):value is T=>choices.includes(value as T);

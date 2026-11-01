@@ -6,6 +6,7 @@ from hashlib import sha256
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch,Mock
 from ruc_fast_lane_producer import (
     FIELDS, EXPECTED_LEADS, EXPECTED_RAPID5, EXPECTED_RAPID15,
     WIRE_FIELDS, WIRE_CONTRACT, canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
@@ -186,5 +187,18 @@ class TestFast(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);c=candidate(root);(root/'lookup.bin').unlink();(root/'lookup.bin').symlink_to('deterministic.bin')
             with self.assertRaises(ValueError):verify_candidate_manifest(c,root)
+
+    def test_failed_directory_preflight_closes_http_session(self):
+        """Before any GRIB is downloaded, reject bad listing and close session."""
+        from ruc_fast_lane_producer import build
+        http=Mock()
+        with tempfile.TemporaryDirectory() as folder:
+            base=Path(folder)
+            with patch('fetch_and_build_ruc.session',return_value=http), \
+                 patch('fetch_and_build_ruc.crawl_files',side_effect=OSError('DWD index unavailable')):
+                with self.assertRaisesRegex(OSError,'DWD index unavailable'):
+                    build(RUN,base/'candidate',base/'staging')
+            http.close.assert_called_once_with()
+            self.assertFalse((base/'candidate').exists())
 
 if __name__=='__main__':unittest.main()

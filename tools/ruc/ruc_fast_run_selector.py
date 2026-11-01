@@ -63,16 +63,16 @@ def select_run_from_inventory(run_sets, native_inventory, *,
         if not timedelta(0) <= age <= timedelta(hours=max_age_hours):
             continue
         try:
-            if any(set(native_inventory(code,run,'hourly')) != hourly
-                   for code in HOURLY_FIELDS):
+            def complete(code,cadence,expected):
+                leads=list(native_inventory(code,run,cadence))
+                return len(leads)==len(expected) and set(leads)==expected
+            if any(not complete(code,'hourly',hourly) for code in HOURLY_FIELDS):
                 continue
-            if any(len(set(native_inventory(code,run,'grid'))) < 1
-                   for code in NATIVE_GRID):
+            if any(not native_inventory(code,run,'grid') for code in NATIVE_GRID):
                 continue
-            if set(native_inventory(RAPID5,run,'rapid-precip')) != five:
+            if not complete(RAPID5,'rapid-precip',five):
                 continue
-            if any(set(native_inventory(code,run,'rapid15')) != fifteen
-                   for code in RAPID15):
+            if any(not complete(code,'rapid15',fifteen) for code in RAPID15):
                 continue
         except (OSError,ValueError,RuntimeError):
             # A DWD index not yet complete is never an accepted GRIB.

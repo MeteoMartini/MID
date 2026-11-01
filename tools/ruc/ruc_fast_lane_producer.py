@@ -192,12 +192,18 @@ def build(run, output, staging):
     s=session()
     # Directory listings are only a preflight; the original ecCodes reader
     # independently validates every downloaded GRIB header, units and bitmap.
-    for field in FIELDS:
-        folder=f'{DET_BASE}/{field}/r/{run}/'
-        inventory=select_requested_files(crawl_files(s,folder),6,mode='hourly')
-        lead_inventory(inventory,forecast_lead_minutes,EXPECTED_LEADS)
+    try:
+        for field in FIELDS:
+            folder=f'{DET_BASE}/{field}/r/{run}/'
+            inventory=select_requested_files(crawl_files(s,folder),6,mode='hourly')
+            lead_inventory(inventory,forecast_lead_minutes,EXPECTED_LEADS)
+    except BaseException:
+        s.close()
+        raise
     stage=Path(staging)
-    if stage.exists():raise ValueError('GRIB staging must be a fresh isolated path')
+    if stage.exists():
+        s.close()
+        raise ValueError('GRIB staging must be a fresh isolated path')
     source=[]
     try:
         with tempfile.TemporaryDirectory(prefix='.mid-fast-candidate-',dir=output.parent) as scratch:
@@ -267,6 +273,7 @@ def build(run, output, staging):
             return manifest
     finally:
         shutil.rmtree(stage,ignore_errors=True)
+        s.close()
 
 
 def main():
