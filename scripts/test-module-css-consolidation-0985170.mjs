@@ -178,6 +178,23 @@ for(const entry of originalEntries){
  });
 }
 assert.equal(auditedExtremeRules,2,'Exactly the two approved extreme-status CSS selectors may differ');
+// DA19-01: the smartphone primary scroll axis deliberately changed in .408.
+// Exactly one verified production rule may differ; compare its CURRENT complete
+// declaration, restore the exact .407 predecessor in the HISTORICAL comparison
+// AST only, then retain the immutable .169 cascade fingerprint below.
+const reviewedC9ScrollSelector="html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']";
+const reviewedC9ScrollNew="html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']{\n  min-height:0!important;\n  max-height:none!important;\n  overflow-x:clip!important;\n  overflow-y:visible!important;\n  overscroll-behavior-y:auto!important;\n  -webkit-overflow-scrolling:touch;\n  scroll-padding-bottom:12px!important;\n }";
+const reviewedC9ScrollOld="html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']{\n  min-height:0!important;\n  max-height:var(--mid-mobile-forecast-height,calc(100dvh - 210px - var(--mid-safe-bottom)))!important;\n  overflow-x:hidden!important;\n  overflow-y:auto!important;\n  overscroll-behavior-y:contain!important;\n  -webkit-overflow-scrolling:touch;\n  scroll-padding-bottom:12px!important;\n }";
+let reviewedC9ScrollCount=0;
+for(const entry of originalEntries){
+ if(entry.file!=='src/midC9SmartphoneGate.css')continue;
+ entry.tree.walkRules(reviewedC9ScrollSelector,rule=>{
+  assert.equal(rule.toString(),reviewedC9ScrollNew,'Responsive primary scroll surface differs from reviewed DA19-01 rule');
+  rule.replaceWith(postcss.parse(reviewedC9ScrollOld).first);
+  reviewedC9ScrollCount++;
+ });
+}
+assert.equal(reviewedC9ScrollCount,1,'Exactly one DA19-01 mobile portrait scroll surface may differ');
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');

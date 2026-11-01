@@ -23,6 +23,7 @@
 
 **Priorität P2 Lesbarkeit und Einstieg:**
 - DA19-14/19/20: lesbare More-Drawer-Zweitzeilen und Dichte bei 44+ px Touchziel, datensparsamer Beispielort und skalierbare Achsen-/Legendenrollen ohne das physikalische Wertefeld zu verändern.
+- **CSS-Golden-Schutz:** DA19-01: `test-module-css-consolidation-0985170.mjs` prüft zusätzlich die **exakt freigegebene mobile Scrollregel** und stellt allein für die historische Vergleichskopie die originale .407-Regel wieder her; der unveränderte .169-Cascade-Hash ist weiter zwingend. Kein Entfernen von Golden-Assertions, kein Umbenennen von Shards.
 - **DA19-16:** unbelegten „WCAG AA“-Konformitätsclaim im Theme in .408-Quellkandidat auf **Hoher Kontrast** reduziert; die eigentliche WCAG-2.2-AA-Konformität bleibt bis zur quantitativen vollständigen Geräte-/Komponentenmatrix **unbestätigt**.
 
 ## QA-/Freigabegates
