@@ -93,3 +93,30 @@ html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composit
 .composite-direct-time button{padding:6px 10px}.composite-direct-time button:disabled{opacity:.56;cursor:not-allowed}.composite-direct-time :is(button,select):focus-visible{outline:2px solid var(--primary);outline-offset:2px}.composite-direct-time select{color-scheme:inherit;overflow:hidden;text-overflow:ellipsis}.composite-direct-time select option{background:var(--surface);color:var(--text)}@media(max-width:430px){.composite-direct-time{grid-template-columns:44px minmax(0,1fr) 44px;gap:6px}.composite-direct-time>button:last-child{grid-column:1/-1;justify-self:stretch}.composite-direct-time select{font-size:13px}}
 
 .unified-forecast-time{display:flex;flex-wrap:wrap;gap:.3rem .8rem;margin:.5rem 0;overflow-wrap:anywhere;font-size:.85rem}.unified-forecast-time strong{font-variant-numeric:tabular-nums}.unified-forecast-time span{flex:1 1 16rem;min-width:0}
+
+/* MID 18.2.65 map density: one observation master, one timestamp+legend. */
+html .unified-weather-map.unified-weather-map .composite-layer-toolbar{padding:8px!important;margin:4px 0!important}
+html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-compact-observation-heading{display:flex!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin:0 0 5px!important;padding:0!important}
+html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-compact-observation-heading strong{font-size:13px!important}
+html .unified-weather-map.unified-weather-map .composite-observation-master{margin:0!important;padding:0!important}
+html .unified-weather-map.unified-weather-map .composite-observation-master .unified-model-toggle{width:auto!important;min-height:44px!important;padding:5px 9px!important;gap:6px;font-size:12px!important;box-shadow:none!important}
+html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch.compact{min-height:52px!important;padding:6px 8px!important;grid-template-columns:22px minmax(0,1fr)!important;gap:6px!important}
+html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch-icon{width:22px!important;height:22px!important}
+html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch.compact small{font-size:11px!important;line-height:1.2!important;max-height:2.4em;overflow:hidden!important}
+html .unified-weather-map.unified-weather-map .composite-extra-layers summary{min-height:44px!important;padding:6px 9px!important;font-size:12px!important}
+html .unified-weather-map.unified-weather-map .unified-model-controls{padding:7px 8px!important;margin:3px 0!important;border-radius:12px!important}
+html .unified-weather-map.unified-weather-map .unified-model-controls>.unified-model-toggle{width:auto!important;min-height:44px!important;padding:5px 9px!important;font-size:13px!important}
+html .unified-weather-map.unified-weather-map .unified-model-fields{gap:7px!important;margin:5px 0!important}
+html .unified-weather-map.unified-weather-map .unified-model-advanced summary{min-height:44px!important;padding:5px 7px!important;font-size:12px!important}
+html .unified-weather-map.unified-weather-map .radarlegend-toggle{max-width:min(280px,calc(100vw - 38px));min-height:44px}
+html .unified-weather-map.unified-weather-map .radarlegend-toggle span{min-width:0}
+html .unified-weather-map.unified-weather-map .radarlegend-toggle small{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.25;font-size:11px}
+@media(max-width:390px){html .unified-weather-map.unified-weather-map .radarlegend-toggle{max-width:195px}html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch.compact{padding:5px!important}}
+
+/* Keep the disclosure grid usable on small phones without narrowing touch targets. */
+@media(max-width:560px){
+ html .unified-weather-map.unified-weather-map .composite-extra-layer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ html .unified-weather-map.unified-weather-map .composite-extra-layer-grid{grid-template-columns:minmax(0,1fr)}
+}

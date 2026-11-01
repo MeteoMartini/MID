@@ -7,7 +7,8 @@
     "**Datenvolumen:** Kein automatisches Karten-Vorladen bei 2G/slow-2g, aktivem Data Saver, Offline-Zustand oder verborgenem Tab. Die Karten können jederzeit bewusst geöffnet werden.",
     "**Extremwetter-Ausblick:** Vorhandene Prognose-Signale und Datenabdeckung werden effizienter ausgewertet; bei unzureichender Datenlage erscheint keine fälschliche vollständige Auswertung. Fehlende Werte sind keine Null.",
     "**Vertrauen:** Warnungen und meteorologische Quellen, Parameterwerte und persistente Nutzereinstellungen bleiben unverändert.",
-    "**Verlässliche Gefahrenabdeckung:** Fehlende oder beschädigte Wahrscheinlichkeitssätze werden als unvollständige Daten behandelt; die interaktive Extremwetterkarte bleibt auch für Hilfstechnologien als benannter Bereich erreichbar."
+    "**Verlässliche Gefahrenabdeckung:** Fehlende oder beschädigte Wahrscheinlichkeitssätze werden als unvollständige Daten behandelt; die interaktive Extremwetterkarte bleibt auch für Hilfstechnologien als benannter Bereich erreichbar.",
+    "Die Kartenfläche wird vor den umfangreichen Zeit-/Layer-Einstellungen angezeigt. Ein gemeinsames, bei Bedarf aufklappbares Kartenfeld zeigt die absolute und relative Zeit samt Mess-/Prognosephase. Die redundante zweite Zeitbox entfällt; die bestehende fachliche Ebenenauswahl bleibt vollständig zugänglich."
   ],
   "internal": [
     "Stable-Ausgangspunkt v0.9.85.403 SHA e908b767a9db09df6f07afef86e471978807b5bb, Installer #41331015688 erfolgreich, fünf Rulesets und 1059 registrierte Pflichtregressionen.",
@@ -18,6 +19,8 @@
     "Versionsmirror v0.9.85.404 in package/lock/MID_BASELINE/contracts/index/src-version/Web/Worker/Service Worker/iOS plus Build 405, Changelogs und SOT.",
     "Alle Source-/Heavy-/Installer-Gates auf finalem SHA vor Freigabe erforderlich. Keine reale iOS-/WebGL-/168h-RUC-End-to-End-Leistungsabnahme oder Produktiv-Fast-Lane behauptet.",
     "Vier SHA-identisch übernommene stärkere Designaudit-#592-Blobs HEAD a21e20d3e1dec1469d26ef20c629c5a4391522fb: vierstufige finite 0…100 Probability-Field-Admission statt bloßer Existenz; echter Nullwert bleibt gültig. Testet fehlende, NaN, Infinity, negative, >100 und Kurzvektoren.",
-    "ExtremeWeatherOutlookPanel verwendet role=region statt role=img für den interaktiven MapLibre-Container; bestehender obligatorischer test-dach-extreme-outlook-09660 sichert die zugängliche Struktur. Keine physische VoiceOver-Abnahme behauptet."
+    "ExtremeWeatherOutlookPanel verwendet role=region statt role=img für den interaktiven MapLibre-Container; bestehender obligatorischer test-dach-extreme-outlook-09660 sichert die zugängliche Struktur. Keine physische VoiceOver-Abnahme behauptet.",
+    "Vier 1:1 geprüfte UI-/CSS-Blobs aus #594 HEAD 95d097434c6980b77e5bbf82d3190169f0e3d4fb; die Source-Assertions aus dessen test-c14-map-workspace-098534.mjs sind additive mit den bereits enthaltenen Idle-Preload-Negativtests integriert.",
+    "D2-Vollgebiet und tatsächlicher WebGL-TTFP, Realgeräte-/Accessibility-Gesamtabnahme weiterhin ausständig, kein neuer Radar-/WMS-/RUC-/Warn-/iOS-Datenpfad."
   ]
 }
