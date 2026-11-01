@@ -39,7 +39,7 @@ jobs:
           python-version: '3.12'
       - name: Use pinned-range current MID RUC QA requirements
         run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
-      - name: Fail-closed native D2 regression gates
+      - name: Fail-closed D2 original-grid, source-schema and mask regression gates
         run: |
           cd tools/ruc
           python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate

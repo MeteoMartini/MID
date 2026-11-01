@@ -49,7 +49,7 @@ class RucMapCandidateTests(unittest.TestCase):
    with self.subTest(lat=lat,lon=lon),tempfile.TemporaryDirectory() as t:
     root=Path(t);source=self.fixture(root,2)
     meta=json.loads((source/'latest.json').read_bytes())
-    meta['lookup']['grid']['latMin']=lat;meta['lookup']['grid']['lonMin']=lon
+    grid=meta['lookup'].get('grid',meta['grid']);grid['latMin']=lat;grid['lonMin']=lon
     (source/'latest.json').write_text(json.dumps(meta))
     output=root/'all-native-map';index=build_candidate(source,output)
     self.assertTrue(index['fullLookupCoverage'])
@@ -82,7 +82,7 @@ class RucMapCandidateTests(unittest.TestCase):
    with self.subTest(lat=lat,lon=lon),tempfile.TemporaryDirectory() as t:
     root=Path(t);source=self.fixture(root,2)
     meta=json.loads((source/'latest.json').read_bytes())
-    meta['lookup']['grid'].update(latMin=lat,lonMin=lon)
+    meta['lookup'].get('grid',meta['grid']).update(latMin=lat,lonMin=lon)
     (source/'latest.json').write_text(json.dumps(meta))
     with self.assertRaisesRegex(ValueError,'geographical extent'):
      build_candidate(source,root/'bad')
