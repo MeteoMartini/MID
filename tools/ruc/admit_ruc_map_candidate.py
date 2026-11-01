@@ -8,6 +8,7 @@ import argparse,copy,gzip,hashlib,json,shutil
 from pathlib import Path
 import numpy as np
 from ruc_map_candidate import build_candidate,checked_object,recheck_object,compact,utc_time
+from audit_model_domain_coverage import inspect as audit_full_domain
 from lossless_codec_pilot import decode_candidate
 from augment_compressed_synoptic import within
 from build_model_map_fields import contours
@@ -78,7 +79,15 @@ def admit(snapshot,source,candidate):
   if key not in bykey:raise SnapshotIntegrityError('lookup not inventoried')
   data=within(snapshot,key).read_bytes();h.update(data);lookup_bytes+=len(data)
  if h.hexdigest()!=sha(lookup) or lookup_bytes!=len(lookup) or lookup_bytes!=lp['records']*4:raise ValueError('lookup/source mismatch')
- index=build_candidate(source,candidate);pending={}
+ index=build_candidate(source,candidate)
+ # Mandatory actual six-field / every-forecast-time / NoData / source-value roundtrip.
+ # An old Germany-only crop must fail even when every gzip/SHA is individually valid.
+ domain=audit_full_domain(source,candidate)
+ if (not domain['allFramesCoverKnownNativeLookup'] or
+     not domain['allPublishedFrameValuesMatchNativeSource'] or
+     not domain['allSourceForecastHoursPresent'] or len(domain['products'])!=6):
+  raise ValueError('RUC full native map coverage/NoData admission failed')
+ pending={}
  for kind,product in index['products'].items():
   for ref in product['frames']:
    wire=(candidate/ref['file']).read_bytes()
