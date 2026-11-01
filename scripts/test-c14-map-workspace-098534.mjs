@@ -1,3 +1,5 @@
+import vm from 'node:vm';
+import {stripTypeScriptTypes} from 'node:module';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
@@ -52,5 +54,28 @@ assert.ok(radar.includes('<details className="composite-advanced">'),'Erweiterte
 assert.ok(app.includes("const MODERN_MAP_MODULES:DashboardModuleId[]=['composite','weather-maps'];"),'Komposit und Wetterkarten müssen weiterhin derselben Karten-Navigation zugeordnet sein.');
 assert.match(releaseVersion,/^0\.9\.85\.\d+$/,'C14 muss innerhalb der 0.9.85-Releasefolge gebaut werden.');
 assert.ok(publicChangelog.startsWith(`# MID v${releaseVersion}`),`Der ausgelieferte Changelog muss mit der aktuellen Releaseversion v${releaseVersion} beginnen.`);
+
+
+/** Execute the actual TypeScript map-workspace migration with adversarial Storage fixtures. */
+const mapStateSource=await readFile(new URL('../src/mapWorkspaceState.ts',import.meta.url),'utf8');
+function exerciseMapState(initial){
+ const data=new Map(Object.entries(initial));
+ const ctx={localStorage:{getItem:key=>data.has(key)?data.get(key):null,setItem:(key,value)=>data.set(key,String(value))}};
+ vm.createContext(ctx);
+ vm.runInContext(stripTypeScriptTypes(mapStateSource.replace(/\\bexport\\s+/g,'')),ctx);
+ return{data,read:()=>ctx.readMapWorkspaceView(),save:value=>ctx.saveMapWorkspaceView(value)};
+}
+const mapKey='mid:map-workspace-view:v1',settingsKey='mid:weather-maps:v2';
+for(const raw of ['not-json','null','"text"','[{"zoom":9}]']){
+ const state=exerciseMapState({[mapKey]:'totals',[settingsKey]:raw});
+ assert.equal(state.read(),'models','Legacy totals view must still migrate to models.');
+ assert.equal(state.data.get(settingsKey),raw,'Malformed or non-object preferences must remain byte-identical, not overwritten.');
+ assert.equal(state.data.get(mapKey),'models','Legacy view key must be normalized.');
+}
+const valid=exerciseMapState({[mapKey]:'totals',[settingsKey]:JSON.stringify({zoom:9,opacity:38,modelId:'gdps',productId:'gdps-cloud'})});
+assert.equal(valid.read(),'models');
+assert.deepEqual(JSON.parse(valid.data.get(settingsKey)),{zoom:9,opacity:38,modelId:'icon-d2',productId:'icon-d2-precipitation-totals'},'Valid preferences must retain unrelated user fields.');
+const first=exerciseMapState({[mapKey]:'totals'});assert.equal(first.read(),'models');
+assert.equal(JSON.parse(first.data.get(settingsKey)).productId,'icon-d2-precipitation-totals','New storage must still select valid totals by default.');
 
 console.log(`MID-C14: Karten als map-first Arbeitsraum, eine Zeitachse, eingeklappte Sekundärsteuerung und Smartphone-/Tablet-/Desktop-Dichte für v${releaseVersion} geprüft.`);
