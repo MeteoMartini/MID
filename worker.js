@@ -2705,7 +2705,21 @@ async function dachExtendedExtremeOutlookData(){
    try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ECMWF-EPS Böen',6*60*60),batch.length,'ECMWF-EPS');batch.forEach((p,j)=>{const row=dachExtendedMemberStatistics(rows[j],51);if(JSON.stringify(row.hourly.time)===JSON.stringify(byId.get(p.id)?.hourly.time))windById.set(p.id,row)})}catch{ /* Other fully supported hazards remain available. */ }
   });
  }
- const cells=[];for(const point of points){const ensemble=byId.get(point.id);if(!ensemble)continue;const elevation=Math.round(number(ensemble.elevation)||0),cellPeriods={};for(const p of periods){const hazards={},probabilityFields={};for(const kind of['rain','wind','snow']){const useIfs=kind==='wind'&&[...byId.values()].filter(row=>dachExtendedComplete(row,kind,p)).length<points.length*.65,sourceRows=useIfs?windById:byId,source=sourceRows.get(point.id);if([...sourceRows.values()].filter(row=>dachExtendedComplete(row,kind,p)).length<points.length*.65||!dachExtendedComplete(source,kind,p))continue;
+ // Memoize per-period EPS admission once; the previous cell loop scanned the
+ // entire regional grid for each hazard of each cell (quadratic work).
+ const admissionByPeriod=new Map();
+ for(const p of periods){
+  const kinds={};
+  for(const kind of ['rain','wind','snow']){
+   const iconComplete=[...byId.values()].filter(row=>dachExtendedComplete(row,kind,p)).length;
+   const useIfs=kind==='wind'&&iconComplete<points.length*.65;
+   const sourceRows=useIfs?windById:byId;
+   const available=(useIfs?[...windById.values()].filter(row=>dachExtendedComplete(row,kind,p)).length:iconComplete)>=points.length*.65;
+   kinds[kind]={useIfs,sourceRows,available};
+  }
+  admissionByPeriod.set(p.id,kinds);
+ }
+ const cells=[];for(const point of points){const ensemble=byId.get(point.id);if(!ensemble)continue;const elevation=Math.round(number(ensemble.elevation)||0),cellPeriods={};for(const p of periods){const hazards={},probabilityFields={};for(const kind of['rain','wind','snow']){const {useIfs,sourceRows,available}=admissionByPeriod.get(p.id)[kind],source=sourceRows.get(point.id);if(!available||!dachExtendedComplete(source,kind,p))continue;
    const assessment=dachExtremeAttachThresholdEvidence(kind==='rain'?dachExtremeRain(ensemble,p.startHour,p.endHour,elevation,24):kind==='wind'?dachExtremeWind(source,p.startHour,p.endHour,elevation):dachExtremeSnow(ensemble,p.startHour,p.endHour,elevation,24),kind);probabilityFields[kind]=assessment.probabilities;if(assessment.signal)hazards[kind]={...assessment.signal,drivers:[`Regionales ${useIfs?'ECMWF-IFS-EPS':'ICON-EPS'}-Langfristsignal; Lage und Zeitfenster unsicher`],metrics:{...assessment.signal.metrics,evidenceSource:useIfs?'ECMWF-IFS-EPS':'ICON-EPS'}};
   }cellPeriods[p.id]={hazards,probabilityFields,dominant:dachExtremeDominant(hazards)}}cells.push({...point,row:point.row/2,col:point.col/2,elevationM:elevation,periods:cellPeriods})}
  const data={scope:'Mitteleuropa',provider:'Eigene MID-Prognose',model:`DWD ICON-EPS Seamless${windById.size?' + ECMWF-IFS-EPS Böen':''} · regionaler Langfristausblick`,checkedAt:new Date().toISOString(),officialWarning:false,periods,cells,grid:{rows:6,cols:10,latStep:grid.latStep*2,lonStep:grid.lonStep*2,bounds:DACH_EXTREME_BOUNDS,analysisBounds:grid.analysisBounds,pointCount:points.length,availablePointCount:cells.length},thresholds:DACH_EXTREME_THRESHOLDS,quality:{ensembleMembers:40,probabilityMethod:'Unkalibrierte Näherung aus Mittel und Streuung der tatsächlichen EPS-Mitglieder (mindestens 32/40 ICON bzw. 41/51 ECMWF je Stunde; Modelle getrennt); keine gesicherte Eintrittswahrscheinlichkeit.',modelResolution:'ICON-D2-/EU-/Global-EPS etwa 2/6,5/26 km; ECMWF-IFS025 etwa 25 km; stündliche API-Werte können interpoliert sein',displayGrid:'Grobes regionales Raster etwa 180–320 km',dataCoveragePct:Math.round(cells.length/points.length*100),diagnosticCoveragePct:0,limitations:['48–120 h: regionale Vorhinweise. Tag 6–7: unsicherer Gefahrenausblick.','Keine ortsscharfen Warnungen; keine Gewitter-/Eisregenbewertung im Langfristraster.','Böen werden bis Tag 7 nur bei vollständigen Tagesfenstern bewertet. Hinter dem ICON-Böenhorizont ergänzt ECMWF-IFS-EPS; fehlende Ergänzung bleibt eine Datenlücke. Keine Vorhinweise nach +168 h.','Regen und Schnee ausschließlich aus vollständigen 24-h-Summen; keine lokalen Starkregen- oder Eisregenwarnungen. Fehlende Zeitfenster werden nicht als Entwarnung dargestellt.']}};
