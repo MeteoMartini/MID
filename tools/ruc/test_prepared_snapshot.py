@@ -47,12 +47,12 @@ class PreparedTests(unittest.TestCase):
         folder=self.repo/'tools/ruc';folder.mkdir(parents=True,exist_ok=True)
         test=folder/'test_read_only_added.py'
         audit=folder/'ruc_p3_native_log_audit.py'
-        test.write_text('def test_observation(): pass\\n')
-        audit.write_text('def inspect_builder_log(text): return text\\n')
+        test.write_text('def test_observation(): pass\n')
+        audit.write_text('def inspect_builder_log(text): return text\n')
         self.commit()
         self.assertFalse(admit(self.snapshot,self.repo,123)['recalculated'])
-        audit.write_text('def inspect_builder_log(text): return text.strip()\\n')
-        test.write_text('def test_observation(): assert True\\n')
+        audit.write_text('def inspect_builder_log(text): return text.strip()\n')
+        test.write_text('def test_observation(): assert True\n')
         self.commit()
         self.assertFalse(admit(self.snapshot,self.repo,123)['recalculated'])
 
@@ -61,7 +61,7 @@ class PreparedTests(unittest.TestCase):
         self.seal()
         folder=self.repo/'tools/ruc';folder.mkdir(parents=True,exist_ok=True)
         runtime=folder/'new_native_runtime_helper.py'
-        runtime.write_text('CONTRACT = 1\\n')
+        runtime.write_text('CONTRACT = 1\n')
         with self.assertRaisesRegex(ValueError,'incompatible'):
             admit(self.snapshot,self.repo,123)
         runtime.unlink()
@@ -70,12 +70,12 @@ class PreparedTests(unittest.TestCase):
     def test_p3_audit_only_exclusion_never_masks_worker_or_workflow_change(self):
         self.seal()
         worker=self.repo/'worker-src/00-core-observations.js'
-        worker.write_text(worker.read_text()+'\\n// real decoder changed\\n')
+        worker.write_text(worker.read_text()+'\n// real decoder changed\n')
         with self.assertRaisesRegex(ValueError,'incompatible'):
             admit(self.snapshot,self.repo,123)
-        worker.write_text(worker.read_text().split('\\n// real decoder changed')[0])
+        worker.write_text(worker.read_text().split('\n// real decoder changed')[0])
         workflow=self.repo/'ci/github/workflows/mid-ruc-preprocess.yml'
-        workflow.write_text(workflow.read_text()+'\\n# producer policy changed\\n')
+        workflow.write_text(workflow.read_text()+'\n# producer policy changed\n')
         with self.assertRaisesRegex(ValueError,'incompatible'):
             admit(self.snapshot,self.repo,123)
 
