@@ -2,6 +2,19 @@
 
 **Status: Source-Draft, ausdrücklich kein freigegebener Build, keine abgeschlossene A0–A5-Abnahme.**
 
+## Nachtrag: SHA-identische fachliche Karten-Vorlade-Dateien aus PR #589
+
+Auf dem unveränderten, verifizierten `.402`-Stable-Ausgangspunkt wurden ausschließlich drei fachliche Git-Blobs aus dem weiterhin getrennten Draft-PR #589 bei HEAD `43670f128c594dc0d9ce5bf74c9fe3a42f2fde0b` auf diesen Audit-Draft übertragen und nach GitHub-Readback SHA-verifiziert:
+
+- `src/App.tsx` – Blob `29bf3b618c8d89efd092ba7c329f6548b5347773`.
+- `src/mapIdlePreload.ts` – Blob `f0a8c1f0655cd6224bb905936ecfddd7caa33453`.
+- `scripts/test-c14-map-workspace-098534.mjs` – Blob `8a3588e2d37f29b1969fa62ae1454ae4cd36bf20`.
+
+Die etwa 2500-ms verzögerte, kündbare Browser-Idle-Vorbereitung importiert nur bisherige JS-Module, wenn vollständiges Ortswetter und erlaubte Verbindung vorhanden sind; Offline, Hintergrund, Data Saver/2G, Suche und offene Navigation sperren den Pfad. Das vorhandene C14-Pflichtskript enthält ausführbare TS-Policy-Gegenproben. **Keine** `.403`-Versionsspiegel, Warn-, Worker-, RUC- oder Modellprodukte aus PR #589 übernommen. Alle späteren Code- und Release-Behauptungen erfordern vollständige Checks auf dem finalen HEAD; diese Aufnahme belegt weder reale 10-Sekunden-Verbesserung noch WebGL-/iPhone-Abnahme.
+
+Dieses Draft-Paket ist ein nachweisbarer Übertragungsstand, **kein Releasezug**. Vor tatsächlicher `.404`-Integration müssen eine eventuell mittlerweile veröffentlichte `.403`-Stable-SHA und die parallelen PR-HEADs erneut geprüft werden. Die angehängten sieben Änderungen werden dann selektiv und konfliktbewusst auf den neuen Stable-Stand portiert, ohne ältere Versionsmirror-Dateien mitzunehmen.
+
+
 ## Verifizierte Ausgangsbasis und Sperren
 
 - GitHub `MeteoMartini/MID`, `main=mid-stable` v0.9.85.402 SHA `1888cb97149855aa8d63f74fecad9c4f245ee02d`; Installer #41325206572 komplett mit Core, Heavy, Worker, Pages, Finalize und Stable-Promotion erfolgreich. Fünf aktive Rulesets und 1059 bisherige Pflichtregressionen.
