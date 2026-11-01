@@ -1,3 +1,17 @@
+# MID v0.9.85.394 · Designaudit #508/#523: Klima-Favoritenname, Saisonmodell und Routenwetter
+
+**Live verifizierte Stable-Basis:** v0.9.85.393, `main=mid-stable` SHA `43cb36c07531b8d93418061aa1f075df5f6ac0fc`, fünf Rulesets. Die unabhängigen RUC-Qualifikations-/Vollgebiet-Drafts #561/#560/#557/#555/#554 bleiben unberührt.
+
+**Fachlich reproduzierte Probleme:** `ClimatePanel` bewahrte beim Ortswechsel einen einmal beim Mount gelesenen Namens-Boolean und schrieb diesen nachgelagert auf einen neuen Ortskey; `LongRangeModelComparison` speicherte die Parameterwahl nur im Effect und las Paralleländerungen nicht; `RouteWeatherPanel` deklarierte eine Button-Moduswahl fälschlich als Tablist, ohne Tab-/Tabpanel-Semantik.
+
+**Lösung:** gemeinsamer `useRawDisplayPreference`-Hook auf den bereits vorhandenen Durable-Storage-Keys. Getter für stabile React-Primitive-Snapshots, synchrones Schreiben vor dem UI-Commit, Latest-State-Funktionsupdates und gemeinsame Storage-/Display-Events. Validierung bewahrt `false` und `0`; Wetter- und numerische Fachdaten werden nicht umdefiniert. Klima speichert nur durch tatsächliche Nutzeraktion je Ortskey, nicht bei Prop-Ortswechsel. Saisonmodellparameter enthält `aria-pressed`; Routenmodi eine konsistente Button-Gruppe statt einer fiktiven Tablist.
+
+**Tests/Release:** bestehender verpflichtender `test-display-return-states-0985364.mjs` enthält dynamisch ausgeführte Raw-Store-Fälle für A/B-Orte, konkurrierende Instanzen, Legacy-Keys, Invalid und blockierte Browser-Storage-Methoden. Die 1059 Pflichtregressionsinventare bleiben erhalten; volle Source-/Installer-/Worker-/Pages-/Stable-Prüfung bleibt zwingend. Kein echtes iOS-/VoiceOver-Gerät aus Unit-/Browser-Shards ableiten.
+
+**Offen:** vollständige WidgetGenerator-/WeatherMapsPanel-/ForecastCockpit-Persistenzinventur, WMS-Readbacks, verifizierte numerische Legenden/Exportrechte, A1–A5-Viewport-/Light-Dark-/Screenreader-Abnahme. Master-Issues #508/#523 ausdrücklich nicht pauschal schließen.
+
+---
+
 # MID v0.9.85.393 · echte GeoSphere-Schneemessungen: Missing ≠ 0
 
 **Verifizierte Quelle:** v0.9.85.392, `main=mid-stable` SHA `74f39cc3ea371e8e1ddae5d09d16e77241864a32`. Vorgänger-Release Source-PR #556, Installer #41279397041 vollständig erfolgreich (Core/Heavy/Worker/Pages/Finalize); fünf Rulesets. Alte .392-Snow-PR #558 @ `fbd497ea87cb63a435aa15b6eed992466ebe8140` wurde wegen paralleler .392-Design-Promotion NICHT auf main gemergt. Code- und Testblobs selektiv, vollständig SHA-geprüft und ohne Rebase/Reset auf neuen Stable-Tree portiert.
