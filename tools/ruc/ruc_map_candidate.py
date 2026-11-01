@@ -47,27 +47,37 @@ def recheck_object(root,meta,name):
   raise ValueError('source object changed during map generation: '+name)
 
 
-def decode_display(cube,lookup,field_index,spec,factor,bounds):
- """NoData from either lookup or source stays null, including at grid edges."""
+def decode_display_at(cube,lookup,field_index,time_index,spec,factor,bounds):
+ """Decode just one complete source hour: preserve every lookup cell and NoData.
+
+ The existing unstructured native field stays untouched. No averaging, crop,
+ resizing, interpolation, or coercion of missing data into zero is permitted.
+ """
  if cube.ndim!=3 or lookup.ndim!=2 or not all(cube.shape) or not lookup.size:
   raise ValueError('empty or invalid point/time/field/display dimensions')
+ if not 0<=time_index<cube.shape[1] or not 0<=field_index<cube.shape[2]:
+  raise ValueError('invalid map field/time index')
  valid=lookup!=np.uint32(0xffffffff)
  if np.any(valid & (lookup>=cube.shape[0])):raise ValueError('lookup exceeds native grid')
- indices=np.where(valid,lookup,0)
- raw=cube[indices,:,field_index]
- known=valid[:,:,None] & (raw!=-32768)
- values=(raw.astype(np.float64)*spec['scale']+spec.get('offset',0))*factor
+ indices=np.where(valid,lookup,0).astype(np.intp)
+ raw=cube[indices,time_index,field_index]
+ known=valid & (raw!=-32768)
+ if not known.any():raise ValueError('fully missing map time')
+ physical=(raw.astype(np.float64)*spec['scale']+spec.get('offset',0))*factor
  lo,hi=bounds
- if np.any(known & ((values<lo)|(values>hi))):raise ValueError('map field outside physical contract')
- # Preserve the source precision; display values use at least hundredths.
+ if np.any(known & (~np.isfinite(physical)|(physical<lo)|(physical>hi))):
+  raise ValueError('map field outside physical contract')
  scale=min(.01,float(spec['scale'])*factor)
- result=[]
- for time_index in range(cube.shape[1]):
-  mask=known[:,:,time_index]
-  if not mask.any():raise ValueError('fully missing map time')
-  quantized=np.rint(values[:,:,time_index]/scale)
-  result.append([int(v) if ok else None for v,ok in zip(quantized.ravel(),mask.ravel())])
- return scale,result
+ quantized=np.rint(physical/scale)
+ return scale,[int(value) if valid else None for value,valid in zip(quantized.ravel(),known.ravel())]
+
+
+def decode_display(cube,lookup,field_index,spec,factor,bounds):
+ """Regression-compatible complete-axis decode without a 28-frame RAM spike."""
+ frames=[decode_display_at(cube,lookup,field_index,hour,spec,factor,bounds)[1]
+         for hour in range(cube.shape[1])]
+ return min(.01,float(spec['scale'])*factor),frames
+
 
 def audit_native_frame(cube,lookup,field_index,time_index,spec,factor,bounds):
  """Audit the entire quantized native field, not only the selected map crop.
@@ -122,17 +132,19 @@ def build_candidate(source:Path,output:Path):
  if len(raw)!=points*det['recordBytes']:raise ValueError('source deterministic dimensions')
  cube=np.frombuffer(raw,dtype='<i2').reshape(points,len(times),len(specs))
  grid=meta['lookup']['grid'] if 'grid' in meta['lookup'] else meta['grid']
- # The existing verified lookup is used as-is. Crop only, never regrid values.
+ # Use the entire SHA-verified geographic lookup, not the historical Germany crop.
  nx,ny=grid['nx'],grid['ny']
  if any(type(n) is not int or not 2<=n<=2000 for n in (nx,ny)) or any(not isinstance(grid[k],(int,float)) or not math.isfinite(grid[k]) for k in ('lonMin','latMin','dx','dy','maxNearestKm')) or not (0<grid['dx']<=1 and 0<grid['dy']<=1 and 0<grid['maxNearestKm']<=5):
   raise ValueError('invalid source lookup geometry')
  lookup_raw=checked_object(source,meta,'lookup.bin')
  if len(lookup_raw)!=nx*ny*4:raise ValueError('source lookup dimensions')
  xs=grid['lonMin']+np.arange(nx)*grid['dx'];ys=grid['latMin']+np.arange(ny)*grid['dy']
- rows=np.flatnonzero((ys>=47)&(ys<=55.2));cols=np.flatnonzero((xs>=5.5)&(xs<=15.6))
- if len(rows)<2 or len(cols)<2:raise ValueError('display crop not covered')
- lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)[np.ix_(rows,cols)]
- index={'schema':'mid.ruc.map-candidate.v1','modelId':'icon-d2-ruc','productionEnabled':False,'readyForProduction':False,'run':run.isoformat(),'sourceManifestSha256':hashlib.sha256(manifest_bytes).hexdigest(),'sourceDeterministicSha256':meta['objects']['deterministic.bin']['sha256'],'sourceLookupSha256':meta['objects']['lookup.bin']['sha256'],'sampling':'nearest-native-cell','maxNearestKm':grid['maxNearestKm'],'products':{}}
+ if xs[0]<-180 or xs[-1]>180 or ys[0]<-90 or ys[-1]>90:
+  raise ValueError('invalid source lookup geographical extent')
+ lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)
+ if not np.any(lookup!=np.uint32(0xffffffff)):
+  raise ValueError('full native lookup contains no covered cell')[np.ix_(rows,cols)]
+ index={'schema':'mid.ruc.map-candidate.v1','modelId':'icon-d2-ruc','productionEnabled':False,'readyForProduction':False,'run':run.isoformat(),'sourceManifestSha256':hashlib.sha256(manifest_bytes).hexdigest(),'sourceDeterministicSha256':meta['objects']['deterministic.bin']['sha256'],'sourceLookupSha256':meta['objects']['lookup.bin']['sha256'],'sampling':'nearest-native-cell','maxNearestKm':grid['maxNearestKm'],'fullLookupCoverage':True,'sourceLookupBounds':[float(xs[0]),float(ys[0]),float(xs[-1]),float(ys[-1])],'sourceLookupCells':int(nx*ny),'products':{}}
  files={}
  for kind,(name,unit,factor,bounds) in PARAMETERS.items():
   matches=[(i,s) for i,s in enumerate(specs) if s.get('name')==name]
@@ -141,12 +153,12 @@ def build_candidate(source:Path,output:Path):
   expected={'temperature':'°C','pressure':'hPa','wind':'kn','gust':'kn','cloud':'%','precipitation':'mm'}[kind]
   if spec.get('unit')!=expected or not isinstance(spec.get('scale'),(int,float)) or not math.isfinite(spec['scale']) or spec['scale']<=0:
    raise ValueError('source field unit/scale')
-  scale,frames=decode_display(cube,lookup,fi,spec,factor,bounds)
   refs=[]
-  for hour,values in enumerate(frames):
+  for hour in range(len(times)):
    # Initial precipitation/gust is a zero-length initialization, not a 1-h forecast.
    if hour==0 and kind in ('precipitation','gust'):continue
-   payload={'schema':'mid.ruc.map-field-candidate.v1','modelId':'icon-d2-ruc','run':index['run'],'time':(run+timedelta(hours=hour)).isoformat(),'kind':kind,'unit':unit,'scale':scale,'lats':ys[rows].round(6).tolist(),'lons':xs[cols].round(6).tolist(),'values':values,'isobars':[],'sampling':'nearest-native-cell'}
+   scale,values=decode_display_at(cube,lookup,fi,hour,spec,factor,bounds)
+   payload={'schema':'mid.ruc.map-field-candidate.v1','modelId':'icon-d2-ruc','run':index['run'],'time':(run+timedelta(hours=hour)).isoformat(),'kind':kind,'unit':unit,'scale':scale,'lats':ys.round(6).tolist(),'lons':xs.round(6).tolist(),'values':values,'isobars':[],'sampling':'nearest-native-cell'}
    encoded=compact(payload);wire=gzip.compress(encoded,mtime=0)
    if len(encoded)>12_000_000:raise ValueError('map decoded budget')
    key=f'{kind}-{hour:03d}.bin';files[key]=wire
@@ -154,7 +166,9 @@ def build_candidate(source:Path,output:Path):
    refs.append({'hour':hour,'time':payload['time'],'file':key,'sha256':hashlib.sha256(wire).hexdigest(),'bytes':len(wire),'decodedBytes':len(encoded),'decodedSha256':hashlib.sha256(encoded).hexdigest(),'encoding':'gzip-json','intervalHours':1 if kind in ('precipitation','gust') else 0,**frame_audit})
   index['products'][kind]={'unit':unit,'frames':refs}
  index['candidateBytes']=sum(len(data) for data in files.values())
- if index['candidateBytes']>100_000_000:raise ValueError('offline map candidate budget')
+ # Per-frame limits remain 12 MB; the complete sidecar stays below a conservative
+ # 350 MB ceiling AND the final separately checked 900 MB Pages snapshot budget.
+ if index['candidateBytes']>350_000_000:raise ValueError('offline map candidate budget')
  output.parent.mkdir(parents=True,exist_ok=True)
  temporary=Path(tempfile.mkdtemp(prefix='.ruc-maps-',dir=output.parent))
  try:
