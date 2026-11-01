@@ -13,6 +13,10 @@ on:
       - 'tools/ruc/test_ruc_freshness_shadow_gate.py'
       - 'tools/ruc/test_ruc_e2e_readback.py'
       - 'tools/ruc/test_ruc_weekly_e2e_observations.py'
+      - 'tools/ruc/fetch_and_build_ruc.py'
+      - 'tools/ruc/optional_stage_parallel.py'
+      - 'tools/ruc/test_optional_stage_parallel.py'
+      - 'tools/ruc/test_fetch_resilience.py'
       - 'ci/github/workflows/mid-ruc-availability-observer.yml'
       - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
@@ -86,4 +90,13 @@ jobs:
           for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py; do
             python3 "tools/ruc/$test" -v
           done
-          echo 'Only DWD directory observation/Pages/Worker readback reviewed; no GRIB/EPS/App/SLO or Fast-Publisher release authorization.' >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/ruc/test_optional_stage_parallel.py -v
+          echo 'Read-only DWD/Pages/Worker and bounded optional staging regression only; no GRIB/EPS/App/SLO or Fast-Publisher release authorization.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Native RUC Download-/Decoder-Resilienz offline inkl. optionaler Parallelität
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python3 -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python3 tools/ruc/test_fetch_resilience.py -v
