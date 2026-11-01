@@ -6,6 +6,8 @@ on:
       - 'tools/ruc/ruc_p1p5_censor_audit.py'
       - 'tools/ruc/test_ruc_p1p5_censor_audit.py'
       - 'tools/ruc/ruc_p3_timing_audit.py'
+      - 'tools/ruc/ruc_data_driven_policy.py'
+      - 'tools/ruc/test_ruc_data_driven_policy.py'
       - 'tools/ruc/ruc_observer_execution_status.py'
       - 'tools/ruc/test_ruc_observer_execution_status.py'
       - 'tools/ruc/ruc_fast_lane_producer.py'
@@ -62,6 +64,7 @@ jobs:
           python3 tools/ruc/test_ruc_p1p5_censor_audit.py -v
           python3 tools/ruc/test_ruc_p3_timing_audit.py -v
           python3 tools/ruc/test_ruc_observer_execution_status.py -v
+          python3 tools/ruc/test_ruc_data_driven_policy.py -v
           echo 'Directory samples and public pointer metadata only. No GRIB/EPS, DWD first publication, app-client, P95 SLO, or production trigger authorization.' >> "$GITHUB_STEP_SUMMARY"
       - name: Native Fast-Lane-P2 fachlich ohne DWD-Download testen
         shell: bash
