@@ -102,14 +102,14 @@ function writeOutlookCache(value:ExtremeWeatherOutlook){const storage=browserSto
 function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
  if(!validOutlook(value))return false;
  const expected=[['48-72',48,72],['72-96',72,96],['96-120',96,120],['120-144',120,144],['144-168',144,168]] as const;
- if(value.periods.length!==expected.length||!value.checkedAt||!Number.isFinite(Date.parse(value.checkedAt))||value.officialWarning!==false)return false;
- for(let index=0;index<expected.length;index++){
+ if(value.periods.length<1||value.periods.length>expected.length||!value.checkedAt||!Number.isFinite(Date.parse(value.checkedAt))||value.officialWarning!==false)return false;
+ for(let index=0;index<value.periods.length;index++){
   const period=value.periods[index],spec=expected[index];
   if(!period||period.id!==spec[0]||period.startHour!==spec[1]||period.endHour!==spec[2]||!Number.isFinite(Date.parse(period.start))||!Number.isFinite(Date.parse(period.end))||Date.parse(period.end)-Date.parse(period.start)!==(spec[2]-spec[1])*3600000||(index>0&&Date.parse(period.start)!==Date.parse(value.periods[index-1].end)))return false;
  }
  const coverage=value.quality?.dataCoveragePct;
  if(!Number.isFinite(value.grid.pointCount)||value.grid.pointCount<=0||!Number.isFinite(value.quality?.ensembleMembers)||value.quality.ensembleMembers<=0||typeof coverage!=='number'||!Number.isFinite(coverage)||coverage<60||coverage>100)return false;
- for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!expected.every(spec=>{const hazards=cell.periods?.[spec[0]]?.hazards;return hazards!==null&&typeof hazards==='object'&&!Array.isArray(hazards)}))return false;}
+ for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!value.periods.every(spec=>{const hazards=cell.periods?.[spec.id]?.hazards;return hazards!==null&&typeof hazards==='object'&&!Array.isArray(hazards)}))return false;}
  return true;
 }
 function readExtendedOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);return validExtendedOutlook(value)?value:undefined}
