@@ -15,11 +15,11 @@ try{
  const index=make(),ref=index.products.temperature.frames[0],field={schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell',run,time:ref.time,kind:'temperature',unit:'°C',scale:.01,lats:[47,51.1,55.2],lons:[5.5,10.55,15.6],values:[null,0,1234,100,200,300,400,500,600],isobars:[]};
  const d=m.validateNativeField(field,index,ref,'temperature');assert.equal(field.values[0],null);assert.equal(m.nativeAt(d,47,5.5),null);assert.equal(m.nativeAt(d,47,10.55),0);assert.equal(m.nativeAt(d,47,15.6),12.34);assert.equal(m.nativeFieldModel(d),'icon-d2-ruc');
  for(const bad of [{...field,schema:'mid.ruc.map-field-candidate.v1'},{...field,modelId:'icon-d2'},{...field,values:field.values.map(()=>null)}])assert.throws(()=>m.validateNativeField(bad,index,ref,'temperature'));
- const wider={...field,kind:'pressure',unit:'hPa',lats:[43.2,50.6,58],lons:[-3.8,8.2,20.2],values:[null,0,1234,100,200,300,400,500,600],isobars:[{level:1000,paths:[[[43.4,-3.5],[44,-2]]]}]};
+ const wider={...field,kind:'pressure',unit:'hPa',lats:[43.2,50.6,58],lons:[-3.8,8.2,20.2],values:[null,90000,90500,91000,95000,96000,97000,100000,110000],isobars:[{level:1000,paths:[[[43.4,-3.5],[44,-2]]]}]};
  const widePressure=m.validateNativeField(wider,index,index.products.pressure.frames[0],'pressure');
  assert.equal(m.nativeAt(widePressure,43.2,-3.8),null);
- assert.equal(m.nativeAt(widePressure,43.2,8.2),0);
- assert.equal(m.nativeAt(widePressure,58,20.2),6);
+ assert.equal(m.nativeAt(widePressure,43.2,8.2),900);
+ assert.equal(m.nativeAt(widePressure,58,20.2),1100);
  for(const isobar of [[[[42.9,-3.5],[44,-2]]],[[[43.4,-3.5],[44,21]]]])assert.throws(()=>m.validateNativeField({...wider,isobars:[{level:1000,paths:isobar}]},index,index.products.pressure.frames[0],'pressure'));
  for(const kind of m.RUC_MAP_KINDS)assert(m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
  for(const kind of ['sigwx','thetae','totals','observed'])assert(!m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
