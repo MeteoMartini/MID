@@ -57,6 +57,16 @@ const missingDirection=signal([sample({gust:70/1.852,windDirection:null,directio
 if(missingDirection&&formatDwdWarningDirection(missingDirection)!=='')failures.push('Missing wind direction must not be displayed as north.');
 const north=signal([sample({gust:70/1.852,windDirection:0})],'wind');
 if(!north||!formatDwdWarningDirection(north).includes('nördlicher'))failures.push('Real 0 degree wind direction must remain north.');
+// A 3-hour frost or 12-hour heat spell requires actual contiguous hours when times exist.
+const firstEpoch=Date.UTC(2026,9,18,0);
+const frostAt=hour=>sample({epoch:firstEpoch+hour*3600000,temperature:-11,apparent:-11});
+const consecutiveFrost=[0,1,2].map(frostAt),gappedFrost=[0,3,6].map(frostAt),missingFrostTime=[frostAt(0),sample({epoch:null,temperature:-11,apparent:-11}),frostAt(2)];
+if(!dwdWarningSignalsAt(consecutiveFrost,0).some(item=>item.kind==='frost'&&item.level===2))failures.push('Three truly consecutive freezing hours must retain severe frost.');
+for(const rows of [gappedFrost,missingFrostTime])if(dwdWarningSignalsAt(rows,0).some(item=>item.kind==='frost'&&item.level===2))failures.push('Gapped or mixed untimed hours must not claim three hours of severe frost.');
+const heatAt=hour=>sample({epoch:firstEpoch+hour*3600000,temperature:22,apparent:34});
+const consecutiveHeat=Array.from({length:12},(_,i)=>heatAt(i)),gappedHeat=Array.from({length:12},(_,i)=>heatAt(i*2));
+if(!dwdWarningSignalsAt(consecutiveHeat,0).some(item=>item.kind==='heat'&&item.level===1))failures.push('Complete warm nighttime evidence must still support modelled heat load.');
+if(dwdWarningSignalsAt(gappedHeat,0).some(item=>item.kind==='heat'&&item.level===1))failures.push('Sparse twelve-value heat input must not masquerade as twelve consecutive hours.');
 for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,hours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
 if(!app.includes('Keine Warnung')||!styles.includes('.forecast-hazards .no-hazard'))failures.push('Dezenter Hinweis für warnfreie Tage fehlt.');
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
