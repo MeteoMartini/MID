@@ -108,6 +108,7 @@ export async function downloadOriginalWmsPng(plan:WmsOriginalExportPlan,signal?:
  ctx.fillText('Anbieter-Originallegende',plan.width+2*gutter,head+Math.max(plan.height,legendHeight)+19,legendWidth);
  ctx.fillText(plan.caption.slice(0,145),gutter,height-48,width-2*gutter);
  ctx.fillText(plan.source+' · WMS GetMap / GetLegendGraphic · EPSG:3857',gutter,height-28,width-2*gutter);
+ ctx.fillText('Transparente / leere Kartenflächen sind kein bestätigter Nullwert.',gutter,height-10,width-2*gutter);
  const output=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(result=>result?resolve(result):reject(new Error('PNG-Kodierung fehlgeschlagen.')),'image/png'));
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
  const url=URL.createObjectURL(output),anchor=document.createElement('a');
