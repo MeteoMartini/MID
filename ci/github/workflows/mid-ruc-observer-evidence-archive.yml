@@ -1,0 +1,104 @@
+name: MID RUC P1-P5 original observer evidence archive (read-only)
+on:
+  workflow_dispatch:
+  schedule:
+    # Best effort once per day; only collects existing GitHub observer artifacts.
+    # No trigger of any RUC producer, fast-lane or publication.
+    - cron: '27 5 * * *'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-ruc-observer-evidence-archive
+  cancel-in-progress: false
+jobs:
+  observe-168h:
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Load current released Stable source only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify exact Stable and Main identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          checked="$(git rev-parse HEAD)"
+          main="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          stable="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
+          test "$checked" = "$stable"
+          test "$checked" = "$main"
+          test -f tools/ruc/ruc_github_observer_collect.py
+          test -f tools/ruc/ruc_observer_artifact_bundle.py
+      - name: Prepare Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Run fail-closed original archive tests with no network
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/test_ruc_observer_artifact_bundle.py -v
+          python3 tools/ruc/test_ruc_github_observer_collect.py -v
+          python3 tools/ruc/test_ruc_p1p5_censor_audit.py -v
+      - name: Read-only collect Github Action run inventory and original observer ZIPs
+        id: collect
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cutoff="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "cutoff=$cutoff" >> "$GITHUB_OUTPUT"
+          python3 tools/ruc/ruc_github_observer_collect.py \
+            --cutoff-utc "$cutoff" --output-dir .ruc-observer-evidence
+      - name: Censored 168h P1/P5 metrics from original verified observations ONLY
+        env:
+          CUTOFF: ${{ steps.collect.outputs.cutoff }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/ruc_p1p5_censor_audit.py \
+            --directory .ruc-observer-evidence/directory.jsonl \
+            --readbacks .ruc-observer-evidence/readbacks.jsonl \
+            --ending-at-utc "$CUTOFF" \
+            --output .ruc-observer-evidence/censored-168h.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('.ruc-observer-evidence')
+          runs=json.loads((p/'provenance.json').read_text())
+          report=json.loads((p/'censored-168h.json').read_text())
+          assert runs['githubRunInventoryComplete'] is True
+          assert runs['productionSloAuthorized'] is False
+          assert runs['complete168hNativeGribOrClientSloProof'] is False
+          assert report['classification']['sixtyMinuteProductionP95Authorized'] is False
+          with Path(__import__('os').environ['GITHUB_STEP_SUMMARY']).open('a') as out:
+              out.write('RUC P1/P5 observation status (not production SLO):\n')
+              out.write(f"- GitHub attempts: {runs['expectedGitHubRunAttempts']}\n")
+              out.write(f"- Missing original ZIPs: {runs['missingGitHubRunAttemptArtifacts']}\n")
+              out.write(f"- DWD directory samples: {runs['directorySamples']}\n")
+              out.write(f"- Public readbacks: {runs['publicReadbacks']}\n")
+              out.write('- Native GRIB/EPS20, exact DWD publication, client adoption and 60-min P95: **not verified**\n')
+          PY
+      - name: Archive bounded provenance and reports without uploading source ZIP copies
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-original-observer-168h-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .ruc-observer-evidence/github-run-manifest.json
+            .ruc-observer-evidence/provenance.json
+            .ruc-observer-evidence/directory.jsonl
+            .ruc-observer-evidence/readbacks.jsonl
+            .ruc-observer-evidence/censored-168h.json
+          retention-days: 14
+          include-hidden-files: true
+          if-no-files-found: warn
+          compression-level: 6

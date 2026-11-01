@@ -1,0 +1,31 @@
+{
+  "baseMidStableSha": "a6c644fef9762ffad1f4f48a8ddfdf77d4fe2fe7",
+  "files": {
+    ".github/workflows/mid-ruc-p3-eps-quantile-qa.yml": {
+      "bytes": 2689,
+      "sha256": "5dd21a0decc5ddec8e73f18b9bf901981ff1d3c7f20658b52863992b222d7a7a"
+    },
+    "ci/github/workflows/mid-ruc-p3-eps-quantile-qa.yml": {
+      "bytes": 2689,
+      "sha256": "5dd21a0decc5ddec8e73f18b9bf901981ff1d3c7f20658b52863992b222d7a7a"
+    },
+    "docs/implementation/MID_RUC_P3_EPS_QUANTILE_CANDIDATE_400_DRAFT.md": {
+      "bytes": 5042,
+      "sha256": "fa47c59471d502a258a294c948ca2651f81c3a9ced5482b5f95bcec2b4bba935"
+    },
+    "tools/ruc/ruc_p3_eps_quantile_candidate.py": {
+      "bytes": 3009,
+      "sha256": "896f93465c2b76098e3826d3612cdc1b72ddc71ff510bcdae3991daf4a8311ea"
+    },
+    "tools/ruc/test_ruc_p3_eps_quantile_candidate.py": {
+      "bytes": 6335,
+      "sha256": "1e053df38a373c00db7987f1ba156ee3765f674f402868e1d8b176fca0e20c87"
+    }
+  },
+  "fullInstallerGateVerified": false,
+  "originalDwdGribParityVerified": false,
+  "originalUnpublishedBase": "0.9.85.399",
+  "productionReleaseAuthorized": false,
+  "schema": "mid.ruc.p3-quantile-source-candidate.v1",
+  "sourceReleaseVersion": "0.9.85.400"
+}

@@ -1,6 +1,11 @@
 name: MID DWD RUC availability observation (read-only)
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - MID RUC schedule watchdog
+    types: [completed]
+    branches: [main]
   schedule:
     # Observations are best-effort; true first availability is interval-censored.
     # This job must not trigger, block or replace the 27h/20-EPS pipeline.
@@ -15,7 +20,13 @@ concurrency:
 
 jobs:
   observe:
-    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    if: >-
+      vars.MID_RUC_PIPELINE_ENABLED == 'true' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'schedule' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

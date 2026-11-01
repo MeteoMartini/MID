@@ -4,6 +4,12 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - 'tools/ruc/ruc_p1p5_censor_audit.py'
+      - 'tools/ruc/ruc_observer_artifact_bundle.py'
+      - 'tools/ruc/test_ruc_observer_artifact_bundle.py'
+      - 'tools/ruc/ruc_github_observer_collect.py'
+      - 'tools/ruc/test_ruc_github_observer_collect.py'
+      - 'ci/github/workflows/mid-ruc-observer-evidence-archive.yml'
+      - '.github/workflows/mid-ruc-observer-evidence-archive.yml'
       - 'tools/ruc/test_ruc_p1p5_censor_audit.py'
       - 'tools/ruc/ruc_p3_timing_audit.py'
       - 'tools/ruc/ruc_data_driven_policy.py'
@@ -73,6 +79,9 @@ jobs:
           set -euo pipefail
           python3 -m py_compile tools/ruc/ruc_p1p5_censor_audit.py tools/ruc/test_ruc_p1p5_censor_audit.py tools/ruc/ruc_p3_timing_audit.py tools/ruc/test_ruc_p3_timing_audit.py
           python3 tools/ruc/test_ruc_p1p5_censor_audit.py -v
+          python3 tools/ruc/test_ruc_observer_artifact_bundle.py -v
+          python3 tools/ruc/test_ruc_github_observer_collect.py -v
+          cmp ci/github/workflows/mid-ruc-observer-evidence-archive.yml .github/workflows/mid-ruc-observer-evidence-archive.yml
           python3 tools/ruc/test_ruc_p3_timing_audit.py -v
           python3 tools/ruc/test_ruc_observer_execution_status.py -v
           python3 tools/ruc/test_ruc_observer_release_drift_workflow.py -v
