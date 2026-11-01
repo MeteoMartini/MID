@@ -79,7 +79,7 @@ jobs:
           import json
           from pathlib import Path
           version=json.loads(Path('package.json').read_text())['version']
-          assert version == '0.9.85.397'
+          assert version == '0.9.85.398'
           assert json.loads(Path('MID_BASELINE.json').read_text())['releaseVersion'] == version
           assert json.loads(Path('contracts/index.json').read_text())['releaseVersion'] == version
           assert len(json.loads(Path('MID_BASELINE.json').read_text())['requiredRegressionTests']) >= 1059
