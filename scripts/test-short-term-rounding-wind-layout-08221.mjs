@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -74,5 +76,20 @@ try{
  if(points[0]?.direction!==270||points[0]?.wind!==3)failures.push('Windwerte wurden in den Kurzfristpunkten nicht korrekt übernommen.');
 }finally{await rm(dir,{recursive:true,force:true})}
 
+// Execute actual source-contract helpers: missing is never 0% but real zero remains available.
+const {transformSync}=await import('esbuild');
+const sourceFns=['shortTermVerifiedProbability','shortTermProbabilityLabel'].map(name=>{
+ const start=shortTerm.indexOf('function '+name+'('),end=shortTerm.indexOf('\n}',start);
+ assert.ok(start>=0&&end>start,'Production short-term function missing: '+name);
+ return shortTerm.slice(start,end+2);
+}).join('\n');
+const probabilityContext={clampValue:(v,low,high)=>Math.min(high,Math.max(low,v))};
+vm.runInNewContext(transformSync(sourceFns+'\nglobalThis.__prob={verified:shortTermVerifiedProbability,label:shortTermProbabilityLabel};',{loader:'ts',format:'iife',target:'es2022'}).code,probabilityContext);
+const {verified,label:probabilityLabel}=probabilityContext.__prob;
+for(const source of [null,undefined,NaN,-1,101,'0'])assert.ok(Number.isNaN(verified(source,0)),'Missing/invalid source probability cannot become 0%: '+String(source));
+for(const result of [null,undefined,NaN,-1,101])assert.ok(Number.isNaN(verified(0,result)),'Invalid calibrated probability cannot fabricate a 0% result');
+for(const value of [0,1,4,100]){assert.equal(verified(value,value),value);assert.equal(probabilityLabel(value),value+' %');}
+assert.equal(probabilityLabel(NaN),'nicht verfügbar');
+assert.ok(shortTerm.includes('{shortTermProbabilityLabel(point.probability)}')&&shortTerm.includes('{shortTermProbabilityLabel(selected.probability)}'),'All short-term PoP UI consumers must share the missing-aware label');
 if(failures.length){console.error('Kurzfrist-Rundung/Wind/Layout-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Kurzfrist-Rundung, Windrichtungslogik und überlagerungsfreies Kurzfristlayout geprüft.');

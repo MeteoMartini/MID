@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import fs from 'node:fs';
 const app=fs.readFileSync('src/App.tsx','utf8');
 const modules=fs.readFileSync('src/dashboardModules.ts','utf8');
@@ -9,5 +11,23 @@ for(const token of ["const LazyEventPlanner=lazy(()=>import('./EventPlannerPanel
 if(/EventPlannerPanel/.test(travel))failures.push('Wetterplaner ist weiterhin im Reiseplaner verschachtelt.');
 if(!settings.includes('DASHBOARD_MODULE_DEFINITIONS'))failures.push('Dashboard-Einstellungen nutzen den zentralen Modulkatalog nicht.');
 if(!app.includes("onOpenEventPlanner={recordId=>{navigateToDashboardSection('event-planner')"))failures.push('Topbar-Event-Center verlinkt nicht auf den eigenständigen Eventplaner.');
+const eventPanel=fs.readFileSync('src/EventPlannerPanel.tsx','utf8');
+const {transformSync}=await import('esbuild');
+const funcs=['eventWeatherPart','eventProbabilityLabel'].map(name=>{
+ const start=eventPanel.indexOf('function '+name+'('),end=eventPanel.indexOf('\n}',start);
+ assert.ok(start>=0&&end>start,'Event Weather source helper missing: '+name);
+ return eventPanel.slice(start,end+2);
+}).join('\n');
+const context={precipitationParts:(h)=>h,formatNumber:v=>String(v)};
+vm.runInNewContext(transformSync(funcs+'\nglobalThis.__event={parts:eventWeatherPart,pop:eventProbabilityLabel};',{loader:'ts',format:'iife',target:'es2022'}).code,context);
+assert.equal(context.__event.parts({time:'2026-11-01T21:00'}),null,'Absent weather code AND precipitation cannot become clear sky/dry');
+const realZero=context.__event.parts({time:'2026-11-01T21:00',weatherCode:0,precipitation:0,precipitationProbability:0});
+assert.equal(realZero.code,0);assert.equal(realZero.precipitation,0);
+const partial=context.__event.parts({time:'2026-11-01T21:00',weatherCode:61,precipitation:null});
+assert.ok(Number.isNaN(partial.precipitation),'Partial event must preserve unknown amount instead of fabricating 0');
+for(const missing of [null,undefined,NaN,-1,101])assert.equal(context.__event.pop(missing),'nicht verfügbar');
+for(const available of [0,1,4,100])assert.equal(context.__event.pop(available),available+' %');
+assert.ok(eventPanel.includes('aria-label="Wettercode nicht verfügbar"'),'Weather pictogram missing-status must be visible and announced');
+assert.ok(eventPanel.includes('eventTemperatureLabel(point.temperature)'),'Missing temperature must not be rendered as –°');
 if(failures.length){console.error('Wetterplaner-Modulintegration fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
 console.log('Planer-Integration geprüft: Eventplaner und Reiseplaner bleiben separat schaltbar und sind mit Berg-/Wasserprofilen unter „Planen & Profile“ gebündelt.');

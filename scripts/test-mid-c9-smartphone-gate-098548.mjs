@@ -36,12 +36,19 @@ for(const token of [
  ".current-nowcard-heading>span",
  "font-size:10.5px!important",
  "background:linear-gradient(145deg,var(--mid-surface-base)",
- "--mid-mobile-forecast-height",
- "overflow-y:auto!important",
- "overscroll-behavior-y:contain!important",
+ "max-height:none!important",
+ "overflow-x:clip!important",
+ "overflow-y:visible!important",
+ "overscroll-behavior-y:auto!important",
  "flex-shrink:0!important"
 ])assert.ok(css.includes(token),`MID-C9-Smartphone-Gate fehlt: ${token}`);
 
+const mobilePortrait=css.slice(css.indexOf("@media(max-width:850px) and (orientation:portrait)"));
+const cockpitRule=mobilePortrait.match(/html\[data-mid-design='next'\] \.forecast-cockpit\.modern-workspace\[data-workspace-mode='true'\]\{([^}]*)\}/)?.[1]||'';
+assert.ok(cockpitRule.includes('max-height:none!important')&&cockpitRule.includes('overflow-x:clip!important')&&cockpitRule.includes('overflow-y:visible!important'),'Mobile forecast must use the page vertical scroll axis');
+assert.ok(!cockpitRule.includes('overflow-y:auto!important')&&!cockpitRule.includes('overscroll-behavior-y:contain!important'),'Nested vertical scroll trap must not survive A0-01');
+assert.ok(css.includes('padding-bottom:calc(88px + var(--mid-safe-bottom))'),'Bottom navigation safe-area reserve remains mandatory');
+assert.ok(css.includes('overflow-x:auto!important'),'Horizontal chart/list scrolling must remain available');
 assert.ok(forecastCockpit.includes(".navigation-bottom-tabs .dashboard-section-quick.dashboard-bottom-tabs"),'Mobile Forecast muss die reale Oberkante der Bottom-Bar messen.');
 assert.ok(forecastCockpit.includes("--mid-mobile-forecast-height"),'Gemessene mobile Forecast-Höhe muss als CSS-Variable gesetzt werden.');
 assert.ok(forecastCockpit.includes("ResizeObserver"),'Forecast-Höhe muss auf Layoutänderungen reagieren.');

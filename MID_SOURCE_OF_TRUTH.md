@@ -1,3 +1,17 @@
+# MID v0.9.85.408 · Audit 1.9 NoData, Zeit- und responsive Forecast-Bedienung
+
+**Ausgangs-SHA:** nach erfolgreich beendeter v0.9.85.407 Releasekette (Source-PR #604, Installer #41358613904) `main=mid-stable` `bcf75d001f8973f54203fccb24d94353226d2de7`. Fünf aktive Rulesets, 38 normative Verträge, 1059 Pflichtregressionen. **Dieser .408-Text ist zunächst ein geprüfter Quellkandidat, noch keine bestätigte Stable-Promotion.**
+
+**Fachänderungen:** Originalwahrheit gegen falsche Nullen in Current-PoP 1–5 %, Kurzfrist-PoP, Windrichtung/Wind/Böen im Stundenfallback, Event-Metrik/Weather-Piktogramm und Berg-/Schneefallgrenzen; bei fehlenden Werten explizit Unbekannt statt trocken, echter Nullwert bleibt intakt. Appweiter Wetter-Code- und WMO-/DWD-Warnvertrag bleibt unverändert.
+
+**UX:** schmale Forecast-Workspaces benutzen vertikalen Seitenscroll, horizontale Datentimelines separat, Safe Area/Bottom-Bar/Focus-Schutz. README-Link auf den veröffentlichten Versionsspiegel. Vollständige iOS-/Screenreader-/PNG-/SVG-/Widget-/WebGL-Freigabe ist mit einem CSS-Source-Test NICHT bewiesen.
+
+**Auditrest:** WMS-/D2-Vollgebiet einschließlich native TOT_PREC, RUC P1–P5, 90min/24h DST-/Intervallmatrix, 7d/14d/46d/SEAS5-Konfidenz und Wetterphasen, Quellen/Provenienz im gesamten Export und echte responsive WCAG 2.2 AA/Geräteabnahme offen. Nicht abschließen oder publizieren ohne Gate-Nachweise.
+
+**Veröffentlichung:** ausschließlich kompletter finaler nicht-Draft Source-PR → automatisierter SHA-gebundener MID-Merge → server-ZIP → unabhängiger vollständiger Installer Core/Heavy/Worker/Pages/Finalize → belegte `mid-stable`-Promotion. Keine Ruleset-/Test-Abkürzung oder Direktwrite.
+
+---
+
 # MID v0.9.85.407 · Designaudit 1.9: echte NoData statt falscher Trockenheits- und Nullangaben
 
 **Freigegebene Basis:** v0.9.85.406, `main=mid-stable` SHA `5ebac2e7d62efb92dfdebb406d4125964057a1ba`, Installer #41354077136 `completed/success` (Attempt 2). 5 aktive Schutzrulesets, 1059 Pflichtregressionen, 38 normative Verträge. **Diese .407-Quelle ist vor ihrer eigenen vollständigen Gatekette kein Stable-Release.**

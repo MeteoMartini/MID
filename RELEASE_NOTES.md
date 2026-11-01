@@ -1,8 +1,10 @@
-# MID v0.9.85.407 – Datenlücken und Favoriten zuverlässig darstellen
+# MID v0.9.85.408 – Niederschlagswerte, Wetterdatenlücken und mobile Bedienung
 
-- Niederschlagsrisiko in „Aktuell“ ist bei fehlenden oder nicht auswertbaren Prognosewerten ausdrücklich unbekannt (–), statt fälschlich 0 % oder trocken zu melden. Echte 0-%-Werte bleiben erhalten.
-- Individuelle Favoriten-Wetterregeln ignorieren ungültige oder fehlende Wahrscheinlichkeiten, Böen und Temperaturen; ausdrücklich ausgeschaltete Regeln bleiben deaktiviert.
-- Die Wetter-Eckdaten der Eventplanung und gespeicherte Wasserprofile unterscheiden fehlende Angaben von echten Nullwerten; fehlende UV-Index-Werte erzeugen keine künstliche UVI-0-Aussage.
-- Der Menübereich „Mehr“ erhält eine semantische Überschriftenstruktur für assistive Technologien, ohne Navigation oder bestehende Interaktionen zu verändern.
+- Niederschlagswahrscheinlichkeiten in „Aktuell“ bleiben originalgetreu: 1–5 % werden nicht länger als 0 % ausgegeben. Echte 0 % und unbekannte Werte bleiben klar unterscheidbar.
+- Fehlende Wetterwerte in der Kurzfrist-, 24-Stunden- und Eventvorhersage werden als nicht verfügbar dargestellt, statt fälschlich 0 %, Windstille, Nordwind oder wolkenfreien Himmel zu erzeugen.
+- In der Eventplanung werden fehlende Temperatur, Niederschlagsmenge und -wahrscheinlichkeit ohne falsche Einheiten wie „–°“ oder „–mm“ angezeigt.
+- Bergwetter und Schneefallgrenze unterscheiden fehlende Originalparameter und unbestimmte Niederschlagsfenster von tatsächlicher Trockenheit; vorhandene echte Nullwerte bleiben gültig.
+- Der mobile Vorhersagebereich nutzt den natürlichen vertikalen Seitenscroll statt eines eingeengten eigenen Scrollfensters. Horizontale Zeitreihen bleiben bedienbar; Bottom-Bar- und Safe-Area-Abstände bleiben erhalten.
+- Die Projektdokumentation verweist auf den aktuellen veröffentlichten MID-Versionsstand statt einer veralteten festen Versionsnummer.
 
-**Unverändert:** Amtliche DWD-Warnungen, Modellwerte und -gewichtung, Radar-/RUC-Daten, ICON-D2-Vollgebietsstatus und gespeicherte Favoriten. Vollständige Geräte-, Screenreader- und Vollgebietsprüfungen bleiben offen.
+**Unverändert:** Alle amtlichen DWD-Warnungen, Originalwettermodelle und Vorhersagegewichtungen, die produktive RUC-Pipeline, vorhandene Favoriten sowie Modellkarten. Vollständige Originaldaten-/VoiceOver-/Echtgeräte- und D2-Vollgebietsabnahmen sind weiterhin offen.

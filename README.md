@@ -2,7 +2,7 @@
 
 MID ist eine wissenschaftlich fundierte, hyperlokale Wetter-App, die professionelle meteorologische Datenquellen (DWD, ECMWF, NOAA, ERA5) mit eigener Modellfusion, Ensemble-Analyse und Konfidenzbewertung kombiniert.
 
-**Aktuelle Version:** v0.9.85.133  
+**Live-Version:** [Aktueller MID-Versionsstand](https://www.midwx.app/version.json) – wird bei jeder Veröffentlichung aktualisiert.  
 **App:** [https://www.midwx.app](https://www.midwx.app)  
 **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
