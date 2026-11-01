@@ -45,6 +45,28 @@ context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',
 vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
 const shorter=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
 assert.deepEqual(Array.from(shorter.periods,p=>p.id),['48-72','72-96','96-120'],'Ein kürzerer Original-Lauf darf nur real vorhandene zusammenhängende Tage anzeigen.');
+
+// End-to-end concurrent-batch integrity: a newly started EPS run must not
+// silently shift timestamps of individual cells from an older run.
+const totalGridPoints=vm.runInContext("dachExtremeGrid('fallback').points.filter(p=>p.row%2===0&&p.col%2===0).length",context);
+context.__mixBatch=0;
+context.__mock=async input=>{
+ const batch=++context.__mixBatch;
+ return new URL(input).searchParams.get('latitude').split(',').map(()=>{
+  const row=structuredClone(fixture);
+  if(batch===1)row.hourly.time=context.__shiftedTime.hourly.time;
+  return row;
+ });
+};
+vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+if(totalGridPoints-16>=totalGridPoints*.65){
+ const reconciled=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+ assert.equal(reconciled.cells.length,totalGridPoints-16,'Ein abweichender Modelllauf darf keine Rasterzelle zur gemeinsamen Zeitachse hinzufügen.');
+ assert.equal(reconciled.grid.availablePointCount,reconciled.cells.length);
+} else {
+ await assert.rejects(vm.runInContext('dachExtendedExtremeOutlookData()',context),/inkonsistente Zeitachsen oder Modellläufe/,'Unter 65 % übereinstimmender UTC-Laufabdeckung muss die Vorschau gesperrt bleiben.');
+}
+
 context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>({hourly:{time:fixture.hourly.time,rain:Array(169).fill(null)}}));
 vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
 await assert.rejects(vm.runInContext('dachExtendedExtremeOutlookData()',context),/nicht bestimmbar/);
