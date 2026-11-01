@@ -184,7 +184,10 @@ async function dachExtendedExtremeOutlookData(){
  if(byId.size<points.length*.65)throw new Error('Regionaler Langfristausblick: zu geringe Datenabdeckung.');
  const first=points.map(point=>byId.get(point.id)).find(Boolean),times=first.hourly?.time||[],startEpoch=Date.parse(`${times[0]}Z`),specs=[{id:'48-72',label:'+48–72 h',startHour:48,endHour:72},{id:'72-96',label:'+72–96 h',startHour:72,endHour:96},{id:'96-120',label:'+96–120 h',startHour:96,endHour:120},{id:'120-144',label:'Tag 6',startHour:120,endHour:144},{id:'144-168',label:'Tag 7',startHour:144,endHour:168}];
  const periods=specs.filter(p=>times.length>=p.endHour&&Number.isFinite(startEpoch)).map(p=>({...p,start:new Date(startEpoch+p.startHour*3600000).toISOString(),end:new Date(startEpoch+p.endHour*3600000).toISOString()}));if(!periods.length)throw new Error('Keine vollständigen Langfrist-Zeitfenster verfügbar.');
- for(let i=periods.length-1;i>=0;i--){const p=periods[i],complete=['rain','wind','snow'].some(kind=>[...byId.values()].filter(row=>dachExtendedComplete(row,kind,p)).length>=points.length*.65);if(!complete)periods.splice(i,1)}if(!periods.length)throw new Error('Langfristfelder fehlen; Gefahrenstatus nicht bestimmbar.');
+ // Retain every real 24-hour period even if its fields are unavailable; missing
+ // fields display explicitly as unknown, never as a zero-probability all-clear.
+ const anyComplete=periods.some(p=>['rain','wind','snow'].some(kind=>[...byId.values()].filter(row=>dachExtendedComplete(row,kind,p)).length>=points.length*.65));
+ if(!anyComplete)throw new Error('Langfristfelder fehlen; Gefahrenstatus nicht bestimmbar.');
  const windById=new Map();
  // Only gusts are supplemented; models are never pooled into an artificial ensemble.
  if(periods.some(p=>[...byId.values()].filter(row=>dachExtendedComplete(row,'wind',p)).length<points.length*.65)){
