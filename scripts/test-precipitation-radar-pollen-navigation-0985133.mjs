@@ -34,6 +34,8 @@ const now=Date.now(),slot=(probability)=>({startEpoch:now-60000,endEpoch:now+600
 context.canonicalPrecipitationTimeline=()=>({slots:[slot(null)],periods:[],source:'15-min'});
 const missing=getPrecip([],[]);
 assert.equal(missing.probability,null,'Missing precipitation probability in an existing interval is unknown, not zero.');
+context.canonicalPrecipitationTimeline=()=>({slots:[slot(null),{startEpoch:now+15*60000,endEpoch:now+30*60000,sample:{probability:4}}],periods:[],source:'15-min'});
+assert.equal(getPrecip([],[]).probability,null,'Low risk in another hour must never make a missing current hour appear 0% dry.');
 context.canonicalPrecipitationTimeline=()=>({slots:[slot(0)],periods:[],source:'15-min'});
 const realZero=getPrecip([],[]);
 assert.equal(realZero.probability,0,'A genuine zero probability must stay zero.');
