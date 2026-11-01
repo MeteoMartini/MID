@@ -152,6 +152,33 @@ def native_coordinates(record, root, gid):
     return arrays[0], arrays[1], provenance
 
 
+def original_grib_header_probe(handle,get,get_long):
+    """Read *raw* ecCodes metadata only, never reinterpret a sub-hour as an hour.
+
+    Diagnostic fallback is explicitly marked unknown, not an invented 0.
+    """
+    keys=('centre','discipline','parameterCategory','parameterNumber',
+          'dataDate','dataTime','validityDate','validityTime',
+          'startStep','endStep','forecastTime','stepUnits','stepRange',
+          'indicatorOfUnitOfTimeRange','indicatorOfUnitForTimeRange',
+          'typeOfStatisticalProcessing','numberOfTimeRanges',
+          'typeOfLevel','level','units','gridType',
+          'uuidOfHGrid','numberOfGridUsed','numberOfGridInReference',
+          'numberOfPoints')
+    out={}
+    numeric={'centre','discipline','parameterCategory','parameterNumber',
+             'dataDate','dataTime','validityDate','validityTime',
+             'startStep','endStep','forecastTime',
+             'indicatorOfUnitOfTimeRange','indicatorOfUnitForTimeRange',
+             'typeOfStatisticalProcessing','numberOfTimeRanges',
+             'level','numberOfGridUsed','numberOfGridInReference','numberOfPoints'}
+    for key in keys:
+        try:out[key]=int(get_long(handle,key)) if key in numeric else str(get(handle,key))
+        except Exception:
+            out[key]='<not-defined>'
+    return out
+
+
 def inventory_record(record,root):
     from eccodes import codes_grib_new_from_file,codes_get,codes_get_array,codes_get_long,codes_release,codes_set
     from grib_bitmap import decode_bitmap_values
@@ -185,6 +212,7 @@ def inventory_record(record,root):
             data_time=int(codes_get_long(gid,'dataTime'))
             run=f'{data_date:08d}T{data_time:04d}'
             if run!=record['run']:raise ValueError('Mixed forecast run')
+            original_first_header=original_grib_header_probe(gid,codes_get,codes_get_long)
             codes_set(gid,'stepUnits',1)  # normalize GRIB time units to hours
             lead=int(codes_get_long(gid,'endStep'))
             if lead!=record['leadHours']:raise ValueError('Mixed validity lead')
@@ -222,16 +250,7 @@ def inventory_record(record,root):
                     for i in range(4):
                         if next_gid is None:break
                         try:
-                            extras.append({
-                                'discipline':int(codes_get_long(next_gid,'discipline')),
-                                'category':int(codes_get_long(next_gid,'parameterCategory')),
-                                'parameter':int(codes_get_long(next_gid,'parameterNumber')),
-                                'startStep':int(codes_get_long(next_gid,'startStep')),
-                                'endStep':int(codes_get_long(next_gid,'endStep')),
-                                'stepType':str(codes_get(next_gid,'stepType')),
-                                'typeOfLevel':str(codes_get(next_gid,'typeOfLevel')),
-                                'level':int(codes_get_long(next_gid,'level')),
-                            })
+                            extras.append(original_grib_header_probe(next_gid,codes_get,codes_get_long))
                         finally:codes_release(next_gid)
                         next_gid=codes_grib_new_from_file(stream)
                 finally:
@@ -242,6 +261,7 @@ def inventory_record(record,root):
                                              'run':record['run'],'leadHours':lead,
                                              'firstIdentity':stats['parameterIdentity'],
                                              'firstStepType':stats['stepType'],
+                                             'firstHeader':original_first_header,
                                              'additionalHeaders':extras,
                                              'moreThanFourExtraMessages':truncated},
                                             sort_keys=True))
