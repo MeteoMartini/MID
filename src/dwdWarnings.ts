@@ -114,7 +114,7 @@ function completeHourlyWarningWindow(rows:DwdWarningSample[],hours:number){
  return !timed||epochs.every(Number.isFinite)&&epochs.every((epoch,index)=>index===0||Math.abs(epoch-epochs[index-1]-3600000)<=5*60000);
 }
 function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector);if(!completeHourlyWarningWindow(rows,hours)||values.some(value=>!Number.isFinite(value)||value<0))return Number.NaN;return values.reduce((sum,value)=>sum+value,0)}
-function forwardMax(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length?Math.max(...values):Number.NaN}
+function forwardMax(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours&&values.every(Number.isFinite)?Math.max(...values):Number.NaN}
 function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector).filter(Number.isFinite);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours?Math.min(...values):Number.NaN}
 function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours&&values.every(value=>value<threshold)}
 function liquidPrecipitation(sample:DwdWarningSample){
@@ -163,7 +163,7 @@ function snowWindowSignals(samples:DwdWarningSample[],index:number,elevation:num
  return[...best.values()].sort((a,b)=>a.level-b.level);
 }
 function snowdriftSignals(samples:DwdWarningSample[],index:number){
- const snow6=forwardSum(samples,index,6,snowfall),snow24=forwardSum(samples,index,24,snowfall),gust6=forwardMax(samples,index,6,sample=>finite(sample.gust)*KMH_PER_KT),signals:DwdWarningSignal[]=[];
+ const snow6=forwardSum(samples,index,6,snowfall),snow24=forwardSum(samples,index,24,snowfall),gust6=forwardMax(samples,index,6,sample=>finite(sample.gust,Number.NaN)*KMH_PER_KT),signals:DwdWarningSignal[]=[];
  if(snow6>=5&&gust6>=39)signals.push({kind:'snowdrift',level:2,title:'Schneeverwehung',symbol:'🌬',detail:`${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:2});
  if(snow6>10&&gust6>=65)signals.push({kind:'snowdrift',level:3,title:'Starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:3});
  if(snow24>25&&gust6>=65)signals.push({kind:'snowdrift',level:4,title:'Extrem starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow24)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:24,secondaryValue:snow24,secondaryUnit:'cm',stageRank:4});
