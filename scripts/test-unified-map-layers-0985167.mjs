@@ -67,7 +67,7 @@ assert.ok(read('src/WmsProviderLegend.tsx').includes('loading="lazy"'),'Unopened
  const legendComponent=read('src/WmsProviderLegend.tsx'),legendCss=read('src/WmsProviderLegend.css');
  assert.ok(legendComponent.includes('failedUrl===url'),'A failed provider image must not poison a new URL or style');
  assert.ok(legendComponent.includes('target="_blank"')&&legendComponent.includes('rel="noopener noreferrer"'),'Provider image must be inspectable at full size without opener access');
- assert.ok(legendComponent.includes('kein verifizierter PNG-/SVG-Kartenexport'),'WMS images cannot masquerade as native PNG/SVG data exports');
+ assert.ok(legendComponent.includes('reine WMS-Wetterfläche')&&legendComponent.includes('kein SVG-Vektorexport'),'Provider raster export must not be presented as a full vector/native map');
  assert.ok(legendComponent.includes('numerisch barrierefreie Texttabelle'),'Do not assert numerical accessibility from a provider bitmap');
  assert.ok(legendCss.includes('.unified-wms-provider-legend__open{min-height:44px'),'Full-size source link has a 44px touch target');
  const providerProxy=read('worker/metar-proxy.js');
@@ -76,6 +76,47 @@ assert.ok(read('src/WmsProviderLegend.tsx').includes('loading="lazy"'),'Unopened
 
 assert.ok(read('src/WmsProviderLegend.css').includes('.unified-wms-provider-legend summary{min-height:44px'),'Shared WMS legend disclosure must have 44px touch target');
 assert.ok(read('src/WmsProviderLegend.tsx').includes("import './WmsProviderLegend.css'"),'Both map surfaces must load the same styles through their shared component');
+
+// An actual standalone WMS GetMap export is bound to a confirmed viewport,
+// provider, model run, valid time, style and original image legend.
+const originalExportSource=read('src/wmsOriginalMapExport.ts').replace(/^import .*?;\n/gm,'');
+const originalExportJs=ts.transpileModule(`const weatherMapProductsForModel=id=>[{
+ id:'icon-t2m',modelId:'icon',label:'Temperatur',layer:'dwd:Icon_reg025_fd_sl_T2M',
+ timeDependent:true,provider:'dwd'}];
+const weatherMapWmsProxy=provider=>'https://mid.example/worker?mode=weather-map-wms&provider='+provider;
+const wmsProviderLegendUrl=(product,style)=>'https://mid.example/worker?mode=weather-map-wms&provider=dwd&request=GetLegendGraphic&styles='+style;
+${originalExportSource}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const originalExport=await import('data:text/javascript;base64,'+Buffer.from(originalExportJs).toString('base64'));
+const exportProduct={id:'icon-t2m',modelId:'icon',label:'Temperatur',layer:'dwd:Icon_reg025_fd_sl_T2M',timeDependent:true,provider:'dwd'};
+const exportArgs={product:exportProduct,style:'temperature',validTime:'2026-11-02T12:00:00Z',runTime:'2026-11-02T00:00:00Z',
+ bounds:{west:6,south:47,east:15,north:55},viewportWidth:900,viewportHeight:600};
+const exported=originalExport.planOriginalWmsExport(exportArgs),mapUrl=new URL(exported.mapUrl);
+for(const [key,expected] of Object.entries({provider:'dwd',request:'GetMap',layers:exportProduct.layer,styles:'temperature',
+  srs:'EPSG:3857',format:'image/png',time:'2026-11-02T12:00:00Z',dim_reference_time:'2026-11-02T00:00:00Z',width:'900',height:'600'}))
+ assert.equal(mapUrl.searchParams.get(key),expected,'WMS export identity '+key);
+assert.ok(mapUrl.searchParams.get('bbox').split(',').every(v=>Number.isFinite(Number(v))),'Projected WMS coordinates must be finite');
+assert.ok(exported.legendUrl.includes('GetLegendGraphic')&&exported.caption.includes('INIT')&&exported.source.includes('CC BY 4.0'),'Original legend, run and source required');
+assert.equal(originalExport.planOriginalWmsExport({...exportArgs,viewportWidth:2200,viewportHeight:900}).width,1100,'Large viewport constrained to provider request budget');
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,product:{...exportProduct,source:'native'}}),/nicht für den Export/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,product:{...exportProduct,layer:'foreign:test'}}),/nicht für den Export/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,style:'../../evil'}),/Kartenstil/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,validTime:'not a date'}),/Modelllauf/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,validTime:'2026-11-01T12:00:00Z'}),/Modelllauf/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,level:-3}),/Höhenfläche/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,bounds:{west:15,south:47,east:6,north:55}}),/Kartenausschnitt/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,bounds:{west:6,south:88,east:15,north:89}}),/Kartenausschnitt/);
+assert.throws(()=>originalExport.planOriginalWmsExport({...exportArgs,viewportWidth:0}),/Kartengröße/);
+const exportControl=read('src/WmsOriginalExportControl.tsx');
+assert.ok(exportControl.includes('getBounds()')&&exportControl.includes('getCanvas()'),'Viewport exported from actual MapLibre map');
+assert.ok(exportControl.includes('pending.current?.abort()'),'Stale requests aborted on model/time/level changes');
+assert.ok(exportControl.includes('role="alert"')&&read('src/wmsOriginalExport.css').includes('min-height:44px'),'Error feedback and touch target present');
+const wmsExportImplementation=read('src/wmsOriginalMapExport.ts');
+assert.ok(wmsExportImplementation.includes('mapImage.naturalWidth!==plan.width'),'Unexpected image geometry fails closed');
+assert.ok(wmsExportImplementation.includes('Promise.all([fetchPng(plan.mapUrl,signal),fetchPng(plan.legendUrl,signal)])'),'Both original map and legend required');
+const classicExport=read('src/WeatherMapsPanel.tsx'),unifiedExport=read('src/UnifiedWeatherMap.tsx');
+assert.ok(classicExport.includes('WmsOriginalExportControl')&&classicExport.includes('confirmedWmsKey===wmsIdentity&&!loading&&!playing&&!tileError'),'Classic export waits for verified tiles');
+assert.ok(unifiedExport.includes('WmsOriginalExportControl')&&unifiedExport.includes('loadedWms.has(wmsSelectedKey)&&!wmsPending&&!wmsError'),'Unified export waits for current frame');
+// Existing baseline: 1059 regression entries unchanged; no fallback to guessed values or an SVG bitmap mislabeled vector.
 
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
