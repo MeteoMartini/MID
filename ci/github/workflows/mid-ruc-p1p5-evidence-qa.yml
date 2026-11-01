@@ -6,6 +6,18 @@ on:
       - 'tools/ruc/ruc_p1p5_censor_audit.py'
       - 'tools/ruc/test_ruc_p1p5_censor_audit.py'
       - 'tools/ruc/ruc_p3_timing_audit.py'
+      - 'tools/ruc/ruc_observer_execution_status.py'
+      - 'tools/ruc/test_ruc_observer_execution_status.py'
+      - 'tools/ruc/ruc_fast_lane_producer.py'
+      - 'tools/ruc/ruc_fast_pointer_staging.py'
+      - 'tools/ruc/ruc_fast_run_selector.py'
+      - 'tools/ruc/test_ruc_fast_lane_producer.py'
+      - 'tools/ruc/test_ruc_fast_pointer_staging.py'
+      - 'tools/ruc/test_ruc_fast_run_selector.py'
+      - 'ci/github/workflows/mid-ruc-fast-lane-qualification.yml'
+      - '.github/workflows/mid-ruc-fast-lane-qualification.yml'
+      - 'ci/github/workflows/mid-ruc-availability-observer.yml'
+      - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'tools/ruc/test_ruc_p3_timing_audit.py'
       - 'ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml'
       - '.github/workflows/mid-ruc-p1p5-evidence-qa.yml'
@@ -49,4 +61,16 @@ jobs:
           python3 -m py_compile tools/ruc/ruc_p1p5_censor_audit.py tools/ruc/test_ruc_p1p5_censor_audit.py tools/ruc/ruc_p3_timing_audit.py tools/ruc/test_ruc_p3_timing_audit.py
           python3 tools/ruc/test_ruc_p1p5_censor_audit.py -v
           python3 tools/ruc/test_ruc_p3_timing_audit.py -v
+          python3 tools/ruc/test_ruc_observer_execution_status.py -v
           echo 'Directory samples and public pointer metadata only. No GRIB/EPS, DWD first publication, app-client, P95 SLO, or production trigger authorization.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Native Fast-Lane-P2 fachlich ohne DWD-Download testen
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python3 tools/ruc/test_ruc_fast_run_selector.py -v
+          python3 tools/ruc/test_ruc_fast_lane_producer.py -v
+          python3 tools/ruc/test_ruc_fast_pointer_staging.py -v
+          cmp ci/github/workflows/mid-ruc-fast-lane-qualification.yml .github/workflows/mid-ruc-fast-lane-qualification.yml
+          cmp ci/github/workflows/mid-ruc-availability-observer.yml .github/workflows/mid-ruc-availability-observer.yml
+          echo 'P2 is native offline QA only. No production pointer, release, actual DWD GRIB retrieval or app adoption.' >> "$GITHUB_STEP_SUMMARY"
