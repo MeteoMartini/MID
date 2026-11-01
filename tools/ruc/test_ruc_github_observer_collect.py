@@ -194,6 +194,7 @@ class Collector(unittest.TestCase):
         self.assertEqual([x['runId'] for x in suppressed],[43])
         out=self.check(Reader(runs=source))
         self.assertEqual(out['expectedGitHubRunAttempts'],1)
+        self.assertEqual(out['observerRunRecords'][0]['runId'],42)
         self.assertEqual(out['supersededSameSlotRuns'],1)
         self.assertEqual(out['originalGithubObserverRunsInWindow'],2)
         self.assertEqual(out['directorySamples'],0)
@@ -207,6 +208,8 @@ class Collector(unittest.TestCase):
         chosen,suppressed=select_bounded_polls(src)
         self.assertEqual([x['runId'] for x in chosen],[43])
         self.assertEqual([x['runId'] for x in suppressed],[42])
+        report=self.check(Reader(runs=rows))
+        self.assertEqual(report['observerRunRecords'][0]['runId'],43)
 
     def test_fallback_is_selected_when_schedule_is_missing(self):
         result=self.check(Reader(runs=[run(event='workflow_run',when='2026-11-01T10:23:00Z')]))

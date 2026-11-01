@@ -125,6 +125,7 @@ def parse_observed_runs(client, cutoff):
             results[run_id] = {
                 'runId': run_id, 'runAttempt': attempt,
                 'createdAtUtc': run['created_at'],
+                'event': run['event'],
                 'headSha': run['head_sha'],
                 'status': run['status'],
                 'conclusion': run.get('conclusion'),
