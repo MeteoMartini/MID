@@ -37,6 +37,10 @@ assert.ok(client.includes('data.stale||age>EXTENDED_FRESH_MS'),'Worker-provided 
 
 assert.ok(client.includes('value.periods.length>expected.length')&&client.includes('value.periods.length;index++'),'Teilweise Prognosehorizonte müssen als zusammenhängendes, reales Präfix geprüft werden.');
 assert.ok(workerSource.includes('async function dachExtendedEachBatch(points,visit)'),'Begrenzte Langfrist-Parallelität fehlt.');
+assert.ok(workerSource.includes('const admissionByPeriod=new Map()'),'EPS-Feldabdeckung muss für jeden Tageszeitraum einmal statt pro Rasterzelle bestimmt werden.');
+assert.ok(workerSource.includes('const {useIfs,sourceRows,available}=admissionByPeriod.get(p.id)[kind]'),'Abdeckungsentscheidung darf innerhalb der Zellschleife nicht wiederholt werden.');
+assert.ok(!workerSource.includes("for(const kind of['rain','wind','snow']){const useIfs=kind==='wind'&&[...byId.values()].filter"),'Quadratische Vollgebiets-Abdeckungsberechnung darf nicht zurückkehren.');
+
 assert.ok(workerSource.includes('const anyComplete=periods.some('),'Fehlende 24h-Gefahrenfenster dürfen nicht als nicht vorhandene Zeitfenster getarnt werden.');
 
 const panel=await read('src/ExtremeWeatherOutlookPanel.tsx');
