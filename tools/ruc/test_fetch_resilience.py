@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Offline regressions: retries, atomic staging and early GRIB coverage."""
 import bz2
+import io
+from contextlib import redirect_stdout
+import os
+import threading
 import ssl
 from urllib3.exceptions import MaxRetryError,SSLError as PoolSSLError
 import tempfile
@@ -14,6 +18,7 @@ from test_meteo_integrity import MeteoIntegrityTests  # also collected by the ex
 from test_grib_bitmap import DwdNativeBitmapTests  # mandatory bitmap/nodata and negative fixtures
 from test_grib_metadata import DwdGribMetadataTests  # full ecCodes real-header fixtures in CI
 from test_real_values_reference import RealValuesReferenceTests  # frozen real values and wire golden
+from test_optional_stage_parallel import OptionalStageConcurrencyTests  # bounded optional staging tests
 
 
 class FetchResilience(unittest.TestCase):
@@ -215,6 +220,135 @@ class FetchResilience(unittest.TestCase):
                 fetch.build_candidate(Mock(), '2026-10-05T18:00', root/'stage', root/'output', 14)
             self.assertEqual(stage.call_count, 2)
             self.assertFalse((root/'output').exists())
+
+
+    def test_optional_staging_isolated_and_failed_partial_is_removed(self):
+        class IndependentSession:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            failed = root / 'rapid-optional' / 'BAD'
+            failed.mkdir(parents=True)
+            (failed / 'partial.grib2').write_bytes(b'unqualified')
+            tasks = []
+            def fake_stage(session, url, path, hours, label, **kwargs):
+                tasks.append((url, kwargs.get('max_download_workers')))
+                if '/BAD/' in url:
+                    raise RuntimeError('GRIB incomplete')
+                return ['valid.grib2']
+            with patch.object(fetch, 'RAPID_OPTIONAL_15', ('BAD', 'GOOD')), \
+                 patch.object(fetch, 'RAPID_STATE_OPTIONAL_15', ()), \
+                 patch.object(fetch, 'SPECIALIST_HOURLY_OPTIONAL', ()), \
+                 patch.object(fetch, 'session', side_effect=lambda: IndependentSession()), \
+                 patch.object(fetch, 'stage_tree', side_effect=fake_stage), \
+                 patch.dict(os.environ, {'MID_RUC_DOWNLOAD_WORKERS':'8'}):
+                output=io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(fetch.stage_optional_parameters('2026-10-05T18:00',root,27),1)
+                self.assertIn('RUC_OPTIONAL_STAGE run=2026-10-05T18:00',output.getvalue())
+                self.assertIn('available=1 total=2 workers=2x4',output.getvalue())
+            self.assertFalse(failed.exists())
+            self.assertEqual(len(tasks),2)
+            self.assertEqual({n for _,n in tasks},{4})
+
+    def test_download_worker_sessions_are_thread_isolated_reused_and_closed(self):
+        # Four GRIB leads with two pool workers: two independent HTTP sessions
+        # are reused within their threads, never shared or left open.
+        run='2026-11-01T00:00'
+        base=f'{fetch.DET_BASE}/T_2M/r/{run}/'
+        files=[base+f'T_2M_PT{n:03d}H00M.grib2' for n in range(4)]
+        barrier=threading.Barrier(2,timeout=5)
+        sessions=[];ownership={};seen=[];lock=threading.Lock()
+        def new_session():
+            obj=Mock()
+            with lock:sessions.append(obj)
+            return obj
+        def download(url,target):
+            current=getattr(fetch._RUC_HTTP_WORKER,'client',None)
+            self.assertIsNotNone(current)
+            thread=threading.get_ident()
+            with lock:
+                self.assertIs(ownership.setdefault(thread,current),current)
+                seen.append((thread,current))
+            if 'PT000' in url or 'PT001' in url:
+                barrier.wait()
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(fetch,'crawl_files',return_value=files), \
+             patch.object(fetch,'session',side_effect=new_session), \
+             patch.object(fetch,'download_one',side_effect=download), \
+             patch.dict(os.environ,{'MID_RUC_DOWNLOAD_WORKERS':'2'}):
+            out=fetch.stage_tree(Mock(),base,Path(directory)/'source',3,'native unit',
+                                 mode='hourly',max_download_workers=2)
+        self.assertEqual(len(out),4)
+        self.assertEqual(len(sessions),2)
+        self.assertEqual(len(ownership),2)
+        self.assertEqual(len(seen),4)
+        self.assertEqual(len(set(map(id,sessions))),2)
+        for obj in sessions:obj.close.assert_called_once_with()
+
+    def test_download_session_closes_even_when_one_grib_fails(self):
+        run='2026-11-01T00:00'
+        base=f'{fetch.DET_BASE}/PMSL/r/{run}/'
+        files=[base+f'PMSL_PT{n:03d}H00M.grib2' for n in range(2)]
+        barrier=threading.Barrier(2,timeout=5)
+        sessions=[]
+        def new_session():
+            obj=Mock();sessions.append(obj);return obj
+        def download(url,target):
+            self.assertIsNotNone(getattr(fetch._RUC_HTTP_WORKER,'client',None))
+            barrier.wait()
+            if 'PT000' in url:raise ValueError('invalid DWD native header')
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(fetch,'crawl_files',return_value=files), \
+             patch.object(fetch,'session',side_effect=new_session), \
+             patch.object(fetch,'download_one',side_effect=download), \
+             patch.dict(os.environ,{'MID_RUC_DOWNLOAD_WORKERS':'2'}), \
+             self.assertRaisesRegex(ValueError,'invalid DWD native header'):
+            fetch.stage_tree(Mock(),base,Path(directory)/'source',1,'native unit',
+                             mode='hourly',max_download_workers=2)
+        self.assertEqual(len(sessions),2)
+        for obj in sessions:obj.close.assert_called_once_with()
+
+
+    def test_download_one_uses_thread_owned_keepalive_without_global_fallback(self):
+        # Verifies the actual network selection, not just the thread initializer.
+        content=b'GRIB'+b'x'*100
+        class Response:
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def raise_for_status(self):pass
+            def iter_content(self,size):yield content
+        client=Mock()
+        client.get.return_value=Response()
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'real.grib2'
+            with patch.object(fetch.requests,'get',side_effect=AssertionError('unpooled HTTP forbidden')):
+                fetch._RUC_HTTP_WORKER.client=client
+                try:
+                    fetch.download_one('https://opendata.dwd.de/test.grib2',target)
+                finally:
+                    del fetch._RUC_HTTP_WORKER.client
+            self.assertEqual(target.read_bytes(),content)
+            client.get.assert_called_once()
+            self.assertFalse(target.with_suffix('.grib2.part').exists())
+
+    def test_download_one_outside_pool_retains_legacy_get_behavior(self):
+        content=b'GRIB'+b'x'*100
+        class Response:
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def raise_for_status(self):pass
+            def iter_content(self,size):yield content
+        self.assertFalse(hasattr(fetch._RUC_HTTP_WORKER,'client'))
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'external.grib2'
+            with patch.object(fetch.requests,'get',return_value=Response()) as getter:
+                fetch.download_one('https://opendata.dwd.de/test.grib2',target)
+            getter.assert_called_once()
+            self.assertEqual(target.read_bytes(),content)
 
 
 if __name__ == '__main__':

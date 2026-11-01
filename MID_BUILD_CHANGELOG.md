@@ -1,3 +1,12 @@
+## MID v0.9.85.394 · 2026-11-01 · RUC P3 Production Pipeline / #541
+
+- Frische Source-of-Truth vor Vorbereitung: v0.9.85.393, main=mid-stable SHA `43cb36c07531b8d93418061aa1f075df5f6ac0fc`, fünf aktive Rulesets, vorherige .393-Source und Installer nachweislich erfolgreich. Parallele RUC-Drafts #542/#551/#554/#560/#561 bleiben unverändert; aus dem bereits gesicherten isolierten P3-Entwicklungsstand #557 nur fachlich relevante Code/Test-/QA-Blobs übernommen.
+- `tools/ruc/fetch_and_build_ruc.py`: EPS20-Vorprüfung, 12 deterministische Kernfelder, erforderliche 5-/15-min-Rapid-Felder und 27h-Builder weiterhin mit originalem vollständigem WMO-/DWD-Header-, ValidTime-, Bitmap-, Gitter-, Akkumulations- und Realwertvertrag. Nur unabhängige optionale Feldverzeichnisse mit bis zu zwei selbstständigen Sessions parallel; N bisherige Gesamt-Downloadslots bleibt N, pro Gruppe höchstens floor(N/2). Fehlerhaftes optionales Staging vollständig löschen.
+- Pro GRIB-Downloadthread eigene Requests.Session mit HTTP-Keep-Alive, keine Session-Weitergabe in andere Threads. `download_one` außerhalb des Pools unverändert möglich; Worker-Verbindungen auch beim Fehler schließen. Keine zusätzlichen DWD-Abfragen, Cron-/Cloudflare-Trigger, fremden Services oder Secrets.
+- `RUC_OPTIONAL_STAGE` und `RUC_P3_PHASES`: getrennte reale Messpunkte; Download-/Stage-, Native-Builder- und Gesamtdauer nicht als identisch darstellen. Optionaler P3-Benchmark braucht echte identische DWD-Inputs, CPU/RAM/Byte-SHA-Zeugen vor behaupteter messbarer Verbesserung.
+- In bereits bestehende RUC-Python-QA und verbindlichen JS-Native-Cadence-Test eingebundene adversarielle Unit-/Thread-/HTTP-/Partial-GRIB-/Cadence-Regressionen. Frühere CI-Ergebnisse vom alten #557 SHA gelten nicht für diesen Source-Head. Vollständiger 1.059-Test-Source-Gate + Installer/Core/Heavy/Worker/Pages/Finalize/Stable zwingend.
+- Nicht durch diesen Release aktiviert: isolierte 0–6h-Fast-Lane mit Consumer-Parität, 168h-P1-Statistik, single-flight P4 oder garantierte 60min-P95. Dazu Issue #541.
+
 ## MID v0.9.85.392 · 2026-11-01 · Designaudit #523: WMS-Legenden und transparentes Exportverhalten
 
 - Verifizierte Ausgangsbasis: veröffentlicht v0.9.85.391, `main=mid-stable` SHA `79b3a8cb995f780c863d6f4b1762155f80e09a15`, fünf aktive Rulesets; Source-Gate #41275254803 und Installer #41276158578 erfolgreich.
