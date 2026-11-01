@@ -1,0 +1,24 @@
+{
+  "version": "0.9.85.402",
+  "date": "2026-11-01",
+  "title": "Designaudit 1.7 und Kartenarbeitsraum",
+  "external": [
+    "**Verlässlichere MID-Prognosehinweise:** Regen-, Schnee-, Frost-, Hitze- und Schneeverwehungshinweise berücksichtigen nur vollständig belegte Zeitfenster. Unbekannte Teilwerte werden nicht als trockene oder windstille Stunden ausgegeben; gültige Nullwerte bleiben erhalten.",
+    "**Nachvollziehbare Windrichtung:** Fehlende Windrichtungen werden nicht mit Norden gleichgesetzt. Eine echte Nordrichtung von 0° bleibt erhalten.",
+    "**Bessere Kartenbedienung:** Beobachtungs- und Modelleinstellungen sind übersichtlicher gruppiert, ohne Funktionen zu entfernen. Der Komposit-Kartenbereich ergänzt zur relativen Zeit die lokale absolute Gültigkeitszeit, soweit ein bestätigter Datenframe vorliegt.",
+    "**Kartenladeweg vorbereitet:** Wetterkarten-Code wird beim sichtbarkeitsabhängigen Öffnen vorgewärmt. Eine konkrete Beschleunigung wird erst nach vergleichbaren Browsermessungen beansprucht.",
+    "**Einstellungen erhalten:** Die Migration älterer Kartenansichten erhält gültige Zoom-/Darstellungswünsche und überschreibt beschädigte Browser-Speicherwerte nicht mit scheinbar gültigen Defaults.",
+    "**Extremwetterkarte effizienter:** Identische, bereits berechnete Gefahrenkonturen werden innerhalb eines unveränderten Datensatzes gemeinsam für Karte und Regionalübersicht verwendet. Modellwerte, Warnstufen und Quellen bleiben unverändert."
+  ],
+  "internal": [
+    "**Verifizierte Basis:** Stable `v0.9.85.401` @ `00639856b5c1598cbccb837a3b63fbe57cc5d566`, Installer `41319782471` completed/success; fünf aktive Rulesets, 1059 obligatorische Regressionen.",
+    "**SHA-gebundene Quellen:** Audit-Draft PR #580 Head `edda2b400f1dc581da3c443bb3e968381527cab4` (vier Produktions-/Testdateien) und Karten-UX-Draft PR #583 Head `e359aa18dce94f1f4c98816539bc5e01edd43d4c` (vier UI-Dateien). Für alle acht Dateien identische Git-Blob-SHAs übernommen, gegen unveränderte Stable-Dateiblobs geprüft. Historische Drafts unberührt.",
+    "**Fachlich:** `src/dwdWarnings.ts`: fail-closed Aggregation ohne Null-Missing-Verwechslung; zeitkontinuierliche mehrstündige Frost-/Wärme-/Schnee-/Böensignale, echte Nordrichtung vs. Missing. Keine amtliche CAP-/DWD-Warnung geändert. Gezielte Tests im obligatorischen `scripts/test-dwd-warning-markers.mjs` erweitert, nicht verkürzt.",
+    "**Zustandsintegrität:** `src/mapWorkspaceState.ts` schützt unbekannte/kaputte Legacy-JSON-Werte bei `totals→models`-Migration; `scripts/test-c14-map-workspace-098534.mjs` um ausführbare TypeScript-/Storage-Gegenprobe erweitert.",
+    "**Karten/UI:** `App.tsx` viewportabhängiges Vorwärmen, `RadarPanel.tsx` lokale absolute Gültigkeitszeit zusätzlich zur relativen, `UnifiedWeatherMap.tsx` und `MapWorkspace.css` kompakte fachlich vollständige Disclosures, Touch-/Fokusregeln. Keine neuen Daten-/Warn-/RUC-Provider, keine produktiven Workeränderungen außer Versionsspiegel.",
+    "**Versionskonsistenz:** Paket/Lock, Baseline, Vertragsregister, Web/Worker/SW, iOS-Status, Xcode Build 403, Changelog, Release Notes und Source-of-Truth auf `.402`. 1059 Pflichtprüfungen unverändert.",
+    "**Release-Gates:** Dieser Quell-PR ist bis zum erfolgreichen vollständigen Source-PR-Gate ein Kandidat. Veröffentlichung ausschließlich SHA-Bot-Merge, serverseitiges ZIP, `install-mid.yml`, Worker/Pages/Finalize und erfolgreiche Stable-Promotion. Reale 10s→X-Ladezeit, flächendeckende Provider-GetCapabilities, echte iOS-/VoiceOver-Abnahme und globale WCAG-2.2-AA-Konformität werden nicht beansprucht.",
+    "**Kontur-Deduplikation:** Die SHA-identischen Produktions-/Testblobs aus Draft PR #585 HEAD `8eb408100e24e96c4645e9652b389339c134a088` werden übernommen; alle Fachschwellen und Datenwerte bleiben unverändert.",
+    "**Echte CI-Ursache / Verbesserung:** Heavy 2/3 Run 41322391419 bestand acht Browserfälle vor hartem 13-Minuten-Timeout. Die 24 obligatorischen Kartenkombinationen verteilen sich jetzt auf drei disjunkte Pflicht-Shards mit 9/7/8 Fällen; 20 Memory-Zyklen bleiben. Bestehender Pflichtregressionstest prüft exakt diese Abdeckung, neuer Gate-Lauf nötig."
+  ]
+}

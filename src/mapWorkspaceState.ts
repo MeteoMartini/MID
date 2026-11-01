@@ -11,5 +11,17 @@ export function readMapWorkspaceView():MapWorkspaceView{
 }
 
 export function saveMapWorkspaceView(value:MapWorkspaceView|'totals'){
- try{if(value==='totals'){let settings={};try{settings=JSON.parse(localStorage.getItem('mid:weather-maps:v2')||'{}')}catch{}localStorage.setItem('mid:weather-maps:v2',JSON.stringify({...settings,modelId:'icon-d2',productId:'icon-d2-precipitation-totals'}))}localStorage.setItem(MAP_WORKSPACE_VIEW_KEY,value==='totals'?'models':value)}catch{}
+ try{
+  if(value==='totals'){
+   const raw=localStorage.getItem('mid:weather-maps:v2');
+   let settings:Record<string,unknown>|null=null;
+   if(raw===null)settings={};
+   else{
+    try{const parsed:unknown=JSON.parse(raw);if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))settings=parsed as Record<string,unknown>}catch{}
+   }
+   // Never replace malformed saved preferences with a fabricated object.
+   if(settings!==null)localStorage.setItem('mid:weather-maps:v2',JSON.stringify({...settings,modelId:'icon-d2',productId:'icon-d2-precipitation-totals'}));
+  }
+  localStorage.setItem(MAP_WORKSPACE_VIEW_KEY,value==='totals'?'models':value);
+ }catch{}
 }

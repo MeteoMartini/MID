@@ -23,7 +23,12 @@ else if(formatDwdWarningDetailWithDirection(steady)!=='Windböen bis 29 kt (54 k
 const turning=summarizeDwdWarnings([hour('14',225,70/1.852),hour('15',230,70/1.852),hour('16',315,70/1.852),hour('17',320,70/1.852)]).find(signal=>signal.kind==='wind');
 if(!turning)failures.push('Windwarnung mit Richtungswechsel aus Hour.direction fehlt.');
 else if(formatDwdWarningDetailWithDirection(turning)!=='Sturmböen bis 38 kt (70 km/h); anfänglich aus südwestlicher, später aus nordwestlicher Richtung.')failures.push(`Hour.direction-Richtungswechsel falsch: ${formatDwdWarningDetailWithDirection(turning)}`);
-for(const token of ['direction?:number;','rawWindDirection=Number.isFinite(Number(sample.windDirection))?Number(sample.windDirection):Number.isFinite(Number(sample.direction))?Number(sample.direction):Number.NaN'])if(!warnings.includes(token))failures.push(`Richtungskompatibilität fehlt: ${token}`);
+for(const token of ['direction?:number;','rawWindDirection=Number.isFinite(finite(sample.windDirection,Number.NaN))?finite(sample.windDirection,Number.NaN):finite(sample.direction,Number.NaN)'])if(!warnings.includes(token))failures.push(`Richtungskompatibilität fehlt: ${token}`);
+// The revised expression must preserve true north while rejecting absent directions.
+const missing=summarizeDwdWarnings([hour('15',null),hour('16',null),hour('17',null)]).find(signal=>signal.kind==='wind');
+if(!missing||/aus (?:nördlicher|östlicher|westlicher|südlicher)/i.test(formatDwdWarningDetailWithDirection(missing)))failures.push('Fehlende Windrichtung darf nicht als echte Nordrichtung erscheinen.');
+const north=summarizeDwdWarnings([hour('15',0),hour('16',0),hour('17',0)]).find(signal=>signal.kind==='wind');
+if(!north||!formatDwdWarningDetailWithDirection(north).includes('aus nördlicher Richtung'))failures.push('Gemessene 0°-Windrichtung muss als Norden erhalten bleiben.');
 if(!weather.includes('text:formatDwdWarningDetailWithDirection(signal,unit)'))failures.push('Warnkarte verwendet nicht den Inline-Richtungstext.');
 if(!pkg.includes('test:hazard-hour-direction'))failures.push('Package-Testeintrag fehlt.');
 if(!baseline.includes('scripts/test-hazard-hour-direction-08189.mjs'))failures.push('Baseline-Testeintrag fehlt.');

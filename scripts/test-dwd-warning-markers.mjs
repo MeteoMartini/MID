@@ -9,7 +9,7 @@ const outDir=path.join(root,'.dwd-warning-test');
 await rm(outDir,{recursive:true,force:true});
 const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.dwd-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
-const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
+const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue,formatDwdWarningDetailWithDirection}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const app=await readAppFeatureSources();
 const ensemble=await readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
@@ -45,6 +45,35 @@ if(formatDwdWindValue(50,'kmh')!=='50 km/h (Bft 7)')failures.push('Beaufort-Zusa
 const heat=signal([sample({apparent:38.6})],'heat');
 if(heat&&/[,.]\d/.test(formatDwdWarningDetail(heat,'kn')))failures.push('Wärme-Warntext enthält weiterhin Kommawerte.');
 
+// Missing phase observations must not silently create complete model-based warning windows.
+const partialRain=Array.from({length:6},(_,i)=>sample(i===2?{rain:null,showers:null,precipitation:null,code:null}:{rain:5,showers:0,precipitation:5,code:61}));
+if(dwdWarningSignalsAt(partialRain,0).some(item=>item.kind==='heavyRain'||item.kind==='continuousRain'))failures.push('Partial 6 h rainfall must not masquerade as a complete warning sum.');
+const fullRain=partialRain.map((row,i)=>i===2?sample({rain:5,showers:0,precipitation:5,code:61}):row);
+if(!dwdWarningSignalsAt(fullRain,0).some(item=>item.kind==='heavyRain'&&item.windowHours===6))failures.push('Complete 6 h rainfall must still be classified.');
+const partialSnow=Array.from({length:6},(_,i)=>sample(i===3?{snowfall:null}:{snowfall:1}));
+if(dwdWarningSignalsAt(partialSnow,0).some(item=>item.kind==='snow'))failures.push('Partial 6 h snowfall must not masquerade as a complete warning sum.');
+if(!dwdWarningSignalsAt(partialSnow.map(()=>sample({snowfall:1})),0).some(item=>item.kind==='snow'&&item.windowHours===6))failures.push('Complete 6 h snowfall must still be classified.');
+const missingDirection=signal([sample({gust:70/1.852,windDirection:null,direction:null})],'wind');
+if(missingDirection&&/aus (?:nördlicher|südlicher|östlicher|westlicher) Richtung/i.test(formatDwdWarningDetailWithDirection(missingDirection)))failures.push('Missing wind direction must not be displayed as a fabricated direction.');
+const north=signal([sample({gust:70/1.852,windDirection:0})],'wind');
+if(!north||!formatDwdWarningDetailWithDirection(north).includes('nördlicher'))failures.push('Real 0 degree wind direction must remain north.');
+// A snowdrift requires continuous available gust evidence as well as snowfall.
+const completeDrift=Array.from({length:6},(_,i)=>sample({epoch:Date.UTC(2026,9,17,i),gust:30,snowfall:1}));
+const gustMissingDrift=completeDrift.map((row,i)=>i===2?{...row,gust:null}:row);
+const gustGapDrift=completeDrift.map((row,i)=>({...row,epoch:Date.UTC(2026,9,17,i*2)}));
+if(!dwdWarningSignalsAt(completeDrift,0).some(item=>item.kind==='snowdrift'))failures.push('Snowdrift supported by complete 6 h gust/snowfall must remain.');
+if(dwdWarningSignalsAt(gustMissingDrift,0).some(item=>item.kind==='snowdrift'))failures.push('Missing gust within six hours must not masquerade as complete snowdrift evidence.');
+if(dwdWarningSignalsAt(gustGapDrift,0).some(item=>item.kind==='snowdrift'))failures.push('Irregular gust time gaps must not masquerade as a complete six-hour maximum.');
+// A 3-hour frost or 12-hour heat spell requires actual contiguous hours when times exist.
+const firstEpoch=Date.UTC(2026,9,18,0);
+const frostAt=hour=>sample({epoch:firstEpoch+hour*3600000,temperature:-11,apparent:-11});
+const consecutiveFrost=[0,1,2].map(frostAt),gappedFrost=[0,3,6].map(frostAt),missingFrostTime=[frostAt(0),sample({epoch:null,temperature:-11,apparent:-11}),frostAt(2)];
+if(!dwdWarningSignalsAt(consecutiveFrost,0).some(item=>item.kind==='frost'&&item.level===2))failures.push('Three truly consecutive freezing hours must retain severe frost.');
+for(const rows of [gappedFrost,missingFrostTime])if(dwdWarningSignalsAt(rows,0).some(item=>item.kind==='frost'&&item.level===2))failures.push('Gapped or mixed untimed hours must not claim three hours of severe frost.');
+const heatAt=hour=>sample({epoch:firstEpoch+hour*3600000,temperature:22,apparent:34});
+const consecutiveHeat=Array.from({length:12},(_,i)=>heatAt(i)),gappedHeat=Array.from({length:12},(_,i)=>heatAt(i*2));
+if(!dwdWarningSignalsAt(consecutiveHeat,0).some(item=>item.kind==='heat'&&item.level===1))failures.push('Complete warm nighttime evidence must still support modelled heat load.');
+if(dwdWarningSignalsAt(gappedHeat,0).some(item=>item.kind==='heat'&&item.level===1))failures.push('Sparse twelve-value heat input must not masquerade as twelve consecutive hours.');
 for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,hours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
 if(!app.includes('Keine Warnung')||!styles.includes('.forecast-hazards .no-hazard'))failures.push('Dezenter Hinweis für warnfreie Tage fehlt.');
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
