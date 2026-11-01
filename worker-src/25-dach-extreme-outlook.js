@@ -148,22 +148,30 @@ function dachExtendedMemberStatistics(point,expectedMembers=40){
  }return{...point,hourly:result};
 }
 function dachExtendedComplete(row,kind,period){const fields=kind==='rain'?['precipitation','precipitation_spread']:kind==='wind'?['wind_gusts_10m','wind_gusts_10m_spread']:['snowfall','snowfall_spread'];return fields.every(field=>dachExtremeSeries(row,field).slice(period.startHour,period.endHour).filter(Number.isFinite).length===period.endHour-period.startHour)}
+// Two bounded upstream batches run together; missing batches remain missing evidence.
+async function dachExtendedEachBatch(points,visit){
+ const batches=[];for(let i=0;i<points.length;i+=16)batches.push(points.slice(i,i+16));
+ let cursor=0;
+ await Promise.all(Array.from({length:Math.min(2,batches.length)},async()=>{
+  for(;;){const index=cursor++;if(index>=batches.length)return;await visit(batches[index])}
+ }));
+}
 async function dachExtendedExtremeOutlookData(){
  const key='extended-v4',cached=dachExtremeOutlookCache.get(key);if(cached&&Date.now()-cached.storedAt<6*60*60*1000)return cached.data;
  const grid=dachExtremeGrid('fallback'),points=grid.points.filter(point=>point.row%2===0&&point.col%2===0),byId=new Map();
- for(let i=0;i<points.length;i+=16){const batch=points.slice(i,i+16),url=new URL(OPEN_METEO_ENSEMBLE);for(const[k,v]of Object.entries({latitude:batch.map(p=>p.lat).join(','),longitude:batch.map(p=>p.lon).join(','),models:'dwd_icon_seamless_eps',hourly:'rain,wind_gusts_10m,snowfall',forecast_hours:'169',timezone:'GMT',wind_speed_unit:'kmh',precipitation_unit:'mm',cell_selection:'nearest'}))url.searchParams.set(k,v);
-  try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ICON-EPS Langfrist',6*60*60),batch.length,'ICON-EPS');batch.forEach((p,j)=>byId.set(p.id,dachExtendedMemberStatistics(rows[j])))}catch(error){if(byId.size===0&&i+16>=points.length)throw error}
- }
+ await dachExtendedEachBatch(points,async batch=>{const url=new URL(OPEN_METEO_ENSEMBLE);for(const[k,v]of Object.entries({latitude:batch.map(p=>p.lat).join(','),longitude:batch.map(p=>p.lon).join(','),models:'dwd_icon_seamless_eps',hourly:'rain,wind_gusts_10m,snowfall',forecast_hours:'169',timezone:'GMT',wind_speed_unit:'kmh',precipitation_unit:'mm',cell_selection:'nearest'}))url.searchParams.set(k,v);
+  try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ICON-EPS Langfrist',6*60*60),batch.length,'ICON-EPS');batch.forEach((p,j)=>byId.set(p.id,dachExtendedMemberStatistics(rows[j])))}catch{ /* Incomplete ICON batches remain unknown; below-65% coverage fails closed. */ }
+ });
  if(byId.size<points.length*.65)throw new Error('Regionaler Langfristausblick: zu geringe Datenabdeckung.');
- const first=[...byId.values()][0],times=first.hourly?.time||[],startEpoch=Date.parse(`${times[0]}Z`),specs=[{id:'48-72',label:'+48–72 h',startHour:48,endHour:72},{id:'72-96',label:'+72–96 h',startHour:72,endHour:96},{id:'96-120',label:'+96–120 h',startHour:96,endHour:120},{id:'120-144',label:'Tag 6',startHour:120,endHour:144},{id:'144-168',label:'Tag 7',startHour:144,endHour:168}];
+ const first=points.map(point=>byId.get(point.id)).find(Boolean),times=first.hourly?.time||[],startEpoch=Date.parse(`${times[0]}Z`),specs=[{id:'48-72',label:'+48–72 h',startHour:48,endHour:72},{id:'72-96',label:'+72–96 h',startHour:72,endHour:96},{id:'96-120',label:'+96–120 h',startHour:96,endHour:120},{id:'120-144',label:'Tag 6',startHour:120,endHour:144},{id:'144-168',label:'Tag 7',startHour:144,endHour:168}];
  const periods=specs.filter(p=>times.length>=p.endHour&&Number.isFinite(startEpoch)).map(p=>({...p,start:new Date(startEpoch+p.startHour*3600000).toISOString(),end:new Date(startEpoch+p.endHour*3600000).toISOString()}));if(!periods.length)throw new Error('Keine vollständigen Langfrist-Zeitfenster verfügbar.');
  for(let i=periods.length-1;i>=0;i--){const p=periods[i],complete=['rain','wind','snow'].some(kind=>[...byId.values()].filter(row=>dachExtendedComplete(row,kind,p)).length>=points.length*.65);if(!complete)periods.splice(i,1)}if(!periods.length)throw new Error('Langfristfelder fehlen; Gefahrenstatus nicht bestimmbar.');
  const windById=new Map();
  // Only gusts are supplemented; models are never pooled into an artificial ensemble.
  if(periods.some(p=>[...byId.values()].filter(row=>dachExtendedComplete(row,'wind',p)).length<points.length*.65)){
-  for(let i=0;i<points.length;i+=16){const batch=points.slice(i,i+16),url=new URL(OPEN_METEO_ENSEMBLE);for(const[k,v]of Object.entries({latitude:batch.map(p=>p.lat).join(','),longitude:batch.map(p=>p.lon).join(','),models:'ecmwf_ifs025',hourly:'wind_gusts_10m',forecast_hours:'169',timezone:'GMT',wind_speed_unit:'kmh',cell_selection:'nearest'}))url.searchParams.set(k,v);
+  await dachExtendedEachBatch(points,async batch=>{const url=new URL(OPEN_METEO_ENSEMBLE);for(const[k,v]of Object.entries({latitude:batch.map(p=>p.lat).join(','),longitude:batch.map(p=>p.lon).join(','),models:'ecmwf_ifs025',hourly:'wind_gusts_10m',forecast_hours:'169',timezone:'GMT',wind_speed_unit:'kmh',cell_selection:'nearest'}))url.searchParams.set(k,v);
    try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ECMWF-EPS Böen',6*60*60),batch.length,'ECMWF-EPS');batch.forEach((p,j)=>{const row=dachExtendedMemberStatistics(rows[j],51);if(JSON.stringify(row.hourly.time)===JSON.stringify(byId.get(p.id)?.hourly.time))windById.set(p.id,row)})}catch{ /* Other fully supported hazards remain available. */ }
-  }
+  });
  }
  const cells=[];for(const point of points){const ensemble=byId.get(point.id);if(!ensemble)continue;const elevation=Math.round(number(ensemble.elevation)||0),cellPeriods={};for(const p of periods){const hazards={},probabilityFields={};for(const kind of['rain','wind','snow']){const useIfs=kind==='wind'&&[...byId.values()].filter(row=>dachExtendedComplete(row,kind,p)).length<points.length*.65,sourceRows=useIfs?windById:byId,source=sourceRows.get(point.id);if([...sourceRows.values()].filter(row=>dachExtendedComplete(row,kind,p)).length<points.length*.65||!dachExtendedComplete(source,kind,p))continue;
    const assessment=dachExtremeAttachThresholdEvidence(kind==='rain'?dachExtremeRain(ensemble,p.startHour,p.endHour,elevation,24):kind==='wind'?dachExtremeWind(source,p.startHour,p.endHour,elevation):dachExtremeSnow(ensemble,p.startHour,p.endHour,elevation,24),kind);probabilityFields[kind]=assessment.probabilities;if(assessment.signal)hazards[kind]={...assessment.signal,drivers:[`Regionales ${useIfs?'ECMWF-IFS-EPS':'ICON-EPS'}-Langfristsignal; Lage und Zeitfenster unsicher`],metrics:{...assessment.signal.metrics,evidenceSource:useIfs?'ECMWF-IFS-EPS':'ICON-EPS'}};
