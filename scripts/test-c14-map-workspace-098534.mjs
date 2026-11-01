@@ -91,5 +91,6 @@ assert.ok(radar.includes('composite-compact-observation-heading'),'Der Master-Sc
 assert.ok(unified.includes('<summary>Weitere Einstellungen</summary>'),'Profioptionen bleiben über eine einzige sekundäre Steuerung zugänglich.');
 assert.ok(!unified.includes('<summary>Darstellung & Auswahlrichtung</summary>'),'Redundantes zweites Profigruppen-Disclosure wird entfernt.');
 assert.ok(compactStyles.includes('radarlegend-toggle small'),'Die vereinte Zeit-/Legendenfläche bleibt responsiv.');
+assert.ok(radar.indexOf('className="radarmap"')<radar.indexOf('className="composite-direct-time"'),'Vor der Karte dürfen keine redundanten Termin- und Advanced-Menüs Platz beanspruchen.');
 
 console.log(`MID-C14: Karten als map-first Arbeitsraum, eine Zeitachse, eingeklappte Sekundärsteuerung und Smartphone-/Tablet-/Desktop-Dichte für v${releaseVersion} geprüft.`);
