@@ -123,7 +123,7 @@ class P1P5Evidence(unittest.TestCase):
             self.audit([], [public(167), public(167)])
 
     def test_future_public_run_rejected(self):
-        with self.assertRaisesRegex(ValueError, 'predates'):
+        with self.assertRaisesRegex(ValueError, 'precedes'):
             self.audit([], [public(167, -1)])
 
     def test_public_mismatch_claiming_valid_rejected(self):
