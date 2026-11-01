@@ -197,6 +197,8 @@ def assert_run_cadence(model, runs):
     """Require consecutive original UTC cycles, not just three arbitrary model runs."""
     if model not in MODELS or not isinstance(runs,(set,list,tuple)) or len(runs)<3:
         raise ValueError('Unqualified model run collection')
+    if any(not isinstance(run,str) or not re.fullmatch(r'[0-9]{8}T[0-9]{4}',run) for run in runs):
+        raise ValueError('Invalid original DWD UTC initialization')
     try:
         ordered=sorted(datetime.strptime(run,'%Y%m%dT%H%M') for run in runs)
     except (ValueError,TypeError) as exc:

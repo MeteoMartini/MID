@@ -81,6 +81,14 @@ class RunCadenceTests(unittest.TestCase):
  def test_invalid_format_rejected(self):
   with self.assertRaisesRegex(ValueError,'Invalid original'):
    assert_run_cadence('icon-d2-ruc',['A','B','C'])
+ def test_noncanonical_utc_timestamp_rejected(self):
+  with self.assertRaisesRegex(ValueError,'Invalid original'):
+   assert_run_cadence('icon-d2-ruc',['20261024T900','20261024T1000','20261024T1100'])
+ def test_collection_ruc_gap_enforced(self):
+  runs=['20261024T1200','20261024T1300','20261024T1500']
+  records=[{'model':'icon-d2-ruc','parameter':'pmsl','run':run,'leadHours':0} for run in runs]
+  with self.assertRaisesRegex(ValueError,'not consecutive'):
+   validate_collection(records,parameters={'icon-d2-ruc':['pmsl']},leads={'icon-d2-ruc/pmsl':[0]})
  def test_duplicate_runs_rejected(self):
   with self.assertRaisesRegex(ValueError,'not consecutive'):
    assert_run_cadence('icon-d2-ruc',['20261024T1300']*3)
