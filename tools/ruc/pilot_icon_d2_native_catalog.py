@@ -115,7 +115,7 @@ WMO={"t_2m":([0,0,0],"instant"),"pmsl":([0,3,1],"instant"),
  "u_10m":([0,2,2],"instant"),"v_10m":([0,2,3],"instant"),
  "vmax_10m":([0,2,22],"max"),"clct":([0,6,1],"instant"),
  "ww":([0,19,25],"instant"),"t":([0,0,0],"instant"),
- "relhum":([0,1,1],"instant"),"tot_prec":([0,1,8],"accum")}
+ "relhum":([0,1,1],"instant"),"tot_prec":([0,1,52],"accum")}
 def pin_original_inventory(catalog):
  if catalog.get("schema")!="mid.dwd.native-source-catalog.v1" or catalog.get("productionApproved") is not False:
   raise ValueError("not an original DWD pilot catalog")

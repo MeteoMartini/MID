@@ -47,6 +47,9 @@ class NativeD2CatalogTests(unittest.TestCase):
   self.assertTrue(all("_pressure-level_" in r["file"] and "_850_" in r["file"] for r in pressure))
   self.assertEqual(len([r for r in report["files"] if r["parameter"]=="tot_prec"]),3*(len(LEADS)+1))
 
+ def test_original_dwd_cumulative_total_precipitation_code_is_pinned(self):
+  from pilot_icon_d2_native_catalog import WMO
+  self.assertEqual(WMO['tot_prec'],([0,1,52],'accum'))
  def test_sha_pinned_three_run_wmo_manifest_matches_original_scope(self):
   catalog=catalogue("2026110106",html_for)
   for item in catalog["files"]:item.update(sha256="a"*64,bytes=1000,status="downloaded-unqualified")

@@ -63,6 +63,26 @@ def assert_grib_identity(actual,record,step_type):
         raise ValueError('GRIB parameter or statistical processing identity drift: '+json.dumps({'model':record.get('model'),'field':record.get('parameter'),'run':record.get('run'),'leadHours':record.get('leadHours'),'actual':list(actual),'expected':expected,'actualStepType':step_type,'expectedStepType':record.get('stepType')},sort_keys=True))
 
 
+def assert_dwd_native_total_precipitation(record,centre,unit,statistical_processing,start_step,end_step):
+    """DWD ICON-D2 TOT_PREC: WMO 0/1/52 + statistical accumulation.
+
+    WMO 0/1/52 by itself denotes a rate. Only the DWD local total
+    precipitation product with accumulation operator 1, cumulative 0..lead
+    and mass-per-area units is admitted, never a raw precipitation rate.
+    """
+    if record.get('model')!='icon-d2' or record.get('parameter')!='tot_prec' or record.get('wmoParameter')!=[0,1,52]:
+        raise ValueError('DWD native total precipitation source/parameter mismatch')
+    lead=record.get('leadHours')
+    actual={'centre':centre,'units':str(unit),'statisticalProcessing':statistical_processing,'startStep':start_step,'endStep':end_step}
+    if (type(centre) is not int or centre!=78 or type(statistical_processing) is not int or statistical_processing!=1
+            or type(start_step) is not int or start_step!=0 or type(end_step) is not int or end_step!=lead
+            or str(unit).replace(' ','').lower() not in {'kgm**-2','kgm-2'}):
+        raise ValueError('DWD native precipitation accumulation semantics drift: '+
+                         json.dumps({'field':'tot_prec','run':record.get('run'),'leadHours':lead,'actual':actual,
+                                     'expected':{'centre':78,'units':'kg m^-2','statisticalProcessing':1,
+                                                 'startStep':0,'endStep':lead}},sort_keys=True))
+
+
 def native_coordinates(record, root, gid):
     """Bind original DWD CLAT/CLON by hashes and native grid identity.
 
@@ -186,6 +206,12 @@ def inventory_record(record,root):
             stats['parameterIdentity']=[int(codes_get_long(gid,k)) for k in ('discipline','parameterCategory','parameterNumber')]
             stats['stepType']=str(codes_get(gid,'stepType'))
             assert_grib_identity(stats['parameterIdentity'],record,stats['stepType'])
+            if record['model']=='icon-d2' and record['parameter']=='tot_prec':
+                assert_dwd_native_total_precipitation(
+                    record,int(codes_get_long(gid,'centre')),str(codes_get(gid,'units')),
+                    int(codes_get_long(gid,'typeOfStatisticalProcessing')),
+                    int(codes_get_long(gid,'startStep')),lead)
+
             next_gid=codes_grib_new_from_file(stream)
             if next_gid is not None:
                 codes_release(next_gid)

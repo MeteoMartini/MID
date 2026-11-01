@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding,assert_grib_identity,assert_run_cadence,assert_grib_valid_time
+from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding,assert_grib_identity,assert_dwd_native_total_precipitation,assert_run_cadence,assert_grib_valid_time
 
 class DomainInventoryTests(unittest.TestCase):
  def test_valid_zero_and_missing_preserved(self):
@@ -50,6 +50,16 @@ class DomainInventoryTests(unittest.TestCase):
  def test_bad_bitmap_shapes_fails(self):
   with self.assertRaisesRegex(ValueError,'Section-6'):
    assert_bitmap_decoding([0,2],1,[1,0,1])
+ def test_dwd_local_total_precipitation_requires_cumulative_mass_not_rate(self):
+  row={'model':'icon-d2','parameter':'tot_prec','run':'20261101T0300','leadHours':6,'wmoParameter':[0,1,52]}
+  assert_dwd_native_total_precipitation(row,78,'kg m**-2',1,0,6)
+  assert_dwd_native_total_precipitation(row,78,'kg m-2',1,0,6)
+  for center,unit,stat,start,end in [(7,'kg m**-2',1,0,6),(78,'kg m**-2 s**-1',1,0,6),
+                                     (78,'kg m**-2',0,0,6),(78,'kg m**-2',1,3,6),(78,'kg m**-2',1,0,5)]:
+   with self.assertRaisesRegex(ValueError,'semantics drift'):
+    assert_dwd_native_total_precipitation(row,center,unit,stat,start,end)
+  with self.assertRaisesRegex(ValueError,'source/parameter mismatch'):
+   assert_dwd_native_total_precipitation(dict(row,wmoParameter=[0,1,8]),78,'kg m**-2',1,0,6)
  def test_wmo_identity_must_match_original(self):
   assert_grib_identity([0,3,1],{'wmoParameter':[0,3,1],'stepType':'instant'},'instant')
   with self.assertRaisesRegex(ValueError,'identity drift'):
