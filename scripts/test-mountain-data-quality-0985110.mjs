@@ -41,3 +41,24 @@ for(const token of ['Niederschlag darf **nicht** künstlich monoton mit der Höh
 const versionAtLeast=(value,minimum)=>{const left=String(value).split(/[+-]/,1)[0].split('.').map(Number),right=String(minimum).split('.').map(Number);for(let index=0;index<Math.max(left.length,right.length);index++){const a=left[index]??0,b=right[index]??0;if(a!==b)return a>b}return true};
 assert.ok(versionAtLeast(pkg.version,'0.9.85.110'),'Mountain-Data-Quality-Vertrag benötigt mindestens MID v0.9.85.110.');
 console.log('MID v0.9.85.110: regionale Höhenquellen, orographisch neutrale Niederschlagslogik, Tagespiktogramme, Neuschnee und RUC-Abgrenzung geschützt.');
+
+/** Execute the production snow-value parser, not a source-string approximation. */
+const {build}=await import('esbuild');
+const snowBundle=await build({stdin:{contents:"export {validatedGeoSphereSnowMeasurement} from './mountainSnowObservation';",loader:'ts',resolveDir:new URL('src/',root).pathname},bundle:true,write:false,platform:'node',format:'esm'});
+const {validatedGeoSphereSnowMeasurement:parseSnow}=await import('data:text/javascript;base64,'+Buffer.from(snowBundle.outputFiles[0].text).toString('base64'));
+const snowNow=Date.parse('2026-11-01T06:00:00Z');
+const snowRow={available:true,valueCm:0,stationId:'AT-1',stationName:'Berg',stationElevation:1500,distanceKm:5,heightDifferenceM:100,observedAt:'2026-11-01T05:00:00Z',provider:'GeoSphere Austria'};
+let snowCases=0;
+const snowGood=(row,value)=>{assert.equal(parseSnow(row,1400,snowNow)?.valueCm,value);snowCases++};
+const snowBad=(row,elevation=1400)=>{assert.equal(parseSnow(row,elevation,snowNow),undefined);snowCases++};
+snowGood(snowRow,0);snowGood({...snowRow,valueCm:42.5},42.5);
+for(const valueCm of [null,undefined,'',false,'0',NaN,Infinity,-1,1001])snowBad({...snowRow,valueCm});
+for(const distanceKm of [null,undefined,'',-1,25.1])snowBad({...snowRow,distanceKm});
+for(const heightDifferenceM of [null,undefined,'',400,-400])snowBad({...snowRow,heightDifferenceM});
+for(const stationElevation of [null,undefined,''])snowBad({...snowRow,stationElevation});
+snowBad({...snowRow,stationElevation:1900});snowBad({...snowRow,stationId:''});snowBad({...snowRow,available:false});
+snowBad({...snowRow,observedAt:'2026-11-01T02:59:00Z'});snowBad({...snowRow,observedAt:'2026-11-01T06:16:00Z'});
+snowBad({...snowRow,observedAt:'invalid'});snowBad({...snowRow,valueCm:0},NaN);
+snowGood({...snowRow,observedAt:'2026-11-01T06:15:00Z'},0);
+assert.equal(snowCases,32,'Original Snow-Provider-Edge-Case-Matrix fehlt');
+console.log('GeoSphere Original-NoData/Null/0/Height/UTC: '+snowCases+' dynamische Fälle erfolgreich.');

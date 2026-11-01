@@ -1,3 +1,15 @@
+# MID v0.9.85.393 · echte GeoSphere-Schneemessungen: Missing ≠ 0
+
+**Verifizierte Quelle:** v0.9.85.392, `main=mid-stable` SHA `74f39cc3ea371e8e1ddae5d09d16e77241864a32`. Vorgänger-Release Source-PR #556, Installer #41279397041 vollständig erfolgreich (Core/Heavy/Worker/Pages/Finalize); fünf Rulesets. Alte .392-Snow-PR #558 @ `fbd497ea87cb63a435aa15b6eed992466ebe8140` wurde wegen paralleler .392-Design-Promotion NICHT auf main gemergt. Code- und Testblobs selektiv, vollständig SHA-geprüft und ohne Rebase/Reset auf neuen Stable-Tree portiert.
+
+**Ursache:** `Number(response.valueCm)` wandelte JSON-`null` aus einem `available:true`-GeoSphere-Worker-Response in 0 cm. Fehlende Stationshöhe/-Distanz konnte ebenfalls 0 vortäuschen; zukünftige Messzeitpunkte wurden nicht sicher abgegrenzt. Der neue Produktionshelfer `src/mountainSnowObservation.ts`, Blob `bfe059888f6fef1bb6b1eaca76b18ce59d3681d1`, akzeptiert nur echte endliche numerische Werte, reale 0 cm und eine valide Stations-ID. Stationshöhe und Höhendifferenz müssen tatsächlich vorliegen und innerhalb 2 m konsistent sein; Entfernung höchstens 25 km, Höhenunterschied ±350 m, Messzeit höchstens 3 h alt bzw. 15 min in der Zukunft. Lücken bleiben nicht verfügbar, nie 0.
+
+**Tests:** Dieselben 32 dynamischen adversariellen Parserfälle sind im bestehenden obligatorischen `scripts/test-mountain-data-quality-0985110.mjs` verankert. Der isolierte Legacy-Loader `scripts/test-mid-079901-fixes.mjs` liest die echte Helper-Quelle statt eines ungeprüften Mocks. Der frühere .392-PR #558 bestand Source-Run #41279299993 vollständig mit 12 Pflicht-Gates, aber **dieses Ergebnis wird ausdrücklich NICHT für den neuen SHA wiederverwendet**. Vor .393-Veröffentlichung erneut komplette 1059 Source-/Core-/Heavy- und Installer-Gates, reale Worker-/Pages- und Stable-Promotion. Kein echtes iOS-Geräte-/VoiceOver- oder neuer TAWES-Live-Provider-Readback aus den Tests behauptet.
+
+**Abgrenzung:** DWD-RUC, ICON-D2-Vollgebiet, ECMWF 0,1°, INCA/C-LAEF, weitere Schneestationen und Skybar bleiben unverändert; Warnungen amtlich getrennt. Technische Produktionsveröffentlichung ausschließlich über kontrollierten Source-PR → SHA-Bot → serverseitiges ZIP → Installer/Worker/Pages → Stable.
+
+---
+
 # MID v0.9.85.392 · Designaudit #523/A3: WMS-Legenden, Zugänglichkeit und Exportprovenienz
 
 **Verifizierte Ausgangsbasis:** v0.9.85.391, `main=mid-stable` SHA `79b3a8cb995f780c863d6f4b1762155f80e09a15`, PR #553 / Source-Gate #41275254803 / Installer #41276158578 vollständig erfolgreich. Fünf Schutzrulesets. Parallele Drafts #555/#551/#554 und weitere RUC/Designarbeiten nicht überschrieben.
