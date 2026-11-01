@@ -7,6 +7,9 @@ on:
       - '.github/workflows/mid-d2-native-original-audit.yml'
       - 'tools/ruc/pilot_dwd_domain_inventory.py'
       - 'tools/ruc/test_dwd_domain_inventory.py'
+      - 'tools/ruc/d2_native_full_fields.py'
+      - 'tools/ruc/d2_native_eight_bundle.py'
+      - 'tools/ruc/test_d2_native_eight_bundle.py'
 permissions:
   contents: read
 concurrency:
@@ -62,6 +65,21 @@ jobs:
         timeout-minutes: 7
         run: |
           python tools/ruc/pilot_icon_d2_native_scalar.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-scalar" --field t_2m --lead 6
+      - name: Prove eight full native D2 kinds with genuine same-run one-hour precipitation difference (read-only)
+        timeout-minutes: 12
+        run: |
+          python tools/ruc/d2_native_eight_bundle.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-eight" --lead 6
+          python - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'d2-native-eight'/'pilot-index.json'
+          r=json.loads(p.read_bytes())
+          assert r['schema']=='mid.dwd.native-eight-pilot.v1' and r['productionApproved'] is False
+          assert r['nativePoints']==542040 and r['leadHours']==6
+          assert set(r['products'])=={'temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation'}
+          assert all(0<x['bytes'] and 0<x['decodedBytes']<=12_000_000 for x in r['products'].values())
+          assert r['sourceObjects']['previous_tot_prec']['leadHours']==5
+          print('Original DWD eight native map categories, 542040 source cells, 1h TOT_PREC source and eight decoded-size gates admitted read-only')
+          PY
       - name: Upload only small provenance reports, not provider GRIB files
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -74,3 +92,4 @@ jobs:
             ${{ runner.temp }}/d2-originals/inventory-input.json
             ${{ runner.temp }}/d2-originals/original-grib-inventory.json
             ${{ runner.temp }}/d2-native-scalar/readme.json
+            ${{ runner.temp }}/d2-native-eight/pilot-index.json
