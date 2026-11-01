@@ -6,6 +6,9 @@
 
 **Korrektur Linien und Zustandsintegrität:** Saisonvergleichs-Legenden tragen mittels SVG dieselben vier originalen Dasharrays wie ihre jeweiligen Modellkurven; keine rein farbliche Unterscheidung erforderlich. Der Tagesdetail-Einstieg wird bei blockiertem `localStorage` durch einen geschützten Read stabilisiert; Legacy-Key, 0/1-Status und stündlicher fester Aufklappmodus bleiben bestehen. Der initiale Layoutmodus und das Lesen der Favoritenreihenfolge sind ebenfalls gegen verweigerten Browser-Speicher geschützt, einschließlich Test des echten transpilierbaren Quellcodes. Bestehende obligatorische Regressionen `test-water-tide-matrix-081815.mjs` und `test-display-return-states-0985364.mjs` erweitert um ausgeführte TS-Helper-Qualifikationen, keine Testinventarverkürzung.
 
+
+- **RUC-Workflow-Kompatibilitätskorrektur:** Der zusätzliche P1–P5-Evidenzjob war in beiden kanonischen/aktiven Workflow-Spiegeln versehentlich auf **exakt** v0.9.85.398 fest verdrahtet. Der positive Versionsvertrag akzeptiert nun nur eine vierteilige Version **ab** .398, weiterhin mit unveränderter Baseline-/Contract-Version-Synchronität, ≥1059 Pflichtregressionen, byteidentischen Workflow-Spiegeln, unveränderten Native-RUC-Negativtests und dem unveränderten `git diff --exit-code`/sauberem Arbeitsbaum. Keine Abkürzung von SHA-, Veröffentlichungs- oder Datenqualitätsgates; aktuelle PR-Checks müssen auf dem finalen SHA neu erfolgreich sein.
+
 **Freigabegrenze:** v0.9.85.399 bleibt **Quellkandidat**, bis exakt sein letzter PR-SHA vollständig grüne Pflicht-Source-Gates, kontrollierter SHA-Bot, serverseitiges Release-ZIP, Installer mit Worker/Pages/Finalize und bestätigte Stable-Promotion belegt sind. Vor Abschluss dieser Kette weder produktive Version noch WCAG-2.2-AA-/iOS-/VoiceOver-Abnahme behaupten. Die Auditissues #523 und #508 bleiben für A0–A5 End-to-End-Abnahme, Provider-Originalklassen und echte responsive Geräteprüfung offen.
 
 ---
