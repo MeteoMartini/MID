@@ -27,7 +27,6 @@ function sourceLabel(s:ParameterQuality['source']){
 function ageLabel(minutes?:number){
   if(!Number.isFinite(minutes??NaN))return'';
   const m=minutes??0;
-  if(m< -1)return'Zeitstempel liegt in der Zukunft';
   if(m<1)return'gerade eben';
   if(m<60)return`vor ${Math.round(m)} Min`;
   const h=Math.floor(m/60),rem=Math.round(m%60);
@@ -64,7 +63,7 @@ export function ParameterQualityIndicator({
       const rq=radarData?.quality;
       return{
         label,
-        source:radarData?'radar':'model',
+        source:'radar',
         quality:rq==='high'?'high':rq==='medium'?'medium':'low',
         detail:radarData?`${radarData.provider}${radarData.observedAt?` · ${ageLabel((now-new Date(radarData.observedAt).getTime())/60000)}`:''}`:'Modellvorhersage',
         ageMinutes:radarData?.observedAt?(now-new Date(radarData.observedAt).getTime())/60000:undefined,
