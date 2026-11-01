@@ -62,7 +62,7 @@ function exerciseMapState(initial){
  const data=new Map(Object.entries(initial));
  const ctx={localStorage:{getItem:key=>data.has(key)?data.get(key):null,setItem:(key,value)=>data.set(key,String(value))}};
  vm.createContext(ctx);
- vm.runInContext(stripTypeScriptTypes(mapStateSource.replace(/\\bexport\\s+/g,'')),ctx);
+ vm.runInContext(stripTypeScriptTypes(mapStateSource.replace(/\bexport\s+/g,'')),ctx);
  return{data,read:()=>ctx.readMapWorkspaceView(),save:value=>ctx.saveMapWorkspaceView(value)};
 }
 const mapKey='mid:map-workspace-view:v1',settingsKey='mid:weather-maps:v2';
