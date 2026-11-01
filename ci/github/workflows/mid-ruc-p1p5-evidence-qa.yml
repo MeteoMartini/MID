@@ -21,6 +21,12 @@ on:
       - 'ci/github/workflows/mid-ruc-availability-observer.yml'
       - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'tools/ruc/test_ruc_p3_timing_audit.py'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'MID_BASELINE.json'
+      - 'contracts/index.json'
+      - 'RELEASE_NOTES.md'
+      - 'MID_SOURCE_OF_TRUTH.md'
       - 'ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml'
       - '.github/workflows/mid-ruc-p1p5-evidence-qa.yml'
 
@@ -56,6 +62,27 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Node.js for canonical version and workflow equivalence checks
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: RUC release mirrors and exact canonical workflow sync are clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run sync-version
+          npm run sync:github-workflows
+          git diff --exit-code -- .
+          test -z "$(git status --porcelain)"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          version=json.loads(Path('package.json').read_text())['version']
+          assert version == '0.9.85.397'
+          assert json.loads(Path('MID_BASELINE.json').read_text())['releaseVersion'] == version
+          assert json.loads(Path('contracts/index.json').read_text())['releaseVersion'] == version
+          assert len(json.loads(Path('MID_BASELINE.json').read_text())['requiredRegressionTests']) >= 1059
+          PY
       - name: Exercise 168-hour censoring and negative observations
         shell: bash
         run: |
