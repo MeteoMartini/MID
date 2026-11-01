@@ -270,6 +270,7 @@ def stage_optional_parameters(run,stage,hours):
  Two independent directory sessions and at most the same total download slots
  as the former one-at-a-time 8-worker stage are used, never more.
  """
+ optional_start=time.monotonic()
  global_limit=max(1,min(12,int(os.getenv('MID_RUC_DOWNLOAD_WORKERS',str(DEFAULT_DOWNLOAD_WORKERS)))))
  fields_in_flight=2 if global_limit>=2 else 1
  per_field_limit=max(1,global_limit//fields_in_flight)
@@ -291,10 +292,12 @@ def stage_optional_parameters(run,stage,hours):
    print(f'{run} {label} {param}: unavailable/invalid ({type(error).__name__}: {error})',flush=True)
   else:
    print(f'{run} {label} {param}: {len(rows)} staged GRIB files',flush=True)
+ print(f'RUC_OPTIONAL_STAGE run={run} seconds={time.monotonic()-optional_start:.3f} available={len([row for row in results if row[2] is None])} total={len(results)} workers={fields_in_flight}x{per_field_limit}',flush=True)
  return len([row for row in results if row[2] is None])
 
 
 def build_candidate(s,run,stage_root,output,hours):
+ started_at=time.monotonic()
  run_key=re.sub(r'[^0-9A-Za-z_-]','',run);stage=stage_root/run_key;tmp=output.parent/f'.{output.name}.{run_key}.tmp'
  shutil.rmtree(stage,ignore_errors=True);shutil.rmtree(tmp,ignore_errors=True);stage.mkdir(parents=True,exist_ok=True);tmp.mkdir(parents=True,exist_ok=True)
  # The newest RUC-EPS directory can advertise a partially published cycle.
@@ -313,7 +316,10 @@ def build_candidate(s,run,stage_root,output,hours):
  stage_optional_parameters(run,stage,hours)
  for param in GRID_REQUIRED:
   rows=stage_coordinate(s,f'{DET_BASE}/{param}/r/{run}/',stage/'grid'/param,f'{run} {param}');print(f'{run} {param}: {len(rows)} staged coordinate GRIB file',flush=True)
+ download_seconds=time.monotonic()-started_at
+ builder_start=time.monotonic()
  builder=Path(__file__).with_name('build_ruc_bundle.py');subprocess.run([sys.executable,str(builder),'--staging',str(stage),'--output',str(tmp),'--run',run,'--hours',str(hours)],check=True)
+ print(f'RUC_P3_PHASES run={run} download_stage_seconds={download_seconds:.3f} native_builder_seconds={time.monotonic()-builder_start:.3f}',flush=True)
  required=('deterministic.bin','eps-summary.bin','eps-members.bin','lookup.bin','latest.json')
  missing=[name for name in required if not (tmp/name).is_file() or (tmp/name).stat().st_size<2]
  if missing:raise RuntimeError('builder output incomplete: '+','.join(missing))

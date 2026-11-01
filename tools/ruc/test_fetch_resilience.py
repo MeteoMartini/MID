@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Offline regressions: retries, atomic staging and early GRIB coverage."""
 import bz2
+import io
+from contextlib import redirect_stdout
 import os
 import ssl
 from urllib3.exceptions import MaxRetryError,SSLError as PoolSSLError
@@ -242,7 +244,11 @@ class FetchResilience(unittest.TestCase):
                  patch.object(fetch, 'session', side_effect=lambda: IndependentSession()), \
                  patch.object(fetch, 'stage_tree', side_effect=fake_stage), \
                  patch.dict(os.environ, {'MID_RUC_DOWNLOAD_WORKERS':'8'}):
-                self.assertEqual(fetch.stage_optional_parameters('2026-10-05T18:00',root,27),1)
+                output=io.StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(fetch.stage_optional_parameters('2026-10-05T18:00',root,27),1)
+                self.assertIn('RUC_OPTIONAL_STAGE run=2026-10-05T18:00',output.getvalue())
+                self.assertIn('available=1 total=2 workers=2x4',output.getvalue())
             self.assertFalse(failed.exists())
             self.assertEqual(len(tasks),2)
             self.assertEqual({n for _,n in tasks},{4})
