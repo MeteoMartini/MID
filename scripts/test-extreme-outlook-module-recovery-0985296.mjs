@@ -76,9 +76,10 @@ try{
  assert.equal(result.delivery,'local-cache');assert.equal(result.stale,true);
  assert.ok(result.staleReason?.length>20);assert.equal(result.officialWarning,false);
  dataMap.clear();
+ const importsBeforeAbort=imports;
  const aborted=new AbortController();aborted.abort();
  await assert.rejects(()=>module.loadExtendedExtremeWeatherOutlook(aborted.signal),error=>error?.name==='AbortError');
- assert.equal(imports,2,'Abbruch darf keine weiteren Importe erzeugen');
+ assert.equal(imports,importsBeforeAbort,'Abbruch darf keine weiteren Importe erzeugen');
  dataMap.clear();workerError=undefined;importError=undefined;calls=0;imports=0;
  storage.setItem('mid:extreme-outlook:worker-limit-until:v1',String(Date.now()+3600000));directResult=forecast();
  result=await module.loadExtendedExtremeWeatherOutlook();
