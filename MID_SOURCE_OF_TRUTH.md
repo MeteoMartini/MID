@@ -1,3 +1,17 @@
+# MID v0.9.85.391 · Designaudit #523/A3: echte WMS-Anbieterlegenden in beiden Kartenansichten
+
+**Live freigegebene Ausgangsbasis:** v0.9.85.390, `main=mid-stable` SHA `8a886b3695ca0ae6ae94e7c18b1bfeb790ddb0a2`; vollständig erfolgreiches Source-Gate #41244176018, SHA-gebundener PR #550 und Installer #41245171750 (Core/Heavy/Worker/Pages/Finalize). Fünf Rulesets aktiv.
+
+**Geschützte Herkunft:** Fachliche Draft-Arbeit in PR #552 @ `5cbfa528680fbd0a23e07d63d039df4e80f7eecc` aus .389 stammt von sechs Git-Blobs; zur Integration auf aktuelle .390-Stable werden Änderungen gezielt, ohne Cherry-Pick der veralteten Basis, erneut angewendet. Insbesondere der .390-`weatherMapFrameReady`-Vertrag und die zugehörigen Negativtests bleiben erhalten. Zusätzliche Parität: `WeatherMapsPanel` zeigt die identische Anbieterlegende ausschließlich nach tatsächlich abgeschlossener WMS-Kacheldarstellung; ein Wechsel von Modell, Lauf, Gültigkeit oder Niveau verbirgt zuvor bestätigte Legenden bis zur neuen Kachelbestätigung.
+
+**WMS-Provenienz:** `GetLegendGraphic` über bestehenden DWD-/GeoMet-Worker-Proxy ausschließlich für freigegebene Wetterkarten-Layer und syntaktisch gültige gewählte WMS-Styles. Keine externen Direkt-URLs, keine synthetischen Farb-/Wertklassen, keine Umdeutung als amtliche Warnungen. Provider-Fehler werden sichtbar als fehlende Legende statt als Nullwert behandelt. Nativer Raster-/Export-Skalenvertrag bleibt unverändert.
+
+**Regression & Restabnahme:** Bereits verpflichtendes `scripts/test-unified-map-layers-0985167.mjs` erweitert um ausgeführte URL-/Allowlist-/Style-Tests und beide UI-Verkabelungen; unverändert **1059/1059** Pflichtregressionen einschließlich .390-WMS-Lauf-/ValidTime-/Level-Fällen und 24-Fälle-Browsermatrix. Echte provider-spezifische GetLegendGraphic-Readbacks und barrierefreie numerische Klassenbeschriftungen sind eigene Restpunkte: nicht als WCAG-2.2-AA- oder iOS-/VoiceOver-Abnahme aus Unit-Tests ableiten.
+
+**Veröffentlichung ausschließlich nach** vollständigem Source-PR-Gate → kontrolliertem SHA-Bot-Merge → serverseitigem Release-ZIP → `install-mid.yml` → Worker/Pages/Finalize → `mid-stable`. Bis dahin Kandidat, kein Produktivrelease.
+
+---
+
 # MID v0.9.85.390 · Designaudit A3: WMS-Modelllauf-, Gültigkeits- und Höhenflächen-Gate vereinheitlicht
 
 **Verifizierte Quelle:** v0.9.85.389, `main=mid-stable` @ `6e449be3baf13e9c33ec206864189dd4b580d482`; PR #549 und Installer #41240348162 vollständig erfolgreich mit Core, Heavy, Worker, Pages, Finalize. Fünf aktive Rulesets und 1.059 Pflichtregressionen erhalten.
