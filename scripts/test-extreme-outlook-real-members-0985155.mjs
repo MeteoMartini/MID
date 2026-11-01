@@ -7,6 +7,16 @@ const context=vm.createContext({console,URL,URLSearchParams,Headers,Request,Resp
 context.__fixture=fixture;
 const stats=vm.runInContext('dachExtendedMemberStatistics(__fixture)',context);
 assert.equal(stats.hourly.precipitation.length,169);
+
+context.__badTime=structuredClone(fixture);
+context.__badTime.hourly.time[74]=context.__badTime.hourly.time[75];
+assert.equal(vm.runInContext('dachExtendedTimeAxis(__badTime)',context),undefined,'Nicht-stündliche Zeitachse darf nicht zu einem Modelllauf zusammengefügt werden.');
+context.__shiftedTime=structuredClone(fixture);
+context.__shiftedTime.hourly.time=context.__shiftedTime.hourly.time.map(iso=>new Date(Date.parse(iso+'Z')+3600000).toISOString().slice(0,16));
+const originalOrigin=vm.runInContext('dachExtendedTimeAxis(__fixture)',context);
+const shiftedOrigin=vm.runInContext('dachExtendedTimeAxis(__shiftedTime)',context);
+assert.equal(shiftedOrigin-originalOrigin,3600000,'Verschiedene Modelllauf-UTC-Ursprünge müssen trennbar bleiben.');
+
 assert.ok(stats.hourly.precipitation.slice(48,168).every(Number.isFinite));
 assert.ok(stats.hourly.precipitation_spread.slice(48,168).every(Number.isFinite));
 assert.ok(stats.hourly.snowfall_spread.slice(48,168).every(Number.isFinite));
@@ -21,6 +31,57 @@ context.__mock=async input=>{const url=new URL(input);assert.equal(url.searchPar
 vm.runInContext('dachExtremeFetchJson=__mock',context);
 const result=await vm.runInContext('dachExtendedExtremeOutlookData()',context);assert.equal(result.periods.length,5);
 for(const cell of result.cells){const last=cell.periods['144-168'];assert.ok(last.probabilityFields.rain);assert.ok(last.probabilityFields.snow);assert.equal(last.probabilityFields.wind,undefined);assert.equal(last.hazards.wind,undefined);assert.equal(last.hazards.thunderstorm,undefined);assert.equal(last.hazards.ice,undefined)}
+
+const tailMissing=structuredClone(fixture);
+for(const [key,values] of Object.entries(tailMissing.hourly))if(key!=='time'&&Array.isArray(values))tailMissing.hourly[key]=values.map((value,index)=>index>=120?null:value);
+context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>structuredClone(tailMissing));
+vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+const missingTail=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+assert.equal(missingTail.periods.length,5,'Reale, aber unvollständige 24h-Zeitfenster bleiben sichtbar.');
+assert.ok(missingTail.cells.every(cell=>Object.keys(cell.periods['120-144'].probabilityFields).length===0&&Object.keys(cell.periods['144-168'].probabilityFields).length===0),'Fehlende Tage 6/7 müssen explizit Missing, niemals Nullwahrscheinlichkeit, bleiben.');
+const truncated=structuredClone(fixture);
+for(const [key,values] of Object.entries(truncated.hourly))if(Array.isArray(values))truncated.hourly[key]=values.slice(0,120);
+context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>structuredClone(truncated));
+vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+const shorter=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+assert.deepEqual(Array.from(shorter.periods,p=>p.id),['48-72','72-96','96-120'],'Ein kürzerer Original-Lauf darf nur real vorhandene zusammenhängende Tage anzeigen.');
+
+// End-to-end concurrent-batch integrity: a newly started EPS run must not
+// silently shift timestamps of individual cells from an older run.
+const totalGridPoints=vm.runInContext("dachExtremeGrid('fallback').points.filter(p=>p.row%2===0&&p.col%2===0).length",context);
+// A short first successful group cannot shorten the entire valid horizon.
+if(totalGridPoints>16){
+ context.__shortFirstBatch=0;
+ context.__mock=async input=>{
+  const batch=++context.__shortFirstBatch;
+  return new URL(input).searchParams.get('latitude').split(',').map(()=>{
+   const row=structuredClone(fixture);
+   if(batch===1)for(const [key,value] of Object.entries(row.hourly))if(Array.isArray(value))row.hourly[key]=value.slice(0,120);
+   return row;
+  });
+ };
+ vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+ const longMajority=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+ assert.equal(longMajority.periods.length,5,'Ein kurzes Originalpaket darf den längeren real verfügbaren Prognosehorizont nicht abschneiden.');
+}
+context.__mixBatch=0;
+context.__mock=async input=>{
+ const batch=++context.__mixBatch;
+ return new URL(input).searchParams.get('latitude').split(',').map(()=>{
+  const row=structuredClone(fixture);
+  if(batch===1)row.hourly.time=context.__shiftedTime.hourly.time;
+  return row;
+ });
+};
+vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+if(totalGridPoints-16>=totalGridPoints*.65){
+ const reconciled=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+ assert.equal(reconciled.cells.length,totalGridPoints-16,'Ein abweichender Modelllauf darf keine Rasterzelle zur gemeinsamen Zeitachse hinzufügen.');
+ assert.equal(reconciled.grid.availablePointCount,reconciled.cells.length);
+} else {
+ await assert.rejects(vm.runInContext('dachExtendedExtremeOutlookData()',context),/inkonsistente Zeitachsen oder Modellläufe/,'Unter 65 % übereinstimmender UTC-Laufabdeckung muss die Vorschau gesperrt bleiben.');
+}
+
 context.__mock=async input=>new URL(input).searchParams.get('latitude').split(',').map(()=>({hourly:{time:fixture.hourly.time,rain:Array(169).fill(null)}}));
 vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
 await assert.rejects(vm.runInContext('dachExtendedExtremeOutlookData()',context),/nicht bestimmbar/);

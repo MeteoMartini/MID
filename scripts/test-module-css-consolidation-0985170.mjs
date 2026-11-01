@@ -151,6 +151,25 @@ for(const entry of originalEntries){
   if(prior===null)rules[index].remove();else rules[index].replaceWith(postcss.parse(selector+'{'+prior+'}').first);
  }
 }
+// v0.9.85.405 reviewed, localized responsive status/retry change. The
+// production declarations must be EXACT, then only these two selectors are
+// rolled back on the comparison AST to preserve the unchanged .169 golden.
+const auditedExtremeHistorical=".extreme-stale{display:flex;align-items:center;gap:7px;margin:0;padding:8px 10px;border:1px solid color-mix(in srgb,#e7b92f 48%,var(--border));border-radius:11px;background:color-mix(in srgb,#e7b92f 10%,var(--surface));color:var(--text);font-size:10px}";
+const auditedExtremeCurrent=".extreme-stale{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:0;padding:8px 10px;border:1px solid color-mix(in srgb,#e7b92f 48%,var(--border));border-radius:11px;background:color-mix(in srgb,#e7b92f 10%,var(--surface));color:var(--text);font-size:10px;line-height:1.45;overflow-wrap:anywhere}";
+const auditedExtremeButton=".extreme-stale>button{min-height:44px;margin-inline-start:auto}";
+let auditedExtremeRules=0;
+for(const entry of originalEntries){
+ if(entry.file!=='src/styles-src/25-extreme-outlook.css')continue;
+ entry.tree.walkRules('.extreme-stale',rule=>{
+  assert.equal(rule.toString(),auditedExtremeCurrent,'Responsive stale-status CSS drifted from reviewed .405 values');
+  rule.replaceWith(postcss.parse(auditedExtremeHistorical).first);auditedExtremeRules++;
+ });
+ entry.tree.walkRules('.extreme-stale>button',rule=>{
+  assert.equal(rule.toString(),auditedExtremeButton,'Retry must retain the reviewed 44px touch target');
+  rule.remove();auditedExtremeRules++;
+ });
+}
+assert.equal(auditedExtremeRules,2,'Exactly the two approved extreme-status CSS selectors may differ');
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');

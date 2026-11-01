@@ -1,3 +1,17 @@
+# MID v0.9.85.405 · Designaudit 1.8 Tag-3–7-Extremwetter: Ladepfad und Missing-Integrität
+
+**Eindeutige Ausgangsbasis:** `main=mid-stable` v0.9.85.404 SHA `8cf0c99ecc0a4c6502c188a9ca108466b53bb128`, Installer #41339459410 vollständig grün einschließlich Core/Heavy, Worker, Pages, Finalize und Stable-Promotion. Fünf Rulesets aktiv, 1059 Pflichtregressionen, 38 normative Verträge. Der vorliegende Integrationsstand ist bis zum nachgewiesenen .405-Release nur ein Source-Kandidat.
+
+**Ursprung und Parallelabgleich:** isolierter Draft #595 HEAD `5385616d01a59790b4a793cd042c55bb1c6eab82`, ursprünglich von .403 abzweigend. Fachdaten- und Testdateien waren auf .404 teilweise blobidentisch zur alten Stable-Basis; die geänderte .404-Extremwetter-ARIA-Kartenregion und .404-Worker-Version werden nachweislich bewahrt. Parallele RUC-/D2-Drafts #596/#597 bleiben unangetastet und nicht Teil dieser produktiven Änderung. Unveränderte gemeinsame WMO-/DWD-/MID-Meteorologieschwellen und amtliche Warnabgrenzung.
+
+**P1 Ladezeit:** Begrenzte 2er-Request-Parallelität für das originale 16-Punkte-ICON-EPS-Raster und getrennten ECMWF-Böenfallback. Keine Änderung an Datendienst/Ensembleanzahl/Feldinhalt; erforderliche gemeinsame UTC-Laufachse und 65-%-Coverageschranke nachgewiesen. Validierter Stale-First-Cache mit echten Berechnungszeitstempeln statt Speicherzeit; nicht-blockierendes Aktualisieren und Mobile-Retry. Echte fehlende Einzelhazards und abgeschnittene +48…+168-h-Horizonte bleiben explizit fehlend und sind niemals Entwarnung.
+
+**Auditdetails:** `docs/design/MID_DESIGN_AUDIT_1_8_EXTENDED_DAY3_7_LOAD_2026-11-01.md`; weiterhin offene A0–A5-, WMS-Original-, responsive Endgeräte-, Screenreader-/WCAG-, Kartenstart- und 24h-Warn-Zeitprüfungen nicht als abgeschlossen ausgeben.
+
+**Freigabe:** Exakter finaler SHA, grüner Source-PR-Gate, kontrollierter Bot-Merge, serverseitiges ZIP, vollständige `install-mid.yml`-Gates, Worker/Pages/Finalize, Stable-Promotion. Bei Drift oder unbekanntem Prüfergebnis fail-closed.
+
+---
+
 # MID v0.9.85.404 · gebündelter Karten-, Extremwetter- und RUC-Read-only-Quellrelease
 
 **Geprüfter Quellvorgänger:** GitHub `main=mid-stable` v0.9.85.403 SHA `e908b767a9db09df6f07afef86e471978807b5bb`; Source-PR #588 und vollständiger Installer #41331015688 (Core/Heavy/Worker/Pages/Finalize/Stable), fünf aktive Schutz-Rulesets, 1059 obligatorische Regressionen. Die `.403`-Stable bleibt maßgeblich bis zur vollständig erfolgreichen nächsten Promotion. Ausgangs-SHAs stets nochmals live prüfen.
