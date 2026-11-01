@@ -33,6 +33,16 @@ Kanonische/aktive Workflows müssen byteidentisch bleiben. Der zusätzliche `tes
 
 **Wichtiger Versionskonflikt:** Parallel läuft der eigenständige Designrelease-PR #550 für v0.9.85.390. Dieser RUC-PR #551 ist darum ausdrücklich **kein freigegebenes .390-Release** und verbleibt Draft. Eine spätere Integration verlangt frische Stable-SHA, eine freie neue Version und alle Versionsspiegel/Source-/Installer-/Worker-/Pages-Gates.
 
+## 168-Stunden-Erstwerte-Schattenauswertung (zusätzlicher P1-Kandidat)
+
+`tools/ruc/ruc_real_grib_interval_report.py` und die dazugehörigen Negativtests erfassen pro 168-stündigem UTC-Modelllauf-Fenster **nur** einen wirklich erfolgreichen `real-grib-first-field-shadow.v1`-Nachweis für den jeweiligen Lauf. Duplizierte Polls werden nicht als weitere Läufe gezählt. Fehlgeschlagene oder fehlende Polls sind **unknown/right-censored**, niemals GRIB-Nullwerte oder Evidenz, dass ein Feld bei DWD fehlte. Die P50/P90/P95-Werte sind ausschließlich **obere Latenzgrenzen zum ersten bestätigten Einzeldatei-Poll**. SHA256 der Datei ist in der Probe vermerkt, aber weder amtlich signiert noch extern kryptografisch bezeugt. 168 Einzeldateiproben würden weiterhin weder alle zwölf Felder noch EPS20, verlustfreies Packing, Client-Adoption oder ≤60-Minuten-SLO belegen.
+
+**Offline-Tests:** 6 zusätzliche adversarielle Tests (darunter 168 synthetische Modellläufe, 1/168, Duplicate/Unknown, Provenienz, UTC, Grid/Bitmap und künstliche Freigabeflags); standardmäßig via `mid-ruc-telemetry-qa.yml`. Echte 168h-Beobachtungen sind noch nicht vorhanden. Roh-GRIBs werden nicht im Repo archiviert. Auswertung nach mindestens sieben realen Tagen aus den unveränderten Beobachtungsartefakten; kein automatisches Stable-/Publisher-Gate.
+
+**Provider-Gegenprobe:** Ein im offiziellen DWD-Verzeichnis historisch gelisteter ICON-D2-RUC-T_2M-Lauf 2026-10-31T12:00 zeigte dateibasiert `PT000H00M` mit Verzeichniseintrag 12:31:45 UTC und `PT006H00M` um 12:34:15 UTC. **Das sind HTML-Verzeichniszeitstempel, keine verifizierten echten Erstveröffentlichungs- oder GRIB-Wertzeitpunkte und nur ein Feld/ein Lauf.** Eine vollständige 0–6h-Freigabe ist daraus verboten.
+
+**Versionsdrift:** Parallel wurde Design-PR #553 als **nicht-Draft v0.9.85.391** aus der veröffentlichten .390 erstellt. RUC-PR #551 bleibt auf seiner separat gesicherten früheren Basis *Draft*, ohne Versionserhöhung oder Release; er darf nicht ungeprüft auf .391 promotet werden.
+
 ## Verbindlich offene P1–P5-Gates
 
 1. **P1** echte, wiederholte DWD GRIB-Datei-/Header-/Wert-/Bitmap-Verfügbarkeit über mindestens 168 aufeinanderfolgende Initialisierungen und Beobachtungsfenster; zensierte Stichproben korrekt ausweisen. Der neue Header-Preflight ersetzt dies nicht.
