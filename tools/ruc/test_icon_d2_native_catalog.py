@@ -1,6 +1,6 @@
 import unittest
 from pilot_icon_d2_native_catalog import (
- FIELDS,LEADS,Hrefs,catalogue,cycles,select_name,select_coordinate,parse_last_run
+ FIELDS,LEADS,Hrefs,catalogue,cycles,select_name,select_coordinate,parse_last_run,pin_original_inventory
 )
 
 def html_for(url):
@@ -36,6 +36,21 @@ class NativeD2CatalogTests(unittest.TestCase):
   pressure=[r for r in report["files"] if r["parameter"] in ("t","relhum")]
   self.assertTrue(all("_pressure-level_" in r["file"] and "_850_" in r["file"] for r in pressure))
   self.assertEqual(len([r for r in report["files"] if r["parameter"]=="tot_prec"]),3*(len(LEADS)+1))
+
+ def test_sha_pinned_three_run_wmo_manifest_matches_original_scope(self):
+  catalog=catalogue("2026110106",html_for)
+  for item in catalog["files"]:item.update(sha256="a"*64,bytes=1000,status="downloaded-unqualified")
+  report=pin_original_inventory(catalog)
+  self.assertEqual(report["schema"],"mid.dwd.domain-inventory-input.v1")
+  self.assertFalse(report["productionApproved"])
+  self.assertEqual(len(report["records"]),273)
+  self.assertEqual(sorted({r["run"] for r in report["records"]}),["20261101T0000","20261101T0300","20261101T0600"])
+  for row in report["records"]:
+   self.assertEqual(row["nativeCoordinates"]["latitude"]["sha256"],"a"*64)
+   self.assertEqual(row["nativeCoordinates"]["longitude"]["sha256"],"a"*64)
+   self.assertEqual(row["wmoParameter"],__import__("pilot_icon_d2_native_catalog").WMO[row["parameter"]][0])
+  catalog["files"][0]["sha256"]="not-a-hash"
+  with self.assertRaisesRegex(ValueError,"SHA"):pin_original_inventory(catalog)
 
  def test_missing_original_file_must_fail_no_regular_fallback(self):
   def no_icosahedral(url):

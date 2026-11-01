@@ -100,6 +100,46 @@ def download_native(item,destination,session):
   temp.unlink(missing_ok=True);response.close()
  return {"sha256":digest.hexdigest(),"bytes":size,"relativeFile":name,"status":"downloaded-unqualified"}
 
+# DWD/WMO GRIB2 identities are rechecked from each immutable original file.
+WMO={"t_2m":([0,0,0],"instant"),"pmsl":([0,3,1],"instant"),
+ "u_10m":([0,2,2],"instant"),"v_10m":([0,2,3],"instant"),
+ "vmax_10m":([0,2,22],"max"),"clct":([0,6,1],"instant"),
+ "ww":([0,19,25],"instant"),"t":([0,0,0],"instant"),
+ "relhum":([0,1,1],"instant"),"tot_prec":([0,1,8],"accum")}
+def pin_original_inventory(catalog):
+ if catalog.get("schema")!="mid.dwd.native-source-catalog.v1" or catalog.get("productionApproved") is not False:
+  raise ValueError("not an original DWD pilot catalog")
+ runs=catalog.get("expectedRuns",[])
+ if len(runs)!=3 or runs!=cycles(runs[-1]):raise ValueError("not three consecutive native D2 cycles")
+ bykey={}
+ for item in catalog.get("files",[]):
+  key=(item.get("run"),item.get("parameter"),item.get("leadHours"))
+  if key in bykey:raise ValueError("duplicate native request")
+  if not re.fullmatch("[a-f0-9]{64}",str(item.get("sha256"))) or not 0<int(item.get("bytes",0))<=MAX_GRIB_BYTES or item.get("status")!="downloaded-unqualified":
+   raise ValueError("original file lacks SHA/bytes")
+  if not isinstance(item.get("file"),str) or "/" in item["file"] or "\\" in item["file"]:
+   raise ValueError("unsafe original filename")
+  bykey[key]=item
+ rows=[]
+ for stamp in runs:
+  run=stamp+"00";lat=bykey.get((run,"clat",0));lon=bykey.get((run,"clon",0))
+  if not lat or not lon:raise ValueError("native CLAT/CLON missing")
+  coordinates={"latitude":{"path":lat["file"],"sha256":lat["sha256"]},
+               "longitude":{"path":lon["file"],"sha256":lon["sha256"]}}
+  for field in FIELDS:
+   for lead in ((0,*LEADS) if field=="tot_prec" else LEADS):
+    item=bykey.get((run,field,lead))
+    if not item:raise ValueError("native DWD parameter/lead missing")
+    identity,step=WMO[field]
+    rows.append({"model":"icon-d2","parameter":field,"run":stamp[:8]+"T"+stamp[8:]+"00",
+                 "leadHours":lead,"path":item["file"],"sha256":item["sha256"],
+                 "wmoParameter":identity,"stepType":step,"nativeCoordinates":coordinates})
+ if len(rows)+6!=len(bykey):raise ValueError("unknown catalog entries")
+ return {"schema":"mid.dwd.domain-inventory-input.v1","productionApproved":False,
+         "expectedParameters":{"icon-d2":list(FIELDS)},
+         "expectedLeads":{"icon-d2/"+f:list((0,*LEADS) if f=="tot_prec" else LEADS) for f in FIELDS},
+         "records":rows}
+
 def main():
  import requests
  parser=argparse.ArgumentParser(description=__doc__)
@@ -114,6 +154,7 @@ def main():
  try:
   if args.download:
    for item in report["files"]:item.update(download_native(item,args.output,session))
+   (args.output/"inventory-input.json").write_text(json.dumps(pin_original_inventory(report),separators=(",",":"))+"\n")
   (args.output/"catalog.json").write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n")
   print(json.dumps({"catalog":str(args.output/"catalog.json"),"runs":report["expectedRuns"],
                     "files":len(report["files"]),"rawDownloaded":args.download,
