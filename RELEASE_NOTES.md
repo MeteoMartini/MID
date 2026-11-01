@@ -1,7 +1,5 @@
-# MID v0.9.85.396 – Original-WMS-Kartenexport und dauerhaft gespeicherte Widget-/Kartenansichten
+# MID v0.9.85.397 – Extremwetter-Datenlücken nicht mehr als Nullwerte anzeigen
 
-- Die klassischen und vereinheitlichten Modellkarten können den bestätigten DWD-/ECCC-WMS-Wetterausschnitt zusammen mit der originalen Anbieterlegende als **PNG** exportieren. Das Bild nennt Modelllauf, gültigen Termin, Niveau, Stil und Quelle. Basiskarte, Radar, Satellit und amtliche Warnungen sind nicht Teil dieses Original-WMS-Bildes.
-- Der Export prüft Kartenlayer, Modellzeit, Kartenausschnitt und Originalbild, begrenzt Anfragegröße und Zeit und zeigt verständliche Fehler, wenn der Anbieter die Ausgabe nicht liefern kann. Transparente Bildbereiche bedeuten keine gemessenen Nullwerte. Native Raster-PNG/SVG bleiben eigenständige Exportprodukte.
-- Der Widgetgenerator speichert zehn Darstellungsoptionen unmittelbar beim Ändern statt beim späteren Laden oder Verlassen. Einstellungen werden zwischen geöffneten Tabs synchronisiert; bewusst deaktivierte Optionen und ältere Nutzerwerte bleiben erhalten. Automatische URL-Widgetexports ändern keine persönlichen Einstellungen.
-- Die klassischen Wetterkarten merken sich Modell, Parameter, Druckniveau, Kartenbasis und Deckkraft zuverlässig und synchronisieren geänderte Einstellungen. Fehlende Niveaus werden nicht als 0 interpretiert.
-- Meteorologische Daten, Modelllauf- und Warnungssemantik, RUC, bestehende Vorhersagen und die 1.059 verpflichtenden Regressionen bleiben erhalten.
+- Fehlende Extremwetter- und RUC-/EPS-Modellkennwerte werden als „nicht verfügbar“ statt etwa als 0 mm, 0 cm, 0 km/h oder 0 J/kg angezeigt. Echte Nullwerte bleiben erhalten.
+- Die Menge von Niederschlag und Neuschnee wird nur mit einem Zeitfenster bezeichnet, wenn die Akkumulationsdauer tatsächlich bekannt ist. Auch fehlende Geländehöhen und Geländearten bleiben als Datenlücke sichtbar.
+- Wettermodelle, vorhergesagte Gefahrenwahrscheinlichkeiten, DWD-Warnungen, Wetterkarten und bestehende Nutzerfunktionen bleiben unverändert.

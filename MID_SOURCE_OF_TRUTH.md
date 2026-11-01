@@ -1,3 +1,13 @@
+# MID v0.9.85.397 · Designaudit #523 P0: Keine fehlenden Extremwetter-Evidenzen als 0 anzeigen
+
+**Verifizierte Source-Basis:** vollständig erfolgreich veröffentlicht v0.9.85.396, `main=mid-stable` SHA `d32201fbb541f4c5189e549c1250de0964bd61d1`, Installer #41292437081 completed/success und fünf aktive Rulesets. Alte Design-Draft #566 und parallele D2-/RUC-/ECMWF-Entwicklungen unangetastet.
+
+**Meteorologische Fachkorrektur:** Der bisherige Extremwetter-Panel-Renderer enthielt `Number(metric.X)||0`, `Number.isFinite(Number(null))` und ähnliche Fallbacks, welche nicht vorhandene RUC-/EPS-/Gefahrenmetriken, Bodenerhebungen und teilweise Zeitfenster wie reale Nullwerte darstellten. Ein neuer rein lesender `src/extremeEvidenceNumeric.ts`-Guard unterscheidet einen echten endlichen 0-Wert strikt von `null`, `undefined`, leerem String, Boolean, NaN und Infinity. Wetterbeträge und Wind sind nichtnegativ, signierte Werte wie CIN bleiben möglich. Ohne verifizierte positive Akkumulationsdauer zeigt MID `Zeitraum nicht verfügbar`, nicht 1/6h. Fehlender Terrainwert wird nicht als 0 m oder ungeprüft als Tiefland etikettiert. Meteorologische Modellwerte, amtliche DWD/WMO-Warnungen, Wahrscheinlichkeiten, Worker/RUC-Pipelines und Extreme bleiben unverändert; keine Nullsubstitution oder Glättung.
+
+**Qualität/Veröffentlichung:** Zwei Fachquellen und die bestehende obligatorische Extremwetter-Testdatei `scripts/test-extreme-outlook-startup-format-09661.mjs` mit real transpilierten Helperprüfungen. Keine neue externe Datenquelle oder Kosten. 1059/1059 Pflichtregressionen und 38 Normverträge unverändert. Vollständige SHA-gebundene Source-Gates → kontrollierter MID-Bot → serverseitiges ZIP → `install-mid.yml` → Worker/Pages/Finalize → Stable-Promotion erforderlich; bis dahin Quellkandidat, nicht Produktivversion. Browser-/CI ist kein realer iOS-/VoiceOver-Getest.
+
+---
+
 # MID v0.9.85.396 · Designaudit #523/#508 – WMS-Originalkartenexport und sichere Widget-/Kartenpräferenzen
 
 **Source of truth:** v0.9.85.395 `main=mid-stable` SHA `bda6e60d37f2cac31b36e9993f5d6c045355d6ed`, fünf aktive Rulesets; erfolgreich veröffentlicht aus PR #564 durch Installer #41288744774. Exakt neun Fach-/Testblobs aus dem gesicherten Design-Draft #566, Head `1fa4e35ff970c7bb0dc68c737aec3123c2330932`, ohne Rebase, Reset oder Überschreibung fremder Arbeiten. Sechs gemeinsame ältere Fachpfade hatten dieselben Git-Blob-SHAs auf .394 und .395. RUC-/ECMWF-/Schneemodelle, Warnungen, produktive KNMI-Produkte und parallele Drafts sind unberührt.
