@@ -77,7 +77,7 @@ jobs:
           if [ -n "$MID_RUC_WORKER_HEALTH_URL" ]; then args+=(--worker-url "$MID_RUC_WORKER_HEALTH_URL"); fi
           python tools/ruc/ruc_e2e_readback.py "${args[@]}"
           echo 'Pages/Worker observational readback ONLY; no true publication-time, EPS-bitmap or App-adoption/SLO attestation.' >> "$GITHUB_STEP_SUMMARY"
-      - name: Expliziten Beobachtungsstatus auch nach Release-Drift archivieren
+      - name: Beobachtungsstatus auch ohne neue Stable-Python-Datei archivieren
         if: always()
         shell: bash
         env:
@@ -87,14 +87,51 @@ jobs:
           STABLE_SHA: ${{ steps.lineage.outputs.stable_sha }}
         run: |
           set -euo pipefail
-          python3 tools/ruc/ruc_observer_execution_status.py \
-            --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" \
-            --lineage-ready "$LINEAGE_READY" \
-            --checkout-sha "$CHECKOUT_SHA" --main-sha "$MAIN_SHA" --stable-sha "$STABLE_SHA" \
-            --directory "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl" \
-            --readback "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json" \
-            --output "ruc-observer-status-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
-          echo 'Execution status is an independent observation evidence. GitHub job success alone is NOT a sample.' >> "$GITHUB_STEP_SUMMARY"
+          if [ "${LINEAGE_READY}" = true ]; then
+            # SHA consensus means this source is now on Stable; absence is a hard error.
+            test -f tools/ruc/ruc_observer_execution_status.py
+            python3 tools/ruc/ruc_observer_execution_status.py \
+              --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" \
+              --lineage-ready "$LINEAGE_READY" \
+              --checkout-sha "$CHECKOUT_SHA" --main-sha "$MAIN_SHA" --stable-sha "$STABLE_SHA" \
+              --directory "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl" \
+              --readback "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json" \
+              --output "ruc-observer-status-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+          else
+            # New workflow code can run while checkout(mid-stable) is still older.
+            # No new Python module exists in that checkout. Record a strictly
+            # negative sample using the runner's standard library instead.
+            python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          run_id, attempt = int(os.environ['GITHUB_RUN_ID']), int(os.environ['GITHUB_RUN_ATTEMPT'])
+          if run_id <= 0 or attempt <= 0:
+              raise SystemExit('invalid observer-run provenance')
+          def sha(name):
+              raw = os.environ.get(name, '')
+              return raw if re.fullmatch(r'[a-f0-9]{40}', raw) else None
+          row = {
+              'schema': 'mid.ruc.observer-execution.v1',
+              'runId': run_id, 'runAttempt': attempt,
+              'checkoutSha': sha('CHECKOUT_SHA'), 'mainSha': sha('MAIN_SHA'),
+              'stableSha': sha('STABLE_SHA'), 'lineageReady': False,
+              'result': 'release-drift-or-unverified-lineage',
+              'directorySamples': 0, 'directoryObserved': False,
+              'pagesObservedValid': False, 'workerObservedValid': False,
+              'sameRunObserved': False, 'publicReadbackCaptured': False,
+              'gribHeaderOrValuesVerified': False, 'eps20ValuesVerified': False,
+              'realClientAdoptionVerified': False,
+              'firstDwdPublicationInstantVerified': False,
+              'productionSloAuthorized': False, 'publicationAuthorized': False,
+          }
+          output = Path(f'ruc-observer-status-{run_id}-{attempt}.json')
+          with output.open('x', encoding='utf-8') as stream:
+              json.dump(row, stream, sort_keys=True, allow_nan=False)
+              stream.write('\n')
+          print('MID RUC release-window skipped poll recorded; no observation claimed')
+          PY
+          fi
+          echo 'Execution status is independent. A successful no-op is never counted as a DWD observation.' >> "$GITHUB_STEP_SUMMARY"
       - name: Stichproben für sieben Tage auswertbar sichern
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
