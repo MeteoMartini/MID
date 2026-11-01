@@ -22,8 +22,11 @@ def reports():
        'deterministicBitmapAndPhysicalChecksPassed':True,
        'cumulativePrecipitationValidated':True,'eps20Verified':False,
        'finitePointsByFieldAndLead':{name:[542030]*7 for name in FIELDS},
-       'sources':[{'path':'deterministic/T_2M/native.grib2','bytes':300,'sha256':'a'*64},
-                  {'path':'grid/CLAT/native.grib2','bytes':300,'sha256':'b'*64}],
+       'sources':[{'path':f'deterministic/{field}/native.grib2','bytes':300,'sha256':'a'*64}
+                  for field in ('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M',
+                                'VMAX_10M','TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')]
+                 + [{'path':f'grid/{axis}/native.grib2','bytes':300,'sha256':'b'*64}
+                    for axis in ('CLAT','CLON')],
        'losslessWirePackingVerified':False,'pagesWorkerAppWidgetExportVerified':False,
        'productionAuthorized':False}
     e={'schema':'mid.ruc.fast-lane-eps-native-values-shadow.v1','run':RUN,'hours':6,
@@ -78,6 +81,12 @@ class Dual(unittest.TestCase):
         d,e=reports();d['finitePointsByFieldAndLead'][FIELDS[0]][3]=0
         self.assertRaises(ValueError,combine,d,e)
         d,e=reports();d['finitePointsByFieldAndLead'].pop(FIELDS[1])
+        self.assertRaises(ValueError,combine,d,e)
+        d,e=reports();d['sources']=[record for record in d['sources']
+                                   if 'grid/CLON' not in record['path']]
+        self.assertRaises(ValueError,combine,d,e)
+        d,e=reports();d['sources']=[record for record in d['sources']
+                                   if 'deterministic/CLCL/' not in record['path']]
         self.assertRaises(ValueError,combine,d,e)
         d,e=reports();e['validTimesUtc']=e['validTimesUtc'][:-1]
         self.assertRaises(ValueError,combine,d,e)
