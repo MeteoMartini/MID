@@ -1,3 +1,15 @@
+# MID v0.9.85.407 · Designaudit 1.9: echte NoData statt falscher Trockenheits- und Nullangaben
+
+**Freigegebene Basis:** v0.9.85.406, `main=mid-stable` SHA `5ebac2e7d62efb92dfdebb406d4125964057a1ba`, Installer #41354077136 `completed/success` (Attempt 2). 5 aktive Schutzrulesets, 1059 Pflichtregressionen, 38 normative Verträge. **Diese .407-Quelle ist vor ihrer eigenen vollständigen Gatekette kein Stable-Release.**
+
+**Produktumfang:** Missing/null/NaN in aktuellen Niederschlagswahrscheinlichkeiten, Favoriten-Wetterregeln, Eventplanung und gespeicherten Wasserprofilen werden nicht als tatsächliche Nullwertwetterlagen verwendet. Der „trocken“-Darstellungsstatus verlangt ausdrücklich einen belegten endlichen PoP, einschließlich echter numerischer 0. ARIA-Heading im Mehr-Drawer. Drei bestehende Pflichttests regressionsgestützt erweitert.
+
+**Provenienz:** Exakte Quell- und Testpfade aus Draft #603 HEAD `83ac75fe1f964b7c31ff0081133897786fb98618` auf neue .406-Stable kopiert, weitere NoData-Fehlerbehebung und Negativtests isoliert ergänzt. Keine amtlichen Warnungen, RUC-Pipeline oder Modellproduktionsfelder berührt.
+
+**Offen:** D2-/RUC-Vollgebiet (#446 / PR #600), fehlende DWD-Zell-Akkumulationsadmission, komplette RUC-Frische P1–P5 (#541), ganze Hardware-/VoiceOver-/WCAG-Matrix und Endnutzer-P95. Keine Aktivierung von Pilotfeldern oder Fast-Lane. Neue Source-PR erst nach vollem 1059+ Core/Heavy-Gate, kontrollierter MID-SHA-Bot-Merge, Server-ZIP, vollständigem Installer mit Worker/Pages/Finalize und bestätigter Stable-Promotion freigeben. Kein direkter Hauptbranch-Write.
+
+---
+
 # MID v0.9.85.406 · RUC-Datenintegritäts-/Archiv-Sammelrelease
 
 **Ausgangsbasis:** v0.9.85.405, main=mid-stable SHA `6410cf049f097b1d0518beac601e1baa08583f4a`, Installer #41346300018 erfolgreich. Die folgende .406-Version wird erst nach kompletter Source-, Installer-, Worker-/Pages- und Stable-Gatekette maßgeblich.

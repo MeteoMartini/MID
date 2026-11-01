@@ -1,3 +1,13 @@
+## MID v0.9.85.407 · 2026-11-01 · Designaudit 1.9 – PoP-NoData, Favoriten/Event-Center, ARIA und sichere Trockenheitsklassifizierung
+
+- Verifizierte Startbasis: v0.9.85.406, `main=mid-stable` SHA `5ebac2e7d62efb92dfdebb406d4125964057a1ba`, vollständiger Installer #41354077136 `completed/success` (Attempt 2), 5 aktive Rulesets, 1059 Pflichtregressionen, 38 Verträge.
+- Quellherkunft: fünf SHA-verifizierte Fach-/Test-/Auditdateien aus Designaudit-Draft #603 Head `83ac75fe1f964b7c31ff0081133897786fb98618`; alle bestehenden angefassten Dateien auf .405 und .406 zuvor Git-blobidentisch. Drei unveränderte Source-/Test-/Auditblobs; `src/App.tsx` und bestehender Niederschlagspflichttest mit weiterem konkretem `null<10`-Trockenheits-Fix ergänzt.
+- Fachlich: fehlende aktuelle PoP wird `null`, Anzeige `–`; visuelle Trockenklasse nur bei tatsächlich vorhandenem endlichem PoP 0 bis unter 10, niemals durch JS-Null-Koerzierung. Radar-Modell-Mix ohne erfundene Prozentwerte; Favoritenregeln nur für gültige endlich belegte PoP/Böen/Temperaturen und unter Beachtung `enabled:false`.
+- Event-Center und Wasserprofile: `Number(null)===0` und Boolean/Leerstring Legacy-Werte nicht als echte Wettermessung/Schwellen; defaults bei Missing, echte Null und definierte Clamp-Grenzen erhalten. Mehr-Drawer hat ARIA-Heading-Level-2; Fokus-/Dialog-/Escape-Verhalten unverändert.
+- Drei **bestehende** obligatorische JS-Regrressionstests um tatsächliche TypeScript-Quellfunktionsausführung erweitert, besonders null/undefined/NaN/Infinity, echte 0, Radar-Timeline/Provenienz, Mixed Hours, Wasserprofil, Trockenklasse. Keine Tests entfernt; 1059 registrierte Pflichtregressionen verbindlich.
+- Meteorologische und Release-Restgrenzen: D2-Original-TOT_PREC-Zellabweichung in Draft #600, Vollgebiet #446, RUC P1–P5 #541, WCAG/physisches iOS/VoiceOver, echte Live-P95 bleiben offen. WMO/DWD/amtliche Warnungen und alle RUC/PAGES-Budgets unverändert.
+- Ausschließlich vollständige Source-PR-Gates am exakten finalen SHA → MID-SHA-Bot → Server-ZIP → `install-mid.yml` Core/Heavy/Worker/Pages/Finalize → Stable; dieser Kandidat ist vorher nicht veröffentlicht.
+
 ## MID v0.9.85.406 · 2026-11-01 · RUC Datenintegrität, 168h Originalarchiv und SHA-gebundener Pages-Single-Writer
 
 - Live Stable-Basis: MID .405 SHA 6410cf049f097b1d0518beac601e1baa08583f4a, Installer #41346300018 vollständig grün; fünf aktive Rulesets, 1059 Pflichtregressionen.
