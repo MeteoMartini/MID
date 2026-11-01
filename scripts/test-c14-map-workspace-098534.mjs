@@ -100,6 +100,8 @@ const unified=await readFile(new URL('../src/UnifiedWeatherMap.tsx',import.meta.
 const compactStyles=await readFile(new URL('../src/UnifiedWeatherMap.css',import.meta.url),'utf8');
 assert.ok(radar.includes("absoluteTime={selectedFrame?formatInZone(targetMs,timezone"),'Die absolute Kartenzeit muss vom ausgewählten, bestätigten Kartenframe stammen.');
 assert.ok(radar.includes("validityKind={selectedFrame?.phase==='forecast'"),'Modell und Beobachtung benötigen klar unterscheidbare Zeit-Phasen.');
+assert.ok(radar.includes('relative=relativeLabel(targetSeconds,referenceSeconds)'),'Der tatsächliche Abstand des bestätigten Modelltermins muss relativ zu Jetzt gezeigt werden, auch bei live-follow.');
+assert.ok(!radar.includes("liveFollow&&selectedFrame?.live?'Jetzt':relativeLabel"),'Ein zukünftiger nächstverfügbarer Modelltermin darf niemals fälschlich Jetzt anzeigen.');
 assert.ok(radar.includes("absoluteTime||(showRadar?provider:'Komposit')"),'Genau die vorhandene Legende muss den absoluten Termin anzeigen.');
 assert.ok(!radar.includes('className="composite-map-absolute-clock"'),'Zweites Zeit-Overlay unten rechts ist nicht zulässig.');
 assert.equal((radar.match(/className="composite-observation-master"/g)||[]).length,1,'Beobachtungen dürfen nur einen Master-Schalter besitzen.');
