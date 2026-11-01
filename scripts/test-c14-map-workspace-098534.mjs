@@ -78,4 +78,18 @@ assert.deepEqual(JSON.parse(valid.data.get(settingsKey)),{zoom:9,opacity:38,mode
 const first=exerciseMapState({[mapKey]:'totals'});assert.equal(first.read(),'models');
 assert.equal(JSON.parse(first.data.get(settingsKey)).productId,'icon-d2-precipitation-totals','New storage must still select valid totals by default.');
 
+
+// MID 18.2.65: temporal truth and compact controls (source-bound regression).
+const unified=await readFile(new URL('../src/UnifiedWeatherMap.tsx',import.meta.url),'utf8');
+const compactStyles=await readFile(new URL('../src/UnifiedWeatherMap.css',import.meta.url),'utf8');
+assert.ok(radar.includes("absoluteTime={selectedFrame?formatInZone(targetMs,timezone"),'Die absolute Kartenzeit muss vom ausgewählten, bestätigten Kartenframe stammen.');
+assert.ok(radar.includes("validityKind={selectedFrame?.phase==='forecast'"),'Modell und Beobachtung benötigen klar unterscheidbare Zeit-Phasen.');
+assert.ok(radar.includes("absoluteTime||(showRadar?provider:'Komposit')"),'Genau die vorhandene Legende muss den absoluten Termin anzeigen.');
+assert.ok(!radar.includes('className="composite-map-absolute-clock"'),'Zweites Zeit-Overlay unten rechts ist nicht zulässig.');
+assert.equal((radar.match(/className="composite-observation-master"/g)||[]).length,1,'Beobachtungen dürfen nur einen Master-Schalter besitzen.');
+assert.ok(radar.includes('composite-compact-observation-heading'),'Der Master-Schalter bleibt innerhalb der Ebeneauswahl bedienbar.');
+assert.ok(unified.includes('<summary>Weitere Einstellungen</summary>'),'Profioptionen bleiben über eine einzige sekundäre Steuerung zugänglich.');
+assert.ok(!unified.includes('<summary>Darstellung & Auswahlrichtung</summary>'),'Redundantes zweites Profigruppen-Disclosure wird entfernt.');
+assert.ok(compactStyles.includes('radarlegend-toggle small'),'Die vereinte Zeit-/Legendenfläche bleibt responsiv.');
+
 console.log(`MID-C14: Karten als map-first Arbeitsraum, eine Zeitachse, eingeklappte Sekundärsteuerung und Smartphone-/Tablet-/Desktop-Dichte für v${releaseVersion} geprüft.`);
