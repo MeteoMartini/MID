@@ -64,6 +64,10 @@ def stage_fast_candidate(candidate_dir, target_dir):
     name = run.replace('-', '').replace(':', '').replace('T', 'T')
     if not re.fullmatch(r'\d{8}T\d{4}', name):
         raise ValueError('invalid immutable run directory')
+    # The downstream location-to-native-cell consumer needs the same verified
+    # grid geometry and wire field order as the immutable candidate.
+    if not isinstance(meta.get('grid'),dict) or not isinstance(meta.get('fields'),list):
+        raise ValueError('fast candidate has no verified grid/field metadata')
     pointer = {
         'schema': SCHEMA,
         'run': run,
@@ -71,6 +75,8 @@ def stage_fast_candidate(candidate_dir, target_dir):
         'sourceSchema': meta['schema'],
         'eps': {'availability': 'unavailable'},
         'nativePoints': meta['pointCount'],
+        'grid': dict(meta['grid']),
+        'fields': [dict(field) for field in meta['fields']],
         'dataTimes': list(meta['dataTimes']),
         'rapid5Times': list(meta['rapid5Times']),
         'rapid15Times': list(meta['rapid15Times']),

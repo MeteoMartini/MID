@@ -32,7 +32,7 @@ class Tests(unittest.TestCase):
                 (source/name).write_bytes(data)
                 objects[name]={'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
             meta={'schema':'mid.ruc.fast-prepared.v1','run':'2026-10-31T15:00',
-                  'pointCount':542040,'objects':objects,'dataTimes':['a'],
+                  'pointCount':542040,'objects':objects,'grid':{'nativePointCount':542040,'nx':2,'ny':1,'lonMin':6.0,'latMin':50.0,'dx':.025,'dy':.025},'fields':[{'name':'temperature_2m','unit':'°C','scale':.01,'offset':0}],'dataTimes':['a'],
                   'rapid5Times':['b'],'rapid15Times':['c'],'sourceGrib':[],
                   'publicationAuthorized':False}
             (source/'fast-candidate.json').write_text(json.dumps(meta))
@@ -42,6 +42,8 @@ class Tests(unittest.TestCase):
             self.assertFalse(result['productionAuthorized'])
             pointer=json.loads((base/'inactive'/'ruc'/'fast'/'latest.json').read_text())
             self.assertFalse(pointer['productionEnabled'])
+            self.assertEqual(pointer['grid'],meta['grid'])
+            self.assertEqual(pointer['fields'],meta['fields'])
             self.assertFalse(pointer['realtimeConsumerEnabled'])
             self.assertFalse(pointer['consumerAdoptionVerified'])
             for name,obj in pointer['objects'].items():
@@ -58,6 +60,18 @@ class Tests(unittest.TestCase):
             (root/'candidate'/'fast-candidate.json').write_text('{}')
             with self.assertRaises(ValueError):stage_fast_candidate(root/'candidate',root/'inactive')
             self.assertFalse((root/'inactive').exists())
+    def test_missing_geometry_or_field_contract_fails_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            base=Path(td);src=base/'candidate';src.mkdir()
+            (src/'fast-candidate.json').write_text(json.dumps({
+                'schema':'mid.ruc.fast-prepared.v1','run':'2026-10-31T15:00',
+                'pointCount':542040,'objects':{},'dataTimes':['a'],
+                'rapid5Times':['b'],'rapid15Times':['c']}))
+            with patch('ruc_fast_pointer_staging.verify_candidate_manifest',return_value={
+                'verifiedLocalBytes':True,'publicationAuthorized':False}):
+                with self.assertRaisesRegex(ValueError,'grid/field metadata'):
+                    stage_fast_candidate(src,base/'inactive')
+            self.assertFalse((base/'inactive').exists())
     def test_missing_object_does_not_promote(self):
         with tempfile.TemporaryDirectory() as td:
             base=Path(td);(base/'candidate').mkdir()
