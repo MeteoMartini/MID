@@ -1,3 +1,15 @@
+# MID v0.9.85.406 · RUC-Datenintegritäts-/Archiv-Sammelrelease
+
+**Ausgangsbasis:** v0.9.85.405, main=mid-stable SHA `6410cf049f097b1d0518beac601e1baa08583f4a`, Installer #41346300018 erfolgreich. Die folgende .406-Version wird erst nach kompletter Source-, Installer-, Worker-/Pages- und Stable-Gatekette maßgeblich.
+
+**RUC P1/P3/P4/P5-Bausteine:** sichere SHA-authentische Snapshot-Wiederverwendung über reine QA-/Log-Audit-Quellunterschiede; lückenbewusstes Original-GitHub-Beobachtungsarchiv nach historisch mehr als 6400 Repository-Artefakten; zusätzliche adversarielle Vertragstests der schon vorhandenen gemeinsamen MID/RUC-Pages-Publikationssperre. 27h/20 EPS und bisherige native 5/15-min Produkte bleiben fachlich unverändert; Missing ≠ 0, Original-GRIB-Geometrie und WMO-/DWD-Standards unverändert.
+
+**Nicht abschließend gelöst:** #541 P1 168h echte DWD-Originalwerte/erstes Publikationsintervall; P2 unabhängige fertig abgenommene native 0–6h-Fast-Lane samt App/Widgets/Exporten; P3 SHA-identisches A/B mit RAM/CPU/Bytebudget; P4 globales Cross-Provider CAS/Fencing und P5 reale App/Widget/Export-Datennutzung mit mehrtägigem <60-min-P95. Drafts #600/#602 D2-Vollgebiet bleiben extern, keine kosmetische Scheinfreigabe.
+
+**MID Gate:** finaler nicht-Draft Source-PR mit 1059+ Tests/alle Heavy → kontrollierter SHA-Bot-Merge → serverseitiges ZIP → vollständiger Installer Core/Heavy/Worker/Pages/Finalize → mid-stable-Promotion. Keine Direct-Writes oder alte Chat-Artefakte.
+
+---
+
 # MID v0.9.85.405 · Designaudit 1.8 Tag-3–7-Extremwetter: Ladepfad und Missing-Integrität
 
 **Eindeutige Ausgangsbasis:** `main=mid-stable` v0.9.85.404 SHA `8cf0c99ecc0a4c6502c188a9ca108466b53bb128`, Installer #41339459410 vollständig grün einschließlich Core/Heavy, Worker, Pages, Finalize und Stable-Promotion. Fünf Rulesets aktiv, 1059 Pflichtregressionen, 38 normative Verträge. Der vorliegende Integrationsstand ist bis zum nachgewiesenen .405-Release nur ein Source-Kandidat.
