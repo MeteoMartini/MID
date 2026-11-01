@@ -67,7 +67,7 @@ assert.ok(actual.includes('Niederschlag bis 87 %'),'Mixed valid/missing hours pr
 assert.ok(actual.includes('Böen bis 45 kt'),'Mixed valid/missing hours preserve real gust maxima');
 assert.ok(actual.includes('Temperatur bis 0 °C'),'Valid freezing minima are not discarded');
 assert.ok(actual.includes('Temperatur bis 29 °C'),'Valid heat maxima are not discarded');
-const invalid=favoriteRuleAlerts({rules},{length:0,slice:()=>[{probability:-1,gust:-3,temperature:Number.NaN}]});
+const invalid=favoriteRuleAlerts({rules},[{probability:-1,gust:-3,temperature:Number.NaN}]);
 assert.equal(invalid.length,0,'Negative, physically invalid forecast probabilities/gusts cannot create alerts');
 
 if(failures.length){console.error('Favoritenregeln-/Navigation-/Performance-Prüfung fehlgeschlagen:\n- '+failures.join('\n- '));process.exit(1)}
