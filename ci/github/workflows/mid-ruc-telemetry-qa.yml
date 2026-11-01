@@ -13,6 +13,19 @@ on:
       - 'tools/ruc/test_ruc_freshness_shadow_gate.py'
       - 'tools/ruc/test_ruc_e2e_readback.py'
       - 'tools/ruc/test_ruc_weekly_e2e_observations.py'
+      - 'tools/ruc/fast_lane_grib_preflight.py'
+      - 'tools/ruc/test_fast_lane_grib_preflight.py'
+      - 'tools/ruc/real_grib_first_field_shadow.py'
+      - 'tools/ruc/test_real_grib_first_field_shadow.py'
+      - 'tools/ruc/test_ruc_observation_workflow_contract.py'
+      - 'tools/ruc/ruc_real_grib_interval_report.py'
+      - 'tools/ruc/test_ruc_real_grib_interval_report.py'
+      - 'tools/ruc/fast_lane_native_values_shadow.py'
+      - 'tools/ruc/test_fast_lane_native_values_shadow.py'
+      - 'tools/ruc/fast_lane_eps_native_values_shadow.py'
+      - 'tools/ruc/test_fast_lane_eps_native_values_shadow.py'
+      - 'tools/ruc/fast_lane_dual_native_shadow.py'
+      - 'tools/ruc/test_fast_lane_dual_native_shadow.py'
       - 'ci/github/workflows/mid-ruc-availability-observer.yml'
       - '.github/workflows/mid-ruc-availability-observer.yml'
       - 'ci/github/workflows/mid-ruc-telemetry-qa.yml'
@@ -58,6 +71,8 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Numpy für unabhängige native Bitmap-/Wertephysik-Tests
+        run: python3 -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
       - name: Node.js 22.16.0 für reproduzierbare MID-Versionsspiegel
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -83,7 +98,81 @@ jobs:
           for source in sorted(Path('tools/ruc').glob('*.py')):
               ast.parse(source.read_text(encoding='utf-8'),filename=str(source))
           PY
-          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py; do
+          for test in test_dwd_availability_observer.py test_dwd_availability_report.py test_ruc_freshness_shadow_gate.py test_ruc_e2e_readback.py test_ruc_weekly_e2e_observations.py test_fast_lane_grib_preflight.py test_real_grib_first_field_shadow.py test_ruc_observation_workflow_contract.py test_ruc_real_grib_interval_report.py test_fast_lane_native_values_shadow.py test_fast_lane_eps_native_values_shadow.py test_fast_lane_dual_native_shadow.py; do
             python3 "tools/ruc/$test" -v
           done
-          echo 'Only DWD directory observation/Pages/Worker readback reviewed; no GRIB/EPS/App/SLO or Fast-Publisher release authorization.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'DWD real-value deterministic/EPS read-only qualification is NOT full DWD authentication, lossless wire/client parity, real 168h history or publication authorization.' >> "$GITHUB_STEP_SUMMARY"
+
+  real-grib-one-field-pr-canary:
+    # Explicit PR-label opt-in, read only, never used as a release gate.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v')) &&
+      contains(github.event.pull_request.labels.*.name, 'ruc-real-grib-live')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - name: Genau diesen freigegebenen PR-Head ohne Credentials laden
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Echten RUC-Quellstand und Stable/Main-Identität überprüfen
+        id: lineage
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_HEAD_SHA"
+          main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          stable_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')"
+          [[ "$main_sha" =~ ^[0-9a-f]{40}$ && "$stable_sha" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          if [ "$main_sha" = "$stable_sha" ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::Release-Drift: echter DWD-Einzelfeld-Canary ausgesetzt.'
+          fi
+      - name: Python 3.12 für genau eine native DWD-Probe
+        if: steps.lineage.outputs.ready == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Nur vorhandene MID-ecCodes- und NumPy-Kompatibilitätsgrenzen installieren
+        if: steps.lineage.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check 'numpy>=2.0,<3' 'eccodes>=2.38,<3'
+      - name: GENAU eine originale DWD-RUC-T_2M-GRIB-Datei dekodieren
+        if: steps.lineage.outputs.ready == 'true'
+        id: native
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/real_grib_first_field_shadow.py --run latest --lead-minutes 0 --output "ruc-real-grib-PR-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+      - name: Read-only-Echtdatenstatus ohne falschen SLO transparent festhalten
+        if: steps.lineage.outputs.ready == 'true'
+        env:
+          PROBE_OUTCOME: ${{ steps.native.outcome }}
+        run: |
+          echo "Actual DWD 2m air temperature GRIB sample: ${PROBE_OUTCOME}; one field only, no 0–6h/EPS20/production SLO or publication proof." >> "$GITHUB_STEP_SUMMARY"
+          if [ "$PROBE_OUTCOME" != success ]; then
+            echo '::warning::Native GRIB one-field probe unknown/invalid; NOT a model availability assertion.'
+          fi
+      - name: Nur kleines JSON-Evidenzartefakt sichern, keine GRIB-Rohdaten
+        if: ${{ always() && steps.lineage.outputs.ready == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dwd-ruc-pr-real-grib-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-real-grib-PR-*.json
+          retention-days: 14
+          if-no-files-found: warn
+          compression-level: 6
