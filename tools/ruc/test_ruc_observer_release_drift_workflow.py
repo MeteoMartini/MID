@@ -86,6 +86,17 @@ class WorkflowReleaseWindow(unittest.TestCase):
         self.assertEqual(self.run_workflow_step().returncode, 0)
         self.assertNotEqual(self.run_workflow_step().returncode, 0)
 
+    def test_trusted_watchdog_fallback_is_read_only_and_nonproduction(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("workflow_run:\n    workflows:\n      - MID RUC schedule watchdog", text)
+        self.assertIn("github.event.workflow_run.event == 'schedule'", text)
+        self.assertIn("github.event.workflow_run.head_repository.full_name == github.repository", text)
+        self.assertIn("github.event.workflow_run.head_branch == 'main'", text)
+        self.assertIn("github.event.workflow_run.conclusion == 'success'", text)
+        self.assertIn("permissions:\n  contents: read", text)
+        self.assertNotIn("actions: write", text)
+        self.assertNotIn("id-token: write", text)
+
     def test_active_and_canonical_sources_byte_identical(self):
         self.assertEqual(WORKFLOW.read_bytes(), ACTIVE.read_bytes())
 

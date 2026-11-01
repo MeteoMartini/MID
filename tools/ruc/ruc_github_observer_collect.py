@@ -112,7 +112,7 @@ def parse_observed_runs(client, cutoff):
                 continue
             if run.get('head_branch') != 'main' or not isinstance(run.get('head_sha'), str) or not SHA.fullmatch(run['head_sha']):
                 raise ValueError('unexpected source for observer workflow run')
-            if run.get('event') not in ('schedule', 'workflow_dispatch'):
+            if run.get('event') not in ('schedule', 'workflow_dispatch', 'workflow_run'):
                 raise ValueError('unexpected observer event')
             if run.get('status') not in ('completed', 'queued', 'in_progress', 'waiting', 'pending', 'requested'):
                 raise ValueError('unknown observer run status')

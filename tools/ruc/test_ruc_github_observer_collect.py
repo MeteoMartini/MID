@@ -130,6 +130,13 @@ class Collector(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 parse_observed_runs(Reader(runs=[value]), __import__('datetime').datetime(2026,11,1,12,tzinfo=__import__('datetime').timezone.utc))
 
+    def test_trusted_watchdog_completed_workflow_run_may_be_observed(self):
+        # The workflow itself gates the upstream source, event and branch.
+        result=self.check(Reader(runs=[run(event='workflow_run')]))
+        self.assertEqual(result['expectedGitHubRunAttempts'],1)
+        self.assertEqual(result['directorySamples'],0)
+        self.assertFalse(result['productionSloAuthorized'])
+
     def test_duplicate_api_run_rejected(self):
         with self.assertRaisesRegex(ValueError,'duplicate'):
             self.check(Reader(runs=[run(),run()]))
