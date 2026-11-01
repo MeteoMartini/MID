@@ -6,6 +6,10 @@
 
 **A3/A4:** Karten-Workspace-Altpräferenzen werden ohne Datenverlust migriert; die relative Zeit wird durch eine lokale absolute bestätigte Gültigkeitszeit ergänzt; Beobachtungs- und Modellsteuerung wird kompakt mit vollständig erreichbaren Optionen, fokusfähigen Disclosures und 44px-Touchzielen angeordnet. Viewport-Gating wärmt Karte sinnvoll vor, belegt aber ohne HAR/TTFP keine gemessene Geschwindigkeit.
 
+**Extremwetter-Performance:** Identische, SHA-verifizierte Quell- und Testblobs aus PR #585 HEAD `8eb408100e24e96c4645e9652b389339c134a088` vermeiden die doppelte Erstellung derselben Konturgruppe innerhalb eines unveränderten Datenobjekts. Separate Gefahr/Periode/neue Datenidentität rechnen neu; Schwellen, Wetterwerte, Warnsemantik und Missing bleiben unverändert.
+
+**Laufzeitgate:** Run `41322391419` bestand alle acht Fälle von Heavy 2/3, aber überzog die 13-Minuten-Schrittgrenze. Die verpflichtenden 24 echten MapLibre-Browserfälle wurden verlustfrei auf die vorhandenen drei Pflicht-Shards 9/7/8 aufgeteilt. Der bestehende verpflichtende Regressionstest prüft disjunkte Vollständigkeit und 20 Memory-Zyklen. Kein Release-Gate entfernt oder weichgestellt; ein neuer voller Source- und Installer-Gate-Lauf ist zwingend.
+
 **Gates:** Versionsspiegel `.402` (Xcode Build 403), User-/Internal-Changelog, QA und Fachverträge konsistent. Source-/Heavy-/Releasegates, Browsermatrix, echte Provider-WMS-/RUC-Originalklassennachweise, physisches iOS/VoiceOver sind nur dann bestanden, wenn gesondert SHA-gebunden erfolgreich protokolliert. Der Quellkandidat darf ausschließlich über den bestehenden kontrollierten MID-Pfad freigegeben werden.
 
 ---

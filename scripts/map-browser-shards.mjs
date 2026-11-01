@@ -5,7 +5,14 @@ export function mapBrowserCases(shard=''){
  if(!shard)return cases;
  const match=/^([1-3])\/3$/.exec(shard);if(!match)throw Error('Invalid map browser shard: '+shard);
  const group=Number(match[1]);
- return cases.filter(row=>row.width===1440?(row.design==='classic'?group===1:group===3):MAP_BROWSER_WIDTHS.indexOf(row.width)%3+1===group);
+ // Keep every 6x2x2 browser case; measured CI runtimes require balanced heavy shards.
+ const caseGroup=row=>{
+  if(row.width===844)return row.theme==='dark'&&row.design==='classic'?3:1;
+  if(row.width===1024)return row.design==='next'?2:row.theme==='dark'?1:3;
+  if(row.width===1440)return row.design==='next'?3:row.theme==='dark'?2:1;
+  return MAP_BROWSER_WIDTHS.indexOf(row.width)%3+1;
+ };
+ return cases.filter(row=>caseGroup(row)===group);
 }
 /** Software-GPU browser fixtures are memory/renderer intensive.
  * Never run four mobile MapLibre contexts in a single process. Every case remains mandatory. */
