@@ -52,7 +52,7 @@ jobs:
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "${{ steps.cycle.outputs.last }}" --output "$RUNNER_TEMP/d2-originals" --download
-      - name: Three-run DWD original WMO 0-1-52 accumulated TOT_PREC and bitmap admission (fail-closed)
+      - name: Three real DWD runs – exact additional-GRIB-message header diagnosis (fail-closed)
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_dwd_domain_inventory.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" > "$RUNNER_TEMP/d2-originals/original-grib-inventory.json"
