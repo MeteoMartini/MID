@@ -1,3 +1,9 @@
+# MID v0.9.85.400 – Prognoseansicht behalten und Datenlücken klar anzeigen
+
+- **Vorhersage-Auswahl bleibt bestehen:** Ist die gewählte 7- oder 14-Tage-Prognose vorübergehend nicht verfügbar, zeigt MID eine verfügbare Ansicht, ohne die gespeicherte Auswahl zu überschreiben. Sobald die Daten wieder vorhanden sind, kehrt die gewählte Ansicht zurück; eine ausdrücklich ausgewählte Navigation hat Vorrang.
+- **Temperaturlücken werden nicht mehr verbunden:** In den kleinen Kurzfrist- und 7-Tage-Prognosekurven unterbricht eine fehlende Temperatur die Linie. Ungültige SVG-Werte und „NaN °C“ in den zugehörigen Hinweisen werden vermieden. Tatsächliche Werte bleiben unverändert.
+- **Saisonmodelle mit ehrlicher Herkunft:** Sind die Ensemble-Mitglieder eines numerischen Saisonmodells nicht ausgewiesen, behauptet die Legende kein Ensemble-Mittel mehr. Bei exakt einem Member wird „1 Member“ ausgewiesen.
+
 # MID v0.9.85.399 – Datenlücken korrekt anzeigen, Modelllinien besser unterscheiden und Tagesdetails stabilisieren
 
 - **Wasserwetter ohne falsche Nullwerte:** Fehlt in einer einstündigen oder dreistündigen Prognoseperiode ein erforderlicher Niederschlagswert, zeigt MID die Menge als nicht verfügbar statt fälschlich „0 mm“ an. Das gilt auch für Regen, Schauer und Schneezuwachs. Tatsächlich gemessene oder prognostizierte 0 mm bleiben erhalten.
