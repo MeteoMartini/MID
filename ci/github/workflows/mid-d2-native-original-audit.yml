@@ -7,6 +7,8 @@ on:
       - '.github/workflows/mid-d2-native-original-audit.yml'
       - 'tools/ruc/pilot_dwd_domain_inventory.py'
       - 'tools/ruc/test_dwd_domain_inventory.py'
+      - 'tools/ruc/pilot_icon_d2_native_catalog.py'
+      - 'tools/ruc/test_icon_d2_native_catalog.py'
       - 'tools/ruc/d2_native_full_fields.py'
       - 'tools/ruc/d2_native_eight_bundle.py'
       - 'tools/ruc/test_d2_native_eight_bundle.py'
@@ -65,20 +67,32 @@ jobs:
         timeout-minutes: 7
         run: |
           python tools/ruc/pilot_icon_d2_native_scalar.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-scalar" --field t_2m --lead 6
-      - name: Prove eight full native D2 kinds with genuine same-run one-hour precipitation difference (read-only)
-        timeout-minutes: 12
+      - name: Prove eight full-domain native fields at all 9 offered leads with real one-hour precipitation (read-only)
+        timeout-minutes: 28
         run: |
-          python tools/ruc/d2_native_eight_bundle.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-eight" --lead 6
+          set -euo pipefail
+          for lead in 1 2 3 4 5 6 12 24 48; do
+            python tools/ruc/d2_native_eight_bundle.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-eight-$lead" --lead "$lead"
+          done
           python - <<'PY'
           import json,os,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'d2-native-eight'/'pilot-index.json'
-          r=json.loads(p.read_bytes())
-          assert r['schema']=='mid.dwd.native-eight-pilot.v1' and r['productionApproved'] is False
-          assert r['nativePoints']==542040 and r['leadHours']==6
-          assert set(r['products'])=={'temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation'}
-          assert all(0<x['bytes'] and 0<x['decodedBytes']<=12_000_000 for x in r['products'].values())
-          assert r['sourceObjects']['previous_tot_prec']['leadHours']==5
-          print('Original DWD eight native map categories, 542040 source cells, 1h TOT_PREC source and eight decoded-size gates admitted read-only')
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          leads=(1,2,3,4,5,6,12,24,48)
+          expected={'temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation'}
+          reports=[json.loads((root/f'd2-native-eight-{h}'/'pilot-index.json').read_bytes()) for h in leads]
+          for lead,r in zip(leads,reports):
+            assert r['schema']=='mid.dwd.native-eight-pilot.v1' and r['productionApproved'] is False
+            assert r['nativePoints']==542040 and r['leadHours']==lead
+            assert set(r['products'])==expected
+            assert all(0<x['bytes'] and 0<x['decodedBytes']<=12_000_000 for x in r['products'].values())
+            assert r['sourceObjects']['previous_tot_prec']['leadHours']==lead-1
+            assert r['sourceObjects']['previous_tot_prec']['run']==r['run']
+            assert all(p['sourceSha256'] and p['run']==r['run'] for p in r['sourceObjects'].values())
+          assert len({r['run'] for r in reports})==1
+          assert len({r['sourceInventorySha256'] for r in reports})==1
+          physical=sum(p['bytes'] for r in reports for p in r['products'].values())
+          assert physical<350_000_000,'Native original D2 sidecars exceed conservative map budget'
+          print('All 72 exact-source native original ICON-D2 product frames pass 9-lead x 8-kind map and 1h TOT_PREC audits; encoded candidate bytes='+str(physical))
           PY
       - name: Upload only small provenance reports, not provider GRIB files
         if: always()
@@ -92,4 +106,4 @@ jobs:
             ${{ runner.temp }}/d2-originals/inventory-input.json
             ${{ runner.temp }}/d2-originals/original-grib-inventory.json
             ${{ runner.temp }}/d2-native-scalar/readme.json
-            ${{ runner.temp }}/d2-native-eight/pilot-index.json
+            ${{ runner.temp }}/d2-native-eight-*/pilot-index.json
