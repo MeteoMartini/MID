@@ -1,3 +1,17 @@
+# MID v0.9.85.392 · Bergwetter GeoSphere: Missing- und Stationsvalidität
+
+**Ausgangsbasis:** v0.9.85.391, `main=mid-stable` @ `79b3a8cb995f780c863d6f4b1762155f80e09a15`; vollständiger Installer #41276158578 erfolgreich, fünf Rulesets aktiv. Von den parallelen RUC-Drafts #554/#555 und den Schnee-Quellenqualifikationen #509/#510 unabhängig.
+
+**Ursache:** `src/mountainSports.ts::geoSphereSnowMeasurement` verwendete `Number(response.valueCm)`, `Number(response.distanceKm)` und `Number(response.heightDifferenceM)`. Ein verfügbarer Worker-Response mit JSON-`null` konnte so 0 cm Schneehöhe vortäuschen. Fehlende Stationshöhen wurden ebenfalls als 0 m gelesen; ungültig zukünftige Messungen blieben unbeanstandet.
+
+**Lösung:** `src/mountainSnowObservation.ts` als rein funktionaler Daten-Gate, in die bestehende asynchrone GeoSphere-Bergwetter-Anreicherung eingebunden. Ausschließlich endliche numerische Originalwerte; echte 0 cm bleiben erhalten. Stations-ID und numerische Stationshöhe erforderlich; Entfernung 0–25 km, Höhe max. 350 m Unterschied und Konsistenz zu Stations-/Zielhöhe innerhalb 2 m. Messalter maximal 3 h, maximal 15 min Zukunftstoleranz. Unvollständige/inkonsistente Messungen werden *nicht verfügbar* statt Modell-/Trockenheitsersatz. Eigene Originaleinheiten/Offizielle-Warnung-Semantik unverändert.
+
+**Testnachweis und Grenzen:** Implementierungsblob `bfe059888f6fef1bb6b1eaca76b18ce59d3681d1` wurde lokal mit 32 reproduzierbaren validen/negativen Samplefällen geprüft; das bereits registrierte `scripts/test-mountain-data-quality-0985110.mjs` testet denselben realen, durch esbuild geladenen Parser mit denselben Fällen. Der volle Source-PR-Gate-, Core-/Heavy-, Browser-, Worker-/Pages-/Stable-Test ist Pflicht und gilt *nicht* durch 32 lokale Fälle als bestanden. Kein neuer API-Readback, keine unabhängige Schneegütenstudie und keine tatsächliche iOS-/VoiceOver-Abnahme vorwegnehmen.
+
+**Abgrenzung:** Keine RUC-/DWD-/ECMWF-/INCA-/C-LAEF-Produktionsänderung, kein Bergfex, keine Änderung von Modellfusion, amtlichen Warnungen, Schneefall-/Schneefallgrenzen-Formeln, Widgets oder Karten. Fachlich offene #446/#434/#509/#510/#374/#405/#490 bleiben separat. Release-Kandidat ausschließlich nach vollständigem Source-Gate → SHA-gebundenem Bot → Server-ZIP → Installer → Worker/Pages/Finalize → Stable-Promotion gültig.
+
+---
+
 # MID v0.9.85.391 · Designaudit #523/A3: echte WMS-Anbieterlegenden in beiden Kartenansichten
 
 **Live freigegebene Ausgangsbasis:** v0.9.85.390, `main=mid-stable` SHA `8a886b3695ca0ae6ae94e7c18b1bfeb790ddb0a2`; vollständig erfolgreiches Source-Gate #41244176018, SHA-gebundener PR #550 und Installer #41245171750 (Core/Heavy/Worker/Pages/Finalize). Fünf Rulesets aktiv.
