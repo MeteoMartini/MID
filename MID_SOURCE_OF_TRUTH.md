@@ -1,3 +1,19 @@
+# MID v0.9.85.404 · Designaudit 1.8: gebündelte Performance- und Accessibility-Korrekturen
+
+**Verifizierte Vorgänger-Promotion:** v0.9.85.403, `main=mid-stable` SHA `e908b767a9db09df6f07afef86e471978807b5bb`, kompletter Installer #41331015688 success, fünf aktive Rulesets, 1059 Pflichtregressionen und 38 registrierte Verträge. Separater RUC-Draft #591 bleibt unverändert. Der Kandidaten-Branch `chatgpt/v0.9.85.404-designaudit18-batch` wird nur nach vollständigen, neuen, SHA-gebundenen Gates freigegeben.
+
+**A3 Karten:** Ressourcenschonendes, kündbares reines Modul-Prewarm im Browser-Leerlauf; nicht bei Offline/2G/Data Saver, verstecktem Tab, offenem Such-/Navigationsmenü oder bereits aktiver Karte. Keine zusätzlichen Wetterdatenabrufe, keine Speicherung/Änderung von Nutzerzuständen. Nutzer-Kartenzeiten, WMS-Daten/Originallegenden, WMO/DWD-Gültigkeit bleiben unverändert. Keine quantifizierte Beschleunigung behauptet.
+
+**A1/A3 Extremwetter:** Einpassiges, memoisiertes Coverage-/Visible-Assessment. Echte Nullwahrscheinlichkeiten zählen als vorhandene Daten; Missing, leere Raster und nicht auswertbare Ensemblegefahren können keine falsche Entwarnung erzeugen. Keine Kontur- oder Kartenberechnung, wenn die Langfrist-Datenprüfung fehlschlägt. Schwellen, Hazard-Methodik, Warnungsautorität, Farben, Rasterfeldwerte und Quellen bleiben unverändert.
+
+**A5 Accessibility:** Die interaktive Extremwetter-Kartenregion ist semantisch als benannte Region statt als unteilbares Bild ausgezeichnet, sodass innere Bedienstrukturen nicht allein durch das Elternrollenmodell präsentativ werden. Struktur-/Negativtests ergänzt. Physisches iOS/VoiceOver und vollständige WCAG-2.2-AA-Abnahme sind noch nicht belegt.
+
+**Quellherkunft:** Die sieben nicht-versionierenden Audit-Blobs wurden SHA-gebunden auf die frisch verifizierte .403-Stable-Basis übertragen; die zusätzliche ARIA-Korrektur und ihre angepasste bestehende Pflichtregression wurden getrennt dokumentiert. Konkrete Auditrestmatrix: `docs/design/MID_DESIGN_AUDIT_1_8_WORKING_2026-11-01.md`. Die beschriebenen Produktänderungen sind erst nach vollständiger Stable-Promotion veröffentlicht.
+
+**Freigabe:** Source-PR-Gate vollständig grün auf finalem Head → SHA-gebundener Bot-Merge → serverseitiges Release-ZIP → `install-mid.yml` inkl. vollständiger unabhängiger Core/Heavy-/Worker-/Pages-/Finalize-Gates → geprüfte Stable-Promotion. Kein generischer PR-Merge oder direkter Main-/Stable-Write.
+
+---
+
 # MID v0.9.85.403 · RUC P1-Observer-Fallback und P3-EPS20-Phasenmessung
 
 **Freigabebasis:** verifizierte v0.9.85.402 auf `main=mid-stable` SHA `1888cb97149855aa8d63f74fecad9c4f245ee02d`, Source-Gate #41324209698 erfolgreich und Installer #41325206572 vollständig erfolgreich mit Core, Heavy, Worker, Pages und Finalize. Fünf aktive Rulesets und 1059 registrierte Pflichtregressionen.

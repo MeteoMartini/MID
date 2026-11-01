@@ -1,8 +1,8 @@
-# MID v0.9.85.403 – Robustere RUC-Datenbeobachtung und messbare Ensemble-Verarbeitung
+# MID v0.9.85.404 – Kartenstart ressourcenschonend vorbereiten und Extremwetteransicht verbessern
 
-- **RUC-Datenbeobachtung zuverlässiger:** Die ausschließlich lesende DWD-Verfügbarkeitsprüfung wird auch nach einem erfolgreichen vertrauenswürdigen Release-Watchdog wieder ausgeführt. Ausgefallene oder übersprungene Beobachtungen gelten ausdrücklich nicht als gültige Wetterdaten.
-- **RUC-Performance transparent messen:** Die vorhandene Verarbeitung des DWD-RUC-Ensembles erfasst getrennte Laufzeiten für Mitgliederdaten-Packing, Ensemble-Zusammenfassung und Binär-Packing. Das dient gezielter Beschleunigung ohne Änderung der Wetterwerte.
-- **Vorhersagedaten unverändert:** Gemeinsamer vollständiger DWD-Lauf mit bis zu 27 Stunden und 20 Ensemblemitgliedern, korrekte Datenlücken, Zeit-/Einheitensemantik und amtliche Warnungen bleiben erhalten. Eine eigenständige produktive 0–6-h-Fast-Lane und die alternative EPS-Quantilberechnung sind weiterhin nicht freigeschaltet.
+- **Karten beim Wechsel schneller bereit:** Nach geladener Ortsprognose darf MID die bestehenden Karten-Codebausteine in einer freien Browserphase vorbereiten. Bei langsamer bzw. datensparender Verbindung, Offline-Nutzung, verborgenem Tab oder geöffneter Suche bleibt das Vorladen aus.
+- **Extremwetterausblick effizienter:** Die App prüft die verfügbaren Daten und sichtbaren Signale in einem Durchlauf. Bei unzureichender Ensembleabdeckung entfallen unnötige Kartenberechnungen; fehlende Werte bleiben ausdrücklich unbekannt.
+- **Bessere Zugänglichkeit:** Die interaktive Extremwetterkarte ist als benannte Kartenregion ausgezeichnet. Bedienelemente darin werden nicht mehr als Teile eines einzelnen ARIA-Bildes deklariert.
+- **Unveränderte fachliche Standards:** Prognosewerte, Warnschwellen, Modell-/Gültigkeitszeiten, amtliche DWD-Warnungen und gespeicherte Nutzerentscheidungen bleiben erhalten.
 
-**Nachweisgrenzen:** Weder ein repräsentativer 168-h-DWD-Echtwert-Zeitraum noch ein 60-Minuten-P95 bis zu realen App-/Widget-/Export-Nutzern oder ein belastbarer EPS20-Produktions-Speedup sind mit dieser Version bewiesen.
-
+**Hinweis:** Die Beschleunigung betrifft das optionale Vorladen von JavaScript und unnötige UI-Rechenarbeit, nicht zusätzliche Wetterdaten oder eine andere Prognosemethodik. Eine bestimmte Ladezeitverbesserung, eine vollständige A0–A5-Abnahme und eine reale iOS-/VoiceOver-Prüfung werden nicht behauptet.
