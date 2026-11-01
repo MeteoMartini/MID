@@ -112,6 +112,7 @@ assert.ok(exportControl.includes('pending.current?.abort()'),'Stale requests abo
 assert.ok(exportControl.includes('role="alert"')&&read('src/wmsOriginalExport.css').includes('min-height:44px'),'Error feedback and touch target present');
 const wmsExportImplementation=read('src/wmsOriginalMapExport.ts');
 assert.ok(wmsExportImplementation.includes('mapImage.naturalWidth!==plan.width'),'Unexpected image geometry fails closed');
+assert.ok(wmsExportImplementation.includes('kein bestätigter Nullwert'),'Transparent WMS areas must never imply zero precipitation or zero magnitude');
 assert.ok(wmsExportImplementation.includes('Promise.all([fetchPng(plan.mapUrl,signal),fetchPng(plan.legendUrl,signal)])'),'Both original map and legend required');
 const classicExport=read('src/WeatherMapsPanel.tsx'),unifiedExport=read('src/UnifiedWeatherMap.tsx');
 assert.ok(classicExport.includes('WmsOriginalExportControl')&&classicExport.includes('confirmedWmsKey===wmsIdentity&&!loading&&!playing&&!tileError'),'Classic export waits for verified tiles');
