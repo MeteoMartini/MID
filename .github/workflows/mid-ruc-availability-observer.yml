@@ -34,7 +34,10 @@ jobs:
           checkout_sha="$(git rev-parse HEAD)"
           main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
           stable_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq '.object.sha')"
-          [[ "$main_sha" =~ ^[a-f0-9]{40}$ && "$stable_sha" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$main_sha" =~ ^[a-f0-9]{40}$ && "$stable_sha" =~ ^[a-f0-9]{40}$ && "$checkout_sha" =~ ^[a-f0-9]{40}$ ]]
+          echo "checkout_sha=$checkout_sha" >> "$GITHUB_OUTPUT"
+          echo "main_sha=$main_sha" >> "$GITHUB_OUTPUT"
+          echo "stable_sha=$stable_sha" >> "$GITHUB_OUTPUT"
           if [ "$checkout_sha" != "$main_sha" ] || [ "$checkout_sha" != "$stable_sha" ]; then
             echo 'ready=false' >> "$GITHUB_OUTPUT"
             echo '::notice::MID Releasefenster: DWD-/Pages-/Worker-Telemetrie ohne Stable=Main-Konsens ausgesetzt.'
@@ -54,6 +57,7 @@ jobs:
           python tools/ruc/test_ruc_freshness_shadow_gate.py
           python tools/ruc/test_ruc_e2e_readback.py
           python tools/ruc/test_ruc_weekly_e2e_observations.py
+          python tools/ruc/test_ruc_observer_execution_status.py
       - name: DWD-Verzeichnisverfügbarkeit ohne GRIB-Download beobachten
         if: steps.lineage.outputs.ready == 'true'
         shell: bash
@@ -73,14 +77,33 @@ jobs:
           if [ -n "$MID_RUC_WORKER_HEALTH_URL" ]; then args+=(--worker-url "$MID_RUC_WORKER_HEALTH_URL"); fi
           python tools/ruc/ruc_e2e_readback.py "${args[@]}"
           echo 'Pages/Worker observational readback ONLY; no true publication-time, EPS-bitmap or App-adoption/SLO attestation.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Expliziten Beobachtungsstatus auch nach Release-Drift archivieren
+        if: always()
+        shell: bash
+        env:
+          LINEAGE_READY: ${{ steps.lineage.outputs.ready }}
+          CHECKOUT_SHA: ${{ steps.lineage.outputs.checkout_sha }}
+          MAIN_SHA: ${{ steps.lineage.outputs.main_sha }}
+          STABLE_SHA: ${{ steps.lineage.outputs.stable_sha }}
+        run: |
+          set -euo pipefail
+          python3 tools/ruc/ruc_observer_execution_status.py \\
+            --run-id "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT" \\
+            --lineage-ready "$LINEAGE_READY" \\
+            --checkout-sha "$CHECKOUT_SHA" --main-sha "$MAIN_SHA" --stable-sha "$STABLE_SHA" \\
+            --directory "dwd-observation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.jsonl" \\
+            --readback "ruc-e2e-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json" \\
+            --output "ruc-observer-status-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.json"
+          echo 'Execution status is an independent observation evidence. GitHub job success alone is NOT a sample.' >> "$GITHUB_STEP_SUMMARY"
       - name: Stichproben für sieben Tage auswertbar sichern
-        if: ${{ always() && steps.lineage.outputs.ready == 'true' }}
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dwd-ruc-observation-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             dwd-observation-*.jsonl
             ruc-e2e-*.json
+            ruc-observer-status-*.json
           retention-days: 14
           if-no-files-found: warn
           compression-level: 6
