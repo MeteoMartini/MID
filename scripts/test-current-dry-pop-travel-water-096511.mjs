@@ -13,9 +13,9 @@ const [app,fusion,panel,travel,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 
 // Aktuelle Niederschlagswahrscheinlichkeit: kein synthetischer 5-%-Boden.
-// Real MID forecast function: a genuinely dry 0–5% forecast retains 0%,
-// whereas absent/invalid PoP is explicitly unknown, never synthetically dry.
-assert.ok(app.includes('nearestProb===null?null:maxProb!==null&&maxProb<=5?0:nearestProb'),'Trocken-Konsens darf nur bei belegter PoP 0% ausgeben.');
+// Original 0–100% model probability is not a binary dry classification:
+// true 1–5% values and 0% remain distinct; missing stays unknown.
+assert.ok(app.includes('probability=nearestProb;return{probability,summary:base,source,continuation}'),'Jede valide kurzfristige PoP inklusive 1–5% muss originaltreu erhalten bleiben.');
 assert.ok(app.includes('if(!timeline.slots.length)return{probability:null'),'Ohne Vorhersageslots darf keine künstliche Trockenheit entstehen.');
 const begin=app.indexOf('function precipitationNowSummary('),end=app.indexOf('\n}',begin);
 assert.ok(begin>=0&&end>begin,'Original PrecipNow-Quellfunktion fehlt');
@@ -28,7 +28,7 @@ const now=Date.now();
 fake.canonicalPrecipitationTimeline=prob=>({source:'15-min',slots:[{startEpoch:now-120000,endEpoch:now+120000,sample:{probability:prob}}],periods:[]});
 const probe=value=>{const orig=fake.canonicalPrecipitationTimeline;fake.canonicalPrecipitationTimeline=()=>orig(value);const result=actual([],[]);fake.canonicalPrecipitationTimeline=orig;return result.probability;};
 for(const missing of [null,undefined,-1,101,Number.NaN])assert.equal(probe(missing),null,'Fehlende oder invalide Wahrscheinlichkeit bleibt unbekannt');
-for(const dry of [0,1,5])assert.equal(probe(dry),0,'Trockene vorhandene 0–5% bleibt 0%');
+for(const probability of [0,1,4,5,9,100])assert.equal(probe(probability),probability,'Reale 0–100% PoP darf ohne eigenständige Radar-Evidenz nicht zu trocken/0 verallgemeinert werden');
 assert.equal(probe(9),9,'Verifizierte 9% bleiben 9% ohne künstlichen 5%-Boden');
 assert.equal(probe(87),87,'Hohes originales Niederschlagsrisiko darf nicht verändert werden');
 

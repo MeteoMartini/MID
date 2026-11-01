@@ -40,6 +40,31 @@ for(const token of ['Niederschlag darf **nicht** künstlich monoton mit der Höh
 
 const versionAtLeast=(value,minimum)=>{const left=String(value).split(/[+-]/,1)[0].split('.').map(Number),right=String(minimum).split('.').map(Number);for(let index=0;index<Math.max(left.length,right.length);index++){const a=left[index]??0,b=right[index]??0;if(a!==b)return a>b}return true};
 assert.ok(versionAtLeast(pkg.version,'0.9.85.110'),'Mountain-Data-Quality-Vertrag benötigt mindestens MID v0.9.85.110.');
+
+/** Audit 1.9 A6: execute actual MountainWeather precipitation adapter on missing vs real zero. */
+const mountainView=await readFile(new URL('src/MountainWeather.tsx',root),'utf8');
+const metricSource=mountainView.split('\n').find(line=>line.startsWith('function metricNumber('));
+const start=mountainView.indexOf('function mountainPrecipitationParts('),end=mountainView.indexOf('\n}',start);
+assert.ok(metricSource&&start>=0&&end>start,'Original mountain precipitation source functions missing');
+const {transformSync}=await import('esbuild'),vm=await import('node:vm');
+const script=metricSource+'\n'+mountainView.slice(start,end+2)+'\nglobalThis.__mountain=mountainPrecipitationParts;';
+const testContext={precipitationParts:h=>({total:h.precipitation,type:h.precipitation>0?'rain':'none',label:'kein Niederschlag',weatherLabel:'kein Niederschlag',code:h.code,displayCode:h.code,intensity:'none'})};
+vm.runInNewContext(transformSync(script,{loader:'ts',format:'iife',target:'es2022'}).code,testContext);
+const noData=testContext.__mountain({precipitation:null,rain:undefined,showers:null,snowfall:NaN,precipitation_probability:null,weather_code:null});
+assert.ok(Number.isNaN(noData.displayCode)&&Number.isNaN(noData.code));
+assert.match(noData.weatherLabel,/nicht verfügbar/);
+const validZero=testContext.__mountain({precipitation:0,rain:0,showers:0,snowfall:0,precipitation_probability:0,weather_code:0});
+assert.equal(validZero.displayCode,0);assert.equal(validZero.total,0);
+const validRain=testContext.__mountain({precipitation:3,weather_code:61});
+assert.equal(validRain.displayCode,61);assert.equal(validRain.total,3);
+assert.ok(mountainView.includes('return Number.isFinite(code)?code:Number.NaN'),'Missing mountain code cannot become fake clear sky');
+assert.ok(mountainView.includes('return parts.type===\'none\'&&Number.isFinite(source.precipitation)'),'Dry weather code requires actual valid precipitation amount');
+assert.ok(mountainView.includes('amount:Number.NaN,probability:Number.NaN'),'Missing mountain ensemble day is unknown, not dry');
+assert.ok(mountainView.includes('Datenlücken sind keine Entwarnung'),'Snowline no-signal text must flag incomplete evidence');
+assert.ok(mountainView.includes("'PoP fehlt'")&&mountainView.includes("'Menge fehlt'"),'Missing daily snowline precipitation values must not appear as NaN% or 0 mm');
+
+console.log('Mountain A6 original adapter: NoData/zero/real-rain plus incomplete snowline contracts passed.');
+
 console.log('MID v0.9.85.110: regionale Höhenquellen, orographisch neutrale Niederschlagslogik, Tagespiktogramme, Neuschnee und RUC-Abgrenzung geschützt.');
 
 /** Execute the production snow-value parser, not a source-string approximation. */

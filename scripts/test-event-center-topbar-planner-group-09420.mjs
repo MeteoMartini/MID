@@ -46,10 +46,10 @@ const extract=(name)=>{
 };
 const originalWaterDefaults=app.split('\n').find(line=>line.startsWith('function defaultWaterConfig('));
 assert.ok(originalWaterDefaults&&originalWaterDefaults.endsWith('}'),'Real water defaults must be tested, never mocked');
-const source=[extract('finiteProvidedNumber'),originalWaterDefaults,extract('eventCenterMetricNumber'),extract('normalizeWaterConfig'),'globalThis.__audit={finiteProvidedNumber,eventCenterMetricNumber,normalizeWaterConfig};'].join('\n');
+const source=[extract('finiteProvidedNumber'),originalWaterDefaults,extract('eventCenterMetricNumber'),extract('eventCenterMetricWithUnit'),extract('normalizeWaterConfig'),'globalThis.__audit={finiteProvidedNumber,eventCenterMetricNumber,eventCenterMetricWithUnit,normalizeWaterConfig};'].join('\n');
 const sandbox={formatDecimal:(value,digits)=>Number(value).toFixed(digits)};
 vm.runInNewContext(transformSync(source,{loader:'ts',format:'iife',target:'es2022'}).code,sandbox);
-const {finiteProvidedNumber,eventCenterMetricNumber,normalizeWaterConfig}=sandbox.__audit;
+const {finiteProvidedNumber,eventCenterMetricNumber,eventCenterMetricWithUnit,normalizeWaterConfig}=sandbox.__audit;
 for(const value of [null,undefined,'', '   ',false,Number.NaN,Number.POSITIVE_INFINITY]){
  assert.equal(finiteProvidedNumber(value),null,'Missing/invalid preference must not become zero');
  assert.equal(eventCenterMetricNumber(value),'–','Missing event value must have an explicit unavailable marker');
@@ -57,6 +57,12 @@ for(const value of [null,undefined,'', '   ',false,Number.NaN,Number.POSITIVE_IN
 assert.equal(eventCenterMetricNumber(0),'0','Real zero is still a measured/modelled value');
 assert.equal(eventCenterMetricNumber(12.34,1),'12.3');
 assert.equal(finiteProvidedNumber('0'),0,'Legacy numeric string zero is intentional');
+for(const missing of [null,undefined,'',false,NaN,Infinity])assert.equal(eventCenterMetricWithUnit(missing,' mm',1),'nicht verfügbar','No fabricated unit for missing event weather');
+assert.equal(eventCenterMetricWithUnit(0,' %'),'0 %','Real zero percent must remain valid');
+assert.equal(eventCenterMetricWithUnit(0,' mm',1),'0.0 mm','Real zero precipitation amount must remain valid');
+assert.equal(eventCenterMetricWithUnit(18,' °C'),'18 °C');
+for(const token of ["eventCenterMetricWithUnit(summary.temperatureAvg,' °C')","eventCenterMetricWithUnit(probability,' %')","eventCenterMetricWithUnit(summary.precipitationTotal,' mm',1)"])assert.ok(app.includes(token),'Event header must use unit-safe formatter in all visible fields: '+token);
+
 const water=normalizeWaterConfig({enabled:true,maxWaveHeight:null,maxGustKt:'',minWaterTemperature:false});
 assert.equal(water.maxWaveHeight,1.5,'Missing persisted wave threshold uses default, never minimum');
 assert.equal(water.maxGustKt,28,'Empty persisted wind threshold uses default, never minimum');

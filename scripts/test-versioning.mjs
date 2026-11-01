@@ -18,6 +18,7 @@ if(!sync.includes("['../public/service-worker.js','../public/sw.js']"))failures.
 if(!sync.includes("../MID_IOS_STATUS.json")||!sync.includes('iosStatus.releaseVersion=version'))failures.push('MID_IOS_STATUS.json wird nicht zentral mit der Releaseversion synchronisiert');
 if(!updater.includes('(?:\\.\\d+)?'))failures.push('Sichtbare Versionsersetzung unterstützt keine vierte Stelle');
 if(!serviceWorker.includes(`mid-shell-v${pkg.version}`)||legacyWorker!==serviceWorker)failures.push('Service-Worker-Versionen sind nicht vollständig synchron');
+if(!readme.includes('https://www.midwx.app/version.json')||readme.includes('**Aktuelle Version:** v'))failures.push('README muss statt einer veraltenden Versionsnummer die aktuelle veröffentlichte Version verlinken');
 if(!readme.includes('Wartungsrelease (`0.7.x.y` mit `y ≥ 1`)')||!readme.includes('Funktionsrelease (`0.7.x` oder äquivalent `0.7.x.0`)'))failures.push('Versionsrichtlinie ist nicht dokumentiert');
 
 function versionNumbers(value){return String(value||'').trim().replace(/^v/i,'').split(/[.-]/).map(part=>Number.parseInt(part,10)).map(value=>Number.isFinite(value)?value:0)}

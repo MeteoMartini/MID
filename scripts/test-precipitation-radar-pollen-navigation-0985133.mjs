@@ -39,6 +39,10 @@ assert.equal(getPrecip([],[]).probability,null,'Low risk in another hour must ne
 context.canonicalPrecipitationTimeline=()=>({slots:[slot(0)],periods:[],source:'15-min'});
 const realZero=getPrecip([],[]);
 assert.equal(realZero.probability,0,'A genuine zero probability must stay zero.');
+for(const genuine of [1,4,5,9,100]){
+ context.canonicalPrecipitationTimeline=()=>({slots:[slot(genuine)],periods:[],source:'15-min'});
+ assert.equal(getPrecip([],[]).probability,genuine,'Original 1–100% precipitation probability must not be flattened to 0%: '+genuine);
+}
 context.canonicalPrecipitationTimeline=()=>({slots:[slot(87)],periods:[],source:'15-min'});
 assert.equal(getPrecip([],[]).probability,87,'Available high probability must remain unchanged.');
 assert.ok(appSource.includes("type PrecipNowResult={probability:number|null"),'Missing PoP must propagate into the explicit UI type.');
