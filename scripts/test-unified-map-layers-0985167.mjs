@@ -64,6 +64,16 @@ assert.equal(legend.wmsProviderLegendUrl({...dwdMap,layer:'unapproved:layer'},''
 assert.equal(legend.wmsProviderLegendUrl(dwdMap,'../../unsafe'),'','Unexpected styles cannot be used');
 assert.ok(read('src/WmsProviderLegend.tsx').includes('Originallegende derzeit nicht verfügbar'),'Provider failures must never fabricate a scale');
 assert.ok(read('src/WmsProviderLegend.tsx').includes('loading="lazy"'),'Unopened map legends must not eagerly load imagery');
+ const legendComponent=read('src/WmsProviderLegend.tsx'),legendCss=read('src/WmsProviderLegend.css');
+ assert.ok(legendComponent.includes('failedUrl===url'),'A failed provider image must not poison a new URL or style');
+ assert.ok(legendComponent.includes('target="_blank"')&&legendComponent.includes('rel="noopener noreferrer"'),'Provider image must be inspectable at full size without opener access');
+ assert.ok(legendComponent.includes('kein verifizierter PNG-/SVG-Kartenexport'),'WMS images cannot masquerade as native PNG/SVG data exports');
+ assert.ok(legendComponent.includes('numerisch barrierefreie Texttabelle'),'Do not assert numerical accessibility from a provider bitmap');
+ assert.ok(legendCss.includes('.unified-wms-provider-legend__open{min-height:44px'),'Full-size source link has a 44px touch target');
+ const providerProxy=read('worker/metar-proxy.js');
+ assert.ok(providerProxy.includes("upstream.searchParams.set('style',url.searchParams.get('styles')||'')"),'Allowlisted worker must convert GetMap STYLES to singular GetLegendGraphic STYLE');
+ assert.ok(providerProxy.includes("upstream.searchParams.delete('styles')"),'Upstream GetLegendGraphic may not silently ignore plural styles');
+
 assert.ok(read('src/WmsProviderLegend.css').includes('.unified-wms-provider-legend summary{min-height:44px'),'Shared WMS legend disclosure must have 44px touch target');
 assert.ok(read('src/WmsProviderLegend.tsx').includes("import './WmsProviderLegend.css'"),'Both map surfaces must load the same styles through their shared component');
 

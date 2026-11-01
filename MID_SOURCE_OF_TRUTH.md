@@ -1,3 +1,15 @@
+# MID v0.9.85.392 · Designaudit #523/A3: WMS-Legenden, Zugänglichkeit und Exportprovenienz
+
+**Verifizierte Ausgangsbasis:** v0.9.85.391, `main=mid-stable` SHA `79b3a8cb995f780c863d6f4b1762155f80e09a15`, PR #553 / Source-Gate #41275254803 / Installer #41276158578 vollständig erfolgreich. Fünf Schutzrulesets. Parallele Drafts #555/#551/#554 und weitere RUC/Designarbeiten nicht überschrieben.
+
+**Änderung:** Die beiden Kartenansichten behalten ausschließlich bestätigte DWD-/ECCC-WMS-Legenden für Produkt, Stil, Lauf, Zeitpunkt und Niveau. Das Originalbild kann über den gemeinsamen allowlist-geschützten Proxy separat in voller Größe betrachtet werden (44px-Touchziel, sichtbarer Tastaturfokus, kein `window.opener`). Bildfehler sind URL-gebunden. Die UI behauptet weder numerische Barrierefreiheit einer Bitmap noch eine vollständige WMS-PNG-/SVG-Exportfunktion. Native Modellkarten- und Exportdaten, RUC, DWD-Warnungen und meteorologische Zeitsemantik unverändert.
+
+**GetLegendGraphic-Vertrag:** Der bereits existierende Proxy übersetzt die internen `layers/styles` bei echtem `GetLegendGraphic` in `layer/style` (Singular) und verhindert einen stillschweigenden Default-Stil. Diese bereits korrekte Transformation wird ab .392 durch denselben obligatorischen Kartenregressionstest geschützt. Die offizielle GeoMet-WMS-Dokumentation schreibt `STYLE` im Singular vor.
+
+**Regressionen und Grenzen:** 1059 Pflichtregressionen in beiden Inventaren ungekürzt, 38 Vertragsregistereinträge. Echte DWD-/ECCC-Readbacks, verifizierte numerische Originalklassen, WMS-Exportparität und echte iOS-/VoiceOver-/Browser-/Viewport-Abnahme bleiben offen. Vollständiger Source-PR-Gate → kontrollierter SHA-Bot → serverseitiges Release-ZIP → `install-mid.yml` → Worker/Pages/Finalize → Stable-Promotion weiterhin zwingend; bis dahin kein Produktivrelease.
+
+---
+
 # MID v0.9.85.391 · Designaudit #523/A3: echte WMS-Anbieterlegenden in beiden Kartenansichten
 
 **Live freigegebene Ausgangsbasis:** v0.9.85.390, `main=mid-stable` SHA `8a886b3695ca0ae6ae94e7c18b1bfeb790ddb0a2`; vollständig erfolgreiches Source-Gate #41244176018, SHA-gebundener PR #550 und Installer #41245171750 (Core/Heavy/Worker/Pages/Finalize). Fünf Rulesets aktiv.
