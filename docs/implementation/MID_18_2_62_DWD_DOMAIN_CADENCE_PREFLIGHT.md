@@ -1,0 +1,13 @@
+# MID 18.2.62 – originale ICON-D2-/RUC-Modelllaufkadenz qualifizieren (read-only)
+
+## Provenienz
+Stable bei Erstellung: v0.9.85.391, `main=mid-stable` `79b3a8cb995f780c863d6f4b1762155f80e09a15`, fünf aktive Rulesets, Installer #41276158578 vollständig erfolgreich. Der bisher isolierte DWD-Vollgebiets-Draft [#449](https://github.com/MeteoMartini/MID/pull/449) war die fachliche Herkunft der zwei Python-Dateien (Original-Draft-Head `8cc8519b767960684f2a0c77c7ed423eebc14b86`); Dateien wurden ohne Rebase/Reset/Mutation des Drafts selektiv auf den aktuellen Stable-Tree übernommen. Geänderte Testeinbindung erfolgt im schon bestehenden `scripts/test-ruc-map-pipeline-0985305.mjs`.
+
+## Warum erforderlich?
+Die bisherige Inventarprüfung akzeptierte beliebige drei verschiedene `run`-IDs. Für sichere Aussagen zu drei *aufeinanderfolgenden* DWD-Läufen reicht die Anzahl unterschiedlicher Runs nicht. Die zusätzliche Gate-Funktion erzwingt nach genauem Original-UTC-Parsen bei `icon-d2-ruc` die stündliche Kadenz und bei `icon-d2` dreistündliche Synoptikläufe mit UTC-Zyklusausrichtung; Uhrzeitlücken, doppelte, malformed oder off-cycle Läufe fail-closed. Ein UTC-Tageswechsel bleibt gültig. Die vorhandenen genauen WMO-Parameter-, SHA-, GRIB-Bitmap-, Native-CLAT/CLON-, Einheiten-, Run-/Lead- und Gridprüfungen bleiben erhalten.
+
+## Reproduzierbarkeit und Grenzen
+Das isolierte neue Kadenzmodul wurde lokal mit 8 positiven/adversariellen Testfällen geprüft; diese sind zusätzlich in den Python-Inventartests enthalten. Ein vollständiger Quell-/ecCodes-/DWD-Echtdatenlauf sowie die verpflichtenden MID-Core-/Heavy-/Browser-/Worker-/Pages-Gates wurden **nicht** durch die lokalen Tests erbracht. Keine Änderung der produktiven Karten- oder RUC-Pipelines, keine Feldfreigabe, keine Behauptung einer drei-Läufe-*aller Parameter*-Abnahme. `fullDomainProductionApproved=false` bleibt unverändert. Für Quellen- und Testdateien ist vor jeder Integration ein SHA-identischer GitHub-Readback erforderlich.
+
+## Release-Grenze
+Dieser unversionierte Qualifikations-Draft ist **kein** .392-App-Build und darf nicht Ready / gemergt / veröffentlicht werden. Vor einem tatsächlichen Produktrelease fehlen weiterhin mindestens drei aufeinanderfolgende echte Original-DWD-Läufe beider Modelle über **alle angebotenen Parameter und Leads**, Original-Bitmap-/Null-/Extremvergleich, vollständige Raumabdeckung bzw. maskiertes NoData, Atomizität, Speicherbudget unter 900.000.000 Bytes, Karten/Probe/PNG/SVG/Widget/Export- und Browser/iOS-Evidenz. Erst auf dann aktueller Stable-Basis vollständige Versionierung und Source-PR-Gate → kontrollierter Bot → Server-ZIP → Installer → Worker/Pages → Stable.
