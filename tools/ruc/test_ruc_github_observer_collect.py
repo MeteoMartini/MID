@@ -158,7 +158,7 @@ class Collector(unittest.TestCase):
     def test_reject_unbounded_artifact_listing(self):
         class Bad(Reader):
             def list_repository_artifacts(self,page):return {'total_count':101,'artifacts':[]}
-        with self.assertRaisesRegex(ValueError,'unbounded'):
+        with self.assertRaisesRegex(ValueError,'pagination'):
             self.check(Bad())
 
     def test_reject_size_budget_before_download(self):
@@ -253,7 +253,7 @@ class Collector(unittest.TestCase):
 
     def test_two_runs_same_original_sample_refused(self):
         raw=zipped(); second=zipped(43)
-        client=Reader(runs=[run(),run(43)],artifacts={42:[artifact(data=raw)],43:[artifact(112,43,data=second)]},zips={111:raw,112:second})
+        client=Reader(runs=[run(),run(43,when='2026-11-01T10:50:00Z')],artifacts={42:[artifact(data=raw)],43:[artifact(112,43,data=second)]},zips={111:raw,112:second})
         with self.assertRaisesRegex(ValueError,'duplicate'):
             self.check(client)
 
