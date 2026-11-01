@@ -67,8 +67,8 @@ def check_contract(install: str, ruc: str, watchdog: str) -> dict:
     assert_serialized_pages(publisher, "RUC publish")
     if publisher.count("actions/deploy-pages@") != 2:
         raise ValueError("RUC normal and rollback publishers must stay under same lock")
-    if "digest-mismatch: error" not in publisher:
-        raise ValueError("RUC immutable downloaded artifact digest gate absent")
+    if publisher.count("digest-mismatch: error") != 2:
+        raise ValueError("RUC immutable data and rollback artifact digest gates absent")
     admission = publisher.find("prepared_snapshot.py admit --snapshot")
     decoder = publisher.find("verify_prepared_snapshot.mjs")
     publish_guard = publisher.find("id: publish_guard")
