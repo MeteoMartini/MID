@@ -1,3 +1,19 @@
+# MID v0.9.85.404 · gebündelter Karten-, Extremwetter- und RUC-Read-only-Quellrelease
+
+**Geprüfter Quellvorgänger:** GitHub `main=mid-stable` v0.9.85.403 SHA `e908b767a9db09df6f07afef86e471978807b5bb`; Source-PR #588 und vollständiger Installer #41331015688 (Core/Heavy/Worker/Pages/Finalize/Stable), fünf aktive Schutz-Rulesets, 1059 obligatorische Regressionen. Die `.403`-Stable bleibt maßgeblich bis zur vollständig erfolgreichen nächsten Promotion. Ausgangs-SHAs stets nochmals live prüfen.
+
+**Karten und Designaudit A0–A5:** Der Fach-/Test-Batch aus Designaudit-Branch `chatgpt/v0.9.85.404-designaudit18-batch` Head `d9aecda53fba39d722b517f6c4db62ef98d52337` enthält 7 disjunkte Dateien, davon die exakt verifizierten früheren Karten-Idle-Preload-Blobs aus #589, ohne dessen veraltete `.403`-Spiegel. Nur im Browser-Leerlauf nach vorhandenem Ortsforecast werden die bestehenden JS-Chunks vorab angefordert. Diese reine Codeoptimierung erzeugt keine neuen Wetter-/WMS-/RUC-/Cloudflare-Requests und respektiert Data Saver, 2G, Offline, verborgenes Dokument sowie offene Suche/Drawer. Timer/Idle-Tasks abbrechbar, direkte Nutzer-Navigation unverändert.
+
+**Extremwetter und NoData:** Ein einpassiger, memoisiert verwendeter Rasterstatus ersetzt mehrfaches Filtern und unterdrückt unnötige Kontur-/GeoJSON-Arbeit bei ungenügender Datenabdeckung. Das bestehende 65%-Langfrist-Admission-Kriterium bleibt unverändert, echte Null bleibt 0 und fehlende Wahrscheinlichkeiten sind Missing. Kein neues numerisches Ensemblemodell, keine Extremglättung und keine Veränderung an DWD-Warnungen/MID-Gefahrenabgrenzung. Die bestehenden obligatorischen Regressionsscripts C14 und Extreme-Modelled-Areas wurden um echte TS-Ausführung und negative Datenfälle ergänzt.
+
+**RUC-P3 Beobachtung:** Fünf ausschließlich lesende QA-/Workflow-/Dokument-Quellblobs aus PR #591 Head `702f0947ad89125d84f382ac9f78dd49eb3c4f68`. Native EPS20-Logphasen werden auf Herkunft, Vollständigkeit und Plausibilität geprüft, ohne Data Writer, DWD-Originale, 27h/20EPS-Ausgaben oder Produktiv-Flags anzupassen. Die offenen 168h-/GRIB-/Budget-/SLO-Qualifikationen bleiben offen und dürfen nicht als bestanden ausgegeben werden.
+
+**Version und Rückwärtskompatibilität:** Quellcandidate v0.9.85.404, Xcode Build 405, alle verbindlichen Spiegel und externen/internen Hinweise konsistent. Altes Replit/ZIP/Chatmaterial nicht übernommen. 1059 Pflichtregressionen und Testshards bleiben verbindlich; kein Safety-/Releasegate reduziert. Performancezahlen aus dem früheren Firecrawl-Browser (~3s sichtbare Kartenkomponente ohne WebGL-Canvas) sind nicht als echte vollständige Kartenrenderzeit oder iOS-Feldmessung zu interpretieren.
+
+**Freigabe:** Source-PR-Gate am letzten HEAD vollständig success → kontrollierter SHA-gebundener MID-Bot-Merge → serverseitiges Release-ZIP → `install-mid.yml` mit Core/Heavy/Worker/Pages/Finalize → Stable-Promotion. Kein generischer PR-Completion-Merge, kein direkter Schreibzugriff auf `main`/`mid-stable`, keine Force-/Admin-Umgehung, keine neue Paid-Service-Aktivierung. Dieser Abschnitt ist vor abgeschlossenem Installer **keine Erfolgsmeldung**.
+
+---
+
 # MID v0.9.85.403 · RUC P1-Observer-Fallback und P3-EPS20-Phasenmessung
 
 **Freigabebasis:** verifizierte v0.9.85.402 auf `main=mid-stable` SHA `1888cb97149855aa8d63f74fecad9c4f245ee02d`, Source-Gate #41324209698 erfolgreich und Installer #41325206572 vollständig erfolgreich mit Core, Heavy, Worker, Pages und Finalize. Fünf aktive Rulesets und 1059 registrierte Pflichtregressionen.

@@ -1,8 +1,8 @@
-# MID v0.9.85.403 – Robustere RUC-Datenbeobachtung und messbare Ensemble-Verarbeitung
+# MID v0.9.85.404 – schnellere Karten und effizienterer Extremwetter-Ausblick
 
-- **RUC-Datenbeobachtung zuverlässiger:** Die ausschließlich lesende DWD-Verfügbarkeitsprüfung wird auch nach einem erfolgreichen vertrauenswürdigen Release-Watchdog wieder ausgeführt. Ausgefallene oder übersprungene Beobachtungen gelten ausdrücklich nicht als gültige Wetterdaten.
-- **RUC-Performance transparent messen:** Die vorhandene Verarbeitung des DWD-RUC-Ensembles erfasst getrennte Laufzeiten für Mitgliederdaten-Packing, Ensemble-Zusammenfassung und Binär-Packing. Das dient gezielter Beschleunigung ohne Änderung der Wetterwerte.
-- **Vorhersagedaten unverändert:** Gemeinsamer vollständiger DWD-Lauf mit bis zu 27 Stunden und 20 Ensemblemitgliedern, korrekte Datenlücken, Zeit-/Einheitensemantik und amtliche Warnungen bleiben erhalten. Eine eigenständige produktive 0–6-h-Fast-Lane und die alternative EPS-Quantilberechnung sind weiterhin nicht freigeschaltet.
+- **Kartenstart vorbereiten:** MID lädt die bestehenden Kartenmodule nach dem ersten vollständigen Ortswetter im freien Browser-Leerlauf vor. Beim späteren Kartenwechsel kann der Code dadurch bereits verfügbar sein. Bei langsamer 2G-Verbindung, Datensparen, Offline oder im Hintergrund startet kein automatisches Vorladen.
+- **Extremwetter-Ausblick entlasten:** Vorhandene Gefahrensignale und Datenabdeckung werden gemeinsam statt mehrfach ausgewertet. Ist ein Ensemble-Raster unvollständig, werden unnötige Gefahrenpolygone nicht berechnet. Fehlende Daten bleiben ausdrücklich unbekannt; eine echte Null bleibt eine echte Null.
+- **Unveränderte Wettergrundlage:** Warnstufen, amtliche DWD-Warnungen, Vorhersagemodelle, Niederschlagsakkumulationen, Messwerte, Quellen und die gespeicherten Kartenpräferenzen bleiben unverändert.
+- **Technische Datenqualität:** Die Diagnostik der RUC-Ensembleverarbeitung wird um eine lesende Auswertung echter Protokollphasen ergänzt. Sie aktiviert keine neue Fast-Lane und verändert weder Prognosewerte noch die Veröffentlichung der Daten.
 
-**Nachweisgrenzen:** Weder ein repräsentativer 168-h-DWD-Echtwert-Zeitraum noch ein 60-Minuten-P95 bis zu realen App-/Widget-/Export-Nutzern oder ein belastbarer EPS20-Produktions-Speedup sind mit dieser Version bewiesen.
-
+**Messgrenze:** Eine bestimmte Verkürzung der vollständigen Kartenladezeit wurde nicht nachgewiesen; Realgerät, Netzprofil, WebGL-Kartenaufbau und der Extremwetter-End-to-End-Pfad müssen separat verglichen werden.

@@ -1,0 +1,20 @@
+{
+  "version": "0.9.85.404",
+  "date": "2026-11-01",
+  "title": "Karten-Vorladen und Extremwetter-Auswertung, lesende RUC-P3-Qualifikation",
+  "external": [
+    "**Kartenwechsel:** Karten-Code kann nach geladenem Ortswetter im Browser-Leerlauf vorbereitet werden, soweit Verbindung und Gerätezustand dies erlauben.",
+    "**Datenvolumen:** Kein automatisches Karten-Vorladen bei 2G/slow-2g, aktivem Data Saver, Offline-Zustand oder verborgenem Tab. Die Karten können jederzeit bewusst geöffnet werden.",
+    "**Extremwetter-Ausblick:** Vorhandene Prognose-Signale und Datenabdeckung werden effizienter ausgewertet; bei unzureichender Datenlage erscheint keine fälschliche vollständige Auswertung. Fehlende Werte sind keine Null.",
+    "**Vertrauen:** Warnungen und meteorologische Quellen, Parameterwerte und persistente Nutzereinstellungen bleiben unverändert."
+  ],
+  "internal": [
+    "Stable-Ausgangspunkt v0.9.85.403 SHA e908b767a9db09df6f07afef86e471978807b5bb, Installer #41331015688 erfolgreich, fünf Rulesets und 1059 registrierte Pflichtregressionen.",
+    "7 SHA-identische Feature/Test/Audit-Blobs aus Designaudit-Batch d9aecda53fba39d722b517f6c4db62ef98d52337 (enthält bereits 3 #589-Blobs; ohne alte Versionsmirror).",
+    "5 weitere disjunkte read-only RUC-P3 Original-Workflow-Log-Parser-/QA-Workflow-Blobs aus Draft #591 Head 702f0947ad89125d84f382ac9f78dd49eb3c4f68. Keine alternativen quantile/fastlane/worker activation.",
+    "Einpassige, memo-gebundene Extremwetter-Abdeckung mit 65%-Admission, echte Null-vs-NoData-Reproduktion, Vermeidung unbrauchbarer Kontur-Materialisierung, Negativtests im registrierten Pflichttest.",
+    "Browser-Idle-Import bestehender JS-Kartenmodule, positive/negative Runtime-Policy-Tests, keine zusätzlichen Wetterdaten- oder Telemetrie-Anfragen.",
+    "Versionsmirror v0.9.85.404 in package/lock/MID_BASELINE/contracts/index/src-version/Web/Worker/Service Worker/iOS plus Build 405, Changelogs und SOT.",
+    "Alle Source-/Heavy-/Installer-Gates auf finalem SHA vor Freigabe erforderlich. Keine reale iOS-/WebGL-/168h-RUC-End-to-End-Leistungsabnahme oder Produktiv-Fast-Lane behauptet."
+  ]
+}
