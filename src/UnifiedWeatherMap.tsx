@@ -20,7 +20,7 @@ import {GeoJsonLayers,HtmlMarker,ImageQuadLayer,MapCenter,WmsTileLayer} from './
 import ModelMapProbe from './ModelMapProbe';
 import ModelMapScaleLegend from './ModelMapScaleLegend';
 import WmsProviderLegend from './WmsProviderLegend';
-import {wmsProviderLegendUrl} from './wmsProviderLegend';
+import {wmsProviderLegendUrl} from './wmsLegendUrl';
 import {loadNativeIndex,loadNativeField,nativeFieldModel,nativeAt,nativeMapScale,nativeRaster,type NativeField,type NativeFieldKind,type NativeIndex} from './nativeModelFields';
 import {loadTotals,loadTotalsAvailability,totalsAt,totalsMapScale,totalsRaster,totalsStartAt,type TotalsData} from './precipitationTotals';
 import {modelMapUnit,modelMapValue} from './modelMapUnits';

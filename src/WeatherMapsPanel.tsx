@@ -10,7 +10,7 @@ import {compactPrecipitationAmount} from './forecastAmountFormat';
 import type {WindUnit} from './weather';
 import WmsWindUnitGuide from './WmsWindUnitGuide';
 import WmsProviderLegend from './WmsProviderLegend';
-import {wmsProviderLegendUrl} from './wmsProviderLegend';
+import {wmsProviderLegendUrl} from './wmsLegendUrl';
 import {memo,useEffect,useMemo,useState} from 'react';
 import {ChevronDown,CloudRain,Info,Layers3,MapPinned,RefreshCw,Settings2} from 'lucide-react';
 import {GeoJsonLayers,MapCenter,MidMapLibre,RasterTileLayer,WmsTileLayer} from './MapLibreCore';

@@ -46,7 +46,7 @@ assert.equal(ready.weatherMapFrameReady(precipProduct,wmsMeta,earlier,run,undefi
 assert.equal(ready.weatherMapFrameReady(precipProduct,wmsMeta,valid,run,undefined),true,'Complete 6h lead time remains available');
 
 // WMS legends must be the provider's permitted original GetLegendGraphic, never guessed from map colors.
-const legendSource=read('src/wmsProviderLegend.ts').replace(/^import .*?;\n/gm,'');
+const legendSource=read('src/wmsLegendUrl.ts').replace(/^import .*?;\n/gm,'');
 const legendJs=ts.transpileModule(`const WEATHER_MAP_PRODUCTS=[{layer:'dwd:Icon_reg025_fd_sl_T2M'},{layer:'GDPS_15km_TotalCloudCover',provider:'geomet'}];const weatherMapWmsProxy=provider=>'https://mid.example/worker?mode=weather-map-wms&provider='+provider;${legendSource}`,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
 const legend=await import('data:text/javascript;base64,'+Buffer.from(legendJs).toString('base64'));
 const dwdMap={layer:'dwd:Icon_reg025_fd_sl_T2M',id:'icon-t2m'};
@@ -68,6 +68,7 @@ assert.ok(read('src/UnifiedWeatherMap.css').includes('.unified-wms-provider-lege
 
 const workspace=read('src/MapWorkspacePanel.tsx'),panel=read('src/UnifiedWeatherMap.tsx'),radar=read('src/RadarPanel.tsx');
 assert.ok(workspace.includes('MemoLazyUnifiedWeatherMap')&&!workspace.includes('map-workspace-tabs'));
+assert.ok(read('src/UnifiedWeatherMap.tsx').includes("from './wmsLegendUrl'")&&read('src/WeatherMapsPanel.tsx').includes("from './wmsLegendUrl'"),'Both views import a uniquely named helper to avoid case-only module aliases');
 assert.ok(panel.includes('wmsProviderLegendUrl(wmsProduct,wmsStyle)')&&panel.includes('loadedWms.has(wmsSelectedKey)'),'Unified legend only after WMS tiles confirmed');
 const legacyPanel=read('src/WeatherMapsPanel.tsx');
 assert.ok(legacyPanel.includes('confirmedWmsKey===wmsIdentity')&&legacyPanel.includes("wmsProviderLegendUrl(product,'')"),'Legacy legend only when WMS tiles confirmed');
