@@ -1,3 +1,11 @@
+## MID v0.9.85.391 · 2026-11-01 · A3 Originalfarblegenden für Wetterkarten beider Ansichten
+
+- Live-Stable v0.9.85.390 @ `8a886b3695ca0ae6ae94e7c18b1bfeb790ddb0a2`, PR #550, Source-Gate #41244176018 und Installer #41245171750 vollständig success (Core, Heavy, Worker, Pages, Stable). Fünf Repository-Rulesets weiterhin aktiv.
+- Entkoppelte Migration der fachlichen Draft-Arbeit aus #552 @ `5cbfa528680fbd0a23e07d63d039df4e80f7eecc` auf aktuellen veröffentlichten Code; .390-ValidTime-/INIT-/Level-Gate und Tests bleiben unverändert erhalten. Alte Draft-Branchhistorie bleibt gesichert.
+- WMS-`GetLegendGraphic` über vorhandene allowlist-geschützte DWD-/ECCC-Proxyroute; kein fremder Proxy, kein neuer Dienst, keine künstlichen Grenzwerte. Responsives 44px-Disclosure, lazy Bild, expliziter Fehlerstatus, Light/Dark und keine Warnstufenverwechslung.
+- Unified und Legacy Wetterkarten prüfen dieselbe Modell-/Stil-/Kartendatenidentität; Legende erscheint erst nach bestätigten Tiles und wird beim Kontextwechsel ausgeblendet.
+- Bestehender verpflichtender Regressionstest mit echter URL-Builder-Ausführung und negativen Layer-/Provider-/Stylefällen erweitert. Beide vollständigen Inventare bleiben bei **1059**; vollständige Source-/Installer-Browser-/Worker-/Pages-Gates weiterhin erforderlich. Reale iOS-/VoiceOver-/Provider-Readbacks separat offen.
+
 ## MID v0.9.85.390 · 2026-10-31 · Designaudit A3: einheitliche WMS-Run/ValidTime/Level-Integrität
 
 - Veröffentlichte Stable-Basis: v0.9.85.389 `main=mid-stable` @ `6e449be3baf13e9c33ec206864189dd4b580d482`; erfolgreicher Source-PR #549, Installer #41240348162 mit vollständigen Core-/Heavy-/Worker-/Pages-/Finalisierungs-Gates.
