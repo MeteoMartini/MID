@@ -1,0 +1,49 @@
+name: MID RUC P1-P5 censored evidence QA (PR read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_p1p5_censor_audit.py'
+      - 'tools/ruc/test_ruc_p1p5_censor_audit.py'
+      - 'ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml'
+      - '.github/workflows/mid-ruc-p1p5-evidence-qa.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mid-ruc-p1p5-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  censored-evidence-qa:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Exact untrusted PR source checkout, no credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Confirm exact head and workflow mirror
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          cmp ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml .github/workflows/mid-ruc-p1p5-evidence-qa.yml
+      - name: Prepare Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Exercise 168-hour censoring and negative observations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/ruc/ruc_p1p5_censor_audit.py tools/ruc/test_ruc_p1p5_censor_audit.py
+          python3 tools/ruc/test_ruc_p1p5_censor_audit.py -v
+          echo 'Directory samples and public pointer metadata only. No GRIB/EPS, DWD first publication, app-client, P95 SLO, or production trigger authorization.' >> "$GITHUB_STEP_SUMMARY"
