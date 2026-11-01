@@ -31,8 +31,9 @@ export function mapBrowserRunPlan(shard=''){
  return groups;
 }
 
-/** Keep the complete isolated 20-cycle memory case once, in the lighter map group. */
+/** Keep all original 20 memory cycles once in 2/3: the observed 3/3 eight-case workload
+ * already needs almost the 13-minute CI step budget. No coverage or timeout changes. */
 export function mapBrowserMemoryProbe(shard=''){
  mapBrowserCases(shard); // reject unknown groups before selecting any work
- return shard===''||shard==='3/3';
+ return shard===''||shard==='2/3';
 }

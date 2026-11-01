@@ -6,6 +6,7 @@ on:
       - 'tools/ruc/ruc_p3_eps_quantile_candidate.py'
       - 'tools/ruc/test_ruc_p3_eps_quantile_candidate.py'
       - 'tools/ruc/build_ruc_bundle.py'
+      - 'tools/ruc/test_ruc_p3_phase_profile.py'
       - 'tools/ruc/ruc_pack.py'
       - 'ci/github/workflows/mid-ruc-p3-eps-quantile-qa.yml'
       - '.github/workflows/mid-ruc-p3-eps-quantile-qa.yml'
@@ -51,4 +52,5 @@ jobs:
           set -euo pipefail
           python -m py_compile tools/ruc/ruc_p3_eps_quantile_candidate.py tools/ruc/test_ruc_p3_eps_quantile_candidate.py
           python tools/ruc/test_ruc_p3_eps_quantile_candidate.py -v
+          python tools/ruc/test_ruc_p3_phase_profile.py -v
           echo '13+ candidate-only synthetic tests including original production eps_summary AST and exact ruc_pack wire byte equality; NO original DWD GRIB or app/worker SLO evidence, NO release authorization.' >> "$GITHUB_STEP_SUMMARY"
