@@ -67,5 +67,8 @@ for(const token of ['strongestModelledRegionAreas(buildExtremeOutlookContourSet(
 for(const token of ['areas.map(area=>','escapeHtml(area.region)','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Flächengebundenes Popup fehlt: ${token}`);
 for(const region of ['Wallis','Zentralschweiz','Tessin','Graubünden','Vorarlberg','Tirol'])assert.ok(worker.includes(`['${region}'`),`Alpenregion fehlt: ${region}`);
 assert.ok(!panel.includes('strongestExtremeRegions('),'Die Ansicht darf räumlich getrennte Flächen nicht mehr nach Regionsnamen deduplizieren.');
+assert.ok(panel.includes('assessment=useMemo(()=>data&&selectedPeriod?assessExtremeOutlookPeriod(data,selectedPeriod.id,hazard,range)'), 'Rasterabdeckung muss auf Daten-/Zeit-/Gefahr-Identität memoisiert sein.');
+assert.ok(panel.includes('assessment?.assessmentAvailable?buildMapData(data,selectedPeriod.id,hazard,unit)'), 'Nicht auswertbare Felder dürfen keine unnötigen Karte-Geometrien bauen.');
+assert.ok(!panel.includes('visibleCells=useMemo(')&&!panel.includes('const assessedCells=data.cells.filter('), 'Alte wiederholte Vollraster-Durchläufe dürfen nicht parallel aktiv bleiben.');
 
 console.log('MID 0.9.66.18: getrennte Gefahrenflächen, eindeutige Listeneinträge und passende Regionsnamen in Karten-Popups geprüft.');
