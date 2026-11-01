@@ -19,7 +19,7 @@ const safeName=(value:string)=>value.replace(/[^A-Za-z0-9-]+/g,'-').slice(0,75);
  */
 export function planOriginalWmsExport(input:WmsOriginalExportInput):WmsOriginalExportPlan{
  const {product,style,validTime,runTime,level,bounds,viewportWidth,viewportHeight}=input;
- const allowed=weatherMapProductsForModel(product.modelId).some(item=>item.id===product.id&&item.layer===product.layer&&(item.provider??'dwd')===(product.provider??'dwd')&&!item.source);
+ const allowed=!product.source&&weatherMapProductsForModel(product.modelId).some(item=>item.id===product.id&&item.layer===product.layer&&(item.provider??'dwd')===(product.provider??'dwd')&&!item.source);
  if(!allowed)throw new Error('Der WMS-Layer ist nicht für den Export freigegeben.');
  if(!/^[A-Za-z0-9_:.-]{0,180}$/.test(style))throw new Error('Der Kartenstil ist ungültig.');
  const t=Date.parse(validTime),r=Date.parse(runTime);
@@ -79,6 +79,7 @@ export async function downloadOriginalWmsPng(plan:WmsOriginalExportPlan,signal?:
  const [mapBlob,legendBlob]=await Promise.all([fetchPng(plan.mapUrl,signal),fetchPng(plan.legendUrl,signal)]);
  const [mapImage,legendImage]=await Promise.all([loadImage(mapBlob,signal),loadImage(legendBlob,signal)]);
  if(signal?.aborted)throw new DOMException('Abgebrochen','AbortError');
+ if(mapImage.naturalWidth!==plan.width||mapImage.naturalHeight!==plan.height)throw new Error('Das WMS-Bild besitzt nicht die bestätigte Kartengeometrie.');
  const legendWidth=260,gutter=20,head=74,foot=86;
  const legendScale=Math.min(1,legendWidth/legendImage.naturalWidth,Math.max(100,plan.height)/legendImage.naturalHeight);
  const legendHeight=Math.max(1,Math.round(legendImage.naturalHeight*legendScale));
