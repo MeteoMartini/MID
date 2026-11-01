@@ -25,6 +25,7 @@ function pinApprovedActions(source){
 
 
 export const managedFiles=[
+ ['workflows/mid-d2-native-eight-field-qa.yml','workflows/mid-d2-native-eight-field-qa.yml'],
  ['workflows/mid-d2-native-original-audit.yml','workflows/mid-d2-native-original-audit.yml'],
  ['workflows/mid-d2-ruc-three-run-qa.yml','workflows/mid-d2-ruc-three-run-qa.yml'],
  ['workflows/mid-d2-ruc-full-admission-qa.yml','workflows/mid-d2-ruc-full-admission-qa.yml'],
