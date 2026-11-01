@@ -47,6 +47,10 @@ assert.ok(!workerSource.includes("for(const kind of['rain','wind','snow']){const
 assert.ok(workerSource.includes('const anyComplete=periods.some('),'Fehlende 24h-Gefahrenfenster dürfen nicht als nicht vorhandene Zeitfenster getarnt werden.');
 
 const panel=await read('src/ExtremeWeatherOutlookPanel.tsx');
+const css=await read('src/styles-src/25-extreme-outlook.css');
+assert.ok(css.includes('.extreme-stale{display:flex;align-items:center;flex-wrap:wrap;'),'320px alert text must wrap instead of clipping.');
+assert.ok(css.includes('.extreme-stale>button{min-height:44px;'),'Retry on touch devices must expose a 44px target.');
+
 assert.ok(panel.includes('isExtremeChunkLoadError(error)')&&panel.includes('window.location.reload()')&&panel.includes('App neu laden'),'Fehlendes JS-Modul muss durch echten Nutzer-Reload statt wiederholten kaputten Import behoben werden.');
 assert.ok(panel.includes('Erneut laden'),'Andere Netzwerkfehler müssen regulär wiederholbar bleiben.');
 assert.ok(panel.includes('Die zuletzt validierten Angaben bleiben sichtbar.')&&panel.includes('Aktualisierung fehlgeschlagen:'),'Nichtblockierende Fehler- und Aktualisierungsmeldung fehlt.');
