@@ -89,6 +89,44 @@ class RucEpsP3Timing(unittest.TestCase):
         self.assertEqual(float(source[0, 0, 0]), 0.0)
         self.assertTrue(np.isnan(source[:, :, 3]).all())
 
+    def test_real_production_packer_bytes_against_uninstrumented_reference(self):
+        """Exact production packer functions, original EPS summary, NoData and zero."""
+        from ruc_pack import EPS_SUMMARY_FIELDS, pack_cell_major, pack_eps_members
+        tree = ast.parse((ROOT / 'build_ruc_bundle.py').read_text(encoding='utf-8'))
+        found = [node for node in tree.body if isinstance(node, ast.FunctionDef)
+                 and node.name == 'eps_summary']
+        self.assertEqual(len(found), 1)
+        namespace = {'np': np}
+        exec(compile(ast.Module(body=found, type_ignores=[]), 'build_ruc_bundle.py', 'exec'),
+             namespace)
+        original_summary = namespace['eps_summary']
+        rng = np.random.default_rng(20261101)
+        source = rng.gamma(1.8, 4, size=(28, 20, 17))
+        source[:, :, 0] = np.nan
+        source[:, 0, 1] = 0.0
+        source[6, 14, 6] = np.inf
+        chunks = [source[:, :, start:start+8] for start in range(0, 17, 8)]
+        expected_members = b''.join(pack_eps_members(block, .01) for block in chunks)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            expected_summary = b''.join(
+                pack_cell_major(original_summary(block), EPS_SUMMARY_FIELDS)
+                for block in chunks
+            )
+            writer = load_subject(pack_eps_members, original_summary, pack_cell_major)
+            with tempfile.TemporaryDirectory() as td, contextlib.redirect_stdout(io.StringIO()) as output:
+                member_path = Path(td) / 'members.bin'
+                summary_path = Path(td) / 'summary.bin'
+                writer(source, member_path, summary_path, 8)
+                self.assertEqual(member_path.read_bytes(), expected_members)
+                self.assertEqual(summary_path.read_bytes(), expected_summary)
+                timing = [line for line in output.getvalue().splitlines()
+                          if line.startswith('RUC_P3_EPS_TIMINGS ')]
+        self.assertEqual(len(timing), 1)
+        self.assertEqual(json.loads(timing[0].split(' ', 1)[1])['chunks'], 3)
+        self.assertTrue(np.isnan(source[:, :, 0]).all())
+        self.assertEqual(float(source[0, 0, 1]), 0.0)
+
     def test_reject_invalid_chunk_without_files(self):
         writer = load_subject(lambda *a: b'', lambda *a: {}, lambda *a: b'')
         with tempfile.TemporaryDirectory() as td:
