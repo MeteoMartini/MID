@@ -36,7 +36,14 @@ def decide_qualification(*, advertised_run, published_run, active_run, main_sha,
         if lag<0 or lag>240:raise ValueError('future or expired DWD advertisement')
     except (ValueError,TypeError):return {**result,'reason':'invalid/missing DWD run or clock'}
     if advertised<=published:return {**result,'reason':'already published or stale'}
-    if active_run and advertised<=active_run:return {**result,'reason':'same or newer build in flight'}
+    # An invalid supplied fingerprint is a provenance error even for a new run.
+    # Absent fingerprints are allowed only for non-authorizing discovery.
+    if any(v is not None and (not isinstance(v,str) or not _INVENTORY.fullmatch(v))
+           for v in (observed_inventory_sha256,last_inventory_sha256)):
+        return {**result,'reason':'invalid original DWD directory inventory fingerprint'}
+    # Any live producer owns the single-flight slot: a *newer* advertised run
+    # must not be mistaken for permission to start a concurrent producer.
+    if active_run:return {**result,'reason':'another RUC build in flight; no shared publisher lock'}
     if last_qualification_run and advertised<=last_qualification_run:
         # A previously incomplete DWD run may legitimately gain additional
         # fields. Retry only when the independently observed file inventory
