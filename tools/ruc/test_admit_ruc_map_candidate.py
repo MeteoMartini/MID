@@ -21,7 +21,7 @@ class AdmissionTests(unittest.TestCase):
    with self.subTest(hours=hours),tempfile.TemporaryDirectory() as t:
     root=Path(t);snapshot,source=self.fixture(root,hours);before={p.relative_to(snapshot).as_posix():p.read_bytes() for p in snapshot.rglob('*') if p.is_file()};source_before={p.name:p.read_bytes() for p in source.iterdir()}
     proof=module.admit(snapshot,source,root/'candidate');m=json.loads((snapshot/'latest.json').read_bytes());index=json.loads((snapshot/m['rucModelFields']['key']).read_bytes())
-    self.assertEqual(proof['coreHours'],14);self.assertEqual(proof['mapHours'],hours);self.assertTrue(proof['codecProofUnchanged']);self.assertEqual(index['schema'],'mid.ruc.map-fields.v1')
+    self.assertEqual(proof['coreHours'],14);self.assertEqual(proof['mapHours'],hours);self.assertTrue(proof['codecProofUnchanged']);self.assertEqual(index['schema'],'mid.ruc.map-fields.v1');self.assertTrue(proof['fullNativeLookupAudited']);self.assertEqual(proof['sourceLookupCells'],9);self.assertEqual(proof['nativeLookupCoveredCells'],8)
     for k,v in before.items():
      if k!='latest.json':self.assertEqual((snapshot/k).read_bytes(),v)
     self.assertEqual(source_before,{p.name:p.read_bytes() for p in source.iterdir()});self.assertLess(proof['finalPhysicalBytes'],900000000)
