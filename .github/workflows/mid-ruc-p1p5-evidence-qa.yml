@@ -101,7 +101,8 @@ jobs:
           import json
           from pathlib import Path
           version=json.loads(Path('package.json').read_text())['version']
-          assert version == '0.9.85.398'
+          parts=tuple(int(part) for part in version.split('.'))
+          assert len(parts)==4 and parts >= (0,9,85,398), 'RUC evidence QA requires the originally released .398 contract or newer'
           assert json.loads(Path('MID_BASELINE.json').read_text())['releaseVersion'] == version
           assert json.loads(Path('contracts/index.json').read_text())['releaseVersion'] == version
           assert len(json.loads(Path('MID_BASELINE.json').read_text())['requiredRegressionTests']) >= 1059
