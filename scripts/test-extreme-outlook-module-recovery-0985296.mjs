@@ -59,9 +59,15 @@ try{
  assert.equal(result.delivery,'local-cache');assert.equal(calls,1,'Frischer Cache vermeidet Worker-Doppelabruf');
  dataMap.clear();calls=0;imports=0;
  workerResult={...forecast(),periods:[periods[0]]};
+ result=await module.loadExtendedExtremeWeatherOutlook();
+ assert.equal(result.delivery,'worker','Ein lückenloser echter Tag-3-Teilhorizont ist ein gültiger Worker-Ausblick.');
+ assert.equal(calls,1);assert.equal(imports,0,'Ein gültiger Teilhorizont darf keinen unnötigen Direktabruf verursachen.');
+ dataMap.clear();calls=0;imports=0;
+ workerResult={...forecast(),periods:[periods[1]]};
  directResult=forecast();
  result=await module.loadExtendedExtremeWeatherOutlook();
- assert.equal(result.delivery,'browser-direct');assert.equal(calls,1);assert.equal(imports,1,'Ungültige Worker-Daten aktivieren genau einen Direktversuch');
+ assert.equal(result.delivery,'browser-direct','Ein ohne Tag 3 beginnender Abschnitt ist kein gültiger zusammenhängender Teilhorizont.');
+ assert.equal(calls,1);assert.equal(imports,1,'Ungültige Worker-Daten aktivieren genau einen Direktversuch');
  dataMap.clear();calls=0;imports=0;workerError=new Error('Worker offline');importError=new TypeError('Importing a module script failed.');
  await assert.rejects(()=>module.loadExtendedExtremeWeatherOutlook(),error=>module.isExtremeChunkLoadError(error)&&/App einmal neu laden/.test(error.message));
  assert.equal(calls,1);assert.equal(imports,1,'Kein erneuter Import in Fehler-Schleife');
