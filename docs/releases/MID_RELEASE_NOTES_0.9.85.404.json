@@ -6,7 +6,8 @@
     "**Kartenwechsel:** Karten-Code kann nach geladenem Ortswetter im Browser-Leerlauf vorbereitet werden, soweit Verbindung und Gerätezustand dies erlauben.",
     "**Datenvolumen:** Kein automatisches Karten-Vorladen bei 2G/slow-2g, aktivem Data Saver, Offline-Zustand oder verborgenem Tab. Die Karten können jederzeit bewusst geöffnet werden.",
     "**Extremwetter-Ausblick:** Vorhandene Prognose-Signale und Datenabdeckung werden effizienter ausgewertet; bei unzureichender Datenlage erscheint keine fälschliche vollständige Auswertung. Fehlende Werte sind keine Null.",
-    "**Vertrauen:** Warnungen und meteorologische Quellen, Parameterwerte und persistente Nutzereinstellungen bleiben unverändert."
+    "**Vertrauen:** Warnungen und meteorologische Quellen, Parameterwerte und persistente Nutzereinstellungen bleiben unverändert.",
+    "**Verlässliche Gefahrenabdeckung:** Fehlende oder beschädigte Wahrscheinlichkeitssätze werden als unvollständige Daten behandelt; die interaktive Extremwetterkarte bleibt auch für Hilfstechnologien als benannter Bereich erreichbar."
   ],
   "internal": [
     "Stable-Ausgangspunkt v0.9.85.403 SHA e908b767a9db09df6f07afef86e471978807b5bb, Installer #41331015688 erfolgreich, fünf Rulesets und 1059 registrierte Pflichtregressionen.",
@@ -15,6 +16,8 @@
     "Einpassige, memo-gebundene Extremwetter-Abdeckung mit 65%-Admission, echte Null-vs-NoData-Reproduktion, Vermeidung unbrauchbarer Kontur-Materialisierung, Negativtests im registrierten Pflichttest.",
     "Browser-Idle-Import bestehender JS-Kartenmodule, positive/negative Runtime-Policy-Tests, keine zusätzlichen Wetterdaten- oder Telemetrie-Anfragen.",
     "Versionsmirror v0.9.85.404 in package/lock/MID_BASELINE/contracts/index/src-version/Web/Worker/Service Worker/iOS plus Build 405, Changelogs und SOT.",
-    "Alle Source-/Heavy-/Installer-Gates auf finalem SHA vor Freigabe erforderlich. Keine reale iOS-/WebGL-/168h-RUC-End-to-End-Leistungsabnahme oder Produktiv-Fast-Lane behauptet."
+    "Alle Source-/Heavy-/Installer-Gates auf finalem SHA vor Freigabe erforderlich. Keine reale iOS-/WebGL-/168h-RUC-End-to-End-Leistungsabnahme oder Produktiv-Fast-Lane behauptet.",
+    "Vier SHA-identisch übernommene stärkere Designaudit-#592-Blobs HEAD a21e20d3e1dec1469d26ef20c629c5a4391522fb: vierstufige finite 0…100 Probability-Field-Admission statt bloßer Existenz; echter Nullwert bleibt gültig. Testet fehlende, NaN, Infinity, negative, >100 und Kurzvektoren.",
+    "ExtremeWeatherOutlookPanel verwendet role=region statt role=img für den interaktiven MapLibre-Container; bestehender obligatorischer test-dach-extreme-outlook-09660 sichert die zugängliche Struktur. Keine physische VoiceOver-Abnahme behauptet."
   ]
 }

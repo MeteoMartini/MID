@@ -56,6 +56,17 @@ try{
  delete mixed.cells[0].periods['0-6'].probabilityFields.snow;
  delete mixed.cells[1].periods['0-6'].probabilityFields.snow;
  assert.deepEqual(assessExtremeOutlookPeriod(mixed,'0-6','overall','extended').unavailableKinds,['snow'],'Partielle Gefahrabdeckung bleibt einzeln sichtbar.');
+
+ const corrupt=structuredClone(zeros);
+ corrupt.cells[0].periods['0-6'].probabilityFields.rain=[null,null,null,null];
+ corrupt.cells[1].periods['0-6'].probabilityFields.rain=[Number.NaN,Number.POSITIVE_INFINITY,-1,120];
+ const rejected=assessExtremeOutlookPeriod(corrupt,'0-6','rain','extended');
+ assert.equal(rejected.assessedCells,2,'Zwei ungültige Vier-Level-Felder dürfen nicht zur Coverage addiert werden.');
+ assert.equal(rejected.assessmentAvailable,false,'Korruptes Wahrscheinlichkeitfeld ist Missing, nicht Trockenheit.');
+ assert.deepEqual(rejected.unavailableKinds,['rain'],'Beteiligte andere vollständig valide Gefahren müssen auswertbar bleiben.');
+ const shorter=structuredClone(zeros);
+ shorter.cells[0].periods['0-6'].probabilityFields.rain=[0,0];
+ assert.equal(assessExtremeOutlookPeriod(shorter,'0-6','rain','extended').assessedCells,3,'Unvollständiges Level-Tupel darf nicht als vollständige Ensembleabdeckung zählen.');
 }finally{fs.rmSync(tempDir,{recursive:true,force:true})}
 
 const panel=fs.readFileSync(path.join(root,'src','ExtremeWeatherOutlookPanel.tsx'),'utf8');

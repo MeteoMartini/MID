@@ -4,6 +4,8 @@
 
 **Neue verpflichtende Releasebasis:** Nach der ursprünglichen zeitlich früheren .402-Quellhistorie wurde `v0.9.85.403` unter `main=mid-stable` SHA `e908b767a9db09df6f07afef86e471978807b5bb` vollständig mit Installer #41331015688 veröffentlicht. Für den aktuellen Sammelrelease wurden die sieben bereits SHA-verifizierten Designaudit-/Kartenblobs vom authentischen `.404`-Batch `d9aecda53fba39d722b517f6c4db62ef98d52337` auf genau diese neue Stable-Basis gelegt. Zusätzliche, disjunkte read-only RUC-QA aus #591. Die nachstehenden älteren Aussagen über den damals offenen .403-Release sind **historische Prüfnotizen, keine aktuellen Statusmeldungen**.
 
+**Weiterer koordiniert geprüfter Input:** Designaudit Source-Draft #592, SHA `a21e20d3e1dec1469d26ef20c629c5a4391522fb`, liefert die bereits per separatem Vitest-Pilot positiv geprüfte striktere vier-Level-Coverage-Validierung und einen `role="region"`-Zugang für den interaktiven Kartencontainer. Vier Original-Dateiblobs wurden ohne Veränderung übernommen; die dazugehörigen Tests prüfen NaN/Infinity/Null/Feldlänge sowie Zugänglichkeits-Semantik. Keine reale iOS-/VoiceOver-Abnahme.
+
 **Sperre:** Die A0–A5-Gesamtabnahme bleibt ausdrücklich offen. Realgeräte-Latenz, WebGL-first-useful-paint, DWD-WMS-Originalklassen, Warn-/State-/Widget-/WCAG-Querschnitt benötigen weiterhin unabhängige Nachweise. Source-PR, CI, Installer und Promotion sind erst bei grünem End-SHA als bestanden zu melden. Kein ungerechtfertigter Speedup-/SLO-Claim.
 
 ---
