@@ -1,0 +1,17 @@
+{
+  "version": "0.9.85.403",
+  "date": "2026-11-01",
+  "title": "Ressourcenschonender Kartenstart",
+  "external": [
+    "Kartenmodule werden nach geladenem Ortswetter in einer freien Browserphase vorbereitet, damit sie beim späteren Kartenwechsel schneller verfügbar sein können.",
+    "MID respektiert Datensparen, sehr langsame Verbindung, Offline, versteckte Tabs und offene Bedienmenüs. Das gewohnte direkte Öffnen der Karte bleibt erhalten.",
+    "Wetter-, RUC-, Warn-, Modell-, Zeit- und Nutzerzustandsdaten bleiben unverändert."
+  ],
+  "internal": [
+    "Ausgangsbasis v0.9.85.402, main=mid-stable 1888cb97149855aa8d63f74fecad9c4f245ee02d, Installer #41325206572 vollständig erfolgreich, 5 aktive Rulesets, 1059 Pflichtregressionen.",
+    "src/mapIdlePreload.ts implementiert eine deterministische reine Policy mit Negativfällen. App.tsx nutzt requestIdleCallback und cancellable Timer nach vorhandener Wetterprognose, importiert nur die bestehenden drei Karten-JS-Module.",
+    "Die vorhandene obligatorische C14-Regression kompiliert und führt die TypeScript-Policy mit adversariellen Zuständen aus und sichert die React-Einbindung. Keine neue Datenquelle, Datenanfrage, SDK-Telemetrie oder Änderung der Fachlogik.",
+    "Die .402-Browsermessung war keine echte iOS-/CWV-End-to-End-Messung; neue Leistungsbehauptungen erfordern vergleichbare Feldmessung.",
+    "Source Gate, kontrollierter MID-SHA-Bot, serverseitiges ZIP, install-mid.yml Core/Heavy/Worker/Pages/Finalize und Stable-Promotion bleiben verbindlich. Kein Vorabfreigabeanspruch."
+  ]
+}

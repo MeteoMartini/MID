@@ -1,3 +1,15 @@
+# MID v0.9.85.403 · ressourcenschonender Karten-Startpfad
+
+**Ausgangsbasis:** Veröffentlichter v0.9.85.402 Stable und main auf SHA `1888cb97149855aa8d63f74fecad9c4f245ee02d`, Installer [#41325206572](https://github.com/MeteoMartini/MID/actions/runs/41325206572) completed/success mit vollständigen Core-, Heavy-, Worker-, Pages-, Finalize- und Promotion-Gates; fünf aktive Repository-Rulesets und 1059 bereits registrierte Pflichtregressionen. Weitere .403-RUC-Entwicklungszweige (#586/#587) sind parallel und werden nicht verändert.
+
+**Karten-Performance:** Das Sichtbarkeitsgating bleibt erhalten; ein getrennter optionaler Vorladepfad lädt nach bereits fertiger Ortsprognose ausschließlich JS-Module für den Kartenarbeitsraum im Browser-Leerlauf. Die pure Policy verhindert automatische Importe bei 2G/Data Saver/offline/hidden/such- oder drawer-blockierter UI, deaktivierter oder bereits aktiver Karte. Timer und Idle-Task werden beim Zustandwechsel aufgeräumt; echtes Nutzer-Intent bleibt direkt. Importfehler sind abgefangen. Keine neuen Wetterdaten-, Modell-, RUC-/WMS-, Worker- oder Tracking-Anfragen, keine Änderungen an Sicherheits-/Warn- oder Persistenzverträgen.
+
+**Fachliche und QA-Grenze:** Normaler User-Changelog und technische Release-Historie auf `.403` synchron. Die bereits obligatorische C14-Regression ist um tatsächliche Preload-Policy- und Negativtests sowie Runtime-Hook-Nachweise erweitert. Die 1059 Tests und die vollständige Karten-/Responsive-Matrix werden weder reduziert noch umgangen. Die bisherige browserbasierte Messung auf .402 ist keine iOS-TTFP-/WebGL-Abnahme und kein Beleg für einen bestimmten Speedup.
+
+**Freigabevertrag:** Source-PR auf autorisiertem `chatgpt/v0.9.85.403-*` mit abschließend vollständig grünen Pflichtgates, kontrollierter SHA-botgesteuerter Merge, serverseitiges ZIP, normaler Installer einschließlich Worker/Pages/Finalize und erst danach Stable-Promotion. Für jede Abweichung fail-closed.
+
+---
+
 # MID v0.9.85.402 · Designaudit 1.7 + kompakter Kartenarbeitsraum
 
 **Release-Vorgänger:** vollständig erfolgreicher MID Installer #41319782471; `main=mid-stable` v0.9.85.401 SHA `00639856b5c1598cbccb837a3b63fbe57cc5d566`. Fünf aktive Rulesets, 1059 registrierte Pflichtregressionen. Nur SHA-verifizierte, disjunkte Source-/Testblobs von Audit-PR #580 (`edda2b400f1dc581da3c443bb3e968381527cab4`) und Karten-Draft #583 (`e359aa18dce94f1f4c98816539bc5e01edd43d4c`) übernommen.
