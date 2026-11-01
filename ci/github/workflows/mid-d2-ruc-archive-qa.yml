@@ -54,6 +54,7 @@ jobs:
           artifact-ids: 13076249762
           github-token: ${{ github.token }}
           digest-mismatch: error
+          merge-multiple: true
           path: ${{ runner.temp }}/ruc-native-original
       - name: Repackage verified artifacts without path-prefix changes
         id: archive

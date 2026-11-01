@@ -60,7 +60,7 @@ def assert_grib_identity(actual,record,step_type):
             any(type(v) is not int or not 0<=v<=255 for v in expected)):
         raise ValueError('Missing pinned WMO parameter identity')
     if list(actual)!=expected or step_type!=record.get('stepType'):
-        raise ValueError('GRIB parameter or statistical processing identity drift')
+        raise ValueError('GRIB parameter or statistical processing identity drift: '+json.dumps({'model':record.get('model'),'field':record.get('parameter'),'run':record.get('run'),'leadHours':record.get('leadHours'),'actual':list(actual),'expected':expected,'actualStepType':step_type,'expectedStepType':record.get('stepType')},sort_keys=True))
 
 
 def native_coordinates(record, root, gid):

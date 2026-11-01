@@ -52,7 +52,7 @@ jobs:
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "${{ steps.cycle.outputs.last }}" --output "$RUNNER_TEMP/d2-originals" --download
-      - name: Three-run WMO/bitmap/UUID/source extrema acceptance
+      - name: Three-run WMO/bitmap acceptance with explicit actual vs expected field identity
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_dwd_domain_inventory.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" > "$RUNNER_TEMP/d2-originals/original-grib-inventory.json"
