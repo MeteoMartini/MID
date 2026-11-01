@@ -1,3 +1,17 @@
+# MID v0.9.85.400 · D2-RUC Vollgebiet, selektive Quellenintegration (SHA-gebundener Releasekandidat)
+
+**Aktuelle Arbeitsbasis:** v0.9.85.399 `main=mid-stable` SHA `bba6006f50b5c279aebc0c5a40a812dc21c5d500`, Installer #41305710537 erfolgreich und alle fünf Branch-Rulesets aktiv. Diese .400-Quellversion ist erst *nach* erfolgreichem Source-PR-Gate, kontrolliertem Bot, ZIP, Installer, Worker-/Pages-/Finalize-Gates und Stable-Promotion veröffentlicht. Kein Gate aus Vorab-Research als produktive Abnahme ausgeben.
+
+**Original-Linie:** Draft #574 Head `79487bb81cef302ac6e49508323f9a1677e602d4`, unverändert, liefert 10 einzeln exakt Git-Blob-verglichene Quell-/Regressionstestdateien für native RUC-Karten/Synoptik; über Branch `chatgpt/v0.9.85.400-d2-ruc-full-domain` in PR #578 integriert. Auf .398/.399 keine betroffenen Quellpfade verändert; keine alten, .397-SHA-gepinnten D2-Piloten als Releasecode übernommen.
+
+**Semantik:** sechsfache RUC-Kartenabdeckung aus dem vollen nativen DWD 542040-Zellen-Gitter mit deterministischem bereits verfügbarem ≤5km nearest-original-cell-Lookup. Explizite Null-/Missing-Trennung und ursprüngliche Extremwerte erhalten; keine Deutschland-BBOX-Beschneidung der Karten und Synoptik, keine Glättung. 27h RUC-Kartenachse, EPS20, Bestands-Core/Codec/Raw-Rollback, 12MB Feld- und 900MB Gesamtsnapshot-Budget unverändert. Bestehende DWD-Warnungen amtlich, MID-Heuristik klar getrennt.
+
+**Faktenlage:** Drei ursprüngliche RUC-Run-Archive und echte isolierte Zulassung auf altem PR-Head erfolgreich (Runs #41298986865 und #41298986882, physisch 553360541 Bytes). Auf neuem integriertem Head #41309629925 ausschließlich read-only Wiederholung; dessen endgültiges Ergebnis nach tatsächlichem Abschluss prüfen. Die unabhängigen Browser-/PNG-/SVG-/Widget-/Worker-/Pages-E2E- und vollständigen Releasegates sind nicht durch einen isolierten Daten-Replay ersetzt.
+
+**Separat offen:** deterministisches natives DWD ICON-D2-Dreilauf-GRIB mit zehn Originalfeldern und acht Kartenprodukten, aktuelle Original-Gitter/WMO/Bitmap-/Zeitleistenparität, Browser/Export und Core-Releases. P1–P5 Fast-Lane / Datenfrische, ECMWF, Schnee und Designaudit bleiben unabhängig und dürfen nicht ungeprüft vermischt werden.
+
+---
+
 # MID v0.9.85.399 · Designaudit 1.6: Wasserwetter-Missing-Intervalle, originale Saisonlinien und resiliente Tagesdetails
 
 **Verifizierter Vorgänger:** v0.9.85.398 `main=mid-stable` @ `adf2a832bd7d66a9bb7c16ec6d9f4dcdedeff855`, Installer #41300031208 vollständig `completed/success`, fünf aktive Rulesets, 1059 bestehende Pflichtregressionen. Der anfänglich blockierte Integrationsversuch aus dem Vorgängerturn hat keine Branch-/PR-Refs verändert. Danach wurden auf erneuter, identischer Stable-Basis ausschließlich ein autorisierter `chatgpt/*`-Branch und Draft-PR #575 mit nachverfolgbaren Commits geschaffen. Keine konkurrierenden RUC-/DWD-/iOS-/Release-/Warnbranches geändert.

@@ -1,3 +1,14 @@
+## MID v0.9.85.400 · 2026-11-01 · D2-Vollgebiet: native RUC-Karten/Synoptik ohne künstlichen Deutschland-Ausschnitt
+
+- Ausgangsbasis: v0.9.85.399 main=mid-stable `bba6006f50b5c279aebc0c5a40a812dc21c5d500`; veröffentlichter Installer #41305710537, fünf aktive Rulesets, 1059 Pflichtregressionen.
+- SHA-geprüfte selektive Portierung aus Research-Draft #574 (Head `79487bb81cef302ac6e49508323f9a1677e602d4`) in autorisiertem Branch `chatgpt/v0.9.85.400-d2-ruc-full-domain`, Draft-PR #578. Exakte Git-Blobs, unveränderte .398/.399 Vorfahren; keine Mutation alter Drafts, kein Reset/Rebase/Force.
+- Erweitert: nativer 542040-Punkte-Lookup der optionalen sechs RUC-Karten und RUC-Synoptik statt harter Lat47…55.2/Lon5.5…15.6-Filter; Ortswerte nearest-native ≤5km, originalgetreue Masken und Nullwerte, separate Extrema-Quell-Audits, Druckkonturen bis tatsächlicher gültiger Rand.
+- Unverändert: RUC-Core-/EPS20-/+27h-Datenverträge, 12MB pro Kartendatei, 350MB optionale Karten, 900MB Gesamtsnapshot, atomare Originalsnapshot-/Codec-/Rollback-Prüfung. Keine künstliche Fusion, keine WMO-/DWD-Warnänderung.
+- Echte Vorabnachweise auf PR #574 Head: 3 stündliche RUC Originalquellen (04/05/06Z) über vollständige 542040 native Punkte; Originaldaten-Replay #41298986865; isoliertes Zulassungsverfahren #41298986882 mit 553360541 finalPhysicalBytes und unverändertem Core-/EPS-/Codec-Prüfnachweis.
+- Neuer, ausschließlich lesender Head-Qualifikationstest: GitHub Actions #41309629925. Dessen Ergebnis ist *erst nach tatsächlichem Abschluss* freigegeben; ein laufender oder fehlgeschlagener Run darf niemals als grün gelten. Temporäre branchgebundene Prüfworkflows sind vor Release wieder zu entfernen.
+- Source-Gates, vollständige 1059 Pflichtregressionen, iOS/Web- und reale Worker-/Pages-/Browser-/PNG/SVG-/Widgets-Readbacks, Produktfreigabe, MID-Bot-Release-ZIP, Installer und Stable-Promotion müssen für diesen exakten .400-Release separat erfolgreich sein. **Dieses Dokument ist kein Beleg ihrer Ausführung.**
+- Deterministisches ICON-D2 `germany_icosahedral` inklusive acht Produktkarten bleibt separater Research-/Produktionsauftrag #446; nicht als durch diese RUC-Portierung veröffentlicht kennzeichnen.
+
 ## MID v0.9.85.399 · 2026-11-01 · Designaudit 1.6: Wasserintervall, Modelllinien und Speicherresilienz
 
 - **Provenienz:** verifizierte Stable v0.9.85.398, `main=mid-stable` SHA `adf2a832bd7d66a9bb7c16ec6d9f4dcdedeff855`, vollständiger Installer #41300031208 (`completed/success`); fünf aktive Rulesets und 1059 bestehende obligatorische Regressionstests. Original-Quellblobs `WaterSportsPanel.tsx`, `LongRangeModelComparison.tsx`, `App.tsx` SHA-geprüft. Änderungen nur autorisierter Branch `chatgpt/v0.9.85.399-audit16-data-lines-storage`, Draft PR #575 bis Freigabekriterien erfüllt sind.

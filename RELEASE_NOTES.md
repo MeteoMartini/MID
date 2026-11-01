@@ -1,6 +1,10 @@
-# MID v0.9.85.399 – Datenlücken korrekt anzeigen, Modelllinien besser unterscheiden und Tagesdetails stabilisieren
+# MID v0.9.85.400
 
-- **Wasserwetter ohne falsche Nullwerte:** Fehlt in einer einstündigen oder dreistündigen Prognoseperiode ein erforderlicher Niederschlagswert, zeigt MID die Menge als nicht verfügbar statt fälschlich „0 mm“ an. Das gilt auch für Regen, Schauer und Schneezuwachs. Tatsächlich gemessene oder prognostizierte 0 mm bleiben erhalten.
-- **Saisonmodelle eindeutig vergleichen:** Die Legende zeigt jetzt exakt dieselben Strichmuster wie die Modellkurven. Mehrere Wettermodelle sind damit auch ohne alleinige Farbunterscheidung leichter zuzuordnen.
-- **Tagesdetail auch bei eingeschränktem Speicher:** Verweigert ein Browser den Zugriff auf gespeicherte Darstellungseinstellungen, bleibt die Tagesdetailansicht benutzbar. Vorhandene gespeicherte Aufklappzustände bleiben erhalten. Auch die gespeicherte Layoutwahl und Favoritenreihenfolge werden bei blockiertem Browser-Speicher sicher eingelesen.
+## Neu und verbessert
 
+- ICON-D2-RUC-Karten: native vollständige Gitterabdeckung ohne künstlichen Deutschland-Zuschnitt. Bisherige sechs Kartenprodukte und +27-Stunden-Achse bleiben erhalten.
+- Verlässliche Ortswerte auch außerhalb des alten Ausschnitts, soweit vom Originalgitter tatsächlich abgedeckt. Fehlende Werte bleiben nicht verfügbar und erscheinen niemals als künstliche Null.
+- Druckkonturen und Kartenanzeige berücksichtigen die fachlich geprüfte Originalabdeckung statt fest einprogrammierter Deutschlandgrenzen.
+- Die bestehende RUC-Prognosefusion, 20 Ensemblemitglieder, Warnmeldungen, Geräteansichten und der Daten-Rollback bleiben unverändert.
+
+**Datenquelle:** DWD ICON-D2-RUC · natives Modellgitter · CC BY 4.0. Die Karten verwenden den nächstgelegenen verifizierten Originalgitterpunkt innerhalb 5 km; Anzeigezellen sind keine zusätzlichen Modellpunkte. Natives deterministisches ICON-D2 ist ein separates, noch nicht in dieser Version aktiviertes Arbeitspaket.
