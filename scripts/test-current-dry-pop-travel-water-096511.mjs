@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import {transformSync} from 'esbuild';
 
 const [app,fusion,panel,travel,pkgRaw,baselineRaw]=await Promise.all([
  readFile('src/App.tsx','utf8'),
@@ -11,7 +13,25 @@ const [app,fusion,panel,travel,pkgRaw,baselineRaw]=await Promise.all([
 ]);
 
 // Aktuelle Niederschlagswahrscheinlichkeit: kein synthetischer 5-%-Boden.
-assert.ok(app.includes("probability=maxProb<=5?0:Number(nearest.probability)||0"),'Trockene aktuelle Kurzfristlage wird nicht auf 0 % zurückgeführt.');
+// Real MID forecast function: a genuinely dry 0–5% forecast retains 0%,
+// whereas absent/invalid PoP is explicitly unknown, never synthetically dry.
+assert.ok(app.includes('nearestProb===null?null:maxProb!==null&&maxProb<=5?0:nearestProb'),'Trocken-Konsens darf nur bei belegter PoP 0% ausgeben.');
+assert.ok(app.includes('if(!timeline.slots.length)return{probability:null'),'Ohne Vorhersageslots darf keine künstliche Trockenheit entstehen.');
+const begin=app.indexOf('function precipitationNowSummary('),end=app.indexOf('\n}',begin);
+assert.ok(begin>=0&&end>begin,'Original PrecipNow-Quellfunktion fehlt');
+const source=app.slice(begin,end+2)+'\nglobalThis.__checkPrecip=precipitationNowSummary;';
+const fake={canonicalPrecipitationTimeline:()=>({source:'15-min',slots:[],periods:[]}),currentIndex:()=>0,precipitationBeyondTwoHours:()=>''};
+vm.runInNewContext(transformSync(source,{loader:'ts',format:'iife',target:'es2022'}).code,fake);
+const actual=fake.__checkPrecip;
+assert.equal(actual([],[]).probability,null,'Ohne Daten keine 0%-Aussage');
+const now=Date.now();
+fake.canonicalPrecipitationTimeline=prob=>({source:'15-min',slots:[{startEpoch:now-120000,endEpoch:now+120000,sample:{probability:prob}}],periods:[]});
+const probe=value=>{const orig=fake.canonicalPrecipitationTimeline;fake.canonicalPrecipitationTimeline=()=>orig(value);const result=actual([],[]);fake.canonicalPrecipitationTimeline=orig;return result.probability;};
+for(const missing of [null,undefined,-1,101,Number.NaN])assert.equal(probe(missing),null,'Fehlende oder invalide Wahrscheinlichkeit bleibt unbekannt');
+for(const dry of [0,1,5])assert.equal(probe(dry),0,'Trockene vorhandene 0–5% bleibt 0%');
+assert.equal(probe(9),9,'Verifizierte 9% bleiben 9% ohne künstlichen 5%-Boden');
+assert.equal(probe(87),87,'Hohes originales Niederschlagsrisiko darf nicht verändert werden');
+
 assert.ok(app.includes("canonicalPrecipitationTimeline(minutes,hours,now,24)"),'Trockenkonsens muss auf der kanonischen Kurzfrist-Zeitreihe basieren.');
 assert.ok(fusion.includes('safeModelProbability<=5&&radarProbability<=5?0:'),'Radar-/Modell-Trockenkonsens bis 5 % wird nicht auf 0 % gesetzt.');
 assert.ok(fusion.includes('probability=safeModelProbability<=5?0:blendedProbability'),'Vollständig trockene Radarabdeckung behält einen künstlichen Restwert.');
@@ -40,4 +60,4 @@ const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test
 const versionParts=String(pkg.version).split('.').map(Number);assert.ok(versionParts[0]>0||versionParts[1]>9||versionParts[2]>65||(versionParts[2]===65&&(versionParts[3]??0)>=11),`Version muss mindestens 0.9.65.11 sein: ${pkg.version}`);
 assert.equal(baseline.releaseVersion,pkg.version,'Baseline-Version nicht synchron.');
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])assert.ok(baseline[key].includes(test),`${test} fehlt in ${key}.`);
-console.log(`MID v${pkg.version}: trockener Nowcast 0 %, klimatologische NOAA-OISST, ganze Niederschlagstage und zeitstrenger Warnkopf geprüft.`);
+console.log(`MID v${pkg.version}: belegte Trockenheit 0 %, fehlende PoP unbekannt, klimatologische NOAA-OISST, Niederschlagstage und zeitstrenger Warnkopf geprüft.`);

@@ -1,0 +1,18 @@
+{
+  "version": "0.9.85.407",
+  "date": "2026-11-01",
+  "title": "NoData-Integrität und konsistente Favoriten-/Eventdarstellung",
+  "external": [
+    "Fehlende kurzfristige Niederschlagswahrscheinlichkeiten zeigen einen unbekannten Wert statt irreführenden 0 % oder Trockenheit; reale Nullwerte bleiben gültig.",
+    "Favoriten-Wetterregeln berücksichtigen nur verfügbare, plausible Parameterwerte und bewahren ausdrücklich deaktivierte Regeln.",
+    "Die kompakten Event-Wetterwerte sowie gespeicherte Wasserprofile unterscheiden fehlende Werte von tatsächlichen Nullwerten.",
+    "Die „Mehr“-Navigation erhält eine für assistive Technologien erkennbare Überschriftenhierarchie."
+  ],
+  "internal": [
+    "Source-of-Truth vor Aufnahme: .406, main=mid-stable 5ebac2e7d62efb92dfdebb406d4125964057a1ba, Installer #41354077136 completed/success Versuch 2; 5 Rulesets, 38 Verträge, 1059 Tests.",
+    "Dateiidentität von fünf #603-Audit-Head-Quellen geprüft, gegen .405/.406 keine Pfadkollision. App.tsx und Pflichtregression zusätzlich gegen null<10 als visuell falschen Dry-Status gehärtet.",
+    "Keine Wetterwerte/amtlichen Warnungen geändert. Missing nie 0. Die ursprünglichen drei obligatorischen JS-Regressionen wurden erweitert, nicht ersetzt.",
+    "Offen: #446 Vollgebiet mit Original-TOT_PREC, #541 P1–P5, echte iOS-/VoiceOver-/P95-Abnahme; keine source-/data-plane-Freigabe durch diese Fachkorrektur.",
+    "Freigabe nur nach echtem final-SHA Source-Gate, SHA-Bot, serverseitigem ZIP, install-mid.yml Core/Heavy/Worker/Pages/Finalize und Stable."
+  ]
+}
