@@ -1,6 +1,6 @@
 import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {formatWeatherValue} from './weatherValueFormat';
-import {evidenceNumber,evidenceMagnitude,evidencePositiveHours,evidenceText,evidenceWindow,evidenceRate,rainEvidenceDisplay} from './extremeEvidenceNumeric';
+import {evidenceNumber,evidenceMagnitude,evidencePositiveHours,evidenceText,evidenceRate,rainEvidenceDisplay} from './extremeEvidenceNumeric';
 import {drawExtremeOutlookOutsideCoverage} from './extremeOutlookCoverage';
 import {memo,useEffect,useMemo,useState} from 'react';
 import {AlertTriangle,CloudLightning,CloudRain,RefreshCw,Snowflake,Wind} from 'lucide-react';
