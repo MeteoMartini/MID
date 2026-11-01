@@ -1,3 +1,13 @@
+# MID-Designaudit 1.8 · qualifizierter Integrationsstand v0.9.85.405
+
+**Aktuelle Integrationsbasis:** die vollständig veröffentlichte v0.9.85.404 aus `main=mid-stable` SHA `8cf0c99ecc0a4c6502c188a9ca108466b53bb128`, Installer #41339459410 mit vollständig erfolgreichen Core-/Heavy-/Worker-/Pages-/Finalize-Gates. Die nachstehenden ursprünglichen .403-/Draft-Notizen dokumentieren die Provenienz, **nicht** den aktuellen Release-Status.
+
+**Konsolidierte tatsächliche Änderung:** Vorhinweise Tag 3–7 erhalten eine kanonische maximal zweifache EPS-Batchparallelität, Schutz gegen verschiedene UTC-Modellläufe und unvollständige Stundenraster, vollständig ausweisbare Teilhorizonte ab +48h sowie die unveränderte 65-%-Admission. Ein bestätigter 3–24h alter Cache erscheint gekennzeichnet und wird im sichtbaren Modul aktualisiert; fehlgeschlagene Reloads löschen keine vorhandene validierte Vorschau. Fehlende Felder bleiben Missing; 0 nur aus echten Original-Nullen. Die v0.9.85.404-Karten-A11y mit `role="region"` bleibt unverändert. Zwei bestehende 1059 Pflichtregressionen um echte Parallel-/NoData-/Run-Proben erweitert. Die drei Worker-Darstellungen sind gleichwertig (kanonische Quelle in beiden Worker-Spiegeln, gebunden in separatem Direktpfad); Worker-Größe auf 887989 Quellzeichen geprüft.
+
+**Release-Evidenz:** Der .405-Sammelbranch ist ein Kandidat, kein installierter Build. Eine tatsächliche Verbesserung in Sekunden, neue amtliche Warnbefugnisse, Endgerätetests oder vollständig erledigte A0–A5-Matrix werden nicht behauptet. Release-Gates müssen auf dem finalen PR-HEAD unabhängig grün werden, anschließend ausschließlich botgebundener Merge und der volle Installer.
+
+---
+
 # MID-Designaudit 1.8 · Tag-3–7-Extremwetter: Ladezeit und Fehlertoleranz
 
 **Status:** Isolierter, **nicht veröffentlichter** Source-Draft. Branch `chatgpt/v0.9.85.405-extreme-extended-load-resilience`. Ursprünglicher verifizierter Release-Stable-`main`-Stand `v0.9.85.403` SHA `e908b767a9db09df6f07afef86e471978807b5bb`; Installer #41331015688 success, 5 aktive Rulesets, 1059 Pflichtregressionen, 38 Normverträge. Kein direkter Hauptbranchwrite. Parallel-Release #593 für .404 bleibt fremdverwaltet. Nach .404-Promotion ist für diese Änderungen eine frische, differenzgeprüfte .405-Integration zwingend; die jetzige Branch-Bezeichnung ist **keine** Freigabe.
