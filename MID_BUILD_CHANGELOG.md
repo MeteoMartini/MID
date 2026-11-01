@@ -1,3 +1,12 @@
+## MID v0.9.85.392 · 01.11.2026 · P3-Optimierung optionaler nativer RUC-GRIB-Ladevorgänge
+
+- **Source:** v0.9.85.391 main=mid-stable `79b3a8cb995f780c863d6f4b1762155f80e09a15`; fünf Rulesets, 1.059 Pflichtregressionen. Keine parallelen Drafts überschrieben.
+- **Funktional:** bis zu zwei unabhängige Requests-Sessions für 26 optionale Rapid-/Spezialfelder; Gesamt-DWD-Netzparallele höchstens wie zuvor, standardmäßig 2×4 statt 1×8. Pflicht-EPS- und Kernfelder weiterhin im bewährten vollständigen Pfad; keine Zeitachsen-, Modell-, Member-, Datenwert- oder NoData-Uminterpretation.
+- **Sicherheit:** fehlgeschlagene optionale Staging-Ordner vollständig löschen. Keine neuen Secrets, Anbieter, Cron- oder Publisher; keine RUC-Pointer-Mutation außer dem etablierten ursprünglichen Veröffentlichungsverfahren.
+- **Prüfung:** acht lokale isolierte Negativ-/Grenztests erfolgreich; zusätzliche Workflow-Vorabprüfung für isolierte Sessions und Partial-Byte-Abbruch; 1.059 obligatorische App-Regressionen, JS-/Python-/Worker-/Pages-Gates nur bei echtem bestandenem Source-/Installer-Lauf als Erfolg ausweisen.
+- **Offen:** reales SHA-identisches DWD-A/B und Peak-RAM-/CPU-Messung, P1 168h, P2 separate 0–6h, P4 Single-Flight sowie P5 Endnutzer-/Widget-/Export-P95. Diese Veröffentlichung enthält keine Fast-Lane-Aktivierung oder ≤60-min-SLO-Zusage.
+- **Release:** ausschließlich Source-PR-Gate → SHA-Bot → Server-ZIP → `install-mid.yml` → Worker/Pages/Finalize → Stable-Promotion.
+
 ## MID v0.9.85.391 · 2026-11-01 · A3 Originalfarblegenden für Wetterkarten beider Ansichten
 
 ### CI-Korrektur zum .391-Source-Gate

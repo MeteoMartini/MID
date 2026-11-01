@@ -1,3 +1,13 @@
+# MID v0.9.85.392 · RUC-P3: begrenzt parallele optionale GRIB-Felder
+
+**Kandidatenbasis:** v0.9.85.391, `main=mid-stable` SHA `79b3a8cb995f780c863d6f4b1762155f80e09a15`, fünf aktive Rulesets. Erst vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates machen diesen Kandidaten zu einem Release. Die parallel fortgesetzten RUC-Drafts #542, #551, #554 und Karten-Draft #555 bleiben unangetastet.
+
+Nur die bisher seriell geladenen optionalen 15-Minuten-/Spezialparameter werden mit bis zu zwei unabhängigen DWD-Verzeichnissessions und insgesamt höchstens der bereits konfigurierten Download-Threadzahl parallel eingelesen. Bei N konfigurierten Threads ist pro Gruppe maximal floor(N/2) erlaubt, N=1 bleibt seriell. Fehler entfernen ausschließlich partielles optionales Staging. Unverändert: 0..+27h-Deterministik/EPS20, native 5-/15-Minuten-Semantik, GRIB-Header/Bitmap/Werte, physikalische Extrema, Units, Zeitintervalle, NoData-Sentinel, native Geometrie, SHAs, Budget, atomare Veröffentlichung und letzter gültiger Snapshot.
+
+Gezielte lokale Python-Tests: 8/8 (bis zu zwei Jobs, weniger/mehr konfigurierte Slots, Ausfälle, Reihenfolge, Duplicate Guards) erfolgreich. Die echte numerische Gleichheit und Zeitersparnis identischer Provider-Eingaben müssen weiterhin mittels P3-A/B und obligatorischem Source- und Installer-Gate nachgewiesen werden. Weder 0–6h-Fast-Lane noch 60-Minuten-P95 freigegeben; andere P1–P5-Abhängigkeiten sind Issue #541.
+
+---
+
 # MID v0.9.85.391 · Designaudit #523/A3: echte WMS-Anbieterlegenden in beiden Kartenansichten
 
 **Live freigegebene Ausgangsbasis:** v0.9.85.390, `main=mid-stable` SHA `8a886b3695ca0ae6ae94e7c18b1bfeb790ddb0a2`; vollständig erfolgreiches Source-Gate #41244176018, SHA-gebundener PR #550 und Installer #41245171750 (Core/Heavy/Worker/Pages/Finalize). Fünf Rulesets aktiv.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline regressions: retries, atomic staging and early GRIB coverage."""
 import bz2
+import os
 import ssl
 from urllib3.exceptions import MaxRetryError,SSLError as PoolSSLError
 import tempfile
@@ -14,6 +15,7 @@ from test_meteo_integrity import MeteoIntegrityTests  # also collected by the ex
 from test_grib_bitmap import DwdNativeBitmapTests  # mandatory bitmap/nodata and negative fixtures
 from test_grib_metadata import DwdGribMetadataTests  # full ecCodes real-header fixtures in CI
 from test_real_values_reference import RealValuesReferenceTests  # frozen real values and wire golden
+from test_optional_stage_parallel import OptionalStageConcurrencyTests  # bounded optional staging tests
 
 
 class FetchResilience(unittest.TestCase):
@@ -215,6 +217,35 @@ class FetchResilience(unittest.TestCase):
                 fetch.build_candidate(Mock(), '2026-10-05T18:00', root/'stage', root/'output', 14)
             self.assertEqual(stage.call_count, 2)
             self.assertFalse((root/'output').exists())
+
+
+    def test_optional_staging_isolated_and_failed_partial_is_removed(self):
+        class IndependentSession:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            failed = root / 'rapid-optional' / 'BAD'
+            failed.mkdir(parents=True)
+            (failed / 'partial.grib2').write_bytes(b'unqualified')
+            tasks = []
+            def fake_stage(session, url, path, hours, label, **kwargs):
+                tasks.append((url, kwargs.get('max_download_workers')))
+                if '/BAD/' in url:
+                    raise RuntimeError('GRIB incomplete')
+                return ['valid.grib2']
+            with patch.object(fetch, 'RAPID_OPTIONAL_15', ('BAD', 'GOOD')), \
+                 patch.object(fetch, 'RAPID_STATE_OPTIONAL_15', ()), \
+                 patch.object(fetch, 'SPECIALIST_HOURLY_OPTIONAL', ()), \
+                 patch.object(fetch, 'session', side_effect=lambda: IndependentSession()), \
+                 patch.object(fetch, 'stage_tree', side_effect=fake_stage), \
+                 patch.dict(os.environ, {'MID_RUC_DOWNLOAD_WORKERS':'8'}):
+                self.assertEqual(fetch.stage_optional_parameters('2026-10-05T18:00',root,27),1)
+            self.assertFalse(failed.exists())
+            self.assertEqual(len(tasks),2)
+            self.assertEqual({n for _,n in tasks},{4})
 
 
 if __name__ == '__main__':
