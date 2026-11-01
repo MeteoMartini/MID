@@ -9,7 +9,7 @@ const outDir=path.join(root,'.dwd-warning-test');
 await rm(outDir,{recursive:true,force:true});
 const compile=spawnSync('tsc',['--ignoreConfig','src/dwdWarnings.ts','--target','ES2022','--module','ES2022','--moduleResolution','Bundler','--strict','--skipLibCheck','--outDir','.dwd-warning-test'],{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
 if(compile.status!==0)process.exit(compile.status??1);
-const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
+const {dwdWarningSignalsAt,summarizeDwdWarnings,formatDwdWarningValue,formatDwdWarningCompactValue,formatDwdWarningDetail,formatDwdWindValue,formatDwdWarningDirection}=await import(`${pathToFileURL(path.join(outDir,'dwdWarnings.js')).href}?v=${Date.now()}`);
 const app=await readAppFeatureSources();
 const ensemble=await readFile(path.join(root,'src','EnsemblePanel.tsx'),'utf8');
 const styles=await readFile(path.join(root,'src','styles.css'),'utf8');
@@ -45,6 +45,18 @@ if(formatDwdWindValue(50,'kmh')!=='50 km/h (Bft 7)')failures.push('Beaufort-Zusa
 const heat=signal([sample({apparent:38.6})],'heat');
 if(heat&&/[,.]\d/.test(formatDwdWarningDetail(heat,'kn')))failures.push('Wärme-Warntext enthält weiterhin Kommawerte.');
 
+// Missing phase observations must not silently create complete model-based warning windows.
+const partialRain=Array.from({length:6},(_,i)=>sample(i===2?{rain:null,showers:null,precipitation:null,code:null}:{rain:5,showers:0,precipitation:5,code:61}));
+if(dwdWarningSignalsAt(partialRain,0).some(item=>item.kind==='heavyRain'||item.kind==='continuousRain'))failures.push('Partial 6 h rainfall must not masquerade as a complete warning sum.');
+const fullRain=partialRain.map((row,i)=>i===2?sample({rain:5,showers:0,precipitation:5,code:61}):row);
+if(!dwdWarningSignalsAt(fullRain,0).some(item=>item.kind==='heavyRain'&&item.windowHours===6))failures.push('Complete 6 h rainfall must still be classified.');
+const partialSnow=Array.from({length:6},(_,i)=>sample(i===3?{snowfall:null}:{snowfall:1}));
+if(dwdWarningSignalsAt(partialSnow,0).some(item=>item.kind==='snow'))failures.push('Partial 6 h snowfall must not masquerade as a complete warning sum.');
+if(!dwdWarningSignalsAt(partialSnow.map(()=>sample({snowfall:1})),0).some(item=>item.kind==='snow'&&item.windowHours===6))failures.push('Complete 6 h snowfall must still be classified.');
+const missingDirection=signal([sample({gust:70/1.852,windDirection:null,direction:null})],'wind');
+if(missingDirection&&formatDwdWarningDirection(missingDirection)!=='')failures.push('Missing wind direction must not be displayed as north.');
+const north=signal([sample({gust:70/1.852,windDirection:0})],'wind');
+if(!north||!formatDwdWarningDirection(north).includes('nördlicher'))failures.push('Real 0 degree wind direction must remain north.');
 for(const token of ["minimumLevel:DwdWarningLevel=1","dailyHazards(d,hours,elevation,unit,1)",'compact-hazard','formatDwdWarningCompactValue(signal,unit)'])if(!app.includes(token))failures.push(`7-Tage-Hazarddarstellung fehlt: ${token}`);
 if(!app.includes('Keine Warnung')||!styles.includes('.forecast-hazards .no-hazard'))failures.push('Dezenter Hinweis für warnfreie Tage fehlt.');
 for(const token of ['detailWarningMarkers(p,hours,elevation)','model-warning-marker','detail-model-warning-tooltip','data-warning-y'])if(app.includes(token))failures.push(`Warnmarker ist im Detaildiagramm noch vorhanden: ${token}`);
