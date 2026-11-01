@@ -176,10 +176,16 @@ export function strongestExtremeRegions(data:ExtremeWeatherOutlook,periodId:stri
  return [...regions.values()].sort((a,b)=>b.signal.intensity-a.signal.intensity||b.signal.probability-a.signal.probability).slice(0,limit);
 }
 
-export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal):Promise<ExtremeWeatherOutlook>{
+export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal,forceRefresh=false):Promise<ExtremeWeatherOutlook>{
  throwIfAborted(signal);
  const fresh=readExtendedOutlookCache(EXTENDED_FRESH_MS);
- if(fresh)return{...fresh,delivery:'local-cache'};
+ if(fresh&&!forceRefresh)return{...fresh,delivery:'local-cache'};
+ // Show the last verified forecast immediately; caller explicitly revalidates
+ // it in the background. No missing probability is silently changed to zero.
+ if(!forceRefresh){
+  const previous=readExtendedOutlookCache(EXTENDED_STALE_MS);
+  if(previous)return{...previous,delivery:'local-cache',stale:true,staleReason:'Gesicherter Langfristausblick (älter als drei Stunden). Eine Aktualisierung wird geprüft; dies ist keine aktuelle amtliche Warnung.'};
+ }
  const skipped=storedWorkerLimitUntil()>Date.now();let workerError:unknown=skipped?new Error('Zentraler Datenweg vorübergehend ausgesetzt.'):undefined;
  if(!skipped){
   try{
