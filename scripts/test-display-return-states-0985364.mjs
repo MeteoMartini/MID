@@ -69,5 +69,33 @@ try{
  assert.ok(comparison.includes('strokeDasharray={item.dash||undefined}'),'legend must reuse exact line dash');
  assert.ok(comparison.includes('<svg aria-hidden="true" focusable="false" viewBox="0 0 27 10"'),'legend SVG should be decorative');
 
+
+ const layoutStart=app.indexOf('function initialLayoutMode():LayoutMode{'),layoutEnd=app.indexOf('\nfunction collapseStoredStandardModules()',layoutStart);
+ const orderStart=app.indexOf('function readFavoriteOrderSnapshot('),orderEnd=app.indexOf('\nfunction applyFavoriteOrder(',orderStart);
+ assert.ok(layoutStart>0&&layoutEnd>layoutStart&&orderStart>0&&orderEnd>orderStart,'real app layout/order readers found');
+ const protectedReaders=[
+  "type LayoutMode='advanced'|'standard';",
+  "const LAYOUT_MODE_STORAGE_KEY='layout-test';",
+  "const FAVORITES_ORDER_KEY='favorites-order-test';",
+  "type FavoriteOrderSnapshot={ids:string[];updatedAt:string};",
+  app.slice(layoutStart,layoutEnd),
+  app.slice(orderStart,orderEnd),
+  'export {initialLayoutMode,readFavoriteOrderSnapshot};'
+ ].join('\n');
+ await build({stdin:{contents:protectedReaders,loader:'ts'},outfile:join(dir,'safe-readers.mjs'),format:'esm',platform:'node'});
+ const {initialLayoutMode:readLayout,readFavoriteOrderSnapshot:readOrder}=await import(pathToFileURL(join(dir,'safe-readers.mjs')));
+ globalThis.localStorage={getItem(){throw Error('storage denied')}};
+ assert.equal(readLayout(),'standard','layout mode must not throw for denied storage');
+ assert.equal(readOrder(),null,'favorite ordering must not throw for denied storage');
+ const savedFavoriteOrder=JSON.stringify({ids:['b','a','b'],updatedAt:'2026-11-01T10:00:00Z'});
+ globalThis.localStorage={getItem:key=>key==='layout-test'?'advanced':key==='favorites-order-test'?savedFavoriteOrder:null};
+ assert.equal(readLayout(),'advanced','stored advanced layout preserved');
+ assert.deepEqual(readOrder(),{ids:['b','a'],updatedAt:'2026-11-01T10:00:00Z'},'stored order deduplicated and preserved');
+ globalThis.localStorage={getItem:key=>key==='layout-test'?'full':null};
+ assert.equal(readLayout(),'advanced','legacy full mode preserved');
+ globalThis.localStorage={getItem(){throw Error('denied')}};
+ assert.deepEqual(readOrder(savedFavoriteOrder),{ids:['b','a'],updatedAt:'2026-11-01T10:00:00Z'},'explicit snapshot must not require storage');
+ assert.equal(readOrder('{invalid'),null,'malformed favorite order ignored');
+
  console.log('PASS return-state contracts: raw legacy keys, climate location swaps, concurrent model metrics, invalid input, blocked storage bridge, keyboard semantics, legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
 }finally{globalThis.localStorage=oldStorage;globalThis.window=oldWindow;delete globalThis.__midReturnMemory;await rm(dir,{recursive:true,force:true})}
