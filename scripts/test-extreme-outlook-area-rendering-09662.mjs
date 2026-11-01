@@ -38,4 +38,32 @@ assert.ok(changelog.includes('## 0.9.66.2'));
 assert.ok(implementation.includes('verdeckten dadurch die darunterliegende Füllung weitgehend'));
 assert.ok(implementation.includes('meteorologische Fachlogik ändert sich nicht'));
 
+
+// Verify the real compiled contour-builder with substituted deterministic contour primitives.
+// One immutable forecast payload + period + hazard must perform each contour pass only once,
+// even when the ranking and map overlay independently request the same polygons.
+const modelledBody=modelledAreas.split('\n').filter(line=>!line.startsWith('import ')).join('\n');
+const memoHarness=ts.transpileModule([
+ "const EXTREME_INTENSITY_COLORS={1:'#fff',2:'#eee',3:'#ddd',4:'#ccc'};",
+ "let contourBuildCalls=0;",
+ "function buildExtremeOutlookContours(){contourBuildCalls++;return[];}",
+ "function extremeProbabilityLevelsForCell(){return[0,0,0,0];}",
+ "function extremeSignalForCell(){return null;}",
+ "function extremeProbabilityBand(){return'P0';}",
+ modelledBody,
+ 'export const observedContourBuildCalls=()=>contourBuildCalls;'
+].join('\n'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const memoModule=await import('data:text/javascript;base64,'+Buffer.from(memoHarness).toString('base64'));
+const memoPayload={cells:[],grid:{rows:1,cols:1,latStep:1,lonStep:1},thresholds:{probability:{overviewMin:40,hazardMin:40,extremeExceptionMin:5}}};
+const memoFirst=memoModule.buildExtremeOutlookContourSet(memoPayload,'0-6','overall');
+assert.equal(memoModule.observedContourBuildCalls(),2,'Ein Konturensatz benötigt exakt die Flächen- und Schraffurrechnung.');
+assert.strictEqual(memoModule.buildExtremeOutlookContourSet(memoPayload,'0-6','overall'),memoFirst,'Kartenoverlay und Auswertungsrangfolge müssen exakt dieselben Konturen erhalten.');
+assert.equal(memoModule.observedContourBuildCalls(),2,'Gleiche Eingabedaten dürfen keine zusätzliche Konturrechnung auslösen.');
+assert.notStrictEqual(memoModule.buildExtremeOutlookContourSet(memoPayload,'6-12','overall'),memoFirst,'Andere Gültigkeitszeiträume dürfen niemals wiederverwendete Konturen erhalten.');
+assert.equal(memoModule.observedContourBuildCalls(),4);
+assert.notStrictEqual(memoModule.buildExtremeOutlookContourSet(memoPayload,'0-6','rain'),memoFirst,'Andere Gefahrenarten müssen getrennt berechnet werden.');
+assert.equal(memoModule.observedContourBuildCalls(),6);
+assert.notStrictEqual(memoModule.buildExtremeOutlookContourSet({...memoPayload},'0-6','overall'),memoFirst,'Ein neues Datenobjekt/Modelllauf darf keine alten Konturen übernehmen.');
+assert.equal(memoModule.observedContourBuildCalls(),8);
+
 console.log('MID ab 0.9.66.2: sichtbare, georeferenzierte DACH-Gefahrenflächen und reduzierte regionale Marker geprüft.');
