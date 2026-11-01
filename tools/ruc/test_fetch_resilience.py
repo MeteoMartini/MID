@@ -4,6 +4,7 @@ import bz2
 import io
 from contextlib import redirect_stdout
 import os
+import threading
 import ssl
 from urllib3.exceptions import MaxRetryError,SSLError as PoolSSLError
 import tempfile
@@ -252,6 +253,64 @@ class FetchResilience(unittest.TestCase):
             self.assertFalse(failed.exists())
             self.assertEqual(len(tasks),2)
             self.assertEqual({n for _,n in tasks},{4})
+
+    def test_download_worker_sessions_are_thread_isolated_reused_and_closed(self):
+        # Four GRIB leads with two pool workers: two independent HTTP sessions
+        # are reused within their threads, never shared or left open.
+        run='2026-11-01T00:00'
+        base=f'{fetch.DET_BASE}/T_2M/r/{run}/'
+        files=[base+f'T_2M_PT{n:03d}H00M.grib2' for n in range(4)]
+        barrier=threading.Barrier(2,timeout=5)
+        sessions=[];ownership={};seen=[];lock=threading.Lock()
+        def new_session():
+            obj=Mock()
+            with lock:sessions.append(obj)
+            return obj
+        def download(url,target):
+            current=getattr(fetch._RUC_HTTP_WORKER,'client',None)
+            self.assertIsNotNone(current)
+            thread=threading.get_ident()
+            with lock:
+                self.assertIs(ownership.setdefault(thread,current),current)
+                seen.append((thread,current))
+            if 'PT000' in url or 'PT001' in url:
+                barrier.wait()
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(fetch,'crawl_files',return_value=files), \
+             patch.object(fetch,'session',side_effect=new_session), \
+             patch.object(fetch,'download_one',side_effect=download), \
+             patch.dict(os.environ,{'MID_RUC_DOWNLOAD_WORKERS':'2'}):
+            out=fetch.stage_tree(Mock(),base,Path(directory)/'source',3,'native unit',
+                                 mode='hourly',max_download_workers=2)
+        self.assertEqual(len(out),4)
+        self.assertEqual(len(sessions),2)
+        self.assertEqual(len(ownership),2)
+        self.assertEqual(len(seen),4)
+        self.assertEqual(len(set(map(id,sessions))),2)
+        for obj in sessions:obj.close.assert_called_once_with()
+
+    def test_download_session_closes_even_when_one_grib_fails(self):
+        run='2026-11-01T00:00'
+        base=f'{fetch.DET_BASE}/PMSL/r/{run}/'
+        files=[base+f'PMSL_PT{n:03d}H00M.grib2' for n in range(2)]
+        barrier=threading.Barrier(2,timeout=5)
+        sessions=[]
+        def new_session():
+            obj=Mock();sessions.append(obj);return obj
+        def download(url,target):
+            self.assertIsNotNone(getattr(fetch._RUC_HTTP_WORKER,'client',None))
+            barrier.wait()
+            if 'PT000' in url:raise ValueError('invalid DWD native header')
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(fetch,'crawl_files',return_value=files), \
+             patch.object(fetch,'session',side_effect=new_session), \
+             patch.object(fetch,'download_one',side_effect=download), \
+             patch.dict(os.environ,{'MID_RUC_DOWNLOAD_WORKERS':'2'}), \
+             self.assertRaisesRegex(ValueError,'invalid DWD native header'):
+            fetch.stage_tree(Mock(),base,Path(directory)/'source',1,'native unit',
+                             mode='hourly',max_download_workers=2)
+        self.assertEqual(len(sessions),2)
+        for obj in sessions:obj.close.assert_called_once_with()
 
 
 if __name__ == '__main__':

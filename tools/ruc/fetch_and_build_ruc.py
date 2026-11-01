@@ -13,6 +13,7 @@ from datetime import datetime,timedelta,timezone
 from pathlib import Path
 from urllib.parse import urljoin,urlparse,unquote
 import requests
+import threading
 from run_progress import report_run
 from native_cadence import is_native_at
 from grib_stream import open_grib_stream
@@ -48,6 +49,9 @@ GRIB_RE=re.compile(r'\.(?:grib2|grb2)(?:\.bz2)?$',re.I)
 LEAD_RE=re.compile(r'PT(?P<hours>\d{3})H(?P<minutes>\d{2})M',re.I)
 DEFAULT_DOWNLOAD_WORKERS=8
 NETWORK_ATTEMPTS=4
+# A requests.Session contains mutable headers/cookies and must never be
+# shared across concurrent worker threads. Each pool worker owns one.
+_RUC_HTTP_WORKER=threading.local()
 
 def transient_tls_eof(error):
  # Requests/urllib3 wrap the actual SSL exception in args/reason/cause.
@@ -151,7 +155,9 @@ def download_one(url,target):
  tmp=target.with_suffix(target.suffix+'.part')
  def request():
   try:
-   with requests.get(url,headers={'User-Agent':UA},stream=True,timeout=90) as r:
+   worker_http=getattr(_RUC_HTTP_WORKER,'client',None)
+   getter=worker_http.get if worker_http is not None else requests.get
+   with getter(url,headers={'User-Agent':UA},stream=True,timeout=90) as r:
     r.raise_for_status()
     with tmp.open('wb') as f:
      for chunk in r.iter_content(1024*1024):
@@ -239,11 +245,21 @@ def stage_tree(s,url,target,hours,label,*,mode='hourly',max_download_workers=Non
  def job(file_url):
   rel=unquote(urlparse(file_url).path[len(urlparse(root).path):]).lstrip('/');download_one(file_url,target/rel);return rel
  rows=[];completed=0;report_every=max(1,min(10,len(files)//3 or 1))
- with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-  futures=[pool.submit(job,file_url) for file_url in files]
-  for future in concurrent.futures.as_completed(futures):
-   rows.append(future.result());completed+=1
-   if completed==len(files) or completed%report_every==0:print(f'{label}: downloaded {completed}/{len(files)}',flush=True)
+ clients=[];client_lock=threading.Lock()
+ def initialize_worker():
+  client=session()
+  _RUC_HTTP_WORKER.client=client
+  with client_lock:
+   clients.append(client)
+ try:
+  with concurrent.futures.ThreadPoolExecutor(max_workers=workers,initializer=initialize_worker) as pool:
+   futures=[pool.submit(job,file_url) for file_url in files]
+   for future in concurrent.futures.as_completed(futures):
+    rows.append(future.result());completed+=1
+    if completed==len(files) or completed%report_every==0:print(f'{label}: downloaded {completed}/{len(files)}',flush=True)
+ finally:
+  # All futures have completed before closing; never leak open sockets.
+  for client in clients:client.close()
  return sorted(rows)
 
 
