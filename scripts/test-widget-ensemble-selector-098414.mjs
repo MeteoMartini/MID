@@ -2,7 +2,7 @@ import {readAppFeatureSources} from './lib/appFeatureSources.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-import ts from 'typescript';
+import ts from 'typescript-strada';
 
 const app=readAppFeatureSources();
 const ensemble=readFileSync(new URL('../src/EnsemblePanel.tsx',import.meta.url),'utf8');
