@@ -1,0 +1,16 @@
+{
+  "version": "0.9.85.404",
+  "date": "2026-11-01",
+  "title": "Kartenstart und Extremwetter-Ansicht verbessert",
+  "external": [
+    "Kartenmodule werden nach dem Laden von Ortswetter in einer freien Browserphase vorbereitet, sofern Datensparmodus und langsame Verbindung dies erlauben.",
+    "Extremwetter-Informationen werden effizienter geprüft; fehlende Ensemblefelder bleiben ausdrücklich unbekannt und sind keine Entwarnung.",
+    "Die interaktive Extremwetterkarte besitzt eine besser zugängliche Kartenregion mit verständlicher Bezeichnung."
+  ],
+  "internal": [
+    "Ausgangsbasis v0.9.85.403 SHA e908b767a9db09df6f07afef86e471978807b5bb, Installer 41331015688 erfolgreich.",
+    "Version .404 synchron in Paket, Lock, Baseline, Registry, Web, Service Worker, Worker, iOS Build 405.",
+    "Vollständige Source-Gates, Browser-Matrix, Worker/Pages und Stable-Promotion bleiben eigenständige obligatorische Freigabekontrollen.",
+    "Keine meteorologischen Modell-, Warn-, RUC- oder WMS-Datenpfade geändert. Keine garantierte Beschleunigung oder WCAG-/VoiceOver-Zertifizierung."
+  ]
+}
