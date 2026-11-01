@@ -5,6 +5,8 @@ on:
     paths:
       - 'tools/ruc/ruc_p1p5_censor_audit.py'
       - 'tools/ruc/test_ruc_p1p5_censor_audit.py'
+      - 'tools/ruc/ruc_p3_timing_audit.py'
+      - 'tools/ruc/test_ruc_p3_timing_audit.py'
       - 'ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml'
       - '.github/workflows/mid-ruc-p1p5-evidence-qa.yml'
 
@@ -44,6 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m py_compile tools/ruc/ruc_p1p5_censor_audit.py tools/ruc/test_ruc_p1p5_censor_audit.py
+          python3 -m py_compile tools/ruc/ruc_p1p5_censor_audit.py tools/ruc/test_ruc_p1p5_censor_audit.py tools/ruc/ruc_p3_timing_audit.py tools/ruc/test_ruc_p3_timing_audit.py
           python3 tools/ruc/test_ruc_p1p5_censor_audit.py -v
+          python3 tools/ruc/test_ruc_p3_timing_audit.py -v
           echo 'Directory samples and public pointer metadata only. No GRIB/EPS, DWD first publication, app-client, P95 SLO, or production trigger authorization.' >> "$GITHUB_STEP_SUMMARY"
