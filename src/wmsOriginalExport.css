@@ -1,0 +1,10 @@
+/* Shared, unobtrusive map-native WMS export – independent of provider palette. */
+.mid-wms-original-export{position:absolute;z-index:1020;left:10px;bottom:clamp(30px,7%,52px);width:min(278px,calc(100% - 20px));display:grid;gap:4px;padding:8px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface) 95%,transparent);color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,.16);backdrop-filter:blur(6px);pointer-events:auto}
+.mid-wms-original-export button{display:block;width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--s2);color:var(--text);font-size:12px;font-weight:650;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.mid-wms-original-export button:hover:not(:disabled){border-color:var(--primary)}
+.mid-wms-original-export button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.mid-wms-original-export button:disabled{opacity:.65;cursor:wait}
+.mid-wms-original-export small,.mid-wms-original-export p{font-size:11px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+.mid-wms-original-export small{color:var(--muted)}
+.mid-wms-original-export p[role="alert"]{color:var(--text)}
+@media(max-width:390px){.mid-wms-original-export{width:min(238px,calc(100% - 16px));left:8px;padding:6px}.mid-wms-original-export button{font-size:11px}}
