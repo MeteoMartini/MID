@@ -122,15 +122,16 @@ def build_candidate(source:Path,output:Path):
  if len(raw)!=points*det['recordBytes']:raise ValueError('source deterministic dimensions')
  cube=np.frombuffer(raw,dtype='<i2').reshape(points,len(times),len(specs))
  grid=meta['lookup']['grid'] if 'grid' in meta['lookup'] else meta['grid']
- # The existing verified lookup is used as-is. Crop only, never regrid values.
+ # Keep all cells of the existing SHA-verified native lookup, never interpolate.
+ # Its 5-km nearest-native-cell NoData mask is part of the original core contract.
  nx,ny=grid['nx'],grid['ny']
  if any(type(n) is not int or not 2<=n<=2000 for n in (nx,ny)) or any(not isinstance(grid[k],(int,float)) or not math.isfinite(grid[k]) for k in ('lonMin','latMin','dx','dy','maxNearestKm')) or not (0<grid['dx']<=1 and 0<grid['dy']<=1 and 0<grid['maxNearestKm']<=5):
   raise ValueError('invalid source lookup geometry')
  lookup_raw=checked_object(source,meta,'lookup.bin')
  if len(lookup_raw)!=nx*ny*4:raise ValueError('source lookup dimensions')
  xs=grid['lonMin']+np.arange(nx)*grid['dx'];ys=grid['latMin']+np.arange(ny)*grid['dy']
- rows=np.flatnonzero((ys>=47)&(ys<=55.2));cols=np.flatnonzero((xs>=5.5)&(xs<=15.6))
- if len(rows)<2 or len(cols)<2:raise ValueError('display crop not covered')
+ rows=np.arange(ny,dtype=np.intp);cols=np.arange(nx,dtype=np.intp)
+ if rows.size<2 or cols.size<2:raise ValueError('incomplete full source lookup')
  lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)[np.ix_(rows,cols)]
  index={'schema':'mid.ruc.map-candidate.v1','modelId':'icon-d2-ruc','productionEnabled':False,'readyForProduction':False,'run':run.isoformat(),'sourceManifestSha256':hashlib.sha256(manifest_bytes).hexdigest(),'sourceDeterministicSha256':meta['objects']['deterministic.bin']['sha256'],'sourceLookupSha256':meta['objects']['lookup.bin']['sha256'],'sampling':'nearest-native-cell','maxNearestKm':grid['maxNearestKm'],'products':{}}
  files={}

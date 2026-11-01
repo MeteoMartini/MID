@@ -42,6 +42,21 @@ class RucMapCandidateTests(unittest.TestCase):
     wind=json.loads(gzip.decompress((out/'wind-001.bin').read_bytes()))
     self.assertAlmostEqual(wind['values'][2]*wind['scale'],18.52)
     self.assertEqual(before,{p.name:p.read_bytes() for p in source.iterdir()})
+ def test_full_native_extent_outside_germany_is_not_cropped(self):
+  with tempfile.TemporaryDirectory() as t:
+   root=Path(t);source=self.fixture(root,hours=14)
+   meta=json.loads((source/'latest.json').read_text())
+   meta['grid']['latMin']=43.18;meta['grid']['lonMin']=-3.85
+   (source/'latest.json').write_text(json.dumps(meta))
+   out=root/'full-domain';index=build_candidate(source,out)
+   field=json.loads(gzip.decompress((out/'temperature-001.bin').read_bytes()))
+   self.assertEqual(field['lats'],[43.18,43.205,43.23])
+   self.assertEqual(field['lons'],[-3.85,-3.825,-3.8])
+   self.assertEqual(len(field['values']),9)
+   self.assertIsNone(field['values'][0])
+   self.assertIsNone(field['values'][1])
+   self.assertFalse(index['productionEnabled'])
+   self.assertEqual(index['sampling'],'nearest-native-cell')
  def test_corrupt_source_rejected_before_output(self):
   with tempfile.TemporaryDirectory() as t:
    root=Path(t);source=self.fixture(root);(source/'deterministic.bin').write_bytes(b'broken')

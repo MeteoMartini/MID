@@ -26,6 +26,14 @@ class AdmissionTests(unittest.TestCase):
      if k!='latest.json':self.assertEqual((snapshot/k).read_bytes(),v)
     self.assertEqual(source_before,{p.name:p.read_bytes() for p in source.iterdir()});self.assertLess(proof['finalPhysicalBytes'],900000000)
     pressure=index['products']['pressure']['frames'][0];payload=json.loads(gzip.decompress((snapshot/m['rucModelFields']['key']).parent.joinpath(pressure['file']).read_bytes()));self.assertIsNone(payload['values'][0]);self.assertEqual(payload['schema'],'mid.ruc.map-field.v1')
+ def test_native_domain_audit_must_cover_each_original_lookup_cell(self):
+  with tempfile.TemporaryDirectory() as t:
+   root=Path(t);snapshot,source=self.fixture(root)
+   original=(snapshot/'latest.json').read_bytes()
+   with patch.object(module,'audit_native_map',return_value={'allFramesCoverKnownNativeLookup':False,'allPublishedFrameValuesMatchNativeSource':True}),self.assertRaisesRegex(ValueError,'full-native-domain coverage'):
+    module.admit(snapshot,source,root/'candidate')
+   self.assertEqual((snapshot/'latest.json').read_bytes(),original)
+   self.assertFalse(list(snapshot.glob('runs/*__rucmaps*')))
  def test_full_27h_core_admits_identical_27h_maps(self):
   with tempfile.TemporaryDirectory() as t:
    root=Path(t);snapshot,source=self.fixture(root,27,27)
