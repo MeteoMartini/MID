@@ -123,7 +123,7 @@ def admit(snapshot,source,candidate):
   temporary.write_bytes(encoded);temporary.replace(manifest)
  except BaseException:
   shutil.rmtree(directory.parent,ignore_errors=True);temporary.unlink(missing_ok=True);raise
- return {'schema':'mid.ruc.map-admission.v1','run':index['run'],'mapHours':nt-1,'coreHours':n-1,'finalPhysicalBytes':physical,'addedPhysicalBytes':physical-m['pages']['publishedBytes']-len(original),'previousManifestSha256':sha(original),'newManifestSha256':sha(encoded),'sourceRawUnchanged':True,'codecProofUnchanged':updated['migration']==m['migration']}
+ return {'schema':'mid.ruc.map-admission.v1','run':index['run'],'mapHours':nt-1,'coreHours':n-1,'finalPhysicalBytes':physical,'addedPhysicalBytes':physical-m['pages']['publishedBytes']-len(original),'previousManifestSha256':sha(original),'newManifestSha256':sha(encoded),'sourceRawUnchanged':True,'codecProofUnchanged':updated['migration']==m['migration'],'fullNativeLookupAudited':True,'nativeLookupCoveredCells':domain['nativeLookupCoveredCells'],'sourceLookupCells':domain['sourceLookupCells'],'sourceLookupBounds':domain['sourceLookupBounds'],'sourceForecastHours':domain['sourceForecastHours']}
 def admit_optional(snapshot,source,candidate):
  """Map failure cannot block a verified core; existing corruption stays fatal."""
  snapshot=Path(snapshot).resolve(strict=True);_,original=verify_snapshot(snapshot)
