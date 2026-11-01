@@ -90,6 +90,12 @@ class WorkflowReleaseWindow(unittest.TestCase):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("workflow_run:\n    workflows:\n      - MID RUC schedule watchdog", text)
         self.assertIn("github.event.workflow_run.event == 'schedule'", text)
+        # Successful watchdog recoveries caused by a trusted release workflow
+        # retain their event='workflow_run' in the webhook payload. They must
+        # start a read-only observation, not be silently skipped.
+        self.assertIn("(github.event.workflow_run.event == 'schedule' ||", text)
+        self.assertIn("github.event.workflow_run.event == 'workflow_run') &&", text)
+        self.assertNotIn("github.event.workflow_run.event == 'workflow_dispatch'", text)
         self.assertIn("github.event.workflow_run.head_repository.full_name == github.repository", text)
         self.assertIn("github.event.workflow_run.head_branch == 'main'", text)
         self.assertIn("github.event.workflow_run.conclusion == 'success'", text)
