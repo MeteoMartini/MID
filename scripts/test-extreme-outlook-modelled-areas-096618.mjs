@@ -29,7 +29,7 @@ try{
  assert.equal(actual.assessedCells,cells.length,'Alle vorhandenen Probability-Felder zählen als auswertbar.');
  assert.equal(actual.assessmentAvailable,true,'Kurzfrist-Admission bleibt unverändert.');
  const zeroFields={rain:[0,0,0,0],wind:[0,0,0,0],snow:[0,0,0,0]};
- const zeros={...data,cells:cells.slice(0,4).map(cell=>({...cell,periods:{'0-6':{hazards:{},probabilityFields:zeroFields}}})),grid:{...data.grid,pointCount:4}};
+ const zeros={...data,cells:cells.slice(0,4).map(cell=>({...cell,periods:{'0-6':{hazards:{},probabilityFields:{...zeroFields}}}})),grid:{...data.grid,pointCount:4}};
  const allZero=assessExtremeOutlookPeriod(zeros,'0-6','rain','extended');
  assert.equal(allZero.visibleCount,0,'Echte Nullwahrscheinlichkeiten erzeugen kein Modellsignal.');
  assert.equal(allZero.assessedCells,4,'Belegte Null ist Datenverfügbarkeit, nicht Missing.');
