@@ -1,0 +1,1 @@
+import{Pi as e}from"./index-CKC9sS0l.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
