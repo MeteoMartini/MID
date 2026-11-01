@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding,assert_grib_identity,assert_run_cadence
+from pilot_dwd_domain_inventory import field_statistics,validate_collection,assert_bitmap_decoding,assert_grib_identity,assert_run_cadence,assert_grib_valid_time
 
 class DomainInventoryTests(unittest.TestCase):
  def test_valid_zero_and_missing_preserved(self):
@@ -92,6 +92,19 @@ class RunCadenceTests(unittest.TestCase):
  def test_duplicate_runs_rejected(self):
   with self.assertRaisesRegex(ValueError,'not consecutive'):
    assert_run_cadence('icon-d2-ruc',['20261024T1300']*3)
+
+
+class GribValidityTests(unittest.TestCase):
+ def test_original_valid_zero_lead(self):
+  assert_grib_valid_time('20261024T1200',0,20261024,1200)
+ def test_original_valid_day_rollover(self):
+  assert_grib_valid_time('20261024T2300',2,20261025,100)
+ def test_original_wrong_validity_rejected(self):
+  with self.assertRaisesRegex(ValueError,'differs'):
+   assert_grib_valid_time('20261024T1200',3,20261024,1800)
+ def test_invalid_original_valid_date_rejected(self):
+  with self.assertRaisesRegex(ValueError,'Invalid original GRIB'):
+   assert_grib_valid_time('20261024T1200',3,20261324,1500)
 
 
 class NativeCoordinateTests(unittest.TestCase):

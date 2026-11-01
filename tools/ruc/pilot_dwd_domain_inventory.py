@@ -168,6 +168,7 @@ def inventory_record(record,root):
             codes_set(gid,'stepUnits',1)  # normalize GRIB time units to hours
             lead=int(codes_get_long(gid,'endStep'))
             if lead!=record['leadHours']:raise ValueError('Mixed validity lead')
+            assert_grib_valid_time(run,lead,codes_get_long(gid,'validityDate'),codes_get_long(gid,'validityTime'))
             grid_type=str(codes_get(gid,'gridType'))
             points=int(codes_get_long(gid,'numberOfPoints'))
             bitmap=int(codes_get_long(gid,'bitmapPresent'))
@@ -191,6 +192,21 @@ def inventory_record(record,root):
                 raise ValueError('Multiple GRIB messages; require one verified record per file')
             return {k:record[k] for k in ('model','parameter','run','leadHours')}|{'sourceSha256':record['sha256'],**stats}
         finally:codes_release(gid)
+
+
+def assert_grib_valid_time(run, lead_hours, validity_date, validity_time):
+    """Bind original GRIB validity UTC to the source model init and end lead."""
+    if not isinstance(run,str) or not re.fullmatch(r'[0-9]{8}T[0-9]{4}',run):
+        raise ValueError('Invalid original DWD UTC initialization')
+    if type(lead_hours) is not int or not 0<=lead_hours<=48:
+        raise ValueError('Invalid original forecast lead')
+    try:
+        initialized=datetime.strptime(run,'%Y%m%dT%H%M')
+        valid=datetime.strptime(f'{int(validity_date):08d}T{int(validity_time):04d}','%Y%m%dT%H%M')
+    except (TypeError,ValueError) as exc:
+        raise ValueError('Invalid original GRIB validity timestamp') from exc
+    if valid!=initialized+timedelta(hours=lead_hours):
+        raise ValueError('GRIB validity differs from original init plus lead')
 
 
 def assert_run_cadence(model, runs):
