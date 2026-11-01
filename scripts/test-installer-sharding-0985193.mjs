@@ -39,7 +39,7 @@ console.log('Installer: exact event/manifest/archive/files binding, fail-closed 
 
 assert.equal((heavy.match(/shard: heavy-browser-state/g)||[]).length,1,'Installer must independently repeat the entire browser-state shard exactly once.');
 
-assert.deepEqual(mapBrowserRunPlan().filter(mapBrowserMemoryProbe),['3/3'],'Exactly one complete isolated memory probe survives the three-group run');
+assert.deepEqual(mapBrowserRunPlan().filter(mapBrowserMemoryProbe),['2/3'],'Exactly one complete isolated memory probe survives the three-group run');
 assert.equal(mapBrowserMemoryProbe(''),true,'Direct full-matrix runs retain the memory probe');
 for(const bad of ['0/3','4/3','1/2','abc'])assert.throws(()=>mapBrowserMemoryProbe(bad));
 const mapRunner=await readFile('scripts/verify-unified-map-browser-0985167.mjs','utf8');
