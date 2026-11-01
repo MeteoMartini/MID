@@ -1,3 +1,14 @@
+## MID v0.9.85.398 · 2026-11-01 · RUC P1–P5: explizite Messstatus-Evidenz und inaktive native DWD-Fast-Qualifikation
+
+- Ausgangsbasis: vollständige v0.9.85.397 Stable-Promotion main=mid-stable `9627f7a6fc1d71a4ca328f7c3f257c0fac7d0362` nach Installer #41296481176 (Core/Heavy/Worker/Pages/Finalize success), fünf aktive Rulesets und 1059 Pflichtregressionen.
+- SHA-gebundene selektive Übernahme von genau 22 RUC-Fach-/Test-/Workflow-Dateien aus gesichertem Draft PR #571 Head `ab327404f6f38aa12629242a4001c39fb2263386`, Git-Blob-Abgleich einzeln erfolgreich. .397-NoData-Korrektur aus PR #572 einschließlich `src/extremeEvidenceNumeric.ts` exakt erhalten.
+- P1: Beobachter erfasst unabhängig von grünem CI-Status tatsächliche DWD-Verzeichnisbeobachtungen, Pages-/Worker-Poll und Release-Drift-Skips. Bei älterem Stable-Checkout funktioniert ein konservativer Null-Evidenz-Fallback ohne das noch unveröffentlichte neue Python-Modul; missing bleibt unbekannt. Zusätzlich 168h links-/rechts-/intervallzensierter Stichproben-Audit.
+- P2: ausschließliche manuelle, inaktive EPS-unabhängige native +0…+6h-DWD-Original-GRIB-Qualifikation (12 Stundenfelder, native 5-Minuten-TOT_PREC und 15-Minuten-CAPE/CIN, Gitter, Bitmaps, Zeiten, Einheiten, Accumulationsfenster, SHA und Site-Budget). Lokales Pointer-Staging ist `publicationAuthorized=false`, `productionEnabled=false`, `realtimeConsumerEnabled=false`. Kein Remote-Publisher/Pages/R2/Worker-/App-Switch.
+- P3: Wall-/Job-/Stage-Zeiten bleiben unabhängig nachvollziehbar; nicht zugeordnete Verzögerungen werden nicht als Dekodier- oder Downloadkosten behauptet. Identische Original-GRIB-SHA-A/B-Probe mit CPU/RAM fehlt.
+- P4: Pure Shadow-Qualifikation sperrt Release-Drift, doppelte, ältere und aktiv konkurrierende DWD-Produzenten sowie falsche Inventar-Hashes. Ein produktiver gemeinsamer, authentifizierter Single-Flight/CAS/Fencing-Publisher ist bewusst nicht enthalten.
+- P5: zensierte Lesemessungen und echte fehlende Samples, aber kein tatsächlicher DWD-Erstpublikationszeitstempel, keine nachgewiesene Endgeräte-Adoption und kein 168h-P95≤60min-SLO.
+- Offline-RUC-P1–P5-QA: auf PR-Head `128bce9527cb46885e17b60803317bf46699f652` 112 von 112 Python-Tests fachlich erfolgreich, Vitest success. Die bisherigen Gesamt-QA-Läufe scheiterten ausschließlich korrekt an noch fehlenden .398-Changelog-Spiegeln; vollständige Source-PR-/Installer-/Production-Gates sind daher noch erforderlich. Keine amtlichen Warnungen, meteorologische Originalwerte oder 27h-/EPS20-Pipeline geändert.
+
 ## MID v0.9.85.397 · 2026-11-01 · MID-Designaudit #523 P0: Extreme-Datenlücken in RUC/EPS-Beleganzeige
 
 - Ausgangsbasis v0.9.85.396, `main=mid-stable` SHA `d32201fbb541f4c5189e549c1250de0964bd61d1`; vollständiger Installer #41292437081 erfolgreich. Fünf aktive Rulesets, andere D2-/RUC-/ECMWF-/Design-Drafts unverändert.
