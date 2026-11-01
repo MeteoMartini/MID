@@ -24,11 +24,37 @@ try{
  store.writeDisplayPreference('x',false);assert.equal(calls,1);window.dispatchEvent(new Event('storage'));assert.equal(calls,2);stop();window.dispatchEvent(new Event('storage'));assert.equal(calls,2,'subscription cleanup');
  const [,a]=store.useDisplayPreference('x',true,store.displayBoolean),[,b]=store.useDisplayPreference('x',true,store.displayBoolean);b(true);a(value=>!value);assert.equal(store.readDisplayPreference('x',true,store.displayBoolean),false,'latest-value functional update across mounted views');
  const validate=validDetailChartPreferences;store.writeDisplayPreference('parameters',legacy);assert.strictEqual(store.readDisplayPreference('parameters',legacy,validate),store.readDisplayPreference('parameters',legacy,validate),'same immutable object snapshot until storage changes');
+ const decodeName=raw=>raw==='0'?false:true,encodeName=value=>value?'1':'0';
+ const climateA='mid:climate:favorite-name:50.8000:7.1300',climateB='mid:climate:favorite-name:50.9000:7.2000';
+ globalThis.__midReturnMemory.set(climateA,'0');globalThis.__midReturnMemory.set(climateB,'1');
+ assert.equal(store.readRawDisplayPreference(climateA,true,decodeName),false,'explicit 0 is not missing');
+ assert.equal(store.readRawDisplayPreference(climateB,true,decodeName),true,'other place retains its own preference');
+ const [,setNameA]=store.useRawDisplayPreference(climateA,true,decodeName,encodeName),[,setNameB]=store.useRawDisplayPreference(climateB,true,decodeName,encodeName);
+ setNameB(false);assert.equal(store.readRawDisplayPreference(climateA,true,decodeName),false,'switching places never writes previous mounted choice');
+ setNameB(true);setNameA(value=>!value);
+ assert.equal(globalThis.__midReturnMemory.get(climateA),'1');assert.equal(globalThis.__midReturnMemory.get(climateB),'1');
+ const decodeMetric=raw=>raw==='precipitation'?'precipitation':'temperature';
+ const metricKey='mid:long-range:comparison-metric';
+ globalThis.__midReturnMemory.set(metricKey,'precipitation');
+ const [,setMetricA]=store.useRawDisplayPreference(metricKey,'temperature',decodeMetric,value=>value),[,setMetricB]=store.useRawDisplayPreference(metricKey,'temperature',decodeMetric,value=>value);
+ assert.equal(store.readRawDisplayPreference(metricKey,'temperature',decodeMetric),'precipitation','legacy string retained without migration');
+ setMetricA('temperature');setMetricB(value=>value==='temperature'?'precipitation':'temperature');
+ assert.equal(globalThis.__midReturnMemory.get(metricKey),'precipitation','mounted seasonal views update against latest durable value');
+ setMetricA('bogus');assert.equal(globalThis.__midReturnMemory.get(metricKey),'precipitation','invalid choice rejected');
+ globalThis.localStorage={getItem:()=>{throw new Error('blocked storage bridge')}};
+ setNameB(false);assert.equal(store.readRawDisplayPreference(climateB,true,decodeName),false,'direct durable API survives blocked localStorage methods');
  for(const key of ['hourly','daily']){const [,set]=store.useDisplayPreference(`App.detail.${key}.legend`,false,store.displayBoolean);set(key==='hourly')}
  assert.equal(store.readDisplayPreference('App.detail.hourly.legend',false,store.displayBoolean),true);assert.equal(store.readDisplayPreference('App.detail.daily.legend',true,store.displayBoolean),false);
  assert.ok(app.includes("`App.detail.${hourlyDetailOnly?'hourly':'daily'}.resolution`"));assert.ok(app.includes("if(detailResolution!=='1h')setDetailResolution('1h')"),'hourly view keeps its scientific 1h contract');
  assert.ok(app.includes("setDetailPreferences(current=>({...current,visible:"));assert.ok(app.includes("hiddenPrecip:current.hiddenPrecip.includes(type)"));
+ const climateComponent=await readFile('src/ClimatePanel.tsx','utf8'),comparison=await readFile('src/LongRangeModelComparison.tsx','utf8'),route=await readFile('src/RouteWeatherPanel.tsx','utf8');
+ assert.ok(climateComponent.includes('useRawDisplayPreference(favoriteNameKey,true,readFavoriteNameChoice,writeFavoriteNameChoice)'),'favorite-name state must switch with location key');
+ assert.ok(!climateComponent.includes('localStorage.setItem(favoriteNameKey'),'a stale location-effect cannot overwrite another favorite choice');
+ assert.ok(comparison.includes("useRawDisplayPreference<Metric>('mid:long-range:comparison-metric'"),'model comparison preserves its legacy key and synchronizes immediately');
+ assert.ok(!comparison.includes("localStorage.setItem('mid:long-range:comparison-metric'"),'model comparison must not wait for a mount effect');
+ assert.ok(comparison.includes("aria-pressed={metric==='temperature'}")&&comparison.includes("aria-pressed={metric==='precipitation'}"),'screen reader metric state');
+ assert.ok(route.includes('className="route-mode-toggle" role="group"'),'pressed route-map mode buttons are not unimplemented tabs');
  const totals=await readFile('src/PrecipitationTotalsMap.tsx','utf8'),extreme=await readFile('src/ExtremeWeatherOutlookPanel.tsx','utf8');assert.ok(totals.includes('data?.frames.find(item=>item.hours===requestedHours)??data?.frames[0]'));assert.ok(!totals.includes('setHours(current=>result.frames'));assert.ok(!extreme.includes('if(!result.periods.some(period=>period.id===periodId))setPeriodId'));
  for(const file of ['App','ClimatePanel','ExtremeWeatherOutlookPanel','LongRangeModelComparison','LongRangePanel','PrecipitationTotalsMap','RouteWeatherPanel','UnifiedWeatherMap','WaterSportsPanel'])assert.ok((await readFile(`src/${file}.tsx`,'utf8')).includes('useDisplayPreference'));
- console.log('PASS return-state contracts: legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
+ console.log('PASS return-state contracts: raw legacy keys, climate location swaps, concurrent model metrics, invalid input, blocked storage bridge, keyboard semantics, legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
 }finally{globalThis.localStorage=oldStorage;globalThis.window=oldWindow;delete globalThis.__midReturnMemory;await rm(dir,{recursive:true,force:true})}
