@@ -1,3 +1,12 @@
+## MID v0.9.85.397 · 2026-11-01 · RUC-Verfügbarkeit, Native-Fast-Qualifikation und ehrliche Frische-Telemetrie
+
+- Basis `d32201fbb541f4c5189e549c1250de0964bd61d1` (v0.9.85.396, vollständiger Installer #41292437081, fünf aktive Rulesets), alle alten Workstreams separat beibehalten.
+- P1/P5: unabhängige 168h-Zensur-/Readback-Analyse aus SHA-verifiziertem Draft #569, neues Observer-Statusprotokoll auch bei Release-SHA-Drift; kein Fake-Messwert durch grünes aber übersprungenes GitHub-Actions-Run.
+- P2: SHA-geprüfte native 0–6h-Original-GRIB-Qualifikation aus Draft #565 mit 7 Stunden, 73 echten 5min-Niederschlags- und 25 echten 15min-Konvektionsterminen. Nur manueller, nicht veröffentlichender DWD-QA-Workflow; lokales inaktives Fast-Staging, 27h/EPS20-Produktion/Pages/Worker/App unverändert.
+- P3: echte Wall-/Step-Timing-Differenz explizit als nicht attribuiert behandeln; keine ungepaarte Beschleunigungsbehauptung.
+- P4: aus Draft #542 übernommene rein lesende SHA-/Run-/Inventory-Deduplizierung und neue negative Race-Tests; kein geteilter Produktionslock, kein Dispatchrecht.
+- Fach-QA: 104 Offline-Tests auf vorbereitetem Draft-HEAD grün; .397-Freigabe nur nach komplett neuer erfolgreicher Source-PR-/Installer-Kette und 1059+ Pflichtregressionen. Reale GRIB-/EPS-/P95-E2E-Nachweise fehlen bis zur dokumentierten echten Messung.
+
 ## MID v0.9.85.396 · 2026-11-01 · Designaudit A3/A4: echter WMS-Kartenexport und dauerhafte Widget-/Karteneinstellungen
 
 - Quellbasis: vollständig veröffentlichtes v0.9.85.395 `main=mid-stable` SHA `bda6e60d37f2cac31b36e9993f5d6c045355d6ed`, PR #564, Installer #41288744774 erfolgreich, fünf aktive Rulesets. Neun Fach-/Testdateien aus gesichertem Draft PR #566 Head `1fa4e35ff970c7bb0dc68c737aec3123c2330932` selektiv als originale Git-Blob-SHAs übernommen; alle sechs schon existierenden Dateien sind zwischen .394-Draftbasis und .395 Stable SHA-identisch; keine Rebase-/Force-Push-/Reset-Operation.
