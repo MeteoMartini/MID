@@ -15,7 +15,7 @@ const [app,fusion,panel,travel,pkgRaw,baselineRaw]=await Promise.all([
 // Aktuelle Niederschlagswahrscheinlichkeit: kein synthetischer 5-%-Boden.
 // Original 0–100% model probability is not a binary dry classification:
 // true 1–5% values and 0% remain distinct; missing stays unknown.
-assert.ok(app.includes('probability=nearestProb;return{probability,summary,source,continuation}'),'Jede valide kurzfristige PoP inklusive 1–5% muss originaltreu erhalten bleiben.');
+assert.ok(app.includes('probability=nearestProb;return{probability,summary:base,source,continuation}'),'Jede valide kurzfristige PoP inklusive 1–5% muss originaltreu erhalten bleiben.');
 assert.ok(app.includes('if(!timeline.slots.length)return{probability:null'),'Ohne Vorhersageslots darf keine künstliche Trockenheit entstehen.');
 const begin=app.indexOf('function precipitationNowSummary('),end=app.indexOf('\n}',begin);
 assert.ok(begin>=0&&end>begin,'Original PrecipNow-Quellfunktion fehlt');
