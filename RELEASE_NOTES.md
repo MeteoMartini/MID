@@ -1,6 +1,7 @@
-# MID v0.9.85.400 – Prognoseansicht behalten und Datenlücken klar anzeigen
+# MID v0.9.85.401 – RUC-Datenherkunft und Datenlücken besser nachvollziehen
 
-- **Vorhersage-Auswahl bleibt bestehen:** Ist die gewählte 7- oder 14-Tage-Prognose vorübergehend nicht verfügbar, zeigt MID eine verfügbare Ansicht, ohne die gespeicherte Auswahl zu überschreiben. Sobald die Daten wieder vorhanden sind, kehrt die gewählte Ansicht zurück; eine ausdrücklich ausgewählte Navigation hat Vorrang.
-- **Temperaturlücken werden nicht mehr verbunden:** In den kleinen Kurzfrist- und 7-Tage-Prognosekurven unterbricht eine fehlende Temperatur die Linie. Ungültige SVG-Werte und „NaN °C“ in den zugehörigen Hinweisen werden vermieden. Tatsächliche Werte bleiben unverändert.
-- **Saisonmodelle mit ehrlicher Herkunft:** Sind die Ensemble-Mitglieder eines numerischen Saisonmodells nicht ausgewiesen, behauptet die Legende kein Ensemble-Mittel mehr. Bei exakt einem Member wird „1 Member“ ausgewiesen.
+- **RUC-Beobachtungen transparent prüfen:** Ein ausschließlich lesender Archivbericht sammelt vorhandene GitHub-Originalbelege zu DWD-Verzeichnisständen und öffentlichen Pages-/Worker-Rückmeldungen. Fehlende oder übersprungene Messungen werden ausdrücklich als unbekannt ausgewiesen – niemals als Null.
+- **Sicherere Prüfkette:** Ein ergänzender lesender Beobachtungsanlass kann ausgefallene GitHub-Zeitpläne teilweise abfedern. SHA-Abgleich, begrenzte Artefakte und ursprüngliche Zeitstempel schützen die Herkunft der Daten; die bestehende vollständige RUC-/EPS20-Vorhersage bleibt unverändert.
+- **Performance fachlich vorbereitet:** Die alternative Berechnung der EPS20-Niederschlagsquantile wurde mit Original-Quellcode und identischen Binärdaten gegen die bisherige Methode geprüft. Sie ist noch **nicht für die produktive Berechnung aktiviert**; eine allgemeine RUC-Beschleunigung wird nicht behauptet.
 
+**Nachweisgrenzen:** Die neue Auswertung ermittelt weder den exakten ersten DWD-GRIB-Veröffentlichungszeitpunkt noch eine bestätigte 60-Minuten-Endgeräte-Frische. Die unabhängige 0–6h-Fast-Lane bleibt deaktiviert. Amtliche DWD-Warnungen und die bestehenden Prognose-/NoData-Verträge bleiben unverändert.
