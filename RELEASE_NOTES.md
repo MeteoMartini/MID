@@ -1,5 +1,5 @@
-# MID v0.9.85.392 – Anbieterlegenden besser zugänglich und Exportgrenzen eindeutig
+# MID v0.9.85.393 – Bergwetter: echte Schneehöhe statt fehlendem Nullwert
 
-- Die originalen WMS-Farblegenden von DWD und ECCC können jetzt in der gemeinsamen und klassischen Kartenansicht zusätzlich in voller Größe geöffnet werden. Dafür gibt es ein großes Berührungsziel, sichtbaren Tastaturfokus und responsiven Textumbruch.
-- MID erklärt, dass ein Anbieterbild keine numerisch barrierefreie Texttabelle ersetzt. Ein fehlendes Anbieterbild wird weiterhin ausdrücklich als nicht verfügbar behandelt.
-- Externe WMS-Karten besitzen derzeit noch keinen verifizierten MID-PNG-/SVG-Kartenexport; native Rasterexporte bleiben eigenständig. Wetterwerte, Modellzeiten, DWD-Warnungen und bestehende Funktionen bleiben unverändert.
+- GeoSphere-Schneehöhen mit fehlendem Originalwert werden nicht mehr als „0 cm“ angezeigt. Ein tatsächlich gemessener Wert von 0 cm bleibt gültig.
+- MID prüft Stationshöhe, Entfernung, Höhendifferenz, Messzeit und Wertebereich der Schneemessung strenger. Ohne verlässliche Stationsdaten wird keine scheinbar aktuelle Messung ausgegeben.
+- Alle bisherigen Prognosen, amtlichen Warnungen, Karten, RUC- und Modellfunktionen bleiben erhalten; die vorherige .392-Kartenlegendenverbesserung bleibt unverändert.
