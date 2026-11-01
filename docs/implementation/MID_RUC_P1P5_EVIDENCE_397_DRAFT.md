@@ -49,6 +49,37 @@ Die Ausgabe wird nur neu erstellt, nie überschrieben. Eine Eingabe
 aus synthetischen Tests bleibt synthetisch; nur unabhängige, echte
 Originalartefakte können den jeweiligen Beobachtungsumfang belegen.
 
+## P3 – echte, aber ungepaarte GitHub-Workflow-Zeiterfassung
+
+Zusätzlich enthält dieser Draft `tools/ruc/ruc_p3_timing_audit.py`
+und neun adversarielle Timing-/A/B-Schutztests. Die beiden PR-Only-
+Workflow-Spiegel führen jetzt 13 P1/P5- und neun P3-Tests aus.
+
+Die folgenden Zahlen stammen aus *real heruntergeladenen, unveränderten*
+GitHub-Actions-Artefakten, nicht aus synthetischen Testdaten:
+
+| RUC-Workflow | Timing-Artefakt | Calculate-Job | Kern-Download + Decode | Prepare-Job | Publish-Job |
+| --- | --- | ---: | ---: | ---: | ---: |
+| #41281807000 | 13073753263 / 13074451514 | 1.317 s | 1.227,683 s | 503 s | 76 s |
+| #41286412886 | 13076506273 / 13075223405 | 4.755 s | 1.074,205 s | 828 s | 54 s |
+| #41289813323 | 13076334468 / 13077005980 | übersprungen | kein neuer Download | 50 s | 100 s |
+
+**Auffälligkeit:** Im zweiten Workflow summieren sich die
+`calculate`-Schritte nur auf 1.152 s. Gegenüber der ausgewiesenen
+Calculate-Jobdauer von 4.755 s bleiben **3.603 s nicht zugeordnet**.
+Die neue Prüfung weist diese Differenz explizit als nicht attribuiert
+aus; sie ist **weder** als DWD-Wartezeit **noch** als ecCodes-Decoderlast
+oder CPU-Verbrauch nachgewiesen. Die Native-Synoptikphase variierte
+in den beiden neuen Builds real von 33,802 s auf 378,904 s; auch
+diese Varianten sind keine gepaarten SHA-identischen A/B-Daten.
+Die Wiederverwendung eines früher validierten Snapshots in
+#41289813323 ist keine neue DWD-Datenaufnahme.
+
+Eine belastbare P3-A/B-Freigabe verlangt die *gleichen*
+vollständigen GRIB-Rohdaten-SHAs, Run, Felder, Grid und Vertragsversion
+mit separat gemessenen Download-, Decode-, CPU-/RAM- und Output-SHAs.
+Die vorhandene Qualifikation aus Draft #554 bleibt dazu maßgeblich.
+
 ## Offene produktive Abnahmeschritte
 1. P1: 168+ echte Stunden inkl. vollständiger nativer DWD-GRIB-/EPS20-
    Header/Werte und tatsächlicher Poll-Slot-Überwachung sammeln.
