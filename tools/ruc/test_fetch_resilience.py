@@ -313,5 +313,43 @@ class FetchResilience(unittest.TestCase):
         for obj in sessions:obj.close.assert_called_once_with()
 
 
+    def test_download_one_uses_thread_owned_keepalive_without_global_fallback(self):
+        # Verifies the actual network selection, not just the thread initializer.
+        content=b'GRIB'+b'x'*100
+        class Response:
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def raise_for_status(self):pass
+            def iter_content(self,size):yield content
+        client=Mock()
+        client.get.return_value=Response()
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'real.grib2'
+            with patch.object(fetch.requests,'get',side_effect=AssertionError('unpooled HTTP forbidden')):
+                fetch._RUC_HTTP_WORKER.client=client
+                try:
+                    fetch.download_one('https://opendata.dwd.de/test.grib2',target)
+                finally:
+                    del fetch._RUC_HTTP_WORKER.client
+            self.assertEqual(target.read_bytes(),content)
+            client.get.assert_called_once()
+            self.assertFalse(target.with_suffix('.grib2.part').exists())
+
+    def test_download_one_outside_pool_retains_legacy_get_behavior(self):
+        content=b'GRIB'+b'x'*100
+        class Response:
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def raise_for_status(self):pass
+            def iter_content(self,size):yield content
+        self.assertFalse(hasattr(fetch._RUC_HTTP_WORKER,'client'))
+        with tempfile.TemporaryDirectory() as directory:
+            target=Path(directory)/'external.grib2'
+            with patch.object(fetch.requests,'get',return_value=Response()) as getter:
+                fetch.download_one('https://opendata.dwd.de/test.grib2',target)
+            getter.assert_called_once()
+            self.assertEqual(target.read_bytes(),content)
+
+
 if __name__ == '__main__':
     unittest.main()
