@@ -62,6 +62,21 @@ class RucMapCandidateTests(unittest.TestCase):
     self.assertIsNone(payload['values'][0])
     self.assertEqual(payload['values'][2],1234)
 
+ def test_entirely_missing_lookup_fails_with_clear_original_reason(self):
+  # This is a valid, SHA-bound *all-missing* native geographic lookup.
+  # Previously the error itself was subscripted with removed crop indices,
+  # masking the intended fail-closed ValueError with a TypeError/NameError.
+  with tempfile.TemporaryDirectory() as temp:
+   root=Path(temp);source=self.fixture(root,2)
+   missing=np.full((3,3),0xffffffff,dtype='<u4').tobytes()
+   (source/'lookup.bin').write_bytes(missing)
+   meta=json.loads((source/'latest.json').read_text())
+   meta['objects']['lookup.bin']['bytes']=len(missing)
+   meta['objects']['lookup.bin']['sha256']=hashlib.sha256(missing).hexdigest()
+   (source/'latest.json').write_text(json.dumps(meta))
+   with self.assertRaisesRegex(ValueError,'full native lookup contains no covered cell'):
+    build_candidate(source,root/'missing-maps')
+   self.assertFalse((root/'missing-maps').exists())
  def test_full_lookup_geographic_bounds_fail_closed(self):
   for lat,lon in ((90,-3.8),(-90.1,-3.8),(43.2,180),(43.2,-181)):
    with self.subTest(lat=lat,lon=lon),tempfile.TemporaryDirectory() as t:

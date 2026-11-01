@@ -143,7 +143,7 @@ def build_candidate(source:Path,output:Path):
   raise ValueError('invalid source lookup geographical extent')
  lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)
  if not np.any(lookup!=np.uint32(0xffffffff)):
-  raise ValueError('full native lookup contains no covered cell')[np.ix_(rows,cols)]
+  raise ValueError('full native lookup contains no covered cell')
  index={'schema':'mid.ruc.map-candidate.v1','modelId':'icon-d2-ruc','productionEnabled':False,'readyForProduction':False,'run':run.isoformat(),'sourceManifestSha256':hashlib.sha256(manifest_bytes).hexdigest(),'sourceDeterministicSha256':meta['objects']['deterministic.bin']['sha256'],'sourceLookupSha256':meta['objects']['lookup.bin']['sha256'],'sampling':'nearest-native-cell','maxNearestKm':grid['maxNearestKm'],'fullLookupCoverage':True,'sourceLookupBounds':[float(xs[0]),float(ys[0]),float(xs[-1]),float(ys[-1])],'sourceLookupCells':int(nx*ny),'products':{}}
  files={}
  for kind,(name,unit,factor,bounds) in PARAMETERS.items():
