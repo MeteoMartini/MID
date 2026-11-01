@@ -112,7 +112,14 @@ function validExtendedOutlook(value:unknown):value is ExtremeWeatherOutlook{
  for(const cell of value.cells){if(!cell||!Number.isFinite(cell.lat)||!Number.isFinite(cell.lon)||!value.periods.every(spec=>{const hazards=cell.periods?.[spec.id]?.hazards;return hazards!==null&&typeof hazards==='object'&&!Array.isArray(hazards)}))return false;}
  return true;
 }
-function readExtendedOutlookCache(maxAgeMs:number){const storage=browserStorage();if(!storage)return undefined;const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);return validExtendedOutlook(value)?value:undefined}
+function readExtendedOutlookCache(maxAgeMs:number){
+ const storage=browserStorage();if(!storage)return undefined;
+ const value=readStoredJsonCache<ExtremeWeatherOutlook>(storage,EXTENDED_CACHE_KEY,maxAgeMs);
+ if(!validExtendedOutlook(value))return undefined;
+ // A recently written cache entry is not proof of a recently computed forecast.
+ const age=Date.now()-Date.parse(value.checkedAt);
+ return age>=-10*60*1000&&age<=maxAgeMs?value:undefined;
+}
 function writeExtendedOutlookCache(value:ExtremeWeatherOutlook){const storage=browserStorage();if(storage)writeStoredJsonCache(storage,EXTENDED_CACHE_KEY,value,['mid:extreme-outlook:extended-payload:'],1,EXTENDED_STALE_MS)}
 function errorText(error:unknown){return error instanceof Error?error.message:String(error||'unbekannter Fehler')}
 export function isExtremeChunkLoadError(error:unknown){return /importing a module script failed|failed to fetch dynamically imported module|error loading dynamically imported module|dynamically imported module|module script.*failed|Eine App-Ressource konnte nicht geladen werden/i.test(errorText(error))}
@@ -179,7 +186,7 @@ export function strongestExtremeRegions(data:ExtremeWeatherOutlook,periodId:stri
 export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal,forceRefresh=false):Promise<ExtremeWeatherOutlook>{
  throwIfAborted(signal);
  const fresh=readExtendedOutlookCache(EXTENDED_FRESH_MS);
- if(fresh&&!forceRefresh)return{...fresh,delivery:'local-cache'};
+ if(fresh&&!forceRefresh&&!fresh.stale)return{...fresh,delivery:'local-cache'};
  // Show the last verified forecast immediately; caller explicitly revalidates
  // it in the background. No missing probability is silently changed to zero.
  if(!forceRefresh){
@@ -192,7 +199,9 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal,forc
    const data=await fetchWorkerJson<ExtremeWeatherOutlook>('dach-extreme-outlook',{range:'extended'},{purpose:'general',signal,timeoutMs:48000,maxAgeMs:EXTENDED_FRESH_MS,staleIfErrorMs:0,cacheKey:'dach-extreme-outlook:extended:v4'});
    throwIfAborted(signal);
    if(data.error||!validExtendedOutlook(data))throw new Error('Regionaler Langfristausblick derzeit nicht vollständig verfügbar.');
-   const result={...data,delivery:'worker' as const};clearWorkerLimit();writeExtendedOutlookCache(result);return result;
+   const age=Date.now()-Date.parse(data.checkedAt),stale=Boolean(data.stale||age>EXTENDED_FRESH_MS);
+   const result={...data,delivery:'worker' as const,stale,staleReason:stale?(data.staleReason||'Der letzte vollständige Modellstand ist älter als drei Stunden. Keine aktuelle Entwarnung.'):undefined};
+   clearWorkerLimit();writeExtendedOutlookCache(result);return result;
   }catch(error){throwIfAborted(signal);workerError=error;if(dailyWorkerLimit(error))rememberWorkerLimit()}
  }
  try{
@@ -201,7 +210,7 @@ export async function loadExtendedExtremeWeatherOutlook(signal?:AbortSignal,forc
   const data=await loadDirectDachExtendedExtremeOutlook(signal) as ExtremeWeatherOutlook;
   throwIfAborted(signal);
   if(!validExtendedOutlook(data))throw new Error('Direkt berechneter Langfristausblick ist unvollständig.');
-  const result={...data,delivery:'browser-direct' as const,fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus den tatsächlichen DWD ICON-EPS-Mitgliedern mit verfügbarer ECMWF-Böenergänzung berechnet.'};
+  const result={...data,delivery:'browser-direct' as const,stale:Boolean(data.stale||Date.now()-Date.parse(data.checkedAt)>EXTENDED_FRESH_MS),fallbackReason:'Der zentrale MID-Datenweg war vorübergehend nicht verfügbar. Der regionale Langfristausblick wurde direkt aus den tatsächlichen DWD ICON-EPS-Mitgliedern mit verfügbarer ECMWF-Böenergänzung berechnet.'};
   writeExtendedOutlookCache(result);return result;
  }catch(directError){
   throwIfAborted(signal);
