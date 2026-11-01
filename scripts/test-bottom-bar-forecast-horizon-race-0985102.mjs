@@ -16,8 +16,12 @@ assert.ok(cockpit.includes("useState<ForecastHorizon>(()=>navigationHorizon&&hor
   'Explizite Navigation muss beim Mount Vorrang vor gespeichertem activeHorizon haben.');
 assert.ok(cockpit.includes("if(!navigationHorizon||!horizonAvailable(navigationHorizon,availability)||navigationHorizon===activeHorizon)return;switchHorizon(navigationHorizon)"),
   'Ein bereits gemountetes Cockpit muss nachfolgende Navigationswünsche deterministisch synchronisieren.');
-assert.ok(cockpit.includes("localStorage.getItem(ACTIVE_HORIZON_KEY)"),
-  'Gespeicherter Horizon bleibt als Wiedereinstiegs-Fallback erhalten.');
+assert.ok(cockpit.includes('const preferred=readPreferredForecastHorizon()')&&cockpit.includes('preferredHorizonRef.current=next'),
+  'Gespeicherte Nutzerwahl bleibt erhalten; nur explizite Navigation aktualisiert das Präferenzziel.');
+assert.ok(cockpit.includes('switchHorizon(readActiveHorizon(availability),false)')&&cockpit.includes('restorableForecastHorizon(preferredHorizonRef.current,activeHorizon,availability,navigationHorizon)'),
+  'Temporär unverfügbare Horizonte bleiben gespeichert und werden nach Rückkehr der Daten wiederhergestellt.');
+assert.ok(!cockpit.includes('localStorage.setItem(ACTIVE_HORIZON_KEY,activeHorizon)'),
+  'Automatisch gerenderte Fallback-Horizonte dürfen die gespeicherte Nutzerwahl nicht überschreiben.');
 
 const initial=(requested,stored)=>requested??stored;
 assert.equal(initial('short-term','seven-day'),'short-term','Vorhersage → Aktuell → Heute darf nicht auf 7 Tage zurückspringen.');
