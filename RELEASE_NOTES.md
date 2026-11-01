@@ -1,5 +1,5 @@
-# MID v0.9.85.391 – Originalfarblegenden für DWD-/ECCC-Modellkarten
+# MID v0.9.85.392 – Anbieterlegenden besser zugänglich und Exportgrenzen eindeutig
 
-- Externe DWD- und ECCC-Modellkarten bieten nun in der vereinheitlichten und in der klassischen Wetterkartenansicht ihre unveränderte Anbieterfarblegende an. Die Originallegende wird erst bei bestätigter WMS-Kartendarstellung eingeblendet.
-- Ist beim Anbieter keine passende Legende abrufbar, zeigt MID dies ausdrücklich an. Farben, Klassen und Grenzwerte werden nicht geschätzt. Die vorhandenen nativen Raster-/Exportlegenden und amtlichen Warnstufen bleiben unverändert.
-- Die Legenden sind auf Smartphone, Tablet und Desktop aufklappbar, haben große Berührungsziele und unterstützen Hell-/Dunkeldarstellung.
+- Die originalen WMS-Farblegenden von DWD und ECCC können jetzt in der gemeinsamen und klassischen Kartenansicht zusätzlich in voller Größe geöffnet werden. Dafür gibt es ein großes Berührungsziel, sichtbaren Tastaturfokus und responsiven Textumbruch.
+- MID erklärt, dass ein Anbieterbild keine numerisch barrierefreie Texttabelle ersetzt. Ein fehlendes Anbieterbild wird weiterhin ausdrücklich als nicht verfügbar behandelt.
+- Externe WMS-Karten besitzen derzeit noch keinen verifizierten MID-PNG-/SVG-Kartenexport; native Rasterexporte bleiben eigenständig. Wetterwerte, Modellzeiten, DWD-Warnungen und bestehende Funktionen bleiben unverändert.
