@@ -4,5 +4,8 @@ const [canonical,active,sync]=await Promise.all([readFile(new URL('../ci/github/
 assert.equal(active,canonical);
 for(const token of ['.protected','merge-base --is-ancestor','gh api --method DELETE','einzigartige Commits bleiben erhalten','DRY_RUN','contents: write'])assert.ok(canonical.includes(token),'Branch-Cleanup-Sicherheitsvertrag fehlt: '+token);
 assert.ok(!canonical.includes('git push --force'));
+assert.ok(canonical.includes('@tsv'),'Branchliste muss Schutzflags ohne Einzelabfrage liefern');
+assert.ok(canonical.includes('case "$is_protected" in'),'Ungültige Schutzflags müssen fail-closed stoppen');
+assert.ok(canonical.indexOf('case "$is_protected" in') < canonical.indexOf('info="$(gh api'),'Geschützte Branches dürfen nicht einzeln abgefragt werden');
 assert.ok(sync.includes("['workflows/branch-cleanup.yml','workflows/branch-cleanup.yml']"));
 console.log('MID v0.9.85.127: sicherer Branch-Cleanup geschützt.');

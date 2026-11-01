@@ -8,6 +8,11 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const pkg=JSON.parse(await readFile(path.join(root,'package.json'),'utf8'));
 const baseline=JSON.parse(await readFile(path.join(root,'MID_BASELINE.json'),'utf8'));
 const failures=[];
+const retiredAnalyticsWorkflow='apply-private-analytics.yml';
+if(managedFiles.some(([source,target])=>source.endsWith('/'+retiredAnalyticsWorkflow)||target.endsWith('/'+retiredAnalyticsWorkflow)))failures.push('Historischer Private-Analytics-Workflow darf nicht in der Sync-Registry stehen.');
+for(const directory of ['ci/github/workflows','.github/workflows']){
+ if((await readdir(path.join(root,directory))).includes(retiredAnalyticsWorkflow))failures.push('Historischer Private-Analytics-Direktpush-Workflow muss entfernt bleiben: '+directory);
+}
 const prGate=await readFile(path.join(root,'ci/github/workflows/chatgpt-pr-gate.yml'),'utf8');
 function sourceTimeBudgetValid(text){
  const from=text.indexOf('\n  source_core:'),to=text.indexOf('\n  core_regressions:');

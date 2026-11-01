@@ -16,7 +16,10 @@ try{
  const revisionText=await readFile(path.join(workflows,'mid-code-revision.yml'),'utf8');
  assert.ok(!/branches:\s*\n\s*- main\s*\n\s*- mid-stable/m.test(revisionText),'Historischer Revisionsworkflow reagiert weiterhin auf main-Pushes.');
  assert.ok(!revisionText.includes("(github.event_name == 'push' && github.ref == 'refs/heads/main') ||\n      (github.event_name == 'workflow_dispatch'"),'Legacy-Installationsjob startet weiterhin automatisch auf main.');
- assert.ok(revisionText.includes("github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all')"),'Manuelle Legacy-Recovery wurde unbeabsichtigt entfernt.');
+ assert.ok(!revisionText.includes("github.event_name == 'workflow_dispatch' && (inputs.task == 'install' || inputs.task == 'all')"),'Entfernter manueller Legacy-Installer darf nicht wieder aktiviert werden.');
+ assert.doesNotMatch(revisionText,/^  install:\s*$/m,'Obsoleter Revisions-Installationsjob darf nicht zurückkehren.');
+ assert.match(revisionText,/run: npm run test:regressions/,'Vollständige Regressionsmatrix darf bei der Sync-Umstellung nicht verloren gehen.');
+ assert.ok(revisionText.includes('git/ref/heads/mid-stable')&&revisionText.includes('git/ref/heads/main'),'SHA-gebundener Stable/Main-Drift-Schutz muss erhalten bleiben.');
  for(const file of ['apply-private-analytics.yml','mid-code-revision.yml','install-mid.yml','deploy.yml','dependency-audit.yml']){
   const text=await readFile(path.join(workflows,file),'utf8');
   if(/actions\/checkout@/.test(text))assert.ok(text.includes(`actions/checkout@${checkout} # v7.0.1`),`${file}: checkout v7 fehlt.`);
@@ -36,4 +39,4 @@ const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/te
 assert.equal(pkg.scripts?.['test:github-actions-v7-sync'],`node ${test}`);
 assert.ok(baseline.requiredRegressionTests?.includes(test));
 assert.ok(baseline.regressionTests?.includes(test));
-console.log('Explizite GitHub-Workflow-Synchronisierung geprüft: freigegebene Actions werden SHA-gepinnt und der historische v0.9.19.0-Installer wird auf main-Pushes stillgelegt, während die manuelle Recovery erhalten bleibt.');
+console.log('Explizite GitHub-Workflow-Synchronisierung geprüft: freigegebene Actions werden SHA-gepinnt, die vollständige SHA-gebundene Revisionsmatrix bleibt erhalten und der entfernte Legacy-Installer bleibt inaktiv.');

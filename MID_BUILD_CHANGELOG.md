@@ -1,3 +1,14 @@
+# MID v0.9.85.395 – Einstellungen bewahren, alte Wartungspfade sicher entfernen
+
+- Im Klimabereich bleibt die Wahl für die Verwendung des Favoritennamens beim Ortswechsel erhalten. Bereits ausdrücklich ausgeschaltete Optionen werden nicht versehentlich wieder aktiviert.
+- Der Saisonmodellvergleich speichert die Auswahl von Temperatur oder Niederschlag unmittelbar; verschiedene Ansichten und Browser-Tabs sehen konsistente Einstellungen.
+- Routenwetter-Modi und Saisonparameter kennzeichnen ihre Auswahl für Tastatur und Screenreader eindeutiger.
+- Veraltete, eigenständig schreibende Analytics-/Installationsworkflows und reine KNMI-Experiment-/Diagnoseworkflows werden aus dem aktiven Repository entfernt. Die genutzten KNMI-Prognosewege bleiben bestehen.
+- Die Branch-Bereinigung prüft Schutzstatus vor weiteren Aktionen; ungesicherte oder nicht eindeutig freigegebene Branches werden nicht gelöscht.
+- RUC-Vollgebiet, Vorhersagedaten, amtliche Warnungen und Modellläufe werden durch diesen Build nicht verändert.
+
+Technischer Nachweis/Scope: 33 SHA-übertragene Cleanup-/UI-/Testdateien aus PR #543/#563. Neue Version .395 inklusive App, iOS-Build 396, Worker-/Service-Worker-/Registry-Spiegel. Rollout ausschließlich über vollständige MID Source-PR-/Installer-Gates. Keine Freigabe der RUC-Vollgebietskarten ohne unabhängige DWD-Originaldatenqualifikation.
+
 ## MID v0.9.85.394 · 2026-11-01 · RUC P3 Production Pipeline / #541
 
 - Frische Source-of-Truth vor Vorbereitung: v0.9.85.393, main=mid-stable SHA `43cb36c07531b8d93418061aa1f075df5f6ac0fc`, fünf aktive Rulesets, vorherige .393-Source und Installer nachweislich erfolgreich. Parallele RUC-Drafts #542/#551/#554/#560/#561 bleiben unverändert; aus dem bereits gesicherten isolierten P3-Entwicklungsstand #557 nur fachlich relevante Code/Test-/QA-Blobs übernommen.
