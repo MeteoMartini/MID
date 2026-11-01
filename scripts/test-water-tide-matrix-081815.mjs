@@ -56,6 +56,7 @@ try{
  ])assert.ok(Number.isNaN(sum(v,n)),'missing/partial/hour-gap must not become zero');
  for(const field of ['precipitation','rain','showers','snowfall'])assert.ok(water.includes('sumCompletePrecipitation(group.map(hour=>({value:hour.'+field+',epoch:hour.epoch,available:'),'missing field guard '+field);
  assert.ok(water.includes('statt 0 mm'),'missing-interval UI hint required');
+ assert.ok(water.includes("weatherLabel:!Number.isFinite(precipitation)?'Niederschlagsdaten unvollständig'"),'Missing precipitation cannot be announced as dry weather.');
 }finally{await rm(auditDir,{recursive:true,force:true})}
 
 console.log('Gezeiten-/Wasserstandsmatrix geprüft: Tageswendepunkte für bis zu drei Tage, exakte Zeit/Level-Angaben und kompakte Tabellenzeile vorhanden.');
