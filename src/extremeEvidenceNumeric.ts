@@ -36,3 +36,9 @@ export function rainEvidenceDisplay(metric:RainEvidence):{amount:number|null;win
  if(quarter!==null)return{amount:quarter,windowLabel:'15 min'};
  return{amount:null,windowLabel:'Zeitraum nicht verfügbar'};
 }
+export function evidenceRate(raw:unknown,hours:unknown,unit:'mm'|'cm',format:(value:number)=>string):string{
+ const value=evidenceMagnitude(raw),window=evidencePositiveHours(hours);
+ if(value===null)return'nicht verfügbar';
+ if(window===null)return`${format(value)} ${unit} · Zeitraum nicht verfügbar`;
+ return`${format(value)} ${unit}/${window} h`;
+}
