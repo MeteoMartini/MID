@@ -170,6 +170,33 @@ class ModelDomainTest(unittest.TestCase):
             self.assertTrue(report['allSourceForecastHoursPresent'])
             self.assertFalse(report['full27HourSourceAxis'])
 
+    def test_actual_candidate_audits_all_lookup_cells_outside_historical_crop(self):
+        from ruc_map_candidate import build_candidate
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);src,_=fixture(root)
+            meta=json.loads((src/'latest.json').read_bytes())
+            meta['lookup'].update(dtype='uint32-le',nodata=0xffffffff)
+            meta['lookup']['grid'].update(latMin=43.2,lonMin=-3.8,maxNearestKm=5)
+            meta['deterministic']['recordBytes']=2*len(PARAMS)*2
+            cube=np.full((25,2,len(PARAMS)),100,dtype='<i2')
+            cube[:,:,1]=10000
+            cube[0,:,:]=-32768
+            meta['objects']['deterministic.bin']=write_blob(src/'deterministic.bin',cube.tobytes())
+            (src/'latest.json').write_text(json.dumps(meta))
+            target=root/'actual-full-lookup'
+            result=build_candidate(src,target)
+            self.assertTrue(result['fullLookupCoverage'])
+            audit=inspect(src,target)
+            self.assertEqual(audit['nativeLookupCoveredCells'],25)
+            self.assertTrue(audit['allFramesCoverKnownNativeLookup'])
+            self.assertTrue(audit['allPublishedFrameValuesMatchNativeSource'])
+            for p in audit['products']:
+                for row in p['frames']:
+                    self.assertEqual(row['omittedNativeLookupCells'],0)
+                    self.assertEqual(row['omittedKnownParameterNativePoints'],0)
+            self.assertEqual(audit['sourceLookupBounds'][0],-3.8)
+            self.assertEqual(audit['sourceLookupBounds'][1],43.2)
+
     def test_cli_distinguishes_complete_short_axis_from_27_hour_acceptance(self):
         for hours,expected in ((2,2),(28,0)):
             with self.subTest(hours=hours),tempfile.TemporaryDirectory() as d:

@@ -1,0 +1,208 @@
+name: MID D2 RUC actual native full-domain admission on isolated original (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.398-d2-native-full-domain
+    paths:
+      - '.github/workflows/mid-d2-ruc-full-admission-qa.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-d2-ruc-full-admission-readonly
+  cancel-in-progress: false
+jobs:
+  reconstruct:
+    name: Full original 06Z 27h native RUC map admission including real contours/budget (sandbox only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Load the exact code candidate without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read-only verify current Stable SHA and pinned original RUC artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$main" = "$stable"
+          test "$stable" = 9627f7a6fc1d71a4ca328f7c3f257c0fac7d0362
+          metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13076182582")"
+          test "$(jq -r '.id' <<< "$metadata")" = 13076182582
+          test "$(jq -r '.name' <<< "$metadata")" = mid-ruc-data-41286412886-1
+          test "$(jq -r '.digest' <<< "$metadata")" = sha256:e942c77cc3ee8d1473277a851a306d4e203857b0070120eb8fc0ffdeb46eff8f
+          test "$(jq -r '.expired' <<< "$metadata")" = false
+          echo "Verified immutable original RUC published snapshot provenance (no bytes logged)."
+      - name: Install existing native ecCodes/Python QA dependencies
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install the existing fixed-range RUC QA requirement set
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Download the exact immutable artifact with GitHub-attested digest verification
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          run-id: 41286412886
+          artifact-ids: 13076182582
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: ${{ runner.temp }}/ruc-native-original
+      - name: Repackage verified artifacts without path-prefix changes
+        id: archive
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/ruc-native-original"
+          test -d "$dir"
+          mapfile -d '' manifests < <(find "$dir" -type f -name latest.json -print0)
+          if [ "${#manifests[@]}" -ne 1 ]; then
+            echo "::error::Sealed RUC data artifact must contain exactly one latest.json; download may have wrong artifact format"
+            find "$dir" -maxdepth 3 -type f -printf '%P\n' | LC_ALL=C sort | head -n 12
+            exit 1
+          fi
+          root="$(dirname "${manifests[0]}")"
+          test -s "$root/latest.json"
+          # GitHub artifact archives can retain a parent run-directory.
+          # Repackage only the unique manifest root; every source object is
+          # subsequently validated against this manifest's SHA inventory.
+          (cd "$root" && find . -type f -printf '%P\n' | LC_ALL=C sort | zip -q -0 "$RUNNER_TEMP/ruc-original.zip" -@)
+          test -s "$RUNNER_TEMP/ruc-original.zip"
+          digest="$(sha256sum "$RUNNER_TEMP/ruc-original.zip" | cut -d' ' -f1)"
+          echo "sha=$digest" >> "$GITHUB_OUTPUT"
+      - name: Decode all original 27h source cells and audit six complete map fields
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_map_archive_probe.py \
+            --archive "$RUNNER_TEMP/ruc-original.zip" --sha256 "${{ steps.archive.outputs.sha }}" \
+            --output "$RUNNER_TEMP/ruc-real-full-domain"
+          test -s "$RUNNER_TEMP/ruc-real-full-domain/report.json"
+      - name: Check original source-byte budget, actual candidate and 900 MB admission projection
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          root=json.loads(next((temp/'ruc-native-original').rglob('latest.json')).read_bytes())
+          r=json.loads((temp/'ruc-real-full-domain/report.json').read_bytes())
+          assert root['schema']=='mid.dwd.ruc.grid.v2' and root['storageProfile']=='pages-lossless-v1'
+          assert r['schema']=='mid.ruc.archive-map-probe.v1'
+          assert r['fullNativeLookupVerified'] is True and r['full27HourSourceAxis'] is True
+          assert r['nativePoints']==542040 and len(r['products'])==6
+          assert root['pages']['budgetBytes']==900_000_000
+          projected=root['pages']['publishedBytes']+r['mapBytes']+len(json.dumps(root).encode())
+          assert projected<900_000_000
+          print('Read-only RUC original map candidate validated; projection bytes:',projected)
+          PY
+      - name: Real isolated 06Z map admission, source integrity, pressure contours and strict physical 900MB budget
+        timeout-minutes: 55
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib,json,os,pathlib,shutil,sys
+          sys.path.insert(0,str(pathlib.Path.cwd()/'tools/ruc'))
+          from admit_ruc_map_candidate import admit,verify_snapshot
+          from prepared_snapshot import RECEIPT,SCHEMA
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          matches=list((temp/'ruc-native-original').rglob('latest.json'))
+          assert len(matches)==1,'original snapshot root is ambiguous'
+          original=matches[0].parent
+          raw=matches[0].read_bytes()
+          m=json.loads(raw)
+          assert m['run']=='2026-11-01T06:00' and m['schema']=='mid.dwd.ruc.grid.v2'
+          expected={o['key'] for o in m['pages']['objects']}|{'latest.json',RECEIPT}
+          actual={p.relative_to(original).as_posix() for p in original.rglob('*') if p.is_file()}
+          assert actual==expected,'unrecognized or missing sealed source object'
+          receipt=json.loads((original/RECEIPT).read_bytes())
+          assert receipt['schema']==SCHEMA
+          assert receipt['producer']['runId']==41286412886
+          assert receipt['snapshot']['manifestSha256']==hashlib.sha256(raw).hexdigest()
+          sandbox=temp/'ruc-full-admission-sandbox'
+          assert not sandbox.exists()
+          shutil.copytree(original,sandbox,symlinks=False)
+          (sandbox/RECEIPT).unlink()
+          core,core_bytes=verify_snapshot(sandbox)
+          assert core_bytes==raw,'isolated source differs from original manifest'
+          # The already-published snapshot has legacy optional cropped maps.
+          # Verify every original object first, then reconstruct only an
+          # *isolated* pre-map manifest from immutable, untouched core/EPS data.
+          # This is a test-only source state, NOT a mutating production upgrade.
+          oldmap=core.get('rucModelFields')
+          assert oldmap and oldmap.get('key','').endswith('/ruc-model-fields/index.json')
+          prefix=oldmap['key'][:oldmap['key'].rfind('/')+1]
+          maprows=[row for row in core['pages']['objects'] if row['key'].startswith(prefix)]
+          assert len(maprows)>=7 and any(row['key']==oldmap['key'] for row in maprows)
+          assert all(row['key'].startswith('runs/') for row in maprows)
+          from ruc_map_candidate import compact
+          derived=json.loads(core_bytes)
+          del derived['rucModelFields']
+          derived['pages']['objects']=[row for row in derived['pages']['objects']
+                                       if not row['key'].startswith(prefix)]
+          derived['pages']['publishedBytes']=sum(row['bytes'] for row in derived['pages']['objects'])
+          assert derived['pages']['publishedBytes']<core['pages']['publishedBytes']
+          for row in maprows:
+              victim=sandbox/row['key']
+              assert victim.is_file() and not victim.is_symlink()
+              victim.unlink()
+          (sandbox/'latest.json').write_bytes(compact(derived))
+          reconstructed,reconstructed_bytes=verify_snapshot(sandbox)
+          assert reconstructed==derived
+          assert reconstructed['migration']==m['migration']
+          assert all((sandbox/row['key']).is_file() for row in reconstructed['pages']['objects'])
+          assert reconstructed['deterministic']==m['deterministic']
+          assert reconstructed['lookup']==m['lookup']
+          core_baseline={row['key']:(row['bytes'],row['sha256'])
+                         for row in reconstructed['pages']['objects']}
+          print('Read-only isolated pre-map reconstruction: removed legacy map rows:',
+                len(maprows),'remaining SHA-verified core/EPS rows:',len(core_baseline))
+          source=temp/'ruc-real-full-domain'/'source'
+          assert (source/'deterministic.bin').is_file() and (source/'lookup.bin').is_file()
+          proof=admit(sandbox,source,temp/'ruc-full-published-candidate')
+          admitted,manifest_bytes=verify_snapshot(sandbox)
+          assert admitted.get('rucModelFields') is not None
+          assert proof['sourceRawUnchanged'] is True and proof['codecProofUnchanged'] is True
+          assert proof['fullNativeLookupAudited'] is True
+          assert proof['mapHours']==27 and proof['coreHours'] in (14,27)
+          assert proof['finalPhysicalBytes']==admitted['pages']['publishedBytes']+len(manifest_bytes)
+          assert proof['finalPhysicalBytes']<900_000_000
+          index=json.loads((sandbox/admitted['rucModelFields']['key']).read_bytes())
+          assert set(index['products'])=={'temperature','pressure','wind','gust','cloud','precipitation'}
+          for kind in ('temperature','pressure','wind','cloud'):
+              assert len(index['products'][kind]['frames'])==28
+          for kind in ('gust','precipitation'):
+              assert len(index['products'][kind]['frames'])==27
+          newobjects={o['key']:(o['bytes'],o['sha256']) for o in admitted['pages']['objects']}
+          assert all(newobjects.get(k)==v for k,v in core_baseline.items()),'original core/EPS object changed in isolated test'
+          report={'schema':'mid.d2.ruc.sandbox-admission-evidence.v1',
+                  'sourceRun':m['run'],'originalManifestSha256':hashlib.sha256(raw).hexdigest(),
+                  'newManifestSha256':hashlib.sha256(manifest_bytes).hexdigest(),
+                  'nativePoints':admitted['pointCount'],
+                  'finalPhysicalBytes':proof['finalPhysicalBytes'],
+                  'addedPhysicalBytes':proof['addedPhysicalBytes'],
+                  'fullNativeLookupAudited':True,'sourceRawUnchanged':True,'codecProofUnchanged':True,
+                  'mapHours':proof['mapHours'],'coreHours':proof['coreHours'],
+                  'productCounts':{k:len(v['frames']) for k,v in index['products'].items()},
+                  'productionPublished':False}
+          destination=temp/'ruc-real-full-domain'/'admission-report.json'
+          destination.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n')
+          print(json.dumps(report,sort_keys=True))
+          PY
+      - name: Retain only numeric/source provenance report, never raw snapshot or field maps
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-ruc-real-admission-evidence
+          if-no-files-found: ignore
+          retention-days: 2
+          path: |
+            ${{ runner.temp }}/ruc-real-full-domain/report.json
+            ${{ runner.temp }}/ruc-real-full-domain/admission-report.json

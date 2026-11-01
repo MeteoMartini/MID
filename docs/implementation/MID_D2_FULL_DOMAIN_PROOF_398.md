@@ -1,0 +1,21 @@
+# MID 18.2.65 – ICON-D2 Vollgebiet, qualifizierter Source-Draft auf Stable .397
+
+## Verified, non-production base
+- main=mid-stable v0.9.85.397 `9627f7a6fc1d71a4ca328f7c3f257c0fac7d0362`; five active GitHub rulesets, 1059 required regression inventory, signed contract/installer chain unchanged.
+- Source head #570 `bd00b529fb85c154409928bce1e6871171421d66`; **31 source paths** were individually checked against the released .397 Git blob predecessor and were all unchanged or new; no rebase/force operations. New authorized research branch v0.9.85.398 with no app version/worker changes until qualification.
+- Other unfinished drafts (#565, #567, #569, #571) are separate. No direct main/stable writes.
+
+## Three consecutive real ICON-D2-RUC runs achieved
+[Read-only run 41295142328](https://github.com/MeteoMartini/MID/actions/runs/41295142328) completed success for real model cycles 2026-11-01 04Z, 05Z and 06Z, 542040 native R19B07 cells, 497675 display lookup cells, 6 products, 28/27 correct frames, +27h coverage. Source/lookup SHA, values and real-zero/NoData are verified. Physical packet sizes projected: 562671318, 563685554, 568569219 bytes, all < 900000000.
+Three real source archive replays are **not** three successful live Cloudflare/Browser/Export readbacks, nor proof of current 60-minute latency.
+
+## Deterministic original DWD-ICON-D2 blocker
+DWD native (germany_icosahedral) original file set: 279 files from 2026-10-31 21Z and 2026-11-01 00Z/03Z, SHA-bound in QA. Exact WMO parameter for TOT_PREC source is 0/1/52, DWD Centre 78, statistics code 1 (accumulation), original `kg m**-2` and 0..lead. Earlier pilot incorrectly assumed code 0/1/8. [QA 41295657656](https://github.com/MeteoMartini/MID/actions/runs/41295657656) identified authentic multiple GRIB messages *inside* a single hourly-named TOT_PREC source: requested time and additional cumulative 15, 30, 45 minute valid times with the identical native grid UUID, 542040 points and matching original run.
+
+A strict pilot-only correction now allows **only** precisely these three additional quarter-hour records in a native DWD TOT_PREC file; it checks GRIB/WMO source, same run/center/UUID/point count/step-type, original UTC dates, exact cumulative interval `0m-Nm`, Section-6 missing bitmap, zero and original extrema per additional message. It does not promote supplementary quarter-hours to a separate hourly forecast product. Ambiguous extra GRIB messages for other parameters fail closed. No masking, zero substitution, interpolation or smoothing.
+
+## Admission test correction (not a production shortcut)
+[QA 41295948355](https://github.com/MeteoMartini/MID/actions/runs/41295948355) failed because a **published, complete source snapshot already contained legacy optional RUC maps** and the authenticated `admit` function correctly prohibits a second map installation. The updated read-only QA first verifies the exact original snapshot and all SHA-inventoried objects. Inside a disjoint temporary directory it reconstructs only a *pre-map baseline* by deleting the precisely inventoried old map-sidecar objects and rewriting only the ephemeral manifest bytes, with unchanged codec/migration/core/EPS/lookup and a second full `verify_snapshot`; then attempts full native map admission with a new SHA prefix and the original source. Any failure is an uncaught failed QA, not a success. This is a test-only reconstruction: there is no live upgrade, worker, Pages or `latest.json` production mutation.
+
+## Release gates still mandatory
+Before enabling native D2 full-domain production: real three-run original deterministic DWD-GRIB native approval, positive full physical `admit` including pressure contours, all six products, 12MB/frame and 350MB map cap, 900MB total budget; actual Pages/Worker/browser, PNG/SVG/widget/export/contour/favorites and iOS responsive checks; all 1059+ regression/38 normative contracts; coherent version mirrors, changelog, SHA-bound source PR, controlled merge, server release ZIP, `install-mid.yml`, Worker/Pages/Finalize and stable SHA promotion. A failed/partial gate is never green. Full native `germany_icosahedral` is different from previous provider-remapped `germany_regular-lat-lon`; do not confuse with RUC.
