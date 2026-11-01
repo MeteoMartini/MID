@@ -16,6 +16,11 @@ from ruc_freshness_shadow_gate import model_time
 SHA=re.compile(r'^[0-9a-f]{64}$')
 NATIVE='c6b12daa91ad64045b26c1b6452a2a20'
 POINTS=542040
+ORIGINAL_FIELDS=('T_2M','TD_2M','RELHUM_2M','PMSL','U_10M','V_10M','VMAX_10M',
+                 'TOT_PREC','CLCT','CLCL','CAPE_ML','CIN_ML')
+NATIVE_FIELDS=('temperature_2m','dew_point_2m','relative_humidity_2m','pressure_msl',
+               'u10','v10','wind_gusts_10m','precipitation_acc','cloud_cover',
+               'cloud_cover_low','cape','convective_inhibition')
 
 
 def source_inventory(report):
@@ -68,7 +73,7 @@ def combine(det,eps):
         raise ValueError('independent data domain reports must not assert other domain')
     def field_leads():
         fields=det.get('finitePointsByFieldAndLead')
-        if not isinstance(fields,dict) or len(fields)!=12:
+        if not isinstance(fields,dict) or set(fields)!=set(NATIVE_FIELDS):
             raise ValueError('twelve original native deterministic fields required')
         for counts in fields.values():
             if (not isinstance(counts,list) or len(counts)!=hours+1 or
@@ -78,6 +83,9 @@ def combine(det,eps):
     left=source_inventory(det);right=source_inventory(eps)
     if left & right or not all(s.startswith('deterministic/') or s.startswith('grid/') for s in left) or not all(s.startswith('eps/TOT_PREC/') for s in right):
         raise ValueError('source group overlap/mismatch')
+    required_prefixes=('grid/CLAT/','grid/CLON/') + tuple('deterministic/'+field+'/' for field in ORIGINAL_FIELDS)
+    if any(not any(path.startswith(prefix) for path in left) for prefix in required_prefixes):
+        raise ValueError('native coordinates or one of twelve original field sources absent')
     if not all(det.get(k) is False for k in ('losslessWirePackingVerified','pagesWorkerAppWidgetExportVerified')):
         raise ValueError('deterministic shadow claimed publish/codec authority')
     if not all(eps.get(k) is False for k in ('losslessWirePackingVerified','pagesWorkerAppWidgetExportVerified')):
