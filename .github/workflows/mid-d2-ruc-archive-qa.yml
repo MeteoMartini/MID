@@ -5,6 +5,12 @@ on:
       - chatgpt/v0.9.85.406-d2-native-full-domain-draft
     paths:
       - '.github/workflows/mid-d2-ruc-archive-qa.yml'
+      - 'tools/ruc/ruc_map_archive_probe.py'
+      - 'tools/ruc/test_ruc_map_archive_probe.py'
+      - 'tools/ruc/ruc_map_candidate.py'
+      - 'tools/ruc/audit_model_domain_coverage.py'
+      - 'tools/ruc/admit_ruc_map_candidate.py'
+      - 'tools/ruc/test_model_domain_coverage.py'
 permissions:
   contents: read
   actions: read
