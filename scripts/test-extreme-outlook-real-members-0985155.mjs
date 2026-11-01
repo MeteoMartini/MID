@@ -49,6 +49,21 @@ assert.deepEqual(Array.from(shorter.periods,p=>p.id),['48-72','72-96','96-120'],
 // End-to-end concurrent-batch integrity: a newly started EPS run must not
 // silently shift timestamps of individual cells from an older run.
 const totalGridPoints=vm.runInContext("dachExtremeGrid('fallback').points.filter(p=>p.row%2===0&&p.col%2===0).length",context);
+// A short first successful group cannot shorten the entire valid horizon.
+if(totalGridPoints>16){
+ context.__shortFirstBatch=0;
+ context.__mock=async input=>{
+  const batch=++context.__shortFirstBatch;
+  return new URL(input).searchParams.get('latitude').split(',').map(()=>{
+   const row=structuredClone(fixture);
+   if(batch===1)for(const [key,value] of Object.entries(row.hourly))if(Array.isArray(value))row.hourly[key]=value.slice(0,120);
+   return row;
+  });
+ };
+ vm.runInContext('dachExtremeOutlookCache.clear();dachExtremeFetchJson=__mock',context);
+ const longMajority=await vm.runInContext('dachExtendedExtremeOutlookData()',context);
+ assert.equal(longMajority.periods.length,5,'Ein kurzes Originalpaket darf den längeren real verfügbaren Prognosehorizont nicht abschneiden.');
+}
 context.__mixBatch=0;
 context.__mock=async input=>{
  const batch=++context.__mixBatch;
