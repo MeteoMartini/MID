@@ -56,5 +56,46 @@ try{
  assert.ok(route.includes('className="route-mode-toggle" role="group"'),'pressed route-map mode buttons are not unimplemented tabs');
  const totals=await readFile('src/PrecipitationTotalsMap.tsx','utf8'),extreme=await readFile('src/ExtremeWeatherOutlookPanel.tsx','utf8');assert.ok(totals.includes('data?.frames.find(item=>item.hours===requestedHours)??data?.frames[0]'));assert.ok(!totals.includes('setHours(current=>result.frames'));assert.ok(!extreme.includes('if(!result.periods.some(period=>period.id===periodId))setPeriodId'));
  for(const file of ['App','ClimatePanel','ExtremeWeatherOutlookPanel','LongRangeModelComparison','LongRangePanel','PrecipitationTotalsMap','RouteWeatherPanel','UnifiedWeatherMap','WaterSportsPanel'])assert.ok((await readFile(`src/${file}.tsx`,'utf8')).includes('useDisplayPreference'));
+
+ const storageSource=await readFile('src/forecastDetailStorage.ts','utf8');
+ await build({stdin:{contents:storageSource,loader:'ts'},outfile:join(dir,'forecast-storage.mjs'),format:'esm',platform:'node'});
+ const {initialForecastDetailsOpen:readForecastOpen}=await import(pathToFileURL(join(dir,'forecast-storage.mjs')));
+ assert.equal(readForecastOpen(true,()=>{throw Error('denied')}),true,'hourly remains open');
+ assert.equal(readForecastOpen(false,()=>{throw Error('denied')}),false,'blocked daily storage cannot crash render');
+ assert.equal(readForecastOpen(false,()=> '1'),true,'legacy open');
+ assert.equal(readForecastOpen(false,()=> '0'),false,'legacy closed');
+ assert.equal(readForecastOpen(false,()=> null),false,'missing is closed');
+ assert.ok(app.includes('initialForecastDetailsOpen(hourlyDetailOnly)'),'Actual Forecast must use safe reader');
+ assert.ok(comparison.includes('strokeDasharray={item.dash||undefined}'),'legend must reuse exact line dash');
+ assert.ok(comparison.includes('<svg aria-hidden="true" focusable="false" viewBox="0 0 27 10"'),'legend SVG should be decorative');
+
+
+ const layoutStart=app.indexOf('function initialLayoutMode():LayoutMode{'),layoutEnd=app.indexOf('\nfunction collapseStoredStandardModules()',layoutStart);
+ const orderStart=app.indexOf('function readFavoriteOrderSnapshot('),orderEnd=app.indexOf('\nfunction applyFavoriteOrder(',orderStart);
+ assert.ok(layoutStart>0&&layoutEnd>layoutStart&&orderStart>0&&orderEnd>orderStart,'real app layout/order readers found');
+ const protectedReaders=[
+  "type LayoutMode='advanced'|'standard';",
+  "const LAYOUT_MODE_STORAGE_KEY='layout-test';",
+  "const FAVORITES_ORDER_KEY='favorites-order-test';",
+  "type FavoriteOrderSnapshot={ids:string[];updatedAt:string};",
+  app.slice(layoutStart,layoutEnd),
+  app.slice(orderStart,orderEnd),
+  'export {initialLayoutMode,readFavoriteOrderSnapshot};'
+ ].join('\n');
+ await build({stdin:{contents:protectedReaders,loader:'ts'},outfile:join(dir,'safe-readers.mjs'),format:'esm',platform:'node'});
+ const {initialLayoutMode:readLayout,readFavoriteOrderSnapshot:readOrder}=await import(pathToFileURL(join(dir,'safe-readers.mjs')));
+ globalThis.localStorage={getItem(){throw Error('storage denied')}};
+ assert.equal(readLayout(),'standard','layout mode must not throw for denied storage');
+ assert.equal(readOrder(),null,'favorite ordering must not throw for denied storage');
+ const savedFavoriteOrder=JSON.stringify({ids:['b','a','b'],updatedAt:'2026-11-01T10:00:00Z'});
+ globalThis.localStorage={getItem:key=>key==='layout-test'?'advanced':key==='favorites-order-test'?savedFavoriteOrder:null};
+ assert.equal(readLayout(),'advanced','stored advanced layout preserved');
+ assert.deepEqual(readOrder(),{ids:['b','a'],updatedAt:'2026-11-01T10:00:00Z'},'stored order deduplicated and preserved');
+ globalThis.localStorage={getItem:key=>key==='layout-test'?'full':null};
+ assert.equal(readLayout(),'advanced','legacy full mode preserved');
+ globalThis.localStorage={getItem(){throw Error('denied')}};
+ assert.deepEqual(readOrder(savedFavoriteOrder),{ids:['b','a'],updatedAt:'2026-11-01T10:00:00Z'},'explicit snapshot must not require storage');
+ assert.equal(readOrder('{invalid'),null,'malformed favorite order ignored');
+
  console.log('PASS return-state contracts: raw legacy keys, climate location swaps, concurrent model metrics, invalid input, blocked storage bridge, keyboard semantics, legacy migration, exact booleans, precipitation types, stable object snapshots, concurrent panels, scoped legends/resolution, event cleanup and non-destructive availability fallback');
 }finally{globalThis.localStorage=oldStorage;globalThis.window=oldWindow;delete globalThis.__midReturnMemory;await rm(dir,{recursive:true,force:true})}
