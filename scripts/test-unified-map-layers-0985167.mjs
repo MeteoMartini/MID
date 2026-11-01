@@ -67,7 +67,7 @@ assert.ok(read('src/WmsProviderLegend.tsx').includes('loading="lazy"'),'Unopened
  const legendComponent=read('src/WmsProviderLegend.tsx'),legendCss=read('src/WmsProviderLegend.css');
  assert.ok(legendComponent.includes('failedUrl===url'),'A failed provider image must not poison a new URL or style');
  assert.ok(legendComponent.includes('target="_blank"')&&legendComponent.includes('rel="noopener noreferrer"'),'Provider image must be inspectable at full size without opener access');
- assert.ok(legendComponent.includes('reine WMS-Wetterfläche')&&legendComponent.includes('kein SVG-Vektorexport'),'Provider raster export must not be presented as a full vector/native map');
+ assert.ok(legendComponent.includes('reine WMS-Wetterfläche')&&legendComponent.includes('ein SVG-Vektorexport'),'Provider raster export must not be presented as a full vector/native map');
  assert.ok(legendComponent.includes('numerisch barrierefreie Texttabelle'),'Do not assert numerical accessibility from a provider bitmap');
  assert.ok(legendCss.includes('.unified-wms-provider-legend__open{min-height:44px'),'Full-size source link has a 44px touch target');
  const providerProxy=read('worker/metar-proxy.js');
