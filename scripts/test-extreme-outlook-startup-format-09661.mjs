@@ -54,7 +54,7 @@ assert.deepEqual(evidence.rainEvidenceDisplay({rainMm:4,windowHours:3,rucPrecipi
 assert.ok(panel.includes("terrainElevationLabel(value:unknown)"),'Terrain elevation must explicitly preserve Missing rather than render 0 m');
 assert.ok(panel.includes("rainEvidenceDisplay(metric)"),'Real precipitation evidence display must use strict value guards');
 assert.ok(panel.includes("evidenceRate(metric.snowCm"),'Missing snowfall evidence must not be formatted as 0 cm');
-assert.ok(!/Number\\(metric\\.[A-Za-z0-9_]+\\)\\|\\|0/.test(panel),'Known null-to-zero metric fallback must not return');
+assert.ok(!/Number\(metric\.[A-Za-z0-9_]+\)\|\|0/.test(panel),'Known null-to-zero metric fallback must not return');
 assert.ok(panel.includes("RUC-EPS Kurzfrist-Ensemble")&&panel.includes("EPS-Streuung Akkumulation"),'RUC/EPS supporting evidence must remain visible');
 console.log('MID design audit: NoData != 0 for all numeric RUC/EPS/extreme evidence display paths verified.');
 
