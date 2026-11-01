@@ -1,3 +1,10 @@
+# MID v0.9.85.398 – RUC-Verfügbarkeit transparent messen und native Kurzfristqualifikation vorbereiten
+
+- **RUC-Beobachtungen eindeutig kennzeichnen:** Jede DWD-Verfügbarkeitsprüfung unterscheidet tatsächlich gemessene Verzeichnisstände, unvollständige Pages-/Worker-Prüfungen und wegen eines Releasewechsels ausgelassene Messungen. Ein grüner CI-Lauf ohne Stichprobe ist kein Datenbeleg. Fehlerhafte oder fehlende Messwerte werden niemals zu 0.
+- **0–6h-RUC nativ prüfen:** Eine neue, bewusst inaktive manuelle DWD-Qualifikation bereitet die originalen stündlichen Prognosefelder, 5-min-Niederschlags- und 15-min-Konvektionsdaten vor. Native Gitter, Quelllauf, GRIB/Bitmap, Feld-/Einheitenvertrag, Akkumulation, SHA-Identität, Datenlücken und Budget werden geprüft; ohne Echtdaten-Probelauf keine Produktionsfreigabe.
+- **Doppelläufe vermeiden und Laufzeiten ehrlich bewerten:** Die zusätzliche *rein lesende* Entscheidung verwirft unter anderem veraltete Angebote, ungültige DWD-Fingerprints und bereits laufende Produktionen. Zeitmessungen trennen belegte Schritte von nicht zugeordneter Laufzeit. Ein produktiver, gemeinsamer Single-Flight-Lock und echte A/B-Beschleunigung bleiben ausdrücklich offen.
+- **Bestehende Prognose und Warnungen unverändert:** Die 27-Stunden-RUC mit 20 EPS-Mitgliedern, App-Fusion, amtliche Warnungen, Widgets, Karten und Exporte verwenden weiterhin ausschließlich den bisherigen freigegebenen Datenpfad. Kein Fast-Publisher und keine zusätzliche kostenpflichtige Infrastruktur werden aktiviert. Ein 60-Minuten-P95- oder 168-Stunden-Clientnachweis wird nicht behauptet.
+
 # MID v0.9.85.397 – Extremwetter-Datenlücken nicht mehr als Nullwerte anzeigen
 
 - Fehlende Extremwetter- und RUC-/EPS-Modellkennwerte werden als „nicht verfügbar“ statt etwa als 0 mm, 0 cm, 0 km/h oder 0 J/kg angezeigt. Echte Nullwerte bleiben erhalten.

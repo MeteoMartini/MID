@@ -1,0 +1,115 @@
+name: MID RUC 0-6h isolated native fast qualification (never publishes)
+on:
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'auto or exact DWD run YYYY-MM-DDTHH:00 UTC; no production publication'
+        required: true
+        default: auto
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-fast-native-qualification
+  cancel-in-progress: false
+jobs:
+  qualify:
+    if: ${{ vars.MID_RUC_PIPELINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Released MID Stable source only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify exact Stable/Main lineage before real DWD work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          checked="$(git rev-parse HEAD)"
+          main="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq .object.sha)"
+          stable="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/mid-stable" --jq .object.sha)"
+          if [ "$checked" != "$stable" ] || [ "$checked" != "$main" ]; then
+            echo '::error::MID Stable/Main drift. No provider downloads permitted.'
+            exit 1
+          fi
+      - name: Set up native Python and ecCodes
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install pinned MID native RUC dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libeccodes-tools
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Fail-closed offline fast producer, pointer and selector tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/test_ruc_fast_run_selector.py -v
+          python tools/ruc/test_ruc_fast_lane_producer.py -v
+          python tools/ruc/test_ruc_fast_pointer_staging.py -v
+      - name: Select exact run independently of EPS availability
+        id: choice
+        shell: bash
+        env:
+          REQUESTED_RUN: ${{ inputs.run }}
+        run: |
+          set -euo pipefail
+          if [ "$REQUESTED_RUN" = auto ]; then
+            python tools/ruc/ruc_fast_run_selector.py --github-output "$GITHUB_OUTPUT"
+          else
+            python - "$REQUESTED_RUN" <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('tools/ruc').resolve()))
+          from ruc_fast_lane_producer import canonical_run
+          canonical_run(sys.argv[1])
+          PY
+            echo "run=$REQUESTED_RUN" >> "$GITHUB_OUTPUT"
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build authentic 0-6h deterministic and 5/15min native GRIBs
+        if: steps.choice.outputs.ready == 'true'
+        shell: bash
+        env:
+          FAST_RUN: ${{ steps.choice.outputs.run }}
+          MID_RUC_DOWNLOAD_WORKERS: '4'
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_lane_producer.py --run "$FAST_RUN" --stage .ruc-fast-grib-staging --output .ruc-fast-candidate
+          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-candidate --output .ruc-fast-shadow
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from ruc_fast_lane_producer import verify_candidate_manifest
+          from ruc_fast_pointer_staging import strict_budget,count_files
+          root=Path('.ruc-fast-candidate')
+          meta=json.loads((root/'fast-candidate.json').read_text())
+          assert verify_candidate_manifest(meta,root)=={'verifiedLocalBytes':True,'publicationAuthorized':False}
+          pointer=json.loads(next(Path('.ruc-fast-shadow').rglob('latest.json')).read_text())
+          assert pointer['publicationAuthorized'] is False
+          assert pointer['productionEnabled'] is False
+          assert pointer['realtimeConsumerEnabled'] is False
+          assert pointer['consumerAdoptionVerified'] is False
+          assert strict_budget(0,count_files(Path('.ruc-fast-shadow')))>0
+          print('Verified immutable 0-6h fast shadow; not published, not an app consumer.')
+          PY
+      - name: Store ONLY immutable inactive short-lived diagnostic artifact
+        if: steps.choice.outputs.ready == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-fast-native-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ruc-fast-shadow/
+          retention-days: 2
+          if-no-files-found: error
+          compression-level: 1
+      - name: Confirm no publish when no complete candidate is available
+        if: steps.choice.outputs.ready != 'true'
+        run: echo 'No complete native 0-6h directory candidate; no staging, no missing-to-zero, no publication.' >> "$GITHUB_STEP_SUMMARY"
