@@ -103,14 +103,31 @@ export function formatDwdWarningDetail(signal:DwdWarningSignal,unit:DwdDisplayWi
  if(signal.kind==='ice'&&signal.unit==='°C')return`Niederschlag bei ${rounded(signal.value)} °C: Glätte möglich.`;
  return withoutWarningStage(signal.detail.replace(/(-?\d+)[,.]\d+/g,'$1'));
 }
-function finite(value:unknown,fallback=0){const number=Number(value);return Number.isFinite(number)?number:fallback}
+function finite(value:unknown,fallback=0){if(value===null||value===undefined||typeof value==='string'&&value.trim()==='')return fallback;const number=Number(value);return Number.isFinite(number)?number:fallback}
+/** Missing accumulation is unknown, never a verified dry hour. */
+function nonnegativeAmount(value:unknown){return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:Number.NaN}
 function forwardValues(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const count=Math.max(1,Math.round(hours));return samples.slice(index,index+count).map(selector)}
-function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector),epochs=rows.map(warningSampleEpoch),timed=epochs.some(Number.isFinite);if(values.length<hours||timed&&(!epochs.every(Number.isFinite)||epochs.some((epoch,i)=>i>0&&Math.abs(epoch-epochs[i-1]-3600000)>5*60000)))return Number.NaN;return values.reduce((sum,value)=>sum+Math.max(0,finite(value)),0)}
-function forwardMax(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length?Math.max(...values):Number.NaN}
-function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const values=forwardValues(samples,index,hours,selector).filter(Number.isFinite);return values.length>=hours?Math.min(...values):Number.NaN}
-function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const values=forwardValues(samples,index,hours,sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return values.length>=hours&&values.every(value=>value<threshold)}
-function liquidPrecipitation(sample:DwdWarningSample){const explicit=Math.max(0,finite(sample.rain))+Math.max(0,finite(sample.showers));if(explicit>0)return explicit;const code=finite(sample.code,-1);return[51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)?Math.max(0,finite(sample.precipitation)):0}
-function snowfall(sample:DwdWarningSample){return Math.max(0,finite(sample.snowfall))}
+/** Known sample epochs must prove consecutive hours; a missing timestamp cannot bridge a known gap. */
+function completeHourlyWarningWindow(rows:DwdWarningSample[],hours:number){
+ if(rows.length<hours)return false;
+ const epochs=rows.map(warningSampleEpoch),timed=epochs.some(Number.isFinite);
+ return !timed||epochs.every(Number.isFinite)&&epochs.every((epoch,index)=>index===0||Math.abs(epoch-epochs[index-1]-3600000)<=5*60000);
+}
+function forwardSum(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector);if(!completeHourlyWarningWindow(rows,hours)||values.some(value=>!Number.isFinite(value)||value<0))return Number.NaN;return values.reduce((sum,value)=>sum+value,0)}
+function forwardMax(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours&&values.every(Number.isFinite)?Math.max(...values):Number.NaN}
+function forwardMin(samples:DwdWarningSample[],index:number,hours:number,selector:(sample:DwdWarningSample)=>number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(selector).filter(Number.isFinite);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours?Math.min(...values):Number.NaN}
+function forwardAllBelow(samples:DwdWarningSample[],index:number,hours:number,threshold:number){const rows=samples.slice(index,index+Math.max(1,Math.round(hours))),values=rows.map(sample=>finite(sample.temperature,Number.NaN)).filter(Number.isFinite);return completeHourlyWarningWindow(rows,hours)&&values.length>=hours&&values.every(value=>value<threshold)}
+function liquidPrecipitation(sample:DwdWarningSample){
+ const rain=nonnegativeAmount(sample.rain),showers=nonnegativeAmount(sample.showers),total=nonnegativeAmount(sample.precipitation),code=finite(sample.code,-1);
+ const explicit=rain+showers;
+ if(Number.isFinite(explicit)&&explicit>0)return explicit;
+ // Keep the original wet-code fallback only when its total is an actual number.
+ if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return total;
+ if(Number.isFinite(explicit))return explicit;
+ // A verified zero total is dry even if some phase components are absent.
+ return total===0?0:Number.NaN;
+}
+function snowfall(sample:DwdWarningSample){return nonnegativeAmount(sample.snowfall)}
 export function dwdWindThresholdExceededKmh(kmh:number,threshold:number){return threshold===50||threshold===140?kmh>threshold:kmh>=threshold}
 export function dwdWindWarningLevelKmh(kmh:number):0|DwdWarningLevel{if(!Number.isFinite(kmh))return 0;let level:0|DwdWarningLevel=0;for(const item of DWD_WIND_THRESHOLDS_KMH)if(dwdWindThresholdExceededKmh(kmh,item.threshold))level=Math.max(level,item.level) as DwdWarningLevel;return level}
 export function dwdWindWarningLevelKt(kt:number):0|DwdWarningLevel{return dwdWindWarningLevelKmh(Number(kt)*KMH_PER_KT)}
@@ -146,7 +163,7 @@ function snowWindowSignals(samples:DwdWarningSample[],index:number,elevation:num
  return[...best.values()].sort((a,b)=>a.level-b.level);
 }
 function snowdriftSignals(samples:DwdWarningSample[],index:number){
- const snow6=forwardSum(samples,index,6,snowfall),snow24=forwardSum(samples,index,24,snowfall),gust6=forwardMax(samples,index,6,sample=>finite(sample.gust)*KMH_PER_KT),signals:DwdWarningSignal[]=[];
+ const snow6=forwardSum(samples,index,6,snowfall),snow24=forwardSum(samples,index,24,snowfall),gust6=forwardMax(samples,index,6,sample=>finite(sample.gust,Number.NaN)*KMH_PER_KT),signals:DwdWarningSignal[]=[];
  if(snow6>=5&&gust6>=39)signals.push({kind:'snowdrift',level:2,title:'Schneeverwehung',symbol:'🌬',detail:`${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:2});
  if(snow6>10&&gust6>=65)signals.push({kind:'snowdrift',level:3,title:'Starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow6)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:6,secondaryValue:snow6,secondaryUnit:'cm',stageRank:3});
  if(snow24>25&&gust6>=65)signals.push({kind:'snowdrift',level:4,title:'Extrem starke Schneeverwehung',symbol:'🌬',detail:`Über ${Math.round(snow24)} cm Neuschnee und Böen bis ${Math.round(gust6)} km/h.`,value:gust6,unit:'km/h',windowHours:24,secondaryValue:snow24,secondaryUnit:'cm',stageRank:4});
@@ -170,7 +187,7 @@ function heatSignal(samples:DwdWarningSample[],index:number){const sample=sample
 export function dwdWarningSignalsAt(samples:DwdWarningSample[],index:number,elevation=0){
  const sample=samples[index];if(!sample)return[] as DwdWarningSignal[];
  const signals:DwdWarningSignal[]=[];
- const gustKmh=finite(sample.gust)*KMH_PER_KT,rawWindDirection=Number.isFinite(Number(sample.windDirection))?Number(sample.windDirection):Number.isFinite(Number(sample.direction))?Number(sample.direction):Number.NaN,windDirection=Number.isFinite(rawWindDirection)?normaliseWindDirection(rawWindDirection):undefined,windClasses=windClassifications(gustKmh),windSignals=windClasses.map(windClass=>({kind:'wind',level:windClass.level,title:windClass.label,symbol:'💨',detail:`${windClass.label} bis ${Math.round(gustKmh)} km/h.`,value:gustKmh,unit:'km/h',windDirection,stageRank:windClass.stageRank,thresholdValue:windClass.threshold} satisfies DwdWarningSignal)),wind=windSignals.at(-1)??null;
+ const gustKmh=finite(sample.gust)*KMH_PER_KT,rawWindDirection=Number.isFinite(finite(sample.windDirection,Number.NaN))?finite(sample.windDirection,Number.NaN):finite(sample.direction,Number.NaN),windDirection=Number.isFinite(rawWindDirection)?normaliseWindDirection(rawWindDirection):undefined,windClasses=windClassifications(gustKmh),windSignals=windClasses.map(windClass=>({kind:'wind',level:windClass.level,title:windClass.label,symbol:'💨',detail:`${windClass.label} bis ${Math.round(gustKmh)} km/h.`,value:gustKmh,unit:'km/h',windDirection,stageRank:windClass.stageRank,thresholdValue:windClass.threshold} satisfies DwdWarningSignal)),wind=windSignals.at(-1)??null;
  const rainSignals=rainWindowSignals(samples,index),rain=rainSignals.at(-1)??null,snowSignals=snowWindowSignals(samples,index,elevation),driftSignals=snowdriftSignals(samples,index),iceRows=iceSignals(sample),fog=fogSignal(sample),heat=heatSignal(samples,index);
  signals.push(...windSignals,...rainSignals,...snowSignals,...driftSignals,...iceRows);if(fog)signals.push(fog);if(heat)signals.push(heat);
  signals.push(...thunderSignals(sample,wind,rain));
