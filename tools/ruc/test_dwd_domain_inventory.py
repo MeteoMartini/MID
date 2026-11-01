@@ -86,6 +86,16 @@ class DomainInventoryTests(unittest.TestCase):
    extra2.append(dict(first2,endStep=minute,stepRange=f'0m-{minute}m',
                       validityDate=int(dt.strftime('%Y%m%d')),validityTime=int(dt.strftime('%H%M'))))
   self.assertEqual(validate_dwd_precipitation_extra_headers(later,first2,extra2),[75,90,105])
+  first_hour=dict(first2,stepUnits='1',endStep=1,stepRange='0h-1h',
+                  indicatorOfUnitOfTimeRange=1)
+  self.assertEqual(validate_dwd_precipitation_extra_headers(later,first_hour,extra2),[75,90,105])
+  bad=dict(first_hour,endStep=2)
+  with self.assertRaisesRegex(ValueError,'axis drift'):
+   validate_dwd_precipitation_extra_headers(later,bad,extra2)
+  bad=dict(first_hour,validityTime=200)
+  with self.assertRaisesRegex(ValueError,'axis drift'):
+   validate_dwd_precipitation_extra_headers(later,bad,extra2)
+
  def test_dwd_local_total_precipitation_requires_cumulative_mass_not_rate(self):
   row={'model':'icon-d2','parameter':'tot_prec','run':'20261101T0300','leadHours':6,'wmoParameter':[0,1,52]}
   assert_dwd_native_total_precipitation(row,78,'kg m**-2',1,0,6)

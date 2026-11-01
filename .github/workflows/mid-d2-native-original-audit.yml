@@ -5,6 +5,8 @@ on:
       - chatgpt/v0.9.85.398-d2-native-full-domain
     paths:
       - '.github/workflows/mid-d2-native-original-audit.yml'
+      - 'tools/ruc/pilot_dwd_domain_inventory.py'
+      - 'tools/ruc/test_dwd_domain_inventory.py'
 permissions:
   contents: read
 concurrency:
@@ -52,7 +54,7 @@ jobs:
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "${{ steps.cycle.outputs.last }}" --output "$RUNNER_TEMP/d2-originals" --download
-      - name: Three real DWD runs – decode original GRIB subhour UTC validity, interval and grid headers (fail-closed)
+      - name: Three original DWD cycles – minute/hour GRIB validity and strict bitmap admission (fail-closed)
         timeout-minutes: 15
         run: |
           python tools/ruc/pilot_dwd_domain_inventory.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" > "$RUNNER_TEMP/d2-originals/original-grib-inventory.json"

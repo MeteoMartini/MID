@@ -100,10 +100,22 @@ def validate_dwd_precipitation_extra_headers(record, first, extra):
             'dataDate','dataTime','gridType','typeOfLevel','level','units',
             'uuidOfHGrid','numberOfGridUsed','numberOfGridInReference',
             'numberOfPoints','typeOfStatisticalProcessing','numberOfTimeRanges')
-    if (first.get('endStep')!=base or str(first.get('stepUnits'))!='0'
-            or first.get('indicatorOfUnitForTimeRange')!=0
-            or first.get('indicatorOfUnitOfTimeRange')!=0):
-        raise ValueError('DWD native first precipitation GRIB minute axis drift')
+    # Original first GRIB can encode its *whole-hour* end step in hours,
+    # while its quarter-hour siblings encode exact elapsed minutes.
+    # Both representations must resolve to the same original UTC validity.
+    first_unit=str(first.get('stepUnits'))
+    expected_first_end=base if first_unit=='0' else record['leadHours'] if first_unit=='1' else None
+    first_valid=run+timedelta(hours=record['leadHours'])
+    first_utc=(int(first_valid.strftime('%Y%m%d')),int(first_valid.strftime('%H%M')))
+    if (expected_first_end is None or first.get('endStep')!=expected_first_end
+            or first.get('startStep')!=0
+            or (first.get('validityDate'),first.get('validityTime'))!=first_utc
+            or first.get('indicatorOfUnitForTimeRange') not in (0,1)
+            or first.get('indicatorOfUnitOfTimeRange') not in (0,1)):
+        raise ValueError('DWD native first precipitation GRIB minute/hour axis drift: '+
+                         json.dumps({'field':record['parameter'],'run':record['run'],
+                                     'leadHours':record['leadHours'],'first':first,
+                                     'expectedValidUTC':list(first_utc)},sort_keys=True))
     for i,header in enumerate(extra,1):
         minute=base+15*i
         when=run+timedelta(minutes=minute)
