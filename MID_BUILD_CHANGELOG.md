@@ -1,3 +1,14 @@
+## MID v0.9.85.394 · 2026-11-01 · Designaudit A4/A5: dauerhafte Ansichtspräferenzen und Screenreader-Zustände
+
+- Live-Stable vor Änderung: v0.9.85.393, `main=mid-stable` SHA `43cb36c07531b8d93418061aa1f075df5f6ac0fc`; fünf aktive Rulesets. Parallel-Drafts #561/#560/#557/#555 unverändert.
+- `ClimatePanel`: tatsächlicher Ortswechsel-Bug beseitigt. Der zuvor beim Mount erfasste Boolean konnte bei neuem Orts-Prop einen anderen gespeicherten Favoritennamen per nachgelagertem `useEffect` überschreiben. Vorhandener standortgebundener Key und `'0'`/`'1'` bleiben erhalten, keinerlei Mount-Write.
+- `LongRangeModelComparison`: historische Parameterwahl wird sofort über den vorhandenen Key statt durch nachgelagerten Effect gespeichert, über mehrere montierte Ansichten aktualisiert, mit `aria-pressed` zugänglich gemacht.
+- `useRawDisplayPreference` benutzt den vorhandenen Durable-Storage-Adapter, stabile primitive `useSyncExternalStore`-Snapshots, funktionale Latest-State-Updates, direkte Schreibvorgänge und Cross-Tab-Änderungsereignisse. Ungültige Werte werden vor Persistenz verworfen; `false` und `0` sind valide.
+- Routenwetter-Kartenmodi sind eine `role=group` mit `aria-pressed` statt einer inkorrekten `role=tablist`.
+- Bereits verpflichtenden `test-display-return-states-0985364.mjs` um dynamische Store-Quelle und adversarielle Orts-/Doppelinstanz-/Fehlwert-/Storage-Bridge-Tests ergänzt. Bestehende 1059 Regressionen/38 Fachverträge nicht reduziert. Meteorologische Werte, Modelle, Quellen, Warnungen, RUC, native und WMS-Karten unverändert.
+- Echte Geräte-/VoiceOver-Abnahme, WMS-Readbacks/-Export, WidgetGenerator-/WeatherMapsPanel-/ForecastCockpit-Inventur und restliche #508/#523-Bereiche bleiben dokumentiert offen.
+- Quellkandidat v0.9.85.394, iOS Build 395. Release ausschließlich nach Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Finalize-/Stable-Gates.
+
 ## MID v0.9.85.392 · 2026-11-01 · Designaudit #523: WMS-Legenden und transparentes Exportverhalten
 
 - Verifizierte Ausgangsbasis: veröffentlicht v0.9.85.391, `main=mid-stable` SHA `79b3a8cb995f780c863d6f4b1762155f80e09a15`, fünf aktive Rulesets; Source-Gate #41275254803 und Installer #41276158578 erfolgreich.
