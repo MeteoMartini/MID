@@ -17,6 +17,8 @@ assert.ok(baseline.regressionTests?.includes(test));
 
 assert.ok(modules.includes("|'extreme-outlook'"));
 assert.ok(modules.includes("{id:'extreme-outlook',label:'Extremwetter-Ausblick'"));
+assert.ok(!panel.includes('className="extreme-map" role="img"'),'Interactive map descendants must not be hidden inside a black-box img role.');
+assert.ok(panel.includes('className="extreme-map" role="region" aria-label='),'Labeled map landmark must preserve its accessible context.');
 assert.ok(modules.indexOf("id:'warnings'")<modules.indexOf("id:'extreme-outlook'")&&modules.indexOf("id:'extreme-outlook'")<modules.indexOf("id:'short-term'"),'Mitteleuropa-Ausblick muss direkt nach Warnungen und vor Kurzfrist liegen.');
 assert.ok(app.includes("lazy(()=>import('./ExtremeWeatherOutlookPanel'))"));
 assert.ok(app.includes("case'extreme-outlook'"));
@@ -27,7 +29,7 @@ assert.ok(app.includes('unit={unit}'));
 assert.ok(app.includes('timezone={displayTimezone}'));
 
 for(const token of ["'overall'","'thunderstorm'","'rain'","'wind'","'snow'","'ice'",'overviewMin:number','hazardMin:number','extremeExceptionMin:number','timeoutMs:48000','staleIfErrorMs:6*60*60*1000'])assert.ok(data.includes(token),`Client-Datenvertrag fehlt: ${token}`);
-for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="img"','MapFitBounds','GeoJsonLayers','MID Extremwetter-Ausblick · Mitteleuropa','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
+for(const token of ['formatDwdWindValue','formatDisplayDateTime','displayTimeLabel','aria-pressed','role="region"','MapFitBounds','GeoJsonLayers','MID Extremwetter-Ausblick · Mitteleuropa','Eigene MID-Prognose','keine amtliche Warnung','Schwellen, Parameter und Methodik','signalMetricSummary(signal,unit)'])assert.ok(panel.includes(token),`Oberflächenvertrag fehlt: ${token}`);
 for(const token of ['HtmlMarker','areas.map(area=>','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Flächengebundener Kartenmarker fehlt: ${token}`);
 assert.ok(!overlay.includes('Modellierte Gefahrenfläche'),'Modellierte Gefahrenfläche darf im Popup nicht mehr als generische Bezeichnung erscheinen.');
 for(const token of ['buildExtremeOutlookContourSet','displayContours','overlapsStronger'])assert.ok(modelledAreas.includes(token),`Flächengebundene Konturauswahl fehlt: ${token}`);

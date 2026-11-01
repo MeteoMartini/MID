@@ -15,6 +15,8 @@ try{
   const marker=join(dir,'first-start'),recover=join(dir,'fail-first');
   await writeFile(recover,`#!/bin/sh\nprofile=''\nfor arg in "$@"; do case "$arg" in --user-data-dir=*) profile="\${arg#--user-data-dir=}";; esac; done\nif [ ! -f ${quote(marker)} ]; then\n : > ${quote(marker)}\n mkdir -p "$profile"\n : > "$profile/start-fault-sentinel"\n echo MID_SEARCH_FIRST_START_FAULT >&2\n exit 73\nfi\nif [ -f "$profile/start-fault-sentinel" ]; then echo PROFILE_WAS_NOT_RESET >&2; exit 74; fi\nsleep 13\nexec ${quote(real)} "$@"\n`,{mode:0o700});
   const success=run(recover),output=String(success.stdout)+String(success.stderr);assert.equal(success.status,0,output);assert.ok(!success.error);assert.match(output,/Search Chromium startup recovered:.*attempt 1:/);assert.match(output,/MID_SEARCH_FIRST_START_FAULT/);assert.equal((output.match(/^Search \d+×\d+ (?:light|dark):/gm)||[]).length,12,'recovery must execute all real UI cases');assert.ok(!output.includes('PROFILE_WAS_NOT_RESET'),'fresh profile required');
+  const fixture=await (await import('node:fs/promises')).readFile('scripts/test-location-search-layers-0985293.mjs','utf8');
+  assert.ok(fixture.includes("import{mayWarmMapDuringIdle}from'./src/mapIdlePreload'"),'Die reale Map-Idle-Policy muss in der Suchfixture vorhanden sein.');
   console.log('PASS real search browser fault injection: first process fails, profile contamination removed, delayed (>12s) cold start and full 12-case UI matrix succeed; two failed starts remain fatal');
  }
 }finally{await rm(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100})}

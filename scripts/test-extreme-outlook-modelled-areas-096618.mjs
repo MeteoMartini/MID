@@ -19,6 +19,54 @@ try{
  assert.equal(areas.length,2,'Zwei getrennte Konturen dürfen trotz identischer alter Regionsbezeichnung nicht zu einem Listeneintrag verschmelzen.');
  assert.equal(new Set(areas.map(area=>area.id)).size,2,'Jede modellierte Gefahrenfläche benötigt eine stabile eigene ID.');
  assert.ok(areas.every(area=>area.region==='Vorarlberg/Tirol'&&area.signal.probability===area.probability),'Popup-/Listenregion und Wahrscheinlichkeit müssen direkt an dieselbe Kontur gekoppelt sein.');
+
+ const assessmentPath=path.join(tempDir,'extreme-assessment.mjs');
+ await build({entryPoints:[path.join(root,'src','extremeOutlookAssessment.ts')],outfile:assessmentPath,bundle:true,platform:'node',format:'esm',target:'es2022',logLevel:'silent'});
+ const {assessExtremeOutlookPeriod}=await import(pathToFileURL(assessmentPath).href);
+ const actual=assessExtremeOutlookPeriod(data,'0-6','thunderstorm','short');
+ const expectedVisible=cells.filter(cell=>cell.periods['0-6'].hazards.thunderstorm.probability>=data.thresholds.probability.hazardMin).length;
+ assert.equal(actual.visibleCount,expectedVisible,'Einpassige Zählung muss alle wirklichen Schwellenüberschreitungen beibehalten.');
+ assert.equal(actual.assessedCells,cells.length,'Alle vorhandenen Probability-Felder zählen als auswertbar.');
+ assert.equal(actual.assessmentAvailable,true,'Kurzfrist-Admission bleibt unverändert.');
+ const zeroFields={rain:[0,0,0,0],wind:[0,0,0,0],snow:[0,0,0,0]};
+ const zeros={...data,cells:cells.slice(0,4).map(cell=>({...cell,periods:{'0-6':{hazards:{},probabilityFields:{...zeroFields}}}})),grid:{...data.grid,pointCount:4}};
+ const allZero=assessExtremeOutlookPeriod(zeros,'0-6','rain','extended');
+ assert.equal(allZero.visibleCount,0,'Echte Nullwahrscheinlichkeiten erzeugen kein Modellsignal.');
+ assert.equal(allZero.assessedCells,4,'Belegte Null ist Datenverfügbarkeit, nicht Missing.');
+ assert.equal(allZero.assessmentAvailable,true);
+ assert.deepEqual(allZero.unavailableKinds,[],'Belegte Nullfelder für Regen/Wind/Schnee sind auswertbar.');
+ const missingOne=structuredClone(zeros);
+ delete missingOne.cells[0].periods['0-6'].probabilityFields;
+ const partial=assessExtremeOutlookPeriod(missingOne,'0-6','rain','extended');
+ assert.equal(partial.assessedCells,3);
+ assert.equal(partial.assessmentAvailable,true,'75% verfügbare Rasterzellen erfüllen weiterhin exakt den Altvertrag.');
+ const missingTwo=structuredClone(missingOne);
+ delete missingTwo.cells[1].periods['0-6'].probabilityFields;
+ const insufficient=assessExtremeOutlookPeriod(missingTwo,'0-6','rain','extended');
+ assert.equal(insufficient.visibleCount,0);
+ assert.equal(insufficient.assessedCells,2);
+ assert.equal(insufficient.assessmentAvailable,false,'50% Datenabdeckung darf keine falsche Entwarnung ergeben.');
+ assert.deepEqual(insufficient.unavailableKinds,['rain','wind','snow']);
+
+ const empty={...zeros,cells:[],grid:{...zeros.grid,pointCount:0}};
+ const invalid=assessExtremeOutlookPeriod(empty,'0-6','rain','extended');
+ assert.equal(invalid.assessmentAvailable,false,'Leeres Raster darf bei 65% Mindestabdeckung niemals als vollständiger Nullbefund gelten.');
+ assert.deepEqual(invalid.unavailableKinds,['rain','wind','snow'],'Ohne positiven Rasterumfang sind alle Ensemblegefahren unbestimmbar.');
+ const mixed=structuredClone(zeros);
+ delete mixed.cells[0].periods['0-6'].probabilityFields.snow;
+ delete mixed.cells[1].periods['0-6'].probabilityFields.snow;
+ assert.deepEqual(assessExtremeOutlookPeriod(mixed,'0-6','overall','extended').unavailableKinds,['snow'],'Partielle Gefahrabdeckung bleibt einzeln sichtbar.');
+
+ const corrupt=structuredClone(zeros);
+ corrupt.cells[0].periods['0-6'].probabilityFields.rain=[null,null,null,null];
+ corrupt.cells[1].periods['0-6'].probabilityFields.rain=[Number.NaN,Number.POSITIVE_INFINITY,-1,120];
+ const rejected=assessExtremeOutlookPeriod(corrupt,'0-6','rain','extended');
+ assert.equal(rejected.assessedCells,2,'Zwei ungültige Vier-Level-Felder dürfen nicht zur Coverage addiert werden.');
+ assert.equal(rejected.assessmentAvailable,false,'Korruptes Wahrscheinlichkeitfeld ist Missing, nicht Trockenheit.');
+ assert.deepEqual(rejected.unavailableKinds,['rain'],'Beteiligte andere vollständig valide Gefahren müssen auswertbar bleiben.');
+ const shorter=structuredClone(zeros);
+ shorter.cells[0].periods['0-6'].probabilityFields.rain=[0,0];
+ assert.equal(assessExtremeOutlookPeriod(shorter,'0-6','rain','extended').assessedCells,3,'Unvollständiges Level-Tupel darf nicht als vollständige Ensembleabdeckung zählen.');
 }finally{fs.rmSync(tempDir,{recursive:true,force:true})}
 
 const panel=fs.readFileSync(path.join(root,'src','ExtremeWeatherOutlookPanel.tsx'),'utf8');
@@ -35,5 +83,8 @@ for(const token of ['strongestModelledRegionAreas(buildExtremeOutlookContourSet(
 for(const token of ['areas.map(area=>','escapeHtml(area.region)','hazardLabel(area.signal.hazard)'])assert.ok(overlay.includes(token),`Flächengebundenes Popup fehlt: ${token}`);
 for(const region of ['Wallis','Zentralschweiz','Tessin','Graubünden','Vorarlberg','Tirol'])assert.ok(worker.includes(`['${region}'`),`Alpenregion fehlt: ${region}`);
 assert.ok(!panel.includes('strongestExtremeRegions('),'Die Ansicht darf räumlich getrennte Flächen nicht mehr nach Regionsnamen deduplizieren.');
+assert.ok(panel.includes('assessment=useMemo(()=>data&&selectedPeriod?assessExtremeOutlookPeriod(data,selectedPeriod.id,hazard,range)'), 'Rasterabdeckung muss auf Daten-/Zeit-/Gefahr-Identität memoisiert sein.');
+assert.ok(panel.includes('assessment?.assessmentAvailable?buildMapData(data,selectedPeriod.id,hazard,unit)'), 'Nicht auswertbare Felder dürfen keine unnötigen Karte-Geometrien bauen.');
+assert.ok(!panel.includes('visibleCells=useMemo(')&&!panel.includes('const assessedCells=data.cells.filter('), 'Alte wiederholte Vollraster-Durchläufe dürfen nicht parallel aktiv bleiben.');
 
 console.log('MID 0.9.66.18: getrennte Gefahrenflächen, eindeutige Listeneinträge und passende Regionsnamen in Karten-Popups geprüft.');
