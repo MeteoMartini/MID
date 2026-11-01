@@ -112,3 +112,11 @@ html .unified-weather-map.unified-weather-map .radarlegend-toggle{max-width:min(
 html .unified-weather-map.unified-weather-map .radarlegend-toggle span{min-width:0}
 html .unified-weather-map.unified-weather-map .radarlegend-toggle small{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.25;font-size:11px}
 @media(max-width:390px){html .unified-weather-map.unified-weather-map .radarlegend-toggle{max-width:195px}html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composite-switch.compact{padding:5px!important}}
+
+/* Keep the disclosure grid usable on small phones without narrowing touch targets. */
+@media(max-width:560px){
+ html .unified-weather-map.unified-weather-map .composite-extra-layer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:360px){
+ html .unified-weather-map.unified-weather-map .composite-extra-layer-grid{grid-template-columns:minmax(0,1fr)}
+}
