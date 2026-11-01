@@ -1,0 +1,18 @@
+{
+  "version": "0.9.85.405",
+  "date": "2026-11-01",
+  "title": "Extremwetter-Vorhinweise Tag 3–7 schneller und fehlertoleranter",
+  "external": [
+    "ICON-EPS-Langfrist-Rasterabrufe laufen in maximal zwei kontrollierten Teilgruppen gleichzeitig, statt in langen seriellen Ketten.",
+    "Schon vollständig validierte ältere Vorhinweise bleiben bei einer Aktualisierung sichtbar; ältere Stände tragen eine klare Kennzeichnung und eine Wiederholen-Funktion.",
+    "Nicht vollständige Tag-3–7-Originalzeiträume werden korrekt als Teilhorizont angezeigt; fehlende Gefahrfelder sind unbekannt, nicht 0 oder Entwarnung.",
+    "Gemeinsame UTC-Modelllaufzeit und originale 24h-Akkumulation bleiben gesichert. Amtliche DWD-Warnungen bleiben getrennt."
+  ],
+  "internal": [
+    "Ausgangs-SHA 8cf0c99ecc0a4c6502c188a9ca108466b53bb128, v0.9.85.404; Installer #41339459410 success mit Core/Heavy/Worker/Pages/Finalize.",
+    "Original PR #595 HEAD 5385616d01a59790b4a793cd042c55bb1c6eab82, danach auf .404 Stable selektiv geblobt und Panel / Worker nicht überschrieben.",
+    "Maximal zwei gleichzeitige 16-Punkte-Batches, 65%-EPS-Admission, identische 40/51-Membermodelle, vollständige Laufzeitkontrolle; fehlende Stufen/Originalstunden bleiben missing.",
+    "Zwei bereits registrierte Pflichtregressionen erweitert; keine Änderungen an Source-/Release-Gates oder Schutzregeln.",
+    "Paket/Lock/Baseline/Registry/Web/SW/Worker/iOS synchron .405, Xcode Build 406. Tatsächliche Endgeräte-P95- und VoiceOver-Prüfungen unbewiesen."
+  ]
+}
