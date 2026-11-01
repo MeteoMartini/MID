@@ -25,7 +25,8 @@ export function assessExtremeOutlookPeriod(
   }
   if(extremeSignalVisible(extremeSignalForCell(cell,periodId,hazard),hazard,data.thresholds))visibleCount++;
  }
- const minimum=data.grid.pointCount*.65;
+ const validGrid=Number.isInteger(data.grid.pointCount)&&data.grid.pointCount>0;
+ const minimum=validGrid?data.grid.pointCount*.65:Number.POSITIVE_INFINITY;
  const unavailableKinds:ExtremeHazardKind[]=[];
  if(extended){
   if(rainCells<minimum)unavailableKinds.push('rain');
@@ -35,7 +36,7 @@ export function assessExtremeOutlookPeriod(
  return {
   visibleCount,
   assessedCells,
-  assessmentAvailable:!extended||assessedCells>=minimum,
+  assessmentAvailable:!extended||(validGrid&&assessedCells>=minimum),
   unavailableKinds,
  };
 }
