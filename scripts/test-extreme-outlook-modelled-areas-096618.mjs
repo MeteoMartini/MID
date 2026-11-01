@@ -47,6 +47,11 @@ try{
  assert.equal(insufficient.assessedCells,2);
  assert.equal(insufficient.assessmentAvailable,false,'50% Datenabdeckung darf keine falsche Entwarnung ergeben.');
  assert.deepEqual(insufficient.unavailableKinds,['rain','wind','snow']);
+
+ const empty={...zeros,cells:[],grid:{...zeros.grid,pointCount:0}};
+ const invalid=assessExtremeOutlookPeriod(empty,'0-6','rain','extended');
+ assert.equal(invalid.assessmentAvailable,false,'Leeres Raster darf bei 65% Mindestabdeckung niemals als vollständiger Nullbefund gelten.');
+ assert.deepEqual(invalid.unavailableKinds,['rain','wind','snow'],'Ohne positiven Rasterumfang sind alle Ensemblegefahren unbestimmbar.');
  const mixed=structuredClone(zeros);
  delete mixed.cells[0].periods['0-6'].probabilityFields.snow;
  delete mixed.cells[1].periods['0-6'].probabilityFields.snow;
