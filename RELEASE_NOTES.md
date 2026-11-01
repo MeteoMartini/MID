@@ -5,6 +5,7 @@
 - In der Eventplanung werden fehlende Temperatur, Niederschlagsmenge und -wahrscheinlichkeit ohne falsche Einheiten wie „–°“ oder „–mm“ angezeigt.
 - Bergwetter und Schneefallgrenze unterscheiden fehlende Originalparameter und unbestimmte Niederschlagsfenster von tatsächlicher Trockenheit; vorhandene echte Nullwerte bleiben gültig.
 - Der mobile Vorhersagebereich nutzt den natürlichen vertikalen Seitenscroll statt eines eingeengten eigenen Scrollfensters. Horizontale Zeitreihen bleiben bedienbar; Bottom-Bar- und Safe-Area-Abstände bleiben erhalten.
+- Die Theme-Option heißt nun „Hoher Kontrast“; eine vollständige WCAG-AA-Konformität wird ohne umfassende Abnahme nicht behauptet.
 - Die Projektdokumentation verweist auf den aktuellen veröffentlichten MID-Versionsstand statt einer veralteten festen Versionsnummer.
 
 **Unverändert:** Alle amtlichen DWD-Warnungen, Originalwettermodelle und Vorhersagegewichtungen, die produktive RUC-Pipeline, vorhandene Favoriten sowie Modellkarten. Vollständige Originaldaten-/VoiceOver-/Echtgeräte- und D2-Vollgebietsabnahmen sind weiterhin offen.

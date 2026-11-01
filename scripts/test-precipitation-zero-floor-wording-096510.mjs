@@ -22,7 +22,7 @@ need('Kurzfrist-PoP',shortTerm,'const shownProbability=shortTermVerifiedProbabil
 need('Kurzfrist-PoP',shortTerm,'return eligible(source)&&eligible(value)?clampValue(Number(value),0,100):Number.NaN;');
 need('Kurzfrist-PoP',shortTerm,"{shortTermProbabilityLabel(point.probability)}");
 need('Kurzfrist-PoP',shortTerm,"{shortTermProbabilityLabel(selected.probability)}");
-forbid('Kurzfrist-PoP',shortTerm,/Math\\.round\\((point|selected)\\.probability\\)/,'nicht verfügbar darf nicht als NaN Prozent erscheinen');
+forbid('Kurzfrist-PoP',shortTerm,/Math\.round\((point|selected)\.probability\)/,'nicht verfügbar darf nicht als NaN Prozent erscheinen');
 forbid('Kurzfrist-PoP',shortTerm,/normalized\s*>\s*0\s*&&\s*normalized\s*<\s*5\s*\?\s*5/,'künstliche 5-%-Untergrenze noch aktiv');
 forbid('Kurzfrist-PoP',shortTerm,/function\s+displayProbability\s*\(/,'separate Anzeige-Floor-Funktion noch aktiv');
 need('Cockpit-Wortlaut',cockpit,"import {precipitationOutlookText} from './forecastWording';");

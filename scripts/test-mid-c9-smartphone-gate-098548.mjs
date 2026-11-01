@@ -69,6 +69,7 @@ for(const token of [
 ])assert.ok(polish.includes(token),`MID-18-Mobile-/Hierarchie-Polish fehlt: ${token}`);
 assert.ok(app.includes('Taupunkt / Feuchte</small><b>{Math.round(dew)} °C</b><em>{Math.round(hum)} %</em>'),'Kanonische echte Taupunkt-/Feuchtedaten dürfen nicht durch Demo-Daten ersetzt werden.');
 assert.ok(app.includes('displayHours={shortDisplayHours}')||app.includes('displayHours'),'Die echte stündliche Kurzfristreihe muss erhalten bleiben.');
+assert.ok(app.includes('<small>Hoher Kontrast</small>')&&!app.includes('Hoher Kontrast (WCAG AA)'),'DA19-16: kontrastverbesserter Modus darf ohne vollständigen Konformitätsnachweis nicht WCAG AA zertifiziert heißen');
 assert.ok(!css.includes('previewFixture'),'Replit-Vorschau-Fixtures dürfen nicht in den Produktionsstil gelangen.');
 assert.ok(!/#[0-9a-f]{3,8}/i.test(css),'Der Smartphone-Fix muss die bestehenden Light-/Dark-Tokens verwenden.');
 

@@ -6,6 +6,8 @@
 
 **UX:** schmale Forecast-Workspaces benutzen vertikalen Seitenscroll, horizontale Datentimelines separat, Safe Area/Bottom-Bar/Focus-Schutz. README-Link auf den veröffentlichten Versionsspiegel. Vollständige iOS-/Screenreader-/PNG-/SVG-/Widget-/WebGL-Freigabe ist mit einem CSS-Source-Test NICHT bewiesen.
 
+**DA19-16:** Die Theme-Wahl behauptet keine WCAG-AA-Vollkonformität ohne Geräte-/Komponentenprüfung; sichtbarer Name „Hoher Kontrast“. 1059 Prüfungen bleiben verbindlich.
+
 **Auditrest:** WMS-/D2-Vollgebiet einschließlich native TOT_PREC, RUC P1–P5, 90min/24h DST-/Intervallmatrix, 7d/14d/46d/SEAS5-Konfidenz und Wetterphasen, Quellen/Provenienz im gesamten Export und echte responsive WCAG 2.2 AA/Geräteabnahme offen. Nicht abschließen oder publizieren ohne Gate-Nachweise.
 
 **Veröffentlichung:** ausschließlich kompletter finaler nicht-Draft Source-PR → automatisierter SHA-gebundener MID-Merge → server-ZIP → unabhängiger vollständiger Installer Core/Heavy/Worker/Pages/Finalize → belegte `mid-stable`-Promotion. Keine Ruleset-/Test-Abkürzung oder Direktwrite.

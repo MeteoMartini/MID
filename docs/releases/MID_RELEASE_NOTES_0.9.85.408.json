@@ -7,7 +7,8 @@
     "Kurzfrist- und 24-Stunden-Ansichten zeigen fehlende Wahrscheinlichkeiten, Windstärken, Böen und Windrichtungen ausdrücklich als unbekannt.",
     "Eventplanung und Berg-/Schneefallgrenzen behalten die Herkunft meteorologischer Wettercodes, Mengen und Datenlücken statt falscher Trockenheit.",
     "Mobile Prognosen erhalten durchgehende vertikale Seitennavigation bei weiterhin horizontal bedienbaren Diagrammen.",
-    "README verweist auf die stets aktualisierte Veröffentlichungs-Version."
+    "README verweist auf die stets aktualisierte Veröffentlichungs-Version.",
+    "Theme-Auswahl ohne unbelegten WCAG-AA-Vollkonformitätsclaim: „Hoher Kontrast“."
   ],
   "internal": [
     "Basis: Stable .407 bcf75d001f8973f54203fccb24d94353226d2de7, erfolgreicher Source-PR #604, install-mid.yml #41358613904 completed/success; 5 aktive Rulesets, 38 Fachverträge, 1059 Pflichtregressionen.",
@@ -17,6 +18,7 @@
     "C9 mobile Forecast scrollbar full document instead nested overflow-y:auto; source contract updated with negative assertions, retains horizontal chart and safe areas.",
     "Versionsspiegel in package/lock/baseline/registry/web/SW/worker/iOS/changelogs/sourceTruth synchron, Xcode build 409.",
     "Offen und nicht produktiv aktiviert: D2 original full-domain #446/#600, RUC P1–P5 #541, echte iOS/VoiceOver/P95/WMS Pixel und appweiter WCAG Audit.",
-    "Release nur finaler SHA Source-PR Gate, kontrollierter MID SHA-bot merge, server-ZIP, install-mid.yml Core/Heavy/Worker/Pages/Finalize, Stable promotion."
+    "Release nur finaler SHA Source-PR Gate, kontrollierter MID SHA-bot merge, server-ZIP, install-mid.yml Core/Heavy/Worker/Pages/Finalize, Stable promotion.",
+    "DA19-16: Labelkorrektur im Theme, negative Quellevidenz im verpflichtenden C9-Regressionstest; vollständige WCAG-2.2-AA-Kalibration/Hardwareabnahme bleibt offen."
   ]
 }

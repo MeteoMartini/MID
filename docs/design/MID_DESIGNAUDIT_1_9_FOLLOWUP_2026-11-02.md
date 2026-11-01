@@ -22,7 +22,8 @@
 - DA19-18: WebGL-Realgerät, D2-Original-GRIB-/WMS-PNG-/Widget-/iOS-Export-E2E. Weder Chrome-Fallback noch simuliertes iOS als Freigabenachweis.
 
 **Priorität P2 Lesbarkeit und Einstieg:**
-- DA19-14/16/19/20: lesbare More-Drawer-Zweitzeilen und Dichte bei 44+ px Touchziel, unbelegten „WCAG AA“-Konformitätsclaim vor Zertifizierung auf **Hoher Kontrast** reduzieren, datensparsamer Beispielort, skalierbare Achsen-/Legendenrollen ohne das physikalische Wertefeld zu verändern.
+- DA19-14/19/20: lesbare More-Drawer-Zweitzeilen und Dichte bei 44+ px Touchziel, datensparsamer Beispielort und skalierbare Achsen-/Legendenrollen ohne das physikalische Wertefeld zu verändern.
+- **DA19-16:** unbelegten „WCAG AA“-Konformitätsclaim im Theme in .408-Quellkandidat auf **Hoher Kontrast** reduziert; die eigentliche WCAG-2.2-AA-Konformität bleibt bis zur quantitativen vollständigen Geräte-/Komponentenmatrix **unbestätigt**.
 
 ## QA-/Freigabegates
 Die Anlage berichtet sieben CSS-Viewportmessungen (320×568, 390×844, 430×932, 834×1112, 1024×768, 1440×900, 1920×1080); Browser-Layoutchecks bleiben **nicht** Ersatz für echte Safari-iOS/Android/WebGL-Pixel/VoiceOver und 200-/400%-Zoom. Neue Änderungen erst nach SHA-verifizierter .408-Promotion und Prioritäten-/UI-Vertragsabgleich; bei ungeprüften Produktionsdaten/Permissions fail-closed.
