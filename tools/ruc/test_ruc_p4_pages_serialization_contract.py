@@ -130,9 +130,11 @@ class P4PagesSerialization(unittest.TestCase):
             ("digest-mismatch: error", "digest-mismatch: warn"),
         ):
             with self.subTest(before=before):
-                self.assertIn(before, self.ruc)
+                publisher_prefix, publisher_job = self.ruc.split("\n  publish:\n", 1)
+                self.assertIn(before, publisher_job)
+                hostile = publisher_prefix + "\n  publish:\n" + publisher_job.replace(before, after, 1)
                 with self.assertRaises(ValueError):
-                    check_contract(self.install, self.ruc.replace(before, after, 1), self.watchdog)
+                    check_contract(self.install, hostile, self.watchdog)
 
     def test_install_retry_or_finalize_without_shared_lock_fails(self):
         for label in ("deploy_pages_1", "deploy_pages_2", "deploy_pages_3", "finalize_release"):
