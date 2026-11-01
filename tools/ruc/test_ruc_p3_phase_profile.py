@@ -18,7 +18,7 @@ import numpy as np
 
 ROOT = Path(__file__).parent
 
-def load_subject(member_pack, summarize, pack_summary):
+def load_subject(member_pack, summarize, pack_summary, summary_fields=('precipitation_mean',)):
     source = ROOT / 'build_ruc_bundle.py'
     tree = ast.parse(source.read_text(encoding='utf-8'), filename=str(source))
     matching = [n for n in tree.body if isinstance(n, ast.FunctionDef)
@@ -32,7 +32,7 @@ def load_subject(member_pack, summarize, pack_summary):
         'time': time, 'json': json,
         'pack_eps_members': member_pack, 'eps_summary': summarize,
         'pack_cell_major': pack_summary,
-        'EPS_SUMMARY_FIELDS': ('precipitation_mean',),
+        'EPS_SUMMARY_FIELDS': summary_fields,
     }
     exec(compile(ast.Module(body=[node], type_ignores=[]), str(source), 'exec'), namespace)
     return namespace['write_eps_products']
@@ -113,7 +113,7 @@ class RucEpsP3Timing(unittest.TestCase):
                 pack_cell_major(original_summary(block), EPS_SUMMARY_FIELDS)
                 for block in chunks
             )
-            writer = load_subject(pack_eps_members, original_summary, pack_cell_major)
+            writer = load_subject(pack_eps_members, original_summary, pack_cell_major, EPS_SUMMARY_FIELDS)
             with tempfile.TemporaryDirectory() as td, contextlib.redirect_stdout(io.StringIO()) as output:
                 member_path = Path(td) / 'members.bin'
                 summary_path = Path(td) / 'summary.bin'
