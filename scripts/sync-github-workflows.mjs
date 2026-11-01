@@ -27,6 +27,7 @@ function pinApprovedActions(source){
 export const managedFiles=[
  ['workflows/build-parity-qualification.yml','workflows/build-parity-qualification.yml'],
  ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
+ ['workflows/mid-d2-native-original-audit.yml','workflows/mid-d2-native-original-audit.yml'],
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/release-timing-audit.yml','workflows/release-timing-audit.yml'],
  ['workflows/release-train-preflight.yml','workflows/release-train-preflight.yml'],
