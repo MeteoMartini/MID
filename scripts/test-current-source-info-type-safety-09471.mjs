@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 
 const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
+const indicator=await readFile(new URL('../src/DataQualityIndicator.tsx',import.meta.url),'utf8');
 const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
 const baseline=JSON.parse(await readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8'));
 
@@ -15,4 +16,6 @@ assert.match(app,/fieldSourceRows=\(fields:StationAnalysisField\[\]\):StationFie
 assert.doesNotMatch(app,/NonNullable<Station\['fieldSources'\]>\[StationAnalysisField\]/,'Optionaler Partial-Record-Index darf nicht erneut als Arraytyp verwendet werden');
 assert.match(app,/const rows=fieldSourceRows\(fields\);if\(rows\.length\)/,'sourceFor muss mit dem garantierten Array arbeiten');
 assert.match(app,/rows:fieldSourceRows\(group\.fields\)/,'Info-Gruppen müssen den gleichen garantierten Arraypfad verwenden');
+assert.ok(indicator.includes("source:radarData?'radar':'model'"),'Unverfügbares Radar darf nicht als tatsächlich vorhandene Radarquelle ausgewiesen werden.');
+assert.ok(indicator.includes("if(m< -1)return'Zeitstempel liegt in der Zukunft'"),'Zukunfts-Zeitstempel darf nicht als aktuelle Beobachtung kaschiert werden.');
 console.log(`${pkg.version}: Messquellenanzeige ist gegen TS18048/optionale rows abgesichert.`);
