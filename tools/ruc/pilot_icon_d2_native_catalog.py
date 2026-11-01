@@ -85,10 +85,23 @@ def catalogue(last,fetch_listing):
          "expectedRuns":runs,"requiredFields":list(FIELDS),"offeredLeads":list(LEADS),"files":planned}
 
 def read_listing(url,session):
- response=session.get(url,timeout=30,allow_redirects=False)
- if response.status_code!=200 or len(response.content)>4_000_000:
-  raise ValueError("DWD original directory unavailable or over budget: "+url)
- return response.text
+ """Retry only transient official DWD directory GET timeouts, never changed data."""
+ import requests,time
+ if not url.startswith(ROOT) or not url.endswith("/"):
+  raise ValueError("Only official DWD native directory URL allowed")
+ for attempt in range(3):
+  try:
+   response=session.get(url,timeout=30,allow_redirects=False)
+  except requests.Timeout:
+   if attempt==2:raise
+   time.sleep(attempt+1)
+   continue
+  try:
+   if response.status_code!=200 or len(response.content)>4_000_000:
+    raise ValueError("DWD original directory unavailable or over budget: "+url)
+   return response.text
+  finally:response.close()
+ raise RuntimeError("Original DWD directory retry exhausted")
 
 def download_native(item,destination,session):
  """Optional staging of immutable raw source bytes for separate ecCodes inventory."""

@@ -85,4 +85,35 @@ class NativeD2CatalogTests(unittest.TestCase):
   coordinate="icon-d2_germany_icosahedral_time-invariant_2026110100_000_0_clat.grib2.bz2"
   with self.assertRaisesRegex(ValueError,"not uniquely"):select_coordinate([coordinate,coordinate],"clat","2026110100")
 
+ def test_official_directory_read_retry_only_on_transient_timeouts(self):
+  import requests
+  from unittest.mock import patch
+  from pilot_icon_d2_native_catalog import read_listing,ROOT
+  class Response:
+   status_code=200
+   content=b'<a href="original.grib2.bz2">original</a>'
+   text=content.decode()
+   def close(self):pass
+  class Session:
+   def __init__(self,failures=1,status=200):self.calls=0;self.failures=failures;self.status=status
+   def get(self,url,**kwargs):
+    self.calls+=1
+    self.kwargs=kwargs
+    if self.calls<=self.failures:raise requests.Timeout('read timeout')
+    response=Response();response.status_code=self.status
+    return response
+  url=ROOT+'12/tot_prec/'
+  session=Session()
+  with patch('time.sleep') as sleep:
+   self.assertIn('original.grib2.bz2',read_listing(url,session))
+  self.assertEqual(session.calls,2)
+  self.assertEqual(session.kwargs,{'timeout':30,'allow_redirects':False})
+  self.assertEqual(sleep.call_count,1)
+  with patch('time.sleep'):
+   with self.assertRaises(requests.Timeout):read_listing(url,Session(failures=3))
+  refused=Session(failures=0,status=503)
+  with self.assertRaisesRegex(ValueError,'unavailable'):read_listing(url,refused)
+  self.assertEqual(refused.calls,1)
+  with self.assertRaisesRegex(ValueError,'official DWD'):read_listing('https://example.invalid/12/tot_prec/',Session(0))
+
 if __name__=="__main__":unittest.main()
