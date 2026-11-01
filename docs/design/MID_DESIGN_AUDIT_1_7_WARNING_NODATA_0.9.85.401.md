@@ -17,26 +17,46 @@ Die Korrektur unterscheidet echte endliche, nichtnegative Zahlen von `null`, `un
 
 **Fachgrenze:** Dies sind modellierte MID-Prognosehinweise mit DWD-nahen Schwellen, keine amtlichen DWD-Warnungen. Für amtliche Daten bleiben Originalwarnungen, Meldungstexte, Warnstufen, zeitliche Gültigkeit, Hierarchie und Farbvertrag nach `MID_WARNING_HYBRID_CONTRACT.md` unberührt.
 
-## A4 · Quellenprovenienz und Zeitstempel
+## A1 · Zusätzlich reproduzierter Stundenabdeckungsfehler (Frost/Wärme)
 
-Quellcodebefund in `src/DataQualityIndicator.tsx`: Ohne geladenes `radarData` wurde der angezeigte Ersatz `Modellvorhersage` weiterhin mit dem Quellenlabel `Radar` versehen. Das neue bedingte Quellenlabel heißt in diesem belegten Fall `Modell`. Ein um mehr als eine Minute in der Zukunft liegender Beobachtungszeitstempel darf außerdem nicht als `gerade eben` erscheinen; die Anzeige kennzeichnet jetzt einen Zukunftszeitstempel. Bei kleiner Uhrabweichung bis zu einer Minute bleibt die bisherige Toleranz erhalten. Bestehende Qualitätsstufen und empirische Stations-Verwendbarkeitsprüfungen bleiben unverändert.
+`forwardMin` und `forwardAllBelow` aus `src/dwdWarnings.ts` werteten bisher die nächsten drei bzw. zwölf *Arrayeinträge* aus, ohne belegte stündliche Zeitkontinuität zu fordern. Ein ausgeführter isolierter Quellfunktions-Test mit Frost-Epochen 00/03/06 UTC ergab fälschlich `true` für »3 Stunden unter −10 °C«; zusammenhängende Epochen 00/01/02 UTC ergaben ebenfalls `true`. Dies ist **kein** Beweis einer entsprechenden laufenden Produktionsmeldung, aber ein reproduzierbarer numerischer Fehlerfall.
 
-Die bereits obligatorische Regression `scripts/test-current-source-info-type-safety-09471.mjs` prüft zusätzlich beide Präsentationspfade auf Quelltextebene. Eine echte React-/Browser-/VoiceOver-Interaktionsprüfung des Qualitätsindikators ist **noch offen**. Der vorhandene Inline-`span role=button`/`tooltip`-Pfad sollte separat gegen den gemeinsamen `AppInfoHint`-/`AppPortalPopover`- und Touchziel-Vertrag geprüft werden; kein ungeprüfter CSS-/Popover-Umbau in dieser Korrekturtranche.
+Die neue gemeinsame `completeHourlyWarningWindow`-Abdeckung verlangt bei vorhandenem Zeitbezug gültige stündliche Epochen mit höchstens ±5 min Toleranz; bei gemischten bekannten und fehlenden Zeitstempeln schlägt das Fenster fehl. `forwardSum` verwendet denselben Guard, `forwardMin` und `forwardAllBelow` ebenfalls. Der gezielt ausgeführte reine Helfercheck auf dem tatsächlichen Branch-Quelltext ergab: 3h-Frost (lückenlos)=true, 3h-Frost mit 00/03/06=false, teils fehlende Epochen=false; 12h-Wärme lückenlos ergibt 22 °C, 12 Werte im 2h-Abstand NaN. Neue positive/negative Fälle stehen im vorhandenen Pflichtskript `scripts/test-dwd-warning-markers.mjs`.
 
+**Ausdrückliche Restrisiken:** Datensätze ganz ohne Zeitstempel werden aus Kompatibilitätsgründen noch als fortlaufende Arraystunden behandelt; das ist keine bestätigte Zeitprovenienz und muss vor schärferer Publikationssperre im gesamten Datenpfad und in den existierenden Verbraucher-/Regressionstests qualifiziert werden. Dies ersetzt keinen End-to-End-Test mit realen DWD-/Prognosedaten.
+
+## A4 · Wesentlicher Negativbefund: Qualitätsindikator derzeit ohne Verbraucher
+
+Quellcode-Readback des verifizierten Stable `src/App.tsx` ergab **nur** die Importstelle und einen JSX-Aufruf von `DataQualityIndicator`; diese exportierte Komponente gibt absichtlich `null` zurück. `ParameterQualityIndicator` selbst wird nicht importiert oder gerendert. Folglich hatten die ursprünglichen Korrekturen an Radar-Fallback und Zukunftszeitlabel **keine sichtbare Wirkung**. Sie und der dafür ergänzte rein textuelle Test wurden auf dem Draft durch rücklesbare Revert-Commits **wieder auf die ursprünglichen Stable-Git-Blobs zurückgeführt**. Im effektiven PR-Diff verbleibt keine Änderung dieser zwei Dateien. Eine tatsächliche Anzeigeprovenienz-Korrektur muss am aktiven `App.tsx`-Quellenpfad (`sourceFor`, `fieldSourceInfo`, Modell-/Stations-/Radardetails) ansetzen; Ursache und Verbraucher sind zuerst fachlich zu testen.
+
+Der aktuelle Benutzer sieht Quellendetails in tatsächlichen Info-Popovers und Messkarten des Aktuell-Cockpits; eine appweite echte UI-E2E-Prüfung ist offen. Der gemeinsame `AppInfoHint`/`AppPortalPopover`-Vertrag schützt zugängliche Trigger und Escape/Außenklick, seine reale gerätespezifische Abnahme steht aus.
 ## Wiederverwendete Regression
 
 `scripts/test-dwd-warning-markers.mjs` erweitert das bestehende Pflichtskript (kein Entfernen oder Ersetzen von Tests). Neue adversarielle Fälle: 6-h-Starkregen mit fehlender Stunde, vollständiger 6-h-Starkregen, 6-h-Neuschnee mit fehlender Stunde, vollständiger Schnee, fehlende Windrichtung sowie echte Nordrichtung 0 Grad. Die bestehenden DWD-/Schwellen- und Darstellungsfälle bleiben erhalten. Aussage `grün` erst nach tatsächlichem Lauf auf genau dem neuen Head.
 
-## A0–A5: vorläufige Prüfmatrix
+## A0–A5 · SHA-gebundenes Verbraucher-/Testinventar (kein Testdurchlauf)
 
-| Bereich | Belegte Quellen-/Codeprüfung | Noch notwendige Abnahme |
-|---|---|---|
-| A0 Hauptseiten & Inventar | Aktuelle AGENTS/Baseline/Source-of-Truth, 1059 Tests, fünf aktive Rulesets; Issue #523 | Vollständige Verbraucher-/E2E-Matrix |
-| A1 Aktuell / Heute | Vorwärtsintervallvertrag, modellierte Warnzeit und NoData-Helper gelesen; korrigierter Source-Kandidat | 90-min-/24-h-Realrender, Warn- und Niederschlagszeit an DST/Übergängen, Screenshotmatrix |
-| A2 Vorhersage | 7-/14d-/Saison-NoData-Fixes .399/.400 dokumentiert; Regressionsschutz | Ensemble-Quantile, Regen/PoP/Phase, Tooltip-/Kurvenparität mit realen Daten |
-| A3 Karten | WMS-Originallegenden/-Export und Modelllauf-/ValidTime-Verträge .390–.396 vorhanden | Provider-Originalklassen, Kartenkombinationen, Layer, Isolinien, Exportbild-Prüfung |
-| A4 Mehr & Querschnitt | Persistenz-, Storage-/Favoritenverträge und Audit-Drafts gelesen | Multi-Tab, blockierter Speicher, Fachmodule, Widgets, PWA, URL-/PNG-/SVG-Export |
-| A5 Responsive/A11y | Vorhandene responsive und Linien-/Kontrastvertragsregressionen gesichtet | 320–1920 px, Landscape/Portrait, Touch, Dynamic Type, tatsächliche iOS-/VoiceOver-Abnahme |
+Nach Readback von Stable .400: `src/App.tsx` (A0/A1, 474265 Zeichen), `src/ForecastCockpit.tsx` (A1/A2), `src/EnsemblePanel.tsx` (A2), `src/MapWorkspacePanel.tsx` (A3), `src/WmsOriginalExportControl.tsx` und `src/wmsOriginalMapExport.ts` (A3), `src/WidgetGenerator.tsx` (A4), `src/AppInfoPopover.tsx` / `src/AppPortalPopover.tsx` (A5). Kein zusätzlicher Karten-/iOS-/Warn-/Worker-PR verändert.
+
+| Auditbereich | Reale Verbraucher | Vorrangig bereits inventarisierte Pflichtprüfungen | Abnahmestatus |
+|---|---|---|---|
+| A1 · Aktuell/Heute | `App.tsx`, `ForecastCockpit.tsx`, `ShortTermForecast.tsx`, `SkyBarSegments.tsx`, `dwdWarnings.ts` | `test-rain-warning-evidence-0985178.mjs`, `test-current-skybar-canonical-0985230.mjs`, `test-precipitation-forward-geometry-097916.mjs`, `test-mid-18-2-4-warning-timeline-098577.mjs` | source-geprüft; Warn-Helfer-Repro ausgeführt; keine reale Browser-Abnahme |
+| A2 · 7d/14d/ENS | `ForecastCockpit.tsx`, `EnsemblePanel.tsx`, `ensembleCumulativeDisplay.ts`, `parameterLineStyle.ts` | `test-ensemble-cumulative-gaps-0985374.mjs`, `test-appwide-line-semantics-0985374.mjs`, `test-forecast-display-persistence-0985166.mjs` | Bestands-Fixes .399/.400 nur anhand veröffentlichter Provenienz; keine neue E2E-Prüfung |
+| A3 · Karten/Exporte | `MapWorkspacePanel.tsx`, `UnifiedWeatherMap.tsx`, `WmsOriginalExportControl.tsx`, `wmsOriginalMapExport.ts` | `test-dwd-wms-routing.mjs`, `test-geomet-wms-time-0985234.mjs`, `test-map-direct-time-theme-0985212.mjs`, `test-unified-map-layers-0985167.mjs` | Originalklassengleichheit, Layer-Verfügbarkeit, Druckkontur und PNG-Export noch real zu belegen |
+| A4 · Einstellungen/Favoriten/Widget | `App.tsx`, `storageSafety.ts`, `WidgetGenerator.tsx`, `MapWorkspacePanel.tsx` | `test-state-integrity-contract-095327.mjs`, `test-storage-quota-resilience-093217.mjs`, `test-widget-url-exports-098413.mjs` | App-/Multitab-/Offline-/Exportparität noch offen |
+| A5 · Responsive/A11y | `AppInfoPopover.tsx`, `AppPortalPopover.tsx`, vorhandene Theme-/Breakpoint-CSS | `test-appwide-touch-responsiveness-09523.mjs`, `test-c7-viewport-matrix-098525.mjs`, `test-popover-regression.mjs`, `test-c14-real-screenshot-contract-098534.mjs` | Keine physische iPhone-/iPad-/VoiceOver-/WCAG-AA-Zertifizierung |
+
+### Semantische Kontrollmatrix – Prüfpflichten, keine behauptete Abnahme
+
+| Parametertyp | Zeit-/Datenvertrag | Darstellung/Provenienz | Obligatorische Gegenprobe |
+|---|---|---|---|
+| Temperatur / UTCI / Taupunkt | Zeitpunkt; keine 1h-Akkumulation; NoData bleibt Lücke | Parameterfarbe bzw. UTCI-Rolle, zentrale Präzision; Wetterquelle nachvollziehbar | NaN/null/Infinity, 23-/25h-Kalendertag, Light/Dark |
+| PoP / Niederschlagsmenge / -art | Vorwärtsslot 15min/1h; PoP ist keine Menge; vollständige und nicht doppelte Intervalle | Farbe/Phase/Legende und Quelle derselben gültigen Zeit | Zeitverschiebung, Lücken, echte 0, Mengen-/Phasenkohärenz |
+| Wind / Böen / Richtung | Instantanwerte; Richtung kreisförmig; keine Nullrichtung bei Missing | `kt` statt `kn` in MID-Texten; separate Linien-/Warnrollen | 0° vs Missing, Böen≥Wind, Hitz-/Frost-/Böenfenster |
+| ENS / Quantile / Akkumulation | Run/ValidTime, Mitgliederzahl/Unabhängigkeit; NaN unterbricht Kumulativpfad | Ensembleband/Mittel/Quantile, unveränderte Extremwerte | fehlerhafte Member/0 Member, Gap, Überlappung, 7d/14d |
+| WMS / RUC / Karten | Run, ValidTime, Niveau, Rasterauflösung, native Originalpalette und Lizenz | GetMap/GetLegendGraphic/Export-Frame gleicher Anbieter | unavailable vs zero, falsche Layer-Zeit, Originalfarbe, Crop, PNG |
+| Amtliche Warnung vs MID-Hinweis | Amts-CAP/DWD gewinnt; eigene MID-Fachhinweise streng getrennt | Warnfarben ausschließlich amtlich, MID nutzt Parameterfarben | Quellenstörung nicht Entwarnung, Warn-Gültigkeit, Unsicherheit |
+
 
 ## Freigaberegel
 
