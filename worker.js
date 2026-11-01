@@ -2676,6 +2676,16 @@ function dachExtendedMemberStatistics(point,expectedMembers=40){
   }result[output]=means;result[`${output}_spread`]=spreads;
  }return{...point,hourly:result};
 }
+// A common UTC origin is mandatory: asynchronously fetched EPS batches may
+// straddle model runs. Never combine their hourly indices as one forecast.
+function dachExtendedTimeAxis(row){
+ const times=row?.hourly?.time;
+ if(!Array.isArray(times)||times.length<72||times.length>169)return undefined;
+ const start=Date.parse(`${times[0]}Z`);
+ if(!Number.isFinite(start))return undefined;
+ for(let i=1;i<times.length;i++)if(Date.parse(`${times[i]}Z`)!==start+i*3600000)return undefined;
+ return start;
+}
 function dachExtendedComplete(row,kind,period){const fields=kind==='rain'?['precipitation','precipitation_spread']:kind==='wind'?['wind_gusts_10m','wind_gusts_10m_spread']:['snowfall','snowfall_spread'];return fields.every(field=>dachExtremeSeries(row,field).slice(period.startHour,period.endHour).filter(Number.isFinite).length===period.endHour-period.startHour)}
 // Two bounded upstream batches run together; missing batches remain missing evidence.
 async function dachExtendedEachBatch(points,visit){
@@ -2692,7 +2702,12 @@ async function dachExtendedExtremeOutlookData(){
   try{const rows=dachExtremeModelRows(await dachExtremeFetchJson(url,'ICON-EPS Langfrist',6*60*60),batch.length,'ICON-EPS');batch.forEach((p,j)=>byId.set(p.id,dachExtendedMemberStatistics(rows[j])))}catch{ /* Incomplete ICON batches remain unknown; below-65% coverage fails closed. */ }
  });
  if(byId.size<points.length*.65)throw new Error('Regionaler Langfristausblick: zu geringe Datenabdeckung.');
- const first=points.map(point=>byId.get(point.id)).find(Boolean),times=first.hourly?.time||[],startEpoch=Date.parse(`${times[0]}Z`),specs=[{id:'48-72',label:'+48–72 h',startHour:48,endHour:72},{id:'72-96',label:'+72–96 h',startHour:72,endHour:96},{id:'96-120',label:'+96–120 h',startHour:96,endHour:120},{id:'120-144',label:'Tag 6',startHour:120,endHour:144},{id:'144-168',label:'Tag 7',startHour:144,endHour:168}];
+ const runCounts=new Map();
+ for(const row of byId.values()){const epoch=dachExtendedTimeAxis(row);if(epoch!==undefined)runCounts.set(epoch,(runCounts.get(epoch)||0)+1)}
+ const origin=[...runCounts].sort((a,b)=>b[1]-a[1]||b[0]-a[0])[0]?.[0];
+ for(const [id,row] of byId)if(dachExtendedTimeAxis(row)!==origin)byId.delete(id);
+ if(byId.size<points.length*.65)throw new Error('Regionaler Langfristausblick: inkonsistente Zeitachsen oder Modellläufe.');
+ const first=points.map(point=>byId.get(point.id)).find(Boolean),times=first.hourly?.time||[],startEpoch=origin,specs=[{id:'48-72',label:'+48–72 h',startHour:48,endHour:72},{id:'72-96',label:'+72–96 h',startHour:72,endHour:96},{id:'96-120',label:'+96–120 h',startHour:96,endHour:120},{id:'120-144',label:'Tag 6',startHour:120,endHour:144},{id:'144-168',label:'Tag 7',startHour:144,endHour:168}];
  const periods=specs.filter(p=>times.length>=p.endHour&&Number.isFinite(startEpoch)).map(p=>({...p,start:new Date(startEpoch+p.startHour*3600000).toISOString(),end:new Date(startEpoch+p.endHour*3600000).toISOString()}));if(!periods.length)throw new Error('Keine vollständigen Langfrist-Zeitfenster verfügbar.');
  // Retain every real 24-hour period even if its fields are unavailable; missing
  // fields display explicitly as unknown, never as a zero-probability all-clear.
