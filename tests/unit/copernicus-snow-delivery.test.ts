@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {validateCopernicusSnowTile} from '../../src/copernicusSnowDelivery';
+import {copernicusSnowTileIdentity,validateCopernicusSnowTile} from '../../src/copernicusSnowDelivery';
 import {COPERNICUS_SNOW_COLLECTIONS} from '../../src/copernicusSnowObservation';
 const key='a'.repeat(64),time=Date.parse('2026-11-02T12:00:00Z');
 const base={
@@ -17,6 +17,21 @@ describe('Alpine Copernicus snow PNG publication admission',()=>{
  it('admits only explicitly QA-qualified immutable original source identity',()=>{
   expect(check().collectionId).toBe(COPERNICUS_SNOW_COLLECTIONS.GFSC);
   expect(check().maxPixelAcquisitionAgeDays).toBe(7);
+ });
+ it('re-admits a reused PNG when geography, QA, product kind or provenance changes',()=>{
+  const identity=copernicusSnowTileIdentity(check());
+  const variants=[
+   {bounds:[[46.4,10.2],[47.8,11.4]]},
+   {productDayUtc:'2026-11-01'},
+   {qaMaskSha256:'b'.repeat(64)},
+   {sourceCogSha256:'b'.repeat(64)},
+   {kind:'FSC-OG',collectionId:COPERNICUS_SNOW_COLLECTIONS.FSC,maxPixelAcquisitionAgeDays:2},
+   {noDataTransparent:false},
+  ];
+  for(const change of variants){
+   const modified={...base,...change} as unknown as Parameters<typeof copernicusSnowTileIdentity>[0];
+   expect(copernicusSnowTileIdentity(modified)).not.toBe(identity);
+  }
  });
  it('rejects future, stale and nonexistent days',()=>{
   for(const d of ['2026-11-03','2026-10-25','2026-02-30'])
