@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import patch,Mock
 from ruc_fast_lane_producer import (
     FIELDS, EXPECTED_LEADS, EXPECTED_RAPID5, EXPECTED_RAPID15,
-    WIRE_FIELDS, WIRE_CONTRACT, canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, digest)
+    WIRE_FIELDS, WIRE_CONTRACT, canonical_run, lead_inventory, verify_candidate_manifest, safe_quantization, fast_precipitation_intervals, digest)
 
 RUN='2026-10-31T10:00'
 T=datetime(2026,10,31,10,tzinfo=timezone.utc)
@@ -47,6 +47,38 @@ class TestFast(unittest.TestCase):
         values=np.array([[0.,1.],[np.nan,np.nan],[2.,np.nan]])
         with self.assertRaisesRegex(ValueError,'forecast step entirely missing'):
             safe_quantization({'precipitation':values},(Spec('precipitation',0.,0.01),),np)
+    def test_fast_quantization_jitter_is_missing_not_dry(self):
+        import numpy as np
+        from meteo_integrity import validate_accumulation
+        targets=[0,1,2,3]
+        series={
+            0:np.array([0.,0.,np.nan,0.]),
+            1:np.array([0.1,0.,np.nan,1.]),
+            2:np.array([0.08,0.,np.nan,1.2]),
+            3:np.array([0.15,0.,np.nan,1.2]),
+        }
+        got=fast_precipitation_intervals(series,targets,np,validate_accumulation)
+        self.assertEqual(got.shape,(4,4))
+        self.assertTrue(np.isnan(got[2,0]), 'negative packing delta cannot mean dry 0')
+        self.assertEqual(got[2,1],0.0, 'actual repeated accumulation is dry')
+        self.assertTrue(np.isnan(got[2,2]), 'original source Missing stays Missing')
+        self.assertAlmostEqual(got[3,0],.07)
+        self.assertEqual(got[3,3],0.)
+        self.assertTrue(np.isnan(got[0,2]))
+        self.assertTrue(np.all(got[np.isfinite(got)]>=0))
+    def test_fast_true_backward_accumulation_fails_not_smoothed(self):
+        import numpy as np
+        from meteo_integrity import validate_accumulation
+        rows={0:np.array([0.,0.]),1:np.array([.3,.2]),2:np.array([.1,.2])}
+        with self.assertRaisesRegex(ValueError,'decreases'):
+            fast_precipitation_intervals(rows,[0,1,2],np,validate_accumulation)
+    def test_fast_prepacked_negative_precipitation_rejected(self):
+        import numpy as np
+        from collections import namedtuple
+        Spec=namedtuple('Spec','name offset scale')
+        with self.assertRaisesRegex(ValueError,'negative precipitation'):
+            safe_quantization({'precipitation':np.array([[0.,-.01]])},
+                              (Spec('precipitation',0.,0.01),),np)
     def test_real_dry_zero_remains_finite(self):
         import numpy as np
         from collections import namedtuple
