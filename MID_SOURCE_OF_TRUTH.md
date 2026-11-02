@@ -1,3 +1,9 @@
+# MID v0.9.85.413 · D2/RUC/Fast-Quellport auf geschütztem Design-Stable
+
+**Kanonische Basis:** v0.9.85.412 Design-WE nach vollständigem Installer #41515302726, `main=mid-stable 8349fa89e9a66d09d320d1774c86dda4d14a4d4a`. Der D2/RUC/Fast-Quellstand aus PR #625 @ `bf07de77eca4816516cf96281da1d970daebc71b` wurde über den autorisierten .413-Draft #626 konfliktbewusst übernommen. 103 nicht überlappende Quell-/Workflow-Blobs sind SHA-identisch; die gemeinsamen Design-/Versionsdateien bleiben aus Stable erhalten. 1.062 Pflichtregressionen, 38 normative Verträge und fünf Rulesets bleiben verbindlich. Der .413-Kandidat benötigt vollständig neue Source-/Installer-Gates; frühere .412-Ergebnisse gelten nicht als .413-Abnahme.
+
+**Sicherheits- und Fachgrenze:** 72 DWD-D2-Felder, 542.040 Zellen, originale 27h/20EPS, UTC, WMO/DWD-Einheiten und Akkumulationen, NoData≠0 und echte Extremwerte schützen. Geschützte unabhängige DWD-Originalsignatur, 73-Objekt-Pages-Admission, globaler Pages/R2-Single-Writer-CAS/Rollback, öffentliche Fast/D2-Worker-/Web-/iOS-/Widget-/Export-Readbacks, 168h Endclient-P95≤60min und reale Safari/VoiceOver-Abnahme fehlen. Keine vorgezogene D2-/Fast-Produktivaktivierung oder neue kostenpflichtige Dienste.
+
 # MID v0.9.85.412 · Design-WE 1.1: kompakteres Heute-Wetterprofil
 
 **Freigabegrenze:** Quellkandidat auf Grundlage der am 02.11.2026 live verifizierten Stable v0.9.85.411 (`main=mid-stable` SHA `9bf44c3354f98937fa058aac5d6dceb5895d29e5`), fünf aktive Rulesets. Erst die vollständig erfolgreiche Source-PR-Gate → SHA-gebundener Bot-Merge → serverseitiges ZIP → `install-mid.yml` Core/Heavy/Worker/Pages/Finalize → Stable-Promotion veröffentlicht diesen Build. Dieser vorab verfasste Vertrag behauptet keine durchgelaufenen Gates.
