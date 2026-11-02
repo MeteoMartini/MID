@@ -56,7 +56,16 @@ jobs:
           test "$stable" = "$main"
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
             test "$checked" = "$EXPECTED_HEAD"
-            git merge-base --is-ancestor "$stable" HEAD
+            # Github's exact authenticated comparison avoids the false failure
+            # caused by a shallow PR checkout lacking its distant Stable parent.
+            # Fail-closed unless GitHub confirms this exact protected Stable is
+            # the merge-base, and HEAD is genuinely ahead (never unrelated).
+            lineage="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$checked")"
+            jq -e --arg stable "$stable" '
+              .status == "ahead" and
+              .base_commit.sha == $stable and
+              .merge_base_commit.sha == $stable
+            ' <<< "$lineage" >/dev/null
           else
             test "$checked" = "$stable"
           fi
