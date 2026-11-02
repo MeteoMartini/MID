@@ -23,7 +23,7 @@ export function isCompositeTimesFailureWithoutFrames(data:{
  satelliteDayProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number};
  satelliteIrProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number};
  satellitePrecipProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number};
- dwdReferenceSatelliteProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string}
+ dwdReferenceSatelliteProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number}
 }|null|undefined):boolean{
  if(!data)return true;
  if(!data.error&&!data.errors?.length)return false;
