@@ -78,7 +78,7 @@ def validate_eps_member_coverage(cube: np.ndarray, members: list[int]) -> dict:
                         for index, member in enumerate(members)]}
 
 
-def validate_core_fields(fields: Mapping[str, np.ndarray]) -> dict:
+def validate_core_fields(fields: Mapping[str, np.ndarray], *, allow_unknown_initial_precipitation: bool = False) -> dict:
     """Physical and semantic validity after native unit normalization, before packing."""
     ranges = {
         'temperature_2m': (-93.15, 66.85),  # 180..340 K decoder sanity
@@ -109,7 +109,12 @@ def validate_core_fields(fields: Mapping[str, np.ndarray]) -> dict:
         elif arr.shape != expected_shape:
             raise MeteoIntegrityError(f'{name}: different grid/time dimensions {arr.shape}; expected {expected_shape}')
         missing_steps = np.flatnonzero(~finite.any(axis=1))
-        if missing_steps.size:
+        if allow_unknown_initial_precipitation and name=='precipitation':
+            # Only the separately qualified 0–6h Fast stream may have an
+            # entirely Missing +0 precipitation interval; +1..+6 must be real.
+            if missing_steps.size != 1 or missing_steps[0] != 0:
+                raise MeteoIntegrityError('Fast first precipitation must be unknown; later native lead missing')
+        elif missing_steps.size:
             raise MeteoIntegrityError(f'{name}: no finite model values at forecast steps {missing_steps[:24].tolist()}')
         if name in ranges:
             lower, upper = ranges[name]
