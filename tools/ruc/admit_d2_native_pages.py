@@ -70,7 +70,7 @@ def require_detached_native_approval(index_file:Path, source_inventory:str,
      or not hmac.compare_digest(source_inventory,trusted_inventory_sha256)):
   raise ValueError('Native D2 index or original source inventory differs from detached release-gate evidence')
 
-def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int=900_000_000,*,trusted_index_sha256:str|None=None,trusted_inventory_sha256:str|None=None):
+def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int=900_000_000,*,trusted_index_sha256:str|None=None,trusted_inventory_sha256:str|None=None,trusted_release_sha:str|None=None):
  root=root.resolve(strict=True);out=out.resolve(strict=True)
  source=root/'model-fields-native';index_file=source/'index.json'
  if not index_file.is_file():return None
@@ -152,6 +152,12 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
  # therefore mandatory BEFORE any index or frame is copied into Pages output.
  require_detached_native_approval(index_file,index['sourceInventorySha256'],
                                   trusted_index_sha256,trusted_inventory_sha256)
+ # Detached SHA strings alone are not cryptographic provenance. Require a
+ # verified SLSA signature by the independent protected original-DWD release
+ # approval actor for exactly these bytes and the exact main release commit.
+ from d2_release_attestation import verify_signed_release_index
+ if verify_signed_release_index(index_file,trusted_release_sha)!=trusted_index_sha256:
+  raise ValueError('Cryptographically approved D2 index differs from detached SHA')
  if size>=350_000_000:raise ValueError('Original D2 map candidate exceeds standalone 350MB budget')
  if(size+sum(obj['bytes'] for obj in existing_objects)+1_000_000>=budget):
   raise ValueError('Complete native D2 map conflicts with 900MB RUC/Pages budget')
