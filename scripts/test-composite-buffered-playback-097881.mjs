@@ -28,9 +28,25 @@ assert.ok(panel.includes('compositeSettingsRef.current={')&&panel.includes('mapO
 assert.ok(panel.includes("source:viewMode==='radar'?'Radar + Satellit':'Satellit',observations:satelliteObservationTimes"));assert.ok(panel.includes('satelliteDisplayFrame?[{frame:satelliteDisplayFrame,weight:1}]:[]'),'Displayed timestamp follows buffered image');assert.ok(panel.includes('satellitePreloadFrame=requestedSatelliteKey'),'History loads behind retained image');
 // Exercise real RasterTileLayer with a MapLibre test double: another source need not be idle.
 const core=read('src/MapLibreCore.tsx'),coreAst=ts.createSourceFile('core.tsx',core,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),fn=coreAst.statements.find(n=>n.name?.text==='RasterTileLayer');
-const handlers={},layers=new Map(),sources=new Map(),hookRef={current:null};let loaded=false,first=0,latest=0,initial=true;
+// Evaluate the REAL transport retry helper, and model independent persistent
+// React hook slots / browser scheduling, not a single shared useRef placeholder.
+const retryExports={};new Function('exports',compile(read('src/mapLayerRecovery.ts')))(retryExports);
+assert.equal(retryExports.rasterTileRetryDelayMs(0),1500);
+assert.equal(retryExports.rasterTileRetryDelayMs(3),null,'Retry cap remains enforced');
+const handlers={},layers=new Map(),sources=new Map(),hookRefs=[],hookStates=[];
+let loaded=false,first=0,latest=0,initial=true,refCursor=0,stateCursor=0;
 const map={getLayer:id=>layers.get(id),getSource:id=>sources.get(id),addSource:(id,data)=>sources.set(id,data),addLayer:data=>layers.set(data.id,data),removeLayer:id=>layers.delete(id),removeSource:id=>sources.delete(id),isSourceLoaded:()=>loaded,on:(name,fn)=>{handlers[name]=fn},off:()=>{},setPaintProperty:()=>{}};
-const deps={useRef:()=>hookRef,useState:initialValue=>[typeof initialValue==='function'?initialValue():initialValue,()=>{}],useMidMap:()=>map,useEffect:cb=>{if(initial)cb()},safeId:x=>x,registerMapLayerOrder:()=>{},unregisterMapLayerOrder:()=>{},clampRasterTone:x=>x};
+const testDocument={visibilityState:'visible',addEventListener:()=>{},removeEventListener:()=>{}};
+const testWindow={setTimeout:()=>1,clearTimeout:()=>{},addEventListener:()=>{},removeEventListener:()=>{}};
+const deps={
+ useRef:value=>{const i=refCursor++;return hookRefs[i]??(hookRefs[i]={current:value})},
+ useState:value=>{const i=stateCursor++;if(!(i in hookStates))hookStates[i]=typeof value==='function'?value():value;return[hookStates[i],next=>{hookStates[i]=typeof next==='function'?next(hookStates[i]):next}]},
+ useMidMap:()=>map,useEffect:cb=>{if(initial)cb()},rasterTileRetryDelayMs:retryExports.rasterTileRetryDelayMs,
+ document:testDocument,window:testWindow,queueMicrotask:()=>{},
+ safeId:x=>x,registerMapLayerOrder:()=>{},unregisterMapLayerOrder:()=>{},clampRasterTone:x=>x
+};
 const component=new Function('exports',...Object.keys(deps),compile(fn.getText(coreAst))+';return RasterTileLayer')({},...Object.values(deps));
-component({id:'sat',url:'fixture',onReady:()=>first++});initial=false;component({id:'sat',url:'fixture',onReady:()=>latest++});loaded=true;handlers.sourcedata();assert.equal(first,0,'Stale onReady closure must not commit obsolete requested frame');assert.equal(latest,1);handlers.idle();assert.equal(latest,1,'Only one readiness notification');assert.equal(layers.get('sat-layer').paint['raster-opacity-transition'].duration,350);
+refCursor=stateCursor=0;component({id:'sat',url:'fixture',onReady:()=>first++});
+initial=false;refCursor=stateCursor=0;component({id:'sat',url:'fixture',onReady:()=>latest++});
+loaded=true;handlers.sourcedata();assert.equal(first,0,'Stale onReady closure must not commit obsolete requested frame');assert.equal(latest,1);handlers.idle();assert.equal(latest,1,'Only one readiness notification');assert.equal(layers.get('sat-layer').paint['raster-opacity-transition'].duration,350);
 console.log('Buffered radar/satellite playback: retained old frame, rendered crossfade, genuine history, persistent dwell speed and 12-frame reuse passed.');
