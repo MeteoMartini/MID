@@ -26,7 +26,7 @@ export type CopernicusSnowTile={
  maxPixelAcquisitionAgeDays:number;
  citation:'Copernicus Land Monitoring Service';
 };
-const sha=(value:unknown):value is string=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+/** Every manifest field is part of the tile's render identity, not only the PNG hash.\n * A reused PNG at a new location or with changed QA must be re-admitted. */\nexport const copernicusSnowTileIdentity=(tile:CopernicusSnowTile):string=>JSON.stringify(tile);\nconst sha=(value:unknown):value is string=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 export function validateCopernicusSnowTile(raw:unknown,nowMs=Date.now()):CopernicusSnowTile{
  if(!raw||typeof raw!=='object')throw new Error('Missing Copernicus snow tile manifest');
  const t=raw as Partial<CopernicusSnowTile>;
