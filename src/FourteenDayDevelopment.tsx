@@ -98,7 +98,13 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
       <td data-label="Niederschlag">{compactPrecipitationAmount(row.bestPrecipitation)} mm · {probability(row.bestPrecipitationProbability)}</td>
       <td data-label="Wind und Böen">{wind(row.bestWind,unit)} / {wind(row.bestGust,unit)}</td>
       <td data-label="Ensemble">{row.ensembleAvailable?assessmentSummary(row.assessment):'Spannen fehlen'}</td>
-      <td>{onOpenDay?<button type="button" onClick={()=>onOpenDay(row.date)} aria-label={'Tagesdetails '+dateLabel(row.date)+' öffnen'}>Öffnen</button>:<span>Im Tagesbereich</span>}</td>
+      <td data-label="Tagesdetails">{onOpenDay?<button type="button" onClick={()=>onOpenDay(row.date)} aria-label={'Tagesdetails '+dateLabel(row.date)+' öffnen'}>Öffnen</button>:<details className="mid-we-fourteen-row-expansion">
+       <summary>Spannen & Einordnung</summary>
+       <div><b>Ensemble-Temperatur</b><span>{row.ensembleAvailable?numeric(row.minLow,'°C',1)+' – '+numeric(row.minHigh,'°C',1)+' (Tmin P10–P90)':'nicht verfügbar'}</span><span>{row.ensembleAvailable?numeric(row.maxLow,'°C',1)+' – '+numeric(row.maxHigh,'°C',1)+' (Tmax P10–P90)':'nicht verfügbar'}</span></div>
+       <div><b>Niederschlag (P10–P90)</b><span>{row.ensembleAvailable?numeric(row.precipitationLow,'mm',1)+' – '+numeric(row.precipitationHigh,'mm',1):'nicht verfügbar'}</span></div>
+       <div><b>Wind/Böen (P10–P90)</b><span>{row.ensembleAvailable?wind(row.windLow,unit)+' – '+wind(row.windHigh,unit):'nicht verfügbar'}</span><span>{row.ensembleAvailable?wind(row.gustLow,unit)+' – '+wind(row.gustHigh,unit):'nicht verfügbar'}</span></div>
+       <small>{assessmentSummary(row.assessment)} · Die vollständigen Tageskarten folgen unterhalb dieser Übersicht.</small>
+      </details>}</td>
      </tr>)}</tbody>
     </table>
    </div>
