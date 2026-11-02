@@ -32,4 +32,6 @@ assert(fc.includes('Index ist keine Trefferwahrscheinlichkeit'));
 const app=read('src/App.tsx');
 assert(app.includes('aria-label="Einstellungsbereich direkt wählen"'));
 assert(app.includes('value={section}')&&app.includes('setSection(event.target.value as SettingsSection)'));
+const responsiveCss=read('src/midC18AuditFollowup.css');
+assert(responsiveCss.includes('@media(max-width:430px)')&&responsiveCss.includes('.settings-titlebar .settings-section-direct{order:3;flex:0 0 100%'));
 console.log('DA19-03/08/15 · renderer truth, original model coverage, accessible settings selector: passed');
