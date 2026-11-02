@@ -37,7 +37,7 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
   expect(cockpit).toContain("useDisplayPreference('ForecastCockpit.profileFullDetails'");
   expect(cockpit).toContain('aria-expanded={profileFullDetails}');
   expect(cockpit).toContain('profileFullDetails?<div id=');
-  expect(cockpit).toContain('className="cockpit-hourly-preview');
+  expect(cockpit).toContain('className={`cockpit-hourly-preview');
   expect(cockpit).toContain('setHourlyExpanded(value=>!value)');
  });
  it('registers the responsive stylesheet last and provides a small-screen accessible control layer',()=>{
