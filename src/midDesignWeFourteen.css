@@ -120,3 +120,8 @@ html:root .app [data-fourteen-development] .mid-we-fourteen-days button{
 @media(prefers-reduced-motion:reduce){
  html:root .app [data-fourteen-development] :is(.mid-we-fourteen-switch button,.mid-we-fourteen-days button){transition:none;animation:none}
 }
+
+html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion{max-width:340px;min-width:150px;white-space:normal}
+html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion summary{min-height:44px;padding:10px;border:1px solid var(--primary);border-radius:9px;cursor:pointer;font-weight:750}
+html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion>div{display:grid;gap:5px;margin:9px 0;padding-bottom:8px;border-bottom:1px solid var(--border)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion summary:focus-visible{outline:2px solid var(--primary)}
