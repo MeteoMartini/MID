@@ -1,0 +1,56 @@
+name: MID RUC P2 P4 P5 native Fast read-only CAS and Pages chunk adversarial QA
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_fast_cas.mjs'
+      - 'tools/ruc/test_ruc_fast_cas.mjs'
+      - 'tools/ruc/ruc_fast_cell_shadow.mjs'
+      - 'tools/ruc/test_ruc_fast_cell_shadow.mjs'
+      - 'tools/ruc/ruc_fast_pages_chunker.py'
+      - 'tools/ruc/test_ruc_fast_pages_chunker.py'
+      - 'ci/github/workflows/mid-ruc-fast-p2345-shadow-qa.yml'
+      - '.github/workflows/mid-ruc-fast-p2345-shadow-qa.yml'
+permissions:
+  contents: read
+jobs:
+  shadow:
+    name: Strict offline P2 P4 P5 positive and negative evidence only
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 100
+          persist-credentials: false
+      - name: Source SHA and unchanged Stable-only ancestry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-fast-p2345-shadow-qa.yml .github/workflows/mid-ruc-fast-p2345-shadow-qa.yml
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$main" = "$stable"
+          git merge-base --is-ancestor "$stable" HEAD
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Native R2 conditional CAS, bounded point, NoData and UTC, immutable Fast partition
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tools/ruc/ruc_fast_cas.mjs
+          node --check tools/ruc/ruc_fast_cell_shadow.mjs
+          node --test tools/ruc/test_ruc_fast_cas.mjs tools/ruc/test_ruc_fast_cell_shadow.mjs
+          python tools/ruc/test_ruc_fast_pages_chunker.py -v
+          echo 'Source-only 22 adversarial and positive tests. No real R2 credential or publisher, Pages or Worker deploy, authenticated client or 168h P95.' >> "$GITHUB_STEP_SUMMARY"
