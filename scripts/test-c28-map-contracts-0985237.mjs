@@ -13,7 +13,7 @@ try{
  assert.ok(centers.validModelPressureCenters([center],lats,lons));
  for(const patch of [{type:'L'},{value:null},{value:1200},{lat:80},{lon:'10'},{prominence:0}])assert.equal(centers.validModelPressureCenters([{...center,...patch}],lats,lons),false);
  const run=new Date(Math.floor(Date.now()/3600000)*3600000).toISOString(),frames=[1,2,3,4,5,6,12,24,48].map(hour=>({hour,time:new Date(Date.parse(run)+hour*3600000).toISOString(),file:`pressure-${String(hour).padStart(3,'0')}.json`,bytes:10,sha256:'a'.repeat(64),intervalHours:0})),index={schema:'mid.icon-d2.fields.v1',run,products:{pressure:{unit:'hPa',frames}}};
- globalThis.fetch=async url=>({ok:true,json:async()=>String(url).includes('latest.json')?{modelFields:{key:'runs/check/model-fields/index.json'}}:index});
+ globalThis.fetch=async url=>({ok:true,json:async()=>String(url).includes('latest.json')?{modelFields:{key:'runs/check/model-fields/index.json'}}:index,arrayBuffer:async()=>new TextEncoder().encode(JSON.stringify(index)).buffer});
  assert.deepEqual((await native.loadNativeIndex(new AbortController().signal)).index.products.pressure.frames.map(f=>f.hour),[1,2,3,4,5,6,12,24,48]);
  const field={schema:'mid.icon-d2.field.v1',run,time:frames[0].time,kind:'pressure',unit:'hPa',scale:.1,lats,lons,values:Array(9).fill(10240),isobars:[],centers:[center]};
  assert.equal(native.validateNativeField(field,index,frames[0],'pressure'),field);

@@ -47,6 +47,12 @@ for(const token of [
   'steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha'
 ])if(!sourceRelease.includes(token))failures.push(`Agent-Release-Recovery für bereits geschützte Merges fehlt: ${token}`);
 
+// Exact script-name boundary is critical: verify:types and verify:vite are
+// targeted checks, NOT the full Python-dependent "npm run verify" inventory.
+// The validator still rejects any full verify/test:regressions without Python.
+const fullInventoryCommand=/^\s*(?:run:\s*)?(?:MID_REGRESSION_SHARD=core\s+)?npm run (?:verify|test:regressions)(?=\s|$|[;&|])/m;
+for(const safe of ['run: npm run verify:types','run: npm run verify:vite'])if(fullInventoryCommand.test(safe))failures.push('Targeted TypeScript/Vite checks are not full Python inventories: '+safe);
+for(const full of ['run: npm run verify','npm run test:regressions'])if(!fullInventoryCommand.test(full))failures.push('Full Python-dependent inventory must remain detected: '+full);
 // Every existing job that runs the full inventory also runs Python-backed RUC
 // tests. Check each job, not just the first setup occurrence in a workflow.
 for(const name of await readdir(path.join(root,'.github','workflows'))){
@@ -54,7 +60,7 @@ for(const name of await readdir(path.join(root,'.github','workflows'))){
  const text=await readFile(path.join(root,'.github','workflows',name),'utf8'),jobs=[...text.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm)];
  for(let i=0;i<jobs.length;i++){
   const body=text.slice(jobs[i].index,jobs[i+1]?.index??text.length);
-  const command=/^\s*(?:run:\s*)?(?:MID_REGRESSION_SHARD=core\s+)?npm run (?:verify|test:regressions)\b/m.exec(body);
+  const command=fullInventoryCommand.exec(body);
   if(!command)continue;
   if(/MID_REGRESSION_SHARD:\s*\$\{\{ matrix\.shard \}\}/.test(body)&&body.includes('heavy-'))continue;
   const setup=body.indexOf('uses: actions/setup-python@'),deps=body.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt');
