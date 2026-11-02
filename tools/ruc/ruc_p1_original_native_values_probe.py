@@ -90,6 +90,8 @@ def safe_fetch(row):
 
 def examine(row, payload, before, after, run, *, decoder=read_messages, header=inspect):
     raw_header = header(row, payload, run)
+    if raw_header.get('sha256') != hashlib.sha256(payload).hexdigest():
+        raise ValueError('original DWD header and values input SHA differ')
     lead = assert_requested_lead(row, raw_header)
     member = row['member']
     logical_field = row['logicalField']
