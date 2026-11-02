@@ -6,13 +6,47 @@ Atomic staging is handled by prepare_ruc_pages; this file only verifies/copies
 into its pre-existing temporary output, with the canonical Pages budget.
 """
 from __future__ import annotations
-import gzip,hashlib,json,re,shutil
+import gzip,hashlib,json,math,re,shutil
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 KINDS=('temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation')
 LEADS=(1,2,3,4,5,6,12,24,48)
 UNITS=dict(zip(KINDS,('°C','hPa','km/h','km/h','%','K','WMO','mm/1 h')))
 DIGEST=re.compile(r'[a-f0-9]{64}')
+BOUNDS={'temperature':(-100,70),'pressure':(800,1100),'wind':(0,600),
+ 'gust':(0,600),'cloud':(0,100.01),'thetae':(150,500),
+ 'sigwx':(0,99),'precipitation':(0,6500)}
+def qualified_axis(values):
+ if (not isinstance(values,list) or not 3<=len(values)<=1600
+     or not all(type(v) in (float,int) and math.isfinite(v) for v in values)):
+  raise ValueError('Native full-domain axis invalid')
+ step=values[1]-values[0]
+ if not .024<step<.026 or any(abs(v-values[0]-i*step)>1e-4 for i,v in enumerate(values)):
+  raise ValueError('Original native DWD grid spacing/ordering invalid')
+ return tuple(values)
+def field_admission(field,kind,grid):
+ lats,lons=qualified_axis(field.get('lats')),qualified_axis(field.get('lons'))
+ if (not lats[0]<47 or not lats[-1]>55.2 or not lons[0]<5.5 or not lons[-1]>15.6):
+  raise ValueError('DWD full-domain source replaced by Germany crop')
+ if grid is not None and grid!=(lats,lons):
+  raise ValueError('Original DWD full-area grid/coordinate ordering drift')
+ values=field['values']
+ if len(values)!=len(lats)*len(lons):
+  raise ValueError('Original full-domain field pixel geometry mismatch')
+ good=0;missing=0;low,high=BOUNDS[kind]
+ for value in values:
+  if value is None:missing+=1;continue
+  if (type(value) is not int or value<low*10-1e-6 or value>high*10+1e-6
+      or kind=='sigwx' and value%10!=0):
+   raise ValueError('Original DWD extreme/source pixel outside physical contract')
+  good+=1
+ if not good:raise ValueError('Entire native DWD source missing')
+ uncertainty=field.get('negativePackingUncertainNoDataCells')
+ if (type(uncertainty) is not int or uncertainty<0
+     or uncertainty>min(missing,int(542040*.15))
+     or kind!='precipitation' and uncertainty!=0):
+  raise ValueError('Native original packing uncertainty not explicit NoData')
+ return (lats,lons)
 def sha(p:Path):
  h=hashlib.sha256()
  with p.open('rb') as f:
@@ -47,7 +81,7 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
   hours=[f.get('hour') for f in frames if isinstance(f,dict)]
   if len(hours)!=9 or set(hours)!=set(LEADS) or len(set(hours))!=9:
    raise ValueError('Duplicated or unknown DWD native forecast lead')
- entries=[(index_file,'index.json')];size=index_file.stat().st_size
+ entries=[(index_file,'index.json')];size=index_file.stat().st_size;grid=None
  for kind in KINDS:
   product=products[kind]
   if not isinstance(product,dict) or product.get('unit')!=UNITS[kind]:
@@ -90,6 +124,7 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
       or not isinstance(field.get('isobars'),list)
       or not isinstance(field.get('centers'),list)):
     raise ValueError('Original DWD 72-field model/source provenance mismatch')
+   grid=field_admission(field,kind,grid)
    if kind=='pressure' and not field['isobars']:
     raise ValueError('Native full-domain pressure isolines missing from released field')
    size+=frame['bytes'];entries.append((file,name))
