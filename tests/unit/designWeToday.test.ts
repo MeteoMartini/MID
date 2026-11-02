@@ -1,0 +1,47 @@
+import {readFileSync} from 'node:fs';
+import {describe,expect,it} from 'vitest';
+
+const cockpit=readFileSync(new URL('../../src/ForecastCockpit.tsx',import.meta.url),'utf8');
+const css=readFileSync(new URL('../../src/midDesignWeToday.css',import.meta.url),'utf8');
+const manifest=JSON.parse(readFileSync(new URL('../../src/styles-src/presentation-order.json',import.meta.url),'utf8')) as {sources:string[]};
+
+describe('Design-WE Heute (read-only source assertions)',()=>{
+ it('keeps skybar and cloud lanes physically above temperature, without replacing the shared time axis',()=>{
+  const ordered=['skyBandTop=profileY(50)','cloudTop=profileY(101)','tempTop=profileY(150)','precipTop=profileY(321)','windTop=profileY(406)','pressureTop=profileY(498)'].map(token=>cockpit.indexOf(token));
+  expect(ordered.every((index)=>index>=0)).toBe(true);
+  expect(ordered).toEqual([...ordered].sort((a,b)=>a-b));
+  expect(cockpit).toContain('data-mid-skybar="profile"');
+  expect(cockpit).toContain('profileXForEpoch(point.epoch)');
+  expect(cockpit).toContain('shortTermCloudLayerTriplet(selectedPoint)');
+ });
+ it('highlights parameter lanes without hiding source weather/cloud/hazard content',()=>{
+  expect(cockpit).toContain('data-mid-chart-focus={profileFocus}');
+  expect(cockpit).toContain('aria-pressed={profileFocus===option.key}');
+  expect(css).toContain(".cockpit-meteogram-pro__canvas[data-mid-chart-focus='temperature']");
+  expect(css).toContain(".cockpit-meteogram-pro__canvas[data-mid-chart-focus='precipitation']");
+  expect(css).toContain(".cockpit-meteogram-pro__canvas[data-mid-chart-focus='wind']");
+  expect(css).toContain('.profile-sky-strip');
+  expect(css).toContain('.cloud-opacity-band');
+  expect(css).not.toMatch(/\.profile-sky-strip\s*\{\s*display\s*:\s*none/);
+ });
+ it('keeps missing numeric values distinct from true zero in the selected-hour preview',()=>{
+  expect(cockpit).toContain('shortTermKnownPrecipitationLabel(selectedPoint)');
+  expect(cockpit).toContain('shortTermKnownProbabilityLabel(selectedPoint.probability)');
+  expect(cockpit).toContain('Number.isFinite(selectedPoint.pressure)');
+  expect(cockpit).toContain('Number.isFinite(selectedPoint.wind)');
+  expect(cockpit).toContain('Number.isFinite(selectedPoint.apparent)');
+  expect(cockpit).toContain('Number.isFinite(selectedPoint.temperature)');
+  expect(cockpit).not.toContain('selectedPoint.pressure||0');
+ });
+ it('keeps complete hourly detail behind an operable, local persistence-safe disclosure',()=>{
+  expect(cockpit).toContain("useDisplayPreference('ForecastCockpit.profileFullDetails'");
+  expect(cockpit).toContain('aria-expanded={profileFullDetails}');
+  expect(cockpit).toContain('profileFullDetails?<div id=');
+  expect(cockpit).toContain('className="cockpit-hourly-preview');
+  expect(cockpit).toContain('setHourlyExpanded(value=>!value)');
+ });
+ it('registers the responsive stylesheet last and provides a small-screen accessible control layer',()=>{
+  expect(manifest.sources.at(-1)).toBe('src/midDesignWeToday.css');
+  for(const part of ['@media(max-width:959px)','@media(max-width:620px)','@media(max-width:350px)','@media(prefers-reduced-motion:reduce)','min-height:44px',':focus-visible','--mid-we-focus'])expect(css).toContain(part);
+ });
+});
