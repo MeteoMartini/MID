@@ -71,7 +71,6 @@
     "src/midC23CloudAudit.css",
     "src/midC26UpdateRecovery.css",
     "src/midC27CompactProfile.css",
-    "src/midC48TabletTimeline.css",
-    "src/midDesignWeToday.css"
+    "src/midC48TabletTimeline.css"
   ]
 }

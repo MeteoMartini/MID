@@ -4,7 +4,7 @@ import {readPresentationEntrySources} from './lib/presentationEntrySources.mjs';
 
 const [cockpit,styles,entry,baselineText]=await Promise.all([
  readFile(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8'),
- readFile(new URL('../src/midDesignWeToday.css',import.meta.url),'utf8'),
+ readFile(new URL('../src/midC27CompactProfile.css',import.meta.url),'utf8'),
  readPresentationEntrySources(),
  readFile(new URL('../MID_BASELINE.json',import.meta.url),'utf8')
 ]);
@@ -12,7 +12,7 @@ const baseline=JSON.parse(baselineText);
 const name='scripts/test-design-we-today-compact-0985412.mjs';
 for(const list of ['requiredRegressionTests','regressionTests'])assert.ok(baseline[list].includes(name),name+' fehlt in '+list);
 assert.ok(baseline.requiredFiles.includes(name),'WE-Test muss als Pflichtdatei geführt sein');
-assert.ok(entry.includes("import './midDesignWeToday.css';"),'WE-Layer muss registriert sein');
+assert.ok(entry.includes("import './midC27CompactProfile.css';")&&!entry.includes("import './midDesignWeToday.css';"),'Design-WE muss über bestehendes C27 erfolgen, ohne neue CSS-Kaskadenquelle');
 
 for(const token of [
  'data-mid-we-today="true"',
