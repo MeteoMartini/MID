@@ -4,6 +4,9 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - 'tools/ruc/ruc_fast_pages_overlay.py'
+      - 'tools/ruc/ruc_fast_pages_chunker.py'
+      - 'tools/ruc/ruc_fast_cas.mjs'
+      - 'tools/ruc/ruc_fast_cell_shadow.mjs'
       - 'tools/ruc/ruc_fast_consumer_shadow.py'
       - 'ci/github/workflows/mid-ruc-joint-site-real-pilot.yml'
       - '.github/workflows/mid-ruc-joint-site-real-pilot.yml'
@@ -184,6 +187,64 @@ jobs:
           assert file_sha(Path('.joint-pages/ruc/latest.json'))==proof['primaryManifestSha256']
           print('Physical joint site (not deployed):',proof['combinedPagesBytes'])
           PY
+      - name: Reconstruct original Fast as SHA-identical small immutable Pages chunks - real full site, never deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_pages_chunker.py --shadow archived-fast/native-shadow --output .paged-fast > paged-proof.json
+          cp -a .complete-pages .joint-paged-pages
+          cp -a .paged-fast/ruc/fast .joint-paged-pages/ruc/fast
+          python - <<'PY'
+          import json,hashlib,sys,os
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from ruc_fast_pointer_staging import count_files
+          from ruc_fast_pages_overlay import file_sha
+          root=Path('.joint-paged-pages')
+          original=Path('.complete-pages/ruc/latest.json')
+          assert file_sha(root/'ruc/latest.json')==file_sha(original)
+          assert not (root/'ruc/fast/latest.json').exists()
+          assert not list((root/'ruc/fast').glob('runs/**/*.bin'))
+          manifest=json.loads((root/'ruc/fast/paged-shadow.json').read_text())
+          shadow=json.loads(Path('archived-fast/native-shadow/ruc/fast/latest.json').read_text())
+          assert manifest['sourceManifestSha256']==file_sha(Path('archived-fast/native-shadow/ruc/fast/latest.json'))
+          assert manifest['run']==shadow['run']
+          assert manifest['epsAvailable'] is False
+          assert all(manifest[k] is False for k in ('productionEnabled','publicationAuthorized','realtimeConsumerEnabled'))
+          chunk_count=0
+          for name,info in manifest['objects'].items():
+              complete=hashlib.sha256()
+              for part in info['parts']:
+                  p=root/'ruc'/part['key']
+                  data=p.read_bytes()
+                  assert len(data)==part['bytes'] and hashlib.sha256(data).hexdigest()==part['sha256']
+                  complete.update(data);chunk_count+=1
+              assert complete.hexdigest()==shadow['objects'][name]['sha256']==info['sourceSha256']
+          whole_bytes=count_files(root)
+          assert whole_bytes<900000000
+          assert whole_bytes-count_files(Path('.complete-pages'))==count_files(Path('.paged-fast'))
+          file_count=sum(len(files) for _,_,files in os.walk(root))
+          assert file_count<20000
+          proof={'schema':'mid.ruc.full-paged-fast-offline-site-proof.v1',
+                 'physicalPagesBytes':whole_bytes,'physicalSiteFiles':file_count,
+                 'nativeChunkFiles':chunk_count,'full27hEps20Unchanged':True,
+                 'nativeFastShaReassembled':True,'fastRunUtc':manifest['run'],
+                 'productionAuthorized':False,'consumerAdoptionVerified':False,
+                 'globalCasVerified':False,'publicPagesVerified':False}
+          Path('paged-full-proof.json').write_text(json.dumps(proof,sort_keys=True)+'\n')
+          print(json.dumps(proof,sort_keys=True))
+          PY
+      - name: Archive immutable SHA and physical-size evidence for real paged site - no deploy
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-full-paged-proof-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            paged-proof.json
+            paged-full-proof.json
+            .joint-paged-pages/ruc/fast/paged-shadow.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
       - name: Fail closed on parallel promotion or changed main
         env:
           GH_TOKEN: ${{ github.token }}
