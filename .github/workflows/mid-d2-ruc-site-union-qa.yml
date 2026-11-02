@@ -179,5 +179,5 @@ jobs:
       - name: Exact 72 source field bytes through browser TypeScript admission (never activate)
         env:
           MID_D2_ORIGINAL_SITE_PATH: .d2-original
-        run: npx vitest run tests/integration/native-d2-original-binary-readback.test.ts
+        run: npx vitest run tests/unit/native-d2-original-binary-readback.test.ts
 
