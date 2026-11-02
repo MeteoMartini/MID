@@ -61,6 +61,24 @@ def lead_inventory(files, extractor, expected):
     return len(leads)
 
 
+def fast_precipitation_intervals(rows, targets, np, validate_accumulation):
+    """Original DWD cumulative 5/15/60m TOT_PREC without silently drying negative deltas.
+
+    The existing 27h/EPS20 canonical builder is intentionally UNCHANGED.
+    A backward increment <=0.05mm can be GRIB packing ambiguity: Missing,
+    not physically dry. Larger backward jumps fail in validate_accumulation.
+    The model initialisation is explicitly unknown to all Fast consumers.
+    """
+    cumulative=np.stack([rows[t] for t in targets])
+    validate_accumulation(cumulative,'Fast native cumulative TOT_PREC')
+    increments=np.diff(cumulative,axis=0)
+    # Only finite, nonnegative increments can be a source-observed rainfall
+    # amount. Do not correct, interpolate or smooth original quantization.
+    intervals=np.where(increments<0,np.nan,increments)
+    initial=np.where(np.isfinite(cumulative[:1]),0.0,np.nan)
+    return np.concatenate((initial,intervals),axis=0)
+
+
 def safe_quantization(fields, specs, np):
     if set(fields)!={s.name for s in specs}:
         raise ValueError('core output fields do not match native format')
@@ -77,6 +95,8 @@ def safe_quantization(fields, specs, np):
         if not np.all(np.any(available,axis=1)):
             raise ValueError('native forecast step entirely missing: '+spec.name)
         finite=arr[available]
+        if spec.name=='precipitation' and np.any(finite<0):
+            raise ValueError('Fast negative precipitation must be explicit NoData, never zero')
         scaled=np.rint((finite-spec.offset)/spec.scale)
         if np.any(~np.isfinite(scaled)) or np.any(scaled<-32767) or np.any(scaled>32767):
             raise ValueError('native extreme would clip int16: '+spec.name)
@@ -183,7 +203,7 @@ def build(run, output, staging):
     from build_ruc_bundle import (PARAM_MAP, collect_parameter, load_native_grid,
         hourly_targets, rapid_targets, derive_core_fields, build_lookup,
         accumulation_intervals)
-    from meteo_integrity import validate_core_fields
+    from meteo_integrity import validate_core_fields, validate_accumulation
     from ruc_pack import (DEFAULT_FIELDS, RAPID_5M_FIELDS, RAPID_15M_FIELDS,
         pack_cell_major)
     if set(FORECAST_REQUIRED)!=set(FIELDS):raise ValueError('production field contract drift')
@@ -224,6 +244,11 @@ def build(run, output, staging):
                 for x in rows:source.append({'field':code,'leadMinutes':0,'sourceSha256':digest(folder/x)['sha256']})
             lats,lons=load_native_grid(stage,points)
             fields=derive_core_fields(series,targets)
+            # The shared full 27h builder keeps its historical semantics.
+            # Only the independently qualified Fast 0-6h native sidecar masks
+            # negative GRIB packing deltas as explicit NoData rather than dry.
+            fields['precipitation']=fast_precipitation_intervals(
+                series['precipitation_acc'],targets,np,validate_accumulation)
             coverage=validate_core_fields(fields)
             safe_quantization(fields,DEFAULT_FIELDS,np)
             (out/'deterministic.bin').write_bytes(pack_cell_major(fields,DEFAULT_FIELDS))
@@ -237,7 +262,8 @@ def build(run, output, staging):
             t5=rapid_targets(run,5,6);t15=rapid_targets(run,15,6)
             acc5=collect_parameter(acc_files,'precipitation_acc',t5,points)
             acc15=collect_parameter(acc_files,'precipitation_acc',t15,points)
-            p5=accumulation_intervals(acc5,t5);p15=accumulation_intervals(acc15,t15)
+            p5=fast_precipitation_intervals(acc5,t5,np,validate_accumulation)
+            p15=fast_precipitation_intervals(acc15,t15,np,validate_accumulation)
             safe_quantization({'precipitation':p5},RAPID_5M_FIELDS,np)
             (out/'rapid-5m.bin').write_bytes(pack_cell_major({'precipitation':p5},RAPID_5M_FIELDS))
             for path in acc_files:source.append({'field':'TOT_PREC_5M','leadMinutes':forecast_lead_minutes(str(path)),
