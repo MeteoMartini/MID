@@ -52,7 +52,25 @@ def sha(p:Path):
  with p.open('rb') as f:
   for c in iter(lambda:f.read(1024*1024),b''):h.update(c)
  return h.hexdigest()
-def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int=900_000_000):
+def require_detached_native_approval(index_file:Path, source_inventory:str,
+                                     trusted_index_sha256:str|None=None,
+                                     trusted_inventory_sha256:str|None=None):
+ """Separate release-gate evidence: neither digest may originate in the candidate sidecar.
+
+ This is a deliberately strict interface, NOT an attestation verifier. A trusted
+ release actor must independently verify the original DWD run, approved workflow
+ identity, artifact digest and source inventory before providing both digests.
+ Merely copying hashes from the candidate itself is not a security proof.
+ """
+ import hmac
+ if (not isinstance(trusted_index_sha256,str) or not DIGEST.fullmatch(trusted_index_sha256)
+     or not isinstance(trusted_inventory_sha256,str) or not DIGEST.fullmatch(trusted_inventory_sha256)):
+  raise ValueError('Independent release-gate D2 source approval absent; cannot promote candidate flags')
+ if (not hmac.compare_digest(sha(index_file),trusted_index_sha256)
+     or not hmac.compare_digest(source_inventory,trusted_inventory_sha256)):
+  raise ValueError('Native D2 index or original source inventory differs from detached release-gate evidence')
+
+def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int=900_000_000,*,trusted_index_sha256:str|None=None,trusted_inventory_sha256:str|None=None):
  root=root.resolve(strict=True);out=out.resolve(strict=True)
  source=root/'model-fields-native';index_file=source/'index.json'
  if not index_file.is_file():return None
@@ -129,6 +147,11 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
     raise ValueError('Native full-domain pressure isolines missing from released field')
    size+=frame['bytes'];entries.append((file,name))
   if hours!=set(LEADS):raise ValueError('Incomplete native DWD forecast axis')
+ # A candidate can self-flip all 73 productionApproved flags and recompute
+ # its own per-file hashes. A SHA-bound external original-source admission is
+ # therefore mandatory BEFORE any index or frame is copied into Pages output.
+ require_detached_native_approval(index_file,index['sourceInventorySha256'],
+                                  trusted_index_sha256,trusted_inventory_sha256)
  if size>=350_000_000:raise ValueError('Original D2 map candidate exceeds standalone 350MB budget')
  if(size+sum(obj['bytes'] for obj in existing_objects)+1_000_000>=budget):
   raise ValueError('Complete native D2 map conflicts with 900MB RUC/Pages budget')
