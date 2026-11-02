@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     # RUC admission and source build/iOS/packaging stay here; disjoint
     # regression tests run in four independent, required core_regressions jobs.
-    timeout-minutes: 65
+    timeout-minutes: 45
     permissions:
       contents: read
 
@@ -169,12 +169,12 @@ jobs:
 
       - name: Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen
         if: steps.ruc_native_changes.outputs.enabled == 'true'
-        # 2026-11-02: 3 original DWD runs reached complete 27h source downloads
-        # but the independent contour/codec admission exceeded 20min twice.
-        # Extend execution only; retain every source/NoData/physics/codec check.
-        timeout-minutes: 35
+        # Bounded three-run original GRIB/full-map/composite proof. The extra
+        # native codec/contour admission runs as an additional, required
+        # parallel source-gate job; it is never removed or treated as optional.
+        timeout-minutes: 20
         run: |
-          python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
+          python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6
           node scripts/verify-ruc-composites.mjs ruc-horizon-evidence
 
       - name: Numerische RUC-Prüfnachweise sichern
@@ -438,6 +438,103 @@ jobs:
           VITE_WORKER_SAME_ORIGIN_PATH: ${{ vars.VITE_WORKER_SAME_ORIGIN_PATH }}
           VITE_WORKER_FALLBACK_URLS: ${{ vars.VITE_WORKER_FALLBACK_URLS }}
         run: npm run test:regressions
+
+  ruc_native_source_detection:
+    name: Determine whether complete original RUC admission is required
+    if: >-
+      (startsWith(github.head_ref, 'chatgpt/') || startsWith(github.head_ref, 'codex/')) &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    outputs:
+      enabled: ${{ steps.changed.outputs.enabled }}
+    steps:
+      - name: Check out exact synthetic PR merge and parents
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify exact source SHA and detect RUC change paths
+        id: changed
+        shell: bash
+        env:
+          EXPECTED_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD^2')" = "$EXPECTED_PR_HEAD_SHA"
+          changed="$(git diff --name-only HEAD^1 HEAD -- tools/ruc/ scripts/verify-ruc-composites.mjs src/rucSynopticFields.ts src/nativeSynopticFields.ts src/cloudWeatherData.ts)"
+          if [ -n "$changed" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  ruc_native_full_admission:
+    name: Admit three genuine DWD 27h original runs, codec and contour (read-only)
+    needs: [ruc_native_source_detection]
+    if: needs.ruc_native_source_detection.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - name: Load SHA-exact synthetic PR merge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify source head cannot drift
+        shell: bash
+        env:
+          EXPECTED_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD^2')" = "$EXPECTED_PR_HEAD_SHA"
+      - name: Set up pinned Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          package-manager-cache: false
+      - name: Set up pinned native Python GRIB runtime
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+      - name: Install reproducible native and JS decoder dependencies
+        shell: bash
+        timeout-minutes: 9
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Verify complete original three-run 27h map and native codec admission
+        shell: bash
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_horizon_probe.py --output ruc-original-admission-evidence --runs 3 --candidate-count 6 --admission
+          node scripts/verify-ruc-composites.mjs ruc-original-admission-evidence
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('ruc-original-admission-evidence/report.json').read_text())
+          assert r.get('pilotVerified') is True and len(r.get('runs',[]))==3
+          assert all(x.get('mapAdmissionFixture') is not None and x.get('nativeHourlyVerified') is True for x in r['runs'])
+          assert all(x.get('readyForProduction') is False and x.get('epsVerified') is False for x in r['runs'])
+          print('Three original DWD 27h + map codec/contour verified; NOT a production publication.')
+          PY
+      - name: Retain SHA-bound numerical original proof
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-original-admission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ruc-original-admission-evidence/
+          if-no-files-found: warn
+          retention-days: 2
 
   ruc27_qualification:
     name: RUC +27h Kern, EPS und Gesamtpaket
