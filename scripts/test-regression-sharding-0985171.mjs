@@ -61,6 +61,9 @@ console.log('MID v0.9.85.171: Regressionsinventar verlustfrei in Core plus drei 
 // cancelled or failed native 27h qualification, while unrelated PRs stay unchanged.
 const gate=canonical.slice(canonical.indexOf('  validate_source:'));
 assert.ok(gate.includes('      - ruc27_qualification')&&gate.includes('needs.ruc27_qualification.result'));
+assert.ok(gate.includes('      - ruc_native_source_detection')&&gate.includes('      - ruc_native_full_admission'));
+assert.ok(gate.includes('needs.ruc_native_source_detection.result')&&gate.includes('needs.ruc_native_full_admission.result'));
+assert.ok(gate.includes('RUC_NATIVE_ADMISSION_REQUIRED: ${{ needs.ruc_native_source_detection.outputs.enabled }}'));
 assert.ok(gate.includes("RUC27_REQUIRED: ${{ github.head_ref == 'chatgpt/v0.9.85.336-ruc27-qualification' }}"));
 const gateScript=gate.split('        run: |\n')[1].split('\n').filter(line=>line.startsWith('          ')).map(line=>line.slice(10)).join('\n');
 for(const [required,result,core,heavy,visual,extreme,success] of [
@@ -71,12 +74,41 @@ for(const [required,result,core,heavy,visual,extreme,success] of [
  ['true','success','success','failure','skipped','false',false],
  ['true','success','success','success','skipped','true',false],
 ]){
- const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:required,RUC27_RESULT:result,CORE_RESULT:core,CORE_MATRIX_RESULT:'success',HEAVY_RESULT:heavy,VISUAL_RESULT:visual,EXTREME_BRANCH:extreme}});
+ const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:required,RUC27_RESULT:result,CORE_RESULT:core,CORE_MATRIX_RESULT:'success',HEAVY_RESULT:heavy,VISUAL_RESULT:visual,EXTREME_BRANCH:extreme,RUC_NATIVE_DETECTION_RESULT:'success',RUC_NATIVE_ADMISSION_REQUIRED:'false',RUC_NATIVE_ADMISSION_RESULT:'skipped'}});
  assert.equal(run.status===0,success,`actual final Source gate: required=${required}, ruc=${result}, core=${core}, heavy=${heavy}, visual=${visual}`);
 }
 
 // Every skipped/failed/cancelled/missing Core matrix result must block promotion.
 for(const result of ['skipped','failure','cancelled','']){
- const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:'false',RUC27_RESULT:'skipped',CORE_RESULT:'success',CORE_MATRIX_RESULT:result,HEAVY_RESULT:'success',VISUAL_RESULT:'skipped',EXTREME_BRANCH:'false'}});
+ const run=spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{...process.env,RUC27_REQUIRED:'false',RUC27_RESULT:'skipped',CORE_RESULT:'success',CORE_MATRIX_RESULT:result,HEAVY_RESULT:'success',VISUAL_RESULT:'skipped',EXTREME_BRANCH:'false',RUC_NATIVE_DETECTION_RESULT:'success',RUC_NATIVE_ADMISSION_REQUIRED:'false',RUC_NATIVE_ADMISSION_RESULT:'skipped'}});
  assert.notEqual(run.status,0,'Incomplete Core matrix must block source release: '+result);
 }
+
+
+// Reproduce the *real* shell gate for the independent original DWD 27h
+// native-source admission; do not weaken it to make the old fixture pass.
+// Changed native sources require full original codec/contour success;
+// unchanged sources require an explicitly skipped admission. Missing or
+// contradictory detection/admission values must fail closed.
+function runNativeGate(detection,required,admission){
+ return spawnSync('bash',['-c',gateScript],{encoding:'utf8',env:{
+   ...process.env,RUC27_REQUIRED:'false',RUC27_RESULT:'skipped',
+   CORE_RESULT:'success',CORE_MATRIX_RESULT:'success',HEAVY_RESULT:'success',
+   VISUAL_RESULT:'skipped',EXTREME_BRANCH:'false',
+   RUC_NATIVE_DETECTION_RESULT:detection,
+   RUC_NATIVE_ADMISSION_REQUIRED:required,
+   RUC_NATIVE_ADMISSION_RESULT:admission
+ }});
+}
+assert.equal(runNativeGate('success','true','success').status,0,'Real original full admission must pass for changed RUC source');
+assert.equal(runNativeGate('success','false','skipped').status,0,'Unchanged RUC source must explicitly skip full admission');
+for(const detection of ['failure','skipped','cancelled','']){
+ assert.notEqual(runNativeGate(detection,'true','success').status,0,'Unverified RUC path detection must block: '+detection);
+}
+for(const admission of ['failure','skipped','cancelled','']){
+ assert.notEqual(runNativeGate('success','true',admission).status,0,'Unsuccessful required original DWD full admission must block: '+admission);
+}
+for(const required of ['','unknown','TRUE']){
+ assert.notEqual(runNativeGate('success',required,'skipped').status,0,'Missing or invalid required-source decision must block: '+required);
+}
+assert.notEqual(runNativeGate('success','false','success').status,0,'Unexpected RUC admission execution contradicts unchanged source decision');
