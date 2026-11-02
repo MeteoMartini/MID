@@ -1,0 +1,102 @@
+name: MID D2 independent protected original-release approval
+# Only runs after full MID release on main. No PR or Pages/Worker publishing.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mid-d2-original-protected-approval
+  cancel-in-progress: false
+jobs:
+  sign_original:
+    if: github.ref == 'refs/heads/main' && github.repository == 'MeteoMartini/MID' && github.event_name == 'workflow_dispatch'
+    name: Three original DWD cycles, 72 native fields, protected attestation
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Protected immutable main and stable SHA, mirror, instructions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "$GITHUB_SHA"
+          cmp ci/github/workflows/mid-d2-original-release-approval.yml .github/workflows/mid-d2-original-release-approval.yml
+          test -s AGENTS.md && test -s MID_BASELINE.json && test -s MID_SOURCE_OF_TRUTH.md
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+      - name: Original native source dependencies and trust-boundary tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          for t in test_dwd_domain_inventory.py test_d2_tot_prec_quantization_qa.py test_d2_native_eight_bundle.py test_stage_d2_native_full_domain.py test_d2_release_attestation.py test_approve_d2_originals_protected.py; do
+            python -m unittest discover -s tools/ruc -p "$t" -v
+          done
+      - name: Download and independently verify three genuine DWD GRIB cycles
+        timeout-minutes: 25
+        shell: bash
+        run: |
+          set -euo pipefail
+          last="$(python -c 'from datetime import datetime,timezone,timedelta;t=datetime.now(timezone.utc)-timedelta(hours=5);print(t.replace(hour=t.hour//3*3,minute=0,second=0,microsecond=0).strftime("%Y%m%d%H"))')"
+          python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "$last" --output d2-originals --download
+          python tools/ruc/pilot_dwd_domain_inventory.py --root d2-originals --manifest d2-originals/inventory-input.json > original-dwd-domain-inventory.json
+      - name: Reconstruct every original 1/2/3/4/5/6/12/24/48h eight-kind field
+        timeout-minutes: 45
+        shell: bash
+        run: |
+          set -euo pipefail
+          for lead in 1 2 3 4 5 6 12 24 48; do
+            python tools/ruc/d2_native_eight_bundle.py --root d2-originals --manifest d2-originals/inventory-input.json --output "d2-native-eight-$lead" --lead "$lead"
+          done
+          python tools/ruc/stage_d2_native_full_domain.py --root . --output d2-pilot-original-72
+      - name: Independently revalidate 72 frames and stage approval as UNSIGNED
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/approve_d2_originals_protected.py --original d2-pilot-original-72 --inventory d2-originals/inventory-input.json --output d2-original-approved --commit "$GITHUB_SHA" > original-dwd-approval-report.json
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          r=json.loads(Path('original-dwd-approval-report.json').read_bytes())
+          i=Path('d2-original-approved/index.json')
+          d=json.loads(i.read_bytes())
+          assert r['frames']==72 and r['signed'] is False and r['published'] is False
+          assert r['sourceCommitSha']==os.environ['GITHUB_SHA']
+          assert r['indexSha256']==hashlib.sha256(i.read_bytes()).hexdigest()
+          assert d['productionApproved'] is True and d['sourceApprovalCommitSha']==os.environ['GITHUB_SHA']
+          assert sum(len(x['frames']) for x in d['products'].values())==72 and r['bytes']<350000000
+          PY
+      - name: Official cryptographic provenance attestation for rebuilt DWD index
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: d2-original-approved/index.json
+      - name: Archive signed original D2 evidence, not deployed data
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-original-protected-attested
+          retention-days: 3
+          if-no-files-found: error
+          compression-level: 0
+          path: |
+            d2-original-approved/*.bin
+            d2-original-approved/index.json
+            original-dwd-approval-report.json
+            original-dwd-domain-inventory.json
+      - name: Scope notice
+        run: echo 'Signed data provenance only. No Pages/R2/Worker activation, production access or Stable promotion.' >> "$GITHUB_STEP_SUMMARY"
