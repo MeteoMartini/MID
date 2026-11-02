@@ -1,0 +1,169 @@
+name: MID P0-P4 consolidated integration QA (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'src/**'
+      - 'tests/unit/**'
+      - 'tools/ruc/**'
+      - 'scripts/test-ruc-*'
+      - 'scripts/sync-github-workflows.mjs'
+      - '.github/workflows/mid-p0-p4-consolidated-qa.yml'
+      - 'ci/github/workflows/mid-p0-p4-consolidated-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-p0-p4-consolidated-qa-623
+  cancel-in-progress: false
+jobs:
+  frontend:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.412-p0-p4-consolidated-preflight'
+    name: Full TS and joint radar/D2 client regression (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - name: Checkout verified candidate SHA with no write credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Source identity, Stable lineage, and paired workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+          cmp ci/github/workflows/mid-p0-p4-consolidated-qa.yml .github/workflows/mid-p0-p4-consolidated-qa.yml
+          cmp ci/github/workflows/deploy.yml .github/workflows/deploy.yml
+      - name: Pinned Node 22 with npm cache
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Install reproducibly
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Complete TypeScript type checking
+        run: npm run verify:types
+      - name: Joint MapLibre recovery and native D2 field tests
+        run: npx vitest run tests/unit/native-d2-full-domain.test.ts tests/unit/map-layer-recovery.test.ts
+      - name: Python 3.12 for native map and physical map regressions
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+      - name: Install pinned-range native map requirements
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Existing native map integration regressions
+        run: |
+          node scripts/test-ruc-map-pipeline-0985305.mjs
+          node scripts/test-ruc-native-map-integration-0985305.mjs
+  dwd_originals:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.412-p0-p4-consolidated-preflight'
+    name: Native D2 originals, uncertainty masks, Pages admission (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - name: Checkout SHA without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install only existing native validation requirements
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Run original GRIB/quantization/no-data native admission and legacy RUC
+        shell: bash
+        run: |
+          set -euo pipefail
+          for test in test_d2_native_full_fields.py test_d2_native_eight_bundle.py test_d2_tot_prec_quantization_qa.py test_stage_d2_native_full_domain.py test_admit_d2_native_pages.py test_d2_release_attestation.py test_approve_d2_originals_protected.py test_d2_protected_signer_workflow.py; do
+            python -m unittest discover -s tools/ruc -p "$test" -v
+          done
+          python tools/ruc/test_prepare_ruc_pages.py
+          python tools/ruc/test_ruc_fast_lossless_probe.py -v
+          echo 'Local deterministic QA only. Real DWD source and attested Pages publishing require separate proof.' >> "$GITHUB_STEP_SUMMARY"
+  fast_transport:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.412-p0-p4-consolidated-preflight'
+    name: RUC Fast CAS, Pages loss prevention, UTC and NoData (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Strict combined full/EPS20, bounded Fast and hostile CAS tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tools/ruc/test_ruc_fast_cas.mjs tools/ruc/test_ruc_fast_cell_shadow.mjs tools/ruc/test_ruc_fast_paged_point_shadow.mjs tools/ruc/test_ruc_fast_canonical_bridge_shadow.mjs tools/ruc/test_ruc_pages_publisher_owners.mjs
+          python tools/ruc/test_ruc_fast_pages_chunker.py -v
+          python tools/ruc/test_ruc_manual_pages_guard.py -v
+          echo 'No production writer, no client P95 or live Pages authorization is asserted.' >> "$GITHUB_STEP_SUMMARY"
+
+  responsive_exports:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.412-p0-p4-consolidated-preflight'
+    name: Production build, responsive/touch, iOS-shell and widget/export regressions (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-bound checkout without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Pinned Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Reproducible packages
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Responsive, accessibility-adjacent layouts and actual first-tap contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:responsiveness
+          npm run test:appwide-touch-responsiveness
+          npm run test:responsive-layout-tooltip
+          npm run test:map-chart-responsive-continuation
+          npm run test:ios-safe-area-header
+          npm run test:ios-floating-bottom-bar
+      - name: Web widget/export and MapLibre runtime regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:widget-export-browser-runtime
+          npm run test:maplibre-v6-worker-runtime
+          npm run test:weather-maps-module
+      - name: Build production Vite assets in isolation; never deploy
+        run: npm run verify:vite
+      - name: Scope/limitations in runner summary
+        run: |
+          echo 'Web build and source-level responsive/widget/export QA passed. This is NOT a physical iPhone/iPad/Safari/WKWebView/VoiceOver verification or a deployed data freshness proof.' >> "$GITHUB_STEP_SUMMARY"
