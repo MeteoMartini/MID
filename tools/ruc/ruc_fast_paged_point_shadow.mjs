@@ -75,7 +75,12 @@ async function fetchNative(manifest,objectName,index,read) {
 }
 function numberOrMissing(view,position,field){
  const x=view.getInt16(position,true);
- return x===-32768?null:x*field[2]+field[3];
+ if(x===-32768)return null;
+ const result=x*field[2]+field[3];
+ // The GRIB producer, not the consumer, must distinguish true dry hours from
+ // negative quantization error. Never silently clamp negative rainfall to zero.
+ fail(field[0]==='precipitation'&&result<0,'negative original Fast precipitation is untrusted, not dry');
+ return result;
 }
 export async function readPagedFastPointShadow(manifestBytes,verifiedManifestSha256,read,lookupGridIndex) {
  const original=asUint8Array(manifestBytes);
