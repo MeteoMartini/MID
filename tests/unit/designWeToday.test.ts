@@ -1,4 +1,6 @@
 import {readFileSync} from 'node:fs';
+import * as ts from 'typescript';
+import postcss from 'postcss';
 import {execFileSync} from 'node:child_process';
 import {describe,expect,it} from 'vitest';
 
@@ -7,6 +9,12 @@ const css=readFileSync(new URL('../../src/midDesignWeToday.css',import.meta.url)
 const manifest=JSON.parse(readFileSync(new URL('../../src/styles-src/presentation-order.json',import.meta.url),'utf8')) as {sources:string[]};
 
 describe('Design-WE Heute (read-only source assertions)',()=>{
+ it('parses the complete real TSX chart source and the active CSS layer without syntax errors',()=>{
+  const tree=ts.createSourceFile('ForecastCockpit.tsx',cockpit,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+  expect(tree.parseDiagnostics.map(issue=>ts.flattenDiagnosticMessageText(issue.messageText,' '))).toEqual([]);
+  expect(()=>postcss.parse(css,{from:'midDesignWeToday.css'})).not.toThrow();
+ });
+
  it('executes the mandatory release regression without bypassing its baseline checks',()=>{
   const output=execFileSync(process.execPath,['scripts/test-design-we-today-compact-0985412.mjs'],{cwd:process.cwd(),encoding:'utf8',timeout:12000});
   expect(output).toContain('MID Design-WE Heute:');
