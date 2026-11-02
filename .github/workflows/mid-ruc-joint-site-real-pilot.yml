@@ -6,6 +6,8 @@ on:
       - 'tools/ruc/ruc_fast_pages_overlay.py'
       - 'tools/ruc/ruc_fast_pages_chunker.py'
       - 'tools/ruc/ruc_fast_paged_point_shadow.mjs'
+      - 'tools/ruc/ruc_fast_canonical_bridge_shadow.mjs'
+      - 'tools/ruc/test_ruc_fast_canonical_bridge_shadow.mjs'
       - 'tools/ruc/test_ruc_fast_paged_point_shadow.mjs'
       - 'tools/ruc/ruc_fast_cas.mjs'
       - 'tools/ruc/ruc_fast_cell_shadow.mjs'
@@ -257,6 +259,7 @@ jobs:
           import {createHash} from 'node:crypto';
           import {resolve,sep} from 'node:path';
           import {readPagedFastPointShadow} from './tools/ruc/ruc_fast_paged_point_shadow.mjs';
+          import {inspectFastToCommonForecastShadow} from './tools/ruc/ruc_fast_canonical_bridge_shadow.mjs';
           const root=resolve('.joint-paged-pages/ruc');
           const manifestBytes=new Uint8Array(await readFile(resolve(root,'fast/paged-shadow.json')));
           const sha=createHash('sha256').update(manifestBytes).digest('hex');
@@ -279,6 +282,28 @@ jobs:
              ||cell.rapid5Minutes[0].precipitationMm!==null
              ||cell.rapid15Minutes[0].precipitationMm!==null)
             throw Error('native UTC or initial-interval semantics lost');
+          // The actual immutable 27h/20EPS root is the sole authoritative
+          // forecast source. Translate Fast only into an inactive candidate
+          // in the canonical hourly/rapid payload shape shared by MID clients.
+          const primary=JSON.parse(await readFile(resolve(root,'latest.json'),'utf8'));
+          const combined=inspectFastToCommonForecastShadow(primary,cell);
+          if(combined.primary!==primary||!combined.full27hEps20Unchanged
+             ||combined.selectedForForecast!==false||combined.releaseAuthorized!==false
+             ||combined.fastCandidate.hourly.time.length!==7
+             ||combined.fastCandidate.rapid.precip5.time.length!==73
+             ||combined.fastCandidate.rapid.convection15.time.length!==25
+             ||combined.fastCandidate.mid_ruc.epsMemberCount!==0
+             ||combined.fastCandidate.mid_ruc.underlyingFullRun!==primary.run)
+            throw Error('primary EPS20 or canonical shared client schema changed');
+          console.log(JSON.stringify({
+            schema:'mid.ruc.full-fast-common-forecast-native-offline-proof.v1',
+            originalFullRunUtc:primary.run,originalFullEpsMembers:primary.eps.memberCount,
+            fastRunUtc:cell.modelRunUtc,fastHourCount:7,fastMinutes5:73,fastMinutes15:25,
+            lastFiveMinutesValidUtc:combined.fastCandidate.rapid.precip5.time.at(-1),
+            missingInitialAmountIsNull:combined.fastCandidate.rapid.precip5.precipitation[0]===null,
+            fullSourcePreserved:true,usedByWebIosWidgetsExports:false,releaseAuthorized:false
+          }));
+
           console.log(JSON.stringify({
             schema:'mid.ruc.real-paged-cell-offline-qa.v1',
             pointAvailable:true,modelRunUtc:cell.modelRunUtc,
