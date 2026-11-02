@@ -247,6 +247,45 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 3
+      - name: Genuine paged native point-shadow consumer, SHA verified from complete physical site
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          import {createHash} from 'node:crypto';
+          import {resolve,sep} from 'node:path';
+          import {readPagedFastPointShadow} from './tools/ruc/ruc_fast_paged_point_shadow.mjs';
+          const root=resolve('.joint-paged-pages/ruc');
+          const manifestBytes=new Uint8Array(await readFile(resolve(root,'fast/paged-shadow.json')));
+          const sha=createHash('sha256').update(manifestBytes).digest('hex');
+          let chunks=0,bytes=0;
+          const read=async key=>{
+            const full=resolve(root,key);
+            if(!full.startsWith(root+sep))throw Error('noncanonical native path');
+            const data=new Uint8Array(await readFile(full));
+            chunks++;bytes+=data.length;
+            return data;
+          };
+          // Central model-grid point, 09Z genuine DWD native core.
+          const cell=await readPagedFastPointShadow(manifestBytes,sha,read,300*964+520);
+          if(cell.available!==true||cell.epsAvailable!==false||cell.productionAuthorized!==false)
+            throw Error('native original central cell unavailable or unauthorized');
+          if(chunks!==4||bytes>4*512*168||cell.hours.length!==7
+             ||cell.rapid5Minutes.length!==73||cell.rapid15Minutes.length!==25)
+            throw Error('unbounded or misaligned native point consumer');
+          if(cell.hours[0].validTimeUtc!==cell.modelRunUtc
+             ||cell.rapid5Minutes[0].precipitationMm!==null
+             ||cell.rapid15Minutes[0].precipitationMm!==null)
+            throw Error('native UTC or initial-interval semantics lost');
+          console.log(JSON.stringify({
+            schema:'mid.ruc.real-paged-cell-offline-qa.v1',
+            pointAvailable:true,modelRunUtc:cell.modelRunUtc,
+            chunksDownloaded:chunks,bytesRead:bytes,
+            metadataSha256:sha,epsAvailable:false,
+            productionAuthorized:false,actualPublicHttpReadback:false
+          }));
+          NODE
       - name: Fail closed on parallel promotion or changed main
         env:
           GH_TOKEN: ${{ github.token }}
