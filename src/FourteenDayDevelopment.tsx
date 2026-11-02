@@ -19,7 +19,7 @@ const dateLabel=(date:string)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',mo
 
 export type FourteenView='compact'|'charts'|'days';
 const finiteNonnegative=(n:number)=>Number.isFinite(n)&&n>=0?n:null;
-const availableBounds=(row:Row,low:number,high:number)=>row.ensembleAvailable&&Number.isFinite(low)&&Number.isFinite(high)&&low<=high?{low,high}:{low:null,high:null};
+const availableBounds=(row:Row,low:number,high:number)=>row.ensembleAvailable&&Number.isFinite(low)&&Number.isFinite(high)&&low>=0&&low<=high?{low,high}:{low:null,high:null};
 const windUnitFactor:Record<WindUnit,number>={kn:1,kmh:1.852,ms:.514444,mph:1.15078};
 const windUnitLabel:Record<WindUnit,string>={kn:'kt',kmh:'km/h',ms:'m/s',mph:'mph'};
 const toWindUnit=(value:number,unit:WindUnit)=>Number.isFinite(value)&&value>=0?value*windUnitFactor[unit]:null;
@@ -101,7 +101,7 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
       <td data-label="Tagesdetails">{onOpenDay?<button type="button" onClick={()=>onOpenDay(row.date)} aria-label={'Tagesdetails '+dateLabel(row.date)+' öffnen'}>Öffnen</button>:<details className="mid-we-fourteen-row-expansion">
        <summary>Spannen & Einordnung</summary>
        <div><b>Ensemble-Temperatur</b><span>{row.ensembleAvailable?numeric(row.minLow,'°C',1)+' – '+numeric(row.minHigh,'°C',1)+' (Tmin P10–P90)':'nicht verfügbar'}</span><span>{row.ensembleAvailable?numeric(row.maxLow,'°C',1)+' – '+numeric(row.maxHigh,'°C',1)+' (Tmax P10–P90)':'nicht verfügbar'}</span></div>
-       <div><b>Niederschlag (P10–P90)</b><span>{row.ensembleAvailable?numeric(row.precipitationLow,'mm',1)+' – '+numeric(row.precipitationHigh,'mm',1):'nicht verfügbar'}</span></div>
+       <div><b>Niederschlag (P10–P90)</b><span>{row.ensembleAvailable?compactPrecipitationAmount(row.precipitationLow)+' – '+compactPrecipitationAmount(row.precipitationHigh)+' mm':'nicht verfügbar'}</span></div>
        <div><b>Wind/Böen (P10–P90)</b><span>{row.ensembleAvailable?wind(row.windLow,unit)+' – '+wind(row.windHigh,unit):'nicht verfügbar'}</span><span>{row.ensembleAvailable?wind(row.gustLow,unit)+' – '+wind(row.gustHigh,unit):'nicht verfügbar'}</span></div>
        <small>{assessmentSummary(row.assessment)} · Die vollständigen Tageskarten folgen unterhalb dieser Übersicht.</small>
       </details>}</td>
