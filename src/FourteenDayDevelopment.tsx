@@ -18,16 +18,16 @@ export function fourteenTemperatureSeries(series:Row[]){
 const dateLabel=(date:string)=>new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`));
 
 export type FourteenView='compact'|'charts'|'days';
-const finite=(n:number)=>Number.isFinite(n)?n:null;
+const finiteNonnegative=(n:number)=>Number.isFinite(n)&&n>=0?n:null;
 const availableBounds=(row:Row,low:number,high:number)=>row.ensembleAvailable&&Number.isFinite(low)&&Number.isFinite(high)&&low<=high?{low,high}:{low:null,high:null};
 const windUnitFactor:Record<WindUnit,number>={kn:1,kmh:1.852,ms:.514444,mph:1.15078};
 const windUnitLabel:Record<WindUnit,string>={kn:'kt',kmh:'km/h',ms:'m/s',mph:'mph'};
-const toWindUnit=(value:number,unit:WindUnit)=>Number.isFinite(value)?value*windUnitFactor[unit]:null;
+const toWindUnit=(value:number,unit:WindUnit)=>Number.isFinite(value)&&value>=0?value*windUnitFactor[unit]:null;
 /** Daily accumulation and deterministic PoP are distinct; bounds are only genuine ensemble limits. */
 export function fourteenPrecipitationSeries(rows:Row[]){
  return [{id:'precipitation',label:'Tagesmenge · Best Match',color:'var(--param-precipitation)',points:rows.map(row=>{
   const bounds=availableBounds(row,row.precipitationLow,row.precipitationHigh);
-  return{id:row.date,label:dateLabel(row.date),mean:finite(row.bestPrecipitation),...bounds,detail:assessmentSummary(row.assessment)};
+  return{id:row.date,label:dateLabel(row.date),mean:finiteNonnegative(row.bestPrecipitation),...bounds,detail:assessmentSummary(row.assessment)};
  })}];
 }
 export function fourteenProbabilitySeries(rows:Row[]){
