@@ -158,18 +158,39 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
  from d2_release_attestation import verify_signed_release_index
  if verify_signed_release_index(index_file,trusted_release_sha)!=trusted_index_sha256:
   raise ValueError('Cryptographically approved D2 index differs from detached SHA')
- if size>=350_000_000:raise ValueError('Original D2 map candidate exceeds standalone 350MB budget')
- if(size+sum(obj['bytes'] for obj in existing_objects)+1_000_000>=budget):
+ # The signed 73rd file is the lookup root for all 72 immutable D2 fields.
+ # Publishing only the frames leaves nativeFields.key pointing to a 404.
+ # Include that exact attested index in BOTH the physical site and canonical
+ # SHA inventory; account for its bytes before any Pages admission.
+ index_hash=sha(index_file)
+ index_bytes=index_file.stat().st_size
+ if not 0<index_bytes<=3_000_000:
+  raise ValueError('Signed DWD native index exceeds bounded manifest size')
+ total_native_bytes=size+index_bytes
+ if total_native_bytes>=350_000_000:
+  raise ValueError('Original D2 map candidate exceeds standalone 350MB budget')
+ if total_native_bytes+sum(obj['bytes'] for obj in existing_objects)+1_000_000>=budget:
   raise ValueError('Complete native D2 map conflicts with 900MB RUC/Pages budget')
- index_hash=sha(index_file);prefix=f'runs/{run_slug}__fields_native_{index_hash[:16]}/model-fields-native/'
+ prefix=f'runs/{run_slug}__fields_native_{index_hash[:16]}/model-fields-native/'
  output=[]
  for file,name in entries:
   key=prefix+name;destination=out/key
   if destination.exists():raise ValueError('Immutable DWD native target collision')
-  destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
+  destination.parent.mkdir(parents=True,exist_ok=True)
+  shutil.copy2(file,destination)
+  if destination.stat().st_size!=file.stat().st_size or sha(destination)!=sha(file):
+   raise ValueError('Native DWD copied field differs from signed input')
   output.append({'key':key,'bytes':destination.stat().st_size,'sha256':sha(destination)})
+ key=prefix+'index.json'
+ destination=out/key
+ if destination.exists():raise ValueError('Immutable signed DWD index target collision')
+ destination.parent.mkdir(parents=True,exist_ok=True)
+ shutil.copy2(index_file,destination)
+ if destination.stat().st_size!=index_bytes or sha(destination)!=index_hash:
+  raise ValueError('Signed native D2 index changed during Pages materialization')
+ output.append({'key':key,'bytes':index_bytes,'sha256':index_hash})
  existing_objects.extend(output)
- return {'key':prefix+'index.json','schema':index['schema'],'run':index['run'],
+ return {'key':key,'schema':index['schema'],'run':index['run'],
          'sourceInventorySha256':index['sourceInventorySha256'],'productionApproved':True,
-         'indexSha256':index_hash,'indexBytes':index_file.stat().st_size,
-         'nativePoints':542040,'frameCount':72,'bytes':size}
+         'indexSha256':index_hash,'indexBytes':index_bytes,
+         'nativePoints':542040,'frameCount':72,'bytes':total_native_bytes}
