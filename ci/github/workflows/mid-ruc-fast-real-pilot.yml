@@ -125,6 +125,26 @@ jobs:
           assert p['productionEnabled'] is False
           assert p['realtimeConsumerEnabled'] is False
           assert p['consumerAdoptionVerified'] is False
+          import numpy as np
+          from pathlib import Path
+          # Re-open authentic native source bytes; +0 precipitation must be Missing.
+          root=Path('ruc-fast-native-shadow/ruc/fast/runs')
+          layouts=(('deterministic.bin',(542040,7,12),7),('rapid-5m.bin',(542040,73,1),0),('rapid-15m.bin',(542040,25,3),0))
+          evidence={}
+          for name,shape,precip_index in layouts:
+              matches=list(root.glob('*/'+name))
+              assert len(matches)==1, 'original native Fast object missing/ambiguous'
+              data=np.memmap(matches[0],dtype='<i2',mode='r',shape=shape)
+              precip=data[:,:,precip_index]
+              assert bool(np.all(precip[:,0]==-32768)), name+' original initial interval not Missing'
+              later=precip[:,1:]
+              assert bool(np.any(later!=-32768)), name+' lacks any genuine later precipitation'
+              assert not bool(np.any((later<0)&(later!=-32768))), name+' contains negative physical precipitation'
+              evidence[name]={'initialMissingCells':int(np.count_nonzero(precip[:,0]==-32768)),
+                              'laterRealZeroCells':int(np.count_nonzero(later==0)),
+                              'laterMissingCells':int(np.count_nonzero(later==-32768))}
+              del data
+          print('FAST_NATIVE_ORIGINAL_INITIAL_NODATA '+json.dumps(evidence,sort_keys=True))
           print('REAL native DWD fast producer completed; independent shadow decode verified, NOT published.')
           PY
       - name: Confirm archive inputs contain all four original binary objects
