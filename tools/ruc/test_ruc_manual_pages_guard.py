@@ -61,29 +61,7 @@ class ManualPagesGuard(unittest.TestCase):
         for name in ('deploy_pages_1','deploy_pages_2','deploy_pages_3'):
             with self.subTest(job=name):
                 block=workflow.split('\n  '+name+':\n',1)[1]
-                next_job=re.search(r'(?m)^  [A-Za-z][A-Za-z0-9_-]*:\s*
-        from pathlib import Path
-        path=Path(__file__).resolve().parents[2]/'ci/github/workflows/deploy.yml'
-        script=path.read_text(encoding='utf-8')
-        jobs=['deploy_pages_1','deploy_pages_2','deploy_pages_3']
-        for name in jobs:
-            with self.subTest(job=name):
-                before,block=script.split('\n  '+name+':\n',1)
-                import re
                 next_job=re.search(r'(?m)^  [A-Za-z][A-Za-z0-9_-]*:\s*$',block)
-                if next_job:block=block[:next_job.start()]
-                self.assertIn('group: mid-pages',block)
-                self.assertIn('queue: max',block)
-                self.assertIn('cancel-in-progress: false',block)
-                self.assertIn('id: ruc_guard',block)
-                self.assertIn('ref: mid-stable',block)
-                self.assertIn('persist-credentials: false',block)
-                self.assertIn('ruc_manual_pages_guard.py --ruc-enabled',block)
-                self.assertLess(block.index('id: ruc_guard'),block.index('uses: actions/deploy-pages@'))
-                self.assertIn("steps.ruc_guard.outcome == 'success'",block)
-
-if __name__=='__main__':unittest.main()
-,block)
                 if next_job:
                     block=block[:next_job.start()]
                 self.assertIn('test "$(git rev-parse HEAD)" = "${{ needs.verify.outputs.stable_sha }}"',block)
