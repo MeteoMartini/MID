@@ -37,6 +37,16 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
  products=index.get('products')
  if not isinstance(products,dict) or set(products)!=set(KINDS):
   raise ValueError('Native original D2 eight-kind matrix incomplete')
+ # Validate the complete offered lead matrix BEFORE touching source frame bytes.
+ # A malformed later product must not be hidden by an earlier missing file.
+ for kind in KINDS:
+  product=products[kind]
+  frames=product.get('frames') if isinstance(product,dict) else None
+  if not isinstance(frames,list) or len(frames)!=9:
+   raise ValueError('DWD native original nine hours missing')
+  hours=[f.get('hour') for f in frames if isinstance(f,dict)]
+  if len(hours)!=9 or set(hours)!=set(LEADS) or len(set(hours))!=9:
+   raise ValueError('Duplicated or unknown DWD native forecast lead')
  entries=[(index_file,'index.json')];size=index_file.stat().st_size
  for kind in KINDS:
   product=products[kind]
