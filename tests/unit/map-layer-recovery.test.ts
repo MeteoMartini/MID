@@ -17,6 +17,9 @@ describe('MID Karten: WMS recovery ohne ungebundene Requests',()=>{
   expect(isCompositeTimesFailureWithoutFrames({errors:['EUMETSAT failed'],satelliteDayProduct:{times:['2026-11-02T09:00:00Z']}})).toBe(false);
   expect(isCompositeTimesFailureWithoutFrames({errors:['Radar failed'],dwdRadar:['2026-11-02T09:05:00Z']})).toBe(false);
   expect(isCompositeTimesFailureWithoutFrames({satelliteDay:[],dwdRadar:[]})).toBe(false);
+  expect(isCompositeTimesFailureWithoutFrames({errors:['EUMETSAT delayed'],satelliteDayProduct:{times:[],latestOnly:true,latestTime:'2026-11-02T09:00:00Z'}})).toBe(false);
+  expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],satelliteIrProduct:{latestOnly:true}})).toBe(true);
+  expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],dwdReferenceSatelliteProduct:{latestOnly:true,latestTime:'unparsable'}})).toBe(true);
   expect(isCompositeTimesFailureWithoutFrames(null)).toBe(true);
  });
  it('holt bei App-Resume nur nach genügend Alter neu',()=>{

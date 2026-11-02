@@ -20,13 +20,19 @@ export function shouldRefreshMapMetadataOnResume(nowMs:number,lastSuccessfulLoad
 export function isCompositeTimesFailureWithoutFrames(data:{
  error?:string;errors?:string[];satelliteDay?:unknown[];satelliteIr?:unknown[];satellitePrecip?:unknown[];
  dwdRadar?:unknown[];dwdLightning?:unknown[];mtgLightning?:unknown[];
- satelliteDayProduct?:{times?:unknown[]};satelliteIrProduct?:{times?:unknown[]};
- satellitePrecipProduct?:{times?:unknown[]}
+ satelliteDayProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string};
+ satelliteIrProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string};
+ satellitePrecipProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string};
+ dwdReferenceSatelliteProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string}
 }|null|undefined):boolean{
  if(!data)return true;
  if(!data.error&&!data.errors?.length)return false;
  const lists=[data.satelliteDay,data.satelliteIr,data.satellitePrecip,data.dwdRadar,
   data.dwdLightning,data.mtgLightning,data.satelliteDayProduct?.times,
   data.satelliteIrProduct?.times,data.satellitePrecipProduct?.times];
- return !lists.some(values=>Array.isArray(values)&&values.length>0);
+ const latestOnly=[data.satelliteDayProduct,data.satelliteIrProduct,
+  data.satellitePrecipProduct,data.dwdReferenceSatelliteProduct].some(product=>
+   product?.latestOnly===true&&typeof product.latestTime==='string'
+   &&Number.isFinite(Date.parse(product.latestTime)));
+ return !latestOnly&&!lists.some(values=>Array.isArray(values)&&values.length>0);
 }
