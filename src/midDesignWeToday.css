@@ -263,3 +263,20 @@ html[data-mid-design='next'] .forecast-cockpit .mid-we-now90-selected{
   min-width:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;
  }
 }
+
+/* C27 (html:root + direct toolbar chain) is more specific than generic WE
+   rules. At tablet/mobile widths keep the parameter row within the header;
+   the four filters scroll internally, not the document. */
+@media(max-width:959px){
+ html[data-mid-design='next']:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true']>.cockpit-meteogram-pro__head>.cockpit-weather-profile__toolbar{
+  display:flex!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  flex:1 1 auto!important;flex-wrap:nowrap!important;
+  align-items:center!important;justify-content:space-between!important;
+  padding:0!important;margin:0!important;gap:4px!important;
+ }
+ html[data-mid-design='next']:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true'] .mid-we-parameter-controls{
+  min-width:0!important;max-width:100%!important;flex:1 1 0%!important;
+  overflow-x:auto!important;overscroll-behavior-x:contain;
+ }
+}
