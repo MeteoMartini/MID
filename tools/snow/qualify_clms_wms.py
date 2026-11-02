@@ -40,7 +40,10 @@ def parse_capabilities(payload:bytes,product:str):
    for child in node:
     if local(child.tag)=='Layer':walk(child)
  if len(layers)>6000:raise ValueError('Unbounded WMS layer catalogue')
- related=[p for p in layers if product.lower() in p['name'].lower()]
+ # Never mistake GFSC for FSC merely because the substring "FSC" occurs.
+ related=[p for p in layers if p['name'].casefold()==product.casefold()
+          or p['name'].casefold().startswith(product.casefold()+':')
+          or p['name'].casefold().startswith(product.casefold()+'_')]
  return {'schema':'mid.copernicus.wms-discovery.v1','productionApproved':False,
    'product':product,'endpoint':OFFICIAL[product],
    'wmsVersion':version,'catalogueLayers':len(layers),
