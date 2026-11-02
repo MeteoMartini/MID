@@ -1,0 +1,39 @@
+name: MID D2 native eight-kind physical/NoData contract (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.409-d2-ruc-full-domain-qa-from408
+    paths:
+      - '.github/workflows/mid-d2-native-eight-field-qa.yml'
+      - 'tools/ruc/d2_native_full_fields.py'
+      - 'tools/ruc/test_d2_native_full_fields.py'
+      - 'tools/ruc/d2_native_eight_bundle.py'
+      - 'tools/ruc/test_d2_native_eight_bundle.py'
+permissions:
+  contents: read
+concurrency:
+  group: mid-d2-native-eight-field-qa
+  cancel-in-progress: false
+jobs:
+  contract:
+    name: D2 original eight-field dimensional/physics/mask regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Load exact source SHA without stored credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install numeric requirement only
+        run: python -m pip install --disable-pip-version-check 'numpy>=2.0,<3'
+      - name: Fail closed on original native eight-kind and NoData regressions
+        run: |
+          python -m unittest discover -s tools/ruc -p test_d2_native_full_fields.py -v
+          python -m unittest discover -s tools/ruc -p test_d2_native_eight_bundle.py -v
