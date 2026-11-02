@@ -82,7 +82,8 @@ jobs:
           repo=os.environ['GITHUB_REPOSITORY']
           def get(path):
               return json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/{path}'],text=True))
-          for run in get('actions/runs?per_page=100')['workflow_runs']:
+          # Filter source-specific Actions runs, not the noisy last 100 MID-wide PR runs.
+          for run in get('actions/workflows/mid-ruc-preprocess.yml/runs?per_page=100')['workflow_runs']:
               if (run['path']!='.github/workflows/mid-ruc-preprocess.yml'
                   or run['head_sha']!=os.environ['VERIFIED_STABLE'] or run['head_branch']!='main'
                   or run['event'] not in ('schedule','workflow_dispatch')):
