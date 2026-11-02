@@ -121,3 +121,48 @@ jobs:
           python tools/ruc/test_ruc_fast_pages_chunker.py -v
           python tools/ruc/test_ruc_manual_pages_guard.py -v
           echo 'No production writer, no client P95 or live Pages authorization is asserted.' >> "$GITHUB_STEP_SUMMARY"
+
+  responsive_exports:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'chatgpt/v0.9.85.412-p0-p4-consolidated-preflight'
+    name: Production build, responsive/touch, iOS-shell and widget/export regressions (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    permissions:
+      contents: read
+    steps:
+      - name: SHA-bound checkout without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Pinned Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Reproducible packages
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Responsive, accessibility-adjacent layouts and actual first-tap contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:responsiveness
+          npm run test:appwide-touch-responsiveness
+          npm run test:responsive-layout-tooltip
+          npm run test:map-chart-responsive-continuation
+          npm run test:ios-safe-area-header
+          npm run test:ios-floating-bottom-bar
+      - name: Web widget/export and MapLibre runtime regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:widget-export-browser-runtime
+          npm run test:maplibre-v6-worker-runtime
+          npm run test:weather-maps-module
+      - name: Build production Vite assets in isolation; never deploy
+        run: npm run verify:vite
+      - name: Scope/limitations in runner summary
+        run: |
+          echo 'Web build and source-level responsive/widget/export QA passed. This is NOT a physical iPhone/iPad/Safari/WKWebView/VoiceOver verification or a deployed data freshness proof.' >> "$GITHUB_STEP_SUMMARY"
