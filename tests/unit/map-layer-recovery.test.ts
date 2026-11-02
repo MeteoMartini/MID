@@ -18,6 +18,11 @@ describe('MID Karten: WMS recovery ohne ungebundene Requests',()=>{
   expect(isCompositeTimesFailureWithoutFrames({errors:['Radar failed'],dwdRadar:['2026-11-02T09:05:00Z']})).toBe(false);
   expect(isCompositeTimesFailureWithoutFrames({satelliteDay:[],dwdRadar:[]})).toBe(false);
   expect(isCompositeTimesFailureWithoutFrames({errors:['EUMETSAT delayed'],satelliteDayProduct:{times:[],latestOnly:true,latestTime:'2026-11-02T09:00:00Z'}})).toBe(false);
+  // CompositeProduct.latestTime is ProductTime: string, numeric seconds, or numeric ms.
+  expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],dwdReferenceSatelliteProduct:{times:[],latestOnly:true,latestTime:1793610000}})).toBe(false);
+  expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],dwdReferenceSatelliteProduct:{times:[],latestOnly:true,latestTime:1793610000000}})).toBe(false);
+  expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],dwdReferenceSatelliteProduct:{times:[],latestOnly:true,latestTime:0}})).toBe(true);
+  expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],dwdReferenceSatelliteProduct:{times:[],latestOnly:true,latestTime:Number.NaN}})).toBe(true);
   expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],satelliteIrProduct:{latestOnly:true}})).toBe(true);
   expect(isCompositeTimesFailureWithoutFrames({errors:['DWD delayed'],dwdReferenceSatelliteProduct:{latestOnly:true,latestTime:'unparsable'}})).toBe(true);
   expect(isCompositeTimesFailureWithoutFrames(null)).toBe(true);
