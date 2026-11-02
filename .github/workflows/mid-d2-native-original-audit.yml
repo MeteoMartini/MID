@@ -11,6 +11,8 @@ on:
       - 'tools/ruc/test_icon_d2_native_catalog.py'
       - 'tools/ruc/d2_native_full_fields.py'
       - 'tools/ruc/d2_native_eight_bundle.py'
+      - 'tools/ruc/d2_tot_prec_quantization_qa.py'
+      - 'tools/ruc/test_d2_tot_prec_quantization_qa.py'
       - 'tools/ruc/test_d2_native_eight_bundle.py'
 permissions:
   contents: read
@@ -49,7 +51,7 @@ jobs:
       - name: Fail-closed D2 original-grid, source-schema and mask regression gates
         run: |
           cd tools/ruc
-          python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate
+          python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate test_d2_tot_prec_quantization_qa
       - name: Select aged three-hourly source cycles
         id: cycle
         run: |
