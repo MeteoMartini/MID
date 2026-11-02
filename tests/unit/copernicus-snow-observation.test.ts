@@ -1,8 +1,8 @@
 import {describe,expect,it} from 'vitest';
-import {COPERNICUS_SNOW_COLLECTIONS,qualifyCopernicusSnowSample} from '../../src/copernicusSnowObservation';
+import {COPERNICUS_SNOW_COLLECTIONS,qualifyCopernicusSnowSample,type CopernicusSnowSample} from '../../src/copernicusSnowObservation';
 const now=Date.parse('2026-11-02T12:00:00Z');
-const source={kind:'FSC-OG' as const,fractionRaw:0,qualityRaw:0,qaFlagsRaw:0,productDayUtc:'2026-11-02'};
-const decode=(changes:Partial<typeof source>={})=>qualifyCopernicusSnowSample({...source,...changes},now);
+const source:CopernicusSnowSample={kind:'FSC-OG',fractionRaw:0,qualityRaw:0,qaFlagsRaw:0,productDayUtc:'2026-11-02'};
+const decode=(changes:Partial<CopernicusSnowSample>={})=>qualifyCopernicusSnowSample({...source,...changes},now);
 describe('CLMS FSC/GFSC original UINT8 snow cover contract (read-only)',()=>{
  it('retains an actual 0% as snow-free, not missing, and never snow depth',()=>{
   const p=decode();
