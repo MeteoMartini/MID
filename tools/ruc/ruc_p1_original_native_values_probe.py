@@ -47,8 +47,8 @@ def describe_values(values, *, expected_points=NATIVE_POINTS):
         'finiteCount': int(np.count_nonzero(finite)),
         'missingCount': int(np.count_nonzero(~finite)),
         'trueZeroCount': int(np.count_nonzero(known == 0)),
-        'minimumOriginal': float(known.min()),
-        'maximumOriginal': float(known.max()),
+        'minimumInNormalizedUnit': float(known.min()),
+        'maximumInNormalizedUnit': float(known.max()),
         'missingAsZero': False,
         'extremesSmoothed': False,
     }
@@ -112,6 +112,12 @@ def examine(row, payload, before, after, run, *, decoder=read_messages, header=i
     normalized = (normalize_coordinate(logical_field, values, units)
                   if logical_field in ('CLAT', 'CLON') else normalize(logical_field, values, units))
     stats = describe_values(normalized)
+    if logical_field in ('CLAT','CLON'):
+        bound = 90 if logical_field == 'CLAT' else 180
+        if stats['minimumInNormalizedUnit'] < -bound or stats['maximumInNormalizedUnit'] > bound:
+            raise ValueError('original coordinate exceeds physical latitude/longitude limits')
+    if logical_field == 'precipitation_acc' and stats['minimumInNormalizedUnit'] < -0.05:
+        raise ValueError('original accumulated precipitation is physically negative')
     return {
         'sha256OriginalDownload': hashlib.sha256(payload).hexdigest(),
         'originalDownloadBytes': len(payload),
