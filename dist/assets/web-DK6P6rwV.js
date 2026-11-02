@@ -1,1 +1,0 @@
-import{Pi as e}from"./index-CzEk_7RD.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
