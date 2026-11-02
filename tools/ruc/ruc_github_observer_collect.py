@@ -233,7 +233,7 @@ def index_run_artifacts(client, rows):
     return found
 
 
-def index_repository_artifacts(client, rows):
+def _scan_repository_artifacts_once(client, rows):
     """Fully paginate bounded GitHub repository artifact inventory once.
 
     Reject incomplete/changing pagination rather than treating omitted pages
@@ -244,6 +244,7 @@ def index_repository_artifacts(client, rows):
     found = {}
     seen_ids = set()
     total = None
+    first_page_ids = None
     for page in range(1, MAX_ARTIFACT_PAGES + 1):
         response = client.list_repository_artifacts(page)
         if not isinstance(response, dict):
@@ -263,6 +264,8 @@ def index_repository_artifacts(client, rows):
             total = n
         elif total != n:
             raise ValueError('repository artifact pagination changed during read')
+        if page == 1:
+            first_page_ids = tuple(art.get('id') if isinstance(art, dict) else None for art in batch)
         for art in batch:
             if not isinstance(art, dict) or type(art.get('id')) is not int:
                 raise ValueError('invalid GitHub repository artifact')
@@ -283,10 +286,40 @@ def index_repository_artifacts(client, rows):
         if page * 100 >= total:
             if len(seen_ids) != total:
                 raise ValueError('repository artifact pagination incomplete')
+            # Offset pagination is not a snapshot: concurrent GitHub Actions
+            # uploads can shift page boundaries EVEN if a later total matches.
+            # Confirm the immutable first-page ID order and total at scan end.
+            first_again = client.list_repository_artifacts(1)
+            recent = first_again.get('artifacts') if isinstance(first_again, dict) else None
+            recent_total = first_again.get('total_count') if isinstance(first_again, dict) else None
+            if (recent_total != total or not isinstance(recent, list)
+                    or tuple(x.get('id') if isinstance(x, dict) else None for x in recent) != first_page_ids):
+                raise ValueError('repository artifact pagination changed during read')
             return found, 'bounded-repository-pagination'
         if len(batch) != 100:
             raise ValueError('repository artifact pagination incomplete')
     raise ValueError('repository artifact pagination exceeds bounded limit')
+
+
+def index_repository_artifacts(client, rows):
+    """Retry a WHOLE authenticated inventory on observed concurrent uploads.
+
+    Never reuse partial pages or infer a missing observation from a race.
+    Only a stable and complete SHA/parent-checked scan can be returned.
+    Persistent churn remains an explicit failure, not a 168h-SLO pass.
+    """
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            return _scan_repository_artifacts_once(client, rows)
+        except ValueError as error:
+            if str(error) not in (
+                    'repository artifact pagination changed during read',
+                    'repository artifact pagination incomplete'):
+                raise
+            if attempt == max_attempts - 1:
+                raise ValueError('repository artifact pagination changed during read after 3 full attempts') from error
+    raise AssertionError('unreachable repository inventory retry state')
 
 
 def collect(client, *, cutoff_utc, output_dir):
