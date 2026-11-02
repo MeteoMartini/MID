@@ -71,7 +71,7 @@ jobs:
           run=obj.get('run')
           if not isinstance(run,str) or not re.fullmatch(r'20\d{2}-\d{2}-\d{2}T\d{2}:00',run):
               raise SystemExit('untrusted selector run')
-          if obj.get('pointCount')!=542040 or obj.get('epsMemberCount')!=20 or len(obj.get('deterministic',{}).get('times',[]))!=28:
+          if obj.get('pointCount')!=542040 or obj.get('eps',{}).get('memberCount')!=20 or len(obj.get('deterministic',{}).get('times',[]))!=28 or len(obj.get('eps',{}).get('times',[]))!=28:
               raise SystemExit('selector lacks native 27h/20 EPS')
           age=datetime.now(timezone.utc)-datetime.strptime(run,'%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
           if not timedelta(0)<=age<=timedelta(hours=24):raise SystemExit('selector stale/future')
