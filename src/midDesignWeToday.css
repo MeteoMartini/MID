@@ -239,3 +239,6 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-hourly-chip.active{
   transition:none!important;animation:none!important;
  }
 }
+
+/* The hidden attribute must win against legacy authored tooltip display:grid. */
+html[data-mid-design='next'] .forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__tooltip-content[hidden]{display:none!important}
