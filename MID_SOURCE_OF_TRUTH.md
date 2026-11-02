@@ -1,3 +1,18 @@
+# MID v0.9.85.410 · Open-Meteo MID Watch 02.11.2026 · GeoSphere-Auslauf und Fail-Closed-Integration
+
+**Verifizierter Ausgangspunkt:** `main=mid-stable` v0.9.85.409 SHA `b0bedff13106502beb1566fcef96dc4b2ec4b098`; Source-PR #611 gemergt, Installer #41403550284 vollständig success, 5 aktive Rulesets, 38 unveränderte normative Fachverträge.
+
+**Öffentliche Canary-Evidenz 02.11.2026:** `geosphere_claef_austria` Wien und Innsbruck HTTP 400 (MultiDomains invalid String value); `geosphere_arome_austria` Wien HTTP 200 mit Tages-/Stundenwerten; `geosphere_seamless` Wien HTTP 200. Official Upstream PR open-meteo/open-meteo#2258 gemergt 01.11.; öffentliche GeoSphere API Doku listet aber noch AROME und Seamless. Upstream-Angabe AROME-Datenende 04.11.2026. Ein GitHub-Merge ist **kein** gesichertes Produktionsrollout.
+
+**Vollwertiger P1 Ausfallpfad:** Alle AROME-Abfragen werden als optionale Quelle aus dem MultiDomains-Batch gelöst, sodass ein abgekündigtes Modell den Hauptabruf nicht sabotiert. Der Verfügbarkeitsstatus benötigt nach erfolgreicher API-Antwort zusätzlich **nachgewiesene** Laufinitialisierung aus `/data/geosphere_arome_austria/static/meta.json`. Zulässig sind höchstens 12h Laufalter und maximal 30min in die Zukunft: 3h Kadenz und gemeldete ~4h35 Verzögerung mit konservativer Toleranz, ohne Verwechslung von Forecast-Gültigkeit mit Modelllauf. Fehlende/unplausible/veraltete Metadaten schließen AROME aus dem gewichteten Konsens aus und löschen seine Zeitreihen im Fusionsresultat; andere verfügbare Familien, Best Match und Warnungen bleiben. Im UI-Metadatenkatalog wird AROME ab 12h Laufalter nicht mehr als aktueller Modellstand akzeptiert.
+
+**Weitere Watch-Befunde:** Upstream #2282 betrifft möglicherweise falsch doppelt addierte Modellhöhe in AROME-`snowfall_height`; keine pauschale Korrektur, keine aktive Worker-Fusionsabfrage dieses Felds. Upstream #2289 behebt Taupunkt bei 0% RH, #2287 erklärt wieder HTTP-400-Datumsfehler, #2268 korrigiert BBox-Mischzellen; kein belegter Breaking Change für MID-Punktprognosen. C-LAEF bleibt bis zum öffentlichen API 200 und mehrtägiger Feld-/Akkumulations-/NoData-Qualifikation inaktiv; kein stilles Fallback als zusätzliche unabhängige ECMWF-Stimme.
+
+**Quell-/Testnachweis:** `scripts/test-openmeteo-geosphere-arome-retirement-0985410.mjs` in beiden inventarisierten Baselinelisten (1.061). Produktionsdateien `worker-src/00-core-observations.js`, generierte Worker-/App-Weather-Mirrors und Versionsspiegel `0.9.85.410`; iOS Build 411; Nutzer-Changelog, Serviceworker-Cache, source-of-truth synchron. Keine 0-Füllung bei fehlenden Modellen. Der tatsächliche Source-/Installer-Release nach normalem vollständigen Gate, SHA-Bot-Merge, serverseitigem ZIP, Core/Heavy/Worker/Pages/Finalize und `mid-stable`; keine Vorabfreigabe.
+
+**Ausgeschlossen:** D2-RUC-Vollgebiet #446/#606 ist aufgrund Original-TOT_PREC-Grenzfällen separat blockiert; paralleler RUC P1-P5 #541/#612 nur read-only. 
+---
+
 # MID v0.9.85.409 · DA19-03/08/15 Karten-Rendererstatus, Ensembleprovenienz und Einstellungen
 
 **SHA-Basis:** am 02.11.2026 verifiziertes v0.9.85.408 `main=mid-stable` `17b2bb99e3935fe494400d95a79ff18b5ed01e4a`, Installer #41363977058 success, fünf aktive Rulesets; 38 normative Verträge unverändert.

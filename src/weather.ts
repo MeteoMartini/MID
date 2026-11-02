@@ -268,6 +268,8 @@ async function modelRunMeta(candidate:ModelMetaCandidate,signal?:AbortSignal):Pr
    if(workerBaseCandidates('general').length){try{const proxied=await fetchWorkerJson<any>('model-meta',{model:metadataModelId,kind:candidate.kind},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'});if(modelMetaIsFresh(proxied))data=proxied}catch{}}
    if(!data){const direct=await j<any>(`${host}/data/${metadataModelId}/static/meta.json?cache_buster=${Date.now()}`,signal);if(modelMetaIsFresh(direct))data=direct}
    if(!data)continue;
+   // The deprecated AROME endpoint may still return historic payloads. A fresh original cycle is mandatory.
+   if(candidate.id==='geosphere_arome_austria'&&Date.now()-modelMetaEpochMs(data.last_run_initialisation_time)>12*3600000)continue;
    const initMs=modelMetaEpochMs(data.last_run_initialisation_time),availableMs=modelMetaEpochMs(data.last_run_availability_time),availableValid=Number.isFinite(availableMs)&&availableMs>=initMs-3600000&&availableMs<=Date.now()+2*3600000,updateIntervalSeconds=Number(data.update_interval_seconds)||undefined;
    return{id:candidate.id,label:candidate.label,kind:candidate.kind,initialisationTime:new Date(initMs).toISOString(),availabilityTime:availableValid?new Date(availableMs).toISOString():undefined,updateIntervalSeconds,temporalResolutionSeconds:Number(data.temporal_resolution_seconds)||undefined,metadataModelId,metadataSource:'Open-Meteo Metadata API',rapidUpdate:Boolean(candidate.rapidUpdate||(updateIntervalSeconds&&updateIntervalSeconds<=3600)),resolutionKm:candidate.resolutionKm,forecastHorizonHours:candidate.forecastHorizonHours,members:candidate.members,availabilityOnly:candidate.availabilityOnly};
   }catch{}
