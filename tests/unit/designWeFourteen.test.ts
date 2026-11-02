@@ -61,6 +61,8 @@ describe('MID 14-Tage-A/B/C Design-WE source and meteorology',()=>{
   expect(fourteenPrecipitationSeries([row as any])[0].points[0]).not.toHaveProperty('q25');
   expect(source).toContain('Niederschlagswahrscheinlichkeit · Best Match');
   expect(source).toContain('formatValue={compactPrecipitationAmount}');
+  expect(source).toContain('unit="mm/Tag" bars formatValue={compactPrecipitationAmount}');
+  expect(source).toContain('unit="%" bars formatValue={v=>formatDecimalFixed(v,0)}');
   expect(source).toContain('Ensemble-Spannen sind keine zusätzlichen Best-Match-Werte');
  });
  it('provides responsive and keyboard-visible modes without hiding any meteorological data',()=>{
