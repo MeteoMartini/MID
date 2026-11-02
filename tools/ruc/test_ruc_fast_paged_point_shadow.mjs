@@ -68,6 +68,19 @@ test('untrusted chunk URI, fake EPS, altered forecast cadence or activation reje
   await assert.rejects(readPagedFastPointShadow(raw,sha,async key=>f.pages[key],0));
  }
 });
+test('self-rehashed negative precipitation chunk is invalid even with matching SHA',async()=>{
+ const f=await fixture();
+ const chunk=f.manifest.objects['rapid-5m.bin'].parts[0],sourceChunk=f.pages[chunk.key];
+ const altered=sourceChunk.slice();
+ // Point 0, valid +5 minutes, int16 raw is the second 2-byte record.
+ new DataView(altered.buffer).setInt16(2,-1,true);
+ f.pages[chunk.key]=altered;
+ chunk.sha256=await sha256hex(altered);
+ const raw=new TextEncoder().encode(JSON.stringify(f.manifest));
+ const digest=await sha256hex(raw);
+ await assert.rejects(readPagedFastPointShadow(raw,digest,async key=>f.pages[key],0),
+  /negative original Fast precipitation/);
+});
 test('missing native lookup is unavailable without extra fetches',async()=>{
  const f=await fixture(),key=f.manifest.objects['lookup.bin'].parts[0].key;
  const copy=f.pages[key].slice();new DataView(copy.buffer).setUint32(0,0xffffffff,true);f.pages[key]=copy;
