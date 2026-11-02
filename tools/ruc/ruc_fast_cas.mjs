@@ -57,6 +57,11 @@ export async function casFastPointer(bucket, row, {key=KEY, verifyGrant}={}) {
   assert(typeof verifyGrant==='function', 'trusted release authorization callback mandatory');
   const before=await readCurrent(bucket,key);
   const next=makeNextPointer(before.pointer,row);
+  // An initial active pointer has no authenticated previous generation to
+  // restore after a Pages or Worker readback failure. First initialize the
+  // fenced pointer in shadow mode, then activate in a separate authorized CAS.
+  assert(before.pointer !== null || next.mode === 'shadow',
+    'first Fast pointer must be shadow; active publication has no rollback target');
   assert(await verifyGrant(Object.freeze({...next})) === true, 'no authenticated release/consumer source grant');
   const conditional=before.etag?{etagMatches:before.etag}:{etagDoesNotMatch:'*'};
   const result=await bucket.put(key,serialize(next),{
