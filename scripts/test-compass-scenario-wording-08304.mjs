@@ -4,7 +4,8 @@ const css=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
 const failures=[];
 for(const token of [
  '<strong>Prognoseentwicklung</strong>',
- '<small>Ensembleübereinstimmung hoch · Datenbasis</small>',
+ '<small>{primaryAgreementLabel}</small>',
+ 'Ensembleübereinstimmung hoch · Datenbasis',
  '<small>Erwartete Entwicklung</small>',
  'Konfidenz nimmt ab',
  'function forecastOutlook(',
