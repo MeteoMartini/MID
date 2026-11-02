@@ -58,7 +58,7 @@ function inspect(manifest) {
   }
   fail(next!==count,'missing native source cells');total+=count*bytesPerCell;
  }
- fail(total!==manifest.sourceNativeBytes||total!==253813284,'original native binary physical length drift');
+ fail(total!==manifest.sourceNativeBytes||total!==253804736,'original native binary physical length drift');
  return {start,nx,ny};
 }
 function asUint8Array(value){

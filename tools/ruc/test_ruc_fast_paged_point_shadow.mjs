@@ -28,7 +28,7 @@ async function fixture(){
   objects[name]={sourceSha256:source,bytesPerCell:unit,cellCount:count,parts};
  }
  const manifest={schema:'mid.ruc.fast-paged-shadow.v1',run,nativePoints:542040,chunkCells:512,
-  sourceManifestSha256:source,sourceGribSha256:source,sourceNativeBytes:253813284,
+  sourceManifestSha256:source,sourceGribSha256:source,sourceNativeBytes:253804736,
   epsAvailable:false,productionEnabled:false,publicationAuthorized:false,realtimeConsumerEnabled:false,
   fields:fields.map(([name,unit,scale,offset])=>({name,unit,scale,offset})),
   grid:{nx:964,ny:596,nativePointCount:542040},timeAxes:{hourly:axis(60,7),rapid5:axis(5,73),rapid15:axis(15,25)},objects};
