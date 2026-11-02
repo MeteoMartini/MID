@@ -51,6 +51,17 @@ const labels:Record<EnsembleParameter,string>={temperature:'Temperatur',precipit
 export const AGREEMENT_LABEL:Record<Agreement,string>={high:'hoch',medium:'mittel',low:'gering',unknown:'nicht bewertbar'};
 export const AGREEMENT_COLOR:Record<Agreement,string>={high:'#429963',medium:'#ad7d22',low:'#c6554d',unknown:'#7c8795'};
 export const DATA_QUALITY_LABEL:Record<DataQuality,string>={good:'gut',limited:'eingeschränkt',poor:'schwach',missing:'nicht ausreichend'};
+/** Weakest evidence in the *same* displayed agreement interval; other dates must not contaminate it. */
+export function weakestWindowDataQuality(days:readonly Pick<DayAssessment,'date'|'dataQuality'>[],window:{start:string;end:string}):DataQuality|null{
+ const rank:Record<DataQuality,number>={good:0,limited:1,poor:2,missing:3};
+ let worst:DataQuality|null=null;
+ for(const day of days){
+  if(day.date<window.start||day.date>window.end)continue;
+  if(worst===null||rank[day.dataQuality]>rank[worst])worst=day.dataQuality;
+ }
+ return worst;
+}
+
 // Baseline display tolerances at short lead time.  They are normalized upward with lead time.
 export const AGREEMENT_TOLERANCES={temperature:[4,8],precipitation:[3,10],wind:[8,16],gust:[12,24],sunshine:[.25,.5]} as const;
 export const PARAMETER_CONFIDENCE_WEIGHTS:Record<EnsembleParameter,number>={temperature:.28,precipitation:.32,wind:.28,sunshine:.12};

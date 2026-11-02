@@ -29,6 +29,7 @@ vm.runInNewContext(transformSync(executable,{loader:'ts',format:'iife',target:'e
 const getPrecip=context.__midPrecipNow;
 const empty=getPrecip([],[]);
 assert.equal(empty.probability,null,'Absent precipitation timeline must not display 0%.');
+assert.equal(empty.probabilityWindow,undefined,'missing forecast slots must not invent a reference interval');
 assert.match(empty.summary,/nicht auswertbar/);
 const now=Date.now(),slot=(probability)=>({startEpoch:now-60000,endEpoch:now+60000,sample:{probability}});
 context.canonicalPrecipitationTimeline=()=>({slots:[slot(null)],periods:[],source:'15-min'});
@@ -39,6 +40,10 @@ assert.equal(getPrecip([],[]).probability,null,'Low risk in another hour must ne
 context.canonicalPrecipitationTimeline=()=>({slots:[slot(0)],periods:[],source:'15-min'});
 const realZero=getPrecip([],[]);
 assert.equal(realZero.probability,0,'A genuine zero probability must stay zero.');
+assert.equal(realZero.probabilityWindow.startEpoch,slot(0).startEpoch,'visible PoP time window must use the exact nearest canonical slot start');
+assert.equal(realZero.probabilityWindow.endEpoch,slot(0).endEpoch,'visible PoP time window must use exact canonical slot end');
+assert.ok(appSource.includes('Modellfenster ${localTimeLabel(precipNow.probabilityWindow.startEpoch,timezone)}–${localTimeLabel(precipNow.probabilityWindow.endEpoch,timezone)}'),'current nowcard must expose its actual reference interval on the first information level');
+assert.ok(appSource.includes("precipNow.source.startsWith('Radar- und Modellabgleich')"),'radar assimilation must be explicitly distinguished from raw model interval');
 for(const genuine of [1,4,5,9,100]){
  context.canonicalPrecipitationTimeline=()=>({slots:[slot(genuine)],periods:[],source:'15-min'});
  assert.equal(getPrecip([],[]).probability,genuine,'Original 1–100% precipitation probability must not be flattened to 0%: '+genuine);
