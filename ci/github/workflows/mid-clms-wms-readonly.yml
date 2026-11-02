@@ -1,0 +1,46 @@
+name: MID Copernicus official FSC/GFSC WMS capability probe (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.412-copernicus-alpine-snow-qa
+    paths:
+      - 'tools/snow/qualify_clms_wms.py'
+      - 'tools/snow/test_qualify_clms_wms.py'
+      - '.github/workflows/mid-clms-wms-readonly.yml'
+      - 'ci/github/workflows/mid-clms-wms-readonly.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-clms-wms-readonly
+  cancel-in-progress: false
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - name: Load exact source SHA with no credential persistence
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Reject unexpected MID release-basis drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+      - name: Pinned Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Verify XML, source and temporal semantics offline
+        run: python -m unittest discover -s tools/snow -p test_qualify_clms_wms.py -v
+      - name: Ask official FSC/GFSC WMS for current capabilities, never retrieve imagery
+        run: |
+          set -euo pipefail
+          python tools/snow/qualify_clms_wms.py --product FSC
+          python tools/snow/qualify_clms_wms.py --product GFSC
