@@ -35,6 +35,9 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
   expect(css).toContain(".cockpit-meteogram-pro__canvas[data-mid-chart-focus='temperature']");
   expect(css).toContain(".cockpit-meteogram-pro__canvas[data-mid-chart-focus='precipitation']");
   expect(css).toContain(".cockpit-meteogram-pro__canvas[data-mid-chart-focus='wind']");
+  expect(css).toContain('.mid-we-focus-indicator');
+  expect(css).toContain("opacity:.20!important;");
+  expect(css).toContain(".mid-we-parameter-controls>button[aria-pressed='true']");
   expect(css).toContain('.profile-sky-strip');
   expect(css).toContain('.cloud-opacity-band');
   expect(css).not.toMatch(/\.profile-sky-strip\s*\{\s*display\s*:\s*none/);
@@ -49,7 +52,9 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
   expect(cockpit).not.toContain('selectedPoint.pressure||0');
  });
  it('exposes the selected 15-minute precipitation, probability and wind on compact phones without fabricating zeros',()=>{
-  expect(cockpit).toContain('const selectedNow90Point=now90.find(point=>point.id===selectedPoint.id)??null');
+  expect(cockpit).toContain('const selectedNow90Point=now90.find(point=>point.id===now90ExpandedId)??null');
+  expect(cockpit).toContain('if(now90ExpandedId===item.id){setNow90ExpandedId(null)}');
+  expect(cockpit).toContain('aria-expanded={now90ExpandedId===item.id}');
   expect(cockpit).toContain('aria-label="Details zum ausgewählten Viertelstundenpunkt"');
   expect(cockpit).toContain('shortTermKnownPrecipitationLabel(selectedNow90Point)');
   expect(cockpit).toContain('shortTermKnownProbabilityLabel(selectedNow90Point.probability)');
