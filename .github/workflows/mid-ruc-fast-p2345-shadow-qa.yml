@@ -8,6 +8,8 @@ on:
       - 'tools/ruc/ruc_fast_cell_shadow.mjs'
       - 'tools/ruc/ruc_fast_paged_point_shadow.mjs'
       - 'tools/ruc/test_ruc_fast_paged_point_shadow.mjs'
+      - 'tools/ruc/ruc_fast_canonical_bridge_shadow.mjs'
+      - 'tools/ruc/test_ruc_fast_canonical_bridge_shadow.mjs'
       - 'tools/ruc/ruc_manual_pages_guard.py'
       - 'tools/ruc/test_ruc_manual_pages_guard.py'
       - 'ci/github/workflows/deploy.yml'
@@ -58,7 +60,8 @@ jobs:
           node --check tools/ruc/ruc_fast_cas.mjs
           node --check tools/ruc/ruc_fast_cell_shadow.mjs
           node --check tools/ruc/ruc_fast_paged_point_shadow.mjs
-          node --test tools/ruc/test_ruc_fast_cas.mjs tools/ruc/test_ruc_fast_cell_shadow.mjs tools/ruc/test_ruc_fast_paged_point_shadow.mjs
+          node --check tools/ruc/ruc_fast_canonical_bridge_shadow.mjs
+          node --test tools/ruc/test_ruc_fast_cas.mjs tools/ruc/test_ruc_fast_cell_shadow.mjs tools/ruc/test_ruc_fast_paged_point_shadow.mjs tools/ruc/test_ruc_fast_canonical_bridge_shadow.mjs
           python tools/ruc/test_ruc_fast_pages_chunker.py -v
           cmp ci/github/workflows/deploy.yml .github/workflows/deploy.yml
           python tools/ruc/test_ruc_manual_pages_guard.py -v
