@@ -9,12 +9,17 @@ class PagesNativeD2AdmissionTests(unittest.TestCase):
   params=signature(prepare).parameters
   self.assertIn('native_d2_trusted_index_sha256',params)
   self.assertIn('native_d2_trusted_inventory_sha256',params)
+  self.assertIn('native_d2_trusted_release_sha',params)
+  self.assertIsNone(params['native_d2_trusted_release_sha'].default)
+  self.assertIn('trusted_release_sha',signature(admit).parameters)
+  self.assertIsNone(signature(admit).parameters['trusted_release_sha'].default)
   self.assertIsNone(params['native_d2_trusted_index_sha256'].default)
   self.assertIsNone(params['native_d2_trusted_inventory_sha256'].default)
   from pathlib import Path
   source=(Path(__file__).parent/'prepare_ruc_pages.py').read_text(encoding='utf8')
   self.assertIn('trusted_index_sha256=native_d2_trusted_index_sha256',source)
   self.assertIn('trusted_inventory_sha256=native_d2_trusted_inventory_sha256',source)
+  self.assertIn('trusted_release_sha=native_d2_trusted_release_sha',source)
   cli=source.split('def main():',1)[-1]
   self.assertNotIn('--native-d2-trusted',cli)
  def test_detached_release_gate_does_not_trust_self_approved_flags_or_rehashed_bytes(self):
