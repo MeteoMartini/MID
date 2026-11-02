@@ -73,7 +73,7 @@ def strict_hourly_precipitation(total,previous,*,current_packing=None,previous_p
     qp=original_quantisation_mm(previous_packing)
     count=int(np.count_nonzero(negative))
     if qc is None or qp is None or not qp<=qc<=qp*4:
-        raise ValueError(f'Original cumulative TOT_PREC reset or incompatible packing: negativeCells={count}')
+        raise ValueError('Original cumulative TOT_PREC reset or wrong same-run interval: '+f'negativeCells={count}; minDeltaMm={float(np.min(delta[negative])):.9g}; incompatible packing')
     bound=(qc+qp)/2+max(qc,qp)*1e-9
     permissible=negative&(previous>0)&(total>=0)&(delta>=-bound)
     if np.any(negative&~permissible):
