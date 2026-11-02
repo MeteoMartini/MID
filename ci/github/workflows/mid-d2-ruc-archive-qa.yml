@@ -2,7 +2,7 @@ name: MID D2 RUC full-lookup archive reconstruction (read-only)
 on:
   push:
     branches:
-      - chatgpt/v0.9.85.406-full-domain-integration-from405
+      - chatgpt/v0.9.85.409-d2-ruc-full-domain-qa-from408
     paths:
       - '.github/workflows/mid-d2-ruc-archive-qa.yml'
       - 'tools/ruc/ruc_map_archive_probe.py'
@@ -40,7 +40,7 @@ jobs:
           stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
           main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
           test "$main" = "$stable"
-          test "$stable" = 6410cf049f097b1d0518beac601e1baa08583f4a
+          test "$stable" = 17b2bb99e3935fe494400d95a79ff18b5ed01e4a
           metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13076182582")"
           test "$(jq -r '.id' <<< "$metadata")" = 13076182582
           test "$(jq -r '.name' <<< "$metadata")" = mid-ruc-data-41286412886-1

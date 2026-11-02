@@ -2,7 +2,7 @@ name: MID D2 native eight-kind physical/NoData contract (read-only)
 on:
   push:
     branches:
-      - chatgpt/v0.9.85.406-full-domain-integration-from405
+      - chatgpt/v0.9.85.409-d2-ruc-full-domain-qa-from408
     paths:
       - '.github/workflows/mid-d2-native-eight-field-qa.yml'
       - 'tools/ruc/d2_native_full_fields.py'

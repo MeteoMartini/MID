@@ -2,7 +2,7 @@ name: MID D2 original native QA (read-only)
 on:
   push:
     branches:
-      - chatgpt/v0.9.85.406-full-domain-integration-from405
+      - chatgpt/v0.9.85.409-d2-ruc-full-domain-qa-from408
     paths:
       - '.github/workflows/mid-d2-native-original-audit.yml'
       - 'tools/ruc/pilot_dwd_domain_inventory.py'
@@ -39,7 +39,7 @@ jobs:
           stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
           main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
           test "$stable" = "$main"
-          test "$stable" = 6410cf049f097b1d0518beac601e1baa08583f4a
+          test "$stable" = 17b2bb99e3935fe494400d95a79ff18b5ed01e4a
       - name: Python 3.12 for native GRIB QA
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
