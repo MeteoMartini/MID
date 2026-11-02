@@ -4,6 +4,21 @@ import type {Hour,Minute15} from './weather';
 const HOUR_MS=60*60000;
 const MIN_GAP_MS=45*60000;
 const MAX_GAP_MS=75*60000;
+/** The input is post-fusion; these diagnostics do not claim untouched provider coding. */
+export type PrecipitationPresentationProvenance={
+ startEpoch:number;endEpoch:number;sourceEndEpoch:number|null;
+ inputCode:number|null;displayCode:number;amountMm:number|null;sourceLabel:string|null;
+ origin:'retained'|'derived'|'dry-sky'|'missing';
+};
+const presentationTraces=new WeakMap<object,PrecipitationPresentationProvenance>();
+function traced<T extends Hour|Minute15>(sample:T,trace:PrecipitationPresentationProvenance):T{
+ presentationTraces.set(sample,trace);return sample;
+}
+export function precipitationPresentationProvenance(sample:Hour|Minute15):PrecipitationPresentationProvenance|null{
+ return presentationTraces.get(sample)??null;
+}
+function inputCode(value:unknown){return typeof value==='number'&&Number.isFinite(value)?Math.round(value):null}
+function inputSourceLabel(sample:Hour|Minute15){return 'weatherSourceLabel' in sample&&typeof sample.weatherSourceLabel==='string'?sample.weatherSourceLabel:null}
 
 /**
  * Provider-/Rechenkern-Semantik bleibt unverändert: Open-Meteo/DWD liefern
@@ -41,10 +56,11 @@ export function precipitationPresentationHours(hours:Hour[]):Hour[]{
  const mapped=new Map<number,Hour>();
  for(let index=0;index<sorted.length;index++){
   const state=sorted[index]!,next=sorted[index+1],gap=next?next.epoch-state.epoch:NaN;
-  if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS){mapped.set(state.epoch,{...state,precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:drySkyCode(state)});continue}
+  if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS){const code=drySkyCode(state);mapped.set(state.epoch,traced({...state,precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code},{startEpoch:state.epoch,endEpoch:state.epoch+HOUR_MS,sourceEndEpoch:null,inputCode:null,displayCode:code,amountMm:null,sourceLabel:null,origin:'missing'}));continue}
   const sample={...state,precipitationComponentsAvailable:next.precipitationComponentsAvailable,precipitation:Math.max(0,Number(next.precipitation)||0),precipitationAvailable:next.precipitationAvailable!==false&&typeof next.precipitation==='number'&&Number.isFinite(next.precipitation)&&next.precipitation>=0,probabilityAvailable:next.probabilityAvailable!==false&&typeof next.probability==='number'&&Number.isFinite(next.probability),rain:Math.max(0,Number(next.rain)||0),showers:Math.max(0,Number(next.showers)||0),snowfall:Math.max(0,Number(next.snowfall)||0),probability:Math.max(0,Math.min(100,Number(next.probability)||0)),sunshineDuration:next.sunshineDuration??null,code:Number(next.code)};
   const parts=precipitationParts(sample);
-  mapped.set(state.epoch,{...sample,code:parts.type==='none'?drySkyCode(state):parts.displayCode});
+  const code=parts.type==='none'?drySkyCode(state):parts.displayCode;
+  mapped.set(state.epoch,traced({...sample,code},{startEpoch:state.epoch,endEpoch:next.epoch,sourceEndEpoch:next.epoch,inputCode:inputCode(next.code),displayCode:code,amountMm:sample.precipitationAvailable?sample.precipitation:null,sourceLabel:inputSourceLabel(next),origin:!sample.precipitationAvailable?'missing':parts.type==='none'?'dry-sky':inputCode(next.code)===code?'retained':'derived'}));
  }
  return hours.map(hour=>mapped.get(hour.epoch)??byEpoch.get(hour.epoch)??hour);
 }
@@ -58,10 +74,11 @@ export function precipitationPresentationMinutes15(minutes:Minute15[]):Minute15[
  const mapped=new Map<number,Minute15>();
  for(let index=0;index<sorted.length;index++){
   const state=sorted[index]!,next=sorted[index+1],gap=next?next.epoch-state.epoch:NaN;
-  if(!next||!Number.isFinite(gap)||gap<QUARTER_MIN_GAP_MS||gap>QUARTER_MAX_GAP_MS){mapped.set(state.epoch,{...state,precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:0});continue}
+  if(!next||!Number.isFinite(gap)||gap<QUARTER_MIN_GAP_MS||gap>QUARTER_MAX_GAP_MS){mapped.set(state.epoch,traced({...state,precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:0},{startEpoch:state.epoch,endEpoch:state.epoch+15*60000,sourceEndEpoch:null,inputCode:null,displayCode:0,amountMm:null,sourceLabel:null,origin:'missing'}));continue}
   const sample={...state,precipitation:Math.max(0,Number(next.precipitation)||0),precipitationAvailable:next.precipitationAvailable!==false&&typeof next.precipitation==='number'&&Number.isFinite(next.precipitation)&&next.precipitation>=0,probabilityAvailable:next.probabilityAvailable!==false&&typeof next.probability==='number'&&Number.isFinite(next.probability),rain:Math.max(0,Number(next.rain)||0),showers:Math.max(0,Number(next.showers)||0),snowfall:Math.max(0,Number(next.snowfall)||0),probability:Math.max(0,Math.min(100,Number(next.probability)||0)),sunshineDuration:next.sunshineDuration??null,code:Number(next.code)};
   const parts=precipitationParts(sample);
-  mapped.set(state.epoch,{...sample,code:parts.type==='none'?0:parts.displayCode});
+  const code=parts.type==='none'?0:parts.displayCode;
+  mapped.set(state.epoch,traced({...sample,code},{startEpoch:state.epoch,endEpoch:next.epoch,sourceEndEpoch:next.epoch,inputCode:inputCode(next.code),displayCode:code,amountMm:sample.precipitationAvailable?sample.precipitation:null,sourceLabel:inputSourceLabel(next),origin:!sample.precipitationAvailable?'missing':parts.type==='none'?'dry-sky':inputCode(next.code)===code?'retained':'derived'}));
  }
  return minutes.map(sample=>mapped.get(sample.epoch)??sample);
 }

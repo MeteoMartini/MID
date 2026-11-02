@@ -1,6 +1,6 @@
 import {type ReactNode,useEffect,useState} from 'react';
 import {AppInfoHint} from './AppInfoPopover';
-import {AGREEMENT_COLOR,AGREEMENT_LABEL,DATA_QUALITY_LABEL,agreementWindows,assessmentSummary,firstAgreementChange,trailingUnknownCoverageDate,type DayAssessment,type EnsembleParameter} from './ensembleAssessment';
+import {AGREEMENT_COLOR,AGREEMENT_LABEL,DATA_QUALITY_LABEL,agreementWindows,assessmentSummary,firstAgreementChange,trailingUnknownCoverageDate,weakestWindowDataQuality,type DayAssessment,type EnsembleParameter} from './ensembleAssessment';
 
 function dateLabel(date:string){return new Date(`${date}T12:00:00Z`).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',timeZone:'UTC'})}
 function windowLabel(window:{start:string;end:string}){return window.start===window.end?dateLabel(window.start):`${dateLabel(window.start)} – ${dateLabel(window.end)}`}
@@ -39,16 +39,19 @@ export function ForecastConfidenceInfoHint({assessments,advancedMode=false,class
 export function ForecastConfidenceOverview({assessments,outlook,advancedMode=false,showInfoHint=true}:{assessments:DayAssessment[];outlook?:{headline:string;detail:string};advancedMode?:boolean;showInfoHint?:boolean}){
  const ordered=[...assessments].sort((a,b)=>a.date.localeCompare(b.date)),windows=agreementWindows(ordered),primaryWindow=windows[0],change=firstAgreementChange(ordered),coverageDate=trailingUnknownCoverageDate(ordered),firstEvaluable=ordered.find(day=>day.agreement!=='unknown'),meteorologicalLimit=change??ordered.find(day=>day.agreement!=='high'&&day.agreement!=='unknown'),dataIssue=ordered.find(day=>day.dataQuality==='poor'||day.dataQuality==='missing');
  const lowest=meteorologicalLimit?.limiting.map(p=>p.label).join(', ')||'',coverageDay=coverageDate?ordered.find(day=>day.date===coverageDate):undefined;
- const sourceParameter=firstEvaluable?.parameters.find(parameter=>parameter.key==='precipitation'&&parameter.coverage)??firstEvaluable?.parameters.find(parameter=>parameter.coverage);
+ const sourceAssessment=primaryWindow?ordered.find(day=>day.date>=primaryWindow.start&&day.date<=primaryWindow.end&&day.agreement==='high'):firstEvaluable;
+ const primaryWindowQuality=primaryWindow?weakestWindowDataQuality(ordered,primaryWindow):null;
+ const sourceParameter=sourceAssessment?.parameters.find(parameter=>parameter.key==='precipitation'&&parameter.coverage)??sourceAssessment?.parameters.find(parameter=>parameter.coverage);
  const sourceCoverage=sourceParameter?.coverage;
- const sourceBasis=sourceCoverage&&sourceCoverage.expectedFamilies>0?`Datenabdeckung ${sourceParameter?.label}: ${sourceCoverage.families}/${sourceCoverage.expectedFamilies} Modellgruppen, davon ${sourceCoverage.freshFamilies} aktuell · Datenqualität ${DATA_QUALITY_LABEL[firstEvaluable!.dataQuality]}.`:'Datenabdeckung und Aktualität der Modellgruppen separat prüfen.';
+ const sourceBasis=sourceCoverage&&sourceCoverage.expectedFamilies>0?`Datenabdeckung ${sourceParameter?.label}: ${sourceCoverage.families}/${sourceCoverage.expectedFamilies} Modellgruppen, davon ${sourceCoverage.freshFamilies} aktuell · Datenqualität im angegebenen Zeitraum ${DATA_QUALITY_LABEL[primaryWindowQuality??sourceAssessment?.dataQuality??'missing']}.`:'Datenabdeckung und Aktualität der Modellgruppen separat prüfen.';
  const primaryText=primaryWindow?`${windowLabel(primaryWindow)} · ${scoreRangeLabel(primaryWindow,ordered)}`:firstEvaluable?`Aktuell ${AGREEMENT_LABEL[firstEvaluable.agreement]} · Index ${Math.round(firstEvaluable.confidenceScore??0)}/100`:'Noch nicht belastbar bewertbar';
+ const primaryAgreementLabel=primaryWindow?`Ensembleübereinstimmung hoch · Datenbasis ${primaryWindowQuality?DATA_QUALITY_LABEL[primaryWindowQuality]:'unbekannt'}`:'Ensembleübereinstimmung · Datenbasis separat bewerten';
  const thirdLabel=change?'Konfidenz nimmt ab':coverageDay?'Datenbasis / Randtag':dataIssue?'Datenbasis':'Konfidenzverlauf';
  const thirdTitle=change?`${dateLabel(change.date)}${lowest?`: ${lowest}`:''}`:coverageDay?`${dateLabel(coverageDay.date)} · nur teilweise belegt`:dataIssue?`${dateLabel(dataIssue.date)} · ${DATA_QUALITY_LABEL[dataIssue.dataQuality]}`:'Kein deutlicher meteorologischer Rückgang erkannt';
  const thirdDetail=change?'Die Ensemblelösungen streuen in mindestens einem Kernbereich stärker oder der Vorlauf begrenzt die Aussage.':coverageDay?'Der letzte Prognosetag liegt am Rand des verfügbaren Ensemblehorizonts. „Nicht bewertbar“ ist hier ein Abdeckungs-, kein meteorologisches Abwertungssignal.':dataIssue?'Die verfügbare Modell-/Memberbasis ist eingeschränkt; die meteorologische Konfidenz wird davon getrennt ausgewiesen.':'Die bewertbaren Kernparameter bleiben innerhalb der vorlaufnormalisierten Konfidenzgrenzen.';
  return <section className="ensemble-forecast-compass cockpit-forecast-compass" aria-label="MID Prognose-Kompass">
   <header><span aria-hidden="true">◎</span><div><small>MID Prognose-Kompass</small><strong>Prognoseentwicklung</strong></div></header>
-  <div><span><small>Hohe Prognosekonfidenz</small><b>{primaryText}</b><em>{primaryWindow?`Robuste meteorologische Ensembleübereinstimmung. Übereinstimmung vorhandener Modelle: Der Index ist keine Trefferwahrscheinlichkeit. ${sourceBasis} Randtage bleiben separat gekennzeichnet.`:`Noch kein Abschnitt mit hoher Ensembleübereinstimmung. ${sourceBasis}`}</em></span>
+  <div><span><small>{primaryAgreementLabel}</small><b>{primaryText}</b><em>{primaryWindow?`Robuste meteorologische Ensembleübereinstimmung. Übereinstimmung vorhandener Modelle: Der Index ist keine Trefferwahrscheinlichkeit. ${sourceBasis} Randtage bleiben separat gekennzeichnet.`:`Noch kein Abschnitt mit hoher Ensembleübereinstimmung. ${sourceBasis}`}</em></span>
    <span><small>Erwartete Entwicklung</small><b>{outlook?.headline??'Tagesprognosen vergleichen'}</b><em>{outlook?.detail??'Auch eine gut vorhersagbare Entwicklung kann ungünstiges Wetter bedeuten.'}</em></span>
    <span><small>{thirdLabel}</small><b>{thirdTitle}</b><em>{thirdDetail}</em></span>
   </div>
