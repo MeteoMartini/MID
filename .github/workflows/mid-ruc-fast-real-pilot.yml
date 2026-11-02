@@ -104,8 +104,8 @@ jobs:
         run: |
           set -euo pipefail
           python tools/ruc/ruc_fast_lane_producer.py --run "$SOURCE_RUN" --stage .ruc-fast-native-input --output .ruc-fast-native-candidate
-          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-native-candidate --output .ruc-fast-native-shadow
-          python tools/ruc/ruc_fast_consumer_shadow.py --shadow .ruc-fast-native-shadow --output fast-native-readback.json
+          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-native-candidate --output ruc-fast-native-shadow
+          python tools/ruc/ruc_fast_consumer_shadow.py --shadow ruc-fast-native-shadow --output fast-native-readback.json
           python - <<'PY'
           import json
           p=json.load(open('fast-native-readback.json'))
@@ -118,13 +118,35 @@ jobs:
           assert p['consumerAdoptionVerified'] is False
           print('REAL native DWD fast producer completed; independent shadow decode verified, NOT published.')
           PY
+      - name: Confirm archive inputs contain all four original binary objects
+        if: steps.choose.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=ruc-fast-native-shadow/ruc/fast
+          test -s "$root/latest.json"
+          test "$(find "$root" -type f | wc -l)" -eq 6
+          for part in deterministic.bin rapid-5m.bin rapid-15m.bin lookup.bin; do
+            test "$(find "$root/runs" -type f -name "$part" | wc -l)" -eq 1
+          done
+          test -s fast-native-readback.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('fast-native-readback.json').read_text())
+          assert report['originalNativeObjectsVerified'] is True
+          assert report['productionEnabled'] is False
+          assert report['publicationAuthorized'] is False
+          assert report['localSiteBytes'] > 200_000_000
+          print("Verified real Fast native shadow archive input bytes",report['localSiteBytes'])
+          PY
       - name: Immutable inactive real native candidate and independent readback artifact
         if: steps.choose.outputs.ready == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: mid-ruc-native-fast-real-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            .ruc-fast-native-shadow/
+            ruc-fast-native-shadow/
             fast-native-readback.json
           compression-level: 1
           retention-days: 2
