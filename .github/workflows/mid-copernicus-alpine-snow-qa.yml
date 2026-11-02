@@ -9,6 +9,7 @@ on:
       - 'src/CopernicusAlpineSnowMapLayer.tsx'
       - 'tests/unit/copernicus-snow-observation.test.ts'
       - 'tests/unit/copernicus-snow-delivery.test.ts'
+      - 'tests/unit/copernicus-snow-png-structure.test.ts'
       - '.github/workflows/mid-copernicus-alpine-snow-qa.yml'
       - 'ci/github/workflows/mid-copernicus-alpine-snow-qa.yml'
       - 'scripts/sync-github-workflows.mjs'
@@ -50,6 +51,8 @@ jobs:
         run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
       - name: Full TypeScript source verification
         run: npm run verify:types
+      - name: Bounded PNG raster and snow observation adversarial Vitest (no deployment)
+        run: npx vitest run tests/unit/copernicus-snow-png-structure.test.ts tests/unit/copernicus-snow-delivery.test.ts tests/unit/copernicus-snow-observation.test.ts
       - name: Strict official FSC/GFSC STAC source and no-pixel assurance regression
         run: |
           python -m unittest discover -s tools/snow -p test_qualify_clms_stac.py -v
