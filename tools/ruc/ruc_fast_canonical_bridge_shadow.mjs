@@ -19,6 +19,10 @@ function iso(value){
 }
 function nativeNumber(value,field){
  assert(value===null||(typeof value==='number'&&Number.isFinite(value)),'invalid native '+field);
+ // Cumulative DWD packing can create negative differences. A verified
+ // provider must mark them Missing; never transform an unphysical amount to 0.
+ if((field==='precipitation'||field==='precipitationMm')&&value!==null)
+  assert(value>=0,'negative native precipitation interval requires explicit NoData');
  return value;
 }
 function verifyRows(rows,run,step,count,kind){
