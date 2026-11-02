@@ -1,3 +1,12 @@
+## MID v0.9.85.412 · 2026-11-02 · Design-WE 1.1: Heute/24h-Wetterprofil
+
+- Verifizierte Basis: `main=mid-stable` v0.9.85.411 / `9bf44c3354f98937fa058aac5d6dceb5895d29e5`; fünf unveränderte Rulesets. Separater RUC-/D2-Draft #623 bleibt unveröffentlicht und ist kein Teil dieser Version.
+- `src/ForecastCockpit.tsx`: fokussierbare Parameterbahnen (reine optische Betonung), selektierte 24h-Stunde, gerätelokal persistierte vollständige Einzeldaten mit gültiger `aria-controls`-Zielregion; mobile Viertelstundendetails für Niederschlagsmenge/PoP/Wind/Böen mit Missing ≠ 0.
+- `src/midDesignWeToday.css`: responsive Darstellung über kanonische `src/styles-src/presentation-order.json`, C27-Max-Content-Toolbar-Fix, Light/Dark-Surfacevariablen, 44px-Touchziele und Reduced Motion. Skybar und Bewölkung liegen oberhalb der Temperatur; alle gemeinsamen 24h-Zeitachsen bleiben unverändert.
+- Test-Nachweise vor Release: Vitest inkl. direkt ausgeführter Pflichtregression und TSX-/PostCSS-Parsing #41509136061 sowie unabhängige RUC-Read-only-QA #41509136110 erfolgreich auf unveröffentlichtem Design-HEAD `a797962dadead35e702d2005eedaa8fdad78d73b`. Der versionierte HEAD muss den vollständigen eigenen Source-PR-Gate und Installer bestehen.
+- Versionsspiegel: package/lock, Baseline und Verträge, Web- und Worker-Mirrors, Cache, iOS `CURRENT_PROJECT_VERSION=413`, Release Notes und Changelogs. Kein vorgezogener Erfolg für echte iOS-Geräte/VoiceOver, vollständige WCAG-AA- und Widgets/Export-Abnahme.
+- Freigabe ausschließlich über SHA-gebundenen Source-PR-Bot und `install-mid.yml` Core/Heavy/Worker/Pages/Finalize → `mid-stable`; bei Prüfungsausfall keine Stable-Promotion.
+
 ## MID v0.9.85.408 · 2026-11-01 · Audit 1.9: durchgehende NoData-Integrität und mobile Scrollachse
 
 - SHA-verifizierte letzte Stable: MID .407 `main=mid-stable` `bcf75d001f8973f54203fccb24d94353226d2de7`, Source-PR #604 kontrolliert gemergt, Installer #41358613904 completed/success inklusive 1059 Pflichtregressionen, Heavy, Worker, Pages, Finalize. Fünf aktive Rulesets, 38 normative Verträge. Keine direkten Hauptbranch-Mutationen.

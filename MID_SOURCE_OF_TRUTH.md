@@ -1,3 +1,15 @@
+# MID v0.9.85.412 · Design-WE 1.1: kompakteres Heute-Wetterprofil
+
+**Freigabegrenze:** Quellkandidat auf Grundlage der am 02.11.2026 live verifizierten Stable v0.9.85.411 (`main=mid-stable` SHA `9bf44c3354f98937fa058aac5d6dceb5895d29e5`), fünf aktive Rulesets. Erst die vollständig erfolgreiche Source-PR-Gate → SHA-gebundener Bot-Merge → serverseitiges ZIP → `install-mid.yml` Core/Heavy/Worker/Pages/Finalize → Stable-Promotion veröffentlicht diesen Build. Dieser vorab verfasste Vertrag behauptet keine durchgelaufenen Gates.
+
+**Änderung:** Design-WE-Kombination B+A+C für „Heute“: Skybar und Bewölkung oberhalb von Temperatur/UTCI; unveränderter 24-h-Zeit-/Wolken-/Hazard-Vertrag; optische Parameterbetonung ohne Datenfilterung; kompakte ausgewählte Stunde und vollständige aufklappbare Werte. Auf Smartphones bleiben sechs 15-min-Wetterkacheln erhalten, mit antippbarer PoP-/Niederschlags-/Winddetailzeile. Responsive-C27-Toolbar-Spezifitätskonflikt korrigiert, 44px-Touchziele und Theme-/Reduced-Motion-Verhalten vertraglich geprüft. Keine Änderung an amtlichen DWD-Warnungen, Modellfusion, Radar-/RUC-Produktionsdaten, Akkumulation, Warnschwellen oder nativen Modellkarten. Fehlend ≠ 0.
+
+**Tests:** Obligatorisches neues Source-Skript `scripts/test-design-we-today-compact-0985412.mjs` als 1.062. Regression; `tests/unit/designWeToday.test.ts` prüft TSX-Syntax mit gepinntem `typescript-strada`, PostCSS-Parsing und NoData-/Layout-Verträge. Read-only Vitest/Coverage #41509136061 und RUC-QA #41509136110 waren am Vorläufer-HEAD `a797962dadead35e702d2005eedaa8fdad78d73b` erfolgreich; für den jetzigen Versions-HEAD sind Source-/Installer-Ergebnisse separat nachzuweisen. Echte iOS-/VoiceOver- und vollständige appweite WCAG-AA-, Widget-/Export-Prüfung bleibt unabhängig.
+
+**Parallelarbeit:** P0–P4/RUC-/ICON-D2-Entwurf #623 ist Draft; keine Originaldaten-, 72-Frame-, Pages-/Fast-Lane- oder Freshness-Freigabe als Bestandteil dieser Designversion. Kein direkter main-/mid-stable-Schreibzugriff.
+
+---
+
 # MID v0.9.85.411 · Issue #523 / DA19-21/22 · Datenqualität, Zeitfenster und Codeprovenienz
 
 **SHA-Basis und Release-Grenze:** Der am 02.11.2026 live verifizierte Stable v0.9.85.410 `f79003493f4621ea2a0d52763eb97c90674598d2` ist identisch mit `main`. Installer #41412806622 einschließlich Core-/Heavy-, Worker-, Pages- und Finalize-Gates erfolgreich; fünf aktive Rulesets; 38 normative Verträge und 1.061 Pflichtregressionen. Die sieben fachlichen Voränderungen wurden aus Draft #615 @ `08468b972becbade5d014d7a8937dc9151afbd33` auf den tatsächlich promoteten Stable portiert. Keine direkten Hauptbranch-Schreibzugriffe.
