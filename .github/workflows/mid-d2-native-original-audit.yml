@@ -1,0 +1,109 @@
+name: MID D2 original native QA (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.406-full-domain-integration-from405
+    paths:
+      - '.github/workflows/mid-d2-native-original-audit.yml'
+      - 'tools/ruc/pilot_dwd_domain_inventory.py'
+      - 'tools/ruc/test_dwd_domain_inventory.py'
+      - 'tools/ruc/pilot_icon_d2_native_catalog.py'
+      - 'tools/ruc/test_icon_d2_native_catalog.py'
+      - 'tools/ruc/d2_native_full_fields.py'
+      - 'tools/ruc/d2_native_eight_bundle.py'
+      - 'tools/ruc/test_d2_native_eight_bundle.py'
+permissions:
+  contents: read
+concurrency:
+  group: mid-d2-native-original-qa
+  cancel-in-progress: false
+jobs:
+  qualify:
+    name: Three original DWD ICON-D2 cycles with GRIB/bitmap/WMO parity (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Load SHA-bound MID candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Reject any source, Stable or Main drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = 6410cf049f097b1d0518beac601e1baa08583f4a
+      - name: Python 3.12 for native GRIB QA
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Use pinned-range current MID RUC QA requirements
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Fail-closed D2 original-grid, source-schema and mask regression gates
+        run: |
+          cd tools/ruc
+          python -m unittest test_icon_d2_native_catalog test_icon_d2_native_scalar test_dwd_domain_inventory test_ruc_map_candidate
+      - name: Select aged three-hourly source cycles
+        id: cycle
+        run: |
+          last="$(python -c 'from datetime import datetime,timezone,timedelta;t=datetime.now(timezone.utc)-timedelta(hours=5);print(t.replace(hour=t.hour//3*3,minute=0,second=0,microsecond=0).strftime("%Y%m%d%H"))')"
+          echo "last=$last" >> "$GITHUB_OUTPUT"
+      - name: Download original D2 fields with time-invariant CLAT/CLON and immutable SHAs
+        timeout-minutes: 15
+        run: |
+          python tools/ruc/pilot_icon_d2_native_catalog.py --last-run "${{ steps.cycle.outputs.last }}" --output "$RUNNER_TEMP/d2-originals" --download
+      - name: Three original DWD cycles – minute/hour GRIB validity and strict bitmap admission (fail-closed)
+        timeout-minutes: 15
+        run: |
+          python tools/ruc/pilot_dwd_domain_inventory.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" > "$RUNNER_TEMP/d2-originals/original-grib-inventory.json"
+      - name: Produce no-publish native scalar probe from originals
+        timeout-minutes: 7
+        run: |
+          python tools/ruc/pilot_icon_d2_native_scalar.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-scalar" --field t_2m --lead 6
+      - name: Prove eight full-domain native fields at all 9 offered leads with real one-hour precipitation (read-only)
+        timeout-minutes: 28
+        run: |
+          set -euo pipefail
+          for lead in 1 2 3 4 5 6 12 24 48; do
+            python tools/ruc/d2_native_eight_bundle.py --root "$RUNNER_TEMP/d2-originals" --manifest "$RUNNER_TEMP/d2-originals/inventory-input.json" --output "$RUNNER_TEMP/d2-native-eight-$lead" --lead "$lead"
+          done
+          python - <<'PY'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          leads=(1,2,3,4,5,6,12,24,48)
+          expected={'temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation'}
+          reports=[json.loads((root/f'd2-native-eight-{h}'/'pilot-index.json').read_bytes()) for h in leads]
+          for lead,r in zip(leads,reports):
+            assert r['schema']=='mid.dwd.native-eight-pilot.v1' and r['productionApproved'] is False
+            assert r['nativePoints']==542040 and r['leadHours']==lead
+            assert set(r['products'])==expected
+            assert all(0<x['bytes'] and 0<x['decodedBytes']<=12_000_000 for x in r['products'].values())
+            assert r['sourceObjects']['previous_tot_prec']['leadHours']==lead-1
+            assert r['sourceObjects']['previous_tot_prec']['run']==r['run']
+            assert all(p['sourceSha256'] and p['run']==r['run'] for p in r['sourceObjects'].values())
+          assert len({r['run'] for r in reports})==1
+          assert len({r['sourceInventorySha256'] for r in reports})==1
+          physical=sum(p['bytes'] for r in reports for p in r['products'].values())
+          assert physical<350_000_000,'Native original D2 sidecars exceed conservative map budget'
+          print('All 72 exact-source native original ICON-D2 product frames pass 9-lead x 8-kind map and 1h TOT_PREC audits; encoded candidate bytes='+str(physical))
+          PY
+      - name: Upload only small provenance reports, not provider GRIB files
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-native-original-qa
+          retention-days: 2
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/d2-originals/catalog.json
+            ${{ runner.temp }}/d2-originals/inventory-input.json
+            ${{ runner.temp }}/d2-originals/original-grib-inventory.json
+            ${{ runner.temp }}/d2-native-scalar/readme.json
+            ${{ runner.temp }}/d2-native-eight-*/pilot-index.json

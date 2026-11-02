@@ -42,6 +42,50 @@ class RucMapCandidateTests(unittest.TestCase):
     wind=json.loads(gzip.decompress((out/'wind-001.bin').read_bytes()))
     self.assertAlmostEqual(wind['values'][2]*wind['scale'],18.52)
     self.assertEqual(before,{p.name:p.read_bytes() for p in source.iterdir()})
+ def test_full_native_lookup_includes_regions_outside_old_crop(self):
+  # Genuine DWD lookup covers southwest France / Benelux / the Alpine region
+  # too. A raster must retain these cells rather than silently truncate them.
+  for lat,lon in ((43.20,-3.80),(55.95,19.50)):
+   with self.subTest(lat=lat,lon=lon),tempfile.TemporaryDirectory() as t:
+    root=Path(t);source=self.fixture(root,2)
+    meta=json.loads((source/'latest.json').read_bytes())
+    grid=meta['lookup'].get('grid',meta['grid']);grid['latMin']=lat;grid['lonMin']=lon
+    (source/'latest.json').write_text(json.dumps(meta))
+    output=root/'all-native-map';index=build_candidate(source,output)
+    self.assertTrue(index['fullLookupCoverage'])
+    self.assertEqual(index['sourceLookupCells'],9)
+    self.assertAlmostEqual(index['sourceLookupBounds'][0],lon)
+    self.assertAlmostEqual(index['sourceLookupBounds'][1],lat)
+    payload=json.loads(gzip.decompress((output/'temperature-000.bin').read_bytes()))
+    self.assertEqual(payload['lats'],[lat,lat+.025,lat+.05])
+    self.assertEqual(payload['lons'],[lon,lon+.025,lon+.05])
+    self.assertIsNone(payload['values'][0])
+    self.assertEqual(payload['values'][2],1234)
+
+ def test_entirely_missing_lookup_fails_with_clear_original_reason(self):
+  # This is a valid, SHA-bound *all-missing* native geographic lookup.
+  # Previously the error itself was subscripted with removed crop indices,
+  # masking the intended fail-closed ValueError with a TypeError/NameError.
+  with tempfile.TemporaryDirectory() as temp:
+   root=Path(temp);source=self.fixture(root,2)
+   missing=np.full((3,3),0xffffffff,dtype='<u4').tobytes()
+   (source/'lookup.bin').write_bytes(missing)
+   meta=json.loads((source/'latest.json').read_text())
+   meta['objects']['lookup.bin']['bytes']=len(missing)
+   meta['objects']['lookup.bin']['sha256']=hashlib.sha256(missing).hexdigest()
+   (source/'latest.json').write_text(json.dumps(meta))
+   with self.assertRaisesRegex(ValueError,'full native lookup contains no covered cell'):
+    build_candidate(source,root/'missing-maps')
+   self.assertFalse((root/'missing-maps').exists())
+ def test_full_lookup_geographic_bounds_fail_closed(self):
+  for lat,lon in ((90,-3.8),(-90.1,-3.8),(43.2,180),(43.2,-181)):
+   with self.subTest(lat=lat,lon=lon),tempfile.TemporaryDirectory() as t:
+    root=Path(t);source=self.fixture(root,2)
+    meta=json.loads((source/'latest.json').read_bytes())
+    meta['lookup'].get('grid',meta['grid']).update(latMin=lat,lonMin=lon)
+    (source/'latest.json').write_text(json.dumps(meta))
+    with self.assertRaisesRegex(ValueError,'geographical extent'):
+     build_candidate(source,root/'bad')
  def test_corrupt_source_rejected_before_output(self):
   with tempfile.TemporaryDirectory() as t:
    root=Path(t);source=self.fixture(root);(source/'deterministic.bin').write_bytes(b'broken')
