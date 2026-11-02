@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.408",
+  "releaseVersion": "0.9.85.409",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1290,6 +1290,7 @@
     "scripts/test-design-2-0-1-today-098543.mjs",
     "scripts/test-design-a3-precipitation-integrity-0985387.mjs",
     "scripts/test-design-readability-3-098476.mjs",
+    "scripts/test-designaudit19-render-confidence-navigation-0985409.mjs",
     "scripts/test-detail-parameters.mjs",
     "scripts/test-detail-pictogram-precipitation.mjs",
     "scripts/test-detail-pictograms.mjs",
@@ -3850,7 +3851,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.408",
+  "version": "0.9.85.409",
   "updatedAt": "2026-10-25",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
