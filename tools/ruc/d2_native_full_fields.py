@@ -47,7 +47,46 @@ def _theta_e(t,rh):
     tl=1/(1/(dew-56)+np.log(t/dew)/800)+56
     return t*(1000/(850-e))**(2/7)*(t/tl)**(.28*mix)*np.exp((3036/tl-1.78)*mix*(1+.448*mix))
 
-def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIVE_POINTS):
+def original_quantisation_mm(meta):
+    """Verified GRIB2 integer-packed precision; CCSDS compresses packed values."""
+    if not isinstance(meta,dict) or meta.get('packingType') not in ('grid_ccsds','grid_simple'):
+        return None
+    e,d=meta.get('binaryScaleFactor'),meta.get('decimalScaleFactor')
+    ref,bits,bitmap=meta.get('referenceValue'),meta.get('bitsPerValue'),meta.get('bitmapPresent')
+    if (type(e) is not int or type(d) is not int or not -30<=e<=30 or d!=0
+        or type(bits) is not int or not 1<=bits<=32 or type(bitmap) is not int
+        or bitmap not in (0,1) or type(ref) not in (float,int)
+        or not math.isfinite(ref) or abs(ref)>1e-12):
+        return None
+    return 2.0**e
+
+def strict_hourly_precipitation(total,previous,*,current_packing=None,previous_packing=None):
+    """Unresolvable quantisation decreases become NaN, never dry zero or interpolation.
+
+    True decreases beyond original packing uncertainty and missing/changed packing
+    keep the entire same-run field fail-closed. Caller SHA/WMO/bitmap/step qualified.
+    """
+    delta=total-previous
+    negative=np.isfinite(delta)&(delta<0)
+    if not negative.any():return delta,0
+    qc=original_quantisation_mm(current_packing)
+    qp=original_quantisation_mm(previous_packing)
+    count=int(np.count_nonzero(negative))
+    if qc is None or qp is None or not qp<=qc<=qp*4:
+        raise ValueError(f'Original cumulative TOT_PREC reset or incompatible packing: negativeCells={count}')
+    bound=(qc+qp)/2+max(qc,qp)*1e-9
+    permissible=negative&(previous>0)&(total>=0)&(delta>=-bound)
+    if np.any(negative&~permissible):
+        bad=delta[negative&~permissible]
+        raise ValueError('Original cumulative TOT_PREC reset beyond packing: '
+                         +f'negativeCells={count}; minDeltaMm={float(np.min(bad)):.9g}')
+    if count>max(1,int(total.size*.10)):
+        raise ValueError(f'Original cumulative TOT_PREC ambiguity >10% native cells: {count}/{total.size}')
+    result=delta.copy()
+    result[permissible]=np.nan
+    return result,count
+
+def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIVE_POINTS,current_packing=None,previous_packing=None):
     """Derive all eight already offered D2 map kinds from original native cells.
 
     previous_total MUST be the original cumulative TOT_PREC at lead-1 hour,
@@ -73,16 +112,8 @@ def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIV
         for v in (data[f],prev):
             ok=np.isfinite(v)
             if np.any(v[ok]<0):raise ValueError('Negative original cumulative precipitation')
-    delta=data['tot_prec']-prev
-    ok=np.isfinite(delta)
-    negative=ok & (delta<-1e-6)
-    if np.any(negative):
-        raise ValueError('Original cumulative TOT_PREC reset or wrong same-run interval: '
-                         +f'negativeCells={int(np.count_nonzero(negative))}; '
-                         +f'minDeltaMm={float(np.min(delta[negative])):.9g}; '
-                         +f'maxNegativeMm={float(np.max(delta[negative])):.9g}')
-    if np.any((delta[ok]<0)):
-        raise ValueError('Rounding discrepancy in precipitation accumulation needs original review')
+    delta,_ambiguous=strict_hourly_precipitation(data['tot_prec'],prev,
+                    current_packing=current_packing,previous_packing=previous_packing)
     products={
         'temperature':data['t_2m']-273.15,
         'pressure':data['pmsl']/100,
