@@ -13,6 +13,13 @@ assert.equal(urls.at(-1).search,'','Forecast requests must preserve established 
 await context.dwdRucStaticJson(new URL('https://example.test/ruc/'),'latest.json',true);
 assert.ok(urls.at(-1).searchParams.has('mid_ruc_health_probe'),'Health must isolate the mutable upstream pointer');
 assert.equal(urls.at(-1).pathname,'/ruc/latest.json');
+const signer=read('ci/github/workflows/mid-d2-original-release-approval.yml');
+assert.equal(signer,read('.github/workflows/mid-d2-original-release-approval.yml'),
+  'Protected original signer must keep canonical and active workflows identical');
+assert.equal((signer.match(/for ref in main mid-stable; do/g)||[]).length,2,
+  'Protected signer must recheck both refs before and after attestation');
+assert.ok(signer.indexOf('Revalidate protected Stable and source immediately before signing') < signer.indexOf('uses: actions/attest@'));
+assert.ok(signer.indexOf('Revalidate protected Stable and index after attestation before handoff') > signer.indexOf('uses: actions/attest@'));
 const workflow=read('ci/github/workflows/install-mid.yml');
 assert.ok(workflow.includes("steps.ruc_guard.outputs.current == 'true'"));
 assert.ok(workflow.includes('check_ruc_snapshot_current.py'));
