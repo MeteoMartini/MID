@@ -5,6 +5,7 @@ import './mapCanvasResponsive.css';
 import './mapPopupTheme.css';
 import {compositeReferenceLayers,readMapReferenceSettings,patchMapReferenceSettings,subscribeMapReferenceSettings,DEFAULT_MAP_REFERENCE} from './mapReferenceLayers';
 import {Fragment,lazy,memo,Suspense,useCallback,useEffect,useMemo,useRef,useState,useSyncExternalStore,type ReactNode} from 'react';
+import {compositeMetadataRetryDelayMs,shouldRefreshMapMetadataOnResume} from './mapLayerRecovery';
 import {ChevronDown,CloudLightning,CloudRain,Droplets,Info,LocateFixed,MoveRight,RadioTower,RefreshCw,Satellite,Settings2,TriangleAlert,Waves,Zap} from 'lucide-react';
 import {Circle,CircleMarker,MapContainer,Marker,Pane,Polygon,Polyline,Popup,TileLayer,Tooltip,VectorReferenceLayer,WMSTileLayer,useMap,useMapEvents,L} from './MapLibreLegacyCompat';
 import {CanvasOverlay,type MidMap} from './MapLibreCore';
@@ -351,15 +352,16 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
     if(!controller.signal.aborted){
      // Preserve previously verified timestamps. The view still enforces freshness.
      setCompositeError(error instanceof Error?error.message:String(error));
-     if(failures<4){
-      const delay=Math.min(60_000,10_000*2**failures++);
+     const delay=compositeMetadataRetryDelayMs(failures);
+     if(delay!==null){
+      failures+=1;
       window.clearTimeout(retryTimer);
       retryTimer=window.setTimeout(()=>{void load()},delay);
      }
     }
    }finally{inFlight=false}
   };
-  const resume=()=>{if(document.visibilityState==='visible'&&Date.now()-lastSuccess>=30_000)void load()};
+  const resume=()=>{if(shouldRefreshMapMetadataOnResume(Date.now(),lastSuccess,document.visibilityState==='visible'))void load()};
   void load();
   const interval=window.setInterval(()=>{void load()},300_000);
   document.addEventListener('visibilitychange',resume);

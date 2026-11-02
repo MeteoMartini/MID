@@ -1,4 +1,5 @@
 import {createContext,useContext,useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {rasterTileRetryDelayMs} from './mapLayerRecovery';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './mapPopupTheme.css';
@@ -69,12 +70,13 @@ export function RasterTileLayer({id,url,opacity=1,minZoom=0,maxZoom=22,tileSize=
  useEffect(()=>{
   if(!map||!url)return;
   if(retryState.current.url!==url)retryState.current={url,attempts:0};
-  let active=true,ready=false,failed=false,retryTimer=0,watchdog=0;
+  let active=true,ready=false,failed=false,retryTimer=0,watchdog=0,startedAt=Date.now();
   const scheduleRetry=(message:string)=>{
    if(!active||failed)return;
    failed=true;callbacks.current.onError?.(message);
-   if(retryState.current.attempts>=3)return;
-   const delay=Math.min(12_000,1500*2**retryState.current.attempts++);
+   const delay=rasterTileRetryDelayMs(retryState.current.attempts);
+   if(delay===null)return;
+   retryState.current.attempts+=1;
    retryTimer=window.setTimeout(()=>{if(active)setRetryRevision(value=>value+1)},delay);
   };
   const errorHandler=(event:maplibregl.ErrorEvent)=>{
@@ -86,6 +88,12 @@ export function RasterTileLayer({id,url,opacity=1,minZoom=0,maxZoom=22,tileSize=
    ready=true;retryState.current.attempts=0;
    window.clearTimeout(watchdog);callbacks.current.onReady?.();
   };
+  const resume=()=>{
+   if(document.visibilityState!=='visible'||!active||ready)return;
+   idleHandler();
+   // Suspended tabs may skip the watchdog entirely; recover after foregrounding.
+   if(!ready&&!failed&&Date.now()-startedAt>=20_000)scheduleRetry('Kartenkachel wurde nach Rückkehr zur App nicht geladen.');
+  };
   try{
    if(map.getLayer(layerId))map.removeLayer(layerId);
    if(map.getSource(sourceId))map.removeSource(sourceId);
@@ -95,12 +103,14 @@ export function RasterTileLayer({id,url,opacity=1,minZoom=0,maxZoom=22,tileSize=
    map.addLayer({id:layerId,type:'raster',source:sourceId,paint:{'raster-opacity':Math.max(0,Math.min(1,opacity)),'raster-fade-duration':0,'raster-opacity-transition':{duration:350,delay:0},'raster-resampling':resampling,...(tone?.saturation!==undefined?{'raster-saturation':clampRasterTone(tone.saturation,-1,1)}:{}),...(tone?.contrast!==undefined?{'raster-contrast':clampRasterTone(tone.contrast,-1,1)}:{}),...(tone?.brightnessMin!==undefined?{'raster-brightness-min':clampRasterTone(tone.brightnessMin,0,1)}:{}),...(tone?.brightnessMax!==undefined?{'raster-brightness-max':clampRasterTone(tone.brightnessMax,0,1)}:{}),...(tone?.hueRotate!==undefined?{'raster-hue-rotate':clampRasterTone(tone.hueRotate,0,360)}:{})}});
    registerMapLayerOrder(map,layerId,zIndex);
    map.on('error',errorHandler);map.on('idle',idleHandler);map.on('sourcedata',idleHandler);
+   document.addEventListener('visibilitychange',resume);window.addEventListener('focus',resume);
    watchdog=window.setTimeout(()=>{if(active&&!ready&&!failed&&document.visibilityState==='visible')scheduleRetry('Kartenkachel: Zeitüberschreitung nach 20 Sekunden.')},20_000);
    queueMicrotask(idleHandler);
   }catch(error){scheduleRetry(error instanceof Error?error.message:String(error))}
   return()=>{
    active=false;window.clearTimeout(retryTimer);window.clearTimeout(watchdog);
    map.off('error',errorHandler);map.off('idle',idleHandler);map.off('sourcedata',idleHandler);
+   document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume);
    unregisterMapLayerOrder(map,layerId);
    try{if(map.getLayer(layerId))map.removeLayer(layerId);if(map.getSource(sourceId))map.removeSource(sourceId)}catch{}
   };
