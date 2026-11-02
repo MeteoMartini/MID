@@ -37,6 +37,15 @@ for(const token of [
  '<DwdPrecipitationTypeDisclosure location={location} enabled={showDwdPrecipitationTypeRadar}/>'
 ])assert.ok(cockpit.includes(token),'WE Heute Vertragsbestandteil fehlt: '+token);
 
+for(const token of [
+ 'const selectedNow90Point=now90.find(point=>point.id===selectedPoint.id)??null',
+ 'aria-label="Details zum ausgewählten Viertelstundenpunkt"',
+ 'shortTermKnownPrecipitationLabel(selectedNow90Point)',
+ 'shortTermKnownProbabilityLabel(selectedNow90Point.probability)',
+ "Number.isFinite(selectedNow90Point.wind)?wind(selectedNow90Point.wind,unit):'n. v.'",
+ "Number.isFinite(selectedNow90Point.gust)?wind(selectedNow90Point.gust,unit):'n. v.'"
+])assert.ok(cockpit.includes(token),'90min-Detail/NoData-Vertrag fehlt: '+token);
+assert.ok(styles.includes('.mid-we-now90-selected'),'Die auswählbaren 90min-Einzeldaten müssen mobil sichtbar sein.');
 const idx=(token)=>cockpit.indexOf(token);
 assert.ok(idx('skyBandTop=profileY(50)')<idx('cloudTop=profileY(101)')&&
  idx('cloudTop=profileY(101)')<idx('tempTop=profileY(150)')&&
