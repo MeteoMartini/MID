@@ -53,6 +53,8 @@ jobs:
           # caused by a shallow PR checkout lacking its distant Stable parent.
           # Fail-closed unless GitHub confirms this exact protected Stable is
           # the merge-base, and HEAD is genuinely ahead (never unrelated).
+          # SOURCE_SHA already passed the exact git HEAD equality check above.
+          checked="$SOURCE_SHA"
           lineage="$(gh api "repos/$GITHUB_REPOSITORY/compare/$stable...$checked")"
           jq -e --arg stable "$stable" '
             .status == "ahead" and
