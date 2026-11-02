@@ -1,0 +1,179 @@
+name: MID D2 RUC three consecutive native full-domain real runs (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.409-d2-ruc-full-domain-qa-from408
+    paths:
+      - '.github/workflows/mid-d2-ruc-three-run-qa.yml'
+      - 'tools/ruc/ruc_map_archive_probe.py'
+      - 'tools/ruc/test_ruc_map_archive_probe.py'
+      - 'tools/ruc/ruc_map_candidate.py'
+      - 'tools/ruc/audit_model_domain_coverage.py'
+      - 'tools/ruc/admit_ruc_map_candidate.py'
+      - 'tools/ruc/test_model_domain_coverage.py'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-d2-ruc-three-real-runs-qa
+  cancel-in-progress: false
+jobs:
+  reconstruct:
+    name: Native full-domain replay · ${{ matrix.hour }}Z (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {hour: '04', expected_run: '2026-11-01T04:00', run_id: 41278599081, artifact_id: 13073147274, digest: 'sha256:63343e7e3c7a5a1bc5e813db8d6032da43ad33f40b8406faf78b308b9c65c102'}
+          - {hour: '05', expected_run: '2026-11-01T05:00', run_id: 41281807000, artifact_id: 13074037562, digest: 'sha256:554ef25765bdb5902830e93704aed9cee100e54b3371784c487bf16e9ff20847'}
+          - {hour: '06', expected_run: '2026-11-01T06:00', run_id: 41286412886, artifact_id: 13076182582, digest: 'sha256:e942c77cc3ee8d1473277a851a306d4e203857b0070120eb8fc0ffdeb46eff8f'}
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Load the exact code candidate without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read-only verify current Stable SHA and pinned original RUC artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$main" = "$stable"
+          test "$stable" = 17b2bb99e3935fe494400d95a79ff18b5ed01e4a
+          metadata="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/${{ matrix.artifact_id }}")"
+          test "$(jq -r '.id' <<< "$metadata")" = "${{ matrix.artifact_id }}"
+          test "$(jq -r '.name' <<< "$metadata")" = "mid-ruc-data-${{ matrix.run_id }}-1"
+          test "$(jq -r '.digest' <<< "$metadata")" = "${{ matrix.digest }}"
+          test "$(jq -r '.expired' <<< "$metadata")" = false
+          echo "Verified immutable original RUC published snapshot provenance (no bytes logged)."
+      - name: Install existing native ecCodes/Python QA dependencies
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Install the existing fixed-range RUC QA requirement set
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+      - name: Download the exact immutable artifact with GitHub-attested digest verification
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          run-id: ${{ matrix.run_id }}
+          artifact-ids: ${{ matrix.artifact_id }}
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: ${{ runner.temp }}/ruc-native-original
+      - name: Repackage verified artifacts without path-prefix changes
+        id: archive
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/ruc-native-original"
+          test -d "$dir"
+          mapfile -d '' manifests < <(find "$dir" -type f -name latest.json -print0)
+          if [ "${#manifests[@]}" -ne 1 ]; then
+            echo "::error::Sealed RUC data artifact must contain exactly one latest.json; download may have wrong artifact format"
+            find "$dir" -maxdepth 3 -type f -printf '%P\n' | LC_ALL=C sort | head -n 12
+            exit 1
+          fi
+          root="$(dirname "${manifests[0]}")"
+          test -s "$root/latest.json"
+          # GitHub artifact archives can retain a parent run-directory.
+          # Repackage only the unique manifest root; every source object is
+          # subsequently validated against this manifest's SHA inventory.
+          (cd "$root" && find . -type f -printf '%P\n' | LC_ALL=C sort | zip -q -0 "$RUNNER_TEMP/ruc-original.zip" -@)
+          test -s "$RUNNER_TEMP/ruc-original.zip"
+          digest="$(sha256sum "$RUNNER_TEMP/ruc-original.zip" | cut -d' ' -f1)"
+          echo "sha=$digest" >> "$GITHUB_OUTPUT"
+      - name: Decode all original 27h source cells and audit six complete map fields
+        timeout-minutes: 35
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_map_archive_probe.py \
+            --archive "$RUNNER_TEMP/ruc-original.zip" --sha256 "${{ steps.archive.outputs.sha }}" \
+            --output "$RUNNER_TEMP/ruc-real-full-domain"
+          test -s "$RUNNER_TEMP/ruc-real-full-domain/report.json"
+      - name: Verify exact original model cycle and all six native source fields, store numeric proof
+        env:
+          EXPECTED_RUC_RUN: ${{ matrix.expected_run }}
+          ORIGINAL_ARTIFACT_ID: ${{ matrix.artifact_id }}
+          ORIGINAL_WORKFLOW_RUN: ${{ matrix.run_id }}
+          MODEL_HOUR: ${{ matrix.hour }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          matches=list((temp/'ruc-native-original').rglob('latest.json'))
+          assert len(matches)==1, 'original source manifest not unique'
+          m=json.loads(matches[0].read_bytes())
+          r=json.loads((temp/'ruc-real-full-domain/report.json').read_bytes())
+          assert m['schema']=='mid.dwd.ruc.grid.v2' and m['storageProfile']=='pages-lossless-v1'
+          assert r['schema']=='mid.ruc.archive-map-probe.v1'
+          assert r['sourceRun']==os.environ['EXPECTED_RUC_RUN']==m['run']
+          assert r['fullNativeLookupVerified'] is True and r['full27HourSourceAxis'] is True
+          assert r['nativePoints']==542040 and r['nativeLookupCoveredCells']>0
+          assert r['productionEnabled'] is False and r['readyForProduction'] is False
+          assert set(r['products'])=={'temperature','pressure','wind','gust','cloud','precipitation'}
+          assert all(r['products'][k]==28 for k in ('temperature','pressure','wind','cloud'))
+          assert all(r['products'][k]==27 for k in ('gust','precipitation'))
+          assert m['pages']['budgetBytes']==900_000_000
+          projected=m['pages']['publishedBytes']+r['mapBytes']+len(json.dumps(m).encode())
+          assert 0<r['mapBytes']<=350_000_000 and projected<900_000_000
+          r['projectedPhysicalBytes']=projected
+          r['originalDataArtifactId']=int(os.environ['ORIGINAL_ARTIFACT_ID'])
+          r['originalWorkflowRunId']=int(os.environ['ORIGINAL_WORKFLOW_RUN'])
+          evidence=temp/'ruc-three-run';evidence.mkdir(exist_ok=True)
+          (evidence/('run-'+os.environ['MODEL_HOUR']+'.json')).write_text(json.dumps(r,sort_keys=True)+'\n')
+          print('Validated true 27h native RUC original for '+r['sourceRun']+': maps='+str(r['mapBytes'])+' totalProjected='+str(projected))
+          PY
+      - name: Retain only numerical per-run proof, never raw source or decoded fields
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-ruc-full-domain-three-run-${{ matrix.hour }}
+          if-no-files-found: error
+          retention-days: 2
+          path: ${{ runner.temp }}/ruc-three-run/run-${{ matrix.hour }}.json
+
+  require_three_runs:
+    name: Three consecutive DWD original cycles and all products admitted (read-only)
+    needs: [reconstruct]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Collect only numerical validated proof from all three separate jobs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: mid-d2-ruc-full-domain-three-run-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/ruc-three-run-proofs
+      - name: Verify three different consecutive runs, 900MB budgets and source hashes
+        run: |
+          python - <<'PY'
+          import pathlib,os,json,datetime,re
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'ruc-three-run-proofs'
+          paths=sorted(root.glob('run-*.json'))
+          assert [p.name for p in paths]==['run-04.json','run-05.json','run-06.json']
+          rows=[json.loads(p.read_text()) for p in paths]
+          expected=['2026-11-01T04:00','2026-11-01T05:00','2026-11-01T06:00']
+          assert [r['sourceRun'] for r in rows]==expected
+          times=[datetime.datetime.fromisoformat(t) for t in expected]
+          assert all((b-a).total_seconds()==3600 for a,b in zip(times,times[1:]))
+          assert len({r['originalManifestSha256'] for r in rows})==3
+          assert len({r['sourceRun'] for r in rows})==3
+          assert all(r['fullNativeLookupVerified'] and r['full27HourSourceAxis']
+                     and r['nativePoints']==542040 and len(r['products'])==6
+                     and r['projectedPhysicalBytes']<900_000_000
+                     and not r['productionEnabled'] for r in rows)
+          print('Three original consecutive DWD ICON-D2-RUC runs qualified read-only:',expected)
+          print('Projected total physical bytes per run:',[r['projectedPhysicalBytes'] for r in rows])
+          PY
