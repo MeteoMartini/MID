@@ -18,5 +18,5 @@ for(const content of [source,merged,proxy]){
  assert.doesNotMatch(content,/apiIds:\['geosphere_claef_austria'\]/,'Unavailable C-LAEF must not be called in production');
 }
 for(const content of [weather,generated])assert.match(content,/candidate\.id==='geosphere_arome_austria'&&Date\.now\(\)-modelMetaEpochMs\(data\.last_run_initialisation_time\)>12\*3600000/,'Frontend model-run badge must reject stale AROME');
-assert.match(source,/const successful=results\.filter\(result=>result\.successful\)/,'Fusion only uses admitted models');
+assert.match(source,/results=modelFetch\.results,successful=results\.filter\(result=>result\.successful\)/,'Only successfully admitted sources enter the canonical fusion');
 console.log('Open-Meteo GeoSphere AROME retirement: isolated, metadata-bound, 12h strict freshness, C-LAEF fail-closed, mirrors checked.');
