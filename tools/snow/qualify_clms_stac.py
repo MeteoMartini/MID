@@ -45,15 +45,25 @@ def admit_item(item:dict,kind:str,at:dt.datetime)->dict:
  if time>at+dt.timedelta(minutes=5) or at-time>AGE:
   raise ValueError('Missing, future or stale original CLMS acquisition time')
  expected_date=time.strftime('%Y%m%d')
- if expected_date not in id:raise ValueError('Original CLMS filename and UTC product day differ')
+ # FSC identifies a single S2 acquisition to the second; GFSC is a seven-day
+ # composite identified by its UTC product day, not an instantaneous pixel.
+ if kind=='FSC':
+  if time.strftime('%Y%m%dT%H%M%S') not in id:
+   raise ValueError('Original FSC acquisition UTC timestamp differs from product identity')
+ elif expected_date not in id:
+  raise ValueError('Original GFSC UTC product day differs from product identity')
  assets=item.get('assets') or {}
  if not all(a in assets for a in BANDS[kind]):raise ValueError('Original CLMS quality/cloud or pixel age assets missing')
  prefix='s3://eodata/CLMS/bio-geophysical/snow_cover_extent/'+COLLECTIONS[kind]+'/'
+ # A matching collection and band suffix alone is insufficient: that permits
+ # splicing QAFLAGS, cloud or pixel-age rasters from a different product/tile.
+ # Require the exact same immutable product/date directory for EVERY band.
+ product_prefix=prefix+time.strftime('%Y/%m/%d/')+id+'/'+id+'_'
  for band in BANDS[kind]:
   asset=assets[band]
   href=asset.get('href') if isinstance(asset,dict) else None
-  if not isinstance(href,str) or not href.startswith(prefix) or not href.endswith('_'+band+'.tif') or '..' in href:
-   raise ValueError('Original CLMS band source not trusted')
+  if not isinstance(href,str) or href!=product_prefix+band+'.tif':
+   raise ValueError('Original CLMS band is not bound to this product, day and tile')
  if 'Product' in assets:
   href=assets['Product'].get('href') if isinstance(assets['Product'],dict) else None
   if not isinstance(href,str) or not href.startswith('https://zipper.dataspace.copernicus.eu/odata/v1/Products('):

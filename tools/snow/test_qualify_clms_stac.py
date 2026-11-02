@@ -42,6 +42,34 @@ class ClmsStacTests(unittest.TestCase):
               item()['assets']['GF']['href'].replace('/2026/','/../2026/')):
    v=item();v['assets']['GF']['href']=url
    with self.assertRaises(ValueError):admit_item(v,'GFSC',now)
+ def test_asset_bands_cannot_be_spliced_across_products_or_days(self):
+  for kind in ('FSC','GFSC'):
+   for band in BANDS[kind]:
+    with self.subTest(kind=kind,band=band):
+     v=item(kind)
+     valid=v['assets'][band]['href']
+     # Same collection, same band, but a different product is still untrusted.
+     other_id=v['id'].replace('V102','V103').replace('V200','V201')
+     v['assets'][band]['href']=valid.replace(v['id'],other_id)
+     with self.assertRaisesRegex(ValueError,'not bound'):
+      admit_item(v,kind,now)
+     v['assets'][band]['href']=valid.replace('/2026/11/01/','/2026/10/31/')
+     with self.assertRaisesRegex(ValueError,'not bound'):
+      admit_item(v,kind,now)
+     v['assets'][band]['href']=valid.replace('/'+v['id']+'_','/extra/'+v['id']+'_')
+     with self.assertRaisesRegex(ValueError,'not bound'):
+      admit_item(v,kind,now)
+     v['assets'][band]['href']=valid+'?untrusted=1'
+     with self.assertRaisesRegex(ValueError,'not bound'):
+      admit_item(v,kind,now)
+
+ def test_fsc_timestamp_must_match_exact_s2_acquisition_second(self):
+  v=item('FSC')
+  v['properties']['datetime']='2026-11-01T10:28:15Z'
+  with self.assertRaisesRegex(ValueError,'acquisition UTC timestamp'):
+   admit_item(v,'FSC',now)
+  self.assertEqual(admit_item(item('FSC'),'FSC',now)['pixelDataVerified'],False)
+
  def test_no_artificial_empty_or_unbounded_catalogue(self):
   for obj in ({'type':'FeatureCollection','features':[],'numberMatched':0},
               {'type':'FeatureCollection','features':[item()]*26,'numberMatched':26}):
