@@ -9,6 +9,17 @@ export const D2_FULL_DOMAIN_LEADS=[1,2,3,4,5,6,12,24,48] as const;
 export const D2_FULL_DOMAIN_KINDS:NativeFieldKind[]=['temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation'];
 export const D2_FULL_DOMAIN_SOURCE_CELLS=542040;
 const sha=(x:unknown):x is string=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
+export async function verifyNativeD2IndexTransport(bytes:ArrayBuffer,pointer:{indexSha256?:unknown;indexBytes?:unknown}):Promise<void>{
+ // The canonical RUC/Pages publisher must bind the exact D2 index bytes.
+ // This checks transport consistency, not the separate release-bot grant.
+ if(!Number.isSafeInteger(pointer.indexBytes)||!(Number(pointer.indexBytes)>0)||
+    Number(pointer.indexBytes)>3_000_000||bytes.byteLength!==pointer.indexBytes||
+    !sha(pointer.indexSha256))
+  throw Error('Original D2 index bytes or detached transport digest missing');
+ const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
+  v=>v.toString(16).padStart(2,'0')).join('');
+ if(digest!==pointer.indexSha256)throw Error('DWD original index SHA256 differs from RUC publisher');
+}
 const units:Record<NativeFieldKind,string>={temperature:'°C',pressure:'hPa',wind:'km/h',gust:'km/h',cloud:'%',thetae:'K',sigwx:'WMO',precipitation:'mm/1 h'};
 const bounds:Record<NativeFieldKind,[number,number]>={temperature:[-100,70],pressure:[800,1100],wind:[0,600],gust:[0,600],cloud:[0,100.01],thetae:[150,500],sigwx:[0,99],precipitation:[0,6500]};
 type FullIndex=NativeIndex&{schema:'mid.icon-d2.native-fields.v2';productionApproved:true;sourceInventorySha256:string;nativePoints:542040;modelId:'icon-d2';sampling:'nearest-native-cell'};
