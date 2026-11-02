@@ -33,7 +33,7 @@ class EightOriginalBundleTests(unittest.TestCase):
     build_original_eight(root,manifest,root.parent/'external-do-not-write',6)
  def test_grib_quantum_is_diagnostic_only_and_never_assumed(self):
   self.assertAlmostEqual(packing_quantum({'packingType':'grid_simple','binaryScaleFactor':-12,'decimalScaleFactor':0}),1/4096)
-  self.assertIsNone(packing_quantum({'packingType':'grid_ccsds','binaryScaleFactor':-12,'decimalScaleFactor':0}))
+  self.assertAlmostEqual(packing_quantum({'packingType':'grid_ccsds','binaryScaleFactor':-12,'decimalScaleFactor':0}),1/4096)
   self.assertIsNone(packing_quantum({'packingType':'grid_simple','binaryScaleFactor':None,'decimalScaleFactor':0}))
   self.assertIsNone(packing_quantum({'packingType':'grid_simple','binaryScaleFactor':500,'decimalScaleFactor':0}))
  def test_missing_previous_precip_hour_is_never_filled(self):

@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from d2_native_full_fields import derive_eight,sample_native,PRODUCT_UNITS,NATIVE_POINTS
+from d2_native_full_fields import derive_eight,sample_native,PRODUCT_UNITS,NATIVE_POINTS,strict_hourly_precipitation
 
 class EightNativeFieldsTests(unittest.TestCase):
  def fixture(self):
@@ -85,4 +85,33 @@ class EightNativeFieldsTests(unittest.TestCase):
    v=values[np.isfinite(values)]
    self.assertTrue((v>=dict(temperature=-100,pressure=800,wind=0,gust=0,cloud=0,thetae=150,sigwx=0,precipitation=0)[key]).all())
    self.assertTrue(np.isfinite(v).all())
+
+ def test_exact_original_ccsds_quantisation_is_unknown_not_zero(self):
+  previous=np.ones(40);current=previous.copy()
+  previous[7]=1/4096;current[7]=0
+  fine={'packingType':'grid_ccsds','binaryScaleFactor':-12,'decimalScaleFactor':0,'bitsPerValue':16,'bitmapPresent':1,'referenceValue':0.0}
+  coarse={**fine,'binaryScaleFactor':-11}
+  delta,n=strict_hourly_precipitation(current,previous,current_packing=coarse,previous_packing=fine)
+  self.assertEqual(n,1);self.assertTrue(np.isnan(delta[7]));self.assertEqual(delta[0],0)
+  raw,unit,_=self.fixture()
+  raw={k:list(v)*10 for k,v in raw.items()}
+  raw['tot_prec']=current
+  products=derive_eight(raw,unit,previous,unit['tot_prec'],points=40,current_packing=coarse,previous_packing=fine)
+  self.assertTrue(np.isnan(products['precipitation'][7]))
+  self.assertEqual(products['precipitation'][0],0)
+ def test_true_reset_missing_packing_and_widespread_ambiguity_fail(self):
+  previous=np.ones(40);current=previous.copy()
+  fine={'packingType':'grid_ccsds','binaryScaleFactor':-12,'decimalScaleFactor':0,'bitsPerValue':16,'bitmapPresent':1,'referenceValue':0.0}
+  coarse={**fine,'binaryScaleFactor':-11}
+  current[5]=.9
+  with self.assertRaisesRegex(ValueError,'reset beyond packing'):
+   strict_hourly_precipitation(current,previous,current_packing=coarse,previous_packing=fine)
+  current[5]=1-1/4096
+  with self.assertRaisesRegex(ValueError,'incompatible packing'):
+   strict_hourly_precipitation(current,previous)
+  with self.assertRaisesRegex(ValueError,'incompatible packing'):
+   strict_hourly_precipitation(current,previous,current_packing={**coarse,'referenceValue':100},previous_packing=fine)
+  current[:8]=1-1/4096
+  with self.assertRaisesRegex(ValueError,'ambiguity >10%'):
+   strict_hourly_precipitation(current,previous,current_packing=coarse,previous_packing=fine)
 if __name__=='__main__':unittest.main()
