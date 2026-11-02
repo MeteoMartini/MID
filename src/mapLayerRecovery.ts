@@ -20,9 +20,9 @@ export function shouldRefreshMapMetadataOnResume(nowMs:number,lastSuccessfulLoad
 export function isCompositeTimesFailureWithoutFrames(data:{
  error?:string;errors?:string[];satelliteDay?:unknown[];satelliteIr?:unknown[];satellitePrecip?:unknown[];
  dwdRadar?:unknown[];dwdLightning?:unknown[];mtgLightning?:unknown[];
- satelliteDayProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string};
- satelliteIrProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string};
- satellitePrecipProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string};
+ satelliteDayProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number};
+ satelliteIrProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number};
+ satellitePrecipProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string|number};
  dwdReferenceSatelliteProduct?:{times?:unknown[];latestOnly?:boolean;latestTime?:string}
 }|null|undefined):boolean{
  if(!data)return true;
@@ -31,8 +31,14 @@ export function isCompositeTimesFailureWithoutFrames(data:{
   data.dwdLightning,data.mtgLightning,data.satelliteDayProduct?.times,
   data.satelliteIrProduct?.times,data.satellitePrecipProduct?.times];
  const latestOnly=[data.satelliteDayProduct,data.satelliteIrProduct,
-  data.satellitePrecipProduct,data.dwdReferenceSatelliteProduct].some(product=>
-   product?.latestOnly===true&&typeof product.latestTime==='string'
-   &&Number.isFinite(Date.parse(product.latestTime)));
+  data.satellitePrecipProduct,data.dwdReferenceSatelliteProduct].some(product=>{
+   if(product?.latestOnly!==true)return false;
+   const stamp=product.latestTime;
+   if(typeof stamp==='string')return Number.isFinite(Date.parse(stamp));
+   if(typeof stamp!=='number'||!Number.isFinite(stamp))return false;
+   // CompositeProduct.latestTime accepts epoch seconds or epoch milliseconds.
+   const ms=Math.abs(stamp)<1e12?stamp*1000:stamp;
+   return ms>=Date.UTC(2000,0,1)&&ms<Date.UTC(2100,0,1);
+  });
  return !latestOnly&&!lists.some(values=>Array.isArray(values)&&values.length>0);
 }
