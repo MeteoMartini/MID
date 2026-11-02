@@ -59,6 +59,7 @@ class TestFast(unittest.TestCase):
         }
         got=fast_precipitation_intervals(series,targets,np,validate_accumulation)
         self.assertEqual(got.shape,(4,4))
+        self.assertTrue(np.all(np.isnan(got[0])), 'all +0 precipitation is unknown, not dry')
         self.assertTrue(np.isnan(got[2,0]), 'negative packing delta cannot mean dry 0')
         self.assertEqual(got[2,1],0.0, 'actual repeated accumulation is dry')
         self.assertTrue(np.isnan(got[2,2]), 'original source Missing stays Missing')
@@ -79,6 +80,46 @@ class TestFast(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'negative precipitation'):
             safe_quantization({'precipitation':np.array([[0.,-.01]])},
                               (Spec('precipitation',0.,0.01),),np)
+    def test_native_initial_precipitation_is_true_i16_nodata_not_dry(self):
+        import numpy as np
+        from collections import namedtuple
+        from ruc_pack import pack_cell_major
+        Spec=namedtuple('Spec','name unit scale offset')
+        spec=Spec('precipitation','mm',.01,0.)
+        rainfall=np.array([[np.nan,np.nan],[0.,.1],[0.,.1]])
+        with self.assertRaisesRegex(ValueError,'entirely missing'):
+            safe_quantization({'precipitation':rainfall},(spec,),np)
+        self.assertTrue(safe_quantization({'precipitation':rainfall},(spec,),np,
+                          allow_unknown_initial_precipitation=True))
+        packed=np.frombuffer(pack_cell_major({'precipitation':rainfall},(spec,)),dtype='<i2')
+        self.assertEqual(packed.reshape(2,3)[0,0],-32768)
+        self.assertEqual(packed.reshape(2,3)[1,0],-32768)
+        self.assertEqual(packed.reshape(2,3)[0,1],0)
+        self.assertEqual(packed.reshape(2,3)[1,1],10)
+        bad=rainfall.copy();bad[1]=np.nan
+        with self.assertRaisesRegex(ValueError,'later native lead required'):
+            safe_quantization({'precipitation':bad},(spec,),np,
+                              allow_unknown_initial_precipitation=True)
+        forged=rainfall.copy();forged[0]=0.
+        with self.assertRaisesRegex(ValueError,'initial must be Missing'):
+            safe_quantization({'precipitation':forged},(spec,),np,
+                              allow_unknown_initial_precipitation=True)
+    def test_fast_core_unknown_initial_is_explicit_opt_in_only(self):
+        import numpy as np
+        from meteo_integrity import validate_core_fields
+        rows={name:np.ones((3,2)) for name in WIRE_FIELDS}
+        rows['pressure_msl'][:]=1013
+        rows['temperature_2m'][:]=15
+        rows['dew_point_2m'][:]=10
+        rows['precipitation'][0]=np.nan
+        with self.assertRaisesRegex(ValueError,'forecast steps'):
+            validate_core_fields(rows)
+        result=validate_core_fields(rows,allow_unknown_initial_precipitation=True)
+        self.assertEqual(result['fields']['precipitation']['steps'][0]['missingCount'],2)
+        altered={**rows,'precipitation':rows['precipitation'].copy()}
+        altered['precipitation'][1]=np.nan
+        with self.assertRaisesRegex(ValueError,'later native lead missing'):
+            validate_core_fields(altered,allow_unknown_initial_precipitation=True)
     def test_real_dry_zero_remains_finite(self):
         import numpy as np
         from collections import namedtuple
