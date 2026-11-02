@@ -126,6 +126,18 @@ jobs:
           assert all(len(d['frames'])==9 for d in data['products'].values())
           print('Original DWD full domain transport assembled and audited; productionApproved=false, bytes='+str(data['nativeFullDomainBytes']))
           PY
+      - name: Preserve verified 72 native D2 field transport candidate without provider GRIB
+        # This is NOT a Pages release; productionApproved=false stays immutable.
+        # Immutable GitHub artifact/run/SHA will be checked again before use.
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-native-shadow-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 2
+          if-no-files-found: error
+          compression-level: 0
+          path: |
+            ${{ runner.temp }}/d2-native-v2-transport/*.bin
+            ${{ runner.temp }}/d2-native-v2-transport/index.json
       - name: Upload only small provenance reports, not provider GRIB files
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
