@@ -1,0 +1,47 @@
+name: MID native ICON-D2 full-domain TypeScript/read-only client QA
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.412-d2-ruc-native-qa-from411
+    paths:
+      - 'src/nativeModelFields.ts'
+      - 'src/nativeD2FullDomain.ts'
+      - 'tests/unit/native-d2-full-domain.test.ts'
+      - '.github/workflows/mid-native-d2-full-domain-client-qa.yml'
+      - 'ci/github/workflows/mid-native-d2-full-domain-client-qa.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mid-native-d2-full-domain-ts-readonly
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact source SHA without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Refuse release-basis drift
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+      - name: Pinned Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Reproducible dependencies
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: TypeScript complete program typecheck
+        run: npm run verify:types
+      - name: Focused native D2/RUC full-domain regression
+        run: npx vitest run tests/unit/native-d2-full-domain.test.ts

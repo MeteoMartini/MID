@@ -21,7 +21,7 @@ class AdmissionTests(unittest.TestCase):
    with self.subTest(hours=hours),tempfile.TemporaryDirectory() as t:
     root=Path(t);snapshot,source=self.fixture(root,hours);before={p.relative_to(snapshot).as_posix():p.read_bytes() for p in snapshot.rglob('*') if p.is_file()};source_before={p.name:p.read_bytes() for p in source.iterdir()}
     proof=module.admit(snapshot,source,root/'candidate');m=json.loads((snapshot/'latest.json').read_bytes());index=json.loads((snapshot/m['rucModelFields']['key']).read_bytes())
-    self.assertEqual(proof['coreHours'],14);self.assertEqual(proof['mapHours'],hours);self.assertTrue(proof['codecProofUnchanged']);self.assertEqual(index['schema'],'mid.ruc.map-fields.v1')
+    self.assertEqual(proof['coreHours'],14);self.assertEqual(proof['mapHours'],hours);self.assertTrue(proof['codecProofUnchanged']);self.assertEqual(index['schema'],'mid.ruc.map-fields.v1');self.assertTrue(proof['fullNativeLookupAudited']);self.assertEqual(proof['sourceLookupCells'],9);self.assertEqual(proof['nativeLookupCoveredCells'],8)
     for k,v in before.items():
      if k!='latest.json':self.assertEqual((snapshot/k).read_bytes(),v)
     self.assertEqual(source_before,{p.name:p.read_bytes() for p in source.iterdir()});self.assertLess(proof['finalPhysicalBytes'],900000000)
@@ -47,6 +47,27 @@ class AdmissionTests(unittest.TestCase):
     run=module.utc_time(meta['run']);core['times']=[(run+timedelta(hours=i)).isoformat() for i in range(count)];core['recordBytes']=count*24;core['compressedPages']['recordBytes']=count*24
     (snapshot/'latest.json').write_bytes(compact(meta))
     with self.assertRaises(module.SnapshotIntegrityError):module.verify_snapshot(snapshot)
+ def test_full_lookup_and_mask_audit_required_before_any_publication(self):
+  for broken in ('coverage','source-values','time-axis'):
+   with self.subTest(broken=broken),tempfile.TemporaryDirectory() as t:
+    root=Path(t);snapshot,source=self.fixture(root,27,27)
+    original=(snapshot/'latest.json').read_bytes()
+    def incomplete(*args):
+     result={'allFramesCoverKnownNativeLookup':True,
+             'allPublishedFrameValuesMatchNativeSource':True,
+             'allSourceForecastHoursPresent':True,
+             'products':[{}]*6}
+     result[{'coverage':'allFramesCoverKnownNativeLookup',
+             'source-values':'allPublishedFrameValuesMatchNativeSource',
+             'time-axis':'allSourceForecastHoursPresent'}[broken]]=False
+     return result
+    with patch.object(module,'audit_full_domain',side_effect=incomplete):
+     proof=module.admit_optional(snapshot,source,root/'map-candidate')
+    self.assertFalse(proof['admitted'])
+    self.assertTrue(proof['coreRetained'])
+    self.assertEqual((snapshot/'latest.json').read_bytes(),original)
+    self.assertFalse(list(snapshot.glob('runs/*__rucmaps*')))
+
  def test_corruption_and_prefix_drift_fail_closed(self):
   for source_drift in (False,True):
    with tempfile.TemporaryDirectory() as t:

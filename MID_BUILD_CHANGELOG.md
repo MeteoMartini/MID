@@ -1,3 +1,9 @@
+## MID v0.9.85.413 · 2026-11-02 · D2/RUC/Fast-Source-Port nach Design-WE-Stable
+
+- Ausgangsbasis: vollständig promotierter v0.9.85.412-Stable `8349fa89e9a66d09d320d1774c86dda4d14a4d4a`, Installer #41515302726 success. Original-Source-PR #625 @ `bf07de77eca4816516cf96281da1d970daebc71b`, Source-Gate #41513667882 success ausschließlich für alten .412-HEAD.
+- 103 nicht überlappende D2/RUC/Fast-Quell-, Workflow- und Testdateien SHA-identisch übernommen; 18 überlappende Design-/Versionsdateien auf .413 fachlich zusammengeführt. Die 1.062 Design-Stable-Pflichtregressionen und 38 Normverträge bleiben erhalten.
+- Release nur über neuen vollständigen Source-PR-Gate, SHA-gebundenen Bot, Server-ZIP und install-mid.yml Core/Heavy/Worker/Pages/Finalize → Stable. Signierte DWD-Originaldaten, globales Publisher-Fencing/Rollback, echte Endkunden-/Gerätefrische bleiben separat gesperrt.
+
 ## MID v0.9.85.412 · 2026-11-02 · Design-WE 1.1: Heute/24h-Wetterprofil
 
 - Verifizierte Basis: `main=mid-stable` v0.9.85.411 / `9bf44c3354f98937fa058aac5d6dceb5895d29e5`; fünf unveränderte Rulesets. Separater RUC-/D2-Draft #623 bleibt unveröffentlicht und ist kein Teil dieser Version.

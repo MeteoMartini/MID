@@ -199,7 +199,7 @@ def fit_synoptic_budget(payload,available):
         optional_budget['omittedHours'].extend(frame['hour'] for frame in optional_d2)
     return payload
 
-def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES,*,codec_staging:bool=False):
+def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POINTS,lookup_chunk_entries:int=DEFAULT_LOOKUP_CHUNK_ENTRIES,*,codec_staging:bool=False,native_d2_trusted_index_sha256:str|None=None,native_d2_trusted_inventory_sha256:str|None=None,native_d2_trusted_release_sha:str|None=None):
     limit=CODEC_STAGING_LIMIT_BYTES if codec_staging else PAGES_RUC_BUDGET_BYTES
     profile=CODEC_STAGING_PROFILE if codec_staging else PROFILE
     meta=json.loads((source/'latest.json').read_text(encoding='utf-8'))
@@ -332,11 +332,31 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
             key=prefix+file.name;destination=out/key;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
             objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
         synoptic_fields={'key':prefix+'index.json','schema':payload['schema'],'generatedAt':payload['generatedAt']}
+    # Full-domain D2 is optional and entirely absent from existing RUC runs.
+    # Only a separately SHA/GRIB/Map-qualified and approved complete 72-frame
+    # immutable sidecar can be added; any partial sidecar aborts before latest.json.
+    native_fields=None
+    # Authenticated release actors alone may supply detached approval digests
+    # after verifying the GitHub original-DWD workflow/run and artifact digest.
+    # The public preprocessing CLI offers no approval inputs and cannot set them.
+    # Candidate-supplied productionApproved flags never grant admission.
+    native_approval=(native_d2_trusted_index_sha256,native_d2_trusted_inventory_sha256,native_d2_trusted_release_sha)
+    if any(value is not None for value in native_approval) and not all(value is not None for value in native_approval):
+        raise ValueError('Incomplete independently authenticated native D2 release grant')
+    if (source/'model-fields-native'/'index.json').is_file():
+        from admit_d2_native_pages import admit as admit_native_d2
+        native_fields=admit_native_d2(source,out,run,objects,limit,
+                                     trusted_index_sha256=native_d2_trusted_index_sha256,
+                                     trusted_inventory_sha256=native_d2_trusted_inventory_sha256,
+                                     trusted_release_sha=native_d2_trusted_release_sha)
+    elif any(value is not None for value in native_approval):
+        raise ValueError('Trusted native D2 grant supplied without exact immutable original source')
     total=sum(row['bytes'] for row in objects)
     if total>=limit:
         raise ValueError(f'{profile} RUC payload {total} bytes exceeds {limit} byte limit')
     result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':profile,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
             'pages':{'profile':profile,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes,'deduplicatedBytes':deduplicated_bytes}}
+    if native_fields is not None:result['modelFieldsNative']=native_fields
     if codec_staging:
         result['pages']['stagingOnly']=True
     else:

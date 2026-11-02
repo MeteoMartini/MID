@@ -27,6 +27,28 @@ function sourceTimeBudgetValid(text){
  return ruc===20&&sourceBuild===15&&outer>=ruc+sourceBuild+8&&outer<=45&&coreTestStep===13&&shards.length===4&&new Set(shards).size===4&&matrix.includes('fail-fast: false')&&!matrix.includes('continue-on-error');
 }
 if(!sourceTimeBudgetValid(prGate))failures.push('Source-Job muss beide unveränderten Einzelgrenzen plus Setup/iOS/Paketierung innerhalb eines festen 45-Minuten-Rahmens ermöglichen.');
+function rucNativeAdmissionContractValid(text){
+ const start=text.indexOf('\n  ruc_native_source_detection:');
+ const full=text.indexOf('\n  ruc_native_full_admission:');
+ const final=text.indexOf('\n  validate_source:');
+ if(start<0||full<=start||final<=full)return false;
+ const detector=text.slice(start,full);
+ const job=text.slice(full,text.indexOf('\n  ruc27_qualification:',full));
+ const gate=text.slice(final);
+ return detector.includes("outputs:")&&detector.includes("enabled: ${{ steps.changed.outputs.enabled }}")&&
+   detector.includes("HEAD^2")&&detector.includes("tools/ruc/")&&
+   detector.includes("ci/github/workflows/chatgpt-pr-gate.yml")&&
+   job.includes("needs: [ruc_native_source_detection]")&&
+   job.includes("if: needs.ruc_native_source_detection.outputs.enabled == 'true'")&&
+   job.includes("timeout-minutes: 35")&&
+   job.includes("--runs 3 --candidate-count 6 --admission")&&
+   job.includes("node scripts/verify-ruc-composites.mjs ruc-original-admission-evidence")&&
+   gate.includes("- ruc_native_source_detection")&&gate.includes("- ruc_native_full_admission")&&
+   gate.includes("RUC_NATIVE_ADMISSION_REQUIRED")&&
+   gate.includes('if [ "$RUC_NATIVE_ADMISSION_RESULT" != success ]')&&
+   gate.includes('if [ "$RUC_NATIVE_DETECTION_RESULT" != success ]');
+}
+if(!rucNativeAdmissionContractValid(prGate))failures.push('Original-RUC-Volladmission muss SHA-gebunden und im finalen Source-Gate verpflichtend sein.');
 if(sourceTimeBudgetValid(prGate.replace('    timeout-minutes: 45','    timeout-minutes: 30')))failures.push('Der reproduzierte 30-Minuten-Abbruch darf nicht erneut als gültiges Zeitbudget gelten.');
 if(sourceTimeBudgetValid(prGate.replace('        timeout-minutes: 20','        timeout-minutes: 21')))failures.push('RUC-Einzelgrenze darf nicht stillschweigend verlängert werden.');
 if(sourceTimeBudgetValid(prGate.replace('      - name: Produktionsbuild und Runtime-Prüfungen durchführen\n        shell: bash\n        timeout-minutes: 15','      - name: Produktionsbuild und Runtime-Prüfungen durchführen\n        shell: bash\n        timeout-minutes: 16')))failures.push('Source-Build-Einzelgrenze darf nicht erhöht werden.');
@@ -47,6 +69,12 @@ for(const token of [
   'steps.merge.outputs.merge_sha || steps.pr.outputs.merge_sha'
 ])if(!sourceRelease.includes(token))failures.push(`Agent-Release-Recovery für bereits geschützte Merges fehlt: ${token}`);
 
+// Exact script-name boundary is critical: verify:types and verify:vite are
+// targeted checks, NOT the full Python-dependent "npm run verify" inventory.
+// The validator still rejects any full verify/test:regressions without Python.
+const fullInventoryCommand=/^\s*(?:run:\s*)?(?:MID_REGRESSION_SHARD=core\s+)?npm run (?:verify|test:regressions)(?=\s|$|[;&|])/m;
+for(const safe of ['run: npm run verify:types','run: npm run verify:vite'])if(fullInventoryCommand.test(safe))failures.push('Targeted TypeScript/Vite checks are not full Python inventories: '+safe);
+for(const full of ['run: npm run verify','npm run test:regressions'])if(!fullInventoryCommand.test(full))failures.push('Full Python-dependent inventory must remain detected: '+full);
 // Every existing job that runs the full inventory also runs Python-backed RUC
 // tests. Check each job, not just the first setup occurrence in a workflow.
 for(const name of await readdir(path.join(root,'.github','workflows'))){
@@ -54,7 +82,7 @@ for(const name of await readdir(path.join(root,'.github','workflows'))){
  const text=await readFile(path.join(root,'.github','workflows',name),'utf8'),jobs=[...text.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm)];
  for(let i=0;i<jobs.length;i++){
   const body=text.slice(jobs[i].index,jobs[i+1]?.index??text.length);
-  const command=/^\s*(?:run:\s*)?(?:MID_REGRESSION_SHARD=core\s+)?npm run (?:verify|test:regressions)\b/m.exec(body);
+  const command=fullInventoryCommand.exec(body);
   if(!command)continue;
   if(/MID_REGRESSION_SHARD:\s*\$\{\{ matrix\.shard \}\}/.test(body)&&body.includes('heavy-'))continue;
   const setup=body.indexOf('uses: actions/setup-python@'),deps=body.indexOf('python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt');

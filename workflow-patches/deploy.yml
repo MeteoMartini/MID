@@ -14,10 +14,12 @@ permissions:
 
 concurrency:
   group: mid-pages-manual
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   verify:
+    outputs:
+      stable_sha: ${{ steps.sha_fence.outputs.stable_sha }}
     name: Stabile MID-Version manuell prüfen
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -47,6 +49,21 @@ jobs:
             exit 1
           fi
           echo "Kein offenes Releasefenster: main und mid-stable tragen MID v${stable_version}."
+
+      - name: Exakte authentifizierte Stable-SHA für manuelles Pages-Artefakt fixieren
+        id: sha_fence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(git rev-parse HEAD)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          [[ "$expected" =~ ^[0-9a-f]{40}$ ]]
+          test "$expected" = "$stable"
+          test "$expected" = "$main"
+          echo "stable_sha=$expected" >> "$GITHUB_OUTPUT"
 
       - name: Node.js 22 mit npm-Cache einrichten
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -122,6 +139,24 @@ jobs:
           set -euo pipefail
           npm run verify
 
+      - name: Manuelles dist-only Pages-Deployment darf vollständigen RUC nicht löschen
+        shell: bash
+        env:
+          MID_RUC_REQUIRED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+        run: |
+          set -euo pipefail
+          # Pages deployment is protected by mid-pages single-flight per job,
+          # but that lock does not make a bare dist directory RUC-complete.
+          # This manual emergency workflow is not a substitute for the
+          # authenticated full +27h/EPS20 RUC Pages publisher.
+          if [ "$MID_RUC_REQUIRED" = true ]; then
+            required=true
+          elif [ "$MID_RUC_REQUIRED" = false ]; then
+            required=false
+          else
+            required=unset
+          fi
+          python3 tools/ruc/ruc_manual_pages_guard.py --ruc-enabled "$required"
       - name: Produktiven Same-Origin-Datendienst prüfen
         shell: bash
         env:
@@ -165,6 +200,7 @@ jobs:
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin mid-stable
           git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "${{ needs.verify.outputs.stable_sha }}"
           test -f dist/index.html
 
       - name: Pages-Artefakt hochladen · Versuch 1
@@ -190,9 +226,37 @@ jobs:
             echo 'name=' >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Canonical read-only RUC guard source in the shared Pages lock · 1
+        if: steps.artifact_state.outputs.ready == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          path: .manual-ruc-guard
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Fail-closed live RUC loss preflight at actual Pages deploy · 1
+        id: ruc_guard
+        if: steps.artifact_state.outputs.ready == 'true'
+        env:
+          MID_RUC_REQUIRED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$MID_RUC_REQUIRED" = true ]; then required=true;
+          elif [ "$MID_RUC_REQUIRED" = false ]; then required=false;
+          else required=unset; fi
+          test -s .manual-ruc-guard/tools/ruc/ruc_manual_pages_guard.py
+          python3 .manual-ruc-guard/tools/ruc/ruc_manual_pages_guard.py --ruc-enabled "$required"
+          # Recheck source SHA within each shared mid-pages publisher lease.
+          expected="${{ needs.verify.outputs.stable_sha }}"
+          [[ "$expected" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C .manual-ruc-guard rev-parse HEAD)" = "$expected"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "$expected"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$expected"
       - name: GitHub-Pages-Deployment · Versuch 1
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true'
+        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outcome == 'success'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -267,6 +331,7 @@ jobs:
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin mid-stable
           git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "${{ needs.verify.outputs.stable_sha }}"
           test -f dist/index.html
 
       - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 2
@@ -295,9 +360,37 @@ jobs:
             echo 'name=' >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Canonical read-only RUC guard source in the shared Pages lock · 2
+        if: steps.artifact_state.outputs.ready == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          path: .manual-ruc-guard
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Fail-closed live RUC loss preflight at actual Pages deploy · 2
+        id: ruc_guard
+        if: steps.artifact_state.outputs.ready == 'true'
+        env:
+          MID_RUC_REQUIRED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$MID_RUC_REQUIRED" = true ]; then required=true;
+          elif [ "$MID_RUC_REQUIRED" = false ]; then required=false;
+          else required=unset; fi
+          test -s .manual-ruc-guard/tools/ruc/ruc_manual_pages_guard.py
+          python3 .manual-ruc-guard/tools/ruc/ruc_manual_pages_guard.py --ruc-enabled "$required"
+          # Recheck source SHA within each shared mid-pages publisher lease.
+          expected="${{ needs.verify.outputs.stable_sha }}"
+          [[ "$expected" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C .manual-ruc-guard rev-parse HEAD)" = "$expected"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "$expected"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$expected"
       - name: GitHub-Pages-Deployment · Versuch 2
         id: deployment
-        if: always() && steps.artifact_state.outputs.ready == 'true'
+        if: always() && steps.artifact_state.outputs.ready == 'true' && steps.ruc_guard.outcome == 'success'
         continue-on-error: true
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
@@ -370,6 +463,7 @@ jobs:
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" fetch --no-tags --depth=1 origin mid-stable
           git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "${{ needs.verify.outputs.stable_sha }}"
           test -f dist/index.html
 
       - name: Pages-Artefakt nur bei Bedarf hochladen · Versuch 3
@@ -379,8 +473,35 @@ jobs:
           name: ${{ steps.artifact_plan.outputs.name }}
           path: ./dist
 
+      - name: Canonical read-only RUC guard source in the shared Pages lock · 3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: mid-stable
+          path: .manual-ruc-guard
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Fail-closed live RUC loss preflight at actual Pages deploy · 3
+        id: ruc_guard
+        env:
+          MID_RUC_REQUIRED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$MID_RUC_REQUIRED" = true ]; then required=true;
+          elif [ "$MID_RUC_REQUIRED" = false ]; then required=false;
+          else required=unset; fi
+          test -s .manual-ruc-guard/tools/ruc/ruc_manual_pages_guard.py
+          python3 .manual-ruc-guard/tools/ruc/ruc_manual_pages_guard.py --ruc-enabled "$required"
+          # Recheck source SHA within each shared mid-pages publisher lease.
+          expected="${{ needs.verify.outputs.stable_sha }}"
+          [[ "$expected" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C .manual-ruc-guard rev-parse HEAD)" = "$expected"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "$expected"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$expected"
       - name: GitHub-Pages-Deployment · Versuch 3
         id: deployment
+        if: steps.ruc_guard.outcome == 'success'
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: ${{ steps.artifact_plan.outputs.name }}
