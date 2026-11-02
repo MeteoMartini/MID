@@ -227,7 +227,9 @@ class Collector(unittest.TestCase):
                             run(43,when='2026-11-01T10:48:00Z')])
         report=self.check(client)
         self.assertEqual(report['expectedGitHubRunAttempts'],2)
-        self.assertEqual(client.repository_artifact_calls,1)
+        # One initial inventory page plus one authenticated first-page
+        # recheck prevents a concurrent GitHub upload from shifting offsets.
+        self.assertEqual(client.repository_artifact_calls,2)
         self.assertEqual(report['missingGitHubRunAttemptArtifacts'],2)
         self.assertEqual(report['artifactInventoryFetchMode'],'bounded-repository-pagination')
 
