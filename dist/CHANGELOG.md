@@ -1,3 +1,12 @@
+# MID v0.9.85.411 – Nachvollziehbare Wetterprognose und robuste Datenlückenanzeige
+
+- **Ensembleübereinstimmung und Datenbasis getrennt:** Die Überschrift bewertet die meteorologische Ensembleübereinstimmung und die schwächste Datenqualität im gleichen Zeitraum. Modellgruppen-Abdeckung und Laufaktualität sind separat dokumentiert; der Index ist keine Trefferwahrscheinlichkeit.
+- **SEAS5-Datenlücken:** Monate ohne auswertbare Mitglieder sind sichtbar als Lücke statt als interpolierter Wert oder Nullanomalie markiert. Wenn überhaupt keine auswertbare Anomalie existiert, werden sowohl fehlende Modellklimareferenz als auch fehlende Mitgliedswerte als mögliche Ursachen genannt.
+- **Aktuelles Niederschlagsrisiko:** Die Prozentangabe zeigt das konkrete Modellzeitfenster und kennzeichnet einen Radar-/Modellabgleich; fehlende Wahrscheinlichkeiten bleiben „–“ statt 0 %.
+- **Herkunft und Zeitfenster auditierbar:** Die stündliche und 15-Minuten-Darstellung führt Eingangscode nach eventueller MID-Fusion, tatsächlichen Darstellungscode sowie die zugehörigen Intervallgrenzen getrennt als Diagnose. Im 1-Stunden-Detail ist die Gegenüberstellung zugänglich. Diese Eingangscodes werden ausdrücklich nicht als unbearbeitete Provider-Originalcodes ausgegeben.
+- **Ergonomie und Regressionen:** Schmale Bildschirme können die Bezugszeit umbrochen darstellen. Erweiterte Tests prüfen echtes Nullsignal gegenüber Missing, 15-/60-Minuten-Endzeitstempel, Datenlücken, Codeherkunft, Ensemble-Zeitfenstergrenzen und fehlende SEAS5-Mitglieder. Die 1.061 Pflichtregressionen bleiben im regulären Source- und Installer-Gate enthalten.
+- **Unverändert und ausstehend:** Keine Änderung an DWD-Warnungen, Wettermodellfusion, Niederschlagssummen, Intensitätsableitung oder RUC-Pipeline. Der vollständige Geräte-/WCAG-/VoiceOver- und Export-/Widget-Audit von Issue #523 bleibt offen.
+
 # MID v0.9.85.410 – GeoSphere-Ausfallschutz und belastbare Prognoseherkunft
 
 - **AROME-Auslauf abgesichert:** Die GeoSphere-AROME-Quelle wird nachweisgebunden statt allein anhand einer HTTP-Antwort verwendet. Erst ein plausibler Original-Modelllauf mit Initialisierungszeit innerhalb von 12 Stunden zählt in der MID-Modellfusion. Ohne frische Laufmetadaten wird AROME als nicht verfügbar ausgewiesen; ICON, ECMWF, Best Match und weitere gültige Quellen bleiben erhalten.
