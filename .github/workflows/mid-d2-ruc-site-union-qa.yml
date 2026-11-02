@@ -169,3 +169,15 @@ jobs:
               'externalApprovalStillRequired':True},sort_keys=True))
           PY
           echo 'Original full RUC/20EPS and Fast + 72 native D2 fields fit one *inactive* physical Pages tree; no source-publish permission is granted.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Pinned Node 22 for authentic D2 binary client readback
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Reproducible web test dependencies
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Exact 72 source field bytes through browser TypeScript admission (never activate)
+        env:
+          MID_D2_ORIGINAL_SITE_PATH: .d2-original
+        run: npx vitest run tests/integration/native-d2-original-binary-readback.test.ts
+
