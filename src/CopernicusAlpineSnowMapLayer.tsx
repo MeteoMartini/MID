@@ -4,7 +4,8 @@ import {copernicusSnowTileIdentity,fetchVerifiedCopernicusSnowPng,validateCopern
 
 /** Pixel-size and source metadata remain owned by the immutable original tile. */
 function VerifiedAlpineSnowTile({tile,opacity,onError}:{tile:CopernicusSnowTile;opacity:number;onError?:(error:string)=>void}){
- const identity=copernicusSnowTileIdentity(tile);\n const [verified,setVerified]=useState<{identity:string;url:string}|null>(null);
+ const identity=copernicusSnowTileIdentity(tile);
+ const [verified,setVerified]=useState<{identity:string;url:string}|null>(null);
  useEffect(()=>{
   const controller=new AbortController();let alive=true,ownedUrl='';
   setVerified(null);
