@@ -17,3 +17,12 @@ Dieser Vertrag gilt app-weit für deterministische und Ensemble-Modellquellen, M
 11. **Reales Modellgebiet vor Ländergrenze.** Besitzt ein Regionalmodell eine bekannte Modell-BBox, entscheidet diese über die fachliche Anwendbarkeit. Länderkennzeichen dienen nur der Priorisierung innerhalb der Abdeckung und dürfen ein Modell nicht außerhalb seines Gebiets aktivieren. Umgekehrt darf ein Regionalmodell innerhalb seiner realen Abdeckung grenzüberschreitend genutzt werden (z. B. MeteoSwiss ICON-CH oder GeoSphere AROME im Alpen-/angrenzenden Mitteleuropabereich). Verwandte Systeme bleiben dabei in ihren bestehenden Unabhängigkeitsgruppen, insbesondere MeteoSwiss ICON-CH1/CH2 sowie KNMI/DMI UWC-West HARMONIE.
 
 Required Regression: `scripts/test-model-source-capability-contract-095336.mjs`, `scripts/test-regional-model-domain-fusion-097714.mjs`.
+
+
+## Open-Meteo / GeoSphere Austria: Ablauf und Original-Laufprüfung (02.11.2026)
+
+Die am 01.11. gemergte upstream-Implementierung C-LAEF (open-meteo/open-meteo#2258) begründet noch keine verfügbare öffentliche MID-Quelle: `geosphere_claef_austria` lieferte am 02.11. in Wien und Innsbruck HTTP 400. Niemals in einer produktiven gemeinsamen Open-Meteo-Forecast-Anfrage verwenden, bis diese Modellkennung und reale Zeitleisten/Feld-/Bitmap-/NoData-Semantik nachgewiesen sind. Keine automatische doppelte unabhängige Gewichtung von GeoSphere Seamless und ECMWF.
+
+Das offiziell für 04.11.2026 angekündigte Ende der AROME-Quelldaten erfordert eine vom HTTP-200-Status **getrennte** Laufprüfung. MID nutzt AROME nur mit belegter UTC-`last_run_initialisation_time` aus den Original-Metadaten, höchstens 12 h alt (3 h Modellkadenz, rund 4 h 35 min Ingestionsverzug plus Sicherheitsreserve) und nicht mehr als 30 min zukünftiger Zeit. Ungültige/fehlende/alte Metadaten sperren die AROME-Konsensstimme und ihren Modell-Beitrag, ohne Ersatzmodelle, andere Forecastquellen oder Warnungen zu unterdrücken. Dieser maximal zulässige Laufaltervertrag ist ein konservatives MID-QA-Gate, **keine** amtliche Vorhersage-/Warnschwelle.
+
+`snowfall_height` aus AROME und Seamless kann laut upstream-PR #2282 fehlerhaft sein; bis zum Nachweis keine eigene Höhenumrechnung oder ungeprüfte Extremwertglättung. Änderungen an Taupunkt bei RH=0 % (PR #2289) dürfen keine Missing→0-Interpretation auslösen. Quellstatus, gültige Forecastzeiten und Einheiten bleiben getrennt. Provenienz und QA: MID-Issue #405 und #509; Open-Meteo-Originaldokumentation; SHA-genaue Tests in `scripts/test-openmeteo-geosphere-arome-retirement-0985410.mjs`.
