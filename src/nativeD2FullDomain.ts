@@ -81,10 +81,14 @@ export function validateD2FullDomainField(raw:unknown,index:FullIndex,ref:Native
  if(!hasValid)throw Error('Full-domain DWD frame entirely missing');
  const uncertainty=d.negativePackingUncertainNoDataCells;
  if(!Number.isInteger(uncertainty)||Number(uncertainty)<0||
-    Number(uncertainty)>Math.floor(D2_FULL_DOMAIN_SOURCE_CELLS*.15)||
+    Number(uncertainty)>Math.min(missing,Math.floor(D2_FULL_DOMAIN_SOURCE_CELLS*.15))||
     (kind!=='precipitation'&&uncertainty!==0))
   throw Error('Original packing-uncertainty NoData provenance invalid');
  if(!Array.isArray(d.isobars)||!Array.isArray(d.centers))
   throw Error('Missing original contour/pressure-center metadata');
+ // The real Pages admission also requires nonempty native pressure contours.
+ // A display must not silently replace missing original isobars with fabricated lines.
+ if(kind==='pressure'&&d.isobars.length===0)
+  throw Error('Original full-domain pressure isobars missing');
  return {...d,values:(d.values as (number|null)[]).map(v=>v===null?NaN:v)} as unknown as NativeField;
 }
