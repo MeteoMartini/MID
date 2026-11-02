@@ -18739,14 +18739,15 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-meteogram-pro__tooltip-h
 
 
 @media(max-width:850px) and (orientation:portrait){
- /* Mobile forecast owns the vertical scroll surface above the fixed navigation.
-    Its usable height is measured against the real bottom-bar top edge. */
+ /* Audit A0-01: the page owns vertical scrolling. Do not trap keyboard/touch
+    focus in a 384px-high inner cockpit. Native horizontal diagrams remain
+    separately scrollable and the page retains its Bottom-Bar safe-area reserve. */
  html[data-mid-design='next'] .forecast-cockpit.modern-workspace[data-workspace-mode='true']{
   min-height:0!important;
-  max-height:var(--mid-mobile-forecast-height,calc(100dvh - 210px - var(--mid-safe-bottom)))!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  overscroll-behavior-y:contain!important;
+  max-height:none!important;
+  overflow-x:clip!important;
+  overflow-y:visible!important;
+  overscroll-behavior-y:auto!important;
   -webkit-overflow-scrolling:touch;
   scroll-padding-bottom:12px!important;
  }
