@@ -82,9 +82,9 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
   </div>:null}
   {mode==='charts'?<div className="mid-we-fourteen-charts" aria-label="Erweiterte, gemeinsam datierte 14-Tage-Diagramme">
    <article><h3>Temperatur · Tmax und Tmin</h3><HorizonSignalChart label="14 Tage Temperatur mit Ensemblequantilen" unit="°C" zero={false} connectDaily series={chartTemperature}/></article>
-   <article><h3>Niederschlagsmenge · Tagesakkumulation</h3><HorizonSignalChart label="14 Tage Tagesniederschlag in Millimetern mit Ensemble-Spannen bei verfügbaren Daten" unit="mm/Tag" connectDaily series={fourteenPrecipitationSeries(series)}/></article>
-   <article><h3>Niederschlagswahrscheinlichkeit · Best Match</h3><HorizonSignalChart label="14 Tage tägliche Best-Match-Niederschlagswahrscheinlichkeit in Prozent, nicht Ensembleübereinstimmung" unit="%" connectDaily series={fourteenProbabilitySeries(series)}/></article>
-   <article><h3>Wind und Böen · {windUnitLabel[unit]}</h3><HorizonSignalChart label={'14 Tage Wind und Böen in '+windUnitLabel[unit]+' mit echten Ensemble-Spannen bei verfügbaren Daten'} unit={windUnitLabel[unit]} connectDaily series={fourteenWindSeries(series,unit)}/></article>
+   <article><h3>Niederschlagsmenge · Tagesakkumulation</h3><HorizonSignalChart label="14 Tage Tagesniederschlag in Millimetern mit Ensemble-Spannen bei verfügbaren Daten" unit="mm/Tag" connectDaily formatValue={compactPrecipitationAmount} series={fourteenPrecipitationSeries(series)}/></article>
+   <article><h3>Niederschlagswahrscheinlichkeit · Best Match</h3><HorizonSignalChart label="14 Tage tägliche Best-Match-Niederschlagswahrscheinlichkeit in Prozent, nicht Ensembleübereinstimmung" unit="%" connectDaily formatValue={v=>formatDecimalFixed(v,0)} series={fourteenProbabilitySeries(series)}/></article>
+   <article><h3>Wind und Böen · {windUnitLabel[unit]}</h3><HorizonSignalChart label={'14 Tage Wind und Böen in '+windUnitLabel[unit]+' mit echten Ensemble-Spannen bei verfügbaren Daten'} unit={windUnitLabel[unit]} connectDaily formatValue={v=>formatDecimalFixed(v,0)} series={fourteenWindSeries(series,unit)}/></article>
    <p className="mid-we-fourteen-footnote">Alle Spuren verwenden dieselben Kalendertage. Fehlende Daten unterbrechen die Kurve. Ensemble-Spannen sind keine zusätzlichen Best-Match-Werte; Wahrscheinlichkeit und Menge werden getrennt gezeigt.</p>
   </div>:null}
   {mode==='days'?<div className="mid-we-fourteen-days">
