@@ -18,7 +18,7 @@ for(const token of [
  'className="current-compact-source"',
  'nowcards={<CurrentNowcards',
  'Aktuelle Niederschlags- und Gefahrenlage',
- 'Niederschlag jetzt',
+ 'Niederschlagsrisiko jetzt',
  'radarCompactSource(radar,precipNow.source,timezone)',
  'current-metrics-toggle'
 ])assert.ok(app.includes(token),`Compact-Kopfvertrag fehlt: ${token}`);

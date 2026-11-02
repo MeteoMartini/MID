@@ -47,7 +47,7 @@ if(React&&renderToStaticMarkup){
  const module={exports:{}};new Function('require','module','exports',uiCode)(id=>id==='./ensembleAssessment'?{...awaitedModule}:id==='./AppInfoPopover'?{AppInfoHint:({children})=>React.createElement(React.Fragment,null,children)}:require(id),module,module.exports);
  const html=renderToStaticMarkup(React.createElement(module.exports.EnsembleAssessmentDetails,{assessment:base}));
  for(const label of ['Temperatur','Niederschlag','Wind/Böen','Sonne','keine Trefferwahrscheinlichkeit','Datenbasis gut','20/20','robuste'])assert.ok(html.includes(label),label);
- const overview=renderToStaticMarkup(React.createElement(module.exports.ForecastConfidenceOverview,{assessments:days}));assert.ok(overview.includes('Hohe Prognosekonfidenz'));assert.ok(overview.includes('Konfidenzindex'));assert.ok(overview.includes('kein Prozentwert'));
+ const overview=renderToStaticMarkup(React.createElement(module.exports.ForecastConfidenceOverview,{assessments:days}));assert.ok(overview.includes('Ensembleübereinstimmung hoch · Datenbasis'));assert.ok(overview.includes('Konfidenzindex'));assert.ok(overview.includes('kein Prozentwert'));
 }
 console.log('Robust multi-parameter ensemble confidence, data quality separation, lead normalization and local skill shrinkage passed.');
 

@@ -10,10 +10,12 @@ const highPoor=day('2026-09-05','high',93,'poor'),highGood=day('2026-09-06','hig
 assert.deepEqual(confidence.agreementWindows([highPoor,highGood]),[{start:'2026-09-05',end:'2026-09-06',days:2}], 'Datenqualität darf hohe meteorologische Konfidenz nicht aus dem Fenster werfen.');
 assert.equal(confidence.firstAgreementChange([highGood,unknown]),null,'Nicht bewertbarer Randtag ist kein meteorologischer Konfidenzabfall.');
 assert.equal(confidence.trailingUnknownCoverageDate([highPoor,highGood,unknown]),'2026-09-07');
+assert.equal(confidence.weakestWindowDataQuality([highPoor,highGood],{start:'2026-09-05',end:'2026-09-06'}),'poor','Die primäre Datenbasis muss den schwächsten tatsächlich dargestellten Tag abbilden.');
+assert.equal(confidence.weakestWindowDataQuality([highGood,unknown],{start:'2026-09-06',end:'2026-09-06'}),'good','Ein unbekannter Randtag darf das vorherige Fenster nicht falsch bewerten.');
 assert.equal(confidence.trailingUnknownCoverageDate([day('2026-09-04','unknown',null,'missing'),highGood]),null,'Nur rein nachlaufende unbekannte Tage sind Randabdeckung.');
 
 const forecast=readFileSync(new URL('../src/ForecastConfidence.tsx',import.meta.url),'utf8');
-for(const token of ['Hohe Prognosekonfidenz','Index ${minimum}–${maximum}/100','Datenbasis / Randtag','kein Prozentwert','Abdeckungs-, kein meteorologisches Abwertungssignal'])assert.ok(forecast.includes(token),`Konfidenz-UI fehlt: ${token}`);
+for(const token of ['Ensembleübereinstimmung hoch · Datenbasis','Index ${minimum}–${maximum}/100','Datenbasis / Randtag','kein Prozentwert','Abdeckungs-, kein meteorologisches Abwertungssignal'])assert.ok(forecast.includes(token),`Konfidenz-UI fehlt: ${token}`);
 assert.ok(!forecast.includes('Noch kein durchgehend hohes Konfidenzfenster'));
 
 const cockpit=readFileSync(new URL('../src/ForecastCockpit.tsx',import.meta.url),'utf8');
