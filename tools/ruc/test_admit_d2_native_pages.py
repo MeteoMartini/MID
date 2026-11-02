@@ -1,7 +1,26 @@
 import json,tempfile,unittest
 from pathlib import Path
-from admit_d2_native_pages import admit,KINDS,LEADS,UNITS
+from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS
 class PagesNativeD2AdmissionTests(unittest.TestCase):
+ def test_qualified_full_native_extent_preserves_real_zero_and_null(self):
+  lats=[44+i*.025 for i in range(470)]
+  lons=[0+i*.025 for i in range(805)]
+  cells=[1]*(len(lats)*len(lons));cells[0]=0;cells[1]=None
+  field={'lats':lats,'lons':lons,'values':cells,
+         'negativePackingUncertainNoDataCells':1}
+  grid=field_admission(field,'precipitation',None)
+  self.assertEqual(len(grid[0]),470)
+  self.assertEqual(field['values'][0],0)
+  self.assertIsNone(field['values'][1])
+  with self.assertRaisesRegex(ValueError,'grid/coordinate'):
+   field_admission(field,'precipitation',(grid[0],tuple(lon+.025 for lon in lons)))
+  with self.assertRaisesRegex(ValueError,'packing uncertainty'):
+   field_admission({**field,'negativePackingUncertainNoDataCells':2},'precipitation',None)
+  with self.assertRaisesRegex(ValueError,'physical contract'):
+   damaged=cells.copy();damaged[2]=-1
+   field_admission({**field,'values':damaged},'precipitation',None)
+  with self.assertRaisesRegex(ValueError,'Germany crop'):
+   field_admission({**field,'lats':[48+i*.025 for i in range(300)]},'precipitation',None)
  def test_absent_source_is_a_noop_for_existing_ruc(self):
   with tempfile.TemporaryDirectory() as td:
    root=Path(td)/'core';out=Path(td)/'pages'
