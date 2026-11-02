@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     # RUC admission and source build/iOS/packaging stay here; disjoint
     # regression tests run in four independent, required core_regressions jobs.
-    timeout-minutes: 45
+    timeout-minutes: 65
     permissions:
       contents: read
 
@@ -169,9 +169,10 @@ jobs:
 
       - name: Drei native RUC-Läufe und Kartenaufnahme bis +27 h prüfen
         if: steps.ruc_native_changes.outputs.enabled == 'true'
-        # Real three-run .308 probe reached the third complete source inventory
-        # at 15min; retain all checks and allow bounded contour/codec completion.
-        timeout-minutes: 20
+        # 2026-11-02: 3 original DWD runs reached complete 27h source downloads
+        # but the independent contour/codec admission exceeded 20min twice.
+        # Extend execution only; retain every source/NoData/physics/codec check.
+        timeout-minutes: 35
         run: |
           python tools/ruc/ruc_horizon_probe.py --output ruc-horizon-evidence --runs 3 --candidate-count 6 --admission
           node scripts/verify-ruc-composites.mjs ruc-horizon-evidence
