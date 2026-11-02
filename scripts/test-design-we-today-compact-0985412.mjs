@@ -23,7 +23,7 @@ for(const token of [
  'className="mid-we-selected-metrics"',
  'className="mid-we-detail-toggle"',
  'aria-expanded={profileFullDetails}',
- 'profileFullDetails?<div id=',
+ 'className="cockpit-meteogram-pro__tooltip-content" hidden={!profileFullDetails}',
  'setProfileFullDetails(value=>!value)',
  'useDisplayPreference(\'ForecastCockpit.profileFullDetails\'',
  'shortTermKnownPrecipitationLabel(selectedPoint)',
