@@ -1,7 +1,26 @@
 import json,tempfile,unittest
 from pathlib import Path
-from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS
+from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS,require_detached_native_approval,sha
 class PagesNativeD2AdmissionTests(unittest.TestCase):
+ def test_detached_release_gate_does_not_trust_self_approved_flags_or_rehashed_bytes(self):
+  with tempfile.TemporaryDirectory() as td:
+   file=Path(td)/'index.json'
+   inventory='a'*64
+   file.write_text(json.dumps({'productionApproved':False,'sourceInventorySha256':inventory,'run':'2026-11-02T03:00:00Z'}))
+   independently_approved_index_sha=sha(file)
+   with self.assertRaisesRegex(ValueError,'Independent release-gate'):
+    require_detached_native_approval(file,inventory)
+   require_detached_native_approval(file,inventory,independently_approved_index_sha,inventory)
+   # Compromised archive flips a status and recomputes all self-contained SHAs:
+   # only the original detached digest is admissible.
+   file.write_text(json.dumps({'productionApproved':True,'sourceInventorySha256':inventory,'run':'2026-11-02T03:00:00Z'}))
+   self.assertNotEqual(sha(file),independently_approved_index_sha)
+   with self.assertRaisesRegex(ValueError,'differs from detached'):
+    require_detached_native_approval(file,inventory,independently_approved_index_sha,inventory)
+   file.write_text(json.dumps({'productionApproved':False,'sourceInventorySha256':inventory,'run':'2026-11-02T03:00:00Z'}))
+   with self.assertRaisesRegex(ValueError,'differs from detached'):
+    require_detached_native_approval(file,'b'*64,independently_approved_index_sha,inventory)
+
  def test_qualified_full_native_extent_preserves_real_zero_and_null(self):
   lats=[44+i*.025 for i in range(470)]
   lons=[0+i*.025 for i in range(805)]
