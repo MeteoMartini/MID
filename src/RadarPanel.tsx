@@ -5,7 +5,7 @@ import './mapCanvasResponsive.css';
 import './mapPopupTheme.css';
 import {compositeReferenceLayers,readMapReferenceSettings,patchMapReferenceSettings,subscribeMapReferenceSettings,DEFAULT_MAP_REFERENCE} from './mapReferenceLayers';
 import {Fragment,lazy,memo,Suspense,useCallback,useEffect,useMemo,useRef,useState,useSyncExternalStore,type ReactNode} from 'react';
-import {compositeMetadataRetryDelayMs,shouldRefreshMapMetadataOnResume} from './mapLayerRecovery';
+import {compositeMetadataRetryDelayMs,isCompositeTimesFailureWithoutFrames,shouldRefreshMapMetadataOnResume} from './mapLayerRecovery';
 import {ChevronDown,CloudLightning,CloudRain,Droplets,Info,LocateFixed,MoveRight,RadioTower,RefreshCw,Satellite,Settings2,TriangleAlert,Waves,Zap} from 'lucide-react';
 import {Circle,CircleMarker,MapContainer,Marker,Pane,Polygon,Polyline,Popup,TileLayer,Tooltip,VectorReferenceLayer,WMSTileLayer,useMap,useMapEvents,L} from './MapLibreLegacyCompat';
 import {CanvasOverlay,type MidMap} from './MapLibreCore';
@@ -328,7 +328,43 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
   if(unified||!fallbackNeeded||!showRadar||highResolution){if(source!=='rainviewer'){setHost('');if(source!=='dwd')setRadarFrames([])}return()=>{alive=false}}
   const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadRainViewer(lat,lon,controller.signal).then(data=>{if(!alive)return;setHost(data.host);setRadarFrames([...(data.radar?.past??[]),...(data.radar?.nowcast??[]).map(item=>({...item,future:true}))])}).catch(()=>{if(alive){setRadarFrames([]);setHost('')}})};void load();const timer=window.setInterval(load,300000);return()=>{alive=false;controller.abort();window.clearInterval(timer)};
  },[lat,lon,source,showRadar,highResolution,analysis?.observedAt,analysis?.timeline?.join('|'),operaStatus,radarTileError,operaFrames.length,panelVisible]);
- useEffect(()=>{if(!panelVisible)return;const eligible=lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5;if(!eligible||!showRadar||highResolution){setOperaFrames([]);setOperaError('');setOperaStatus('idle');setOperaMessage('');return}const controller=new AbortController(),load=async()=>{if(document.visibilityState==='hidden')return;setOperaStatus(current=>current==='ready'?current:'loading');try{const data=await loadOperaRaster(lat,lon,controller.signal);if(!data.frames?.length)throw new Error(data.error||'OPERA liefert derzeit keine Rasterstände.');const latest=[...data.frames].sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)).at(-1);if(!latest)throw new Error('OPERA liefert keinen aktuellen Rasterstand.');const raster=await loadOperaRasterData(latest.fileUrl,controller.signal);if(!raster.width||!raster.height||!raster.values?.length)throw new Error('OPERA lieferte kein auswertbares Raster.');if(controller.signal.aborted)return;setOperaFrames(data.frames);setOperaError('');setOperaMessage('');setOperaStatus('ready')}catch(error){if(!controller.signal.aborted){const message=error instanceof Error?error.message:String(error);setOperaFrames([]);setOperaError(message);setOperaMessage(message);setOperaStatus('error')}}};void load();const timer=window.setInterval(load,300000);return()=>{controller.abort();window.clearInterval(timer)}},[lat,lon,showRadar,highResolution,panelVisible]);
+ useEffect(()=>{
+  if(!panelVisible)return;
+  const eligible=lat>=31.5&&lat<=72.5&&lon>=-30.5&&lon<=50.5;
+  if(!eligible||!showRadar||highResolution){
+   setOperaFrames([]);setOperaError('');setOperaStatus('idle');setOperaMessage('');return;
+  }
+  const controller=new AbortController();
+  let pending=false,failures=0,lastSuccess=0,retryTimer=0;
+  const load=async()=>{
+   if(controller.signal.aborted||pending||document.visibilityState==='hidden')return;
+   pending=true;setOperaStatus(current=>current==='ready'?current:'loading');
+   try{
+    const data=await loadOperaRaster(lat,lon,controller.signal);
+    if(!data.frames?.length)throw new Error(data.error||'OPERA liefert derzeit keine Rasterstände.');
+    const latest=[...data.frames].sort((a,b)=>Date.parse(a.time)-Date.parse(b.time)).at(-1);
+    if(!latest)throw new Error('OPERA liefert keinen aktuellen Rasterstand.');
+    const raster=await loadOperaRasterData(latest.fileUrl,controller.signal);
+    if(!raster.width||!raster.height||!raster.values?.length)throw new Error('OPERA lieferte kein auswertbares Raster.');
+    if(controller.signal.aborted)return;
+    setOperaFrames(data.frames);setOperaError('');setOperaMessage('');setOperaStatus('ready');
+    lastSuccess=Date.now();failures=0;window.clearTimeout(retryTimer);
+   }catch(error){
+    if(!controller.signal.aborted){
+     const message=error instanceof Error?error.message:String(error);
+     // Retain last timestamped source inventory, but status=error forces fallback.
+     setOperaError(message);setOperaMessage(message);setOperaStatus('error');
+     const delay=compositeMetadataRetryDelayMs(failures);
+     if(delay!==null){failures+=1;window.clearTimeout(retryTimer);retryTimer=window.setTimeout(()=>{void load()},delay)}
+    }
+   }finally{pending=false}
+  };
+  const resume=()=>{if(shouldRefreshMapMetadataOnResume(Date.now(),lastSuccess,document.visibilityState==='visible'))void load()};
+  void load();
+  const interval=window.setInterval(()=>{void load()},300_000);
+  document.addEventListener('visibilitychange',resume);window.addEventListener('focus',resume);
+  return()=>{controller.abort();window.clearInterval(interval);window.clearTimeout(retryTimer);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume)};
+ },[lat,lon,showRadar,highResolution,panelVisible]);
  useEffect(()=>{if(!panelVisible)return;if(!showLightning){setLightningData({points:[]});setLightningError('');return}const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadLightningPoints(lat,lon,controller.signal).then(data=>{setLightningData(data);setLightningError('')}).catch(error=>{if(!controller.signal.aborted){setLightningData({points:[],fallback:mtgLightning?'mtg-li':'none'});setLightningError(error instanceof Error?error.message:String(error))}})};void load();const timer=window.setInterval(load,120000);return()=>{controller.abort();window.clearInterval(timer)}},[lat,lon,showLightning,mtgLightning,panelVisible]);
  useEffect(()=>{if(!panelVisible)return;if(!showNowcastObjects||!dwdLightning){setNowcastMixData({points:[]});setNowcastMixError('');return}const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadNowcastMixPoints(lat,lon,controller.signal).then(data=>{setNowcastMixData(data);setNowcastMixError('')}).catch(error=>{if(!controller.signal.aborted){setNowcastMixData({points:[],provider:'DWD NowCastMIX Accumulated Flash Geometry'});setNowcastMixError(error instanceof Error?error.message:String(error))}})};void load();const timer=window.setInterval(load,120000);return()=>{controller.abort();window.clearInterval(timer)}},[lat,lon,showNowcastObjects,dwdLightning,panelVisible]);
  useEffect(()=>{
@@ -343,6 +379,7 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
    try{
     const data=await loadCompositeTimes(lat,lon,controller.signal);
     if(controller.signal.aborted)return;
+    if(isCompositeTimesFailureWithoutFrames(data))throw new Error(data.error||data.errors?.join(' | ')||'Produktzeiten nicht verfügbar.');
     setProductTimes(data);
     const server=epochMs(data.serverTime);
     setClockOffsetMs(Number.isFinite(server)&&Math.abs(server-Date.now())<=10*60000?server-Date.now():0);

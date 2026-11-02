@@ -13,3 +13,20 @@ export function shouldRefreshMapMetadataOnResume(nowMs:number,lastSuccessfulLoad
  return visible&&Number.isFinite(nowMs)&&Number.isFinite(lastSuccessfulLoadMs)
   &&nowMs-lastSuccessfulLoadMs>=30_000;
 }
+
+/** A server can return 200 with an explicit error and no satellite/radar times.
+ * Do not replace a known-good catalog by such a failed response.
+ * A genuinely empty but error-free catalog is still a valid empty response. */
+export function isCompositeTimesFailureWithoutFrames(data:{
+ error?:string;errors?:string[];satelliteDay?:unknown[];satelliteIr?:unknown[];satellitePrecip?:unknown[];
+ dwdRadar?:unknown[];dwdLightning?:unknown[];mtgLightning?:unknown[];
+ satelliteDayProduct?:{times?:unknown[]};satelliteIrProduct?:{times?:unknown[]};
+ satellitePrecipProduct?:{times?:unknown[]}
+}|null|undefined):boolean{
+ if(!data)return true;
+ if(!data.error&&!data.errors?.length)return false;
+ const lists=[data.satelliteDay,data.satelliteIr,data.satellitePrecip,data.dwdRadar,
+  data.dwdLightning,data.mtgLightning,data.satelliteDayProduct?.times,
+  data.satelliteIrProduct?.times,data.satellitePrecipProduct?.times];
+ return !lists.some(values=>Array.isArray(values)&&values.length>0);
+}
