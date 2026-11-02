@@ -1,3 +1,19 @@
+# MID v0.9.85.409 · DA19-03/08/15 Karten-Rendererstatus, Ensembleprovenienz und Einstellungen
+
+**SHA-Basis:** am 02.11.2026 verifiziertes v0.9.85.408 `main=mid-stable` `17b2bb99e3935fe494400d95a79ff18b5ed01e4a`, Installer #41363977058 success, fünf aktive Rulesets; 38 normative Verträge unverändert.
+
+**Wesentlicher Qualitätsgewinn:** Der im Live-Designaudit belegte Widerspruch zwischen grüner „Hauptebene bereit“ und fehlendem WebGL-Renderer ist durch eine explizite Stategrenze getrennt. Die MapLibre-Konstruktion meldet `loading/ready/error` an den Legacy-MapContainer und RadarPanel; mit fehlendem GPU-Kontext und bei fatalen WebGL-Fehlern bleibt die Statusplakette nicht grün. Der Benutzer kann die Karte manuell neu starten. Datenzeiten, Provider und Warnsignale bleiben unverändert.
+
+**Modell- und Datenqualität:** Die bestehende Ensemblebewertung wird nicht neu kalibriert oder geglättet. Der sichtbare 14-Tage-Kompass grenzt Index von Trefferwahrscheinlichkeit ab und zeigt spezifische tatsächlich abgedeckte/erwartete/aktuelle Modellfamilien plus getrennte Qualitätsklasse. Datenlücken werden nicht als 0 gewertet.
+
+**Einstellungen:** Alle neun existierenden Tabs werden in der Dialogkopfzeile zusätzlich als natives erreichbares Auswahlfeld angeboten; dasselbe `section`-State steuert Inhalt, Aktivmarkierung und bisherige Persistenz. Kein Modul entfernt.
+
+**Testmatrix:** `scripts/test-designaudit19-render-confidence-navigation-0985409.mjs` führt den reinen Renderer-Vertrag über sechs adversarielle Zustände aus und prüft Propagation, Quell-/Modellabdeckungssemantik und native Einstellungswahl. Beide unabhängigen Regressionstestlisten identisch mit 1060 Einträgen. Vollständige Core-/Heavy-Regression, Build/Types, Browser-WebGL sowie echte iOS/VoiceOver-/320–1920px-Light/Dark- und Widget-Tests nur nach protokollierter Ausführung als bestanden markieren.
+
+**Freigabe:** Dieses Dokument im Quell-PR ist zunächst Kandidat, kein Stable-/Produktionsbeweis. Normaler Weg ohne Abkürzung: finaler nicht-Draft Source-PR und Gate → SHA-gebundener Merge-Bot → serverseitiges Release-ZIP → `install-mid.yml` Core/Heavy/Worker/Pages/Finalize → erfolgreiche `mid-stable`-Promotion. Paralleles D2/RUC-Draft #606 bleibt unabhängig und aufgrund Original-TOT_PREC-Fehlern gesperrt.
+
+---
+
 # MID v0.9.85.408 · Audit 1.9 NoData, Zeit- und responsive Forecast-Bedienung
 
 **Ausgangs-SHA:** nach erfolgreich beendeter v0.9.85.407 Releasekette (Source-PR #604, Installer #41358613904) `main=mid-stable` `bcf75d001f8973f54203fccb24d94353226d2de7`. Fünf aktive Rulesets, 38 normative Verträge, 1059 Pflichtregressionen. **Dieser .408-Text ist zunächst ein geprüfter Quellkandidat, noch keine bestätigte Stable-Promotion.**

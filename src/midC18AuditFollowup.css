@@ -77,3 +77,13 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals
  max-width:100%;white-space:normal!important;overflow:visible!important;
  overflow-wrap:anywhere;word-break:normal!important;text-overflow:clip!important;
 }
+
+/* MID Designaudit 1.9 DA19-15: on 320–430px keep all settings
+   controls (title, close, direct section picker) fully within the safe area.
+   The legacy horizontal navigation and its focus semantics remain intact. */
+@media(max-width:430px){
+ .settings-titlebar{flex-wrap:wrap;align-items:center;gap:6px 10px}
+ .settings-titlebar>div:first-child{min-width:0;flex:1 1 auto}
+ .settings-titlebar .settings-section-direct{order:3;flex:0 0 100%;width:100%!important;max-width:100%;min-width:0!important;margin-left:0!important}
+ .settings-titlebar>button{flex:0 0 auto;margin-left:auto}
+}

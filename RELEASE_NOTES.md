@@ -1,11 +1,7 @@
-# MID v0.9.85.408 – Niederschlagswerte, Wetterdatenlücken und mobile Bedienung
+# MID v0.9.85.409 – Kartenbereitschaft, nachvollziehbare 14-Tage-Modelle und Einstellungen
 
-- Niederschlagswahrscheinlichkeiten in „Aktuell“ bleiben originalgetreu: 1–5 % werden nicht länger als 0 % ausgegeben. Echte 0 % und unbekannte Werte bleiben klar unterscheidbar.
-- Fehlende Wetterwerte in der Kurzfrist-, 24-Stunden- und Eventvorhersage werden als nicht verfügbar dargestellt, statt fälschlich 0 %, Windstille, Nordwind oder wolkenfreien Himmel zu erzeugen.
-- In der Eventplanung werden fehlende Temperatur, Niederschlagsmenge und -wahrscheinlichkeit ohne falsche Einheiten wie „–°“ oder „–mm“ angezeigt.
-- Bergwetter und Schneefallgrenze unterscheiden fehlende Originalparameter und unbestimmte Niederschlagsfenster von tatsächlicher Trockenheit; vorhandene echte Nullwerte bleiben gültig.
-- Der mobile Vorhersagebereich nutzt den natürlichen vertikalen Seitenscroll statt eines eingeengten eigenen Scrollfensters. Horizontale Zeitreihen bleiben bedienbar; Bottom-Bar- und Safe-Area-Abstände bleiben erhalten.
-- Die Theme-Option heißt nun „Hoher Kontrast“; eine vollständige WCAG-AA-Konformität wird ohne umfassende Abnahme nicht behauptet.
-- Die Projektdokumentation verweist auf den aktuellen veröffentlichten MID-Versionsstand statt einer veralteten festen Versionsnummer.
-
-**Unverändert:** Alle amtlichen DWD-Warnungen, Originalwettermodelle und Vorhersagegewichtungen, die produktive RUC-Pipeline, vorhandene Favoriten sowie Modellkarten. Vollständige Originaldaten-/VoiceOver-/Echtgeräte- und D2-Vollgebietsabnahmen sind weiterhin offen.
+- **Kartenstatus ohne falsches Grün:** MID trennt die Verfügbarkeit von Kartendaten von der tatsächlichen MapLibre-/WebGL-Darstellung. Bei fehlender Grafikunterstützung oder Kontextverlust erscheint „Karte nicht darstellbar“ mit Wiederholungsmöglichkeit, selbst wenn Kartendaten vorliegen. Erst mit aktivem Renderer und geladener Hauptebene wird „Karte und Daten bereit“ angezeigt.
+- **14-Tage-Prognose verständlicher:** Der Konfidenzindex ist ausdrücklich keine Trefferwahrscheinlichkeit. MID erläutert die Anzahl verfügbarer und erwarteter Modellgruppen sowie die Aktualität des zugrunde liegenden Parameters, ohne fehlende Modelle als 0 zu bewerten.
+- **Einstellungen auf schmalen Displays erreichbar:** Eine zusätzliche direkte Bereichsauswahl erschließt alle neun Einstellungsbereiche ohne verborgenes horizontales Scrollen. Die bisherige Navigation und gespeicherten Einstellungen bleiben erhalten.
+- **Qualitätsnachweis:** Ein neuer verpflichtender Negativ- und Zustandsregressionstest kontrolliert Renderer-/Datenbereitschaft, Quellabdeckung und Einstellungswechsel. 1.060 Pflichttests inventarisiert; WMO-/DWD-Warnlogik und Wetterwerte unverändert.
+- **Transparenz:** Diese Version ist keine Freigabe für das native ICON-D2-/RUC-Vollgebiet. Dessen originaldatengebundene TOT_PREC-Akkumulationsprüfung sowie echte Geräte-, WCAG- und vollständige MapLibre-Pixel-Abnahmen bleiben separat offen.
