@@ -17,6 +17,7 @@ on:
       - 'tools/snow/test_qualify_clms_stac.py'
       - 'tools/snow/qualify_clms_cog.py'
       - 'tools/snow/test_qualify_clms_cog.py'
+      - 'docs/implementation/MID_COPERNICUS_FSC_GFSC_QUALIFICATION.md'
 permissions:
   contents: read
 concurrency:
