@@ -36,7 +36,8 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
  it('keeps complete hourly detail behind an operable, local persistence-safe disclosure',()=>{
   expect(cockpit).toContain("useDisplayPreference('ForecastCockpit.profileFullDetails'");
   expect(cockpit).toContain('aria-expanded={profileFullDetails}');
-  expect(cockpit).toContain('profileFullDetails?<div id=');
+  expect(cockpit).toContain('className="cockpit-meteogram-pro__tooltip-content" hidden={!profileFullDetails}');
+  expect(css).toContain('.cockpit-meteogram-pro__tooltip-content[hidden]{display:none!important}');
   expect(cockpit).toContain('className={`cockpit-hourly-preview');
   expect(cockpit).toContain('setHourlyExpanded(value=>!value)');
  });
