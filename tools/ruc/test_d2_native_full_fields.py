@@ -54,6 +54,26 @@ class EightNativeFieldsTests(unittest.TestCase):
   raw,unit,prev=self.fixture()
   prev[1]=4
   with self.assertRaisesRegex(ValueError,r'reset.*negativeCells=1.*minDeltaMm=-2'):derive_eight(raw,unit,prev,unit['tot_prec'],points=4)
+ def test_independently_qualified_negative_is_explicit_nodata_not_zero(self):
+  raw,units,prior=self.fixture()
+  prior[1]=2.000244140625
+  p=derive_eight(raw,units,prior,units['tot_prec'],points=4,
+                 unresolved_precipitation_mask=np.array([False,True,False,False],dtype=bool))
+  self.assertTrue(np.isnan(p['precipitation'][1]))
+  self.assertEqual(p['precipitation'][0],0)
+  self.assertTrue(np.isfinite(p['temperature'][1]))
+ def test_mask_not_exact_or_large_reset_remains_rejected(self):
+  raw,unit,prev=self.fixture()
+  prev[1]=4
+  with self.assertRaisesRegex(ValueError,'mask must identify exactly'):
+   derive_eight(raw,unit,prev,unit['tot_prec'],points=4,
+                unresolved_precipitation_mask=np.zeros(4,dtype=bool))
+  with self.assertRaisesRegex(ValueError,'too widespread'):
+   derive_eight(raw,unit,prev,unit['tot_prec'],points=4,
+                unresolved_precipitation_mask=np.array([False,True,False,False]))
+  with self.assertRaisesRegex(ValueError,'native boolean'):
+   derive_eight(raw,unit,prev,unit['tot_prec'],points=4,
+                unresolved_precipitation_mask=[0,1,0,0])
  def test_previous_precipitation_unit_drift_fails(self):
   raw,unit,prev=self.fixture()
   with self.assertRaisesRegex(ValueError,'Previous TOT_PREC'):derive_eight(raw,unit,prev,'mm',points=4)

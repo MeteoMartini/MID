@@ -47,12 +47,14 @@ def _theta_e(t,rh):
     tl=1/(1/(dew-56)+np.log(t/dew)/800)+56
     return t*(1000/(850-e))**(2/7)*(t/tl)**(.28*mix)*np.exp((3036/tl-1.78)*mix*(1+.448*mix))
 
-def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIVE_POINTS):
+def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIVE_POINTS,unresolved_precipitation_mask=None):
     """Derive all eight already offered D2 map kinds from original native cells.
 
     previous_total MUST be the original cumulative TOT_PREC at lead-1 hour,
     exactly the same model run, native grid/bitmap and source index order.
     No adjacent-run fallback, precipitation reset, smoothing or interpolation.
+    An independently assessed packing-compatible negative increment may be
+    explicitly NoData, NEVER zero. The default rejects all negative deltas.
     """
     if type(points) is not int or points<2:raise ValueError('Invalid native point count')
     data={name:_field(raw,name,points) for name in SOURCE_FIELDS}
@@ -75,14 +77,25 @@ def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIV
             if np.any(v[ok]<0):raise ValueError('Negative original cumulative precipitation')
     delta=data['tot_prec']-prev
     ok=np.isfinite(delta)
-    negative=ok & (delta<-1e-6)
+    negative=ok & (delta<0)
+    if unresolved_precipitation_mask is not None:
+        mask=np.asarray(unresolved_precipitation_mask)
+        if mask.shape!=(points,) or mask.dtype!=np.dtype('bool'):
+            raise ValueError('Packing-ambiguous precipitation mask must be native boolean cells')
+        if not np.array_equal(mask,negative):
+            raise ValueError('Packing-ambiguous mask must identify exactly original negative cells')
+        if np.count_nonzero(mask)>int(points*.15):
+            raise ValueError('Packing-ambiguous original precipitation too widespread to qualify')
+        delta=delta.copy()
+        # Genuine missing: do not invent dry weather, zero, an epsilon or any
+        # physically unverified accumulation. Trace source by QA provenance.
+        delta[mask]=np.nan
+        negative=np.isfinite(delta)&(delta<0)
     if np.any(negative):
         raise ValueError('Original cumulative TOT_PREC reset or wrong same-run interval: '
                          +f'negativeCells={int(np.count_nonzero(negative))}; '
                          +f'minDeltaMm={float(np.min(delta[negative])):.9g}; '
                          +f'maxNegativeMm={float(np.max(delta[negative])):.9g}')
-    if np.any((delta[ok]<0)):
-        raise ValueError('Rounding discrepancy in precipitation accumulation needs original review')
     products={
         'temperature':data['t_2m']-273.15,
         'pressure':data['pmsl']/100,

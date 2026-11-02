@@ -106,45 +106,35 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
         units[field]=unit
         provenance[field]={'sourceSha256':row['sha256'],'run':run,'leadHours':hour,
                            'parameter':origin}
-    try:
-        products=derive_eight({key:components[key] for key in SOURCE_FIELDS},
-                              {key:units[key] for key in SOURCE_FIELDS},
-                              components['previous_tot_prec'],units['previous_tot_prec'],
-                              points=NATIVE_POINTS)
-    except ValueError as exc:
-        # Preserve the strict rejection. Gather original packing evidence only
-        # for the actual same-run cumulative precipitation discrepancy.
-        if 'Original cumulative TOT_PREC reset or wrong same-run interval' in str(exc):
-            delta=components['tot_prec']-components['previous_tot_prec']
-            negative=delta[np.isfinite(delta)&(delta<0)]
-            current=checked_source(records,run,'tot_prec',lead)
-            previous=checked_source(records,run,'tot_prec',lead-1)
-            current_packing=original_packing_diagnostic(current,root)
-            previous_packing=original_packing_diagnostic(previous,root)
-            # Only add original-source evidence to the failure. This MUST NOT
-            # change or rescue any precipitation value or publish a candidate.
-            try:
-                precision_evidence=assess_original_packing(
-                    components['previous_tot_prec'],components['tot_prec'],
-                    previous_packing,current_packing,lead=lead,
-                    latitudes=lat0,longitudes=lon0)
-            except Exception as evidence_error:
-                precision_evidence={'schema':'mid.d2.tot-prec-quantization-evidence.v1',
-                                    'productionApproved':False,
-                                    'analysisError':str(evidence_error)}
-            report={'stage':'original-tot-prec-negative-delta-diagnostic',
-                    'productionApproved':False,'sourceRun':run,'leadHours':lead,
-                    'negativeCells':int(negative.size),
-                    'negativeMinMm':float(np.min(negative)),
-                    'negativeMaxMm':float(np.max(negative)),
-                    'negativeDistinctMm':np.unique(negative).tolist()[:12],
-                    'currentSourceSha256':current['sha256'],
-                    'previousSourceSha256':previous['sha256'],
-                    'currentPacking':current_packing,
-                    'previousPacking':previous_packing,
-                    'quantizationEvidence':precision_evidence}
-            print(json.dumps(report,sort_keys=True),file=sys.stderr,flush=True)
-        raise
+    delta=components['tot_prec']-components['previous_tot_prec']
+    finite=np.isfinite(delta)
+    ambiguous=finite&(delta<0)
+    ambiguity_count=int(np.count_nonzero(ambiguous))
+    precision_evidence=None
+    if ambiguity_count:
+        current=checked_source(records,run,'tot_prec',lead)
+        previous=checked_source(records,run,'tot_prec',lead-1)
+        current_packing=original_packing_diagnostic(current,root)
+        previous_packing=original_packing_diagnostic(previous,root)
+        precision_evidence=assess_original_packing(
+            components['previous_tot_prec'],components['tot_prec'],
+            previous_packing,current_packing,lead=lead,
+            latitudes=lat0,longitudes=lon0)
+        report={'stage':'original-tot-prec-packing-admission',
+                'productionApproved':False,'sourceRun':run,'leadHours':lead,
+                'currentSourceSha256':current['sha256'],
+                'previousSourceSha256':previous['sha256'],
+                'currentPacking':current_packing,'previousPacking':previous_packing,
+                'quantizationEvidence':precision_evidence}
+        print(json.dumps(report,sort_keys=True),file=sys.stderr,flush=True)
+        if (not precision_evidence['allNegativeCellsRoundingCompatible']
+                or precision_evidence['negativeCells']!=ambiguity_count):
+            raise ValueError('Original TOT_PREC negative cells not fully explained by exact packing; no map publication')
+    products=derive_eight({key:components[key] for key in SOURCE_FIELDS},
+                          {key:units[key] for key in SOURCE_FIELDS},
+                          components['previous_tot_prec'],units['previous_tot_prec'],
+                          points=NATIVE_POINTS,
+                          unresolved_precipitation_mask=ambiguous if ambiguity_count else None)
     out.parent.mkdir(parents=True,exist_ok=True)
     temp=Path(tempfile.mkdtemp(prefix='.d2-eight-original-',dir=out.parent))
     try:
@@ -170,7 +160,9 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
                         'nativePoints':NATIVE_POINTS,'validNativePoints':valid_native,
                         'lats':(geom['latMin']+np.arange(geom['ny'])*geom['dy']).round(6).tolist(),
                         'lons':(geom['lonMin']+np.arange(geom['nx'])*geom['dx']).round(6).tolist(),
-                        'values':scaled,'originalExtrema':selected}
+                        'values':scaled,'originalExtrema':selected,
+                        'negativePackingUncertainNoDataCells':ambiguity_count if name=='precipitation' else 0,
+                        'uncertainNoDataNeverConvertedToZero':True}
             encoded=json.dumps(field_data,ensure_ascii=False,allow_nan=False,separators=(',',':')).encode()
             if len(encoded)>MAX_FRAME_BYTES:
                 raise ValueError(f'Original native {name} display exceeds immutable 12 MB decoded limit')
@@ -181,12 +173,15 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
                            'bytes':len(wire),'decodedBytes':len(encoded),
                            'validNativePoints':valid_native,'nativeExtremeNotSampled':selected['nativeExtremeNotSampled'],
                            'originalMin':selected['nativeMin'],'originalMax':selected['nativeMax'],
-                           'displayMissing':selected['displayMissing']}
+                           'displayMissing':selected['displayMissing'],
+                           'negativePackingUncertainNoDataCells':ambiguity_count if name=='precipitation' else 0}
         (temp/'lookup.bin').unlink()
         index={'schema':'mid.dwd.native-eight-pilot.v1','productionApproved':False,'run':run,
                'leadHours':lead,'sourceInventorySha256':hashlib.sha256(raw).hexdigest(),
                'nativePoints':NATIVE_POINTS,'sample':'nearest-native-cell','maxNearestKm':5,
-               'sourceObjects':provenance,'products':entries}
+               'sourceObjects':provenance,'products':entries,
+               'originalPrecipitationPackingEvidence':precision_evidence,
+               'unresolvedPrecipitationNoDataCells':ambiguity_count}
         (temp/'pilot-index.json').write_text(json.dumps(index,sort_keys=True)+'\n')
         os.rename(temp,out)
     finally:
