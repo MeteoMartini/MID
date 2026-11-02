@@ -39,6 +39,16 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
   expect(cockpit).toContain('Number.isFinite(selectedPoint.temperature)');
   expect(cockpit).not.toContain('selectedPoint.pressure||0');
  });
+ it('exposes the selected 15-minute precipitation, probability and wind on compact phones without fabricating zeros',()=>{
+  expect(cockpit).toContain('const selectedNow90Point=now90.find(point=>point.id===selectedPoint.id)??null');
+  expect(cockpit).toContain('aria-label="Details zum ausgewählten Viertelstundenpunkt"');
+  expect(cockpit).toContain('shortTermKnownPrecipitationLabel(selectedNow90Point)');
+  expect(cockpit).toContain('shortTermKnownProbabilityLabel(selectedNow90Point.probability)');
+  expect(cockpit).toContain("Number.isFinite(selectedNow90Point.wind)?wind(selectedNow90Point.wind,unit):'n. v.'");
+  expect(cockpit).toContain("Number.isFinite(selectedNow90Point.gust)?wind(selectedNow90Point.gust,unit):'n. v.'");
+  expect(css).toContain('.mid-we-now90-selected');
+  expect(css).toContain('@media(max-width:620px)');
+ });
  it('keeps complete hourly detail behind an operable, local persistence-safe disclosure',()=>{
   expect(cockpit).toContain("useDisplayPreference('ForecastCockpit.profileFullDetails'");
   expect(cockpit).toContain('aria-expanded={profileFullDetails}');
