@@ -245,6 +245,52 @@ class Collector(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'pagination changed'):
             self.check(CountChanges())
 
+    def test_concurrent_artifact_upload_restarts_entire_inventory_no_partial_reuse(self):
+        class OneConcurrentUpload(Reader):
+            def __init__(self):
+                super().__init__()
+                self.calls = []
+            def list_repository_artifacts(self,page):
+                self.calls.append(page)
+                # First scan gets 101 records and a concurrent +1 upload.
+                # Second scan must re-list page 1, fetch both complete pages,
+                # and confirm the first page did not shift during the scan.
+                if len(self.calls) <= 2:
+                    if page == 1:
+                        return {'total_count':101,'artifacts':[{'id':k,'name':'other'} for k in range(1,101)]}
+                    return {'total_count':102,'artifacts':[{'id':101,'name':'other'},{'id':102,'name':'other'}]}
+                rows=list(range(1,103))
+                return {'total_count':102,'artifacts':[
+                    {'id':k,'name':'other'} for k in rows[(page-1)*100:page*100]]}
+        reader=OneConcurrentUpload()
+        found,mode=index_repository_artifacts(reader,[])
+        self.assertEqual(found,{})
+        self.assertEqual(mode,'bounded-repository-pagination')
+        self.assertEqual(reader.calls,[1,2,1,2,1])
+
+    def test_persistent_concurrent_upload_never_forges_missing_observation(self):
+        class AlwaysChanges(Reader):
+            def list_repository_artifacts(self,page):
+                if page==1:
+                    return {'total_count':101,'artifacts':[{'id':k,'name':'other'} for k in range(1,101)]}
+                return {'total_count':102,'artifacts':[{'id':101,'name':'other'},{'id':102,'name':'other'}]}
+        with self.assertRaisesRegex(ValueError,'after 3 full attempts'):
+            index_repository_artifacts(AlwaysChanges(),[])
+
+    def test_same_total_but_shifted_first_page_rejected_as_race(self):
+        class SameTotalShiftingFirstPage(Reader):
+            def __init__(self):
+                super().__init__()
+                self.page_one_calls=0
+            def list_repository_artifacts(self,page):
+                if page==1:
+                    self.page_one_calls+=1
+                    head=range(1,101) if self.page_one_calls % 2 else range(2,102)
+                    return {'total_count':101,'artifacts':[{'id':k,'name':'other'} for k in head]}
+                return {'total_count':101,'artifacts':[{'id':101,'name':'other'}]}
+        with self.assertRaisesRegex(ValueError,'after 3 full attempts'):
+            index_repository_artifacts(SameTotalShiftingFirstPage(),[])
+
     def test_bulk_duplicate_ids_and_foreign_parent_are_rejected(self):
         class DuplicateIDs(Reader):
             def list_repository_artifacts(self,page):
