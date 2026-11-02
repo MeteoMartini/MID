@@ -114,7 +114,8 @@ def build(source,staging,output,hours=27,plan=None):
  original=(source/'latest.json').read_bytes();meta=json.loads(original);run=utc_time(meta['run'])
  lookup_raw=checked_object(source,meta,'lookup.bin');g=meta.get('lookup',{}).get('grid',meta.get('grid'))
  nx,ny=g['nx'],g['ny'];xs=g['lonMin']+np.arange(nx)*g['dx'];ys=g['latMin']+np.arange(ny)*g['dy']
- rows=np.flatnonzero((ys>=47)&(ys<=55.2));cols=np.flatnonzero((xs>=5.5)&(xs<=15.6))
+ # Preserve all native lookup cells; masked values and extrema stay explicit.
+ rows=np.arange(ny,dtype=np.intp);cols=np.arange(nx,dtype=np.intp)
  lookup=np.frombuffer(lookup_raw,dtype='<u4').reshape(ny,nx)[np.ix_(rows,cols)];known=lookup!=0xffffffff
  if rows.size<10 or cols.size<10 or np.any(lookup[known]>=meta['pointCount']) or not 0<g['maxNearestKm']<=5:raise ValueError('RUC lookup geometry invalid')
  fields={};origins=[];s=session();stamp=meta['run'];n=hours+1
