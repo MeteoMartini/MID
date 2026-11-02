@@ -91,6 +91,7 @@ jobs:
             python -m unittest discover -s tools/ruc -p "$test" -v
           done
           python tools/ruc/test_prepare_ruc_pages.py
+          python tools/ruc/test_ruc_fast_lossless_probe.py -v
           echo 'Local deterministic QA only. Real DWD source and attested Pages publishing require separate proof.' >> "$GITHUB_STEP_SUMMARY"
   fast_transport:
     if: >-
