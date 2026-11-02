@@ -1,5 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {D2_FULL_DOMAIN_KINDS,D2_FULL_DOMAIN_LEADS,validateD2FullDomainIndex,validateD2FullDomainField} from '../../src/nativeD2FullDomain';
+import {nativeAt,nativeMapScale} from '../../src/nativeModelFields';
 import type {NativeFieldKind} from '../../src/nativeModelFields';
 const run='2026-11-02T03:00:00+00:00',now=Date.parse('2026-11-02T12:00:00Z');
 const sha='a'.repeat(64);
@@ -38,6 +39,11 @@ describe('D2 full 542040-cell source client admission',()=>{
   const out=validateD2FullDomainField(field,ix,h,'precipitation');
   expect(out.values[0]).toBe(0);expect(Number.isNaN(out.values[1])).toBe(true);
   expect(out.values[2]).toBe(5);
+  expect(nativeAt(out,lats[0],lons[0])).toBe(0);
+  expect(nativeAt(out,lats[0],lons[1])).toBeNull();
+  expect(nativeAt(out,lats[0],lons[2])).toBe(.5);
+  expect(nativeAt(out,70,20)).toBeNull();
+  expect(nativeMapScale(out,'absolute')).toBeDefined();
   expect(()=>validateD2FullDomainField({...field,productionApproved:false},ix,h,'precipitation')).toThrow();
   expect(()=>validateD2FullDomainField({...field,lats:[47,47.025,47.05]},ix,h,'precipitation')).toThrow();
  });
