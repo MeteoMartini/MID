@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {describe,expect,it} from 'vitest';
 
 const cockpit=readFileSync(new URL('../../src/ForecastCockpit.tsx',import.meta.url),'utf8');
@@ -6,6 +7,11 @@ const css=readFileSync(new URL('../../src/midDesignWeToday.css',import.meta.url)
 const manifest=JSON.parse(readFileSync(new URL('../../src/styles-src/presentation-order.json',import.meta.url),'utf8')) as {sources:string[]};
 
 describe('Design-WE Heute (read-only source assertions)',()=>{
+ it('executes the mandatory release regression without bypassing its baseline checks',()=>{
+  const output=execFileSync(process.execPath,['scripts/test-design-we-today-compact-0985412.mjs'],{cwd:process.cwd(),encoding:'utf8',timeout:12000});
+  expect(output).toContain('MID Design-WE Heute:');
+ });
+
  it('keeps skybar and cloud lanes physically above temperature, without replacing the shared time axis',()=>{
   const ordered=['skyBandTop=profileY(50)','cloudTop=profileY(101)','tempTop=profileY(150)','precipTop=profileY(321)','windTop=profileY(406)','pressureTop=profileY(498)'].map(token=>cockpit.indexOf(token));
   expect(ordered.every((index)=>index>=0)).toBe(true);
