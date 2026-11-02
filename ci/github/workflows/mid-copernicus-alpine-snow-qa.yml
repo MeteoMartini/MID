@@ -1,0 +1,50 @@
+name: MID Copernicus alpine snow TypeScript QA (read-only)
+on:
+  push:
+    branches:
+      - chatgpt/v0.9.85.412-copernicus-alpine-snow-qa
+    paths:
+      - 'src/copernicusSnowObservation.ts'
+      - 'src/copernicusSnowDelivery.ts'
+      - 'src/CopernicusAlpineSnowMapLayer.tsx'
+      - 'tests/unit/copernicus-snow-observation.test.ts'
+      - 'tests/unit/copernicus-snow-delivery.test.ts'
+      - '.github/workflows/mid-copernicus-alpine-snow-qa.yml'
+      - 'ci/github/workflows/mid-copernicus-alpine-snow-qa.yml'
+      - 'scripts/sync-github-workflows.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: mid-copernicus-alpine-snow-typescript
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout exact original SHA without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Refuse drift or uncertain original release baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          test "$stable" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
+      - name: Pinned Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+          cache: npm
+      - name: Reproducible MID dependencies without deployment
+        run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
+      - name: Full TypeScript source verification
+        run: npm run verify:types
