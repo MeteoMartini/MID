@@ -1,3 +1,11 @@
+# MID v0.9.85.412 – Geschützter nativer ICON-D2-/RUC-Quellpfad
+
+- **ICON-D2-Vollgebiet zur sicheren Aktivierung vorbereitet:** 542.040 native DWD-Gitterpunkte und 72 Originalfelder aus acht Wetterparametern und neun Vorhersagezeiten werden mit Modelllauf, UTC-Gültigkeit, Original-Prüfsumme, Bitmap, Einheiten, Akkumulationszeit und physikalischen Wertebereichen geprüft; Missing bleibt Missing, echte Nullen bleiben 0.
+- **Bestehender RUC-Kern geschützt:** Vollständiger 27-Stunden-RUC und 20 EPS-Mitglieder bleiben erhalten. Eine getrennte native 0–6h-Fast-Lane, SHA-gebundene Datenursprünge, atomare R2-CAS-/Rollback-Bausteine und ein verlustfreier Kompressionskandidat werden als weiterhin gesondert freigabepflichtige Komponenten bereitgestellt.
+- **Unabhängige Freigabesignatur:** Eine nur auf geschütztem `main` ausführbare DWD-Originaldatenprüfung kann nach drei Originalläufen eine kryptografische Signatur für den D2-Index erzeugen. Ein manuell geändertes `productionApproved` oder eine selbstberechnete Prüfsumme reicht ausdrücklich nicht aus.
+- **Karten, Quellen und Qualitätsregressionen:** Die vorhandenen Modell- und Radarkarten, ursprünglichen Vorhersageprodukte, amtlichen Warnungen, UTC-/NoData-/EPS-Verträge und App-Ansichten bleiben bei fehlender signierter Datenfreigabe rückwärtskompatibel. Keine pauschale NoData-Nullsetzung, extreme Werte werden nicht ungeprüft geglättet.
+- **Grenze der Veröffentlichung:** Dieser Software-Release schaltet NICHT automatisch native D2-, Fast-, Pages-/R2- oder iOS-/Widget-/Export-Liveprodukte frei. Vor jeder Datenaktivierung sind der unabhängige Originaldaten-Signer, global gefencetes Pages-/R2-Publishing samt Rückfallpfad, echte Web-/iOS-/Widget-/Export-Readbacks und eine belegte 168-Stunden-Frischeprüfung erforderlich. Keine kostenpflichtigen Dienste oder neuen Produktionsberechtigungen.
+
 # MID v0.9.85.411 – Nachvollziehbare Wetterprognose und robuste Datenlückenanzeige
 
 - **Ensembleübereinstimmung und Datenbasis getrennt:** Die Überschrift bewertet die meteorologische Ensembleübereinstimmung und die schwächste Datenqualität im gleichen Zeitraum. Modellgruppen-Abdeckung und Laufaktualität sind separat dokumentiert; der Index ist keine Trefferwahrscheinlichkeit.

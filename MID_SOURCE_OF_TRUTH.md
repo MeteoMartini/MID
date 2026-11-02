@@ -1,3 +1,13 @@
+# MID v0.9.85.412 · geschützter D2-/RUC-/Fast-Quellkandidat, keine Live-Datenfreigabe
+
+**Verifizierte Stable-Ausgangsbasis:** main=mid-stable v0.9.85.411, SHA `9bf44c3354f98937fa058aac5d6dceb5895d29e5`, fünf aktive Rulesets. Der neue integrierte Quellkandidat basiert exakt auf dem SHA-gesicherten Draft #623 @ `c2f5b627f88ecb5e1c3d122a039e7ae18bec4fb2`; parallele Design-/Karten-/Cleanup-PRs wurden nicht ungeprüft übernommen.
+
+**Fachlicher Geltungsbereich:** Originales 542.040-Zellen-DWD-ICON-D2-Vollgebiet mit 72 8×9-Feldern und SHA-/UTC-/Bitmap-/Akkumulations-/NoData-/Einheiten-Gates. 27h-RUC/20EPS bleibt als Originalprodukt geschützt; unabhängige Fast-Lane nur nach separater signierter Originalherkunft, Single-Writer-Pages/R2-CAS und Rollback freigeben. Github-Actions-artifacts sind keine Live-Daten; gemessene Bytes und Source-QA allein ersetzen weder Produktionspublish noch Client-Frische.
+
+**Versionierung:** v0.9.85.412 in package, lock, baseline, contract registry, Workern, Web, Service Worker, iOS/Xcode und User-/Technik-Changelog. Volle Source-Prüfung, serverseitiger SHA-Bot, installer Worker/Pages/Finalize und Stable-Promotion sind noch Pflicht; diesen Eintrag niemals als vorzeitige Releasebestätigung auslegen.
+
+**Abnahme weiterhin offen:** geschützte signierte D2-Originalläufe, 73-Objekt Live-Pages-Admission, gegen Konkurrenz abgesicherter Publisher, echte Web/iOS/Widgets/Export-Datenübernahme, Live-168h-P95 und reale Gerätetests. Aktivierungsflags bleiben bis zu diesen Nachweisen aus.
+
 # MID v0.9.85.411 · Issue #523 / DA19-21/22 · Datenqualität, Zeitfenster und Codeprovenienz
 
 **SHA-Basis und Release-Grenze:** Der am 02.11.2026 live verifizierte Stable v0.9.85.410 `f79003493f4621ea2a0d52763eb97c90674598d2` ist identisch mit `main`. Installer #41412806622 einschließlich Core-/Heavy-, Worker-, Pages- und Finalize-Gates erfolgreich; fünf aktive Rulesets; 38 normative Verträge und 1.061 Pflichtregressionen. Die sieben fachlichen Voränderungen wurden aus Draft #615 @ `08468b972becbade5d014d7a8937dc9151afbd33` auf den tatsächlich promoteten Stable portiert. Keine direkten Hauptbranch-Schreibzugriffe.
