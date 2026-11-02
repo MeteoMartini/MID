@@ -64,7 +64,7 @@ class RealNativeP1Test(unittest.TestCase):
             return [(RUN+timedelta(hours=6), 1, sample(), 'kg m**-2')]
         result = examine(ROW, b'GRIBfake-original', RUN.isoformat(), RUN.isoformat(), RUN,
                          decoder=decoder,
-                         header=lambda _row, _raw, _run: {'lead_seconds': 21600})
+                         header=lambda _row, raw, _run: {'lead_seconds': 21600, 'sha256':__import__('hashlib').sha256(raw).hexdigest()})
         self.assertEqual(result['missingCount'], 1)
         self.assertEqual(result['trueZeroCount'], 1)
         self.assertEqual(result['memberId'], 1)
@@ -78,14 +78,14 @@ class RealNativeP1Test(unittest.TestCase):
             with self.subTest(member=actual_member,valid=valid),self.assertRaises(ValueError):
                 examine(ROW,b'GRIBsource',RUN.isoformat(),RUN.isoformat(),RUN,
                         decoder=lambda *a,**k:[(valid,actual_member,sample(),'kg m**-2')],
-                        header=lambda *a:{'lead_seconds':21600})
+                        header=lambda _row,raw,_run:{'lead_seconds':21600,'sha256':__import__('hashlib').sha256(raw).hexdigest()})
 
     def test_more_than_one_grib_message_is_fail_closed(self):
         with self.assertRaisesRegex(ValueError,'exactly one'):
             examine(ROW,b'GRIBsource',RUN.isoformat(),RUN.isoformat(),RUN,
                     decoder=lambda *a,**k:[(RUN,1,sample(),'kg m**-2'),
                                             (RUN,1,sample(),'kg m**-2')],
-                    header=lambda *a:{'lead_seconds':21600})
+                    header=lambda _row,raw,_run:{'lead_seconds':21600,'sha256':__import__('hashlib').sha256(raw).hexdigest()})
 
     def test_scope_cannot_claim_168h_or_production_fast_lane(self):
         # Patch ONLY examine, keep actual URL/member inventory generation.
