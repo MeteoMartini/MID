@@ -82,7 +82,7 @@ def qualified_one(root:Path,lead:int,kind:str,expected_run:str|None=None,invento
     return run,origin,payload,frame,sha(raw)
 def stage_native_site(root:Path,output:Path):
     root=root.resolve(strict=True);output=output.resolve()
-    if(output.exists() or output.is_relative_to(root) or root.is_relative_to(output)):
+    if(output.exists() or root.is_relative_to(output) or any(output.is_relative_to(root/f'd2-native-eight-{h}') for h in LEADS)):
         raise ValueError('Immutable disjoint staged site required')
     run=inventory=None;axis=None;items={k:{'unit':UNITS[k],'frames':[]} for k in KINDS}
     state=[]

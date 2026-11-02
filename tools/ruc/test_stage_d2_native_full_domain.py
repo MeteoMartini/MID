@@ -48,7 +48,7 @@ class NativeD2TransportTests(unittest.TestCase):
    self.assertFalse(output.exists())
  def test_outside_original_staging_only(self):
   with tempfile.TemporaryDirectory() as folder:
-   root=Path(folder);out=root/'site'
+   root=Path(folder);out=root/'d2-native-eight-1'/'site'
    with self.assertRaisesRegex(ValueError,'Immutable disjoint'):
     stage_native_site(root,out)
 if __name__=='__main__':unittest.main()
