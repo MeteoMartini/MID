@@ -6,6 +6,8 @@
 
 **Tests:** Obligatorisches neues Source-Skript `scripts/test-design-we-today-compact-0985412.mjs` als 1.062. Regression; `tests/unit/designWeToday.test.ts` prüft TSX-Syntax mit gepinntem `typescript-strada`, PostCSS-Parsing und NoData-/Layout-Verträge. Read-only Vitest/Coverage #41509136061 und RUC-QA #41509136110 waren am Vorläufer-HEAD `a797962dadead35e702d2005eedaa8fdad78d73b` erfolgreich; für den jetzigen Versions-HEAD sind Source-/Installer-Ergebnisse separat nachzuweisen. Echte iOS-/VoiceOver- und vollständige appweite WCAG-AA-, Widget-/Export-Prüfung bleibt unabhängig.
 
+**CSS-/Responsive-Reparatur nach realem Source-Gate:** MID-Design-WE-CSS als separater dynamischer Vite-CSS-Chunk direkt aus `ForecastCockpit.tsx`, nicht als zusätzliche Eager-CSS-Quelle. Kanonische CSS-Reihenfolge und C27-Inhalt bleiben unverändert. 320px-Classic/Next-Toolbar vollständig 44px groß, visuell kurze und semantisch vollständige Filterbezeichnungen. Das bestehende Main-CSS-Bundle-Limit 1.760.000 Byte bleibt verbindlich; kein Budget-/Golden-Bypass. Neue vollständige Core-/Heavy-Gates statt früherer Teilfreigaben erforderlich.
+
 **Parallelarbeit:** P0–P4/RUC-/ICON-D2-Entwurf #623 ist Draft; keine Originaldaten-, 72-Frame-, Pages-/Fast-Lane- oder Freshness-Freigabe als Bestandteil dieser Designversion. Kein direkter main-/mid-stable-Schreibzugriff.
 
 ---

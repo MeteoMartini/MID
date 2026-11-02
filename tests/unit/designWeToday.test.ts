@@ -6,14 +6,14 @@ import {execFileSync} from 'node:child_process';
 import {describe,expect,it} from 'vitest';
 
 const cockpit=readFileSync(new URL('../../src/ForecastCockpit.tsx',import.meta.url),'utf8');
-const css=readFileSync(new URL('../../src/midC27CompactProfile.css',import.meta.url),'utf8');
+const css=readFileSync(new URL('../../src/midDesignWeToday.css',import.meta.url),'utf8');
 const manifest=JSON.parse(readFileSync(new URL('../../src/styles-src/presentation-order.json',import.meta.url),'utf8')) as {sources:string[]};
 
 describe('Design-WE Heute (read-only source assertions)',()=>{
  it('parses the complete real TSX chart source and the active CSS layer without syntax errors',()=>{
   const tree=ts.createSourceFile('ForecastCockpit.tsx',cockpit,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   expect(tree.parseDiagnostics.map(issue=>ts.flattenDiagnosticMessageText(issue.messageText,' '))).toEqual([]);
-  expect(()=>postcss.parse(css,{from:'midC27CompactProfile.css'})).not.toThrow();
+  expect(()=>postcss.parse(css,{from:'midDesignWeToday.css'})).not.toThrow();
  });
 
  it('executes the mandatory release regression without bypassing its baseline checks',()=>{
@@ -68,6 +68,8 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
  });
  it('registers the responsive stylesheet last and provides a small-screen accessible control layer',()=>{
   expect(manifest.sources.at(-1)).toBe('src/midC48TabletTimeline.css');
+  expect(cockpit).toContain("import('./midDesignWeToday.css')");
+  expect(manifest.sources).not.toContain('src/midDesignWeToday.css');
   expect(css).toContain("html[data-mid-design='next']:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true']>.cockpit-meteogram-pro__head>.cockpit-weather-profile__toolbar");
   expect(css).toContain('width:100%!important;max-width:100%!important;min-width:0!important;');
   for(const part of ['@media(max-width:959px)','@media(max-width:620px)','@media(max-width:350px)','@media(prefers-reduced-motion:reduce)','min-height:44px',':focus-visible','--mid-we-focus'])expect(css).toContain(part);
