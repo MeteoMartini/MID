@@ -46,6 +46,7 @@ for(const token of [
  "Number.isFinite(selectedNow90Point.gust)?wind(selectedNow90Point.gust,unit):'n. v.'"
 ])assert.ok(cockpit.includes(token),'90min-Detail/NoData-Vertrag fehlt: '+token);
 assert.ok(styles.includes('.mid-we-now90-selected'),'Die auswählbaren 90min-Einzeldaten müssen mobil sichtbar sein.');
+assert.ok(styles.includes("html[data-mid-design='next']:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true']>.cockpit-meteogram-pro__head>.cockpit-weather-profile__toolbar"),'C27-Max-Content-Toolbar muss auf Mobilgeräten korrekt übersteuert werden.');
 const idx=(token)=>cockpit.indexOf(token);
 assert.ok(idx('skyBandTop=profileY(50)')<idx('cloudTop=profileY(101)')&&
  idx('cloudTop=profileY(101)')<idx('tempTop=profileY(150)')&&
