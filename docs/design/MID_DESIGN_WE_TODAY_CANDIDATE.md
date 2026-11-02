@@ -24,3 +24,16 @@ Neuer Pflichtregressionstest `scripts/test-design-we-today-compact-0985412.mjs` 
 ## Parallelarbeit und Veröffentlichung
 
 Der derzeitige v0.9.85.412-Entwurf im RUC-/D2-/Pages-Sammel-PR #623 ist **Draft / nicht veröffentlichungsreif**. Die vorliegende UI-Änderung überschneidet dessen RUC-/Worker-/Kartenpfade nicht absichtlich. Vor gemeinsamer Integration jeweils volle SHAs, tatsächliche Dateiüberschneidungen, Regressionsinventare und Versionierung neu prüfen. Nur nach unabhängiger Validierung der gemeinsamen Source-PR-Gates und des normalen SHA-gebundenen Releasepfades ist Stable-Promotion zulässig. **Nie aus diesem Draft direkt veröffentlichen.**
+
+
+## MID-Design-WE 1.1 · Weiterarbeit 02.11.2026 (unveröffentlicht)
+
+- Source-of-Truth erneuert: `main=mid-stable` bleibt bei v0.9.85.411 / `9bf44c3354f98937fa058aac5d6dceb5895d29e5`. Die fünf Rulesets bestehen weiter.
+- Zwischenzeitliche Parallelarbeit berücksichtigt: RUC/D2/Pages-Sammel-PR #623 wurde bis `c2f5b627f88ecb5e1c3d122a039e7ae18bec4fb2` weiterentwickelt, weiterhin Draft. In der aktuellen Dateiliste #623 und Design-PR #624 keine gemeinsame Änderung; das ist kein Integrations-/Releasebeleg.
+- Designverbesserung: Auf Mobilgeräten bleiben die sechs Wetterpiktogramme und der Skybar-Streifen kompakt. Beim gezielten Antippen eines 15-min-Punktes erscheint direkt darunter die zugehörige Menge, PoP und Wind/Böen, mit Missing-Daten als `n. v.`, nicht als 0. Die vollständigen Detailfelder bleiben erreichbar.
+- Nachprüfung eines echten CSS-Cascade-Risikos: `midC27CompactProfile.css` erzwingt `width:max-content!important` mit höherer Spezifität. Eine gezielt spezifischere Regel in `midDesignWeToday.css` gibt dem mobilen Diagrammtoolbar wieder exakt die verfügbare Breite; Parameterchips dürfen nur intern horizontal scrollen. Kein globales Layout-Clipping.
+- Neue Vitest-QA: Neben Bestandsvertrag/Node-Pflichtskript zusätzlich TypeScript-TSX-Parsing mittels `ts.createSourceFile` und PostCSS-Stylesheet-Parsing; keine Behauptung eines vollständigen Typechecks oder Vite-Builds. Tests für 15-Minuten-NoData-Werte und C27-Übersteuerung hinzugefügt.
+- Die für #624 zuletzt belegten vorherigen Read-only-Läufe waren Vitest #41496813884 und RUC-QA #41496814196 erfolgreich. Neuere Runs müssen für ihren eigenen exakten HEAD erneut ausgewertet werden. Ausgelassene Draft-Gates nicht als Erfolg ausweisen.
+- **Freigabe weiterhin gesperrt:** Der vollständige Build, alle inventarisierten Regressionen, echte Smartphone-/Tablet-/Desktop-Vergleiche gegen den Bildentwurf, Keyboard/Screenreader sowie der reguläre kontrollierte Build-/Releasepfad sind nachzuweisen. Kein vorgezogener Merge oder direkte Stable-Promotion.
+
+**Chat-Handoff:** Bei Fortsetzung `MID-Design-WE 1.1` exakt die PR-HEAD-SHA live lesen und die parallel fortlaufenden #623/#622/anderen offenen PRs neu prüfen. Dieser Text ist ausdrücklich eine historische SHA-Referenz, keine statische neue Freigabebasis.
