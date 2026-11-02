@@ -68,9 +68,11 @@ class EightNativeFieldsTests(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,'mask must identify exactly'):
    derive_eight(raw,unit,prev,unit['tot_prec'],points=4,
                 unresolved_precipitation_mask=np.zeros(4,dtype=bool))
+  raw['tot_prec'][0]=1.
+  prev[0]=2.
   with self.assertRaisesRegex(ValueError,'too widespread'):
    derive_eight(raw,unit,prev,unit['tot_prec'],points=4,
-                unresolved_precipitation_mask=np.array([False,True,False,False]))
+                unresolved_precipitation_mask=np.array([True,True,False,False]))
   with self.assertRaisesRegex(ValueError,'native boolean'):
    derive_eight(raw,unit,prev,unit['tot_prec'],points=4,
                 unresolved_precipitation_mask=[0,1,0,0])

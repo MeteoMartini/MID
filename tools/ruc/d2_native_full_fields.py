@@ -84,7 +84,7 @@ def derive_eight(raw:dict,units:dict,previous_total,previous_unit,*,points=NATIV
             raise ValueError('Packing-ambiguous precipitation mask must be native boolean cells')
         if not np.array_equal(mask,negative):
             raise ValueError('Packing-ambiguous mask must identify exactly original negative cells')
-        if np.count_nonzero(mask)>int(points*.15):
+        if np.count_nonzero(mask)>max(1,int(points*.15)):
             raise ValueError('Packing-ambiguous original precipitation too widespread to qualify')
         delta=delta.copy()
         # Genuine missing: do not invent dry weather, zero, an epsilon or any
