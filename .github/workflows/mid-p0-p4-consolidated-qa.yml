@@ -87,7 +87,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for test in test_d2_native_full_fields.py test_d2_native_eight_bundle.py test_d2_tot_prec_quantization_qa.py test_stage_d2_native_full_domain.py test_admit_d2_native_pages.py; do
+          for test in test_d2_native_full_fields.py test_d2_native_eight_bundle.py test_d2_tot_prec_quantization_qa.py test_stage_d2_native_full_domain.py test_admit_d2_native_pages.py test_d2_release_attestation.py; do
             python -m unittest discover -s tools/ruc -p "$test" -v
           done
           python tools/ruc/test_prepare_ruc_pages.py
