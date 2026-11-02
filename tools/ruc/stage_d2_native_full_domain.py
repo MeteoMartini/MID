@@ -105,11 +105,26 @@ def stage_native_site(root:Path,output:Path):
         budget=0
         for lead,kind,data,frame in state:
             outgoing={k:v for k,v in data.items() if k not in ('schema','productionApproved','time','run','kind','unit','scale','leadHours','values')}
+            contours=[];centers=[]
+            if kind=='pressure':
+                import numpy as np
+                from build_model_map_fields import contours as original_grid_contours
+                from pressure_centers import pressure_centers
+                p=np.asarray([np.nan if v is None else v*.1 for v in data['values']],
+                             dtype=np.float64).reshape(len(data['lats']),len(data['lons']))
+                finite=p[np.isfinite(p)]
+                if not finite.size or np.any((finite<800)|(finite>1100)):
+                    raise ValueError('Full original pressure values outside physical contract')
+                # 1-hPa contours are generated on the same nearest-native grid.
+                # MID H/T centre symbols follow the established 20-km method;
+                # original unsmoothed extrema remain recorded independently.
+                contours=original_grid_contours(p,np.asarray(data['lats']),np.asarray(data['lons']))
+                centers=pressure_centers(p,np.asarray(data['lats']),np.asarray(data['lons']))
             outgoing.update({'schema':'mid.icon-d2.native-field.v2','productionApproved':False,
                              'modelId':'icon-d2','sampling':'nearest-native-cell',
                              'run':datetime.strptime(run,'%Y%m%dT%H%M').replace(tzinfo=timezone.utc).isoformat(),
                              'time':data['time'],'kind':kind,'unit':UNITS[kind],'scale':.1,
-                             'leadHours':lead,'values':data['values'],'isobars':[],'centers':[]})
+                             'leadHours':lead,'values':data['values'],'isobars':contours,'centers':centers})
             decoded=(json.dumps(outgoing,separators=(',',':'),ensure_ascii=False,allow_nan=False)+'\n').encode()
             if len(decoded)>FRAME_LIMIT:raise ValueError('Native transport decoded D2 frame over 12MB')
             name=f'{kind}-{lead:03d}.bin'

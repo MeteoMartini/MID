@@ -6,7 +6,7 @@ class NativeD2TransportTests(unittest.TestCase):
  def fake(self,root,lead,kind,expected_run=None,inventory=None):
   self.assertIn(lead,LEADS);self.assertIn(kind,KINDS)
   lats=[44.1,47.1,50.1,53.1,56.1];lons=[0.1,6.1,12.1,18.1,24.1]
-  values=[None if i==7 else 0 if i==0 else 100 for i in range(25)]
+  values=([10000]*25 if kind=='pressure' else [None if i==7 else 0 if i==0 else 100 for i in range(25)])
   uncertain=1 if kind=='precipitation' else 0
   return ('20261102T0300','f'*64,{
    'schema':'mid.dwd.native-eight-field-pilot.v1','productionApproved':False,
