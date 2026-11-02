@@ -151,6 +151,35 @@ jobs:
           compression-level: 1
           retention-days: 2
           if-no-files-found: error
+      - name: Download just-uploaded immutable Fast source artifact with exact digest
+        if: steps.choose.outputs.ready == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-ruc-native-fast-real-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fast-artifact-readback
+          digest-mismatch: error
+      - name: Independently decode re-downloaded original Fast BINs, not local staging
+        if: steps.choose.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_consumer_shadow.py --shadow fast-artifact-readback/ruc-fast-native-shadow --output fast-archive-independent-readback.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          before=json.loads(Path('fast-native-readback.json').read_text())
+          after=json.loads(Path('fast-archive-independent-readback.json').read_text())
+          if before != after:
+              raise SystemExit('original and downloaded Fast byte-level native decode are not identical')
+          for flag in ('productionEnabled','publicationAuthorized',
+                       'realtimeConsumerEnabled','consumerAdoptionVerified'):
+              if after[flag] is not False:
+                  raise SystemExit('Fast source archive cannot authorize a production switch')
+          if not after['originalNativeObjectsVerified'] or not after['trueNoDataPreserved']:
+              raise SystemExit('GitHub artifact original Fast byte readback not verified')
+          print('Genuine original DWD Fast BIN artifact re-downloaded and independently SHA/NoData/UTC verified.')
+          PY
+          echo 'Fast source original DWD BINs: locally built, uploaded, re-downloaded and independently SHA/NoData decoded; **NOT** published to Pages or consumed by the MID App.' >> "$GITHUB_STEP_SUMMARY"
       - name: Honest missing provider observation
         if: steps.choose.outputs.ready != 'true'
         run: |
