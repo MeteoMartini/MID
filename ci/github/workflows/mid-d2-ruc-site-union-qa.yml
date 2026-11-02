@@ -181,3 +181,16 @@ jobs:
           MID_D2_ORIGINAL_SITE_PATH: .d2-original
         run: npx vitest run tests/unit/native-d2-original-binary-readback.test.ts
 
+
+      - name: Archive real 27h 20EPS Fast and all 72 ICON-D2 originals together – inactive only
+        # One user-retrievable original-data QA bundle, NOT production data.
+        # All original SHA, physical-budget and browser decoder checks above
+        # must pass before this archive can exist.
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-d2-ruc-combined-original-inactive-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .physical-union/
+          if-no-files-found: error
+          compression-level: 0
+          include-hidden-files: true
+          retention-days: 1
