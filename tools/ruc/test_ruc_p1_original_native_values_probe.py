@@ -34,7 +34,7 @@ class RealNativeP1Test(unittest.TestCase):
         self.assertEqual(row['pointCount'], NATIVE_POINTS)
         self.assertEqual(row['missingCount'], 1)
         self.assertEqual(row['trueZeroCount'], 1)
-        self.assertEqual(row['maximumOriginal'], 5000)
+        self.assertEqual(row['maximumInNormalizedUnit'], 5000)
         self.assertFalse(row['missingAsZero'])
         self.assertFalse(row['extremesSmoothed'])
 
@@ -86,6 +86,20 @@ class RealNativeP1Test(unittest.TestCase):
                     decoder=lambda *a,**k:[(RUN,1,sample(),'kg m**-2'),
                                             (RUN,1,sample(),'kg m**-2')],
                     header=lambda _row,raw,_run:{'lead_seconds':21600,'sha256':__import__('hashlib').sha256(raw).hexdigest()})
+
+    def test_negative_original_accumulation_is_not_rounded_to_dry_zero(self):
+        negative = sample()
+        negative[4] = -1
+        with self.assertRaisesRegex(ValueError, 'physically negative'):
+            examine(ROW, b'GRIBsource', RUN.isoformat(), RUN.isoformat(), RUN,
+                    decoder=lambda *a, **k: [(RUN+timedelta(hours=6), 1, negative, 'kg m**-2')],
+                    header=lambda _row, raw, _run: {'lead_seconds': 21600, 'sha256':__import__('hashlib').sha256(raw).hexdigest()})
+
+    def test_original_sha_tamper_rejected_before_value_decode(self):
+        with self.assertRaisesRegex(ValueError,'input SHA differ'):
+            examine(ROW, b'GRIBsource', RUN.isoformat(), RUN.isoformat(), RUN,
+                    decoder=lambda *a, **k: [(RUN+timedelta(hours=6), 1, sample(), 'kg m**-2')],
+                    header=lambda _row, raw, _run: {'lead_seconds': 21600,'sha256':'0'*64})
 
     def test_scope_cannot_claim_168h_or_production_fast_lane(self):
         # Patch ONLY examine, keep actual URL/member inventory generation.
