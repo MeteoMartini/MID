@@ -82,10 +82,34 @@ jobs:
           assert d['productionApproved'] is True and d['sourceApprovalCommitSha']==os.environ['GITHUB_SHA']
           assert sum(len(x['frames']) for x in d['products'].values())==72 and r['bytes']<350000000
           PY
+      - name: Revalidate protected Stable and source immediately before signing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          for ref in main mid-stable; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$ref" --jq .object.sha)" = "$GITHUB_SHA"
+          done
+          test "$(jq -r .sourceCommitSha original-dwd-approval-report.json)" = "$GITHUB_SHA"
+          test "$(jq -r .indexSha256 original-dwd-approval-report.json)" = "$(sha256sum d2-original-approved/index.json | cut -d' ' -f1)"
       - name: Official cryptographic provenance attestation for rebuilt DWD index
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: d2-original-approved/index.json
+      - name: Revalidate protected Stable and index after attestation before handoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          for ref in main mid-stable; do
+            test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$ref" --jq .object.sha)" = "$GITHUB_SHA"
+          done
+          test "$(jq -r .sourceCommitSha original-dwd-approval-report.json)" = "$GITHUB_SHA"
+          test "$(jq -r .indexSha256 original-dwd-approval-report.json)" = "$(sha256sum d2-original-approved/index.json | cut -d' ' -f1)"
       - name: Archive signed original D2 evidence, not deployed data
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
