@@ -81,7 +81,14 @@ test('Source optional remote npm cache cannot block exact Node setup or bypass m
  const source=await read('ci/github/workflows/chatgpt-pr-gate.yml');
  assert.equal(source,await read('.github/workflows/chatgpt-pr-gate.yml'));
  const setups=[...source.matchAll(/uses: actions\/setup-node@([a-f0-9]{40})[^\n]*\n        with:\n([\s\S]*?)(?=\n\n|\n      -)/g)];
- assert.equal(setups.length,5);
+ const requiredSourceJobs=['source_core','core_regressions','heavy_regressions','ruc_native_full_admission','ruc27_qualification','visual_extreme'];
+ const actualSetups=[];
+ for(const match of source.matchAll(/^  ([a-z_]+):\\s*$/gm)){
+   const chunk=source.slice(match.index,source.indexOf('\\n  ',match.index+3)<0?source.length:source.indexOf('\\n  ',match.index+3));
+   if(/uses: actions\\/setup-node@[a-f0-9]{40}/.test(chunk))actualSetups.push(match[1]);
+ }
+ assert.deepEqual(actualSetups.sort(),requiredSourceJobs.sort(),'Every expected Source job, including protected native RUC admission, must retain its own pinned Node setup');
+ assert.equal(setups.length,requiredSourceJobs.length);
  for(const [,sha,config] of setups){assert.equal(sha,'949feb2413d6458794dcd2491c4babbbce0c15c1');assert.match(config,/node-version: 22.16.0/);assert.match(config,/package-manager-cache: false/);assert.doesNotMatch(config,/\bcache: npm/)}
  for(const token of ['npm ci','npm run audit:dependencies','npm run audit:all','npm run build','npm run test:regressions','fail-fast: false','Agent-Quellstand vollständig prüfen'])assert.ok(source.includes(token),token);
  assert.doesNotMatch(source,/continue-on-error/);
