@@ -44,6 +44,9 @@ describe('D2 full 542040-cell source client admission',()=>{
   expect(nativeAt(out,lats[0],lons[2])).toBe(.5);
   expect(nativeAt(out,70,20)).toBeNull();
   expect(nativeMapScale(out,'absolute')).toBeDefined();
+  expect(()=>validateD2FullDomainField({...field,negativePackingUncertainNoDataCells:2},ix,h,'precipitation')).toThrow(/packing-uncertainty/);
+  // A forged index cannot claim more uncertainty-masked pixels than actual nulls.
+  expect(()=>validateD2FullDomainField({...field,values:values.map(v=>v===null?0:v)},ix,h,'precipitation')).toThrow(/packing-uncertainty/);
   expect(()=>validateD2FullDomainField({...field,productionApproved:false},ix,h,'precipitation')).toThrow();
   expect(()=>validateD2FullDomainField({...field,lats:[47,47.025,47.05]},ix,h,'precipitation')).toThrow();
  });
