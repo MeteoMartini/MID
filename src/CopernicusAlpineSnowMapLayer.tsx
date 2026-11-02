@@ -1,10 +1,10 @@
 import {useEffect,useMemo,useState} from 'react';
 import {ImageQuadLayer,useMidMap} from './MapLibreCore';
-import {fetchVerifiedCopernicusSnowPng,validateCopernicusSnowTile,type CopernicusSnowTile} from './copernicusSnowDelivery';
+import {copernicusSnowTileIdentity,fetchVerifiedCopernicusSnowPng,validateCopernicusSnowTile,type CopernicusSnowTile} from './copernicusSnowDelivery';
 
 /** Pixel-size and source metadata remain owned by the immutable original tile. */
 function VerifiedAlpineSnowTile({tile,opacity,onError}:{tile:CopernicusSnowTile;opacity:number;onError?:(error:string)=>void}){
- const [verified,setVerified]=useState<{sha:string;url:string}|null>(null);
+ const identity=copernicusSnowTileIdentity(tile);\n const [verified,setVerified]=useState<{identity:string;url:string}|null>(null);
  useEffect(()=>{
   const controller=new AbortController();let alive=true,ownedUrl='';
   setVerified(null);
@@ -13,12 +13,12 @@ function VerifiedAlpineSnowTile({tile,opacity,onError}:{tile:CopernicusSnowTile;
    void fetchVerifiedCopernicusSnowPng(tile,controller.signal).then(blob=>{
     if(!alive)return;
     ownedUrl=URL.createObjectURL(blob);
-    setVerified({sha:tile.imageSha256,url:ownedUrl});
+    setVerified({identity,url:ownedUrl});
    }).catch(error=>{if(alive&&!controller.signal.aborted)onError?.(error instanceof Error?error.message:String(error))});
   }catch(error){onError?.(error instanceof Error?error.message:String(error))}
   return()=>{alive=false;controller.abort();if(ownedUrl)URL.revokeObjectURL(ownedUrl)};
- },[tile.imageSha256,tile.imagePath,tile.productDayUtc]);
- return verified?.sha===tile.imageSha256?
+ },[identity]);
+ return verified?.identity===identity?
   <ImageQuadLayer id={'clms-snow-'+tile.imageSha256.slice(0,24)}
    url={verified.url} bounds={tile.bounds} opacity={opacity}
    resampling="nearest" zIndex={655} onError={onError}/>:null;
@@ -51,6 +51,6 @@ export function CopernicusAlpineSnowMapLayer({tiles,enabled,opacity=0.82,onError
  // misrepresentative partial raster; zoom to a smaller area first.
  useEffect(()=>{if(enabled&&visible.length>8)onError?.('Satelliten-Schneekarte: zu großer Ausschnitt für einen sicheren Rasterabruf. Bitte näher zoomen.')},[enabled,visible.length,onError]);
  if(!enabled||visible.length>8)return null;
- return <>{visible.map(tile=><VerifiedAlpineSnowTile key={tile.imageSha256} tile={tile}
+ return <>{visible.map(tile=><VerifiedAlpineSnowTile key={copernicusSnowTileIdentity(tile)} tile={tile}
   opacity={opacity} onError={onError}/>)}</>;
 }
