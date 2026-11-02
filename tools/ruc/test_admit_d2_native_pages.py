@@ -1,7 +1,22 @@
 import json,tempfile,unittest
+from inspect import signature
+from prepare_ruc_pages import prepare
 from pathlib import Path
 from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS,require_detached_native_approval,sha
 class PagesNativeD2AdmissionTests(unittest.TestCase):
+ def test_canonical_preparer_receives_only_independent_release_attestation(self):
+  # The established CLI is deliberately unable to self-approve any D2 input.
+  params=signature(prepare).parameters
+  self.assertIn('native_d2_trusted_index_sha256',params)
+  self.assertIn('native_d2_trusted_inventory_sha256',params)
+  self.assertIsNone(params['native_d2_trusted_index_sha256'].default)
+  self.assertIsNone(params['native_d2_trusted_inventory_sha256'].default)
+  from pathlib import Path
+  source=(Path(__file__).parent/'prepare_ruc_pages.py').read_text(encoding='utf8')
+  self.assertIn('trusted_index_sha256=native_d2_trusted_index_sha256',source)
+  self.assertIn('trusted_inventory_sha256=native_d2_trusted_inventory_sha256',source)
+  cli=source.split('def main():',1)[-1]
+  self.assertNotIn('--native-d2-trusted',cli)
  def test_detached_release_gate_does_not_trust_self_approved_flags_or_rehashed_bytes(self):
   with tempfile.TemporaryDirectory() as td:
    file=Path(td)/'index.json'
