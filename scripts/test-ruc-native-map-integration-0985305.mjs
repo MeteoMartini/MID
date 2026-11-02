@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-import {mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {mkdtemp,rm,writeFile,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
 const dir=await mkdtemp(resolve(tmpdir(),'mid-ruc-integration-'));
@@ -15,6 +15,12 @@ try{
  const index=make(),ref=index.products.temperature.frames[0],field={schema:'mid.ruc.map-field.v1',modelId:'icon-d2-ruc',sampling:'nearest-native-cell',run,time:ref.time,kind:'temperature',unit:'°C',scale:.01,lats:[47,51.1,55.2],lons:[5.5,10.55,15.6],values:[null,0,1234,100,200,300,400,500,600],isobars:[]};
  const d=m.validateNativeField(field,index,ref,'temperature');assert.equal(field.values[0],null);assert.equal(m.nativeAt(d,47,5.5),null);assert.equal(m.nativeAt(d,47,10.55),0);assert.equal(m.nativeAt(d,47,15.6),12.34);assert.equal(m.nativeFieldModel(d),'icon-d2-ruc');
  for(const bad of [{...field,schema:'mid.ruc.map-field-candidate.v1'},{...field,modelId:'icon-d2'},{...field,values:field.values.map(()=>null)}])assert.throws(()=>m.validateNativeField(bad,index,ref,'temperature'));
+ const wider={...field,kind:'pressure',unit:'hPa',lats:[43.2,50.6,58],lons:[-3.8,8.2,20.2],values:[null,90000,90500,91000,95000,96000,97000,100000,110000],isobars:[{level:1000,paths:[[[43.4,-3.5],[44,-2]]]}]};
+ const widePressure=m.validateNativeField(wider,index,index.products.pressure.frames[0],'pressure');
+ assert.equal(m.nativeAt(widePressure,43.2,-3.8),null);
+ assert.equal(m.nativeAt(widePressure,43.2,8.2),900);
+ assert.equal(m.nativeAt(widePressure,58,20.2),1100);
+ for(const isobar of [[[[42.9,-3.5],[44,-2]]],[[[43.4,-3.5],[44,21]]]])assert.throws(()=>m.validateNativeField({...wider,isobars:[{level:1000,paths:isobar}]},index,index.products.pressure.frames[0],'pressure'));
  for(const kind of m.RUC_MAP_KINDS)assert(m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
  for(const kind of ['sigwx','thetae','totals','observed'])assert(!m.unifiedSources(kind,null,false,false,index).some(s=>s.id==='icon-d2-ruc'));
  const oldWindow=globalThis.window,oldLocalStorage=globalThis.localStorage,oldStorage=globalThis.Storage;
@@ -35,5 +41,13 @@ try{
    if(corrupt)await assert.rejects(m.loadRucNativeIndex(new AbortController().signal));else assert.equal((await m.loadRucNativeIndex(new AbortController().signal)).index.modelId,'icon-d2-ruc');
   }
  }finally{Date.now=originalNow;globalThis.fetch=originalFetch}
+ const standalone=await readFile('src/NativeModelMap.tsx','utf8');
+ assert(standalone.includes('<MapFitBounds south={field.lats[0]} west={field.lons[0]} north={field.lats.at(-1)!} east={field.lons.at(-1)!}'), 'standalone native map must fit real raster extent');
+ assert(standalone.includes('places.filter(p=>field&&p.latitude>=field.lats[0]'), 'only real in-grid favorites may receive markers');
+ assert(!standalone.includes('p.latitude>=47&&p.latitude<=55.2'), 'historic fixed Germany crop must not filter native markers');
+ assert(standalone.includes("field?.modelId==='icon-d2-ruc'"), 'native RUC field must keep separate data provenance');
+ assert(standalone.includes('source={sourceLabel}'), 'map probe and raster must share source provenance');
+ assert(standalone.includes('kein natives Vollgebiet'), 'deterministic regular-grid path may not be labelled native full domain');
+ assert(standalone.includes('minZoom={2.5}'), 'full native domain must remain fit-to-bounds on narrow mobiles');
  console.log('RUC integration: UTC/freshness/complete axes/SHA/units/NoData/dry zero/catalog/persistence/export passed');
 }finally{await rm(dir,{recursive:true,force:true})}

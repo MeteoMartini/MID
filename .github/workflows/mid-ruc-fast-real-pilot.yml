@@ -1,0 +1,186 @@
+name: MID RUC native 0-6h fast-lane real GRIB production pilot (read-only)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_fast_lane_producer.py'
+      - 'tools/ruc/ruc_fast_consumer_shadow.py'
+      - 'tools/ruc/test_ruc_fast_consumer_shadow.py'
+      - 'tools/ruc/ruc_fast_pages_overlay.py'
+      - 'tools/ruc/test_ruc_fast_pages_overlay.py'
+      - 'ci/github/workflows/mid-ruc-fast-real-pilot.yml'
+      - '.github/workflows/mid-ruc-fast-real-pilot.yml'
+  workflow_dispatch:
+    inputs:
+      run:
+        description: 'auto or exact UTC DWD model run; never production publish'
+        required: false
+        default: auto
+        type: string
+  schedule:
+    # Disabled unless separately approved shadow variable is set.
+    - cron: '14 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: mid-ruc-real-fast-shadow
+  cancel-in-progress: false
+jobs:
+  native-fast:
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))) ||
+      (github.event_name != 'pull_request' && vars.MID_RUC_FAST_LANE_SHADOW_ENABLED == 'true')
+    name: Independently build real DWD 0–6h native cells (never publish)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Exact authenticated source SHA without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || 'mid-stable' }}
+          fetch-depth: 32
+          persist-credentials: false
+      - name: Stable/Main SHA lineage, workflow mirror and source admissibility
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-fast-real-pilot.yml .github/workflows/mid-ruc-fast-real-pilot.yml
+          checked="$(git rev-parse HEAD)"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            test "$checked" = "$EXPECTED_HEAD"
+            git merge-base --is-ancestor "$stable" HEAD
+          else
+            test "$checked" = "$stable"
+          fi
+          echo "Source $checked, stable $stable, observation only; no Pages/Worker write scope."
+      - name: Python 3.12 and ecCodes runtime
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Existing science dependencies, standard offline adversarial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          python tools/ruc/test_ruc_fast_run_selector.py -v
+          python tools/ruc/test_ruc_fast_lane_producer.py -v
+          python tools/ruc/test_ruc_fast_pointer_staging.py -v
+          python tools/ruc/test_ruc_fast_consumer_shadow.py -v
+          python tools/ruc/test_ruc_fast_pages_overlay.py -v
+      - name: Select DWD native source independent of EPS completeness
+        shell: bash
+        id: choose
+        env:
+          USER_RUN: ${{ inputs.run || 'auto' }}
+        run: |
+          set -euo pipefail
+          if [ "$USER_RUN" = auto ]; then
+            python tools/ruc/ruc_fast_run_selector.py --github-output "$GITHUB_OUTPUT"
+          else
+            python - "$USER_RUN" <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path('tools/ruc').resolve()))
+          from ruc_fast_lane_producer import canonical_run
+          canonical_run(sys.argv[1])
+          PY
+            echo "run=$USER_RUN" >> "$GITHUB_OUTPUT"
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Physically build original +0–6h GRIB and native 5/15-min bins
+        if: steps.choose.outputs.ready == 'true'
+        shell: bash
+        env:
+          SOURCE_RUN: ${{ steps.choose.outputs.run }}
+          MID_RUC_DOWNLOAD_WORKERS: '4'
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_lane_producer.py --run "$SOURCE_RUN" --stage .ruc-fast-native-input --output .ruc-fast-native-candidate
+          python tools/ruc/ruc_fast_pointer_staging.py --candidate .ruc-fast-native-candidate --output ruc-fast-native-shadow
+          python tools/ruc/ruc_fast_consumer_shadow.py --shadow ruc-fast-native-shadow --output fast-native-readback.json
+          python - <<'PY'
+          import json
+          p=json.load(open('fast-native-readback.json'))
+          assert p['originalNativeObjectsVerified'] is True
+          assert p['trueNoDataPreserved'] is True
+          assert p['hours']==6 and p['memberCount']==0
+          assert p['publicationAuthorized'] is False
+          assert p['productionEnabled'] is False
+          assert p['realtimeConsumerEnabled'] is False
+          assert p['consumerAdoptionVerified'] is False
+          print('REAL native DWD fast producer completed; independent shadow decode verified, NOT published.')
+          PY
+      - name: Confirm archive inputs contain all four original binary objects
+        if: steps.choose.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=ruc-fast-native-shadow/ruc/fast
+          test -s "$root/latest.json"
+          test "$(find "$root" -type f | wc -l)" -eq 6
+          for part in deterministic.bin rapid-5m.bin rapid-15m.bin lookup.bin; do
+            test "$(find "$root/runs" -type f -name "$part" | wc -l)" -eq 1
+          done
+          test -s fast-native-readback.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('fast-native-readback.json').read_text())
+          assert report['originalNativeObjectsVerified'] is True
+          assert report['productionEnabled'] is False
+          assert report['publicationAuthorized'] is False
+          assert report['localSiteBytes'] > 200_000_000
+          print("Verified real Fast native shadow archive input bytes",report['localSiteBytes'])
+          PY
+      - name: Immutable inactive real native candidate and independent readback artifact
+        if: steps.choose.outputs.ready == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-native-fast-real-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ruc-fast-native-shadow/
+            fast-native-readback.json
+          compression-level: 1
+          retention-days: 2
+          if-no-files-found: error
+      - name: Download just-uploaded immutable Fast source artifact with exact digest
+        if: steps.choose.outputs.ready == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-ruc-native-fast-real-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fast-artifact-readback
+          digest-mismatch: error
+      - name: Independently decode re-downloaded original Fast BINs, not local staging
+        if: steps.choose.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_consumer_shadow.py --shadow fast-artifact-readback/ruc-fast-native-shadow --output fast-archive-independent-readback.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          before=json.loads(Path('fast-native-readback.json').read_text())
+          after=json.loads(Path('fast-archive-independent-readback.json').read_text())
+          if before != after:
+              raise SystemExit('original and downloaded Fast byte-level native decode are not identical')
+          for flag in ('productionEnabled','publicationAuthorized',
+                       'realtimeConsumerEnabled','consumerAdoptionVerified'):
+              if after[flag] is not False:
+                  raise SystemExit('Fast source archive cannot authorize a production switch')
+          if not after['originalNativeObjectsVerified'] or not after['trueNoDataPreserved']:
+              raise SystemExit('GitHub artifact original Fast byte readback not verified')
+          print('Genuine original DWD Fast BIN artifact re-downloaded and independently SHA/NoData/UTC verified.')
+          PY
+          echo 'Fast source original DWD BINs: locally built, uploaded, re-downloaded and independently SHA/NoData decoded; **NOT** published to Pages or consumed by the MID App.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Honest missing provider observation
+        if: steps.choose.outputs.ready != 'true'
+        run: |
+          echo 'No fully directory-advertised native 0-6h DWD candidate; no original GRIB qualified and NO data or production published.' >> "$GITHUB_STEP_SUMMARY"
