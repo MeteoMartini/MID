@@ -52,6 +52,19 @@ test('reject noncanonical source/unsafe dates and fictitious 20-EPS in fast cand
   c=>c.hours[3].fields.temperature_2m=Number.NaN
  ]){const c=candidate();invalid(c);assert.throws(()=>inspectFastToCommonForecastShadow(primary(),c));}
 });
+test('negative native precipitation cannot be called dry or converted to zero',()=>{
+ for(const mutate of [
+  c=>c.hours[1].fields.precipitation=-.01,
+  c=>c.rapid5Minutes[2].precipitationMm=-.02,
+  c=>c.rapid15Minutes[2].precipitationMm=-.1
+ ]){const row=candidate();mutate(row);assert.throws(
+  ()=>inspectFastToCommonForecastShadow(primary(),row),/negative native precipitation/);}
+ // Explicit Missing and exact zero remain separate accepted source values.
+ const ok=candidate();ok.hours[1].fields.precipitation=null;ok.rapid5Minutes[2].precipitationMm=0;
+ const a=inspectFastToCommonForecastShadow(primary(),ok).fastCandidate;
+ assert.equal(a.hourly.precipitation[1],null);
+ assert.equal(a.rapid.precip5.precipitation[2],0);
+});
 test('Fast source cannot exceed 6h newer than full or claim selected for client',()=>{
  const p=primary();p.run='2026-11-02T02:00';p.times=Array.from({length:28},(_,i)=>iso(Date.parse(p.run+'Z')+i*3600000).slice(0,16));
  assert.throws(()=>inspectFastToCommonForecastShadow(p,candidate()),/unrelated/);
