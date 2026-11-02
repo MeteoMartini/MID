@@ -27,7 +27,7 @@ describe('D2 full 542040-cell source client admission',()=>{
  });
  it('preserves missing and true zero without inferring a dry hour',()=>{
   const ix=validateD2FullDomainIndex(index,now),h=ix.products.precipitation!.frames[0];
-  const lats=Array.from({length:445},(_,i)=>44+i*.025);
+  const lats=Array.from({length:470},(_,i)=>44+i*.025);
   const lons=Array.from({length:805},(_,i)=>0+i*.025);
   const values=new Array<number|null>(lats.length*lons.length).fill(5);
   values[0]=0;values[1]=null;
