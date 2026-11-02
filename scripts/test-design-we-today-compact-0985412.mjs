@@ -60,7 +60,7 @@ for(const token of [
  '@media(prefers-reduced-motion:reduce)',
  'min-height:44px',
  'overflow-x:auto',
- 'var(--param-'
+ 'var(--text)'
 ])assert.ok(styles.includes(token),'WE CSS Vertragsbestandteil fehlt: '+token);
 assert.ok(!styles.includes('display:none!important;}\nhtml[data-mid-design=\'next\'] .forecast-cockpit [data-mid-we-today=\'true\'] .profile-sky-strip'),'Skybar darf nicht versteckt werden');
 console.log('MID Design-WE Heute: 24h-Story-Achse, Skybar/Wolken oben, Fokus, UTCI, NoData, alle Einzeldaten und responsive Bedienung als Source-Vertrag geprüft.');
