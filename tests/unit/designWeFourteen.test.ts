@@ -41,6 +41,10 @@ describe('MID 14-Tage-A/B/C Design-WE source and meteorology',()=>{
   expect(fourteenWindSeries([missing as any],'kmh')[0].points[0].mean).toBeNull();
   expect(fourteenPrecipitationSeries([missing as any])[0].points[0].low).toBeNull();
   expect(fourteenTemperatureSeries([missing as any])[0].points[0].q25).toBeNull();
+  const invalid={...row,bestPrecipitation:-1,bestWind:-2,precipitationLow:-1};
+  expect(fourteenPrecipitationSeries([invalid as any])[0].points[0].mean).toBeNull();
+  expect(fourteenPrecipitationSeries([invalid as any])[0].points[0].low).toBeNull();
+  expect(fourteenWindSeries([invalid as any],'kn')[0].points[0].mean).toBeNull();
  });
  it('converts wind only for the display unit and preserves true ensemble bounds',()=>{
   const kmh=fourteenWindSeries([row as any],'kmh');
@@ -56,6 +60,7 @@ describe('MID 14-Tage-A/B/C Design-WE source and meteorology',()=>{
   expect(temp[0].points[0].q75).toBe(11);
   expect(fourteenPrecipitationSeries([row as any])[0].points[0]).not.toHaveProperty('q25');
   expect(source).toContain('Niederschlagswahrscheinlichkeit · Best Match');
+  expect(source).toContain('formatValue={compactPrecipitationAmount}');
   expect(source).toContain('Ensemble-Spannen sind keine zusätzlichen Best-Match-Werte');
  });
  it('provides responsive and keyboard-visible modes without hiding any meteorological data',()=>{
