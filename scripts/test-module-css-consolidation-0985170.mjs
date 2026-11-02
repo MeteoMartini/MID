@@ -195,6 +195,26 @@ for(const entry of originalEntries){
  });
 }
 assert.equal(reviewedC9ScrollCount,1,'Exactly one DA19-01 mobile portrait scroll surface may differ');
+// DA19-15 (.409): the entire four-rule mobile settings header reflow was
+// deliberately added so that title, close and section chooser are reachable
+// at 320 px. Require the EXACT complete production block and remove ONLY it
+// from the historical comparison AST, preserving the immutable .169 golden.
+const reviewedSettingsMedia=`@media(max-width:430px){
+ .settings-titlebar{flex-wrap:wrap;align-items:center;gap:6px 10px}
+ .settings-titlebar>div:first-child{min-width:0;flex:1 1 auto}
+ .settings-titlebar .settings-section-direct{order:3;flex:0 0 100%;width:100%!important;max-width:100%;min-width:0!important;margin-left:0!important}
+ .settings-titlebar>button{flex:0 0 auto;margin-left:auto}
+}`;
+let reviewedSettingsMobile=0;
+for(const entry of originalEntries){
+ if(entry.file!=='src/midC18AuditFollowup.css')continue;
+ entry.tree.walkAtRules('media',rule=>{
+  if(rule.params!=='(max-width:430px)'||!rule.nodes.some(node=>node.type==='rule'&&node.selector==='.settings-titlebar .settings-section-direct'))return;
+  assert.equal(rule.toString(),reviewedSettingsMedia,'DA19-15 mobile 320px rule drifted from reviewed values');
+  rule.remove();reviewedSettingsMobile++;
+ });
+}
+assert.equal(reviewedSettingsMobile,1,'Exactly one reviewed DA19-15 mobile settings reflow may differ');
 const originalRemoved=consolidateCssCascade(originalEntries);
 assert.equal(originalRemoved.length,baseline.removedIdenticalCssDeclarations);
 assert.equal(cssCascadeFingerprint(originalEntries),baseline.cssCascadeSha256,'Original canonical CSS cascade diverged from .169');
