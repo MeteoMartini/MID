@@ -32,6 +32,7 @@ export const managedFiles=[
  ['workflows/mid-d2-ruc-archive-qa.yml','workflows/mid-d2-ruc-archive-qa.yml'],
  ['workflows/build-parity-qualification.yml','workflows/build-parity-qualification.yml'],
  ['workflows/mid-ecmwf-ifs-0p1-readonly.yml','workflows/mid-ecmwf-ifs-0p1-readonly.yml'],
+ ['workflows/mid-native-d2-full-domain-client-qa.yml','workflows/mid-native-d2-full-domain-client-qa.yml'],
  ['workflows/install-mid.yml','workflows/install-mid.yml'],
  ['workflows/release-timing-audit.yml','workflows/release-timing-audit.yml'],
  ['workflows/release-train-preflight.yml','workflows/release-train-preflight.yml'],
