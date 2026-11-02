@@ -332,11 +332,19 @@ def prepare(source:Path,target:Path,data_chunk_points:int=DEFAULT_DATA_CHUNK_POI
             key=prefix+file.name;destination=out/key;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(file,destination)
             objects.append({'key':key,'bytes':destination.stat().st_size,'sha256':digest(destination)})
         synoptic_fields={'key':prefix+'index.json','schema':payload['schema'],'generatedAt':payload['generatedAt']}
+    # Full-domain D2 is optional and entirely absent from existing RUC runs.
+    # Only a separately SHA/GRIB/Map-qualified and approved complete 72-frame
+    # immutable sidecar can be added; any partial sidecar aborts before latest.json.
+    native_fields=None
+    if (source/'model-fields-native'/'index.json').is_file():
+        from admit_d2_native_pages import admit as admit_native_d2
+        native_fields=admit_native_d2(source,out,run,objects,limit)
     total=sum(row['bytes'] for row in objects)
     if total>=limit:
         raise ValueError(f'{profile} RUC payload {total} bytes exceeds {limit} byte limit')
     result={**meta,'deterministic':det,'epsSummary':summary,'lookup':lookup,'rapid':rapid,'rapidExtreme':rapid_extreme or None,'eps':eps,'storageProfile':profile,'precipitationTotals':totals,'observedPrecipitation':observed,'modelFields':model_fields,'synopticFields':synoptic_fields,
             'pages':{'profile':profile,'nativeEpsMembers':False,'publishedBytes':total,'budgetBytes':PAGES_RUC_BUDGET_BYTES,'objects':objects,'prunedRedundantFields':pruned_fields,'prunedRapidProducts':pruned_products,'savedBytes':saved_bytes,'deduplicatedBytes':deduplicated_bytes}}
+    if native_fields is not None:result['modelFieldsNative']=native_fields
     if codec_staging:
         result['pages']['stagingOnly']=True
     else:

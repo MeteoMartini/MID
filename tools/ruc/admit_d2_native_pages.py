@@ -6,7 +6,8 @@ Atomic staging is handled by prepare_ruc_pages; this file only verifies/copies
 into its pre-existing temporary output, with the canonical Pages budget.
 """
 from __future__ import annotations
-import hashlib,json,re,shutil
+import gzip,hashlib,json,re,shutil
+from datetime import datetime,timedelta,timezone
 from pathlib import Path
 KINDS=('temperature','pressure','wind','gust','cloud','thetae','sigwx','precipitation')
 LEADS=(1,2,3,4,5,6,12,24,48)
@@ -30,6 +31,9 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
      or not isinstance(index.get('sourceInventorySha256'),str)
      or not DIGEST.fullmatch(index['sourceInventorySha256'])):
   raise ValueError('Only SHA-qualified, already approved native D2 source can enter Pages')
+ run_time=datetime.fromisoformat(index.get('run',''))
+ if run_time.tzinfo is None or run_time.utcoffset()!=timedelta(0):
+  raise ValueError('Original D2 model run must be timestamped UTC')
  products=index.get('products')
  if not isinstance(products,dict) or set(products)!=set(KINDS):
   raise ValueError('Native original D2 eight-kind matrix incomplete')
@@ -54,6 +58,30 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
        or not isinstance(frame.get('decodedBytes'),int) or not 1<=frame['decodedBytes']<=12_000_000
        or not file.is_file() or file.stat().st_size!=frame['bytes'] or sha(file)!=frame['sha256']):
     raise ValueError('Native DWD field missing, untrusted or not SHA-bound')
+   # Check payload bytes, not just the index: a manifest must not promote a pilot.
+   if not file.resolve(strict=True).is_relative_to(source.resolve(strict=True)):
+    raise ValueError('Native D2 input escapes immutable candidate directory')
+   with gzip.open(file,'rb') as zipped:
+    actual=zipped.read(frame['decodedBytes']+1)
+   if len(actual)!=frame['decodedBytes']:raise ValueError('Original DWD decoded bytes exceed verified budget')
+   field=json.loads(actual)
+   expected=(run_time+timedelta(hours=h)).timestamp()
+   field_time=datetime.fromisoformat(field.get('time',''))
+   if(field.get('schema')!='mid.icon-d2.native-field.v2'
+      or field.get('productionApproved') is not True
+      or field.get('sourceInventorySha256')!=index['sourceInventorySha256']
+      or field.get('nativePoints')!=542040 or field.get('modelId')!='icon-d2'
+      or field.get('sampling')!='nearest-native-cell'
+      or field.get('run')!=index['run'] or field.get('kind')!=kind
+      or field.get('unit')!=UNITS[kind] or field.get('leadHours')!=h
+      or field.get('scale')!=.1 or field_time.tzinfo is None
+      or abs(field_time.timestamp()-expected)>1
+      or not isinstance(field.get('values'),list)
+      or not isinstance(field.get('isobars'),list)
+      or not isinstance(field.get('centers'),list)):
+    raise ValueError('Original DWD 72-field model/source provenance mismatch')
+   if kind=='pressure' and not field['isobars']:
+    raise ValueError('Native full-domain pressure isolines missing from released field')
    size+=frame['bytes'];entries.append((file,name))
   if hours!=set(LEADS):raise ValueError('Incomplete native DWD forecast axis')
  if size>=350_000_000:raise ValueError('Original D2 map candidate exceeds standalone 350MB budget')
