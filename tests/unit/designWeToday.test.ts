@@ -67,6 +67,8 @@ describe('Design-WE Heute (read-only source assertions)',()=>{
  });
  it('registers the responsive stylesheet last and provides a small-screen accessible control layer',()=>{
   expect(manifest.sources.at(-1)).toBe('src/midDesignWeToday.css');
+  expect(css).toContain("html[data-mid-design='next']:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true']>.cockpit-meteogram-pro__head>.cockpit-weather-profile__toolbar");
+  expect(css).toContain('width:100%!important;max-width:100%!important;min-width:0!important;');
   for(const part of ['@media(max-width:959px)','@media(max-width:620px)','@media(max-width:350px)','@media(prefers-reduced-motion:reduce)','min-height:44px',':focus-visible','--mid-we-focus'])expect(css).toContain(part);
  });
 });
