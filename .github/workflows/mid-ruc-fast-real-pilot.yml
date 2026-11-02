@@ -6,6 +6,8 @@ on:
       - 'tools/ruc/ruc_fast_lane_producer.py'
       - 'tools/ruc/ruc_fast_consumer_shadow.py'
       - 'tools/ruc/test_ruc_fast_consumer_shadow.py'
+      - 'tools/ruc/ruc_fast_pages_overlay.py'
+      - 'tools/ruc/test_ruc_fast_pages_overlay.py'
       - 'ci/github/workflows/mid-ruc-fast-real-pilot.yml'
       - '.github/workflows/mid-ruc-fast-real-pilot.yml'
   workflow_dispatch:
@@ -72,6 +74,7 @@ jobs:
           python tools/ruc/test_ruc_fast_lane_producer.py -v
           python tools/ruc/test_ruc_fast_pointer_staging.py -v
           python tools/ruc/test_ruc_fast_consumer_shadow.py -v
+          python tools/ruc/test_ruc_fast_pages_overlay.py -v
       - name: Select DWD native source independent of EPS completeness
         shell: bash
         id: choose
