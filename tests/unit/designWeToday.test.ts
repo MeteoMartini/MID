@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
-import * as ts from 'typescript';
+// MID uses TypeScript 7 to typecheck; the legacy compiler AST remains in the pinned TS6 Strada alias.
+import * as ts from 'typescript-strada';
 import postcss from 'postcss';
 import {execFileSync} from 'node:child_process';
 import {describe,expect,it} from 'vitest';
