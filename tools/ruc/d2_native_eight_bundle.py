@@ -17,8 +17,8 @@ NODATA=np.uint32(0xffffffff)
 
 
 def packing_quantum(meta):
-    """Diagnostic only: GRIB2 simple-packing decoded quantum in mm, never a repair."""
-    if (meta.get('packingType')!='grid_simple'
+    """Diagnostic only: GRIB2 packed integer precision in mm, never a blanket repair."""
+    if (meta.get('packingType') not in ('grid_simple','grid_ccsds')
             or type(meta.get('binaryScaleFactor')) is not int
             or type(meta.get('decimalScaleFactor')) is not int):
         return None
@@ -116,10 +116,26 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
         provenance[field]={'sourceSha256':row['sha256'],'run':run,'leadHours':hour,
                            'parameter':origin}
     try:
+        # SHA-verify both original same-run GRIB2 objects and inspect their
+        # integer packings; ambiguous negative cells become NoData, not zero.
+        current=checked_source(records,run,'tot_prec',lead)
+        previous=checked_source(records,run,'tot_prec',lead-1)
+        current_packing=original_packing_diagnostic(current,root)
+        previous_packing=original_packing_diagnostic(previous,root)
         products=derive_eight({key:components[key] for key in SOURCE_FIELDS},
                               {key:units[key] for key in SOURCE_FIELDS},
                               components['previous_tot_prec'],units['previous_tot_prec'],
-                              points=NATIVE_POINTS)
+                              points=NATIVE_POINTS,current_packing=current_packing,
+                              previous_packing=previous_packing)
+        ambiguous=int(np.count_nonzero(np.isfinite(components['tot_prec'])
+                      & np.isfinite(components['previous_tot_prec'])
+                      & ~np.isfinite(products['precipitation'])))
+        if ambiguous:
+            print(json.dumps({'stage':'original-precipitation-packing-uncertainty',
+                 'run':run,'leadHours':lead,'ambiguousNativeCells':ambiguous,
+                 'currentPacking':current_packing,'previousPacking':previous_packing,
+                 'handling':'NoData; never zero','productionApproved':False},
+                 sort_keys=True),file=sys.stderr,flush=True)
     except ValueError as exc:
         # Preserve the strict rejection. Gather original packing evidence only
         # for the actual same-run cumulative precipitation discrepancy.
@@ -181,6 +197,8 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
         index={'schema':'mid.dwd.native-eight-pilot.v1','productionApproved':False,'run':run,
                'leadHours':lead,'sourceInventorySha256':hashlib.sha256(raw).hexdigest(),
                'nativePoints':NATIVE_POINTS,'sample':'nearest-native-cell','maxNearestKm':5,
+               'ambiguousPrecipitationNativeCells':ambiguous,
+               'precipitationAmbiguityPolicy':'NoData; native extrema preserved',
                'sourceObjects':provenance,'products':entries}
         (temp/'pilot-index.json').write_text(json.dumps(index,sort_keys=True)+'\n')
         os.rename(temp,out)
