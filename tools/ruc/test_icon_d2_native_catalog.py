@@ -85,6 +85,30 @@ class NativeD2CatalogTests(unittest.TestCase):
   coordinate="icon-d2_germany_icosahedral_time-invariant_2026110100_000_0_clat.grib2.bz2"
   with self.assertRaisesRegex(ValueError,"not uniquely"):select_coordinate([coordinate,coordinate],"clat","2026110100")
 
+ def test_bounded_original_io_preserves_order_and_fails_closed(self):
+  from pilot_icon_d2_native_catalog import map_two_at_a_time
+  from threading import Lock
+  from time import sleep
+  lock=Lock()
+  active=0
+  peak=0
+  def worker(i):
+   nonlocal active,peak
+   with lock:
+    active+=1
+    peak=max(peak,active)
+   sleep(.01)
+   with lock:active-=1
+   return i*i
+  self.assertEqual(map_two_at_a_time(range(10),worker),[i*i for i in range(10)])
+  self.assertEqual(peak,2)
+  self.assertEqual(active,0)
+  def rejected(i):
+   if i==3:raise ValueError("Original DWD source unavailable")
+   return i
+  with self.assertRaisesRegex(ValueError,"Original DWD source unavailable"):
+   map_two_at_a_time(range(8),rejected)
+
  def test_official_directory_read_retry_only_on_transient_timeouts(self):
   import requests
   from unittest.mock import patch

@@ -103,6 +103,12 @@ def read_listing(url,session):
   finally:response.close()
  raise RuntimeError("Original DWD directory retry exhausted")
 
+def map_two_at_a_time(items,worker):
+ """Bound original-DWD QA I/O to two requests; preserve order and fail closed."""
+ from concurrent.futures import ThreadPoolExecutor
+ with ThreadPoolExecutor(max_workers=2) as pool:
+  return list(pool.map(worker,items))
+
 def download_native(item,destination,session):
  """Optional staging of immutable raw source bytes for separate ecCodes inventory."""
  if not item["sourceUrl"].startswith(ROOT) or not item["sourceUrl"].endswith("/"+quote(item["file"],safe="._-")):
@@ -174,20 +180,46 @@ def main():
  parser.add_argument("--download",action="store_true",help="Download all scoped native files for subsequent separate WMO/ecCodes inventory")
  args=parser.parse_args()
  if args.output.exists():raise ValueError("immutable pilot output directory already exists")
- session=requests.Session();session.headers.update({"User-Agent":"MID-DWD-original-native-audit/1.0"})
- report=catalogue(args.last_run,lambda url:read_listing(url,session))
+ # Original directory listings and immutable GRIBs are independent reads.
+ # Two separate Sessions bound upstream load and avoid thread-unsafe Session sharing.
+ urls=[ROOT+stamp[-2:]+"/"+field+"/" for stamp in cycles(args.last_run)
+       for field in (*FIELDS,"clat","clon")]
+ def listing_worker(url):
+  with requests.Session() as session:
+   session.headers.update({"User-Agent":"MID-DWD-original-native-audit/1.0"})
+   return read_listing(url,session)
+ pages=map_two_at_a_time(urls,listing_worker)
+ listings=dict(zip(urls,pages,strict=True))
+ report=catalogue(args.last_run,lambda url:listings[url])
+ print(json.dumps({"stage":"official-directory-catalog","runs":report["expectedRuns"],
+                   "directories":len(urls),"originals":len(report["files"]),
+                   "productionApproved":False}),flush=True)
  args.output.mkdir(parents=True)
  try:
   if args.download:
-   for item in report["files"]:item.update(download_native(item,args.output,session))
+   import threading
+   progress_lock=threading.Lock()
+   completed=0
+   def original_worker(item):
+    nonlocal completed
+    with requests.Session() as session:
+     session.headers.update({"User-Agent":"MID-DWD-original-native-audit/1.0"})
+     result=download_native(item,args.output,session)
+    with progress_lock:
+     completed+=1
+     if completed%24==0 or completed==len(report["files"]):
+      print(json.dumps({"stage":"original-download","completed":completed,
+                        "expected":len(report["files"]),"productionApproved":False}),flush=True)
+    return result
+   originals=map_two_at_a_time(report["files"],original_worker)
+   for item,original in zip(report["files"],originals,strict=True):item.update(original)
    (args.output/"inventory-input.json").write_text(json.dumps(pin_original_inventory(report),separators=(",",":"))+"\n")
   (args.output/"catalog.json").write_text(json.dumps(report,ensure_ascii=False,separators=(",",":"))+"\n")
   print(json.dumps({"catalog":str(args.output/"catalog.json"),"runs":report["expectedRuns"],
                     "files":len(report["files"]),"rawDownloaded":args.download,
-                    "productionApproved":False},ensure_ascii=False))
+                    "productionApproved":False},ensure_ascii=False),flush=True)
  except BaseException:
   import shutil
   shutil.rmtree(args.output,ignore_errors=True)
   raise
- finally:session.close()
 if __name__=="__main__":main()
