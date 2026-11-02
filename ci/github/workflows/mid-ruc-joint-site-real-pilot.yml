@@ -181,6 +181,23 @@ jobs:
         run: |
           python tools/ruc/ruc_fast_consumer_shadow.py --shadow archived-fast/native-shadow --output downloaded-fast-readback.json
           cmp original-fast-readback.json downloaded-fast-readback.json
+      - name: Read-only 100% reversible native Fast byteplanes-gzip on genuine downloaded original
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/ruc/test_ruc_fast_lossless_probe.py -v
+          python tools/ruc/ruc_fast_lossless_probe.py --shadow archived-fast/native-shadow --output fast-lossless-proof.json
+          python - <<'PY'
+          import json
+          row=json.load(open('fast-lossless-proof.json'))
+          assert row['bitIdentical'] is True
+          assert len(row['objects'])==4
+          assert all(obj['decodedSha256']==obj['rawSha256'] for obj in row['objects'].values())
+          assert all(row[k] is False for k in ('productionEnabled','publicationAuthorized','consumerAdoptionVerified','attestedRelease'))
+          print('Exact native Fast original bytes:',row['originalBytes'])
+          print('Offline byteplanes-gzip candidate bytes:',row['candidateWireBytes'])
+          print('Conditional savings (not released):',row['potentialSavingsBytes'])
+          PY
       - name: Recreate real full released Pages site then combine unchanged 27h plus inactive fast
         run: |
           set -euo pipefail
@@ -257,6 +274,7 @@ jobs:
           path: |
             paged-proof.json
             paged-full-proof.json
+            fast-lossless-proof.json
             .joint-paged-pages/ruc/fast/paged-shadow.json
           include-hidden-files: true
           if-no-files-found: error
