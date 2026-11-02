@@ -242,3 +242,24 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-hourly-chip.active{
 
 /* The hidden attribute must win against legacy authored tooltip display:grid. */
 html[data-mid-design='next'] .forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__tooltip-content[hidden]{display:none!important}
+
+/* Viertelstunden-Antippdetails: mobile Verdichtung verliert keine Messfelder.
+   Wetterbild/Skybar bleiben weiterhin im ersten Blick sichtbar. */
+html[data-mid-design='next'] .forecast-cockpit .mid-we-now90-selected{
+ display:none;
+}
+@media(max-width:620px){
+ html[data-mid-design='next'] .forecast-cockpit .mid-we-now90-selected{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
+  min-width:0;margin:0 6px 7px;padding:8px 10px;
+  border:1px solid var(--border);border-radius:11px;
+  background:color-mix(in srgb,var(--surface) 83%,var(--s2) 17%);
+  color:var(--text);font-size:11px;line-height:1.4;
+ }
+ html[data-mid-design='next'] .forecast-cockpit .mid-we-now90-selected strong{
+  width:100%;font-size:12px;font-weight:780;overflow-wrap:anywhere;
+ }
+ html[data-mid-design='next'] .forecast-cockpit .mid-we-now90-selected span{
+  min-width:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;
+ }
+}
