@@ -7,13 +7,59 @@ eight-kind pilot intentionally fails if an original previous-hour TOT_PREC or
 a single native parameter is unavailable, rather than inventing precipitation.
 """
 from __future__ import annotations
-import argparse,gzip,hashlib,json,math,os,shutil,tempfile
+import argparse,bz2,gzip,hashlib,json,math,os,shutil,sys,tempfile
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
 import numpy as np
 from d2_native_full_fields import derive_eight,sample_native,PRODUCT_UNITS,NATIVE_POINTS
 MAX_FRAME_BYTES=12_000_000
 NODATA=np.uint32(0xffffffff)
+
+
+def packing_quantum(meta):
+    """Diagnostic only: GRIB2 simple-packing decoded quantum in mm, never a repair."""
+    if (meta.get('packingType')!='grid_simple'
+            or type(meta.get('binaryScaleFactor')) is not int
+            or type(meta.get('decimalScaleFactor')) is not int):
+        return None
+    e=meta['binaryScaleFactor'];d=meta['decimalScaleFactor']
+    if not -100<=e<=100 or not -30<=d<=30:
+        return None
+    quantum=2.0**e*10.0**(-d)
+    return quantum if math.isfinite(quantum) and quantum>0 else None
+
+def original_packing_diagnostic(row,root):
+    """Inspect only SHA-verified original first GRIB message; never modify values."""
+    from eccodes import codes_grib_new_from_file,codes_get,codes_release
+    path=(root/row['path']).resolve(strict=True)
+    if not path.is_relative_to(root) or hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:
+        raise ValueError('Original TOT_PREC source changed before packing diagnostic')
+    with tempfile.TemporaryFile() as stream:
+        with (bz2.BZ2File(path) if path.name.endswith('.bz2') else path.open('rb')) as source:
+            total=0
+            for chunk in iter(lambda:source.read(1048576),b''):
+                total+=len(chunk)
+                if total>640_000_000:
+                    raise ValueError('Original packing diagnostic decompression over budget')
+                stream.write(chunk)
+        stream.seek(0)
+        handle=codes_grib_new_from_file(stream)
+        if handle is None:
+            raise ValueError('Missing original TOT_PREC GRIB message')
+        try:
+            result={}
+            for key in ('packingType','binaryScaleFactor','decimalScaleFactor','bitsPerValue',
+                        'referenceValue','bitmapPresent'):
+                try:
+                    value=codes_get(handle,key)
+                    result[key]=str(value) if key=='packingType' else (
+                        float(value) if key=='referenceValue' else int(value))
+                except Exception:
+                    result[key]=None
+            result['decodedQuantumMm']=packing_quantum(result)
+            return result
+        finally:
+            codes_release(handle)
 
 def checked_source(records,run,field,lead):
     found=[r for r in records if r.get('model')=='icon-d2' and r.get('run')==run
@@ -69,10 +115,31 @@ def build_original_eight(root:Path,manifest:Path,out:Path,lead:int=6):
         units[field]=unit
         provenance[field]={'sourceSha256':row['sha256'],'run':run,'leadHours':hour,
                            'parameter':origin}
-    products=derive_eight({key:components[key] for key in SOURCE_FIELDS},
-                          {key:units[key] for key in SOURCE_FIELDS},
-                          components['previous_tot_prec'],units['previous_tot_prec'],
-                          points=NATIVE_POINTS)
+    try:
+        products=derive_eight({key:components[key] for key in SOURCE_FIELDS},
+                              {key:units[key] for key in SOURCE_FIELDS},
+                              components['previous_tot_prec'],units['previous_tot_prec'],
+                              points=NATIVE_POINTS)
+    except ValueError as exc:
+        # Preserve the strict rejection. Gather original packing evidence only
+        # for the actual same-run cumulative precipitation discrepancy.
+        if 'Original cumulative TOT_PREC reset or wrong same-run interval' in str(exc):
+            delta=components['tot_prec']-components['previous_tot_prec']
+            negative=delta[np.isfinite(delta)&(delta<0)]
+            current=checked_source(records,run,'tot_prec',lead)
+            previous=checked_source(records,run,'tot_prec',lead-1)
+            report={'stage':'original-tot-prec-negative-delta-diagnostic',
+                    'productionApproved':False,'sourceRun':run,'leadHours':lead,
+                    'negativeCells':int(negative.size),
+                    'negativeMinMm':float(np.min(negative)),
+                    'negativeMaxMm':float(np.max(negative)),
+                    'negativeDistinctMm':np.unique(negative).tolist()[:12],
+                    'currentSourceSha256':current['sha256'],
+                    'previousSourceSha256':previous['sha256'],
+                    'currentPacking':original_packing_diagnostic(current,root),
+                    'previousPacking':original_packing_diagnostic(previous,root)}
+            print(json.dumps(report,sort_keys=True),file=sys.stderr,flush=True)
+        raise
     out.parent.mkdir(parents=True,exist_ok=True)
     temp=Path(tempfile.mkdtemp(prefix='.d2-eight-original-',dir=out.parent))
     try:
