@@ -25,7 +25,7 @@ class ProtectedSignerContract(unittest.TestCase):
         self.assertNotIn('secrets.',source)
         self.assertIn("github.ref == 'refs/heads/main'",source)
         self.assertIn('test "$(git rev-parse HEAD)" = "$GITHUB_SHA"',source)
-        self.assertIn('refs/heads/mid-stable',source)
+        self.assertIn('git/ref/heads/mid-stable',source)
         self.assertIn("test -s AGENTS.md",source)
         self.assertIn('attestations: write',source)
         self.assertIn('id-token: write',source)
