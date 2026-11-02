@@ -165,4 +165,5 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
  existing_objects.extend(output)
  return {'key':prefix+'index.json','schema':index['schema'],'run':index['run'],
          'sourceInventorySha256':index['sourceInventorySha256'],'productionApproved':True,
+         'indexSha256':index_hash,'indexBytes':index_file.stat().st_size,
          'nativePoints':542040,'frameCount':72,'bytes':size}
