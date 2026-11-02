@@ -65,10 +65,46 @@ const clampRasterTone=(value:number,minimum:number,maximum:number)=>Math.max(min
 export function RasterTileLayer({id,url,opacity=1,minZoom=0,maxZoom=22,tileSize=256,attribution,zIndex=0,tone,resampling='linear',onReady,onError}:{id:string;url:string;opacity?:number;minZoom?:number;maxZoom?:number;tileSize?:number;attribution?:string;zIndex?:number;tone?:RasterTone;resampling?:'linear'|'nearest';onReady?:()=>void;onError?:(message?:string)=>void}){
  const callbacks=useRef({onReady,onError});callbacks.current={onReady,onError};
  const map=useMidMap(),sourceId=`${safeId(id)}-source`,layerId=`${safeId(id)}-layer`;
- useEffect(()=>{if(!map||!url)return;let active=true,ready=false,failed=false;const errorHandler=(event:maplibregl.ErrorEvent)=>{const source=(event as unknown as {sourceId?:string}).sourceId;if(source!==sourceId)return;failed=true;if(active)callbacks.current.onError?.(event.error?.message)};const idleHandler=()=>{if(!active||ready||failed||!map.getLayer(layerId)||!map.isSourceLoaded(sourceId))return;ready=true;callbacks.current.onReady?.()};
-  try{if(map.getLayer(layerId))map.removeLayer(layerId);if(map.getSource(sourceId))map.removeSource(sourceId);map.addSource(sourceId,{type:'raster',tiles:[url],tileSize,minzoom:minZoom,maxzoom:maxZoom,attribution});map.addLayer({id:layerId,type:'raster',source:sourceId,paint:{'raster-opacity':Math.max(0,Math.min(1,opacity)),'raster-fade-duration':0,'raster-opacity-transition':{duration:350,delay:0},'raster-resampling':resampling,...(tone?.saturation!==undefined?{'raster-saturation':clampRasterTone(tone.saturation,-1,1)}:{}),...(tone?.contrast!==undefined?{'raster-contrast':clampRasterTone(tone.contrast,-1,1)}:{}),...(tone?.brightnessMin!==undefined?{'raster-brightness-min':clampRasterTone(tone.brightnessMin,0,1)}:{}),...(tone?.brightnessMax!==undefined?{'raster-brightness-max':clampRasterTone(tone.brightnessMax,0,1)}:{}),...(tone?.hueRotate!==undefined?{'raster-hue-rotate':clampRasterTone(tone.hueRotate,0,360)}:{})}});registerMapLayerOrder(map,layerId,zIndex);map.on('error',errorHandler);map.on('idle',idleHandler);map.on('sourcedata',idleHandler)}catch(error){callbacks.current.onError?.(error instanceof Error?error.message:String(error))}
-  return()=>{active=false;map.off('error',errorHandler);map.off('idle',idleHandler);map.off('sourcedata',idleHandler);unregisterMapLayerOrder(map,layerId);try{if(map.getLayer(layerId))map.removeLayer(layerId);if(map.getSource(sourceId))map.removeSource(sourceId)}catch{}}
- },[map,id,url,minZoom,maxZoom,tileSize,attribution,zIndex,resampling,tone?.saturation,tone?.contrast,tone?.brightnessMin,tone?.brightnessMax,tone?.hueRotate]);
+ const retryState=useRef({url:'',attempts:0}),[retryRevision,setRetryRevision]=useState(0);
+ useEffect(()=>{
+  if(!map||!url)return;
+  if(retryState.current.url!==url)retryState.current={url,attempts:0};
+  let active=true,ready=false,failed=false,retryTimer=0,watchdog=0;
+  const scheduleRetry=(message:string)=>{
+   if(!active||failed)return;
+   failed=true;callbacks.current.onError?.(message);
+   if(retryState.current.attempts>=3)return;
+   const delay=Math.min(12_000,1500*2**retryState.current.attempts++);
+   retryTimer=window.setTimeout(()=>{if(active)setRetryRevision(value=>value+1)},delay);
+  };
+  const errorHandler=(event:maplibregl.ErrorEvent)=>{
+   const source=(event as unknown as {sourceId?:string}).sourceId;
+   if(source===sourceId)scheduleRetry(event.error?.message||'Kartenkachel konnte nicht geladen werden.');
+  };
+  const idleHandler=()=>{
+   if(!active||ready||failed||!map.getLayer(layerId)||!map.isSourceLoaded(sourceId))return;
+   ready=true;retryState.current.attempts=0;
+   window.clearTimeout(watchdog);callbacks.current.onReady?.();
+  };
+  try{
+   if(map.getLayer(layerId))map.removeLayer(layerId);
+   if(map.getSource(sourceId))map.removeSource(sourceId);
+   // Retry only changes the HTTP cache key, never a meteorological validity time.
+   const retryUrl=retryRevision&&retryState.current.attempts?url+(url.includes('?')?'&':'?')+'_mid_tile_attempt='+retryRevision:url;
+   map.addSource(sourceId,{type:'raster',tiles:[retryUrl],tileSize,minzoom:minZoom,maxzoom:maxZoom,attribution});
+   map.addLayer({id:layerId,type:'raster',source:sourceId,paint:{'raster-opacity':Math.max(0,Math.min(1,opacity)),'raster-fade-duration':0,'raster-opacity-transition':{duration:350,delay:0},'raster-resampling':resampling,...(tone?.saturation!==undefined?{'raster-saturation':clampRasterTone(tone.saturation,-1,1)}:{}),...(tone?.contrast!==undefined?{'raster-contrast':clampRasterTone(tone.contrast,-1,1)}:{}),...(tone?.brightnessMin!==undefined?{'raster-brightness-min':clampRasterTone(tone.brightnessMin,0,1)}:{}),...(tone?.brightnessMax!==undefined?{'raster-brightness-max':clampRasterTone(tone.brightnessMax,0,1)}:{}),...(tone?.hueRotate!==undefined?{'raster-hue-rotate':clampRasterTone(tone.hueRotate,0,360)}:{})}});
+   registerMapLayerOrder(map,layerId,zIndex);
+   map.on('error',errorHandler);map.on('idle',idleHandler);map.on('sourcedata',idleHandler);
+   watchdog=window.setTimeout(()=>{if(active&&!ready&&!failed&&document.visibilityState==='visible')scheduleRetry('Kartenkachel: Zeitüberschreitung nach 20 Sekunden.')},20_000);
+   queueMicrotask(idleHandler);
+  }catch(error){scheduleRetry(error instanceof Error?error.message:String(error))}
+  return()=>{
+   active=false;window.clearTimeout(retryTimer);window.clearTimeout(watchdog);
+   map.off('error',errorHandler);map.off('idle',idleHandler);map.off('sourcedata',idleHandler);
+   unregisterMapLayerOrder(map,layerId);
+   try{if(map.getLayer(layerId))map.removeLayer(layerId);if(map.getSource(sourceId))map.removeSource(sourceId)}catch{}
+  };
+ },[map,id,url,minZoom,maxZoom,tileSize,attribution,zIndex,resampling,tone?.saturation,tone?.contrast,tone?.brightnessMin,tone?.brightnessMax,tone?.hueRotate,retryRevision]);
  useEffect(()=>{if(map?.getLayer(layerId))map.setPaintProperty(layerId,'raster-opacity',Math.max(0,Math.min(1,opacity)))},[map,layerId,opacity]);return null;
 }
 export function WmsTileLayer({id,baseUrl,params,opacity=1,attribution,zIndex=0,resampling='linear',onReady,onError}:{id:string;baseUrl:string;params:Record<string,string|number|boolean|undefined>;opacity?:number;attribution?:string;zIndex?:number;resampling?:'linear'|'nearest';onReady?:()=>void;onError?:(message?:string)=>void}){const url=useMemo(()=>wmsTileUrl(baseUrl,params),[baseUrl,JSON.stringify(params)]);return <RasterTileLayer id={id} url={url} opacity={opacity} attribution={attribution} zIndex={zIndex} resampling={resampling} onReady={onReady} onError={onError}/>}

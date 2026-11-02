@@ -331,8 +331,40 @@ export default function RadarPanel({lat,lon,timezone,analysis,thunder,isDay=true
  useEffect(()=>{if(!panelVisible)return;if(!showLightning){setLightningData({points:[]});setLightningError('');return}const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadLightningPoints(lat,lon,controller.signal).then(data=>{setLightningData(data);setLightningError('')}).catch(error=>{if(!controller.signal.aborted){setLightningData({points:[],fallback:mtgLightning?'mtg-li':'none'});setLightningError(error instanceof Error?error.message:String(error))}})};void load();const timer=window.setInterval(load,120000);return()=>{controller.abort();window.clearInterval(timer)}},[lat,lon,showLightning,mtgLightning,panelVisible]);
  useEffect(()=>{if(!panelVisible)return;if(!showNowcastObjects||!dwdLightning){setNowcastMixData({points:[]});setNowcastMixError('');return}const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadNowcastMixPoints(lat,lon,controller.signal).then(data=>{setNowcastMixData(data);setNowcastMixError('')}).catch(error=>{if(!controller.signal.aborted){setNowcastMixData({points:[],provider:'DWD NowCastMIX Accumulated Flash Geometry'});setNowcastMixError(error instanceof Error?error.message:String(error))}})};void load();const timer=window.setInterval(load,120000);return()=>{controller.abort();window.clearInterval(timer)}},[lat,lon,showNowcastObjects,dwdLightning,panelVisible]);
  useEffect(()=>{
-  if(!panelVisible)return;const needed=showSatellite||showLightning||showNowcastObjects||showRadar;if(!needed){setProductTimes(EMPTY_PRODUCT_TIMES);setCompositeError('');return}
-  const controller=new AbortController(),load=()=>{if(document.visibilityState==='hidden')return Promise.resolve();return loadCompositeTimes(lat,lon,controller.signal).then(data=>{setProductTimes(data);const server=epochMs(data.serverTime);setClockOffsetMs(Number.isFinite(server)&&Math.abs(server-Date.now())<=10*60000?server-Date.now():0);setCompositeError(data.errors?.join(' | ')||'')}).catch(error=>{if(!controller.signal.aborted){setProductTimes(EMPTY_PRODUCT_TIMES);setCompositeError(error instanceof Error?error.message:String(error))}})};void load();const timer=window.setInterval(load,300000);return()=>{controller.abort();window.clearInterval(timer)};
+  if(!panelVisible)return;
+  const needed=showSatellite||showLightning||showNowcastObjects||showRadar;
+  if(!needed){setProductTimes(EMPTY_PRODUCT_TIMES);setCompositeError('');return}
+  const controller=new AbortController();
+  let inFlight=false,failures=0,lastSuccess=0,retryTimer=0;
+  const load=async()=>{
+   if(controller.signal.aborted||inFlight||document.visibilityState==='hidden')return;
+   inFlight=true;
+   try{
+    const data=await loadCompositeTimes(lat,lon,controller.signal);
+    if(controller.signal.aborted)return;
+    setProductTimes(data);
+    const server=epochMs(data.serverTime);
+    setClockOffsetMs(Number.isFinite(server)&&Math.abs(server-Date.now())<=10*60000?server-Date.now():0);
+    setCompositeError(data.errors?.join(' | ')||'');
+    lastSuccess=Date.now();failures=0;window.clearTimeout(retryTimer);
+   }catch(error){
+    if(!controller.signal.aborted){
+     // Preserve previously verified timestamps. The view still enforces freshness.
+     setCompositeError(error instanceof Error?error.message:String(error));
+     if(failures<4){
+      const delay=Math.min(60_000,10_000*2**failures++);
+      window.clearTimeout(retryTimer);
+      retryTimer=window.setTimeout(()=>{void load()},delay);
+     }
+    }
+   }finally{inFlight=false}
+  };
+  const resume=()=>{if(document.visibilityState==='visible'&&Date.now()-lastSuccess>=30_000)void load()};
+  void load();
+  const interval=window.setInterval(()=>{void load()},300_000);
+  document.addEventListener('visibilitychange',resume);
+  window.addEventListener('focus',resume);
+  return()=>{controller.abort();window.clearInterval(interval);window.clearTimeout(retryTimer);document.removeEventListener('visibilitychange',resume);window.removeEventListener('focus',resume)};
  },[lat,lon,showSatellite,showLightning,showNowcastObjects,showRadar,panelVisible]);
  // The map rail always knows the real next model terms.  The user's line setting
  // only controls live overlays; it must not hide the forecast phase behind a view switch.
