@@ -13,6 +13,10 @@ on:
       - 'tools/ruc/ruc_fast_pages_overlay.py'
       - 'tools/ruc/ruc_fast_pages_chunker.py'
       - 'tools/ruc/ruc_fast_cas.mjs'
+      - 'tools/ruc/ruc_fast_lane_producer.py'
+      - 'tools/ruc/d2_native_full_fields.py'
+      - 'tools/ruc/d2_native_eight_bundle.py'
+      - 'tools/ruc/stage_d2_native_full_domain.py'
       - 'src/nativeD2FullDomain.ts'
       - 'src/nativeModelFields.ts'
       - 'tests/unit/native-d2-original-binary-readback.test.ts'
@@ -46,6 +50,26 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = 9bf44c3354f98937fa058aac5d6dceb5895d29e5
           cmp ci/github/workflows/mid-d2-ruc-site-union-qa.yml .github/workflows/mid-d2-ruc-site-union-qa.yml
+          # A successful historical artifact is not proof of a modified current producer.
+          # Require GitHub's authenticated original-source blob SHA for every producer
+          # whose bytes created the pinned original data. On drift, rebuild the
+          # original-data pilot; never bless stale artifacts on the new source.
+          for spec in \
+            'a3e7b03e60fae61fc5cc23074c8ec97fcd17b0c9 tools/ruc/ruc_fast_lane_producer.py' \
+            'a3e7b03e60fae61fc5cc23074c8ec97fcd17b0c9 tools/ruc/ruc_fast_pages_chunker.py' \
+            'a3e7b03e60fae61fc5cc23074c8ec97fcd17b0c9 tools/ruc/ruc_fast_pages_overlay.py' \
+            'bb8a63ea8f5e7c45b3b6bc10804b92b99d8ac74c tools/ruc/d2_native_full_fields.py' \
+            'bb8a63ea8f5e7c45b3b6bc10804b92b99d8ac74c tools/ruc/d2_native_eight_bundle.py' \
+            'bb8a63ea8f5e7c45b3b6bc10804b92b99d8ac74c tools/ruc/stage_d2_native_full_domain.py'; do
+            read -r original_sha source_path <<< "$spec"
+            original_blob="$(gh api "repos/$GITHUB_REPOSITORY/contents/$source_path?ref=$original_sha" --jq .sha)"
+            current_blob="$(git hash-object "$source_path")"
+            if [[ "$original_blob" != "$current_blob" ]]; then
+              echo "::error file=$source_path::Original DWD producer changed; refresh the authentic original-data artifact before union admission."
+              exit 1
+            fi
+          done
+          echo 'All six original DWD producer blobs match the authenticated artifact-source commits.'
           for spec in \
             '41433049114 13135434899 bb8a63ea8f5e7c45b3b6bc10804b92b99d8ac74c mid-d2-native-shadow-41433049114-1 sha256:61f01c505a36b81f4e37b216a5cb8a9b6030d1e820f72af6ed14c90d5228b8ea' \
             '41490569833 13163772709 a3e7b03e60fae61fc5cc23074c8ec97fcd17b0c9 mid-ruc-joint-site-inactive-41490569833-1 sha256:9341f5da4f792a3a65fc5ea7c263316f97416b0f3bbc13ea537c97fe24c65b76'; do
