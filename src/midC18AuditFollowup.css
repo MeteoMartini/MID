@@ -87,3 +87,6 @@ html[data-mid-design='next'] .forecast-cockpit .cockpit-weather-profile__signals
  .settings-titlebar .settings-section-direct{order:3;flex:0 0 100%;width:100%!important;max-width:100%;min-width:0!important;margin-left:0!important}
  .settings-titlebar>button{flex:0 0 auto;margin-left:auto}
 }
+
+/* DA19-22: actual PoP slot remains readable at 320/390/430px and enlarged text. */
+.current-nowcard-heading .current-nowcard-timebasis{display:block;max-width:100%;min-width:0;font-size:clamp(11px,2.8vw,13px);line-height:1.4;font-weight:400;white-space:normal;overflow-wrap:anywhere;margin-top:4px;color:var(--muted)}

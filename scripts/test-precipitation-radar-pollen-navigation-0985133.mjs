@@ -119,3 +119,25 @@ try{
 }finally{rmSync(temp,{recursive:true,force:true})}
 
 console.log('MID v0.9.85.133: Radar-Datenlücken, 24-h-Niederschlagsphasen, Intervallintensität, Pollen-Datum und Startnavigation konsistent.');
+
+// DA19-21: original post-fusion code, end time and missing amount are distinct from display.
+{
+ const {build}=await import('esbuild');
+ const bundle=await build({entryPoints:['src/precipitationIntervals.ts'],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});
+ const {precipitationPresentationHours,precipitationPresentationMinutes15,precipitationPresentationProvenance}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+ const start=Date.UTC(2026,10,2,8),hour={epoch:start,time:'2026-11-02T08:00',temperature:12,humidity:85,cloud:60,code:2,precipitation:0,rain:0,showers:0,snowfall:0,probability:0,precipitationAvailable:true,probabilityAvailable:true};
+ const sampled={...hour,epoch:start+3600000,time:'2026-11-02T09:00',code:65,precipitation:.2,rain:.2,probability:93,weatherSourceLabel:'MID Kurzfristfusion'};
+ const shown=precipitationPresentationHours([hour,sampled]),trace=precipitationPresentationProvenance(shown[0]);
+ assert.ok(trace);assert.equal(trace.inputCode,65);assert.equal(trace.displayCode,shown[0].code);assert.equal(trace.sourceEndEpoch,start+3600000);assert.equal(trace.startEpoch,start);assert.equal(trace.endEpoch,start+3600000);assert.equal(trace.amountMm,.2);assert.equal(trace.sourceLabel,'MID Kurzfristfusion');
+ assert.ok(['retained','derived'].includes(trace.origin));
+ const missing=precipitationPresentationHours([hour,{...sampled,precipitationAvailable:false}])[0],missingTrace=precipitationPresentationProvenance(missing);
+ assert.equal(missing.precipitationAvailable,false);assert.equal(missingTrace.amountMm,null);assert.equal(missingTrace.origin,'missing');
+ const dry=precipitationPresentationHours([hour,{...sampled,code:0,precipitation:0,rain:0,probability:0}])[0],dryTrace=precipitationPresentationProvenance(dry);
+ assert.equal(dryTrace.amountMm,0);assert.equal(dryTrace.origin,'dry-sky');
+ const gap=precipitationPresentationHours([hour,{...sampled,epoch:start+7200000}])[0],gapTrace=precipitationPresentationProvenance(gap);
+ assert.equal(gapTrace.sourceEndEpoch,null);assert.equal(gapTrace.amountMm,null);
+ const quarter={...hour,epoch:start+900000,time:'2026-11-02T08:15',precipitation:.03,rain:.03,code:61},quarterShown=precipitationPresentationMinutes15([hour,quarter]);
+ assert.equal(precipitationPresentationProvenance(quarterShown[0]).endEpoch,start+900000);
+ assert.equal(precipitationPresentationProvenance(quarterShown[0]).amountMm,.03);
+ assert.ok(appSource.includes('precipitationPresentationProvenance(hour)')&&appSource.includes('title={weatherProvenance}'));
+}

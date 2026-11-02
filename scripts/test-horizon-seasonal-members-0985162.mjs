@@ -16,3 +16,5 @@ assert.match(memberView,/rows\.filter\(row=>row\.values\.length===0\)/,'months l
 assert.match(memberView,/Keine Monatsanomalie für/,'missing future months need visible coverage explanation');
 assert.match(memberView,/keine verfügbaren Mitglieder – Datenlücke, kein Prognosewert/,'chart accessible text distinguishes missing from zero');
 console.log('MID162: genuine member aggregation, leap/month lengths, partial/missing/duplicate dates, unit contract and explicit monthly gaps passed.');
+
+assert.match(readFileSync('src/SeasonalMemberPanel.tsx','utf8'),/Modellklimareferenz oder gültige Mitgliedswerte fehlen/,'no valid anomaly cannot be blamed solely on missing reference');
