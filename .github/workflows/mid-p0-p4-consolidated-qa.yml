@@ -52,6 +52,14 @@ jobs:
         run: npm run verify:types
       - name: Joint MapLibre recovery and native D2 field tests
         run: npx vitest run tests/unit/native-d2-full-domain.test.ts tests/unit/map-layer-recovery.test.ts
+      - name: Python 3.12 for native map and physical map regressions
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ruc/requirements-pages.txt
+      - name: Install pinned-range native map requirements
+        run: python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
       - name: Existing native map integration regressions
         run: |
           node scripts/test-ruc-map-pipeline-0985305.mjs
