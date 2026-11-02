@@ -12,6 +12,8 @@ on:
       - '.github/workflows/mid-copernicus-alpine-snow-qa.yml'
       - 'ci/github/workflows/mid-copernicus-alpine-snow-qa.yml'
       - 'scripts/sync-github-workflows.mjs'
+      - 'tools/snow/qualify_clms_stac.py'
+      - 'tools/snow/test_qualify_clms_stac.py'
 permissions:
   contents: read
 concurrency:
@@ -48,3 +50,12 @@ jobs:
         run: npm ci --no-audit --no-fund --prefer-offline --legacy-peer-deps
       - name: Full TypeScript source verification
         run: npm run verify:types
+      - name: Strict official FSC/GFSC STAC source and no-pixel assurance regression
+        run: |
+          python -m unittest discover -s tools/snow -p test_qualify_clms_stac.py -v
+          python -m unittest discover -s tools/snow -p test_qualify_clms_wms.py -v
+      - name: Actual public Copernicus STAC coverage probe (metadata only, never PNG/COG)
+        timeout-minutes: 3
+        run: |
+          python tools/snow/qualify_clms_stac.py --live
+
