@@ -1,3 +1,11 @@
+# MID v0.9.85.409 – Kartenbereitschaft, nachvollziehbare 14-Tage-Modelle und Einstellungen
+
+- **Kartenstatus ohne falsches Grün:** MID trennt die Verfügbarkeit von Kartendaten von der tatsächlichen MapLibre-/WebGL-Darstellung. Bei fehlender Grafikunterstützung oder Kontextverlust erscheint „Karte nicht darstellbar“ mit Wiederholungsmöglichkeit, selbst wenn Kartendaten vorliegen. Erst mit aktivem Renderer und geladener Hauptebene wird „Karte und Daten bereit“ angezeigt.
+- **14-Tage-Prognose verständlicher:** Der Konfidenzindex ist ausdrücklich keine Trefferwahrscheinlichkeit. MID erläutert die Anzahl verfügbarer und erwarteter Modellgruppen sowie die Aktualität des zugrunde liegenden Parameters, ohne fehlende Modelle als 0 zu bewerten.
+- **Einstellungen auf schmalen Displays erreichbar:** Eine zusätzliche direkte Bereichsauswahl erschließt alle neun Einstellungsbereiche ohne verborgenes horizontales Scrollen. Die bisherige Navigation und gespeicherten Einstellungen bleiben erhalten.
+- **Qualitätsnachweis:** Ein neuer verpflichtender Negativ- und Zustandsregressionstest kontrolliert Renderer-/Datenbereitschaft, Quellabdeckung und Einstellungswechsel. 1.060 Pflichttests inventarisiert; WMO-/DWD-Warnlogik und Wetterwerte unverändert.
+- **Transparenz:** Diese Version ist keine Freigabe für das native ICON-D2-/RUC-Vollgebiet. Dessen originaldatengebundene TOT_PREC-Akkumulationsprüfung sowie echte Geräte-, WCAG- und vollständige MapLibre-Pixel-Abnahmen bleiben separat offen.
+
 # MID v0.9.85.408 – Niederschlagswerte, Wetterdatenlücken und mobile Bedienung
 
 - Niederschlagswahrscheinlichkeiten in „Aktuell“ bleiben originalgetreu: 1–5 % werden nicht länger als 0 % ausgegeben. Echte 0 % und unbekannte Werte bleiben klar unterscheidbar.
