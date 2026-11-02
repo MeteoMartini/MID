@@ -191,23 +191,29 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
  index_bytes=index_file.stat().st_size
  if not 0<index_bytes<=3_000_000:
   raise ValueError('Signed DWD native index exceeds bounded manifest size')
- total_native_bytes=size+index_bytes
+ total_native_bytes=size  # entries already includes the signed index once
  if total_native_bytes>=350_000_000:
   raise ValueError('Original D2 map candidate exceeds standalone 350MB budget')
  if total_native_bytes+sum(obj['bytes'] for obj in existing_objects)+1_000_000>=budget:
   raise ValueError('Complete native D2 map conflicts with 900MB RUC/Pages budget')
  prefix=f'runs/{run_slug}__fields_native_{index_hash[:16]}/model-fields-native/'
  output=[]
+ key=prefix+'index.json'
  for file,name in entries:
-  key=prefix+name;destination=out/key
+  if name=='index.json':
+   # Preserve exactly one signed root index; it was already present in entries.
+   output.append(copy_signed_native_index(index_file,out,key,index_hash,index_bytes))
+   continue
+  object_key=prefix+name;destination=out/object_key
   if destination.exists():raise ValueError('Immutable DWD native target collision')
   destination.parent.mkdir(parents=True,exist_ok=True)
   shutil.copy2(file,destination)
   if destination.stat().st_size!=file.stat().st_size or sha(destination)!=sha(file):
    raise ValueError('Native DWD copied field differs from signed input')
-  output.append({'key':key,'bytes':destination.stat().st_size,'sha256':sha(destination)})
- key=prefix+'index.json'
- output.append(copy_signed_native_index(index_file,out,key,index_hash,index_bytes))
+  output.append({'key':object_key,'bytes':destination.stat().st_size,'sha256':sha(destination)})
+ if (len(output)!=73 or len([row for row in output if row['key']==key])!=1
+     or sum(row['bytes'] for row in output)!=total_native_bytes):
+  raise ValueError('Signed DWD native 73-object index/physical byte accounting drift')
  existing_objects.extend(output)
  return {'key':key,'schema':index['schema'],'run':index['run'],
          'sourceInventorySha256':index['sourceInventorySha256'],'productionApproved':True,
