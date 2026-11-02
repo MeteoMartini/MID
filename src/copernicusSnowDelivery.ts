@@ -123,7 +123,7 @@ export async function fetchVerifiedCopernicusSnowPng(tile:CopernicusSnowTile,sig
  if(!response.ok||!String(response.headers.get('content-type')||'').toLowerCase().startsWith('image/png'))
   throw new Error('Copernicus snow tile is not an available PNG');
  const lengthHeader=response.headers.get('content-length');
- if(lengthHeader!==null&&(!/^\\d+$/.test(lengthHeader)||Number(lengthHeader)>verified.compressedBytes))
+ if(lengthHeader!==null&&(!/^[0-9]+$/.test(lengthHeader)||Number(lengthHeader)>verified.compressedBytes))
   throw new Error('Snow PNG HTTP length exceeds attested budget');
  if(!response.body)throw new Error('Snow PNG bounded streaming unavailable');
  const reader=response.body.getReader(),parts:Uint8Array[]=[];
