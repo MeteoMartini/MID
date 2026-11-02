@@ -2,8 +2,40 @@ import json,tempfile,unittest
 from inspect import signature
 from prepare_ruc_pages import prepare
 from pathlib import Path
-from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS,require_detached_native_approval,sha
+from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS,require_detached_native_approval,copy_signed_native_index,sha
 class PagesNativeD2AdmissionTests(unittest.TestCase):
+ def test_signed_73rd_original_index_is_physical_sha_inventory_object(self):
+  # This is a copying-only regression, NOT a mocked production approval.
+  # The complete original/attested 72-frame gate remains required in admit().
+  with tempfile.TemporaryDirectory() as td:
+   root=Path(td);origin=root/'original';target=root/'pages'
+   origin.mkdir();target.mkdir()
+   index=origin/'index.json'
+   index.write_bytes(b'{"schema":"mid.icon-d2.native-fields.v2","productionApproved":true}')
+   expected=sha(index)
+   key='runs/20261102T0600__fields_native_abcdefgh01234567/model-fields-native/index.json'
+   row=copy_signed_native_index(index,target,key,expected,index.stat().st_size)
+   self.assertEqual(row,{'key':key,'bytes':index.stat().st_size,'sha256':expected})
+   physical=target/key
+   self.assertTrue(physical.is_file())
+   self.assertEqual(physical.read_bytes(),index.read_bytes())
+   self.assertEqual(sha(physical),expected)
+   # A second writer cannot silently overwrite the live immutable namespace.
+   with self.assertRaisesRegex(ValueError,'collision'):
+    copy_signed_native_index(index,target,key,expected,index.stat().st_size)
+   physical.unlink()
+   # Candidate-rehashed flags alone never match independently pinned SHA.
+   index.write_bytes(b'{"productionApproved":false}')
+   with self.assertRaisesRegex(ValueError,'attested source'):
+    copy_signed_native_index(index,target,key,expected,68)
+   with self.assertRaisesRegex(ValueError,'Unsafe'):
+    copy_signed_native_index(index,target,'../escape/index.json',expected,index.stat().st_size)
+   with self.assertRaisesRegex(ValueError,'Invalid trusted'):
+    copy_signed_native_index(index,target,key,'bad',index.stat().st_size)
+   index.unlink()
+   index.symlink_to('/etc/passwd')
+   with self.assertRaisesRegex(ValueError,'attested source'):
+    copy_signed_native_index(index,target,key,expected,68)
  def test_canonical_preparer_receives_only_independent_release_attestation(self):
   # The established CLI is deliberately unable to self-approve any D2 input.
   params=signature(prepare).parameters
