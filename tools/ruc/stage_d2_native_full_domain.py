@@ -108,7 +108,7 @@ def stage_native_site(root:Path,output:Path):
             contours=[];centers=[]
             if kind=='pressure':
                 import numpy as np
-                from build_model_map_fields import contours as original_grid_contours
+                from native_d2_contours import contours as original_grid_contours
                 from pressure_centers import pressure_centers
                 p=np.asarray([np.nan if v is None else v*.1 for v in data['values']],
                              dtype=np.float64).reshape(len(data['lats']),len(data['lons']))
