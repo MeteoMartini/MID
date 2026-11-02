@@ -122,6 +122,24 @@ jobs:
           set -euo pipefail
           npm run verify
 
+      - name: Manuelles dist-only Pages-Deployment darf vollständigen RUC nicht löschen
+        shell: bash
+        env:
+          MID_RUC_REQUIRED: ${{ vars.MID_RUC_PIPELINE_ENABLED }}
+        run: |
+          set -euo pipefail
+          # Pages deployment is protected by mid-pages single-flight per job,
+          # but that lock does not make a bare dist directory RUC-complete.
+          # This manual emergency workflow is not a substitute for the
+          # authenticated full +27h/EPS20 RUC Pages publisher.
+          if [ "$MID_RUC_REQUIRED" = true ]; then
+            required=true
+          elif [ "$MID_RUC_REQUIRED" = false ]; then
+            required=false
+          else
+            required=unset
+          fi
+          python3 tools/ruc/ruc_manual_pages_guard.py --ruc-enabled "$required"
       - name: Produktiven Same-Origin-Datendienst prüfen
         shell: bash
         env:
