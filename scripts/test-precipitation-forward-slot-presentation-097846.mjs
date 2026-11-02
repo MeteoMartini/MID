@@ -13,12 +13,12 @@ for(const token of [
  'const state=sorted[index]!,next=sorted[index+1]',
  'precipitation:Math.max(0,Number(next.precipitation)||0)',
  'probability:Math.max(0,Math.min(100,Number(next.probability)||0))',
- "code:parts.type==='none'?drySkyCode(state):parts.displayCode",
+ "const code=parts.type==='none'?drySkyCode(state):parts.displayCode",
  'export function precipitationPresentationMinutes15(minutes:Minute15[]):Minute15[]',
  'QUARTER_MIN_GAP_MS=10*60000',
  'QUARTER_MAX_GAP_MS=20*60000'
 ])assert.ok(intervals.includes(token),`Vorwärts-Slot-Helfer unvollständig: ${token}`);
-assert.ok(intervals.includes('if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS)')&&intervals.includes('precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code:drySkyCode(state)'), 'Fehlende Anschlussstunden müssen explizit unavailable bleiben, ohne alten Niederschlag nach vorne umzuhängen oder den Platzhalter als gültige Null zu aggregieren.');
+assert.ok(intervals.includes('if(!next||!Number.isFinite(gap)||gap<MIN_GAP_MS||gap>MAX_GAP_MS)')&&intervals.includes('precipitation:0,precipitationAvailable:false,probabilityAvailable:false,rain:0,showers:0,snowfall:0,probability:0,sunshineDuration:null,code}')&&intervals.includes('const code=drySkyCode(state)')&&intervals.includes("origin:'missing'"), 'Fehlende Anschlussstunden müssen explizit unavailable bleiben, ohne alten Niederschlag nach vorne umzuhängen oder den Platzhalter als gültige Null zu aggregieren.');
 
 for(const token of [
  'let previousIntervalEnd=now',
