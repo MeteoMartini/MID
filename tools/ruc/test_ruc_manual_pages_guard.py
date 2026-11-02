@@ -41,6 +41,14 @@ class ManualPagesGuard(unittest.TestCase):
             with self.assertRaises(ValueError):
                 public_check(pipeline_enabled=True)
 
+    def test_workflow_level_never_cancels_inflight_manual_pages_publish(self):
+        from pathlib import Path
+        path=Path(__file__).resolve().parents[2]/'ci/github/workflows/deploy.yml'
+        workflow=path.read_text(encoding='utf-8')
+        header=workflow.split('\njobs:\n',1)[0]
+        self.assertIn('concurrency:\n  group: mid-pages-manual\n  cancel-in-progress: false',header)
+        self.assertNotIn('cancel-in-progress: true',header)
+
     def test_all_three_actual_manual_pages_deploys_recheck_inside_shared_lease(self):
         from pathlib import Path
         path=Path(__file__).resolve().parents[2]/'ci/github/workflows/deploy.yml'
