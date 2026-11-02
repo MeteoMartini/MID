@@ -27,6 +27,28 @@ function sourceTimeBudgetValid(text){
  return ruc===20&&sourceBuild===15&&outer>=ruc+sourceBuild+8&&outer<=45&&coreTestStep===13&&shards.length===4&&new Set(shards).size===4&&matrix.includes('fail-fast: false')&&!matrix.includes('continue-on-error');
 }
 if(!sourceTimeBudgetValid(prGate))failures.push('Source-Job muss beide unveränderten Einzelgrenzen plus Setup/iOS/Paketierung innerhalb eines festen 45-Minuten-Rahmens ermöglichen.');
+function rucNativeAdmissionContractValid(text){
+ const start=text.indexOf('\n  ruc_native_source_detection:');
+ const full=text.indexOf('\n  ruc_native_full_admission:');
+ const final=text.indexOf('\n  validate_source:');
+ if(start<0||full<=start||final<=full)return false;
+ const detector=text.slice(start,full);
+ const job=text.slice(full,text.indexOf('\n  ruc27_qualification:',full));
+ const gate=text.slice(final);
+ return detector.includes("outputs:")&&detector.includes("enabled: ${{ steps.changed.outputs.enabled }}")&&
+   detector.includes("HEAD^2")&&detector.includes("tools/ruc/")&&
+   detector.includes("ci/github/workflows/chatgpt-pr-gate.yml")&&
+   job.includes("needs: [ruc_native_source_detection]")&&
+   job.includes("if: needs.ruc_native_source_detection.outputs.enabled == 'true'")&&
+   job.includes("timeout-minutes: 35")&&
+   job.includes("--runs 3 --candidate-count 6 --admission")&&
+   job.includes("node scripts/verify-ruc-composites.mjs ruc-original-admission-evidence")&&
+   gate.includes("- ruc_native_source_detection")&&gate.includes("- ruc_native_full_admission")&&
+   gate.includes("RUC_NATIVE_ADMISSION_REQUIRED")&&
+   gate.includes('if [ "$RUC_NATIVE_ADMISSION_RESULT" != success ]')&&
+   gate.includes('if [ "$RUC_NATIVE_DETECTION_RESULT" != success ]');
+}
+if(!rucNativeAdmissionContractValid(prGate))failures.push('Original-RUC-Volladmission muss SHA-gebunden und im finalen Source-Gate verpflichtend sein.');
 if(sourceTimeBudgetValid(prGate.replace('    timeout-minutes: 45','    timeout-minutes: 30')))failures.push('Der reproduzierte 30-Minuten-Abbruch darf nicht erneut als gültiges Zeitbudget gelten.');
 if(sourceTimeBudgetValid(prGate.replace('        timeout-minutes: 20','        timeout-minutes: 21')))failures.push('RUC-Einzelgrenze darf nicht stillschweigend verlängert werden.');
 if(sourceTimeBudgetValid(prGate.replace('      - name: Produktionsbuild und Runtime-Prüfungen durchführen\n        shell: bash\n        timeout-minutes: 15','      - name: Produktionsbuild und Runtime-Prüfungen durchführen\n        shell: bash\n        timeout-minutes: 16')))failures.push('Source-Build-Einzelgrenze darf nicht erhöht werden.');
