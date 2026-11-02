@@ -1,5 +1,6 @@
 import {describe,expect,it} from 'vitest';
-import {D2_FULL_DOMAIN_KINDS,D2_FULL_DOMAIN_LEADS,validateD2FullDomainIndex,validateD2FullDomainField} from '../../src/nativeD2FullDomain';
+import {D2_FULL_DOMAIN_KINDS,D2_FULL_DOMAIN_LEADS,validateD2FullDomainIndex,validateD2FullDomainField,verifyNativeD2IndexTransport} from '../../src/nativeD2FullDomain';
+import {createHash} from 'node:crypto';
 import {nativeAt,nativeMapScale} from '../../src/nativeModelFields';
 import type {NativeFieldKind} from '../../src/nativeModelFields';
 const run='2026-11-02T03:00:00+00:00',now=Date.parse('2026-11-02T12:00:00Z');
@@ -13,6 +14,19 @@ const products=Object.fromEntries(D2_FULL_DOMAIN_KINDS.map((kind:NativeFieldKind
 const index={schema:'mid.icon-d2.native-fields.v2',productionApproved:true,modelId:'icon-d2',
  sampling:'nearest-native-cell',nativePoints:542040,sourceInventorySha256:sha,run,products};
 describe('D2 full 542040-cell source client admission',()=>{
+ it('SHA-binds the native index bytes to the actual approved RUC Pages pointer',async()=>{
+  const binary=new TextEncoder().encode(JSON.stringify(index));
+  const bytes=binary.buffer as ArrayBuffer;
+  const indexSha256=createHash('sha256').update(binary).digest('hex');
+  const pointer={indexSha256,indexBytes:binary.byteLength};
+  await expect(verifyNativeD2IndexTransport(bytes,pointer)).resolves.toBeUndefined();
+  await expect(verifyNativeD2IndexTransport(bytes,{...pointer,indexBytes:binary.byteLength+1})).rejects.toThrow(/index bytes/);
+  await expect(verifyNativeD2IndexTransport(bytes,{...pointer,indexSha256:'a'.repeat(64)})).rejects.toThrow(/SHA256/);
+  await expect(verifyNativeD2IndexTransport(bytes,{indexSha256,indexBytes:undefined})).rejects.toThrow(/index bytes/);
+  const modified=new TextEncoder().encode(JSON.stringify({...index,productionApproved:false}));
+  await expect(verifyNativeD2IndexTransport(modified.buffer as ArrayBuffer,pointer)).rejects.toThrow();
+ });
+
  it('admits only a full 9 × 8 attested native original axis',()=>{
   expect(validateD2FullDomainIndex(index,now).products.precipitation?.frames).toHaveLength(9);
  });
