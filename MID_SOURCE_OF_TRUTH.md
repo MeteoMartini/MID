@@ -1,3 +1,15 @@
+# MID v0.9.85.411 · Issue #523 / DA19-21/22 · Datenqualität, Zeitfenster und Codeprovenienz
+
+**SHA-Basis und Release-Grenze:** Der am 02.11.2026 live verifizierte Stable v0.9.85.410 `f79003493f4621ea2a0d52763eb97c90674598d2` ist identisch mit `main`. Installer #41412806622 einschließlich Core-/Heavy-, Worker-, Pages- und Finalize-Gates erfolgreich; fünf aktive Rulesets; 38 normative Verträge und 1.061 Pflichtregressionen. Die sieben fachlichen Voränderungen wurden aus Draft #615 @ `08468b972becbade5d014d7a8937dc9151afbd33` auf den tatsächlich promoteten Stable portiert. Keine direkten Hauptbranch-Schreibzugriffe.
+
+**Änderungen:** In `ForecastConfidence.tsx` wird hohe Ensembleübereinstimmung ausschließlich zusammen mit der schwächsten Datenqualität im selben Agreement-Zeitfenster ausgewiesen. `SeasonalMemberPanel.tsx` zeigt fehlende auswertbare SEAS5-Monate als Lücken, ohne 0 oder Zwischenwerte zu erfinden. In der Aktuell-Ansicht wird die Niederschlagswahrscheinlichkeit mit dem konkreten, aus der kanonischen 15min-/1h-Zeitachse abgeleiteten Modellintervall und separat gekennzeichnetem Radarbeitrag dargestellt. Die Stundenansicht dokumentiert per `precipitationPresentationProvenance()` Eingangscode **nach potenzieller Modellfusion**, finalen Darstellungscode, Roh-Endstempel, sichtbare Slotgrenzen, vorhandene/fehlende Akkumulation und soweit vorhanden den modellierten Quelllabel. Das ist noch kein verifizierter nativer Provider-WMO-Code. Mobile Zeitfenster umbrechen.
+
+**Prüfung:** Drei existierende Pflichtregressionen erweitert: `scripts/test-designaudit19-render-confidence-navigation-0985409.mjs`, `scripts/test-horizon-seasonal-members-0985162.mjs`, `scripts/test-precipitation-radar-pollen-navigation-0985133.mjs`. Der reguläre Source-Gate → SHA-gebundene Bot-Merge → serverseitiges ZIP → `install-mid.yml` → Worker/Pages/Finalize → Stable ist zwingend; dieser Text behauptet keine vorherigen bestandenen Gates. iOS-Simulator, reale VoiceOver-Geräte, alle WCAG-2.2-AA-Kontexte, Widgets/Export und vollständige appweite Prüfung Issue #523 bleiben außerhalb dieses Releases offen.
+
+**Nicht geändert:** WMO-/DWD-Warnstufen, aktuelle Intensitätsklassifikation, Phasenschutz, Modellläufe, RUC-Daten und die Legacy-Nullplatzhalter in numerischen Sample-Feldern mit `Available=false`. Die neue explizite Diagnose markiert diese Fälle `amountMm=null` statt als echte beobachtete Null.
+
+---
+
 # MID v0.9.85.410 · Open-Meteo MID Watch 02.11.2026 · GeoSphere-Auslauf und Fail-Closed-Integration
 
 **Verifizierter Ausgangspunkt:** `main=mid-stable` v0.9.85.409 SHA `b0bedff13106502beb1566fcef96dc4b2ec4b098`; Source-PR #611 gemergt, Installer #41403550284 vollständig success, 5 aktive Rulesets, 38 unveränderte normative Fachverträge.
