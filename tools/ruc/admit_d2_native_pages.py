@@ -70,6 +70,31 @@ def require_detached_native_approval(index_file:Path, source_inventory:str,
      or not hmac.compare_digest(source_inventory,trusted_inventory_sha256)):
   raise ValueError('Native D2 index or original source inventory differs from detached release-gate evidence')
 
+def copy_signed_native_index(index_file:Path,out:Path,key:str,expected_hash:str,expected_bytes:int)->dict:
+ """Publish the actual signed lookup manifest as a verified immutable Pages object.
+
+ This helper does not grant D2 release: admit() must finish the independent
+ signed original-DWD source gate before calling it.
+ """
+ if (not isinstance(key,str) or not key.endswith('/index.json')
+     or Path(key).is_absolute() or '..' in Path(key).parts or '\\' in key):
+  raise ValueError('Unsafe signed native DWD Pages index key')
+ if (not isinstance(expected_hash,str) or not DIGEST.fullmatch(expected_hash)
+     or type(expected_bytes) is not int or not 0<expected_bytes<=3_000_000):
+  raise ValueError('Invalid trusted signed D2 index size or digest')
+ if (index_file.is_symlink() or not index_file.is_file()
+     or index_file.stat().st_size!=expected_bytes or sha(index_file)!=expected_hash):
+  raise ValueError('Signed DWD index bytes differ from attested source')
+ destination=out/key
+ if (destination.exists() or destination.is_symlink()
+     or not destination.resolve().is_relative_to(out.resolve())):
+  raise ValueError('Immutable signed DWD index target collision or escape')
+ destination.parent.mkdir(parents=True,exist_ok=True)
+ shutil.copy2(index_file,destination)
+ if destination.stat().st_size!=expected_bytes or sha(destination)!=expected_hash:
+  raise ValueError('Signed native D2 index changed during Pages materialization')
+ return {'key':key,'bytes':expected_bytes,'sha256':expected_hash}
+
 def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int=900_000_000,*,trusted_index_sha256:str|None=None,trusted_inventory_sha256:str|None=None,trusted_release_sha:str|None=None):
  root=root.resolve(strict=True);out=out.resolve(strict=True)
  source=root/'model-fields-native';index_file=source/'index.json'
@@ -182,13 +207,7 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
    raise ValueError('Native DWD copied field differs from signed input')
   output.append({'key':key,'bytes':destination.stat().st_size,'sha256':sha(destination)})
  key=prefix+'index.json'
- destination=out/key
- if destination.exists():raise ValueError('Immutable signed DWD index target collision')
- destination.parent.mkdir(parents=True,exist_ok=True)
- shutil.copy2(index_file,destination)
- if destination.stat().st_size!=index_bytes or sha(destination)!=index_hash:
-  raise ValueError('Signed native D2 index changed during Pages materialization')
- output.append({'key':key,'bytes':index_bytes,'sha256':index_hash})
+ output.append(copy_signed_native_index(index_file,out,key,index_hash,index_bytes))
  existing_objects.extend(output)
  return {'key':key,'schema':index['schema'],'run':index['run'],
          'sourceInventorySha256':index['sourceInventorySha256'],'productionApproved':True,
