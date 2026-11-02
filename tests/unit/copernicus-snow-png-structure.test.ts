@@ -83,5 +83,12 @@ describe('Copernicus PNG raster envelope (never a COG/QA approval)',()=>{
   await expect(fetchVerifiedCopernicusSnowPng(tile as never,new AbortController().signal))
    .rejects.toThrow('attested byte budget');
   expect(digest).not.toHaveBeenCalled();
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue({
+   ok:true,headers:new Headers({'content-type':'image/png','content-length':'99'}),
+   body:new ReadableStream<Uint8Array>({start(controller){controller.close()}})
+  }));
+  await expect(fetchVerifiedCopernicusSnowPng(tile as never,new AbortController().signal))
+   .rejects.toThrow('HTTP length');
+  expect(digest).not.toHaveBeenCalled();
  });
 });
