@@ -54,6 +54,7 @@ export function validateCopernicusSnowTile(raw:unknown,nowMs=Date.now()):Coperni
  if(typeof t.imagePath!=='string'||!/^\/snow\/validated\/[a-f0-9]{64}\/[a-z0-9_-]{1,80}\.png$/.test(t.imagePath))
   throw new Error('Snow tile URL not an immutable same-origin asset');
  if(!sha(t.imageSha256)||!sha(t.sourceCogSha256)||!sha(t.qaMaskSha256)
+    ||t.imagePath.split('/')[3]!==t.imageSha256
     ||!Number.isInteger(t.compressedBytes)||t.compressedBytes!<100||t.compressedBytes!>8_000_000)
   throw new Error('Snow tile SHA/byte inventory invalid');
  if(typeof t.maxPixelAcquisitionAgeDays!=='number'||!Number.isInteger(t.maxPixelAcquisitionAgeDays)

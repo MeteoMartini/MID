@@ -32,6 +32,7 @@ describe('Alpine Copernicus snow PNG publication admission',()=>{
    expect(()=>check({imagePath:url})).toThrow();
   for(const field of ['sourceCogSha256','qaMaskSha256','imageSha256'])
    expect(()=>check({[field]:'fake'})).toThrow();
+  expect(()=>check({imagePath:'/snow/validated/'+'b'.repeat(64)+'/fsc.png'})).toThrow();
  });
  it('rejects out-of-region, swapped or undefined map georeferencing',()=>{
   for(const bounds of [[[48,12],[46,11]],[[0,0],[1,1]],[[45,8],[48,12]],[[46,11],[47,NaN]]])
