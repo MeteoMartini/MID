@@ -6,7 +6,8 @@ import {resolve} from 'node:path';
 const root=resolve(import.meta.dirname,'../..');
 const canonical=resolve(root,'ci/github/workflows');
 const active=resolve(root,'.github/workflows');
-const authorized={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':2};
+const authorized={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':1};
+const actionInventory={'deploy.yml':3,'install-mid.yml':3,'mid-ruc-preprocess.yml':2};
 function jobsOf(text){
  const starts=[...text.matchAll(/^  ([A-Za-z_][A-Za-z0-9_-]*):\s*$/gm)];
  const jobs=[];
@@ -28,7 +29,9 @@ test('all GitHub Pages publishers are enumerated, SHA mirrored and share global 
   assert.doesNotMatch(workflow,/wrangler\s+pages\s+deploy|cloudflare\/pages-action@/i,'hidden Pages publisher: '+name);
   if(!jobs.length)continue;
   assert.ok(Object.hasOwn(authorized,name),'unknown Pages writer: '+name);
-  assert.equal(jobs.length,authorized[name],'unreviewed Pages deployment count: '+name);
+  assert.equal(jobs.length,authorized[name],'unreviewed Pages publisher job count: '+name);
+  assert.equal((workflow.match(/uses: actions\/deploy-pages@/g)||[]).length,actionInventory[name],
+    'unreviewed Normal- or Rollback Pages publish action: '+name);
   for(const job of jobs){
    assert.match(job.body,/group:\s*mid-pages(?:\s|$)/,'publisher must join shared mid-pages: '+name+'/'+job.id);
    assert.match(job.body,/queue:\s*max/,'must not drop earlier RUC publisher: '+name+'/'+job.id);
