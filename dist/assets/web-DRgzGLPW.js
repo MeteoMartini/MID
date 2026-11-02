@@ -1,1 +1,0 @@
-import{Pi as e}from"./index-CX_ZlotM.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
