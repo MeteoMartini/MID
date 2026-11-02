@@ -41,4 +41,24 @@ class ManualPagesGuard(unittest.TestCase):
             with self.assertRaises(ValueError):
                 public_check(pipeline_enabled=True)
 
+    def test_all_three_actual_manual_pages_deploys_recheck_inside_shared_lease(self):
+        from pathlib import Path
+        path=Path(__file__).resolve().parents[2]/'ci/github/workflows/deploy.yml'
+        script=path.read_text(encoding='utf-8')
+        jobs=['deploy_pages_1','deploy_pages_2','deploy_pages_3']
+        for name in jobs:
+            with self.subTest(job=name):
+                before,block=script.split('\n  '+name+':\n',1)
+                next_job=block.find('\n  ',5)
+                if next_job>=0:block=block[:next_job]
+                self.assertIn('group: mid-pages',block)
+                self.assertIn('queue: max',block)
+                self.assertIn('cancel-in-progress: false',block)
+                self.assertIn('id: ruc_guard',block)
+                self.assertIn('ref: mid-stable',block)
+                self.assertIn('persist-credentials: false',block)
+                self.assertIn('ruc_manual_pages_guard.py --ruc-enabled',block)
+                self.assertLess(block.index('id: ruc_guard'),block.index('uses: actions/deploy-pages@'))
+                self.assertIn("if: steps.ruc_guard.outcome == 'success'",block)
+
 if __name__=='__main__':unittest.main()
