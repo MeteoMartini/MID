@@ -1,0 +1,205 @@
+name: MID original 27h EPS20 plus native 0-6h physical Pages-site evidence (never deploy)
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'tools/ruc/ruc_fast_pages_overlay.py'
+      - 'tools/ruc/ruc_fast_consumer_shadow.py'
+      - 'ci/github/workflows/mid-ruc-joint-site-real-pilot.yml'
+      - '.github/workflows/mid-ruc-joint-site-real-pilot.yml'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mid-ruc-real-joint-site-pilot
+  cancel-in-progress: false
+jobs:
+  joint:
+    name: Original full and Fast binary end-to-end offline site; no release rights
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.head_ref, 'chatgpt/v') || startsWith(github.head_ref, 'codex/v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Read exact PR-head source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 100
+          persist-credentials: false
+      - name: Strictly require verified source and stable SHA before readmission
+        id: proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp ci/github/workflows/mid-ruc-joint-site-real-pilot.yml .github/workflows/mid-ruc-joint-site-real-pilot.yml
+          cmp ci/github/workflows/mid-ruc-fast-real-pilot.yml .github/workflows/mid-ruc-fast-real-pilot.yml
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          stable="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)"
+          main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          test "$stable" = "$main"
+          git merge-base --is-ancestor "$stable" HEAD
+          echo "stable=$stable" >> "$GITHUB_OUTPUT"
+          echo "VERIFIED_STABLE=$stable" >> "$GITHUB_ENV"
+      - name: Independent released Stable source for authentic original snapshot admission
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.proof.outputs.stable }}
+          path: stable-shell
+          fetch-depth: 32
+          persist-credentials: false
+      - name: Verify actual stable checkout
+        shell: bash
+        run: test "$(git -C stable-shell rev-parse HEAD)" = "$VERIFIED_STABLE"
+      - name: Use Python 3.12 / released scientific dependencies
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Native Fast and joint-site adverse and missing-data regressions
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r tools/ruc/requirements-pages.txt
+          for test in test_ruc_fast_run_selector.py test_ruc_fast_lane_producer.py test_ruc_fast_pointer_staging.py test_ruc_fast_consumer_shadow.py test_ruc_fast_pages_overlay.py; do
+            python "tools/ruc/$test" -v
+          done
+      - name: Resolve latest successfully sealed real RUC producer on exact stable SHA
+        id: original
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os,subprocess
+          repo=os.environ['GITHUB_REPOSITORY']
+          def get(path):
+              return json.loads(subprocess.check_output(['gh','api',f'repos/{repo}/{path}'],text=True))
+          for run in get('actions/runs?per_page=100')['workflow_runs']:
+              if (run['path']!='.github/workflows/mid-ruc-preprocess.yml'
+                  or run['head_sha']!=os.environ['VERIFIED_STABLE'] or run['head_branch']!='main'
+                  or run['event'] not in ('schedule','workflow_dispatch')):
+                  continue
+              # The canonical prepared_snapshot.resolve_reuse contract authenticates
+              # the successful sealed PREPARE job, not unrelated later Pages deploy.
+              # Read-only proof may run while that independent deploy is in flight.
+              jobs=get(f'actions/runs/{run["id"]}/jobs?filter=latest&per_page=100')['jobs']
+              prepared=[j for j in jobs if j['name']=='prepare' and j['conclusion']=='success']
+              if len(prepared)!=1:
+                  continue
+              attempt=prepared[0]['run_attempt']
+              candidates=[a for a in get(f'actions/runs/{run["id"]}/artifacts?per_page=100')['artifacts']
+                          if a['name']==f'mid-ruc-data-{run["id"]}-{attempt}'
+                          and not a['expired'] and str(a.get('digest','')).startswith('sha256:')]
+              if len(candidates)==1:
+                  with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+                      f.write(f'run_id={run["id"]}\nartifact_id={candidates[0]["id"]}\n')
+                      f.write(f'event_sha={run["head_sha"]}\nattempt={attempt}\n')
+                  print('Authenticated successful sealed prepare source',run['id'],candidates[0]['id'])
+                  break
+          else:
+              raise SystemExit('No successful SHA-bound sealed 27h/EPS20 PREPARE artifact on exact released Stable')
+          PY
+      - name: Authenticated original complete snapshot artifact with digest enforcement
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ steps.original.outputs.artifact_id }}
+          run-id: ${{ steps.original.outputs.run_id }}
+          github-token: ${{ github.token }}
+          digest-mismatch: error
+          merge-multiple: true
+          path: .original-ruc/ruc
+      - name: Full SHA/bitmap/UTC/EPS20 compatibility, decompression and proven source
+        env:
+          PRODUCER_ID: ${{ steps.original.outputs.run_id }}
+          PRODUCER_SHA: ${{ steps.original.outputs.event_sha }}
+          PRODUCER_ATTEMPT: ${{ steps.original.outputs.attempt }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python stable-shell/tools/ruc/prepared_snapshot.py admit --repo stable-shell --snapshot .original-ruc/ruc --run-id "$PRODUCER_ID" --event-sha "$PRODUCER_SHA" --attempt "$PRODUCER_ATTEMPT" --pages-base https://midwx.app/ruc/
+      - name: Released independent JS decoder
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.16.0
+      - name: Original EPS20 + 27h JavaScript independent decode
+        run: node stable-shell/tools/ruc/verify_prepared_snapshot.mjs .original-ruc/ruc
+      - name: Select available native DWD fast source independently from EPS
+        id: fast
+        run: python tools/ruc/ruc_fast_run_selector.py --github-output "$GITHUB_OUTPUT"
+      - name: Fail closed if no complete native fast source exists
+        env:
+          FAST_READY: ${{ steps.fast.outputs.ready }}
+        run: test "$FAST_READY" = true
+      - name: Authentic original DWD native Fast producer and independent readback
+        env:
+          SOURCE_RUN: ${{ steps.fast.outputs.run }}
+          MID_RUC_DOWNLOAD_WORKERS: '4'
+        run: |
+          set -euo pipefail
+          python tools/ruc/ruc_fast_lane_producer.py --run "$SOURCE_RUN" --stage .native-input --output .native-candidate
+          python tools/ruc/ruc_fast_pointer_staging.py --candidate .native-candidate --output native-shadow
+          python tools/ruc/ruc_fast_consumer_shadow.py --shadow native-shadow --output original-fast-readback.json
+      - name: Physically archive authentic 4 original fast BIN objects
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-joint-authentic-fast-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            native-shadow/
+            original-fast-readback.json
+          retention-days: 2
+          if-no-files-found: error
+          compression-level: 1
+      - name: Re-download real fast artifact with strict digest
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mid-ruc-joint-authentic-fast-${{ github.run_id }}-${{ github.run_attempt }}
+          path: archived-fast
+          digest-mismatch: error
+      - name: Independently read back same exact Fast bytes
+        run: |
+          python tools/ruc/ruc_fast_consumer_shadow.py --shadow archived-fast/native-shadow --output downloaded-fast-readback.json
+          cmp original-fast-readback.json downloaded-fast-readback.json
+      - name: Recreate real full released Pages site then combine unchanged 27h plus inactive fast
+        run: |
+          set -euo pipefail
+          test -s stable-shell/dist/index.html
+          cp -a stable-shell/dist .complete-pages
+          cp -a .original-ruc/ruc .complete-pages/ruc
+          python tools/ruc/ruc_fast_pages_overlay.py --full-site .complete-pages --fast-shadow archived-fast/native-shadow --output .joint-pages > joint-proof.json
+          python - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/ruc')
+          from ruc_fast_pages_overlay import file_sha
+          from ruc_fast_pointer_staging import count_files
+          proof=json.loads(Path('joint-proof.json').read_text())
+          assert proof['full27hOriginalBytesIntact'] is True
+          assert proof['fastNativeObjectHashesRechecked'] is True
+          for flag in ('productionEnabled','publicationAuthorized','consumerAdoptionVerified'):
+              assert proof[flag] is False
+          assert count_files(Path('.joint-pages'))==proof['combinedPagesBytes']<900_000_000
+          assert file_sha(Path('.joint-pages/ruc/latest.json'))==proof['primaryManifestSha256']
+          print('Physical joint site (not deployed):',proof['combinedPagesBytes'])
+          PY
+      - name: Fail closed on parallel promotion or changed main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$VERIFIED_STABLE"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/mid-stable" --jq .object.sha)" = "$VERIFIED_STABLE"
+      - name: Archive entire physically assembled real read-only site
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mid-ruc-joint-site-inactive-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .joint-pages/
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+          compression-level: 0
+      - name: Explicit unapproved production gate
+        run: |
+          cat joint-proof.json >> "$GITHUB_STEP_SUMMARY"
+          echo 'Real site proof only. No Pages deploy/Worker switch/CAS/rollback or Web/iOS/Widget/Export consumer SLO authorization.' >> "$GITHUB_STEP_SUMMARY"
