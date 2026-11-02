@@ -47,6 +47,16 @@ def field_admission(field,kind,grid):
      or kind!='precipitation' and uncertainty!=0):
   raise ValueError('Native original packing uncertainty not explicit NoData')
  return (lats,lons)
+def parse_native_utc_valid_time(value):
+ """Native DWD forecast validity must carry an explicit UTC offset."""
+ try:
+  timestamp=datetime.fromisoformat(value)
+ except (TypeError,ValueError) as exc:
+  raise ValueError('Original DWD native valid time must be explicit UTC') from exc
+ if timestamp.tzinfo is None or timestamp.utcoffset()!=timedelta(0):
+  raise ValueError('Original DWD native valid time must be explicit UTC')
+ return timestamp
+
 def sha(p:Path):
  h=hashlib.sha256()
  with p.open('rb') as f:
@@ -153,7 +163,7 @@ def admit(root:Path,out:Path,run_slug:str,existing_objects:list[dict],budget:int
    if len(actual)!=frame['decodedBytes']:raise ValueError('Original DWD decoded bytes exceed verified budget')
    field=json.loads(actual)
    expected=(run_time+timedelta(hours=h)).timestamp()
-   field_time=datetime.fromisoformat(field.get('time',''))
+   field_time=parse_native_utc_valid_time(field.get('time'))
    if(field.get('schema')!='mid.icon-d2.native-field.v2'
       or field.get('productionApproved') is not True
       or field.get('sourceInventorySha256')!=index['sourceInventorySha256']

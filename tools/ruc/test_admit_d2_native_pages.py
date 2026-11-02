@@ -2,8 +2,18 @@ import json,tempfile,unittest
 from inspect import signature
 from prepare_ruc_pages import prepare
 from pathlib import Path
-from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS,require_detached_native_approval,copy_signed_native_index,sha
+from admit_d2_native_pages import admit,field_admission,KINDS,LEADS,UNITS,require_detached_native_approval,copy_signed_native_index,parse_native_utc_valid_time,sha
 class PagesNativeD2AdmissionTests(unittest.TestCase):
+ def test_native_valid_time_requires_explicit_utc_not_equivalent_local_offset(self):
+  self.assertEqual(parse_native_utc_valid_time('2026-11-02T10:00:00Z').isoformat(),
+                   '2026-11-02T10:00:00+00:00')
+  self.assertEqual(parse_native_utc_valid_time('2026-11-02T10:00:00+00:00').utcoffset().total_seconds(),0)
+  for value in ('2026-11-02T11:00:00+01:00','2026-11-02T09:00:00-01:00',
+                '2026-11-02T10:00:00',None,'invalid'):
+   with self.subTest(value=value),self.assertRaisesRegex(ValueError,'explicit UTC'):
+    parse_native_utc_valid_time(value)
+
+
  def test_signed_73rd_original_index_is_physical_sha_inventory_object(self):
   # This is a copying-only regression, NOT a mocked production approval.
   # The complete original/attested 72-frame gate remains required in admit().
