@@ -7,7 +7,7 @@
  * https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/clms/bio-geophysical-parameters/snow/snow-cover-extent/clms_wsi_gap-filled-fractional-snow-cover_europe_utm_60m_daily_v1.html
  */
 export type CopernicusSnowKind='FSC-OG'|'FSC-TOC'|'GFSC';
-export type CopernicusSnowStatus='observed'|'cloud-or-shadow'|'inland-water'|'no-data';
+export type CopernicusSnowStatus='candidate-unverified-qa-flags'|'cloud-or-shadow'|'inland-water'|'no-data';
 export const COPERNICUS_SNOW_COLLECTIONS={
  FSC:'2bb9974a-0eb8-484d-adf1-20cc307021b6',
  GFSC:'0b5265f5-3664-44c2-96ab-e91aba67b0c3'
@@ -42,6 +42,7 @@ export type QualifiedCopernicusSnowSample={
  snowDepthCm:null;
  newSnowCm:null;
  forecast:false;
+ qaFlagsDecoded:false;
  productionApproved:false;
 };
 const uint8=(raw:unknown):number|null=>
@@ -68,8 +69,8 @@ export function qualifyCopernicusSnowSample(raw:CopernicusSnowSample,nowMs:numbe
  if(raw.fractionRaw!==null&&raw.fractionRaw!==undefined&&f===null)
   throw new Error('Copernicus snow fraction is not an original UINT8');
  const status:CopernicusSnowStatus=f===205?'cloud-or-shadow':f===210?'inland-water':
-   f!==null&&f<=100&&q!==null&&q<=3&&flags!==null?'observed':'no-data';
- const valid=status==='observed';
+   f!==null&&f<=100&&q!==null&&q<=3&&flags!==null?'candidate-unverified-qa-flags':'no-data';
+ const valid=status==='candidate-unverified-qa-flags';
  return {
   kind:raw.kind,
   collectionId:raw.kind==='GFSC'?COPERNICUS_SNOW_COLLECTIONS.GFSC:COPERNICUS_SNOW_COLLECTIONS.FSC,
@@ -89,6 +90,7 @@ export function qualifyCopernicusSnowSample(raw:CopernicusSnowSample,nowMs:numbe
   snowDepthCm:null,
   newSnowCm:null,
   forecast:false,
+  qaFlagsDecoded:false,
   productionApproved:false
  };
 }

@@ -7,7 +7,8 @@ describe('CLMS FSC/GFSC original UINT8 snow cover contract (read-only)',()=>{
  it('retains an actual 0% as snow-free, not missing, and never snow depth',()=>{
   const p=decode();
   expect(p.fractionPercent).toBe(0);
-  expect(p.status).toBe('observed');
+  expect(p.status).toBe('candidate-unverified-qa-flags');
+  expect(p.qaFlagsDecoded).toBe(false);
   expect(p.snowDepthCm).toBeNull();
   expect(p.newSnowCm).toBeNull();
   expect(p.forecast).toBe(false);
@@ -27,7 +28,7 @@ describe('CLMS FSC/GFSC original UINT8 snow cover contract (read-only)',()=>{
   for(const fractionRaw of [205,210,255,null]){
    const p=qualifyCopernicusSnowSample({...source,fractionRaw},now);
    expect(p.fractionPercent).toBeNull();
-   expect(p.status).not.toBe('observed');
+   expect(p.status).not.toBe('candidate-unverified-qa-flags');
   }
   for(const qualityRaw of [null,4,205,255]){
    expect(qualifyCopernicusSnowSample({...source,fractionRaw:42,qualityRaw},now).fractionPercent).toBeNull();

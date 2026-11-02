@@ -20,3 +20,10 @@
 Official upstream: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/clms/bio-geophysical-parameters/snow/snow-cover-extent/clms_wsi_fractional-snow-cover_europe_utm_20m_daily_v2.html
 GFSC: https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/clms/bio-geophysical-parameters/snow/snow-cover-extent/clms_wsi_gap-filled-fractional-snow-cover_europe_utm_60m_daily_v1.html
 Tile migration: https://land.copernicus.eu/en/products/snow/fractional-snow-cover
+
+## Budget- und Sicherheitsentscheidung
+Die offizielle Copernicus Data Space Quotenübersicht nennt für allgemeine Nutzer derzeit 10.000 Sentinel-Hub-Anfragen und 10.000 Processing Units monatlich, u. a. 300 Requests/min und 300 PU/min. Das ist **keine garantierte Freigabe für dieses MID-Konto**. BYOC-Evalscripts/Statistical- und Process-API können Processing Units verbrauchen; daher KEINE pro-Browserpixel- oder unkontrollierte Tile-Request-Auslieferung. Stattdessen nach Quoten-/Lizenzprüfung eine begrenzte serverseitige Batch-/Cache-Pipeline mit ETag/Quell-SHA, echten Kachel-Missing-Flags und begrenztem Speicher.
+
+Offizielle Quellen: https://documentation.dataspace.copernicus.eu/Quotas.html und https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Overview/ProcessingUnit.html
+
+**Sicherheitsnachschärfung:** Numerisch plausible Werte heißen im Decoder bewusst `candidate-unverified-qa-flags`, da die Bits von `QAFLAGS`/`CLD` noch nicht vollständig amtlich qualifiziert sind. `qaFlagsDecoded=false` und `productionApproved=false` machen dies maschinenlesbar. Kein Consumer darf solche Kandidaten als nachgewiesene Live-Schneebedeckung darstellen.
