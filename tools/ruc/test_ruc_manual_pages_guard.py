@@ -49,8 +49,21 @@ class ManualPagesGuard(unittest.TestCase):
         for name in jobs:
             with self.subTest(job=name):
                 before,block=script.split('\n  '+name+':\n',1)
-                next_job=block.find('\n  ',5)
-                if next_job>=0:block=block[:next_job]
+                import re
+                next_job=re.search(r'(?m)^  [A-Za-z][A-Za-z0-9_-]*:\s*
+                self.assertIn('group: mid-pages',block)
+                self.assertIn('queue: max',block)
+                self.assertIn('cancel-in-progress: false',block)
+                self.assertIn('id: ruc_guard',block)
+                self.assertIn('ref: mid-stable',block)
+                self.assertIn('persist-credentials: false',block)
+                self.assertIn('ruc_manual_pages_guard.py --ruc-enabled',block)
+                self.assertLess(block.index('id: ruc_guard'),block.index('uses: actions/deploy-pages@'))
+                self.assertIn("steps.ruc_guard.outcome == 'success'",block)
+
+if __name__=='__main__':unittest.main()
+,block)
+                if next_job:block=block[:next_job.start()]
                 self.assertIn('group: mid-pages',block)
                 self.assertIn('queue: max',block)
                 self.assertIn('cancel-in-progress: false',block)
