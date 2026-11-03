@@ -20,6 +20,21 @@ assert.equal((signer.match(/for ref in main mid-stable; do/g)||[]).length,2,
   'Protected signer must recheck both refs before and after attestation');
 assert.ok(signer.indexOf('Revalidate protected Stable and source immediately before signing') < signer.indexOf('uses: actions/attest@'));
 assert.ok(signer.indexOf('Revalidate protected Stable and index after attestation before handoff') > signer.indexOf('uses: actions/attest@'));
+assert.ok(signer.includes('id: attest') && signer.includes('steps.attest.outputs.bundle-path'),
+  'Signer must expose the original signed bundle to independent verification');
+const verifyPos=signer.indexOf('Verify exact SLSA signer and index digest before archival');
+assert.ok(verifyPos > signer.indexOf('Revalidate protected Stable and index after attestation before handoff')
+  && verifyPos < signer.indexOf('Archive signed original D2 evidence, not deployed data'),
+  'Cryptographic verification must finish before evidence upload');
+for (const flag of ['gh attestation verify d2-original-approved/index.json',
+  '--bundle "$ATTEST_BUNDLE"', '--signer-workflow "$GITHUB_REPOSITORY/.github/workflows/mid-d2-original-release-approval.yml"',
+  '--source-ref refs/heads/main', '--source-digest "$GITHUB_SHA"',
+  '--predicate-type https://slsa.dev/provenance/v1']) {
+  assert.ok(signer.includes(flag), 'Missing strict SLSA verification constraint: '+flag);
+}
+for (const file of ['original-dwd-slsa-verification.json', 'original-dwd-attestation-bundle.json']) {
+  assert.ok(signer.includes('            '+file), 'Verified SLSA proof must be archived: '+file);
+}
 const workflow=read('ci/github/workflows/install-mid.yml');
 assert.ok(workflow.includes("steps.ruc_guard.outputs.current == 'true'"));
 assert.ok(workflow.includes('check_ruc_snapshot_current.py'));

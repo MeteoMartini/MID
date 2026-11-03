@@ -95,6 +95,7 @@ jobs:
           test "$(jq -r .sourceCommitSha original-dwd-approval-report.json)" = "$GITHUB_SHA"
           test "$(jq -r .indexSha256 original-dwd-approval-report.json)" = "$(sha256sum d2-original-approved/index.json | cut -d' ' -f1)"
       - name: Official cryptographic provenance attestation for rebuilt DWD index
+        id: attest
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: d2-original-approved/index.json
@@ -110,6 +111,24 @@ jobs:
           done
           test "$(jq -r .sourceCommitSha original-dwd-approval-report.json)" = "$GITHUB_SHA"
           test "$(jq -r .indexSha256 original-dwd-approval-report.json)" = "$(sha256sum d2-original-approved/index.json | cut -d' ' -f1)"
+      - name: Verify exact SLSA signer and index digest before archival
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ATTEST_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ATTEST_BUNDLE" && test -s "$ATTEST_BUNDLE"
+          gh attestation verify d2-original-approved/index.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --bundle "$ATTEST_BUNDLE" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/mid-d2-original-release-approval.yml" \
+            --source-ref refs/heads/main \
+            --source-digest "$GITHUB_SHA" \
+            --predicate-type https://slsa.dev/provenance/v1 \
+            --format json > original-dwd-slsa-verification.json
+          jq -e 'type == "array" and length > 0' original-dwd-slsa-verification.json >/dev/null
+          cp "$ATTEST_BUNDLE" original-dwd-attestation-bundle.json
       - name: Archive signed original D2 evidence, not deployed data
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -122,5 +141,7 @@ jobs:
             d2-original-approved/index.json
             original-dwd-approval-report.json
             original-dwd-domain-inventory.json
+            original-dwd-slsa-verification.json
+            original-dwd-attestation-bundle.json
       - name: Scope notice
         run: echo 'Signed data provenance only. No Pages/R2/Worker activation, production access or Stable promotion.' >> "$GITHUB_STEP_SUMMARY"
