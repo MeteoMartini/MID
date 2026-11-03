@@ -18,7 +18,6 @@ for(const bad of ['2026-10-25T02:00:00',null,undefined,'',123,1712345678901,-10,
 }
 const spread=(t,z,s,f,g=.0065)=>vm.runInContext('snowLinePhysicalSpread('+[t,z,s,f,g].map(x=>x===undefined?'undefined':JSON.stringify(x)).join(',')+')',context);
 assert.equal(spread(0,0,null,null),0,'Genuine zero spread must remain zero');
-assert.equal(spread(null,0,null,null),Number.NaN); // Checked through isNaN separately below if cross-context
 assert.equal(spread(null,0,125,null),125,'Native snow spread is a valid fallback');
 assert.equal(spread(0,null,null,110),110,'Native freezing spread is a valid fallback');
 assert.ok(Number.isNaN(spread(null,0,null,null)),'Missing spread must never be zero');
