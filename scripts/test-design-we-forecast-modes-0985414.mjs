@@ -35,7 +35,7 @@ requireTokens(cockpit,[
 const sevenPart=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
 assert.ok(sevenPart.indexOf('<SevenDayCurveOverview')>=0);
 assert.ok(sevenPart.indexOf('<LazySevenDayDesignModes')>sevenPart.indexOf('<SevenDayCurveOverview'),
- 'The continuous native seven-day Skybar and graph must precede A/B/C modes');
+ 'The continuous native seven-day Skybar and graph must precede the selected forecast details');
 
 requireTokens(seven,[
  "type SevenDayView='standard'|'charts'|'table'",
