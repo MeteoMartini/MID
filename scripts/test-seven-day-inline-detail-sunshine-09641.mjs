@@ -18,14 +18,14 @@ for(const token of [
  'function MidForecastRow({active,compact,detail}',
  'const compact=<button type="button" className={\`cockpit-day mid-forecast-row',
  "style={{'--cockpit-day-column':index+1} as CSSProperties}",
- 'isExpanded=Boolean(hourlyDetail&&selected.date===day.date)',
+ 'isExpanded=expandedSevenDate===day.date;',
  'data-mid-forecast-detail="seven"',
  'Math.max(0,Math.round(Number(day.sunshineDuration)/3600))',
  'className="cockpit-day-sun"',
  'Sonnenscheindauer ${sunshineHours} h'
 ])assert.ok(cockpit.includes(token),`Direktes Tagesdetail oder Sonnenstunden fehlen: ${token}`);
 const sevenStart=cockpit.indexOf('function SevenDayBand'),sevenEnd=cockpit.indexOf('function RelativeSunshineIcon',sevenStart),sevenSection=cockpit.slice(sevenStart,sevenEnd>sevenStart?sevenEnd:undefined);
-assert.ok(!sevenSection.includes('expandedDate')&&!sevenSection.includes('setExpandedDate'),'Arbeitspaket E darf im 7-Tage-Bereich keinen unabhängigen Detailzustand besitzen; der 14-Tage-Bereich darf seinen eigenen Tap-Zustand führen.');
+assert.ok(sevenSection.includes('const [expandedSevenDate,setExpandedSevenDate]=useState<string|null>(null)')&&sevenSection.includes('setExpandedSevenDate(current=>current===date?null:date)'),'7-Tage-Details erst nach Tipp und bei erneutem Tipp wieder schließen; Sonnenscheindauer bleibt kompakt sichtbar.');
 
 for(const token of [
  '.cockpit-seven-grid>.cockpit-day.mid-forecast-row',

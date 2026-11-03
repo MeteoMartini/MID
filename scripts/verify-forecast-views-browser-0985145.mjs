@@ -21,7 +21,19 @@ try {
  for(const width of [320,390,402,844,1024,1440])for(const theme of ['light','dark'])for(const mode of ['seven','fourteen'])for(const unit of ['kn','kmh','ms','mph']){
   const page=await browser.newPage({viewport:{width,height:1000}});
   await page.goto(`http://127.0.0.1:${server.address().port}/?${mode}&unit=${unit}`);
-  await page.waitForFunction(n=>document.querySelectorAll('.forecast-range-guide').length===n,mode==='seven'?7:14);
+  await page.waitForSelector(mode==='seven'?'.cockpit-seven-grid .cockpit-day':'.cockpit-fourteen-card');
+  if(mode==='seven'){
+   const row=page.locator('.cockpit-seven-grid .cockpit-day').first();
+   assert.equal(await page.locator('[data-mid-forecast-detail="seven"]').count(),0,'Seven-day A must be compact on first render');
+   await row.click();
+   await page.waitForSelector('[data-mid-forecast-detail="seven"] .forecast-range-guide');
+   await row.click();
+   await page.waitForFunction(()=>document.querySelectorAll('[data-mid-forecast-detail="seven"]').length===0);
+   await row.click();
+   await page.waitForSelector('[data-mid-forecast-detail="seven"] .forecast-range-guide');
+  }else{
+   await page.waitForFunction(()=>document.querySelectorAll('.forecast-range-guide').length===14);
+  }
   await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
   const metrics=await page.evaluate(mode=>{const clipped=e=>{const range=document.createRange();range.selectNodeContents(e);const text=range.getBoundingClientRect();for(let parent=e;parent&&parent!==document.body;parent=parent.parentElement){const style=getComputedStyle(parent),box=parent.getBoundingClientRect();if(/hidden|clip/.test(style.overflowX)&&(text.left<box.left-1||text.right>box.right+1))return true;}return e.scrollWidth>e.clientWidth+1;};return ({
    overflow:document.documentElement.scrollWidth>innerWidth+1,
