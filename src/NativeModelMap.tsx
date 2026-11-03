@@ -16,9 +16,7 @@ import ModelMapProbe from './ModelMapProbe';
 import type {WindUnit} from './weather';
 import {CloudWeatherLegend,CloudWeatherModeControl} from './CloudSignificantWeather';
 import {nativeCloudWeatherPair,cloudWeatherAt,cloudWeatherDescription,cloudWeatherRaster,readCloudWeatherRenderMode,writeCloudWeatherRenderMode,readCloudWeatherIsobars,writeCloudWeatherIsobars,type CloudWeatherRenderMode} from './cloudWeatherData';
-import {exportCloudWeather} from './cloudWeatherExport';
 import {nativeCloudIsobars} from './cloudWeatherIsobars';
-import {exportNativeField} from './nativeModelMapExport';
 import type {WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import './weatherMapsTotals.css';
 const stamp=(value:string)=>new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC';
@@ -47,7 +45,7 @@ export default function NativeModelMap({kind,label,favorites,basemap,unit='kn'}:
  const cloudContours=cloudContourSelection?.contours??[];
  const nativeRuc=catalog?.index.modelId==='icon-d2-ruc'||field?.modelId==='icon-d2-ruc';
  const sourceLabel=nativeRuc?'DWD ICON-D2-RUC · nächster verifizierter nativer Gitterpunkt (bis 5 km)':'DWD ICON-D2 · bereitgestelltes reguläres GRIB2-Raster';
- const download=async(format:'png'|'svg')=>{if(!field||!raster||!colorScale)return;setExporting(true);try{if(combined)await exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContourSelection);else await exportNativeField(field,label,raster,places,format,ref?.intervalHours??0,unit,colorScale,{lines:showScalarLines,extremes:showExtremes})}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
+ const download=async(format:'png'|'svg')=>{if(!field||!raster||!colorScale)return;setExporting(true);try{if(combined)await (await import('./cloudWeatherExport')).exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContourSelection);else await (await import('./nativeModelMapExport')).exportNativeField(field,label,raster,places,format,ref?.intervalHours??0,unit,colorScale,{lines:showScalarLines,extremes:showExtremes})}catch(e){if(!(e instanceof DOMException&&e.name==='AbortError'))setError(String(e))}finally{setExporting(false)}};
  return <section className="weather-precipitation-totals" aria-label={label}><div className="weather-precipitation-layout">
   <section className="weather-precipitation-map-column"><div className="weather-precipitation-map-shell"><MidMapLibre center={[51.05,10.45]} zoom={4} minZoom={2.5} maxZoom={9} className="weather-precipitation-map" scrollZoom={false}>
    {place?<MapCenter latitude={place.latitude} longitude={place.longitude} zoom={6.8}/>:field?<MapFitBounds south={field.lats[0]} west={field.lons[0]} north={field.lats.at(-1)!} east={field.lons.at(-1)!} padding={20} maxZoom={6}/>:null}

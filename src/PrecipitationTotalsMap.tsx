@@ -10,7 +10,6 @@ import {mapColorAt,type MapColorMode} from './modelMapColorScale';
 import ModelMapScaleLegend from './ModelMapScaleLegend';
 import ModelMapProbe from './ModelMapProbe';
 import ModelMapContextOverlay from './ModelMapContextOverlay';
-import {exportTotals} from './precipitationTotalsExport';
 import {NativeScalarOverlay} from './NativeScalarMapOverlay';
 import {totalsScalarField} from './totalsScalarField';
 function stamp(value:string){return new Intl.DateTimeFormat('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value))+' UTC'}
@@ -28,7 +27,7 @@ export default function PrecipitationTotalsMap({favorites,embedded=false,basemap
  const[showContours,setShowContours]=useDisplayPreference('PrecipitationTotalsMap.showContours',true,displayBoolean);
  const frame=data?.frames.find(item=>item.hours===requestedHours)??data?.frames[0],hours=frame?.hours??requestedHours,rangeScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'field'):null,[data,frame]),fixedScale=useMemo(()=>data&&frame?totalsMapScale(data,frame,'absolute'):null,[data,frame]),colorScale=colorMode==='field'?rangeScale:fixedScale,raster=useMemo(()=>data&&frame&&colorScale?totalsRaster(data,frame,colorScale):'',[data,frame,colorScale]);
  const contourField=useMemo(()=>data&&frame?totalsScalarField(data,frame):null,[data,frame]);
- const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await exportTotals(data,frame,raster,sortedFavorites,kind,colorScale??undefined,showContours)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
+ const download=async(kind:'png'|'svg')=>{if(!data||!frame||!raster||exporting)return;setExporting(true);try{await (await import('./precipitationTotalsExport')).exportTotals(data,frame,raster,sortedFavorites,kind,colorScale??undefined,showContours)}catch(reason){if(!(reason instanceof DOMException&&reason.name==='AbortError'))setError(reason instanceof Error?reason.message:'Export fehlgeschlagen.')}finally{setExporting(false)}};
  const center:[number,number]=selectedFavorite?[selectedFavorite.latitude,selectedFavorite.longitude]:[51.05,10.45],zoom=selectedFavorite?6.8:5.25;
 
 

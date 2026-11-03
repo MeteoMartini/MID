@@ -1,3 +1,7 @@
+# MID v0.9.85.423 · Kartenexport bei Bedarf (unveröffentlichter Draft)
+
+Drei gemeinsame/Legacy-Kartenverbraucher laden Exportcode erst bei der Aktion. Responsiver Karten-Ladeplatzhalter mit Statussemantik; keine Änderung an Wetterdaten, Optionen oder gespeicherten Zuständen. Prüfbelege und Grenzen: `docs/implementation/MID_MAP_PERFORMANCE_0.9.85.423.md`. Keine Promotion.
+
 # MID v0.9.85.416 · nach Originalbildern korrigierte Layoutstruktur
 
 **Bildreferenzen:** MID Design-WE (02.11.2026), `image-gen-1(20261102-215747).png`, `image-gen-2(20261102-215750).png`, `image-gen-3(6).png`, `MID Wetter-App: 14-Tage-Redesign.png`. Bildbeispiele sind nur visuelle Referenzen und keine Wetterdaten. 7d Original-Skybar unverändert vor der Modusansicht, darunter kompakte Tageszeilen, fünf gestapelte Diagramme bzw. echte Vergleichsmatrix. 14d DOM: authentischer Temperatur-/Unsicherheitsgraph vor beiden Wochenstreifen, Wetterphasen nachgeordnet; vier Diagramme und Vergleichsmatrix erhalten. NoData, Ensemble, Warnungen, Modellläufe und vollständige Detailzugänge unverändert. Externe alte Changelog-Einträge beider Spiegel vollständig aus SHA-geprüftem Stable wiederhergestellt.

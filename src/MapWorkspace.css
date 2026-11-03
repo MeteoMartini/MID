@@ -55,3 +55,7 @@ html .unified-weather-map.unified-weather-map .composite-layer-toolbar .composit
 .unified-weather-map .unified-model-advanced>label{margin-top:8px}
 .unified-weather-map .unified-model-toggle small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .radarmap{position:relative}
+
+/* Reserve map space while its async component and styles arrive. No containment
+   on the live map: popovers and MapLibre controls must remain unclipped. */
+.map-workspace-shell .lazy-placeholder.map-workspace-loading{min-height:420px;min-height:min(420px,65svh);display:grid;place-items:center;padding:16px;overflow-wrap:anywhere;text-align:center;color:var(--text);background:var(--surface,var(--card));border-radius:var(--mid-ui-radius,12px)}

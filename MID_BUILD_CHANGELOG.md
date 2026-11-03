@@ -1,3 +1,7 @@
+# MID v0.9.85.423 · Kartenexport bei Bedarf (unveröffentlichter Draft)
+
+Drei gemeinsame/Legacy-Kartenverbraucher laden Exportcode erst bei der Aktion. Responsiver Karten-Ladeplatzhalter mit Statussemantik; keine Änderung an Wetterdaten, Optionen oder gespeicherten Zuständen. Prüfbelege und Grenzen: `docs/implementation/MID_MAP_PERFORMANCE_0.9.85.423.md`. Keine Promotion.
+
 ## MID v0.9.85.416 · 2026-11-03 · Abgleich der Originalbilder und Core-Changelog-Reparatur
 
 - Vorgänger-Commit von PR #641 hatte die historischen CHANGELOG-Spiegel gelöscht und dadurch historische Regressionstests in allen Core-Shards verletzt. Beide Changelogs werden vollständig und bytegleich aus dem originalen `.415`-Stable wiederhergestellt, mit `.416`-Eintrag ergänzt; Tests unverändert streng.
