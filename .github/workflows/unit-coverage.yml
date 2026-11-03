@@ -62,19 +62,6 @@ jobs:
 
       # Branch-only real-source science experiments are retained as audited tools,
       # not as fragile mandatory external live dependencies for ordinary CI.
-      # Temporary branch-fenced historical source experiment: remove after QA; NO RELEASE.
-      - name: DWD original GRIB precipitation A/B (science only)
-        if: github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.417-openmeteo-ruc-spatial-shadow'
-        shell: bash
-        timeout-minutes: 5
-        run: |
-          set -euo pipefail
-          python3 -m venv "${RUNNER_TEMP}/mid-dwd-original-qa"
-          "${RUNNER_TEMP}/mid-dwd-original-qa/bin/python" -m pip install --no-cache-dir --disable-pip-version-check --only-binary=:all: 'eccodes==2.50.0' 'numpy==2.3.5' 'requests==2.32.5'
-          "${RUNNER_TEMP}/mid-dwd-original-qa/bin/python" tools/ruc/dwd_real_regular_precip_batch_ab_science_qa.py
-          "${RUNNER_TEMP}/mid-dwd-original-qa/bin/python" -m pip install --no-cache-dir --disable-pip-version-check --only-binary=:all: "scipy==1.16.3" "contourpy==1.3.3"
-          "${RUNNER_TEMP}/mid-dwd-original-qa/bin/python" tools/ruc/dwd_real_regular_full_map_ab_science_qa.py
-
       - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
         shell: bash
         run: |
