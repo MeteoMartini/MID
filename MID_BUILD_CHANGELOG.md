@@ -1,3 +1,11 @@
+## MID v0.9.85.414 · 2026-11-03 · gebündelte Forecast-UX A/B/C und geschützte DWD-D2-Signer-Härtung
+
+- Verifizierter, bereits veröffentlichter Stable-Basispunkt: v0.9.85.413 `2052dc426c972bcfae8527001ce2082fab82c869`; ursprüngliche 13 Quell-/Unit-Test-Dateien aus Draft #629 @ `d52a0996d0fdc707135edc4426a20860c19c0dff` plus drei DWD-Signer-/Testdateien aus Draft #630 @ `836fc92b22604ffe21052b8ce341319b005ddaa9`, exakt per Blob-SHA auf neuen Sammelbranch übernommen.
+- Nutzerinteraktionen: 90-Minuten-Werte erneut einklappbar; Heute-Parameterfokus auf Temperatur/Niederschlag/Wind; 7d durchgehende Skybar + Ansichten A Standard/B fünf Parametercharts/C Tagesmatrix; 14d A Übersicht/B Diagramme/C Tagesdetails; 44-px-Fokus-/Touchziele, responsive CSS, unveränderte Ensemble-/NoData-/UTC-/DWD-Warnsemantik.
+- Sicherheitsintegration: geschützter DWD-Originaldaten-Signer prüft exakt gleiche `main`-/`mid-stable`-Commitidentität vor und nach der SLSA-Attestation, authentifiziert den signierten Index; keinerlei automatisches Pages-/Worker-/Fast-Produktiv-Grant.
+- Eine neue verbindliche Regression `scripts/test-design-we-forecast-modes-0985414.mjs` erweitert das vollständige Pflichtinventar auf 1.063; 38 normative Verträge, 5 Rulesets und geschützter regulärer Releaseweg bleiben unverändert.
+- Zur Veröffentlichung ist eine neue vollständige Source-Gate-/SHA-Bot-/serverseitige ZIP-/Installer-Core-/Heavy-/Worker-/Pages-/Finalize-/Stable-Promotion am exakten .414-HEAD zwingend. Diese Eintragung ist kein Freigabebeleg für ungeprüfte echte D2-/RUC-Fast-Livedaten, 168h-Frische oder Hardware-VoiceOver.
+
 ## MID v0.9.85.413 · 2026-11-02 · D2/RUC/Fast-Source-Port nach Design-WE-Stable
 
 - Ausgangsbasis: vollständig promotierter v0.9.85.412-Stable `8349fa89e9a66d09d320d1774c86dda4d14a4d4a`, Installer #41515302726 success. Original-Source-PR #625 @ `bf07de77eca4816516cf96281da1d970daebc71b`, Source-Gate #41513667882 success ausschließlich für alten .412-HEAD.
