@@ -1,0 +1,1 @@
+var e=new URL(new URL(`modelMapGeography-BopNRpJh.json`,import.meta.url).href,``+import.meta.url).href,t,n;function r(){return t?Promise.resolve(t):n??(n=fetch(e).then(e=>{if(!e.ok)throw Error(`Kartengrenzen nicht verfügbar`);return e.json()}).then(e=>(t=e,e)).finally(()=>{n=void 0}))}export{r as t};

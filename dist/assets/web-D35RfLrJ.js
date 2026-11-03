@@ -1,0 +1,1 @@
+import{Fi as e}from"./index-R91lB-TC.js";var t=class extends e{async show(e){}async hide(e){}};export{t as SplashScreenWeb};
