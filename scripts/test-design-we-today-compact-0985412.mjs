@@ -39,13 +39,22 @@ for(const token of [
 ])assert.ok(cockpit.includes(token),'WE Heute Vertragsbestandteil fehlt: '+token);
 
 for(const token of [
- 'const selectedNow90Point=now90.find(point=>point.id===selectedPoint.id)??null',
+ 'const selectedNow90Point=now90.find(point=>point.id===now90ExpandedId)??null',
  'aria-label="Details zum ausgewählten Viertelstundenpunkt"',
  'shortTermKnownPrecipitationLabel(selectedNow90Point)',
  'shortTermKnownProbabilityLabel(selectedNow90Point.probability)',
  "Number.isFinite(selectedNow90Point.wind)?wind(selectedNow90Point.wind,unit):'n. v.'",
  "Number.isFinite(selectedNow90Point.gust)?wind(selectedNow90Point.gust,unit):'n. v.'"
 ])assert.ok(cockpit.includes(token),'90min-Detail/NoData-Vertrag fehlt: '+token);
+for(const token of [
+ "[now90ExpandedId,setNow90ExpandedId]=useState<string|null>(null)",
+ "if(now90ExpandedId===item.id){setNow90ExpandedId(null)}",
+ "aria-expanded={now90ExpandedId===item.id}",
+ "className=\"mid-we-focus-indicator\"",
+ "data-mid-chart-focus={profileFocus}"
+])assert.ok(cockpit.includes(token),'Heute-Funktionsfix fehlt: '+token);
+assert.ok(styles.includes("opacity:.20!important;"),'Inline-Opacity muss von Fokusregel übersteuert werden.');
+assert.ok(styles.includes(".mid-we-parameter-controls>button[aria-pressed='true']"),'Fokusauswahl muss sichtbar sein.');
 assert.ok(styles.includes('.mid-we-now90-selected'),'Die auswählbaren 90min-Einzeldaten müssen mobil sichtbar sein.');
 assert.ok(styles.includes("html[data-mid-design='next']:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true']>.cockpit-meteogram-pro__head>.cockpit-weather-profile__toolbar"),'C27-Max-Content-Toolbar muss auf Mobilgeräten korrekt übersteuert werden.');
 const idx=(token)=>cockpit.indexOf(token);

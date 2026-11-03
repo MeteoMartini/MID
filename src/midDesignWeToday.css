@@ -291,3 +291,52 @@ html:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true'] .
  html:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true'] .mid-we-label-long{display:none}
  html:root .forecast-cockpit .cockpit-weather-profile[data-mid-we-today='true'] .mid-we-label-short{display:inline}
 }
+
+
+/* Design-WE 1.2 · Functional chart focus repair.
+   The shared path factory sets SVG opacity inline; the previous unqualified
+   focus rule could not override it. Keep clouds, skybar, warnings and
+   meteorological traces present: only de-emphasize non-focus curves. */
+.forecast-cockpit [data-mid-we-today='true'] .mid-we-focus-indicator{
+ padding:4px 12px 6px;
+ font-size:12px;
+ font-weight:650;
+ line-height:1.35;
+ color:var(--text);
+ background:color-mix(in srgb,var(--surface) 89%,var(--primary) 11%);
+ border-bottom:1px solid color-mix(in srgb,var(--border) 72%,transparent);
+}
+.forecast-cockpit [data-mid-we-today='true'] .mid-we-parameter-controls>button[aria-pressed='true']{
+ color:var(--text)!important;
+ background:color-mix(in srgb,var(--primary) 21%,var(--surface))!important;
+ border-color:var(--primary)!important;
+ box-shadow:inset 0 0 0 1px var(--primary)!important;
+}
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='temperature'] :is(.rain-bar,.probability-column,.probability-line,.probability-point,.wind-line,.gust-line,.pressure-line),
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='precipitation'] :is(.temperature-line,.apparent-line,.dewpoint-line,.wind-line,.gust-line,.pressure-line),
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='wind'] :is(.temperature-line,.apparent-line,.dewpoint-line,.rain-bar,.probability-column,.probability-line,.probability-point,.pressure-line){
+ opacity:.20!important;
+}
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='temperature'] .temperature-line,
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='precipitation'] .probability-line,
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='wind'] .wind-line{
+ opacity:1!important;
+ stroke-width:3.7px!important;
+}
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='temperature'] :is(.apparent-line,.dewpoint-line),
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='wind'] .gust-line{
+ opacity:.95!important;
+ stroke-width:2.6px!important;
+}
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='precipitation'] .rain-bar{
+ opacity:1!important;
+}
+.forecast-cockpit [data-mid-we-today='true'] .cockpit-meteogram-pro__canvas[data-mid-chart-focus='precipitation'] .probability-column{
+ opacity:.27!important;
+}
+@media(max-width:620px){
+ .forecast-cockpit [data-mid-we-today='true'] .mid-we-focus-indicator{
+  padding-inline:9px;
+  font-size:11px;
+ }
+}

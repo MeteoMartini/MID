@@ -1,0 +1,47 @@
+/* MID Design-WE seven-day · retain the canonical continuous 7d skybar above the selector.
+ * UI only: no modifications to original daily/15-minute data, warnings or model fusion. */
+.forecast-cockpit .mid-we-seven{display:grid;gap:10px;min-width:0;margin-block:12px 8px;color:var(--text)}
+.forecast-cockpit .mid-we-seven-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 75%,var(--s2) 25%);min-width:0}
+.forecast-cockpit .mid-we-seven-switch button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:9px 6px;border:1px solid transparent;border-radius:10px;color:var(--text);background:transparent;font:inherit;font-size:13px;font-weight:750;cursor:pointer;touch-action:manipulation}
+.forecast-cockpit .mid-we-seven-switch button[aria-pressed='true']{background:color-mix(in srgb,var(--primary) 22%,var(--surface));border-color:var(--primary);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 65%,transparent)}
+.forecast-cockpit .mid-we-seven :is(button,summary):focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+.forecast-cockpit .mid-we-seven-hint,.forecast-cockpit .mid-we-seven-note{margin:0;padding-inline:6px;font-size:12px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
+.forecast-cockpit .mid-we-seven-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+.forecast-cockpit .mid-we-seven-charts>article{display:grid;align-content:start;gap:7px;min-width:0;border-radius:16px;border:1px solid var(--border);background:var(--surface);padding:12px 8px}
+.forecast-cockpit .mid-we-seven-charts h3{font-size:14px;line-height:1.4;font-weight:750;margin:0 3px;min-width:0;color:var(--text)}
+.forecast-cockpit .mid-we-seven-charts .long-range-chart{min-width:0;max-width:100%;overflow-x:visible}
+.forecast-cockpit .mid-we-seven-charts .long-range-chart svg{display:block;max-width:100%;width:100%;min-width:0}
+.forecast-cockpit .mid-we-seven-charts .daily-signal-line{stroke-linecap:round;stroke-linejoin:round}
+.forecast-cockpit .mid-we-seven-charts .mid-we-seven-note{grid-column:1/-1;padding:4px 8px}
+.forecast-cockpit .mid-we-seven-table-wrap{display:grid;gap:8px;min-width:0}
+.forecast-cockpit .mid-we-seven-table-scroll{min-width:0;max-width:100%;overflow-x:auto;border:1px solid var(--border);border-radius:15px;background:var(--surface)}
+.forecast-cockpit .mid-we-seven-table-scroll table{border-collapse:collapse;width:100%;min-width:745px;font-size:12px;color:var(--text);font-variant-numeric:tabular-nums}
+.forecast-cockpit .mid-we-seven-table-scroll :is(td,th){padding:11px 9px;line-height:1.5;text-align:left;vertical-align:middle;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+.forecast-cockpit .mid-we-seven-table-scroll th{font-weight:750;white-space:nowrap}
+.forecast-cockpit .mid-we-seven-table-scroll thead{background:color-mix(in srgb,var(--s2) 68%,var(--surface))}
+.forecast-cockpit .mid-we-seven-table-scroll tbody tr:nth-child(even){background:color-mix(in srgb,var(--s2) 35%,transparent)}
+.forecast-cockpit .mid-we-seven-table-scroll tbody tr:last-child>*{border-bottom:0}
+.forecast-cockpit .mid-we-seven-table-scroll .mid-we-seven-weather{display:flex;align-items:center;gap:7px}
+.forecast-cockpit .mid-we-seven-min{color:var(--param-temperature-min);font-weight:750}
+.forecast-cockpit .mid-we-seven-max{color:var(--param-temperature-max);font-weight:750}
+.forecast-cockpit .mid-we-seven-table-scroll button{min-height:44px;min-width:68px;padding:8px 10px;color:var(--text);font:inherit;font-weight:750;border:1px solid var(--primary);border-radius:9px;background:color-mix(in srgb,var(--primary) 14%,var(--surface));cursor:pointer;touch-action:manipulation}
+.forecast-cockpit .cockpit-seven-day[data-mid-seven-view='standard'] .cockpit-seven-grid{min-width:0}
+.forecast-cockpit .cockpit-seven-day[data-mid-seven-view='standard'] .cockpit-day{border-radius:13px}
+@media(max-width:880px){.forecast-cockpit .mid-we-seven-charts{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:650px){
+ .forecast-cockpit .mid-we-seven{gap:8px}
+ .forecast-cockpit .mid-we-seven-switch button{font-size:12px;padding-inline:4px}
+ .forecast-cockpit .mid-we-seven-charts>article{padding:10px 6px;border-radius:13px}
+ .forecast-cockpit .mid-we-seven-table-scroll{overflow-x:visible}
+ .forecast-cockpit .mid-we-seven-table-scroll table{min-width:0;display:block}
+ .forecast-cockpit .mid-we-seven-table-scroll thead{display:none}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody{display:grid}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px;padding:13px;border-bottom:1px solid var(--border)}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody tr:last-child{border-bottom:0}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody th{grid-column:1/-1;font-size:14px}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody :is(td,th){min-width:0;display:block;padding:2px 0;border:0}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody td::before{content:attr(data-label);display:block;font-size:11px;line-height:1.5;font-weight:650;color:var(--muted)}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody td:last-child{grid-column:1/-1}
+ .forecast-cockpit .mid-we-seven-table-scroll tbody td:last-child button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.forecast-cockpit .mid-we-seven *{animation:none!important;transition:none!important}}
