@@ -71,7 +71,7 @@ export function auditManifest(domain, raw, mode="latest", now=new Date()) {
   const vars=Array.isArray(obj.variables)&&obj.variables.length<=512?obj.variables:[];
   const seenVars=new Set();
   for(const name of vars){
-    if(typeof name!=="string"||!/^[a-z][a-z0-9_]*$/.test(name))errors.push("invalid_variable_name");
+    if(typeof name!=="string"||!/^[a-z][a-z0-9_]*(?:hPa)?$/.test(name))errors.push("invalid_variable_name");
     if(seenVars.has(name))errors.push("duplicate_variable");
     seenVars.add(name);
   }
