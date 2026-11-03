@@ -52,10 +52,13 @@ def native_step_grib(path,minutes):
                 'pointCount':int(get('numberOfPoints')),
                 'missingValue':float(get('missingValue'))}
             step_units=meta['stepUnits']
-            if step_units not in ('m','h'):
+            # WMO GRIB2 Code Table 4.4: 0=minutes, 1=hours.
+            # ecCodes returns code 0 even when the step string renders '0m'.
+            canonical_unit={'0':'m','1':'h','m':'m','h':'h'}.get(step_units)
+            if canonical_unit is None:
                 raise ValueError('unknown original GRIB stepUnits '+repr(step_units))
-            meta['startStepMinutes']=step_minutes(meta['rawStartStep'],step_units)
-            meta['endStepMinutes']=step_minutes(meta['rawEndStep'],step_units)
+            meta['startStepMinutes']=step_minutes(meta['rawStartStep'],canonical_unit)
+            meta['endStepMinutes']=step_minutes(meta['rawEndStep'],canonical_unit)
             target=(RUN+timedelta(minutes=minutes)).strftime('%Y%m%d%H%M')
             if (meta['run']!=RUN.strftime('%Y%m%d%H%M') or
                 meta['valid']!=target or
