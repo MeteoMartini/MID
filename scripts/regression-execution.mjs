@@ -21,7 +21,7 @@ function localSpecifiers(source){
 }
 async function resolveLocalModule(fromFile,specifier){
  const base=path.resolve(path.dirname(fromFile),specifier),candidates=path.extname(base)?[base]:[base,base+'.mjs',base+'.js',base+'.cjs'];
- for(const candidate of candidates){try{await readFile(candidate,'utf8');return candidate}catch(error){if(error?.code!=='ENOENT')throw error}}
+ for(const candidate of candidates){try{await readFile(candidate,'utf8');return candidate}catch(error){if(error?.code!=='ENOENT'&&error?.code!=='EISDIR')throw error}}
  return null;
 }
 async function scanModule(file,seen,reasons){
