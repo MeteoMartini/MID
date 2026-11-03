@@ -59,7 +59,9 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
   expect(segment.indexOf('<SevenDayCurveOverview')).toBeGreaterThan(0);
   expect(segment.indexOf('<LazySevenDayDesignModes')).toBeGreaterThan(segment.indexOf('<SevenDayCurveOverview'));
-  expect(segment).toContain("sevenView==='standard'&&expandedSevenDate!==null&&<div className=\"cockpit-seven-grid mid-we-seven-expanded-detail\"");
+  expect(segment).toContain("const expandedDayContent=sevenView==='standard'&&expandedSevenDate!==null?<div className=\"cockpit-seven-grid mid-we-seven-expanded-detail\"");
+  expect(segment).toContain('expandedDayContent={expandedDayContent}');
+  expect(source).toContain('{open?expandedDayContent:null}');
   expect(segment).toContain('visible.filter(day=>day.date===expandedSevenDate)');
   expect(segment).toContain("onOpenDay={sevenView==='standard'?chooseDay:openDayFromTable}");
   expect(segment.indexOf('mid-we-seven-switch-primary')).toBeLessThan(segment.indexOf('<SevenDayCurveOverview'));
