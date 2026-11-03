@@ -37,7 +37,7 @@ assert.ok(sevenPart.indexOf('<LazySevenDayDesignModes')>sevenPart.indexOf('<Seve
 requireTokens(seven,[
  "type SevenDayView='standard'|'charts'|'table'",
  'data-mid-seven-mode={mode}',
- 'aria-pressed={mode===item.key}',
+ 'aria-pressed={mode===option.key}',
  "mode==='standard'",
  "mode==='charts'",
  "mode==='table'",
