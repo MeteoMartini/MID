@@ -1,3 +1,10 @@
+# MID v0.9.85.415 – Skybar: Sonne und Wolken korrekt abgestuft
+
+- Die vier gelben/grauen Strichdicken folgen jetzt durchgehend der **Gesamtbewölkung**: ab 50 % grau, darunter am Tag gelb nach dem offenen Himmelsanteil (100 % minus Gesamtbewölkung). 45 % Wolken entsprechen 55 % Wolkenlücken und somit **Stufe 1/4** – auch wenn der separat übermittelte Sonnenscheinanteil 100 % beträgt.
+- Fehlende Bewölkung darf weiterhin mit tatsächlich verfügbarer Sonnenscheindauer als **ausdrücklich gekennzeichnetem Fallback** visualisiert werden. Wolkenlücken werden niemals als WMO-Sonnenscheindauer ausgegeben. Der Tooltip unterscheidet beide Größen samt Bezugszeit.
+- Aktuell/12h, 90 Minuten, Heute/24h, 7/14 Tage, Wetterquadrate und die gemeinsamen Widget-/Export-Renderer verwenden die zentrale Klassifikation. Niederschlagsphase/-intensität, Tag/Nacht, Wetterpiktogramme und sämtliche meteorologischen Eingabewerte bleiben unverändert.
+- Verbindliche Regressionsprüfungen für vier Stufen, Grenzwerte, 45-%-/100-%-Widerspruch, Sonnenauf-/-untergang, Zeitintervalle, Missing und Niederschlags-Overlays erweitert. Keine vorgezogene Freigabe von DWD-/RUC-Originaldaten.
+
 # MID v0.9.85.414 – Wettervorhersage neu erleben: Heute, 7 und 14 Tage
 
 - **Heute: gezielt und intuitiv:** Die Schaltflächen Temperatur, Regen und Wind betonen die jeweilige Kurve sichtbar, ohne Wetter-, Wolken-, Warn- oder andere Originalinformationen zu verbergen. Der ausgewählte Viertelstundenwert im 90-Minuten-Bereich lässt sich durch erneutes Tippen wieder einklappen.

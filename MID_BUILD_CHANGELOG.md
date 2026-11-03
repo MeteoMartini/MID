@@ -1,3 +1,11 @@
+## MID v0.9.85.415 · 2026-11-03 · konsistente Skybar-Grundbandklassifikation
+
+- Verifizierte Ausgangsbasis `main=mid-stable` v0.9.85.414 `b2b9bb3c3eab78fac117bd0b0d2110b1ce127b66`, Installer #41584352470 success, fünf aktive Rulesets, 38 normative Verträge, 1.063 Pflichtregressionen.
+- Fehler: 45 % cloud plus 100 % sunshineDuration ergab 4/4 gelbe Dicke, weil bei bekanntem cloud<50 die kumulierte Sonnenscheindauer die Grundbandstufe überschreiben konnte. Neue Fachsemantik: Cloud >=50 grau, sonst tagsüber Cloud-Komplement gelb. 45 %→55 %→1/4, unabhängig von direct sunshine; unbekannter Cloud-Wert lässt echten Sunshine-Fallback zu, nie Missing→0.
+- Gemeinsamer `src/detailSkyBar.ts`-Helfer liefert Band und Zelle für Current, 90min, Today, 7d/14d und Widget-/Exportpfad. `WeatherPictogram.tsx` bleibt unverändert und verwendet bei trockenen Codes vorhandene Cloud-Werte. Der Niederschlags-Overlaytitel kennzeichnet das korrekte Wolkenlücken-/Sonnenscheindauer-Grundband. Tooltips und 90min-SVG-Titel sind konsistent.
+- Fach-/Grenzwertvertrag `MID_24H_PROFILE_STORY_AXIS_CONTRACT.md` ergänzt; Regressionen `test-skybar-solid-colors-0985358.mjs`, `test-skybar-daylight-levels-0985303.mjs`, `test-skybar-sun-cloud-exclusive-097863.mjs`, `test-skybar-sunshine-time-alignment-097881.mjs` auf die beabsichtigte Cloud-Priority erweitert. Vier Klassen 50/62.5/75/87.5 %, Dicke 2.4/3.6/4.8/6, Nacht/DST, Originalsunshine, Regen-/Schneephasen unverändert.
+- App-Version .415, iOS Build 416 und Version-Mirrors; nur etablierter Source-PR-Gate → SHA-Bot → serverseitiges ZIP → `install-mid.yml` Worker/Pages/Finalize → Stable. Kein Gate wird vorab als grün behauptet. Unabhängige P0-P5-Datenfreigaben bleiben blockiert.
+
 ## MID v0.9.85.414 · 2026-11-03 · gebündelte Forecast-UX A/B/C und geschützte DWD-D2-Signer-Härtung
 
 - Verifizierter, bereits veröffentlichter Stable-Basispunkt: v0.9.85.413 `2052dc426c972bcfae8527001ce2082fab82c869`; ursprüngliche 13 Quell-/Unit-Test-Dateien aus Draft #629 @ `d52a0996d0fdc707135edc4426a20860c19c0dff` plus drei DWD-Signer-/Testdateien aus Draft #630 @ `836fc92b22604ffe21052b8ce341319b005ddaa9`, exakt per Blob-SHA auf neuen Sammelbranch übernommen.

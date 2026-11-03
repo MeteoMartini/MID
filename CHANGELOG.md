@@ -1,3 +1,11 @@
+# MID v0.9.85.415 – Skybar: Sonne und Wolken korrekt abgestuft
+
+- **Vier nachvollziehbare Stufen:** Die Skybar zeigt ab 50 % Gesamtbewölkung Grau und bei geringerem Wolkenanteil tagsüber Gelb nach dem unbedeckten Himmelsanteil. Die vier Stufen gelten jeweils für 50–<62,5 %, 62,5–<75 %, 75–<87,5 % und 87,5–100 %.
+- **45 % Wolken → 55 % Wolkenlücken → gelb 1/4.** Eine gleichzeitig hohe tatsächliche Sonnenscheindauer macht das gelbe Band nicht künstlich dicker. Sie bleibt als unabhängige meteorologische Größe im Tooltip und ihren eigenen Prognosewerten sichtbar.
+- **Eindeutige Datenherkunft:** Sind Wolkendaten unbekannt, darf tatsächlich verfügbare Sonnenscheindauer ersatzweise ein gelbes Band begründen – ausdrücklich so gekennzeichnet. Wolkenlücken werden nie als gemessene Sonnenscheindauer ausgegeben.
+- **Appweite Korrektur:** Aktuell/12h, 90min, Heute/24h, 7/14 Tage, Wetterquadrate sowie gemeinsame Widget- und Exportdarstellung verwenden denselben zentralen Skybar-Kern. Piktogramme bleiben bei trockenen Codes an die finale Gesamtbewölkung gekoppelt.
+- **Unverändert:** Niederschlag, WMO-/DWD-Codes und Warnungen, echte Sonnenstunden, Tag-/Nachtgrenzen, Zeitachsen, Modellprovenienz, Datenlücken und Extremwerte. Adversarielle Regressionen um den gemeldeten 45-%-Fehler und die vier Dickenstufen erweitert.
+
 # MID v0.9.85.414 – Wettervorhersage neu erleben: Heute, 7 und 14 Tage
 
 - **Heute: gezielt und intuitiv:** Die Schaltflächen Temperatur, Regen und Wind betonen die jeweilige Kurve sichtbar, ohne Wetter-, Wolken-, Warn- oder andere Originalinformationen zu verbergen. Der ausgewählte Viertelstundenwert im 90-Minuten-Bereich lässt sich durch erneutes Tippen wieder einklappen.

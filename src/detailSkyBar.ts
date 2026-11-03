@@ -116,20 +116,12 @@ const baseSkyVisual=(cloud:number,daylight:boolean,sunshineShare:number|null,sun
       opacity:1,
       title:`Gesamtbewölkung${daylight?'':' Nacht'} · ${boundedCloud.toFixed(0)} %`,
     };}
-    if(daylight&&sunshineDirect){
-      const directSunshine=clamp01(Number(sunshineShare)),width=sunBandWidth(directSunshine);
-      if(width>0){const level=skybarAboveHalfLevel(directSunshine);return {
-        layer:'base',
-        color:'#ffc229',
-        strokeWidth:width,
-        thicknessLevel:skybarThicknessLevel(level),
-        opacity:1,
-        title:`Sonnenscheindauer · ${(directSunshine*100).toFixed(0)} % ${sunshineReference} · Gesamtbewölkung ${boundedCloud.toFixed(0)} %`,
-      };}
-    }
-    // Accumulated sunshine can legitimately be short in a sunrise/sunset slot.
-    // It must not erase a known open sky. Keep the quantities labelled separately.
-    if(daylight&&(!sunshineDirect||Number(sunshineShare)<=.5)){
+    // Known total cloud cover is the authoritative geometry of the sky-state
+    // band. Sunshine duration is a distinct radiation/time quantity: showing
+    // 95% measured sunshine at 45% cloud must NOT paint the 4/4 yellow band.
+    // Use the cloud complement only as a labeled open-sky *display share*,
+    // never as measured/modelled sunshine duration.
+    if(daylight){
       const openSkyShare=clamp01(1-boundedCloud/100),width=sunBandWidth(openSkyShare);
       if(width>0){const level=skybarAboveHalfLevel(openSkyShare);return {
         layer:'base',
@@ -193,14 +185,15 @@ const precipitationOverlayVisual=(hour:PrecipSample,intervalSeconds:number):Weat
   const level=(rawLevel-1) as SkyBarThicknessIndex,width=skybarThickness(level);
   const measuredSunshine=skybarFiniteMeasurement(hour.sunshineDuration);
   const sunshineShare=!!hour.isDay&&Number.isFinite(measuredSunshine)?clamp01(measuredSunshine/Math.max(60,intervalSeconds)):null;
-  const hasSunshineBase=!!hour.isDay&&sunshineShare!==null&&Number.isFinite(sunshineShare)&&sunshineShare>.5;
+  const measuredCloud=skybarFiniteMeasurement(hour.cloud),hasOpenSkyBase=!!hour.isDay&&Number.isFinite(measuredCloud)&&measuredCloud<50;
+  const hasSunshineBase=!!hour.isDay&&!Number.isFinite(measuredCloud)&&sunshineShare!==null&&sunshineShare>.5;
   return {
     layer:'precip',
     color:precipitationPhaseColor(parts.type),
     strokeWidth:width,
     thicknessLevel:skybarThicknessLevel(level),
     opacity:1,
-    title:`${measuredAmount===null?parts.weatherLabel:parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${measuredAmount!==null&&intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='sleetShowers'&&parts.type!=='snowShowers'&&parts.type!=='graupelShowers'&&parts.type!=='hailShowers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${measuredAmount.toFixed(measuredAmount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasSunshineBase?' · auf Sonnenscheindauer-Grundband':''}`,
+    title:`${measuredAmount===null?parts.weatherLabel:parts.label||'Niederschlag'} · ${precipitationPhaseColorLabel(parts.type)} · ${intensityLabel} · ${intensityBasis}${measuredAmount!==null&&intervalMinutes<60&&parts.type!=='showers'&&parts.type!=='sleetShowers'&&parts.type!=='snowShowers'&&parts.type!=='graupelShowers'&&parts.type!=='hailShowers'&&parts.type!=='thunderstorm'&&parts.type!=='thunderstormHail'?` · ${measuredAmount.toFixed(measuredAmount>=10?0:1)} mm/${intervalMinutes} min`:''}${hasOpenSkyBase?' · auf Wolkenlücken-Grundband':hasSunshineBase?' · auf Sonnenscheindauer-Grundband':''}`,
   };
 };
 

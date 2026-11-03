@@ -1,3 +1,11 @@
+# MID v0.9.85.415 · Skybar: eindeutige Cloud-Klassifikation und vier konsistente Balkenstärken
+
+**Basiskette:** Am 03.11.2026 verifiziert `main=mid-stable` SHA `b2b9bb3c3eab78fac117bd0b0d2110b1ce127b66`, v0.9.85.414, fünf aktive Rulesets, 38 Normverträge und 1.063 Pflichtregressionen. Das v0.9.85.415-Skybar-Quellpaket ändert ausschließlich die Anzeige-Klassifikation, dazu passende UI-Texte, Tests, Versionsspiegel und Changelogs.
+
+**Einheitliche Fachregel:** Ab 50 % bekannter Gesamtbewölkung graues Grundband, 50–100 % in vier Stufen; unterhalb 50 % bekannte Bewölkung bei Tageslicht gelbes Grundband aus *100 % minus Gesamtbewölkung*, klar als „Wolkenlücken“ bezeichnet. Bei 45 % Wolken ist 55 % offene Himmelsfläche 1/4 gelb und 100 % unabhängig berichtete Sonnenscheindauer darf dies nicht zu 4/4 erhöhen. Bei unbekanntem Cloud-Wert nur wirklich vorhandene relative Sonnenscheindauer als expliziten Fallback zulassen. Gemessene/modellierte Sonnenminuten, WMO-Wettercode, Originalzeiten/UTC, Wetterwarnungen und Niederschlagsakkumulation nicht verändern. Missing ≠ 0. Vier Stufen: 50/62,5/75/87,5 %; 2,4/3,6/4,8/6 SVG-Einheiten. Derselbe `detailSkyBar.ts`-Kern ist für 12h/90min/Heute/7d/14d, Stundenquadrate, Widgets und Exporte maßgeblich; der Wetterpiktogrammcode bleibt gleich.
+
+**Freigabe:** Noch kein veröffentlichter .415-Build. Nur exaktes neues Source-Gate, kontrollierter SHA-gebundener Bot-Merge, serverseitiges Release-ZIP, Installer Core/Heavy, Worker, Pages, Finalize und erfolgreiche Stable-Promotion zählen. Kein Eingriff in DWD-/ICON-D2-/RUC-Full-Domain/Fast-Lane-Produktionsfreigaben, kein Ruleset-/Budget-Bypass. Test-/Releasebelege sind getrennt zu prüfen.
+
 # MID v0.9.85.414 · konsolidierte 7d-/14d-Designansichten und DWD-Originalsignatur
 
 **Source-of-Truth bei Integrationsstart:** `main=mid-stable` v0.9.85.413, SHA `2052dc426c972bcfae8527001ce2082fab82c869`, regulärer Installer #41535864012 erfolgreich. **Koordinierter Draft-Quellstand:** ChatGPT-Integrationsbranch `chatgpt/v0.9.85.414-forecast-d2-batch`, Grundlage exakt verifizierte 13 Dateien aus Design-Draft #629 @ `d52a0996d0fdc707135edc4426a20860c19c0dff` plus drei disjunkte geschützte Signer-/Regressionsdateien aus #630 @ `836fc92b22604ffe21052b8ce341319b005ddaa9`. Die zwei Ursprungs-Drafts bleiben unverändert.
