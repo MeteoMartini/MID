@@ -63,6 +63,44 @@ async function verifyOfflineModule(browser,name){
   console.log(`[css-parity] ${name}: first deferred import and stylesheet passed with real server shut down`);
  }finally{await context.close();if(server.listening)await new Promise(r=>{server.close(r);server.closeAllConnections()})}
 }
+// A settled DOM tree is not proof that WebKit has completed raster painting,
+ // especially immediately after an SVG keyboard action and deferred font load.
+ // Require two *identical consecutive* screenshots of EACH renderer before
+ // comparing the exact unmodified screenshot bytes across renderer variants.
+ async function stableScreenshot(page,label){
+  let previous=null;
+  for(let attempt=0;attempt<8;attempt++){
+   await page.evaluate(async()=>{await document.fonts.ready;await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))});
+   const current=await page.locator('[data-fourteen-development]').screenshot({animations:'disabled'});
+   if(previous&&current.equals(previous))return current;
+   previous=current;
+  }
+  throw new Error(label+': no stable raster after eight real browser frames');
+ }
+ async function printPixelMismatch(page,label,images){
+  try{
+   const result=await page.evaluate(async encoded=>{
+    const canvases=await Promise.all(encoded.map(async str=>{
+     const blob=new Blob([Uint8Array.from(atob(str),char=>char.charCodeAt(0))],{type:'image/png'});
+     const bitmap=await createImageBitmap(blob);
+     const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
+     const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0);
+     return {width:bitmap.width,height:bitmap.height,data:ctx.getImageData(0,0,bitmap.width,bitmap.height).data};
+    }));
+    const [a,b]=canvases;
+    if(a.width!==b.width||a.height!==b.height)return {sizeMismatch:[[a.width,a.height],[b.width,b.height]]};
+    let pixels=0,first=null,minX=a.width,minY=a.height,maxX=-1,maxY=-1;
+    for(let i=0;i<a.data.length;i+=4){
+     if(a.data[i]===b.data[i]&&a.data[i+1]===b.data[i+1]&&a.data[i+2]===b.data[i+2]&&a.data[i+3]===b.data[i+3])continue;
+     const p=i/4,x=p%a.width,y=Math.floor(p/a.width);pixels++;
+     if(!first)first={x,y,active:[...a.data.slice(i,i+4)],reference:[...b.data.slice(i,i+4)]};
+     minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+    }
+    return {dimensions:[a.width,a.height],differingPixels:pixels,bounds:pixels?{minX,minY,maxX,maxY}:null,first};
+   },images.map(buffer=>buffer.toString('base64')));
+   console.error('[css-parity] exact screenshot mismatch diagnostics '+JSON.stringify({label,...result}));
+  }catch(e){console.error('[css-parity] screenshot mismatch diagnostic unavailable: '+String(e))}
+ }
 let active,stable,cases=0;
 async function snapshot(page){return page.locator('[data-fourteen-development]').evaluate(el=>[...el.querySelectorAll('*')].map(n=>{const s=getComputedStyle(n),r=n.getBoundingClientRect();return {tag:n.tagName,text:n.children.length?'':n.textContent,box:[r.x,r.y,r.width,r.height].map(v=>Math.round(v*100)/100),style:['display','color','backgroundColor','fontSize','fontWeight','lineHeight','padding','margin','border','borderRadius','gridTemplateColumns','gap','fill','stroke','opacity'].map(k=>s[k])};}));}
 async function settledSnapshot(page,label){
@@ -105,10 +143,13 @@ try{
    assert.deepEqual(actual,expected,`${label}: computed/layout parity`);
    for(const {page,errors}of contexts){assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('[data-signal-series="tmin"] g[role="button"]').first().focus();await page.keyboard.press('Enter');assert.match(await page.getByRole('status').innerText(),/P10–P90/);}
    assert.equal(await contexts[0].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),await contexts[1].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),'Shared SVG geometry and accessible data');
-   // WebKit can paint a focused SVG one frame after its computed geometry settles.
-   // Settle BOTH renderers without weakening exact screenshot equality.
-   await Promise.all(contexts.map(({page})=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))))));
-   const images=await Promise.all(contexts.map(({page})=>page.locator('[data-fourteen-development]').screenshot({animations:'disabled'})));assert.ok(images[0].equals(images[1]),`${name}/${width}/${theme}/${cache}: pixel parity`);cases++;console.log(`${name} ${width}/${theme}/${cache}: parity passed`);
+   // Wait for actual fonts and stable WebKit/Chromium raster, not just stable CSS geometry.
+   // Exact byte-for-byte screenshot equality across both renderers remains mandatory.
+   const labelPixels=`${name}/${width}/${theme}/${cache}`;
+   const images=await Promise.all(contexts.map(({page},index)=>stableScreenshot(page,labelPixels+(index===0?'/deferred':'/reference'))));
+   if(!images[0].equals(images[1]))await printPixelMismatch(contexts[0].page,labelPixels,images);
+   assert.ok(images[0].equals(images[1]),`${name}/${width}/${theme}/${cache}: pixel parity`);
+   cases++;console.log(`${name} ${width}/${theme}/${cache}: parity passed`);
   }}finally{await Promise.all(contexts.map(({context})=>context.close()));}
  }
  }finally{await browser.close();}}
