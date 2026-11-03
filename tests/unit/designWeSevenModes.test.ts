@@ -55,13 +55,17 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   expect(detail).toContain('<ForecastRangeGuide');
   expect(css).toContain('.mid-we-seven-switch-primary');
  });
- it('keeps continuous legacy seven-day chart and Skybar above the selector',()=>{
+ it('keeps one visible A/B/C selector above the continuous Skybar and opens C-to-A day detail',()=>{
   const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
   expect(segment.indexOf('<SevenDayCurveOverview')).toBeGreaterThan(0);
   expect(segment.indexOf('<LazySevenDayDesignModes')).toBeGreaterThan(segment.indexOf('<SevenDayCurveOverview'));
   expect(segment).toContain("sevenView==='standard'&&<div className=\"cockpit-seven-grid\"");
   expect(segment).toContain("onOpenDay={openDayFromTable}");
-  expect(segment).toContain("setSevenView('standard');onSelectedDate(date)");
+  expect(segment.indexOf('mid-we-seven-switch-primary')).toBeLessThan(segment.indexOf('<SevenDayCurveOverview'));
+  expect(segment).toContain("const openDayFromTable=(date:string)=>{setSevenView('standard');setExpandedSevenDate(date);onSelectedDate(date)}");
+  expect(segment).toContain('isExpanded=expandedSevenDate===day.date;');
+  expect(segment).toContain('aria-expanded={isExpanded}');
+  expect(segment).toContain('aria-controls={`mid-seven-detail-${day.date}`}');
   expect(segment).not.toContain('display:none!important');
   expect(cockpit).toContain("useDisplayPreference<'standard'|'charts'|'table'>('ForecastCockpit.sevenDay.view','standard'");
  });
