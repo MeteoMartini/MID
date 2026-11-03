@@ -35,11 +35,16 @@ assert.ok(sevenBand.includes('selectedDate={selected.date}')&&sevenBand.includes
 const detailed= fourteenthBand.indexOf('<LazyFourteenDayDevelopment');
 const compass=fourteenBand.indexOf('<CockpitForecastGuide');
 assert.ok(detailed>0&&compass>detailed,'14d A/B/C must render BEFORE the large provenance compass, not hidden below first viewport');
-assert.ok(fourteenBand.includes('<LazyFourteenDayDevelopment series={series} unit={unit}/>'),'The selected 14d wind display unit must be retained');
+assert.ok(fourteenBand.includes('<LazyFourteenDayDevelopment series={series} unit={unit} onOpenDay='),'The selected 14d wind unit and interactive full-detail handoff must be retained');
 assert.ok(fourteenBand.includes('<ForecastRangeLegend')&&fourteenBand.includes('data-fourteen-daily-details'),'Legacy uncertainty legend and complete day cards must remain');
 assert.ok(fourteen.includes("mode==='compact'")&&fourteen.includes("mode==='charts'")&&fourteen.includes("mode==='days'"),'14-day A/B/C remain fully functional');
 for(const [name,css] of [['7d',sevenCss],['14d',fourteenCss]]){
  assert.ok(css.includes(':focus-visible')&&css.includes('min-height:44px')&&css.includes('@media(max-width:'),'Responsive touch and keyboard contract: '+name);
 }
 assert.ok(sevenCss.includes('.mid-we-seven-switch-primary'),'Top A/B/C selector must have styling');
-console.log('MID .415: 7d single visible A/B/C, no automatic hourly expansion, unmodified Skybar and accessible real quantiles; 14d A/B/C ahead of compass, complete old details and 44px responsive styling verified.');
+assert.ok(seven.includes('mid-we-seven-daycard')&&seven.includes('aria-controls={open?')&&seven.includes('mode===\'standard\''),'A has seven accessible visual daycards, not only a legacy hint');
+assert.ok(sevenBand.includes('visible.filter(day=>day.date===expandedSevenDate)')&&sevenBand.includes('expandedSevenDate!==null'),'Only an explicitly selected complete original day detail is mounted');
+assert.ok(fourteen.includes('mid-we-fourteen-weeks')&&fourteen.includes('mid-we-fourteen-daytile')&&fourteen.includes('mid-we-fourteen-chart-feature'),'A has two real week tracks and original uncertainty graph');
+assert.ok(fourteenBand.includes('id="mid-fourteen-full-details"')&&fourteenBand.includes('setShowFourteenDayDetails(true)'),'Original fourteen daily detail cards remain reachable by A');
+assert.ok(sevenCss.includes('.mid-we-seven-daycard')&&fourteenCss.includes('.mid-we-fourteen-weekscroll'),'New visual cards and responsive week scroll must be styled');
+console.log('MID Design-WE 1.2: 7d A visually compact with original details opt-in, 7d B/C chart/table, 14d A two real weeks, B/C separate, canonical graph/quantiles/Skybar all retained.');
