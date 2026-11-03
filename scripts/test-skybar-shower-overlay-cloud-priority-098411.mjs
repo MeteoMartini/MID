@@ -15,12 +15,14 @@ const [skybar,precipitation,renderer,app,cockpit,contract,pkgRaw,baselineRaw]=aw
 ]);
 const pkg=JSON.parse(pkgRaw),baseline=JSON.parse(baselineRaw),test='scripts/test-skybar-shower-overlay-cloud-priority-098411.mjs';
 
-// Cloud cover and sunshine duration remain distinct. Strong cloud cover is grey; below 50 %, direct sunshine duration may drive yellow, otherwise only an explicitly labelled cloud-gap fallback may do so.
-assert.ok(skybar.includes('if(cloudKnown){')&&skybar.includes('const cloudWidth=cloudBandWidth(boundedCloud);')&&skybar.includes('if(daylight&&sunshineDirect){'),'Bekannte Gesamtbewölkung muss das graue Band ab 50 % schützen, ohne direkte Sonnenscheindauer darunter umzudeuten.');
+// Cloud cover and sunshine duration remain distinct. Strong cloud cover is grey;
+// known cloud below 50% drives labelled yellow open-sky thickness (never raw sunshine).
+// Only UNKNOWN cloud may fall back to actual and separately labelled sunshine duration.
+assert.ok(skybar.includes('if(cloudKnown){')&&skybar.includes('const cloudWidth=cloudBandWidth(boundedCloud);')&&skybar.includes('if(daylight){'),'Bekannte Gesamtbewölkung muss das graue Band ab 50 % schützen und darunter die gelbe Wolkenlückenklasse bestimmen.');
 assert.ok(skybar.includes('if(sunshineShare!==null&&Number.isFinite(sunshineShare))return clamp01(sunshineShare);'),'Direkte Sonnenscheindauer bleibt als eigenständiger WMO-Parameter erhalten.');
-assert.ok(skybar.includes('if(daylight&&(!sunshineDirect||Number(sunshineShare)<=.5))')&&skybar.includes('const openSkyShare=clamp01(1-boundedCloud/100)')&&skybar.includes('title:`Wolkenlücken'),'Nur bei fehlender direkter Sonnenscheindauer darf der komplementäre Himmelsanteil als expliziter Wolkenlücken-Fallback dienen.');
+assert.ok(skybar.includes('if(daylight){')&&skybar.includes('const openSkyShare=clamp01(1-boundedCloud/100)')&&skybar.includes('title:`Wolkenlücken'),'Bei bekannter Gesamtbewölkung muss der komplementäre Himmelsanteil die gelbe Skybar-Klasse liefern, ungeachtet der direkten Sonnenscheindauer.');
 assert.ok(skybar.includes('const cloudWidth=cloudBandWidth(boundedCloud);')&&skybar.includes("color:'#aeb3b9'"),'Ab 50 % Gesamtbewölkung muss das Grundband grau sein.');
-assert.ok(app.includes('direkt verfügbare Sonnenscheindauer')&&app.includes('Dieser Fallback ist keine Sonnenscheindauer'),'UI-Vertrag muss direkte Sonnenscheindauer vom Wolkenlücken-Fallback trennen.');
+assert.ok(app.includes('direkt verfügbare Sonnenscheindauer')&&app.includes('Diese Skybar-Farbklassifikation ist keine Sonnenscheindauer')&&app.includes('Dieser Fallback ist keine aus Bewölkung errechnete Sonnenscheindauer'),'UI-Vertrag muss direkte Sonnenscheindauer vom Wolkenlücken-Fallback trennen.');
 
 // Shower situations: precipitation is a separate, later SVG layer on the same centre line.
 // If its stroke is thinner, the yellow base remains visible around it; if equal/thicker,

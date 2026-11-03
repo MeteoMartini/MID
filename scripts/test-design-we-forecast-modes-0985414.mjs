@@ -18,7 +18,7 @@ const baseline=JSON.parse(baselineText);
 const self='scripts/test-design-we-forecast-modes-0985414.mjs';
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])
  assert.ok(baseline[key].includes(self),'Mandatory baseline registration missing: '+key);
-assert.equal(baseline.releaseVersion,'0.9.85.414');
+assert.equal(baseline.releaseVersion,JSON.parse(await read('package.json')).version,'Originale .414-Forecast-Regression muss auch in späteren MID-Releases weiter gelten');
 for(const file of ["src/SevenDayDesignModes.tsx","src/midDesignWeSeven.css","src/midDesignWeFourteen.css","tests/unit/designWeFourteen.test.ts","tests/unit/designWeFourteenModes.test.ts","tests/unit/designWeFourteenRender.test.ts","tests/unit/designWeSevenModes.test.ts"])
  assert.ok(baseline.requiredFiles.includes(file),'New forecast UI or test not protected by baseline: '+file);
 
