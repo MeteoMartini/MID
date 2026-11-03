@@ -4,9 +4,10 @@ import {useDisplayPreference,displayChoice} from './useDisplayPreference';
 import {wind,type WindUnit} from './weather';
 import {compactPrecipitationAmount} from './precipitation';
 import {HorizonSignalChart} from './HorizonSignalChart';
+import {WeatherPictogram} from './WeatherPictogram';
 import {assessmentSummary,type DayAssessment} from './ensembleAssessment';
 import {formatDecimalFixed} from './format';
-type Row={date:string;meanDayTemperature:number;regimeText:string;bestMax:number;bestMin:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;ensembleAvailable:boolean;assessment:DayAssessment;bestPrecipitation:number;bestPrecipitationProbability:number;bestWind:number;bestGust:number;precipitationLow:number;precipitationHigh:number;windLow:number;windHigh:number;gustLow:number;gustHigh:number;weatherLabel:string};
+type Row={date:string;meanDayTemperature:number;regimeText:string;bestMax:number;bestMin:number;maxLow:number;maxHigh:number;maxQ25:number;maxQ75:number;minLow:number;minHigh:number;minQ25:number;minQ75:number;ensembleAvailable:boolean;assessment:DayAssessment;bestPrecipitation:number;bestPrecipitationProbability:number;bestWind:number;bestGust:number;precipitationLow:number;precipitationHigh:number;windLow:number;windHigh:number;gustLow:number;gustHigh:number;weatherCode?:number;weatherLabel:string};
 // Quantiles are the existing weighted daily ensemble values, never Best-Match proxies.
 export function fourteenTemperatureSeries(series:Row[]){
  const bound=(row:Row,value:number)=>row.ensembleAvailable&&Number.isFinite(value)?value:null;
@@ -85,11 +86,11 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
      <div className="mid-we-fourteen-weekrow">{week.rows.map(row=><button type="button" className="mid-we-fourteen-daytile" key={row.date}
        disabled={!onOpenDay} onClick={()=>onOpenDay?.(row.date)} aria-controls="mid-fourteen-full-details"
        aria-label={dateLabel(row.date)+': '+row.weatherLabel+', '+numeric(row.bestMin,'°C')+' bis '+numeric(row.bestMax,'°C')+'. Vollständige Tagesdetails öffnen'}>
-      <strong className="mid-we-fourteen-daydate">{dateLabel(row.date)}</strong><span className="mid-we-fourteen-weather" title={row.weatherLabel}>{row.weatherLabel||'Wetterlage offen'}</span>
+      <strong className="mid-we-fourteen-daydate">{dateLabel(row.date)}</strong><span className="mid-we-fourteen-symbol">{typeof row.weatherCode==='number'&&Number.isFinite(row.weatherCode)?<WeatherPictogram code={row.weatherCode} day size={26} title={row.weatherLabel}/>:null}</span><span className="mid-we-fourteen-weather" title={row.weatherLabel}>{row.weatherLabel||'Wetterlage offen'}</span>
       <span className="mid-we-fourteen-temps"><b>{numeric(row.bestMax,'°C')}</b><small>{numeric(row.bestMin,'°C')}</small></span>
-      <span className="mid-we-fourteen-rain"><small>Niederschlag · PoP</small><b>{numeric(row.bestPrecipitation,'mm',1)} · {probability(row.bestPrecipitationProbability)}</b></span>
+      <span className="mid-we-fourteen-rain"><small>Niederschlag · PoP</small><b>{finiteNonnegative(row.bestPrecipitation)===null?'–':numeric(row.bestPrecipitation,'mm',1)} · {probability(row.bestPrecipitationProbability)}</b></span>
       <span className="mid-we-fourteen-wind"><small>Wind · Böen</small><b>{toWindUnit(row.bestWind,unit)===null?'–':numeric(toWindUnit(row.bestWind,unit)!,windUnitLabel[unit],0)} · {toWindUnit(row.bestGust,unit)===null?'–':numeric(toWindUnit(row.bestGust,unit)!,windUnitLabel[unit],0)}</b></span>
-      <span className="mid-we-fourteen-range">{row.ensembleAvailable&&Number.isFinite(row.maxLow)&&Number.isFinite(row.maxHigh)?'Tmax P10–P90 '+numeric(row.maxLow,'°C')+' bis '+numeric(row.maxHigh,'°C'):'Ensemble-Spanne nicht verfügbar'}</span>
+      <span className="mid-we-fourteen-range">{row.ensembleAvailable&&Number.isFinite(row.maxLow)&&Number.isFinite(row.maxHigh)&&row.maxLow<=row.maxHigh?'Tmax P10–P90 '+numeric(row.maxLow,'°C')+' bis '+numeric(row.maxHigh,'°C'):'Ensemble-Spanne nicht verfügbar'}</span>
       <span className="mid-we-fourteen-more" aria-hidden="true">Details ↓</span>
      </button>)}</div>
     </div>
