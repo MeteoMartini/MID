@@ -207,3 +207,8 @@ html .forecast-cockpit .mid-we-seven-day-entry>.mid-we-seven-expanded-detail>.co
  .forecast-cockpit .mid-we-seven-table-scroll thead th:first-child{z-index:2;background:var(--mid-surface-raised,var(--s2))}
 }
 @media(max-width:360px){.forecast-cockpit .mid-we-seven-daycard{grid-template-columns:31px 26px minmax(51px,.8fr) minmax(0,2fr);gap:3px;padding:6px 5px}.forecast-cockpit .mid-we-seven-day-metrics strong{font-size:10px}}
+
+.forecast-cockpit .mid-we-seven-table-scroll:focus-visible{
+ outline:2px solid var(--primary);
+ outline-offset:2px;
+}
