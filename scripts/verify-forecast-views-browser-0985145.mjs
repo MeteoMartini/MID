@@ -65,6 +65,30 @@ try {
   for(const amount of metrics.amounts){assert.equal(amount.text,'<0,1mm');assert.equal(amount.clipped,false,`${mode} ${width}px: trace amount clipped`);}
   for(const bound of metrics.bounds)assert.equal(bound.clipped,false,`${mode} ${width}px: bounds clipped`);
   if(unit==='kmh')await page.screenshot({path:join(out,`${mode}-${width}-${theme}.png`)});
+
+  // B/C must display distinct surfaces and preserve the canonical day drilldown.
+  // Run the added interactions for one wind unit while keeping all 96 geometry/unit cases.
+  if(unit==='kn'){
+   if(mode==='seven'){
+    await page.locator('.mid-we-seven-switch-primary button').nth(1).click();
+    await page.waitForSelector('.mid-we-seven-charts article');
+    assert.equal(await page.locator('.mid-we-seven-charts article').count(),5,'7d B: five distinct parameter charts');
+    await page.locator('.mid-we-seven-switch-primary button').nth(2).click();
+    await page.waitForSelector('.mid-we-seven-table-scroll tbody tr');
+    assert.equal(await page.locator('.mid-we-seven-table-scroll tbody tr').count(),7,'7d C: seven comparable days');
+    await page.locator('.mid-we-seven-table-scroll tbody button').first().click();
+    await page.waitForSelector('[data-mid-seven-view="standard"] [data-mid-forecast-detail="seven"]');
+   }else{
+    await page.locator('.mid-we-fourteen-switch button').nth(1).click();
+    await page.waitForSelector('.mid-we-fourteen-charts article');
+    assert.equal(await page.locator('.mid-we-fourteen-charts article').count(),4,'14d B: four distinct parameter charts');
+    await page.locator('.mid-we-fourteen-switch button').nth(2).click();
+    await page.waitForSelector('.mid-we-fourteen-table-scroll tbody tr');
+    assert.equal(await page.locator('.mid-we-fourteen-table-scroll tbody tr').count(),14,'14d C: fourteen comparable days');
+    await page.locator('.mid-we-fourteen-table-scroll tbody button').first().click();
+    await page.waitForSelector('#mid-fourteen-full-details[open] .cockpit-fourteen-card');
+   }
+  }
   await page.close();
  }
  console.log('MID145: 96 full seven/fourteen viewport/theme/wind-unit cases; trace amounts and units intact, no visible P25/P75 prefixes, no bounds clipping or horizontal overflow; QA '+out);
