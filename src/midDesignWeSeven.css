@@ -4,6 +4,30 @@
 .forecast-cockpit .mid-we-seven-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 75%,var(--s2) 25%);min-width:0}
 .forecast-cockpit .mid-we-seven-switch button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:9px 6px;border:1px solid transparent;border-radius:10px;color:var(--text);background:transparent;font:inherit;font-size:13px;font-weight:750;cursor:pointer;touch-action:manipulation}
 .forecast-cockpit .mid-we-seven-switch button[aria-pressed='true']{background:color-mix(in srgb,var(--primary) 22%,var(--surface));border-color:var(--primary);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 65%,transparent)}
+/* High-visibility A/B/C selector, now before the unchanged continuous Skybar. */
+.forecast-cockpit .mid-we-seven-switch-primary{
+ margin:8px 0 9px;
+ padding:5px;
+ background:var(--surface);
+ box-shadow:0 3px 15px color-mix(in srgb,var(--text) 8%,transparent);
+}
+.forecast-cockpit .mid-we-seven-switch-primary button{
+ line-height:1.3;
+ font-weight:780;
+ white-space:normal;
+ text-align:center;
+}
+.forecast-cockpit .mid-we-seven-switch-primary button:focus-visible{
+ outline:2px solid var(--primary);
+ outline-offset:2px;
+}
+.forecast-cockpit .cockpit-seven-day[data-mid-seven-view='standard'] .cockpit-day{
+ box-shadow:0 1px 6px color-mix(in srgb,var(--text) 5%,transparent);
+}
+.forecast-cockpit .cockpit-seven-day[data-mid-seven-view='standard'] .cockpit-day[aria-expanded='true']{
+ border-color:var(--primary);
+ box-shadow:0 2px 12px color-mix(in srgb,var(--primary) 12%,transparent);
+}
 .forecast-cockpit .mid-we-seven :is(button,summary):focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .forecast-cockpit .mid-we-seven-hint,.forecast-cockpit .mid-we-seven-note{margin:0;padding-inline:6px;font-size:12px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
 .forecast-cockpit .mid-we-seven-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
