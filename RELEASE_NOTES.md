@@ -1,3 +1,7 @@
+# MID v0.9.85.423 – Karten und 7-Tage-Vergleich
+
+Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.
+
 # MID v0.9.85.417 – Wetterhinweise und Skybar zuverlässig abgestimmt
 
 - **Schneehinweise:** Eine geringe berechnete Schneesumme wird nicht mehr irreführend als „bis zu 3 cm“ ausgegeben. Echte Werte unter 1 cm werden auch so bezeichnet, sonst wird ohne künstlichen Unsicherheitsaufschlag moderat aufgerundet.

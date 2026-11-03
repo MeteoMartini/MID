@@ -1,0 +1,22 @@
+Map case start · 320px light next
+Map case start · 320px dark next
+5:50:02 PM [vite] (client) [optimizer] bundling dependencies...
+Map case 1: 320px dark next passed · 60.3 s
+Map case 2: 320px light next passed · 61.4 s
+Map case start · 390px light next
+Map case start · 390px dark next
+Map case 3: 390px dark next passed · 63.2 s
+Map case 4: 390px light next passed · 64.6 s
+Map case start · 430px light next
+Map case start · 430px dark next
+Map case 5: 430px light next passed · 64.2 s
+Map case 6: 430px dark next passed · 65.9 s
+Map case start · 1024px light next
+Map case 7: 1024px light next passed · 92.2 s
+Map case start · 1024px dark next
+Map case 8: 1024px dark next passed · 92.4 s
+Map case start · 1440px light next
+Map case 9: 1440px light next passed · 114.7 s
+Map case start · 1440px dark next
+Map case 10: 1440px dark next passed · 112.8 s
+10 real-map viewport/theme cases passed: one map, native raster validation, filtered model matrix, totals, reload persistence and no legacy fallback requests.

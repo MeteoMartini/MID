@@ -1,3 +1,7 @@
+# MID v0.9.85.423 – Karten und 7-Tage-Vergleich
+
+Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.
+
 # MID v0.9.85.417 · KI-gestützte Qualitätskorrektur für Warnhinweise und Skybar
 
 **GitHub-Source-of-Truth bei Integrationsstart:** `main=mid-stable` SHA `2f9806fe1349e9b35001f8aa313e127f888dee91`, v0.9.85.416; fünf aktive Rulesets, 38 normative Verträge, 1.064 Pflichtregressionen. Parallele PRs, insbesondere #634 (älterer Draft derselben Skybar-Fachlösung) und die unabhängigen RUC-PRs, bleiben erhalten; keine direkten Änderungen an main/mid-stable, Schutzregel- oder Gate-Umgehung.

@@ -178,5 +178,15 @@ assert.throws(()=>mapBrowserCaseConcurrency(0),RangeError);
 assert.equal(mapBrowserRunPlan().flatMap(shard=>mapBrowserCases(shard)).length,24,'Every viewport/theme/design case remains mandatory');
 assert.ok(read('scripts/verify-unified-map-browser-0985167.mjs').includes('concurrency=mapBrowserCaseConcurrency(width)'),'The browser runner must honor the bounded software-GPU concurrency contract');
 assert.ok(read('scripts/verify-unified-map-browser-0985167.mjs').includes("window.__qaMap?.getLayer('unified-wms-pressure-isobars-line-dashed')"),'The real ICON-EU isobars must remain a strict requirement; no skip or weaker readiness timeout');
+// Exporters must stay off the interactive map's static dependency path in every consumer.
+for(const name of ['UnifiedWeatherMap','NativeModelMap','PrecipitationTotalsMap']){
+ const source=read('src/'+name+'.tsx');
+ for(const module of ['cloudWeatherExport','nativeModelMapExport','precipitationTotalsExport']){
+  assert.ok(!source.includes("from './"+module+"'"),'Export-only code must not be statically imported: '+name+'/'+module);
+ }
+ assert.ok(source.includes("await (await import('./"),'The existing awaited export/error/finally flow must remain intact');
+}
+assert.ok(read('src/MapWorkspacePanel.tsx').includes('map-workspace-loading" role="status"'),'Async map loading must be announced');
+assert.ok(read('src/MapWorkspace.css').includes('min-height:min(420px,65svh)'),'Reserve responsive map space without clipping live controls');
 if(process.env.GITHUB_ACTIONS==='true')for(const shard of mapBrowserRunPlan(process.env.MID_MAP_QA_SHARD))execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:900000,env:{...process.env,MID_MAP_QA_SHARD:shard}});
 console.log('MID-C17 unified map: scientific model/parameter matrix, one lazy/memoized map, native field integrity, overlays/probes/exports, bounded caching, persistence and legacy-source exclusion verified.');

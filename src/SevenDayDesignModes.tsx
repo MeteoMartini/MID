@@ -95,7 +95,7 @@ export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitc
   </div>:null}
   {mode==='table'?<div className="mid-we-seven-table-wrap"><header className="mid-we-seven-mode-head"><span><strong>Tage vergleichen</strong></span><small>Originalwerte mit Stunden-Rücksprung</small></header>
    <p className="mid-we-seven-hint">Sieben Tage vergleichen. „Stunden“ öffnet die unveränderte Tageskarte mit Skybar und Stundenprofil.</p>
-   <div className="mid-we-seven-table-scroll"><table>
+   <div className="mid-we-seven-table-scroll" role="region" aria-label="7-Tage-Vergleich, seitlich scrollbar" tabIndex={0}><table>
     <thead><tr><th scope="col">Tag</th><th scope="col">Wetter</th><th scope="col">Tmin / Tmax</th><th scope="col">Niederschlag / PoP</th><th scope="col">Wind / Böen</th><th scope="col">Sonne</th><th scope="col">Details</th></tr></thead>
     <tbody>{visible.map(day=>{
      const character=dayWeatherCharacter(day,dayPeriodHoursForDate(day.date,hours));
