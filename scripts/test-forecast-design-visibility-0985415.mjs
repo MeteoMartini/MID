@@ -32,7 +32,7 @@ assert.ok(!compact.includes('<ForecastRangeGuide'),'Full per-day uncertainty til
 assert.ok(detail.includes('<ForecastRangeGuide')&&detail.includes('{hourlyDetail??<p role="status">'),'Original source uncertainties remain available with explicit missing hourly values');
 assert.ok(sevenBand.includes('<SkyBarSegmentsSvg')&&sevenBand.includes('<CockpitSkybarNightBandsSvg'),'Per-day original Skybar and night bands remain intact');
 assert.ok(sevenBand.includes('selectedDate={selected.date}')&&sevenBand.includes('onSelectedDate={chooseDay}'),'Canonical continuous Skybar must still control hourly day detail');
-const detailed= fourteenthBand.indexOf('<LazyFourteenDayDevelopment');
+const detailed= fourteenBand.indexOf('<LazyFourteenDayDevelopment');
 const compass=fourteenBand.indexOf('<CockpitForecastGuide');
 assert.ok(detailed>0&&compass>detailed,'14d A/B/C must render BEFORE the large provenance compass, not hidden below first viewport');
 assert.ok(fourteenBand.includes('<LazyFourteenDayDevelopment series={series} unit={unit} onOpenDay='),'The selected 14d wind unit and interactive full-detail handoff must be retained');
