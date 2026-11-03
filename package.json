@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.414",
+  "version": "0.9.85.415",
   "type": "module",
   "scripts": {
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
@@ -251,7 +251,7 @@
     "test:regression-runner-local-bin": "node scripts/test-regression-runner-local-bin-09365.mjs",
     "test:radar-calibration": "node scripts/test-radar-nowcast-calibration-09370.mjs",
     "verify:types": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build && node scripts/write-build-identity.mjs",
+    "verify:vite": "node --max-old-space-size=4096 node_modules/vite/bin/vite.js build && node scripts/prune-unused-web-native-icons-0985415.mjs && node scripts/write-build-identity.mjs",
     "test:stable-audit-20260810": "node scripts/test-stable-audit-20260810.mjs",
     "test:hymecng-satellite-snapshot": "node scripts/test-hymecng-satellite-snapshot-09383.mjs",
     "test:maplibre-precip-09390": "node scripts/test-maplibre-precip-probability-09390.mjs",
@@ -571,7 +571,10 @@
     "test:source-gate-evidence-ci": "node --test scripts/test-source-gate-evidence-0985376.mjs",
     "test:build-parity-ci": "node --test scripts/test-build-parity-0985377.mjs",
     "test:design-a3-nodata": "node scripts/test-design-a3-precipitation-integrity-0985387.mjs",
-    "test:design-we-forecast": "node scripts/test-design-we-forecast-modes-0985414.mjs"
+    "test:design-we-forecast": "node scripts/test-design-we-forecast-modes-0985414.mjs",
+    "test:web-native-icon-prune": "node scripts/test-web-native-icon-prune-0985415.mjs",
+    "test:mountain-snowline-dst": "node scripts/test-mountain-snowline-dst-nodata-0985415.mjs",
+    "test:design-we-views": "node scripts/test-design-we-views-0985414.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.2",
