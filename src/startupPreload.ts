@@ -53,7 +53,7 @@ export function beginStartupDashboardPreload(){
  // Die vollständige hyperlokale Analyse startet nach dem schnellen Stationspfad schon
  // parallel zur Prognose. Auf Data-Saver/2G bleibt der bisherige sparsame Pfad erhalten.
  const stationEnrichmentRequest=!constrained?startupRequest(STARTUP_PRELOAD_STATION_ENRICHMENT_TIMEOUT_MS,async signal=>{await stationRequest.promise;await delay(70);if(signal.aborted)throw signal.reason;return station(location.latitude,location.longitude,location.country_code||location.country,location.elevation,location,signal,false,false)}):null;
- const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(constrained?650:440);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground')}):null;
+ const ensembleRequest=ensemble?startupRequest(STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS,async signal=>{await delay(constrained?650:440);if(signal.aborted)throw signal.reason;return ensembles(location.latitude,location.longitude,signal,'foreground',location.timezone)}):null;
  const interfacePromise=Promise.race([forecastRequest.promise,stationRequest.promise,radarRequest.promise,delay(700)]).then(()=>preloadInterfaceChunks(ensemble)),abort=()=>{forecastRequest.controller.abort();stationRequest.controller.abort();stationEnrichmentRequest?.controller.abort();radarRequest.controller.abort();ensembleRequest?.controller.abort()};
  active={key,startedAt:Date.now(),promise:forecastRequest.promise,stationPromise:stationRequest.promise,stationEnrichmentPromise:stationEnrichmentRequest?.promise??null,radarPromise:radarRequest.promise,ensemblePromise:ensembleRequest?.promise??null,interfacePromise,abort};return active
 }

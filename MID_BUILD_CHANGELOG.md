@@ -1,3 +1,7 @@
+# MID v0.9.85.424 · Ensemble-GMT und Zielorttage (Draft, #428)
+
+Bestätigter Restfehler auf Stable .417: GMT-Regionalensemble wurde als UTC-Kalendertag aggregiert (Berlin DST 24 statt 23/25 mm bei 1 mm/h). Gemeinsamer Ingest erhält Rohzeit/-zone/-offset und normalisiert absolute UTC-Instants vor der bestehenden lokalen Tages-/Eventaggregation. Verifizierte Zielortzone aus Ortsmetadaten bzw. exaktem validiertem Core-Cache; keine Schätzung aus Browserzeit oder Longitude. Abgeleitete Ensemble-/Eventcaches versioniert und an Zielortzone gebunden. Keine Änderung an kanonischen Stunden-/Minutely-/Widget-/Exportwerten. Nachweise: docs/implementation/MID_ENSEMBLE_TARGET_ZONE_0.9.85.424.md. Nicht veröffentlicht.
+
 ## MID v0.9.85.417 · 2026-11-03 · meteorologische Schnee-Hinweis-Integrität + Skybar-Vierstufen
 
 - Ausgangspunkt live SHA-verifiziert `main=mid-stable` v0.9.85.416 `2f9806fe1349e9b35001f8aa313e127f888dee91`, fünf aktive GitHub-Rulesets, 38 Normverträge und 1.064 Pflichttests. Parallele Draft-Änderung #634 (Skybar) bleibt unabhängig und wird weder ungeprüft gemergt noch auf Hauptbranches geschrieben.

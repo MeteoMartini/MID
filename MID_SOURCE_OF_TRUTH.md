@@ -1,3 +1,7 @@
+# MID v0.9.85.424 · Ensemble-GMT und Zielorttage (Draft, #428)
+
+Bestätigter Restfehler auf Stable .417: GMT-Regionalensemble wurde als UTC-Kalendertag aggregiert (Berlin DST 24 statt 23/25 mm bei 1 mm/h). Gemeinsamer Ingest erhält Rohzeit/-zone/-offset und normalisiert absolute UTC-Instants vor der bestehenden lokalen Tages-/Eventaggregation. Verifizierte Zielortzone aus Ortsmetadaten bzw. exaktem validiertem Core-Cache; keine Schätzung aus Browserzeit oder Longitude. Abgeleitete Ensemble-/Eventcaches versioniert und an Zielortzone gebunden. Keine Änderung an kanonischen Stunden-/Minutely-/Widget-/Exportwerten. Nachweise: docs/implementation/MID_ENSEMBLE_TARGET_ZONE_0.9.85.424.md. Nicht veröffentlicht.
+
 # MID v0.9.85.417 · KI-gestützte Qualitätskorrektur für Warnhinweise und Skybar
 
 **GitHub-Source-of-Truth bei Integrationsstart:** `main=mid-stable` SHA `2f9806fe1349e9b35001f8aa313e127f888dee91`, v0.9.85.416; fünf aktive Rulesets, 38 normative Verträge, 1.064 Pflichtregressionen. Parallele PRs, insbesondere #634 (älterer Draft derselben Skybar-Fachlösung) und die unabhängigen RUC-PRs, bleiben erhalten; keine direkten Änderungen an main/mid-stable, Schutzregel- oder Gate-Umgehung.

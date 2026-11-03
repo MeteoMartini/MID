@@ -1,3 +1,7 @@
+# MID v0.9.85.424
+
+Unveröffentlichter Entwurf zu #428: Ensemble-Regionaldaten mit GMT-Quellzeit werden vor der bestehenden Tagesaggregation an die verifizierte Zielort-Zeitzone gebunden. Berlin-DST-Tage behalten 23 bzw. 25 echte Stunden. Rohzeit/Offset und Modellprovenienz bleiben erhalten; alte abgeleitete Ensemble-Caches werden verworfen. Keine Veröffentlichung.
+
 # MID v0.9.85.417 – Schnee-Hinweise und Skybar nachvollziehbar
 
 - Schneefall-Signale nach Ablauf der ersten sieben Tage werden nicht mehr durch 72-h-Akkumulations-Vorausschau als MID-Warnhinweise hervorgehoben. Schwache Schnee-Signale bei fünf oder mehr Tagen Vorlauf bleiben in der normalen 7-/14-Tage-Prognose, nicht in der Warnlage; amtliche DWD-Warnungen und relevante Schneeereignisse bleiben erhalten.
