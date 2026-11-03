@@ -66,3 +66,12 @@ test("stale run reported, not silently treated as fresh",()=>{
 test("malformed source domain rejected",()=>{
  assert.throws(()=>auditManifest("unapproved",fixture("dwd_icon_d2_ruc_native"),"latest",NOW));
 });
+
+test("official RUC pressure-level variable suffix hPa remains valid; arbitrary mixed-case rejected",()=>{
+ const f=fixture("dwd_icon_d2_ruc_native");
+ f.variables.push("temperature_850hPa","relative_humidity_1000hPa");
+ const a=auditManifest("dwd_icon_d2_ruc_native",f,"latest",NOW);
+ assert.equal(a.metadataValid,true);
+ const corrupted=fixture("dwd_icon_d2_ruc_native");corrupted.variables.push("Wind_Gust_10m");
+ assert.ok(auditManifest("dwd_icon_d2_ruc_native",corrupted,"latest",NOW).errors.includes("invalid_variable_name"));
+});
