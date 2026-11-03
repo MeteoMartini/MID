@@ -86,7 +86,7 @@ export function formatDwdWarningValue(signal:DwdWarningSignal,unit:DwdDisplayWin
  if(signal.kind==='wind')return formatDwdWindValue(signal.value,unit);
  if(signal.kind==='snowdrift'){const snow=Number.isFinite(signal.secondaryValue)?`${rounded(signal.secondaryValue!)} cm · `:'';return`${snow}${formatDwdWindValue(signal.value,unit)}`}
  if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${rounded(signal.value)} mm${signal.windowHours?`/${signal.windowHours} h`:''}`;
- if(signal.kind==='snow')return`${rounded(signal.value)} cm${signal.windowHours?`/${signal.windowHours} h`:''}`;
+ if(signal.kind==='snow')return`${signal.value>0&&signal.value<1?'unter 1':rounded(signal.value)} cm${signal.windowHours?`/${signal.windowHours} h`:''}`;
  if(signal.kind==='fog')return`${Math.max(0,rounded(signal.value))} m`;
  if(signal.kind==='heat'||signal.kind==='frost'||signal.unit==='°C')return`${rounded(signal.value)} °C`;
  return'';
@@ -96,7 +96,7 @@ export function formatDwdWarningDetail(signal:DwdWarningSignal,unit:DwdDisplayWi
  if(signal.kind==='wind'){if(signal.lowerIntensity&&Number.isFinite(signal.thresholdValue))return`${signal.title} über ${formatDwdWindValue(Number(signal.thresholdValue),unit)}; zeitweise bis ${formatDwdWindValue(signal.value,unit)}.`;return`${signal.title} bis ${formatDwdWindValue(signal.value,unit)}.`;}
  if(signal.kind==='snowdrift')return`${signal.title}: ${Number.isFinite(signal.secondaryValue)?`${rounded(signal.secondaryValue!)} cm Neuschnee und `:''}Böen bis ${formatDwdWindValue(signal.value,unit)}.`;
  if(signal.kind==='heavyRain'||signal.kind==='continuousRain')return`${signal.title}: ${rounded(signal.value)} mm in ${signal.windowHours??1} h.`;
- if(signal.kind==='snow')return`${signal.title}: ${rounded(signal.value)} cm Neuschnee in ${signal.windowHours??1} h.`;
+ if(signal.kind==='snow')return`${signal.title}: ${signal.value>0&&signal.value<1?'unter 1':rounded(signal.value)} cm Neuschnee in ${signal.windowHours??1} h.`;
  if(signal.kind==='fog')return`Sichtweite ${Math.max(0,rounded(signal.value))} m.`;
  if(signal.kind==='heat')return`Gefühlte Temperatur ${rounded(signal.value)} °C.`;
  if(signal.kind==='frost')return`${signal.title}: ${rounded(signal.value)} °C.`;

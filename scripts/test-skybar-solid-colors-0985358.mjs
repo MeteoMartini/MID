@@ -15,7 +15,7 @@ try{
  const colorChecks=[];
  for(const seconds of [900,3600])for(const [i,share] of shares.entries()){
   const variants=[
-   sample({sunshineDuration:seconds*share},start,seconds),
+   sample({cloud:100*(1-share),sunshineDuration:seconds*share},start,seconds),
    sample({cloud:null,sunshineDuration:seconds*share},start,seconds),
    sample({cloud:100*(1-share)},start,seconds),
    sample({cloud:100*(1-share),sunshineDuration:0},start,seconds),
@@ -30,7 +30,7 @@ try{
    const markup=render(h('svg',null,h(SkyBarSegmentsSvg,{segments:[segment]})));
    assert.match(markup,/fill="#ffc229" opacity="1"/);
    assert.ok(markup.includes(`height="${steps[i]}"`));
-   assert.match(cell.title,row.cloud===null||row.sunshineDuration>seconds*.5?/Sonnenscheindauer/:/Wolkenlücken/);
+   assert.match(cell.title,row.cloud===null?/Sonnenscheindauer/:/Wolkenlücken/);
    if(row.sunshineDuration===null)assert.match(cell.title,/Sonnenscheindauer nicht verfügbar/);
    colorChecks.push(segment);
   }
@@ -40,6 +40,10 @@ try{
    assert.equal(segment.strokeWidth,steps[i]);assert.equal(segment.thicknessLevel,i+1);
   }
  }
+ // The screenshot conflict: known 45% clouds / 100% sunshine must yield 55% cloud gaps (1/4).
+ const contradictory=sample({cloud:45,sunshineDuration:3600}),baseResult=base(plain([contradictory],0,0,100,12))[0];
+ assert.equal(baseResult.thicknessLevel,1);assert.match(baseResult.title,/Wolkenlücken · 55 %/);assert.match(baseResult.title,/Sonnenscheindauer 100 %/);
+ assert.equal(cells([contradictory])[0].base.thicknessLevel,1);
  // Source changes are tooltip boundaries, never painted color boundaries.
  const pair=[sample({sunshineDuration:3600}),sample({},start+3600000)];
  const segments=plain(pair,0,0,200,12),visualRuns=runs(segments);
@@ -71,7 +75,7 @@ try{
   assert.equal(runs(result).length,1);
  }
  // Squares intentionally keep four class colors, but provenance cannot tint a class.
- const squareRows=shares.flatMap(share=>[sample({sunshineDuration:share*3600}),sample({cloud:(1-share)*100})]);
+ const squareRows=shares.flatMap(share=>[sample({cloud:(1-share)*100,sunshineDuration:share*3600}),sample({cloud:(1-share)*100})]);
  const squareMarkup=render(h('svg',null,h(SkyBarHourCellsSvg,{cells:cells(squareRows),left:0,right:0,chartW:800,centerY:12})));
  for(const shade of ['#fff0a6','#ffe169','#ffd13b','#ffc229'])assert.equal((squareMarkup.match(new RegExp(`fill="${shade}" opacity="1"`,'g'))||[]).length,2);
  console.log(`MID .358: ${colorChecks.length} direct/fallback colors; all levels, 15/60min, cloud day/night, provenance continuity, solar boundaries, phases, NoData, 23/25h and square-class parity passed.`);

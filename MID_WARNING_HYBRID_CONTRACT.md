@@ -42,3 +42,11 @@ Stand: v0.9.78.56
 ## 6. Originaldaten
 - Intern bleiben Schwellen, exakte Modellwerte, Gültigkeitsintervalle und amtliche Originaltexte vollständig erhalten.
 - Die unsicherheitsbewusste Darstellung verändert nur die Nutzerpräsentation, nicht die meteorologische Kernberechnung.
+
+## 7. MID v0.9.85.417 – belastbare Schneehinweise, Akkumulationsfenster und Zeithorizont
+
+MID erzeugt aus der **finalisierten stündlichen Prognose** eigene, ausdrücklich nichtamtliche Hinweise. Im üblichen MID-Warnbereich gelten die ersten **168 echten Prognosestunden**. Bis zu 72 weitere Stunden werden ausschließlich für mathematisch vollständige Summenfenster herangezogen; Ereignisse, deren tatsächlicher Niederschlagsbeginn außerhalb des angezeigten siebentägigen Warnzeitraums liegt, dürfen dadurch nicht als Warnhinweis erscheinen. Diese Ereignisse sind weiterhin in der regulären 14-Tage-Prognose samt Unsicherheit zu zeigen. Ein vierstündiger Ereignisschwerpunkt und eine 72-h-Akkumulationssumme sind verschiedene Größen.
+
+Die niedrige Auswertungsstufe ab 0,1 cm Neuschnee bleibt für kurzfristige Schneeexposition erhalten. Bei mindestens **120 Stunden Vorlauf** sind positive, aber sehr kleine Schnee-Langfristsignale als prominenter MID-Hinweis nicht hinreichend belastbar: unter 1 cm bei 6-/12-h-Fenstern bzw. unter 3 cm bei 24-/48-/72-h-Fenstern werden nicht als MID-Topwarnung publiziert. Das ist ein **eigener MID-Relevanzfilter**, ausdrücklich **keine DWD-Warnschwelle**, keine Unterdrückung amtlicher Warnungen oder starker Schneerisiken. Der Filter verändert niemals die zugrunde liegenden Modellwerte oder Prognosegrafik.
+
+Für eine echt positive Schneemenge unter 1 cm wird „unter 1 cm“ ausgegeben, niemals „0 cm“ oder aufgrund pauschaler Unsicherheitsaufschläge „bis zu 3 cm“. Darüber wird höchstens auf den nächsten vollen Zentimeter konservativ gerundet, ohne künstliche Zusatzspanne. Die tatsächlich verwendete Akkumulationsdauer bleibt im Mengenlabel erhalten. Die ungenaue feste Kennung „Tag 6–7“ entfällt zugunsten eines aus dem tatsächlichen Ereignisbeginn errechneten Prognosetags. Fehlende Stundenwerte bleiben unbekannt, keine verkürzte 72-h-Summe wird als vollständig gewertet. Amtliche DWD-Warnmeldungen bleiben eigenständig und unverändert priorisiert.

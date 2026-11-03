@@ -1,3 +1,10 @@
+# MID v0.9.85.417 – Schnee-Hinweise und Skybar nachvollziehbar
+
+- Schneefall-Signale nach Ablauf der ersten sieben Tage werden nicht mehr durch 72-h-Akkumulations-Vorausschau als MID-Warnhinweise hervorgehoben. Schwache Schnee-Signale bei fünf oder mehr Tagen Vorlauf bleiben in der normalen 7-/14-Tage-Prognose, nicht in der Warnlage; amtliche DWD-Warnungen und relevante Schneeereignisse bleiben erhalten.
+- Weniger als 1 cm Neuschnee werden als „unter 1 cm“ statt künstlich „bis zu 3 cm“ oder „0 cm“ angezeigt. Größere Mengen werden ohne pauschale Sicherheitsaufschläge aufgerundet. Der tatsächlich geprüfte Akkumulationszeitraum bleibt kenntlich, die Prognosetagsangabe wird aus dem Ereignisdatum berechnet.
+- Die vier Dickenklassen der Skybar beruhen bei bekannter Bewölkung allein auf deren Anteil: grau ab 50 %, gelb darunter bei Tageslicht als Wolkenlücken (100 % minus Bewölkung). 45 % Wolken ⇒ 55 % Lücken ⇒ 1/4 gelb, selbst bei 100 % tatsächlich ausgewiesener Sonnenscheindauer. Sonnenscheindauer, Regen, Wetterpiktogramme, UTC, Modellzeiten, Warnstatus und Missing bleiben unabhängige physikalische Größen.
+- Appweit zentrale Skybar für 12h/90min/Heute/7d/14d, Stundenquadrate, Widgets und Exporte; aktualisierte Schwellen-, Solarepoch-, Warnfenster- und Aggregationsregressionen, 1.065 Pflichtprüfungen. Release ausschließlich nach vollständiger neuer geschützter GitHub-PR-/Installer-Kette.
+
 # MID v0.9.85.416 – Vorlagentreues 7-/14-Tage-Prognosedesign
 
 - **7 Tage:** Durchgehende originale Skybar unverändert. Übersicht als kompakte horizontale Wetterzeilen mit Datum, Symbol, Temperatur, Niederschlag sowie Wind/Böen. Sonnenschein/UVI und sämtliche Stunden-/Ensembledetails bleiben über Tagesdetails beziehungsweise Diagramme erreichbar.

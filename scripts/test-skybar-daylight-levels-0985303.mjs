@@ -15,10 +15,10 @@ try{
   const cloud=51+12.5*i;
   const gray=base(plain([sample(cloud,0)],0,0,100,8))[0];
   assert.equal(gray.thicknessLevel,i+1);assert.equal(gray.strokeWidth,widths[i]);assert.equal(gray.color,'#aeb3b9');
-  const yellow=base(plain([sample(20,shares[i]*3600)],0,0,100,8))[0];
+  const yellow=base(plain([sample(100*(1-shares[i]),shares[i]*3600)],0,0,100,8))[0];
   assert.equal(yellow.thicknessLevel,i+1);assert.equal(yellow.strokeWidth,widths[i]);assert.equal(yellow.color,'#ffc229');
   for(const duration of [900000,3600000])for(const edge of ['dawn','dusk']){
-   const daylight=duration/4,raw=sample(49,shares[i]*daylight/1000,start,duration),nights=edge==='dawn'?[{startEpoch:start,endEpoch:start+duration-daylight}]:[{startEpoch:start+daylight,endEpoch:start+duration}];
+   const daylight=duration/4,raw=sample(100*(1-shares[i]),shares[i]*daylight/1000,start,duration),nights=edge==='dawn'?[{startEpoch:start,endEpoch:start+duration-daylight}]:[{startEpoch:start+daylight,endEpoch:start+duration}];
    raw.isDay=edge==='dusk';
    const original=JSON.stringify(raw),segments=base(timed([raw],start,start+duration,0,0,100,8,nights));
    assert.equal(segments.length,1);assert.equal(segments[0].thicknessLevel,i+1,`${edge}, ${duration/60000}min, sunshine ${(shares[i]*100)}% of actual daylight must retain level ${i+1}`);
@@ -34,7 +34,7 @@ try{
  assert.deepEqual(base(timed([dawnSample],start,start+hour,0,0,100,8,overlap)).map(s=>[s.x1,s.x2,s.strokeWidth]),base(timed([dawnSample],start,start+hour,0,0,100,8,merged)).map(s=>[s.x1,s.x2,s.strokeWidth]),'Overlapping night intervals count only once');
  assert.equal(base(timed([sample(20,3600)],start,start+hour,0,0,100,8,[{startEpoch:start,endEpoch:start+hour}])).length,0,'Never paint yellow in a confirmed full night');
  for(const cloud of [null,undefined,NaN])assert.equal(base(solar([sample(cloud,null)],0,0,100,8,[0],[{startEpoch:start,endEpoch:start+hour*.75}],[100])).length,0,'Unknown sky is not clear sky');
- const all=shares.map((share,i)=>sample(20,share*3600,start+i*hour)).concat(shares.map((_,i)=>sample(51+i*12.5,0,start+(i+4)*hour)));
+ const all=shares.map((share,i)=>sample(100*(1-share),share*3600,start+i*hour)).concat(shares.map((_,i)=>sample(51+i*12.5,0,start+(i+4)*hour)));
  const segments=timed(all,start,start+8*hour,0,0,800,8),markup=renderToStaticMarkup(createElement('svg',{viewBox:'0 0 800 16'},createElement(SkyBarSegmentsSvg,{segments})));
  for(let i=1;i<=4;i++)assert.equal((markup.match(new RegExp(`data-skybar-level="${i}"`,'g'))||[]).length,2,'Real shared SVG renderer must retain every yellow and gray level');
  for(const width of widths)assert.ok(markup.includes(`height="${width}"`),'No fixed-height override in the shared renderer');
