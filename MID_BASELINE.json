@@ -3122,7 +3122,14 @@
     "worker-src/30-push-events.js",
     "worker-src/40-aviation-router.js",
     "scripts/test-design-we-today-compact-0985412.mjs",
-    "scripts/test-design-we-forecast-modes-0985414.mjs"
+    "scripts/test-design-we-forecast-modes-0985414.mjs",
+    "src/SevenDayDesignModes.tsx",
+    "src/midDesignWeSeven.css",
+    "src/midDesignWeFourteen.css",
+    "tests/unit/designWeFourteen.test.ts",
+    "tests/unit/designWeFourteenModes.test.ts",
+    "tests/unit/designWeFourteenRender.test.ts",
+    "tests/unit/designWeSevenModes.test.ts"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
