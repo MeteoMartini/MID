@@ -69,6 +69,20 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   expect(model.precipitation[0].points[4].mean).toBe(0);
   expect(model.precipitation[0].points[0].mean).toBe(1.2);
  });
+ it('honors app-wide optional ECMWF colors in B/C without altering default Tmin/Tmax',()=>{
+  const standard=sevenDayDetailedSeries(days,ensemble,'kmh');
+  const colored=sevenDayDetailedSeries(days,ensemble,'kmh',true);
+  expect(standard.temperature[0].points[0].color).toBeUndefined();
+  expect(colored.temperature[0].points[0].color).toMatch(/^rgb\(/);
+  expect(colored.temperature[1].points[0].color).toMatch(/^rgb\(/);
+  expect(colored.precipitation[0].points[0].color).toBeUndefined();
+  const graphical=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'charts',ecmwfTemperatureColors:true}));
+  expect(graphical).toContain('mid-daily-gradient-');
+  expect(graphical).toContain('Tmax · ECMWF-Farbskala');
+  const table=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'table',ecmwfTemperatureColors:true}));
+  expect(table).toContain('style="color:rgb(');
+  expect(cockpit).toContain('ecmwfTemperatureColors={ecmwfTemperatureColors} mode={sevenView}');
+ });
  it('uses only true ensemble quantiles and converts wind once',()=>{
   const model=sevenDayDetailedSeries(days,ensemble,'kmh');
   expect(model.temperature[0].points[0].low).toBe(14);

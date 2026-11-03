@@ -68,6 +68,9 @@ for(const [name,css] of [['7d',sevenCss],['14d',fourteenCss]]){
  requireTokens(css,['@media','min-height:44px','overflow-x:auto',':focus-visible'],'responsive '+name);
  assert.doesNotMatch(css,/display:\s*none\s*!important/,'Forecast modes must not hide existing source data');
 }
+requireTokens(cockpit,['ecmwfTemperatureColors={ecmwfTemperatureColors} mode={sevenView}'],'existing 7d ECMWF setting must reach B/C');
+requireTokens(seven,['ecmwfTemperatureColor','parameterTemperatureTone(day.min','parameterTemperatureTone(day.max','temperatureColor(day.max)','temperatureColor(day.min)'],'seven-day pointwise ECMWF palette and table');
+requireTokens(chart,['dailySignalColorSegments(row.points)','point.color??row.color','nowTime-prevTime!==86400000'],'colored daily segments must not cross missing or nonconsecutive dates');
 assert.equal(signer,activeSigner,'Protected DWD signer canonical and active workflow must be byte-identical');
 const before=signer.indexOf('Revalidate protected Stable and source immediately before signing');
 const attestation=signer.indexOf('Official cryptographic provenance attestation');

@@ -57,7 +57,7 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
   {key:'days',label:'Tagesdetails',description:'Alle Tageswerte im Vergleich'}
  ];
  return <section className="long-range-overview" data-fourteen-development="true" data-mid-fourteen-view={mode}>
-  <header><div><strong>14 Tage · Entwicklung</strong><small>Best Match und echte Ensemble-Spannen · keine Auffüllung fehlender Werte</small></div><span className="fourteen-development-kicker">{phases.length} Wetterphasen</span></header>
+  <header><div><strong>14 Tage · Entwicklung</strong><small>Tmax / Tmin · Best Match mit Ensemble-Spannen</small></div><span className="fourteen-development-kicker">{phases.length} Wetterphasen</span></header>
   <div className="mid-we-fourteen-switch" role="group" aria-label="Darstellung des 14-Tage-Wetters wählen">
    {options.map(option=><button type="button" key={option.key} aria-pressed={mode===option.key} aria-label={option.description} className={mode===option.key?'active':''} onClick={()=>setMode(option.key)}>{option.label}</button>)}
   </div>
