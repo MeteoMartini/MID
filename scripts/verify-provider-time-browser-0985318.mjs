@@ -26,9 +26,16 @@ try{
   await page.setViewportSize({width,height});await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/__provider318?theme=${theme}&season=${season}`);await page.locator('.profile-axis.wind-axis text').first().waitFor();
   const result=await page.evaluate(()=>{const{hours,day,date}=window.__providerTime;return{count:hours.filter(h=>h.time.startsWith(date)).length,precipitation:day.precipitation,unique:new Set(hours.map(h=>h.time)).size===hours.length,spacing:hours.slice(1).every((h,i)=>h.epoch-hours[i].epoch===3600000),overflow:document.documentElement.scrollWidth>innerWidth+1}});
   assert.equal(result.count,season!=='spring'?25:23);assert.equal(result.precipitation,result.count);assert.equal(result.unique,true);assert.equal(result.spacing,true);assert.equal(result.overflow,false);
-  await page.locator('[data-mid-forecast-list=seven]').waitFor();
-  assert.match(await page.locator('[data-mid-forecast-list=seven]').innerText(),new RegExp(season==='spring'?'29[.]03':'25[.]10'),'Seven-day list retains today');
-  assert.match(await page.locator('[data-mid-forecast-list=seven]').innerText(),new RegExp(String(result.count)+'(?:[,.]0)?\\s*mm'),'Seven-day row retains full-day rainfall');
+  const compactDay=page.locator('.mid-we-seven-daycard').first();
+  await compactDay.waitFor();
+  assert.match(await compactDay.innerText(),new RegExp(season==='spring'?'29[.]03':'25[.]10'),'The actual first visible 7d A day retains the correct local date');
+  const completeAmount=new RegExp(String(result.count)+'(?:[,.]0)?\\s*mm');
+  assert.match(await compactDay.innerText(),completeAmount,'The compact day must preserve the full 23-/25-hour local rainfall accumulation');
+  assert.equal(await page.locator('[data-mid-forecast-list=seven]').count(),0,'Canonical legacy details remain collapsed by default');
+  await compactDay.click();
+  const canonicalDay=page.locator('[data-mid-forecast-list=seven]').first();
+  await canonicalDay.waitFor();
+  assert.match(await canonicalDay.innerText(),completeAmount,'The opened complete canonical day must preserve the exact 23-/25-hour rainfall accumulation');
   if(width===390){await page.locator('.cockpit-weather-profile').screenshot({path:`${out}/${season}-${theme}.png`});await page.locator('.cockpit-seven-day').screenshot({path:`${out}/${season}-${theme}-seven-day.png`});}count++;
  }
  assert.deepEqual(errors,[]);console.log(`PASS ${count} actual provider-to-24h browser cases: 23/25h days, unique repeated hours, complete accumulations and responsive Light/Dark profile · ${out}`);
