@@ -17,7 +17,7 @@ test("hourly native has 28 independent valid times, never production eligibility
 });
 test("15-minute native has 109 independent valid times; no invented 5m data",()=>{
  const a=auditManifest("dwd_icon_d2_ruc_native_15min",fixture("dwd_icon_d2_ruc_native_15min"),"latest",NOW);
- assert.equal(a.validTimeCount,109);assert.equal(a.full27hAxis,true);assert.equal(a.nativeTimestepMinutes,15);
+ assert.equal(a.validTimeCount,109);assert.equal(a.full27hAxis,true);assert.equal(a.publishedAxisStepMinutes,15);assert.equal(a.nativeFieldCadenceProven,false);
 });
 test("in-progress is identifiable, not a completed full run",()=>{
  const a=auditManifest("dwd_icon_d2_ruc_native",fixture("dwd_icon_d2_ruc_native","in-progress",3),"in-progress",NOW);
