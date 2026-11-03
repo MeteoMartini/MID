@@ -35,12 +35,15 @@ describe('MID Design-WE 14d real A/B/C rendering',()=>{
  it('A defaults to compact forecast development with all days as source and without fake data',()=>{
   const html=render('compact');
   expect(html).toContain('data-mid-fourteen-view="compact"');
+  expect(html).not.toMatch(/(?:STANDARD|GRAFIK|TABELLE)\s*·\s*[ABC]/);
+  expect(html).toContain('Übersicht');
   expect(html).toContain('Tag 1–4');
   expect(html).toContain('Woche 1 · Tage 1–7');
   expect(html).toContain('Woche 2 · Tage 8–14');
   expect((html.match(/class="mid-we-fourteen-daytile/g)||[]).length).toBe(14);
   expect(html).toContain('mid-we-fourteen-symbol');
   expect(html).toContain('mid-we-fourteen-weekscroll');
+  expect(html.indexOf('mid-we-fourteen-chart-feature')).toBeLessThan(html.indexOf('mid-we-fourteen-weekscroll'));
   expect(html).not.toContain('NaN');
   expect(html).toContain('P10–P90');
   expect(html).not.toContain('daily-accumulation-bar');

@@ -40,6 +40,8 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   expect(segment).toContain('showModeSwitch={false}');
   const a=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard',showModeSwitch:false}));
   expect(a).not.toContain('mid-we-seven-switch"');
+  expect(a).not.toMatch(/(?:STANDARD|GRAFIK|TABELLE)\s*·\s*[ABC]/);
+  expect(source).toContain("label:'Übersicht'");
   expect(a).toContain('data-mid-seven-mode="standard"');
   const b=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'charts',showModeSwitch:false}));
   expect(b).toContain('mid-we-seven-charts');

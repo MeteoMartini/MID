@@ -1,3 +1,17 @@
+# MID v0.9.85.416 · nach Originalbildern korrigierte Layoutstruktur
+
+**Bildreferenzen:** MID Design-WE (02.11.2026), `image-gen-1(20261102-215747).png`, `image-gen-2(20261102-215750).png`, `image-gen-3(6).png`, `MID Wetter-App: 14-Tage-Redesign.png`. Bildbeispiele sind nur visuelle Referenzen und keine Wetterdaten. 7d Original-Skybar unverändert vor der Modusansicht, darunter kompakte Tageszeilen, fünf gestapelte Diagramme bzw. echte Vergleichsmatrix. 14d DOM: authentischer Temperatur-/Unsicherheitsgraph vor beiden Wochenstreifen, Wetterphasen nachgeordnet; vier Diagramme und Vergleichsmatrix erhalten. NoData, Ensemble, Warnungen, Modellläufe und vollständige Detailzugänge unverändert. Externe alte Changelog-Einträge beider Spiegel vollständig aus SHA-geprüftem Stable wiederhergestellt.
+
+**Freigabegrenze:** Erst vollständiger Source-PR-Gate inkl. Core/Heavy und regulärer Installer Core/Heavy/Worker/Pages/Finalize → Stable; reale iOS- und VoiceOver-Prüfung separat.
+
+# MID v0.9.85.416 · konsistentes 7d-/14d-Design
+
+**Quellbasis:** veröffentlichter SHA `c96c35531e44a868a71705f9244c6be83ff45213`, v0.9.85.415. Die unmittelbar sichtbare Ansichtsumschaltung und die neu integrierten 7-/14-Tage-Details verwenden die unveränderte MID-Inter/System-Schriftfamilie sowie die zentralen Text-, Flächen- und Fokus-/Touchkontrakte. Auswahl ausschließlich „Übersicht“, „Diagramme“, „Tabelle“; A/B/C-Kennungen aus der Entwurfsphase sind kein Bestandteil der neuen UI. Persistente interne Modusschlüssel bleiben unverändert.
+
+**Unveränderte Funktionen:** ursprüngliche durchgehende 7d-Skybar, Forecast-Kurven, opt-in Tages-/Stunden-/Quellendetails, zwei horizontal scrollbar erreichbare 14d-Wochenstreifen, Ensemble-Spannen, gewählte Wind- und Temperatureinheiten, Light/Dark-Varianten, 44px-Touchziele. Kein Fallback von fehlenden Wetterwerten auf 0, keine Änderung an WMO/DWD-Warnungen, Modellen, UTC/Tagesakkumulationen oder RUC-/D2-/Fast-Ausgabe.
+
+**Releasegrenze:** Ein Quellkandidat ist nicht automatisch veröffentlicht. Der verbindliche Weg bleibt der vollständige Source-PR-Gate auf dem exakten Commit → MID Release-Bot-Merge → serverseitiges Release-ZIP → `install-mid.yml` mit Core/Heavy, Worker/Pages/Finalize → bestätigter `mid-stable`-SHA. WebKit-/Chromium-Screenshots sind Browser-QA und kein Nachweis für echtes iOS oder VoiceOver.
+
 # MID v0.9.85.415 · vollständiger Design-WE-Sammelrelease 7d/14d A/B/C
 
 **Verifizierter Release-Ausgangspunkt:** `main=mid-stable` SHA `b2b9bb3c3eab78fac117bd0b0d2110b1ce127b66`, v0.9.85.414; 5 aktive Rulesets, 38 normative Contracts, 1.063 bisherige Regressionen. Die zuvor getrennten .415-Sichtbarkeitsarbeiten aus PR #633 wurden als SHA-vorwärtskompatibler Design-WE-Folgeentwurf (PR #635) erweitert; die vollständige Designarbeit bleibt **dieselbe nächste tatsächliche App-Version .415**, solange kein zwischenzeitliches Stable-Release erfolgt.

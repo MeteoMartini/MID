@@ -1,3 +1,17 @@
+## MID v0.9.85.416 · 2026-11-03 · Abgleich der Originalbilder und Core-Changelog-Reparatur
+
+- Vorgänger-Commit von PR #641 hatte die historischen CHANGELOG-Spiegel gelöscht und dadurch historische Regressionstests in allen Core-Shards verletzt. Beide Changelogs werden vollständig und bytegleich aus dem originalen `.415`-Stable wiederhergestellt, mit `.416`-Eintrag ergänzt; Tests unverändert streng.
+- Originalbilder 02.11.2026: echte HTML/DOM-Reihenfolge 14d Temperatur/Unsicherheit → Wochenstreifen → Phasen; 7d-Kompaktkarten als horizontale Zeilen; 7d/14d-Diagramme gestapelt und mobile Tabellen bleiben horizontale Matrizen. Meteorologische Werte, Unsicherheiten, Warnungen, RUC/D2, 38 Verträge und Gates unverändert. Visuelle Browser- und reale iOS-Abnahme sind weiterhin getrennt.
+
+## MID v0.9.85.416 · 03.11.2026 · Typografie-/Konsistenzkorrektur 7d/14d
+
+- Exakter Quellausgangspunkt: veröffentlichtes `main=mid-stable` v0.9.85.415 SHA `c96c35531e44a868a71705f9244c6be83ff45213`; autorisierter Integrationsbranch `chatgpt/v0.9.85.416-forecast-design-coherence`. Keine auf ältere Entwurfsbranches zurückgesetzte Arbeit.
+- Neue 7d- und 14d-Bausteine nutzen die vorhandenen MID-Inter/System-Schriften, `--mid18-text-*`- und `--mid-surface-*`-Tokens. Schalter, Karten, Tabellen und Diagramme wurden hinsichtlich Schriftgröße, Gewicht, Abständen, Rahmen und Schatten vereinheitlicht, 44px-Touchziele und Fokuszustände erhalten.
+- Drei klar benannte Ansichten: „Übersicht“, „Diagramme“, „Tabelle“. Sichtbare Entwicklungskennungen A/B/C entfernt, interne `standard|charts|table` bzw. `compact|charts|days`-Persistenzschlüssel und alle Originaldaten-/Detailfunktionen unverändert.
+- Source-Regressionen aktualisiert und um konkrete Terminologie-/MID-Token-Kontrakte erweitert; keine Prüfmatrix oder Sicherheitsfreigabe abgeschwächt. 1.064 vorgeschriebene Regressionen, 38 Vertragsregistereinträge und fünf aktive Branch-Rulesets unverändert.
+- Versionierung: alle Release-Spiegel v0.9.85.416, iOS Buildnummer 417, zwei SW- und zwei Worker-Mirror synchron. Kein Modell-/RUC-/WARN-/Quellenalgorithmus geändert; Worker nur Versionsstempel.
+- Freigabe nur nach vollständigem exakt SHA-gebundenen Source-PR-Gate, kontrolliertem Release-Bot-Merge, serverseitigem ZIP, `install-mid.yml` mit Core/Heavy/Worker/Pages/Finalize und Stable-Readback. Realer iOS-/VoiceOver-Hardwaretest ist separat zu belegen.
+
 ## MID v0.9.85.415 · 2026-11-03 · Design-WE 7d/14d Sichtbarkeit und echte A-Kompaktheit
 
 - Design-WE-1.2-Sammelergänzung statt eigenständigem unveröffentlichten .416-Zwischenbuild: 7d A eigenständige 7 kompakte Tageskarten mit Originalicons, Temperatur, Niederschlag/PoP, Wind/Böen und Sonne/UVI; Originaldarstellung einschließlich Tages-Skybar, vollständigen Ensembles und Stundenprofil wird ausschließlich für den aktiv gewählten Tag **inline** direkt darunter gemountet, kein Legacy-Duplikat für die übrigen Tage. B/C Visual-/Tabelle-Hierarchie optimiert, A-Toggle und C→A als getrennte Bedienpfade.
