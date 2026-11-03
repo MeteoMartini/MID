@@ -90,6 +90,7 @@ jobs:
           "${RUNNER_TEMP}/mid-om-science-qa/bin/python" tools/ruc/om_dwd_t2m_ab_science_qa.py
           "${RUNNER_TEMP}/mid-om-science-qa/bin/python" tools/ruc/om_dwd_standard_fields_ab_science_qa.py
           "${RUNNER_TEMP}/mid-om-science-qa/bin/python" tools/ruc/om_dwd_precip15_ab_science_qa.py
+          "${RUNNER_TEMP}/mid-om-science-qa/bin/python" tools/ruc/om_dwd_multicycle_ab_science_qa.py
 
       - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
         shell: bash
