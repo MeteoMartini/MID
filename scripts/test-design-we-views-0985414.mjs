@@ -21,6 +21,9 @@ assert.ok(sevenBand.includes("onOpenDay={openDayFromTable}"),'C daily row must l
 assert.ok(cockpit.includes("useDisplayPreference<'standard'|'charts'|'table'>('ForecastCockpit.sevenDay.view','standard'"),'seven-day persisted standard default missing');
 assert.ok(cockpit.includes("onClick={()=>{if(now90ExpandedId===item.id){setNow90ExpandedId(null)}"),'90min re-tap collapse missing');
 assert.ok(cockpit.includes('data-mid-chart-focus={profileFocus}'),'parameter focus must remain wired');
+assert.ok(cockpit.includes('ecmwfTemperatureColors={ecmwfTemperatureColors} mode={sevenView}'),'7d ECMWF color setting must reach B/C');
+assert.ok(seven.includes('parameterTemperatureTone(day.min,\'min\',ecmwfTemperatureColors)'),'7d C must use canonical ECMWF Tmin palette');
+assert.ok(horizon.includes('dailySignalColorSegments(row.points)'),'B must preserve pointwise ECMWF colors without smoothing missing days');
 for(const token of [
  "key:'standard'","key:'charts'","key:'table'",
  'Niederschlagsmenge · mm pro Tag','Niederschlagswahrscheinlichkeit · %',
