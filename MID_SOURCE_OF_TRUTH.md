@@ -1,3 +1,13 @@
+# MID v0.9.85.414 · Design-WE: Heute, 7 Tage und 14 Tage
+
+**Verifizierte Source-Basis:** `main=mid-stable` v0.9.85.413 `2052dc426c972bcfae8527001ce2082fab82c869` nach erfolgreich abgeschlossenem Installer #41535864012. 13 exakt aus PR #629 @ `d52a0996d0fdc707135edc4426a20860c19c0dff` stammende Designblobs und die verpflichtende neue Source-Regression werden auf eine eigene v0.9.85.414-Integrationsbranch übernommen. Alle fünf Rulesets, 38 Normverträge und die bestehenden 1.062 Regressionen gelten weiterhin, ergänzt um die 1.063. Regression. Vor einer erfolgreichen neuen Releasekette ist dies NUR ein Quellkandidat.
+
+**Vom Nutzer entschiedene Darstellung:** 7d originaler durchgehender Skybar-/Meteogramm-Renderer oben; darunter A bestehende kompakte Tageskarten als Standard, B grafische Wetterdetails, C tabellarische Tagesdetails. 14d A kompakt, B ausführliche Diagramme, C tägliche Detailmatrix. Heute: funktionierende Temp./Regen/Wind-Fokusschaltflächen und zum zweiten Mal antippbare 90-Minuten-Detailwerte zum Einklappen. Die Original-Wetterwerte und amtlichen Warnungen bleiben fachlich unverändert.
+
+**Semantik und Grenzen:** Best-Match und Ensemble-Unsicherheit bleiben unterscheidbar; Tagesakkumulation und Eintrittswahrscheinlichkeit sind diskrete Parameter; NoData niemals stillschweigend 0; Extremwerte niemals ungeprüft glätten. Anzeigepräzision nach Konversion, UTC-/Lokalzeit-/Sommerzeitverträge, Warnprovenienz, Widget- und Exportkonsistenz prüfen. Geschützter originaler DWD-Signer PR #630 ist nicht Teil dieses Design-Releasekandidaten, D2-/Fast-Produktion daher nicht neu aktiviert.
+
+**Release-Nachweise:** Vollständig neuer Source-PR-Gate inkl. TypeScript/Vite/1.063 Core-/Heavy-Regressionsprüfungen, Browser-/Responsive-, Safety- und Qualitätschecks → geschützter SHA-Bot → serverseitiges ZIP → `install-mid.yml` → Stable. Frühere Design-Unit-Erfolge ersetzen niemals vollständige neue Gates. Reale iOS-/VoiceOver-/Device-Abnahme nur mit eigens nachgewiesenen Tests.
+
 # MID v0.9.85.413 · D2/RUC/Fast-Quellport auf geschütztem Design-Stable
 
 **Kanonische Basis:** v0.9.85.412 Design-WE nach vollständigem Installer #41515302726, `main=mid-stable 8349fa89e9a66d09d320d1774c86dda4d14a4d4a`. Der D2/RUC/Fast-Quellstand aus PR #625 @ `bf07de77eca4816516cf96281da1d970daebc71b` wurde über den autorisierten .413-Draft #626 konfliktbewusst übernommen. 103 nicht überlappende Quell-/Workflow-Blobs sind SHA-identisch; die gemeinsamen Design-/Versionsdateien bleiben aus Stable erhalten. 1.062 Pflichtregressionen, 38 normative Verträge und fünf Rulesets bleiben verbindlich. Der .413-Kandidat benötigt vollständig neue Source-/Installer-Gates; frühere .412-Ergebnisse gelten nicht als .413-Abnahme.

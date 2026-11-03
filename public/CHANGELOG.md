@@ -1,3 +1,13 @@
+# MID v0.9.85.414 – Drei Ansichten für 7 und 14 Tage, Heute-Bedienung repariert
+
+- **Sieben Tage – Bewährtes oben, neue Details darunter:** Die bisherige durchgehende Skybar und 7-Tage-Grafik bleiben unverändert erhalten. Darunter gibt es drei umschaltbare Ansichten: A mit den bekannten kompakten Tageskarten als Standard, B mit fünf hochwertigen Diagrammen und C mit der übersichtlichen 7-Tage-Vergleichstabelle samt Rücksprung in die Stundenprofile.
+- **Vierzehn Tage – von der Übersicht bis zur Tagesanalyse:** A zeigt die kompakte Temperatur- und Wetterphasenübersicht; B bietet getrennte, synchronisierte Diagramme für Temperatur, Tagesniederschlag, Niederschlagswahrscheinlichkeit sowie Wind/Böen; C zeigt alle 14 Tage mit zusätzlichen Ensemble-Spannen und aufklappbaren Tagesdetails.
+- **„Heute“ – spürbar funktionierende Schaltflächen:** Die Auswahl „Temp. / Regen / Wind“ hebt die gewünschten Diagrammspuren deutlich hervor, ohne andere Informationen auszufiltern. Im 90-Minuten-Bereich kann ein erneuter Tipp auf einen bereits aufgeklappten Zeitpunkt die Detailwerte wieder einklappen.
+- **Meteorologische Genauigkeit:** Niederschlagsmenge und Eintrittswahrscheinlichkeit werden getrennt dargestellt; Tagesakkumulationen als einzelne Balken. Die Darstellung unterscheidet echte Nullen von Datenlücken, zeigt Ensemblegrenzen nur mit vorhandenen Daten und wendet Einheiten und Anzeigepräzision konsequent an. Amtliche Warnungen und bestehende RUC-/D2-Produkte bleiben erhalten.
+- **Geräte und Bedienung:** Die Anzeigeoptionen bleiben gerätelokal gespeichert. Responsive Karten-/Diagramm-/Tabellenansichten, große Touchflächen, Tastaturfokus und reduzierte Animationen berücksichtigen kleine Telefone, Tablets und große Displays.
+- **Nicht enthalten:** Die geschützte DWD-Originalsignatur aus dem separaten Draft #630, eine Freigabe der nativen D2-/Fast-Liveprodukte, eine garantierte 168h-Endkundenfrische oder eine behauptete reale iOS-/VoiceOver-Zertifizierung.
+
+
 # MID v0.9.85.413 – Geschützter nativer ICON-D2-/RUC-Quellpfad
 
 - **ICON-D2-Vollgebiet zur sicheren Aktivierung vorbereitet:** 542.040 native DWD-Gitterpunkte und 72 Originalfelder aus acht Wetterparametern und neun Vorhersagezeiten werden mit Modelllauf, UTC-Gültigkeit, Original-Prüfsumme, Bitmap, Einheiten, Akkumulationszeit und physikalischen Wertebereichen geprüft; Missing bleibt Missing, echte Nullen bleiben 0.
