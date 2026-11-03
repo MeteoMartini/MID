@@ -8,7 +8,7 @@ import { pathToFileURL } from "node:url";
 import { DOMAIN_RULES, auditManifest, readPublishedManifest, compareRunSet } from "./openmeteo_spatial_shadow.mjs";
 
 const ROOT = "https://openmeteo.s3.amazonaws.com/data_spatial/";
-const UTC_MINUTE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/;
+const UTC_MINUTE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::00)?Z$/;
 const HEADER_BYTES = 64;
 function checkedUtc(value) {
   if (typeof value !== "string" || !UTC_MINUTE.test(value)) throw new Error("Invalid UTC time");
@@ -27,7 +27,7 @@ export function spatialObjectUrl(domain, manifest, validTime) {
   }
   const reference = manifest.reference_time;
   // Reject a mixed-cycle list even if the target timestamp itself is plausible.
-  if (manifest.valid_times[0] !== reference) throw new Error("Run/time-axis mismatch");
+  if (checkedUtc(manifest.valid_times[0]) !== checkedUtc(reference)) throw new Error("Run/time-axis mismatch");
   const run = checkedUtc(reference);
   const validity = checkedUtc(validTime);
   if (run % 3600000 !== 0 || validity < run) throw new Error("Invalid run/valid-time relationship");
