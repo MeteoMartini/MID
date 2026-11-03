@@ -119,3 +119,13 @@
  .forecast-cockpit .mid-we-seven-thermal>b{font-size:17px}
 }
 @media(prefers-reduced-motion:reduce){.forecast-cockpit .mid-we-seven-daycard{transition:none}}
+
+/* The opt-in detail is inside a compact day entry, not the legacy viewport-wide
+ * horizontal strip. Size it to that entry in both UI designs and orientations. */
+html .forecast-cockpit .mid-we-seven-day-entry>.mid-we-seven-expanded-detail>.cockpit-day-hourly-accordion{
+ box-sizing:border-box!important;
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ position:static!important;
+}
