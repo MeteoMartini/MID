@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import json
+import re
 import numpy as np
 from om_dwd_t2m_ab_science_qa import RUN, NATIVE_CELLS, secure_download
 
@@ -19,6 +20,18 @@ DWD_ROOT='https://opendata.dwd.de/weather/nwp/v1/m/icon-d2-ruc/p/TOT_PREC/r/2026
 OM_ROOT='https://openmeteo.s3.amazonaws.com/data_spatial/dwd_icon_d2_ruc_native_15min/2026/11/03/0700Z/'
 STEPS=(15,45,60)
 END_TIMES=(15,60)
+
+
+
+def step_minutes(value, default_unit):
+    """Parse explicit ecCodes time representations (e.g. 0m, 15m, 1h)."""
+    string=str(value).strip()
+    match=re.fullmatch(r'([0-9]+)([mh]?)',string)
+    if not match:raise ValueError('unexpected GRIB time step '+repr(string))
+    count=int(match.group(1))
+    unit=match.group(2) or default_unit
+    if unit not in ('m','h'):raise ValueError('unsupported GRIB step unit '+repr(unit))
+    return count*(60 if unit=='h' else 1)
 
 
 def native_step_grib(path,minutes):
@@ -32,12 +45,17 @@ def native_step_grib(path,minutes):
                 'run':f'{int(get("dataDate")):08d}{int(get("dataTime")):04d}',
                 'valid':f'{int(get("validityDate")):08d}{int(get("validityTime")):04d}',
                 'stepType':str(get('stepType')),'stepUnits':str(get('stepUnits')),
-                'startStep':float(get('startStep')),'endStep':float(get('endStep')),
+                'rawStartStep':str(get('startStep')),'rawEndStep':str(get('endStep')),
                 'gridType':str(get('gridType')),'units':str(get('units')),
                 'shortName':str(get('shortName')),'paramId':int(get('paramId')),
                 'bitmapPresent':int(get('bitmapPresent')),
                 'pointCount':int(get('numberOfPoints')),
                 'missingValue':float(get('missingValue'))}
+            step_units=meta['stepUnits']
+            if step_units not in ('m','h'):
+                raise ValueError('unknown original GRIB stepUnits '+repr(step_units))
+            meta['startStepMinutes']=step_minutes(meta['rawStartStep'],step_units)
+            meta['endStepMinutes']=step_minutes(meta['rawEndStep'],step_units)
             target=(RUN+timedelta(minutes=minutes)).strftime('%Y%m%d%H%M')
             if (meta['run']!=RUN.strftime('%Y%m%d%H%M') or
                 meta['valid']!=target or
@@ -45,7 +63,7 @@ def native_step_grib(path,minutes):
                 meta['pointCount']!=NATIVE_CELLS or
                 meta['stepType']!='accum' or
                 meta['units'] not in ('kg m**-2','kg m-2','mm') or
-                meta['startStep']!=0):
+                meta['startStepMinutes']!=0 or meta['endStepMinutes']!=minutes):
                 raise ValueError('original DWD rapid GRIB run/grid/accumulation unit contract: '+str(meta))
             values=np.asarray(codes_get_array(gid,'values'),dtype=np.float64).reshape(-1)
             if values.size!=NATIVE_CELLS:raise ValueError('native precip grid points drift')
