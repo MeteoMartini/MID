@@ -27,7 +27,8 @@ const requireTokens=(content,tokens,part)=>tokens.forEach(token=>
 requireTokens(cockpit,[
  'SevenDayCurveOverview','LazySevenDayDesignModes',
  "ForecastCockpit.sevenDay.view",
- 'onOpenDay={openDayFromTable}',
+ "onOpenDay={sevenView==='standard'?chooseDay:openDayFromTable}",
+ 'expandedDayContent={expandedDayContent}',
  "setSevenView('standard');setExpandedSevenDate(date);onSelectedDate(date)",
  'if(now90ExpandedId===item.id){setNow90ExpandedId(null)}'
 ],'7-day original skybar and 90-minute interaction');
