@@ -1,5 +1,5 @@
 import './midDesignWeSeven.css';
-import {useMemo} from 'react';
+import {useMemo,type ReactNode} from 'react';
 import {WeatherPictogram} from './WeatherPictogram';
 import {HorizonSignalChart} from './HorizonSignalChart';
 import {dayPeriodHoursForDate} from './forecastPeriods';
@@ -18,6 +18,7 @@ type Props={
  mode:SevenDayView;
  showModeSwitch?:boolean;
  expandedDate?:string|null;
+ expandedDayContent?:ReactNode;
  onModeChange:(next:SevenDayView)=>void;
  onOpenDay:(date:string)=>void;
 };
@@ -58,7 +59,7 @@ export function sevenDayDetailedSeries(days:Day[],ensemble:EnsembleDay[],unit:Wi
  const sun={id:'sunshine',label:'Sonnenscheindauer · Tageswert',color:'var(--param-sunshine)',points:days.map(day=>datePoint(day.date,sunshine(day)))};
  return {temperature:[tmax,tmin],precipitation:[precipitation],probability:[pop],wind:[windMean,windGust],sunshine:[sun]};
 }
-export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitch=true,expandedDate=null,onModeChange,onOpenDay,ecmwfTemperatureColors=false}:Props){
+export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitch=true,expandedDate=null,expandedDayContent=null,onModeChange,onOpenDay,ecmwfTemperatureColors=false}:Props){
  const visible=days.slice(0,7);
  const curves=useMemo(()=>sevenDayDetailedSeries(visible,ensemble,unit,ecmwfTemperatureColors),[days,ensemble,unit,ecmwfTemperatureColors]);
  if(!visible.length)return null;
@@ -71,7 +72,7 @@ export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitc
    <div className="mid-we-seven-daylist">{visible.map(day=>{
     const character=dayWeatherCharacter(day,dayPeriodHoursForDate(day.date,hours));
     const open=expandedDate===day.date;
-    return <button type="button" key={day.date} className={'mid-we-seven-daycard'+(open?' is-open':'')} onClick={()=>onOpenDay(day.date)} aria-expanded={open} aria-controls={open?'mid-seven-detail-'+day.date:undefined}
+    return <div key={day.date} className="mid-we-seven-day-entry"><button type="button" className={'mid-we-seven-daycard'+(open?' is-open':'')} onClick={()=>onOpenDay(day.date)} aria-expanded={open} aria-controls={open?'mid-seven-detail-'+day.date:undefined}
       aria-label={dayLabel(day.date)+': '+(character.label||'Wetter unbekannt')+', '+readableTemperature(day.min)+' bis '+readableTemperature(day.max)+'. '+(open?'Details schließen':'Tagesdetails öffnen')}>
       <span className="mid-we-seven-date"><strong>{dayLabel(day.date)}</strong><small>{character.label||'Wetterlage offen'}</small></span>
       <span className="mid-we-seven-pictogram">{Number.isFinite(character.code)?<WeatherPictogram code={character.code} size={30} day title={character.label}/>:<span aria-hidden="true">–</span>}</span>
@@ -80,7 +81,7 @@ export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitc
        <span><small>Wind · Böen</small><strong>{speed(day)===null?'–':wind(day.wind,unit)} · {gust(day)===null?'–':wind(day.gust,unit)}</strong></span>
        <span><small>Sonne · UVI</small><strong>{displaySun(day)} · {Number.isFinite(day.uvMax)?formatDecimalFixed(day.uvMax,0):'–'}</strong></span></span>
       <span className="mid-we-seven-day-cue" aria-hidden="true">{open?'−':'+'}</span>
-     </button>;
+     </button>{open?expandedDayContent:null}</div>;
    })}</div>
    <p className="mid-we-seven-note">Die durchgehende Original-Skybar und Prognosegrafik bleiben erhalten. Stundenprofile, Tages-Skybar und echte Ensemble-Spannen erscheinen beim Öffnen; fehlende Werte sind keine Null.</p>
   </div>:null}
