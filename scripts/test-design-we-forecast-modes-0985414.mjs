@@ -39,7 +39,7 @@ assert.ok(sevenPart.indexOf('<LazySevenDayDesignModes')>sevenPart.indexOf('<Seve
 requireTokens(seven,[
  "type SevenDayView='standard'|'charts'|'table'",
  'data-mid-seven-mode={mode}',
- 'aria-pressed={mode===option.key}',
+ 'aria-pressed={mode===item.key}',
  "mode==='standard'",
  "mode==='charts'",
  "mode==='table'",
@@ -52,7 +52,7 @@ requireTokens(seven,[
 ],'7-day A/B/C and no-data semantic contract');
 requireTokens(fourteen,[
  'data-mid-fourteen-view={mode}',
- 'aria-pressed={mode===item.key}',
+ 'aria-pressed={mode===option.key}',
  "mode==='charts'",
  'useDisplayPreference',
  'HorizonSignalChart'
