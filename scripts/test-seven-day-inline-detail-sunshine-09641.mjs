@@ -14,7 +14,8 @@ const [cockpit,sourceStyles,builtStyles,rowStyles,pkgText,baselineText,implement
 const pkg=JSON.parse(pkgText),baseline=JSON.parse(baselineText),test='scripts/test-seven-day-inline-detail-sunshine-09641.mjs';
 
 for(const token of [
- 'visible.map((day,index)=>',
+ 'visible.filter(day=>day.date===expandedSevenDate).map((day,index)=>',
+ 'expandedDayContent={expandedDayContent}',
  'function MidForecastRow({active,compact,detail}',
  'const compact=<button type="button" className={\`cockpit-day mid-forecast-row',
  "style={{'--cockpit-day-column':index+1} as CSSProperties}",
