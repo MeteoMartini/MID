@@ -17,6 +17,7 @@ type Props={
  ecmwfTemperatureColors?:boolean;
  mode:SevenDayView;
  showModeSwitch?:boolean;
+ expandedDate?:string|null;
  onModeChange:(next:SevenDayView)=>void;
  onOpenDay:(date:string)=>void;
 };
@@ -57,7 +58,7 @@ export function sevenDayDetailedSeries(days:Day[],ensemble:EnsembleDay[],unit:Wi
  const sun={id:'sunshine',label:'Sonnenscheindauer · Tageswert',color:'var(--param-sunshine)',points:days.map(day=>datePoint(day.date,sunshine(day)))};
  return {temperature:[tmax,tmin],precipitation:[precipitation],probability:[pop],wind:[windMean,windGust],sunshine:[sun]};
 }
-export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitch=true,onModeChange,onOpenDay,ecmwfTemperatureColors=false}:Props){
+export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitch=true,expandedDate=null,onModeChange,onOpenDay,ecmwfTemperatureColors=false}:Props){
  const visible=days.slice(0,7);
  const curves=useMemo(()=>sevenDayDetailedSeries(visible,ensemble,unit,ecmwfTemperatureColors),[days,ensemble,unit,ecmwfTemperatureColors]);
  if(!visible.length)return null;
@@ -65,8 +66,25 @@ export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitc
   {showModeSwitch?<div className="mid-we-seven-switch" role="group" aria-label="Ansicht für sieben Prognosetage">
    {modes.map(item=><button key={item.key} type="button" aria-pressed={mode===item.key} title={item.help} onClick={()=>onModeChange(item.key)}>{item.label}</button>)}
   </div>:null}
-  {mode==='standard'?<p className="mid-we-seven-hint">Tagesübersicht · Tag antippen für den vollständigen Stundenverlauf.</p>:null}
-  {mode==='charts'?<div className="mid-we-seven-charts" aria-label="Grafische Details über sieben lokale Prognosetage">
+  {mode==='standard'?<div className="mid-we-seven-standard" aria-label="Sieben kompakte Tagesübersichten">
+   <header className="mid-we-seven-mode-head"><span><small>STANDARD · A</small><strong>Die Woche auf einen Blick</strong></span><small>Original-Skybar darüber · volle Tagesdetails beim Antippen</small></header>
+   <div className="mid-we-seven-daylist">{visible.map(day=>{
+    const character=dayWeatherCharacter(day,dayPeriodHoursForDate(day.date,hours));
+    const open=expandedDate===day.date;
+    return <button type="button" key={day.date} className={'mid-we-seven-daycard'+(open?' is-open':'')} onClick={()=>onOpenDay(day.date)} aria-expanded={open} aria-controls={open?'mid-seven-detail-'+day.date:undefined}
+      aria-label={dayLabel(day.date)+': '+(character.label||'Wetter unbekannt')+', '+readableTemperature(day.min)+' bis '+readableTemperature(day.max)+'. '+(open?'Details schließen':'Tagesdetails öffnen')}>
+      <span className="mid-we-seven-date"><strong>{dayLabel(day.date)}</strong><small>{character.label||'Wetterlage offen'}</small></span>
+      <span className="mid-we-seven-pictogram">{Number.isFinite(character.code)?<WeatherPictogram code={character.code} size={30} day title={character.label}/>:<span aria-hidden="true">–</span>}</span>
+      <span className="mid-we-seven-thermal"><b style={{color:parameterTemperatureTone(day.max,'max',ecmwfTemperatureColors).color}}>{readableTemperature(day.max)}</b><small style={{color:parameterTemperatureTone(day.min,'min',ecmwfTemperatureColors).color}}>{readableTemperature(day.min)}</small></span>
+      <span className="mid-we-seven-day-metrics"><span><small>Niederschlag · PoP</small><strong>{displayAmount(day)} · {displayPoP(day)}</strong></span>
+       <span><small>Wind · Böen</small><strong>{speed(day)===null?'–':wind(day.wind,unit)} · {gust(day)===null?'–':wind(day.gust,unit)}</strong></span>
+       <span><small>Sonne · UVI</small><strong>{displaySun(day)} · {Number.isFinite(day.uvMax)?formatDecimalFixed(day.uvMax,0):'–'}</strong></span></span>
+      <span className="mid-we-seven-day-cue" aria-hidden="true">{open?'−':'+'}</span>
+     </button>;
+   })}</div>
+   <p className="mid-we-seven-note">Die durchgehende Original-Skybar und Prognosegrafik bleiben erhalten. Stundenprofile, Tages-Skybar und echte Ensemble-Spannen erscheinen beim Öffnen; fehlende Werte sind keine Null.</p>
+  </div>:null}
+  {mode==='charts'?<div className="mid-we-seven-charts" aria-label="Grafische Details über sieben lokale Prognosetage"><header className="mid-we-seven-mode-head"><span><small>GRAFIK · B</small><strong>Fünf abgestimmte Wetterdiagramme</strong></span><small>Gemeinsame lokale Tage · fachlich getrennte Größen</small></header>
    <article><h3>Temperatur · Tmin und Tmax</h3><HorizonSignalChart label="Sieben Tage Tagesminimum und Tagesmaximum; Best Match mit echten Ensemblequantilen, falls verfügbar" unit="°C" zero={false} connectDaily series={curves.temperature}/></article>
    <article><h3>Niederschlagsmenge · mm pro Tag</h3><HorizonSignalChart label="Sieben lokale Tage als Niederschlagssummen, diskrete Säulen, nicht Niederschlagsintensität" unit="mm/Tag" bars formatValue={compactPrecipitationAmount} series={curves.precipitation}/></article>
    <article><h3>Niederschlagswahrscheinlichkeit · %</h3><HorizonSignalChart label="Sieben Tage Best-Match-Niederschlagswahrscheinlichkeit, keine Ensembleübereinstimmung" unit="%" bars formatValue={value=>formatDecimalFixed(value,0)} series={curves.probability}/></article>
@@ -74,7 +92,7 @@ export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitc
    <article><h3>Sonnenscheindauer · h pro Tag</h3><HorizonSignalChart label="Sieben Tage tägliche Sonnenscheindauer, fehlende Angaben bleiben Lücken" unit="h/Tag" bars formatValue={value=>formatDecimalFixed(value,1)} series={curves.sunshine}/></article>
    <p className="mid-we-seven-note">Gemeinsame Datumsachse · Tagesmengen und Wahrscheinlichkeiten getrennt · P10–P90/P25–P75 nur bei echten Ensemblewerten · fehlend ≠ 0.</p>
   </div>:null}
-  {mode==='table'?<div className="mid-we-seven-table-wrap">
+  {mode==='table'?<div className="mid-we-seven-table-wrap"><header className="mid-we-seven-mode-head"><span><small>TABELLE · C</small><strong>Alle sieben Tage vergleichen</strong></span><small>Originalwerte mit Stunden-Rücksprung</small></header>
    <p className="mid-we-seven-hint">Sieben Tage vergleichen. „Stunden“ öffnet die unveränderte Tageskarte mit Skybar und Stundenprofil.</p>
    <div className="mid-we-seven-table-scroll"><table>
     <thead><tr><th scope="col">Tag</th><th scope="col">Wetter</th><th scope="col">Tmin / Tmax</th><th scope="col">Niederschlag / PoP</th><th scope="col">Wind / Böen</th><th scope="col">Sonne</th><th scope="col">Details</th></tr></thead>
