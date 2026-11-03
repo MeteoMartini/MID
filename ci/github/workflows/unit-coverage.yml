@@ -40,6 +40,18 @@ jobs:
         shell: bash
         run: npm run test:coverage
 
+      # Additive shadow QA; original coverage/CI-origin checks remain unchanged.
+      - name: Open-Meteo RUC Spatial und DWD-Batch Shadow-Regressionen (offline)
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          node --test \
+            tools/ruc/test_openmeteo_spatial_shadow.mjs \
+            tools/ruc/test_openmeteo_spatial_byte_shadow.mjs \
+            tools/ruc/test_dwd_batch_source_plan_shadow.mjs \
+            tools/ruc/test_dwd_staged_source_sha_shadow.mjs
+
       - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
         shell: bash
         run: |
