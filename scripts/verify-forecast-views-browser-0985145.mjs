@@ -46,7 +46,10 @@ try {
    prefixes:[...document.querySelectorAll('.forecast-range-bounds')].filter(e=>/P(?:25|75)/i.test(e.textContent)).length,
    bounds:[...document.querySelectorAll('.forecast-range-bounds')].map(e=>({text:e.textContent.trim(),clipped:clipped(e),diagnostics:clipped(e)?(()=>{const items=[];for(let p=e;p&&p!==document.body;p=p.parentElement){const b=p.getBoundingClientRect(),s=getComputedStyle(p);items.push({class:typeof p.className==='string'?p.className.slice(0,100):'',width:b.width,left:b.left,right:b.right,clientWidth:p.clientWidth,scrollWidth:p.scrollWidth,overflowX:s.overflowX,gridColumns:s.gridTemplateColumns});}return items;})():[]})),
    compactSevenCards:[...document.querySelectorAll('.mid-we-seven-daycard')].map(e=>({text:e.textContent.trim(),clipped:clipped(e)})),
-   compactFourteenCards:[...document.querySelectorAll('.mid-we-fourteen-daytile')].map(e=>({text:e.textContent.trim(),clipped:clipped(e),diagnostics:clipped(e)?{client:e.clientWidth,scroll:e.scrollWidth,rect:{left:e.getBoundingClientRect().left,right:e.getBoundingClientRect().right,width:e.getBoundingClientRect().width},children:[...e.children].map(c=>({class:c.className,text:c.textContent?.trim().slice(0,90),client:c.clientWidth,scroll:c.scrollWidth,overflow:getComputedStyle(c).overflowX,rect:{left:c.getBoundingClientRect().left,right:c.getBoundingClientRect().right}}))}:null})),
+   // Week cards outside the horizontally scrollable viewport are intentionally offscreen.
+   // Check each card's own content bounds, not a clipping ancestor beyond its scroll region.
+   weekScrolls:[...document.querySelectorAll('.mid-we-fourteen-weekscroll')].map(e=>({client:e.clientWidth,scroll:e.scrollWidth,tabIndex:e.tabIndex})),
+   compactFourteenCards:[...document.querySelectorAll('.mid-we-fourteen-daytile')].map(e=>{const box=e.getBoundingClientRect(),values=[...e.querySelectorAll('.mid-we-fourteen-temps,.mid-we-fourteen-rain>b,.mid-we-fourteen-wind>b,.mid-we-fourteen-range')],clippedValues=values.some(c=>{const b=c.getBoundingClientRect();return c.scrollWidth>c.clientWidth+1||b.left<box.left-1||b.right>box.right+1;});return {text:e.textContent.trim(),clipped:e.scrollWidth>e.clientWidth+1||clippedValues,diagnostics:clippedValues||e.scrollWidth>e.clientWidth+1?{width:box.width,client:e.clientWidth,scroll:e.scrollWidth,values:values.map(c=>({class:c.className,client:c.clientWidth,scroll:c.scrollWidth}))}:null};}),
    temperaturePairs:[...document.querySelectorAll('.cockpit-seven-grid .cockpit-day-temps')].map(e=>({label:e.getAttribute('aria-label'),fields:[...e.querySelectorAll(':scope>.climate-tone-daily>small,:scope>.climate-tone-daily>span')].map(v=>({text:v.textContent,visible:v.getBoundingClientRect().width>0,clipped:clipped(v),width:v.getBoundingClientRect().width,scroll:v.scrollWidth,client:v.clientWidth,font:getComputedStyle(v).fontSize,parents:clipped(v)?(()=>{const values=[];for(let p=v.parentElement;p&&p!==document.body;p=p.parentElement){const b=p.getBoundingClientRect(),s=getComputedStyle(p);values.push({class:p.className,left:b.left,right:b.right,width:b.width,display:s.display,gridColumns:s.gridTemplateColumns,gridColumn:s.gridColumn,gridRow:s.gridRow,overflow:s.overflowX});}return values;})():[]}))})),
    amounts:[...document.querySelectorAll(mode==='fourteen'?'.cockpit-fourteen-precip-values>b':'.cockpit-day-rain>b')].map(e=>({text:e.textContent.replace(/\s/g,''),clipped:clipped(e),ellipsis:getComputedStyle(e).textOverflow==='ellipsis'}))
   });},mode);
@@ -61,10 +64,14 @@ try {
   if(mode==='fourteen'){
    assert.equal(metrics.compactFourteenCards.length,14,'fourteen: 14 A cards must render');
    assert.ok(metrics.compactFourteenCards.every(card=>card.text.includes('10')&&card.text.includes('20')&&!card.clipped),`${mode} ${width}px ${theme} ${unit}: missing or clipped weekly card ${JSON.stringify(metrics.compactFourteenCards.filter(card=>!card.text.includes('10')||!card.text.includes('20')||card.clipped).slice(0,2))}`);
+   assert.equal(metrics.weekScrolls.length,2,'14d A requires two independent week scrollers');
+   if(width<=402)assert.ok(metrics.weekScrolls.every(w=>w.scroll>w.client+20&&w.tabIndex===0),`${mode} ${width}px: both week strips must be keyboard-focusable and horizontally scrollable`);
   }
   for(const amount of metrics.amounts){assert.equal(amount.text,'<0,1mm');assert.equal(amount.clipped,false,`${mode} ${width}px: trace amount clipped`);}
   for(const bound of metrics.bounds)assert.equal(bound.clipped,false,`${mode} ${width}px ${theme} ${unit}: bounds clipped ${JSON.stringify(bound)}`);
   if(unit==='kmh')await page.screenshot({path:join(out,`${mode}-${width}-${theme}.png`)});
+   // Reach an offscreen card through the real scroll container at narrow widths.
+   if(mode==='fourteen'&&width<=402&&unit==='kn'){const reachable=await page.locator('.mid-we-fourteen-weekscroll').first().evaluate(e=>{e.scrollLeft=e.scrollWidth;return e.scrollLeft>0&&Math.abs(e.scrollLeft-(e.scrollWidth-e.clientWidth))<=2;});assert.ok(reachable,`${mode} ${width}px: last week card must be reachable by horizontal scrolling`);}
 
   // B/C must display distinct surfaces and preserve the canonical day drilldown.
   // Run the added interactions for one wind unit while keeping all 96 geometry/unit cases.
