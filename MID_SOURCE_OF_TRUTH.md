@@ -1,3 +1,11 @@
+# MID v0.9.85.415 · Sichtbarkeit der 7d-/14d-Design-WE korrigiert
+
+**Basis:** Nach vollständigem Source/Installer-Release der v0.9.85.414 ist `main=mid-stable b2b9bb3c3eab78fac117bd0b0d2110b1ce127b66` verbindlicher Ausgangspunkt. Diese .415-Änderung korrigiert eine browserseitig reproduzierte UX-Verfehlung: In .414 existierten A/B/C, lagen aber bei 7d unterhalb der großen Kurvenübersicht (390×844 y≈803) und bei 14d hinter dem Prognose-Kompass. Außerdem war 7d-A durch je rund 98px Ensemble-Guide und automatisch geöffnetes Stundenprofil nicht kompakt. Der veröffentlichte Code hatte damit nicht die sichtbare Standardansicht der Nutzerentscheidung.
+
+**Implementierung:** 7d-Skybar/Kurvenübersicht bleibt durchgehend und original, sichtbar vor dem A/B/C-Inhalt. Ein einziger, früh sichtbarer Toolbar-Schalter steuert A Tageskarten, B Parameterdiagramme und C Tagesmatrix. Tageskarten zeigen sämtliche wichtigen Parameter kompakt; historische, stündliche und quantile Werte bleiben unter zugänglichen, einzeln antippbaren Tagesdetails erhalten. 14d-A/B/C steht vor dem großflächigen Ensemble-Prognose-Kompass, der weiterhin vollständig zugänglich ist. Fehlende Wetterwerte, UVI, PoP und Tagesakkumulation behalten die WMO-/DWD- und MID-Provenienz-/Unsicherheitskontrakte.
+
+**Prüfung:** Neue 1.064. Pflichtregression, SSR-/DOM-Strukturprüfung, bestehende 38 normative Fachverträge und fünf Rulesets. Keine Source-Gate-Ergebnisse eines alten SHA als neue Freigabe melden. Vollständig neue TS/Vite-, Core-/Heavy-/Browser-, Installer/Worker/Pages- und Stable-/Live-Readback-Kette zwingend; echte Safari-/VoiceOver-/Dynamic-Type- und Widget-/Export-Nachweise nur mit realer Evidenz.
+
 # MID v0.9.85.414 · konsolidierte 7d-/14d-Designansichten und DWD-Originalsignatur
 
 **Source-of-Truth bei Integrationsstart:** `main=mid-stable` v0.9.85.413, SHA `2052dc426c972bcfae8527001ce2082fab82c869`, regulärer Installer #41535864012 erfolgreich. **Koordinierter Draft-Quellstand:** ChatGPT-Integrationsbranch `chatgpt/v0.9.85.414-forecast-d2-batch`, Grundlage exakt verifizierte 13 Dateien aus Design-Draft #629 @ `d52a0996d0fdc707135edc4426a20860c19c0dff` plus drei disjunkte geschützte Signer-/Regressionsdateien aus #630 @ `836fc92b22604ffe21052b8ce341319b005ddaa9`. Die zwei Ursprungs-Drafts bleiben unverändert.
