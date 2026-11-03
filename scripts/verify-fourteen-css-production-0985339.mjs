@@ -105,6 +105,9 @@ try{
    assert.deepEqual(actual,expected,`${label}: computed/layout parity`);
    for(const {page,errors}of contexts){assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.locator('[data-signal-series="tmin"] g[role="button"]').first().focus();await page.keyboard.press('Enter');assert.match(await page.getByRole('status').innerText(),/P10–P90/);}
    assert.equal(await contexts[0].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),await contexts[1].page.locator('[data-fourteen-development] svg').first().evaluate(n=>n.outerHTML),'Shared SVG geometry and accessible data');
+   // WebKit can paint a focused SVG one frame after its computed geometry settles.
+   // Settle BOTH renderers without weakening exact screenshot equality.
+   await Promise.all(contexts.map(({page})=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))))));
    const images=await Promise.all(contexts.map(({page})=>page.locator('[data-fourteen-development]').screenshot({animations:'disabled'})));assert.ok(images[0].equals(images[1]),`${name}/${width}/${theme}/${cache}: pixel parity`);cases++;console.log(`${name} ${width}/${theme}/${cache}: parity passed`);
   }}finally{await Promise.all(contexts.map(({context})=>context.close()));}
  }
