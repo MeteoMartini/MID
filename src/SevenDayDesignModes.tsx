@@ -16,6 +16,7 @@ type Props={
  unit:WindUnit;
  ecmwfTemperatureColors?:boolean;
  mode:SevenDayView;
+ showModeSwitch?:boolean;
  onModeChange:(next:SevenDayView)=>void;
  onOpenDay:(date:string)=>void;
 };
@@ -56,14 +57,14 @@ export function sevenDayDetailedSeries(days:Day[],ensemble:EnsembleDay[],unit:Wi
  const sun={id:'sunshine',label:'Sonnenscheindauer · Tageswert',color:'var(--param-sunshine)',points:days.map(day=>datePoint(day.date,sunshine(day)))};
  return {temperature:[tmax,tmin],precipitation:[precipitation],probability:[pop],wind:[windMean,windGust],sunshine:[sun]};
 }
-export function SevenDayDesignModes({days,ensemble,hours,unit,mode,onModeChange,onOpenDay,ecmwfTemperatureColors=false}:Props){
+export function SevenDayDesignModes({days,ensemble,hours,unit,mode,showModeSwitch=true,onModeChange,onOpenDay,ecmwfTemperatureColors=false}:Props){
  const visible=days.slice(0,7);
  const curves=useMemo(()=>sevenDayDetailedSeries(visible,ensemble,unit,ecmwfTemperatureColors),[days,ensemble,unit,ecmwfTemperatureColors]);
  if(!visible.length)return null;
  return <section className="mid-we-seven" data-mid-seven-design="true" data-mid-seven-mode={mode}>
-  <div className="mid-we-seven-switch" role="group" aria-label="Ansicht für sieben Prognosetage">
+  {showModeSwitch?<div className="mid-we-seven-switch" role="group" aria-label="Ansicht für sieben Prognosetage">
    {modes.map(item=><button key={item.key} type="button" aria-pressed={mode===item.key} title={item.help} onClick={()=>onModeChange(item.key)}>{item.label}</button>)}
-  </div>
+  </div>:null}
   {mode==='standard'?<p className="mid-we-seven-hint">Tagesübersicht · Tag antippen für den vollständigen Stundenverlauf.</p>:null}
   {mode==='charts'?<div className="mid-we-seven-charts" aria-label="Grafische Details über sieben lokale Prognosetage">
    <article><h3>Temperatur · Tmin und Tmax</h3><HorizonSignalChart label="Sieben Tage Tagesminimum und Tagesmaximum; Best Match mit echten Ensemblequantilen, falls verfügbar" unit="°C" zero={false} connectDaily series={curves.temperature}/></article>
