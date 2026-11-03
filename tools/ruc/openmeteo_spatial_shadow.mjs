@@ -96,7 +96,7 @@ export function auditManifest(domain, raw, mode="latest", now=new Date()) {
     lastModifiedTime:iso(obj.last_modified_time)?obj.last_modified_time:null,
     validTimeCount:times.length,firstValidTime:times.length?new Date(times[0]).toISOString():null,
     lastValidTime:times.length?new Date(times[times.length-1]).toISOString():null,
-    nativeTimestepMinutes:rule.minutes,actualLeadMinutes,runAgeMinutes,
+    publishedAxisStepMinutes:rule.minutes,nativeFieldCadenceProven:false,actualLeadMinutes,runAgeMinutes,
     variableCount:seenVars.size,availableTargetFields:rule.fields.filter(name=>seenVars.has(name)),
     missingExpectedFields,axisGaps:gaps,full27hAxis:fullAxis,
     metadataValid:errors.length===0,errors:uniq(errors),warnings:uniq(warnings),
