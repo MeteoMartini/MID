@@ -52,6 +52,15 @@ jobs:
             tools/ruc/test_dwd_batch_source_plan_shadow.mjs \
             tools/ruc/test_dwd_staged_source_sha_shadow.mjs
 
+      # Temporary science QA, restricted to this Draft investigation; no release permission.
+      - name: Open-Meteo RUC Spatial Live-Byte-Range Shadow (read-only)
+        if: github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.417-openmeteo-ruc-spatial-shadow'
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          set -euo pipefail
+          node tools/ruc/openmeteo_spatial_byte_shadow.mjs
+
       - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
         shell: bash
         run: |
