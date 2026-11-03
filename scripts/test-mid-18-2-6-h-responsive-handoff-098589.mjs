@@ -11,15 +11,22 @@ const [forecast,meteogram,water,styles,main]=await Promise.all([
   readPresentationEntrySources(),
 ]);
 
-// 7-Tage-Produktion: echte Tagesbuttons bleiben bedienbar; die Detailfläche wird
-// weiterhin nur für den ausgewählten Tag erzeugt und durch H nach der Liste angeordnet.
+// 7-Tage-Produktion nach expliziter kompakter A/B/C-Ansicht: der ursprüngliche
+// Tages-Renderer einschließlich Quellen, Skybar und Stundenfallback bleibt
+// erhalten, wird aber nur für den ausdrücklich gewählten Tag gemountet.
+// Auch ohne vollständige Stundenwerte existiert ein gekennzeichneter Detail-
+// fallback; daher ist der ARIA-Expanded-Status jetzt stets definiert.
 for(const token of [
   'function MidForecastRow',
   'data-mid-forecast-list="seven"',
   'data-mid-forecast-row="seven"',
   'data-mid-forecast-detail="seven"',
   'onClick={()=>chooseDay(day.date)}',
-  'aria-expanded={hourlyDetail?isExpanded:undefined}',
+  'aria-expanded={isExpanded}',
+  'aria-controls={`mid-seven-detail-${day.date}`}',
+  'visible.filter(day=>day.date===expandedSevenDate)',
+  'expandedSevenDate!==null',
+  'hourlyDetail??<p role="status">',
   'SevenDayCurveOverview'
 ]) assert.ok(forecast.includes(token),`7-Tage-Interaktionsvertrag fehlt: ${token}`);
 
