@@ -59,8 +59,9 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
   expect(segment.indexOf('<SevenDayCurveOverview')).toBeGreaterThan(0);
   expect(segment.indexOf('<LazySevenDayDesignModes')).toBeGreaterThan(segment.indexOf('<SevenDayCurveOverview'));
-  expect(segment).toContain("sevenView==='standard'&&<div className=\"cockpit-seven-grid\"");
-  expect(segment).toContain("onOpenDay={openDayFromTable}");
+  expect(segment).toContain("sevenView==='standard'&&expandedSevenDate!==null&&<div className=\"cockpit-seven-grid mid-we-seven-expanded-detail\"");
+  expect(segment).toContain('visible.filter(day=>day.date===expandedSevenDate)');
+  expect(segment).toContain("onOpenDay={sevenView==='standard'?chooseDay:openDayFromTable}");
   expect(segment.indexOf('mid-we-seven-switch-primary')).toBeLessThan(segment.indexOf('<SevenDayCurveOverview'));
   expect(segment).toContain("const openDayFromTable=(date:string)=>{setSevenView('standard');setExpandedSevenDate(date);onSelectedDate(date)}");
   expect(segment).toContain('isExpanded=expandedSevenDate===day.date;');
@@ -68,6 +69,17 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   expect(segment).toContain('aria-controls={`mid-seven-detail-${day.date}`}');
   expect(segment).not.toContain('display:none!important');
   expect(cockpit).toContain("useDisplayPreference<'standard'|'charts'|'table'>('ForecastCockpit.sevenDay.view','standard'");
+ });
+ it('renders real compact A day cards with preserved missing-value semantics and accessible details',()=>{
+  const standard=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard',expandedDate:days[2].date,showModeSwitch:false}));
+  expect((standard.match(/class="mid-we-seven-daycard/g)||[]).length).toBe(7);
+  expect((standard.match(/aria-expanded="true"/g)||[]).length).toBe(1);
+  expect(standard).toContain('aria-controls="mid-seven-detail-'+days[2].date+'"');
+  expect(standard).toContain('Niederschlag');
+  expect(standard).toContain('Sonne');
+  expect(standard).not.toContain('NaN');
+  expect(css).toContain('.mid-we-seven-daycard');
+  expect(css).toContain('@media(max-width:850px)');
  });
  it('renders all three visual modes independently with 44px touch controls',()=>{
   const a=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard'}));
