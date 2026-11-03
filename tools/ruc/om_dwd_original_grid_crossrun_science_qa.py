@@ -14,7 +14,7 @@ import hashlib
 import json
 import numpy as np
 
-from om_dwd_t2m_ab_science_qa import secure_download, NATIVE_CELLS
+from om_dwd_t2m_ab_science_qa import secure_download, original_dwd_t2m, DWD_URL, NATIVE_CELLS
 
 RUN_IDS = ("2026-11-03T06:00", "2026-11-03T07:00", "2026-11-03T08:00")
 PARAMS = ("CLAT", "CLON")
@@ -97,6 +97,36 @@ def main():
                         delta=np.max(np.abs(reference[parameter]-pair[parameter]))
                         raise ValueError(f"native original {parameter} cell ordering drift, max diff {delta}")
     if len(rows)!=6:raise ValueError("incomplete original native-grid coordinate inventory")
+    # MID's 0.025-degree nearest-native lookup is intentionally inset relative
+    # to the DWD native GRIB domain. Measure, do not assume this is all Missing.
+    west,south,east,north=(-3.85,43.18,20.22,58.05)
+    lat,lon=reference["CLAT"],reference["CLON"]
+    inside=(lon>=west)&(lon<=east)&(lat>=south)&(lat<=north)
+    with TemporaryDirectory(prefix="mid-ruc-bbox-mask-") as work:
+        t2m=Path(work)/"original_07Z_1h_T2M.grib2"
+        original_source=secure_download(DWD_URL,t2m,"dwd")
+        original_t2m,source_good,source_header=original_dwd_t2m(t2m)
+    if source_good.shape!=(NATIVE_CELLS,):
+        raise ValueError("original field mask does not align with native coordinates")
+    lookupComparison={
+        "MidNativeLookupBBoxWestSouthEastNorth":[west,south,east,north],
+        "allNativeGridCells":NATIVE_CELLS,
+        "nativeCoordinateCellsInsideLookupBBox":int(inside.sum()),
+        "nativeCoordinateCellsOutsideLookupBBox":int((~inside).sum()),
+        "allSourceValidCells":int(source_good.sum()),
+        "sourceValidCellsInsideLookupBBox":int((source_good&inside).sum()),
+        "sourceValidCellsOutsideLookupBBox":int((source_good&(~inside)).sum()),
+        "sourceMissingCellsInsideLookupBBox":int(((~source_good)&inside).sum()),
+        "sourceMissingCellsOutsideLookupBBox":int(((~source_good)&(~inside)).sum()),
+        "validSourceField":"T_2M",
+        "validSourceRun":"2026-11-03T07:00",
+        "validSourceLeadHours":1,
+        "originalSource":original_source,
+        "sourceHeader":source_header,
+        "nativeGridExtentEqualsMidLookupExtent":False,
+        "proofOfClientMapClipping":False,
+        "productionEligible":False,
+    }
     report={
         "schema":"mid.ruc.original-native-grid-cross-run.shadow.v1",
         "observedAt":datetime.now(timezone.utc).isoformat(),
@@ -107,6 +137,7 @@ def main():
              "sha256":hashlib.sha256(reference[p].astype("<f8").tobytes()).hexdigest()}
              for p in PARAMS],
         "rows":rows,
+        "lookupSpatialFootprintComparison":lookupComparison,
         "processedOmIndexCoordinatesIndependentlyProven":False,
         "DwdOriginalGridSuitableForExistingMidNativeMap":True,
         "productionEligible":False
