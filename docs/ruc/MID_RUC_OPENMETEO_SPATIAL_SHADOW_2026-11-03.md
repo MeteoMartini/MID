@@ -33,3 +33,7 @@
 
 ## Product decision / default
 Recommended future target: OM spatial as optional processed auxiliary layer for proven ordinary fields; DWD original for high-frequency, EPS20, safety and full-grid products. No production switch or new paid service is authorized by this draft.
+
+## Library licensing blocker (verified)
+- The published `open-meteo/weather-map-layer` `LICENSE` file declares **GNU GPL version 2**; the separate `open-meteo/maps` demo also uses GPL-2.0. Do **not** add `@openmeteo/weather-map-layer` or copy its source into MID until the actual package license, MID distribution policy, iOS linkage and derivative-work implications are reviewed and compatible. The AWS **data license CC BY 4.0** is separate from source-code licensing.
+- Prefer an independently implemented and license-compatible `.om` reader / batch renderer (after independently verifying reader-library licenses) if required; no implementation license shortcut. No new dependency introduced in this PR.
