@@ -44,7 +44,7 @@ try {
   const metrics=await page.evaluate(mode=>{const clipped=e=>{const range=document.createRange();range.selectNodeContents(e);const text=range.getBoundingClientRect();for(let parent=e;parent&&parent!==document.body;parent=parent.parentElement){const style=getComputedStyle(parent),box=parent.getBoundingClientRect();if(/hidden|clip/.test(style.overflowX)&&(text.left<box.left-1||text.right>box.right+1))return true;}return e.scrollWidth>e.clientWidth+1;};return ({
    overflow:document.documentElement.scrollWidth>innerWidth+1,
    prefixes:[...document.querySelectorAll('.forecast-range-bounds')].filter(e=>/P(?:25|75)/i.test(e.textContent)).length,
-   bounds:[...document.querySelectorAll('.forecast-range-bounds')].map(e=>({text:e.textContent.trim(),clipped:clipped(e)})),
+   bounds:[...document.querySelectorAll('.forecast-range-bounds')].map(e=>({text:e.textContent.trim(),clipped:clipped(e),diagnostics:clipped(e)?(()=>{const items=[];for(let p=e;p&&p!==document.body;p=p.parentElement){const b=p.getBoundingClientRect(),s=getComputedStyle(p);items.push({class:typeof p.className==='string'?p.className.slice(0,100):'',width:b.width,left:b.left,right:b.right,clientWidth:p.clientWidth,scrollWidth:p.scrollWidth,overflowX:s.overflowX,gridColumns:s.gridTemplateColumns});}return items;})():[]})),
    compactSevenCards:[...document.querySelectorAll('.mid-we-seven-daycard')].map(e=>({text:e.textContent.trim(),clipped:clipped(e)})),
    compactFourteenCards:[...document.querySelectorAll('.mid-we-fourteen-daytile')].map(e=>({text:e.textContent.trim(),clipped:clipped(e)})),
    temperaturePairs:[...document.querySelectorAll('.cockpit-seven-grid .cockpit-day-temps')].map(e=>({label:e.getAttribute('aria-label'),fields:[...e.querySelectorAll(':scope>.climate-tone-daily>small,:scope>.climate-tone-daily>span')].map(v=>({text:v.textContent,visible:v.getBoundingClientRect().width>0,clipped:clipped(v),width:v.getBoundingClientRect().width,scroll:v.scrollWidth,client:v.clientWidth,font:getComputedStyle(v).fontSize,parents:clipped(v)?(()=>{const values=[];for(let p=v.parentElement;p&&p!==document.body;p=p.parentElement){const b=p.getBoundingClientRect(),s=getComputedStyle(p);values.push({class:p.className,left:b.left,right:b.right,width:b.width,display:s.display,gridColumns:s.gridTemplateColumns,gridColumn:s.gridColumn,gridRow:s.gridRow,overflow:s.overflowX});}return values;})():[]}))})),
@@ -63,7 +63,7 @@ try {
    assert.ok(metrics.compactFourteenCards.every(card=>card.text.includes('10')&&card.text.includes('20')&&!card.clipped),`${mode} ${width}px ${theme}: missing or clipped weekly card`);
   }
   for(const amount of metrics.amounts){assert.equal(amount.text,'<0,1mm');assert.equal(amount.clipped,false,`${mode} ${width}px: trace amount clipped`);}
-  for(const bound of metrics.bounds)assert.equal(bound.clipped,false,`${mode} ${width}px: bounds clipped`);
+  for(const bound of metrics.bounds)assert.equal(bound.clipped,false,`${mode} ${width}px ${theme} ${unit}: bounds clipped ${JSON.stringify(bound)}`);
   if(unit==='kmh')await page.screenshot({path:join(out,`${mode}-${width}-${theme}.png`)});
 
   // B/C must display distinct surfaces and preserve the canonical day drilldown.
