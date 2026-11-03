@@ -49,4 +49,9 @@ assert.ok(sevenBand.includes('visible.filter(day=>day.date===expandedSevenDate)'
 assert.ok(fourteen.includes('mid-we-fourteen-weeks')&&fourteen.includes('mid-we-fourteen-daytile')&&fourteen.includes('mid-we-fourteen-chart-feature'),'A has two real week tracks and original uncertainty graph');
 assert.ok(fourteenBand.includes('id="mid-fourteen-full-details"')&&fourteenBand.includes('setShowFourteenDayDetails(true)'),'Original fourteen daily detail cards remain reachable by A');
 assert.ok(sevenCss.includes('.mid-we-seven-daycard')&&fourteenCss.includes('.mid-we-fourteen-weekscroll'),'New visual cards and responsive week scroll must be styled');
+assert.ok(fourteen.indexOf('mid-we-fourteen-chart-feature')<fourteen.indexOf('mid-we-fourteen-weeks'),'Real temperature and uncertainty graph must precede two week strips');
+assert.ok(fourteen.indexOf('mid-we-fourteen-primary')<fourteen.indexOf('fourteen-phase-summary'),'Weather phases cannot hide the original 14-day primary graph');
+assert.ok(sevenCss.includes('min-height:64px')&&sevenCss.includes('.mid-we-seven-day-metrics>span:nth-child(3){display:none}'),'Compact 7-day day-row geometry must survive mobile layout');
+assert.ok(sevenCss.includes('grid-template-columns:minmax(0,1fr)')&&fourteenCss.includes('grid-template-columns:minmax(0,1fr)'),'7-day and 14-day charts must stack vertically');
+assert.ok(sevenCss.includes('display:table;min-width:700px')&&fourteenCss.includes('display:table;width:100%;min-width:760px'),'Phone table modes must remain true scrollable comparison tables');
 console.log('MID Design-WE 1.2: 7d A visually compact with original details opt-in, 7d B/C chart/table, 14d A two real weeks, B/C separate, canonical graph/quantiles/Skybar all retained.');

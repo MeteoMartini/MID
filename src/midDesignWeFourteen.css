@@ -197,3 +197,33 @@ html:root .app [data-fourteen-development] .mid-we-fourteen-table-scroll{border-
 html:root .app [data-fourteen-development] .mid-we-fourteen-days table{font-family:inherit;font-size:12px}
 html:root .app [data-fourteen-development] .mid-we-fourteen-days button{font-family:inherit;font-size:12px;font-weight:650}
 @media(max-width:620px){html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head{align-items:flex-start;flex-direction:column;gap:4px}html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head>small{max-width:100%;text-align:start}}
+
+/* MID Design-WE · real 14d temperature/uncertainty first, compact weeks, original model values. */
+html:root .app [data-fourteen-development] .mid-we-fourteen-primary{display:grid;gap:8px;padding:6px 3px;border:0;border-radius:0;background:transparent}
+html:root .app [data-fourteen-development] .mid-we-fourteen-chart-feature{padding:10px 8px;border-radius:12px;border:1px solid var(--mid-surface-line,var(--border));background:var(--mid-surface-base,var(--surface));box-shadow:none}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weeks{gap:9px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-week{gap:4px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-week>header>strong{font-size:12px;font-weight:700}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll{padding:2px 2px 6px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weekrow{grid-auto-columns:minmax(126px,1fr);gap:5px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-daytile{min-width:126px;width:clamp(126px,11vw,165px);min-height:155px;padding:8px;gap:4px;border-radius:12px;box-shadow:none}
+html:root .app [data-fourteen-development] .mid-we-fourteen-temps>b{font-size:16px;font-weight:750}
+html:root .app [data-fourteen-development] .mid-we-fourteen-temps>small{font-size:12px;font-weight:650}
+html:root .app [data-fourteen-development] .mid-we-fourteen-range{font-size:10px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-charts{grid-template-columns:minmax(0,1fr);gap:7px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-charts>article{min-width:0;padding:10px 8px;border-radius:12px;box-shadow:none;border:1px solid var(--mid-surface-line,var(--border));background:var(--mid-surface-base,var(--surface))}
+@media(max-width:620px){
+ html:root .app [data-fourteen-development] .mid-we-fourteen-weekrow{grid-auto-columns:132px}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-daytile{min-width:132px;width:132px}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-table-scroll{overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin;max-width:100%}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days table{display:table;width:100%;min-width:760px;font-size:11px}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days thead{display:table-header-group}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days tbody{display:table-row-group}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days tbody tr{display:table-row;padding:0;border-bottom:0}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days tbody :is(th,td){display:table-cell;min-width:0;padding:8px 7px;border-bottom:1px solid var(--mid-surface-line,var(--border));vertical-align:middle}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days tbody td::before{display:none;content:none}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days tbody :is(td:nth-last-child(2),td:last-child){grid-column:auto}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days :is(thead th:first-child,tbody th:first-child){position:sticky;left:0;z-index:1;background:var(--mid-surface-base,var(--surface))}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-days thead th:first-child{z-index:2;background:var(--mid-surface-raised,var(--s2))}
+}
+@media(prefers-reduced-motion:reduce){html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll{scroll-behavior:auto}}

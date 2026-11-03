@@ -43,6 +43,7 @@ describe('MID Design-WE 14d real A/B/C rendering',()=>{
   expect((html.match(/class="mid-we-fourteen-daytile/g)||[]).length).toBe(14);
   expect(html).toContain('mid-we-fourteen-symbol');
   expect(html).toContain('mid-we-fourteen-weekscroll');
+  expect(html.indexOf('mid-we-fourteen-chart-feature')).toBeLessThan(html.indexOf('mid-we-fourteen-weekscroll'));
   expect(html).not.toContain('NaN');
   expect(html).toContain('P10–P90');
   expect(html).not.toContain('daily-accumulation-bar');

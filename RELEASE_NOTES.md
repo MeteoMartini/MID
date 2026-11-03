@@ -1,7 +1,10 @@
-# MID v0.9.85.416 – Einheitliches Prognosedesign
+# MID v0.9.85.416 – Vorlagentreues 7-/14-Tage-Prognosedesign
 
-- **7 Tage:** Übersicht, Diagramme und Tabelle haben jetzt dieselbe verständliche Benennung wie im 14-Tage-Bereich. Die früher nur für die Konzeptauswahl verwendeten A/B/C-Buchstaben entfallen aus Schaltern und Abschnittsüberschriften.
-- **14 Tage:** Die beiden Wochenleisten, Diagramme und die Tagesvergleichstabelle fügen sich mit angeglichener Inter/System-Schriftfamilie, konsistenteren Textgrößen, zurückgenommenen Schriftschnitten und flacheren Kartenflächen in das übrige MID-Design ein.
-- **Weiterhin vorhanden:** die kontinuierliche 7-Tage-Skybar, Wetterkurven, Tages- und Stundendetails, Ensemble-Unsicherheiten, Mengen, Wahrscheinlichkeiten, Wind-/Böenwerte sowie die gespeicherte Ansichts- und Einheitenwahl.
-- **Wetterqualität:** Amtliche Warnungen und WMO-/DWD-Daten, Modellläufe, Tagesakkumulationen und RUC-Produkte bleiben unverändert; fehlende Wetterwerte werden weiterhin nicht als Null ausgegeben. Light/Dark verwenden dieselben MID-Design-Tokens.
+- **7 Tage:** Durchgehende originale Skybar unverändert. Übersicht als kompakte horizontale Wetterzeilen mit Datum, Symbol, Temperatur, Niederschlag sowie Wind/Böen. Sonnenschein/UVI und sämtliche Stunden-/Ensembledetails bleiben über Tagesdetails beziehungsweise Diagramme erreichbar.
+- **Diagramme:** Fünf 7d- und vier 14d-Parameterdiagramme untereinander, mit originalen Vorhersagewerten und echten Ensemble-Unsicherheiten.
+- **Tabelle:** Auch auf Smartphones vergleichbare, horizontal scrollbare Tabellenzeilen mit fixierter Datumsspalte, statt einzelner mehrzeiliger Karten.
+- **14 Tage:** Temperatur- und Ensemble-Unsicherheitsverlauf zuerst; kompakte zwei Wochenstreifen danach und Wetterphasen als sekundäre Orientierung. Vollständige 14 Tageskarten und Prognose-Kompass bleiben.
+- **Design:** Einheitliche MID-Typografie, Fokuszustände, Touchziele, Farben, Flächen und die klaren Ansichtsbezeichnungen „Übersicht“, „Diagramme“ und „Tabelle“. Keine A/B/C-Entwurfsbuchstaben.
+- **Wetterdaten:** Keine Änderungen an amtlichen Warnungen, Modell- und Gültigkeitszeiten, Mengen, PoP, NoData, RUC/DWD oder Ensemble-Originalen.
 
+Veröffentlichung ausschließlich nach vollständigem geschützten Source-/Installer-Gate und verifiziertem Stable-Readback.

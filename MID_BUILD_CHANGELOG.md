@@ -1,3 +1,8 @@
+## MID v0.9.85.416 · 2026-11-03 · Abgleich der Originalbilder und Core-Changelog-Reparatur
+
+- Vorgänger-Commit von PR #641 hatte die historischen CHANGELOG-Spiegel gelöscht und dadurch historische Regressionstests in allen Core-Shards verletzt. Beide Changelogs werden vollständig und bytegleich aus dem originalen `.415`-Stable wiederhergestellt, mit `.416`-Eintrag ergänzt; Tests unverändert streng.
+- Originalbilder 02.11.2026: echte HTML/DOM-Reihenfolge 14d Temperatur/Unsicherheit → Wochenstreifen → Phasen; 7d-Kompaktkarten als horizontale Zeilen; 7d/14d-Diagramme gestapelt und mobile Tabellen bleiben horizontale Matrizen. Meteorologische Werte, Unsicherheiten, Warnungen, RUC/D2, 38 Verträge und Gates unverändert. Visuelle Browser- und reale iOS-Abnahme sind weiterhin getrennt.
+
 ## MID v0.9.85.416 · 03.11.2026 · Typografie-/Konsistenzkorrektur 7d/14d
 
 - Exakter Quellausgangspunkt: veröffentlichtes `main=mid-stable` v0.9.85.415 SHA `c96c35531e44a868a71705f9244c6be83ff45213`; autorisierter Integrationsbranch `chatgpt/v0.9.85.416-forecast-design-coherence`. Keine auf ältere Entwurfsbranches zurückgesetzte Arbeit.

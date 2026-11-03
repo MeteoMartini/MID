@@ -63,23 +63,11 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
   <div className="mid-we-fourteen-switch" role="group" aria-label="Darstellung des 14-Tage-Wetters wählen">
    {options.map(option=><button type="button" key={option.key} aria-pressed={mode===option.key} aria-label={option.description} className={mode===option.key?'active':''} onClick={()=>setMode(option.key)}>{option.label}</button>)}
   </div>
-  {mode==='compact'?<div className="long-range-dwd-periods fourteen-phase-summary" aria-label="Entwicklung nach drei Wetterphasen">
-   {phases.map(phase=>{
-    const temperatures=phase.rows.map(row=>row.meanDayTemperature).filter(Number.isFinite);
-    const mean=temperatures.length?temperatures.reduce((sum,value)=>sum+value,0)/temperatures.length:null;
-    const regimes=phase.rows.reduce<Record<string,number>>((counts,row)=>({...counts,[row.regimeText]:(counts[row.regimeText]??0)+1}),{});
-    const character=Object.entries(regimes).sort((a,b)=>b[1]-a[1])[0]?.[0];
-    const ensembleDays=phase.rows.filter(row=>row.ensembleAvailable).length;
-    return <article key={phase.label}>
-     <header><strong>{phase.label}</strong><small>{dateLabel(phase.rows[0].date)} – {dateLabel(phase.rows.at(-1)!.date)}</small></header>
-     <b>{character??'Entwicklung offen'}</b>
-     <p><span>Tagesmittel</span> <strong>{mean!==null?numeric(mean,'°C',1):'–'}</strong></p>
-     <small>Ensemble {ensembleDays}/{phase.rows.length} Tage</small>
-    </article>;
-   })}
-  </div>:null}
   {mode==='compact'?<div className="mid-we-fourteen-primary">
    <div className="mid-we-fourteen-mode-head"><span><strong>Woche für Woche</strong></span><small>Wetterphasen, Tageswerte und tatsächliche Unsicherheit</small></div>
+   <div className="mid-we-fourteen-chart-feature"><div className="mid-we-fourteen-mode-head"><span><strong>Temperatur und Unsicherheit</strong></span><small>Best Match und originale Ensemble-Spannen</small></div>
+    <HorizonSignalChart label="14 Tage: Höchst- und Tiefsttemperatur. Best Match mit P10–P90 und P25–P75 der verfügbaren Ensembles" unit="°C" zero={false} connectDaily compact series={chartTemperature}/>
+   </div>
    <div className="mid-we-fourteen-weeks">{weeks.map(week=><section key={week.label} className="mid-we-fourteen-week">
     <header><strong>{week.label}</strong><small>Seitlich scrollbare Tageskarten · Details per Tipp</small></header>
     <div className="mid-we-fourteen-weekscroll" role="region" tabIndex={0} aria-label={week.label+' im Tagesvergleich'}>
@@ -95,10 +83,22 @@ export function FourteenDayDevelopment({series,unit='kn',onOpenDay}:{series:Row[
      </button>)}</div>
     </div>
    </section>)}</div>
-   <div className="mid-we-fourteen-chart-feature"><div className="mid-we-fourteen-mode-head"><span><strong>Temperatur und Unsicherheit</strong></span><small>Best Match und originale Ensemble-Spannen</small></div>
-    <HorizonSignalChart label="14 Tage: Höchst- und Tiefsttemperatur. Best Match mit P10–P90 und P25–P75 der verfügbaren Ensembles" unit="°C" zero={false} connectDaily compact series={chartTemperature}/>
-   </div>
    <small className="mid-we-fourteen-footnote">P10–P90 und P25–P75 ausschließlich aus vorhandenen Ensembledaten. Die Punktprognose ist kein Ensemble-Mittelwert. Alle bisherigen vollständigen Tageskarten bleiben über „Details“ zugänglich.</small>
+  </div>:null}
+  {mode==='compact'?<div className="long-range-dwd-periods fourteen-phase-summary" aria-label="Entwicklung nach drei Wetterphasen">
+   {phases.map(phase=>{
+    const temperatures=phase.rows.map(row=>row.meanDayTemperature).filter(Number.isFinite);
+    const mean=temperatures.length?temperatures.reduce((sum,value)=>sum+value,0)/temperatures.length:null;
+    const regimes=phase.rows.reduce<Record<string,number>>((counts,row)=>({...counts,[row.regimeText]:(counts[row.regimeText]??0)+1}),{});
+    const character=Object.entries(regimes).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const ensembleDays=phase.rows.filter(row=>row.ensembleAvailable).length;
+    return <article key={phase.label}>
+     <header><strong>{phase.label}</strong><small>{dateLabel(phase.rows[0].date)} – {dateLabel(phase.rows.at(-1)!.date)}</small></header>
+     <b>{character??'Entwicklung offen'}</b>
+     <p><span>Tagesmittel</span> <strong>{mean!==null?numeric(mean,'°C',1):'–'}</strong></p>
+     <small>Ensemble {ensembleDays}/{phase.rows.length} Tage</small>
+    </article>;
+   })}
   </div>:null}
   {mode==='charts'?<div className="mid-we-fourteen-charts" aria-label="Erweiterte, gemeinsam datierte 14-Tage-Diagramme"><div className="mid-we-fourteen-mode-head"><span><strong>Wetter im Detail</strong></span><small>Gleiche Datumsachse, echte Datenlücken</small></div>
    <article><h3>Temperatur · Tmax und Tmin</h3><HorizonSignalChart label="14 Tage Temperatur mit Ensemblequantilen" unit="°C" zero={false} connectDaily series={chartTemperature}/></article>
