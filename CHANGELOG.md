@@ -1,3 +1,7 @@
+# MID v0.9.85.423 – Karten und 7-Tage-Vergleich
+
+Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.
+
 # MID v0.9.85.417 – Schnee-Hinweise und Skybar nachvollziehbar
 
 - Schneefall-Signale nach Ablauf der ersten sieben Tage werden nicht mehr durch 72-h-Akkumulations-Vorausschau als MID-Warnhinweise hervorgehoben. Schwache Schnee-Signale bei fünf oder mehr Tagen Vorlauf bleiben in der normalen 7-/14-Tage-Prognose, nicht in der Warnlage; amtliche DWD-Warnungen und relevante Schneeereignisse bleiben erhalten.

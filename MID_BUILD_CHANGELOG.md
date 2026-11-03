@@ -1,3 +1,7 @@
+# MID v0.9.85.423 – Karten und 7-Tage-Vergleich
+
+Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.
+
 ## MID v0.9.85.417 · 2026-11-03 · meteorologische Schnee-Hinweis-Integrität + Skybar-Vierstufen
 
 - Ausgangspunkt live SHA-verifiziert `main=mid-stable` v0.9.85.416 `2f9806fe1349e9b35001f8aa313e127f888dee91`, fünf aktive GitHub-Rulesets, 38 Normverträge und 1.064 Pflichttests. Parallele Draft-Änderung #634 (Skybar) bleibt unabhängig und wird weder ungeprüft gemergt noch auf Hauptbranches geschrieben.
