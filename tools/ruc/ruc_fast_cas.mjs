@@ -35,6 +35,21 @@ export function makeNextPointer(previous, row) {
     assert(previous.stableSha === next.stableSha, 'stable changed: reacquire full source admission');
     assert(validRun(next.fastRun) >= validRun(previous.fastRun), 'stale Fast publication attempt');
     assert(validRun(next.primaryRun) >= validRun(previous.primaryRun), 'primary RUC downgrade forbidden');
+    if (next.mode === 'active') {
+      // A new candidate must first be published as an independently admitted
+      // shadow; activation may only flip its mode. A conditional R2 put alone
+      // cannot prove that the new site's original bytes were staged/read back.
+      // When an existing active source advances, fall back to full RUC while
+      // staging the next shadow, then activate that *exact* immutable site.
+      for (const key of [
+        'stableSha', 'siteSha256', 'primaryManifestSha256', 'fastManifestSha256',
+        'primaryRun', 'fastRun', 'horizonHours', 'epsAvailable',
+        'rootPrimaryNeverChanged', 'fullEps20Readmission'
+      ]) {
+        assert(previous[key] === next[key],
+          'Fast activation requires identical admitted shadow candidate: '+key);
+      }
+    }
   }
   return next;
 }
