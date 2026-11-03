@@ -68,6 +68,17 @@ jobs:
           set -euo pipefail
           node tools/ruc/openmeteo_spatial_byte_shadow.mjs
 
+      # Science-only, branch-fenced and ephemeral: GPL reader not bundled with MID.
+      - name: Open-Meteo OM-Feldformen unabhängig inspizieren (Draft-Science-QA)
+        if: github.event_name == 'pull_request' && github.head_ref == 'chatgpt/v0.9.85.417-openmeteo-ruc-spatial-shadow'
+        shell: bash
+        timeout-minutes: 4
+        run: |
+          set -euo pipefail
+          python3 -m venv "${RUNNER_TEMP}/mid-om-science-qa"
+          "${RUNNER_TEMP}/mid-om-science-qa/bin/python" -m pip install --no-cache-dir --only-binary=:all: --disable-pip-version-check 'omfiles==1.2.0' 'numpy==2.3.5'
+          "${RUNNER_TEMP}/mid-om-science-qa/bin/python" tools/ruc/openmeteo_om_shape_science_qa.py
+
       - name: CI/CD-Effizienz- und Herkunftsregressionen (read-only)
         shell: bash
         run: |
