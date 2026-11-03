@@ -1786,7 +1786,10 @@ export function hazards(h:Hour[],_currentUv?:number,elevation=0,unit:WindUnit='k
  // The trailing 72 hours are accumulation-only look-ahead, NOT a warning extension.
  // Without this gate a trace on day 9 is reported as a day 6-7 warning.
  const firstOutside=future[startLimit],lastInside=future[startLimit-1],warningEnd=Number.isFinite(Number(firstOutside?.epoch))?Number(firstOutside.epoch):Number(lastInside?.epoch)+3600000;
- const signals=summarizeDwdWarnings(horizon,elevation,startLimit),rows=signals.flatMap(signal=>{const presentation=hazardPresentation(signal,horizon,unit,ensemble),eventStart=Date.parse(String(presentation.validFrom??signal.validFrom??'')),lead=(eventStart-Date.now())/3600000;
+ // Only fully supported intervals WITHIN the published warning horizon may
+ // establish amounts and warning classes. Retaining an extra 72h for context
+ // must never turn trace snow on day 7 plus heavy snow on day 9 into a day-7 alert.
+ const signals=summarizeDwdWarnings(horizon.slice(0,startLimit),elevation,startLimit),rows=signals.flatMap(signal=>{const presentation=hazardPresentation(signal,horizon,unit,ensemble),eventStart=Date.parse(String(presentation.validFrom??signal.validFrom??'')),lead=(eventStart-Date.now())/3600000;
  // Require actual forecast exposure within the displayed seven-day warning horizon.
  if(!Number.isFinite(eventStart)||!Number.isFinite(warningEnd)||eventStart>=warningEnd)return[];
  // At lead >=5 days a trace snow total is not a robust, actionable warning.
