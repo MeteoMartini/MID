@@ -32,15 +32,56 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   expect(file.parseDiagnostics.map(problem=>ts.flattenDiagnosticMessageText(problem.messageText,' '))).toEqual([]);
   expect(()=>postcss.parse(css)).not.toThrow();
  });
- it('keeps continuous legacy seven-day chart and Skybar above the selector',()=>{
+ it('provides a single prominent A/B/C selector above the original Skybar and compacts cards without deleting bounds',()=>{
+  const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
+  expect(segment.indexOf('mid-we-seven-switch-primary')).toBeGreaterThan(0);
+  expect(segment.indexOf('mid-we-seven-switch-primary')).toBeLessThan(segment.indexOf('<SevenDayCurveOverview'));
+  expect(segment.indexOf('<SevenDayCurveOverview')).toBeLessThan(segment.indexOf('<LazySevenDayDesignModes'));
+  expect(segment).toContain('showModeSwitch={false}');
+  const a=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard',showModeSwitch:false}));
+  expect(a).not.toContain('mid-we-seven-switch"');
+  expect(a).toContain('data-mid-seven-mode="standard"');
+  const b=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'charts',showModeSwitch:false}));
+  expect(b).toContain('mid-we-seven-charts');
+  expect(b).not.toContain('mid-we-seven-switch"');
+  expect(segment).toContain('const [expandedSevenDate,setExpandedSevenDate]=useState<string|null>(null)');
+  expect(segment).toContain('isExpanded=expandedSevenDate===day.date;');
+  expect(segment).toContain("setExpandedSevenDate(current=>current===date?null:date)");
+  expect(segment).toContain('aria-expanded={isExpanded}');
+  expect(segment).toContain('aria-controls={`mid-seven-detail-${day.date}`}');
+  const row=segment.slice(segment.indexOf('const compact=<button'),segment.indexOf('const detail=<section'));
+  const detail=segment.slice(segment.indexOf('const detail=<section'));
+  expect(row).not.toContain('<ForecastRangeGuide');
+  expect(detail).toContain('<ForecastRangeGuide');
+  expect(css).toContain('.mid-we-seven-switch-primary');
+ });
+ it('keeps one visible A/B/C selector above the continuous Skybar and opens C-to-A day detail',()=>{
   const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
   expect(segment.indexOf('<SevenDayCurveOverview')).toBeGreaterThan(0);
   expect(segment.indexOf('<LazySevenDayDesignModes')).toBeGreaterThan(segment.indexOf('<SevenDayCurveOverview'));
-  expect(segment).toContain("sevenView==='standard'&&<div className=\"cockpit-seven-grid\"");
-  expect(segment).toContain("onOpenDay={openDayFromTable}");
-  expect(segment).toContain("setSevenView('standard');onSelectedDate(date)");
+  expect(segment).toContain("const expandedDayContent=sevenView==='standard'&&expandedSevenDate!==null?<div className=\"cockpit-seven-grid mid-we-seven-expanded-detail\"");
+  expect(segment).toContain('expandedDayContent={expandedDayContent}');
+  expect(source).toContain('{open?expandedDayContent:null}');
+  expect(segment).toContain('visible.filter(day=>day.date===expandedSevenDate)');
+  expect(segment).toContain("onOpenDay={sevenView==='standard'?chooseDay:openDayFromTable}");
+  expect(segment.indexOf('mid-we-seven-switch-primary')).toBeLessThan(segment.indexOf('<SevenDayCurveOverview'));
+  expect(segment).toContain("const openDayFromTable=(date:string)=>{setSevenView('standard');setExpandedSevenDate(date);onSelectedDate(date)}");
+  expect(segment).toContain('isExpanded=expandedSevenDate===day.date;');
+  expect(segment).toContain('aria-expanded={isExpanded}');
+  expect(segment).toContain('aria-controls={`mid-seven-detail-${day.date}`}');
   expect(segment).not.toContain('display:none!important');
   expect(cockpit).toContain("useDisplayPreference<'standard'|'charts'|'table'>('ForecastCockpit.sevenDay.view','standard'");
+ });
+ it('renders real compact A day cards with preserved missing-value semantics and accessible details',()=>{
+  const standard=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard',expandedDate:days[2].date,showModeSwitch:false}));
+  expect((standard.match(/class="mid-we-seven-daycard/g)||[]).length).toBe(7);
+  expect((standard.match(/aria-expanded="true"/g)||[]).length).toBe(1);
+  expect(standard).toContain('aria-controls="mid-seven-detail-'+days[2].date+'"');
+  expect(standard).toContain('Niederschlag');
+  expect(standard).toContain('Sonne');
+  expect(standard).not.toContain('NaN');
+  expect(css).toContain('.mid-we-seven-daycard');
+  expect(css).toContain('@media(max-width:850px)');
  });
  it('renders all three visual modes independently with 44px touch controls',()=>{
   const a=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard'}));

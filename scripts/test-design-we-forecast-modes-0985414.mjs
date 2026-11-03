@@ -18,7 +18,7 @@ const baseline=JSON.parse(baselineText);
 const self='scripts/test-design-we-forecast-modes-0985414.mjs';
 for(const key of ['requiredRegressionTests','regressionTests','requiredFiles'])
  assert.ok(baseline[key].includes(self),'Mandatory baseline registration missing: '+key);
-assert.equal(baseline.releaseVersion,'0.9.85.414');
+assert.equal(baseline.releaseVersion,JSON.parse(await read('package.json')).version,'Protected baseline version must match the current app release');
 for(const file of ["src/SevenDayDesignModes.tsx","src/midDesignWeSeven.css","src/midDesignWeFourteen.css","tests/unit/designWeFourteen.test.ts","tests/unit/designWeFourteenModes.test.ts","tests/unit/designWeFourteenRender.test.ts","tests/unit/designWeSevenModes.test.ts"])
  assert.ok(baseline.requiredFiles.includes(file),'New forecast UI or test not protected by baseline: '+file);
 
@@ -27,8 +27,9 @@ const requireTokens=(content,tokens,part)=>tokens.forEach(token=>
 requireTokens(cockpit,[
  'SevenDayCurveOverview','LazySevenDayDesignModes',
  "ForecastCockpit.sevenDay.view",
- 'onOpenDay={openDayFromTable}',
- "setSevenView('standard');onSelectedDate(date)",
+ "onOpenDay={sevenView==='standard'?chooseDay:openDayFromTable}",
+ 'expandedDayContent={expandedDayContent}',
+ "setSevenView('standard');setExpandedSevenDate(date);onSelectedDate(date)",
  'if(now90ExpandedId===item.id){setNow90ExpandedId(null)}'
 ],'7-day original skybar and 90-minute interaction');
 const sevenPart=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));

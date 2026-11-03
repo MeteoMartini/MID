@@ -13,7 +13,8 @@ assert.ok(trend.includes('const CACHE_MAX_AGE_MS=36*60*60*1000'),'Witterung brau
 assert.ok(trend.includes('Klimatologie lädt im Hintergrund weiter.')&&trend.includes('.catch(()=>[])'),'Fehlende/frische Klimatologie darf Modellwerte nicht blockieren.');
 
 assert.ok(cockpit.includes('function smoothCurvePath(')&&cockpit.includes('function SevenDayCurveOverview('),'Neue 7-Tage-Kurvenübersicht fehlt.');
-assert.ok(cockpit.includes('<SevenDayCurveOverview days={visible}')&&cockpit.indexOf('<SevenDayCurveOverview days={visible}')<cockpit.indexOf('<div className="cockpit-seven-grid"'),'Kurvenübersicht muss oberhalb der kompakten Tageskarten liegen.');
+const sevenBand=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
+assert.ok(sevenBand.includes('<SevenDayCurveOverview days={visible}')&&sevenBand.indexOf('<SevenDayCurveOverview days={visible}')<sevenBand.indexOf('<LazySevenDayDesignModes')&&sevenBand.includes('expandedDayContent={expandedDayContent}'),'Die originale durchgehende Kurve muss im JSX oberhalb der neuen sieben A-Karten stehen; der volle Originaltag bleibt darunter per Opt-in zugänglich.');
 for(const token of ['seven-day-temperature-gradient','parameterTemperatureTone(day.min','parameterTemperatureTone(day.max','WeatherPictogram','rainItems=hourly.map','halfDayTicks=Array.from','nightBands=(()=>{','seven-day-curve-night-band','SkyBarSegmentsSvg','verbundener Wetterstreifen'])assert.ok(cockpit.includes(token),`Kurvenübersicht unvollständig: ${token}`);
 for(const token of ['skyBarVisualRuns(segments)','x={segment.x1}','width={width} height={thickness}'])assert.ok(skyBar.includes(token),`MID-C32: gemeinsamer gerader Skybar-Renderer fehlt: ${token}`);
 const curve=cockpit.slice(cockpit.indexOf('function SevenDayCurveOverview('),cockpit.indexOf('\nfunction cockpitDaySkyBarSegments('));

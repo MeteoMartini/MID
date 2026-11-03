@@ -4,6 +4,30 @@
 .forecast-cockpit .mid-we-seven-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:4px;border:1px solid var(--border);border-radius:14px;background:color-mix(in srgb,var(--surface) 75%,var(--s2) 25%);min-width:0}
 .forecast-cockpit .mid-we-seven-switch button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;padding:9px 6px;border:1px solid transparent;border-radius:10px;color:var(--text);background:transparent;font:inherit;font-size:13px;font-weight:750;cursor:pointer;touch-action:manipulation}
 .forecast-cockpit .mid-we-seven-switch button[aria-pressed='true']{background:color-mix(in srgb,var(--primary) 22%,var(--surface));border-color:var(--primary);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 65%,transparent)}
+/* High-visibility A/B/C selector, now before the unchanged continuous Skybar. */
+.forecast-cockpit .mid-we-seven-switch-primary{
+ margin:8px 0 9px;
+ padding:5px;
+ background:var(--surface);
+ box-shadow:0 3px 15px color-mix(in srgb,var(--text) 8%,transparent);
+}
+.forecast-cockpit .mid-we-seven-switch-primary button{
+ line-height:1.3;
+ font-weight:780;
+ white-space:normal;
+ text-align:center;
+}
+.forecast-cockpit .mid-we-seven-switch-primary button:focus-visible{
+ outline:2px solid var(--primary);
+ outline-offset:2px;
+}
+.forecast-cockpit .cockpit-seven-day[data-mid-seven-view='standard'] .cockpit-day{
+ box-shadow:0 1px 6px color-mix(in srgb,var(--text) 5%,transparent);
+}
+.forecast-cockpit .cockpit-seven-day[data-mid-seven-view='standard'] .cockpit-day[aria-expanded='true']{
+ border-color:var(--primary);
+ box-shadow:0 2px 12px color-mix(in srgb,var(--primary) 12%,transparent);
+}
 .forecast-cockpit .mid-we-seven :is(button,summary):focus-visible{outline:2px solid var(--primary);outline-offset:3px}
 .forecast-cockpit .mid-we-seven-hint,.forecast-cockpit .mid-we-seven-note{margin:0;padding-inline:6px;font-size:12px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
 .forecast-cockpit .mid-we-seven-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
@@ -45,3 +69,63 @@
  .forecast-cockpit .mid-we-seven-table-scroll tbody td:last-child button{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.forecast-cockpit .mid-we-seven *{animation:none!important;transition:none!important}}
+
+
+/* Design-WE 1.2: visual-concept fidelity; canonical data/skybar renderers preserved. */
+.forecast-cockpit .mid-we-seven-standard{display:grid;gap:10px;min-width:0}
+.forecast-cockpit .mid-we-seven-mode-head{display:flex;align-items:end;justify-content:space-between;gap:10px;padding:4px 5px;min-width:0}
+.forecast-cockpit .mid-we-seven-mode-head>span{display:grid;gap:2px;min-width:0}
+.forecast-cockpit .mid-we-seven-mode-head>span>small{font-size:10px;letter-spacing:.08em;font-weight:800;color:var(--primary)}
+.forecast-cockpit .mid-we-seven-mode-head>span>strong{font-size:clamp(16px,1.8vw,21px);line-height:1.2;letter-spacing:-.02em;color:var(--text)}
+.forecast-cockpit .mid-we-seven-mode-head>small{max-width:48%;font-size:11px;line-height:1.4;color:var(--muted);text-align:end}
+.forecast-cockpit .mid-we-seven-daylist{display:grid;gap:5px;min-width:0}
+.forecast-cockpit .mid-we-seven-day-entry{display:grid;gap:6px;min-width:0}
+.forecast-cockpit .mid-we-seven-day-entry>.cockpit-seven-grid{margin:2px 0 10px;scroll-margin-top:80px}
+
+.forecast-cockpit .mid-we-seven-daycard{display:grid;grid-template-columns:minmax(100px,1fr) 42px minmax(78px,.8fr) minmax(300px,2.5fr) 24px;align-items:center;gap:8px;width:100%;min-width:0;min-height:78px;padding:9px 12px;border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:14px;background:var(--surface);color:var(--text);text-align:start;font:inherit;cursor:pointer;touch-action:manipulation;transition:background .15s ease,box-shadow .15s ease}
+.forecast-cockpit .mid-we-seven-daycard:nth-child(even){background:color-mix(in srgb,var(--surface) 88%,var(--s2) 12%)}
+.forecast-cockpit .mid-we-seven-daycard:is(:hover,.is-open){background:color-mix(in srgb,var(--surface) 92%,var(--primary) 8%);border-color:var(--primary)}
+.forecast-cockpit .mid-we-seven-daycard:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.forecast-cockpit .mid-we-seven-date,.forecast-cockpit .mid-we-seven-thermal{display:grid;gap:3px;min-width:0}
+.forecast-cockpit .mid-we-seven-date>strong{font-size:14px;line-height:1.2;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.forecast-cockpit .mid-we-seven-date>small{color:var(--muted);font-size:11px;line-height:1.25;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.forecast-cockpit .mid-we-seven-pictogram{display:flex;align-items:center;justify-content:center;min-width:0}
+.forecast-cockpit .mid-we-seven-thermal{justify-items:end}
+.forecast-cockpit .mid-we-seven-thermal>b{font-size:18px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap}
+.forecast-cockpit .mid-we-seven-thermal>small{font-size:12px;font-weight:750;font-variant-numeric:tabular-nums}
+.forecast-cockpit .mid-we-seven-day-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;min-width:0}
+.forecast-cockpit .mid-we-seven-day-metrics>span{display:grid;gap:3px;min-width:0;border-left:1px solid var(--border);padding-left:9px}
+.forecast-cockpit .mid-we-seven-day-metrics small{font-size:10px;line-height:1.3;color:var(--muted);overflow-wrap:anywhere}
+.forecast-cockpit .mid-we-seven-day-metrics strong{font-size:12px;line-height:1.3;font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.forecast-cockpit .mid-we-seven-day-cue{font-size:23px;text-align:center;color:var(--primary);font-weight:400}
+.forecast-cockpit .mid-we-seven-expanded-detail{margin-block:8px 0;border-top:1px solid var(--border);padding-top:8px}
+.forecast-cockpit .mid-we-seven-expanded-detail .cockpit-day{min-width:0}
+.forecast-cockpit .mid-we-seven-charts>.mid-we-seven-mode-head{grid-column:1/-1}
+.forecast-cockpit .mid-we-seven-charts>article{border-radius:17px;padding:13px 10px;background:linear-gradient(155deg,color-mix(in srgb,var(--surface) 94%,var(--s2) 6%),var(--surface));box-shadow:0 3px 12px color-mix(in srgb,var(--text) 4%,transparent)}
+.forecast-cockpit .mid-we-seven-charts>article h3{color:var(--text);font-weight:800}
+.forecast-cockpit .mid-we-seven-table-scroll{box-shadow:0 3px 12px color-mix(in srgb,var(--text) 4%,transparent)}
+.forecast-cockpit .mid-we-seven-table-scroll tbody tr:hover{background:color-mix(in srgb,var(--surface) 90%,var(--primary) 10%)}
+@media(max-width:850px){
+ .forecast-cockpit .mid-we-seven-daycard{grid-template-columns:minmax(90px,1fr) 38px minmax(68px,.7fr) 22px;row-gap:6px;padding:8px 10px}
+ .forecast-cockpit .mid-we-seven-day-metrics{grid-column:1/-1;grid-row:2;gap:3px}
+ .forecast-cockpit .mid-we-seven-day-metrics>span{padding-inline:6px}
+ .forecast-cockpit .mid-we-seven-day-cue{grid-column:4;grid-row:1}
+}
+@media(max-width:390px){
+ .forecast-cockpit .mid-we-seven-mode-head{align-items:start;flex-direction:column;gap:2px}
+ .forecast-cockpit .mid-we-seven-mode-head>small{max-width:100%;text-align:start}
+ .forecast-cockpit .mid-we-seven-day-metrics strong{font-size:11px}
+ .forecast-cockpit .mid-we-seven-day-metrics small{font-size:9px}
+ .forecast-cockpit .mid-we-seven-thermal>b{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){.forecast-cockpit .mid-we-seven-daycard{transition:none}}
+
+/* The opt-in detail is inside a compact day entry, not the legacy viewport-wide
+ * horizontal strip. Size it to that entry in both UI designs and orientations. */
+html .forecast-cockpit .mid-we-seven-day-entry>.mid-we-seven-expanded-detail>.cockpit-day-hourly-accordion{
+ box-sizing:border-box!important;
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ position:static!important;
+}

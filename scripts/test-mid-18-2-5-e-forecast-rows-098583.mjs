@@ -17,8 +17,8 @@ assert.ok(/^0\.9\.85\.(?:8[3-9]|9\d|\d{3,})$/.test(pkg.version),'Arbeitspaket E 
 assert.ok(cockpit.includes('function MidForecastRow({active,compact,detail}')&&cockpit.match(/<MidForecastRow key=/g)?.length===2,'7- und 14-Tage müssen dieselbe MidForecastRow-Familie verwenden.');
 
 assert.ok(cockpit.includes('data-mid-forecast-list="seven"')&&cockpit.includes('data-mid-forecast-row="seven"'),'7-Tage muss die gemeinsame Forecast-Row-Struktur verwenden.');
-const sevenStart=cockpit.indexOf('function SevenDayBand');const sevenEnd=cockpit.indexOf('function FourteenDayHorizon',sevenStart);const sevenSection=cockpit.slice(sevenStart,sevenEnd);assert.ok(!sevenSection.includes('expandedDate')&&!sevenSection.includes('setExpandedDate'),'7-Tage darf keinen unabhängigen Stunden-/Detailöffnungszustand mehr besitzen.');
-assert.ok(cockpit.includes('isExpanded=Boolean(hourlyDetail&&selected.date===day.date)'),'Nur der ausgewählte 7-Tage-Tag darf inline erweitert sein.');
+const sevenStart=cockpit.indexOf('function SevenDayBand');const sevenEnd=cockpit.indexOf('function FourteenDayHorizon',sevenStart);const sevenSection=cockpit.slice(sevenStart,sevenEnd);assert.ok(sevenSection.includes('const [expandedSevenDate,setExpandedSevenDate]=useState<string|null>(null)')&&sevenSection.includes('setExpandedSevenDate(current=>current===date?null:date)'),'7-Tage-Stundendetails müssen anfänglich geschlossen sein und sich beim zweiten Tippen schließen.');
+assert.ok(cockpit.includes('isExpanded=expandedSevenDate===day.date'),'Nur der ausdrücklich geöffnete 7-Tage-Tag darf inline erweitert sein.');
 assert.ok(cockpit.includes('data-mid-forecast-detail="seven"'),'7-Tage-Detail muss direkt inline unter der ausgewählten Zeile liegen.');
 
 assert.ok(cockpit.includes('data-mid-forecast-list="fourteen"')&&cockpit.includes('data-mid-forecast-row="fourteen"'),'14-Tage muss dieselbe Forecast-Row-Familie verwenden.');

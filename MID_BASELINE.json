@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.414",
+  "releaseVersion": "0.9.85.415",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -1076,7 +1076,8 @@
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
     "scripts/test-design-we-today-compact-0985412.mjs",
-    "scripts/test-design-we-forecast-modes-0985414.mjs"
+    "scripts/test-design-we-forecast-modes-0985414.mjs",
+    "scripts/test-forecast-design-visibility-0985415.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2142,7 +2143,8 @@
     "scripts/test-www-proxy-dns-token-0985185.mjs",
     "scripts/test-www-proxy-hotfix-0985184.mjs",
     "scripts/test-design-we-today-compact-0985412.mjs",
-    "scripts/test-design-we-forecast-modes-0985414.mjs"
+    "scripts/test-design-we-forecast-modes-0985414.mjs",
+    "scripts/test-forecast-design-visibility-0985415.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3129,7 +3131,8 @@
     "tests/unit/designWeFourteen.test.ts",
     "tests/unit/designWeFourteenModes.test.ts",
     "tests/unit/designWeFourteenRender.test.ts",
-    "tests/unit/designWeSevenModes.test.ts"
+    "tests/unit/designWeSevenModes.test.ts",
+    "scripts/test-forecast-design-visibility-0985415.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3866,8 +3869,8 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.414",
-  "updatedAt": "2026-10-25",
+  "version": "0.9.85.415",
+  "updatedAt": "2026-11-03",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
