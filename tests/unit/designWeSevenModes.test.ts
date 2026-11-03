@@ -32,6 +32,29 @@ describe('MID Design-WE seven-day preserved Skybar + A/B/C implementation',()=>{
   expect(file.parseDiagnostics.map(problem=>ts.flattenDiagnosticMessageText(problem.messageText,' '))).toEqual([]);
   expect(()=>postcss.parse(css)).not.toThrow();
  });
+ it('provides a single prominent A/B/C selector above the original Skybar and compacts cards without deleting bounds',()=>{
+  const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
+  expect(segment.indexOf('mid-we-seven-switch-primary')).toBeGreaterThan(0);
+  expect(segment.indexOf('mid-we-seven-switch-primary')).toBeLessThan(segment.indexOf('<SevenDayCurveOverview'));
+  expect(segment.indexOf('<SevenDayCurveOverview')).toBeLessThan(segment.indexOf('<LazySevenDayDesignModes'));
+  expect(segment).toContain('showModeSwitch={false}');
+  const a=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'standard',showModeSwitch:false}));
+  expect(a).not.toContain('mid-we-seven-switch"');
+  expect(a).toContain('data-mid-seven-mode="standard"');
+  const b=renderToStaticMarkup(createElement(SevenDayDesignModes,{...props,mode:'charts',showModeSwitch:false}));
+  expect(b).toContain('mid-we-seven-charts');
+  expect(b).not.toContain('mid-we-seven-switch"');
+  expect(segment).toContain('const [expandedSevenDate,setExpandedSevenDate]=useState<string|null>(null)');
+  expect(segment).toContain('isExpanded=expandedSevenDate===day.date;');
+  expect(segment).toContain("setExpandedSevenDate(current=>current===date?null:date)");
+  expect(segment).toContain('aria-expanded={isExpanded}');
+  expect(segment).toContain('aria-controls={`mid-seven-detail-${day.date}`}');
+  const row=segment.slice(segment.indexOf('const compact=<button'),segment.indexOf('const detail=<section'));
+  const detail=segment.slice(segment.indexOf('const detail=<section'));
+  expect(row).not.toContain('<ForecastRangeGuide');
+  expect(detail).toContain('<ForecastRangeGuide');
+  expect(css).toContain('.mid-we-seven-switch-primary');
+ });
  it('keeps continuous legacy seven-day chart and Skybar above the selector',()=>{
   const segment=cockpit.slice(cockpit.indexOf('function SevenDayBand('),cockpit.indexOf('function fallbackEnsembleDay('));
   expect(segment.indexOf('<SevenDayCurveOverview')).toBeGreaterThan(0);
