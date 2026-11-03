@@ -26,6 +26,8 @@ export function spatialObjectUrl(domain, manifest, validTime) {
     throw new Error("Valid time not in pinned model-run manifest");
   }
   const reference = manifest.reference_time;
+  // Reject a mixed-cycle list even if the target timestamp itself is plausible.
+  if (manifest.valid_times[0] !== reference) throw new Error("Run/time-axis mismatch");
   const run = checkedUtc(reference);
   const validity = checkedUtc(validTime);
   if (run % 3600000 !== 0 || validity < run) throw new Error("Invalid run/valid-time relationship");
