@@ -23,9 +23,11 @@ assert.ok(signer.indexOf('Revalidate protected Stable and index after attestatio
 assert.ok(signer.includes('id: attest') && signer.includes('steps.attest.outputs.bundle-path'),
   'Signer must expose the original signed bundle to independent verification');
 const verifyPos=signer.indexOf('Verify exact SLSA signer and index digest before archival');
-assert.ok(verifyPos > signer.indexOf('Revalidate protected Stable and index after attestation before handoff')
-  && verifyPos < signer.indexOf('Archive signed original D2 evidence, not deployed data'),
-  'Cryptographic verification must finish before evidence upload');
+assert.ok(verifyPos > signer.indexOf('uses: actions/attest@')
+  && signer.indexOf('Revalidate protected Stable and index after attestation before handoff') > verifyPos
+  && signer.indexOf('Archive signed original D2 evidence, not deployed data') >
+    signer.indexOf('Revalidate protected Stable and index after attestation before handoff'),
+  'SLSA verification must precede the final Stable SHA fence and evidence upload');
 for (const flag of ['gh attestation verify d2-original-approved/index.json',
   '--bundle "$ATTEST_BUNDLE"', '--signer-workflow "$GITHUB_REPOSITORY/.github/workflows/mid-d2-original-release-approval.yml"',
   '--source-ref refs/heads/main', '--source-digest "$GITHUB_SHA"',
