@@ -166,3 +166,5 @@ html:root .app [data-fourteen-development] .mid-we-fourteen-charts>article{backg
  html:root .app [data-fourteen-development] .mid-we-fourteen-daytile{width:148px}
 }
 @media(prefers-reduced-motion:reduce){html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll{scroll-behavior:auto}}
+
+html:root .app [data-fourteen-development] .mid-we-fourteen-symbol{display:flex;align-items:center;justify-content:flex-start;min-height:24px;color:var(--text)}
