@@ -67,3 +67,27 @@ The existing MID downloader skips already-present files larger than 100 bytes. S
 - The new eight JavaScript modules, including test modules, compiled successfully in an isolated V8 **syntax** check at PR HEAD `9afe693e0c10dd08d4d65329e36861992dc7af6a`.
 - Additional exact-source isolated checks: 13 planner invariants and 10 byte-range *mock-protocol* checks passed. Earlier pure manifest checks: 8 passed. None is a substitute for Node's real native test runner, live S3 HTTP 206 proof, DWD original GRIB A/B or browser/iOS readbacks.
 - The available Vitest Unit-/Coverage-Pilot reported success for that PR HEAD, while other workflow triggers were skipped. The new separate Node tests are **not assumed executed by that pilot** and must be explicitly run at a pinned SHA before promotion.
+
+## Live S3 HTTP 206 A/B readiness – actual CI run evidence
+
+**Read-only original-source qualification remains INCOMPLETE.** Verified 03 Nov 2026 in GitHub Actions using public AWS/Open-Meteo, no API key and no production worker connection.
+
+- First genuine shadow attempt, run **#41606704209**, failed correctly: upstream `temperature_850hPa` / `geopotential_height_500hPa` capitalization was rejected by the overly restrictive original metadata parser; the source `reference_time` has seconds while the valid-time strings do not. No data was admitted. Tests were updated to preserve exact UTC and approve only the canonical `hPa` suffix.
+- Subsequent **#41606979769** passed its real S3 run: exact common upstream model init **2026-11-03T08:00:00Z**, hourly 28 times/67 variables, 15-minute *published axis* 109 times/12 variables, model-level hourly 28 times/9 variables, each ending +27h. `HTTP 206` and `Content-Range` proved for 9 pinned immutable objects (three distinct validity times per domain, no T+0 accumulation assumption).
+- Object sizes reported by S3 ranged from **1,473,792** to **11,874,536 bytes**. Only **64 bytes per object** were read and hashed; these SHA fingerprints cover first bytes *only*, not the object body, native grid, actual weather values, GRIB bitmap or complete provenance. `productionEligible:false` always.
+- Following DWD Python batch implementation, GitHub CI **#41607592132**, full success: **38** Node shadow cases, **8** Python DWD exact-URL dedup cases, existing Vitest coverage, live S3 read-only shadow and unrelated read-only release-origin regressions. This is a source pilot, **not** Source PR Gate or production release.
+- Field-level native 15-minute cadence is **not** inferred from 109 published validity steps. The manifest audit now calls this `publishedAxisStepMinutes` and explicitly returns `nativeFieldCadenceProven:false`. A 15-minute axis cannot upgrade hourly raw DWD fields into native 15-minute original data.
+
+## First active algorithm-preserving DWD intra-batch enhancement
+
+- `tools/ruc/dwd_stage_batch_reuse.py` deduplicates **only the same exact resolved, HTTPS DWD ICON-D2 GRIB URL** with unchanged field and GRIB lead. No cross-run/cross-grid/data-field equivalence, partial values or spatial smoothing. Uses bounded existing download worker concurrency and validates the loader's returned actual compressed-input SHA256 label before materializing original ordered references.
+- `tools/ruc/build_model_map_fields.py` now replaces the duplicate concurrent `pool.map(load,jobs)` with the verified helper. This is the **regular-grid (DWD original remapping)** map path, NOT 542,040-cell native RUC. It still uses the exact same ecCodes decoder, original run/validity checks, data arrays, original provenance and source order.
+- Per current full 9-frame schedule, **99 source references** include exactly **94 unique URL requests**. Deduplicating five identical TOT_PREC URLs can avoid five HTTP downloads and five ecCodes decodes **in this map-building invocation** if the full run completes. The expected reduction is a deterministic request-count bound, NOT a measured elapsed-time saving or real GRIB byte-equivalence proof.
+- `tools/ruc/test_dwd_stage_batch_reuse.py`: eight stdlib offline fixture tests for unchanged ordered entries, duplicate URL admission, cross-step/cross-parameter rejection, untrusted URL rejection, fatal source failure, source identity SHA, and Missing sentinel preservation. Actual production source remains guarded by all regular existing DWD/eccodes/Pages/installer gates prior to merging.
+
+## Remaining blockers to production
+
+1. Run real original DWD GRIB vs decoded Open-Meteo OM native **same run, same cell and parameter** A/B, verify native 542,040 cell geometry plus water-equivalent/units/missing masks, extrema, backward-max, all accumulation intervals and explicit 5min/15min source clocks. GPL decoder licensing remains unresolved.
+2. Run multi-cycle real DWD maps A/B for exactly equivalent uncompressed and gzipped outputs (except intentionally variable `generatedAt` metadata) with precise in/out compressed source SHA and GRIB GRIB-header checks; benchmark duration and transferred bytes.
+3. Retain all EPS20/5min source, 27h/168h, atomic CAS Pages, original signer, last-good snapshot, 900MB storage budget, source-gate and user-facing end-to-end freshness requirements. No promotion based on the shadow pilot.
+4. The branch-scoped S3 live step is a **Draft qualification**, not a general online dependency for all future MID mandatory tests. Move or remove the experiment-only trigger before integration; keep deterministic offline source checks.
