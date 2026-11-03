@@ -64,3 +64,11 @@ test("missing object cannot be treated as available",async()=>{
 test("no time-axis samples -> fail closed",()=>{
  assert.throws(()=>selectedSpatialTimes({valid_times:[]}));
 });
+
+test("real upstream reference timestamp includes :00 seconds while valid_times omit seconds",()=>{
+ const m={...fixture,reference_time:"2026-11-03T07:00:00Z"};
+ assert.ok(spatialObjectUrl(domain,m,step(60)).endsWith("2026-11-03T0800.om"));
+});
+test("nonzero seconds remain rejected as ambiguous forecast time",()=>{
+ assert.throws(()=>spatialObjectUrl(domain,{...fixture,reference_time:"2026-11-03T07:00:30Z"},step(60)));
+});
