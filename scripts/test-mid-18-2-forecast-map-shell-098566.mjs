@@ -33,7 +33,7 @@ assert.ok(main.includes("import './midC18ForecastMapShellPolish.css';"),'Forecas
 assert.ok(main.indexOf("midC18ForecastMapShellPolish.css")>main.indexOf("midC18InteractionCurrentPolish.css"),'Forecast-/Karten-Shell-Polish muss als spätere MID-18.2-Schicht laden.');
 assert.ok(app.includes('className="modern-map-focus-shell"'),'Kartenfokus muss die gemeinsame moderne Karten-Shell verwenden.');
 assert.ok(forecast.includes('data-cockpit-horizontal-scroll="true"'),'Forecast-Cockpit muss dichte Zeitreihen als innere Scrollflächen kennzeichnen.');
-assert.ok(forecast.includes('className="cockpit-seven-grid"')&&forecast.includes('className="cockpit-fourteen-grid"'),'7-/14-Tage-Instrumente müssen erhalten bleiben.');
+assert.ok(forecast.includes('className="cockpit-seven-grid mid-we-seven-expanded-detail"')&&forecast.includes('data-mid-forecast-list="seven"')&&forecast.includes('className="cockpit-fourteen-grid"'),'Die kanonischen 7-/14-Tage-Instrumente müssen trotz kompakter A-Erstansicht vollständig und gezielt zugänglich bleiben.');
 assert.equal(pkg.version,baseline.releaseVersion,'Paket- und Baseline-Version müssen synchron sein.');
 for(const key of ['requiredRegressionTests','regressionTests']) assert.ok((baseline[key]||[]).includes(test),`${test} fehlt in ${key}`);
 assert.ok((baseline.requiredFiles||[]).includes(test),'Forecast-/Karten-Shell-Regression fehlt in requiredFiles.');
