@@ -1,3 +1,12 @@
+# MID v0.9.85.415 – 7- und 14-Tage-Design sofort sichtbar
+
+- **7 Tage: A/B/C ohne Suchen:** Die Auswahl „A · Standard“, „B · Grafik“ und „C · Tabelle“ steht jetzt unmittelbar unter der 7-Tage-Überschrift und damit vor der bisherigen, unveränderten durchgehenden Skybar. Die gewählte Darstellung erscheint weiterhin **unterhalb** der Skybar, wie vorgesehen.
+- **7 Tage: Wirklich kompakte Standardansicht:** Die sieben Tageskarten zeigen weiterhin Wetterpiktogramme, Tag-/Nacht-Skybar, Tmin/Tmax, Niederschlagsmenge und -wahrscheinlichkeit, Sonne/UVI, Wind und Böen. Die umfangreichen Ensemble-Spannen und das vollständige Stundenprofil werden erst auf Antippen einer Tageskarte aufgeklappt – kein automatisch geöffneter 900-px-Stundenblock beim Einstieg. Erneutes Antippen klappt die Details ein; die Tabellenansicht kann weiterhin gezielt einen Tag öffnen.
+- **14 Tage: Übersicht und Diagramme direkt erreichbar:** Die 14-Tage-A/B/C-Auswahl und die gewählte Kompakt-, Diagramm- oder Tabellenansicht folgen jetzt sofort auf den Bereichskopf. Der große Prognose-Kompass bleibt vollständig vorhanden, wird aber **unterhalb** der eigentlichen Wetterdarstellung eingeordnet.
+- **Barrierearme und responsive Bedienung:** Die Bedienelemente bleiben mindestens 44 px hoch, geben ihre Auswahl per ARIA bekannt und unterstützen Tastaturbedienung. Die neuen Ansichten sind für schmale Smartphones, Tablets sowie Desktop angepasst; die vollständigen Tagesinformationen werden nicht entfernt.
+- **Meteorologische Integrität:** Amtliche Warnungen, Best-Match-Prognosen, Ensemblewerte, Modellläufe und RUC-/DWD-Produktionsdaten bleiben unverändert. Fehlende Daten werden niemals in trockene Nullen umgewandelt; echte Extremwerte werden nicht geglättet. Native D2-/Fast-Liveprodukte bleiben gesondert freigabepflichtig.
+
+
 # MID v0.9.85.414 – Wettervorhersage neu erleben: Heute, 7 und 14 Tage
 
 - **Heute: gezielt und intuitiv:** Die Schaltflächen Temperatur, Regen und Wind betonen die jeweilige Kurve sichtbar, ohne Wetter-, Wolken-, Warn- oder andere Originalinformationen zu verbergen. Der ausgewählte Viertelstundenwert im 90-Minuten-Bereich lässt sich durch erneutes Tippen wieder einklappen.
