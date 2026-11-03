@@ -1,9 +1,10 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.416",
+  "version": "0.9.85.417",
   "type": "module",
   "scripts": {
+    "test:warning-snow-horizon-coherence": "node scripts/test-warning-snow-horizon-coherence-0985417.mjs",
     "test:skybar-short-sunshine": "node scripts/test-skybar-short-sunshine-0985268.mjs",
     "dev": "vite",
     "sync-version": "node scripts/sync-version.mjs",

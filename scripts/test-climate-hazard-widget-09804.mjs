@@ -25,7 +25,7 @@ need('Widget nutzt automatische MID-Hinweise für den vollständigen ausgewählt
 need('Widget-Hinweishorizont ist vom gewählten Zeitraum abhängig',app,'[hours,elevation,unit,widgetHazardThroughDate]');
 need('Kanonische Hinweisanalyse akzeptiert ein optionales Widget-Enddatum',weather,"ensemble?:WarningEnsembleSupport|null,throughDate?:string");
 need('Standard-Hinweislage umfasst ohne Widget-Enddatum sieben Tage',weather,":Math.min(168,future.length)");
-need('Widget-Enddatum steuert den DWD-Startzeitraum statt eines festen 24-h-Limits',weather,'summarizeDwdWarnings(horizon,elevation,startLimit)');
+need('Widget-Enddatum steuert den DWD-Startzeitraum statt eines festen 24-h-Limits',weather,'summarizeDwdWarnings(horizon.slice(0,startLimit),elevation,startLimit)');
 need('Widget ordnet Zeitfenster tagesbezogen zu',app,'widgetAutomaticHazardsForDay(d.date,automaticWidgetHazards,timezone)');
 need('Widget-Hazardtage verwenden ISO-Lokaldate',app,'const first=localDateInZone(timezone,start),last=localDateInZone(timezone,end-1)');
 assert.ok(!app.includes('hz:strongestDailyHazards(dailyHazards(d,hours,elevation??0,unit,1))'),'Widget fällt auf den alten separaten Tageswarnpfad zurück.');
