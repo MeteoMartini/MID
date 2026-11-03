@@ -125,3 +125,44 @@ html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion{max-wi
 html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion summary{min-height:44px;padding:10px;border:1px solid var(--primary);border-radius:9px;cursor:pointer;font-weight:750}
 html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion>div{display:grid;gap:5px;margin:9px 0;padding-bottom:8px;border-bottom:1px solid var(--border)}
 html:root .app [data-fourteen-development] .mid-we-fourteen-row-expansion summary:focus-visible{outline:2px solid var(--primary)}
+
+
+/* Design-WE 1.2: two-week visual timeline with true model uncertainty. */
+html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head{display:flex;align-items:end;justify-content:space-between;gap:8px;min-width:0}
+html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head>span{display:grid;gap:3px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head>span>small{color:var(--primary);font-size:10px;letter-spacing:.08em;font-weight:800}
+html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head>span>strong{font-size:clamp(16px,1.9vw,21px);line-height:1.2;letter-spacing:-.025em;color:var(--text)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head>small{max-width:48%;color:var(--muted);font-size:11px;line-height:1.4;text-align:end}
+html:root .app [data-fourteen-development] .mid-we-fourteen-primary{border:0;padding:0;background:transparent;gap:11px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weeks{display:grid;gap:12px;min-width:0}
+html:root .app [data-fourteen-development] .mid-we-fourteen-week{display:grid;gap:6px;min-width:0}
+html:root .app [data-fourteen-development] .mid-we-fourteen-week>header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 8px;padding:0 3px;color:var(--text)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-week>header>strong{font-size:13px;font-weight:800}
+html:root .app [data-fourteen-development] .mid-we-fourteen-week>header>small{font-size:10px;color:var(--muted)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll{overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;scrollbar-width:thin;padding:2px 2px 9px;min-width:0;max-width:100%}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weekrow{display:grid;grid-auto-columns:minmax(146px,1fr);grid-auto-flow:column;gap:7px;min-width:max-content}
+html:root .app [data-fourteen-development] .mid-we-fourteen-daytile{display:grid;align-content:start;gap:7px;min-width:146px;width:clamp(146px,12vw,205px);min-height:208px;padding:11px;border:1px solid var(--border);border-radius:15px;background:var(--surface);color:var(--text);text-align:start;cursor:pointer;scroll-snap-align:start;font:inherit;box-shadow:0 3px 12px color-mix(in srgb,var(--text) 4%,transparent)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-daytile:hover{border-color:var(--primary);background:color-mix(in srgb,var(--surface) 93%,var(--primary) 7%)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-daytile:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-daytile:disabled{cursor:default;opacity:.85}
+html:root .app [data-fourteen-development] .mid-we-fourteen-daydate{font-size:12px;line-height:1.2;font-weight:800;font-variant-numeric:tabular-nums}
+html:root .app [data-fourteen-development] .mid-we-fourteen-weather{min-height:28px;font-size:12px;font-weight:650;line-height:1.25;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html:root .app [data-fourteen-development] .mid-we-fourteen-temps{display:flex;align-items:baseline;justify-content:space-between;gap:5px;min-width:0}
+html:root .app [data-fourteen-development] .mid-we-fourteen-temps>b{color:var(--param-temperature-max);font-size:19px;font-weight:850;font-variant-numeric:tabular-nums}
+html:root .app [data-fourteen-development] .mid-we-fourteen-temps>small{color:var(--param-temperature-min);font-size:13px;font-weight:750;font-variant-numeric:tabular-nums}
+html:root .app [data-fourteen-development] :is(.mid-we-fourteen-rain,.mid-we-fourteen-wind){display:grid;gap:2px;min-width:0}
+html:root .app [data-fourteen-development] :is(.mid-we-fourteen-rain,.mid-we-fourteen-wind)>small{font-size:10px;color:var(--muted)}
+html:root .app [data-fourteen-development] :is(.mid-we-fourteen-rain,.mid-we-fourteen-wind)>b{font-size:11px;font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+html:root .app [data-fourteen-development] .mid-we-fourteen-range{font-size:10px;line-height:1.3;color:var(--muted);overflow-wrap:anywhere}
+html:root .app [data-fourteen-development] .mid-we-fourteen-more{font-size:11px;font-weight:800;color:var(--primary)}
+html:root .app [data-fourteen-development] .mid-we-fourteen-chart-feature{display:grid;gap:7px;min-width:0;border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:11px 8px}
+html:root .app [data-fourteen-development] .mid-we-fourteen-charts>.mid-we-fourteen-mode-head{grid-column:1/-1}
+html:root .app [data-fourteen-development] .mid-we-fourteen-charts>article{background:linear-gradient(145deg,color-mix(in srgb,var(--surface) 95%,var(--s2) 5%),var(--surface));box-shadow:0 3px 13px color-mix(in srgb,var(--text) 4%,transparent)}
+@media(max-width:620px){
+ html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head{align-items:start;flex-direction:column;gap:4px}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-mode-head>small{max-width:100%;text-align:start}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-weekrow{grid-auto-columns:148px}
+ html:root .app [data-fourteen-development] .mid-we-fourteen-daytile{width:148px}
+}
+@media(prefers-reduced-motion:reduce){html:root .app [data-fourteen-development] .mid-we-fourteen-weekscroll{scroll-behavior:auto}}
