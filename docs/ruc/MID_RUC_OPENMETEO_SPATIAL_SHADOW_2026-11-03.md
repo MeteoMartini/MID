@@ -91,3 +91,18 @@ The existing MID downloader skips already-present files larger than 100 bytes. S
 2. Run multi-cycle real DWD maps A/B for exactly equivalent uncompressed and gzipped outputs (except intentionally variable `generatedAt` metadata) with precise in/out compressed source SHA and GRIB GRIB-header checks; benchmark duration and transferred bytes.
 3. Retain all EPS20/5min source, 27h/168h, atomic CAS Pages, original signer, last-good snapshot, 900MB storage budget, source-gate and user-facing end-to-end freshness requirements. No promotion based on the shadow pilot.
 4. The branch-scoped S3 live step is a **Draft qualification**, not a general online dependency for all future MID mandatory tests. Move or remove the experiment-only trigger before integration; keep deterministic offline source checks.
+
+## Scientific evidence update: actual OM arrays and DWD source A/B (03 Nov 2026)
+
+These are **empirical observations from one pinned original 07Z model cycle, valid 08Z**, not universal performance limits and not approval to replace DWD safety products. Exact machine-readable reports and raw source SHA256 are printed in GitHub CI logs; no production field has changed.
+
+- GitHub Actions #41608382570 (science only): 3 complete actual OM spatial objects verified by full-stream SHA256. `temperature_2m` hourly, `precipitation` quarter-hour and `temperature_80m` model-level each have `[1,542040]` array elements. **Native coordinate order, units and source values not proven by shape alone.**
+- GitHub Actions #41608899106: original DWD RUC 2026-11-03 07Z +1h `T_2M` unstructured grid, exactly 542040 cells, unit K, bitmap present, original missing sentinel 9999. 525072 paired finite cells / 16968 Missing original and OM / 0 missing-mask disagreements; source-vs-processed °C mean absolute error 0.0125083°C, p95 absolute 0.0237733°C, max 0.0249580°C; all paired cells within 0.1°C. Matching arrays strongly support same cell **index sequence** for this parameter/run but cannot establish exact CLAT/CLON coordinate identity. Open-Meteo temperature output is **lossily rounded**, not GRIB bit-identical.
+- GitHub Actions #41609402060: same 07Z T+1h direct original GRIB vs processed OM, **5 more entire 542040-cell fields**, 525072 paired finite/16968 missing/zero mask disagreements each:
+  - PMSL: MAE 0.0250332 hPa, max abs 0.0499707 hPa (DWD Pa converted /100).
+  - U_10M: MAE 0.0249897 m/s, max abs 0.0499620 m/s.
+  - V_10M: MAE 0.0249760 m/s, max abs 0.0499859 m/s.
+  - VMAX_10M: MAE 0.0249514 m/s, max abs 0.0499383 m/s. Original DWD GRIB confirms `stepType=max`, `startStep=0`, `endStep=1` (maximum over 0–1h), not an instantaneous field.
+  - CLCT: MAE 0.157296 percentage points, max abs 0.5 percentage points (DWD unit %).
+- In total **six fields with actual full-cell numeric A/B**, original source bytes/SHA, GRIB parameter/run/valid/bitmap and processed OM source SHA. Confidence increases substantially for an optional **processed-only visualization shortcut**, not for native original lossless data, official warnings, severe/fusion/EPS20, real maps without full QA, or replacing native DWD high-frequency 5-minute products.
+- Unresolved: more model cycles and valid hours, 15min native precipitation interval/accumulation, CAPE/phase/WW derivations, extreme wind max preservation, unstructured CLAT/CLON index proof, lossless vs quantized field policies, iOS/MapLibre/exports, end-client freshness P95 168h, GPL reader licensing for production. Existing DWD-original source always canonical for high-stakes native fields.
