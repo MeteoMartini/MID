@@ -14,7 +14,8 @@ const releaseVersion=JSON.parse(packageJson).version;
 
 assert.ok(main.includes("import './midC11TodayRedesign.css';\nimport './midC12ForecastRedesign.css';"),'C12 muss nach dem Heute-Redesign geladen werden.');
 for(const token of [
- 'className="cockpit-seven-grid"',
+ 'className="cockpit-seven-grid mid-we-seven-expanded-detail"',
+ 'expandedDayContent={expandedDayContent}',
  'className={`cockpit-day mid-forecast-row regime-${regime}',
  'className="cockpit-day-hourly-accordion mid-forecast-row-detail"',
  'className="cockpit-fourteen-grid"',
