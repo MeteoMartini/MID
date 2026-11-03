@@ -7,7 +7,8 @@ assert.ok(!manifest.sources.includes('src/midC28MapPhase.css'),'Exclusive final 
 assert.ok(read('src/FourteenDayDevelopment.tsx').startsWith("import './midC28MapPhase.css';"));
 const cockpit=read('src/ForecastCockpit.tsx');
 assert.ok(cockpit.includes("lazy(()=>import('./FourteenDayDevelopment')"));
-assert.ok(cockpit.includes('<LazyFourteenDayDevelopment series={series} unit={unit}/>'),'Canonical series and selected wind unit must reach the shared renderer');
+assert.ok(cockpit.includes('<LazyFourteenDayDevelopment series={series} unit={unit} onOpenDay='),'Canonical series and selected wind unit must reach the shared renderer together with accessible original-day drilldown');
+assert.ok(cockpit.includes('id="mid-fourteen-full-details"')&&cockpit.includes('setShowFourteenDayDetails(true)'),'Full 14d original details must remain explicitly reachable from A/C');
 assert.ok(!read('src/midPresentation.css').includes('[data-fourteen-development]'));
 if(existsSync('dist/index.html')){
  const html=read('dist/index.html'),hrefs=[...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\.\/([^\"]+)"/g)].map(m=>m[1]);assert.ok(hrefs.length);
