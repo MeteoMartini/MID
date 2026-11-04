@@ -1,0 +1,570 @@
+{
+  "schema": "mid.ruc.closure-audit.v1",
+  "checkedDate": "2026-11-04",
+  "base": {
+    "version": "0.9.85.427",
+    "main": "4d3051f80a17a180c3952c83bf5afa51623b1eb3",
+    "stable": "4d3051f80a17a180c3952c83bf5afa51623b1eb3"
+  },
+  "releaseAuthorized": false,
+  "c53": {
+    "pr": 655,
+    "head": "ec5b4bec116c240a370288ac82598117800e2cce",
+    "status": "DRAFT_BLOCKED",
+    "sourceGate": "skipped",
+    "localRetest": "unavailable: exec-server No such file or directory",
+    "checks": [
+      {
+        "name": "Admit three genuine DWD 27h original runs, codec and contour (read-only)",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Extremwetterpolygone · echte Browserpixel",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Production build, responsive/touch, iOS-shell and widget/export regressions (no deploy)",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Core-Regression · ${{ matrix.shard }}",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Full TS and joint radar/D2 client regression (no deploy)",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Native D2 originals, uncertainty masks, Pages admission (no deploy)",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Determine whether complete original RUC admission is required",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Agent-Quellstand vollständig prüfen",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Replit-Handoff read-only prüfen",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Source-Kern vollständig prüfen",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Heavy-Regression · ${{ matrix.shard }} · ${{ matrix.map_group }}",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "RUC +27h Kern, EPS und Gesamtpaket",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "RUC Fast CAS, Pages loss prevention, UTC and NoData (no deploy)",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "Vitest 5 + V8 Coverage",
+        "conclusion": "success"
+      },
+      {
+        "name": "censored-evidence-qa",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "heads": [
+    {
+      "pr": 612,
+      "state": "open",
+      "head": "f79831a52e7f80e67be6a7758ac0665047db907e",
+      "base": "17b2bb99e3935fe494400d95a79ff18b5ed01e4a",
+      "files": [
+        {
+          "path": ".github/workflows/mid-ruc-p1-original-values-pilot.yml",
+          "blob": "809d63ba894395f69715d86c8512c20d3dcceae2",
+          "stableBlob": null
+        },
+        {
+          "path": ".github/workflows/mid-ruc-p1p5-evidence-qa.yml",
+          "blob": "3714ef6f11ced679ea577edfcc44fe6c4bd2ec96",
+          "stableBlob": "9ed7e95c377dd047e82b2d9e3a340a2ee4609342"
+        },
+        {
+          "path": "ci/github/workflows/mid-ruc-p1-original-values-pilot.yml",
+          "blob": "809d63ba894395f69715d86c8512c20d3dcceae2",
+          "stableBlob": null
+        },
+        {
+          "path": "ci/github/workflows/mid-ruc-p1p5-evidence-qa.yml",
+          "blob": "3714ef6f11ced679ea577edfcc44fe6c4bd2ec96",
+          "stableBlob": "9ed7e95c377dd047e82b2d9e3a340a2ee4609342"
+        },
+        {
+          "path": "docs/implementation/MID_RUC_P1_ORIGINAL_DWD_GRIB_VALUES_0_9_85_410_DRAFT.md",
+          "blob": "52f8dd07c915ae45bd902d8dd8edb753e2e52620",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/ruc_p1_original_native_values_probe.py",
+          "blob": "1cd4bdaa7dfe10acff071a7a9fff7ef39c4278a7",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/test_ruc_p1_original_native_values_probe.py",
+          "blob": "e9e7f32ed175d9a210fc28c60bfba490be97ea39",
+          "stableBlob": null
+        }
+      ]
+    },
+    {
+      "pr": 638,
+      "state": "closed",
+      "head": "8bf556262b2de4111fc76eed1793e9c119268175",
+      "base": "b2b9bb3c3eab78fac117bd0b0d2110b1ce127b66",
+      "files": [
+        {
+          "path": "docs/ruc/MID_DWD_BATCH_NINE_LEAD_QA_2026-11-03.md",
+          "blob": "d7c88eba631df455e7d94c6622123478e987c4c1",
+          "stableBlob": null
+        },
+        {
+          "path": "docs/ruc/MID_DWD_BATCH_NINE_LEAD_RUN_20261103T09Z_PROOF.json",
+          "blob": "31d4ca1086f12a2fbe033eb5d2121e64a02ae537",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/build_model_map_fields.py",
+          "blob": "8403904bfb730f5fa3762926b45eb0827cb7fa73",
+          "stableBlob": "a606fc4ee63ed7eb606a688a01f1f8d66164097e"
+        },
+        {
+          "path": "tools/ruc/dwd_real_regular_nine_lead_ab_science_qa.py",
+          "blob": "d203aa6486b5c2ed19592a6a17e1980a73c48c5a",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/dwd_stage_batch_reuse.py",
+          "blob": "298dfde17a3e06bdb15716e8c7dcd99c258d8ea8",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/test_dwd_stage_batch_reuse.py",
+          "blob": "6c0c69c6d28b1ceed584d0ace3b666cf432ede00",
+          "stableBlob": null
+        }
+      ]
+    },
+    {
+      "pr": 640,
+      "state": "closed",
+      "head": "e470b747182ee74aa810697ed3b9823abb85284d",
+      "base": "c96c35531e44a868a71705f9244c6be83ff45213",
+      "files": [
+        {
+          "path": "docs/ruc/MID_RUC_FAST_CAS_ACTIVATION_FENCE_2026-11-03.md",
+          "blob": "03047bab020c74ebc430c9f8d1643d5e7fb49fac",
+          "stableBlob": null
+        },
+        {
+          "path": "docs/ruc/MID_RUC_FAST_PUBLIC_READBACK_ADMISSION_2026-11-03.md",
+          "blob": "a3dc7c133f4f2e01c291ce43e2f82799c6ff88dc",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/ruc_fast_cas.mjs",
+          "blob": "f0334d06239b57c3f2333de972f546cecb5c437a",
+          "stableBlob": "397f2d23efa36c3f113e9bdadb82d4d2aefdff43"
+        },
+        {
+          "path": "tools/ruc/ruc_fast_public_site_admission.mjs",
+          "blob": "50c959a4ca8bbb47aa9f5b71606b1a617a30bb2f",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/test_ruc_fast_cas.mjs",
+          "blob": "2cf40e42d67e68ef385aa43a592855684971b428",
+          "stableBlob": "6bbaef729603a347e11627c524376f564665ddee"
+        },
+        {
+          "path": "tools/ruc/test_ruc_fast_paged_point_shadow.mjs",
+          "blob": "ee336b3538acda8b97e0699470039a9eb7c97448",
+          "stableBlob": "95a188620d13e4234d1d5aeefe253cfca8568c44"
+        }
+      ]
+    },
+    {
+      "pr": 642,
+      "state": "open",
+      "head": "9ea9552e6243b6133a40b207d70b8dc69beb8ae1",
+      "base": "2f9806fe1349e9b35001f8aa313e127f888dee91",
+      "files": [
+        {
+          "path": "docs/ruc/MID_DWD_BATCH_NINE_LEAD_QA_2026-11-03.md",
+          "blob": "d7c88eba631df455e7d94c6622123478e987c4c1",
+          "stableBlob": null
+        },
+        {
+          "path": "docs/ruc/MID_DWD_BATCH_NINE_LEAD_RUN_20261103T09Z_PROOF.json",
+          "blob": "31d4ca1086f12a2fbe033eb5d2121e64a02ae537",
+          "stableBlob": null
+        },
+        {
+          "path": "docs/ruc/MID_RUC_FAST_CAS_ACTIVATION_FENCE_2026-11-03.md",
+          "blob": "03047bab020c74ebc430c9f8d1643d5e7fb49fac",
+          "stableBlob": null
+        },
+        {
+          "path": "docs/ruc/MID_RUC_FAST_PUBLIC_READBACK_ADMISSION_2026-11-03.md",
+          "blob": "a3dc7c133f4f2e01c291ce43e2f82799c6ff88dc",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/build_model_map_fields.py",
+          "blob": "8403904bfb730f5fa3762926b45eb0827cb7fa73",
+          "stableBlob": "a606fc4ee63ed7eb606a688a01f1f8d66164097e"
+        },
+        {
+          "path": "tools/ruc/dwd_real_regular_nine_lead_ab_science_qa.py",
+          "blob": "d203aa6486b5c2ed19592a6a17e1980a73c48c5a",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/dwd_stage_batch_reuse.py",
+          "blob": "298dfde17a3e06bdb15716e8c7dcd99c258d8ea8",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/ruc_fast_cas.mjs",
+          "blob": "f0334d06239b57c3f2333de972f546cecb5c437a",
+          "stableBlob": "397f2d23efa36c3f113e9bdadb82d4d2aefdff43"
+        },
+        {
+          "path": "tools/ruc/ruc_fast_public_site_admission.mjs",
+          "blob": "50c959a4ca8bbb47aa9f5b71606b1a617a30bb2f",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/test_dwd_stage_batch_reuse.py",
+          "blob": "6c0c69c6d28b1ceed584d0ace3b666cf432ede00",
+          "stableBlob": null
+        },
+        {
+          "path": "tools/ruc/test_ruc_fast_cas.mjs",
+          "blob": "2cf40e42d67e68ef385aa43a592855684971b428",
+          "stableBlob": "6bbaef729603a347e11627c524376f564665ddee"
+        },
+        {
+          "path": "tools/ruc/test_ruc_fast_paged_point_shadow.mjs",
+          "blob": "ee336b3538acda8b97e0699470039a9eb7c97448",
+          "stableBlob": "95a188620d13e4234d1d5aeefe253cfca8568c44"
+        }
+      ]
+    },
+    {
+      "pr": 647,
+      "state": "open",
+      "head": "2d6160045fb3459c06488200b79266a222fe3296",
+      "base": "16c975aab66ed858f0add9628f78b5b87b7e2a34",
+      "files": [
+        {
+          "path": "docs/ruc/MID_RUC_FAST_HANDOFF_2026-11-03.json",
+          "blob": "26196034cccd6ed1e3df95887780b8ee50e9c93a",
+          "stableBlob": null
+        },
+        {
+          "path": "docs/ruc/MID_RUC_FAST_HANDOFF_2026-11-03.md",
+          "blob": "f1cb0768e0ffb1ee23d1c1ffb87782be8d3d01e8",
+          "stableBlob": null
+        }
+      ]
+    }
+  ],
+  "matrix": [
+    {
+      "phase": "P0",
+      "scope": "Source, Rechte, Release und Speicher",
+      "status": "PARTIAL",
+      "evidence": [
+        "main=mid-stable .427; fünf aktive Rulesets im Detail lesbar",
+        "prepare_ruc_pages.py und Pipelinevertrag schließen native EPS-Member aus"
+      ],
+      "missing": [
+        "Vollständiger signierter D2/RUC/Fast/EPS20-Gesamtindex",
+        "Finale Release-/Speicherabnahme des kombinierten Kandidaten"
+      ]
+    },
+    {
+      "phase": "P1",
+      "scope": "Native Originalwerte, Bitmap, 0–27h/EPS20, echte Verfügbarkeit",
+      "status": "PARTIAL_OFFLINE",
+      "evidence": [
+        "Run41673755584 attempt2; Original full15Z/Fast16Z 2026-11-03",
+        "542040 Punkte; 28 Stunden full; EPS20; 7/73/25 Fast-Achsen"
+      ],
+      "missing": [
+        "Öffentliche tatsächliche Memberobjekte statt nur memberCount=20",
+        "Alle 168+ Stundenläufe Originalfeld-/EPS-Verifikation",
+        "Geschützte D2-72-Frame/73-Objekt-Provenienz"
+      ]
+    },
+    {
+      "phase": "P2",
+      "scope": "Getrennte native Fast Lane",
+      "status": "OFFLINE_ONLY",
+      "evidence": [
+        "4300 native Chunks rekonstruiert; 7801 Dateien/816625821B Offline-Site",
+        "Original full27h/EPS20 unverändert; 4 Chunks/239616B JS-Punktprobe"
+      ],
+      "missing": [
+        "Geschützte Veröffentlichung, all-object Readback, aktive pointer/client Adoption",
+        "Vollständige EPS20-Auslieferung fehlt in diesem Profil"
+      ]
+    },
+    {
+      "phase": "P3",
+      "scope": "Identische Originalbytes effizient verarbeiten",
+      "status": "NARROW_AB_PROVEN",
+      "evidence": [
+        "Run41632822563; 94 originale DWD-SHAs, 72 identische reguläre Kartenoutputs",
+        "5269256 komprimierte Quellbytes / 5 Reads theoretisch vermieden; 9.614s→9.350s compute median (3 Paare)"
+      ],
+      "missing": [
+        "Kein echter dualer Live-Netzwerkbenchmark",
+        "Keine native FullDomain/RUC/EPS20-E2E-Beschleunigung daraus ableiten",
+        "Producer-Kompatibilität .416→.427 und Gesamtvolumen messen"
+      ]
+    },
+    {
+      "phase": "P4",
+      "scope": "Single writer, monotones Fencing, CAS, sichere Zwischenstände/Rollback",
+      "status": "PRIMITIVES_ONLY",
+      "evidence": [
+        "#642 übernimmt #640 CAS-/HTTP-Module exakt",
+        "R2 Einzelkey-CAS, identischer Shadow→Active-Kandidat, generation+1 Rückkompensation"
+      ],
+      "missing": [
+        "Eindeutiger globaler Writer einschließlich ALLER Pages-Schreiber und optionalem R2",
+        "Privilegierte Grant-Quelle, persistente monotone Fences, Leaseverlust-/Race-/Rollback-Nachweis",
+        "Size-only R2-Shell-Publisher ist kein SHA-/CAS-Gesamtnachweis"
+      ]
+    },
+    {
+      "phase": "P5",
+      "scope": "Public HTTPS, Worker/Web/iOS/Widget/Export und 168h P95≤60min",
+      "status": "NOT_ADMITTED",
+      "evidence": [
+        "Archive41835026438: 39 ausgewählte GitHub-Runs, 68 directory samples, 34 public metadata readbacks",
+        "produktionSloAuthorized=false; usedByWebIosWidgetsExports=false im gemeinsamen Offline-Nachweis"
+      ],
+      "missing": [
+        "Vollständige öffentliche Objekt-SHAs des neuen Gesamtstandes",
+        "Echte Consumer-Adoption und reale iOS-Evidenz",
+        "0 von 168 erforderlichen vollständigen E2E-Stunden hier belegt; tatsächliche Anzahl gegebenenfalls unbekannt, nicht behauptet",
+        "P95 mit Missing-/Zensierungsbehandlung nicht freigegeben"
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "run": 41673755584,
+      "artifacts": [
+        {
+          "id": 13254387322,
+          "node_id": "MDg6QXJ0aWZhY3QxMzI1NDM4NzMyMg==",
+          "name": "mid-ruc-full-paged-proof-41673755584-2",
+          "size_in_bytes": 189979,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13254387322",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13254387322/zip",
+          "expired": false,
+          "digest": "sha256:d7601a9363b56be5e33c6e8b9bc1382a59cef94154b1969edae536d4fe66c47c",
+          "created_at": "2026-11-03T17:27:03Z",
+          "updated_at": "2026-11-03T17:27:03Z",
+          "expires_at": "2026-11-06T17:27:02Z",
+          "workflow_run": {
+            "id": 41673755584,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "chatgpt/v0.9.85.421-ruc-dwd-source-batch",
+            "head_sha": "9ea9552e6243b6133a40b207d70b8dc69beb8ae1"
+          }
+        },
+        {
+          "id": 13254317100,
+          "node_id": "MDg6QXJ0aWZhY3QxMzI1NDMxNzEwMA==",
+          "name": "mid-ruc-joint-site-inactive-41673755584-2",
+          "size_in_bytes": 816898342,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13254317100",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13254317100/zip",
+          "expired": false,
+          "digest": "sha256:b854ca911e1803dca84773972841876abd8d3b39113ec33d1136f4ab37b04621",
+          "created_at": "2026-11-03T17:27:14Z",
+          "updated_at": "2026-11-03T17:27:14Z",
+          "expires_at": "2026-11-04T17:27:05Z",
+          "workflow_run": {
+            "id": 41673755584,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "chatgpt/v0.9.85.421-ruc-dwd-source-batch",
+            "head_sha": "9ea9552e6243b6133a40b207d70b8dc69beb8ae1"
+          }
+        },
+        {
+          "id": 13253732525,
+          "node_id": "MDg6QXJ0aWZhY3QxMzI1MzczMjUyNQ==",
+          "name": "mid-ruc-joint-authentic-fast-41673755584-2",
+          "size_in_bytes": 78005323,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13253732525",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13253732525/zip",
+          "expired": false,
+          "digest": "sha256:e1240d00c66feb573ae4c1e8188d46774ab656e1f0188473687128d6a25ae802",
+          "created_at": "2026-11-03T17:26:44Z",
+          "updated_at": "2026-11-03T17:26:44Z",
+          "expires_at": "2026-11-05T17:26:40Z",
+          "workflow_run": {
+            "id": 41673755584,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "chatgpt/v0.9.85.421-ruc-dwd-source-batch",
+            "head_sha": "9ea9552e6243b6133a40b207d70b8dc69beb8ae1"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "run": 41652318106,
+      "artifacts": [
+        {
+          "id": 13246945157,
+          "node_id": "MDg6QXJ0aWZhY3QxMzI0Njk0NTE1Nw==",
+          "name": "mid-ruc-joint-site-inactive-41652318106-2",
+          "size_in_bytes": 820500639,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13246945157",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13246945157/zip",
+          "expired": false,
+          "digest": "sha256:34442afc13e9eac8759139f884f6ab723fd54a2ac59af0e6284d7c5ecfa07d0f",
+          "created_at": "2026-11-03T15:31:52Z",
+          "updated_at": "2026-11-03T15:31:52Z",
+          "expires_at": "2026-11-04T15:31:45Z",
+          "workflow_run": {
+            "id": 41652318106,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "chatgpt/v0.9.85.420-ruc-p4p5-public-readback",
+            "head_sha": "e470b747182ee74aa810697ed3b9823abb85284d"
+          }
+        },
+        {
+          "id": 13246715350,
+          "node_id": "MDg6QXJ0aWZhY3QxMzI0NjcxNTM1MA==",
+          "name": "mid-ruc-full-paged-proof-41652318106-2",
+          "size_in_bytes": 189982,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13246715350",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13246715350/zip",
+          "expired": false,
+          "digest": "sha256:82efa0099fa9bb3ccb8e9925788d2e447779d75ae095bda5c7161e36984d7746",
+          "created_at": "2026-11-03T15:31:43Z",
+          "updated_at": "2026-11-03T15:31:43Z",
+          "expires_at": "2026-11-06T15:31:42Z",
+          "workflow_run": {
+            "id": 41652318106,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "chatgpt/v0.9.85.420-ruc-p4p5-public-readback",
+            "head_sha": "e470b747182ee74aa810697ed3b9823abb85284d"
+          }
+        },
+        {
+          "id": 13245940684,
+          "node_id": "MDg6QXJ0aWZhY3QxMzI0NTk0MDY4NA==",
+          "name": "mid-ruc-joint-authentic-fast-41652318106-2",
+          "size_in_bytes": 82581214,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13245940684",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13245940684/zip",
+          "expired": false,
+          "digest": "sha256:684c81c856db6d89502fc24a7c17a81dffa1e343dfb3c5ce876ee1bd108ee8c4",
+          "created_at": "2026-11-03T15:31:23Z",
+          "updated_at": "2026-11-03T15:31:23Z",
+          "expires_at": "2026-11-05T15:31:18Z",
+          "workflow_run": {
+            "id": 41652318106,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "chatgpt/v0.9.85.420-ruc-p4p5-public-readback",
+            "head_sha": "e470b747182ee74aa810697ed3b9823abb85284d"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "run": 41632822563,
+      "artifacts": [],
+      "note": "API returned empty artifact list; immutable Git proof survives, original bytes availability unproven"
+    },
+    {
+      "run": 41835026438,
+      "artifacts": [
+        {
+          "id": 13324553138,
+          "node_id": "MDg6QXJ0aWZhY3QxMzMyNDU1MzEzOA==",
+          "name": "mid-ruc-original-observer-168h-41835026438-1",
+          "size_in_bytes": 16732,
+          "url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13324553138",
+          "archive_download_url": "https://api.github.com/repos/MeteoMartini/MID/actions/artifacts/13324553138/zip",
+          "expired": false,
+          "digest": "sha256:f75e9cda816a74321d233548ae4c68df4215ea57a5e0ebfc19d51b17e1a6b26b",
+          "created_at": "2026-11-04T13:06:55Z",
+          "updated_at": "2026-11-04T13:06:55Z",
+          "expires_at": "2026-11-18T13:06:54Z",
+          "workflow_run": {
+            "id": 41835026438,
+            "repository_id": 1305110795,
+            "head_repository_id": 1305110795,
+            "head_branch": "main",
+            "head_sha": "4d3051f80a17a180c3952c83bf5afa51623b1eb3"
+          }
+        }
+      ],
+      "note": null
+    }
+  ],
+  "rulesets": [
+    {
+      "id": 20109260,
+      "name": "Basic Protection",
+      "enforcement": "active"
+    },
+    {
+      "id": 23963851,
+      "name": "MID Production Branch Guard",
+      "enforcement": "active"
+    },
+    {
+      "id": 23917807,
+      "name": "MID Replit Handoff Guard",
+      "enforcement": "active"
+    },
+    {
+      "id": 21919727,
+      "name": "MID Stable Protection",
+      "enforcement": "active"
+    },
+    {
+      "id": 23917545,
+      "name": "MID Trusted Agent Branches",
+      "enforcement": "active"
+    }
+  ],
+  "limitations": [
+    "No new mass data runs, production writes, activation, budget/protection changes",
+    "Archive payload was not unpacked locally because executor became unavailable; log counts only, precise covered hours/quantiles unknown",
+    "Archive digests are NOT site digests",
+    "Closed #638/#640 not merged",
+    "No R2 or paid resources enabled"
+  ]
+}
