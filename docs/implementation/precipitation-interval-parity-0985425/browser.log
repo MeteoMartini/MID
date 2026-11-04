@@ -1,0 +1,8 @@
+PASS real ShortTermRibbon 320px light: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 320px dark: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 390px light: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 390px dark: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 430px light: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 430px dark: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 1440px light: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
+PASS real ShortTermRibbon 1440px dark: 0.2mm/15min, 0.8mm/h, moderate icon/detail/Skybar inputs; no horizontal overflow
