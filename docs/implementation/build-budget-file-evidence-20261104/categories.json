@@ -1,0 +1,17 @@
+{
+  "static-media": {
+    "files": 23,
+    "raw": 6424599,
+    "gzip": 6400315
+  },
+  "compressible": {
+    "files": 96,
+    "raw": 7294843,
+    "gzip": 1871455
+  },
+  "other": {
+    "files": 10,
+    "raw": 1183591,
+    "gzip": 447506
+  }
+}

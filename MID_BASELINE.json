@@ -1081,7 +1081,9 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -2152,7 +2154,9 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3142,7 +3146,9 @@
     "tests/unit/designWeFourteenRender.test.ts",
     "tests/unit/designWeSevenModes.test.ts",
     "scripts/test-forecast-design-visibility-0985415.mjs",
-    "scripts/test-warning-snow-horizon-coherence-0985417.mjs"
+    "scripts/test-warning-snow-horizon-coherence-0985417.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3520,7 +3526,9 @@
     "scripts/verify-paired-verification-browser-0985311.mjs",
     "scripts/test-hour-window-formatter-0985327.mjs",
     "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
-    "scripts/test-native-plugin-patches-0985362.mjs"
+    "scripts/test-native-plugin-patches-0985362.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",

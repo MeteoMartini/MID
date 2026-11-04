@@ -1,6 +1,6 @@
-# MID v0.9.85.427 · SHA-geprüfte Marken-Shell-Deduplizierung (Draft)
+# MID v0.9.85.427 · PWA-Marken und Budget-Dateinachweise (Releasekandidat)
 
-Fünf byteidentische Markengruppen werden beim Shell-Aufbau jeweils einmal übertragen, SHA-geprüft und unter allen bisherigen Cache-URLs abgelegt. Buildprüfung verhindert veraltete Aliase bei auseinanderlaufenden Bildern. Keine PNG-/URL-/iOS-/Exportdatei entfernt. Nachweise: docs/implementation/MID_BRAND_SHELL_DEDUP_0.9.85.427.md. Keine Veröffentlichung.
+Verifizierte Stable-Basis .425 / 7e998730daaa4a409cd3e15d4f4cf0f70efaaeda. Selektive Sammelintegration #652 @ 999aa5601d06431b5c4f568d97afa86080f2efe4 und #653 @ 11f63707d4d231ac7626ca006b2b5e1362636307. Reale Registrierungsupdate-Abnahme .425→.427 einschließlich Waiting/Activate/Controllerchange/Healthy, Offline-Alias-/Theme-Decodes, Rollback und beschädigtem Update bestanden. Reproduzierten Aktivierungsdeadlock behoben: Client-Navigation wird vor Abschluss des activate-Events beauftragt, ihre Antwort jedoch nicht innerhalb dieses Events abgewartet. Budget-Dateireport und CI-Artefakte erhalten; keine Budgetgrenze verändert. Nachweis: docs/implementation/MID_PWA_BUDGET_INTEGRATION_0.9.85.427.md. Erst reguläre Source-/Bot-/Installer-/Worker-/Pages-/Finalize-/Stable-Gates erlauben eine Veröffentlichungsbehauptung.
 
 # MID v0.9.85.425 · Niederschlagsintervalle konsistent dargestellt
 

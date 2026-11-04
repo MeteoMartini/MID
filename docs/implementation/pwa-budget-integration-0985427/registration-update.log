@@ -1,0 +1,6 @@
+PASS real .425 install/controller {"events":["installing","installing","installed","installed","activating","activating","controllerchange","activated","activated"],"active":"activated","waiting":false}
+PASS real waiting update, old cache/shell retained {"events":["updatefound:installing","installed"],"workerState":"installed","waiting":"installed","oldCache":true}
+Observed after controllerchange {"activation":["activating","controllerchange"],"status":{"ok":true,"status":{"appVersion":"","workerVersion":"0.9.85.427","activeVersion":"0.9.85.425","previousVersion":"0.9.85.425","availableVersions":["0.9.85.427","0.9.85.425"],"pendingVersion":"0.9.85.427","rollbackAvailable":true,"controlled":true}}}
+PASS real activate/controllerchange/healthy shell ["activating","controllerchange","activated","activated"]
+PASS actual previous-cache rollback and all alias/theme URLs offline
+PASS full real registration lifecycle {"install":{"events":["installing","installing","installed","installed","activating","activating","controllerchange","activated","activated"],"active":"activated","waiting":false},"update":{"events":["updatefound:installing","installed"],"workerState":"installed","waiting":"installed","oldCache":true},"activation":["activating","controllerchange","activated","activated"],"damaged":{"events":["updatefound","redundant"],"waiting":false,"oldCache":true}}

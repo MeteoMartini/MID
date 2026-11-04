@@ -1,0 +1,19 @@
+{
+  "stable": "7e998730daaa4a409cd3e15d4f4cf0f70efaaeda",
+  "budgetPr": {
+    "number": 652,
+    "head": "999aa5601d06431b5c4f568d97afa86080f2efe4"
+  },
+  "pwaPr": {
+    "number": 653,
+    "head": "11f63707d4d231ac7626ca006b2b5e1362636307"
+  },
+  "sha256": {
+    "public/service-worker.js": "34ed03b301bbe6494121f8a6d08121944db4ef78c9adbec3f4c8f78a215c2ddf",
+    "public/sw.js": "34ed03b301bbe6494121f8a6d08121944db4ef78c9adbec3f4c8f78a215c2ddf",
+    "scripts/brand-shell-groups.mjs": "be4b497aa873c992b528a123b44f68c79420df59d867f84b648ed1740a0a162c",
+    "scripts/check-build-budget.mjs": "6a27db0f5698fa8fcd3c34fe494131572a94f4bec85f9eedc1620535fdd92933",
+    "ci/github/workflows/mid-code-revision.yml": "70978c9fe2ce84d7f6b3dcdec28584bb42a830f59a9f13df6e8c232fbead7317",
+    ".github/workflows/mid-code-revision.yml": "70978c9fe2ce84d7f6b3dcdec28584bb42a830f59a9f13df6e8c232fbead7317"
+  }
+}
