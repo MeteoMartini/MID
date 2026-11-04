@@ -1,3 +1,9 @@
+# MID v0.9.85.427
+
+- PWA-Installation lädt byteidentische Markenbilder einmal; alle bisherigen URLs bleiben offline verfügbar und SHA-/Build-geprüft.
+- Kontrollierte Updates aktivieren die neue Shell ohne gegenseitiges Warten zwischen Worker-Aktivierung und Navigation; Healthy-Bestätigung und Rückfall bleiben erhalten.
+- Der bestehende Revisionsworkflow sichert dateigenaue Budgetberichte mit Größen, Kategorien und SHA-256, auch bei Budgetfehlern. Die unveränderte Gesamt-gzip-Grenze bleibt separat überschritten.
+
 # MID v0.9.85.425 · Niederschlagsintervalle konsistent dargestellt
 
 Skybar und Profildetails verwenden dieselben tatsächlichen Akkumulationsintervalle. Beispielsweise werden 0,2 mm in 15 Minuten in beiden Ansichten mit 0,8 mm/h ausgewertet. Der Release enthält außerdem die Zielzeitzonen-Korrektur der Regionalensembles aus .424.
