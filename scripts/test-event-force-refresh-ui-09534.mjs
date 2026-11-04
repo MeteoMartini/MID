@@ -27,7 +27,7 @@ assert.match(refresh,/isManualReason\(reason:EventWeatherRefreshReason\)/,'Manue
 assert.match(fusion,/forceRefresh\?null:readCache\(lat,lon,elevation,FRESH_MS\)/,'Forecast-Fusion umgeht den lokalen Fresh-Cache nicht.');
 assert.match(fusion,/refresh:forceRefresh\?1:undefined/,'Forecast-Fusion signalisiert dem Worker keinen Fresh-Reload.');
 assert.match(fusion,/cache:forceRefresh\?'no-store':'default'/,'Forecast-Fusion nutzt bei Fresh-Reload nicht no-store.');
-assert.match(weather,/forceRefresh\?null:readEventEnsembleCache\(lat,lon,date,startTime,endTime,ENSEMBLE_FRESH_CACHE_MS\)/,'Event-Ensemble verwendet bei Fresh-Reload weiterhin den lokalen Cache.');
+assert.match(weather,/forceRefresh\?null:readEventEnsembleCache\(lat,lon,date,startTime,endTime,ENSEMBLE_FRESH_CACHE_MS,timeZone\)/,'Event-Ensemble verwendet bei Fresh-Reload weiterhin den lokalen Cache.');
 
 // Der Worker muss bei refresh=1 auch seinen Upstream-Cache umgehen.
 assert.match(worker,/refresh=url\.searchParams\.get\('refresh'\)==='1'/,'Worker erkennt keinen expliziten Forecast-Fusion-Refresh.');

@@ -24,7 +24,7 @@ for(const source of [weatherSource,weatherAggregate]){
   "timeoutMs:priority==='foreground'?10_000:16_000",
   'const modelDeadline=ensembleDeadline(',
   'const bootstrapDeadline=ensembleDeadline(signal,ENSEMBLE_BOOTSTRAP_TIMEOUT_MS',
-  'meanEnsembleBootstrap(lat,lon,bootstrapSignal)',
+  'meanEnsembleBootstrap(lat,lon,bootstrapSignal,timeZone)',
   'memberEnsembleBootstrap(lat,lon,bootstrapSignal)',
   'if(signal?.aborted)throw error;return null'
  ])assert.ok(source.includes(token),`Ensemble-Anti-Hang-Vertrag fehlt: ${token}`);

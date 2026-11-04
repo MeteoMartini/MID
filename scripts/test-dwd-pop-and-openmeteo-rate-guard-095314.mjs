@@ -59,7 +59,7 @@ assert.doesNotMatch(app,/setError\('HTTP 429'\)/);
 
 // Hintergrundlernprozess darf bei Rate Limit nicht weiter alle Favoriten abarbeiten.
 assert.match(twin,/forecast\([^\n]+\{priority:'background',timeZone:location\.timezone,elevation:location\.elevation\}\)/);
-assert.match(twin,/ensembles\([^\n]+,'background'\)/);
+assert.match(twin,/ensembles\([^\n]+,'background',location\.timezone\)/);
 assert.match(twin,/BETWEEN_FAVORITES_MS=3500/);
 assert.match(twin,/isOpenMeteoRateLimitError\(error\)/);
 

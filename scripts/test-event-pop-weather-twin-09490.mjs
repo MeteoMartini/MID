@@ -29,7 +29,7 @@ for(const token of [
 ])assert.ok(weather.includes(token),`Event-Ensemble-PoP fehlt: ${token}`);
 
 for(const token of [
- 'eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh)',
+ 'eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh,location.timezone)',
  'fallbackProbability=!eventProbability&&probabilityCoverageComplete',
  'precipitationProbabilityRelevant=eventProbability?.probability??fallbackProbability',
  "precipitationProbabilitySource=eventProbability?'ensemble-members-dwd-event':fallbackProbability!=null?'hourly-window-average-fallback':'unavailable'",
