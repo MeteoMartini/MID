@@ -1,3 +1,7 @@
+## MID v0.9.85.429 · 2026-11-04 · Kilo UI-P0
+
+Verifizierte Stable-Basis `6f08117ed0862c1573fec5c48844136b83e22bd5`, Ursprung aus Kilo-Commit `c68a7778a6a785ed34e8a3dc7da89159d7260c04`, Draft-Handoff #657. Bottom-Tabs, Favoriten/Warnungen, Touchziele, Fokus, mobile Legenden und Safe-Areas; kanonische CSS-Quelle statt direkter Editierung generierter Datei. Eigenen Test `scripts/test-kilo-ui-p0-0985429.mjs` in beiden verpflichtenden Regressioninventaren ergänzt. Keine amtliche Warn- oder Modelllogik geändert. Keine Releasefreigabe ohne vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates.
+
 ## MID v0.9.85.428 · 2026-11-04 · Kartenbausteine
 
 SHA-gesicherte Integration der drei MID18.2.73-Bausteine. RAM/Disk 24MiB, 20min TTL ohne Zukunftszeiten; bounded field streams, gleicher URL/SHA/Byte-Vertrag dedupliziert, unabhängige Abbrüche. Pointer bleibt no-store; Feldvalidatoren und Decoder unverändert. Originalpatch-Exportanker und Nullzugriff korrigiert. Gleiche Modell-/Run-/Time-Konturen und Cross-Panel-Raw-Preferences; schematische ww4677-Modellzeichen mit gemeinsamen SVG-/PNG-Legenden. Primärquellen-Fußnote bei96/99 berücksichtigt. Keine neue Quelle/Produktionsdatenfreigabe. CI/Source/Installer erforderlich.

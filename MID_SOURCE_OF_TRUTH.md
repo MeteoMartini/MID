@@ -1,3 +1,7 @@
+# MID v0.9.85.429 · Mobile UI-P0 als freigabepflichtiger Source-Kandidat
+
+Original Kilo-Commit `c68a7778a6a785ed34e8a3dc7da89159d7260c04`, Stable-Parent `6f08117ed0862c1573fec5c48844136b83e22bd5`; UI-Korrektur liegt in kanonischer CSS-Quelle. Veröffentlichung ausschließlich über vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates. Technischer Nachweis: `docs/implementation/MID_KILO_UI_P0_0.9.85.429.md`.
+
 # MID v0.9.85.428 · gesicherte Kartenbausteine integriert (Draft-Kandidat)
 
 Basis main=mid-stable .427 `4d3051f80a17a180c3952c83bf5afa51623b1eb3`. Drei Originalbausteine aus MID18.2.73 anhand unveränderter ZIP-/Datei-SHAs gesichert und aus passenden Stable-Dateien abgeleitet. Fehlerhafter Exportanker am tatsächlichen Original korrigiert; keine Rekonstruktion aus Chattext. Begrenzter SHA-Feldcache mit frischem Pointer vor Wiederöffnung, Budget-/TTL-/Abort-/Korruptionsvertrag; pseudo-only Modell-Wolkenbild; gemeinsame Modellcode-Zeichen/Legenden/Exporte; dauerhafte Legacy-Konturkeys und strikte Modell-/Run-/Time-Parität. Kein neuer RUC-Publisher, keine neue GeoSphere-Quelle oder Gewichtung. Nachweis docs/implementation/MID_C53_MAP_COMPONENTS_428.md; Originale docs/handoffs/MID_18_2_73_originals. Vollständige Source-/Bot-/ServerZIP-/Installer-/Worker-/Pages-/Stable-Gates bleiben erforderlich; Draft ist keine Veröffentlichung.
