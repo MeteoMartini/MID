@@ -1,3 +1,7 @@
+# MID v0.9.85.427
+
+Unveröffentlichter Entwurf: Der PWA-Shell-Aufbau lädt byteidentische Markenbilder je Inhaltsgruppe einmal und erhält alle bisherigen Cache-URLs. Build- und Laufzeit-Hashprüfungen verhindern falsche Aliase. Keine Bildänderungen oder entfernten Dateien.
+
 # MID v0.9.85.425 · Niederschlagsintervalle konsistent dargestellt
 
 Skybar und Profildetails verwenden dieselben tatsächlichen Akkumulationsintervalle. Beispielsweise werden 0,2 mm in 15 Minuten in beiden Ansichten mit 0,8 mm/h ausgewertet. Der Release enthält außerdem die Zielzeitzonen-Korrektur der Regionalensembles aus .424.

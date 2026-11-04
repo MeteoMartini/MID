@@ -1,0 +1,37 @@
+{
+  "schema": 2,
+  "ok": false,
+  "totals": {
+    "assetCount": 129,
+    "totalBytes": 14905465,
+    "totalGzipBytes": 8720292,
+    "compressibleGzipBytes": 1872353,
+    "staticMediaBytes": 6424599,
+    "jsGzipBytes": 1490254,
+    "cssGzipBytes": 284757,
+    "initialCssBytes": 1759070,
+    "initialCssGzipBytes": 249684,
+    "initialCssBrotliBytes": 212994,
+    "initialCssFileCount": 1,
+    "largestJsGzipBytes": 459282
+  },
+  "initialCssAssets": [
+    {
+      "file": "assets/index-BC4N0piA.css",
+      "bytes": 1759070,
+      "gzipBytes": 249684,
+      "brotliBytes": 212994
+    }
+  ],
+  "definitions": {
+    "totalGzipBytes": "Diagnostische/hart gedeckelte gzip-9-Summe aller Dist-Dateien einschließlich bereits komprimierter Medien.",
+    "compressibleGzipBytes": "gzip-9-Summe der textuell komprimierbaren Webartefakte (.js/.css/.html/.json/.xml/.svg/.txt/.webmanifest/.map). Das frühere 5,2-MB-Gesamtlimit wird hier fachlich korrekt weitergeführt.",
+    "staticMediaBytes": "Unkomprimierte Dateigröße bereits komprimierter statischer Medien/Fonts (.png/.jpg/.jpeg/.webp/.avif/.gif/.ico/.woff/.woff2/.ttf/.otf). Verhindert Medienwachstum unabhängig vom Codebudget.",
+    "initialCssGzipBytes": "Harte gzip-9-Grenze von 320.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer.",
+    "initialCssBytes": "Harte Rohbyte-Grenze aller im gebauten HTML direkt referenzierten Start-CSS-Dateien zusammen; kein heuristischer Einzelindex-Chunkschätzwert.",
+    "initialCssBrotliBytes": "Harte Brotli-6-Grenze von 225.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer oder Renderzeitwert."
+  },
+  "failures": [
+    "totalGzipBytes: 8720292 > 8500000"
+  ]
+}

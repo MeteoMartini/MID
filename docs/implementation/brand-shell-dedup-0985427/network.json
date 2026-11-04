@@ -1,0 +1,144 @@
+{
+  "kind": "real Chromium ServiceWorker over local HTTP; PNG response-body bytes, not protocol headers or timing",
+  "baseline": {
+    "requests": 18,
+    "bytes": 3914236,
+    "transfers": [
+      {
+        "path": "/mid-logo.png",
+        "bytes": 219692
+      },
+      {
+        "path": "/mid-logo-dark.png",
+        "bytes": 211440
+      },
+      {
+        "path": "/mid-logo-light.png",
+        "bytes": 211909
+      },
+      {
+        "path": "/mid-logo-dark-compact.png",
+        "bytes": 211440
+      },
+      {
+        "path": "/mid-logo-light-compact.png",
+        "bytes": 211909
+      },
+      {
+        "path": "/mid-logo-dark-horizontal.png",
+        "bytes": 1268989
+      },
+      {
+        "path": "/mid-logo-light-horizontal.png",
+        "bytes": 674170
+      },
+      {
+        "path": "/mid-favicon-dark-64.png",
+        "bytes": 7180
+      },
+      {
+        "path": "/mid-favicon-light-64.png",
+        "bytes": 7543
+      },
+      {
+        "path": "/mid-icon-180.png",
+        "bytes": 33431
+      },
+      {
+        "path": "/mid-icon-192.png",
+        "bytes": 37227
+      },
+      {
+        "path": "/mid-icon-512.png",
+        "bytes": 219692
+      },
+      {
+        "path": "/mid-icon-dark-180.png",
+        "bytes": 33431
+      },
+      {
+        "path": "/mid-icon-dark-192.png",
+        "bytes": 37227
+      },
+      {
+        "path": "/mid-icon-dark-512.png",
+        "bytes": 219692
+      },
+      {
+        "path": "/mid-icon-light-180.png",
+        "bytes": 34482
+      },
+      {
+        "path": "/mid-icon-light-192.png",
+        "bytes": 38644
+      },
+      {
+        "path": "/mid-icon-light-512.png",
+        "bytes": 236138
+      }
+    ]
+  },
+  "candidate": {
+    "requests": 12,
+    "bytes": 2980845,
+    "transfers": [
+      {
+        "path": "/mid-icon-512.png",
+        "bytes": 219692
+      },
+      {
+        "path": "/mid-logo-dark-compact.png",
+        "bytes": 211440
+      },
+      {
+        "path": "/mid-logo-light-compact.png",
+        "bytes": 211909
+      },
+      {
+        "path": "/mid-logo-dark-horizontal.png",
+        "bytes": 1268989
+      },
+      {
+        "path": "/mid-logo-light-horizontal.png",
+        "bytes": 674170
+      },
+      {
+        "path": "/mid-favicon-dark-64.png",
+        "bytes": 7180
+      },
+      {
+        "path": "/mid-favicon-light-64.png",
+        "bytes": 7543
+      },
+      {
+        "path": "/mid-icon-180.png",
+        "bytes": 33431
+      },
+      {
+        "path": "/mid-icon-192.png",
+        "bytes": 37227
+      },
+      {
+        "path": "/mid-icon-light-180.png",
+        "bytes": 34482
+      },
+      {
+        "path": "/mid-icon-light-192.png",
+        "bytes": 38644
+      },
+      {
+        "path": "/mid-icon-light-512.png",
+        "bytes": 236138
+      }
+    ]
+  },
+  "savedRequests": 6,
+  "savedBytes": 933391,
+  "checks": [
+    "cold install",
+    "all alias URLs offline SHA256-identical",
+    "light/dark decode",
+    "update/cache activation and rollback handlers with seeded prior-cache fixture",
+    "corrupt canonical rejection and prior cache retained"
+  ]
+}
