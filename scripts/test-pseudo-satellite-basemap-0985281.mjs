@@ -13,8 +13,8 @@ assert.match(vector,/pseudoLight=cloudContrast&&!dark/,'Pseudo-color gating must
 assert.match(vector,/sourceLayer:'water'/,'Vector water features required');
 assert.match(vector,/PSEUDO_SAT_BASEMAP.land/);
 assert.match(vector,/PSEUDO_SAT_BASEMAP.water/);
-assert.match(native,/combined&&cloudRenderMode==='pseudo'\?<UnifiedVectorBasemap cloudContrast zIndex={-10} dark=/,'Native ICON-D2 uses pseudo land/water with theme-aware contrast');
-assert.match(unified,/cloudContrast:settings.enabled&&isCloudWeather&&cloudRenderMode==='pseudo'&&cloudWeather.ready/);
+assert.match(native,/combined\?<UnifiedVectorBasemap cloudContrast zIndex={-10} dark=/,'Native ICON-D2 uses pseudo land/water with theme-aware contrast');
+assert.match(unified,/cloudContrast:settings.enabled&&isCloudWeather&&cloudWeather.ready/);
 assert.match(exporter,/geography\.countries/,'Natural Earth countries must provide exported land mask');
 assert.match(exporter,/states\.flatMap\(s=>s\.rings\)/,'German state polygons must prevent Germany being painted as water');
 assert.match(exporter,/PSEUDO_SAT_BASEMAP.water/);
@@ -29,7 +29,7 @@ try{
  const frame={model:'icon-d2',run:'2026-10-17T00:00:00Z',time:'2026-10-17T06:00:00Z',lats:[47,55],lons:[4,16],cloud:[0],weather:[0]};
  const countries=[[[5,48],[9,48],[9,53],[5,53],[5,48]]];
  const pseudo=cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'pseudo',null,null,countries);
- const normal=cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'standard',null,null,countries);
+ assert.throws(()=>cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'standard',null,null,countries),/schematische Modellwolken/);
  const geo=JSON.parse(readFileSync('src/modelMapGeography.json','utf8'));
  assert.equal(geo.states.length,16,'All German Länder polygons must remain available');
  assert.ok(geo.states.some(s=>s.name==='Berlin'),'German inland coverage must not disappear');
@@ -42,7 +42,7 @@ try{
  assert.ok(pseudo.includes('fill="'+c.water+'"'),'Sea background same as on-screen pseudo palette');
  assert.ok(pseudo.includes('fill="'+c.land+'"'),'Land polygons use on-screen pseudo palette');
  assert.ok(pseudo.includes('Landflächen · Natural Earth'));
- assert.ok(!normal.includes('Landflächen · Natural Earth'),'Normal mode unaffected');
- assert.ok(!normal.includes(c.water),'Normal background unchanged');
+ assert.ok(pseudo.includes('Landflächen · Natural Earth'),'The sole model-cloud mode retains land geometry');
+ assert.equal(cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],undefined,null,null,countries),pseudo,'Omitted mode and explicit pseudo must remain identical');
  console.log('Pseudo-satellite land/water map and SVG/PNG export basemap consistency passed.');
 }finally{rmSync(temp,{recursive:true,force:true})}

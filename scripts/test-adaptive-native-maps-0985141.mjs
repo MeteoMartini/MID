@@ -6,6 +6,8 @@ import {pathToFileURL} from 'node:url';
 import {build} from 'esbuild';
 import {gzipSync} from 'node:zlib';
 const temp=mkdtempSync(join(tmpdir(),'mid141-contract-')),read=p=>readFileSync(p,'utf8');
+const originalLocation=globalThis.location;
+globalThis.location=new URL('https://www.midwx.app/');
 try{
  await build({stdin:{contents:"export * from './src/nativeModelFields';export * from './src/nativeMapCompression';export * from './src/precipitationTotals';export * from './src/ForecastRangeGuide';export * from './src/forecastAmountFormat';",resolveDir:process.cwd(),loader:'tsx'},bundle:true,platform:'node',format:'esm',outfile:join(temp,'contract.mjs'),loader:{'.css':'empty'},logLevel:'silent'});
  const {compactPrecipitationAmount,adaptiveForecastRanges,validateTotals,totalsAt,totalsStartAt,validateNativeField,nativeAt,nativeColor,loadNativeField,decodeNativeMapGzip}=await import(pathToFileURL(join(temp,'contract.mjs')));
@@ -25,13 +27,25 @@ try{
  assert.equal(validateTotals(observed),observed);assert.equal(totalsAt(observed,observed.frames[0],47,5.5),null);assert.equal(totalsAt(observed,observed.frames[0],47,10.55),0);assert.equal(totalsStartAt(observed,observed.frames[0]),observed.frames[0].validFrom);assert.throws(()=>validateTotals({...observed,frames:[{...observed.frames[0],values:Array(9).fill(-1),maximum:0}]}));assert.throws(()=>validateTotals({...observed,frames:[{...observed.frames[0],validTo:new Date(Date.parse(run)+3600000).toISOString()}]}));
  const ref={hour:1,time:new Date(Date.parse(run)+3600000).toISOString(),file:'temperature-001.json',sha256:'',bytes:0,intervalHours:0},index={schema:'mid.icon-d2.fields.v1',run,products:{temperature:{unit:'°C',frames:[ref]}}},field={schema:'mid.icon-d2.field.v1',run,time:ref.time,kind:'temperature',unit:'°C',scale:.1,lats:observed.lats,lons:observed.lons,values:[-100,0,100,120,150,180,200,240,280],isobars:[]};
  assert.equal(validateNativeField(field,index,ref,'temperature'),field);assert.equal(nativeAt(field,47,5.5),-10);assert.equal(nativeAt(field,52,20),null);assert.equal(nativeColor('precipitation',0),'transparent');assert.throws(()=>validateNativeField({...field,kind:'pressure'},index,ref,'temperature'));assert.throws(()=>validateNativeField({...field,values:[1]},index,ref,'temperature'));
- const bytes=new TextEncoder().encode(JSON.stringify(field));ref.bytes=bytes.length;ref.sha256=Buffer.from(await crypto.subtle.digest('SHA-256',bytes)).toString('hex');const originalFetch=globalThis.fetch;globalThis.fetch=async()=>new Response(bytes);try{assert.equal((await loadNativeField(index,'/ruc/fields/',ref,'temperature',new AbortController().signal)).values[0],-100);await assert.rejects(()=>loadNativeField(index,'/ruc/fields/',{...ref,sha256:'0'.repeat(64)},'temperature',new AbortController().signal))}finally{globalThis.fetch=originalFetch}
+ const nativeTestBase=`/ruc/runs/${run.replace(/\D/g,'').slice(0,10)}/model-fields/`;
+ const bytes=new TextEncoder().encode(JSON.stringify(field));ref.bytes=bytes.length;ref.sha256=Buffer.from(await crypto.subtle.digest('SHA-256',bytes)).toString('hex');const originalFetch=globalThis.fetch;let nativeFetches=0;globalThis.fetch=async()=>{nativeFetches++;return new Response(bytes)};try{
+  assert.equal((await loadNativeField(index,nativeTestBase,ref,'temperature',new AbortController().signal)).values[0],-100);
+  await assert.rejects(()=>loadNativeField(index,nativeTestBase,{...ref,sha256:'0'.repeat(64)},'temperature',new AbortController().signal));
+  for(const untrustedBase of [
+    '/ruc/fields/',
+    'https://evil.invalid'+nativeTestBase,
+    nativeTestBase+'../',
+    nativeTestBase+'?untrusted=1',
+    nativeTestBase+'#untrusted'
+  ])await assert.rejects(()=>loadNativeField(index,untrustedBase,ref,'temperature',new AbortController().signal));
+  assert.equal(nativeFetches,2,'Rejected paths and origins never reach the network');
+ }finally{globalThis.fetch=originalFetch}
  const zipped=gzipSync(bytes),buffer=zipped.buffer.slice(zipped.byteOffset,zipped.byteOffset+zipped.byteLength),expected=new TextDecoder().decode(bytes),stream=globalThis.DecompressionStream;
  for(const fallback of [false,true]){if(fallback)globalThis.DecompressionStream=undefined;try{assert.equal(await decodeNativeMapGzip(buffer,bytes.length),expected);await assert.rejects(()=>decodeNativeMapGzip(buffer,bytes.length-1));await assert.rejects(()=>decodeNativeMapGzip(buffer,bytes.length+1));await assert.rejects(()=>decodeNativeMapGzip(buffer.slice(0,12),bytes.length));}finally{globalThis.DecompressionStream=stream}}
- globalThis.fetch=async()=>new Response(zipped);try{const compressedRef={...ref,file:'temperature-001.bin',encoding:'gzip-json',decodedBytes:bytes.length,bytes:zipped.length,sha256:Buffer.from(await crypto.subtle.digest('SHA-256',buffer)).toString('hex')};assert.equal((await loadNativeField(index,'/ruc/fields/',compressedRef,'temperature',new AbortController().signal)).values[0],-100)}finally{globalThis.fetch=originalFetch}
+ globalThis.fetch=async()=>new Response(zipped);try{const compressedRef={...ref,file:'temperature-001.bin',encoding:'gzip-json',decodedBytes:bytes.length,bytes:zipped.length,sha256:Buffer.from(await crypto.subtle.digest('SHA-256',buffer)).toString('hex')};assert.equal((await loadNativeField(index,nativeTestBase,compressedRef,'temperature',new AbortController().signal)).values[0],-100)}finally{globalThis.fetch=originalFetch}
  const panel=read('src/WeatherMapsPanel.tsx'),prepare=read('tools/ruc/prepare_ruc_pages.py'),observedBuilder=read('tools/ruc/build_observed_precipitation.py');assert.ok(panel.includes('<NativeModelMap')&&panel.includes("'observed-totals'"));assert.ok(prepare.includes("'modelFields':model_fields")&&prepare.includes("'observedPrecipitation':observed"));assert.ok(observedBuilder.includes('stamp.minute==50')&&observedBuilder.includes('values[~valid]=-1'));assert.ok(read('src/precipitationTotalsExport.ts').includes('totalsStartAt(data,frame)'));
  console.log('MID141: independent parameter ranges, zero/trace amounts, non-overlapping observations, missing-cell semantics, native raster/time integrity and SHA256 verified.');
-}finally{rmSync(temp,{recursive:true,force:true})}
+}finally{if(originalLocation===undefined)delete globalThis.location;else globalThis.location=originalLocation;rmSync(temp,{recursive:true,force:true})}
 await import('./verify-model-map-presentation-0985148.mjs');
 await import('./verify-model-map-point-0985149.mjs');
 if(process.env.CI==='true'||process.env.MID_BROWSER_QA==='1'){

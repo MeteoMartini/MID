@@ -1,0 +1,7 @@
+# Release-Pause / nicht bestandene oder nicht durchgeführte Freigaben
+
+Es wurde **keine** neue Version aus diesen Paketen erstellt und **kein** Source-PR oder MID-Installer ausgelöst. Lokal grün sind nur die fünf eigenen Testdateien mit insgesamt 14 isolierten Node-/TypeScript-/Ankertests. Reale App-/Browser-/MapLibre-/iOS-Hardware-/VoiceOver-/Widget-/Export-/Performance-/Meteorologiegates fehlen. `.427` hat 1.070 bestehende Pflichtregressionen; diese wurden **nicht** für den neuen Kandidaten ausgeführt. Die vorherige `.427`-Stable-Revision hatte einen fehlgeschlagenen Run; ein geplanter weiterer Run darf nicht unbelegt als geheilt gelten.
+
+Nicht annehmbar für Release: ein neuer SYNOP-Marker ohne echtes Modell-Run/ValidTime, nicht bestätigte WMO-Symboltreue, nicht gezählte Modell-Extremfälle, fälschlich alte Contour-Time, abgelaufene RUC-Cache-Pointer, fehlende iOS-Zustandspersistenz, ECCC-original-WMS als echtes Pseudo-Satbild ausgeben, oder eine neue kostenpflichtige globale Datenpipeline ohne ausdrückliche Zustimmung.
+
+Vor Umsetzung/Integrationsschreiben: GitHub-Stable-SHA und offene/entstehende parallele PRs erneut lesen; Branchregeln und Rechte prüfen. Der autorisierte Ref-Broker war in der ChatGPT-Umgebung bisher nicht nachgewiesen; ein breit privilegierter GitHub-Connector wird **nicht** als Bypass verwendet. Technische Integration nur über einen normkonformen `chatgpt/*` oder `codex/*`-Entwicklungsbranch mit vollständiger CI. Direkt auf `main/mid-stable` zu schreiben ist verboten.

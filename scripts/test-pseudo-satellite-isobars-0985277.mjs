@@ -29,7 +29,7 @@ try{
  assert.ok(native.includes('nativeCloudIsobars(combined,pressureContours)'));
  assert.ok(native.includes('cloudContourSelection?.contours??[]'));
  assert.ok(native.includes("checked={cloudIsobars}"));
- assert.ok(native.includes('cloudRenderMode,cloudContourSelection'));
+ assert.ok(native.includes("'pseudo',cloudContourSelection"));
  assert.ok(values.includes('CLOUD_WEATHER_ISOBARS_KEY'));
  assert.ok(values.includes('writeCloudWeatherIsobars(enabled:boolean)'));
  assert.ok(exportCode.includes('cloudWeatherSvg(data,raster,places,geography.states,mode,selectedIsobars,selectedIsoheights,geography.countries)'));
@@ -53,7 +53,7 @@ try{
   [[48.7,7.2],[48.8,7.3]],
  ]}]};
  const original=JSON.stringify(split);
- for(const mode of ['pseudo','standard']){
+ for(const mode of ['pseudo']){
   const svg=e.cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],mode,split);
   const group=svg.match(/aria-label="DWD ICON-D2 MSLP Isobaren hPa">([\s\S]*?)<\/g>/)?.[1];
   assert.ok(group,'Matching pressure contours must remain present');
