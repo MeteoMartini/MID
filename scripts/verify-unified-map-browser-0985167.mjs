@@ -254,6 +254,25 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  failGdps=true;await page.getByLabel('Parameter-Layer').selectOption('sigwx');await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).waitFor();failGdps=false;const beforeRetry=requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length;await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click();await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')});assert.ok(requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length>beforeRetry,'Retry requests a fresh failed GDPS source');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);
  await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyAlphabeticalSelectors(page);
  await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('75 % Wolken'));if(width===390&&theme==='light'&&design==='next')await page.screenshot({path:'/tmp/mid-cloud-weather-390.png',fullPage:true});
+ // Check native-button popup activation in the real MapLibre provider. A bubbled
+ // keypress plus the button's synthesized click must not toggle the popup twice.
+ if(design==='next'&&((width===320&&theme==='light')||(width===390&&theme==='dark'))){
+  const previousView=await page.evaluate(()=>({center:window.__qaMap.getCenter().toArray(),zoom:window.__qaMap.getZoom()}));
+  const observations=page.getByRole('button',{name:'Beobachtungen an',exact:true}),restoreObservations=await observations.count()>0;
+  if(restoreObservations)await observations.click();
+  await page.evaluate(()=>window.__qaMap.jumpTo({center:[8.5,50],zoom:6}));
+  const marker=page.locator('.mid-synop-symbol-button').first();await marker.waitFor({state:'visible'});
+  const bounds=await marker.boundingBox();assert.ok(bounds.width>=44&&bounds.height>=44,'Modeled ww has a 44px touch target');
+  assert.match(await marker.getAttribute('aria-label'),/Modellcode ww 61/);
+  await marker.scrollIntoViewIfNeeded();await marker.click();
+  const popup=page.locator('.maplibregl-popup-content');await popup.waitFor();assert.match(await popup.innerText(),/icon-eu.*Lauf.*gültig.*Modellprognose, keine SYNOP-Meldung/);
+  for(const key of ['Enter','Space']){await page.locator('.maplibregl-popup-close-button').click();await marker.focus();await page.keyboard.press(key);await popup.waitFor();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));assert.equal(await popup.count(),1,key+' opens model provenance exactly once')}
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'Modeled ww popup has no horizontal overflow');
+  await page.screenshot({path:`/tmp/mid428-symbols-${width}-${theme}.png`,fullPage:true});
+  await page.locator('.maplibregl-popup-close-button').click();await page.evaluate(view=>window.__qaMap.jumpTo(view),previousView);
+  if(restoreObservations)await page.getByRole('button',{name:'Beobachtungen aus',exact:true}).click();
+ }
+
  await page.getByLabel('Parameter-Layer').selectOption('observed');await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('RADOLAN'));assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'radolan');
  assert.ok(await page.evaluate(()=>window.__qaRasterEncodes>0),'Native filled rasters were actually generated');assert.equal(await page.evaluate(()=>window.__qaDataImageFetches),0,'Native image decode avoids fetch before navigation resets the counter');
  await page.getByLabel('Modell-Deckkraft').fill('43');await measuredReload();await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('RADOLAN'));assert.equal(await page.getByLabel('Modell-Deckkraft').inputValue(),'43','Immediate reload preserves layer settings');

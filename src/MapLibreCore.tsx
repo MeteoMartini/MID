@@ -185,7 +185,16 @@ export function GeoJsonLayers({id,data,layers,hoverProperty,zIndex=0}:{id:string
  return null;
 }
 
-export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom',offset=[0,0],popupHtml,onClick,zIndex}:{latitude:number;longitude:number;html:string;className?:string;anchor?:maplibregl.PositionAnchor;offset?:[number,number];popupHtml?:string;onClick?:()=>void;zIndex?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const el=document.createElement('div');el.className=className;el.innerHTML=html;if(zIndex!==undefined)el.style.zIndex=String(zIndex);if(onClick)el.addEventListener('click',onClick);const marker=new maplibregl.Marker({element:el,anchor,offset}).setLngLat([longitude,latitude]);if(popupHtml)marker.setPopup(new maplibregl.Popup({offset:12,maxWidth:'330px',className:'mid-themed-popup'}).setHTML(popupHtml));marker.addTo(map);return()=>{if(onClick)el.removeEventListener('click',onClick);marker.remove()}},[map,latitude,longitude,html,className,anchor,offset[0],offset[1],popupHtml,onClick,zIndex]);return null}
+export function HtmlMarker({latitude,longitude,html,className='',anchor='bottom',offset=[0,0],popupHtml,onClick,zIndex}:{latitude:number;longitude:number;html:string;className?:string;anchor?:maplibregl.PositionAnchor;offset?:[number,number];popupHtml?:string;onClick?:()=>void;zIndex?:number}){const map=useMidMap();useEffect(()=>{if(!map)return;const el=document.createElement('div');el.className=className;el.innerHTML=html;
+ // Native buttons synthesize one click for Enter/Space. Prevent the same
+ // keypress from also reaching MapLibre's marker popup handler and toggling twice.
+ const buttons=el.querySelectorAll('button');
+ const nativeButtonKeypress=(event:KeyboardEvent)=>{if(popupHtml&&(event.code==='Enter'||event.code==='Space'))event.stopPropagation()};
+ for(const button of buttons)button.addEventListener('keypress',nativeButtonKeypress);
+ if(zIndex!==undefined)el.style.zIndex=String(zIndex);if(onClick)el.addEventListener('click',onClick);const marker=new maplibregl.Marker({element:el,anchor,offset}).setLngLat([longitude,latitude]);if(popupHtml)marker.setPopup(new maplibregl.Popup({offset:12,maxWidth:'330px',className:'mid-themed-popup'}).setHTML(popupHtml));marker.addTo(map);
+ const nativeButtonClick=(event:MouseEvent)=>{if(popupHtml&&event.detail===0&&event.target instanceof Element&&event.target.closest('button')){event.stopPropagation();marker.togglePopup()}};
+ el.addEventListener('click',nativeButtonClick);
+ return()=>{el.removeEventListener('click',nativeButtonClick);for(const button of buttons)button.removeEventListener('keypress',nativeButtonKeypress);if(onClick)el.removeEventListener('click',onClick);marker.remove()}},[map,latitude,longitude,html,className,anchor,offset[0],offset[1],popupHtml,onClick,zIndex]);return null}
 
 export function CanvasOverlay({id,opacity=1,zIndex=5,render,events=['moveend','zoomend','resize'] as const}:{id:string;opacity?:number;zIndex?:number;render:(map:MidMap,canvas:HTMLCanvasElement)=>void;events?:readonly ('moveend'|'zoomend'|'resize'|'render')[]}){
  const map=useMidMap(),canvasRef=useRef<HTMLCanvasElement|null>(null),renderRef=useRef(render),opacityRef=useRef(opacity);renderRef.current=render;opacityRef.current=opacity;
