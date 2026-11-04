@@ -1,0 +1,4 @@
+MID v0.9.85.423: sichtbare Niederschlagszeit = Slotbeginn; Roh-/Nowcast-Rechenkern bleibt endgestempelt.
+MID .353 precipitation: invalid epoch boundaries, true 15/60m, 1970 zero, DST and original WMO intensities passed.
+MID v0.9.85.423: Niederschlagsintensitäten/Tag-Nacht-Phasen und ganze Schneehöhen-cm appweit statisch geschützt.
+Detailansicht geprüft: Wettertext, Symbol, Diagrammpiktogramme und Niederschlagsfeld verwenden dieselbe Plausibilitätsprüfung; Legendenmuster erscheinen als Balken.

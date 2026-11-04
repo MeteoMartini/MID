@@ -1,0 +1,10 @@
+{"minutes":15,"amount":0.2,"code":61,"rate":0.8,"phase":"rain","intensity":"moderate","profile":"mäßiger Regen","skybar":"mäßiger Regen 0,2 mm · Regen/Sprühregen/Schauer · blau · mäßig · 0.8 mm/h · 0.2 mm/15 min"}
+{"minutes":60,"amount":0.2,"code":61,"rate":0.2,"phase":"rain","intensity":"light","profile":"leichter Regen","skybar":"leichter Regen 0,2 mm · Regen/Sprühregen/Schauer · blau · leicht · 0.2 mm/h"}
+{"minutes":180,"amount":1.2,"code":61,"rate":0.39999999999999997,"phase":"rain","intensity":"light","profile":"leichter Regen","skybar":"leichter Regen 1 mm · Regen/Sprühregen/Schauer · blau · leicht · 0.4 mm/h"}
+{"minutes":15,"amount":0.01,"code":82,"rate":0.04,"phase":"showers","intensity":"very-heavy","profile":"sehr starker Regenschauer","skybar":"sehr starker Regenschauer <0,1 mm · Regen/Sprühregen/Schauer · blau · sehr stark · WMO/DWD-Code 82"}
+{"minutes":60,"amount":0.01,"code":82,"rate":0.01,"phase":"showers","intensity":"very-heavy","profile":"sehr starker Regenschauer","skybar":"sehr starker Regenschauer <0,1 mm · Regen/Sprühregen/Schauer · blau · sehr stark · WMO/DWD-Code 82"}
+{"minutes":180,"amount":0.01,"code":82,"rate":0.0033333333333333335,"phase":"showers","intensity":"very-heavy","profile":"sehr starker Regenschauer","skybar":"sehr starker Regenschauer <0,1 mm · Regen/Sprühregen/Schauer · blau · sehr stark · WMO/DWD-Code 82"}
+{"minutes":15,"amount":0.2,"code":71,"rate":0.8,"phase":"snow","intensity":"moderate","profile":"mäßiger Schneefall","skybar":"mäßiger Schneefall 0,2 mm · ❄ 0,2 cm · Schnee/Graupel · hellblau · mäßig · 0.8 cm/h Schneezuwachs · 0.2 mm/15 min"}
+{"minutes":60,"amount":0.2,"code":68,"rate":0.2,"phase":"sleet","intensity":"light","profile":"leichter Schneeregen","skybar":"leichter Schneeregen 0,2 mm · ❄ 0,1 cm · Schneeregen / gemischter Niederschlag · violett · leicht · 0.2 mm/h"}
+{"minutes":15,"amount":0,"code":0,"rate":null,"phase":"none","intensity":"none","profile":"kein Niederschlag","skybar":null}
+PASS shared presentation/profile/Skybar parity: 15/60/180 min, convective peaks, snow/mixed phase, zero, Missing, raw provenance and immutable finalized inputs

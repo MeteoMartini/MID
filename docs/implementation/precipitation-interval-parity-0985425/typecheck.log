@@ -1,0 +1,12 @@
+> open-meteo-weather-dashboard@0.9.85.425 preverify:types
+> npm run maintain:aggregates
+
+
+> open-meteo-weather-dashboard@0.9.85.425 maintain:aggregates
+> node scripts/build-maintenance-aggregates.mjs
+
+Presentation CSS: 70 ordered sources; 1121 earlier identical declarations consolidated.
+Maintenance aggregates synchronized: styles 1281781 chars, weather 357922 chars, worker 889447 chars, direct outlook 65270 chars.
+
+> open-meteo-weather-dashboard@0.9.85.425 verify:types
+> tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json

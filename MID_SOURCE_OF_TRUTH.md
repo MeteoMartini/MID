@@ -1,3 +1,7 @@
+# MID v0.9.85.425 · Niederschlags-Intervallparität (unveröffentlichter Draft)
+
+Reproduzierter #523-Rest: 0,2 mm/15 min wurde im Profil-Detail mit impliziten 60 min als leicht statt bei 0,8 mm/h als mäßig eingeordnet. Gemeinsame Presentation-Proben tragen jetzt ihre tatsächlichen Slotgrenzen; der Cockpit-Detailhelper reicht die Probe samt Intervall durch. Keine neuen Schwellen, Änderungen an Mengen, Phasen-/WMO-Spitzenschutz, Warnungen oder Zeitzonenpfaden. Nachweise: docs/implementation/MID_PRECIPITATION_INTERVAL_PARITY_0.9.85.425.md. Keine Veröffentlichung.
+
 # MID v0.9.85.423 – Karten und 7-Tage-Vergleich
 
 Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.

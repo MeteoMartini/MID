@@ -1,3 +1,7 @@
+# MID v0.9.85.425
+
+Unveröffentlichter Entwurf: Niederschlagsdarstellungen behalten ihre tatsächlichen 15-/60-Minuten-Intervalle. Profil-Detail, Wettercode und Skybar verwenden dadurch dieselbe vorhandene Intensitätsberechnung. Mengen, Wetterphasen, Farben, Warnungen und Einstellungen bleiben erhalten.
+
 # MID v0.9.85.423 – Karten und 7-Tage-Vergleich
 
 Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.
