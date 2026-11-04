@@ -1,0 +1,1 @@
+PASS actual provider hourly/minutely/calendar/ensemble mappings: fixed UTC provenance, DST 23/25h, unique repeated-hour keys, half/quarter-hour offsets, missing coverage and immutable raw values

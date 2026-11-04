@@ -1,0 +1,8 @@
+{"zone":"Europe/Berlin","date":"2026-03-29","expectedDayHours":23,"actualComplete":true,"actualPrecipitation":23,"expectedPrecipitation":23,"memberCount":2,"epochs":"exact","noData":"excluded","fractionalGrid":"aligned"}
+{"zone":"Europe/Berlin","date":"2026-10-25","expectedDayHours":25,"actualComplete":true,"actualPrecipitation":25,"expectedPrecipitation":25,"memberCount":2,"epochs":"exact","noData":"excluded","fractionalGrid":"aligned"}
+{"zone":"UTC","date":"2026-03-29","expectedDayHours":24,"actualComplete":true,"actualPrecipitation":24,"expectedPrecipitation":24,"memberCount":2,"epochs":"exact","noData":"excluded","fractionalGrid":"aligned"}
+{"zone":"Asia/Kathmandu","date":"2026-03-29","expectedDayHours":24,"actualComplete":false,"actualPrecipitation":24,"expectedPrecipitation":24,"memberCount":2,"epochs":"exact","noData":"excluded","fractionalGrid":"conservatively incomplete"}
+{"zone":"Australia/Lord_Howe","date":"2026-10-04","expectedDayHours":23.5,"actualComplete":false,"actualPrecipitation":24,"expectedPrecipitation":24,"memberCount":2,"epochs":"exact","noData":"excluded","fractionalGrid":"conservatively incomplete"}
+{"zone":"Australia/Lord_Howe","date":"2026-04-05","expectedDayHours":24.5,"actualComplete":false,"actualPrecipitation":24,"expectedPrecipitation":24,"memberCount":2,"epochs":"exact","noData":"excluded","fractionalGrid":"conservatively incomplete"}
+PASS actual proxy request/ingest, missing destination metadata fails closed, derived cache bound to destination zone
+PASS ensemble target-zone ingest: UTC instants, source provenance, 23/25h Berlin, Lord Howe 23.5/24.5h, Kathmandu, local events and NoData
