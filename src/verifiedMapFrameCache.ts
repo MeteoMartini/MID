@@ -20,8 +20,8 @@ function remember(key:string,bytes:ArrayBuffer,at:number){
  while(ram.size>MAX_ITEMS||total>MID_MAP_CACHE_MAX_BYTES){const first=ram.entries().next().value;if(!first)break;total-=first[1].bytes.byteLength;ram.delete(first[0])}
 }
 async function boundedBytes(response:Response,size:number,signal?:AbortSignal){
- const declared=response.headers.get('content-length');
- if(declared!==null&&(!/^\d+$/.test(declared)||Number(declared)!==size))throw new Error('Modellfeldlänge abweichend; Prüfsumme ungültig.');
+ // Fetch may transparently decode HTTP Content-Encoding; Content-Length is
+ // the wire length, not this stream's length. Bound and count actual body bytes.
  if(!response.body)throw new Error('Modellfeld unvollständig; Prüfsumme ungültig.');
  const reader=response.body.getReader(),chunks:Uint8Array[]=[];let count=0;
  try{while(true){if(signal?.aborted)throw signal.reason;const next=await reader.read();if(next.done)break;count+=next.value.byteLength;if(count>size)throw new Error('Modellfeld überschreitet die geprüfte Größe; Prüfsumme ungültig.');chunks.push(next.value)}}catch(error){await reader.cancel().catch(()=>undefined);throw error}finally{reader.releaseLock()}
@@ -88,8 +88,8 @@ async function readVerifiedMapFrameBytes(path:string,expectedSha256:string,expec
  if(signal?.aborted)throw signal.reason??new Error('Aborted');
  const response=await fetch(url.toString(),{signal,cache:'default',redirect:'error'});
  if(!response.ok)throw new Error('Geprüftes Modellfeld nicht verfügbar.');
- const declared=response.headers.get('content-length');
- if(declared!==null&&(!/^\d+$/.test(declared)||Number(declared)!==expectedBytes))throw new Error('Modellfeldlänge abweichend; Prüfsumme ungültig.');
+ // Fetch may transparently decode HTTP Content-Encoding; Content-Length is
+ // the wire length, not this stream's length. Bound and count actual body bytes.
  const data=await boundedBytes(response,expectedBytes,signal);
  if(!await checkBytes(data,sha,expectedBytes))throw new Error('Modellfeld-Prüfsumme ungültig.');
  if(signal?.aborted)throw signal.reason??new Error('Aborted');
@@ -106,6 +106,7 @@ export async function fetchVerifiedMapFrameBytes(path:string,sha:string,size:num
  if(!isSha(sha)||!Number.isInteger(size)||size<1||size>MAX_ITEM_BYTES)throw new Error('Untrusted map-frame hash/size');
  if(signal?.aborted)throw signal.reason??new DOMException('Aborted','AbortError');
  const key=keyFor(url,sha)+':'+size;let task=pending.get(key);
+ if(task?.controller.signal.aborted){if(pending.get(key)===task)pending.delete(key);task=undefined}
  if(!task){
   if(pending.size>=MAX_ITEMS)throw new Error('Zu viele gleichzeitige Modellfeldabrufe.');
   const controller=new AbortController();task={controller,users:0,promise:readVerifiedMapFrameBytes(path,sha,size,controller.signal)};
@@ -114,7 +115,7 @@ export async function fetchVerifiedMapFrameBytes(path:string,sha:string,size:num
  const current=task;current.users++;
  return new Promise<ArrayBuffer>((resolve,reject)=>{
   let done=false;
-  const finish=()=>{if(done)return false;done=true;signal?.removeEventListener('abort',abort);current.users--;if(!current.users)current.controller.abort();return true};
+  const finish=()=>{if(done)return false;done=true;signal?.removeEventListener('abort',abort);current.users--;if(!current.users){if(pending.get(key)===current)pending.delete(key);current.controller.abort();}return true};
   const abort=()=>{if(finish())reject(signal?.reason??new DOMException('Aborted','AbortError'))};
   signal?.addEventListener('abort',abort,{once:true});
   current.promise.then(bytes=>{if(finish())resolve(bytes.slice(0))},error=>{if(finish())reject(error)});

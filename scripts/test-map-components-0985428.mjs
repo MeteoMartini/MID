@@ -68,3 +68,5 @@ try{
  for(const [path,expected] of Object.entries({'src/synopPrecipitationSymbols.ts':'a6cf1869f801dd03209aba5d6fafc24a4456e035','src/RadarModelPrecipTypeOverlay.tsx':'51c7b3a463ed963b0c0706e857bd4a7bb5e63060','scripts/test-synop-precipitation-symbols-0985337.mjs':'bcd620bb09734c606fee9478d8d3d8ef3ea728b1'})){const bytes=readFileSync('docs/handoffs/PR480_originals/'+path);assert.equal(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${bytes.length}\0`),bytes])).digest('hex'),expected,'Historic PR480 original changed: '+path)}check();
  console.log(`MID .428: ${cases} cache/pointer/run/NoData/glyph/contour/export cases passed. No native data activation or physical-device proof.`);
 }finally{Object.assign(globalThis,saved);rmSync(dir,{recursive:true,force:true})}
+
+await import('./test-map-cache-lifecycle-0985428.mjs');
