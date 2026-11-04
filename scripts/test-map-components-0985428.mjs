@@ -7,9 +7,9 @@ import {createHash} from 'node:crypto';
 const dir=mkdtempSync(join(process.cwd(),'.mid428-'));
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const saved={fetch:globalThis.fetch,caches:globalThis.caches,location:globalThis.location};
-const entries=new Map(),key=r=>typeof r==='string'?r:r.url;
+let denyEviction=false;const entries=new Map(),key=r=>typeof r==='string'?r:r.url;
 globalThis.location=new URL('https://www.midwx.app/');
-globalThis.caches={open:async()=>({match:async r=>entries.get(key(r))?.clone(),put:async(r,v)=>{entries.set(key(r),v.clone())},delete:async r=>entries.delete(key(r)),keys:async()=>[...entries.keys()].map(r=>new Request(r))}),delete:async()=>{entries.clear();return true}};
+globalThis.caches={open:async()=>({match:async r=>entries.get(key(r))?.clone(),put:async(r,v)=>{entries.set(key(r),v.clone())},delete:async r=>denyEviction?false:entries.delete(key(r)),keys:async()=>[...entries.keys()].map(r=>new Request(r))}),delete:async()=>{entries.clear();return true}};
 let cases=0;const check=()=>cases++;
 try{
  const originalRoot='docs/handoffs/MID_18_2_73_originals/',manifest=JSON.parse(readFileSync(originalRoot+'manifest.json','utf8'));
@@ -35,6 +35,9 @@ try{
  for(let i=0;i<4;i++)await c.fetchVerifiedMapFrameBytes(`/ruc/runs/2026110406/model-fields/t-${i}.bin`,sha(large),large.length);
  assert.ok([...entries.values()].reduce((sum,r)=>sum+Number(r.headers.get('content-length')),0)<=c.MID_MAP_CACHE_MAX_BYTES);
  await c.fetchVerifiedMapFrameBytes('/ruc/runs/2026110406/model-fields/t-0.bin',sha(large),large.length);assert.equal(calls,5,'Both RAM and disk must evict beyond the 24 MiB byte budget');check();
+ await c.clearVerifiedMapFrameCache();calls=0;denyEviction=true;
+ for(let i=0;i<4;i++)await c.fetchVerifiedMapFrameBytes(`/ruc/runs/2026110406/model-fields/deny-${i}.bin`,sha(large),large.length);
+ assert.equal(entries.size,0,'If eviction is denied, drop only the verified persistent field cache instead of retaining overbudget bytes');denyEviction=false;check();
  await c.clearVerifiedMapFrameCache();calls=0;
  let complete;globalThis.fetch=async()=>{calls++;await new Promise(resolve=>{complete=resolve});return new Response(body)};
  const cancel=new AbortController(),first=c.fetchVerifiedMapFrameBytes(p,sha(body),body.length,cancel.signal),second=c.fetchVerifiedMapFrameBytes(p,sha(body),body.length);

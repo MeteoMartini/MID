@@ -8,3 +8,7 @@
 - This is a **release candidate only**. Actual browser matrix, keyboard/focus, Light/Dark, first-tap, iOS/VoiceOver and release gating must be evidenced separately. Browser checks alone are not real-device signoff.
 - No DWD source/official warning logic or RUC/Worker data semantics are changed.
 - Mandatory Source-PR Gate → controlled SHA merge → server ZIP → `install-mid.yml` → Worker/Pages → Stable promotion. No manual merge.
+
+## Zusatzsicherung für den unveränderten Cache-Vertrag
+
+Ein Source-PR-Gate auf dem vorherigen Head meldete sporadisch 32 MiB statt maximal 24 MiB im simulierten CacheStorage. Der Test und Cache waren unverändert gegenüber Stable .428. Die Ursache der sporadischen Runtime-Episode ist nicht abschließend bewiesen. Zusätzlich werden fehlgeschlagene persistente Verdrängungen jetzt explizit erkannt; nach einer fehlgeschlagenen CacheStorage-Schreib-/Evictionsequenz wird ausschließlich der optionale geprüfte RUC-Feldcache gelöscht, statt möglicherweise überzählige Felder zu behalten. RAM/Manifest-/SHA-/Zeitprüfungen bleiben unverändert. Der neue deterministische Negativfall simuliert verweigerte Löschung und prüft den fail-closed-Cache-Fallback. Kein höheres Budget oder geschwächte Regression.
