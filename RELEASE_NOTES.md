@@ -1,3 +1,7 @@
+# MID v0.9.85.424 · Ortszeit für Regionalensembles
+
+Regionalensemble-Prognosen werden nach dem verifizierten Kalender des Zielorts ausgewertet. Die Tagesmengen berücksichtigen Zeitumstellungen mit 23 bzw. 25 Stunden. Die ursprünglichen UTC-Zeitpunkte und die Datenherkunft bleiben nachvollziehbar. Abgeleitete Caches berücksichtigen die Zielzeitzone.
+
 # MID v0.9.85.423 – Karten und 7-Tage-Vergleich
 
 Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.

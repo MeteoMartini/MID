@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.423",
+  "releaseVersion": "0.9.85.424",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -227,6 +227,8 @@
     "scripts/test-design-2-0-1-today-098543.mjs",
     "scripts/test-design-a3-precipitation-integrity-0985387.mjs",
     "scripts/test-design-readability-3-098476.mjs",
+    "scripts/test-design-we-forecast-modes-0985414.mjs",
+    "scripts/test-design-we-today-compact-0985412.mjs",
     "scripts/test-designaudit19-render-confidence-navigation-0985409.mjs",
     "scripts/test-detail-parameters.mjs",
     "scripts/test-detail-pictogram-precipitation.mjs",
@@ -308,6 +310,7 @@
     "scripts/test-ensemble-resume-refresh-097619.mjs",
     "scripts/test-ensemble-runtime-aviation-source-08265.mjs",
     "scripts/test-ensemble-sunshine-tooltip-offset-08332.mjs",
+    "scripts/test-ensemble-target-zone-0985424.mjs",
     "scripts/test-ensemble-temp-axis-08276.mjs",
     "scripts/test-ensemble-temp-layout-08278.mjs",
     "scripts/test-ensemble-temperature-axis-titles-071082.mjs",
@@ -407,6 +410,7 @@
     "scripts/test-forecast-compass-secure-range-082713.mjs",
     "scripts/test-forecast-confidence-layout-090505.mjs",
     "scripts/test-forecast-consistency-contract-095326.mjs",
+    "scripts/test-forecast-design-visibility-0985415.mjs",
     "scripts/test-forecast-desktop-layout-071052.mjs",
     "scripts/test-forecast-display-persistence-0985166.mjs",
     "scripts/test-forecast-entry-consistency-098430.mjs",
@@ -1004,6 +1008,7 @@
     "scripts/test-warning-hybrid-uncertainty-097849.mjs",
     "scripts/test-warning-point-geometry-0985292.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
+    "scripts/test-warning-snow-horizon-coherence-0985417.mjs",
     "scripts/test-warning-text-warm-phase-model-coverage-09645.mjs",
     "scripts/test-warning-ui-07822.mjs",
     "scripts/test-warning-wind-stage-presentation-097856.mjs",
@@ -1074,11 +1079,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-design-we-today-compact-0985412.mjs",
-    "scripts/test-design-we-forecast-modes-0985414.mjs",
-    "scripts/test-forecast-design-visibility-0985415.mjs",
-    "scripts/test-warning-snow-horizon-coherence-0985417.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1295,6 +1296,8 @@
     "scripts/test-design-2-0-1-today-098543.mjs",
     "scripts/test-design-a3-precipitation-integrity-0985387.mjs",
     "scripts/test-design-readability-3-098476.mjs",
+    "scripts/test-design-we-forecast-modes-0985414.mjs",
+    "scripts/test-design-we-today-compact-0985412.mjs",
     "scripts/test-designaudit19-render-confidence-navigation-0985409.mjs",
     "scripts/test-detail-parameters.mjs",
     "scripts/test-detail-pictogram-precipitation.mjs",
@@ -1376,6 +1379,7 @@
     "scripts/test-ensemble-resume-refresh-097619.mjs",
     "scripts/test-ensemble-runtime-aviation-source-08265.mjs",
     "scripts/test-ensemble-sunshine-tooltip-offset-08332.mjs",
+    "scripts/test-ensemble-target-zone-0985424.mjs",
     "scripts/test-ensemble-temp-axis-08276.mjs",
     "scripts/test-ensemble-temp-layout-08278.mjs",
     "scripts/test-ensemble-temperature-axis-titles-071082.mjs",
@@ -1475,6 +1479,7 @@
     "scripts/test-forecast-compass-secure-range-082713.mjs",
     "scripts/test-forecast-confidence-layout-090505.mjs",
     "scripts/test-forecast-consistency-contract-095326.mjs",
+    "scripts/test-forecast-design-visibility-0985415.mjs",
     "scripts/test-forecast-desktop-layout-071052.mjs",
     "scripts/test-forecast-display-persistence-0985166.mjs",
     "scripts/test-forecast-entry-consistency-098430.mjs",
@@ -2072,6 +2077,7 @@
     "scripts/test-warning-hybrid-uncertainty-097849.mjs",
     "scripts/test-warning-point-geometry-0985292.mjs",
     "scripts/test-warning-probabilistic-hour-fields-buildfix-097852.mjs",
+    "scripts/test-warning-snow-horizon-coherence-0985417.mjs",
     "scripts/test-warning-text-warm-phase-model-coverage-09645.mjs",
     "scripts/test-warning-ui-07822.mjs",
     "scripts/test-warning-wind-stage-presentation-097856.mjs",
@@ -2142,11 +2148,7 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs",
-    "scripts/test-design-we-today-compact-0985412.mjs",
-    "scripts/test-design-we-forecast-modes-0985414.mjs",
-    "scripts/test-forecast-design-visibility-0985415.mjs",
-    "scripts/test-warning-snow-horizon-coherence-0985417.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -3872,7 +3874,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.423",
+  "version": "0.9.85.424",
   "updatedAt": "2026-11-03",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
