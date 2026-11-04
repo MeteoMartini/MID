@@ -88,3 +88,5 @@ const registryUrl=new URL('../contracts/index.json',import.meta.url);
 const registry=JSON.parse(await readFile(registryUrl,'utf8'));
 registry.releaseVersion=version;
 await writeFile(registryUrl,JSON.stringify(registry,null,2)+'\n');
+
+await (await import('./brand-shell-groups.mjs')).syncBrandGroups();

@@ -1,5 +1,6 @@
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {gzipSync,brotliCompressSync,constants} from 'node:zlib';
 import {initialCssAssetStats} from './lib/initialCssBudget.mjs';
 
@@ -14,7 +15,7 @@ const assets=[];
 for(const file of files){
   const data=await readFile(file);
   const extension=path.extname(file).toLowerCase();
-  assets.push({file:path.relative(root,file),bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,brotliBytes:extension==='.css'?brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).length:undefined,extension});
+  assets.push({file:path.relative(root,file),bytes:data.length,gzipBytes:gzipSync(data,{level:9}).length,brotliBytes:extension==='.css'?brotliCompressSync(data,{params:{[constants.BROTLI_PARAM_QUALITY]:6}}).length:undefined,extension,sha256:createHash('sha256').update(data).digest('hex'),category:COMPRESSIBLE_EXTENSIONS.has(extension)?'compressible':STATIC_MEDIA_EXTENSIONS.has(extension)?'static-media':'other'});
 }
 const js=assets.filter(x=>x.extension==='.js');
 const css=assets.filter(x=>x.extension==='.css');
@@ -38,7 +39,7 @@ const totals={
 const failures=[];
 for(const [key,limit] of Object.entries(baseline.limits||{}))if(Number.isFinite(limit)&&totals[key]>limit)failures.push(`${key}: ${totals[key]} > ${limit}`);
 await mkdir('artifacts',{recursive:true});
-await writeFile('artifacts/build-budget.json',JSON.stringify({schema:2,ok:!failures.length,totals,initialCssAssets:initialCss.entries,definitions:baseline.metricDefinitions||{},failures},null,2)+'\n');
+await writeFile('artifacts/build-budget.json',JSON.stringify({schema:2,ok:!failures.length,totals,initialCssAssets:initialCss.entries,definitions:baseline.metricDefinitions||{},assets:[...assets].sort((a,b)=>b.gzipBytes-a.gzipBytes||a.file.localeCompare(b.file)),failures},null,2)+'\n');
 if(failures.length){console.error(failures.join('\n'));process.exit(1)}
 console.log(`Build-Budget bestanden: ${totals.assetCount} Dateien · Code/Text gzip ${totals.compressibleGzipBytes} B · statische Medien ${totals.staticMediaBytes} B.`);
 console.log(`Initiales CSS aus gebautem HTML: ${initialCss.entries.length} Datei(en) · ${initialCss.bytes} B roh · ${initialCss.gzipBytes} B gzip-9 · ${initialCss.brotliBytes} B Brotli-6. Kein gemessener Netztransfer oder CSS-Parse-Zeitwert.`);

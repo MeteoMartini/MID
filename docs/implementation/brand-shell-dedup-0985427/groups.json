@@ -1,0 +1,43 @@
+[
+  {
+    "urls": [
+      "mid-icon-512.png",
+      "mid-icon-dark-512.png",
+      "mid-logo.png"
+    ],
+    "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f",
+    "bytes": 219692
+  },
+  {
+    "urls": [
+      "mid-logo-light-compact.png",
+      "mid-logo-light.png"
+    ],
+    "sha256": "ee5fac75b5361b2de7ad259188fd0b18fd10ede7206e98831d4ca872f12e9776",
+    "bytes": 211909
+  },
+  {
+    "urls": [
+      "mid-logo-dark-compact.png",
+      "mid-logo-dark.png"
+    ],
+    "sha256": "19ac686fc52471495151e4be99cf226f1b1277c4415960d52a98d3898d67a661",
+    "bytes": 211440
+  },
+  {
+    "urls": [
+      "mid-icon-192.png",
+      "mid-icon-dark-192.png"
+    ],
+    "sha256": "23188837330ec91cfaed0ffe15d4f281865725754c02afc2f39620160999a326",
+    "bytes": 37227
+  },
+  {
+    "urls": [
+      "mid-icon-180.png",
+      "mid-icon-dark-180.png"
+    ],
+    "sha256": "80edcb7c7b2d3af64ab94ba63ef9542429ecb82ad03c4ee2b648dbc0e34fe651",
+    "bytes": 33431
+  }
+]

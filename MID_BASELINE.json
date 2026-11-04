@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.425",
+  "releaseVersion": "0.9.85.427",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -516,6 +516,7 @@
     "scripts/test-logo-cloud-profile-09739.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
     "scripts/test-logo-theme-assets-09748.mjs",
+    "scripts/test-brand-shell-groups-0985427.mjs",
     "scripts/test-long-range-grid-ensemble-colors-09332.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
     "scripts/test-long-range-release-resilience-09341.mjs",
@@ -1080,7 +1081,9 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "documentation": "MID_SOURCE_OF_TRUTH.md",
   "regressionTests": [
@@ -1586,6 +1589,7 @@
     "scripts/test-logo-cloud-profile-09739.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
     "scripts/test-logo-theme-assets-09748.mjs",
+    "scripts/test-brand-shell-groups-0985427.mjs",
     "scripts/test-long-range-grid-ensemble-colors-09332.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
     "scripts/test-long-range-release-resilience-09341.mjs",
@@ -2150,7 +2154,9 @@
     "scripts/test-worker-live-fallbacks.mjs",
     "scripts/test-worker-precipitation-character-0960.mjs",
     "scripts/test-www-proxy-dns-token-0985185.mjs",
-    "scripts/test-www-proxy-hotfix-0985184.mjs"
+    "scripts/test-www-proxy-hotfix-0985184.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "requiredFiles": [
     ".github/workflows/chatgpt-pr-gate.yml",
@@ -2757,6 +2763,7 @@
     "scripts/test-logo-cloud-profile-09739.mjs",
     "scripts/test-logo-png-integrity-09749.mjs",
     "scripts/test-logo-theme-assets-09748.mjs",
+    "scripts/test-brand-shell-groups-0985427.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs",
     "scripts/test-maintenance-modularization-09560.mjs",
@@ -3139,7 +3146,9 @@
     "tests/unit/designWeFourteenRender.test.ts",
     "tests/unit/designWeSevenModes.test.ts",
     "scripts/test-forecast-design-visibility-0985415.mjs",
-    "scripts/test-warning-snow-horizon-coherence-0985417.mjs"
+    "scripts/test-warning-snow-horizon-coherence-0985417.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3405,6 +3414,7 @@
     "scripts/test-knmi-eps-worker-binding-097719.mjs",
     "scripts/test-knmi-workflow-consolidation-0985127.mjs",
     "scripts/test-logo-theme-assets-09748.mjs",
+    "scripts/test-brand-shell-groups-0985427.mjs",
     "scripts/test-long-range-model-sources-09774.mjs",
     "scripts/test-maintenance-cleanup-097828.mjs",
     "scripts/test-maintenance-safe-loading-0985168.mjs",
@@ -3516,7 +3526,9 @@
     "scripts/verify-paired-verification-browser-0985311.mjs",
     "scripts/test-hour-window-formatter-0985327.mjs",
     "docs/implementation/MID_C43_FRAMEWORK_MAP_0.9.85.332.md",
-    "scripts/test-native-plugin-patches-0985362.mjs"
+    "scripts/test-native-plugin-patches-0985362.mjs",
+    "scripts/test-budget-file-evidence-0985426.mjs",
+    "scripts/test-brand-activation-navigation-0985427.mjs"
   ],
   "sourceFiles": [
     "MID_IMPLEMENTATION_0.9.69.5.md",
@@ -3876,7 +3888,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.425",
+  "version": "0.9.85.427",
   "updatedAt": "2026-11-03",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

@@ -1,9 +1,10 @@
-const CACHE='mid-shell-v0.9.85.425';
+const CACHE='mid-shell-v0.9.85.427';
 const VERSION=CACHE.replace('mid-shell-v','');
 const CACHE_PREFIX='mid-shell-v';
 const META_CACHE='mid-system-meta-v1';
 const META_URL=new URL('./__mid_system_meta__.json',self.registration.scope).toString();
 const CORE=['./','./index.html','./manifest.webmanifest','./version.json','./mid-logo.png','./mid-logo-dark.png','./mid-logo-light.png','./mid-logo-dark-compact.png','./mid-logo-light-compact.png','./mid-logo-dark-horizontal.png','./mid-logo-light-horizontal.png','./mid-favicon-dark-64.png','./mid-favicon-light-64.png','./mid-icon-180.png','./mid-icon-192.png','./mid-icon-512.png','./mid-icon-dark-180.png','./mid-icon-dark-192.png','./mid-icon-dark-512.png','./mid-icon-light-180.png','./mid-icon-light-192.png','./mid-icon-light-512.png'];
+const BRAND_SHELL_GROUPS=[{"urls":["mid-icon-512.png","mid-icon-dark-512.png","mid-logo.png"],"sha256":"4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f","bytes":219692},{"urls":["mid-logo-light-compact.png","mid-logo-light.png"],"sha256":"ee5fac75b5361b2de7ad259188fd0b18fd10ede7206e98831d4ca872f12e9776","bytes":211909},{"urls":["mid-logo-dark-compact.png","mid-logo-dark.png"],"sha256":"19ac686fc52471495151e4be99cf226f1b1277c4415960d52a98d3898d67a661","bytes":211440},{"urls":["mid-icon-192.png","mid-icon-dark-192.png"],"sha256":"23188837330ec91cfaed0ffe15d4f281865725754c02afc2f39620160999a326","bytes":37227},{"urls":["mid-icon-180.png","mid-icon-dark-180.png"],"sha256":"80edcb7c7b2d3af64ab94ba63ef9542429ecb82ad03c4ee2b648dbc0e34fe651","bytes":33431}];
 let activeCacheMemo='';
 
 function versionFromCache(name){return name.startsWith(CACHE_PREFIX)?name.slice(CACHE_PREFIX.length):''}
@@ -18,7 +19,21 @@ function dynamicNetworkRequest(url){const mode=String(url.searchParams.get('mode
 function runtimeShellAsset(request,url){if(['script','style','font'].includes(request.destination))return true;if(request.destination==='image'&&!url.search&&/\.(?:png|jpe?g|webp|gif|svg|ico)$/i.test(url.pathname))return true;return false}
 async function purgeDynamicCacheEntries(){const names=await shellCaches();await Promise.all(names.map(async name=>{const cache=await caches.open(name),requests=await cache.keys();await Promise.all(requests.filter(request=>{try{return dynamicNetworkRequest(new URL(request.url))}catch{return false}}).map(request=>cache.delete(request))) }))}
 async function fetchAsset(url){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new DOMException('Zeitlimit beim Laden der MID-App-Shell.','TimeoutError')),15000);try{const response=await fetch(url,{signal:controller.signal,cache:'no-store',redirect:'follow'});if(!response.ok)throw new Error(`${new URL(url).pathname}: HTTP ${response.status}`);const destination=new URL(url).pathname;if(/\.(?:js|mjs|css)$/i.test(destination)){const type=response.headers.get('content-type')||'';if(type.includes('text/html'))throw new Error(`${destination}: unerwartete HTML-Antwort`)}return response}finally{clearTimeout(timer)}}
-async function cacheAssetsConcurrently(cache,urls,limit=4){let index=0;const queue=[...urls],workers=Array.from({length:Math.min(Math.max(1,limit),queue.length)},async()=>{while(index<queue.length){const url=queue[index++],response=await fetchAsset(url);await cache.put(url,response)}});const results=await Promise.allSettled(workers);const failure=results.find(result=>result.status==='rejected');if(failure)throw failure.reason}
+async function cacheAssetsConcurrently(cache,urls,limit=4){let index=0;const queue=[...urls],shared=new Map();
+ const load=url=>{
+  const group=BRAND_SHELL_GROUPS.find(group=>group.urls.some(name=>new URL('./'+name,self.registration.scope).toString()===url));
+  if(!group)return fetchAsset(url);
+  const canonical=new URL('./'+group.urls[0],self.registration.scope).toString();
+  if(!shared.has(canonical))shared.set(canonical,(async()=>{
+   const response=await fetchAsset(canonical),bytes=await response.arrayBuffer();
+   const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+   if(bytes.byteLength!==group.bytes||digest!==group.sha256)throw new Error('MID-Markenasset stimmt nicht mit dem Build überein.');
+   const headers=new Headers(response.headers);headers.delete('content-encoding');headers.set('content-length',String(bytes.byteLength));
+   return new Response(bytes,{status:response.status,statusText:response.statusText,headers});
+  })());
+  return shared.get(canonical).then(response=>response.clone());
+ };
+ const workers=Array.from({length:Math.min(Math.max(1,limit),queue.length)},async()=>{while(index<queue.length){const url=queue[index++],response=await load(url);await cache.put(url,response)}});const results=await Promise.allSettled(workers);const failure=results.find(result=>result.status==='rejected');if(failure)throw failure.reason}
 async function fetchRuntimeWithTimeout(request,init={},timeoutMs=8000){const controller=new AbortController(),parent=request?.signal,abort=()=>controller.abort(parent?.reason),timer=setTimeout(()=>controller.abort(new DOMException('MID-Netzwerkabruf hat das Zeitlimit überschritten.','TimeoutError')),timeoutMs);if(parent?.aborted)abort();else parent?.addEventListener?.('abort',abort,{once:true});try{return await fetch(request,{...init,signal:controller.signal})}finally{clearTimeout(timer);parent?.removeEventListener?.('abort',abort)}}
 async function cacheShell(cacheName=CACHE){
  const cache=await caches.open(cacheName);
@@ -35,7 +50,9 @@ async function cacheShell(cacheName=CACHE){
 }
 async function activeCacheName(){if(activeCacheMemo&&await caches.has(activeCacheMemo))return activeCacheMemo;const meta=await readMeta(),names=await shellCaches(),candidate=String(meta.activeCache||'');activeCacheMemo=candidate&&names.includes(candidate)?candidate:(names.includes(CACHE)?CACHE:names[0]||CACHE);return activeCacheMemo}
 async function cleanupShellCaches(meta){const names=await shellCaches(),keep=new Set([CACHE,String(meta.activeCache||''),String(meta.previousCache||''),...names.slice(0,2)].filter(Boolean));await Promise.all(names.filter(name=>!keep.has(name)).map(name=>caches.delete(name)))}
-async function navigateClientsForUpdate(){const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});await Promise.all(windows.map(async client=>{try{const url=new URL(client.url);url.searchParams.set('mid-retry',VERSION);url.searchParams.set('_mid_reload',String(Date.now()));await client.navigate(url.toString())}catch{}}))}
+// Submit navigations before activate completes, but never await their responses:
+// a navigation handled by this worker waits for activation and would deadlock it.
+async function navigateClientsForUpdate(){const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){try{const url=new URL(client.url);url.searchParams.set('mid-retry',VERSION);url.searchParams.set('_mid_reload',String(Date.now()));void client.navigate(url.toString()).catch(()=>{})}catch{}}}
 async function prepareUpdate(){const meta=await readMeta(),names=await shellCaches(),metaActive=String(meta.activeCache||''),currentActive=names.includes(metaActive)?metaActive:names.find(name=>name!==CACHE)||metaActive,previous=currentActive&&currentActive!==CACHE?currentActive:String(meta.previousCache||'');const next={...meta,activeCache:currentActive||metaActive,previousCache:previous,mode:'updating',pending:{targetVersion:VERSION,previousCache:previous,startedAt:Date.now()}};await writeMeta(next);return next}
 async function useCurrentCache(){const cache=await caches.open(CACHE),marker=await cache.match(new URL('./__mid_shell_valid__.json',self.registration.scope).toString());if(!marker||(await marker.json()).version!==VERSION)throw new Error('Die neue Version ist noch nicht vollständig geprüft. Bitte Update erneut laden.');const pending=await prepareUpdate(),next={...pending,workerVersion:VERSION,activeCache:CACHE,mode:'updating'};await writeMeta(next);return next}
 async function setHealthy(version){const meta=await readMeta();if(version&&version!==VERSION)return meta;const next={...meta,workerVersion:VERSION,activeCache:CACHE,mode:'normal',pending:null,healthyVersion:VERSION,healthyAt:Date.now()};await writeMeta(next);await cleanupShellCaches(next);return next}

@@ -1,0 +1,255 @@
+{
+  "oldVersion": "0.9.85.425",
+  "version": "0.9.85.427",
+  "install": {
+    "events": [
+      "installing",
+      "installing",
+      "installed",
+      "installed",
+      "activating",
+      "activating",
+      "controllerchange",
+      "activated",
+      "activated"
+    ],
+    "active": "activated",
+    "waiting": false
+  },
+  "update": {
+    "events": [
+      "updatefound:installing",
+      "installed"
+    ],
+    "workerState": "installed",
+    "waiting": "installed",
+    "oldCache": true
+  },
+  "activation": [
+    "activating",
+    "controllerchange",
+    "activated",
+    "activated"
+  ],
+  "damaged": {
+    "events": [
+      "updatefound",
+      "redundant"
+    ],
+    "waiting": false,
+    "oldCache": true
+  },
+  "transfers": [
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo.png",
+      "bytes": 219692
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo-dark.png",
+      "bytes": 211440
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo-light.png",
+      "bytes": 211909
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo-dark-compact.png",
+      "bytes": 211440
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo-light-compact.png",
+      "bytes": 211909
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo-dark-horizontal.png",
+      "bytes": 1268989
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-logo-light-horizontal.png",
+      "bytes": 674170
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-favicon-dark-64.png",
+      "bytes": 7180
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-favicon-light-64.png",
+      "bytes": 7543
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-180.png",
+      "bytes": 33431
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-192.png",
+      "bytes": 37227
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-512.png",
+      "bytes": 219692
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-dark-180.png",
+      "bytes": 33431
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-dark-192.png",
+      "bytes": 37227
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-dark-512.png",
+      "bytes": 219692
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-light-180.png",
+      "bytes": 34482
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-light-192.png",
+      "bytes": 38644
+    },
+    {
+      "version": "0.9.85.425",
+      "path": "/mid-icon-light-512.png",
+      "bytes": 236138
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-icon-512.png",
+      "bytes": 219692
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-logo-dark-compact.png",
+      "bytes": 211440
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-logo-light-compact.png",
+      "bytes": 211909
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-logo-dark-horizontal.png",
+      "bytes": 1268989
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-logo-light-horizontal.png",
+      "bytes": 674170
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-favicon-dark-64.png",
+      "bytes": 7180
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-favicon-light-64.png",
+      "bytes": 7543
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-icon-180.png",
+      "bytes": 33431
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-icon-192.png",
+      "bytes": 37227
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-icon-light-180.png",
+      "bytes": 34482
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-icon-light-192.png",
+      "bytes": 38644
+    },
+    {
+      "version": "0.9.85.427",
+      "path": "/mid-icon-light-512.png",
+      "bytes": 236138
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-icon-512.png",
+      "bytes": 26
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-logo-dark-compact.png",
+      "bytes": 211440
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-logo-light-compact.png",
+      "bytes": 211909
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-logo-dark-horizontal.png",
+      "bytes": 1268989
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-logo-light-horizontal.png",
+      "bytes": 674170
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-favicon-dark-64.png",
+      "bytes": 7180
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-favicon-light-64.png",
+      "bytes": 7543
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-icon-180.png",
+      "bytes": 33431
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-icon-192.png",
+      "bytes": 37227
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-icon-light-180.png",
+      "bytes": 34482
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-icon-light-192.png",
+      "bytes": 38644
+    },
+    {
+      "version": "0.9.85.427.bad",
+      "path": "/mid-icon-light-512.png",
+      "bytes": 236138
+    }
+  ],
+  "checks": "real registration/updatefound/installing/installed/waiting/activating/activated/controllerchange; healthy shell; offline themes/aliases; rollback; corrupt registration update rejected; no seeded caches"
+}

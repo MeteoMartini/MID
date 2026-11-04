@@ -24,7 +24,7 @@ const server=createServer((req,res)=>{const url=new URL(req.url,'http://localhos
  if(url.pathname==='/ruc/'+entry.rawKey)return res.end(raw);
  if(url.pathname==='/ruc/'+entry.key)return res.end(wire);
  if(url.pathname==='/api/mid-worker'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({hourly:{temperature_2m:[10,null,-2.5,0]}}))}
- if(url.pathname.endsWith('.png')){res.setHeader('Content-Type','image/png');return res.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64'))}
+ if(url.pathname.endsWith('.png')){res.setHeader('Content-Type','image/png');if(version!=='0.9.85.257')return res.end(readFileSync(join('public',url.pathname.slice(1))));return res.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64'))}
  res.setHeader('Content-Type','application/json');res.end('{}');
 });await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`,browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 try{for(const profile of ['legacy-257','current']){
