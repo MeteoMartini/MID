@@ -1,11 +1,12 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
+import {execFileSync} from 'node:child_process';
 
 const reactVendorPattern=/[\\/]node_modules[\\/](?:react|react-dom|react-is|scheduler)[\\/]/;
 const chartsVendorPattern=/[\\/]node_modules[\\/](?:recharts|victory-vendor|react-smooth|d3-[^\\/]+|decimal\.js-light|tiny-invariant)[\\/]/;
 
 export default defineConfig({
-  plugins:[react(),{
+  plugins:[react(),{name:'mid-verified-brand-shell',buildStart(){execFileSync(process.execPath,['scripts/brand-shell-groups.mjs','--check'],{stdio:'inherit'})}},{
     name:'mid-fourteen-offline-shell',
     transformIndexHtml:{order:'post',handler(_html,ctx){
       if(!ctx.bundle)return;

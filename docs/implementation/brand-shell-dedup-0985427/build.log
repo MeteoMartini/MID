@@ -1,0 +1,102 @@
+> open-meteo-weather-dashboard@0.9.85.427 verify:vite
+> node --max-old-space-size=4096 node_modules/vite/bin/vite.js build && node scripts/write-build-identity.mjs
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 2729 modules transformed.
+rendering chunks...
+dist/index.html                                                   11.19 kB
+dist/assets/modelMapGeography-BopNRpJh.json                      271.13 kB
+dist/assets/maplibre-gl-worker-DboxHBUc.js                       486.53 kB
+dist/assets/WidgetGenerator-NBltSAOY.css                           0.65 kB
+dist/assets/MapWorkspacePanel-DGMssOn3.css                         6.33 kB
+dist/assets/PrognoseRadar-9p7ns1QP.css                             7.35 kB
+dist/assets/RadarPanel-BQI2OwlJ.css                                7.61 kB
+dist/assets/LongRangePanel-CTBpun81.css                           10.14 kB
+dist/assets/radarForecastReadability-D4JJS61n.css                 15.47 kB
+dist/assets/midDesignWeToday-KU8Ixiq1.css                         18.91 kB
+dist/assets/SevenDayDesignModes-CAuADyXm.css                      20.78 kB
+dist/assets/FourteenDayDevelopment-DgXYUu7U.css                   23.86 kB
+dist/assets/UnifiedWeatherMap-BqSh804r.css                        37.88 kB
+dist/assets/MapLibreCore-DQBTe0CN.css                             84.77 kB
+dist/assets/index-BC4N0piA.css                                 1,759.07 kB
+dist/assets/web-BZPIzged.js                                        0.12 kB
+dist/assets/RadarForecastStyleGate-DS8JJNsa.js                     0.19 kB
+dist/assets/activity-DS92zK5W.js                                   0.22 kB
+dist/assets/compass-Bz_ZTU3l.js                                    0.24 kB
+dist/assets/esm-G50JsYYj.js                                        0.25 kB
+dist/assets/zap-B7pHVWaO.js                                        0.26 kB
+dist/assets/pencil-C3UFYozD.js                                     0.26 kB
+dist/assets/plane-IpXzjeCN.js                                      0.29 kB
+dist/assets/modelMapGeography-BnNltQFp.js                          0.30 kB
+dist/assets/web-DPnHC6G2.js                                        0.36 kB
+dist/assets/web-Bp6GFENV.js                                        0.36 kB
+dist/assets/layers-BLwn9wMr.js                                     0.41 kB
+dist/assets/esm-BiWlc5Fy.js                                        0.42 kB
+dist/assets/esm-BPR3RYRK.js                                        0.43 kB
+dist/assets/esm-CR4c8fvY.js                                        0.44 kB
+dist/assets/esm-DJqlhr0B.js                                        0.45 kB
+dist/assets/esm-Dk5jF6j1.js                                        0.49 kB
+dist/assets/synapse-I42WLusp.js                                    0.60 kB
+dist/assets/snowflake-DYtgJp4z.js                                  0.61 kB
+dist/assets/index-C7fDzSLA.js                                      0.69 kB
+dist/assets/rolldown-runtime-XKyaHtl9.js                           0.72 kB
+dist/assets/web-CJviBzwx.js                                        0.84 kB
+dist/assets/esm-CRe6wESP.js                                        0.91 kB
+dist/assets/ForecastChangePanel-DkKxtPQO.js                        1.46 kB
+dist/assets/MapWorkspacePanel-Jk6WP0fi.js                          1.87 kB
+dist/assets/web-BwHCyUsu.js                                        2.08 kB
+dist/assets/unifiedMapPresentation-BtTH0NC7.js                     2.13 kB
+dist/assets/FlightMeteorologyPanel-BeEQ5LEl.js                     2.45 kB
+dist/assets/OperaRasterOverlay-D6g_S71x.js                         2.57 kB
+dist/assets/qrCode-J7WTgRhL.js                                     3.19 kB
+dist/assets/DashboardModuleSettings-BfwqpY-H.js                    3.89 kB
+dist/assets/nativeModelMapExport-TjJSsXMn.js                       4.07 kB
+dist/assets/AppleWidgetSettings-C6D0vhwA.js                        4.18 kB
+dist/assets/ForecastRangeGuide-S3iOI7qv.js                         4.19 kB
+dist/assets/nativeScalarAnnotations-RDJwBA0C.js                    4.69 kB
+dist/assets/cloudWeatherExport-CXQGVjZG.js                         4.85 kB
+dist/assets/HorizonSignalChart-C6EymdLP.js                         6.79 kB
+dist/assets/precipitationTotals-mSzJXvw7.js                        7.88 kB
+dist/assets/RadarNowcastCalibration-CxnH72Px.js                    7.95 kB
+dist/assets/web-DkejI1Yl.js                                        8.48 kB
+dist/assets/Px250Overlay-QLT9nxxp.js                               9.81 kB
+dist/assets/PrognoseRadar-CvXZBxb2.js                             10.07 kB
+dist/assets/RadarModelPrecipTypeOverlay-DdnGaIUm.js               10.28 kB
+dist/assets/SevenDayDesignModes-J2x5KZqn.js                       10.49 kB
+dist/assets/FourteenDayDevelopment-B2RnN402.js                    12.80 kB
+dist/assets/es-fkKzv544.js                                        12.86 kB
+dist/assets/ClimatePanel-CRvEGSFW.js                              16.44 kB
+dist/assets/precipitationTotalsExport-C8x-lk15.js                 16.46 kB
+dist/assets/WeatherMapsData-DYaGFCPc.js                           16.52 kB
+dist/assets/WidgetGenerator-DgsBs_vN.js                           16.58 kB
+dist/assets/travelPlanner-cb0sa4It.js                             17.25 kB
+dist/assets/LocationIntelligence-l3tKJA5_.js                      17.58 kB
+dist/assets/ForecastVerificationPanel-CNW0ZbkV.js                 23.84 kB
+dist/assets/seasonalForecast-RhqsKl3Y.js                          24.30 kB
+dist/assets/CrossSectionPanel-D9wevln0.js                         30.19 kB
+dist/assets/WaterSportsPanel-C6UwphEd.js                          32.84 kB
+dist/assets/extremeWeatherOutlookDirect.generated-DOrZfWxf.js     40.31 kB
+dist/assets/MeteogramPanel-DMCaC6ch.js                            41.30 kB
+dist/assets/EventPlannerPanel-wVved4FW.js                         44.68 kB
+dist/assets/pako.esm-B1JHHWqN.js                                  46.59 kB
+dist/assets/TravelPlannerPanel-Bh44Lvwi.js                        48.54 kB
+dist/assets/ExtremeWeatherOutlookPanel-DAOFxFvi.js                53.12 kB
+dist/assets/LongRangePanel-DiV0Vglt.js                            65.66 kB
+dist/assets/MountainWeather-s7WSHOGo.js                           70.00 kB
+dist/assets/esm-BenTtNNj.js                                       80.63 kB
+dist/assets/EnsemblePanel-dZfv4XDK.js                            102.93 kB
+dist/assets/UnifiedWeatherMap-CmI6Oteo.js                        104.81 kB
+dist/assets/RadarPanel-pWBSx9zA.js                               143.56 kB
+dist/assets/ReactVendor-DL2nAelm.js                              378.11 kB
+dist/assets/ChartsVendor-D1FWKg1o.js                             413.10 kB
+dist/assets/MapLibreCore-DG9EfLqq.js                           1,001.95 kB
+dist/assets/index-qcyqcEuo.js                                  1,492.08 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 900 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.30s
+MID-Web-Build-Identität: v0.9.85.427 · 128 Assets · sha256 7f90b841360d · Source 7e998730daaa4a409cd3e15d4f4cf0f70efaaeda

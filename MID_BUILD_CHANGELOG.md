@@ -1,3 +1,7 @@
+# MID v0.9.85.427 · SHA-geprüfte Marken-Shell-Deduplizierung (Draft)
+
+Fünf byteidentische Markengruppen werden beim Shell-Aufbau jeweils einmal übertragen, SHA-geprüft und unter allen bisherigen Cache-URLs abgelegt. Buildprüfung verhindert veraltete Aliase bei auseinanderlaufenden Bildern. Keine PNG-/URL-/iOS-/Exportdatei entfernt. Nachweise: docs/implementation/MID_BRAND_SHELL_DEDUP_0.9.85.427.md. Keine Veröffentlichung.
+
 # MID v0.9.85.425 · Niederschlagsintervalle konsistent dargestellt
 
 Skybar und Profildetails verwenden dieselben tatsächlichen Akkumulationsintervalle. Beispielsweise werden 0,2 mm in 15 Minuten in beiden Ansichten mit 0,8 mm/h ausgewertet. Der Release enthält außerdem die Zielzeitzonen-Korrektur der Regionalensembles aus .424.
