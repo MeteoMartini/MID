@@ -11,7 +11,7 @@ try{
  assert.deepEqual(rgba(null,null),[0,0,0,0]);
  assert.equal(rgba(0,0)[3],0);
  assert.ok(rgba(100,0)[3]>rgba(25,0)[3]&&rgba(25,0)[3]>0);
- assert.deepEqual(rgba(null,61,'standard'),[57,237,36,240]);
+ assert.throws(()=>rgba(null,61,'standard'),/schematische Modell-Wolkenbild/,'User-authorized pseudo-only contract rejects old mode');
  assert.equal(rgba(null,61)[3],231);
  assert.ok(rgba(95,null)[3]>0);
  for(const code of [41,48,57,61,67,69,71,75,84,86,91,95,96,99]){
@@ -20,15 +20,15 @@ try{
  }
  assert.match(m.cloudWeatherDescription(91),/Gewitter zuvor/);
  assert.equal(rgba(null,255)[3],0);
- assert.deepEqual(rgba(0,0,'standard'),[255,255,255,215]);
+ assert.throws(()=>rgba(0,0,'standard'),/schematische Modell-Wolkenbild/);
  const unified=readFileSync('src/UnifiedWeatherMap.tsx','utf8'),native=readFileSync('src/NativeModelMap.tsx','utf8'),layer=readFileSync('src/CloudSignificantWeather.tsx','utf8');
- for(const source of [unified,native]){assert.match(source,/CloudWeatherModeControl/);assert.match(source,/writeCloudWeatherRenderMode/);assert.match(source,/cloudRenderMode/);}
+ for(const source of [unified,native]){assert.doesNotMatch(source,/CloudWeatherModeControl|cloudRenderMode/);assert.match(source,/CLOUD_WEATHER_ISOBARS_KEY/);}
  assert.match(layer,/cloudWeatherRaster\(data,mode\)/);
- assert.match(layer,/kein gemessenes oder physikalisch simuliertes Satellitenbild/);
- assert.match(native,/cloudWeatherRaster\(combined,cloudRenderMode\)/);
+ assert.match(layer,/kein Satellitenbild/);
+ assert.match(native,/cloudWeatherRaster\(combined\)/);
  const exportSource=readFileSync('src/cloudWeatherExport.ts','utf8');
- assert.ok(unified.includes('exportCloudWeather(cloudWeather.data,cloudWeather.raster,places,type,cloudRenderMode,linesActive?selectedCloudIsobars:null,heightsActive?selectedCloudIsoheights:null)'));
- assert.ok(native.includes('exportCloudWeather(combined,raster,places,format,cloudRenderMode,cloudContourSelection)'));
+ assert.ok(unified.includes("exportCloudWeather(cloudWeather.data,cloudWeather.raster,places,type,'pseudo',linesActive?selectedCloudIsobars:null,heightsActive?selectedCloudIsoheights:null)"));
+ assert.ok(native.includes("exportCloudWeather(combined,raster,places,format,'pseudo',cloudContourSelection)"));
  assert.ok(exportSource.includes('cloudWeatherSvg(data,raster,places,geography.states,mode,selectedIsobars,selectedIsoheights,geography.countries)'));
  assert.match(exportSource,/matchingCloudIsobars\(data,selectedIsobars\)/);
  await build({entryPoints:['src/cloudWeatherExport.ts'],outfile:path.join(dir,'export.mjs'),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
@@ -39,8 +39,8 @@ try{
  assert.ok(pseudoSvg.includes('Modell-Wolkenbild (schematisch)'));
  assert.match(pseudoSvg,/kein Satellitenbild/);
  assert.match(pseudoSvg,/stop-opacity="0"/);
- assert.doesNotMatch(standardSvg,/Modell-Wolkenbild/);
- assert.match(standardSvg,/stop-color="#696969"/);
+ assert.equal(standardSvg,pseudoSvg,'Default exporter must match the sole pseudo render mode');
+ assert.throws(()=>exporter.cloudWeatherSvg(frame,'data:image/png;base64,AA==',[],[],'standard'),/schematische Modellwolken/);
  const doc=readFileSync('docs/c14/MID_C14_PSEUDOSAT_CONTRACT.md','utf8');assert.match(doc,/keine künstliche Satellitenbeobachtung/);
  console.log('Pseudo-satellite cloud/WMO/render/zero/null/source contract passed.');
 }finally{rmSync(dir,{recursive:true,force:true})}

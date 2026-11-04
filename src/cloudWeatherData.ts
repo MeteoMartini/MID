@@ -1,3 +1,5 @@
+import {fetchVerifiedMapFrameBytes} from './verifiedMapFrameCache';
+import {readDurableStorageValue,writeDurableStorageValue} from './storageSafety';
 import type {NativeField,NativeIndex} from './nativeModelFields';
 import type {SynopticField,SynopticIndex} from './nativeSynopticFields';
 import type {WeatherMapMetadata} from './WeatherMapsData';
@@ -62,7 +64,7 @@ export function validateCloudWeatherField(d:any,id:string,model:SynopticModel,re
  const n=d.lats.length*d.lons.length;if(!Array.isArray(d.cloud)||!Array.isArray(d.weather)||d.cloud.length!==n||d.weather.length!==n||d.cloud.some((v:any)=>v!==null&&(!Number.isInteger(v)||v<0||v>1000))||d.weather.some((v:any)=>v!==null&&(!Number.isInteger(v)||v<0||v>99))||d.cloud.filter((v:any,i:number)=>v!==null&&d.weather[i]!==null).length<n*.4)throw Error('Wolken-/Wetterwerte unvollständig oder ungültig.');
  return {...d,cloud:d.cloud.map((v:number|null)=>v===null?null:v*.1)};
 }
-export async function loadCloudWeatherField(base:string,id:string,model:SynopticModel,ref:SynopticFrame,signal:AbortSignal){const r=await fetch((model.base??base)+ref.file,{signal});if(!r.ok)throw Error('Wolken-/Wetterfeld nicht erreichbar.');const bytes=await r.arrayBuffer(),hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');if(bytes.byteLength!==ref.bytes||hash!==ref.sha256)throw Error('Wolken-/Wetterfeld-Prüfsumme ungültig.');return validateCloudWeatherField(JSON.parse(await decodeNativeMapGzip(bytes,ref.decodedBytes)),id,model,ref);}
+export async function loadCloudWeatherField(base:string,id:string,model:SynopticModel,ref:SynopticFrame,signal:AbortSignal){const bytes=await fetchVerifiedMapFrameBytes((model.base??base)+ref.file,ref.sha256,ref.bytes,signal),hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');if(bytes.byteLength!==ref.bytes||hash!==ref.sha256)throw Error('Wolken-/Wetterfeld-Prüfsumme ungültig.');return validateCloudWeatherField(JSON.parse(await decodeNativeMapGzip(bytes,ref.decodedBytes)),id,model,ref);}
 export function synopticCloudWeather(field:SynopticField):CloudWeatherData{
  const c=field.cloudWeather;if(!c)throw Error('Keine bestätigten Wolken-/Wetterdaten für diesen Termin.');
  return {model:field.model,run:field.run,time:field.time,resolutionKm:field.resolutionKm,lats:field.lats,lons:field.lons,cloud:c.cloud.map(v=>v===null?null:v*c.cloudScale),weather:c.weather};
@@ -84,39 +86,29 @@ export function cloudWeatherAt(data:CloudWeatherData,lat:number,lon:number){
  const cloud=data.cloud[i],weather=data.weather[i];return {cloud:typeof cloud==='number'&&Number.isFinite(cloud)?cloud:null,weather:typeof weather==='number'&&Number.isFinite(weather)?weather:null};
 }
 
-export type CloudWeatherRenderMode='standard'|'pseudo';
+export type CloudWeatherRenderMode='pseudo';
 export const CLOUD_WEATHER_ISOBARS_KEY='mid:cloud-weather-isobars:v1';
 export function readCloudWeatherIsobars():boolean{
- try{return localStorage.getItem(CLOUD_WEATHER_ISOBARS_KEY)==='true'}catch{return false}
+ try{return readDurableStorageValue(CLOUD_WEATHER_ISOBARS_KEY)==='true'}catch{return false}
 }
 export function writeCloudWeatherIsobars(enabled:boolean){
- try{localStorage.setItem(CLOUD_WEATHER_ISOBARS_KEY,String(enabled))}catch{/* Storage access may be blocked. */}
+ try{writeDurableStorageValue(CLOUD_WEATHER_ISOBARS_KEY,String(enabled))}catch{/* Storage access may be blocked. */}
 }
 /** Optional 500-hPa geopotential-height contours from the same synoptic model run and valid time.
  * Kept separate from the preexisting MSLP setting so old selections migrate losslessly.
  */
+export const parseCloudWeatherToggle=(raw:string|null):boolean|null=>raw==='true'?true:raw==='false'?false:null;
 export const CLOUD_WEATHER_ISOHEIGHTS_KEY='mid:cloud-weather-isoheights:v1';
 export function readCloudWeatherIsoheights():boolean{
- try{return localStorage.getItem(CLOUD_WEATHER_ISOHEIGHTS_KEY)==='true'}catch{return false}
+ try{return readDurableStorageValue(CLOUD_WEATHER_ISOHEIGHTS_KEY)==='true'}catch{return false}
 }
 export function writeCloudWeatherIsoheights(enabled:boolean){
- try{localStorage.setItem(CLOUD_WEATHER_ISOHEIGHTS_KEY,String(enabled))}catch{/* unavailable storage: retain visible in-memory selection */ }
-}
-export const CLOUD_WEATHER_MODE_KEY='mid:cloud-weather-render:v1';
-export function readCloudWeatherRenderMode():CloudWeatherRenderMode{
- try{return localStorage.getItem(CLOUD_WEATHER_MODE_KEY)==='pseudo'?'pseudo':'standard'}catch{return 'standard'}
-}
-export function writeCloudWeatherRenderMode(mode:CloudWeatherRenderMode){
- try{localStorage.setItem(CLOUD_WEATHER_MODE_KEY,mode)}catch{/* blocked storage: current view remains usable */}
+ try{writeDurableStorageValue(CLOUD_WEATHER_ISOHEIGHTS_KEY,String(enabled))}catch{/* unavailable storage: retain visible in-memory selection */ }
 }
 /** Display-only RGBA. No radiometry, inferred intensity or categorical interpolation. */
-export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:CloudWeatherRenderMode='standard'):[number,number,number,number]{
+export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:CloudWeatherRenderMode='pseudo'):[number,number,number,number]{
+ if(mode!=='pseudo')throw new Error('Nur das schematische Modell-Wolkenbild ist freigegeben.');
  const style=significantWeatherStyle(weather);
- if(mode==='standard'){
-  if(style){const c=[1,3,5].map(j=>parseInt(style.color.slice(j,j+2),16));return [c[0],c[1],c[2],240]}
-  if(cloud!==null&&Number.isFinite(cloud)){const grey=Math.round(255-cloud*1.5);return [grey,grey,grey,215]}
-  return [0,0,0,0];
- }
  // White cloud cover over any basemap; categorical WW paint on top. No fake image detail.
  const cover=cloud===null||!Number.isFinite(cloud)?null:Math.max(0,Math.min(100,cloud));
  // Canonical fully transparent pixel: missing fields and confirmed clear sky are never white cloud pixels.
@@ -132,7 +124,7 @@ export function cloudWeatherPixel(cloud:number|null,weather:number|null,mode:Clo
  return [mixed[0],mixed[1],mixed[2],Math.round(total*255)];
 }
 
-export function cloudWeatherRaster(data:CloudWeatherData,mode:CloudWeatherRenderMode='standard'){
+export function cloudWeatherRaster(data:CloudWeatherData,mode:CloudWeatherRenderMode='pseudo'){
  const canvas=document.createElement('canvas');canvas.width=Math.min(1600,data.lons.length);canvas.height=Math.min(1600,data.lats.length);const c=canvas.getContext('2d');if(!c)throw Error('Wolken-/Wetterdarstellung nicht verfügbar.');
  const image=c.createImageData(canvas.width,canvas.height),north=mercatorY(data.lats.at(-1)!),south=mercatorY(data.lats[0]);
  for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){

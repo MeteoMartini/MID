@@ -12,8 +12,8 @@ try{
   await build({entryPoints:[file],outfile:join(tmp,out),bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent'});
  }
  const cloud=await import(pathToFileURL(join(tmp,'cloud.mjs'))),contour=await import(pathToFileURL(join(tmp,'contours.mjs'))),exporter=await import(pathToFileURL(join(tmp,'export.mjs'))),{PSEUDO_SAT_BASEMAP:baseColors}=await import(pathToFileURL(join(tmp,'palette.mjs')));
- assert.equal(cloud.readCloudWeatherRenderMode(),'standard');
- cloud.writeCloudWeatherRenderMode('pseudo');assert.equal(cloud.readCloudWeatherRenderMode(),'pseudo','Pseudo-sat selection persists across remounts');
+ assert.equal(cloud.readCloudWeatherRenderMode,undefined,'Obsolete render selector removed by the explicit pseudo-only product change');
+ assert.equal(cloud.writeCloudWeatherRenderMode,undefined);
  cloud.writeCloudWeatherIsobars(true);cloud.writeCloudWeatherIsoheights(true);
  assert.equal(cloud.readCloudWeatherIsobars(),true);assert.equal(cloud.readCloudWeatherIsoheights(),true,'Both line selections persist');
  const data={model:'icon-d2',run:'2026-10-17T00:00:00Z',time:'2026-10-17T06:00:00Z',lats:[48,49],lons:[7,8],cloud:[0,50,98,null],weather:[0,61,71,null]};
@@ -38,7 +38,7 @@ try{
  assert.doesNotMatch(exporter.cloudWeatherSvg(data,raster,[],[],'pseudo',null,{...height,run:'bad'}),/Isohypsen gpdm/);
  assert.deepEqual(cloud.cloudWeatherPixel(null,null,'pseudo'),[0,0,0,0],'Missing cloud/weather stays transparent');
  const map=readFileSync('src/UnifiedWeatherMap.tsx','utf8'),panel=readFileSync('src/RadarPanel.tsx','utf8'),base=readFileSync('src/UnifiedVectorBasemap.tsx','utf8'),app=readFileSync('src/App.tsx','utf8');
- for(const token of ['readCloudWeatherRenderMode','readUnifiedMapSettings','readCloudWeatherIsoheights','writeCloudWeatherIsoheights','matchingCloudIsoheights(cloudData,selectedCloudIsoheights)','cloudContrast:settings.enabled&&isCloudWeather','heightsActive?<GeoJsonLayers'])assert.ok(map.includes(token),token);
+ for(const token of ['useRawDisplayPreference','readUnifiedMapSettings','CLOUD_WEATHER_ISOHEIGHTS_KEY','parseCloudWeatherToggle','matchingCloudIsoheights(cloudData,selectedCloudIsoheights)','cloudContrast:settings.enabled&&isCloudWeather','heightsActive?<GeoJsonLayers'])assert.ok(map.includes(token),token);
  assert.match(panel,/cloudContrast=\{Boolean\(unified\.cloudContrast&&modelAtSelectedTime\)\}/);
  assert.match(base,/PSEUDO_SAT_BASEMAP\.water/,'Vector basemap must use the shared water tone');assert.match(base,/PSEUDO_SAT_BASEMAP\.land/,'Vector basemap must use the shared land tone');assert.match(base,/cloudContrast&&!dark/);
  assert.match(app,/forecastTimeoutRetryState\.current\.attempts<1/,'Only one automatic timeout retry');

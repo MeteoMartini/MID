@@ -169,7 +169,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  assert.match(await page.locator('.unified-forecast-time').innerText(),/Verfügbar \+0 h bis \+27 h/);
  await page.getByLabel('Parameter-Layer').selectOption('sigwx');
  await page.waitForFunction(()=>window.__qaMap?.getStyle().layers.some(l=>l.id.startsWith('cloud-weather-icon-d2-ruc')&&l.type==='raster'));
- await page.getByRole('button',{name:'Modell-Wolkenbild',exact:true}).click();
+ assert.equal(await page.getByRole('button',{name:'Modell-Wolkenbild',exact:true}).count(),0,'Sole pseudo mode has no obsolete selector');
  await page.waitForFunction(()=>window.__qaMap?.getStyle().layers.some(l=>l.id.includes('cloud-weather-icon-d2-ruc')&&l.id.includes('pseudo')));
  await page.getByLabel(/Isobaren · DWD ICON-D2-RUC · gleicher Lauf/).check();
  await page.getByLabel('Isohypsen · gleicher Lauf und Termin').check();
@@ -177,7 +177,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'RUC composite/pseudo time labels wrap on every viewport');
  await page.getByLabel(/Isobaren · DWD ICON-D2-RUC · gleicher Lauf/).uncheck();
  await page.getByLabel('Isohypsen · gleicher Lauf und Termin').uncheck();
- await page.getByRole('button',{name:'Standard',exact:true}).click();
+ assert.equal(await page.getByRole('button',{name:'Standard',exact:true}).count(),0,'No alternate standard weather rendering remains');
  await page.getByLabel('Parameter-Layer').selectOption('temperature');
  await measuredReload();assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'icon-d2-ruc','RUC source persists across reload');
  await page.getByLabel('Parameter-Layer').selectOption('pressure');await page.waitForFunction(()=>window.__qaMap?.getLayer('model-pressure-centers-labels'));
@@ -252,7 +252,7 @@ async function verifyCase(width,theme,design='next',profileMemory=false){
  await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('ECCC-Originaldarstellung')&&!text.includes('Kacheln laden')});
  assert.ok(requests.some(u=>u.includes('provider=geomet')&&u.includes('layers=GDPS_15km_TotalCloudCover')),'GDPS uses only the approved GeoMet provider');
  failGdps=true;await page.getByLabel('Parameter-Layer').selectOption('sigwx');await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).waitFor();failGdps=false;const beforeRetry=requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length;await page.getByRole('button',{name:'Wolken und Wetter erneut laden'}).click();await page.waitForFunction(()=>{const text=document.querySelector('.unified-layer-status')?.textContent||'';return text.includes('INIT')&&!text.includes('wird geprüft')&&!text.includes('laden')});assert.ok(requests.filter(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')).length>beforeRetry,'Retry requests a fresh failed GDPS source');assert.equal(await page.getByRole('button',{name:'Linien',exact:true}).isDisabled(),true);assert.ok(requests.some(u=>u.includes('layers=GDPS_15km_PrecipType-Instant')&&u.includes('dim_reference_time=')),'Combined GDPS uses instant precipitation type with explicit init');await page.locator('.cloud-weather-legend summary').click();assert.match(await page.locator('.cloud-weather-legend').innerText(),/Keine vollständige Nebel/);
- await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Graustufen/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyAlphabeticalSelectors(page);
+ await page.getByLabel('Modell für Parameter').selectOption('icon-d2');await page.getByRole('button',{name:'Raster + Ortswerte · SVG'}).waitFor();await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('15 % Wolken'));assert.match(await page.locator('.cloud-weather-legend').innerText(),/Modell-Wolkenbild/);assert.equal(await page.locator('.maplibregl-map').getAttribute('data-qa-identity'),'original');await verifyAlphabeticalSelectors(page);
  await page.getByLabel('Modell für Parameter').selectOption('icon-eu');await page.waitForFunction(()=>document.querySelector('.unified-favorites tbody')?.textContent.includes('75 % Wolken'));if(width===390&&theme==='light'&&design==='next')await page.screenshot({path:'/tmp/mid-cloud-weather-390.png',fullPage:true});
  await page.getByLabel('Parameter-Layer').selectOption('observed');await page.waitForFunction(()=>document.querySelector('.unified-layer-status')?.textContent.includes('RADOLAN'));assert.equal(await page.getByLabel('Modell für Parameter').inputValue(),'radolan');
  assert.ok(await page.evaluate(()=>window.__qaRasterEncodes>0),'Native filled rasters were actually generated');assert.equal(await page.evaluate(()=>window.__qaDataImageFetches),0,'Native image decode avoids fetch before navigation resets the counter');

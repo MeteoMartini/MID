@@ -1,0 +1,36 @@
+/* Accessible symbol hit areas, light/dark support and overlay independence. */
+.mid-synop-model-marker {
+ --mid-plot-bg: #f8fbff;
+ --mid-plot-fg: #152a3d;
+ --mid-plot-border: #576a7d;
+ min-width: 44px;
+ min-height: 44px;
+ display: grid;
+ place-items: center;
+ pointer-events: auto;
+ touch-action: manipulation;
+ contain: layout style;
+}
+:root[data-theme='dark'] .mid-synop-model-marker,
+.dark .mid-synop-model-marker {
+ --mid-plot-bg: #10283a;
+ --mid-plot-fg: #f6fbff;
+ --mid-plot-border: #d0dfe7;
+}
+.mid-synop-model-marker:focus-within {outline: 2px solid var(--mid-focus, #277bc6);outline-offset: 3px;border-radius: 8px}
+@media (forced-colors: active){.mid-synop-model-marker {--mid-plot-bg: Canvas;--mid-plot-fg: CanvasText;--mid-plot-border: CanvasText}}
+
+.mid-synop-symbol-button {
+ display: grid;
+ place-items: center;
+ min-width: 44px;
+ min-height: 44px;
+ padding: 0;
+ border: none;
+ background: transparent;
+ color: var(--mid-plot-fg);
+ cursor: pointer;
+ -webkit-tap-highlight-color: transparent;
+}
+.mid-synop-symbol-button:focus-visible {outline: 2px solid var(--mid-focus, #277bc6);outline-offset: 2px;border-radius: 9px}
+.mid-synop-symbol-button svg {pointer-events: none}

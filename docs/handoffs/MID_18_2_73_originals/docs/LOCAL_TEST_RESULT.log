@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: cold fetch then in-memory warm resume, preserving zero vs null
+ok 1 - cold fetch then in-memory warm resume, preserving zero vs null
+  ---
+  duration_ms: 27.129522
+  type: 'test'
+  ...
+# Subtest: strict path origin and request-size guard
+ok 2 - strict path origin and request-size guard
+  ---
+  duration_ms: 1.185466
+  type: 'test'
+  ...
+# Subtest: mutated response cannot poison next cache read
+ok 3 - mutated response cannot poison next cache read
+  ---
+  duration_ms: 1.742536
+  type: 'test'
+  ...
+# Subtest: refuses SHA mismatch and does not mark bad frame cached
+ok 4 - refuses SHA mismatch and does not mark bad frame cached
+  ---
+  duration_ms: 1.634083
+  type: 'test'
+  ...
+# Subtest: timeout/AbortSignal is not a stale-data success
+ok 5 - timeout/AbortSignal is not a stale-data success
+  ---
+  duration_ms: 0.373503
+  type: 'test'
+  ...
+# Subtest: persistent CacheStorage survives fresh application module and detects poisoned bytes
+ok 6 - persistent CacheStorage survives fresh application module and detects poisoned bytes
+  ---
+  duration_ms: 7.933837
+  type: 'test'
+  ...
+# Subtest: source changes explicit and only expected anchors
+ok 7 - source changes explicit and only expected anchors
+  ---
+  duration_ms: 1.036653
+  type: 'test'
+  ...
+# Subtest: single pseudo render contract and no selection control after transform
+ok 8 - single pseudo render contract and no selection control after transform
+  ---
+  duration_ms: 1.245767
+  type: 'test'
+  ...
+# Subtest: full pseudo-only exporter has no dead alternate visualization branch
+ok 9 - full pseudo-only exporter has no dead alternate visualization branch
+  ---
+  duration_ms: 0.309927
+  type: 'test'
+  ...
+# Subtest: codes remain explicit, no fake ww or SYNOP observation
+ok 10 - codes remain explicit, no fake ww or SYNOP observation
+  ---
+  duration_ms: 5.396544
+  type: 'test'
+  ...
+# Subtest: size and mobile support
+ok 11 - size and mobile support
+  ---
+  duration_ms: 0.639093
+  type: 'test'
+  ...
+# Subtest: sparse same-grid symbols, cap, separation, no missing=>zero
+ok 12 - sparse same-grid symbols, cap, separation, no missing=>zero
+  ---
+  duration_ms: 4.859955
+  type: 'test'
+  ...
+# Subtest: isolated high-risk model cell survives adaptive block sampling (no smoothing)
+ok 13 - isolated high-risk model cell survives adaptive block sampling (no smoothing)
+  ---
+  duration_ms: 4.911733
+  type: 'test'
+  ...
+# Subtest: SYNOP map wiring preserves native map and targets the verified cloud/WW layer
+ok 14 - SYNOP map wiring preserves native map and targets the verified cloud/WW layer
+  ---
+  duration_ms: 1.45986
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 800.829451
