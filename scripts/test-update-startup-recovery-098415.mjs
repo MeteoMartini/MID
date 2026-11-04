@@ -13,7 +13,7 @@ assert.ok(baseline.protectedFiles?.includes('MID_UPDATE_STARTUP_RECOVERY_CONTRAC
 
 // Preload: all data promises are genuinely abortable and bounded.
 for(const token of ['STARTUP_PRELOAD_FORECAST_TIMEOUT_MS=6500','STARTUP_PRELOAD_STATION_TIMEOUT_MS=7500','STARTUP_PRELOAD_ENSEMBLE_TIMEOUT_MS=12000','function startupRequest<T>','active?.abort()'])assert.ok(preload.includes(token),`Start-Preload-Schutz fehlt: ${token}`);
-assert.ok(preload.includes("forecast(location.latitude,location.longitude,signal,{priority:'foreground'")&&preload.includes("ensembles(location.latitude,location.longitude,signal,'foreground')"),'Start-Preloads reichen den AbortSignal nicht bis zum Wetterabruf durch.');
+assert.ok(preload.includes("forecast(location.latitude,location.longitude,signal,{priority:'foreground'")&&preload.includes("ensembles(location.latitude,location.longitude,signal,'foreground',location.timezone)"),'Start-Preloads reichen den AbortSignal nicht bis zum Wetterabruf durch.');
 
 // Core forecast: direct and worker fallback may fail, but neither may hang forever.
 for(const token of ['linkedTimeoutSignal(signal,6500)','linkedTimeoutSignal(signal,11000)','timeoutMs:7000'])assert.ok(weather.includes(token),`Core-Forecast-Zeitgrenze fehlt: ${token}`);

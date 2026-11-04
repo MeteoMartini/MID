@@ -116,7 +116,7 @@ export async function buildEventPlan(options:BuildEventPlanOptions):Promise<Even
   forecast(location.latitude,location.longitude,signal,{priority:'normal',forceFresh,timeZone:location.timezone,elevation:location.elevation}),
   eventSourceWithin(signal,12000,sourceSignal=>bestMatchModelInfo(location.latitude,location.longitude,country,sourceSignal),null),
   eventSourceWithin(signal,26000,sourceSignal=>loadForecastFusion(location.latitude,location.longitude,country,location.elevation,sourceSignal,forceFresh),null),
-  eventSourceWithin(signal,22000,()=>eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh),{days:[],models:[],precipitationProbability:null})
+  eventSourceWithin(signal,22000,()=>eventEnsembleForecast(location.latitude,location.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh,location.timezone),{days:[],models:[],precipitationProbability:null})
  ])
  const baseHours=mapHours(weather),baseDays=mapDays(weather),fusedDays=applyForecastFusionDays(baseDays,fusion),canonicalActive=Boolean(!forceFresh&&canonical&&sameForecastLocation(location,canonical.initialLocation)&&canonical.hours.length>0),ensembleDays=eventEnsemble.days??[],eventProbability=eventEnsemble.precipitationProbability??null
  let finalHours=canonicalActive?canonical!.hours:applyForecastFusionHours(baseHours,baseDays,fusedDays,fusion),now=Date.now(),startEpoch=localIsoEpoch(`${eventDate}T${eventStartTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0),endEpoch=localIsoEpoch(`${eventWindowEndDate(eventDate,eventStartTime,eventEndTime)}T${eventEndTime}`,weather.timezone,Number(weather.utc_offset_seconds)||0)

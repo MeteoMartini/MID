@@ -24,8 +24,8 @@ for(const source of [weatherSource,weatherAggregate]){
   "timeoutMs:priority==='foreground'?10_000:16_000",
   'const modelDeadline=ensembleDeadline(',
   'const bootstrapDeadline=ensembleDeadline(signal,ENSEMBLE_BOOTSTRAP_TIMEOUT_MS',
-  'meanEnsembleBootstrap(lat,lon,bootstrapSignal)',
-  'memberEnsembleBootstrap(lat,lon,bootstrapSignal)',
+  'meanEnsembleBootstrap(lat,lon,bootstrapSignal,timeZone)',
+  'memberEnsembleBootstrap(lat,lon,bootstrapSignal,timeZone)',
   'if(signal?.aborted)throw error;return null'
  ])assert.ok(source.includes(token),`Ensemble-Anti-Hang-Vertrag fehlt: ${token}`);
  assert.ok(source.includes("const ENSEMBLE_BOOTSTRAP_MEAN_ORDER=['ecmwf_ifs025_ensemble_mean','ncep_gefs05_ensemble_mean','cmc_gem_geps_ensemble_mean'"),'Bootstrap muss zwei unabhängige globale Mittel-/Spread-Familien vor korrelierten Varianten priorisieren.');

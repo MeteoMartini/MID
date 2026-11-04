@@ -1,3 +1,11 @@
+# MID v0.9.85.425 · Niederschlagsintervalle konsistent dargestellt
+
+Skybar und Profildetails verwenden dieselben tatsächlichen Akkumulationsintervalle. Beispielsweise werden 0,2 mm in 15 Minuten in beiden Ansichten mit 0,8 mm/h ausgewertet. Der Release enthält außerdem die Zielzeitzonen-Korrektur der Regionalensembles aus .424.
+
+# MID v0.9.85.424 · Ortszeit für Regionalensembles
+
+Regionalensemble-Prognosen werden nach dem verifizierten Kalender des Zielorts ausgewertet. Die Tagesmengen berücksichtigen Zeitumstellungen mit 23 bzw. 25 Stunden. Die ursprünglichen UTC-Zeitpunkte und die Datenherkunft bleiben nachvollziehbar. Abgeleitete Caches berücksichtigen die Zielzeitzone.
+
 # MID v0.9.85.423 – Karten und 7-Tage-Vergleich
 
 Kartenexporte werden erst bei Bedarf geladen. Die Karte hält beim Laden ihren Platz. Der 7-Tage-Vergleich lässt sich per Tastatur horizontal scrollen.

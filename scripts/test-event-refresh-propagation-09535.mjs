@@ -20,7 +20,7 @@ assert.match(app,/useEffect\(\(\)=>startEventWeatherMonitor\(\),\[\]\)/,'App sta
 assert.match(engine,/async function eventSourceWithin<T>\(parent:AbortSignal,timeoutMs:number,/,'Eventquellen besitzen keinen begrenzten Aktualisierungspfad.');
 assert.match(engine,/eventSourceWithin\(signal,12000,sourceSignal=>bestMatchModelInfo/,'Modellmetadaten können den Event-Reload weiterhin unbegrenzt blockieren.');
 assert.match(engine,/eventSourceWithin\(signal,26000,sourceSignal=>loadForecastFusion/,'Forecast-Fusion kann den Event-Reload weiterhin unbegrenzt blockieren.');
-assert.match(engine,/eventSourceWithin\(signal,22000,\(\)=>eventEnsembleForecast\(location\.latitude,location\.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh\)/,'Event-Ensemble kann den Event-Reload weiterhin unbegrenzt blockieren.');
+assert.match(engine,/eventSourceWithin\(signal,22000,\(\)=>eventEnsembleForecast\(location\.latitude,location\.longitude,eventDate,eventStartTime,eventEndTime,signal,forceFresh,location\.timezone\)/,'Event-Ensemble kann den Event-Reload weiterhin unbegrenzt blockieren.');
 
 // Service commitet immer gegen den neuesten gespeicherten Record, nicht gegen einen alten React-Snapshot.
 assert.match(refresh,/const latest=readEventCenterRecords\(\)\.find\(item=>item\.id===recordId\)/,'Event-Refresh commitet weiterhin gegen einen stale Snapshot.');
