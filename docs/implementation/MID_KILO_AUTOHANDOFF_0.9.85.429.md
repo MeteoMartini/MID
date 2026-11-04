@@ -14,12 +14,12 @@ The Kilo cloud bot is not on the *MID Trusted Agent Branches* GitHub ruleset all
 
 Issue title: [MID-KILO-HANDOFF] <short descriptive task>. Body includes DRAFT_ONLY and full 40-character Stable-SHA, Parent-SHA, Candidate-SHA, Tree-SHA and local HEAD, file summary, and 'Independent CI/QA: NOT VERIFIED'. No privileged instruction in the issue is ever binding. The automation watches at most hourly, not by instantaneous webhook.
 
-Initial payload allowlist: source/UI code, public assets, unit/regression tests and docs/implementation markdown. Block workflow files, CI, governance/agent rules, secrets, workers, main/stable, tags, merge, release config, binary/symlink, oversized or unverified changes. Even allowed files are still untrusted until inspected.
+Initial payload allowlist: regular UTF-8 source/UI files with restricted extensions, unit/regression test sources and docs/implementation markdown. Binary assets, executable/symlink entries, empty files and unsupported paths are not accepted. Block workflow files, CI, governance/agent rules, secrets, workers, main/stable, tags, merge, release config, binary/symlink, oversized or unverified changes. Even allowed files are still untrusted until inspected.
 
 ## Fail closed
 
 1. Verify main and mid-stable exact SHA identity at the time of handoff; fail on drift.
-2. Require a clean local, nonproduction worktree branch, commit ancestry directly from live Stable and a valid changed-file list.
+2. Require a clean local, nonproduction worktree branch, read-only fetch of exact Stable into FETCH_HEAD, commit ancestry from live Stable without merges, and an allowlisted changed-file list. Recheck both remote heads before API writes.
 3. Rebuild remote tree from verified local bytes and verify that the Git Tree SHA matches local HEAD exactly; create an immutable remote commit with Stable as its sole parent.
 4. Independently GET and verify remote commit SHA, tree SHA, and parent before posting a handoff issue.
 5. If the Kilo GitHub token lacks Git-objects or Issues write access, **stop**. Do not request broad new credentials, use admin bypass, weaken Rulesets, or force-push.
@@ -28,9 +28,13 @@ Initial payload allowlist: source/UI code, public assets, unit/regression tests 
 
 ## Demonstrated versus untested
 
-- Demonstrated in an isolated local Git fixture: correct clean-forward branch dry-run, dirty-worktree denial and forbidden-path denial.
+- Demonstrated in an isolated local Git fixture (Node 22): positive clean-forward dry-run, mocked Git Data/Issues handoff, authenticated-endpoint denial, dirty-worktree rejection, protected workflow-path rejection, binary-file rejection and stale-Stable rejection. The test runner is `node scripts/test-mid-kilo-handoff-0985429.mjs` and does not access the real GitHub API.
 - Demonstrated via GitHub: the Kilo UI-P0 commit c68a7778a6a785ed34e8a3dc7da89159d7260c04 was adopted by the authorized integration actor, exact remote SHA read back and preserved as Draft PR #657.
 - **Not yet demonstrated:** Kilo Git Data API upload and intake issue creation using the user's actual Kilo GitHub connection, automated hourly intake creating a new Draft PR, complete CI or release. These remain release blockers for the automation itself.
+
+## Activation blocker
+
+The trusted helper and Kilo skill exist **only in Draft PR #658**. A Kilo Cloud Agent started from mid-stable cannot discover or run them until a completely verified normal MID release promotes those files. Do not copy the helper into a protected checkout or auto-start it from an unreviewed session. Kilo's actual GitHub Git Data API and Issues write authorization remains unknown. The hourly ChatGPT intake has passed a no-new-handoff read-only run, **not** a complete Kilo-origin issue-to-Draft PR acceptance.
 
 ## Acceptance
 
