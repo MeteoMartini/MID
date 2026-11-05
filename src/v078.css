@@ -67,7 +67,7 @@
 .ensemble-portal-popover{position:fixed!important;right:auto!important;bottom:auto!important;z-index:6200!important;pointer-events:auto;overscroll-behavior:contain;box-sizing:border-box}
 .ensemble-info-popover{display:grid;gap:10px}
 .ensemble-info-content{min-width:0}
-.ensemble-info-close{justify-self:end;min-height:32px;padding:6px 10px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-weight:750}
+.ensemble-info-close{justify-self:end;min-height:44px;padding:6px 10px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-weight:750}
 .hero-kicker-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
 .hero-kicker-row>span:first-child{color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
 .hero-day-range{display:inline-flex;flex:0 0 auto;align-items:center;gap:7px;padding:5px 8px;border:1px solid color-mix(in srgb,var(--border) 78%,var(--primary));border-radius:999px;background:color-mix(in srgb,var(--surface) 72%,transparent);box-shadow:0 5px 18px rgba(0,0,0,.08);font-variant-numeric:tabular-nums;backdrop-filter:blur(10px)}

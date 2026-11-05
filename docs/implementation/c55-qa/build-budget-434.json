@@ -1,0 +1,1057 @@
+{
+  "schema": 2,
+  "ok": true,
+  "totals": {
+    "assetCount": 126,
+    "totalBytes": 13096229,
+    "totalGzipBytes": 6895368,
+    "compressibleGzipBytes": 1877978,
+    "staticMediaBytes": 4593259,
+    "jsGzipBytes": 1495510,
+    "cssGzipBytes": 285126,
+    "initialCssBytes": 1759965,
+    "initialCssGzipBytes": 249856,
+    "initialCssBrotliBytes": 213110,
+    "initialCssFileCount": 1,
+    "largestJsGzipBytes": 461306
+  },
+  "initialCssAssets": [
+    {
+      "file": "assets/index-C4irdHqr.css",
+      "bytes": 1759965,
+      "gzipBytes": 249856,
+      "brotliBytes": 213110
+    }
+  ],
+  "definitions": {
+    "totalGzipBytes": "Diagnostische/hart gedeckelte gzip-9-Summe aller Dist-Dateien einschließlich bereits komprimierter Medien.",
+    "compressibleGzipBytes": "gzip-9-Summe der textuell komprimierbaren Webartefakte (.js/.css/.html/.json/.xml/.svg/.txt/.webmanifest/.map). Das frühere 5,2-MB-Gesamtlimit wird hier fachlich korrekt weitergeführt.",
+    "staticMediaBytes": "Unkomprimierte Dateigröße bereits komprimierter statischer Medien/Fonts (.png/.jpg/.jpeg/.webp/.avif/.gif/.ico/.woff/.woff2/.ttf/.otf). Verhindert Medienwachstum unabhängig vom Codebudget.",
+    "initialCssGzipBytes": "Harte gzip-9-Grenze von 320.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer.",
+    "initialCssBytes": "Harte Rohbyte-Grenze aller im gebauten HTML direkt referenzierten Start-CSS-Dateien zusammen; kein heuristischer Einzelindex-Chunkschätzwert.",
+    "initialCssBrotliBytes": "Harte Brotli-6-Grenze von 225.000 B über alle aus dist/index.html referenzierten Stylesheets; kein gemessener Netztransfer oder Renderzeitwert."
+  },
+  "assets": [
+    {
+      "file": "mid-logo-dark-horizontal.png",
+      "bytes": 1268989,
+      "gzipBytes": 1269391,
+      "extension": ".png",
+      "sha256": "d66e9033b7512f088562917dded446681911ff975307342d6b3d7da0e4e9123a",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-social-card.png",
+      "bytes": 673827,
+      "gzipBytes": 668539,
+      "extension": ".png",
+      "sha256": "f0d12f8cb7492fea4103895d640dd77791fa7e664a35381b991abb28ac1e232f",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-logo-light-horizontal.png",
+      "bytes": 674170,
+      "gzipBytes": 655879,
+      "extension": ".png",
+      "sha256": "ca65b5d1dce4cbc72c5962cdb55f4e3800addb7b22d056a7a824395ae9cbda5f",
+      "category": "static-media"
+    },
+    {
+      "file": "assets/index-Chvq8mPW.js",
+      "bytes": 1496888,
+      "gzipBytes": 461306,
+      "extension": ".js",
+      "sha256": "fb49b5d3bb7776a12dea0a3250412568384b9e16e3602eb261c4e8e7acf32db0",
+      "category": "compressible"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "bytes": 1057204,
+      "gzipBytes": 346566,
+      "extension": ".md",
+      "sha256": "5cb817c7bc426a889086efdd65e22e99b984ab091fede9c936901f2496942ca5",
+      "category": "other"
+    },
+    {
+      "file": "assets/MapLibreCore-DxCc1RyC.js",
+      "bytes": 1002339,
+      "gzipBytes": 261730,
+      "extension": ".js",
+      "sha256": "05b6b1371b6e990623f4117e5803669427ba25ed218ba93b81bb3d7f6d9964b5",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/index-C4irdHqr.css",
+      "bytes": 1759965,
+      "gzipBytes": 249856,
+      "brotliBytes": 213110,
+      "extension": ".css",
+      "sha256": "5fbec9183ba5e1380bacb58977921ba089825b329f66374344dd3ac61dfb4622",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-icon-light-512.png",
+      "bytes": 236138,
+      "gzipBytes": 236231,
+      "extension": ".png",
+      "sha256": "5ca9ddf357c648f3870073466fa289bc404354b485f0a24b796d25c17cad5839",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-icon-512.png",
+      "bytes": 219692,
+      "gzipBytes": 219780,
+      "extension": ".png",
+      "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-icon-dark-512.png",
+      "bytes": 219692,
+      "gzipBytes": 219780,
+      "extension": ".png",
+      "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-logo.png",
+      "bytes": 219692,
+      "gzipBytes": 219780,
+      "extension": ".png",
+      "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-logo-light-compact.png",
+      "bytes": 211909,
+      "gzipBytes": 211362,
+      "extension": ".png",
+      "sha256": "ee5fac75b5361b2de7ad259188fd0b18fd10ede7206e98831d4ca872f12e9776",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-logo-light.png",
+      "bytes": 211909,
+      "gzipBytes": 211362,
+      "extension": ".png",
+      "sha256": "ee5fac75b5361b2de7ad259188fd0b18fd10ede7206e98831d4ca872f12e9776",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-logo-dark-compact.png",
+      "bytes": 211440,
+      "gzipBytes": 210812,
+      "extension": ".png",
+      "sha256": "19ac686fc52471495151e4be99cf226f1b1277c4415960d52a98d3898d67a661",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-logo-dark.png",
+      "bytes": 211440,
+      "gzipBytes": 210812,
+      "extension": ".png",
+      "sha256": "19ac686fc52471495151e4be99cf226f1b1277c4415960d52a98d3898d67a661",
+      "category": "static-media"
+    },
+    {
+      "file": "assets/maplibre-gl-worker-DboxHBUc.js",
+      "bytes": 486534,
+      "gzipBytes": 135611,
+      "extension": ".js",
+      "sha256": "57a65c193140563d5332738056ce4f664aa3271f4d1d66c2029b33ba28dc1bbd",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ReactVendor-DL2nAelm.js",
+      "bytes": 378112,
+      "gzipBytes": 115045,
+      "extension": ".js",
+      "sha256": "c51506d7f8625b97539fa1ceb7807164d23e48eb6ce09f74c45aa52fc7318751",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ChartsVendor-D1FWKg1o.js",
+      "bytes": 413104,
+      "gzipBytes": 113974,
+      "extension": ".js",
+      "sha256": "57809c2a5f812d08f3765fd4d424e12a9d45963c93dbc4e3adf0497080dd1c3a",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/1db4efe1f24d27f9e3733293b29e43fc730bb02ab9c15a9a7bd1ea51052c0830.gzip.bin",
+      "bytes": 118987,
+      "gzipBytes": 97082,
+      "extension": ".bin",
+      "sha256": "1db4efe1f24d27f9e3733293b29e43fc730bb02ab9c15a9a7bd1ea51052c0830",
+      "category": "other"
+    },
+    {
+      "file": "assets/modelMapGeography-BopNRpJh.json",
+      "bytes": 271134,
+      "gzipBytes": 91553,
+      "extension": ".json",
+      "sha256": "9958977aaac3bbeedaab06f2070f740c8e7be3856052179d6e2b724fac92454b",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/RadarPanel-BRbEXKrd.js",
+      "bytes": 143562,
+      "gzipBytes": 42858,
+      "extension": ".js",
+      "sha256": "138f5a752c429860606641c6c7f6dedba4c78dda5c4461ce0aab4f2356ad1c83",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-icon-light-192.png",
+      "bytes": 38644,
+      "gzipBytes": 38677,
+      "extension": ".png",
+      "sha256": "b60ce9b0ce33bce59f4edbd976e01bc600a2e6455c450c01697928ff1c9765dd",
+      "category": "static-media"
+    },
+    {
+      "file": "assets/UnifiedWeatherMap-ZKBYffiG.js",
+      "bytes": 118873,
+      "gzipBytes": 37865,
+      "extension": ".js",
+      "sha256": "01327e9e3457be3ad3dff640daadf05464ccb29d08f0588f81a7238775726f1b",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-icon-192.png",
+      "bytes": 37227,
+      "gzipBytes": 37260,
+      "extension": ".png",
+      "sha256": "23188837330ec91cfaed0ffe15d4f281865725754c02afc2f39620160999a326",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-icon-dark-192.png",
+      "bytes": 37227,
+      "gzipBytes": 37260,
+      "extension": ".png",
+      "sha256": "23188837330ec91cfaed0ffe15d4f281865725754c02afc2f39620160999a326",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-icon-light-180.png",
+      "bytes": 34482,
+      "gzipBytes": 34515,
+      "extension": ".png",
+      "sha256": "d594b52a20281300f9f81b7c3f88f88e4e608e6483e537e2520ecfd3f829d5a0",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-icon-180.png",
+      "bytes": 33431,
+      "gzipBytes": 33464,
+      "extension": ".png",
+      "sha256": "80edcb7c7b2d3af64ab94ba63ef9542429ecb82ad03c4ee2b648dbc0e34fe651",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-icon-dark-180.png",
+      "bytes": 33431,
+      "gzipBytes": 33464,
+      "extension": ".png",
+      "sha256": "80edcb7c7b2d3af64ab94ba63ef9542429ecb82ad03c4ee2b648dbc0e34fe651",
+      "category": "static-media"
+    },
+    {
+      "file": "assets/EnsemblePanel-BTXC_7hv.js",
+      "bytes": 102937,
+      "gzipBytes": 28994,
+      "extension": ".js",
+      "sha256": "f7fb32d187bc5136444a927c7ec947466629b7fa1529387a9b1f734ee93b5c36",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-BenTtNNj.js",
+      "bytes": 80630,
+      "gzipBytes": 25293,
+      "extension": ".js",
+      "sha256": "f24d962452bec8b86c18f040e09b78d1a440181a6b459d13e5a72d6e7b372672",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/MountainWeather-pkLqyQRN.js",
+      "bytes": 70003,
+      "gzipBytes": 20478,
+      "extension": ".js",
+      "sha256": "10f040ec55bb25623c1c820562e53fbe7412dfe547af877dcbb5802612f63785",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/LongRangePanel-CM4p4Zfe.js",
+      "bytes": 65593,
+      "gzipBytes": 18373,
+      "extension": ".js",
+      "sha256": "331cee51bbdc7f58c8b1ddac244eaf49a27078f3e0a9c77c3e36247003022c29",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ExtremeWeatherOutlookPanel-BDmcEj6d.js",
+      "bytes": 53127,
+      "gzipBytes": 17437,
+      "extension": ".js",
+      "sha256": "7704cea66474b5eb7e6414d936e65e4dd141f77290694ef4d465d00587268d3f",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/TravelPlannerPanel-CUJg6n4v.js",
+      "bytes": 48542,
+      "gzipBytes": 14783,
+      "extension": ".js",
+      "sha256": "0e62843ab1303ed6210f7058cf69876302131d5fc58c433219fd343d6232559b",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/extremeWeatherOutlookDirect.generated-C1bvtShK.js",
+      "bytes": 40316,
+      "gzipBytes": 14780,
+      "extension": ".js",
+      "sha256": "fc48011d1ebadc6ec0f9ed8da035a832819d51d81b78a950cee95ab91a77d5a4",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/pako.esm-B1JHHWqN.js",
+      "bytes": 46595,
+      "gzipBytes": 14627,
+      "extension": ".js",
+      "sha256": "ef2d2b0a20e3628f4620df45bc2b7632396861db3523b3638636df747837652d",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/MeteogramPanel-B6HOzyqM.js",
+      "bytes": 41300,
+      "gzipBytes": 13595,
+      "extension": ".js",
+      "sha256": "dc5ffba584a10cc268e71d5eadf42e5f8e0dc3ed07bc6040c934f116ed8773a4",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/EventPlannerPanel-Dfb961eT.js",
+      "bytes": 44681,
+      "gzipBytes": 13231,
+      "extension": ".js",
+      "sha256": "b0eec40ee1f50fd99db0ec96b5883a83f61611aa23063f2c7cd0cd41a6dcf8f9",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/MapLibreCore-DQBTe0CN.css",
+      "bytes": 84773,
+      "gzipBytes": 10711,
+      "brotliBytes": 9632,
+      "extension": ".css",
+      "sha256": "80a44ef65e67bce7e44d9b0a26a19566753b2af049eb9de438b8013c0c9a0088",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/WaterSportsPanel-B3yZmusv.js",
+      "bytes": 32845,
+      "gzipBytes": 10608,
+      "extension": ".js",
+      "sha256": "80ba66d45616761fdff6271110fbb00b5e37e5db120640866b77bfdaee4f18e4",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/CrossSectionPanel-DFQO49s8.js",
+      "bytes": 30191,
+      "gzipBytes": 9319,
+      "extension": ".js",
+      "sha256": "5cce3a98cafe9103049f1139ec6c101096055bd50487964c14d53cf55a7be450",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/seasonalForecast-DoBHspDH.js",
+      "bytes": 24305,
+      "gzipBytes": 7820,
+      "extension": ".js",
+      "sha256": "c3ff755895e815be3660904c6eda8a0bf972824280d88b87e438eed14905b432",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ForecastVerificationPanel-wtCYeXTd.js",
+      "bytes": 23849,
+      "gzipBytes": 7659,
+      "extension": ".js",
+      "sha256": "247ce980b05f295caba59f25e536115f1b189c7b017bb7a68cc88250c796beb4",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-favicon-light-64.png",
+      "bytes": 7543,
+      "gzipBytes": 7566,
+      "extension": ".png",
+      "sha256": "1c2be69a046638176755c8d8da6b9428817fa2e8b788e389de6f66ba0750cf9b",
+      "category": "static-media"
+    },
+    {
+      "file": "assets/precipitationTotalsExport-BR_UAABz.js",
+      "bytes": 16419,
+      "gzipBytes": 7315,
+      "extension": ".js",
+      "sha256": "4147113a328bf27406d7b2f868a082e3ca09f569be243bb67c605e143b0504fa",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-favicon-dark-64.png",
+      "bytes": 7180,
+      "gzipBytes": 7203,
+      "extension": ".png",
+      "sha256": "78fa1538e613ec989bfff86ee20a8f1cdaf7ac0c45f8804a9bb715dc897ad5c9",
+      "category": "static-media"
+    },
+    {
+      "file": "service-worker.js",
+      "bytes": 21787,
+      "gzipBytes": 6864,
+      "extension": ".js",
+      "sha256": "e33343633aff3158ba0c344dee5b7b7d510ee810bcc383d37ccb84ca5d00d1c0",
+      "category": "compressible"
+    },
+    {
+      "file": "sw.js",
+      "bytes": 21787,
+      "gzipBytes": 6864,
+      "extension": ".js",
+      "sha256": "e33343633aff3158ba0c344dee5b7b7d510ee810bcc383d37ccb84ca5d00d1c0",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/LocationIntelligence-CuXYgUdp.js",
+      "bytes": 17582,
+      "gzipBytes": 6262,
+      "extension": ".js",
+      "sha256": "78e518b259d467a5c4898dfd03388f2a926e3d0fdf24d00ff761efe77fb22613",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/travelPlanner-CroijgTN.js",
+      "bytes": 17255,
+      "gzipBytes": 6205,
+      "extension": ".js",
+      "sha256": "e2256ce2b57e97dd19e29e7f0fa1ad55198a4625c2f0c1a614e79efeb47f66ac",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/UnifiedWeatherMap-DbnFLgS6.css",
+      "bytes": 38473,
+      "gzipBytes": 6091,
+      "brotliBytes": 5778,
+      "extension": ".css",
+      "sha256": "0377db91e38ffb1f1e8325216c4d365d196c23b764522771744d7633f8a93405",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ClimatePanel-D8EJhyge.js",
+      "bytes": 16448,
+      "gzipBytes": 5647,
+      "extension": ".js",
+      "sha256": "bd41a4847853c3a12e96f559fb8a89b5d1539576434d31e1c0ab26608b7c507b",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/WidgetGenerator-D3LXg98_.js",
+      "bytes": 16582,
+      "gzipBytes": 5555,
+      "extension": ".js",
+      "sha256": "587dfdf28f585a6e019944a51662c7d2d17d6f97c212565b47a3e700c51670f1",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/es-fkKzv544.js",
+      "bytes": 12863,
+      "gzipBytes": 5080,
+      "extension": ".js",
+      "sha256": "deae8e5dd774c5c3498cf4386c94a8a582e36529a5c1327aa12e5b50465697b9",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/WeatherMapsData-CJq4uiCd.js",
+      "bytes": 16522,
+      "gzipBytes": 4243,
+      "extension": ".js",
+      "sha256": "d725304be3343e1f2d4d1334e8dd7625cb063f41428693036ac8b7aba214bf3d",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/Px250Overlay-BkeENdOk.js",
+      "bytes": 9814,
+      "gzipBytes": 4236,
+      "extension": ".js",
+      "sha256": "bcc189084ac214912e1dd382cdc119055f8b139cf3911912e1867f33c7daa25c",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/PrognoseRadar-CmVPROEb.js",
+      "bytes": 10075,
+      "gzipBytes": 3932,
+      "extension": ".js",
+      "sha256": "edb66489be1e37786b241d15e83bb5a7d33fd0ab7bc702201b15ecc84303a842",
+      "category": "compressible"
+    },
+    {
+      "file": "index.html",
+      "bytes": 11198,
+      "gzipBytes": 3926,
+      "extension": ".html",
+      "sha256": "2ed813e787974abfd1b24e906b6e6ed8e9a4cf64717fb4c019a0110c4139c9cb",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/RadarModelPrecipTypeOverlay-BlS3bSsg.js",
+      "bytes": 10287,
+      "gzipBytes": 3864,
+      "extension": ".js",
+      "sha256": "369fdf90e82be006b795f04fd58c546e1493fdfbdb77029f6c41b131d44e95fd",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/FourteenDayDevelopment-Cpy0_lhT.js",
+      "bytes": 12808,
+      "gzipBytes": 3716,
+      "extension": ".js",
+      "sha256": "403b35bb2e22b986472f34b6afca51e4e47d4b59857e493783406c7aff00f020",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/SevenDayDesignModes-DZFV69PK.js",
+      "bytes": 10490,
+      "gzipBytes": 3373,
+      "extension": ".js",
+      "sha256": "0b234190f5172c683139f440fe00b2f9b899d1b4d777588ca506a4ccf2f6ab00",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/SevenDayDesignModes-CAuADyXm.css",
+      "bytes": 20789,
+      "gzipBytes": 3310,
+      "brotliBytes": 3084,
+      "extension": ".css",
+      "sha256": "2b234d4a0357eec4173929cb45962ed3a892b7e3ed75eabbbe99881009f00c57",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/FourteenDayDevelopment-DgXYUu7U.css",
+      "bytes": 23865,
+      "gzipBytes": 3160,
+      "brotliBytes": 2968,
+      "extension": ".css",
+      "sha256": "e9f2afec58004f6bc6f0986518600e26c9c0dad61443bd74ef1ac6807de35a94",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/RadarNowcastCalibration-CECvfdJ9.js",
+      "bytes": 7955,
+      "gzipBytes": 3093,
+      "extension": ".js",
+      "sha256": "92864d761a37820ea5554c60935a65954d38d83177548011af063a1cdcf23b24",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/HorizonSignalChart-Bf8VExr5.js",
+      "bytes": 6798,
+      "gzipBytes": 2886,
+      "extension": ".js",
+      "sha256": "4c2ffe7656844dfef042323963cce076cbb214078ebfd00bd2a98faefffc84cb",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/web-CtaKu9rd.js",
+      "bytes": 8481,
+      "gzipBytes": 2820,
+      "extension": ".js",
+      "sha256": "9cafce829d3affef2821bbd8b1e92e6540599fba0155bb824bdf6b962a1d227d",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/unifiedMapPresentation-CX8LHJzx.js",
+      "bytes": 6534,
+      "gzipBytes": 2795,
+      "extension": ".js",
+      "sha256": "b84428ef5c9969a683825cfdab23bc68f28b96dabbf73406a087be9a927ddd7c",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-favicon-light-32.png",
+      "bytes": 2625,
+      "gzipBytes": 2648,
+      "extension": ".png",
+      "sha256": "ab17c8b8944e78f75b387ce69bba64ec5d3945703adff795557ff1018125844a",
+      "category": "static-media"
+    },
+    {
+      "file": "mid-favicon-dark-32.png",
+      "bytes": 2571,
+      "gzipBytes": 2594,
+      "extension": ".png",
+      "sha256": "db190aa56fe490591cf740db9292c248443de899d67ce8f6697a031028c3fc53",
+      "category": "static-media"
+    },
+    {
+      "file": "assets/midDesignWeToday-KU8Ixiq1.css",
+      "bytes": 18919,
+      "gzipBytes": 2561,
+      "brotliBytes": 2416,
+      "extension": ".css",
+      "sha256": "bbc2aa863fffbfbf9f04a92f435dce45242d6f93179b0ebea4941711cf0c3eae",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/radarForecastReadability-D4JJS61n.css",
+      "bytes": 15479,
+      "gzipBytes": 2546,
+      "brotliBytes": 2410,
+      "extension": ".css",
+      "sha256": "0eee5ec0cc872a5f30f5b7af655516d079d7508b90f10de72bfdabc565a58416",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/cloudWeatherExport-Dgb95j6w.js",
+      "bytes": 5171,
+      "gzipBytes": 2417,
+      "extension": ".js",
+      "sha256": "3543566d38352b96de01bdebcb3c5e636f7e0952e16a201c4f799832d325f17c",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/nativeScalarAnnotations-Bhwqwwsg.js",
+      "bytes": 4692,
+      "gzipBytes": 2183,
+      "extension": ".js",
+      "sha256": "1ed4a0c0d3d9ae0e36be41b46cc66d2c94e923e5c964379facaee1862880885b",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/nativeModelMapExport-HFOOCrHz.js",
+      "bytes": 4031,
+      "gzipBytes": 2091,
+      "extension": ".js",
+      "sha256": "55459b7e8ddfa4e9f61517175f8a225e12e49974d9d50ba4916f7f99eb72cae5",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/LongRangePanel-CTBpun81.css",
+      "bytes": 10141,
+      "gzipBytes": 1949,
+      "brotliBytes": 1804,
+      "extension": ".css",
+      "sha256": "739b30f8ce8373409aa38629e71c22d1bde34a4646baf7a8f119574932d07e55",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ForecastRangeGuide-Cph4LbbE.js",
+      "bytes": 4196,
+      "gzipBytes": 1858,
+      "extension": ".js",
+      "sha256": "1e4076d1e59632745b120fea96227c413875cb07a22105968f90b5513a1088db",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/DashboardModuleSettings-DnMMIChT.js",
+      "bytes": 4252,
+      "gzipBytes": 1821,
+      "extension": ".js",
+      "sha256": "ae396bd7a5bac944f5651f12f6fd57c9c39c87ffebf89d41b574a2ce54ca8f19",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/AppleWidgetSettings-BKkLeaYI.js",
+      "bytes": 4185,
+      "gzipBytes": 1789,
+      "extension": ".js",
+      "sha256": "7f59ceb6f6bfa2e7e69f574e4ad160f3b7a988f97c95b52a9fd1bc0d8a60f9ea",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/PrognoseRadar-9p7ns1QP.css",
+      "bytes": 7352,
+      "gzipBytes": 1789,
+      "brotliBytes": 1647,
+      "extension": ".css",
+      "sha256": "547f5bb7c0dfc783dc2a1404a41a4bd882f04c7c2c4acac9e3be05d6afa316a2",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/qrCode-J7WTgRhL.js",
+      "bytes": 3191,
+      "gzipBytes": 1665,
+      "extension": ".js",
+      "sha256": "05046022b67532728e8ba672080fcef5213a8969999721a0991fd4830474851e",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/lossless_candidate_decoder.mjs",
+      "bytes": 4290,
+      "gzipBytes": 1606,
+      "extension": ".mjs",
+      "sha256": "06f7a8134133fbdb0d955143a2f560038d8df9692cf0ff1cf119e69f0e561dae",
+      "category": "other"
+    },
+    {
+      "file": "assets/MapWorkspacePanel-DGMssOn3.css",
+      "bytes": 6339,
+      "gzipBytes": 1478,
+      "brotliBytes": 1313,
+      "extension": ".css",
+      "sha256": "48202e8cd7a3958cc6f71c44704bff23aa06c75af0fee1706958373e435f43ea",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/lossless_transport_canary.mjs",
+      "bytes": 3208,
+      "gzipBytes": 1433,
+      "extension": ".mjs",
+      "sha256": "bdc657574fd81bbdd7230d0c007c69090460495b7ef1f4dbfb8037ffc258918d",
+      "category": "other"
+    },
+    {
+      "file": "assets/OperaRasterOverlay-ZSaDp4hd.js",
+      "bytes": 2576,
+      "gzipBytes": 1390,
+      "extension": ".js",
+      "sha256": "4ad4f804299ae490c16c469338d8b10f1c9fde4f1ac2a941b0e7957b0b2e04d5",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/RadarPanel-BQI2OwlJ.css",
+      "bytes": 7618,
+      "gzipBytes": 1348,
+      "brotliBytes": 1198,
+      "extension": ".css",
+      "sha256": "007f9f3b2807389b86886e3a9048e680cb7d9b2fab28fd1cc1fcd0d28f58a1f6",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/FlightMeteorologyPanel-DtOZ0EK3.js",
+      "bytes": 2452,
+      "gzipBytes": 1077,
+      "extension": ".js",
+      "sha256": "b4322ad93ddfcf25f8b6b95c74cde42ed7913801c0221ea6f29884a9ad1370b0",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/MapWorkspacePanel-BjiIJy0i.js",
+      "bytes": 1790,
+      "gzipBytes": 964,
+      "extension": ".js",
+      "sha256": "b8fe95a563cee2cae5496e720650c9a290d1a0cb7ac81ae55a13353c5002a745",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/be4022a9f8950fba70e7f77f4086f557ebe7cb902cfbd3ac5eb79ef2923fa7fa.byteplanes-gzip.bin",
+      "bytes": 1172,
+      "gzipBytes": 916,
+      "extension": ".bin",
+      "sha256": "be4022a9f8950fba70e7f77f4086f557ebe7cb902cfbd3ac5eb79ef2923fa7fa",
+      "category": "other"
+    },
+    {
+      "file": "assets/web-C8bifwQ4.js",
+      "bytes": 2088,
+      "gzipBytes": 854,
+      "extension": ".js",
+      "sha256": "2d93f43307786a94fb1ccc58b28c3f09cf81205e317f1ab16203ef83a64c32fe",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/ForecastChangePanel-DYuDlClG.js",
+      "bytes": 1466,
+      "gzipBytes": 775,
+      "extension": ".js",
+      "sha256": "704823998926b03e61a3b54b798ad34282f9883bb589a1e1085da8b70ed414cd",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/browser-probe.mjs",
+      "bytes": 1266,
+      "gzipBytes": 649,
+      "extension": ".mjs",
+      "sha256": "ab19d7896ba8996cb414e02e702d54124637278a7608bd597aa79c4bc25cd2db",
+      "category": "other"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/lossless_canary_manifest.generated.mjs",
+      "bytes": 1644,
+      "gzipBytes": 632,
+      "extension": ".mjs",
+      "sha256": "6bb24620a66d8cc24fe3bdec53ebddd930d158b597a6b610ec730b013b72f11b",
+      "category": "other"
+    },
+    {
+      "file": "assets/esm-DkM7hsiq.js",
+      "bytes": 917,
+      "gzipBytes": 551,
+      "extension": ".js",
+      "sha256": "4aced31d141954fbcf37032632dbaeac1ebc7ddbf7c4c6679d783238dda116cf",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/index.json",
+      "bytes": 1451,
+      "gzipBytes": 502,
+      "extension": ".json",
+      "sha256": "d80163e0274ed5c82163773838443e832f9b7d27701e0791b70ebe874c38b650",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/index.html",
+      "bytes": 683,
+      "gzipBytes": 454,
+      "extension": ".html",
+      "sha256": "32949b049efbeb231f2927dc11f19387da18d36dcade8b272cbd6461cdfd5713",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/rolldown-runtime-XKyaHtl9.js",
+      "bytes": 726,
+      "gzipBytes": 429,
+      "extension": ".js",
+      "sha256": "548d1dbf321e7d2ae804fcc158b588706a7c52f8ca175de1490c6ccb4dbe55b7",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/index-Beqs3BWz.js",
+      "bytes": 698,
+      "gzipBytes": 414,
+      "extension": ".js",
+      "sha256": "b9810301eccbaa93457161768246b5f9da75c383cb073d48f4c18764cbfab6ed",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/web-Bue1TsoN.js",
+      "bytes": 845,
+      "gzipBytes": 402,
+      "extension": ".js",
+      "sha256": "4fa1f1fe5e84f867ad974896e617d77ac3a3d822a2cbfde984fc8856305572d2",
+      "category": "compressible"
+    },
+    {
+      "file": "manifest.webmanifest",
+      "bytes": 665,
+      "gzipBytes": 349,
+      "extension": ".webmanifest",
+      "sha256": "486f226348c44a4c7634d09767909ee2e4cbb0578a4dee1d5b2347d9cda645e1",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-DVLTz1kv.js",
+      "bytes": 498,
+      "gzipBytes": 330,
+      "extension": ".js",
+      "sha256": "a98b837a7547503be70becaa4e3b27bb956787474569d1cd39df2485f08166d0",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/WidgetGenerator-NBltSAOY.css",
+      "bytes": 657,
+      "gzipBytes": 327,
+      "brotliBytes": 281,
+      "extension": ".css",
+      "sha256": "918d5938bc990532a923b5c356309ca90231f14bfa6ccc701cdf2648a92ab739",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/snowflake-DPMgywKV.js",
+      "bytes": 618,
+      "gzipBytes": 321,
+      "extension": ".js",
+      "sha256": "73320c7e586b339e8fca24b0ad01f0b89acdd96bc76afec610ffde6970a6b772",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/synapse-I42WLusp.js",
+      "bytes": 602,
+      "gzipBytes": 307,
+      "extension": ".js",
+      "sha256": "94d01ee160e96bc75b06b96cc8c3c650a24c6eb0d55b9e3f6a931aaa14fd3411",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-rEFSPed7.js",
+      "bytes": 455,
+      "gzipBytes": 306,
+      "extension": ".js",
+      "sha256": "ffdd258a3e620568fb1a9662fd36fb0187a5b742d7ebae487e720ee676077f0e",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-BipYfkFC.js",
+      "bytes": 440,
+      "gzipBytes": 303,
+      "extension": ".js",
+      "sha256": "661bbe89743dc05f51dc543242c3f6deaf4cdc5aea81a2ef6f3502a40e4177c9",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-DIXx9ZgL.js",
+      "bytes": 434,
+      "gzipBytes": 301,
+      "extension": ".js",
+      "sha256": "6a95c2ce2196376d0fb0cec0cf6018339bde12e47605f8f9d8878c11b5383a7c",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-BndUN-1p.js",
+      "bytes": 428,
+      "gzipBytes": 299,
+      "extension": ".js",
+      "sha256": "4d8250d3dbfd7217758df1f3fbec47a407c755d9dc455c29716b21fe85fc2529",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/web-Ce6vxdQX.js",
+      "bytes": 366,
+      "gzipBytes": 249,
+      "extension": ".js",
+      "sha256": "7b0af63d9cb4106f9bf3debaa56d0bc14e3bc2f77e8c01736b560a3d90f8c335",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/web-BcXtmqy3.js",
+      "bytes": 363,
+      "gzipBytes": 245,
+      "extension": ".js",
+      "sha256": "1253166217d817788f41d60fad4e32b363e21dbdfa4cd045a13fecae17e0f775",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/plane-D6-Hq_Zt.js",
+      "bytes": 296,
+      "gzipBytes": 243,
+      "extension": ".js",
+      "sha256": "7a18433df070b021406371f41b26447d049e5981c43e1871370f03bac0bb7756",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/modelMapGeography-BnNltQFp.js",
+      "bytes": 302,
+      "gzipBytes": 240,
+      "extension": ".js",
+      "sha256": "069344810539ef28640d14e2a55ecdcd6e392d49ed3116150a2b4d6f25a8118a",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/layers-C9RSpLB4.js",
+      "bytes": 411,
+      "gzipBytes": 235,
+      "extension": ".js",
+      "sha256": "4926aa85f761c40a3f938e967b3b1864105b86230ccae577c59fb4f86f2f2184",
+      "category": "compressible"
+    },
+    {
+      "file": "mid-build-identity.json",
+      "bytes": 284,
+      "gzipBytes": 228,
+      "extension": ".json",
+      "sha256": "5e995753abf6276d56238626434f1622c739791c89c33eaa57cb006dfcce0a0b",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/pencil-pl5cUiDL.js",
+      "bytes": 266,
+      "gzipBytes": 219,
+      "extension": ".js",
+      "sha256": "eb30faba95233a9530202225bb0321a423144424f9c2a0edb50ee9a0e756db1c",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/esm-CH5sVF20.js",
+      "bytes": 254,
+      "gzipBytes": 209,
+      "extension": ".js",
+      "sha256": "d42e3ca967e4ef0816c03dfe7a3b40f284e044f5141fba29332631cfc1b3802a",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/zap-CDhK-niD.js",
+      "bytes": 263,
+      "gzipBytes": 208,
+      "extension": ".js",
+      "sha256": "b43fa5903ee6cff88f128d1dc4dae19c8819f88fb7c90fb7c9bf2f43033e1d02",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/compass-DXPeLMmu.js",
+      "bytes": 241,
+      "gzipBytes": 201,
+      "extension": ".js",
+      "sha256": "b223b624fcf5620e18f56f27fac7b0a531625bc07cdb89554dd9b660072c1ec1",
+      "category": "compressible"
+    },
+    {
+      "file": "sitemap.xml",
+      "bytes": 263,
+      "gzipBytes": 197,
+      "extension": ".xml",
+      "sha256": "6f6535a65b869aa78554e19c4417ab5e54005182429c0b1b5d1379a6846e1cd6",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/activity-lfwjFK8e.js",
+      "bytes": 224,
+      "gzipBytes": 194,
+      "extension": ".js",
+      "sha256": "4f07b845de4835746dfa6ccad33bcfca91a0b290737963d92813d64a7ba905e5",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/RadarForecastStyleGate-DS8JJNsa.js",
+      "bytes": 190,
+      "gzipBytes": 155,
+      "extension": ".js",
+      "sha256": "b2c44ce75c074fb6d95b00519ad43861d29fc711501382221539abf4daa8f00a",
+      "category": "compressible"
+    },
+    {
+      "file": "assets/web-WR301fg-.js",
+      "bytes": 124,
+      "gzipBytes": 129,
+      "extension": ".js",
+      "sha256": "b69721c5c45f759c787c47d8607535e440201fdc81a39935dfa959c3bc997e0a",
+      "category": "compressible"
+    },
+    {
+      "file": "robots.txt",
+      "bytes": 67,
+      "gzipBytes": 83,
+      "extension": ".txt",
+      "sha256": "e3dc40811216ec503f6f231cbb5a08b8e3041a5fa4024ae08837752568ffc6bd",
+      "category": "compressible"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/260a5d0f5c7ee14f24d25b5c4c0f1091e520fbfead1897caefc7e932a4542cdb.delta-byteplanes-gzip.bin",
+      "bytes": 162,
+      "gzipBytes": 59,
+      "extension": ".bin",
+      "sha256": "260a5d0f5c7ee14f24d25b5c4c0f1091e520fbfead1897caefc7e932a4542cdb",
+      "category": "other"
+    },
+    {
+      "file": "version.json",
+      "bytes": 30,
+      "gzipBytes": 50,
+      "extension": ".json",
+      "sha256": "dee46aa8a88280075dba92f7345633ba61b9908295c557d96017722d9dec64f4",
+      "category": "compressible"
+    },
+    {
+      "file": "CNAME",
+      "bytes": 14,
+      "gzipBytes": 34,
+      "extension": "",
+      "sha256": "bc497efb6d7fa18bb3bf5dee527c281a5696fee2a6d65f5e6efc7db4a976ea00",
+      "category": "other"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/3fdd93862442149f46c9eb1d2213031aa242b70732d1fcc67f48679d54469a41.raw.bin",
+      "bytes": 14,
+      "gzipBytes": 34,
+      "extension": ".bin",
+      "sha256": "3fdd93862442149f46c9eb1d2213031aa242b70732d1fcc67f48679d54469a41",
+      "category": "other"
+    }
+  ],
+  "failures": []
+}

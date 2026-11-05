@@ -1,6 +1,14 @@
-# MID v0.9.85.432 · UI-Ergonomie und geprüfter Kilo-Handoff (Kandidat, nicht veröffentlicht)
+# MID v0.9.85.434 · UI-Ergonomie, ruhige Ladeflächen und vollständiges Webbudget
 
-Basis Stable .431 `77de0e326d586274d5f42f0ea63827a887d1b147`; #663/#664/#665 integriert. Korrekte 44px-Gridspalten und Pfeile, Pointer-/RAF-Abbruchbereinigung, Screenreader-Positionsstatus, eindeutige Mehr-Semantik und neutrale Ladeflächen. 1077 Pflichtinventar, Node22-Types/Vite und gezielte Interaktions-/Golden-Prüfungen erfolgreich. Gesamtbudget und reale Browser-/Installerabnahme weiterhin blockiert; keine Stable-/Veröffentlichungsbehauptung. Vollständige Evidenz/Prüfzähler und Grenzen: `docs/implementation/MID_C55_UI_432_QA.md`.
+Verifizierte Basis main=mid-stable .433 `5a12f7204b8b2a9305be0a9adefa3862648a3101`, vollständiger Installer42065087192 success. Parallele PostHog-Integration und Konfigurationsneubau #666/#667 erhalten. #663/#664/#665 integriert: 44px-Griffe mit passender Gridspalte, Pfeile und gemeinsame kompakte/Coarse-Pointer-Ziele; Pointer-Abbruch-/Unmount-Bereinigung, Positionsstatus, eindeutiges Mehr-aria-current und neutrale Ladeflächen einschließlich reservierter Kartenhöhe. Historischer CSS-Golden unverändert, zehn exakt geprüfte autorisierte Änderungen. Ausschließlich zwei unreferenzierte native Masterkopien entfallen aus generiertem Web-Dist; Quellen/iOS/PWA-Icons unverändert. Vollständiges Budget ohne angehobene Grenzen grün, 125 beibehaltene Dateien im A/B-Build bytegleich. 1079 Pflichtprüfungen, davon lokal1070 unterschiedliche Core erfolgreich und drei Chromiumfälle umgebungsbedingt blockiert. Sämtliche regulären Source-/Installer-/Worker-/Pages-/Finalize-Gates auf endgültigem SHA bleiben zwingend. Nachweis: `docs/implementation/MID_C55_UI_434_QA.md`.
+
+# MID v0.9.85.433 · erneuter PostHog-EU-Build nach Einrichtung der Projektvariablen
+
+Stabile Basis .432: `218d07bf290b5beff3c0643f3cc61852bab3156f` (main=mid-stable), Quellrelease #666/Installer 42059293729 regulär erfolgreich. Die beiden GitHub Actions-Konfigurationsvariablen waren beim ursprünglichen Web-Build noch leer; der Nutzer hat sie inzwischen eingerichtet. Der neue Build .433 übernimmt ausschließlich die bestehende optionale PostHog-EU-Konfiguration und erhält Opt-in, Datenminimierung, native Deaktivierung sowie alle fachlichen MID-Funktionen und Release-Gates. Die eigentliche Aktivierung ist erst durch SHA-geprüften Installer, Worker/Pages und erfolgreiche Stable-Promotion belegt. Nachweis: `docs/implementation/MID_POSTHOG_REBUILD_CONFIG_0.9.85.433.md`.
+
+# MID v0.9.85.432 · freiwillige EU-PostHog-Telemetrie (Quellkandidat, noch kein Release)
+
+Basis main=mid-stable 77de0e326d586274d5f42f0ea63827a887d1b147 (v0.9.85.431). Opt-in Web/PWA, keine native Erfassung, keine permanenten Personenkennungen, keine Orts- oder Freitextdaten. Nachweis: docs/implementation/MID_POSTHOG_OPTIN_0.9.85.432.md. Release ausschließlich nach vollständigen SHA-Gates und erfolgreicher Stable-Promotion.
 
 # MID v0.9.85.431 · verifizierter AROME-Sunset und gewichtete Open-Meteo-Quoten
 

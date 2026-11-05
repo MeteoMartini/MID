@@ -26,7 +26,8 @@ assert.ok(css.includes('.current-weather-facts>.visibility,\n  .current-weather-
 assert.ok(css.includes('grid-template-columns:repeat(6,minmax(0,1fr))'),'Mobile Istwetter-Fakten müssen ohne Ausblendung responsiv umbrechen.');
 assert.ok(css.includes('.current-weather-facts b{\n  font-size:max(12px,var(--mid-text-sm));'),'Istwetter-Hauptwerte dürfen nicht auf historische Mikrogröße zurückfallen.');
 assert.ok(css.includes('.ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{\n  width:28px;'),'14d-Infoziel muss kompakt, aber besser bedienbar sein.');
-assert.ok(css.includes('@media(pointer:coarse)')&&css.includes('min-width:36px;\n    min-height:36px;'),'Touchgeräte benötigen vergrößerte Trefferflächen.');
+// MID .433 intentionally strengthens the former 36px coarse-pointer target.
+assert.ok(css.includes('@media(pointer:coarse)')&&css.includes('min-width:44px;\n    min-height:44px;'),'Touchgeräte benötigen mindestens 44px Trefferflächen.');
 assert.ok(dashboard.includes('am Griff oder mit den Pfeiltasten verschoben werden'),'Dashboard muss Drag-Alternative sichtbar erklären.');
 assert.ok(app.includes('Reihenfolge unter Favoriten verwalten ändern'),'Favoriten-Schnellleiste muss die exklusive Sortierung im Favoritenmanager erklären.');
 const quick=app.slice(app.indexOf('function FavoriteQuickStrip'),app.indexOf('function HeightInput'));

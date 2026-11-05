@@ -22,7 +22,7 @@ type MapWorkspacePanelProps={
  unit?:WindUnit;
 };
 
-function LoadingMapPanel(){return <ModuleLoadingState label="Kartenprodukt wird geladen …" kind="map"/>}
+function LoadingMapPanel(){return <ModuleLoadingState label="Kartenprodukt wird geladen …" kind="map" className="lazy-placeholder map-workspace-loading"/>}
 
 export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
  const[requestedProductId,setRequestedProductId]=useState<string|undefined>(()=>{try{if(localStorage.getItem('mid:unified-map:v1')||localStorage.getItem(MAP_WORKSPACE_VIEW_KEY)!=='totals')return undefined;readMapWorkspaceView();return'icon-d2-precipitation-totals'}catch{return undefined}});

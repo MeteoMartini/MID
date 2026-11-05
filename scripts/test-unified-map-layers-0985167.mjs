@@ -189,4 +189,6 @@ for(const name of ['UnifiedWeatherMap','NativeModelMap','PrecipitationTotalsMap'
 assert.ok(read('src/MapWorkspacePanel.tsx').includes('ModuleLoadingState label="Kartenprodukt wird geladen …" kind="map"'),'Async map loading uses the shared status renderer (SSR semantics covered separately)');
 assert.ok(read('src/MapWorkspace.css').includes('min-height:min(420px,65svh)'),'Reserve responsive map space without clipping live controls');
 if(process.env.GITHUB_ACTIONS==='true')for(const shard of mapBrowserRunPlan(process.env.MID_MAP_QA_SHARD))execFileSync(process.execPath,['scripts/verify-unified-map-browser-0985167.mjs'],{stdio:'inherit',timeout:900000,env:{...process.env,MID_MAP_QA_SHARD:shard}});
+// Check the real styled Suspense slot once; all existing map cases remain mandatory.
+if(process.env.GITHUB_ACTIONS==='true'&&(!process.env.MID_MAP_QA_SHARD||process.env.MID_MAP_QA_SHARD==='1/3'))execFileSync(process.execPath,['scripts/verify-map-loading-layout.mjs'],{stdio:'inherit',timeout:180000});
 console.log('MID-C17 unified map: scientific model/parameter matrix, one lazy/memoized map, native field integrity, overlays/probes/exports, bounded caching, persistence and legacy-source exclusion verified.');

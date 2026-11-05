@@ -1,3 +1,17 @@
+# MID v0.9.85.433
+
+- Die bereits integrierte freiwillige MID-Systemdiagnose für Web/PWA wird mit der nachträglich eingerichteten europäischen PostHog-Projektkonfiguration neu gebaut. Im zuvor veröffentlichten Build fehlten die Projektvariablen noch.
+- Die Funktion bleibt standardmäßig ausgeschaltet und wird ausschließlich nach aktiver Zustimmung unter Einstellungen → Systemstatus verwendet. Ohne Projektkonfiguration oder Einwilligung werden keine PostHog-Ereignisse gesendet.
+- Es werden nur festgelegte technische Start-, Navigations- und Fehlerkategorien verarbeitet; keine Orts- oder Favoritendaten, Texteingaben, Sitzungsaufzeichnungen oder dauerhaften Nutzerkennungen.
+- Keine fachlichen Änderungen an Prognosen, amtlichen Warnungen, RUC, Karten, iOS oder vorhandenen Datendiensten.
+
+# MID v0.9.85.432
+
+- Freiwillige technische Diagnose für Web und PWA im Systembereich. Die Erfassung ist standardmäßig ausgeschaltet und jederzeit abschaltbar.
+- Bei Einwilligung nur allgemeine Startzeiten, fest definierte Hauptnavigation und technische Fehlerkategorien – ohne Koordinaten, Orte, Favoriten, Suchtexte, Fehlermeldungen oder dauerhafte Nutzerkennungen.
+- Ausschließlich europäischer PostHog-Endpunkt, maximal 30 Ereignisse je Seitenaufruf. Ohne konfigurierte öffentliche PostHog-Buildvariablen werden keine Daten gesendet.
+- Keine Wettermodell- oder Warnänderungen, keine zusätzlichen nativen iOS-Daten, keine Sitzungsaufzeichnungen. Bestehende Cloudflare-Statistik unverändert.
+
 # MID v0.9.85.431
 
 - Keine unnötigen aktuellen Wetterabrufe mehr beim offiziell eingestellten GeoSphere-AROME-Modell. Vorhandene Regional- und Globalprognosen bleiben verfügbar.

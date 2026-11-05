@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.432",
+  "releaseVersion": "0.9.85.434",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -662,6 +662,7 @@
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
     "scripts/test-native-location-adapter-09680.mjs",
+    "scripts/test-native-only-web-assets-0985433.mjs",
     "scripts/test-native-plugin-patches-0985362.mjs",
     "scripts/test-native-share-import-export-096682.mjs",
     "scripts/test-navigation-composite-ruc-098491.mjs",
@@ -715,6 +716,7 @@
     "scripts/test-planner-section-compact-event-controls-09450.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-popover-regression.mjs",
+    "scripts/test-posthog-telemetry-0985432.mjs",
     "scripts/test-precipitation-availability-0985386.mjs",
     "scripts/test-precipitation-character-0960.mjs",
     "scripts/test-precipitation-duration-day-character-09160.mjs",
@@ -1742,6 +1744,7 @@
     "scripts/test-mrms-display-source-contract-098477.mjs",
     "scripts/test-native-external-navigation-096681.mjs",
     "scripts/test-native-location-adapter-09680.mjs",
+    "scripts/test-native-only-web-assets-0985433.mjs",
     "scripts/test-native-plugin-patches-0985362.mjs",
     "scripts/test-native-share-import-export-096682.mjs",
     "scripts/test-navigation-composite-ruc-098491.mjs",
@@ -1795,6 +1798,7 @@
     "scripts/test-planner-section-compact-event-controls-09450.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-popover-regression.mjs",
+    "scripts/test-posthog-telemetry-0985432.mjs",
     "scripts/test-precipitation-availability-0985386.mjs",
     "scripts/test-precipitation-character-0960.mjs",
     "scripts/test-precipitation-duration-day-character-09160.mjs",
@@ -3173,7 +3177,18 @@
     "scripts/test-dashboard-touch-c55.mjs",
     "docs/implementation/MID_C55_UI_UX_RECONCILIATION.md",
     "docs/implementation/MID_C55_UI_432_QA.md",
-    "docs/implementation/c55-qa/build-budget-432.json"
+    "docs/implementation/c55-qa/build-budget-432.json",
+    "scripts/lib/nativeOnlyWebAssets.mjs",
+    "scripts/test-native-only-web-assets-0985433.mjs",
+    "docs/implementation/MID_C55_UI_433_QA.md",
+    "scripts/lib/nativeOnlyWebAssets.d.mts",
+    "docs/implementation/c55-qa/build-budget-433.json",
+    "docs/implementation/c55-qa/packaging-equivalence-433.json",
+    "scripts/verify-native-only-web-assets.mjs",
+    "scripts/verify-map-loading-layout.mjs",
+    "docs/implementation/MID_C55_UI_434_QA.md",
+    "docs/implementation/c55-qa/build-budget-434.json",
+    "docs/implementation/c55-qa/packaging-equivalence-434.json"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3913,10 +3928,9 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.432",
+  "version": "0.9.85.434",
   "updatedAt": "2026-11-03",
   "implementationFiles": [
-    "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",
     "docs/implementation/MID_C42_PLUGIN_REACT_0.9.85.330.md",
     "docs/implementation/MID_C36_PSEUDOSAT_ISOHEIGHTS_TIMEOUT_0.9.85.279.md",

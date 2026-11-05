@@ -23,5 +23,9 @@ try{
  grip('current').props.onPointerDown(event('pointerdown'));targetId='favorites';grip('current').props.onPointerMove(event('pointermove'));grip('current').props.onLostPointerCapture(event('lostpointercapture'));assert.equal(frames.size,0);
  tree=render();grip('current').props.onPointerDown(event('pointerdown'));grip('current').props.onPointerMove(event('pointermove'));mod.cleanup();assert.equal(frames.size,0,'Unmount clears pending animation');
  const css=await readFile('src/styles-src/10-features.css','utf8');assert.match(css,/grid-template-columns:44px minmax\(0,1fr\) auto/);assert.match(css,/dashboard-module-grip\{display:grid;width:44px;height:44px/);
- console.log('PASS dashboard touch: cancel/up/lost capture/unmount, scheduled moves, arrow order + live position, matching 44px grid and grip.');
+ const modern=await readFile('src/styles-src/30-modern.css','utf8');const coarse=modern.slice(modern.indexOf('@media(hover:none),(pointer:coarse){'));const sharedTouch=coarse.slice(0,coarse.indexOf('\n/*'));
+ assert.doesNotMatch(sharedTouch,/:36px/,'Shared touch controls must not retain old 36px overrides');
+ assert.match(await readFile('src/v078.css','utf8'),/\.ensemble-info-close\{justify-self:end;min-height:44px/,'Portal close button keeps the ergonomic target outside the app container');
+ assert.match(modern,/html\[data-mid-density="compact"\]\{\n --mid-ui-touch:44px;/,'Compact density must preserve 44px ergonomic targets');
+ console.log('PASS dashboard touch: cancel/up/lost capture/unmount, scheduled moves, arrow order + live position, matching 44px grid/grip and common compact/coarse controls.');
 }finally{Object.assign(globalThis,original);await rm(dir,{recursive:true,force:true})}

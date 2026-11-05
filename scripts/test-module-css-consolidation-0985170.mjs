@@ -98,7 +98,7 @@ assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config
 assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26/C27 layers may follow the unchanged .169 eager cascade; C28 is owned by the async development component');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
-// C55: seven exact, intentionally reviewed dashboard ergonomics changes.
+// C55: ten exact, intentionally reviewed dashboard/common-touch changes.
 // Require each complete current fragment exactly once, then restore ONLY it on
 // the historical comparison AST. The immutable .169 fingerprint stays intact;
 // production generation and semantic equality are still checked independently.
@@ -123,6 +123,14 @@ const reviewedC55DashboardCss={
   ],
   "src/styles-src/30-modern.css": [
     [
+      "html[data-mid-density=\"compact\"]{\n --mid-ui-touch:44px;",
+      "html[data-mid-density=\"compact\"]{\n --mid-ui-touch:40px;"
+    ],
+    [
+      "@media(hover:none),(pointer:coarse){\n button,[role=\"button\"],summary{\n  -webkit-user-select:none;\n  user-select:none;\n  -webkit-touch-callout:none;\n }\n /* Kompakte Bedienelemente behalten ihre optische Dichte, erhalten aber verlässlichere Touchflächen. */\n .search-input-shell>button,\n .hour-chart-tooltip>header button,\n .short-term-detail>header button,\n .weather-twin-recommendations footer button,\n .long-range-head-actions>button,\n .cockpit-weather-profile__stepper>button,\n .actions .event-center-header-popover>header>button{\n  min-width:44px!important;\n  min-height:44px!important;\n }\n .model-run-button,\n .radarlegend-toggle,\n .weather-twin-site-status>button,\n .mountain-matrix-controls button,\n .detail-legend-toggle,\n .wind-mode-switch button,\n .current-metrics-toggle,\n .cockpit-weather-profile__toggle,\n .rain-cumulative-toggle,\n .cockpit-model-run-button,\n .cockpit-consistency-pill,\n .cockpit-weather-profile__resolution button,\n .event-choice-block.compact button{\n  min-height:44px!important;\n }\n .cockpit-weather-profile__icon-toggle.compact{\n  min-width:44px!important;\n  min-height:44px!important;\n  width:44px!important;\n  height:44px!important;\n }\n /* Verhindert, dass rein dekorative SVG-/Icon-Ebenen selbst das Tap-Ziel werden. */\n button>svg,\n [role=\"button\"]>svg{\n  pointer-events:none;\n }\n}\n\n\n.event-center-header-popover>footer{gap:7px;flex-wrap:wrap}.actions .event-center-header-popover>footer .event-center-header-reload{margin-right:auto}.event-center-header-reload .spin{animation:mid-spin .8s linear infinite}.event-precip-detail-symbol{display:inline-flex;align-items:center;justify-content:center;vertical-align:-2px}.hyperlocal-analysis-compact{display:flex!important;flex-wrap:wrap;gap:2px 7px!important;margin-top:2px!important;color:var(--muted);font-size:9px;line-height:1.2}.hyperlocal-analysis-compact>span{display:inline!important;white-space:nowrap}.hyperlocal-analysis-compact>span+span:before{content:'·';margin-right:7px;color:color-mix(in srgb,var(--muted) 65%,transparent)}.hyperlocal-analysis-info{display:grid;gap:5px;max-width:min(420px,78vw)}.hyperlocal-analysis-info>span,.hyperlocal-analysis-info>small{display:block;line-height:1.4}.hyperlocal-analysis-info>strong{margin-bottom:2px}\n@keyframes mid-spin{to{transform:rotate(360deg)}}\n\n",
+      "@media(hover:none),(pointer:coarse){\n button,[role=\"button\"],summary{\n  -webkit-user-select:none;\n  user-select:none;\n  -webkit-touch-callout:none;\n }\n /* Kompakte Bedienelemente behalten ihre optische Dichte, erhalten aber verlässlichere Touchflächen. */\n .search-input-shell>button,\n .hour-chart-tooltip>header button,\n .short-term-detail>header button,\n .weather-twin-recommendations footer button,\n .long-range-head-actions>button,\n .cockpit-weather-profile__stepper>button,\n .actions .event-center-header-popover>header>button{\n  min-width:36px!important;\n  min-height:36px!important;\n }\n .model-run-button,\n .radarlegend-toggle,\n .weather-twin-site-status>button,\n .mountain-matrix-controls button,\n .detail-legend-toggle,\n .wind-mode-switch button,\n .current-metrics-toggle,\n .cockpit-weather-profile__toggle,\n .rain-cumulative-toggle,\n .cockpit-model-run-button,\n .cockpit-consistency-pill,\n .cockpit-weather-profile__resolution button,\n .event-choice-block.compact button{\n  min-height:36px!important;\n }\n .cockpit-weather-profile__icon-toggle.compact{\n  min-width:36px!important;\n  min-height:36px!important;\n  width:36px!important;\n  height:36px!important;\n }\n /* Verhindert, dass rein dekorative SVG-/Icon-Ebenen selbst das Tap-Ziel werden. */\n button>svg,\n [role=\"button\"]>svg{\n  pointer-events:none;\n }\n}\n\n\n.event-center-header-popover>footer{gap:7px;flex-wrap:wrap}.actions .event-center-header-popover>footer .event-center-header-reload{margin-right:auto}.event-center-header-reload .spin{animation:mid-spin .8s linear infinite}.event-precip-detail-symbol{display:inline-flex;align-items:center;justify-content:center;vertical-align:-2px}.hyperlocal-analysis-compact{display:flex!important;flex-wrap:wrap;gap:2px 7px!important;margin-top:2px!important;color:var(--muted);font-size:9px;line-height:1.2}.hyperlocal-analysis-compact>span{display:inline!important;white-space:nowrap}.hyperlocal-analysis-compact>span+span:before{content:'·';margin-right:7px;color:color-mix(in srgb,var(--muted) 65%,transparent)}.hyperlocal-analysis-info{display:grid;gap:5px;max-width:min(420px,78vw)}.hyperlocal-analysis-info>span,.hyperlocal-analysis-info>small{display:block;line-height:1.4}.hyperlocal-analysis-info>strong{margin-bottom:2px}\n@keyframes mid-spin{to{transform:rotate(360deg)}}\n\n"
+    ],
+    [
       ".dashboard-module-order-actions button{\n  width:44px;\n  min-width:44px;\n  height:44px;\n  min-height:44px;\n}",
       ".dashboard-module-order-actions button{\n  width:32px;\n  min-width:32px;\n  height:32px;\n  min-height:32px;\n}"
     ],
@@ -131,8 +139,14 @@ const reviewedC55DashboardCss={
       " .short-term-detail>header button,\n .dashboard-module-order-actions button,\n .weather-twin-recommendations footer button,"
     ],
     [
-      "@media(pointer:coarse){\n   .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{",
-      "@media(pointer:coarse){\n  .dashboard-module-order-actions button,\n  .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{"
+      "@media(pointer:coarse){\n   .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{\n    min-width:44px;\n    min-height:44px;\n  }\n}",
+      "@media(pointer:coarse){\n  .dashboard-module-order-actions button,\n  .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{\n    min-width:36px;\n    min-height:36px;\n  }\n}"
+    ]
+  ],
+  "src/v078.css": [
+    [
+      ".ensemble-info-close{justify-self:end;min-height:44px;padding:6px 10px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-weight:750}",
+      ".ensemble-info-close{justify-self:end;min-height:32px;padding:6px 10px;border:1px solid var(--border);border-radius:9px;background:var(--s2);color:var(--text);font-weight:750}"
     ]
   ]
 };

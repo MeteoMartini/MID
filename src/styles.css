@@ -6598,7 +6598,7 @@ body,#root{
  --mid-ui-radius:14px;
 }
 html[data-mid-density="compact"]{
- --mid-ui-touch:40px;
+ --mid-ui-touch:44px;
  --mid-ui-gap:7px;
  --mid-ui-card-gap:8px;
  --mid-ui-card-pad:9px;
@@ -6921,8 +6921,8 @@ button,[role="button"],summary{
  .long-range-head-actions>button,
  .cockpit-weather-profile__stepper>button,
  .actions .event-center-header-popover>header>button{
-  min-width:36px!important;
-  min-height:36px!important;
+  min-width:44px!important;
+  min-height:44px!important;
  }
  .model-run-button,
  .radarlegend-toggle,
@@ -6937,13 +6937,13 @@ button,[role="button"],summary{
  .cockpit-consistency-pill,
  .cockpit-weather-profile__resolution button,
  .event-choice-block.compact button{
-  min-height:36px!important;
+  min-height:44px!important;
  }
  .cockpit-weather-profile__icon-toggle.compact{
-  min-width:36px!important;
-  min-height:36px!important;
-  width:36px!important;
-  height:36px!important;
+  min-width:44px!important;
+  min-height:44px!important;
+  width:44px!important;
+  height:44px!important;
  }
  /* Verhindert, dass rein dekorative SVG-/Icon-Ebenen selbst das Tap-Ziel werden. */
  button>svg,
@@ -9891,8 +9891,8 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
 }
 @media(pointer:coarse){
    .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
-    min-width:36px;
-    min-height:36px;
+    min-width:44px;
+    min-height:44px;
   }
 }
 
