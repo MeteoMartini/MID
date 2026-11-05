@@ -77,9 +77,9 @@ const PROFILE_MAX_SPAN_M=18000;
 const PROFILE_MIN_GAIN_M=250;
 const PROFILE_MAX_GAIN_M=2200;
 
-type MountainRegionalModelPlan={id:string;label:string;provider:string;resolutionKm:number;updateHours:number;horizonHours:number;countries:string[];bbox?:readonly[number,number,number,number]};
+type MountainRegionalModelPlan={id:string;label:string;provider:string;resolutionKm:number;updateHours:number;horizonHours:number;countries:string[];bbox?:readonly[number,number,number,number];retired?:boolean};
 const MOUNTAIN_REGIONAL_MODELS:MountainRegionalModelPlan[]=[
- {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',provider:'GeoSphere Austria',resolutionKm:2.5,updateHours:3,horizonHours:60,countries:['AT'],bbox:[8,45,18,50]},
+ {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',provider:'GeoSphere Austria',resolutionKm:2.5,updateHours:3,horizonHours:60,countries:['AT'],bbox:[8,45,18,50],retired:true},
  {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',provider:'MeteoSwiss',resolutionKm:1,updateHours:3,horizonHours:33,countries:['CH'],bbox:[3,43,18,50]},
  {id:'icon_d2',label:'DWD ICON-D2',provider:'DWD',resolutionKm:2,updateHours:3,horizonHours:48,countries:['DE'],bbox:[-6,43,26,58]},
  {id:'meteofrance_arome_france_hd',label:'Météo-France AROME HD',provider:'Météo-France',resolutionKm:1.5,updateHours:3,horizonHours:48,countries:['FR'],bbox:[-6,41,11,52]},
@@ -91,7 +91,7 @@ const MOUNTAIN_REGIONAL_MODELS:MountainRegionalModelPlan[]=[
  {id:'ukmo_uk_deterministic_2km',label:'UKMO UKV',provider:'UK Met Office',resolutionKm:2,updateHours:1,horizonHours:48,countries:['GB','IE'],bbox:[-12,48,4,62]}
 ];
 function mountainCountryCode(loc:Location){const value=String(loc.country_code||loc.country||'').trim().toUpperCase();if(value==='GERMANY'||value==='DEUTSCHLAND')return'DE';if(value==='AUSTRIA'||value==='ÖSTERREICH'||value==='OSTERREICH')return'AT';if(value==='SWITZERLAND'||value==='SCHWEIZ')return'CH';if(value==='FRANCE'||value==='FRANKREICH')return'FR';if(value==='ITALY'||value==='ITALIEN'||value==='ITALIA')return'IT';if(value==='CZECHIA'||value==='TSCHECHIEN')return'CZ';if(value==='NETHERLANDS'||value==='NIEDERLANDE')return'NL';if(value==='BELGIUM'||value==='BELGIEN')return'BE';if(value==='LUXEMBOURG'||value==='LUXEMBURG')return'LU';if(value==='DENMARK'||value==='DÄNEMARK'||value==='DANEMARK')return'DK';if(value==='NORWAY'||value==='NORWEGEN')return'NO';if(value==='SWEDEN'||value==='SCHWEDEN')return'SE';if(value==='FINLAND'||value==='FINNLAND')return'FI';if(value==='UNITED KINGDOM'||value==='GROSSBRITANNIEN'||value==='UK')return'GB';if(value==='IRELAND'||value==='IRLAND')return'IE';return/^[A-Z]{2}$/.test(value)?value:''}
-function mountainRegionalModel(loc:Location){const country=mountainCountryCode(loc);return MOUNTAIN_REGIONAL_MODELS.find(model=>model.countries.includes(country)&&(!model.bbox||(loc.longitude>=model.bbox[0]&&loc.latitude>=model.bbox[1]&&loc.longitude<=model.bbox[2]&&loc.latitude<=model.bbox[3])))}
+function mountainRegionalModel(loc:Location){const country=mountainCountryCode(loc);return MOUNTAIN_REGIONAL_MODELS.find(model=>!model.retired&&model.countries.includes(country)&&(!model.bbox||(loc.longitude>=model.bbox[0]&&loc.latitude>=model.bbox[1]&&loc.longitude<=model.bbox[2]&&loc.latitude<=model.bbox[3])))}
 function mountainProfileHorizontalSpanKm(points:{latitude:number;longitude:number}[]){let max=0;for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++)max=Math.max(max,distanceMeters(points[i].latitude,points[i].longitude,points[j].latitude,points[j].longitude)/1000);return Number(max.toFixed(1))}
 
 const clamp=(value:number,min:number,max:number)=>Math.min(max,Math.max(min,value));

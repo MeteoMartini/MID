@@ -203,7 +203,7 @@ function photonLocation(feature:PhotonFeature,index:number):Location|null{const 
 function similarLocation(a:Location,b:Location){if(a.name.trim().toLocaleLowerCase('de-DE')!==b.name.trim().toLocaleLowerCase('de-DE'))return false;return haversine(a.latitude,a.longitude,b.latitude,b.longitude)<2500}
 
 type ModelMetaCandidate={id:string;label:string;kind:'forecast'|'ensemble';metaIds?:string[];metaSource?:'open-meteo'|'dwd-ruc';rapidUpdate?:boolean;resolutionKm?:number;forecastHorizonHours?:number;members?:number;availabilityOnly?:boolean};
-type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number]};
+type ForecastCandidate=ModelMetaCandidate&{countries?:string[];bbox?:[number,number,number,number];retired?:boolean};
 const forecastCandidates:ForecastCandidate[]=[
  {id:'icon-d2-ruc',label:'DWD ICON-D2-RUC',kind:'forecast',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:27,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
  {id:'icon-d2-ruc-eps',label:'DWD ICON-D2-RUC-EPS',kind:'ensemble',metaSource:'dwd-ruc',rapidUpdate:true,resolutionKm:2,forecastHorizonHours:27,members:20,countries:['DE','CH','AT'],bbox:[-6,43,26,58]},
@@ -211,7 +211,7 @@ const forecastCandidates:ForecastCandidate[]=[
  {id:'knmi_harmonie_arome_europe',label:'KNMI HARMONIE Europe',kind:'forecast',rapidUpdate:true,resolutionKm:5.5,forecastHorizonHours:60,bbox:[-14,35,32,66]},
  {id:'meteoswiss_icon_ch1',label:'MeteoSwiss ICON-CH1',kind:'forecast',resolutionKm:1,forecastHorizonHours:33,countries:['CH'],bbox:[3,43,18,50]},
  {id:'meteoswiss_icon_ch2',label:'MeteoSwiss ICON-CH2',kind:'forecast',resolutionKm:2,forecastHorizonHours:120,countries:['CH'],bbox:[3,43,18,50]},
- {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:60,countries:['AT'],bbox:[8,45,18,50]},
+ {id:'geosphere_arome_austria',label:'GeoSphere AROME Austria',kind:'forecast',resolutionKm:2.5,forecastHorizonHours:60,countries:['AT'],bbox:[8,45,18,50],retired:true},
  {id:'chmi_aladin_cz_1km',label:'CHMI ALADIN Tschechien 1 km',kind:'forecast',resolutionKm:1,forecastHorizonHours:72,countries:['CZ'],bbox:[11,47,20,52]},
  {id:'chmi_aladin_central_europe_2km',label:'CHMI ALADIN Mitteleuropa 2,3 km',kind:'forecast',bbox:[-12,35,35,62]},
  {id:'chmi_aladin_seamless',label:'CHMI ALADIN Seamless',kind:'forecast',bbox:[-12,35,35,62]},
@@ -248,12 +248,15 @@ const globalForecastCandidates:ForecastCandidate[]=[
  {id:'meteofrance_arpege_world',label:'Météo-France ARPEGE World',kind:'forecast',resolutionKm:25,forecastHorizonHours:96}
 ];
 function candidateApplies(candidate:ForecastCandidate,lat:number,lon:number,country:string){
+ if(candidate.retired||candidate.id==='geosphere_arome_austria')return false;
  if(candidate.bbox){const[minLon,minLat,maxLon,maxLat]=candidate.bbox;return lon>=minLon&&lon<=maxLon&&lat>=minLat&&lat<=maxLat}
  return Boolean(candidate.countries?.includes(country));
 }
 function modelMetaEpochMs(value:unknown){const numberValue=Number(value);if(!Number.isFinite(numberValue))return Number.NaN;return numberValue>10_000_000_000?numberValue:numberValue*1000}
 function modelMetaIsFresh(data:any){const initMs=modelMetaEpochMs(data?.last_run_initialisation_time),updateSeconds=Math.max(3600,Number(data?.update_interval_seconds)||21600),maximumAgeMs=Math.max(18*3600000,Math.min(72*3600000,updateSeconds*4000+6*3600000)),now=Date.now();return Number.isFinite(initMs)&&initMs<=now+2*3600000&&now-initMs<=maximumAgeMs}
 async function modelRunMeta(candidate:ModelMetaCandidate,signal?:AbortSignal):Promise<ModelRunMeta|null>{
+ // Official forecast sunset 2026-11-04; retain identifiers only for historical provenance.
+ if(candidate.id==='geosphere_arome_austria')return null;
  if(candidate.metaSource==='dwd-ruc'){
   try{
    const data=await fetchWorkerJson<any>('rapid-model-meta',{model:candidate.id},{purpose:'general',signal,timeoutMs:9000,cache:'no-store'}),initMs=modelMetaEpochMs(data?.last_run_initialisation_time),availableMs=modelMetaEpochMs(data?.last_run_availability_time);
@@ -280,7 +283,7 @@ const BEST_MATCH_INFO_CACHE_PREFIX='mid:best-match-model-info:v1:';
 const BEST_MATCH_INFO_FRESH_MS=20*60*1000;
 const BEST_MATCH_INFO_STALE_MS=6*3600000;
 function bestMatchInfoCacheKey(lat:number,lon:number,country?:string){return`${BEST_MATCH_INFO_CACHE_PREFIX}${Number(lat).toFixed(2)}:${Number(lon).toFixed(2)}:${countryCodeFromLocation(country)||'XX'}`}
-function readBestMatchInfoCache(lat:number,lon:number,country?:string,maxAge=BEST_MATCH_INFO_FRESH_MS){try{const parsed=JSON.parse(localStorage.getItem(bestMatchInfoCacheKey(lat,lon,country))||'null') as {at?:number;value?:BestMatchModelInfo}|null;if(!parsed?.value||!Number.isFinite(parsed.at)||Date.now()-Number(parsed.at)>maxAge)return null;return parsed.value}catch{return null}}
+function readBestMatchInfoCache(lat:number,lon:number,country?:string,maxAge=BEST_MATCH_INFO_FRESH_MS){try{const parsed=JSON.parse(localStorage.getItem(bestMatchInfoCacheKey(lat,lon,country))||'null') as {at?:number;value?:BestMatchModelInfo}|null;if(!parsed?.value||!Number.isFinite(parsed.at)||Date.now()-Number(parsed.at)>maxAge)return null;if(parsed.value.runs?.some(run=>run.id==='geosphere_arome_austria')||parsed.value.candidateModels?.includes('GeoSphere AROME'))return null;return parsed.value}catch{return null}}
 function writeBestMatchInfoCache(lat:number,lon:number,country:string|undefined,value:BestMatchModelInfo){try{writeBoundedStorage(localStorage,bestMatchInfoCacheKey(lat,lon,country),{at:Date.now(),value},[BEST_MATCH_INFO_CACHE_PREFIX],18,BEST_MATCH_INFO_STALE_MS)}catch{}}
 async function modelRunMetas(candidates:ModelMetaCandidate[],signal?:AbortSignal){
  const unique=[...new Map(candidates.map(x=>[`${x.kind}:${x.id}`,x])).values()];
