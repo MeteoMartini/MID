@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.430",
+  "releaseVersion": "0.9.85.431",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -687,6 +687,7 @@
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
+    "scripts/test-openmeteo-weighted-quota-0985431.mjs",
     "scripts/test-opera-raster.mjs",
     "scripts/test-optional-bottom-navigation-09790.mjs",
     "scripts/test-outlook-coverage-regression-inventory-0985136.mjs",
@@ -1764,6 +1765,7 @@
     "scripts/test-openmeteo-rapid-source-contract-097713.mjs",
     "scripts/test-openmeteo-update-audit-09540.mjs",
     "scripts/test-openmeteo-watch-ensemble-ui-098468.mjs",
+    "scripts/test-openmeteo-weighted-quota-0985431.mjs",
     "scripts/test-opera-raster.mjs",
     "scripts/test-optional-bottom-navigation-09790.mjs",
     "scripts/test-outlook-coverage-regression-inventory-0985136.mjs",
@@ -3901,7 +3903,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.430",
+  "version": "0.9.85.431",
   "updatedAt": "2026-11-03",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

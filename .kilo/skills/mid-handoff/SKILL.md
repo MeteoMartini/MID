@@ -16,6 +16,8 @@ description: Mandatory safe handoff workflow whenever a Kilo cloud coding agent 
 
 Kilo's Cloud Agent may run tools automatically. This skill is policy guidance and does not replace server-side branch protection or the independently authorized GitHub release actor. Never auto-merge or self-release.
 
+After the .431 utility release is actually promoted, start from its freshly read Stable SHA. Run the existing helper there; no copying from Draft #658 is needed. The transport checks actual GitHub main/stable twice, exact blob/tree/commit identities and the created issue's full readback and Kilo UserID240665456. A reported existing issue with a readback/identity failure must be inspected rather than resubmitted. The first complete operational Kilo-to-authorized-Draft-PR proof remains explicit; fourteen isolated tests and the #659 Blob/Issue permission test do not replace that proof.
+
 
 ## MID quality and continuity requirements
 

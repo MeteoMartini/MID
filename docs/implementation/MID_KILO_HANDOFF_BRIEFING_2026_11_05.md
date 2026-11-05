@@ -1,3 +1,7 @@
+# Aktualisierung: gemeinsamer .431-Kandidat aus #658
+
+Der Nutzer hat die Veröffentlichung von #658 ausdrücklich beauftragt. Die geprüfte passive Utility wird durch alle regulären Gates auf Stable gebracht, damit Kilo sie dort vertragstreu vorfindet. Nach tatsächlicher Promotion genau eine vollständige harmlose Kilo→Gitobjekt→Issue→unabhängig validierter Draft-PR-Nutzungsprobe durchführen. GitHub-API-Basis vor/nach Upload, Blob-SHAs und vollständiger Issue-/Autorreadback sind zusätzlich regressionsgeschützt;14 isolierte Fälle ersetzen die Live-Probe nicht. Keine weitere Ruleset-/Rechtefreigabe ist daraus abzuleiten. Die folgenden .428/.430-Standangaben sind historische Prüfstände; vor jedem Auftrag aktuelle SHAs lesen.
+
 # Kilo – verbindliche Übergabeergänzung 05.11.2026
 
 

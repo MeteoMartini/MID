@@ -11,13 +11,17 @@ const root=mkdtempSync(join(tmpdir(),'mid-kilo-handoff-'));
 const remote=join(root,'remote.git'),work=join(root,'work'),bin=join(root,'bin');
 const helper=resolve('scripts/mid-kilo-handoff.mjs');
 const mock=resolve('scripts/fixtures/mock-mid-kilo-gh.mjs');
-const env={...process.env,PATH:bin+':'+process.env.PATH};
+const state=join(root,'mock-state.json'),env={...process.env,PATH:bin+':'+process.env.PATH,FAKE_GH_STATE:state};
 function exec(cmd,...args){return execFileSync(cmd,args,{cwd:work,env,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();}
 function request(label,expectedOk=true,extraEnv={}){
  const r=spawnSync(process.execPath,['scripts/mid-kilo-handoff.mjs','--title',label,'--dry-run'],{cwd:work,env:{...env,...extraEnv},encoding:'utf8'});
  assert.equal(r.status===0,expectedOk,label+': '+r.stderr);return r;
 }
 function expectFailure(label,reason){assert.match(request(label,false).stderr,reason);}
+function live(label,extraEnv={}){
+ rmSync(state,{force:true});
+ return spawnSync(process.execPath,['scripts/mid-kilo-handoff.mjs','--title',label],{cwd:work,env:{...env,...extraEnv},encoding:'utf8'});
+}
 try{
  mkdirSync(work);mkdirSync(bin);
  execFileSync('git',['init','--bare','-q',remote]);execFileSync('git',['init','-q',work]);
@@ -35,11 +39,19 @@ try{
  copyFileSync(mock,join(bin,'gh'));chmodSync(join(bin,'gh'),0o755);
  const dry=JSON.parse(request('dry run').stdout);
  assert.equal(dry.status,'DRY_RUN_ONLY');assert.deepEqual(dry.files.map(x=>x.path),['src/App.tsx']);
- let result=spawnSync(process.execPath,['scripts/mid-kilo-handoff.mjs','--title','mock issue'],{cwd:work,env,encoding:'utf8'});
+ assert.match(dry.files[0].blob_sha,/^[a-f0-9]{40}$/);
+ let result=live('mock issue');
  assert.equal(result.status,0,result.stderr);
  const handoff=JSON.parse(result.stdout);assert.equal(handoff.status,'HANDOFF_SUBMITTED');
  assert.match(handoff.candidate_sha,/^[a-f0-9]{40}$/);
- result=spawnSync(process.execPath,['scripts/mid-kilo-handoff.mjs','--title','no permissions'],{cwd:work,env:{...env,FAKE_GH_DENY:'1'},encoding:'utf8'});
+ assert.equal(handoff.author_login,'kilo-code-bot[bot]');assert.equal(handoff.author_id,240665456);
+ assert.equal(handoff.files[0].blob_sha,dry.files[0].blob_sha);
+ for(const [scenario,reason] of [
+  ['api-stale-base',/GitHub main\/stable drift/],['api-drift-after-objects',/GitHub main\/stable drift/],
+  ['blob-mismatch',/blob creation mismatch/],['tree-mismatch',/reconstructed tree/],
+  ['candidate-mismatch',/immutable candidate mismatch/],['issue-mismatch',/readback mismatch/],['wrong-author',/unexpected Kilo identity/]
+ ]){result=live(scenario,{FAKE_GH_SCENARIO:scenario});assert.notEqual(result.status,0,scenario);assert.match(result.stderr,reason,scenario);}
+ result=live('no permissions',{FAKE_GH_DENY:'1'});
  assert.notEqual(result.status,0,'API permission denial must fail closed');
  writeFileSync(join(work,'src','App.tsx'),'\n',{flag:'a'});
  expectFailure('dirty tree',/dirty worktree/);exec('git','checkout','--','src/App.tsx');
@@ -57,5 +69,5 @@ try{
  exec('git','push','-q','origin','HEAD:refs/heads/mid-stable');
  exec('git','checkout','-q','kilo/local-work');
  expectFailure('stale base',/HEAD not based on current stable/);
- console.log('MID Kilo transport: 7 isolated positive/negative checks passed; no external API calls.');
+ console.log('MID Kilo transport: 14 isolated positive/negative checks passed, including API base/drift, blob/tree/commit, issue readback and actual author identity; no external API calls.');
 }finally{rmSync(root,{recursive:true,force:true});}

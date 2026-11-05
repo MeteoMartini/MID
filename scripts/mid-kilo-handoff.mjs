@@ -24,6 +24,9 @@ function gh(path,body) {
   return JSON.parse(execFileSync('gh',argv,{input:body===undefined?undefined:JSON.stringify(body),encoding:'utf8',maxBuffer:10*1024*1024}));
 }
 function stop(message) { throw new Error('MID Kilo handoff fails closed: '+message); }
+function verifyGithubBase(stable){
+  for(const branch of ['main','mid-stable'])if(gh('branches/'+branch).commit?.sha!==stable)stop('GitHub main/stable drift; preserve local work');
+}
 function allowedPath(path) {
   return /^[\x20-\x7e]+$/.test(path) && !/(^|\/)\.\.?($|\/)/.test(path) &&
     !path.includes('\\') && !/(^|\/)(?:\.git|\.github|\.kilo|node_modules)(?:\/|$)/.test(path) &&
@@ -81,25 +84,26 @@ async function main(){
   const files=items.map(({status,path})=>{
     const entry=treeEntry(status==='D'?stable:'HEAD',path);
     if(entry.type!=='blob'||entry.mode!=='100644')stop('only regular text blobs accepted: '+path);
-    if(status==='D')return {status,path,mode:entry.mode,size:0};
+    if(status==='D')return {status,path,mode:entry.mode,size:0,blob_sha:entry.sha};
     const bytes=validateSourceBytes(gitBytes('show','HEAD:'+path),path);
     total+=bytes.length;
     if(total>MAX_TOTAL_BYTES)stop('total >2 MiB');
-    return {status,path,mode:entry.mode,size:bytes.length,bytes};
+    return {status,path,mode:entry.mode,size:bytes.length,blob_sha:entry.sha,bytes};
   });
   const treeSHA=git('rev-parse','HEAD^{tree}');
   const localHead=git('rev-parse','HEAD');
-  const manifest=files.map(({status,path,size})=>({status,path,size}));
+  const manifest=files.map(({status,path,size,blob_sha})=>({status,path,size,blob_sha}));
   if(dryRun){console.log(JSON.stringify({status:'DRY_RUN_ONLY',repo:REPO,stable_sha:stable,local_head:localHead,tree_sha:treeSHA,files:manifest},null,2));return;}
   // Double-check remote stability before beginning irreversible object writes.
   const remote2=git('ls-remote','origin','refs/heads/main','refs/heads/mid-stable').split('\n').map(x=>x.split(/\s+/));
   if(remote2.find(x=>x[1]==='refs/heads/main')?.[0]!==stable||remote2.find(x=>x[1]==='refs/heads/mid-stable')?.[0]!==stable)stop('remote drift');
+  verifyGithubBase(stable);
   const baseObj=gh('git/commits/'+stable);
   if(baseObj.sha!==stable||!HEX.test(baseObj.tree?.sha??''))stop('base Git object not verified');
   const tree=files.map(f=>{
     if(f.status==='D')return {path:f.path,mode:f.mode,type:'blob',sha:null};
     const b=gh('git/blobs',{content:f.bytes.toString('base64'),encoding:'base64'});
-    if(!HEX.test(b.sha??''))stop('blob creation unverified: '+f.path);
+    if(b.sha!==f.blob_sha)stop('blob creation mismatch: '+f.path);
     return {path:f.path,mode:f.mode,type:'blob',sha:b.sha};
   });
   const newTree=gh('git/trees',{base_tree:baseObj.tree.sha,tree});
@@ -108,9 +112,14 @@ async function main(){
   if(!HEX.test(candidate.sha??''))stop('unverified immutable candidate');
   const check=gh('git/commits/'+candidate.sha);
   if(check.sha!==candidate.sha||check.tree?.sha!==treeSHA||check.parents?.length!==1||check.parents[0].sha!==stable)stop('immutable candidate mismatch');
-  const issueText=['DRAFT_ONLY','','Repository: '+REPO,'Stable-SHA: '+stable,'Parent-SHA: '+stable,'Candidate-SHA: '+candidate.sha,'Tree-SHA: '+treeSHA,'Local-HEAD: '+localHead,'','Files:',...manifest.map(f=>'- '+f.status+' '+f.path+' ('+f.size+' bytes)'),'','Independent QA: NOT VERIFIED. No merge or release authorized.'].join('\n');
-  const issue=gh('issues',{title:'[MID-KILO-HANDOFF] '+title,body:issueText});
-  if(!issue.html_url||!Number.isInteger(issue.number))stop('candidate uploaded, but intake issue missing: '+candidate.sha);
-  console.log(JSON.stringify({status:'HANDOFF_SUBMITTED',candidate_sha:candidate.sha,stable_sha:stable,issue:issue.html_url,files:manifest.length},null,2));
+  verifyGithubBase(stable);
+  const issueTitle='[MID-KILO-HANDOFF] '+title;
+  const issueText=['DRAFT_ONLY','','Repository: '+REPO,'Stable-SHA: '+stable,'Parent-SHA: '+stable,'Candidate-SHA: '+candidate.sha,'Tree-SHA: '+treeSHA,'Local-HEAD: '+localHead,'','Files:',...manifest.map(f=>'- '+f.status+' '+f.path+' ('+f.size+' bytes, blob '+f.blob_sha+')'),'','Independent QA: NOT VERIFIED. No merge or release authorized.'].join('\n');
+  const issue=gh('issues',{title:issueTitle,body:issueText});
+  if(!Number.isInteger(issue.number)||issue.html_url!==`https://github.com/${REPO}/issues/${issue.number}`)stop('candidate uploaded, but intake issue missing: '+candidate.sha);
+  const readback=gh('issues/'+issue.number);
+  if(readback.number!==issue.number||readback.html_url!==issue.html_url||readback.repository_url!==`https://api.github.com/repos/${REPO}`||readback.state!=='open'||readback.pull_request||readback.title!==issueTitle||readback.body!==issueText)stop('intake issue created but readback mismatch; do not resubmit: '+issue.html_url);
+  if(readback.user?.login!=='kilo-code-bot[bot]'||readback.user?.id!==240665456)stop('intake issue has unexpected Kilo identity; do not resubmit: '+issue.html_url);
+  console.log(JSON.stringify({status:'HANDOFF_SUBMITTED',candidate_sha:candidate.sha,stable_sha:stable,tree_sha:treeSHA,local_head:localHead,issue:issue.html_url,author_login:readback.user.login,author_id:readback.user.id,files:manifest},null,2));
 }
 main().catch(e=>{console.error(e.message);process.exitCode=1;});

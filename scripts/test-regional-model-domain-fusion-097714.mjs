@@ -20,8 +20,8 @@ for(const token of [
  "id:'dmi_harmonie_arome_europe'.*resolutionKm:2.*bbox:[-15,35,32,72]"
 ]) assert.match(weatherFragment,new RegExp(token.replaceAll('[','\\[').replaceAll(']','\\]')));
 
-assert.match(weatherFragment,/function candidateApplies\([^\n]+\{\n if\(candidate\.bbox\)/,'App-Modellstand muss vorhandene BBox vor Länderfallback auswerten.');
-assert.match(workerCore,/function fusionModelApplies\(model,lat,lon,country\)\{if\(model\.anchor\)return true;if\(model\.bbox\)/,'Worker-Fusion muss vorhandene BBox vor Länderfallback auswerten.');
+assert.match(weatherFragment,/function candidateApplies\([^\n]+\{\n if\(candidate\.retired\|\|candidate\.id==='geosphere_arome_austria'\)return false;\n if\(candidate\.bbox\)/,'Nach Sunset-Sperre weiterhin vorhandene BBox vor Länderfallback auswerten.');
+assert.match(workerCore,/function fusionModelApplies\(model,lat,lon,country\)\{if\(model\.retired\|\|model\.id==='geosphere_arome'\)return false;if\(model\.anchor\)return true;if\(model\.bbox\)/,'Nach Sunset-Sperre weiterhin vorhandene BBox vor Länderfallback auswerten.');
 assert.match(workerCore,/id:'meteoswiss_icon_ch1'.*independenceGroup:'meteoswiss-icon'.*bbox:\[3,43,18,50\]/);
 assert.match(workerCore,/id:'meteoswiss_icon_ch2'.*independenceGroup:'meteoswiss-icon'.*bbox:\[3,43,18,50\]/);
 assert.match(workerCore,/id:'geosphere_arome'.*maxDays:2\.5.*bbox:\[8,45,18,50\]/);
@@ -38,7 +38,9 @@ const austria={bbox:[8,45,18,50],countries:['AT']};
 const hrrr={bbox:[-130,20,-60,55],countries:['US','CA']};
 assert.equal(fusionModelApplies(swiss,48.58,7.75,'FR'),true,'ICON-CH soll innerhalb seines Modellgebiets grenzüberschreitend nutzbar sein.');
 assert.equal(fusionModelApplies(swiss,46.8,25,'CH'),false,'Ländercode darf eine vorhandene Modell-BBox nicht überstimmen.');
-assert.equal(fusionModelApplies(austria,48.14,11.58,'DE'),true,'AROME Austria soll im abgedeckten süddeutschen Raum als Regionalquelle gelten.');
+assert.equal(fusionModelApplies(austria,48.14,11.58,'DE'),true,'Aktive Österreich-Regionalmodelle dürfen ihr geprüftes Gebiet grenzüberschreitend abdecken.');
+assert.equal(fusionModelApplies({...austria,id:'geosphere_arome'},48.14,11.58,'DE'),false,'Das seit04.11. eingestellte AROME bleibt auch innerhalb seiner alten BBox gesperrt.');
+assert.equal(fusionModelApplies({...swiss,retired:true},48.58,7.75,'FR'),false,'Retired vor BBox und Länderfallback prüfen.');
 assert.equal(fusionModelApplies(hrrr,70,-100,'CA'),false,'HRRR darf nicht pauschal ganz Kanada nur wegen des Ländercodes abdecken.');
 
 assert.match(modelContract,/Reales Modellgebiet vor Ländergrenze/);

@@ -1,4 +1,6 @@
-# MID v0.9.85.430
+# MID v0.9.85.431
 
-- Verbesserte mobile Navigation, größere Touchziele für Favoriten und Warnstatus sowie korrigierte Safe-Areas aus der UI-P0-Integration.
-- Zuverlässige Cache-Budget-Prüfung mit bytebasierter Testattrappe; unveränderte 24-MiB-Grenze und unveränderte meteorologische Datenlogik.
+- Keine unnötigen aktuellen Wetterabrufe mehr beim offiziell eingestellten GeoSphere-AROME-Modell. Vorhandene Regional- und Globalprognosen bleiben verfügbar.
+- Bessere Rücksicht auf zeitweilig ausgeschöpfte Open-Meteo-Kontingente: bereits gelieferte Wetterdaten bleiben nutzbar, weitere Abrufe warten bis zur bestätigten Freigabe oder nutzen den vorhandenen Cache.
+- Die Verbesserungen an mobiler Navigation, Touchzielen und Karten-Cache aus v0.9.85.430 bleiben erhalten.
+- Verbesserte technische Projektübergaben mit überprüfbaren Quellständen, Dateinachweisen und klar getrennten Prüf- und Veröffentlichungsstufen.
