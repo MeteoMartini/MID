@@ -29,7 +29,7 @@ const message=brief([p(rainStart,.3,14,'Leichter Regen'),p(windPeak,0,34,'Trocke
 assert.match(message,/Leichter Regen voraussichtlich morgen ab 14:00 Uhr/);
 assert.match(message,/Markante Böen bis 34 kt morgen um 19:00 Uhr/);
 assert.doesNotMatch(message,/um morgen|ab morgen|14 kt/);
-assert.equal(brief([p(rainStart,0,14,'Trocken')],briefNow,format),'Keine markanten Wetterereignisse in den nächsten 24 Stunden.');
+assert.equal(brief([p(rainStart,0,14,'Trocken')],briefNow,format),'Keine markanten Signale in den vorliegenden Kurzfristdaten; 24-Stunden-Abdeckung unvollständig.');
 for(const token of [
  "import {relativeForecastTimePhrase} from './forecastPresentation';",
  "import {shortTermSignificantBrief} from './shortTermSignificantBrief';",

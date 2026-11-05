@@ -1,3 +1,7 @@
+## Source-Gate-Nachtrag
+
+Der erste vollständige .435-Source-Lauf42090883593 fand zwei weitere veraltete Teilabdeckungs-Erwartungen in `test-shortterm-german-word-order-09767.mjs` und `test-precipitation-shortterm-coherence-0985211.mjs`. Beide wurden auf die vollständige explizite Unvollständigkeitsmeldung korrigiert (exakte Gleichheit statt schwächerem Regex); deutsche Zeitphrasen und keine Niederschlagserfindung aus PoP bleiben geschützt. Beide Originaltests und die Hauptregression danach erfolgreich. Produktcode unverändert; erneuter vollständiger Source-Lauf auf neuem SHA zwingend.
+
 ## C55-Integration des geprüften Teilumfangs
 
 Auf ausdrücklichen Nutzerauftrag wird der lückenfeste Kurzfrist-Fix aus diesem Draft zu einem synchron versionierten .435-Source-Kandidaten qualifiziert. Originale bestehende Regression unter Node22.16.0 erfolgreich, einschließlich sämtlicher ergänzter Lücken-/Missing-/Überlappungsfälle. App-/Tooling-TypeScript, Vite-Produktionsbuild, unverändertes vollständiges Webbudget, Versions-/Aggregatspiegel sowie benachbarte Nebel-, ungültige Intervall-, nachlaufende Niederschlags- und Darstellungsparitätstests erfolgreich. Pflichtinventar1079 unverändert. Vollständige Source-/Installer-/Worker-/Pages-/Finalize-Gates stehen auf endgültigem SHA noch aus. Der folgende ursprüngliche Draftbericht dokumentiert Herkunft und offene Restarbeiten, keine vollständige Forecast-Audit-Abnahme.
