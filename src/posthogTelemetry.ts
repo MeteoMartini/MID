@@ -17,8 +17,7 @@ export function isMidPosthogConfigured(){
  return Boolean(import.meta.env.PROD&&TOKEN&&HOST===ALLOWED_HOST&&!isMidNativeRuntime());
 }
 export function isMidPosthogConsentGranted(){
- if(typeof localStorage==='undefined')return false;
- try{return localStorage.getItem(MID_POSTHOG_CONSENT_KEY)==='1'}catch{return false}
+ try{return typeof localStorage!=='undefined'&&localStorage.getItem(MID_POSTHOG_CONSENT_KEY)==='1'}catch{return false}
 }
 function canCapture(){
  return isMidPosthogConfigured()&&isMidPosthogConsentGranted()&&Boolean(distinctId)&&emitted<MAX_EVENTS_PER_PAGE;
