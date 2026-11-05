@@ -1,3 +1,7 @@
+# MID v0.9.85.433 · erneuter PostHog-EU-Build nach Einrichtung der Projektvariablen
+
+Stabile Basis .432: `218d07bf290b5beff3c0643f3cc61852bab3156f` (main=mid-stable), Quellrelease #666/Installer 42059293729 regulär erfolgreich. Die beiden GitHub Actions-Konfigurationsvariablen waren beim ursprünglichen Web-Build noch leer; der Nutzer hat sie inzwischen eingerichtet. Der neue Build .433 übernimmt ausschließlich die bestehende optionale PostHog-EU-Konfiguration und erhält Opt-in, Datenminimierung, native Deaktivierung sowie alle fachlichen MID-Funktionen und Release-Gates. Die eigentliche Aktivierung ist erst durch SHA-geprüften Installer, Worker/Pages und erfolgreiche Stable-Promotion belegt. Nachweis: `docs/implementation/MID_POSTHOG_REBUILD_CONFIG_0.9.85.433.md`.
+
 # MID v0.9.85.432 · freiwillige EU-PostHog-Telemetrie (Quellkandidat, noch kein Release)
 
 Basis main=mid-stable 77de0e326d586274d5f42f0ea63827a887d1b147 (v0.9.85.431). Opt-in Web/PWA, keine native Erfassung, keine permanenten Personenkennungen, keine Orts- oder Freitextdaten. Nachweis: docs/implementation/MID_POSTHOG_OPTIN_0.9.85.432.md. Release ausschließlich nach vollständigen SHA-Gates und erfolgreicher Stable-Promotion.
