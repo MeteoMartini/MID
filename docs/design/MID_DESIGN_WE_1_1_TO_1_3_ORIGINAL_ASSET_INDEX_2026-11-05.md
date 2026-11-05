@@ -4,6 +4,25 @@
 
 **Architekturhinweis:** Der bestehende kanonische Repo-Pfad ist `docs/design/`, **nicht** `.docs/Design/`. Die historischen MID-Design-WE-Bilder wurden am 05.11.2026 in der MID-Dateibibliothek **als Pixelvorschau geöffnet und gegen ihre ursprünglichen Dateinamen abgeglichen**. Ihre unveränderten Originalbytes konnten in der derzeitigen Umgebung **nicht** nach GitHub materialisiert werden. **Es gibt in diesem Archive-PR keine neuen PNGs und keine behaupteten Datei-SHA256.** Keine Bildattrappe, kein unkontrollierter Download, keine Kopie persönlicher Dateibibliotheks-IDs in das öffentliche Repository. Die originalen PNGs sind noch als separate, SHA256-zu-verifizierende Binäranlage zu importieren. Die Einträge hier sind zunächst ein sicheres Auffindeverzeichnis, **kein vollständiges Bilderarchiv**.
 
+## 05.11.2026: bestätigte reale Library-Ordnerpfade
+
+Der Nutzer verwies auf `MID/Design`. Das tatsächliche Library-Ordnerobjekt trägt den Namen **`/MID/Designs`** (Plural), Freigabeordner-ID `6aec5a301910819188383d7d4c3595ef`, die mit der vom Nutzer übermittelten Freigabe übereinstimmt. Die rekursive Bibliotheksansicht hat **acht konkrete Bilddateien** unter diesem Ordner bestätigt:
+
+| Originalname | Quellordner |
+|---|---|
+| `image-gen-1(20261102-215747).png` | `/MID/Designs/` |
+| `image-gen-2(20261102-215750).png` | `/MID/Designs/` |
+| `image-gen-3(5).png` | `/MID/Designs/` |
+| `image-gen-1(20261102-220554).png` | `/MID/Designs/` |
+| `image-gen-2(20261102-220557).png` | `/MID/Designs/` |
+| `image-gen-3(6).png` | `/MID/Designs/` |
+| `MID Wetter‑App: 14‑Tage‑Redesign.png` | `/MID/Designs/` |
+| `Premium-Wetterapp für Köln.png` | `/MID/Designs/` |
+
+Die echten `MID_Design-WE_Heute_A/B/C.png`, ihre `(1)`-/`(2)`-Kopien und das Vergleichsbild wurden hingegen in der **Wurzel `/MID/`** verifiziert – sie befinden sich derzeit **nicht** im Ordner `/MID/Designs`. Die beiden WE-1.3-Handoff-ZIP-Dateien und `ORIGINALBILDER_SOLL_IST.md` wurden ebenfalls in der Wurzel `/MID/` ermittelt.
+
+**Technische Herkunftsgrenze:** Bildvorschau-Reads aus `/MID/Designs/` sind erfolgreich. `files.materialize` verweigert weiterhin den Export der unveränderten PNG-/ZIP-Rohbytes mit `This Project file does not have an authorized raw-byte materialization path`. Die Freigabe-URL führt ohne eingeloggte Library-Sitzung zur Authentifizierung. Deshalb **keine** originalen Binärdateien in GitHub, keine PNG-Hashes und kein Anspruch auf abgeschlossene Bildarchivierung. Unveränderte exportierbare Originale sind weiterhin erforderlich; keine Pixelvorschauen als Archivbytes ausgeben.
+
 ## Sichtgeprüfte Original-Designgrafiken, 02.11.2026
 
 Die Namen sind die tatsächlichen Dateinamen der damals erzeugten MID-Bibliotheksobjekte. Klammern in Namen dienen der Unterscheidung von Generationen/Kopien; keine Dateien wurden stillschweigend umbenannt oder verändert.
