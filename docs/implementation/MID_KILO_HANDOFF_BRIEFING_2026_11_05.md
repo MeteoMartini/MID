@@ -26,4 +26,3 @@ Ein enges Transport-/Intake-Abnahmepaket mit der bestehenden externen Wache: Der
 Die Automation „MID Kilo-Handoff-Integration“ (ID6aeb9e5d4a908191982827891ed82286) wurde direkt gelesen. Letzter dokumentierter Lauf1f01b0f7-c8a0-8320-b22c-786cd8025cfd completed05.11.06:52UTC, kein zulässiges neues Handoff-Issue. Der aktuelle Prompt enthält Recovery#660 und den Teilnachweis#659. Die Wache ist nicht Teil des Repository-Diffs; keine zweite GitHub-Action hinzufügen. Es fehlt die einmalige echte, autorisierte Kilo-Gitobjekt→Issue→unabhängig validierter Draft-PR-Probe. #659 ist ausschließlichQA_ONLY und darf dafür nicht umgedeutet werden.
 
 Vor Weitergabe eines neuen Produktionsauftrags auf die erfolgreiche .430-Promotion warten, neue exakte Stable/Main-SHAs lesen und unveröffentlichte Arbeit erhalten. Historische SHAs in diesem Dokument sind Evidenz, keine automatisch aktuelle Basis.
-
