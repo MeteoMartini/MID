@@ -25989,3 +25989,11 @@ html:root .app.has-selected-place-bar>.top{background:var(--surface)!important;i
  html[data-mid-design='next'] .composite-card .composite-timeline-controls>.composite-live-button{grid-row:3!important;grid-column:3!important}
  html[data-mid-design='next'] .composite-card .composite-timeline-controls :is(button,select){min-height:44px!important}
 }
+
+/* MID v0.9.85.429 · Kilo UI-P0: canonical touch and safe areas. */
+.favorite-strip button,.favorite-bubbles>button,.favorite-strip-manage,.detail-legend-toggle{min-height:44px}
+.favorite-strip-manage,.detail-legend-toggle{min-width:44px}
+.place-warning-status{min-height:48px}
+html:root .selected-place-bar{padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
+@media(max-width:680px){.meteogram-day .detail-legend-toolbar{justify-content:flex-start}}
+@media(max-width:900px){.dashboard-bottom-tabs button{position:relative}.dashboard-bottom-tabs button.active::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:18px;height:3px;background:var(--primary)}.dashboard-bottom-tabs button:focus-visible{outline:2px solid var(--primary)}}

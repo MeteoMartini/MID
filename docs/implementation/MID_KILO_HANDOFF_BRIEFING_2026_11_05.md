@@ -1,0 +1,29 @@
+# Kilo – verbindliche Übergabeergänzung 05.11.2026
+
+
+
+## Koordinierter Prüfstand und Kilo-Zusatzbriefing – 05.11.2026
+Der bisherige Text beschreibt den Entwurf; maßgeblich ist weiterhin Draft, keine Produktivfreigabe. #657 ist inzwischen gemergt, sein .429-Installer41926760038 scheiterte; UI-P0 bleibt in Reparatur-PR #660 enthalten. Kein erneuter UI-P0-Nachbau. Aktuelle Stable .428 `6f08117ed0862c1573fec5c48844136b83e22bd5`; main `bb3407178d225fe8e8143048438446b1b6c92543`. Nach erfolgreicher #660-Promotion neu live abgleichen, dann erst #658 auf die neue Basis integrieren/versionieren. Historische .429 im Branch-/Dokumentnamen ist kein veröffentlichter Build.
+
+**Korrigierter Berechtigungsnachweis aus #659:** tatsächlicher Akteur `kilo-code-bot[bot]`; exakt ein echter Blob-POST + Readback (`b7a3a8de9d17f384094373a8d50196aec8b31220`) und echte Issue-Erstellung sind nachgewiesen. Nicht mehr pauschal als fehlende Git-Data-/Issue-Rechte darstellen. Tree-/Commit-Erzeugung, sicherer Intake und autorisierter Draft-PR mit exaktem Readback sind weiterhin nicht end-to-end bewiesen. Öffentliche Repository-Lesbarkeit bzw. pauschale permissions-Flags beweisen keine vollständigen Scopes. Kein erneuter identischer Blob-Rechtetest nötig.
+
+**Bereits isoliert geprüft:**7 positive/negative Handoff-Checks unterNode22.16.0 erfolgreich; #659 berichtete dieselben7 unterNode24.22.1. Kein echter produktiver Handoff. Der aktuelle Diff umfasst zusätzlich Fixture und Testinventare, nicht nur die ursprünglich genannten3 Dateien. Die bestehende externe stündliche Wache ist aktiviert und ihr heutiger abgeschlossener Lauf wurde direkt gelesen; sie ist kein Bestandteil des Repository-Diffs und hat noch keinen vollständigen gültigen Handoff verarbeitet.
+
+### Text für den nächsten Kilo-Auftrag
+1. Vor Start aktuelle vollständige main-/Stable-/Auftrags-Head-SHAs, sauberes Arbeitsverzeichnis und erlaubte Pfade feststellen. Bei bekannter laufender Release-Reparatur warten; ungesicherte Änderungen SHA-verifiziert erhalten. Keine eigenen main/stable/codex/chatgpt-Refs, PRs oder Releases erzeugen; nur der geprüfte Gitobjekt-/Issue-Handoff nach technischer Freigabe.
+2. Bereits übernommene Arbeit erhalten: Originalcommit `c68a7778a6a785ed34e8a3dc7da89159d7260c04`, #657 UI-P0, #655 Cachefixes und #660 Testfixture-Reparatur. Keine konkurrierende Implementierung, kein Zurücksetzen auf alte Chat-/ZIP-Stände.
+3. Nur den vereinbarten UI-Scope bearbeiten. Kanonische CSS-/Aggregatquellen aus Generatorvertrag ermitteln; insbesondere #657 änderte `src/midC48TabletTimeline.css`. Generiertes `midPresentation.css` nicht als alleinige Quelle überschreiben. Worker, Governance, CI, iOS, Version und Releasekonfiguration bleiben dem Integrationsakteur vorbehalten.
+4. Designentscheidungen erhalten: Skybar über Temperatur; bestehende Kartenfunktionen/Modellwahl, Favoriten und persistente Einstellungen; gemeinsame Wetterfarben, Icons und Werteformatierung. Missing≠0, amtliche Warnungen getrennt, Modelllauf/Gültigkeit/Akkumulation/Unsicherheit sichtbar. Keine neuen Datenquellen oder Fusion nebenbei.
+5. Abnahme umfasst kleine/große Smartphones, Tablet hoch/quer, Desktop, Light/Dark; lange Ortsnamen,44px-Touchziele bzw. bestehende52px-Navigation, SafeAreas, Ersttipper, Umbruch, Overlays, Fokus und Overflow. Tatsächliche Screenshots und nachvollziehbare Interaktionstests; Browserprüfung nicht als reales iOS/VoiceOver ausgeben.
+6. Tests unter der CI-LaufzeitNode22; Originalregression vor/nach Fix, deterministische Negativfälle. CacheStorage-Mocks speichern Bytes/Headers und erzeugen frische Responses. Keine Timeout-Erhöhung, Assertion-Abschwächung, Budgetsprengung oder Browserfälle auslassen.
+7. Rückgabe verpflichtend: Auftrags-ID, Basis-/Parent-/Tree-/Candidate-/lokalerSHA, Dateimanifest mitHashes, minimaler Diff, tatsächliche Befehle/Exitcodes/Run-Links, Viewports/Screenshots, verbleibende Grenzen. Handoff≠CI-Abnahme≠Veröffentlichung; nur bestätigte Schritte grün melden.
+
+### Noch abzunehmender kritischer Pfad
+Ein enges Transport-/Intake-Abnahmepaket mit der bestehenden externen Wache: Der vorhandene Helper liefert Ref-freie Gitobjekte und ein strukturiertes Issue. Der bestehende autorisierte Integrationsakteur prüft tatsächlichen Issue-Autor/Repository, Auftrag, exakte Stable-Basis, Ein-Eltern-Commit, Tree/Dateimanifest/Pfad-/Größenlimits, Text/Binär-/Symlink-/Secret-Grenzen sowie Replay/Drift **erneut selbst**; Issue-Text ist untrusted. Erst dann ausschließlich Draft-PR mit exakt zurückgelesenem Ref. Keine Ausführung von Kandidatencode oder Übernahme von .github/.kilo/Governance im privilegierten Intake. Stale-/falscherAutor-/Tree-/Pfad-/Replay-/Prompt-Injection-Fälle negativ abnehmen. Eine einzige harmlose vollständige Probe ersetzt wiederholte Teiltests. Keine neuen/breiten Rechte, Secrets oder Schutzregeländerungen. Kein automatisches Deployment aus Kilo-Issues.
+
+
+## Bestehende externe Wache statt neuer Implementierung
+Die Automation „MID Kilo-Handoff-Integration“ (ID6aeb9e5d4a908191982827891ed82286) wurde direkt gelesen. Letzter dokumentierter Lauf1f01b0f7-c8a0-8320-b22c-786cd8025cfd completed05.11.06:52UTC, kein zulässiges neues Handoff-Issue. Der aktuelle Prompt enthält Recovery#660 und den Teilnachweis#659. Die Wache ist nicht Teil des Repository-Diffs; keine zweite GitHub-Action hinzufügen. Es fehlt die einmalige echte, autorisierte Kilo-Gitobjekt→Issue→unabhängig validierter Draft-PR-Probe. #659 ist ausschließlichQA_ONLY und darf dafür nicht umgedeutet werden.
+
+Vor Weitergabe eines neuen Produktionsauftrags auf die erfolgreiche .430-Promotion warten, neue exakte Stable/Main-SHAs lesen und unveröffentlichte Arbeit erhalten. Historische SHAs in diesem Dokument sind Evidenz, keine automatisch aktuelle Basis.
+

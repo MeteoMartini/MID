@@ -57,7 +57,7 @@ async function purge(cache:Cache):Promise<void>{
   total+=size;valid.push({request:req,at,size});
  }
  valid.sort((a,b)=>a.at-b.at);
- while(valid.length>MAX_ITEMS||total>MID_MAP_CACHE_MAX_BYTES){const old=valid.shift();if(!old)break;total-=old.size;await cache.delete(old.request)}
+ while(valid.length>MAX_ITEMS||total>MID_MAP_CACHE_MAX_BYTES){const old=valid.shift();if(!old)break;total-=old.size;if(!await cache.delete(old.request))throw new Error('Verified map CacheStorage eviction failed')}
 }
 /** Read cached verified bytes or fetch, SHA-check and cache. No stale-if-error fallback. */
 async function readVerifiedMapFrameBytes(path:string,expectedSha256:string,expectedBytes:number,signal?:AbortSignal):Promise<ArrayBuffer>{
@@ -95,7 +95,7 @@ async function readVerifiedMapFrameBytes(path:string,expectedSha256:string,expec
  if(signal?.aborted)throw signal.reason??new Error('Aborted');
  const now=Date.now();remember(key,data,now);
  if(store){
-  try{const task=diskWrites.then(async()=>{if(signal?.aborted)return;await store.put(key,new Response(data.slice(0),{status:200,headers:{'content-length':String(expectedBytes),[TIMESTAMP_HEADER]:String(now)}}));await purge(store)});diskWrites=task.catch(()=>undefined);await task}catch{/* Optional cache. No user settings/other caches are touched. */}
+  try{const task=diskWrites.then(async()=>{if(signal?.aborted)return;try{await store.put(key,new Response(data.slice(0),{status:200,headers:{'content-length':String(expectedBytes),[TIMESTAMP_HEADER]:String(now)}}));await purge(store)}catch{/* An incomplete eviction could leave the persistent 24 MiB budget exceeded. */try{await caches.delete(MID_MAP_CACHE_NAME)}catch{} }});diskWrites=task.catch(()=>undefined);await task}catch{/* Optional cache. No user settings/other caches are touched. */}
  }
  return data;
 }

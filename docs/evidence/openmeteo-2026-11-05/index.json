@@ -1,0 +1,176 @@
+[
+  {
+    "id": "claef-meta",
+    "url": "https://api.open-meteo.com/data/geosphere_claef_austria/static/meta.json",
+    "observed_at": "2026-11-05T07:11:41.478812+00:00",
+    "status": 200,
+    "bytes": 599,
+    "sha256": "eb9ee9883503ab0e1de11909c3676d1d1438f84b7a0d7262db0aa7514bab97a4",
+    "headers": {
+      "date": "Thu, 05 Nov 2026 07:11:48 GMT",
+      "content-type": "application/json; charset=utf-8"
+    },
+    "response": {
+      "chunk_time_length": 108,
+      "crs_wkt": "GEOGCRS[\"WGS 84\",\n    DATUM[\"World Geodetic System 1984\",\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563]],\n    CS[ellipsoidal,2],\n        AXIS[\"latitude\",north],\n        AXIS[\"longitude\",east],\n        ANGLEUNIT[\"degree\",0.0174532925199433]\n    USAGE[\n        SCOPE[\"grid\"],\n        BBOX[43.002,5.0317,51.498,22.5682]]]",
+      "data_end_time": 1794056400,
+      "last_run_availability_time": 1793854516,
+      "last_run_initialisation_time": 1793836800,
+      "last_run_modification_time": 1793854464,
+      "temporal_resolution_seconds": 3600,
+      "update_interval_seconds": 10800
+    }
+  },
+  {
+    "id": "arome-meta",
+    "url": "https://api.open-meteo.com/data/geosphere_arome_austria/static/meta.json",
+    "observed_at": "2026-11-05T07:11:48.406832+00:00",
+    "status": 200,
+    "bytes": 600,
+    "sha256": "4e1bc1c63c0df7255a0561341fe7ef23558ed5d24fc642dd9a71b188f9982554",
+    "headers": {
+      "date": "Thu, 05 Nov 2026 07:11:52 GMT",
+      "content-type": "application/json; charset=utf-8"
+    },
+    "response": {
+      "chunk_time_length": 108,
+      "crs_wkt": "GEOGCRS[\"WGS 84\",\n    DATUM[\"World Geodetic System 1984\",\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563]],\n    CS[ellipsoidal,2],\n        AXIS[\"latitude\",north],\n        AXIS[\"longitude\",east],\n        ANGLEUNIT[\"degree\",0.0174532925199433]\n    USAGE[\n        SCOPE[\"grid\"],\n        BBOX[42.981,5.498,51.819,22.102001]]]",
+      "data_end_time": 1793980800,
+      "last_run_availability_time": 1793773740,
+      "last_run_initialisation_time": 1793761200,
+      "last_run_modification_time": 1793773710,
+      "temporal_resolution_seconds": 3600,
+      "update_interval_seconds": 10800
+    }
+  },
+  {
+    "id": "rrfs-meta",
+    "url": "https://api.open-meteo.com/data/ncep_rrfs_conus/static/meta.json",
+    "observed_at": "2026-11-05T07:11:52.294459+00:00",
+    "status": 200,
+    "bytes": 958,
+    "sha256": "9b8783b92f1fc72f200caa68660895739cbbba4704f42fa753686e9a943128bb",
+    "headers": {
+      "date": "Thu, 05 Nov 2026 07:11:57 GMT",
+      "content-type": "application/json; charset=utf-8"
+    },
+    "response": {
+      "chunk_time_length": 120,
+      "crs_wkt": "PROJCRS[\"Lambert Conic Conformal\",\n    BASEGEOGCRS[\"GCS_Sphere\",\n        DATUM[\"D_Sphere\",\n            ELLIPSOID[\"Sphere\",6371229.0,0.0]]],\n    CONVERSION[\"Lambert Conic Conformal\",\n        METHOD[\"Lambert Conic Conformal (2SP)\"],\n        PARAMETER[\"Latitude of 1st standard parallel\",38.5],\n        PARAMETER[\"Latitude of 2nd standard parallel\",38.5],\n        PARAMETER[\"Latitude of false origin\",38.5],\n        PARAMETER[\"Longitude of false origin\",-97.5]],\n    CS[Cartesian,2],\n        AXIS[\"easting\",east],\n        AXIS[\"northing\",north],\n        LENGTHUNIT[\"metre\",1],\n    USAGE[\n        SCOPE[\"grid\"],\n        BBOX[21.138098,-122.72,47.84246,-60.91774]]]",
+      "data_end_time": 1794142800,
+      "last_run_availability_time": 1793857120,
+      "last_run_initialisation_time": 1793836800,
+      "last_run_modification_time": 1793852271,
+      "temporal_resolution_seconds": 3600,
+      "update_interval_seconds": 21600
+    }
+  },
+  {
+    "id": "claef-point",
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=47.27&longitude=11.39&models=geosphere_claef_austria&hourly=temperature_2m,precipitation,snowfall_height&forecast_hours=3&timezone=GMT",
+    "observed_at": "2026-11-05T07:11:57.122203+00:00",
+    "status": 200,
+    "bytes": 452,
+    "sha256": "897bfcf7a8464bbba09fd622797088486c749e0df4dafefc3bf5aaeb31e776d5",
+    "headers": {
+      "date": "Thu, 05 Nov 2026 07:12:00 GMT",
+      "content-type": "application/json; charset=utf-8",
+      "x-ratelimit-cost": "1.0",
+      "x-ratelimit-limit": "600.0",
+      "x-ratelimit-remaining": "599.0",
+      "x-ratelimit-reset": "1793862756",
+      "x-ratelimit-window": "60"
+    },
+    "response": {
+      "latitude": 47.268,
+      "longitude": 11.3902,
+      "generationtime_ms": 0.08475780487060547,
+      "utc_offset_seconds": 0,
+      "timezone": "GMT",
+      "timezone_abbreviation": "GMT",
+      "elevation": 590.0,
+      "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "\u00b0C",
+        "precipitation": "mm",
+        "snowfall_height": "m"
+      },
+      "hourly": {
+        "time": [
+          "2026-11-05T07:00",
+          "2026-11-05T08:00",
+          "2026-11-05T09:00"
+        ],
+        "temperature_2m": [
+          2.6,
+          4.5,
+          6.5
+        ],
+        "precipitation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "snowfall_height": [
+          2150.0,
+          2210.0,
+          2290.0
+        ]
+      }
+    }
+  },
+  {
+    "id": "rrfs-point",
+    "url": "https://api.open-meteo.com/v1/forecast?latitude=40&longitude=-105&models=ncep_rrfs_conus&hourly=temperature_2m,precipitation,wind_direction_10m&forecast_hours=3&timezone=GMT",
+    "observed_at": "2026-11-05T07:12:00.516051+00:00",
+    "status": 200,
+    "bytes": 454,
+    "sha256": "afe1530f90d1f036c931ef1aa0b0d054308ba536c7a42f6c33e61818d1a9d048",
+    "headers": {
+      "date": "Thu, 05 Nov 2026 07:12:04 GMT",
+      "content-type": "application/json; charset=utf-8",
+      "x-ratelimit-cost": "1.0",
+      "x-ratelimit-limit": "600.0",
+      "x-ratelimit-remaining": "598.0",
+      "x-ratelimit-reset": "1793862756",
+      "x-ratelimit-window": "60"
+    },
+    "response": {
+      "latitude": 39.98894,
+      "longitude": -105.012726,
+      "generationtime_ms": 0.07224082946777344,
+      "utc_offset_seconds": 0,
+      "timezone": "GMT",
+      "timezone_abbreviation": "GMT",
+      "elevation": 1592.0,
+      "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "\u00b0C",
+        "precipitation": "mm",
+        "wind_direction_10m": "\u00b0"
+      },
+      "hourly": {
+        "time": [
+          "2026-11-05T07:00",
+          "2026-11-05T08:00",
+          "2026-11-05T09:00"
+        ],
+        "temperature_2m": [
+          3.7,
+          3.1,
+          2.4
+        ],
+        "precipitation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "wind_direction_10m": [
+          282,
+          241,
+          250
+        ]
+      }
+    }
+  }
+]
