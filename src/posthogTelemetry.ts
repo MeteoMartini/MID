@@ -4,7 +4,7 @@ import {MID_VERSION} from './version';
 // Web/PWA only. No SDK autocapture, cookies, persistent identity, URLs or location payloads.
 export const MID_POSTHOG_CONSENT_KEY='mid:posthog-diagnostics-consent:v1';
 const TOKEN=String(import.meta.env.VITE_POSTHOG_PROJECT_TOKEN||'').trim();
-const HOST=String(import.meta.env.VITE_POSTHOG_HOST||'').trim().replace(/\\/+$/,'');
+const HOST=String(import.meta.env.VITE_POSTHOG_HOST||'').trim().replace(/\/+$/,'');
 const ALLOWED_HOST='https://eu.i.posthog.com';
 const ALLOWED_SECTIONS=new Set(['current','today','forecast','composite','more']);
 const MAX_EVENTS_PER_PAGE=30;
