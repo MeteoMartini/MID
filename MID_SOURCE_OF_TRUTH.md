@@ -1,3 +1,7 @@
+# MID v0.9.85.436 · C56 Bedienung und Bildfehler
+
+Basis Stable .435 8b4d311227090ae7b38022173899b5be412f81ec. Gemeinsamer Kandidat #669: compositor-feste iOS-Navigation, semantische Einstellungsüberschriften und DWD-Bildfehlerstatus/Retry. Kein Meteorologie-, Datenquellen-, Warnschwellen- oder CSS-Farbumbau. 1080 Pflichtinventar; vollständiger Source-/Installer-/Worker-/Pages-/Stable-Pfad zwingend. Physische iOS-/VoiceOver-Abnahme und vollständiges Gesamtaudit weiterhin offen, keine umfassende WCAG-Konformität behauptet. Nachweise docs/implementation/MID_C56_UI_UX_PROGRESS.md.
+
 # MID v0.9.85.435 · evidenzgebundene Kurzfristaussagen
 
 Basis: vollständig promotierter Stable .434 `994ea3bcf1ab20e7036f50a92b7033b44b538804`. Geprüfter Original-PR #668 @6245531ac82a6fb083d7110ddc725ba8cef93e67. Uneingeschränkte24h-Negativaussage nur bei lücken-/überlappungsfreier absoluter Zeitdeckung, maximal stündlichen finalen Buckets und endlichen nichtnegativen Mengen UND Böen in allen Buckets. Teilabdeckung ausdrücklich markiert, echte Signale bleiben priorisiert. Bestehende Originalregression um unabhängige Grenz-/Negativfälle verstärkt; vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates bleiben zwingend. Keine amtliche Entwarnung und keine Änderung an Warnungen, Datenbezug oder Meteorologiefarben. Weitere7d-/Nowcard-/Nebel-/PoP-Auditpunkte sind nicht durch diesen begrenzten Fix erledigt.

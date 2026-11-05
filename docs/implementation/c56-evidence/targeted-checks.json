@@ -1,0 +1,62 @@
+[
+  {
+    "test": "test-bottom-navigation-anchor-c56.mjs",
+    "exit": 0,
+    "output": "PASS C56 anchor: fixed CSS, deep scroll, keyboard open/close, pinch zoom, breakpoint and cleanup.\n"
+  },
+  {
+    "test": "test-dashboard-touch-c55.mjs",
+    "exit": 0,
+    "output": "PASS dashboard touch: cancel/up/lost capture/unmount, scheduled moves, arrow order + live position, matching 44px grid/grip and common compact/coarse controls.\n"
+  },
+  {
+    "test": "test-module-loading-state-c55.mjs",
+    "exit": 0,
+    "output": "PASS: rendered chart/map status, neutral geometry, responsive containment, motion-free loading and consumer wiring.\n"
+  },
+  {
+    "test": "test-popover-regression.mjs",
+    "exit": 0,
+    "output": "Popover-Regression bestanden: gemeinsame App-Portalprimitive sowie Ensemble-Spezialtooltips schlie\u00dfen per Au\u00dfenklick/Escape und bleiben viewportfest.\n"
+  },
+  {
+    "test": "test-legend-language.mjs",
+    "exit": 0,
+    "output": "Legenden-/Sprachpr\u00fcfung bestanden: dunkle Schrift auf dem Sonnenscheinband und nat\u00fcrliche deutsche Zeitstellung bei Schauern.\n"
+  },
+  {
+    "test": "test-viewport-textflow-098485.mjs",
+    "exit": 0,
+    "output": "MID v0.9.85.435 Viewport-/Textflussvertrag: Header, Bottom-Navigation, Prognose-Kompass, 24-h-Einzeldaten und Pegelzugang gesch\u00fctzt.\n"
+  },
+  {
+    "test": "test-overlay-viewport-continuation-098480.mjs",
+    "exit": 0,
+    "output": "MID 17.7.24 Overlay-/Viewport-Fortsetzung: Portalpositionierung, dynamische Viewports, Safe Areas und Langfrist-Lesbarkeit gepr\u00fcft.\n"
+  },
+  {
+    "test": "test-detail-pressure-collapsible-legend-08150.mjs",
+    "exit": 0,
+    "output": "Tagesdetail gepr\u00fcft: Luftdruckverlauf und -kachel, zusammengefasste Bew\u00f6lkung/UVI-Kachel, persistente einklappbare Legende sowie TypeScript-Buildfix sind vorhanden.\n"
+  },
+  {
+    "test": "test-composite-legend-and-phase-preservation.mjs",
+    "exit": 1,
+    "output": ""
+  },
+  {
+    "test": "test-secondary-detail-popover-readability-098473.mjs",
+    "exit": 0,
+    "output": "OK secondary detail/popover readability 098473 \u00b7 Radar-Nowcast mobil ohne Mikroschrift, Clipping oder Wortzerst\u00fcckelung\n"
+  },
+  {
+    "test": "test-skybar-precipitation-nodata-0985300.mjs",
+    "exit": 0,
+    "output": "MID .300: WMO 51/61/63/71/81/82/95 and 15-minute NoData, invalid/real-zero amounts, lower-bound components, missing-night and extreme preservation OK.\n"
+  },
+  {
+    "test": "test-day-detail-probability-wind-contrast-09700.mjs",
+    "exit": 0,
+    "output": "MID v0.9.85.435: Tagesansicht zeigt eine monoton gegl\u00e4ttete, an Vorw\u00e4rtsslots verankerte Niederschlagswahrscheinlichkeit und kontrastreiche Windpfeile in Hell/Dunkel.\n"
+  }
+]

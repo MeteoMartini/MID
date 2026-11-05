@@ -1,4 +1,5 @@
-# MID v0.9.85.435
+# MID v0.9.85.436
 
-- Kurzfristtexte kennzeichnen unvollständige24-Stunden-Abdeckung ausdrücklich. Fehlende Niederschlags- oder Böenwerte gelten nicht als ereignisfreie Stunden.
-- Vorhandene Niederschlags- und Böensignale bleiben auch bei unvollständigen Daten sichtbar.
+- Bottom-Bar auf iOS: feste Bildschirmverankerung statt scrollabhängiger Dokumentposition; Tastatur und Zoom werden getrennt behandelt.
+- Einstellungsgruppen besitzen klar getrennte, semantische Überschriften und Beschreibungen.
+- Fehlgeschlagene DWD-Bilddarstellung zeigt eine Meldung mit erneutem Ladeversuch.
