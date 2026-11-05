@@ -37,3 +37,11 @@ Use semantic H3/P instead of STRONG/SMALL for the two existing settings headings
 | QA | Visual devices | Only light desktop 1363x936 captured. No smartphone/tablet/dark/real iOS pass claimed. Cloud browser API exposed no viewport emulation control; browser zoom chord left dimensions unchanged. |
 
 Node22 focused tests passed: test-dashboard-touch-c55.mjs, test-module-loading-state-c55.mjs, test-settings-menu.mjs, test-settings-standard-design-08160.mjs. Full regression/source/installer gates pending; no readiness or publication claim.
+
+## Bottom-bar report and candidate correction
+
+User supplied IMG_2444.jpeg: navigation appears high over the page, above a large empty DWD image panel. Version, scroll history, keyboard state and capture mode cannot be determined from this still image. The DWD image/empty-state issue remains separately open.
+
+Stable iOS hook useBottomNavigationAnchor replaces body-portal fixed positioning with an absolute document top and updates it using scrollY/requestAnimationFrame. This is a concrete compositor-lag risk consistent with the report, not a verified diagnosis on the user's physical device. Candidate retains canonical compositor-fixed CSS, safe-area gap and appearance. Only an unzoomed reduced visual viewport adds a bottom inset; keyboard close, breakpoint changes and unmount restore original inline style. No document scroll listener, absolute top, timer workaround or forced transform/transition override remains. No meteorological changes.
+
+New test test-bottom-navigation-anchor-c56.mjs executes the production hook with mocked effect/viewport events: normal viewport, deep scroll, keyboard open/close, pinch zoom, breakpoint and pending-frame cleanup. PASS. This is a deterministic event test, not Safari rendering evidence. Physical iOS scroll/keyboard/back-forward/orientation verification and real browser matrix remain mandatory before release; do not claim the screenshot defect fixed in production. No additional CSS bytes.
