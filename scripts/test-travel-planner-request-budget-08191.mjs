@@ -61,7 +61,7 @@ try{
    for(let year=1991;year<=2020;year++)for(let day=0;day<365;day++){
     const date=new Date(Date.UTC(year,0,1+day)).toISOString().slice(0,10);daily.time.push(date);daily.weather_code.push(1);daily.temperature_2m_max.push(25);daily.temperature_2m_min.push(15);daily.precipitation_sum.push(day%17===0?2:0);daily.sunshine_duration.push(8*3600);daily.daylight_duration.push(12*3600);daily.wind_speed_10m_max.push(10);daily.snowfall_sum.push(0);
    }
-   return{ok:true,status:200,json:async()=>({latitude:50.8,longitude:7,elevation:0,timezone:'Europe/Berlin',daily})};
+   return{ok:true,status:200,headers:new Headers(),json:async()=>({latitude:50.8,longitude:7,elevation:0,timezone:'Europe/Berlin',daily})};
   };
   const first={latitude:50.81,longitude:7.04,elevation:110},nearby={latitude:50.82,longitude:7.03,elevation:120};
   const [a,b]=await Promise.all([module.fetchTravelClimatology(first,false),module.fetchTravelClimatology(first,false)]);
