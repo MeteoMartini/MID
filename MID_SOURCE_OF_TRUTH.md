@@ -1,3 +1,7 @@
+# MID v0.9.85.430 · UI-P0 und Cache-QA-Release-Recovery
+
+Stable .428 6f08117ed0862c1573fec5c48844136b83e22bd5; fehlgeschlagener .429-Installer41926760038, verifizierter main bb3407178d225fe8e8143048438446b1b6c92543 (zwei Commits ahead, kein Verlust). Vorhandene UI-P0-Quellen vollständig erhalten. Node22.16.0 reproduziert den originalen Fehler actual1/expected0; instrumentierter CacheStorage-Mock zeigt Response.clone Body consumed. Neue bytebasierte Fixture besteht12 Wiederholungen mit22 Fällen; Löschfehler, genau ein isoliertes Cache-Drop und leeres Ergebnis weiterhin zwingend. Keine produktive Cache-/Fachlogik, kein Budget/Timeout geändert. Nur vollständiger Source-/Bot-/ZIP-/Installer-/Worker-/Pages-/Stable-Pfad erlaubt Freigabe. #658 bleibt getrennt.
+
 # MID v0.9.85.429 · Mobile UI-P0 als freigabepflichtiger Source-Kandidat
 
 Original Kilo-Commit `c68a7778a6a785ed34e8a3dc7da89159d7260c04`, Stable-Parent `6f08117ed0862c1573fec5c48844136b83e22bd5`; UI-Korrektur liegt in kanonischer CSS-Quelle. Veröffentlichung ausschließlich über vollständige Source-/Installer-/Worker-/Pages-/Stable-Gates. Technischer Nachweis: `docs/implementation/MID_KILO_UI_P0_0.9.85.429.md`.

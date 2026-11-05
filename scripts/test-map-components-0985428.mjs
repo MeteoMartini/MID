@@ -7,9 +7,11 @@ import {createHash} from 'node:crypto';
 const dir=mkdtempSync(join(process.cwd(),'.mid428-'));
 const sha=b=>createHash('sha256').update(b).digest('hex');
 const saved={fetch:globalThis.fetch,caches:globalThis.caches,location:globalThis.location};
-let denyEviction=false;const entries=new Map(),key=r=>typeof r==='string'?r:r.url;
+let denyEviction=false,deniedDeletes=0,droppedCaches=0;const entries=new Map(),key=r=>typeof r==='string'?r:r.url;
+// CacheStorage stores bytes, not live one-shot Response streams.
+async function putEntry(r,v){entries.set(key(r),{bytes:new Uint8Array(await v.arrayBuffer()),headers:new Headers(v.headers)})}
 globalThis.location=new URL('https://www.midwx.app/');
-globalThis.caches={open:async()=>({match:async r=>entries.get(key(r))?.clone(),put:async(r,v)=>{entries.set(key(r),v.clone())},delete:async r=>denyEviction?false:entries.delete(key(r)),keys:async()=>[...entries.keys()].map(r=>new Request(r))}),delete:async()=>{entries.clear();return true}};
+globalThis.caches={open:async()=>({match:async r=>{const row=entries.get(key(r));return row?new Response(row.bytes.slice(),{headers:row.headers}):undefined},put:putEntry,delete:async r=>{if(denyEviction){deniedDeletes++;return false}return entries.delete(key(r))},keys:async()=>[...entries.keys()].map(r=>new Request(r))}),delete:async()=>{droppedCaches++;entries.clear();return true}};
 let cases=0;const check=()=>cases++;
 try{
  const originalRoot='docs/handoffs/MID_18_2_73_originals/',manifest=JSON.parse(readFileSync(originalRoot+'manifest.json','utf8'));
@@ -23,11 +25,11 @@ try{
  assert.deepEqual(JSON.parse(Buffer.from(a).toString()).values,[0,null,12]);check();
  new Uint8Array(a)[0]=0;assert.equal(new Uint8Array(await c.fetchVerifiedMapFrameBytes(p,sha(body),body.length))[0],123);assert.equal(calls,1);check();
  const reopened=await load('verifiedMapFrameCache','reopen');await reopened.fetchVerifiedMapFrameBytes(p,sha(body),body.length);assert.equal(calls,1);check();
- const id=[...entries.keys()][0];entries.set(id,new Response(Buffer.alloc(body.length),{headers:{'content-length':String(body.length),'x-mid-verified-cached-at':String(Date.now())}}));
+ const id=[...entries.keys()][0];await putEntry(id,new Response(Buffer.alloc(body.length),{headers:{'content-length':String(body.length),'x-mid-verified-cached-at':String(Date.now())}}));
  await(await load('verifiedMapFrameCache','poison')).fetchVerifiedMapFrameBytes(p,sha(body),body.length);assert.equal(calls,2);check();
- entries.set(id,new Response(body,{headers:{'content-length':String(body.length),'x-mid-verified-cached-at':String(Date.now()+86400000)}}));
+ await putEntry(id,new Response(body,{headers:{'content-length':String(body.length),'x-mid-verified-cached-at':String(Date.now()+86400000)}}));
  await(await load('verifiedMapFrameCache','future')).fetchVerifiedMapFrameBytes(p,sha(body),body.length);assert.equal(calls,3);check();
- entries.set(id,new Response(body,{headers:{'content-length':String(body.length),'x-mid-verified-cached-at':String(Date.now()-c.MID_MAP_CACHE_TTL_MS-1)}}));
+ await putEntry(id,new Response(body,{headers:{'content-length':String(body.length),'x-mid-verified-cached-at':String(Date.now()-c.MID_MAP_CACHE_TTL_MS-1)}}));
  await(await load('verifiedMapFrameCache','expired')).fetchVerifiedMapFrameBytes(p,sha(body),body.length);assert.equal(calls,4);check();
  for(const bad of ['/ruc/latest.json','https://evil.test/ruc/runs/x/model-fields/a.json','/ruc/runs/x/model-fields/a.json?x=1','/ruc/runs/x/model-fields/../../latest.json'])await assert.rejects(c.fetchVerifiedMapFrameBytes(bad,sha(body),body.length));check();
  await c.clearVerifiedMapFrameCache();calls=0;
@@ -35,9 +37,9 @@ try{
  for(let i=0;i<4;i++)await c.fetchVerifiedMapFrameBytes(`/ruc/runs/2026110406/model-fields/t-${i}.bin`,sha(large),large.length);
  assert.ok([...entries.values()].reduce((sum,r)=>sum+Number(r.headers.get('content-length')),0)<=c.MID_MAP_CACHE_MAX_BYTES);
  await c.fetchVerifiedMapFrameBytes('/ruc/runs/2026110406/model-fields/t-0.bin',sha(large),large.length);assert.equal(calls,5,'Both RAM and disk must evict beyond the 24 MiB byte budget');check();
- await c.clearVerifiedMapFrameCache();calls=0;denyEviction=true;
+ await c.clearVerifiedMapFrameCache();calls=0;denyEviction=true;deniedDeletes=0;droppedCaches=0;
  for(let i=0;i<4;i++)await c.fetchVerifiedMapFrameBytes(`/ruc/runs/2026110406/model-fields/deny-${i}.bin`,sha(large),large.length);
- assert.equal(entries.size,0,'If eviction is denied, drop only the verified persistent field cache instead of retaining overbudget bytes');denyEviction=false;check();
+ assert.equal(deniedDeletes,1,'Force the actual overbudget delete-failure path');assert.equal(droppedCaches,1,'Drop exactly the isolated field cache');assert.equal(entries.size,0,'If eviction is denied, drop only the verified persistent field cache instead of retaining overbudget bytes');denyEviction=false;check();
  await c.clearVerifiedMapFrameCache();calls=0;
  let complete;globalThis.fetch=async()=>{calls++;await new Promise(resolve=>{complete=resolve});return new Response(body)};
  const cancel=new AbortController(),first=c.fetchVerifiedMapFrameBytes(p,sha(body),body.length,cancel.signal),second=c.fetchVerifiedMapFrameBytes(p,sha(body),body.length);
