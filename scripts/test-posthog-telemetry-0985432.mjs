@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
-import ts from 'typescript';
+import {transformSync} from 'esbuild';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const [source,app,main]=await Promise.all([
@@ -47,7 +47,7 @@ function harness({consent=false,token='phc_test_project',host='https://eu.i.post
   .replace(/import\.meta\.env\.VITE_POSTHOG_HOST/g,JSON.stringify(host))
   .replace(/import\.meta\.env\.PROD/g,String(prod));
  prepared+='\nglobalThis.testExports={startMidPosthogTelemetry,setMidPosthogConsent,isMidPosthogConfigured,isMidPosthogConsentGranted};';
- const js=ts.transpileModule(prepared,{compilerOptions:{target:ts.ScriptTarget.ES2020,module:ts.ModuleKind.None}}).outputText;
+ const js=transformSync(prepared,{loader:'ts',target:'es2020',format:'iife'}).code;
  const context={
   window,document,localStorage,Element:FakeElement,Error,AbortController,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail}},
   crypto:{randomUUID:()=> 'ephemeral-random-id'},performance:{now:()=>485,getEntriesByType:()=>[{domContentLoadedEventEnd:240,loadEventEnd:370}]},
