@@ -6,6 +6,7 @@ import App from './App';
 import {restorePersistentState,startPersistenceBridge} from './persistence';
 import {getMidUpdateStatus,markMidRuntimeHealthy,registerMidServiceWorker,rollbackPendingMidUpdate} from './pwa';
 import {startWebAnalyticsDiagnostics} from './webAnalytics';
+import {startMidPosthogTelemetry} from './posthogTelemetry';
 import {restoreDeviceSyncState,restoreWeatherTwinArchiveDeferred,startDeviceSyncBridge} from './deviceSync';
 import {StartupGuard} from './StartupGuard';
 import {initializeStorageSafety} from './storageSafety';
@@ -79,6 +80,7 @@ async function start(){
  scheduleIdle(()=>{void compactForecastVerificationLocalStorage().catch(()=>0)});
  scheduleIdle(()=>{void restoreWeatherTwinArchiveDeferred().catch(()=>false)});
  try{startWebAnalyticsDiagnostics()}catch{}
+ try{startMidPosthogTelemetry()}catch{}
  void signalHealthy().catch(()=>markBootHealthy());
  if(document.readyState==='complete')void registerMidServiceWorker();else window.addEventListener('load',()=>{void registerMidServiceWorker()},{once:true});
 }
