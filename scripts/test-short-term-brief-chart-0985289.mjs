@@ -21,7 +21,17 @@ try{
  assert.doesNotMatch(brief([p(0,.3,26),p(1,0)],t(-.5),f),/Markante/);
  assert.match(brief([p(0,.3,28),p(1,0)],t(-.5),f),/Markante/);
  assert.match(brief([p(0,.3)],t(.2),f),/zunächst/);
- assert.equal(brief([p(0,0),p(1,0)],t(-.5),f),'Keine markanten Wetterereignisse in den nächsten 24 Stunden.');
+ // No two known dry hours may ever assert clearance for a full 24 hours.
+ const incomplete='Keine markanten Signale in den vorliegenden Kurzfristdaten; 24-Stunden-Abdeckung unvollständig.';
+ assert.equal(brief([p(0,0),p(1,0)],t(-.5),f),incomplete);
+ const fullDay=Array.from({length:24},(_,i)=>p(i,0,0));
+ assert.equal(brief(fullDay,t(0),f),'Keine markanten Wetterereignisse in den nächsten 24 Stunden.');
+ assert.equal(brief(fullDay.filter((_,i)=>i!==11),t(0),f),incomplete,'an omitted 1h slot breaks 24h coverage');
+ assert.equal(brief(fullDay.slice(1),t(0),f),incomplete,'missing first hour is not complete 24h');
+ assert.equal(brief(fullDay.map((v,i)=>i===11?{...v,precipitation:NaN}:v),t(0),f),incomplete,'unknown amount must not mean dry');
+ assert.equal(brief(fullDay.map((v,i)=>i===11?{...v,gust:NaN}:v),t(0),f),incomplete,'unknown gust must not clear weather hazards');
+ assert.equal(brief([{...p(0,0,0),precipitationIntervalEndEpoch:t(24)}],t(0),f),incomplete,'one 24h aggregate must not impersonate hourly coverage');
+ assert.equal(brief(fullDay.map((v,i)=>i===11?{...v,precipitationIntervalStartEpoch:t(10)}:v),t(0),f),incomplete,'overlapping bucket validity must not count as unique coverage');
  assert.equal(brief([p(0,NaN,NaN)],t(-.5),f),'Kurzfristdaten unvollständig.');
  assert.doesNotMatch(brief([p(0,.5)],t(-.5),f),/16:15/);
  const berlin=new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',timeZoneName:'shortOffset'}),zone={from:e=>`ab ${berlin.format(e)}`,at:e=>`um ${berlin.format(e)}`,gust:n=>`${Math.round(n)} kt`};

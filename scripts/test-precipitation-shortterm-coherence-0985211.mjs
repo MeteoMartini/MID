@@ -45,7 +45,8 @@ const text=brief([dry,wet],now,format);
 assert.ok(text.includes(String(wet.precipitationIntervalStartEpoch)),'Text onset must use the actual visible forward-facing 24h chart interval start');
 assert.ok(!text.includes(String(native.precipitationIntervalStartEpoch)),'Hidden native 15-minute onset must not shift the visible hourly chart briefing');
 assert.doesNotMatch(text,/Böen/,'Non-significant gusts must not become weather brief events');
-assert.match(brief([dry],now,format),/Keine markanten Wetterereignisse/,'Probability without precipitation amount is not a confirmed precipitation onset');
+// A single dry bucket must neither invent onset from PoP nor clear the entire day.
+assert.equal(brief([dry],now,format),'Keine markanten Signale in den vorliegenden Kurzfristdaten; 24-Stunden-Abdeckung unvollständig.','Probability alone is not onset; partial coverage is not a 24h negative proof');
 assert.equal(brief([{...dry,precipitation:NaN,gust:NaN}],now,format),'Kurzfristdaten unvollständig.','Missing must not be converted to dry');
 assert.match(cockpit,/shortTermPointSummary\(profileDisplayPoints,unit,timezone,profileNow\)/,'Text must use same displayed hourly profile as graph');
 assert.match(cockpit,/shortTermPointSummary\(visible,unit,timezone,now\)/,'Navigation preview must reuse visible hourly intervals');
