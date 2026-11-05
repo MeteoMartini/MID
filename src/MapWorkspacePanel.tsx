@@ -1,3 +1,4 @@
+import {ModuleLoadingState} from './ModuleLoadingState';
 import {lazy,memo,Suspense,useEffect,useState} from 'react';
 import {type WeatherMapFavoriteLocation} from './PrecipitationTotalsMap';
 import {MAP_WORKSPACE_VIEW_KEY,readMapWorkspaceView,saveMapWorkspaceView} from './mapWorkspaceState';
@@ -21,7 +22,7 @@ type MapWorkspacePanelProps={
  unit?:WindUnit;
 };
 
-function LoadingMapPanel(){return <section className="lazy-placeholder inner map-workspace-loading" role="status"><span>Kartenprodukt wird geladen …</span></section>}
+function LoadingMapPanel(){return <ModuleLoadingState label="Kartenprodukt wird geladen …" kind="map"/>}
 
 export default function MapWorkspacePanel(props:MapWorkspacePanelProps){
  const[requestedProductId,setRequestedProductId]=useState<string|undefined>(()=>{try{if(localStorage.getItem('mid:unified-map:v1')||localStorage.getItem(MAP_WORKSPACE_VIEW_KEY)!=='totals')return undefined;readMapWorkspaceView();return'icon-d2-precipitation-totals'}catch{return undefined}});
