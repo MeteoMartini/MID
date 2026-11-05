@@ -1,7 +1,7 @@
 {
   "name": "open-meteo-weather-dashboard",
   "private": true,
-  "version": "0.9.85.433",
+  "version": "0.9.85.434",
   "type": "module",
   "scripts": {
     "test:warning-snow-horizon-coherence": "node scripts/test-warning-snow-horizon-coherence-0985417.mjs",
@@ -573,7 +573,9 @@
     "test:build-parity-ci": "node --test scripts/test-build-parity-0985377.mjs",
     "test:design-a3-nodata": "node scripts/test-design-a3-precipitation-integrity-0985387.mjs",
     "test:design-we-forecast": "node scripts/test-design-we-forecast-modes-0985414.mjs",
-    "test:posthog-telemetry": "node scripts/test-posthog-telemetry-0985432.mjs"
+    "test:posthog-telemetry": "node scripts/test-posthog-telemetry-0985432.mjs",
+    "test:native-only-web-assets": "node scripts/test-native-only-web-assets-0985433.mjs",
+    "verify:native-only-web-assets": "node scripts/verify-native-only-web-assets.mjs"
   },
   "dependencies": {
     "@capacitor/app": "8.1.2",

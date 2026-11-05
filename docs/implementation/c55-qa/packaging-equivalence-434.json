@@ -1,0 +1,642 @@
+{
+  "schema": 1,
+  "version": "0.9.85.434",
+  "control": "Same current source/config; precisely native-master packaging plugin disabled inside diagnostic control build only",
+  "result": "byte-identical retained web output",
+  "filesCompared": 125,
+  "removed": [
+    "mid-app-icon-light-1024.png",
+    "mid-app-icon-dark-1024.png"
+  ],
+  "bytesRemoved": 1831340,
+  "excludedFromComparison": [
+    "mid-build-identity.json (post-build commit metadata, not emitted by Vite API)"
+  ],
+  "assets": [
+    {
+      "file": "CHANGELOG.md",
+      "bytes": 1057204,
+      "sha256": "5cb817c7bc426a889086efdd65e22e99b984ab091fede9c936901f2496942ca5"
+    },
+    {
+      "file": "CNAME",
+      "bytes": 14,
+      "sha256": "bc497efb6d7fa18bb3bf5dee527c281a5696fee2a6d65f5e6efc7db4a976ea00"
+    },
+    {
+      "file": "assets/AppleWidgetSettings-BKkLeaYI.js",
+      "bytes": 4185,
+      "sha256": "7f59ceb6f6bfa2e7e69f574e4ad160f3b7a988f97c95b52a9fd1bc0d8a60f9ea"
+    },
+    {
+      "file": "assets/ChartsVendor-D1FWKg1o.js",
+      "bytes": 413104,
+      "sha256": "57809c2a5f812d08f3765fd4d424e12a9d45963c93dbc4e3adf0497080dd1c3a"
+    },
+    {
+      "file": "assets/ClimatePanel-D8EJhyge.js",
+      "bytes": 16448,
+      "sha256": "bd41a4847853c3a12e96f559fb8a89b5d1539576434d31e1c0ab26608b7c507b"
+    },
+    {
+      "file": "assets/CrossSectionPanel-DFQO49s8.js",
+      "bytes": 30191,
+      "sha256": "5cce3a98cafe9103049f1139ec6c101096055bd50487964c14d53cf55a7be450"
+    },
+    {
+      "file": "assets/DashboardModuleSettings-DnMMIChT.js",
+      "bytes": 4252,
+      "sha256": "ae396bd7a5bac944f5651f12f6fd57c9c39c87ffebf89d41b574a2ce54ca8f19"
+    },
+    {
+      "file": "assets/EnsemblePanel-BTXC_7hv.js",
+      "bytes": 102937,
+      "sha256": "f7fb32d187bc5136444a927c7ec947466629b7fa1529387a9b1f734ee93b5c36"
+    },
+    {
+      "file": "assets/EventPlannerPanel-Dfb961eT.js",
+      "bytes": 44681,
+      "sha256": "b0eec40ee1f50fd99db0ec96b5883a83f61611aa23063f2c7cd0cd41a6dcf8f9"
+    },
+    {
+      "file": "assets/ExtremeWeatherOutlookPanel-BDmcEj6d.js",
+      "bytes": 53127,
+      "sha256": "7704cea66474b5eb7e6414d936e65e4dd141f77290694ef4d465d00587268d3f"
+    },
+    {
+      "file": "assets/FlightMeteorologyPanel-DtOZ0EK3.js",
+      "bytes": 2452,
+      "sha256": "b4322ad93ddfcf25f8b6b95c74cde42ed7913801c0221ea6f29884a9ad1370b0"
+    },
+    {
+      "file": "assets/ForecastChangePanel-DYuDlClG.js",
+      "bytes": 1466,
+      "sha256": "704823998926b03e61a3b54b798ad34282f9883bb589a1e1085da8b70ed414cd"
+    },
+    {
+      "file": "assets/ForecastRangeGuide-Cph4LbbE.js",
+      "bytes": 4196,
+      "sha256": "1e4076d1e59632745b120fea96227c413875cb07a22105968f90b5513a1088db"
+    },
+    {
+      "file": "assets/ForecastVerificationPanel-wtCYeXTd.js",
+      "bytes": 23849,
+      "sha256": "247ce980b05f295caba59f25e536115f1b189c7b017bb7a68cc88250c796beb4"
+    },
+    {
+      "file": "assets/FourteenDayDevelopment-Cpy0_lhT.js",
+      "bytes": 12808,
+      "sha256": "403b35bb2e22b986472f34b6afca51e4e47d4b59857e493783406c7aff00f020"
+    },
+    {
+      "file": "assets/FourteenDayDevelopment-DgXYUu7U.css",
+      "bytes": 23865,
+      "sha256": "e9f2afec58004f6bc6f0986518600e26c9c0dad61443bd74ef1ac6807de35a94"
+    },
+    {
+      "file": "assets/HorizonSignalChart-Bf8VExr5.js",
+      "bytes": 6798,
+      "sha256": "4c2ffe7656844dfef042323963cce076cbb214078ebfd00bd2a98faefffc84cb"
+    },
+    {
+      "file": "assets/LocationIntelligence-CuXYgUdp.js",
+      "bytes": 17582,
+      "sha256": "78e518b259d467a5c4898dfd03388f2a926e3d0fdf24d00ff761efe77fb22613"
+    },
+    {
+      "file": "assets/LongRangePanel-CM4p4Zfe.js",
+      "bytes": 65593,
+      "sha256": "331cee51bbdc7f58c8b1ddac244eaf49a27078f3e0a9c77c3e36247003022c29"
+    },
+    {
+      "file": "assets/LongRangePanel-CTBpun81.css",
+      "bytes": 10141,
+      "sha256": "739b30f8ce8373409aa38629e71c22d1bde34a4646baf7a8f119574932d07e55"
+    },
+    {
+      "file": "assets/MapLibreCore-DQBTe0CN.css",
+      "bytes": 84773,
+      "sha256": "80a44ef65e67bce7e44d9b0a26a19566753b2af049eb9de438b8013c0c9a0088"
+    },
+    {
+      "file": "assets/MapLibreCore-DxCc1RyC.js",
+      "bytes": 1002339,
+      "sha256": "05b6b1371b6e990623f4117e5803669427ba25ed218ba93b81bb3d7f6d9964b5"
+    },
+    {
+      "file": "assets/MapWorkspacePanel-BjiIJy0i.js",
+      "bytes": 1790,
+      "sha256": "b8fe95a563cee2cae5496e720650c9a290d1a0cb7ac81ae55a13353c5002a745"
+    },
+    {
+      "file": "assets/MapWorkspacePanel-DGMssOn3.css",
+      "bytes": 6339,
+      "sha256": "48202e8cd7a3958cc6f71c44704bff23aa06c75af0fee1706958373e435f43ea"
+    },
+    {
+      "file": "assets/MeteogramPanel-B6HOzyqM.js",
+      "bytes": 41300,
+      "sha256": "dc5ffba584a10cc268e71d5eadf42e5f8e0dc3ed07bc6040c934f116ed8773a4"
+    },
+    {
+      "file": "assets/MountainWeather-pkLqyQRN.js",
+      "bytes": 70003,
+      "sha256": "10f040ec55bb25623c1c820562e53fbe7412dfe547af877dcbb5802612f63785"
+    },
+    {
+      "file": "assets/OperaRasterOverlay-ZSaDp4hd.js",
+      "bytes": 2576,
+      "sha256": "4ad4f804299ae490c16c469338d8b10f1c9fde4f1ac2a941b0e7957b0b2e04d5"
+    },
+    {
+      "file": "assets/PrognoseRadar-9p7ns1QP.css",
+      "bytes": 7352,
+      "sha256": "547f5bb7c0dfc783dc2a1404a41a4bd882f04c7c2c4acac9e3be05d6afa316a2"
+    },
+    {
+      "file": "assets/PrognoseRadar-CmVPROEb.js",
+      "bytes": 10075,
+      "sha256": "edb66489be1e37786b241d15e83bb5a7d33fd0ab7bc702201b15ecc84303a842"
+    },
+    {
+      "file": "assets/Px250Overlay-BkeENdOk.js",
+      "bytes": 9814,
+      "sha256": "bcc189084ac214912e1dd382cdc119055f8b139cf3911912e1867f33c7daa25c"
+    },
+    {
+      "file": "assets/RadarForecastStyleGate-DS8JJNsa.js",
+      "bytes": 190,
+      "sha256": "b2c44ce75c074fb6d95b00519ad43861d29fc711501382221539abf4daa8f00a"
+    },
+    {
+      "file": "assets/RadarModelPrecipTypeOverlay-BlS3bSsg.js",
+      "bytes": 10287,
+      "sha256": "369fdf90e82be006b795f04fd58c546e1493fdfbdb77029f6c41b131d44e95fd"
+    },
+    {
+      "file": "assets/RadarNowcastCalibration-CECvfdJ9.js",
+      "bytes": 7955,
+      "sha256": "92864d761a37820ea5554c60935a65954d38d83177548011af063a1cdcf23b24"
+    },
+    {
+      "file": "assets/RadarPanel-BQI2OwlJ.css",
+      "bytes": 7618,
+      "sha256": "007f9f3b2807389b86886e3a9048e680cb7d9b2fab28fd1cc1fcd0d28f58a1f6"
+    },
+    {
+      "file": "assets/RadarPanel-BRbEXKrd.js",
+      "bytes": 143562,
+      "sha256": "138f5a752c429860606641c6c7f6dedba4c78dda5c4461ce0aab4f2356ad1c83"
+    },
+    {
+      "file": "assets/ReactVendor-DL2nAelm.js",
+      "bytes": 378112,
+      "sha256": "c51506d7f8625b97539fa1ceb7807164d23e48eb6ce09f74c45aa52fc7318751"
+    },
+    {
+      "file": "assets/SevenDayDesignModes-CAuADyXm.css",
+      "bytes": 20789,
+      "sha256": "2b234d4a0357eec4173929cb45962ed3a892b7e3ed75eabbbe99881009f00c57"
+    },
+    {
+      "file": "assets/SevenDayDesignModes-DZFV69PK.js",
+      "bytes": 10490,
+      "sha256": "0b234190f5172c683139f440fe00b2f9b899d1b4d777588ca506a4ccf2f6ab00"
+    },
+    {
+      "file": "assets/TravelPlannerPanel-CUJg6n4v.js",
+      "bytes": 48542,
+      "sha256": "0e62843ab1303ed6210f7058cf69876302131d5fc58c433219fd343d6232559b"
+    },
+    {
+      "file": "assets/UnifiedWeatherMap-DbnFLgS6.css",
+      "bytes": 38473,
+      "sha256": "0377db91e38ffb1f1e8325216c4d365d196c23b764522771744d7633f8a93405"
+    },
+    {
+      "file": "assets/UnifiedWeatherMap-ZKBYffiG.js",
+      "bytes": 118873,
+      "sha256": "01327e9e3457be3ad3dff640daadf05464ccb29d08f0588f81a7238775726f1b"
+    },
+    {
+      "file": "assets/WaterSportsPanel-B3yZmusv.js",
+      "bytes": 32845,
+      "sha256": "80ba66d45616761fdff6271110fbb00b5e37e5db120640866b77bfdaee4f18e4"
+    },
+    {
+      "file": "assets/WeatherMapsData-CJq4uiCd.js",
+      "bytes": 16522,
+      "sha256": "d725304be3343e1f2d4d1334e8dd7625cb063f41428693036ac8b7aba214bf3d"
+    },
+    {
+      "file": "assets/WidgetGenerator-D3LXg98_.js",
+      "bytes": 16582,
+      "sha256": "587dfdf28f585a6e019944a51662c7d2d17d6f97c212565b47a3e700c51670f1"
+    },
+    {
+      "file": "assets/WidgetGenerator-NBltSAOY.css",
+      "bytes": 657,
+      "sha256": "918d5938bc990532a923b5c356309ca90231f14bfa6ccc701cdf2648a92ab739"
+    },
+    {
+      "file": "assets/activity-lfwjFK8e.js",
+      "bytes": 224,
+      "sha256": "4f07b845de4835746dfa6ccad33bcfca91a0b290737963d92813d64a7ba905e5"
+    },
+    {
+      "file": "assets/cloudWeatherExport-Dgb95j6w.js",
+      "bytes": 5171,
+      "sha256": "3543566d38352b96de01bdebcb3c5e636f7e0952e16a201c4f799832d325f17c"
+    },
+    {
+      "file": "assets/compass-DXPeLMmu.js",
+      "bytes": 241,
+      "sha256": "b223b624fcf5620e18f56f27fac7b0a531625bc07cdb89554dd9b660072c1ec1"
+    },
+    {
+      "file": "assets/es-fkKzv544.js",
+      "bytes": 12863,
+      "sha256": "deae8e5dd774c5c3498cf4386c94a8a582e36529a5c1327aa12e5b50465697b9"
+    },
+    {
+      "file": "assets/esm-BenTtNNj.js",
+      "bytes": 80630,
+      "sha256": "f24d962452bec8b86c18f040e09b78d1a440181a6b459d13e5a72d6e7b372672"
+    },
+    {
+      "file": "assets/esm-BipYfkFC.js",
+      "bytes": 440,
+      "sha256": "661bbe89743dc05f51dc543242c3f6deaf4cdc5aea81a2ef6f3502a40e4177c9"
+    },
+    {
+      "file": "assets/esm-BndUN-1p.js",
+      "bytes": 428,
+      "sha256": "4d8250d3dbfd7217758df1f3fbec47a407c755d9dc455c29716b21fe85fc2529"
+    },
+    {
+      "file": "assets/esm-CH5sVF20.js",
+      "bytes": 254,
+      "sha256": "d42e3ca967e4ef0816c03dfe7a3b40f284e044f5141fba29332631cfc1b3802a"
+    },
+    {
+      "file": "assets/esm-DIXx9ZgL.js",
+      "bytes": 434,
+      "sha256": "6a95c2ce2196376d0fb0cec0cf6018339bde12e47605f8f9d8878c11b5383a7c"
+    },
+    {
+      "file": "assets/esm-DVLTz1kv.js",
+      "bytes": 498,
+      "sha256": "a98b837a7547503be70becaa4e3b27bb956787474569d1cd39df2485f08166d0"
+    },
+    {
+      "file": "assets/esm-DkM7hsiq.js",
+      "bytes": 917,
+      "sha256": "4aced31d141954fbcf37032632dbaeac1ebc7ddbf7c4c6679d783238dda116cf"
+    },
+    {
+      "file": "assets/esm-rEFSPed7.js",
+      "bytes": 455,
+      "sha256": "ffdd258a3e620568fb1a9662fd36fb0187a5b742d7ebae487e720ee676077f0e"
+    },
+    {
+      "file": "assets/extremeWeatherOutlookDirect.generated-C1bvtShK.js",
+      "bytes": 40316,
+      "sha256": "fc48011d1ebadc6ec0f9ed8da035a832819d51d81b78a950cee95ab91a77d5a4"
+    },
+    {
+      "file": "assets/index-Beqs3BWz.js",
+      "bytes": 698,
+      "sha256": "b9810301eccbaa93457161768246b5f9da75c383cb073d48f4c18764cbfab6ed"
+    },
+    {
+      "file": "assets/index-C4irdHqr.css",
+      "bytes": 1759965,
+      "sha256": "5fbec9183ba5e1380bacb58977921ba089825b329f66374344dd3ac61dfb4622"
+    },
+    {
+      "file": "assets/index-Chvq8mPW.js",
+      "bytes": 1496888,
+      "sha256": "fb49b5d3bb7776a12dea0a3250412568384b9e16e3602eb261c4e8e7acf32db0"
+    },
+    {
+      "file": "assets/layers-C9RSpLB4.js",
+      "bytes": 411,
+      "sha256": "4926aa85f761c40a3f938e967b3b1864105b86230ccae577c59fb4f86f2f2184"
+    },
+    {
+      "file": "assets/maplibre-gl-worker-DboxHBUc.js",
+      "bytes": 486534,
+      "sha256": "57a65c193140563d5332738056ce4f664aa3271f4d1d66c2029b33ba28dc1bbd"
+    },
+    {
+      "file": "assets/midDesignWeToday-KU8Ixiq1.css",
+      "bytes": 18919,
+      "sha256": "bbc2aa863fffbfbf9f04a92f435dce45242d6f93179b0ebea4941711cf0c3eae"
+    },
+    {
+      "file": "assets/modelMapGeography-BnNltQFp.js",
+      "bytes": 302,
+      "sha256": "069344810539ef28640d14e2a55ecdcd6e392d49ed3116150a2b4d6f25a8118a"
+    },
+    {
+      "file": "assets/modelMapGeography-BopNRpJh.json",
+      "bytes": 271134,
+      "sha256": "9958977aaac3bbeedaab06f2070f740c8e7be3856052179d6e2b724fac92454b"
+    },
+    {
+      "file": "assets/nativeModelMapExport-HFOOCrHz.js",
+      "bytes": 4031,
+      "sha256": "55459b7e8ddfa4e9f61517175f8a225e12e49974d9d50ba4916f7f99eb72cae5"
+    },
+    {
+      "file": "assets/nativeScalarAnnotations-Bhwqwwsg.js",
+      "bytes": 4692,
+      "sha256": "1ed4a0c0d3d9ae0e36be41b46cc66d2c94e923e5c964379facaee1862880885b"
+    },
+    {
+      "file": "assets/pako.esm-B1JHHWqN.js",
+      "bytes": 46595,
+      "sha256": "ef2d2b0a20e3628f4620df45bc2b7632396861db3523b3638636df747837652d"
+    },
+    {
+      "file": "assets/pencil-pl5cUiDL.js",
+      "bytes": 266,
+      "sha256": "eb30faba95233a9530202225bb0321a423144424f9c2a0edb50ee9a0e756db1c"
+    },
+    {
+      "file": "assets/plane-D6-Hq_Zt.js",
+      "bytes": 296,
+      "sha256": "7a18433df070b021406371f41b26447d049e5981c43e1871370f03bac0bb7756"
+    },
+    {
+      "file": "assets/precipitationTotalsExport-BR_UAABz.js",
+      "bytes": 16419,
+      "sha256": "4147113a328bf27406d7b2f868a082e3ca09f569be243bb67c605e143b0504fa"
+    },
+    {
+      "file": "assets/qrCode-J7WTgRhL.js",
+      "bytes": 3191,
+      "sha256": "05046022b67532728e8ba672080fcef5213a8969999721a0991fd4830474851e"
+    },
+    {
+      "file": "assets/radarForecastReadability-D4JJS61n.css",
+      "bytes": 15479,
+      "sha256": "0eee5ec0cc872a5f30f5b7af655516d079d7508b90f10de72bfdabc565a58416"
+    },
+    {
+      "file": "assets/rolldown-runtime-XKyaHtl9.js",
+      "bytes": 726,
+      "sha256": "548d1dbf321e7d2ae804fcc158b588706a7c52f8ca175de1490c6ccb4dbe55b7"
+    },
+    {
+      "file": "assets/seasonalForecast-DoBHspDH.js",
+      "bytes": 24305,
+      "sha256": "c3ff755895e815be3660904c6eda8a0bf972824280d88b87e438eed14905b432"
+    },
+    {
+      "file": "assets/snowflake-DPMgywKV.js",
+      "bytes": 618,
+      "sha256": "73320c7e586b339e8fca24b0ad01f0b89acdd96bc76afec610ffde6970a6b772"
+    },
+    {
+      "file": "assets/synapse-I42WLusp.js",
+      "bytes": 602,
+      "sha256": "94d01ee160e96bc75b06b96cc8c3c650a24c6eb0d55b9e3f6a931aaa14fd3411"
+    },
+    {
+      "file": "assets/travelPlanner-CroijgTN.js",
+      "bytes": 17255,
+      "sha256": "e2256ce2b57e97dd19e29e7f0fa1ad55198a4625c2f0c1a614e79efeb47f66ac"
+    },
+    {
+      "file": "assets/unifiedMapPresentation-CX8LHJzx.js",
+      "bytes": 6534,
+      "sha256": "b84428ef5c9969a683825cfdab23bc68f28b96dabbf73406a087be9a927ddd7c"
+    },
+    {
+      "file": "assets/web-BcXtmqy3.js",
+      "bytes": 363,
+      "sha256": "1253166217d817788f41d60fad4e32b363e21dbdfa4cd045a13fecae17e0f775"
+    },
+    {
+      "file": "assets/web-Bue1TsoN.js",
+      "bytes": 845,
+      "sha256": "4fa1f1fe5e84f867ad974896e617d77ac3a3d822a2cbfde984fc8856305572d2"
+    },
+    {
+      "file": "assets/web-C8bifwQ4.js",
+      "bytes": 2088,
+      "sha256": "2d93f43307786a94fb1ccc58b28c3f09cf81205e317f1ab16203ef83a64c32fe"
+    },
+    {
+      "file": "assets/web-Ce6vxdQX.js",
+      "bytes": 366,
+      "sha256": "7b0af63d9cb4106f9bf3debaa56d0bc14e3bc2f77e8c01736b560a3d90f8c335"
+    },
+    {
+      "file": "assets/web-CtaKu9rd.js",
+      "bytes": 8481,
+      "sha256": "9cafce829d3affef2821bbd8b1e92e6540599fba0155bb824bdf6b962a1d227d"
+    },
+    {
+      "file": "assets/web-WR301fg-.js",
+      "bytes": 124,
+      "sha256": "b69721c5c45f759c787c47d8607535e440201fdc81a39935dfa959c3bc997e0a"
+    },
+    {
+      "file": "assets/zap-CDhK-niD.js",
+      "bytes": 263,
+      "sha256": "b43fa5903ee6cff88f128d1dc4dae19c8819f88fb7c90fb7c9bf2f43033e1d02"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/1db4efe1f24d27f9e3733293b29e43fc730bb02ab9c15a9a7bd1ea51052c0830.gzip.bin",
+      "bytes": 118987,
+      "sha256": "1db4efe1f24d27f9e3733293b29e43fc730bb02ab9c15a9a7bd1ea51052c0830"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/260a5d0f5c7ee14f24d25b5c4c0f1091e520fbfead1897caefc7e932a4542cdb.delta-byteplanes-gzip.bin",
+      "bytes": 162,
+      "sha256": "260a5d0f5c7ee14f24d25b5c4c0f1091e520fbfead1897caefc7e932a4542cdb"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/3fdd93862442149f46c9eb1d2213031aa242b70732d1fcc67f48679d54469a41.raw.bin",
+      "bytes": 14,
+      "sha256": "3fdd93862442149f46c9eb1d2213031aa242b70732d1fcc67f48679d54469a41"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/be4022a9f8950fba70e7f77f4086f557ebe7cb902cfbd3ac5eb79ef2923fa7fa.byteplanes-gzip.bin",
+      "bytes": 1172,
+      "sha256": "be4022a9f8950fba70e7f77f4086f557ebe7cb902cfbd3ac5eb79ef2923fa7fa"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/browser-probe.mjs",
+      "bytes": 1266,
+      "sha256": "ab19d7896ba8996cb414e02e702d54124637278a7608bd597aa79c4bc25cd2db"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/index.html",
+      "bytes": 683,
+      "sha256": "32949b049efbeb231f2927dc11f19387da18d36dcade8b272cbd6461cdfd5713"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/index.json",
+      "bytes": 1451,
+      "sha256": "d80163e0274ed5c82163773838443e832f9b7d27701e0791b70ebe874c38b650"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/lossless_canary_manifest.generated.mjs",
+      "bytes": 1644,
+      "sha256": "6bb24620a66d8cc24fe3bdec53ebddd930d158b597a6b610ec730b013b72f11b"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/lossless_candidate_decoder.mjs",
+      "bytes": 4290,
+      "sha256": "06f7a8134133fbdb0d955143a2f560038d8df9692cf0ff1cf119e69f0e561dae"
+    },
+    {
+      "file": "diagnostics/ruc-codec-v1/lossless_transport_canary.mjs",
+      "bytes": 3208,
+      "sha256": "bdc657574fd81bbdd7230d0c007c69090460495b7ef1f4dbfb8037ffc258918d"
+    },
+    {
+      "file": "index.html",
+      "bytes": 11198,
+      "sha256": "2ed813e787974abfd1b24e906b6e6ed8e9a4cf64717fb4c019a0110c4139c9cb"
+    },
+    {
+      "file": "manifest.webmanifest",
+      "bytes": 665,
+      "sha256": "486f226348c44a4c7634d09767909ee2e4cbb0578a4dee1d5b2347d9cda645e1"
+    },
+    {
+      "file": "mid-favicon-dark-32.png",
+      "bytes": 2571,
+      "sha256": "db190aa56fe490591cf740db9292c248443de899d67ce8f6697a031028c3fc53"
+    },
+    {
+      "file": "mid-favicon-dark-64.png",
+      "bytes": 7180,
+      "sha256": "78fa1538e613ec989bfff86ee20a8f1cdaf7ac0c45f8804a9bb715dc897ad5c9"
+    },
+    {
+      "file": "mid-favicon-light-32.png",
+      "bytes": 2625,
+      "sha256": "ab17c8b8944e78f75b387ce69bba64ec5d3945703adff795557ff1018125844a"
+    },
+    {
+      "file": "mid-favicon-light-64.png",
+      "bytes": 7543,
+      "sha256": "1c2be69a046638176755c8d8da6b9428817fa2e8b788e389de6f66ba0750cf9b"
+    },
+    {
+      "file": "mid-icon-180.png",
+      "bytes": 33431,
+      "sha256": "80edcb7c7b2d3af64ab94ba63ef9542429ecb82ad03c4ee2b648dbc0e34fe651"
+    },
+    {
+      "file": "mid-icon-192.png",
+      "bytes": 37227,
+      "sha256": "23188837330ec91cfaed0ffe15d4f281865725754c02afc2f39620160999a326"
+    },
+    {
+      "file": "mid-icon-512.png",
+      "bytes": 219692,
+      "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f"
+    },
+    {
+      "file": "mid-icon-dark-180.png",
+      "bytes": 33431,
+      "sha256": "80edcb7c7b2d3af64ab94ba63ef9542429ecb82ad03c4ee2b648dbc0e34fe651"
+    },
+    {
+      "file": "mid-icon-dark-192.png",
+      "bytes": 37227,
+      "sha256": "23188837330ec91cfaed0ffe15d4f281865725754c02afc2f39620160999a326"
+    },
+    {
+      "file": "mid-icon-dark-512.png",
+      "bytes": 219692,
+      "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f"
+    },
+    {
+      "file": "mid-icon-light-180.png",
+      "bytes": 34482,
+      "sha256": "d594b52a20281300f9f81b7c3f88f88e4e608e6483e537e2520ecfd3f829d5a0"
+    },
+    {
+      "file": "mid-icon-light-192.png",
+      "bytes": 38644,
+      "sha256": "b60ce9b0ce33bce59f4edbd976e01bc600a2e6455c450c01697928ff1c9765dd"
+    },
+    {
+      "file": "mid-icon-light-512.png",
+      "bytes": 236138,
+      "sha256": "5ca9ddf357c648f3870073466fa289bc404354b485f0a24b796d25c17cad5839"
+    },
+    {
+      "file": "mid-logo-dark-compact.png",
+      "bytes": 211440,
+      "sha256": "19ac686fc52471495151e4be99cf226f1b1277c4415960d52a98d3898d67a661"
+    },
+    {
+      "file": "mid-logo-dark-horizontal.png",
+      "bytes": 1268989,
+      "sha256": "d66e9033b7512f088562917dded446681911ff975307342d6b3d7da0e4e9123a"
+    },
+    {
+      "file": "mid-logo-dark.png",
+      "bytes": 211440,
+      "sha256": "19ac686fc52471495151e4be99cf226f1b1277c4415960d52a98d3898d67a661"
+    },
+    {
+      "file": "mid-logo-light-compact.png",
+      "bytes": 211909,
+      "sha256": "ee5fac75b5361b2de7ad259188fd0b18fd10ede7206e98831d4ca872f12e9776"
+    },
+    {
+      "file": "mid-logo-light-horizontal.png",
+      "bytes": 674170,
+      "sha256": "ca65b5d1dce4cbc72c5962cdb55f4e3800addb7b22d056a7a824395ae9cbda5f"
+    },
+    {
+      "file": "mid-logo-light.png",
+      "bytes": 211909,
+      "sha256": "ee5fac75b5361b2de7ad259188fd0b18fd10ede7206e98831d4ca872f12e9776"
+    },
+    {
+      "file": "mid-logo.png",
+      "bytes": 219692,
+      "sha256": "4ff73ac57f4b074313faaf08669db4416f8a0bdf6e8dc828ac5bcda0c9be8f5f"
+    },
+    {
+      "file": "mid-social-card.png",
+      "bytes": 673827,
+      "sha256": "f0d12f8cb7492fea4103895d640dd77791fa7e664a35381b991abb28ac1e232f"
+    },
+    {
+      "file": "robots.txt",
+      "bytes": 67,
+      "sha256": "e3dc40811216ec503f6f231cbb5a08b8e3041a5fa4024ae08837752568ffc6bd"
+    },
+    {
+      "file": "service-worker.js",
+      "bytes": 21787,
+      "sha256": "e33343633aff3158ba0c344dee5b7b7d510ee810bcc383d37ccb84ca5d00d1c0"
+    },
+    {
+      "file": "sitemap.xml",
+      "bytes": 263,
+      "sha256": "6f6535a65b869aa78554e19c4417ab5e54005182429c0b1b5d1379a6846e1cd6"
+    },
+    {
+      "file": "sw.js",
+      "bytes": 21787,
+      "sha256": "e33343633aff3158ba0c344dee5b7b7d510ee810bcc383d37ccb84ca5d00d1c0"
+    },
+    {
+      "file": "version.json",
+      "bytes": 30,
+      "sha256": "dee46aa8a88280075dba92f7345633ba61b9908295c557d96017722d9dec64f4"
+    }
+  ]
+}

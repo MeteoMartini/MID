@@ -1095,7 +1095,7 @@
  --mid-ui-radius:14px;
 }
 html[data-mid-density="compact"]{
- --mid-ui-touch:40px;
+ --mid-ui-touch:44px;
  --mid-ui-gap:7px;
  --mid-ui-card-gap:8px;
  --mid-ui-card-pad:9px;
@@ -1414,13 +1414,12 @@ button,[role="button"],summary{
  .search-input-shell>button,
  .hour-chart-tooltip>header button,
  .short-term-detail>header button,
- .dashboard-module-order-actions button,
  .weather-twin-recommendations footer button,
  .long-range-head-actions>button,
  .cockpit-weather-profile__stepper>button,
  .actions .event-center-header-popover>header>button{
-  min-width:36px!important;
-  min-height:36px!important;
+  min-width:44px!important;
+  min-height:44px!important;
  }
  .model-run-button,
  .radarlegend-toggle,
@@ -1435,13 +1434,13 @@ button,[role="button"],summary{
  .cockpit-consistency-pill,
  .cockpit-weather-profile__resolution button,
  .event-choice-block.compact button{
-  min-height:36px!important;
+  min-height:44px!important;
  }
  .cockpit-weather-profile__icon-toggle.compact{
-  min-width:36px!important;
-  min-height:36px!important;
-  width:36px!important;
-  height:36px!important;
+  min-width:44px!important;
+  min-height:44px!important;
+  width:44px!important;
+  height:44px!important;
  }
  /* Verhindert, dass rein dekorative SVG-/Icon-Ebenen selbst das Tap-Ziel werden. */
  button>svg,
@@ -4328,10 +4327,10 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   line-height:1.35;
 }
 .dashboard-module-order-actions button{
-  width:32px;
-  min-width:32px;
-  height:32px;
-  min-height:32px;
+  width:44px;
+  min-width:44px;
+  height:44px;
+  min-height:44px;
 }
 .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
   width:28px;
@@ -4388,10 +4387,9 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   .current-weather-facts small{font-size:9px}
 }
 @media(pointer:coarse){
-  .dashboard-module-order-actions button,
-  .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
-    min-width:36px;
-    min-height:36px;
+   .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
+    min-width:44px;
+    min-height:44px;
   }
 }
 

@@ -1,0 +1,25 @@
+# MID-C55 · v0.9.85.434 · kombinierte Releasequalifikation
+
+## Herkunft und Umfang
+
+Nach erfolgreichem Installer42065087192 wurde main=mid-stable .433 SHA5a12f7204b8b2a9305be0a9adefa3862648a3101 live verifiziert. #666/#667 PostHog-Boot-/Opt-in-/Navigationsattribute und sämtliche Buildkonfigurationsspiegel bleiben erhalten. Kein Token gelesen oder protokolliert. Die UI-Handoff-Heads #6635afd5cc13885c0146b1e6d9ab66dd58ea82f5cc3 und #6642a5dbbc9cc7a86db02fb905f3e66b15a5a7a801d bleiben originale Vorfahren des gemeinsamen #665; keine Force-/Reset-Synchronisierung. Unveröffentlichte Arbeit und generierte Kontrollbuilds wurden vor jeder Synchronisierung gesichert. Fünf bestehende Rulesets aktiv/unverändert.
+
+44px-Griff und passende Gridspalte, Label/Pfeile, kompakte Touchdichte und bisherige36px-Coarse-Overrides sowie Ensemble-Portal-Close korrigiert. Pointercancel/LostCapture/Unmount verwerfen wartende Bewegungen; Pointerup übernimmt den letzten gültigen Zielwechsel; Pfeilbedienung meldet Position N/19. Aktuelles Sekundärmodul markiert Mehr mit aria-current=page, reines Draweröffnen setzt keinen zweiten aktuellen Tab. Gemeinsame statische Ladestatusflächen für Karten/Ensemble/Saisonmodelle; dekorative Geometrie aria-hidden, keine Wetterwerte/Achsen oder Fortschrittsprozente. Die Karte behält min(420px,65svh)-Platzreserve. Bestehende persistierte Legendenwahl und Meteorologie erhalten.
+
+Kanonische CSS-Quellen plus offizielle Aggregate. Historischer .169-Golden und Produktionskaskadenprüfung erhalten; zehn vollständige autorisierte Fragmente werden jeweils exakt einmal geprüft und ausschließlich auf der historischen Vergleichskopie rückgebildet. Kein neuer globaler Important-Override. WCAG2.2AA2.5.8 verlangt24px mit Ausnahmen;44px ist das zusätzliche MID-Ergonomieziel, keine falsche AA-Mindestmaßbehauptung.
+
+## Eng begrenzte Budgetkorrektur
+
+Vite kopierte zwei unreferenzierte1024px-Nativmaster aus public zusätzlich ins Web-Dist (947058+884282B). Public- und iOS-Originale bleiben bytegleich erhalten. Web/PWA180/192/512, Logos, Favicons und Social-Card bleiben unverändert. Ein reiner Buildhook prüft zuerst BEIDE Public-/Native-/Dist-Dateien, PNG-Signatur/Dimensionen, vollständige Ausgabe, Text-/Vorlagenreferenzen, Symlinks und geschützte Quell-/Outputpfade; erst danach entfallen genau zwei generierte Kopien. Divergenz oder neue Referenz bricht den Build ab. Keine Kompression/Quantisierung, Kategorie-/Budget-/Permissions-/Releasepfadänderung, kein produktiver Bypassschalter. Unreferenzierte1024px-Roh-URLs sind nicht mehr Teil des Web-Dist.
+
+15 echte Datei-/Negativtests; reproduzierbarer Kontrollbuild `node scripts/verify-native-only-web-assets.mjs` deaktiviert ausschließlich diesen Plugin im Diagnoseprozess.125 beibehaltene Dateien stimmen pro Datei per Bytezahl/SHA256 überein;1831340 Rohbytes entfallen. Nur nach Vite geschriebene Commitidentität wird getrennt behandelt. Quelle: c55-qa/packaging-equivalence-434.json. Vollständiges unverändertes Budget:6895368/8500000B gzip-Gesamtsumme,4593259B statische Medien,1759965/1760000B initiales CSS. Dateinachweis: c55-qa/build-budget-434.json.
+
+## Belegte Prüfungen und Grenzen
+
+Node22.16.0, App-/Tooling-Types, Vite8.3.5 und komplette Budgets erfolgreich. Zusätzlich Build mit synthetischer öffentlicher PostHog-EU-Konfiguration und identisch konfiguriertem A/B-Kontrollbuild geprüft; keine Produktionsereignisse/echten Tokens verwendet. Pflichtinventar1079=1073Core+6Heavy. Vorheriger kombinierter1073-Core-Durchlauf1066PASS/7FAIL; drei rsync-Installerfälle nach isoliertem offiziellen Debian-rsync und eine veraltete36px-Erwartung nach expliziter44px-Vertragskorrektur erfolgreich wiederholt. Somit1070 unterschiedliche Core-Prüfungen belegt. Drei Chromiumfälle lokal vom Kernel mit verweigerten Socket-/ptrace-Rechten/SIGABRT blockiert. Keine Gates übersprungen, kein atomarer finaler grüner Gesamtlauf behauptet.
+
+Abschließende SSR-Lade-, tatsächliche Pointer-/RAF-Ereignisharness-, CSS-Golden-/Aggregat-, Kilo-Handoff14Negativ-/Positivfälle, PostHog-, Packaging- und Versionsprüfungen erfolgreich. Der bestehende echte Karten-Ladebrowsercheck wird ergänzend nach normaler Browservorbereitung im ersten verpflichtenden Heavy-Map-Shard ausgeführt: fünf Breiten320/390/430/1024/1440 mal Light/Dark, reservierte Höhe und kein X-Overflow. Alle bisherigen24Kartenfälle und20Speicherzyklen bleiben zwingend; keine Timeout-/Budgeterhöhung.
+
+Vorangegangene Evidenz und Entwicklung: MID_C55_UI_432_QA.md und MID_C55_UI_433_QA.md. Öffentlicher Einstieg390x844 tatsächlich als Screenshot inspiziert und Bonn-Suche mit12Treffern geprüft; weiterer externer Seitenaufbau Provider-Timeout. Kein vollständiger visueller Allseiten-/Kontrast-/Geräte-/iOS-/VoiceOver-/Wettbewerbsnachweis daraus ableitbar. Offener Gesamtauditumfang: MID_C55_UI_UX_RECONCILIATION.md. Alte Chataussagen gelten nicht als neue Abnahme.
+
+**Freigabe nur nach vollständigen regulären Source-/SHA-Bot-/ServerZIP-/Installer-/Worker-/Pages-/Finalize-/Stable-Gates auf endgültigem SHA.** Keine generische Merge-API, keine manuellen Protected-Ref-Änderungen.

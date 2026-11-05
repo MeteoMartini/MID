@@ -1,12 +1,19 @@
-import {defineConfig} from 'vite';
+import {defineConfig,type Plugin} from 'vite';
 import react from '@vitejs/plugin-react';
 import {execFileSync} from 'node:child_process';
+import {resolve} from 'node:path';
+import {omitNativeOnlyAppIconCopies} from './scripts/lib/nativeOnlyWebAssets.mjs';
 
 const reactVendorPattern=/[\\/]node_modules[\\/](?:react|react-dom|react-is|scheduler)[\\/]/;
 const chartsVendorPattern=/[\\/]node_modules[\\/](?:recharts|victory-vendor|react-smooth|d3-[^\\/]+|decimal\.js-light|tiny-invariant)[\\/]/;
 
+function nativeOnlyIconCopies():Plugin{
+ let nativeIconRoot=process.cwd(),nativeIconOutput='dist';
+ return {name:'mid-native-only-icon-copies',apply:'build',configResolved(config){nativeIconRoot=config.root;nativeIconOutput=resolve(config.root,config.build.outDir)},async writeBundle(){const omitted=await omitNativeOnlyAppIconCopies(nativeIconRoot,nativeIconOutput);console.log('Native-only master copies omitted from web: '+omitted.reduce((sum,item)=>sum+item.bytes,0)+' B; source and iOS masters unchanged.')}};
+}
+
 export default defineConfig({
-  plugins:[react(),{name:'mid-verified-brand-shell',buildStart(){execFileSync(process.execPath,['scripts/brand-shell-groups.mjs','--check'],{stdio:'inherit'})}},{
+  plugins:[react(),nativeOnlyIconCopies(),{name:'mid-verified-brand-shell',buildStart(){execFileSync(process.execPath,['scripts/brand-shell-groups.mjs','--check'],{stdio:'inherit'})}},{
     name:'mid-fourteen-offline-shell',
     transformIndexHtml:{order:'post',handler(_html,ctx){
       if(!ctx.bundle)return;
