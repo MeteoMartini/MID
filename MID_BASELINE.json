@@ -1792,6 +1792,7 @@
     "scripts/test-planner-section-compact-event-controls-09450.mjs",
     "scripts/test-pollen-compact-dwd-levels-0985129.mjs",
     "scripts/test-popover-regression.mjs",
+    "scripts/test-posthog-telemetry-0985432.mjs",
     "scripts/test-precipitation-availability-0985386.mjs",
     "scripts/test-precipitation-character-0960.mjs",
     "scripts/test-precipitation-duration-day-character-09160.mjs",
