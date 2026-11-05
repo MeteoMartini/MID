@@ -5,7 +5,7 @@
     "version": "0.7.95.26",
     "commit": "213ab6a52a48dcd073066e95551b5d7f057570be"
   },
-  "releaseVersion": "0.9.85.431",
+  "releaseVersion": "0.9.85.432",
   "stableBranch": "mid-stable",
   "policy": {
     "canonicalCodeSource": "GitHub branch mid-stable after successful build and Pages deployment",
@@ -214,6 +214,7 @@
     "scripts/test-daily-pictogram-sunshine-balance-098488.mjs",
     "scripts/test-daily-pop-period-fallback-09533.mjs",
     "scripts/test-daily-precip-probability-appwide-09407.mjs",
+    "scripts/test-dashboard-touch-c55.mjs",
     "scripts/test-day-character-late-rain-warning-wording-08339.mjs",
     "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
     "scripts/test-day-following-night-boundaries-09155.mjs",
@@ -637,6 +638,7 @@
     "scripts/test-modern-plan-more-hierarchy-09795.mjs",
     "scripts/test-modern-today-overview-09793.mjs",
     "scripts/test-module-css-consolidation-0985170.mjs",
+    "scripts/test-module-loading-state-c55.mjs",
     "scripts/test-module-open-recovery-isolation-095332.mjs",
     "scripts/test-module-open-state-095320.mjs",
     "scripts/test-mosmix-adaptive-fusion-08330.mjs",
@@ -1292,6 +1294,7 @@
     "scripts/test-daily-pictogram-sunshine-balance-098488.mjs",
     "scripts/test-daily-pop-period-fallback-09533.mjs",
     "scripts/test-daily-precip-probability-appwide-09407.mjs",
+    "scripts/test-dashboard-touch-c55.mjs",
     "scripts/test-day-character-late-rain-warning-wording-08339.mjs",
     "scripts/test-day-detail-probability-wind-contrast-09700.mjs",
     "scripts/test-day-following-night-boundaries-09155.mjs",
@@ -1715,6 +1718,7 @@
     "scripts/test-modern-plan-more-hierarchy-09795.mjs",
     "scripts/test-modern-today-overview-09793.mjs",
     "scripts/test-module-css-consolidation-0985170.mjs",
+    "scripts/test-module-loading-state-c55.mjs",
     "scripts/test-module-open-recovery-isolation-095332.mjs",
     "scripts/test-module-open-state-095320.mjs",
     "scripts/test-mosmix-adaptive-fusion-08330.mjs",
@@ -3163,7 +3167,13 @@
     "worker-src/20-composite-models.js",
     "worker-src/25-dach-extreme-outlook.js",
     "worker-src/30-push-events.js",
-    "worker-src/40-aviation-router.js"
+    "worker-src/40-aviation-router.js",
+    "src/ModuleLoadingState.tsx",
+    "scripts/test-module-loading-state-c55.mjs",
+    "scripts/test-dashboard-touch-c55.mjs",
+    "docs/implementation/MID_C55_UI_UX_RECONCILIATION.md",
+    "docs/implementation/MID_C55_UI_432_QA.md",
+    "docs/implementation/c55-qa/build-budget-432.json"
   ],
   "requiredTests": [
     "scripts/test-mid279-pseudosat-isoheight-timeout.mjs",
@@ -3903,7 +3913,7 @@
     "scripts/test-location-mountain-resilience-0985283.mjs",
     "scripts/test-skybar-solid-colors-0985358.mjs"
   ],
-  "version": "0.9.85.431",
+  "version": "0.9.85.432",
   "updatedAt": "2026-11-03",
   "implementationFiles": [
     "docs/implementation/MID_C43_CAPACITOR_0.9.85.331.md",

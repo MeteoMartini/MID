@@ -15,6 +15,13 @@
 .favorite-strip button,.favorite-bubbles>button,.favorite-strip-manage,.detail-legend-toggle{min-height:44px}
 .favorite-strip-manage,.detail-legend-toggle{min-width:44px}
 .place-warning-status{min-height:48px}
-html:root .selected-place-bar{padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
-@media(max-width:680px){.meteogram-day .detail-legend-toolbar{justify-content:flex-start}}
-@media(max-width:900px){.dashboard-bottom-tabs button{position:relative}.dashboard-bottom-tabs button.active::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:18px;height:3px;background:var(--primary)}.dashboard-bottom-tabs button:focus-visible{outline:2px solid var(--primary)}}
+html:root .selected-place-bar{min-height:36px;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
+@media(max-width:680px){
+ .meteogram-day .detail-legend-toolbar{justify-content:flex-start}
+}
+@media(max-width:900px){
+ .dashboard-bottom-tabs button{position:relative}
+ .dashboard-bottom-tabs button.active{background:color-mix(in srgb,var(--primary) 16%,transparent)!important;color:var(--text)!important}
+ .dashboard-bottom-tabs button.active::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:18px;height:3px;border-radius:2px;background:var(--primary)}
+ .dashboard-bottom-tabs button:focus-visible{outline:2px solid color-mix(in srgb,var(--primary) 80%,white);outline-offset:2px}
+}

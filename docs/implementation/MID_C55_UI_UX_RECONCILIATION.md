@@ -1,7 +1,7 @@
 # MID-C55 – UI/UX-Abgleich und Implementierungsstand
 
 Basis: GitHub main=mid-stable v0.9.85.431, 77de0e326d586274d5f42f0ea63827a887d1b147 (05.11.2026).
-Dieser Draft ist kein neuer veröffentlichter Build. Vor Release: frische Stable-/Parallelprüfung, gemeinsame Versionsspiegel/Changelogs, Pflichtinventar und sämtliche MID-Gates.
+Der integrierte Entwicklungskandidat ist v0.9.85.432; er ist nicht veröffentlicht. Vor Release: frische Stable-/Parallelprüfung, gemeinsame Versionsspiegel/Changelogs, Pflichtinventar und sämtliche MID-Gates.
 
 ## Auswertung der Nutzeranalyse
 
@@ -9,12 +9,12 @@ Die übergebenen Zeilennummern und positiven Wertungen sind keine aktuelle visue
 
 | Priorität | Punkt | Abgleich / nächste Abnahme |
 |---|---|---|
-| P0 | Touchziele | P0 bereits .430; #663 erweitert Settings/Griffe. Nicht duplizieren. 44px ergonomisches Ziel, kein ungezielter globaler Selector. |
-| P0 | Aktive Navigation | Haupttabs besitzen bereits aria-current=page und 52px Mindesthöhe. Dieser Draft ergänzt Mehr bei aktivem Sekundärmodul. Drawer-open bleibt separat aria-expanded. |
-| P0 | Legenden | #663 enthält mobile Details-Legende; Ensembleoptionen persistieren bereits. Nutzerwahl nicht bei jeder Viewportänderung überschreiben. Karten und Ensembledisclosure visuell noch prüfen. |
+| P0 | Touchziele | P0 bereits .430; #663 wurde integriert und die zu schmale Griffspalte sowie spätere 36px-Overrides in der kanonischen Quelle korrigiert. 44px ergonomisches Ziel, kein ungezielter globaler Selector. |
+| P0 | Aktive Navigation | Haupttabs besitzen bereits aria-current=page und 52px Mindesthöhe. Der Kandidat ergänzt Mehr bei aktivem Sekundärmodul; das reine Öffnen des Drawers erzeugt keinen zweiten aria-current. Drawer-open bleibt separat aria-expanded. |
+| P0 | Legenden | Die mobile Details-Legende ist bereits über JSX/gespeicherte Auswahl geschlossen; redundante CSS-Hide-/Flex-Regeln des Kilo-Diffs wurden deshalb nicht übernommen; Ensembleoptionen persistieren bereits. Nutzerwahl nicht bei jeder Viewportänderung überschreiben. Karten und Ensembledisclosure visuell noch prüfen. |
 | P0 | Sticky/Safe Area | Bestehende Regeln und #663 erhalten. Schmale 320/360/390/430, Tablet 768/1024 hoch/quer und Desktop 1440, lange Namen/Textvergrößerung/Keyboard noch prüfen. |
 | P0 | Ladezustände | Gemeinsamer neutraler ModuleLoadingState für Map-Chunk, Ensemble-Chunks (auch Widget-Suspense), LongRange-Chunk und initiale Saisonmodelle. Statisch, keine erfundenen Achsen/Wetterwerte oder Fortschrittsprozente. Vorhandene Daten-/Fehler-/Cachepfade unverändert. |
-| P1 | Modulreihenfolge | Pointerdrag und beschriftete Auf-/Ab-Buttons bereits vorhanden. #663 qualifizieren statt neue Gesten parallel entwickeln. |
+| P1 | Modulreihenfolge | Pointerdrag und beschriftete Auf-/Ab-Buttons bereits vorhanden. Kandidat übernimmt #663, ergänzt Lost-Capture-/Cancel-/Unmount-Bereinigung und eine höfliche Positionsrückmeldung für Pfeilbedienung. |
 | P1 | Nowcards | Verdichtung erst nach Screenshots mit realem Warn-/Missing-/Extremfall. Keine Warnhinweise oder fachliche Werte entfernen. Offen. |
 | P1 | Layer-UI | Bestehendes UnifiedWeatherMap zuerst aufnehmen; keine Beschränkung meteorologisch sinnvoller Overlays ohne Produktprüfung. Offen. |
 | P1 | Mobile Settings | Scrollnavigation, 44px Regeln und direkte Bereichsauswahl bestehen. Überlauf/Fokus real prüfen. |
@@ -41,5 +41,5 @@ Die übergebenen Zeilennummern und positiven Wertungen sind keine aktuelle visue
 
 ## Prüfungen und Grenzen
 
-Node 22.16.0, reproduzierbares npm ci --ignore-scripts; TypeScript noEmit erfolgreich. Neues SSR-/Consumer-Wiring-Skript prüft beide Platzhaltervarianten, Statussemantik, neutrale Geometrie, responsive Begrenzung und Bewegungsfreiheit.
-Keine Produktionsbuild-/Versions-, vollständige 1075-Regression-, Browser-, Installer-, Worker-, Pages- oder Stable-Abnahme. Vor Ready das neue Testskript in beide Pflichtinventare aufnehmen, Versionen synchronisieren und vollen MID-Releasepfad ausführen. Keine Freigabe zum generischen PR-Merge.
+Node 22.16.0, reproduzierbares npm ci --ignore-scripts; TypeScript für App und Tooling sowie Vite-Build erfolgreich. Neues SSR-/Consumer-Wiring-Skript prüft beide Platzhaltervarianten, Statussemantik, neutrale Geometrie, responsive Begrenzung und Bewegungsfreiheit.
+Beide neuen Skripte stehen jetzt in beiden Pflichtinventaren (1077 insgesamt). Versionsspiegel sind .432. Vollständige Prüfzahlen, Wiederholungen, Budget und verbleibende Browser-/Installer-/Worker-/Pages-/Stable-Grenzen: MID_C55_UI_432_QA.md. Keine Freigabe zum generischen PR-Merge.

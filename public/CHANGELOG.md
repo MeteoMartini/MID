@@ -1,3 +1,10 @@
+# MID v0.9.85.432
+
+- Bessere Bedienung der Modulreihenfolge: gleich große Griffe und Pfeiltasten, Platzrückmeldung für Screenreader und saubere Beendigung abgebrochener Ziehgesten.
+- Ruhige, einheitliche Ladeflächen für Karten, Ensemblegrafiken und Saisonmodelle.
+- Klarerer Aktivzustand der Navigation und kompakte mobile Legenden, ohne gespeicherte Einstellungen zu überschreiben.
+- Verbindlicherer Kilo-Handoff für ausdrücklich beauftragte MID-Codeänderungen; Prüfung und Veröffentlichung bleiben getrennt.
+
 # MID v0.9.85.431
 
 - Keine unnötigen aktuellen Wetterabrufe mehr beim offiziell eingestellten GeoSphere-AROME-Modell. Vorhandene Regional- und Globalprognosen bleiben verfügbar.

@@ -17,7 +17,7 @@ try{
   assert.doesNotMatch(html,/animation:|progressbar|°C|mm\/h|<svg|<canvas/);
  }
  const app=await readFile('src/App.tsx','utf8');
- assert.match(app,/aria-current=\{moreActive\?'page':undefined\}/);
+ assert.match(app,/aria-current=\{moreCurrent\?'page':undefined\}/);
  for(const file of ['src/App.tsx','src/MapWorkspacePanel.tsx','src/LongRangePanel.tsx'])assert.match(await readFile(file,'utf8'),/<ModuleLoadingState/);
  console.log('PASS: rendered chart/map status, neutral geometry, responsive containment, motion-free loading and consumer wiring.');
 }finally{await rm(dir,{recursive:true,force:true})}

@@ -1414,7 +1414,6 @@ button,[role="button"],summary{
  .search-input-shell>button,
  .hour-chart-tooltip>header button,
  .short-term-detail>header button,
- .dashboard-module-order-actions button,
  .weather-twin-recommendations footer button,
  .long-range-head-actions>button,
  .cockpit-weather-profile__stepper>button,
@@ -4328,10 +4327,10 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   line-height:1.35;
 }
 .dashboard-module-order-actions button{
-  width:32px;
-  min-width:32px;
-  height:32px;
-  min-height:32px;
+  width:44px;
+  min-width:44px;
+  height:44px;
+  min-height:44px;
 }
 .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
   width:28px;
@@ -4388,8 +4387,7 @@ html[data-theme='dark'] .runtime-offline-banner>svg{color:#ffd166}
   .current-weather-facts small{font-size:9px}
 }
 @media(pointer:coarse){
-  .dashboard-module-order-actions button,
-  .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
+   .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{
     min-width:36px;
     min-height:36px;
   }

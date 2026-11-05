@@ -98,6 +98,51 @@ assert.match(read('src/MountainWeather.tsx'),/mountainSportsForecast\(loc,config
 assert.deepEqual(activeCssSources(root),[...baseline.cssSources,'src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC48TabletTimeline.css'],'Established stylesheet precedence changed; only reviewed C21/C23/C26/C27 layers may follow the unchanged .169 eager cascade; C28 is owned by the async development component');
 const originalEntries=loadCssCascade(root).filter(entry=>!['src/midC21CurrentWeather.css','src/midC23CloudAudit.css','src/midC26UpdateRecovery.css','src/midC27CompactProfile.css','src/midC28MapPhase.css','src/midC48TabletTimeline.css'].includes(entry.file));
 const entries=loadCssCascade(root),removed=consolidateCssCascade(entries);
+// C55: seven exact, intentionally reviewed dashboard ergonomics changes.
+// Require each complete current fragment exactly once, then restore ONLY it on
+// the historical comparison AST. The immutable .169 fingerprint stays intact;
+// production generation and semantic equality are still checked independently.
+const reviewedC55DashboardCss={
+  "src/styles-src/10-features.css": [
+    [
+      ".dashboard-module-item{display:grid;grid-template-columns:44px minmax(0,1fr) auto;",
+      ".dashboard-module-item{display:grid;grid-template-columns:26px minmax(0,1fr) auto;"
+    ],
+    [
+      ".dashboard-module-grip{display:grid;width:44px;height:44px;",
+      ".dashboard-module-grip{display:grid;width:26px;height:34px;"
+    ],
+    [
+      "gap:8px;min-width:0;min-height:44px;cursor:pointer}.dashboard-module-item>label>span",
+      "gap:8px;min-width:0;cursor:pointer}.dashboard-module-item>label>span"
+    ],
+    [
+      ".dashboard-module-item{grid-template-columns:44px minmax(0,1fr)}",
+      ".dashboard-module-item{grid-template-columns:24px minmax(0,1fr)}"
+    ]
+  ],
+  "src/styles-src/30-modern.css": [
+    [
+      ".dashboard-module-order-actions button{\n  width:44px;\n  min-width:44px;\n  height:44px;\n  min-height:44px;\n}",
+      ".dashboard-module-order-actions button{\n  width:32px;\n  min-width:32px;\n  height:32px;\n  min-height:32px;\n}"
+    ],
+    [
+      " .short-term-detail>header button,\n .weather-twin-recommendations footer button,",
+      " .short-term-detail>header button,\n .dashboard-module-order-actions button,\n .weather-twin-recommendations footer button,"
+    ],
+    [
+      "@media(pointer:coarse){\n   .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{",
+      "@media(pointer:coarse){\n  .dashboard-module-order-actions button,\n  .ensemble-hazard-tooltip>.ensemble-hazard-compact-row>.mode-info>button{"
+    ]
+  ]
+};
+for(const entry of originalEntries){
+ const pairs=reviewedC55DashboardCss[entry.file];if(!pairs)continue;
+ let source=entry.original;
+ for(const [current,historical] of pairs){assert.equal(source.split(current).length-1,1,`${entry.file}: C55 dashboard delta must occur exactly once`);source=source.replace(current,historical)}
+ entry.tree=postcss.parse(source);
+}
+
 // C32 explicitly changes only the two Skybar preview/legend radii. Require the
 // new values, then restore just these declarations on the historical comparison
 // copy: every other .169 declaration and its order remain golden-checked.
