@@ -44,6 +44,14 @@ export function shortTermSignificantBrief(chartSlots:readonly WeatherBriefSlot[]
  const gust=rows.filter(row=>typeof row.point.gust==='number'&&Number.isFinite(row.point.gust)&&row.point.gust>SIGNIFICANT_GUST_KT).reduce<(typeof rows)[number]|undefined>((best,row)=>!best||row.point.gust>best.point.gust?row:best,undefined);
  if(gust)events.push(`Markante Böen bis ${format.gust(gust.point.gust)} ${format.at(gust.point.epoch)}`);
  if(events.length)return events.join(' · ');
- const available=rows.some(row=>knownAmount(row.point)||typeof row.point.gust==='number'&&Number.isFinite(row.point.gust));
- return available?'Keine markanten Wetterereignisse in den nächsten 24 Stunden.':'Kurzfristdaten unvollständig.';
+ const available=rows.some(row=>knownAmount(row.point)||typeof row.point.gust==='number'&&Number.isFinite(row.point.gust)&&row.point.gust>=0);
+ if(!available)return'Kurzfristdaten unvollständig.';
+ // An event-free 24h statement needs the entire UTC-validity window, gap-free
+ // final chart buckets (at most 1h), and valid precipitation AND gust fields.
+ // One observed dry hour, an unknown interval or a missing gust is not 24h clearance.
+ const complete24h=rows[0].start<=now+1000&&rows[rows.length-1].end>=endWindow-1000&&rows.every((row,index)=>
+  knownAmount(row.point)&&typeof row.point.gust==='number'&&Number.isFinite(row.point.gust)&&row.point.gust>=0&&
+  row.end-row.start<=HOUR_MS+1000&&(index===0||Math.abs(row.start-rows[index-1].end)<=1000)
+ );
+ return complete24h?'Keine markanten Wetterereignisse in den nächsten 24 Stunden.':'Keine markanten Signale in den vorliegenden Kurzfristdaten; 24-Stunden-Abdeckung unvollständig.';
 }
