@@ -1,3 +1,8 @@
+# MID v0.9.85.435
+
+- Kurzfristtexte kennzeichnen unvollständige24-Stunden-Abdeckung ausdrücklich. Fehlende Niederschlags- oder Böenwerte gelten nicht als ereignisfreie Stunden.
+- Vorhandene Niederschlags- und Böensignale bleiben auch bei unvollständigen Daten sichtbar.
+
 # MID v0.9.85.434
 
 - Bessere Bedienung der Modulreihenfolge mit gleich großen Griffen und Pfeiltasten, Screenreader-Rückmeldung und sauberem Abbruch von Ziehgesten.
