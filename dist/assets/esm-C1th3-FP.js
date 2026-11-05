@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./web-DCbxy00V.js","./index-BjB2B8gT.js","./rolldown-runtime-XKyaHtl9.js","./ReactVendor-DL2nAelm.js","./ChartsVendor-D1FWKg1o.js","./index-C4irdHqr.css"])))=>i.map(i=>d[i]);
+import{Fi as e,Ri as t}from"./index-BjB2B8gT.js";import{t as n}from"./synapse-I42WLusp.js";var r=t(`Geolocation`,{web:()=>e(()=>import(`./web-DCbxy00V.js`).then(e=>new e.GeolocationWeb),__vite__mapDeps([0,1,2,3,4,5]),import.meta.url)});n();export{r as Geolocation};
