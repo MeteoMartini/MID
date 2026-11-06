@@ -97,3 +97,6 @@ const bounded=harness({consent:true});bounded.startMidPosthogTelemetry();
 for(let i=0;i<100;i++)bounded.captureNav('today');
 assert.equal(bounded.requests.length,30);
 console.log('MID opt-in PostHog: 17 assertions + event-budget/privacy testgruppen PASS');
+
+// A stored opt-in without a configured transport must remain network silent.
+for(const options of [{token:''},{native:true},{host:'https://us.i.posthog.com'}]){const blocked=harness(options);assert.equal(blocked.setMidPosthogConsent(true),true);blocked.startMidPosthogTelemetry();blocked.captureNav('current');assert.equal(blocked.requests.length,0);blocked.setMidPosthogConsent(false);assert.equal(blocked.requests.length,0)}
