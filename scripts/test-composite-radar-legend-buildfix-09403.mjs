@@ -9,7 +9,7 @@ assert(source.includes("showRadar&&!highResolution&&activeSource==='dwd'&&dwdVis
 assert(source.includes("time:iso,tiled:true"),'1-km DWD radar must keep requesting the selected real radar time.');
 
 // The precipitation-type legend remains independent from the normal radar palette.
-assert(source.includes('PRECIPITATION_TYPE_LEGEND.map'),'Precipitation-type legend must use the fixed meteorological phase palette.');
+assert((source+await readFile(new URL('../src/RadarPhaseLegend.tsx',import.meta.url),'utf8')).includes('PRECIPITATION_TYPE_LEGEND.map'),'Precipitation-type legend must use the fixed meteorological phase palette.');
 assert(!source.includes('PrecipitationTypeLegend colorTable='),'Precipitation-type legend must not receive the selectable normal-radar colour table.');
 
 console.log('test-composite-radar-legend-buildfix-09403: ok');

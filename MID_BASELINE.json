@@ -2999,6 +2999,7 @@
     "src/MountainWeather.tsx",
     "src/RadarPanel.tsx",
     "src/RadarPhaseSymbols.css",
+    "src/RadarPhaseLegend.tsx",
     "src/SelectedPlaceBar.tsx",
     "src/SevenDayDesignModes.tsx",
     "src/SevenDayForecastSummary.tsx",

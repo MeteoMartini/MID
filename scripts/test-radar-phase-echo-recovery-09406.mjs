@@ -20,10 +20,11 @@ assert.match(phase,/typed==='freezing'&&\(!coldSupport\(temperature,wetBulb\)\|\
 assert.match(phase,/\(typed==='snow'\|\|typed==='mixed'\).*temperature>4.*wetBulb>1\.5/,'snow or mixed symbols must be suppressed in clearly warm thermodynamic conditions');
 assert.match(phase,/distanceKm\(existing,item\)<spacing/,'phase symbols must be spatially thinned');
 assert.match(phase,/HtmlMarker/,'phase overlay must render point symbols');
-assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity must control phase symbols');
+assert.match(phase,/opacity:\$\{safeOpacity\.toFixed\(2\)\}/,'user opacity controls symbol ink while the white plate stays opaque');
 assert.doesNotMatch(phase,/GeoJsonLayers|fill-opacity|Polygon/,'old filled phase polygons must stay removed');
 assert.match(panel,/disabled=\{!showRadar\}/,'precipitation type must be unavailable without a radar observation underneath');
 assert.match(panel,/selectObservation\('showPrecipitationType',selectedPrecipitationType,setShowPrecipitationType\)/,'precipitation type control must remain independently switchable');
 assert.match(panel,/precipitationTypeOpacity/,'phase opacity slider must remain available below the image');
 assert.match(styles,/\.radar-phase-symbol>span,\.radar-phase-symbol-shape\{display:block;width:19px;height:15px/,'phase symbols must remain compact enough to preserve radar gradations');
-console.log('ok - non-liquid precipitation is rendered as small semi-transparent symbols over the selected radar');
+assert.match(phase,/precipitationTypeSymbolSvg\(item.phase\).replace\('<g color='/,'Only ink opacity may change; the plate remains opaque');
+console.log('ok - solid/mixed/freezing precipitation uses opaque phase plates over verified radar');
