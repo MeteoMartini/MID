@@ -1,3 +1,10 @@
+## MID v0.9.85.440 · 2026-11-06 · Browserkompatibilität der MID-Revision
+
+- Vier browserabhängige MID-Revisionsjobs auf GitHub Ubuntu 24.04 gepinnt (Playwright 1.56.1); drei browserunabhängige Runner unverändert.
+- Kanonischer Workflow und aktiver Spiegel identisch; alle zehn Shards, Browser-/WebKit-Installation und fail-closed Abschlussprüfung unverändert.
+- Neue Runner-Negativregression; Pflichtinventar 1081 → 1082. RUC-Produktion/Worker-Verhalten unverändert, separat read-only überwacht.
+- Vollständiger Source-Gate/Installer/Worker/Pages/Stable-Pfad bleibt zwingend.
+
 ## MID v0.9.85.439 · 2026-11-06 · Gleichmäßige Kartenübergänge und markante Gefrierpunktachsen
 
 - Same-Model-Frame-Retention für Wolken/SIGWX während eines Laufwechsels; Renderer-Identität bleibt über Lauf- und Zeitschrittwechsel stabil. Modellwechsel behalten die bisherige strikte Trennung.
